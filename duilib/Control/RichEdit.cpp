@@ -303,6 +303,10 @@ CTxtWinHost::~CTxtWinHost()
 
 BOOL CTxtWinHost::Init(RichEdit *re, const CREATESTRUCT *pcs)
 {
+	if (re == nullptr)
+	{
+		return FALSE;
+	}
     IUnknown *pUnk = nullptr;
     HRESULT hr;
 	std::wstring edit_dll(L"msftedit.dll");
@@ -312,11 +316,15 @@ BOOL CTxtWinHost::Init(RichEdit *re, const CREATESTRUCT *pcs)
 
     // Create and cache CHARFORMAT for this control
     if(FAILED(InitDefaultCharFormat(re, &cf, NULL)))
-        goto err;
+	{
+		return FALSE;
+	}
 
     // Create and cache PARAFORMAT for this control
     if(FAILED(InitDefaultParaFormat(re, &pf)))
-        goto err;
+	{
+		return FALSE;
+	}
 
     // edit controls created without a window are multiline by default
     // so that paragraph formats can be
@@ -371,39 +379,29 @@ BOOL CTxtWinHost::Init(RichEdit *re, const CREATESTRUCT *pcs)
 		TextServicesProc(NULL, this, &pUnk);
 	}
 
-    hr = pUnk->QueryInterface(IID_ITextServices,(void **)&pserv);
+	if (pUnk != nullptr)
+	{
+		hr = pUnk->QueryInterface(IID_ITextServices, (void**)&pserv);
 
-    // Whether the previous call succeeded or failed we are done
-    // with the private interface.
-    pUnk->Release();
+		// Whether the previous call succeeded or failed we are done
+		// with the private interface.
+		pUnk->Release();
 
-    if(FAILED(hr))
-    {
-        goto err;
-    }
+		if (FAILED(hr))
+		{
+			return FALSE;
+		}
+	}
+    
 
     // Set window text
-    if(pcs && pcs->lpszName)
-    {
-#ifdef _UNICODE		
-        if(FAILED(pserv->TxSetText((TCHAR *)pcs->lpszName)))
-            goto err;
-#else
-        std::size_t iLen = _tcslen(pcs->lpszName);
-        LPWSTR lpText = new WCHAR[iLen + 1];
-        ::ZeroMemory(lpText, (iLen + 1) * sizeof(WCHAR));
-        ::MultiByteToWideChar(CP_ACP, 0, pcs->lpszName, -1, (LPWSTR)lpText, iLen) ;
-        if(FAILED(pserv->TxSetText((LPWSTR)lpText))) {
-            delete[] lpText;
-            goto err;
-        }
-        delete[] lpText;
-#endif
+    if(pserv && pcs && pcs->lpszName)
+    {	
+        if(SUCCEEDED(pserv->TxSetText((TCHAR *)pcs->lpszName)))
+		{
+			return TRUE;
+		}
     }
-
-    return TRUE;
-
-err:
     return FALSE;
 }
 

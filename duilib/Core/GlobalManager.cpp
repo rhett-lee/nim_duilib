@@ -432,7 +432,7 @@ HFONT GlobalManager::AddFont(const std::wstring& strFontId, const std::wstring& 
 	if (hFont == NULL) return NULL;
 
 	TFontInfo* pFontInfo = new TFontInfo;
-	if (!pFontInfo) return false;
+	if (!pFontInfo) return NULL;
 	pFontInfo->hFont = hFont;
 	pFontInfo->sFontName = fontName;
 	pFontInfo->iSize = nSize;

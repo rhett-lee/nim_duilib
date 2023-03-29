@@ -510,7 +510,8 @@ void MenuWndEx::OnFinalMessage(HWND hWnd)
 			}
 		}
 		m_pOwner->m_pSubMenuWindow = NULL;
-		m_pOwner->MouseLeave(ui::EventArgs());
+		EventArgs msg;
+		m_pOwner->MouseLeave(msg);
 	}
 	__super::OnFinalMessage(hWnd);
 }
