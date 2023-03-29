@@ -100,7 +100,6 @@ namespace ui
 	bool Grid::RemoveCol(int col_index){ return m_pBody->RemoveCol(col_index); }
 
 	void Grid::AttachTextChange(const EventCallback& callback){ return m_pBody->AttachTextChange(callback); }
-	bool Grid::LoadExcel(std::wstring file, int sheet_num, bool touch_header){ return m_pBody->LoadExcel(file, sheet_num, touch_header); };
 	bool Grid::AutoFixColWidth(int col_index, int min_width, int max_width){ return m_pBody->AutoFixColWidth(col_index, min_width, max_width); };
 	
 	const GridSelRange& Grid::GetSelRange() const{ return m_pBody->GetSelRange(); };

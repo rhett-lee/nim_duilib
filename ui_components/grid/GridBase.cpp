@@ -702,7 +702,10 @@ namespace ui
 			SetSelItem(row_index, col_index);
 		}
 		if (m_bSelAll)
+		{
 			m_bSelAll = false;
+		}
+		return true;
 	}
 
 	void GridSelRange::CtrlCorX(bool cut)

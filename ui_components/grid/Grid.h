@@ -166,15 +166,6 @@ namespace ui
 		void AttachTextChange(const EventCallback& callback);
 
 		/**
-		* @brief 导入excel
-		* @param[in] file:	excel路劲;
-		* @param[in] sheet_num:	导入的excel的第几页, base on 0;
-		* @param[in] touch_header: true表示excel的第一行做为Grid的Header内容
-		* @return 返回 true为成功，false 为失败
-		*/
-		bool LoadExcel(std::wstring file, int sheet_num, bool touch_header);
-
-		/**
 		* @brief 列根据内容自动调整宽度
 		* @param[in] col_index:	要调整的列序号, base on 0;
 		* @param[in] min_width:	最小宽度;

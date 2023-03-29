@@ -188,7 +188,8 @@ void MainForm::InitWindow()
 	});
 	btn_import_excel->AttachClick([this, grid](ui::EventArgs* args){
 		grid->Clear(true);
-		grid->LoadExcel(L"grid_test.xlsx", 0, true);
+		
+		//LoadExcel(L"grid_test.xlsx", 0, true);
 
 		GridItem* pItem = grid->GetGridItem(1, 1); 
 		if (pItem)

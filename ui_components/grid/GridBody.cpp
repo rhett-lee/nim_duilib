@@ -1,7 +1,6 @@
 #include "StdAfx.h"
 #include "GridBody.h"
 #include "Grid.h"
-#include "../third_party/libxl/include/libxl.h"
 #include <sstream>
 #include <thread>
 
@@ -548,6 +547,7 @@ namespace ui
 		{
 			return m_hLayout[col_index];
 		}
+		return -1;
 	}
 	void GridBody::SetColumnWidth(int col_index, int width)
 	{
@@ -571,6 +571,7 @@ namespace ui
 		{
 			return m_vLayout[row_index];
 		}
+		return -1;
 	}
 	void GridBody::SetRowHeight(int row_index, int height)
 	{
@@ -884,156 +885,6 @@ namespace ui
 		{
 			SetColCount(1);
 		}
-	}
-
-	bool GridBody::LoadExcel(std::wstring file, int sheet_num, bool touch_header)
-	{
-		auto dealNumberD2 = [](double d) -> std::wstring {
-			std::wostringstream out;
-			out.precision(std::numeric_limits<double>::digits10);
-			out << d;
-			return out.str();
-		};
-
-		bool ret = false;
-		libxl::Book* book = NULL;
-		if (file.find(L"xlsx") != std::wstring::npos){
-			book = xlCreateXMLBook();
-		}
-		else if (file.find(L"xls") != std::wstring::npos){
-			book = xlCreateBook();
-		}
-		if (book)
-		{
-			if (book->load(file.c_str()))
-			{
-				int sheet_count = book->sheetCount();
-				printf("sheetCount %d\n", sheet_count);
-
-				for (int s = 0; s < sheet_count; s++)
-				{
-					if (s != sheet_num)
-						continue;
-					std::wstring sheet_name = book->getSheet(s)->name();
-
-					int date_costom_format = -1;
-
-					libxl::Sheet* pSheet = book->getSheet(s);
-					if (pSheet)
-					{
-						int row_num = pSheet->lastRow();
-						int col_num = pSheet->lastCol();
-						int additional_header_row = (touch_header ? 0 : 1);	//计算额外的一行
-						if (GetRowCount() < row_num + additional_header_row)
-							SetRowCount(row_num + additional_header_row);
-						if (GetColCount() < col_num + 1)
-							SetColCount(col_num + 1);
-
-						for (int row = 0; row < row_num; ++row)
-						{
-							for (int col = 0; col < col_num; ++col)
-							{
-								std::wstring str;
-								libxl::CellType t = pSheet->cellType(row, col);
-								if (t == libxl::CellType::CELLTYPE_EMPTY || t == libxl::CellType::CELLTYPE_BLANK){
-								}
-								else if (t == libxl::CellType::CELLTYPE_STRING){
-									const wchar_t* s = pSheet->readStr(row, col);
-									if (s)
-										str = s;
-								}
-								else if (t == libxl::CellType::CELLTYPE_NUMBER){
-									/*enum NumFormat {
-									NUMFORMAT_GENERAL, NUMFORMAT_NUMBER, NUMFORMAT_NUMBER_D2, NUMFORMAT_NUMBER_SEP, NUMFORMAT_NUMBER_SEP_D2,
-									NUMFORMAT_CURRENCY_NEGBRA, NUMFORMAT_CURRENCY_NEGBRARED, NUMFORMAT_CURRENCY_D2_NEGBRA, NUMFORMAT_CURRENCY_D2_NEGBRARED,
-									NUMFORMAT_PERCENT, NUMFORMAT_PERCENT_D2, NUMFORMAT_SCIENTIFIC_D2, NUMFORMAT_FRACTION_ONEDIG, NUMFORMAT_FRACTION_TWODIG,
-									NUMFORMAT_DATE, NUMFORMAT_CUSTOM_D_MON_YY, NUMFORMAT_CUSTOM_D_MON, NUMFORMAT_CUSTOM_MON_YY,
-									NUMFORMAT_CUSTOM_HMM_AM, NUMFORMAT_CUSTOM_HMMSS_AM, NUMFORMAT_CUSTOM_HMM, NUMFORMAT_CUSTOM_HMMSS,
-									NUMFORMAT_CUSTOM_MDYYYY_HMM,
-									NUMFORMAT_NUMBER_SEP_NEGBRA = 37, NUMFORMAT_NUMBER_SEP_NEGBRARED,
-									NUMFORMAT_NUMBER_D2_SEP_NEGBRA, NUMFORMAT_NUMBER_D2_SEP_NEGBRARED, NUMFORMAT_ACCOUNT, NUMFORMAT_ACCOUNTCUR,
-									NUMFORMAT_ACCOUNT_D2, NUMFORMAT_ACCOUNT_D2_CUR, NUMFORMAT_CUSTOM_MMSS, NUMFORMAT_CUSTOM_H0MMSS,
-									NUMFORMAT_CUSTOM_MMSS0, NUMFORMAT_CUSTOM_000P0E_PLUS0, NUMFORMAT_TEXT
-									};*/
-									libxl::IFormatT<TCHAR>* format;
-									double num = pSheet->readNum(row, col, &format);
-									int num_format = format->numFormat();
-
-									TCHAR buf[128] = {};
-									if (num_format == libxl::NUMFORMAT_GENERAL || num_format == libxl::NUMFORMAT_NUMBER || num_format == libxl::NUMFORMAT_NUMBER_SEP)
-									{
-										str = dealNumberD2(num);
-									}
-									else if (num_format == libxl::NUMFORMAT_NUMBER_D2 || num_format == libxl::NUMFORMAT_NUMBER_SEP_D2)
-									{
-										str = dealNumberD2(num);
-									}
-									else if (num_format == libxl::NUMFORMAT_PERCENT || num_format == libxl::NUMFORMAT_PERCENT_D2)
-									{
-										swprintf_s(buf, 128, L"%.2f", num * 100);
-										str = buf;
-									}
-									else if (num_format == libxl::NUMFORMAT_DATE || num_format == libxl::NUMFORMAT_CUSTOM_D_MON_YY || num_format == libxl::NUMFORMAT_CUSTOM_D_MON || num_format == libxl::NUMFORMAT_CUSTOM_MON_YY)
-									{
-										int y = 0, m = 0, d = 0;
-										if (book->dateUnpack(num, &y, &m, &d))
-										{
-											wchar_t buf[32] = {};
-											swprintf_s(buf, L"%04d-%02d-%02d", y, m, d);
-											str = buf;
-										}
-									}
-									else
-									{
-										if (date_costom_format == -1)
-										{
-											const wchar_t* p1 = book->customNumFormat(num_format);
-											if (p1 && wcslen(p1) > 0 && (wcscmp(p1, L"yyyy\\-mm\\-dd") == 0 || wcscmp(p1, L"yyyy-mm-dd") == 0
-												|| wcscmp(p1, L"yyyy/m/d;@") == 0 || wcscmp(p1, L"yyyy/mm/dd;@") == 0
-												|| wcscmp(p1, L"yyyy/m/d") == 0 || wcscmp(p1, L"yyyy/mm/dd") == 0))
-											{
-												date_costom_format = num_format;
-											}
-										}
-
-										if (date_costom_format != -1 && date_costom_format == num_format)
-										{
-											int y = 0, m = 0, d = 0;
-											if (book->dateUnpack(num, &y, &m, &d))
-											{
-												wchar_t buf[32] = {};
-												swprintf_s(buf, L"%04d-%02d-%02d", y, m, d);
-												str = buf;
-											}
-										}
-										else
-										{
-#ifdef _DEBUG
-											printf("unknown data %d [%d, %d] costom_format:%d\n", s, row, col, t);
-#endif
-											str = L"xxxxxx";
-										}
-									}
-								}
-								else
-								{
-#ifdef _DEBUG
-									printf("unknown data %d [%d, %d] CellType:%d\n", s, row, col, t);
-#endif
-									str = L"xxxxxx";
-								}
-								SetGridItemText(str, row + additional_header_row, col + 1);
-							}
-						}
-					}
-					ret = true;
-				}
-			}
-
-			book->release();
-
-		}
-		return ret;
 	}
 
 	bool GridBody::AutoFixColWidth(int col_index, int min_width, int max_width)
@@ -1361,6 +1212,7 @@ namespace ui
 				}
 			}
 		}
+		return true;
 	}
 
 	bool GridBody::OnKeyDown(EventArgs& msg)
