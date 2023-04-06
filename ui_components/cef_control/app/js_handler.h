@@ -1,5 +1,5 @@
 /** @file js_handler.h
- * @brief å®šä¹‰ä¸€ä¸ªC++ä¸JSè¿›è¡Œäº¤äº’çš„JsHandlerç±»
+ * @brief ¶¨ÒåÒ»¸öC++ÓëJS½øĞĞ½»»¥µÄJsHandlerÀà
  * @copyright (c) 2016, NetEase Inc. All rights reserved
  * @author Redrain
  * @date 2016/7/19

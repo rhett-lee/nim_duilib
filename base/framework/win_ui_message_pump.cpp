@@ -33,9 +33,9 @@ WinUIMessagePump::~WinUIMessagePump()
 void WinUIMessagePump::ScheduleWork()
 {
 	if (::InterlockedExchange(&have_work_, 1))
-		return;	// Pumpå·²ç»å¼€å§‹
+		return;	// PumpÒÑ¾­¿ªÊ¼
 
-	// é€šçŸ¥MessagePumpæœ‰æ–°ä»»åŠ¡åˆ°è¾¾ï¼Œå¦‚æœMessagePumpå¤„äºç¡çœ çŠ¶æ€ï¼Œè¿™å°†å”¤é†’å®ƒ
+	// Í¨ÖªMessagePumpÓĞĞÂÈÎÎñµ½´ï£¬Èç¹ûMessagePump´¦ÓÚË¯Ãß×´Ì¬£¬Õâ½«»½ĞÑËü
 	::PostMessageW(message_hwnd_, kMsgHaveWork, reinterpret_cast<WPARAM>(this), 0);
 }
 

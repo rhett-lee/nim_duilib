@@ -91,7 +91,7 @@ std::unique_ptr<ui::ImageInfo> SvgUtil::LoadImageBySvg(void *data, const std::ws
 	}
 	nsvgRasterize(rast.get(), svg.get(), 0, 0, scale, pBmpBits, w, h, w * 4);
 
-	// nanosvgå†…éƒ¨å·²ç»åšè¿‡alphaé¢„ä¹˜ï¼Œè¿™é‡ŒåªåšRå’ŒBçš„äº¤æ¢
+	// nanosvgÄÚ²¿ÒÑ¾­×ö¹ıalphaÔ¤³Ë£¬ÕâÀïÖ»×öRºÍBµÄ½»»»
 	for (int y = 0; y < h; y++) {
 		unsigned char *row = &pBmpBits[y*w*4];
 		for (int x = 0; x < w; x++) {

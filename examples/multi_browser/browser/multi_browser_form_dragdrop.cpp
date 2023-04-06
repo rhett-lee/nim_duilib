@@ -71,7 +71,7 @@ HRESULT MultiBrowserForm::DragEnter(IDataObject * pDataObject, DWORD grfKeyState
 	if (NULL == drop_helper_)
 		return S_OK;
 
-	// å¦‚æœä¸æ˜¯æ‹–æ‹½æµè§ˆå™¨ç›’å­
+	// Èç¹û²»ÊÇÍÏ×§ä¯ÀÀÆ÷ºĞ×Ó
 	if (!MultiBrowserManager::GetInstance()->IsDragingBorwserBox())
 	{
 		if (NULL != active_browser_box_)
@@ -94,7 +94,7 @@ HRESULT MultiBrowserForm::DragOver(DWORD grfKeyState, POINTL pt, DWORD *pdwEffec
 	if (NULL == drop_helper_)
 		return S_OK;
 
-	// å¦‚æœä¸æ˜¯æ‹–æ‹½æµè§ˆå™¨ç›’å­
+	// Èç¹û²»ÊÇÍÏ×§ä¯ÀÀÆ÷ºĞ×Ó
 	if (!MultiBrowserManager::GetInstance()->IsDragingBorwserBox())
 	{
 		if (NULL != active_browser_box_)
@@ -116,7 +116,7 @@ HRESULT MultiBrowserForm::DragLeave(void)
 	if (NULL == drop_helper_)
 		return S_OK;
 
-	// å¦‚æœä¸æ˜¯æ‹–æ‹½æµè§ˆå™¨ç›’å­
+	// Èç¹û²»ÊÇÍÏ×§ä¯ÀÀÆ÷ºĞ×Ó
 	if (!MultiBrowserManager::GetInstance()->IsDragingBorwserBox())
 	{
 		if (NULL != active_browser_box_)
@@ -131,7 +131,7 @@ HRESULT MultiBrowserForm::DragLeave(void)
 
 HRESULT MultiBrowserForm::Drop(IDataObject *pDataObj, DWORD grfKeyState, POINTL pt, DWORD __RPC_FAR *pdwEffect)
 {
-	// å¦‚æœä¸æ˜¯æ‹–æ‹½æµè§ˆå™¨ç›’å­
+	// Èç¹û²»ÊÇÍÏ×§ä¯ÀÀÆ÷ºĞ×Ó
 	if (!MultiBrowserManager::GetInstance()->IsDragingBorwserBox())
 	{
 #if 0
@@ -173,14 +173,14 @@ bool MultiBrowserForm::OnProcessTabItemDrag(ui::EventArgs* param)
 
 			is_drag_state_ = true;
 
-			// æŠŠè¢«æ‹–æ‹½çš„æµè§ˆå™¨ç›’å­ç”Ÿæˆä¸€ä¸ªå®½åº¦300çš„ä½å›¾
+			// °Ñ±»ÍÏ×§µÄä¯ÀÀÆ÷ºĞ×ÓÉú³ÉÒ»¸ö¿í¶È300µÄÎ»Í¼
 			HBITMAP bitmap = NULL;
 			if (nim_comp::CefManager::GetInstance()->IsEnableOffsetRender())
 				bitmap = GenerateBoxOffsetRenderBitmap(borwser_box_tab_->GetPos(true));
 			else
 				bitmap = GenerateBoxWindowBitmap();
 
-			// ptåº”è¯¥æŒ‡å®šç›¸å¯¹bitmapä½å›¾çš„å·¦ä¸Šè§’(0,0)çš„åæ ‡,è¿™é‡Œè®¾ç½®ä¸ºbitmapçš„ä¸­ä¸Šç‚¹
+			// ptÓ¦¸ÃÖ¸¶¨Ïà¶ÔbitmapÎ»Í¼µÄ×óÉÏ½Ç(0,0)µÄ×ø±ê,ÕâÀïÉèÖÃÎªbitmapµÄÖĞÉÏµã
 			POINT pt = { kDragImageWidth / 2, 0 };
 
 			StdClosure cb = [=]{
@@ -243,13 +243,13 @@ HBITMAP MultiBrowserForm::GenerateBoxWindowBitmap()
 	int src_width = src_rect.right - src_rect.left;
 	int src_height = src_rect.bottom - src_rect.top;
 
-	//åˆ›å»ºä¸€ä¸ªå†…å­˜DC
+	//´´½¨Ò»¸öÄÚ´æDC
 	HDC cef_window_dc = GetDC(cef_window);
 	HDC cef_Dc = CreateCompatibleDC(cef_window_dc);
 	HBITMAP cef_bitmap = CreateCompatibleBitmap(cef_window_dc, src_width, src_height);
 	SelectObject(cef_Dc, cef_bitmap);
 
-	//å¤åˆ¶Cefå†…éƒ¨å­çª—ä½“çš„ä½å›¾åˆ°å†…å­˜DC
+	//¸´ÖÆCefÄÚ²¿×Ó´°ÌåµÄÎ»Í¼µ½ÄÚ´æDC
 	BitBlt(cef_Dc, 0, 0, src_width, src_height, cef_window_dc, 0, 0, SRCCOPY);
 
 	auto render = GlobalManager::CreateRenderContext();
@@ -273,7 +273,7 @@ HBITMAP MultiBrowserForm::GenerateBoxWindowBitmap()
 			src_rect.left, src_rect.top, src_rect.right - src_rect.left, src_rect.bottom - src_rect.top);
 	}
 
-	// é‡Šæ”¾èµ„æº
+	// ÊÍ·Å×ÊÔ´
 	DeleteDC(cef_Dc);
 	DeleteObject(cef_bitmap);
 	ReleaseDC(NULL, cef_window_dc);

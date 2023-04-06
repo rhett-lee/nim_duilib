@@ -15,273 +15,273 @@ public:
 	virtual ~PlaceHolder();
 
 	/**
-	 * @brief è·å–çˆ¶å®¹å™¨æŒ‡é’ˆ
-	 * @return è¿”å›çˆ¶å®¹å™¨æŒ‡é’ˆ
+	 * @brief »ñÈ¡¸¸ÈİÆ÷Ö¸Õë
+	 * @return ·µ»Ø¸¸ÈİÆ÷Ö¸Õë
 	 */
 	Box* GetParent() const { return m_pParent;}
 
 	/**
-	 * @brief æ ¹æ®åç§°è·å–ç¥–å…ˆå®¹å™¨æŒ‡é’ˆ
-	 * @param[in] strName è¦è·å–çš„ç¥–å…ˆå®¹å™¨åç§°
-	 * @return è¿”å›ç¥–å…ˆå®¹å™¨æŒ‡é’ˆ
+	 * @brief ¸ù¾İÃû³Æ»ñÈ¡×æÏÈÈİÆ÷Ö¸Õë
+	 * @param[in] strName Òª»ñÈ¡µÄ×æÏÈÈİÆ÷Ãû³Æ
+	 * @return ·µ»Ø×æÏÈÈİÆ÷Ö¸Õë
 	 */
 	Box* GetAncestor(const std::wstring& strName);
 
 	/**
-	 * @brief è·å–æ§ä»¶åç§°ï¼Œå¯¹åº” xml ä¸­ name å±æ€§
-	 * @return è¿”å›æ§ä»¶åç§°
+	 * @brief »ñÈ¡¿Ø¼şÃû³Æ£¬¶ÔÓ¦ xml ÖĞ name ÊôĞÔ
+	 * @return ·µ»Ø¿Ø¼şÃû³Æ
 	 */
 	std::wstring GetName() const;
 
 	/**
-	 * @brief è·å–æ§ä»¶åç§°ï¼Œå¯¹åº” xml ä¸­ name å±æ€§
-	 * @return è¿”å›æ§ä»¶åç§°ï¼ˆUTF8 ç¼–ç ï¼‰
+	 * @brief »ñÈ¡¿Ø¼şÃû³Æ£¬¶ÔÓ¦ xml ÖĞ name ÊôĞÔ
+	 * @return ·µ»Ø¿Ø¼şÃû³Æ£¨UTF8 ±àÂë£©
 	 */
 	std::string GetUTF8Name() const;
 
 	/**
-	 * @brief è®¾ç½®æ§ä»¶åç§°ï¼Œå†…å­˜ä¸­è®¾ç½®ä¸ä¼šå†™å…¥ xml ä¸­
-	 * @param[in] strName è¦è®¾ç½®çš„åç§°
-	 * @return æ— 
+	 * @brief ÉèÖÃ¿Ø¼şÃû³Æ£¬ÄÚ´æÖĞÉèÖÃ²»»áĞ´Èë xml ÖĞ
+	 * @param[in] strName ÒªÉèÖÃµÄÃû³Æ
+	 * @return ÎŞ
 	 */
 	void SetName(const std::wstring& strName);
 
 	/**
-	 * @brief è®¾ç½®æ§ä»¶åç§°ï¼Œå†…å­˜ä¸­è®¾ç½®ä¸ä¼šå†™å…¥ xml ä¸­ï¼ˆUTF8 ç¼–ç ï¼‰
-	 * @param[in] strName è¦è®¾ç½®çš„åç§°
-	 * @return æ— 
+	 * @brief ÉèÖÃ¿Ø¼şÃû³Æ£¬ÄÚ´æÖĞÉèÖÃ²»»áĞ´Èë xml ÖĞ£¨UTF8 ±àÂë£©
+	 * @param[in] strName ÒªÉèÖÃµÄÃû³Æ
+	 * @return ÎŞ
 	 */
 	void SetUTF8Name(const std::string& strName);
 
 	/**
-	 * @brief è·å–å…³è”çš„çª—å£æŒ‡é’ˆ
-	 * @return è¿”å›å…³è”çª—å£çš„æŒ‡é’ˆ
+	 * @brief »ñÈ¡¹ØÁªµÄ´°¿ÚÖ¸Õë
+	 * @return ·µ»Ø¹ØÁª´°¿ÚµÄÖ¸Õë
 	 */
 	virtual Window* GetWindow() const;
 
 	/**
-	 * @brief è®¾ç½®å®¹å™¨æ‰€å±çª—å£
-	 * @param[in] pManager çª—å£æŒ‡é’ˆ
-	 * @param[in] pParent çˆ¶å®¹å™¨
-	 * @param[in] bInit è®¾ç½®åæ˜¯å¦è°ƒç”¨ Init åˆå§‹åŒ–æ§ä»¶
-	 * @return æ— 
+	 * @brief ÉèÖÃÈİÆ÷ËùÊô´°¿Ú
+	 * @param[in] pManager ´°¿ÚÖ¸Õë
+	 * @param[in] pParent ¸¸ÈİÆ÷
+	 * @param[in] bInit ÉèÖÃºóÊÇ·ñµ÷ÓÃ Init ³õÊ¼»¯¿Ø¼ş
+	 * @return ÎŞ
 	 */
 	virtual void SetWindow(Window* pManager, Box* pParent, bool bInit = true);
 
 	/**
-	 * @brief è®¾ç½®å®¹å™¨æ‰€å±çª—å£
-	 * @param[in] pManager çª—å£æŒ‡é’ˆ
-	 * @return æ— 
+	 * @brief ÉèÖÃÈİÆ÷ËùÊô´°¿Ú
+	 * @param[in] pManager ´°¿ÚÖ¸Õë
+	 * @return ÎŞ
 	 */
 	virtual void SetWindow(Window* pManager);
 
 	/**
-	 * @brief åˆå§‹åŒ–å‡½æ•°
-	 * @return æ— 
+	 * @brief ³õÊ¼»¯º¯Êı
+	 * @return ÎŞ
 	 */
 	virtual void Init();
 
 	/**
-	 * @brief ç”± Init è°ƒç”¨ï¼ŒåŠŸèƒ½ä¸ Init ç›¸åŒ
-	 * @return æ— 
+	 * @brief ÓÉ Init µ÷ÓÃ£¬¹¦ÄÜÓë Init ÏàÍ¬
+	 * @return ÎŞ
 	 */
 	virtual void DoInit();
 
 	/**
-	 * @brief åˆ¤æ–­æ˜¯å¦å¯è§
-	 * @return è¿”å› true ä¸ºå¯è§ï¼Œå¦åˆ™ false ä¸ºä¸å¯è§
+	 * @brief ÅĞ¶ÏÊÇ·ñ¿É¼û
+	 * @return ·µ»Ø true Îª¿É¼û£¬·ñÔò false Îª²»¿É¼û
 	 */
 	virtual bool IsVisible() const;
 
 	/**
-	 * @brief å¾…è¡¥å……
-	 * @param[in] å¾…è¡¥å……
-	 * @return å¾…è¡¥å……
+	 * @brief ´ı²¹³ä
+	 * @param[in] ´ı²¹³ä
+	 * @return ´ı²¹³ä
 	 */
 	bool IsInternVisible() const;
 
 	/**
-	 * @brief åˆ¤æ–­æ§ä»¶æ˜¯å¦æµ®åŠ¨ï¼Œå¯¹åº” xml ä¸­ float å±æ€§
-	 * @return è¿”å› true æ˜¯æµ®åŠ¨çŠ¶æ€ï¼Œå¦åˆ™ false ä¸ºéæµ®åŠ¨çŠ¶æ€
+	 * @brief ÅĞ¶Ï¿Ø¼şÊÇ·ñ¸¡¶¯£¬¶ÔÓ¦ xml ÖĞ float ÊôĞÔ
+	 * @return ·µ»Ø true ÊÇ¸¡¶¯×´Ì¬£¬·ñÔò false Îª·Ç¸¡¶¯×´Ì¬
 	 */
 	bool IsFloat() const;
 
 	/**
-	 * @brief è®¾ç½®æ§ä»¶æ˜¯å¦æµ®åŠ¨
-	 * @param[in] bFloat è®¾ç½®ä¸º true ä¸ºæµ®åŠ¨ï¼Œfalse ä¸ºä¸æµ®åŠ¨
-	 * @return æ— 
+	 * @brief ÉèÖÃ¿Ø¼şÊÇ·ñ¸¡¶¯
+	 * @param[in] bFloat ÉèÖÃÎª true Îª¸¡¶¯£¬false Îª²»¸¡¶¯
+	 * @return ÎŞ
 	 */
 	void SetFloat(bool bFloat = true);
 
 	/**
-	 * @brief è·å–å›ºå®šå®½åº¦ï¼Œå¯¹åº” xml ä¸­ width å±æ€§
-	 * @return è¿”å›æ§ä»¶å®½åº¦
+	 * @brief »ñÈ¡¹Ì¶¨¿í¶È£¬¶ÔÓ¦ xml ÖĞ width ÊôĞÔ
+	 * @return ·µ»Ø¿Ø¼ş¿í¶È
 	 */
 	int GetFixedWidth() const;
 
 	/**
-	 * @brief è®¾ç½®æ§ä»¶å›ºå®šå®½åº¦
-	 * @param[in] cx è¦è®¾ç½®çš„å®½åº¦
-	 * @param[in] bArrange æ˜¯å¦é‡æ–°æ’åˆ—ï¼Œé»˜è®¤ä¸º true
-	 * @param[in] bNeedDpiScale å…¼å®¹ DPI ç¼©æ”¾ï¼Œé»˜è®¤ä¸º true
-	 * @return æ— 
+	 * @brief ÉèÖÃ¿Ø¼ş¹Ì¶¨¿í¶È
+	 * @param[in] cx ÒªÉèÖÃµÄ¿í¶È
+	 * @param[in] bArrange ÊÇ·ñÖØĞÂÅÅÁĞ£¬Ä¬ÈÏÎª true
+	 * @param[in] bNeedDpiScale ¼æÈİ DPI Ëõ·Å£¬Ä¬ÈÏÎª true
+	 * @return ÎŞ
 	 */
 	void SetFixedWidth(int cx, bool bArrange = true, bool bNeedDpiScale = true);
 
 	/**
-	 * @brief è·å–å›ºå®šé«˜åº¦
-	 * @return è¿”å›å›ºå®šé«˜åº¦
+	 * @brief »ñÈ¡¹Ì¶¨¸ß¶È
+	 * @return ·µ»Ø¹Ì¶¨¸ß¶È
 	 */
 	int GetFixedHeight() const;
 
 	/**
-	 * @brief è®¾ç½®å›ºå®šé«˜åº¦
-	 * @param[in] cy è¦è®¾ç½®çš„å›ºå®šé«˜åº¦
-	 * @param[in] bNeedDpiScale å…¼å®¹ DPI ç¼©æ”¾ï¼Œé»˜è®¤ä¸º true
-	 * @return æ— 
+	 * @brief ÉèÖÃ¹Ì¶¨¸ß¶È
+	 * @param[in] cy ÒªÉèÖÃµÄ¹Ì¶¨¸ß¶È
+	 * @param[in] bNeedDpiScale ¼æÈİ DPI Ëõ·Å£¬Ä¬ÈÏÎª true
+	 * @return ÎŞ
 	 */
 	void SetFixedHeight(int cy, bool bNeedDpiScale = true);
 
 	/**
-	 * @brief è·å–æœ€å°å®½åº¦
-	 * @return è¿”å›æœ€å°å®½åº¦
+	 * @brief »ñÈ¡×îĞ¡¿í¶È
+	 * @return ·µ»Ø×îĞ¡¿í¶È
 	 */
 	int GetMinWidth() const;
 
 	/**
-	 * @brief è®¾ç½®æœ€å°å®½åº¦
-	 * @param[in] cx è¦è®¾ç½®çš„æœ€å°å®½åº¦
-	 * @return æ— 
+	 * @brief ÉèÖÃ×îĞ¡¿í¶È
+	 * @param[in] cx ÒªÉèÖÃµÄ×îĞ¡¿í¶È
+	 * @return ÎŞ
 	 */
 	void SetMinWidth(int cx);
 
 	/**
-	 * @brief è·å–æœ€å¤§å®½åº¦
-	 * @return è¿”å›æœ€å¤§å®½åº¦
+	 * @brief »ñÈ¡×î´ó¿í¶È
+	 * @return ·µ»Ø×î´ó¿í¶È
 	 */
 	int GetMaxWidth() const;
 
 	/**
-	 * @brief è®¾ç½®æœ€å¤§å®½åº¦
-	 * @param[in] cx è¦è®¾ç½®çš„æœ€å¤§å®½åº¦
-	 * @return æ— 
+	 * @brief ÉèÖÃ×î´ó¿í¶È
+	 * @param[in] cx ÒªÉèÖÃµÄ×î´ó¿í¶È
+	 * @return ÎŞ
 	 */
 	void SetMaxWidth(int cx);
 
 	/**
-	 * @brief è·å–æœ€å°é«˜åº¦
-	 * @return è¿”å›æœ€å°é«˜åº¦
+	 * @brief »ñÈ¡×îĞ¡¸ß¶È
+	 * @return ·µ»Ø×îĞ¡¸ß¶È
 	 */
 	int GetMinHeight() const;
 
 	/**
-	 * @brief è®¾ç½®æœ€å°é«˜åº¦
-	 * @param[in] cy è¦è®¾ç½®çš„æœ€å°é«˜åº¦
-	 * @return æ— 
+	 * @brief ÉèÖÃ×îĞ¡¸ß¶È
+	 * @param[in] cy ÒªÉèÖÃµÄ×îĞ¡¸ß¶È
+	 * @return ÎŞ
 	 */
 	void SetMinHeight(int cy);
 
 	/**
-	 * @brief è·å–æœ€å¤§é«˜åº¦
-	 * @return è¿”å›æœ€å¤§é«˜åº¦
+	 * @brief »ñÈ¡×î´ó¸ß¶È
+	 * @return ·µ»Ø×î´ó¸ß¶È
 	 */
 	int GetMaxHeight() const;
 
 	/**
-	 * @brief è®¾ç½®æœ€å¤§é«˜åº¦
-	 * @param[in] cy è¦è®¾ç½®çš„æœ€å¤§é«˜åº¦
-	 * @return æ— 
+	 * @brief ÉèÖÃ×î´ó¸ß¶È
+	 * @param[in] cy ÒªÉèÖÃµÄ×î´ó¸ß¶È
+	 * @return ÎŞ
 	 */
 	void SetMaxHeight(int cy);
 
 	/**
-	 * @brief è·å–å®é™…å®½åº¦
-	 * @return è¿”å›å®é™…å®½åº¦
+	 * @brief »ñÈ¡Êµ¼Ê¿í¶È
+	 * @return ·µ»ØÊµ¼Ê¿í¶È
 	 */
 	int GetWidth() const;
 
 	/**
-	 * @brief è·å–å®é™…é«˜åº¦
-	 * @return è¿”å›å®é™…é«˜åº¦
+	 * @brief »ñÈ¡Êµ¼Ê¸ß¶È
+	 * @return ·µ»ØÊµ¼Ê¸ß¶È
 	 */
 	int GetHeight() const;
 
 	/**
-	 * @brief è·å–æ°´å¹³å¯¹é½æ–¹å¼
-	 * @return è¿”å›æ°´å¹³å¯¹é½æ–¹å¼ï¼Œå‚è€ƒ HorAlignType æšä¸¾
+	 * @brief »ñÈ¡Ë®Æ½¶ÔÆë·½Ê½
+	 * @return ·µ»ØË®Æ½¶ÔÆë·½Ê½£¬²Î¿¼ HorAlignType Ã¶¾Ù
 	 */
 	HorAlignType GetHorAlignType() const;
 
 	/**
-	 * @brief è®¾ç½®æ°´å¹³å¯¹é½æ–¹å¼
-	 * @param[in] horAlignType è¦è®¾ç½®çš„å¯¹é½æ–¹å¼ï¼Œå‚è€ƒ HorAlignType æšä¸¾
-	 * @return æ— 
+	 * @brief ÉèÖÃË®Æ½¶ÔÆë·½Ê½
+	 * @param[in] horAlignType ÒªÉèÖÃµÄ¶ÔÆë·½Ê½£¬²Î¿¼ HorAlignType Ã¶¾Ù
+	 * @return ÎŞ
 	 */
 	void SetHorAlignType(HorAlignType horAlignType);
 
 	/**
-	 * @brief è·å–å‚ç›´å¯¹é½æ–¹å¼
-	 * @return è¿”å›å‚ç›´å¯¹é½æ–¹å¼ï¼Œå‚è§ VerAlignType æšä¸¾
+	 * @brief »ñÈ¡´¹Ö±¶ÔÆë·½Ê½
+	 * @return ·µ»Ø´¹Ö±¶ÔÆë·½Ê½£¬²Î¼û VerAlignType Ã¶¾Ù
 	 */
 	VerAlignType GetVerAlignType() const;
 
 	/**
-	 * @brief è®¾ç½®å‚ç›´å¯¹é½æ–¹å¼
-	 * @param[in] vorAlignType è¦è®¾ç½®çš„å¯¹é½æ–¹å¼ï¼Œå‚è€ƒ VerAlignType æšä¸¾
-	 * @return æ— 
+	 * @brief ÉèÖÃ´¹Ö±¶ÔÆë·½Ê½
+	 * @param[in] vorAlignType ÒªÉèÖÃµÄ¶ÔÆë·½Ê½£¬²Î¿¼ VerAlignType Ã¶¾Ù
+	 * @return ÎŞ
 	 */
 	void SetVerAlignType(VerAlignType verAlignType);
 
 	/**
-	 * @brief å¾…è¡¥å……
-	 * @param[in] å¾…è¡¥å……
-	 * @return å¾…è¡¥å……
+	 * @brief ´ı²¹³ä
+	 * @param[in] ´ı²¹³ä
+	 * @return ´ı²¹³ä
 	 */
 	bool IsReEstimateSize() const;
 
 	/**
-	 * @brief å¾…è¡¥å……
-	 * @param[in] å¾…è¡¥å……
-	 * @return å¾…è¡¥å……
+	 * @brief ´ı²¹³ä
+	 * @param[in] ´ı²¹³ä
+	 * @return ´ı²¹³ä
 	 */
 	void SetReEstimateSize(bool bReEstimateSize);
 
 	/**
-	 * @brief å¾…è¡¥å……
-	 * @param[in] å¾…è¡¥å……
-	 * @return å¾…è¡¥å……
+	 * @brief ´ı²¹³ä
+	 * @param[in] ´ı²¹³ä
+	 * @return ´ı²¹³ä
 	 */
 	virtual CSize EstimateSize(CSize szAvailable);
 
 	/**
-	 * @brief è·å–æ§ä»¶ä½ç½®
-	 * @param[in] bContainShadow æ˜¯å¦åŒ…å«é˜´å½±ä½ç½®ï¼Œé»˜è®¤ä¸º true
-	 * @return è¿”å›æ§ä»¶ä½ç½®
+	 * @brief »ñÈ¡¿Ø¼şÎ»ÖÃ
+	 * @param[in] bContainShadow ÊÇ·ñ°üº¬ÒõÓ°Î»ÖÃ£¬Ä¬ÈÏÎª true
+	 * @return ·µ»Ø¿Ø¼şÎ»ÖÃ
 	 */
 	virtual	UiRect GetPos(bool bContainShadow = true) const;
 
 	/**
-	 * @brief è®¾ç½®æ§ä»¶ä½ç½®
-	 * @param[in] rc è¦è®¾ç½®çš„ä½ç½®ä¿¡æ¯
-	 * @return æ— 
+	 * @brief ÉèÖÃ¿Ø¼şÎ»ÖÃ
+	 * @param[in] rc ÒªÉèÖÃµÄÎ»ÖÃĞÅÏ¢
+	 * @return ÎŞ
 	 */
 	virtual void SetPos(UiRect rc);
 
 	/**
-	 * @brief è¿›è¡Œå¸ƒå±€
-	 * @return æ— 
+	 * @brief ½øĞĞ²¼¾Ö
+	 * @return ÎŞ
 	 */
 	virtual void Arrange();
 
 	/**
-	 * @brief è®©çˆ¶å®¹å™¨é‡æ’
-	 * @return æ— 
+	 * @brief ÈÃ¸¸ÈİÆ÷ÖØÅÅ
+	 * @return ÎŞ
 	 */
 	virtual void ArrangeAncestor();
 
 	/**
-	 * @brief åˆ¤æ–­æ˜¯å¦å·²ç»æ’åˆ—è¿‡
-	 * @return true ä¸ºå·²ç»æ’åˆ—è¿‡ï¼Œfalse ä¸ºå°šæœªæ’åˆ—
+	 * @brief ÅĞ¶ÏÊÇ·ñÒÑ¾­ÅÅÁĞ¹ı
+	 * @return true ÎªÒÑ¾­ÅÅÁĞ¹ı£¬false ÎªÉĞÎ´ÅÅÁĞ
 	 */
 	bool IsArranged() const;
 
@@ -291,20 +291,20 @@ public:
 	bool IsCacheDirty() { return m_bUseCache && m_bCacheDirty; }
 
 	/**
-	 * @brief é‡ç»˜æ§ä»¶
-	 * @return æ— 
+	 * @brief ÖØ»æ¿Ø¼ş
+	 * @return ÎŞ
 	 */
 	virtual void Invalidate();
 
 	/**
-	 * @brief è·å–æ§ä»¶å®é™…çš„ä½ç½®ï¼ˆå¸ƒå±€ä½ç½®åŠ å¤–å±‚æ»šåŠ¨åçš„åç§»ä½ç½®ï¼‰
-	 * @param[in] bContainShadow æ˜¯å¦è€ƒè™‘çª—å£é˜´å½±å°ºå¯¸
-	 * @return UiRect æ§ä»¶å®é™…çš„ä½ç½®
+	 * @brief »ñÈ¡¿Ø¼şÊµ¼ÊµÄÎ»ÖÃ£¨²¼¾ÖÎ»ÖÃ¼ÓÍâ²ã¹ö¶¯ºóµÄÆ«ÒÆÎ»ÖÃ£©
+	 * @param[in] bContainShadow ÊÇ·ñ¿¼ÂÇ´°¿ÚÒõÓ°³ß´ç
+	 * @return UiRect ¿Ø¼şÊµ¼ÊµÄÎ»ÖÃ
 	 */
 	UiRect GetPosWithScrollOffset(bool bContainShadow = true) const;
 
 	/**
-	 * @brief è·å–å¤–å±‚æ»šåŠ¨åç§»
+	 * @brief »ñÈ¡Íâ²ã¹ö¶¯Æ«ÒÆ
 	 * @return CPoint
 	 */
 	CPoint GetScrollOffset() const;
@@ -312,8 +312,8 @@ public:
 	static bool IsChild(PlaceHolder* pAncestor, PlaceHolder* pChild);
 protected:
 	/**
-	 * @brief è®©è‡ªå·±é‡æ’
-	 * @return void æ— 
+	 * @brief ÈÃ×Ô¼ºÖØÅÅ
+	 * @return void ÎŞ
 	 */
 	virtual void ArrangeSelf();
 

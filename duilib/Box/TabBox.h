@@ -11,10 +11,10 @@ class UILIB_API TabBox : public Box
 public:
 	TabBox(Layout* pLayout = new Layout());
 
-	// ç”¨äºåˆå§‹åŒ–xmlå±æ€§
+	// ÓÃÓÚ³õÊ¼»¯xmlÊôĞÔ
 	virtual void DoInit() override;
 
-	/// é‡å†™çˆ¶ç±»æ–¹æ³•ï¼Œæä¾›ä¸ªæ€§åŒ–åŠŸèƒ½ï¼Œè¯·å‚è€ƒçˆ¶ç±»å£°æ˜
+	/// ÖØĞ´¸¸Àà·½·¨£¬Ìá¹©¸öĞÔ»¯¹¦ÄÜ£¬Çë²Î¿¼¸¸ÀàÉùÃ÷
 	virtual std::wstring GetType() const override;
 	virtual bool Add(Control* pControl) override;
 	virtual bool AddAt(Control* pControl, std::size_t iIndex) override;
@@ -24,62 +24,62 @@ public:
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 
 	/**
-	 * @brief è·å–å½“å‰é€‰æ‹©é¡¹
-	 * @return è¿”å›å½“å‰é€‰æ‹©é¡¹ç´¢å¼•
+	 * @brief »ñÈ¡µ±Ç°Ñ¡ÔñÏî
+	 * @return ·µ»Øµ±Ç°Ñ¡ÔñÏîË÷Òı
 	 */
 	int GetCurSel() const;
 
 	/**
-	 * @brief æ ¹æ®æ§ä»¶ç´¢å¼•é€‰æ‹©ä¸€ä¸ªå­é¡¹
-	 * @param[in] iIndex è¦é€‰æ‹©çš„å­é¡¹ç´¢å¼•
-	 * @return æˆåŠŸè¿”å› trueï¼Œå¦åˆ™è¿”å› false
+	 * @brief ¸ù¾İ¿Ø¼şË÷ÒıÑ¡ÔñÒ»¸ö×ÓÏî
+	 * @param[in] iIndex ÒªÑ¡ÔñµÄ×ÓÏîË÷Òı
+	 * @return ³É¹¦·µ»Ø true£¬·ñÔò·µ»Ø false
 	 */
 	bool SelectItem(int iIndex);
 
 	/**
-	 * @brief æ ¹æ®æ§ä»¶æŒ‡é’ˆé€‰æ‹©ä¸€ä¸ªå­é¡¹
-	 * @param[in] pControl è¦é€‰æ‹©çš„å­é¡¹æŒ‡é’ˆ
-	 * @return æˆåŠŸè¿”å› trueï¼Œå¦åˆ™è¿”å› false
+	 * @brief ¸ù¾İ¿Ø¼şÖ¸ÕëÑ¡ÔñÒ»¸ö×ÓÏî
+	 * @param[in] pControl ÒªÑ¡ÔñµÄ×ÓÏîÖ¸Õë
+	 * @return ³É¹¦·µ»Ø true£¬·ñÔò·µ»Ø false
 	 */
 	bool SelectItem(Control* pControl);
 
 	/**
-	 * @brief æ ¹æ®æ§ä»¶åç§°é€‰æ‹©ä¸€ä¸ªå­é¡¹
-	 * @param[in] pControlName è¦é€‰æ‹©çš„æ§ä»¶åç§°
-	 * @return æˆåŠŸè¿”å› trueï¼Œå¦åˆ™è¿”å› false
+	 * @brief ¸ù¾İ¿Ø¼şÃû³ÆÑ¡ÔñÒ»¸ö×ÓÏî
+	 * @param[in] pControlName ÒªÑ¡ÔñµÄ¿Ø¼şÃû³Æ
+	 * @return ³É¹¦·µ»Ø true£¬·ñÔò·µ»Ø false
 	 */
 	bool SelectItem(const std::wstring& pControlName);
 
 	/**
-	 * @brief è®¾ç½®æ˜¯å¦æ˜¾ç¤ºåŠ¨ç”»æ•ˆæœ
-	 * @param[in] bFadeSwitch è®¾ç½®ä¸º true åˆ™æ˜¾ç¤ºï¼Œfalse ä¸ºä¸æ˜¾ç¤ºåŠ¨ç”»
-	 * @return æ— 
+	 * @brief ÉèÖÃÊÇ·ñÏÔÊ¾¶¯»­Ğ§¹û
+	 * @param[in] bFadeSwitch ÉèÖÃÎª true ÔòÏÔÊ¾£¬false Îª²»ÏÔÊ¾¶¯»­
+	 * @return ÎŞ
 	 */
 	void SetFadeSwitch(bool bFadeSwitch);
 
 	/**
-	 * @brief åˆ¤æ–­æ˜¯å¦éœ€è¦æ˜¾ç¤ºåŠ¨ç”»æ•ˆæœ
-	 * @return è¿”å› true æ˜¾ç¤ºåŠ¨ç”»ï¼Œfalse ä¸ºä¸æ˜¾ç¤ºåŠ¨ç”»æ•ˆæœ
+	 * @brief ÅĞ¶ÏÊÇ·ñĞèÒªÏÔÊ¾¶¯»­Ğ§¹û
+	 * @return ·µ»Ø true ÏÔÊ¾¶¯»­£¬false Îª²»ÏÔÊ¾¶¯»­Ğ§¹û
 	 */
 	bool IsFadeSwitch() { return m_bFadeSwith; }
 	
-	/** @brief ç›‘å¬é€‰æ‹©æ—¶é—´
-	  * @param[in] callback äº‹ä»¶å¤„ç†çš„å›è°ƒå‡½æ•°ï¼Œè¯·å‚è€ƒ EventCallback å£°æ˜
-	  * @return æ— 
+	/** @brief ¼àÌıÑ¡ÔñÊ±¼ä
+	  * @param[in] callback ÊÂ¼ş´¦ÀíµÄ»Øµ÷º¯Êı£¬Çë²Î¿¼ EventCallback ÉùÃ÷
+	  * @return ÎŞ
 	  */
 	void AttachSelect(const EventCallback& callback) { OnEvent[kEventSelect] += callback; }
 protected:
 	/**
-	 * @brief æ˜¾ç¤ºä¸€ä¸ª TAB é¡¹
-	 * @param[in] it TAB é¡¹ç´¢å¼•
-	 * @return æ— 
+	 * @brief ÏÔÊ¾Ò»¸ö TAB Ïî
+	 * @param[in] it TAB ÏîË÷Òı
+	 * @return ÎŞ
 	 */
 	void ShowTabItem(std::size_t it);
 
 	/**
-	 * @brief éšè—ä¸€ä¸ª TAB é¡¹
-	 * @param[in] it TAB é¡¹ç´¢å¼•
-	 * @return æ— 
+	 * @brief Òş²ØÒ»¸ö TAB Ïî
+	 * @param[in] it TAB ÏîË÷Òı
+	 * @return ÎŞ
 	 */
 	void HideTabItem(std::size_t it);
 

@@ -16,9 +16,9 @@ class BASE_EXPORT WinMessagePump: public MessagePump
 {
 public:
 
-	//	UIæ¶ˆæ¯æ´¾å‘å™¨
-	//	UIæ¶ˆæ¯æ³µå¦‚æœä½¿ç”¨æ¶ˆæ¯æ´¾å‘å™¨ï¼Œé‚£ä¹ˆå°†ä¸å†ä½¿ç”¨ç»å…¸çš„
-	//	TranslateMessage/DispatchMessageæ¨¡å¼è€Œæ”¹ç”±Dispatcheræ¥å®Œæˆ
+	//	UIÏûÏ¢ÅÉ·¢Æ÷
+	//	UIÏûÏ¢±ÃÈç¹ûÊ¹ÓÃÏûÏ¢ÅÉ·¢Æ÷£¬ÄÇÃ´½«²»ÔÙÊ¹ÓÃ¾­µäµÄ
+	//	TranslateMessage/DispatchMessageÄ£Ê½¶ø¸ÄÓÉDispatcherÀ´Íê³É
 	class BASE_EXPORT Dispatcher
 	{
 	public:
@@ -38,23 +38,23 @@ public:
 protected:
 	struct RunState
 	{
-		int run_depth;				// åµŒå¥—è°ƒç”¨æ·±åº¦
-		bool should_quit;			// æ˜¯å¦åº”è¯¥ç«‹å³é€€å‡º
-		Delegate* delegate;			// å¤„ç†ä»»åŠ¡çš„å§”æ‰˜
-		Dispatcher* dispatcher;		// æ¶ˆæ¯æ´¾å‘å™¨
+		int run_depth;				// Ç¶Ì×µ÷ÓÃÉî¶È
+		bool should_quit;			// ÊÇ·ñÓ¦¸ÃÁ¢¼´ÍË³ö
+		Delegate* delegate;			// ´¦ÀíÈÎÎñµÄÎ¯ÍĞ
+		Dispatcher* dispatcher;		// ÏûÏ¢ÅÉ·¢Æ÷
 	};
 
-	// å–å½“å‰å®šæ—¶é—´éš”
+	// È¡µ±Ç°¶¨Ê±¼ä¸ô
 	int64_t GetCurrentDelay() const;
 	virtual void DoRunLoop() = 0;
 
-	// å®šæ—¶ä»»åŠ¡ä¸‹æ¬¡è¿è¡Œçš„æ—¶é—´
+	// ¶¨Ê±ÈÎÎñÏÂ´ÎÔËĞĞµÄÊ±¼ä
 	TimeTicks delayed_work_time_;
 
-	// æŒ‡ç¤ºæ¶ˆæ¯é˜Ÿåˆ—ä¸­æ˜¯å¦æœ‰kMsgDoWorkæ¶ˆæ¯
+	// Ö¸Ê¾ÏûÏ¢¶ÓÁĞÖĞÊÇ·ñÓĞkMsgDoWorkÏûÏ¢
 	long have_work_;
 
-	// æŒ‡ç¤ºå½“å‰MessagePumpçš„çŠ¶æ€
+	// Ö¸Ê¾µ±Ç°MessagePumpµÄ×´Ì¬
 	RunState* state_;
 };
 

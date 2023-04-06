@@ -11,7 +11,7 @@ class UILIB_API ButtonTemplate : public LabelTemplate<InheritType>
 public:
     ButtonTemplate();
 
-    /// é‡å†™çˆ¶ç±»æ–¹æ³•ï¼Œæä¾›ä¸ªæ€§åŒ–åŠŸèƒ½ï¼Œè¯·å‚è€ƒçˆ¶ç±»å£°æ˜Ž
+    /// ÖØÐ´¸¸Àà·½·¨£¬Ìá¹©¸öÐÔ»¯¹¦ÄÜ£¬Çë²Î¿¼¸¸ÀàÉùÃ÷
     virtual std::wstring GetType() const override;
     virtual UIAControlProvider* GetUIAProvider() override;
     virtual void Activate() override;
@@ -19,9 +19,9 @@ public:
     virtual UINT GetControlFlags() const override;
 
     /**
-        * @brief ç»‘å®šé¼ æ ‡ç‚¹å‡»å¤„ç†å‡½æ•°
-        * @param[in] callback è¦ç»‘å®šçš„å›žè°ƒå‡½æ•°
-        * @return æ— 
+        * @brief °ó¶¨Êó±êµã»÷´¦Àíº¯Êý
+        * @param[in] callback Òª°ó¶¨µÄ»Øµ÷º¯Êý
+        * @return ÎÞ
         */
     void AttachClick(const EventCallback& callback) { this->OnEvent[kEventClick] += callback; }
 };

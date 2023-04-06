@@ -10,35 +10,35 @@ namespace ui
 {
 
 /**
- * @brief è™šæ‹Ÿåˆ—è¡¨æ¥å£ç±»
- * æä¾›å¼€å‘è€…å¯¹å­é¡¹æ•°æ®ç®¡ç†ä¸ªæ€§åŒ–å®šåˆ¶
+ * @brief ĞéÄâÁĞ±í½Ó¿ÚÀà
+ * Ìá¹©¿ª·¢Õß¶Ô×ÓÏîÊı¾İ¹ÜÀí¸öĞÔ»¯¶¨ÖÆ
  */
 class VirtualListInterface
 {
 public:
 	/**
-	 * @brief åˆ›å»ºä¸€ä¸ªå­é¡¹
-	 * @return è¿”å›åˆ›å»ºåçš„å­é¡¹æŒ‡é’ˆ
+	 * @brief ´´½¨Ò»¸ö×ÓÏî
+	 * @return ·µ»Ø´´½¨ºóµÄ×ÓÏîÖ¸Õë
 	 */
 	virtual Control* CreateElement() = 0;
 
 	/**
-	 * @brief å¡«å……æŒ‡å®šå­é¡¹
-	 * @param[in] control å­é¡¹æ§ä»¶æŒ‡é’ˆ
-	 * @param[in] index ç´¢å¼•
-	 * @return è¿”å›åˆ›å»ºåçš„å­é¡¹æŒ‡é’ˆ
+	 * @brief Ìî³äÖ¸¶¨×ÓÏî
+	 * @param[in] control ×ÓÏî¿Ø¼şÖ¸Õë
+	 * @param[in] index Ë÷Òı
+	 * @return ·µ»Ø´´½¨ºóµÄ×ÓÏîÖ¸Õë
 	 */
 	virtual void FillElement(Control *control, int index) = 0;
 
 	/**
-	 * @brief è·å–å­é¡¹æ€»æ•°
-	 * @return è¿”å›å­é¡¹æ€»æ•°
+	 * @brief »ñÈ¡×ÓÏî×ÜÊı
+	 * @return ·µ»Ø×ÓÏî×ÜÊı
 	 */
 	virtual int GetElementCount() = 0;
 };
 
 /**
- * @brief è™šæ‹Ÿåˆ—è¡¨
+ * @brief ĞéÄâÁĞ±í
  */
 class UILIB_API VirtualVLayout : public VLayout
 {
@@ -62,30 +62,30 @@ public:
 	virtual std::wstring GetType() const override;
 
 	/**
-	 * @brief è®¾ç½®æ•°æ®ä»£ç†å¯¹è±¡
-	 * @param[in] pProvider å¼€å‘è€…éœ€è¦é‡å†™ VirtualListInterface çš„æ¥å£æ¥ä½œä¸ºæ•°æ®ä»£ç†å¯¹è±¡
-	 * @return æ— 
+	 * @brief ÉèÖÃÊı¾İ´úÀí¶ÔÏó
+	 * @param[in] pProvider ¿ª·¢ÕßĞèÒªÖØĞ´ VirtualListInterface µÄ½Ó¿ÚÀ´×÷ÎªÊı¾İ´úÀí¶ÔÏó
+	 * @return ÎŞ
 	 */
 	virtual void SetDataProvider(VirtualListInterface *pProvider);
 
 	/**
-	 * @brief è®¾ç½®å­é¡¹é«˜åº¦
-	 * @param[in] nHeight é«˜åº¦å€¼
-	 * @return æ— 
+	 * @brief ÉèÖÃ×ÓÏî¸ß¶È
+	 * @param[in] nHeight ¸ß¶ÈÖµ
+	 * @return ÎŞ
 	 */
 	virtual void SetElementHeight(int nHeight);
 
 	/**
-	 * @brief åˆå§‹åŒ–å­é¡¹
-	 * @param[in] nMaxItemCount åˆå§‹åŒ–æ•°é‡ï¼Œé»˜è®¤ 50
-	 * @return æ— 
+	 * @brief ³õÊ¼»¯×ÓÏî
+	 * @param[in] nMaxItemCount ³õÊ¼»¯ÊıÁ¿£¬Ä¬ÈÏ 50
+	 * @return ÎŞ
 	 */
 	virtual void InitElement(int nMaxItemCount = 50);
 
 	/**
-	 * @brief è®¾ç½®åˆ—è¡¨çš„çºµæ¨ªæ–¹å‘
-	 * @param[in] direction æ–¹å‘
-	 * @return æ— 
+	 * @brief ÉèÖÃÁĞ±íµÄ×İºá·½Ïò
+	 * @param[in] direction ·½Ïò
+	 * @return ÎŞ
 	 */
 	enum ListDirection
 	{
@@ -95,78 +95,78 @@ public:
 	void SetDirection(ListDirection direction);
 
 	/**
-	 * @brief åˆ·æ–°åˆ—è¡¨
-	 * @return æ— 
+	 * @brief Ë¢ĞÂÁĞ±í
+	 * @return ÎŞ
 	 */
 	virtual void Refresh();
 
 	/**
-	 * @brief åˆ é™¤æ‰€æœ‰å­é¡¹
-	 * @return æ— 
+	 * @brief É¾³ıËùÓĞ×ÓÏî
+	 * @return ÎŞ
 	 */
 	virtual void RemoveAll() override;
 
 	/**
-	 * @brief è®¾ç½®æ˜¯å¦å¼ºåˆ¶é‡æ–°å¸ƒå±€
-	 * @param[in] bForce è®¾ç½®ä¸º true ä¸ºå¼ºåˆ¶ï¼Œå¦åˆ™ä¸ºä¸å¼ºåˆ¶
-	 * @return æ— 
+	 * @brief ÉèÖÃÊÇ·ñÇ¿ÖÆÖØĞÂ²¼¾Ö
+	 * @param[in] bForce ÉèÖÃÎª true ÎªÇ¿ÖÆ£¬·ñÔòÎª²»Ç¿ÖÆ
+	 * @return ÎŞ
 	 */
 	void SetForceArrange(bool bForce);
 
 	/**
-	 * @brief è·å–å½“å‰æ‰€æœ‰å¯è§æ§ä»¶çš„ç´¢å¼•
-	 * @param[out] collection ç´¢å¼•åˆ—è¡¨
-	 * @return æ— 
+	 * @brief »ñÈ¡µ±Ç°ËùÓĞ¿É¼û¿Ø¼şµÄË÷Òı
+	 * @param[out] collection Ë÷ÒıÁĞ±í
+	 * @return ÎŞ
 	 */
     void GetDisplayCollection(std::vector<int>& collection);
 
 	/**
-	 * @brief è®©æ§ä»¶åœ¨å¯è§èŒƒå›´å†…
-	 * @param[in] iIndex æ§ä»¶ç´¢å¼•
-	 * @param[in] bToTop æ˜¯å¦åœ¨æœ€ä¸Šæ–¹
-	 * @return æ— 
+	 * @brief ÈÃ¿Ø¼şÔÚ¿É¼û·¶Î§ÄÚ
+	 * @param[in] iIndex ¿Ø¼şË÷Òı
+	 * @param[in] bToTop ÊÇ·ñÔÚ×îÉÏ·½
+	 * @return ÎŞ
 	 */
     void EnsureVisible(int iIndex, bool bToTop = false);
 
 protected:
-	/// é‡å†™çˆ¶ç±»æ¥å£ï¼Œæä¾›ä¸ªæ€§åŒ–åŠŸèƒ½
+	/// ÖØĞ´¸¸Àà½Ó¿Ú£¬Ìá¹©¸öĞÔ»¯¹¦ÄÜ
 	virtual void SetScrollPos(ui::CSize szPos) override;
 	virtual void HandleMessage(ui::EventArgs& event) override;
 	virtual void SetPos(UiRect rc) override;
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 
 	/**
-	 * @brief é‡æ–°å¸ƒå±€å­é¡¹
-	 * @param[in] bForce æ˜¯å¦å¼ºåˆ¶é‡æ–°å¸ƒå±€
-	 * @return æ— 
+	 * @brief ÖØĞÂ²¼¾Ö×ÓÏî
+	 * @param[in] bForce ÊÇ·ñÇ¿ÖÆÖØĞÂ²¼¾Ö
+	 * @return ÎŞ
 	 */
 	void ReArrangeChild(bool bForce);
 
 	/**
-	 * @brief æ·»åŠ ä¸€ä¸ªå­é¡¹
-	 * @param[in] iIndex è¦æ’å…¥çš„ä½ç½®
-	 * @return æ— 
+	 * @brief Ìí¼ÓÒ»¸ö×ÓÏî
+	 * @param[in] iIndex Òª²åÈëµÄÎ»ÖÃ
+	 * @return ÎŞ
 	 */
 	void AddElement(int iIndex);
 
 	/**
-	 * @brief ç§»é™¤ä¸€ä¸ªå­é¡¹
-	 * @param[in] iIndex è¦ç§»é™¤çš„å­é¡¹ç´¢å¼•
-	 * @return æ— 
+	 * @brief ÒÆ³ıÒ»¸ö×ÓÏî
+	 * @param[in] iIndex ÒªÒÆ³ıµÄ×ÓÏîË÷Òı
+	 * @return ÎŞ
 	 */
 	void RemoveElement(int iIndex);
 
 	/**
-	 * @brief é”®ç›˜æŒ‰ä¸‹é€šçŸ¥
-	 * @param[in] ch æŒ‰é”®
-	 * @return æ— 
+	 * @brief ¼üÅÌ°´ÏÂÍ¨Öª
+	 * @param[in] ch °´¼ü
+	 * @return ÎŞ
 	 */
 	virtual void OnKeyDown(TCHAR ch) {}
 
 	/**
-	 * @brief é”®ç›˜å¼¹èµ·é€šçŸ¥
-	 * @param[in] ch æŒ‰é”®
-	 * @return æ— 
+	 * @brief ¼üÅÌµ¯ÆğÍ¨Öª
+	 * @param[in] ch °´¼ü
+	 * @return ÎŞ
 	 */
 	virtual void OnKeyUp(TCHAR ch) {}
 
@@ -178,66 +178,66 @@ private:
 	};
 
 	/**
-	 * @brief åˆ›å»ºä¸€ä¸ªå­é¡¹
-	 * @return è¿”å›åˆ›å»ºåçš„å­é¡¹æŒ‡é’ˆ
+	 * @brief ´´½¨Ò»¸ö×ÓÏî
+	 * @return ·µ»Ø´´½¨ºóµÄ×ÓÏîÖ¸Õë
 	 */
 	Control* CreateElement();
 
 	/**
-	 * @brief å¡«å……æŒ‡å®šå­é¡¹
-	 * @param[in] control å­é¡¹æ§ä»¶æŒ‡é’ˆ
-	 * @param[in] index ç´¢å¼•
-	 * @return è¿”å›åˆ›å»ºåçš„å­é¡¹æŒ‡é’ˆ
+	 * @brief Ìî³äÖ¸¶¨×ÓÏî
+	 * @param[in] control ×ÓÏî¿Ø¼şÖ¸Õë
+	 * @param[in] index Ë÷Òı
+	 * @return ·µ»Ø´´½¨ºóµÄ×ÓÏîÖ¸Õë
 	 */
 	void FillElement(Control *pControl, int iIndex);
 
 	/**
-	 * @brief è·å–å…ƒç´ æ€»æ•°
-	 * @return è¿”å›å…ƒç´ æ€»æŒ‡æ•°
+	 * @brief »ñÈ¡ÔªËØ×ÜÊı
+	 * @return ·µ»ØÔªËØ×ÜÖ¸Êı
 	 */
 	int GetElementCount();
 
 	/**
-	 * @brief ä½¿ç”¨é»˜è®¤å¸ƒå±€
-	 * @return æˆåŠŸè¿”å› trueï¼Œå¦åˆ™è¿”å› false
+	 * @brief Ê¹ÓÃÄ¬ÈÏ²¼¾Ö
+	 * @return ³É¹¦·µ»Ø true£¬·ñÔò·µ»Ø false
 	 */
 	bool UseDefaultLayout();
 
 	/**
-	 * @brief å¾—åˆ°nä¸ªå…ƒç´ å¯¹åº”çš„é«˜åº¦å’Œï¼Œ
-	 * @param[in] nCount è¦å¾—åˆ°å¤šå°‘å…ƒç´ çš„é«˜åº¦ï¼Œ-1è¡¨ç¤ºå…¨éƒ¨å…ƒç´ 
-	 * @return è¿”å›æŒ‡å®šæ•°é‡å…ƒç´ çš„é«˜åº¦å’Œ
+	 * @brief µÃµ½n¸öÔªËØ¶ÔÓ¦µÄ¸ß¶ÈºÍ£¬
+	 * @param[in] nCount ÒªµÃµ½¶àÉÙÔªËØµÄ¸ß¶È£¬-1±íÊ¾È«²¿ÔªËØ
+	 * @return ·µ»ØÖ¸¶¨ÊıÁ¿ÔªËØµÄ¸ß¶ÈºÍ
 	 */
     int CalcElementsHeight(int nCount);
 
 	/**
-	 * @brief å¾—åˆ°å¯è§èŒƒå›´å†…ç¬¬ä¸€ä¸ªå…ƒç´ çš„å‰ä¸€ä¸ªå…ƒç´ ç´¢å¼•
-	 * @param[out] bottom è¿”å›ä¸Šä¸€ä¸ªå…ƒç´ çš„ bottom å€¼
-	 * @return è¿”å›ä¸Šä¸€ä¸ªå…ƒç´ çš„ç´¢å¼•
+	 * @brief µÃµ½¿É¼û·¶Î§ÄÚµÚÒ»¸öÔªËØµÄÇ°Ò»¸öÔªËØË÷Òı
+	 * @param[out] bottom ·µ»ØÉÏÒ»¸öÔªËØµÄ bottom Öµ
+	 * @return ·µ»ØÉÏÒ»¸öÔªËØµÄË÷Òı
 	 */
 	int GetTopElementIndex(int &bottom);
 
 	/**
-	 * @brief åˆ¤æ–­æŸä¸ªå…ƒç´ æ˜¯å¦åœ¨å¯è§èŒƒå›´å†…
-	 * @param[in] iIndex å…ƒç´ ç´¢å¼•
-	 * @return è¿”å› true è¡¨ç¤ºå¯è§ï¼Œå¦åˆ™ä¸ºä¸å¯è§
+	 * @brief ÅĞ¶ÏÄ³¸öÔªËØÊÇ·ñÔÚ¿É¼û·¶Î§ÄÚ
+	 * @param[in] iIndex ÔªËØË÷Òı
+	 * @return ·µ»Ø true ±íÊ¾¿É¼û£¬·ñÔòÎª²»¿É¼û
 	 */
     bool IsElementDisplay(int iIndex);
 
     /**
-     * @brief åˆ¤æ–­æ˜¯å¦è¦é‡æ–°å¸ƒå±€
-	 * @param[out] direction å‘ä¸Šæ»šåŠ¨è¿˜æ˜¯å‘ä¸‹æ»šåŠ¨
-	 * @return true ä¸ºéœ€è¦é‡æ–°å¸ƒå±€ï¼Œå¦åˆ™ä¸º false
+     * @brief ÅĞ¶ÏÊÇ·ñÒªÖØĞÂ²¼¾Ö
+	 * @param[out] direction ÏòÉÏ¹ö¶¯»¹ÊÇÏòÏÂ¹ö¶¯
+	 * @return true ÎªĞèÒªÖØĞÂ²¼¾Ö£¬·ñÔòÎª false
      */
 	bool NeedReArrange(ScrollDirection &direction);
 
 private:
 	VirtualListInterface *m_pDataProvider;
-	int m_nElementHeight;	// æ¯ä¸ªé¡¹çš„åœ¨åˆ—è¡¨æ–¹å‘çš„é•¿åº¦
-	int m_nMaxItemCount;	// åˆ—è¡¨çœŸå®æ§ä»¶æ•°é‡ä¸Šé™  
+	int m_nElementHeight;	// Ã¿¸öÏîµÄÔÚÁĞ±í·½ÏòµÄ³¤¶È
+	int m_nMaxItemCount;	// ÁĞ±íÕæÊµ¿Ø¼şÊıÁ¿ÉÏÏŞ  
 	int m_nOldYScrollPos;
 	bool m_bArrangedOnce;
-	bool m_bForceArrange;	// å¼ºåˆ¶å¸ƒå±€æ ‡è®°
+	bool m_bForceArrange;	// Ç¿ÖÆ²¼¾Ö±ê¼Ç
 
 	ListDirection m_eDirection = kListVertical;
 };

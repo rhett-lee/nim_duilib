@@ -3,12 +3,12 @@
 
 namespace nim_comp
 {
-//map<çª—å£ç±»åï¼Œmap<çª—å£idï¼Œçª—å£æŒ‡é’ˆ>>, å¦‚æœåŒä¸€ç±»åªæœ‰ä¸€ä¸ªçª—å£ï¼Œä½¿ç”¨ç±»åä½œä¸ºid
+//map<´°¿ÚÀàÃû£¬map<´°¿Úid£¬´°¿ÚÖ¸Õë>>, Èç¹ûÍ¬Ò»ÀàÖ»ÓĞÒ»¸ö´°¿Ú£¬Ê¹ÓÃÀàÃû×÷Îªid
 typedef std::map<std::wstring, std::map<std::wstring, WindowEx*>> WindowsMap;
 typedef std::list<WindowEx *> WindowList;
 
 /** @class WindowsManager
- * @brief æ‰€æœ‰çª—ä½“çš„æ§åˆ¶æ¥
+ * @brief ËùÓĞ´°ÌåµÄ¿ØÖÆ½Ó
  * @copyright (c) 2015, NetEase Inc. All rights reserved
  * @author Redrain
  * @date 2015/9/16
@@ -21,67 +21,67 @@ public:
 	virtual ~WindowsManager();
 
 	/**
-	 * æ ¹æ®çª—å£ç±»åå’Œidæ³¨å†Œçª—å£
-	 * @param[in] wnd_class_name çª—å£ç±»å
-	 * @param[in] wnd_id çª—å£id
-	 * @param[in] wnd çª—å£æŒ‡é’ˆ
-	 * @return bool true æˆåŠŸï¼Œfalse å¤±è´¥
+	 * ¸ù¾İ´°¿ÚÀàÃûºÍid×¢²á´°¿Ú
+	 * @param[in] wnd_class_name ´°¿ÚÀàÃû
+	 * @param[in] wnd_id ´°¿Úid
+	 * @param[in] wnd ´°¿ÚÖ¸Õë
+	 * @return bool true ³É¹¦£¬false Ê§°Ü
 	 */
 	bool RegisterWindow(const std::wstring wnd_class_name, const std::wstring wnd_id, WindowEx *wnd);
 
 	/**
-	 * æ ¹æ®çª—å£ç±»åå’Œidæ³¨é”€çª—å£
-	 * @param[in] wnd_class_name çª—å£ç±»å
-	 * @param[in] wnd_id çª—å£id
-	 * @param[in] wnd çª—å£æŒ‡é’ˆ
-	 * @return void æ— è¿”å›å€¼
+	 * ¸ù¾İ´°¿ÚÀàÃûºÍid×¢Ïú´°¿Ú
+	 * @param[in] wnd_class_name ´°¿ÚÀàÃû
+	 * @param[in] wnd_id ´°¿Úid
+	 * @param[in] wnd ´°¿ÚÖ¸Õë
+	 * @return void ÎŞ·µ»ØÖµ
 	 */
 	void UnRegisterWindow(const std::wstring &wnd_class_name, const std::wstring &wnd_id, WindowEx *wnd);
 
 	/**
-	 * æ ¹æ®çª—å£ç±»åå’Œidè·å–çª—å£
-	 * @param[in] wnd_class_name çª—å£ç±»å
-	 * @param[in] wnd_id çª—å£id
-	 * @return WindowEx* çª—å£æŒ‡é’ˆ
+	 * ¸ù¾İ´°¿ÚÀàÃûºÍid»ñÈ¡´°¿Ú
+	 * @param[in] wnd_class_name ´°¿ÚÀàÃû
+	 * @param[in] wnd_id ´°¿Úid
+	 * @return WindowEx* ´°¿ÚÖ¸Õë
 	 */
 	WindowEx* GetWindow(const std::wstring &wnd_class_name, const std::wstring &wnd_id);
 
 	/**
-	 * è·å–æ‰€æœ‰çª—å£è·å–çª—å£
-	 * @return WindowList çª—å£åˆ—è¡¨
+	 * »ñÈ¡ËùÓĞ´°¿Ú»ñÈ¡´°¿Ú
+	 * @return WindowList ´°¿ÚÁĞ±í
 	 */
 	WindowList GetAllWindows();
 
 	/**
-	 * æ ¹æ®çª—å£ç±»åè·å–å¯¹åº”çš„æ‰€æœ‰çª—å£
-	 * @param[in] classname çª—å£ç±»å
-	 * @return WindowList çª—å£åˆ—è¡¨
+	 * ¸ù¾İ´°¿ÚÀàÃû»ñÈ¡¶ÔÓ¦µÄËùÓĞ´°¿Ú
+	 * @param[in] classname ´°¿ÚÀàÃû
+	 * @return WindowList ´°¿ÚÁĞ±í
 	 */
 	WindowList GetWindowsByClassName(LPCTSTR classname);
 
 	/**
-	 * é”€æ¯æ‰€æœ‰çª—å£
-	 * @return void æ— è¿”å›å€¼
+	 * Ïú»ÙËùÓĞ´°¿Ú
+	 * @return void ÎŞ·µ»ØÖµ
 	 */
 	void DestroyAllWindows();
 
 	/**
-	 * è®¾ç½®ç¦æ­¢çª—å£åˆ›å»º
-	 * @param[in] stop æ˜¯å¦ç¦æ­¢çª—å£åˆ›å»º
-	 * @return void æ— è¿”å›å€¼
+	 * ÉèÖÃ½ûÖ¹´°¿Ú´´½¨
+	 * @param[in] stop ÊÇ·ñ½ûÖ¹´°¿Ú´´½¨
+	 * @return void ÎŞ·µ»ØÖµ
 	 */
 	void SetStopRegister(bool stop = true) { stop_register_ = stop; }
 
 	/**
-	 * æ˜¯å¦ç¦æ­¢çª—å£åˆ›å»º
-	 * @return bool true ç¦æ­¢ï¼Œfalse ä¸ç¦æ­¢
+	 * ÊÇ·ñ½ûÖ¹´°¿Ú´´½¨
+	 * @return bool true ½ûÖ¹£¬false ²»½ûÖ¹
 	 */
 	bool IsStopRegister() { return stop_register_; }
 
 	/**
-	 * æ ¹æ®çª—å£idåˆ›å»ºä¸€ä¸ªå”¯ä¸€å­˜åœ¨çš„çª—å£
-	 * @param[in] window_id çª—å£id
-	 * @return WindowType* çª—å£æŒ‡é’ˆ
+	 * ¸ù¾İ´°¿Úid´´½¨Ò»¸öÎ¨Ò»´æÔÚµÄ´°¿Ú
+	 * @param[in] window_id ´°¿Úid
+	 * @return WindowType* ´°¿ÚÖ¸Õë
 	 */
 	template<typename WindowType, typename... TInstanceParams>
 	static WindowType* SingletonShow(const std::wstring& window_id, const TInstanceParams&... params)
@@ -103,8 +103,8 @@ public:
 	}
 
 private:
-	WindowsMap					windows_map_;	//æ‰€æœ‰çª—å£
+	WindowsMap					windows_map_;	//ËùÓĞ´°¿Ú
 	std::string					user_id_;
-	bool						stop_register_;	//ç¦æ­¢çª—å£åˆ›å»º
+	bool						stop_register_;	//½ûÖ¹´°¿Ú´´½¨
 };
 }

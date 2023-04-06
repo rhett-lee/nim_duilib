@@ -1,13 +1,13 @@
 #pragma once
 
-// ä» ui::ListContainerElement ä¸­ç»§æ‰¿æ‰€æœ‰å¯ç”¨åŠŸèƒ½
+// ´Ó ui::ListContainerElement ÖĞ¼Ì³ĞËùÓĞ¿ÉÓÃ¹¦ÄÜ
 class Item : public ui::ListContainerElement
 {
 public:
 	Item();
 	~Item();
 
-	// æä¾›å¤–éƒ¨è°ƒç”¨æ¥åˆå§‹åŒ– item æ•°æ®
+	// Ìá¹©Íâ²¿µ÷ÓÃÀ´³õÊ¼»¯ item Êı¾İ
 	void InitSubControls(const std::wstring& img, const std::wstring& title);
 	
 private:

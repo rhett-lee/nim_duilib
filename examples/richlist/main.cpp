@@ -1,4 +1,4 @@
-// basic.cpp : å®šä¹‰åº”ç”¨ç¨‹åºçš„å…¥å£ç‚¹ã€‚
+// basic.cpp : ¶¨ÒåÓ¦ÓÃ³ÌÐòµÄÈë¿Úµã¡£
 //
 
 #include "stdafx.h"
@@ -18,10 +18,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	UNREFERENCED_PARAMETER(hPrevInstance);
 	UNREFERENCED_PARAMETER(lpCmdLine);
 
-	// åˆ›å»ºä¸»çº¿ç¨‹
+	// ´´½¨Ö÷Ïß³Ì
 	MainThread thread;
 
-	// æ‰§è¡Œä¸»çº¿ç¨‹å¾ªçŽ¯
+	// Ö´ÐÐÖ÷Ïß³ÌÑ­»·
 	thread.RunOnCurrentThreadWithLoop(nbase::MessageLoop::kUIMessageLoop);
 
 	return 0;
@@ -31,11 +31,11 @@ void MainThread::Init()
 {
 	nbase::ThreadManager::RegisterThread(kThreadUI);
 
-	// èŽ·å–èµ„æºè·¯å¾„ï¼Œåˆå§‹åŒ–å…¨å±€å‚æ•°
+	// »ñÈ¡×ÊÔ´Â·¾¶£¬³õÊ¼»¯È«¾Ö²ÎÊý
 	std::wstring theme_dir = nbase::win32::GetCurrentModuleDirectory();
 	ui::GlobalManager::Startup(theme_dir + L"resources\\", ui::CreateControlCallback(), false);
 
-	// åˆ›å»ºä¸€ä¸ªé»˜è®¤å¸¦æœ‰é˜´å½±çš„å±…ä¸­çª—å£
+	// ´´½¨Ò»¸öÄ¬ÈÏ´øÓÐÒõÓ°µÄ¾ÓÖÐ´°¿Ú
 	RichlistForm* window = new RichlistForm();
 	window->Create(NULL, RichlistForm::kClassName.c_str(), WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX, 0);
 	window->CenterWindow();

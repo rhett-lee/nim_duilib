@@ -12,23 +12,23 @@ public:
 	static MutiLanSupport* GetInstance();
 
 	/**
-	 * @brief æ ¹æ®IDè·å–æŒ‡å®šè¯­è¨€çš„å­—ç¬¦ä¸²
-	 * @param[in] id æŒ‡å®šå­—ç¬¦ä¸² ID
-	 * @return è¿”å› ID å¯¹åº”çš„è¯­è¨€å­—ç¬¦ä¸²
+	 * @brief ¸ù¾İID»ñÈ¡Ö¸¶¨ÓïÑÔµÄ×Ö·û´®
+	 * @param[in] id Ö¸¶¨×Ö·û´® ID
+	 * @return ·µ»Ø ID ¶ÔÓ¦µÄÓïÑÔ×Ö·û´®
 	 */
 	std::wstring GetStringViaID(const std::wstring& id);
 
 	/**
-	 * @brief åŠ è½½æ‰€æœ‰è¯­è¨€æ˜ å°„è¡¨
-	 * @param[in] strFilePath è¯­è¨€æ–‡ä»¶è·¯å¾„
-	 * @return è¿”å› true è¡¨ç¤ºæˆåŠŸï¼Œè¿”å› false è¡¨ç¤ºå¤±è´¥
+	 * @brief ¼ÓÔØËùÓĞÓïÑÔÓ³Éä±í
+	 * @param[in] strFilePath ÓïÑÔÎÄ¼şÂ·¾¶
+	 * @return ·µ»Ø true ±íÊ¾³É¹¦£¬·µ»Ø false ±íÊ¾Ê§°Ü
 	 */
 	bool LoadStringTable(const std::wstring& strFilePath);
 
 	/**
-	 * @brief ä»å†…å­˜ä¸­åŠ è½½æ‰€æœ‰è¯­è¨€æ˜ å°„è¡¨
-	 * @param[in] hGlobal è¦åŠ è½½çš„è¯­è¨€æ˜ å°„è¡¨å†…å­˜é¦–åœ°å€
-	 * @return è¿”å› true è¡¨ç¤ºæˆåŠŸï¼Œè¿”å› false è¡¨ç¤ºå¤±è´¥
+	 * @brief ´ÓÄÚ´æÖĞ¼ÓÔØËùÓĞÓïÑÔÓ³Éä±í
+	 * @param[in] hGlobal Òª¼ÓÔØµÄÓïÑÔÓ³Éä±íÄÚ´æÊ×µØÖ·
+	 * @return ·µ»Ø true ±íÊ¾³É¹¦£¬·µ»Ø false ±íÊ¾Ê§°Ü
 	 */
 	bool LoadStringTable(const HGLOBAL& hGlobal);
 
@@ -39,15 +39,15 @@ private:
 	MutiLanSupport& operator = (const MutiLanSupport&) = delete;
 
 	/**
-	 * @brief æ¸…ç†æ‰€æœ‰
-	 * @return æ— 
+	 * @brief ÇåÀíËùÓĞ
+	 * @return ÎŞ
 	 */
 	void ClearAll();
 
 	/**
-	 * @brief åˆ†æè¯­è¨€æ˜ å°„è¡¨å†…å®¹
-	 * @param[in] list è¯»å–å‡ºæ¥çš„æ˜ å°„è¡¨å†…å®¹åˆ—è¡¨
-	 * @return æˆåŠŸè¿”å› trueï¼Œå¦åˆ™è¿”å› false
+	 * @brief ·ÖÎöÓïÑÔÓ³Éä±íÄÚÈİ
+	 * @param[in] list ¶ÁÈ¡³öÀ´µÄÓ³Éä±íÄÚÈİÁĞ±í
+	 * @return ³É¹¦·µ»Ø true£¬·ñÔò·µ»Ø false
 	 */
 	bool AnalyzeStringTable(const std::vector<std::wstring>& list);
 

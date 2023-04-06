@@ -1,5 +1,5 @@
 /** @file cef_manager.h
- * @brief ç®¡ç†Cefç»„ä»¶çš„åˆå§‹åŒ–ã€é”€æ¯ã€æ¶ˆæ¯å¾ªç¯
+ * @brief ¹ÜÀíCef×é¼şµÄ³õÊ¼»¯¡¢Ïú»Ù¡¢ÏûÏ¢Ñ­»·
  * @copyright (c) 2016, NetEase Inc. All rights reserved
  * @author Redrain
  * @date 2016/7/19
@@ -11,11 +11,11 @@
 namespace nim_comp
 { 
 /** @class CefMessageLoopDispatcher
- * @brief å½“multi_threaded_message_loopä¸ºfalseæ—¶ï¼Œéœ€è¦æˆ‘ä»¬åœ¨è‡ªå·±çš„æ¶ˆæ¯å¾ªç¯ä¸­ä¸»åŠ¨è°ƒç”¨Cefçš„æ¶ˆæ¯å¾ªç¯æ¥å£
- *		 é¡¹ç›®åº•å±‚ç»„ä»¶ä½¿ç”¨baseåº“çš„UIæ¶ˆæ¯å¾ªç¯ï¼Œä»è€Œæ— æ³•ä½¿ç”¨cefè‡ªå¸¦çš„CefRunMessageLoopé˜»å¡æ¶ˆæ¯å¾ªç¯å‡½æ•°
- *		 CefMessageLoopDispatcherç»§æ‰¿baseåº“çš„æ¶ˆæ¯è°ƒåº¦æ¥å£ï¼Œè§„å¾‹çš„è°ƒç”¨cefçš„CefDoMessageLoopWorkéé˜»å¡å‡½æ•°
- *		 è¿™æ ·å¯ä»¥è®©baseåº“å…¼å®¹cefçš„æ¶ˆæ¯å¾ªç¯
- *		 å½“multi_threaded_message_loopä¸ºtrueæ—¶ï¼Œä¸éœ€è¦ä½¿ç”¨æœ¬ç±»
+ * @brief µ±multi_threaded_message_loopÎªfalseÊ±£¬ĞèÒªÎÒÃÇÔÚ×Ô¼ºµÄÏûÏ¢Ñ­»·ÖĞÖ÷¶¯µ÷ÓÃCefµÄÏûÏ¢Ñ­»·½Ó¿Ú
+ *		 ÏîÄ¿µ×²ã×é¼şÊ¹ÓÃbase¿âµÄUIÏûÏ¢Ñ­»·£¬´Ó¶øÎŞ·¨Ê¹ÓÃcef×Ô´øµÄCefRunMessageLoop×èÈûÏûÏ¢Ñ­»·º¯Êı
+ *		 CefMessageLoopDispatcher¼Ì³Ğbase¿âµÄÏûÏ¢µ÷¶È½Ó¿Ú£¬¹æÂÉµÄµ÷ÓÃcefµÄCefDoMessageLoopWork·Ç×èÈûº¯Êı
+ *		 ÕâÑù¿ÉÒÔÈÃbase¿â¼æÈİcefµÄÏûÏ¢Ñ­»·
+ *		 µ±multi_threaded_message_loopÎªtrueÊ±£¬²»ĞèÒªÊ¹ÓÃ±¾Àà
  */
 class CefMessageLoopDispatcher : public nbase::Dispatcher
 {
@@ -23,13 +23,13 @@ public:
 	virtual bool Dispatch(const MSG &message) override;
 
 private:
-	// åˆ¤æ–­å½“å‰è¦è°ƒåº¦çš„æ¶ˆæ¯æ˜¯å¦ä¸ºç©ºé—²æ¶ˆæ¯ï¼ŒCefDoMessageLoopWorkå‡½æ•°åœ¨ç©ºé—²æ—¶è¢«è°ƒç”¨
+	// ÅĞ¶Ïµ±Ç°Òªµ÷¶ÈµÄÏûÏ¢ÊÇ·ñÎª¿ÕÏĞÏûÏ¢£¬CefDoMessageLoopWorkº¯ÊıÔÚ¿ÕÏĞÊ±±»µ÷ÓÃ
 	static BOOL IsIdleMessage(const MSG* pMsg);
 };
 
 
 /** @class CefManager
- * @brief Cefç»„ä»¶åˆå§‹åŒ–å’Œé”€æ¯
+ * @brief Cef×é¼ş³õÊ¼»¯ºÍÏú»Ù
  */
 class CefManager : public nbase::SupportWeakCallback
 {
@@ -40,54 +40,54 @@ public:
 	~CefManager();
 
 	/**
-	* æŠŠcef dllæ–‡ä»¶çš„ä½ç½®æ·»åŠ åˆ°ç¨‹åºçš„"path"ç¯å¢ƒå˜é‡ä¸­,è¿™æ ·å¯ä»¥æŠŠdllæ–‡ä»¶æ”¾åˆ°binä»¥å¤–çš„ç›®å½•ï¼Œå¹¶ä¸”ä¸éœ€è¦æ‰‹åŠ¨é¢‘ç¹åˆ‡æ¢dllæ–‡ä»¶
-	* @return void	æ— è¿”å›å€¼
+	* °Ñcef dllÎÄ¼şµÄÎ»ÖÃÌí¼Óµ½³ÌĞòµÄ"path"»·¾³±äÁ¿ÖĞ,ÕâÑù¿ÉÒÔ°ÑdllÎÄ¼ş·Åµ½binÒÔÍâµÄÄ¿Â¼£¬²¢ÇÒ²»ĞèÒªÊÖ¶¯Æµ·±ÇĞ»»dllÎÄ¼ş
+	* @return void	ÎŞ·µ»ØÖµ
 	*/
 	void AddCefDllToPath();
 
 	/**
-	* åˆå§‹åŒ–cefç»„ä»¶
-	* @param[in] app_data_dir åº”ç”¨è·¯å¾„åç§°
-	* @param[in] settings Cefå…¨éƒ¨é…ç½®
-	* @param[in] is_enable_offset_render æ˜¯å¦å¼€å¯ç¦»å±æ¸²æŸ“
-	* @return bool true ç»§ç»­è¿è¡Œï¼Œfalse åº”è¯¥ç»“æŸç¨‹åº
+	* ³õÊ¼»¯cef×é¼ş
+	* @param[in] app_data_dir Ó¦ÓÃÂ·¾¶Ãû³Æ
+	* @param[in] settings CefÈ«²¿ÅäÖÃ
+	* @param[in] is_enable_offset_render ÊÇ·ñ¿ªÆôÀëÆÁäÖÈ¾
+	* @return bool true ¼ÌĞøÔËĞĞ£¬false Ó¦¸Ã½áÊø³ÌĞò
 	*/
 	bool Initialize(const std::wstring& app_data_dir, CefSettings &settings, bool is_enable_offset_render = true);
 
 	/**
-	* æ¸…ç†cefç»„ä»¶
-	* @return void	æ— è¿”å›å€¼
+	* ÇåÀícef×é¼ş
+	* @return void	ÎŞ·µ»ØÖµ
 	*/
 	void UnInitialize();
 
 	/**
-	* æ˜¯å¦å¼€å¯ç¦»å±æ¸²æŸ“
-	* @return bool true å¼€å¯ï¼Œfalse ä¸å¼€å¯
+	* ÊÇ·ñ¿ªÆôÀëÆÁäÖÈ¾
+	* @return bool true ¿ªÆô£¬false ²»¿ªÆô
 	*/
 	bool IsEnableOffsetRender() const;
 
 	/**
-	* è·å–å…¼å®¹Cefçš„æ¶ˆæ¯å¾ªç¯åˆ†æ´¾å™¨
-	* @return nbase::Dispatcher* æ¶ˆæ¯å¾ªç¯åˆ†æ´¾å™¨
+	* »ñÈ¡¼æÈİCefµÄÏûÏ¢Ñ­»··ÖÅÉÆ÷
+	* @return nbase::Dispatcher* ÏûÏ¢Ñ­»··ÖÅÉÆ÷
 	*/
 	nbase::Dispatcher* GetMessageDispatcher();
 
-	// è®°å½•æµè§ˆå™¨å¯¹è±¡çš„æ•°é‡
+	// ¼ÇÂ¼ä¯ÀÀÆ÷¶ÔÏóµÄÊıÁ¿
 	void AddBrowserCount();
 	void SubBrowserCount();
 	int	GetBrowserCount();
 
-	// åœ¨Cefæµè§ˆå™¨å¯¹è±¡é”€æ¯åå‘é€WM_QUITæ¶ˆæ¯
+	// ÔÚCefä¯ÀÀÆ÷¶ÔÏóÏú»Ùºó·¢ËÍWM_QUITÏûÏ¢
 	void PostQuitMessage(int nExitCode);
 
-	// è·å–æŸä¸ªçª—å£å¯¹åº”çš„DropTargetï¼Œç”¨äºæµè§ˆå™¨æ§ä»¶çš„æ‹–åŠ¨åŠŸèƒ½
+	// »ñÈ¡Ä³¸ö´°¿Ú¶ÔÓ¦µÄDropTarget£¬ÓÃÓÚä¯ÀÀÆ÷¿Ø¼şµÄÍÏ¶¯¹¦ÄÜ
 	client::DropTargetHandle GetDropTarget(HWND hwnd);
 private:
 	/**
-	* è®¾ç½®cefé…ç½®ä¿¡æ¯
-	* @param[in] app_data_dir åº”ç”¨è·¯å¾„åç§°ï¼Œè§nim::Client::Initçš„è¯´æ˜
-	* @param[out] settings cefé…ç½®ç±»
-	* @return void	æ— è¿”å›å€¼
+	* ÉèÖÃcefÅäÖÃĞÅÏ¢
+	* @param[in] app_data_dir Ó¦ÓÃÂ·¾¶Ãû³Æ£¬¼ûnim::Client::InitµÄËµÃ÷
+	* @param[out] settings cefÅäÖÃÀà
+	* @return void	ÎŞ·µ»ØÖµ
 	*/
 	void GetCefSetting(const std::wstring& app_data_dir, CefSettings &settings);
 
@@ -96,6 +96,6 @@ private:
 	int browser_count_;
 	bool is_enable_offset_render_;
 
-	std::map<HWND, std::weak_ptr<client::DropTargetWin>> map_drag_target_reference_; // å„ä¸ªDropTargetçš„å¼±å¼•ç”¨ï¼Œä¸€ä¸ªçª—å£å¯¹åº”ä¸€ä¸ªDropTargetï¼Œè¿™ä¸ªDropTargetå¯ä»¥ç»™å¤šä¸ªBorwserHandlerä½¿ç”¨
+	std::map<HWND, std::weak_ptr<client::DropTargetWin>> map_drag_target_reference_; // ¸÷¸öDropTargetµÄÈõÒıÓÃ£¬Ò»¸ö´°¿Ú¶ÔÓ¦Ò»¸öDropTarget£¬Õâ¸öDropTarget¿ÉÒÔ¸ø¶à¸öBorwserHandlerÊ¹ÓÃ
 };
 }

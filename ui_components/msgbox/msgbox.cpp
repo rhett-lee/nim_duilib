@@ -84,7 +84,7 @@ void MsgBox::OnEsc(BOOL &bHandled)
 }
 void MsgBox::Close(UINT nRet)
 {
-	// æç¤ºæ¡†å…³é—­ä¹‹å‰å…ˆEnableçˆ¶çª—å£ï¼Œé˜²æ­¢çˆ¶çª—å£éšåˆ°åé¢å»ã€‚
+	// ÌáÊ¾¿ò¹Ø±ÕÖ®Ç°ÏÈEnable¸¸´°¿Ú£¬·ÀÖ¹¸¸´°¿ÚÒşµ½ºóÃæÈ¥¡£
 	HWND hWndParent = GetWindowOwner(m_hWnd);
 	if (hWndParent)
 	{

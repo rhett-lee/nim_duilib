@@ -1,5 +1,5 @@
 /** @file memory_dc.h
- * @brief 内存dc类，维护HBITMAP与HDC对象，方便快速的储存位图数据
+ * @brief �ڴ�dc�࣬ά��HBITMAP��HDC���󣬷�����ٵĴ���λͼ����
  * @copyright (c) 2016, NetEase Inc. All rights reserved
  * @author Redrain
  * @date 2016/7/19
@@ -12,25 +12,25 @@ public:
 	MemoryDC();
 	~MemoryDC();
 
-	// 初始化内存dc数据，并创建出对应的位图对象
-	// 如果pBits参数不为空，则用pBits参数的数据填充位图
-	// 此函数可以反复调用，会自动删除原来的位图对象
+	// ��ʼ���ڴ�dc���ݣ�����������Ӧ��λͼ����
+	// ���pBits������Ϊ�գ�����pBits�������������λͼ
+	// �˺������Է������ã����Զ�ɾ��ԭ����λͼ����
 	bool Init(HDC src_dc, int width, int height, const LPVOID pBits = NULL);
 
-	// 删除位图对象并初始化变量
+	// ɾ��λͼ���󲢳�ʼ������
 	void DeleteDC();
 
-	// 判断内存dc是否可以使用
+	// �ж��ڴ�dc�Ƿ����ʹ��
 	bool IsValid();
 
 	HDC GetDC();
 	HBITMAP GetBitmap();
 
-	// 获取内存位图数据指针，可用于填充位图
+	// ��ȡ�ڴ�λͼ����ָ�룬���������λͼ
 	BYTE* GetBits();
-	// 获取内存位图的宽度
+	// ��ȡ�ڴ�λͼ�Ŀ���
 	int	GetWidth();
-	// 获取内存位图的高度
+	// ��ȡ�ڴ�λͼ�ĸ߶�
 	int GetHeight();
 
 private:

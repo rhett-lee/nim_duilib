@@ -11,21 +11,21 @@ class UILIB_API ChildBox : public Box
 public:
 	ChildBox();
 
-	/// é‡å†™çˆ¶ç±»æ–¹æ³•ï¼Œæä¾›ä¸ªæ€§åŒ–åŠŸèƒ½ï¼Œè¯·å‚è€ƒçˆ¶ç±»å£°æ˜
+	/// ÖØĞ´¸¸Àà·½·¨£¬Ìá¹©¸öĞÔ»¯¹¦ÄÜ£¬Çë²Î¿¼¸¸ÀàÉùÃ÷
 	virtual std::wstring GetType() const override;
 	virtual void Init() override;
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 
 	/**
-	 * @brief è®¾ç½® ChildBox å…³è”çš„ XML æ–‡ä»¶
-	 * @param[in] strXML XML æ–‡ä»¶è·¯å¾„
-	 * @return æ— 
+	 * @brief ÉèÖÃ ChildBox ¹ØÁªµÄ XML ÎÄ¼ş
+	 * @param[in] strXML XML ÎÄ¼şÂ·¾¶
+	 * @return ÎŞ
 	 */
 	void SetChildLayoutXML(std::wstring strXML);
 
 	/**
-	 * @brief è·å– ChildBox å…³è”çš„ XML æ–‡ä»¶
-	 * @return è¿”å› ChildBox å…³è”çš„ XML æ–‡ä»¶
+	 * @brief »ñÈ¡ ChildBox ¹ØÁªµÄ XML ÎÄ¼ş
+	 * @return ·µ»Ø ChildBox ¹ØÁªµÄ XML ÎÄ¼ş
 	 */
 	std::wstring GetChildLayoutXML();
 

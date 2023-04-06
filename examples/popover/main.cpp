@@ -1,4 +1,4 @@
-// popover.cpp : å®šä¹‰åº”ç”¨ç¨‹åºçš„å…¥å£ç‚¹ã€‚
+// popover.cpp : ¶¨ÒåÓ¦ÓÃ³ÌĞòµÄÈë¿Úµã¡£
 //
 
 #include "framework.h"
@@ -21,14 +21,14 @@ private:
   {
 	nbase::ThreadManager::RegisterThread(kThreadUI);
 
-	// è·å–èµ„æºè·¯å¾„ï¼Œåˆå§‹åŒ–å…¨å±€å‚æ•°
+	// »ñÈ¡×ÊÔ´Â·¾¶£¬³õÊ¼»¯È«¾Ö²ÎÊı
 	std::wstring theme_dir = nbase::win32::GetCurrentModuleDirectory();
 
 	ui::GlobalManager::EnableAutomation(true);
 	ui::GlobalManager::Startup(theme_dir + L"resources\\", ui::CreateControlCallback(), true);
 
 
-	// åˆ›å»ºä¸€ä¸ªé»˜è®¤å¸¦æœ‰é˜´å½±çš„å±…ä¸­çª—å£
+	// ´´½¨Ò»¸öÄ¬ÈÏ´øÓĞÒõÓ°µÄ¾ÓÖĞ´°¿Ú
 	PopoverForm* window = new PopoverForm();
 	window->Create(NULL, PopoverForm::kClassName.c_str(), WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX, 0);
 	window->CenterWindow();
@@ -36,8 +36,8 @@ private:
   }
 
   /**
-  * è™šå‡½æ•°ï¼Œä¸»çº¿ç¨‹é€€å‡ºæ—¶ï¼Œåšä¸€äº›æ¸…ç†å·¥ä½œ
-  * @return void	æ— è¿”å›å€¼
+  * Ğéº¯Êı£¬Ö÷Ïß³ÌÍË³öÊ±£¬×öÒ»Ğ©ÇåÀí¹¤×÷
+  * @return void	ÎŞ·µ»ØÖµ
   */
   virtual void Cleanup() override
   {
@@ -56,10 +56,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
 
-	// åˆ›å»ºä¸»çº¿ç¨‹
+	// ´´½¨Ö÷Ïß³Ì
 	MainThread thread;
 
-	// æ‰§è¡Œä¸»çº¿ç¨‹å¾ªç¯
+	// Ö´ĞĞÖ÷Ïß³ÌÑ­»·
 	thread.RunOnCurrentThreadWithLoop(nbase::MessageLoop::kUIMessageLoop);
 
     return 0;

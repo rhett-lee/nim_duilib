@@ -1,5 +1,5 @@
 /** @file multi_browser_form.h
-* @brief ç¦»å±æ¨¡å¼Cefå¤šæ ‡ç­¾æµè§ˆå™¨çª—å£
+* @brief ÀëÆÁÄ£Ê½Cef¶à±êÇ©ä¯ÀÀÆ÷´°¿Ú
 * @copyright (c) 2016, NetEase Inc. All rights reserved
 * @author Redrain
 * @date 2019/3/20
@@ -18,7 +18,7 @@ public:
 	MultiBrowserForm();
 	~MultiBrowserForm() { };
 	
-	//è¦†ç›–è™šå‡½æ•°
+	//¸²¸ÇĞéº¯Êı
 	virtual std::wstring GetSkinFolder() override;
 	virtual std::wstring GetSkinFile() override;
 	virtual std::wstring GetWindowClassName() const override;
@@ -26,42 +26,42 @@ public:
 	
 
 	/**
-	* çª—å£åˆå§‹åŒ–å‡½æ•°
-	* @return void	æ— è¿”å›å€¼
+	* ´°¿Ú³õÊ¼»¯º¯Êı
+	* @return void	ÎŞ·µ»ØÖµ
 	*/
 	virtual void InitWindow() override;
 
 	/**
-	* æ ¹æ®æ§ä»¶ç±»ååˆ›å»ºè‡ªå®šä¹‰æ§ä»¶
-	* @param[in] pstrClass æ§ä»¶ç±»å
-	* @return Control* åˆ›å»ºçš„æ§ä»¶çš„æŒ‡é’ˆ
+	* ¸ù¾İ¿Ø¼şÀàÃû´´½¨×Ô¶¨Òå¿Ø¼ş
+	* @param[in] pstrClass ¿Ø¼şÀàÃû
+	* @return Control* ´´½¨µÄ¿Ø¼şµÄÖ¸Õë
 	*/
 	virtual ui::Control* CreateControl(const std::wstring& pstrClass) override;
 
 	/**
-	* æ‹¦æˆªå¹¶å¤„ç†åº•å±‚çª—ä½“æ¶ˆæ¯
-	* @param[in] uMsg æ¶ˆæ¯ç±»å‹
-	* @param[in] wParam é™„åŠ å‚æ•°
-	* @param[in] lParam é™„åŠ å‚æ•°
-	* @param[in out] bHandled æ˜¯å¦å¤„ç†äº†æ¶ˆæ¯ï¼Œå¦‚æœå¤„ç†äº†ä¸ç»§ç»­ä¼ é€’æ¶ˆæ¯
-	* @return LRESULT å¤„ç†ç»“æœ
+	* À¹½Ø²¢´¦Àíµ×²ã´°ÌåÏûÏ¢
+	* @param[in] uMsg ÏûÏ¢ÀàĞÍ
+	* @param[in] wParam ¸½¼Ó²ÎÊı
+	* @param[in] lParam ¸½¼Ó²ÎÊı
+	* @param[in out] bHandled ÊÇ·ñ´¦ÀíÁËÏûÏ¢£¬Èç¹û´¦ÀíÁË²»¼ÌĞø´«µİÏûÏ¢
+	* @return LRESULT ´¦Àí½á¹û
 	*/
 	LRESULT HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 	/**
-	* æ‹¦æˆªå¹¶å¤„ç†WM_CLOSEæ¶ˆæ¯
-	* @param[in] uMsg æ¶ˆæ¯ç±»å‹
-	* @param[in] wParam é™„åŠ å‚æ•°
-	* @param[in] lParam é™„åŠ å‚æ•°
-	* @param[in] lParam é™„åŠ å‚æ•°
-	* @param[in] bHandled æ˜¯å¦å¤„ç†äº†æ¶ˆæ¯ï¼Œå¦‚æœå¤„ç†äº†ä¸ç»§ç»­ä¼ é€’æ¶ˆæ¯
-	* @return LRESULT å¤„ç†ç»“æœ
+	* À¹½Ø²¢´¦ÀíWM_CLOSEÏûÏ¢
+	* @param[in] uMsg ÏûÏ¢ÀàĞÍ
+	* @param[in] wParam ¸½¼Ó²ÎÊı
+	* @param[in] lParam ¸½¼Ó²ÎÊı
+	* @param[in] lParam ¸½¼Ó²ÎÊı
+	* @param[in] bHandled ÊÇ·ñ´¦ÀíÁËÏûÏ¢£¬Èç¹û´¦ÀíÁË²»¼ÌĞø´«µİÏûÏ¢
+	* @return LRESULT ´¦Àí½á¹û
 	*/
 	virtual LRESULT OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 
 	/**
-	* å¤„ç†çª—å£é”€æ¯æ¶ˆæ¯
-	* @return void	æ— è¿”å›å€¼
+	* ´¦Àí´°¿ÚÏú»ÙÏûÏ¢
+	* @return void	ÎŞ·µ»ØÖµ
 	*/
 	virtual void OnFinalMessage(HWND hWnd) override;
 
@@ -72,173 +72,173 @@ private:
 
 public:
 	/**
-	* åœ¨æœ¬çª—å£å†…åˆ›å»ºä¸€ä¸ªæ–°æµè§ˆå™¨ç›’å­
-	* @param[in] browser_id æµè§ˆå™¨id
-	* @param[in] url åˆå§‹åŒ–URL
-	* @return BrowserBox* æµè§ˆå™¨ç›’å­
+	* ÔÚ±¾´°¿ÚÄÚ´´½¨Ò»¸öĞÂä¯ÀÀÆ÷ºĞ×Ó
+	* @param[in] browser_id ä¯ÀÀÆ÷id
+	* @param[in] url ³õÊ¼»¯URL
+	* @return BrowserBox* ä¯ÀÀÆ÷ºĞ×Ó
 	*/
 	BrowserBox* CreateBox(const std::string &browser_id, std::wstring url);
 
 	/**
-	* å…³é—­æœ¬çª—å£å†…çš„ä¸€ä¸ªæµè§ˆå™¨ç›’å­
-	* @param[in] browser_id æµè§ˆå™¨id
-	* @return void	æ— è¿”å›å€¼
+	* ¹Ø±Õ±¾´°¿ÚÄÚµÄÒ»¸öä¯ÀÀÆ÷ºĞ×Ó
+	* @param[in] browser_id ä¯ÀÀÆ÷id
+	* @return void	ÎŞ·µ»ØÖµ
 	*/
 	void CloseBox(const std::string &browser_id);
 
 	/**
-	* æŠŠä¸€ä¸ªå…¶ä»–çª—å£å†…çš„æµè§ˆå™¨ç›’å­é™„åŠ åˆ°æœ¬çª—å£å†…
-	* @param[in] browser_box æµè§ˆå™¨ç›’å­
-	* @return bool true æˆåŠŸï¼Œfalse å¤±è´¥
+	* °ÑÒ»¸öÆäËû´°¿ÚÄÚµÄä¯ÀÀÆ÷ºĞ×Ó¸½¼Óµ½±¾´°¿ÚÄÚ
+	* @param[in] browser_box ä¯ÀÀÆ÷ºĞ×Ó
+	* @return bool true ³É¹¦£¬false Ê§°Ü
 	*/
 	bool AttachBox(BrowserBox *browser_box);
 
 	/**
-	* æŠŠæœ¬çª—å£å†…çš„ä¸€ä¸ªæµè§ˆå™¨ç›’å­è„±ç¦»çª—å£
-	* @param[in] browser_box æµè§ˆå™¨ç›’å­
-	* @return bool true æˆåŠŸï¼Œfalse å¤±è´¥
+	* °Ñ±¾´°¿ÚÄÚµÄÒ»¸öä¯ÀÀÆ÷ºĞ×ÓÍÑÀë´°¿Ú
+	* @param[in] browser_box ä¯ÀÀÆ÷ºĞ×Ó
+	* @return bool true ³É¹¦£¬false Ê§°Ü
 	*/
 	bool DetachBox(BrowserBox *browser_box);
 
 	/**
-	* è·å–å½“å‰æ˜¾ç¤ºçš„æµè§ˆå™¨ç›’å­
-	* @return BrowserBox* æµè§ˆå™¨ç›’å­
+	* »ñÈ¡µ±Ç°ÏÔÊ¾µÄä¯ÀÀÆ÷ºĞ×Ó
+	* @return BrowserBox* ä¯ÀÀÆ÷ºĞ×Ó
 	*/
 	BrowserBox* GetSelectedBox();
 
 	/**
-	* æ¿€æ´»å¹¶åˆ‡æ¢åˆ°æŸä¸ªæµè§ˆå™¨ç›’å­(åŒæ—¶è®©æµè§ˆå™¨çª—å£æ¿€æ´»)
-	* @param[in] browser_id æµè§ˆå™¨id
-	* @return void æ— è¿”å›å€¼
+	* ¼¤»î²¢ÇĞ»»µ½Ä³¸öä¯ÀÀÆ÷ºĞ×Ó(Í¬Ê±ÈÃä¯ÀÀÆ÷´°¿Ú¼¤»î)
+	* @param[in] browser_id ä¯ÀÀÆ÷id
+	* @return void ÎŞ·µ»ØÖµ
 	*/
 	void SetActiveBox(const std::string &browser_id);
 
 	/**
-	* åˆ¤æ–­æµè§ˆå™¨ç›’å­æ˜¯å¦å¤„äºæ¿€æ´»çŠ¶æ€(åŒæ—¶åˆ¤æ–­æµè§ˆå™¨çª—å£æ˜¯å¦è¢«æ¿€æ´»)
-	* @param[in] browser_box æµè§ˆå™¨ç›’å­
-	* @return bool true æ˜¯ï¼Œfalse å¦
+	* ÅĞ¶Ïä¯ÀÀÆ÷ºĞ×ÓÊÇ·ñ´¦ÓÚ¼¤»î×´Ì¬(Í¬Ê±ÅĞ¶Ïä¯ÀÀÆ÷´°¿ÚÊÇ·ñ±»¼¤»î)
+	* @param[in] browser_box ä¯ÀÀÆ÷ºĞ×Ó
+	* @return bool true ÊÇ£¬false ·ñ
 	*/
 	bool IsActiveBox(const BrowserBox *browser_box);
 
 	/**
-	* åˆ¤æ–­æµè§ˆå™¨ç›’å­æ˜¯å¦å¤„äºæ¿€æ´»çŠ¶æ€(åŒæ—¶åˆ¤æ–­æµè§ˆå™¨çª—å£æ˜¯å¦è¢«æ¿€æ´»)
-	* @param[in] browser_id æµè§ˆå™¨id
-	* @return bool true æ˜¯ï¼Œfalse å¦
+	* ÅĞ¶Ïä¯ÀÀÆ÷ºĞ×ÓÊÇ·ñ´¦ÓÚ¼¤»î×´Ì¬(Í¬Ê±ÅĞ¶Ïä¯ÀÀÆ÷´°¿ÚÊÇ·ñ±»¼¤»î)
+	* @param[in] browser_id ä¯ÀÀÆ÷id
+	* @return bool true ÊÇ£¬false ·ñ
 	*/
 	bool IsActiveBox(const std::wstring &browser_id);
 
 	/**
-	* è·å–æœ¬çª—å£å†…æµè§ˆå™¨ç›’å­çš„æ€»é‡
-	* @return int	æ€»é‡
+	* »ñÈ¡±¾´°¿ÚÄÚä¯ÀÀÆ÷ºĞ×ÓµÄ×ÜÁ¿
+	* @return int	×ÜÁ¿
 	*/
 	int GetBoxCount() const;
 
 	/**
-	* åœ¨æ‰§è¡Œæ‹–æ‹½æ“ä½œå‰ï¼Œå¦‚æœè¢«æ‹–æ‹½çš„æµè§ˆå™¨ç›’å­å±äºæœ¬çª—å£ï¼Œåˆ™é€šçŸ¥æœ¬çª—å£
-	* @param[in] browser_id æµè§ˆå™¨id
-	* @return void	æ— è¿”å›å€¼
+	* ÔÚÖ´ĞĞÍÏ×§²Ù×÷Ç°£¬Èç¹û±»ÍÏ×§µÄä¯ÀÀÆ÷ºĞ×ÓÊôÓÚ±¾´°¿Ú£¬ÔòÍ¨Öª±¾´°¿Ú
+	* @param[in] browser_id ä¯ÀÀÆ÷id
+	* @return void	ÎŞ·µ»ØÖµ
 	*/
 	void OnBeforeDragBoxCallback(const std::wstring &browser_id);
 
 	/**
-	* åœ¨æ‰§è¡Œæ‹–æ‹½æ“ä½œåï¼Œå¦‚æœè¢«æ‹–æ‹½çš„æµè§ˆå™¨ç›’å­å±äºæœ¬çª—å£ï¼Œåˆ™é€šçŸ¥æœ¬çª—å£æ“ä½œç»“æœ
-	* @param[in] drop_succeed æµè§ˆå™¨ç›’å­æ˜¯å¦è¢«æ‹–æ‹½åˆ°äº†å¤–éƒ¨
-	* @return void	æ— è¿”å›å€¼
+	* ÔÚÖ´ĞĞÍÏ×§²Ù×÷ºó£¬Èç¹û±»ÍÏ×§µÄä¯ÀÀÆ÷ºĞ×ÓÊôÓÚ±¾´°¿Ú£¬ÔòÍ¨Öª±¾´°¿Ú²Ù×÷½á¹û
+	* @param[in] drop_succeed ä¯ÀÀÆ÷ºĞ×ÓÊÇ·ñ±»ÍÏ×§µ½ÁËÍâ²¿
+	* @return void	ÎŞ·µ»ØÖµ
 	*/
 	void OnAfterDragBoxCallback(bool drop_succeed);
 
 private:
 
 	/**
-	* å¤„ç†æ ‡ç­¾æ§ä»¶çš„é€‰ä¸­æ¶ˆæ¯
-	* @param[in] param æ¶ˆæ¯çš„ç›¸å…³ä¿¡æ¯
-	* @return bool true ç»§ç»­ä¼ é€’æ§ä»¶æ¶ˆæ¯ï¼Œfalse åœæ­¢ä¼ é€’æ§ä»¶æ¶ˆæ¯
+	* ´¦Àí±êÇ©¿Ø¼şµÄÑ¡ÖĞÏûÏ¢
+	* @param[in] param ÏûÏ¢µÄÏà¹ØĞÅÏ¢
+	* @return bool true ¼ÌĞø´«µİ¿Ø¼şÏûÏ¢£¬false Í£Ö¹´«µİ¿Ø¼şÏûÏ¢
 	*/
 	bool OnTabItemSelected(ui::EventArgs* param);
 
 	/**
-	* å¤„ç†æ ‡ç­¾æ§ä»¶çš„å…³é—­æŒ‰é’®çš„å•å‡»æ¶ˆæ¯
-	* @param[in] param æ¶ˆæ¯çš„ç›¸å…³ä¿¡æ¯
-	* @param[in] browser_id åˆ—è¡¨é¡¹å¯¹åº”çš„æµè§ˆå™¨id
-	* @return bool true ç»§ç»­ä¼ é€’æ§ä»¶æ¶ˆæ¯ï¼Œfalse åœæ­¢ä¼ é€’æ§ä»¶æ¶ˆæ¯
+	* ´¦Àí±êÇ©¿Ø¼şµÄ¹Ø±Õ°´Å¥µÄµ¥»÷ÏûÏ¢
+	* @param[in] param ÏûÏ¢µÄÏà¹ØĞÅÏ¢
+	* @param[in] browser_id ÁĞ±íÏî¶ÔÓ¦µÄä¯ÀÀÆ÷id
+	* @return bool true ¼ÌĞø´«µİ¿Ø¼şÏûÏ¢£¬false Í£Ö¹´«µİ¿Ø¼şÏûÏ¢
 	*/
 	bool OnTabItemClose(ui::EventArgs* param, const std::string& browser_id);
 
 	/**
-	* åœ¨æœ¬çª—å£å†…æŸ¥æ‰¾æµè§ˆå™¨ç›’å­
-	* @param[in] browser_id æµè§ˆå™¨id
-	* @return BrowserBox* æµè§ˆå™¨ç›’å­
+	* ÔÚ±¾´°¿ÚÄÚ²éÕÒä¯ÀÀÆ÷ºĞ×Ó
+	* @param[in] browser_id ä¯ÀÀÆ÷id
+	* @return BrowserBox* ä¯ÀÀÆ÷ºĞ×Ó
 	*/
 	BrowserBox* FindBox(const std::wstring &browser_id);
 
 	/**
-	* åœ¨æœ¬çª—å£å†…æŸ¥æ‰¾æ ‡ç­¾æ§ä»¶
-	* @param[in] browser_id æµè§ˆå™¨id
-	* @return BrowserBox* æµè§ˆå™¨ç›’å­
+	* ÔÚ±¾´°¿ÚÄÚ²éÕÒ±êÇ©¿Ø¼ş
+	* @param[in] browser_id ä¯ÀÀÆ÷id
+	* @return BrowserBox* ä¯ÀÀÆ÷ºĞ×Ó
 	*/
 	BrowserTabItem* FindTabItem(const std::wstring &browser_id);
 
 	/**
-	* åˆ‡æ¢æŸä¸ªæµè§ˆå™¨ç›’å­ä¸ºæ˜¾ç¤ºçŠ¶æ€
-	* @param[in] browser_id æµè§ˆå™¨id
-	* @return bool true æˆåŠŸï¼Œfalse å¤±è´¥
+	* ÇĞ»»Ä³¸öä¯ÀÀÆ÷ºĞ×ÓÎªÏÔÊ¾×´Ì¬
+	* @param[in] browser_id ä¯ÀÀÆ÷id
+	* @return bool true ³É¹¦£¬false Ê§°Ü
 	*/
 	bool ChangeToBox(const std::wstring &browser_id);
 
 public:
 	/**
-	* è·å–çª—ä½“å¥æŸ„
-	* @return HWND	çª—ä½“å¥æŸ„
+	* »ñÈ¡´°Ìå¾ä±ú
+	* @return HWND	´°Ìå¾ä±ú
 	*/
 	virtual HWND GetHandle() const override { return this->GetHWND(); };
 
 	/**
-	* è·å–æ¸²æŸ“ä¸Šä¸‹æ–‡
-	* @return IRenderContext*	æ¸²æŸ“ä¸Šä¸‹æ–‡
+	* »ñÈ¡äÖÈ¾ÉÏÏÂÎÄ
+	* @return IRenderContext*	äÖÈ¾ÉÏÏÂÎÄ
 	*/
 	virtual HDC GetRenderDC() const override { return this->GetRenderContext()->GetDC(); };
 
 	/**
-	* å…³é—­ä¸€ä¸ªä»»åŠ¡æ é¡¹
-	* @param[in] id ä»»åŠ¡æ é¡¹id
-	* @return void	æ— è¿”å›å€¼
+	* ¹Ø±ÕÒ»¸öÈÎÎñÀ¸Ïî
+	* @param[in] id ÈÎÎñÀ¸Ïîid
+	* @return void	ÎŞ·µ»ØÖµ
 	*/
 	virtual void CloseTaskbarItem(const std::string &id) override { CloseBox(id); }
 
 	/**
-	* æ¿€æ´»å¹¶åˆ‡æ¢åˆ°ä¸€ä¸ªä»»åŠ¡æ é¡¹
-	* @param[in] id ä»»åŠ¡æ é¡¹id
-	* @return void æ— è¿”å›å€¼
+	* ¼¤»î²¢ÇĞ»»µ½Ò»¸öÈÎÎñÀ¸Ïî
+	* @param[in] id ÈÎÎñÀ¸Ïîid
+	* @return void ÎŞ·µ»ØÖµ
 	*/
 	virtual void SetActiveTaskbarItem(const std::string &id) override { SetActiveBox(id); }
 
 	/**
-	* è®¾ç½®æŸä¸ªæµè§ˆå™¨å¯¹åº”çš„æ ‡ç­¾æ§ä»¶çš„æ ‡é¢˜
-	* @param[in] browser_id æµè§ˆå™¨id
-	* @param[in] name æ ‡é¢˜
-	* @return void	æ— è¿”å›å€¼
+	* ÉèÖÃÄ³¸öä¯ÀÀÆ÷¶ÔÓ¦µÄ±êÇ©¿Ø¼şµÄ±êÌâ
+	* @param[in] browser_id ä¯ÀÀÆ÷id
+	* @param[in] name ±êÌâ
+	* @return void	ÎŞ·µ»ØÖµ
 	*/
 	void SetTabItemName(const std::wstring &browser_id, const std::wstring &name);
 
 	/**
-	* è®¾ç½®æŸä¸ªæµè§ˆå™¨å¯¹åº”çš„æ ‡ç­¾æ§ä»¶çš„URL
-	* @param[in] browser_id æµè§ˆå™¨id
+	* ÉèÖÃÄ³¸öä¯ÀÀÆ÷¶ÔÓ¦µÄ±êÇ©¿Ø¼şµÄURL
+	* @param[in] browser_id ä¯ÀÀÆ÷id
 	* @param[in] url URL
-	* @return void	æ— è¿”å›å€¼
+	* @return void	ÎŞ·µ»ØÖµ
 	*/
 	void SetURL(const std::string &browser_id, const std::wstring &url);
 
 public:
 
 	/**
-	* åˆå§‹åŒ–çª—å£æ‹–æ”¾åŠŸèƒ½
-	* @return void	æ— è¿”å›å€¼
+	* ³õÊ¼»¯´°¿ÚÍÏ·Å¹¦ÄÜ
+	* @return void	ÎŞ·µ»ØÖµ
 	*/
 	bool InitDragDrop();
 
 	/**
-	* ååˆå§‹åŒ–çª—å£æ‹–æ”¾åŠŸèƒ½
-	* @return void	æ— è¿”å›å€¼
+	* ·´³õÊ¼»¯´°¿ÚÍÏ·Å¹¦ÄÜ
+	* @return void	ÎŞ·µ»ØÖµ
 	*/
 	void UnInitDragDrop();
 
@@ -252,23 +252,23 @@ public:
 
 private:
 	/**
-	* åˆ¤æ–­æ˜¯å¦è¦æ‹–æ‹½æµè§ˆå™¨ç›’å­
-	* @param[in] param å¤„ç†æµè§ˆå™¨çª—å£å·¦ä¾§ä¼šè¯åˆå¹¶åˆ—è¡¨é¡¹å‘é€çš„äº‹ä»¶
-	* @return bool è¿”å›å€¼true: ç»§ç»­ä¼ é€’æ§ä»¶æ¶ˆæ¯ï¼Œ false: åœæ­¢ä¼ é€’æ§ä»¶æ¶ˆæ¯
+	* ÅĞ¶ÏÊÇ·ñÒªÍÏ×§ä¯ÀÀÆ÷ºĞ×Ó
+	* @param[in] param ´¦Àíä¯ÀÀÆ÷´°¿Ú×ó²à»á»°ºÏ²¢ÁĞ±íÏî·¢ËÍµÄÊÂ¼ş
+	* @return bool ·µ»ØÖµtrue: ¼ÌĞø´«µİ¿Ø¼şÏûÏ¢£¬ false: Í£Ö¹´«µİ¿Ø¼şÏûÏ¢
 	*/
 	bool OnProcessTabItemDrag(ui::EventArgs* param);
 
 	/**
-	* ç”Ÿæˆå½“å‰çª—ä½“ä¸­æŸä¸ªåŒºåŸŸå¯¹åº”çš„ä½å›¾ï¼Œç”¨äºç¦»å±æ¸²æŸ“æ¨¡å¼
-	* @param[in] src_rect ç›®æ ‡ä½å›¾çš„ä½ç½®
-	* @return HBITMAP ç”Ÿæˆçš„ä½å›¾
+	* Éú³Éµ±Ç°´°ÌåÖĞÄ³¸öÇøÓò¶ÔÓ¦µÄÎ»Í¼£¬ÓÃÓÚÀëÆÁäÖÈ¾Ä£Ê½
+	* @param[in] src_rect Ä¿±êÎ»Í¼µÄÎ»ÖÃ
+	* @return HBITMAP Éú³ÉµÄÎ»Í¼
 	*/
 	HBITMAP GenerateBoxOffsetRenderBitmap(const ui::UiRect &src_rect);
 
 	/**
-	* ç”Ÿæˆå½“å‰æ¿€æ´»çš„æµè§ˆå™¨ç›’å­çš„ä½å›¾ï¼Œç”¨äºæœ‰çª—æ¨¡å¼
-	* @param[in] src_rect ç›®æ ‡ä½å›¾çš„ä½ç½®
-	* @return HBITMAP ç”Ÿæˆçš„ä½å›¾
+	* Éú³Éµ±Ç°¼¤»îµÄä¯ÀÀÆ÷ºĞ×ÓµÄÎ»Í¼£¬ÓÃÓÚÓĞ´°Ä£Ê½
+	* @param[in] src_rect Ä¿±êÎ»Í¼µÄÎ»ÖÃ
+	* @return HBITMAP Éú³ÉµÄÎ»Í¼
 	*/
 	HBITMAP GenerateBoxWindowBitmap();
 
@@ -284,14 +284,14 @@ private:
 	ui::TabBox			*borwser_box_tab_;
 	BrowserBox			*active_browser_box_;
 
-	// å¤„ç†æµè§ˆå™¨ç›’å­æ‹–æ”¾äº‹ä»¶
+	// ´¦Àíä¯ÀÀÆ÷ºĞ×ÓÍÏ·ÅÊÂ¼ş
 	IDropTargetHelper	*drop_helper_;
 
-	// å¤„ç†æµè§ˆå™¨ç›’å­æ‹–æ‹½äº‹ä»¶
+	// ´¦Àíä¯ÀÀÆ÷ºĞ×ÓÍÏ×§ÊÂ¼ş
 	bool				is_drag_state_;
 	POINT				old_drag_point_;
 	std::wstring		draging_browser_id_;
 
-	// ä»»åŠ¡æ ç¼©ç•¥å›¾ç®¡ç†å™¨
+	// ÈÎÎñÀ¸ËõÂÔÍ¼¹ÜÀíÆ÷
 	TaskbarManager		taskbar_manager_;
 };

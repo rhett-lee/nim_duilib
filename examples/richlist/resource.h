@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
-// Microsoft Visual C++ 生成的包含文件。
-// 供 basic.rc 使用
+// Microsoft Visual C++ ���ɵİ����ļ���
+// �� basic.rc ʹ��
 //
 #define IDC_MYICON                      2
 #define IDD_BASIC_DIALOG                102

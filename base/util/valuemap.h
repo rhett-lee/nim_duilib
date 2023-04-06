@@ -14,7 +14,7 @@ namespace nbase
 class BASE_EXPORT ValueMap
 {
 public:
-    // å‚æ•°çš„è®¿é—®é™åˆ¶
+    // ²ÎÊıµÄ·ÃÎÊÏŞÖÆ
     enum
 	{
         access_read  = 0x01,

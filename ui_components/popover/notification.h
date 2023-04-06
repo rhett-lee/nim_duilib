@@ -37,11 +37,11 @@ public:
 
   virtual ~Notification();
 
-  // é‡è½½çˆ¶ç±»
+  // ÖØÔØ¸¸Àà
   void SetPos(ui::UiRect rc) override;
 
 protected:
-  // åˆå§‹åŒ–ä½ç½®ï¼Œå¹¶ç»‘å®šé”šç‚¹äº‹ä»¶
+  // ³õÊ¼»¯Î»ÖÃ£¬²¢°ó¶¨ÃªµãÊÂ¼ş
   void InitializePosition() override;
 };
 

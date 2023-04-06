@@ -11,34 +11,34 @@ class UILIB_API TileLayout : public Layout
 public:
 	TileLayout();
 
-	/// é‡å†™çˆ¶ç±»æ–¹æ³•ï¼Œæä¾›ä¸ªæ€§åŒ–åŠŸèƒ½ï¼Œè¯·å‚è€ƒçˆ¶ç±»å£°æ˜
+	/// ÖØĞ´¸¸Àà·½·¨£¬Ìá¹©¸öĞÔ»¯¹¦ÄÜ£¬Çë²Î¿¼¸¸ÀàÉùÃ÷
 	virtual CSize ArrangeChild(const std::vector<Control*>& items, UiRect rc) override;
 	virtual CSize AjustSizeByChild(const std::vector<Control*>& items, CSize szAvailable) override;
 	virtual bool SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 
 	/**
-	 * @brief è·å–å­é¡¹å¤§å°
-	 * @return è¿”å›å­é¡¹å¤§å°
+	 * @brief »ñÈ¡×ÓÏî´óĞ¡
+	 * @return ·µ»Ø×ÓÏî´óĞ¡
 	 */
 	CSize GetItemSize() const;
 
 	/**
-	 * @brief è®¾ç½®å­é¡¹å¤§å°
-	 * @param[in] szItem å­é¡¹å¤§å°æ•°æ®
-	 * @return æ— 
+	 * @brief ÉèÖÃ×ÓÏî´óĞ¡
+	 * @param[in] szItem ×ÓÏî´óĞ¡Êı¾İ
+	 * @return ÎŞ
 	 */
 	void SetItemSize(CSize szItem, bool bNeedDpiScale = true);
 
 	/**
-	 * @brief è·å–åˆ—æ•°é‡
-	 * @return è¿”å›åˆ—æ•°é‡
+	 * @brief »ñÈ¡ÁĞÊıÁ¿
+	 * @return ·µ»ØÁĞÊıÁ¿
 	 */
 	int GetColumns() const;
 
 	/**
-	 * @brief è®¾ç½®æ˜¾ç¤ºå‡ åˆ—æ•°æ®
-	 * @param[in] nCols è¦è®¾ç½®æ˜¾ç¤ºå‡ åˆ—çš„æ•°å€¼
-	 * @return æ— 
+	 * @brief ÉèÖÃÏÔÊ¾¼¸ÁĞÊı¾İ
+	 * @param[in] nCols ÒªÉèÖÃÏÔÊ¾¼¸ÁĞµÄÊıÖµ
+	 * @return ÎŞ
 	 */
 	void SetColumns(int nCols);
 

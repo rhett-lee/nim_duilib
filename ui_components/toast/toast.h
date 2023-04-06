@@ -2,7 +2,7 @@
 
 namespace nim_comp {
 /** @class Toast
- * @brief æä¾›ä¸€ä¸ªç®€æ˜“çš„æç¤ºçª—ä½“ï¼Œç›¸å½“äºMessageBoxçš„ç®€åŒ–ç‰ˆ
+ * @brief Ìá¹©Ò»¸ö¼òÒ×µÄÌáÊ¾´°Ìå£¬Ïàµ±ÓÚMessageBoxµÄ¼ò»¯°æ
  * @copyright (c) 2016, NetEase Inc. All rights reserved
  * @author Redrain
  * @date 2016/8/24
@@ -11,18 +11,18 @@ class Toast : public ui::WindowImplBase
 {
 public:
 	/**
-	 * åœ¨å±å¹•ä¸­é—´æ˜¾ç¤ºä¸€ä¸ªæç¤ºæ¡†
-	 * @param[in] content æç¤ºå†…å®¹
-	 * @param[in] duration æŒç»­æ—¶é—´(æ¯«ç§’),0ä»£è¡¨ä¸€ç›´æ˜¾ç¤º
-	 * @param[in] parent çˆ¶çª—å£å¥æŸ„ï¼Œå¦‚æœæä¾›çš„è¯toastä¼šæ˜¾ç¤ºåœ¨çˆ¶çª—å£çš„ä¸­å¿ƒ
-	 * @return void æ— è¿”å›å€¼
+	 * ÔÚÆÁÄ»ÖĞ¼äÏÔÊ¾Ò»¸öÌáÊ¾¿ò
+	 * @param[in] content ÌáÊ¾ÄÚÈİ
+	 * @param[in] duration ³ÖĞøÊ±¼ä(ºÁÃë),0´ú±íÒ»Ö±ÏÔÊ¾
+	 * @param[in] parent ¸¸´°¿Ú¾ä±ú£¬Èç¹ûÌá¹©µÄ»°toast»áÏÔÊ¾ÔÚ¸¸´°¿ÚµÄÖĞĞÄ
+	 * @return void ÎŞ·µ»ØÖµ
 	 */
 	static void ShowToast(const std::wstring &content, int duration = 0, HWND parent = NULL);
 public:
 	Toast(){};
 	~Toast(){};
 
-	//è¦†ç›–è™šå‡½æ•°
+	//¸²¸ÇĞéº¯Êı
 	virtual std::wstring GetSkinFolder() override;
 	virtual std::wstring GetSkinFile() override;
 	virtual std::wstring GetWindowClassName() const override;
@@ -30,39 +30,39 @@ public:
 	virtual UINT GetClassStyle() const override;
 
 	/**
-	 * çª—å£åˆå§‹åŒ–å‡½æ•°
-	 * @return void	æ— è¿”å›å€¼
+	 * ´°¿Ú³õÊ¼»¯º¯Êı
+	 * @return void	ÎŞ·µ»ØÖµ
 	 */
 	virtual void InitWindow() override;
 
 	/**
-	 * æ‹¦æˆªå¹¶å¤„ç†åº•å±‚çª—ä½“æ¶ˆæ¯
-	 * @param[in] uMsg æ¶ˆæ¯ç±»å‹
-	 * @param[in] wParam é™„åŠ å‚æ•°
-	 * @param[in] lParam é™„åŠ å‚æ•°
-	 * @return LRESULT å¤„ç†ç»“æœ
+	 * À¹½Ø²¢´¦Àíµ×²ã´°ÌåÏûÏ¢
+	 * @param[in] uMsg ÏûÏ¢ÀàĞÍ
+	 * @param[in] wParam ¸½¼Ó²ÎÊı
+	 * @param[in] lParam ¸½¼Ó²ÎÊı
+	 * @return LRESULT ´¦Àí½á¹û
 	 */
 	virtual LRESULT HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) override;
 
 	/**
-	 * è®¾ç½®çª—ä½“çš„æ˜¾ç¤ºæ—¶é•¿
-	 * @param[in] duration æŒç»­æ—¶é—´ï¼Œå•ä½æ¯«ç§’
-	 * @return void	æ— è¿”å›å€¼
+	 * ÉèÖÃ´°ÌåµÄÏÔÊ¾Ê±³¤
+	 * @param[in] duration ³ÖĞøÊ±¼ä£¬µ¥Î»ºÁÃë
+	 * @return void	ÎŞ·µ»ØÖµ
 	 */
 	void SetDuration(int duration);
 
 private:
 	/**
-	 * å¤„ç†æ‰€æœ‰æ§ä»¶å•å‡»æ¶ˆæ¯
-	 * @param[in] msg æ¶ˆæ¯çš„ç›¸å…³ä¿¡æ¯
-	 * @return bool true ç»§ç»­ä¼ é€’æ§ä»¶æ¶ˆæ¯ï¼Œfalse åœæ­¢ä¼ é€’æ§ä»¶æ¶ˆæ¯
+	 * ´¦ÀíËùÓĞ¿Ø¼şµ¥»÷ÏûÏ¢
+	 * @param[in] msg ÏûÏ¢µÄÏà¹ØĞÅÏ¢
+	 * @return bool true ¼ÌĞø´«µİ¿Ø¼şÏûÏ¢£¬false Í£Ö¹´«µİ¿Ø¼şÏûÏ¢
 	 */
 	bool OnClicked(ui::EventArgs* msg);
 
 	/**
-	 * è®¾ç½®æç¤ºå†…å®¹
-	 * @param[in] str æç¤ºå†…å®¹
-	 * @return void	æ— è¿”å›å€¼
+	 * ÉèÖÃÌáÊ¾ÄÚÈİ
+	 * @param[in] str ÌáÊ¾ÄÚÈİ
+	 * @return void	ÎŞ·µ»ØÖµ
 	 */
 	void SetContent(const std::wstring &str);
 

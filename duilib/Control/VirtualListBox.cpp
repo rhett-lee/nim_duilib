@@ -123,8 +123,8 @@ void VirtualListBox::Refresh()
 	}
 
 	if (UseDefaultLayout()) {
-		// åˆšä»è™šæ‹Ÿåˆ—è¡¨è½¬æ¢åˆ°æ™®é€šæ¨¡å¼æ—¶ï¼Œå­˜åœ¨å¸ƒå±€é”™è¯¯çš„æƒ…å†µï¼ˆè™šæ‹Ÿåˆ—è¡¨æ»šåŠ¨æ¡æ¥è¿‘åº•éƒ¨ï¼Œ
-		// ç„¶åæ•°æ®å‡å°‘ï¼Œå˜æˆæ™®é€šæ¨¡å¼ï¼‰
+		// ¸Õ´ÓĞéÄâÁĞ±í×ª»»µ½ÆÕÍ¨Ä£Ê½Ê±£¬´æÔÚ²¼¾Ö´íÎóµÄÇé¿ö£¨ĞéÄâÁĞ±í¹ö¶¯Ìõ½Ó½üµ×²¿£¬
+		// È»ºóÊı¾İ¼õÉÙ£¬±ä³ÉÆÕÍ¨Ä£Ê½£©
 		if (nItemCount == m_nMaxItemCount) {
 			this->GetLayout()->ArrangeChild(m_items, m_rcItem);
 		}
@@ -207,12 +207,12 @@ void VirtualListBox::EnsureVisible(int iIndex, bool bToTop)
 			return;
 
 		if (iIndex > nTopIndex) {
-			// å‘ä¸‹
+			// ÏòÏÂ
 			int length = CalcElementsHeight(iIndex + 1);
 			nNewPos = length - ((m_eDirection == kListVertical) ? m_rcItem.GetHeight() : m_rcItem.GetWidth());
 		}
 		else {
-			// å‘ä¸Š
+			// ÏòÉÏ
 			nNewPos = CalcElementsHeight(iIndex);
 		}
 	}
@@ -240,7 +240,7 @@ void VirtualListBox::ReArrangeChild(bool bForce)
 	int nTopIndex = GetTopElementIndex(nTopIndexBottom);
 
 	if (direction == kScrollDown) {
-		// å‘ä¸‹æ»šåŠ¨
+		// ÏòÏÂ¹ö¶¯
 		ui::UiRect rcItem = m_rcItem;
 		if (m_eDirection == kListVertical) {
 			rcItem.bottom = rcItem.top + nTopIndexBottom;
@@ -267,13 +267,13 @@ void VirtualListBox::ReArrangeChild(bool bForce)
 		}
 	}
 	else {
-		// å‘ä¸Šæ»šåŠ¨
+		// ÏòÉÏ¹ö¶¯
 		int nDisplayCount = ((m_eDirection == kListVertical) ? m_rcItem.GetHeight() : m_rcItem.GetWidth()) / m_nElementHeight + 1;
 		int nHideCount = (int)m_items.size() - nDisplayCount;
 		if (nHideCount < 0)
 			return;
 
-		// ä¸ŠåŠéƒ¨åˆ†
+		// ÉÏ°ë²¿·Ö
 		UiRect rcItem = m_rcItem;
 		if (m_eDirection == kListVertical) {
 			rcItem.top = m_rcItem.top + nTopIndexBottom;
@@ -298,7 +298,7 @@ void VirtualListBox::ReArrangeChild(bool bForce)
 				FillElement(m_items[i], nElementIndex);
 		}
 
-		// ä¸‹åŠéƒ¨åˆ†
+		// ÏÂ°ë²¿·Ö
 		rcItem = m_rcItem;
 		if (m_eDirection == kListVertical) {
 			rcItem.bottom = m_rcItem.top + nTopIndexBottom;
@@ -526,21 +526,21 @@ bool VirtualListBox::NeedReArrange(ScrollDirection &direction)
 	int nPos = (m_eDirection == kListVertical) ? GetScrollPos().cy : GetScrollPos().cx; 
 	UiRect rcItem;
 
-    // è¡¥æ•‘æªæ–½
-    // æƒ…å†µä¸€ï¼šé€šè®¯å½•åˆ—è¡¨ï¼Œä¸€å¼€å§‹ä¸å¯è§ï¼Œåˆ‡æ¢åå¯è§ï¼Œå¦‚æœæå‰å¸ƒå±€ï¼Œ
-    // åˆ™Elementå®½åº¦ä¸º0ï¼Œå› æ­¤ï¼Œå¿…é¡»é‡æ–°å¸ƒå±€ï¼›
-    // æƒ…å†µäºŒï¼šå†™ä¿¡çª—å£è”ç³»äººåˆ—è¡¨ï¼Œåˆ—è¡¨å®½åº¦ä¼šä¸æ–­å˜åŒ–ï¼Œå› æ­¤ï¼Œéœ€è¦åœ¨å®½åº¦å˜åŒ–å
-    // é‡æ–°å¸ƒå±€ï¼Œå¦åˆ™ï¼Œå¯¼è‡´æœ€ç»ˆElementå¸ƒå±€æ—¶çš„å®½åº¦ä¸æ­£ç¡®
+    // ²¹¾È´ëÊ©
+    // Çé¿öÒ»£ºÍ¨Ñ¶Â¼ÁĞ±í£¬Ò»¿ªÊ¼²»¿É¼û£¬ÇĞ»»ºó¿É¼û£¬Èç¹ûÌáÇ°²¼¾Ö£¬
+    // ÔòElement¿í¶ÈÎª0£¬Òò´Ë£¬±ØĞëÖØĞÂ²¼¾Ö£»
+    // Çé¿ö¶ş£ºĞ´ĞÅ´°¿ÚÁªÏµÈËÁĞ±í£¬ÁĞ±í¿í¶È»á²»¶Ï±ä»¯£¬Òò´Ë£¬ĞèÒªÔÚ¿í¶È±ä»¯ºó
+    // ÖØĞÂ²¼¾Ö£¬·ñÔò£¬µ¼ÖÂ×îÖÕElement²¼¾ÖÊ±µÄ¿í¶È²»ÕıÈ·
     rcItem = m_items[0]->GetPos();
     // modified by zqw, 2016/10/12
-    // é’ˆå¯¹æƒ…å†µäºŒï¼Œè§£å†³æ–¹æ³•æ˜¯ï¼Œåˆ—è¡¨å®½åº¦å˜åŒ– æˆ–è€… æ‹–åŠ¨å†™ä¿¡çª—å£å³ä¾§ï¼Œåˆ—è¡¨positionæ”¹å˜ï¼Œ
-    // æ­¤æ—¶ï¼Œåœ¨SetPosä¸­å¼ºåˆ¶é‡æ–°å¸ƒå±€
+    // Õë¶ÔÇé¿ö¶ş£¬½â¾ö·½·¨ÊÇ£¬ÁĞ±í¿í¶È±ä»¯ »òÕß ÍÏ¶¯Ğ´ĞÅ´°¿ÚÓÒ²à£¬ÁĞ±íposition¸Ä±ä£¬
+    // ´ËÊ±£¬ÔÚSetPosÖĞÇ¿ÖÆÖØĞÂ²¼¾Ö
     //if (u.GetWidth() != rect.GetWidth()) {
     //    return true;
     //}
 
 	if (nPos >= m_nOldYScrollPos) {
-		// ä¸‹
+		// ÏÂ
 		rcItem = m_items[nCount - 1]->GetPos();
 		if (kListVertical == m_eDirection) {
 			int nSub = (rcItem.bottom - rcThis.top) - (nPos + rcThis.GetHeight());
@@ -558,7 +558,7 @@ bool VirtualListBox::NeedReArrange(ScrollDirection &direction)
 		}
 	}
 	else {
-		// ä¸Š
+		// ÉÏ
 		rcItem = m_items[0]->GetPos();
 		if (kListVertical == m_eDirection) {
 			if (nPos < (rcItem.top - rcThis.top)) {

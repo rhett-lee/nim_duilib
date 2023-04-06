@@ -1,5 +1,5 @@
 /** @file client_app.h
-  * @brief å®šä¹‰Browserè¿›ç¨‹çš„CefAppç±»ï¼Œç®¡ç†Cefæ¨¡å—çš„ç”Ÿå‘½å‘¨æœŸ
+  * @brief ¶¨ÒåBrowser½ø³ÌµÄCefAppÀà£¬¹ÜÀíCefÄ£¿éµÄÉúÃüÖÜÆÚ
   * @copyright (c) 2016, NetEase Inc. All rights reserved
   * @author Redrain
   * @date 2016/7/19

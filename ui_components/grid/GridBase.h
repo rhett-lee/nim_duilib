@@ -16,7 +16,7 @@ namespace ui
 		GIT_Double,
 		GIT_Combo,
 		GIT_Date,
-		GIT_Costom,		//è‡ªå®šä¹‰ç±»å‹
+		GIT_Costom,		//×Ô¶¨ÒåÀàĞÍ
 	};
 
 	class UILIB_API GridItemInfo
@@ -45,7 +45,7 @@ namespace ui
 		int col_index;
 		UINT text_style;
 		GridItemType type;
-		int flag;				//çŠ¶æ€ç­‰
+		int flag;				//×´Ì¬µÈ
 		
 		int iValue;
 		double dValue;
@@ -184,7 +184,7 @@ namespace ui
 		GridBody *m_pBody;
 		std::map<int, void*> m_mapSelRow;
 		std::map<int, void*> m_mapSelCol;
-		std::vector<UiRect> m_vecRange;			//ç”¨UiRectä»£è¡¨ä¸€å—é€‰ä¸­çš„åŒºåŸŸçš„å››ä¸ªè§’
+		std::vector<UiRect> m_vecRange;			//ÓÃUiRect´ú±íÒ»¿éÑ¡ÖĞµÄÇøÓòµÄËÄ¸ö½Ç
 
 		bool m_bSelAll = false;
 	};

@@ -1,4 +1,4 @@
-// basic.cpp : å®šä¹‰åº”ç”¨ç¨‹åºçš„å…¥å£ç‚¹ã€‚
+// basic.cpp : ¶¨ÒåÓ¦ÓÃ³ÌÐòµÄÈë¿Úµã¡£
 //
 
 #include "stdafx.h"
@@ -17,8 +17,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	UNREFERENCED_PARAMETER(hPrevInstance);
 	UNREFERENCED_PARAMETER(lpCmdLine);
 
-	// å°† bin\\cef ç›®å½•æ·»åŠ åˆ°çŽ¯å¢ƒå˜é‡ï¼Œè¿™æ ·å¯ä»¥å°†æ‰€æœ‰ CEF ç›¸å…³æ–‡ä»¶æ”¾åˆ°è¯¥ç›®å½•ä¸‹ï¼Œæ–¹ä¾¿ç®¡ç†
-	// åœ¨é¡¹ç›®å±žæ€§->è¿žæŽ¥å™¨->è¾“å…¥ï¼Œå»¶è¿ŸåŠ è½½ nim_libcef.dll
+	// ½« bin\\cef Ä¿Â¼Ìí¼Óµ½»·¾³±äÁ¿£¬ÕâÑù¿ÉÒÔ½«ËùÓÐ CEF Ïà¹ØÎÄ¼þ·Åµ½¸ÃÄ¿Â¼ÏÂ£¬·½±ã¹ÜÀí
+	// ÔÚÏîÄ¿ÊôÐÔ->Á¬½ÓÆ÷->ÊäÈë£¬ÑÓ³Ù¼ÓÔØ nim_libcef.dll
 	nim_comp::CefManager::GetInstance()->AddCefDllToPath();
 
 	_wsetlocale(LC_ALL, L"chs");
@@ -34,20 +34,20 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	if (FAILED(hr))
 		return 0;
 
-	// åˆå§‹åŒ– CEF
+	// ³õÊ¼»¯ CEF
 	CefSettings settings;
 	if (!nim_comp::CefManager::GetInstance()->Initialize(nbase::win32::GetCurrentModuleDirectory() + L"cef_temp\\", settings, true))
 	{
 		return 0;
 	}
 
-	// åˆ›å»ºä¸»çº¿ç¨‹
+	// ´´½¨Ö÷Ïß³Ì
 	MainThread thread;
 
-	// æ‰§è¡Œä¸»çº¿ç¨‹å¾ªçŽ¯
+	// Ö´ÐÐÖ÷Ïß³ÌÑ­»·
 	thread.RunOnCurrentThreadWithLoop(nbase::MessageLoop::kUIMessageLoop);
 
-    // æ¸…ç† CEF
+    // ÇåÀí CEF
     nim_comp::CefManager::GetInstance()->UnInitialize();
 
 	::OleUninitialize();

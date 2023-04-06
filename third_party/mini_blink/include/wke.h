@@ -1,7 +1,7 @@
 /*
 *
 * wolar@qq.com
-* http://miniblink.net æ–‡æ¡£åœ°å€
+* http://miniblink.net ÎÄµµµØÖ·
 * https://github.com/weolar/miniblink49
 * licence Apache-2.0
 *
@@ -130,7 +130,7 @@ typedef struct _wkeProxy {
 
 typedef enum _wkeSettingMask {
     WKE_SETTING_PROXY = 1,
-    WKE_SETTING_EXTENSION = 1 << 2, // æµ‹è¯•åŠŸèƒ½ï¼Œè¯·å‹¿è°ƒç”¨
+    WKE_SETTING_EXTENSION = 1 << 2, // ²âÊÔ¹¦ÄÜ£¬ÇëÎğµ÷ÓÃ
 } wkeSettingMask;
 
 typedef struct _wkeSettings {
@@ -676,7 +676,7 @@ typedef enum _jsType {
     JSTYPE_NULL,
 } jsType;
 
-// cexer JSå¯¹è±¡ã€å‡½æ•°ç»‘å®šæ”¯æŒ
+// cexer JS¶ÔÏó¡¢º¯Êı°ó¶¨Ö§³Ö
 typedef jsValue(WKE_CALL_TYPE*jsGetPropertyCallback)(jsExecState es, jsValue object, const char* propertyName);
 typedef bool(WKE_CALL_TYPE*jsSetPropertyCallback)(jsExecState es, jsValue object, const char* propertyName, jsValue value);
 typedef jsValue(WKE_CALL_TYPE*jsCallAsFunctionCallback)(jsExecState es, jsValue object, jsValue* args, int argCount);
@@ -904,11 +904,11 @@ public:
 #define WKE_GET_PTR_ITERATOR11(returnVal, name, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, description) \
     WKE_GET_PTR_ITERATOR(name);
 
-// ä»¥ä¸‹æ˜¯wkeçš„å¯¼å‡ºå‡½æ•°ã€‚æ ¼å¼æŒ‰ç…§ã€è¿”å›ç±»å‹ã€‘ã€å‡½æ•°åã€‘ã€å‚æ•°ã€‘æ¥æ’åˆ—
+// ÒÔÏÂÊÇwkeµÄµ¼³öº¯Êı¡£¸ñÊ½°´ÕÕ¡¾·µ»ØÀàĞÍ¡¿¡¾º¯ÊıÃû¡¿¡¾²ÎÊı¡¿À´ÅÅÁĞ
 
 #define WKE_FOR_EACH_DEFINE_FUNCTION(ITERATOR0, ITERATOR1, ITERATOR2, ITERATOR3, ITERATOR4, ITERATOR5, ITERATOR6, ITERATOR11) \
     ITERATOR0(void, wkeShutdown, "") \
-    ITERATOR0(void, wkeShutdownForDebug, "æµ‹è¯•ä½¿ç”¨ï¼Œä¸äº†è§£åƒä¸‡åˆ«ç”¨ï¼") \
+    ITERATOR0(void, wkeShutdownForDebug, "²âÊÔÊ¹ÓÃ£¬²»ÁË½âÇ§Íò±ğÓÃ£¡") \
     \
     ITERATOR0(unsigned int, wkeVersion, "") \
     ITERATOR0(const utf8*, wkeVersionString, "") \
@@ -989,10 +989,10 @@ public:
     ITERATOR2(void, wkeSetNavigationToNewWindowEnable, wkeWebView webView, bool b, "") \
     ITERATOR2(void, wkeSetCspCheckEnable, wkeWebView webView, bool b, "") \
     ITERATOR2(void, wkeSetNpapiPluginsEnabled, wkeWebView webView, bool b, "") \
-    ITERATOR2(void, wkeSetHeadlessEnabled, wkeWebView webView, bool b, "å¯ä»¥å…³é—­æ¸²æŸ“") \
-    ITERATOR2(void, wkeSetDragEnable, wkeWebView webView, bool b, "å¯å…³é—­æ‹–æ‹½æ–‡ä»¶åŠ è½½ç½‘é¡µ") \
-    ITERATOR2(void, wkeSetDragDropEnable, wkeWebView webView, bool b, "å¯å…³é—­æ‹–æ‹½åˆ°å…¶ä»–è¿›ç¨‹") \
-    ITERATOR3(void, wkeSetContextMenuItemShow, wkeWebView webView, wkeMenuItemId item, bool isShow, "è®¾ç½®æŸé¡¹menuæ˜¯å¦æ˜¾ç¤º") \
+    ITERATOR2(void, wkeSetHeadlessEnabled, wkeWebView webView, bool b, "¿ÉÒÔ¹Ø±ÕäÖÈ¾") \
+    ITERATOR2(void, wkeSetDragEnable, wkeWebView webView, bool b, "¿É¹Ø±ÕÍÏ×§ÎÄ¼ş¼ÓÔØÍøÒ³") \
+    ITERATOR2(void, wkeSetDragDropEnable, wkeWebView webView, bool b, "¿É¹Ø±ÕÍÏ×§µ½ÆäËû½ø³Ì") \
+    ITERATOR3(void, wkeSetContextMenuItemShow, wkeWebView webView, wkeMenuItemId item, bool isShow, "ÉèÖÃÄ³ÏîmenuÊÇ·ñÏÔÊ¾") \
     ITERATOR2(void, wkeSetLanguage, wkeWebView webView, const char* language, "") \
     \
     ITERATOR2(void, wkeSetViewNetInterface, wkeWebView webView, const char* netInterface, "") \
@@ -1088,7 +1088,7 @@ public:
     \
     ITERATOR1(const wchar_t*, wkeGetCookieW, wkeWebView webView, "") \
     ITERATOR1(const utf8*, wkeGetCookie, wkeWebView webView, "") \
-    ITERATOR3(void, wkeSetCookie, wkeWebView webView, const utf8* url, const utf8* cookie, "cookieæ ¼å¼å¿…é¡»æ˜¯ç±»ä¼¼:cna=4UvTFE12fEECAXFKf4SFW5eo; expires=Tue, 23-Jan-2029 13:17:21 GMT; path=/; domain=.youku.com") \
+    ITERATOR3(void, wkeSetCookie, wkeWebView webView, const utf8* url, const utf8* cookie, "cookie¸ñÊ½±ØĞëÊÇÀàËÆ:cna=4UvTFE12fEECAXFKf4SFW5eo; expires=Tue, 23-Jan-2029 13:17:21 GMT; path=/; domain=.youku.com") \
     ITERATOR3(void, wkeVisitAllCookie, wkeWebView webView, void* params, wkeCookieVisitor visitor, "") \
     ITERATOR2(void, wkePerformCookieCommand, wkeWebView webView, wkeCookieCommand command, "") \
     ITERATOR2(void, wkeSetCookieEnabled, wkeWebView webView, bool enable, "") \
@@ -1114,7 +1114,7 @@ public:
     ITERATOR1(void, wkeKillFocus, wkeWebView webView, "") \
     \
     ITERATOR1(wkeRect, wkeGetCaretRect, wkeWebView webView, "") \
-    ITERATOR1(wkeRect*, wkeGetCaretRect2, wkeWebView webView, "ç»™ä¸€äº›ä¸æ–¹ä¾¿è·å–è¿”å›ç»“æ„ä½“çš„è¯­è¨€è°ƒç”¨") \
+    ITERATOR1(wkeRect*, wkeGetCaretRect2, wkeWebView webView, "¸øÒ»Ğ©²»·½±ã»ñÈ¡·µ»Ø½á¹¹ÌåµÄÓïÑÔµ÷ÓÃ") \
     \
     ITERATOR2(jsValue, wkeRunJS, wkeWebView webView, const utf8* script, "") \
     ITERATOR2(jsValue, wkeRunJSW, wkeWebView webView, const wchar_t* script, "") \
@@ -1192,14 +1192,14 @@ public:
     \
     ITERATOR1(BOOL, wkeIsProcessingUserGesture, wkeWebView webView, "") \
     \
-    ITERATOR2(void, wkeNetSetMIMEType, wkeNetJob jobPtr, const char* type, "è®¾ç½®responseçš„mime") \
-    ITERATOR2(const char*, wkeNetGetMIMEType, wkeNetJob jobPtr, wkeString mime, "è·å–responseçš„mime") \
+    ITERATOR2(void, wkeNetSetMIMEType, wkeNetJob jobPtr, const char* type, "ÉèÖÃresponseµÄmime") \
+    ITERATOR2(const char*, wkeNetGetMIMEType, wkeNetJob jobPtr, wkeString mime, "»ñÈ¡responseµÄmime") \
     ITERATOR4(void, wkeNetSetHTTPHeaderField, wkeNetJob jobPtr, const wchar_t* key, const wchar_t* value, bool response, "") \
     ITERATOR2(const char*, wkeNetGetHTTPHeaderField, wkeNetJob jobPtr, const char* key, "") \
     ITERATOR2(const char*, wkeNetGetHTTPHeaderFieldFromResponse, wkeNetJob jobPtr, const char* key, "") \
-    ITERATOR3(void, wkeNetSetData, wkeNetJob jobPtr, void *buf, int len, "è°ƒç”¨æ­¤å‡½æ•°å,ç½‘ç»œå±‚æ”¶åˆ°æ•°æ®ä¼šå­˜å‚¨åœ¨ä¸€bufå†…,æ¥æ”¶æ•°æ®å®Œæˆåå“åº”OnLoadUrlEndäº‹ä»¶.#æ­¤è°ƒç”¨ä¸¥é‡å½±å“æ€§èƒ½,æ…ç”¨" \
-        "æ­¤å‡½æ•°å’ŒwkeNetSetDataçš„åŒºåˆ«æ˜¯ï¼ŒwkeNetHookRequestä¼šåœ¨æ¥å—åˆ°çœŸæ­£ç½‘ç»œæ•°æ®åå†è°ƒç”¨å›è°ƒï¼Œå¹¶å…è®¸å›è°ƒä¿®æ”¹ç½‘ç»œæ•°æ®ã€‚"\
-        "è€ŒwkeNetSetDataæ˜¯åœ¨ç½‘ç»œæ•°æ®è¿˜æ²¡å‘é€çš„æ—¶å€™ä¿®æ”¹") \
+    ITERATOR3(void, wkeNetSetData, wkeNetJob jobPtr, void *buf, int len, "µ÷ÓÃ´Ëº¯Êıºó,ÍøÂç²ãÊÕµ½Êı¾İ»á´æ´¢ÔÚÒ»bufÄÚ,½ÓÊÕÊı¾İÍê³ÉºóÏìÓ¦OnLoadUrlEndÊÂ¼ş.#´Ëµ÷ÓÃÑÏÖØÓ°ÏìĞÔÄÜ,É÷ÓÃ" \
+        "´Ëº¯ÊıºÍwkeNetSetDataµÄÇø±ğÊÇ£¬wkeNetHookRequest»áÔÚ½ÓÊÜµ½ÕæÕıÍøÂçÊı¾İºóÔÙµ÷ÓÃ»Øµ÷£¬²¢ÔÊĞí»Øµ÷ĞŞ¸ÄÍøÂçÊı¾İ¡£"\
+        "¶øwkeNetSetDataÊÇÔÚÍøÂçÊı¾İ»¹Ã»·¢ËÍµÄÊ±ºòĞŞ¸Ä") \
     ITERATOR1(void, wkeNetHookRequest, wkeNetJob jobPtr, "") \
     ITERATOR3(void, wkeNetOnResponse, wkeWebView webView, wkeNetResponseCallback callback, void* param, "") \
     ITERATOR1(wkeRequestType, wkeNetGetRequestMethod, wkeNetJob jobPtr, "") \

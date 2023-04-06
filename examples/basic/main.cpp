@@ -1,4 +1,4 @@
-// basic.cpp : å®šä¹‰åº”ç”¨ç¨‹åºçš„å…¥å£ç‚¹ã€‚
+// basic.cpp : ¶¨ÒåÓ¦ÓÃ³ÌÐòµÄÈë¿Úµã¡£
 //
 
 #include "stdafx.h"
@@ -18,10 +18,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	UNREFERENCED_PARAMETER(hPrevInstance);
 	UNREFERENCED_PARAMETER(lpCmdLine);
 
-	// åˆ›å»ºä¸»çº¿ç¨‹
+	// ´´½¨Ö÷Ïß³Ì
 	MainThread thread;
 
-	// æ‰§è¡Œä¸»çº¿ç¨‹å¾ªçŽ¯
+	// Ö´ÐÐÖ÷Ïß³ÌÑ­»·
 	thread.RunOnCurrentThreadWithLoop(nbase::MessageLoop::kUIMessageLoop);
 
 	return 0;
@@ -31,19 +31,19 @@ void MainThread::Init()
 {
 	nbase::ThreadManager::RegisterThread(kThreadUI);
 
-	// èŽ·å–èµ„æºè·¯å¾„ï¼Œåˆå§‹åŒ–å…¨å±€å‚æ•°
+	// »ñÈ¡×ÊÔ´Â·¾¶£¬³õÊ¼»¯È«¾Ö²ÎÊý
 	std::wstring theme_dir = nbase::win32::GetCurrentModuleDirectory();
 #ifdef _DEBUG
-	// Debug æ¨¡å¼ä¸‹ä½¿ç”¨æœ¬åœ°æ–‡ä»¶å¤¹ä½œä¸ºèµ„æº
-	// é»˜è®¤çš®è‚¤ä½¿ç”¨ resources\\themes\\default
-	// é»˜è®¤è¯­è¨€ä½¿ç”¨ resources\\lang\\zh_CN
-	// å¦‚éœ€ä¿®æ”¹è¯·æŒ‡å®š Startup æœ€åŽä¸¤ä¸ªå‚æ•°
+	// Debug Ä£Ê½ÏÂÊ¹ÓÃ±¾µØÎÄ¼þ¼Ð×÷Îª×ÊÔ´
+	// Ä¬ÈÏÆ¤·ôÊ¹ÓÃ resources\\themes\\default
+	// Ä¬ÈÏÓïÑÔÊ¹ÓÃ resources\\lang\\zh_CN
+	// ÈçÐèÐÞ¸ÄÇëÖ¸¶¨ Startup ×îºóÁ½¸ö²ÎÊý
 	ui::GlobalManager::Startup(theme_dir + L"resources\\", ui::CreateControlCallback(), false);
 #else
-	// Release æ¨¡å¼ä¸‹ä½¿ç”¨èµ„æºä¸­çš„åŽ‹ç¼©åŒ…ä½œä¸ºèµ„æº
-	// èµ„æºè¢«å¯¼å…¥åˆ°èµ„æºåˆ—è¡¨åˆ†ç±»ä¸º THEMEï¼Œèµ„æºåç§°ä¸º IDR_THEME
-	// å¦‚æžœèµ„æºä½¿ç”¨çš„æ˜¯æœ¬åœ°çš„ zip æ–‡ä»¶è€Œéžèµ„æºä¸­çš„ zip åŽ‹ç¼©åŒ…
-	// å¯ä»¥ä½¿ç”¨ OpenResZip å¦ä¸€ä¸ªé‡è½½å‡½æ•°æ‰“å¼€æœ¬åœ°çš„èµ„æºåŽ‹ç¼©åŒ…
+	// Release Ä£Ê½ÏÂÊ¹ÓÃ×ÊÔ´ÖÐµÄÑ¹Ëõ°ü×÷Îª×ÊÔ´
+	// ×ÊÔ´±»µ¼Èëµ½×ÊÔ´ÁÐ±í·ÖÀàÎª THEME£¬×ÊÔ´Ãû³ÆÎª IDR_THEME
+	// Èç¹û×ÊÔ´Ê¹ÓÃµÄÊÇ±¾µØµÄ zip ÎÄ¼þ¶ø·Ç×ÊÔ´ÖÐµÄ zip Ñ¹Ëõ°ü
+	// ¿ÉÒÔÊ¹ÓÃ OpenResZip ÁíÒ»¸öÖØÔØº¯Êý´ò¿ª±¾µØµÄ×ÊÔ´Ñ¹Ëõ°ü
 	ui::GlobalManager::OpenResZip(MAKEINTRESOURCE(IDR_THEME), L"THEME", "");
 	// ui::GlobalManager::OpenResZip(L"resources.zip", "");
 	ui::GlobalManager::Startup(L"resources\\", ui::CreateControlCallback(), false);
@@ -51,7 +51,7 @@ void MainThread::Init()
 
 	ui::GlobalManager::EnableAutomation();
 
-	// åˆ›å»ºä¸€ä¸ªé»˜è®¤å¸¦æœ‰é˜´å½±çš„å±…ä¸­çª—å£
+	// ´´½¨Ò»¸öÄ¬ÈÏ´øÓÐÒõÓ°µÄ¾ÓÖÐ´°¿Ú
 	BasicForm* window = new BasicForm();
 	window->Create(NULL, BasicForm::kClassName.c_str(), WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX, 0);
 	window->CenterWindow();

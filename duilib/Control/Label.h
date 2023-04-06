@@ -12,7 +12,7 @@ class UILIB_API LabelTemplate : public InheritType
 public:
 	LabelTemplate();
 
-	/// é‡å†™çˆ¶ç±»æ–¹æ³•ï¼Œæä¾›ä¸ªæ€§åŒ–åŠŸèƒ½ï¼Œè¯·å‚è€ƒçˆ¶ç±»å£°æ˜
+	/// ÖØĞ´¸¸Àà·½·¨£¬Ìá¹©¸öĞÔ»¯¹¦ÄÜ£¬Çë²Î¿¼¸¸ÀàÉùÃ÷
 	virtual std::wstring GetType() const override;
 	virtual UIAControlProvider* GetUIAProvider() override;
 	virtual std::wstring GetText() const;
@@ -28,97 +28,97 @@ public:
 	virtual void SetPos(UiRect rc) override;
 
     /**
-     * @brief è®¾ç½®æ–‡æœ¬æ ·å¼
-     * @param[in] uStyle è¦è®¾ç½®çš„æ ·å¼
-     * @return æ— 
+     * @brief ÉèÖÃÎÄ±¾ÑùÊ½
+     * @param[in] uStyle ÒªÉèÖÃµÄÑùÊ½
+     * @return ÎŞ
      */
 	void SetTextStyle(UINT uStyle);
 
 	/**
-     * @brief è·å–æ–‡æœ¬æ ·å¼
-     * @return è¿”å›æ–‡æœ¬æ ·å¼
+     * @brief »ñÈ¡ÎÄ±¾ÑùÊ½
+     * @return ·µ»ØÎÄ±¾ÑùÊ½
      */
 	UINT GetTextStyle() const;
 
 	/**
-     * @brief è·å–æŒ‡å®šçŠ¶æ€ä¸‹çš„æ–‡æœ¬é¢œè‰²
-     * @param[in] stateType è¦è·å–çš„çŠ¶æ€æ ‡å¿—
-     * @return è¿”å›æŒ‡å®šçŠ¶æ€ä¸‹çš„æ–‡æœ¬é¢œè‰²
+     * @brief »ñÈ¡Ö¸¶¨×´Ì¬ÏÂµÄÎÄ±¾ÑÕÉ«
+     * @param[in] stateType Òª»ñÈ¡µÄ×´Ì¬±êÖ¾
+     * @return ·µ»ØÖ¸¶¨×´Ì¬ÏÂµÄÎÄ±¾ÑÕÉ«
      */
 	std::wstring GetStateTextColor(ControlStateType stateType);
 
 	/**
-     * @brief è®¾ç½®æŒ‡å®šçŠ¶æ€ä¸‹çš„æ–‡æœ¬é¢œè‰²
-     * @param[in] stateType è¦è®¾ç½®çš„çŠ¶æ€æ ‡å¿—
-     * @param[in] dwTextColor è¦è®¾ç½®çš„çŠ¶æ€é¢œè‰²å­—ç¬¦ä¸²ï¼Œè¯¥å€¼å¿…é¡»åœ¨ global.xml ä¸­å­˜åœ¨
-     * @return æ— 
+     * @brief ÉèÖÃÖ¸¶¨×´Ì¬ÏÂµÄÎÄ±¾ÑÕÉ«
+     * @param[in] stateType ÒªÉèÖÃµÄ×´Ì¬±êÖ¾
+     * @param[in] dwTextColor ÒªÉèÖÃµÄ×´Ì¬ÑÕÉ«×Ö·û´®£¬¸ÃÖµ±ØĞëÔÚ global.xml ÖĞ´æÔÚ
+     * @return ÎŞ
      */
 	void SetStateTextColor(ControlStateType stateType, const std::wstring& dwTextColor);
 
     /**
-     * @brief è·å–æŒ‡å®šçŠ¶æ€ä¸‹çš„å®é™…è¢«æ¸²æŸ“æ–‡æœ¬é¢œè‰²
-     * @param[in] buttonStateType è¦è·å–ä½•ç§çŠ¶æ€ä¸‹çš„é¢œè‰²
-     * @param[out] stateType å®é™…è¢«æ¸²æŸ“çš„çŠ¶æ€
-     * @return è¿”å›é¢œè‰²å­—ç¬¦ä¸²ï¼Œè¯¥å€¼åœ¨ global.xml ä¸­å®šä¹‰
+     * @brief »ñÈ¡Ö¸¶¨×´Ì¬ÏÂµÄÊµ¼Ê±»äÖÈ¾ÎÄ±¾ÑÕÉ«
+     * @param[in] buttonStateType Òª»ñÈ¡ºÎÖÖ×´Ì¬ÏÂµÄÑÕÉ«
+     * @param[out] stateType Êµ¼Ê±»äÖÈ¾µÄ×´Ì¬
+     * @return ·µ»ØÑÕÉ«×Ö·û´®£¬¸ÃÖµÔÚ global.xml ÖĞ¶¨Òå
      */
 	std::wstring GetPaintStateTextColor(ControlStateType buttonStateType, ControlStateType& stateType);
 
     /**
-     * @brief è·å–å½“å‰å­—ä½“ç¼–å·
-     * @return è¿”å›å­—ä½“ç¼–å·ï¼Œè¯¥ç¼–å·åœ¨ global.xml ä¸­æ ‡è¯†
+     * @brief »ñÈ¡µ±Ç°×ÖÌå±àºÅ
+     * @return ·µ»Ø×ÖÌå±àºÅ£¬¸Ã±àºÅÔÚ global.xml ÖĞ±êÊ¶
      */
 	std::wstring GetFont() const;
 
     /**
-     * @brief è®¾ç½®å½“å‰å­—ä½“
-     * @param[in] index è¦è®¾ç½®çš„å­—ä½“ç¼–å·ï¼Œè¯¥ç¼–å·å¿…é¡»åœ¨ global.xml ä¸­å­˜åœ¨
-     * @return æ— 
+     * @brief ÉèÖÃµ±Ç°×ÖÌå
+     * @param[in] index ÒªÉèÖÃµÄ×ÖÌå±àºÅ£¬¸Ã±àºÅ±ØĞëÔÚ global.xml ÖĞ´æÔÚ
+     * @return ÎŞ
      */
 	void SetFont(const std::wstring& strFontId);
 
     /**
-     * @brief è·å–æ–‡å­—è¾¹è·
-     * @return è¿”å›æ–‡å­—çš„è¾¹è·ä¿¡æ¯
+     * @brief »ñÈ¡ÎÄ×Ö±ß¾à
+     * @return ·µ»ØÎÄ×ÖµÄ±ß¾àĞÅÏ¢
      */
 	UiRect GetTextPadding() const;
 
     /**
-     * @brief è®¾ç½®æ–‡å­—è¾¹è·ä¿¡æ¯
-     * @param[in] rc è¾¹è·ä¿¡æ¯
-     * @return æ— 
+     * @brief ÉèÖÃÎÄ×Ö±ß¾àĞÅÏ¢
+     * @param[in] rc ±ß¾àĞÅÏ¢
+     * @return ÎŞ
      */
 	void SetTextPadding(UiRect rc);
 
     /**
-     * @brief åˆ¤æ–­æ˜¯å¦æ˜¯å•è¡Œæ¨¡å¼
-     * @return è¿”å› true è¡¨ç¤ºå•è¡Œæ¨¡å¼ï¼Œå¦åˆ™ä¸º false
+     * @brief ÅĞ¶ÏÊÇ·ñÊÇµ¥ĞĞÄ£Ê½
+     * @return ·µ»Ø true ±íÊ¾µ¥ĞĞÄ£Ê½£¬·ñÔòÎª false
      */
 	bool IsSingleLine();
 
     /**
-     * @brief è®¾ç½®ä¸ºå•è¡Œè¾“å…¥æ¨¡å¼
-     * @param[in] bSingleLine ä¸º true æ—¶ä¸ºå•è¡Œæ¨¡å¼ï¼Œå¦åˆ™ä¸º false
-     * @return æ— 
+     * @brief ÉèÖÃÎªµ¥ĞĞÊäÈëÄ£Ê½
+     * @param[in] bSingleLine Îª true Ê±Îªµ¥ĞĞÄ£Ê½£¬·ñÔòÎª false
+     * @return ÎŞ
      */
 	void SetSingleLine(bool bSingleLine);
 
     /**
-     * @brief æ˜¯å¦é™åˆ¶æ•´è¡Œè¾“å‡º
-     * @return è¿”å› true ä¸ºé™åˆ¶ï¼Œfalse ä¸ºä¸é™åˆ¶
+     * @brief ÊÇ·ñÏŞÖÆÕûĞĞÊä³ö
+     * @return ·µ»Ø true ÎªÏŞÖÆ£¬false Îª²»ÏŞÖÆ
      */
 	bool IsLineLimit();
 
     /**
-     * @brief é™åˆ¶æ•´è¡Œè¾“å‡º
-     * @param[in] bLineLimit è®¾ç½® true ä¸ºé™åˆ¶ï¼Œfalse ä¸ºä¸é™åˆ¶
-     * @return æ— 
+     * @brief ÏŞÖÆÕûĞĞÊä³ö
+     * @param[in] bLineLimit ÉèÖÃ true ÎªÏŞÖÆ£¬false Îª²»ÏŞÖÆ
+     * @return ÎŞ
      */
 	void SetLineLimit(bool bLineLimit);
 
     /**
-    * @brief è®¾ç½®é¼ æ ‡æ‚¬æµ®åˆ°æ§ä»¶æ˜¾ç¤ºçš„æç¤ºæ–‡æœ¬æ˜¯å¦çœç•¥å·å‡ºç°æ—¶æ‰æ˜¾ç¤º
-    * @param[in] bAutoShow true çœç•¥å·å‡ºç°æ‰æ˜¾ç¤º false ä¸åšä»»ä½•æ§åˆ¶
-    * @return æ— 
+    * @brief ÉèÖÃÊó±êĞü¸¡µ½¿Ø¼şÏÔÊ¾µÄÌáÊ¾ÎÄ±¾ÊÇ·ñÊ¡ÂÔºÅ³öÏÖÊ±²ÅÏÔÊ¾
+    * @param[in] bAutoShow true Ê¡ÂÔºÅ³öÏÖ²ÅÏÔÊ¾ false ²»×öÈÎºÎ¿ØÖÆ
+    * @return ÎŞ
     */
 	void SetAutoToolTip(bool bAutoShow);
 
