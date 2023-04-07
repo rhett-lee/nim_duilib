@@ -6,8 +6,11 @@
 #define CEF_TESTS_CEFCLIENT_BROWSER_BYTES_WRITE_HANDLER_H_
 #pragma once
 
+#pragma warning (push)
+#pragma warning (disable:4100)
 #include "include/base/cef_lock.h"
 #include "include/cef_stream.h"
+#pragma warning (pop)
 
 namespace client {
 

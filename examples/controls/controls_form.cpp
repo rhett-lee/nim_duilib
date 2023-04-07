@@ -145,7 +145,7 @@ void ControlForm::InitWindow()
 	/* Using ToWeakCallback to protect closure when if [ControlForm] was destoryed */
 	nbase::ThreadManager::PostRepeatedTask(kThreadGlobalMisc, ToWeakCallback([this](){
 		nbase::TimeDelta time_delta = nbase::TimeDelta::FromMicroseconds(nbase::Time::Now().ToInternalValue());
-		nbase::ThreadManager::PostTask(kThreadUI, nbase::Bind(&ControlForm::OnProgressValueChagned, this, time_delta.ToMilliseconds() % 100));
+		nbase::ThreadManager::PostTask(kThreadUI, nbase::Bind(&ControlForm::OnProgressValueChagned, this, (float)(time_delta.ToMilliseconds() % 100)));
 	}), nbase::TimeDelta::FromMilliseconds(200));
 
 	/* Show settings menu */

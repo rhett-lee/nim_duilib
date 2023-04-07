@@ -39,9 +39,11 @@ VirtualTileLayout::VirtualTileLayout()
 
 ui::CSize VirtualTileLayout::ArrangeChild(const std::vector<ui::Control*>& items, ui::UiRect rc)
 {
+    (void)items;
   ui::CSize sz(rc.GetWidth(), rc.GetHeight());
 
   VirtualTileBox* pList = dynamic_cast<VirtualTileBox*>(m_pOwner);
+  (void)pList;
   ASSERT(pList);
 
 
@@ -53,7 +55,9 @@ ui::CSize VirtualTileLayout::ArrangeChild(const std::vector<ui::Control*>& items
 
 ui::CSize VirtualTileLayout::AjustSizeByChild(const std::vector<ui::Control*>& items, ui::CSize szAvailable)
 {
+  (void)items;
   VirtualTileBox* pList = dynamic_cast<VirtualTileBox*>(m_pOwner);
+  (void)pList;
   ASSERT(pList);
 
   ui::CSize size = m_pOwner->Control::EstimateSize(szAvailable);
@@ -92,7 +96,6 @@ int VirtualTileLayout::GetElementsHeight(int nCount)
   VirtualTileBox* pList = dynamic_cast<VirtualTileBox*>(m_pOwner);
   ASSERT(pList);
 
-  bool total = nCount == -1;
   if (nCount < 0)
     nCount = pList->GetElementCount();
 
@@ -535,7 +538,7 @@ void VirtualTileBox::OnModelDataChanged(int nStartIndex, int nEndIndex)
   for (auto i = nStartIndex; i <= nEndIndex; i++)
   {
     int nItemIndex = ElementIndexToItemIndex(nStartIndex);
-    if (nItemIndex >= 0 && nItemIndex < m_items.size()) {
+    if (nItemIndex >= 0 && nItemIndex < (int)m_items.size()) {
       FillElement(m_items[nItemIndex], i);
     }
   }

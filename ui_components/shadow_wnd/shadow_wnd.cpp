@@ -29,7 +29,7 @@ HWND ShadowWnd::Create(Window* window)
 	return Window::Create(NULL, L"ShadowWindow", WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX, WS_EX_TRANSPARENT | WS_EX_TOOLWINDOW, true);
 }
 
-LRESULT ShadowWnd::MessageHandler(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+LRESULT ShadowWnd::MessageHandler(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled)
 {
 	if (window_ == NULL || window_->GetHWND() == NULL)
 	{
@@ -81,7 +81,7 @@ ShadowWndBase::ShadowWndBase()
 }
 
 HWND ShadowWndBase::Create(HWND hwndParent, LPCTSTR pstrName, DWORD dwStyle, DWORD dwExStyle, 
-	bool isLayeredWindow /*= false*/, const ui::UiRect& rc /*= ui::UiRect(0, 0, 0, 0)*/)
+	bool /*isLayeredWindow*/ /*= false*/, const ui::UiRect& rc /*= ui::UiRect(0, 0, 0, 0)*/)
 {
 	__super::Create(hwndParent, pstrName, dwStyle, dwExStyle, false, rc);
 

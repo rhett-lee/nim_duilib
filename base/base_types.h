@@ -77,6 +77,11 @@ typedef _W64 unsigned int uintptr_t;
 
 #endif // COMPILER_GCC/COMPILER_MSVC
 
+#if defined(COMPILER_MSVC)
+#pragma warning(push) 
+#pragma warning(disable: 4310)
+#endif
+
 const uint8_t  kUint8Max  = (( uint8_t) 0xFF);
 const uint16_t kUint16Max = ((uint16_t) 0xFFFF);
 const uint32_t kUint32Max = ((uint32_t) 0xFFFFFFFF);
@@ -89,6 +94,10 @@ const int32_t  kInt32Min  = (( int32_t) 0x80000000);
 const int32_t  kInt32Max  = (( int32_t) 0x7FFFFFFF);
 const int64_t  kInt64Min  = (( int64_t) GG_LONGLONG(0x8000000000000000));
 const int64_t  kInt64Max  = (( int64_t) GG_LONGLONG(0x7FFFFFFFFFFFFFFF));
+
+#if defined(COMPILER_MSVC)
+#pragma warning(pop) 
+#endif
 
 // A macro to disallow the copy constructor and operator= functions
 // This should be used in the private: declarations for a class

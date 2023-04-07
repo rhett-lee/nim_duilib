@@ -246,6 +246,7 @@ void Window::ShowModalFake(HWND parent_hwnd)
 	ASSERT(::IsWindow(m_hWnd));
 	ASSERT(::IsWindow(parent_hwnd));
 	auto p_hwnd = GetWindowOwner(m_hWnd);
+	(void)p_hwnd;
 	ASSERT(::IsWindow(p_hwnd));
 	ASSERT(p_hwnd == parent_hwnd);
 	::EnableWindow(parent_hwnd, FALSE);
@@ -326,7 +327,7 @@ void Window::AttachWindowClose(const EventCallback& callback)
 	OnEvent[kEventWindowClose] += callback;
 }
 
-void Window::OnFinalMessage(HWND hWnd)
+void Window::OnFinalMessage(HWND /*hWnd*/)
 {
 	UnregisterTouchWindowWrapper(m_hWnd);
 	SendNotify(kEventWindowClose);
@@ -1197,13 +1198,13 @@ LRESULT Window::DoHandlMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& ha
 	case WM_IME_STARTCOMPOSITION:
 	{
 		if (m_pFocus == NULL) break;
-		m_pFocus->HandleMessageTemplate(kEventImeStartComposition, wParam, lParam, wParam);
+		m_pFocus->HandleMessageTemplate(kEventImeStartComposition, wParam, lParam, static_cast<TCHAR>(wParam));
 	}
 	break;
 	case WM_IME_ENDCOMPOSITION:
 	{
 		if (m_pFocus == NULL) break;
-		m_pFocus->HandleMessageTemplate(kEventImeEndComposition, wParam, lParam, wParam);
+		m_pFocus->HandleMessageTemplate(kEventImeEndComposition, wParam, lParam, static_cast<TCHAR>(wParam));
 	}
 	break;
 	case WM_MOUSEWHEEL:
@@ -1445,7 +1446,7 @@ LRESULT Window::DoHandlMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& ha
 	{
 		if (m_pFocus == NULL) break;
 
-		m_pFocus->HandleMessageTemplate(kEventChar, wParam, lParam, wParam);
+		m_pFocus->HandleMessageTemplate(kEventChar, wParam, lParam, static_cast<TCHAR>(wParam));
 	}
 	break;
 	case WM_KEYDOWN:
@@ -1462,14 +1463,14 @@ LRESULT Window::DoHandlMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& ha
 		}
 
 		m_pEventKey = m_pFocus;
-		m_pFocus->HandleMessageTemplate(kEventKeyDown, wParam, lParam, wParam);
+		m_pFocus->HandleMessageTemplate(kEventKeyDown, wParam, lParam, static_cast<TCHAR>(wParam));
 	}
 	break;
 	case WM_KEYUP:
 	{
 		if (m_pEventKey == NULL) break;
 
-		m_pEventKey->HandleMessageTemplate(kEventKeyUp, wParam, lParam, wParam);
+		m_pEventKey->HandleMessageTemplate(kEventKeyUp, wParam, lParam, static_cast<TCHAR>(wParam));
 		m_pEventKey = NULL;
 	}
 	break;
@@ -1975,7 +1976,7 @@ void Window::Paint()
 		CPoint pt(rcWindow.left, rcWindow.top);
 		CSize szWindow(rcClient.right - rcClient.left, rcClient.bottom - rcClient.top);
 		CPoint ptSrc;
-		BLENDFUNCTION bf = { AC_SRC_OVER, 0, m_nAlpha, AC_SRC_ALPHA };
+		BLENDFUNCTION bf = { AC_SRC_OVER, 0, static_cast<BYTE>(m_nAlpha), AC_SRC_ALPHA };
 		::UpdateLayeredWindow(m_hWnd, NULL, &pt, &szWindow, m_renderContext->GetDC(), &ptSrc, 0, &bf, ULW_ALPHA);
 	}
 	else {
@@ -2116,7 +2117,7 @@ Control* CALLBACK Window::__FindControlFromTab(Control* pThis, LPVOID pData)
 //	return pFS->bPickNext ? pThis : NULL;
 //}
 
-Control* CALLBACK Window::__FindControlFromUpdate(Control* pThis, LPVOID pData)
+Control* CALLBACK Window::__FindControlFromUpdate(Control* pThis, LPVOID /*pData*/)
 {
 	return pThis->IsArranged() ? pThis : NULL;
 }

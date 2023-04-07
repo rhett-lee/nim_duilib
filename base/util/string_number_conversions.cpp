@@ -50,7 +50,7 @@ struct IntToStringT {
   struct TestNegT {};
   template <typename INT2>
   struct TestNegT<INT2, false> {
-    static bool TestNeg(INT2 value) {
+    static bool TestNeg(INT2 /*value*/) {
       // value is unsigned, and can never be negative.
       return false;
     }
@@ -105,7 +105,7 @@ template<typename CHAR, int BASE> class BaseCharToDigit<CHAR, BASE, true> {
  public:
   static bool Convert(CHAR c, uint8_t* digit) {
     if (c >= '0' && c < '0' + BASE) {
-      *digit = c - '0';
+      *digit = static_cast<uint8_t>(c - '0');
       return true;
     }
     return false;
@@ -218,9 +218,10 @@ class IteratorRangeToNumber {
 
       // Note: no performance difference was found when using template
       // specialization to remove this check in bases other than 16
-      if (traits::kBase == 16 && end - begin > 2 && *begin == '0' &&
-          (*(begin + 1) == 'x' || *(begin + 1) == 'X')) {
-        begin += 2;
+      if constexpr (traits::kBase == 16) {
+          if ((end - begin > 2) && (*begin == '0') && ((*(begin + 1) == 'x') || (*(begin + 1) == 'X'))) {
+              begin += 2;
+          }
       }
 
       for (const_iterator current = begin; current != end; ++current) {

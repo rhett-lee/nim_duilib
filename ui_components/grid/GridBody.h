@@ -205,14 +205,14 @@ namespace ui
 		* @param[in] col_index:	要调整的列序号, base on 0;
 		* @param[in] width:	新的列宽;
 		*/
-		virtual void OnColumnWidthChanged(int col_index, int width){};
+		virtual void OnColumnWidthChanged(int /*col_index*/, int /*width*/) {};
 
 		/**
 		* @brief 增/删列;
 		* @param[in] col_index:	列序号, base on 0, -1代表多列;
 		* @param[in] bRemove:	true:删除列; false:新增列;
 		*/
-		virtual void OnColumnCountChanged(int col_index, bool bRemove){};
+		virtual void OnColumnCountChanged(int /*col_index*/, bool /*bRemove*/) {};
 
 	protected:
 		/*
@@ -288,8 +288,8 @@ namespace ui
 		std::vector<GridRow*> m_vecRow;
 
 		/* 固定行/列数 */
-		unsigned int m_nFixedCol = 0;
-		unsigned int m_nFixedRow = 0;
+		size_t m_nFixedCol = 0;
+		size_t m_nFixedRow = 0;
 
 		/* 保存选中信息 */
 		GridSelRange m_selRange;

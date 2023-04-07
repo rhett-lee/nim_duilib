@@ -47,7 +47,7 @@ public:
 class UILIB_API IPen : public nbase::SupportWeakCallback
 {
 public:
-	IPen(DWORD color, int width = 1) : color_(color) {};
+	IPen(DWORD color, int width = 1) : color_(color) { (void)width; };
 	IPen(const IPen& r) : color_(r.color_) {};
 	IPen& operator=(const IPen& r) = delete;
 
@@ -102,7 +102,7 @@ class UILIB_API IBrush : public nbase::SupportWeakCallback
 {
 public:
 	IBrush(DWORD color) : color_(color){};
-	IBrush(HBITMAP bitmap) {};
+	IBrush(HBITMAP bitmap) { (void)bitmap; };
 	IBrush(const IBrush& r)	: color_(r.color_)	{};
 	IBrush& operator=(const IBrush& r) = delete;
 
@@ -129,7 +129,7 @@ class UILIB_API IPath : public nbase::SupportWeakCallback
 {
 public:
 	IPath(){};
-	IPath(const IPath& r){};
+	IPath(const IPath& r) { (void)r; };
 	IPath& operator=(const IPath& r) = delete;
 
 	virtual IPath* Clone() = 0;
@@ -229,6 +229,7 @@ public:
 class UILIB_API IRenderFactory
 {
 public:
+	virtual ~IRenderFactory() = default;
 	virtual ui::IPen* CreatePen(DWORD color, int width = 1) = 0;
 	virtual ui::IBrush* CreateBrush(DWORD corlor) = 0;
 	virtual ui::IBrush* CreateBrush(HBITMAP bitmap) = 0;

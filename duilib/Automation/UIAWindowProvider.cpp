@@ -407,7 +407,7 @@ IFACEMETHODIMP UIAWindowProvider::Move(double x, double y)
 
 	UiRect rcPos = m_pWnd->GetPos();
 
-	m_pWnd->SetPos(UiRect(x, y, x + rcPos.GetWidth(), y + rcPos.GetHeight()),
+	m_pWnd->SetPos(UiRect(static_cast<int>(x), static_cast<int>(y), static_cast<int>(x + rcPos.GetWidth()), static_cast<int>(y + rcPos.GetHeight())),
 		false, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
 
 	return S_OK;
@@ -420,13 +420,14 @@ IFACEMETHODIMP UIAWindowProvider::Resize(double width, double height)
 	CSize rcMinSize = m_pWnd->GetMinInfo();
 	CSize rcMaxiSize = m_pWnd->GetMaxInfo();
 
-	m_pWnd->Resize(width, height, false, false);
+	m_pWnd->Resize(static_cast<int>(width), static_cast<int>(height), false, false);
 
 	return S_OK;
 }
 
 IFACEMETHODIMP UIAWindowProvider::Rotate(double degrees)
 {
+	(void)degrees;
 	UIA_CHECK_ELEMENT(m_pWnd);
 
 	return S_OK;

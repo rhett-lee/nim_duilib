@@ -515,7 +515,7 @@ void yxDES::EncryptAnyLength(char* _srcBytes,unsigned int _bytesLength,unsigned 
 			{
 				if(i >= _bytesLength)
 				{
-					_temp8bytes[i] = iLeave;
+					_temp8bytes[i] = static_cast<char>(iLeave);
 				}
 			}
 		}
@@ -548,7 +548,7 @@ void yxDES::EncryptAnyLength(char* _srcBytes,unsigned int _bytesLength,unsigned 
 			{
 				if(i >= iResidue)
 				{
-					szLast8Bits[i] = iLeave;
+					szLast8Bits[i] = static_cast<char>(iLeave);
 				}
 			}
 		}

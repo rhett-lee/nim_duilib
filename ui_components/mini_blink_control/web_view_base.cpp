@@ -449,21 +449,21 @@ void WebViewBase::SetContextMenuEnabled(bool enabled) {
   }
 }
 
-void WebViewBase::OnTitleChanged(wkeWebView webView, const wkeString title) {
+void WebViewBase::OnTitleChanged(wkeWebView /*webView*/, const wkeString title) {
   std::wstring title_temp = wkeGetStringW(title);
   if (m_title_changed_callback) {
     m_title_changed_callback(title_temp);
   }
 }
 
-void WebViewBase::OnUrlChanged(wkeWebView webView, const wkeString url) {
+void WebViewBase::OnUrlChanged(wkeWebView /*webView*/, const wkeString url) {
   std::wstring url_temp = wkeGetStringW(url);
   if (m_url_changed_callback) {
     m_url_changed_callback(url_temp);
   }
 }
 
-bool WebViewBase::OnNavigation(wkeWebView webView, wkeNavigationType navigationType, wkeString url) {
+bool WebViewBase::OnNavigation(wkeWebView /*webView*/, wkeNavigationType navigationType, wkeString url) {
   std::wstring url_temp = wkeGetStringW(url);
   if (m_navigation_callback) {
     return m_navigation_callback(navigationType, url_temp);
@@ -472,7 +472,7 @@ bool WebViewBase::OnNavigation(wkeWebView webView, wkeNavigationType navigationT
   return true;
 }
 
-wkeWebView WebViewBase::OnCreateView(wkeWebView webView, wkeNavigationType navigationType, const wkeString url, const wkeWindowFeatures* windowFeatures) {
+wkeWebView WebViewBase::OnCreateView(wkeWebView /*webView*/, wkeNavigationType navigationType, const wkeString url, const wkeWindowFeatures* windowFeatures) {
   std::wstring url_temp = wkeGetStringW(url);
   if (m_create_web_view_callback) {
     return m_create_web_view_callback(navigationType, url_temp, windowFeatures);
@@ -481,7 +481,7 @@ wkeWebView WebViewBase::OnCreateView(wkeWebView webView, wkeNavigationType navig
   return nullptr;
 }
 
-void WebViewBase::OnLoadingFinish(wkeWebView webView, const wkeString url, wkeLoadingResult result, const wkeString failedReason) {
+void WebViewBase::OnLoadingFinish(wkeWebView /*webView*/, const wkeString url, wkeLoadingResult result, const wkeString failedReason) {
   std::wstring url_temp = wkeGetStringW(url);
   std::wstring failed_reason_temp = wkeGetStringW(failedReason);
   if (m_loading_finish_callback) {
@@ -489,7 +489,7 @@ void WebViewBase::OnLoadingFinish(wkeWebView webView, const wkeString url, wkeLo
   }
 }
 
-bool WebViewBase::OnLoadUrlBegin(wkeWebView webView, const utf8* url, wkeNetJob job) {
+bool WebViewBase::OnLoadUrlBegin(wkeWebView /*webView*/, const utf8* url, wkeNetJob job) {
   if (m_load_url_begin_callback) {
     return m_load_url_begin_callback(url, job);
   }
@@ -497,19 +497,19 @@ bool WebViewBase::OnLoadUrlBegin(wkeWebView webView, const utf8* url, wkeNetJob 
   return false;
 }
 
-void WebViewBase::OnLoadUrlEnd(wkeWebView webView, const utf8* url, wkeNetJob job, void* buf, int len) {
+void WebViewBase::OnLoadUrlEnd(wkeWebView /*webView*/, const utf8* url, wkeNetJob job, void* buf, int len) {
   if (m_load_url_end_callback) {
     m_load_url_end_callback(url, job, buf, len);
   }
 }
 
-void WebViewBase::OnLoadUrlFail(wkeWebView webView, const utf8* url, wkeNetJob job) {
+void WebViewBase::OnLoadUrlFail(wkeWebView /*webView*/, const utf8* url, wkeNetJob job) {
   if (m_load_url_fail_callback)  {
     m_load_url_fail_callback(url, job);
   }
 }
 
-bool WebViewBase::OnWindowClosing(wkeWebView webView) {
+bool WebViewBase::OnWindowClosing(wkeWebView /*webView*/) {
   if (m_window_closing_callback) {
     return m_window_closing_callback();
   }
@@ -517,13 +517,13 @@ bool WebViewBase::OnWindowClosing(wkeWebView webView) {
   return true;
 }
 
-void WebViewBase::OnWindowDestroy(wkeWebView webView) {
+void WebViewBase::OnWindowDestroy(wkeWebView /*webView*/) {
   if (m_window_destroy_callback) {
     m_window_destroy_callback();
   }
 }
 
-bool WebViewBase::NetOnResponse(wkeWebView webView, const utf8* url, wkeNetJob job) {
+bool WebViewBase::NetOnResponse(wkeWebView /*webView*/, const utf8* url, wkeNetJob job) {
   if (m_response_callback) {
     return m_response_callback(url, job);
   }

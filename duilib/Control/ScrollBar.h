@@ -247,8 +247,8 @@ protected:
 	int64_t m_nScrollPos;
 	int m_nLineSize;
 	int m_nThumbMinLength;
-	int m_nLastScrollPos;
-	int m_nLastScrollOffset;
+	int64_t m_nLastScrollPos;
+	int64_t m_nLastScrollOffset;
 	int m_nScrollRepeatDelay;
 	ScrollableBox* m_pOwner;
 	POINT m_ptLastMouse;

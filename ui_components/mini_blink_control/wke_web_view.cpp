@@ -40,12 +40,12 @@ void WkeWebView::DoInit() {
 
   m_pWindow->AddMessageFilter(this);
 
-  AttachResize(ToWeakCallback([this](ui::EventArgs* args) {
+  AttachResize(ToWeakCallback([this](ui::EventArgs* /*args*/) {
     resize(GetWidth(), GetHeight());
     return true;
   }));
 
-  AttachKillFocus(ToWeakCallback([this](ui::EventArgs* args) {
+  AttachKillFocus(ToWeakCallback([this](ui::EventArgs* /*args*/) {
     killFocus();
     return true;
   }));
@@ -99,8 +99,8 @@ LRESULT WkeWebView::MessageHandler(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL
       break;
     }
 
-    unsigned int virtualKeyCode = wParam;
-    unsigned int flags = 0;
+    uint32_t virtualKeyCode = static_cast<uint32_t>(wParam);
+    uint32_t flags = 0;
     if (HIWORD(lParam) & KF_REPEAT)
       flags |= WKE_REPEAT;
     if (HIWORD(lParam) & KF_EXTENDED)
@@ -116,8 +116,8 @@ LRESULT WkeWebView::MessageHandler(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL
       break;
     }
 
-    unsigned int virtualKeyCode = wParam;
-    unsigned int flags = 0;
+    uint32_t virtualKeyCode = static_cast<uint32_t>(wParam);
+    uint32_t flags = 0;
     if (HIWORD(lParam) & KF_REPEAT)
       flags |= WKE_REPEAT;
     if (HIWORD(lParam) & KF_EXTENDED)
@@ -133,8 +133,8 @@ LRESULT WkeWebView::MessageHandler(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL
       break;
     }
 
-    unsigned int charCode = wParam;
-    unsigned int flags = 0;
+    uint32_t charCode = static_cast<uint32_t>(wParam);
+    uint32_t flags = 0;
     if (HIWORD(lParam) & KF_REPEAT)
       flags |= WKE_REPEAT;
     if (HIWORD(lParam) & KF_EXTENDED)
@@ -304,7 +304,7 @@ LRESULT WkeWebView::MessageHandler(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL
   return 0;
 }
 
-void WkeWebView::OnPaint(wkeWebView webView, const void* buffer, const wkeRect* r, int width, int height) {
+void WkeWebView::OnPaint(wkeWebView /*webView*/, const void* buffer, const wkeRect* /*r*/, int width, int height) {
   if (!buffer) {
     return;
   }

@@ -48,7 +48,7 @@ public:
 	virtual IFACEMETHODIMP get_FragmentRoot(_Outptr_result_maybenull_ IRawElementProviderFragmentRoot** retVal);
 
 	// IValueProvider methods
-	virtual IFACEMETHODIMP SetValue(_In_ LPCWSTR val) { UIA_CHECK_ELEMENT_RETURN(m_pControl); }
+	virtual IFACEMETHODIMP SetValue(_In_ LPCWSTR val) { (void)val; UIA_CHECK_ELEMENT_RETURN(m_pControl); }
 	virtual IFACEMETHODIMP get_Value(_Out_ BSTR* retVal) { *retVal = nullptr; UIA_CHECK_ELEMENT_RETURN(m_pControl); }
 	virtual IFACEMETHODIMP get_IsReadOnly(_Out_ BOOL* retVal) { *retVal = false; UIA_CHECK_ELEMENT_RETURN(m_pControl); }
 
@@ -56,7 +56,7 @@ public:
 	virtual IFACEMETHODIMP Invoke(void) { UIA_CHECK_ELEMENT_RETURN(m_pControl); }
 
 	// IRangeValueProvider methods
-	virtual IFACEMETHODIMP SetValue(double val) { UIA_CHECK_ELEMENT_RETURN(m_pControl); }
+	virtual IFACEMETHODIMP SetValue(double val) { (void)val;  UIA_CHECK_ELEMENT_RETURN(m_pControl); }
 	virtual IFACEMETHODIMP get_Value(__RPC__out double* pRetVal) { *pRetVal = 0.0f; UIA_CHECK_ELEMENT_RETURN(m_pControl); }
 	virtual IFACEMETHODIMP get_Maximum(__RPC__out double* pRetVal) { *pRetVal = 0.0f;  UIA_CHECK_ELEMENT_RETURN(m_pControl); }
 	virtual IFACEMETHODIMP get_Minimum(__RPC__out double* pRetVal) { *pRetVal = 0.0f;  UIA_CHECK_ELEMENT_RETURN(m_pControl); }
@@ -74,11 +74,14 @@ public:
 		__RPC__deref_out_opt IRawElementProviderSimple** pFound) {
 		*pFound = nullptr;
 		UIA_CHECK_ELEMENT_RETURN(m_pControl);
+		(void)pStartAfter;
+		(void)propertyId;
+		(void)value;
 	}
 
 	// IScrollProvider methods
-	virtual IFACEMETHODIMP Scroll(enum ScrollAmount horizontalAmount, enum ScrollAmount verticalAmount) { UIA_CHECK_ELEMENT_RETURN(m_pControl); }
-	virtual IFACEMETHODIMP SetScrollPercent(double horizontalPercent, double verticalPercent) { UIA_CHECK_ELEMENT_RETURN(m_pControl); }
+	virtual IFACEMETHODIMP Scroll(enum ScrollAmount horizontalAmount, enum ScrollAmount verticalAmount) { (void)horizontalAmount; (void)verticalAmount; UIA_CHECK_ELEMENT_RETURN(m_pControl); }
+	virtual IFACEMETHODIMP SetScrollPercent(double horizontalPercent, double verticalPercent) { (void)horizontalPercent; (void)verticalPercent; UIA_CHECK_ELEMENT_RETURN(m_pControl); }
 	virtual IFACEMETHODIMP get_HorizontalScrollPercent(__RPC__out double* pRetVal) { *pRetVal = 0.0f; UIA_CHECK_ELEMENT_RETURN(m_pControl); }
 	virtual IFACEMETHODIMP get_VerticalScrollPercent(__RPC__out double* pRetVal) { *pRetVal = 0.0f; UIA_CHECK_ELEMENT_RETURN(m_pControl); }
 	virtual IFACEMETHODIMP get_HorizontalViewSize(__RPC__out double* pRetVal) { *pRetVal = 0.0f; UIA_CHECK_ELEMENT_RETURN(m_pControl); }

@@ -105,7 +105,7 @@ namespace ui
 	const GridSelRange& Grid::GetSelRange() const{ return m_pBody->GetSelRange(); };
 
 
-	bool Grid::ButtonDown(EventArgs& msg)
+	bool Grid::ButtonDown(EventArgs& /*msg*/)
 	{
 		m_pBody->_EndEdit();
 		return true;

@@ -82,6 +82,7 @@ IFACEMETHODIMP UIAControlProvider::get_ProviderOptions(ProviderOptions* pRetVal)
 // https://docs.microsoft.com/en-us/windows/win32/winauto/uiauto-controlpatternmapping
 IFACEMETHODIMP UIAControlProvider::GetPatternProvider(PATTERNID patternId, IUnknown** pRetVal)
 {
+	(void)patternId;
 	UIA_CHECK_ELEMENT(m_pControl);
 
 	*pRetVal = nullptr;
@@ -313,10 +314,10 @@ IFACEMETHODIMP UIAControlProvider::GetRuntimeId(SAFEARRAY** pRetVal)
 	//push uia id
 	indexs.emplace_back(UiaAppendRuntimeId);
 
-	*pRetVal = SafeArrayCreateVector(VT_I4, 0, indexs.size());
+	*pRetVal = SafeArrayCreateVector(VT_I4, 0, static_cast<ULONG>(indexs.size()));
 	if (*pRetVal != nullptr)
 	{
-		for (long n = 0; n < indexs.size(); n++)
+		for (long n = 0; n < (long)indexs.size(); ++n)
 		{
 			SafeArrayPutElement(*pRetVal, &n, &indexs.at(n));
 		}

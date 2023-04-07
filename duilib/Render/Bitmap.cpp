@@ -62,7 +62,7 @@ bool GdiBitmap::Init(HDC hSrcDC, int width, int height, bool flipBItmap)
 	}
 	else
 	{
-		DWORD err = GetLastError();
+		//DWORD err = GetLastError();
 		ASSERT(FALSE);
 		return false;
 	}

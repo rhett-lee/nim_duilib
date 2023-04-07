@@ -575,7 +575,7 @@ void StateColorMap::PaintStatusColor(IRenderContext* pRender, UiRect rcPaint, Co
 					pRender->DrawColor(rcPaint, m_pControl->GetWindowColor(strColor));
 				}
 				if (nHotAlpha > 0) {
-					pRender->DrawColor(rcPaint, m_pControl->GetWindowColor(m_stateColorMap[kControlStateHot]), nHotAlpha);
+					pRender->DrawColor(rcPaint, m_pControl->GetWindowColor(m_stateColorMap[kControlStateHot]), static_cast<BYTE>(nHotAlpha));
 				}
 				return;
 			}

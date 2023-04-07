@@ -4,7 +4,10 @@
 #include "stdafx.h"
 #include "util_win.h"
 
+#pragma warning (push)
+#pragma warning (disable:4100)
 #include "include/base/cef_logging.h"
+#pragma warning (pop)
 
 namespace client {
 
@@ -136,7 +139,7 @@ int GetCefKeyboardModifiers(WPARAM wparam, LPARAM lparam) {
 }
 
 bool IsKeyDown(WPARAM wparam) {
-  return (GetKeyState(wparam) & 0x8000) != 0;
+  return (GetKeyState(static_cast<int>(wparam)) & 0x8000) != 0;
 }
 
 float GetDeviceScaleFactor() {

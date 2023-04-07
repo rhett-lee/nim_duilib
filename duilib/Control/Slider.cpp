@@ -78,7 +78,7 @@ void Slider::HandleMessage(EventArgs& event)
 		return;
 	}
 	if (event.Type == kEventMouseScrollWheel) {
-		int detaValue = event.wParam;
+		int detaValue = static_cast<int>(event.wParam);
 		if (detaValue > 0) {
 			SetValue(GetValue() + GetChangeStep());
 			m_pWindow->SendNotify(this, kEventValueChange);

@@ -391,6 +391,7 @@ bool Combo::SelectItem(int iIndex, bool bTrigger)
     if (m_pWindow != NULL && bTrigger) {
         m_pWindow->SendNotify(this, kEventSelect, m_iCurSel, -1);
     }
+	return true;
 }
 
 Control* Combo::GetItemAt(int iIndex)
@@ -398,7 +399,7 @@ Control* Combo::GetItemAt(int iIndex)
 	return m_pLayout->GetItemAt(iIndex);
 }
 
-bool Combo::OnSelectItem(EventArgs* args)
+bool Combo::OnSelectItem(EventArgs* /*args*/)
 {
 	if (m_pWindow)
         m_pWindow->OnSeleteItem();

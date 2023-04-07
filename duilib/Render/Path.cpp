@@ -56,7 +56,7 @@ void Path_Gdiplus::AddLines(const CPoint* points, int count)
 	{
 		p.emplace_back(points[i].x, points[i].y);
 	}
-	path_->AddLines(&p[0], p.size());
+	path_->AddLines(&p[0], static_cast<INT>(p.size()));
 }
 
 void Path_Gdiplus::AddBezier(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4)
@@ -71,7 +71,7 @@ void Path_Gdiplus::AddCurve(const CPoint* points, int count)
 	{
 		p.emplace_back(points[i].x, points[i].y);
 	}
-	path_->AddCurve(&p[0], p.size());
+	path_->AddCurve(&p[0], static_cast<INT>(p.size()));
 }
 
 void Path_Gdiplus::AddRect(int left, int top, int right, int bottom)
@@ -111,7 +111,7 @@ void Path_Gdiplus::AddPolygon(const CPoint* points, int count)
 	{
 		p.emplace_back(points[i].x, points[i].y);
 	}
-	path_->AddPolygon(&p[0], p.size());
+	path_->AddPolygon(&p[0], static_cast<INT>(p.size()));
 }
 
 ui::UiRect Path_Gdiplus::GetBound(const IPen* pen)

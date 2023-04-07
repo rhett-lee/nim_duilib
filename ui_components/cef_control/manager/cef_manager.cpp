@@ -1,10 +1,13 @@
 #include "stdafx.h"
 #include "cef_manager.h"
-#include "include/wrapper/cef_closure_task.h"
-#include "include/base/cef_bind.h"
-
 #include "cef_control/app/client_app.h"
 #include "cef_control/handler/browser_handler.h"
+
+#pragma warning (push)
+#pragma warning (disable:4100)
+#include "include/wrapper/cef_closure_task.h"
+#include "include/base/cef_bind.h"
+#pragma warning (pop)
 
 namespace nim_comp
 {
@@ -220,6 +223,7 @@ client::DropTargetHandle CefManager::GetDropTarget(HWND hwnd)
 		map_drag_target_reference_[hwnd] = handle;
 
 		HRESULT register_res = RegisterDragDrop(hwnd, handle.get());
+		(void)register_res;
 		ASSERT(register_res == S_OK);
 
 		return handle;

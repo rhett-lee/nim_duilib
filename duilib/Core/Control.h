@@ -731,7 +731,7 @@ public:
 	* @param[in] rcPaint 指定绘制坐标
 	* @return 无
 	*/
-	virtual void PaintChild(IRenderContext* pRender, const UiRect& rcPaint) {};
+	virtual void PaintChild(IRenderContext* pRender, const UiRect& rcPaint) { (void)pRender; (void)rcPaint; };
 
 	/**
 	* @brief 设置是否对绘制范围做剪裁限制

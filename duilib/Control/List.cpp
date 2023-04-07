@@ -72,7 +72,7 @@ void ListBox::HandleMessage(EventArgs& event)
 		break;
 	case kEventMouseScrollWheel:
 	{
-		int detaValue = event.wParam;
+		int detaValue = static_cast<int>(event.wParam);
 		if (detaValue > 0) {
 			if (m_bScrollSelect) {
 				SelectItem(FindSelectable(m_iCurSel - 1, false), true);
@@ -241,8 +241,8 @@ bool ListBox::SetItemIndex(Control* pControl, std::size_t iIndex)
 	std::size_t iMinIndex = min((std::size_t)iOrginIndex, iIndex);
 	std::size_t iMaxIndex = max((std::size_t)iOrginIndex, iIndex);
 	for(std::size_t i = iMinIndex; i < iMaxIndex + 1; ++i) {
-		Control* pControl = GetItemAt(i);
-		ListContainerElement* pListItem = dynamic_cast<ListContainerElement*>(pControl);
+		Control* pItemControl = GetItemAt(i);
+		ListContainerElement* pListItem = dynamic_cast<ListContainerElement*>(pItemControl);
 		if( pListItem != NULL ) {
 			pListItem->SetIndex((int)i);
 		}
@@ -300,17 +300,17 @@ bool ListBox::AddAt(Control* pControl, std::size_t iIndex)
 	ListContainerElement* pListItem = dynamic_cast<ListContainerElement*>(pControl);
 	if( pListItem != NULL ) {
 		pListItem->SetOwner(this);
-		pListItem->SetIndex(iIndex);
+		pListItem->SetIndex(static_cast<int>(iIndex));
 	}
 
-	for(int i = iIndex + 1; i < GetCount(); ++i) {
+	for(int i = (int)iIndex + 1; i < GetCount(); ++i) {
 		Control* p = GetItemAt(i);
 		pListItem = dynamic_cast<ListContainerElement*>(p);
 		if( pListItem != NULL ) {
 			pListItem->SetIndex(i);
 		}
 	}
-	if( m_iCurSel >= iIndex ) m_iCurSel += 1;
+	if( m_iCurSel >= (int)iIndex ) m_iCurSel += 1;
 	return true;
 }
 
@@ -326,19 +326,19 @@ bool ListBox::RemoveAt(std::size_t iIndex)
 {
 	if (!ScrollableBox::RemoveAt(iIndex)) return false;
 
-	for(int i = iIndex; i < GetCount(); ++i) {
+	for(int i = (int)iIndex; i < GetCount(); ++i) {
 		Control* p = GetItemAt(i);
 		ListContainerElement* pListItem = dynamic_cast<ListContainerElement*>(p);
 		if( pListItem != NULL ) pListItem->SetIndex(i);
 	}
 
-	if( iIndex == m_iCurSel && m_iCurSel >= 0 ) {
+	if( (int)iIndex == m_iCurSel && m_iCurSel >= 0 ) {
 		if (m_bSelNextWhenRemoveActive)
 			SelectItem(FindSelectable(m_iCurSel--, false));
 		else
 			m_iCurSel = -1;
 	}
-	else if( iIndex < m_iCurSel ) m_iCurSel -= 1;
+	else if( (int)iIndex < m_iCurSel ) m_iCurSel -= 1;
 	return true;
 }
 

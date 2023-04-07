@@ -650,7 +650,7 @@ bool Control::IsActivatable() const
 	return true;
 }
 
-Control* Control::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, CPoint scrollPos)
+Control* Control::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, CPoint /*scrollPos*/)
 {
     if( (uFlags & UIFIND_VISIBLE) != 0 && !IsVisible() ) return NULL;
     if( (uFlags & UIFIND_ENABLED) != 0 && !IsEnabled() ) return NULL;
@@ -775,7 +775,7 @@ CSize Control::EstimateSize(CSize szAvailable)
 	return imageSize;
 }
 
-CSize Control::EstimateText(CSize szAvailable, bool& bReEstimateSize)
+CSize Control::EstimateText(CSize /*szAvailable*/, bool& /*bReEstimateSize*/)
 {
 	return CSize();
 }
@@ -843,17 +843,17 @@ void Control::HandleMessageTemplate(EventArgs& msg)
 		}
 
 		if (bRet) {
-			auto callback = OnXmlEvent.find(msg.Type);
-			if (callback != OnXmlEvent.end()) {
-				bRet = callback->second(&msg);
+			auto callback2 = OnXmlEvent.find(msg.Type);
+			if (callback2 != OnXmlEvent.end()) {
+				bRet = callback2->second(&msg);
 			}
 			if (weakflag.expired()) {
 				return;
 			}
 
-			callback = OnXmlEvent.find(kEventAll);
-			if (callback != OnXmlEvent.end()) {
-				bRet = callback->second(&msg);
+			callback2 = OnXmlEvent.find(kEventAll);
+			if (callback2 != OnXmlEvent.end()) {
+				bRet = callback2->second(&msg);
 			}
 			if (weakflag.expired()) {
 				return;
@@ -878,19 +878,19 @@ void Control::HandleMessage(EventArgs& msg)
 	else if( msg.Type == kEventSetCursor ) {
 		if (m_cursorType == kCursorHand) {
 			if (IsEnabled()) {
-				::SetCursor(::LoadCursor(NULL, MAKEINTRESOURCE(IDC_HAND)));
+				::SetCursor(::LoadCursor(NULL, IDC_HAND));
 			}
 			else {
-				::SetCursor(::LoadCursor(NULL, MAKEINTRESOURCE(IDC_ARROW)));
+				::SetCursor(::LoadCursor(NULL, IDC_ARROW));
 			}
 			return;
 		}
 		else if (m_cursorType == kCursorArrow){
-			::SetCursor(::LoadCursor(NULL, MAKEINTRESOURCE(IDC_ARROW)));
+			::SetCursor(::LoadCursor(NULL, IDC_ARROW));
 			return;
 		}
 		else if (m_cursorType == kCursorHandIbeam){
-			::SetCursor(::LoadCursor(NULL, MAKEINTRESOURCE(IDC_IBEAM)));
+			::SetCursor(::LoadCursor(NULL, IDC_IBEAM));
 			return;
 		}
 		else {
@@ -963,7 +963,7 @@ bool Control::HasHotState()
 	return m_colorMap.HasHotColor() || m_imageMap.HasHotImage();
 }
 
-bool Control::MouseEnter(EventArgs& msg)
+bool Control::MouseEnter(EventArgs& /*msg*/)
 {
 	if( IsEnabled() ) {
 		if ( m_uButtonState == kControlStateNormal) {
@@ -982,7 +982,7 @@ bool Control::MouseEnter(EventArgs& msg)
 	return true;
 }
 
-bool Control::MouseLeave(EventArgs& msg)
+bool Control::MouseLeave(EventArgs& /*msg*/)
 {
 	if( IsEnabled() ) {
 		if (m_uButtonState == kControlStateHot) {
@@ -1001,7 +1001,7 @@ bool Control::MouseLeave(EventArgs& msg)
 	return true;
 }
 
-bool Control::ButtonDown(EventArgs& msg)
+bool Control::ButtonDown(EventArgs& /*msg*/)
 {
 	bool ret = false;
 	if( IsEnabled() ) {
@@ -1296,7 +1296,7 @@ void Control::ApplyAttributeList(const std::wstring& strList)
     return;
 }
 
-bool Control::OnApplyAttributeList(const std::wstring& strReceiver, const std::wstring& strList, EventArgs* eventArgs)
+bool Control::OnApplyAttributeList(const std::wstring& strReceiver, const std::wstring& strList, EventArgs* /*eventArgs*/)
 {
 	Control* pReceiverControl;
 	if (strReceiver.substr(0, 2) == L".\\" || strReceiver.substr(0, 2) == L"./") {
@@ -1369,7 +1369,7 @@ bool Control::DrawImage(IRenderContext* pRender, Image& duiImage, const std::wst
 		GifPlay();
 	}
 	else {
-		int iFade = nFade == DUI_NOSET_VALUE ? newImageAttribute.bFade : nFade;
+		BYTE iFade = (nFade == DUI_NOSET_VALUE) ? newImageAttribute.bFade : static_cast<BYTE>(nFade);
 		ImageInfo* imageInfo = duiImage.imageCache.get();
 		pRender->DrawImage(m_rcPaint, duiImage.GetCurrentHBitmap(), imageInfo->IsAlpha(),
 			rcNewDest, rcNewSource, newImageAttribute.rcCorner, imageInfo->IsSvg(), iFade,
@@ -1439,7 +1439,7 @@ void Control::AlphaPaint(IRenderContext* pRender, const UiRect& rcPaint)
 			}
 
 			pRender->AlphaBlend(rcUnion.left, rcUnion.top, rcUnion.right - rcUnion.left, rcUnion.bottom - rcUnion.top, pCacheRender->GetDC(),
-				rcUnion.left - m_rcItem.left, rcUnion.top - m_rcItem.top, rcUnion.right - rcUnion.left, rcUnion.bottom - rcUnion.top, m_nAlpha);
+				rcUnion.left - m_rcItem.left, rcUnion.top - m_rcItem.top, rcUnion.right - rcUnion.left, rcUnion.bottom - rcUnion.top, static_cast<BYTE>(m_nAlpha));
 
 			m_renderContext.reset();
 		}
@@ -1470,7 +1470,7 @@ void Control::AlphaPaint(IRenderContext* pRender, const UiRect& rcPaint)
 			}
 
 			pRender->AlphaBlend(rcUnion.left, rcUnion.top, rcUnion.right - rcUnion.left, rcUnion.bottom - rcUnion.top, pCacheRender->GetDC(),
-				rcUnion.left - m_rcItem.left, rcUnion.top - m_rcItem.top, rcUnion.right - rcUnion.left, rcUnion.bottom - rcUnion.top, m_nAlpha);
+				rcUnion.left - m_rcItem.left, rcUnion.top - m_rcItem.top, rcUnion.right - rcUnion.left, rcUnion.bottom - rcUnion.top, static_cast<BYTE>(m_nAlpha));
 			PaintChild(pRender, rcPaint);
 		}
 	}
@@ -1548,7 +1548,7 @@ void Control::PaintStatusImage(IRenderContext* pRender)
 	m_imageMap.PaintStatusImage(pRender, kStateImageFore, m_uButtonState);
 }
 
-void Control::PaintText(IRenderContext* pRender)
+void Control::PaintText(IRenderContext* /*pRender*/)
 {
     return;
 }
@@ -1661,16 +1661,19 @@ void Control::PaintLoading(IRenderContext* pRender) {
 
   Gdiplus::Matrix matrix;
   temp_render.GetTransform(&matrix);
-  matrix.RotateAt(static_cast<float>(m_fCurrrentAngele), Gdiplus::PointF(image->GetWidth() / 2, image->GetHeight() / 2));
+  matrix.RotateAt(static_cast<float>(m_fCurrrentAngele), Gdiplus::PointF(static_cast<Gdiplus::REAL>(image->GetWidth() / 2), static_cast<Gdiplus::REAL>(image->GetHeight() / 2)));
   temp_render.SetTransform(&matrix);
 
   temp_render.DrawImage(image, 0.f, 0.f);
 
   Gdiplus::Graphics graphics(pRender->GetDC());
   graphics.DrawImage(&tempBitmap,
-    Gdiplus::RectF(m_rcItem.left + (GetWidth() - image->GetWidth()) / 2, m_rcItem.top + (GetHeight() - image->GetHeight()) / 2, image->GetWidth(), image->GetHeight()),
-    0, 0, image->GetWidth(), image->GetHeight(),
-    Gdiplus::UnitPixel);
+                     Gdiplus::RectF(static_cast<Gdiplus::REAL>(m_rcItem.left + (GetWidth() - image->GetWidth()) / 2),
+						            static_cast<Gdiplus::REAL>(m_rcItem.top + (GetHeight() - image->GetHeight()) / 2),
+		                            static_cast<Gdiplus::REAL>(image->GetWidth()), 
+						            static_cast<Gdiplus::REAL>(image->GetHeight())),
+                     0, 0, static_cast<Gdiplus::REAL>(image->GetWidth()), static_cast<Gdiplus::REAL>(image->GetHeight()),
+                   Gdiplus::UnitPixel);
 
   delete image;
 }

@@ -132,7 +132,7 @@ bool TreeNode::RemoveChildNode(TreeNode* pTreeNode)
 		return false;
 	}
 		
-	int iIndex = it - m_aTreeNodes.begin();
+	int iIndex = static_cast<int>(it - m_aTreeNodes.begin());
 	return RemoveChildNodeAt(iIndex);
 }
 	
@@ -187,7 +187,7 @@ int TreeNode::GetChildNodeIndex(TreeNode* pTreeNode)
 	if (it == m_aTreeNodes.end()) {
 		return -1;
 	}
-	return it - m_aTreeNodes.begin();
+	return static_cast<int>(it - m_aTreeNodes.begin());
 }
 
 bool TreeNode::IsExpand() const
@@ -240,25 +240,25 @@ void TreeView::SetAttribute(const std::wstring& strName, const std::wstring& str
 	}
 }
 
-bool TreeView::Add(Control* pControl)
+bool TreeView::Add(Control* /*pControl*/)
 {
 	ASSERT(FALSE);
 	return true;
 }
 
-bool TreeView::AddAt(Control* pControl, std::size_t iIndex)
+bool TreeView::AddAt(Control* /*pControl*/, std::size_t /*iIndex*/)
 {
 	ASSERT(FALSE);
 	return true;
 }
 
-bool TreeView::Remove(Control* pControl)
+bool TreeView::Remove(Control* /*pControl*/)
 {
 	ASSERT(FALSE);
 	return true;
 }
 
-bool TreeView::RemoveAt(std::size_t iIndex)
+bool TreeView::RemoveAt(std::size_t /*iIndex*/)
 {
 	ASSERT(FALSE);
 	return true;

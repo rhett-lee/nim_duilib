@@ -6,7 +6,7 @@ static inline void DrawFunction(HDC hDC, bool bTransparent, UiRect rcDest, HDC h
 {
 	if (bTransparent || bAlphaChannel || uFade < 255 
 		|| (rcSrc.GetWidth() == rcDest.GetWidth() && rcSrc.GetHeight() == rcDest.GetHeight())) {
-		BLENDFUNCTION ftn = { AC_SRC_OVER, 0, uFade, AC_SRC_ALPHA };
+		BLENDFUNCTION ftn = { AC_SRC_OVER, 0, static_cast<BYTE>(uFade), AC_SRC_ALPHA };
 		::AlphaBlend(hDC, rcDest.left, rcDest.top, rcDest.GetWidth(), rcDest.GetHeight(),
 			hdcSrc, rcSrc.left, rcSrc.top, rcSrc.GetWidth(), rcSrc.GetHeight(), ftn);
 	}
@@ -214,6 +214,7 @@ void RenderContext_GdiPlus::DrawImage(const UiRect& rcPaint, HBITMAP hBitmap, bo
 	BYTE uFade /*= 255*/, bool xtiled /*= false*/, bool ytiled /*= false*/,
 	bool fullxtiled /*= true*/, bool fullytiled /*= true*/, int nTiledMargin /*=0*/)
 {
+	(void)fullxtiled;
 	UiRect rcTestTemp;
 	if (!::IntersectRect(&rcTestTemp, &rcImageDest, &rcPaint)) return;
 
@@ -460,14 +461,15 @@ void RenderContext_GdiPlus::DrawColor(const UiRect& rc, DWORD dwColor, BYTE uFad
 	if (uFade < 255) {
 		int alpha = dwColor >> 24;
 		dwNewColor = dwColor & 0xffffff;
-		alpha *= double(uFade) / 255;
+		alpha *= static_cast<int>(static_cast<double>(uFade) / 255);
 		dwNewColor += alpha << 24;
 	}
 
 	Gdiplus::Graphics graphics(m_hDC);
 	Gdiplus::Color color(dwNewColor);
 	Gdiplus::SolidBrush brush(color);
-	Gdiplus::RectF rcFill(rc.left, rc.top, rc.GetWidth(), rc.GetHeight());
+	Gdiplus::RectF rcFill(static_cast<Gdiplus::REAL>(rc.left), static_cast<Gdiplus::REAL>(rc.top), 
+		                  static_cast<Gdiplus::REAL>(rc.GetWidth()), static_cast<Gdiplus::REAL>(rc.GetHeight()));
 	graphics.FillRectangle(&brush, rcFill);
 }
 
@@ -562,7 +564,7 @@ void RenderContext_GdiPlus::DrawText(const UiRect& rc, const std::wstring& strTe
 
 	Gdiplus::RectF rcPaint((Gdiplus::REAL)rc.left, (Gdiplus::REAL)rc.top, (Gdiplus::REAL)(rc.right - rc.left), (Gdiplus::REAL)(rc.bottom - rc.top));
 	int alpha = dwTextColor >> 24;
-	uFade *= double(alpha) / 255;
+	uFade = static_cast<BYTE>(uFade * static_cast<double>(alpha) / 255);
 	if (uFade == 255) {
 		uFade = 254;
 	}
@@ -642,7 +644,7 @@ void RenderContext_GdiPlus::DrawEllipse(const UiRect& rc, int nSize, DWORD dwCol
 {
 	Gdiplus::Graphics graphics(m_hDC);
 	graphics.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
-	Gdiplus::Pen pen(dwColor, nSize);
+	Gdiplus::Pen pen(dwColor, static_cast<Gdiplus::REAL>(nSize));
 	graphics.DrawEllipse(&pen, rc.left, rc.top, rc.GetWidth(), rc.GetHeight());
 }
 
@@ -677,6 +679,7 @@ void RenderContext_GdiPlus::DrawBoxShadow(const UiRect& rc,
 	DWORD dwColor, 
 	bool bExclude)
 {
+	(void)nSpreadSize;
 #define USE_BLUR 1
 #define USE_COLOR_MATRIX 0
 
@@ -725,7 +728,7 @@ void RenderContext_GdiPlus::DrawBoxShadow(const UiRect& rc,
 
 	gradientPathBrush.SetInterpolationColors(colors, pos, 3);
 
-	Gdiplus::Bitmap tempBitmap(srcRc.Width, srcRc.Height);
+	Gdiplus::Bitmap tempBitmap(static_cast<INT>(srcRc.Width), static_cast<INT>(srcRc.Height));
 	Gdiplus::Graphics tempRender(&tempBitmap);
 
 	if (bExclude) {
@@ -739,12 +742,12 @@ void RenderContext_GdiPlus::DrawBoxShadow(const UiRect& rc,
 	// blur effect
 	Gdiplus::BlurParams blurParams;
 	blurParams.expandEdge = false;
-	blurParams.radius = nBlurRadius;
+	blurParams.radius = static_cast<float>(nBlurRadius);
 
 	Gdiplus::Blur blurEffect;
 	blurEffect.SetParameters(&blurParams);
 
-	RECT rcBlurEffect{ nBlurSize,nBlurSize,srcRc.Width - 2 * nBlurSize,srcRc.Height - 2 * nBlurSize };
+	RECT rcBlurEffect{ nBlurSize,nBlurSize,static_cast<LONG>(srcRc.Width) - 2 * nBlurSize,static_cast<LONG>(srcRc.Height) - 2 * nBlurSize };
 	tempBitmap.ApplyEffect(&blurEffect, &rcBlurEffect);
 #endif
 
@@ -775,7 +778,8 @@ void RenderContext_GdiPlus::DrawBoxShadow(const UiRect& rc,
 
 	Gdiplus::Graphics graphics(m_hDC);
 	graphics.DrawImage(&tempBitmap,
-		Gdiplus::RectF(destRc.left, destRc.top, destRc.GetWidth(), destRc.GetHeight()),
+		Gdiplus::RectF(static_cast<Gdiplus::REAL>(destRc.left), static_cast<Gdiplus::REAL>(destRc.top), 
+			           static_cast<Gdiplus::REAL>(destRc.GetWidth()), static_cast<Gdiplus::REAL>(destRc.GetHeight())),
 		0, 0, srcRc.Width, srcRc.Height,
 		Gdiplus::UnitPixel);
 }
@@ -792,7 +796,7 @@ ui::UiRect RenderContext_GdiPlus::MeasureText(const std::wstring& strText, const
 		HFONT hOldFont = (HFONT)::SelectObject(m_hDC, GlobalManager::GetFont(strFontId));
 
 		SIZE size = { 0 };
-		GetTextExtentPoint32(m_hDC, strText.c_str(), _tcslen(strText.c_str()), &size);
+		GetTextExtentPoint32(m_hDC, strText.c_str(), (int)_tcslen(strText.c_str()), &size);
 		::SelectObject(m_hDC, hOldFont);
 
 		UiRect rc(int(0), int(0), int(size.cx + 1), int(size.cy + 1));

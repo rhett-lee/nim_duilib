@@ -11,8 +11,12 @@
 #include <string>
 #include <utility>
 #include <vector>
-#include "include/cef_app.h"
 #include "cef_control/app/cef_js_bridge.h"
+
+#pragma warning (push)
+#pragma warning (disable:4100)
+#include "include/cef_app.h"
+#pragma warning (pop)
 
 namespace nim_comp
 {

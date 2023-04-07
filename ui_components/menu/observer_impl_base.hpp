@@ -163,12 +163,12 @@ public:
 		}
 	}
 
-	virtual ReturnT Receive(ParamT param)
+	virtual ReturnT Receive(ParamT /*param*/)
 	{
 		return ReturnT();
 	}
 
-	virtual ReturnT Respond(ParamT param, ObserverImplBase<ReturnT, ParamT>* observer)
+	virtual ReturnT Respond(ParamT /*param*/, ObserverImplBase<ReturnT, ParamT>* /*observer*/)
 	{
 		return ReturnT();
 	}

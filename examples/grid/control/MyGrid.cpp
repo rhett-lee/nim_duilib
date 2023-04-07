@@ -23,11 +23,11 @@ void MyGridBody::SetColCount(int count)
 	int margin_left = GetColumnWidth(0);
 	for (size_t i = 1; i < header->size(); i++)
 	{
-		GridHeaderItem *pItem = dynamic_cast<GridHeaderItem*>(header->at(i));
+		GridHeaderItem *pItem = dynamic_cast<GridHeaderItem*>(header->at(static_cast<int>(i)));
 		assert(pItem);
 		if (!pItem)
 			continue;
-		int col_width = GetColumnWidth(i);
+		int col_width = GetColumnWidth(static_cast<int>(i));
 		Combo* combo = new Combo;
 		combo->SetFixedWidth(col_width - HEADER_COMBO_MARGIN_LEFT * 2);
 		combo->SetFixedHeight(header_height / 2 - HEADER_COMBO_MARGIN_BOTTOM);
@@ -56,7 +56,7 @@ void MyGridBody::SetColCount(int count)
 
 GridHeaderItem* MyGridBody::AddCol(std::wstring text, int width)
 {
-	int col_index = GetHeader()->size();
+	int col_index = static_cast<int>(GetHeader()->size());
 	int margin_left = _SumIntList(m_hLayout);
 	GridHeaderItem *item = __super::AddCol(text, width);
 	if (item)
@@ -127,7 +127,7 @@ void MyGridBody::ResetHeanderComboPos()
 				posx += m_hLayout[i];
 				continue;
 			}
-			Control *pControl = pHeader->at(i)->GetControl();
+			Control *pControl = pHeader->at(static_cast<int>(i))->GetControl();
 			if (!pControl){
 				posx += m_hLayout[i];
 				continue;
@@ -174,7 +174,7 @@ void MyGridBody::PaintBody(IRenderContext* pRender)
 	}
 
 	//draw fixed col && fixed row text
-	for (int i = 0; i < m_nFixedRow; i++)
+	for (int i = 0; i < (int)m_nFixedRow; i++)
 	{
 		if (m_vLayout[i] == 0)
 			continue;
@@ -186,7 +186,7 @@ void MyGridBody::PaintBody(IRenderContext* pRender)
 				continue;
 			UiRect rc = { posx, posy, posx + m_hLayout[j], posy + m_vLayout[i] };
 			rc.Offset({ m_rcItem.left, m_rcItem.top });
-			pRender->DrawText(rc, grid_row->at(j)->text, dwDefColor, m_strGridFont, m_uTextStyle, 255, false);
+			pRender->DrawText(rc, grid_row->at(static_cast<int>(j))->text, dwDefColor, m_strGridFont, m_uTextStyle, 255, false);
 			posx += m_hLayout[j];
 		}
 		posy += m_vLayout[i];
@@ -199,17 +199,17 @@ void MyGridBody::PaintBody(IRenderContext* pRender)
 			rcClip.bottom = rcClip.top + GetFixedRowHeight();
 			AutoClip clip(pRender, rcClip, m_bClip);
 			posy = 0;
-			for (int i = 0; i < m_nFixedRow; i++)
+			for (int i = 0; i < (int)m_nFixedRow; i++)
 			{
 				if (m_vLayout[i] == 0)
 					continue;
 				GridRow *grid_row = m_vecRow[i];
 				posx = GetFixedColWidth();
-				for (size_t j = m_nFixedCol; j < col_count; j++)
+				for (size_t j = m_nFixedCol; j < (size_t)col_count; j++)
 				{
 					if (m_hLayout[j] == 0)
 						continue;
-					std::wstring str = grid_row->at(j)->text;
+					std::wstring str = grid_row->at(static_cast<int>(j))->text;
 					if (!str.empty() && posx + m_hLayout[j] - szOff.cx > fixed_col_width)		//单元格右边线没有超过fixed_col_width
 					{
 						UiRect rc = { posx, posy, posx + m_hLayout[j], posy + m_vLayout[i] };
@@ -237,12 +237,12 @@ void MyGridBody::PaintBody(IRenderContext* pRender)
 			rcClip.right = rcClip.left + GetFixedColWidth();
 			AutoClip clip(pRender, rcClip, m_bClip);
 			posx = 0;
-			for (int i = 0; i < m_nFixedCol; i++)
+			for (int i = 0; i < (int)m_nFixedCol; i++)
 			{
 				if (m_hLayout[i] == 0)
 					continue;
 				posy = GetFixedRowHeight();
-				for (size_t j = m_nFixedRow; j < row_count; j++)
+				for (size_t j = m_nFixedRow; j < (size_t)row_count; j++)
 				{
 					if (m_vLayout[j] == 0)
 						continue;
@@ -271,7 +271,7 @@ void MyGridBody::PaintBody(IRenderContext* pRender)
 			rcClip.top += GetFixedRowHeight();;
 			AutoClip clip(pRender, rcClip, m_bClip);
 			posy = GetFixedRowHeight();
-			for (int i = m_nFixedRow; i < row_count; i++)
+			for (int i = static_cast<int>(m_nFixedRow); i < row_count; i++)
 			{
 				if (m_vLayout[i] == 0)
 					continue;
@@ -280,11 +280,11 @@ void MyGridBody::PaintBody(IRenderContext* pRender)
 					GridRow *grid_row = m_vecRow[i];
 					posx = GetFixedColWidth();
 
-					for (size_t j = m_nFixedCol; j < col_count; j++)
+					for (size_t j = m_nFixedCol; j < (size_t)col_count; j++)
 					{
 						if (m_hLayout[j] == 0)
 							continue;
-						GridItem *pItem = grid_row->at(j);
+						GridItem *pItem = grid_row->at(static_cast<int>(j));
 
 						UiRect rc = { posx, posy, posx + m_hLayout[j], posy + m_vLayout[i] };
 						rc.Offset({ m_rcItem.left - szOff.cx, m_rcItem.top - szOff.cy });

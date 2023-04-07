@@ -294,11 +294,13 @@ void PlaceHolder::SetReEstimateSize(bool bReEstimateSize)
 
 CSize PlaceHolder::EstimateSize(CSize szAvailable)
 {
+	(void)szAvailable;
 	return m_cxyFixed;
 }
 
 UiRect PlaceHolder::GetPos(bool bContainShadow) const
 {
+	(void)bContainShadow;
 	return m_rcItem;
 }
 

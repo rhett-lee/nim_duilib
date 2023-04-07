@@ -41,7 +41,7 @@ LRESULT TimerManager::WndProcThunk(HWND hwnd, UINT message, WPARAM wparam, LPARA
 	return ::DefWindowProcW(hwnd, message, wparam, lparam);
 }
 
-void TimerManager::TimeCallback(UINT uTimerID, UINT uMsg, DWORD_PTR dwUser, DWORD_PTR dw1, DWORD_PTR dw2)
+void TimerManager::TimeCallback(UINT /*uTimerID*/, UINT /*uMsg*/, DWORD_PTR /*dwUser*/, DWORD_PTR /*dw1*/, DWORD_PTR /*dw2*/)
 {
 	::PostMessage(m_hMessageWnd, WM_USER_DEFINED_TIMER, 0, 0);
 }

@@ -6,7 +6,10 @@
 #define CEF_TESTS_CEFCLIENT_BROWSER_OSR_DRAGDROP_EVENTS_H_
 #pragma once
 
+#pragma warning (push)
+#pragma warning (disable:4100)
 #include "include/cef_render_handler.h"
+#pragma warning (pop)
 
 namespace client {
 

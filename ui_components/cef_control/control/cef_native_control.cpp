@@ -1,10 +1,14 @@
 #include "stdafx.h"
 #include "cef_native_control.h"
+#include "cef_control/handler/browser_handler.h"
+#include "cef_control/manager/cef_manager.h"
+
+#pragma warning (push)
+#pragma warning (disable:4100)
 #include "include/cef_browser.h"
 #include "include/cef_frame.h"
 #include "include/cef_runnable.h"
-#include "cef_control/handler/browser_handler.h"
-#include "cef_control/manager/cef_manager.h"
+#pragma warning (pop)
 
 namespace nim_comp {
 

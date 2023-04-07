@@ -9,7 +9,10 @@
 #include <windows.h>
 #include <string>
 
+#pragma warning (push)
+#pragma warning (disable:4100)
 #include "include/internal/cef_types_wrappers.h"
+#pragma warning (pop)
 
 namespace client {
 

@@ -202,12 +202,12 @@ namespace ui
 		~GridRow(){};
 
 		GridItem* operator[](int index){
-			assert(index >= 0 && index < items.size());
+			assert(index >= 0 && index < (int)items.size());
 			return items[index];
 		};
 
 		GridItem* at(int index){
-			assert(index >= 0 && index < items.size());
+			assert(index >= 0 && index < (int)items.size());
 			return items[index];
 		};
 

@@ -52,7 +52,7 @@ CMenuWnd::CMenuWnd(HWND hParent) :
 {
 }
 
-void CMenuWnd::Init(STRINGorID xml, LPCTSTR pSkinType, POINT point, PopupPosType popupPosType, bool no_focus, CMenuElementUI* pOwner)
+void CMenuWnd::Init(STRINGorID xml, LPCTSTR /*pSkinType*/, POINT point, PopupPosType popupPosType, bool no_focus, CMenuElementUI* pOwner)
 {
 	m_BasedPoint = point;
 	m_popupPosType = popupPosType;
@@ -211,25 +211,25 @@ void CMenuWnd::ResizeMenu()
 	szInit.cy -= rcCorner.top + rcCorner.bottom; //这里去掉阴影窗口，即用户的视觉有效面积 szInit<=szAvailable
 	
 	CPoint point = m_BasedPoint;  //这里有个bug，由于坐标点与包含在窗口内，会直接出发mouseenter导致出来子菜单，偏移1个像素
-	if (m_popupPosType & eMenuAlignment_Right)
+	if (static_cast<int>(m_popupPosType) & static_cast<int>(eMenuAlignment_Right))
 	{
 		point.x += -szAvailable.cx + rcCorner.right + rcCorner.left;
 		point.x -= 1;
 	}
-	else if (m_popupPosType & eMenuAlignment_Left)
+	else if (static_cast<int>(m_popupPosType) & static_cast<int>(eMenuAlignment_Left))
 	{
 		point.x += 1;
 	}
-	if (m_popupPosType & eMenuAlignment_Bottom)
+	if (static_cast<int>(m_popupPosType) & static_cast<int>(eMenuAlignment_Bottom))
 	{
 		point.y += -szAvailable.cy + rcCorner.bottom + rcCorner.top;
 		point.y += 1;
 	}
-	else if (m_popupPosType & eMenuAlignment_Top)
+	else if (static_cast<int>(m_popupPosType) & static_cast<int>(eMenuAlignment_Top))
 	{
 		point.y += 1;
 	}
-	if (m_popupPosType&eMenuAlignment_Intelligent)
+	if (static_cast<int>(m_popupPosType) & static_cast<int>(eMenuAlignment_Intelligent))
 	{
 		if (point.x < rcWork.left)
 		{
@@ -304,8 +304,6 @@ void CMenuWnd::ResizeSubMenu()
 
 	bool bReachBottom = false;
 	bool bReachRight = false;
-	LONG chRightAlgin = 0;
-	LONG chBottomAlgin = 0;
 
 	RECT rcPreWindow = { 0 };
 	ContextMenuObserver::Iterator<BOOL, ContextMenuParam> iterator(GetMenuObserver());

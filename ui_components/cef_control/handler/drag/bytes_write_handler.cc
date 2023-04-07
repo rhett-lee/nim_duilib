@@ -7,7 +7,10 @@
 #include <cstdio>
 #include <cstdlib>
 
+#pragma warning (push)
+#pragma warning (disable:4100)
 #include "include/wrapper/cef_helpers.h"
+#pragma warning (pop)
 
 namespace client {
 
@@ -82,12 +85,12 @@ size_t BytesWriteHandler::Grow(size_t size) {
   base::AutoLock lock_scope(lock_);
   size_t rv;
   size_t s = (size > grow_ ? size : grow_);
-  void* tmp = realloc(data_, datasize_ + s);
+  void* tmp = realloc(data_, static_cast<size_t>(datasize_) + s);
   DCHECK(tmp != NULL);
   if (tmp) {
     data_ = tmp;
     datasize_ += s;
-    rv = datasize_;
+    rv = static_cast<size_t>(datasize_);
   } else {
     rv = 0;
   }

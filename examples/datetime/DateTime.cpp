@@ -232,7 +232,7 @@ namespace ui
 
         if (event.Type == kEventSetCursor && IsEnabled())
         {
-            ::SetCursor(::LoadCursor(NULL, MAKEINTRESOURCE(IDC_IBEAM)));
+            ::SetCursor(::LoadCursor(NULL, IDC_IBEAM));
             return;
         }
 

@@ -76,8 +76,8 @@ std::unique_ptr<ui::ImageInfo> SvgUtil::LoadImageBySvg(void *data, const std::ws
 		return nullptr;
 
 	float scale = (float)DpiManager::GetInstance()->GetScale() / 100;
-	w *= scale;
-	h *= scale;
+	w = static_cast<int>(w*scale);
+	h = static_cast<int>(h*scale);
 
 	unsigned char* pBmpBits = NULL;
 	HDC hdc = GetDC(NULL);
@@ -85,7 +85,7 @@ std::unique_ptr<ui::ImageInfo> SvgUtil::LoadImageBySvg(void *data, const std::ws
 	ReleaseDC(NULL, hdc);
 
 	if (!hBitmap) {
-		DWORD err = GetLastError();
+		//DWORD err = GetLastError();
 		ASSERT(FALSE);
 		return nullptr;
 	}
@@ -96,15 +96,17 @@ std::unique_ptr<ui::ImageInfo> SvgUtil::LoadImageBySvg(void *data, const std::ws
 		unsigned char *row = &pBmpBits[y*w*4];
 		for (int x = 0; x < w; x++) {
 			int r = row[0], g = row[1], b = row[2], a = row[3];
+			(void)a;
+			(void)g;
 // 			if (a < 255) {
 // 				row[0] = (unsigned char)(b * a / 255);
 // 				row[1] = (unsigned char)(g * a / 255);
 // 				row[2] = (unsigned char)(r * a / 255);
 // 			}
 // 			else {
-				row[0] = b;
+				row[0] = static_cast<unsigned char>(b);
 				//row[1] = g;
-				row[2] = r;
+				row[2] = static_cast<unsigned char>(r);
 //			}
 			row += 4;
 		}

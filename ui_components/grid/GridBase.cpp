@@ -856,8 +856,8 @@ namespace ui
 		std::wstring strItem;
 		std::wstring strLineNext = strClipboard;
 		//std::wstring strItemNext;
-		int pos_rn = -1;
-		int pos_t = -1;
+		size_t pos_rn = std::wstring::npos;
+		size_t pos_t = std::wstring::npos;
 		for (int row = row_index_start; row < row_count; row++)
 		{
 			if (strLineNext.empty())

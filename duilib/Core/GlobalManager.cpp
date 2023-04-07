@@ -27,7 +27,12 @@ std::wstring GetDpiImageFullPath(const std::wstring& strImageFullPath, bool bIsU
     }
   }
 
-  int iPointPos = strPathFileName.rfind('.');
+  size_t iPointPos = strPathFileName.rfind('.');
+  assert(iPointPos != std::wstring::npos);
+  if (iPointPos == std::wstring::npos)
+  {
+	  return std::wstring();
+  }
   std::wstring strFileExtension = strPathFileName.substr(iPointPos, strPathFileName.length() - iPointPos);
   std::wstring strFile = strPathFileName.substr(0, iPointPos);
   strPathFileName = StringHelper::Printf(L"%s%s%d%s", strFile.c_str(), L"@", dpi, strFileExtension.c_str());
@@ -645,6 +650,7 @@ void GlobalManager::FillBox(Box* pUserDefinedBox, const std::wstring& strXmlPath
 {
 	WindowBuilder winBuilder;
 	Box* box = winBuilder.Create(strXmlPath.c_str(), callback, pUserDefinedBox->GetWindow(), nullptr, pUserDefinedBox);
+	(void)box;
 	ASSERT(box);
 
 	return;

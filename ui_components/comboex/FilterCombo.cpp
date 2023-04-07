@@ -73,7 +73,7 @@ std::wstring CFilterComboWnd::GetWindowClassName() const
     return _T("ComboWnd");
 }
 
-void CFilterComboWnd::OnFinalMessage(HWND hWnd)
+void CFilterComboWnd::OnFinalMessage(HWND /*hWnd*/)
 {
 	m_pOwner->m_pComboWnd = NULL;
     m_pOwner->m_uButtonState = kControlStateNormal;
@@ -122,7 +122,7 @@ LRESULT CFilterComboWnd::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
 		{
 			EventArgs args;
 			args.pSender = m_pOwner->GetListBox();
-			args.chKey = wParam;
+			args.chKey = static_cast<TCHAR>(wParam);
 			if (uMsg == WM_CHAR)
 				args.Type = kEventChar;
 			else if (uMsg == WM_KEYDOWN)
@@ -141,7 +141,7 @@ LRESULT CFilterComboWnd::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
 		{
 			EventArgs args;
 			args.pSender = m_pOwner->GetListBox();
-			args.chKey = wParam;
+			args.chKey = static_cast<TCHAR>(wParam);
 			args.Type = kEventSystemKey;
 			args.wParam = 0;
 			args.lParam = 0;
@@ -228,14 +228,16 @@ bool FilterListBox::SelectItem(int iIndex, bool bTakeFocus, bool bTrigger)
 void FilterListBox::Filter(std::string utf8_str)
 {
 	ListElementMatch *item = nullptr;
-	for (size_t i = 0; i < GetCount(); i++)
+	for (size_t i = 0; i < (size_t)GetCount(); ++i)
 	{
-		if (item = dynamic_cast<ListElementMatch*>(GetItemAt(i)))
-		{
-			if (item->StringMatch(utf8_str))
+		item = dynamic_cast<ListElementMatch*>(GetItemAt(i));
+		if (item){
+			if (item->StringMatch(utf8_str)) {
 				item->SetVisible();
-			else
+			}
+			else {
 				item->SetVisible(false);
+			}
 		}
 	}
 }
@@ -418,7 +420,7 @@ void FilterCombo::AttachSelect(const EventCallback& callback) {
 	m_pLayout->AttachSelect(callback); 
 }
 
-bool FilterCombo::OnSelectItem(EventArgs* args)
+bool FilterCombo::OnSelectItem(EventArgs* /*args*/)
 {
 	m_pComboWnd->OnSeleteItem();
 	m_iCurSel = m_pLayout->GetCurSel();
@@ -437,7 +439,7 @@ bool FilterCombo::OnSelectItem(EventArgs* args)
 	return true;
 }
 
-bool FilterCombo::OnRichEditTextChanged(EventArgs* args)
+bool FilterCombo::OnRichEditTextChanged(EventArgs* /*args*/)
 {
 	if (m_pLayout)
 	{
@@ -485,7 +487,7 @@ bool FilterCombo::OnRichEditTextChanged(EventArgs* args)
 	return true;
 }
 
-bool FilterCombo::OnRichEditButtonDown(EventArgs* args)
+bool FilterCombo::OnRichEditButtonDown(EventArgs* /*args*/)
 {
 	Activate();
 	return true;

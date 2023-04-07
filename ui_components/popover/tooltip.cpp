@@ -43,8 +43,6 @@ ui::CSize TooltipBody::EstimateSize(ui::CSize szAvailable)
     editSize.cy += editMargin.top + editMargin.bottom;
   }
 
-  int childMargin = m_pLayout->GetChildMargin();
-
   ui::CSize fixedSize = editSize;
 
   fixedSize.cx += paddingRect.left + paddingRect.right;

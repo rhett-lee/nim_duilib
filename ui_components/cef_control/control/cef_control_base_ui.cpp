@@ -1,11 +1,15 @@
 #include "stdafx.h"
 #include "cef_control_base.h"
-#include "include/cef_browser.h"
-#include "include/cef_frame.h"
-#include "include/cef_runnable.h"
 #include "cef_control/handler/browser_handler.h"
 #include "cef_control/manager/cef_manager.h"
 #include "cef_control/app/cef_js_bridge.h"
+
+#pragma warning (push)
+#pragma warning (disable:4100)
+#include "include/cef_browser.h"
+#include "include/cef_frame.h"
+#include "include/cef_runnable.h"
+#pragma warning (pop)
 
 namespace nim_comp {
 
@@ -173,7 +177,7 @@ std::string CefControlBase::GetUTF8URL()
 CefString CefControlBase::GetMainURL(const CefString& url)
 {
 	std::string temp = url.ToString();
-	int end_pos = temp.find("#") == std::string::npos ? temp.length() : temp.find("#");
+	size_t end_pos = temp.find("#") == std::string::npos ? temp.length() : temp.find("#");
 	temp = temp.substr(0, end_pos);
 	return CefString(temp.c_str());
 }

@@ -295,17 +295,17 @@ void Box::HandleMessageTemplate(EventArgs& msg)
 		}
 
 		if (bRet) {
-			auto callback = OnXmlEvent.find(msg.Type);
-			if (callback != OnXmlEvent.end()) {
-				bRet = callback->second(&msg);
+			auto callback2 = OnXmlEvent.find(msg.Type);
+			if (callback2 != OnXmlEvent.end()) {
+				bRet = callback2->second(&msg);
 			}
 			if (weakflag.expired()) {
 				return;
 			}
 
-			callback = OnXmlEvent.find(kEventAll);
-			if (callback != OnXmlEvent.end()) {
-				bRet = callback->second(&msg);
+			callback2 = OnXmlEvent.find(kEventAll);
+			if (callback2 != OnXmlEvent.end()) {
+				bRet = callback2->second(&msg);
 			}
 			if (weakflag.expired()) {
 				return;
@@ -330,17 +330,17 @@ void Box::HandleMessageTemplate(EventArgs& msg)
 	}
 
 	if (bRet) {
-		auto callback = OnXmlBubbledEvent.find(msg.Type);
-		if (callback != OnXmlBubbledEvent.end()) {
-			bRet = callback->second(&msg);
+		auto callback2 = OnXmlBubbledEvent.find(msg.Type);
+		if (callback2 != OnXmlBubbledEvent.end()) {
+			bRet = callback2->second(&msg);
 		}
 		if (weakflag.expired()) {
 			return;
 		}
 
-		callback = OnXmlBubbledEvent.find(kEventAll);
-		if (callback != OnXmlBubbledEvent.end()) {
-			bRet = callback->second(&msg);
+		callback2 = OnXmlBubbledEvent.find(kEventAll);
+		if (callback2 != OnXmlBubbledEvent.end()) {
+			bRet = callback2->second(&msg);
 		}
 		if (weakflag.expired()) {
 			return;
@@ -556,7 +556,7 @@ int Box::GetItemIndex(Control* pControl) const
 	if (it == m_items.end()) {
 		return -1;
 	}
-	return it - m_items.begin();
+	return static_cast<int>(it - m_items.begin());
 }
 
 bool Box::SetItemIndex(Control* pControl, std::size_t iIndex)
@@ -963,7 +963,7 @@ void ScrollableBox::HandleMessage(EventArgs& event)
 			}
 		}
 		else if( event.Type == kEventMouseScrollWheel ) {
-			int deltaValue = event.wParam;
+			int deltaValue = static_cast<int>(event.wParam);
 			if (deltaValue > 0 ) {
 				LineUp(abs(deltaValue));
 			}
@@ -1029,7 +1029,7 @@ void ScrollableBox::HandleMessage(EventArgs& event)
 			}
 		}
 		else if( event.Type == kEventMouseScrollWheel )	{
-			int deltaValue = event.wParam;
+			int deltaValue = static_cast<int>(event.wParam);
 			if (deltaValue > 0 ) {
 				LineLeft();
 				return;
@@ -1134,7 +1134,7 @@ void ScrollableBox::SetWindow(Window* pManager, Box* pParent, bool bInit)
 	Box::SetWindow(pManager, pParent, bInit);
 }
 
-Control* ScrollableBox::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, CPoint scrollPos)
+Control* ScrollableBox::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, CPoint /*scrollPos*/)
 {
 	// Check if this guy is valid
 	if ((uFlags & UIFIND_VISIBLE) != 0 && !IsVisible()) return NULL;
@@ -1162,16 +1162,24 @@ Control* ScrollableBox::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFl
 CSize ScrollableBox::GetScrollPos() const
 {
 	CSize sz;
-	if( m_pVerticalScrollBar && m_pVerticalScrollBar->IsValid() ) sz.cy = m_pVerticalScrollBar->GetScrollPos();
-	if( m_pHorizontalScrollBar && m_pHorizontalScrollBar->IsValid() ) sz.cx = m_pHorizontalScrollBar->GetScrollPos();
+	if (m_pVerticalScrollBar && m_pVerticalScrollBar->IsValid()) {
+		sz.cy = static_cast<LONG>(m_pVerticalScrollBar->GetScrollPos());
+	}
+	if (m_pHorizontalScrollBar && m_pHorizontalScrollBar->IsValid()) {
+		sz.cx = static_cast<LONG>(m_pHorizontalScrollBar->GetScrollPos());
+	}
 	return sz;
 }
 
 CSize ScrollableBox::GetScrollRange() const
 {
 	CSize sz;
-	if( m_pVerticalScrollBar && m_pVerticalScrollBar->IsValid() ) sz.cy = m_pVerticalScrollBar->GetScrollRange();
-	if( m_pHorizontalScrollBar && m_pHorizontalScrollBar->IsValid() ) sz.cx = m_pHorizontalScrollBar->GetScrollRange();
+	if (m_pVerticalScrollBar && m_pVerticalScrollBar->IsValid()) {
+		sz.cy = static_cast<LONG>(m_pVerticalScrollBar->GetScrollRange());
+	}
+	if (m_pHorizontalScrollBar && m_pHorizontalScrollBar->IsValid()) {
+		sz.cx = static_cast<LONG>(m_pHorizontalScrollBar->GetScrollRange());
+	}
 	return sz;
 }
 
@@ -1186,16 +1194,16 @@ void ScrollableBox::SetScrollPos(CSize szPos)
 		m_scrollAnimation.Reset();
 	}
 
-	int cx = 0;
-	int cy = 0;
+	int64_t cx = 0;
+	int64_t cy = 0;
 	if( m_pVerticalScrollBar && m_pVerticalScrollBar->IsValid() ) {
-		int iLastScrollPos = m_pVerticalScrollBar->GetScrollPos();
+		int64_t iLastScrollPos = m_pVerticalScrollBar->GetScrollPos();
 		m_pVerticalScrollBar->SetScrollPos(szPos.cy);
 		cy = m_pVerticalScrollBar->GetScrollPos() - iLastScrollPos;
 	}
 
 	if( m_pHorizontalScrollBar && m_pHorizontalScrollBar->IsValid() ) {
-		int iLastScrollPos = m_pHorizontalScrollBar->GetScrollPos();
+		int64_t iLastScrollPos = m_pHorizontalScrollBar->GetScrollPos();
 		m_pHorizontalScrollBar->SetScrollPos(szPos.cx);
 		cx = m_pHorizontalScrollBar->GetScrollPos() - iLastScrollPos;
 	}
@@ -1600,7 +1608,7 @@ void ScrollableBox::ProcessVScrollBar(UiRect rc, int cyRequired)
 		}
 
 		if( m_pVerticalScrollBar->GetScrollRange() != cyScroll ) {
-			int iScrollPos = m_pVerticalScrollBar->GetScrollPos();
+			int64_t iScrollPos = m_pVerticalScrollBar->GetScrollPos();
 			m_pVerticalScrollBar->SetScrollRange(::abs(cyScroll));
 			if( !m_pVerticalScrollBar->IsValid() ) {
 				m_pVerticalScrollBar->SetScrollPos(0);
@@ -1652,7 +1660,7 @@ void ScrollableBox::ProcessHScrollBar(UiRect rc, int cxRequired)
 		m_pHorizontalScrollBar->SetPos(rcVerScrollBarPos);
 
 		if (m_pHorizontalScrollBar->GetScrollRange() != cxScroll) {
-			int iScrollPos = m_pHorizontalScrollBar->GetScrollPos();
+			int64_t iScrollPos = m_pHorizontalScrollBar->GetScrollPos();
 			m_pHorizontalScrollBar->SetScrollRange(::abs(cxScroll));
 			if (!m_pHorizontalScrollBar->IsValid()) {
 				m_pHorizontalScrollBar->SetScrollPos(0);

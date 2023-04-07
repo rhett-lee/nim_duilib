@@ -5,10 +5,14 @@
  * @date 2019/3/20
  */
 #pragma once
-#include "include/cef_base.h"
 #include "cef_control_event.h"
 #include "cef_control/app/cef_js_bridge.h"
 #include "cef_control/handler/browser_handler.h"
+
+#pragma warning (push)
+#pragma warning (disable:4100)
+#include "include/cef_base.h"
+#pragma warning (pop)
 
 namespace nim_comp {
 

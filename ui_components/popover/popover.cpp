@@ -275,7 +275,7 @@ ui::CSize PopoverHeader::EstimateSize(ui::CSize szAvailable)
     }
 
     int childMargin = m_pLayout->GetChildMargin();
-    editMaxSize.cx -= (m_items.size() - 1) * childMargin;
+    editMaxSize.cx -= ((int)m_items.size() - 1) * childMargin;
 
     ui::CSize editSize{ 0,0 };
     if (m_pRichEditTitle) {
@@ -310,7 +310,7 @@ ui::CSize PopoverHeader::EstimateSize(ui::CSize szAvailable)
       fixedSize.cy = max(fixedSize.cy, m_pButtonClose->GetFixedHeight());
     }
 
-    fixedSize.cx += paddingRect.left + paddingRect.right + (m_items.size() - 1) * childMargin;
+    fixedSize.cx += paddingRect.left + paddingRect.right + ((int)m_items.size() - 1) * childMargin;
     fixedSize.cy += paddingRect.top + paddingRect.bottom;
 
     if (m_bUseMaxSize && fixedSize.cx < maxSize.cx)
@@ -405,8 +405,6 @@ ui::CSize PopoverBody::EstimateSize(ui::CSize szAvailable)
       
     }
 
-    int childMargin = m_pLayout->GetChildMargin();
-
     fixedSize = editSize;
 
     fixedSize.cx += paddingRect.left + paddingRect.right;
@@ -495,7 +493,7 @@ ui::CSize PopoverFooter::EstimateSize(ui::CSize szAvailable)
 
     fixedSize.cx = okSize.cx + cancelSize.cx +
       paddingRect.left + paddingRect.right +
-      (m_items.size() - 1) * childMargin;
+      ((int)m_items.size() - 1) * childMargin;
 
     fixedSize.cy = max(okSize.cy, cancelSize.cy) + paddingRect.top + paddingRect.bottom;
     if (m_bUseMaxSize && fixedSize.cx < maxSize.cx)
@@ -641,7 +639,7 @@ Popover::Popover(ui::Control* pAnchor,
 
   // attach last event of anchor
   if (m_pAnchor) {
-    m_pAnchor->AttachLastEvent(ToWeakCallback([this](ui::EventArgs* args) {
+    m_pAnchor->AttachLastEvent(ToWeakCallback([this](ui::EventArgs* /*args*/) {
       nbase::ThreadManager::PostTask(kThreadUI, ToWeakCallback([this]() {TriggerResult({ kResultNone }, true); }));
       return true;
       }));
@@ -657,7 +655,7 @@ std::wstring Popover::GetType() const {
   return L"Popover";
 }
 
-ui::CSize Popover::EstimateSize(ui::CSize szAvailable)
+ui::CSize Popover::EstimateSize(ui::CSize /*szAvailable*/)
 {
   ui::CSize fixedSize = m_cxyFixed;
   if (GetFixedWidth() == DUI_LENGTH_AUTO || GetFixedHeight() == DUI_LENGTH_AUTO) {
@@ -744,7 +742,7 @@ void Popover::Update(PopoverHeader* header, PopoverBody* body, PopoverFooter* fo
 
     m_pPopoverHeader = header;
 
-    m_pPopoverHeader->AttachCloseClicked(ToWeakCallback([this](ui::EventArgs* args) {
+    m_pPopoverHeader->AttachCloseClicked(ToWeakCallback([this](ui::EventArgs* /*args*/) {
       nbase::ThreadManager::PostTask(kThreadUI, ToWeakCallback([this]() {TriggerResult({ kResultNone }); }));
       return true;
       }));
@@ -770,11 +768,11 @@ void Popover::Update(PopoverHeader* header, PopoverBody* body, PopoverFooter* fo
     }
 
     m_pPopoverFooter = footer;
-    m_pPopoverFooter->AttachCancelClicked(ToWeakCallback([this](ui::EventArgs* args) {
+    m_pPopoverFooter->AttachCancelClicked(ToWeakCallback([this](ui::EventArgs* /*args*/) {
       nbase::ThreadManager::PostTask(kThreadUI, ToWeakCallback([this]() {TriggerResult({ kResultCancel }); }));
       return true;
       }));
-    m_pPopoverFooter->AttachOkClicked(ToWeakCallback([this](ui::EventArgs* args) {
+    m_pPopoverFooter->AttachOkClicked(ToWeakCallback([this](ui::EventArgs* /*args*/) {
       nbase::ThreadManager::PostTask(kThreadUI, ToWeakCallback([this]() {TriggerResult({ kResultOk }); }));
       return true;
       }));
@@ -1009,7 +1007,7 @@ ui::UiRect Popover::ReCalcByAnchorPos(ui::UiRect rc)
 void Popover::InitializeElements()
 {
   if (m_pPopoverHeader) {
-    m_pPopoverHeader->AttachCloseClicked(ToWeakCallback([this](ui::EventArgs* args) {
+    m_pPopoverHeader->AttachCloseClicked(ToWeakCallback([this](ui::EventArgs* /*args*/) {
       nbase::ThreadManager::PostTask(kThreadUI, ToWeakCallback([this]() {TriggerResult({ kResultNone }); }));
       return true;
       }));
@@ -1021,11 +1019,11 @@ void Popover::InitializeElements()
   }
 
   if (m_pPopoverFooter) {
-    m_pPopoverFooter->AttachCancelClicked(ToWeakCallback([this](ui::EventArgs* args) {
+    m_pPopoverFooter->AttachCancelClicked(ToWeakCallback([this](ui::EventArgs* /*args*/) {
       nbase::ThreadManager::PostTask(kThreadUI, ToWeakCallback([this]() {TriggerResult({ kResultCancel }); }));
       return true;
       }));
-    m_pPopoverFooter->AttachOkClicked(ToWeakCallback([this](ui::EventArgs* args) {
+    m_pPopoverFooter->AttachOkClicked(ToWeakCallback([this](ui::EventArgs* /*args*/) {
       nbase::ThreadManager::PostTask(kThreadUI, ToWeakCallback([this]() {TriggerResult({ kResultOk }); }));
       return true;
       }));
@@ -1107,7 +1105,7 @@ void Popover::InitializeDisappearTriggers(int nOldType, int nNewType, int nTimeo
 void Popover::OnShowTriggerTimeout(int index)
 {
   if (index != m_nShowTriggerIndex) {
-    int index = m_nShowTriggerIndex;
+    index = m_nShowTriggerIndex;
     nbase::ThreadManager::PostDelayedTask(kThreadUI,
       nbase::Bind(&Popover::OnShowTriggerTimeout, this, index),
       nbase::TimeDelta::FromMilliseconds(m_nShowTimeouts));
@@ -1123,7 +1121,7 @@ void Popover::OnShowTriggerTimeout(int index)
 void Popover::OnDisappearTriggerTimeout(int index)
 {
   if (index != m_nDisappearTriggerIndex) {
-    int index = m_nDisappearTriggerIndex;
+    index = m_nDisappearTriggerIndex;
     nbase::ThreadManager::PostDelayedTask(kThreadUI,
       nbase::Bind(&Popover::OnDisappearTriggerTimeout, this, index),
       nbase::TimeDelta::FromMilliseconds(m_nDisappearTimeouts));
@@ -1161,14 +1159,14 @@ void Popover::TriggerClose()
   }
 }
 
-bool Popover::OnAnchorResize(ui::EventArgs* args)
+bool Popover::OnAnchorResize(ui::EventArgs* /*args*/)
 {
   SetPos(GetPos());
 
   return true;
 }
 
-bool Popover::OnAnchorSetFocus(ui::EventArgs* args)
+bool Popover::OnAnchorSetFocus(ui::EventArgs* /*args*/)
 {
   if (m_nShowType & kTriggerSetFocus)
     SetVisible(true);
@@ -1176,7 +1174,7 @@ bool Popover::OnAnchorSetFocus(ui::EventArgs* args)
   return true;
 }
 
-bool Popover::OnAnchorKillFocus(ui::EventArgs* args)
+bool Popover::OnAnchorKillFocus(ui::EventArgs* /*args*/)
 {
   if (m_nDisappearType & kTriggerKillFocus)
     nbase::ThreadManager::PostTask(kThreadUI, ToWeakCallback(
@@ -1188,7 +1186,7 @@ bool Popover::OnAnchorKillFocus(ui::EventArgs* args)
   return true;
 }
 
-bool Popover::OnAnchorMouseClick(ui::EventArgs* args)
+bool Popover::OnAnchorMouseClick(ui::EventArgs* /*args*/)
 {
   if (m_nShowType & kTriggerClick)
     SetVisible(true);
@@ -1196,7 +1194,7 @@ bool Popover::OnAnchorMouseClick(ui::EventArgs* args)
   return true;
 }
 
-bool Popover::OnAnchorMouseEnter(ui::EventArgs* args)
+bool Popover::OnAnchorMouseEnter(ui::EventArgs* /*args*/)
 {
   if (m_nShowType & kTriggerEnter)
     SetVisible(true);
@@ -1204,7 +1202,7 @@ bool Popover::OnAnchorMouseEnter(ui::EventArgs* args)
   return true;
 }
 
-bool Popover::OnAnchorMouseHover(ui::EventArgs* args)
+bool Popover::OnAnchorMouseHover(ui::EventArgs* /*args*/)
 {
   if (m_nShowType & kTriggerHover)
     SetVisible(true);
@@ -1212,7 +1210,7 @@ bool Popover::OnAnchorMouseHover(ui::EventArgs* args)
   return true;
 }
 
-bool Popover::OnAnchorMouseLeave(ui::EventArgs* args)
+bool Popover::OnAnchorMouseLeave(ui::EventArgs* /*args*/)
 {
   if (m_nDisappearType & kTriggerLeave)
     nbase::ThreadManager::PostTask(kThreadUI, ToWeakCallback([this]() {TriggerResult({ kResultNone }, true); }));
@@ -1220,7 +1218,7 @@ bool Popover::OnAnchorMouseLeave(ui::EventArgs* args)
   return true;
 }
 
-bool Popover::OnAnchorLastEvent(ui::EventArgs* args)
+bool Popover::OnAnchorLastEvent(ui::EventArgs* /*args*/)
 {
   this->SetVisible(false);
 
@@ -1232,7 +1230,7 @@ bool Popover::OnAnchorLastEvent(ui::EventArgs* args)
   return true;
 }
 
-bool Popover::OnAnchorVisibleChange(ui::EventArgs* args)
+bool Popover::OnAnchorVisibleChange(ui::EventArgs* /*args*/)
 {
   bool is_visible = m_pAnchor->IsVisible();
   if (is_visible && m_nShowType & kTriggerVisible)
@@ -1388,7 +1386,7 @@ void PopoverLayer::DoInit()
 }
 
 LRESULT PopoverLayer::MessageHandler(UINT uMsg,
-  WPARAM wParam,
+  WPARAM /*wParam*/,
   LPARAM lParam,
   BOOL& bHandled)
 {

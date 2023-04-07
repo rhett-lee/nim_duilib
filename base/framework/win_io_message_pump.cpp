@@ -30,6 +30,7 @@ void WinIOMessagePump::ScheduleWork()
 	BOOL ret = ::PostQueuedCompletionStatus(port_, 0,
 											reinterpret_cast<ULONG_PTR>(this),
 											reinterpret_cast<OVERLAPPED*>(this));
+	(void)ret;
 	assert(ret);
 }
 
@@ -45,6 +46,7 @@ void WinIOMessagePump::RegisterIOHandler(HANDLE file_handle, IOHandler *handler)
 {
 	ULONG_PTR key = reinterpret_cast<ULONG_PTR>(handler);
 	HANDLE port = ::CreateIoCompletionPort(file_handle, port_, key, 1);
+	(void)port;
 	assert(port);
 }
 

@@ -1,6 +1,10 @@
 #pragma once
-#include "include/cef_app.h"
 #include "base/memory/singleton.h"
+
+#pragma warning (push)
+#pragma warning (disable:4100)
+#include "include/cef_app.h"
+#pragma warning (pop)
 
 namespace nim_comp
 {

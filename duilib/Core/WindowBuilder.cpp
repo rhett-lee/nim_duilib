@@ -25,9 +25,9 @@ Box* WindowBuilder::Create(STRINGorID xml, CreateControlCallback pCallback,
 			if (hGlobal)
 			{
 				BYTE *data = (BYTE*)GlobalLock(hGlobal);
-				DWORD len = GlobalSize(hGlobal);
+				SIZE_T len = GlobalSize(hGlobal);
 
-				bool ret = m_xml.LoadFromMem(data, len);
+				bool ret = m_xml.LoadFromMem(data, static_cast<DWORD>(len));
 
 				GlobalUnlock(hGlobal);
 				GlobalFree(hGlobal);
@@ -58,10 +58,8 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pManager, Bo
 
 	if( pManager ) {
 		std::wstring strClass;
-		int nAttributes = 0;
 		std::wstring strName;
 		std::wstring strValue;
-		LPTSTR pstr = NULL;
 		strClass = root.GetName();
 
 		if( strClass == _T("Global") )
@@ -199,7 +197,7 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pManager, Bo
 					ASSERT(FALSE);	//·ÏÆú
 				}
 				else if (strClass == _T("FontResource")) {
-					nAttributes = node.GetAttributeCount();
+					int nAttributes = node.GetAttributeCount();
 					std::wstring strFontFile;
 					std::wstring strFontName;
 					for (int i = 0; i < nAttributes; i++) {
@@ -217,7 +215,7 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pManager, Bo
 					}
 				}
 				else if( strClass == _T("Font") ) {
-					nAttributes = node.GetAttributeCount();
+					int nAttributes = node.GetAttributeCount();
 					std::wstring strFontId;
 					std::wstring strFontName;
 					int size = 12;
@@ -238,7 +236,7 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pManager, Bo
 							strFontName = strValue;
 						}
 						else if( strName == _T("size") ) {
-							size = _tcstol(strValue.c_str(), &pstr, 10);
+							size = _tcstol(strValue.c_str(), NULL, 10);
 						}
 						else if( strName == _T("bold") ) {
 							bold = (strValue == _T("true"));
@@ -256,7 +254,7 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pManager, Bo
 							isDefault = (strValue == _T("true"));
 						}
 						else if ( strName == _T("weight") ) {
-							weight = _tcstol(strValue.c_str(), &pstr, 10);
+							weight = _tcstol(strValue.c_str(), NULL, 10);
 						}
 					}
 					if( !strFontName.empty() ) {
@@ -264,7 +262,7 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pManager, Bo
 					}
 				}
 				else if( strClass == _T("Class") ) {
-					nAttributes = node.GetAttributeCount();
+					int nAttributes = node.GetAttributeCount();
 					std::wstring strClassName;
 					std::wstring strAttribute;
 					for( int i = 0; i < nAttributes; i++ ) {
@@ -290,7 +288,7 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pManager, Bo
 					}
 				}
 				else if( strClass == _T("TextColor") ) {
-					nAttributes = node.GetAttributeCount();
+					int nAttributes = node.GetAttributeCount();
 					std::wstring strColorName;
 					std::wstring strColor;
 					for( int i = 0; i < nAttributes; i++ ) {
@@ -314,7 +312,7 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pManager, Bo
 			for( CMarkupNode node = root.GetChild() ; node.IsValid(); node = node.GetSibling() ) {
 				strClass = node.GetName();
 				if( strClass == _T("Class") ) {
-					nAttributes = node.GetAttributeCount();
+					int nAttributes = node.GetAttributeCount();
 					std::wstring strClassName;
 					std::wstring strAttribute;
 					for( int i = 0; i < nAttributes; i++ ) {
@@ -341,7 +339,7 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pManager, Bo
 					}
 				}
 				else if (strClass == _T("TextColor")) {
-					nAttributes = node.GetAttributeCount();
+					int nAttributes = node.GetAttributeCount();
 					std::wstring strColorName;
 					std::wstring strColor;
 					for (int i = 0; i < nAttributes; i++) {

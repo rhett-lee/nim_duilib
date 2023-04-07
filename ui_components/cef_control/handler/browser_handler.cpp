@@ -1,10 +1,14 @@
 #include "stdafx.h"
 #include "browser_handler.h"
-#include "include/cef_frame.h"
 #include "cef_control/manager/cef_manager.h"
 #include "cef_control/util/util.h"
 #include "cef_control/app/ipc_string_define.h"
 #include "cef_control/app/cef_js_bridge.h"
+
+#pragma warning (push)
+#pragma warning (disable:4100)
+#include "include/cef_frame.h"
+#pragma warning (pop)
 
 namespace nim_comp
 {
@@ -67,7 +71,7 @@ void BrowserHandler::CloseAllBrowser()
 	CefPostTask(TID_UI, new CloseAllBrowserTask(browser_list_));
 }
 
-bool BrowserHandler::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser, CefProcessId source_process, CefRefPtr<CefProcessMessage> message)
+bool BrowserHandler::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser, CefProcessId /*source_process*/, CefRefPtr<CefProcessMessage> message)
 {
 	// 处理render进程发来的消息
 	std::string message_name = message->GetName();
@@ -289,7 +293,7 @@ void BrowserHandler::OnPaint(CefRefPtr<CefBrowser> browser,
 	}
 }
 
-void BrowserHandler::OnCursorChange(CefRefPtr<CefBrowser> browser, CefCursorHandle cursor, CursorType type, const CefCursorInfo& custom_cursor_info)
+void BrowserHandler::OnCursorChange(CefRefPtr<CefBrowser> browser, CefCursorHandle cursor, CursorType /*type*/, const CefCursorInfo& /*custom_cursor_info*/)
 {
 	SetClassLongPtr(hwnd_, GCLP_HCURSOR, static_cast<LONG>(reinterpret_cast<LONG_PTR>(cursor)));
 	SetCursor(cursor);
@@ -440,7 +444,7 @@ void BrowserHandler::OnTitleChange(CefRefPtr<CefBrowser> browser, const CefStrin
 		nbase::ThreadManager::PostTask(kThreadUI, nbase::Bind(&HandlerDelegate::OnTitleChange, handle_delegate_, browser, title));
 }
 
-bool BrowserHandler::OnConsoleMessage(CefRefPtr<CefBrowser> browser, const CefString& message, const CefString& source, int line)
+bool BrowserHandler::OnConsoleMessage(CefRefPtr<CefBrowser> browser, const CefString& /*message*/, const CefString& /*source*/, int /*line*/)
 {
 	// Log a console message...
 	return true;
@@ -476,9 +480,10 @@ void BrowserHandler::OnLoadError(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFra
 		nbase::ThreadManager::PostTask(kThreadUI, nbase::Bind(&HandlerDelegate::OnLoadError, handle_delegate_, browser, frame, errorCode, errorText, failedUrl));
 }
 
-bool BrowserHandler::OnJSDialog(CefRefPtr<CefBrowser> browser, const CefString& origin_url, const CefString& accept_lang, JSDialogType dialog_type, const CefString& message_text, const CefString& default_prompt_text, CefRefPtr<CefJSDialogCallback> callback, bool& suppress_message)
+bool BrowserHandler::OnJSDialog(CefRefPtr<CefBrowser> browser, const CefString& /*origin_url*/, const CefString& /*accept_lang*/, JSDialogType /*dialog_type*/, const CefString& /*message_text*/, const CefString& /*default_prompt_text*/, CefRefPtr<CefJSDialogCallback> callback, bool& suppress_message)
 {
 	// release时阻止弹出js对话框
+	(void)suppress_message;
 #ifndef _DEBUG
 	suppress_message = true;
 #endif
@@ -521,7 +526,7 @@ void BrowserHandler::OnRenderProcessTerminated(CefRefPtr<CefBrowser> browser, Te
 }
 
 bool BrowserHandler::OnQuotaRequest(CefRefPtr<CefBrowser> browser,
-	const CefString& origin_url,
+	const CefString& /*origin_url*/,
 	int64 new_size,
 	CefRefPtr<CefRequestCallback> callback)
 {

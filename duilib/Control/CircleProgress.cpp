@@ -58,7 +58,7 @@ void CircleProgress::PaintStatusImage(IRenderContext* pRender)
 
 		Gdiplus::Graphics graphics(pRender->GetDC());
 		graphics.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
-		Gdiplus::Pen bgPen(m_dwBackgroundColor, m_nCircleWidth);
+		Gdiplus::Pen bgPen(m_dwBackgroundColor, static_cast<Gdiplus::REAL>(m_nCircleWidth));
 		// 圆形中心
 		CPoint center;
 		center.x = m_rcItem.left + (m_rcItem.right - m_rcItem.left) / 2;
@@ -68,9 +68,9 @@ void CircleProgress::PaintStatusImage(IRenderContext* pRender)
 		int side = min(m_rcItem.right - m_rcItem.left, m_rcItem.bottom - m_rcItem.top);
 		//UiRect rcBorder;  仍然存在UiRect 到 RectF的转换，所以直接用gdi的RectF了
 		Gdiplus::RectF rcBorder;
-		rcBorder.X = center.x - side / 2;
-		rcBorder.Y = center.y - side / 2;
-		rcBorder.Width = rcBorder.Height = side;
+		rcBorder.X = static_cast<Gdiplus::REAL>(center.x - side / 2);
+		rcBorder.Y = static_cast<Gdiplus::REAL>(center.y - side / 2);
+		rcBorder.Width = rcBorder.Height = static_cast<Gdiplus::REAL>(side);
 
 		Gdiplus::RectF outer = rcBorder;
 		if (m_pIndicator) {
@@ -78,7 +78,7 @@ void CircleProgress::PaintStatusImage(IRenderContext* pRender)
 		}
 		else
 		{
-			outer.Inflate(-0.5 * m_nCircleWidth, -0.5 * m_nCircleWidth);
+			outer.Inflate(-0.5F * m_nCircleWidth, -0.5F * m_nCircleWidth);
 		}
 		outer.Inflate(-1, -1);
 
@@ -86,9 +86,9 @@ void CircleProgress::PaintStatusImage(IRenderContext* pRender)
 		if (m_dwGradientColor == 0)
 		{
 			//不使用渐变色，直接用前景色铺满
-			Gdiplus::Pen fgPen(m_dwForegroundColor, m_nCircleWidth);
+			Gdiplus::Pen fgPen(m_dwForegroundColor, static_cast<Gdiplus::REAL>(m_nCircleWidth));
 			graphics.DrawArc(&bgPen, outer, 270, 360);   //270从最上面开始递增，设为0的话，是最右边开始
-			graphics.DrawArc(&fgPen, outer, 270, direction * 360 * (m_nValue - m_nMin) / (m_nMax - m_nMin));
+			graphics.DrawArc(&fgPen, outer, 270, static_cast<Gdiplus::REAL>(direction * 360 * (m_nValue - m_nMin) / (m_nMax - m_nMin)));
 		}
 		else
 		{
@@ -98,8 +98,8 @@ void CircleProgress::PaintStatusImage(IRenderContext* pRender)
 			Gdiplus::LinearGradientBrush lgbrush(rcBorder, m_dwForegroundColor, m_dwGradientColor, Gdiplus::LinearGradientModeVertical);
 			lgbrush.SetBlend(factors, positions, 4);
 			graphics.DrawArc(&bgPen, outer, 270, 360);
-			Gdiplus::Pen fgPen(&lgbrush, m_nCircleWidth);
-			graphics.DrawArc(&fgPen, outer, 270, direction * 360 * (m_nValue - m_nMin) / (m_nMax - m_nMin));
+			Gdiplus::Pen fgPen(&lgbrush, static_cast<Gdiplus::REAL>(m_nCircleWidth));
+			graphics.DrawArc(&fgPen, outer, 270, static_cast<Gdiplus::REAL>(direction * 360 * (m_nValue - m_nMin) / (m_nMax - m_nMin)));
 
 		}
 
@@ -107,13 +107,13 @@ void CircleProgress::PaintStatusImage(IRenderContext* pRender)
 		if (m_pIndicator)
 		{
 			Gdiplus::Matrix matrix;
-			matrix.RotateAt(direction * 360 * (m_nValue - m_nMin) / (m_nMax - m_nMin), Gdiplus::PointF(center.x, center.y), Gdiplus::MatrixOrderAppend);
+			matrix.RotateAt(static_cast<Gdiplus::REAL>(direction * 360 * (m_nValue - m_nMin) / (m_nMax - m_nMin)), Gdiplus::PointF(static_cast<Gdiplus::REAL>(center.x), static_cast<Gdiplus::REAL>(center.y)), Gdiplus::MatrixOrderAppend);
 			graphics.SetTransform(&matrix);
 			Gdiplus::RectF rectf;
-			rectf.X = center.x - m_pIndicator->GetWidth() / 2;
+			rectf.X = static_cast<Gdiplus::REAL>(center.x - m_pIndicator->GetWidth() / 2);
 			rectf.Y = outer.Y + bordersize / 2 - m_pIndicator->GetHeight() / 2;
-			rectf.Width = m_pIndicator->GetWidth();
-			rectf.Height = m_pIndicator->GetHeight();
+			rectf.Width = static_cast<Gdiplus::REAL>(m_pIndicator->GetWidth());
+			rectf.Height = static_cast<Gdiplus::REAL>(m_pIndicator->GetHeight());
 			graphics.DrawImage(m_pIndicator, rectf);
 		}
 

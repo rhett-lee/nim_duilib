@@ -10,7 +10,7 @@ AnimationManager::AnimationManager() : m_pControl(nullptr), m_animationMap()
 
 AnimationManager::AnimationManager(const AnimationManager& r) : m_pControl(nullptr), m_animationMap()
 {
-
+	(void)r;
 }
 
 AnimationPlayer* AnimationManager::GetAnimationPlayer(AnimationType animationType) const

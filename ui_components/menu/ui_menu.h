@@ -122,7 +122,7 @@ public:
 	virtual bool RemoveSubMenuItemAt(std::size_t iIndex);
 	virtual bool RemoveAllSubMenuItem();
 	virtual CMenuElementUI* GetSubMenuItemAt(std::size_t iIndex) const;
-	virtual int GetSubMenuItemCount() const{ return m_child_menus.size(); };
+	virtual int GetSubMenuItemCount() const{ return static_cast<int>(m_child_menus.size()); };
 
 	virtual bool Add(Control* pControl) override;
 

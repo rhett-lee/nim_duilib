@@ -74,7 +74,7 @@ namespace nim_comp
 		return _T("ComboWnd");
 	}
 
-	void CCheckComboWnd::OnFinalMessage(HWND hWnd)
+	void CCheckComboWnd::OnFinalMessage(HWND /*hWnd*/)
 	{
 		m_pOwner->m_pCheckComboWnd = NULL;
 		m_pOwner->m_uButtonState = kControlStateNormal;
@@ -169,22 +169,25 @@ namespace nim_comp
 
 	bool CheckCombo::Add(Control* pControl)
 	{
-		CheckBoxBox *pCheckBoxBox = nullptr;
-		CheckBox *pCheckBox = dynamic_cast<CheckBox*>(pControl);
+		CheckBox* pCheckBox = dynamic_cast<CheckBox*>(pControl);
 		if (pCheckBox)
 		{
 			pCheckBox->AttachSelect(std::bind(&CheckCombo::OnSelectItem, this, std::placeholders::_1));
 			pCheckBox->AttachUnSelect(std::bind(&CheckCombo::OnUnSelectItem, this, std::placeholders::_1));
 		}
-		else if (pCheckBoxBox = dynamic_cast<CheckBoxBox*>(pControl)) {
-			pCheckBoxBox->AttachSelect(std::bind(&CheckCombo::OnSelectItem, this, std::placeholders::_1));
-			pCheckBoxBox->AttachUnSelect(std::bind(&CheckCombo::OnUnSelectItem, this, std::placeholders::_1));
-		}
 		else
 		{
-			printf("CheckCombo::Add pControl is not CheckBox object\n");
-			assert(0);
-			return true;
+			CheckBoxBox* pCheckBoxBox = dynamic_cast<CheckBoxBox*>(pControl);
+			if (pCheckBoxBox) {
+				pCheckBoxBox->AttachSelect(std::bind(&CheckCombo::OnSelectItem, this, std::placeholders::_1));
+				pCheckBoxBox->AttachUnSelect(std::bind(&CheckCombo::OnUnSelectItem, this, std::placeholders::_1));
+			}
+			else
+			{
+				printf("CheckCombo::Add pControl is not CheckBox object\n");
+				assert(0);
+				return true;
+			}
 		}
 		m_pDropList->Add(pControl);
 		pControl->SetReceivePointerMsg(true);
@@ -273,7 +276,7 @@ namespace nim_comp
 		m_szDropBox = szDropBox;
 	}
 
-	bool CheckCombo::SelectItem(int iIndex)
+	bool CheckCombo::SelectItem(int /*iIndex*/)
 	{
 		/*if (iIndex < 0 || iIndex >= m_pDropList->GetCount() || m_iCurSel == iIndex)
 			return false;
@@ -360,7 +363,7 @@ namespace nim_comp
 		m_vecDate.clear();
 	}
 
-	bool CheckCombo::OnListButtonDown(EventArgs* args)
+	bool CheckCombo::OnListButtonDown(EventArgs* /*args*/)
 	{
 		Activate();
 		return true;

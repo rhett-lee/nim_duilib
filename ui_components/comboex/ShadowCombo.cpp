@@ -190,7 +190,7 @@ void ShadowCombo::DoInit() {
     m_bInit = true;
 
     m_cArrow->SetWindow(GetWindow());
-    AttachResize(ToWeakCallback([this](ui::EventArgs* args) {
+    AttachResize(ToWeakCallback([this](ui::EventArgs* /*args*/) {
       ui::UiRect rect = m_rcItem;
       ui::CSize ArrrowSize = m_cArrow->EstimateSize(CSize(m_rcItem.GetWidth(), m_rcItem.GetHeight()));
       rect.top = m_rcItem.top + (m_rcItem.GetHeight() - ArrrowSize.cy) / 2;
@@ -465,7 +465,7 @@ Control* ShadowCombo::GetItemAt(int iIndex)
   return m_pLayout->GetItemAt(iIndex);
 }
 
-bool ShadowCombo::OnSelectItem(EventArgs* args)
+bool ShadowCombo::OnSelectItem(EventArgs* /*args*/)
 {
   if (m_pWindow)
     m_pWindow->OnSeleteItem();

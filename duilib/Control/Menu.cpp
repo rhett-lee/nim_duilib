@@ -269,6 +269,7 @@ void MenuWndEx::ResizeMenu()
 	szInit = GetRoot()->EstimateSize(szInit);
 	//必须是Menu标签作为xml的根节点
 	MenuBox *pMenuRoot = static_cast<MenuBox*>(GetRoot());
+	(void)pMenuRoot;
 	ASSERT(pMenuRoot);
 
 	UiRect rc;
@@ -531,6 +532,9 @@ Control* MenuWndEx::CreateControl(const std::wstring& pstrClass)
 
 LRESULT MenuWndEx::OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+	(void)uMsg;
+	(void)wParam;
+	(void)lParam;
 	if (m_pOwner != NULL) {
 		::SetWindowLong(this->GetHWND(), GWL_STYLE, GetStyle());
 
@@ -630,6 +634,9 @@ LRESULT MenuWndEx::OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 LRESULT MenuWndEx::OnKillFocus(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
+	(void)uMsg;
+	(void)bHandled;
+	(void)lParam;
 	HWND hFocusWnd = (HWND)wParam;
 
 	BOOL bInMenuWindowList = FALSE;

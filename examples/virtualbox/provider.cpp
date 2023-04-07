@@ -37,7 +37,7 @@ int Provider::GetElementtCount()
 {
 	// ¼ÓËø
 	nbase::NAutoLock auto_lock(&lock_);
-	return m_vTasks.size();
+	return (int)m_vTasks.size();
 }
 
 void Provider::SetTotal(int nTotal)

@@ -128,14 +128,14 @@ protected:
   * @param[in] ch 按键
   * @return 无
   */
-  virtual void OnKeyDown(TCHAR ch) {}
+  virtual void OnKeyDown(TCHAR ch) { (void)ch; }
 
   /**
   * @brief 键盘弹起通知
   * @param[in] ch 按键
   * @return 无
   */
-  virtual void OnKeyUp(TCHAR ch) {}
+  virtual void OnKeyUp(TCHAR ch) { (void)ch; }
 
 private:
   enum ScrollDirection

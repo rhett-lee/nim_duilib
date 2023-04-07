@@ -5,8 +5,13 @@
  * @date 2016/7/19
  */
 #pragma once
-#include "include/cef_app.h"
+
 #include "cef_control/handler/drag/osr_dragdrop_win.h"
+
+#pragma warning (push)
+#pragma warning (disable:4100)
+#include "include/cef_app.h"
+#pragma warning (pop)
 
 namespace nim_comp
 { 

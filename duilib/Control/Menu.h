@@ -157,6 +157,7 @@ public:
 
 	virtual BOOL OnNotify(ContextMenuParam param)
 	{
+		(void)param;
 		return BOOL();
 	}
 

@@ -17,9 +17,9 @@ void FontManager::AddFontResource(const std::wstring& strFontFile, const std::ws
 		HGLOBAL hGlobal = GlobalManager::GetZipData(path);
 		if (hGlobal) {
 			void *data = GlobalLock(hGlobal);
-			DWORD len = GlobalSize(hGlobal);
+			SIZE_T len = GlobalSize(hGlobal);
 			DWORD dwFonts = 0;
-			HANDLE handle = AddFontMemResourceEx(data, len, NULL, &dwFonts);
+			HANDLE handle = AddFontMemResourceEx(data, static_cast<DWORD>(len), NULL, &dwFonts);
 			res = handle != NULL;
 			if (res)
 				m_fontHandles.push_back(handle);
@@ -45,10 +45,12 @@ const std::vector<std::wstring>& FontManager::GetFontNames()
 
 void FontManager::Clear()
 {
-	for (auto &it : m_fontHandles) {
+	for (const auto &it : m_fontHandles) {
+		(void)it;
 		assert(RemoveFontMemResourceEx(it));
 	}
-	for (auto &it : m_fontPath) {
+	for (const auto &it : m_fontPath) {
+		(void)it;
 		assert(RemoveFontResourceEx(it.c_str(), FR_PRIVATE, 0));
 	}
 	m_fontHandles.clear();

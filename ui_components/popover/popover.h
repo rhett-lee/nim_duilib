@@ -430,7 +430,7 @@ public:
 
   }
 
-  bool OnAnchorResize(ui::EventArgs* args) {
+  bool OnAnchorResize(ui::EventArgs* /*args*/) {
     ui::UiRect rc = m_pAnchor->GetPos();
 
     SetFixedWidth(rc.GetWidth());

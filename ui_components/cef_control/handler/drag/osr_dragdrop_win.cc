@@ -11,9 +11,13 @@
 #include <algorithm>
 #include <string>
 
-#include "include/wrapper/cef_helpers.h"
 #include "bytes_write_handler.h"
 #include "util_win.h"
+
+#pragma warning (push)
+#pragma warning (disable:4100)
+#include "include/wrapper/cef_helpers.h"
+#pragma warning (pop)
 
 namespace client {
 
@@ -231,7 +235,7 @@ bool DragDataToDataObject(CefRefPtr<CefDragData> drag_data,
     std::wstring x_moz_url_str = drag_data->GetLinkURL().ToWString();
     x_moz_url_str += '\n';
     x_moz_url_str += drag_data->GetLinkTitle().ToWString();
-    fmtetc.cfFormat = moz_url_format;
+    fmtetc.cfFormat = static_cast<decltype(fmtetc.cfFormat)>(moz_url_format);
     fmtetcs[curr_index] = fmtetc;
     GetStorageForString(&stgmeds[curr_index], x_moz_url_str);
     curr_index++;
@@ -240,7 +244,7 @@ bool DragDataToDataObject(CefRefPtr<CefDragData> drag_data,
   if (!html.empty()) {
     CefString base_url = drag_data->GetFragmentBaseURL();
     std::string cfhtml = HtmlToCFHtml(html.ToString(), base_url.ToString());
-    fmtetc.cfFormat = html_format;
+    fmtetc.cfFormat = static_cast<decltype(fmtetc.cfFormat)>(html_format);
     fmtetcs[curr_index] = fmtetc;
     GetStorageForString(&stgmeds[curr_index], cfhtml);
     curr_index++;
@@ -255,12 +259,12 @@ bool DragDataToDataObject(CefRefPtr<CefDragData> drag_data,
     DCHECK_EQ(handler->GetDataSize(), static_cast<int64>(bufferSize));
     CefString fileName = drag_data->GetFileName();
     GetStorageForFileDescriptor(&stgmeds[curr_index], fileName.ToWString());
-    fmtetc.cfFormat = file_desc_format;
+    fmtetc.cfFormat = static_cast<decltype(fmtetc.cfFormat)>(file_desc_format);
     fmtetcs[curr_index] = fmtetc;
     curr_index++;
     GetStorageForBytes(&stgmeds[curr_index], handler->GetData(),
-        handler->GetDataSize());
-    fmtetc.cfFormat = file_contents_format;
+        static_cast<size_t>(handler->GetDataSize()));
+    fmtetc.cfFormat = static_cast<decltype(fmtetc.cfFormat)>(file_contents_format);
     fmtetcs[curr_index] = fmtetc;
     curr_index++;
   }
@@ -379,7 +383,7 @@ CefBrowserHost::DragOperationsMask DropTargetWin::StartDragging(
 	OsrDragEvents *browser_handler,
     CefRefPtr<CefDragData> drag_data,
     CefRenderHandler::DragOperationsMask allowed_ops,
-    int x, int y) {
+    int /*x*/, int /*y*/) {
   CComPtr<IDataObject> dataObject;
   DWORD resEffect = DROPEFFECT_NONE;
   if (DragDataToDataObject(drag_data, &dataObject)) {
@@ -416,7 +420,7 @@ HRESULT DropTargetWin::DragLeave() {
   return S_OK;
 }
 
-HRESULT DropTargetWin::Drop(IDataObject* data_object,
+HRESULT DropTargetWin::Drop(IDataObject* /*data_object*/,
                             DWORD key_state,
                             POINTL cursor_position,
                             DWORD* effect) {
@@ -433,7 +437,7 @@ CComPtr<DropSourceWin> DropSourceWin::Create() {
   return CComPtr<DropSourceWin>(new DropSourceWin());
 }
 
-HRESULT DropSourceWin::GiveFeedback(DWORD dwEffect) {
+HRESULT DropSourceWin::GiveFeedback(DWORD /*dwEffect*/) {
   return DRAGDROP_S_USEDEFAULTCURSORS;
 }
 
@@ -544,7 +548,7 @@ CComPtr<DataObjectWin> DataObjectWin::Create(FORMATETC* fmtetc,
   return CComPtr<DataObjectWin>(new DataObjectWin(fmtetc, stgmed, count));
 }
 
-HRESULT DataObjectWin::GetDataHere(FORMATETC* pFormatEtc, STGMEDIUM* pmedium) {
+HRESULT DataObjectWin::GetDataHere(FORMATETC* /*pFormatEtc*/, STGMEDIUM* /*pmedium*/) {
   return E_NOTIMPL;
 }
 
@@ -552,34 +556,34 @@ HRESULT DataObjectWin::QueryGetData(FORMATETC* pFormatEtc) {
   return (LookupFormatEtc(pFormatEtc) == -1) ? DV_E_FORMATETC : S_OK;
 }
 
-HRESULT DataObjectWin::GetCanonicalFormatEtc(FORMATETC* pFormatEct,
+HRESULT DataObjectWin::GetCanonicalFormatEtc(FORMATETC* /*pFormatEct*/,
                                              FORMATETC* pFormatEtcOut) {
   pFormatEtcOut->ptd = NULL;
   return E_NOTIMPL;
 }
 
-HRESULT DataObjectWin::SetData(FORMATETC* pFormatEtc,
-                               STGMEDIUM* pMedium,
-                               BOOL fRelease) {
+HRESULT DataObjectWin::SetData(FORMATETC* /*pFormatEtc*/,
+                               STGMEDIUM* /*pMedium*/,
+                               BOOL /*fRelease*/) {
   return E_NOTIMPL;
 }
 
-HRESULT DataObjectWin::DAdvise(FORMATETC* pFormatEtc,
-                               DWORD advf,
+HRESULT DataObjectWin::DAdvise(FORMATETC* /*pFormatEtc*/,
+                               DWORD /*advf*/,
                                IAdviseSink*,
                                DWORD*) {
   return E_NOTIMPL;
 }
 
-HRESULT DataObjectWin::DUnadvise(DWORD dwConnection) {
+HRESULT DataObjectWin::DUnadvise(DWORD /*dwConnection*/) {
   return E_NOTIMPL;
 }
 
-HRESULT DataObjectWin::EnumDAdvise(IEnumSTATDATA **ppEnumAdvise) {
+HRESULT DataObjectWin::EnumDAdvise(IEnumSTATDATA **/*ppEnumAdvise*/) {
   return E_NOTIMPL;
 }
 
-HRESULT DataObjectWin::EnumFormatEtc(DWORD dwDirection,
+HRESULT DataObjectWin::EnumFormatEtc(DWORD /*dwDirection*/,
                                      IEnumFORMATETC** ppEnumFormatEtc) {
   return DragEnumFormatEtc::CreateEnumFormatEtc(m_nNumFormats, m_pFormatEtc,
       ppEnumFormatEtc);
@@ -609,7 +613,7 @@ HRESULT DataObjectWin::GetData(FORMATETC* pFormatEtc, STGMEDIUM* pMedium) {
 }
 
 HGLOBAL DataObjectWin::DupGlobalMem(HGLOBAL hMem) {
-  DWORD   len = GlobalSize(hMem);
+  SIZE_T   len = GlobalSize(hMem);
   PVOID   source = GlobalLock(hMem);
   PVOID   dest = GlobalAlloc(GMEM_FIXED, len);
 

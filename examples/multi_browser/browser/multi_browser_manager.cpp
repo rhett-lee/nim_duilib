@@ -239,7 +239,7 @@ bool MultiBrowserManager::DoDragBorwserBox(BrowserBox *browser_box, HBITMAP bitm
 		return false;
 
 	// 无论什么时候都让拖拽时光标显示为箭头
-	drop_src->SetFeedbackCursor(::LoadCursor(NULL, MAKEINTRESOURCE(IDC_ARROW)));
+	drop_src->SetFeedbackCursor(::LoadCursor(NULL, IDC_ARROW));
 
 	OnBeforeDragBorwserBox(browser_box, bitmap, pt_offset);
 

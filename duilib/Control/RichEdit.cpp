@@ -44,7 +44,7 @@ public:
     void SetClientRect(UiRect *prc);
     UiRect* GetClientRect() { return &rcClient; }
     BOOL GetWordWrap(void) { return fWordWrap; }
-    void SetWordWrap(BOOL fWordWrap);
+    void SetWordWrap(BOOL bWordWrap);
     BOOL GetReadOnly();
     void SetReadOnly(BOOL fReadOnly);
 	BOOL IsPassword();
@@ -57,7 +57,7 @@ public:
     BOOL IsCaptured();
 
     BOOL GetAllowBeep();
-    void SetAllowBeep(BOOL fAllowBeep);
+    void SetAllowBeep(BOOL bAllowBeep);
     WORD GetDefaultAlign();
     void SetDefaultAlign(WORD wNewAlign);
     BOOL GetRichTextFlag();
@@ -251,7 +251,7 @@ HRESULT InitDefaultCharFormat(RichEdit* re, CHARFORMAT2W* pcf, HFONT hfont)
     return S_OK;
 }
 
-HRESULT InitDefaultParaFormat(RichEdit* re, PARAFORMAT2* ppf) 
+HRESULT InitDefaultParaFormat(RichEdit* /*re*/, PARAFORMAT2* ppf)
 {	
     memset(ppf, 0, sizeof(PARAFORMAT2));
     ppf->cbSize = sizeof(PARAFORMAT2);
@@ -448,7 +448,7 @@ HIMC CTxtWinHost::TxImmGetContext(void)
     return NULL;
 }
 
-void CTxtWinHost::TxImmReleaseContext(HIMC himc)
+void CTxtWinHost::TxImmReleaseContext(HIMC /*himc*/)
 {
     //::ImmReleaseContext( hwnd, himc );
 }
@@ -460,12 +460,12 @@ HDC CTxtWinHost::TxGetDC()
     return m_re->GetWindowDC();
 }
 
-int CTxtWinHost::TxReleaseDC(HDC hdc)
+int CTxtWinHost::TxReleaseDC(HDC /*hdc*/)
 {
     return 1;
 }
 
-BOOL CTxtWinHost::TxShowScrollBar(INT fnBar, BOOL fShow)
+BOOL CTxtWinHost::TxShowScrollBar(INT /*fnBar*/, BOOL /*fShow*/)
 {
 	ASSERT(FALSE); //暂时注释掉，不知道这代码有啥用   by panqinke 2014.5.6
     //ScrollBar* pVerticalScrollBar = m_re->GetVerticalScrollBar();
@@ -509,7 +509,7 @@ BOOL CTxtWinHost::TxEnableScrollBar (INT fuSBFlags, INT fuArrowflags)
     return TRUE;
 }
 
-BOOL CTxtWinHost::TxSetScrollRange(INT fnBar, LONG nMinPos, INT nMaxPos, BOOL fRedraw)
+BOOL CTxtWinHost::TxSetScrollRange(INT fnBar, LONG nMinPos, INT nMaxPos, BOOL /*fRedraw*/)
 {
     ScrollBar* pVerticalScrollBar = m_re->GetVerticalScrollBar();
     ScrollBar* pHorizontalScrollBar = m_re->GetHorizontalScrollBar();
@@ -544,7 +544,7 @@ BOOL CTxtWinHost::TxSetScrollRange(INT fnBar, LONG nMinPos, INT nMaxPos, BOOL fR
     return TRUE;
 }
 
-BOOL CTxtWinHost::TxSetScrollPos (INT fnBar, INT nPos, BOOL fRedraw)
+BOOL CTxtWinHost::TxSetScrollPos (INT fnBar, INT nPos, BOOL /*fRedraw*/)
 {
     ScrollBar* pVerticalScrollBar = m_re->GetVerticalScrollBar();
     ScrollBar* pHorizontalScrollBar = m_re->GetHorizontalScrollBar();
@@ -557,7 +557,7 @@ BOOL CTxtWinHost::TxSetScrollPos (INT fnBar, INT nPos, BOOL fRedraw)
     return TRUE;
 }
 
-void CTxtWinHost::TxInvalidateRect(LPCRECT prc, BOOL fMode)
+void CTxtWinHost::TxInvalidateRect(LPCRECT prc, BOOL /*fMode*/)
 {
 	if (!m_re->GetWindow())
 		return;
@@ -574,17 +574,17 @@ void CTxtWinHost::TxInvalidateRect(LPCRECT prc, BOOL fMode)
     m_re->GetWindow()->Invalidate(rc);
 }
 
-void CTxtWinHost::TxViewChange(BOOL fUpdate) 
+void CTxtWinHost::TxViewChange(BOOL /*fUpdate*/)
 {
 
 }
 
-BOOL CTxtWinHost::TxCreateCaret(HBITMAP hbmp, INT xWidth, INT yHeight)
+BOOL CTxtWinHost::TxCreateCaret(HBITMAP /*hbmp*/, INT xWidth, INT yHeight)
 {
 	return m_re->CreateCaret(xWidth, yHeight);
 }
 
-BOOL CTxtWinHost::TxShowCaret(BOOL fShow)
+BOOL CTxtWinHost::TxShowCaret(BOOL /*fShow*/)
 {
 	return true; // m_re->ShowCaret(fShow);
 }
@@ -607,7 +607,7 @@ void CTxtWinHost::TxKillTimer(UINT idTimer)
     fTimer = FALSE;
 }
 
-void CTxtWinHost::TxScrollWindowEx (INT dx, INT dy, LPCRECT lprcScroll,	LPCRECT lprcClip,	HRGN hrgnUpdate, LPRECT lprcUpdate,	UINT fuScroll)	
+void CTxtWinHost::TxScrollWindowEx (INT /*dx*/, INT /*dy*/ , LPCRECT /*lprcScroll*/, LPCRECT /*lprcClip*/, HRGN /*hrgnUpdate*/, LPRECT /*lprcUpdate*/, UINT /*fuScroll*/)
 {
     return;
 }
@@ -627,7 +627,7 @@ void CTxtWinHost::TxSetFocus()
     m_re->SetFocus();
 }
 
-void CTxtWinHost::TxSetCursor(HCURSOR hcur,	BOOL fText)
+void CTxtWinHost::TxSetCursor(HCURSOR hcur,	BOOL /*fText*/)
 {
     ::SetCursor(hcur);
 }
@@ -642,12 +642,12 @@ BOOL CTxtWinHost::TxClientToScreen(LPPOINT lppt)
     return ::ClientToScreen(m_re->GetWindowHandle(), lppt);
 }
 
-HRESULT CTxtWinHost::TxActivate(LONG *plOldState)
+HRESULT CTxtWinHost::TxActivate(LONG */*plOldState*/)
 {
     return S_OK;
 }
 
-HRESULT CTxtWinHost::TxDeactivate(LONG lNewState)
+HRESULT CTxtWinHost::TxDeactivate(LONG /*lNewState*/)
 {
     return S_OK;
 }
@@ -718,12 +718,12 @@ HRESULT CTxtWinHost::TxGetAcceleratorPos(LONG *pcp)
     return S_OK;
 } 										   
 
-HRESULT CTxtWinHost::OnTxCharFormatChange(const CHARFORMATW *pcf)
+HRESULT CTxtWinHost::OnTxCharFormatChange(const CHARFORMATW */*pcf*/)
 {
     return S_OK;
 }
 
-HRESULT CTxtWinHost::OnTxParaFormatChange(const PARAFORMAT *ppf)
+HRESULT CTxtWinHost::OnTxParaFormatChange(const PARAFORMAT */*ppf*/)
 {
     return S_OK;
 }
@@ -808,10 +808,10 @@ HRESULT	CTxtWinHost::TxGetSelectionBarWidth (LONG *plSelBarWidth)
     return S_OK;
 }
 
-void CTxtWinHost::SetWordWrap(BOOL fWordWrap)
+void CTxtWinHost::SetWordWrap(BOOL bWordWrap)
 {
-    fWordWrap = fWordWrap;
-    pserv->OnTxPropertyBitsChange(TXTBIT_WORDWRAP, fWordWrap ? TXTBIT_WORDWRAP : 0);
+    fWordWrap = bWordWrap;
+    pserv->OnTxPropertyBitsChange(TXTBIT_WORDWRAP, bWordWrap ? TXTBIT_WORDWRAP : 0);
 }
 
 BOOL CTxtWinHost::GetReadOnly()
@@ -919,12 +919,12 @@ BOOL CTxtWinHost::GetAllowBeep()
     return fAllowBeep;
 }
 
-void CTxtWinHost::SetAllowBeep(BOOL fAllowBeep)
+void CTxtWinHost::SetAllowBeep(BOOL bAllowBeep)
 {
-    fAllowBeep = fAllowBeep;
+    fAllowBeep = bAllowBeep;
 
     pserv->OnTxPropertyBitsChange(TXTBIT_ALLOWBEEP, 
-        fAllowBeep ? TXTBIT_ALLOWBEEP : 0);
+		bAllowBeep ? TXTBIT_ALLOWBEEP : 0);
 }
 
 WORD CTxtWinHost::GetDefaultAlign()
@@ -1879,7 +1879,7 @@ long RichEdit::StreamOut(int nFormat, EDITSTREAM &es)
 HRESULT RichEdit::TxSendMessage(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *plresult) const
 {
     if( m_pTwh ) {
-        LRESULT lr =  m_pTwh->GetTextServices()->TxSendMessage(msg, wParam, lParam, plresult);
+		HRESULT lr =  m_pTwh->GetTextServices()->TxSendMessage(msg, wParam, lParam, plresult);
 		return lr;
     }
     return S_FALSE;
@@ -1892,7 +1892,7 @@ IDropTarget* RichEdit::GetTxDropTarget()
     return NULL;
 }
 
-bool RichEdit::SetDropAcceptFile(bool bAccept)
+bool RichEdit::SetDropAcceptFile(bool /*bAccept*/)
 {
 	LRESULT lResult;
 	TxSendMessage(EM_SETEVENTMASK, 0, ENM_DROPFILES | ENM_LINK, // ENM_CHANGE| ENM_CORRECTTEXT | ENM_DRAGDROPDONE | ENM_DROPFILES | ENM_IMECHANGE | ENM_LINK | ENM_OBJECTPOSITIONS | ENM_PROTECTED | ENM_REQUESTRESIZE | ENM_SCROLL | ENM_SELCHANGE | ENM_UPDATE,
@@ -2070,20 +2070,20 @@ void RichEdit::KillTimer(UINT idTimer)
 // 引入iPos就是为了修正这个bug
 void RichEdit::SetScrollPos(CSize szPos)
 {
-    int cx = 0;
-    int cy = 0;
+	int64_t cx = 0;
+	int64_t cy = 0;
     if( m_pVerticalScrollBar && m_pVerticalScrollBar->IsValid() ) {
-        int iLastScrollPos = m_pVerticalScrollBar->GetScrollPos();
+        int64_t iLastScrollPos = m_pVerticalScrollBar->GetScrollPos();
         m_pVerticalScrollBar->SetScrollPos(szPos.cy);
         cy = m_pVerticalScrollBar->GetScrollPos() - iLastScrollPos;
     }
     if( m_pHorizontalScrollBar && m_pHorizontalScrollBar->IsValid() ) {
-        int iLastScrollPos = m_pHorizontalScrollBar->GetScrollPos();
+		int64_t iLastScrollPos = m_pHorizontalScrollBar->GetScrollPos();
         m_pHorizontalScrollBar->SetScrollPos(szPos.cx);
         cx = m_pHorizontalScrollBar->GetScrollPos() - iLastScrollPos;
     }
     if( cy != 0 ) {
-        int iPos = 0;
+		int64_t iPos = 0;
         if( m_pTwh && !m_bRich && m_pVerticalScrollBar && m_pVerticalScrollBar->IsValid() ) 
             iPos = m_pVerticalScrollBar->GetScrollPos();
         WPARAM wParam = MAKEWPARAM(SB_THUMBPOSITION, m_pVerticalScrollBar->GetScrollPos());
@@ -2106,7 +2106,7 @@ void RichEdit::LineUp()
 
 void RichEdit::LineDown()
 {
-    int iPos = 0;
+	int64_t iPos = 0;
     if( m_pTwh && !m_bRich && m_pVerticalScrollBar && m_pVerticalScrollBar->IsValid() ) 
         iPos = m_pVerticalScrollBar->GetScrollPos();
     TxSendMessage(WM_VSCROLL, SB_LINEDOWN, 0L, 0);
@@ -2230,7 +2230,7 @@ void RichEdit::SetEnabled(bool bEnable /*= true*/)
 	}
 }
 
-CSize RichEdit::EstimateSize(CSize szAvailable)
+CSize RichEdit::EstimateSize(CSize /*szAvailable*/)
 {
 	CSize size(GetFixedWidth(), GetFixedHeight());
 	if (size.cx == DUI_LENGTH_AUTO || size.cy == DUI_LENGTH_AUTO) {
@@ -2480,18 +2480,18 @@ void RichEdit::OnSetCursor(EventArgs& event)
 	std::wstring strLink;
 	if (HittestCustomLink(event.ptMouse, strLink))
 	{
-		::SetCursor(::LoadCursor(NULL, MAKEINTRESOURCE(IDC_HAND)));
+		::SetCursor(::LoadCursor(NULL, IDC_HAND));
 		return;
 	}
 	if (m_pTwh && !IsReadOnly() && m_pTwh->DoSetCursor(NULL, &event.ptMouse)) {
 		return;
 	}
 	else {
-		::SetCursor(::LoadCursor(NULL, MAKEINTRESOURCE(IsReadOnly() ? IDC_ARROW : IDC_IBEAM)));
+		::SetCursor(::LoadCursor(NULL, IsReadOnly() ? IDC_ARROW : IDC_IBEAM));
 	}
 }
 
-void RichEdit::OnSetFocus(EventArgs& event)
+void RichEdit::OnSetFocus(EventArgs& /*event*/)
 {
 	if (m_pTwh) {
 		m_pTwh->OnTxInPlaceActivate(NULL);
@@ -2502,7 +2502,7 @@ void RichEdit::OnSetFocus(EventArgs& event)
 	Invalidate();
 }
 
-void RichEdit::OnKillFocus(EventArgs& event)
+void RichEdit::OnKillFocus(EventArgs& /*event*/)
 {
 	if (m_pTwh) {
 		m_pTwh->OnTxInPlaceActivate(NULL);
@@ -2573,7 +2573,7 @@ void RichEdit::OnKeyDown(EventArgs& event)
 	TxSendMessage(WM_KEYDOWN, event.wParam, event.lParam, NULL);
 }
 
-void RichEdit::OnImeStartComposition(EventArgs& event)
+void RichEdit::OnImeStartComposition(EventArgs& /*event*/)
 {
 	HWND hWnd = GetWindowHandle();
 	if (hWnd == NULL)
@@ -2599,7 +2599,7 @@ void RichEdit::OnImeStartComposition(EventArgs& event)
 	m_bIsComposition = true;
 }
 
-void RichEdit::OnImeEndComposition(EventArgs& event)
+void RichEdit::OnImeEndComposition(EventArgs& /*event*/)
 {
 	m_bIsComposition = false;
 }
@@ -2907,7 +2907,7 @@ void RichEdit::ChangeCaretVisiable()
 	Invalidate();
 }
 
-void RichEdit::PaintCaret(IRenderContext* pRender, const UiRect& rcPaint)
+void RichEdit::PaintCaret(IRenderContext* pRender, const UiRect& /*rcPaint*/)
 {
 	if (m_bReadOnly && m_bNoCaretReadonly)
 		return;

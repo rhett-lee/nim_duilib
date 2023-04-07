@@ -196,13 +196,13 @@ void ScrollBar::SetPos(UiRect rc)
 			m_rcThumb.top = rc.top;
 			m_rcThumb.bottom = rc.top + m_cxyFixed.cy;
 			if (m_nRange > 0) {
-				int cxThumb = cx * (rc.right - rc.left) / (m_nRange + rc.right - rc.left);
+				int64_t cxThumb = cx * (rc.right - rc.left) / (m_nRange + rc.right - rc.left);
 				if (cxThumb < m_nThumbMinLength) cxThumb = m_nThumbMinLength;
 
-				m_rcThumb.left = m_nScrollPos * (cx - cxThumb) / m_nRange + m_rcButton1.right;
-				m_rcThumb.right = m_rcThumb.left + cxThumb;
+				m_rcThumb.left = static_cast<LONG>(m_nScrollPos * (cx - cxThumb) / m_nRange + m_rcButton1.right);
+				m_rcThumb.right = static_cast<LONG>(m_rcThumb.left + cxThumb);
 				if (m_rcThumb.right > m_rcButton2.left) {
-					m_rcThumb.left = m_rcButton2.left - cxThumb;
+					m_rcThumb.left = static_cast<LONG>(m_rcButton2.left - cxThumb);
 					m_rcThumb.right = m_rcButton2.left;
 				}
 			}
@@ -269,13 +269,13 @@ void ScrollBar::SetPos(UiRect rc)
 			m_rcThumb.left = rc.left;
 			m_rcThumb.right = rc.left + m_cxyFixed.cx;
 			if (m_nRange > 0) {
-				int cyThumb = cy * (rc.bottom - rc.top) / (m_nRange + rc.bottom - rc.top);
+				int64_t cyThumb = cy * (rc.bottom - rc.top) / (m_nRange + rc.bottom - rc.top);
 				if (cyThumb < m_nThumbMinLength) cyThumb = m_nThumbMinLength;
 
-				m_rcThumb.top = m_nScrollPos * (cy - cyThumb) / m_nRange + m_rcButton1.bottom;
-				m_rcThumb.bottom = m_rcThumb.top + cyThumb;
+				m_rcThumb.top = static_cast<LONG>(m_nScrollPos * (cy - cyThumb) / m_nRange + m_rcButton1.bottom);
+				m_rcThumb.bottom = static_cast<LONG>(m_rcThumb.top + cyThumb);
 				if (m_rcThumb.bottom > m_rcButton2.top) {
-					m_rcThumb.top = m_rcButton2.top - cyThumb;
+					m_rcThumb.top = static_cast<LONG>(m_rcButton2.top - cyThumb);
 					m_rcThumb.bottom = m_rcButton2.top;
 				}
 			}
@@ -461,11 +461,11 @@ void ScrollBar::HandleMessage(EventArgs& event)
 	}
 	else if (event.Type == kEventSetCursor) {
 		if (m_cursorType == kCursorHand) {
-			::SetCursor(::LoadCursor(NULL, MAKEINTRESOURCE(IDC_HAND)));
+			::SetCursor(::LoadCursor(NULL, IDC_HAND));
 			return;
 		}
 		else if (m_cursorType == kCursorArrow){
-			::SetCursor(::LoadCursor(NULL, MAKEINTRESOURCE(IDC_ARROW)));
+			::SetCursor(::LoadCursor(NULL, IDC_ARROW));
 			return;
 		}
 		else {
@@ -706,13 +706,13 @@ void ScrollBar::ScrollTimeHandle()
 	++m_nScrollRepeatDelay;
 	if(m_uThumbState == kControlStatePushed) {
 		if( !m_bHorizontal ) {
-			if( m_pOwner != NULL ) m_pOwner->SetScrollPos(CSize(m_pOwner->GetScrollPos().cx, \
-				m_nLastScrollPos + m_nLastScrollOffset)); 
+			if( m_pOwner != NULL ) m_pOwner->SetScrollPos(CSize(m_pOwner->GetScrollPos().cx, 
+				                                                static_cast<int>(m_nLastScrollPos + m_nLastScrollOffset))); 
 			else SetScrollPos(m_nLastScrollPos + m_nLastScrollOffset);
 		}
 		else {
-			if( m_pOwner != NULL ) m_pOwner->SetScrollPos(CSize(m_nLastScrollPos + m_nLastScrollOffset, \
-				m_pOwner->GetScrollPos().cy)); 
+			if( m_pOwner != NULL ) m_pOwner->SetScrollPos(CSize(static_cast<int>(m_nLastScrollPos + m_nLastScrollOffset),
+															    m_pOwner->GetScrollPos().cy)); 
 			else SetScrollPos(m_nLastScrollPos + m_nLastScrollOffset);
 		}
 	}
