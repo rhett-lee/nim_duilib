@@ -1157,10 +1157,10 @@ namespace ui
 						m_bDrageSelChanged = true;
 					else
 						m_bDrageSelChanged = false;
-					int left = min(position.x, m_ptDragSelStart.x);
-					int top = min(position.y, m_ptDragSelStart.y);
-					int right = max(position.x, m_ptDragSelStart.x);
-					int bottom = max(position.y, m_ptDragSelStart.y);
+					int left = std::min(position.x, m_ptDragSelStart.x);
+					int top = std::min(position.y, m_ptDragSelStart.y);
+					int right = std::max(position.x, m_ptDragSelStart.x);
+					int bottom = std::max(position.y, m_ptDragSelStart.y);
 					if (m_ptDragSelStart.x < (LONG)m_nFixedCol && m_ptDragSelStart.x == 0)		//sel row drag
 					{
 						m_selRange.SetSelRowRange(top, bottom, ctrl, shift);

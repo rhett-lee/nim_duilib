@@ -61,7 +61,7 @@ ui::Box* PlaceHolder::GetAncestor(const std::wstring& strName)
 	return pAncestor;
 }
 
-std::wstring PlaceHolder::GetName() const
+const std::wstring& PlaceHolder::GetName() const
 {
 	return m_sName;
 }

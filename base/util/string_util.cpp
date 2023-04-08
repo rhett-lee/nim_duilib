@@ -139,19 +139,19 @@ size_t StringReplaceAllT(const std::basic_string<CharType> &find,
 	return replaced;
 }
 
-inline int vsnprintfT(char *dst, size_t count, const char *format, va_list ap)
+inline int vsnprintfT(char *dst, size_t buffer_count, size_t count, const char *format, va_list ap)
 {
 #if defined(OS_WIN)	
-	return _vsnprintf(dst, count, format, ap);
+	return _vsnprintf_s(dst, buffer_count, count, format, ap);
 #else	
 	return vsnprintf(dst, count, format, ap);
 #endif	
 }
 
-inline int vsnprintfT(wchar_t *dst, size_t count, const wchar_t *format, va_list ap)
+inline int vsnprintfT(wchar_t *dst, size_t buffer_count, size_t count, const wchar_t *format, va_list ap)
 {
 #if defined(OS_WIN)	
-	return _vsnwprintf(dst, count, format, ap);
+	return _vsnwprintf_s(dst, buffer_count, count, format, ap);
 #else	
 	return vswprintf(dst, count, format, ap);
 #endif	
@@ -160,13 +160,14 @@ inline int vsnprintfT(wchar_t *dst, size_t count, const wchar_t *format, va_list
 template<typename CharType>
 void StringAppendVT(const CharType *format, va_list ap, std::basic_string<CharType> &output)
 {
-	CharType stack_buffer[1024];
+	const size_t buffer_count = 1024;
+	CharType stack_buffer[buffer_count] = {0};
 
 	/* first, we try to finish the task using a fixed-size buffer in the stack */
 	va_list ap_copy;
 	GG_VA_COPY(ap_copy, ap);
 
-	int result = vsnprintfT(stack_buffer, COUNT_OF(stack_buffer), format, ap_copy);
+	int result = vsnprintfT(stack_buffer, buffer_count, buffer_count - 1, format, ap_copy);
 	va_end(ap_copy);
 	if (result >= 0 && result < static_cast<int>(COUNT_OF(stack_buffer)))
 	{
@@ -200,7 +201,7 @@ void StringAppendVT(const CharType *format, va_list ap, std::basic_string<CharTy
 		 * need to make a new copy each time so we don't use up the original.
 		 */
 		GG_VA_COPY(ap_copy, ap);
-		result = vsnprintfT(&heap_buffer[0], buffer_size, format, ap_copy);
+		result = vsnprintfT(&heap_buffer[0], buffer_size, buffer_size - 1, format, ap_copy);
 		va_end(ap_copy);
 
 		if ((result >= 0) && (result < buffer_size)) {
@@ -356,11 +357,12 @@ std::list<std::string> StringTokenize(const char *input, const char *delimitor)
 	if (input2.empty())
 		return output;
 
-	char *token = strtok(&input2[0], delimitor);
+	char* context = nullptr;
+	char *token = strtok_s(input2.data(), delimitor, &context);
 	while (token != NULL)
 	{
 		output.push_back(token);
-		token = strtok(NULL, delimitor);
+		token = strtok_s(NULL, delimitor, &context);
 	}
 
 	return output;
@@ -375,11 +377,12 @@ std::list<std::wstring> StringTokenize(const wchar_t *input, const wchar_t *deli
 		return output;
 
 #if defined(OS_WIN)	
-	wchar_t *token = wcstok(&input2[0], delimitor);
+	wchar_t* context = nullptr;
+	wchar_t *token = wcstok_s(input2.data(), delimitor, &context);
 	while (token != NULL)
 	{
 		output.push_back(token);
-		token = wcstok(NULL, delimitor);
+		token = wcstok_s(NULL, delimitor, &context);
 	}
 #else
 	wchar_t *ptr;

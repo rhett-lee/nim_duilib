@@ -65,7 +65,7 @@ void CircleProgress::PaintStatusImage(IRenderContext* pRender)
 		center.y = m_rcItem.top + (m_rcItem.bottom - m_rcItem.top) / 2;
 
 		// 控件矩形内的最大正方形的边界
-		int side = min(m_rcItem.right - m_rcItem.left, m_rcItem.bottom - m_rcItem.top);
+		int side = std::min(m_rcItem.right - m_rcItem.left, m_rcItem.bottom - m_rcItem.top);
 		//UiRect rcBorder;  仍然存在UiRect 到 RectF的转换，所以直接用gdi的RectF了
 		Gdiplus::RectF rcBorder;
 		rcBorder.X = static_cast<Gdiplus::REAL>(center.x - side / 2);

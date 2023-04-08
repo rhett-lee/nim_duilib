@@ -333,7 +333,7 @@ IFACEMETHODIMP UIAWindowProvider::WaitForInputIdle(int milliseconds, BOOL* pRetV
 {
 	UIA_CHECK_ELEMENT(m_pWnd);
 
-	Sleep(min(milliseconds, 200));
+	Sleep(std::min(milliseconds, 200));
 
 	*pRetVal = TRUE;
 

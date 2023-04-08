@@ -44,7 +44,7 @@ ui::CSize VirtualTileLayout::ArrangeChild(const std::vector<ui::Control*>& items
 
 
 	int nTotalHeight = GetElementsHeight(-1);
-	sz.cy = max(nTotalHeight, sz.cy);
+	sz.cy = std::max((LONG)nTotalHeight, sz.cy);
 	LazyArrangeChild();
 	return sz;
 }

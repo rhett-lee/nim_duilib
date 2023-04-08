@@ -83,7 +83,7 @@ void GetStorageForFileDescriptor(STGMEDIUM* storage,
   descriptor->cItems = 1;
   descriptor->fgd[0].dwFlags = FD_LINKUI;
   wcsncpy_s(descriptor->fgd[0].cFileName, MAX_PATH, file_name.c_str(),
-      min(file_name.size(), static_cast<size_t>(MAX_PATH - 1u)));
+      std::min(file_name.size(), static_cast<size_t>(MAX_PATH - 1u)));
 
   storage->tymed = TYMED_HGLOBAL;
   storage->hGlobal = hdata;

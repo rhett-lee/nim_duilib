@@ -16,7 +16,7 @@ void CShadowComboWnd::Init(ShadowCombo* pOwner) {
   UiRect rcOwner = pOwner->GetPosWithScrollOffset();
   int iItemHeight = m_iOldSel > -1 ? pOwner->GetItemAt(m_iOldSel)->GetFixedHeight() : 0;
   int iOffset = iItemHeight * (m_iOldSel + 1);
-  iOffset = max(iOffset, 0);
+  iOffset = std::max(iOffset, 0);
   int iScrollPos = pOwner->GetCustomLayout()->GetScrollPos().cy;
   if (iScrollPos > iItemHeight) {
     iOffset = iItemHeight;
@@ -44,7 +44,7 @@ void CShadowComboWnd::Init(ShadowCombo* pOwner) {
   }
 
   cyFixed += padding; // VBox 默认的Padding 调整
-  rc.bottom = rc.top + min(cyFixed, szDrop.cy);
+  rc.bottom = rc.top + std::min((LONG)cyFixed, szDrop.cy);
   ui::UiRect shadow_corner = m_pOwner->GetShadowCorner();
   rc.left = rc.left - shadow_corner.left;
   rc.right = rc.right + shadow_corner.right;
@@ -60,7 +60,7 @@ void CShadowComboWnd::Init(ShadowCombo* pOwner) {
   if (rc.bottom > rcWork.bottom || m_pOwner->IsPopupTop()) {
     rc.left = rcOwner.left;
     rc.right = rcOwner.right;
-    rc.top = rcOwner.bottom - min(cyFixed, szDrop.cy);
+    rc.top = rcOwner.bottom - std::min((LONG)cyFixed, szDrop.cy);
     rc.bottom = rcOwner.bottom;
 
     rc.left = rc.left - shadow_corner.left;

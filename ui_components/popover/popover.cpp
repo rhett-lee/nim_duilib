@@ -302,12 +302,12 @@ ui::CSize PopoverHeader::EstimateSize(ui::CSize szAvailable)
 
     if (m_pControlIcon) {
       fixedSize.cx += m_pControlIcon->GetFixedWidth();
-      fixedSize.cy = max(fixedSize.cy, m_pControlIcon->GetFixedHeight());
+      fixedSize.cy = std::max(fixedSize.cy, (LONG)m_pControlIcon->GetFixedHeight());
     }
 
     if (m_pButtonClose) {
       fixedSize.cx += m_pButtonClose->GetFixedWidth();
-      fixedSize.cy = max(fixedSize.cy, m_pButtonClose->GetFixedHeight());
+      fixedSize.cy = std::max(fixedSize.cy, (LONG)m_pButtonClose->GetFixedHeight());
     }
 
     fixedSize.cx += paddingRect.left + paddingRect.right + ((int)m_items.size() - 1) * childMargin;
@@ -495,7 +495,7 @@ ui::CSize PopoverFooter::EstimateSize(ui::CSize szAvailable)
       paddingRect.left + paddingRect.right +
       ((int)m_items.size() - 1) * childMargin;
 
-    fixedSize.cy = max(okSize.cy, cancelSize.cy) + paddingRect.top + paddingRect.bottom;
+    fixedSize.cy = std::max(okSize.cy, cancelSize.cy) + paddingRect.top + paddingRect.bottom;
     if (m_bUseMaxSize && fixedSize.cx < maxSize.cx)
       fixedSize.cx = maxSize.cx;
 

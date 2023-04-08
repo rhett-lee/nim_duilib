@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-#include <windows.h>
+#include "build/windows_defs.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

@@ -62,8 +62,7 @@
 #pragma comment(lib, "uiautomationcore.lib")
 #endif
 
-
-#include <windows.h>
+#include "build/windows_defs.h"
 #include <commctrl.h>
 #include <stddef.h>
 #include <richedit.h>

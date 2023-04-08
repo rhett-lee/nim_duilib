@@ -109,10 +109,10 @@ void GdiBitmap::ClearAlpha(const UiRect& rcDirty, int alpha)
 		return;
 
 	unsigned int * pBmpBits = (unsigned int *)m_pPiexl;
-	int nTop = MAX(rcDirty.top, 0);
-	int nBottom = MIN(rcDirty.bottom, m_nHeight);
-	int nLeft = MAX(rcDirty.left, 0);
-	int nRight = MIN(rcDirty.right, m_nWidth);
+	int nTop = std::max((int)rcDirty.top, 0);
+	int nBottom = std::min((int)rcDirty.bottom, m_nHeight);
+	int nLeft = std::max((int)rcDirty.left, 0);
+	int nRight = std::min((int)rcDirty.right, m_nWidth);
 	if (nRight > nLeft)	{
 		for (int i = nTop; i < nBottom; ++i) {
 			::memset(pBmpBits + i * m_nWidth + nLeft, alpha, (nRight - nLeft) * 4);
@@ -129,10 +129,10 @@ void GdiBitmap::RestoreAlpha(const UiRect& rcDirty, const UiRect& rcShadowPaddin
 		return;
 
 	unsigned int * pBmpBits = (unsigned int *)m_pPiexl;
-	int nTop = MAX(rcDirty.top, 0);
-	int nBottom = MIN(rcDirty.bottom, m_nHeight);
-	int nLeft = MAX(rcDirty.left, 0);
-	int nRight = MIN(rcDirty.right, m_nWidth);
+	int nTop = std::max((int)rcDirty.top, 0);
+	int nBottom = std::min((int)rcDirty.bottom, m_nHeight);
+	int nLeft = std::max((int)rcDirty.left, 0);
+	int nRight = std::min((int)rcDirty.right, m_nWidth);
 
 	for (int i = nTop; i < nBottom; i++) {
 		for (int j = nLeft; j < nRight; j++) {
@@ -161,10 +161,10 @@ void GdiBitmap::RestoreAlpha(const UiRect& rcDirty, const UiRect& rcShadowPaddin
 		return;
 
 	unsigned int * pBmpBits = (unsigned int *)m_pPiexl;
-	int nTop = MAX(rcDirty.top, 0);
-	int nBottom = MIN(rcDirty.bottom, m_nHeight);
-	int nLeft = MAX(rcDirty.left, 0);
-	int nRight = MIN(rcDirty.right, m_nWidth);
+	int nTop = std::max((int)rcDirty.top, 0);
+	int nBottom = std::min((int)rcDirty.bottom, m_nHeight);
+	int nLeft = std::max((int)rcDirty.left, 0);
+	int nRight = std::min((int)rcDirty.right, m_nWidth);
 
 	for (int i = nTop; i < nBottom; i++) {
 		for (int j = nLeft; j < nRight; j++) {

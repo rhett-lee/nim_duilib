@@ -460,14 +460,14 @@
     <ClInclude Include="Automation\UIAListBoxItemProvider.h">
       <Filter>Header Files\Automation</Filter>
     </ClInclude>
-    <ClInclude Include="Control\VirtualTileBox.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Utils\BoxShadow.h">
       <Filter>Header Files\Utils</Filter>
     </ClInclude>
     <ClInclude Include="Utils\GdiHepler.h">
       <Filter>Header Files\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\VirtualTileBox.h">
+      <Filter>Header Files\Control</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

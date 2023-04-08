@@ -14,6 +14,8 @@
 #include <nb30.h>
 #include <snmp.h>
 #include <iphlpapi.h>
+#pragma warning (push)
+#pragma warning (disable: 4996)
 #else
 #include <net/if_dl.h>
 #if defined (OS_IOS) && !defined (IFT_ETHER)
@@ -31,7 +33,7 @@ bool GetIpAddressList(std::vector<uint32_t> &ip_addresses)
 {
     ip_addresses.clear();
     
-    char host_name[128];
+	char host_name[128] = {0};
     if (::gethostname(host_name, sizeof(host_name)) == 0)
     {
         struct hostent *host;
@@ -52,7 +54,7 @@ bool GetIpAddressList(std::vector<std::string> &ip_addresses)
 {
     ip_addresses.clear();
     
-    char host_name[128];
+	char host_name[128] = { 0 };
     std::string ip_address;
     if (::gethostname(host_name, 128) == 0)
     {
@@ -99,7 +101,7 @@ bool GetMacAddressByNetBIOS(std::string &mac_address)
 		memset(&Ncb, 0, sizeof(Ncb));  
 		Ncb.ncb_command  = NCBASTAT;  
 		Ncb.ncb_lana_num = lenum.lana[i];  
-		strcpy((char *)Ncb.ncb_callname, "*                               ");  
+		strcpy_s((char *)Ncb.ncb_callname, NCBNAMSZ, "*                               ");
 		Ncb.ncb_buffer   = (unsigned char *)&Adapter;  
 		Ncb.ncb_length   = sizeof(Adapter);  
 		uRetCode         = Netbios(&Ncb);  
@@ -518,5 +520,9 @@ bool AnalyzeNetAddress(const std::string &address, uint32_t &out_ip, uint16_t &o
     out_port = (uint16_t)atoi((*(ip_and_port.begin())).c_str());
     return true ;
 }
+
+#if defined (OS_WIN)
+#pragma warning (pop)
+#endif
     
 }  // namespace nbase

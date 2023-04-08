@@ -31,7 +31,7 @@ public:
 	 * @brief 获取控件名称，对应 xml 中 name 属性
 	 * @return 返回控件名称
 	 */
-	std::wstring GetName() const;
+	const std::wstring& GetName() const;
 
 	/**
 	 * @brief 获取控件名称，对应 xml 中 name 属性

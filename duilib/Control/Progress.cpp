@@ -287,11 +287,11 @@ void Progress::PaintMarquee(IRenderContext* pRender) {
 			UiRect rcProgressColor = m_rcItem;
 			ui::UiRect rc = m_rcItem;
 			if (m_bHorizontal) {
-				rc.left = max(m_nMarqueePos, 0) + rc.left;
+				rc.left = std::max(m_nMarqueePos, 0) + rc.left;
 				rc.right = rc.left + (m_nMarqueePos >= 0 ? m_nMarqueeWidth : (m_nMarqueeWidth + m_nMarqueePos));
 			}
 			else {
-				rc.top = max(m_nMarqueePos, 0) + rc.top;
+				rc.top = std::max(m_nMarqueePos, 0) + rc.top;
 				rc.bottom = rc.top + (m_nMarqueePos >= 0 ? m_nMarqueeWidth : (m_nMarqueeWidth + m_nMarqueePos));
 			}
 			DpiManager::GetInstance()->ScaleRect(rc);

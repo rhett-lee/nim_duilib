@@ -6,7 +6,7 @@
 #define CEF_TESTS_CEFCLIENT_BROWSER_UTIL_WIN_H_
 #pragma once
 
-#include <windows.h>
+#include "build/windows_defs.h"
 #include <string>
 
 #pragma warning (push)

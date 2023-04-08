@@ -39,7 +39,7 @@ CSize VLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 	// Place elements
 	int cyNeeded = 0;
 	int cyExpand = 0;
-	if( nAdjustables > 0 ) cyExpand = MAX(0, (szAvailable.cy - cyFixed) / nAdjustables);
+	if( nAdjustables > 0 ) cyExpand = std::max(0, ((int)szAvailable.cy - cyFixed) / nAdjustables);
 	int deviation = szAvailable.cy - cyFixed - cyExpand * nAdjustables;
 	// Position the elements
 	CSize szRemaining = szAvailable;
@@ -93,7 +93,7 @@ CSize VLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 		}
 
 		UiRect rcCtrl(childLeft, iPosY + rcMargin.top, childRight, iPosY + rcMargin.top + sz.cy);
-		max_width = MAX(max_width, rcCtrl.GetWidth());
+		max_width = std::max(max_width, rcCtrl.GetWidth());
 		pControl->SetPos(rcCtrl);
 
 		iPosY += sz.cy + m_iChildMargin + rcMargin.top + rcMargin.bottom;
@@ -126,7 +126,7 @@ CSize VLayout::AjustSizeByChild(const std::vector<Control*>& items, CSize szAvai
 		if( pChildControl->GetMaxWidth() >= 0 && itemSize.cx > pChildControl->GetMaxWidth() ) itemSize.cx = pChildControl->GetMaxWidth();
 		if( itemSize.cy < pChildControl->GetMinHeight() ) itemSize.cy = pChildControl->GetMinHeight();
 		if( itemSize.cy > pChildControl->GetMaxHeight() ) itemSize.cy = pChildControl->GetMaxHeight();
-		totalSize.cx = MAX(itemSize.cx + pChildControl->GetMargin().left + pChildControl->GetMargin().right, totalSize.cx);
+		totalSize.cx = std::max(itemSize.cx + pChildControl->GetMargin().left + pChildControl->GetMargin().right, totalSize.cx);
 		totalSize.cy += itemSize.cy + pChildControl->GetMargin().top + pChildControl->GetMargin().bottom;
 	}
 

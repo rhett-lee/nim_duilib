@@ -7,6 +7,7 @@
 #include "base/base_types.h"
 
 #if defined(OS_WIN)
+#include "build/winsdk_config.h"
 #include <windows.h>
 #else
 #include <sys/semaphore.h>

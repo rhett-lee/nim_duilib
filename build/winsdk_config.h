@@ -31,8 +31,8 @@
 #define _WIN32_IE _WIN32_IE_IE60
 #endif
 
-#ifdef COMPILER_MSVC
-#pragma warning(disable: 4996)
+#ifndef NOMINMAX
+    #define NOMINMAX 1
 #endif
 
 #endif // BUILD_WINSDK_CONFIG_H_

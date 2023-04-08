@@ -2,6 +2,7 @@
 #include "OnScreenKeyboardManager.h"
 #include <initguid.h>
 #include <shlobj.h>
+#include <shellapi.h>
 
 namespace ui
 {
@@ -98,7 +99,7 @@ void OnScreenKeyboardManager::StartTabTip()
 		tabTipPath = LR"(C:\\Program Files\Common Files\microsoft shared\ink\TabTip.exe)";
 	}
 
-	ShellExecute(NULL, L"open", tabTipPath.c_str(), NULL, NULL, SW_SHOWDEFAULT);
+	::ShellExecute(NULL, L"open", tabTipPath.c_str(), NULL, NULL, SW_SHOWDEFAULT);
 }
 
 }

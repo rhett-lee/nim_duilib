@@ -797,7 +797,7 @@ static float nsvg__convertToPixels(NSVGparser* p, NSVGcoordinate c, float orig, 
 		case NSVG_UNITS_EM:			return c.value * attr->fontSize;
 		case NSVG_UNITS_EX:			return c.value * attr->fontSize * 0.52f; // x-height of Helvetica.
 		case NSVG_UNITS_PERCENT:	return orig + c.value / 100.0f * length;
-		default:					return c.value;
+		default:					break;
 	}
 	return c.value;
 }

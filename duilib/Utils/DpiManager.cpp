@@ -152,7 +152,7 @@ void DpiManager::SetScale(UINT uDPI)
 		m_nScaleFactor = MulDiv(uDPI, 100, 96);
 
 	if (m_nLimitScaleFactor != (UINT)-1)
-		m_nScaleFactor = min(m_nScaleFactor, m_nLimitScaleFactor);
+		m_nScaleFactor = std::min(m_nScaleFactor, m_nLimitScaleFactor);
 
 	ASSERT(m_nScaleFactor >= 100);
 }

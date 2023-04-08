@@ -48,7 +48,7 @@ void CComboWnd::Init(Combo* pOwner)
 		padding = listBox->GetLayout()->GetPadding().top + listBox->GetLayout()->GetPadding().bottom;
 
 	cyFixed += padding; // VBox 默认的Padding 调整
-    rc.bottom = rc.top + MIN(cyFixed, szDrop.cy);
+    rc.bottom = rc.top + std::min((LONG)cyFixed, szDrop.cy);
 
     ::MapWindowRect(pOwner->GetWindow()->GetHWND(), HWND_DESKTOP, &rc);
 
@@ -60,7 +60,7 @@ void CComboWnd::Init(Combo* pOwner)
         rc.left = rcOwner.left;
         rc.right = rcOwner.right;
         if( szDrop.cx > 0 ) rc.right = rc.left + szDrop.cx;
-        rc.top = rcOwner.top - MIN(cyFixed, szDrop.cy);
+        rc.top = rcOwner.top - std::min((LONG)cyFixed, szDrop.cy);
         rc.bottom = rcOwner.top;
         ::MapWindowRect(pOwner->GetWindow()->GetHWND(), HWND_DESKTOP, &rc);
     }

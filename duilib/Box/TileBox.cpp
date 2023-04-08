@@ -64,7 +64,7 @@ CSize TileLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 				if( szTile.cy < pControl->GetMinHeight() ) szTile.cy = pControl->GetMinHeight();
 				if( szTile.cy > pControl->GetMaxHeight() ) szTile.cy = pControl->GetMaxHeight();
 
-				cyHeight = MAX(cyHeight, szTile.cy + rcMargin.top + rcMargin.bottom);
+				cyHeight = std::max(cyHeight, int(szTile.cy + rcMargin.top + rcMargin.bottom));
 				if( (++iIndex % m_nColumns) == 0) break;
 			}
 		}

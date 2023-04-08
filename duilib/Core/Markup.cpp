@@ -599,7 +599,7 @@ bool CMarkup::_Failed(LPCTSTR pstrError, LPCTSTR pstrLocation)
     TRACE(_T("XML Error: %s"), pstrError);
     if( pstrLocation != NULL ) TRACE(pstrLocation);
     _tcsncpy(m_szErrorMsg, pstrError, (sizeof(m_szErrorMsg) / sizeof(m_szErrorMsg[0])) - 1);
-    _tcsncpy(m_szErrorXML, pstrLocation != NULL ? pstrLocation : _T(""), lengthof(m_szErrorXML) - 1);
+    _tcsncpy(m_szErrorXML, pstrLocation != NULL ? pstrLocation : _T(""), sizeof(m_szErrorXML)/sizeof(m_szErrorXML[0]) - 1);
     return false; // Always return 'false'
 }
 

@@ -39,7 +39,7 @@ CSize HLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 
 	int cxExpand = 0;
 	int cxNeeded = 0;
-	if( nAdjustables > 0 ) cxExpand = MAX(0, (szAvailable.cx - cxFixed) / nAdjustables);
+	if( nAdjustables > 0 ) cxExpand = std::max(0, (int)(szAvailable.cx - cxFixed) / nAdjustables);
 	int deviation = szAvailable.cx - cxFixed - cxExpand * nAdjustables;
 	// Position the elements
 	CSize szRemaining = szAvailable;
@@ -93,7 +93,7 @@ CSize HLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 		}
 
 		UiRect rcChildPos(iPosX + rcMargin.left, childTop, iPosX + rcMargin.left + sz.cx, childBottm);
-		max_height = MAX(max_height, rcChildPos.GetHeight());
+		max_height = std::max(max_height, rcChildPos.GetHeight());
 		pControl->SetPos(rcChildPos);
 		iPosX += sz.cx + m_iChildMargin + rcMargin.left + rcMargin.right;
 		cxNeeded += sz.cx + rcMargin.left + rcMargin.right;
@@ -127,7 +127,7 @@ CSize HLayout::AjustSizeByChild(const std::vector<Control*>& items, CSize szAvai
 		if( itemSize.cy < pChildControl->GetMinHeight() ) itemSize.cy = pChildControl->GetMinHeight();
 		if( itemSize.cy > pChildControl->GetMaxHeight() ) itemSize.cy = pChildControl->GetMaxHeight();
 		totalSize.cx += itemSize.cx + pChildControl->GetMargin().left + pChildControl->GetMargin().right;
-		totalSize.cy = MAX(itemSize.cy + pChildControl->GetMargin().top + pChildControl->GetMargin().bottom, totalSize.cy);
+		totalSize.cy = std::max(itemSize.cy + pChildControl->GetMargin().top + pChildControl->GetMargin().bottom, totalSize.cy);
 	}
 
 	if (estimateChildCount - 1 > 0) {

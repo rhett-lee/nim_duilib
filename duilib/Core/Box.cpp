@@ -32,7 +32,7 @@ CSize Layout::SetFloatPos(Control* pControl, UiRect rcContainer)
 	CSize childSize = pControl->EstimateSize(szAvailable);
 	if (pControl->GetFixedWidth() == DUI_LENGTH_AUTO && pControl->GetFixedHeight() == DUI_LENGTH_AUTO
 		&& pControl->GetMaxWidth() == DUI_LENGTH_STRETCH) {
-		int maxwidth = MAX(0, szAvailable.cx);
+		int maxwidth = std::max(0, (int)szAvailable.cx);
 		if (childSize.cx > maxwidth) {
 			pControl->SetFixedWidth(maxwidth, false);
 			childSize = pControl->EstimateSize(szAvailable);
@@ -40,13 +40,13 @@ CSize Layout::SetFloatPos(Control* pControl, UiRect rcContainer)
 		}
 	}
 	if (childSize.cx == DUI_LENGTH_STRETCH) {
-		childSize.cx = MAX(0, szAvailable.cx);
+		childSize.cx = std::max(0, (int)szAvailable.cx);
 	}
 	if (childSize.cx < pControl->GetMinWidth()) childSize.cx = pControl->GetMinWidth();
 	if (pControl->GetMaxWidth() >= 0 && childSize.cx > pControl->GetMaxWidth()) childSize.cx = pControl->GetMaxWidth();
 
 	if (childSize.cy == DUI_LENGTH_STRETCH) {
-		childSize.cy = MAX(0, szAvailable.cy);
+		childSize.cy = std::max(0, (int)szAvailable.cy);
 	}
 	if (childSize.cy < pControl->GetMinHeight()) childSize.cy = pControl->GetMinHeight();
 	if (childSize.cy > pControl->GetMaxHeight()) childSize.cy = pControl->GetMaxHeight();
@@ -118,8 +118,8 @@ CSize Layout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 		Control* pControl = *it;
 		if( !pControl->IsVisible() ) continue;
 		CSize new_size = SetFloatPos(pControl, rc);
-		size.cx = MAX(size.cx, new_size.cx);
-		size.cy = MAX(size.cy, new_size.cy);
+		size.cx = std::max(size.cx, new_size.cx);
+		size.cy = std::max(size.cy, new_size.cy);
 	}
 
 	return size;
@@ -139,8 +139,8 @@ CSize Layout::AjustSizeByChild(const std::vector<Control*>& items, CSize szAvail
 		if( (*it)->GetMaxWidth() >= 0 && itemSize.cx > (*it)->GetMaxWidth() ) itemSize.cx = (*it)->GetMaxWidth();
 		if( itemSize.cy < (*it)->GetMinHeight() ) itemSize.cy = (*it)->GetMinHeight();
 		if( itemSize.cy > (*it)->GetMaxHeight() ) itemSize.cy = (*it)->GetMaxHeight();
-		maxSize.cx = MAX(itemSize.cx + (*it)->GetMargin().left + (*it)->GetMargin().right, maxSize.cx);
-		maxSize.cy = MAX(itemSize.cy + (*it)->GetMargin().top + (*it)->GetMargin().bottom, maxSize.cy);
+		maxSize.cx = std::max(itemSize.cx + (*it)->GetMargin().left + (*it)->GetMargin().right, maxSize.cx);
+		maxSize.cy = std::max(itemSize.cy + (*it)->GetMargin().top + (*it)->GetMargin().bottom, maxSize.cy);
 	}
 	maxSize.cx += m_rcPadding.left + m_rcPadding.right;
 	maxSize.cy += m_rcPadding.top + m_rcPadding.bottom;
@@ -519,6 +519,8 @@ Control* Box::FindSubControl(const std::wstring& pstrSubControlName)
 	pSubControl = static_cast<Control*>(GetWindow()->FindSubControlByName(this, pstrSubControlName));
 	return pSubControl;
 }
+
+#define CLAMP(x,a,b) (std::min(b, std::max(a,x)))
 
 int Box::FindSelectable(int iIndex, bool bForward /*= true*/) const
 {
@@ -1266,7 +1268,7 @@ void ScrollableBox::LineUp(int deltaValue, bool withAnimation)
 		cyLine = 20;
 	}
 	if (deltaValue != DUI_NOSET_VALUE) {
-		cyLine = min(cyLine, deltaValue);
+		cyLine = std::min(cyLine, deltaValue);
 	}
 
 	CSize scrollPos = GetScrollPos();
@@ -1311,7 +1313,7 @@ void ScrollableBox::LineDown(int deltaValue, bool withAnimation)
 		cyLine = 20;
 	}
 	if (deltaValue != DUI_NOSET_VALUE) {
-		cyLine = min(cyLine, deltaValue);
+		cyLine = std::min(cyLine, deltaValue);
 	}
 
 	CSize scrollPos = GetScrollPos();
@@ -1355,7 +1357,7 @@ void ScrollableBox::LineLeft(int detaValue)
         cxLine = 20;
     }
     if (detaValue != DUI_NOSET_VALUE) {
-        cxLine = min(cxLine, detaValue);
+        cxLine = std::min(cxLine, detaValue);
     }
 
     CSize scrollPos = GetScrollPos();
@@ -1396,7 +1398,7 @@ void ScrollableBox::LineRight(int detaValue)
         cxLine = 20;
     }
     if (detaValue != DUI_NOSET_VALUE) {
-        cxLine = min(cxLine, detaValue);
+        cxLine = std::min(cxLine, detaValue);
     }
 
     CSize scrollPos = GetScrollPos();

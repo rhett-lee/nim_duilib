@@ -370,13 +370,13 @@ std::wstring Uint64ToString16(uint64_t value) {
 }
 
 std::string DoubleToString(double value) {
-  char buffer[64];
+    char buffer[64] = { 0 };
 #ifdef COMPILER_MSVC
-  _snprintf(buffer, sizeof(buffer), "%lf", value);
+    _snprintf_s(buffer, sizeof(buffer), "%lf", value);
 #else
-  snprintf(buffer, sizeof(buffer), "%lf", value);
+    snprintf(buffer, sizeof(buffer), "%lf", value);
 #endif
-  return std::string(buffer);
+    return std::string(buffer);
 }
 
 bool StringToInt(const std::string& input, int* output) {
@@ -422,7 +422,7 @@ bool StringToSizeT(const std::wstring& input, size_t* output) {
 bool StringToDouble(const std::string& input, double* output) {
 	if (input.empty() || !output)
 		return false;
-	if (sscanf(input.c_str(), "%lf", output) == 1)
+	if (sscanf_s(input.c_str(), "%lf", output) == 1)
 		return true;
 	return false;
 }

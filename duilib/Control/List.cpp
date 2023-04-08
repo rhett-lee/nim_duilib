@@ -238,8 +238,8 @@ bool ListBox::SetItemIndex(Control* pControl, std::size_t iIndex)
 	ListContainerElement* pSelectedListItem = NULL;
 	if( m_iCurSel >= 0 ) pSelectedListItem = dynamic_cast<ListContainerElement*>(GetItemAt(m_iCurSel));
 	if( !ScrollableBox::SetItemIndex(pControl, iIndex) ) return false;
-	std::size_t iMinIndex = min((std::size_t)iOrginIndex, iIndex);
-	std::size_t iMaxIndex = max((std::size_t)iOrginIndex, iIndex);
+	std::size_t iMinIndex = std::min((std::size_t)iOrginIndex, iIndex);
+	std::size_t iMaxIndex = std::max((std::size_t)iOrginIndex, iIndex);
 	for(std::size_t i = iMinIndex; i < iMaxIndex + 1; ++i) {
 		Control* pItemControl = GetItemAt(i);
 		ListContainerElement* pListItem = dynamic_cast<ListContainerElement*>(pItemControl);

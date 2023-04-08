@@ -466,11 +466,12 @@ std::list<std::string> StringHelper::Split(const std::string& input, const std::
 	if (input2.empty())
 		return output;
 
-	char *token = strtok(&input2[0], delimitor.c_str());
+	char* context = nullptr;
+	char *token = strtok_s(input2.data(), delimitor.c_str(), &context);
 	while (token != NULL)
 	{
 		output.push_back(token);
-		token = strtok(NULL, delimitor.c_str());
+		token = strtok_s(NULL, delimitor.c_str(), &context);
 	}
 
 	return output;
@@ -484,11 +485,12 @@ std::list<std::wstring> StringHelper::Split(const std::wstring& input, const std
 	if (input2.empty())
 		return output;
 
-	wchar_t *token = wcstok(&input2[0], delimitor.c_str());
+	wchar_t* context = nullptr;
+	wchar_t* token = wcstok_s(input2.data(), delimitor.c_str(), &context);
 	while (token != NULL)
 	{
 		output.push_back(token);
-		token = wcstok(NULL, delimitor.c_str());
+		token = wcstok_s(NULL, delimitor.c_str(), &context);
 	}
 
 

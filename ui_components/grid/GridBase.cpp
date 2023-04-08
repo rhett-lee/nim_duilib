@@ -201,10 +201,10 @@ namespace ui
 			if (rc.left > col_index || rc.right < col_index || rc.top > row_index || rc.bottom < row_index)		//不位于rc中
 			{
 				//assert(!bSelected);
-				rc.left = min(rc.left, col_index);
-				rc.top = min(rc.top, row_index);
-				rc.right = max(rc.right, col_index);
-				rc.bottom = max(rc.bottom, row_index);
+				rc.left = std::min(rc.left, (LONG)col_index);
+				rc.top = std::min(rc.top, (LONG)row_index);
+				rc.right = std::max(rc.right, (LONG)col_index);
+				rc.bottom = std::max(rc.bottom, (LONG)row_index);
 			}
 
 			if (m_vecRange.empty())
@@ -227,10 +227,10 @@ namespace ui
 			else
 			{
 				UiRect rc = m_vecRange[0];
-				rc.left = min(rc.left, col_index);
-				rc.top = min(rc.top, row_index);
-				rc.right = max(rc.right, col_index);
-				rc.bottom = max(rc.bottom, row_index);
+				rc.left = std::min(rc.left, (LONG)col_index);
+				rc.top = std::min(rc.top, (LONG)row_index);
+				rc.right = std::max(rc.right, (LONG)col_index);
+				rc.bottom = std::max(rc.bottom, (LONG)row_index);
 				m_vecRange[0] = rc;
 				m_pBody->_SelRange(rc, true);
 				m_pBody->Invalidate();
@@ -332,8 +332,8 @@ namespace ui
 				min_row_index = m_mapSelRow.begin()->first;
 				max_row_index = m_mapSelRow.rbegin()->first;		
 
-				min_row_index = min(min_row_index, row_index);
-				max_row_index = max(max_row_index, row_index);
+				min_row_index = std::min(min_row_index, row_index);
+				max_row_index = std::max(max_row_index, row_index);
 
 				for (int row = min_row_index; row <= max_row_index; row++)
 				{
@@ -470,8 +470,8 @@ namespace ui
 				min_col_index = m_mapSelCol.begin()->first;
 				max_col_index = m_mapSelCol.rbegin()->first;
 
-				min_col_index = min(min_col_index, col_index);
-				max_col_index = max(max_col_index, col_index);
+				min_col_index = std::min(min_col_index, col_index);
+				max_col_index = std::max(max_col_index, col_index);
 
 				for (int col = min_col_index; col <= max_col_index; col++)
 				{
@@ -576,10 +576,10 @@ namespace ui
 		{
 			UiRect rc = m_vecRange[0];
 			UiRect rc1 = m_vecRange[1];
-			rc.left = min(rc.left, rc1.left);
-			rc.top = min(rc.top, rc1.top);
-			rc.right = max(rc.right, rc1.right);
-			rc.bottom = max(rc.bottom, rc1.bottom);
+			rc.left = std::min(rc.left, rc1.left);
+			rc.top = std::min(rc.top, rc1.top);
+			rc.right = std::max(rc.right, rc1.right);
+			rc.bottom = std::max(rc.bottom, rc1.bottom);
 			m_vecRange.pop_back();
 			m_vecRange[0] = rc;
 		}

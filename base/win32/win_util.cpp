@@ -7,6 +7,7 @@
 
 #include "base/win32/win_util.h"
 #if defined(OS_WIN)
+#include <VersionHelpers.h>
 #include <assert.h>
 #include <stdlib.h>
 
@@ -83,7 +84,7 @@ bool RunAppWithRedirection(const wchar_t *application,
 	si.hStdOutput	= output ? output : ::GetStdHandle(STD_OUTPUT_HANDLE);
 	si.hStdError	= error ? error : ::GetStdHandle(STD_ERROR_HANDLE);
 
-	wchar_t *command_dup = wcsdup(command);
+	wchar_t *command_dup = _wcsdup(command);
 
 	if (::CreateProcessW(application,
 						 command_dup,
@@ -111,17 +112,8 @@ bool RunAppWithRedirection(const wchar_t *application,
 
 bool MinimizeProcessWorkingSize()
 {
-	OSVERSIONINFOW osvi;
-	osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
-
-	::GetVersionExW(&osvi);
-	if(osvi.dwPlatformId == VER_PLATFORM_WIN32_NT)
-	{
-		::SetProcessWorkingSetSize(GetCurrentProcess(), (SIZE_T)-1, (SIZE_T)-1);
-		return true;
-	}
-
-	return false;
+	::SetProcessWorkingSetSize(::GetCurrentProcess(), (SIZE_T)-1, (SIZE_T)-1);
+	return true;
 }
 
 bool SingletonRun(const wchar_t *application)
@@ -147,10 +139,7 @@ bool SingletonRun(const wchar_t *application)
 
 bool IsRunningOnVistaOrHigher()
 {
-	OSVERSIONINFO os_version = {0};
-	os_version.dwOSVersionInfoSize = sizeof(os_version);
-	GetVersionEx(&os_version);
-	return os_version.dwMajorVersion >= 6;
+	return IsWindowsVistaOrGreater();
 }
 
 bool OpenResource(const wchar_t *resource,

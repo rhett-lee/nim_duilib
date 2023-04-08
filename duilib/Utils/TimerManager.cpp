@@ -1,4 +1,5 @@
 #include "StdAfx.h"
+#include <Mmsystem.h>
 
 namespace ui 
 {

@@ -417,10 +417,10 @@ Control* WindowBuilder::_Parse(CMarkupNode* pRoot, Control* pParent, Window* pMa
             int nCount = 1;
             LPTSTR pstr = NULL;
             TCHAR szValue[500] = { 0 };
-            SIZE_T cchLen = lengthof(szValue) - 1;
+            SIZE_T cchLen = sizeof(szValue)/sizeof(szValue[0]) - 1;
             if ( node.GetAttributeValue(_T("count"), szValue, cchLen) )
                 nCount = _tcstol(szValue, &pstr, 10);
-            cchLen = lengthof(szValue) - 1;
+            cchLen = sizeof(szValue) / sizeof(szValue[0]) - 1;
             if ( !node.GetAttributeValue(_T("source"), szValue, cchLen) ) continue;
             for ( int i = 0; i < nCount; i++ ) {
                 WindowBuilder builder;
