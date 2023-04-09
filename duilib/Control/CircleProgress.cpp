@@ -48,6 +48,10 @@ void CircleProgress::SetAttribute(const std::wstring& srName, const std::wstring
 
 void CircleProgress::PaintStatusImage(IRenderContext* pRender)
 {
+	assert(pRender != nullptr);
+	if (pRender == nullptr) {
+		return;
+	}
 	Progress::PaintStatusImage(pRender);
 	if (m_bCircular)
 	{

@@ -239,6 +239,9 @@ static void nsvg__parseContent(char* s,
 							   void (*contentCb)(void* ud, const char* s),
 							   void* ud)
 {
+	if (s == nullptr) {
+		return;
+	}
 	// Trim start white spaces
 	while (*s && nsvg__isspace(*s)) s++;
 	if (!*s) return;

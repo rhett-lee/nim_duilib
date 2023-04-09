@@ -69,7 +69,7 @@ private:
 	public:
 		static const LPCTSTR kClassName;
 	private:
-		ui::RichEdit	*content_;
-		ui::Button		*close_button_;
+		ui::RichEdit	*content_ = nullptr;
+		ui::Button		*close_button_ = nullptr;
 	};
 }

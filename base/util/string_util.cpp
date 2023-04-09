@@ -177,7 +177,7 @@ void StringAppendVT(const CharType *format, va_list ap, std::basic_string<CharTy
 	}
 
 	/* then, we have to repeatedly increase buffer size until it fits. */
-	int buffer_size = COUNT_OF(stack_buffer);
+	size_t buffer_size = COUNT_OF(stack_buffer);
 	std::basic_string<CharType> heap_buffer;
 	for (;;)
 	{

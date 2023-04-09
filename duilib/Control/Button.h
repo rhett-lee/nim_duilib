@@ -76,7 +76,7 @@ inline UIAControlProvider* ButtonTemplate<InheritType>::GetUIAProvider()
 #if defined(ENABLE_UIAUTOMATION)
     if (this->m_pUIAProvider == nullptr)
     {
-        this->m_pUIAProvider = static_cast<UIAControlProvider*>(new (std::nothrow) UIAButtonProvider(this));
+        this->m_pUIAProvider = (UIAControlProvider*)(new (std::nothrow) UIAButtonProvider(this));
     }
     return this->m_pUIAProvider;
 #else

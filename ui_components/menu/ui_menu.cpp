@@ -45,6 +45,7 @@ BOOL CMenuWnd::Receive(ContextMenuParam param)
 
 CMenuWnd::CMenuWnd(HWND hParent) :
 	m_hParent(hParent),
+	m_BasedPoint({0}),
 	m_xml(_T("")),
 	no_focus_(false),
 	m_pOwner(nullptr),
@@ -427,6 +428,9 @@ void CMenuWnd::InitWindow()
 	{
 		m_pLayout = dynamic_cast<ListBox*>(FindControl(L"submenu"));
 		ASSERT(m_pLayout);
+		if (m_pLayout == nullptr) {
+			return;
+		}
 		m_pLayout->SetAutoDestroyChild(false);
 
 		for (int i = 0; i < m_pOwner->GetSubMenuItemCount(); i++) {
@@ -444,7 +448,7 @@ void CMenuWnd::InitWindow()
 		if (m_pLayout == NULL)
 		{
 			//允许外面套层阴影
-			if (m_pRoot->GetCount()>0)
+			if ((m_pRoot != nullptr) && (m_pRoot->GetCount() > 0))
 			{
 				m_pLayout = dynamic_cast<ListBox*>(m_pRoot->GetItemAt(0));
 			}

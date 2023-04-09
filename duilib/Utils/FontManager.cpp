@@ -16,13 +16,17 @@ void FontManager::AddFontResource(const std::wstring& strFontFile, const std::ws
 	if (GlobalManager::IsUseZip()) {
 		HGLOBAL hGlobal = GlobalManager::GetZipData(path);
 		if (hGlobal) {
-			void *data = GlobalLock(hGlobal);
+			void* data = GlobalLock(hGlobal);
 			SIZE_T len = GlobalSize(hGlobal);
 			DWORD dwFonts = 0;
-			HANDLE handle = AddFontMemResourceEx(data, static_cast<DWORD>(len), NULL, &dwFonts);
-			res = handle != NULL;
-			if (res)
+			HANDLE handle = nullptr;
+			if (data != nullptr) {
+				handle = AddFontMemResourceEx(data, static_cast<DWORD>(len), NULL, &dwFonts);
+			}
+			res = handle != nullptr;
+			if (res) {
 				m_fontHandles.push_back(handle);
+			}
 
 			GlobalUnlock(hGlobal);
 			GlobalFree(hGlobal);

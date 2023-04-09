@@ -414,8 +414,10 @@ CPoint PlaceHolder::GetScrollOffset() const
 		if (parent) {
 			//说明控件在Listbox内部
 			ScrollableBox* listbox = (ScrollableBox*)parent;
-			scrollPos.x += listbox->GetScrollPos().cx;
-			scrollPos.y += listbox->GetScrollPos().cy;
+			if (listbox != nullptr) {
+				scrollPos.x += listbox->GetScrollPos().cx;
+				scrollPos.y += listbox->GetScrollPos().cy;
+			}			
 			parent = parent->GetParent();
 		}
 	}

@@ -144,6 +144,9 @@ void VirtualTileLayout::LazyArrangeChild()
 
   for (auto pControl : pList->m_items)
   {
+      if (pControl == nullptr) {
+          continue;
+      }
     // Determine size
     ui::UiRect rcTile(ptTile.x, ptTile.y, ptTile.x + m_szItem.cx, ptTile.y + m_szItem.cy);
     pControl->SetPos(rcTile);
@@ -338,48 +341,54 @@ void VirtualTileBox::SetScrollPos(ui::CSize szPos)
 
 void VirtualTileBox::HandleMessage(ui::EventArgs& event)
 {
-  if (!IsMouseEnabled() && event.Type > ui::kEventMouseBegin && event.Type < ui::kEventMouseEnd) {
-    if (m_pParent != nullptr)
-      m_pParent->HandleMessageTemplate(event);
-    else
-      ui::ScrollableBox::HandleMessage(event);
-    return;
-  }
+    if (!IsMouseEnabled() && event.Type > ui::kEventMouseBegin && event.Type < ui::kEventMouseEnd) {
+        if (m_pParent != nullptr)
+            m_pParent->HandleMessageTemplate(event);
+        else
+            ui::ScrollableBox::HandleMessage(event);
+        return;
+    }
 
-  switch (event.Type) {
-  case ui::kEventKeyDown: {
-    switch (event.chKey) {
-    case VK_UP: {
-      OnKeyDown(VK_UP);
-      return;
+    switch (event.Type) {
+    case ui::kEventKeyDown: {
+        switch (event.chKey) {
+        case VK_UP: {
+            OnKeyDown(VK_UP);
+            return;
+        }
+        case VK_DOWN: {
+            OnKeyDown(VK_DOWN);
+            return;
+        }
+        case VK_HOME:
+            SetScrollPosY(0);
+            return;
+        case VK_END: {
+            int range = GetScrollPos().cy;
+            SetScrollPosY(range);
+            return;
+        }
+        default:
+            break;
+        }
     }
-    case VK_DOWN: {
-      OnKeyDown(VK_DOWN);
-      return;
-    }
-    case VK_HOME:
-      SetScrollPosY(0);
-      return;
-    case VK_END: {
-      int range = GetScrollPos().cy;
-      SetScrollPosY(range);
-      return;
-    }
-    }
-  }
-  case ui::kEventKeyUp: {
-    switch (event.chKey) {
-    case VK_UP: {
-      OnKeyUp(VK_UP);
-      return;
-    }
-    case VK_DOWN: {
-      OnKeyUp(VK_DOWN);
-      return;
+    case ui::kEventKeyUp: {
+        switch (event.chKey) {
+        case VK_UP: {
+            OnKeyUp(VK_UP);
+            return;
+        }
+        case VK_DOWN: {
+            OnKeyUp(VK_DOWN);
+            return;
+        }
+        default:
+            break;
+        }
+    default:
+        break;
     }
     }
-  }
-  }
 
   __super::HandleMessage(event);
 }

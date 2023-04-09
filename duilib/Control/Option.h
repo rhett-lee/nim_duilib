@@ -84,9 +84,9 @@ void OptionTemplate<InheritType>::Selected(bool bSelected, bool bTriggerEvent)
                 std::vector<Control*>* aOptionGroup = this->m_pWindow->GetOptionGroup(m_sGroupName);
                 ASSERT(aOptionGroup);
                 if (aOptionGroup) {
-                    for (auto it = aOptionGroup->begin(); it != aOptionGroup->end(); it++) {
+                    for (auto it = aOptionGroup->begin(); it != aOptionGroup->end(); ++it) {
                         auto pControl = static_cast<OptionTemplate<InheritType>*>(*it);
-                        if (pControl != this) {
+                        if ((pControl != nullptr) && pControl != this) {
                             pControl->Selected(false, bTriggerEvent);
                         }
                     }

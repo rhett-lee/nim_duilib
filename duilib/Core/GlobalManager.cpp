@@ -648,6 +648,10 @@ Box* GlobalManager::CreateBoxWithCache(const std::wstring& strXmlPath, CreateCon
 
 void GlobalManager::FillBox(Box* pUserDefinedBox, const std::wstring& strXmlPath, CreateControlCallback callback)
 {
+	assert(pUserDefinedBox != nullptr);
+	if (pUserDefinedBox == nullptr) {
+		return;
+	}
 	WindowBuilder winBuilder;
 	Box* box = winBuilder.Create(strXmlPath.c_str(), callback, pUserDefinedBox->GetWindow(), nullptr, pUserDefinedBox);
 	(void)box;
@@ -658,6 +662,10 @@ void GlobalManager::FillBox(Box* pUserDefinedBox, const std::wstring& strXmlPath
 
 void GlobalManager::FillBoxWithCache(Box* pUserDefinedBox, const std::wstring& strXmlPath, CreateControlCallback callback)
 {
+	assert(pUserDefinedBox != nullptr);
+	if (pUserDefinedBox == nullptr) {
+		return;
+	}
 	Box* box = nullptr;
 	auto it = m_builderMap.find(strXmlPath);
 	if (it == m_builderMap.end()) {
@@ -673,8 +681,6 @@ void GlobalManager::FillBoxWithCache(Box* pUserDefinedBox, const std::wstring& s
 	else {
 		box = it->second->Create(callback, pUserDefinedBox->GetWindow(), nullptr, pUserDefinedBox);
 	}
-
-	return;
 }
 
 Control* GlobalManager::CreateControl(const std::wstring& strControlName)
@@ -730,7 +736,7 @@ HGLOBAL GlobalManager::GetZipData(const std::wstring& path)
 	{
 		AssertUIThread();
 
-		ZIPENTRY ze;
+		ZIPENTRY ze = {0};
 		int i = 0;
 		if (FindZipItem(g_hzip, file_path.c_str(), true, &i, &ze) == ZR_OK)
 		{
@@ -833,20 +839,21 @@ bool GlobalManager::IsZipResExist(const std::wstring& path)
 
 	if (g_hzip && !path.empty()) {
 		std::wstring file_path = GetZipFilePath(path);
-		if (file_path.empty())
+		if (file_path.empty()) {
 			return false;
-
+		}
 		static std::unordered_set<std::wstring> zip_path_cache;
 		auto it = zip_path_cache.find(path);
-		if (it != zip_path_cache.end())
+		if (it != zip_path_cache.end()) {
 			return true;
+		}		
 
-		ZIPENTRY ze;
+		ZIPENTRY ze = { 0 };
 		int i = 0;
 		bool find = FindZipItem(g_hzip, file_path.c_str(), true, &i, &ze) == ZR_OK;
-		if (find)
+		if (find) {
 			zip_path_cache.insert(path);
-
+		}
 		return find;
 	}
 	return false;

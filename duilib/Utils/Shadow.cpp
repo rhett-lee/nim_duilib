@@ -63,10 +63,14 @@ void Shadow::ResetDefaultShadow()
 	m_rcShadowCornerBackup = m_rcShadowCorner;
 }
 
-Box*Shadow::AttachShadow(Box* pRoot)
+Box* Shadow::AttachShadow(Box* pRoot)
 {
-	if (!m_bShadowAttached)
+	if (!m_bShadowAttached) {
 		return pRoot;
+	}
+	if (pRoot == nullptr) {
+		return nullptr;
+	}
 
 	m_pRoot = new ShadowBox();
 	m_pRoot->GetLayout()->SetPadding(m_rcShadowCorner, false);

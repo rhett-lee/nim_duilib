@@ -24,9 +24,14 @@ CSize TileLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 	CPoint ptTile(rc.left, rc.top);
 	int iPosX = rc.left;
 
-	for( auto it = items.begin(); it != items.end(); it++ ) {
+	for( auto it = items.begin(); it != items.end(); ++it ) {
 		auto pControl = *it;
-		if( !pControl->IsVisible() ) continue;
+		if (pControl == nullptr) {
+			continue;
+		}
+		if (!pControl->IsVisible()) {
+			continue;
+		}
 		if( pControl->IsFloat() ) {
 			SetFloatPos(pControl, rc);
 			continue;
@@ -41,10 +46,17 @@ CSize TileLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 		if( (iCount % m_nColumns) == 0 )
 		{
 			int iIndex = iCount;
-			for (auto it2 = it; it2 != items.end(); it2++) {
+			for (auto it2 = it; it2 != items.end(); ++it2) {
 				auto pLineControl = *it2;
-				if( !pLineControl->IsVisible() ) continue;
-				if( pLineControl->IsFloat() ) continue;
+				if (pLineControl == nullptr) {
+					continue;
+				}
+				if (!pLineControl->IsVisible()) {
+					continue;
+				}
+				if (pLineControl->IsFloat()) {
+					continue;
+				}
 
 				UiRect rcMargin = pLineControl->GetMargin();
 				CSize szAvailable(rcTile.right - rcTile.left - rcMargin.left - rcMargin.right, 9999);
@@ -124,15 +136,17 @@ CSize TileLayout::AjustSizeByChild(const std::vector<Control*>& items, CSize szA
 		rows += 1;
 	}
 	if (visibleCount > 0) {
-		int childMarginTotal;
+		int childMarginTotal = 0;
 		if (visibleCount % m_nColumns == 0) {
 			childMarginTotal = (visibleCount / m_nColumns - 1) * m_iChildMargin;
 		}
 		else {
 			childMarginTotal = (visibleCount / m_nColumns) * m_iChildMargin;
 		}
-		Control* pControl = static_cast<Control*>(items[0]);
-		size.cy += pControl->GetFixedHeight() * rows + m_rcPadding.top + m_rcPadding.bottom + childMarginTotal;
+		Control* pControl = (Control*)(items[0]);
+		if (pControl != nullptr) {
+			size.cy += pControl->GetFixedHeight() * rows + m_rcPadding.top + m_rcPadding.bottom + childMarginTotal;
+		}		
 	}
 
 	return size;

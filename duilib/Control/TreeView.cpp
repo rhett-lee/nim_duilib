@@ -40,8 +40,15 @@ void TreeNode::SetTreeView(TreeView* pTreeView)
 
 bool TreeNode::OnClickItem(EventArgs* pMsg)
 {
-    TreeNode* pItem = static_cast<TreeNode*>(pMsg->pSender);
-    pItem->SetExpand(!pItem->IsExpand(), true);
+	assert(pMsg != nullptr);
+	if (pMsg == nullptr) {
+		return false;
+	}
+    TreeNode* pItem = dynamic_cast<TreeNode*>(pMsg->pSender);
+	assert(pItem != nullptr);
+	if (pItem) {
+		pItem->SetExpand(!pItem->IsExpand(), true);
+	}    
     return true;
 }
 
@@ -54,14 +61,18 @@ bool TreeNode::IsVisible() const
 void TreeNode::SetInternVisible(bool bVisible)
 {
 	Control::SetInternVisible(bVisible);
-	if (m_items.empty()) return;
+	if (m_items.empty()) {
+		return;
+	}
 
 	for (auto it = m_items.begin(); it != m_items.end(); it++)
 	{
 		auto pControl = *it;
-		// 控制子控件显示状态
-		// InternVisible状态应由子控件自己控制
-		pControl->SetInternVisible(Control::IsVisible());
+		if (pControl) {
+			// 控制子控件显示状态
+			// InternVisible状态应由子控件自己控制
+			pControl->SetInternVisible(Control::IsVisible());
+		}		
 	}
 }
 
@@ -87,13 +98,21 @@ bool TreeNode::AddChildNode(TreeNode* pTreeNode)
 
 bool TreeNode::AddChildNodeAt(TreeNode* pTreeNode, std::size_t iIndex)
 {
-	if( iIndex < 0 || iIndex > m_aTreeNodes.size() ) return false;
+	assert(pTreeNode != nullptr);
+	if (pTreeNode == nullptr) {
+		return false;
+	}
+	if (iIndex < 0 || iIndex > m_aTreeNodes.size()) {
+		return false;
+	}
 	m_aTreeNodes.insert(m_aTreeNodes.begin() + iIndex, pTreeNode);
 		
 	pTreeNode->m_iDepth = m_iDepth + 1;
 	pTreeNode->SetParentNode(this);
 	pTreeNode->SetTreeView(m_pTreeView);
-	if( m_pWindow != NULL ) m_pWindow->InitControls(pTreeNode, NULL);
+	if (m_pWindow != NULL) {
+		m_pWindow->InitControls(pTreeNode, NULL);
+	}
 	pTreeNode->OnEvent[kEventClick] += nbase::Bind(&TreeNode::OnClickItem, this, std::placeholders::_1);
 
 	UiRect padding = m_pLayout->GetPadding();
@@ -121,8 +140,10 @@ bool TreeNode::RemoveChildNodeAt(std::size_t iIndex)
 
 	TreeNode* pTreeNode = ((TreeNode*)m_aTreeNodes[iIndex]);
 	m_aTreeNodes.erase(m_aTreeNodes.begin() + iIndex);
-
-	return pTreeNode->RemoveSelf();
+	if (pTreeNode) {
+		return pTreeNode->RemoveSelf();
+	}
+	return false;
 }
 
 bool TreeNode::RemoveChildNode(TreeNode* pTreeNode)

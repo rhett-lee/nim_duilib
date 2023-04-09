@@ -208,9 +208,16 @@ void CMarkup::SetPreserveWhitespace(bool bPreserve)
 
 bool CMarkup::Load(LPCTSTR pstrXML)
 {
+    assert(pstrXML != nullptr);
+    if (pstrXML == nullptr) {
+        return false;
+    }
     Release();
     SIZE_T cchLen = _tcslen(pstrXML) + 1;
     m_pstrXML = static_cast<LPTSTR>(malloc(cchLen * sizeof(TCHAR)));
+    if (m_pstrXML == nullptr) {
+        return false;
+    }
     ::CopyMemory(m_pstrXML, pstrXML, cchLen * sizeof(TCHAR));
     bool bRes = _Parse();
     if( !bRes ) Release();
@@ -219,6 +226,10 @@ bool CMarkup::Load(LPCTSTR pstrXML)
 
 bool CMarkup::LoadFromMem(BYTE* pByte, DWORD dwSize, int encoding)
 {
+    assert(pByte != nullptr);
+    if (pByte == nullptr) {
+        return false;
+    }
 #ifdef _UNICODE
     if (encoding == XMLFILE_ENCODING_UTF8)
     {

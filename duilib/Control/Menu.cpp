@@ -227,9 +227,9 @@ void MenuWndEx::InitMenu(MenuElement* pOwner,
 	m_nFlags = flags;
 
 	if (!m_pOwner) {
-		wchar_t dir[_MAX_DIR];
-		wchar_t name[_MAX_FNAME];
-		wchar_t ext[_MAX_EXT];
+		wchar_t dir[_MAX_DIR] = { 0 };
+		wchar_t name[_MAX_FNAME] = { 0 };
+		wchar_t ext[_MAX_EXT] = { 0 };
 
 		_wsplitpath(xml.m_lpstr, NULL, dir, name, ext);
 		m_skinFloder = dir;
@@ -612,7 +612,7 @@ LRESULT MenuWndEx::OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 	ui::Box* pRoot = (ui::Box*)GetRoot();
 	if (pRoot->GetFixedWidth() == DUI_LENGTH_AUTO || pRoot->GetFixedHeight() == DUI_LENGTH_AUTO) {
-		CSize maxSize(99999, 99999);
+		const CSize maxSize(99999, 99999);
 		CSize needSize = pRoot->EstimateSize(maxSize);
 		if (needSize.cx < pRoot->GetMinWidth()) needSize.cx = pRoot->GetMinWidth();
 		if (pRoot->GetMaxWidth() >= 0 && needSize.cx > pRoot->GetMaxWidth()) needSize.cx = pRoot->GetMaxWidth();
@@ -824,11 +824,14 @@ bool MenuElement::IsTempItem()
 
 ui::Control* MenuElement::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, CPoint scrollPos /*= CPoint()*/)
 {
+	if (pData == nullptr) {
+		return nullptr;
+	}
 	// Check if this guy is valid
 	if ((uFlags & UIFIND_VISIBLE) != 0 && !IsVisible()) return NULL;
 	if ((uFlags & UIFIND_ENABLED) != 0 && !IsEnabled()) return NULL;
 	if ((uFlags & UIFIND_HITTEST) != 0) {
-		if (!::PtInRect(&m_rcItem, *(static_cast<LPPOINT>(pData)))) return NULL;
+		if (!::PtInRect(&m_rcItem, *((LPPOINT)pData))) return NULL;
 		if (!m_bMouseChildEnabled) {
 			Control* pResult = NULL;
 			if (pResult == NULL) pResult = Control::FindControl(Proc, pData, uFlags);
@@ -851,7 +854,7 @@ ui::Control* MenuElement::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT u
 
 	if ((uFlags & UIFIND_TOP_FIRST) != 0) {
 		for (int it = (int)m_items.size() - 1; it >= 0; it--) {
-			Control* pControl;
+			Control* pControl = nullptr;
 			if (m_items[it]->GetWindow() != this->GetWindow())
 				continue;
 			
@@ -875,7 +878,7 @@ ui::Control* MenuElement::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT u
 		for (auto it = m_items.begin(); it != m_items.end(); it++) {
 			if ((*it)->GetWindow() != this->GetWindow())
 				continue;
-			Control* pControl;
+			Control* pControl = nullptr;
 			if ((uFlags & UIFIND_HITTEST) != 0) {
 				CPoint newPoint = *(static_cast<LPPOINT>(pData));
 				newPoint.Offset(scrollPos);
@@ -900,11 +903,18 @@ ui::Control* MenuElement::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT u
 void MenuElement::PaintChild(IRenderContext* pRender, const UiRect& rcPaint)
 {
 	UiRect rcTemp;
-	if (!::IntersectRect(&rcTemp, &rcPaint, &m_rcItem)) return;
+	if (!::IntersectRect(&rcTemp, &rcPaint, &m_rcItem)) {
+		return;
+	}
 
-	for (auto it = m_items.begin(); it != m_items.end(); it++) {
+	for (auto it = m_items.begin(); it != m_items.end(); ++it) {
 		Control* pControl = *it;
-		if (!pControl->IsVisible()) continue;
+		if (pControl == nullptr) {
+			continue;
+		}
+		if (!pControl->IsVisible()) {
+			continue;
+		}
 
 		MenuElement* pMenuItem = dynamic_cast<MenuElement*>(pControl);
 		if (!pMenuItem) {

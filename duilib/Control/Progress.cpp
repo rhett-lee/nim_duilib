@@ -160,6 +160,10 @@ void Progress::SetAttribute(const std::wstring& srName, const std::wstring& strV
 
 void Progress::PaintStatusImage(IRenderContext* pRender)
 {
+	assert(pRender != nullptr);
+	if (pRender == nullptr) {
+		return;
+	}
 	if (m_bMarquee) {
 		PaintMarquee(pRender);
 		return;
@@ -280,7 +284,12 @@ void Progress::Play() {
 	Invalidate();
 }
 
-void Progress::PaintMarquee(IRenderContext* pRender) {
+void Progress::PaintMarquee(IRenderContext* pRender) 
+{
+	assert(pRender != nullptr);
+	if (pRender == nullptr) {
+		return;
+	}
 	if (!m_sProgressColor.empty()) {
 		DWORD dwProgressColor = GlobalManager::GetTextColor(m_sProgressColor);
 		if (dwProgressColor != 0) {

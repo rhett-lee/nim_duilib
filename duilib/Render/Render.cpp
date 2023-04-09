@@ -18,6 +18,7 @@ static inline void DrawFunction(HDC hDC, bool bTransparent, UiRect rcDest, HDC h
 
 RenderContext_GdiPlus::RenderContext_GdiPlus()
 	: m_hDC(NULL)
+	, m_saveDC(0)
 	, m_hOldBitmap(NULL)
 	, m_bTransparent(false)
 {
@@ -658,6 +659,11 @@ void RenderContext_GdiPlus::FillEllipse(const UiRect& rc, DWORD dwColor)
 
 void RenderContext_GdiPlus::DrawPath(const IPath* path, const IPen* pen)
 {
+	assert(path != nullptr);
+	assert(pen != nullptr);
+	if ((path == nullptr) || (pen == nullptr)) {
+		return;
+	}
 	Gdiplus::Graphics graphics(m_hDC);
 	graphics.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
 	graphics.DrawPath(((Pen_GdiPlus*)pen)->GetPen(), ((Path_Gdiplus*)path)->GetPath());
@@ -665,6 +671,11 @@ void RenderContext_GdiPlus::DrawPath(const IPath* path, const IPen* pen)
 
 void RenderContext_GdiPlus::FillPath(const IPath* path, const IBrush* brush)
 {
+	assert(path != nullptr);
+	assert(brush != nullptr);
+	if ((path == nullptr) || (brush == nullptr)) {
+		return;
+	}
 	Gdiplus::Graphics graphics(m_hDC);
 	graphics.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
 	graphics.FillPath(((Brush_Gdiplus*)brush)->GetBrush(), ((Path_Gdiplus*)path)->GetPath());

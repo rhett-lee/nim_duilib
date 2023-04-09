@@ -140,21 +140,26 @@ std::unique_ptr<ImageInfo> ImageInfo::LoadImageByBitmap(std::unique_ptr<Gdiplus:
 	if ((format & PixelFormatIndexed) != 0) {
 		int nPalSize = pGdiplusBitmap->GetPaletteSize();
 		if (nPalSize > 0) {
-			Gdiplus::ColorPalette *palette = (Gdiplus::ColorPalette*)malloc(nPalSize);;
-			status = pGdiplusBitmap->GetPalette(palette, nPalSize);
-			if (status == Gdiplus::Ok) {
-				imageInfo->SetAlpha((palette->Flags & Gdiplus::PaletteFlagsHasAlpha) != 0);
+			Gdiplus::ColorPalette *palette = (Gdiplus::ColorPalette*)malloc(nPalSize);
+			if (palette != nullptr) {
+				status = pGdiplusBitmap->GetPalette(palette, nPalSize);
+				if (status == Gdiplus::Ok) {
+					imageInfo->SetAlpha((palette->Flags & Gdiplus::PaletteFlagsHasAlpha) != 0);
+				}
+				free(palette);
 			}
-			free(palette);
 		}
 	}
 
 	if (format == PixelFormat32bppARGB) {
 		for (int nFrameIndex = 0; nFrameIndex < iFrameCount; nFrameIndex++) {
 			HBITMAP hBitmap = imageInfo->GetHBitmap(nFrameIndex);
-			BITMAP bm;
+			BITMAP bm = { 0 };
 			::GetObject(hBitmap, sizeof(bm), &bm);
 			LPBYTE imageBits = (LPBYTE)bm.bmBits;
+			if (imageBits == nullptr) {
+				continue;
+			}
 			for (int i = 0; i < bm.bmHeight; ++i) {
 				for (int j = 0; j < bm.bmWidthBytes; j += 4) {
 					int x = i * bm.bmWidthBytes + j;
@@ -563,6 +568,10 @@ bool StateColorMap::HasColor()
 
 void StateColorMap::PaintStatusColor(IRenderContext* pRender, UiRect rcPaint, ControlStateType stateType)
 {
+	assert(pRender != nullptr);
+	if (pRender == nullptr) {
+		return;
+	}
 	if (m_pControl) {
 		bool bFadeHot = m_pControl->GetAnimationManager().GetAnimationPlayer(kAnimationHot) != nullptr;
 		int nHotAlpha = m_pControl->GetHotAlpha();

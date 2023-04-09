@@ -27,15 +27,20 @@ std::wstring TabBox::GetType() const
 
 bool TabBox::Add(Control* pControl)
 {
+	assert(pControl != nullptr);
+	if (pControl == nullptr) {
+		return false;
+	}
 	bool ret = Box::Add(pControl);
-	if( !ret ) return ret;
+	if (!ret) {
+		return ret;
+	}
 
 	if(m_iCurSel == -1 && pControl->IsVisible()) {
 		m_iCurSel = GetItemIndex(pControl);
 	} 
 
-	if (m_iCurSel != GetItemIndex(pControl) || !pControl->IsVisible())
-	{
+	if (m_iCurSel != GetItemIndex(pControl) || !pControl->IsVisible()){
 		if (!IsFadeSwitch()) {
 			pControl->SetVisible(false);
 		}
@@ -51,8 +56,9 @@ bool TabBox::Add(Control* pControl)
 bool TabBox::AddAt(Control* pControl, std::size_t iIndex)
 {
 	bool ret = Box::AddAt(pControl, iIndex);
-	if(!ret)
+	if (!ret) {
 		return ret;
+	}		
 
 	if(m_iCurSel == -1 && pControl->IsVisible()) {
 		m_iCurSel = GetItemIndex(pControl);
@@ -153,11 +159,13 @@ bool TabBox::SelectItem(int iIndex)
 				}
 
 				auto player = m_items[it]->GetAnimationManager().SetFadeInOutX(true, true);
-				player->SetStartValue(startValue);
-				player->SetEndValue(endValue);
-				player->SetSpeedUpfactorA(0.015);
-				player->SetCompleteCallback(CompleteCallback());
-				player->Start();
+				if (player != nullptr) {
+					player->SetStartValue(startValue);
+					player->SetEndValue(endValue);
+					player->SetSpeedUpfactorA(0.015);
+					player->SetCompleteCallback(CompleteCallback());
+					player->Start();
+				}				
 			}
 		}
 		else {
@@ -185,18 +193,20 @@ bool TabBox::SelectItem(int iIndex)
 					}
 
 					auto player = m_items[it]->GetAnimationManager().SetFadeInOutX(true, true);
-					player->SetStartValue(startValue);
-					player->SetEndValue(endValue);
-					player->SetSpeedUpfactorA(0.015);
-					CompleteCallback compelteCallback = nbase::Bind(&TabBox::HideTabItem, this, it);
-					player->SetCompleteCallback(compelteCallback);
-					player->Start();
+					if (player != nullptr) {
+						player->SetStartValue(startValue);
+						player->SetEndValue(endValue);
+						player->SetSpeedUpfactorA(0.015);
+						CompleteCallback compelteCallback = nbase::Bind(&TabBox::HideTabItem, this, it);
+						player->SetCompleteCallback(compelteCallback);
+						player->Start();
+					}					
 				}
 			}
 		}
 	}		
 
-	if( m_pWindow != NULL ) {
+	if( m_pWindow != nullptr ) {
 		m_pWindow->SetNextTabControl();
 		m_pWindow->SendNotify(this, kEventSelect, m_iCurSel, iOldSel);
 	}

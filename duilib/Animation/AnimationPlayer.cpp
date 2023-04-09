@@ -92,7 +92,7 @@ void AnimationPlayerBase::Play()
 {
 	LARGE_INTEGER newCurrentTime;
 	QueryPerformanceCounter(&newCurrentTime);
-	m_palyedMillSeconds += (double(newCurrentTime.QuadPart - m_currentTime.QuadPart) * 1000 )/m_timeFrequency.QuadPart;
+	m_palyedMillSeconds += (static_cast<double>(newCurrentTime.QuadPart - m_currentTime.QuadPart) * 1000 )/m_timeFrequency.QuadPart;
 	QueryPerformanceCounter(&m_currentTime);
 
 	int newCurrentValue = GetCurrentValue();

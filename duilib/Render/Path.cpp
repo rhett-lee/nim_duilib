@@ -51,6 +51,9 @@ void Path_Gdiplus::AddLine(int x1, int y1, int x2, int y2)
 
 void Path_Gdiplus::AddLines(const CPoint* points, int count)
 {
+	if (points == nullptr) {
+		return;
+	}
 	std::vector<Point> p;
 	for (int i = 0; i < count; i++)
 	{
@@ -66,6 +69,9 @@ void Path_Gdiplus::AddBezier(int x1, int y1, int x2, int y2, int x3, int y3, int
 
 void Path_Gdiplus::AddCurve(const CPoint* points, int count)
 {
+	if (points == nullptr) {
+		return;
+	}
 	std::vector<Point> p;
 	for (int i = 0; i < count; i++)
 	{
@@ -106,6 +112,9 @@ void Path_Gdiplus::AddPie(int x, int y, int width, int height, float startAngle,
 
 void Path_Gdiplus::AddPolygon(const CPoint* points, int count)
 {
+	if (points == nullptr) {
+		return;
+	}
 	std::vector<Point> p;
 	for (int i = 0; i < count; i++)
 	{
@@ -129,11 +138,17 @@ bool Path_Gdiplus::IsContainsPoint(int x, int y)
 
 bool Path_Gdiplus::IsStrokeContainsPoint(int x, int y, const IPen* pen)
 {
+	if (pen == nullptr) {
+		return false;
+	}
 	return path_->IsOutlineVisible(x, y, ((Pen_GdiPlus*)pen)->GetPen()) == TRUE;
 }
 
 void Path_Gdiplus::Transform(const IMatrix* matrix)
 {
+	if (matrix == nullptr) {
+		return;
+	}
 	path_->Transform(((Matrix_Gdiplus*)matrix)->GetMatrix());
 }
 

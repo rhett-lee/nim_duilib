@@ -52,10 +52,10 @@ private:
 public:
 	static const LPCTSTR kClassName;
 private:
-	ui::Label*		title_;
-	ui::RichEdit*	content_;
-	ui::Button*		btn_yes_;
-	ui::Button*		btn_no_;
+	ui::Label*		title_   = nullptr;
+	ui::RichEdit*	content_ = nullptr;
+	ui::Button*		btn_yes_ = nullptr;
+	ui::Button*		btn_no_  = nullptr;
 
 	MsgboxCallback	 msgbox_callback_;
 };

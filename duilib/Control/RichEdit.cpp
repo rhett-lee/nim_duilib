@@ -215,30 +215,41 @@ LONG DYtoHimetricY(LONG dy, LONG yPerInch)
 
 HRESULT InitDefaultCharFormat(RichEdit* re, CHARFORMAT2W* pcf, HFONT hfont) 
 {
+	assert(re != nullptr);
+	assert(pcf != nullptr);
+	if ((re == nullptr) || (pcf == nullptr)){
+		return S_OK;
+	}
     memset(pcf, 0, sizeof(CHARFORMAT2W));
-    LOGFONT lf;
-    if( !hfont )
-        hfont = GlobalManager::GetFont(re->GetFont());
+	LOGFONT lf = { 0 };
+	if (!hfont) {
+		hfont = GlobalManager::GetFont(re->GetFont());
+	}
     ::GetObject(hfont, sizeof(LOGFONT), &lf);
 
 	DWORD dwColor = re->GetTextColorValue();
     pcf->cbSize = sizeof(CHARFORMAT2W);
     pcf->crTextColor = RGB(GetBValue(dwColor), GetGValue(dwColor), GetRValue(dwColor));
     LONG yPixPerInch = GetDeviceCaps(re->GetWindowDC(), LOGPIXELSY);
-	if (yPixPerInch == 0)
+	if (yPixPerInch == 0) {
 		yPixPerInch = 96;
+	}		
     pcf->yHeight = -lf.lfHeight * LY_PER_INCH / yPixPerInch;
     pcf->yOffset = 0;
     pcf->dwEffects = 0;
 	pcf->dwMask = CFM_SIZE | CFM_OFFSET | CFM_FACE | CFM_CHARSET | CFM_COLOR | CFM_BOLD | CFM_ITALIC | CFM_UNDERLINE | CFM_STRIKEOUT;
-    if(lf.lfWeight >= FW_BOLD)
-        pcf->dwEffects |= CFE_BOLD;
-    if(lf.lfItalic)
-        pcf->dwEffects |= CFE_ITALIC;
-    if(lf.lfUnderline)
-        pcf->dwEffects |= CFE_UNDERLINE;
-	if (lf.lfStrikeOut)
+	if (lf.lfWeight >= FW_BOLD) {
+		pcf->dwEffects |= CFE_BOLD;
+	}
+	if (lf.lfItalic) {
+		pcf->dwEffects |= CFE_ITALIC;
+	}
+	if (lf.lfUnderline) {
+		pcf->dwEffects |= CFE_UNDERLINE;
+	}
+	if (lf.lfStrikeOut) {
 		pcf->dwEffects |= CFE_STRIKEOUT;
+	}
     pcf->bCharSet = lf.lfCharSet;
     pcf->bPitchAndFamily = lf.lfPitchAndFamily;
 #ifdef _UNICODE
@@ -273,8 +284,10 @@ HRESULT CreateHost(RichEdit *re, const CREATESTRUCT *pcs, CTxtWinHost **pptec)
     {
         if (phost->Init(re, pcs))
         {
-            *pptec = phost;
-            hr = S_OK;
+			if (pptec) {
+				*pptec = phost;
+				hr = S_OK;
+			}            
         }
     }
 
@@ -295,8 +308,10 @@ CTxtWinHost::CTxtWinHost() : m_re(NULL)
 
 CTxtWinHost::~CTxtWinHost()
 {
-    pserv->OnTxInPlaceDeactivate();
-    pserv->Release();
+	if (pserv) {
+		pserv->OnTxInPlaceDeactivate();
+		pserv->Release();
+	}    
 }
 
 ////////////////////// Create/Init/Destruct Commands ///////////////////////
@@ -308,7 +323,7 @@ BOOL CTxtWinHost::Init(RichEdit *re, const CREATESTRUCT *pcs)
 		return FALSE;
 	}
     IUnknown *pUnk = nullptr;
-    HRESULT hr;
+    HRESULT hr = E_FAIL;
 	std::wstring edit_dll(L"msftedit.dll");
     m_re = re;
     // Initialize Reference count
@@ -410,6 +425,9 @@ BOOL CTxtWinHost::Init(RichEdit *re, const CREATESTRUCT *pcs)
 
 HRESULT CTxtWinHost::QueryInterface(REFIID riid, void **ppvObject)
 {
+	if (ppvObject == nullptr) {
+		return E_INVALIDARG;
+	}
     HRESULT hr = E_NOINTERFACE;
     *ppvObject = NULL;
 
@@ -654,26 +672,38 @@ HRESULT CTxtWinHost::TxDeactivate(LONG /*lNewState*/)
 
 HRESULT CTxtWinHost::TxGetClientRect(LPRECT prc)
 {
-    *prc = rcClient;
-    GetControlRect(prc);
+	assert(prc != nullptr);
+	if (prc) {
+		*prc = rcClient;
+		GetControlRect(prc);
+	}    
     return NOERROR;
 }
 
 HRESULT CTxtWinHost::TxGetViewInset(LPRECT prc) 
 {
-    prc->left = prc->right = prc->top = prc->bottom = 0;
+	assert(prc != nullptr);
+	if (prc){
+		prc->left = prc->right = prc->top = prc->bottom = 0;
+	}    
     return NOERROR;	
 }
 
 HRESULT CTxtWinHost::TxGetCharFormat(const CHARFORMATW **ppCF)
 {
-    *ppCF = &cf;
+	assert(ppCF != nullptr);
+	if (ppCF){
+		*ppCF = &cf;
+	}    
     return NOERROR;
 }
 
 HRESULT CTxtWinHost::TxGetParaFormat(const PARAFORMAT **ppPF)
 {
-    *ppPF = &pf;
+	assert(ppPF != nullptr);
+	if (ppPF) {
+		*ppPF = &pf;
+	}    
     return NOERROR;
 }
 
@@ -684,26 +714,38 @@ COLORREF CTxtWinHost::TxGetSysColor(int nIndex)
 
 HRESULT CTxtWinHost::TxGetBackStyle(TXTBACKSTYLE *pstyle)
 {
-    *pstyle = !fTransparent ? TXTBACK_OPAQUE : TXTBACK_TRANSPARENT;
+	assert(pstyle != nullptr);
+	if (pstyle)	{
+		*pstyle = !fTransparent ? TXTBACK_OPAQUE : TXTBACK_TRANSPARENT;
+	}    
     return NOERROR;
 }
 
 HRESULT CTxtWinHost::TxGetMaxLength(DWORD *pLength)
 {
-    *pLength = cchTextMost;
+	assert(pLength != nullptr);
+	if (pLength) {
+		*pLength = cchTextMost;
+	}    
     return NOERROR;
 }
 
 HRESULT CTxtWinHost::TxGetScrollBars(DWORD *pdwScrollBar)
 {
-    *pdwScrollBar =  dwStyle & (WS_VSCROLL | WS_HSCROLL | ES_AUTOVSCROLL | 
-        ES_AUTOHSCROLL | ES_DISABLENOSCROLL);
-
+	assert(pdwScrollBar != nullptr);
+	if (pdwScrollBar) {
+		*pdwScrollBar = dwStyle & (WS_VSCROLL | WS_HSCROLL | ES_AUTOVSCROLL |
+			ES_AUTOHSCROLL | ES_DISABLENOSCROLL);
+	}
     return NOERROR;
 }
 
 HRESULT CTxtWinHost::TxGetPasswordChar(TCHAR *pch)
 {
+	assert(pch != nullptr);
+	if (pch == nullptr) {
+		return NOERROR;
+	}
 #ifdef _UNICODE
     *pch = chPasswordChar;
 #else
@@ -714,7 +756,10 @@ HRESULT CTxtWinHost::TxGetPasswordChar(TCHAR *pch)
 
 HRESULT CTxtWinHost::TxGetAcceleratorPos(LONG *pcp)
 {
-    *pcp = laccelpos;
+	assert(pcp != nullptr);
+	if (pcp != nullptr) {
+		*pcp = laccelpos;
+	}    
     return S_OK;
 } 										   
 
@@ -730,6 +775,10 @@ HRESULT CTxtWinHost::OnTxParaFormatChange(const PARAFORMAT */*ppf*/)
 
 HRESULT CTxtWinHost::TxGetPropertyBits(DWORD dwMask, DWORD *pdwBits) 
 {
+	assert(pdwBits != nullptr);
+	if (pdwBits == nullptr) {
+		return S_OK;
+	}
     DWORD dwProperties = 0;
 
     if (fRich)
@@ -798,20 +847,28 @@ HRESULT CTxtWinHost::TxNotify(DWORD iNotify, void *pv)
 
 HRESULT CTxtWinHost::TxGetExtent(LPSIZEL lpExtent)
 {
-    *lpExtent = sizelExtent;
+	assert(lpExtent != nullptr);
+	if (lpExtent) {
+		*lpExtent = sizelExtent;
+	}    
     return S_OK;
 }
 
 HRESULT	CTxtWinHost::TxGetSelectionBarWidth (LONG *plSelBarWidth)
 {
-    *plSelBarWidth = lSelBarWidth;
+	assert(plSelBarWidth != nullptr);
+	if (plSelBarWidth) {
+		*plSelBarWidth = lSelBarWidth;
+	}
     return S_OK;
 }
 
 void CTxtWinHost::SetWordWrap(BOOL bWordWrap)
 {
     fWordWrap = bWordWrap;
-    pserv->OnTxPropertyBitsChange(TXTBIT_WORDWRAP, bWordWrap ? TXTBIT_WORDWRAP : 0);
+	if (pserv) {
+		pserv->OnTxPropertyBitsChange(TXTBIT_WORDWRAP, bWordWrap ? TXTBIT_WORDWRAP : 0);
+	}    
 }
 
 BOOL CTxtWinHost::GetReadOnly()
@@ -898,8 +955,12 @@ SIZEL* CTxtWinHost::GetExtent()
 
 void CTxtWinHost::SetExtent(SIZEL *psizelExtent) 
 { 
-    sizelExtent = *psizelExtent; 
-    pserv->OnTxPropertyBitsChange(TXTBIT_EXTENTCHANGE, TXTBIT_EXTENTCHANGE);
+	if (psizelExtent) {
+		sizelExtent = *psizelExtent;
+		if (pserv) {
+			pserv->OnTxPropertyBitsChange(TXTBIT_EXTENTCHANGE, TXTBIT_EXTENTCHANGE);
+		}
+	}	
 }
 
 void CTxtWinHost::LimitText(LONG nChars)
@@ -1020,8 +1081,13 @@ HRESULT	CTxtWinHost::OnTxInPlaceActivate(LPCRECT prcClient)
     return hr;
 }
 
-BOOL CTxtWinHost::DoSetCursor(UiRect *prc, POINT *pt)
+BOOL CTxtWinHost::DoSetCursor(UiRect *prc, POINT* pt)
 {
+	assert(pt != nullptr);
+	if (pt == nullptr) {
+		return FALSE;
+	}
+
     UiRect rc = (prc != NULL) ? *prc : rcClient;
 
     // Is this in our rectangle?
@@ -1041,6 +1107,10 @@ BOOL CTxtWinHost::DoSetCursor(UiRect *prc, POINT *pt)
 
 void CTxtWinHost::GetControlRect(LPRECT prc)
 {
+	assert(prc != nullptr);
+	if (prc == nullptr) {
+		return;
+	}
 	UiRect rc = rcClient;
 	VerAlignType alignType = m_re->GetTextVerAlignType();
 	if (alignType != kVerAlignTop) {
@@ -1833,7 +1903,7 @@ long RichEdit::LineFromChar(long nIndex) const
 
 CPoint RichEdit::PosFromChar(UINT nChar) const
 { 
-    POINTL pt; 
+	POINTL pt = { 0 };
     TxSendMessage(EM_POSFROMCHAR, (WPARAM)&pt, nChar, 0); 
     return CPoint(pt.x, pt.y); 
 }
@@ -1894,7 +1964,7 @@ IDropTarget* RichEdit::GetTxDropTarget()
 
 bool RichEdit::SetDropAcceptFile(bool /*bAccept*/)
 {
-	LRESULT lResult;
+	LRESULT lResult = 0;
 	TxSendMessage(EM_SETEVENTMASK, 0, ENM_DROPFILES | ENM_LINK, // ENM_CHANGE| ENM_CORRECTTEXT | ENM_DRAGDROPDONE | ENM_DROPFILES | ENM_IMECHANGE | ENM_LINK | ENM_OBJECTPOSITIONS | ENM_PROTECTED | ENM_REQUESTRESIZE | ENM_SCROLL | ENM_SELCHANGE | ENM_UPDATE,
 		&lResult);
 	return (BOOL)lResult == FALSE;
@@ -2345,9 +2415,14 @@ void RichEdit::SetPos(UiRect rc)
         m_pHorizontalScrollBar->SetPos(rcScrollBarPos);
     }
 
-	for( auto it = m_items.begin(); it != m_items.end(); it++ ) {
+	for( auto it = m_items.begin(); it != m_items.end(); ++it ) {
 		auto pControl = *it;
-        if( !pControl->IsVisible() ) continue;
+		if (pControl == nullptr) {
+			continue;
+		}
+		if (!pControl->IsVisible()) {
+			continue;
+		}
         if( pControl->IsFloat() ) {
             Layout::SetFloatPos(pControl, GetPos());
         }
@@ -2676,30 +2751,50 @@ void RichEdit::PaintChild(IRenderContext* pRender, const UiRect& rcPaint)
         if( m_pHorizontalScrollBar && m_pHorizontalScrollBar->IsValid() ) rc.bottom -= m_pHorizontalScrollBar->GetFixedHeight();
 
         if( !::IntersectRect(&rcTemp, &rcPaint, &rc) ) {
-			for( auto it = m_items.begin(); it != m_items.end(); it++ ) {
+			for( auto it = m_items.begin(); it != m_items.end(); ++it ) {
 				auto pControl = *it;
-                if( !pControl->IsVisible() ) continue;
+				if (pControl == nullptr) {
+					continue;
+				}
+				if (!pControl->IsVisible()) {
+					continue;
+				}
 				UiRect controlPos = pControl->GetPos();
-				if (!::IntersectRect(&rcTemp, &rcPaint, &controlPos)) continue;
+				if (!::IntersectRect(&rcTemp, &rcPaint, &controlPos)) {
+					continue;
+				}
                 if( pControl ->IsFloat() ) {
-					if( !::IntersectRect(&rcTemp, &m_rcItem, &controlPos )) continue;
+					if (!::IntersectRect(&rcTemp, &m_rcItem, &controlPos)) {
+						continue;
+					}
                     pControl->AlphaPaint(pRender, rcPaint);
                 }
             }
         }
         else {
 			AutoClip childClip(pRender, rcTemp);
-			for( auto it = m_items.begin(); it != m_items.end(); it++ ) {
+			for( auto it = m_items.begin(); it != m_items.end(); ++it ) {
 				auto pControl = *it;
-                if( !pControl->IsVisible() ) continue;
+				if (pControl == nullptr) {
+					continue;
+				}
+				if (!pControl->IsVisible()) {
+					continue;
+				}
 				UiRect controlPos = pControl->GetPos();
-				if (!::IntersectRect(&rcTemp, &rcPaint, &controlPos)) continue;
+				if (!::IntersectRect(&rcTemp, &rcPaint, &controlPos)) {
+					continue;
+				}
                 if( pControl ->IsFloat() ) {
-					if( !::IntersectRect(&rcTemp, &m_rcItem, &controlPos) ) continue;
+					if (!::IntersectRect(&rcTemp, &m_rcItem, &controlPos)) {
+						continue;
+					}
                     pControl->AlphaPaint(pRender, rcPaint);
                 }
                 else {
-					if( !::IntersectRect(&rcTemp, &rc, &controlPos) ) continue;
+					if (!::IntersectRect(&rcTemp, &rc, &controlPos)) {
+						continue;
+					}
                     pControl->AlphaPaint(pRender, rcPaint);
                 }
             }
@@ -2909,6 +3004,10 @@ void RichEdit::ChangeCaretVisiable()
 
 void RichEdit::PaintCaret(IRenderContext* pRender, const UiRect& /*rcPaint*/)
 {
+	assert(pRender != nullptr);
+	if (pRender == nullptr) {
+		return;
+	}
 	if (m_bReadOnly && m_bNoCaretReadonly)
 		return;
 
@@ -2980,16 +3079,23 @@ void RichEdit::SetUTF8PromptTextId(const std::string& strTextId)
 
 void RichEdit::PaintPromptText(IRenderContext* pRender)
 {
+	assert(pRender != nullptr);
+	if (pRender == nullptr) {
+		return;
+	}
 	long len = GetTextLength(GTL_DEFAULT);
-	if (len != 0)
+	if (len != 0) {
 		return;
+	}
 
-	if (!m_pTwh)
+	if (!m_pTwh) {
 		return;
+	}
 
 	std::wstring strPrompt = GetPromptText();
-	if (strPrompt.empty() || m_sPromptColor.empty())
+	if (strPrompt.empty() || m_sPromptColor.empty()) {
 		return;
+	}
 
 	UiRect rc;
 	m_pTwh->GetControlRect(&rc);
@@ -3281,9 +3387,11 @@ void SetClipBoardText(const std::wstring &str)
 	}
 
 	wchar_t* lpStr = (wchar_t*)::GlobalLock(hMem); //锁住内存区 
-	::memcpy(lpStr, str.c_str(), len * sizeof(wchar_t)); //把数据拷贝考全局内存中
-	lpStr[len] = wchar_t(0); //字符串末尾设为'\0'
-	::GlobalUnlock(hMem); //释放锁 
+	if (lpStr) {
+		::memcpy(lpStr, str.c_str(), len * sizeof(wchar_t)); //把数据拷贝考全局内存中
+		lpStr[len] = wchar_t(0); //字符串末尾设为'\0'
+		::GlobalUnlock(hMem); //释放锁 
+	}
 
 	::SetClipboardData(CF_UNICODETEXT, hMem); //把内存中的数据放到剪切板上
 	::CloseClipboard(); //关闭剪切板	

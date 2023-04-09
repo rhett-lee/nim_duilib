@@ -20,6 +20,9 @@ CSize HLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 
 	for( auto it = items.begin(); it != items.end(); it++ ) {
 		auto pControl = *it;
+		if (pControl == nullptr) {
+			continue;
+		}
 		if( !pControl->IsVisible() ) continue;
 		if( pControl->IsFloat() ) continue;
 		CSize sz = pControl->EstimateSize(szAvailable);
@@ -51,7 +54,12 @@ CSize HLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 
 	for( auto it = items.begin(); it != items.end(); it++ ) {
 		auto pControl = *it;
-		if( !pControl->IsVisible() ) continue;
+		if (pControl == nullptr) {
+			continue;
+		}
+		if (!pControl->IsVisible()) {
+			continue;
+		}
 		if( pControl->IsFloat() ) {
 			SetFloatPos(pControl, rc);
 			continue;
@@ -110,12 +118,15 @@ CSize HLayout::AjustSizeByChild(const std::vector<Control*>& items, CSize szAvai
 	CSize totalSize;
 	CSize itemSize;
 	Control* pChildControl = NULL;
-	int count = (int)items.size();
+	const int count = (int)items.size();
 	int estimateChildCount = 0;
 
 	for(int it = 0; it < count; it++) 
 	{
 		pChildControl = (Control*)items[it];
+		if (pChildControl == nullptr) {
+			continue;
+		}
 		if (!pChildControl->IsVisible() || pChildControl->IsFloat()){
 			continue;
 		}

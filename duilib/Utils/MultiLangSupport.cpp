@@ -42,7 +42,12 @@ bool MutiLanSupport::LoadStringTable(const std::wstring &strFilePath)
 bool MutiLanSupport::LoadStringTable(const HGLOBAL& hGlobal)
 {
 	std::vector<std::wstring> string_list;
-	std::string fragment((LPSTR)GlobalLock(hGlobal), GlobalSize(hGlobal));
+	LPSTR data = (LPSTR)GlobalLock(hGlobal);
+	if (data == nullptr) {
+		return false;
+	}
+	size_t len = GlobalSize(hGlobal);
+	std::string fragment(data, len);
 	fragment.append("\n");
 	std::string src;
 	for (auto& it : fragment)

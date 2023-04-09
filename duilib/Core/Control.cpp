@@ -23,7 +23,7 @@ Control::Control() :
 	m_bReceivePointerMsg(true),
 	m_bNeedButtonUpWhenKillFocus(false),
 	m_bAllowTabstop(true),
-  m_bIsLoading(false),
+    m_bIsLoading(false),
 	m_szEstimateSize(),
 	m_renderOffset(),
 	m_cxyBorderRound(),
@@ -36,7 +36,7 @@ Control::Control() :
 	m_nTooltipWidth(300),
 	m_nAlpha(255),
 	m_nHotAlpha(0),
-  m_fCurrrentAngele(0),
+    m_fCurrrentAngele(0),
 	m_sToolTipText(),
 	m_sToolTipTextId(),
 	m_sUserData(),
@@ -47,9 +47,9 @@ Control::Control() :
 	m_animationManager(),
 	m_imageMap(),
 	m_bkImage(),
-  m_loadingImage(),
+    m_loadingImage(),
 	m_loadBkImageWeakFlag(),
-  m_loadingImageFlag(),
+    m_loadingImageFlag(),
 #if defined(ENABLE_UIAUTOMATION)
 	m_pUIAProvider(nullptr),
 #endif
@@ -95,16 +95,17 @@ Control::Control(const Control& r) :
 	m_sToolTipTextId(r.m_sToolTipTextId),
 	m_sUserData(r.m_sUserData),
 	m_strBkColor(r.m_strBkColor),
-  m_strLoadingBkColor(r.m_strLoadingBkColor),
+    m_strLoadingBkColor(r.m_strLoadingBkColor),
 	m_colorMap(r.m_colorMap),
 	m_strBorderColor(r.m_strBorderColor),
 	m_gifWeakFlag(),
 	m_animationManager(r.m_animationManager),
 	m_imageMap(r.m_imageMap),
 	m_bkImage(r.m_bkImage),
-  m_loadingImage(r.m_loadingImage),
+    m_loadingImage(r.m_loadingImage),
+	m_bIsLoading(r.m_bIsLoading),
 	m_loadBkImageWeakFlag(),
-  m_loadingImageFlag()
+    m_loadingImageFlag()
 {
 	m_colorMap.SetControl(this);
 	m_imageMap.SetControl(this);
@@ -652,9 +653,18 @@ bool Control::IsActivatable() const
 
 Control* Control::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, CPoint /*scrollPos*/)
 {
-    if( (uFlags & UIFIND_VISIBLE) != 0 && !IsVisible() ) return NULL;
-    if( (uFlags & UIFIND_ENABLED) != 0 && !IsEnabled() ) return NULL;
-	if( (uFlags & UIFIND_HITTEST) != 0 && (!m_bMouseEnabled || !::PtInRect(&m_rcItem, * static_cast<LPPOINT>(pData))) ) return NULL;
+	if ((Proc == nullptr) || (pData == nullptr)) {
+		return nullptr;
+	}
+	if ((uFlags & UIFIND_VISIBLE) != 0 && !IsVisible()) {
+		return nullptr;
+	}
+	if ((uFlags & UIFIND_ENABLED) != 0 && !IsEnabled()) {
+		return nullptr;
+	}
+	if ((uFlags & UIFIND_HITTEST) != 0 && (!m_bMouseEnabled || !::PtInRect(&m_rcItem, *static_cast<LPPOINT>(pData)))) {
+		return nullptr;
+	}
     return Proc(this, pData);
 }
 
@@ -683,7 +693,9 @@ void Control::SetPos(UiRect rc)
 	if (::IsRectEmpty(&invalidateRc)) invalidateRc = rc;
 
 	m_rcItem = rc;
-	if (m_pWindow == NULL) return;
+	if (m_pWindow == nullptr) {
+		return;
+	}
 
 	if (!m_bSetPos) {
 		m_bSetPos = true;
@@ -1298,7 +1310,7 @@ void Control::ApplyAttributeList(const std::wstring& strList)
 
 bool Control::OnApplyAttributeList(const std::wstring& strReceiver, const std::wstring& strList, EventArgs* /*eventArgs*/)
 {
-	Control* pReceiverControl;
+	Control* pReceiverControl = nullptr;
 	if (strReceiver.substr(0, 2) == L".\\" || strReceiver.substr(0, 2) == L"./") {
 		pReceiverControl = ((Box*)this)->FindSubControl(strReceiver.substr(2));
 	}
@@ -1332,6 +1344,10 @@ void Control::GetImage(Image& duiImage) const
 
 bool Control::DrawImage(IRenderContext* pRender, Image& duiImage, const std::wstring& strModify /*= L""*/, int nFade /*= DUI_NOSET_VALUE*/)
 {
+	assert(pRender != nullptr);
+	if (pRender == nullptr) {
+		return false;
+	}
 	if (duiImage.imageAttribute.sImageName.empty()) {
 		return false;
 	}
@@ -1398,6 +1414,10 @@ void Control::ClearRenderContext()
 
 void Control::AlphaPaint(IRenderContext* pRender, const UiRect& rcPaint)
 {
+	assert(pRender != nullptr);
+	if (pRender == nullptr) {
+		return;
+	}
 	if (m_nAlpha == 0) {
 		return;
 	}
@@ -1506,9 +1526,14 @@ void Control::Paint(IRenderContext* pRender, const UiRect& rcPaint)
 
 void Control::PaintShadow(IRenderContext* pRender)
 {
-	if (!m_boxShadow.HasShadow())
+	if (!m_boxShadow.HasShadow()) {
 		return;
+	}
 
+	assert(pRender != nullptr);
+	if (pRender == nullptr) {
+		return;
+	}
 	pRender->DrawBoxShadow(m_rcPaint,
 		m_cxyBorderRound,
 		m_boxShadow.m_cpOffset,
@@ -1524,11 +1549,19 @@ void Control::PaintBkColor(IRenderContext* pRender)
 	if (m_strBkColor.empty()) {
 		return;
 	}
+	assert(pRender != nullptr);
+	if (pRender == nullptr) {
+		return;
+	}
 
 	DWORD dwBackColor = this->GetWindowColor(m_strBkColor);
 	if(dwBackColor != 0) {
-		if (dwBackColor >= 0xFF000000) pRender->DrawColor(m_rcPaint, dwBackColor);
-		else pRender->DrawColor(m_rcItem, dwBackColor);
+		if (dwBackColor >= 0xFF000000) {
+			pRender->DrawColor(m_rcPaint, dwBackColor);
+		}
+		else {
+			pRender->DrawColor(m_rcItem, dwBackColor);
+		}
 	}
 }
 
@@ -1556,6 +1589,10 @@ void Control::PaintText(IRenderContext* /*pRender*/)
 void Control::PaintBorder(IRenderContext* pRender)
 {
 	if (m_strBorderColor.empty()) {
+		return;
+	}
+	assert(pRender != nullptr);
+	if (pRender == nullptr) {
 		return;
 	}
 	DWORD dwBorderColor = 0;
@@ -1613,69 +1650,76 @@ void Control::PaintBorder(IRenderContext* pRender)
 				rcDraw.right -= 1;
 			}
 
-			if (m_cxyBorderRound.cx > 0 || m_cxyBorderRound.cy > 0)
+			if (m_cxyBorderRound.cx > 0 || m_cxyBorderRound.cy > 0) {
 				pRender->DrawRoundRect(rcDraw, m_cxyBorderRound, m_nBorderSize, dwBorderColor);
-			else
+			}
+			else {
 				pRender->DrawRect(rcDraw, m_nBorderSize, dwBorderColor);
+			}
 		}
 	}
 }
 
-void Control::PaintLoading(IRenderContext* pRender) {
-  if (!m_bIsLoading || m_loadingImage.imageAttribute.sImageName.empty()) {
-    return;
-  }
-
-  GetImage(m_loadingImage);
-  if (!m_loadingImage.imageCache) {
-    ASSERT(FALSE);
-    return;
-  }
-
-  Gdiplus::Bitmap* image = GdiHelper::CreateBitmapFromHBITMAP(m_loadingImage.imageCache->GetHBitmap(0));
-  if (!image) {
-    ASSERT(FALSE);
-    return;
-  }
-  if (!m_strLoadingBkColor.empty()) {
-    Gdiplus::SolidBrush brush(GetWindowColor(m_strLoadingBkColor));
-    ui::UiRect rcFill = m_rcItem;
-    rcFill.left = m_rcItem.left + (m_rcItem.GetWidth() - image->GetWidth()) / 2;
-    rcFill.right = rcFill.left + image->GetWidth();
-    rcFill.top = m_rcItem.top + (m_rcItem.GetHeight() - image->GetHeight()) / 2;
-    rcFill.bottom = rcFill.top + image->GetHeight();
-
-    ui::UiRect rcDest = m_loadingImage.imageAttribute.rcDest;
-    if (!rcDest.IsRectEmpty()) {
-      rcFill.left = m_rcItem.left + rcDest.left;
-      rcFill.right = m_rcItem.left + rcDest.right;
-      rcFill.top = m_rcItem.top + rcDest.top;
-      rcFill.bottom = m_rcItem.bottom + rcDest.bottom;
+void Control::PaintLoading(IRenderContext* pRender)
+{
+	assert(pRender != nullptr);
+	if (pRender == nullptr) {
+		return;
+	}
+    if (!m_bIsLoading || m_loadingImage.imageAttribute.sImageName.empty()) {
+        return;
     }
 
-    pRender->DrawColor(rcFill, GetWindowColor(m_strLoadingBkColor));
-  }
+    GetImage(m_loadingImage);
+    if (!m_loadingImage.imageCache) {
+        ASSERT(FALSE);
+        return;
+    }
 
-  Gdiplus::Bitmap tempBitmap(image->GetWidth(), image->GetHeight());
-  Gdiplus::Graphics temp_render(&tempBitmap);
+    Gdiplus::Bitmap* image = GdiHelper::CreateBitmapFromHBITMAP(m_loadingImage.imageCache->GetHBitmap(0));
+    if (!image) {
+        ASSERT(FALSE);
+        return;
+    }
+    if (!m_strLoadingBkColor.empty()) {
+        Gdiplus::SolidBrush brush(GetWindowColor(m_strLoadingBkColor));
+        ui::UiRect rcFill = m_rcItem;
+        rcFill.left = m_rcItem.left + (m_rcItem.GetWidth() - image->GetWidth()) / 2;
+        rcFill.right = rcFill.left + image->GetWidth();
+        rcFill.top = m_rcItem.top + (m_rcItem.GetHeight() - image->GetHeight()) / 2;
+        rcFill.bottom = rcFill.top + image->GetHeight();
 
-  Gdiplus::Matrix matrix;
-  temp_render.GetTransform(&matrix);
-  matrix.RotateAt(static_cast<float>(m_fCurrrentAngele), Gdiplus::PointF(static_cast<Gdiplus::REAL>(image->GetWidth() / 2), static_cast<Gdiplus::REAL>(image->GetHeight() / 2)));
-  temp_render.SetTransform(&matrix);
+        ui::UiRect rcDest = m_loadingImage.imageAttribute.rcDest;
+        if (!rcDest.IsRectEmpty()) {
+            rcFill.left = m_rcItem.left + rcDest.left;
+            rcFill.right = m_rcItem.left + rcDest.right;
+            rcFill.top = m_rcItem.top + rcDest.top;
+            rcFill.bottom = m_rcItem.bottom + rcDest.bottom;
+        }
 
-  temp_render.DrawImage(image, 0.f, 0.f);
+        pRender->DrawColor(rcFill, GetWindowColor(m_strLoadingBkColor));
+    }
 
-  Gdiplus::Graphics graphics(pRender->GetDC());
-  graphics.DrawImage(&tempBitmap,
-                     Gdiplus::RectF(static_cast<Gdiplus::REAL>(m_rcItem.left + (GetWidth() - image->GetWidth()) / 2),
-						            static_cast<Gdiplus::REAL>(m_rcItem.top + (GetHeight() - image->GetHeight()) / 2),
-		                            static_cast<Gdiplus::REAL>(image->GetWidth()), 
-						            static_cast<Gdiplus::REAL>(image->GetHeight())),
-                     0, 0, static_cast<Gdiplus::REAL>(image->GetWidth()), static_cast<Gdiplus::REAL>(image->GetHeight()),
-                   Gdiplus::UnitPixel);
+    Gdiplus::Bitmap tempBitmap(image->GetWidth(), image->GetHeight());
+    Gdiplus::Graphics temp_render(&tempBitmap);
 
-  delete image;
+    Gdiplus::Matrix matrix;
+    temp_render.GetTransform(&matrix);
+    matrix.RotateAt(static_cast<float>(m_fCurrrentAngele), Gdiplus::PointF(static_cast<Gdiplus::REAL>(image->GetWidth() / 2), static_cast<Gdiplus::REAL>(image->GetHeight() / 2)));
+    temp_render.SetTransform(&matrix);
+
+    temp_render.DrawImage(image, 0.f, 0.f);
+
+    Gdiplus::Graphics graphics(pRender->GetDC());
+    graphics.DrawImage(&tempBitmap,
+        Gdiplus::RectF(static_cast<Gdiplus::REAL>(m_rcItem.left + (GetWidth() - image->GetWidth()) / 2),
+            static_cast<Gdiplus::REAL>(m_rcItem.top + (GetHeight() - image->GetHeight()) / 2),
+            static_cast<Gdiplus::REAL>(image->GetWidth()),
+            static_cast<Gdiplus::REAL>(image->GetHeight())),
+        0, 0, static_cast<Gdiplus::REAL>(image->GetWidth()), static_cast<Gdiplus::REAL>(image->GetHeight()),
+        Gdiplus::UnitPixel);
+
+    delete image;
 }
 
 void Control::SetAlpha(int alpha)

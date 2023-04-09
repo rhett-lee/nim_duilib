@@ -270,7 +270,9 @@ void ListBox::ActiveItem()
 {
 	if (m_iCurSel >= 0)	{
 		ListContainerElement* item = dynamic_cast<ListContainerElement*>( GetItemAt(m_iCurSel) );
-		item->InvokeDoubleClickEvent();
+		if (item != nullptr) {
+			item->InvokeDoubleClickEvent();
+		}		
 	}
 }
 

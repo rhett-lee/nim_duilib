@@ -15,8 +15,8 @@ public:
 	void OnSeleteItem();
 
 private:
-    FilterCombo *m_pOwner;
-    int m_iOldSel;
+    FilterCombo *m_pOwner = nullptr;
+    int m_iOldSel = -1;
 	bool m_bClosing = false;
 };
 

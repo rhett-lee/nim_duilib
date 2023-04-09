@@ -17,10 +17,17 @@ CSize VLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 	int nAdjustables = 0;
 	int cyFixed = 0;
 	int nEstimateNum = 0;
-	for( auto it = items.begin(); it != items.end(); it++ ) {
+	for( auto it = items.begin(); it != items.end(); ++it ) {
 		auto pControl = *it;
-		if( !pControl->IsVisible() ) continue;
-		if( pControl->IsFloat() ) continue;
+		if (pControl == nullptr) {
+			continue;
+		}
+		if (!pControl->IsVisible()) {
+			continue;
+		}
+		if (pControl->IsFloat()) {
+			continue;
+		}
 		CSize sz = pControl->EstimateSize(szAvailable);
 		if( sz.cy == DUI_LENGTH_STRETCH ) {
 			nAdjustables++;
@@ -49,9 +56,14 @@ CSize VLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 	int iAdjustable = 0;
 	int max_width = 0;
 
-	for( auto it = items.begin(); it != items.end(); it++ ) {
+	for( auto it = items.begin(); it != items.end(); ++it ) {
 		auto pControl = *it;
-		if( !pControl->IsVisible() ) continue;
+		if (pControl == nullptr) {
+			continue;
+		}
+		if (!pControl->IsVisible()) {
+			continue;
+		}
 		if( pControl->IsFloat() ) {
 			SetFloatPos(pControl, rc);
 			continue;
@@ -111,11 +123,14 @@ CSize VLayout::AjustSizeByChild(const std::vector<Control*>& items, CSize szAvai
 	CSize totalSize;
 	CSize itemSize;
 	Control* pChildControl = NULL;
-	int count = (int)items.size();
+	const int count = (int)items.size();
 	int estimateChildCount = 0;
 	for(int it = 0; it < count; it++) 
 	{
 		pChildControl = (Control*)items[it];
+		if (pChildControl == nullptr) {
+			continue;
+		}
 		if (!pChildControl->IsVisible() || pChildControl->IsFloat()) {
 			continue;
 		}

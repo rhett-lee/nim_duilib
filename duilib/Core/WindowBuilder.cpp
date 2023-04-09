@@ -403,6 +403,10 @@ void WindowBuilder::GetLastErrorLocation(LPTSTR pstrSource, SIZE_T cchMax) const
 
 Control* WindowBuilder::_Parse(CMarkupNode* pRoot, Control* pParent, Window* pManager)
 {
+	assert(pRoot != nullptr);
+	if (pRoot == nullptr) {
+		return nullptr;
+	}
     Control* pReturn = NULL;
     for( CMarkupNode node = pRoot->GetChild() ; node.IsValid(); node = node.GetSibling() ) {
         std::wstring strClass = node.GetName();
@@ -413,15 +417,20 @@ Control* WindowBuilder::_Parse(CMarkupNode* pRoot, Control* pParent, Window* pMa
 
         Control* pControl = NULL;
         if( strClass == _T("Include") ) {
-            if( !node.HasAttributes() ) continue;
+			if (!node.HasAttributes()) {
+				continue;
+			}
             int nCount = 1;
             LPTSTR pstr = NULL;
             TCHAR szValue[500] = { 0 };
             SIZE_T cchLen = sizeof(szValue)/sizeof(szValue[0]) - 1;
-            if ( node.GetAttributeValue(_T("count"), szValue, cchLen) )
-                nCount = _tcstol(szValue, &pstr, 10);
+			if (node.GetAttributeValue(_T("count"), szValue, cchLen)) {
+				nCount = _tcstol(szValue, &pstr, 10);
+			}
             cchLen = sizeof(szValue) / sizeof(szValue[0]) - 1;
-            if ( !node.GetAttributeValue(_T("source"), szValue, cchLen) ) continue;
+			if (!node.GetAttributeValue(_T("source"), szValue, cchLen)) {
+				continue;
+			}
             for ( int i = 0; i < nCount; i++ ) {
                 WindowBuilder builder;
                 pControl = builder.Create((LPCTSTR)szValue, m_createControlCallback, pManager, (Box*)pParent);
@@ -455,7 +464,7 @@ Control* WindowBuilder::_Parse(CMarkupNode* pRoot, Control* pParent, Window* pMa
 
 		// TreeView相关必须先添加后解析
 		if (strClass == DUI_CTR_TREENODE) {
-			TreeNode* pNode = static_cast<TreeNode*>(pControl);
+			TreeNode* pNode = dynamic_cast<TreeNode*>(pControl);
 			TreeView* pTreeView = dynamic_cast<TreeView*>(pParent);
 			if (pTreeView) {
 				pTreeView->GetRootNode()->AddChildNode(pNode);
@@ -498,7 +507,9 @@ Control* WindowBuilder::_Parse(CMarkupNode* pRoot, Control* pParent, Window* pMa
 		}
         
         // Return first item
-        if( pReturn == NULL ) pReturn = pControl;
+		if (pReturn == nullptr) {
+			pReturn = pControl;
+		}
     }
     return pReturn;
 }
@@ -574,6 +585,10 @@ Control* WindowBuilder::CreateControlByClass(const std::wstring& strControlClass
 
 void WindowBuilder::AttachXmlEvent(bool bBubbled, CMarkupNode& node, Control* pParent)
 {
+	assert(pParent != nullptr);
+	if (pParent == nullptr) {
+		return;
+	}
 	auto nAttributes = node.GetAttributeCount();
 	std::wstring strType;
 	std::wstring strReceiver;

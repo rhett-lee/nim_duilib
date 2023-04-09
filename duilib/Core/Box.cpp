@@ -365,8 +365,11 @@ void Box::PaintChild(IRenderContext* pRender, const UiRect& rcPaint)
 	UiRect rcTemp;
 	if( !::IntersectRect(&rcTemp, &rcPaint, &m_rcItem) ) return;
 
-	for (auto it = m_items.begin(); it != m_items.end(); it++) {
+	for (auto it = m_items.begin(); it != m_items.end(); ++it) {
 		Control* pControl = *it;
+		if (pControl == nullptr) {
+			continue;
+		}
 		if( !pControl->IsVisible() ) continue;
 		pControl->AlphaPaint(pRender, rcPaint);
 	}
@@ -445,24 +448,39 @@ CSize Box::EstimateSize(CSize szAvailable)
 
 Control* Box::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, CPoint scrollPos)
 {
+	if (pData == nullptr) {
+		return nullptr;
+	}
 	// Check if this guy is valid
-	if ((uFlags & UIFIND_VISIBLE) != 0 && !IsVisible()) return NULL;
-	if ((uFlags & UIFIND_ENABLED) != 0 && !IsEnabled()) return NULL;
+	if ((uFlags & UIFIND_VISIBLE) != 0 && !IsVisible()) {
+		return nullptr;
+	}
+	if ((uFlags & UIFIND_ENABLED) != 0 && !IsEnabled()) {
+		return nullptr;
+	}
 	if ((uFlags & UIFIND_HITTEST) != 0) {
-		if (!::PtInRect(&m_rcItem, *(static_cast<LPPOINT>(pData)))) return NULL;
+		if (!::PtInRect(&m_rcItem, *(static_cast<LPPOINT>(pData)))) {
+			return nullptr;
+		}
 		if (!m_bMouseChildEnabled) {
-			Control* pResult = NULL;
-			if (pResult == NULL) pResult = Control::FindControl(Proc, pData, uFlags);
+			Control* pResult = nullptr;
+			if (pResult == nullptr) {
+				pResult = Control::FindControl(Proc, pData, uFlags);
+			}
 			return pResult;
 		}
 	}
 
-	Control* pResult = NULL;
-	if (pResult != NULL) return pResult;
+	Control* pResult = nullptr;
+	if (pResult != nullptr) {
+		return pResult;
+	}
 
 	if ((uFlags & UIFIND_ME_FIRST) != 0) {
 		Control* pControl = Control::FindControl(Proc, pData, uFlags);
-		if (pControl != NULL) return pControl;
+		if (pControl != nullptr) {
+			return pControl;
+		}
 	}
 	UiRect rc = m_rcItem;
 	rc.left += m_pLayout->GetPadding().left;
@@ -472,7 +490,7 @@ Control* Box::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, CPoin
 
 	if ((uFlags & UIFIND_TOP_FIRST) != 0) {
 		for (int it = (int)m_items.size() - 1; it >= 0; it--) {
-			Control* pControl;
+			Control* pControl = nullptr;
 			if ((uFlags & UIFIND_HITTEST) != 0) {
 				CPoint newPoint = *(static_cast<LPPOINT>(pData));
 				newPoint.Offset(scrollPos);
@@ -481,17 +499,19 @@ Control* Box::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, CPoin
 			else {
 				pControl = m_items[it]->FindControl(Proc, pData, uFlags);
 			}
-			if (pControl != NULL) {
-				if ((uFlags & UIFIND_HITTEST) != 0 && !pControl->IsFloat() && !::PtInRect(&rc, *(static_cast<LPPOINT>(pData))))
+			if (pControl != nullptr) {
+				if ((uFlags & UIFIND_HITTEST) != 0 && !pControl->IsFloat() && !::PtInRect(&rc, *(static_cast<LPPOINT>(pData)))) {
 					continue;
-				else
+				}
+				else {
 					return pControl;
+				}
 			}
 		}
 	}
 	else {
-		for (auto it = m_items.begin(); it != m_items.end(); it++) {
-			Control* pControl;
+		for (auto it = m_items.begin(); it != m_items.end(); ++it) {
+			Control* pControl = nullptr;
 			if ((uFlags & UIFIND_HITTEST) != 0) {
 				CPoint newPoint = *(static_cast<LPPOINT>(pData));
 				newPoint.Offset(scrollPos);
@@ -500,16 +520,20 @@ Control* Box::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, CPoin
 			else {
 				pControl = (*it)->FindControl(Proc, pData, uFlags);
 			}
-			if (pControl != NULL) {
-				if ((uFlags & UIFIND_HITTEST) != 0 && !pControl->IsFloat() && !::PtInRect(&rc, *(static_cast<LPPOINT>(pData))))
+			if (pControl != nullptr) {
+				if ((uFlags & UIFIND_HITTEST) != 0 && !pControl->IsFloat() && !::PtInRect(&rc, *(static_cast<LPPOINT>(pData)))) {
 					continue;
-				else
+				}
+				else {
 					return pControl;
+				}
 			}
 		}
 	}
 
-	if (pResult == NULL && (uFlags & UIFIND_ME_FIRST) == 0) pResult = Control::FindControl(Proc, pData, uFlags);
+	if (pResult == nullptr && (uFlags & UIFIND_ME_FIRST) == 0) {
+		pResult = Control::FindControl(Proc, pData, uFlags);
+	}
 	return pResult;
 }
 
@@ -596,16 +620,22 @@ bool Box::Add(Control* pControl)
 
 bool Box::AddAt(Control* pControl, std::size_t iIndex)
 {
-	if( pControl == NULL) return false;
+	if (pControl == NULL) {
+		return false;
+	}
 	if( iIndex < 0 || iIndex > m_items.size() ) {
 		ASSERT(FALSE);
 		return false;
 	}
-	if( m_pWindow != NULL ) m_pWindow->InitControls(pControl, this);
-	if( IsVisible() ) 
+	if (m_pWindow != NULL) {
+		m_pWindow->InitControls(pControl, this);
+	}
+	if (IsVisible()) {
 		Arrange();
-	else 
+	}
+	else {
 		pControl->SetInternVisible(false);
+	}
 	m_items.insert(m_items.begin() + iIndex, pControl);
 	return true;
 }
@@ -1084,12 +1114,23 @@ bool ScrollableBox::MouseLeave(EventArgs& msg)
 
 void ScrollableBox::PaintChild(IRenderContext* pRender, const UiRect& rcPaint)
 {
+	assert(pRender != nullptr);
+	if (pRender == nullptr) {
+		return;
+	}
 	UiRect rcTemp;
-	if( !::IntersectRect(&rcTemp, &rcPaint, &m_rcItem) ) return;
+	if (!::IntersectRect(&rcTemp, &rcPaint, &m_rcItem)) {
+		return;
+	}
 
-	for (auto it = m_items.begin(); it != m_items.end(); it++) {
+	for (auto it = m_items.begin(); it != m_items.end(); ++it) {
 		Control* pControl = *it;
-		if( !pControl->IsVisible() ) continue;
+		if (pControl == nullptr) {
+			continue;
+		}
+		if (!pControl->IsVisible()) {
+			continue;
+		}
 		if (pControl->IsFloat()) {
 			pControl->AlphaPaint(pRender, rcPaint);	
 		}
@@ -1138,24 +1179,46 @@ void ScrollableBox::SetWindow(Window* pManager, Box* pParent, bool bInit)
 
 Control* ScrollableBox::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, CPoint /*scrollPos*/)
 {
+	assert(pData != nullptr);
+	if (pData == nullptr) {
+		return nullptr;
+	}
 	// Check if this guy is valid
-	if ((uFlags & UIFIND_VISIBLE) != 0 && !IsVisible()) return NULL;
-	if ((uFlags & UIFIND_ENABLED) != 0 && !IsEnabled()) return NULL;
+	if ((uFlags & UIFIND_VISIBLE) != 0 && !IsVisible()) {
+		return nullptr;
+	}
+	if ((uFlags & UIFIND_ENABLED) != 0 && !IsEnabled()) {
+		return nullptr;
+	}
 	if ((uFlags & UIFIND_HITTEST) != 0) {
-		if (!::PtInRect(&m_rcItem, *(static_cast<LPPOINT>(pData)))) return NULL;
+		if (!::PtInRect(&m_rcItem, *(static_cast<LPPOINT>(pData)))) {
+			return nullptr;
+		}
 		if (!m_bMouseChildEnabled) {
-			Control* pResult = NULL;
-			if (m_pVerticalScrollBar != NULL) pResult = m_pVerticalScrollBar->FindControl(Proc, pData, uFlags);
-			if (pResult == NULL && m_pHorizontalScrollBar != NULL) pResult = m_pHorizontalScrollBar->FindControl(Proc, pData, uFlags);
-			if (pResult == NULL) pResult = Control::FindControl(Proc, pData, uFlags);
+			Control* pResult = nullptr;
+			if (m_pVerticalScrollBar != nullptr) {
+				pResult = m_pVerticalScrollBar->FindControl(Proc, pData, uFlags);
+			}
+			if (pResult == nullptr && m_pHorizontalScrollBar != nullptr) {
+				pResult = m_pHorizontalScrollBar->FindControl(Proc, pData, uFlags);
+			}
+			if (pResult == nullptr) {
+				pResult = Control::FindControl(Proc, pData, uFlags);
+			}
 			return pResult;
 		}
 	}
 
-	Control* pResult = NULL;
-	if (m_pVerticalScrollBar != NULL) pResult = m_pVerticalScrollBar->FindControl(Proc, pData, uFlags);
-	if (pResult == NULL && m_pHorizontalScrollBar != NULL) pResult = m_pHorizontalScrollBar->FindControl(Proc, pData, uFlags);
-	if (pResult != NULL) return pResult;
+	Control* pResult = nullptr;
+	if (m_pVerticalScrollBar != nullptr) {
+		pResult = m_pVerticalScrollBar->FindControl(Proc, pData, uFlags);
+	}
+	if (pResult == nullptr && m_pHorizontalScrollBar != nullptr) {
+		pResult = m_pHorizontalScrollBar->FindControl(Proc, pData, uFlags);
+	}
+	if (pResult != nullptr) {
+		return pResult;
+	}
 
 	CPoint ptNewScrollPos(GetScrollPos().cx, GetScrollPos().cy);
 	return Box::FindControl(Proc, pData, uFlags, ptNewScrollPos);
@@ -1227,8 +1290,15 @@ void ScrollableBox::LoadImageCache(bool bFromTopLeft)
 	rcImageCachePos.Inflate(UiRect(0, 730, 0, 730));
 
 	auto forEach = [this, scrollPos, rcImageCachePos](ui::Control* pControl) {
-		if (!pControl->IsVisible()) return;
-		if (pControl->IsFloat()) return;
+		if (pControl == nullptr) {
+			return;
+		}
+		if (!pControl->IsVisible()) {
+			return;
+		}
+		if (pControl->IsFloat()) {
+			return;
+		}
 		UiRect rcTemp;
 		UiRect controlPos = pControl->GetPos();
 		if (!::IntersectRect(&rcTemp, &rcImageCachePos, &controlPos)) {

@@ -61,10 +61,14 @@ void ui::BoxShadow::SetBoxShadowString(const std::wstring& strBoxShadow)
 				m_nSpreadSize = _tcstol(sValue.c_str(), &pstr, 10); ASSERT(pstr);
 			}
 			else if (sItem == _T("exclude")) {
-				m_bExclude = (_tcscmp(pstr, _T("true")) == 0);
+				if (pstr != nullptr) {
+					m_bExclude = (_tcscmp(pstr, _T("true")) == 0);
+				}				
 			}
 		}
-		if (*pStrKey++ != _T(' ')) break;
+		if (*pStrKey++ != _T(' ')) {
+			break;
+		}
 	}
 }
 
