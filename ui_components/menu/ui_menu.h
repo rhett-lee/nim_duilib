@@ -117,11 +117,11 @@ public:
 	bool CheckSubMenuItem();
 
 	virtual bool AddSubMenuItem(CMenuElementUI* pMenuItem);
-	virtual bool AddSubMenuItemAt(CMenuElementUI* pMenuItem, std::size_t iIndex);
+	virtual bool AddSubMenuItemAt(CMenuElementUI* pMenuItem, size_t iIndex);
 	virtual bool RemoveSubMenuItem(CMenuElementUI* pMenuItem);
-	virtual bool RemoveSubMenuItemAt(std::size_t iIndex);
+	virtual bool RemoveSubMenuItemAt(size_t iIndex);
 	virtual bool RemoveAllSubMenuItem();
-	virtual CMenuElementUI* GetSubMenuItemAt(std::size_t iIndex) const;
+	virtual CMenuElementUI* GetSubMenuItemAt(size_t iIndex) const;
 	virtual int GetSubMenuItemCount() const{ return static_cast<int>(m_child_menus.size()); };
 
 	virtual bool Add(Control* pControl) override;

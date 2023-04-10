@@ -98,7 +98,7 @@ int ThreadMap::QueryThreadId(const FrameworkThread *thread)
 	AUTO_MAP_LOCK()
 	std::map<int, FrameworkThread*>::iterator iter;
 	for (iter = GetInstance()->threads_.begin();
-		iter != GetInstance()->threads_.end(); iter++) {
+		iter != GetInstance()->threads_.end(); ++iter) {
 		if (iter->second == thread)
 			return iter->first;
 	}

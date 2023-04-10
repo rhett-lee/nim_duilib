@@ -112,7 +112,7 @@ void AsyncModalRunnerManager::Deregister(AsyncModalRunner *runner)
 	std::shared_ptr<AsyncModalRunner> found;
 	{
 		nbase::NAutoLock lock(&threads_lock_);
-		for (std::list<std::shared_ptr<AsyncModalRunner> >::const_iterator iter = runners_.begin(); iter != runners_.end(); iter++) {
+		for (std::list<std::shared_ptr<AsyncModalRunner> >::const_iterator iter = runners_.begin(); iter != runners_.end(); ++iter) {
 			if ((*iter).get() == runner) {
 				found = *iter;
 				runners_.erase(iter);

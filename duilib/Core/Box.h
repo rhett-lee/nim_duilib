@@ -145,7 +145,7 @@ public:
 	 * @param[in] iIndex 控件索引
 	 * @return 返回控件指针
 	 */
-	virtual Control* GetItemAt(std::size_t iIndex) const;
+	virtual Control* GetItemAt(size_t iIndex) const;
 
 	/**
 	 * @brief 根据控件指针获取索引
@@ -160,7 +160,7 @@ public:
 	 * @param[in] iIndex 要设置的索引值
 	 * @return 返回 true 设置成功，false 设置失败
 	 */
-	virtual bool SetItemIndex(Control* pControl, std::size_t iIndex);
+	virtual bool SetItemIndex(Control* pControl, size_t iIndex);
 
 	/**
 	 * @brief 获取子控件数量
@@ -181,7 +181,7 @@ public:
 	 * @param[in] iIndex 在该索引之后插入控件
 	 * @return 返回 true 为添加成功，false 为添加失败
 	 */
-	virtual bool AddAt(Control* pControl, std::size_t iIndex);
+	virtual bool AddAt(Control* pControl, size_t iIndex);
 
 	/**
 	 * @brief 根据控件指针从容器中移除一个控件
@@ -195,7 +195,7 @@ public:
 	 * @param[in] iIndex 要移除的控件索引
 	 * @return 返回 true 为移除成功，false 为移除失败（索引值太小或超出了子控件总数）
 	 */
-	virtual bool RemoveAt(std::size_t iIndex);
+	virtual bool RemoveAt(size_t iIndex);
 
 	/**
 	 * @brief 移除所有子控件
@@ -224,7 +224,7 @@ public:
 	 * @param[in] iIndex 要重置的位置
 	 * @return 无
 	 */
-	void ResetChildIndex(Control* pChild, std::size_t iIndex);
+	void ResetChildIndex(Control* pChild, size_t iIndex);
 
 	/**
 	 * @brief 判断是否自动销毁

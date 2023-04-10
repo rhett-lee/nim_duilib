@@ -51,6 +51,7 @@ void Path_Gdiplus::AddLine(int x1, int y1, int x2, int y2)
 
 void Path_Gdiplus::AddLines(const CPoint* points, int count)
 {
+	assert(points != nullptr);
 	if (points == nullptr) {
 		return;
 	}
@@ -59,7 +60,9 @@ void Path_Gdiplus::AddLines(const CPoint* points, int count)
 	{
 		p.emplace_back(points[i].x, points[i].y);
 	}
-	path_->AddLines(&p[0], static_cast<INT>(p.size()));
+	if(!p.empty()){
+	    path_->AddLines(&p[0], static_cast<INT>(p.size()));
+	}
 }
 
 void Path_Gdiplus::AddBezier(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4)
@@ -69,6 +72,7 @@ void Path_Gdiplus::AddBezier(int x1, int y1, int x2, int y2, int x3, int y3, int
 
 void Path_Gdiplus::AddCurve(const CPoint* points, int count)
 {
+	assert(points != nullptr);
 	if (points == nullptr) {
 		return;
 	}
@@ -77,7 +81,9 @@ void Path_Gdiplus::AddCurve(const CPoint* points, int count)
 	{
 		p.emplace_back(points[i].x, points[i].y);
 	}
-	path_->AddCurve(&p[0], static_cast<INT>(p.size()));
+	if(!p.empty()){
+	    path_->AddCurve(&p[0], static_cast<INT>(p.size()));
+	}
 }
 
 void Path_Gdiplus::AddRect(int left, int top, int right, int bottom)
@@ -112,6 +118,7 @@ void Path_Gdiplus::AddPie(int x, int y, int width, int height, float startAngle,
 
 void Path_Gdiplus::AddPolygon(const CPoint* points, int count)
 {
+	assert(points != nullptr);
 	if (points == nullptr) {
 		return;
 	}
@@ -120,7 +127,9 @@ void Path_Gdiplus::AddPolygon(const CPoint* points, int count)
 	{
 		p.emplace_back(points[i].x, points[i].y);
 	}
-	path_->AddPolygon(&p[0], static_cast<INT>(p.size()));
+	if(!p.empty()){
+	    path_->AddPolygon(&p[0], static_cast<INT>(p.size()));
+	}
 }
 
 ui::UiRect Path_Gdiplus::GetBound(const IPen* pen)
@@ -138,6 +147,7 @@ bool Path_Gdiplus::IsContainsPoint(int x, int y)
 
 bool Path_Gdiplus::IsStrokeContainsPoint(int x, int y, const IPen* pen)
 {
+	assert(pen != nullptr);
 	if (pen == nullptr) {
 		return false;
 	}
@@ -146,6 +156,7 @@ bool Path_Gdiplus::IsStrokeContainsPoint(int x, int y, const IPen* pen)
 
 void Path_Gdiplus::Transform(const IMatrix* matrix)
 {
+	assert(matrix != nullptr);
 	if (matrix == nullptr) {
 		return;
 	}

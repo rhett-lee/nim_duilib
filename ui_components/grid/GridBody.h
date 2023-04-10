@@ -78,20 +78,20 @@ namespace ui
 		/**
 		* @brief 固定行列的背景色
 		*/
-		std::wstring GetFixedBkColor() const;
-		void SetFixedBkColor(std::wstring color);
+		const std::wstring& GetFixedBkColor() const;
+		void SetFixedBkColor(const std::wstring& color);
 
 		/**
 		* @brief 选中单元格的前景色
 		*/
-		std::wstring GetSelForeColor() const;
-		void SetSelForeColor(std::wstring color);
+		const std::wstring& GetSelForeColor() const;
+		void SetSelForeColor(const std::wstring& color);
 
 		/**
 		* @brief 网格线颜色
 		*/
-		std::wstring GetGridLineColor() const;
-		void SetGridLineColor(std::wstring color);
+		const std::wstring& GetGridLineColor() const;
+		void SetGridLineColor(const std::wstring& color);
 	
 		/**
 		*/
@@ -104,7 +104,7 @@ namespace ui
 		* @param[in] col_index: 第几列,base on 0;
 		*/
 		std::wstring GetGridItemText(int row_index, int col_index);
-		bool SetGridItemText(std::wstring text, int row_index, int col_index);
+		bool SetGridItemText(const std::wstring& text, int row_index, int col_index);
 
 		/**
 		* @brief 判断单元格是否fixed;

@@ -73,7 +73,7 @@ UINT DpiManager::GetDPIFromRegistry()
 	else
 	{
 		DWORD data_size = 4;
-		int data;
+		int data = 0;
 		DWORD type = REG_DWORD;
 		ret = ::RegQueryValueEx(hKEY, L"AppliedDPI", NULL, &type, (LPBYTE)&data, &data_size);
 		if (ret != ERROR_SUCCESS)

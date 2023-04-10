@@ -24,7 +24,7 @@ public:
 	virtual ~FilterListBox(){};
 
 	virtual bool SelectItem(int iIndex, bool bTakeFocus = false, bool bTrigger = true) override;
-	void Filter(std::string utf8_str);
+	void Filter(const std::string& utf8_str);
 
 	void SetFilterComboWnd(CFilterComboWnd *pFilterComboWnd){ m_pFilterComboWnd = pFilterComboWnd; };
 	CFilterComboWnd *GetFilterComboWnd(){ return m_pFilterComboWnd; };
@@ -46,7 +46,7 @@ public:
 	/// 重写父类方法，提供个性化功能，请参考父类声明
 	virtual bool Add(Control* pControl) override;
 	virtual bool Remove(Control* pControl) override;
-	virtual bool RemoveAt(std::size_t iIndex) override;
+	virtual bool RemoveAt(size_t iIndex) override;
 	virtual void RemoveAll() override;
 	virtual void Activate() override;
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;

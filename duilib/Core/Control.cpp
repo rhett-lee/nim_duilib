@@ -653,16 +653,14 @@ bool Control::IsActivatable() const
 
 Control* Control::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, CPoint /*scrollPos*/)
 {
-	if ((Proc == nullptr) || (pData == nullptr)) {
-		return nullptr;
-	}
 	if ((uFlags & UIFIND_VISIBLE) != 0 && !IsVisible()) {
 		return nullptr;
 	}
 	if ((uFlags & UIFIND_ENABLED) != 0 && !IsEnabled()) {
 		return nullptr;
 	}
-	if ((uFlags & UIFIND_HITTEST) != 0 && (!m_bMouseEnabled || !::PtInRect(&m_rcItem, *static_cast<LPPOINT>(pData)))) {
+	if ((uFlags & UIFIND_HITTEST) != 0 && 
+		(!m_bMouseEnabled || ((pData != nullptr) && !::PtInRect(&m_rcItem, *static_cast<LPPOINT>(pData))))) {
 		return nullptr;
 	}
     return Proc(this, pData);

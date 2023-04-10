@@ -82,7 +82,7 @@ LRESULT WindowImplBase::OnWindowPosChanging(UINT /*uMsg*/, WPARAM /*wParam*/, LP
 			// 判断GetWindowRect的位置如果不正确（最小化时得到的位置信息是-38000），则改用normal状态下的位置，来获取HMONITOR
 			RECT rc = { 0 };
 			GetWindowRect(m_hWnd, &rc);
-			if (rc.left < -10000 && rc.top < -10000 && rc.left < -10000 && rc.right < -10000) {
+			if (rc.left < -10000 && rc.top < -10000 && rc.bottom < -10000 && rc.right < -10000) {
 				WINDOWPLACEMENT wp = { sizeof(WINDOWPLACEMENT) };
 				GetWindowPlacement(m_hWnd, &wp);
 				hMonitorTo = MonitorFromRect(&wp.rcNormalPosition, MONITOR_DEFAULTTOPRIMARY);

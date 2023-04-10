@@ -229,7 +229,7 @@ Control* ListBox::GetTopItem()
 	return nullptr;
 }
 
-bool ListBox::SetItemIndex(Control* pControl, std::size_t iIndex)
+bool ListBox::SetItemIndex(Control* pControl, size_t iIndex)
 {
 	int iOrginIndex = GetItemIndex(pControl);
 	if( iOrginIndex == -1 ) return false;
@@ -238,9 +238,9 @@ bool ListBox::SetItemIndex(Control* pControl, std::size_t iIndex)
 	ListContainerElement* pSelectedListItem = NULL;
 	if( m_iCurSel >= 0 ) pSelectedListItem = dynamic_cast<ListContainerElement*>(GetItemAt(m_iCurSel));
 	if( !ScrollableBox::SetItemIndex(pControl, iIndex) ) return false;
-	std::size_t iMinIndex = std::min((std::size_t)iOrginIndex, iIndex);
-	std::size_t iMaxIndex = std::max((std::size_t)iOrginIndex, iIndex);
-	for(std::size_t i = iMinIndex; i < iMaxIndex + 1; ++i) {
+	size_t iMinIndex = std::min((size_t)iOrginIndex, iIndex);
+	size_t iMaxIndex = std::max((size_t)iOrginIndex, iIndex);
+	for(size_t i = iMinIndex; i < iMaxIndex + 1; ++i) {
 		Control* pItemControl = GetItemAt(i);
 		ListContainerElement* pListItem = dynamic_cast<ListContainerElement*>(pItemControl);
 		if( pListItem != NULL ) {
@@ -290,7 +290,7 @@ bool ListBox::Add(Control* pControl)
 	return ScrollableBox::Add(pControl);
 }
 
-bool ListBox::AddAt(Control* pControl, std::size_t iIndex)
+bool ListBox::AddAt(Control* pControl, size_t iIndex)
 {
 	// Override the AddAt() method so we can add items specifically to
 	// the intended widgets. Headers and are assumed to be
@@ -324,7 +324,7 @@ bool ListBox::Remove(Control* pControl)
 	return RemoveAt(iIndex);
 }
 
-bool ListBox::RemoveAt(std::size_t iIndex)
+bool ListBox::RemoveAt(size_t iIndex)
 {
 	if (!ScrollableBox::RemoveAt(iIndex)) return false;
 

@@ -600,31 +600,34 @@ namespace ui
 		}
 	}
 
-	std::wstring GridBody::GetFixedBkColor() const
+	const std::wstring& GridBody::GetFixedBkColor() const
 	{
 		return m_strFixedBkColor;
 	}
-	void GridBody::SetFixedBkColor(std::wstring color)
+
+	void GridBody::SetFixedBkColor(const std::wstring& color)
 	{
 		m_strFixedBkColor = color;
 		Invalidate();
 	}
 
-	std::wstring GridBody::GetSelForeColor() const
+	const std::wstring& GridBody::GetSelForeColor() const
 	{
 		return m_strSelForeColor;
 	}
-	void GridBody::SetSelForeColor(std::wstring color)
+
+	void GridBody::SetSelForeColor(const std::wstring& color)
 	{
 		m_strSelForeColor = color;
 		Invalidate();
 	}
 
-	std::wstring GridBody::GetGridLineColor() const
+	const std::wstring& GridBody::GetGridLineColor() const
 	{
 		return m_strGridLineColor;
 	}
-	void GridBody::SetGridLineColor(std::wstring color)
+
+	void GridBody::SetGridLineColor(const std::wstring& color)
 	{
 		m_strGridLineColor = color;
 		Invalidate();
@@ -662,7 +665,8 @@ namespace ui
 		}
 		return str;
 	}
-	bool GridBody::SetGridItemText(std::wstring text, int row_index, int col_index)
+
+	bool GridBody::SetGridItemText(const std::wstring& text, int row_index, int col_index)
 	{
 		bool ret = false;
 		GridItem *item = GetGridItem(row_index, col_index);
@@ -1578,8 +1582,8 @@ namespace ui
 	}
 	void GridBody::_SelCol(int col_index, bool selected)
 	{
-		assert(col_index >= col_index && col_index < GetColCount());
-		if (col_index >= col_index && col_index < GetColCount())
+		assert(col_index >= 0 && col_index < GetColCount());
+		if (col_index >= 0 && col_index < GetColCount())
 		{
 			int row_count = GetRowCount();
 			for (int i = 0; i < row_count; i++)

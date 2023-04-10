@@ -819,11 +819,11 @@ std::wstring GlobalManager::GetZipFilePath(const std::wstring& path)
 
 std::wstring GlobalManager::GetResPath(const std::wstring& res_path, const std::wstring& window_res_path)
 {
-	std::wstring imageFullPath = res_path;
-	if (!::PathIsRelative(res_path.c_str()))
+	if (!::PathIsRelative(res_path.c_str())){
 		return res_path;
+	}
 
-	imageFullPath = GlobalManager::GetResourcePath() + window_res_path + res_path;
+	std::wstring imageFullPath = GlobalManager::GetResourcePath() + window_res_path + res_path;
 	imageFullPath = StringHelper::ReparsePath(imageFullPath);
 
 	if (!GlobalManager::IsZipResExist(imageFullPath) && !::PathFileExists(imageFullPath.c_str())) {

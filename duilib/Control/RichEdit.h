@@ -957,7 +957,7 @@ public:
 	 * @param[in] newText ÐÂÖµ
 	 * @return ÎÞ
 	 */
-	void RaiseUIAValueEvent(const std::wstring oldText, const std::wstring newText);
+	void RaiseUIAValueEvent(const std::wstring& oldText, const std::wstring& newText);
 
 protected:
     CTxtWinHost* m_pTwh;

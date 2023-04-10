@@ -53,7 +53,7 @@ bool TabBox::Add(Control* pControl)
 	return ret;
 }
 
-bool TabBox::AddAt(Control* pControl, std::size_t iIndex)
+bool TabBox::AddAt(Control* pControl, size_t iIndex)
 {
 	bool ret = Box::AddAt(pControl, iIndex);
 	if (!ret) {
@@ -63,7 +63,7 @@ bool TabBox::AddAt(Control* pControl, std::size_t iIndex)
 	if(m_iCurSel == -1 && pControl->IsVisible()) {
 		m_iCurSel = GetItemIndex(pControl);
 	}
-	else if( m_iCurSel != -1 && iIndex <= (std::size_t)m_iCurSel ) {
+	else if( m_iCurSel != -1 && iIndex <= (size_t)m_iCurSel ) {
 		m_iCurSel += 1;
 	}
 	else {
@@ -113,7 +113,7 @@ bool TabBox::Remove(Control* pControl)
 	return ret;
 }
 
-bool TabBox::RemoveAt(std::size_t iIndex)
+bool TabBox::RemoveAt(size_t iIndex)
 {
 	Control* pControl = GetItemAt(iIndex);
 	if (pControl == NULL) return false;
@@ -134,12 +134,12 @@ int TabBox::GetCurSel() const
 	
 bool TabBox::SelectItem(int iIndex)
 {
-	if( iIndex < 0 || (std::size_t)iIndex >= m_items.size() ) return false;
+	if( iIndex < 0 || (size_t)iIndex >= m_items.size() ) return false;
 	if( iIndex == m_iCurSel ) return true;
 
 	int iOldSel = m_iCurSel;
 	m_iCurSel = iIndex;
-	for( std::size_t it = 0; it < m_items.size(); it++ ){
+	for( size_t it = 0; it < m_items.size(); it++ ){
 		if( (int)it == iIndex ) {
 			ShowTabItem(it);
 
@@ -213,7 +213,7 @@ bool TabBox::SelectItem(int iIndex)
 	return true;
 }
 
-void TabBox::HideTabItem(std::size_t it)
+void TabBox::HideTabItem(size_t it)
 {
 	m_items[it]->SetMouseEnabled(false);
 	if (Box* box = dynamic_cast<Box*>(this->m_items[it])) {
@@ -222,7 +222,7 @@ void TabBox::HideTabItem(std::size_t it)
 	m_items[it]->SetAlpha(0);
 }
 
-void TabBox::ShowTabItem(std::size_t it)
+void TabBox::ShowTabItem(size_t it)
 {
 	m_items[it]->SetMouseEnabled(true);
 	if (Box* box = dynamic_cast<Box*>(this->m_items[it])) {

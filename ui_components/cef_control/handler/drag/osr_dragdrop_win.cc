@@ -123,7 +123,7 @@ std::string HtmlToCFHtml(const std::string& html, const std::string& base_url) {
   size_t end_fragment_offset = start_fragment_offset + html.length();
   size_t end_html_offset = end_fragment_offset + strlen(end_markup);
   char raw_result[1024];
-  _snprintf_s(raw_result, sizeof(1024),
+  _snprintf_s(raw_result, 1024,
       header,
       start_html_offset,
       end_html_offset,

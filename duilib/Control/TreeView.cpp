@@ -96,13 +96,13 @@ bool TreeNode::AddChildNode(TreeNode* pTreeNode)
 	return AddChildNodeAt(pTreeNode, GetChildNodeCount());
 }
 
-bool TreeNode::AddChildNodeAt(TreeNode* pTreeNode, std::size_t iIndex)
+bool TreeNode::AddChildNodeAt(TreeNode* pTreeNode, size_t iIndex)
 {
 	assert(pTreeNode != nullptr);
 	if (pTreeNode == nullptr) {
 		return false;
 	}
-	if (iIndex < 0 || iIndex > m_aTreeNodes.size()) {
+	if (iIndex > m_aTreeNodes.size()) {
 		return false;
 	}
 	m_aTreeNodes.insert(m_aTreeNodes.begin() + iIndex, pTreeNode);
@@ -110,8 +110,8 @@ bool TreeNode::AddChildNodeAt(TreeNode* pTreeNode, std::size_t iIndex)
 	pTreeNode->m_iDepth = m_iDepth + 1;
 	pTreeNode->SetParentNode(this);
 	pTreeNode->SetTreeView(m_pTreeView);
-	if (m_pWindow != NULL) {
-		m_pWindow->InitControls(pTreeNode, NULL);
+	if (m_pWindow != nullptr) {
+		m_pWindow->InitControls(pTreeNode, nullptr);
 	}
 	pTreeNode->OnEvent[kEventClick] += nbase::Bind(&TreeNode::OnClickItem, this, std::placeholders::_1);
 
@@ -123,8 +123,8 @@ bool TreeNode::AddChildNodeAt(TreeNode* pTreeNode, std::size_t iIndex)
 	}
 	pTreeNode->m_pLayout->SetPadding(padding);
 
-	std::size_t nGlobalIndex = iIndex;
-	for (std::size_t i = 0; i < iIndex; i++)
+	size_t nGlobalIndex = iIndex;
+	for (size_t i = 0; i < iIndex; i++)
 	{
 		nGlobalIndex += ((TreeNode*)m_aTreeNodes[i])->GetDescendantNodeCount();
 	}
@@ -132,9 +132,9 @@ bool TreeNode::AddChildNodeAt(TreeNode* pTreeNode, std::size_t iIndex)
 	return m_pTreeView->ListBox::AddAt(pTreeNode, (int)(nodeIndex + nGlobalIndex + 1));
 }
 
-bool TreeNode::RemoveChildNodeAt(std::size_t iIndex)
+bool TreeNode::RemoveChildNodeAt(size_t iIndex)
 {
-	if (iIndex < 0 || iIndex >= m_aTreeNodes.size()) {
+	if (iIndex >= m_aTreeNodes.size()) {
 		return false;
 	}
 
@@ -191,15 +191,17 @@ int TreeNode::GetDescendantNodeCount()
 	return nodeCount;
 }
 
-std::size_t TreeNode::GetChildNodeCount()
+size_t TreeNode::GetChildNodeCount()
 {
 	return m_aTreeNodes.size();
 }
 	
-TreeNode* TreeNode::GetChildNode(std::size_t iIndex)
+TreeNode* TreeNode::GetChildNode(size_t iIndex)
 {
-	if( iIndex < 0 || iIndex >= m_aTreeNodes.size() ) return NULL;
-	return static_cast<TreeNode*>(m_aTreeNodes[iIndex]);
+	if (iIndex >= m_aTreeNodes.size()) {
+		return nullptr;
+	}
+	return m_aTreeNodes[iIndex];
 }
 	
 int TreeNode::GetChildNodeIndex(TreeNode* pTreeNode)
@@ -223,13 +225,14 @@ void TreeNode::SetExpand(bool bExpand, bool bTriggerEvent)
 	}
 	m_bExpand = bExpand;
 
-	if (m_pWindow != NULL) {
+	if (m_pWindow != nullptr) {
 		if (bTriggerEvent) {
 			m_pWindow->SendNotify(this, m_bExpand ? kEventExpand : kEventUnExpand);
 		}
 	}
-
-	m_pTreeView->Arrange();
+	if (m_pTreeView != nullptr) {
+		m_pTreeView->Arrange();
+	}	
 }
 
 int TreeNode::GetDepth()
@@ -267,7 +270,7 @@ bool TreeView::Add(Control* /*pControl*/)
 	return true;
 }
 
-bool TreeView::AddAt(Control* /*pControl*/, std::size_t /*iIndex*/)
+bool TreeView::AddAt(Control* /*pControl*/, size_t /*iIndex*/)
 {
 	ASSERT(FALSE);
 	return true;
@@ -279,7 +282,7 @@ bool TreeView::Remove(Control* /*pControl*/)
 	return true;
 }
 
-bool TreeView::RemoveAt(std::size_t /*iIndex*/)
+bool TreeView::RemoveAt(size_t /*iIndex*/)
 {
 	ASSERT(FALSE);
 	return true;

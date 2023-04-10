@@ -36,18 +36,20 @@ void ChildBox::Init()
 
 void ChildBox::SetAttribute( const::std::wstring& strName, const std::wstring& strValue )
 {
-	if( strName == _T("xmlfile") )
+	if (strName == _T("xmlfile")) {
 		SetChildLayoutXML(strValue);
-	else
-		Box::SetAttribute(strName,strValue);
+	}
+	else {
+		Box::SetAttribute(strName, strValue);
+	}
 }
 
-void ChildBox::SetChildLayoutXML( std::wstring strXML )
+void ChildBox::SetChildLayoutXML(const std::wstring& strXML )
 {
 	m_strXMLFile = strXML;
 }
 
-std::wstring ChildBox::GetChildLayoutXML()
+const std::wstring& ChildBox::GetChildLayoutXML()
 {
 	return m_strXMLFile;
 }

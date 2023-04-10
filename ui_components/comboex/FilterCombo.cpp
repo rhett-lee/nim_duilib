@@ -4,7 +4,8 @@
 namespace nim_comp
 {
 
-class CFilterComboWnd : public Window
+class CFilterComboWnd: 
+	public Window
 {
 public:
     void Init(FilterCombo* pOwner);
@@ -22,6 +23,10 @@ private:
 
 void CFilterComboWnd::Init(FilterCombo* pOwner)
 {
+	assert(pOwner != nullptr);
+	if (pOwner == nullptr) {
+		return;
+	}
     m_pOwner = pOwner;
     m_iOldSel = m_pOwner->GetCurSel();
 
@@ -31,19 +36,27 @@ void CFilterComboWnd::Init(FilterCombo* pOwner)
     UiRect rc = rcOwner;
     rc.top = rc.bottom + 1;		// 父窗口left、bottom位置作为弹出窗口起点
     rc.bottom = rc.top + szDrop.cy;	// 计算弹出窗口高度
-    if( szDrop.cx > 0 ) rc.right = rc.left + szDrop.cx;	// 计算弹出窗口宽度
+	if (szDrop.cx > 0) {
+		rc.right = rc.left + szDrop.cx;	// 计算弹出窗口宽度
+	}
 
     CSize szAvailable(rc.right - rc.left, rc.bottom - rc.top);
     int cyFixed = 0;
 	for (int it = 0; it < pOwner->GetListBox()->GetCount(); it++) {
 		Control* pControl = pOwner->GetListBox()->GetItemAt(it);
-        if( !pControl->IsVisible() ) continue;
+		if (pControl == nullptr) {
+			continue;
+		}
+		if (!pControl->IsVisible()) {
+			continue;
+		}
         CSize sz = pControl->EstimateSize(szAvailable);
         cyFixed += sz.cy;
     }
     cyFixed += 2; // VBox 默认的Padding 调整
     rc.bottom = rc.top + std::min((LONG)cyFixed, szDrop.cy);
 
+	assert(pOwner->GetWindow() != nullptr);
     ::MapWindowRect(pOwner->GetWindow()->GetHWND(), HWND_DESKTOP, &rc);
 
     MONITORINFO oMonitor = {};
@@ -62,8 +75,9 @@ void CFilterComboWnd::Init(FilterCombo* pOwner)
     Create(pOwner->GetWindow()->GetHWND(), NULL, WS_POPUP, WS_EX_TOOLWINDOW, true, rc);
     // HACK: Don't deselect the parent's caption
     HWND hWndParent = m_hWnd;
-    while( ::GetParent(hWndParent) != NULL ) 
+	while (::GetParent(hWndParent) != NULL) {
 		hWndParent = ::GetParent(hWndParent);
+	}
     ::ShowWindow(m_hWnd, SW_SHOW);
     //::SendMessage(hWndParent, WM_NCACTIVATE, TRUE, 0L);
 }
@@ -75,10 +89,12 @@ std::wstring CFilterComboWnd::GetWindowClassName() const
 
 void CFilterComboWnd::OnFinalMessage(HWND /*hWnd*/)
 {
-	m_pOwner->m_pComboWnd = NULL;
-    m_pOwner->m_uButtonState = kControlStateNormal;
-    m_pOwner->Invalidate();
-    delete this;
+	if (m_pOwner != nullptr) {
+		m_pOwner->m_pComboWnd = NULL;
+		m_pOwner->m_uButtonState = kControlStateNormal;
+		m_pOwner->Invalidate();		
+	}
+	delete this;
 }
 
 void CFilterComboWnd::OnSeleteItem()
@@ -109,34 +125,36 @@ LRESULT CFilterComboWnd::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
 		if (m_hWnd != (HWND)wParam)	{ 
 			m_bClosing = true;
 			PostMessage(WM_CLOSE);
-			m_pOwner->SelectItem(m_pOwner->GetListBox()->GetCurSel());
-			((Box*)this->GetRoot())->RemoveAt(0);
-			m_pOwner->GetListBox()->PlaceHolder::SetWindow(nullptr, nullptr, false);
-			m_pOwner->GetListBox()->SetFilterComboWnd(nullptr);
+			if ((m_pOwner != nullptr) && (m_pOwner->GetListBox() != nullptr)){
+				m_pOwner->SelectItem(m_pOwner->GetListBox()->GetCurSel());
+				((Box*)this->GetRoot())->RemoveAt(0);
+				m_pOwner->GetListBox()->PlaceHolder::SetWindow(nullptr, nullptr, false);
+				m_pOwner->GetListBox()->SetFilterComboWnd(nullptr);
+			}
 		}
     }
 #if 1
-	else if (uMsg == WM_CHAR || uMsg == WM_KEYDOWN || uMsg == WM_KEYUP)
-	{
-		if (m_pOwner)
-		{
+	else if (uMsg == WM_CHAR || uMsg == WM_KEYDOWN || uMsg == WM_KEYUP) {
+		if (m_pOwner){
 			EventArgs args;
 			args.pSender = m_pOwner->GetListBox();
 			args.chKey = static_cast<TCHAR>(wParam);
-			if (uMsg == WM_CHAR)
+			if (uMsg == WM_CHAR) {
 				args.Type = kEventChar;
-			else if (uMsg == WM_KEYDOWN)
+			}
+			else if (uMsg == WM_KEYDOWN) {
 				args.Type = kEventKeyDown;
-			else if (uMsg == WM_KEYUP)
+			}
+			else if (uMsg == WM_KEYUP) {
 				args.Type = kEventKeyUp;
+			}
 			args.wParam = wParam;
 			args.lParam = lParam;
 			args.dwTimestamp = ::GetTickCount();
 			m_pOwner->HandleMessage(args);
 		}
 	}
-	else if (uMsg == WM_SYSKEYDOWN)
-	{
+	else if (uMsg == WM_SYSKEYDOWN){
 		if (m_pOwner)
 		{
 			EventArgs args;
@@ -191,41 +209,50 @@ bool FilterListBox::SelectItem(int iIndex, bool bTakeFocus, bool bTrigger)
 		Control* pControl = GetItemAt(m_iCurSel);
 		if (pControl != NULL) {
 			ListContainerElement* pListItem = dynamic_cast<ListContainerElement*>(pControl);
-			if (pListItem != NULL) pListItem->OptionTemplate<Box>::Selected(false, bTrigger);
+			if (pListItem != NULL) {
+				pListItem->OptionTemplate<Box>::Selected(false, bTrigger);
+			}
 		}
-
 		m_iCurSel = -1;
 	}
 	if (iIndex < 0) {
-		if (m_pWindow != NULL && bTrigger) {
+		if ((m_pWindow != nullptr) && bTrigger) {
 			m_pWindow->SendNotify(this, kEventSelect, m_iCurSel, iOldSel);
 		}
 		return false;
 	}
 	Control* pControl = GetItemAt(iIndex);
-	if (pControl == NULL) return false;
-	if (!pControl->IsVisible()) return false;
-	if (!pControl->IsEnabled()) return false;
+	if (pControl == nullptr) {
+		return false;
+	}
+	if (!pControl->IsVisible()) {
+		return false;
+	}
+	if (!pControl->IsEnabled()) {
+		return false;
+	}
 
 	ListContainerElement* pListItem = dynamic_cast<ListContainerElement*>(pControl);
-	if (pListItem == NULL) return false;
+	if (pListItem == nullptr) {
+		return false;
+	}
 	m_iCurSel = iIndex;
 	pListItem->OptionTemplate<Box>::Selected(true, bTrigger);
 
-	if (GetItemAt(m_iCurSel)) {
-		UiRect rcItem = GetItemAt(m_iCurSel)->GetPos();
+	Control* pSelItemControl = GetItemAt(m_iCurSel);
+	if (pSelItemControl) {
+		UiRect rcItem = pSelItemControl->GetPos();
 		EnsureVisible(rcItem);
 	}
 
 	if (bTakeFocus) pControl->SetFocus();
-	if (m_pWindow != NULL && bTrigger) {
+	if ((m_pWindow != nullptr) && bTrigger) {
 		m_pWindow->SendNotify(this, kEventSelect, m_iCurSel, iOldSel);
 	}
-
 	return true;
 }
 
-void FilterListBox::Filter(std::string utf8_str)
+void FilterListBox::Filter(const std::string& utf8_str)
 {
 	ListElementMatch *item = nullptr;
 	for (size_t i = 0; i < (size_t)GetCount(); ++i)
@@ -315,7 +342,7 @@ bool FilterCombo::Remove(Control * pControl)
 	return ret;
 }
 
-bool FilterCombo::RemoveAt(std::size_t iIndex)
+bool FilterCombo::RemoveAt(size_t iIndex)
 {
 	bool ret = m_pLayout->RemoveAt((int)iIndex);
 	m_iCurSel = m_pLayout->GetCurSel();
@@ -330,11 +357,14 @@ void FilterCombo::RemoveAll()
 
 void FilterCombo::Activate()
 {
-    if( !IsActivatable() ) return;
-	if (m_pComboWnd) return;
+	if (!IsActivatable()) {
+		return;
+	}
+	if (m_pComboWnd) {
+		return;
+	}
 
 	m_pComboWnd = new CFilterComboWnd();
-	ASSERT(m_pComboWnd);
 	m_pComboWnd->Init(this);
 
 	//if (m_pComboWnd != NULL) m_pComboWnd->SendNotify(this, kEventClick);
@@ -370,7 +400,8 @@ std::wstring FilterCombo::GetText() const
 #endif
 }
 
-FilterListBox* FilterCombo::GetListBox() {
+FilterListBox* FilterCombo::GetListBox() 
+{
 	return m_pLayout.get(); 
 }
 
@@ -412,23 +443,27 @@ Control* FilterCombo::GetItemAt(int iIndex)
 	return m_pLayout->GetItemAt(iIndex);
 }
 
-int FilterCombo::GetCount() const {
+int FilterCombo::GetCount() const 
+{
 	return m_pLayout->GetCount(); 
 }
 
-void FilterCombo::AttachSelect(const EventCallback& callback) { 
+void FilterCombo::AttachSelect(const EventCallback& callback) 
+{ 
 	m_pLayout->AttachSelect(callback); 
 }
 
 bool FilterCombo::OnSelectItem(EventArgs* /*args*/)
 {
-	m_pComboWnd->OnSeleteItem();
+	if (m_pComboWnd != nullptr) {
+		m_pComboWnd->OnSeleteItem();
+	}	
 	m_iCurSel = m_pLayout->GetCurSel();
 	auto pControl = m_pLayout->GetItemAt(m_iCurSel);
 	if (pControl != NULL) {
 		pControl->SetState(kControlStateNormal);
 	}
-	if (m_pComboWnd != NULL) {
+	if (m_pComboWnd != nullptr) {
 		m_pComboWnd->SendNotify(this, kEventSelect, m_iCurSel, -1);
 	}
 	ListContainerElement *ele = dynamic_cast<ListContainerElement*>(pControl);
@@ -441,49 +476,46 @@ bool FilterCombo::OnSelectItem(EventArgs* /*args*/)
 
 bool FilterCombo::OnRichEditTextChanged(EventArgs* /*args*/)
 {
-	if (m_pLayout)
+	m_pLayout->Filter(m_pRichEdit->GetUTF8Text());
+	if (m_pComboWnd == nullptr)
 	{
-		m_pLayout->Filter(m_pRichEdit->GetUTF8Text());
-
-		if (m_pComboWnd)
-		{
-			CSize szDrop = GetDropBoxSize();
-			UiRect rcOwner = GetPosWithScrollOffset();
-			UiRect rc = rcOwner;
-			rc.top = rc.bottom + 1;		// 父窗口left、bottom位置作为弹出窗口起点
-			rc.bottom = rc.top + szDrop.cy;	// 计算弹出窗口高度
-			if (szDrop.cx > 0) rc.right = rc.left + szDrop.cx;	// 计算弹出窗口宽度
-
-			CSize szAvailable(rc.right - rc.left, rc.bottom - rc.top);
-			int cyFixed = 0;
-			for (int it = 0; it < GetListBox()->GetCount(); it++) {
-				Control* pControl = GetListBox()->GetItemAt(it);
-				if (!pControl->IsVisible()) continue;
-				CSize sz = pControl->EstimateSize(szAvailable);
-				cyFixed += sz.cy;
-			}
-			cyFixed += 2; // VBox 默认的Padding 调整
-			rc.bottom = rc.top + std::min((LONG)cyFixed, szDrop.cy);
-
-			::MapWindowRect(GetWindow()->GetHWND(), HWND_DESKTOP, &rc);
-
-			MONITORINFO oMonitor = {};
-			oMonitor.cbSize = sizeof(oMonitor);
-			::GetMonitorInfo(::MonitorFromWindow(m_pComboWnd->GetHWND(), MONITOR_DEFAULTTOPRIMARY), &oMonitor);
-			UiRect rcWork = oMonitor.rcWork;
-			if (rc.bottom > rcWork.bottom || IsPopupTop()) {
-				rc.left = rcOwner.left;
-				rc.right = rcOwner.right;
-				if (szDrop.cx > 0) rc.right = rc.left + szDrop.cx;
-				rc.top = rcOwner.top - std::min((LONG)cyFixed, szDrop.cy);
-				rc.bottom = rcOwner.top;
-				::MapWindowRect(GetWindow()->GetHWND(), HWND_DESKTOP, &rc);
-			}
-
-			m_pComboWnd->SetPos(rc, true, SWP_NOACTIVATE);
-			m_pLayout->SetPos(m_pLayout->GetPos());
-		}
+		return false;
 	}
+	CSize szDrop = GetDropBoxSize();
+	UiRect rcOwner = GetPosWithScrollOffset();
+	UiRect rc = rcOwner;
+	rc.top = rc.bottom + 1;		// 父窗口left、bottom位置作为弹出窗口起点
+	rc.bottom = rc.top + szDrop.cy;	// 计算弹出窗口高度
+	if (szDrop.cx > 0) rc.right = rc.left + szDrop.cx;	// 计算弹出窗口宽度
+
+	CSize szAvailable(rc.right - rc.left, rc.bottom - rc.top);
+	int cyFixed = 0;
+	for (int it = 0; it < GetListBox()->GetCount(); it++) {
+		Control* pControl = GetListBox()->GetItemAt(it);
+		if (!pControl->IsVisible()) continue;
+		CSize sz = pControl->EstimateSize(szAvailable);
+		cyFixed += sz.cy;
+	}
+	cyFixed += 2; // VBox 默认的Padding 调整
+	rc.bottom = rc.top + std::min((LONG)cyFixed, szDrop.cy);
+
+	::MapWindowRect(GetWindow()->GetHWND(), HWND_DESKTOP, &rc);
+
+	MONITORINFO oMonitor = {};
+	oMonitor.cbSize = sizeof(oMonitor);
+	::GetMonitorInfo(::MonitorFromWindow(m_pComboWnd->GetHWND(), MONITOR_DEFAULTTOPRIMARY), &oMonitor);
+	UiRect rcWork = oMonitor.rcWork;
+	if (rc.bottom > rcWork.bottom || IsPopupTop()) {
+		rc.left = rcOwner.left;
+		rc.right = rcOwner.right;
+		if (szDrop.cx > 0) rc.right = rc.left + szDrop.cx;
+		rc.top = rcOwner.top - std::min((LONG)cyFixed, szDrop.cy);
+		rc.bottom = rcOwner.top;
+		::MapWindowRect(GetWindow()->GetHWND(), HWND_DESKTOP, &rc);
+	}
+
+	m_pComboWnd->SetPos(rc, true, SWP_NOACTIVATE);
+	m_pLayout->SetPos(m_pLayout->GetPos());
 	return true;
 }
 

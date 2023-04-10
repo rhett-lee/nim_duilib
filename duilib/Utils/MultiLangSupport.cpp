@@ -50,7 +50,7 @@ bool MutiLanSupport::LoadStringTable(const HGLOBAL& hGlobal)
 	std::string fragment(data, len);
 	fragment.append("\n");
 	std::string src;
-	for (auto& it : fragment)
+	for (const auto& it : fragment)
 	{
 		if (it == '\0' || it == '\n')
 		{
@@ -118,7 +118,7 @@ bool MutiLanSupport::AnalyzeStringTable(const std::vector<std::wstring> &list)
 		strResource = StringHelper::TrimLeft(strResource);
 		strResource = StringHelper::TrimRight(strResource);
 
-		if (id.find(L";") == -1) {
+		if (id.find(L";") == std::wstring::npos) {
 			m_stringTable[id] = strResource;
 		}
 	}

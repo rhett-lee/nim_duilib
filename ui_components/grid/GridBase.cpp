@@ -243,8 +243,7 @@ namespace ui
 			m_pBody->_SelItem(row_index, col_index, true);
 			m_pBody->Invalidate();
 		}
-		if (m_bSelAll)
-			m_bSelAll = false;
+		m_bSelAll = false;
 	}
 
 	void GridSelRange::SetSelItemRange(UiRect rc, bool ctrl, bool shift)
@@ -290,8 +289,7 @@ namespace ui
 				m_pBody->Invalidate();
 			}
 		}
-		if (m_bSelAll)
-			m_bSelAll = false;
+		m_bSelAll = false;			
 	}
 
 	void GridSelRange::SetSelRow(int row_index, bool ctrl, bool shift)
@@ -355,8 +353,8 @@ namespace ui
 			m_mapSelRow[row_index] = nullptr;
 			m_pBody->Invalidate();
 		}
-		if (m_bSelAll)
-			m_bSelAll = false;
+		m_bSelAll = false;
+			
 	}
 
 	void GridSelRange::SetSelRowRange(int row_index, int row_index_end, bool ctrl, bool shift)
@@ -428,8 +426,7 @@ namespace ui
 			}
 			m_pBody->Invalidate();
 		}
-		if (m_bSelAll)
-			m_bSelAll = false;
+		m_bSelAll = false;			
 	}
 
 	void GridSelRange::SetSelCol(int col_index, bool ctrl, bool shift)
@@ -493,8 +490,7 @@ namespace ui
 			m_mapSelCol[col_index] = nullptr;
 			m_pBody->Invalidate();
 		}
-		if (m_bSelAll)
-			m_bSelAll = false;
+		m_bSelAll = false;			
 	}
 
 	void GridSelRange::SetSelColRange(int col_index, int col_index_end, bool ctrl, bool shift)
@@ -565,8 +561,7 @@ namespace ui
 			}
 			m_pBody->Invalidate();
 		}
-		if (m_bSelAll)
-			m_bSelAll = false;
+		m_bSelAll = false;
 	}
 
 	void GridSelRange::MergeRange()
@@ -701,10 +696,7 @@ namespace ui
 
 			SetSelItem(row_index, col_index);
 		}
-		if (m_bSelAll)
-		{
-			m_bSelAll = false;
-		}
+		m_bSelAll = false;
 		return true;
 	}
 

@@ -20,7 +20,7 @@ public:
 	virtual UIAControlProvider* GetUIAProvider() override;
 	virtual bool Add(Control* pControl) override;
 	virtual bool Remove(Control* pControl) override;
-	virtual bool RemoveAt(std::size_t iIndex) override;
+	virtual bool RemoveAt(size_t iIndex) override;
 	virtual void RemoveAll() override;
 	virtual void Activate() override;
 	virtual void Deactivate() override;

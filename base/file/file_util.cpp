@@ -81,16 +81,17 @@ bool FilePathApartDirectory(const PathString &filepath_in,
 							PathString &directory_out)
 {
 	size_t index = filepath_in.size() - 1;
-	if (index <= 0 || filepath_in.size() == 0)
+	if ((index == 0) || (filepath_in.size() == 0)){
 		return false;
-	for (; index != 0; index--)
-	{
-		if (IsFilePathSeparator(filepath_in[index]))
-		{
-			if (index == filepath_in.size() - 1)
+	}
+	for (; index != 0; index--){
+		if (IsFilePathSeparator(filepath_in[index])){
+			if (index == filepath_in.size() - 1){
 				directory_out = filepath_in;
-			else
+			}
+			else{
 			    directory_out = filepath_in.substr(0, index + 1);
+			}
 			return true;
 		}
 	}

@@ -17,7 +17,13 @@ void Layout::SetOwner(Box* pOwner)
 
 CSize Layout::SetFloatPos(Control* pControl, UiRect rcContainer)
 {
-	if (!pControl->IsVisible()) return CSize();
+	assert(pControl != nullptr);
+	if (pControl == nullptr) {
+		return CSize();
+	}
+	if (!pControl->IsVisible()) {
+		return CSize();
+	}
 
 	int childLeft = 0;
 	int childRight = 0;
@@ -48,9 +54,12 @@ CSize Layout::SetFloatPos(Control* pControl, UiRect rcContainer)
 	if (childSize.cy == DUI_LENGTH_STRETCH) {
 		childSize.cy = std::max(0, (int)szAvailable.cy);
 	}
-	if (childSize.cy < pControl->GetMinHeight()) childSize.cy = pControl->GetMinHeight();
-	if (childSize.cy > pControl->GetMaxHeight()) childSize.cy = pControl->GetMaxHeight();
-
+	if (childSize.cy < pControl->GetMinHeight()) {
+		childSize.cy = pControl->GetMinHeight();
+	}
+	if (childSize.cy > pControl->GetMaxHeight()) {
+		childSize.cy = pControl->GetMaxHeight();
+	}
 
 	int childWidth = childSize.cx;
 	int childHeight = childSize.cy;
@@ -113,15 +122,19 @@ bool Layout::SetAttribute(const std::wstring& strName, const std::wstring& strVa
 CSize Layout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 {
 	CSize size;
-	for (auto it = items.begin(); it != items.end(); it++) 
+	for (auto it = items.begin(); it != items.end(); ++it) 
 	{
 		Control* pControl = *it;
-		if( !pControl->IsVisible() ) continue;
+		if (pControl == nullptr){
+			continue;
+		}
+		if (!pControl->IsVisible()) {
+			continue;
+		}
 		CSize new_size = SetFloatPos(pControl, rc);
 		size.cx = std::max(size.cx, new_size.cx);
 		size.cy = std::max(size.cy, new_size.cy);
 	}
-
 	return size;
 }
 
@@ -131,16 +144,28 @@ CSize Layout::AjustSizeByChild(const std::vector<Control*>& items, CSize szAvail
 	CSize itemSize;
 	for (auto it = items.begin(); it != items.end(); it++) 
 	{
-		if (!(*it)->IsVisible())
+		Control* pControl = *it;
+		if (pControl == nullptr) {
 			continue;
-
-		itemSize = (*it)->EstimateSize(szAvailable);
-		if( itemSize.cx < (*it)->GetMinWidth() ) itemSize.cx = (*it)->GetMinWidth();
-		if( (*it)->GetMaxWidth() >= 0 && itemSize.cx > (*it)->GetMaxWidth() ) itemSize.cx = (*it)->GetMaxWidth();
-		if( itemSize.cy < (*it)->GetMinHeight() ) itemSize.cy = (*it)->GetMinHeight();
-		if( itemSize.cy > (*it)->GetMaxHeight() ) itemSize.cy = (*it)->GetMaxHeight();
-		maxSize.cx = std::max(itemSize.cx + (*it)->GetMargin().left + (*it)->GetMargin().right, maxSize.cx);
-		maxSize.cy = std::max(itemSize.cy + (*it)->GetMargin().top + (*it)->GetMargin().bottom, maxSize.cy);
+		}
+		if (!pControl->IsVisible()) {
+			continue;
+		}
+		itemSize = pControl->EstimateSize(szAvailable);
+		if (itemSize.cx < pControl->GetMinWidth()) {
+			itemSize.cx = pControl->GetMinWidth();
+		}
+		if (pControl->GetMaxWidth() >= 0 && itemSize.cx > pControl->GetMaxWidth()) {
+			itemSize.cx = pControl->GetMaxWidth();
+		}
+		if (itemSize.cy < pControl->GetMinHeight()) {
+			itemSize.cy = pControl->GetMinHeight();
+		}
+		if (itemSize.cy > pControl->GetMaxHeight()) {
+			itemSize.cy = pControl->GetMaxHeight();
+		}
+		maxSize.cx = std::max(itemSize.cx + pControl->GetMargin().left + pControl->GetMargin().right, maxSize.cx);
+		maxSize.cy = std::max(itemSize.cy + pControl->GetMargin().top + pControl->GetMargin().bottom, maxSize.cy);
 	}
 	maxSize.cx += m_rcPadding.left + m_rcPadding.right;
 	maxSize.cy += m_rcPadding.top + m_rcPadding.bottom;
@@ -154,11 +179,14 @@ UiRect Layout::GetPadding() const
 
 void Layout::SetPadding(UiRect rcPadding, bool bNeedDpiScale /*= true*/)
 {
-	if (bNeedDpiScale)
+	if (bNeedDpiScale) {
 		DpiManager::GetInstance()->ScaleRect(rcPadding);
-
+	}
 	m_rcPadding = rcPadding;
-	m_pOwner->Arrange();
+	assert(m_pOwner != nullptr);
+	if (m_pOwner != nullptr) {
+		m_pOwner->Arrange();
+	}
 }
 
 int Layout::GetChildMargin() const
@@ -170,11 +198,18 @@ void Layout::SetChildMargin(int iMargin)
 {
 	DpiManager::GetInstance()->ScaleInt(iMargin);
 	m_iChildMargin = iMargin;
-	m_pOwner->Arrange();
+	assert(m_pOwner != nullptr);
+	if (m_pOwner != nullptr) {
+		m_pOwner->Arrange();
+	}
 }
 
 UiRect Layout::GetInternalPos() const
 {
+	assert(m_pOwner != nullptr);
+	if (m_pOwner == nullptr) {
+		return UiRect();
+	}
 	UiRect internalPos = m_pOwner->GetPos();
 	internalPos.Deflate(m_rcPadding);
 	return internalPos;
@@ -192,7 +227,10 @@ Box::Box(Layout* pLayout) :
 	m_items(),
 	OnBubbledEvent()
 {
-	m_pLayout->SetOwner(this);
+	assert(m_pLayout != nullptr);
+	if (m_pLayout) {
+		m_pLayout->SetOwner(this);
+	}
 }
 
 Box::Box(const Box& r) :
@@ -233,20 +271,26 @@ UIAControlProvider* Box::GetUIAProvider()
 
 void Box::SetWindow(Window* pManager, Box* pParent, bool bInit)
 {
-	for (auto it = m_items.begin(); it != m_items.end(); it++) {
-		(*it)->SetWindow(pManager, this, bInit);
+	for (auto it = m_items.begin(); it != m_items.end(); ++it) {
+		Control* pControl = *it;
+		assert(pControl != nullptr);
+		if (pControl != nullptr) {
+			pControl->SetWindow(pManager, this, bInit);
+		}		
 	}
-
 	Control::SetWindow(pManager, pParent, bInit);
 }
 
 void Box::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
 	if (m_pLayout->SetAttribute(strName, strValue))	{
-
 	}
-	else if( strName == _T("mousechild") ) SetMouseChildEnabled(strValue == _T("true"));
-	else Control::SetAttribute(strName, strValue);
+	else if (strName == _T("mousechild")) {
+		SetMouseChildEnabled(strValue == _T("true"));
+	}
+	else {
+		Control::SetAttribute(strName, strValue);
+	}
 }
 
 void Box::SetPos(UiRect rc)
@@ -355,22 +399,30 @@ void Box::HandleMessageTemplate(EventArgs& msg)
 void Box::SetReceivePointerMsg(bool bRecv)
 {
 	__super::SetReceivePointerMsg(bRecv);
-	for (auto it = m_items.begin(); it != m_items.end(); it++) {
-		(*it)->SetReceivePointerMsg(bRecv);
+	for (auto it = m_items.begin(); it != m_items.end(); ++it) {
+		Control* pControl = *it;
+		assert(pControl != nullptr);
+		if (pControl != nullptr) {
+			pControl->SetReceivePointerMsg(bRecv);
+		}
 	}
 }
 
 void Box::PaintChild(IRenderContext* pRender, const UiRect& rcPaint)
 {
 	UiRect rcTemp;
-	if( !::IntersectRect(&rcTemp, &rcPaint, &m_rcItem) ) return;
+	if (!::IntersectRect(&rcTemp, &rcPaint, &m_rcItem)) {
+		return;
+	}
 
 	for (auto it = m_items.begin(); it != m_items.end(); ++it) {
 		Control* pControl = *it;
 		if (pControl == nullptr) {
 			continue;
 		}
-		if( !pControl->IsVisible() ) continue;
+		if (!pControl->IsVisible()) {
+			continue;
+		}
 		pControl->AlphaPaint(pRender, rcPaint);
 	}
 }
@@ -388,22 +440,33 @@ void Box::SetVisible_(bool bVisible)
 void Box::SetInternVisible(bool bVisible)
 {
 	Control::SetInternVisible(bVisible);
-	if (m_items.empty()) return;
-	for (auto it = m_items.begin(); it != m_items.end(); it++) {
+	for (auto it = m_items.begin(); it != m_items.end(); ++it) {
 		// 控制子控件显示状态
 		// InternVisible状态应由子控件自己控制
-		(*it)->SetInternVisible(IsVisible());
+		Control* pControl = *it;
+		assert(pControl != nullptr);
+		if (pControl != nullptr) {
+			pControl->SetInternVisible(IsVisible());
+		}
 	}
 }
 
 void Box::SetEnabled(bool bEnabled)
 {
-	if (m_bEnabled == bEnabled) return;
+	if (m_bEnabled == bEnabled) {
+		return;
+	}
 
 	Control::SetEnabled(bEnabled);
-	if (m_items.empty()) return;
+	if (m_items.empty()) {
+		return;
+	}
 	for (auto it = m_items.begin(); it != m_items.end(); it++) {
-		(*it)->SetEnabled(bEnabled);
+		Control* pControl = *it;
+		assert(pControl != nullptr);
+		if (pControl != nullptr) {
+			pControl->SetEnabled(bEnabled);
+		}
 	}
 
 	Invalidate();
@@ -428,12 +491,17 @@ CSize Box::EstimateSize(CSize szAvailable)
 		}
 
 		m_bReEstimateSize = false;
-		for (auto it = m_items.begin(); it != m_items.end(); it++) {
-			if (!(*it)->IsVisible()) {
+		for (auto it = m_items.begin(); it != m_items.end(); ++it) {
+			Control* pControl = *it;
+			assert(pControl != nullptr);
+			if (pControl == nullptr) {
 				continue;
 			}
-			if ((*it)->GetFixedWidth() == DUI_LENGTH_AUTO || (*it)->GetFixedHeight() == DUI_LENGTH_AUTO) {
-				if ((*it)->IsReEstimateSize()) {
+			if (!pControl->IsVisible()) {
+				continue;
+			}
+			if (pControl->GetFixedWidth() == DUI_LENGTH_AUTO || pControl->GetFixedHeight() == DUI_LENGTH_AUTO) {
+				if (pControl->IsReEstimateSize()) {
 					m_bReEstimateSize = true;
 					break;
 				}
@@ -448,9 +516,6 @@ CSize Box::EstimateSize(CSize szAvailable)
 
 Control* Box::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, CPoint scrollPos)
 {
-	if (pData == nullptr) {
-		return nullptr;
-	}
 	// Check if this guy is valid
 	if ((uFlags & UIFIND_VISIBLE) != 0 && !IsVisible()) {
 		return nullptr;
@@ -459,21 +524,14 @@ Control* Box::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, CPoin
 		return nullptr;
 	}
 	if ((uFlags & UIFIND_HITTEST) != 0) {
-		if (!::PtInRect(&m_rcItem, *(static_cast<LPPOINT>(pData)))) {
+		assert(pData != nullptr);
+		if ((pData != nullptr) && !::PtInRect(&m_rcItem, *(static_cast<LPPOINT>(pData)))) {
 			return nullptr;
 		}
 		if (!m_bMouseChildEnabled) {
-			Control* pResult = nullptr;
-			if (pResult == nullptr) {
-				pResult = Control::FindControl(Proc, pData, uFlags);
-			}
+			Control* pResult = Control::FindControl(Proc, pData, uFlags);
 			return pResult;
 		}
-	}
-
-	Control* pResult = nullptr;
-	if (pResult != nullptr) {
-		return pResult;
 	}
 
 	if ((uFlags & UIFIND_ME_FIRST) != 0) {
@@ -489,18 +547,27 @@ Control* Box::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, CPoin
 	rc.bottom -= m_pLayout->GetPadding().bottom;
 
 	if ((uFlags & UIFIND_TOP_FIRST) != 0) {
-		for (int it = (int)m_items.size() - 1; it >= 0; it--) {
+		for (int it = (int)m_items.size() - 1; it >= 0; --it) {
+			if (m_items[it] == nullptr) {
+				continue;
+			}
 			Control* pControl = nullptr;
 			if ((uFlags & UIFIND_HITTEST) != 0) {
-				CPoint newPoint = *(static_cast<LPPOINT>(pData));
-				newPoint.Offset(scrollPos);
-				pControl = m_items[it]->FindControl(Proc, &newPoint, uFlags);
+				assert(pData != nullptr);
+				if (pData != nullptr) {
+					CPoint newPoint = *(static_cast<LPPOINT>(pData));
+					newPoint.Offset(scrollPos);
+					pControl = m_items[it]->FindControl(Proc, &newPoint, uFlags);
+				}				
 			}
 			else {
 				pControl = m_items[it]->FindControl(Proc, pData, uFlags);
 			}
 			if (pControl != nullptr) {
-				if ((uFlags & UIFIND_HITTEST) != 0 && !pControl->IsFloat() && !::PtInRect(&rc, *(static_cast<LPPOINT>(pData)))) {
+				if ((uFlags & UIFIND_HITTEST) != 0 &&
+					!pControl->IsFloat() && 
+					(pData != nullptr) &&
+					!::PtInRect(&rc, *(static_cast<LPPOINT>(pData)))) {
 					continue;
 				}
 				else {
@@ -511,17 +578,27 @@ Control* Box::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, CPoin
 	}
 	else {
 		for (auto it = m_items.begin(); it != m_items.end(); ++it) {
+			Control* pItemControl = (*it);
+			if (pItemControl == nullptr) {
+				continue;
+			}
 			Control* pControl = nullptr;
 			if ((uFlags & UIFIND_HITTEST) != 0) {
-				CPoint newPoint = *(static_cast<LPPOINT>(pData));
-				newPoint.Offset(scrollPos);
-				pControl = (*it)->FindControl(Proc, &newPoint, uFlags);
+				assert(pData != nullptr);
+				if (pData != nullptr) {
+					CPoint newPoint = *(static_cast<LPPOINT>(pData));
+					newPoint.Offset(scrollPos);
+					pControl = pItemControl->FindControl(Proc, &newPoint, uFlags);
+				}
 			}
 			else {
-				pControl = (*it)->FindControl(Proc, pData, uFlags);
+				pControl = pItemControl->FindControl(Proc, pData, uFlags);
 			}
 			if (pControl != nullptr) {
-				if ((uFlags & UIFIND_HITTEST) != 0 && !pControl->IsFloat() && !::PtInRect(&rc, *(static_cast<LPPOINT>(pData)))) {
+				if ((uFlags & UIFIND_HITTEST) != 0 && 
+					!pControl->IsFloat() && 
+					(pData != nullptr) &&
+					!::PtInRect(&rc, *(static_cast<LPPOINT>(pData)))) {
 					continue;
 				}
 				else {
@@ -531,7 +608,8 @@ Control* Box::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, CPoin
 		}
 	}
 
-	if (pResult == nullptr && (uFlags & UIFIND_ME_FIRST) == 0) {
+	Control* pResult = nullptr;
+	if ((uFlags & UIFIND_ME_FIRST) == 0) {
 		pResult = Control::FindControl(Proc, pData, uFlags);
 	}
 	return pResult;
@@ -539,8 +617,7 @@ Control* Box::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, CPoin
 
 Control* Box::FindSubControl(const std::wstring& pstrSubControlName)
 {
-	Control* pSubControl = NULL;
-	pSubControl = static_cast<Control*>(GetWindow()->FindSubControlByName(this, pstrSubControlName));
+	Control* pSubControl = GetWindow()->FindSubControlByName(this, pstrSubControlName);
 	return pSubControl;
 }
 
@@ -550,30 +627,38 @@ int Box::FindSelectable(int iIndex, bool bForward /*= true*/) const
 {
 	// NOTE: This is actually a helper-function for the list/combo/ect controls
 	//       that allow them to find the next enabled/available selectable item
-	if (GetCount() == 0) return -1;
+	if (GetCount() == 0) {
+		return -1;
+	}
 	iIndex = CLAMP(iIndex, 0, GetCount() - 1);
 	if (bForward) {
-		for (int i = iIndex; i < GetCount(); i++) {
-			if (dynamic_cast<ListContainerElement*>(GetItemAt(i)) != NULL
+		for (int i = iIndex; i < GetCount(); ++i) {
+			if ((dynamic_cast<ListContainerElement*>(GetItemAt(i)) != nullptr)
 				&& GetItemAt(i)->IsVisible()
-				&& GetItemAt(i)->IsEnabled()) return i;
+				&& GetItemAt(i)->IsEnabled()) {
+				return i;
+			}
 		}
 		return -1;
 	}
 	else {
 		for (int i = iIndex; i >= 0; --i) {
-			if (dynamic_cast<ListContainerElement*>(GetItemAt(i)) != NULL
+			if ((dynamic_cast<ListContainerElement*>(GetItemAt(i)) != nullptr)
 				&& GetItemAt(i)->IsVisible()
-				&& GetItemAt(i)->IsEnabled()) return i;
+				&& GetItemAt(i)->IsEnabled()) {
+				return i;
+			}
 		}
 		return FindSelectable(0, true);
 	}
 }
 
-Control* Box::GetItemAt(std::size_t iIndex) const
+Control* Box::GetItemAt(size_t iIndex) const
 {
-	if( iIndex < 0 || iIndex >= m_items.size() ) return NULL;
-	return static_cast<Control*>(m_items[iIndex]);
+	if (iIndex >= m_items.size()) {
+		return nullptr;
+	}
+	return m_items[iIndex];
 }
 
 int Box::GetItemIndex(Control* pControl) const
@@ -585,10 +670,12 @@ int Box::GetItemIndex(Control* pControl) const
 	return static_cast<int>(it - m_items.begin());
 }
 
-bool Box::SetItemIndex(Control* pControl, std::size_t iIndex)
+bool Box::SetItemIndex(Control* pControl, size_t iIndex)
 {
-	if( iIndex < 0 || iIndex >= m_items.size() ) return false;
-	for (auto it = m_items.begin(); it != m_items.end(); it++) {
+	if (iIndex >= m_items.size()) {
+		return false;
+	}
+	for (auto it = m_items.begin(); it != m_items.end(); ++it) {
 		if( *it == pControl ) {
 			Arrange();            
 			m_items.erase(it);
@@ -596,7 +683,6 @@ bool Box::SetItemIndex(Control* pControl, std::size_t iIndex)
 			return true;
 		}
 	}
-
 	return false;
 }
 
@@ -607,27 +693,35 @@ int Box::GetCount() const
 
 bool Box::Add(Control* pControl)
 {
-	if( pControl == NULL) return false;
+	assert(pControl != nullptr);
+	if (pControl == nullptr) {
+		return false;
+	}
 
-	if( m_pWindow != NULL ) m_pWindow->InitControls(pControl, this);
-	if( IsVisible() ) 
+	if (m_pWindow != nullptr) {
+		m_pWindow->InitControls(pControl, this);
+	}
+	if (IsVisible()) {
 		Arrange();
-	else
+	}
+	else {
 		pControl->SetInternVisible(false);
+	}
 	m_items.push_back(pControl);   
 	return true;
 }
 
-bool Box::AddAt(Control* pControl, std::size_t iIndex)
+bool Box::AddAt(Control* pControl, size_t iIndex)
 {
+	assert(pControl != nullptr);
 	if (pControl == NULL) {
 		return false;
 	}
-	if( iIndex < 0 || iIndex > m_items.size() ) {
+	if(iIndex > m_items.size() ) {
 		ASSERT(FALSE);
 		return false;
 	}
-	if (m_pWindow != NULL) {
+	if (m_pWindow != nullptr) {
 		m_pWindow->InitControls(pControl, this);
 	}
 	if (IsVisible()) {
@@ -642,14 +736,21 @@ bool Box::AddAt(Control* pControl, std::size_t iIndex)
 
 bool Box::Remove(Control* pControl)
 {
-	if( pControl == NULL) return false;
+	assert(pControl != nullptr);
+	if (pControl == nullptr) {
+		return false;
+	}
 
-	for (auto it = m_items.begin(); it != m_items.end(); it++) {
+	for (auto it = m_items.begin(); it != m_items.end(); ++it) {
 		if( *it == pControl ) {
 			Arrange();
 			if( m_bAutoDestroy ) {
-				if( m_bDelayedDestroy && m_pWindow ) m_pWindow->AddDelayedCleanup(pControl);             
-				else delete pControl;
+				if (m_bDelayedDestroy && (m_pWindow != nullptr)) {
+					m_pWindow->AddDelayedCleanup(pControl);
+				}
+				else {
+					delete pControl;
+				}
 			}
 			m_items.erase(it);
 			return true;
@@ -658,22 +759,25 @@ bool Box::Remove(Control* pControl)
 	return false;
 }
 
-bool Box::RemoveAt(std::size_t iIndex)
+bool Box::RemoveAt(size_t iIndex)
 {
 	Control* pControl = GetItemAt(iIndex);
 	if (pControl != NULL) {
 		return Box::Remove(pControl);
 	}
-
 	return false;
 }
 
 void Box::RemoveAll()
 {
 	if (m_bAutoDestroy) {
-		for (auto it = m_items.begin(); it != m_items.end(); it++) {
-			if( m_bDelayedDestroy && m_pWindow ) m_pWindow->AddDelayedCleanup((*it));             
-			else delete (*it);
+		for (auto it = m_items.begin(); it != m_items.end(); ++it) {
+			if (m_bDelayedDestroy && (m_pWindow != nullptr)) {
+				m_pWindow->AddDelayedCleanup((*it));
+			}
+			else {
+				delete (*it);
+			}
 		}
 	}
 
@@ -683,7 +787,7 @@ void Box::RemoveAll()
 
 bool Box::HasItem(Control* pControl) const
 {
-	for (auto it = m_items.begin(); it != m_items.end(); it++) {
+	for (auto it = m_items.begin(); it != m_items.end(); ++it) {
 		if (*it == pControl) {
 			return true;
 		}
@@ -696,8 +800,7 @@ void Box::SwapChild(Control* pChild1, Control* pChild2)
 	ASSERT(std::find(m_items.begin(), m_items.end(), pChild1) != m_items.end());
 	ASSERT(std::find(m_items.begin(), m_items.end(), pChild2) != m_items.end());
 
-	std::vector<Control*>::iterator it1, it2;
-	for (auto it = m_items.begin(); it != m_items.end(); it++) {
+	for (auto it = m_items.begin(); it != m_items.end(); ++it) {
 		if (*it == pChild1 || *it == pChild2) {
 			Control* child = (*it == pChild1) ? pChild2 : pChild1;
 			it = m_items.erase(it);
@@ -706,12 +809,12 @@ void Box::SwapChild(Control* pChild1, Control* pChild2)
 	}
 }
 
-void Box::ResetChildIndex(Control* pChild, std::size_t iIndex)
+void Box::ResetChildIndex(Control* pChild, size_t iIndex)
 {
 	ASSERT(std::find(m_items.begin(), m_items.end(), pChild) != m_items.end());
 
-	std::size_t oldIndex = 0;
-	for (auto it = m_items.begin(); it != m_items.end(); it++) {
+	size_t oldIndex = 0;
+	for (auto it = m_items.begin(); it != m_items.end(); ++it) {
 		if (*it == pChild) {
 			m_items.erase(it);
 			if (oldIndex >= iIndex) {
@@ -759,13 +862,17 @@ void Box::SetMouseChildEnabled(bool bEnable)
 
 Layout* Box::GetLayout() const
 {
+	assert(m_pLayout != nullptr);
 	return m_pLayout.get();
 }
 
 void Box::ReSetLayout(Layout* pLayout)
 {
-	m_pLayout.reset(pLayout);
-	m_pLayout->SetOwner(this);
+	assert(pLayout != nullptr);
+	if (pLayout != nullptr) {
+		m_pLayout.reset(pLayout);
+		m_pLayout->SetOwner(this);
+	}	
 }
 
 UiRect Box::GetPaddingPos() const
@@ -776,31 +883,39 @@ UiRect Box::GetPaddingPos() const
 	pos.top += padding.top;
 	pos.right -= padding.right;
 	pos.bottom -= padding.bottom;
-
 	return pos;
 }
 
 void Box::InvokeLoadImageCache()
 {
 	__super::InvokeLoadImageCache();
-	for (auto it = m_items.begin(); it != m_items.end(); it++) {
-		(*it)->InvokeLoadImageCache();
+	for (auto it = m_items.begin(); it != m_items.end(); ++it) {
+		Control* pControl = *it;
+		if (pControl != nullptr) {
+			pControl->InvokeLoadImageCache();
+		}		
 	}
 }
 
 void Box::UnLoadImageCache()
 {
 	__super::UnLoadImageCache();
-	for (auto it = m_items.begin(); it != m_items.end(); it++) {
-		(*it)->UnLoadImageCache();
+	for (auto it = m_items.begin(); it != m_items.end(); ++it) {
+		Control* pControl = *it;
+		if (pControl != nullptr) {
+			pControl->UnLoadImageCache();
+		}
 	}
 }
 
 void Box::ClearImageCache()
 {
 	__super::ClearImageCache();
-	for (auto it = m_items.begin(); it != m_items.end(); it++) {
-		(*it)->ClearImageCache();
+	for (auto it = m_items.begin(); it != m_items.end(); ++it) {
+		Control* pControl = *it;
+		if (pControl != nullptr) {
+			pControl->ClearImageCache();
+		}
 	}
 }
 
@@ -1179,10 +1294,6 @@ void ScrollableBox::SetWindow(Window* pManager, Box* pParent, bool bInit)
 
 Control* ScrollableBox::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, CPoint /*scrollPos*/)
 {
-	assert(pData != nullptr);
-	if (pData == nullptr) {
-		return nullptr;
-	}
 	// Check if this guy is valid
 	if ((uFlags & UIFIND_VISIBLE) != 0 && !IsVisible()) {
 		return nullptr;
@@ -1191,6 +1302,10 @@ Control* ScrollableBox::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFl
 		return nullptr;
 	}
 	if ((uFlags & UIFIND_HITTEST) != 0) {
+		assert(pData != nullptr);
+		if (pData == nullptr) {
+			return nullptr;
+		}
 		if (!::PtInRect(&m_rcItem, *(static_cast<LPPOINT>(pData)))) {
 			return nullptr;
 		}

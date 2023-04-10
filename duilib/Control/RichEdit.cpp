@@ -77,8 +77,8 @@ public:
     LONG SetSelBarWidth(LONG lSelBarWidth);
     BOOL GetTimerState();
 
-    void SetCharFormat(CHARFORMAT2W &c);
-    void SetParaFormat(PARAFORMAT2 &p);
+    void SetCharFormat(const CHARFORMAT2W &c);
+    void SetParaFormat(const PARAFORMAT2 &p);
 
 	ITextHost * GetTextHost()
 	{
@@ -171,12 +171,12 @@ public:
     virtual HRESULT TxGetSelectionBarWidth (LONG *lSelBarWidth);
 
 private:
-    RichEdit *m_re;
-    ULONG	cRefs;					// Reference Count
-    ITextServices	*pserv;		    // pointer to Text Services object
+    RichEdit* m_re;
+    ULONG cRefs;					// Reference Count
+    ITextServices* pserv;		    // pointer to Text Services object
     // Properties
 
-    DWORD		dwStyle;				// style bits
+    DWORD dwStyle;				// style bits
 
     unsigned	fEnableAutoWordSel	:1;	// enable Word style auto word selection?
     unsigned	fWordWrap			:1;	// Whether control should word wrap
@@ -299,11 +299,32 @@ HRESULT CreateHost(RichEdit *re, const CREATESTRUCT *pcs, CTxtWinHost **pptec)
     return TRUE;
 }
 
-CTxtWinHost::CTxtWinHost() : m_re(NULL)
+CTxtWinHost::CTxtWinHost():
+	m_re(nullptr),
+	cRefs(0),
+	pserv(nullptr),
+	dwStyle(0),
+	fEnableAutoWordSel(0),
+	fWordWrap(0),
+	fAllowBeep(0),
+	fRich(0),
+	fSaveSelection(0),
+	fInplaceActive(0),
+	fTransparent(0),
+	fTimer(0),
+	fCaptured(0),
+	lSelBarWidth(0),
+	cchTextMost(cInitTextMax),
+	dwEventMask(0),
+	icf(0),
+	ipf(0),
+	rcClient(),
+	sizelExtent({0}),
+	cf({0}),
+	pf({0}),
+	laccelpos(-1),
+	chPasswordChar(0)
 {
-    ::ZeroMemory(&cRefs, sizeof(CTxtWinHost) - offsetof(CTxtWinHost, cRefs));
-    cchTextMost = cInitTextMax;
-    laccelpos = -1;
 }
 
 CTxtWinHost::~CTxtWinHost()
@@ -1212,12 +1233,12 @@ BOOL CTxtWinHost::GetTimerState()
     return fTimer;
 }
 
-void CTxtWinHost::SetCharFormat(CHARFORMAT2W &c)
+void CTxtWinHost::SetCharFormat(const CHARFORMAT2W& c)
 {
     cf = c;
 }
 
-void CTxtWinHost::SetParaFormat(PARAFORMAT2 &p)
+void CTxtWinHost::SetParaFormat(const PARAFORMAT2& p)
 {
     pf = p;
 }
@@ -3286,7 +3307,7 @@ void RichEdit::ClearImageCache()
 }
 
 
-void RichEdit::RaiseUIAValueEvent(const std::wstring oldText, const std::wstring newText)
+void RichEdit::RaiseUIAValueEvent(const std::wstring& oldText, const std::wstring& newText)
 {
 #if defined(ENABLE_UIAUTOMATION)
 	if (m_pUIAProvider != nullptr && UiaClientsAreListening()) {

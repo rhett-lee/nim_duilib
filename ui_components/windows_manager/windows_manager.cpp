@@ -24,7 +24,6 @@ bool WindowsManager::RegisterWindow(const std::wstring wnd_class_name, const std
 	WindowsMap::iterator it = windows_map_.find(wnd_class_name);
 	if (it != windows_map_.end())
 	{
-		std::map<std::wstring, WindowEx*>::iterator it2 = it->second.find(wnd_id);
 		it->second[wnd_id] = wnd;
 	}
 	else
@@ -98,7 +97,7 @@ WindowList WindowsManager::GetWindowsByClassName(LPCTSTR classname)
 	if (it != windows_map_.end())
 	{
 		std::map<std::wstring, WindowEx*>::iterator it2 = it->second.begin();
-		for (; it2 != it->second.end(); it2++)
+		for (; it2 != it->second.end(); ++it2)
 		{
 			WindowEx* wnd = (WindowEx*)(it2->second);
 			if (wnd && ::IsWindow(wnd->GetHWND()))

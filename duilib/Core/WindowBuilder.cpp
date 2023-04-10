@@ -465,12 +465,15 @@ Control* WindowBuilder::_Parse(CMarkupNode* pRoot, Control* pParent, Window* pMa
 		// TreeView相关必须先添加后解析
 		if (strClass == DUI_CTR_TREENODE) {
 			TreeNode* pNode = dynamic_cast<TreeNode*>(pControl);
+			assert(pNode != nullptr);
 			TreeView* pTreeView = dynamic_cast<TreeView*>(pParent);
+			assert(pTreeView != nullptr);
 			if (pTreeView) {
 				pTreeView->GetRootNode()->AddChildNode(pNode);
 			}
 			else {
 				TreeNode* pTreeNode = dynamic_cast<TreeNode*>(pParent);
+				assert(pTreeNode != nullptr);
 				if (pTreeNode) {
 					pTreeNode->AddChildNode(pNode);
 				}

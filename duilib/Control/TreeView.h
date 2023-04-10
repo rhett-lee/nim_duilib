@@ -63,14 +63,14 @@ public:
 	 * @param[in] iIndex 要插入哪个位置之后
 	 * @return 成功返回 true，失败返回 false
 	 */
-	bool AddChildNodeAt(TreeNode* pTreeNode, std::size_t iIndex);
+	bool AddChildNodeAt(TreeNode* pTreeNode, size_t iIndex);
 
 	/**
 	 * @brief 从指定位置移除一个子节点
 	 * @param[in] index 要移除的子节点索引
 	 * @return 成功返回 true，失败返回 false
 	 */
-	bool RemoveChildNodeAt(std::size_t index);
+	bool RemoveChildNodeAt(size_t index);
 
 	/**
 	 * @brief 根据子节点指针移除一个子节点
@@ -95,14 +95,14 @@ public:
 	 * @brief 获取下一级子节点个数
 	 * @return 返回子节点个数
 	 */
-	std::size_t GetChildNodeCount();
+	size_t GetChildNodeCount();
 
 	/**
 	 * @brief 获取一个子节点指针
 	 * @param[in] iIndex 要获取的子节点索引
 	 * @return 返回子节点指针
 	 */
-	TreeNode* GetChildNode(std::size_t iIndex);
+	TreeNode* GetChildNode(size_t iIndex);
 
 	/**
 	 * @brief 根据子节点指针获取子节点位置索引
@@ -190,9 +190,9 @@ public:
 private:
 	//以下函数故意私有化，表明禁止使用；应该使用TreeNode中的相关函数
 	bool Add(Control* pControl) override;
-	bool AddAt(Control* pControl, std::size_t iIndex) override;
+	bool AddAt(Control* pControl, size_t iIndex) override;
 	bool Remove(Control* pControl) override;
-	bool RemoveAt(std::size_t iIndex) override;
+	bool RemoveAt(size_t iIndex) override;
 	void RemoveAll() override;
 
 	virtual void SetWindow(Window* pManager, Box* pParent, bool bInit = true) override;

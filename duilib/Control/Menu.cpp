@@ -13,7 +13,7 @@ ui::SubjectImpl& MenuManager::GetSubject()
 	return m_subject;
 }
 
-void MenuManager::RegisterMenu(const std::wstring strMenuName, MenuWndEx *menu)
+void MenuManager::RegisterMenu(const std::wstring& strMenuName, MenuWndEx *menu)
 {
 	if (strMenuName.empty())
 		return;
@@ -24,7 +24,7 @@ void MenuManager::RegisterMenu(const std::wstring strMenuName, MenuWndEx *menu)
 	m_menuMap[strMenuName] = menu;
 }
 
-void MenuManager::UnRegisterMenu(const std::wstring strMenuName)
+void MenuManager::UnRegisterMenu(const std::wstring& strMenuName)
 {
 	if (strMenuName.empty())
 		return;
@@ -83,7 +83,7 @@ bool MenuBox::Add(Control* pControl)
 	return __super::Add(pControl);
 }
 
-bool MenuBox::AddAt(Control* pControl, std::size_t iIndex)
+bool MenuBox::AddAt(Control* pControl, size_t iIndex)
 {
 	MenuElement* pMenuItem = dynamic_cast<MenuElement*>(pControl);
 	if (pMenuItem != NULL) {
@@ -134,7 +134,7 @@ int StringToMenuAlign(const std::wstring &value)
 {
 	int flags = 0;
 	auto prop = StringHelper::Split(value, L" ");
-	for (auto & it : prop) {
+	for (const auto & it : prop) {
 		if (it == L"left") {
 			flags |= kLeft;
 		}
@@ -163,7 +163,7 @@ CPoint StringToMenuPopup(UiRect rect, const std::wstring &popupInfo)
 	CPoint point;
 
 	auto prop = StringHelper::Split(popupInfo, L" ");
-	for (auto & it : prop) {
+	for (const auto & it : prop) {
 		if (it == L"left") {
 			point.x = rect.left;
 		}
@@ -746,7 +746,7 @@ bool MenuElement::Add(Control* pControl)
 	return __super::Add(pControl);
 }
 
-bool MenuElement::AddAt(Control* pControl, std::size_t iIndex)
+bool MenuElement::AddAt(Control* pControl, size_t iIndex)
 {
 	if (pControl == NULL) return false;
 
@@ -824,27 +824,32 @@ bool MenuElement::IsTempItem()
 
 ui::Control* MenuElement::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, CPoint scrollPos /*= CPoint()*/)
 {
-	if (pData == nullptr) {
+	// Check if this guy is valid
+	if ((uFlags & UIFIND_VISIBLE) != 0 && !IsVisible()) {
 		return nullptr;
 	}
-	// Check if this guy is valid
-	if ((uFlags & UIFIND_VISIBLE) != 0 && !IsVisible()) return NULL;
-	if ((uFlags & UIFIND_ENABLED) != 0 && !IsEnabled()) return NULL;
+	if ((uFlags & UIFIND_ENABLED) != 0 && !IsEnabled()) {
+		return nullptr;
+	}
 	if ((uFlags & UIFIND_HITTEST) != 0) {
-		if (!::PtInRect(&m_rcItem, *((LPPOINT)pData))) return NULL;
+		assert(pData != nullptr);
+		if (pData == nullptr) {
+			return nullptr;
+		}
+		if (!::PtInRect(&m_rcItem, *((LPPOINT)pData))) {
+			return nullptr;
+		}
 		if (!m_bMouseChildEnabled) {
-			Control* pResult = NULL;
-			if (pResult == NULL) pResult = Control::FindControl(Proc, pData, uFlags);
+			Control* pResult = Control::FindControl(Proc, pData, uFlags);
 			return pResult;
 		}
 	}
 
-	Control* pResult = NULL;
-	if (pResult != NULL) return pResult;
-
 	if ((uFlags & UIFIND_ME_FIRST) != 0) {
 		Control* pControl = Control::FindControl(Proc, pData, uFlags);
-		if (pControl != NULL) return pControl;
+		if (pControl != nullptr) {
+			return pControl;
+		}
 	}
 	UiRect rc = m_rcItem;
 	rc.left += m_pLayout->GetPadding().left;
@@ -855,9 +860,9 @@ ui::Control* MenuElement::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT u
 	if ((uFlags & UIFIND_TOP_FIRST) != 0) {
 		for (int it = (int)m_items.size() - 1; it >= 0; it--) {
 			Control* pControl = nullptr;
-			if (m_items[it]->GetWindow() != this->GetWindow())
+			if (m_items[it]->GetWindow() != this->GetWindow()) {
 				continue;
-			
+			}			
 			if ((uFlags & UIFIND_HITTEST) != 0) {
 				CPoint newPoint = *(static_cast<LPPOINT>(pData));
 				newPoint.Offset(scrollPos);
@@ -867,17 +872,20 @@ ui::Control* MenuElement::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT u
 				pControl = m_items[it]->FindControl(Proc, pData, uFlags);
 			}
 			if (pControl != NULL) {
-				if ((uFlags & UIFIND_HITTEST) != 0 && !pControl->IsFloat() && !::PtInRect(&rc, *(static_cast<LPPOINT>(pData))))
+				if ((uFlags & UIFIND_HITTEST) != 0 && !pControl->IsFloat() && !::PtInRect(&rc, *(static_cast<LPPOINT>(pData)))) {
 					continue;
-				else
+				}
+				else {
 					return pControl;
+				}
 			}
 		}
 	}
 	else {
 		for (auto it = m_items.begin(); it != m_items.end(); it++) {
-			if ((*it)->GetWindow() != this->GetWindow())
+			if ((*it)->GetWindow() != this->GetWindow()) {
 				continue;
+			}
 			Control* pControl = nullptr;
 			if ((uFlags & UIFIND_HITTEST) != 0) {
 				CPoint newPoint = *(static_cast<LPPOINT>(pData));
@@ -888,15 +896,19 @@ ui::Control* MenuElement::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT u
 				pControl = (*it)->FindControl(Proc, pData, uFlags);
 			}
 			if (pControl != NULL) {
-				if ((uFlags & UIFIND_HITTEST) != 0 && !pControl->IsFloat() && !::PtInRect(&rc, *(static_cast<LPPOINT>(pData))))
+				if ((uFlags & UIFIND_HITTEST) != 0 && !pControl->IsFloat() && !::PtInRect(&rc, *(static_cast<LPPOINT>(pData)))) {
 					continue;
-				else
+				}
+				else {
 					return pControl;
+				}
 			}
 		}
 	}
-
-	if (pResult == NULL && (uFlags & UIFIND_ME_FIRST) == 0) pResult = Control::FindControl(Proc, pData, uFlags);
+	Control* pResult = nullptr;
+	if ((uFlags & UIFIND_ME_FIRST) == 0) {
+		pResult = Control::FindControl(Proc, pData, uFlags);
+	}
 	return pResult;
 }
 

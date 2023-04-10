@@ -196,8 +196,7 @@ UIAControlProvider* Combo::GetUIAProvider()
 bool Combo::Add(Control* pControl)
 {
 	assert(pControl != nullptr);
-	assert(m_pLayout != nullptr);
-	if ((pControl == nullptr) || (m_pLayout == nullptr)){
+	if (pControl == nullptr) {
 		return false;
 	}
 	m_pLayout->Add(pControl);
@@ -209,8 +208,7 @@ bool Combo::Add(Control* pControl)
 bool Combo::Remove(Control * pControl)
 {
 	assert(pControl != nullptr);
-	assert(m_pLayout != nullptr);
-	if ((pControl == nullptr) || (m_pLayout == nullptr)) {
+	if (pControl == nullptr){
 		return false;
 	}
 	bool ret = m_pLayout->Remove(pControl);
@@ -218,12 +216,8 @@ bool Combo::Remove(Control * pControl)
 	return ret;
 }
 
-bool Combo::RemoveAt(std::size_t iIndex)
+bool Combo::RemoveAt(size_t iIndex)
 {
-	assert(m_pLayout != nullptr);
-	if (m_pLayout == nullptr) {
-		return false;
-	}
 	bool ret = m_pLayout->RemoveAt((int)iIndex);
 	m_iCurSel = m_pLayout->GetCurSel();
 	return ret;
@@ -231,10 +225,6 @@ bool Combo::RemoveAt(std::size_t iIndex)
 
 void Combo::RemoveAll()
 {
-	assert(m_pLayout != nullptr);
-	if (m_pLayout == nullptr) {
-		return;
-	}
 	m_pLayout->RemoveAll();
 	m_iCurSel = -1;
 }
@@ -310,10 +300,6 @@ void Combo::PaintText(IRenderContext* pRender)
 	if (pRender == nullptr) {
 		return;
 	}
-	assert(m_pLayout != nullptr);
-	if (m_pLayout == nullptr) {
-		return;
-	}
 	UiRect rcText = m_rcItem;
 
 	if (m_iCurSel >= 0) {
@@ -322,48 +308,36 @@ void Combo::PaintText(IRenderContext* pRender)
 		if (pControl) {
 			pElement = dynamic_cast<ListContainerElement*>(pControl);
 		}
-		assert(pElement);		
-		if (!pElement) {
+		assert(pElement != nullptr);		
+		if (pElement == nullptr) {
 			return;
 		}			
 		UiRect rcPadding = m_rcTextPadding;
-
-		if (pElement) {
-			if (GetText().empty()) {
-				return;
-			}
-
-			if (pElement->GetOwner() == NULL) {
-				return;
-			}			
-
-			if (rcPadding.left == 0 && rcPadding.top == 0 && rcPadding.right == 0 && rcPadding.bottom == 0) {
-				rcPadding = pElement->GetTextPadding();
-			}				
-			rcText.left += rcPadding.left;
-			rcText.right -= rcPadding.right;
-			rcText.top += rcPadding.top;
-			rcText.bottom -= rcPadding.bottom;
-
-			DWORD dwTextColor = 0xFF000000;
-			dwTextColor = this->GetWindowColor(pElement->GetStateTextColor(kControlStateNormal));
-			pRender->DrawText(rcText, GetText(), dwTextColor, pElement->GetFont(), DT_SINGLELINE | DT_VCENTER | DT_END_ELLIPSIS);
+		if (GetText().empty()) {
+			return;
 		}
-		else if(pControl != nullptr){
-			UiRect rcOldPos = pControl->GetPos();
-			pControl->SetPos(rcText);
-			pControl->AlphaPaint(pRender, rcText);
-			pControl->SetPos(rcOldPos);
-		}
+
+		if (pElement->GetOwner() == NULL) {
+			return;
+		}			
+
+		if (rcPadding.left == 0 && rcPadding.top == 0 && rcPadding.right == 0 && rcPadding.bottom == 0) {
+			rcPadding = pElement->GetTextPadding();
+		}				
+		rcText.left += rcPadding.left;
+		rcText.right -= rcPadding.right;
+		rcText.top += rcPadding.top;
+		rcText.bottom -= rcPadding.bottom;
+
+		DWORD dwTextColor = 0xFF000000;
+		dwTextColor = this->GetWindowColor(pElement->GetStateTextColor(kControlStateNormal));
+		pRender->DrawText(rcText, GetText(), dwTextColor, pElement->GetFont(), DT_SINGLELINE | DT_VCENTER | DT_END_ELLIPSIS);
 	}
 }
 
 std::wstring Combo::GetText() const
 {
 	if (m_iCurSel < 0) {
-		return std::wstring();
-	}
-	if (m_pLayout == nullptr) {
 		return std::wstring();
 	}
 	ListContainerElement* pControl = dynamic_cast<ListContainerElement*>(m_pLayout->GetItemAt(m_iCurSel));
@@ -390,10 +364,7 @@ std::wstring Combo::GetDropBoxAttributeList()
 void Combo::SetDropBoxAttributeList(const std::wstring& pstrList)
 {
     m_sDropBoxAttributes = pstrList;
-	assert(m_pLayout != nullptr);
-	if (m_pLayout != nullptr) {
-		m_pLayout->ApplyAttributeList(pstrList);
-	}    
+	m_pLayout->ApplyAttributeList(pstrList);
 }
 
 CSize Combo::GetDropBoxSize() const
@@ -409,10 +380,6 @@ void Combo::SetDropBoxSize(CSize szDropBox)
 
 bool Combo::SelectItemInternal(int iIndex)
 {
-	assert(m_pLayout != nullptr);
-	if (m_pLayout == nullptr) {
-		return false;
-	}
 	if (iIndex < 0 || iIndex >= m_pLayout->GetCount()) {
 		return false;
 	}
@@ -446,10 +413,6 @@ bool Combo::SelectItemInternal(int iIndex)
 
 bool Combo::SelectItem(int iIndex, bool bTrigger)
 {
-	assert(m_pLayout != nullptr);
-	if (m_pLayout == nullptr) {
-		return false;
-	}
     m_pLayout->SelectItem(iIndex, false, false);
 	if (!SelectItemInternal(iIndex)) {
 		return false;
@@ -463,19 +426,11 @@ bool Combo::SelectItem(int iIndex, bool bTrigger)
 
 Control* Combo::GetItemAt(int iIndex)
 {
-	assert(m_pLayout != nullptr);
-	if (m_pLayout == nullptr) {
-		return nullptr;
-	}
 	return m_pLayout->GetItemAt(iIndex);
 }
 
 bool Combo::OnSelectItem(EventArgs* /*args*/)
 {
-	assert(m_pLayout != nullptr);
-	if (m_pLayout == nullptr) {
-		return false;
-	}
 	if (m_pWindow != nullptr) {
 		m_pWindow->OnSeleteItem();
 	}        

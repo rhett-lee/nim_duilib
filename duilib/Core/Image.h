@@ -36,8 +36,8 @@ private:
 	static std::unique_ptr<ImageInfo> LoadImageByBitmap(std::unique_ptr<Gdiplus::Bitmap>& pGdiplusBitmap, const std::wstring& imageFullPath);
 
 public:
-	int nX;
-	int nY;
+	int nX = 0;
+	int nY = 0;
 	std::wstring sImageFullPath;
 
 private:

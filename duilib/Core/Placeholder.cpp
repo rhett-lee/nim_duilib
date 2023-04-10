@@ -94,7 +94,9 @@ void PlaceHolder::SetWindow(Window* pManager, Box* pParent, bool bInit)
 {
 	m_pWindow = pManager;
 	m_pParent = pParent;
-	if (bInit && m_pParent) Init();
+	if (bInit && m_pParent) {
+		Init();
+	}
 }
 
 void PlaceHolder::SetWindow(Window* pManager)
@@ -413,7 +415,9 @@ CPoint PlaceHolder::GetScrollOffset() const
 
 		if (parent) {
 			//说明控件在Listbox内部
-			ScrollableBox* listbox = (ScrollableBox*)parent;
+			
+			ScrollableBox* listbox = dynamic_cast<ScrollableBox*>(parent);
+			assert(listbox != nullptr);
 			if (listbox != nullptr) {
 				scrollPos.x += listbox->GetScrollPos().cx;
 				scrollPos.y += listbox->GetScrollPos().cy;

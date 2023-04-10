@@ -191,13 +191,13 @@ public:
 	  * @param[in] menu 菜单窗口指针
 	  * @return void 无返回值
 	  */
-	void RegisterMenu(const std::wstring strMenuName, MenuWndEx *menu);
+	void RegisterMenu(const std::wstring& strMenuName, MenuWndEx *menu);
 
 	/** @brief 根据菜单名注销菜单
 	  * @param [in] strMenuName 菜单名
 	  * @return  void 无返回值
 	  */
-	void UnRegisterMenu(const std::wstring strMenuName);
+	void UnRegisterMenu(const std::wstring& strMenuName);
 
 	/** @brief 根据菜单名获取菜单
 	  * @param[in] strMenuName 菜单名
@@ -230,7 +230,7 @@ public:
 	  * @return bool 是否成功
 	  */
 	virtual bool Add(Control* pControl) override;
-	virtual bool AddAt(Control* pControl, std::size_t iIndex) override;
+	virtual bool AddAt(Control* pControl, size_t iIndex) override;
 
 	/** @brief 移除所有子控件，如果是临时菜单项，则一定会被销毁
 	  * @return void 无返回值
@@ -421,7 +421,7 @@ public:
 	  * @return bool 是否成功
 	  */
 	virtual bool Add(Control* pControl) override;
-	virtual bool AddAt(Control* pControl, std::size_t iIndex) override;
+	virtual bool AddAt(Control* pControl, size_t iIndex) override;
 
 	/** @brief 向已经弹出的子菜单窗口里添加临时菜单项，子菜单窗口销毁后菜单项也销毁
 	  * @param[in] pMenuItem 临时菜单项

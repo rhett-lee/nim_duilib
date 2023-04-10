@@ -696,9 +696,7 @@ void ScrollBar::SetBkStateImage(ControlStateType stateType, const std::wstring& 
 
 void ScrollBar::SetAutoHideScroll(bool hide)
 {
-	if (m_bAutoHide != hide) {
-		m_bAutoHide = hide;
-	}
+	m_bAutoHide = hide;
 }
 
 void ScrollBar::ScrollTimeHandle()

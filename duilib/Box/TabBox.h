@@ -17,9 +17,9 @@ public:
 	/// 重写父类方法，提供个性化功能，请参考父类声明
 	virtual std::wstring GetType() const override;
 	virtual bool Add(Control* pControl) override;
-	virtual bool AddAt(Control* pControl, std::size_t iIndex) override;
+	virtual bool AddAt(Control* pControl, size_t iIndex) override;
 	virtual bool Remove(Control* pControl) override;
-	virtual bool RemoveAt(std::size_t iIndex) override;
+	virtual bool RemoveAt(size_t iIndex) override;
 	virtual void RemoveAll() override;
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 
@@ -74,14 +74,14 @@ protected:
 	 * @param[in] it TAB 项索引
 	 * @return 无
 	 */
-	void ShowTabItem(std::size_t it);
+	void ShowTabItem(size_t it);
 
 	/**
 	 * @brief 隐藏一个 TAB 项
 	 * @param[in] it TAB 项索引
 	 * @return 无
 	 */
-	void HideTabItem(std::size_t it);
+	void HideTabItem(size_t it);
 
 protected:
 	int m_iCurSel;

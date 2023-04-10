@@ -383,7 +383,7 @@ protected:
 class PopoverHolderLayer :public ui::Box
 {
 public:
-  PopoverHolderLayer(std::wstring type,
+  PopoverHolderLayer(const std::wstring& type,
     ui::Layout* pLayout = new ui::Layout()) :ui::Box(pLayout),
     m_strType(type)
   {
@@ -633,7 +633,7 @@ private:
   /**
   * 是否显示半透明遮罩
   */
-  void IsShowMask() const { m_bShowMask; }
+  bool IsShowMask() const { return m_bShowMask; }
 
   /*
   * @brief 窗体鼠标左键单击事件，会关闭所有nDisappearType

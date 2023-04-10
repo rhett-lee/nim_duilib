@@ -83,16 +83,14 @@ void OnScreenKeyboardManager::StartTabTip()
 	DWORD bufferSize = GetEnvironmentVariable(L"CommonProgramW6432", nullptr, 0);
 
 	std::wstring tabTipPath;
-	if (bufferSize) {
+	if (bufferSize > 0) {
 		tabTipPath.resize(bufferSize);
 		GetEnvironmentVariable(L"CommonProgramW6432", &tabTipPath[0], bufferSize);
 
-		if (!tabTipPath.empty()) {
-			if (tabTipPath[tabTipPath.length() - 1] == '\0') {
-				tabTipPath = tabTipPath.substr(0, tabTipPath.length() - 1);
-			}
-			tabTipPath = tabTipPath + LR"(\microsoft shared\ink\TabTip.exe)";
+		if (tabTipPath[tabTipPath.length() - 1] == '\0') {
+			tabTipPath = tabTipPath.substr(0, tabTipPath.length() - 1);
 		}
+		tabTipPath = tabTipPath + LR"(\microsoft shared\ink\TabTip.exe)";
 	}
 
 	if (tabTipPath.empty()) {

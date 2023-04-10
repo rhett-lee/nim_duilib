@@ -200,7 +200,7 @@ namespace nim_comp
 		return ret;
 	}
 
-	bool CheckCombo::RemoveAt(std::size_t iIndex)
+	bool CheckCombo::RemoveAt(size_t iIndex)
 	{
 		bool ret = m_pDropList->RemoveAt((int)iIndex);
 		return ret;
@@ -213,14 +213,18 @@ namespace nim_comp
 
 	void CheckCombo::Activate()
 	{
-		if (!IsActivatable()) return;
-		if (m_pCheckComboWnd) return;
+		if (!IsActivatable()) {
+		    return;
+		}
+		if (m_pCheckComboWnd) {
+		    return;
+		}
 
 		m_pCheckComboWnd = new CCheckComboWnd();
 		ASSERT(m_pCheckComboWnd);
 		m_pCheckComboWnd->Init(this);
 
-		if (m_pCheckComboWnd != NULL) m_pCheckComboWnd->SendNotify(this, kEventClick);
+		m_pCheckComboWnd->SendNotify(this, kEventClick);
 		Invalidate();
 	}
 

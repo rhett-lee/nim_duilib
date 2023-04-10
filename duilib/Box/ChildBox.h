@@ -21,13 +21,13 @@ public:
 	 * @param[in] strXML XML 文件路径
 	 * @return 无
 	 */
-	void SetChildLayoutXML(std::wstring strXML);
+	void SetChildLayoutXML(const std::wstring& strXML);
 
 	/**
 	 * @brief 获取 ChildBox 关联的 XML 文件
 	 * @return 返回 ChildBox 关联的 XML 文件
 	 */
-	std::wstring GetChildLayoutXML();
+	const std::wstring& GetChildLayoutXML();
 
 private:
 	std::wstring m_strXMLFile;

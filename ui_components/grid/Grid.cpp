@@ -72,24 +72,24 @@ namespace ui
 		SetScrollBarPadding({ 0, height, 0, 0 });
 	}
 
-	std::wstring Grid::GetFixedBkColor() const{ return m_pBody->GetFixedBkColor(); }
-	void Grid::SetFixedBkColor(std::wstring color){ m_pBody->SetFixedBkColor(color); }
+	const std::wstring& Grid::GetFixedBkColor() const{ return m_pBody->GetFixedBkColor(); }
+	void Grid::SetFixedBkColor(const std::wstring& color){ m_pBody->SetFixedBkColor(color); }
 
-	std::wstring Grid::GetSelForeColor() const{ return m_pBody->GetSelForeColor(); }
-	void Grid::SetSelForeColor(std::wstring color){ m_pBody->SetSelForeColor(color); }
+	const std::wstring& Grid::GetSelForeColor() const{ return m_pBody->GetSelForeColor(); }
+	void Grid::SetSelForeColor(const std::wstring& color){ m_pBody->SetSelForeColor(color); }
 
-	std::wstring Grid::GetGridLineColor() const{ return m_pBody->GetGridLineColor(); }
-	void Grid::SetGridLineColor(std::wstring color){ m_pBody->SetGridLineColor(color); }
+	const std::wstring& Grid::GetGridLineColor() const{ return m_pBody->GetGridLineColor(); }
+	void Grid::SetGridLineColor(const std::wstring& color){ m_pBody->SetGridLineColor(color); }
 
 	std::wstring Grid::GetGridItemText(int row_index, int col_index){ return m_pBody->GetGridItemText(row_index, col_index); }
-	bool Grid::SetGridItemText(std::wstring text, int row_index, int col_index){ return m_pBody->SetGridItemText(text, row_index, col_index); }
+	bool Grid::SetGridItemText(const std::wstring& text, int row_index, int col_index){ return m_pBody->SetGridItemText(text, row_index, col_index); }
 
 	bool Grid::IsGridItemFixed(int row_index, int col_index){ return m_pBody->IsGridItemFixed(row_index, col_index); }
 
 	int Grid::GetFixedColWidth() const{ return m_pBody->GetFixedColWidth(); }
 	int Grid::GetFixedRowHeight() const{ return m_pBody->GetFixedRowHeight(); }
 	
-	GridHeaderItem* Grid::AddCol(std::wstring text, int width){ return m_pBody->AddCol(text, width); }
+	GridHeaderItem* Grid::AddCol(const std::wstring& text, int width){ return m_pBody->AddCol(text, width); }
 	bool Grid::AddRow(){ return m_pBody->AddRow(); }
 
 	GridHeader *Grid::GetHeader(){ return m_pBody->GetHeader(); }

@@ -71,7 +71,7 @@ public:
 	 * @param[in] iIndex 索引号
 	 * @return 成功返回 true，否则返回 false
 	 */
-	bool SetItemIndex(Control* pControl, std::size_t iIndex);
+	bool SetItemIndex(Control* pControl, size_t iIndex);
 
 	/**
 	 * @brief 选中上一项
@@ -104,7 +104,7 @@ public:
 	 * @param[in] iIndex 要插入的位置索引
 	 * @return 成功返回 true，失败返回 false
 	 */
-    virtual bool AddAt(Control* pControl, std::size_t  iIndex) override;
+    virtual bool AddAt(Control* pControl, size_t  iIndex) override;
 
 	/**
 	 * @brief 根据子项指针
@@ -118,7 +118,7 @@ public:
 	 * @param[in] iIndex 子项索引
 	 * @return 成功返回 true，失败返回 false
 	 */
-    virtual bool RemoveAt(std::size_t  iIndex) override;
+    virtual bool RemoveAt(size_t  iIndex) override;
 
 	/**
 	 * @brief 移除所有子项

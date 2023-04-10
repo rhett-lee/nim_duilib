@@ -22,7 +22,7 @@ namespace ui
 	class UILIB_API GridItemInfo
 	{
 	public:
-		std::wstring txt = L"";
+		std::wstring txt;
 		std::wstring text_color;
 		std::wstring bk_color;
 		int row = -1; 
@@ -30,7 +30,7 @@ namespace ui
 		UINT text_style = 0;
 		GridItemType type = GIT_String;
 
-		GridItemInfo(std::wstring _txt, int _row, int _col, GridItemType _type = GIT_String, UINT _text_style = 0) 
+		GridItemInfo(const std::wstring& _txt, int _row, int _col, GridItemType _type = GIT_String, UINT _text_style = 0) 
 			:txt(_txt), row(_row), col(_col), type(_type), text_style(_text_style)
 		{}
 	};
@@ -99,7 +99,7 @@ namespace ui
 			combo_list = value;
 		}
 
-		void InitTypeDate(std::wstring value){
+		void InitTypeDate(const std::wstring& value){
 			_ClearType();
 			type = GIT_Date;
 			date = value;

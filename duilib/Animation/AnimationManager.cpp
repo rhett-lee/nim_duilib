@@ -142,7 +142,7 @@ AnimationPlayer* AnimationManager::SetFadeInOutX(bool bFade, bool bIsFromRight)
 			m_animationMap[kAnimationInoutXFromLeft].reset(animationArgs);
 		}
 	}
-	else if (!bFade){
+	else{
 		if (bIsFromRight) {
 			m_animationMap.erase(kAnimationInoutXFromRight);
 		}
@@ -180,7 +180,7 @@ AnimationPlayer* AnimationManager::SetFadeInOutY(bool bFade, bool bIsFromBottom)
 			m_animationMap[kAnimationInoutYFromTop].reset(animationArgs);
 		}
 	}
-	else if (!bFade){
+	else{
 		if (bIsFromBottom) {
 			m_animationMap.erase(kAnimationInoutYFromBottom);
 		}

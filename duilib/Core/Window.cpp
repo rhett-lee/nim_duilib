@@ -2385,7 +2385,7 @@ Control* CALLBACK Window::__FindControlFromClass(Control* pThis, LPVOID pData)
 		while ((*pFoundControls)[++iIndex] != nullptr) {
 			;
 		}
-		if ((std::size_t)iIndex < pFoundControls->size()) {
+		if ((size_t)iIndex < pFoundControls->size()) {
 			(*pFoundControls)[iIndex] = pThis;
 		}
 	}

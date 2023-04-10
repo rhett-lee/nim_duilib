@@ -92,7 +92,7 @@ void CFileDialogEx::SetFilter(std::map<LPCTSTR,LPCTSTR>& filters)
 	size_t size = filters.size()*100;
 	wchar_t* filterstring= new wchar_t[size];
 	size_t offset = 0;
-	for(;it != filters.end();it++)
+	for(;it != filters.end();++it)
 	{
 		_tcscpy(filterstring + offset,it->first);
 		offset += _tcslen(it->first) + 1;

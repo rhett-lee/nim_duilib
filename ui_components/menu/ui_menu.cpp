@@ -44,8 +44,9 @@ BOOL CMenuWnd::Receive(ContextMenuParam param)
 }
 
 CMenuWnd::CMenuWnd(HWND hParent) :
-	m_hParent(hParent),
+	m_hParent(hParent),	
 	m_BasedPoint({0}),
+	m_popupPosType(RIGHT_TOP),
 	m_xml(_T("")),
 	no_focus_(false),
 	m_pOwner(nullptr),
@@ -435,8 +436,11 @@ void CMenuWnd::InitWindow()
 
 		for (int i = 0; i < m_pOwner->GetSubMenuItemCount(); i++) {
 			CMenuElementUI* subMenuItem = dynamic_cast<CMenuElementUI*>(m_pOwner->GetSubMenuItemAt(i));
+			if(subMenuItem == nullptr){
+			    continue;
+			}
 			subMenuItem->SetInternVisible(true);		//add by djj 20200506
-			if (subMenuItem && subMenuItem->IsVisible())
+			if (subMenuItem->IsVisible())
 			{
 				m_pLayout->Add(subMenuItem); //内部会调用subMenuItem->SetOwner(m_pLayout); 会调用SetWindows，改变了归属窗口、父控件。
 			}
@@ -506,10 +510,10 @@ bool CMenuElementUI::AddSubMenuItem(CMenuElementUI* pMenuItem)
 	m_child_menus.push_back(pMenuItem);
 	return true;
 }
-bool CMenuElementUI::AddSubMenuItemAt(CMenuElementUI* pMenuItem, std::size_t iIndex)
+bool CMenuElementUI::AddSubMenuItemAt(CMenuElementUI* pMenuItem, size_t iIndex)
 {
 	if (pMenuItem == NULL) return false;
-	if (iIndex < 0 || iIndex > m_child_menus.size()) {
+	if (iIndex > m_child_menus.size()) {
 		ASSERT(FALSE);
 		return false;
 	}
@@ -534,23 +538,27 @@ bool CMenuElementUI::RemoveSubMenuItem(CMenuElementUI* pMenuItem)
 	}
 	return false;
 }
-bool CMenuElementUI::RemoveSubMenuItemAt(std::size_t iIndex)
+bool CMenuElementUI::RemoveSubMenuItemAt(size_t iIndex)
 {
-	if (iIndex < 0 || iIndex >= m_child_menus.size()) return false;
+	if (iIndex >= m_child_menus.size()) {
+	    return false;
+	}
 	return RemoveSubMenuItem(m_child_menus[iIndex]);
 }
 bool CMenuElementUI::RemoveAllSubMenuItem()
 {
-	for (auto it = m_child_menus.begin(); it != m_child_menus.end(); it++)
+	for (auto it = m_child_menus.begin(); it != m_child_menus.end(); ++it)
 	{
 		delete (*it);
 	}
 	m_child_menus.clear();
 	return true;
 }
-CMenuElementUI* CMenuElementUI::GetSubMenuItemAt(std::size_t iIndex) const
+CMenuElementUI* CMenuElementUI::GetSubMenuItemAt(size_t iIndex) const
 {
-	if (iIndex < 0 || iIndex >= m_child_menus.size()) return nullptr;
+	if (iIndex >= m_child_menus.size()) {
+	    return nullptr;
+	}
 	return m_child_menus[iIndex];
 }
 

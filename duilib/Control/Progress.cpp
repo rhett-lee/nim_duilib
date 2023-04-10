@@ -370,8 +370,9 @@ int Progress::GetMarqueeElapsed()
 
 void Progress::SetMarqueeElapsed(int nMarqueeElapsed)
 {
-	if (!IsMarquee() || m_nMarqueeElapsed == m_nMarqueeElapsed)
+	if (!IsMarquee() || nMarqueeElapsed == m_nMarqueeElapsed) {
 		return;
+	}
 
 	m_nMarqueeElapsed = nMarqueeElapsed;
 	m_timer.Cancel();

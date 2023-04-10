@@ -397,7 +397,7 @@ void LabelTemplate<InheritType>::SetAttribute(const std::wstring& strName, const
             m_uTextStyle |= (DT_CENTER | DT_VCENTER | DT_SINGLELINE);
         }
         if (strValue.find(_T("bottom")) != std::wstring::npos) {
-            m_uTextStyle &= ~(DT_TOP | DT_VCENTER | DT_VCENTER);
+            m_uTextStyle &= ~(DT_TOP | DT_VCENTER);
             m_uTextStyle |= (DT_BOTTOM | DT_SINGLELINE);
         }
     }
