@@ -202,7 +202,7 @@ void CMenuWnd::ResizeMenu()
 	oMonitor.cbSize = sizeof(oMonitor);
 	//点击在哪里，以哪里的屏幕为主
 	::GetMonitorInfo(::MonitorFromPoint(m_BasedPoint, MONITOR_DEFAULTTOPRIMARY), &oMonitor);
-	UiRect rcWork = oMonitor.rcWork;
+	UiRect rcWork(oMonitor.rcWork);
 
 	CSize szAvailable = { rcWork.right - rcWork.left, rcWork.bottom - rcWork.top };
 	szAvailable = pRoot->EstimateSize(szAvailable);   //这里带上了阴影窗口
@@ -212,7 +212,7 @@ void CMenuWnd::ResizeMenu()
 	szInit.cx -= rcCorner.left + rcCorner.right;
 	szInit.cy -= rcCorner.top + rcCorner.bottom; //这里去掉阴影窗口，即用户的视觉有效面积 szInit<=szAvailable
 	
-	CPoint point = m_BasedPoint;  //这里有个bug，由于坐标点与包含在窗口内，会直接出发mouseenter导致出来子菜单，偏移1个像素
+	CPoint point(m_BasedPoint);  //这里有个bug，由于坐标点与包含在窗口内，会直接出发mouseenter导致出来子菜单，偏移1个像素
 	if (static_cast<int>(m_popupPosType) & static_cast<int>(eMenuAlignment_Right))
 	{
 		point.x += -szAvailable.cx + rcCorner.right + rcCorner.left;
@@ -272,7 +272,7 @@ void CMenuWnd::ResizeSubMenu()
 	MONITORINFO oMonitor = {};
 	oMonitor.cbSize = sizeof(oMonitor);
 	::GetMonitorInfo(::MonitorFromPoint(m_BasedPoint, MONITOR_DEFAULTTOPRIMARY), &oMonitor);
-	UiRect rcWork = oMonitor.rcWork;
+	UiRect rcWork (oMonitor.rcWork);
 	CSize szAvailable = { rcWork.right - rcWork.left, rcWork.bottom - rcWork.top };
 
 	for (int it = 0; it < m_pLayout->GetCount(); it++) {
@@ -372,8 +372,8 @@ void CMenuWnd::Show()
 	MONITORINFO oMonitor = {};
 	oMonitor.cbSize = sizeof(oMonitor);
 	::GetMonitorInfo(::MonitorFromWindow(m_hWnd, MONITOR_DEFAULTTOPRIMARY), &oMonitor);
-	UiRect rcWork = oMonitor.rcWork;
-	UiRect monitor_rect = oMonitor.rcMonitor;
+	UiRect rcWork(oMonitor.rcWork);
+	UiRect monitor_rect(oMonitor.rcMonitor);
 	ui::CSize szInit = { rcWork.right - rcWork.left, rcWork.bottom - rcWork.top };
 	szInit = GetRoot()->EstimateSize(szInit);
 	szInit.cx -= GetShadowCorner().left + GetShadowCorner().right;
@@ -655,7 +655,7 @@ void CMenuElementUI::CreateMenuWnd()
 	param.wParam = eMenuCloseThis;
 	CMenuWnd::GetMenuObserver().RBroadcast(param);
 
-	m_pSubWindow->Init(_T("submenu.xml"), _T(""), CPoint(), CMenuWnd::RIGHT_BOTTOM, false, this);
+	m_pSubWindow->Init(STRINGorID(_T("submenu.xml")), _T(""), CPoint(), CMenuWnd::RIGHT_BOTTOM, false, this);
 }
 
 } // namespace ui

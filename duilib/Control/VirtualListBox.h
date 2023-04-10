@@ -57,7 +57,7 @@ class UILIB_API VirtualListBox : public ListBox
 	friend class VirtualVLayout;
 	friend class VirtualHLayout;
 public:
-	VirtualListBox(ui::Layout* pLayout = new VirtualVLayout);
+	explicit VirtualListBox(ui::Layout* pLayout = new VirtualVLayout);
 
 	virtual std::wstring GetType() const override;
 

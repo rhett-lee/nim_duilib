@@ -52,7 +52,7 @@ private:
 class BASE_EXPORT NAutoLock
 {
 public:
-	NAutoLock(NLock * lock)
+	explicit NAutoLock(NLock * lock)
 	{
 		assert(lock);
 		lock_ = lock;
@@ -72,7 +72,7 @@ private:
 class BASE_EXPORT NAutoUnlock
 {
 public:
-	NAutoUnlock(NLock * lock)
+	explicit NAutoUnlock(NLock * lock)
 	{
 		assert(lock);
 		lock_ = lock;

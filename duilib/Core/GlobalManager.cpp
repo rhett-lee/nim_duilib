@@ -177,7 +177,7 @@ void GlobalManager::LoadGlobalResource()
 {
 	ui::WindowBuilder dialog_builder;
 	ui::Window paint_manager;
-	dialog_builder.Create(L"global.xml", CreateControlCallback(), &paint_manager);
+	dialog_builder.Create(STRINGorID(L"global.xml"), CreateControlCallback(), &paint_manager);
 }
 
 void GlobalManager::AddPreMessage(Window* pWindow)
@@ -619,7 +619,7 @@ void GlobalManager::SetDefaultSelectedBkColor(DWORD dwColor)
 Box* GlobalManager::CreateBox(const std::wstring& strXmlPath, CreateControlCallback callback)
 {
 	WindowBuilder builder;
-	Box* box = builder.Create(strXmlPath.c_str(), callback);
+	Box* box = builder.Create(STRINGorID(strXmlPath.c_str()), callback);
 	ASSERT(box);
 
 	return box;
@@ -631,7 +631,7 @@ Box* GlobalManager::CreateBoxWithCache(const std::wstring& strXmlPath, CreateCon
 	auto it = m_builderMap.find(strXmlPath);
 	if (it == m_builderMap.end()) {
 		WindowBuilder* builder = new WindowBuilder();
-		box = builder->Create(strXmlPath.c_str(), callback);
+		box = builder->Create(STRINGorID(strXmlPath.c_str()), callback);
 		if (box) {
 			m_builderMap[strXmlPath].reset(builder);
 		}
@@ -653,7 +653,7 @@ void GlobalManager::FillBox(Box* pUserDefinedBox, const std::wstring& strXmlPath
 		return;
 	}
 	WindowBuilder winBuilder;
-	Box* box = winBuilder.Create(strXmlPath.c_str(), callback, pUserDefinedBox->GetWindow(), nullptr, pUserDefinedBox);
+	Box* box = winBuilder.Create(STRINGorID(strXmlPath.c_str()), callback, pUserDefinedBox->GetWindow(), nullptr, pUserDefinedBox);
 	(void)box;
 	ASSERT(box);
 
@@ -670,7 +670,7 @@ void GlobalManager::FillBoxWithCache(Box* pUserDefinedBox, const std::wstring& s
 	auto it = m_builderMap.find(strXmlPath);
 	if (it == m_builderMap.end()) {
 		WindowBuilder* winBuilder = new WindowBuilder();
-		box = winBuilder->Create(strXmlPath.c_str(), callback, pUserDefinedBox->GetWindow(), nullptr, pUserDefinedBox);
+		box = winBuilder->Create(STRINGorID(strXmlPath.c_str()), callback, pUserDefinedBox->GetWindow(), nullptr, pUserDefinedBox);
 		if (box) {
 			m_builderMap[strXmlPath].reset(winBuilder);
 		}

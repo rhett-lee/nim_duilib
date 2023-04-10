@@ -65,7 +65,7 @@ void CComboWnd::Init(Combo* pOwner)
     MONITORINFO oMonitor = {};
     oMonitor.cbSize = sizeof(oMonitor);
     ::GetMonitorInfo(::MonitorFromWindow(GetHWND(), MONITOR_DEFAULTTOPRIMARY), &oMonitor);
-    UiRect rcWork = oMonitor.rcWork;
+    UiRect rcWork(oMonitor.rcWork);
     if( rc.bottom > rcWork.bottom || m_pOwner->IsPopupTop()) {
         rc.left = rcOwner.left;
         rc.right = rcOwner.right;

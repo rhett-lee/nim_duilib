@@ -20,7 +20,7 @@ public:
 class FilterListBox : public ListBox
 {
 public:
-	FilterListBox(Layout* pLayout = new VLayout) : ListBox(pLayout), m_pFilterComboWnd(nullptr){};
+	explicit FilterListBox(Layout* pLayout = new VLayout) : ListBox(pLayout), m_pFilterComboWnd(nullptr){};
 	virtual ~FilterListBox(){};
 
 	virtual bool SelectItem(int iIndex, bool bTakeFocus = false, bool bTrigger = true) override;

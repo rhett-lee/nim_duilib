@@ -609,7 +609,7 @@ public:
 	 * @param[in] mousePos	鼠标信息
 	 * @return 无
 	 */
-	void HandleMessageTemplate(EventType eventType, WPARAM wParam = 0, LPARAM lParam = 0, TCHAR tChar = 0, CPoint mousePos = CPoint(), FLOAT pressure = 0.0f);
+	void HandleMessageTemplate(EventType eventType, WPARAM wParam = 0, LPARAM lParam = 0, TCHAR tChar = 0, const CPoint& mousePos = CPoint(), FLOAT pressure = 0.0f);
 
 	/**
 	 * @brief 将转换后的消息派发到消息处理函数

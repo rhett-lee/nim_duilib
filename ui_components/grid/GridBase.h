@@ -52,7 +52,7 @@ namespace ui
 		std::vector<std::wstring> combo_list;
 		std::wstring date;
 
-		GridItem(GridItemInfo* info) : text(info->txt), text_color(info->text_color), bk_color(info->bk_color), row_index(info->row), col_index(info->col)\
+		explicit GridItem(GridItemInfo* info) : text(info->txt), text_color(info->text_color), bk_color(info->bk_color), row_index(info->row), col_index(info->col)\
 			, type(info->type), text_style(info->text_style), flag(0), iValue(0), dValue(0.0){
 			
 		};
@@ -129,7 +129,7 @@ namespace ui
 
 	class UILIB_API GridHeaderItem :public GridItem{
 	public:
-		GridHeaderItem(GridItemInfo* info) : GridItem(info){
+		explicit GridHeaderItem(GridItemInfo* info) : GridItem(info){
 		};
 		virtual ~GridHeaderItem(){
 			if (control_)
@@ -154,7 +154,7 @@ namespace ui
 	class UILIB_API GridSelRange{
 		friend class GridBody;
 	public:
-		GridSelRange(GridBody *pBody) : m_pBody(pBody){};
+		explicit GridSelRange(GridBody *pBody) : m_pBody(pBody){};
 		~GridSelRange(){};
 		void Clear();
 		void ClearContent();

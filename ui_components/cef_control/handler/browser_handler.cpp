@@ -53,7 +53,7 @@ void BrowserHandler::CloseAllBrowser()
 	{
 		IMPLEMENT_REFCOUNTING(CloseAllBrowserTask);
 	public:
-		CloseAllBrowserTask(const std::vector<CefRefPtr<CefBrowser>>& browser_list)
+		explicit CloseAllBrowserTask(const std::vector<CefRefPtr<CefBrowser>>& browser_list)
 		{
 			browser_list_.assign(browser_list.begin(), browser_list.end());
 		}

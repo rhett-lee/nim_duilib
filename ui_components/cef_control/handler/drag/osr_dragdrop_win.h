@@ -82,7 +82,7 @@ class DropTargetWin : public IDropTarget {
 
  public:
   HWND GetHWND() { return hWnd_; };
-  DropTargetWin(HWND hWnd)
+  explicit DropTargetWin(HWND hWnd)
       : hWnd_(hWnd) { }
   virtual ~DropTargetWin() { }
 

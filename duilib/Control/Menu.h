@@ -107,7 +107,7 @@ public:
 		DWORD m_index;
 		ObserverImplBase* m_ptr;
 	public:
-		Iterator( SubjectImpl & table )
+		explicit Iterator( SubjectImpl & table )
 			: m_table( table ), m_index(0), m_ptr(NULL)
 		{}
 

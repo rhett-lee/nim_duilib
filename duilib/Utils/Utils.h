@@ -14,12 +14,12 @@ namespace ui
 class STRINGorID
 {
 public:
-	STRINGorID(LPCTSTR lpString) : m_lpstr(lpString)
+	explicit STRINGorID(LPCTSTR lpString) : m_lpstr(lpString)
 	{
 	
 	}
 
-	STRINGorID(UINT nID) : m_lpstr(MAKEINTRESOURCE(nID))
+	explicit STRINGorID(UINT nID) : m_lpstr(MAKEINTRESOURCE(nID))
 	{
 	
 	}
@@ -38,7 +38,7 @@ public:
 		x = y = 0;
 	}
 
-	CPoint(const POINT& src)
+	explicit CPoint(const POINT& src)
 	{
 		x = src.x;
 		y = src.y;
@@ -50,7 +50,7 @@ public:
 		y = _y;
 	}
 
-	CPoint(LPARAM lParam)
+	explicit CPoint(LPARAM lParam)
 	{
 		x = GET_X_LPARAM(lParam);
 		y = GET_Y_LPARAM(lParam);
@@ -124,7 +124,7 @@ public:
 		left = top = right = bottom = 0;
 	}
 
-	UiRect(const RECT& src)
+	explicit UiRect(const RECT& src)
 	{
 		left = src.left;
 		top = src.top;
@@ -245,28 +245,28 @@ public:
 		VariantInit(this); 
 	}
 
-	CVariant(int i)
+	explicit CVariant(int i)
 	{
 		VariantInit(this);
 		this->vt = VT_I4;
 		this->intVal = i;
 	}
 
-	CVariant(float f)
+	explicit CVariant(float f)
 	{
 		VariantInit(this);
 		this->vt = VT_R4;
 		this->fltVal = f;
 	}
 
-	CVariant(LPOLESTR s)
+	explicit CVariant(LPOLESTR s)
 	{
 		VariantInit(this);
 		this->vt = VT_BSTR;
 		this->bstrVal = s;
 	}
 
-	CVariant(IDispatch *disp)
+	explicit CVariant(IDispatch *disp)
 	{
 		VariantInit(this);
 		this->vt = VT_DISPATCH;

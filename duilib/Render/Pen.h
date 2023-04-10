@@ -10,7 +10,7 @@ namespace ui
 class UILIB_API Pen_GdiPlus : public IPen
 {
 public:
-	Pen_GdiPlus(DWORD color, int width = 1);
+	explicit Pen_GdiPlus(DWORD color, int width = 1);
 	Pen_GdiPlus(const Pen_GdiPlus& r);
 	Pen_GdiPlus& operator=(const Pen_GdiPlus& r) = delete;
 

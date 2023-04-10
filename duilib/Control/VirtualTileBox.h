@@ -59,7 +59,7 @@ class UILIB_API VirtualTileBox : public ui::ListBox
 {
   friend class VirtualTileLayout;
 public:
-  VirtualTileBox(ui::Layout* pLayout = new VirtualTileLayout);
+  explicit VirtualTileBox(ui::Layout* pLayout = new VirtualTileLayout);
 
   /**
   * @brief 设置数据代理对象

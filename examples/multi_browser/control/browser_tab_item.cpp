@@ -40,7 +40,7 @@ bool BrowserTabItem::OnMouseEnter(ui::EventArgs* msg)
 
 bool BrowserTabItem::OnMouseLeave(ui::EventArgs* msg)
 {
-	if (!m_rcItem.IsPointIn(msg->ptMouse))
+	if (!m_rcItem.IsPointIn(CPoint(msg->ptMouse)))
 	{
 		button_close_->SetVisible(false);
 	}

@@ -17,7 +17,7 @@ public:
 class NotificationBody :public PopoverBody
 {
 public:
-  NotificationBody(const std::wstring& strContent);
+  explicit NotificationBody(const std::wstring& strContent);
 
   virtual ~NotificationBody();
 };

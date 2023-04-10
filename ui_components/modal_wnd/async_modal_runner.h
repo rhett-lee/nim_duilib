@@ -31,7 +31,7 @@ public:
 		virtual void OnThreadWillExit(AsyncModalRunner *runner) = 0;
 	};
 
-	AsyncModalRunner(Delegate* delegate);
+	explicit AsyncModalRunner(Delegate* delegate);
 	virtual ~AsyncModalRunner();
 
 	// Once this method is called the runner will take

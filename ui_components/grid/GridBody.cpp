@@ -950,7 +950,7 @@ namespace ui
 		CPoint position;
 		bool ctrl = (msg.wParam & MK_CONTROL);
 		bool shift = (msg.wParam& MK_SHIFT);
-		bool bFind = _GetGridItemByMouse(msg.ptMouse, position, true);
+		bool bFind = _GetGridItemByMouse(CPoint(msg.ptMouse), position, true);
 		if (bFind)
 		{
 			printf("GridBody::ButtonDown item position{%d,%d}\n", position.x, position.y);
@@ -958,7 +958,7 @@ namespace ui
 			CSize szOff = m_pGrid->GetScrollPos();
 			int fixed_col_width = GetFixedColWidth();
 			int grid_width = m_pGrid->GetWidth();
-			CPoint pt = msg.ptMouse;
+			CPoint pt (msg.ptMouse);
 			pt.Offset(-m_rcItem.left, -m_rcItem.top);
 			assert(pt.x > 0 && pt.y > 0);
 			if (pt.x <= 0 || pt.y <= 0 || m_vLayout.size() == 0)
@@ -1051,7 +1051,7 @@ namespace ui
 		if (m_nDragColIndex != -1)
 		{
 			assert(m_nDragColIndex < GetColCount());
-			CPoint pt = msg.ptMouse;
+			CPoint pt(msg.ptMouse);
 			pt.Offset(-m_rcItem.left, -m_rcItem.top);
 			int width = GetColumnWidth(m_nDragColIndex) + pt.x - m_ptDragColumnStart.x;
 			if (width < MIN_COLUMN_WIDTH)
@@ -1074,7 +1074,7 @@ namespace ui
 	bool GridBody::OnMouseDoubleClick(EventArgs& msg)
 	{
 		CPoint position;
-		bool bFind = _GetGridItemByMouse(msg.ptMouse, position);
+		bool bFind = _GetGridItemByMouse(CPoint(msg.ptMouse), position);
 		if (bFind)
 		{
 			GridItem *item = GetGridItem(position.y, position.x);
@@ -1090,7 +1090,7 @@ namespace ui
 			CSize szOff = m_pGrid->GetScrollPos();
 			int fixed_col_width = GetFixedColWidth();
 
-			CPoint pt = msg.ptMouse;
+			CPoint pt(msg.ptMouse);
 
 			pt.Offset(-m_rcItem.left, -m_rcItem.top);
 			assert(pt.x > 0 && pt.y > 0);
@@ -1135,7 +1135,7 @@ namespace ui
 		CSize szOff = m_pGrid->GetScrollPos();
 		int fixed_col_width = GetFixedColWidth();
 
-		CPoint pt = msg.ptMouse;
+		CPoint pt(msg.ptMouse);
 		pt.Offset(-m_rcItem.left, -m_rcItem.top);
 		//assert(pt.x > 0 && pt.y > 0);
 		if (pt.x <= 0 || pt.y <= 0 || m_vLayout.size() == 0)
@@ -1154,7 +1154,7 @@ namespace ui
 				CPoint position;
 				bool ctrl = (msg.wParam & MK_CONTROL);
 				bool shift = (msg.wParam& MK_SHIFT);
-				bool bFind = _GetGridItemByMouse(msg.ptMouse, position, true);
+				bool bFind = _GetGridItemByMouse(CPoint(msg.ptMouse), position, true);
 				if (bFind && (position != m_ptDragSelStart || m_bDrageSelChanged))
 				{
 					if (position != m_ptDragSelStart)

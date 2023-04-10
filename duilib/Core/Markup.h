@@ -19,7 +19,7 @@ class UILIB_API CMarkup
 {
     friend class CMarkupNode;
 public:
-    CMarkup(LPCTSTR pstrXML = NULL);
+    explicit CMarkup(LPCTSTR pstrXML = NULL);
     ~CMarkup();
 
     bool Load(LPCTSTR pstrXML);

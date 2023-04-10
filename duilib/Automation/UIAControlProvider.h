@@ -131,7 +131,7 @@ class UIAControlProvider
 public:
   UIAControlProvider() = delete;
 
-  UIAControlProvider(Control* pControl) :m_refCount(1)
+  explicit UIAControlProvider(Control* pControl) :m_refCount(1)
   {
     m_pControl = pControl;
   }

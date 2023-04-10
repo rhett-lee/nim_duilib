@@ -99,7 +99,7 @@ class ScrollBar;
 class UILIB_API Box : public Control
 {
 public:
-	Box(Layout* pLayout = new Layout());
+	explicit Box(Layout* pLayout = new Layout());
 	Box(const Box& r);
 	Box& operator=(const Box& r) = delete;
     virtual ~Box();
@@ -324,7 +324,7 @@ protected:
 class UILIB_API ScrollableBox : public Box
 {
 public:
-	ScrollableBox(Layout* pLayout);
+	explicit ScrollableBox(Layout* pLayout);
 	ScrollableBox(const ScrollableBox& r);
 	ScrollableBox& operator=(const ScrollableBox& r) = delete;
 

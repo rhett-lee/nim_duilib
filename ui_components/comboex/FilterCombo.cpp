@@ -62,7 +62,7 @@ void CFilterComboWnd::Init(FilterCombo* pOwner)
     MONITORINFO oMonitor = {};
     oMonitor.cbSize = sizeof(oMonitor);
     ::GetMonitorInfo(::MonitorFromWindow(GetHWND(), MONITOR_DEFAULTTOPRIMARY), &oMonitor);
-    UiRect rcWork = oMonitor.rcWork;
+    UiRect rcWork(oMonitor.rcWork);
     if( rc.bottom > rcWork.bottom || m_pOwner->IsPopupTop()) {
         rc.left = rcOwner.left;
         rc.right = rcOwner.right;
@@ -504,7 +504,7 @@ bool FilterCombo::OnRichEditTextChanged(EventArgs* /*args*/)
 	MONITORINFO oMonitor = {};
 	oMonitor.cbSize = sizeof(oMonitor);
 	::GetMonitorInfo(::MonitorFromWindow(m_pComboWnd->GetHWND(), MONITOR_DEFAULTTOPRIMARY), &oMonitor);
-	UiRect rcWork = oMonitor.rcWork;
+	UiRect rcWork(oMonitor.rcWork);
 	if (rc.bottom > rcWork.bottom || IsPopupTop()) {
 		rc.left = rcOwner.left;
 		rc.right = rcOwner.right;

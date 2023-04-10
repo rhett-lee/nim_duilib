@@ -263,8 +263,8 @@ void MenuWndEx::ResizeMenu()
 	MONITORINFO oMonitor = {};
 	oMonitor.cbSize = sizeof(oMonitor);
 	::GetMonitorInfo(::MonitorFromPoint(m_BasedPoint, MONITOR_DEFAULTTOPRIMARY), &oMonitor);
-	UiRect rcWork = oMonitor.rcWork;
-	UiRect monitor_rect = oMonitor.rcMonitor;
+	UiRect rcWork(oMonitor.rcWork);
+	UiRect monitor_rect(oMonitor.rcMonitor);
 	ui::CSize szInit = { rcWork.right - rcWork.left, rcWork.bottom - rcWork.top };
 	szInit = GetRoot()->EstimateSize(szInit);
 	//必须是Menu标签作为xml的根节点
@@ -328,8 +328,8 @@ void MenuWndEx::ResizeSubMenu()
 	MONITORINFO oMonitor = {};
 	oMonitor.cbSize = sizeof(oMonitor);
 	::GetMonitorInfo(::MonitorFromWindow(m_pOwner->GetWindow()->GetHWND(), MONITOR_DEFAULTTOPRIMARY), &oMonitor);
-	UiRect rcWork = oMonitor.rcWork;
-	UiRect monitor_rect = oMonitor.rcMonitor;
+	UiRect rcWork(oMonitor.rcWork);
+	UiRect monitor_rect(oMonitor.rcMonitor);
 	ui::CSize szInit = { rcWork.right - rcWork.left, rcWork.bottom - rcWork.top };
 	szInit = GetRoot()->EstimateSize(szInit);
 	szInit.cx -= GetShadowCorner().left + GetShadowCorner().right;
@@ -345,7 +345,7 @@ void MenuWndEx::ResizeSubMenu()
 
 	RECT rcOwner = m_pOwner->GetPos();
 	// 初始化子菜单的弹出位置
-	UiRect rc = rcOwner;
+	UiRect rc(rcOwner);
 	rc.top = rcOwner.top;
 	rc.bottom = rc.top + szInit.cy;
 	::MapWindowRect(m_pOwner->GetWindow()->GetHWND(), HWND_DESKTOP, &rc);
@@ -592,7 +592,7 @@ LRESULT MenuWndEx::OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 		WindowBuilder builder;
 		auto callback = nbase::Bind(&WindowImplBase::CreateControl, this, std::placeholders::_1);
-		auto pRoot = (Box*)builder.Create((GetWindowResourcePath() + GetSkinFile()).c_str(), callback, this);
+		auto pRoot = (Box*)builder.Create(STRINGorID((GetWindowResourcePath() + GetSkinFile()).c_str()), callback, this);
 
 		ASSERT(pRoot);
 		if (pRoot == NULL) {
@@ -864,7 +864,7 @@ ui::Control* MenuElement::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT u
 				continue;
 			}			
 			if ((uFlags & UIFIND_HITTEST) != 0) {
-				CPoint newPoint = *(static_cast<LPPOINT>(pData));
+				CPoint newPoint (*(static_cast<LPPOINT>(pData)));
 				newPoint.Offset(scrollPos);
 				pControl = m_items[it]->FindControl(Proc, &newPoint, uFlags);
 			}
@@ -888,7 +888,7 @@ ui::Control* MenuElement::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT u
 			}
 			Control* pControl = nullptr;
 			if ((uFlags & UIFIND_HITTEST) != 0) {
-				CPoint newPoint = *(static_cast<LPPOINT>(pData));
+				CPoint newPoint (*(static_cast<LPPOINT>(pData)));
 				newPoint.Offset(scrollPos);
 				pControl = (*it)->FindControl(Proc, &newPoint, uFlags);
 			}
@@ -1094,7 +1094,7 @@ void MenuElement::CreateMenuWnd()
 	param.type = ContextMenuParam::kRemoveSubMenu;
 	MenuManager::GetInstance()->GetSubject().Notify(param);
 
-	m_pSubMenuWindow->InitMenu(static_cast<MenuElement*>(this), NULL, _T(""), CPoint(), kRight | kBottom);
+	m_pSubMenuWindow->InitMenu(static_cast<MenuElement*>(this), NULL, STRINGorID(_T("")), CPoint(), kRight | kBottom);
 
 	m_pWindow->SendNotify(this, ui::kEventNotify, 0, 0);
 }

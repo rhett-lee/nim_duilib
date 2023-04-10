@@ -608,7 +608,7 @@ void CTxtWinHost::TxInvalidateRect(LPCRECT prc, BOOL /*fMode*/)
         m_re->GetWindow()->Invalidate(newRcClient);
         return;
     }
-    UiRect rc = *prc;
+    UiRect rc(*prc);
 	rc.Offset(-scrollOffset.x, -scrollOffset.y);
     m_re->GetWindow()->Invalidate(rc);
 }
@@ -1112,7 +1112,7 @@ BOOL CTxtWinHost::DoSetCursor(UiRect *prc, POINT* pt)
     UiRect rc = (prc != NULL) ? *prc : rcClient;
 
     // Is this in our rectangle?
-	CPoint newPt = *pt;
+	CPoint newPt(*pt);
 	newPt.Offset(m_re->GetScrollOffset());
     if (PtInRect(&rc, newPt))
     {
@@ -2498,7 +2498,7 @@ void RichEdit::HandleMessage(EventArgs& event)
 	if (event.Type == kEventMouseButtonDown || event.Type == kEventPointDown) {
 		if (m_linkInfo.size() > 0)	{
 			std::wstring strLink;
-			if (HittestCustomLink(event.ptMouse, strLink))
+			if (HittestCustomLink(CPoint(event.ptMouse), strLink))
 			{
 				//::SetCursor(::LoadCursor(NULL, MAKEINTRESOURCE(IDC_HAND)));
 				if (m_pWindow != NULL)
@@ -2574,7 +2574,7 @@ void RichEdit::HandleMessage(EventArgs& event)
 void RichEdit::OnSetCursor(EventArgs& event)
 {
 	std::wstring strLink;
-	if (HittestCustomLink(event.ptMouse, strLink))
+	if (HittestCustomLink(CPoint(event.ptMouse), strLink))
 	{
 		::SetCursor(::LoadCursor(NULL, IDC_HAND));
 		return;

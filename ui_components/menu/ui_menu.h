@@ -60,7 +60,7 @@ public:
 		LEFT_BOTTOM_N = eMenuAlignment_Left | eMenuAlignment_Bottom,
 		LEFT_TOP_N = eMenuAlignment_Intelligent | eMenuAlignment_Top
 	};
-	CMenuWnd(HWND hParent = NULL);
+	explicit CMenuWnd(HWND hParent = NULL);
 	void Init(STRINGorID xml, LPCTSTR pSkinType, POINT point, PopupPosType popupPosType = LEFT_TOP, bool no_focus = false, CMenuElementUI* pOwner = NULL);
 	void Show();
 	// 重新调整菜单的大小

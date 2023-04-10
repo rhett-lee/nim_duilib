@@ -9,7 +9,7 @@ namespace ui
 		friend class Grid;
 		friend class GridSelRange;
 	protected:
-		GridBody(Grid *pGrid);
+		explicit GridBody(Grid *pGrid);
 		virtual ~GridBody(){
 			if (m_pReEdit)
 			{
@@ -28,7 +28,6 @@ namespace ui
 		
 		int GetDefaultColWidth(){ return m_defaultColWidth; };
 		void SetDefaultColWidth(int width){ m_defaultColWidth = width; };
-		int GetTotalRowHeight(){};
 
 	protected:	//pass by grid
 		/**

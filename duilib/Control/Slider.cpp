@@ -45,7 +45,7 @@ void Slider::HandleMessage(EventArgs& event)
 
 	if (event.Type == kEventMouseButtonDown || event.Type == kEventInternalDoubleClick || event.Type == kEventPointDown) {
 		if( IsEnabled() ) {
-			CPoint newPtMouse = event.ptMouse;
+			CPoint newPtMouse(event.ptMouse);
 			newPtMouse.Offset(GetScrollOffset());
 			UiRect rcThumb = GetThumbRect();
 			if (rcThumb.IsPointIn(newPtMouse)) {

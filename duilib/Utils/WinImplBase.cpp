@@ -168,8 +168,8 @@ LRESULT WindowImplBase::OnGetMinMaxInfo(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
 	MONITORINFO oMonitor = {};
 	oMonitor.cbSize = sizeof(oMonitor);
 	::GetMonitorInfo(::MonitorFromWindow(GetHWND(), MONITOR_DEFAULTTONEAREST), &oMonitor);
-	UiRect rcWork = oMonitor.rcWork;
-	UiRect rcMonitor = oMonitor.rcMonitor;
+	UiRect rcWork(oMonitor.rcWork);
+	UiRect rcMonitor(oMonitor.rcMonitor);
 	rcWork.Offset(-oMonitor.rcMonitor.left, -oMonitor.rcMonitor.top);
 
 	UiRect rcMaximize = GetMaximizeInfo();
@@ -268,7 +268,7 @@ LRESULT WindowImplBase::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 	std::wstring strSkinFile = GetWindowResourcePath() + GetSkinFile();
 
 	auto callback = nbase::Bind(&WindowImplBase::CreateControl, this, std::placeholders::_1);
-	auto pRoot = (Box*)builder.Create(strSkinFile.c_str(), callback, this);
+	Box* pRoot = builder.Create(STRINGorID(strSkinFile.c_str()), callback, this);
 
 	ASSERT(pRoot && L"Faield to load xml file.");
 	if (pRoot == NULL) {

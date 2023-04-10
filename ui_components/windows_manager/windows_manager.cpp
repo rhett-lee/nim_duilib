@@ -14,7 +14,7 @@ WindowsManager::~WindowsManager()
 	windows_map_.clear();
 }
 
-bool WindowsManager::RegisterWindow(const std::wstring wnd_class_name, const std::wstring wnd_id, WindowEx *wnd)
+bool WindowsManager::RegisterWindow(const std::wstring& wnd_class_name, const std::wstring& wnd_id, WindowEx *wnd)
 {
 	if (IsStopRegister())
 	{
@@ -93,6 +93,9 @@ WindowEx* WindowsManager::GetWindow(const std::wstring &wnd_class_name, const st
 WindowList WindowsManager::GetWindowsByClassName(LPCTSTR classname)
 {
 	WindowList wnd_list;
+	if (classname == nullptr) {
+		return wnd_list;
+	}
 	WindowsMap::iterator it = windows_map_.find(classname);
 	if (it != windows_map_.end())
 	{

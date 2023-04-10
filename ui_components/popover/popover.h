@@ -130,7 +130,7 @@ public:
 class PopoverArrow :public ui::Control
 {
 public:
-  PopoverArrow(int nPlaceMent);
+  explicit PopoverArrow(int nPlaceMent);
   virtual ~PopoverArrow();
 
   virtual std::wstring GetType() const override;
@@ -164,7 +164,7 @@ protected:
 class PopoverHeader :public ui::HBox
 {
 public:
-  PopoverHeader(const std::wstring& strTitle,
+  explicit PopoverHeader(const std::wstring& strTitle,
     bool bShowClose = false,
     PopoverIconType nIconType = kIconNone);
   virtual ~PopoverHeader();
@@ -200,7 +200,7 @@ protected:
 class PopoverBody :public ui::HBox
 {
 public:
-  PopoverBody(const std::wstring& content, const std::wstring& colorId = L"");
+  explicit PopoverBody(const std::wstring& content, const std::wstring& colorId = L"");
   virtual ~PopoverBody();
 
   virtual std::wstring GetType() const override;
@@ -383,7 +383,7 @@ protected:
 class PopoverHolderLayer :public ui::Box
 {
 public:
-  PopoverHolderLayer(const std::wstring& type,
+  explicit PopoverHolderLayer(const std::wstring& type,
     ui::Layout* pLayout = new ui::Layout()) :ui::Box(pLayout),
     m_strType(type)
   {
@@ -419,7 +419,7 @@ private:
 class NotificationHolderLayer :public PopoverHolderLayer
 {
 public:
-  NotificationHolderLayer(ui::Control* pAnchor) :
+  explicit NotificationHolderLayer(ui::Control* pAnchor) :
     PopoverHolderLayer(PopoverHolderLayer::kHolderTypeNotification, new ui::VLayout()),
     m_pAnchor(pAnchor), m_bInited(false)
   {

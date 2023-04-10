@@ -200,7 +200,7 @@ LRESULT CefControl::MessageHandler(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL
 		POINT pt = { 0 };
 		::GetCursorPos(&pt);
 		::ScreenToClient(m_pWindow->GetHWND(), &pt);
-		if (!m_rcItem.IsPointIn(pt))
+		if (!m_rcItem.IsPointIn(CPoint(pt)))
 			return 0;
 
 		m_pWindow->CallWindowProc(uMsg, wParam, lParam);

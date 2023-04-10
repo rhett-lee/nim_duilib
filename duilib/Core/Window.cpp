@@ -305,7 +305,7 @@ void Window::CenterWindow()
 	MONITORINFO oMonitor = {0,};
 	oMonitor.cbSize = sizeof(oMonitor);
 	::GetMonitorInfo(::MonitorFromWindow(hWnd, MONITOR_DEFAULTTONEAREST), &oMonitor);
-	rcArea = oMonitor.rcWork;
+	rcArea = UiRect(oMonitor.rcWork);
 
 	if (hWndCenter == nullptr) {
 		rcCenter = rcArea;
@@ -1105,7 +1105,7 @@ LRESULT Window::DoHandlMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& ha
 			}
 			// Generate mouse hover event
 			if (m_pEventHover != nullptr) {
-				m_pEventHover->HandleMessageTemplate(kEventMouseHover, 0, 0, 0, pt);
+				m_pEventHover->HandleMessageTemplate(kEventMouseHover, 0, 0, 0, CPoint(pt));
 			}
 			// Create tooltip information
 			std::wstring sToolTip = pHover->GetToolTipText();
@@ -1179,7 +1179,7 @@ LRESULT Window::DoHandlMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& ha
 			}
 			// Generate the appropriate mouse messages
 			POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
-			m_ptLastMousePos = pt;
+			m_ptLastMousePos = CPoint(pt);
 
 			// Do not move the focus to the new control when the mouse is pressed
 			if (!IsCaptured()) {
@@ -1189,10 +1189,10 @@ LRESULT Window::DoHandlMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& ha
 			}
 
 			if (m_pEventClick != nullptr) {
-				m_pEventClick->HandleMessageTemplate(kEventMouseMove, wParam, lParam, 0, pt);
+				m_pEventClick->HandleMessageTemplate(kEventMouseMove, wParam, lParam, 0, CPoint(pt));
 			}
 			else if (m_pNewHover != nullptr) {
-				m_pNewHover->HandleMessageTemplate(kEventMouseMove, wParam, lParam, 0, pt);
+				m_pNewHover->HandleMessageTemplate(kEventMouseMove, wParam, lParam, 0, CPoint(pt));
 			}
 		}
 		break;
@@ -1207,7 +1207,7 @@ LRESULT Window::DoHandlMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& ha
 			// and we need to remove them on focus change).
 			::SetFocus(m_hWnd);
 			POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
-			m_ptLastMousePos = pt;
+			m_ptLastMousePos = CPoint(pt);
 			Control* pControl = FindControl(pt);
 			if (pControl == nullptr) {
 				break;
@@ -1219,7 +1219,7 @@ LRESULT Window::DoHandlMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& ha
 			pControl->SetFocus();
 			SetCapture();
 
-			pControl->HandleMessageTemplate(kEventMouseButtonDown, wParam, lParam, 0, pt);
+			pControl->HandleMessageTemplate(kEventMouseButtonDown, wParam, lParam, 0, CPoint(pt));
 		}
 		break;
 		case WM_RBUTTONDOWN:
@@ -1230,7 +1230,7 @@ LRESULT Window::DoHandlMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& ha
 
 			::SetFocus(m_hWnd);
 			POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
-			m_ptLastMousePos = pt;
+			m_ptLastMousePos = CPoint(pt);
 			Control* pControl = FindControl(pt);
 			if (pControl == nullptr) {
 				break;
@@ -1242,7 +1242,7 @@ LRESULT Window::DoHandlMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& ha
 			pControl->SetFocus();
 			SetCapture();
 
-			pControl->HandleMessageTemplate(kEventMouseRightButtonDown, wParam, lParam, 0, pt);
+			pControl->HandleMessageTemplate(kEventMouseRightButtonDown, wParam, lParam, 0, CPoint(pt));
 		}
 		break;
 		case WM_LBUTTONDBLCLK:
@@ -1253,7 +1253,7 @@ LRESULT Window::DoHandlMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& ha
 
 			::SetFocus(m_hWnd);
 			POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
-			m_ptLastMousePos = pt;
+			m_ptLastMousePos = CPoint(pt);
 			Control* pControl = FindControl(pt);
 			if (pControl == nullptr) {
 				break;
@@ -1264,33 +1264,33 @@ LRESULT Window::DoHandlMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& ha
 			m_pEventClick = pControl;
 			SetCapture();
 
-			pControl->HandleMessageTemplate(kEventInternalDoubleClick, wParam, lParam, 0, pt);
+			pControl->HandleMessageTemplate(kEventInternalDoubleClick, wParam, lParam, 0, CPoint(pt));
 		}
 		break;
 		case WM_LBUTTONUP:
 		{
 			ReleaseEventClick(false, wParam, lParam);
 			POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
-			m_ptLastMousePos = pt;
+			m_ptLastMousePos = CPoint(pt);
 			ReleaseCapture();
 			if (m_pEventClick == nullptr) {
 				break;
 			}
 
-			m_pEventClick->HandleMessageTemplate(kEventMouseButtonUp, wParam, lParam, 0, pt);
+			m_pEventClick->HandleMessageTemplate(kEventMouseButtonUp, wParam, lParam, 0, CPoint(pt));
 			m_pEventClick = nullptr;
 		}
 		break;
 		case WM_RBUTTONUP:
 		{
 			POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
-			m_ptLastMousePos = pt;
+			m_ptLastMousePos = CPoint(pt);
 			ReleaseCapture();
 			if (m_pEventClick == nullptr) {
 				break;
 			}
 
-			m_pEventClick->HandleMessageTemplate(kEventMouseRightButtonUp, wParam, lParam, 0, pt);
+			m_pEventClick->HandleMessageTemplate(kEventMouseRightButtonUp, wParam, lParam, 0, CPoint(pt));
 			// WM_CONTEXTMENU消息还会用到m_pEventClick
 			// m_pEventClick = nullptr;
 		}
@@ -1313,7 +1313,7 @@ LRESULT Window::DoHandlMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& ha
 		{
 			POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
 			::ScreenToClient(m_hWnd, &pt);
-			m_ptLastMousePos = pt;
+			m_ptLastMousePos = CPoint(pt);
 			Control* pControl = FindControl(pt);
 			if (pControl == nullptr) {
 				break;
@@ -1372,7 +1372,7 @@ LRESULT Window::DoHandlMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& ha
 						}
 
 						::SetFocus(m_hWnd);
-						m_ptLastMousePos = pt;
+						m_ptLastMousePos = CPoint(pt);
 						Control* pControl = FindControl(pt);
 						if (pControl == nullptr) {
 							break;
@@ -1384,7 +1384,7 @@ LRESULT Window::DoHandlMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& ha
 						pControl->SetFocus();
 						SetCapture();
 
-						pControl->HandleMessageTemplate(kEventTouchDown, 0, lParam, 0, pt);
+						pControl->HandleMessageTemplate(kEventTouchDown, 0, lParam, 0, CPoint(pt));
 					}
 					else if (pInputs[0].dwFlags & TOUCHEVENTF_MOVE)
 					{
@@ -1396,7 +1396,7 @@ LRESULT Window::DoHandlMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& ha
 							break;
 						}
 
-						m_ptLastMousePos = pt;
+						m_ptLastMousePos = CPoint(pt);
 						if (m_pEventPointer == nullptr) {
 							break;
 						}
@@ -1405,18 +1405,18 @@ LRESULT Window::DoHandlMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& ha
 							break;
 						}
 
-						m_pEventPointer->HandleMessageTemplate(kEventTouchMove, 0, 0, 0, pt);
+						m_pEventPointer->HandleMessageTemplate(kEventTouchMove, 0, 0, 0, CPoint(pt));
 					}
 					else if (pInputs[0].dwFlags & TOUCHEVENTF_UP)
 					{
 						ReleaseEventClick(true, wParam, lParam);
-						m_ptLastMousePos = pt;
+						m_ptLastMousePos = CPoint(pt);
 						ReleaseCapture();
 						if (m_pEventPointer == nullptr) {
 							break;
 						}
 
-						m_pEventPointer->HandleMessageTemplate(kEventTouchUp, 0, lParam, 0, pt);
+						m_pEventPointer->HandleMessageTemplate(kEventTouchUp, 0, lParam, 0, CPoint(pt));
 						m_pEventPointer = nullptr;
 					}
 				}
@@ -1484,7 +1484,7 @@ LRESULT Window::DoHandlMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& ha
 				}
 
 				::SetFocus(m_hWnd);
-				m_ptLastMousePos = pt;
+				m_ptLastMousePos = CPoint(pt);
 				Control* pControl = FindControl(pt);
 				if (pControl == nullptr){
 				    break;
@@ -1496,7 +1496,7 @@ LRESULT Window::DoHandlMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& ha
 				pControl->SetFocus();
 				SetCapture();
 
-				pControl->HandleMessageTemplate(kEventPointDown, 0, lParam, 0, pt, pressure);
+				pControl->HandleMessageTemplate(kEventPointDown, 0, lParam, 0, CPoint(pt), pressure);
 
 				// 如果控件不支持处理WM_POINTERUPDATE消息，则不设置handled，程序会进入WM_BUTTON处理流程
 				if (m_pEventPointer && m_pEventPointer->IsReceivePointerMsg()) {
@@ -1513,7 +1513,7 @@ LRESULT Window::DoHandlMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& ha
 				if (m_ptLastMousePos.x == pt.x && m_ptLastMousePos.y == pt.y)
 					break;
 
-				m_ptLastMousePos = pt;
+				m_ptLastMousePos = CPoint(pt);
 				// 如果没有按下，则不设置handled，程序会转换为WM_BUTTON类消息
 				if (m_pEventPointer == nullptr) {
 				    break;
@@ -1521,7 +1521,7 @@ LRESULT Window::DoHandlMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& ha
 
 				if (!HandleMouseEnterLeave(pt, wParam, lParam)) break;
 
-				m_pEventPointer->HandleMessageTemplate(kEventPointMove, 0, 0, 0, pt, pressure);
+				m_pEventPointer->HandleMessageTemplate(kEventPointMove, 0, 0, 0, CPoint(pt), pressure);
 
 				// 如果控件不支持处理WM_POINTERUPDATE消息，则不设置handled，程序会进入WM_MOUSEMOVE处理流程
 				if (m_pEventPointer && m_pEventPointer->IsReceivePointerMsg()) {
@@ -1532,7 +1532,7 @@ LRESULT Window::DoHandlMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& ha
 			case WM_POINTERLEAVE:
 			case WM_POINTERCAPTURECHANGED:
 				ReleaseEventClick(true, wParam, lParam);
-				m_ptLastMousePos = pt;
+				m_ptLastMousePos = CPoint(pt);
 				// 如果没有按下，则不设置handled，程序会转换为WM_BUTTON类消息
 				if (uMsg != WM_POINTERLEAVE) {
 					// Refer to LBUTTONUP and MOUSELEAVE，LBUTTOUP ReleaseCapture while MOUSELEAVE DONOT ReleaseCapture
@@ -1542,7 +1542,7 @@ LRESULT Window::DoHandlMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& ha
 				    break;
 				}
 
-				m_pEventPointer->HandleMessageTemplate(kEventPointUp, 0, lParam, 0, pt, pressure);
+				m_pEventPointer->HandleMessageTemplate(kEventPointUp, 0, lParam, 0, CPoint(pt), pressure);
 
 				// 如果控件不支持处理WM_POINTERUPDATE消息，则不设置handled，程序会进入WM_BUTTON处理流程
 				if (m_pEventPointer && m_pEventPointer->IsReceivePointerMsg()) {
@@ -1568,13 +1568,13 @@ LRESULT Window::DoHandlMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& ha
 			pControl = m_pEventPointer ? m_pEventPointer : pControl;
 
 			POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
-			m_ptLastMousePos = pt;
+			m_ptLastMousePos = CPoint(pt);
 			if (pControl == nullptr || !pControl->IsNeedButtonUpWhenKillFocus()) {
 				break;
 			}
 			ReleaseCapture();
 
-			pControl->HandleMessageTemplate(kEventMouseButtonUp, wParam, lParam, 0, pt);
+			pControl->HandleMessageTemplate(kEventMouseButtonUp, wParam, lParam, 0, CPoint(pt));
 			m_pEventClick = nullptr;
 			m_pEventPointer = nullptr;
 		}
@@ -1584,13 +1584,13 @@ LRESULT Window::DoHandlMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& ha
 			ReleaseEventClick(false, wParam, lParam);
 			POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
 			::ScreenToClient(m_hWnd, &pt);
-			m_ptLastMousePos = pt;
+			m_ptLastMousePos = CPoint(pt);
 			if (m_pEventClick == nullptr) {
 				break;
 			}
 			ReleaseCapture();
 
-			m_pEventClick->HandleMessageTemplate(kEventInternalMenu, wParam, (LPARAM)m_pEventClick, 0, pt);
+			m_pEventClick->HandleMessageTemplate(kEventInternalMenu, wParam, (LPARAM)m_pEventClick, 0, CPoint(pt));
 			m_pEventClick = nullptr;
 		}
 		break;
@@ -1642,12 +1642,12 @@ LRESULT Window::DoHandlMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& ha
 			POINT pt = { 0 };
 			::GetCursorPos(&pt);
 			::ScreenToClient(m_hWnd, &pt);
-			m_ptLastMousePos = pt;
+			m_ptLastMousePos = CPoint(pt);
 			Control* pControl = FindControl(pt);
 			if (pControl == nullptr) {
 				break;
 			}
-			pControl->HandleMessageTemplate(kEventSetCursor, wParam, lParam, 0, pt);
+			pControl->HandleMessageTemplate(kEventSetCursor, wParam, lParam, 0, CPoint(pt));
 		}
 		handled = true;
 		return 0;
@@ -1713,14 +1713,14 @@ bool Window::HandleMouseEnterLeave(const POINT &pt, WPARAM wParam, LPARAM lParam
 	}
 
 	if (m_pNewHover != m_pEventHover && m_pEventHover != nullptr) {
-		m_pEventHover->HandleMessageTemplate(kEventMouseLeave, 0, 0, 0, pt);
+		m_pEventHover->HandleMessageTemplate(kEventMouseLeave, 0, 0, 0, CPoint(pt));
 		m_pEventHover = nullptr;
 		if (m_hwndTooltip != nullptr) {
 			::SendMessage(m_hwndTooltip, TTM_TRACKACTIVATE, FALSE, (LPARAM)&m_ToolTip);
 		}
 	}
 	if (m_pNewHover != m_pEventHover && m_pNewHover != nullptr) {
-		m_pNewHover->HandleMessageTemplate(kEventMouseEnter, wParam, lParam, 0, pt);
+		m_pNewHover->HandleMessageTemplate(kEventMouseEnter, wParam, lParam, 0, CPoint(pt));
 		m_pEventHover = m_pNewHover;
 	}
 	return true;
@@ -1900,18 +1900,19 @@ void Window::AddDelayedCleanup(Control* pControl)
 	}	
 }
 
-Control* Window::FindControl(POINT pt) const
+Control* Window::FindControl(const POINT& pt) const
 {
 	ASSERT(m_pRoot);
 	Control* pFindedControl = nullptr;
 	for (auto it : m_aIControlFromPointFinder)
 	{
-		if ((pFindedControl = it->FindControlFromPoint(pt)) != nullptr) {
+		if ((pFindedControl = it->FindControlFromPoint(CPoint(pt))) != nullptr) {
 			return pFindedControl;
 		}			
 	}
 	if (m_pRoot != nullptr) {
-		return m_pRoot->FindControl(__FindControlFromPoint, &pt, UIFIND_VISIBLE | UIFIND_HITTEST | UIFIND_TOP_FIRST);
+		POINT ptLocal = pt;
+		return m_pRoot->FindControl(__FindControlFromPoint, &ptLocal, UIFIND_VISIBLE | UIFIND_HITTEST | UIFIND_TOP_FIRST);
 	}
 	return nullptr;
 }
@@ -1927,14 +1928,15 @@ Control* Window::FindControl(const std::wstring& strName) const
 	return pFindedControl;
 }
 
-Control* Window::FindSubControlByPoint(Control* pParent, POINT pt) const
+Control* Window::FindSubControlByPoint(Control* pParent, const POINT& pt) const
 {
 	if (pParent == nullptr) {
 		pParent = GetRoot();
 	}
 	ASSERT(pParent);
 	if (pParent != nullptr) {
-		return pParent->FindControl(__FindControlFromPoint, &pt, UIFIND_VISIBLE | UIFIND_HITTEST | UIFIND_TOP_FIRST);
+		POINT ptLocal = pt;
+		return pParent->FindControl(__FindControlFromPoint, &ptLocal, UIFIND_VISIBLE | UIFIND_HITTEST | UIFIND_TOP_FIRST);
 	}
 	return nullptr;
 }

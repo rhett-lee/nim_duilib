@@ -807,7 +807,7 @@ UIAControlProvider* Control::GetUIAProvider()
 	return m_pUIAProvider;
 }
 
-void Control::HandleMessageTemplate(EventType eventType, WPARAM wParam, LPARAM lParam, TCHAR tChar, CPoint mousePos, FLOAT pressure)
+void Control::HandleMessageTemplate(EventType eventType, WPARAM wParam, LPARAM lParam, TCHAR tChar, const CPoint& mousePos, FLOAT pressure)
 {
 	EventArgs msg;
 	msg.pSender = this;
@@ -1034,7 +1034,7 @@ bool Control::ButtonUp(EventArgs& msg)
 			player->Stop();
 
 		Invalidate();
-		if( IsPointInWithScrollOffset(msg.ptMouse) ) {
+		if( IsPointInWithScrollOffset(CPoint(msg.ptMouse)) ) {
 			if (msg.Type == kEventPointUp) {
 				m_uButtonState = kControlStateNormal;
 				m_nHotAlpha = 0;

@@ -5,7 +5,7 @@ class PopoverBody;
 class TooltipBody :public PopoverBody
 {
 public:
-  TooltipBody(const std::wstring& content);
+  explicit TooltipBody(const std::wstring& content);
   ~TooltipBody() = default;
 
   std::wstring GetType() const override;

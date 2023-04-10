@@ -784,7 +784,7 @@ public:
 	 * @param[in] pt 指定坐标
 	 * @return 返回控件指针
 	 */
-	Control* FindControl(POINT pt) const;
+	Control* FindControl(const POINT& pt) const;
 
 	/**
 	 * @brief 根据控件名称查找控件
@@ -799,7 +799,7 @@ public:
 	 * @param[in] pt 要查找的坐标
 	 * @return 返回控件指针
 	 */
-	Control* FindSubControlByPoint(Control* pParent, POINT pt) const;
+	Control* FindSubControlByPoint(Control* pParent, const POINT& pt) const;
 
 	/**
 	 * @brief 根据名字查找子控件

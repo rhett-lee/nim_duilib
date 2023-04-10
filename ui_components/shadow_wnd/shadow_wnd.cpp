@@ -46,9 +46,9 @@ LRESULT ShadowWnd::MessageHandler(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/, B
 	{
 		if (::IsWindowVisible(window_->GetHWND()))
 		{
-			RECT rc;
+			RECT rc = {0};
 			::GetWindowRect(window_->GetHWND(), &rc);
-			SetPos(rc, false, SWP_SHOWWINDOW | SWP_NOACTIVATE, window_->GetHWND());
+			SetPos(UiRect(rc), false, SWP_SHOWWINDOW | SWP_NOACTIVATE, window_->GetHWND());
 		}
 		break;
 	}

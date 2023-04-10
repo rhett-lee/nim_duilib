@@ -27,7 +27,7 @@ public:
 	 * @param[in] wnd 窗口指针
 	 * @return bool true 成功，false 失败
 	 */
-	bool RegisterWindow(const std::wstring wnd_class_name, const std::wstring wnd_id, WindowEx *wnd);
+	bool RegisterWindow(const std::wstring& wnd_class_name, const std::wstring& wnd_id, WindowEx *wnd);
 
 	/**
 	 * 根据窗口类名和id注销窗口

@@ -36,7 +36,7 @@ public:
 class UILIB_API ListBox : public ScrollableBox, public IListOwner
 {
 public:
-	ListBox(Layout* pLayout = new VLayout);
+	explicit ListBox(Layout* pLayout = new VLayout);
 	ListBox(const ListBox& r) = delete;
 	ListBox& operator=(const ListBox& r) = delete;
 

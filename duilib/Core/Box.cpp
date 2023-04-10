@@ -555,7 +555,7 @@ Control* Box::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, CPoin
 			if ((uFlags & UIFIND_HITTEST) != 0) {
 				assert(pData != nullptr);
 				if (pData != nullptr) {
-					CPoint newPoint = *(static_cast<LPPOINT>(pData));
+					CPoint newPoint(*(static_cast<LPPOINT>(pData)));
 					newPoint.Offset(scrollPos);
 					pControl = m_items[it]->FindControl(Proc, &newPoint, uFlags);
 				}				
@@ -586,7 +586,7 @@ Control* Box::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, CPoin
 			if ((uFlags & UIFIND_HITTEST) != 0) {
 				assert(pData != nullptr);
 				if (pData != nullptr) {
-					CPoint newPoint = *(static_cast<LPPOINT>(pData));
+					CPoint newPoint(*(static_cast<LPPOINT>(pData)));
 					newPoint.Offset(scrollPos);
 					pControl = pItemControl->FindControl(Proc, &newPoint, uFlags);
 				}
@@ -1123,7 +1123,7 @@ void ScrollableBox::HandleMessage(EventArgs& event)
 		else if (event.Type == kEventTouchDown || event.Type == kEventPointDown) {
 			if (IsEnabled()) {
 				SetMouseFocused(true);
-				m_ptLastTouchPos = event.ptMouse;
+				m_ptLastTouchPos = CPoint(event.ptMouse);
 				return;
 			}
 		}
@@ -1133,7 +1133,7 @@ void ScrollableBox::HandleMessage(EventArgs& event)
 				if (detaValue == 0)
 					return;
 
-				m_ptLastTouchPos = event.ptMouse;
+				m_ptLastTouchPos = CPoint(event.ptMouse);
 
 				if (detaValue > 0) {
 					TouchUp(abs(detaValue));
@@ -1147,7 +1147,7 @@ void ScrollableBox::HandleMessage(EventArgs& event)
 		else if (event.Type == kEventTouchUp || event.Type == kEventPointUp) {
 			if (IsMouseFocused()) {
 				SetMouseFocused(false);
-				m_ptLastTouchPos = event.ptMouse;
+				m_ptLastTouchPos = CPoint(event.ptMouse);
 				return;
 			}
 		}

@@ -433,7 +433,7 @@ Control* WindowBuilder::_Parse(CMarkupNode* pRoot, Control* pParent, Window* pMa
 			}
             for ( int i = 0; i < nCount; i++ ) {
                 WindowBuilder builder;
-                pControl = builder.Create((LPCTSTR)szValue, m_createControlCallback, pManager, (Box*)pParent);
+                pControl = builder.Create(STRINGorID((LPCTSTR)szValue), m_createControlCallback, pManager, (Box*)pParent);
             }
             continue;
         }

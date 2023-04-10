@@ -204,7 +204,7 @@ void StringAppendVT(const CharType *format, va_list ap, std::basic_string<CharTy
 		result = vsnprintfT(&heap_buffer[0], buffer_size, buffer_size - 1, format, ap_copy);
 		va_end(ap_copy);
 
-		if ((result >= 0) && (result < buffer_size)) {
+		if ((result >= 0) && (result < (int)buffer_size)) {
 			/* It fits */
 			output.append(&heap_buffer[0], result);
 			return;
