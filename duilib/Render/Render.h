@@ -3,6 +3,10 @@
 
 #pragma once
 
+#include "duilib/Render/IRender.h"
+#include "duilib/Render/Clip.h"
+#include "duilib/Render/Bitmap.h"
+
 namespace ui 
 {
 

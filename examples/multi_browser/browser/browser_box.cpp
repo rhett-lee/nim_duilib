@@ -174,7 +174,7 @@ void BrowserBox::OnLoadEnd(int httpStatusCode)
 {
 	// 注册一个方法提供前端调用
 	cef_control_->RegisterCppFunc(L"ShowMessageBox", ToWeakCallback([](const std::string& params, nim_comp::ReportResultFunction callback) {
-		MessageBoxA(NULL, params.c_str(), "接收到 JavaScript 发来的消息", MB_OK);
+		MessageBox(NULL, nbase::UTF8ToUTF16(params).c_str(), L"接收到 JavaScript 发来的消息", MB_OK);
 		callback(false, R"({ "message": "Success." })");
 	}));
 }

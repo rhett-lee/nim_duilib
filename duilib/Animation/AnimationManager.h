@@ -3,6 +3,11 @@
 
 #pragma once
 
+#include "duilib/Animation/AnimationPlayer.h"
+#include "duilib/Core/Define.h"
+#include <map>
+#include <memory>
+
 namespace ui 
 {
 

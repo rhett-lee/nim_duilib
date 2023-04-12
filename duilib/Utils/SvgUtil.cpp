@@ -1,10 +1,14 @@
-#include "StdAfx.h"
+#include "SvgUtil.h"
+#include "duilib/Utils/StringUtil.h"
+#include "duilib/Utils/DpiManager.h"
+#include "duilib/Render/Bitmap.h"
+#include "duilib/Core/Image.h"
 
 #define NANOSVG_IMPLEMENTATION
 #define NANOSVG_ALL_COLOR_KEYWORDS
-#include "Render/nanosvg.h"
+#include "duilib/Render/nanosvg.h"
 #define NANOSVGRAST_IMPLEMENTATION
-#include "Render/nanosvgrast.h"
+#include "duilib/Render/nanosvgrast.h"
 
 namespace ui
 {

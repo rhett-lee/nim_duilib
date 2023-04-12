@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "duilib/Control/Button.h"
+
 namespace ui {
 
 template<typename InheritType = Control>
@@ -13,7 +15,9 @@ public:
 
     /// 重写父类方法，提供个性化功能，请参考父类声明
     virtual std::wstring GetType() const override;
+#if defined(ENABLE_UIAUTOMATION)
     virtual UIAControlProvider* GetUIAProvider() override;
+#endif
     virtual void Activate() override;
     virtual Image* GetEstimateImage() override;
     virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
@@ -135,14 +139,14 @@ public:
      * @param[in] callback 被选择时触发的回调函数
      * @return 无
      */
-    void AttachSelect(const EventCallback& callback) { this->OnEvent[kEventSelect] += callback; }
+    void AttachSelect(const EventCallback& callback) { this->m_OnEvent[kEventSelect] += callback; }
 
     /**
      * @brief 监听取消选择时的事件
      * @param[in] callback 取消选择时触发的回调函数
      * @return 无
      */
-    void AttachUnSelect(const EventCallback& callback) { this->OnEvent[kEventUnSelect] += callback; }
+    void AttachUnSelect(const EventCallback& callback) { this->m_OnEvent[kEventUnSelect] += callback; }
 
 protected:
     bool			m_bSelected;
@@ -164,20 +168,17 @@ inline std::wstring CheckBoxTemplate<InheritType>::GetType() const
 {
     return DUI_CTR_CHECKBOX;
 }
-
+#if defined(ENABLE_UIAUTOMATION)
 template<typename InheritType>
 inline UIAControlProvider* CheckBoxTemplate<InheritType>::GetUIAProvider()
 {
-#if defined(ENABLE_UIAUTOMATION)
     if (this->m_pUIAProvider == nullptr)
     {
         this->m_pUIAProvider = static_cast<UIAControlProvider*>(new (std::nothrow) UIACheckBoxProvider(this));
     }
     return this->m_pUIAProvider;
-#else
-  return nullptr;
-#endif
 }
+#endif
 
 template<typename InheritType>
 void CheckBoxTemplate<InheritType>::Activate()
@@ -230,7 +231,7 @@ Image* CheckBoxTemplate<InheritType>::GetEstimateImage()
 {
     Image* estimateImage = __super::GetEstimateImage();
     if (!estimateImage) {
-        estimateImage = this->m_imageMap.GetEstimateImage(kStateImageSelectedBk);
+        estimateImage = this->m_imageMap->GetEstimateImage(kStateImageSelectedBk);
     }
 
     return estimateImage;
@@ -239,26 +240,26 @@ Image* CheckBoxTemplate<InheritType>::GetEstimateImage()
 template<typename InheritType>
 void CheckBoxTemplate<InheritType>::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
-    if (strName == _T("selected")) Selected(strValue == _T("true"), true);
-    else if (strName == _T("normalfirst")) SetPaintNormalFirst(strValue == _T("true"));
-    else if (strName == _T("selectednormalimage")) SetSelectedStateImage(kControlStateNormal, strValue);
-    else if (strName == _T("selectedhotimage")) SetSelectedStateImage(kControlStateHot, strValue);
-    else if (strName == _T("selectedpushedimage")) SetSelectedStateImage(kControlStatePushed, strValue);
-    else if (strName == _T("selecteddisabledimage")) SetSelectedStateImage(kControlStateDisabled, strValue);
-    else if (strName == _T("selectedtextcolor")) SetSelectedTextColor(strValue);
-    else if (strName == _T("selectednormaltextcolor")) SetSelectedStateTextColor(kControlStateNormal, strValue);
-    else if (strName == _T("selectedhottextcolor"))	SetSelectedStateTextColor(kControlStateHot, strValue);
-    else if (strName == _T("selectedpushedtextcolor")) SetSelectedStateTextColor(kControlStatePushed, strValue);
-    else if (strName == _T("selecteddisabledtextcolor")) SetSelectedStateTextColor(kControlStateDisabled, strValue);
-    else if (strName == _T("selectednormalcolor")) SetSelectedStateColor(kControlStateNormal, strValue);
-    else if (strName == _T("selectedhotcolor")) SetSelectedStateColor(kControlStateHot, strValue);
-    else if (strName == _T("selectedpushedcolor")) SetSelectedStateColor(kControlStatePushed, strValue);
-    else if (strName == _T("selecteddisabledcolor")) SetSelectedStateColor(kControlStateDisabled, strValue);
-    else if (strName == _T("selectedforenormalimage")) SetSelectedForeStateImage(kControlStateNormal, strValue);
-    else if (strName == _T("selectedforehotimage")) SetSelectedForeStateImage(kControlStateHot, strValue);
-    else if (strName == _T("selectedforepushedimage")) SetSelectedForeStateImage(kControlStatePushed, strValue);
-    else if (strName == _T("selectedforedisabledimage")) SetSelectedForeStateImage(kControlStateDisabled, strValue);
-    else if (strName == _T("switchselect")) Selected(!IsSelected());
+    if (strName == L"selected") Selected(strValue == L"true", true);
+    else if (strName == L"normalfirst") SetPaintNormalFirst(strValue == L"true");
+    else if (strName == L"selectednormalimage") SetSelectedStateImage(kControlStateNormal, strValue);
+    else if (strName == L"selectedhotimage") SetSelectedStateImage(kControlStateHot, strValue);
+    else if (strName == L"selectedpushedimage") SetSelectedStateImage(kControlStatePushed, strValue);
+    else if (strName == L"selecteddisabledimage") SetSelectedStateImage(kControlStateDisabled, strValue);
+    else if (strName == L"selectedtextcolor") SetSelectedTextColor(strValue);
+    else if (strName == L"selectednormaltextcolor") SetSelectedStateTextColor(kControlStateNormal, strValue);
+    else if (strName == L"selectedhottextcolor")	SetSelectedStateTextColor(kControlStateHot, strValue);
+    else if (strName == L"selectedpushedtextcolor") SetSelectedStateTextColor(kControlStatePushed, strValue);
+    else if (strName == L"selecteddisabledtextcolor") SetSelectedStateTextColor(kControlStateDisabled, strValue);
+    else if (strName == L"selectednormalcolor") SetSelectedStateColor(kControlStateNormal, strValue);
+    else if (strName == L"selectedhotcolor") SetSelectedStateColor(kControlStateHot, strValue);
+    else if (strName == L"selectedpushedcolor") SetSelectedStateColor(kControlStatePushed, strValue);
+    else if (strName == L"selecteddisabledcolor") SetSelectedStateColor(kControlStateDisabled, strValue);
+    else if (strName == L"selectedforenormalimage") SetSelectedForeStateImage(kControlStateNormal, strValue);
+    else if (strName == L"selectedforehotimage") SetSelectedForeStateImage(kControlStateHot, strValue);
+    else if (strName == L"selectedforepushedimage") SetSelectedForeStateImage(kControlStatePushed, strValue);
+    else if (strName == L"selectedforedisabledimage") SetSelectedForeStateImage(kControlStateDisabled, strValue);
+    else if (strName == L"switchselect") Selected(!IsSelected());
     else __super::SetAttribute(strName, strValue);
 }
 
@@ -271,7 +272,7 @@ void CheckBoxTemplate<InheritType>::PaintStatusColor(IRenderContext* pRender)
     }
 
     if (IsPaintNormalFirst() && !m_selectedColorMap.HasColor())
-        this->m_colorMap.PaintStatusColor(pRender, this->m_rcPaint, this->m_uButtonState);
+        this->m_colorMap->PaintStatusColor(pRender, this->m_rcPaint, this->m_uButtonState);
     else
         m_selectedColorMap.PaintStatusColor(pRender, this->m_rcPaint, this->m_uButtonState);
 }
@@ -284,15 +285,15 @@ void CheckBoxTemplate<InheritType>::PaintStatusImage(IRenderContext* pRender)
         return;
     }
 
-    if (IsPaintNormalFirst() && !this->m_imageMap.HasImageType(kStateImageSelectedBk))
-        this->m_imageMap.PaintStatusImage(pRender, kStateImageBk, this->m_uButtonState);
+    if (IsPaintNormalFirst() && !this->m_imageMap->HasImageType(kStateImageSelectedBk))
+        this->m_imageMap->PaintStatusImage(pRender, kStateImageBk, this->m_uButtonState);
     else
-        this->m_imageMap.PaintStatusImage(pRender, kStateImageSelectedBk, this->m_uButtonState);
+        this->m_imageMap->PaintStatusImage(pRender, kStateImageSelectedBk, this->m_uButtonState);
 
-    if (IsPaintNormalFirst() && !this->m_imageMap.HasImageType(kStateImageSelectedFore))
-        this->m_imageMap.PaintStatusImage(pRender, kStateImageFore, this->m_uButtonState);
+    if (IsPaintNormalFirst() && !this->m_imageMap->HasImageType(kStateImageSelectedFore))
+        this->m_imageMap->PaintStatusImage(pRender, kStateImageFore, this->m_uButtonState);
     else
-        this->m_imageMap.PaintStatusImage(pRender, kStateImageSelectedFore, this->m_uButtonState);
+        this->m_imageMap->PaintStatusImage(pRender, kStateImageSelectedFore, this->m_uButtonState);
 }
 
 template<typename InheritType>
@@ -321,7 +322,7 @@ void CheckBoxTemplate<InheritType>::PaintText(IRenderContext* pRender)
     else
         this->m_uTextStyle &= ~~DT_SINGLELINE;
 
-    if (this->m_animationManager.GetAnimationPlayer(kAnimationHot)) {
+    if (this->m_animationManager->GetAnimationPlayer(kAnimationHot)) {
         if ((stateType == kControlStateNormal || stateType == kControlStateHot)
             && !GetSelectedStateTextColor(kControlStateHot).empty()) {
             std::wstring clrStateColor = GetSelectedStateTextColor(kControlStateNormal);
@@ -348,13 +349,13 @@ void CheckBoxTemplate<InheritType>::PaintText(IRenderContext* pRender)
 template<typename InheritType>
 std::wstring CheckBoxTemplate<InheritType>::GetSelectedStateImage(ControlStateType stateType)
 {
-    return this->m_imageMap.GetImagePath(kStateImageSelectedBk, stateType);
+    return this->m_imageMap->GetImagePath(kStateImageSelectedBk, stateType);
 }
 
 template<typename InheritType>
 void CheckBoxTemplate<InheritType>::SetSelectedStateImage(ControlStateType stateType, const std::wstring& pStrImage)
 {
-    this->m_imageMap.SetImage(kStateImageSelectedBk, stateType, pStrImage);
+    this->m_imageMap->SetImage(kStateImageSelectedBk, stateType, pStrImage);
     if (this->GetFixedWidth() == DUI_LENGTH_AUTO || this->GetFixedHeight() == DUI_LENGTH_AUTO) {
         this->ArrangeAncestor();
     }
@@ -421,13 +422,13 @@ void CheckBoxTemplate<InheritType>::SetSelectedStateColor(ControlStateType state
 template<typename InheritType>
 std::wstring CheckBoxTemplate<InheritType>::GetSelectedForeStateImage(ControlStateType stateType)
 {
-    return this->m_imageMap.GetImagePath(kStateImageSelectedFore, stateType);
+    return this->m_imageMap->GetImagePath(kStateImageSelectedFore, stateType);
 }
 
 template<typename InheritType>
 void CheckBoxTemplate<InheritType>::SetSelectedForeStateImage(ControlStateType stateType, const std::wstring& pStrImage)
 {
-    this->m_imageMap.SetImage(kStateImageSelectedFore, stateType, pStrImage);
+    this->m_imageMap->SetImage(kStateImageSelectedFore, stateType, pStrImage);
     if (this->GetFixedWidth() == DUI_LENGTH_AUTO || this->GetFixedHeight() == DUI_LENGTH_AUTO) {
         this->ArrangeAncestor();
     }

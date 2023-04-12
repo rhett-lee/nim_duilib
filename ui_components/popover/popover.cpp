@@ -1,8 +1,10 @@
-#include "stdafx.h"
 #include "popover.h"
 #include "notification.h"
 #include "alert.h"
 #include "tooltip.h"
+
+#include "base/thread/thread_manager.h"
+#include "ui_components/public_define.h"
 
 #include <sstream>
 
@@ -1487,7 +1489,7 @@ Popover* PopoverLayer::CreatePopover(ui::Control* pAnchor,
 
   // Create footer
   if (!footer && (nButtons & kButtonOk | nButtons & kButtonCancel)) {
-    auto pMutiLan = ui::MutiLanSupport::GetInstance();
+    auto pMutiLan = ui::MultiLangSupport::GetInstance();
     footer = new PopoverFooter(
       nButtons & kButtonOk ? (strOk.length() ? strOk : pMutiLan->GetStringViaID(L"STRING_OK")) : L"",
       nButtons & kButtonCancel ? (strCancel.length() ? strCancel : pMutiLan->GetStringViaID(L"STRING_CANCEL")) : L"");
@@ -1533,7 +1535,7 @@ Popover* PopoverLayer::CreateAlert(ui::Control* pAnchor,
 
   // Create footer
   if (!footer && (nButtons & kButtonOk | nButtons & kButtonCancel)) {
-    auto pMutiLan = ui::MutiLanSupport::GetInstance();
+    auto pMutiLan = ui::MultiLangSupport::GetInstance();
     footer = new AlertFooter(
       nButtons & kButtonOk ? (strOk.length() ? strOk : pMutiLan->GetStringViaID(L"STRING_OK")) : L"",
       nButtons & kButtonCancel ? (strCancel.length() ? strCancel : pMutiLan->GetStringViaID(L"STRING_CANCEL")) : L"");

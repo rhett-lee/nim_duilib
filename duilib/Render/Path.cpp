@@ -1,11 +1,13 @@
-#include "StdAfx.h"
+#include "Path.h"
+#include "duilib/Render/Pen.h"
+#include "duilib/Render/Matrix.h"
+#include "duilib/Core/GdiPlusDefs.h"
 
 namespace ui {
 
-using namespace Gdiplus;
 Path_Gdiplus::Path_Gdiplus()
 {
-	path_.reset(new GraphicsPath());
+	path_.reset(new Gdiplus::GraphicsPath());
 }
 
 Path_Gdiplus::Path_Gdiplus(const Path_Gdiplus& r)
@@ -51,11 +53,11 @@ void Path_Gdiplus::AddLine(int x1, int y1, int x2, int y2)
 
 void Path_Gdiplus::AddLines(const CPoint* points, int count)
 {
-	assert(points != nullptr);
+	ASSERT(points != nullptr);
 	if (points == nullptr) {
 		return;
 	}
-	std::vector<Point> p;
+	std::vector<Gdiplus::Point> p;
 	for (int i = 0; i < count; i++)
 	{
 		p.emplace_back(points[i].x, points[i].y);
@@ -72,11 +74,11 @@ void Path_Gdiplus::AddBezier(int x1, int y1, int x2, int y2, int x3, int y3, int
 
 void Path_Gdiplus::AddCurve(const CPoint* points, int count)
 {
-	assert(points != nullptr);
+	ASSERT(points != nullptr);
 	if (points == nullptr) {
 		return;
 	}
-	std::vector<Point> p;
+	std::vector<Gdiplus::Point> p;
 	for (int i = 0; i < count; i++)
 	{
 		p.emplace_back(points[i].x, points[i].y);
@@ -88,22 +90,22 @@ void Path_Gdiplus::AddCurve(const CPoint* points, int count)
 
 void Path_Gdiplus::AddRect(int left, int top, int right, int bottom)
 {
-	path_->AddRectangle(Rect(left, top, right -left, bottom - top));
+	path_->AddRectangle(Gdiplus::Rect(left, top, right -left, bottom - top));
 }
 
 void Path_Gdiplus::AddRect(const UiRect& rect)
 {
-	path_->AddRectangle(Rect(rect.left, rect.top, rect.GetWidth(), rect.GetHeight()));
+	path_->AddRectangle(Gdiplus::Rect(rect.left, rect.top, rect.GetWidth(), rect.GetHeight()));
 }
 
 void Path_Gdiplus::AddEllipse(int left, int top, int right, int bottom)
 {
-	path_->AddEllipse(Rect(left, top, right - left, bottom - top));
+	path_->AddEllipse(Gdiplus::Rect(left, top, right - left, bottom - top));
 }
 
 void Path_Gdiplus::AddEllipse(const UiRect& rect)
 {
-	path_->AddEllipse(Rect(rect.left, rect.top, rect.GetWidth(), rect.GetHeight()));
+	path_->AddEllipse(Gdiplus::Rect(rect.left, rect.top, rect.GetWidth(), rect.GetHeight()));
 }
 
 void Path_Gdiplus::AddArc(int x, int y, int width, int height, float startAngle, float sweepAngle)
@@ -118,11 +120,11 @@ void Path_Gdiplus::AddPie(int x, int y, int width, int height, float startAngle,
 
 void Path_Gdiplus::AddPolygon(const CPoint* points, int count)
 {
-	assert(points != nullptr);
+	ASSERT(points != nullptr);
 	if (points == nullptr) {
 		return;
 	}
-	std::vector<Point> p;
+	std::vector<Gdiplus::Point> p;
 	for (int i = 0; i < count; i++)
 	{
 		p.emplace_back(points[i].x, points[i].y);
@@ -134,8 +136,8 @@ void Path_Gdiplus::AddPolygon(const CPoint* points, int count)
 
 ui::UiRect Path_Gdiplus::GetBound(const IPen* pen)
 {
-	auto p = (Pen_GdiPlus*)(pen);
-	Rect rc;
+	auto p = dynamic_cast<const Pen_GdiPlus*>(pen);
+	Gdiplus::Rect rc;
 	path_->GetBounds(&rc, NULL, p ? p->GetPen() : NULL);
 	return UiRect(rc.X, rc.Y, rc.GetRight(), rc.GetBottom());
 }
@@ -147,7 +149,7 @@ bool Path_Gdiplus::IsContainsPoint(int x, int y)
 
 bool Path_Gdiplus::IsStrokeContainsPoint(int x, int y, const IPen* pen)
 {
-	assert(pen != nullptr);
+	ASSERT(pen != nullptr);
 	if (pen == nullptr) {
 		return false;
 	}
@@ -156,11 +158,20 @@ bool Path_Gdiplus::IsStrokeContainsPoint(int x, int y, const IPen* pen)
 
 void Path_Gdiplus::Transform(const IMatrix* matrix)
 {
-	assert(matrix != nullptr);
+	ASSERT(matrix != nullptr);
 	if (matrix == nullptr) {
 		return;
 	}
-	path_->Transform(((Matrix_Gdiplus*)matrix)->GetMatrix());
+	auto p = dynamic_cast<const Matrix_Gdiplus*>(matrix);
+	ASSERT(p != nullptr);
+	if (p) {
+		path_->Transform(p->GetMatrix());
+	}	
+}
+
+Gdiplus::GraphicsPath* Path_Gdiplus::GetPath() const
+{ 
+	return path_.get(); 
 }
 
 } // namespace ui

@@ -26,40 +26,62 @@
 // WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-//
-// DirectUI - ui Library
-//
-// Written by Bjarke Viksoe (bjarke@viksoe.dk)
-// Copyright (c) 2006-2007 Bjarke Viksoe.
-//
-// This code may be used in compiled form in any way you desire. These
-// source files may be redistributed by any means PROVIDING it is 
-// not sold for profit without the authors written consent, and 
-// providing that this notice and the authors name is included. 
-//
-// This file is provided "as is" with no expressed or implied warranty.
-// The author accepts no liability if it causes any damage to you or your
-// computer whatsoever. It's free, so don't hassle me about it.
-//
-// Beware of bugs.
-//
-//
 
-#include "stdafx.h"
-#include "UIlib.h"
+#if defined(UILIB_DLL)
+    #if defined(UILIB_EXPORTS)
+        #if defined(_MSC_VER)
+            #define UILIB_API __declspec(dllexport)
+        #else
+            #define UILIB_API 
+        #endif
+    #else
+        #if defined(_MSC_VER)
+            #define UILIB_API __declspec(dllimport)
+        #else
+            #define UILIB_API 
+        #endif
+    #endif
+#else
+    #define UILIB_API
+#endif
 
+#if defined(_MSC_VER) && (_MSC_VER >= 1928)
+    //支持UI自动化的编译选项，默认关闭
+    //#define ENABLE_UIAUTOMATION
+#endif
 
-BOOL APIENTRY DllMain(HANDLE hModule, DWORD  dwReason, LPVOID /*lpReserved*/)
-{
-    switch( dwReason ) {
-   case DLL_PROCESS_ATTACH:
-   case DLL_THREAD_ATTACH:
-   case DLL_THREAD_DETACH:
-   case DLL_PROCESS_DETACH:
-       ::DisableThreadLibraryCalls((HMODULE)hModule);
-       break;
-    }
-    return TRUE;
-}
+#ifndef VC_EXTRALEAN
+    #define VC_EXTRALEAN
+#endif
 
+#ifndef WIN32_LEAN_AND_MEAN			// remove rarely used header files, including 'winsock.h'
+    #define WIN32_LEAN_AND_MEAN			// which will conflict with 'winsock2.h'
+#endif
+
+#ifndef WINVER
+    #define WINVER _WIN32_WINNT_WINXP
+#endif
+
+#ifndef _WIN32_WINNT
+    #define _WIN32_WINNT _WIN32_WINNT_WINXP
+#endif
+
+#ifndef _WIN32_WINDOWS
+    #define _WIN32_WINDOWS _WIN32_WINNT_WINXP
+#endif
+
+#ifndef _WIN32_IE
+    #define _WIN32_IE _WIN32_IE_IE60
+#endif
+
+#ifndef NOMINMAX
+    #define NOMINMAX 1
+#endif
+
+#ifndef ASSERT
+    #define ASSERT(expr)  _ASSERTE(expr)
+#endif
+
+#include <SDKDDKVer.h>
+#include <windows.h>
+#include <crtdbg.h>

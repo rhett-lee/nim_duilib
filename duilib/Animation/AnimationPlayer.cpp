@@ -1,5 +1,7 @@
-#include "StdAfx.h"
 #include "AnimationPlayer.h"
+#include "duilib/Utils/TimerManager.h"
+
+#define AP_NO_VALUE -1
 
 namespace ui 
 {
@@ -20,7 +22,7 @@ void AnimationPlayerBase::Init()
 	m_startValue = 0;
 	m_endValue = 0;
 	m_currentValue = 0;
-	m_totalMillSeconds = DUI_NOSET_VALUE;
+	m_totalMillSeconds = AP_NO_VALUE;
 	m_palyedMillSeconds = 0;
 	m_elapseMillSeconds = 0;
 	m_currentTime.QuadPart = 0;
@@ -198,8 +200,8 @@ void AnimationPlayer::InitFactor()
 	double s = abs(m_endValue - m_startValue);
 
 	if (m_speedUpRatio == 0 && m_speedDownRatio == 0) {	//liner
-		ASSERT(m_totalMillSeconds == DUI_NOSET_VALUE && m_linearSpeed != 0 || m_totalMillSeconds != DUI_NOSET_VALUE && m_linearSpeed == 0);
-		if (m_totalMillSeconds == DUI_NOSET_VALUE) {
+		ASSERT(m_totalMillSeconds == AP_NO_VALUE && m_linearSpeed != 0 || m_totalMillSeconds != AP_NO_VALUE && m_linearSpeed == 0);
+		if (m_totalMillSeconds == AP_NO_VALUE) {
 			m_totalMillSeconds = int(s / m_linearSpeed);
 		}
 		else {
@@ -208,7 +210,7 @@ void AnimationPlayer::InitFactor()
 		m_linerMillSeconds = m_totalMillSeconds;
 	}
 	else {
-		if (m_totalMillSeconds != DUI_NOSET_VALUE) {
+		if (m_totalMillSeconds != AP_NO_VALUE) {
 			if (m_speedUpRatio != 0) {
 				m_speedUpfactorA = s / ((m_speedUpRatio*m_speedUpRatio + (1 - m_speedUpRatio - m_speedDownRatio)*2*m_speedUpRatio + m_speedUpRatio*m_speedDownRatio)
 					*m_totalMillSeconds*m_totalMillSeconds);
@@ -238,8 +240,8 @@ void AnimationPlayer::InitFactor()
 		else {
 			ASSERT(FALSE);
 		}
-		if (m_totalMillSeconds == DUI_NOSET_VALUE) {
-			m_totalMillSeconds = int(sqrt(s / (m_speedUpfactorA*m_speedUpRatio*m_speedUpRatio + (1 - m_speedUpRatio - m_speedDownRatio) * 2 * tmpValue
+		if (m_totalMillSeconds == AP_NO_VALUE) {
+			m_totalMillSeconds = int(std::sqrt(s / (m_speedUpfactorA*m_speedUpRatio*m_speedUpRatio + (1 - m_speedUpRatio - m_speedDownRatio) * 2 * tmpValue
 				- m_speedDownfactorA*m_speedDownRatio*m_speedDownRatio) ));
 			if (m_totalMillSeconds > m_maxTotalMillSeconds) {
 				m_totalMillSeconds = m_maxTotalMillSeconds;

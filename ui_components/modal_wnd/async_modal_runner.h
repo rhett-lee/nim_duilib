@@ -19,6 +19,11 @@
 #define NIM_WIN_GUI_MSG_BOX_ASYNC_MODAL_RUNNER_H_
 
 #include "modal_wnd_base.h"
+#include "base/thread/thread.h"
+#include "base/synchronization/waitable_event.h"
+#include "base/memory/singleton.h"
+#include "base/callback/callback.h"
+#include <memory>
 
 namespace nim_comp {
 
@@ -53,7 +58,9 @@ private:
 	std::unique_ptr<ModalWndBase> modal_dlg_;
 };
 
-class AsyncModalRunnerManager : public AsyncModalRunner::Delegate, public nbase::SupportWeakCallback
+class AsyncModalRunnerManager : public virtual nbase::SupportWeakCallback,
+	public AsyncModalRunner::Delegate
+	
 {
 public:
 	SINGLETON_DEFINE(AsyncModalRunnerManager);

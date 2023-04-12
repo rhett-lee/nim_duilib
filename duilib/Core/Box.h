@@ -3,10 +3,18 @@
 
 #pragma once
 
+#include "duilib/duilib_defs.h"
+#include "duilib/Utils/Utils.h"
+#include "duilib/Core/Control.h"
+#include "duilib/Control/ScrollBar.h"
+#include <vector>
+#include <memory>
+
 namespace ui 
 {
-
 class Box;
+class AnimationPlayer;
+
 class UILIB_API Layout
 {
 public:
@@ -94,8 +102,6 @@ protected:
 
 /////////////////////////////////////////////////////////////////////////////////////
 //
-class ScrollBar;
-
 class UILIB_API Box : public Control
 {
 public:
@@ -107,7 +113,9 @@ public:
 public:
 	/// 重写父类接口，提供个性化功能。方法具体说明请查看 Control 控件             */
 	virtual std::wstring GetType() const override;
+#if defined(ENABLE_UIAUTOMATION)
 	virtual UIAControlProvider* GetUIAProvider() override;
+#endif
 	virtual void SetWindow(Window* pManager, Box* pParent, bool bInit = true) override;
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 	virtual void SetPos(UiRect rc) override;
@@ -290,7 +298,7 @@ public:
 	 * @param[in] callback 指定回调函数
 	 * @return void 无
 	 */
- 	void AttachBubbledEvent(EventType eventType, const EventCallback& callback)	{ OnBubbledEvent[eventType] += callback; }
+	void AttachBubbledEvent(EventType eventType, const EventCallback& callback);
  
 	/**
 	 * @brief 解绑事件处理函数
@@ -298,8 +306,6 @@ public:
 	 * @return void 无
 	 */
 	void DetachBubbledEvent(EventType eventType);
-private:
-	friend WindowBuilder;
 
 	/**
 	 * @brief 绑定 XML 中编写的 Event 和 BubbleEvent 事件的处理函数
@@ -307,9 +313,14 @@ private:
 	 * @param[in] callback 指定回调函数
 	 * @return void 无
 	 */
-	void AttachXmlBubbledEvent(EventType eventType, const EventCallback& callback) { OnXmlBubbledEvent[eventType] += callback; }
+	void AttachXmlBubbledEvent(EventType eventType, const EventCallback& callback);
 
-	EventMap OnXmlBubbledEvent;
+	/**
+	 * @brief 解绑XML事件处理函数
+	 * @param[in] eventType 事件类型
+	 * @return void 无
+	 */
+	void DetachXmlBubbledEvent(EventType eventType);
 
 protected:
 	std::unique_ptr<Layout> m_pLayout;
@@ -317,7 +328,9 @@ protected:
 	bool m_bDelayedDestroy;
 	bool m_bMouseChildEnabled;
 	std::vector<Control*> m_items;
-	EventMap OnBubbledEvent;
+
+	EventMap m_OnBubbledEvent;
+	EventMap m_OnXmlBubbledEvent;
 };
 
  /// 带有垂直或水平滚动条的容器，使容器可以容纳更多内容
@@ -329,7 +342,9 @@ public:
 	ScrollableBox& operator=(const ScrollableBox& r) = delete;
 
 	virtual std::wstring GetType() const override;
+#if defined(ENABLE_UIAUTOMATION)
 	virtual UIAControlProvider* GetUIAProvider() override;
+#endif
 	virtual void SetAttribute(const std::wstring& pstrName, const std::wstring& pstrValue) override;
 	virtual void SetPos(UiRect rc) override;
 	virtual void HandleMessage(EventArgs& event) override;
@@ -629,7 +644,7 @@ public:
 	 * @param[in] callback 有变化后通知的回调函数
 	 * @return 无
 	 */
-	void AttachScrollChange(const EventCallback& callback) { OnEvent[kEventScrollChange] += callback; }
+	void AttachScrollChange(const EventCallback& callback) { m_OnEvent[kEventScrollChange] += callback; }
 protected:
 
 	/**
@@ -667,8 +682,8 @@ protected:
 	UiRect m_rcScrollBarPadding;
 
 	CPoint m_ptLastTouchPos;
-	AnimationPlayer m_scrollAnimation;
-	AnimationPlayer m_renderOffsetYAnimation;
+	std::unique_ptr<AnimationPlayer> m_scrollAnimation;
+	std::unique_ptr<AnimationPlayer> m_renderOffsetYAnimation;
 };
 
 } // namespace ui

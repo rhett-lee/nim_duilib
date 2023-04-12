@@ -1,4 +1,10 @@
-#include "StdAfx.h"
+#include "Factory.h"
+#include "duilib/Render/Bitmap.h"
+#include "duilib/Render/Pen.h"
+#include "duilib/Render/Brush.h"
+#include "duilib/Render/Matrix.h"
+#include "duilib/Render/Path.h"
+#include "duilib/Render/Render.h"
 
 namespace ui {
 

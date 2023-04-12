@@ -3,13 +3,18 @@
 
 #pragma once
 
+#include "duilib/duilib_defs.h"
+#include <string>
+#include <vector>
+#include <map>
+
 namespace ui 
 {
 
-class UILIB_API MutiLanSupport
+class UILIB_API MultiLangSupport
 {
 public:
-	static MutiLanSupport* GetInstance();
+	static MultiLangSupport* GetInstance();
 
 	/**
 	 * @brief 根据ID获取指定语言的字符串
@@ -33,10 +38,10 @@ public:
 	bool LoadStringTable(const HGLOBAL& hGlobal);
 
 private:
-	MutiLanSupport() {};
-	~MutiLanSupport() {};
-	MutiLanSupport(const MutiLanSupport&) = delete;
-	MutiLanSupport& operator = (const MutiLanSupport&) = delete;
+	MultiLangSupport() {};
+	~MultiLangSupport() {};
+	MultiLangSupport(const MultiLangSupport&) = delete;
+	MultiLangSupport& operator = (const MultiLangSupport&) = delete;
 
 	/**
 	 * @brief 清理所有

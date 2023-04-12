@@ -1,7 +1,9 @@
-#include "stdafx.h"
 #include "cef_native_control.h"
-#include "cef_control/handler/browser_handler.h"
-#include "cef_control/manager/cef_manager.h"
+#include "ui_components/cef_control/handler/browser_handler.h"
+#include "ui_components/cef_control/manager/cef_manager.h"
+#include "ui_components/public_define.h"
+#include "duilib/Core/Window.h"
+#include "base/thread/thread_manager.h"
 
 #pragma warning (push)
 #pragma warning (disable:4100)
@@ -63,7 +65,7 @@ void CefNativeControl::ReCreateBrowser()
 	}
 }
 
-void CefNativeControl::SetPos(UiRect rc)
+void CefNativeControl::SetPos(ui::UiRect rc)
 {
 	__super::SetPos(rc);
 
@@ -74,16 +76,16 @@ void CefNativeControl::SetPos(UiRect rc)
 	}
 }
 
-void CefNativeControl::HandleMessage(EventArgs& event)
+void CefNativeControl::HandleMessage(ui::EventArgs& event)
 {
 	if (browser_handler_.get() && browser_handler_->GetBrowser().get() == NULL)
 		return __super::HandleMessage(event);
 
-	else if (event.Type == kEventInternalSetFocus)
+	else if (event.Type == ui::kEventInternalSetFocus)
 	{
 		browser_handler_->GetBrowserHost()->SetFocus(true);
 	}
-	else if (event.Type == kEventInternalKillFocus)
+	else if (event.Type == ui::kEventInternalKillFocus)
 	{
 		browser_handler_->GetBrowserHost()->SetFocus(false);
 	}

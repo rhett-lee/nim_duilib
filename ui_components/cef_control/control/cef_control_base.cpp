@@ -1,6 +1,7 @@
-#include "stdafx.h"
 #include "cef_control_base.h"
-#include "cef_control/util/util.h"
+#include "ui_components/cef_control/util/util.h"
+#include "base/thread/framework_thread.h"
+#include "base/thread/thread_manager.h"
 
 namespace nim_comp {
 

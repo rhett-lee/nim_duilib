@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "duilib/duilib_defs.h"
+
 namespace ui 
 {
 

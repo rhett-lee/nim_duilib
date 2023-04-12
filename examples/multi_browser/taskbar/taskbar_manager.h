@@ -121,7 +121,7 @@ private:
   * @date 2019/3/20
   */
 class SessionForm;
-class TaskbarManager final : public nbase::SupportWeakCallback
+class TaskbarManager final : public virtual nbase::SupportWeakCallback
 {
 public:
 	/** @class ITaskbarDelegate

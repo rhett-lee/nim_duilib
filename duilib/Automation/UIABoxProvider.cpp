@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "UIABoxProvider.h"
 
 #if defined(ENABLE_UIAUTOMATION)
 

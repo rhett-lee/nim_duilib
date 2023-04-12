@@ -1,7 +1,6 @@
-#include "stdafx.h"
 #include "client_app.h" 
 
-#include "cef_control/util/util.h"
+#include "ui_components/cef_control/util/util.h"
 
 #pragma warning (push)
 #pragma warning (disable:4100)

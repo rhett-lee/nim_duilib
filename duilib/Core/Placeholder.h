@@ -3,8 +3,17 @@
 
 #pragma once
 
+#include "duilib/duilib_defs.h"
+#include "duilib/Utils/Utils.h"
+#include "duilib/Core/Define.h"
+#include "base/callback/callback.h"
+#include <string>
+#include <memory>
+
 namespace ui 
 {
+	class Box;
+	class Window;
 
 class UILIB_API PlaceHolder : public virtual nbase::SupportWeakCallback
 {
@@ -335,7 +344,6 @@ protected:
 
 	bool m_bUseCache;
 	bool m_bCacheDirty;
-	std::unique_ptr<IRenderContext> m_renderContext;
 };
 
 } // namespace ui

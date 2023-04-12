@@ -2,6 +2,8 @@
 #define UI_CORE_RENDER_FACTORY_H_
 #pragma once
 
+#include "duilib/Render/IRender.h"
+
 namespace ui 
 {
 

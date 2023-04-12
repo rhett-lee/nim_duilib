@@ -1,15 +1,16 @@
-#include "StdAfx.h"
+#include "MultiLangSupport.h"
+#include "duilib/Utils/StringUtil.h"
 
 namespace ui 
 {
 
-MutiLanSupport* MutiLanSupport::GetInstance()
+MultiLangSupport* MultiLangSupport::GetInstance()
 {
-	static MutiLanSupport mutiLanSupport;
+	static MultiLangSupport mutiLanSupport;
 	return &mutiLanSupport;
 }
 
-bool MutiLanSupport::LoadStringTable(const std::wstring &strFilePath)
+bool MultiLangSupport::LoadStringTable(const std::wstring &strFilePath)
 {
 	ClearAll();
 
@@ -39,7 +40,7 @@ bool MutiLanSupport::LoadStringTable(const std::wstring &strFilePath)
 	return true;
 }
 
-bool MutiLanSupport::LoadStringTable(const HGLOBAL& hGlobal)
+bool MultiLangSupport::LoadStringTable(const HGLOBAL& hGlobal)
 {
 	std::vector<std::wstring> string_list;
 	LPSTR data = (LPSTR)GlobalLock(hGlobal);
@@ -74,7 +75,7 @@ bool MutiLanSupport::LoadStringTable(const HGLOBAL& hGlobal)
 	return true;
 }
 
-std::wstring MutiLanSupport::GetStringViaID(const std::wstring& id)
+std::wstring MultiLangSupport::GetStringViaID(const std::wstring& id)
 {
 	std::wstring text;
 	if(id.empty())
@@ -94,7 +95,7 @@ std::wstring MutiLanSupport::GetStringViaID(const std::wstring& id)
 	return text;
 }
 
-bool MutiLanSupport::AnalyzeStringTable(const std::vector<std::wstring> &list)
+bool MultiLangSupport::AnalyzeStringTable(const std::vector<std::wstring> &list)
 {
 	int	nCount = (int)list.size();
 	if (nCount <= 0)
@@ -126,7 +127,7 @@ bool MutiLanSupport::AnalyzeStringTable(const std::vector<std::wstring> &list)
 	return true;
 }
 
-void MutiLanSupport::ClearAll()
+void MultiLangSupport::ClearAll()
 {
 	m_stringTable.clear();
 }

@@ -9,8 +9,6 @@
 
 namespace nim_comp {
 
-using namespace ui;
-
 class CefNativeControl : public CefControlBase
 {
 public:
@@ -18,8 +16,8 @@ public:
 	~CefNativeControl(void);	
 
 	virtual void Init() override;
-	virtual void SetPos(UiRect rc) override;
-	virtual void HandleMessage(EventArgs& event) override;
+	virtual void SetPos(ui::UiRect rc) override;
+	virtual void HandleMessage(ui::EventArgs& event) override;
 	virtual void SetVisible(bool bVisible = true) override;
 	virtual void SetInternVisible(bool bVisible = true) override;
 	virtual void SetWindow(ui::Window* pManager, ui::Box* pParent, bool bInit) override;
@@ -29,7 +27,7 @@ public:
 	* @param[in] view 一个 CefControl 控件实例(仅在CefControl类里需要传入)
 	* @return 成功返回 true，失败返回 false
 	*/
-	virtual bool AttachDevTools(Control* view) override;
+	virtual bool AttachDevTools(ui::Control* view) override;
 
 protected:
 	virtual void ReCreateBrowser() override;

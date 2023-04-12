@@ -1,12 +1,18 @@
 #pragma once
 
-#include <GdiPlus.h>
+#include "duilib/duilib_defs.h"
 
-namespace ui {
-namespace GdiHelper{
-
-Gdiplus::Bitmap* CreateBitmapFromHBITMAP(HBITMAP hBitmap);
-
+namespace Gdiplus {
+    class Bitmap;
 }
+
+namespace ui 
+{
+    namespace GdiHelper 
+    {
+
+        Gdiplus::Bitmap* CreateBitmapFromHBITMAP(HBITMAP hBitmap);
+
+    }
 
 }

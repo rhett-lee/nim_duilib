@@ -1,5 +1,5 @@
-#include "StdAfx.h"
 #include "BoxShadow.h"
+#include <tchar.h>
 
 ui::BoxShadow::BoxShadow() :
 	m_cpOffset(0, 0),

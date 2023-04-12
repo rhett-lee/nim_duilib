@@ -2,6 +2,7 @@
 #define UI_CORE_TILEBOX_H_
 
 #pragma once
+#include "duilib/Core/Box.h"
 
 namespace ui
 {

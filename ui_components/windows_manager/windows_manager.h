@@ -1,5 +1,6 @@
 #pragma once
 #include "window_ex.h"
+#include "base/memory/singleton.h"
 
 namespace nim_comp
 {

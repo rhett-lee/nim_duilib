@@ -1,16 +1,19 @@
-#include "StdAfx.h"
+#include "AnimationManager.h"
+#include "duilib/Core/Control.h"
+#include "duilib/Utils/Utils.h"
 
 namespace ui 
 {
 
-AnimationManager::AnimationManager() : m_pControl(nullptr), m_animationMap()
+AnimationManager::AnimationManager() :
+	m_pControl(nullptr)
 {
-
 }
 
-AnimationManager::AnimationManager(const AnimationManager& r) : m_pControl(nullptr), m_animationMap()
+AnimationManager::AnimationManager(const AnimationManager& /*r*/) :
+	m_pControl(nullptr)
 {
-	(void)r;
+	//TODO: 原来代码就没实现这个函数，需要确认是否有业务影响
 }
 
 AnimationPlayer* AnimationManager::GetAnimationPlayer(AnimationType animationType) const

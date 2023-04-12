@@ -1,14 +1,25 @@
-#include "StdAfx.h"
-#include "shlwapi.h"
-#include "../Animation/AnimationPlayer.h"
+#include "Control.h"
+#include "duilib/Core/Image.h"
+#include "duilib/Core/Window.h"
+#include "duilib/Core/Box.h"
+#include "duilib/Core/GlobalManager.h"
+#include "duilib/Render/IRender.h"
+#include "duilib/Animation/AnimationPlayer.h"
+#include "duilib/Animation/AnimationManager.h"
+#include "duilib/Utils/StringUtil.h"
+#include "duilib/Utils/DpiManager.h"
+#include "duilib/Utils/MultiLangSupport.h"
+#include "duilib/Utils/GdiHepler.h"
+#include "duilib/Utils/TimerManager.h"
+#include <tchar.h>
 
 namespace ui 
 {
 	const int Control::m_nVirtualEventGifStop = 1;
 
 Control::Control() :
-	OnXmlEvent(),
-	OnEvent(),
+	m_OnXmlEvent(),
+	m_OnEvent(),
 	m_pUserDataBase(),
 	m_bMenuUsed(false),
 	m_bEnabled(true),
@@ -41,13 +52,8 @@ Control::Control() :
 	m_sToolTipTextId(),
 	m_sUserData(),
 	m_strBkColor(),
-	m_colorMap(),
 	m_strBorderColor(),
-	m_gifWeakFlag(),
-	m_animationManager(),
-	m_imageMap(),
-	m_bkImage(),
-    m_loadingImage(),
+	m_gifWeakFlag(),	
 	m_loadBkImageWeakFlag(),
     m_loadingImageFlag(),
 #if defined(ENABLE_UIAUTOMATION)
@@ -55,15 +61,21 @@ Control::Control() :
 #endif
 	m_boxShadow()
 {
-	m_colorMap.SetControl(this);
-	m_imageMap.SetControl(this);
-	m_animationManager.Init(this);
+	m_colorMap = std::make_unique<StateColorMap>();
+	m_imageMap = std::make_unique<StateImageMap>();
+	m_bkImage = std::make_unique<Image>();
+	m_loadingImage = std::make_unique<Image>();
+
+	m_animationManager = std::make_unique<AnimationManager>(),
+	m_colorMap->SetControl(this);
+	m_imageMap->SetControl(this);
+	m_animationManager->Init(this);
 }
 
 Control::Control(const Control& r) :
 	PlaceHolder(r),
-	OnXmlEvent(),
-	OnEvent(),
+	m_OnXmlEvent(),
+	m_OnEvent(),
 	m_pUserDataBase(),
 	m_bMenuUsed(r.m_bMenuUsed),
 	m_bEnabled(r.m_bEnabled),
@@ -96,24 +108,30 @@ Control::Control(const Control& r) :
 	m_sUserData(r.m_sUserData),
 	m_strBkColor(r.m_strBkColor),
     m_strLoadingBkColor(r.m_strLoadingBkColor),
-	m_colorMap(r.m_colorMap),
 	m_strBorderColor(r.m_strBorderColor),
 	m_gifWeakFlag(),
-	m_animationManager(r.m_animationManager),
-	m_imageMap(r.m_imageMap),
-	m_bkImage(r.m_bkImage),
-    m_loadingImage(r.m_loadingImage),
 	m_bIsLoading(r.m_bIsLoading),
 	m_loadBkImageWeakFlag(),
     m_loadingImageFlag()
 {
-	m_colorMap.SetControl(this);
-	m_imageMap.SetControl(this);
-	m_animationManager.Init(this);
+	m_colorMap = std::make_unique<StateColorMap>(*r.m_colorMap);
+	m_imageMap = std::make_unique<StateImageMap>(*r.m_imageMap);
+	m_bkImage = std::make_unique<Image>(*r.m_bkImage);
+	m_loadingImage = std::make_unique<Image>(*r.m_loadingImage);
+
+	m_animationManager = std::make_unique<AnimationManager>(*r.m_animationManager),
+	m_colorMap->SetControl(this);
+	m_imageMap->SetControl(this);
+	m_animationManager->Init(this);
 	if (r.m_bGifPlay)
 	{
 		this->GifPlay();
 	}
+}
+
+AnimationManager& Control::GetAnimationManager()
+{ 
+	return *m_animationManager;
 }
 
 Control::~Control()
@@ -156,38 +174,38 @@ void Control::SetBkColor(const std::wstring& strColor)
 
 std::wstring Control::GetStateColor(ControlStateType stateType)
 {
-	return m_colorMap[stateType];
+	return (*m_colorMap)[stateType];
 }
 
 void Control::SetStateColor(ControlStateType stateType, const std::wstring& strColor)
 {
 	ASSERT(this->GetWindowColor(strColor) != 0);
-	if( m_colorMap[stateType] == strColor ) return;
+	if((*m_colorMap)[stateType] == strColor ) return;
 
 	if (stateType == kControlStateHot) {
-		m_animationManager.SetFadeHot(true);
+		m_animationManager->SetFadeHot(true);
 	}
-	m_colorMap[stateType] = strColor;
+	(*m_colorMap)[stateType] = strColor;
 	Invalidate();
 }
 
 std::wstring Control::GetBkImage() const
 {
-	return m_bkImage.imageAttribute.simageString;
+	return m_bkImage->GetImageAttribute().simageString;
 }
 
 std::string Control::GetUTF8BkImage() const
 {
 	std::string strOut;
-	StringHelper::UnicodeToMBCS(m_bkImage.imageAttribute.simageString.c_str(), strOut, CP_UTF8);
+	StringHelper::UnicodeToMBCS(m_bkImage->GetImageAttribute().simageString.c_str(), strOut, CP_UTF8);
 	return strOut;
 }
 
 void Control::SetBkImage(const std::wstring& strImage)
 {
 	StopGifPlay();
-	m_bkImage.SetImageString(strImage);
-	m_bGifPlay = m_bkImage.imageAttribute.nPlayCount != 0;
+	m_bkImage->SetImageString(strImage);
+	m_bGifPlay = m_bkImage->GetImageAttribute().nPlayCount != 0;
 	if (GetFixedWidth() == DUI_LENGTH_AUTO || GetFixedHeight() == DUI_LENGTH_AUTO) {
 		ArrangeAncestor();
 	}
@@ -203,35 +221,38 @@ void Control::SetUTF8BkImage(const std::string& strImage)
 	SetBkImage(strOut);
 }
 
-std::wstring Control::GetLoadingImage() const {
-  return m_loadingImage.imageAttribute.simageString;
+std::wstring Control::GetLoadingImage() const 
+{
+	return m_loadingImage->GetImageAttribute().simageString;
 }
 
-void Control::SetLoadingImage(const std::wstring& strImage) {
-  StopGifPlay();
-  m_loadingImage.SetImageString(strImage);
-  Invalidate();
+void Control::SetLoadingImage(const std::wstring& strImage) 
+{
+	StopGifPlay();
+	m_loadingImage->SetImageString(strImage);
+	Invalidate();
 }
 
-void Control::SetLoadingBkColor(const std::wstring& strColor) {
-  if (m_strLoadingBkColor == strColor) {
-    return;
-  }
-  m_strLoadingBkColor = strColor;
-  Invalidate();
+void Control::SetLoadingBkColor(const std::wstring& strColor) 
+{
+    if (m_strLoadingBkColor == strColor) {
+        return;
+    }
+    m_strLoadingBkColor = strColor;
+    Invalidate();
 }
 
 std::wstring Control::GetStateImage(ControlStateType stateType)
 {
-	return m_imageMap.GetImagePath(kStateImageBk, stateType);
+	return m_imageMap->GetImagePath(kStateImageBk, stateType);
 }
 
 void Control::SetStateImage(ControlStateType stateType, const std::wstring& strImage)
 {
 	if (stateType == kControlStateHot) {
-		m_animationManager.SetFadeHot(true);
+		m_animationManager->SetFadeHot(true);
 	}
-	m_imageMap.SetImage(kStateImageBk, stateType, strImage);
+	m_imageMap->SetImage(kStateImageBk, stateType, strImage);
 	if (GetFixedWidth() == DUI_LENGTH_AUTO || GetFixedHeight() == DUI_LENGTH_AUTO) {
 		ArrangeAncestor();
 	}
@@ -242,15 +263,15 @@ void Control::SetStateImage(ControlStateType stateType, const std::wstring& strI
 
 std::wstring Control::GetForeStateImage(ControlStateType stateType)
 {
-	return m_imageMap.GetImagePath(kStateImageFore, stateType);
+	return m_imageMap->GetImagePath(kStateImageFore, stateType);
 }
 
 void Control::SetForeStateImage(ControlStateType stateType, const std::wstring& strImage)
 {
 	if (stateType == kControlStateHot) {
-		m_animationManager.SetFadeHot(true);
+		m_animationManager->SetFadeHot(true);
 	}
-	m_imageMap.SetImage(kStateImageFore, stateType, strImage);
+	m_imageMap->SetImage(kStateImageFore, stateType, strImage);
 	Invalidate();
 }
 
@@ -275,11 +296,11 @@ void Control::SetState(ControlStateType pStrState)
 Image* Control::GetEstimateImage()
 {
 	Image* estimateImage = nullptr;
-	if (!m_bkImage.imageAttribute.sImageName.empty()) {
-		estimateImage = &m_bkImage;
+	if (!m_bkImage->GetImageAttribute().sImageName.empty()) {
+		estimateImage = m_bkImage.get();
 	}
 	else {
-		estimateImage = m_imageMap.GetEstimateImage(kStateImageBk);
+		estimateImage = m_imageMap->GetEstimateImage(kStateImageBk);
 	}
 
 	return estimateImage;
@@ -293,7 +314,9 @@ int Control::GetBorderSize() const
 void Control::SetBorderSize(int nSize)
 {
 	DpiManager::GetInstance()->ScaleInt(nSize);
-	if (m_nBorderSize == nSize) return;
+	if (m_nBorderSize == nSize) {
+		return;
+	}
 
 	m_nBorderSize = nSize;
 	Invalidate();
@@ -306,7 +329,9 @@ std::wstring Control::GetBorderColor() const
 
 void Control::SetBorderColor(const std::wstring& strBorderColor)
 {
-    if( m_strBorderColor == strBorderColor ) return;
+	if (m_strBorderColor == strBorderColor) {
+		return;
+	}
 
     m_strBorderColor = strBorderColor;
     Invalidate();
@@ -398,9 +423,8 @@ std::wstring Control::GetToolTipText() const
 {
 	std::wstring strText = m_sToolTipText;
 	if (strText.empty() && !m_sToolTipTextId.empty()) {
-		strText = MutiLanSupport::GetInstance()->GetStringViaID(m_sToolTipTextId);
+		strText = MultiLangSupport::GetInstance()->GetStringViaID(m_sToolTipTextId);
 	}
-
 	return strText;
 }
 
@@ -528,10 +552,10 @@ void Control::SetUserDataBase(UserDataBase* pUserDataBase)
 void Control::SetVisible(bool bVisible)
 {
 	if (bVisible) {
-		m_animationManager.Appear();
+		m_animationManager->Appear();
 	}
 	else {
-		m_animationManager.Disappear();
+		m_animationManager->Disappear();
 	}
 }
 
@@ -745,7 +769,7 @@ CSize Control::EstimateSize(CSize szAvailable)
 		}
 		Image* image = GetEstimateImage();
 		if (image) {
-			auto imageAttribute = image->imageAttribute;
+			auto imageAttribute = image->GetImageAttribute();
 			if (imageAttribute.rcSource.left != DUI_NOSET_VALUE && imageAttribute.rcSource.top != DUI_NOSET_VALUE
 				&& imageAttribute.rcSource.right != DUI_NOSET_VALUE && imageAttribute.rcSource.bottom != DUI_NOSET_VALUE) {
 				if ((GetFixedWidth() != imageAttribute.rcSource.right - imageAttribute.rcSource.left)) {
@@ -758,13 +782,14 @@ CSize Control::EstimateSize(CSize szAvailable)
 			}
 
 			GetImage(*image);
-			if (image->imageCache) {
+			std::shared_ptr<ImageInfo> imageCache = image->GetImageCache();
+			if (imageCache) {
 				if (GetFixedWidth() == DUI_LENGTH_AUTO) {
-					int image_width = image->imageCache->nX;
+					int image_width = imageCache->nX;
 					imageSize.cx = image_width;
 				}
 				if (GetFixedHeight() == DUI_LENGTH_AUTO) {
-					int image_height = image->imageCache->nY;
+					int image_height = imageCache->nY;
 					imageSize.cy = image_height;
 				}
 			}
@@ -798,6 +823,7 @@ bool Control::IsPointInWithScrollOffset(const CPoint& point) const
 	return m_rcItem.IsPointIn(newPoint);
 }
 
+#if defined(ENABLE_UIAUTOMATION)
 UIAControlProvider* Control::GetUIAProvider()
 {
 	if (m_pUIAProvider == nullptr)
@@ -806,6 +832,7 @@ UIAControlProvider* Control::GetUIAProvider()
 	}
 	return m_pUIAProvider;
 }
+#endif;
 
 void Control::HandleMessageTemplate(EventType eventType, WPARAM wParam, LPARAM lParam, TCHAR tChar, const CPoint& mousePos, FLOAT pressure)
 {
@@ -836,16 +863,16 @@ void Control::HandleMessageTemplate(EventArgs& msg)
 
 	if (this == msg.pSender) {
 		std::weak_ptr<nbase::WeakFlag> weakflag = GetWeakFlag();
-		auto callback = OnEvent.find(msg.Type);
-		if (callback != OnEvent.end()) {
+		auto callback = m_OnEvent.find(msg.Type);
+		if (callback != m_OnEvent.end()) {
 			bRet = callback->second(&msg);
 		}
 		if (weakflag.expired()) {
 			return;
 		}
 
-		callback = OnEvent.find(kEventAll);
-		if (callback != OnEvent.end()) {
+		callback = m_OnEvent.find(kEventAll);
+		if (callback != m_OnEvent.end()) {
 			bRet = callback->second(&msg);
 		}
 		if (weakflag.expired()) {
@@ -853,16 +880,16 @@ void Control::HandleMessageTemplate(EventArgs& msg)
 		}
 
 		if (bRet) {
-			auto callback2 = OnXmlEvent.find(msg.Type);
-			if (callback2 != OnXmlEvent.end()) {
+			auto callback2 = m_OnXmlEvent.find(msg.Type);
+			if (callback2 != m_OnXmlEvent.end()) {
 				bRet = callback2->second(&msg);
 			}
 			if (weakflag.expired()) {
 				return;
 			}
 
-			callback2 = OnXmlEvent.find(kEventAll);
-			if (callback2 != OnXmlEvent.end()) {
+			callback2 = m_OnXmlEvent.find(kEventAll);
+			if (callback2 != m_OnXmlEvent.end()) {
 				bRet = callback2->second(&msg);
 			}
 			if (weakflag.expired()) {
@@ -970,7 +997,7 @@ void Control::HandleMessage(EventArgs& msg)
 bool Control::HasHotState()
 {
 	// ~{EP6O1>?X<~JG7qSP~}hot~{W4L,~}
-	return m_colorMap.HasHotColor() || m_imageMap.HasHotImage();
+	return m_colorMap->HasHotColor() || m_imageMap->HasHotImage();
 }
 
 bool Control::MouseEnter(EventArgs& /*msg*/)
@@ -979,7 +1006,7 @@ bool Control::MouseEnter(EventArgs& /*msg*/)
 		if ( m_uButtonState == kControlStateNormal) {
 			m_uButtonState = kControlStateHot;
 			if (HasHotState()) {
-				m_animationManager.MouseEnter();
+				m_animationManager->MouseEnter();
 				Invalidate();
 			}
 			return true;
@@ -998,7 +1025,7 @@ bool Control::MouseLeave(EventArgs& /*msg*/)
 		if (m_uButtonState == kControlStateHot) {
 			m_uButtonState = kControlStateNormal;
 			if (HasHotState()) {
-				m_animationManager.MouseLeave();
+				m_animationManager->MouseLeave();
 				Invalidate();
 			}
 			return true;
@@ -1029,7 +1056,7 @@ bool Control::ButtonUp(EventArgs& msg)
 	bool ret = false;
 	if( IsMouseFocused() ) {
 		SetMouseFocused(false);
-		auto player = m_animationManager.GetAnimationPlayer(kAnimationHot);
+		auto player = m_animationManager->GetAnimationPlayer(kAnimationHot);
 		if (player)
 			player->Stop();
 
@@ -1241,14 +1268,14 @@ void Control::SetAttribute(const std::wstring& strName, const std::wstring& strV
 	else if (strName == _T("forehotimage") ) SetForeStateImage(kControlStateHot, strValue);
 	else if (strName == _T("forepushedimage") ) SetForeStateImage(kControlStatePushed, strValue);
 	else if (strName == _T("foredisabledimage") ) SetForeStateImage(kControlStateDisabled, strValue);
-	else if (strName == _T("fadealpha")) m_animationManager.SetFadeAlpha(strValue == _T("true"));
-	else if (strName == _T("fadehot")) m_animationManager.SetFadeHot(strValue == _T("true"));
-	else if (strName == _T("fadewidth")) m_animationManager.SetFadeWidth(strValue == _T("true"));
-	else if (strName == _T("fadeheight")) m_animationManager.SetFadeHeight(strValue == _T("true"));
-	else if (strName == _T("fadeinoutxfromleft")) m_animationManager.SetFadeInOutX(strValue == _T("true"), false);
-	else if (strName == _T("fadeinoutxfromright")) m_animationManager.SetFadeInOutX(strValue == _T("true"), true);
-	else if (strName == _T("fadeinoutyfromtop")) m_animationManager.SetFadeInOutY(strValue == _T("true"), false);
-	else if (strName == _T("fadeinoutyfrombottom")) m_animationManager.SetFadeInOutY(strValue == _T("true"), true);
+	else if (strName == _T("fadealpha")) m_animationManager->SetFadeAlpha(strValue == _T("true"));
+	else if (strName == _T("fadehot")) m_animationManager->SetFadeHot(strValue == _T("true"));
+	else if (strName == _T("fadewidth")) m_animationManager->SetFadeWidth(strValue == _T("true"));
+	else if (strName == _T("fadeheight")) m_animationManager->SetFadeHeight(strValue == _T("true"));
+	else if (strName == _T("fadeinoutxfromleft")) m_animationManager->SetFadeInOutX(strValue == _T("true"), false);
+	else if (strName == _T("fadeinoutxfromright")) m_animationManager->SetFadeInOutX(strValue == _T("true"), true);
+	else if (strName == _T("fadeinoutyfromtop")) m_animationManager->SetFadeInOutY(strValue == _T("true"), false);
+	else if (strName == _T("fadeinoutyfrombottom")) m_animationManager->SetFadeInOutY(strValue == _T("true"), true);
 	else if (strName == _T("receivepointer")) SetReceivePointerMsg(strValue == _T("true"));
 	else if (strName == _T("tabstop")) SetTabStop(strValue == _T("true"));
   else if (strName == _T("loadingimage")) SetLoadingImage(strValue);
@@ -1330,35 +1357,37 @@ void Control::GetImage(Image& duiImage) const
 {
 	// should optimize later
 	// use hash or md5 is better than compare strings
-	std::wstring sImageName = duiImage.imageAttribute.sImageName;
+	std::wstring sImageName = duiImage.GetImageAttribute().sImageName;
 	std::wstring imageFullPath = GlobalManager::GetResPath(sImageName, m_pWindow->GetWindowResourcePath());
 
 	imageFullPath = StringHelper::ReparsePath(imageFullPath);
 
-	if (!duiImage.imageCache || duiImage.imageCache->sImageFullPath != imageFullPath) {
-		duiImage.imageCache = GlobalManager::GetImage(imageFullPath);
+	std::shared_ptr<ImageInfo> imageCache = duiImage.GetImageCache();
+	if (!imageCache || imageCache->sImageFullPath != imageFullPath) {
+		imageCache = GlobalManager::GetImage(imageFullPath);
+		duiImage.SetImageCache(imageCache);
 	}
 }
 
 bool Control::DrawImage(IRenderContext* pRender, Image& duiImage, const std::wstring& strModify /*= L""*/, int nFade /*= DUI_NOSET_VALUE*/)
 {
-	assert(pRender != nullptr);
+	ASSERT(pRender != nullptr);
 	if (pRender == nullptr) {
 		return false;
 	}
-	if (duiImage.imageAttribute.sImageName.empty()) {
+	if (duiImage.GetImageAttribute().sImageName.empty()) {
 		return false;
 	}
 
 	GetImage(duiImage);
 
-	if (!duiImage.imageCache) {
+	if (!duiImage.GetImageCache()) {
 		ASSERT(FALSE);
-		duiImage.imageAttribute.Init();
+		duiImage.SetImageAttribute().Init();
 		return false;
 	}
 
-	ImageAttribute newImageAttribute = duiImage.imageAttribute;
+	ImageAttribute newImageAttribute = duiImage.GetImageAttribute();
 	if (!strModify.empty()) {
 		ImageAttribute::ModifyAttribute(newImageAttribute, strModify);
 	}
@@ -1375,20 +1404,22 @@ bool Control::DrawImage(IRenderContext* pRender, Image& duiImage, const std::wst
 		|| rcNewSource.right == DUI_NOSET_VALUE || rcNewSource.bottom == DUI_NOSET_VALUE) {
 		rcNewSource.left = 0;
 		rcNewSource.top = 0;
-		rcNewSource.right = duiImage.imageCache->nX;
-		rcNewSource.bottom = duiImage.imageCache->nY;
+		rcNewSource.right = duiImage.GetImageCache()->nX;
+		rcNewSource.bottom = duiImage.GetImageCache()->nY;
 	}
 
-	if (m_bkImage.imageCache && m_bkImage.imageCache->IsGif() && m_bGifPlay && !m_bkImage.IsPlaying()) {
+	if (m_bkImage->GetImageCache() && m_bkImage->GetImageCache()->IsGif() && m_bGifPlay && !m_bkImage->IsPlaying()) {
 		GifPlay();
 	}
 	else {
 		BYTE iFade = (nFade == DUI_NOSET_VALUE) ? newImageAttribute.bFade : static_cast<BYTE>(nFade);
-		ImageInfo* imageInfo = duiImage.imageCache.get();
-		pRender->DrawImage(m_rcPaint, duiImage.GetCurrentHBitmap(), imageInfo->IsAlpha(),
-			rcNewDest, rcNewSource, newImageAttribute.rcCorner, imageInfo->IsSvg(), iFade,
-			newImageAttribute.bTiledX, newImageAttribute.bTiledY, newImageAttribute.bFullTiledX, newImageAttribute.bFullTiledY,
-			newImageAttribute.nTiledMargin);
+		std::shared_ptr<ImageInfo> imageInfo = duiImage.GetImageCache();
+		if (imageInfo) {
+			pRender->DrawImage(m_rcPaint, duiImage.GetCurrentHBitmap(), imageInfo->IsAlpha(),
+				rcNewDest, rcNewSource, newImageAttribute.rcCorner, imageInfo->IsSvg(), iFade,
+				newImageAttribute.bTiledX, newImageAttribute.bTiledY, newImageAttribute.bFullTiledX, newImageAttribute.bFullTiledY,
+				newImageAttribute.nTiledMargin);
+		}
 	}
 
 	return true;
@@ -1412,7 +1443,7 @@ void Control::ClearRenderContext()
 
 void Control::AlphaPaint(IRenderContext* pRender, const UiRect& rcPaint)
 {
-	assert(pRender != nullptr);
+	ASSERT(pRender != nullptr);
 	if (pRender == nullptr) {
 		return;
 	}
@@ -1528,7 +1559,7 @@ void Control::PaintShadow(IRenderContext* pRender)
 		return;
 	}
 
-	assert(pRender != nullptr);
+	ASSERT(pRender != nullptr);
 	if (pRender == nullptr) {
 		return;
 	}
@@ -1547,7 +1578,7 @@ void Control::PaintBkColor(IRenderContext* pRender)
 	if (m_strBkColor.empty()) {
 		return;
 	}
-	assert(pRender != nullptr);
+	ASSERT(pRender != nullptr);
 	if (pRender == nullptr) {
 		return;
 	}
@@ -1565,18 +1596,18 @@ void Control::PaintBkColor(IRenderContext* pRender)
 
 void Control::PaintBkImage(IRenderContext* pRender)
 {
-    DrawImage(pRender, m_bkImage);
+    DrawImage(pRender, *m_bkImage);
 }
 
 void Control::PaintStatusColor(IRenderContext* pRender)
 {
-	m_colorMap.PaintStatusColor(pRender, m_rcPaint, m_uButtonState);
+	m_colorMap->PaintStatusColor(pRender, m_rcPaint, m_uButtonState);
 }
 
 void Control::PaintStatusImage(IRenderContext* pRender)
 {
-	m_imageMap.PaintStatusImage(pRender, kStateImageBk, m_uButtonState);
-	m_imageMap.PaintStatusImage(pRender, kStateImageFore, m_uButtonState);
+	m_imageMap->PaintStatusImage(pRender, kStateImageBk, m_uButtonState);
+	m_imageMap->PaintStatusImage(pRender, kStateImageFore, m_uButtonState);
 }
 
 void Control::PaintText(IRenderContext* /*pRender*/)
@@ -1589,7 +1620,7 @@ void Control::PaintBorder(IRenderContext* pRender)
 	if (m_strBorderColor.empty()) {
 		return;
 	}
-	assert(pRender != nullptr);
+	ASSERT(pRender != nullptr);
 	if (pRender == nullptr) {
 		return;
 	}
@@ -1660,21 +1691,21 @@ void Control::PaintBorder(IRenderContext* pRender)
 
 void Control::PaintLoading(IRenderContext* pRender)
 {
-	assert(pRender != nullptr);
+	ASSERT(pRender != nullptr);
 	if (pRender == nullptr) {
 		return;
 	}
-    if (!m_bIsLoading || m_loadingImage.imageAttribute.sImageName.empty()) {
+    if (!m_bIsLoading || m_loadingImage->GetImageAttribute().sImageName.empty()) {
         return;
     }
 
-    GetImage(m_loadingImage);
-    if (!m_loadingImage.imageCache) {
+    GetImage(*m_loadingImage);
+    if (!m_loadingImage->GetImageCache()) {
         ASSERT(FALSE);
         return;
     }
 
-    Gdiplus::Bitmap* image = GdiHelper::CreateBitmapFromHBITMAP(m_loadingImage.imageCache->GetHBitmap(0));
+    Gdiplus::Bitmap* image = GdiHelper::CreateBitmapFromHBITMAP(m_loadingImage->GetImageCache()->GetHBitmap(0));
     if (!image) {
         ASSERT(FALSE);
         return;
@@ -1687,7 +1718,7 @@ void Control::PaintLoading(IRenderContext* pRender)
         rcFill.top = m_rcItem.top + (m_rcItem.GetHeight() - image->GetHeight()) / 2;
         rcFill.bottom = rcFill.top + image->GetHeight();
 
-        ui::UiRect rcDest = m_loadingImage.imageAttribute.rcDest;
+        ui::UiRect rcDest = m_loadingImage->GetImageAttribute().rcDest;
         if (!rcDest.IsRectEmpty()) {
             rcFill.left = m_rcItem.left + rcDest.left;
             rcFill.right = m_rcItem.left + rcDest.right;
@@ -1759,35 +1790,35 @@ void Control::SetRenderOffsetY(int renderOffsetY)
 
 void Control::GifPlay()
 {
-	if (!m_bkImage.IsValid() || !m_bkImage.imageCache->IsGif() || !m_bkImage.ContinuePlay()) {
-		m_bkImage.SetPlaying(false);
+	if (!m_bkImage->IsValid() || !m_bkImage->GetImageCache()->IsGif() || !m_bkImage->ContinuePlay()) {
+		m_bkImage->SetPlaying(false);
 		m_gifWeakFlag.Cancel();
 		return;
 	}
 
-	if (!m_bkImage.IsPlaying()) {
-		m_bkImage.SetCurrentFrame(0);
+	if (!m_bkImage->IsPlaying()) {
+		m_bkImage->SetCurrentFrame(0);
 		m_gifWeakFlag.Cancel();
-		int lPause = m_bkImage.GetCurrentInterval();
+		int lPause = m_bkImage->GetCurrentInterval();
 		if (lPause == 0)
 			return;
-		m_bkImage.SetPlaying(true);
+		m_bkImage->SetPlaying(true);
 		auto gifPlayCallback = nbase::Bind(&Control::GifPlay, this);
 		TimerManager::GetInstance()->AddCancelableTimer(m_gifWeakFlag.GetWeakFlag(), gifPlayCallback,
 			lPause, TimerManager::REPEAT_FOREVER);
 	}
 	else {
-		int lPrePause = m_bkImage.GetCurrentInterval();
-		m_bkImage.IncrementCurrentFrame();
-		int lPause = m_bkImage.GetCurrentInterval();
-		if (!m_bkImage.ContinuePlay())
+		int lPrePause = m_bkImage->GetCurrentInterval();
+		m_bkImage->IncrementCurrentFrame();
+		int lPause = m_bkImage->GetCurrentInterval();
+		if (!m_bkImage->ContinuePlay())
 		{
 			StopGifPlayForUI(true, kGifStopLast);
 		}
 		else
 		{
 			if (lPrePause == 0 || lPause == 0) {//0~{1mJ>~}GetCurrentInterval~{3v4m~}
-				m_bkImage.SetPlaying(false);
+				m_bkImage->SetPlaying(false);
 				m_gifWeakFlag.Cancel();
 				return;
 			}
@@ -1805,21 +1836,21 @@ void Control::GifPlay()
 
 void Control::StopGifPlay(GifStopType frame)
 {
-	if (m_bkImage.imageCache && m_bkImage.imageCache->IsGif()) {
-		m_bkImage.SetPlaying(false);
+	if (m_bkImage->GetImageCache() && m_bkImage->GetImageCache()->IsGif()) {
+		m_bkImage->SetPlaying(false);
 		m_gifWeakFlag.Cancel();
 		int index = GetGifFrameIndex(frame);
-		m_bkImage.SetCurrentFrame(index);
+		m_bkImage->SetCurrentFrame(index);
 		Invalidate();
 	}
 }
 
 void Control::StartGifPlayForUI(GifStopType frame, int playcount)
 {
-	GetImage(m_bkImage);
-	if (!m_bkImage.IsValid() || !m_bkImage.imageCache->IsGif()) {
+	GetImage(*m_bkImage);
+	if (!m_bkImage->IsValid() || !m_bkImage->GetImageCache()->IsGif()) {
 		m_bGifPlay = false;
-		m_bkImage.SetPlaying(false);
+		m_bkImage->SetPlaying(false);
 		m_gifWeakFlag.Cancel();
 		return;
 	}
@@ -1831,15 +1862,15 @@ void Control::StartGifPlayForUI(GifStopType frame, int playcount)
 	{
 		m_gifWeakFlag.Cancel();
 		m_bGifPlay = true;
-		m_bkImage.SetCurrentFrame(GetGifFrameIndex(frame));
-		int lPause = m_bkImage.GetCurrentInterval();
+		m_bkImage->SetCurrentFrame(GetGifFrameIndex(frame));
+		int lPause = m_bkImage->GetCurrentInterval();
 		if (lPause == 0) {
 			m_bGifPlay = false;
 			return;
 		}
-		m_bkImage.SetPlaying(true);
-		m_bkImage.imageAttribute.nPlayCount = playcount;
-		m_bkImage.ClearCycledCount();
+		m_bkImage->SetPlaying(true);
+		m_bkImage->SetImageAttribute().nPlayCount = playcount;
+		m_bkImage->ClearCycledCount();
 		auto gifPlayCallback = nbase::Bind(&Control::GifPlay, this);
 		TimerManager::GetInstance()->AddCancelableTimer(m_gifWeakFlag.GetWeakFlag(), gifPlayCallback,
 			lPause, TimerManager::REPEAT_FOREVER);
@@ -1860,14 +1891,14 @@ int Control::GetGifFrameIndex(GifStopType frame)
 	switch (frame)
 	{
 	case kGifStopCurrent:
-		ret = m_bkImage.GetCurrentFrameIndex();
+		ret = m_bkImage->GetCurrentFrameIndex();
 		break;
 	case kGifStopFirst:
 		ret = 0;
 		break;
 	case kGifStopLast:
 	{
-		int nFrameCount = m_bkImage.imageCache->GetFrameCount();
+		int nFrameCount = m_bkImage->GetImageCache()->GetFrameCount();
 		ret = nFrameCount > 0 ? nFrameCount - 1 : 0;		
 	}
 	break;
@@ -1876,8 +1907,8 @@ int Control::GetGifFrameIndex(GifStopType frame)
 }
 void Control::BroadcastGifEvent(int nVirtualEvent)
 {
-	auto callback = OnGifEvent.find(nVirtualEvent);
-	if (callback != OnGifEvent.end()) {
+	auto callback = m_OnGifEvent.find(nVirtualEvent);
+	if (callback != m_OnGifEvent.end()) {
 		EventArgs param;
 		param.pSender = this;
 		callback->second(&param);
@@ -1889,16 +1920,16 @@ void Control::InvokeLoadImageCache()
 	if (m_loadBkImageWeakFlag.HasUsed()) {
 		return;
 	}
-	std::wstring sImageName = m_bkImage.imageAttribute.sImageName;
+	std::wstring sImageName = m_bkImage->GetImageAttribute().sImageName;
 	if (sImageName.empty()) {
 		return;
 	}
 	std::wstring imageFullPath = GlobalManager::GetResPath(sImageName, m_pWindow->GetWindowResourcePath());
 
-	if (!m_bkImage.imageCache || m_bkImage.imageCache->sImageFullPath != imageFullPath) {
+	if (!m_bkImage->GetImageCache() || m_bkImage->GetImageCache()->sImageFullPath != imageFullPath) {
 		auto shared_image = GlobalManager::IsImageCached(imageFullPath);
 		if (shared_image) {
-			m_bkImage.imageCache = shared_image;
+			m_bkImage->SetImageCache(shared_image);
 			return;
 		}
 	}
@@ -1907,21 +1938,21 @@ void Control::InvokeLoadImageCache()
 void Control::UnLoadImageCache()
 {
 	m_loadBkImageWeakFlag.Cancel();
-	m_bkImage.ClearCache();
+	m_bkImage->ClearCache();
 }
 
 void Control::ClearImageCache()
 {
-	m_imageMap.ClearCache();
-	m_bkImage.ClearCache();
+	m_imageMap->ClearCache();
+	m_bkImage->ClearCache();
 }
 
 void Control::DetachEvent(EventType type)
 {
-	auto event = OnEvent.find(type);
-	if (event != OnEvent.end())
+	auto event = m_OnEvent.find(type);
+	if (event != m_OnEvent.end())
 	{
-		OnEvent.erase(event);
+		m_OnEvent.erase(event);
 	}
 }
 
@@ -1938,54 +1969,73 @@ DWORD Control::GetWindowColor(const std::wstring& strName)
 	return color;
 }
 
-void Control::StartLoading(int fStartAngle) {
-  if (fStartAngle >= 0 ) {
-    m_fCurrrentAngele = fStartAngle;
-  }
-  if (m_bIsLoading) {
-    return;
-  }
-
-  m_bIsLoading = true;
-  SetEnabled(false);
-  TimerManager::GetInstance()->AddCancelableTimer(m_loadingImageFlag.GetWeakFlag(), nbase::Bind(&Control::Loading, this),
-      50, TimerManager::REPEAT_FOREVER);
+bool Control::IsSelectableType() const
+{
+	return false;
 }
 
-void Control::StopLoading(GifStopType frame) {
-  if (!m_bIsLoading) {
-    return;
-  }
-
-  switch (frame) {
-  case kGifStopFirst:
-    m_fCurrrentAngele = 0;
-    break;
-  case kGifStopCurrent:
-    break;
-  case  kGifStopLast:
-    m_fCurrrentAngele = 360;
-  }
-  m_bIsLoading = false;
-  SetEnabled(true);
-
-  m_loadingImageFlag.Cancel();
+bool Control::IsWantTab() const
+{
+	return false;
 }
 
-void Control::Loading() {
-  if (!m_bIsLoading) {
-    return;
-  }
-  m_fCurrrentAngele += 10;
-  if (m_fCurrrentAngele == INT32_MIN) {
-    m_fCurrrentAngele = 0;
-  }
-
-  Invalidate();
+bool Control::CanPlaceCaptionBar() const
+{
+	return false;
 }
 
-bool Control::IsLoading()  {
-  return m_bIsLoading;
+void Control::StartLoading(int fStartAngle) 
+{
+    if (fStartAngle >= 0) {
+        m_fCurrrentAngele = fStartAngle;
+    }
+    if (m_bIsLoading) {
+        return;
+    }
+
+    m_bIsLoading = true;
+    SetEnabled(false);
+    TimerManager::GetInstance()->AddCancelableTimer(m_loadingImageFlag.GetWeakFlag(), nbase::Bind(&Control::Loading, this),
+        50, TimerManager::REPEAT_FOREVER);
+}
+
+void Control::StopLoading(GifStopType frame) 
+{
+    if (!m_bIsLoading) {
+        return;
+    }
+
+    switch (frame) {
+    case kGifStopFirst:
+        m_fCurrrentAngele = 0;
+        break;
+    case kGifStopCurrent:
+        break;
+    case  kGifStopLast:
+        m_fCurrrentAngele = 360;
+    }
+    m_bIsLoading = false;
+    SetEnabled(true);
+
+    m_loadingImageFlag.Cancel();
+}
+
+void Control::Loading() 
+{
+    if (!m_bIsLoading) {
+        return;
+    }
+    m_fCurrrentAngele += 10;
+    if (m_fCurrrentAngele == INT32_MIN) {
+        m_fCurrrentAngele = 0;
+    }
+
+    Invalidate();
+}
+
+bool Control::IsLoading() 
+{
+    return m_bIsLoading;
 }
 
 } // namespace ui

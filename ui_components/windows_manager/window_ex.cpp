@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "window_ex.h"
 #include "windows_manager.h"
 

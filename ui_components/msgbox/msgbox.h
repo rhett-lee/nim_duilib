@@ -1,5 +1,10 @@
 #pragma once
-#include "duilib/UIlib.h"
+
+#include "duilib/Utils/WinImplBase.h"
+#include "duilib/Control/Button.h"
+#include "duilib/Control/RichEdit.h"
+#include "duilib/Control/Label.h"
+#include <functional>
 
 namespace nim_comp {
 

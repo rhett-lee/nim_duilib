@@ -1,12 +1,12 @@
-#include "StdAfx.h"
+#include "Pen.h"
+#include "duilib/Core/GdiPlusDefs.h"
 
 namespace ui {
 
-using namespace Gdiplus;
 Pen_GdiPlus::Pen_GdiPlus(DWORD color, int width /*= 1*/)
 	: IPen(color, width)
 {
-	pen_.reset(new Pen(color_, static_cast<Gdiplus::REAL>(width)));
+	pen_.reset(new Gdiplus::Pen(color_, static_cast<Gdiplus::REAL>(width)));
 }
 
 Pen_GdiPlus::Pen_GdiPlus(const Pen_GdiPlus& r)
@@ -85,5 +85,10 @@ IPen::DashStyle Pen_GdiPlus::GetDashStyle()
 {
 	return (IPen::DashStyle)pen_->GetDashStyle();
 }
+
+Gdiplus::Pen* Pen_GdiPlus::GetPen() const
+{ 
+	return pen_.get(); 
+};
 
 } // namespace ui

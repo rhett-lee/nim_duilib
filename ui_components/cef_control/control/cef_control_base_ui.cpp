@@ -1,8 +1,9 @@
-#include "stdafx.h"
 #include "cef_control_base.h"
-#include "cef_control/handler/browser_handler.h"
-#include "cef_control/manager/cef_manager.h"
-#include "cef_control/app/cef_js_bridge.h"
+#include "ui_components/cef_control/handler/browser_handler.h"
+#include "ui_components/cef_control/manager/cef_manager.h"
+#include "ui_components/cef_control/app/cef_js_bridge.h"
+
+#include "base/util/string_util.h"
 
 #pragma warning (push)
 #pragma warning (disable:4100)

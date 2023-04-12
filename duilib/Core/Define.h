@@ -3,6 +3,9 @@
 
 #pragma once
 
+#include "duilib/duilib_defs.h"
+#include <string>
+
 namespace ui
 {
 
@@ -150,40 +153,40 @@ enum EventType
 };
 
 
-#define	EVENTSTR_ALL				(_T("all"))
-#define	EVENTSTR_KEYDOWN			(_T("keydown"))
-#define	EVENTSTR_KEYUP				(_T("keyup"))
-#define	EVENTSTR_CHAR				(_T("char"))
-#define	EVENTSTR_SYSKEY				(_T("syskey"))
+#define	EVENTSTR_ALL				(L"all")
+#define	EVENTSTR_KEYDOWN			(L"keydown")
+#define	EVENTSTR_KEYUP				(L"keyup")
+#define	EVENTSTR_CHAR				(L"char")
+#define	EVENTSTR_SYSKEY				(L"syskey")
 
-#define EVENTSTR_SETFOCUS			(_T("setfocus"))
-#define EVENTSTR_KILLFOCUS			(_T("killfocus"))
-#define	EVENTSTR_SETCURSOR			(_T("setcursor"))
+#define EVENTSTR_SETFOCUS			(L"setfocus")
+#define EVENTSTR_KILLFOCUS			(L"killfocus")
+#define	EVENTSTR_SETCURSOR			(L"setcursor")
 
-#define EVENTSTR_MOUSEMOVE			(_T("mousemove"))
-#define	EVENTSTR_MOUSEENTER			(_T("mouseenter"))
-#define	EVENTSTR_MOUSELEAVE			(_T("mouseleave"))
-#define	EVENTSTR_MOUSEHOVER			(_T("mousehover"))
+#define EVENTSTR_MOUSEMOVE			(L"mousemove")
+#define	EVENTSTR_MOUSEENTER			(L"mouseenter")
+#define	EVENTSTR_MOUSELEAVE			(L"mouseleave")
+#define	EVENTSTR_MOUSEHOVER			(L"mousehover")
 
-#define	EVENTSTR_BUTTONDOWN			(_T("buttondown"))
-#define	EVENTSTR_BUTTONUP			(_T("buttonup"))
-#define	EVENTSTR_RBUTTONDOWN		(_T("rbuttondown"))
-#define	EVENTSTR_DOUBLECLICK		(_T("doubleclick"))
+#define	EVENTSTR_BUTTONDOWN			(L"buttondown")
+#define	EVENTSTR_BUTTONUP			(L"buttonup")
+#define	EVENTSTR_RBUTTONDOWN		(L"rbuttondown")
+#define	EVENTSTR_DOUBLECLICK		(L"doubleclick")
 
-#define EVENTSTR_SELECT				(_T("select"))
-#define EVENTSTR_UNSELECT			(_T("unselect"))
-#define	EVENTSTR_MENU				(_T("menu"))
+#define EVENTSTR_SELECT				(L"select")
+#define EVENTSTR_UNSELECT			(L"unselect")
+#define	EVENTSTR_MENU				(L"menu")
 
-#define EVENTSTR_EXPAND				(_T("expand"))
-#define EVENTSTR_UNEXPAND			(_T("unexpand"))
+#define EVENTSTR_EXPAND				(L"expand")
+#define EVENTSTR_UNEXPAND			(L"unexpand")
 
-#define	EVENTSTR_SCROLLWHEEL		(_T("scrollwheel"))
-#define EVENTSTR_SCROLLCHANGE		(_T("scrollchange"))
+#define	EVENTSTR_SCROLLWHEEL		(L"scrollwheel")
+#define EVENTSTR_SCROLLCHANGE		(L"scrollchange")
 
-#define EVENTSTR_VALUECHANGE		(_T("valuechange"))
-#define EVENTSTR_RETURN				(_T("return"))
-#define EVENTSTR_TAB				(_T("tab"))
-#define EVENTSTR_WINDOWCLOSE		(_T("windowclose"))
+#define EVENTSTR_VALUECHANGE		(L"valuechange")
+#define EVENTSTR_RETURN				(L"return")
+#define EVENTSTR_TAB				(L"tab")
+#define EVENTSTR_WINDOWCLOSE		(L"windowclose")
 
 
 struct EventArgs
@@ -214,42 +217,49 @@ EventType StringToEnum(const std::wstring& messageType);
 
 
 //定义所有控件类型
-#define  DUI_CTR_CONTROL                         (_T("Control"))
-#define  DUI_CTR_LABEL                           (_T("Label"))
-#define  DUI_CTR_BUTTON                          (_T("Button"))
-#define  DUI_CTR_TEXT                            (_T("Text"))
-#define  DUI_CTR_OPTION                          (_T("Option"))
-#define  DUI_CTR_CHECKBOX                        (_T("CheckBox"))
+#define  DUI_CTR_CONTROL                         (L"Control")
+#define  DUI_CTR_LABEL                           (L"Label")
+#define  DUI_CTR_BUTTON                          (L"Button")
+#define  DUI_CTR_TEXT                            (L"Text")
+#define  DUI_CTR_OPTION                          (L"Option")
+#define  DUI_CTR_CHECKBOX                        (L"CheckBox")
 
-#define  DUI_CTR_LABELBOX                        (_T("LabelBox"))
-#define  DUI_CTR_BUTTONBOX                       (_T("ButtonBox"))
-#define  DUI_CTR_OPTIONBOX                       (_T("OptionBox"))
-#define  DUI_CTR_CHECKBOXBOX                     (_T("CheckBoxBox"))
+#define  DUI_CTR_LABELBOX                        (L"LabelBox")
+#define  DUI_CTR_BUTTONBOX                       (L"ButtonBox")
+#define  DUI_CTR_OPTIONBOX                       (L"OptionBox")
+#define  DUI_CTR_CHECKBOXBOX                     (L"CheckBoxBox")
 
-#define  DUI_CTR_BOX							 (_T("Box"))
-#define  DUI_CTR_HBOX							 (_T("HBox"))
-#define  DUI_CTR_VBOX                            (_T("VBox"))
-#define  DUI_CTR_TABBOX                          (_T("TabBox"))
-#define  DUI_CTR_TILEBOX						 (_T("TileBox"))
-#define  DUI_CTR_CHILDBOX                        (_T("ChildBox"))
+#define  DUI_CTR_BOX							 (L"Box")
+#define  DUI_CTR_HBOX							 (L"HBox")
+#define  DUI_CTR_VBOX                            (L"VBox")
+#define  DUI_CTR_TABBOX                          (L"TabBox")
+#define  DUI_CTR_TILEBOX						 (L"TileBox")
+#define  DUI_CTR_CHILDBOX                        (L"ChildBox")
 
-#define  DUI_CTR_LISTCONTAINERELEMENT            (_T("ListContainerElement"))
-#define  DUI_CTR_LISTBOX						 (_T("ListBox"))
-#define  DUI_CTR_HLISTBOX						 (_T("HListBox"))
-#define  DUI_CTR_VLISTBOX                        (_T("VListBox"))
-#define  DUI_CTR_VIRTUALLISTBOX                  (_T("VirtualListBox"))
-#define  DUI_CTR_TILELISTBOX                     (_T("TileListBox"))
-#define  DUI_CTR_VIRTUALTILEBOX                  (_T("VirtualTileBox"))
+#define  DUI_CTR_LISTCONTAINERELEMENT            (L"ListContainerElement")
+#define  DUI_CTR_LISTBOX						 (L"ListBox")
+#define  DUI_CTR_HLISTBOX						 (L"HListBox")
+#define  DUI_CTR_VLISTBOX                        (L"VListBox")
+#define  DUI_CTR_VIRTUALLISTBOX                  (L"VirtualListBox")
+#define  DUI_CTR_TILELISTBOX                     (L"TileListBox")
+#define  DUI_CTR_VIRTUALTILEBOX                  (L"VirtualTileBox")
 
-#define  DUI_CTR_TREENODE                        (_T("TreeNode"))
-#define  DUI_CTR_TREEVIEW                        (_T("TreeView"))
+#define  DUI_CTR_TREENODE                        (L"TreeNode")
+#define  DUI_CTR_TREEVIEW                        (L"TreeView")
 
-#define  DUI_CTR_RICHEDIT                        (_T("RichEdit"))
-#define  DUI_CTR_COMBO                           (_T("Combo"))
-#define  DUI_CTR_SLIDER                          (_T("Slider"))
-#define  DUI_CTR_PROGRESS                        (_T("Progress"))
-#define  DUI_CTR_CIRCLEPROGRESS                  (_T("CircleProgress"))
-#define  DUI_CTR_SCROLLBAR                       (_T("ScrollBar"))
+#define  DUI_CTR_RICHEDIT                        (L"RichEdit")
+#define  DUI_CTR_COMBO                           (L"Combo")
+#define  DUI_CTR_SLIDER                          (L"Slider")
+#define  DUI_CTR_PROGRESS                        (L"Progress")
+#define  DUI_CTR_CIRCLEPROGRESS                  (L"CircleProgress")
+#define  DUI_CTR_SCROLLBAR                       (L"ScrollBar")
+
+/** 窗口标题栏按钮：最大化、最小化、关闭、还原窗口的名字，代码中写死的
+*/
+#define DUI_CTR_BUTTON_CLOSE					 (L"closebtn")
+#define DUI_CTR_BUTTON_MIN						 (L"minbtn")
+#define DUI_CTR_BUTTON_MAX						 (L"maxbtn")
+#define DUI_CTR_BUTTON_RESTORE					 (L"restorebtn")
 
 }// namespace ui
 

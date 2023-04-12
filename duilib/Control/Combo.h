@@ -3,10 +3,12 @@
 
 #pragma once
 
+#include "duilib/Core/Box.h"
+
 namespace ui 
 {
-
-class CComboWnd;
+	class ListBox;
+	class CComboWnd;
 class UILIB_API Combo : public Box
 {
     friend class CComboWnd;
@@ -17,7 +19,9 @@ public:
 
 	/// 重写父类方法，提供个性化功能，请参考父类声明
 	virtual std::wstring GetType() const override;
+#if defined(ENABLE_UIAUTOMATION)
 	virtual UIAControlProvider* GetUIAProvider() override;
+#endif
 	virtual bool Add(Control* pControl) override;
 	virtual bool Remove(Control* pControl) override;
 	virtual bool RemoveAt(size_t iIndex) override;
@@ -27,6 +31,11 @@ public:
 	virtual bool IsActivated() override;
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 	virtual void PaintText(IRenderContext* pRender) override;
+
+	/** 该控件是否可以放置在标题栏上（以用于处理NC消息响应）
+	 * @return 返回 true 表示可以，false 表示不可以
+	 */
+	virtual bool CanPlaceCaptionBar() const override;
 
 	/**
 	 * @brief 获取当前选择项文本
@@ -117,21 +126,21 @@ public:
 	 * @brief 获取所有子项数量
 	 * @return 返回所有子项数量
 	 */
-	virtual int GetCount() const { return m_pLayout->GetCount(); }
+	virtual int GetCount() const;
     
 	/**
 	 * @brief 监听子项被选择事件
 	 * @param[in] callback 子项被选择后触发的回调函数
 	 * @return 无
 	 */
-	void AttachSelect(const EventCallback& callback) { OnEvent[kEventSelect] += callback;/*m_pLayout->AttachSelect(callback);*/ }	//mod by djj
+	void AttachSelect(const EventCallback& callback) { m_OnEvent[kEventSelect] += callback;/*m_pLayout->AttachSelect(callback);*/ }	//mod by djj
 
 	/**
 	 * @brief 监听下拉窗关闭事件
 	 * @param[in] callback 下拉窗关闭后触发的回调函数
 	 * @return 无
 	 */
-	void AttachWindowClose(const EventCallback& callback) { OnEvent[kEventWindowClose] += callback; };
+	void AttachWindowClose(const EventCallback& callback) { m_OnEvent[kEventWindowClose] += callback; };
 
 private:
 	/**

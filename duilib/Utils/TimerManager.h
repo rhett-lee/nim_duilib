@@ -2,7 +2,10 @@
 #define UI_ANIMATION_ANIMATIONTIMER_H_
 
 #pragma once
+
+#include "duilib/duilib_defs.h"
 #include "base/callback/callback.h"
+#include <queue>
 
 namespace ui 
 {

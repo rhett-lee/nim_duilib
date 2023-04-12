@@ -1,6 +1,17 @@
-#include "stdafx.h"
+#include "RichEdit.h"
+#include "duilib/Core/GlobalManager.h"
+#include "duilib/Core/Window.h"
+#include "duilib/Control/ScrollBar.h"
+#include "duilib/Utils/TimerManager.h"
+#include "duilib/Utils/StringUtil.h"
+#include "duilib/Utils/MultiLangSupport.h"
+#include "duilib/Utils/OnScreenKeyboardManager.h"
+#include "duilib/Render/IRender.h"
+#include "duilib/Animation/AnimationManager.h"
+#include "duilib/Animation/AnimationPlayer.h"
 #include "base/win32/path_util.h"
 #include "base/thread/thread_manager.h"
+#include <tchar.h>
 
 // These constants are for backward compatibility. They are the 
 // sizes used for initialization and reset in RichEdit 1.0
@@ -253,7 +264,7 @@ HRESULT InitDefaultCharFormat(RichEdit* re, CHARFORMAT2W* pcf, HFONT hfont)
     pcf->bCharSet = lf.lfCharSet;
     pcf->bPitchAndFamily = lf.lfPitchAndFamily;
 #ifdef _UNICODE
-    _tcscpy(pcf->szFaceName, lf.lfFaceName);
+    _tcscpy_s(pcf->szFaceName, lf.lfFaceName);
 #else
     //need to thunk pcf->szFaceName to a standard char string.in this case it's easy because our thunk is also our copy
     MultiByteToWideChar(CP_ACP, 0, lf.lfFaceName, LF_FACESIZE, pcf->szFaceName, LF_FACESIZE) ;
@@ -952,7 +963,7 @@ void CTxtWinHost::SetFont(HFONT hFont)
     cf.bCharSet = lf.lfCharSet;
     cf.bPitchAndFamily = lf.lfPitchAndFamily;
 #ifdef _UNICODE
-    _tcscpy(cf.szFaceName, lf.lfFaceName);
+    _tcscpy_s(cf.szFaceName, lf.lfFaceName);
 #else
     //need to thunk pcf->szFaceName to a standard char string.in this case it's easy because our thunk is also our copy
     MultiByteToWideChar(CP_ACP, 0, lf.lfFaceName, LF_FACESIZE, cf.szFaceName, LF_FACESIZE) ;
@@ -1299,7 +1310,7 @@ RichEdit::~RichEdit()
     }
 }
 
-bool RichEdit::IsWantTab()
+bool RichEdit::IsWantTab() const
 {
     return m_bWantTab;
 }
@@ -1307,6 +1318,11 @@ bool RichEdit::IsWantTab()
 void RichEdit::SetWantTab(bool bWantTab)
 {
     m_bWantTab = bWantTab;
+}
+
+bool RichEdit::CanPlaceCaptionBar() const
+{
+	return true;
 }
 
 bool RichEdit::IsNeedReturnMsg()
@@ -1391,7 +1407,7 @@ void RichEdit::SetFont(const std::wstring& pStrFontName, int nSize, bool bBold, 
     if( m_pTwh ) {
         LOGFONT lf = { 0 };
         ::GetObject(::GetStockObject(DEFAULT_GUI_FONT), sizeof(LOGFONT), &lf);
-        _tcscpy(lf.lfFaceName, pStrFontName.c_str());
+        _tcscpy_s(lf.lfFaceName, pStrFontName.c_str());
         lf.lfCharSet = DEFAULT_CHARSET;
         lf.lfHeight = -nSize;
         if( bBold ) lf.lfWeight += FW_BOLD;
@@ -1527,14 +1543,14 @@ void RichEdit::SetText(const std::wstring& strText)
 
     ReplaceSel(strText, FALSE);
 
-	RaiseUIAValueEvent(oldText, strText);
+	RaiseTextValueEvent(oldText, strText);
 
 	m_linkInfo.clear();
 }
 
 void RichEdit::SetTextId(const std::wstring& strTextId)
 {
-	MutiLanSupport* mutilan = MutiLanSupport::GetInstance();
+	MultiLangSupport* mutilan = MultiLangSupport::GetInstance();
 	if (mutilan)
 	{
 		std::wstring strText = mutilan->GetStringViaID(strTextId);
@@ -1726,7 +1742,7 @@ int RichEdit::InsertText(long nInsertAfterChar, LPCTSTR lpstrText, bool bCanUndo
 
     ReplaceSel(lpstrText, bCanUndo);
 
-	RaiseUIAValueEvent(oldText, GetText());
+	RaiseTextValueEvent(oldText, GetText());
     
 	return nRet;
 }
@@ -1739,7 +1755,7 @@ int RichEdit::AppendText(const std::wstring& strText, bool bCanUndo)
     
 	ReplaceSel(strText, bCanUndo);
 
-	RaiseUIAValueEvent(oldText, GetText());
+	RaiseTextValueEvent(oldText, GetText());
 
 	return nRet;
 }
@@ -2043,7 +2059,7 @@ bool RichEdit::OnTxTextChanged()
 		m_pWindow->SendNotify(this, kEventTextChange);
 	}
 
-	RaiseUIAValueEvent(GetText(), GetText());
+	RaiseTextValueEvent(GetText(), GetText());
 
 	return true;
 }
@@ -2262,18 +2278,16 @@ std::wstring RichEdit::GetType() const
 	return DUI_CTR_RICHEDIT;
 }
 
+#if defined(ENABLE_UIAUTOMATION)
 UIAControlProvider* RichEdit::GetUIAProvider()
 {
-#if defined(ENABLE_UIAUTOMATION)
 	if (m_pUIAProvider == nullptr)
 	{
 		m_pUIAProvider = static_cast<UIAControlProvider*>(new (std::nothrow) UIARichEditProvider(this));
 	}
 	return m_pUIAProvider;
-#else
-	return nullptr;
-#endif
 }
+#endif
 
 void RichEdit::DoInit()
 {
@@ -3055,7 +3069,7 @@ std::wstring RichEdit::GetPromptText() const
 {
 	std::wstring strText = m_sPromptText;
 	if (strText.empty() && !m_sPromptTextId.empty()) {
-		strText = MutiLanSupport::GetInstance()->GetStringViaID(m_sPromptTextId);
+		strText = MultiLangSupport::GetInstance()->GetStringViaID(m_sPromptTextId);
 	}
 
 	return strText;
@@ -3128,7 +3142,7 @@ void RichEdit::PaintPromptText(IRenderContext* pRender)
 
 std::wstring RichEdit::GetFocusedImage()
 {
-	return m_sFocusedImage.imageAttribute.simageString;
+	return m_sFocusedImage.GetImageAttribute().simageString;
 }
 
 void RichEdit::SetFocusedImage( const std::wstring& strImage )
@@ -3243,12 +3257,12 @@ void  RichEdit::AddLinkColorTextEx(const std::wstring& str, const std::wstring &
 	static std::string font_format = "{\\fonttbl{\\f0\\fnil\\fcharset%d %s;}}";
 	static std::string color_format = "{\\colortbl ;\\red%d\\green%d\\blue%d;}";
 	static std::string link_format = "{\\rtf1%s%s\\f0\\fs%d{\\field{\\*\\fldinst{HYPERLINK \"%s\"}}{\\fldrslt{\\cf1 %s}}}}";
-	char sfont[255];
-	sprintf(sfont, font_format.c_str(), lf.lfCharSet, font_face.c_str());
-	char scolor[255];
-	sprintf(scolor, color_format.c_str(), GetBValue(dwTextColor), GetGValue(dwTextColor), GetRValue(dwTextColor));
-	char slinke[1024];
-	sprintf(slinke, link_format.c_str(), sfont, scolor, ((int)(-lf.lfHeight *1.5))/2*2, link.c_str(), text.c_str());
+	char sfont[255] = { 0 };
+	sprintf_s(sfont, font_format.c_str(), lf.lfCharSet, font_face.c_str());
+	char scolor[255] = { 0 };
+	sprintf_s(scolor, color_format.c_str(), GetBValue(dwTextColor), GetGValue(dwTextColor), GetRValue(dwTextColor));
+	char slinke[1024] = { 0 };
+	sprintf_s(slinke, link_format.c_str(), sfont, scolor, ((int)(-lf.lfHeight *1.5))/2*2, link.c_str(), text.c_str());
 	std::wstring temp;
 	StringHelper::MBCSToUnicode(slinke, temp);
 	SETTEXTEX st;
@@ -3307,8 +3321,10 @@ void RichEdit::ClearImageCache()
 }
 
 
-void RichEdit::RaiseUIAValueEvent(const std::wstring& oldText, const std::wstring& newText)
+void RichEdit::RaiseTextValueEvent(const std::wstring& oldText, const std::wstring& newText)
 {
+	(void)oldText;
+	(void)newText;
 #if defined(ENABLE_UIAUTOMATION)
 	if (m_pUIAProvider != nullptr && UiaClientsAreListening()) {
 		VARIANT vtOld = { 0 }, vtNew = { 0 };

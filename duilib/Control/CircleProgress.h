@@ -10,6 +10,8 @@
 
 #pragma once
 
+#include "duilib/Control/Progress.h"
+
 namespace ui
 {
 

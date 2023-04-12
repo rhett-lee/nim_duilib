@@ -8,7 +8,7 @@
 #include "base/thread/thread_local.h"
 #if defined(OS_WIN)
 #include <assert.h>
-#include "build/winsdk_config.h"
+#include "base/build/winsdk_config.h"
 #include <windows.h>
 
 namespace nbase

@@ -1,11 +1,36 @@
-#include "StdAfx.h"
+#include "WindowBuilder.h"
+#include "duilib/Core/Markup.h"
+#include "duilib/Core/GlobalManager.h"
+#include "duilib/Core/Window.h"
+#include "duilib/Core/Box.h"
+#include "duilib/Core/Control.h"
+#include "duilib/Core/Markup.h"
+#include "duilib/Control/TreeView.h"
+#include "duilib/Control/ScrollBar.h"
+#include "duilib/Control/Combo.h"
+#include "duilib/Control/Slider.h"
+#include "duilib/Control/Progress.h"
+#include "duilib/Control/CircleProgress.h"
+#include "duilib/Control/RichEdit.h"
+#include "duilib/Control/VirtualListBox.h"
+#include "duilib/Control/VirtualTileBox.h"
+
+#include "duilib/Box/HBox.h"
+#include "duilib/Box/VBox.h"
+#include "duilib/Box/ChildBox.h"
+#include "duilib/Box/TabBox.h"
+#include "duilib/Box/TileBox.h"
+
+#include "duilib/Utils/StringUtil.h"
+#include "duilib/Utils/FontManager.h"
+#include <tchar.h>
 
 namespace ui 
 {
 
 WindowBuilder::WindowBuilder()
 {
-
+	m_xml = std::make_unique<CMarkup>();
 }
 
 Box* WindowBuilder::Create(STRINGorID xml, CreateControlCallback pCallback, 
@@ -16,7 +41,7 @@ Box* WindowBuilder::Create(STRINGorID xml, CreateControlCallback pCallback,
 	//如果使用了 zip 压缩包，则从内存中读取
 	if (HIWORD(xml.m_lpstr) != NULL) {
 		if (*(xml.m_lpstr) == _T('<')) {
-			if (!m_xml.Load(xml.m_lpstr)) return NULL;
+			if (!m_xml->Load(xml.m_lpstr)) return NULL;
 		}
 		else if (GlobalManager::IsUseZip()) {
 			std::wstring sFile = GlobalManager::GetResourcePath();
@@ -27,7 +52,7 @@ Box* WindowBuilder::Create(STRINGorID xml, CreateControlCallback pCallback,
 				BYTE *data = (BYTE*)GlobalLock(hGlobal);
 				SIZE_T len = GlobalSize(hGlobal);
 
-				bool ret = m_xml.LoadFromMem(data, static_cast<DWORD>(len));
+				bool ret = m_xml->LoadFromMem(data, static_cast<DWORD>(len));
 
 				GlobalUnlock(hGlobal);
 				GlobalFree(hGlobal);
@@ -36,11 +61,11 @@ Box* WindowBuilder::Create(STRINGorID xml, CreateControlCallback pCallback,
 			}
 			else
 			{
-				if (!m_xml.LoadFromFile(xml.m_lpstr)) return NULL;
+				if (!m_xml->LoadFromFile(xml.m_lpstr)) return NULL;
 			}
 		}
 		else {
-			if( !m_xml.LoadFromFile(xml.m_lpstr) ) return NULL;
+			if( !m_xml->LoadFromFile(xml.m_lpstr) ) return NULL;
 		}
 	}
 	else {
@@ -53,7 +78,7 @@ Box* WindowBuilder::Create(STRINGorID xml, CreateControlCallback pCallback,
 Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pManager, Box* pParent, Box* pUserDefinedBox)
 {
 	m_createControlCallback = pCallback;
-	CMarkupNode root = m_xml.GetRoot();
+	CMarkupNode root = m_xml->GetRoot();
 	if( !root.IsValid() ) return NULL;
 
 	if( pManager ) {
@@ -388,22 +413,22 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pManager, Bo
 
 CMarkup* WindowBuilder::GetMarkup()
 {
-    return &m_xml;
+    return m_xml.get();
 }
 
 void WindowBuilder::GetLastErrorMessage(LPTSTR pstrMessage, SIZE_T cchMax) const
 {
-    return m_xml.GetLastErrorMessage(pstrMessage, cchMax);
+    return m_xml->GetLastErrorMessage(pstrMessage, cchMax);
 }
 
 void WindowBuilder::GetLastErrorLocation(LPTSTR pstrSource, SIZE_T cchMax) const
 {
-    return m_xml.GetLastErrorLocation(pstrSource, cchMax);
+    return m_xml->GetLastErrorLocation(pstrSource, cchMax);
 }
 
 Control* WindowBuilder::_Parse(CMarkupNode* pRoot, Control* pParent, Window* pManager)
 {
-	assert(pRoot != nullptr);
+	ASSERT(pRoot != nullptr);
 	if (pRoot == nullptr) {
 		return nullptr;
 	}
@@ -465,15 +490,15 @@ Control* WindowBuilder::_Parse(CMarkupNode* pRoot, Control* pParent, Window* pMa
 		// TreeView相关必须先添加后解析
 		if (strClass == DUI_CTR_TREENODE) {
 			TreeNode* pNode = dynamic_cast<TreeNode*>(pControl);
-			assert(pNode != nullptr);
+			ASSERT(pNode != nullptr);
 			TreeView* pTreeView = dynamic_cast<TreeView*>(pParent);
-			assert(pTreeView != nullptr);
+			ASSERT(pTreeView != nullptr);
 			if (pTreeView) {
 				pTreeView->GetRootNode()->AddChildNode(pNode);
 			}
 			else {
 				TreeNode* pTreeNode = dynamic_cast<TreeNode*>(pParent);
-				assert(pTreeNode != nullptr);
+				ASSERT(pTreeNode != nullptr);
 				if (pTreeNode) {
 					pTreeNode->AddChildNode(pNode);
 				}
@@ -588,7 +613,7 @@ Control* WindowBuilder::CreateControlByClass(const std::wstring& strControlClass
 
 void WindowBuilder::AttachXmlEvent(bool bBubbled, CMarkupNode& node, Control* pParent)
 {
-	assert(pParent != nullptr);
+	ASSERT(pParent != nullptr);
 	if (pParent == nullptr) {
 		return;
 	}

@@ -3,6 +3,9 @@
 
 #pragma once
 
+#include "duilib/Utils/Macros.h"
+#include "duilib/duilib_defs.h"
+
 namespace ui
 {
 	// DPI适配

@@ -1,12 +1,9 @@
-#include "stdafx.h"
 #include "client_app.h" 
-#include <string>
+#include "ui_components/cef_control/util/util.h"
 
-#include "cef_control/util/util.h"
-
-#include "cef_control/app/js_handler.h"
-#include "cef_control/app/ipc_string_define.h"
-#include "cef_control/app/cef_js_bridge.h"
+#include "ui_components/cef_control/app/js_handler.h"
+#include "ui_components/cef_control/app/ipc_string_define.h"
+#include "ui_components/cef_control/app/cef_js_bridge.h"
 
 #pragma warning (push)
 #pragma warning (disable:4100)
@@ -15,6 +12,8 @@
 #include "include/cef_task.h"
 #include "include/cef_v8.h"
 #pragma warning (pop)
+
+#include <string>
 
 namespace nim_comp
 {

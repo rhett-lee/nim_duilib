@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "shadow_wnd.h"
 
 namespace nim_comp {
@@ -48,7 +47,7 @@ LRESULT ShadowWnd::MessageHandler(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/, B
 		{
 			RECT rc = {0};
 			::GetWindowRect(window_->GetHWND(), &rc);
-			SetPos(UiRect(rc), false, SWP_SHOWWINDOW | SWP_NOACTIVATE, window_->GetHWND());
+			SetPos(ui::UiRect(rc), false, SWP_SHOWWINDOW | SWP_NOACTIVATE, window_->GetHWND());
 		}
 		break;
 	}

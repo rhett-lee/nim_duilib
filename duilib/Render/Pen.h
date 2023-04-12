@@ -2,7 +2,13 @@
 #define UI_CORE_RENDER_PEN_H_
 
 #pragma once
-#include <GdiPlus.h>
+
+#include "duilib/Render/IRender.h"
+
+namespace Gdiplus
+{
+	class Pen;
+}
 
 namespace ui 
 {
@@ -33,7 +39,7 @@ public:
 	virtual void SetDashStyle(DashStyle style) override;
 	virtual DashStyle GetDashStyle() override;
 
-	Gdiplus::Pen* GetPen() { return pen_.get(); };
+	Gdiplus::Pen* GetPen() const;
 private:
 	std::unique_ptr<Gdiplus::Pen> pen_;
 };

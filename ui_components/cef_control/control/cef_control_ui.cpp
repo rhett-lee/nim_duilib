@@ -1,8 +1,11 @@
-#include "stdafx.h"
 #include "cef_control.h"
-#include "cef_control/handler/browser_handler.h"
-#include "cef_control/manager/cef_manager.h"
-#include "cef_control/app/cef_js_bridge.h"
+#include "ui_components/cef_control/handler/browser_handler.h"
+#include "ui_components/cef_control/manager/cef_manager.h"
+#include "ui_components/cef_control/app/cef_js_bridge.h"
+#include "ui_components/public_define.h"
+#include "duilib/Render/IRender.h"
+
+#include "base/thread/thread_manager.h"
 
 #pragma warning (push)
 #pragma warning (disable:4100)
@@ -72,7 +75,7 @@ void CefControl::ReCreateBrowser()
 	}	
 }
 
-void CefControl::SetPos(UiRect rc)
+void CefControl::SetPos(ui::UiRect rc)
 {
 	__super::SetPos(rc);
 
@@ -82,19 +85,19 @@ void CefControl::SetPos(UiRect rc)
 	}
 }
 
-void CefControl::HandleMessage(EventArgs& event)
+void CefControl::HandleMessage(ui::EventArgs& event)
 {
 	if (browser_handler_.get() && browser_handler_->GetBrowser().get() == NULL)
 		return __super::HandleMessage(event);
 
-	else if (event.Type == kEventInternalSetFocus)
+	else if (event.Type == ui::kEventInternalSetFocus)
 	{
 		if (browser_handler_->GetBrowserHost().get())
 		{
 			browser_handler_->GetBrowserHost()->SendFocusEvent(true);
 		}
 	}
-	else if (event.Type == kEventInternalKillFocus)
+	else if (event.Type == ui::kEventInternalKillFocus)
 	{
 		if (browser_handler_->GetBrowserHost().get())
 		{
@@ -123,7 +126,7 @@ void CefControl::SetInternVisible(bool bVisible)
 	}	
 }
 
-void CefControl::Paint(IRenderContext* pRender, const UiRect& rcPaint)
+void CefControl::Paint(ui::IRenderContext* pRender, const ui::UiRect& rcPaint)
 {
 	__super::Paint(pRender, rcPaint);
 
@@ -200,7 +203,7 @@ LRESULT CefControl::MessageHandler(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL
 		POINT pt = { 0 };
 		::GetCursorPos(&pt);
 		::ScreenToClient(m_pWindow->GetHWND(), &pt);
-		if (!m_rcItem.IsPointIn(CPoint(pt)))
+		if (!m_rcItem.IsPointIn(ui::CPoint(pt)))
 			return 0;
 
 		m_pWindow->CallWindowProc(uMsg, wParam, lParam);
@@ -311,7 +314,7 @@ LRESULT CefControl::SendButtonDownEvent(UINT uMsg, WPARAM wParam, LPARAM lParam,
 {
 	CefRefPtr<CefBrowserHost> host = browser_handler_->GetBrowserHost();
 
-	CPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+	ui::CPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
 	pt.Offset(GetScrollOffset());
 	if (!m_rcItem.IsPointIn(pt))
 		return 0;
@@ -336,7 +339,7 @@ LRESULT CefControl::SendButtonDoubleDownEvent(UINT uMsg, WPARAM wParam, LPARAM l
 {
 	CefRefPtr<CefBrowserHost> host = browser_handler_->GetBrowserHost();
 
-	CPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+	ui::CPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
 	pt.Offset(GetScrollOffset());
 	if (!m_rcItem.IsPointIn(pt))
 		return 0;
@@ -360,7 +363,7 @@ LRESULT CefControl::SendButtonUpEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, B
 {
 	CefRefPtr<CefBrowserHost> host = browser_handler_->GetBrowserHost();
 
-	CPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+	ui::CPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
 	pt.Offset(GetScrollOffset());
 	if (!m_rcItem.IsPointIn(pt) && !m_pWindow->IsCaptured())
 		return 0;
@@ -393,7 +396,7 @@ LRESULT CefControl::SendMouseMoveEvent(UINT /*uMsg*/, WPARAM wParam, LPARAM lPar
 {
 	CefRefPtr<CefBrowserHost> host = browser_handler_->GetBrowserHost();
 
-	CPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+	ui::CPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
 	pt.Offset(GetScrollOffset());
 	if (!m_rcItem.IsPointIn(pt) && !m_pWindow->IsCaptured())
 		return 0;
@@ -412,7 +415,7 @@ LRESULT CefControl::SendMouseWheelEvent(UINT /*uMsg*/, WPARAM wParam, LPARAM lPa
 {
 	CefRefPtr<CefBrowserHost> host = browser_handler_->GetBrowserHost();
 
-	CPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+	ui::CPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
 	HWND scrolled_wnd = ::WindowFromPoint(pt);
 	if (scrolled_wnd != m_pWindow->GetHWND())
 		return 0;
@@ -438,7 +441,7 @@ LRESULT CefControl::SendMouseLeaveEvent(UINT /*uMsg*/, WPARAM wParam, LPARAM lPa
 {
 	CefRefPtr<CefBrowserHost> host = browser_handler_->GetBrowserHost();
 
-	CPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+	ui::CPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
 	pt.Offset(GetScrollOffset());
 	if (!m_rcItem.IsPointIn(pt))
 		return 0;

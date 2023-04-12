@@ -5,12 +5,13 @@
  * @date 2016/7/19
  */
 #pragma once
-#include "cef_control_base.h"
-#include "cef_control/util/memory_dc.h"
+#include "ui_components/cef_control/control/cef_control_base.h"
+#include "ui_components/cef_control/util/memory_dc.h"
+#include "duilib/Core/Window.h"
 
 namespace nim_comp {
 
-class CefControl :public CefControlBase, public IUIMessageFilter
+class CefControl :public CefControlBase, public ui::IUIMessageFilter
 {	
 public:
 	CefControl(void);
@@ -18,11 +19,11 @@ public:
 
 	/// 重写父类接口，提供个性化功能
 	virtual void Init() override;
-	virtual void SetPos(UiRect rc) override;
-	virtual void HandleMessage(EventArgs& event) override;
+	virtual void SetPos(ui::UiRect rc) override;
+	virtual void HandleMessage(ui::EventArgs& event) override;
 	virtual void SetVisible(bool bVisible = true) override;
 	virtual void SetInternVisible(bool bVisible = true) override;
-	virtual void Paint(IRenderContext* pRender, const UiRect& rcPaint) override;
+	virtual void Paint(ui::IRenderContext* pRender, const ui::UiRect& rcPaint) override;
 	virtual void SetWindow(ui::Window* pManager, ui::Box* pParent, bool bInit) override;
 
 	virtual LRESULT MessageHandler(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled) override; // 处理窗体消息，转发到Cef浏览器对象

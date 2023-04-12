@@ -8,7 +8,7 @@
 #include "targetver.h"
 
 // Windows 头文件: 
-#include "build/windows_defs.h"
+#include "duilib/duilib_defs.h"
 
 // C 运行时头文件
 #include <stdlib.h>
@@ -21,5 +21,5 @@
 #include "base/base.h"
 
 // duilib
-#include "duilib/UIlib.h"
+#include "duilib/duilib.h"
 

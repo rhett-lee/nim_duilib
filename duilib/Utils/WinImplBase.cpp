@@ -1,4 +1,9 @@
-#include "stdafx.h"
+#include "WinImplBase.h"
+#include "duilib/Utils/Shadow.h"
+#include "duilib/Core/WindowBuilder.h"
+#include "duilib/Core/Box.h"
+#include "duilib/Core/Markup.h"
+#include <tchar.h>
 
 namespace ui
 {
@@ -109,40 +114,66 @@ LRESULT WindowImplBase::OnNcPaint(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 
 LRESULT WindowImplBase::OnNcHitTest(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/)
 {
-	POINT pt; pt.x = GET_X_LPARAM(lParam); pt.y = GET_Y_LPARAM(lParam);
+	POINT pt = {0};
+	pt.x = GET_X_LPARAM(lParam); 
+	pt.y = GET_Y_LPARAM(lParam);
 	::ScreenToClient(GetHWND(), &pt);
 
 	UiRect rcClient;
 	::GetClientRect(GetHWND(), &rcClient);
 	
-	rcClient.Deflate(m_shadow.GetShadowCorner());
+	rcClient.Deflate(m_shadow->GetShadowCorner());
 	
 	if( !::IsZoomed(GetHWND()) ) {
 		UiRect rcSizeBox = GetSizeBox();
 		if( pt.y < rcClient.top + rcSizeBox.top ) {
 			if (pt.y >= rcClient.top) {
-				if (pt.x < (rcClient.left + rcSizeBox.left) && pt.x >= rcClient.left) return HTTOPLEFT;
-				else if (pt.x >(rcClient.right - rcSizeBox.right) && pt.x <= rcClient.right) return HTTOPRIGHT;
-				else return HTTOP;
+				if (pt.x < (rcClient.left + rcSizeBox.left) && pt.x >= rcClient.left) {
+					return HTTOPLEFT;
+				}
+				else if (pt.x > (rcClient.right - rcSizeBox.right) && pt.x <= rcClient.right) {
+					return HTTOPRIGHT;
+				}
+				else {
+					return HTTOP;
+				}
 			}
-			else return HTCLIENT;
+			else {
+				return HTCLIENT;
+			}
 		}
 		else if( pt.y > rcClient.bottom - rcSizeBox.bottom ) {
 			if (pt.y <= rcClient.bottom) {
-				if (pt.x < (rcClient.left + rcSizeBox.left) && pt.x >= rcClient.left) return HTBOTTOMLEFT;
-				else if (pt.x > (rcClient.right - rcSizeBox.right) && pt.x <= rcClient.right) return HTBOTTOMRIGHT;
-				else return HTBOTTOM;
+				if (pt.x < (rcClient.left + rcSizeBox.left) && pt.x >= rcClient.left) {
+					return HTBOTTOMLEFT;
+				}
+				else if (pt.x > (rcClient.right - rcSizeBox.right) && pt.x <= rcClient.right) {
+					return HTBOTTOMRIGHT;
+				}
+				else {
+					return HTBOTTOM;
+				}
 			}
-			else return HTCLIENT;
+			else {
+				return HTCLIENT;
+			}
 		}
 
 		if (pt.x < rcClient.left + rcSizeBox.left) {
-			if (pt.x >= rcClient.left) return HTLEFT;
-			else return HTCLIENT;
+			if (pt.x >= rcClient.left) {
+				return HTLEFT;
+			}
+			else {
+				return HTCLIENT;
+			}
 		}
 		if (pt.x > rcClient.right - rcSizeBox.right) {
-			if (pt.x <= rcClient.right) return HTRIGHT;
-			else return HTCLIENT;
+			if (pt.x <= rcClient.right) {
+				return HTRIGHT;
+			}
+			else {
+				return HTCLIENT;
+			}
 		}
 	}
 
@@ -151,8 +182,7 @@ LRESULT WindowImplBase::OnNcHitTest(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lPa
 		&& pt.y >= rcClient.top + rcCaption.top && pt.y < rcClient.top + rcCaption.bottom ) {
 			Control* pControl = FindControl(pt);
 			if( pControl ) {
-				if (dynamic_cast<Button*>(pControl) || dynamic_cast<ButtonBox*>(pControl) || 
-					dynamic_cast<RichEdit*>(pControl) || dynamic_cast<Combo*>(pControl))
+				if (pControl->CanPlaceCaptionBar())
 					return HTCLIENT;
 				else
 					return HTCAPTION;
@@ -278,7 +308,7 @@ LRESULT WindowImplBase::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 		return -1;
 	}
 	
-	pRoot = m_shadow.AttachShadow(pRoot);
+	pRoot = m_shadow->AttachShadow(pRoot);
 	AttachDialog(pRoot);
 	InitWindow();
 
@@ -293,32 +323,28 @@ LRESULT WindowImplBase::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 		::MoveWindow(m_hWnd, 0, 0, needSize.cx, needSize.cy, FALSE);
 	}
 
-	Control *pControl = (Control*)FindControl(L"closebtn");
+	Control *pControl = (Control*)FindControl(DUI_CTR_BUTTON_CLOSE);
 	if (pControl) {
-		Button *pCloseBtn = dynamic_cast<Button*>(pControl);
-		ASSERT(pCloseBtn);
-		pCloseBtn->AttachClick(nbase::Bind(&WindowImplBase::OnButtonClick, this, std::placeholders::_1));
+		ASSERT(pControl->GetType() == DUI_CTR_BUTTON);
+		pControl->AttachClick(nbase::Bind(&WindowImplBase::OnButtonClick, this, std::placeholders::_1));
 	}
 
-	pControl = (Control*)FindControl(L"minbtn");
+	pControl = (Control*)FindControl(DUI_CTR_BUTTON_MIN);
 	if (pControl)	{
-		Button* pMinBtn = dynamic_cast<Button*>(pControl);
-		ASSERT(pMinBtn);
-		pMinBtn->AttachClick(nbase::Bind(&WindowImplBase::OnButtonClick, this, std::placeholders::_1));
+		ASSERT(pControl->GetType() == DUI_CTR_BUTTON);
+		pControl->AttachClick(nbase::Bind(&WindowImplBase::OnButtonClick, this, std::placeholders::_1));
 	}
 
-	pControl = (Control*)FindControl(L"maxbtn");
+	pControl = (Control*)FindControl(DUI_CTR_BUTTON_MAX);
 	if (pControl)	{
-		Button* pMaxBtn = dynamic_cast<Button*>(pControl);
-		ASSERT(pMaxBtn);
-		pMaxBtn->AttachClick(nbase::Bind(&WindowImplBase::OnButtonClick, this, std::placeholders::_1));
+		ASSERT(pControl->GetType() == DUI_CTR_BUTTON);
+		pControl->AttachClick(nbase::Bind(&WindowImplBase::OnButtonClick, this, std::placeholders::_1));
 	}
 
-	pControl = (Control*)FindControl(L"restorebtn");
-	if (pControl)	{
-		Button* pRestoreBtn = dynamic_cast<Button*>(pControl);
-		ASSERT(pRestoreBtn);
-		pRestoreBtn->AttachClick(nbase::Bind(&WindowImplBase::OnButtonClick, this, std::placeholders::_1));
+	pControl = (Control*)FindControl(DUI_CTR_BUTTON_RESTORE);
+	if (pControl){
+		ASSERT(pControl->GetType() == DUI_CTR_BUTTON);
+		pControl->AttachClick(nbase::Bind(&WindowImplBase::OnButtonClick, this, std::placeholders::_1));
 	}
 
 	return 0;
@@ -396,11 +422,11 @@ LRESULT WindowImplBase::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 bool WindowImplBase::OnButtonClick(EventArgs* msg)
 {
-	assert(msg != nullptr);
+	ASSERT(msg != nullptr);
 	if (msg == nullptr) {
 		return false;
 	}
-	assert(msg->pSender != nullptr);
+	ASSERT(msg->pSender != nullptr);
 	if (msg->pSender == nullptr) {
 		return false;
 	}

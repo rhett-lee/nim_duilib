@@ -1,4 +1,12 @@
-#include "StdAfx.h"
+#include "Box.h"
+#include "duilib/Render/IRender.h"
+#include "duilib/Core/Window.h"
+#include "duilib/Control/ScrollBar.h"
+#include "duilib/Utils/DpiManager.h"
+#include "duilib/Animation/AnimationPlayer.h"
+
+#include <tchar.h>
+#include <algorithm>
 
 namespace ui
 {
@@ -17,7 +25,7 @@ void Layout::SetOwner(Box* pOwner)
 
 CSize Layout::SetFloatPos(Control* pControl, UiRect rcContainer)
 {
-	assert(pControl != nullptr);
+	ASSERT(pControl != nullptr);
 	if (pControl == nullptr) {
 		return CSize();
 	}
@@ -183,7 +191,7 @@ void Layout::SetPadding(UiRect rcPadding, bool bNeedDpiScale /*= true*/)
 		DpiManager::GetInstance()->ScaleRect(rcPadding);
 	}
 	m_rcPadding = rcPadding;
-	assert(m_pOwner != nullptr);
+	ASSERT(m_pOwner != nullptr);
 	if (m_pOwner != nullptr) {
 		m_pOwner->Arrange();
 	}
@@ -198,7 +206,7 @@ void Layout::SetChildMargin(int iMargin)
 {
 	DpiManager::GetInstance()->ScaleInt(iMargin);
 	m_iChildMargin = iMargin;
-	assert(m_pOwner != nullptr);
+	ASSERT(m_pOwner != nullptr);
 	if (m_pOwner != nullptr) {
 		m_pOwner->Arrange();
 	}
@@ -206,7 +214,7 @@ void Layout::SetChildMargin(int iMargin)
 
 UiRect Layout::GetInternalPos() const
 {
-	assert(m_pOwner != nullptr);
+	ASSERT(m_pOwner != nullptr);
 	if (m_pOwner == nullptr) {
 		return UiRect();
 	}
@@ -225,9 +233,9 @@ Box::Box(Layout* pLayout) :
 	m_bDelayedDestroy(true),
 	m_bMouseChildEnabled(true),
 	m_items(),
-	OnBubbledEvent()
+	m_OnBubbledEvent()
 {
-	assert(m_pLayout != nullptr);
+	ASSERT(m_pLayout != nullptr);
 	if (m_pLayout) {
 		m_pLayout->SetOwner(this);
 	}
@@ -239,7 +247,7 @@ Box::Box(const Box& r) :
 	m_bDelayedDestroy(r.m_bDelayedDestroy),
 	m_bMouseChildEnabled(r.m_bMouseChildEnabled),
 	m_items(),
-	OnBubbledEvent()
+	m_OnBubbledEvent()
 {
 	m_pLayout.reset(new Layout(*r.m_pLayout)),
 	m_pLayout->SetOwner(this);
@@ -255,25 +263,22 @@ std::wstring Box::GetType() const
 {
 	return DUI_CTR_BOX;
 }
-
+#if defined(ENABLE_UIAUTOMATION)
 UIAControlProvider* Box::GetUIAProvider()
 {
-#if defined(ENABLE_UIAUTOMATION)
 	if (m_pUIAProvider == nullptr)
 	{
 		m_pUIAProvider = static_cast<UIAControlProvider*>(new (std::nothrow) UIABoxProvider(this));
 	}
 	return m_pUIAProvider;
-#else
-	return nullptr;
-#endif
 }
+#endif
 
 void Box::SetWindow(Window* pManager, Box* pParent, bool bInit)
 {
 	for (auto it = m_items.begin(); it != m_items.end(); ++it) {
 		Control* pControl = *it;
-		assert(pControl != nullptr);
+		ASSERT(pControl != nullptr);
 		if (pControl != nullptr) {
 			pControl->SetWindow(pManager, this, bInit);
 		}		
@@ -322,16 +327,16 @@ void Box::HandleMessageTemplate(EventArgs& msg)
 	bool bRet = true;
 	std::weak_ptr<nbase::WeakFlag> weakflag = GetWeakFlag();
 	if (this == msg.pSender) {
-		auto callback = OnEvent.find(msg.Type);
-		if (callback != OnEvent.end()) {
+		auto callback = m_OnEvent.find(msg.Type);
+		if (callback != m_OnEvent.end()) {
 			bRet = callback->second(&msg);
 		}
 		if (weakflag.expired()) {
 			return;
 		}
 
-		callback = OnEvent.find(kEventAll);
-		if (callback != OnEvent.end()) {
+		callback = m_OnEvent.find(kEventAll);
+		if (callback != m_OnEvent.end()) {
 			bRet = callback->second(&msg);
 		}
 		if (weakflag.expired()) {
@@ -339,16 +344,16 @@ void Box::HandleMessageTemplate(EventArgs& msg)
 		}
 
 		if (bRet) {
-			auto callback2 = OnXmlEvent.find(msg.Type);
-			if (callback2 != OnXmlEvent.end()) {
+			auto callback2 = m_OnXmlEvent.find(msg.Type);
+			if (callback2 != m_OnXmlEvent.end()) {
 				bRet = callback2->second(&msg);
 			}
 			if (weakflag.expired()) {
 				return;
 			}
 
-			callback2 = OnXmlEvent.find(kEventAll);
-			if (callback2 != OnXmlEvent.end()) {
+			callback2 = m_OnXmlEvent.find(kEventAll);
+			if (callback2 != m_OnXmlEvent.end()) {
 				bRet = callback2->second(&msg);
 			}
 			if (weakflag.expired()) {
@@ -357,16 +362,16 @@ void Box::HandleMessageTemplate(EventArgs& msg)
 		}
 	}
 
-	auto callback = OnBubbledEvent.find(msg.Type);
-	if (callback != OnBubbledEvent.end()) {
+	auto callback = m_OnBubbledEvent.find(msg.Type);
+	if (callback != m_OnBubbledEvent.end()) {
 		bRet = callback->second(&msg);
 	}
 	if (weakflag.expired()) {
 		return;
 	}
 
-	callback = OnBubbledEvent.find(kEventAll);
-	if (callback != OnBubbledEvent.end()) {
+	callback = m_OnBubbledEvent.find(kEventAll);
+	if (callback != m_OnBubbledEvent.end()) {
 		bRet = callback->second(&msg);
 	}
 	if (weakflag.expired()) {
@@ -374,16 +379,16 @@ void Box::HandleMessageTemplate(EventArgs& msg)
 	}
 
 	if (bRet) {
-		auto callback2 = OnXmlBubbledEvent.find(msg.Type);
-		if (callback2 != OnXmlBubbledEvent.end()) {
+		auto callback2 = m_OnXmlBubbledEvent.find(msg.Type);
+		if (callback2 != m_OnXmlBubbledEvent.end()) {
 			bRet = callback2->second(&msg);
 		}
 		if (weakflag.expired()) {
 			return;
 		}
 
-		callback2 = OnXmlBubbledEvent.find(kEventAll);
-		if (callback2 != OnXmlBubbledEvent.end()) {
+		callback2 = m_OnXmlBubbledEvent.find(kEventAll);
+		if (callback2 != m_OnXmlBubbledEvent.end()) {
 			bRet = callback2->second(&msg);
 		}
 		if (weakflag.expired()) {
@@ -401,7 +406,7 @@ void Box::SetReceivePointerMsg(bool bRecv)
 	__super::SetReceivePointerMsg(bRecv);
 	for (auto it = m_items.begin(); it != m_items.end(); ++it) {
 		Control* pControl = *it;
-		assert(pControl != nullptr);
+		ASSERT(pControl != nullptr);
 		if (pControl != nullptr) {
 			pControl->SetReceivePointerMsg(bRecv);
 		}
@@ -444,7 +449,7 @@ void Box::SetInternVisible(bool bVisible)
 		// 控制子控件显示状态
 		// InternVisible状态应由子控件自己控制
 		Control* pControl = *it;
-		assert(pControl != nullptr);
+		ASSERT(pControl != nullptr);
 		if (pControl != nullptr) {
 			pControl->SetInternVisible(IsVisible());
 		}
@@ -463,7 +468,7 @@ void Box::SetEnabled(bool bEnabled)
 	}
 	for (auto it = m_items.begin(); it != m_items.end(); it++) {
 		Control* pControl = *it;
-		assert(pControl != nullptr);
+		ASSERT(pControl != nullptr);
 		if (pControl != nullptr) {
 			pControl->SetEnabled(bEnabled);
 		}
@@ -493,7 +498,7 @@ CSize Box::EstimateSize(CSize szAvailable)
 		m_bReEstimateSize = false;
 		for (auto it = m_items.begin(); it != m_items.end(); ++it) {
 			Control* pControl = *it;
-			assert(pControl != nullptr);
+			ASSERT(pControl != nullptr);
 			if (pControl == nullptr) {
 				continue;
 			}
@@ -524,7 +529,7 @@ Control* Box::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, CPoin
 		return nullptr;
 	}
 	if ((uFlags & UIFIND_HITTEST) != 0) {
-		assert(pData != nullptr);
+		ASSERT(pData != nullptr);
 		if ((pData != nullptr) && !::PtInRect(&m_rcItem, *(static_cast<LPPOINT>(pData)))) {
 			return nullptr;
 		}
@@ -553,7 +558,7 @@ Control* Box::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, CPoin
 			}
 			Control* pControl = nullptr;
 			if ((uFlags & UIFIND_HITTEST) != 0) {
-				assert(pData != nullptr);
+				ASSERT(pData != nullptr);
 				if (pData != nullptr) {
 					CPoint newPoint(*(static_cast<LPPOINT>(pData)));
 					newPoint.Offset(scrollPos);
@@ -584,7 +589,7 @@ Control* Box::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, CPoin
 			}
 			Control* pControl = nullptr;
 			if ((uFlags & UIFIND_HITTEST) != 0) {
-				assert(pData != nullptr);
+				ASSERT(pData != nullptr);
 				if (pData != nullptr) {
 					CPoint newPoint(*(static_cast<LPPOINT>(pData)));
 					newPoint.Offset(scrollPos);
@@ -633,9 +638,13 @@ int Box::FindSelectable(int iIndex, bool bForward /*= true*/) const
 	iIndex = CLAMP(iIndex, 0, GetCount() - 1);
 	if (bForward) {
 		for (int i = iIndex; i < GetCount(); ++i) {
-			if ((dynamic_cast<ListContainerElement*>(GetItemAt(i)) != nullptr)
-				&& GetItemAt(i)->IsVisible()
-				&& GetItemAt(i)->IsEnabled()) {
+			Control* pControl = GetItemAt(i);
+			if (pControl == nullptr) {
+				continue;
+			}
+			if (pControl->IsSelectableType() &&
+				pControl->IsVisible()        &&
+				pControl->IsEnabled()) {
 				return i;
 			}
 		}
@@ -643,9 +652,13 @@ int Box::FindSelectable(int iIndex, bool bForward /*= true*/) const
 	}
 	else {
 		for (int i = iIndex; i >= 0; --i) {
-			if ((dynamic_cast<ListContainerElement*>(GetItemAt(i)) != nullptr)
-				&& GetItemAt(i)->IsVisible()
-				&& GetItemAt(i)->IsEnabled()) {
+			Control* pControl = GetItemAt(i);
+			if (pControl == nullptr) {
+				continue;
+			}
+			if (pControl->IsSelectableType() &&
+				pControl->IsVisible()        &&
+				pControl->IsEnabled()) {
 				return i;
 			}
 		}
@@ -693,7 +706,7 @@ int Box::GetCount() const
 
 bool Box::Add(Control* pControl)
 {
-	assert(pControl != nullptr);
+	ASSERT(pControl != nullptr);
 	if (pControl == nullptr) {
 		return false;
 	}
@@ -713,7 +726,7 @@ bool Box::Add(Control* pControl)
 
 bool Box::AddAt(Control* pControl, size_t iIndex)
 {
-	assert(pControl != nullptr);
+	ASSERT(pControl != nullptr);
 	if (pControl == NULL) {
 		return false;
 	}
@@ -736,7 +749,7 @@ bool Box::AddAt(Control* pControl, size_t iIndex)
 
 bool Box::Remove(Control* pControl)
 {
-	assert(pControl != nullptr);
+	ASSERT(pControl != nullptr);
 	if (pControl == nullptr) {
 		return false;
 	}
@@ -862,13 +875,13 @@ void Box::SetMouseChildEnabled(bool bEnable)
 
 Layout* Box::GetLayout() const
 {
-	assert(m_pLayout != nullptr);
+	ASSERT(m_pLayout != nullptr);
 	return m_pLayout.get();
 }
 
 void Box::ReSetLayout(Layout* pLayout)
 {
-	assert(pLayout != nullptr);
+	ASSERT(pLayout != nullptr);
 	if (pLayout != nullptr) {
 		m_pLayout.reset(pLayout);
 		m_pLayout->SetOwner(this);
@@ -924,14 +937,34 @@ UINT Box::GetControlFlags() const
 	return UIFLAG_DEFAULT; // Box 默认不支持 TAB 切换焦点
 }
 
+void Box::AttachBubbledEvent(EventType eventType, const EventCallback& callback)
+{ 
+	m_OnBubbledEvent[eventType] += callback;
+}
+
 void Box::DetachBubbledEvent(EventType eventType)
 {
-    auto event = OnBubbledEvent.find(eventType);
-    if (event != OnBubbledEvent.end())
+    auto event = m_OnBubbledEvent.find(eventType);
+    if (event != m_OnBubbledEvent.end())
     {
-        OnBubbledEvent.erase(eventType);
+		m_OnBubbledEvent.erase(eventType);
     }
 }
+
+void Box::AttachXmlBubbledEvent(EventType eventType, const EventCallback& callback)
+{ 
+	m_OnXmlBubbledEvent[eventType] += callback; 
+}
+
+void Box::DetachXmlBubbledEvent(EventType eventType)
+{
+	auto event = m_OnXmlBubbledEvent.find(eventType);
+	if (event != m_OnXmlBubbledEvent.end())
+	{
+		m_OnXmlBubbledEvent.erase(eventType);
+	}
+}
+
 /////////////////////////////////////////////////////////////////////////////////////
 //
 //
@@ -948,10 +981,10 @@ ScrollableBox::ScrollableBox(Layout* pLayout) :
 	m_bHoldEnd(false),
 	m_bDefaultDisplayScrollbar(true),
 	m_rcScrollBarPadding(),
-	m_ptLastTouchPos(-1, -1),
-	m_scrollAnimation(),
-	m_renderOffsetYAnimation()
+	m_ptLastTouchPos(-1, -1)
 {
+	m_scrollAnimation = std::make_unique<AnimationPlayer>();
+	m_renderOffsetYAnimation = std::make_unique<AnimationPlayer>();
 	m_rcScrollBarPadding.left = m_rcScrollBarPadding.top = m_rcScrollBarPadding.right = m_rcScrollBarPadding.bottom = 0;
 }
 
@@ -965,13 +998,14 @@ ScrollableBox::ScrollableBox(const ScrollableBox& r):
 	m_bHoldEnd(r.m_bHoldEnd),
 	m_bDefaultDisplayScrollbar(r.m_bDefaultDisplayScrollbar),
 	m_rcScrollBarPadding(r.m_rcScrollBarPadding),
-	m_ptLastTouchPos(r.m_ptLastTouchPos),
-	m_scrollAnimation(),
-	m_renderOffsetYAnimation()
+	m_ptLastTouchPos(r.m_ptLastTouchPos)
 {
-	m_pVerticalScrollBar.reset(new ScrollBar(*m_pVerticalScrollBar.get()));
+	m_scrollAnimation = std::make_unique<AnimationPlayer>();
+	m_renderOffsetYAnimation = std::make_unique<AnimationPlayer>();
+
+	m_pVerticalScrollBar.reset(new ScrollBar(*r.m_pVerticalScrollBar));
 	m_pVerticalScrollBar->SetOwner(this);
-	m_pHorizontalScrollBar.reset(new ScrollBar(*m_pHorizontalScrollBar.get()));
+	m_pHorizontalScrollBar.reset(new ScrollBar(*r.m_pHorizontalScrollBar));
 	m_pHorizontalScrollBar->SetOwner(this);
 }
 
@@ -980,19 +1014,16 @@ std::wstring ScrollableBox::GetType() const
 	return std::wstring(_T("Scrollable")) + DUI_CTR_BOX;
 }
 
-
+#if defined(ENABLE_UIAUTOMATION)
 UIAControlProvider* ScrollableBox::GetUIAProvider()
 {
-#if defined(ENABLE_UIAUTOMATION)
 	if (m_pUIAProvider == nullptr)
 	{
 		m_pUIAProvider = static_cast<UIAControlProvider*>(new (std::nothrow) UIAScrollableBoxProvider(this));
 	}
 	return m_pUIAProvider;
-#else
-	return nullptr;
-#endif
 }
+#endif
 
 void ScrollableBox::SetAttribute(const std::wstring& pstrName, const std::wstring& pstrValue)
 {
@@ -1229,7 +1260,7 @@ bool ScrollableBox::MouseLeave(EventArgs& msg)
 
 void ScrollableBox::PaintChild(IRenderContext* pRender, const UiRect& rcPaint)
 {
-	assert(pRender != nullptr);
+	ASSERT(pRender != nullptr);
 	if (pRender == nullptr) {
 		return;
 	}
@@ -1302,7 +1333,7 @@ Control* ScrollableBox::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFl
 		return nullptr;
 	}
 	if ((uFlags & UIFIND_HITTEST) != 0) {
-		assert(pData != nullptr);
+		ASSERT(pData != nullptr);
 		if (pData == nullptr) {
 			return nullptr;
 		}
@@ -1367,11 +1398,11 @@ void ScrollableBox::SetScrollPos(CSize szPos)
 {
 	if (szPos.cy < 0) {
 		szPos.cy = 0;
-		m_scrollAnimation.Reset();
+		m_scrollAnimation->Reset();
 	}
 	else if (szPos.cy > GetScrollRange().cy) {
 		szPos.cy = GetScrollRange().cy;
-		m_scrollAnimation.Reset();
+		m_scrollAnimation->Reset();
 	}
 
 	int64_t cx = 0;
@@ -1470,24 +1501,24 @@ void ScrollableBox::LineUp(int deltaValue, bool withAnimation)
 		SetScrollPos(scrollPos);
 	}
 	else {
-		m_scrollAnimation.SetStartValue(scrollPos.cy);
-		if (m_scrollAnimation.IsPlaying()) {
-			if (m_scrollAnimation.GetEndValue() > m_scrollAnimation.GetStartValue()) {
-				m_scrollAnimation.SetEndValue(scrollPos.cy - cyLine);
+		m_scrollAnimation->SetStartValue(scrollPos.cy);
+		if (m_scrollAnimation->IsPlaying()) {
+			if (m_scrollAnimation->GetEndValue() > m_scrollAnimation->GetStartValue()) {
+				m_scrollAnimation->SetEndValue(scrollPos.cy - cyLine);
 			}
 			else {
-				m_scrollAnimation.SetEndValue(m_scrollAnimation.GetEndValue() - cyLine);
+				m_scrollAnimation->SetEndValue(m_scrollAnimation->GetEndValue() - cyLine);
 			}
 		}
 		else {
-			m_scrollAnimation.SetEndValue(scrollPos.cy - cyLine);
+			m_scrollAnimation->SetEndValue(scrollPos.cy - cyLine);
 		}
-		m_scrollAnimation.SetSpeedUpRatio(0);
-		m_scrollAnimation.SetSpeedDownfactorA(-0.012);
-		m_scrollAnimation.SetSpeedDownRatio(0.5);
-		m_scrollAnimation.SetTotalMillSeconds(DUI_NOSET_VALUE);
-		m_scrollAnimation.SetCallback(nbase::Bind(&ScrollableBox::SetScrollPosY, this, std::placeholders::_1));
-		m_scrollAnimation.Start();
+		m_scrollAnimation->SetSpeedUpRatio(0);
+		m_scrollAnimation->SetSpeedDownfactorA(-0.012);
+		m_scrollAnimation->SetSpeedDownRatio(0.5);
+		m_scrollAnimation->SetTotalMillSeconds(DUI_NOSET_VALUE);
+		m_scrollAnimation->SetCallback(nbase::Bind(&ScrollableBox::SetScrollPosY, this, std::placeholders::_1));
+		m_scrollAnimation->Start();
 	}
 }
 
@@ -1515,24 +1546,24 @@ void ScrollableBox::LineDown(int deltaValue, bool withAnimation)
 		SetScrollPos(scrollPos);
 	}
 	else {
-		m_scrollAnimation.SetStartValue(scrollPos.cy);
-		if (m_scrollAnimation.IsPlaying()) {
-			if (m_scrollAnimation.GetEndValue() < m_scrollAnimation.GetStartValue()) {
-				m_scrollAnimation.SetEndValue(scrollPos.cy + cyLine);
+		m_scrollAnimation->SetStartValue(scrollPos.cy);
+		if (m_scrollAnimation->IsPlaying()) {
+			if (m_scrollAnimation->GetEndValue() < m_scrollAnimation->GetStartValue()) {
+				m_scrollAnimation->SetEndValue(scrollPos.cy + cyLine);
 			}
 			else {
-				m_scrollAnimation.SetEndValue(m_scrollAnimation.GetEndValue() + cyLine);
+				m_scrollAnimation->SetEndValue(m_scrollAnimation->GetEndValue() + cyLine);
 			}
 		}
 		else {
-			m_scrollAnimation.SetEndValue(scrollPos.cy + cyLine);
+			m_scrollAnimation->SetEndValue(scrollPos.cy + cyLine);
 		}
-		m_scrollAnimation.SetSpeedUpRatio(0);
-		m_scrollAnimation.SetSpeedDownfactorA(-0.012);
-		m_scrollAnimation.SetSpeedDownRatio(0.5);
-		m_scrollAnimation.SetTotalMillSeconds(DUI_NOSET_VALUE);
-		m_scrollAnimation.SetCallback(nbase::Bind(&ScrollableBox::SetScrollPosY, this, std::placeholders::_1));
-		m_scrollAnimation.Start();
+		m_scrollAnimation->SetSpeedUpRatio(0);
+		m_scrollAnimation->SetSpeedDownfactorA(-0.012);
+		m_scrollAnimation->SetSpeedDownRatio(0.5);
+		m_scrollAnimation->SetTotalMillSeconds(DUI_NOSET_VALUE);
+		m_scrollAnimation->SetCallback(nbase::Bind(&ScrollableBox::SetScrollPosY, this, std::placeholders::_1));
+		m_scrollAnimation->Start();
 	}
 }
 void ScrollableBox::LineLeft(int detaValue)
@@ -1646,7 +1677,7 @@ void ScrollableBox::EndDown(bool arrange, bool withAnimation)
 		SetPosInternally(GetPos());
 	}
 	
-	int renderOffsetY = GetScrollRange().cy - GetScrollPos().cy + (m_renderOffsetYAnimation.GetEndValue() - GetRenderOffset().y);
+	int renderOffsetY = GetScrollRange().cy - GetScrollPos().cy + (m_renderOffsetYAnimation->GetEndValue() - GetRenderOffset().y);
 	if (withAnimation == true && IsVScrollBarValid() && renderOffsetY > 0) {
 		PlayRenderOffsetYAnimation(-renderOffsetY);
 	}
@@ -1882,7 +1913,7 @@ void ScrollableBox::ReomveLastItemAnimation()
 	SetPosInternally(GetPos());
 	int nEndRang = GetScrollRange().cy;
 
-	int nRenderOffset = nEndRang - nStartRang + (m_renderOffsetYAnimation.GetEndValue() - GetRenderOffset().y);
+	int nRenderOffset = nEndRang - nStartRang + (m_renderOffsetYAnimation->GetEndValue() - GetRenderOffset().y);
 	if (nRenderOffset < 0) {
 		PlayRenderOffsetYAnimation(-nRenderOffset);
 	}
@@ -1890,16 +1921,16 @@ void ScrollableBox::ReomveLastItemAnimation()
 
 void ScrollableBox::PlayRenderOffsetYAnimation(int nRenderY)
 {
-	m_renderOffsetYAnimation.SetStartValue(nRenderY);
-	m_renderOffsetYAnimation.SetEndValue(0);
-	m_renderOffsetYAnimation.SetSpeedUpRatio(0.3);
-	m_renderOffsetYAnimation.SetSpeedUpfactorA(0.003);
-	m_renderOffsetYAnimation.SetSpeedDownRatio(0.7);
-	m_renderOffsetYAnimation.SetTotalMillSeconds(DUI_NOSET_VALUE);
-	m_renderOffsetYAnimation.SetMaxTotalMillSeconds(650);
+	m_renderOffsetYAnimation->SetStartValue(nRenderY);
+	m_renderOffsetYAnimation->SetEndValue(0);
+	m_renderOffsetYAnimation->SetSpeedUpRatio(0.3);
+	m_renderOffsetYAnimation->SetSpeedUpfactorA(0.003);
+	m_renderOffsetYAnimation->SetSpeedDownRatio(0.7);
+	m_renderOffsetYAnimation->SetTotalMillSeconds(DUI_NOSET_VALUE);
+	m_renderOffsetYAnimation->SetMaxTotalMillSeconds(650);
 	std::function<void(int)> playCallback = nbase::Bind(&ScrollableBox::SetRenderOffsetY, this, std::placeholders::_1);
-	m_renderOffsetYAnimation.SetCallback(playCallback);
-	m_renderOffsetYAnimation.Start();
+	m_renderOffsetYAnimation->SetCallback(playCallback);
+	m_renderOffsetYAnimation->Start();
 }
 
 bool ScrollableBox::IsAtEnd() const

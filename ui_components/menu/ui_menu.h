@@ -3,9 +3,13 @@
 
 #pragma once
 
+#include "duilib/duilib_defs.h"
+#include "duilib/Utils/WinImplBase.h"
+#include "duilib/Utils/Utils.h"
+#include "duilib/Control/List.h"
+
 namespace nim_comp {
 
-using namespace ui;
 enum MenuAlignment
 {
 	eMenuAlignment_Left = 1 << 1,
@@ -61,7 +65,7 @@ public:
 		LEFT_TOP_N = eMenuAlignment_Intelligent | eMenuAlignment_Top
 	};
 	explicit CMenuWnd(HWND hParent = NULL);
-	void Init(STRINGorID xml, LPCTSTR pSkinType, POINT point, PopupPosType popupPosType = LEFT_TOP, bool no_focus = false, CMenuElementUI* pOwner = NULL);
+	void Init(ui::STRINGorID xml, LPCTSTR pSkinType, POINT point, PopupPosType popupPosType = LEFT_TOP, bool no_focus = false, CMenuElementUI* pOwner = NULL);
 	void Show();
 	// 重新调整菜单的大小
 	void ResizeMenu();
@@ -77,7 +81,7 @@ public:
 	}
 	BOOL Receive(ContextMenuParam param) override;
 	
-	virtual Control* CreateControl(const std::wstring& pstrClass) override;
+	virtual ui::Control* CreateControl(const std::wstring& pstrClass) override;
 	virtual std::wstring GetSkinFolder() override {
 		return L"menu";
 	}
@@ -90,10 +94,10 @@ public:
 	HWND m_hParent;
 	POINT m_BasedPoint;
 	PopupPosType m_popupPosType;
-	STRINGorID m_xml;
+	ui::STRINGorID m_xml;
 	bool no_focus_;
 	CMenuElementUI* m_pOwner;
-	ListBox* m_pLayout;
+	ui::ListBox* m_pLayout;
 private:
 	virtual void InitWindow() override;
 	void OnFinalMessage(HWND hWnd) override;
@@ -109,10 +113,10 @@ public:
 	CMenuElementUI();
 	~CMenuElementUI();
 
-	virtual bool ButtonUp(EventArgs& msg) override;
-	virtual bool MouseEnter(EventArgs& msg) override;
+	virtual bool ButtonUp(ui::EventArgs& msg) override;
+	virtual bool MouseEnter(ui::EventArgs& msg) override;
 
-	virtual void PaintChild(IRenderContext* pRender, const UiRect& rcPaint) override;
+	virtual void PaintChild(ui::IRenderContext* pRender, const ui::UiRect& rcPaint) override;
 
 	bool CheckSubMenuItem();
 

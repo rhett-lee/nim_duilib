@@ -1,6 +1,6 @@
-#include "stdafx.h"
-#include <algorithm>
 #include "VirtualTileBox.h"
+#include "duilib/Control/ScrollBar.h"
+#include <algorithm>
 
 namespace ui {
 
@@ -73,7 +73,7 @@ bool VirtualTileLayout::SetAttribute(const std::wstring& strName, const std::wst
 {
   if (strName == L"column")
   {
-    int iValue = _ttoi(strValue.c_str());
+    int iValue = _wtoi(strValue.c_str());
     if (iValue > 0)
     {
       SetColumns(iValue);

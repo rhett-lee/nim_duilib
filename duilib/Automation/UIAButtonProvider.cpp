@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "UIAButtonProvider.h"
 
 #if defined(ENABLE_UIAUTOMATION)
 

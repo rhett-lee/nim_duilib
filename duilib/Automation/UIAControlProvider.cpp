@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "UIAControlProvider.h"
 
 #include <typeinfo>
 

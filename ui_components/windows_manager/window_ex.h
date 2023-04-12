@@ -1,5 +1,6 @@
 #pragma once
-#include "duilib/UIlib.h"
+
+#include "duilib/Utils/WinImplBase.h"
 
 namespace nim_comp
 {

@@ -3,6 +3,9 @@
 
 #pragma once
 
+#include "duilib/duilib_defs.h"
+#include "base/callback/callback.h"
+
 namespace ui
 {
 /** @class OnScreenKeyboardManager

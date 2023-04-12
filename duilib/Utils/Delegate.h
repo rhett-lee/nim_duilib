@@ -3,7 +3,11 @@
 
 #pragma once
 
-#include "Core/Define.h"
+#include "duilib/Core/Define.h"
+#include <functional>
+#include <vector>
+#include <string>
+#include <map>
 
 namespace ui 
 {

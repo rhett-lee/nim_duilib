@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "IRender.h"
 
 namespace ui 
 {
@@ -11,7 +11,7 @@ AutoClip::AutoClip(IRenderContext* pRender, const UiRect& rc, bool bClip)
 	if (bClip)
 	{
 		m_bClip = bClip;
-		assert(pRender);
+		ASSERT(pRender);
 		m_pRender = pRender;
 		m_pRender->SetClip(rc);
 	}
@@ -25,7 +25,7 @@ AutoClip::AutoClip(IRenderContext* pRender, const UiRect& rcRound, int width, in
 	if (bClip)
 	{
 		m_bClip = bClip;
-		assert(pRender);
+		ASSERT(pRender);
 		m_pRender = pRender;
 		m_pRender->SetRoundClip(rcRound, width, height);
 	}

@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "UIAScrollBarProvider.h"
 
 #if defined(ENABLE_UIAUTOMATION)
 

@@ -1,5 +1,7 @@
-#include "stdafx.h"
 #include "TabBox.h"
+#include "duilib/Animation/AnimationManager.h"
+#include "duilib/Animation/AnimationPlayer.h"
+#include "duilib/Core/Window.h"
 
 namespace ui
 {
@@ -27,7 +29,7 @@ std::wstring TabBox::GetType() const
 
 bool TabBox::Add(Control* pControl)
 {
-	assert(pControl != nullptr);
+	ASSERT(pControl != nullptr);
 	if (pControl == nullptr) {
 		return false;
 	}
@@ -249,12 +251,12 @@ bool TabBox::SelectItem(const std::wstring& pControlName)
 
 void TabBox::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
-	if (strName == _T("selectedid"))
+	if (strName == L"selectedid")
 	{
-		int iSel = _ttoi(strValue.c_str());
+		int iSel = _wtoi(strValue.c_str());
 		m_bIsInit ? SelectItem(iSel) : m_iInitSel = iSel;
 	}
-	else if (strName == _T("fadeswitch")) SetFadeSwitch(strValue == _T("true"));
+	else if (strName == L"fadeswitch") SetFadeSwitch(strValue == L"true");
 	else Box::SetAttribute(strName, strValue);
 }
 

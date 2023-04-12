@@ -1,8 +1,9 @@
-#include "stdafx.h"
 #include "js_handler.h"
-#include "cef_control/util/util.h"
-#include "cef_control/app/ipc_string_define.h"
-#include "cef_control/app/cef_js_bridge.h"
+#include "ui_components/cef_control/util/util.h"
+#include "ui_components/cef_control/app/ipc_string_define.h"
+#include "ui_components/cef_control/app/cef_js_bridge.h"
+
+#include "base/util/string_util.h"
 
 namespace nim_comp
 {

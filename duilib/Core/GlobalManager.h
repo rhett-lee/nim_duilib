@@ -3,11 +3,24 @@
 
 #pragma once
 
-#include "Image.h"
-#include "Window.h"
+#include "duilib/duilib_defs.h"
+#include "duilib/Core/WindowBuilder.h"
+
+#include <string>
+#include <memory>
+#include <map>
 
 namespace ui 
 {
+	class IRenderFactory;
+	class IRenderContext;
+	class IPen;
+	class IBrush;
+	class IMatrix;
+	class IPath;
+	class ImageInfo;
+	class TFontInfo;
+
 /**
 * @brief 全局属性管理工具类
 * 用于管理一些全局属性的工具类，包含全局样式（global.xml）和语言设置等

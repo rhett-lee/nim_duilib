@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "UIAWindowProvider.h"
 
 #if defined(ENABLE_UIAUTOMATION)
 

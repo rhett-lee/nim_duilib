@@ -3,7 +3,13 @@
 
 #include "modal_wnd_base.h"
 
+#include "base/build/build_config.h"
+#include "base/build/winsdk_config.h"
+#include <windows.h>
 #include <commdlg.h>
+#include <functional>
+#include <string>
+#include <map>
 
 namespace nim_comp {
 

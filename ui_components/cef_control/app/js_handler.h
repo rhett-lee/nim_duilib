@@ -5,7 +5,7 @@
  * @date 2016/7/19
  */
 #pragma once
-#include "cef_control/app/cef_js_bridge.h"
+#include "ui_components/cef_control/app/cef_js_bridge.h"
 
 #pragma warning (push)
 #pragma warning (disable:4100)

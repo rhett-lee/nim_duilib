@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "TimerManager.h"
 #include <Mmsystem.h>
 
 namespace ui 

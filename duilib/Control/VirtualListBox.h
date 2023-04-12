@@ -6,6 +6,10 @@
 // virtual ListBox class
 #pragma once
 
+#include "duilib/Box/VBox.h"
+#include "duilib/Box/HBox.h"
+#include "duilib/Control/List.h"
+
 namespace ui
 {
 

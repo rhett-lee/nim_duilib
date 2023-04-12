@@ -1,5 +1,6 @@
-#include "StdAfx.h"
 #include "DpiManager.h"
+#include "duilib/Utils/VersionHelpers.h"
+#include "duilib/Utils/ApiWrapper.h"
 
 namespace ui
 {

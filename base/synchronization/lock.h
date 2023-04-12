@@ -7,7 +7,7 @@
 #include "base/base_config.h"
 
 #if defined(OS_WIN)
-#include "build/winsdk_config.h"
+#include "base/build/winsdk_config.h"
 #include <windows.h>
 #elif defined(OS_POSIX)
 #include <pthread.h>

@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "UIALabelProvider.h"
 
 #if defined(ENABLE_UIAUTOMATION)
 

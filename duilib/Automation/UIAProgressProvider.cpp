@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "UIAProgressProvider.h"
 
 #if defined(ENABLE_UIAUTOMATION)
 

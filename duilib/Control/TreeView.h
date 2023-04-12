@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "duilib/Control/List.h"
+
 namespace ui
 {
 
@@ -18,7 +20,9 @@ public:
 
 	/// 重写父类方法，提供个性化功能，请参考父类声明
 	virtual std::wstring GetType() const override;
+#if defined(ENABLE_UIAUTOMATION)
 	virtual UIAControlProvider* GetUIAProvider() override;
+#endif
 	virtual bool IsVisible() const override;
 	virtual void SetInternVisible(bool bVisible) override;
 	virtual void SetWindow(Window* pManager, Box* pParent, bool bInit = true) override;
@@ -135,14 +139,14 @@ public:
 	 * @param[in] callback 子项展开时触发的回调函数
 	 * @return 无
 	 */
-	void AttachExpand(const EventCallback& callback) { OnEvent[kEventExpand] += callback; }
+	void AttachExpand(const EventCallback& callback) { m_OnEvent[kEventExpand] += callback; }
 
 	/**
 	 * @brief 监听子项收缩事件
 	 * @param[in] callback 子项收缩时触发的回调函数
 	 * @return 无
 	 */
-	void AttachUnExpand(const EventCallback& callback) { OnEvent[kEventUnExpand] += callback; }
+	void AttachUnExpand(const EventCallback& callback) { m_OnEvent[kEventUnExpand] += callback; }
 
 private:
 	/**

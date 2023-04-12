@@ -3,6 +3,10 @@
 
 #pragma once
 
+#include "duilib/duilib_defs.h"
+#include "duilib/Utils/Utils.h"
+#include <string>
+
 namespace ui {
 
 // 控件阴影属性类
@@ -17,7 +21,8 @@ namespace ui {
 //           https://software.intel.com/content/www/us/en/develop/articles/iir-gaussian-blur-filter-implementation-using-intel-advanced-vector-extensions.html
 //           https://software.intel.com/content/dam/develop/public/us/en/downloads/gaussian_blur_0311.cpp
 // 2.阴影应提前绘制好并进行缓存，而不是实时绘制
-class UILIB_API BoxShadow {
+class UILIB_API BoxShadow 
+{
 public:
 	BoxShadow();
 	~BoxShadow();

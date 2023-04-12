@@ -1,10 +1,11 @@
-#include "StdAfx.h"
-#include "build/windows_defs.h"
+#include "unzip.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <tchar.h>
-#include "unzip.h"
+
+#pragma warning (push)
+#pragma warning (disable: 4996)
 
 // THIS FILE is almost entirely based upon code by Jean-loup Gailly
 // and Mark Adler. It has been modified by Lucian Wischik.
@@ -4160,4 +4161,5 @@ bool IsZipHandleU(HZIP hz)
   return (han->flag==1);
 }
 
+#pragma warning (pop)
 

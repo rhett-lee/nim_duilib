@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "duilib/Core/Box.h"
+
 namespace ui
 {
 
@@ -67,7 +69,7 @@ public:
 	  * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
 	  * @return 无
 	  */
-	void AttachSelect(const EventCallback& callback) { OnEvent[kEventSelect] += callback; }
+	void AttachSelect(const EventCallback& callback) { m_OnEvent[kEventSelect] += callback; }
 protected:
 	/**
 	 * @brief 显示一个 TAB 项

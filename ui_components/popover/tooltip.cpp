@@ -1,10 +1,6 @@
-#include "stdafx.h"
-#include "popover.h"
 #include "tooltip.h"
 
 namespace nim_comp {
-
-
 
 TooltipBody::TooltipBody(const std::wstring& content):
   PopoverBody(content)

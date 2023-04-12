@@ -1,8 +1,11 @@
 #pragma once
 
+#include "duilib/Core/Window.h"
+#include "duilib/Core/Box.h"
+#include "duilib/Control/List.h"
+
 namespace nim_comp
 {
-using namespace ui;
 class CShadowComboWnd;
 class ShadowCombo;
  
@@ -37,7 +40,9 @@ public:
   // 重写父类方法，提供个性化功能，请参考父类声明
   void DoInit() override;
   std::wstring GetType() const override;
+#if defined(ENABLE_UIAUTOMATION)
   UIAControlProvider* GetUIAProvider() override;
+#endif
   bool Add(Control* pControl) override;
   bool Remove(Control* pControl) override;
   bool RemoveAt(size_t iIndex) override;
@@ -46,8 +51,8 @@ public:
   void Deactivate() override;
   bool IsActivated() override;
   void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
-  void PaintText(IRenderContext* pRender) override;
-  void PaintChild(IRenderContext* pRender, const UiRect& rcPaint) override;
+  void PaintText(ui::IRenderContext* pRender) override;
+  void PaintChild(ui::IRenderContext* pRender, const ui::UiRect& rcPaint) override;
 
   /**
    * @brief 获取当前选择项文本
@@ -59,20 +64,20 @@ public:
   * @brief 获取文字边距
   * @return 返回文字的边距信息
   */
-  UiRect GetTextPadding() const;
+  ui::UiRect GetTextPadding() const;
 
   /**
   * @brief 设置文字边距信息
   * @param[in] rc 边距信息
   * @return 无
   */
-  void SetTextPadding(UiRect rc);
+  void SetTextPadding(ui::UiRect rc);
 
   /**
    * @brief 获取当前所属的 List 对象
    * @return 返回所属的 List 对象指针
    */
-  ListBox* GetListBox() { return m_pLayout.get(); }
+  ui::ListBox* GetListBox() { return m_pLayout.get(); }
 
   /**
    * @brief 获取下拉框属性信息
@@ -91,14 +96,14 @@ public:
    * @brief 获取下拉框容器大小
    * @return 返回容器大小
    */
-  CSize GetDropBoxSize() const;
+  ui::CSize GetDropBoxSize() const;
 
   /**
    * @brief 设置下拉框容器大小
    * @param[in] szDropBox 要设置的大小信息
    * @return 无
    */
-  void SetDropBoxSize(CSize szDropBox);
+  void SetDropBoxSize(ui::CSize szDropBox);
 
   /**
    * @brief 设置 Combobox 是否向上弹出
@@ -156,13 +161,13 @@ public:
   * @brief 设置下拉框阴影的大小
   * @param[in] rect 设置的下拉框阴影大小
   */
-  void SetShadowCorner(const UiRect& rect, bool bNeedDpiScale = true);
+  void SetShadowCorner(const ui::UiRect& rect, bool bNeedDpiScale = true);
 
   /**
   * @brief 获取下拉框阴影大小
   * @return 返回下拉框阴影的大小
   */
-  UiRect GetShadowCorner() const { return m_rcShadowCorner; }
+  ui::UiRect GetShadowCorner() const { return m_rcShadowCorner; }
 
   /**
   * @brief 设置下拉框阴影图片
@@ -189,14 +194,14 @@ public:
    * @param[in] callback 子项被选择后触发的回调函数
    * @return 无
    */
-  void AttachSelect(const EventCallback& callback) { OnEvent[kEventSelect] += callback;/*m_pLayout->AttachSelect(callback);*/ }	//mod by djj
+  void AttachSelect(const ui::EventCallback& callback) { m_OnEvent[ui::kEventSelect] += callback;/*m_pLayout->AttachSelect(callback);*/ }	//mod by djj
 
   /**
    * @brief 监听下拉窗关闭事件
    * @param[in] callback 下拉窗关闭后触发的回调函数
    * @return 无
    */
-  void AttachWindowClose(const EventCallback& callback) { OnEvent[kEventWindowClose] += callback; };
+  void AttachWindowClose(const ui::EventCallback& callback) { m_OnEvent[ui::kEventWindowClose] += callback; };
 
 private:
   /**
@@ -204,7 +209,7 @@ private:
    * @param[in] args 参数列表
    * @return 始终返回 true
    */
-  bool OnSelectItem(EventArgs* args);
+  bool OnSelectItem(ui::EventArgs* args);
 
   /**
    * @brief 选择一个子项
@@ -215,13 +220,13 @@ private:
 
 protected:
   CShadowComboWnd* m_pWindow;
-  std::unique_ptr<ListBox> m_pLayout;
+  std::unique_ptr<ui::ListBox> m_pLayout;
   int m_iCurSel;
-  CSize m_szDropBox;
+  ui::CSize m_szDropBox;
   std::wstring m_sDropBoxAttributes;
   bool m_bPopupTop;
-  UiRect	m_rcTextPadding;
-  UiRect m_rcShadowCorner;
+  ui::UiRect	m_rcTextPadding;
+  ui::UiRect m_rcShadowCorner;
   std::wstring m_sShadowImage;
   ui::Control* m_cArrow;
   bool m_bInit;

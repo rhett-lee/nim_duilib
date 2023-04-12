@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "ShadowCombo.h"
 
 namespace nim_comp
@@ -9,7 +8,7 @@ CShadowComboWnd::~CShadowComboWnd() {}
 
 void CShadowComboWnd::Init(ShadowCombo* pOwner)
 {
-    assert(pOwner != nullptr);
+    ASSERT(pOwner != nullptr);
     if (pOwner == nullptr) {
         return;
     }
@@ -17,8 +16,8 @@ void CShadowComboWnd::Init(ShadowCombo* pOwner)
     m_iOldSel = m_pOwner->GetCurSel();
 
     // Position the popup window in absolute space
-    CSize szDrop = m_pOwner->GetDropBoxSize();
-    UiRect rcOwner = pOwner->GetPosWithScrollOffset();
+    ui::CSize szDrop = m_pOwner->GetDropBoxSize();
+    ui::UiRect rcOwner = pOwner->GetPosWithScrollOffset();
     int iItemHeight = m_iOldSel > -1 ? pOwner->GetItemAt(m_iOldSel)->GetFixedHeight() : 0;
     int iOffset = iItemHeight * (m_iOldSel + 1);
     iOffset = std::max(iOffset, 0);
@@ -27,23 +26,23 @@ void CShadowComboWnd::Init(ShadowCombo* pOwner)
         iOffset = iItemHeight;
     }
 
-    UiRect rc = rcOwner;
+    ui::UiRect rc = rcOwner;
     rc.top = rc.bottom;		// 父窗口left、bottom位置作为弹出窗口起点
     rc.top = rc.top - iOffset;
     rc.bottom = rc.top + szDrop.cy;	// 计算弹出窗口高度
     if (szDrop.cx > 0) rc.right = rc.left + szDrop.cx;	// 计算弹出窗口宽度
 
-    CSize szAvailable(rc.right - rc.left, rc.bottom - rc.top);
+    ui::CSize szAvailable(rc.right - rc.left, rc.bottom - rc.top);
     int cyFixed = 0;
     for (int it = 0; it < pOwner->GetListBox()->GetCount(); it++) {
-        Control* pControl = pOwner->GetListBox()->GetItemAt(it);
+        ui::Control* pControl = pOwner->GetListBox()->GetItemAt(it);
         if (pControl == nullptr) {
             continue;
         }
         if (!pControl->IsVisible()) {
             continue;
         }
-        CSize sz = pControl->EstimateSize(szAvailable);
+        ui::CSize sz = pControl->EstimateSize(szAvailable);
         cyFixed += sz.cy;
     }
 
@@ -61,7 +60,7 @@ void CShadowComboWnd::Init(ShadowCombo* pOwner)
     rc.top = rc.top - shadow_corner.top;
     rc.bottom = rc.bottom + shadow_corner.bottom;
 
-    assert(pOwner->GetWindow() != nullptr);
+    ASSERT(pOwner->GetWindow() != nullptr);
     if (pOwner->GetWindow() == nullptr) {
         return;
     }
@@ -69,7 +68,7 @@ void CShadowComboWnd::Init(ShadowCombo* pOwner)
     MONITORINFO oMonitor = {};
     oMonitor.cbSize = sizeof(oMonitor);
     ::GetMonitorInfo(::MonitorFromWindow(GetHWND(), MONITOR_DEFAULTTOPRIMARY), &oMonitor);
-    UiRect rcWork(oMonitor.rcWork);
+    ui::UiRect rcWork(oMonitor.rcWork);
     if (rc.bottom > rcWork.bottom || m_pOwner->IsPopupTop()) {
         rc.left = rcOwner.left;
         rc.right = rcOwner.right;
@@ -95,7 +94,7 @@ void CShadowComboWnd::Init(ShadowCombo* pOwner)
 
 std::wstring CShadowComboWnd::GetWindowClassName() const
 {
-    return _T("CShadowComboWnd");
+    return L"CShadowComboWnd";
 }
 
 void CShadowComboWnd::OnFinalMessage(HWND hWnd)
@@ -118,7 +117,7 @@ LRESULT CShadowComboWnd::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     if (uMsg == WM_CREATE) {
         this->Window::Init(m_hWnd);
-        Box* pRoot = new Box;
+        ui::Box* pRoot = new ui::Box;
         pRoot->SetAutoDestroyChild(false);
         pRoot->Add(m_pOwner->GetListBox());
         if (!m_pOwner->GetShadowImage().empty()) {
@@ -142,7 +141,7 @@ LRESULT CShadowComboWnd::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
             m_bClosing = true;
             PostMessage(WM_CLOSE);
             m_pOwner->SelectItemInternal(m_pOwner->GetListBox()->GetCurSel());
-            ((Box*)this->GetRoot())->RemoveAt(0);
+            ((ui::Box*)this->GetRoot())->RemoveAt(0);
             m_pOwner->GetListBox()->PlaceHolder::SetWindow(nullptr, nullptr, false);
         }
     }
@@ -176,18 +175,18 @@ ShadowCombo::ShadowCombo():
     SetShadowCorner({ 5,4,5,6 });
     SetArrowOffset(10);
 
-    m_pLayout.reset(new ListBox(new VLayout));
+    m_pLayout.reset(new ui::ListBox(new ui::VLayout));
     m_pLayout->SetBkColor(L"white");
     m_pLayout->SetAutoDestroyChild(false);
     m_pLayout->EnableScrollBar();
     m_pLayout->ApplyAttributeList(GetDropBoxAttributeList());
     m_pLayout->AttachSelect(nbase::Bind(&ShadowCombo::OnSelectItem, this, std::placeholders::_1));
-    SetStateImage(kControlStateNormal, L"../public/combo/combo_normal.svg");
-    SetStateImage(kControlStateHot, L"../public/combo/combo_hot.svg");
+    SetStateImage(ui::kControlStateNormal, L"../public/combo/combo_normal.svg");
+    SetStateImage(ui::kControlStateHot, L"../public/combo/combo_hot.svg");
 
     m_cArrow = new ui::Control;
-    m_cArrow->SetStateImage(kControlStateNormal, L"../public/combo/arrow_normal.svg");
-    m_cArrow->SetStateImage(kControlStateHot, L"../public/combo/arrow_hot.svg");
+    m_cArrow->SetStateImage(ui::kControlStateNormal, L"../public/combo/arrow_normal.svg");
+    m_cArrow->SetStateImage(ui::kControlStateHot, L"../public/combo/arrow_hot.svg");
     m_cArrow->SetFixedWidth(DUI_LENGTH_AUTO);
     m_cArrow->SetFixedHeight(DUI_LENGTH_AUTO);
 }
@@ -208,7 +207,7 @@ void ShadowCombo::DoInit()
         m_cArrow->SetWindow(GetWindow());
         AttachResize(ToWeakCallback([this](ui::EventArgs* /*args*/) {
             ui::UiRect rect = m_rcItem;
-            ui::CSize ArrrowSize = m_cArrow->EstimateSize(CSize(m_rcItem.GetWidth(), m_rcItem.GetHeight()));
+            ui::CSize ArrrowSize = m_cArrow->EstimateSize(ui::CSize(m_rcItem.GetWidth(), m_rcItem.GetHeight()));
             rect.top = m_rcItem.top + (m_rcItem.GetHeight() - ArrrowSize.cy) / 2;
             rect.bottom = rect.top + ArrrowSize.cy;
             rect.left = m_rcItem.right - ArrrowSize.cx - m_iArrowOffset;
@@ -223,19 +222,16 @@ std::wstring ShadowCombo::GetType() const {
     return L"ShadowCombo";
 }
 
+#if defined(ENABLE_UIAUTOMATION)
 UIAControlProvider* ShadowCombo::GetUIAProvider()
 {
-#if defined(ENABLE_UIAUTOMATION)
     if (m_pUIAProvider == nullptr)
     {
         m_pUIAProvider = static_cast<UIAControlProvider*>(new (std::nothrow) UIAComboBoxProvider(this));
     }
     return m_pUIAProvider;
-#else
-    return nullptr;
-#endif
 }
-
+#endif
 
 bool ShadowCombo::Add(Control* pControl)
 {
@@ -277,14 +273,14 @@ void ShadowCombo::Activate()
     m_pWindow = new CShadowComboWnd;
     m_pWindow->Init(this);
     m_pWindow->AttachWindowClose(ToWeakCallback([this](ui::EventArgs* msg) {
-        auto callback = OnEvent.find(msg->Type);
-        if (callback != OnEvent.end()) {
+        auto callback = m_OnEvent.find(msg->Type);
+        if (callback != m_OnEvent.end()) {
             callback->second(msg);
         }
         return true;
         }));
 
-    m_pWindow->SendNotify(this, kEventClick);
+    m_pWindow->SendNotify(this, ui::kEventClick);
     Invalidate();
 }
 
@@ -310,67 +306,67 @@ bool ShadowCombo::IsActivated()
 
 void ShadowCombo::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
-    if (strName == _T("dropbox")) SetDropBoxAttributeList(strValue);
-    else if (strName == _T("vscrollbar")) {}
-    else if (strName == _T("dropboxsize"))
+    if (strName == L"dropbox") SetDropBoxAttributeList(strValue);
+    else if (strName == L"vscrollbar") {}
+    else if (strName == L"dropboxsize")
     {
-        CSize szDropBoxSize;
+        ui::CSize szDropBoxSize;
         LPTSTR pstr = NULL;
-        szDropBoxSize.cx = _tcstol(strValue.c_str(), &pstr, 10); ASSERT(pstr);
-        szDropBoxSize.cy = _tcstol(pstr + 1, &pstr, 10); ASSERT(pstr);
+        szDropBoxSize.cx = wcstol(strValue.c_str(), &pstr, 10); ASSERT(pstr);
+        szDropBoxSize.cy = wcstol(pstr + 1, &pstr, 10); ASSERT(pstr);
         SetDropBoxSize(szDropBoxSize);
     }
-    else if (strName == _T("popuptop")) SetPopupTop(strValue == _T("true"));
-    else if (strName == _T("textpadding")) {
-        UiRect rcTextPadding;
+    else if (strName == L"popuptop") SetPopupTop(strValue == L"true");
+    else if (strName == L"textpadding") {
+        ui::UiRect rcTextPadding;
         LPTSTR pstr = NULL;
-        rcTextPadding.left = _tcstol(strValue.c_str(), &pstr, 10);  ASSERT(pstr);
-        rcTextPadding.top = _tcstol(pstr + 1, &pstr, 10);    ASSERT(pstr);
-        rcTextPadding.right = _tcstol(pstr + 1, &pstr, 10);  ASSERT(pstr);
-        rcTextPadding.bottom = _tcstol(pstr + 1, &pstr, 10); ASSERT(pstr);
+        rcTextPadding.left = wcstol(strValue.c_str(), &pstr, 10);  ASSERT(pstr);
+        rcTextPadding.top = wcstol(pstr + 1, &pstr, 10);    ASSERT(pstr);
+        rcTextPadding.right = wcstol(pstr + 1, &pstr, 10);  ASSERT(pstr);
+        rcTextPadding.bottom = wcstol(pstr + 1, &pstr, 10); ASSERT(pstr);
         SetTextPadding(rcTextPadding);
     }
-    else if (strName == _T("shadowcorner")) {
-        UiRect rcShadowCorner;
+    else if (strName == L"shadowcorner") {
+        ui::UiRect rcShadowCorner;
         LPTSTR pstr = NULL;
-        rcShadowCorner.left = _tcstol(strValue.c_str(), &pstr, 10);  ASSERT(pstr);
-        rcShadowCorner.top = _tcstol(pstr + 1, &pstr, 10);    ASSERT(pstr);
-        rcShadowCorner.right = _tcstol(pstr + 1, &pstr, 10);  ASSERT(pstr);
-        rcShadowCorner.bottom = _tcstol(pstr + 1, &pstr, 10); ASSERT(pstr);
+        rcShadowCorner.left = wcstol(strValue.c_str(), &pstr, 10);  ASSERT(pstr);
+        rcShadowCorner.top = wcstol(pstr + 1, &pstr, 10);    ASSERT(pstr);
+        rcShadowCorner.right = wcstol(pstr + 1, &pstr, 10);  ASSERT(pstr);
+        rcShadowCorner.bottom = wcstol(pstr + 1, &pstr, 10); ASSERT(pstr);
         SetShadowCorner(rcShadowCorner);
     }
-    else if (strName == _T("arrownormalimage")) {
-        m_cArrow->SetStateImage(kControlStateNormal, strValue);
+    else if (strName == L"arrownormalimage") {
+        m_cArrow->SetStateImage(ui::kControlStateNormal, strValue);
     }
-    else if (strName == _T("arrowhotimage")) {
-        m_cArrow->SetStateImage(kControlStateHot, strValue);
+    else if (strName == L"arrowhotimage") {
+        m_cArrow->SetStateImage(ui::kControlStateHot, strValue);
     }
-    else if (strName == _T("arrowpushedimage")) {
-        m_cArrow->SetStateImage(kControlStatePushed, strValue);
+    else if (strName == L"arrowpushedimage") {
+        m_cArrow->SetStateImage(ui::kControlStatePushed, strValue);
     }
-    else if (strName == _T("arrowdisabledimage")) {
-        m_cArrow->SetStateImage(kControlStateDisabled, strValue);
+    else if (strName == L"arrowdisabledimage") {
+        m_cArrow->SetStateImage(ui::kControlStateDisabled, strValue);
     }
-    else if (strName == _T("arrowoffset")) {
-        SetArrowOffset(_ttoi(strValue.c_str()));
+    else if (strName == L"arrowoffset") {
+        SetArrowOffset(_wtoi(strValue.c_str()));
     }
 
     else Box::SetAttribute(strName, strValue);
 }
 
-void ShadowCombo::PaintText(IRenderContext* pRender)
+void ShadowCombo::PaintText(ui::IRenderContext* pRender)
 {
-    UiRect rcText = m_rcItem;
+    ui::UiRect rcText = m_rcItem;
     rcText.right = m_cArrow->GetPos().left;
 
     if (m_iCurSel >= 0) {
         Control* pControl = static_cast<Control*>((m_pLayout->GetItemAt(m_iCurSel)));
-        ListContainerElement* pElement = dynamic_cast<ListContainerElement*>(pControl);
-        assert(pElement);
+        ui::ListContainerElement* pElement = dynamic_cast<ui::ListContainerElement*>(pControl);
+        ASSERT(pElement);
         if (pElement == nullptr) {
             return;
         }
-        UiRect rcPadding = m_rcTextPadding;
+        ui::UiRect rcPadding = m_rcTextPadding;
 
         if (GetText().empty())
             return;
@@ -386,12 +382,12 @@ void ShadowCombo::PaintText(IRenderContext* pRender)
         rcText.bottom -= rcPadding.bottom;
 
         DWORD dwTextColor = 0xFF000000;
-        dwTextColor = this->GetWindowColor(pElement->GetStateTextColor(kControlStateNormal));
+        dwTextColor = this->GetWindowColor(pElement->GetStateTextColor(ui::kControlStateNormal));
         pRender->DrawText(rcText, GetText(), dwTextColor, pElement->GetFont(), DT_SINGLELINE | DT_VCENTER | DT_END_ELLIPSIS);
     }
 }
 
-void ShadowCombo::PaintChild(IRenderContext* pRender, const UiRect& rcPaint) 
+void ShadowCombo::PaintChild(ui::IRenderContext* pRender, const ui::UiRect& rcPaint)
 {
     __super::PaintChild(pRender, rcPaint);
     if (m_cArrow->GetState() != GetState()) {
@@ -402,19 +398,19 @@ void ShadowCombo::PaintChild(IRenderContext* pRender, const UiRect& rcPaint)
 
 std::wstring ShadowCombo::GetText() const
 {
-    if (m_iCurSel < 0) return _T("");
-    ListContainerElement* pControl = static_cast<ListContainerElement*>(m_pLayout->GetItemAt(m_iCurSel));
-    return pControl ? pControl->GetText() : _T("");
+    if (m_iCurSel < 0) return L"";
+    ui::ListContainerElement* pControl = static_cast<ui::ListContainerElement*>(m_pLayout->GetItemAt(m_iCurSel));
+    return pControl ? pControl->GetText() : L"";
 }
 
-UiRect ShadowCombo::GetTextPadding() const
+ui::UiRect ShadowCombo::GetTextPadding() const
 {
     return m_rcTextPadding;
 }
 
-void ShadowCombo::SetTextPadding(UiRect rc)
+void ShadowCombo::SetTextPadding(ui::UiRect rc)
 {
-    DpiManager::GetInstance()->ScaleRect(rc);
+    ui::DpiManager::GetInstance()->ScaleRect(rc);
     m_rcTextPadding = rc;
     this->Invalidate();
 }
@@ -430,14 +426,14 @@ void ShadowCombo::SetDropBoxAttributeList(const std::wstring& pstrList)
     m_pLayout->ApplyAttributeList(pstrList);
 }
 
-CSize ShadowCombo::GetDropBoxSize() const
+ui::CSize ShadowCombo::GetDropBoxSize() const
 {
     return m_szDropBox;
 }
 
-void ShadowCombo::SetDropBoxSize(CSize szDropBox)
+void ShadowCombo::SetDropBoxSize(ui::CSize szDropBox)
 {
-    DpiManager::GetInstance()->ScaleSize(szDropBox);
+    ui::DpiManager::GetInstance()->ScaleSize(szDropBox);
     m_szDropBox = szDropBox;
 }
 
@@ -452,7 +448,7 @@ bool ShadowCombo::SelectItemInternal(int iIndex)
 
     //add by djj below
     if (m_pWindow != NULL) {
-        m_pWindow->SendNotify(this, kEventSelect, m_iCurSel, iOldSel);
+        m_pWindow->SendNotify(this, ui::kEventSelect, m_iCurSel, iOldSel);
     }
 
 #if defined(ENABLE_UIAUTOMATION)
@@ -478,17 +474,17 @@ bool ShadowCombo::SelectItem(int iIndex, bool bTrigger)
         return false;
     Invalidate();
     if (m_pWindow != NULL && bTrigger) {
-        m_pWindow->SendNotify(this, kEventSelect, m_iCurSel, -1);
+        m_pWindow->SendNotify(this, ui::kEventSelect, m_iCurSel, -1);
     }
     return true;
 }
 
-Control* ShadowCombo::GetItemAt(int iIndex)
+ui::Control* ShadowCombo::GetItemAt(int iIndex)
 {
     return m_pLayout->GetItemAt(iIndex);
 }
 
-bool ShadowCombo::OnSelectItem(EventArgs* /*args*/)
+bool ShadowCombo::OnSelectItem(ui::EventArgs* /*args*/)
 {
     if (m_pWindow)
         m_pWindow->OnSeleteItem();
@@ -496,15 +492,15 @@ bool ShadowCombo::OnSelectItem(EventArgs* /*args*/)
     m_iCurSel = m_pLayout->GetCurSel();
     auto pControl = m_pLayout->GetItemAt(m_iCurSel);
     if (pControl != NULL) {
-        pControl->SetState(kControlStateNormal);
+        pControl->SetState(ui::kControlStateNormal);
     }
     if (m_pWindow != NULL) {
-        m_pWindow->SendNotify(this, kEventSelect, m_iCurSel, iOldSel);
+        m_pWindow->SendNotify(this, ui::kEventSelect, m_iCurSel, iOldSel);
     }
     return true;
 }
 
-void ShadowCombo::SetShadowCorner(const UiRect& rect, bool bNeedDpiScale) 
+void ShadowCombo::SetShadowCorner(const ui::UiRect& rect, bool bNeedDpiScale)
 {
     ui::UiRect rc = rect;
     if (bNeedDpiScale) {

@@ -1,52 +1,68 @@
-#include "StdAfx.h"
-#include <zmouse.h>
+#include "GlobalManager.h"
+#include "duilib/Render/Factory.h"
+#include "duilib/Utils/DpiManager.h"
+#include "duilib/Utils/UnZip.h"
+#include "duilib/Utils/SvgUtil.h"
+#include "duilib/Utils/StringUtil.h"
+#include "duilib/Utils/MultiLangSupport.h"
+#include "duilib/Utils/VersionHelpers.h"
+
+#include "duilib/Core/Markup.h"
+#include "duilib/Core/Window.h"
+#include "duilib/Core/Control.h"
+#include "duilib/Core/Box.h"
+#include "duilib/Core/Image.h"
+#include "duilib/Core/GdiPlusDefs.h"
+
+#include <commctrl.h>
+#include <tchar.h>
+#include <unordered_set>
 #include <shlwapi.h>
-#include "Utils/UnZip.h"
 
 namespace ui 
 {
 
 namespace {
 
-std::wstring GetDpiImageFullPath(const std::wstring& strImageFullPath, bool bIsUseZip, HGLOBAL hGlobal) {
-  int dpi = DpiManager::GetInstance()->GetScale();
-  if (dpi == 100 || SvgUtil::IsSvgFile(strImageFullPath)) {
-    return strImageFullPath;
-  }
+    std::wstring GetDpiImageFullPath(const std::wstring& strImageFullPath, bool bIsUseZip, HGLOBAL hGlobal)
+    {
+        int dpi = DpiManager::GetInstance()->GetScale();
+        if (dpi == 100 || SvgUtil::IsSvgFile(strImageFullPath)) {
+            return strImageFullPath;
+        }
 
-  std::wstring strPathDir;
-  std::wstring strPathFileName;
-  std::list<std::wstring> strPathList = StringHelper::Split(strImageFullPath, L"\\");
-  for (auto it = strPathList.begin(); it != strPathList.end(); ++it) {
-    auto itTemp = it;
-    if (++itTemp == strPathList.end()) {
-      strPathFileName = *it;
+        std::wstring strPathDir;
+        std::wstring strPathFileName;
+        std::list<std::wstring> strPathList = StringHelper::Split(strImageFullPath, L"\\");
+        for (auto it = strPathList.begin(); it != strPathList.end(); ++it) {
+            auto itTemp = it;
+            if (++itTemp == strPathList.end()) {
+                strPathFileName = *it;
+            }
+            else {
+                strPathDir += *it + L"\\";
+            }
+        }
+
+        size_t iPointPos = strPathFileName.rfind('.');
+        ASSERT(iPointPos != std::wstring::npos);
+        if (iPointPos == std::wstring::npos)
+        {
+            return std::wstring();
+        }
+        std::wstring strFileExtension = strPathFileName.substr(iPointPos, strPathFileName.length() - iPointPos);
+        std::wstring strFile = strPathFileName.substr(0, iPointPos);
+        strPathFileName = StringHelper::Printf(L"%s%s%d%s", strFile.c_str(), L"@", dpi, strFileExtension.c_str());
+
+        std::wstring strNewFilePath = strPathDir + strPathFileName;
+        if (bIsUseZip) {
+            hGlobal = ui::GlobalManager::GetZipData(strNewFilePath);
+            return hGlobal ? strNewFilePath : strImageFullPath;
+        }
+
+        const DWORD file_attr = ::GetFileAttributesW(strNewFilePath.c_str());
+        return file_attr != INVALID_FILE_ATTRIBUTES ? strNewFilePath : strImageFullPath;
     }
-    else {
-      strPathDir += *it + L"\\";
-    }
-  }
-
-  size_t iPointPos = strPathFileName.rfind('.');
-  assert(iPointPos != std::wstring::npos);
-  if (iPointPos == std::wstring::npos)
-  {
-	  return std::wstring();
-  }
-  std::wstring strFileExtension = strPathFileName.substr(iPointPos, strPathFileName.length() - iPointPos);
-  std::wstring strFile = strPathFileName.substr(0, iPointPos);
-  strPathFileName = StringHelper::Printf(L"%s%s%d%s", strFile.c_str(), L"@", dpi, strFileExtension.c_str());
-
-  std::wstring strNewFilePath = strPathDir + strPathFileName;
-  if (bIsUseZip) {
-    hGlobal = ui::GlobalManager::GetZipData(strNewFilePath);
-    return hGlobal ? strNewFilePath : strImageFullPath;
-  }
-
-  const DWORD file_attr = ::GetFileAttributesW(strNewFilePath.c_str());
-  return file_attr != INVALID_FILE_ATTRIBUTES ? strNewFilePath : strImageFullPath;
-}
-
 }
 
 std::wstring GlobalManager::m_pStrResourcePath;
@@ -103,12 +119,12 @@ void GlobalManager::Startup(const std::wstring& strResourcePath, const CreateCon
 	if (g_hzip) {
 		HGLOBAL hGlobal = GetZipData(GetLanguagePath() + L"\\" + kLanguageFileName);
 		if (hGlobal) {
-			ui::MutiLanSupport::GetInstance()->LoadStringTable(hGlobal);
+			MultiLangSupport::GetInstance()->LoadStringTable(hGlobal);
 			GlobalFree(hGlobal);
 		}
 	}
 	else {
-		MutiLanSupport::GetInstance()->LoadStringTable(GetLanguagePath() + L"\\" + kLanguageFileName);
+		MultiLangSupport::GetInstance()->LoadStringTable(GetLanguagePath() + L"\\" + kLanguageFileName);
 	}
 
 	GdiplusStartup(&g_gdiplusToken, &g_gdiplusStartupInput, NULL);
@@ -175,8 +191,8 @@ void GlobalManager::SetLanguagePath(const std::wstring& strPath)
 
 void GlobalManager::LoadGlobalResource()
 {
-	ui::WindowBuilder dialog_builder;
-	ui::Window paint_manager;
+	WindowBuilder dialog_builder;
+	Window paint_manager;
 	dialog_builder.Create(STRINGorID(L"global.xml"), CreateControlCallback(), &paint_manager);
 }
 
@@ -213,7 +229,7 @@ void GlobalManager::ReloadLanguage(const std::wstring& languagePath, bool invali
 	if (GetLanguagePath() != languagePath) {
 		SetLanguagePath(languagePath);
 
-		MutiLanSupport::GetInstance()->LoadStringTable(languagePath + L"\\" + kLanguageFileName);
+		MultiLangSupport::GetInstance()->LoadStringTable(languagePath + L"\\" + kLanguageFileName);
 
 		if (invalidateAll) {
 			for (auto it = m_aPreMessages.begin(); it != m_aPreMessages.end(); it++) {
@@ -425,7 +441,7 @@ HFONT GlobalManager::AddFont(const std::wstring& strFontId, const std::wstring& 
 
 	LOGFONT lf = { 0 };
 	::GetObject(::GetStockObject(DEFAULT_GUI_FONT), sizeof(LOGFONT), &lf);
-	_tcscpy(lf.lfFaceName, fontName.c_str());
+	_tcscpy_s(lf.lfFaceName, fontName.c_str());
 	lf.lfCharSet = DEFAULT_CHARSET;
 	lf.lfHeight = -DpiManager::GetInstance()->ScaleInt(nSize);
 	if (bBold) lf.lfWeight += FW_BOLD;
@@ -648,7 +664,7 @@ Box* GlobalManager::CreateBoxWithCache(const std::wstring& strXmlPath, CreateCon
 
 void GlobalManager::FillBox(Box* pUserDefinedBox, const std::wstring& strXmlPath, CreateControlCallback callback)
 {
-	assert(pUserDefinedBox != nullptr);
+	ASSERT(pUserDefinedBox != nullptr);
 	if (pUserDefinedBox == nullptr) {
 		return;
 	}
@@ -662,7 +678,7 @@ void GlobalManager::FillBox(Box* pUserDefinedBox, const std::wstring& strXmlPath
 
 void GlobalManager::FillBoxWithCache(Box* pUserDefinedBox, const std::wstring& strXmlPath, CreateControlCallback callback)
 {
-	assert(pUserDefinedBox != nullptr);
+	ASSERT(pUserDefinedBox != nullptr);
 	if (pUserDefinedBox == nullptr) {
 		return;
 	}

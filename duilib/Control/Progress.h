@@ -3,6 +3,9 @@
 
 #pragma once
 
+#include "duilib/Control/Label.h"
+#include "duilib/Core/Image.h"
+
 namespace ui
 {
 
@@ -13,7 +16,9 @@ public:
 
 	/// 重写父类方法，提供个性化功能，请参考父类声明
 	virtual std::wstring GetType() const override;
+#if defined(ENABLE_UIAUTOMATION)
 	virtual UIAControlProvider* GetUIAProvider() override;
+#endif
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 	virtual void PaintStatusImage(IRenderContext* pRender) override;
 	virtual void ClearImageCache() override;

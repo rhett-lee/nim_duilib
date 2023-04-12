@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "UIARichEditProvider.h"
 
 #if defined(ENABLE_UIAUTOMATION)
 

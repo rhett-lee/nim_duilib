@@ -3,10 +3,22 @@
 
 #pragma once
 
+#include "duilib/Core/PlaceHolder.h"
+#include "duilib/Utils/Delegate.h"
+#include "duilib/Utils/BoxShadow.h"
+#include <map>
+#include <memory>
+
 namespace ui 
 {
+	class Control;
+	class Image;
+	class StateColorMap;
+	class StateImageMap;
+	class AnimationManager;
+	class IRenderContext;
 
-typedef Control* (CALLBACK* FINDCONTROLPROC)(Control*, LPVOID);
+	typedef Control* (CALLBACK* FINDCONTROLPROC)(Control*, LPVOID);
 
 class UILIB_API UserDataBase
 {
@@ -17,9 +29,12 @@ public:
 	}
 };
 
-class UIAControlProvider;
+#if defined(ENABLE_UIAUTOMATION)
+	class UIAControlProvider;
+#endif
 
-class UILIB_API Control : public PlaceHolder
+class UILIB_API Control : 
+	public PlaceHolder
 {
 	typedef std::map<int, CEventSource> GifEventMap;
 public:
@@ -85,25 +100,25 @@ public:
 	 */
 	void SetUTF8BkImage(const std::string& strImage);
 
-  /**
-  * @brief 获取loading状态图片位置
-  * @return loading图片位置
-  */
-  std::wstring GetLoadingImage() const;
+    /**
+    * @brief 获取loading状态图片位置
+    * @return loading图片位置
+    */
+    std::wstring GetLoadingImage() const;
 
-  /**
-  * @brief 设置loading图片
-  * @param[in] strImage 要设置的图片路径
-  * @return 无
-  */
-  void SetLoadingImage(const std::wstring& strImage);
+    /**
+    * @brief 设置loading图片
+    * @param[in] strImage 要设置的图片路径
+    * @return 无
+    */
+    void SetLoadingImage(const std::wstring& strImage);
 
-  /**
-  * @brief 设置loading背景色
-  * @param[in] strColor 背景色
-  * @return 无
-  */
-  void SetLoadingBkColor(const std::wstring& strColor);
+    /**
+    * @brief 设置loading背景色
+    * @param[in] strColor 背景色
+    * @return 无
+    */
+    void SetLoadingBkColor(const std::wstring& strColor);
 
 	/**
 	 * @brief 获取指定状态下的图片位置
@@ -593,11 +608,13 @@ public:
 	 */
 	virtual bool IsPointInWithScrollOffset(const CPoint& point) const;
 
+#if defined(ENABLE_UIAUTOMATION)
 	/**
 	 * @brief Get ui automation provider 
 	 * @return nullptr or pointer
 	 */
 	virtual UIAControlProvider* GetUIAProvider();
+#endif
 
 	// 消息处理
 	/**
@@ -839,39 +856,39 @@ public:
 	 * @param[in] callback 要监听 GIF 停止播放的回调函数
 	 * @return 无
 	 */
-	void AttachGifPlayStop(const EventCallback& callback){ OnGifEvent[m_nVirtualEventGifStop] += callback; };
+	void AttachGifPlayStop(const EventCallback& callback){ m_OnGifEvent[m_nVirtualEventGifStop] += callback; };
 
-  /**
-  * @brief 开启loading状态
-  * @param[in] start_angle loading图片旋转的角度
-  * @return 无
-  */
-  void StartLoading(int fStartAngle = -1);
+    /**
+    * @brief 开启loading状态
+    * @param[in] start_angle loading图片旋转的角度
+    * @return 无
+    */
+    void StartLoading(int fStartAngle = -1);
 
-  /**
-  * @brief 关闭loading状态
-  * @param[in] frame 播放完成停止在哪一帧，可设置第一帧、当前帧和最后一帧。请参考 GifStopType 枚举
-  * @return 无
-  */
-  void StopLoading(GifStopType frame = kGifStopFirst);
+    /**
+    * @brief 关闭loading状态
+    * @param[in] frame 播放完成停止在哪一帧，可设置第一帧、当前帧和最后一帧。请参考 GifStopType 枚举
+    * @return 无
+    */
+    void StopLoading(GifStopType frame = kGifStopFirst);
 
-  /**
-  * @brief 计算loading图片的旋转角度
-  * @return 无
-  */
-  void Loading();
-  /**
-  * @brief 是否正在loading
-  * @return 在loading返回true, 反之返回false
-  */
-  bool IsLoading();
+    /**
+    * @brief 计算loading图片的旋转角度
+    * @return 无
+    */
+    void Loading();
+    /**
+    * @brief 是否正在loading
+    * @return 在loading返回true, 反之返回false
+    */
+    bool IsLoading();
 
 	/// 动画管理
 	/**
 	 * @brief 获取动画管理器指针
 	 * @return 返回动画管理器指针
 	 */
-	AnimationManager& GetAnimationManager()	{ return m_animationManager; }
+	AnimationManager& GetAnimationManager();
 
 	/// 图片缓存
 	/**
@@ -897,103 +914,142 @@ public:
 	 * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
 	 * @return 无
 	 */
-	void AttachAllEvents(const EventCallback& callback)	{ OnEvent[kEventAll] += callback; }
+	void AttachAllEvents(const EventCallback& callback)	{ m_OnEvent[kEventAll] += callback; }
 
 	/**
 	 * @brief 监听鼠标进入事件
 	 * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
 	 * @return 无
 	 */
-	void AttachMouseEnter(const EventCallback& callback) { OnEvent[kEventMouseEnter] += callback; }
+	void AttachMouseEnter(const EventCallback& callback) { m_OnEvent[kEventMouseEnter] += callback; }
 
 	/**
 	 * @brief 监听鼠标离开事件
 	 * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
 	 * @return 无
 	 */
-	void AttachMouseLeave(const EventCallback& callback) { OnEvent[kEventMouseLeave] += callback; }
+	void AttachMouseLeave(const EventCallback& callback) { m_OnEvent[kEventMouseLeave] += callback; }
 
 	/**
 	 * @brief 监听鼠标悬浮事件
 	 * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
 	 * @return 无
 	 */
-	void AttachMouseHover(const EventCallback& callback) { OnEvent[kEventMouseHover] += callback; }
+	void AttachMouseHover(const EventCallback& callback) { m_OnEvent[kEventMouseHover] += callback; }
 
 	/**
 	 * @brief 监听鼠标按下事件
 	 * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
 	 * @return 无
 	 */
-	void AttachButtonDown(const EventCallback& callback) { OnEvent[kEventMouseButtonDown] += callback; }
+	void AttachButtonDown(const EventCallback& callback) { m_OnEvent[kEventMouseButtonDown] += callback; }
 
 	/**
 	 * @brief 监听鼠标弹起事件
 	 * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
 	 * @return 无
 	 */
-	void AttachButtonUp(const EventCallback& callback) { OnEvent[kEventMouseButtonUp] += callback; }
+	void AttachButtonUp(const EventCallback& callback) { m_OnEvent[kEventMouseButtonUp] += callback; }
 
 	/**
 	 * @brief 监听获得焦点事件
 	 * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
 	 * @return 无
 	 */
-	void AttachSetFocus(const EventCallback& callback) { OnEvent[kEventSetFocus] += callback; }
+	void AttachSetFocus(const EventCallback& callback) { m_OnEvent[kEventSetFocus] += callback; }
 
 	/**
 	 * @brief 监听失去焦点事件
 	 * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
 	 * @return 无
 	 */
-	void AttachKillFocus(const EventCallback& callback) { OnEvent[kEventKillFocus] += callback; }
+	void AttachKillFocus(const EventCallback& callback) { m_OnEvent[kEventKillFocus] += callback; }
 
 	/**
 	 * @brief 监听右键菜单事件
 	 * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
 	 * @return 无
 	 */
-	void AttachMenu(const EventCallback& callback) { OnEvent[kEventMouseMenu] += callback; }
+	void AttachMenu(const EventCallback& callback) { m_OnEvent[kEventMouseMenu] += callback; }
 
 	/**
 	 * @brief 监听控件大小改变事件
 	 * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
 	 * @return 无
 	 */
-	void AttachResize(const EventCallback& callback) { OnEvent[kEventResize] += callback; }
+	void AttachResize(const EventCallback& callback) { m_OnEvent[kEventResize] += callback; }
 
 	/**
 	 * @brief 监听双击事件
 	 * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
 	 * @return 无
 	 */
-	void AttachDoubleClick(const EventCallback& callback) { OnEvent[kEventMouseDoubleClick] += callback; }
+	void AttachDoubleClick(const EventCallback& callback) { m_OnEvent[kEventMouseDoubleClick] += callback; }
+
+	/**
+		* @brief 绑定鼠标点击处理函数
+		* @param[in] callback 要绑定的回调函数
+		* @return 无
+		*/
+	void AttachClick(const EventCallback& callback) { this->m_OnEvent[kEventClick] += callback; }
 
 	/**
 	* @brief 监听控件关闭前最后一条消息
 	* @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
 	* @return 无
 	*/
-	void AttachLastEvent(const EventCallback& callback) { OnEvent[kEventLast] += callback; }
+	void AttachLastEvent(const EventCallback& callback) { m_OnEvent[kEventLast] += callback; }
 
 	/**
 	* @brief 监听控件显示或隐藏事件
 	* @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
 	* @return 无
 	*/
-	void AttachVisibleChange(const EventCallback& callback) { OnEvent[kEventVisibleChange] += callback; }
+	void AttachVisibleChange(const EventCallback& callback) { m_OnEvent[kEventVisibleChange] += callback; }
 
 	/**
-	 * @brief 取消监听指定事件，见 EventType 枚举
+	 * @brief 监听指定事件，见 EventType 枚举
+	 * @param[in] type 事件类型，见 EventType 枚举
 	 * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
+	 * @return 无
+	 */
+	void AttachEvent(EventType type, const EventCallback& callback) { m_OnEvent[type] += callback; }
+
+	/**
+	 * @brief 取消监听指定事件
+	 * @param[in] type 事件类型，见 EventType 枚举
 	 * @return 无
 	 */
 	void DetachEvent(EventType type);
 
+	/**
+	* @brief 获取某个颜色对应的值，优先获取窗口颜色
+	* @param[in] strName 颜色名字
+	* @return DWORD ARGB颜色值
+	*/
+    DWORD GetWindowColor(const std::wstring& strName);
+
+	/** 判断控件类型是否为可选择的
+	 * @return 默认返回false
+	 */
+	virtual bool IsSelectableType() const;
+
+	/** 判断是否接受 TAB 按键消息
+	 * @return 返回 true 表示接受，false 表示不接受， 默认返回false
+	 */
+	virtual bool IsWantTab() const;
+
+	/** 该控件是否可以放置在标题栏上（以用于处理NC消息响应）
+	 * @return 返回 true 表示可以，false 表示不可以， 默认返回false
+	 */
+	virtual bool CanPlaceCaptionBar() const;
+
+	/** 设置监听XML事件
+	*/
+	void AttachXmlEvent(EventType eventType, const EventCallback& callback) { m_OnXmlEvent[eventType] += callback; }
+
 protected:
-	friend StateColorMap;
-	friend WindowBuilder;
-	void AttachXmlEvent(EventType eventType, const EventCallback& callback) { OnXmlEvent[eventType] += callback; }
+	
 	/// Gif图片
 	void GifPlay();
 	void StopGifPlay(GifStopType frame = kGifStopCurrent);
@@ -1014,22 +1070,16 @@ protected:
 	virtual void PaintStatusImage(IRenderContext* pRender);
 	virtual void PaintText(IRenderContext* pRender);
 	virtual void PaintBorder(IRenderContext* pRender);
-  virtual void PaintLoading(IRenderContext* pRender);
+	virtual void PaintLoading(IRenderContext* pRender);
 
-	/**
-	* @brief 获取某个颜色对应的值，优先获取窗口颜色
-	* @param[in] strName 颜色名字
-	* @return DWORD ARGB颜色值
-	*/
-	DWORD GetWindowColor(const std::wstring& strName);
 private:
 	void BroadcastGifEvent(int nVirtualEvent);
 	int GetGifFrameIndex(GifStopType frame);
 
 protected:
-	EventMap OnXmlEvent;
-	EventMap OnEvent;
-	GifEventMap OnGifEvent;
+	EventMap m_OnXmlEvent;
+	EventMap m_OnEvent;
+	GifEventMap m_OnGifEvent;
 	std::unique_ptr<UserDataBase> m_pUserDataBase;
 	bool m_bMenuUsed;
 	bool m_bEnabled;
@@ -1044,12 +1094,12 @@ protected:
 	bool m_bReceivePointerMsg;
 	bool m_bNeedButtonUpWhenKillFocus;
 	bool m_bAllowTabstop;
-  bool m_bIsLoading;
+	bool m_bIsLoading;
 	int m_nBorderSize;
 	int m_nTooltipWidth;
 	int m_nAlpha;
 	int m_nHotAlpha;
-  int m_fCurrrentAngele;
+	int m_fCurrrentAngele;
 	CSize m_szEstimateSize;
 	CPoint m_renderOffset;
 	CSize m_cxyBorderRound;
@@ -1064,20 +1114,23 @@ protected:
 	std::wstring m_sMenuPopup;
 	std::wstring m_sMenuAlign;
 	std::wstring m_strBkColor;
-  std::wstring m_strLoadingBkColor;
-	StateColorMap m_colorMap;
-	Image m_bkImage;
-  Image m_loadingImage;
-	StateImageMap m_imageMap;
+    std::wstring m_strLoadingBkColor;
+	std::unique_ptr<StateColorMap> m_colorMap;
+	std::unique_ptr<Image> m_bkImage;
+	std::unique_ptr<Image> m_loadingImage;
+	std::unique_ptr<StateImageMap> m_imageMap;
 	std::wstring m_strBorderColor;
 	nbase::WeakCallbackFlag m_gifWeakFlag;
-	AnimationManager m_animationManager;
+	std::unique_ptr<AnimationManager> m_animationManager;
 	nbase::WeakCallbackFlag m_loadBkImageWeakFlag;
-  nbase::WeakCallbackFlag m_loadingImageFlag;
-	static const int m_nVirtualEventGifStop;
-
-	UIAControlProvider* m_pUIAProvider;
+    nbase::WeakCallbackFlag m_loadingImageFlag;
+	static const int m_nVirtualEventGifStop;	
 	BoxShadow m_boxShadow;
+	std::unique_ptr<IRenderContext> m_renderContext;
+
+#if defined(ENABLE_UIAUTOMATION)
+	UIAControlProvider* m_pUIAProvider;
+#endif
 };
 
 } // namespace ui

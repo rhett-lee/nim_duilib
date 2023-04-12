@@ -17,4 +17,4 @@
 #include "base/base.h"
 
 // duilib
-#include "duilib/UIlib.h"
+#include "duilib/duilib.h"

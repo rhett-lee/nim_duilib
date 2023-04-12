@@ -1,7 +1,6 @@
-#include "stdafx.h"
 #include "toast.h"
-
-using namespace ui;
+#include "ui_components/public_define.h"
+#include "base/thread/thread_manager.h"
 
 namespace nim_comp {
 
@@ -67,11 +66,11 @@ LRESULT Toast::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
 		POINT pt;
 		GetCursorPos(&pt);
 		ScreenToClient(m_hWnd, &pt);
-		UiRect client_rect;
+		ui::UiRect client_rect;
 		::GetClientRect(m_hWnd, &client_rect);
 		// leave消息触发时，获取的鼠标坐标有可能还在client_rect范围内，会偏差1像素，这里缩减1像素
-		client_rect.Deflate(UiRect(1, 1, 1, 1));
-		if (NULL != close_button_ && !client_rect.IsPointIn(CPoint(pt)))
+		client_rect.Deflate(ui::UiRect(1, 1, 1, 1));
+		if (NULL != close_button_ && !client_rect.IsPointIn(ui::CPoint(pt)))
 			close_button_->SetVisible(false);
 	}
 	return __super::HandleMessage(uMsg, wParam, lParam);
@@ -81,8 +80,10 @@ void Toast::InitWindow()
 {
 	m_pRoot->AttachBubbledEvent(ui::kEventClick, nbase::Bind(&Toast::OnClicked, this, std::placeholders::_1));
 
-	content_ = static_cast<RichEdit*>(FindControl(L"content"));
-	close_button_ = static_cast<Button*>(FindControl(L"close_btn"));
+	content_ = dynamic_cast<ui::RichEdit*>(FindControl(L"content"));
+	close_button_ = dynamic_cast<ui::Button*>(FindControl(L"close_btn"));
+	ASSERT(content_ != nullptr);
+	ASSERT(close_button_ != nullptr);
 }
 
 void Toast::SetDuration(int duration)

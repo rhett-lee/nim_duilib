@@ -1,6 +1,5 @@
-#include "StdAfx.h"
 #include "TreeView.h"
-
+#include "duilib/Control/ScrollBar.h"
 
 namespace ui
 {
@@ -20,18 +19,16 @@ std::wstring TreeNode::GetType() const
 	return DUI_CTR_TREENODE;
 }
 
+#if defined(ENABLE_UIAUTOMATION)
 UIAControlProvider* TreeNode::GetUIAProvider()
 {
-#if defined(ENABLE_UIAUTOMATION)
 	if (m_pUIAProvider == nullptr)
 	{
 		m_pUIAProvider = static_cast<UIAControlProvider*>(new (std::nothrow) UIATreeNodeProvider(this));
 	}
 	return m_pUIAProvider;
-#else
-	return nullptr;
-#endif
 }
+#endif
 
 void TreeNode::SetTreeView(TreeView* pTreeView)
 {
@@ -40,12 +37,12 @@ void TreeNode::SetTreeView(TreeView* pTreeView)
 
 bool TreeNode::OnClickItem(EventArgs* pMsg)
 {
-	assert(pMsg != nullptr);
+	ASSERT(pMsg != nullptr);
 	if (pMsg == nullptr) {
 		return false;
 	}
     TreeNode* pItem = dynamic_cast<TreeNode*>(pMsg->pSender);
-	assert(pItem != nullptr);
+	ASSERT(pItem != nullptr);
 	if (pItem) {
 		pItem->SetExpand(!pItem->IsExpand(), true);
 	}    
@@ -98,7 +95,7 @@ bool TreeNode::AddChildNode(TreeNode* pTreeNode)
 
 bool TreeNode::AddChildNodeAt(TreeNode* pTreeNode, size_t iIndex)
 {
-	assert(pTreeNode != nullptr);
+	ASSERT(pTreeNode != nullptr);
 	if (pTreeNode == nullptr) {
 		return false;
 	}
@@ -113,7 +110,7 @@ bool TreeNode::AddChildNodeAt(TreeNode* pTreeNode, size_t iIndex)
 	if (m_pWindow != nullptr) {
 		m_pWindow->InitControls(pTreeNode, nullptr);
 	}
-	pTreeNode->OnEvent[kEventClick] += nbase::Bind(&TreeNode::OnClickItem, this, std::placeholders::_1);
+	pTreeNode->m_OnEvent[kEventClick] += nbase::Bind(&TreeNode::OnClickItem, this, std::placeholders::_1);
 
 	UiRect padding = m_pLayout->GetPadding();
 	int nodeIndex = -1;
@@ -256,8 +253,8 @@ std::wstring TreeView::GetType() const
 
 void TreeView::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
-	if( strName == _T("indent") ) {
-		SetIndent(_ttoi(strValue.c_str()));
+	if( strName == L"indent" ) {
+		SetIndent(_wtoi(strValue.c_str()));
 	}
 	else {
 		ListBox::SetAttribute(strName, strValue);

@@ -1,4 +1,6 @@
-#include "StdAfx.h"
+#include "Combo.h"
+#include "duilib/Core/Window.h"
+#include "duilib/Control/List.h"
 
 namespace ui
 {
@@ -22,7 +24,7 @@ private:
 
 void CComboWnd::Init(Combo* pOwner)
 {
-	assert(pOwner != nullptr);
+	ASSERT(pOwner != nullptr);
 	if (pOwner == nullptr) {
 		return;
 	}
@@ -86,7 +88,7 @@ void CComboWnd::Init(Combo* pOwner)
 
 std::wstring CComboWnd::GetWindowClassName() const
 {
-    return _T("ComboWnd");
+    return L"ComboWnd";
 }
 
 void CComboWnd::OnFinalMessage(HWND hWnd)
@@ -179,23 +181,20 @@ std::wstring Combo::GetType() const
 {
 	return DUI_CTR_COMBO;
 }
-
+#if defined(ENABLE_UIAUTOMATION)
 UIAControlProvider* Combo::GetUIAProvider()
 {
-#if defined(ENABLE_UIAUTOMATION)
 	if (m_pUIAProvider == nullptr)
 	{
 		m_pUIAProvider = static_cast<UIAControlProvider*>(new (std::nothrow) UIAComboBoxProvider(this));
 	}
 	return m_pUIAProvider;
-#else
-	return nullptr;
-#endif
 }
+#endif
 
 bool Combo::Add(Control* pControl)
 {
-	assert(pControl != nullptr);
+	ASSERT(pControl != nullptr);
 	if (pControl == nullptr) {
 		return false;
 	}
@@ -207,7 +206,7 @@ bool Combo::Add(Control* pControl)
 
 bool Combo::Remove(Control * pControl)
 {
-	assert(pControl != nullptr);
+	ASSERT(pControl != nullptr);
 	if (pControl == nullptr){
 		return false;
 	}
@@ -241,8 +240,8 @@ void Combo::Activate()
     m_pWindow = new CComboWnd();
     m_pWindow->Init(this);
 	m_pWindow->AttachWindowClose(ToWeakCallback([this](ui::EventArgs* msg) {
-		auto callback = OnEvent.find(msg->Type);
-		if (callback != OnEvent.end()) {
+		auto callback = m_OnEvent.find(msg->Type);
+		if (callback != m_OnEvent.end()) {
 			callback->second(msg);
 		}
 		return true;
@@ -271,24 +270,24 @@ bool Combo::IsActivated()
 
 void Combo::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
-	if (strName == _T("dropbox")) SetDropBoxAttributeList(strValue);
-	else if (strName == _T("vscrollbar")) {}
-	else if (strName == _T("dropboxsize"))
+	if (strName == L"dropbox") SetDropBoxAttributeList(strValue);
+	else if (strName == L"vscrollbar") {}
+	else if (strName == L"dropboxsize")
 	{
 		CSize szDropBoxSize;
 		LPTSTR pstr = NULL;
-		szDropBoxSize.cx = _tcstol(strValue.c_str(), &pstr, 10); ASSERT(pstr);
-		szDropBoxSize.cy = _tcstol(pstr + 1, &pstr, 10); ASSERT(pstr);
+		szDropBoxSize.cx = wcstol(strValue.c_str(), &pstr, 10); ASSERT(pstr);
+		szDropBoxSize.cy = wcstol(pstr + 1, &pstr, 10); ASSERT(pstr);
 		SetDropBoxSize(szDropBoxSize);
 	}
-	else if (strName == _T("popuptop")) SetPopupTop(strValue == _T("true"));
-	else if (strName == _T("textpadding")) {
+	else if (strName == L"popuptop") SetPopupTop(strValue == L"true");
+	else if (strName == L"textpadding") {
 		UiRect rcTextPadding;
 		LPTSTR pstr = NULL;
-		rcTextPadding.left = _tcstol(strValue.c_str(), &pstr, 10);  ASSERT(pstr);
-		rcTextPadding.top = _tcstol(pstr + 1, &pstr, 10);    ASSERT(pstr);
-		rcTextPadding.right = _tcstol(pstr + 1, &pstr, 10);  ASSERT(pstr);
-		rcTextPadding.bottom = _tcstol(pstr + 1, &pstr, 10); ASSERT(pstr);
+		rcTextPadding.left = wcstol(strValue.c_str(), &pstr, 10);  ASSERT(pstr);
+		rcTextPadding.top = wcstol(pstr + 1, &pstr, 10);    ASSERT(pstr);
+		rcTextPadding.right = wcstol(pstr + 1, &pstr, 10);  ASSERT(pstr);
+		rcTextPadding.bottom = wcstol(pstr + 1, &pstr, 10); ASSERT(pstr);
 		SetTextPadding(rcTextPadding);
 	}
 	else Box::SetAttribute(strName, strValue);
@@ -296,7 +295,7 @@ void Combo::SetAttribute(const std::wstring& strName, const std::wstring& strVal
 
 void Combo::PaintText(IRenderContext* pRender)
 {
-	assert(pRender != nullptr);
+	ASSERT(pRender != nullptr);
 	if (pRender == nullptr) {
 		return;
 	}
@@ -308,7 +307,7 @@ void Combo::PaintText(IRenderContext* pRender)
 		if (pControl) {
 			pElement = dynamic_cast<ListContainerElement*>(pControl);
 		}
-		assert(pElement != nullptr);		
+		ASSERT(pElement != nullptr);
 		if (pElement == nullptr) {
 			return;
 		}			
@@ -333,6 +332,11 @@ void Combo::PaintText(IRenderContext* pRender)
 		dwTextColor = this->GetWindowColor(pElement->GetStateTextColor(kControlStateNormal));
 		pRender->DrawText(rcText, GetText(), dwTextColor, pElement->GetFont(), DT_SINGLELINE | DT_VCENTER | DT_END_ELLIPSIS);
 	}
+}
+
+bool Combo::CanPlaceCaptionBar() const
+{
+	return true;
 }
 
 std::wstring Combo::GetText() const
@@ -427,6 +431,11 @@ bool Combo::SelectItem(int iIndex, bool bTrigger)
 Control* Combo::GetItemAt(int iIndex)
 {
 	return m_pLayout->GetItemAt(iIndex);
+}
+
+int Combo::GetCount() const 
+{ 
+	return m_pLayout->GetCount(); 
 }
 
 bool Combo::OnSelectItem(EventArgs* /*args*/)

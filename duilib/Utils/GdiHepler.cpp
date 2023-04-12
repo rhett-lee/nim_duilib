@@ -1,5 +1,5 @@
-#include "StdAfx.h"
 #include "GdiHepler.h"
+#include "duilib/Core/GdiPlusDefs.h"
 
 namespace ui {
 namespace GdiHelper {

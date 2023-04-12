@@ -11,7 +11,7 @@
 // to the CMake command-line to disable use of ATL.
 // Uncomment this line to manually enable ATL support.
 // #define CEF_USE_ATL 1
-
+#include "duilib/duilib_defs.h"
 #include <atlcomcli.h>
 #include <objidl.h>
 #include <stdio.h>

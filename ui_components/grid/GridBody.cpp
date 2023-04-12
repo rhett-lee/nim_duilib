@@ -1,6 +1,8 @@
-#include "StdAfx.h"
 #include "GridBody.h"
 #include "Grid.h"
+#include "duilib/Core/Window.h"
+#include "duilib/Control/List.h"
+
 #include <sstream>
 #include <thread>
 
@@ -19,10 +21,10 @@ namespace ui
 		int row_index = item->row_index;
 		int col_index = item->col_index;
 		int posx = 0, posy = 0;
-		assert(row_index < (int)m_vLayout.size());
+		ASSERT(row_index < (int)m_vLayout.size());
 		for (int i = 0; i < row_index; ++i)
 			posy += m_vLayout[i];
-		assert(col_index < (int)m_hLayout.size());
+		ASSERT(col_index < (int)m_hLayout.size());
 		for (int j = 0; j < col_index; ++j)
 			posx += m_hLayout[j];
 		if (item->type == GIT_String || item->type == GIT_Int || item->type == GIT_Double)
@@ -46,7 +48,7 @@ namespace ui
 			m_pComboEdit->RemoveAll();
 			for (size_t i = 0; i < item->combo_list.size(); i++)
 			{
-				ListContainerElement *combo_item = new ListContainerElement;
+				ui::ListContainerElement *combo_item = new ui::ListContainerElement;
 				combo_item->SetFixedHeight(20);
 				combo_item->SetText(item->combo_list[i]);
 				m_pComboEdit->Add(combo_item);
@@ -64,13 +66,13 @@ namespace ui
 	{
 		if (m_pComboEditGridItem)
 		{
-			assert(m_pComboEdit->IsVisible());
+			ASSERT(m_pComboEdit->IsVisible());
 			m_pComboEditGridItem = nullptr;
 			m_pComboEdit->SetVisible_(false);
 		}
 		if (m_pReEditGridItem)
 		{
-			assert(m_pReEdit->IsVisible());
+			ASSERT(m_pReEdit->IsVisible());
 			if (m_pReEditGridItem->text != m_pReEdit->GetText())
 			{
 				m_pReEditGridItem->text = m_pReEdit->GetText();
@@ -88,7 +90,7 @@ namespace ui
 		CSize szOff = m_pGrid->GetScrollPos();
 
 		pt.Offset(-m_rcItem.left, -m_rcItem.top);
-		assert(pt.x > 0 && pt.y > 0);
+		ASSERT(pt.x > 0 && pt.y > 0);
 		if (pt.x <= 0 || pt.y <= 0)
 			return false;
 		UiRect rcFixed({ 0, 0, fixed_col_width + 1, fixed_row_height + 1 });
@@ -126,7 +128,7 @@ namespace ui
 						break;
 					}
 				}
-				assert(bFind);
+				ASSERT(bFind);
 				if (bFind)
 				{
 					position = pt_position;
@@ -137,7 +139,7 @@ namespace ui
 
 		bool ret = false;
 		//in position normal grid item
-		assert(pt.x - fixed_col_width > 0 && pt.y - fixed_row_height > 0 && pt.x < m_pGrid->GetWidth() && pt.y < m_pGrid->GetHeight());
+		ASSERT(pt.x - fixed_col_width > 0 && pt.y - fixed_row_height > 0 && pt.x < m_pGrid->GetWidth() && pt.y < m_pGrid->GetHeight());
 		if (pt.x - fixed_col_width > 0 && pt.y - fixed_row_height > 0 && pt.x < m_pGrid->GetWidth() && pt.y < m_pGrid->GetHeight())	
 		{
 			CPoint ptOff = pt, pt_position;
@@ -163,7 +165,7 @@ namespace ui
 					break;
 				}
 			}
-			assert(ret);
+			ASSERT(ret);
 			if (ret)
 			{
 				position = pt_position;
@@ -175,7 +177,7 @@ namespace ui
 	int GridBody::_GetGridItemTop(int row_index)
 	{
 		int posy = 0;
-		assert(row_index < GetRowCount());
+		ASSERT(row_index < GetRowCount());
 		if (row_index < GetRowCount())
 		{
 			for (size_t i = 0; i < (size_t)row_index; i++)
@@ -188,7 +190,7 @@ namespace ui
 	int GridBody::_GetGridItemLeft(int col_index)
 	{
 		int posx = 0;
-		assert(col_index < GetColCount());
+		ASSERT(col_index < GetColCount());
 		if (col_index < GetColCount())
 		{
 			for (size_t i = 0; i < (size_t)col_index; i++)
@@ -295,7 +297,7 @@ namespace ui
 		}
 		
 		bool ret = m_rcPaintRange.left != -1 && m_rcPaintRange.top != -1 && m_rcPaintRange.right != -1 && m_rcPaintRange.bottom != -1;
-		assert(ret);
+		ASSERT(ret);
 		return ret;
 	}
 #endif
@@ -327,7 +329,7 @@ namespace ui
 
 	int GridBody::GetColCount() const
 	{
-		assert(m_hLayout.size() == GetHeader()->size());
+		ASSERT(m_hLayout.size() == GetHeader()->size());
 		return static_cast<int>(m_hLayout.size());
 	}
 	void GridBody::SetColCount(int count)
@@ -335,8 +337,8 @@ namespace ui
 #ifdef _DEBUG
 		clock_t t1 = clock();
 #endif
-		assert(m_vecRow.size() > 0 && GetHeader()->size() == m_hLayout.size());
-		assert(m_vLayout.size() > 0);
+		ASSERT(m_vecRow.size() > 0 && GetHeader()->size() == m_hLayout.size());
+		ASSERT(m_vLayout.size() > 0);
 		if (m_vLayout.size() == 0)
 			return;
 		int col_count = GetColCount();
@@ -380,7 +382,7 @@ namespace ui
 							Remove(pHeaderItem->control_);
 						}
 					}
-					assert(GetCount() == GRIDBODY_CHILD_COUNT);
+					ASSERT(GetCount() == GRIDBODY_CHILD_COUNT);
 				}
 				m_vecRow[i]->items.erase(m_vecRow[i]->items.begin() + count, m_vecRow[i]->items.end());
 			}
@@ -416,7 +418,7 @@ namespace ui
 
 	int GridBody::GetRowCount() const
 	{
-		assert(m_vLayout.size() == m_vecRow.size());
+		ASSERT(m_vLayout.size() == m_vecRow.size());
 		return static_cast<int>(m_vLayout.size());
 	}
 	void GridBody::SetRowCount(int count)
@@ -424,8 +426,8 @@ namespace ui
 #ifdef _DEBUG
 		clock_t t1 = clock();
 #endif
-		assert(m_vLayout.size() == m_vecRow.size());
-		assert(m_hLayout.size() > 0);
+		ASSERT(m_vLayout.size() == m_vecRow.size());
+		ASSERT(m_hLayout.size() > 0);
 		if (m_hLayout.size() == 0)
 			return;
 		int row_count = GetRowCount();
@@ -439,13 +441,15 @@ namespace ui
 				GridRow *pRow = new GridRow();
 				//GridItem *item_arr = new GridItem[col_count];
 				//GridItem *item = item_arr;
-				wchar_t buf[16] = {};
+				wchar_t buf[16] = {0,};
 				for (int col = 0; col < col_count; col++)
 				{
 					GridItemInfo itemInfo(L"", row_index, col);
 					GridItem *item = new GridItem(&itemInfo);
-					if (col == 0)
-						item->text = _itow(static_cast<int>(m_vecRow.size()), buf, 10);
+					if (col == 0) {
+						_itow_s(static_cast<int>(m_vecRow.size()), buf, 10);
+						item->text = buf;
+					}
 					item->CopyType(GetGridItem(0, col));
 
 					pRow->push_back(item);
@@ -456,7 +460,7 @@ namespace ui
 				m_vLayout.emplace_back(m_defaultRowHeight);
 			}
 			
-			assert(m_vecRow.size() == m_vLayout.size());
+			ASSERT(m_vecRow.size() == m_vLayout.size());
 			SetFixedHeight(_SumIntList(m_vLayout));
 
 			m_selRange.Clear();
@@ -465,7 +469,7 @@ namespace ui
 		else if (count < row_count)
 		{
 			_ClearModifyAndSel();
-			assert(m_vLayout.size() == m_vecRow.size());
+			ASSERT(m_vLayout.size() == m_vecRow.size());
 			if (count < 1)		//header必须保留
 				count = 1;
 			std::vector<GridRow*> delay_delete_rows;
@@ -509,7 +513,7 @@ namespace ui
 	}
 	void GridBody::SetFixedColCount(int fixed)
 	{
-		assert(fixed <= GetColCount());
+		ASSERT(fixed <= GetColCount());
 		if (fixed <= GetColCount() && fixed != (int)m_nFixedCol)
 		{
 			m_nFixedCol = fixed;
@@ -524,7 +528,7 @@ namespace ui
 	}
 	void GridBody::SetFixedRowCount(int fixed)
 	{
-		assert(fixed <= GetRowCount());
+		ASSERT(fixed <= GetRowCount());
 		if (fixed <= GetRowCount() && fixed != (int)m_nFixedRow)
 		{
 			m_nFixedRow = fixed;
@@ -535,7 +539,7 @@ namespace ui
 
 	int GridBody::GetColumnWidth(int col_index) const
 	{
-		assert(col_index >= 0 && col_index < GetColCount());
+		ASSERT(col_index >= 0 && col_index < GetColCount());
 		if (col_index >= 0 && col_index < GetColCount())
 		{
 			return m_hLayout[col_index];
@@ -544,7 +548,7 @@ namespace ui
 	}
 	void GridBody::SetColumnWidth(int col_index, int width)
 	{
-		assert(col_index >= 0 && col_index < GetColCount());
+		ASSERT(col_index >= 0 && col_index < GetColCount());
 		if (col_index >= 0 && col_index < GetColCount())
 		{
 			if (m_hLayout[col_index] != width)
@@ -559,7 +563,7 @@ namespace ui
 
 	int GridBody::GetRowHeight(int row_index) const
 	{
-		assert(row_index >= 0 && row_index < GetRowCount());
+		ASSERT(row_index >= 0 && row_index < GetRowCount());
 		if (row_index >= 0 && row_index < GetRowCount())
 		{
 			return m_vLayout[row_index];
@@ -568,7 +572,7 @@ namespace ui
 	}
 	void GridBody::SetRowHeight(int row_index, int height)
 	{
-		assert(row_index >= 0 && row_index < GetRowCount());
+		ASSERT(row_index >= 0 && row_index < GetRowCount());
 		if (row_index >= 0 && row_index < GetRowCount())
 		{
 			if (m_vLayout[row_index] != height)
@@ -584,14 +588,14 @@ namespace ui
 	int GridBody::GetHeaderHeight() const
 	{
 		int height = 0;
-		assert(m_vLayout.size() > 0);
+		ASSERT(m_vLayout.size() > 0);
 		if (m_vLayout.size() > 0)
 			height = m_vLayout[0];
 		return height;
 	}
 	void GridBody::SetHeaderHeight(int height)
 	{
-		assert(m_vLayout.size() > 0);
+		ASSERT(m_vLayout.size() > 0);
 		if (m_vLayout.size() > 0 && m_vLayout[0] != height)
 		{
 			m_vLayout[0] = height;
@@ -636,7 +640,7 @@ namespace ui
 	int GridBody::GetFixedColWidth() const
 	{
 		int fixed_width = 0;
-		assert(m_nFixedCol <= m_hLayout.size());
+		ASSERT(m_nFixedCol <= m_hLayout.size());
 		for (size_t i = 0; i < m_nFixedCol; i++)
 		{
 			fixed_width += m_hLayout[i];
@@ -646,7 +650,7 @@ namespace ui
 	int GridBody::GetFixedRowHeight() const
 	{
 		int fixed_height = 0;
-		assert(m_nFixedRow <= m_vLayout.size());
+		ASSERT(m_nFixedRow <= m_vLayout.size());
 		for (size_t i = 0; i < m_nFixedRow; i++)
 		{
 			fixed_height += m_vLayout[i];
@@ -658,7 +662,7 @@ namespace ui
 	{
 		std::wstring str;
 		GridItem *item = GetGridItem(row_index, col_index);
-		assert(item);
+		ASSERT(item);
 		if (item)
 		{
 			str = item->text;
@@ -670,7 +674,7 @@ namespace ui
 	{
 		bool ret = false;
 		GridItem *item = GetGridItem(row_index, col_index);
-		assert(item);
+		ASSERT(item);
 		if (item)
 		{
 			item->text = text;
@@ -689,7 +693,7 @@ namespace ui
 
 	GridHeaderItem* GridBody::AddCol(std::wstring text, int width)
 	{
-		assert(m_vecRow.size() > 0 && GetHeader()->size() == m_hLayout.size());
+		ASSERT(m_vecRow.size() > 0 && GetHeader()->size() == m_hLayout.size());
 		int col_index = static_cast<int>(GetHeader()->size());
 
 		GridItemInfo itemInfo(text, 0, col_index);
@@ -712,18 +716,20 @@ namespace ui
 
 	bool GridBody::AddRow()
 	{
-		assert(m_hLayout.size() > 0);	//新增行前必须现有列
+		ASSERT(m_hLayout.size() > 0);	//新增行前必须现有列
 		if (m_hLayout.size() == 0)
 			return false;
 		int row_index = static_cast<int>(m_vecRow.size());
 		int col_count = static_cast<int>(m_hLayout.size());
 		GridRow *pRow = new GridRow();
-		wchar_t buf[16] = {};
+		wchar_t buf[16] = {0, };
 		for (size_t i = 0; i < (size_t)col_count; i++)
 		{
 			GridItemInfo itemInfo(L"", row_index, static_cast<int>(i));
-			if (i == 0)
-				itemInfo.txt = _itow(static_cast<int>(m_vecRow.size()), buf, 10);
+			if (i == 0) {
+				_itow_s(static_cast<int>(m_vecRow.size()), buf, 10);
+				itemInfo.txt = buf;
+			}
 			GridItem *item = new GridItem(&itemInfo);
 
 			pRow->push_back(item);
@@ -732,7 +738,7 @@ namespace ui
 
 		m_vecRow.push_back(pRow);
 		m_vLayout.push_back(m_defaultRowHeight);
-		assert(m_vecRow.size() == m_vLayout.size());
+		ASSERT(m_vecRow.size() == m_vLayout.size());
 		int fixHeight = GetFixedHeight();
 		if (fixHeight >= 0)
 			SetFixedHeight(fixHeight + m_defaultRowHeight);
@@ -747,7 +753,7 @@ namespace ui
 	GridHeader* GridBody::GetHeader() const
 	{
 		GridRow *header = nullptr;
-		assert(m_vecRow.size() > 0);
+		ASSERT(m_vecRow.size() > 0);
 		if (m_vecRow.size() > 0)
 			header = m_vecRow[0];
 		return header;
@@ -755,7 +761,7 @@ namespace ui
 
 	GridItem *GridBody::GetGridItem(int row_index, int col_index)
 	{
-		assert(GetHeader()->size() == m_hLayout.size() && m_vecRow.size() == m_vLayout.size());
+		ASSERT(GetHeader()->size() == m_hLayout.size() && m_vecRow.size() == m_vLayout.size());
 		GridItem *item = nullptr;
 		if (row_index >= 0 && row_index < (int)m_vecRow.size() && col_index >= 0 && col_index < (int)m_vecRow[row_index]->size())
 		{
@@ -768,7 +774,7 @@ namespace ui
 	{
 		bool ret = false;
 		_ClearModifyAndSel();
-		assert(m_vLayout.size() == m_vecRow.size());
+		ASSERT(m_vLayout.size() == m_vecRow.size());
 		row_index--;
 		if (row_index > 0 && row_index < (int)m_vecRow.size())
 		{
@@ -784,14 +790,15 @@ namespace ui
 			for (size_t i = row_index; i < m_vecRow.size(); i++)
 			{
 				GridRow *pRow = m_vecRow[i];
-				assert(pRow->at(0)->row_index - 1 == (int)i);
+				ASSERT(pRow->at(0)->row_index - 1 == (int)i);
 				for (size_t j = 0; j < pRow->size(); j++)
 				{
 					pRow->at(static_cast<int>(j))->row_index = static_cast<int>(i);
 					if (j == 0)
 					{
-						wchar_t buf[16] = {};
-						pRow->at(static_cast<int>(j))->text = _itow(static_cast<int>(i), buf, 10);
+						wchar_t buf[16] = {0, };
+						_itow_s(static_cast<int>(i), buf, 10);
+						pRow->at(static_cast<int>(j))->text = buf;
 					}
 				}
 			}
@@ -813,7 +820,7 @@ namespace ui
 	{
 		bool ret = false;
 		_ClearModifyAndSel();
-		assert(m_hLayout.size() == GetHeader()->size());
+		ASSERT(m_hLayout.size() == GetHeader()->size());
 		col_index--;
 		if (col_index > 0 && col_index < (int)GetHeader()->size())
 		{
@@ -829,7 +836,7 @@ namespace ui
 					{
 						Remove(pHeaderItem->control_);
 					}
-					assert(GetCount() == GRIDBODY_CHILD_COUNT);
+					ASSERT(GetCount() == GRIDBODY_CHILD_COUNT);
 				}
 				pRow->items.erase(pRow->items.begin() + col_index);
 			}
@@ -851,7 +858,7 @@ namespace ui
 			for (size_t i = 0; i < m_vecRow.size(); i++)
 			{
 				GridRow *pRow = m_vecRow[i];
-				assert(pRow->at(0)->row_index == (int)i);
+				ASSERT(pRow->at(0)->row_index == (int)i);
 				for (size_t j = col_index; j < pRow->size(); j++)
 				{
 					pRow->at(static_cast<int>(j))->col_index--;
@@ -874,7 +881,7 @@ namespace ui
 	void GridBody::Clear(bool include_header)
 	{
 		_ClearModifyAndSel();
-		assert(m_vLayout.size() == m_vecRow.size());
+		ASSERT(m_vLayout.size() == m_vecRow.size());
 
 		SetRowCount(1);
 
@@ -960,7 +967,7 @@ namespace ui
 			int grid_width = m_pGrid->GetWidth();
 			CPoint pt (msg.ptMouse);
 			pt.Offset(-m_rcItem.left, -m_rcItem.top);
-			assert(pt.x > 0 && pt.y > 0);
+			ASSERT(pt.x > 0 && pt.y > 0);
 			if (pt.x <= 0 || pt.y <= 0 || m_vLayout.size() == 0)
 				return true;
 
@@ -1041,7 +1048,7 @@ namespace ui
 			}
 		}
 		else
-			assert(0);
+			ASSERT(0);
 		
 		return true;
 	}
@@ -1050,7 +1057,7 @@ namespace ui
 	{
 		if (m_nDragColIndex != -1)
 		{
-			assert(m_nDragColIndex < GetColCount());
+			ASSERT(m_nDragColIndex < GetColCount());
 			CPoint pt(msg.ptMouse);
 			pt.Offset(-m_rcItem.left, -m_rcItem.top);
 			int width = GetColumnWidth(m_nDragColIndex) + pt.x - m_ptDragColumnStart.x;
@@ -1078,7 +1085,7 @@ namespace ui
 		if (bFind)
 		{
 			GridItem *item = GetGridItem(position.y, position.x);
-			assert(item);
+			ASSERT(item);
 			if (item)
 			{
 				wprintf(L"GridBody::OnMouseDoubleClick {%d, %d} %s\n", position.x, position.y, item->text.c_str());
@@ -1093,7 +1100,7 @@ namespace ui
 			CPoint pt(msg.ptMouse);
 
 			pt.Offset(-m_rcItem.left, -m_rcItem.top);
-			assert(pt.x > 0 && pt.y > 0);
+			ASSERT(pt.x > 0 && pt.y > 0);
 			if (pt.x <= 0 || pt.y <= 0 || m_vLayout.size() == 0)
 				return true;
 			UiRect rcFixedHeader({ 0, 0, fixed_col_width, m_vLayout[0] });
@@ -1137,7 +1144,7 @@ namespace ui
 
 		CPoint pt(msg.ptMouse);
 		pt.Offset(-m_rcItem.left, -m_rcItem.top);
-		//assert(pt.x > 0 && pt.y > 0);
+		//ASSERT(pt.x > 0 && pt.y > 0);
 		if (pt.x <= 0 || pt.y <= 0 || m_vLayout.size() == 0)
 			return true;
 		if ((msg.wParam & MK_LBUTTON) > 0)	//鼠标左键被按下
@@ -1329,7 +1336,7 @@ namespace ui
 				//draw fixed HLine
 				rcLineH.left = 0;
 				rcLineH.right = GetFixedWidth() - szOff.cx > grid_width ? grid_width : GetFixedWidth() - szOff.cx;
-				assert(m_nFixedRow <= m_vLayout.size());
+				ASSERT(m_nFixedRow <= m_vLayout.size());
 				for (size_t i = 0; i < m_nFixedRow; i++)
 				{
 					posy += m_vLayout[i];
@@ -1352,7 +1359,7 @@ namespace ui
 				//draw fixed VLine
 				rcLineV.top = 0;
 				rcLineV.bottom = GetFixedHeight() - szOff.cy > grid_height ? grid_height : GetFixedHeight() - szOff.cy;
-				assert(m_nFixedCol <= m_hLayout.size());
+				ASSERT(m_nFixedCol <= m_hLayout.size());
 				for (size_t i = 0; i < m_nFixedCol; i++)
 				{
 					posx += m_hLayout[i];
@@ -1563,13 +1570,13 @@ namespace ui
 	void GridBody::_SelItem(int row_index, int col_index, bool selected)
 	{
 		GridItem *pItem = GetGridItem(row_index, col_index);
-		assert(pItem);
+		ASSERT(pItem);
 		if (pItem)
 			pItem->SetSelected(selected);
 	}
 	void GridBody::_SelRow(int row_index, bool selected)
 	{
-		assert(row_index >= (int)m_nFixedRow && row_index < GetRowCount());
+		ASSERT(row_index >= (int)m_nFixedRow && row_index < GetRowCount());
 		if (row_index >= (int)m_nFixedRow && row_index < GetRowCount())
 		{
 			GridRow *pRow = m_vecRow[row_index];
@@ -1582,7 +1589,7 @@ namespace ui
 	}
 	void GridBody::_SelCol(int col_index, bool selected)
 	{
-		assert(col_index >= 0 && col_index < GetColCount());
+		ASSERT(col_index >= 0 && col_index < GetColCount());
 		if (col_index >= 0 && col_index < GetColCount())
 		{
 			int row_count = GetRowCount();

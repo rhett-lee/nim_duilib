@@ -1,20 +1,19 @@
-#include "StdAfx.h"
+#include "Brush.h"
+#include "duilib/Core/GdiPlusDefs.h"
 
 namespace ui {
-
-using namespace Gdiplus;
 
 Brush_Gdiplus::Brush_Gdiplus(DWORD color)
 	: IBrush(color)
 {
-	brush_.reset(new SolidBrush(color));
+	brush_.reset(new Gdiplus::SolidBrush(color));
 }
 
 Brush_Gdiplus::Brush_Gdiplus(HBITMAP bitmap)
 	: IBrush(bitmap)
 {
 	Gdiplus::Bitmap image(bitmap, NULL);
-	bitmap_brush_.reset(new TextureBrush(&image));
+	bitmap_brush_.reset(new Gdiplus::TextureBrush(&image));
 }
 
 Brush_Gdiplus::Brush_Gdiplus(const Brush_Gdiplus& r)
@@ -30,6 +29,11 @@ Brush_Gdiplus::Brush_Gdiplus(const Brush_Gdiplus& r)
 ui::IBrush* Brush_Gdiplus::Clone()
 {
 	return new Brush_Gdiplus(*this);
+}
+
+Gdiplus::Brush* Brush_Gdiplus::GetBrush() const
+{ 
+	return brush_ ? brush_.get() : bitmap_brush_.get(); 
 }
 
 } // namespace ui

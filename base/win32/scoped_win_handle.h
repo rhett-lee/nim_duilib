@@ -3,7 +3,7 @@
 
 #include "base/base_config.h"
 #if defined(OS_WIN)
-#include "build/winsdk_config.h"
+#include "base/build/winsdk_config.h"
 #include <windows.h>
 #include "base/base_export.h"
 #include "base/base_types.h"

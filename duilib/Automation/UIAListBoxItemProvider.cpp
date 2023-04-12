@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "UIAListBoxItemProvider.h"
 
 #if defined(ENABLE_UIAUTOMATION)
 

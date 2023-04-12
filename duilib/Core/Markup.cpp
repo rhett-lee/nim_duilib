@@ -1,9 +1,8 @@
-#include "StdAfx.h"
-#include "shlwapi.h"
-
-#ifndef TRACE
-#define TRACE
-#endif
+#include "Markup.h"
+#include "duilib/Core/GlobalManager.h"
+#include <tchar.h>
+#include <memory>
+#include <shlwapi.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////
 
@@ -116,7 +115,7 @@ bool CMarkupNode::GetAttributeValue(int iIndex, LPTSTR pstrValue, SIZE_T cchMax)
     if( m_pOwner == NULL ) return false;
     if( m_nAttributes == 0 ) _MapAttributes();
     if( iIndex < 0 || iIndex >= m_nAttributes ) return false;
-    _tcsncpy(pstrValue, m_pOwner->m_pstrXML + m_aAttributes[iIndex].iValue, cchMax);
+    _tcsncpy_s(pstrValue, cchMax, m_pOwner->m_pstrXML + m_aAttributes[iIndex].iValue, cchMax);
     return true;
 }
 
@@ -126,7 +125,7 @@ bool CMarkupNode::GetAttributeValue(LPCTSTR pstrName, LPTSTR pstrValue, SIZE_T c
     if( m_nAttributes == 0 ) _MapAttributes();
     for( int i = 0; i < m_nAttributes; i++ ) {
         if( _tcscmp(m_pOwner->m_pstrXML + m_aAttributes[i].iName, pstrName) == 0 ) {
-            _tcsncpy(pstrValue, m_pOwner->m_pstrXML + m_aAttributes[i].iValue, cchMax);
+            _tcsncpy_s(pstrValue, cchMax, m_pOwner->m_pstrXML + m_aAttributes[i].iValue, cchMax);
             return true;
         }
     }
@@ -208,7 +207,7 @@ void CMarkup::SetPreserveWhitespace(bool bPreserve)
 
 bool CMarkup::Load(LPCTSTR pstrXML)
 {
-    assert(pstrXML != nullptr);
+    ASSERT(pstrXML != nullptr);
     if (pstrXML == nullptr) {
         return false;
     }
@@ -226,7 +225,7 @@ bool CMarkup::Load(LPCTSTR pstrXML)
 
 bool CMarkup::LoadFromMem(BYTE* pByte, DWORD dwSize, int encoding)
 {
-    assert(pByte != nullptr);
+    ASSERT(pByte != nullptr);
     if (pByte == nullptr) {
         return false;
     }
@@ -390,12 +389,12 @@ void CMarkup::Release()
 
 void CMarkup::GetLastErrorMessage(LPTSTR pstrMessage, SIZE_T cchMax) const
 {
-    _tcsncpy(pstrMessage, m_szErrorMsg, cchMax);
+    _tcsncpy_s(pstrMessage, cchMax, m_szErrorMsg, sizeof(m_szErrorMsg) / sizeof(m_szErrorMsg[0]) - 1);
 }
 
 void CMarkup::GetLastErrorLocation(LPTSTR pstrSource, SIZE_T cchMax) const
 {
-    _tcsncpy(pstrSource, m_szErrorXML, cchMax);
+    _tcsncpy_s(pstrSource, cchMax, m_szErrorXML, sizeof(m_szErrorMsg) / sizeof(m_szErrorMsg[0]) - 1);
 }
 
 CMarkupNode CMarkup::GetRoot()
@@ -607,10 +606,9 @@ bool CMarkup::_Failed(LPCTSTR pstrError, LPCTSTR pstrLocation)
 {
     // Register last error
 	ASSERT(false);
-    TRACE(_T("XML Error: %s"), pstrError);
-    if( pstrLocation != NULL ) TRACE(pstrLocation);
-    _tcsncpy(m_szErrorMsg, pstrError, (sizeof(m_szErrorMsg) / sizeof(m_szErrorMsg[0])) - 1);
-    _tcsncpy(m_szErrorXML, pstrLocation != NULL ? pstrLocation : _T(""), sizeof(m_szErrorXML)/sizeof(m_szErrorXML[0]) - 1);
+    const size_t bufferSize = (sizeof(m_szErrorMsg) / sizeof(m_szErrorMsg[0])) - 1;
+    _tcsncpy_s(m_szErrorMsg, bufferSize, pstrError, bufferSize);
+    _tcsncpy_s(m_szErrorXML, bufferSize, pstrLocation != NULL ? pstrLocation : _T(""), bufferSize);
     return false; // Always return 'false'
 }
 

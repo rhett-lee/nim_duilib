@@ -27,42 +27,17 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#if defined(UILIB_DLL)
-#if defined(UILIB_EXPORTS)
-#if defined(_MSC_VER)
-#define UILIB_API __declspec(dllexport)
-#else
-#define UILIB_API 
-#endif
-#else
-#if defined(_MSC_VER)
-#define UILIB_API __declspec(dllimport)
-#else
-#define UILIB_API 
-#endif
-#endif
-#else
-#define UILIB_API
-#endif
-
-#define UILIB_COMDAT __declspec(selectany)
-
 #if defined _M_IX86
-#pragma comment(linker, "/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='x86' publicKeyToken='6595b64144ccf1df' language='*'\"")
+    #pragma comment(linker, "/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='x86' publicKeyToken='6595b64144ccf1df' language='*'\"")
 #elif defined _M_IA64
-#pragma comment(linker, "/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='ia64' publicKeyToken='6595b64144ccf1df' language='*'\"")
+    #pragma comment(linker, "/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='ia64' publicKeyToken='6595b64144ccf1df' language='*'\"")
 #elif defined _M_X64
-#pragma comment(linker, "/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='amd64' publicKeyToken='6595b64144ccf1df' language='*'\"")
+    #pragma comment(linker, "/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='amd64' publicKeyToken='6595b64144ccf1df' language='*'\"")
 #else
-#pragma comment(linker, "/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
+    #pragma comment(linker, "/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 #endif
 
-#if defined(_MSC_VER) && (_MSC_VER >= 1928)
-#define ENABLE_UIAUTOMATION
-#pragma comment(lib, "uiautomationcore.lib")
-#endif
-
-#include "build/windows_defs.h"
+#include "duilib_defs.h"
 #include <commctrl.h>
 #include <stddef.h>
 #include <richedit.h>
@@ -81,8 +56,25 @@
 #include <functional>
 
 #if defined(ENABLE_UIAUTOMATION)
-#include <UIAutomation.h>
-#include <UIAutomationCoreApi.h>
+    #include <UIAutomation.h>
+    #include <UIAutomationCoreApi.h>
+    
+    #pragma comment(lib, "uiautomationcore.lib")
+
+    #include "Automation/UIAControlProvider.h"
+    #include "Automation/UIAWindowProvider.h"
+    #include "Automation/UIAScrollBarProvider.h"
+    #include "Automation/UIABoxProvider.h"
+    #include "Automation/UIAScrollableBoxProvider.h"
+    #include "Automation/UIALabelProvider.h"
+    #include "Automation/UIAButtonProvider.h"
+    #include "Automation/UIACheckBoxProvider.h"
+    #include "Automation/UIAProgressProvider.h"
+    #include "Automation/UIARichEditProvider.h"
+    #include "Automation/UIAComboBoxProvider.h"
+    #include "Automation/UIAListBoxProvider.h"
+    #include "Automation/UIAListBoxItemProvider.h"
+    #include "Automation/UIATreeNodeProvider.h"
 #endif
 
 #include "Utils/Macros.h"
@@ -112,24 +104,6 @@
 #include "Render/Matrix.h"
 #include "Render/Path.h"
 #include "Render/Factory.h"
-
-#include "Automation/UIAControlProvider.h"
-#if defined(ENABLE_UIAUTOMATION)
-#include "Automation/UIAWindowProvider.h"
-#include "Automation/UIAScrollBarProvider.h"
-#include "Automation/UIABoxProvider.h"
-#include "Automation/UIAScrollableBoxProvider.h"
-#include "Automation/UIALabelProvider.h"
-#include "Automation/UIAButtonProvider.h"
-#include "Automation/UIACheckBoxProvider.h"
-#include "Automation/UIAProgressProvider.h"
-#include "Automation/UIARichEditProvider.h"
-#include "Automation/UIAComboBoxProvider.h"
-#include "Automation/UIAListBoxProvider.h"
-#include "Automation/UIAListBoxItemProvider.h"
-#include "Automation/UIATreeNodeProvider.h"
-#endif
-
 
 #include "Core/Define.h"
 #include "Core/Markup.h"

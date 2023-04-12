@@ -1,4 +1,5 @@
-#include "StdAfx.h"
+#include "List.h"
+#include "duilib/Control/ScrollBar.h"
 
 namespace ui 
 {
@@ -18,24 +19,21 @@ std::wstring ListBox::GetType() const
 {
 	return DUI_CTR_LISTBOX;
 }
-
+#if defined(ENABLE_UIAUTOMATION)
 UIAControlProvider* ListBox::GetUIAProvider()
 {
-#if defined(ENABLE_UIAUTOMATION)
 	if (m_pUIAProvider == nullptr)
 	{
 		m_pUIAProvider = static_cast<UIAControlProvider*>(new (std::nothrow) UIAListBoxProvider(this));
 	}
 	return m_pUIAProvider;
-#else
-	return nullptr;
-#endif
 }
+#endif
 
 void ListBox::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
-	if( strName == _T("scrollselect") ) {
-		SetScrollSelect(strValue == _T("true"));
+	if( strName == L"scrollselect") {
+		SetScrollSelect(strValue == L"true");
 	}
 	else {
 		ScrollableBox::SetAttribute(strName, strValue);
@@ -182,7 +180,7 @@ void ListBox::EnsureVisible(const UiRect& rcItem)
 
 void ListBox::StopScroll()
 {
-	m_scrollAnimation.Reset();
+	m_scrollAnimation->Reset();
 }
 
 bool ListBox::ButtonDown(EventArgs& msg)
@@ -422,18 +420,16 @@ std::wstring ListContainerElement::GetType() const
 	return DUI_CTR_LISTCONTAINERELEMENT;
 }
 
+#if defined(ENABLE_UIAUTOMATION)
 UIAControlProvider* ListContainerElement::GetUIAProvider()
 {
-#if defined(ENABLE_UIAUTOMATION)
 	if (m_pUIAProvider == nullptr)
 	{
 		m_pUIAProvider = static_cast<UIAControlProvider*>(new (std::nothrow) UIAListBoxItemProvider(this));
 	}
 	return m_pUIAProvider;
-#else
-	return nullptr;
-#endif
 }
+#endif
 
 void ListContainerElement::SetVisible(bool bVisible)
 {
@@ -509,6 +505,12 @@ void ListContainerElement::SetIndex(int iIndex)
 void ListContainerElement::InvokeDoubleClickEvent()
 {
 	if( m_pWindow != NULL ) m_pWindow->SendNotify(this, kEventMouseDoubleClick);
+}
+
+
+bool ListContainerElement::IsSelectableType() const
+{
+	return true;
 }
 
 } // namespace ui

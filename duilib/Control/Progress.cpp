@@ -1,5 +1,5 @@
-#include "stdafx.h"
 #include "Progress.h"
+#include "duilib/Utils/TimerManager.h"
 
 namespace ui
 {
@@ -29,18 +29,16 @@ std::wstring Progress::GetType() const
 	return DUI_CTR_PROGRESS;
 }
 
+#if defined(ENABLE_UIAUTOMATION)
 UIAControlProvider* Progress::GetUIAProvider()
 {
-#if defined(ENABLE_UIAUTOMATION)
 	if (m_pUIAProvider == nullptr)
 	{
 		m_pUIAProvider = static_cast<UIAControlProvider*>(new (std::nothrow) UIAProgressProvider(this));
 	}
 	return m_pUIAProvider;
-#else
-	return nullptr;
-#endif
 }
+#endif
 
 bool Progress::IsHorizontal()
 {
@@ -115,7 +113,7 @@ void Progress::SetStretchForeImage(bool bStretchForeImage /*= true*/)
 
 std::wstring Progress::GetProgressImage() const
 {
-	return m_progressImage.imageAttribute.simageString;
+	return m_progressImage.GetImageAttribute().simageString;
 }
 
 void Progress::SetProgressImage(const std::wstring& strImage)
@@ -140,27 +138,27 @@ void Progress::SetProgressColor(const std::wstring& strProgressColor)
 
 void Progress::SetAttribute(const std::wstring& srName, const std::wstring& strValue)
 {
-  if (srName == _T("hor")) SetHorizontal(strValue == _T("true"));
-  else if (srName == _T("min")) SetMinValue(_ttoi(strValue.c_str()));
-  else if (srName == _T("max")) SetMaxValue(_ttoi(strValue.c_str()));
-  else if (srName == _T("value")) SetValue(_ttoi(strValue.c_str()));
-  else if (srName == _T("progressimage")) SetProgressImage(strValue);
-  else if (srName == _T("isstretchfore")) SetStretchForeImage(strValue == _T("true"));
-  else if (srName == _T("progresscolor")) {
+  if (srName == L"hor") SetHorizontal(strValue == L"true");
+  else if (srName == L"min") SetMinValue(_wtoi(strValue.c_str()));
+  else if (srName == L"max") SetMaxValue(_wtoi(strValue.c_str()));
+  else if (srName == L"value") SetValue(_wtoi(strValue.c_str()));
+  else if (srName == L"progressimage") SetProgressImage(strValue);
+  else if (srName == L"isstretchfore") SetStretchForeImage(strValue == L"true");
+  else if (srName == L"progresscolor") {
     LPCTSTR pValue = strValue.c_str();
-    while (*pValue > _T('\0') && *pValue <= _T(' ')) pValue = ::CharNext(pValue);
+    while (*pValue > L'\0' && *pValue <= L' ') pValue = ::CharNext(pValue);
     SetProgressColor(pValue);
   }
-  else if (srName == _T("marquee")) SetMarquee(strValue == _T("true"));
-  else if (srName == _T("marqueewidth")) SetMarqueeWidth(_ttoi(strValue.c_str()));
-  else if (srName == _T("marqueestep")) SetMarqueeStep(_ttoi(strValue.c_str()));
-  else if (srName == _T("reverse")) SetReverse(strValue == _T("true"));
+  else if (srName == L"marquee") SetMarquee(strValue == L"true");
+  else if (srName == L"marqueewidth") SetMarqueeWidth(_wtoi(strValue.c_str()));
+  else if (srName == L"marqueestep") SetMarqueeStep(_wtoi(strValue.c_str()));
+  else if (srName == L"reverse") SetReverse(strValue == L"true");
 	else Label::SetAttribute(srName, strValue);
 }
 
 void Progress::PaintStatusImage(IRenderContext* pRender)
 {
-	assert(pRender != nullptr);
+	ASSERT(pRender != nullptr);
 	if (pRender == nullptr) {
 		return;
 	}
@@ -188,74 +186,77 @@ void Progress::PaintStatusImage(IRenderContext* pRender)
 		}
 	}
 
-	if (!m_progressImage.imageAttribute.simageString.empty()) {
-		m_sProgressImageModify.clear();
-		if (m_bStretchForeImage)
-			m_sProgressImageModify = StringHelper::Printf(_T("destscale='false' dest='%d,%d,%d,%d'"), rc.left, rc.top, rc.right, rc.bottom);
-		else {
-      ui::UiRect m_rcSrc = rc;
-      if (m_progressImage.imageCache) {
-        if (m_rcSrc.right > m_progressImage.imageCache->nX) {
-          m_rcSrc.right = m_progressImage.imageCache->nX;
+    if (!m_progressImage.GetImageAttribute().simageString.empty()) {
+        m_sProgressImageModify.clear();
+        if (m_bStretchForeImage) {
+            m_sProgressImageModify = StringHelper::Printf(L"destscale='false' dest='%d,%d,%d,%d'", rc.left, rc.top, rc.right, rc.bottom);
         }
-        if (m_rcSrc.bottom > m_progressImage.imageCache->nY) {
-          m_rcSrc.bottom = m_progressImage.imageCache->nY;
+        else {
+            ui::UiRect m_rcSrc = rc;
+            if (m_progressImage.GetImageCache()) {
+                if (m_rcSrc.right > m_progressImage.GetImageCache()->nX) {
+                    m_rcSrc.right = m_progressImage.GetImageCache()->nX;
+                }
+                if (m_rcSrc.bottom > m_progressImage.GetImageCache()->nY) {
+                    m_rcSrc.bottom = m_progressImage.GetImageCache()->nY;
+                }
+            }
+            m_sProgressImageModify = StringHelper::Printf(L"destscale='false' dest='%d,%d,%d,%d' source='%d,%d,%d,%d'"
+                , rc.left, rc.top, rc.right, rc.bottom
+                , m_rcSrc.left, m_rcSrc.top, m_rcSrc.right, m_rcSrc.bottom);
         }
-      }
-      m_sProgressImageModify = StringHelper::Printf(_T("destscale='false' dest='%d,%d,%d,%d' source='%d,%d,%d,%d'")
-        , rc.left, rc.top, rc.right, rc.bottom
-        , m_rcSrc.left, m_rcSrc.top, m_rcSrc.right, m_rcSrc.bottom);
-    }
 
-		// 让corner的值不超过可绘制范围
-		auto& corner = m_progressImage.imageAttribute.rcCorner;
-		if (IsHorizontal()) {
-			if (corner.left != 0 && corner.left >= rc.right) {
-				m_sProgressImageModify += StringHelper::Printf(_T(" corner='%d,%d,%d,%d'"),
-					rc.right,
-					corner.top,
-					0,
-					corner.bottom);
-			}
-		}
-		else {
-			if (corner.top != 0 && corner.top >= rc.bottom) {
-				m_sProgressImageModify += StringHelper::Printf(_T(" corner='%d,%d,%d,%d'"),
-					corner.left,
-					corner.bottom,
-					corner.right,
-					0);
-			}
-		}
-		DrawImage(pRender, m_progressImage, m_sProgressImageModify);
+        // 让corner的值不超过可绘制范围
+        auto& corner = m_progressImage.GetImageAttribute().rcCorner;
+        if (IsHorizontal()) {
+            if (corner.left != 0 && corner.left >= rc.right) {
+                m_sProgressImageModify += StringHelper::Printf(L" corner='%d,%d,%d,%d'",
+                    rc.right,
+                    corner.top,
+                    0,
+                    corner.bottom);
+            }
+        }
+        else {
+            if (corner.top != 0 && corner.top >= rc.bottom) {
+                m_sProgressImageModify += StringHelper::Printf(L" corner='%d,%d,%d,%d'",
+                    corner.left,
+                    corner.bottom,
+                    corner.right,
+                    0);
+            }
+        }
+        DrawImage(pRender, m_progressImage, m_sProgressImageModify);
 	}
 }
 
 UiRect Progress::GetProgressPos()
 {
-	UiRect rc;
-	if (m_bHorizontal) {
-    if (m_bReverse) {
-      rc.right = m_rcItem.GetWidth();
-      rc.left = rc.right - static_cast<int>(std::floor(static_cast<double>((m_nValue - m_nMin) * (m_rcItem.right - m_rcItem.left)) / static_cast<double>(m_nMax - m_nMin)));
-    } else {
-      rc.right = static_cast<int>(std::ceil(static_cast<double>((m_nValue - m_nMin) * (m_rcItem.right - m_rcItem.left)) / static_cast<double>(m_nMax - m_nMin)));
+    UiRect rc;
+    if (m_bHorizontal) {
+        if (m_bReverse) {
+            rc.right = m_rcItem.GetWidth();
+            rc.left = rc.right - static_cast<int>(std::floor(static_cast<double>((m_nValue - m_nMin) * (m_rcItem.right - m_rcItem.left)) / static_cast<double>(m_nMax - m_nMin)));
+        }
+        else {
+            rc.right = static_cast<int>(std::ceil(static_cast<double>((m_nValue - m_nMin) * (m_rcItem.right - m_rcItem.left)) / static_cast<double>(m_nMax - m_nMin)));
+        }
+
+        rc.bottom = m_rcItem.bottom - m_rcItem.top;
+    }
+    else {
+        if (m_bReverse) {
+            rc.bottom = static_cast<int>(std::floor(static_cast<double>((m_nMax - m_nValue) * (m_rcItem.bottom - m_rcItem.top)) / static_cast<double>(m_nMax - m_nMin)));
+        }
+        else {
+            rc.top = static_cast<int>(std::ceil(static_cast<double>((m_nMax - m_nValue) * (m_rcItem.bottom - m_rcItem.top)) / static_cast<double>(m_nMax - m_nMin)));
+            rc.bottom = m_rcItem.bottom - m_rcItem.top;
+        }
+
+        rc.right = m_rcItem.right - m_rcItem.left;
     }
 
-		rc.bottom = m_rcItem.bottom - m_rcItem.top;
-	}
-	else {
-    if (m_bReverse) {
-      rc.bottom = static_cast<int>(std::floor(static_cast<double>((m_nMax - m_nValue) * (m_rcItem.bottom - m_rcItem.top)) / static_cast<double>(m_nMax - m_nMin)));
-    } else {
-      rc.top = static_cast<int>(std::ceil(static_cast<double>((m_nMax - m_nValue) * (m_rcItem.bottom - m_rcItem.top)) / static_cast<double>(m_nMax - m_nMin)));
-      rc.bottom = m_rcItem.bottom - m_rcItem.top;
-    }
-
-		rc.right = m_rcItem.right - m_rcItem.left;
-	}
-
-	return rc;
+    return rc;
 }
 
 void Progress::ClearImageCache()
@@ -264,29 +265,32 @@ void Progress::ClearImageCache()
 	m_progressImage.ClearCache();
 }
 
-void Progress::Play() {
-	if (!m_bMarquee) {
-		m_timer.Cancel();
-		return;
-	}
-	m_nMarqueePos = m_nMarqueePos + m_nMarqueeStep;
+void Progress::Play()
+{
+    if (!m_bMarquee) {
+        m_timer.Cancel();
+        return;
+    }
+    m_nMarqueePos = m_nMarqueePos + m_nMarqueeStep;
 
-	ui::UiRect rc = m_rcItem;
-	if (m_bHorizontal) {
-		if (m_nMarqueePos > rc.right - rc.left)
-			m_nMarqueePos = (m_nMarqueePos - (rc.right - rc.left)) - m_nMarqueeWidth;
-	}
-	else {
-		if (m_nMarqueePos > rc.bottom - rc.top)
-			m_nMarqueePos = (m_nMarqueePos - (rc.bottom - rc.top) - m_nMarqueeWidth);
-	}
+    ui::UiRect rc = m_rcItem;
+    if (m_bHorizontal) {
+        if (m_nMarqueePos > rc.right - rc.left) {
+            m_nMarqueePos = (m_nMarqueePos - (rc.right - rc.left)) - m_nMarqueeWidth;
+        }
+    }
+    else {
+        if (m_nMarqueePos > rc.bottom - rc.top) {
+            m_nMarqueePos = (m_nMarqueePos - (rc.bottom - rc.top) - m_nMarqueeWidth);
+        }
+    }
 
-	Invalidate();
+    Invalidate();
 }
 
 void Progress::PaintMarquee(IRenderContext* pRender) 
 {
-	assert(pRender != nullptr);
+	ASSERT(pRender != nullptr);
 	if (pRender == nullptr) {
 		return;
 	}

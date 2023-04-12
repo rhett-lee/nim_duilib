@@ -5,9 +5,9 @@
   * @date 2016/7/19
 */
 #pragma once
-#include "cef_control/util/auto_unregister.h"
-#include "cef_control/app/cef_js_bridge.h"
-#include "cef_control/handler/drag/osr_dragdrop_win.h"
+#include "ui_components/cef_control/util/auto_unregister.h"
+#include "ui_components/cef_control/app/cef_js_bridge.h"
+#include "ui_components/cef_control/handler/drag/osr_dragdrop_win.h"
 
 #pragma warning (push)
 #pragma warning (disable:4100)
@@ -18,8 +18,7 @@
 namespace nim_comp
 {
 // BrowserHandler implements CefClient and a number of other interfaces.
-class BrowserHandler : 
-	public nbase::SupportWeakCallback,
+class BrowserHandler : public virtual nbase::SupportWeakCallback,
 	public CefClient,
 	public CefLifeSpanHandler,
 	public CefRenderHandler,

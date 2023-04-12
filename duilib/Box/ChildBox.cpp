@@ -1,5 +1,8 @@
-#include "stdafx.h"
 #include "ChildBox.h"
+#include "duilib/Core/Define.h"
+#include "duilib/Core/WindowBuilder.h"
+#include "duilib/Core/GlobalManager.h"
+#include "duilib/Utils/WinImplBase.h"
 
 namespace ui
 {
@@ -36,7 +39,7 @@ void ChildBox::Init()
 
 void ChildBox::SetAttribute( const::std::wstring& strName, const std::wstring& strValue )
 {
-	if (strName == _T("xmlfile")) {
+	if (strName == L"xmlfile") {
 		SetChildLayoutXML(strValue);
 	}
 	else {

@@ -3,6 +3,9 @@
 
 #pragma once
 
+#include "duilib/Control/Progress.h"
+#include <string>
+
 namespace ui
 {
 
@@ -79,7 +82,7 @@ public:
 	 * @param[in] callback 进度条进度改变后调用的回调函数
 	 * @return 无
 	 */
-	void AttachValueChange(const EventCallback& callback) {	OnEvent[kEventValueChange] += callback;	}
+	void AttachValueChange(const EventCallback& callback) {	m_OnEvent[kEventValueChange] += callback;	}
 
 protected:
 	int m_nStep;

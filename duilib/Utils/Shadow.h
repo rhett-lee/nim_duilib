@@ -3,10 +3,15 @@
 
 #pragma once
 
+#include "duilib/duilib_defs.h"
+#include "duilib/Utils/Utils.h"
+
 namespace ui 
 {
 
 class Box;
+class Control;
+
 class UILIB_API Shadow
 {
 public:

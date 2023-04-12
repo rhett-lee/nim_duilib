@@ -3,12 +3,9 @@
 
 #pragma once
 
-#include "Label.h"
-#include "Box/VBox.h"
-#include "Box/HBox.h"
-#include "Button.h"
-#include "CheckBox.h"
-#include "Option.h"
+#include "duilib/Core/Box.h"
+#include "duilib/Box/VBox.h"
+#include "duilib/Control/Option.h"
 
 namespace ui 
 {
@@ -42,7 +39,9 @@ public:
 
 	/// 重写父类方法，提供个性化功能，请参考父类声明
 	virtual std::wstring GetType() const override;
+#if defined(ENABLE_UIAUTOMATION)
 	virtual UIAControlProvider* GetUIAProvider() override;
+#endif
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 	virtual void HandleMessage(EventArgs& event) override;	
 	virtual void HandleMessageTemplate(EventArgs& event) override;
@@ -162,7 +161,7 @@ public:
 	 * @param[in] callback 选择子项时的回调函数
 	 * @return 无
 	 */
-	void AttachSelect(const EventCallback& callback) { OnEvent[kEventSelect] += callback; }
+	void AttachSelect(const EventCallback& callback) { m_OnEvent[kEventSelect] += callback; }
 
 	/**
 	 * @brief 在移除一个子项后自动选择下一项
@@ -183,17 +182,25 @@ protected:
 
 
 /// 列表项，用于在列表中展示数据的子项
-class UILIB_API ListContainerElement : public OptionTemplate<Box>
+class UILIB_API ListContainerElement: 
+	public OptionTemplate<Box>
 {
 public:
 	ListContainerElement();
 
 	/// 重写父类方法，提供个性化功能，请参考父类声明
 	virtual std::wstring GetType() const override;
+#if defined(ENABLE_UIAUTOMATION)
 	virtual UIAControlProvider* GetUIAProvider() override;
+#endif
 	virtual void SetVisible(bool bVisible = true) override;
 	virtual void Selected(bool bSelect, bool trigger) override;
 	virtual void HandleMessage(EventArgs& event) override;
+
+	/** 判断控件类型是否为可选择的
+	 * @return 返回true
+	 */
+	virtual bool IsSelectableType() const override;
 
 	/**
 	 * @brief 获取父容器
@@ -232,14 +239,14 @@ public:
 	 * @param[in] callback 收到双击消息时的回调函数
 	 * @return 无
 	 */
-	void AttachDoubleClick(const EventCallback& callback) { OnEvent[kEventMouseDoubleClick] += callback; }
+	void AttachDoubleClick(const EventCallback& callback) { m_OnEvent[kEventMouseDoubleClick] += callback; }
 
 	/**
 	 * @brief 监听回车事件
 	 * @param[in] callback 收到回车时的回调函数
 	 * @return 无
 	 */
-	void AttachReturn(const EventCallback& callback) { OnEvent[kEventReturn] += callback; }
+	void AttachReturn(const EventCallback& callback) { m_OnEvent[kEventReturn] += callback; }
 
 protected:
 	int m_iIndex;

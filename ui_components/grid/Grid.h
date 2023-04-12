@@ -1,6 +1,6 @@
 #pragma once
-#include "GridBase.h"
-//#include "GridBody.h"
+#include "ui_components/grid/GridBase.h"
+#include "duilib/Core/Box.h"
 
 namespace ui
 {

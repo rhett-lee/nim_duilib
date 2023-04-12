@@ -11,7 +11,7 @@ enum ThreadId
   * @date 2019/3/20
   */
 class SdkDataObject;
-class MultiBrowserManager : public nbase::SupportWeakCallback
+class MultiBrowserManager : public virtual nbase::SupportWeakCallback
 {
 public:
 	SINGLETON_DEFINE(MultiBrowserManager);

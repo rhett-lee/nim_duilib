@@ -1,5 +1,12 @@
 #pragma once
 
+#include "duilib/duilib_defs.h"
+#include "duilib/Utils/Utils.h"
+#include "duilib/Core/Control.h"
+#include <string>
+#include <vector>
+#include <map>
+
 namespace ui
 {
 #define DRAG_HEADER_OFF_SIZE	6
@@ -161,7 +168,7 @@ namespace ui
 
 		void SetSelAll();
 		void SetSelItem(int row_index, int col_index, bool ctrl = false, bool shift = false);
-		void SetSelItemRange(UiRect rc, bool ctrl = false, bool shift = false);
+		void SetSelItemRange(ui::UiRect rc, bool ctrl = false, bool shift = false);
 		void SetSelRow(int row_index, bool ctrl = false, bool shift = false);
 		void SetSelRowRange(int row_index, int row_index_end, bool ctrl = false, bool shift = false);
 		void SetSelCol(int col_index, bool ctrl = false, bool shift = false);
@@ -170,7 +177,7 @@ namespace ui
 		//bool IsItemSelected(int row_index, int col_index);
 		bool IsRowSelected(int row_index);
 		bool IsColSelected(int col_index);
-		bool GetSelRange(UiRect &rc);
+		bool GetSelRange(ui::UiRect &rc);
 		std::vector<int> GetSelRows();
 		std::vector<int> GetSelCols();
 
@@ -184,7 +191,7 @@ namespace ui
 		GridBody *m_pBody;
 		std::map<int, void*> m_mapSelRow;
 		std::map<int, void*> m_mapSelCol;
-		std::vector<UiRect> m_vecRange;			//用UiRect代表一块选中的区域的四个角
+		std::vector<ui::UiRect> m_vecRange;			//用UiRect代表一块选中的区域的四个角
 
 		bool m_bSelAll = false;
 	};
@@ -202,12 +209,12 @@ namespace ui
 		~GridRow(){};
 
 		GridItem* operator[](int index){
-			assert(index >= 0 && index < (int)items.size());
+			ASSERT(index >= 0 && index < (int)items.size());
 			return items[index];
 		};
 
 		GridItem* at(int index){
-			assert(index >= 0 && index < (int)items.size());
+			ASSERT(index >= 0 && index < (int)items.size());
 			return items[index];
 		};
 

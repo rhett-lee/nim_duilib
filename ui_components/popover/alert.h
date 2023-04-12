@@ -1,6 +1,8 @@
 #pragma once
+
+#include "popover.h"
+
 namespace nim_comp {
-class PopoverFooter;
 
 class AlertFooter :public PopoverFooter
 {

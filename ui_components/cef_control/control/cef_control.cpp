@@ -1,6 +1,5 @@
-#include "stdafx.h"
 #include "cef_control.h"
-#include "cef_control/util/util.h"
+#include "ui_components/cef_control/util/util.h"
 
 namespace nim_comp {
 

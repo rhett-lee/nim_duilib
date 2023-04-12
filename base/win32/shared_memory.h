@@ -9,7 +9,7 @@
 
 #include "base/base_export.h"
 #include <assert.h>
-#include "build/winsdk_config.h"
+#include "base/build/winsdk_config.h"
 #include <windows.h>
 
 namespace nbase

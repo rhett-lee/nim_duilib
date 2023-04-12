@@ -1,4 +1,7 @@
-#include "stdafx.h"
+#include "Menu.h"
+#include "duilib/Utils/Shadow.h"
+#include "duilib/Core/Markup.h"
+#include "duilib/Control/ScrollBar.h"
 
 namespace ui {
 
@@ -120,7 +123,7 @@ void MenuBox::RemoveAll()
 
 void MenuBox::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
-	if (strName == _T("class")) {
+	if (strName == L"class") {
 		m_class = strValue;
 	}
 
@@ -227,11 +230,12 @@ void MenuWndEx::InitMenu(MenuElement* pOwner,
 	m_nFlags = flags;
 
 	if (!m_pOwner) {
+		wchar_t drive[_MAX_DRIVE] = { 0 };
 		wchar_t dir[_MAX_DIR] = { 0 };
 		wchar_t name[_MAX_FNAME] = { 0 };
 		wchar_t ext[_MAX_EXT] = { 0 };
 
-		_wsplitpath(xml.m_lpstr, NULL, dir, name, ext);
+		_wsplitpath_s(xml.m_lpstr, drive, dir, name, ext);
 		m_skinFloder = dir;
 		m_skinFile = name;
 		m_skinFile += ext;
@@ -242,7 +246,7 @@ void MenuWndEx::InitMenu(MenuElement* pOwner,
 
 	MenuManager::GetInstance()->GetSubject().AddObserver(this);
 
-	std::wstring title = MutiLanSupport::GetInstance()->GetStringViaID(L"STRID_MENU_TITLE");
+	std::wstring title = MultiLangSupport::GetInstance()->GetStringViaID(L"STRID_MENU_TITLE");
 	Create((m_pOwner == NULL) ? hParent : m_pOwner->GetWindow()->GetHWND(), title.c_str(), WS_POPUP, WS_EX_TOOLWINDOW | WS_EX_TOPMOST, true);
 
 	// HACK: Don't deselect the parent's caption
@@ -491,7 +495,7 @@ std::wstring MenuWndEx::GetSkinFile()
 
 std::wstring MenuWndEx::GetWindowClassName() const
 {
-	return _T("MenuWnd");
+	return L"MenuWnd";
 }
 
 void MenuWndEx::OnFinalMessage(HWND hWnd)
@@ -557,14 +561,14 @@ LRESULT MenuWndEx::OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam)
 		ASSERT(m_pMenuRoot);
 
 		if (!m_pOwner->GetSubMenuShadowImage().empty()) {
-			m_shadow.SetShadowImage(m_pOwner->GetSubMenuShadowImage());
-			m_shadow.SetShadowCorner(m_pOwner->GetSubMenuShadowCorner(), true);
-			AttachDialog(m_shadow.AttachShadow(pRoot));
+			m_shadow->SetShadowImage(m_pOwner->GetSubMenuShadowImage());
+			m_shadow->SetShadowCorner(m_pOwner->GetSubMenuShadowCorner(), true);
+			AttachDialog(m_shadow->AttachShadow(pRoot));
 		}
 		else if (m_pOwner->GetWindow()->IsShadowAttached()) {
-			m_shadow.SetShadowImage(m_pOwner->GetWindow()->GetShadowImage());
-			m_shadow.SetShadowCorner(m_pOwner->GetWindow()->GetShadowCorner(), false);
-			AttachDialog(m_shadow.AttachShadow(pRoot));
+			m_shadow->SetShadowImage(m_pOwner->GetWindow()->GetShadowImage());
+			m_shadow->SetShadowCorner(m_pOwner->GetWindow()->GetShadowCorner(), false);
+			AttachDialog(m_shadow->AttachShadow(pRoot));
 		}
 		else{
 			AttachDialog(pRoot);
@@ -601,11 +605,11 @@ LRESULT MenuWndEx::OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam)
 		}
 
 		if (CheckFlag(kUseDefaultShadow))
-			m_shadow.ResetDefaultShadow();
+			m_shadow->ResetDefaultShadow();
 
 		m_pMenuRoot = dynamic_cast<MenuBox*>(pRoot);
 		ASSERT(m_pMenuRoot);
-		AttachDialog(m_shadow.AttachShadow(pRoot));
+		AttachDialog(m_shadow->AttachShadow(pRoot));
 
 		MenuManager::GetInstance()->RegisterMenu(m_strMenuName, this);
 	}
@@ -832,7 +836,7 @@ ui::Control* MenuElement::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT u
 		return nullptr;
 	}
 	if ((uFlags & UIFIND_HITTEST) != 0) {
-		assert(pData != nullptr);
+		ASSERT(pData != nullptr);
 		if (pData == nullptr) {
 			return nullptr;
 		}
@@ -1022,25 +1026,25 @@ void MenuElement::HandleMessage(EventArgs& event)
 
 void MenuElement::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
-	if (strName == _T("autoclose"))	{
-		SetAutoCloseWhenClick(strValue == _T("true"));
+	if (strName == L"autoclose")	{
+		SetAutoCloseWhenClick(strValue == L"true");
 		return;
 	}
-	else if (strName == _T("submenu")) {
-		SetHasSubMenu(strValue == _T("true"));
+	else if (strName == L"submenu") {
+		SetHasSubMenu(strValue == L"true");
 		return;
 	}
-	else if (strName == _T("shadowimage")) {
+	else if (strName == L"shadowimage") {
 		SetSubMenuShadowImage(strValue);
 		return;
 	}
-	else if (strName == _T("shadowcorner")) {
+	else if (strName == L"shadowcorner") {
 		UiRect rc;
 		LPTSTR pstr = NULL;
-		rc.left = _tcstol(strValue.c_str(), &pstr, 10);  ASSERT(pstr);
-		rc.top = _tcstol(pstr + 1, &pstr, 10);    ASSERT(pstr);
-		rc.right = _tcstol(pstr + 1, &pstr, 10);  ASSERT(pstr);
-		rc.bottom = _tcstol(pstr + 1, &pstr, 10); ASSERT(pstr);
+		rc.left = wcstol(strValue.c_str(), &pstr, 10);  ASSERT(pstr);
+		rc.top = wcstol(pstr + 1, &pstr, 10);    ASSERT(pstr);
+		rc.right = wcstol(pstr + 1, &pstr, 10);  ASSERT(pstr);
+		rc.bottom = wcstol(pstr + 1, &pstr, 10); ASSERT(pstr);
 		SetSubMenuShadowCorner(rc);
 		return;
 	}
@@ -1094,7 +1098,7 @@ void MenuElement::CreateMenuWnd()
 	param.type = ContextMenuParam::kRemoveSubMenu;
 	MenuManager::GetInstance()->GetSubject().Notify(param);
 
-	m_pSubMenuWindow->InitMenu(static_cast<MenuElement*>(this), NULL, STRINGorID(_T("")), CPoint(), kRight | kBottom);
+	m_pSubMenuWindow->InitMenu(static_cast<MenuElement*>(this), NULL, STRINGorID(L""), CPoint(), kRight | kBottom);
 
 	m_pWindow->SendNotify(this, ui::kEventNotify, 0, 0);
 }

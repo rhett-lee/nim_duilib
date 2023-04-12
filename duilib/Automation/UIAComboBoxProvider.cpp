@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "UIAComboBoxProvider.h"
 
 #if defined(ENABLE_UIAUTOMATION)
 

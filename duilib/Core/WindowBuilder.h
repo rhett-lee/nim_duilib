@@ -3,11 +3,21 @@
 
 #pragma once
 
+#include "duilib/duilib_defs.h"
+#include "duilib/Utils/Utils.h"
+#include <functional>
+#include <string>
+#include <memory>
+
 namespace ui 
 {
 
 class Box;
 class Window;
+class Control;
+class CMarkup;
+class CMarkupNode;
+
 typedef std::function<Control* (const std::wstring&)> CreateControlCallback;
 
 class UILIB_API WindowBuilder
@@ -31,7 +41,7 @@ private:
 	void AttachXmlEvent(bool bBubbled, CMarkupNode& node, Control* pParent);
 
 private:
-    CMarkup m_xml;
+    std::unique_ptr<CMarkup> m_xml;
 	CreateControlCallback m_createControlCallback;
 };
 

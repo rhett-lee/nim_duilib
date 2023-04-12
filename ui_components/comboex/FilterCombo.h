@@ -1,11 +1,12 @@
 #pragma once
+#include "duilib/Control/List.h"
+#include "duilib/Core/Box.h"
+#include "duilib/Box/VBox.h"
+#include "duilib/Control/RichEdit.h"
 
 namespace nim_comp
 {
-	using namespace ui;
-
 class CFilterComboWnd;
-class ui::RichEdit;
 
 class UILIB_API IMatch {
 	virtual bool StringMatch(const std::string& utf8str) = 0;
@@ -17,10 +18,10 @@ public:
 	virtual bool StringMatch(const std::string& utf8str) override;
 };
 
-class FilterListBox : public ListBox
+class FilterListBox : public ui::ListBox
 {
 public:
-	explicit FilterListBox(Layout* pLayout = new VLayout) : ListBox(pLayout), m_pFilterComboWnd(nullptr){};
+	explicit FilterListBox(ui::Layout* pLayout = new ui::VLayout) : ui::ListBox(pLayout), m_pFilterComboWnd(nullptr){};
 	virtual ~FilterListBox(){};
 
 	virtual bool SelectItem(int iIndex, bool bTakeFocus = false, bool bTrigger = true) override;
@@ -32,7 +33,7 @@ private:
 	CFilterComboWnd *m_pFilterComboWnd;
 };
 
-class UILIB_API FilterCombo : public Box
+class UILIB_API FilterCombo : public ui::Box
 {
 	friend class CFilterComboWnd;
 public:
@@ -41,7 +42,7 @@ public:
 	FilterCombo& operator=(const FilterCombo& r) = delete;
 	virtual ~FilterCombo(){};
 
-	virtual void HandleMessage(EventArgs& args) override;
+	virtual void HandleMessage(ui::EventArgs& args) override;
 
 	/// 重写父类方法，提供个性化功能，请参考父类声明
 	virtual bool Add(Control* pControl) override;
@@ -81,14 +82,14 @@ public:
 	 * @brief 获取下拉框容器大小
 	 * @return 返回容器大小
 	 */
-    CSize GetDropBoxSize() const;
+	ui::CSize GetDropBoxSize() const;
 
 	/**
 	 * @brief 设置下拉框容器大小
 	 * @param[in] szDropBox 要设置的大小信息
 	 * @return 无
 	 */
-    void SetDropBoxSize(CSize szDropBox);
+    void SetDropBoxSize(ui::CSize szDropBox);
 	
 	/**
 	 * @brief 设置 Combobox 是否向上弹出
@@ -134,7 +135,7 @@ public:
 	 * @param[in] callback 子项被选择后触发的回调函数
 	 * @return 无
 	 */
-	void AttachSelect(const EventCallback& callback);
+	void AttachSelect(const ui::EventCallback& callback);
 
 private:
 	/**
@@ -142,19 +143,19 @@ private:
 	 * @param[in] args 参数列表
 	 * @return 始终返回 true
 	 */
-	bool OnSelectItem(EventArgs* args);
+	bool OnSelectItem(ui::EventArgs* args);
 
-	bool OnRichEditTextChanged(EventArgs* args);
-	bool OnRichEditButtonDown(EventArgs* args);
+	bool OnRichEditTextChanged(ui::EventArgs* args);
+	bool OnRichEditButtonDown(ui::EventArgs* args);
 
 protected:
 	CFilterComboWnd *m_pComboWnd;
 	std::unique_ptr<FilterListBox> m_pLayout;
 
-	RichEdit* m_pRichEdit;
+	ui::RichEdit* m_pRichEdit;
     int m_iCurSel;  
-	ControlStateType m_uButtonState;
-	CSize m_szDropBox;
+	ui::ControlStateType m_uButtonState;
+	ui::CSize m_szDropBox;
 	std::wstring m_sDropBoxAttributes;
 	bool m_bPopupTop;
 };

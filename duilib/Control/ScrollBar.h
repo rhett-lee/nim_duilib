@@ -3,13 +3,24 @@
 
 #pragma once
 
+#include "duilib/Core/Control.h"
+#include "base/callback/callback.h"
+
 namespace ui
 {
+#if defined(ENABLE_UIAUTOMATION)
+	class UIAControlProvider;
+#endif
 
-class UILIB_API ScrollBar : public Control
+	class ScrollableBox;
+	class StateImage;
+
+class UILIB_API ScrollBar: 
+	public Control
 {
 public:
 	ScrollBar();
+	ScrollBar(const ScrollBar& r);
 	ScrollBar& operator=(const ScrollBar& r) = delete;
 
 	Box* GetOwner() const;
@@ -17,7 +28,6 @@ public:
 
 	/// 重写父类方法，提供个性化功能，请参考父类声明
 	virtual std::wstring GetType() const override;
-	virtual UIAControlProvider* GetUIAProvider() override;
 	virtual void SetEnabled(bool bEnable = true) override;
 	virtual void SetFocus() override;
 	virtual void SetVisible_(bool bVisible) override;
@@ -31,6 +41,10 @@ public:
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 	virtual void Paint(IRenderContext* pRender, const UiRect& rcPaint) override;
 	virtual void ClearImageCache() override;
+
+#if defined(ENABLE_UIAUTOMATION)
+	virtual UIAControlProvider* GetUIAProvider() override;
+#endif
 
 	/**
 	 * @brief 是否是水平滚动条
@@ -259,11 +273,11 @@ protected:
 	ControlStateType m_uButton2State;
 	ControlStateType m_uThumbState;
 	std::wstring m_sImageModify;
-	StateImage m_bkStateImage;
-	StateImage m_button1StateImage;
-	StateImage m_button2StateImage;
-	StateImage m_thumbStateImage;
-	StateImage m_railStateImage;
+	std::unique_ptr<StateImage> m_bkStateImage;
+	std::unique_ptr<StateImage> m_button1StateImage;
+	std::unique_ptr<StateImage> m_button2StateImage;
+	std::unique_ptr<StateImage> m_thumbStateImage;
+	std::unique_ptr<StateImage> m_railStateImage;
 	nbase::WeakCallbackFlag m_weakFlagOwner;
 };
 

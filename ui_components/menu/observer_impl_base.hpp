@@ -47,7 +47,7 @@ public:
 			return;
 		if (std::find(receivers_.cbegin(), receivers_.cend(), receiver) != receivers_.cend())
 		{
-			assert(0);
+			ASSERT(0);
 			return;
 		}
 
@@ -111,7 +111,7 @@ public:
 		DWORD index;
 		ReceiverImplBase<ReturnT, ParamT>* ptr;
 	public:
-		Iterator( ObserverImpl & table )
+		explicit Iterator( ObserverImpl & table )
 			: _tbl( table ), index(0), ptr(NULL)
 		{}
 

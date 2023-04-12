@@ -1,6 +1,10 @@
 #ifndef UI_UTILS_STRINGUTIL_H_
 #define UI_UTILS_STRINGUTIL_H_
 
+#include "duilib/duilib_defs.h"
+#include <string>
+#include <list>
+
 namespace ui
 {
 

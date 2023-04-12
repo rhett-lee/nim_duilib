@@ -6,7 +6,10 @@
  */
 #pragma once
 
-#include "cef_control/handler/drag/osr_dragdrop_win.h"
+#include "duilib/duilib_defs.h"
+#include "ui_components/cef_control/handler/drag/osr_dragdrop_win.h"
+#include "base/framework/message_loop.h"
+#include "base/memory/singleton.h"
 
 #pragma warning (push)
 #pragma warning (disable:4100)
@@ -36,7 +39,7 @@ private:
 /** @class CefManager
  * @brief Cef组件初始化和销毁
  */
-class CefManager : public nbase::SupportWeakCallback
+class CefManager : public virtual nbase::SupportWeakCallback
 {
 public:
 	SINGLETON_DEFINE(CefManager);

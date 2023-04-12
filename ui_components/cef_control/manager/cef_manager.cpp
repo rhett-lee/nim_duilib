@@ -1,7 +1,10 @@
-#include "stdafx.h"
 #include "cef_manager.h"
-#include "cef_control/app/client_app.h"
-#include "cef_control/handler/browser_handler.h"
+#include "ui_components/cef_control/app/client_app.h"
+#include "ui_components/cef_control/handler/browser_handler.h"
+#include "ui_components/public_define.h"
+#include "base/win32/path_util.h"
+#include "base/file/file_util.h"
+#include "base/thread/thread_manager.h"
 
 #pragma warning (push)
 #pragma warning (disable:4100)

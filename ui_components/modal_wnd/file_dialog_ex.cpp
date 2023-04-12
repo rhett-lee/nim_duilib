@@ -1,14 +1,12 @@
-#include "stdafx.h"
-#include <tchar.h>
-#include <Shlobj.h>
-
 #include "file_dialog_ex.h"
 #include "async_do_modal.h"
+#include "ui_components/public_define.h"
 #include "base/thread/thread_manager.h"
 #include "base/util/string_util.h"
 #include "base/file/file_util.h"
 
-
+#include <tchar.h>
+#include <Shlobj.h>
 
 #pragma comment(lib,"Shell32.lib")
 
@@ -89,14 +87,14 @@ void CFileDialogEx::SetFilter(LPCTSTR lpszFilter)
 void CFileDialogEx::SetFilter(std::map<LPCTSTR,LPCTSTR>& filters)
 {
 	std::map<LPCTSTR,LPCTSTR>::iterator it = filters.begin();
-	size_t size = filters.size()*100;
+	const size_t size = filters.size()*100;
 	wchar_t* filterstring= new wchar_t[size];
 	size_t offset = 0;
 	for(;it != filters.end();++it)
 	{
-		_tcscpy(filterstring + offset,it->first);
+		_tcscpy_s(filterstring + offset, size - offset,it->first);
 		offset += _tcslen(it->first) + 1;
-		_tcscpy(filterstring + offset,it->second);
+		_tcscpy_s(filterstring + offset, size - offset, it->second);
 		offset += _tcslen(it->second) + 1;
 	}
 	*(filterstring + offset) = '\0';

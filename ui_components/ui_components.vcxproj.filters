@@ -61,14 +61,8 @@
     <Filter Include="popover">
       <UniqueIdentifier>{9909f163-035f-4861-8cf9-6ba43ac5c02d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="mini_blink_control">
-      <UniqueIdentifier>{244bf314-260f-4a39-becf-d98b0aacbc40}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="stdafx.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="targetver.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -192,23 +186,8 @@
     <ClInclude Include="comboex\ShadowCombo.h">
       <Filter>comboex</Filter>
     </ClInclude>
-    <ClInclude Include="mini_blink_control\web_view_base.h">
-      <Filter>mini_blink_control</Filter>
-    </ClInclude>
-    <ClInclude Include="mini_blink_control\wke_web_view.h">
-      <Filter>mini_blink_control</Filter>
-    </ClInclude>
-    <ClInclude Include="mini_blink_control\wke_memory_dc.h">
-      <Filter>mini_blink_control</Filter>
-    </ClInclude>
-    <ClInclude Include="mini_blink_control\wke_web_native.h">
-      <Filter>mini_blink_control</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="stdafx.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="msgbox\msgbox.cpp">
       <Filter>msgbox</Filter>
     </ClCompile>
@@ -313,18 +292,6 @@
     </ClCompile>
     <ClCompile Include="comboex\ShadowCombo.cpp">
       <Filter>comboex</Filter>
-    </ClCompile>
-    <ClCompile Include="mini_blink_control\web_view_base.cpp">
-      <Filter>mini_blink_control</Filter>
-    </ClCompile>
-    <ClCompile Include="mini_blink_control\wke_web_view.cpp">
-      <Filter>mini_blink_control</Filter>
-    </ClCompile>
-    <ClCompile Include="mini_blink_control\wke_memory_dc.cpp">
-      <Filter>mini_blink_control</Filter>
-    </ClCompile>
-    <ClCompile Include="mini_blink_control\wke_web_native.cpp">
-      <Filter>mini_blink_control</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

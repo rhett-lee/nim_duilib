@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "ui_menu.h"
 
 namespace nim_comp {
@@ -6,7 +5,7 @@ namespace nim_comp {
 /////////////////////////////////////////////////////////////////////////////////////
 //
 
-Control* CMenuWnd::CreateControl(const std::wstring& pstrClass)
+ui::Control* CMenuWnd::CreateControl(const std::wstring& pstrClass)
 {
 	if (pstrClass == kMenuElementUIInterfaceName)
 	{
@@ -47,14 +46,14 @@ CMenuWnd::CMenuWnd(HWND hParent) :
 	m_hParent(hParent),	
 	m_BasedPoint({0}),
 	m_popupPosType(RIGHT_TOP),
-	m_xml(_T("")),
+	m_xml(L""),
 	no_focus_(false),
 	m_pOwner(nullptr),
 	m_pLayout(nullptr)
 {
 }
 
-void CMenuWnd::Init(STRINGorID xml, LPCTSTR /*pSkinType*/, POINT point, PopupPosType popupPosType, bool no_focus, CMenuElementUI* pOwner)
+void CMenuWnd::Init(ui::STRINGorID xml, LPCTSTR /*pSkinType*/, POINT point, PopupPosType popupPosType, bool no_focus, CMenuElementUI* pOwner)
 {
 	m_BasedPoint = point;
 	m_popupPosType = popupPosType;
@@ -65,7 +64,7 @@ void CMenuWnd::Init(STRINGorID xml, LPCTSTR /*pSkinType*/, POINT point, PopupPos
 
 	CMenuWnd::GetMenuObserver().AddReceiver(this);
 
-	Create(m_hParent, L"NIM_DUILIB_MENU_WINDOW", WS_POPUP, WS_EX_TOOLWINDOW | WS_EX_TOPMOST, true, UiRect());
+	Create(m_hParent, L"NIM_DUILIB_MENU_WINDOW", WS_POPUP, WS_EX_TOOLWINDOW | WS_EX_TOPMOST, true, ui::UiRect());
 	// HACK: Don't deselect the parent's caption
 	HWND hWndParent = m_hWnd;
 	while (::GetParent(hWndParent) != NULL) hWndParent = ::GetParent(hWndParent);
@@ -114,7 +113,7 @@ void CMenuWnd::OnFinalMessage(HWND hWnd)
 
 std::wstring CMenuWnd::GetWindowClassName() const
 {
-	return _T("MenuWnd");
+	return L"MenuWnd";
 }
 
 LRESULT CMenuWnd::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -197,22 +196,22 @@ LRESULT CMenuWnd::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 void CMenuWnd::ResizeMenu()
 {
-	Control* pRoot = GetRoot();
+	ui::Control* pRoot = GetRoot();
 	MONITORINFO oMonitor = {};
 	oMonitor.cbSize = sizeof(oMonitor);
 	//点击在哪里，以哪里的屏幕为主
 	::GetMonitorInfo(::MonitorFromPoint(m_BasedPoint, MONITOR_DEFAULTTOPRIMARY), &oMonitor);
-	UiRect rcWork(oMonitor.rcWork);
+	ui::UiRect rcWork(oMonitor.rcWork);
 
-	CSize szAvailable = { rcWork.right - rcWork.left, rcWork.bottom - rcWork.top };
+	ui::CSize szAvailable = { rcWork.right - rcWork.left, rcWork.bottom - rcWork.top };
 	szAvailable = pRoot->EstimateSize(szAvailable);   //这里带上了阴影窗口
 	SetInitSize(szAvailable.cx, szAvailable.cy);
-	UiRect rcCorner = GetShadowCorner();
-	CSize szInit=szAvailable;   
+	ui::UiRect rcCorner = GetShadowCorner();
+	ui::CSize szInit=szAvailable;
 	szInit.cx -= rcCorner.left + rcCorner.right;
 	szInit.cy -= rcCorner.top + rcCorner.bottom; //这里去掉阴影窗口，即用户的视觉有效面积 szInit<=szAvailable
 	
-	CPoint point(m_BasedPoint);  //这里有个bug，由于坐标点与包含在窗口内，会直接出发mouseenter导致出来子菜单，偏移1个像素
+	ui::CPoint point(m_BasedPoint);  //这里有个bug，由于坐标点与包含在窗口内，会直接出发mouseenter导致出来子菜单，偏移1个像素
 	if (static_cast<int>(m_popupPosType) & static_cast<int>(eMenuAlignment_Right))
 	{
 		point.x += -szAvailable.cx + rcCorner.right + rcCorner.left;
@@ -272,8 +271,8 @@ void CMenuWnd::ResizeSubMenu()
 	MONITORINFO oMonitor = {};
 	oMonitor.cbSize = sizeof(oMonitor);
 	::GetMonitorInfo(::MonitorFromPoint(m_BasedPoint, MONITOR_DEFAULTTOPRIMARY), &oMonitor);
-	UiRect rcWork (oMonitor.rcWork);
-	CSize szAvailable = { rcWork.right - rcWork.left, rcWork.bottom - rcWork.top };
+	ui::UiRect rcWork (oMonitor.rcWork);
+	ui::CSize szAvailable = { rcWork.right - rcWork.left, rcWork.bottom - rcWork.top };
 
 	for (int it = 0; it < m_pLayout->GetCount(); it++) {
 		//取子菜单项中的最大值作为菜单项
@@ -287,7 +286,7 @@ void CMenuWnd::ResizeSubMenu()
 				cxFixed = sz.cx;
 		}
 	}
-	UiRect rcCorner = GetShadowCorner();
+	ui::UiRect rcCorner = GetShadowCorner();
 	RECT rcWindow;
 	GetWindowRect(m_pOwner->GetWindow()->GetHWND(), &rcWindow);
 	//去阴影
@@ -372,8 +371,8 @@ void CMenuWnd::Show()
 	MONITORINFO oMonitor = {};
 	oMonitor.cbSize = sizeof(oMonitor);
 	::GetMonitorInfo(::MonitorFromWindow(m_hWnd, MONITOR_DEFAULTTOPRIMARY), &oMonitor);
-	UiRect rcWork(oMonitor.rcWork);
-	UiRect monitor_rect(oMonitor.rcMonitor);
+	ui::UiRect rcWork(oMonitor.rcWork);
+	ui::UiRect monitor_rect(oMonitor.rcMonitor);
 	ui::CSize szInit = { rcWork.right - rcWork.left, rcWork.bottom - rcWork.top };
 	szInit = GetRoot()->EstimateSize(szInit);
 	szInit.cx -= GetShadowCorner().left + GetShadowCorner().right;
@@ -397,7 +396,7 @@ void CMenuWnd::Show()
 		//兼容老版本
 		return;
 	}
-	UiRect rc;
+	ui::UiRect rc;
 	rc.left = m_BasedPoint.x;
 	rc.top = m_BasedPoint.y;
 	if (rc.top < monitor_rect.top)
@@ -427,7 +426,7 @@ void CMenuWnd::InitWindow()
 {
 	if (m_pOwner)
 	{
-		m_pLayout = dynamic_cast<ListBox*>(FindControl(L"submenu"));
+		m_pLayout = dynamic_cast<ui::ListBox*>(FindControl(L"submenu"));
 		ASSERT(m_pLayout);
 		if (m_pLayout == nullptr) {
 			return;
@@ -448,13 +447,13 @@ void CMenuWnd::InitWindow()
 	}
 	else
 	{
-		m_pLayout = dynamic_cast<ListBox*>(m_pRoot);
+		m_pLayout = dynamic_cast<ui::ListBox*>(m_pRoot);
 		if (m_pLayout == NULL)
 		{
 			//允许外面套层阴影
 			if ((m_pRoot != nullptr) && (m_pRoot->GetCount() > 0))
 			{
-				m_pLayout = dynamic_cast<ListBox*>(m_pRoot->GetItemAt(0));
+				m_pLayout = dynamic_cast<ui::ListBox*>(m_pRoot->GetItemAt(0));
 			}
 		}
 		ASSERT(m_pLayout);
@@ -464,7 +463,7 @@ void CMenuWnd::InitWindow()
 
 
 // MenuElementUI
-const TCHAR* const kMenuElementUIInterfaceName = _T("MenuElement");
+const TCHAR* const kMenuElementUIInterfaceName = L"MenuElement";
 
 CMenuElementUI::CMenuElementUI() :
 m_pSubWindow(nullptr)
@@ -492,7 +491,7 @@ bool CMenuElementUI::Add(Control* pControl)
 		return __super::Add(pControl);
 	if (std::find(m_child_menus.cbegin(), m_child_menus.cend(), pMenuItem) != m_child_menus.cend())
 	{
-		assert(0);
+		ASSERT(0);
 		return false;
 	}
 	m_child_menus.push_back(pMenuItem);
@@ -504,7 +503,7 @@ bool CMenuElementUI::AddSubMenuItem(CMenuElementUI* pMenuItem)
 	if (pMenuItem == NULL) return false;
 	if (std::find(m_child_menus.cbegin(), m_child_menus.cend(), pMenuItem) != m_child_menus.cend())
 	{
-		assert(0);
+		ASSERT(0);
 		return false;
 	}
 	m_child_menus.push_back(pMenuItem);
@@ -519,7 +518,7 @@ bool CMenuElementUI::AddSubMenuItemAt(CMenuElementUI* pMenuItem, size_t iIndex)
 	}
 	if (std::find(m_child_menus.cbegin(), m_child_menus.cend(), pMenuItem) != m_child_menus.cend())
 	{
-		assert(0);
+		ASSERT(0);
 		return false;
 	}
 	m_child_menus.insert(m_child_menus.begin() + iIndex, pMenuItem);
@@ -562,7 +561,7 @@ CMenuElementUI* CMenuElementUI::GetSubMenuItemAt(size_t iIndex) const
 	return m_child_menus[iIndex];
 }
 
-bool CMenuElementUI::ButtonUp(EventArgs& msg)
+bool CMenuElementUI::ButtonUp(ui::EventArgs& msg)
 {
 	std::weak_ptr<nbase::WeakFlag> weakFlag = m_pWindow->GetWeakFlag();
 	bool ret = __super::ButtonUp(msg);
@@ -580,7 +579,7 @@ bool CMenuElementUI::ButtonUp(EventArgs& msg)
 	return ret;
 }
 
-bool CMenuElementUI::MouseEnter(EventArgs& msg)
+bool CMenuElementUI::MouseEnter(ui::EventArgs& msg)
 {
 	std::weak_ptr<nbase::WeakFlag> weakFlag = m_pWindow->GetWeakFlag();
 	bool ret = __super::MouseEnter(msg);
@@ -601,9 +600,9 @@ bool CMenuElementUI::MouseEnter(EventArgs& msg)
 	return ret;
 }
 
-void CMenuElementUI::PaintChild(IRenderContext* pRender, const UiRect& rcPaint)
+void CMenuElementUI::PaintChild(ui::IRenderContext* pRender, const ui::UiRect& rcPaint)
 {
-	UiRect rcTemp;
+	ui::UiRect rcTemp;
 	if (!::IntersectRect(&rcTemp, &rcPaint, &m_rcItem)) return;
 
 	for (auto it = m_items.begin(); it != m_items.end(); it++) {
@@ -655,7 +654,7 @@ void CMenuElementUI::CreateMenuWnd()
 	param.wParam = eMenuCloseThis;
 	CMenuWnd::GetMenuObserver().RBroadcast(param);
 
-	m_pSubWindow->Init(STRINGorID(_T("submenu.xml")), _T(""), CPoint(), CMenuWnd::RIGHT_BOTTOM, false, this);
+	m_pSubWindow->Init(ui::STRINGorID(L"submenu.xml"), L"", ui::CPoint(), CMenuWnd::RIGHT_BOTTOM, false, this);
 }
 
 } // namespace ui

@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "duilib/Render/IRender.h"
+
 namespace ui 
 {
 

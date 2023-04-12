@@ -1,4 +1,6 @@
-#include "StdAfx.h"
+#include "Shadow.h"
+#include "duilib/Core/Box.h"
+#include "duilib/Utils/DpiManager.h"
 
 namespace ui 
 {

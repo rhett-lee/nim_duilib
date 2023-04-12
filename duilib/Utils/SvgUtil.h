@@ -1,8 +1,13 @@
 #ifndef UI_UTILS_SVGUTIL_H_
 #define UI_UTILS_SVGUTIL_H_
 
+#include "duilib/duilib_defs.h"
+#include <string>
+#include <memory>
+
 namespace ui
 {
+	class ImageInfo;
 
 class UILIB_API SvgUtil
 {

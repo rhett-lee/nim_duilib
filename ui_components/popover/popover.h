@@ -1,5 +1,11 @@
 #pragma once
 
+#include "duilib/Core/Control.h"
+#include "duilib/Box/HBox.h"
+#include "duilib/Box/VBox.h"
+#include "duilib/Render/IRender.h"
+#include "duilib/Control/RichEdit.h"
+#include "duilib/Control/Button.h"
 #include <atomic>
 
 namespace nim_comp {

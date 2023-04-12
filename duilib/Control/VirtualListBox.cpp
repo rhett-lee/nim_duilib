@@ -4,8 +4,8 @@
 // 2015/7/22
 //
 // VirtualListBox class
-#include "stdafx.h"
 #include "VirtualListBox.h"
+#include "duilib/Control/ScrollBar.h"
 
 namespace ui
 {
@@ -436,8 +436,8 @@ void VirtualListBox::SetPos(UiRect rc)
 
 void VirtualListBox::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
-	if (strName == _T("vertical")) {
-		SetDirection(strValue == _T("true") ? kListVertical : kListHorizontal);
+	if (strName == L"vertical") {
+		SetDirection(strValue == L"true" ? kListVertical : kListHorizontal);
 	}
 	else {
 		__super::SetAttribute(strName, strValue);

@@ -1,6 +1,5 @@
-#include "stdafx.h"
 #include "CircleProgress.h"
-#include "shlwapi.h"
+#include <shlwapi.h>
 
 namespace ui
 {
@@ -24,23 +23,23 @@ std::wstring CircleProgress::GetType() const
 
 void CircleProgress::SetAttribute(const std::wstring& srName, const std::wstring& strValue)
 {
-	if (srName == _T("circular")) SetCircular(strValue == _T("true"));
-	else if (srName == _T("circlewidth")) SetCircleWidth(_ttoi(strValue.c_str()));
-	else if (srName == _T("indicator")) SetIndicator(strValue);
-	else if (srName == _T("clockwise")) SetClockwiseRotation(strValue == _T("true"));
-	else if (srName == _T("bgcolor")) {
+	if (srName == L"circular") SetCircular(strValue == L"true");
+	else if (srName == L"circlewidth") SetCircleWidth(_wtoi(strValue.c_str()));
+	else if (srName == L"indicator") SetIndicator(strValue);
+	else if (srName == L"clockwise") SetClockwiseRotation(strValue == L"true");
+	else if (srName == L"bgcolor") {
 		LPCTSTR pValue = strValue.c_str();
-		while (*pValue > _T('\0') && *pValue <= _T(' ')) pValue = ::CharNext(pValue);
+		while (*pValue > '\0' && *pValue <= ' ') pValue = ::CharNext(pValue);
 		SetBackgroudColor(pValue);
 	}
-	else if (srName == _T("fgcolor")) {
+	else if (srName == L"fgcolor") {
 		LPCTSTR pValue = strValue.c_str();
-		while (*pValue > _T('\0') && *pValue <= _T(' ')) pValue = ::CharNext(pValue);
+		while (*pValue > L'\0' && *pValue <= L' ') pValue = ::CharNext(pValue);
 		SetForegroudColor(pValue);
 	}
-	else if (srName == _T("gradientcolor")) {
+	else if (srName == L"gradientcolor") {
 		LPCTSTR pValue = strValue.c_str();
-		while (*pValue > _T('\0') && *pValue <= _T(' ')) pValue = ::CharNext(pValue);
+		while (*pValue > L'\0' && *pValue <= L' ') pValue = ::CharNext(pValue);
 		SetCircleGradientColor(pValue);
 	}
 	else Progress::SetAttribute(srName, strValue);
@@ -48,7 +47,7 @@ void CircleProgress::SetAttribute(const std::wstring& srName, const std::wstring
 
 void CircleProgress::PaintStatusImage(IRenderContext* pRender)
 {
-	assert(pRender != nullptr);
+	ASSERT(pRender != nullptr);
 	if (pRender == nullptr) {
 		return;
 	}

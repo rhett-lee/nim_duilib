@@ -1,6 +1,6 @@
-#include "StdAfx.h"
 #include "GridBase.h"
-#include "GridBody.h"
+#include "ui_components/grid/GridBody.h"
+#include "duilib/Utils/StringUtil.h"
 
 namespace ui
 {
@@ -59,7 +59,7 @@ namespace ui
 		for (auto it = m_mapSelRow.cbegin(); it != m_mapSelRow.cend(); it++)
 		{
 			int row_index = it->first;
-			assert(row_index >= fixed_row_count && row_index < row_count);
+			ASSERT(row_index >= fixed_row_count && row_index < row_count);
 			if (row_index < fixed_row_count || row_index >= row_count)
 				continue;
 			GridRow *pRow = m_pBody->m_vecRow[row_index];
@@ -78,7 +78,7 @@ namespace ui
 				for (auto it = m_mapSelCol.cbegin(); it != m_mapSelCol.cend(); it++)
 				{
 					int col_index = it->first;
-					assert(col_index >= fixed_col_count && col_index < col_count);
+					ASSERT(col_index >= fixed_col_count && col_index < col_count);
 					if (col_index < fixed_col_count || col_index >= col_count)
 						continue;
 					pRow->at(col_index)->text = L"";
@@ -147,10 +147,10 @@ namespace ui
 	}
 
 	void GridSelRange::SetSelItem(int row_index, int col_index, bool ctrl, bool shift){
-		assert(m_vecRange.size() < 2);
+		ASSERT(m_vecRange.size() < 2);
 
 		GridItem *pItem = m_pBody->GetGridItem(row_index, col_index);
-		assert(pItem);
+		ASSERT(pItem);
 		if (!pItem)
 			return;
 		bool bSelected = pItem->IsSelected();
@@ -172,7 +172,7 @@ namespace ui
 
 			if (m_mapSelRow.find(row_index) != m_mapSelRow.end())	//row_index为选中状态
 			{
-				assert(bSelected);
+				ASSERT(bSelected);
 				bInSelRow = true;
 				rc.left = m_pBody->GetFixedColCount();
 				rc.right = m_pBody->GetColCount() - 1;
@@ -186,7 +186,7 @@ namespace ui
 
 			if (m_mapSelCol.find(col_index) != m_mapSelCol.end())	//col_index为选中状态
 			{
-				assert(bSelected);
+				ASSERT(bSelected);
 				bInSelCol = true;
 				rc.top = m_pBody->GetFixedRowCount();
 				rc.bottom = m_pBody->GetRowCount() - 1;
@@ -218,7 +218,7 @@ namespace ui
 		{
 			if (m_vecRange.size() == 0)
 			{
-				assert(!bSelected);
+				ASSERT(!bSelected);
 				UiRect rc(col_index, row_index, col_index, row_index);
 				m_vecRange.push_back(rc);
 				m_pBody->_SelItem(row_index, col_index, true);
@@ -248,7 +248,7 @@ namespace ui
 
 	void GridSelRange::SetSelItemRange(UiRect rc, bool ctrl, bool shift)
 	{
-		assert(m_vecRange.size() < 3);
+		ASSERT(m_vecRange.size() < 3);
 		if (ctrl && shift)
 		{
 			ctrl = false;
@@ -264,7 +264,7 @@ namespace ui
 		}
 		else
 		{
-			assert(m_vecRange.size() > 0);		//ButtonDown时应该调用了SetSelItem, 给m_vecRange赋值
+			ASSERT(m_vecRange.size() > 0);		//ButtonDown时应该调用了SetSelItem, 给m_vecRange赋值
 			if (m_vecRange.size() == 0)
 			{
 				m_vecRange.push_back(rc);
@@ -294,7 +294,7 @@ namespace ui
 
 	void GridSelRange::SetSelRow(int row_index, bool ctrl, bool shift)
 	{
-		assert(m_vecRange.size() < 2);
+		ASSERT(m_vecRange.size() < 2);
 		if (ctrl && shift)
 		{
 			ctrl = false;
@@ -360,8 +360,8 @@ namespace ui
 	void GridSelRange::SetSelRowRange(int row_index, int row_index_end, bool ctrl, bool shift)
 	{
 
-		assert(m_vecRange.size() < 2);
-		assert(row_index <= row_index_end);
+		ASSERT(m_vecRange.size() < 2);
+		ASSERT(row_index <= row_index_end);
 		if (row_index > row_index_end)
 			return;
 		if (ctrl || shift)		//直接返回不处理了, 搞不清逻辑了
@@ -431,7 +431,7 @@ namespace ui
 
 	void GridSelRange::SetSelCol(int col_index, bool ctrl, bool shift)
 	{
-		assert(m_vecRange.size() < 2);
+		ASSERT(m_vecRange.size() < 2);
 		if (ctrl && shift)
 		{
 			ctrl = false;
@@ -495,8 +495,8 @@ namespace ui
 
 	void GridSelRange::SetSelColRange(int col_index, int col_index_end, bool ctrl, bool shift)
 	{
-		assert(m_vecRange.size() < 2);
-		assert(col_index <= col_index_end);
+		ASSERT(m_vecRange.size() < 2);
+		ASSERT(col_index <= col_index_end);
 		if (col_index > col_index_end)
 			return;
 		if (ctrl || shift)		//直接返回不处理了, 搞不清逻辑了
@@ -566,7 +566,7 @@ namespace ui
 
 	void GridSelRange::MergeRange()
 	{
-		assert(m_vecRange.size() < 3);
+		ASSERT(m_vecRange.size() < 3);
 		if (m_vecRange.size() == 2)
 		{
 			UiRect rc = m_vecRange[0];
@@ -731,7 +731,7 @@ namespace ui
 			for (int col_index = rc.left; col_index <= rc.right; col_index++)
 			{
 				pItem = pRow->at(col_index);
-				assert(pItem);
+				ASSERT(pItem);
 				if (pItem && pItem->IsSelected())
 					strContent += pItem->text;
 				if (col_index < rc.right)
@@ -764,7 +764,7 @@ namespace ui
 				::CloseClipboard();
 				return;
 			}
-			wcscpy(pBuf, strContent.c_str());
+			wcscpy_s(pBuf, strContent.size() + 1, strContent.c_str());
 			::GlobalUnlock(hClip);
 
 			if (NULL == ::SetClipboardData(CF_UNICODETEXT, hClip))
@@ -784,7 +784,7 @@ namespace ui
 					for (int col_index = rc.left; col_index <= rc.right; col_index++)
 					{
 						pItem = pRow->at(col_index);
-						assert(pItem);
+						ASSERT(pItem);
 						if (pItem && pItem->IsSelected())
 							pItem->text = L"";
 					}
@@ -830,7 +830,7 @@ namespace ui
 					return;
 				}
 				char *pStr = (char*)GlobalLock(hClip);
-				StringHelper::MBCSToUnicode(pStr, strClipboard);
+				ui::StringHelper::MBCSToUnicode(pStr, strClipboard);
 				GlobalUnlock(hClip);
 				CloseClipboard();
 			}

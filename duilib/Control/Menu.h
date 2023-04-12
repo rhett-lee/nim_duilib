@@ -3,8 +3,12 @@
 
 #pragma once
 
+#include "duilib/duilib_defs.h"
+#include "duilib/Control/List.h"
+#include "duilib/Utils/WinImplBase.h"
 #include <map>
 #include <vector>
+#include <string>
 
 // #define SUB_MENU_POPUP_CALC_SHADOW
 
@@ -218,7 +222,6 @@ private:
 /////////////////////////////////////////////////////////////////////////////////////
 //
 
-class ListBox;
 class UILIB_API MenuBox : public ListBox
 {
 public:
@@ -433,7 +436,7 @@ public:
 	  * @param[in] callback 事件处理器
 	  * @return void 无返回值
 	  */
-	void AttachPopupSubMenu(const EventCallback& callback) { OnEvent[kEventNotify] += callback; }
+	void AttachPopupSubMenu(const EventCallback& callback) { m_OnEvent[kEventNotify] += callback; }
 
 	/** @brief 菜单项被单击后，是否自动关闭菜单
 	  * @param[in] value 是否自动关闭菜单

@@ -1,4 +1,8 @@
-#include "StdAfx.h"
+#include "PlaceHolder.h"
+#include "duilib/Core/Box.h"
+#include "duilib/Core/Window.h"
+#include "duilib/Utils/StringUtil.h"
+#include "duilib/Utils/DpiManager.h"
 
 namespace ui
 {
@@ -42,7 +46,6 @@ PlaceHolder::PlaceHolder(const PlaceHolder& r) :
 	m_bUseCache(r.m_bUseCache),
 	m_bCacheDirty(r.m_bCacheDirty)
 {
-	m_renderContext.reset();
 }
 
 PlaceHolder::~PlaceHolder()
@@ -294,15 +297,13 @@ void PlaceHolder::SetReEstimateSize(bool bReEstimateSize)
 	m_bReEstimateSize = bReEstimateSize;
 }
 
-CSize PlaceHolder::EstimateSize(CSize szAvailable)
+CSize PlaceHolder::EstimateSize(CSize /*szAvailable*/)
 {
-	(void)szAvailable;
 	return m_cxyFixed;
 }
 
-UiRect PlaceHolder::GetPos(bool bContainShadow) const
+UiRect PlaceHolder::GetPos(bool /*bContainShadow*/) const
 {
-	(void)bContainShadow;
 	return m_rcItem;
 }
 
@@ -417,7 +418,7 @@ CPoint PlaceHolder::GetScrollOffset() const
 			//说明控件在Listbox内部
 			
 			ScrollableBox* listbox = dynamic_cast<ScrollableBox*>(parent);
-			assert(listbox != nullptr);
+			ASSERT(listbox != nullptr);
 			if (listbox != nullptr) {
 				scrollPos.x += listbox->GetScrollPos().cx;
 				scrollPos.y += listbox->GetScrollPos().cy;

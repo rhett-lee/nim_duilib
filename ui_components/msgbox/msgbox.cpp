@@ -1,9 +1,8 @@
-#include "stdafx.h"
 #include "msgbox.h"
+#include "ui_components/public_define.h"
+#include "base/thread/thread_manager.h"
 
 namespace nim_comp {
-
-using namespace ui;
 
 void ShowMsgBox(HWND hwnd, MsgboxCallback cb,
 	const std::wstring &content, bool content_is_id,
@@ -15,7 +14,7 @@ void ShowMsgBox(HWND hwnd, MsgboxCallback cb,
 	HWND hWnd = msgbox->Create(hwnd, L"", WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX, 0);
 	if (hWnd == NULL)
 		return;
-	MutiLanSupport *multilan = MutiLanSupport::GetInstance();
+	ui::MultiLangSupport *multilan = ui::MultiLangSupport::GetInstance();
 	msgbox->SetTitle(title_is_id ? multilan->GetStringViaID(title) : title);
 	msgbox->SetContent(content_is_id ? multilan->GetStringViaID(content) : content);
 	msgbox->SetButton(btn_yes_is_id ? multilan->GetStringViaID(yes) : yes, btn_no_is_id ? multilan->GetStringViaID(no) : no);
@@ -99,10 +98,10 @@ void MsgBox::InitWindow()
 {
 	m_pRoot->AttachBubbledEvent(ui::kEventClick, nbase::Bind(&MsgBox::OnClicked, this, std::placeholders::_1));
 
-	title_ = (Label*)FindControl(L"title");
-	content_ = (RichEdit*)FindControl(L"content");
-	btn_yes_ = (Button*)FindControl(L"btn_yes");
-	btn_no_ = (Button*)FindControl(L"btn_no");
+	title_ = (ui::Label*)FindControl(L"title");
+	content_ = (ui::RichEdit*)FindControl(L"content");
+	btn_yes_ = (ui::Button*)FindControl(L"btn_yes");
+	btn_no_ = (ui::Button*)FindControl(L"btn_no");
 }
 
 bool MsgBox::OnClicked(ui::EventArgs* msg)

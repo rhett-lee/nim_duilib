@@ -3,7 +3,9 @@
 
 #pragma once
 
-#include <oaidl.h> // for VARIANT
+#include "duilib/duilib_defs.h"
+#include "duilib/Utils/Macros.h"
+#include <string>
 
 namespace ui
 {
@@ -11,7 +13,7 @@ namespace ui
 /////////////////////////////////////////////////////////////////////////////////////
 //
 
-class STRINGorID
+class UILIB_API STRINGorID
 {
 public:
 	explicit STRINGorID(LPCTSTR lpString) : m_lpstr(lpString)
@@ -234,51 +236,6 @@ public:
 	}
 };
 
-/////////////////////////////////////////////////////////////////////////////////////
-//
-
-class CVariant : public VARIANT
-{
-public:
-	CVariant() 
-	{ 
-		VariantInit(this); 
-	}
-
-	explicit CVariant(int i)
-	{
-		VariantInit(this);
-		this->vt = VT_I4;
-		this->intVal = i;
-	}
-
-	explicit CVariant(float f)
-	{
-		VariantInit(this);
-		this->vt = VT_R4;
-		this->fltVal = f;
-	}
-
-	explicit CVariant(LPOLESTR s)
-	{
-		VariantInit(this);
-		this->vt = VT_BSTR;
-		this->bstrVal = s;
-	}
-
-	explicit CVariant(IDispatch *disp)
-	{
-		VariantInit(this);
-		this->vt = VT_DISPATCH;
-		this->pdispVal = disp;
-	}
-
-	~CVariant() 
-	{ 
-		VariantClear(this); 
-	}
-};
-
 class PathUtil
 {
 public:
@@ -290,6 +247,22 @@ public:
 		return strModulePath.substr(0, strModulePath.find_last_of(L"\\") + 1);
 	}
 };
+
+
+class TFontInfo
+{
+public:
+	HFONT hFont = nullptr;
+	std::wstring sFontName;
+	int iSize = 0;
+	int iWeight = 0;
+	bool bBold = false;
+	bool bUnderline = false;
+	bool bStrikeout = false;
+	bool bItalic = false;
+	TEXTMETRIC tm = {0};
+};
+
 
 }// namespace ui
 

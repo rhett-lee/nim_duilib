@@ -1,11 +1,12 @@
-#include "stdafx.h"
 #include "FilterCombo.h"
+#include "duilib/Core/Window.h"
+#include "base/util/string_util.h"
 
 namespace nim_comp
 {
 
 class CFilterComboWnd: 
-	public Window
+	public ui::Window
 {
 public:
     void Init(FilterCombo* pOwner);
@@ -23,7 +24,7 @@ private:
 
 void CFilterComboWnd::Init(FilterCombo* pOwner)
 {
-	assert(pOwner != nullptr);
+	ASSERT(pOwner != nullptr);
 	if (pOwner == nullptr) {
 		return;
 	}
@@ -31,38 +32,38 @@ void CFilterComboWnd::Init(FilterCombo* pOwner)
     m_iOldSel = m_pOwner->GetCurSel();
 
     // Position the popup window in absolute space
-    CSize szDrop = m_pOwner->GetDropBoxSize();
-    UiRect rcOwner = pOwner->GetPosWithScrollOffset();
-    UiRect rc = rcOwner;
+	ui::CSize szDrop = m_pOwner->GetDropBoxSize();
+	ui::UiRect rcOwner = pOwner->GetPosWithScrollOffset();
+	ui::UiRect rc = rcOwner;
     rc.top = rc.bottom + 1;		// 父窗口left、bottom位置作为弹出窗口起点
     rc.bottom = rc.top + szDrop.cy;	// 计算弹出窗口高度
 	if (szDrop.cx > 0) {
 		rc.right = rc.left + szDrop.cx;	// 计算弹出窗口宽度
 	}
 
-    CSize szAvailable(rc.right - rc.left, rc.bottom - rc.top);
+	ui::CSize szAvailable(rc.right - rc.left, rc.bottom - rc.top);
     int cyFixed = 0;
 	for (int it = 0; it < pOwner->GetListBox()->GetCount(); it++) {
-		Control* pControl = pOwner->GetListBox()->GetItemAt(it);
+		ui::Control* pControl = pOwner->GetListBox()->GetItemAt(it);
 		if (pControl == nullptr) {
 			continue;
 		}
 		if (!pControl->IsVisible()) {
 			continue;
 		}
-        CSize sz = pControl->EstimateSize(szAvailable);
+		ui::CSize sz = pControl->EstimateSize(szAvailable);
         cyFixed += sz.cy;
     }
     cyFixed += 2; // VBox 默认的Padding 调整
     rc.bottom = rc.top + std::min((LONG)cyFixed, szDrop.cy);
 
-	assert(pOwner->GetWindow() != nullptr);
+	ASSERT(pOwner->GetWindow() != nullptr);
     ::MapWindowRect(pOwner->GetWindow()->GetHWND(), HWND_DESKTOP, &rc);
 
     MONITORINFO oMonitor = {};
     oMonitor.cbSize = sizeof(oMonitor);
     ::GetMonitorInfo(::MonitorFromWindow(GetHWND(), MONITOR_DEFAULTTOPRIMARY), &oMonitor);
-    UiRect rcWork(oMonitor.rcWork);
+	ui::UiRect rcWork(oMonitor.rcWork);
     if( rc.bottom > rcWork.bottom || m_pOwner->IsPopupTop()) {
         rc.left = rcOwner.left;
         rc.right = rcOwner.right;
@@ -84,14 +85,14 @@ void CFilterComboWnd::Init(FilterCombo* pOwner)
 
 std::wstring CFilterComboWnd::GetWindowClassName() const
 {
-    return _T("ComboWnd");
+    return L"ComboWnd";
 }
 
 void CFilterComboWnd::OnFinalMessage(HWND /*hWnd*/)
 {
 	if (m_pOwner != nullptr) {
 		m_pOwner->m_pComboWnd = NULL;
-		m_pOwner->m_uButtonState = kControlStateNormal;
+		m_pOwner->m_uButtonState = ui::kControlStateNormal;
 		m_pOwner->Invalidate();		
 	}
 	delete this;
@@ -106,7 +107,7 @@ LRESULT CFilterComboWnd::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     if( uMsg == WM_CREATE ) {
         this->Window::Init(m_hWnd);
-		Box* pRoot = new Box;
+		ui::Box* pRoot = new ui::Box;
 		pRoot->SetAutoDestroyChild(false);
 		pRoot->Add(m_pOwner->GetListBox());
 		m_pOwner->GetListBox()->SetFilterComboWnd(this);
@@ -127,7 +128,7 @@ LRESULT CFilterComboWnd::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
 			PostMessage(WM_CLOSE);
 			if ((m_pOwner != nullptr) && (m_pOwner->GetListBox() != nullptr)){
 				m_pOwner->SelectItem(m_pOwner->GetListBox()->GetCurSel());
-				((Box*)this->GetRoot())->RemoveAt(0);
+				((ui::Box*)this->GetRoot())->RemoveAt(0);
 				m_pOwner->GetListBox()->PlaceHolder::SetWindow(nullptr, nullptr, false);
 				m_pOwner->GetListBox()->SetFilterComboWnd(nullptr);
 			}
@@ -136,17 +137,17 @@ LRESULT CFilterComboWnd::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
 #if 1
 	else if (uMsg == WM_CHAR || uMsg == WM_KEYDOWN || uMsg == WM_KEYUP) {
 		if (m_pOwner){
-			EventArgs args;
+			ui::EventArgs args;
 			args.pSender = m_pOwner->GetListBox();
 			args.chKey = static_cast<TCHAR>(wParam);
 			if (uMsg == WM_CHAR) {
-				args.Type = kEventChar;
+				args.Type = ui::kEventChar;
 			}
 			else if (uMsg == WM_KEYDOWN) {
-				args.Type = kEventKeyDown;
+				args.Type = ui::kEventKeyDown;
 			}
 			else if (uMsg == WM_KEYUP) {
-				args.Type = kEventKeyUp;
+				args.Type = ui::kEventKeyUp;
 			}
 			args.wParam = wParam;
 			args.lParam = lParam;
@@ -157,10 +158,10 @@ LRESULT CFilterComboWnd::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
 	else if (uMsg == WM_SYSKEYDOWN){
 		if (m_pOwner)
 		{
-			EventArgs args;
+			ui::EventArgs args;
 			args.pSender = m_pOwner->GetListBox();
 			args.chKey = static_cast<TCHAR>(wParam);
-			args.Type = kEventSystemKey;
+			args.Type = ui::kEventSystemKey;
 			args.wParam = 0;
 			args.lParam = 0;
 			args.dwTimestamp = ::GetTickCount();
@@ -208,7 +209,7 @@ bool FilterListBox::SelectItem(int iIndex, bool bTakeFocus, bool bTrigger)
 	if (m_iCurSel >= 0) {
 		Control* pControl = GetItemAt(m_iCurSel);
 		if (pControl != NULL) {
-			ListContainerElement* pListItem = dynamic_cast<ListContainerElement*>(pControl);
+			ui::ListContainerElement* pListItem = dynamic_cast<ui::ListContainerElement*>(pControl);
 			if (pListItem != NULL) {
 				pListItem->OptionTemplate<Box>::Selected(false, bTrigger);
 			}
@@ -217,7 +218,7 @@ bool FilterListBox::SelectItem(int iIndex, bool bTakeFocus, bool bTrigger)
 	}
 	if (iIndex < 0) {
 		if ((m_pWindow != nullptr) && bTrigger) {
-			m_pWindow->SendNotify(this, kEventSelect, m_iCurSel, iOldSel);
+			m_pWindow->SendNotify(this, ui::kEventSelect, m_iCurSel, iOldSel);
 		}
 		return false;
 	}
@@ -232,7 +233,7 @@ bool FilterListBox::SelectItem(int iIndex, bool bTakeFocus, bool bTrigger)
 		return false;
 	}
 
-	ListContainerElement* pListItem = dynamic_cast<ListContainerElement*>(pControl);
+	ui::ListContainerElement* pListItem = dynamic_cast<ui::ListContainerElement*>(pControl);
 	if (pListItem == nullptr) {
 		return false;
 	}
@@ -241,13 +242,13 @@ bool FilterListBox::SelectItem(int iIndex, bool bTakeFocus, bool bTrigger)
 
 	Control* pSelItemControl = GetItemAt(m_iCurSel);
 	if (pSelItemControl) {
-		UiRect rcItem = pSelItemControl->GetPos();
+		ui::UiRect rcItem = pSelItemControl->GetPos();
 		EnsureVisible(rcItem);
 	}
 
 	if (bTakeFocus) pControl->SetFocus();
 	if ((m_pWindow != nullptr) && bTrigger) {
-		m_pWindow->SendNotify(this, kEventSelect, m_iCurSel, iOldSel);
+		m_pWindow->SendNotify(this, ui::kEventSelect, m_iCurSel, iOldSel);
 	}
 	return true;
 }
@@ -276,23 +277,23 @@ FilterCombo::FilterCombo() :
 	m_pComboWnd(nullptr),
 	m_iCurSel(-1),
 	m_szDropBox(0, 150),
-	m_uButtonState(kControlStateNormal),
+	m_uButtonState(ui::kControlStateNormal),
 	m_sDropBoxAttributes(),
 	m_bPopupTop(false)
 {
 	// The trick is to add the items to the new container. Their owner gets
 	// reassigned by this operation - which is why it is important to reassign
 	// the items back to the righfull owner/manager when the window closes.
-	m_pLayout.reset(new FilterListBox(new VLayout));
-	m_pLayout->GetLayout()->SetPadding(UiRect(1, 1, 1, 1));
+	m_pLayout.reset(new FilterListBox(new ui::VLayout));
+	m_pLayout->GetLayout()->SetPadding(ui::UiRect(1, 1, 1, 1));
 	m_pLayout->SetBkColor(L"bk_wnd_lightcolor");
 	m_pLayout->SetBorderColor(L"splitline_level1");
-	m_pLayout->SetBorderSize(UiRect(1, 1, 1, 1));
+	m_pLayout->SetBorderSize(ui::UiRect(1, 1, 1, 1));
 	m_pLayout->EnableScrollBar();
 	m_pLayout->ApplyAttributeList(GetDropBoxAttributeList());
 	m_pLayout->AttachSelect(nbase::Bind(&FilterCombo::OnSelectItem, this, std::placeholders::_1));
 
-	m_pRichEdit = new RichEdit;
+	m_pRichEdit = new ui::RichEdit;
 	m_pRichEdit->AttachTextChange(nbase::Bind(&FilterCombo::OnRichEditTextChanged, this, std::placeholders::_1));
 	m_pRichEdit->AttachButtonDown(nbase::Bind(&FilterCombo::OnRichEditButtonDown, this, std::placeholders::_1));
 	m_pRichEdit->SetClass(L"simple");
@@ -306,9 +307,9 @@ FilterCombo::FilterCombo() :
 	Box::Add(m_pRichEdit);
 }
 
-void FilterCombo::HandleMessage(EventArgs& args)
+void FilterCombo::HandleMessage(ui::EventArgs& args)
 {
-	if (args.Type == kEventChar || args.Type == kEventKeyDown)
+	if (args.Type == ui::kEventChar || args.Type == ui::kEventKeyDown)
 	{
 		m_pRichEdit->HandleMessage(args);
 	}
@@ -325,7 +326,7 @@ bool FilterCombo::Add(Control* pControl)
 	else
 	{
 		printf("CheckCombo::Add pControl is not CheckBox object\n");
-		assert(0);
+		ASSERT(0);
 		return true;
 	}
 
@@ -373,17 +374,17 @@ void FilterCombo::Activate()
 
 void FilterCombo::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
-	if (strName == _T("dropbox")) SetDropBoxAttributeList(strValue);
-	else if (strName == _T("vscrollbar")) {}
-	else if (strName == _T("dropboxsize"))
+	if (strName == L"dropbox") SetDropBoxAttributeList(strValue);
+	else if (strName == L"vscrollbar") {}
+	else if (strName == L"dropboxsize")
 	{
-		CSize szDropBoxSize;
+		ui::CSize szDropBoxSize;
 		LPTSTR pstr = NULL;
-		szDropBoxSize.cx = _tcstol(strValue.c_str(), &pstr, 10); ASSERT(pstr);
-		szDropBoxSize.cy = _tcstol(pstr + 1, &pstr, 10); ASSERT(pstr);
+		szDropBoxSize.cx = wcstol(strValue.c_str(), &pstr, 10); ASSERT(pstr);
+		szDropBoxSize.cy = wcstol(pstr + 1, &pstr, 10); ASSERT(pstr);
 		SetDropBoxSize(szDropBoxSize);
 	}
-	else if (strName == _T("popuptop")) SetPopupTop(strValue == _T("true"));
+	else if (strName == L"popuptop") SetPopupTop(strValue == L"true");
 	else Box::SetAttribute(strName, strValue);
 }
 
@@ -416,14 +417,14 @@ void FilterCombo::SetDropBoxAttributeList(const std::wstring& pstrList)
     m_sDropBoxAttributes = pstrList;
 }
 
-CSize FilterCombo::GetDropBoxSize() const
+ui::CSize FilterCombo::GetDropBoxSize() const
 {
     return m_szDropBox;
 }
 
-void FilterCombo::SetDropBoxSize(CSize szDropBox)
+void FilterCombo::SetDropBoxSize(ui::CSize szDropBox)
 {
-	DpiManager::GetInstance()->ScaleSize(szDropBox);
+	ui::DpiManager::GetInstance()->ScaleSize(szDropBox);
     m_szDropBox = szDropBox;
 }
 
@@ -438,7 +439,7 @@ bool FilterCombo::SelectItem(int iIndex)
 	return true;
 }
 
-Control* FilterCombo::GetItemAt(int iIndex)
+ui::Control* FilterCombo::GetItemAt(int iIndex)
 {
 	return m_pLayout->GetItemAt(iIndex);
 }
@@ -448,12 +449,12 @@ int FilterCombo::GetCount() const
 	return m_pLayout->GetCount(); 
 }
 
-void FilterCombo::AttachSelect(const EventCallback& callback) 
+void FilterCombo::AttachSelect(const ui::EventCallback& callback)
 { 
 	m_pLayout->AttachSelect(callback); 
 }
 
-bool FilterCombo::OnSelectItem(EventArgs* /*args*/)
+bool FilterCombo::OnSelectItem(ui::EventArgs* /*args*/)
 {
 	if (m_pComboWnd != nullptr) {
 		m_pComboWnd->OnSeleteItem();
@@ -461,12 +462,12 @@ bool FilterCombo::OnSelectItem(EventArgs* /*args*/)
 	m_iCurSel = m_pLayout->GetCurSel();
 	auto pControl = m_pLayout->GetItemAt(m_iCurSel);
 	if (pControl != NULL) {
-		pControl->SetState(kControlStateNormal);
+		pControl->SetState(ui::kControlStateNormal);
 	}
 	if (m_pComboWnd != nullptr) {
-		m_pComboWnd->SendNotify(this, kEventSelect, m_iCurSel, -1);
+		m_pComboWnd->SendNotify(this, ui::kEventSelect, m_iCurSel, -1);
 	}
-	ListContainerElement *ele = dynamic_cast<ListContainerElement*>(pControl);
+	ui::ListContainerElement *ele = dynamic_cast<ui::ListContainerElement*>(pControl);
 	if (m_pRichEdit && ele)
 	{
 		m_pRichEdit->SetText(ele->GetText());
@@ -474,26 +475,26 @@ bool FilterCombo::OnSelectItem(EventArgs* /*args*/)
 	return true;
 }
 
-bool FilterCombo::OnRichEditTextChanged(EventArgs* /*args*/)
+bool FilterCombo::OnRichEditTextChanged(ui::EventArgs* /*args*/)
 {
 	m_pLayout->Filter(m_pRichEdit->GetUTF8Text());
 	if (m_pComboWnd == nullptr)
 	{
 		return false;
 	}
-	CSize szDrop = GetDropBoxSize();
-	UiRect rcOwner = GetPosWithScrollOffset();
-	UiRect rc = rcOwner;
+	ui::CSize szDrop = GetDropBoxSize();
+	ui::UiRect rcOwner = GetPosWithScrollOffset();
+	ui::UiRect rc = rcOwner;
 	rc.top = rc.bottom + 1;		// 父窗口left、bottom位置作为弹出窗口起点
 	rc.bottom = rc.top + szDrop.cy;	// 计算弹出窗口高度
 	if (szDrop.cx > 0) rc.right = rc.left + szDrop.cx;	// 计算弹出窗口宽度
 
-	CSize szAvailable(rc.right - rc.left, rc.bottom - rc.top);
+	ui::CSize szAvailable(rc.right - rc.left, rc.bottom - rc.top);
 	int cyFixed = 0;
 	for (int it = 0; it < GetListBox()->GetCount(); it++) {
 		Control* pControl = GetListBox()->GetItemAt(it);
 		if (!pControl->IsVisible()) continue;
-		CSize sz = pControl->EstimateSize(szAvailable);
+		ui::CSize sz = pControl->EstimateSize(szAvailable);
 		cyFixed += sz.cy;
 	}
 	cyFixed += 2; // VBox 默认的Padding 调整
@@ -504,7 +505,7 @@ bool FilterCombo::OnRichEditTextChanged(EventArgs* /*args*/)
 	MONITORINFO oMonitor = {};
 	oMonitor.cbSize = sizeof(oMonitor);
 	::GetMonitorInfo(::MonitorFromWindow(m_pComboWnd->GetHWND(), MONITOR_DEFAULTTOPRIMARY), &oMonitor);
-	UiRect rcWork(oMonitor.rcWork);
+	ui::UiRect rcWork(oMonitor.rcWork);
 	if (rc.bottom > rcWork.bottom || IsPopupTop()) {
 		rc.left = rcOwner.left;
 		rc.right = rcOwner.right;
@@ -519,7 +520,7 @@ bool FilterCombo::OnRichEditTextChanged(EventArgs* /*args*/)
 	return true;
 }
 
-bool FilterCombo::OnRichEditButtonDown(EventArgs* /*args*/)
+bool FilterCombo::OnRichEditButtonDown(ui::EventArgs* /*args*/)
 {
 	Activate();
 	return true;

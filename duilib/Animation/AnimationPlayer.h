@@ -3,17 +3,21 @@
 
 #pragma once
 
+#include "duilib/duilib_defs.h"
+#include "base/callback/callback.h"
+#include <functional>
+
 namespace ui 
 {
 
 typedef std::function<void (int)> PlayCallback;
 typedef std::function<void (void)> CompleteCallback;
 
-class UILIB_API AnimationPlayerBase : public nbase::SupportWeakCallback
+class UILIB_API AnimationPlayerBase : public virtual nbase::SupportWeakCallback
 {
 public:
 	AnimationPlayerBase();
-	~AnimationPlayerBase() { }
+	virtual ~AnimationPlayerBase() { }
 
 	void SetAnimationType(int type) { m_animationType = type; };
 	int GetAnimationType() const { return m_animationType; };
@@ -68,7 +72,8 @@ protected:
 };
 
 
-class UILIB_API AnimationPlayer : public AnimationPlayerBase
+class UILIB_API AnimationPlayer : 
+	public AnimationPlayerBase
 {
 public:
 	AnimationPlayer();

@@ -3,18 +3,17 @@
 
 #pragma once
 
-#include "windows_manager/window_ex.h"
+#include "ui_components/windows_manager/window_ex.h"
+#include "duilib/Utils/WinImplBase.h"
 
 namespace nim_comp {
-
-using namespace ui;
 
 /** @class ShadowWnd
  * @brief 一个附加到基础窗口周围的窗口，带有 WS_EX_LAYERED 属性来实现阴影
  * @copyright (c) 2016, NetEase Inc. All rights reserved
  * @date 2019-03-22
  */
-class ShadowWnd : public WindowImplBase
+class ShadowWnd : public ui::WindowImplBase
 {
 public:
 	ShadowWnd();
@@ -34,7 +33,7 @@ private:
  * @copyright (c) 2016, NetEase Inc. All rights reserved
  * @date 2019-03-22
  */
-class ShadowWndBase : public WindowImplBase
+class ShadowWndBase : public ui::WindowImplBase
 {
 public:
 	ShadowWndBase();

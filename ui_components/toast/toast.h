@@ -1,5 +1,9 @@
 #pragma once
 
+#include "duilib/Utils/WinImplBase.h"
+#include "duilib/Control/RichEdit.h"
+#include "duilib/Control/Button.h"
+
 namespace nim_comp {
 /** @class Toast
  * @brief 提供一个简易的提示窗体，相当于MessageBox的简化版

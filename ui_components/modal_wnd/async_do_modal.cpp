@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "async_do_modal.h"
 #include "async_modal_runner.h"
 

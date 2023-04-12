@@ -1,5 +1,5 @@
-#include "stdafx.h"
 #include "TileBox.h"
+#include "duilib/Utils/DpiManager.h"
 
 namespace ui
 {
@@ -155,16 +155,16 @@ CSize TileLayout::AjustSizeByChild(const std::vector<Control*>& items, CSize szA
 bool TileLayout::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
 	bool hasAttribute = true;
-	if( strName == _T("itemsize") ) {
+	if( strName == L"itemsize") {
 		CSize szItem;
 		LPTSTR pstr = NULL;
-		szItem.cx = _tcstol(strValue.c_str(), &pstr, 10);  ASSERT(pstr);    
-		szItem.cy = _tcstol(pstr + 1, &pstr, 10);   ASSERT(pstr);     
+		szItem.cx = wcstol(strValue.c_str(), &pstr, 10);  ASSERT(pstr);
+		szItem.cy = wcstol(pstr + 1, &pstr, 10);   ASSERT(pstr);
 		SetItemSize(szItem);
 	}
-	else if( strName == _T("columns")) 
+	else if( strName == L"columns") 
 	{
-		SetColumns(_ttoi(strValue.c_str()));
+		SetColumns(_wtoi(strValue.c_str()));
 	}
 	else 
 	{

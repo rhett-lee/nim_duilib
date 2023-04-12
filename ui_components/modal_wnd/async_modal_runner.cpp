@@ -1,6 +1,6 @@
-#include "stdafx.h"
 #include "async_modal_runner.h"
 #include "base/thread/thread_manager.h"
+#include "ui_components/public_define.h"
 
 #include <algorithm>
 
@@ -41,9 +41,7 @@ bool AsyncModalRunner::DoModal(ModalWndBase *dlg)
 void AsyncModalRunner::Run()
 {
 #ifndef NDEBUG
-#if defined(OS_WIN) && defined(COMPILER_MSVC)
 	nbase::SetThreadName(GetCurrentThreadId(), kModalThreadName);
-#endif
 #endif
 
 	event_.Signal();

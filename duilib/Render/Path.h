@@ -2,7 +2,13 @@
 #define UI_CORE_RENDER_PATH_H_
 
 #pragma once
-#include <GdiPlus.h>
+
+#include "duilib/Render/IRender.h"
+
+namespace Gdiplus
+{
+	class GraphicsPath;
+}
 
 namespace ui 
 {
@@ -41,7 +47,7 @@ public:
 
 	virtual void Transform(const IMatrix* matrix) override;
 
-	Gdiplus::GraphicsPath* GetPath() { return path_.get(); };
+	Gdiplus::GraphicsPath* GetPath() const;
 protected:
 	std::unique_ptr<Gdiplus::GraphicsPath> path_;
 };

@@ -7,7 +7,7 @@
 #include "include/wrapper/cef_closure_task.h"
 #pragma warning (pop)
 
-#include "build/windows_defs.h"
+#include "duilib/duilib_defs.h"
 
 #define REQUIRE_UI_THREAD()   ASSERT(CefCurrentlyOn(TID_UI));
 #define REQUIRE_IO_THREAD()   ASSERT(CefCurrentlyOn(TID_IO));

@@ -2,7 +2,14 @@
 #define UI_CORE_RENDER_BRUSH_H_
 
 #pragma once
-#include <GdiPlus.h>
+
+
+#include "duilib/Render/IRender.h"
+
+namespace Gdiplus
+{
+	class Brush;
+}
 
 namespace ui 
 {
@@ -17,7 +24,7 @@ public:
 
 	virtual IBrush* Clone() override;
 
-	Gdiplus::Brush* GetBrush() { return brush_ ? brush_.get() : bitmap_brush_.get(); };
+	Gdiplus::Brush* GetBrush() const;
 private:
 	std::unique_ptr<Gdiplus::Brush> brush_;
 	std::unique_ptr<Gdiplus::Brush> bitmap_brush_;

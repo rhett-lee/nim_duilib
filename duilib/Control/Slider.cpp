@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "Slider.h"
 
 namespace ui
 {
@@ -113,25 +113,25 @@ void Slider::HandleMessage(EventArgs& event)
 
 void Slider::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
-	if (strName == _T("step")) SetChangeStep(_ttoi(strValue.c_str()));
-	else if (strName == _T("thumbnormalimage")) SetThumbStateImage(kControlStateNormal, strValue);
-	else if (strName == _T("thumbhotimage")) SetThumbStateImage(kControlStateHot, strValue);
-	else if (strName == _T("thumbpushedimage")) SetThumbStateImage(kControlStatePushed, strValue);
-	else if (strName == _T("thumbdisabledimage")) SetThumbStateImage(kControlStateDisabled, strValue);
-	else if (strName == _T("thumbsize")) {
+	if (strName == L"step") SetChangeStep(_wtoi(strValue.c_str()));
+	else if (strName == L"thumbnormalimage") SetThumbStateImage(kControlStateNormal, strValue);
+	else if (strName == L"thumbhotimage") SetThumbStateImage(kControlStateHot, strValue);
+	else if (strName == L"thumbpushedimage") SetThumbStateImage(kControlStatePushed, strValue);
+	else if (strName == L"thumbdisabledimage") SetThumbStateImage(kControlStateDisabled, strValue);
+	else if (strName == L"thumbsize") {
 		CSize szXY;
 		LPTSTR pstr = NULL;
-		szXY.cx = _tcstol(strValue.c_str(), &pstr, 10);  ASSERT(pstr);
-		szXY.cy = _tcstol(pstr + 1, &pstr, 10);    ASSERT(pstr);
+		szXY.cx = wcstol(strValue.c_str(), &pstr, 10);  ASSERT(pstr);
+		szXY.cy = wcstol(pstr + 1, &pstr, 10);    ASSERT(pstr);
 		SetThumbSize(szXY);
 	}
-	else if (strName == _T("progressbarpadding")) {
+	else if (strName == L"progressbarpadding") {
 		UiRect rcPadding;
 		LPTSTR pstr = NULL;
-		rcPadding.left = _tcstol(strValue.c_str(), &pstr, 10);  ASSERT(pstr);
-		rcPadding.top = _tcstol(pstr + 1, &pstr, 10);    ASSERT(pstr);
-		rcPadding.right = _tcstol(pstr + 1, &pstr, 10);  ASSERT(pstr);
-		rcPadding.bottom = _tcstol(pstr + 1, &pstr, 10); ASSERT(pstr);
+		rcPadding.left = wcstol(strValue.c_str(), &pstr, 10);  ASSERT(pstr);
+		rcPadding.top = wcstol(pstr + 1, &pstr, 10);    ASSERT(pstr);
+		rcPadding.right = wcstol(pstr + 1, &pstr, 10);  ASSERT(pstr);
+		rcPadding.bottom = wcstol(pstr + 1, &pstr, 10); ASSERT(pstr);
 		SetProgressBarPadding(rcPadding);
 	}
 	else Progress::SetAttribute(strName, strValue);
@@ -160,7 +160,7 @@ void Slider::PaintStatusImage(IRenderContext* pRender)
 
 	if (IsMouseFocused()) {
 		m_sImageModify.clear();
-		m_sImageModify = StringHelper::Printf(_T("destscale='false' dest='%d,%d,%d,%d'"), rcThumb.left, rcThumb.top, rcThumb.right, rcThumb.bottom);
+		m_sImageModify = StringHelper::Printf(L"destscale='false' dest='%d,%d,%d,%d'", rcThumb.left, rcThumb.top, rcThumb.right, rcThumb.bottom);
 		if (!DrawImage(pRender, m_thumbStateImage[kControlStatePushed], m_sImageModify)) {
 
 		}
@@ -168,7 +168,7 @@ void Slider::PaintStatusImage(IRenderContext* pRender)
 	}
 	else if (m_uButtonState == kControlStateHot) {
 		m_sImageModify.clear();
-		m_sImageModify = StringHelper::Printf(_T("destscale='false' dest='%d,%d,%d,%d'"), rcThumb.left, rcThumb.top, rcThumb.right, rcThumb.bottom);
+		m_sImageModify = StringHelper::Printf(L"destscale='false' dest='%d,%d,%d,%d'", rcThumb.left, rcThumb.top, rcThumb.right, rcThumb.bottom);
 		if (!DrawImage(pRender, m_thumbStateImage[kControlStateHot], m_sImageModify)) {
 
 		}
@@ -176,7 +176,7 @@ void Slider::PaintStatusImage(IRenderContext* pRender)
 	}
 
 	m_sImageModify.clear();
-	m_sImageModify = StringHelper::Printf(_T("destscale='false' dest='%d,%d,%d,%d'"), rcThumb.left, rcThumb.top, rcThumb.right, rcThumb.bottom);
+	m_sImageModify = StringHelper::Printf(L"destscale='false' dest='%d,%d,%d,%d'", rcThumb.left, rcThumb.top, rcThumb.right, rcThumb.bottom);
 	if (!DrawImage(pRender, m_thumbStateImage[kControlStateNormal], m_sImageModify)) {
 
 	}
@@ -221,7 +221,7 @@ UiRect Slider::GetThumbRect() const
 
 std::wstring Slider::GetThumbStateImage(ControlStateType stateType)
 {
-	return m_thumbStateImage[stateType].imageAttribute.simageString;
+	return m_thumbStateImage[stateType].GetImageAttribute().simageString;
 }
 
 void Slider::SetThumbStateImage(ControlStateType stateType, const std::wstring& pStrImage)

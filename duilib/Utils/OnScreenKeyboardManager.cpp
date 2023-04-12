@@ -1,8 +1,10 @@
-#include "StdAfx.h"
 #include "OnScreenKeyboardManager.h"
+#include "duilib/Utils/VersionHelpers.h"
+#include "duilib/Utils/TimerManager.h"
 #include <initguid.h>
 #include <shlobj.h>
 #include <shellapi.h>
+#include <string>
 
 namespace ui
 {

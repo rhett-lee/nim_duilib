@@ -53,12 +53,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="StdAfx.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="UIlib.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Utils\MultiLangSupport.cpp">
       <Filter>Source Files\Utils</Filter>
     </ClCompile>
@@ -239,23 +233,20 @@
     <ClCompile Include="Automation\UIAListBoxItemProvider.cpp">
       <Filter>Source Files\Automation</Filter>
     </ClCompile>
-    <ClCompile Include="Control\VirtualTileBox.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Utils\BoxShadow.cpp">
       <Filter>Source Files\Utils</Filter>
     </ClCompile>
     <ClCompile Include="Utils\GdiHepler.cpp">
       <Filter>Source Files\Utils</Filter>
     </ClCompile>
+    <ClCompile Include="Control\VirtualTileBox.cpp">
+      <Filter>Source Files\Control</Filter>
+    </ClCompile>
+    <ClCompile Include="duilib.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="StdAfx.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="UIlib.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Utils\Utils.h">
       <Filter>Header Files\Utils</Filter>
     </ClInclude>
@@ -468,6 +459,15 @@
     </ClInclude>
     <ClInclude Include="Control\VirtualTileBox.h">
       <Filter>Header Files\Control</Filter>
+    </ClInclude>
+    <ClInclude Include="duilib.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="duilib_defs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\GdiPlusDefs.h">
+      <Filter>Header Files\Core</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

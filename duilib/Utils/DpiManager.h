@@ -3,6 +3,9 @@
 
 #pragma once
 
+#include "duilib/Utils/Utils.h"
+#include "duilib/duilib_defs.h"
+
 namespace ui
 {
 /** @class DpiManager

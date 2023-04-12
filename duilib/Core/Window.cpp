@@ -1,5 +1,19 @@
-#include "StdAfx.h"
-#include <shlwapi.h>
+#include "Window.h"
+#include "duilib/Core/Control.h"
+#include "duilib/Core/Box.h"
+#include "duilib/Core/GlobalManager.h"
+#include "duilib/Render/IRender.h"
+#include "duilib/Animation/AnimationManager.h"
+#include "duilib/Animation/AnimationPlayer.h"
+#include "duilib/Utils/VersionHelpers.h"
+#include "duilib/Utils/TimerManager.h"
+#include "duilib/Utils/ApiWrapper.h"
+#include "duilib/Utils/DpiManager.h"
+#include "duilib/Utils/Shadow.h"
+#include "duilib/Utils/MultiLangSupport.h"
+
+#include <tchar.h>
+#include <Olectl.h>
 
 namespace ui 
 {
@@ -24,7 +38,7 @@ typedef struct tagFINDSHORTCUT
 Window::Window() :
 	m_hWnd(nullptr),
 	m_pRoot(nullptr),
-	OnEvent(),
+	m_OnEvent(),
 	m_OldWndProc(::DefWindowProc),
 	m_bSubclassed(false),
 	m_nAlpha(255),
@@ -66,9 +80,9 @@ Window::Window() :
 	m_strWindowResourcePath(),
 	m_aTranslateAccelerator(),
 	m_heightPercent(0),
-	m_closeFlag(),
-	m_pUIAProvider(nullptr)
+	m_closeFlag()
 {
+	m_shadow = std::make_unique<Shadow>();
 	LOGFONT lf = { 0 };
 	::GetObject(::GetStockObject(DEFAULT_GUI_FONT), sizeof(LOGFONT), &lf);
 	lf.lfCharSet = DEFAULT_CHARSET;
@@ -86,6 +100,9 @@ Window::Window() :
 	m_defaultFontInfo.bStrikeout = (lf.lfStrikeOut == TRUE);
 	m_defaultFontInfo.bItalic = (lf.lfItalic == TRUE);
 	::ZeroMemory(&m_defaultFontInfo.tm, sizeof(m_defaultFontInfo.tm));
+#if defined(ENABLE_UIAUTOMATION)
+	m_pUIAProvider = nullptr;
+#endif
 }
 
 Window::~Window()
@@ -364,7 +381,7 @@ LRESULT Window::PostMessage(UINT uMsg, WPARAM wParam /*= 0*/, LPARAM lParam /*= 
 
 void Window::AttachWindowClose(const EventCallback& callback)
 {
-	OnEvent[kEventWindowClose] += callback;
+	m_OnEvent[kEventWindowClose] += callback;
 }
 
 void Window::OnFinalMessage(HWND /*hWnd*/)
@@ -686,7 +703,7 @@ void Window::RemoveAllOptionGroups()
 
 void Window::ClearImageCache()
 {
-	Control *pRoot = m_shadow.GetRoot();
+	Control *pRoot = m_shadow->GetRoot();
 	if (pRoot) {
 		pRoot->ClearImageCache();
 	}
@@ -768,37 +785,37 @@ void Window::SetHeightPercent(double heightPercent)
 
 void Window::SetTextId(const std::wstring& strTextId)
 {
-	::SetWindowText(m_hWnd, MutiLanSupport::GetInstance()->GetStringViaID(strTextId).c_str());
+	::SetWindowText(m_hWnd, MultiLangSupport::GetInstance()->GetStringViaID(strTextId).c_str());
 }
 
 void Window::SetShadowAttached(bool bShadowAttached)
 {
-	m_shadow.SetShadowAttached(bShadowAttached);
+	m_shadow->SetShadowAttached(bShadowAttached);
 }
 
 std::wstring Window::GetShadowImage() const
 {
-	return m_shadow.GetShadowImage();
+	return m_shadow->GetShadowImage();
 }
 
 void Window::SetShadowImage(const std::wstring &strImage)
 {
-	m_shadow.SetShadowImage(strImage);
+	m_shadow->SetShadowImage(strImage);
 }
 
 UiRect Window::GetShadowCorner() const
 {
-	return m_shadow.GetShadowCorner();
+	return m_shadow->GetShadowCorner();
 }
 
 bool Window::IsShadowAttached()
 {
-    return m_shadow.IsShadowAttached();
+    return m_shadow->IsShadowAttached();
 }
 
 void Window::SetShadowCorner(const UiRect rect, bool bNeedDpiScale)
 {
-	m_shadow.SetShadowCorner(rect, bNeedDpiScale);
+	m_shadow->SetShadowCorner(rect, bNeedDpiScale);
 }
 
 UiRect Window::GetPos(bool bContainShadow) const
@@ -807,7 +824,7 @@ UiRect Window::GetPos(bool bContainShadow) const
 	::GetWindowRect(m_hWnd, &rcPos);
 
 	if (!bContainShadow) {
-		UiRect padding = m_shadow.GetShadowCorner();
+		UiRect padding = m_shadow->GetShadowCorner();
 		rcPos.left += padding.left;
 		rcPos.right -= padding.right;
 		rcPos.top += padding.top;
@@ -825,7 +842,7 @@ void Window::SetPos(const UiRect& rc, bool bNeedDpiScale, UINT uFlags, HWND hWnd
 
 	ASSERT(::IsWindow(m_hWnd));
 	if (!bContainShadow) {
-		rcNewPos.Inflate(m_shadow.GetShadowCorner());
+		rcNewPos.Inflate(m_shadow->GetShadowCorner());
 	}
 	::SetWindowPos(m_hWnd, hWndInsertAfter, rcNewPos.left, rcNewPos.top, rcNewPos.GetWidth(), rcNewPos.GetHeight(), uFlags);
 }
@@ -834,7 +851,7 @@ CSize Window::GetMinInfo(bool bContainShadow) const
 {
 	CSize xy = m_szMinWindow;
 	if (!bContainShadow) {
-		UiRect rcShadow = m_shadow.GetShadowCorner();
+		UiRect rcShadow = m_shadow->GetShadowCorner();
 		if (xy.cx != 0) {
 			xy.cx -= rcShadow.left + rcShadow.right;
 		}
@@ -855,7 +872,7 @@ void Window::SetMinInfo(int cx, int cy, bool bContainShadow, bool bNeedDpiScale)
 	ASSERT(cx >= 0 && cy >= 0);
 
 	if (!bContainShadow) {
-		UiRect rcShadow = m_shadow.GetShadowCorner();
+		UiRect rcShadow = m_shadow->GetShadowCorner();
 		if (cx != 0) {
 			cx += rcShadow.left + rcShadow.right;
 		}
@@ -871,7 +888,7 @@ CSize Window::GetMaxInfo(bool bContainShadow) const
 {
 	CSize xy = m_szMaxWindow;
 	if (!bContainShadow) {
-		UiRect rcShadow = m_shadow.GetShadowCorner();
+		UiRect rcShadow = m_shadow->GetShadowCorner();
 		if (xy.cx != 0) {
 			xy.cx -= rcShadow.left + rcShadow.right;
 		}
@@ -892,7 +909,7 @@ void Window::SetMaxInfo(int cx, int cy, bool bContainShadow, bool bNeedDpiScale)
 	ASSERT(cx >= 0 && cy >= 0);
 
 	if (!bContainShadow) {
-		UiRect rcShadow = m_shadow.GetShadowCorner();
+		UiRect rcShadow = m_shadow->GetShadowCorner();
 		if (cx != 0) {
 			cx += rcShadow.left + rcShadow.right;
 		}
@@ -908,7 +925,7 @@ CSize Window::GetInitSize(bool bContainShadow) const
 {
 	CSize xy = m_szInitWindowSize;
 	if (!bContainShadow) {
-		UiRect rcShadow = m_shadow.GetShadowCorner();
+		UiRect rcShadow = m_shadow->GetShadowCorner();
 		if (xy.cx != 0) {
 			xy.cx -= rcShadow.left + rcShadow.right;
 		}
@@ -928,7 +945,7 @@ void Window::Resize(int cx, int cy, bool bContainShadow, bool bNeedDpiScale)
 	}
 
 	if (!bContainShadow) {
-		UiRect rcShadow = m_shadow.GetShadowCorner();
+		UiRect rcShadow = m_shadow->GetShadowCorner();
 		cx += rcShadow.left + rcShadow.right;
 		cy += rcShadow.top + rcShadow.bottom;
 	}
@@ -1087,10 +1104,10 @@ LRESULT Window::DoHandlMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& ha
 				m_pRoot->Arrange();
 			}
 			if (wParam == SIZE_MAXIMIZED) {
-				m_shadow.MaximizedOrRestored(true);
+				m_shadow->MaximizedOrRestored(true);
 			}
 			else if (wParam == SIZE_RESTORED) {
-				m_shadow.MaximizedOrRestored(false);
+				m_shadow->MaximizedOrRestored(false);
 			}
 		}
 		handled = true;
@@ -1608,10 +1625,11 @@ LRESULT Window::DoHandlMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& ha
 			}
 			// Tabbing between controls
 			if (wParam == VK_TAB) {
-				if (m_pFocus && m_pFocus->IsVisible() && m_pFocus->IsEnabled() && dynamic_cast<RichEdit*>(m_pFocus) != nullptr) {
-					if (dynamic_cast<RichEdit*>(m_pFocus)->IsWantTab()) {
+				if ((m_pFocus != nullptr) && 
+					m_pFocus->IsVisible() && 
+					m_pFocus->IsEnabled() &&
+					m_pFocus->IsWantTab()) {
 						return false;
-					}
 				}
 				SetNextTabControl(::GetKeyState(VK_SHIFT) >= 0);
 				return true;
@@ -1997,13 +2015,13 @@ bool Window::SendNotify(EventType eventType, WPARAM wParam, LPARAM lParam)
 	msg.wParam = wParam;
 	msg.lParam = lParam;
 
-	auto callback = OnEvent.find(msg.Type);
-	if (callback != OnEvent.end()) {
+	auto callback = m_OnEvent.find(msg.Type);
+	if (callback != m_OnEvent.end()) {
 		callback->second(&msg);
 	}
 
-	callback = OnEvent.find(kEventAll);
-	if (callback != OnEvent.end()) {
+	callback = m_OnEvent.find(kEventAll);
+	if (callback != m_OnEvent.end()) {
 		callback->second(&msg);
 	}
 
@@ -2150,7 +2168,7 @@ void Window::Paint()
 
 	// alpha修复
 	if (m_bIsLayeredWindow) {
-		if (m_shadow.IsShadowAttached() && m_renderOffset.x == 0 && m_renderOffset.y == 0) {
+		if (m_shadow->IsShadowAttached() && m_renderOffset.x == 0 && m_renderOffset.y == 0) {
 			//补救由于Gdi绘制造成的alpha通道为0
 			UiRect rcNewPaint = rcPaint;
 			rcNewPaint.Intersect(m_pRoot->GetPaddingPos());

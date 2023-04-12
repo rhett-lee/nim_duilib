@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "StringUtil.h"
 
 namespace ui
 {
@@ -133,7 +133,7 @@ inline int vsnprintfT(char *dst, size_t count, const char *format, va_list ap)
 
 inline int vsnprintfT(wchar_t *dst, size_t count, const wchar_t *format, va_list ap)
 {
-	return _vsnwprintf(dst, count, format, ap);
+	return _vsnwprintf_s(dst, count, count, format, ap);
 }
 
 template<typename CharType>
@@ -161,13 +161,13 @@ void StringAppendVT(const CharType *format, va_list ap, std::basic_string<CharTy
 	{
 		if (result != -1)
 		{
-			assert(0);
+			ASSERT(0);
 			return; /* not expected, result should be -1 here */
 		}
 		buffer_size <<= 1; /* try doubling the buffer size */
 		if (buffer_size > 32 * 1024 * 1024)
 		{
-			assert(0);
+			ASSERT(0);
 			return;	/* too long */
 		}
 		/* resize */

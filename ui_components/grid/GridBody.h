@@ -1,5 +1,8 @@
 #pragma once
-#include "GridBase.h"
+#include "ui_components/grid/GridBase.h"
+#include "duilib/Core/Box.h"
+#include "duilib/Control/Combo.h"
+#include "duilib/Control/RichEdit.h"
 
 namespace ui
 {
@@ -164,7 +167,7 @@ namespace ui
 		* @brief 表格内容变更后的回调注册
 		* @param[in] callback
 		*/
-		void AttachTextChange(const EventCallback& callback)	{ this->OnEvent[kEventTextChange] += callback; }
+		void AttachTextChange(const EventCallback& callback)	{ this->m_OnEvent[kEventTextChange] += callback; }
 
 		/**
 		* @brief 列根据内容自动调整宽度
@@ -323,8 +326,8 @@ namespace ui
 		
 #define GRIDBODY_CHILD_COUNT	2
 		/* 编辑时候的RichEdit/Combo控件 */
-		RichEdit *m_pReEdit = nullptr;
-		Combo *m_pComboEdit = nullptr;
+		ui::RichEdit *m_pReEdit = nullptr;
+		ui::Combo *m_pComboEdit = nullptr;
 
 		GridItem *m_pReEditGridItem = nullptr;
 		GridItem *m_pComboEditGridItem = nullptr;

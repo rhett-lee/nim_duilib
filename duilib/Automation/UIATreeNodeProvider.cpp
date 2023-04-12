@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "UIATreeNodeProvider.h"
 
 #if defined(ENABLE_UIAUTOMATION)
 

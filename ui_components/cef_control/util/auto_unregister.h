@@ -1,8 +1,12 @@
 #pragma once
+
+#include "base/callback/callback.h"
 #include <unordered_map>
-typedef std::function<void()> UnregisterCallback;
+#include <functional>
 
 namespace nim_comp {
+
+typedef std::function<void()> UnregisterCallback;
 
 class AutoUnregister 
 {

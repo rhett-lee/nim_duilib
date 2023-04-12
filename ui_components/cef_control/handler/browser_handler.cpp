@@ -1,9 +1,11 @@
-#include "stdafx.h"
 #include "browser_handler.h"
-#include "cef_control/manager/cef_manager.h"
-#include "cef_control/util/util.h"
-#include "cef_control/app/ipc_string_define.h"
-#include "cef_control/app/cef_js_bridge.h"
+#include "ui_components/cef_control/manager/cef_manager.h"
+#include "ui_components/cef_control/util/util.h"
+#include "ui_components/cef_control/app/ipc_string_define.h"
+#include "ui_components/cef_control/app/cef_js_bridge.h"
+#include "ui_components/public_define.h"
+
+#include "base/thread/thread_manager.h"
 
 #pragma warning (push)
 #pragma warning (disable:4100)

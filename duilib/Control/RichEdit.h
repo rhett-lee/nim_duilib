@@ -3,10 +3,12 @@
 
 #pragma once
 
+#include "duilib/Core/Box.h"
+#include "duilib/Core/Image.h"
 #include <Imm.h>
-#include <textserv.h>
 #include <richedit.h>
 #include <RichOle.h>
+#include <textserv.h>
 
 namespace ui 
 {
@@ -27,7 +29,12 @@ public:
 	 * @brief 判断是否接受 TAB 按键消息
 	 * @return 返回 true 表示接受，false 表示不接受
 	 */
-    bool IsWantTab();
+	virtual bool IsWantTab() const override;
+
+	/** 该控件是否可以放置在标题栏上（以用于处理NC消息响应）
+	 * @return 返回 true 表示可以，false 表示不可以
+	 */
+	virtual bool CanPlaceCaptionBar() const override;
 
 	/**
 	 * @brief 判断是否接受 TAB 按键消息
@@ -687,7 +694,9 @@ public:
     void EndRight();
 
 	virtual std::wstring GetType() const override;
+#if defined(ENABLE_UIAUTOMATION)
 	virtual UIAControlProvider* GetUIAProvider() override;
+#endif
 	virtual void DoInit() override;
 	virtual void SetEnabled(bool bEnable = true) override;
 	virtual CSize EstimateSize(CSize szAvailable) override;
@@ -921,28 +930,28 @@ public:
 	 * @param[in] callback 回车被按下的自定义回调函数
 	 * @return 无
 	 */
-	void AttachReturn(const EventCallback& callback) { OnEvent[kEventReturn] += callback; }
+	void AttachReturn(const EventCallback& callback) { m_OnEvent[kEventReturn] += callback; }
 
 	/**
 	 * @brief 监听 TAB 按键按下事件
 	 * @param[in] callback TAB 被按下的自定义回调函数
 	 * @return 无
 	 */
-	void AttachTab(const EventCallback& callback) {	OnEvent[kEventTab] += callback;	}
+	void AttachTab(const EventCallback& callback) {	m_OnEvent[kEventTab] += callback;	}
 
 	/**
 	 * @brief 监听文本被修改事件
 	 * @param[in] callback 文本被修改后的自定义回调函数
 	 * @return 无
 	 */
-	void AttachTextChange(const EventCallback& callback) { OnEvent[kEventTextChange] += callback; }
+	void AttachTextChange(const EventCallback& callback) { m_OnEvent[kEventTextChange] += callback; }
 
 	/**
 	 * @brief 监听自定义链接被点击事件
 	 * @param[in] callback 自定义链接被点击后的自定义回调函数
 	 * @return 无
 	 */
-	void AttachCustomLinkClk(const EventCallback& callback)	{ OnEvent[kEventCustomLinkClick] += callback; }
+	void AttachCustomLinkClk(const EventCallback& callback)	{ m_OnEvent[kEventCustomLinkClick] += callback; }
 
 	/**
 	 * @brief 监听大小变化事件
@@ -957,7 +966,7 @@ public:
 	 * @param[in] newText 新值
 	 * @return 无
 	 */
-	void RaiseUIAValueEvent(const std::wstring& oldText, const std::wstring& newText);
+	void RaiseTextValueEvent(const std::wstring& oldText, const std::wstring& newText);
 
 protected:
     CTxtWinHost* m_pTwh;

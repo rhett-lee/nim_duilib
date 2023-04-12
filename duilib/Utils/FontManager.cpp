@@ -1,4 +1,5 @@
-#include "StdAfx.h"
+#include "FontManager.h"
+#include "duilib/Core/GlobalManager.h"
 
 namespace ui 
 {
@@ -35,7 +36,7 @@ void FontManager::AddFontResource(const std::wstring& strFontFile, const std::ws
 	else {
 		res = AddFontResourceEx(path.c_str(), FR_PRIVATE, 0) != 0;
 	}
-	assert(res);
+	ASSERT(res);
 	if (res) {
 		m_fontPath.push_back(path);
 		m_fontNames.push_back(strFontName);
@@ -50,12 +51,10 @@ const std::vector<std::wstring>& FontManager::GetFontNames()
 void FontManager::Clear()
 {
 	for (const auto &it : m_fontHandles) {
-		(void)it;
-		assert(RemoveFontMemResourceEx(it));
+		RemoveFontMemResourceEx(it);
 	}
 	for (const auto &it : m_fontPath) {
-		(void)it;
-		assert(RemoveFontResourceEx(it.c_str(), FR_PRIVATE, 0));
+		RemoveFontResourceEx(it.c_str(), FR_PRIVATE, 0);
 	}
 	m_fontHandles.clear();
 	m_fontPath.clear();

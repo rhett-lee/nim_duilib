@@ -3,10 +3,21 @@
 
 #pragma once
 
+#include "duilib/duilib_defs.h"
+#include "duilib/Utils/Utils.h"
+#include "duilib/Utils/Delegate.h"
+#include "base/callback/callback.h"
+
+#include <CommCtrl.h>
+#include <string>
+
 namespace ui 
 {
 
 class Box;
+class Control;
+class IRenderContext;
+class Shadow;
 
 // Flags for Control::GetControlFlags()
 #define UIFLAG_DEFAULT       0x00000000		// 默认状态
@@ -22,20 +33,6 @@ class Box;
 
 /////////////////////////////////////////////////////////////////////////////////////
 //
-
-typedef struct tagTFontInfo
-{
-	HFONT hFont;
-	std::wstring sFontName;
-	int iSize;
-	int iWeight;
-	bool bBold;
-	bool bUnderline;
-	bool bStrikeout;
-	bool bItalic;
-	TEXTMETRIC tm;
-} TFontInfo;
-
 // MessageFilter interface
 class IUIMessageFilter
 {
@@ -55,14 +52,10 @@ public:
 };
 /////////////////////////////////////////////////////////////////////////////////////
 //
-#ifndef ASSERT
-#define ASSERT(expr)  _ASSERTE(expr)
-#endif
 
-/////////////////////////////////////////////////////////////////////////////////////
-//
-
+#if defined(ENABLE_UIAUTOMATION)
 class UIAWindowProvider;
+#endif
 
 class UILIB_API Window : public virtual nbase::SupportWeakCallback
 {
@@ -958,9 +951,10 @@ protected:
 	bool m_bSubclassed;
 
 	Box* m_pRoot;
-	EventMap OnEvent;
-
+	EventMap m_OnEvent;
+#if defined(ENABLE_UIAUTOMATION)
 	UIAWindowProvider* m_pUIAProvider;
+#endif
 
 protected:
 	CSize m_szMinWindow;
@@ -1016,7 +1010,7 @@ protected:
 
 	nbase::WeakCallbackFlag m_closeFlag;
 	
-	Shadow m_shadow;
+	std::unique_ptr<Shadow> m_shadow;
 
 	bool m_bFakeModal = false;
 	bool m_bCloseing = false;	//add by djj 20200428 调用Close时会延迟Post WM_CLOSE, 这个期间需要有一个标识此种'待关闭状态'

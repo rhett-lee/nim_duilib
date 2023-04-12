@@ -1,5 +1,3 @@
-#include "stdafx.h"
-#include "popover.h"
 #include "alert.h"
 
 namespace nim_comp {

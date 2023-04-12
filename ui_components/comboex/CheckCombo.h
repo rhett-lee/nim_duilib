@@ -1,10 +1,11 @@
 #pragma once
 
+#include "duilib/Core/Box.h"
+
 namespace nim_comp
 {
-	using namespace ui;
 	class CCheckComboWnd;
-	class UILIB_API CheckCombo : public Box
+	class UILIB_API CheckCombo : public ui::Box
 	{
 		friend class CCheckComboWnd;
 	public:
@@ -31,7 +32,7 @@ namespace nim_comp
 		* @brief 获取当前所属的 List 对象
 		* @return 返回所属的 List 对象指针
 		*/
-		ScrollableBox* GetListBox() { return m_pDropList.get(); }
+		ui::ScrollableBox* GetListBox() { return m_pDropList.get(); }
 
 		/**
 		* @brief 获取下拉框属性信息
@@ -50,14 +51,14 @@ namespace nim_comp
 		* @brief 获取下拉框容器大小
 		* @return 返回容器大小
 		*/
-		CSize GetDropBoxSize() const;
+		ui::CSize GetDropBoxSize() const;
 
 		/**
 		* @brief 设置下拉框容器大小
 		* @param[in] szDropBox 要设置的大小信息
 		* @return 无
 		*/
-		void SetDropBoxSize(CSize szDropBox);
+		void SetDropBoxSize(ui::CSize szDropBox);
 
 		/**
 		* @brief 设置 Combobox 是否向上弹出
@@ -105,20 +106,20 @@ namespace nim_comp
 		* @param[in] args 参数列表
 		* @return 始终返回 true
 		*/
-		bool OnSelectItem(EventArgs* args);
-		bool OnUnSelectItem(EventArgs* args);
+		bool OnSelectItem(ui::EventArgs* args);
+		bool OnUnSelectItem(ui::EventArgs* args);
 
-		bool OnListButtonDown(EventArgs* args);
+		bool OnListButtonDown(ui::EventArgs* args);
 
 	protected:
 		CCheckComboWnd *m_pCheckComboWnd;
-		std::unique_ptr<ScrollableBox> m_pDropList;
+		std::unique_ptr<ui::ScrollableBox> m_pDropList;
 
-		std::unique_ptr<ScrollableBox> m_pList;
+		std::unique_ptr<ui::ScrollableBox> m_pList;
 		std::vector<std::string> m_vecDate;
 		
-		ControlStateType m_uButtonState;
-		CSize m_szDropBox;
+		ui::ControlStateType m_uButtonState;
+		ui::CSize m_szDropBox;
 		std::wstring m_sDropBoxAttributes;
 		bool m_bPopupTop;
 

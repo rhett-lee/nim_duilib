@@ -1,5 +1,5 @@
-#include "stdafx.h"
 #include "windows_manager.h"
+#include "duilib/Core/GlobalManager.h"
 
 namespace nim_comp
 {

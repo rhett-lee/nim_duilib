@@ -14,7 +14,9 @@
 #include "include/cef_dialog_handler.h"
 #pragma warning (pop)
 
-namespace ui 
+#include <functional>
+
+namespace nim_comp
 {
 	typedef std::function<void(CefRefPtr<CefContextMenuParams> params, CefRefPtr<CefMenuModel> model)> OnBeforeMenuEvent;
 	typedef std::function<bool(CefRefPtr<CefContextMenuParams> params, int command_id, CefContextMenuHandler::EventFlags event_flags)> OnMenuCommandEvent;

@@ -3,6 +3,9 @@
 
 #pragma once
 
+#include "duilib/duilib_defs.h"
+#include "duilib/Core/Window.h"
+
 namespace ui
 {
 
@@ -12,7 +15,7 @@ namespace ui
 #define UI_CLASSSTYLE_FRAME		(CS_VREDRAW | CS_HREDRAW)
 #define UI_CLASSSTYLE_DIALOG	(CS_VREDRAW | CS_HREDRAW | CS_DBLCLKS | CS_SAVEBITS)
 
-class UILIB_API WindowImplBase : public Window, public IUIMessageFilter
+class UILIB_API WindowImplBase: public Window, public IUIMessageFilter
 {
 public:
 	WindowImplBase();

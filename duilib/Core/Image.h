@@ -3,16 +3,27 @@
 
 #pragma once
 
-#include <GdiPlus.h>
+#include "duilib/Core/GdiPlusDefs.h"
+#include "duilib/Core/Define.h"
+#include "duilib/duilib_defs.h"
+#include "duilib/Utils/Utils.h"
+#include <memory>
+#include <string>
+#include <map>
+#include <vector>
 
 namespace ui 
 {
+	class IRenderContext;
 
 class UILIB_API ImageInfo
 {
 public:
 	ImageInfo();
 	~ImageInfo();
+
+	ImageInfo(const ImageInfo&) = delete;
+	ImageInfo& operator = (const ImageInfo&) = delete;
 
 	void SetAlpha(bool bAlphaChannel) {	m_bAlphaChannel = bAlphaChannel; }
 	bool IsAlpha() { return m_bAlphaChannel; }
@@ -76,7 +87,7 @@ class UILIB_API Image
 public:
 	Image();
 
-	bool IsValid() { return (bool)imageCache; }
+	bool IsValid() { return (m_imageCache.get() != nullptr); }
 	bool IsPlaying() { return m_bPlaying; }
 	void SetPlaying(bool bPlaying) { m_bPlaying = bPlaying; }
 
@@ -91,13 +102,20 @@ public:
 	int GetCycledCount();
 	void ClearCycledCount();
 	bool ContinuePlay();
-	ImageAttribute imageAttribute;
-	std::shared_ptr<ImageInfo> imageCache;
+
+	const ImageAttribute& GetImageAttribute() const;
+	ImageAttribute& SetImageAttribute();
+
+	const std::shared_ptr<ImageInfo>& GetImageCache() const;
+	void SetImageCache(const std::shared_ptr<ImageInfo>& imageInfo);
 
 private:
 	int m_nCurrentFrame;
 	bool m_bPlaying;
 	int m_nCycledCount;//²¥·Å´ÎÊý
+
+	ImageAttribute m_imageAttribute;
+	std::shared_ptr<ImageInfo> m_imageCache;
 };
 
 class UILIB_API StateImage

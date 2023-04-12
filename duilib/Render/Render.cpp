@@ -1,4 +1,10 @@
-#include "StdAfx.h"
+#include "Render.h"
+#include "duilib/Utils/DpiManager.h"
+#include "duilib/Core/GlobalManager.h"
+#include "duilib/Render/Pen.h"
+#include "duilib/Render/Path.h"
+#include "duilib/Render/Brush.h"
+#include "duilib/Core/GdiPlusDefs.h"
 
 namespace ui {
 
@@ -659,8 +665,8 @@ void RenderContext_GdiPlus::FillEllipse(const UiRect& rc, DWORD dwColor)
 
 void RenderContext_GdiPlus::DrawPath(const IPath* path, const IPen* pen)
 {
-	assert(path != nullptr);
-	assert(pen != nullptr);
+	ASSERT(path != nullptr);
+	ASSERT(pen != nullptr);
 	if ((path == nullptr) || (pen == nullptr)) {
 		return;
 	}
@@ -671,8 +677,8 @@ void RenderContext_GdiPlus::DrawPath(const IPath* path, const IPen* pen)
 
 void RenderContext_GdiPlus::FillPath(const IPath* path, const IBrush* brush)
 {
-	assert(path != nullptr);
-	assert(brush != nullptr);
+	ASSERT(path != nullptr);
+	ASSERT(brush != nullptr);
 	if ((path == nullptr) || (brush == nullptr)) {
 		return;
 	}
@@ -807,7 +813,7 @@ ui::UiRect RenderContext_GdiPlus::MeasureText(const std::wstring& strText, const
 		HFONT hOldFont = (HFONT)::SelectObject(m_hDC, GlobalManager::GetFont(strFontId));
 
 		SIZE size = { 0 };
-		GetTextExtentPoint32(m_hDC, strText.c_str(), (int)_tcslen(strText.c_str()), &size);
+		GetTextExtentPoint32(m_hDC, strText.c_str(), (int)strText.size(), &size);
 		::SelectObject(m_hDC, hOldFont);
 
 		UiRect rc(int(0), int(0), int(size.cx + 1), int(size.cy + 1));

@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "duilib/Core/Box.h"
+
 namespace ui
 {
 

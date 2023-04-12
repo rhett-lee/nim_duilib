@@ -2,6 +2,11 @@
 #define UI_UTILS_FONTMANAGER_H_
 
 #pragma once
+
+#include "duilib/duilib_defs.h"
+#include <string>
+#include <vector>
+
 namespace Gdiplus{
 	class PrivateFontCollection;
 }

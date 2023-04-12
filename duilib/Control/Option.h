@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "duilib/Control/CheckBox.h"
+
 namespace ui
 {
 
@@ -68,7 +70,7 @@ void OptionTemplate<InheritType>::SetWindow(Window* pManager, Box* pParent, bool
 template<typename InheritType>
 void OptionTemplate<InheritType>::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
-    if (strName == _T("group")) SetGroup(strValue);
+    if (strName == L"group") SetGroup(strValue);
     else __super::SetAttribute(strName, strValue);
 }
 
