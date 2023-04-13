@@ -469,5 +469,8 @@
     <ClInclude Include="Core\GdiPlusDefs.h">
       <Filter>Header Files\Core</Filter>
     </ClInclude>
+    <ClInclude Include="duilib_config.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

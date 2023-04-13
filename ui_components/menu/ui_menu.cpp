@@ -53,7 +53,7 @@ CMenuWnd::CMenuWnd(HWND hParent) :
 {
 }
 
-void CMenuWnd::Init(ui::STRINGorID xml, LPCTSTR /*pSkinType*/, POINT point, PopupPosType popupPosType, bool no_focus, CMenuElementUI* pOwner)
+void CMenuWnd::Init(const std::wstring& xml, LPCTSTR /*pSkinType*/, POINT point, PopupPosType popupPosType, bool no_focus, CMenuElementUI* pOwner)
 {
 	m_BasedPoint = point;
 	m_popupPosType = popupPosType;
@@ -654,7 +654,7 @@ void CMenuElementUI::CreateMenuWnd()
 	param.wParam = eMenuCloseThis;
 	CMenuWnd::GetMenuObserver().RBroadcast(param);
 
-	m_pSubWindow->Init(ui::STRINGorID(L"submenu.xml"), L"", ui::CPoint(), CMenuWnd::RIGHT_BOTTOM, false, this);
+	m_pSubWindow->Init(L"submenu.xml", L"", ui::CPoint(), CMenuWnd::RIGHT_BOTTOM, false, this);
 }
 
 } // namespace ui

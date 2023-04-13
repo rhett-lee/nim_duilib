@@ -16,10 +16,7 @@ CircleProgress::CircleProgress() :
 
 }
 
-std::wstring CircleProgress::GetType() const
-{
-	return DUI_CTR_CIRCLEPROGRESS;
-}
+std::wstring CircleProgress::GetType() const { return DUI_CTR_CIRCLEPROGRESS; }
 
 void CircleProgress::SetAttribute(const std::wstring& srName, const std::wstring& strValue)
 {

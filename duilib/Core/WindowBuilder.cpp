@@ -33,45 +33,57 @@ WindowBuilder::WindowBuilder()
 	m_xml = std::make_unique<CMarkup>();
 }
 
-Box* WindowBuilder::Create(STRINGorID xml, CreateControlCallback pCallback, 
-	Window* pManager, Box* pParent, Box* pUserDefinedBox)
+Box* WindowBuilder::Create(const std::wstring& xml, 
+	                       CreateControlCallback pCallback,
+						   Window* pManager, 
+	                       Box* pParent, 
+	                       Box* pUserDefinedBox)
 {
-	//资源ID为0-65535，两个字节；字符串指针为4个字节
+	ASSERT(!xml.empty() && L"xml 参数为空！");
+	if (xml.empty())
+	{
+		return nullptr;
+	}
 	//字符串以<开头认为是XML字符串，否则认为是XML文件
 	//如果使用了 zip 压缩包，则从内存中读取
-	if (HIWORD(xml.m_lpstr) != NULL) {
-		if (*(xml.m_lpstr) == _T('<')) {
-			if (!m_xml->Load(xml.m_lpstr)) return NULL;
+	if (xml.front() == L'<') {
+		if (!m_xml->Load(xml.c_str())) {
+			ASSERT(!L"Load xml 失败");
+			return nullptr;
 		}
-		else if (GlobalManager::IsUseZip()) {
-			std::wstring sFile = GlobalManager::GetResourcePath();
-			sFile += xml.m_lpstr;
-			HGLOBAL hGlobal = GlobalManager::GetZipData(sFile);
-			if (hGlobal)
-			{
-				BYTE *data = (BYTE*)GlobalLock(hGlobal);
-				SIZE_T len = GlobalSize(hGlobal);
-
-				bool ret = m_xml->LoadFromMem(data, static_cast<DWORD>(len));
-
-				GlobalUnlock(hGlobal);
-				GlobalFree(hGlobal);
-
-				if (!ret) return NULL;
-			}
-			else
-			{
-				if (!m_xml->LoadFromFile(xml.m_lpstr)) return NULL;
+	}
+	else if (GlobalManager::IsUseZip()) {
+		std::wstring sFile = GlobalManager::GetResourcePath();
+		sFile += xml;
+		HGLOBAL hGlobal = GlobalManager::GetZipData(sFile);
+		if (hGlobal)
+		{
+			BYTE* data = (BYTE*)GlobalLock(hGlobal);
+			SIZE_T len = GlobalSize(hGlobal);
+			ASSERT(data != nullptr);
+			ASSERT(len > 0);
+			bool ret = m_xml->LoadFromMem(data, static_cast<DWORD>(len));
+			GlobalUnlock(hGlobal);
+			GlobalFree(hGlobal);
+			if (!ret) {
+				ASSERT(!L"LoadFromMem 失败");
+				return nullptr;
 			}
 		}
-		else {
-			if( !m_xml->LoadFromFile(xml.m_lpstr) ) return NULL;
+		else
+		{
+			if (!m_xml->LoadFromFile(xml.c_str())) {
+				ASSERT(!L"LoadFromFile 失败");
+				return nullptr;
+			}
 		}
 	}
 	else {
-		ASSERT(FALSE);
+		if (!m_xml->LoadFromFile(xml.c_str())) {
+			ASSERT(!L"LoadFromFile 失败");
+			return NULL;
+		}
 	}
-
 	return Create(pCallback, pManager, pParent, pUserDefinedBox);
 }
 
@@ -435,13 +447,15 @@ Control* WindowBuilder::_Parse(CMarkupNode* pRoot, Control* pParent, Window* pMa
     Control* pReturn = NULL;
     for( CMarkupNode node = pRoot->GetChild() ; node.IsValid(); node = node.GetSibling() ) {
         std::wstring strClass = node.GetName();
-		if( strClass == _T("Image") || strClass == _T("Font")
-			|| strClass == _T("Class") || strClass == _T("TextColor") ) {
+		if( (strClass == L"Image") || 
+			(strClass == L"Font")  ||
+			(strClass == L"Class") || 
+			(strClass == L"TextColor") ) {
 				continue;
 		}
 
         Control* pControl = NULL;
-        if( strClass == _T("Include") ) {
+        if (strClass == L"Include") {
 			if (!node.HasAttributes()) {
 				continue;
 			}
@@ -449,23 +463,24 @@ Control* WindowBuilder::_Parse(CMarkupNode* pRoot, Control* pParent, Window* pMa
             LPTSTR pstr = NULL;
             TCHAR szValue[500] = { 0 };
             SIZE_T cchLen = sizeof(szValue)/sizeof(szValue[0]) - 1;
-			if (node.GetAttributeValue(_T("count"), szValue, cchLen)) {
+			if (node.GetAttributeValue(L"count", szValue, cchLen)) {
 				nCount = _tcstol(szValue, &pstr, 10);
 			}
             cchLen = sizeof(szValue) / sizeof(szValue[0]) - 1;
-			if (!node.GetAttributeValue(_T("source"), szValue, cchLen)) {
+			if (!node.GetAttributeValue(L"source", szValue, cchLen)) {
 				continue;
 			}
             for ( int i = 0; i < nCount; i++ ) {
                 WindowBuilder builder;
-                pControl = builder.Create(STRINGorID((LPCTSTR)szValue), m_createControlCallback, pManager, (Box*)pParent);
+                pControl = builder.Create(szValue, m_createControlCallback, pManager, (Box*)pParent);
             }
             continue;
         }
         else {
 			pControl = CreateControlByClass(strClass);
 			if (pControl == nullptr) {
-				if (strClass == L"Event" || strClass == L"BubbledEvent") {
+				if ((strClass == L"Event") || 
+					(strClass == L"BubbledEvent")) {
 					bool bBubbled = (strClass == L"BubbledEvent");
 					AttachXmlEvent(bBubbled, node, pParent);
 					continue;
@@ -516,7 +531,7 @@ Control* WindowBuilder::_Parse(CMarkupNode* pRoot, Control* pParent, Window* pMa
 			// Set ordinary attributes
 			int nAttributes = node.GetAttributeCount();
 			for( int i = 0; i < nAttributes; i++ ) {
-				ASSERT(i == 0 || _tcscmp(node.GetAttributeName(i), _T("class")) != 0);	//class必须是第一个属性
+				ASSERT(i == 0 || _tcscmp(node.GetAttributeName(i), L"class") != 0);	//class必须是第一个属性
 				pControl->SetAttribute(node.GetAttributeName(i), node.GetAttributeValue(i));
 			}
 		}
@@ -545,7 +560,7 @@ Control* WindowBuilder::_Parse(CMarkupNode* pRoot, Control* pParent, Window* pMa
 Control* WindowBuilder::CreateControlByClass(const std::wstring& strControlClass)
 {
 	Control* pControl = nullptr;
-	SIZE_T cchLen = strControlClass.length();
+	size_t cchLen = strControlClass.size();
 	switch( cchLen ) {
 	case 3:
 		if( strControlClass == DUI_CTR_BOX )					pControl = new Box;
@@ -568,13 +583,11 @@ Control* WindowBuilder::CreateControlByClass(const std::wstring& strControlClass
 		if( strControlClass == DUI_CTR_CONTROL )                pControl = new Control;
 		else if( strControlClass == DUI_CTR_TILEBOX )		  	pControl = new TileBox;
 		else if (strControlClass == DUI_CTR_LISTBOX)			pControl = new ListBox(new Layout);
-		//else if( pstrClass == DUI_CTR_ACTIVEX )				pControl = new ActiveX;
 		break;
 	case 8:
 		if( strControlClass == DUI_CTR_PROGRESS )               pControl = new Progress;
 		else if( strControlClass == DUI_CTR_RICHEDIT )          pControl = new RichEdit;
 		else if( strControlClass == DUI_CTR_CHECKBOX )			pControl = new CheckBox;
-		//else if( pstrClass == DUI_CTR_DATETIME )				pControl = new DateTime;
 		else if( strControlClass == DUI_CTR_TREEVIEW )			pControl = new TreeView;
 		else if( strControlClass == DUI_CTR_TREENODE )			pControl = new TreeNode;
 		else if( strControlClass == DUI_CTR_HLISTBOX )			pControl = new ListBox(new HLayout);
@@ -586,9 +599,6 @@ Control* WindowBuilder::CreateControlByClass(const std::wstring& strControlClass
 		if( strControlClass == DUI_CTR_SCROLLBAR )				pControl = new ScrollBar; 
 		else if( strControlClass == DUI_CTR_BUTTONBOX )         pControl = new ButtonBox;
 		else if( strControlClass == DUI_CTR_OPTIONBOX )         pControl = new OptionBox;
-		break;
-	case 10:
-		//if( pstrClass == DUI_CTR_WEBBROWSER )					pControl = new WebBrowser;
 		break;
 	case 11:
 		if( strControlClass == DUI_CTR_TILELISTBOX )			pControl = new ListBox(new TileLayout);
@@ -605,6 +615,8 @@ Control* WindowBuilder::CreateControlByClass(const std::wstring& strControlClass
 		break;
 	case 20:
 		if( strControlClass == DUI_CTR_LISTCONTAINERELEMENT )   pControl = new ListContainerElement;
+		break;
+	default:
 		break;
 	}
 

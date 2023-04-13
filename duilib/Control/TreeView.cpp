@@ -14,10 +14,7 @@ TreeNode::TreeNode() :
 	
 }
 
-std::wstring TreeNode::GetType() const
-{
-	return DUI_CTR_TREENODE;
-}
+std::wstring TreeNode::GetType() const { return DUI_CTR_TREENODE; }
 
 #if defined(ENABLE_UIAUTOMATION)
 UIAControlProvider* TreeNode::GetUIAProvider()

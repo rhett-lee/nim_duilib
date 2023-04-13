@@ -105,10 +105,7 @@ void ScrollBar::SetOwner(ScrollableBox* pOwner)
 	m_pOwner = pOwner;
 }
 
-std::wstring ScrollBar::GetType() const
-{
-	return DUI_CTR_SCROLLBAR;
-}
+std::wstring ScrollBar::GetType() const { return DUI_CTR_SCROLLBAR; }
 
 #if defined(ENABLE_UIAUTOMATION)
 UIAControlProvider* ScrollBar::GetUIAProvider()

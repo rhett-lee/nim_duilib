@@ -164,10 +164,7 @@ CheckBoxTemplate<InheritType>::CheckBoxTemplate() : m_bSelected(false), m_bPaint
 }
 
 template<typename InheritType>
-inline std::wstring CheckBoxTemplate<InheritType>::GetType() const
-{
-    return DUI_CTR_CHECKBOX;
-}
+inline std::wstring CheckBoxTemplate<InheritType>::GetType() const { return DUI_CTR_CHECKBOX; }
 #if defined(ENABLE_UIAUTOMATION)
 template<typename InheritType>
 inline UIAControlProvider* CheckBoxTemplate<InheritType>::GetUIAProvider()

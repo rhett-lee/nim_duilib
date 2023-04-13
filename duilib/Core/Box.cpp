@@ -259,10 +259,8 @@ Box::~Box()
 	RemoveAll();
 }
 
-std::wstring Box::GetType() const
-{
-	return DUI_CTR_BOX;
-}
+std::wstring Box::GetType() const { return DUI_CTR_BOX; }
+
 #if defined(ENABLE_UIAUTOMATION)
 UIAControlProvider* Box::GetUIAProvider()
 {
@@ -1009,10 +1007,7 @@ ScrollableBox::ScrollableBox(const ScrollableBox& r):
 	m_pHorizontalScrollBar->SetOwner(this);
 }
 
-std::wstring ScrollableBox::GetType() const
-{
-	return std::wstring(_T("Scrollable")) + DUI_CTR_BOX;
-}
+std::wstring ScrollableBox::GetType() const { return std::wstring(_T("Scrollable")) + DUI_CTR_BOX; }//ScrollableBox
 
 #if defined(ENABLE_UIAUTOMATION)
 UIAControlProvider* ScrollableBox::GetUIAProvider()

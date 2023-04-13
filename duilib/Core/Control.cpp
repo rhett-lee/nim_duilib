@@ -153,10 +153,7 @@ Control::~Control()
 #endif
 }
 
-std::wstring Control::GetType() const
-{
-	return _T("Control");
-}
+std::wstring Control::GetType() const { return _T("Control"); }
 
 std::wstring Control::GetBkColor() const
 {

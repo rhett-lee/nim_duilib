@@ -30,10 +30,7 @@ PopoverArrow::~PopoverArrow()
 
 }
 
-std::wstring PopoverArrow::GetType() const
-{
-  return L"PopoverArrow";
-}
+std::wstring PopoverArrow::GetType() const { return L"PopoverArrow"; }
 
 void PopoverArrow::DoInit()
 {
@@ -245,10 +242,7 @@ PopoverHeader::~PopoverHeader()
 
 }
 
-std::wstring PopoverHeader::GetType() const
-{
-  return L"PopoverHeader";
-}
+std::wstring PopoverHeader::GetType() const { return L"PopoverHeader"; }
 
 ui::CSize PopoverHeader::EstimateSize(ui::CSize szAvailable)
 {
@@ -371,10 +365,7 @@ PopoverBody::~PopoverBody()
 
 }
 
-std::wstring PopoverBody::GetType() const
-{
-  return L"PopoverBody";
-}
+std::wstring PopoverBody::GetType() const { return L"PopoverBody"; }
 
 ui::CSize PopoverBody::EstimateSize(ui::CSize szAvailable)
 {
@@ -457,10 +448,7 @@ PopoverFooter::~PopoverFooter()
 
 }
 
-std::wstring PopoverFooter::GetType() const
-{
-  return L"PopoverFooter";
-}
+std::wstring PopoverFooter::GetType() const { return L"PopoverFooter"; }
 
 ui::CSize PopoverFooter::EstimateSize(ui::CSize szAvailable)
 {
@@ -653,9 +641,7 @@ Popover::~Popover()
   m_cbClose({ kResultNone });
 }
 
-std::wstring Popover::GetType() const {
-  return L"Popover";
-}
+std::wstring Popover::GetType() const { return L"Popover"; }
 
 ui::CSize Popover::EstimateSize(ui::CSize /*szAvailable*/)
 {
@@ -1361,10 +1347,7 @@ void PopoverLayer::ClearAll()
   m_pPopoverLayer->RemoveAll();
 }
 
-std::wstring PopoverLayer::GetType() const
-{
-  return L"PopoverLayer";
-}
+std::wstring PopoverLayer::GetType() const { return L"PopoverLayer"; }
 
 void PopoverLayer::DoInit()
 {

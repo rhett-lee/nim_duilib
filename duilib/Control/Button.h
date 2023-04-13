@@ -67,10 +67,8 @@ void ButtonTemplate<InheritType>::HandleMessage(EventArgs& event)
 }
 
 template<typename InheritType>
-inline std::wstring ButtonTemplate<InheritType>::GetType() const
-{
-    return DUI_CTR_BUTTON;
-}
+inline std::wstring ButtonTemplate<InheritType>::GetType() const { return DUI_CTR_BUTTON; }
+
 #if defined(ENABLE_UIAUTOMATION)
 template<typename InheritType>
 inline UIAControlProvider* ButtonTemplate<InheritType>::GetUIAProvider()

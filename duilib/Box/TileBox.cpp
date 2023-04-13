@@ -207,9 +207,7 @@ TileBox::TileBox() : Box(new TileLayout())
 
 }
 
-std::wstring TileBox::GetType() const
-{
-	return DUI_CTR_TILEBOX;
-}
+std::wstring TileBox::GetType() const {	return DUI_CTR_TILEBOX; }
 
-}
+} //namespace ui
+

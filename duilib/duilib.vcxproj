@@ -422,6 +422,7 @@
     <ClInclude Include="Control\CircleProgress.h" />
     <ClInclude Include="Core\Placeholder.h" />
     <ClInclude Include="duilib.h" />
+    <ClInclude Include="duilib_config.h" />
     <ClInclude Include="duilib_defs.h" />
     <ClInclude Include="Render\Bitmap.h" />
     <ClInclude Include="Render\Brush.h" />

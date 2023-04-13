@@ -24,10 +24,7 @@ Progress::Progress() :
 	SetFixedHeight(12);
 }
 
-std::wstring Progress::GetType() const
-{
-	return DUI_CTR_PROGRESS;
-}
+std::wstring Progress::GetType() const { return DUI_CTR_PROGRESS; }
 
 #if defined(ENABLE_UIAUTOMATION)
 UIAControlProvider* Progress::GetUIAProvider()

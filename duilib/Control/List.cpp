@@ -15,10 +15,8 @@ ListBox::ListBox(Layout* pLayout) :
 
 }
 
-std::wstring ListBox::GetType() const
-{
-	return DUI_CTR_LISTBOX;
-}
+std::wstring ListBox::GetType() const { return DUI_CTR_LISTBOX; }
+
 #if defined(ENABLE_UIAUTOMATION)
 UIAControlProvider* ListBox::GetUIAProvider()
 {
@@ -415,10 +413,7 @@ ListContainerElement::ListContainerElement() :
 	SetReceivePointerMsg(false);
 }
 
-std::wstring ListContainerElement::GetType() const
-{
-	return DUI_CTR_LISTCONTAINERELEMENT;
-}
+std::wstring ListContainerElement::GetType() const {  return DUI_CTR_LISTCONTAINERELEMENT; }
 
 #if defined(ENABLE_UIAUTOMATION)
 UIAControlProvider* ListContainerElement::GetUIAProvider()

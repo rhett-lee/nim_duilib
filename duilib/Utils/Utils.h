@@ -9,29 +9,6 @@
 
 namespace ui
 {
-
-/////////////////////////////////////////////////////////////////////////////////////
-//
-
-class UILIB_API STRINGorID
-{
-public:
-	explicit STRINGorID(LPCTSTR lpString) : m_lpstr(lpString)
-	{
-	
-	}
-
-	explicit STRINGorID(UINT nID) : m_lpstr(MAKEINTRESOURCE(nID))
-	{
-	
-	}
-
-	LPCTSTR m_lpstr;
-};
-
-/////////////////////////////////////////////////////////////////////////////////////
-//
-
 class UILIB_API CPoint : public tagPOINT
 {
 public:

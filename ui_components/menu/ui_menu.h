@@ -65,7 +65,7 @@ public:
 		LEFT_TOP_N = eMenuAlignment_Intelligent | eMenuAlignment_Top
 	};
 	explicit CMenuWnd(HWND hParent = NULL);
-	void Init(ui::STRINGorID xml, LPCTSTR pSkinType, POINT point, PopupPosType popupPosType = LEFT_TOP, bool no_focus = false, CMenuElementUI* pOwner = NULL);
+	void Init(const std::wstring& xml, LPCTSTR pSkinType, POINT point, PopupPosType popupPosType = LEFT_TOP, bool no_focus = false, CMenuElementUI* pOwner = NULL);
 	void Show();
 	// 重新调整菜单的大小
 	void ResizeMenu();
@@ -86,7 +86,7 @@ public:
 		return L"menu";
 	}
 	virtual std::wstring GetSkinFile() override {
-		return m_xml.m_lpstr;
+		return m_xml;
 	}
 	std::wstring GetWindowClassName() const override;
 
@@ -94,7 +94,7 @@ public:
 	HWND m_hParent;
 	POINT m_BasedPoint;
 	PopupPosType m_popupPosType;
-	ui::STRINGorID m_xml;
+	std::wstring m_xml;
 	bool no_focus_;
 	CMenuElementUI* m_pOwner;
 	ui::ListBox* m_pLayout;

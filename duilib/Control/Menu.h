@@ -308,14 +308,14 @@ public:
 	  * @param flags	MenuFlags，一些额外的控制参数	
 	  * @return MenuWndEx*	菜单窗口
 	  */
-	static MenuWndEx* CreateMenu(
-		STRINGorID xml,
-		CPoint point,
-		const std::wstring &strMenuName = L"",
-		int align = kRight | kBottom,
-		HWND hParent = NULL,
-		int flags = 0
-		);
+    static MenuWndEx* CreateMenu(
+        const std::wstring& xmlFile,
+        CPoint point,
+        const std::wstring& strMenuName = L"",
+        int align = kRight | kBottom,
+        HWND hParent = NULL,
+        int flags = 0
+    );
 
 	/** @brief 获取根菜单控件，用于动态添加子菜单
 	  * @return MenuBox* 根菜单控件
@@ -394,7 +394,7 @@ private:
 	void InitMenu(
 		MenuElement* pOwner,
 		HWND hParent,
-		STRINGorID xml,
+		const std::wstring& xmlFile,
 		CPoint point,
 		int align,
 		int flags = 0

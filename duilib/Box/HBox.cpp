@@ -153,9 +153,7 @@ HBox::HBox() : Box(new HLayout())
 
 }
 
-std::wstring HBox::GetType() const
-{
-	return DUI_CTR_HBOX;
-}
+std::wstring HBox::GetType() const { return DUI_CTR_HBOX; }
 
-}
+} //namespace ui
+

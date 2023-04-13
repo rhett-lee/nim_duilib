@@ -2273,10 +2273,7 @@ void RichEdit::EndRight()
     TxSendMessage(WM_HSCROLL, SB_RIGHT, 0L, 0);
 }
 
-std::wstring RichEdit::GetType() const
-{
-	return DUI_CTR_RICHEDIT;
-}
+std::wstring RichEdit::GetType() const { return DUI_CTR_RICHEDIT; }
 
 #if defined(ENABLE_UIAUTOMATION)
 UIAControlProvider* RichEdit::GetUIAProvider()

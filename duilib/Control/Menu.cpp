@@ -210,19 +210,19 @@ MenuWndEx::~MenuWndEx()
 
 }
 
-MenuWndEx* MenuWndEx::CreateMenu(STRINGorID xml, CPoint point, const std::wstring &strMenuName/* = L""*/, int align /*= kRight | kBottom*/, HWND hParent, int flags /*= 0*/)
+MenuWndEx* MenuWndEx::CreateMenu(const std::wstring& xmlFile, CPoint point, const std::wstring &strMenuName/* = L""*/, int align /*= kRight | kBottom*/, HWND hParent, int flags /*= 0*/)
 {
 	MenuWndEx* pMenu = new MenuWndEx(strMenuName);
-	pMenu->InitMenu(nullptr, hParent, xml, point, align, flags);
+	pMenu->InitMenu(nullptr, hParent, xmlFile, point, align, flags);
 	return pMenu;
 }
 
 void MenuWndEx::InitMenu(MenuElement* pOwner,
-	HWND hParent,
-	STRINGorID xml,
-	CPoint point,
-	int align,
-	int flags)
+						 HWND hParent,
+						 const std::wstring& xmlFile,
+						 CPoint point,
+						 int align,
+						 int flags)
 {
 	m_pOwner = pOwner;
 	m_BasedPoint = point;
@@ -235,7 +235,7 @@ void MenuWndEx::InitMenu(MenuElement* pOwner,
 		wchar_t name[_MAX_FNAME] = { 0 };
 		wchar_t ext[_MAX_EXT] = { 0 };
 
-		_wsplitpath_s(xml.m_lpstr, drive, dir, name, ext);
+		_wsplitpath_s(xmlFile.c_str(), drive, dir, name, ext);
 		m_skinFloder = dir;
 		m_skinFile = name;
 		m_skinFile += ext;
@@ -596,7 +596,8 @@ LRESULT MenuWndEx::OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 		WindowBuilder builder;
 		auto callback = nbase::Bind(&WindowImplBase::CreateControl, this, std::placeholders::_1);
-		auto pRoot = (Box*)builder.Create(STRINGorID((GetWindowResourcePath() + GetSkinFile()).c_str()), callback, this);
+		std::wstring xmlFile = GetWindowResourcePath() + GetSkinFile();
+		auto pRoot = (Box*)builder.Create(xmlFile, callback, this);
 
 		ASSERT(pRoot);
 		if (pRoot == NULL) {
@@ -1098,7 +1099,7 @@ void MenuElement::CreateMenuWnd()
 	param.type = ContextMenuParam::kRemoveSubMenu;
 	MenuManager::GetInstance()->GetSubject().Notify(param);
 
-	m_pSubMenuWindow->InitMenu(static_cast<MenuElement*>(this), NULL, STRINGorID(L""), CPoint(), kRight | kBottom);
+	m_pSubMenuWindow->InitMenu(static_cast<MenuElement*>(this), NULL, std::wstring(), CPoint(), kRight | kBottom);
 
 	m_pWindow->SendNotify(this, ui::kEventNotify, 0, 0);
 }

@@ -12,10 +12,7 @@ ChildBox::ChildBox()
 
 }
 
-std::wstring ChildBox::GetType() const
-{
-	return DUI_CTR_CHILDBOX;
-}
+std::wstring ChildBox::GetType() const { return DUI_CTR_CHILDBOX; }
 
 void ChildBox::Init()
 {

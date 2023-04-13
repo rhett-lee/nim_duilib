@@ -8,10 +8,7 @@ TooltipBody::TooltipBody(const std::wstring& content):
   m_pRichEditContent->SetClass(L"tooltip_content");
 }
 
-std::wstring TooltipBody::GetType() const
-{
-  return L"TooltipBody";
-}
+std::wstring TooltipBody::GetType() const { return L"TooltipBody"; }
 
 ui::CSize TooltipBody::EstimateSize(ui::CSize szAvailable)
 {

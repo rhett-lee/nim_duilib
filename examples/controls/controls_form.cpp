@@ -158,8 +158,8 @@ void ControlForm::InitWindow()
 		::ClientToScreen(m_hWnd, &point);
 
 		nim_comp::CMenuWnd* sub_menu = new nim_comp::CMenuWnd(NULL);
-		ui::STRINGorID xml(L"settings_menu.xml");
-		sub_menu->Init(xml, _T("xml"), point);
+		std::wstring xml(L"settings_menu.xml");
+		sub_menu->Init(xml, L"xml", point);
 
 		/* Sub menu example */
 		nim_comp::CMenuElementUI* menu_fourth = static_cast<nim_comp::CMenuElementUI*>(sub_menu->FindControl(L"fourth"));

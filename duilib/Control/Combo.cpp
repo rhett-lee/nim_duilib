@@ -177,10 +177,8 @@ Combo::Combo() :
 	m_pLayout->AttachSelect(nbase::Bind(&Combo::OnSelectItem, this, std::placeholders::_1));
 }
 
-std::wstring Combo::GetType() const
-{
-	return DUI_CTR_COMBO;
-}
+std::wstring Combo::GetType() const { return DUI_CTR_COMBO; }
+
 #if defined(ENABLE_UIAUTOMATION)
 UIAControlProvider* Combo::GetUIAProvider()
 {

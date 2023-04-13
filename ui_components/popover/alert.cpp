@@ -9,10 +9,7 @@ AlertFooter::AlertFooter(const std::wstring& strOk,
   m_pLayout->SetChildMargin(0);
 }
 
-std::wstring AlertFooter::GetType() const
-{
-  return L"AlertFooter";
-}
+std::wstring AlertFooter::GetType() const { return L"AlertFooter"; }
 
 void AlertFooter::DoInit()
 {

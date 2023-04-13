@@ -25,10 +25,19 @@ class UILIB_API WindowBuilder
 public:
     WindowBuilder();
 
-	Box* Create(STRINGorID xml, CreateControlCallback pCallback = CreateControlCallback(),
-		Window* pManager = nullptr, Box* pParent = nullptr, Box* pUserDefinedBox = nullptr);
-	Box* Create(CreateControlCallback pCallback = CreateControlCallback(), Window* pManager = nullptr,
-		Box* pParent = nullptr, Box* pUserDefinedBox = nullptr);
+    /**
+    @param xml 可以是文件文本内容，也可以是XML文件的路径
+    */
+    Box* Create(const std::wstring& xml, 
+                CreateControlCallback pCallback = CreateControlCallback(),
+                Window* pManager = nullptr, 
+                Box* pParent = nullptr, 
+                Box* pUserDefinedBox = nullptr);
+
+    Box* Create(CreateControlCallback pCallback = CreateControlCallback(), 
+                Window* pManager = nullptr,
+                Box* pParent = nullptr, 
+                Box* pUserDefinedBox = nullptr);
 
     CMarkup* GetMarkup();
 

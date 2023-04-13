@@ -218,9 +218,7 @@ void ShadowCombo::DoInit()
     }
 }
 
-std::wstring ShadowCombo::GetType() const {
-    return L"ShadowCombo";
-}
+std::wstring ShadowCombo::GetType() const { return L"ShadowCombo"; }
 
 #if defined(ENABLE_UIAUTOMATION)
 UIAControlProvider* ShadowCombo::GetUIAProvider()

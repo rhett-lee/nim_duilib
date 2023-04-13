@@ -185,10 +185,7 @@ LabelTemplate<InheritType>::LabelTemplate() :
 }
 
 template<typename InheritType>
-inline std::wstring LabelTemplate<InheritType>::GetType() const
-{
-	return DUI_CTR_LABEL;
-}
+inline std::wstring LabelTemplate<InheritType>::GetType() const { return DUI_CTR_LABEL; }
 
 #if defined(ENABLE_UIAUTOMATION)
 template<typename InheritType>
