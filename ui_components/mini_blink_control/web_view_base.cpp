@@ -1,5 +1,3 @@
-#include "stdafx.h"
-
 #include "web_view_base.h"
 
 namespace {

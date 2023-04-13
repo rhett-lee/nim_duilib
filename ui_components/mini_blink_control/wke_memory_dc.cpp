@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "wke_memory_dc.h"
  
 WkeMemoryDC::WkeMemoryDC()

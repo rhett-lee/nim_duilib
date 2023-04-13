@@ -1,5 +1,3 @@
-#include "stdafx.h"
-
 #include "wke_web_native.h"
 
 namespace nim_comp {

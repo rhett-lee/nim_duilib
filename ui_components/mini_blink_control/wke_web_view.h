@@ -1,6 +1,8 @@
 #pragma once
 
-#include "web_view_base.h"
+#include "ui_components/mini_blink_control/web_view_base.h"
+#include "duilib/Core/Control.h"
+#include "duilib/Core/Window.h"
 
 class WkeMemoryDC;
 

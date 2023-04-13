@@ -1,8 +1,6 @@
-#include "stdafx.h"
-
 #include "wke_web_view.h"
-
 #include "wke_memory_dc.h"
+#include "duilib/Render/IRender.h"
 
 namespace {
 

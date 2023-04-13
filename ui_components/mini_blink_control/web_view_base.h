@@ -1,6 +1,8 @@
 #pragma once
 
 #include "third_party/mini_blink/include/wke.h"
+#include <functional>
+#include <string>
 
 namespace nim_comp {
 class WebViewObserver;
