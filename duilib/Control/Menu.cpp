@@ -1,6 +1,5 @@
 #include "Menu.h"
 #include "duilib/Utils/Shadow.h"
-#include "duilib/Core/Markup.h"
 #include "duilib/Control/ScrollBar.h"
 
 namespace ui {

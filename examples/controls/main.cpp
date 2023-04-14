@@ -40,7 +40,9 @@ void MainThread::Init()
 	std::wstring app_dir = nbase::win32::GetCurrentModuleDirectory();
 	ui::GlobalManager::Startup(app_dir + L"resources\\", ui::CreateControlCallback(), false);
 
+#if defined(ENABLE_UIAUTOMATION)
 	ui::GlobalManager::EnableAutomation();
+#endif
 
 	// 创建一个默认带有阴影的居中窗口
 	ControlForm* window = new ControlForm();

@@ -15,6 +15,7 @@ namespace ui
 class Box;
 class Window;
 class Control;
+
 class CMarkup;
 class CMarkupNode;
 
@@ -24,8 +25,12 @@ class UILIB_API WindowBuilder
 {
 public:
     WindowBuilder();
+    ~WindowBuilder();
 
-    /**
+    WindowBuilder(const WindowBuilder&) = delete;
+    WindowBuilder& operator = (const WindowBuilder&) = delete;
+
+    /** 使用XML文件创建窗口布局等
     @param xml 可以是文件文本内容，也可以是XML文件的路径
     */
     Box* Create(const std::wstring& xml, 
@@ -34,15 +39,11 @@ public:
                 Box* pParent = nullptr, 
                 Box* pUserDefinedBox = nullptr);
 
+    //使用缓存中的XML文件创建窗口布局等
     Box* Create(CreateControlCallback pCallback = CreateControlCallback(), 
                 Window* pManager = nullptr,
                 Box* pParent = nullptr, 
                 Box* pUserDefinedBox = nullptr);
-
-    CMarkup* GetMarkup();
-
-    void GetLastErrorMessage(LPTSTR pstrMessage, SIZE_T cchMax) const;
-    void GetLastErrorLocation(LPTSTR pstrSource, SIZE_T cchMax) const;
 
 private:
     Control* _Parse(CMarkupNode* parent, Control* pParent = NULL, Window* pManager = NULL);

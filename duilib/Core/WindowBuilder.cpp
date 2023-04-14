@@ -33,6 +33,10 @@ WindowBuilder::WindowBuilder()
 	m_xml = std::make_unique<CMarkup>();
 }
 
+WindowBuilder::~WindowBuilder()
+{
+}
+
 Box* WindowBuilder::Create(const std::wstring& xml, 
 	                       CreateControlCallback pCallback,
 						   Window* pManager, 
@@ -55,23 +59,17 @@ Box* WindowBuilder::Create(const std::wstring& xml,
 	else if (GlobalManager::IsUseZip()) {
 		std::wstring sFile = GlobalManager::GetResourcePath();
 		sFile += xml;
-		HGLOBAL hGlobal = GlobalManager::GetZipData(sFile);
-		if (hGlobal)
+
+		std::vector<unsigned char> file_data;
+		if (GlobalManager::GetZipData(sFile, file_data))
 		{
-			BYTE* data = (BYTE*)GlobalLock(hGlobal);
-			SIZE_T len = GlobalSize(hGlobal);
-			ASSERT(data != nullptr);
-			ASSERT(len > 0);
-			bool ret = m_xml->LoadFromMem(data, static_cast<DWORD>(len));
-			GlobalUnlock(hGlobal);
-			GlobalFree(hGlobal);
+			bool ret = m_xml->LoadFromMem(file_data.data(), static_cast<DWORD>(file_data.size()));
 			if (!ret) {
 				ASSERT(!L"LoadFromMem Ê§°Ü");
 				return nullptr;
 			}
 		}
-		else
-		{
+		else{
 			if (!m_xml->LoadFromFile(xml.c_str())) {
 				ASSERT(!L"LoadFromFile Ê§°Ü");
 				return nullptr;
@@ -91,16 +89,17 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pManager, Bo
 {
 	m_createControlCallback = pCallback;
 	CMarkupNode root = m_xml->GetRoot();
-	if( !root.IsValid() ) return NULL;
+	if (!root.IsValid()) {
+		return nullptr;
+	}
 
-	if( pManager ) {
+	if( pManager != nullptr) {
 		std::wstring strClass;
 		std::wstring strName;
 		std::wstring strValue;
 		strClass = root.GetName();
 
-		if( strClass == _T("Global") )
-		{
+		if( strClass == L"Global") {
 			int nAttributes = root.GetAttributeCount();
 			for( int i = 0; i < nAttributes; i++ ) {
 				strName = root.GetAttributeName(i);
@@ -421,21 +420,6 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pManager, Bo
 	}
 
 	return nullptr;
-}
-
-CMarkup* WindowBuilder::GetMarkup()
-{
-    return m_xml.get();
-}
-
-void WindowBuilder::GetLastErrorMessage(LPTSTR pstrMessage, SIZE_T cchMax) const
-{
-    return m_xml->GetLastErrorMessage(pstrMessage, cchMax);
-}
-
-void WindowBuilder::GetLastErrorLocation(LPTSTR pstrSource, SIZE_T cchMax) const
-{
-    return m_xml->GetLastErrorLocation(pstrSource, cchMax);
 }
 
 Control* WindowBuilder::_Parse(CMarkupNode* pRoot, Control* pParent, Window* pManager)

@@ -33,7 +33,7 @@ void MainThread::Init()
 
 	// 获取资源路径，初始化全局参数
 	std::wstring theme_dir = nbase::win32::GetCurrentModuleDirectory();
-#ifdef _DEBUG
+#ifdef _DEBUG2
 	// Debug 模式下使用本地文件夹作为资源
 	// 默认皮肤使用 resources\\themes\\default
 	// 默认语言使用 resources\\lang\\zh_CN
@@ -48,8 +48,6 @@ void MainThread::Init()
 	// ui::GlobalManager::OpenResZip(L"resources.zip", "");
 	ui::GlobalManager::Startup(L"resources\\", ui::CreateControlCallback(), false);
 #endif
-
-	ui::GlobalManager::EnableAutomation();
 
 	// 创建一个默认带有阴影的居中窗口
 	BasicForm* window = new BasicForm();

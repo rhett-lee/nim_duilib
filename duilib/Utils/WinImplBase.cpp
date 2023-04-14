@@ -2,7 +2,6 @@
 #include "duilib/Utils/Shadow.h"
 #include "duilib/Core/WindowBuilder.h"
 #include "duilib/Core/Box.h"
-#include "duilib/Core/Markup.h"
 #include <tchar.h>
 
 namespace ui

@@ -40,15 +40,13 @@ bool MultiLangSupport::LoadStringTable(const std::wstring &strFilePath)
 	return true;
 }
 
-bool MultiLangSupport::LoadStringTable(const HGLOBAL& hGlobal)
+bool MultiLangSupport::LoadStringTable(const std::vector<unsigned char>& file_data)
 {
 	std::vector<std::wstring> string_list;
-	LPSTR data = (LPSTR)GlobalLock(hGlobal);
-	if (data == nullptr) {
+	if (file_data.empty()) {
 		return false;
 	}
-	size_t len = GlobalSize(hGlobal);
-	std::string fragment(data, len);
+	std::string fragment((const char*)file_data.data(), file_data.size());
 	fragment.append("\n");
 	std::string src;
 	for (const auto& it : fragment)
@@ -68,10 +66,7 @@ bool MultiLangSupport::LoadStringTable(const HGLOBAL& hGlobal)
 		}
 		src.push_back(it);
 	}
-
-	GlobalUnlock(hGlobal);
 	AnalyzeStringTable(string_list);
-
 	return true;
 }
 

@@ -15,22 +15,14 @@ void FontManager::AddFontResource(const std::wstring& strFontFile, const std::ws
 	std::wstring path = GlobalManager::GetResPath(L"font\\" + strFontFile, L"");
 	bool res = false;
 	if (GlobalManager::IsUseZip()) {
-		HGLOBAL hGlobal = GlobalManager::GetZipData(path);
-		if (hGlobal) {
-			void* data = GlobalLock(hGlobal);
-			SIZE_T len = GlobalSize(hGlobal);
+		std::vector<unsigned char> file_data;
+		if (GlobalManager::GetZipData(path, file_data)) {
 			DWORD dwFonts = 0;
-			HANDLE handle = nullptr;
-			if (data != nullptr) {
-				handle = AddFontMemResourceEx(data, static_cast<DWORD>(len), NULL, &dwFonts);
-			}
+			HANDLE handle = AddFontMemResourceEx(file_data.data(), static_cast<DWORD>(file_data.size()), NULL, &dwFonts);
 			res = handle != nullptr;
 			if (res) {
 				m_fontHandles.push_back(handle);
 			}
-
-			GlobalUnlock(hGlobal);
-			GlobalFree(hGlobal);
 		}
 	}
 	else {

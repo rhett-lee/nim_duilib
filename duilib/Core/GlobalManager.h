@@ -7,6 +7,7 @@
 #include "duilib/Core/WindowBuilder.h"
 
 #include <string>
+#include <vector>
 #include <memory>
 #include <map>
 
@@ -44,21 +45,6 @@ public:
 	 * @return 无
 	 */
 	static void Shutdown();
-
-	/**
-	 * @brief 开启禁用自动化测试支持
-	 * @param[in] bAdaptDpi 是否启用 DPI 适配
-	 * @return 无
-	 */
-	static void EnableAutomation(bool bEnabled = true);
-
-	/**
-	 * @brief 是否开启自动化测试支持
-	 * @return 返回是否开启
-	 *     @retval true 开启
-	 *     @retval false 禁用
-	 */
-	static bool IsAutomationEnabled();
 
 	/**
 	 * @brief 获取当前程序所在目录
@@ -487,9 +473,10 @@ public:
 	/**
 	 * @brief 获取压缩包中的内容到内存
 	 * @param[in] path 要获取的文件的路径
-	 * @return 返回文件的内存地址
+	 * @param[out] file_data 要获取的文件的路径
+	 * @return 返回 true 打开成功，返回 false 为打开失败
 	 */
-	static HGLOBAL GetZipData(const std::wstring& path);
+	static bool GetZipData(const std::wstring& path, std::vector<unsigned char>& file_data);
 
 	/**
 	 * @brief 获取文件在压缩包中的位置
@@ -511,6 +498,23 @@ public:
 	 * @return 是否存在
 	 */
 	static bool IsZipResExist(const std::wstring& path);
+
+#if defined(ENABLE_UIAUTOMATION)
+	/**
+	 * @brief 开启禁用UI自动化测试支持
+	 * @param[in] bAdaptDpi 是否启用 DPI 适配
+	 * @return 无
+	 */
+	static void EnableAutomation(bool bEnabled = true);
+
+	/**
+	 * @brief 是否开启UI自动化测试支持
+	 * @return 返回是否开启
+	 *     @retval true 开启
+	 *     @retval false 禁用
+	 */
+	static bool IsAutomationEnabled();
+#endif
 
 private:
 	/**
@@ -557,7 +561,10 @@ private:
 
 	static DWORD m_dwUiThreadId;
 
-	static bool m_bAutomationEnabled;
+#if defined(ENABLE_UIAUTOMATION)
+	//是否开启UI自动化
+	static bool m_bAutomationEnabled = false;
+#endif
 };
 
 } // namespace ui

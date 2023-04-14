@@ -24,7 +24,6 @@ private:
 	// 获取资源路径，初始化全局参数
 	std::wstring theme_dir = nbase::win32::GetCurrentModuleDirectory();
 
-	ui::GlobalManager::EnableAutomation(true);
 	ui::GlobalManager::Startup(theme_dir + L"resources\\", ui::CreateControlCallback(), true);
 
 

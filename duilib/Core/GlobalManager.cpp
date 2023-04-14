@@ -7,7 +7,6 @@
 #include "duilib/Utils/MultiLangSupport.h"
 #include "duilib/Utils/VersionHelpers.h"
 
-#include "duilib/Core/Markup.h"
 #include "duilib/Core/Window.h"
 #include "duilib/Core/Control.h"
 #include "duilib/Core/Box.h"
@@ -24,7 +23,7 @@ namespace ui
 
 namespace {
 
-    std::wstring GetDpiImageFullPath(const std::wstring& strImageFullPath, bool bIsUseZip, HGLOBAL hGlobal)
+    std::wstring GetDpiImageFullPath(const std::wstring& strImageFullPath, bool bIsUseZip)
     {
         int dpi = DpiManager::GetInstance()->GetScale();
         if (dpi == 100 || SvgUtil::IsSvgFile(strImageFullPath)) {
@@ -56,8 +55,9 @@ namespace {
 
         std::wstring strNewFilePath = strPathDir + strPathFileName;
         if (bIsUseZip) {
-            hGlobal = ui::GlobalManager::GetZipData(strNewFilePath);
-            return hGlobal ? strNewFilePath : strImageFullPath;
+			std::vector<unsigned char> file_data;
+            bool hasData = ui::GlobalManager::GetZipData(strNewFilePath, file_data);
+            return hasData ? strNewFilePath : strImageFullPath;
         }
 
         const DWORD file_attr = ::GetFileAttributesW(strNewFilePath.c_str());
@@ -87,7 +87,7 @@ std::wstring GlobalManager::m_strDefaultFontColor = L"textdefaultcolor";
 DWORD GlobalManager::m_dwDefaultLinkFontColor = 0xFF0000FF;
 DWORD GlobalManager::m_dwDefaultLinkHoverFontColor = 0xFFD3215F;
 DWORD GlobalManager::m_dwDefaultSelectedBkColor = 0xFFBAE4FF;
-bool GlobalManager::m_bAutomationEnabled = false;
+
 std::unique_ptr<IRenderFactory> GlobalManager::m_renderFactory;
 DWORD GlobalManager::m_dwUiThreadId = 0;
 
@@ -117,10 +117,9 @@ void GlobalManager::Startup(const std::wstring& strResourcePath, const CreateCon
 
     // 加载多语言文件，如果使用了资源压缩包则从内存中加载语言文件
 	if (g_hzip) {
-		HGLOBAL hGlobal = GetZipData(GetLanguagePath() + L"\\" + kLanguageFileName);
-		if (hGlobal) {
-			MultiLangSupport::GetInstance()->LoadStringTable(hGlobal);
-			GlobalFree(hGlobal);
+		std::vector<unsigned char> file_data;
+		if (GetZipData(GetLanguagePath() + L"\\" + kLanguageFileName, file_data)) {
+			MultiLangSupport::GetInstance()->LoadStringTable(file_data);
 		}
 	}
 	else {
@@ -142,16 +141,6 @@ void GlobalManager::Shutdown()
 	m_renderFactory.reset();
 	RemoveAllFonts();
 	Gdiplus::GdiplusShutdown(g_gdiplusToken);
-}
-
-void GlobalManager::EnableAutomation(bool bEnabled)
-{
-	m_bAutomationEnabled = bEnabled;
-}
-
-bool GlobalManager::IsAutomationEnabled()
-{
-	return m_bAutomationEnabled;
 }
 
 std::wstring GlobalManager::GetCurrentPath()
@@ -375,36 +364,36 @@ void GlobalManager::OnImageInfoDestroy(ImageInfo* pImageInfo)
 
 std::shared_ptr<ImageInfo> GlobalManager::GetImage(const std::wstring& bitmap)
 {
-  HGLOBAL hGlobal = NULL;
-	std::wstring imageFullPath = StringHelper::ReparsePath(bitmap);
-  imageFullPath = GetDpiImageFullPath(imageFullPath, IsUseZip(), hGlobal);
+    std::wstring imageFullPath = StringHelper::ReparsePath(bitmap);
+    imageFullPath = GetDpiImageFullPath(imageFullPath, IsUseZip());
 
-	std::shared_ptr<ImageInfo> sharedImage;
-	auto it = m_mImageHash.find(imageFullPath);
-	if (it == m_mImageHash.end()) {
-		std::unique_ptr<ImageInfo> data;
-		if (IsUseZip())
-		{
-		   hGlobal = GetZipData(imageFullPath);
-			if (hGlobal) {
-				data = ImageInfo::LoadImage(hGlobal, imageFullPath);
-				GlobalFree(hGlobal);
-			}
+    std::shared_ptr<ImageInfo> sharedImage;
+    auto it = m_mImageHash.find(imageFullPath);
+    if (it == m_mImageHash.end()) {
+        std::unique_ptr<ImageInfo> data;
+        if (IsUseZip())
+        {
+			std::vector<unsigned char> file_data;
+            if (GetZipData(imageFullPath, file_data)) {
+                data = ImageInfo::LoadImage(file_data, imageFullPath);
+            }
+        }
+        if (!data)
+        {
+            data = ImageInfo::LoadImage(imageFullPath);
+        }
+		if (!data) {
+			return sharedImage;
 		}
-		if (!data)
-		{
-			data = ImageInfo::LoadImage(imageFullPath);
-		}
-		if (!data) return sharedImage;
-		sharedImage.reset(data.release(), &OnImageInfoDestroy);
-		m_mImageHash[imageFullPath] = sharedImage;
-		sharedImage->SetCached(true);
-	}
-	else {
-		sharedImage = it->second.lock();
-	}
+        sharedImage.reset(data.release(), &OnImageInfoDestroy);
+        m_mImageHash[imageFullPath] = sharedImage;
+        sharedImage->SetCached(true);
+    }
+    else {
+        sharedImage = it->second.lock();
+    }
 
-	return sharedImage;
+    return sharedImage;
 }
 
 std::wstring GlobalManager::GetDefaultFontName()
@@ -743,46 +732,33 @@ bool GlobalManager::OpenResZip(const std::wstring& path, const std::string& pass
 	return g_hzip != NULL;
 }
 
-HGLOBAL GlobalManager::GetZipData(const std::wstring& path)
+bool GlobalManager::GetZipData(const std::wstring& path, std::vector<unsigned char>& file_data)
 {
-	HGLOBAL hGlobal = NULL;
+	ASSERT(g_hzip != nullptr);	
 	std::wstring file_path = GetZipFilePath(path);
-
-	if (g_hzip && !file_path.empty())
+	ASSERT(!file_path.empty());
+	if ((g_hzip == nullptr) || file_path.empty())
 	{
-		AssertUIThread();
+		return false;
+	}
 
-		ZIPENTRY ze = {0};
-		int i = 0;
-		if (FindZipItem(g_hzip, file_path.c_str(), true, &i, &ze) == ZR_OK)
-		{
-			if (ze.index >= 0)
-			{
-				hGlobal = GlobalAlloc(GMEM_MOVEABLE | GMEM_NODISCARD, ze.unc_size);
-				if (hGlobal)
-				{
-					TCHAR *pData = (TCHAR*)GlobalLock(hGlobal);
-					if (pData)
-					{
-						ZRESULT res = UnzipItem(g_hzip, ze.index, pData, ze.unc_size);
-						GlobalUnlock(hGlobal);
-						if (res != ZR_OK && res != ZR_MORE)
-						{
-							GlobalFree(hGlobal);
-							hGlobal = NULL;
-						}
-					}
-					else
-					{
-						GlobalFree(hGlobal);
-						hGlobal = NULL;
-					}
-				}
+	AssertUIThread();
+
+	ZIPENTRY ze = {0};
+	int i = 0;
+	if (FindZipItem(g_hzip, file_path.c_str(), true, &i, &ze) == ZR_OK) {
+		if ((ze.index >= 0) && (ze.unc_size > 0)){
+			file_data.resize(ze.unc_size);
+			ZRESULT res = UnzipItem(g_hzip, ze.index, file_data.data(), ze.unc_size);
+			if (res == ZR_OK) {
+				return true;
+			}
+			else {
+				file_data.clear();
 			}
 		}
 	}
-
-	return hGlobal;
+	return false;
 }
 
 std::wstring GlobalManager::GetZipFilePath(const std::wstring& path)
@@ -903,5 +879,17 @@ void GlobalManager::AssertUIThread()
 	ASSERT(m_dwUiThreadId == GetCurrentThreadId());
 #endif
 }
+
+#if defined(ENABLE_UIAUTOMATION)
+void GlobalManager::EnableAutomation(bool bEnabled)
+{
+	m_bAutomationEnabled = bEnabled;
+}
+
+bool GlobalManager::IsAutomationEnabled()
+{
+	return m_bAutomationEnabled;
+}
+#endif
 
 } // namespace ui

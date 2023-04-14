@@ -41,7 +41,7 @@ public:
 	int GetInterval(int nIndex); //ºÁÃëÎªµ¥Î» 
 	 
 	static std::unique_ptr<ImageInfo> LoadImage(const std::wstring& strImageFullPath);
-	static std::unique_ptr<ImageInfo> LoadImage(HGLOBAL hGlobal, const std::wstring& strImageFullPath);
+	static std::unique_ptr<ImageInfo> LoadImage(std::vector<unsigned char>& file_data, const std::wstring& strImageFullPath);
 
 private:
 	static std::unique_ptr<ImageInfo> LoadImageByBitmap(std::unique_ptr<Gdiplus::Bitmap>& pGdiplusBitmap, const std::wstring& imageFullPath);

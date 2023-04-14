@@ -35,7 +35,7 @@ public:
 	 * @param[in] hGlobal 要加载的语言映射表内存首地址
 	 * @return 返回 true 表示成功，返回 false 表示失败
 	 */
-	bool LoadStringTable(const HGLOBAL& hGlobal);
+	bool LoadStringTable(const std::vector<unsigned char>& file_data);
 
 private:
 	MultiLangSupport() {};

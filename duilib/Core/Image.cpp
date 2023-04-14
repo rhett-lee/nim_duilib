@@ -86,25 +86,43 @@ std::unique_ptr<ImageInfo> ImageInfo::LoadImage(const std::wstring& strImageFull
 	return LoadImageByBitmap(gdiplusBitmap, strImageFullPath);
 }
 
-std::unique_ptr<ImageInfo> ImageInfo::LoadImage(HGLOBAL hGlobal, const std::wstring& strImageFullPath)
+std::unique_ptr<ImageInfo> ImageInfo::LoadImage(std::vector<unsigned char>& file_data, const std::wstring& strImageFullPath)
 {
-	if (SvgUtil::IsSvgFile(strImageFullPath))
-		return SvgUtil::LoadSvg(hGlobal, strImageFullPath);
+	if (SvgUtil::IsSvgFile(strImageFullPath)) {
+		return SvgUtil::LoadSvg(file_data, strImageFullPath);
+	}
 
-	if (hGlobal == NULL)
-		return nullptr;
-
-	IStream* stream = NULL;
-	GlobalLock(hGlobal);
-	CreateStreamOnHGlobal(hGlobal, FALSE, &stream);
-	if (stream == NULL) {
-		GlobalUnlock(hGlobal);
+	if (file_data.empty()) {
 		return nullptr;
 	}
-	std::unique_ptr<Gdiplus::Bitmap> gdiplusBitmap(Gdiplus::Bitmap::FromStream(stream));
-	stream->Release();
-	GlobalUnlock(hGlobal);
-	return LoadImageByBitmap(gdiplusBitmap, strImageFullPath);
+
+	HGLOBAL hGlobal = ::GlobalAlloc(GMEM_MOVEABLE | GMEM_NODISCARD, file_data.size());
+	if (hGlobal == nullptr) {
+		return nullptr;
+	}
+	unsigned char* pData = (unsigned char*)::GlobalLock(hGlobal);
+	if (pData == nullptr){
+		::GlobalFree(hGlobal);
+		return nullptr;
+	}
+	memcpy(pData, file_data.data(), file_data.size());
+	::GlobalUnlock(hGlobal);
+
+	IStream* stream = NULL;
+	::GlobalLock(hGlobal);
+	::CreateStreamOnHGlobal(hGlobal, FALSE, &stream);
+	if (stream == NULL) {
+		::GlobalUnlock(hGlobal);
+		::GlobalFree(hGlobal);
+		return nullptr;
+	}
+	else {
+		std::unique_ptr<Gdiplus::Bitmap> gdiplusBitmap(Gdiplus::Bitmap::FromStream(stream));
+		stream->Release();
+		::GlobalUnlock(hGlobal);
+		::GlobalFree(hGlobal);
+		return LoadImageByBitmap(gdiplusBitmap, strImageFullPath);
+	}
 }
 
 std::unique_ptr<ImageInfo> ImageInfo::LoadImageByBitmap(std::unique_ptr<Gdiplus::Bitmap>& pGdiplusBitmap, const std::wstring& strImageFullPath)

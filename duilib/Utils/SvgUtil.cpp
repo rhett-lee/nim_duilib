@@ -49,22 +49,23 @@ std::unique_ptr<ui::ImageInfo> SvgUtil::LoadSvg(const std::wstring& strImageFull
 	return LoadImageBySvg(svg, strImageFullPath);
 }
 
-std::unique_ptr<ui::ImageInfo> SvgUtil::LoadSvg(HGLOBAL hGlobal, const std::wstring& strImageFullPath)
+std::unique_ptr<ui::ImageInfo> SvgUtil::LoadSvg(std::vector<unsigned char>& file_data, const std::wstring& strImageFullPath)
 {
-	if (hGlobal == NULL)
+	if (file_data.empty()) {
 		return nullptr;
-
-	auto *pData = (char*)GlobalLock(hGlobal);
-	if (pData) {
-		NSVGimage* svg = nsvgParse(pData, "px", 96.0f);
-		GlobalUnlock(hGlobal);
-		return LoadImageBySvg(svg, strImageFullPath);
 	}
-	else {
-		GlobalUnlock(hGlobal);
+	bool has_appended = false;
+	if (file_data.back() != '\0') {
+		//确保是含尾0的字符串，避免越界访问内存
+		file_data.push_back('\0');
+		has_appended = true;
 	}
-
-	return nullptr;
+	char* pData = (char*)file_data.data();
+	NSVGimage* svg = nsvgParse(pData, "px", 96.0f);
+	if (has_appended) {
+		file_data.pop_back();
+	}
+	return LoadImageBySvg(svg, strImageFullPath);	
 }
 
 std::unique_ptr<ui::ImageInfo> SvgUtil::LoadImageBySvg(void *data, const std::wstring& strImageFullPath)
