@@ -7,9 +7,6 @@
 #include <string>
 #include <vector>
 
-namespace Gdiplus{
-	class PrivateFontCollection;
-}
 namespace ui 
 {
 

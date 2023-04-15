@@ -59,7 +59,7 @@ void ControlForm::InitWindow()
 	for (auto i = 0; i < 30; i++)
 	{
 		ui::ListContainerElement* element = new ui::ListContainerElement;
-		element->SetText(nbase::StringPrintf(L"ListElement %d", i));
+		element->SetText(nbase::StringPrintf(L"ui::VListBox::ListContainerElement %d", i));
 		element->SetClass(L"listitem");
 		element->SetFixedHeight(20);
 		list->Add(element);
@@ -75,13 +75,13 @@ void ControlForm::InitWindow()
 		node->SetFixedHeight(20);
 		if (parent_node)
 		{
-			node->SetText(nbase::StringPrintf(L"Child node %d", j));
+			node->SetText(nbase::StringPrintf(L"ui::TreeView::TreeNode %d", j));
 			node->SetMargin({ 10, 0, 0, 0 });
 			parent_node->AddChildNode(node);
 		}
 		else
 		{
-			node->SetText(nbase::StringPrintf(L"Parent node", j));
+			node->SetText(nbase::StringPrintf(L"ui::TreeView Parent Node", j));
 			tree->GetRootNode()->AddChildNode(node);
 			parent_node = node;
 		}
@@ -96,19 +96,20 @@ void ControlForm::InitWindow()
 		element->SetFixedHeight(30);
 		element->SetBkColor(L"white");
 		element->SetTextPadding({ 6,0,6,0 });
-		element->SetText(nbase::StringPrintf(L"Combo element %d", i));
+		element->SetText(nbase::StringPrintf(L"ui::Combo::ListContainerElement %d", i));
 		combo->Add(element);
 	}
 
-	std::string checks[6] = { "check1", "check2", "check3", "check4", "check5", "check6" };
+	std::string checks[7] = { "nim_comp::CheckCombo", "check1", "check2", "check3", "check4", "check5", "check6" };
 	nim_comp::CheckCombo* check_combo = static_cast<nim_comp::CheckCombo*>(FindControl(L"check_combo"));
-	for (auto i = 0; i < 6; i++)
+	for (auto i = 0; i < 7; i++)
 	{
 		ui::CheckBox *item = new ui::CheckBox;
 		item->SetFixedWidth(DUI_LENGTH_STRETCH);
 		item->SetFixedHeight(24);
 		item->SetUTF8Text(checks[i]);
 		item->SetUTF8DataID(checks[i]);
+		item->SetToolTipText(L"nim_comp::CheckCombo");
 
 		item->SetTextPadding({ 20, 2, 2, 0 });
 		item->SetTextStyle(DT_LEFT | DT_VCENTER);
@@ -130,7 +131,7 @@ void ControlForm::InitWindow()
 		//ui::GlobalManager::FillBoxWithCache(item, L"date_export/combo/date_item.xml");
 		//Label *label = new label;
 
-		std::string str = "item";
+		std::string str = "nim_comp::FilterCombo item";
 		_itoa_s(i, buf, 10);
 		str += buf;
 		item->SetText(nbase::UTF8ToUTF16(str));
@@ -235,9 +236,11 @@ void ControlForm::OnResourceFileLoaded(const std::wstring& xml)
 		control_edit->SetFocus();
 		control_edit->HomeUp();
 	}
+	//control_edit->StartLoading();
+	//control_edit->StartGifPlayForUI();
 
 	// Show about form
-	nim_comp::WindowsManager::SingletonShow<AboutForm>(AboutForm::kClassName);
+	//nim_comp::WindowsManager::SingletonShow<AboutForm>(AboutForm::kClassName);
 }
 
 void ControlForm::OnProgressValueChagned(float value)

@@ -1412,10 +1412,19 @@ bool Control::DrawImage(IRenderContext* pRender, Image& duiImage, const std::wst
 		BYTE iFade = (nFade == DUI_NOSET_VALUE) ? newImageAttribute.bFade : static_cast<BYTE>(nFade);
 		std::shared_ptr<ImageInfo> imageInfo = duiImage.GetImageCache();
 		if (imageInfo) {
-			pRender->DrawImage(m_rcPaint, duiImage.GetCurrentHBitmap(), imageInfo->IsAlpha(),
+			bool needDeleteObj = false;
+			HBITMAP hCurrentBitmap = duiImage.GetCurrentHBitmap();
+			if (!strModify.empty()) {
+				hCurrentBitmap = GdiHelper::RotateBitmapAroundCenter(hCurrentBitmap, m_fCurrrentAngele);
+				needDeleteObj = true;
+			}
+			pRender->DrawImage(m_rcPaint, hCurrentBitmap, imageInfo->IsAlpha(),
 				rcNewDest, rcNewSource, newImageAttribute.rcCorner, imageInfo->IsSvg(), iFade,
 				newImageAttribute.bTiledX, newImageAttribute.bTiledY, newImageAttribute.bFullTiledX, newImageAttribute.bFullTiledY,
 				newImageAttribute.nTiledMargin);
+			if (needDeleteObj) {
+				::DeleteObject(hCurrentBitmap);
+			}
 		}
 	}
 
@@ -1697,55 +1706,40 @@ void Control::PaintLoading(IRenderContext* pRender)
     }
 
     GetImage(*m_loadingImage);
-    if (!m_loadingImage->GetImageCache()) {
-        ASSERT(FALSE);
+	std::shared_ptr<ImageInfo> spImageInfo = m_loadingImage->GetImageCache();
+	ASSERT(spImageInfo != nullptr);
+    if (!spImageInfo) {
         return;
     }
 
-    Gdiplus::Bitmap* image = GdiHelper::CreateBitmapFromHBITMAP(m_loadingImage->GetImageCache()->GetHBitmap(0));
-    if (!image) {
-        ASSERT(FALSE);
-        return;
-    }
+	int imageWidth = 0;
+	int imageHeight = 0;
+	if (!GdiHelper::GetBitmapWidthHeight(spImageInfo->GetHBitmap(0), imageWidth, imageHeight)) {
+		return;
+	}
+
+	//¾ÓÖÐ
+	ui::UiRect rcFill = m_rcItem;
+	rcFill.left = m_rcItem.left + (m_rcItem.GetWidth() - imageWidth) / 2;
+	rcFill.right = rcFill.left + imageWidth;
+	rcFill.top = m_rcItem.top + (m_rcItem.GetHeight() - imageHeight) / 2;
+	rcFill.bottom = rcFill.top + imageHeight;
+
+	ui::UiRect rcDest = m_loadingImage->GetImageAttribute().rcDest;
+	if (!rcDest.IsRectEmpty()) {
+		rcFill.left = m_rcItem.left + rcDest.left;
+		rcFill.right = m_rcItem.left + rcDest.right;
+		rcFill.top = m_rcItem.top + rcDest.top;
+		rcFill.bottom = m_rcItem.bottom + rcDest.bottom;
+	}
+
     if (!m_strLoadingBkColor.empty()) {
-        Gdiplus::SolidBrush brush(GetWindowColor(m_strLoadingBkColor));
-        ui::UiRect rcFill = m_rcItem;
-        rcFill.left = m_rcItem.left + (m_rcItem.GetWidth() - image->GetWidth()) / 2;
-        rcFill.right = rcFill.left + image->GetWidth();
-        rcFill.top = m_rcItem.top + (m_rcItem.GetHeight() - image->GetHeight()) / 2;
-        rcFill.bottom = rcFill.top + image->GetHeight();
-
-        ui::UiRect rcDest = m_loadingImage->GetImageAttribute().rcDest;
-        if (!rcDest.IsRectEmpty()) {
-            rcFill.left = m_rcItem.left + rcDest.left;
-            rcFill.right = m_rcItem.left + rcDest.right;
-            rcFill.top = m_rcItem.top + rcDest.top;
-            rcFill.bottom = m_rcItem.bottom + rcDest.bottom;
-        }
-
         pRender->DrawColor(rcFill, GetWindowColor(m_strLoadingBkColor));
     }
-
-    Gdiplus::Bitmap tempBitmap(image->GetWidth(), image->GetHeight());
-    Gdiplus::Graphics temp_render(&tempBitmap);
-
-    Gdiplus::Matrix matrix;
-    temp_render.GetTransform(&matrix);
-    matrix.RotateAt(static_cast<float>(m_fCurrrentAngele), Gdiplus::PointF(static_cast<Gdiplus::REAL>(image->GetWidth() / 2), static_cast<Gdiplus::REAL>(image->GetHeight() / 2)));
-    temp_render.SetTransform(&matrix);
-
-    temp_render.DrawImage(image, 0.f, 0.f);
-
-    Gdiplus::Graphics graphics(pRender->GetDC());
-    graphics.DrawImage(&tempBitmap,
-        Gdiplus::RectF(static_cast<Gdiplus::REAL>(m_rcItem.left + (GetWidth() - image->GetWidth()) / 2),
-            static_cast<Gdiplus::REAL>(m_rcItem.top + (GetHeight() - image->GetHeight()) / 2),
-            static_cast<Gdiplus::REAL>(image->GetWidth()),
-            static_cast<Gdiplus::REAL>(image->GetHeight())),
-        0, 0, static_cast<Gdiplus::REAL>(image->GetWidth()), static_cast<Gdiplus::REAL>(image->GetHeight()),
-        Gdiplus::UnitPixel);
-
-    delete image;
+	
+	wchar_t modify[64] = { 0 };
+	swprintf_s(modify, L"dest='%d,%d,%d,%d'", rcFill.left - m_rcItem.left, rcFill.top - m_rcItem.top, rcFill.right - m_rcItem.left, rcFill.bottom - m_rcItem.top);
+	DrawImage(pRender, *m_loadingImage, modify);
 }
 
 void Control::SetAlpha(int alpha)

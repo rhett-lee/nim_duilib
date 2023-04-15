@@ -1641,7 +1641,7 @@ LRESULT Window::DoHandlMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& ha
 		break;
 		case WM_KEYUP:
 		{
-			if (m_pEventKey == nullptr) {
+			if (m_pEventKey != nullptr) {
 				m_pEventKey->HandleMessageTemplate(kEventKeyUp, wParam, lParam, static_cast<TCHAR>(wParam));
 				m_pEventKey = nullptr;
 			}			
