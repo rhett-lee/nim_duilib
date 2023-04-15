@@ -8,7 +8,7 @@
 
 namespace ui
 {
-	// DPIÈÄÇÈÖç
+	// DPI  ≈‰
 	bool GetDpiForSystemWrapper(UINT& dpi);
 	bool GetDpiForMonitorWrapper(HMONITOR hMonitor, MONITOR_DPI_TYPE dpiType, UINT *dpiX, UINT *dpiY);
 

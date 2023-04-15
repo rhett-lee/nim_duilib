@@ -27,10 +27,10 @@ void CShadowComboWnd::Init(ShadowCombo* pOwner)
     }
 
     ui::UiRect rc = rcOwner;
-    rc.top = rc.bottom;		// çˆ¶çª—å£leftã€bottomä½ç½®ä½œä¸ºå¼¹å‡ºçª—å£èµ·ç‚¹
+    rc.top = rc.bottom;		// ¸¸´°¿Úleft¡¢bottomÎ»ÖÃ×÷Îªµ¯³ö´°¿ÚÆðµã
     rc.top = rc.top - iOffset;
-    rc.bottom = rc.top + szDrop.cy;	// è®¡ç®—å¼¹å‡ºçª—å£é«˜åº¦
-    if (szDrop.cx > 0) rc.right = rc.left + szDrop.cx;	// è®¡ç®—å¼¹å‡ºçª—å£å®½åº¦
+    rc.bottom = rc.top + szDrop.cy;	// ¼ÆËãµ¯³ö´°¿Ú¸ß¶È
+    if (szDrop.cx > 0) rc.right = rc.left + szDrop.cx;	// ¼ÆËãµ¯³ö´°¿Ú¿í¶È
 
     ui::CSize szAvailable(rc.right - rc.left, rc.bottom - rc.top);
     int cyFixed = 0;
@@ -52,7 +52,7 @@ void CShadowComboWnd::Init(ShadowCombo* pOwner)
         padding = listBox->GetLayout()->GetPadding().top + listBox->GetLayout()->GetPadding().bottom;
     }
 
-    cyFixed += padding; // VBox é»˜è®¤çš„Padding è°ƒæ•´
+    cyFixed += padding; // VBox Ä¬ÈÏµÄPadding µ÷Õû
     rc.bottom = rc.top + std::min((LONG)cyFixed, szDrop.cy);
     ui::UiRect shadow_corner = m_pOwner->GetShadowCorner();
     rc.left = rc.left - shadow_corner.left;

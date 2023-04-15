@@ -75,7 +75,7 @@ class DropTargetWin : public IDropTarget {
                          POINTL cursor_position,
                          DWORD* effect);
 
-  // 鐢╯hared_ptr绠＄悊鐢熷懡鍛ㄦ湡锛屼笉鐢–omPtr
+  // 用shared_ptr管理生命周期，不用ComPtr
   DEFAULT_QUERY_INTERFACE(IDropTarget)
   ULONG __stdcall AddRef() { return 1; }
   ULONG __stdcall Release() { return 1; }

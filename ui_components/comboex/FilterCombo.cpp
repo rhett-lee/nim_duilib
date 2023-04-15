@@ -35,10 +35,10 @@ void CFilterComboWnd::Init(FilterCombo* pOwner)
 	ui::CSize szDrop = m_pOwner->GetDropBoxSize();
 	ui::UiRect rcOwner = pOwner->GetPosWithScrollOffset();
 	ui::UiRect rc = rcOwner;
-    rc.top = rc.bottom + 1;		// çˆ¶çª—å£leftã€bottomä½ç½®ä½œä¸ºå¼¹å‡ºçª—å£èµ·ç‚¹
-    rc.bottom = rc.top + szDrop.cy;	// è®¡ç®—å¼¹å‡ºçª—å£é«˜åº¦
+    rc.top = rc.bottom + 1;		// ¸¸´°¿Úleft¡¢bottomÎ»ÖÃ×÷Îªµ¯³ö´°¿ÚÆðµã
+    rc.bottom = rc.top + szDrop.cy;	// ¼ÆËãµ¯³ö´°¿Ú¸ß¶È
 	if (szDrop.cx > 0) {
-		rc.right = rc.left + szDrop.cx;	// è®¡ç®—å¼¹å‡ºçª—å£å®½åº¦
+		rc.right = rc.left + szDrop.cx;	// ¼ÆËãµ¯³ö´°¿Ú¿í¶È
 	}
 
 	ui::CSize szAvailable(rc.right - rc.left, rc.bottom - rc.top);
@@ -54,7 +54,7 @@ void CFilterComboWnd::Init(FilterCombo* pOwner)
 		ui::CSize sz = pControl->EstimateSize(szAvailable);
         cyFixed += sz.cy;
     }
-    cyFixed += 2; // VBox é»˜è®¤çš„Padding è°ƒæ•´
+    cyFixed += 2; // VBox Ä¬ÈÏµÄPadding µ÷Õû
     rc.bottom = rc.top + std::min((LONG)cyFixed, szDrop.cy);
 
 	ASSERT(pOwner->GetWindow() != nullptr);
@@ -485,9 +485,9 @@ bool FilterCombo::OnRichEditTextChanged(ui::EventArgs* /*args*/)
 	ui::CSize szDrop = GetDropBoxSize();
 	ui::UiRect rcOwner = GetPosWithScrollOffset();
 	ui::UiRect rc = rcOwner;
-	rc.top = rc.bottom + 1;		// çˆ¶çª—å£leftã€bottomä½ç½®ä½œä¸ºå¼¹å‡ºçª—å£èµ·ç‚¹
-	rc.bottom = rc.top + szDrop.cy;	// è®¡ç®—å¼¹å‡ºçª—å£é«˜åº¦
-	if (szDrop.cx > 0) rc.right = rc.left + szDrop.cx;	// è®¡ç®—å¼¹å‡ºçª—å£å®½åº¦
+	rc.top = rc.bottom + 1;		// ¸¸´°¿Úleft¡¢bottomÎ»ÖÃ×÷Îªµ¯³ö´°¿ÚÆðµã
+	rc.bottom = rc.top + szDrop.cy;	// ¼ÆËãµ¯³ö´°¿Ú¸ß¶È
+	if (szDrop.cx > 0) rc.right = rc.left + szDrop.cx;	// ¼ÆËãµ¯³ö´°¿Ú¿í¶È
 
 	ui::CSize szAvailable(rc.right - rc.left, rc.bottom - rc.top);
 	int cyFixed = 0;
@@ -497,7 +497,7 @@ bool FilterCombo::OnRichEditTextChanged(ui::EventArgs* /*args*/)
 		ui::CSize sz = pControl->EstimateSize(szAvailable);
 		cyFixed += sz.cy;
 	}
-	cyFixed += 2; // VBox é»˜è®¤çš„Padding è°ƒæ•´
+	cyFixed += 2; // VBox Ä¬ÈÏµÄPadding µ÷Õû
 	rc.bottom = rc.top + std::min((LONG)cyFixed, szDrop.cy);
 
 	::MapWindowRect(GetWindow()->GetHWND(), HWND_DESKTOP, &rc);

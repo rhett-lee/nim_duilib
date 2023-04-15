@@ -34,7 +34,7 @@ public:
 	virtual void ScheduleWork();
 	virtual void ScheduleDelayedWork(const TimeTicks& delayed_work_time);
 
-	// 閫氱煡MessagePump鎻愬彇骞跺鐞嗘秷鎭槦鍒椾腑鐨刉M_PAINT娑堟伅
+	// 通知MessagePump提取并处理消息队列中的WM_PAINT消息
 	void PumpOutPendingPaintMessages();
 
 private:
@@ -51,9 +51,9 @@ private:
 	bool ProcessMessageHelper(const MSG& msg);
 	bool ProcessPumpReplacementMessage();
 
-	// 鐢ㄦ潵鎺ユ敹鑷畾涔夋秷鎭殑闅愯棌绐楀彛
+	// 用来接收自定义消息的隐藏窗口
 	HWND message_hwnd_;
-	// UIObserver鍒楄〃
+	// UIObserver列表
 	ObserverList<UIObserver> observers_;
 };
 

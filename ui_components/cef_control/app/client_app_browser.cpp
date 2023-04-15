@@ -21,7 +21,7 @@ void ClientApp::OnContextInitialized()
 	ASSERT(manager.get());
 	manager->SetSupportedSchemes(cookieable_schemes_, NULL);
 
-	// 杩欓噷鍙互鍒犻櫎浜嗕繚瀛樼殑Cooies淇℃伅
+	// 这里可以删除了保存的Cooies信息
 	// manager->DeleteCookies(L"", L"", nullptr);
 }
 

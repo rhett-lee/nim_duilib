@@ -35,9 +35,9 @@ void CComboWnd::Init(Combo* pOwner)
     CSize szDrop = m_pOwner->GetDropBoxSize();
     UiRect rcOwner = pOwner->GetPosWithScrollOffset();
     UiRect rc = rcOwner;
-    rc.top = rc.bottom + 1;		// çˆ¶çª—å£leftã€bottomä½ç½®ä½œä¸ºå¼¹å‡ºçª—å£èµ·ç‚¹
-    rc.bottom = rc.top + szDrop.cy;	// è®¡ç®—å¼¹å‡ºçª—å£é«˜åº¦
-    if( szDrop.cx > 0 ) rc.right = rc.left + szDrop.cx;	// è®¡ç®—å¼¹å‡ºçª—å£å®½åº¦
+    rc.top = rc.bottom + 1;		// ¸¸´°¿Úleft¡¢bottomÎ»ÖÃ×÷Îªµ¯³ö´°¿ÚÆðµã
+    rc.bottom = rc.top + szDrop.cy;	// ¼ÆËãµ¯³ö´°¿Ú¸ß¶È
+    if( szDrop.cx > 0 ) rc.right = rc.left + szDrop.cx;	// ¼ÆËãµ¯³ö´°¿Ú¿í¶È
 
     CSize szAvailable(rc.right - rc.left, rc.bottom - rc.top);
     int cyFixed = 0;
@@ -59,7 +59,7 @@ void CComboWnd::Init(Combo* pOwner)
 		padding = listBox->GetLayout()->GetPadding().top + listBox->GetLayout()->GetPadding().bottom;
 	}
 
-	cyFixed += padding; // VBox é»˜è®¤çš„Padding è°ƒæ•´
+	cyFixed += padding; // VBox Ä¬ÈÏµÄPadding µ÷Õû
     rc.bottom = rc.top + std::min((LONG)cyFixed, szDrop.cy);
 
     ::MapWindowRect(pOwner->GetWindow()->GetHWND(), HWND_DESKTOP, &rc);

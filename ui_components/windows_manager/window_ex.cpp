@@ -83,7 +83,7 @@ POINT GetPopupWindowPos(WindowEx* window)
 {
 	ASSERT(window && IsWindow(window->GetHWND()));
 
-	//å±å¹•å¤§å°
+	//ÆÁÄ»´óÐ¡
 	MONITORINFO oMonitor = { sizeof(oMonitor) };
 	::GetMonitorInfo(::MonitorFromWindow(window->GetHWND(), MONITOR_DEFAULTTONEAREST), &oMonitor);
 	RECT screen = oMonitor.rcWork;
