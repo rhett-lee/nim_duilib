@@ -197,7 +197,7 @@ AnimationPlayer* AnimationManager::SetFadeInOutY(bool bFade, bool bIsFromBottom)
 
 void AnimationManager::Appear()
 {
-	m_pControl->SetVisible_(true);
+	m_pControl->SetVisible(true);
 	if (GetAnimationPlayer(kAnimationAlpha)) {
 		m_animationMap[kAnimationAlpha]->SetCompleteCallback(CompleteCallback());
 		m_animationMap[kAnimationAlpha]->Continue();
@@ -232,7 +232,7 @@ void AnimationManager::Disappear()
 {
 	bool handled = false;
 
-	CompleteCallback completeCallback = nbase::Bind(&Control::SetVisible_, m_pControl, false);
+	CompleteCallback completeCallback = nbase::Bind(&Control::SetVisible, m_pControl, false);
 	if (GetAnimationPlayer(kAnimationAlpha)) {
 		m_animationMap[kAnimationAlpha]->SetCompleteCallback(completeCallback);
 		m_animationMap[kAnimationAlpha]->ReverseContinue();
@@ -270,7 +270,7 @@ void AnimationManager::Disappear()
 	}
 
 	if (!handled) {
-		m_pControl->SetVisible_(false);
+		m_pControl->SetVisible(false);
 	}
 }
 

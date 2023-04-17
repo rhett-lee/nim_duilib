@@ -65,7 +65,7 @@ void CefForm::InitWindow()
 	cef_control_->LoadURL(nbase::win32::GetCurrentModuleDirectory() + L"resources\\themes\\default\\cef\\cef.html");
 
 	if (!nim_comp::CefManager::GetInstance()->IsEnableOffsetRender())
-		cef_control_dev_->SetVisible(false);
+		cef_control_dev_->SetFadeVisible(false);
 }
 
 LRESULT CefForm::OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
@@ -91,7 +91,7 @@ bool CefForm::OnClicked(ui::EventArgs* msg)
 
 		if (nim_comp::CefManager::GetInstance()->IsEnableOffsetRender())
 		{
-			cef_control_dev_->SetVisible(cef_control_->IsAttachedDevTools());
+			cef_control_dev_->SetFadeVisible(cef_control_->IsAttachedDevTools());
 		}
 	}
 	else if (name == L"btn_back")

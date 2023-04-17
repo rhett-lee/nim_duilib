@@ -430,9 +430,9 @@ void Box::PaintChild(IRenderContext* pRender, const UiRect& rcPaint)
 	}
 }
 
-void Box::SetVisible_(bool bVisible)
+void Box::SetVisible(bool bVisible)
 {
-	__super::SetVisible_(bVisible);
+	__super::SetVisible(bVisible);
 	for (auto it = m_items.begin(); it != m_items.end(); it++) {
 		(*it)->SetInternVisible(IsVisible());
 	}
@@ -1222,12 +1222,12 @@ bool ScrollableBox::MouseEnter(EventArgs& msg)
 	bool bRet = __super::MouseEnter(msg);
 	if (bRet && m_pVerticalScrollBar != NULL && m_pVerticalScrollBar->IsValid() && m_pVerticalScrollBar->IsEnabled()) {
 		if (m_pVerticalScrollBar->IsAutoHideScroll()) {
-			m_pVerticalScrollBar->SetVisible(true);
+			m_pVerticalScrollBar->SetFadeVisible(true);
 		}
 	}
 	if (bRet && m_pHorizontalScrollBar != NULL && m_pHorizontalScrollBar->IsValid() && m_pHorizontalScrollBar->IsEnabled()) {
 		if (m_pHorizontalScrollBar->IsAutoHideScroll()) {
-			m_pHorizontalScrollBar->SetVisible(true);
+			m_pHorizontalScrollBar->SetFadeVisible(true);
 		}
 	}
 
@@ -1240,13 +1240,13 @@ bool ScrollableBox::MouseLeave(EventArgs& msg)
 	if (bRet && m_pVerticalScrollBar != NULL && m_pVerticalScrollBar->IsValid() && m_pVerticalScrollBar->IsEnabled()) {
 		if (m_pVerticalScrollBar->GetThumbState() == kControlStateNormal
 			&& m_pVerticalScrollBar->IsAutoHideScroll()) {
-			m_pVerticalScrollBar->SetVisible(false);
+			m_pVerticalScrollBar->SetFadeVisible(false);
 		}
 	}
 	if (bRet && m_pHorizontalScrollBar != NULL && m_pHorizontalScrollBar->IsValid() && m_pHorizontalScrollBar->IsEnabled()) {
 		if (m_pHorizontalScrollBar->GetThumbState() == kControlStateNormal
 			&& m_pHorizontalScrollBar->IsAutoHideScroll()) {
-			m_pHorizontalScrollBar->SetVisible(false);
+			m_pHorizontalScrollBar->SetFadeVisible(false);
 		}
 	}
 
@@ -1740,7 +1740,7 @@ void ScrollableBox::EnableScrollBar(bool bEnableVertical, bool bEnableHorizontal
 {
 	if( bEnableVertical && !m_pVerticalScrollBar ) {
 		m_pVerticalScrollBar.reset(new ScrollBar);
-		m_pVerticalScrollBar->SetVisible_(false);
+		m_pVerticalScrollBar->SetVisible(false);
 		m_pVerticalScrollBar->SetScrollRange(0);
 		m_pVerticalScrollBar->SetOwner(this);
 		m_pVerticalScrollBar->SetWindow(m_pWindow, NULL, false);
@@ -1752,7 +1752,7 @@ void ScrollableBox::EnableScrollBar(bool bEnableVertical, bool bEnableHorizontal
 
 	if( bEnableHorizontal && !m_pHorizontalScrollBar ) {
 		m_pHorizontalScrollBar.reset(new ScrollBar);
-		m_pHorizontalScrollBar->SetVisible_(false);
+		m_pHorizontalScrollBar->SetVisible(false);
 		m_pHorizontalScrollBar->SetScrollRange(0);
 		m_pHorizontalScrollBar->SetHorizontal(true);
 		m_pHorizontalScrollBar->SetOwner(this);

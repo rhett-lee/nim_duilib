@@ -140,7 +140,7 @@ void ScrollBar::SetFocus()
 	else Control::SetFocus();
 }
 
-void ScrollBar::SetVisible_(bool bVisible)
+void ScrollBar::SetVisible(bool bVisible)
 {
 	if( m_bVisible == bVisible ) return;
 	bool v = IsVisible();
@@ -175,7 +175,7 @@ bool ScrollBar::ButtonUp(EventArgs& msg)
 
 	UiRect ownerPos = m_pOwner->GetPos();
 	if (m_bAutoHide && !::PtInRect(&ownerPos, msg.ptMouse)) {
-		SetVisible(false);
+		SetFadeVisible(false);
 	}
 
 	return ret;
@@ -621,10 +621,10 @@ void ScrollBar::SetScrollRange(int64_t nRange)
 	if( m_nScrollPos > m_nRange ) m_nScrollPos = m_nRange;
 
 	if (m_nRange == 0) {
-		SetVisible_(false);
+		SetVisible(false);
 	}
 	else if (!m_bAutoHide && !IsVisible()) {
-		SetVisible(true);
+		SetFadeVisible(true);
 	}
 	SetPos(m_rcItem);
 }

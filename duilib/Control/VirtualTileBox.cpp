@@ -155,11 +155,11 @@ void VirtualTileLayout::LazyArrangeChild()
     int nElementIndex = nTopIndex + iCount;
     if (nElementIndex < pList->GetElementCount())
     {
-      if (!pControl->IsVisible()) pControl->SetVisible(true);
+      if (!pControl->IsVisible()) pControl->SetFadeVisible(true);
       pList->FillElement(pControl, nElementIndex);
     }
     else {
-      if (pControl->IsVisible()) pControl->SetVisible(false);
+      if (pControl->IsVisible()) pControl->SetFadeVisible(false);
     }
 
     if ((++iCount % m_nColumns) == 0) {

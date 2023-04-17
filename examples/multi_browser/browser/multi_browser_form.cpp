@@ -514,11 +514,11 @@ void MultiBrowserForm::OnBeforeDragBoxCallback(const std::wstring &browser_id)
 	{
 		BrowserBox *browser_box = FindBox(browser_id);
 		if (NULL != browser_box)
-			browser_box->SetVisible(false);
+			browser_box->SetFadeVisible(false);
 
 		BrowserTabItem *tab_item = FindTabItem(browser_id);
 		if (NULL != tab_item)
-			tab_item->SetVisible(false);
+			tab_item->SetFadeVisible(false);
 
 		// 找到新的被显示的浏览器盒子
 		int index = tab_item->GetIndex();
@@ -569,12 +569,12 @@ void MultiBrowserForm::OnAfterDragBoxCallback(bool drop_succeed)
 		{
 			BrowserBox *browser_box = FindBox(draging_browser_id_);
 			if (NULL != browser_box)
-				browser_box->SetVisible(true);
+				browser_box->SetFadeVisible(true);
 
 			BrowserTabItem *tab_item = FindTabItem(draging_browser_id_);
 			if (NULL != tab_item)
 			{
-				tab_item->SetVisible(true);
+				tab_item->SetFadeVisible(true);
 				tab_item->Selected(true, false);
 				ChangeToBox(draging_browser_id_);
 			}

@@ -424,25 +424,23 @@ public:
 
     /// 一些重要的属性
 	/**
-	 * @brief 设置控件是否可见
+	 * @brief 以淡入淡出等动画形式设置控件是否可见
 	 * @param[in] bVisible 为 true 时控件可见，为 false 时控件被隐藏
 	 * @return 无
 	 */
-    virtual void SetVisible(bool bVisible = true);
+    virtual void SetFadeVisible(bool bVisible);
 
 	/**
 	 * @brief 待补充
 	 * @param[in] 待补充
 	 * @return 待补充
 	 */
-    virtual void SetInternVisible(bool bVisible = true); // 仅供内部调用，有些ui拥有窗口句柄，需要重写此函数
+    virtual void SetInternVisible(bool bVisible); // 仅供内部调用，有些ui拥有窗口句柄，需要重写此函数
 
-	/**
-	 * @brief 待补充
-	 * @param[in] 待补充
-	 * @return 待补充
+	/** 设置控件是否可见
+	 * @param[in] @param[in] bVisible 为 true 时控件可见，为 false 时控件被隐藏
 	 */
-	virtual void SetVisible_(bool bVisible);
+	virtual void SetVisible(bool bVisible);
 
 	/**
 	 * @brief 检查控件是否可用

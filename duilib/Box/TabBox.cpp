@@ -41,7 +41,7 @@ bool TabBox::Add(Control* pControl)
 
 	if (m_iCurSel != GetItemIndex(pControl) || !pControl->IsVisible()){
 		if (!IsFadeSwitch()) {
-			pControl->SetVisible(false);
+			pControl->SetFadeVisible(false);
 		}
 		pControl->SetMouseEnabled(false);
 		if (Box* box = dynamic_cast<Box*>(pControl)) {
@@ -67,7 +67,7 @@ bool TabBox::AddAt(Control* pControl, size_t iIndex)
 	}
 	else {
 		if (!IsFadeSwitch()) {
-			pControl->SetVisible(false);
+			pControl->SetFadeVisible(false);
 		}
 		pControl->SetMouseEnabled(false);
 		if (Box* box = dynamic_cast<Box*>(pControl)) {
@@ -91,7 +91,7 @@ bool TabBox::Remove(Control* pControl)
 		if( GetCount() > 0 ) {
 			m_iCurSel=0;
 			if (!IsFadeSwitch()) {
-				GetItemAt(m_iCurSel)->SetVisible(true);
+				GetItemAt(m_iCurSel)->SetFadeVisible(true);
 			}
 
 			pControl->SetMouseEnabled(true);
@@ -143,7 +143,7 @@ bool TabBox::SelectItem(int iIndex)
 			ShowTabItem(it);
 
 			if (!IsFadeSwitch()) {
-				m_items[it]->SetVisible();
+				m_items[it]->SetFadeVisible(true);
 			}
 			else {
 				int startValue = 0;
@@ -171,13 +171,13 @@ bool TabBox::SelectItem(int iIndex)
 			if ((int)it != iOldSel) {
 				HideTabItem(it);
 				if (!IsFadeSwitch()) {
-					m_items[it]->SetVisible(false);
+					m_items[it]->SetFadeVisible(false);
 				}
 			}
 			else {
 				if (!IsFadeSwitch()) {
 					HideTabItem(it);
-					m_items[it]->SetVisible(false);
+					m_items[it]->SetFadeVisible(false);
 				}
 				else {
 					int startValue = 0;
@@ -263,7 +263,7 @@ void TabBox::SetFadeSwitch(bool bFadeSwitch)
 	for (auto &it : m_items) {
 		int index = GetItemIndex(it);
 		if (index != m_iCurSel) {
-			it->SetVisible(IsFadeSwitch());
+			it->SetFadeVisible(IsFadeSwitch());
 		}
 	}
 }

@@ -108,9 +108,9 @@ void CefControl::HandleMessage(ui::EventArgs& event)
 	__super::HandleMessage(event);
 }
 
-void CefControl::SetVisible(bool bVisible /*= true*/)
+void CefControl::SetFadeVisible(bool bVisible /*= true*/)
 {
-	__super::SetVisible(bVisible);
+	__super::SetFadeVisible(bVisible);
 	if (browser_handler_.get() && browser_handler_->GetBrowserHost().get())
 	{
 		browser_handler_->GetBrowserHost()->WasHidden(!bVisible);

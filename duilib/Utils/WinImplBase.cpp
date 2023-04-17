@@ -440,8 +440,8 @@ bool WindowImplBase::OnButtonClick(EventArgs* msg)
 		Control* pMaxButton = (Control*)FindControl(L"maxbtn");
 		Control* pRestoreButton = (Control*)FindControl(L"restorebtn");
 		if (pMaxButton && pRestoreButton) {
-			pMaxButton->SetVisible(false);
-			pRestoreButton->SetVisible(true);
+			pMaxButton->SetFadeVisible(false);
+			pRestoreButton->SetFadeVisible(true);
 		}
 		SendMessage(WM_SYSCOMMAND, SC_MAXIMIZE, 0);
 	}
@@ -449,8 +449,8 @@ bool WindowImplBase::OnButtonClick(EventArgs* msg)
 		Control* pMaxButton = (Control*)FindControl(L"maxbtn");
 		Control* pRestoreButton = (Control*)FindControl(L"restorebtn");
 		if (pMaxButton && pRestoreButton) {
-			pMaxButton->SetVisible(true);
-			pRestoreButton->SetVisible(false);
+			pMaxButton->SetFadeVisible(true);
+			pRestoreButton->SetFadeVisible(false);
 		}
 		SendMessage(WM_SYSCOMMAND, SC_RESTORE, 0); 
 	}

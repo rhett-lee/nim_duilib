@@ -144,24 +144,24 @@ void MsgBox::SetButton(const std::wstring &yes, const std::wstring &no)
 	if (!yes.empty())
 	{
 		btn_yes_->SetText(yes);
-		btn_yes_->SetVisible(true);
+		btn_yes_->SetFadeVisible(true);
 		btn_yes_->SetFocus();
 	}
 	else
 	{
-		btn_yes_->SetVisible(false);
+		btn_yes_->SetFadeVisible(false);
 	}
 
 	if (!no.empty())
 	{
 		btn_no_->SetText(no);
-		btn_no_->SetVisible(true);
+		btn_no_->SetFadeVisible(true);
 		if (yes.empty())
 			btn_no_->SetFocus();
 	}
 	else
 	{
-		btn_no_->SetVisible(false);
+		btn_no_->SetFadeVisible(false);
 	}
 }
 

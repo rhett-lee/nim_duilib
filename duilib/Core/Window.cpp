@@ -265,7 +265,7 @@ void Window::Close(UINT nRet)
 	}
 
 	if (m_pRoot && IsWindowsVistaOrGreater()) {
-		m_pRoot->SetVisible(false);
+		m_pRoot->SetFadeVisible(false);
 		auto closeCallback = [this, nRet]() {
 			this->PostMessage(WM_CLOSE, (WPARAM)nRet, 0L);
 		};
@@ -2268,7 +2268,7 @@ void Window::OnInitLayout()
 		m_nAlpha = 0;
 		std::function<void(int)> playCallback = nbase::Bind(&Window::SetAlpha, this, std::placeholders::_1);
 		animationArgs->SetCallback(playCallback);
-		m_pRoot->SetVisible(true);
+		m_pRoot->SetFadeVisible(true);
 	}
 
 	//auto fromLeftAnimationPlayer = m_pRoot->GetAnimationManager().GetAnimationPlayer(kAnimationInoutXFromLeft);
@@ -2292,7 +2292,7 @@ void Window::OnInitLayout()
 	//	std::function<void(int)> playCallback = nbase::Bind(&Window::SetRenderOffsetX, this, std::placeholders::_1);
 	//	fadeInoutXPlayer->SetCallback(playCallback);
 	//	fadeInoutXPlayer->SetMaxTotalMillSeconds(250);
-	//	m_pRoot->SetVisible(true);
+	//	m_pRoot->SetFadeVisible(true);
 	//}
 }
 

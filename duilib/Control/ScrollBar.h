@@ -30,7 +30,7 @@ public:
 	virtual std::wstring GetType() const override;
 	virtual void SetEnabled(bool bEnable = true) override;
 	virtual void SetFocus() override;
-	virtual void SetVisible_(bool bVisible) override;
+	virtual void SetVisible(bool bVisible) override;
 	virtual bool ButtonUp(EventArgs& msg) override;
 	virtual bool HasHotState() override;
 	virtual bool MouseEnter(EventArgs& msg) override;

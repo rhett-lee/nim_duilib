@@ -521,14 +521,14 @@ BOOL CTxtWinHost::TxShowScrollBar(INT /*fnBar*/, BOOL /*fShow*/)
     //ScrollBar* pVerticalScrollBar = m_re->GetVerticalScrollBar();
     //ScrollBar* pHorizontalScrollBar = m_re->GetHorizontalScrollBar();
     //if( fnBar == SB_VERT && pVerticalScrollBar ) {
-    //    pVerticalScrollBar->SetVisible(fShow == TRUE);
+    //    pVerticalScrollBar->SetFadeVisible(fShow == TRUE);
     //}
     //else if( fnBar == SB_HORZ && pHorizontalScrollBar ) {
-    //    pHorizontalScrollBar->SetVisible(fShow == TRUE);
+    //    pHorizontalScrollBar->SetFadeVisible(fShow == TRUE);
     //}
     //else if( fnBar == SB_BOTH ) {
-    //    if( pVerticalScrollBar ) pVerticalScrollBar->SetVisible(fShow == TRUE);
-    //    if( pHorizontalScrollBar ) pHorizontalScrollBar->SetVisible(fShow == TRUE);
+    //    if( pVerticalScrollBar ) pVerticalScrollBar->SetFadeVisible(fShow == TRUE);
+    //    if( pHorizontalScrollBar ) pHorizontalScrollBar->SetFadeVisible(fShow == TRUE);
     //}
     return TRUE;
 }
@@ -2424,13 +2424,13 @@ void RichEdit::SetPos(UiRect rc)
                 &lWidth,
                 &lHeight);
             if( lHeight > rc.bottom - rc.top ) {
-                //m_pVerticalScrollBar->SetVisible(true);
+                //m_pVerticalScrollBar->SetFadeVisible(true);
                 m_pVerticalScrollBar->SetScrollPos(0);
                 m_bVScrollBarFixing = true;
             }
             else {
                 if( m_bVScrollBarFixing ) {
-                    //m_pVerticalScrollBar->SetVisible(false);
+                    //m_pVerticalScrollBar->SetFadeVisible(false);
 					m_pVerticalScrollBar->SetScrollRange(0);
                     m_bVScrollBarFixing = false;
                 }

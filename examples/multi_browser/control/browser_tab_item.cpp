@@ -33,7 +33,7 @@ void BrowserTabItem::SetIcon(std::wstring icon)
 
 bool BrowserTabItem::OnMouseEnter(ui::EventArgs* msg)
 {
-	button_close_->SetVisible(true);
+	button_close_->SetFadeVisible(true);
 
 	return true;
 }
@@ -42,7 +42,7 @@ bool BrowserTabItem::OnMouseLeave(ui::EventArgs* msg)
 {
 	if (!m_rcItem.IsPointIn(CPoint(msg->ptMouse)))
 	{
-		button_close_->SetVisible(false);
+		button_close_->SetFadeVisible(false);
 	}
 	
 	return false;

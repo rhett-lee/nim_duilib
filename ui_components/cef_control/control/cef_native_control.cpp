@@ -93,9 +93,9 @@ void CefNativeControl::HandleMessage(ui::EventArgs& event)
 	__super::HandleMessage(event);
 }
 
-void CefNativeControl::SetVisible(bool bVisible /*= true*/)
+void CefNativeControl::SetFadeVisible(bool bVisible /*= true*/)
 {
-	__super::SetVisible(bVisible);
+	__super::SetFadeVisible(bVisible);
 	
 	HWND hwnd = GetCefHandle();
 	if (hwnd)

@@ -210,7 +210,7 @@ PopoverHeader::PopoverHeader(
     if (m_nIconType == kIconError)
       m_pControlIcon->SetClass(L"popover_icon popover_icon_error");
 
-    m_pControlIcon->SetVisible(true);
+    m_pControlIcon->SetFadeVisible(true);
     Add(m_pControlIcon);
   }
 
@@ -621,7 +621,7 @@ Popover::Popover(ui::Control* pAnchor,
   Add(m_pPopoverRoot);
 
   // hide popover first
-  SetVisible(false);
+  SetFadeVisible(false);
 
   // DO NOT DELAY DESTROY
   // Coz AttachLastEvent
@@ -1054,7 +1054,7 @@ void Popover::InitializeShowTriggers(int nOldType, int nNewType, int nTimeouts)
   }
 
   if (!HasTrigger(nOldType, kTriggerImmediately) && HasTrigger(nNewType, kTriggerImmediately)) {
-    SetVisible(true);
+      SetFadeVisible(true);
   }
 
   if (HasTrigger(nNewType, kTriggerTimeout)) {
@@ -1101,7 +1101,7 @@ void Popover::OnShowTriggerTimeout(int index)
   }
 
   if (m_nShowType & kTriggerTimeout) {
-    SetVisible(true);
+      SetFadeVisible(true);
     m_nShowType |= ~kTriggerTimeout;
   }
 }
@@ -1137,7 +1137,7 @@ void Popover::TriggerResult(const PopoverResult& result, bool bForceClose)
 
 void Popover::TriggerClose()
 {
-  this->SetVisible(false);
+  this->SetFadeVisible(false);
 
   if (m_bRemoveOnClose) {
     if (GetParent())
@@ -1157,7 +1157,7 @@ bool Popover::OnAnchorResize(ui::EventArgs* /*args*/)
 bool Popover::OnAnchorSetFocus(ui::EventArgs* /*args*/)
 {
   if (m_nShowType & kTriggerSetFocus)
-    SetVisible(true);
+      SetFadeVisible(true);
 
   return true;
 }
@@ -1177,7 +1177,7 @@ bool Popover::OnAnchorKillFocus(ui::EventArgs* /*args*/)
 bool Popover::OnAnchorMouseClick(ui::EventArgs* /*args*/)
 {
   if (m_nShowType & kTriggerClick)
-    SetVisible(true);
+      SetFadeVisible(true);
 
   return true;
 }
@@ -1185,7 +1185,7 @@ bool Popover::OnAnchorMouseClick(ui::EventArgs* /*args*/)
 bool Popover::OnAnchorMouseEnter(ui::EventArgs* /*args*/)
 {
   if (m_nShowType & kTriggerEnter)
-    SetVisible(true);
+      SetFadeVisible(true);
 
   return true;
 }
@@ -1193,7 +1193,7 @@ bool Popover::OnAnchorMouseEnter(ui::EventArgs* /*args*/)
 bool Popover::OnAnchorMouseHover(ui::EventArgs* /*args*/)
 {
   if (m_nShowType & kTriggerHover)
-    SetVisible(true);
+      SetFadeVisible(true);
 
   return true;
 }
@@ -1208,7 +1208,7 @@ bool Popover::OnAnchorMouseLeave(ui::EventArgs* /*args*/)
 
 bool Popover::OnAnchorLastEvent(ui::EventArgs* /*args*/)
 {
-  this->SetVisible(false);
+  this->SetFadeVisible(false);
 
   if (GetParent())
     GetParent()->Remove(this);
@@ -1222,7 +1222,7 @@ bool Popover::OnAnchorVisibleChange(ui::EventArgs* /*args*/)
 {
   bool is_visible = m_pAnchor->IsVisible();
   if (is_visible && m_nShowType & kTriggerVisible)
-    SetVisible(true);
+      SetFadeVisible(true);
 
   if (is_visible)
     SetPos(GetPos());
@@ -1331,7 +1331,7 @@ bool PopoverLayer::Remove(Control* pControl)
   auto pHolderLayer = static_cast<PopoverHolderLayer*>(pControl->GetParent());
   if (pHolderLayer) {
     // alert popover depends visible event to disable or enable mouse
-    pControl->SetVisible(false);
+    pControl->SetFadeVisible(false);
     return pHolderLayer->Remove(pControl);
   }
 

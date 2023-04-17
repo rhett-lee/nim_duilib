@@ -193,7 +193,7 @@ public:
 #if defined(ENABLE_UIAUTOMATION)
 	virtual UIAControlProvider* GetUIAProvider() override;
 #endif
-	virtual void SetVisible(bool bVisible = true) override;
+	virtual void SetFadeVisible(bool bVisible) override;
 	virtual void Selected(bool bSelect, bool trigger) override;
 	virtual void HandleMessage(EventArgs& event) override;
 

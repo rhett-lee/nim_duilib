@@ -59,7 +59,7 @@ LRESULT Toast::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
 	else if ((uMsg == WM_NCMOUSEMOVE || uMsg == WM_MOUSEMOVE) && lParam != -1)
 	{
 		if (NULL != close_button_ && !close_button_->IsVisible())
-			close_button_->SetVisible(true);
+			close_button_->SetFadeVisible(true);
 	}
 	else if (uMsg == WM_NCMOUSELEAVE || uMsg == WM_MOUSELEAVE)
 	{
@@ -71,7 +71,7 @@ LRESULT Toast::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
 		// leave消息触发时，获取的鼠标坐标有可能还在client_rect范围内，会偏差1像素，这里缩减1像素
 		client_rect.Deflate(ui::UiRect(1, 1, 1, 1));
 		if (NULL != close_button_ && !client_rect.IsPointIn(ui::CPoint(pt)))
-			close_button_->SetVisible(false);
+			close_button_->SetFadeVisible(false);
 	}
 	return __super::HandleMessage(uMsg, wParam, lParam);
 }

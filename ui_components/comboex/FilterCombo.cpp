@@ -261,10 +261,10 @@ void FilterListBox::Filter(const std::string& utf8_str)
 		item = dynamic_cast<ListElementMatch*>(GetItemAt(i));
 		if (item){
 			if (item->StringMatch(utf8_str)) {
-				item->SetVisible();
+				item->SetFadeVisible(true);
 			}
 			else {
-				item->SetVisible(false);
+				item->SetFadeVisible(false);
 			}
 		}
 	}

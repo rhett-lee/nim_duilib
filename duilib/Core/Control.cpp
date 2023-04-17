@@ -546,7 +546,7 @@ void Control::SetUserDataBase(UserDataBase* pUserDataBase)
 	m_pUserDataBase.reset(pUserDataBase);
 }
 
-void Control::SetVisible(bool bVisible)
+void Control::SetFadeVisible(bool bVisible)
 {
 	if (bVisible) {
 		m_animationManager->Appear();
@@ -568,7 +568,7 @@ void Control::SetInternVisible(bool bVisible)
 	}
 }
 
-void Control::SetVisible_(bool bVisible)
+void Control::SetVisible(bool bVisible)
 {
 	if (m_bVisible == bVisible) return;
 	bool v = IsVisible();
@@ -1250,8 +1250,8 @@ void Control::SetAttribute(const std::wstring& strName, const std::wstring& strV
 	else if (strName == _T("enabled")) SetEnabled(strValue == _T("true"));
 	else if (strName == _T("mouse")) SetMouseEnabled(strValue == _T("true"));
 	else if (strName == _T("keyboard")) SetKeyboardEnabled(strValue == _T("true"));
-	else if (strName == _T("visible")) SetVisible_(strValue == _T("true"));
-	else if (strName == _T("fadevisible")) SetVisible(strValue == _T("true"));
+	else if (strName == _T("visible")) SetVisible(strValue == _T("true"));
+	else if (strName == _T("fadevisible")) SetFadeVisible(strValue == _T("true"));
 	else if (strName == _T("float")) SetFloat(strValue == _T("true"));
 	else if (strName == _T("menu")) SetContextMenuUsed(strValue == _T("true"));
 	else if (strName == _T("cache")) SetUseCache(strValue == _T("true"));

@@ -29,7 +29,7 @@ namespace ui
 			posx += m_hLayout[j];
 		if (item->type == GIT_String || item->type == GIT_Int || item->type == GIT_Double)
 		{
-			m_pReEdit->SetVisible_(true);
+			m_pReEdit->SetVisible(true);
 			m_pReEdit->SetFixedWidth(m_hLayout[col_index] - 1);
 			m_pReEdit->SetFixedHeight(m_vLayout[row_index] - 1);
 			m_pReEdit->SetMargin({ posx, posy, 0, 0 });
@@ -40,7 +40,7 @@ namespace ui
 		}
 		else if (item->type == GIT_Combo)
 		{
-			m_pComboEdit->SetVisible_(true);
+			m_pComboEdit->SetVisible(true);
 			m_pComboEdit->SetFixedWidth(m_hLayout[col_index] - 1);
 			m_pComboEdit->SetFixedHeight(m_vLayout[row_index] - 1);
 			m_pComboEdit->SetMargin({ posx, posy, 0, 0 });
@@ -68,7 +68,7 @@ namespace ui
 		{
 			ASSERT(m_pComboEdit->IsVisible());
 			m_pComboEditGridItem = nullptr;
-			m_pComboEdit->SetVisible_(false);
+			m_pComboEdit->SetVisible(false);
 		}
 		if (m_pReEditGridItem)
 		{
@@ -78,7 +78,7 @@ namespace ui
 				m_pReEditGridItem->text = m_pReEdit->GetText();
 				m_pWindow->SendNotify(this, kEventTextChange, m_pReEditGridItem->row_index, m_pReEditGridItem->col_index);
 			}
-			m_pReEdit->SetVisible_(false);
+			m_pReEdit->SetVisible(false);
 			m_pReEditGridItem = nullptr;
 		}
 	}
@@ -314,13 +314,13 @@ namespace ui
 		m_pReEdit->SetAttribute(L"bkcolor", L"white");
 		m_pReEdit->SetAttribute(L"align", L"vcenter");
 		m_pReEdit->SetAttribute(L"padding", L"2,0,2,0");
-		m_pReEdit->SetVisible_(false);
+		m_pReEdit->SetVisible(false);
 		Add(m_pReEdit);
 
 		m_pComboEdit = new Combo;
 		m_pComboEdit->SetAttribute(L"class", L"combo2");
 		m_pComboEdit->SetAttribute(L"bkcolor", L"white");
-		m_pComboEdit->SetVisible_(false);
+		m_pComboEdit->SetVisible(false);
 		m_pComboEdit->AttachSelect(nbase::Bind(&GridBody::OnComboEditSelected, this, std::placeholders::_1));
 		Add(m_pComboEdit);
 

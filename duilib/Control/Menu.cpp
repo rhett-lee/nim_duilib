@@ -444,7 +444,7 @@ void MenuWndEx::SetVisibleItems(const VisibleMap &data)
 	for (const auto &it : data)	{
 		auto *pControl = FindControl(it.first);
 		if (pControl)
-			pControl->SetVisible(it.second);
+			pControl->SetFadeVisible(it.second);
 	}
 }
 
@@ -509,7 +509,7 @@ void MenuWndEx::OnFinalMessage(HWND hWnd)
 			if (pMenuItem) {
 				pMenuItem->SetWindow(m_pOwner->GetWindow(), m_pOwner, false);
 				pMenuItem->SetOwner(dynamic_cast<MenuBox*>(m_pOwner->GetParent()));
-				pMenuItem->SetVisible(false);
+				pMenuItem->SetFadeVisible(false);
 				pMenuItem->SetInternVisible(false);
 			}
 		}
@@ -1077,7 +1077,7 @@ bool MenuElement::PrepareCreateMenu()
 		auto pControl = GetItemAt(i);
 		MenuElement* pMenuItem = dynamic_cast<MenuElement*>(pControl);
 		if (pMenuItem) {
-			pMenuItem->SetVisible(true);
+			pMenuItem->SetFadeVisible(true);
 			pMenuItem->SetInternVisible(true);
 
 			hasSubMenu = true;
