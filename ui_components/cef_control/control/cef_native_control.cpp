@@ -93,27 +93,9 @@ void CefNativeControl::HandleMessage(ui::EventArgs& event)
 	__super::HandleMessage(event);
 }
 
-void CefNativeControl::SetFadeVisible(bool bVisible /*= true*/)
+void CefNativeControl::SetVisible(bool bVisible)
 {
-	__super::SetFadeVisible(bVisible);
-	
-	HWND hwnd = GetCefHandle();
-	if (hwnd)
-	{
-		if (bVisible)
-		{
-			ShowWindow(hwnd, SW_SHOW);
-		}
-		else
-		{
-			SetWindowPos(hwnd, NULL, 0, 0, 0, 0, SWP_NOZORDER | SWP_NOMOVE | SWP_NOACTIVATE);
-		}
-	}
-}
-
-void CefNativeControl::SetInternVisible(bool bVisible)
-{
-	__super::SetInternVisible(bVisible);
+	__super::SetVisible(bVisible);
 
 	HWND hwnd = GetCefHandle();
 	if (hwnd)

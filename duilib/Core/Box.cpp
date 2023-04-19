@@ -430,30 +430,6 @@ void Box::PaintChild(IRenderContext* pRender, const UiRect& rcPaint)
 	}
 }
 
-void Box::SetVisible(bool bVisible)
-{
-	__super::SetVisible(bVisible);
-	for (auto it = m_items.begin(); it != m_items.end(); it++) {
-		(*it)->SetInternVisible(IsVisible());
-	}
-}
-
-// 逻辑上，对于Container控件不公开此方法
-// 调用此方法的结果是，内部子控件隐藏，控件本身依然显示，背景等效果存在
-void Box::SetInternVisible(bool bVisible)
-{
-	Control::SetInternVisible(bVisible);
-	for (auto it = m_items.begin(); it != m_items.end(); ++it) {
-		// 控制子控件显示状态
-		// InternVisible状态应由子控件自己控制
-		Control* pControl = *it;
-		ASSERT(pControl != nullptr);
-		if (pControl != nullptr) {
-			pControl->SetInternVisible(IsVisible());
-		}
-	}
-}
-
 void Box::SetEnabled(bool bEnabled)
 {
 	if (m_bEnabled == bEnabled) {
@@ -704,22 +680,7 @@ int Box::GetCount() const
 
 bool Box::Add(Control* pControl)
 {
-	ASSERT(pControl != nullptr);
-	if (pControl == nullptr) {
-		return false;
-	}
-
-	if (m_pWindow != nullptr) {
-		m_pWindow->InitControls(pControl, this);
-	}
-	if (IsVisible()) {
-		Arrange();
-	}
-	else {
-		pControl->SetInternVisible(false);
-	}
-	m_items.push_back(pControl);   
-	return true;
+	return AddAt(pControl, m_items.size());
 }
 
 bool Box::AddAt(Control* pControl, size_t iIndex)
@@ -735,13 +696,10 @@ bool Box::AddAt(Control* pControl, size_t iIndex)
 	if (m_pWindow != nullptr) {
 		m_pWindow->InitControls(pControl, this);
 	}
+	m_items.insert(m_items.begin() + iIndex, pControl);
 	if (IsVisible()) {
 		Arrange();
-	}
-	else {
-		pControl->SetInternVisible(false);
-	}
-	m_items.insert(m_items.begin() + iIndex, pControl);
+	}	
 	return true;
 }
 

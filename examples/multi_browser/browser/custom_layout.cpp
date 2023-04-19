@@ -7,14 +7,7 @@ ui::CSize CustomLayout::ArrangeChild(const std::vector<ui::Control*>& m_items, u
 	CSize size;
 	for (auto it = m_items.begin(); it != m_items.end(); it++) {
 		Control* pControl = *it;
-
-		// 即使子控件internVisible属性为false，这里也暂时强行设置为true，排版完成后恢复属性。
-		// 否则无法排版被隐藏的SessionBox，在任务栏生成缩略图和预览图时需要排版后的SessionBox
-		bool visible = pControl->IsInternVisible();
-		pControl->SetInternVisible(true);
 		CSize new_size = this->SetCustomPos(pControl, rc);
-		pControl->SetInternVisible(visible);
-
 		size.cx = std::max(size.cx, new_size.cx);
 		size.cy = std::max(size.cy, new_size.cy);
 	}

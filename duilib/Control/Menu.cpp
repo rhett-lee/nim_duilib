@@ -78,7 +78,7 @@ bool MenuBox::Add(Control* pControl)
 	if (pMenuItem != NULL) {
 		for (int i = 0; i < pMenuItem->GetCount(); ++i) {
 			if (dynamic_cast<MenuElement*>(pMenuItem->GetItemAt(i))) {
-				pMenuItem->GetItemAt(i)->SetInternVisible(false);
+				pMenuItem->GetItemAt(i)->SetVisible(false);
 			}
 		}
 	}
@@ -91,7 +91,7 @@ bool MenuBox::AddAt(Control* pControl, size_t iIndex)
 	if (pMenuItem != NULL) {
 		for (int i = 0; i < pMenuItem->GetCount(); ++i) {
 			if (dynamic_cast<MenuElement*>(pMenuItem->GetItemAt(i))) {
-				pMenuItem->GetItemAt(i)->SetInternVisible(false);
+				pMenuItem->GetItemAt(i)->SetVisible(false);
 			}
 		}
 	}
@@ -510,7 +510,6 @@ void MenuWndEx::OnFinalMessage(HWND hWnd)
 				pMenuItem->SetWindow(m_pOwner->GetWindow(), m_pOwner, false);
 				pMenuItem->SetOwner(dynamic_cast<MenuBox*>(m_pOwner->GetParent()));
 				pMenuItem->SetFadeVisible(false);
-				pMenuItem->SetInternVisible(false);
 			}
 		}
 		m_pOwner->m_pSubMenuWindow = NULL;
@@ -745,7 +744,7 @@ bool MenuElement::Add(Control* pControl)
 
 	MenuElement* pMenuItem = dynamic_cast<MenuElement*>(pControl);
 	if (pMenuItem != NULL) {
-		pMenuItem->SetInternVisible(false);
+		pMenuItem->SetVisible(false);
 	}
 	return __super::Add(pControl);
 }
@@ -756,7 +755,7 @@ bool MenuElement::AddAt(Control* pControl, size_t iIndex)
 
 	MenuElement* pMenuItem = dynamic_cast<MenuElement*>(pControl);
 	if (pMenuItem != NULL) {
-		pMenuItem->SetInternVisible(false);
+		pMenuItem->SetVisible(false);
 	}
 	return __super::AddAt(pControl, iIndex);
 }
@@ -1078,8 +1077,6 @@ bool MenuElement::PrepareCreateMenu()
 		MenuElement* pMenuItem = dynamic_cast<MenuElement*>(pControl);
 		if (pMenuItem) {
 			pMenuItem->SetFadeVisible(true);
-			pMenuItem->SetInternVisible(true);
-
 			hasSubMenu = true;
 		}
 	}

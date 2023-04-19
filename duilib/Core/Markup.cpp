@@ -606,9 +606,10 @@ bool CMarkup::_Failed(LPCTSTR pstrError, LPCTSTR pstrLocation)
 {
     // Register last error
 	ASSERT(false);
-    const size_t bufferSize = (sizeof(m_szErrorMsg) / sizeof(m_szErrorMsg[0])) - 1;
-    _tcsncpy_s(m_szErrorMsg, bufferSize, pstrError, bufferSize);
-    _tcsncpy_s(m_szErrorXML, bufferSize, pstrLocation != NULL ? pstrLocation : _T(""), bufferSize);
+    size_t bufferSize = (sizeof(m_szErrorMsg) / sizeof(m_szErrorMsg[0])) ;
+    _tcsncpy_s(m_szErrorMsg, bufferSize, pstrError, bufferSize - 1);
+    bufferSize = (sizeof(m_szErrorXML) / sizeof(m_szErrorXML[0])) ;
+    _tcsncpy_s(m_szErrorXML, bufferSize, pstrLocation != NULL ? pstrLocation : _T(""), bufferSize - 1);
     return false; // Always return 'false'
 }
 

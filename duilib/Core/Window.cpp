@@ -1793,7 +1793,7 @@ void Window::SetFocus(Control* pControl)
 		&& pControl->IsEnabled())
 	{
 		m_pFocus = pControl;
-
+		ASSERT(::GetFocus() == m_hWnd);
 		if (m_pFocus) {
 			m_pFocus->HandleMessageTemplate(kEventInternalSetFocus);
 		}
@@ -2270,30 +2270,6 @@ void Window::OnInitLayout()
 		animationArgs->SetCallback(playCallback);
 		m_pRoot->SetFadeVisible(true);
 	}
-
-	//auto fromLeftAnimationPlayer = m_pRoot->GetAnimationManager().GetAnimationPlayer(kAnimationInoutXFromLeft);
-	//if (!fromLeftAnimationPlayer && m_shadow.IsShadowAttached()) {
-	//	Control* tmpRoot = m_pRoot->GetItemAt(0);
-	//	fromLeftAnimationPlayer = tmpRoot->GetAnimationManager().GetAnimationPlayer(kAnimationInoutXFromLeft);
-	//}
-	//auto fromRightAnimationPlayer = m_pRoot->GetAnimationManager().GetAnimationPlayer(kAnimationInoutXFromRight);
-	//if (!fromRightAnimationPlayer && m_shadow.IsShadowAttached()) {
-	//	Control* tmpRoot = m_pRoot->GetItemAt(0);
-	//	fromRightAnimationPlayer = tmpRoot->GetAnimationManager().GetAnimationPlayer(kAnimationInoutXFromRight);
-	//}
-	//AnimationPlayer* fadeInoutXPlayer = nullptr;
-	//if (fromLeftAnimationPlayer) {
-	//	fadeInoutXPlayer = m_pRoot->GetAnimationManager().SetFadeInOutX(true, false);
-	//}
-	//if (fromRightAnimationPlayer) {
-	//	fadeInoutXPlayer = m_pRoot->GetAnimationManager().SetFadeInOutX(true, true);
-	//}
-	//if (fadeInoutXPlayer) {
-	//	std::function<void(int)> playCallback = nbase::Bind(&Window::SetRenderOffsetX, this, std::placeholders::_1);
-	//	fadeInoutXPlayer->SetCallback(playCallback);
-	//	fadeInoutXPlayer->SetMaxTotalMillSeconds(250);
-	//	m_pRoot->SetFadeVisible(true);
-	//}
 }
 
 Control* CALLBACK Window::__FindControlFromNameHash(Control* pThis, LPVOID pData)

@@ -96,18 +96,15 @@ public:
 	 */
 	virtual void DoInit();
 
+	/** 设置该控件是否可见
+	 */
+	virtual void SetVisible(bool bVisible);
+
 	/**
 	 * @brief 判断是否可见
 	 * @return 返回 true 为可见，否则 false 为不可见
 	 */
 	virtual bool IsVisible() const;
-
-	/**
-	 * @brief 待补充
-	 * @param[in] 待补充
-	 * @return 待补充
-	 */
-	bool IsInternVisible() const;
 
 	/**
 	 * @brief 判断控件是否浮动，对应 xml 中 float 属性
@@ -337,13 +334,14 @@ protected:
 	HorAlignType m_horAlignType;
 	VerAlignType m_verAlignType;
 	bool m_bFloat;
-	bool m_bReEstimateSize;
-	bool m_bVisible;
-	bool m_bInternVisible;
+	bool m_bReEstimateSize;	
 	bool m_bIsArranged;
 
 	bool m_bUseCache;
 	bool m_bCacheDirty;
+
+private:
+	bool m_bVisible;
 };
 
 } // namespace ui

@@ -122,8 +122,6 @@ public:
 	virtual void HandleMessageTemplate(EventArgs& msg) override;
 	virtual void SetReceivePointerMsg(bool bRecv) override;
 	virtual void PaintChild(IRenderContext* pRender, const UiRect& rcPaint) override;
-	virtual void SetVisible(bool bVisible) override;
-	virtual void SetInternVisible(bool bVisible = true) override;
 	virtual void SetEnabled(bool bEnabled) override;
 	virtual CSize EstimateSize(CSize szAvailable) override;
 	virtual Control* FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, CPoint scrollPos = CPoint()) override;

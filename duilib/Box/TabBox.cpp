@@ -19,37 +19,16 @@ TabBox::TabBox(Layout* pLayout)
 void TabBox::DoInit()
 {
 	m_bIsInit = true;
-	if (m_iInitSel != -1)  SelectItem(m_iInitSel);
+	if (m_iInitSel != -1) {
+		SelectItem(m_iInitSel);
+	}
 }
 
 std::wstring TabBox::GetType() const { return DUI_CTR_TABBOX; }
 
 bool TabBox::Add(Control* pControl)
 {
-	ASSERT(pControl != nullptr);
-	if (pControl == nullptr) {
-		return false;
-	}
-	bool ret = Box::Add(pControl);
-	if (!ret) {
-		return ret;
-	}
-
-	if(m_iCurSel == -1 && pControl->IsVisible()) {
-		m_iCurSel = GetItemIndex(pControl);
-	} 
-
-	if (m_iCurSel != GetItemIndex(pControl) || !pControl->IsVisible()){
-		if (!IsFadeSwitch()) {
-			pControl->SetFadeVisible(false);
-		}
-		pControl->SetMouseEnabled(false);
-		if (Box* box = dynamic_cast<Box*>(pControl)) {
-			box->SetMouseChildEnabled(false);
-		}
-		pControl->SetAlpha(0);
-	}
-	return ret;
+	return AddAt(pControl, GetCount());
 }
 
 bool TabBox::AddAt(Control* pControl, size_t iIndex)
@@ -60,62 +39,66 @@ bool TabBox::AddAt(Control* pControl, size_t iIndex)
 	}		
 
 	if(m_iCurSel == -1 && pControl->IsVisible()) {
-		m_iCurSel = GetItemIndex(pControl);
+		int iCurSel = GetItemIndex(pControl);
+		ASSERT(iCurSel == (int)iIndex);
+		ret = SelectItem(iCurSel);
 	}
 	else if( m_iCurSel != -1 && iIndex <= (size_t)m_iCurSel ) {
 		m_iCurSel += 1;
 	}
-	else {
-		if (!IsFadeSwitch()) {
-			pControl->SetFadeVisible(false);
-		}
-		pControl->SetMouseEnabled(false);
-		if (Box* box = dynamic_cast<Box*>(pControl)) {
-			box->SetMouseChildEnabled(false);
-		}
-		pControl->SetAlpha(0);
-	}
 
+	if (m_iCurSel != iIndex) {
+		pControl->SetFadeVisible(false);
+		OnHideTabItem(iIndex);
+	}
 	return ret;
 }
 
 bool TabBox::Remove(Control* pControl)
 {
-	if( pControl == NULL) return false;
+	if (pControl == nullptr) {
+		return false;
+	}
 
 	int index = GetItemIndex(pControl);
+	ASSERT(index >= 0);
 	bool ret = Box::Remove(pControl);
-	if( !ret ) return false;
+	if (!ret) {
+		return false;
+	}
 
 	if( m_iCurSel == index)	{
 		if( GetCount() > 0 ) {
-			m_iCurSel=0;
-			if (!IsFadeSwitch()) {
-				GetItemAt(m_iCurSel)->SetFadeVisible(true);
+			//移除当前选择的TAB页面后，选择被移除页面的前一个TAB页面
+			int newSel = m_iCurSel - 1;
+			if (newSel >= GetCount()) {
+				newSel = -1;
 			}
-
-			pControl->SetMouseEnabled(true);
-			if (Box* box = dynamic_cast<Box*>(pControl)) {
-				box->SetMouseChildEnabled(true);
+			if (newSel < 0) {
+				newSel = 0;
 			}
-			pControl->SetAlpha(255);
+			m_iCurSel = -1;
+			ret = SelectItem(newSel);
 		}
-		else
-			m_iCurSel=-1;
-
+		else {
+			//当前只有一个TAB页，被移除以后，更新选择为未选择
+			m_iCurSel = -1;
+		}
 		ArrangeAncestor();
 	}
 	else if( m_iCurSel > index ) {
+		//更新当前选择页面的下标值，使其保持不变
 		m_iCurSel -= 1;
 	}
-
 	return ret;
 }
 
 bool TabBox::RemoveAt(size_t iIndex)
 {
 	Control* pControl = GetItemAt(iIndex);
-	if (pControl == NULL) return false;
+	if (pControl == nullptr) {
+		return false;
+	}
 	return Remove(pControl);
 }
 
@@ -133,19 +116,28 @@ int TabBox::GetCurSel() const
 	
 bool TabBox::SelectItem(int iIndex)
 {
-	if( iIndex < 0 || (size_t)iIndex >= m_items.size() ) return false;
-	if( iIndex == m_iCurSel ) return true;
+	if ((iIndex < 0) || ((size_t)iIndex >= m_items.size())) {
+		return false;
+	}
+	if (iIndex == m_iCurSel) {
+		return true;
+	}
 
-	int iOldSel = m_iCurSel;
+	const int iOldSel = m_iCurSel;
 	m_iCurSel = iIndex;
-	for( size_t it = 0; it < m_items.size(); it++ ){
-		if( (int)it == iIndex ) {
-			ShowTabItem(it);
+	const int itemCount = (int)m_items.size();
+	for( int it = 0; it < itemCount; ++it ){
+		Control* pItemControl = m_items.at(it);
+		ASSERT(pItemControl != nullptr);
+		if (it == iIndex) {
+			//当前选择的TAB Item
+			OnShowTabItem((size_t)it);
 
 			if (!IsFadeSwitch()) {
-				m_items[it]->SetFadeVisible(true);
+				pItemControl->SetFadeVisible(true);
 			}
 			else {
+				pItemControl->SetVisible(true);
 				int startValue = 0;
 				int endValue = 0;
 				if (m_iCurSel < iOldSel) {
@@ -157,50 +149,46 @@ bool TabBox::SelectItem(int iIndex)
 					endValue = 0;
 				}
 
-				auto player = m_items[it]->GetAnimationManager().SetFadeInOutX(true, true);
+				auto player = pItemControl->GetAnimationManager().SetFadeInOutX(true, true);
 				if (player != nullptr) {
 					player->SetStartValue(startValue);
 					player->SetEndValue(endValue);
 					player->SetSpeedUpfactorA(0.015);
-					player->SetCompleteCallback(CompleteCallback());
+					CompleteCallback compelteCallback = nbase::Bind(&TabBox::OnAnimationComplete, this, (size_t)it);
+					player->SetCompleteCallback(compelteCallback);
 					player->Start();
 				}				
 			}
 		}
 		else {
-			if ((int)it != iOldSel) {
-				HideTabItem(it);
-				if (!IsFadeSwitch()) {
-					m_items[it]->SetFadeVisible(false);
-				}
-			}
-			else {
-				if (!IsFadeSwitch()) {
-					HideTabItem(it);
-					m_items[it]->SetFadeVisible(false);
+			//不是当前选择的TAB页面
+			OnHideTabItem((size_t)it);
+			if ((it == iOldSel) && IsFadeSwitch()) {
+				//对于原来选择的TAB页面，出发动画效果
+				pItemControl->SetVisible(true);
+				int startValue = 0;
+				int endValue = 0;
+				if (m_iCurSel < iOldSel) {
+					startValue = 0;
+					endValue = -GetPos().GetWidth();
 				}
 				else {
-					int startValue = 0;
-					int endValue = 0;
-					if (m_iCurSel < iOldSel) {
-						startValue = 0;
-						endValue = -GetPos().GetWidth();
-					}
-					else {
-						startValue = 0;
-						endValue = GetPos().GetWidth();
-					}
-
-					auto player = m_items[it]->GetAnimationManager().SetFadeInOutX(true, true);
-					if (player != nullptr) {
-						player->SetStartValue(startValue);
-						player->SetEndValue(endValue);
-						player->SetSpeedUpfactorA(0.015);
-						CompleteCallback compelteCallback = nbase::Bind(&TabBox::HideTabItem, this, it);
-						player->SetCompleteCallback(compelteCallback);
-						player->Start();
-					}					
+					startValue = 0;
+					endValue = GetPos().GetWidth();
 				}
+
+				auto player = pItemControl->GetAnimationManager().SetFadeInOutX(true, true);
+				if (player != nullptr) {
+					player->SetStartValue(startValue);
+					player->SetEndValue(endValue);
+					player->SetSpeedUpfactorA(0.015);
+					CompleteCallback compelteCallback = nbase::Bind(&TabBox::OnAnimationComplete, this, it);
+					player->SetCompleteCallback(compelteCallback);
+					player->Start();
+				}				
+			}
+			else {				
+				pItemControl->SetFadeVisible(false);
 			}
 		}
 	}		
@@ -212,60 +200,98 @@ bool TabBox::SelectItem(int iIndex)
 	return true;
 }
 
-void TabBox::HideTabItem(size_t it)
+void TabBox::OnHideTabItem(size_t index)
 {
-	m_items[it]->SetMouseEnabled(false);
-	if (Box* box = dynamic_cast<Box*>(this->m_items[it])) {
-		box->SetMouseChildEnabled(false);
+	ASSERT(index < m_items.size());
+	if (index >= m_items.size()) {
+		return;
 	}
-	m_items[it]->SetAlpha(0);
+	Control* pContol = m_items.at(index);
+	ASSERT(pContol != nullptr);
+	if (pContol == nullptr) {
+		return;
+	}
+	pContol->SetMouseEnabled(false);
+	Box* pBox = dynamic_cast<Box*>(pContol);
+	if (pBox != nullptr) {
+		pBox->SetMouseChildEnabled(false);
+	}
 }
 
-void TabBox::ShowTabItem(size_t it)
+void TabBox::OnShowTabItem(size_t index)
 {
-	m_items[it]->SetMouseEnabled(true);
-	if (Box* box = dynamic_cast<Box*>(this->m_items[it])) {
-		box->SetMouseChildEnabled(true);
+	ASSERT(index < m_items.size());
+	if (index >= m_items.size()) {
+		return;
 	}
-	m_items[it]->SetAlpha(255);
+	Control* pContol = m_items.at(index);
+	ASSERT(pContol != nullptr);
+	if (pContol == nullptr) {
+		return;
+	}
+	pContol->SetMouseEnabled(true);
+	Box* pBox = dynamic_cast<Box*>(pContol);
+	if (pBox != nullptr) {
+		pBox->SetMouseChildEnabled(true);
+	}
+}
+
+void TabBox::OnAnimationComplete(size_t index)
+{
+	ASSERT((size_t)index < m_items.size());
+	if ((size_t)index >= m_items.size()) {
+		return;
+	}
+	Control* pContol = m_items.at(index);
+	ASSERT(pContol != nullptr);
+	if (pContol != nullptr) {
+		pContol->SetRenderOffsetX(0);
+		if (m_iCurSel != (int)index) {
+			pContol->SetVisible(false);
+		}
+	}
 }
 
 bool TabBox::SelectItem( Control* pControl )
 {
 	int iIndex = GetItemIndex(pControl);
-	if (iIndex==-1)
+	if (iIndex == -1) {
 		return false;
-	else
+	}		
+	else {
 		return SelectItem(iIndex);
+	}		
 }
 
 bool TabBox::SelectItem(const std::wstring& pControlName)
 {
 	Control* pControl = FindSubControl(pControlName);
-	ASSERT(pControl);
+	ASSERT(pControl != nullptr);
 	return SelectItem(pControl);
 }
 
 void TabBox::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
-	if (strName == L"selectedid")
-	{
+	if (strName == L"selectedid"){
 		int iSel = _wtoi(strValue.c_str());
-		m_bIsInit ? SelectItem(iSel) : m_iInitSel = iSel;
+		if (m_bIsInit) {
+			SelectItem(iSel);
+		}
+		else {
+			m_iInitSel = iSel;
+		}
 	}
-	else if (strName == L"fadeswitch") SetFadeSwitch(strValue == L"true");
-	else Box::SetAttribute(strName, strValue);
+	else if (strName == L"fadeswitch") {
+		SetFadeSwitch(strValue == L"true");
+	}
+	else {
+		Box::SetAttribute(strName, strValue);
+	}
 }
 
 void TabBox::SetFadeSwitch(bool bFadeSwitch)
 {
 	m_bFadeSwith = bFadeSwitch;
-	for (auto &it : m_items) {
-		int index = GetItemIndex(it);
-		if (index != m_iCurSel) {
-			it->SetFadeVisible(IsFadeSwitch());
-		}
-	}
 }
 
 }

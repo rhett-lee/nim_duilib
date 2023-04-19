@@ -102,15 +102,6 @@ void BrowserBox::SetWindow(Window* pManager, Box* pParent, bool bInit)
 	__super::SetWindow(pManager, pParent, bInit);
 }
 
-void BrowserBox::SetInternVisible(bool bVisible /*= true*/)
-{
-	Control::SetInternVisible(bVisible);
-	if (m_items.empty()) return;
-	for (auto it = m_items.begin(); it != m_items.end(); it++) {
-		(*it)->SetInternVisible(bVisible);
-	}
-}
-
 void BrowserBox::Invalidate()
 {
 	__super::Invalidate();

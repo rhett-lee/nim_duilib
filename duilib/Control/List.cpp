@@ -426,15 +426,6 @@ UIAControlProvider* ListContainerElement::GetUIAProvider()
 }
 #endif
 
-void ListContainerElement::SetFadeVisible(bool bVisible)
-{
-	__super::SetFadeVisible(bVisible);
-	if (!IsVisible() && m_bSelected) {
-		m_bSelected = false;
-		if (m_pOwner != NULL) m_pOwner->SelectItem(-1);
-	}
-}
-
 void ListContainerElement::Selected(bool bSelected, bool trigger)
 {
 	if (!IsEnabled()) return;

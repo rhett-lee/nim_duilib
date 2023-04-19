@@ -132,7 +132,7 @@ std::unique_ptr<ImageInfo> ImageInfo::LoadImageByBitmap(std::unique_ptr<Gdiplus:
 	}
 	Gdiplus::Status status;
 	status = pGdiplusBitmap->GetLastStatus();
-	ASSERT(status == Gdiplus::Ok);
+	ASSERT((status == Gdiplus::Ok) && "ImageInfo::LoadImageByBitmap: Ê§°Ü");
 	if (status != Gdiplus::Ok) {
 		return nullptr;
 	}

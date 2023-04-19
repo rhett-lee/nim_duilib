@@ -83,13 +83,6 @@ public:
 	virtual void SetWindow(ui::Window* pManager, ui::Box* pParent, bool bInit) override;
 
 	/**
-	* 覆盖基类虚函数，为了在任务栏显示缩略图和预览图，重写了设置子控件SetInternVisible属性的逻辑
-	* @param[in] bVisible 是否显示
-	* @return void	无返回值
-	*/
-	virtual void SetInternVisible(bool bVisible = true) override;
-
-	/**
 	* 覆盖基类虚函数，为了在重绘任务栏显示的缩略图
 	* @return void	无返回值
 	*/

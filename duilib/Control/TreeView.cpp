@@ -48,26 +48,15 @@ bool TreeNode::OnClickItem(EventArgs* pMsg)
 
 bool TreeNode::IsVisible() const
 {
-	return ListContainerElement::IsVisible()
-		&& (!m_pParentTreeNode || (m_pParentTreeNode && m_pParentTreeNode->IsExpand() && m_pParentTreeNode->IsVisible()));
-}
-
-void TreeNode::SetInternVisible(bool bVisible)
-{
-	Control::SetInternVisible(bVisible);
-	if (m_items.empty()) {
-		return;
+	if (!ListContainerElement::IsVisible()) {
+		return false;
 	}
-
-	for (auto it = m_items.begin(); it != m_items.end(); it++)
-	{
-		auto pControl = *it;
-		if (pControl) {
-			// 控制子控件显示状态
-			// InternVisible状态应由子控件自己控制
-			pControl->SetInternVisible(Control::IsVisible());
-		}		
+	if (m_pParentTreeNode != nullptr) {
+		if (!m_pParentTreeNode->IsExpand() || !m_pParentTreeNode->IsVisible()) {
+			return false;
+		}
 	}
+	return true;
 }
 
 void TreeNode::SetWindow(Window* pManager, Box* pParent, bool bInit)

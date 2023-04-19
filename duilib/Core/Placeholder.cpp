@@ -20,7 +20,6 @@ PlaceHolder::PlaceHolder() :
 	m_bFloat(false),
 	m_bReEstimateSize(true),
 	m_bVisible(true),
-	m_bInternVisible(true),
 	m_bIsArranged(true),
 	m_bUseCache(false),
 	m_bCacheDirty(false)
@@ -41,7 +40,6 @@ PlaceHolder::PlaceHolder(const PlaceHolder& r) :
 	m_bFloat(r.m_bFloat),
 	m_bReEstimateSize(r.m_bReEstimateSize),
 	m_bVisible(r.m_bVisible),
-	m_bInternVisible(r.m_bInternVisible),
 	m_bIsArranged(r.m_bIsArranged),
 	m_bUseCache(r.m_bUseCache),
 	m_bCacheDirty(r.m_bCacheDirty)
@@ -117,14 +115,14 @@ void PlaceHolder::DoInit()
 
 }
 
-bool PlaceHolder::IsVisible() const
+void PlaceHolder::SetVisible(bool bVisible)
 {
-	return m_bVisible && m_bInternVisible;
+	m_bVisible = bVisible;
 }
 
-bool PlaceHolder::IsInternVisible() const
+bool PlaceHolder::IsVisible() const
 {
-	return m_bInternVisible;
+	return m_bVisible;
 }
 
 bool PlaceHolder::IsFloat() const
@@ -383,11 +381,15 @@ void PlaceHolder::SetCacheDirty(bool dirty)
 
 void PlaceHolder::Invalidate()
 {
-	if (!IsVisible()) return;
+	if (!IsVisible()) {
+		return;
+	}
 
 	SetCacheDirty(true);
 	UiRect rcInvalidate = GetPosWithScrollOffset();
-	if (m_pWindow != NULL) m_pWindow->Invalidate(rcInvalidate);
+	if (m_pWindow != nullptr) {
+		m_pWindow->Invalidate(rcInvalidate);
+	}
 }
 
 UiRect PlaceHolder::GetPosWithScrollOffset(bool bContainShadow) const

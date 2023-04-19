@@ -63,32 +63,44 @@ public:
 	 * @brief 判断是否需要显示动画效果
 	 * @return 返回 true 显示动画，false 为不显示动画效果
 	 */
-	bool IsFadeSwitch() { return m_bFadeSwith; }
+	bool IsFadeSwitch() const { return m_bFadeSwith; }
 	
-	/** @brief 监听选择时间
+	/** @brief 监听选择事件
 	  * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
 	  * @return 无
 	  */
 	void AttachSelect(const EventCallback& callback) { m_OnEvent[kEventSelect] += callback; }
 protected:
 	/**
-	 * @brief 显示一个 TAB 项
+	 * @brief 显示一个 TAB 项时，处理一些属性
 	 * @param[in] it TAB 项索引
 	 * @return 无
 	 */
-	void ShowTabItem(size_t it);
+	void OnShowTabItem(size_t index);
 
 	/**
-	 * @brief 隐藏一个 TAB 项
+	 * @brief 隐藏一个 TAB 项时，处理一些属性
 	 * @param[in] it TAB 项索引
 	 * @return 无
 	 */
-	void HideTabItem(size_t it);
+	void OnHideTabItem(size_t index);
 
-protected:
+	/** 动画播放结束
+	*@param[in] it TAB 项索引
+	*/
+	void OnAnimationComplete(size_t index);
+
+private:
+	//当前选择的Item下标
 	int m_iCurSel;
+
+	//初始化时需要选择的Item下表
 	int m_iInitSel;
+
+	//是否已经完成初始化
 	bool m_bIsInit;
+
+	//是否需要切换动画
 	bool m_bFadeSwith;
 };
 

@@ -424,18 +424,13 @@ public:
 
     /// 一些重要的属性
 	/**
-	 * @brief 以淡入淡出等动画形式设置控件是否可见
+	 * @brief 以淡入淡出等动画形式设置控件是否可见, 调用的结果与SetVisible相同，只是过程包含了动画效果。
+	          调用SetFadeVisible以后，不需要再调用SetVisible函数修改可见属性。
+			  该函数内部会调用SetVisible这个虚函数。
 	 * @param[in] bVisible 为 true 时控件可见，为 false 时控件被隐藏
 	 * @return 无
 	 */
     virtual void SetFadeVisible(bool bVisible);
-
-	/**
-	 * @brief 待补充
-	 * @param[in] 待补充
-	 * @return 待补充
-	 */
-    virtual void SetInternVisible(bool bVisible); // 仅供内部调用，有些ui拥有窗口句柄，需要重写此函数
 
 	/** 设置控件是否可见
 	 * @param[in] @param[in] bVisible 为 true 时控件可见，为 false 时控件被隐藏
@@ -1046,12 +1041,18 @@ public:
 	*/
 	void AttachXmlEvent(EventType eventType, const EventCallback& callback) { m_OnXmlEvent[eventType] += callback; }
 
+	/** 当前控件以及级联父容器是否可见（从当前控件到最顶层父控件，只要有一个Visible为false，则返回false）
+	 */
+	bool IsVisibleAncestor(void) const;
+
 protected:
 	
 	/// Gif图片
 	void GifPlay();
 	void StopGifPlay(GifStopType frame = kGifStopCurrent);
 
+	//处理放弃控件焦点相关逻辑
+	void EnsureNoFocus();
 	
 	/// 消息处理的保护成员函数，不允许外部直接调用
 	virtual void HandleMessage(EventArgs& msg);

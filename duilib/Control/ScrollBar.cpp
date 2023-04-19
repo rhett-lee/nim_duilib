@@ -136,20 +136,22 @@ void ScrollBar::SetEnabled(bool bEnable)
 
 void ScrollBar::SetFocus()
 {
-	if (m_pOwner != NULL) m_pOwner->SetFocus();
-	else Control::SetFocus();
+	if (m_pOwner != nullptr) {
+		m_pOwner->SetFocus();
+	}
+	else {
+		Control::SetFocus();
+	}
 }
 
 void ScrollBar::SetVisible(bool bVisible)
 {
-	if( m_bVisible == bVisible ) return;
-	bool v = IsVisible();
-	m_bVisible = bVisible;
-	if( m_bFocused ) m_bFocused = false;
-	if (!bVisible && m_pWindow && m_pWindow->GetFocus() == this) {
-		m_pWindow->SetFocus(NULL) ;
+	if (IsVisible() == bVisible) {
+		return;
 	}
-	if( IsVisible() != v ) {
+	bool v = IsVisible();
+	__super::SetVisible(bVisible);
+	if( IsVisible() != v) {
 		ArrangeSelf();
 	}
 }

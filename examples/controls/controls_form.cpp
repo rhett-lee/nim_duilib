@@ -158,7 +158,7 @@ void ControlForm::InitWindow()
 		point.y = rect.top + 10;
 		::ClientToScreen(m_hWnd, &point);
 
-		nim_comp::CMenuWnd* sub_menu = new nim_comp::CMenuWnd(NULL);
+		nim_comp::CMenuWnd* sub_menu = new nim_comp::CMenuWnd(m_hWnd);//需要设置父窗口，否在菜单弹出的时候，程序状态栏编程非激活状态
 		std::wstring xml(L"settings_menu.xml");
 		sub_menu->Init(xml, L"xml", point);
 

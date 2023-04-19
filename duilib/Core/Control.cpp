@@ -556,27 +556,19 @@ void Control::SetFadeVisible(bool bVisible)
 	}
 }
 
-void Control::SetInternVisible(bool bVisible)
-{
-	m_bInternVisible = bVisible;
-	if (!bVisible && m_pWindow && m_pWindow->GetFocus() == this) {
-		m_pWindow->SetFocus(NULL) ;
-	}
-
-	if (!IsVisible()) {
-		StopGifPlay();
-	}
-}
-
 void Control::SetVisible(bool bVisible)
 {
-	if (m_bVisible == bVisible) return;
-	bool v = IsVisible();
-	m_bVisible = bVisible;
-	if (m_bFocused) m_bFocused = false;
-	if (!bVisible && m_pWindow && m_pWindow->GetFocus() == this) {
-		m_pWindow->SetFocus(NULL);
+	if (IsVisible() == bVisible) {
+		return;
 	}
+	bool v = IsVisible();
+	__super::SetVisible(bVisible);
+
+	m_bFocused = false;
+	if (!IsVisible()) {
+		EnsureNoFocus();
+	}
+
 	if (IsVisible() != v) {
 		ArrangeAncestor();
 	}
@@ -584,8 +576,9 @@ void Control::SetVisible(bool bVisible)
 	if (!IsVisible()) {
 		StopGifPlay();
 	}
-
-	HandleMessageTemplate(kEventVisibleChange);
+	if (m_pWindow != nullptr) {
+		HandleMessageTemplate(kEventVisibleChange);
+	}	
 }
 
 bool Control::IsEnabled() const
@@ -629,15 +622,18 @@ void Control::SetKeyboardEnabled(bool bEnabled)
 
 bool Control::IsFocused() const
 {
-    return m_pWindow->GetFocus() == this;
+    return ((m_pWindow != nullptr) && (m_pWindow->GetFocus() == this) );
 }
 
 void Control::SetFocus()
 {
-	if( m_bNoFocus )
+	if (m_bNoFocus) {
 		return;
-
-  if( m_pWindow != NULL ) m_pWindow->SetFocus(this);
+	}
+	ASSERT(IsVisibleAncestor());
+	if (m_pWindow != nullptr) {
+		m_pWindow->SetFocus(this);
+	}
 }
 
 UINT Control::GetControlFlags() const
@@ -647,7 +643,8 @@ UINT Control::GetControlFlags() const
 
 void Control::SetNoFocus()
 {
-	m_bNoFocus = true;
+    m_bNoFocus = true;
+	EnsureNoFocus();
 }
 
 void Control::Activate()
@@ -993,7 +990,6 @@ void Control::HandleMessage(EventArgs& msg)
 
 bool Control::HasHotState()
 {
-	// ~{EP6O1>?X<~JG7qSP~}hot~{W4L,~}
 	return m_colorMap->HasHotColor() || m_imageMap->HasHotImage();
 }
 
@@ -1275,10 +1271,10 @@ void Control::SetAttribute(const std::wstring& strName, const std::wstring& strV
 	else if (strName == _T("fadeinoutyfrombottom")) m_animationManager->SetFadeInOutY(strValue == _T("true"), true);
 	else if (strName == _T("receivepointer")) SetReceivePointerMsg(strValue == _T("true"));
 	else if (strName == _T("tabstop")) SetTabStop(strValue == _T("true"));
-  else if (strName == _T("loadingimage")) SetLoadingImage(strValue);
-  else if (strName == _T("loadingbkcolor")) SetLoadingBkColor(strValue);
+	else if (strName == _T("loadingimage")) SetLoadingImage(strValue);
+	else if (strName == _T("loadingbkcolor")) SetLoadingBkColor(strValue);
 	else {
-	ASSERT(FALSE);
+		ASSERT(!"Control::SetAttribute失败: 发现不能识别的属性");
 	}
 }
 
@@ -1454,6 +1450,7 @@ void Control::AlphaPaint(IRenderContext* pRender, const UiRect& rcPaint)
 		return;
 	}
 	if (m_nAlpha == 0) {
+		//控件完全透明，不绘制
 		return;
 	}
 
@@ -1475,7 +1472,6 @@ void Control::AlphaPaint(IRenderContext* pRender, const UiRect& rcPaint)
 				SetCacheDirty(true);
 			}
 
-			// IsCacheDirty~{Sk~}m_bCacheDirty~{RbRe2;R;Qy~}
 			if (m_bCacheDirty) {
 				pCacheRender->Clear();
 				int scaleOffset = m_boxShadow.HasShadow() ? (m_boxShadow.m_nBlurSize * 2 + abs(m_boxShadow.m_cpOffset.x)) : 0;
@@ -1493,9 +1489,16 @@ void Control::AlphaPaint(IRenderContext* pRender, const UiRect& rcPaint)
 				SetCacheDirty(false);
 			}
 
-			pRender->AlphaBlend(rcUnion.left, rcUnion.top, rcUnion.right - rcUnion.left, rcUnion.bottom - rcUnion.top, pCacheRender->GetDC(),
-				rcUnion.left - m_rcItem.left, rcUnion.top - m_rcItem.top, rcUnion.right - rcUnion.left, rcUnion.bottom - rcUnion.top, static_cast<BYTE>(m_nAlpha));
-
+			pRender->AlphaBlend(rcUnion.left, 
+				                rcUnion.top, 
+				                rcUnion.right - rcUnion.left, 
+				                rcUnion.bottom - rcUnion.top, 
+				                pCacheRender->GetDC(),
+				                rcUnion.left - m_rcItem.left, 
+				                rcUnion.top - m_rcItem.top, 
+				                rcUnion.right - rcUnion.left, 
+				                rcUnion.bottom - rcUnion.top, 
+				                static_cast<BYTE>(m_nAlpha));
 			m_renderContext.reset();
 		}
 	}
@@ -2027,6 +2030,37 @@ void Control::Loading()
 bool Control::IsLoading() 
 {
     return m_bIsLoading;
+}
+
+bool Control::IsVisibleAncestor(void) const
+{
+	bool isVisible = IsVisible();
+	if (isVisible) {
+		Control* parent = GetParent();
+		while (parent != nullptr)
+		{
+			if (!parent->IsVisible()) {
+				isVisible = false;
+				break;
+			}
+			parent = parent->GetParent();
+		}
+	}
+	return isVisible;
+}
+
+void Control::EnsureNoFocus()
+{
+	if ((m_pWindow != nullptr) && m_pWindow->GetFocus() != nullptr) {
+		if (m_pWindow->GetFocus() == this) {
+			m_pWindow->SetFocus(nullptr);
+		}
+		/*
+		else if (IsChild(this, m_pWindow->GetFocus())) {
+			m_pWindow->SetFocus(nullptr);
+		}
+		*/
+	}
 }
 
 } // namespace ui

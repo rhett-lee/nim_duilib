@@ -108,18 +108,9 @@ void CefControl::HandleMessage(ui::EventArgs& event)
 	__super::HandleMessage(event);
 }
 
-void CefControl::SetFadeVisible(bool bVisible /*= true*/)
+void CefControl::SetVisible(bool bVisible)
 {
-	__super::SetFadeVisible(bVisible);
-	if (browser_handler_.get() && browser_handler_->GetBrowserHost().get())
-	{
-		browser_handler_->GetBrowserHost()->WasHidden(!bVisible);
-	}
-}
-
-void CefControl::SetInternVisible(bool bVisible)
-{
-	__super::SetInternVisible(bVisible);
+	__super::SetVisible(bVisible);
 	if (browser_handler_.get() && browser_handler_->GetBrowserHost().get())
 	{
 		browser_handler_->GetBrowserHost()->WasHidden(!bVisible);

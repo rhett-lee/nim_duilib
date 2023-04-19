@@ -438,7 +438,6 @@ void CMenuWnd::InitWindow()
 			if(subMenuItem == nullptr){
 			    continue;
 			}
-			subMenuItem->SetInternVisible(true);		//add by djj 20200506
 			if (subMenuItem->IsVisible())
 			{
 				m_pLayout->Add(subMenuItem); //内部会调用subMenuItem->SetOwner(m_pLayout); 会调用SetWindows，改变了归属窗口、父控件。

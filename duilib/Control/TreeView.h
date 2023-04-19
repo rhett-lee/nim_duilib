@@ -24,7 +24,6 @@ public:
 	virtual UIAControlProvider* GetUIAProvider() override;
 #endif
 	virtual bool IsVisible() const override;
-	virtual void SetInternVisible(bool bVisible) override;
 	virtual void SetWindow(Window* pManager, Box* pParent, bool bInit = true) override;
 
 	/**

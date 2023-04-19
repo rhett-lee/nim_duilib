@@ -21,8 +21,7 @@ public:
 	virtual void Init() override;
 	virtual void SetPos(ui::UiRect rc) override;
 	virtual void HandleMessage(ui::EventArgs& event) override;
-	virtual void SetFadeVisible(bool bVisible) override;
-	virtual void SetInternVisible(bool bVisible) override;
+	virtual void SetVisible(bool bVisible) override;
 	virtual void Paint(ui::IRenderContext* pRender, const ui::UiRect& rcPaint) override;
 	virtual void SetWindow(ui::Window* pManager, ui::Box* pParent, bool bInit) override;
 
