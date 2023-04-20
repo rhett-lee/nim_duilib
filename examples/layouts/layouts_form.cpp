@@ -42,7 +42,7 @@ LRESULT LayoutsForm::OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHan
 void LayoutsForm::ShowCustomWindow(const std::wstring& class_name, const std::wstring& theme_directory, const std::wstring& layout_xml)
 {
 	LayoutsForm* window = new LayoutsForm(class_name, theme_directory, layout_xml);
-	window->Create(NULL, class_name.c_str(), WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX, 0);
+	window->Create(NULL, class_name.c_str(), UI_WNDSTYLE_FRAME, 0);
 	window->CenterWindow();
 	window->ShowWindow();
 }

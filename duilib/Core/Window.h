@@ -621,11 +621,11 @@ public:
 	bool TranslateAccelerator(LPMSG pMsg);
 
 	/**
-	 * @brief 窗口消息的派发函数
+	 * @brief 窗口消息的派发函数，优先调用内部处理函数，如果内部无处理逻辑，则调用Windows默认处理函数处理此消息
 	 * @param[in] uMsg 消息体
 	 * @param[in] wParam 消息附加参数
 	 * @param[in] lParam 消息附加参数
-	 * @return 返回 false 则继续派发该消息，否则不再派发该消息
+	 * @return 返回消息的处理结果
 	 */
 	virtual LRESULT HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam);
 

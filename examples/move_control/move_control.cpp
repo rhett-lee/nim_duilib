@@ -107,7 +107,7 @@ LRESULT MoveControlForm::OnLButtonUp(UINT uMsg, WPARAM wParam, LPARAM lParam, BO
 void MoveControlForm::ShowCustomWindow(const std::wstring& class_name, const std::wstring& theme_directory, const std::wstring& layout_xml)
 {
 	MoveControlForm* window = new MoveControlForm(class_name, theme_directory, layout_xml);
-	window->Create(NULL, class_name.c_str(), WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX, 0);
+	window->Create(NULL, class_name.c_str(), UI_WNDSTYLE_FRAME, 0);
 	window->CenterWindow();
 	window->ShowWindow();
 }

@@ -47,7 +47,7 @@ void MainThread::Init()
 
 	// 创建一个默认带有阴影的居中窗口
 	MainForm* window = new MainForm();
-	window->Create(NULL, MainForm::kClassName.c_str(), WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX, 0);
+	window->Create(NULL, MainForm::kClassName.c_str(), UI_WNDSTYLE_FRAME, 0);
 	window->CenterWindow();
 	window->ShowWindow();
 }

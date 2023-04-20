@@ -91,7 +91,7 @@ public:
 		if (!window)
 		{
 			window = new WindowType(params...);
-			window->Create(NULL, WindowType::kClassName, WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX, 0);
+			window->Create(NULL, WindowType::kClassName, UI_WNDSTYLE_FRAME, 0);
 			window->CenterWindow();
 			window->ShowWindow();
 		}

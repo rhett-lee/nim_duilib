@@ -111,6 +111,39 @@ LRESULT WindowImplBase::OnNcPaint(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 	return 0;
 }
 
+LRESULT WindowImplBase::OnNcLButtonDbClick(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+{
+	Control* pBtnMax = FindControl(DUI_CTR_BUTTON_MAX);
+	if (pBtnMax != nullptr) {
+		ASSERT(pBtnMax->GetType() == DUI_CTR_BUTTON);
+	}	
+	Control* pBtnRestore = FindControl(DUI_CTR_BUTTON_RESTORE);
+	if (pBtnRestore != nullptr) {
+		ASSERT(pBtnRestore->GetType() == DUI_CTR_BUTTON);
+	}
+
+	if (!::IsZoomed(GetHWND()))
+	{
+		SendMessage(WM_SYSCOMMAND, SC_MAXIMIZE, 0);
+		if (pBtnMax && pBtnRestore)
+		{
+			pBtnMax->SetVisible(false);
+			pBtnRestore->SetVisible(true);
+		}
+	}
+	else
+	{
+		SendMessage(WM_SYSCOMMAND, SC_RESTORE, 0);
+		if (pBtnMax && pBtnRestore)
+		{
+			pBtnMax->SetVisible(true);
+			pBtnRestore->SetVisible(false);
+		}
+	}
+
+	return 0;
+}
+
 LRESULT WindowImplBase::OnNcHitTest(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/)
 {
 	POINT pt = {0};
@@ -275,12 +308,36 @@ LRESULT WindowImplBase::OnSysCommand(UINT uMsg, WPARAM wParam, LPARAM lParam, BO
 		SendMessage(WM_CLOSE);
 		return 0;
 	}
-
 	BOOL bZoomed = ::IsZoomed(GetHWND());
 	LRESULT lRes = Window::HandleMessage(uMsg, wParam, lParam);
+	bHandled = TRUE;
+
 	if( ::IsZoomed(GetHWND()) != bZoomed )
 	{
+		if (wParam == 0xF012) {
+			//修复窗口最大化和还原按钮的状态（当在最大化时，向下拖动标题栏，窗口会改变为非最大化状态）
+			Control* pBtnMax = FindControl(DUI_CTR_BUTTON_MAX);
+			if (pBtnMax != nullptr) {
+				ASSERT(pBtnMax->GetType() == DUI_CTR_BUTTON);
+			}
+			Control* pBtnRestore = FindControl(DUI_CTR_BUTTON_RESTORE);
+			if (pBtnRestore != nullptr) {
+				ASSERT(pBtnRestore->GetType() == DUI_CTR_BUTTON);
+			}
 
+			if (pBtnMax && pBtnRestore) {
+				if (!::IsZoomed(GetHWND())) {
+					//非最大化
+					pBtnMax->SetVisible(true);
+					pBtnRestore->SetVisible(false);
+				}
+				else {
+					//最大化
+					pBtnMax->SetVisible(false);
+					pBtnRestore->SetVisible(true);
+				}
+			}			
+		}
 	}
 
 	return lRes;
@@ -398,6 +455,7 @@ LRESULT WindowImplBase::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
 	case WM_NCCALCSIZE:		lRes = OnNcCalcSize(uMsg, wParam, lParam, bHandled); break;
 	case WM_WINDOWPOSCHANGING: lRes = OnWindowPosChanging(uMsg, wParam, lParam, bHandled); break;
 	case WM_NCPAINT:		lRes = OnNcPaint(uMsg, wParam, lParam, bHandled); break;
+	case WM_NCLBUTTONDBLCLK:lRes = OnNcLButtonDbClick(uMsg, wParam, lParam, bHandled); break;
 	case WM_NCHITTEST:		lRes = OnNcHitTest(uMsg, wParam, lParam, bHandled); break;
 	case WM_GETMINMAXINFO:	lRes = OnGetMinMaxInfo(uMsg, wParam, lParam, bHandled); break;
 	case WM_MOUSEWHEEL:		lRes = OnMouseWheel(uMsg, wParam, lParam, bHandled); break;

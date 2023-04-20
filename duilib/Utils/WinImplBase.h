@@ -123,14 +123,24 @@ public:
      */
 	virtual LRESULT OnNcPaint(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 
-    /**
-     * @brief 当接收到 WM_NCHITTEST 消息时被调用
-     * @param[in] uMsg 消息内容
-     * @param[in] wParam 消息附加参数
-     * @param[in] lParam 消息附加参数
-     * @param[out] bHandled 返回 false 则继续派发该消息，否则不再派发该消息
-     * @return 返回消息处理结果
-     */
+	/**
+	 * @brief 当接收到标题栏区域双击消息时被调用
+	 * @param[in] uMsg 消息内容
+	 * @param[in] wParam 消息附加参数
+	 * @param[in] lParam 消息附加参数
+	 * @param[out] bHandled 返回 false 则继续派发该消息，否则不再派发该消息
+	 * @return 返回消息处理结果
+	 */
+	virtual LRESULT OnNcLButtonDbClick(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+
+	/**
+	 * @brief 当接收到 WM_NCHITTEST 消息时被调用
+	 * @param[in] uMsg 消息内容
+	 * @param[in] wParam 消息附加参数
+	 * @param[in] lParam 消息附加参数
+	 * @param[out] bHandled 返回 false 则继续派发该消息，否则不再派发该消息
+	 * @return 返回消息处理结果
+	 */
 	virtual LRESULT OnNcHitTest(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 
     /**
