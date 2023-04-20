@@ -34,6 +34,9 @@ public:
 	void SetCallback(const PlayCallback& callback) { m_playCallback = callback; }
 	void SetCompleteCallback(const CompleteCallback& callback) { m_completeCallback = callback; }
 
+	/** 停止并清理资源
+	*/
+	void Clear();
 	void Reset();
 	virtual void Init();
 	virtual void Start();

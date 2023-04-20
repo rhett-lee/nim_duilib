@@ -27,25 +27,6 @@ PlaceHolder::PlaceHolder() :
 
 }
 
-PlaceHolder::PlaceHolder(const PlaceHolder& r) :
-	m_pWindow(nullptr),
-	m_sName(r.m_sName),
-	m_cxyFixed(r.m_cxyFixed),
-	m_cxyMin(r.m_cxyMin),
-	m_cxyMax(r.m_cxyMax),
-	m_pParent(nullptr),
-	m_rcItem(r.m_rcItem),
-	m_horAlignType(r.m_horAlignType),
-	m_verAlignType(r.m_verAlignType),
-	m_bFloat(r.m_bFloat),
-	m_bReEstimateSize(r.m_bReEstimateSize),
-	m_bVisible(r.m_bVisible),
-	m_bIsArranged(r.m_bIsArranged),
-	m_bUseCache(r.m_bUseCache),
-	m_bCacheDirty(r.m_bCacheDirty)
-{
-}
-
 PlaceHolder::~PlaceHolder()
 {
 	

@@ -19,8 +19,9 @@ class UILIB_API Layout
 {
 public:
 	Layout();
+	Layout(const Layout& r) = delete;
 	Layout& operator=(const Layout& r) = delete;
-	virtual ~Layout() {}
+	virtual ~Layout() = default;
 
 	/**
 	 * @brief 设置所有者
@@ -106,7 +107,7 @@ class UILIB_API Box : public Control
 {
 public:
 	explicit Box(Layout* pLayout = new Layout());
-	Box(const Box& r);
+	Box(const Box& r) = delete;
 	Box& operator=(const Box& r) = delete;
     virtual ~Box();
 
@@ -336,7 +337,7 @@ class UILIB_API ScrollableBox : public Box
 {
 public:
 	explicit ScrollableBox(Layout* pLayout);
-	ScrollableBox(const ScrollableBox& r);
+	ScrollableBox(const ScrollableBox& r) = delete;
 	ScrollableBox& operator=(const ScrollableBox& r) = delete;
 
 	virtual std::wstring GetType() const override;

@@ -20,7 +20,7 @@ class UILIB_API ScrollBar:
 {
 public:
 	ScrollBar();
-	ScrollBar(const ScrollBar& r);
+	ScrollBar(const ScrollBar& r) = delete;
 	ScrollBar& operator=(const ScrollBar& r) = delete;
 
 	Box* GetOwner() const;

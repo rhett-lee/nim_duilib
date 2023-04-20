@@ -19,7 +19,7 @@ class UILIB_API PlaceHolder : public virtual nbase::SupportWeakCallback
 {
 public:
 	PlaceHolder();
-	PlaceHolder(const PlaceHolder& r);
+	PlaceHolder(const PlaceHolder& r) = delete;
 	PlaceHolder& operator=(const PlaceHolder& r) = delete;
 	virtual ~PlaceHolder();
 
@@ -324,9 +324,12 @@ protected:
 	virtual void ArrangeSelf();
 
 protected:
+	//控件名称，用于查找控件等操作
 	std::wstring m_sName;
-	Window *m_pWindow;
+
+	Window* m_pWindow;
 	Box* m_pParent;
+
 	CSize m_cxyFixed;
 	CSize m_cxyMin;
 	CSize m_cxyMax;

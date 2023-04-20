@@ -61,7 +61,7 @@ class UILIB_API Window : public virtual nbase::SupportWeakCallback
 {
 public:
     Window();
-	~Window();
+	virtual ~Window();
 
 	/**
 	 * @brief 获取窗口所属的 Windows 句柄

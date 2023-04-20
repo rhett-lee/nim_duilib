@@ -33,8 +33,12 @@ public:
 	void MouseEnter();
 	void MouseLeave();
 
+	/** 清理所有动画资源
+	*/
+	void Clear(Control* control);
+
 private:
-	Control *m_pControl;
+	Control* m_pControl;
 	std::map<AnimationType, std::unique_ptr<AnimationPlayer>> m_animationMap;
 };
 

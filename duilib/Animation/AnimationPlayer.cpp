@@ -17,6 +17,13 @@ void AnimationPlayerBase::Reset()
 	Init();
 }
 
+void AnimationPlayerBase::Clear()
+{
+	m_weakFlagOwner.Cancel();
+	m_playCallback = nullptr;
+	m_completeCallback = nullptr;
+}
+
 void AnimationPlayerBase::Init()
 {
 	m_startValue = 0;

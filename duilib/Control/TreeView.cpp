@@ -232,10 +232,7 @@ TreeView::TreeView() :
 	m_rootNode->SetTreeView(this);
 }
 
-std::wstring TreeView::GetType() const
-{
-	return DUI_CTR_TREEVIEW;
-}
+std::wstring TreeView::GetType() const { return DUI_CTR_TREEVIEW; }
 
 void TreeView::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {

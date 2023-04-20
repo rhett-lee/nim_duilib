@@ -23,10 +23,7 @@ namespace ui
 class UILIB_API UserDataBase
 {
 public:
-	virtual ~UserDataBase()
-	{
-
-	}
+	virtual ~UserDataBase() = default;
 };
 
 #if defined(ENABLE_UIAUTOMATION)
@@ -39,7 +36,7 @@ class UILIB_API Control :
 	typedef std::map<int, CEventSource> GifEventMap;
 public:
 	Control();
-	Control(const Control& r);
+	Control(const Control& r) = delete;
 	Control& operator=(const Control& r) = delete;
     virtual ~Control();
 

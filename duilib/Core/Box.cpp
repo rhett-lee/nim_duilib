@@ -241,18 +241,6 @@ Box::Box(Layout* pLayout) :
 	}
 }
 
-Box::Box(const Box& r) :
-	Control(r),
-	m_bAutoDestroy(r.m_bAutoDestroy),
-	m_bDelayedDestroy(r.m_bDelayedDestroy),
-	m_bMouseChildEnabled(r.m_bMouseChildEnabled),
-	m_items(),
-	m_OnBubbledEvent()
-{
-	m_pLayout.reset(new Layout(*r.m_pLayout)),
-	m_pLayout->SetOwner(this);
-}
-
 Box::~Box()
 {
 	m_bDelayedDestroy = false;
@@ -942,27 +930,6 @@ ScrollableBox::ScrollableBox(Layout* pLayout) :
 	m_scrollAnimation = std::make_unique<AnimationPlayer>();
 	m_renderOffsetYAnimation = std::make_unique<AnimationPlayer>();
 	m_rcScrollBarPadding.left = m_rcScrollBarPadding.top = m_rcScrollBarPadding.right = m_rcScrollBarPadding.bottom = 0;
-}
-
-ScrollableBox::ScrollableBox(const ScrollableBox& r):
-	Box(r),
-	m_nVerScrollUnitPixels(r.m_nVerScrollUnitPixels),
-	m_nHerScrollUnitPixels(r.m_nHerScrollUnitPixels),
-	m_bScrollProcess(r.m_bScrollProcess),
-	m_bScrollBarFloat(r.m_bScrollBarFloat),
-	m_bVScrollBarLeftPos(r.m_bVScrollBarLeftPos),
-	m_bHoldEnd(r.m_bHoldEnd),
-	m_bDefaultDisplayScrollbar(r.m_bDefaultDisplayScrollbar),
-	m_rcScrollBarPadding(r.m_rcScrollBarPadding),
-	m_ptLastTouchPos(r.m_ptLastTouchPos)
-{
-	m_scrollAnimation = std::make_unique<AnimationPlayer>();
-	m_renderOffsetYAnimation = std::make_unique<AnimationPlayer>();
-
-	m_pVerticalScrollBar.reset(new ScrollBar(*r.m_pVerticalScrollBar));
-	m_pVerticalScrollBar->SetOwner(this);
-	m_pHorizontalScrollBar.reset(new ScrollBar(*r.m_pHorizontalScrollBar));
-	m_pHorizontalScrollBar->SetOwner(this);
 }
 
 std::wstring ScrollableBox::GetType() const { return std::wstring(_T("Scrollable")) + DUI_CTR_BOX; }//ScrollableBox

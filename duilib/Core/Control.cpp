@@ -72,63 +72,6 @@ Control::Control() :
 	m_animationManager->Init(this);
 }
 
-Control::Control(const Control& r) :
-	PlaceHolder(r),
-	m_OnXmlEvent(),
-	m_OnEvent(),
-	m_pUserDataBase(),
-	m_bMenuUsed(r.m_bMenuUsed),
-	m_bEnabled(r.m_bEnabled),
-	m_bMouseEnabled(r.m_bMouseEnabled),
-	m_bKeyboardEnabled(r.m_bKeyboardEnabled),
-	m_bFocused(r.m_bFocused),
-	m_bMouseFocused(r.m_bMouseFocused),
-	m_bSetPos(r.m_bSetPos),
-	m_bNoFocus(r.m_bNoFocus),
-	m_bClip(r.m_bClip),
-	m_bGifPlay(r.m_bGifPlay),
-	m_bReceivePointerMsg(r.m_bReceivePointerMsg),
-	m_bNeedButtonUpWhenKillFocus(r.m_bNeedButtonUpWhenKillFocus),
-	m_bAllowTabstop(r.m_bAllowTabstop),
-	m_szEstimateSize(r.m_szEstimateSize),
-	m_renderOffset(r.m_renderOffset),
-	m_cxyBorderRound(r.m_cxyBorderRound),
-	m_boxShadow(r.m_boxShadow),
-	m_rcMargin(r.m_rcMargin),
-	m_rcPaint(r.m_rcPaint),
-	m_rcBorderSize(r.m_rcBorderSize),
-	m_cursorType(r.m_cursorType),
-	m_uButtonState(kControlStateNormal),
-	m_nBorderSize(r.m_nBorderSize),
-	m_nTooltipWidth(r.m_nTooltipWidth),
-	m_nAlpha(r.m_nAlpha),
-	m_nHotAlpha(r.m_nHotAlpha),
-	m_sToolTipText(r.m_sToolTipText),
-	m_sToolTipTextId(r.m_sToolTipTextId),
-	m_sUserData(r.m_sUserData),
-	m_strBkColor(r.m_strBkColor),
-    m_strLoadingBkColor(r.m_strLoadingBkColor),
-	m_strBorderColor(r.m_strBorderColor),
-	m_gifWeakFlag(),
-	m_bIsLoading(r.m_bIsLoading),
-	m_loadBkImageWeakFlag(),
-    m_loadingImageFlag()
-{
-	m_colorMap = std::make_unique<StateColorMap>(*r.m_colorMap);
-	m_imageMap = std::make_unique<StateImageMap>(*r.m_imageMap);
-	m_bkImage = std::make_unique<Image>(*r.m_bkImage);
-	m_loadingImage = std::make_unique<Image>(*r.m_loadingImage);
-
-	m_animationManager = std::make_unique<AnimationManager>(*r.m_animationManager),
-	m_colorMap->SetControl(this);
-	m_imageMap->SetControl(this);
-	m_animationManager->Init(this);
-	if (r.m_bGifPlay)
-	{
-		this->GifPlay();
-	}
-}
-
 AnimationManager& Control::GetAnimationManager()
 { 
 	return *m_animationManager;
@@ -136,6 +79,10 @@ AnimationManager& Control::GetAnimationManager()
 
 Control::~Control()
 {
+	//清理动画相关资源，避免定时器再产生回调，引发错误
+	m_animationManager->Clear(this);
+	m_animationManager.reset();
+
 	HandleMessageTemplate(kEventLast);
 
 	if (m_pWindow) {

@@ -288,4 +288,20 @@ void AnimationManager::MouseLeave()
 	}
 }
 
+void AnimationManager::Clear(Control* control)
+{
+	if (m_pControl != nullptr) {
+		ASSERT(control == m_pControl);
+	}
+
+	for (auto& iter : m_animationMap) {
+		if (iter.second != nullptr) {
+			iter.second->Clear();
+		}
+	}
+
+	m_pControl = nullptr;
+	m_animationMap.clear();
+}
+
 }

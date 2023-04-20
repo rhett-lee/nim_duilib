@@ -57,44 +57,6 @@ ScrollBar::ScrollBar() :
 	SetNeedButtonUpWhenKillFocus(true);
 }
 
-ScrollBar::ScrollBar(const ScrollBar& r) :
-	Control(r),
-	m_bHorizontal(r.m_bHorizontal),
-	m_bShowButton1(r.m_bShowButton1),
-	m_bShowButton2(r.m_bShowButton2),
-	m_bAutoHide(r.m_bAutoHide),
-	m_nRange(r.m_nRange),
-	m_nScrollPos(r.m_nScrollPos),
-	m_nLineSize(r.m_nLineSize),
-	m_nThumbMinLength(r.m_nThumbMinLength),
-	m_nLastScrollPos(r.m_nLastScrollPos),
-	m_nLastScrollOffset(r.m_nLastScrollOffset),
-	m_nScrollRepeatDelay(r.m_nScrollRepeatDelay),
-	m_pOwner(r.m_pOwner),
-	m_ptLastMouse(r.m_ptLastMouse),
-	m_rcButton1(r.m_rcButton1),
-	m_rcButton2(r.m_rcButton2),
-	m_rcThumb(r.m_rcThumb),
-	m_uButton1State(r.m_uButton1State),
-	m_uButton2State(r.m_uButton2State),
-	m_uThumbState(r.m_uThumbState),
-	m_sImageModify(r.m_sImageModify),
-	m_weakFlagOwner()
-{
-	m_bkStateImage = std::make_unique<StateImage>(*r.m_bkStateImage);
-	m_button1StateImage = std::make_unique<StateImage>(*r.m_button1StateImage);
-	m_button2StateImage = std::make_unique<StateImage>(*r.m_button2StateImage);
-	m_thumbStateImage = std::make_unique<StateImage>(*r.m_thumbStateImage);
-	m_railStateImage = std::make_unique<StateImage>(*r.m_railStateImage);
-
-	m_bkStateImage->SetControl(this);
-	m_thumbStateImage->SetControl(this);
-
-	m_cxyFixed = r.m_cxyFixed;
-	m_ptLastMouse = r.m_ptLastMouse;
-	m_bFloat = r.m_bFloat;
-}
-
 Box* ScrollBar::GetOwner() const
 {
 	return m_pOwner;
