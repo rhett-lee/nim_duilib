@@ -415,6 +415,7 @@
     <ClInclude Include="Box\TileBox.h" />
     <ClInclude Include="Box\VBox.h" />
     <ClInclude Include="Control\Menu.h" />
+    <ClInclude Include="Control\observer_impl_base.hpp" />
     <ClInclude Include="Control\VirtualListBox.h" />
     <ClInclude Include="Control\VirtualTileBox.h" />
     <ClInclude Include="Core\GdiPlusDefs.h" />

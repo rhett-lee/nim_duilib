@@ -472,5 +472,8 @@
     <ClInclude Include="duilib_config.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Control\observer_impl_base.hpp">
+      <Filter>Header Files\Control</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

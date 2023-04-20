@@ -228,7 +228,6 @@
     <ClInclude Include="cef_control\manager\cef_manager.h" />
     <ClInclude Include="cef_control\util\memory_dc.h" />
     <ClInclude Include="cef_control\util\util.h" />
-    <ClInclude Include="menu\ui_menu.h" />
     <ClInclude Include="modal_wnd\async_do_modal.h" />
     <ClInclude Include="modal_wnd\async_modal_runner.h" />
     <ClInclude Include="modal_wnd\file_dialog_ex.h" />
@@ -264,7 +263,6 @@
     <ClCompile Include="grid\Grid.cpp" />
     <ClCompile Include="grid\GridBase.cpp" />
     <ClCompile Include="grid\GridBody.cpp" />
-    <ClCompile Include="menu\ui_menu.cpp" />
     <ClCompile Include="mini_blink_control\web_view_base.cpp" />
     <ClCompile Include="mini_blink_control\wke_memory_dc.cpp" />
     <ClCompile Include="mini_blink_control\wke_web_native.cpp" />

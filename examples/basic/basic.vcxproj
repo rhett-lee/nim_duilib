@@ -82,7 +82,7 @@
     <LinkIncremental>true</LinkIncremental>
     <IntDir>$(ProjectDir)..\..\tmp\$(PlatformName)\$(ProjectName)\$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)64_d</TargetName>
-    <OutDir>..\..\bin\</OutDir>
+    <OutDir>D:\rhett-lee.github.com\oak_image\</OutDir>
     <IncludePath>..\..\;$(IncludePath)</IncludePath>
     <LibraryPath>$(LibraryPath)</LibraryPath>
   </PropertyGroup>

@@ -158,13 +158,13 @@ void ControlForm::InitWindow()
 		point.y = rect.top + 10;
 		::ClientToScreen(m_hWnd, &point);
 
-		nim_comp::CMenuWnd* sub_menu = new nim_comp::CMenuWnd(m_hWnd);//需要设置父窗口，否在菜单弹出的时候，程序状态栏编程非激活状态
+		ui::CMenuWnd* sub_menu = new ui::CMenuWnd(m_hWnd);//需要设置父窗口，否在菜单弹出的时候，程序状态栏编程非激活状态
 		std::wstring xml(L"settings_menu.xml");
 		sub_menu->Init(xml, L"xml", point);
 
 		/* Sub menu example */
-		nim_comp::CMenuElementUI* menu_fourth = static_cast<nim_comp::CMenuElementUI*>(sub_menu->FindControl(L"fourth"));
-		nim_comp::CMenuElementUI* menu_item = new nim_comp::CMenuElementUI;
+		ui::CMenuElementUI* menu_fourth = static_cast<ui::CMenuElementUI*>(sub_menu->FindControl(L"fourth"));
+		ui::CMenuElementUI* menu_item = new ui::CMenuElementUI;
 		menu_item->SetText(L"Dynamically created");
 		menu_item->SetClass(L"menu_element");
 		menu_item->SetFixedWidth(180);
@@ -174,7 +174,7 @@ void ControlForm::InitWindow()
 		menu_fourth->AddSubMenuItem(menu_item);
 
 		/* About menu */
-		nim_comp::CMenuElementUI* menu_about = static_cast<nim_comp::CMenuElementUI*>(sub_menu->FindControl(L"about"));
+		ui::CMenuElementUI* menu_about = static_cast<ui::CMenuElementUI*>(sub_menu->FindControl(L"about"));
 		menu_about->AttachClick([this](ui::EventArgs* args) {
 			AboutForm *about_form = (AboutForm*)(nim_comp::WindowsManager::GetInstance()->GetWindow(AboutForm::kClassName, AboutForm::kClassName));
 			if (!about_form)
