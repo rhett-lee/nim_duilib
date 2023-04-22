@@ -3,6 +3,7 @@
 #include "about_form.h"
 #include "comboex\CheckCombo.h"
 #include "comboex\FilterCombo.h"
+#include "duilib/Utils/StringUtil.h"
 
 #include <fstream>
 
@@ -239,10 +240,10 @@ LRESULT ControlForm::OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHan
 void ControlForm::LoadRichEditData()
 {
 	std::streamoff length = 0;
-	std::wstring xml;
+	std::string xml;
 	std::wstring controls_xml = ui::GlobalManager::GetResourcePath() + GetWindowResourcePath() + GetSkinFile();
 
-	std::wifstream ifs(controls_xml.c_str());
+	std::ifstream ifs(controls_xml.c_str());
 	if (ifs.is_open())
 	{
 		ifs.seekg(0, std::ios_base::end);
@@ -254,9 +255,11 @@ void ControlForm::LoadRichEditData()
 
 		ifs.close();
 	}
+	std::wstring xmlU;
+	ui::StringHelper::MBCSToUnicode(xml.c_str(), xmlU, CP_UTF8);
 
 	// Post task to UI thread
-	nbase::ThreadManager::PostTask(kThreadUI, nbase::Bind(&ControlForm::OnResourceFileLoaded, this, xml));
+	nbase::ThreadManager::PostTask(kThreadUI, nbase::Bind(&ControlForm::OnResourceFileLoaded, this, xmlU));
 }
 
 void ControlForm::OnResourceFileLoaded(const std::wstring& xml)

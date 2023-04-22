@@ -143,3 +143,4 @@
 #include "Control/VirtualTileBox.h"
 
 #include "Control/Menu.h"
+#include "duilib/Control/DateTime.h"

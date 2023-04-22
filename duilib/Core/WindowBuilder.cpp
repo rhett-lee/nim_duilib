@@ -14,6 +14,7 @@
 #include "duilib/Control/RichEdit.h"
 #include "duilib/Control/VirtualListBox.h"
 #include "duilib/Control/VirtualTileBox.h"
+#include "duilib/Control/DateTime.h"
 
 #include "duilib/Box/HBox.h"
 #include "duilib/Box/VBox.h"
@@ -576,8 +577,9 @@ Control* WindowBuilder::CreateControlByClass(const std::wstring& strControlClass
 		else if( strControlClass == DUI_CTR_TREENODE )			pControl = new TreeNode;
 		else if( strControlClass == DUI_CTR_HLISTBOX )			pControl = new ListBox(new HLayout);
 		else if( strControlClass == DUI_CTR_VLISTBOX )          pControl = new ListBox(new VLayout);
-		else if ( strControlClass == DUI_CTR_CHILDBOX )			pControl = new ChildBox;
+		else if( strControlClass == DUI_CTR_CHILDBOX )			pControl = new ChildBox;
 		else if( strControlClass == DUI_CTR_LABELBOX )          pControl = new LabelBox;
+		else if( strControlClass == DUI_CTR_DATETIME)			pControl = new DateTime;
 		break;
 	case 9:
 		if( strControlClass == DUI_CTR_SCROLLBAR )				pControl = new ScrollBar; 

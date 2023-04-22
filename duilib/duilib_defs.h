@@ -81,6 +81,8 @@ namespace ui
 	#define  DUI_CTR_SUB_MENU				   		 (L"SubMenu")
 	#define  DUI_CTR_MENUELEMENT					 (L"MenuElement")
 
+	#define  DUI_CTR_DATETIME                        (L"DateTime")
+
 	// 窗口标题栏按钮：最大化、最小化、关闭、还原窗口的名字，代码中写死的
 	#define DUI_CTR_BUTTON_CLOSE					 (L"closebtn")
 	#define DUI_CTR_BUTTON_MIN						 (L"minbtn")
