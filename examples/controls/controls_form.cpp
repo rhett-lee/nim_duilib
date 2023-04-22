@@ -158,23 +158,58 @@ void ControlForm::InitWindow()
 		point.y = rect.top + 10;
 		::ClientToScreen(m_hWnd, &point);
 
-		ui::CMenuWnd* sub_menu = new ui::CMenuWnd(m_hWnd);//需要设置父窗口，否在菜单弹出的时候，程序状态栏编程非激活状态
+		ui::CMenuWnd* menu = new ui::CMenuWnd(m_hWnd);//需要设置父窗口，否在菜单弹出的时候，程序状态栏编程非激活状态
 		std::wstring xml(L"settings_menu.xml");
-		sub_menu->Init(xml, L"xml", point);
+		menu->ShowMenu(xml, point);
 
-		/* Sub menu example */
-		ui::CMenuElementUI* menu_fourth = static_cast<ui::CMenuElementUI*>(sub_menu->FindControl(L"fourth"));
+		//在二级菜单中，添加子菜单项
+		ui::CMenuElementUI* menu_fourth = static_cast<ui::CMenuElementUI*>(menu->FindControl(L"fourth"));
 		ui::CMenuElementUI* menu_item = new ui::CMenuElementUI;
 		menu_item->SetText(L"Dynamically created");
 		menu_item->SetClass(L"menu_element");
 		menu_item->SetFixedWidth(180);
 		menu_item->SetFont(L"system_14");
 		menu_item->SetTextPadding({ 20, 0, 20, 0 });
-		//menu_fourth->Add(menu_item);
-		menu_fourth->AddSubMenuItem(menu_item);
+		menu_fourth->AddSubMenuItemAt(menu_item, 1);//添加后，资源由菜单统一管理
 
+		//在一级菜单中，添加子菜单项
+		/*
+		menu_item = new ui::CMenuElementUI;
+		menu_item->SetText(L"Dynamically created");
+		menu_item->SetClass(L"menu_element");
+		menu_item->SetFixedWidth(180);
+		menu_item->SetFont(L"system_14");
+		menu_item->SetTextPadding({ 20, 0, 20, 0 });
+		menu->AddMenuItemAt(menu_item, 4);//添加后，资源由菜单统一管理
+		*/
+
+		//CheckBox菜单项的功能演示
+		static bool s_is_checked_01_flag = false;
+		bool& flag = s_is_checked_01_flag;
+		ui::CMenuElementUI* menu_check_01 = dynamic_cast<ui::CMenuElementUI*>(menu->FindControl(L"menu_check_01"));
+		ASSERT(menu_check_01 != nullptr);
+		menu_check_01->AttachClick([&flag](ui::EventArgs* args) {
+			flag = true;
+			return true;
+		});
+		ui::CheckBox* menuCheckBox01 = dynamic_cast<ui::CheckBox*>(menu->FindControl(L"menu_checkbox_01"));
+		ASSERT(menuCheckBox01 != nullptr);
+		menuCheckBox01->Selected(s_is_checked_01_flag);
+
+		ui::CMenuElementUI* menu_check_02 = dynamic_cast<ui::CMenuElementUI*>(menu->FindControl(L"menu_check_02"));
+		ASSERT(menu_check_02 != nullptr);
+		menu_check_02->AttachClick([&flag](ui::EventArgs* args) {
+			flag = false;
+			return true;
+		});
+
+		ui::CheckBox* menuCheckBox02 = dynamic_cast<ui::CheckBox*>(menu->FindControl(L"menu_checkbox_02"));
+		ASSERT(menuCheckBox02 != nullptr);
+		menuCheckBox02->Selected(!s_is_checked_01_flag);
+
+		
 		/* About menu */
-		ui::CMenuElementUI* menu_about = static_cast<ui::CMenuElementUI*>(sub_menu->FindControl(L"about"));
+		ui::CMenuElementUI* menu_about = static_cast<ui::CMenuElementUI*>(menu->FindControl(L"about"));
 		menu_about->AttachClick([this](ui::EventArgs* args) {
 			AboutForm *about_form = (AboutForm*)(nim_comp::WindowsManager::GetInstance()->GetWindow(AboutForm::kClassName, AboutForm::kClassName));
 			if (!about_form)

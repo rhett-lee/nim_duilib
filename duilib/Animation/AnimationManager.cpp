@@ -10,12 +10,6 @@ AnimationManager::AnimationManager() :
 {
 }
 
-AnimationManager::AnimationManager(const AnimationManager& /*r*/) :
-	m_pControl(nullptr)
-{
-	//TODO: 原来代码就没实现这个函数，需要确认是否有业务影响
-}
-
 AnimationPlayer* AnimationManager::GetAnimationPlayer(AnimationType animationType) const
 {
 	auto it = m_animationMap.find(animationType);
@@ -36,7 +30,7 @@ AnimationPlayer* AnimationManager::SetFadeHot(bool bFadeHot)
 		animationArgs->SetEndValue(255);
 		animationArgs->SetSpeedUpRatio(0.3);
 		animationArgs->SetSpeedDownRatio(0.7);
-		animationArgs->SetTotalMillSeconds(250);
+		animationArgs->SetTotalMillSeconds(50);//控件处于焦点状态时，动画效果的总时长
 		std::function<void(int)> playCallback = nbase::Bind(&Control::SetHotAlpha, m_pControl, std::placeholders::_1);
 		animationArgs->SetCallback(playCallback);
 		m_animationMap[kAnimationHot].reset(animationArgs);

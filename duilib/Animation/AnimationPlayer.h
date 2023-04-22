@@ -17,8 +17,12 @@ class UILIB_API AnimationPlayerBase : public virtual nbase::SupportWeakCallback
 {
 public:
 	AnimationPlayerBase();
-	virtual ~AnimationPlayerBase() { }
+	virtual ~AnimationPlayerBase() = default;
 
+	AnimationPlayerBase(const AnimationPlayerBase& r) = delete;
+	AnimationPlayerBase& operator=(const AnimationPlayerBase& r) = delete;
+
+public:
 	void SetAnimationType(int type) { m_animationType = type; };
 	int GetAnimationType() const { return m_animationType; };
 	void SetStartValue(int startValue) { m_startValue = startValue; }
@@ -80,7 +84,11 @@ class UILIB_API AnimationPlayer :
 {
 public:
 	AnimationPlayer();
+	virtual ~AnimationPlayer() = default;
+	AnimationPlayer(const AnimationPlayer& r) = delete;
+	AnimationPlayer& operator=(const AnimationPlayer& r) = delete;
 
+public:
 	virtual void Init() override;
 	virtual void StartTimer() override;
 	virtual int GetCurrentValue() override;

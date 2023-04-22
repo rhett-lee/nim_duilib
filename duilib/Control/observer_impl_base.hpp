@@ -1,8 +1,6 @@
 #ifndef OBSERVER_IMPL_BASE_HPP
 #define OBSERVER_IMPL_BASE_HPP
 
-#include <map>
-
 template <typename ReturnT, typename ParamT>
 class ReceiverImplBase;
 

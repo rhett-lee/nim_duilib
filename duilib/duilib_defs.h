@@ -78,6 +78,7 @@ namespace ui
 	#define  DUI_CTR_SCROLLBAR                       (L"ScrollBar")
 
 	#define  DUI_CTR_MENU							 (L"Menu")
+	#define  DUI_CTR_SUB_MENU				   		 (L"SubMenu")
 	#define  DUI_CTR_MENUELEMENT					 (L"MenuElement")
 
 	// 窗口标题栏按钮：最大化、最小化、关闭、还原窗口的名字，代码中写死的

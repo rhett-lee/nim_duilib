@@ -31,7 +31,8 @@ public:
     WindowBuilder& operator = (const WindowBuilder&) = delete;
 
     /** 使用XML文件创建窗口布局等
-    @param xml 可以是文件文本内容，也可以是XML文件的路径
+    @param xml 可以是文件文本内容，如果是XML文件内容，字符串需要以字符 '<'开头;
+               也可以是XML文件的路径
     */
     Box* Create(const std::wstring& xml, 
                 CreateControlCallback pCallback = CreateControlCallback(),

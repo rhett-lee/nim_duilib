@@ -15,7 +15,7 @@ class UILIB_API AnimationManager
 {
 public:
 	AnimationManager();
-	AnimationManager(const AnimationManager& r);
+	AnimationManager(const AnimationManager& r) = delete;
 	AnimationManager& operator=(const AnimationManager& r) = delete;
 
 	void Init(Control* control)	{ m_pControl = control;	}

@@ -439,26 +439,6 @@ void Control::SetContextMenuUsed(bool bMenuUsed)
     m_bMenuUsed = bMenuUsed;
 }
 
-std::wstring Control::GetMenuPopup() const
-{
-	return m_sMenuPopup;
-}
-
-void Control::SetMenuPopup(const std::wstring& strPopup)
-{
-	m_sMenuPopup = strPopup;
-}
-
-std::wstring Control::GetMenuAlign() const
-{
-	return m_sMenuAlign;
-}
-
-void Control::SetMenuAlign(const std::wstring& strAlign)
-{
-	m_sMenuAlign = strAlign;
-}
-
 std::wstring Control::GetDataID() const
 {
     return m_sUserData;
@@ -1188,8 +1168,6 @@ void Control::SetAttribute(const std::wstring& strName, const std::wstring& strV
 	else if (strName == _T("tooltiptext")) SetToolTipText(strValue);
 	else if (strName == _T("tooltiptextid")) SetToolTipTextId(strValue);
 	else if (strName == _T("dataid")) SetDataID(strValue);
-	else if (strName == _T("menupopup")) SetMenuPopup(strValue);
-	else if (strName == _T("menualign")) SetMenuAlign(strValue);
 	else if (strName == _T("enabled")) SetEnabled(strValue == _T("true"));
 	else if (strName == _T("mouse")) SetMouseEnabled(strValue == _T("true"));
 	else if (strName == _T("keyboard")) SetKeyboardEnabled(strValue == _T("true"));
@@ -1295,6 +1273,10 @@ bool Control::OnApplyAttributeList(const std::wstring& strReceiver, const std::w
 
 void Control::GetImage(Image& duiImage) const
 {
+	ASSERT(m_pWindow != nullptr);
+	if (m_pWindow == nullptr) {
+		return;
+	}
 	// should optimize later
 	// use hash or md5 is better than compare strings
 	std::wstring sImageName = duiImage.GetImageAttribute().sImageName;

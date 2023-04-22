@@ -6,6 +6,11 @@
 namespace ui 
 {
 
+static bool IsZeroValue(double value) {
+	const double epsilon = 0.00001;
+	return std::abs(value - 0) < epsilon;
+}
+
 AnimationPlayerBase::AnimationPlayerBase() : m_bFirstRun(true), m_animationType(0)
 {
 	Init();
@@ -54,8 +59,9 @@ void AnimationPlayerBase::Stop()
 void AnimationPlayerBase::Continue()
 {
 	m_weakFlagOwner.Cancel();
-	if (m_reverseStart == true)
+	if (m_reverseStart) {
 		ReverseAllValue();
+	}	
 
 	m_reverseStart = false;
 	StartTimer();
@@ -65,11 +71,13 @@ void AnimationPlayerBase::Continue()
 void AnimationPlayerBase::ReverseContinue()
 {
 	m_weakFlagOwner.Cancel();
-	if (m_reverseStart == false)
+	if (!m_reverseStart) {
 		ReverseAllValue();
+	}		
 
-	if (m_bFirstRun) 
+	if (m_bFirstRun) {
 		m_palyedMillSeconds = 0;
+	}		
 
 	m_reverseStart = true;
 	StartTimer();
@@ -87,7 +95,7 @@ void AnimationPlayerBase::StartTimer()
 		return;
 	}
 
-	m_elapseMillSeconds = m_totalMillSeconds / abs(m_endValue - m_startValue);
+	m_elapseMillSeconds = m_totalMillSeconds / std::abs(m_endValue - m_startValue);
 	if (m_elapseMillSeconds == 0) {
 		m_elapseMillSeconds = 1;
 	}
@@ -136,8 +144,9 @@ void AnimationPlayerBase::ReverseAllValue()
 
 void AnimationPlayerBase::Complete()
 {
-	if (m_completeCallback)
+	if (m_completeCallback) {
 		m_completeCallback();
+	}		
 
 	m_weakFlagOwner.Cancel();
 	m_bPlaying = false;
@@ -204,10 +213,11 @@ int AnimationPlayer::GetCurrentValue()
 
 void AnimationPlayer::InitFactor()
 {
-	double s = abs(m_endValue - m_startValue);
+	double s = std::abs(m_endValue - m_startValue);
 
 	if (m_speedUpRatio == 0 && m_speedDownRatio == 0) {	//liner
-		ASSERT(m_totalMillSeconds == AP_NO_VALUE && m_linearSpeed != 0 || m_totalMillSeconds != AP_NO_VALUE && m_linearSpeed == 0);
+		ASSERT(m_totalMillSeconds == AP_NO_VALUE && !IsZeroValue(m_linearSpeed) || 
+			   m_totalMillSeconds != AP_NO_VALUE && IsZeroValue(m_linearSpeed));
 		if (m_totalMillSeconds == AP_NO_VALUE) {
 			m_totalMillSeconds = int(s / m_linearSpeed);
 		}
@@ -218,7 +228,7 @@ void AnimationPlayer::InitFactor()
 	}
 	else {
 		if (m_totalMillSeconds != AP_NO_VALUE) {
-			if (m_speedUpRatio != 0) {
+			if (!IsZeroValue(m_speedUpRatio)) {
 				m_speedUpfactorA = s / ((m_speedUpRatio*m_speedUpRatio + (1 - m_speedUpRatio - m_speedDownRatio)*2*m_speedUpRatio + m_speedUpRatio*m_speedDownRatio)
 					*m_totalMillSeconds*m_totalMillSeconds);
 			}
@@ -232,15 +242,15 @@ void AnimationPlayer::InitFactor()
 
 		}
 		double tmpValue = 0;
-		if (m_speedUpfactorA != 0 && m_speedUpRatio != 0) {
+		if (!IsZeroValue(m_speedUpfactorA) && !IsZeroValue(m_speedUpRatio)) {
 			tmpValue = m_speedUpfactorA * m_speedUpRatio;
-			if (m_speedDownRatio != 0) {
+			if (!IsZeroValue(m_speedDownRatio)) {
 				m_speedDownfactorA = -m_speedUpfactorA * m_speedUpRatio / m_speedDownRatio;
 			}
 		}
-		else if (m_speedDownfactorA != 0 && m_speedDownRatio != 0) {
+		else if (!IsZeroValue(m_speedDownfactorA) && !IsZeroValue(m_speedDownRatio)) {
 			tmpValue = -m_speedDownfactorA * m_speedDownRatio;
-			if (m_speedUpRatio != 0) {
+			if (!IsZeroValue(m_speedUpRatio)) {
 				m_speedUpfactorA = -m_speedDownfactorA * m_speedDownRatio / m_speedUpRatio;
 			}
 		}

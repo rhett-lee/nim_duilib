@@ -351,7 +351,15 @@ LRESULT WindowImplBase::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 	SetWindowResourcePath(GetSkinFolder());
 
 	WindowBuilder builder;
-	std::wstring strSkinFile = GetWindowResourcePath() + GetSkinFile();
+	std::wstring strSkinFile;
+	std::wstring xmlFile = GetSkinFile();
+	if (!xmlFile.empty() && xmlFile.front() == L'<') {
+		//返回的内容是XML文件内容，而不是文件路径
+		strSkinFile = std::move(xmlFile);
+	}
+	else {
+		strSkinFile = GetWindowResourcePath() + xmlFile;
+	}
 
 	auto callback = nbase::Bind(&WindowImplBase::CreateControl, this, std::placeholders::_1);
 	Box* pRoot = builder.Create(strSkinFile, callback, this);

@@ -131,6 +131,9 @@
 	<Class name="menu" width="auto" height="auto" bkcolor="bk_wnd_lightcolor"/>
 	<Class name="menu_element" padding="20,0,20,0" height="40" hotcolor="bk_menuitem_hovered" pushedcolor="bk_menuitem_selected" selectednormalcolor="bk_menuitem_selected"/>
 	<Class name="menu_text" normaltextcolor="darkcolor" font="system_14" valign="center"/>
+	<Class name="menu_split_box" padding="16,0,16,0" height="auto" />
+	<Class name="menu_split_line" bkcolor="splitline_level1" height="1" />
+	<Class name="menu_checkbox" height="auto" valign="center" textpadding="20,0,0,0" font="system_14" normaltextcolor="darkcolor" normalimage="" disabledimage="" selectednormalimage="file='../public/CheckBox/check_yes.png' dest='0,2,16,18'" selecteddisabledimage="file='../public/CheckBox/check_yes.png' dest='0,2,16,18' fade='80'"/>
 	<!--分割线通用样式-->
 	<Class name="splitline_hor_level1" bkcolor="splitline_level1" height="1"/>
 	<Class name="splitline_hor_level2" bkcolor="splitline_level2" height="1"/>
