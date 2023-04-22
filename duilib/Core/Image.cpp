@@ -620,9 +620,18 @@ bool StateColorMap::HasHotColor()
 bool StateColorMap::HasColor()
 {
 	return !m_stateColorMap[kControlStateNormal].empty() ||
-		!m_stateColorMap[kControlStateHot].empty() ||
-		!m_stateColorMap[kControlStatePushed].empty() ||
-		!m_stateColorMap[kControlStateDisabled].empty();
+		   !m_stateColorMap[kControlStateHot].empty() ||
+		   !m_stateColorMap[kControlStatePushed].empty() ||
+		   !m_stateColorMap[kControlStateDisabled].empty();
+}
+
+std::wstring StateColorMap::GetStateColor(ControlStateType stateType) const
+{
+	auto iter = m_stateColorMap.find(stateType);
+	if (iter != m_stateColorMap.end()) {
+		return iter->second;
+	}
+	return std::wstring();
 }
 
 void StateColorMap::PaintStatusColor(IRenderContext* pRender, UiRect rcPaint, ControlStateType stateType)

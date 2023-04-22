@@ -40,6 +40,7 @@ public:
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 	virtual void PaintText(IRenderContext* pRender) override;
 	virtual void SetPos(UiRect rc) override;
+    virtual std::wstring GetToolTipText() const override;
 
     /**
      * @brief 设置文本样式
@@ -59,7 +60,7 @@ public:
      * @param[in] stateType 要获取的状态标志
      * @return 返回指定状态下的文本颜色
      */
-	std::wstring GetStateTextColor(ControlStateType stateType);
+	std::wstring GetStateTextColor(ControlStateType stateType) const;
 
 	/**
      * @brief 设置指定状态下的文本颜色
@@ -107,7 +108,7 @@ public:
      * @brief 判断是否是单行模式
      * @return 返回 true 表示单行模式，否则为 false
      */
-	bool IsSingleLine();
+	bool IsSingleLine() const;
 
     /**
      * @brief 设置为单行输入模式
@@ -120,7 +121,7 @@ public:
      * @brief 是否限制整行输出
      * @return 返回 true 为限制，false 为不限制
      */
-	bool IsLineLimit();
+	bool IsLineLimit() const;
 
     /**
      * @brief 限制整行输出
@@ -143,14 +144,12 @@ protected:
 
 protected:
 	std::wstring m_sFontId;
-	std::wstring m_sTooltipCache;
+	std::wstring m_sAutoShowTooltipCache;
 	UINT	m_uTextStyle;
 	bool    m_bSingleLine;
 	bool    m_bLineLimit;
-	bool    m_bAutoShow;
-  bool    m_bDrawTextFillPath;
-	int		m_hAlign;
-	int		m_vAlign;
+	bool    m_bAutoShowToolTip;
+    bool    m_bDrawTextFillPath;
 	UiRect	m_rcTextPadding;
 	std::wstring	m_sText;
 	std::wstring	m_sTextId;
@@ -160,13 +159,11 @@ protected:
 template<typename InheritType>
 LabelTemplate<InheritType>::LabelTemplate() :
     m_sFontId(),
-    m_uTextStyle(DT_LEFT | DT_TOP | DT_END_ELLIPSIS | DT_NOCLIP | DT_SINGLELINE),
+    m_uTextStyle(DT_LEFT | DT_VCENTER | DT_END_ELLIPSIS | DT_NOCLIP | DT_SINGLELINE),
     m_bSingleLine(true),
     m_bLineLimit(false),
-    m_bAutoShow(false),
+    m_bAutoShowToolTip(false),
     m_bDrawTextFillPath(false),
-    m_hAlign(DT_LEFT),
-    m_vAlign(DT_CENTER),
     m_rcTextPadding(),
     m_sText(),
     m_sTextId(),
@@ -213,7 +210,7 @@ std::wstring LabelTemplate<InheritType>::GetText() const
 template<typename InheritType>
 void LabelTemplate<InheritType>::SetAutoToolTip(bool bAutoShow)
 {
-	m_bAutoShow = bAutoShow;
+	m_bAutoShowToolTip = bAutoShow;
 	CheckShowToolTip();
 }
 
@@ -230,52 +227,55 @@ void ui::LabelTemplate<InheritType>::SetPos(UiRect rc)
 }
 
 template<typename InheritType>
+std::wstring LabelTemplate<InheritType>::GetToolTipText() const
+{
+	std::wstring toolTip = __super::GetToolTipText();
+    if (!toolTip.empty()) {
+        return toolTip;
+    }
+    else if (m_bAutoShowToolTip) {
+        toolTip = m_sAutoShowTooltipCache;
+    }
+	return toolTip;
+}
+
+template<typename InheritType>
 void LabelTemplate<InheritType>::CheckShowToolTip()
 {
-	//check if need to show the tooltip
-	if (m_bAutoShow)
-	{
-		if (m_sTooltipCache.empty())
-		{
-			m_sTooltipCache = this->GetToolTipText();
-		}
-		bool bNeedShow = false;
-		if (!GetText().empty())
-		{
-			//compare the item size and rendersize
-			UiRect rc = this->m_rcItem;
-			rc.left += m_rcTextPadding.left;
-			rc.right -= m_rcTextPadding.right;
-			rc.top += m_rcTextPadding.top;
-			rc.bottom -= m_rcTextPadding.bottom;
+    if (!m_bAutoShowToolTip || (this->m_pWindow == nullptr)) {
+        return;
+    }
+    auto pRender = this->m_pWindow->GetRenderContext();
+    if (pRender == nullptr) {
+        return;
+    }
+    m_sAutoShowTooltipCache.clear();
+    std::wstring sText = this->GetText();
+    if (sText.empty()) {
+        return;
+    }
 
-			if (m_bSingleLine)
-				m_uTextStyle |= DT_SINGLELINE;
-			else
-				m_uTextStyle &= ~DT_SINGLELINE;
-			int width = this->GetFixedWidth();
-			if (width < 0)
-			{
-				width = 0;
-			}
-			auto pRender = this->m_pWindow->GetRenderContext();
-            if (pRender != nullptr) {
-                UiRect rcMessure = pRender->MeasureText(GetText(), m_sFontId, m_uTextStyle, width);
-                if (rc.GetWidth() < rcMessure.GetWidth() || rc.GetHeight() < rcMessure.GetHeight())
-                {
-                    bNeedShow = true;
-                }
-            }			
-		}
-		if (bNeedShow)
-		{
-			this->SetToolTipText(m_sTooltipCache);
-		}
-		else
-		{
-			this->SetToolTipText(L"");
-		}
-	}
+    UiRect rc = this->m_rcItem;
+    rc.left += m_rcTextPadding.left;
+    rc.right -= m_rcTextPadding.right;
+    rc.top += m_rcTextPadding.top;
+    rc.bottom -= m_rcTextPadding.bottom;
+
+    if (m_bSingleLine) {
+        m_uTextStyle |= DT_SINGLELINE;
+    }
+    else {
+        m_uTextStyle &= ~DT_SINGLELINE;
+    }
+    int width = this->GetFixedWidth();
+    if (width < 0) {
+        width = 0;
+    }
+
+    UiRect rcMessure = pRender->MeasureText(sText, m_sFontId, m_uTextStyle, width);
+    if (rc.GetWidth() < rcMessure.GetWidth() || rc.GetHeight() < rcMessure.GetHeight()) {
+        m_sAutoShowTooltipCache = sText;
+    }
 }
 
 template<typename InheritType>
@@ -386,7 +386,7 @@ void LabelTemplate<InheritType>::SetAttribute(const std::wstring& strName, const
 {
     if (strName == L"align") {
         if (strValue.find(L"left") != std::wstring::npos) {
-            m_uTextStyle &= ~(DT_CENTER | DT_RIGHT | DT_VCENTER | DT_SINGLELINE);
+            m_uTextStyle &= ~(DT_CENTER | DT_RIGHT);
             m_uTextStyle |= DT_LEFT;
         }
         if (strValue.find(L"center") != std::wstring::npos) {
@@ -394,25 +394,29 @@ void LabelTemplate<InheritType>::SetAttribute(const std::wstring& strName, const
             m_uTextStyle |= DT_CENTER;
         }
         if (strValue.find(L"right") != std::wstring::npos) {
-            m_uTextStyle &= ~(DT_LEFT | DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+            m_uTextStyle &= ~(DT_LEFT | DT_CENTER);
             m_uTextStyle |= DT_RIGHT;
         }
         if (strValue.find(L"top") != std::wstring::npos) {
             m_uTextStyle &= ~(DT_BOTTOM | DT_VCENTER);
-            m_uTextStyle |= (DT_TOP | DT_SINGLELINE);
+            m_uTextStyle |= DT_TOP;
         }
         if (strValue.find(L"vcenter") != std::wstring::npos) {
             m_uTextStyle &= ~(DT_TOP | DT_BOTTOM);
-            m_uTextStyle |= (DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+            m_uTextStyle |= DT_VCENTER;
         }
         if (strValue.find(L"bottom") != std::wstring::npos) {
             m_uTextStyle &= ~(DT_TOP | DT_VCENTER);
-            m_uTextStyle |= (DT_BOTTOM | DT_SINGLELINE);
-        }
+            m_uTextStyle |= DT_BOTTOM;
+        }        
     }
     else if (strName == L"endellipsis") {
-        if (strValue == L"true") m_uTextStyle |= DT_END_ELLIPSIS;
-        else m_uTextStyle &= ~DT_END_ELLIPSIS;
+        if (strValue == L"true") {
+            m_uTextStyle |= DT_END_ELLIPSIS;
+        }
+        else {
+            m_uTextStyle &= ~DT_END_ELLIPSIS;
+        }
     }
     else if (strName == L"linelimit") SetLineLimit(strValue == L"true");
     else if (strName == L"singleline") SetSingleLine(strValue == L"true");
@@ -432,10 +436,13 @@ void LabelTemplate<InheritType>::SetAttribute(const std::wstring& strName, const
         rcTextPadding.right = wcstol(pstr + 1, &pstr, 10);  ASSERT(pstr);
         rcTextPadding.bottom = wcstol(pstr + 1, &pstr, 10); ASSERT(pstr);
         SetTextPadding(rcTextPadding);
-    } else if (strName== L"drawtextfillpath") {
-      SetDrawTextFillPath(strValue == L"true");
     }
-    else __super::SetAttribute(strName, strValue);
+    else if (strName== L"drawtextfillpath") {
+        SetDrawTextFillPath(strValue == L"true");
+    }
+    else {
+        __super::SetAttribute(strName, strValue);
+    }
 }
 
 template<typename InheritType>
@@ -499,9 +506,9 @@ UINT LabelTemplate<InheritType>::GetTextStyle() const
 }
 
 template<typename InheritType>
-std::wstring LabelTemplate<InheritType>::GetStateTextColor(ControlStateType stateType)
+std::wstring LabelTemplate<InheritType>::GetStateTextColor(ControlStateType stateType) const
 {
-    return m_textColorMap[stateType];
+    return m_textColorMap.GetStateColor(stateType);
 }
 
 template<typename InheritType>
@@ -563,7 +570,7 @@ void LabelTemplate<InheritType>::SetTextPadding(UiRect rc)
 }
 
 template<typename InheritType>
-bool LabelTemplate<InheritType>::IsSingleLine()
+bool LabelTemplate<InheritType>::IsSingleLine() const
 {
     return m_bSingleLine;
 }
@@ -578,7 +585,7 @@ void LabelTemplate<InheritType>::SetSingleLine(bool bSingleLine)
 }
 
 template<typename InheritType>
-bool LabelTemplate<InheritType>::IsLineLimit()
+bool LabelTemplate<InheritType>::IsLineLimit() const
 {
     return m_bLineLimit;
 }

@@ -165,6 +165,8 @@ public:
 
 	void SetControl(Control* control);
 	std::wstring& operator[](ControlStateType stateType) { return m_stateColorMap[stateType]; }
+	//获取颜色值，如果不包含此颜色，则返回空
+	std::wstring GetStateColor(ControlStateType stateType) const;
 
 	bool HasHotColor();
 	bool HasColor();
