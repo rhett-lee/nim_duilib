@@ -193,7 +193,6 @@ namespace ui
 	enum EventType
 	{
 		kEventInternalDoubleClick,
-		kEventInternalMenu,
 		kEventInternalSetFocus,
 		kEventInternalKillFocus,
 

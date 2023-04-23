@@ -104,7 +104,8 @@ void CMenuWnd::ShowMenu(const std::wstring& xml, const CPoint& point, MenuPopupP
 
 void CMenuWnd::CloseMenu()
 {
-	Close();
+	//立即关闭，避免连续操作时相互干扰
+	PostMessage(WM_CLOSE, 0L, 0L);
 }
 
 void CMenuWnd::DetachOwner()

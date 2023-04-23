@@ -43,9 +43,16 @@ ButtonTemplate<InheritType>::ButtonTemplate()
 template<typename InheritType>
 void ButtonTemplate<InheritType>::HandleMessage(EventArgs& event)
 {
-    if (!this->IsMouseEnabled() && event.Type > kEventMouseBegin && event.Type < kEventMouseEnd) {
-        if (this->m_pParent != NULL) this->m_pParent->HandleMessageTemplate(event);
-        else __super::HandleMessage(event);
+    if (!this->IsMouseEnabled() && 
+        (event.Type > kEventMouseBegin) && 
+        (event.Type < kEventMouseEnd)) {
+        //当前控件禁止接收鼠标消息时，将鼠标相关消息转发给上层处理
+        if (this->m_pParent != nullptr) {
+            this->m_pParent->HandleMessageTemplate(event);
+        }
+        else {
+            __super::HandleMessage(event);
+        }
         return;
     }
     if (event.Type == kEventKeyDown) {
@@ -56,13 +63,6 @@ void ButtonTemplate<InheritType>::HandleMessage(EventArgs& event)
             }
         }
     }
-    if (event.Type == kEventInternalMenu) {
-        if (this->IsContextMenuUsed()) {
-            this->m_pWindow->SendNotify(this, kEventMouseMenu, event.wParam, event.lParam);
-        }
-        return;
-    }
-
     __super::HandleMessage(event);
 }
 

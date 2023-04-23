@@ -40,16 +40,6 @@ public:
 	virtual LRESULT MessageHandler(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled) = 0;
 };
 
-class ITranslateAccelerator
-{
-public:
-	virtual LRESULT TranslateAccelerator(MSG *pMsg) = 0;
-};
-class IControlFromPointFinder
-{
-public:
-	virtual Control* FindControlFromPoint(const CPoint& pt) = 0;
-};
 /////////////////////////////////////////////////////////////////////////////////////
 //
 
@@ -250,7 +240,7 @@ public:
 	 * @brief 获取窗口资源路径
 	 * @return 返回窗口资源路径
 	 */
-	std::wstring GetWindowResourcePath();
+	const std::wstring& GetWindowResourcePath() const;
 
 	/**
 	 * @brief 设置窗口资源路径
@@ -359,16 +349,10 @@ public:
 
 	/// 窗口属性
 	/**
-	 * @brief 获取鼠标位置
-	 * @return 鼠标位置的 x 和 y 坐标
-	 */
-	POINT GetMousePos() const;
-
-	/**
 	 * @brief 获取窗口四边可拉伸范围的大小
 	 * @return 返回窗口四边可拉伸范围的大小
 	 */
-	UiRect GetSizeBox();
+	const UiRect& GetSizeBox();
 
 	/**
 	 * @brief 设置窗口四边可拉伸范围的大小
@@ -381,7 +365,7 @@ public:
 	 * @brief 获取窗口标题栏区域（可拖动区域），对应 XML 中 caption 属性
 	 * @return 返回标题栏区域
 	 */
-	UiRect GetCaptionRect() const;
+	const UiRect& GetCaptionRect() const;
 
 	/**
 	 * @brief 设置窗口标题栏区域
@@ -394,7 +378,7 @@ public:
 	 * @brief 获取窗口圆角大小，对应 XML 中 roundcorner 属性
 	 * @return 返回圆角大小
 	 */
-	CSize GetRoundCorner() const;
+	const CSize& GetRoundCorner() const;
 
 	/**
 	 * @brief 设置窗口圆角大小
@@ -408,7 +392,7 @@ public:
 	 * @brief 获取窗口最大化信息
 	 * @return 返回窗口最大化信息
 	 */
-	UiRect GetMaximizeInfo() const;
+	const UiRect& GetMaximizeInfo() const;
 
 	/**
 	 * @brief 设置窗口最大化信息
@@ -421,7 +405,7 @@ public:
 	 * @brief 获取透明通道修补范围的的九宫格描述，对应 XML 中 alphafixcorner 属性
 	 * @return 返回修补范围
 	 */
-	UiRect GetAlphaFixCorner() const;
+	const UiRect& GetAlphaFixCorner() const;
 
 	/**
 	 * @brief 设置透明通道修补范围的的九宫格描述
@@ -468,7 +452,7 @@ public:
 	 * @brief 获取阴影图片
 	 * @return 返回阴影图片位置
 	 */
-	std::wstring GetShadowImage() const;
+	const std::wstring& GetShadowImage() const;
 
 	/**
 	 * @brief 设置窗口阴影图片
@@ -586,41 +570,6 @@ public:
 	bool RemoveMessageFilter(IUIMessageFilter* pFilter);
 
 	/**
-	 * @brief 查找控件时添加一个根据位置查找控件的钩子
-	 * @param[in] pFinder 继承了 IControlFromPointFinder 对象指针，需实现 FindControlFromPoint 方法
-	 * @return 始终返回 true
-	 */
-	bool AddControlFromPointFinder(IControlFromPointFinder* pFinder);
-
-	/**
-	 * @brief 移除查找控件时根据位置查找控件的钩子
-	 * @param[in] pFinder 继承了 IControlFromPointFinder 对象指针
-	 * @return 成功返回 true，否则该钩子可能不存在
-	 */
-	bool RemoveControlFromPointFinder(IControlFromPointFinder* pFinder);
-
-	/**
-	 * @brief 添加一个 TranslateMessage 之前的消息过滤器
-	 * @param[in] pTranslateAccelerator 继承了 ITranslateAccelerator 对象指针，需实现 TranslateAccelerator 方法
-	 * @return 始终返回 true
-	 */
-	bool AddTranslateAccelerator(ITranslateAccelerator *pTranslateAccelerator);
-
-	/**
-	 * @brief 移除一个 TranslateMessage 之前的消息过滤器
-	 * @param[in] pTranslateAccelerator 继承了 ITranslateAccelerator 对象指针
-	 * @return 成功返回 true，否则返回 false 可能该过滤器不存在
-	 */
-	bool RemoveTranslateAccelerator(ITranslateAccelerator *pTranslateAccelerator);
-
-	/**
-	 * @brief 执行 TranslateMessage 阶段的过滤器
-	 * @param[in] pMsg 消息体
-	 * @return 返回 true 成功处理消息，否则返回 false
-	 */
-	bool TranslateAccelerator(LPMSG pMsg);
-
-	/**
 	 * @brief 窗口消息的派发函数，优先调用内部处理函数，如果内部无处理逻辑，则调用Windows默认处理函数处理此消息
 	 * @param[in] uMsg 消息体
 	 * @param[in] wParam 消息附加参数
@@ -729,7 +678,7 @@ public:
 	 * @brief 获取鼠标最后的坐标
 	 * @return 返回坐标信息
 	 */
-	POINT GetLastMousePos() const;
+	const POINT& GetLastMousePos() const;
 
 	/**
 	 * @brief 设置是否处理触控消息
@@ -778,6 +727,13 @@ public:
 	 * @return 返回控件指针
 	 */
 	Control* FindControl(const POINT& pt) const;
+
+	/**
+	 * @brief 根据坐标查找可以响应WM_CONTEXTMENU的控件
+	 * @param[in] pt 指定坐标
+	 * @return 返回控件指针
+	 */
+	Control* FindContextMenuControl(const POINT* pt) const;
 
 	/**
 	 * @brief 根据控件名称查找控件
@@ -917,11 +873,11 @@ private:
 	static Control* CALLBACK __FindControlFromCount(Control* pThis, LPVOID pData);
 	static Control* CALLBACK __FindControlFromPoint(Control* pThis, LPVOID pData);
 	static Control* CALLBACK __FindControlFromTab(Control* pThis, LPVOID pData);
-	//static Control* CALLBACK __FindControlFromShortcut(Control* pThis, LPVOID pData);
 	static Control* CALLBACK __FindControlFromUpdate(Control* pThis, LPVOID pData);
 	static Control* CALLBACK __FindControlFromName(Control* pThis, LPVOID pData);
 	static Control* CALLBACK __FindControlFromClass(Control* pThis, LPVOID pData);
 	static Control* CALLBACK __FindControlsFromClass(Control* pThis, LPVOID pData);
+	static Control* CALLBACK __FindContextMenuControl(Control* pThis, LPVOID pData);
 
 private:
 	/**
@@ -980,8 +936,19 @@ protected:
 	Control* m_pFocus;
 	Control* m_pNewHover;
 	Control* m_pEventHover;
+
+	/** 点击的控件：
+		在 WM_LBUTTONDOWN/WM_RBUTTONDOWN/WM_LBUTTONDBLCLK 赋值
+		在 WM_LBUTTONUP中/WM_KILLFOCUS 清空
+	*/
 	Control* m_pEventClick;
+
+	/** 键盘按下的控件
+	*   在 WM_KEYDOWN 赋值
+	*   在 WM_KEYUP 清空
+	*/
 	Control* m_pEventKey;
+
 	CPoint m_ptLastMousePos;
 
 	Control* m_pEventPointer;
@@ -1001,8 +968,6 @@ protected:
 
 	std::vector<IUIMessageFilter*> m_aPreMessageFilters;
 	std::vector<IUIMessageFilter*> m_aMessageFilters;
-	std::vector<ITranslateAccelerator*> m_aTranslateAccelerator;
-	std::vector<IControlFromPointFinder*> m_aIControlFromPointFinder;
 
 	std::vector<Control*> m_aDelayedCleanup;
 	std::vector<Control*> m_aFoundControls;

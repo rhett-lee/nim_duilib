@@ -304,8 +304,9 @@ void Box::SetPos(UiRect rc)
 
 void Box::HandleMessageTemplate(EventArgs& msg)
 {
-	if (msg.Type == kEventInternalDoubleClick || msg.Type == kEventInternalMenu
-		|| msg.Type == kEventInternalSetFocus || msg.Type == kEventInternalKillFocus) {
+	if ((msg.Type == kEventInternalDoubleClick) || 
+		(msg.Type == kEventInternalSetFocus) || 
+		(msg.Type == kEventInternalKillFocus)) {
 		HandleMessage(msg);
 		return;
 	}

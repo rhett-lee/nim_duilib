@@ -21,7 +21,7 @@ Control::Control() :
 	m_OnXmlEvent(),
 	m_OnEvent(),
 	m_pUserDataBase(),
-	m_bMenuUsed(false),
+	m_bContextMenuUsed(false),
 	m_bEnabled(true),
 	m_bMouseEnabled(true),
 	m_bKeyboardEnabled(true),
@@ -431,12 +431,12 @@ int Control::GetToolTipWidth(void) const
 
 bool Control::IsContextMenuUsed() const
 {
-    return m_bMenuUsed;
+    return m_bContextMenuUsed;
 }
 
 void Control::SetContextMenuUsed(bool bMenuUsed)
 {
-    m_bMenuUsed = bMenuUsed;
+	m_bContextMenuUsed = bMenuUsed;
 }
 
 std::wstring Control::GetDataID() const
@@ -775,8 +775,9 @@ void Control::HandleMessageTemplate(EventType eventType, WPARAM wParam, LPARAM l
 
 void Control::HandleMessageTemplate(EventArgs& msg)
 {
-	if (msg.Type == kEventInternalDoubleClick || msg.Type == kEventInternalMenu
-		|| msg.Type == kEventInternalSetFocus || msg.Type == kEventInternalKillFocus) {
+	if ((msg.Type == kEventInternalDoubleClick) || 
+		(msg.Type == kEventInternalSetFocus) || 
+		(msg.Type == kEventInternalKillFocus)) {
 		HandleMessage(msg);
 		return;
 	}
@@ -829,8 +830,13 @@ void Control::HandleMessageTemplate(EventArgs& msg)
 
 void Control::HandleMessage(EventArgs& msg)
 {
-	if( !IsMouseEnabled() && msg.Type > kEventMouseBegin && msg.Type < kEventMouseEnd ) {
-		if( m_pParent != NULL ) m_pParent->HandleMessageTemplate(msg);
+	if( !IsMouseEnabled() && 
+		(msg.Type > kEventMouseBegin) && 
+		(msg.Type < kEventMouseEnd)) {
+		//当前控件禁止接收鼠标消息时，将鼠标相关消息转发给上层处理
+		if (m_pParent != nullptr) {			
+			m_pParent->HandleMessageTemplate(msg);
+		}
 		return;
 	}
 	else if( msg.Type == kEventSetCursor ) {
@@ -867,12 +873,6 @@ void Control::HandleMessage(EventArgs& msg)
 		Invalidate();
 		return;
 	}
-	else if (msg.Type == kEventInternalMenu && IsEnabled()) {
-        if( IsContextMenuUsed() ) {
-            m_pWindow->SendNotify(this, kEventMouseMenu, msg.wParam, msg.lParam);
-            return;
-        }
-    }
 	else if( msg.Type == kEventMouseEnter ) {
 		if (m_pWindow) {
 			if (!IsChild(this, m_pWindow->GetNewHover())) {
@@ -1174,7 +1174,6 @@ void Control::SetAttribute(const std::wstring& strName, const std::wstring& strV
 	else if (strName == _T("visible")) SetVisible(strValue == _T("true"));
 	else if (strName == _T("fadevisible")) SetFadeVisible(strValue == _T("true"));
 	else if (strName == _T("float")) SetFloat(strValue == _T("true"));
-	else if (strName == _T("menu")) SetContextMenuUsed(strValue == _T("true"));
 	else if (strName == _T("cache")) SetUseCache(strValue == _T("true"));
 	else if (strName == _T("nofocus")) SetNoFocus();
 	else if (strName == _T("alpha")) SetAlpha(_ttoi(strValue.c_str()));
@@ -1870,12 +1869,25 @@ void Control::ClearImageCache()
 	m_bkImage->ClearCache();
 }
 
+void Control::AttachEvent(EventType type, const EventCallback& callback)
+{ 
+	m_OnEvent[type] += callback; 
+	if ((type == kEventMouseMenu) || (type == kEventAll)) {
+		SetContextMenuUsed(true);
+	}
+}
+
 void Control::DetachEvent(EventType type)
 {
 	auto event = m_OnEvent.find(type);
-	if (event != m_OnEvent.end())
-	{
+	if (event != m_OnEvent.end()) {
 		m_OnEvent.erase(event);
+	}
+	if ((type == kEventMouseMenu) || (type == kEventAll)) {
+		if ((m_OnEvent.find(kEventAll) == m_OnEvent.end()) &&
+			(m_OnEvent.find(kEventMouseMenu) == m_OnEvent.end())) {
+			SetContextMenuUsed(false);
+		}
 	}
 }
 

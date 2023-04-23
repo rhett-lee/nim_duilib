@@ -34,7 +34,7 @@ void Shadow::SetShadowImage(const std::wstring &image)
 	m_bUseDefaultImage = false;
 }
 
-std::wstring Shadow::GetShadowImage() const
+const std::wstring& Shadow::GetShadowImage() const
 {
 	return m_strImage;
 }

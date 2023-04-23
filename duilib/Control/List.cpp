@@ -434,9 +434,16 @@ void ListContainerElement::Selected(bool bSelected, bool trigger)
 
 void ListContainerElement::HandleMessage(EventArgs& event)
 {
-	if (!IsMouseEnabled() && event.Type > kEventMouseBegin && event.Type < kEventMouseEnd) {
-		if (m_pOwner != NULL) m_pOwner->HandleMessageTemplate(event);
-		else Box::HandleMessage(event);
+	if (!IsMouseEnabled() && 
+		(event.Type > kEventMouseBegin) && 
+		(event.Type < kEventMouseEnd)) {
+		//当前控件禁止接收鼠标消息时，将鼠标相关消息转发给上层处理
+		if (m_pOwner != nullptr) {
+			m_pOwner->HandleMessageTemplate(event);
+		}
+		else {
+			Box::HandleMessage(event);
+		}
 		return;
 	}
 	else if (event.Type == kEventInternalDoubleClick) {
@@ -453,14 +460,6 @@ void ListContainerElement::HandleMessage(EventArgs& event)
 			return;
 		}
 	}
-	else if (event.Type == kEventInternalMenu && IsEnabled()) {
-		Selected(true, true);
-		m_pWindow->SendNotify(this, kEventMouseMenu);
-		Invalidate();
-
-		return;
-	}
-
 	__super::HandleMessage(event);
 
 	// An important twist: The list-item will send the event not to its immediate

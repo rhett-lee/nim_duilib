@@ -78,7 +78,6 @@ Window::Window() :
 	m_defaultFontInfo(),
 	m_defaultAttrHash(),
 	m_strWindowResourcePath(),
-	m_aTranslateAccelerator(),
 	m_heightPercent(0),
 	m_closeFlag()
 {
@@ -405,12 +404,12 @@ void Window::OnFinalMessage(HWND /*hWnd*/)
 LRESULT CALLBACK Window::__WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     Window* pThis = nullptr;
-    if( uMsg == WM_NCCREATE ) {
+    if (uMsg == WM_NCCREATE) {
         LPCREATESTRUCT lpcs = reinterpret_cast<LPCREATESTRUCT>(lParam);
         pThis = static_cast<Window*>(lpcs->lpCreateParams);
-		if (pThis != nullptr) {
-			pThis->m_hWnd = hWnd;
-		}        
+        if (pThis != nullptr) {
+            pThis->m_hWnd = hWnd;
+        }
         ::SetWindowLongPtr(hWnd, GWLP_USERDATA, reinterpret_cast<LPARAM>(pThis));
     }
     else {
@@ -418,9 +417,9 @@ LRESULT CALLBACK Window::__WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
         if( uMsg == WM_NCDESTROY && pThis != nullptr ) {
             LRESULT lRes = ::CallWindowProc(pThis->m_OldWndProc, hWnd, uMsg, wParam, lParam);
             ::SetWindowLongPtr(pThis->m_hWnd, GWLP_USERDATA, 0L);
-			if (pThis->m_bSubclassed) {
-				pThis->Unsubclass();
-			}
+            if (pThis->m_bSubclassed) {
+                pThis->Unsubclass();
+            }
             pThis->OnFinalMessage(hWnd);
             return lRes;
         }
@@ -449,7 +448,9 @@ LRESULT CALLBACK Window::__ControlProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
         pThis = reinterpret_cast<Window*>(::GetProp(hWnd, _T("WndX")));
         if( uMsg == WM_NCDESTROY && pThis != nullptr ) {
             LRESULT lRes = ::CallWindowProc(pThis->m_OldWndProc, hWnd, uMsg, wParam, lParam);
-            if( pThis->m_bSubclassed ) pThis->Unsubclass();
+			if (pThis->m_bSubclassed) {
+				pThis->Unsubclass();
+			}
             ::SetProp(hWnd, _T("WndX"), NULL);
             pThis->m_hWnd = NULL;
             pThis->OnFinalMessage(hWnd);
@@ -550,7 +551,7 @@ void Window::ReapObjects(Control* pControl)
 	if (pControl == m_pFocus) {
 		m_pFocus = nullptr;
 	}
-	std::wstring sName = pControl->GetName();
+	const std::wstring& sName = pControl->GetName();
 	if (!sName.empty()) {
 		auto it = m_mNameHash.find(sName);
 		if (it != m_mNameHash.end())
@@ -560,7 +561,7 @@ void Window::ReapObjects(Control* pControl)
 	}
 }
 
-std::wstring Window::GetWindowResourcePath()
+const std::wstring& Window::GetWindowResourcePath() const
 {
 	return m_strWindowResourcePath;
 }
@@ -571,7 +572,7 @@ void Window::SetWindowResourcePath(const std::wstring& strPath)
 	if (m_strWindowResourcePath.empty()) {
 		return;
 	}
-	TCHAR cEnd = m_strWindowResourcePath.at(m_strWindowResourcePath.length() - 1);
+	TCHAR cEnd = m_strWindowResourcePath.at(m_strWindowResourcePath.size() - 1);
 	if (cEnd != _T('\\') && cEnd != _T('/')) {
 		m_strWindowResourcePath += _T('\\');
 	}
@@ -685,8 +686,7 @@ void Window::RemoveOptionGroup(const std::wstring& strGroupName, Control* pContr
 	auto it = m_mOptionGroup.find(strGroupName);
 	if (it != m_mOptionGroup.end()) {
 		auto it2 = std::find(it->second.begin(), it->second.end(), pControl);
-		if (it2 != it->second.end())
-		{
+		if (it2 != it->second.end()) {
 			it->second.erase(it2);
 		}
 
@@ -707,17 +707,17 @@ void Window::ClearImageCache()
 	if (pRoot) {
 		pRoot->ClearImageCache();
 	}
-	else {
+	else if(m_pRoot != nullptr){
 		m_pRoot->ClearImageCache();
 	}
 }
 
-POINT Window::GetLastMousePos() const
+const POINT& Window::GetLastMousePos() const
 {
 	return m_ptLastMousePos;
 }
 
-UiRect Window::GetSizeBox()
+const UiRect& Window::GetSizeBox()
 {
 	return m_rcSizeBox;
 }
@@ -727,7 +727,7 @@ void Window::SetSizeBox(const UiRect& rcSizeBox)
 	m_rcSizeBox = rcSizeBox;
 }
 
-UiRect Window::GetCaptionRect() const
+const UiRect& Window::GetCaptionRect() const
 {
 	return m_rcCaption;
 }
@@ -738,7 +738,7 @@ void Window::SetCaptionRect(UiRect& rcCaption)
 	m_rcCaption = rcCaption;
 }
 
-CSize Window::GetRoundCorner() const
+const CSize& Window::GetRoundCorner() const
 {
 	return m_szRoundCorner;
 }
@@ -751,7 +751,7 @@ void Window::SetRoundCorner(int cx, int cy)
 	m_szRoundCorner.cy = cy;
 }
 
-UiRect Window::GetMaximizeInfo() const
+const UiRect& Window::GetMaximizeInfo() const
 {
 	return m_rcMaximizeInfo;
 }
@@ -762,7 +762,7 @@ void Window::SetMaximizeInfo(UiRect& rcMaximize)
 	m_rcMaximizeInfo = rcMaximize;
 }
 
-UiRect Window::GetAlphaFixCorner() const
+const UiRect& Window::GetAlphaFixCorner() const
 {
 	return m_rcAlphaFix;
 }
@@ -793,7 +793,7 @@ void Window::SetShadowAttached(bool bShadowAttached)
 	m_shadow->SetShadowAttached(bShadowAttached);
 }
 
-std::wstring Window::GetShadowImage() const
+const std::wstring& Window::GetShadowImage() const
 {
 	return m_shadow->GetShadowImage();
 }
@@ -971,57 +971,10 @@ bool Window::AddMessageFilter(IUIMessageFilter* pFilter)
 }
 bool Window::RemoveMessageFilter(IUIMessageFilter* pFilter)
 {
-	for (auto it = m_aMessageFilters.begin(); it != m_aMessageFilters.end(); ++it) {
-		if (*it == pFilter) {
-			m_aMessageFilters.erase(it);
-			return true;
-		}
-	}
-	return false;
-}
-bool Window::AddControlFromPointFinder(IControlFromPointFinder* pFinder)
-{
-	ASSERT(std::find(m_aIControlFromPointFinder.begin(), m_aIControlFromPointFinder.end(), pFinder) == m_aIControlFromPointFinder.end());
-	m_aIControlFromPointFinder.emplace_back(pFinder);
-	return true;
-}
-bool Window::RemoveControlFromPointFinder(IControlFromPointFinder* pFinder)
-{
-	auto it = std::find_if(m_aIControlFromPointFinder.begin(), m_aIControlFromPointFinder.end(), [&](IControlFromPointFinder* item) {
-		return pFinder == item;
-	});
-	if (it != m_aIControlFromPointFinder.end()){
-		m_aIControlFromPointFinder.erase(it);
+	auto iter = std::find(m_aMessageFilters.begin(), m_aMessageFilters.end(), pFilter);
+	if (iter != m_aMessageFilters.end()) {
+		m_aMessageFilters.erase(iter);
 		return true;
-	}
-	return false;
-}
-
-bool Window::AddTranslateAccelerator(ITranslateAccelerator *pTranslateAccelerator)
-{
-	ASSERT(std::find(m_aTranslateAccelerator.begin(), m_aTranslateAccelerator.end(), pTranslateAccelerator) == m_aTranslateAccelerator.end());
-	m_aTranslateAccelerator.push_back(pTranslateAccelerator);
-	return true;
-}
-
-bool Window::RemoveTranslateAccelerator(ITranslateAccelerator *pTranslateAccelerator)
-{
-	for (auto it = m_aTranslateAccelerator.begin(); it != m_aTranslateAccelerator.end(); ++it) {
-		if (*it == pTranslateAccelerator){
-			m_aTranslateAccelerator.erase(it);
-			return true;
-		}
-	}
-	return false;
-}
-
-bool Window::TranslateAccelerator(LPMSG pMsg)
-{
-	for (auto it = m_aTranslateAccelerator.begin(); it != m_aTranslateAccelerator.end(); ++it) {
-		LRESULT lResult = (*it)->TranslateAccelerator(pMsg);
-		if (lResult == S_OK) {
-			return true;
-		}
 	}
 	return false;
 }
@@ -1308,8 +1261,7 @@ LRESULT Window::DoHandlMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& ha
 			}
 
 			m_pEventClick->HandleMessageTemplate(kEventMouseRightButtonUp, wParam, lParam, 0, CPoint(pt));
-			// WM_CONTEXTMENU消息还会用到m_pEventClick
-			// m_pEventClick = nullptr;
+			m_pEventClick = nullptr;
 		}
 		break;
 		case WM_IME_STARTCOMPOSITION:
@@ -1599,16 +1551,26 @@ LRESULT Window::DoHandlMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& ha
 		case WM_CONTEXTMENU:
 		{
 			ReleaseEventClick(false, wParam, lParam);
-			POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
-			::ScreenToClient(m_hWnd, &pt);
-			m_ptLastMousePos = CPoint(pt);
-			if (m_pEventClick == nullptr) {
-				break;
-			}
 			ReleaseCapture();
 
-			m_pEventClick->HandleMessageTemplate(kEventInternalMenu, wParam, (LPARAM)m_pEventClick, 0, CPoint(pt));
-			m_pEventClick = nullptr;
+			POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+			if ((pt.x != -1) && (pt.y != -1)) {
+				::ScreenToClient(m_hWnd, &pt);
+				m_ptLastMousePos = CPoint(pt);
+				Control* pControl = FindContextMenuControl(&pt);
+				if ((pControl != nullptr) && (pControl->GetWindow() == this)) {
+					Control* ptControl = FindControl(pt);//当前点击点所在的控件
+					pControl->HandleMessageTemplate(kEventMouseMenu, wParam, (LPARAM)ptControl, 0, CPoint(pt));
+				}
+			}
+			else {
+				//如果用户键入 SHIFT+F10，则上下文菜单为 -1, -1，
+				//应用程序应在当前所选内容的位置（而不是 (xPos、yPos) ）显示上下文菜单。
+				Control* pControl = FindContextMenuControl(nullptr);
+				if ((pControl != nullptr) && (pControl->GetWindow() == this)) {
+					pControl->HandleMessageTemplate(kEventMouseMenu, wParam, 0, 0, CPoint(pt));
+				}
+			}		
 		}
 		break;
 		case WM_CHAR:
@@ -1842,8 +1804,10 @@ void Window::SetCapture()
 
 void Window::ReleaseCapture()
 {
-	::ReleaseCapture();
-	m_bMouseCapture = false;
+	if (m_bMouseCapture) {
+		::ReleaseCapture();
+		m_bMouseCapture = false;
+	}
 }
 
 bool Window::IsCaptureControl(const ui::Control* pControl)
@@ -1920,19 +1884,27 @@ void Window::AddDelayedCleanup(Control* pControl)
 
 Control* Window::FindControl(const POINT& pt) const
 {
-	ASSERT(m_pRoot);
-	Control* pFindedControl = nullptr;
-	for (auto it : m_aIControlFromPointFinder)
-	{
-		if ((pFindedControl = it->FindControlFromPoint(CPoint(pt))) != nullptr) {
-			return pFindedControl;
-		}			
-	}
+	ASSERT(m_pRoot != nullptr);
 	if (m_pRoot != nullptr) {
 		POINT ptLocal = pt;
 		return m_pRoot->FindControl(__FindControlFromPoint, &ptLocal, UIFIND_VISIBLE | UIFIND_HITTEST | UIFIND_TOP_FIRST);
 	}
 	return nullptr;
+}
+
+Control* Window::FindContextMenuControl(const POINT* pt) const
+{
+	Control* pControl = nullptr;
+	if(m_pRoot != nullptr){
+		if (pt != nullptr) {
+			POINT ptLocal = *pt;
+			pControl = m_pRoot->FindControl(__FindContextMenuControl, &ptLocal, UIFIND_VISIBLE | UIFIND_ENABLED | UIFIND_HITTEST | UIFIND_TOP_FIRST);
+		}
+		else {
+			pControl = m_pRoot->FindControl(__FindContextMenuControl, nullptr, UIFIND_VISIBLE | UIFIND_ENABLED | UIFIND_TOP_FIRST);
+		}
+	}
+	return pControl;
 }
 
 Control* Window::FindControl(const std::wstring& strName) const
@@ -2245,7 +2217,7 @@ void Window::SetRenderOffset(CPoint renderOffset)
 	}
 }
 
-void Window::SetRenderOffsetX(int renderOffsetX) 
+void Window::SetRenderOffsetX(int renderOffsetX)
 {
 	if (m_pRoot) {
 		m_renderOffset.x = renderOffsetX;
@@ -2253,7 +2225,7 @@ void Window::SetRenderOffsetX(int renderOffsetX)
 	}
 }
 
-void Window::SetRenderOffsetY(int renderOffsetY) 
+void Window::SetRenderOffsetY(int renderOffsetY)
 {
 	if (m_pRoot) {
 		m_renderOffset.y = renderOffsetY;
@@ -2274,14 +2246,23 @@ void Window::OnInitLayout()
 
 Control* CALLBACK Window::__FindControlFromNameHash(Control* pThis, LPVOID pData)
 {
-	Window* pManager = static_cast<Window*>(pData);
-	std::wstring sName = pThis->GetName();
+	const std::wstring& sName = pThis->GetName();
 	if (sName.empty()) {
 		return nullptr;
 	}
 	// Add this control to the hash list
-	if (pManager != nullptr){
-		pManager->m_mNameHash[sName] = pThis;
+	Window* pManager = static_cast<Window*>(pData);
+	if (pManager != nullptr) {
+		auto iter = pManager->m_mNameHash.find(sName);
+		if (iter != pManager->m_mNameHash.end()){
+			ASSERT(iter->second == pThis);
+			if (iter->second != pThis) {
+				iter->second = pThis;
+			}
+		}
+		else {
+			pManager->m_mNameHash[sName] = pThis;
+		}
 	}	
 	return nullptr; // Attempt to add all controls
 }
@@ -2332,15 +2313,6 @@ Control* CALLBACK Window::__FindControlFromTab(Control* pThis, LPVOID pData)
 	}
 	return nullptr;  // Examine all controls
 }
-
-//Control* CALLBACK Window::__FindControlFromShortcut(Control* pThis, LPVOID pData)
-//{
-//	if( !pThis->IsVisible() ) return nullptr; 
-//	FINDSHORTCUT* pFS = static_cast<FINDSHORTCUT*>(pData);
-//	if( pFS->ch == toupper(pThis->GetShortcut()) ) pFS->bPickNext = true;
-//	if( typeid(*pThis) == typeid(Label) ) return nullptr;   // Labels never get focus!
-//	return pFS->bPickNext ? pThis : nullptr;
-//}
 
 Control* CALLBACK Window::__FindControlFromUpdate(Control* pThis, LPVOID /*pData*/)
 {
@@ -2411,5 +2383,16 @@ Control* CALLBACK Window::__FindControlsFromClass(Control* pThis, LPVOID pData)
 	}		
 	return nullptr;
 }
+
+Control* CALLBACK Window::__FindContextMenuControl(Control* pThis, LPVOID /*pData*/)
+{
+	if (pThis != nullptr) {
+		if (!pThis->IsContextMenuUsed()) {
+			return nullptr;
+		}
+	}	
+	return pThis;
+}
+
 
 } // namespace ui

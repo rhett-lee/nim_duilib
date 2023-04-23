@@ -34,9 +34,16 @@ UiRect Slider::GetProgressPos()
 
 void Slider::HandleMessage(EventArgs& event)
 {
-	if (!IsMouseEnabled() && event.Type > kEventMouseBegin && event.Type < kEventMouseEnd) {
-		if (m_pParent != NULL) m_pParent->HandleMessageTemplate(event);
-		else Progress::HandleMessage(event);
+	if (!IsMouseEnabled() && 
+		(event.Type > kEventMouseBegin) && 
+		(event.Type < kEventMouseEnd)) {
+		//当前控件禁止接收鼠标消息时，将鼠标相关消息转发给上层处理
+		if (m_pParent != nullptr) {
+			m_pParent->HandleMessageTemplate(event);
+		}
+		else {
+			Progress::HandleMessage(event);
+		}
 		return;
 	}
 
@@ -69,9 +76,6 @@ void Slider::HandleMessage(EventArgs& event)
 			m_pWindow->SendNotify(this, kEventValueChange);
 			Invalidate();
 		}
-		return;
-	}
-	if (event.Type == kEventInternalMenu) {
 		return;
 	}
 	if (event.Type == kEventMouseScrollWheel) {

@@ -878,7 +878,7 @@ public:
 	 * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
 	 * @return 无
 	 */
-	void AttachAllEvents(const EventCallback& callback)	{ m_OnEvent[kEventAll] += callback; }
+	void AttachAllEvents(const EventCallback& callback)	{ AttachEvent(kEventAll, callback); }
 
 	/**
 	 * @brief 监听鼠标进入事件
@@ -934,7 +934,7 @@ public:
 	 * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
 	 * @return 无
 	 */
-	void AttachMenu(const EventCallback& callback) { m_OnEvent[kEventMouseMenu] += callback; }
+	void AttachMenu(const EventCallback& callback) { AttachEvent(kEventMouseMenu, callback); }
 
 	/**
 	 * @brief 监听控件大小改变事件
@@ -977,7 +977,7 @@ public:
 	 * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
 	 * @return 无
 	 */
-	void AttachEvent(EventType type, const EventCallback& callback) { m_OnEvent[type] += callback; }
+	void AttachEvent(EventType type, const EventCallback& callback);
 
 	/**
 	 * @brief 取消监听指定事件
@@ -1051,7 +1051,7 @@ protected:
 	EventMap m_OnEvent;
 	GifEventMap m_OnGifEvent;
 	std::unique_ptr<UserDataBase> m_pUserDataBase;
-	bool m_bMenuUsed;
+	bool m_bContextMenuUsed;
 	bool m_bEnabled;
 	bool m_bMouseEnabled;
 	bool m_bKeyboardEnabled;

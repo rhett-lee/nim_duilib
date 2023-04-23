@@ -159,76 +159,105 @@ void ControlForm::InitWindow()
 		point.y = rect.top + 10;
 		::ClientToScreen(m_hWnd, &point);
 
-		ui::CMenuWnd* menu = new ui::CMenuWnd(m_hWnd);//需要设置父窗口，否在菜单弹出的时候，程序状态栏编程非激活状态
-		std::wstring xml(L"settings_menu.xml");
-		menu->ShowMenu(xml, point);
-
-		//在二级菜单中，添加子菜单项
-		ui::CMenuElementUI* menu_fourth = static_cast<ui::CMenuElementUI*>(menu->FindControl(L"fourth"));
-		ui::CMenuElementUI* menu_item = new ui::CMenuElementUI;
-		menu_item->SetText(L"Dynamically created");
-		menu_item->SetClass(L"menu_element");
-		menu_item->SetFixedWidth(180);
-		menu_item->SetFont(L"system_14");
-		menu_item->SetTextPadding({ 20, 0, 20, 0 });
-		menu_fourth->AddSubMenuItemAt(menu_item, 1);//添加后，资源由菜单统一管理
-
-		//在一级菜单中，添加子菜单项
-		/*
-		menu_item = new ui::CMenuElementUI;
-		menu_item->SetText(L"Dynamically created");
-		menu_item->SetClass(L"menu_element");
-		menu_item->SetFixedWidth(180);
-		menu_item->SetFont(L"system_14");
-		menu_item->SetTextPadding({ 20, 0, 20, 0 });
-		menu->AddMenuItemAt(menu_item, 4);//添加后，资源由菜单统一管理
-		*/
-
-		//CheckBox菜单项的功能演示
-		static bool s_is_checked_01_flag = false;
-		bool& flag = s_is_checked_01_flag;
-		ui::CMenuElementUI* menu_check_01 = dynamic_cast<ui::CMenuElementUI*>(menu->FindControl(L"menu_check_01"));
-		ASSERT(menu_check_01 != nullptr);
-		menu_check_01->AttachClick([&flag](ui::EventArgs* args) {
-			flag = true;
-			return true;
-		});
-		ui::CheckBox* menuCheckBox01 = dynamic_cast<ui::CheckBox*>(menu->FindControl(L"menu_checkbox_01"));
-		ASSERT(menuCheckBox01 != nullptr);
-		menuCheckBox01->Selected(s_is_checked_01_flag);
-
-		ui::CMenuElementUI* menu_check_02 = dynamic_cast<ui::CMenuElementUI*>(menu->FindControl(L"menu_check_02"));
-		ASSERT(menu_check_02 != nullptr);
-		menu_check_02->AttachClick([&flag](ui::EventArgs* args) {
-			flag = false;
-			return true;
-		});
-
-		ui::CheckBox* menuCheckBox02 = dynamic_cast<ui::CheckBox*>(menu->FindControl(L"menu_checkbox_02"));
-		ASSERT(menuCheckBox02 != nullptr);
-		menuCheckBox02->Selected(!s_is_checked_01_flag);
-
-		
-		/* About menu */
-		ui::CMenuElementUI* menu_about = static_cast<ui::CMenuElementUI*>(menu->FindControl(L"about"));
-		menu_about->AttachClick([this](ui::EventArgs* args) {
-			AboutForm *about_form = (AboutForm*)(nim_comp::WindowsManager::GetInstance()->GetWindow(AboutForm::kClassName, AboutForm::kClassName));
-			if (!about_form)
-			{
-				about_form = new AboutForm();
-				about_form->Create(GetHWND(), AboutForm::kClassName, WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX, 0);
-				about_form->CenterWindow();
-				about_form->ShowWindow();
-			}
-			else
-			{
-				about_form->ActiveWindow();
-			}
-			return true;
-		});
-
+		ShowPopupMenu(point);
 		return true;
 	});
+
+	//注册一个Context Menu，演示功能（用这两种方法都可以注册上下文菜单功能）
+	//m_pRoot->AttachAllEvents([this](ui::EventArgs* args) {
+	//m_pRoot->AttachMenu([this](ui::EventArgs* args) {
+	ui::RichEdit* edit = static_cast<ui::RichEdit*>(FindControl(L"edit"));
+	ASSERT(edit != nullptr);
+	edit->AttachMenu([this](ui::EventArgs* args) {
+		if (args->Type == ui::kEventMouseMenu) {
+			POINT pt = args->ptMouse;
+			if ((pt.x != -1) && (pt.y != -1)) {
+				ui::Control* pControl = (ui::Control*)args->lParam;//当前点击点所在的控件
+
+				//鼠标消息产生的上下文菜单
+				::ClientToScreen(m_hWnd, &pt);
+				ShowPopupMenu(ui::CPoint(pt));
+			}
+			else {
+				//按Shif + F10，由系统产生上下文菜单
+				pt = { 100, 100 };
+				::ClientToScreen(m_hWnd, &pt);
+				ShowPopupMenu(ui::CPoint(pt));
+			}
+		}
+		return true;
+	});
+}
+
+void ControlForm::ShowPopupMenu(const ui::CPoint& point)
+{
+    ui::CMenuWnd* menu = new ui::CMenuWnd(m_hWnd);//需要设置父窗口，否在菜单弹出的时候，程序状态栏编程非激活状态
+    std::wstring xml(L"settings_menu.xml");
+    menu->ShowMenu(xml, point);
+
+    //在二级菜单中，添加子菜单项
+    ui::CMenuElementUI* menu_fourth = static_cast<ui::CMenuElementUI*>(menu->FindControl(L"fourth"));
+    ui::CMenuElementUI* menu_item = new ui::CMenuElementUI;
+    menu_item->SetText(L"Dynamically created");
+    menu_item->SetClass(L"menu_element");
+    menu_item->SetFixedWidth(180);
+    menu_item->SetFont(L"system_14");
+    menu_item->SetTextPadding({ 20, 0, 20, 0 });
+    menu_fourth->AddSubMenuItemAt(menu_item, 1);//添加后，资源由菜单统一管理
+
+    //在一级菜单中，添加子菜单项
+    /*
+    menu_item = new ui::CMenuElementUI;
+    menu_item->SetText(L"Dynamically created");
+    menu_item->SetClass(L"menu_element");
+    menu_item->SetFixedWidth(180);
+    menu_item->SetFont(L"system_14");
+    menu_item->SetTextPadding({ 20, 0, 20, 0 });
+    menu->AddMenuItemAt(menu_item, 4);//添加后，资源由菜单统一管理
+    */
+
+    //CheckBox菜单项的功能演示
+    static bool s_is_checked_01_flag = false;
+    bool& flag = s_is_checked_01_flag;
+    ui::CMenuElementUI* menu_check_01 = dynamic_cast<ui::CMenuElementUI*>(menu->FindControl(L"menu_check_01"));
+    ASSERT(menu_check_01 != nullptr);
+    menu_check_01->AttachClick([&flag](ui::EventArgs* args) {
+        flag = true;
+        return true;
+        });
+    ui::CheckBox* menuCheckBox01 = dynamic_cast<ui::CheckBox*>(menu->FindControl(L"menu_checkbox_01"));
+    ASSERT(menuCheckBox01 != nullptr);
+    menuCheckBox01->Selected(s_is_checked_01_flag);
+
+    ui::CMenuElementUI* menu_check_02 = dynamic_cast<ui::CMenuElementUI*>(menu->FindControl(L"menu_check_02"));
+    ASSERT(menu_check_02 != nullptr);
+    menu_check_02->AttachClick([&flag](ui::EventArgs* args) {
+        flag = false;
+        return true;
+        });
+
+    ui::CheckBox* menuCheckBox02 = dynamic_cast<ui::CheckBox*>(menu->FindControl(L"menu_checkbox_02"));
+    ASSERT(menuCheckBox02 != nullptr);
+    menuCheckBox02->Selected(!s_is_checked_01_flag);
+
+
+    /* About menu */
+    ui::CMenuElementUI* menu_about = static_cast<ui::CMenuElementUI*>(menu->FindControl(L"about"));
+    menu_about->AttachClick([this](ui::EventArgs* args) {
+        AboutForm* about_form = (AboutForm*)(nim_comp::WindowsManager::GetInstance()->GetWindow(AboutForm::kClassName, AboutForm::kClassName));
+        if (!about_form)
+        {
+            about_form = new AboutForm();
+            about_form->Create(GetHWND(), AboutForm::kClassName, WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX, 0);
+            about_form->CenterWindow();
+            about_form->ShowWindow();
+        }
+        else
+        {
+            about_form->ActiveWindow();
+        }
+        return true;
+        });
 }
 
 LRESULT ControlForm::OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)

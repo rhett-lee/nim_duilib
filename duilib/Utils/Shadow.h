@@ -61,7 +61,7 @@ public:
 	 * @brief 获取阴影图片位置
 	 * @return 返回阴影图片位置
 	 */
-	std::wstring GetShadowImage() const;
+	const std::wstring& GetShadowImage() const;
 
 	/**
 	 * @brief 将阴影附加到窗口
