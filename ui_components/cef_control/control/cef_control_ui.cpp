@@ -197,7 +197,7 @@ LRESULT CefControl::MessageHandler(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL
 		if (!m_rcItem.IsPointIn(ui::CPoint(pt)))
 			return 0;
 
-		m_pWindow->CallWindowProc(uMsg, wParam, lParam);
+		m_pWindow->CallDefaultWindowProc(uMsg, wParam, lParam);
 		bHandled = true;
 		return 0;
 	}

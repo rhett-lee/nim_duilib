@@ -264,12 +264,6 @@ public:
 	void AddClass(const std::wstring& strClassName, const std::wstring& strControlAttrList);
 
 	/**
-	 * @brief 获取所有通用样式
-	 * @return 返回所有通用样式的 map 数据
-	 */
-	const std::map<std::wstring, std::wstring>* GetClassMap();
-
-	/**
 	 * @brief 获取指定通用样式的内容
 	 * @param[in] strClassName 通用样式名称
 	 * @return 返回指定名称的通用样式内容，XML 转义格式数据
@@ -413,19 +407,6 @@ public:
 	 * @return 无
 	 */
 	void SetAlphaFixCorner(UiRect& rc);
-
-	/**
-	 * @brief 获取窗口的初始高度占屏幕高度的百分比，对应 XML 中 heightpercent 属性
-	 * @return 返回指定百分比数据
-	 */
-	double GetHeightPercent() const;
-
-	/**
-	 * @brief 设置窗口的初始高度占屏幕高度的百分比
-	 * @param[in] heightPercent 百分比
-	 * @return 无
-	 */
-	void SetHeightPercent(double heightPercent);
 
 	/**
 	 * @brief 根据语言列表中的文本 ID 设置窗口标题栏文本
@@ -586,7 +567,7 @@ public:
 	 * @param[out] handled 消息是否已经处理，返回 true 表明已经成功处理消息，否则将消息继续传递给窗口过程
 	 * @return 返回消息处理结果
 	 */
-	LRESULT DoHandlMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& handled);
+	LRESULT DoHandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& handled);
 
 	/**
 	 * @brief 对 CallWindowProc API 的一层封装
@@ -595,7 +576,7 @@ public:
 	 * @param[in] lParam 消息附加参数
 	 * @return 返回消息处理结果
 	 */
-	LRESULT CallWindowProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	LRESULT CallDefaultWindowProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 	/**
 	 * @brief 判断是否需要发送鼠标进入或离开消息
@@ -604,7 +585,7 @@ public:
 	 * @param[in] lParam 消息附加参数
 	 * @return 返回 true 需要发送鼠标进入或离开消息，返回 false 为不需要
 	 */
-	inline bool HandleMouseEnterLeave(const POINT &pt, WPARAM wParam, LPARAM lParam);
+	bool HandleMouseEnterLeave(const POINT &pt, WPARAM wParam, LPARAM lParam);
 
 	/**
 	 * @brief 释放指定控件的按下状态
@@ -921,7 +902,6 @@ protected:
 	UiRect m_rcAlphaFix;
 	CSize m_szRoundCorner;
 	UiRect m_rcCaption;
-	double m_heightPercent;
 
 	HDC m_hDcPaint;
 	std::unique_ptr<IRenderContext> m_renderContext;
@@ -966,7 +946,6 @@ protected:
 	std::map<std::wstring, DWORD> m_mapTextColor;
 	std::map<std::wstring, std::vector<Control*>> m_mOptionGroup;
 
-	std::vector<IUIMessageFilter*> m_aPreMessageFilters;
 	std::vector<IUIMessageFilter*> m_aMessageFilters;
 
 	std::vector<Control*> m_aDelayedCleanup;

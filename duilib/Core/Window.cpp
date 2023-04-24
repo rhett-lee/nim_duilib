@@ -69,7 +69,6 @@ Window::Window() :
 	m_bMouseTracking(false),
 	m_bMouseCapture(false),
 	m_bIsLayeredWindow(true),
-	m_aPreMessageFilters(),
 	m_aMessageFilters(),
 	m_aDelayedCleanup(),
 	m_aFoundControls(),
@@ -78,7 +77,6 @@ Window::Window() :
 	m_defaultFontInfo(),
 	m_defaultAttrHash(),
 	m_strWindowResourcePath(),
-	m_heightPercent(0),
 	m_closeFlag()
 {
 	m_shadow = std::make_unique<Shadow>();
@@ -595,11 +593,6 @@ void Window::AddClass(const std::wstring& strClassName, const std::wstring& strC
 	m_defaultAttrHash[strClassName] = strControlAttrList;
 }
 
-const std::map<std::wstring, std::wstring>* Window::GetClassMap()
-{
-	return &m_defaultAttrHash;
-}
-
 std::wstring Window::GetClassAttributes(const std::wstring& strClassName) const
 {
 	auto it = m_defaultAttrHash.find(strClassName);
@@ -771,16 +764,6 @@ void Window::SetAlphaFixCorner(UiRect& rc)
 {
 	DpiManager::GetInstance()->ScaleRect(rc);
 	m_rcAlphaFix = rc;
-}
-
-double Window::GetHeightPercent() const
-{
-	return m_heightPercent;
-}
-
-void Window::SetHeightPercent(double heightPercent)
-{
-	m_heightPercent = heightPercent;
 }
 
 void Window::SetTextId(const std::wstring& strTextId)
@@ -966,7 +949,12 @@ void Window::SetInitSize(int cx, int cy, bool bContainShadow, bool bNeedDpiScale
 bool Window::AddMessageFilter(IUIMessageFilter* pFilter)
 {
 	ASSERT(std::find(m_aMessageFilters.begin(), m_aMessageFilters.end(), pFilter) == m_aMessageFilters.end());
-	m_aMessageFilters.push_back(pFilter);
+	if (std::find(m_aMessageFilters.begin(), m_aMessageFilters.end(), pFilter) != m_aMessageFilters.end()) {
+		return false;
+	}
+	if (pFilter != nullptr) {
+		m_aMessageFilters.push_back(pFilter);
+	}	
 	return true;
 }
 bool Window::RemoveMessageFilter(IUIMessageFilter* pFilter)
@@ -982,16 +970,16 @@ bool Window::RemoveMessageFilter(IUIMessageFilter* pFilter)
 LRESULT Window::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	bool handled = false;
-	LRESULT ret = DoHandlMessage(uMsg, wParam, lParam, handled);
+	LRESULT ret = DoHandleMessage(uMsg, wParam, lParam, handled);
 	if (handled) {
 		return ret;
 	}
 	else {
-		return CallWindowProc(uMsg, wParam, lParam);
+		return CallDefaultWindowProc(uMsg, wParam, lParam);
 	}
 }
 
-LRESULT Window::DoHandlMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& handled)
+LRESULT Window::DoHandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& handled)
 {
     handled = false;
     // Cycle through listeners
@@ -1013,6 +1001,7 @@ LRESULT Window::DoHandlMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& ha
 				delete* it;
 			}
 			m_aDelayedCleanup.clear();
+			handled = true;
 		}
 		break;
 		case WM_CLOSE:
@@ -1031,10 +1020,12 @@ LRESULT Window::DoHandlMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& ha
 
 			// Hmmph, the usual Windows tricks to avoid
 			// focus loss...
-			HWND hwndParent = GetWindowOwner(m_hWnd);
-			if (hwndParent != nullptr) {
-				::SetFocus(hwndParent);
-			}
+			if (::GetFocus() == m_hWnd) {
+				HWND hwndParent = ::GetWindowOwner(m_hWnd);
+				if (hwndParent != nullptr) {
+					::SetFocus(hwndParent);
+				}
+			}			
 		}
 		break;
 		case WM_ERASEBKGND:
@@ -1680,7 +1671,7 @@ LRESULT Window::DoHandlMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& ha
     return 0;
 }
 
-LRESULT Window::CallWindowProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT Window::CallDefaultWindowProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	return ::CallWindowProc(m_OldWndProc, m_hWnd, uMsg, wParam, lParam);
 }

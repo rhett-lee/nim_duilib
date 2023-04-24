@@ -139,8 +139,7 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pManager, Bo
 					} 
 					else if( strName == _T("heightpercent") ) {
 						double lfHeightPercent = _ttof(strValue.c_str());
-						pManager->SetHeightPercent(lfHeightPercent);
-
+	
 						MONITORINFO oMonitor = {}; 
 						oMonitor.cbSize = sizeof(oMonitor);
 						::GetMonitorInfo(::MonitorFromWindow(pManager->GetHWND(), MONITOR_DEFAULTTOPRIMARY), &oMonitor);

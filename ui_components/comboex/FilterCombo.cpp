@@ -170,16 +170,16 @@ LRESULT CFilterComboWnd::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
 	}
 #endif
 	if (m_bClosing)	{
-		return CallWindowProc(uMsg, wParam, lParam);
+		return CallDefaultWindowProc(uMsg, wParam, lParam);
 	}
 	else {
 		bool handled = false;
-		LRESULT ret = this->DoHandlMessage(uMsg, wParam, lParam, handled);
+		LRESULT ret = this->DoHandleMessage(uMsg, wParam, lParam, handled);
 		if (handled) {
 			return ret;
 		}
 		else {
-			return CallWindowProc(uMsg, wParam, lParam);
+			return CallDefaultWindowProc(uMsg, wParam, lParam);
 		}
 	}
 }
