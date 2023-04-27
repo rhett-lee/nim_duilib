@@ -70,9 +70,9 @@ ui::Control* MultiBrowserForm::CreateControl(const std::wstring& pstrClass)
 	return NULL;
 }
 
-void MultiBrowserForm::InitWindow()
+void MultiBrowserForm::OnInitWindow()
 {
-	m_pRoot->AttachBubbledEvent(ui::kEventClick, nbase::Bind(&MultiBrowserForm::OnClicked, this, std::placeholders::_1));
+	GetRoot()->AttachBubbledEvent(ui::kEventClick, nbase::Bind(&MultiBrowserForm::OnClicked, this, std::placeholders::_1));
 	btn_max_restore_ = static_cast<Button*>(FindControl(L"btn_max_restore"));
 
 	edit_url_ = static_cast<RichEdit*>(FindControl(L"edit_url"));
@@ -87,8 +87,9 @@ void MultiBrowserForm::InitWindow()
 	InitDragDrop();
 }
 
-LRESULT MultiBrowserForm::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT MultiBrowserForm::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
+	bHandled = true;
 	if (uMsg == WM_SIZE)
 	{
 		if (wParam == SIZE_RESTORED)
@@ -144,10 +145,10 @@ LRESULT MultiBrowserForm::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
 		return TRUE;
 	}
 
-	return __super::HandleMessage(uMsg, wParam, lParam);
+	return __super::OnWindowMessage(uMsg, wParam, lParam, bHandled);
 }
 
-LRESULT MultiBrowserForm::OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+LRESULT MultiBrowserForm::OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
 	CloseReason closeReason = (CloseReason)wParam;
 
@@ -375,7 +376,7 @@ void MultiBrowserForm::CloseBox(const std::string &browser_id)
 	// 当浏览器盒子清空时，关闭浏览器窗口
 	if (GetBoxCount() == 0)
 	{
-		this->Close(kBrowserBoxClose);
+		this->CloseWnd(kBrowserBoxClose);
 	}
 }
 
@@ -455,7 +456,7 @@ bool MultiBrowserForm::DetachBox(BrowserBox *browser_box)
 	// 当浏览器盒子清空时，关闭浏览器窗口
 	if (GetBoxCount() == 0)
 	{
-		this->Close(kBrowserBoxClose);
+		this->CloseWnd(kBrowserBoxClose);
 	}
 
 	return true;
@@ -686,6 +687,5 @@ bool MultiBrowserForm::ChangeToBox(const std::wstring &browser_id)
 	active_browser_box_ = box_item;
 	edit_url_->SetText(active_browser_box_->GetCefControl()->GetURL());
 	// 根据当前激活的浏览器盒子，更新任务栏的图标和标题
-
 	return true;
 }

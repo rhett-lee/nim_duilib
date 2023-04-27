@@ -40,10 +40,10 @@ ui::Control* CefForm::CreateControl(const std::wstring& pstrClass)
 	return NULL;
 }
 
-void CefForm::InitWindow()
+void CefForm::OnInitWindow()
 {
 	// 监听鼠标单击事件
-	m_pRoot->AttachBubbledEvent(ui::kEventClick, nbase::Bind(&CefForm::OnClicked, this, std::placeholders::_1));
+	GetRoot()->AttachBubbledEvent(ui::kEventClick, nbase::Bind(&CefForm::OnClicked, this, std::placeholders::_1));
 
 	// 从 XML 中查找指定控件
 	cef_control_		= dynamic_cast<nim_comp::CefControlBase*>(FindControl(L"cef_control"));
@@ -68,7 +68,7 @@ void CefForm::InitWindow()
 		cef_control_dev_->SetFadeVisible(false);
 }
 
-LRESULT CefForm::OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+LRESULT CefForm::OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
 	nim_comp::CefManager::GetInstance()->PostQuitMessage(0L);
 	return __super::OnClose(uMsg, wParam, lParam, bHandled);

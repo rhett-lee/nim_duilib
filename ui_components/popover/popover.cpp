@@ -1370,10 +1370,10 @@ void PopoverLayer::DoInit()
   m_bInited = true;
 }
 
-LRESULT PopoverLayer::MessageHandler(UINT uMsg,
+LRESULT PopoverLayer::FilterMessage(UINT uMsg,
   WPARAM /*wParam*/,
   LPARAM lParam,
-  BOOL& bHandled)
+  bool& bHandled)
 {
   bHandled = false;
 

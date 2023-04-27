@@ -11,27 +11,27 @@ WindowEx::~WindowEx()
 {
 }
 
-HWND WindowEx::Create(HWND hwndParent, LPCTSTR pstrName, DWORD dwStyle, DWORD dwExStyle, bool isLayeredWindow, const ui::UiRect& rc)
+HWND WindowEx::CreateWnd(HWND hwndParent, const wchar_t* windowName, uint32_t dwStyle, uint32_t dwExStyle, bool isLayeredWindow, const ui::UiRect& rc)
 {
 	if (!RegisterWnd())
 	{
 		return NULL;
 	}
 
-	HWND hwnd = __super::Create(hwndParent, pstrName, dwStyle, dwExStyle, isLayeredWindow, rc);
+	HWND hwnd = __super::CreateWnd(hwndParent, windowName, dwStyle, dwExStyle, isLayeredWindow, rc);
 	ASSERT(hwnd);
 	return hwnd;
 }
 
-LRESULT WindowEx::OnDestroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+LRESULT WindowEx::OnDestroy(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
 	UnRegisterWnd();
 	return __super::OnDestroy(uMsg, wParam, lParam, bHandled);
 }
 
-void WindowEx::OnEsc(BOOL &bHandled)
+void WindowEx::OnEsc(bool &bHandled)
 {
-	bHandled = FALSE;
+	bHandled = false;
 }
 
 bool WindowEx::RegisterWnd()
@@ -52,13 +52,14 @@ void WindowEx::UnRegisterWnd()
 	WindowsManager::GetInstance()->UnRegisterWindow(wnd_class_name, wnd_id, this);
 }
 
-LRESULT WindowEx::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT WindowEx::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
+	bHandled = true;
 	if (uMsg == WM_CLOSE)
 	{
-		if (!::IsWindowEnabled(m_hWnd))
+		if (!::IsWindowEnabled(GetHWND()))
 		{
-			::SetForegroundWindow(m_hWnd);
+			::SetForegroundWindow(GetHWND());
 			return FALSE;
 		}
 	}
@@ -70,13 +71,18 @@ LRESULT WindowEx::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
 		if (wParam == VK_ESCAPE)
 		{
-			BOOL bHandled = FALSE;
+			bHandled = false;
 			OnEsc(bHandled);
-			if (!bHandled)
-				this->Close();
+			if (!bHandled) {
+				this->CloseWnd();
+			}
+			else {
+				return 0;
+			}
 		}
 	}
-	return __super::HandleMessage(uMsg, wParam, lParam);
+	bHandled = false;
+	return __super::OnWindowMessage(uMsg, wParam, lParam, bHandled);
 }
 
 POINT GetPopupWindowPos(WindowEx* window)

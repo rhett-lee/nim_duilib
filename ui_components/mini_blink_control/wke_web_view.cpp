@@ -74,7 +74,7 @@ void WkeWebView::SetWindow(ui::Window* pManager, ui::Box* pParent, bool bInit) {
   }
 }
 
-LRESULT WkeWebView::MessageHandler(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled) {
+LRESULT WkeWebView::FilterMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) {
   if (!IsVisible() || !IsEnabled() || !m_wke_web_view)
   {
     bHandled = false;

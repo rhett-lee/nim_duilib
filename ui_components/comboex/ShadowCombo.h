@@ -15,17 +15,16 @@ public:
   CShadowComboWnd();
   ~CShadowComboWnd() override;
 
-  void Init(ShadowCombo* pOwner);
+  void InitComboWnd(ShadowCombo* pOwner);
   virtual std::wstring GetWindowClassName() const override;
   virtual void OnFinalMessage(HWND hWnd) override;
-  virtual LRESULT HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) override;
+  virtual LRESULT OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
 
   void OnSeleteItem();
 
 private:
   ShadowCombo* m_pOwner = nullptr;
   int m_iOldSel = 0;
-  bool m_bClosing = false;
 };
 
 class ShadowCombo : public ui::Box {

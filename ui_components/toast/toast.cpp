@@ -9,7 +9,7 @@ const LPCTSTR Toast::kClassName = L"Toast";
 void Toast::ShowToast(const std::wstring &content, int duration, HWND parent)
 {
 	Toast *toast = new Toast;
-	HWND hWnd = toast->Create(parent, L"", WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX, 0);
+	HWND hWnd = toast->CreateWnd(parent, L"", WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX, 0);
 	if (hWnd == NULL)
 		return;
 
@@ -44,16 +44,16 @@ UINT Toast::GetClassStyle() const
 	return (UI_CLASSSTYLE_FRAME | CS_DBLCLKS);
 }
 
-LRESULT Toast::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT Toast::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
 	if (uMsg == WM_KEYDOWN && wParam == VK_ESCAPE)
 	{
-		this->Close();
+		this->CloseWnd();
 	}
 	// 整个toast界面都在标题栏，所以要处理WM_NC消息
 	else if (uMsg == WM_NCLBUTTONDBLCLK || uMsg == WM_LBUTTONDBLCLK)
 	{
-		this->Close();
+		this->CloseWnd();
 	}
 	// duilib在WM_MOUSELEAVE消息中会发送一个lparam为-1的WM_MOUSEMOVE消息
 	else if ((uMsg == WM_NCMOUSEMOVE || uMsg == WM_MOUSEMOVE) && lParam != -1)
@@ -65,20 +65,20 @@ LRESULT Toast::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
 		POINT pt;
 		GetCursorPos(&pt);
-		ScreenToClient(m_hWnd, &pt);
+		ScreenToClient(GetHWND(), &pt);
 		ui::UiRect client_rect;
-		::GetClientRect(m_hWnd, &client_rect);
+		::GetClientRect(GetHWND(), &client_rect);
 		// leave消息触发时，获取的鼠标坐标有可能还在client_rect范围内，会偏差1像素，这里缩减1像素
 		client_rect.Deflate(ui::UiRect(1, 1, 1, 1));
 		if (NULL != close_button_ && !client_rect.IsPointIn(ui::CPoint(pt)))
 			close_button_->SetFadeVisible(false);
 	}
-	return __super::HandleMessage(uMsg, wParam, lParam);
+	return __super::OnWindowMessage(uMsg, wParam, lParam, bHandled);
 }
 
-void Toast::InitWindow()
+void Toast::OnInitWindow()
 {
-	m_pRoot->AttachBubbledEvent(ui::kEventClick, nbase::Bind(&Toast::OnClicked, this, std::placeholders::_1));
+	GetRoot()->AttachBubbledEvent(ui::kEventClick, nbase::Bind(&Toast::OnClicked, this, std::placeholders::_1));
 
 	content_ = dynamic_cast<ui::RichEdit*>(FindControl(L"content"));
 	close_button_ = dynamic_cast<ui::Button*>(FindControl(L"close_btn"));
@@ -93,7 +93,7 @@ void Toast::SetDuration(int duration)
 
 	nbase::ThreadManager::PostDelayedTask(kThreadUI, ToWeakCallback([this]()
 	{
-		this->Close();
+		this->CloseWnd();
 	}), nbase::TimeDelta::FromMilliseconds(duration));
 }
 
@@ -102,7 +102,7 @@ bool Toast::OnClicked(ui::EventArgs* msg)
 	std::wstring name = msg->pSender->GetName();
 	if (name == L"close_btn")
 	{
-		this->Close();
+		this->CloseWnd();
 	}
 
 	return true;

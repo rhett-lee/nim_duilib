@@ -45,7 +45,7 @@ public:
 	{
 		AppWindow* ret = new AppWindow;
 		ret->SetBeforeCreate(Item, pt);
-		ret->Create(hParent, L"", WS_POPUP, WS_EX_TOOLWINDOW);
+		ret->CreateWnd(hParent, L"", WS_POPUP, WS_EX_TOOLWINDOW);
 		pThis_ = ret;
 		//需要改变下pos,延后到initWindows
 		return ret;
@@ -64,11 +64,11 @@ public:
 	/**
 	* 收到 WM_CREATE 消息时该函数会被调用，通常做一些控件初始化的操作
 	*/
-	virtual void InitWindow() override;
+	virtual void OnInitWindow() override;
 	/**
 	* 收到 WM_CLOSE 消息时该函数会被调用
 	*/
-	virtual LRESULT OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	virtual LRESULT OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
 
 	//其他的功能函数
 	void SetBeforeCreate(const AppItem& Item, POINT pt){ item_ = Item; pt_ = pt; }

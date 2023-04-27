@@ -429,8 +429,8 @@ void Box::SetEnabled(bool bEnabled)
 	if (m_items.empty()) {
 		return;
 	}
-	for (auto it = m_items.begin(); it != m_items.end(); it++) {
-		Control* pControl = *it;
+	//子控件的Enable状态，与父控件是同步的(如果支持不同步，相关业务逻辑需要做调整)
+	for (auto pControl : m_items) {
 		ASSERT(pControl != nullptr);
 		if (pControl != nullptr) {
 			pControl->SetEnabled(bEnabled);
@@ -438,6 +438,24 @@ void Box::SetEnabled(bool bEnabled)
 	}
 
 	Invalidate();
+}
+
+void Box::SetVisible(bool bVisible)
+{
+	if (IsVisible() == bVisible) {
+		return;
+	}
+	bool v = IsVisible();
+	__super::SetVisible(bVisible);
+	if (IsVisible() != v) {
+		//子控件的Visible控件是同步的(如果支持不同步，相关业务逻辑需要做调整，除了判断控件自身是否可见，还要判断父控件是否可见)
+		for (auto pControl : m_items){
+			ASSERT(pControl != nullptr);
+			if (pControl != nullptr) {
+				pControl->SetVisible(bVisible);
+			}
+		}
+	}
 }
 
 CSize Box::EstimateSize(CSize szAvailable)

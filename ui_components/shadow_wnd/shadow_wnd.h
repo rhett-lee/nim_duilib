@@ -13,7 +13,7 @@ namespace nim_comp {
  * @copyright (c) 2016, NetEase Inc. All rights reserved
  * @date 2019-03-22
  */
-class ShadowWnd : public ui::WindowImplBase
+class ShadowWnd : public ui::WindowImplBase, public ui::IUIMessageFilter
 {
 public:
 	ShadowWnd();
@@ -21,7 +21,8 @@ public:
 	virtual std::wstring GetSkinFolder() override;
 	virtual std::wstring GetSkinFile() override;
 	virtual std::wstring GetWindowClassName() const override;
-	virtual LRESULT MessageHandler(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled) override;
+
+	virtual LRESULT FilterMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
 	
 	virtual HWND Create(Window* window);
 private:
@@ -38,8 +39,12 @@ class ShadowWndBase : public ui::WindowImplBase
 public:
 	ShadowWndBase();
 
-	virtual HWND Create(HWND hwndParent, LPCTSTR pstrName, DWORD dwStyle, DWORD dwExStyle, 
-		bool isLayeredWindow = false, const ui::UiRect& rc = ui::UiRect(0, 0, 0, 0)) override;
+	virtual HWND CreateWnd(HWND hwndParent,
+						   const wchar_t* windowName,
+						   uint32_t dwStyle,
+						   uint32_t dwExStyle,
+						   bool isLayeredWindow = true,
+						   const ui::UiRect& rc = ui::UiRect(0, 0, 0, 0)) override;
 
 private:
 	ShadowWnd* shadow_wnd_;

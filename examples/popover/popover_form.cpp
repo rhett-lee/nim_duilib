@@ -39,7 +39,7 @@ ui::Control* PopoverForm::CreateControl(const std::wstring& pstrClass)
   return control;
 }
 
-void PopoverForm::InitWindow()
+void PopoverForm::OnInitWindow()
 {
   m_pPopoverLayer = static_cast<nim_comp::PopoverLayer*>(FindControl(L"popover_layer"));
 
@@ -63,7 +63,7 @@ void PopoverForm::InitWindow()
   TestOthers();
 }
 
-LRESULT PopoverForm::OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+LRESULT PopoverForm::OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
   PostQuitMessage(0L);
   return __super::OnClose(uMsg, wParam, lParam, bHandled);

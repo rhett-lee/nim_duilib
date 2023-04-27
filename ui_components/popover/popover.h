@@ -626,10 +626,7 @@ private:
   // 重载
   std::wstring GetType() const;
   void DoInit() override;
-  LRESULT MessageHandler(UINT uMsg,
-    WPARAM wParam,
-    LPARAM lParam,
-    BOOL& bHandled) override;
+  virtual LRESULT FilterMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
 
   /**
   * 设置是否显示半透明遮罩

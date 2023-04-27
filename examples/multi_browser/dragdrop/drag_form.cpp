@@ -43,7 +43,7 @@ void DragForm::CloseCustomDragImage()
 {
 	if (NULL != s_drag_form)
 	{
-		s_drag_form->Close();
+		s_drag_form->CloseWnd();
 		s_drag_form = NULL;
 	}
 
@@ -59,7 +59,7 @@ DragForm* DragForm::CreateDragForm(HBITMAP bitmap, POINT pt_offset)
 {
 	DragForm *drag_form = new DragForm;
 
-	HWND hwnd = drag_form->Create(NULL, kClassName, UI_WNDSTYLE_FRAME, WS_EX_TOPMOST | WS_EX_TRANSPARENT | WS_EX_LAYERED | WS_EX_TOOLWINDOW);
+	HWND hwnd = drag_form->CreateWnd(NULL, kClassName, UI_WNDSTYLE_FRAME, WS_EX_TOPMOST | WS_EX_TRANSPARENT | WS_EX_LAYERED | WS_EX_TOOLWINDOW);
 	ASSERT(hwnd != NULL);
 	drag_form->SetDragImage(bitmap);
 
@@ -114,7 +114,7 @@ UINT DragForm::GetClassStyle() const
 	return (UI_CLASSSTYLE_FRAME);
 }
 
-void DragForm::InitWindow()
+void DragForm::OnInitWindow()
 {
 	bitmap_control_ = static_cast<BitmapControl*>(FindControl(L"bitmap"));
 	ASSERT(NULL != bitmap_control_);

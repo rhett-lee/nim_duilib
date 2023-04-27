@@ -27,7 +27,7 @@ std::wstring MainForm::GetWindowClassName() const
 	return kClassName;
 }
 
-void MainForm::InitWindow()
+void MainForm::OnInitWindow()
 {
 
 	m_EditColumn = dynamic_cast<ui::RichEdit*>(FindControl(L"edit_column"));
@@ -40,7 +40,7 @@ void MainForm::InitWindow()
 	m_EditDelete = dynamic_cast<ui::RichEdit*>(FindControl(L"edit_delete"));
 	m_EditChildMargin = dynamic_cast<ui::RichEdit*>(FindControl(L"edit_child_margin"));
 
-	m_pRoot->AttachBubbledEvent(ui::kEventClick, nbase::Bind(&MainForm::OnClicked, this, std::placeholders::_1));
+	GetRoot()->AttachBubbledEvent(ui::kEventClick, nbase::Bind(&MainForm::OnClicked, this, std::placeholders::_1));
 
 	// 设置提供者
 	m_DataProvider = new Provider;
@@ -50,7 +50,7 @@ void MainForm::InitWindow()
 
 }
 
-LRESULT MainForm::OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+LRESULT MainForm::OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
 	PostQuitMessage(0L);
 	return __super::OnClose(uMsg, wParam, lParam, bHandled);

@@ -28,7 +28,7 @@ std::wstring RichlistForm::GetWindowClassName() const
 	return kClassName;
 }
 
-void RichlistForm::InitWindow()
+void RichlistForm::OnInitWindow()
 {
 	list_ = dynamic_cast<ui::ListBox*>(FindControl(L"list"));
 
@@ -61,7 +61,7 @@ bool RichlistForm::OnSelected(ui::EventArgs* args)
 	return true;
 }
 
-LRESULT RichlistForm::OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+LRESULT RichlistForm::OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
 	PostQuitMessage(0L);
 	return __super::OnClose(uMsg, wParam, lParam, bHandled);

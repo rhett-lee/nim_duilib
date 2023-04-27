@@ -19,7 +19,7 @@ public:
 	/**
 	 * 收到 WM_CREATE 消息时该函数会被调用，通常做一些控件初始化的操作
 	 */
-	virtual void InitWindow() override;
+	virtual void OnInitWindow() override;
 
 	/**
 	 * 标识窗口 class name

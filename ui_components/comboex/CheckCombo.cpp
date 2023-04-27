@@ -10,21 +10,20 @@ namespace nim_comp
 	class CCheckComboWnd : public ui::Window
 	{
 	public:
-		void Init(CheckCombo* pOwner);
+		void InitComboWnd(CheckCombo* pOwner);
 		virtual std::wstring GetWindowClassName() const override;
 		virtual void OnFinalMessage(HWND hWnd) override;
-		virtual LRESULT HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) override;
+		virtual LRESULT OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
 
 		void OnSeleteItem();
 
 	private:
 		CheckCombo *m_pOwner = nullptr;
 		int m_iOldSel = -1;
-		bool m_bClosing = false;
 	};
 
 
-	void CCheckComboWnd::Init(CheckCombo* pOwner)
+	void CCheckComboWnd::InitComboWnd(CheckCombo* pOwner)
 	{
 		m_pOwner = pOwner;
 		//m_iOldSel = m_pOwner->GetCurSel();
@@ -63,12 +62,12 @@ namespace nim_comp
 			::MapWindowRect(pOwner->GetWindow()->GetHWND(), HWND_DESKTOP, &rc);
 		}
 
-		Create(pOwner->GetWindow()->GetHWND(), NULL, WS_POPUP, WS_EX_TOOLWINDOW, true, rc);
+		CreateWnd(pOwner->GetWindow()->GetHWND(), L"", WS_POPUP, WS_EX_TOOLWINDOW, true, rc);
 		// HACK: Don't deselect the parent's caption
-		HWND hWndParent = m_hWnd;
+		HWND hWndParent = GetHWND();
 		while (::GetParent(hWndParent) != NULL)
 			hWndParent = ::GetParent(hWndParent);
-		::ShowWindow(m_hWnd, SW_SHOW);
+		::ShowWindow(GetHWND(), SW_SHOW);
 		::SendMessage(hWndParent, WM_NCACTIVATE, TRUE, 0L);
 	}
 
@@ -90,18 +89,18 @@ namespace nim_comp
 		PostMessage(WM_KILLFOCUS);
 	}
 
-	LRESULT CCheckComboWnd::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
+	LRESULT CCheckComboWnd::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 	{
+		bHandled = false;
 		if (uMsg == WM_CREATE) {
-			this->Window::Init(m_hWnd);
+			this->InitWnd(GetHWND());
 			ui::Box* pRoot = new ui::Box;
 			pRoot->SetAutoDestroyChild(false);
 			pRoot->Add(m_pOwner->GetListBox());
-			this->AttachDialog(pRoot);
+			this->AttachBox(pRoot);
 			this->SetWindowResourcePath(m_pOwner->GetWindow()->GetWindowResourcePath());
 			this->SetShadowAttached(false);
-
-			return 0;
+			bHandled = true;
 		}
 		else if (uMsg == WM_CLOSE) {
 			m_pOwner->SetWindow(m_pOwner->GetWindow(), m_pOwner->GetParent(), false);
@@ -109,27 +108,21 @@ namespace nim_comp
 			m_pOwner->SetFocus();
 		}
 		else if (uMsg == WM_KILLFOCUS) {
-			if (m_hWnd != (HWND)wParam)	{
-				m_bClosing = true;
-				PostMessage(WM_CLOSE);
+			if (GetHWND() != (HWND)wParam)	{
 				((ui::Box*)this->GetRoot())->RemoveAt(0);
 				m_pOwner->GetListBox()->PlaceHolder::SetWindow(nullptr, nullptr, false);
+				PostMessage(WM_CLOSE);
 			}
 		}
-
-		if (m_bClosing)	{
-			return CallDefaultWindowProc(uMsg, wParam, lParam);
+		else if (uMsg == WM_KEYDOWN && wParam == VK_ESCAPE) {
+			PostMessage(WM_CLOSE);
 		}
-		else {
-			bool handled = false;
-			LRESULT ret = this->DoHandleMessage(uMsg, wParam, lParam, handled);
-			if (handled) {
-				return ret;
-			}
-			else {
-				return CallDefaultWindowProc(uMsg, wParam, lParam);
-			}
+		LRESULT lResult = 0;
+		if (!bHandled)
+		{
+			lResult = __super::OnWindowMessage(uMsg, wParam, lParam, bHandled);
 		}
+		return lResult;
 	}
 
 	////////////////////////////////////////////////////////
@@ -225,7 +218,7 @@ namespace nim_comp
 
 		m_pCheckComboWnd = new CCheckComboWnd();
 		ASSERT(m_pCheckComboWnd);
-		m_pCheckComboWnd->Init(this);
+		m_pCheckComboWnd->InitComboWnd(this);
 
 		m_pCheckComboWnd->SendNotify(this, ui::kEventClick);
 		Invalidate();

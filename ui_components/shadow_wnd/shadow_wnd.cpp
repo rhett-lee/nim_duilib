@@ -25,10 +25,10 @@ std::wstring ShadowWnd::GetWindowClassName() const
 HWND ShadowWnd::Create(Window* window)
 {
 	window_ = window;
-	return Window::Create(NULL, L"ShadowWindow", WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX, WS_EX_TRANSPARENT | WS_EX_TOOLWINDOW, true);
+	return Window::CreateWnd(NULL, L"ShadowWindow", WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX, WS_EX_TRANSPARENT | WS_EX_TOOLWINDOW, true);
 }
 
-LRESULT ShadowWnd::MessageHandler(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled)
+LRESULT ShadowWnd::FilterMessage(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/, bool& bHandled)
 {
 	if (window_ == NULL || window_->GetHWND() == NULL)
 	{
@@ -54,7 +54,7 @@ LRESULT ShadowWnd::MessageHandler(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/, B
 	case WM_CLOSE:
 	{
 		ShowWindow(false, false);
-		Close(0);
+		CloseWnd(0);
 		break;
 	}
 	case WM_SHOWWINDOW:
@@ -79,10 +79,10 @@ ShadowWndBase::ShadowWndBase()
 	this->AddMessageFilter(shadow_wnd_);
 }
 
-HWND ShadowWndBase::Create(HWND hwndParent, LPCTSTR pstrName, DWORD dwStyle, DWORD dwExStyle, 
+HWND ShadowWndBase::CreateWnd(HWND hwndParent, const wchar_t* windowName, uint32_t dwStyle, uint32_t dwExStyle,
 	bool /*isLayeredWindow*/ /*= false*/, const ui::UiRect& rc /*= ui::UiRect(0, 0, 0, 0)*/)
 {
-	__super::Create(hwndParent, pstrName, dwStyle, dwExStyle, false, rc);
+	__super::CreateWnd(hwndParent, windowName, dwStyle, dwExStyle, false, rc);
 
 	shadow_wnd_->Create(this);
 	::EnableWindow(shadow_wnd_->GetHWND(), FALSE);

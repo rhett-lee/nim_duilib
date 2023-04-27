@@ -174,7 +174,10 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pManager, Bo
 						rcCaption.bottom = _tcstol(pstr + 1, &pstr, 10); ASSERT(pstr);
 						pManager->SetCaptionRect(rcCaption);
 					}
-					else if( strName == _T("textid") ) {
+					else if( strName == _T("text") ) {
+						pManager->SetText(strValue);
+					}
+					else if (strName == _T("textid")) {
 						pManager->SetTextId(strValue);
 					}
 					else if( strName == _T("roundcorner") ) {

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Window size="800,600" caption="0,0,0,35">
+<Window size="800,600" caption="0,0,0,35" sizebox="2,2,2,2" mininfo="400,320" >
     <!-- 整个布局放在一个VBox容器中 -->
     <!-- 布局属性：margin="left,top,right,bottom"; padding="left,top,right,bottom" -->
     <VBox bkcolor="bk_wnd_darkcolor">

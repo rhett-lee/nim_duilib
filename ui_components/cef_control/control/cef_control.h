@@ -25,7 +25,7 @@ public:
 	virtual void Paint(ui::IRenderContext* pRender, const ui::UiRect& rcPaint) override;
 	virtual void SetWindow(ui::Window* pManager, ui::Box* pParent, bool bInit) override;
 
-	virtual LRESULT MessageHandler(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled) override; // 处理窗体消息，转发到Cef浏览器对象
+	virtual LRESULT FilterMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override; // 处理窗体消息，转发到Cef浏览器对象
 
 	/**
 	* @brief 打开开发者工具
@@ -46,7 +46,7 @@ protected:
 	 * @param[out] bHandled 是否继续传递消息
 	 * @return 返回消息处理结果
 	 */
-	LRESULT SendButtonDownEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	LRESULT SendButtonDownEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
 
 	/**
 	 * @brief 转发鼠标双击消息到 BrowserHost
@@ -56,7 +56,7 @@ protected:
 	 * @param[out] bHandled 是否继续传递消息
 	 * @return 返回消息处理结果
 	 */
-	LRESULT SendButtonDoubleDownEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	LRESULT SendButtonDoubleDownEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
 
 	/**
 	 * @brief 转发鼠标弹起消息到 BrowserHost
@@ -66,7 +66,7 @@ protected:
 	 * @param[out] bHandled 是否继续传递消息
 	 * @return 返回消息处理结果
 	 */
-	LRESULT SendButtonUpEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	LRESULT SendButtonUpEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
 
 	/**
 	 * @brief 转发鼠标移动消息到 BrowserHost
@@ -76,7 +76,7 @@ protected:
 	 * @param[out] bHandled 是否继续传递消息
 	 * @return 返回消息处理结果
 	 */
-	LRESULT SendMouseMoveEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	LRESULT SendMouseMoveEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
 
 	/**
 	 * @brief 转发鼠标滚动消息到 BrowserHost
@@ -86,7 +86,7 @@ protected:
 	 * @param[out] bHandled 是否继续传递消息
 	 * @return 返回消息处理结果
 	 */
-	LRESULT SendMouseWheelEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	LRESULT SendMouseWheelEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
 
 	/**
 	 * @brief 转发鼠标离开消息到 BrowserHost
@@ -96,7 +96,7 @@ protected:
 	 * @param[out] bHandled 是否继续传递消息
 	 * @return 返回消息处理结果
 	 */
-	LRESULT SendMouseLeaveEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	LRESULT SendMouseLeaveEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
 
 	/**
 	 * @brief 转发键盘相关消息到 BrowserHost
@@ -106,7 +106,7 @@ protected:
 	 * @param[out] bHandled 是否继续传递消息
 	 * @return 返回消息处理结果
 	 */
-	LRESULT SendKeyEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	LRESULT SendKeyEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
 
 	/**
 	 * @brief 转发捕获焦点消息到 BrowserHost
@@ -116,7 +116,7 @@ protected:
 	 * @param[out] bHandled 是否继续传递消息
 	 * @return 返回消息处理结果
 	 */
-	LRESULT SendCaptureLostEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	LRESULT SendCaptureLostEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
 	
 	/**
 	 * @brief 判断是否有按键按下

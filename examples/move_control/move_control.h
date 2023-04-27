@@ -25,12 +25,12 @@ public:
 	/**
 	 * 收到 WM_CREATE 消息时该函数会被调用，通常做一些控件初始化的操作
 	 */
-	virtual void InitWindow() override;
+	virtual void OnInitWindow() override;
 
 	/**
 	 * 收到 WM_CLOSE 消息时该函数会被调用
 	 */
-	virtual LRESULT OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	virtual LRESULT OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
 	/**
 	* @brief 接收到鼠标左键弹起消息时被调用
 	* @param[in] uMsg 消息内容
@@ -39,7 +39,7 @@ public:
 	* @param[out] bHandled 返回 false 则继续派发该消息，否则不再派发该消息
 	* @return 返回消息处理结果
 	*/
-	virtual LRESULT OnLButtonUp(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	virtual LRESULT OnLButtonUp(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
 
 
 public:

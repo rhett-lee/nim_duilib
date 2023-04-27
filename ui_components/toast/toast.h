@@ -37,7 +37,7 @@ public:
 	 * 窗口初始化函数
 	 * @return void	无返回值
 	 */
-	virtual void InitWindow() override;
+	virtual void OnInitWindow() override;
 
 	/**
 	 * 拦截并处理底层窗体消息
@@ -46,7 +46,7 @@ public:
 	 * @param[in] lParam 附加参数
 	 * @return LRESULT 处理结果
 	 */
-	virtual LRESULT HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) override;
+	virtual LRESULT OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
 
 	/**
 	 * 设置窗体的显示时长

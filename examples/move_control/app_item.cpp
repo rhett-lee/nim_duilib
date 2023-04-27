@@ -82,7 +82,7 @@ std::wstring AppWindow::GetWindowClassName() const
 	return L"move_control";
 }
 
-void AppWindow::InitWindow()
+void AppWindow::OnInitWindow()
 {
 	ui::VBox* root = static_cast<ui::VBox*>(FindControl(L"root"));
 	if (root)
@@ -99,7 +99,7 @@ void AppWindow::InitWindow()
 	
 }
 
-LRESULT AppWindow::OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+LRESULT AppWindow::OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
 	//清理hook
 	UnInstallHook();
@@ -164,7 +164,7 @@ LRESULT CALLBACK AppWindow::LowLevelMouseProc(int nCode, WPARAM wParam, LPARAM l
 			{
 				//通知主窗口事件
 				::PostMessage(GetParent(pThis_->GetHWND()), WM_LBUTTONUP, 0, 0);
-				pThis_->Close();
+				pThis_->CloseWnd();
 			}
 		}
 	}

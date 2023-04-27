@@ -28,7 +28,7 @@ std::wstring AboutForm::GetWindowClassName() const
 	return kClassName;
 }
 
-void AboutForm::InitWindow()
+void AboutForm::OnInitWindow()
 {
 	ui::Label* link = static_cast<ui::Label*>(FindControl(L"link"));
 	if (link)

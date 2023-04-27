@@ -557,7 +557,7 @@ void Control::SetFocus()
 	if (m_bNoFocus) {
 		return;
 	}
-	ASSERT(IsVisibleAncestor());
+	ASSERT(CheckVisibleAncestor());
 	if (m_pWindow != nullptr) {
 		m_pWindow->SetFocus(this);
 	}
@@ -875,7 +875,7 @@ void Control::HandleMessage(EventArgs& msg)
 	}
 	else if( msg.Type == kEventMouseEnter ) {
 		if (m_pWindow) {
-			if (!IsChild(this, m_pWindow->GetNewHover())) {
+			if (!IsChild(this, m_pWindow->GetHoverControl())) {
 				return;
 			}
 		}
@@ -884,7 +884,7 @@ void Control::HandleMessage(EventArgs& msg)
 	}
 	else if( msg.Type == kEventMouseLeave ) {
 		if (m_pWindow) {
-			if (IsChild(this, m_pWindow->GetNewHover())) {
+			if (IsChild(this, m_pWindow->GetHoverControl())) {
 				return;
 			}
 		}
@@ -1973,7 +1973,7 @@ bool Control::IsLoading()
     return m_bIsLoading;
 }
 
-bool Control::IsVisibleAncestor(void) const
+bool Control::CheckVisibleAncestor(void) const
 {
 	bool isVisible = IsVisible();
 	if (isVisible) {

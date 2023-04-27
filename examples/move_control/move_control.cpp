@@ -32,7 +32,7 @@ std::wstring MoveControlForm::GetWindowClassName() const
 	return class_name_;
 }
 
-void MoveControlForm::InitWindow()
+void MoveControlForm::OnInitWindow()
 {
 	//添加应用。应用有可能是服务器下发的，一般本地也有保存的
 	//loadFromDb
@@ -62,14 +62,14 @@ void MoveControlForm::InitWindow()
 	}
 }
 
-LRESULT MoveControlForm::OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+LRESULT MoveControlForm::OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
 	PostQuitMessage(0L);
 	return __super::OnClose(uMsg, wParam, lParam, bHandled);
 }
 
 
-LRESULT MoveControlForm::OnLButtonUp(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+LRESULT MoveControlForm::OnLButtonUp(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
 	if (current_item_ == nullptr)
 	{
@@ -99,15 +99,15 @@ LRESULT MoveControlForm::OnLButtonUp(UINT uMsg, WPARAM wParam, LPARAM lParam, BO
 
 	is_drag_state_ = false;
 	current_item_ = nullptr;
-	SetForegroundWindow(m_hWnd);
-	SetActiveWindow(m_hWnd);
+	SetForegroundWindow(GetHWND());
+	SetActiveWindow(GetHWND());
 	return __super::OnLButtonUp(uMsg, wParam, lParam, bHandled);
 }
 
 void MoveControlForm::ShowCustomWindow(const std::wstring& class_name, const std::wstring& theme_directory, const std::wstring& layout_xml)
 {
 	MoveControlForm* window = new MoveControlForm(class_name, theme_directory, layout_xml);
-	window->Create(NULL, class_name.c_str(), UI_WNDSTYLE_FRAME, 0);
+	window->CreateWnd(NULL, class_name.c_str(), UI_WNDSTYLE_FRAME, 0);
 	window->CenterWindow();
 	window->ShowWindow();
 }
@@ -215,7 +215,7 @@ bool MoveControlForm::DoAfterDrag(ui::Box* check)
 	//获取鼠标的位置
 	POINT pt;
 	GetCursorPos(&pt);
-	ScreenToClient(m_hWnd, &pt);
+	ScreenToClient(GetHWND(), &pt);
 	int findIndex = 0;
 	UiRect rectBox = check->GetPos();
 	if (rectBox.IsPointIn(CPoint(pt)))

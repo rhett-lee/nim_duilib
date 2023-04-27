@@ -33,7 +33,7 @@ BOOL CMenuWnd::Receive(ContextMenuParam param)
 		break;
 		case MenuCloseType::eMenuCloseThis:
 		{
-			HWND hParent = GetParent(m_hWnd);
+			HWND hParent = GetParent(GetHWND());
 			while (hParent != NULL) {
 				if (hParent == param.hWnd) {
 					CloseMenu();
@@ -86,13 +86,13 @@ void CMenuWnd::ShowMenu(const std::wstring& xml, const CPoint& point, MenuPopupP
 
 	CMenuWnd::GetMenuObserver().AddReceiver(this);
 
-	Create(m_hParent, L"DUILIB_MENU_WINDOW", WS_POPUP, WS_EX_TOOLWINDOW | WS_EX_TOPMOST, true, ui::UiRect());
+	CreateWnd(m_hParent, L"DUILIB_MENU_WINDOW", WS_POPUP, WS_EX_TOOLWINDOW | WS_EX_TOPMOST, true, ui::UiRect());
 	// HACK: Don't deselect the parent's caption
-	HWND hWndParent = m_hWnd;
+	HWND hWndParent = GetHWND();
 	while (::GetParent(hWndParent) != NULL) {
 		hWndParent = ::GetParent(hWndParent);
 	}
-	::ShowWindow(m_hWnd, noFocus ? SW_SHOWNOACTIVATE : SW_SHOW);
+	::ShowWindow(GetHWND(), noFocus ? SW_SHOWNOACTIVATE : SW_SHOW);
 	if (m_pOwner) {
 		ResizeSubMenu();
 	}
@@ -115,7 +115,7 @@ void CMenuWnd::DetachOwner()
 			m_pLayout->SelectItem(-1);
 		}
 
-		//将在InitWindow中，添加到Layout上的节点，接触关联关系
+		//将在OnInitWindow中，添加到Layout上的节点，接触关联关系
 		std::vector<Control*> submenuControls;
 		CMenuElementUI::GetAllSubMenuControls(m_pOwner, submenuControls);
 		for (auto pItem : submenuControls) {
@@ -131,10 +131,9 @@ void CMenuWnd::DetachOwner()
 
 void CMenuWnd::OnFinalMessage(HWND hWnd)
 {
-	Window::OnFinalMessage(hWnd);
 	RemoveObserver();
 	DetachOwner();
-	ReapObjects(GetRoot());
+	Window::OnFinalMessage(hWnd);
 	delete this;
 }
 
@@ -153,8 +152,9 @@ std::wstring CMenuWnd::GetWindowClassName() const
 	return L"MenuWnd";
 }
 
-LRESULT CMenuWnd::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT CMenuWnd::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
+	bHandled = true;
 	switch (uMsg)
 	{
  		case WM_KILLFOCUS:
@@ -205,7 +205,7 @@ LRESULT CMenuWnd::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
 				if (pItem) {
 					if (!pItem->CheckSubMenuItem()) {
 						ContextMenuParam param;
-						param.hWnd = m_hWnd;
+						param.hWnd = GetHWND();
 						param.wParam = MenuCloseType::eMenuCloseAll;
 						CMenuWnd::GetMenuObserver().RBroadcast(param);
 					}
@@ -222,8 +222,7 @@ LRESULT CMenuWnd::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
 	default:
 		break;
 	}
-
-	return __super::HandleMessage(uMsg, wParam, lParam);
+	return __super::OnWindowMessage(uMsg, wParam, lParam, bHandled);
 }
 
 void CMenuWnd::ResizeMenu()
@@ -273,10 +272,10 @@ void CMenuWnd::ResizeMenu()
 		}
 	}
 	if (!m_noFocus) {
-		SetForegroundWindow(m_hWnd);
+		SetForegroundWindow(GetHWND());
 		SetFocus(m_pLayout);
 	}
-	SetWindowPos(m_hWnd, HWND_TOPMOST, 
+	SetWindowPos(GetHWND(), HWND_TOPMOST,
 		         point.x - rcCorner.left, point.y - rcCorner.top,
 		         szAvailable.cx, szAvailable.cy,
 		         SWP_SHOWWINDOW | (m_noFocus ? SWP_NOACTIVATE : 0));
@@ -383,16 +382,16 @@ void CMenuWnd::ResizeSubMenu()
 	}
 
 	if (!m_noFocus) {
-		SetForegroundWindow(m_hWnd);
+		SetForegroundWindow(GetHWND());
 		SetFocus(m_pLayout);
 	}
-	SetWindowPos(m_hWnd, HWND_TOPMOST,
+	SetWindowPos(GetHWND(), HWND_TOPMOST,
 		         rc.left - rcCorner.left, rc.top - rcCorner.top,
 				 rc.right - rc.left, rc.bottom - rc.top,
 				 SWP_SHOWWINDOW | (m_noFocus ? SWP_NOACTIVATE : 0));
 }
 
-void CMenuWnd::InitWindow()
+void CMenuWnd::OnInitWindow()
 {
 	if (m_pOwner != nullptr) {
 		m_pLayout = dynamic_cast<ui::ListBox*>(FindControl(m_submenuNodeName.c_str()));
@@ -414,11 +413,11 @@ void CMenuWnd::InitWindow()
 		}
 	}
 	else {
-		m_pLayout = dynamic_cast<ui::ListBox*>(m_pRoot);
+		m_pLayout = dynamic_cast<ui::ListBox*>(GetRoot());
 		if (m_pLayout == nullptr) {
 			//允许外面套层阴影
-			if ((m_pRoot != nullptr) && (m_pRoot->GetCount() > 0)) {
-				m_pLayout = dynamic_cast<ui::ListBox*>(m_pRoot->GetItemAt(0));
+			if ((GetRoot() != nullptr) && (GetRoot()->GetCount() > 0)) {
+				m_pLayout = dynamic_cast<ui::ListBox*>(GetRoot()->GetItemAt(0));
 			}
 		}
 		ASSERT(m_pLayout != nullptr);

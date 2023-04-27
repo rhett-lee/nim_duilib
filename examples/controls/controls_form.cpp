@@ -47,7 +47,7 @@ ui::Control* ControlForm::CreateControl(const std::wstring& pstrClass)
 	return control;
 }
 
-void ControlForm::InitWindow()
+void ControlForm::OnInitWindow()
 {
 	/**
 	 * 为了让代码看起来相对容易理解，不需要频繁跟进才能看明白示例代码
@@ -157,7 +157,7 @@ void ControlForm::InitWindow()
 		ui::CPoint point;
 		point.x = rect.left - 175;
 		point.y = rect.top + 10;
-		::ClientToScreen(m_hWnd, &point);
+		::ClientToScreen(GetHWND(), &point);
 
 		ShowPopupMenu(point);
 		return true;
@@ -175,13 +175,13 @@ void ControlForm::InitWindow()
 				ui::Control* pControl = (ui::Control*)args->lParam;//当前点击点所在的控件
 
 				//鼠标消息产生的上下文菜单
-				::ClientToScreen(m_hWnd, &pt);
+				::ClientToScreen(GetHWND(), &pt);
 				ShowPopupMenu(ui::CPoint(pt));
 			}
 			else {
 				//按Shif + F10，由系统产生上下文菜单
 				pt = { 100, 100 };
-				::ClientToScreen(m_hWnd, &pt);
+				::ClientToScreen(GetHWND(), &pt);
 				ShowPopupMenu(ui::CPoint(pt));
 			}
 		}
@@ -191,7 +191,7 @@ void ControlForm::InitWindow()
 
 void ControlForm::ShowPopupMenu(const ui::CPoint& point)
 {
-    ui::CMenuWnd* menu = new ui::CMenuWnd(m_hWnd);//需要设置父窗口，否在菜单弹出的时候，程序状态栏编程非激活状态
+    ui::CMenuWnd* menu = new ui::CMenuWnd(GetHWND());//需要设置父窗口，否在菜单弹出的时候，程序状态栏编程非激活状态
     std::wstring xml(L"settings_menu.xml");
     menu->ShowMenu(xml, point);
 
@@ -248,7 +248,7 @@ void ControlForm::ShowPopupMenu(const ui::CPoint& point)
         if (!about_form)
         {
             about_form = new AboutForm();
-            about_form->Create(GetHWND(), AboutForm::kClassName, WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX, 0);
+            about_form->CreateWnd(GetHWND(), AboutForm::kClassName, WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX, 0);
             about_form->CenterWindow();
             about_form->ShowWindow();
         }
@@ -260,7 +260,7 @@ void ControlForm::ShowPopupMenu(const ui::CPoint& point)
         });
 }
 
-LRESULT ControlForm::OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+LRESULT ControlForm::OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
 	PostQuitMessage(0L);
 	return __super::OnClose(uMsg, wParam, lParam, bHandled);

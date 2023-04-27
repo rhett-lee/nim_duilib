@@ -1013,8 +1013,10 @@ public:
 	void AttachXmlEvent(EventType eventType, const EventCallback& callback) { m_OnXmlEvent[eventType] += callback; }
 
 	/** 当前控件以及级联父容器是否可见（从当前控件到最顶层父控件，只要有一个Visible为false，则返回false）
+	* @return true 表示当前控件以及所有父控件，均是可见状态
+	*         false 表示当前控件或者所有父控件中，有非可见状态的控件
 	 */
-	bool IsVisibleAncestor(void) const;
+	bool CheckVisibleAncestor(void) const;
 
 protected:
 	

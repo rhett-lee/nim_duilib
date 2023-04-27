@@ -9,20 +9,19 @@ class CFilterComboWnd:
 	public ui::Window
 {
 public:
-    void Init(FilterCombo* pOwner);
+    void InitComboWnd(FilterCombo* pOwner);
     virtual std::wstring GetWindowClassName() const override;
 	virtual void OnFinalMessage(HWND hWnd) override;
-	virtual LRESULT HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) override;
+	virtual LRESULT OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
 
 	void OnSeleteItem();
 
 private:
     FilterCombo *m_pOwner = nullptr;
     int m_iOldSel = -1;
-	bool m_bClosing = false;
 };
 
-void CFilterComboWnd::Init(FilterCombo* pOwner)
+void CFilterComboWnd::InitComboWnd(FilterCombo* pOwner)
 {
 	ASSERT(pOwner != nullptr);
 	if (pOwner == nullptr) {
@@ -73,13 +72,13 @@ void CFilterComboWnd::Init(FilterCombo* pOwner)
         ::MapWindowRect(pOwner->GetWindow()->GetHWND(), HWND_DESKTOP, &rc);
     }
     
-    Create(pOwner->GetWindow()->GetHWND(), NULL, WS_POPUP, WS_EX_TOOLWINDOW, true, rc);
+    CreateWnd(pOwner->GetWindow()->GetHWND(), L"", WS_POPUP, WS_EX_TOOLWINDOW, true, rc);
     // HACK: Don't deselect the parent's caption
-    HWND hWndParent = m_hWnd;
+    HWND hWndParent = GetHWND();
 	while (::GetParent(hWndParent) != NULL) {
 		hWndParent = ::GetParent(hWndParent);
 	}
-    ::ShowWindow(m_hWnd, SW_SHOW);
+    ::ShowWindow(GetHWND(), SW_SHOW);
     //::SendMessage(hWndParent, WM_NCACTIVATE, TRUE, 0L);
 }
 
@@ -103,19 +102,19 @@ void CFilterComboWnd::OnSeleteItem()
 	PostMessage(WM_KILLFOCUS);
 }
 
-LRESULT CFilterComboWnd::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT CFilterComboWnd::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
+	bHandled = false;
     if( uMsg == WM_CREATE ) {
-        this->Window::Init(m_hWnd);
+		this->InitWnd(GetHWND());
 		ui::Box* pRoot = new ui::Box;
 		pRoot->SetAutoDestroyChild(false);
 		pRoot->Add(m_pOwner->GetListBox());
 		m_pOwner->GetListBox()->SetFilterComboWnd(this);
-		this->AttachDialog(pRoot);
+		this->AttachBox(pRoot);
 		this->SetWindowResourcePath(m_pOwner->GetWindow()->GetWindowResourcePath());
 		this->SetShadowAttached(false);
-
-        return 0;
+		bHandled = true;
     }
     else if( uMsg == WM_CLOSE ) {
         m_pOwner->SetWindow(m_pOwner->GetWindow(), m_pOwner->GetParent(), false);
@@ -123,18 +122,20 @@ LRESULT CFilterComboWnd::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
         m_pOwner->SetFocus();
     }
     else if( uMsg == WM_KILLFOCUS ) {
-		if (m_hWnd != (HWND)wParam)	{ 
-			m_bClosing = true;
-			PostMessage(WM_CLOSE);
+		if (GetHWND() != (HWND)wParam)	{
 			if ((m_pOwner != nullptr) && (m_pOwner->GetListBox() != nullptr)){
 				m_pOwner->SelectItem(m_pOwner->GetListBox()->GetCurSel());
 				((ui::Box*)this->GetRoot())->RemoveAt(0);
 				m_pOwner->GetListBox()->PlaceHolder::SetWindow(nullptr, nullptr, false);
 				m_pOwner->GetListBox()->SetFilterComboWnd(nullptr);
 			}
+			PostMessage(WM_CLOSE);
 		}
     }
 #if 1
+	else if (uMsg == WM_KEYDOWN && wParam == VK_ESCAPE) {
+		PostMessage(WM_CLOSE);
+	}
 	else if (uMsg == WM_CHAR || uMsg == WM_KEYDOWN || uMsg == WM_KEYUP) {
 		if (m_pOwner){
 			ui::EventArgs args;
@@ -169,19 +170,12 @@ LRESULT CFilterComboWnd::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
 		}
 	}
 #endif
-	if (m_bClosing)	{
-		return CallDefaultWindowProc(uMsg, wParam, lParam);
+	LRESULT lResult = 0;
+	if (!bHandled)
+	{
+		lResult = __super::OnWindowMessage(uMsg, wParam, lParam, bHandled);
 	}
-	else {
-		bool handled = false;
-		LRESULT ret = this->DoHandleMessage(uMsg, wParam, lParam, handled);
-		if (handled) {
-			return ret;
-		}
-		else {
-			return CallDefaultWindowProc(uMsg, wParam, lParam);
-		}
-	}
+	return lResult;
 }
 
 /////////////////////FilterListBox//////////////////////////
@@ -366,7 +360,7 @@ void FilterCombo::Activate()
 	}
 
 	m_pComboWnd = new CFilterComboWnd();
-	m_pComboWnd->Init(this);
+	m_pComboWnd->InitComboWnd(this);
 
 	//if (m_pComboWnd != NULL) m_pComboWnd->SendNotify(this, kEventClick);
     Invalidate();

@@ -6,7 +6,7 @@ CShadowComboWnd::CShadowComboWnd() {}
 
 CShadowComboWnd::~CShadowComboWnd() {}
 
-void CShadowComboWnd::Init(ShadowCombo* pOwner)
+void CShadowComboWnd::InitComboWnd(ShadowCombo* pOwner)
 {
     ASSERT(pOwner != nullptr);
     if (pOwner == nullptr) {
@@ -82,13 +82,13 @@ void CShadowComboWnd::Init(ShadowCombo* pOwner)
         ::MapWindowRect(pOwner->GetWindow()->GetHWND(), HWND_DESKTOP, &rc);
     }
 
-    Create(pOwner->GetWindow()->GetHWND(), NULL, WS_POPUP, WS_EX_TOOLWINDOW, true, rc);
+    CreateWnd(pOwner->GetWindow()->GetHWND(), L"", WS_POPUP, WS_EX_TOOLWINDOW, true, rc);
     // HACK: Don't deselect the parent's caption
-    HWND hWndParent = m_hWnd;
+    HWND hWndParent = GetHWND();
     while (::GetParent(hWndParent) != NULL) {
         hWndParent = ::GetParent(hWndParent);
     }
-    ::ShowWindow(m_hWnd, SW_SHOW);
+    ::ShowWindow(GetHWND(), SW_SHOW);
     ::SendMessage(hWndParent, WM_NCACTIVATE, TRUE, 0L);
 }
 
@@ -113,10 +113,11 @@ void CShadowComboWnd::OnSeleteItem()
     PostMessage(WM_KILLFOCUS);
 }
 
-LRESULT CShadowComboWnd::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT CShadowComboWnd::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
+    bHandled = false;
     if (uMsg == WM_CREATE) {
-        this->Window::Init(m_hWnd);
+        this->InitWnd(GetHWND());
         ui::Box* pRoot = new ui::Box;
         pRoot->SetAutoDestroyChild(false);
         pRoot->Add(m_pOwner->GetListBox());
@@ -124,12 +125,11 @@ LRESULT CShadowComboWnd::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
             pRoot->SetBkImage(m_pOwner->GetShadowImage());
         }
         pRoot->GetLayout()->SetPadding(m_pOwner->GetShadowCorner(), false);
-        this->AttachDialog(pRoot);
+        this->AttachBox(pRoot);
         this->SetWindowResourcePath(m_pOwner->GetWindow()->GetWindowResourcePath());
         this->SetShadowAttached(false);
         this->SetRenderTransparent(true);
-
-        return 0;
+        bHandled = true;
     }
     else if (uMsg == WM_CLOSE) {
         m_pOwner->SetWindow(m_pOwner->GetWindow(), m_pOwner->GetParent(), false);
@@ -137,28 +137,22 @@ LRESULT CShadowComboWnd::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
         m_pOwner->SetFocus();
     }
     else if (uMsg == WM_KILLFOCUS) {
-        if (m_hWnd != (HWND)wParam) {
-            m_bClosing = true;
-            PostMessage(WM_CLOSE);
+        if (GetHWND() != (HWND)wParam) {
             m_pOwner->SelectItemInternal(m_pOwner->GetListBox()->GetCurSel());
             ((ui::Box*)this->GetRoot())->RemoveAt(0);
             m_pOwner->GetListBox()->PlaceHolder::SetWindow(nullptr, nullptr, false);
+            PostMessage(WM_CLOSE);
         }
     }
-
-    if (m_bClosing) {
-        return CallDefaultWindowProc(uMsg, wParam, lParam);
+    else if (uMsg == WM_KEYDOWN && wParam == VK_ESCAPE) {
+        PostMessage(WM_CLOSE);
     }
-    else {
-        bool handled = false;
-        LRESULT ret = this->DoHandleMessage(uMsg, wParam, lParam, handled);
-        if (handled) {
-            return ret;
-        }
-        else {
-            return CallDefaultWindowProc(uMsg, wParam, lParam);
-        }
+    LRESULT lResult = 0;
+    if (!bHandled)
+    {
+        lResult = __super::OnWindowMessage(uMsg, wParam, lParam, bHandled);
     }
+    return lResult;
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -269,7 +263,7 @@ void ShadowCombo::Activate()
     }
 
     m_pWindow = new CShadowComboWnd;
-    m_pWindow->Init(this);
+    m_pWindow->InitComboWnd(this);
     m_pWindow->AttachWindowClose(ToWeakCallback([this](ui::EventArgs* msg) {
         auto callback = m_OnEvent.find(msg->Type);
         if (callback != m_OnEvent.end()) {
@@ -299,7 +293,7 @@ void ShadowCombo::Deactivate()
 
 bool ShadowCombo::IsActivated()
 {
-    return (m_pWindow && !m_pWindow->IsClosing());
+    return (m_pWindow && !m_pWindow->IsClosingWnd());
 }
 
 void ShadowCombo::SetAttribute(const std::wstring& strName, const std::wstring& strValue)

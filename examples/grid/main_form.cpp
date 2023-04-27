@@ -47,7 +47,7 @@ Control* MainForm::CreateControl(const std::wstring& pstrClass)
 	return pControl;
 }
 
-void MainForm::InitWindow()
+void MainForm::OnInitWindow()
 {
 	Grid *grid = static_cast<Grid*>(FindControl(L"grid"));
 	grid->SetHeaderHeight(48);
@@ -206,7 +206,7 @@ void MainForm::InitWindow()
 	});
 }
 
-LRESULT MainForm::OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+LRESULT MainForm::OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
 	PostQuitMessage(0L);
 	return __super::OnClose(uMsg, wParam, lParam, bHandled);

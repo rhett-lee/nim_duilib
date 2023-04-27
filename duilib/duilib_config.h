@@ -78,8 +78,21 @@
     #define NOMINMAX 1
 #endif
 
+//未使用的变量宏，避免编译器报警报
+#ifndef UNUSED_VARIABLE
+    #define UNUSED_VARIABLE(x) ((void)(x))
+#endif
+
 #ifndef ASSERT
     #define ASSERT(expr)  _ASSERTE(expr)
+#endif
+
+#ifndef ASSERT_UNUSED_VARIABLE
+    #ifdef _DEBUG
+        #define ASSERT_UNUSED_VARIABLE(expr)  ASSERT(expr)
+    #else
+        #define ASSERT_UNUSED_VARIABLE(expr)  UNUSED_VARIABLE(expr)
+    #endif
 #endif
 
 #include <SDKDDKVer.h>

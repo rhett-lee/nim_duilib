@@ -11,7 +11,7 @@ void ShowMsgBox(HWND hwnd, MsgboxCallback cb,
 	const std::wstring &no, bool btn_no_is_id)
 {
 	MsgBox* msgbox = new MsgBox;
-	HWND hWnd = msgbox->Create(hwnd, L"", WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX, 0);
+	HWND hWnd = msgbox->CreateWnd(hwnd, L"", WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX, 0);
 	if (hWnd == NULL)
 		return;
 	ui::MultiLangSupport *multilan = ui::MultiLangSupport::GetInstance();
@@ -61,42 +61,27 @@ UINT MsgBox::GetClassStyle() const
 	return (UI_CLASSSTYLE_FRAME | CS_DBLCLKS);
 }
 
-LRESULT MsgBox::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
-	//if(uMsg == WM_DESTROY)
-	//{
-	//	HWND hWndParent = GetWindowOwner(m_hWnd);
-	//	if(hWndParent)
-	//	{
-	//		::EnableWindow(hWndParent, TRUE);
-	//		::SetForegroundWindow(hWndParent);
-	//		::SetFocus(hWndParent);
-	//	}
-	//}
-	return __super::HandleMessage(uMsg, wParam, lParam);
-}
-
 void MsgBox::OnEsc(BOOL &bHandled)
 {
 	bHandled = TRUE;
 	EndMsgBox(MB_NO);
 }
-void MsgBox::Close(UINT nRet)
+void MsgBox::CloseWnd(UINT nRet)
 {
 	// 提示框关闭之前先Enable父窗口，防止父窗口隐到后面去。
-	HWND hWndParent = GetWindowOwner(m_hWnd);
+	HWND hWndParent = GetWindowOwner(GetHWND());
 	if (hWndParent)
 	{
 		::EnableWindow(hWndParent, TRUE);
 		::SetFocus(hWndParent);
 	}
 
-	__super::Close(nRet);
+	__super::CloseWnd(nRet);
 }
 
-void MsgBox::InitWindow()
+void MsgBox::OnInitWindow()
 {
-	m_pRoot->AttachBubbledEvent(ui::kEventClick, nbase::Bind(&MsgBox::OnClicked, this, std::placeholders::_1));
+	GetRoot()->AttachBubbledEvent(ui::kEventClick, nbase::Bind(&MsgBox::OnClicked, this, std::placeholders::_1));
 
 	title_ = (ui::Label*)FindControl(L"title");
 	content_ = (ui::RichEdit*)FindControl(L"content");
@@ -126,7 +111,7 @@ void MsgBox::SetTitle(const std::wstring &str)
 {
 	title_->SetText(str);
 
-	::SetWindowText(m_hWnd, str.c_str());
+	::SetWindowText(GetHWND(), str.c_str());
 }
 
 void MsgBox::SetContent(const std::wstring &str)
@@ -176,7 +161,7 @@ void MsgBox::Show(HWND hwnd, MsgboxCallback cb)
 
 void MsgBox::EndMsgBox(MsgBoxRet ret)
 {
-	this->Close(0);
+	this->CloseWnd(0);
 
 	if (msgbox_callback_)
 	{

@@ -85,7 +85,7 @@ private:
 	* @param[in out] bHandled 是否处理了消息，如果处理了不继续传递消息
 	* @return LRESULT 处理结果
 	*/
-	virtual LRESULT HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) override;
+	virtual LRESULT OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
 
 	/**
 	* 处理窗口销毁消息

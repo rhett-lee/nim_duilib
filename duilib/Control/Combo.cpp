@@ -8,21 +8,20 @@ namespace ui
 class CComboWnd : public Window
 {
 public:
-    void Init(Combo* pOwner);
+    void InitComboWnd(Combo* pOwner);
     virtual std::wstring GetWindowClassName() const override;
 	virtual void OnFinalMessage(HWND hWnd) override;
-	virtual LRESULT HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) override;
+	virtual LRESULT OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
 
 	void OnSeleteItem();
 
 private:
     Combo* m_pOwner = nullptr;
     int m_iOldSel = -1;
-	bool m_bClosing = false;
 };
 
 
-void CComboWnd::Init(Combo* pOwner)
+void CComboWnd::InitComboWnd(Combo* pOwner)
 {
 	ASSERT(pOwner != nullptr);
 	if (pOwner == nullptr) {
@@ -77,12 +76,12 @@ void CComboWnd::Init(Combo* pOwner)
         ::MapWindowRect(pOwner->GetWindow()->GetHWND(), HWND_DESKTOP, &rc);
     }
     
-    Create(pOwner->GetWindow()->GetHWND(), NULL, WS_POPUP, WS_EX_TOOLWINDOW, true, rc);
+    CreateWnd(pOwner->GetWindow()->GetHWND(), L"", WS_POPUP, WS_EX_TOOLWINDOW, true, rc);
     // HACK: Don't deselect the parent's caption
-    HWND hWndParent = m_hWnd;
+    HWND hWndParent = GetHWND();
     while( ::GetParent(hWndParent) != NULL ) 
 		hWndParent = ::GetParent(hWndParent);
-    ::ShowWindow(m_hWnd, SW_SHOW);
+    ::ShowWindow(GetHWND(), SW_SHOW);
     ::SendMessage(hWndParent, WM_NCACTIVATE, TRUE, 0L);
 }
 
@@ -108,19 +107,19 @@ void CComboWnd::OnSeleteItem()
 	PostMessage(WM_KILLFOCUS);
 }
 
-LRESULT CComboWnd::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT CComboWnd::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
+	bHandled = false;
     if( uMsg == WM_CREATE ) {
-        this->Window::Init(m_hWnd);
+		this->InitWnd(GetHWND());
 		Box* pRoot = new Box;
 		pRoot->SetAutoDestroyChild(false);
 		pRoot->Add(m_pOwner->GetListBox());
-		this->AttachDialog(pRoot);
+		this->AttachBox(pRoot);
 		this->SetWindowResourcePath(m_pOwner->GetWindow()->GetWindowResourcePath());
 		this->SetShadowAttached(false);
 		this->SetRenderTransparent(true);
-
-        return 0;
+		bHandled = true;
     }
     else if( uMsg == WM_CLOSE ) {
         m_pOwner->SetWindow(m_pOwner->GetWindow(), m_pOwner->GetParent(), false);
@@ -128,28 +127,23 @@ LRESULT CComboWnd::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
         m_pOwner->SetFocus();
     }
     else if( uMsg == WM_KILLFOCUS ) {
-		if (m_hWnd != (HWND)wParam)	{ 
-			m_bClosing = true;
-			PostMessage(WM_CLOSE);
+		if (GetHWND() != (HWND)wParam)	{
 			m_pOwner->SelectItemInternal(m_pOwner->GetListBox()->GetCurSel());
 			((Box*)this->GetRoot())->RemoveAt(0);
 			m_pOwner->GetListBox()->PlaceHolder::SetWindow(nullptr, nullptr, false);
+			//采取延迟关闭，从而实现展开时再点击一次是关闭，而不是每次点击都展开。
+			CloseWnd();
 		}
     }
-
-	if (m_bClosing)	{
-		return CallDefaultWindowProc(uMsg, wParam, lParam);
+	else if (uMsg == WM_KEYDOWN && wParam == VK_ESCAPE) {
+		PostMessage(WM_CLOSE);
 	}
-	else {
-		bool handled = false;
-		LRESULT ret = this->DoHandleMessage(uMsg, wParam, lParam, handled);
-		if (handled) {
-			return ret;
-		}
-		else {
-			return CallDefaultWindowProc(uMsg, wParam, lParam);
-		}
+	LRESULT lResult = 0;
+	if (!bHandled)
+	{
+		lResult = __super::OnWindowMessage(uMsg, wParam, lParam, bHandled);
 	}
+	return lResult;
 }
 
 ////////////////////////////////////////////////////////
@@ -236,7 +230,7 @@ void Combo::Activate()
 	}
 
     m_pWindow = new CComboWnd();
-    m_pWindow->Init(this);
+    m_pWindow->InitComboWnd(this);
 	m_pWindow->AttachWindowClose(ToWeakCallback([this](ui::EventArgs* msg) {
 		auto callback = m_OnEvent.find(msg->Type);
 		if (callback != m_OnEvent.end()) {
@@ -254,16 +248,15 @@ void Combo::Deactivate()
 	if (!IsActivatable()) {
 		return;
 	}
-	if (m_pWindow == nullptr) {
-		return;
-	}
-	m_pWindow->Close();
+	if (m_pWindow != nullptr) {
+		m_pWindow->CloseWnd();
+	}	
 	Invalidate();
 }
 
 bool Combo::IsActivated()
 {
-	return ((m_pWindow != nullptr) && !m_pWindow->IsClosing());
+	return ((m_pWindow != nullptr) && !m_pWindow->IsClosingWnd());
 }
 
 void Combo::SetAttribute(const std::wstring& strName, const std::wstring& strValue)

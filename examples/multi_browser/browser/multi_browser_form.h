@@ -29,7 +29,7 @@ public:
 	* 窗口初始化函数
 	* @return void	无返回值
 	*/
-	virtual void InitWindow() override;
+	virtual void OnInitWindow() override;
 
 	/**
 	* 根据控件类名创建自定义控件
@@ -43,10 +43,10 @@ public:
 	* @param[in] uMsg 消息类型
 	* @param[in] wParam 附加参数
 	* @param[in] lParam 附加参数
-	* @param[in out] bHandled 是否处理了消息，如果处理了不继续传递消息
+	* @param[out] bHandled 是否处理了消息，如果处理了不继续传递消息
 	* @return LRESULT 处理结果
 	*/
-	LRESULT HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	virtual LRESULT OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
 
 	/**
 	* 拦截并处理WM_CLOSE消息
@@ -57,7 +57,7 @@ public:
 	* @param[in] bHandled 是否处理了消息，如果处理了不继续传递消息
 	* @return LRESULT 处理结果
 	*/
-	virtual LRESULT OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	virtual LRESULT OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
 
 	/**
 	* 处理窗口销毁消息

@@ -168,7 +168,7 @@ void CefControl::SetWindow(ui::Window* pManager, ui::Box* pParent, bool bInit)
 	browser_handler_->SetHostWindow(pManager->GetHWND());
 }
 
-LRESULT CefControl::MessageHandler(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+LRESULT CefControl::FilterMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
 	if (!IsVisible() || !IsEnabled())
 	{
@@ -301,7 +301,7 @@ bool CefControl::AttachDevTools(Control* control)
 }
 
 //////////////////////////////////////////////////////////////////////////////////
-LRESULT CefControl::SendButtonDownEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+LRESULT CefControl::SendButtonDownEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
 	CefRefPtr<CefBrowserHost> host = browser_handler_->GetBrowserHost();
 
@@ -326,7 +326,7 @@ LRESULT CefControl::SendButtonDownEvent(UINT uMsg, WPARAM wParam, LPARAM lParam,
 	return 0;
 }
 
-LRESULT CefControl::SendButtonDoubleDownEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+LRESULT CefControl::SendButtonDoubleDownEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
 	CefRefPtr<CefBrowserHost> host = browser_handler_->GetBrowserHost();
 
@@ -350,7 +350,7 @@ LRESULT CefControl::SendButtonDoubleDownEvent(UINT uMsg, WPARAM wParam, LPARAM l
 	return 0;
 }
 
-LRESULT CefControl::SendButtonUpEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+LRESULT CefControl::SendButtonUpEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
 	CefRefPtr<CefBrowserHost> host = browser_handler_->GetBrowserHost();
 
@@ -383,7 +383,7 @@ LRESULT CefControl::SendButtonUpEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, B
 	return 0;
 }
 
-LRESULT CefControl::SendMouseMoveEvent(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+LRESULT CefControl::SendMouseMoveEvent(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
 	CefRefPtr<CefBrowserHost> host = browser_handler_->GetBrowserHost();
 
@@ -402,7 +402,7 @@ LRESULT CefControl::SendMouseMoveEvent(UINT /*uMsg*/, WPARAM wParam, LPARAM lPar
 	return 0;
 }
 
-LRESULT CefControl::SendMouseWheelEvent(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+LRESULT CefControl::SendMouseWheelEvent(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
 	CefRefPtr<CefBrowserHost> host = browser_handler_->GetBrowserHost();
 
@@ -428,7 +428,7 @@ LRESULT CefControl::SendMouseWheelEvent(UINT /*uMsg*/, WPARAM wParam, LPARAM lPa
 	return 0;
 }
 
-LRESULT CefControl::SendMouseLeaveEvent(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+LRESULT CefControl::SendMouseLeaveEvent(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
 	CefRefPtr<CefBrowserHost> host = browser_handler_->GetBrowserHost();
 
@@ -448,7 +448,7 @@ LRESULT CefControl::SendMouseLeaveEvent(UINT /*uMsg*/, WPARAM wParam, LPARAM lPa
 	return 0;
 }
 
-LRESULT CefControl::SendKeyEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+LRESULT CefControl::SendKeyEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
 	CefRefPtr<CefBrowserHost> host = browser_handler_->GetBrowserHost();
 	
@@ -471,7 +471,7 @@ LRESULT CefControl::SendKeyEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& 
 	return 0;
 }
 
-LRESULT CefControl::SendCaptureLostEvent(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
+LRESULT CefControl::SendCaptureLostEvent(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, bool& bHandled)
 {
 	CefRefPtr<CefBrowserHost> host = browser_handler_->GetBrowserHost();
 

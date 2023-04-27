@@ -222,6 +222,9 @@
     <ClCompile Include="Control\DateTime.cpp">
       <Filter>Control</Filter>
     </ClCompile>
+    <ClCompile Include="Core\ControlFinder.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -454,6 +457,9 @@
     </ClInclude>
     <ClInclude Include="Control\DateTime.h">
       <Filter>Control</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ControlFinder.h">
+      <Filter>Core</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

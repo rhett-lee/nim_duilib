@@ -28,12 +28,12 @@ void TaskbarTabItem::Init(const std::wstring &taskbar_title, const std::string &
 	if (!is_win7_or_greater_)
 		return;
 
-	Create(NULL, taskbar_title.c_str(), WS_OVERLAPPED, 0, false);
+	CreateWnd(NULL, taskbar_title.c_str(), WS_OVERLAPPED, 0, false);
 
 	HRESULT ret = S_OK;
 	BOOL truth = TRUE;
-	ret |= DwmSetWindowAttribute(m_hWnd, DWMWA_HAS_ICONIC_BITMAP, &truth, sizeof(truth));
-	ret |= DwmSetWindowAttribute(m_hWnd, DWMWA_FORCE_ICONIC_REPRESENTATION, &truth, sizeof(truth));
+	ret |= DwmSetWindowAttribute(GetHWND(), DWMWA_HAS_ICONIC_BITMAP, &truth, sizeof(truth));
+	ret |= DwmSetWindowAttribute(GetHWND(), DWMWA_FORCE_ICONIC_REPRESENTATION, &truth, sizeof(truth));
 	if (ret != S_OK)
 	{
 		is_win7_or_greater_ = false;
@@ -42,13 +42,13 @@ void TaskbarTabItem::Init(const std::wstring &taskbar_title, const std::string &
 
 void TaskbarTabItem::UnInit()
 {
-	if (NULL != m_hWnd)
-		DestroyWindow(m_hWnd);
+	if (NULL != GetHWND())
+		DestroyWindow(GetHWND());
 }
 
 void TaskbarTabItem::SetTaskbarTitle(const std::wstring &title)
 {
-	::SetWindowTextW(m_hWnd, title.c_str());
+	::SetWindowTextW(GetHWND(), title.c_str());
 }
 
 void TaskbarTabItem::SetTaskbarManager(TaskbarManager *taskbar_manager)
@@ -75,7 +75,7 @@ void TaskbarTabItem::OnSendThumbnail(int width, int height)
 		return;
 
 	HBITMAP bitmap = taskbar_manager_->GenerateBindControlBitmap(bind_control_, width, height);
-	DwmSetIconicThumbnail(m_hWnd, bitmap, 0);
+	DwmSetIconicThumbnail(GetHWND(), bitmap, 0);
 
 	DeleteObject(bitmap);
 }
@@ -86,7 +86,7 @@ void TaskbarTabItem::OnSendPreview()
 		return;
 
 	HBITMAP bitmap = taskbar_manager_->GenerateBindControlBitmapWithForm(bind_control_);
-	DwmSetIconicLivePreviewBitmap(m_hWnd, bitmap, NULL, 0);
+	DwmSetIconicLivePreviewBitmap(GetHWND(), bitmap, NULL, 0);
 
 	DeleteObject(bitmap);
 }
@@ -96,8 +96,9 @@ std::wstring TaskbarTabItem::GetWindowClassName() const
 	return L"Nim.TaskbarItem";
 }
 
-LRESULT TaskbarTabItem::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT TaskbarTabItem::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
+	bHandled = true;
 	if (uMsg == WM_DWMSENDICONICTHUMBNAIL)
 	{
 		OnSendThumbnail(HIWORD(lParam), LOWORD(lParam));
@@ -131,8 +132,7 @@ LRESULT TaskbarTabItem::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
 			
 		return 0;
 	}
-
-	return __super::HandleMessage(uMsg, wParam, lParam);
+	return __super::OnWindowMessage(uMsg, wParam, lParam, bHandled);
 }
 
 void TaskbarTabItem::OnFinalMessage(HWND hWnd)

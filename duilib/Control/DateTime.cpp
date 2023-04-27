@@ -20,7 +20,7 @@ public:
     virtual std::wstring GetSuperClassName() const override;
     void OnFinalMessage(HWND hWnd);
 
-    LRESULT HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam);
+    virtual LRESULT OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
 protected:
     DateTime* m_pOwner;
     HBRUSH m_hBkBrush;
@@ -41,16 +41,16 @@ DateTimeWnd::DateTimeWnd() :
 void DateTimeWnd::Init(DateTime* pOwner)
 {
     m_pOwner = pOwner;
-    if (m_hWnd == nullptr) {
+    if (GetHWND() == nullptr) {
         RECT rcPos = CalPos();
         UINT uStyle = WS_POPUP;
         POINT pt1 = { rcPos.left, rcPos.top };
         POINT pt2 = { rcPos.right, rcPos.bottom };
         ::ClientToScreen(pOwner->GetWindow()->GetHWND(), &pt1);
         ::ClientToScreen(pOwner->GetWindow()->GetHWND(), &pt2);
-        Create(m_pOwner->GetWindow()->GetHWND(), NULL, uStyle, 0, false, { pt1.x, pt1.y, pt2.x, pt2.y });
-
-        SetWindowFont(m_hWnd, ui::GlobalManager::GetFontInfo(L"system_12", m_pOwner->GetWindow()->GetPaintDC())->hFont, TRUE);
+        CreateWnd(m_pOwner->GetWindow()->GetHWND(), L"", uStyle, 0, false, {pt1.x, pt1.y, pt2.x, pt2.y});
+        ASSERT(GetHWND() != nullptr);
+        SetWindowFont(GetHWND(), ui::GlobalManager::GetFontInfo(L"system_12", m_pOwner->GetWindow()->GetPaintDC())->hFont, TRUE);
     }
 
     if (m_pOwner->IsValidTime()) {
@@ -61,11 +61,11 @@ void DateTimeWnd::Init(DateTime* pOwner)
         ::GetLocalTime(&m_oldSysTime);
     }
 
-    ::SendMessage(m_hWnd, DTM_SETSYSTEMTIME, 0, (LPARAM)&m_oldSysTime);
-    ::ShowWindow(m_hWnd, SW_SHOW);
-    ::SetFocus(m_hWnd);
+    ::SendMessage(GetHWND(), DTM_SETSYSTEMTIME, 0, (LPARAM)&m_oldSysTime);
+    ::ShowWindow(GetHWND(), SW_SHOW);
+    ::SetFocus(GetHWND());
 
-    HWND hWndParent = m_hWnd;
+    HWND hWndParent = GetHWND();
     while (::GetParent(hWndParent) != NULL) {
         hWndParent = ::GetParent(hWndParent);
     }        
@@ -116,25 +116,29 @@ void DateTimeWnd::OnFinalMessage(HWND /*hWnd*/)
     delete this;
 }
 
-LRESULT DateTimeWnd::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT DateTimeWnd::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
     LRESULT lRes = 0;
-    BOOL bHandled = TRUE;
-    if (uMsg == WM_CREATE) {
-        bHandled = FALSE;
-    }
-    else if (uMsg == WM_KEYDOWN && wParam == VK_ESCAPE) {
+    bHandled = false;
+    if (uMsg == WM_KEYDOWN && wParam == VK_ESCAPE) {
         m_pOwner->SetTime(m_oldSysTime);
         PostMessage(WM_CLOSE);
-        return lRes;
+        bHandled = true;
+    }
+    else if (uMsg == WM_KEYDOWN && wParam == VK_RETURN) {
+        SYSTEMTIME systime = { 0, };
+        ::SendMessage(GetHWND(), DTM_GETSYSTEMTIME, 0, (LPARAM)&systime);
+        m_pOwner->SetTime(systime);
+        PostMessage(WM_CLOSE);
+        bHandled = true;
     }
     else if (uMsg == OCM_NOTIFY)
     {
         NMHDR* pHeader = (NMHDR*)lParam;
-        if (pHeader != nullptr && pHeader->hwndFrom == m_hWnd) {
+        if (pHeader != nullptr && pHeader->hwndFrom == GetHWND()) {
             if (pHeader->code == DTN_DATETIMECHANGE) {
                 SYSTEMTIME systime = {0,};
-                ::SendMessage(m_hWnd, DTM_GETSYSTEMTIME, 0, (LPARAM)&systime);
+                ::SendMessage(GetHWND(), DTM_GETSYSTEMTIME, 0, (LPARAM)&systime);
                 m_pOwner->SetTime(systime);
             }
             else if (pHeader->code == DTN_DROPDOWN) {
@@ -142,27 +146,23 @@ LRESULT DateTimeWnd::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
             }
             else if (pHeader->code == DTN_CLOSEUP) {
                 SYSTEMTIME systime = { 0, };
-                ::SendMessage(m_hWnd, DTM_GETSYSTEMTIME, 0, (LPARAM)&systime);
+                ::SendMessage(GetHWND(), DTM_GETSYSTEMTIME, 0, (LPARAM)&systime);
                 m_pOwner->SetTime(systime);
                 PostMessage(WM_CLOSE);
                 m_bDropOpen = false;
             }
         }
-        bHandled = FALSE;
     }
     else if (uMsg == WM_KILLFOCUS)
     {
         if (!m_bDropOpen) {
             PostMessage(WM_CLOSE);
         }
-        bHandled = FALSE;
-    }
-    else {
-        bHandled = FALSE;
     }
     if (!bHandled) {
-        lRes = ::CallWindowProc(m_OldWndProc, m_hWnd, uMsg, wParam, lParam);
-    }        
+        bHandled = true;
+        lRes = this->CallDefaultWindowProc(uMsg, wParam, lParam);
+    }
     return lRes;
 }
 
@@ -328,7 +328,7 @@ void DateTime::HandleMessage(EventArgs& event)
     }
     if (event.Type == kEventWindowSize) {
         if (m_pDateWindow != nullptr) {
-            m_pDateWindow->SetFocusNeeded(this);
+            return;
         }
     }
     if (event.Type == kEventScrollChange) {

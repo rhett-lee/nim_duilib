@@ -29,7 +29,7 @@ private:
 
 	// 创建一个默认带有阴影的居中窗口
 	PopoverForm* window = new PopoverForm();
-	window->Create(NULL, PopoverForm::kClassName.c_str(), UI_WNDSTYLE_FRAME, 0);
+	window->CreateWnd(NULL, PopoverForm::kClassName.c_str(), UI_WNDSTYLE_FRAME, 0);
 	window->CenterWindow();
 	window->ShowWindow();
   }

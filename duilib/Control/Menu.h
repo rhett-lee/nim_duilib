@@ -134,9 +134,9 @@ private:
 	virtual std::wstring GetSkinFolder() override;
 	virtual std::wstring GetSkinFile() override;
 	virtual std::wstring GetWindowClassName() const override;
-	virtual void InitWindow() override;
+	virtual void OnInitWindow() override;
 	virtual void OnFinalMessage(HWND hWnd) override;
-	virtual LRESULT HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) override;
+	virtual LRESULT OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
 
 private:
 	//²Ëµ¥¸¸´°¿Ú¾ä±ú
