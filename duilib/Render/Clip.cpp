@@ -1,5 +1,4 @@
 #include "Clip.h"
-#include "duilib/Utils/Utils.h"
 
 namespace ui {
 

@@ -1,6 +1,7 @@
 #include "msgbox.h"
 #include "ui_components/public_define.h"
 #include "base/thread/thread_manager.h"
+#include "duilib/Utils/Macros.h"
 
 namespace nim_comp {
 

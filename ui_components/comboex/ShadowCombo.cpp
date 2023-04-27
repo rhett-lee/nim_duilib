@@ -1,4 +1,5 @@
 #include "ShadowCombo.h"
+#include "duilib/Utils/Macros.h"
 
 namespace nim_comp
 {
@@ -126,7 +127,7 @@ LRESULT CShadowComboWnd::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam
         }
         pRoot->GetLayout()->SetPadding(m_pOwner->GetShadowCorner(), false);
         this->AttachBox(pRoot);
-        this->SetWindowResourcePath(m_pOwner->GetWindow()->GetWindowResourcePath());
+        this->SetResourcePath(m_pOwner->GetWindow()->GetResourcePath());
         this->SetShadowAttached(false);
         this->SetRenderTransparent(true);
         bHandled = true;

@@ -1279,7 +1279,7 @@ void Control::GetImage(Image& duiImage) const
 	// should optimize later
 	// use hash or md5 is better than compare strings
 	std::wstring sImageName = duiImage.GetImageAttribute().sImageName;
-	std::wstring imageFullPath = GlobalManager::GetResPath(sImageName, m_pWindow->GetWindowResourcePath());
+	std::wstring imageFullPath = GlobalManager::GetResPath(sImageName, m_pWindow->GetResourcePath());
 
 	imageFullPath = StringHelper::ReparsePath(imageFullPath);
 
@@ -1846,7 +1846,7 @@ void Control::InvokeLoadImageCache()
 	if (sImageName.empty()) {
 		return;
 	}
-	std::wstring imageFullPath = GlobalManager::GetResPath(sImageName, m_pWindow->GetWindowResourcePath());
+	std::wstring imageFullPath = GlobalManager::GetResPath(sImageName, m_pWindow->GetResourcePath());
 
 	if (!m_bkImage->GetImageCache() || m_bkImage->GetImageCache()->sImageFullPath != imageFullPath) {
 		auto shared_image = GlobalManager::IsImageCached(imageFullPath);

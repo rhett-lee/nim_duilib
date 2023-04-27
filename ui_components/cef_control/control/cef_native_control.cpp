@@ -3,6 +3,7 @@
 #include "ui_components/cef_control/manager/cef_manager.h"
 #include "ui_components/public_define.h"
 #include "duilib/Core/Window.h"
+#include "duilib/Utils/Macros.h"
 #include "base/thread/thread_manager.h"
 
 #pragma warning (push)

@@ -4,7 +4,6 @@
 #pragma once
 
 #include "duilib/duilib_defs.h"
-#include "duilib/Utils/Utils.h"
 #include "duilib/Core/Control.h"
 #include "duilib/Control/ScrollBar.h"
 #include <vector>

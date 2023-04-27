@@ -3,6 +3,7 @@
 #include "duilib/Box/VBox.h"
 #include "duilib/Control/List.h"
 #include "duilib/Utils/StringUtil.h"
+#include "duilib/Utils/Macros.h"
 
 namespace nim_comp
 {
@@ -98,7 +99,7 @@ namespace nim_comp
 			pRoot->SetAutoDestroyChild(false);
 			pRoot->Add(m_pOwner->GetListBox());
 			this->AttachBox(pRoot);
-			this->SetWindowResourcePath(m_pOwner->GetWindow()->GetWindowResourcePath());
+			this->SetResourcePath(m_pOwner->GetWindow()->GetResourcePath());
 			this->SetShadowAttached(false);
 			bHandled = true;
 		}

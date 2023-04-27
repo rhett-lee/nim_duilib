@@ -1,5 +1,6 @@
 #include "FilterCombo.h"
 #include "duilib/Core/Window.h"
+#include "duilib/Utils/Macros.h"
 #include "base/util/string_util.h"
 
 namespace nim_comp
@@ -112,7 +113,7 @@ LRESULT CFilterComboWnd::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam
 		pRoot->Add(m_pOwner->GetListBox());
 		m_pOwner->GetListBox()->SetFilterComboWnd(this);
 		this->AttachBox(pRoot);
-		this->SetWindowResourcePath(m_pOwner->GetWindow()->GetWindowResourcePath());
+		this->SetResourcePath(m_pOwner->GetWindow()->GetResourcePath());
 		this->SetShadowAttached(false);
 		bHandled = true;
     }

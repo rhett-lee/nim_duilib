@@ -4,7 +4,6 @@
 #pragma once
 
 #include "duilib/duilib_defs.h"
-#include "duilib/Utils/Utils.h"
 #include "duilib/Utils/Delegate.h"
 #include "base/callback/callback.h"
 #include "duilib/Core/ControlFinder.h"
@@ -389,12 +388,12 @@ public:
 
 	/**@brief 获取窗口资源路径
 	*/
-	const std::wstring& GetWindowResourcePath() const;
+	const std::wstring& GetResourcePath() const;
 
 	/**@brief 设置窗口资源路径
 	 * @param[in] strPath 要设置的路径
 	 */
-	void SetWindowResourcePath(const std::wstring& strPath);
+	void SetResourcePath(const std::wstring& strPath);
 
 	/**@brief 初始化控件，在容器中添加控件时会被调用（用于对控件名称做缓存）
 	 * @param[in] pControl 控件指针
@@ -895,8 +894,8 @@ private:
 	bool m_bMouseCapture;
 
 private:
-	//每个窗口的资源路径,等于GetSkinFolder()
-	std::wstring m_strWindowResourcePath; 
+	//每个窗口的资源路径(相对于资源根目录的路径)
+	std::wstring m_strResourcePath;
 
 	//默认字体数据
 	TFontInfo m_defaultFontInfo;

@@ -1,4 +1,5 @@
 #include "Menu.h"
+#include "duilib/Utils/Macros.h"
 
 namespace ui {
 

@@ -4,7 +4,6 @@
 #pragma once
 
 #include "duilib/duilib_defs.h"
-#include "duilib/Utils/Utils.h"
 #include <string>
 
 namespace ui {

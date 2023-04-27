@@ -53,7 +53,7 @@ Window::Window() :
 	m_mOptionGroup(),
 	m_defaultFontInfo(),
 	m_defaultAttrHash(),
-	m_strWindowResourcePath(),
+	m_strResourcePath(),
 	m_closeFlag()
 {
 	m_shadow = std::make_unique<Shadow>();
@@ -592,19 +592,19 @@ void Window::ReapObjects(Control* pControl)
 	m_controlFinder.ReapObjects(pControl);
 }
 
-const std::wstring& Window::GetWindowResourcePath() const
+const std::wstring& Window::GetResourcePath() const
 {
-	return m_strWindowResourcePath;
+	return m_strResourcePath;
 }
 
-void Window::SetWindowResourcePath(const std::wstring& strPath)
+void Window::SetResourcePath(const std::wstring& strPath)
 {
-	m_strWindowResourcePath = strPath;
-	if (!m_strWindowResourcePath.empty()) {
+	m_strResourcePath = strPath;
+	if (!m_strResourcePath.empty()) {
 		//确保路径最后字符是分割字符
-		TCHAR cEnd = m_strWindowResourcePath.back();
+		TCHAR cEnd = m_strResourcePath.back();
 		if (cEnd != _T('\\') && cEnd != _T('/')) {
-			m_strWindowResourcePath += _T('\\');
+			m_strResourcePath += _T('\\');
 		}
 	}	
 }

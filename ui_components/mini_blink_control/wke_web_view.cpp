@@ -1,6 +1,7 @@
 #include "wke_web_view.h"
 #include "wke_memory_dc.h"
 #include "duilib/Render/IRender.h"
+#include "duilib/Utils/Macros.h"
 
 namespace {
 

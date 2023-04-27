@@ -79,7 +79,6 @@
 
 #include "duilib_defs.h"
 #include "Utils/Macros.h"
-#include "Utils/Utils.h"
 #include "Utils/VersionHelpers.h"
 #include "Utils/ApiWrapper.h"
 #include "Utils/DpiManager.h"

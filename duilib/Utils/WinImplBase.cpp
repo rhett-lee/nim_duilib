@@ -61,7 +61,7 @@ LRESULT WindowImplBase::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 	::SetWindowLong(this->GetHWND(), GWL_STYLE, GetStyle());
 
 	InitWnd(GetHWND());
-	SetWindowResourcePath(GetSkinFolder());
+	SetResourcePath(GetSkinFolder());
 
 	WindowBuilder builder;
 	std::wstring strSkinFile;
@@ -71,7 +71,7 @@ LRESULT WindowImplBase::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 		strSkinFile = std::move(xmlFile);
 	}
 	else {
-		strSkinFile = GetWindowResourcePath() + xmlFile;
+		strSkinFile = GetResourcePath() + xmlFile;
 	}
 
 	auto callback = nbase::Bind(&WindowImplBase::CreateControl, this, std::placeholders::_1);

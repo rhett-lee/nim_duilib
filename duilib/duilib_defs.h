@@ -32,7 +32,8 @@
 
 #pragma once
 
-#include "duilib_config.h"
+#include "duilib/duilib_config.h"
+#include "duilib/duilib_types.h"
 
 #define DUI_NOSET_VALUE		-1
 #define DUI_LENGTH_STRETCH  -1

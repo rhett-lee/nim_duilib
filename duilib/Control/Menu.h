@@ -5,7 +5,6 @@
 
 #include "duilib/duilib_defs.h"
 #include "duilib/Utils/WinImplBase.h"
-#include "duilib/Utils/Utils.h"
 #include "duilib/Control/List.h"
 
 namespace ui {

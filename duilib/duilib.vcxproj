@@ -429,6 +429,7 @@
     <ClInclude Include="duilib.h" />
     <ClInclude Include="duilib_config.h" />
     <ClInclude Include="duilib_defs.h" />
+    <ClInclude Include="duilib_types.h" />
     <ClInclude Include="Render\Bitmap.h" />
     <ClInclude Include="Render\Brush.h" />
     <ClInclude Include="Render\Clip.h" />
@@ -452,7 +453,6 @@
     <ClInclude Include="Utils\SvgUtil.h" />
     <ClInclude Include="Utils\TimerManager.h" />
     <ClInclude Include="Utils\UnZip.h" />
-    <ClInclude Include="Utils\Utils.h" />
     <ClInclude Include="Utils\VersionHelpers.h" />
     <ClInclude Include="Utils\WinImplBase.h" />
     <ClInclude Include="Core\Window.h" />

@@ -437,9 +437,6 @@
     <ClInclude Include="Utils\UnZip.h">
       <Filter>Utils</Filter>
     </ClInclude>
-    <ClInclude Include="Utils\Utils.h">
-      <Filter>Utils</Filter>
-    </ClInclude>
     <ClInclude Include="Utils\VersionHelpers.h">
       <Filter>Utils</Filter>
     </ClInclude>
@@ -460,6 +457,9 @@
     </ClInclude>
     <ClInclude Include="Core\ControlFinder.h">
       <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="duilib_types.h">
+      <Filter>duilib</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

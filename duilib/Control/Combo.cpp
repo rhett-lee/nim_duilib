@@ -1,5 +1,6 @@
 #include "Combo.h"
 #include "duilib/Core/Window.h"
+#include "duilib/Utils/Macros.h"
 #include "duilib/Control/List.h"
 
 namespace ui
@@ -116,7 +117,7 @@ LRESULT CComboWnd::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool
 		pRoot->SetAutoDestroyChild(false);
 		pRoot->Add(m_pOwner->GetListBox());
 		this->AttachBox(pRoot);
-		this->SetWindowResourcePath(m_pOwner->GetWindow()->GetWindowResourcePath());
+		this->SetResourcePath(m_pOwner->GetWindow()->GetResourcePath());
 		this->SetShadowAttached(false);
 		this->SetRenderTransparent(true);
 		bHandled = true;

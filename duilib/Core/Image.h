@@ -6,7 +6,6 @@
 #include "duilib/Core/GdiPlusDefs.h"
 #include "duilib/Core/Define.h"
 #include "duilib/duilib_defs.h"
-#include "duilib/Utils/Utils.h"
 #include <memory>
 #include <string>
 #include <map>

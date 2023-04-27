@@ -183,7 +183,7 @@ void CircleProgress::SetIndicator(const std::wstring& sIndicatorImage)
 		}
 		std::wstring imagepath = m_sIndicatorImage;
 		if (!::PathFileExistsW(imagepath.c_str())) {
-			imagepath = GlobalManager::GetResourcePath() + m_pWindow->GetWindowResourcePath() + imagepath;
+			imagepath = GlobalManager::GetResourcePath() + m_pWindow->GetResourcePath() + imagepath;
 		}
 		if (!::PathFileExistsW(imagepath.c_str())) {
 			return;

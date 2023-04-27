@@ -1,6 +1,5 @@
 #include "AnimationManager.h"
 #include "duilib/Core/Control.h"
-#include "duilib/Utils/Utils.h"
 
 namespace ui 
 {

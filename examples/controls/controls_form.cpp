@@ -270,7 +270,7 @@ void ControlForm::LoadRichEditData()
 {
 	std::streamoff length = 0;
 	std::string xml;
-	std::wstring controls_xml = ui::GlobalManager::GetResourcePath() + GetWindowResourcePath() + GetSkinFile();
+	std::wstring controls_xml = ui::GlobalManager::GetResourcePath() + GetResourcePath() + GetSkinFile();
 
 	std::ifstream ifs(controls_xml.c_str());
 	if (ifs.is_open())

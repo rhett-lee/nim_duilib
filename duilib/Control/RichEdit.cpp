@@ -4,6 +4,7 @@
 #include "duilib/Control/ScrollBar.h"
 #include "duilib/Utils/TimerManager.h"
 #include "duilib/Utils/StringUtil.h"
+#include "duilib/Utils/Macros.h"
 #include "duilib/Utils/MultiLangSupport.h"
 #include "duilib/Utils/OnScreenKeyboardManager.h"
 #include "duilib/Render/IRender.h"

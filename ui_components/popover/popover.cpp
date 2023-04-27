@@ -3,6 +3,7 @@
 #include "alert.h"
 #include "tooltip.h"
 
+#include "duilib/Utils/Macros.h"
 #include "base/thread/thread_manager.h"
 #include "ui_components/public_define.h"
 
