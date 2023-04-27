@@ -1464,18 +1464,24 @@ bool Window::HandleMouseEnterLeave(const POINT& pt, WPARAM wParam, LPARAM lParam
 	if (pNewHover != nullptr && pNewHover->GetWindow() != this) {
 		return false;
 	}
+	//设置为新的Hover控件
+	Control* pOldHover = m_pEventHover;
+	m_pEventHover = pNewHover;
 
-	if (pNewHover != m_pEventHover && m_pEventHover != nullptr) {
+	if ((pNewHover != pOldHover) && (pOldHover != nullptr)) {
 		//Hover状态的控件发生变化，原来Hover控件的Tooltip应消失
-		m_pEventHover->HandleMessageTemplate(kEventMouseLeave, 0, 0, 0, CPoint(pt));
-		m_pEventHover = nullptr;
+		pOldHover->HandleMessageTemplate(kEventMouseLeave, 0, 0, 0, CPoint(pt));
 		if (m_hwndTooltip != nullptr) {
 			::SendMessage(m_hwndTooltip, TTM_TRACKACTIVATE, FALSE, (LPARAM)&m_ToolTip);
 		}
 	}
-	if (pNewHover != m_pEventHover && pNewHover != nullptr) {
-		m_pEventHover = pNewHover;
-		m_pEventHover->HandleMessageTemplate(kEventMouseEnter, wParam, lParam, 0, CPoint(pt));
+	ASSERT(pNewHover == m_pEventHover);
+	if (pNewHover != m_pEventHover) {
+		return false;
+	}
+
+	if ((pNewHover != pOldHover) && (pNewHover != nullptr)) {
+		pNewHover->HandleMessageTemplate(kEventMouseEnter, wParam, lParam, 0, CPoint(pt));
 	}
 	return true;
 }
