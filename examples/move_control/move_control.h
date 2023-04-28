@@ -47,7 +47,7 @@ public:
 
 private:
 	//drag-dropœ‡πÿ
-	bool OnProcessAppItemDrag(const ui::EventArgs* param);
+	bool OnProcessAppItemDrag(const ui::EventArgs& param);
 	void DoDrag(ui::Control* pAppItem, POINT pt_offset);
 	void DoBeforeDrag();
 	void DoDraging(POINT pt_offset);

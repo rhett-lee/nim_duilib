@@ -45,7 +45,7 @@ public:
 	virtual UINT GetClassStyle() const override;
 	virtual void OnInitWindow() override;
 private:
-	bool OnClicked(const ui::EventArgs* msg);
+	bool OnClicked(const ui::EventArgs& msg);
 
 	void SetTitle(const std::wstring &str);
 	void SetContent(const std::wstring &str);

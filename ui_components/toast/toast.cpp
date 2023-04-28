@@ -97,9 +97,9 @@ void Toast::SetDuration(int duration)
 	}), nbase::TimeDelta::FromMilliseconds(duration));
 }
 
-bool Toast::OnClicked(const ui::EventArgs* msg)
+bool Toast::OnClicked(const ui::EventArgs& msg)
 {
-	std::wstring name = msg->pSender->GetName();
+	std::wstring name = msg.pSender->GetName();
 	if (name == L"close_btn")
 	{
 		this->CloseWnd();

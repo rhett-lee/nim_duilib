@@ -237,7 +237,7 @@ void DateTime::SetTime(const SYSTEMTIME& systemTime)
         ui::EventArgs args;
         args.pSender = this;
         args.Type = kEventValueChange;
-        iter->second(&args);
+        iter->second(args);
     }
 }
 

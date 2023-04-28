@@ -322,7 +322,7 @@ void Box::SendEvent(const EventArgs& msg)
 	if (this == msg.pSender) {
 		auto callback = m_OnEvent.find(msg.Type);
 		if (callback != m_OnEvent.end()) {
-			bRet = callback->second(&msg);
+			bRet = callback->second(msg);
 		}
 		if (weakflag.expired()) {
 			return;
@@ -330,7 +330,7 @@ void Box::SendEvent(const EventArgs& msg)
 
 		callback = m_OnEvent.find(kEventAll);
 		if (callback != m_OnEvent.end()) {
-			bRet = callback->second(&msg);
+			bRet = callback->second(msg);
 		}
 		if (weakflag.expired()) {
 			return;
@@ -339,7 +339,7 @@ void Box::SendEvent(const EventArgs& msg)
 		if (bRet) {
 			auto callback2 = m_OnXmlEvent.find(msg.Type);
 			if (callback2 != m_OnXmlEvent.end()) {
-				bRet = callback2->second(&msg);
+				bRet = callback2->second(msg);
 			}
 			if (weakflag.expired()) {
 				return;
@@ -347,7 +347,7 @@ void Box::SendEvent(const EventArgs& msg)
 
 			callback2 = m_OnXmlEvent.find(kEventAll);
 			if (callback2 != m_OnXmlEvent.end()) {
-				bRet = callback2->second(&msg);
+				bRet = callback2->second(msg);
 			}
 			if (weakflag.expired()) {
 				return;
@@ -357,7 +357,7 @@ void Box::SendEvent(const EventArgs& msg)
 
 	auto callback = m_OnBubbledEvent.find(msg.Type);
 	if (callback != m_OnBubbledEvent.end()) {
-		bRet = callback->second(&msg);
+		bRet = callback->second(msg);
 	}
 	if (weakflag.expired()) {
 		return;
@@ -365,7 +365,7 @@ void Box::SendEvent(const EventArgs& msg)
 
 	callback = m_OnBubbledEvent.find(kEventAll);
 	if (callback != m_OnBubbledEvent.end()) {
-		bRet = callback->second(&msg);
+		bRet = callback->second(msg);
 	}
 	if (weakflag.expired()) {
 		return;
@@ -374,7 +374,7 @@ void Box::SendEvent(const EventArgs& msg)
 	if (bRet) {
 		auto callback2 = m_OnXmlBubbledEvent.find(msg.Type);
 		if (callback2 != m_OnXmlBubbledEvent.end()) {
-			bRet = callback2->second(&msg);
+			bRet = callback2->second(msg);
 		}
 		if (weakflag.expired()) {
 			return;
@@ -382,7 +382,7 @@ void Box::SendEvent(const EventArgs& msg)
 
 		callback2 = m_OnXmlBubbledEvent.find(kEventAll);
 		if (callback2 != m_OnXmlBubbledEvent.end()) {
-			bRet = callback2->second(&msg);
+			bRet = callback2->second(msg);
 		}
 		if (weakflag.expired()) {
 			return;

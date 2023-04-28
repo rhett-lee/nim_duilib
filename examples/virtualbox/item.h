@@ -10,7 +10,7 @@ public:
 	// 提供外部调用来初始化 item 数据
 	void InitSubControls(const std::wstring& img, const std::wstring& title, int nDataIndex);
 private:
-	bool OnRemove(const ui::EventArgs* args);
+	bool OnRemove(const ui::EventArgs& args);
 
 private:
 	ui::ListBox*	list_box_;

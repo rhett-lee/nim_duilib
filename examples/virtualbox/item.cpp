@@ -38,7 +38,7 @@ void Item::InitSubControls(const std::wstring& img, const std::wstring& title, i
 }
 
 
-bool Item::OnRemove(const ui::EventArgs* args)
+bool Item::OnRemove(const ui::EventArgs& args)
 {
 	// 删除时，只需删除数据就可以了，不要删除界面上的元素
 	ui::VirtualTileBox* pTileBox = dynamic_cast<ui::VirtualTileBox*>(m_pOwner);

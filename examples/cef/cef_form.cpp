@@ -74,9 +74,9 @@ LRESULT CefForm::OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled
 	return __super::OnClose(uMsg, wParam, lParam, bHandled);
 }
 
-bool CefForm::OnClicked(const ui::EventArgs* msg)
+bool CefForm::OnClicked(const ui::EventArgs& msg)
 {
-	std::wstring name = msg->pSender->GetName();
+	std::wstring name = msg.pSender->GetName();
 
 	if (name == L"btn_dev_tool")
 	{
@@ -104,7 +104,8 @@ bool CefForm::OnClicked(const ui::EventArgs* msg)
 	}
 	else if (name == L"btn_navigate")
 	{
-		OnNavigate(nullptr);
+		ui::EventArgs emptyMsg;
+		OnNavigate(emptyMsg);
 	}
 	else if (name == L"btn_refresh")
 	{
@@ -114,7 +115,7 @@ bool CefForm::OnClicked(const ui::EventArgs* msg)
 	return true;
 }
 
-bool CefForm::OnNavigate(const ui::EventArgs* msg)
+bool CefForm::OnNavigate(const ui::EventArgs& /*msg*/)
 {
 	if (!edit_url_->GetText().empty())
 	{

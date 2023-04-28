@@ -39,12 +39,12 @@ void WkeWebView::DoInit() {
 
   m_pWindow->AddMessageFilter(this);
 
-  AttachResize(ToWeakCallback([this](ui::EventArgs* /*args*/) {
+  AttachResize(ToWeakCallback([this](const ui::EventArgs& /*args*/) {
     resize(GetWidth(), GetHeight());
     return true;
   }));
 
-  AttachKillFocus(ToWeakCallback([this](ui::EventArgs* /*args*/) {
+  AttachKillFocus(ToWeakCallback([this](const ui::EventArgs& /*args*/) {
     killFocus();
     return true;
   }));

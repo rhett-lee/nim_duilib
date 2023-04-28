@@ -90,9 +90,9 @@ void MsgBox::OnInitWindow()
 	btn_no_ = (ui::Button*)FindControl(L"btn_no");
 }
 
-bool MsgBox::OnClicked(const ui::EventArgs* msg)
+bool MsgBox::OnClicked(const ui::EventArgs& msg)
 {
-	std::wstring name = msg->pSender->GetName();
+	std::wstring name = msg.pSender->GetName();
 	if (name == L"btn_yes")
 	{
 		EndMsgBox(MB_YES);

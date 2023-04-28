@@ -113,9 +113,9 @@ void MoveControlForm::ShowCustomWindow(const std::wstring& class_name, const std
 }
 
 //得想办法抓起鼠标弹起的一刻
-bool MoveControlForm::OnProcessAppItemDrag(const ui::EventArgs* param)
+bool MoveControlForm::OnProcessAppItemDrag(const ui::EventArgs& param)
 {
-	switch (param->Type)
+	switch (param.Type)
 	{
 	case kEventMouseMove:
 	{
@@ -126,25 +126,25 @@ bool MoveControlForm::OnProcessAppItemDrag(const ui::EventArgs* param)
 			break;
 		}
 		//检测位移
-		LONG cx = abs(param->ptMouse.x - old_drag_point_.x);
-		LONG cy = abs(param->ptMouse.y - old_drag_point_.y);
+		LONG cx = abs(param.ptMouse.x - old_drag_point_.x);
+		LONG cy = abs(param.ptMouse.y - old_drag_point_.y);
 		if (cx < 2 && cy < 2)
 		{
 			break;
 		}
 		//在拖拽模式下
 		//获取鼠标相对AppItem的位置
-		ui::UiRect rect = param->pSender->GetPos(); //左上角有效
-		POINT pt = { param->ptMouse.x - rect.left, param->ptMouse.y - rect.top };
+		ui::UiRect rect = param.pSender->GetPos(); //左上角有效
+		POINT pt = { param.ptMouse.x - rect.left, param.ptMouse.y - rect.top };
 
-		DoDrag(param->pSender, pt);
+		DoDrag(param.pSender, pt);
 		is_drag_state_ = false;
 	}
 		break;
 	case kEventMouseButtonDown:
 	{
 		is_drag_state_ = true;
-		old_drag_point_ = param->ptMouse;
+		old_drag_point_ = param.ptMouse;
 	}
 		break;
 	case kEventMouseButtonUp:

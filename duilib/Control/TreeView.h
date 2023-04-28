@@ -31,7 +31,7 @@ public:
 	 * @param[in] param 消息体
 	 * @return 始终返回 true
 	 */
-	virtual bool OnClickItem(const EventArgs* param);
+	virtual bool OnClickItem(const EventArgs& param);
 
 	/**
 	 * @brief 设置子项所属的属性列表容器

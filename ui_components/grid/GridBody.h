@@ -200,7 +200,7 @@ namespace ui
 		* @brief 编辑的单元格为Combo类型时, 选中了ComboItem调用;
 		* @return 不关键;
 		*/
-		bool OnComboEditSelected(const EventArgs *args);
+		bool OnComboEditSelected(const EventArgs& args);
 
 		/**
 		* @brief SetColumnWidth中调用, 更改了列宽;

@@ -2218,12 +2218,12 @@ bool Window::SendNotify(EventType eventType, WPARAM wParam, LPARAM lParam)
 
 	auto callback = m_OnEvent.find(msg.Type);
 	if (callback != m_OnEvent.end()) {
-		callback->second(&msg);
+		callback->second(msg);
 	}
 
 	callback = m_OnEvent.find(kEventAll);
 	if (callback != m_OnEvent.end()) {
-		callback->second(&msg);
+		callback->second(msg);
 	}
 
 	return true;

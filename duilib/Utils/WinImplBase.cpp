@@ -207,17 +207,13 @@ LRESULT WindowImplBase::OnSysCommand(UINT uMsg, WPARAM wParam, LPARAM lParam, bo
 	return lRes;
 }
 
-bool WindowImplBase::OnButtonClick(const EventArgs* msg)
+bool WindowImplBase::OnButtonClick(const EventArgs& msg)
 {
-	ASSERT(msg != nullptr);
-	if (msg == nullptr) {
+	ASSERT(msg.pSender != nullptr);
+	if (msg.pSender == nullptr) {
 		return false;
 	}
-	ASSERT(msg->pSender != nullptr);
-	if (msg->pSender == nullptr) {
-		return false;
-	}
-	std::wstring sCtrlName = msg->pSender->GetName();
+	std::wstring sCtrlName = msg.pSender->GetName();
 	if( sCtrlName == DUI_CTR_BUTTON_CLOSE) {
 		CloseWnd();
 	}

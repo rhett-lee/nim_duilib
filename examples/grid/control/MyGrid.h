@@ -31,7 +31,7 @@ public:
 	*/
 	virtual void OnColumnCountChanged(int col_index, bool bRemove) override;
 
-	bool OnScrollPosChanged(const ui::EventArgs* args);
+	bool OnScrollPosChanged(const ui::EventArgs& args);
 
 private:
 	void ResetHeanderComboPos();

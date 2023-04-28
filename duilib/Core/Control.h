@@ -660,7 +660,7 @@ public:
 	 * @param[in] ´ý²¹³ä
 	 * @return ´ý²¹³ä
 	 */
-	bool OnApplyAttributeList(const std::wstring& strReceiver, const std::wstring& strList, const EventArgs* eventArgs);
+	bool OnApplyAttributeList(const std::wstring& strReceiver, const std::wstring& strList, const EventArgs& eventArgs);
 
 	/// »æÖÆ²Ù×÷
 	/**

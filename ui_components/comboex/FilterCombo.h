@@ -143,10 +143,10 @@ private:
 	 * @param[in] args 参数列表
 	 * @return 始终返回 true
 	 */
-	bool OnSelectItem(const ui::EventArgs* args);
+	bool OnSelectItem(const ui::EventArgs& args);
 
-	bool OnRichEditTextChanged(const ui::EventArgs* args);
-	bool OnRichEditButtonDown(const ui::EventArgs* args);
+	bool OnRichEditTextChanged(const ui::EventArgs& args);
+	bool OnRichEditButtonDown(const ui::EventArgs& args);
 
 protected:
 	CFilterComboWnd *m_pComboWnd;

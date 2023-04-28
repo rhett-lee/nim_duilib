@@ -32,13 +32,9 @@ void TreeNode::SetTreeView(TreeView* pTreeView)
     m_pTreeView = pTreeView;
 }
 
-bool TreeNode::OnClickItem(const EventArgs* pMsg)
+bool TreeNode::OnClickItem(const EventArgs& param)
 {
-	ASSERT(pMsg != nullptr);
-	if (pMsg == nullptr) {
-		return false;
-	}
-    TreeNode* pItem = dynamic_cast<TreeNode*>(pMsg->pSender);
+    TreeNode* pItem = dynamic_cast<TreeNode*>(param.pSender);
 	ASSERT(pItem != nullptr);
 	if (pItem) {
 		pItem->SetExpand(!pItem->IsExpand(), true);

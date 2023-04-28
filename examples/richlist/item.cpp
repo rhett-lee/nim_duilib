@@ -31,7 +31,7 @@ void Item::InitSubControls(const std::wstring& img, const std::wstring& title)
 	btn_del_->AttachClick(nbase::Bind(&Item::OnRemove, this, std::placeholders::_1));
 }
 
-bool Item::OnRemove(const ui::EventArgs* args)
+bool Item::OnRemove(const ui::EventArgs& args)
 {
 	ui::ListBox* parent = dynamic_cast<ui::ListBox*>(this->GetParent());
 	return parent->Remove(this);

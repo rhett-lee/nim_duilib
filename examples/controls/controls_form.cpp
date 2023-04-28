@@ -152,8 +152,8 @@ void ControlForm::OnInitWindow()
 
 	/* Show settings menu */
 	ui::Button* settings = static_cast<ui::Button*>(FindControl(L"settings"));
-	settings->AttachClick([this](const ui::EventArgs* args) {
-		RECT rect = args->pSender->GetPos();
+	settings->AttachClick([this](const ui::EventArgs& args) {
+		RECT rect = args.pSender->GetPos();
 		ui::CPoint point;
 		point.x = rect.left - 175;
 		point.y = rect.top + 10;
@@ -164,15 +164,15 @@ void ControlForm::OnInitWindow()
 	});
 
 	//注册一个Context Menu，演示功能（用这两种方法都可以注册上下文菜单功能）
-	//m_pRoot->AttachAllEvents([this](ui::EventArgs* args) {
-	//m_pRoot->AttachMenu([this](ui::EventArgs* args) {
+	//m_pRoot->AttachAllEvents([this](ui::EventArgs& args) {
+	//m_pRoot->AttachMenu([this](ui::EventArgs& args) {
 	ui::RichEdit* edit = static_cast<ui::RichEdit*>(FindControl(L"edit"));
 	ASSERT(edit != nullptr);
-	edit->AttachMenu([this](const ui::EventArgs* args) {
-		if (args->Type == ui::kEventMouseMenu) {
-			POINT pt = args->ptMouse;
+	edit->AttachMenu([this](const ui::EventArgs& args) {
+		if (args.Type == ui::kEventMouseMenu) {
+			POINT pt = args.ptMouse;
 			if ((pt.x != -1) && (pt.y != -1)) {
-				ui::Control* pControl = (ui::Control*)args->lParam;//当前点击点所在的控件
+				ui::Control* pControl = (ui::Control*)args.lParam;//当前点击点所在的控件
 
 				//鼠标消息产生的上下文菜单
 				::ClientToScreen(GetHWND(), &pt);
@@ -221,7 +221,7 @@ void ControlForm::ShowPopupMenu(const ui::CPoint& point)
     bool& flag = s_is_checked_01_flag;
     ui::CMenuElementUI* menu_check_01 = dynamic_cast<ui::CMenuElementUI*>(menu->FindControl(L"menu_check_01"));
     ASSERT(menu_check_01 != nullptr);
-    menu_check_01->AttachClick([&flag](const ui::EventArgs* args) {
+    menu_check_01->AttachClick([&flag](const ui::EventArgs& args) {
         flag = true;
         return true;
         });
@@ -231,7 +231,7 @@ void ControlForm::ShowPopupMenu(const ui::CPoint& point)
 
     ui::CMenuElementUI* menu_check_02 = dynamic_cast<ui::CMenuElementUI*>(menu->FindControl(L"menu_check_02"));
     ASSERT(menu_check_02 != nullptr);
-    menu_check_02->AttachClick([&flag](const ui::EventArgs* args) {
+    menu_check_02->AttachClick([&flag](const ui::EventArgs& args) {
         flag = false;
         return true;
         });
@@ -243,7 +243,7 @@ void ControlForm::ShowPopupMenu(const ui::CPoint& point)
 
     /* About menu */
     ui::CMenuElementUI* menu_about = static_cast<ui::CMenuElementUI*>(menu->FindControl(L"about"));
-    menu_about->AttachClick([this](const ui::EventArgs* args) {
+    menu_about->AttachClick([this](const ui::EventArgs& args) {
         AboutForm* about_form = (AboutForm*)(nim_comp::WindowsManager::GetInstance()->GetWindow(AboutForm::kClassName, AboutForm::kClassName));
         if (!about_form)
         {

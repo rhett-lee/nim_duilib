@@ -232,8 +232,8 @@ void Combo::Activate()
 
     m_pWindow = new CComboWnd();
     m_pWindow->InitComboWnd(this);
-	m_pWindow->AttachWindowClose(ToWeakCallback([this](const ui::EventArgs* msg) {
-		auto callback = m_OnEvent.find(msg->Type);
+	m_pWindow->AttachWindowClose(ToWeakCallback([this](const ui::EventArgs& msg) {
+		auto callback = m_OnEvent.find(msg.Type);
 		if (callback != m_OnEvent.end()) {
 			callback->second(msg);
 		}
@@ -428,7 +428,7 @@ int Combo::GetCount() const
 	return m_pLayout->GetCount(); 
 }
 
-bool Combo::OnSelectItem(const EventArgs* /*args*/)
+bool Combo::OnSelectItem(const EventArgs& /*args*/)
 {
 	if (m_pWindow != nullptr) {
 		m_pWindow->OnSeleteItem();

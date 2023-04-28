@@ -148,7 +148,7 @@ private:
 	 * @param[in] args 参数列表
 	 * @return 始终返回 true
 	 */
-	bool OnSelectItem(const EventArgs* args);
+	bool OnSelectItem(const EventArgs& args);
 
 	/**
 	 * @brief 选择一个子项

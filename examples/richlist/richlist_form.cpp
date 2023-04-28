@@ -49,10 +49,10 @@ void RichlistForm::OnInitWindow()
 }
 
 
-bool RichlistForm::OnSelected(const ui::EventArgs* args)
+bool RichlistForm::OnSelected(const ui::EventArgs& args)
 {
-	int current = static_cast<int>(args->wParam);
-	int old = static_cast<int>(args->lParam);
+	int current = static_cast<int>(args.wParam);
+	int old = static_cast<int>(args.lParam);
 
 
 	auto message = nbase::StringPrintf(L"您选择了索引为 %d 的子项，上一次选择子项索引为 %d", current, old);

@@ -224,9 +224,9 @@ void MultiBrowserForm::OnWndSizeMax(bool max)
 		btn_max_restore_->SetClass(max ? L"btn_wnd_restore" : L"btn_wnd_max");
 }
 
-bool MultiBrowserForm::OnClicked(const ui::EventArgs* arg )
+bool MultiBrowserForm::OnClicked(const ui::EventArgs& arg )
 {
-	std::wstring name = arg->pSender->GetName();
+	std::wstring name = arg.pSender->GetName();
 	if (name == L"btn_max_restore")
 	{
 		DWORD style = GetWindowLong(GetHWND(), GWL_STYLE);
@@ -278,9 +278,9 @@ bool MultiBrowserForm::OnClicked(const ui::EventArgs* arg )
 	return true;
 }
 
-bool MultiBrowserForm::OnReturn(const ui::EventArgs* arg)
+bool MultiBrowserForm::OnReturn(const ui::EventArgs& arg)
 {
-	std::wstring name = arg->pSender->GetName();
+	std::wstring name = arg.pSender->GetName();
 	if (name == L"edit_url")
 	{
 #if 0
@@ -585,11 +585,11 @@ void MultiBrowserForm::OnAfterDragBoxCallback(bool drop_succeed)
 	}
 }
 
-bool MultiBrowserForm::OnTabItemSelected(const ui::EventArgs* param)
+bool MultiBrowserForm::OnTabItemSelected(const ui::EventArgs& param)
 {
-	if (kEventSelect == param->Type)
+	if (kEventSelect == param.Type)
 	{
-		std::wstring name = param->pSender->GetName();
+		std::wstring name = param.pSender->GetName();
 
 		if (name == L"tab_list")
 		{
@@ -603,9 +603,9 @@ bool MultiBrowserForm::OnTabItemSelected(const ui::EventArgs* param)
 			ChangeToBox(session_id);
 		}
 	}
-	else if (kEventMouseButtonDown == param->Type)
+	else if (kEventMouseButtonDown == param.Type)
 	{
-		BrowserTabItem *tab_item = dynamic_cast<BrowserTabItem*>(param->pSender);
+		BrowserTabItem *tab_item = dynamic_cast<BrowserTabItem*>(param.pSender);
 		if (tab_item)
 		{
 			std::wstring browser_id = tab_item->GetName();
@@ -615,9 +615,9 @@ bool MultiBrowserForm::OnTabItemSelected(const ui::EventArgs* param)
 	return false;
 }
 
-bool MultiBrowserForm::OnTabItemClose(const ui::EventArgs* param, const std::string& browser_id)
+bool MultiBrowserForm::OnTabItemClose(const ui::EventArgs& param, const std::string& browser_id)
 {
-	if (param->pSender->GetName() == L"tab_item_close")
+	if (param.pSender->GetName() == L"tab_item_close")
 	{
 		CloseBox(browser_id);
 	}

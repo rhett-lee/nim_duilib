@@ -1260,7 +1260,7 @@ namespace ui
 		return true;
 	}
 
-	bool GridBody::OnComboEditSelected(const EventArgs */*args*/)
+	bool GridBody::OnComboEditSelected(const EventArgs& /*args*/)
 	{
 		if (m_pComboEditGridItem && m_pComboEdit && m_pComboEdit->IsVisible())
 		{

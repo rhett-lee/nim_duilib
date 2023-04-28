@@ -34,8 +34,8 @@ public:
 	static const std::wstring	kClassName;
 
 private:
-	bool OnClicked(const ui::EventArgs* msg);
-	bool OnNavigate(const ui::EventArgs* msg);
+	bool OnClicked(const ui::EventArgs& msg);
+	bool OnNavigate(const ui::EventArgs& msg);
 	void OnLoadEnd(int httpStatusCode);
 
 private:

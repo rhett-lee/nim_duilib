@@ -151,20 +151,20 @@ HRESULT MultiBrowserForm::Drop(IDataObject *pDataObj, DWORD grfKeyState, POINTL 
 	return S_OK;
 }
 
-bool MultiBrowserForm::OnProcessTabItemDrag(const ui::EventArgs* param)
+bool MultiBrowserForm::OnProcessTabItemDrag(const ui::EventArgs& param)
 {
 	if (!MultiBrowserManager::GetInstance()->IsEnableMerge())
 		return true;
 
-	switch (param->Type)
+	switch (param.Type)
 	{
 	case kEventMouseMove:
 	{
 		if (::GetKeyState(VK_LBUTTON) >= 0)
 			break;
 
-		LONG cx = abs(param->ptMouse.x - old_drag_point_.x);
-		LONG cy = abs(param->ptMouse.y - old_drag_point_.y);
+		LONG cx = abs(param.ptMouse.x - old_drag_point_.x);
+		LONG cy = abs(param.ptMouse.y - old_drag_point_.y);
 
 		if (!is_drag_state_ && (cx > 5 || cy > 5))
 		{
@@ -192,7 +192,7 @@ bool MultiBrowserForm::OnProcessTabItemDrag(const ui::EventArgs* param)
 	break;
 	case kEventMouseButtonDown:
 	{
-		old_drag_point_ = param->ptMouse;
+		old_drag_point_ = param.ptMouse;
 		is_drag_state_ = false;
 	}
 	break;
@@ -200,7 +200,7 @@ bool MultiBrowserForm::OnProcessTabItemDrag(const ui::EventArgs* param)
 	return true;
 }
 
-HBITMAP MultiBrowserForm::GenerateBoxOffsetRenderBitmap(const UiRect &src_rect)
+HBITMAP MultiBrowserForm::GenerateBoxOffsetRenderBitmap(const UiRect& src_rect)
 {
 	ASSERT(!src_rect.IsRectEmpty());
 	int src_width = src_rect.right - src_rect.left;

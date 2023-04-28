@@ -61,7 +61,7 @@ void BrowserBox::InitBrowserBox(const std::wstring &url)
 	}
 
 	// Box获取焦点时把焦点转移给Cef控件
-	this->AttachSetFocus([this](const ui::EventArgs* param)->bool
+	this->AttachSetFocus([this](const ui::EventArgs& param)->bool
 	{
 		cef_control_->SetFocus();
 		return true;

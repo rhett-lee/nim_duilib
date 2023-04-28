@@ -795,7 +795,7 @@ void Control::SendEvent(const EventArgs& msg)
 		std::weak_ptr<nbase::WeakFlag> weakflag = GetWeakFlag();
 		auto callback = m_OnEvent.find(msg.Type);
 		if (callback != m_OnEvent.end()) {
-			bRet = callback->second(&msg);
+			bRet = callback->second(msg);
 		}
 		if (weakflag.expired()) {
 			return;
@@ -803,7 +803,7 @@ void Control::SendEvent(const EventArgs& msg)
 
 		callback = m_OnEvent.find(kEventAll);
 		if (callback != m_OnEvent.end()) {
-			bRet = callback->second(&msg);
+			bRet = callback->second(msg);
 		}
 		if (weakflag.expired()) {
 			return;
@@ -812,7 +812,7 @@ void Control::SendEvent(const EventArgs& msg)
 		if (bRet) {
 			auto callback2 = m_OnXmlEvent.find(msg.Type);
 			if (callback2 != m_OnXmlEvent.end()) {
-				bRet = callback2->second(&msg);
+				bRet = callback2->second(msg);
 			}
 			if (weakflag.expired()) {
 				return;
@@ -820,7 +820,7 @@ void Control::SendEvent(const EventArgs& msg)
 
 			callback2 = m_OnXmlEvent.find(kEventAll);
 			if (callback2 != m_OnXmlEvent.end()) {
-				bRet = callback2->second(&msg);
+				bRet = callback2->second(msg);
 			}
 			if (weakflag.expired()) {
 				return;
@@ -1258,7 +1258,7 @@ void Control::ApplyAttributeList(const std::wstring& strList)
     return;
 }
 
-bool Control::OnApplyAttributeList(const std::wstring& strReceiver, const std::wstring& strList, const EventArgs* /*eventArgs*/)
+bool Control::OnApplyAttributeList(const std::wstring& strReceiver, const std::wstring& strList, const EventArgs& /*eventArgs*/)
 {
 	Control* pReceiverControl = nullptr;
 	if (strReceiver.substr(0, 2) == L".\\" || strReceiver.substr(0, 2) == L"./") {
@@ -1837,7 +1837,7 @@ void Control::BroadcastGifEvent(int nVirtualEvent)
 	if (callback != m_OnGifEvent.end()) {
 		EventArgs param;
 		param.pSender = this;
-		callback->second(&param);
+		callback->second(param);
 	}
 }
 

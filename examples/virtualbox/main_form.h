@@ -31,7 +31,7 @@ public:
 	static const std::wstring kClassName;
 
 private:
-	bool OnClicked(const ui::EventArgs* args);
+	bool OnClicked(const ui::EventArgs& args);
 
 private:
 	ui::VirtualTileBox*	m_pTileList;

@@ -232,7 +232,7 @@ private:
      * @param[in] param 携带的参数
      * @return 始终返回 true
      */
-	bool OnButtonClick(const EventArgs* param);
+	bool OnButtonClick(const EventArgs& param);
 };
 
 }
