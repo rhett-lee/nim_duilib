@@ -221,7 +221,7 @@ namespace nim_comp
 		ASSERT(m_pCheckComboWnd);
 		m_pCheckComboWnd->InitComboWnd(this);
 
-		m_pCheckComboWnd->SendNotify(this, ui::kEventClick);
+		SendEvent(ui::kEventClick);
 		Invalidate();
 	}
 

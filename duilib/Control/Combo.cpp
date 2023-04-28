@@ -240,7 +240,7 @@ void Combo::Activate()
 		return true;
 	}));
 
-	if (m_pWindow != NULL) m_pWindow->SendNotify(this, kEventClick);
+	SendEvent(kEventClick);
     Invalidate();
 }
 
@@ -384,9 +384,7 @@ bool Combo::SelectItemInternal(int iIndex)
 	m_pLayout->SelectItem(m_iCurSel, false, false);
 
 	//add by djj below
-	if (m_pWindow != nullptr) {
-		m_pWindow->SendNotify(this, kEventSelect, m_iCurSel, iOldSel);
-	}
+	SendEvent(kEventSelect, m_iCurSel, iOldSel);
 
 #if defined(ENABLE_UIAUTOMATION)
 	if (m_pUIAProvider != nullptr && UiaClientsAreListening()) {
@@ -414,8 +412,8 @@ bool Combo::SelectItem(int iIndex, bool bTrigger)
 		return false;
 	}
     Invalidate();
-    if ((m_pWindow != nullptr) && bTrigger) {
-        m_pWindow->SendNotify(this, kEventSelect, m_iCurSel, -1);
+    if (bTrigger) {
+        SendEvent(kEventSelect, m_iCurSel, -1);
     }
 	return true;
 }
@@ -441,9 +439,7 @@ bool Combo::OnSelectItem(EventArgs* /*args*/)
 	if (pControl != nullptr) {
 		pControl->SetState(kControlStateNormal);
 	}
-	if (m_pWindow != nullptr) {
-		m_pWindow->SendNotify(this, kEventSelect, m_iCurSel, iOldSel);
-	}
+	SendEvent(kEventSelect, m_iCurSel, iOldSel);
 	return true;
 }
 

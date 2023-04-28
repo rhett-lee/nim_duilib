@@ -83,7 +83,7 @@ Control::~Control()
 	m_animationManager->Clear(this);
 	m_animationManager.reset();
 
-	HandleMessageTemplate(kEventLast);
+	SendEvent(kEventLast);
 
 	if (m_pWindow) {
 		m_pWindow->ReapObjects(this);
@@ -504,7 +504,7 @@ void Control::SetVisible(bool bVisible)
 		StopGifPlay();
 	}
 	if (m_pWindow != nullptr) {
-		HandleMessageTemplate(kEventVisibleChange);
+		SendEvent(kEventVisibleChange);
 	}	
 }
 
@@ -557,7 +557,6 @@ void Control::SetFocus()
 	if (m_bNoFocus) {
 		return;
 	}
-	ASSERT(CheckVisibleAncestor());
 	if (m_pWindow != nullptr) {
 		m_pWindow->SetFocus(this);
 	}
@@ -642,7 +641,7 @@ void Control::SetPos(UiRect rc)
 
 	if (!m_bSetPos) {
 		m_bSetPos = true;
-		m_pWindow->SendNotify(this, kEventResize, NULL, NULL);
+		SendEvent(kEventResize);
 		m_bSetPos = false;
 	}
 
@@ -755,7 +754,12 @@ UIAControlProvider* Control::GetUIAProvider()
 }
 #endif;
 
-void Control::HandleMessageTemplate(EventType eventType, WPARAM wParam, LPARAM lParam, TCHAR tChar, const CPoint& mousePos, FLOAT pressure)
+void Control::SendEvent(EventType eventType, 
+					    WPARAM wParam, 
+					    LPARAM lParam, 
+					    TCHAR tChar, 
+					    const CPoint& mousePos,
+					    FLOAT pressure)
 {
 	EventArgs msg;
 	msg.pSender = this;
@@ -764,21 +768,25 @@ void Control::HandleMessageTemplate(EventType eventType, WPARAM wParam, LPARAM l
 	msg.wParam = wParam;
 	msg.lParam = lParam;
 	msg.pressure = pressure;
-	if (0 == mousePos.x == mousePos.y)
-		msg.ptMouse = m_pWindow->GetLastMousePos();
-	else
+	if ((mousePos.x == 0) && (mousePos.y == 0)) {
+		if (m_pWindow != nullptr) {
+			msg.ptMouse = m_pWindow->GetLastMousePos();
+		}
+	}
+	else {
 		msg.ptMouse = mousePos;
+	}
 	msg.dwTimestamp = ::GetTickCount();
 
-	HandleMessageTemplate(msg);
+	SendEvent(msg);
 }
 
-void Control::HandleMessageTemplate(EventArgs& msg)
+void Control::SendEvent(EventArgs& msg)
 {
 	if ((msg.Type == kEventInternalDoubleClick) || 
 		(msg.Type == kEventInternalSetFocus) || 
 		(msg.Type == kEventInternalKillFocus)) {
-		HandleMessage(msg);
+		HandleEvent(msg);
 		return;
 	}
 	bool bRet = true;
@@ -824,18 +832,18 @@ void Control::HandleMessageTemplate(EventArgs& msg)
 	}
 	
     if(bRet) {
-		HandleMessage(msg);
+		HandleEvent(msg);
 	}
 }
 
-void Control::HandleMessage(EventArgs& msg)
+void Control::HandleEvent(EventArgs& msg)
 {
 	if( !IsMouseEnabled() && 
 		(msg.Type > kEventMouseBegin) && 
 		(msg.Type < kEventMouseEnd)) {
 		//当前控件禁止接收鼠标消息时，将鼠标相关消息转发给上层处理
 		if (m_pParent != nullptr) {			
-			m_pParent->HandleMessageTemplate(msg);
+			m_pParent->SendEvent(msg);
 		}
 		return;
 	}
@@ -908,11 +916,11 @@ void Control::HandleMessage(EventArgs& msg)
 		return;
 	}
 	else if (msg.Type == kEventInternalDoubleClick) {
-		if (m_pWindow != NULL) m_pWindow->SendNotify(this, kEventMouseDoubleClick);
+		SendEvent(kEventMouseDoubleClick);
 		return;
 	}
 
-    if( m_pParent != NULL ) m_pParent->HandleMessageTemplate(msg);
+    if( m_pParent != NULL ) m_pParent->SendEvent(msg);
 }
 
 bool Control::HasHotState()

@@ -118,7 +118,7 @@ public:
 protected:
   /// 重写父类接口，提供个性化功能
   virtual void SetScrollPos(ui::CSize szPos) override;
-  virtual void HandleMessage(ui::EventArgs& event) override;
+  virtual void HandleEvent(ui::EventArgs& event) override;
   virtual void SetPos(ui::UiRect rc) override;
 
   /**

@@ -2056,12 +2056,8 @@ void RichEdit::OnTxNotify(DWORD iNotify, void *pv)
 
 bool RichEdit::OnTxTextChanged()
 {
-	if (m_pWindow != NULL) {
-		m_pWindow->SendNotify(this, kEventTextChange);
-	}
-
+	SendEvent(kEventTextChange);
 	RaiseTextValueEvent(GetText(), GetText());
-
 	return true;
 }
 
@@ -2470,12 +2466,12 @@ UINT RichEdit::GetControlFlags() const
 	return IsEnabled() && IsAllowTabStop() ? UIFLAG_TABSTOP : UIFLAG_DEFAULT;
 }
 
-void RichEdit::HandleMessage(EventArgs& event)
+void RichEdit::HandleEvent(EventArgs& event)
 {
 	if ((!IsMouseEnabled() && event.Type > kEventMouseBegin && event.Type < kEventMouseEnd) ||
 		(!IsEnabled()&&!IsReadOnly())){
-		if (m_pParent != NULL) m_pParent->HandleMessageTemplate(event);
-		else Control::HandleMessage(event);
+		if (m_pParent != NULL) m_pParent->SendEvent(event);
+		else Control::HandleEvent(event);
 		return;
 	}
 
@@ -2502,7 +2498,7 @@ void RichEdit::HandleMessage(EventArgs& event)
 		if (::GetAsyncKeyState(VK_CONTROL) < 0)
 			return;
 		
-		ScrollableBox::HandleMessage(event);
+		ScrollableBox::HandleEvent(event);
 		//OnMouseMessage(WM_MOUSEWHEEL, event);
 		return;
 	}
@@ -2513,8 +2509,7 @@ void RichEdit::HandleMessage(EventArgs& event)
 			if (HittestCustomLink(CPoint(event.ptMouse), strLink))
 			{
 				//::SetCursor(::LoadCursor(NULL, MAKEINTRESOURCE(IDC_HAND)));
-				if (m_pWindow != NULL)
-					m_pWindow->SendNotify((Control*)this, kEventCustomLinkClick);
+				SendEvent(kEventCustomLinkClick);
 				return;
 			}
 		}
@@ -2580,7 +2575,7 @@ void RichEdit::HandleMessage(EventArgs& event)
 		return;
 	}
 
-	ScrollableBox::HandleMessage(event);
+	ScrollableBox::HandleEvent(event);
 }
 
 void RichEdit::OnSetCursor(EventArgs& event)
@@ -2634,9 +2629,7 @@ void RichEdit::OnChar(EventArgs& event)
 {
 	//TAB
 	if (::GetKeyState(VK_TAB) < 0 && !m_bWantTab) {
-		if (m_pWindow != NULL)
-			m_pWindow->SendNotify((Control*)this, kEventTab);
-
+		SendEvent(kEventTab);
 		return;
 	}
 	//Number
@@ -2652,10 +2645,8 @@ void RichEdit::OnKeyDown(EventArgs& event)
 {
 	if (event.wParam == VK_RETURN && ::GetAsyncKeyState(VK_SHIFT) >= 0)	{
 		if (m_bNeedReturnMsg && ((m_bReturnMsgWantCtrl && ::GetAsyncKeyState(VK_CONTROL) < 0) ||
-			(!m_bReturnMsgWantCtrl && ::GetAsyncKeyState(VK_CONTROL) >= 0)))
-		{
-			if (m_pWindow != NULL)
-				m_pWindow->SendNotify((Control*)this, kEventReturn);
+			(!m_bReturnMsgWantCtrl && ::GetAsyncKeyState(VK_CONTROL) >= 0))) {
+			SendEvent(kEventReturn);
 			return;
 		}
 	}

@@ -38,11 +38,11 @@ void ListBox::SetAttribute(const std::wstring& strName, const std::wstring& strV
 	}
 }
 
-void ListBox::HandleMessage(EventArgs& event)
+void ListBox::HandleEvent(EventArgs& event)
 {
 	if (!IsMouseEnabled() && event.Type > kEventMouseBegin && event.Type < kEventMouseEnd) {
-		if (m_pParent != NULL) m_pParent->HandleMessageTemplate(event);
-		else ScrollableBox::HandleMessage(event);
+		if (m_pParent != NULL) m_pParent->SendEvent(event);
+		else ScrollableBox::HandleEvent(event);
 		return;
 	}
 
@@ -87,12 +87,18 @@ void ListBox::HandleMessage(EventArgs& event)
 	break;
 	}
 
-	ScrollableBox::HandleMessage(event);
+	ScrollableBox::HandleEvent(event);
 }
 
-void ListBox::HandleMessageTemplate(EventArgs& event)
+void ListBox::SendEvent(EventType eventType, WPARAM wParam, LPARAM lParam, TCHAR tChar,
+					    const CPoint& mousePos, FLOAT pressure)
 {
-	ScrollableBox::HandleMessageTemplate(event);
+	return ScrollableBox::SendEvent(eventType, wParam, lParam, tChar, mousePos, pressure);
+}
+
+void ListBox::SendEvent(EventArgs& event)
+{
+	ScrollableBox::SendEvent(event);
 }
 
 int ListBox::GetCurSel() const
@@ -110,22 +116,34 @@ bool ListBox::SelectItem(int iIndex, bool bTakeFocus, bool bTrigger)
 	// We should first unselect the currently selected item
 	if (m_iCurSel >= 0) {
 		Control* pControl = GetItemAt(m_iCurSel);
-		if (pControl != NULL) {
+		if (pControl != nullptr) {
 			ListContainerElement* pListItem = dynamic_cast<ListContainerElement*>(pControl);
-			if (pListItem != NULL) pListItem->OptionTemplate<Box>::Selected(false, bTrigger);
+			if (pListItem != nullptr) {
+				pListItem->OptionTemplate<Box>::Selected(false, bTrigger);
+			}
 		}
 
 		m_iCurSel = -1;
 	}
-	if (iIndex < 0) return false;
+	if (iIndex < 0) {
+		return false;
+	}
 
 	Control* pControl = GetItemAt(iIndex);
-	if (pControl == NULL) return false;
-	if (!pControl->IsVisible()) return false;
-	if (!pControl->IsEnabled()) return false;
+	if (pControl == nullptr) {
+		return false;
+	}
+	if (!pControl->IsVisible()) {
+		return false;
+	}
+	if (!pControl->IsEnabled()) {
+		return false;
+	}
 
 	ListContainerElement* pListItem = dynamic_cast<ListContainerElement*>(pControl);
-	if (pListItem == NULL) return false;
+	if (pListItem == NULL) {
+		return false;
+	}
 	m_iCurSel = iIndex;
 	pListItem->OptionTemplate<Box>::Selected(true, bTrigger);
 
@@ -134,9 +152,11 @@ bool ListBox::SelectItem(int iIndex, bool bTakeFocus, bool bTrigger)
 		EnsureVisible(rcItem);
 	}
 
-	if (bTakeFocus) pControl->SetFocus();
-	if (m_pWindow != NULL && bTrigger) {
-		m_pWindow->SendNotify(this, kEventSelect, m_iCurSel, iOldSel);
+	if (bTakeFocus) {
+		pControl->SetFocus();
+	}
+	if (bTrigger) {
+		SendEvent(kEventSelect, m_iCurSel, iOldSel);
 	}
 
 	return true;
@@ -267,8 +287,8 @@ void ListBox::ActiveItem()
 	if (m_iCurSel >= 0)	{
 		ListContainerElement* item = dynamic_cast<ListContainerElement*>( GetItemAt(m_iCurSel) );
 		if (item != nullptr) {
-			item->InvokeDoubleClickEvent();
-		}		
+			item->SendEvent(kEventMouseDoubleClick);
+		}
 	}
 }
 
@@ -432,35 +452,35 @@ void ListContainerElement::Selected(bool bSelected, bool trigger)
 	if (bSelected && m_pOwner != NULL) m_pOwner->SelectItem(m_iIndex, false, trigger);
 }
 
-void ListContainerElement::HandleMessage(EventArgs& event)
+void ListContainerElement::HandleEvent(EventArgs& event)
 {
 	if (!IsMouseEnabled() && 
 		(event.Type > kEventMouseBegin) && 
 		(event.Type < kEventMouseEnd)) {
 		//当前控件禁止接收鼠标消息时，将鼠标相关消息转发给上层处理
 		if (m_pOwner != nullptr) {
-			m_pOwner->HandleMessageTemplate(event);
+			m_pOwner->SendEvent(event);
 		}
 		else {
-			Box::HandleMessage(event);
+			Box::HandleEvent(event);
 		}
 		return;
 	}
 	else if (event.Type == kEventInternalDoubleClick) {
 		if (IsActivatable()) {
-			InvokeDoubleClickEvent();
+			SendEvent(kEventMouseDoubleClick);
 		}
 		return;
 	}
 	else if (event.Type == kEventKeyDown && IsEnabled()) {
 		if (event.chKey == VK_RETURN) {
 			if (IsActivatable()) {
-				if (m_pWindow != NULL) m_pWindow->SendNotify(this, kEventReturn);
+				SendEvent(kEventReturn);
 			}
 			return;
 		}
 	}
-	__super::HandleMessage(event);
+	__super::HandleEvent(event);
 
 	// An important twist: The list-item will send the event not to its immediate
 	// parent but to the "attached" list. A list may actually embed several components
@@ -487,11 +507,6 @@ void ListContainerElement::SetIndex(int iIndex)
 {
     m_iIndex = iIndex;
 }
-void ListContainerElement::InvokeDoubleClickEvent()
-{
-	if( m_pWindow != NULL ) m_pWindow->SendNotify(this, kEventMouseDoubleClick);
-}
-
 
 bool ListContainerElement::IsSelectableType() const
 {

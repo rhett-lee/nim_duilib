@@ -119,7 +119,9 @@ public:
 	virtual void SetWindow(Window* pManager, Box* pParent, bool bInit = true) override;
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 	virtual void SetPos(UiRect rc) override;
-	virtual void HandleMessageTemplate(EventArgs& msg) override;
+	virtual void SendEvent(EventType eventType, WPARAM wParam = 0, LPARAM lParam = 0, TCHAR tChar = 0,
+		                   const CPoint& mousePos = CPoint(), FLOAT pressure = 0.0f) override;
+	virtual void SendEvent(EventArgs& msg) override;
 	virtual void SetReceivePointerMsg(bool bRecv) override;
 	virtual void PaintChild(IRenderContext* pRender, const UiRect& rcPaint) override;
 	virtual void SetEnabled(bool bEnabled) override;
@@ -346,7 +348,7 @@ public:
 #endif
 	virtual void SetAttribute(const std::wstring& pstrName, const std::wstring& pstrValue) override;
 	virtual void SetPos(UiRect rc) override;
-	virtual void HandleMessage(EventArgs& event) override;
+	virtual void HandleEvent(EventArgs& event) override;
 	virtual bool MouseEnter(EventArgs& msg) override;
 	virtual bool MouseLeave(EventArgs& msg) override;
 	virtual void PaintChild(IRenderContext* pRender, const UiRect& rcPaint) override;

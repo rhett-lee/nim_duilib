@@ -703,7 +703,7 @@ public:
 	virtual CSize EstimateText(CSize szAvailable);
 	virtual void SetPos(UiRect rc) override;
 	virtual UINT GetControlFlags() const override;
-	virtual void HandleMessage(EventArgs& event) override;
+	virtual void HandleEvent(EventArgs& event) override;
 	void OnSetCursor(EventArgs& event);
 	void OnSetFocus(EventArgs& event);
 	void OnKillFocus(EventArgs& event);

@@ -308,16 +308,16 @@ void DateTime::SetFormat(const std::wstring& val)
     Invalidate();
 }
 
-void DateTime::HandleMessage(EventArgs& event)
+void DateTime::HandleEvent(EventArgs& event)
 {
     if (!IsMouseEnabled() && 
         (event.Type > kEventMouseBegin) && 
         (event.Type < kEventMouseEnd)) {
         if (m_pParent != nullptr) {
-            m_pParent->HandleMessageTemplate(event);
+            m_pParent->SendEvent(event);
         }
         else {
-            __super::HandleMessage(event);
+            __super::HandleEvent(event);
         }
         return;
     }
@@ -379,7 +379,7 @@ void DateTime::HandleMessage(EventArgs& event)
     if (event.Type == kEventMouseLeave) {
         return;
     }
-    __super::HandleMessage(event);
+    __super::HandleEvent(event);
 }
 
 }//namespace ui

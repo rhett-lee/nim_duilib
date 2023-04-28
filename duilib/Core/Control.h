@@ -581,23 +581,24 @@ public:
 #endif
 
 	// 消息处理
-	/**
-	 * @brief 控件统一的消息处理入口，将传统 Windows 消息转换为自定义格式的消息
+	/** @brief 控件统一的消息处理入口，将传统 Windows 消息转换为自定义格式的消息
 	 * @param[in] eventType	消息内容
 	 * @param[in] wParam	消息附加内容
 	 * @param[in] lParam	消息附加内容
 	 * @param[in] tChar		按键信息
 	 * @param[in] mousePos	鼠标信息
-	 * @return 无
 	 */
-	void HandleMessageTemplate(EventType eventType, WPARAM wParam = 0, LPARAM lParam = 0, TCHAR tChar = 0, const CPoint& mousePos = CPoint(), FLOAT pressure = 0.0f);
+	virtual void SendEvent(EventType eventType,
+			        	   WPARAM wParam = 0, 
+						   LPARAM lParam = 0, 
+						   TCHAR tChar = 0, 
+						   const CPoint& mousePos = CPoint(),
+						   FLOAT pressure = 0.0f);
 
-	/**
-	 * @brief 将转换后的消息派发到消息处理函数
+	/** @brief 将转换后的消息派发到消息处理函数
 	 * @param[in] msg 消息内容
-	 * @return 无
 	 */
-    virtual void HandleMessageTemplate(EventArgs& msg);
+    virtual void SendEvent(EventArgs& msg);
 
 	/**
 	 * @brief 判断控件是否有 HOT 状态
@@ -1028,7 +1029,7 @@ protected:
 	void EnsureNoFocus();
 	
 	/// 消息处理的保护成员函数，不允许外部直接调用
-	virtual void HandleMessage(EventArgs& msg);
+	virtual void HandleEvent(EventArgs& msg);
 	virtual bool MouseEnter(EventArgs& msg);
 	virtual bool MouseLeave(EventArgs& msg);
 	virtual bool ButtonDown(EventArgs& msg);

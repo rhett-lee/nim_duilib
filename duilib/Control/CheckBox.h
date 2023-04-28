@@ -188,17 +188,17 @@ void CheckBoxTemplate<InheritType>::Activate()
 template<typename InheritType>
 void CheckBoxTemplate<InheritType>::Selected(bool bSelected, bool bTriggerEvent)
 {
-    if (m_bSelected == bSelected) return;
+    if (m_bSelected == bSelected) {
+        return;
+    }
     m_bSelected = bSelected;
 
-    if (this->m_pWindow != NULL) {
-        if (bTriggerEvent) {
-            if (m_bSelected) {
-                this->m_pWindow->SendNotify(this, kEventSelect);
-            }
-            else {
-                this->m_pWindow->SendNotify(this, kEventUnSelect);
-            }
+    if (bTriggerEvent) {
+        if (m_bSelected) {
+            this->SendEvent(kEventSelect);
+        }
+        else {
+            this->SendEvent(kEventUnSelect);
         }
     }
 

@@ -512,20 +512,12 @@ public:
 	 */
     LRESULT PostMessage(UINT uMsg, WPARAM wParam = 0, LPARAM lParam = 0L);
 
-	/**@brief 主动发起一个消息
+	/**@brief 主动发起一个消息, 发送给该窗口的事件回调管理器（m_OnEvent）中注册的消息处理函数
 	 * @param[in] eventType 转化后的消息体
 	 * @param[in] wParam 消息附加参数
 	 * @param[in] lParam 消息附加参数
 	 */
 	bool SendNotify(EventType eventType, WPARAM wParam = 0, LPARAM lParam = 0);
-
-	/**@brief 主动发起一个消息
-	 * @param[in] pControl 发送目标，要发送给哪个控件
-	 * @param[in] msg 消息体
-	 * @param[in] wParam 消息附加参数
-	 * @param[in] lParam 消息附加参数
-	 */
-	bool SendNotify(Control* pControl, EventType msg, WPARAM wParam = 0, LPARAM lParam = 0);
 
 	/**@brief 调用系统默认的窗口处理函数，对 CallWindowProc API 的一层封装
 	 * @param[in] uMsg 消息体

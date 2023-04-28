@@ -32,17 +32,17 @@ UiRect Slider::GetProgressPos()
 	return rc;
 }
 
-void Slider::HandleMessage(EventArgs& event)
+void Slider::HandleEvent(EventArgs& event)
 {
 	if (!IsMouseEnabled() && 
 		(event.Type > kEventMouseBegin) && 
 		(event.Type < kEventMouseEnd)) {
 		//当前控件禁止接收鼠标消息时，将鼠标相关消息转发给上层处理
 		if (m_pParent != nullptr) {
-			m_pParent->HandleMessageTemplate(event);
+			m_pParent->SendEvent(event);
 		}
 		else {
-			Progress::HandleMessage(event);
+			Progress::HandleEvent(event);
 		}
 		return;
 	}
@@ -73,7 +73,7 @@ void Slider::HandleMessage(EventArgs& event)
 				else if (event.ptMouse.y <= m_rcItem.top + m_szThumb.cy / 2) m_nValue = m_nMax;
 				else m_nValue = m_nMin + double((m_nMax - m_nMin) * (m_rcItem.bottom - event.ptMouse.y - m_szThumb.cy / 2)) / (m_rcItem.bottom - m_rcItem.top - m_szThumb.cy);
 			}
-			m_pWindow->SendNotify(this, kEventValueChange);
+			SendEvent(kEventValueChange);
 			Invalidate();
 		}
 		return;
@@ -82,12 +82,12 @@ void Slider::HandleMessage(EventArgs& event)
 		int detaValue = static_cast<int>(event.wParam);
 		if (detaValue > 0) {
 			SetValue(GetValue() + GetChangeStep());
-			m_pWindow->SendNotify(this, kEventValueChange);
+			SendEvent(kEventValueChange);
 			return;
 		}
 		else {
 			SetValue(GetValue() - GetChangeStep());
-			m_pWindow->SendNotify(this, kEventValueChange);
+			SendEvent(kEventValueChange);
 			return;
 		}
 	}
@@ -103,13 +103,13 @@ void Slider::HandleMessage(EventArgs& event)
 				else if (event.ptMouse.y <= m_rcItem.top + m_szThumb.cy / 2) m_nValue = m_nMax;
 				else m_nValue = m_nMin + double((m_nMax - m_nMin) * (m_rcItem.bottom - event.ptMouse.y - m_szThumb.cy / 2)) / (m_rcItem.bottom - m_rcItem.top - m_szThumb.cy);
 			}
-			m_pWindow->SendNotify(this, kEventValueChange);
+			SendEvent(kEventValueChange);
 			Invalidate();
 		}
 		return;
 	}
 
-	Progress::HandleMessage(event);
+	Progress::HandleEvent(event);
 }
 
 void Slider::SetAttribute(const std::wstring& strName, const std::wstring& strValue)

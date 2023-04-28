@@ -302,12 +302,18 @@ void Box::SetPos(UiRect rc)
 	}
 }
 
-void Box::HandleMessageTemplate(EventArgs& msg)
+void Box::SendEvent(EventType eventType, WPARAM wParam, LPARAM lParam, TCHAR tChar,
+				    const CPoint& mousePos, FLOAT pressure)
+{
+	return __super::SendEvent(eventType, wParam, lParam, tChar, mousePos, pressure);
+}
+
+void Box::SendEvent(EventArgs& msg)
 {
 	if ((msg.Type == kEventInternalDoubleClick) || 
 		(msg.Type == kEventInternalSetFocus) || 
 		(msg.Type == kEventInternalKillFocus)) {
-		HandleMessage(msg);
+		HandleEvent(msg);
 		return;
 	}
 
@@ -384,7 +390,7 @@ void Box::HandleMessageTemplate(EventArgs& msg)
 	}
 
 	if (bRet) {
-		HandleMessage(msg);
+		HandleEvent(msg);
 	}
 }
 
@@ -1047,12 +1053,12 @@ CSize ScrollableBox::CalcRequiredSize(const UiRect& rc)
 	return requiredSize;
 }
 
-void ScrollableBox::HandleMessage(EventArgs& event)
+void ScrollableBox::HandleEvent(EventArgs& event)
 {
 	if( (!IsMouseEnabled() && event.Type > kEventMouseBegin && event.Type < kEventMouseEnd) || 
 		event.Type == kEventLast) {
-		if( m_pParent != NULL ) m_pParent->HandleMessageTemplate(event);
-		else Box::HandleMessage(event);
+		if( m_pParent != NULL ) m_pParent->SendEvent(event);
+		else Box::HandleEvent(event);
 		return;
 	}
 		
@@ -1158,7 +1164,7 @@ void ScrollableBox::HandleMessage(EventArgs& event)
 		}
 	}
 		
-	Box::HandleMessage(event);
+	Box::HandleEvent(event);
 }
 
 bool ScrollableBox::MouseEnter(EventArgs& msg)
@@ -1361,9 +1367,7 @@ void ScrollableBox::SetScrollPos(CSize szPos)
 	if( cx == 0 && cy == 0 ) return;
 	LoadImageCache(cy > 0);
 	Invalidate();
-	if( m_pWindow != NULL )	{
-		m_pWindow->SendNotify(this, kEventScrollChange, (cy == 0) ? 0 : 1, (cx == 0) ? 0 : 1);
-	}
+	SendEvent(kEventScrollChange, (cy == 0) ? 0 : 1, (cx == 0) ? 0 : 1);
 }
 
 void ScrollableBox::LoadImageCache(bool bFromTopLeft)

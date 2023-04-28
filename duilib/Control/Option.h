@@ -93,11 +93,11 @@ void OptionTemplate<InheritType>::Selected(bool bSelected, bool bTriggerEvent)
             }
 
             if (bTriggerEvent) {
-                this->m_pWindow->SendNotify(this, kEventSelect);
+                this->SendEvent(kEventSelect);
             }
         }
         else {
-            this->m_pWindow->SendNotify(this, kEventUnSelect);
+            this->SendEvent(kEventUnSelect);
         }
     }
 

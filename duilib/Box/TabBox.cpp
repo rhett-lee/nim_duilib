@@ -194,9 +194,9 @@ bool TabBox::SelectItem(int iIndex)
 	}		
 
 	if( m_pWindow != nullptr ) {
-		m_pWindow->SetNextTabControl();
-		m_pWindow->SendNotify(this, kEventSelect, m_iCurSel, iOldSel);
+		m_pWindow->SetNextTabControl();		
 	}
+	SendEvent(kEventSelect, m_iCurSel, iOldSel);
 	return true;
 }
 

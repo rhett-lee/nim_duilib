@@ -76,7 +76,7 @@ namespace ui
 			if (m_pReEditGridItem->text != m_pReEdit->GetText())
 			{
 				m_pReEditGridItem->text = m_pReEdit->GetText();
-				m_pWindow->SendNotify(this, kEventTextChange, m_pReEditGridItem->row_index, m_pReEditGridItem->col_index);
+				SendEvent(kEventTextChange, m_pReEditGridItem->row_index, m_pReEditGridItem->col_index);
 			}
 			m_pReEdit->SetVisible(false);
 			m_pReEditGridItem = nullptr;
@@ -924,11 +924,11 @@ namespace ui
 		return m_selRange;
 	}
 
-	void GridBody::HandleMessage(EventArgs& event)
+	void GridBody::HandleEvent(EventArgs& event)
 	{
 		if (!IsMouseEnabled() && event.Type > kEventMouseBegin && event.Type < kEventMouseEnd) {
-			if (m_pParent != NULL) m_pParent->HandleMessageTemplate(event);
-			else Box::HandleMessage(event);
+			if (m_pParent != NULL) m_pParent->SendEvent(event);
+			else Box::HandleEvent(event);
 			return;
 		}
 		bool bHandle = false;
@@ -948,7 +948,7 @@ namespace ui
 			bHandle = true;
 		}
 		if (!bHandle)
-			__super::HandleMessage(event);
+			__super::HandleEvent(event);
 	}
 
 	bool GridBody::ButtonDown(EventArgs& msg)
@@ -1267,7 +1267,7 @@ namespace ui
 			if (m_pComboEditGridItem->text != m_pComboEdit->GetText())
 			{
 				m_pComboEditGridItem->text = m_pComboEdit->GetText();
-				m_pWindow->SendNotify(this, kEventTextChange, m_pComboEditGridItem->row_index, m_pComboEditGridItem->col_index);
+				SendEvent(kEventTextChange, m_pComboEditGridItem->row_index, m_pComboEditGridItem->col_index);
 			}
 		}
 		return true;

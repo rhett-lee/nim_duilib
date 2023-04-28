@@ -19,7 +19,7 @@ public:
     virtual UIAControlProvider* GetUIAProvider() override;
 #endif
     virtual void Activate() override;
-    virtual void HandleMessage(EventArgs& event) override;
+    virtual void HandleEvent(EventArgs& event) override;
     virtual UINT GetControlFlags() const override;
 
     /** 该控件是否可以放置在标题栏上（以用于处理NC消息响应）
@@ -41,17 +41,17 @@ ButtonTemplate<InheritType>::ButtonTemplate()
 }
 
 template<typename InheritType>
-void ButtonTemplate<InheritType>::HandleMessage(EventArgs& event)
+void ButtonTemplate<InheritType>::HandleEvent(EventArgs& event)
 {
     if (!this->IsMouseEnabled() && 
         (event.Type > kEventMouseBegin) && 
         (event.Type < kEventMouseEnd)) {
         //当前控件禁止接收鼠标消息时，将鼠标相关消息转发给上层处理
         if (this->m_pParent != nullptr) {
-            this->m_pParent->HandleMessageTemplate(event);
+            this->m_pParent->SendEvent(event);
         }
         else {
-            __super::HandleMessage(event);
+            __super::HandleEvent(event);
         }
         return;
     }
@@ -63,7 +63,7 @@ void ButtonTemplate<InheritType>::HandleMessage(EventArgs& event)
             }
         }
     }
-    __super::HandleMessage(event);
+    __super::HandleEvent(event);
 }
 
 template<typename InheritType>
@@ -84,8 +84,11 @@ inline UIAControlProvider* ButtonTemplate<InheritType>::GetUIAProvider()
 template<typename InheritType>
 void ButtonTemplate<InheritType>::Activate()
 {
-    if (!this->IsActivatable()) return;
-    if (this->m_pWindow != NULL) this->m_pWindow->SendNotify(this, kEventClick);
+    if (!this->IsActivatable()) {
+        return;
+    }
+    this->SendEvent(kEventClick);
+
 #if defined(ENABLE_UIAUTOMATION)
     if (this->m_pUIAProvider != nullptr && UiaClientsAreListening())
         UiaRaiseAutomationEvent(this->m_pUIAProvider, UIA_Invoke_InvokedEventId);

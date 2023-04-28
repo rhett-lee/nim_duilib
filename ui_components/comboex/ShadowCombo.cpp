@@ -273,7 +273,7 @@ void ShadowCombo::Activate()
         return true;
         }));
 
-    m_pWindow->SendNotify(this, ui::kEventClick);
+    SendEvent(ui::kEventClick);
     Invalidate();
 }
 
@@ -440,9 +440,7 @@ bool ShadowCombo::SelectItemInternal(int iIndex)
     m_pLayout->SelectItem(m_iCurSel, false, false);
 
     //add by djj below
-    if (m_pWindow != NULL) {
-        m_pWindow->SendNotify(this, ui::kEventSelect, m_iCurSel, iOldSel);
-    }
+    SendEvent(ui::kEventSelect, m_iCurSel, iOldSel);
 
 #if defined(ENABLE_UIAUTOMATION)
     if (m_pUIAProvider != nullptr && UiaClientsAreListening()) {
@@ -466,8 +464,8 @@ bool ShadowCombo::SelectItem(int iIndex, bool bTrigger)
     if (!SelectItemInternal(iIndex))
         return false;
     Invalidate();
-    if (m_pWindow != NULL && bTrigger) {
-        m_pWindow->SendNotify(this, ui::kEventSelect, m_iCurSel, -1);
+    if (bTrigger) {
+        SendEvent(ui::kEventSelect, m_iCurSel, -1);
     }
     return true;
 }
@@ -487,9 +485,7 @@ bool ShadowCombo::OnSelectItem(ui::EventArgs* /*args*/)
     if (pControl != NULL) {
         pControl->SetState(ui::kControlStateNormal);
     }
-    if (m_pWindow != NULL) {
-        m_pWindow->SendNotify(this, ui::kEventSelect, m_iCurSel, iOldSel);
-    }
+    SendEvent(ui::kEventSelect, m_iCurSel, iOldSel);
     return true;
 }
 

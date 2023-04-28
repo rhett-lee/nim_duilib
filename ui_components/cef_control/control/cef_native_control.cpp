@@ -77,10 +77,10 @@ void CefNativeControl::SetPos(ui::UiRect rc)
 	}
 }
 
-void CefNativeControl::HandleMessage(ui::EventArgs& event)
+void CefNativeControl::HandleEvent(ui::EventArgs& event)
 {
 	if (browser_handler_.get() && browser_handler_->GetBrowser().get() == NULL)
-		return __super::HandleMessage(event);
+		return __super::HandleEvent(event);
 
 	else if (event.Type == ui::kEventInternalSetFocus)
 	{
@@ -91,7 +91,7 @@ void CefNativeControl::HandleMessage(ui::EventArgs& event)
 		browser_handler_->GetBrowserHost()->SetFocus(false);
 	}
 
-	__super::HandleMessage(event);
+	__super::HandleEvent(event);
 }
 
 void CefNativeControl::SetVisible(bool bVisible)

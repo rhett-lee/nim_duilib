@@ -85,10 +85,10 @@ void CefControl::SetPos(ui::UiRect rc)
 	}
 }
 
-void CefControl::HandleMessage(ui::EventArgs& event)
+void CefControl::HandleEvent(ui::EventArgs& event)
 {
 	if (browser_handler_.get() && browser_handler_->GetBrowser().get() == NULL)
-		return __super::HandleMessage(event);
+		return __super::HandleEvent(event);
 
 	else if (event.Type == ui::kEventInternalSetFocus)
 	{
@@ -105,7 +105,7 @@ void CefControl::HandleMessage(ui::EventArgs& event)
 		}
 	}
 
-	__super::HandleMessage(event);
+	__super::HandleEvent(event);
 }
 
 void CefControl::SetVisible(bool bVisible)

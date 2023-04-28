@@ -339,13 +339,13 @@ void VirtualTileBox::SetScrollPos(ui::CSize szPos)
   ReArrangeChild(false);
 }
 
-void VirtualTileBox::HandleMessage(ui::EventArgs& event)
+void VirtualTileBox::HandleEvent(ui::EventArgs& event)
 {
     if (!IsMouseEnabled() && event.Type > ui::kEventMouseBegin && event.Type < ui::kEventMouseEnd) {
         if (m_pParent != nullptr)
-            m_pParent->HandleMessageTemplate(event);
+            m_pParent->SendEvent(event);
         else
-            ui::ScrollableBox::HandleMessage(event);
+            ui::ScrollableBox::HandleEvent(event);
         return;
     }
 
@@ -390,7 +390,7 @@ void VirtualTileBox::HandleMessage(ui::EventArgs& event)
     }
     }
 
-  __super::HandleMessage(event);
+  __super::HandleEvent(event);
 }
 
 void VirtualTileBox::SetPos(ui::UiRect rc)

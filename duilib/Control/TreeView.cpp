@@ -210,7 +210,7 @@ void TreeNode::SetExpand(bool bExpand, bool bTriggerEvent)
 
 	if (m_pWindow != nullptr) {
 		if (bTriggerEvent) {
-			m_pWindow->SendNotify(this, m_bExpand ? kEventExpand : kEventUnExpand);
+			SendEvent(m_bExpand ? kEventExpand : kEventUnExpand);
 		}
 	}
 	if (m_pTreeView != nullptr) {

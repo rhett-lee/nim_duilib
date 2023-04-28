@@ -154,7 +154,7 @@ LRESULT CFilterComboWnd::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam
 			args.wParam = wParam;
 			args.lParam = lParam;
 			args.dwTimestamp = ::GetTickCount();
-			m_pOwner->HandleMessage(args);
+			m_pOwner->HandleEvent(args);
 		}
 	}
 	else if (uMsg == WM_SYSKEYDOWN){
@@ -167,7 +167,7 @@ LRESULT CFilterComboWnd::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam
 			args.wParam = 0;
 			args.lParam = 0;
 			args.dwTimestamp = ::GetTickCount();
-			m_pOwner->HandleMessage(args);
+			m_pOwner->HandleEvent(args);
 		}
 	}
 #endif
@@ -212,8 +212,8 @@ bool FilterListBox::SelectItem(int iIndex, bool bTakeFocus, bool bTrigger)
 		m_iCurSel = -1;
 	}
 	if (iIndex < 0) {
-		if ((m_pWindow != nullptr) && bTrigger) {
-			m_pWindow->SendNotify(this, ui::kEventSelect, m_iCurSel, iOldSel);
+		if (bTrigger) {
+			SendEvent(ui::kEventSelect, m_iCurSel, iOldSel);
 		}
 		return false;
 	}
@@ -242,8 +242,8 @@ bool FilterListBox::SelectItem(int iIndex, bool bTakeFocus, bool bTrigger)
 	}
 
 	if (bTakeFocus) pControl->SetFocus();
-	if ((m_pWindow != nullptr) && bTrigger) {
-		m_pWindow->SendNotify(this, ui::kEventSelect, m_iCurSel, iOldSel);
+	if (bTrigger) {
+		SendEvent(ui::kEventSelect, m_iCurSel, iOldSel);
 	}
 	return true;
 }
@@ -302,13 +302,13 @@ FilterCombo::FilterCombo() :
 	Box::Add(m_pRichEdit);
 }
 
-void FilterCombo::HandleMessage(ui::EventArgs& args)
+void FilterCombo::HandleEvent(ui::EventArgs& args)
 {
 	if (args.Type == ui::kEventChar || args.Type == ui::kEventKeyDown)
 	{
-		m_pRichEdit->HandleMessage(args);
+		m_pRichEdit->HandleEvent(args);
 	}
-	return __super::HandleMessage(args);
+	return __super::HandleEvent(args);
 }
 
 bool FilterCombo::Add(Control* pControl)
@@ -459,9 +459,7 @@ bool FilterCombo::OnSelectItem(ui::EventArgs* /*args*/)
 	if (pControl != NULL) {
 		pControl->SetState(ui::kControlStateNormal);
 	}
-	if (m_pComboWnd != nullptr) {
-		m_pComboWnd->SendNotify(this, ui::kEventSelect, m_iCurSel, -1);
-	}
+	SendEvent(ui::kEventSelect, m_iCurSel, -1);
 	ui::ListContainerElement *ele = dynamic_cast<ui::ListContainerElement*>(pControl);
 	if (m_pRichEdit && ele)
 	{

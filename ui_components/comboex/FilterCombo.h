@@ -42,7 +42,7 @@ public:
 	FilterCombo& operator=(const FilterCombo& r) = delete;
 	virtual ~FilterCombo(){};
 
-	virtual void HandleMessage(ui::EventArgs& args) override;
+	virtual void HandleEvent(ui::EventArgs& args) override;
 
 	/// 重写父类方法，提供个性化功能，请参考父类声明
 	virtual bool Add(Control* pControl) override;
