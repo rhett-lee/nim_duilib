@@ -61,7 +61,7 @@ private:
 	 * @param[in] msg 消息的相关信息
 	 * @return bool true 继续传递控件消息，false 停止传递控件消息
 	 */
-	bool OnClicked(ui::EventArgs* msg);
+	bool OnClicked(const ui::EventArgs* msg);
 
 	/**
 	 * 设置提示内容

@@ -39,21 +39,21 @@ private:
 	* @param[in] msg 消息的相关信息
 	* @return bool true 继续传递控件消息，false 停止传递控件消息
 	*/
-	bool OnMouseEnter(ui::EventArgs* msg);
+	bool OnMouseEnter(const ui::EventArgs* msg);
 
 	/**
 	* 处理鼠标移出消息
 	* @param[in] msg 消息的相关信息
 	* @return bool true 继续传递控件消息，false 停止传递控件消息
 	*/
-	bool OnMouseLeave(ui::EventArgs* msg);
+	bool OnMouseLeave(const ui::EventArgs* msg);
 
 	/**
 	* 处理控件的菜单消息
 	* @param[in] msg 消息的相关信息
 	* @return bool true 继续传递控件消息，false 停止传递控件消息
 	*/
-	bool OnItemMenu(ui::EventArgs* msg);
+	bool OnItemMenu(const ui::EventArgs* msg);
 
 	/**
 	* 弹出菜单
@@ -67,7 +67,7 @@ private:
 	* @param[in] msg 消息的相关信息
 	* @return bool true 继续传递控件消息，false 停止传递控件消息
 	*/
-	bool MergeItemMenuItemClick(ui::EventArgs* msg);
+	bool MergeItemMenuItemClick(const ui::EventArgs* msg);
 
 private:
 	ui::Control		*icon_;

@@ -359,7 +359,7 @@ void VirtualListBox::SetScrollPos(ui::CSize szPos)
 	ReArrangeChild(false);
 }
 
-void VirtualListBox::HandleEvent(ui::EventArgs& event)
+void VirtualListBox::HandleEvent(const ui::EventArgs& event)
 {
 	if (!IsMouseEnabled() && event.Type > ui::kEventMouseBegin && event.Type < ui::kEventMouseEnd) {
 		if (m_pParent != NULL)

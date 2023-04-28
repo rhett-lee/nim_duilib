@@ -106,10 +106,9 @@ namespace nim_comp
 		* @param[in] args 参数列表
 		* @return 始终返回 true
 		*/
-		bool OnSelectItem(ui::EventArgs* args);
-		bool OnUnSelectItem(ui::EventArgs* args);
-
-		bool OnListButtonDown(ui::EventArgs* args);
+		bool OnSelectItem(const ui::EventArgs* args);
+		bool OnUnSelectItem(const ui::EventArgs* args);
+		bool OnListButtonDown(const ui::EventArgs* args);
 
 	protected:
 		CCheckComboWnd *m_pCheckComboWnd;

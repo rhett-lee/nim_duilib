@@ -104,7 +104,7 @@ void MyGridBody::OnColumnCountChanged(int col_index, bool bRemove)
 	ResetHeanderComboPos();
 }
 
-bool MyGridBody::OnScrollPosChanged(ui::EventArgs* args)
+bool MyGridBody::OnScrollPosChanged(const ui::EventArgs* args)
 {
 	if (args->wParam > 0)	//y·½Ïò
 	{

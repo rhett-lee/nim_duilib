@@ -184,12 +184,12 @@ namespace ui
 		*/
 		const GridSelRange& GetSelRange() const;
 	protected:
-		virtual void HandleEvent(EventArgs& event) override;
-		virtual bool ButtonDown(EventArgs& msg) override;
-		virtual bool ButtonUp(EventArgs& msg) override;
-		virtual bool OnMouseDoubleClick(EventArgs& msg);		//not override
-		virtual bool OnMouseMove(EventArgs& msg);				//not override
-		virtual bool OnKeyDown(EventArgs& msg);					//not override
+		virtual void HandleEvent(const EventArgs& event) override;
+		virtual bool ButtonDown(const EventArgs& msg) override;
+		virtual bool ButtonUp(const EventArgs& msg) override;
+		virtual bool OnMouseDoubleClick(const EventArgs& msg);		//not override
+		virtual bool OnMouseMove(const EventArgs& msg);				//not override
+		virtual bool OnKeyDown(const EventArgs& msg);					//not override
 
 		virtual void PaintChild(IRenderContext* pRender, const UiRect& rcPaint) override;
 		virtual void Paint(IRenderContext* pRender, const UiRect& rcPaint) override;
@@ -200,7 +200,7 @@ namespace ui
 		* @brief 编辑的单元格为Combo类型时, 选中了ComboItem调用;
 		* @return 不关键;
 		*/
-		bool OnComboEditSelected(EventArgs *args);
+		bool OnComboEditSelected(const EventArgs *args);
 
 		/**
 		* @brief SetColumnWidth中调用, 更改了列宽;

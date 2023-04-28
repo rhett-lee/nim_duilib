@@ -302,7 +302,7 @@ FilterCombo::FilterCombo() :
 	Box::Add(m_pRichEdit);
 }
 
-void FilterCombo::HandleEvent(ui::EventArgs& args)
+void FilterCombo::HandleEvent(const ui::EventArgs& args)
 {
 	if (args.Type == ui::kEventChar || args.Type == ui::kEventKeyDown)
 	{
@@ -449,7 +449,7 @@ void FilterCombo::AttachSelect(const ui::EventCallback& callback)
 	m_pLayout->AttachSelect(callback); 
 }
 
-bool FilterCombo::OnSelectItem(ui::EventArgs* /*args*/)
+bool FilterCombo::OnSelectItem(const ui::EventArgs* /*args*/)
 {
 	if (m_pComboWnd != nullptr) {
 		m_pComboWnd->OnSeleteItem();
@@ -468,7 +468,7 @@ bool FilterCombo::OnSelectItem(ui::EventArgs* /*args*/)
 	return true;
 }
 
-bool FilterCombo::OnRichEditTextChanged(ui::EventArgs* /*args*/)
+bool FilterCombo::OnRichEditTextChanged(const ui::EventArgs* /*args*/)
 {
 	m_pLayout->Filter(m_pRichEdit->GetUTF8Text());
 	if (m_pComboWnd == nullptr)
@@ -513,7 +513,7 @@ bool FilterCombo::OnRichEditTextChanged(ui::EventArgs* /*args*/)
 	return true;
 }
 
-bool FilterCombo::OnRichEditButtonDown(ui::EventArgs* /*args*/)
+bool FilterCombo::OnRichEditButtonDown(const ui::EventArgs* /*args*/)
 {
 	Activate();
 	return true;

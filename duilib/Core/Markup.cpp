@@ -9,7 +9,7 @@
 namespace ui 
 {
 
-CMarkupNode::CMarkupNode() : m_pOwner(NULL)
+CMarkupNode::CMarkupNode() : m_pOwner(NULL), m_iPos(0), m_nAttributes(0)
 {
 }
 
@@ -384,7 +384,6 @@ void CMarkup::Release()
     if( m_pElements != NULL ) free(m_pElements);
     m_pstrXML = NULL;
     m_pElements = NULL;
-    m_nElements;
 }
 
 void CMarkup::GetLastErrorMessage(LPTSTR pstrMessage, SIZE_T cchMax) const

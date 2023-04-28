@@ -152,7 +152,7 @@ void ControlForm::OnInitWindow()
 
 	/* Show settings menu */
 	ui::Button* settings = static_cast<ui::Button*>(FindControl(L"settings"));
-	settings->AttachClick([this](ui::EventArgs* args) {
+	settings->AttachClick([this](const ui::EventArgs* args) {
 		RECT rect = args->pSender->GetPos();
 		ui::CPoint point;
 		point.x = rect.left - 175;
@@ -168,7 +168,7 @@ void ControlForm::OnInitWindow()
 	//m_pRoot->AttachMenu([this](ui::EventArgs* args) {
 	ui::RichEdit* edit = static_cast<ui::RichEdit*>(FindControl(L"edit"));
 	ASSERT(edit != nullptr);
-	edit->AttachMenu([this](ui::EventArgs* args) {
+	edit->AttachMenu([this](const ui::EventArgs* args) {
 		if (args->Type == ui::kEventMouseMenu) {
 			POINT pt = args->ptMouse;
 			if ((pt.x != -1) && (pt.y != -1)) {
@@ -221,7 +221,7 @@ void ControlForm::ShowPopupMenu(const ui::CPoint& point)
     bool& flag = s_is_checked_01_flag;
     ui::CMenuElementUI* menu_check_01 = dynamic_cast<ui::CMenuElementUI*>(menu->FindControl(L"menu_check_01"));
     ASSERT(menu_check_01 != nullptr);
-    menu_check_01->AttachClick([&flag](ui::EventArgs* args) {
+    menu_check_01->AttachClick([&flag](const ui::EventArgs* args) {
         flag = true;
         return true;
         });
@@ -231,7 +231,7 @@ void ControlForm::ShowPopupMenu(const ui::CPoint& point)
 
     ui::CMenuElementUI* menu_check_02 = dynamic_cast<ui::CMenuElementUI*>(menu->FindControl(L"menu_check_02"));
     ASSERT(menu_check_02 != nullptr);
-    menu_check_02->AttachClick([&flag](ui::EventArgs* args) {
+    menu_check_02->AttachClick([&flag](const ui::EventArgs* args) {
         flag = false;
         return true;
         });
@@ -243,7 +243,7 @@ void ControlForm::ShowPopupMenu(const ui::CPoint& point)
 
     /* About menu */
     ui::CMenuElementUI* menu_about = static_cast<ui::CMenuElementUI*>(menu->FindControl(L"about"));
-    menu_about->AttachClick([this](ui::EventArgs* args) {
+    menu_about->AttachClick([this](const ui::EventArgs* args) {
         AboutForm* about_form = (AboutForm*)(nim_comp::WindowsManager::GetInstance()->GetWindow(AboutForm::kClassName, AboutForm::kClassName));
         if (!about_form)
         {

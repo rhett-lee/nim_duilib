@@ -342,15 +342,15 @@ protected:
   virtual void TriggerClose();
 
   // 锚点事件
-  virtual bool OnAnchorResize(ui::EventArgs* args);
-  virtual bool OnAnchorSetFocus(ui::EventArgs* args);
-  virtual bool OnAnchorKillFocus(ui::EventArgs* args);
-  virtual bool OnAnchorMouseClick(ui::EventArgs* args);
-  virtual bool OnAnchorMouseEnter(ui::EventArgs* args);
-  virtual bool OnAnchorMouseHover(ui::EventArgs* args);
-  virtual bool OnAnchorMouseLeave(ui::EventArgs* args);
-  virtual bool OnAnchorLastEvent(ui::EventArgs* args);
-  virtual bool OnAnchorVisibleChange(ui::EventArgs* args);
+  virtual bool OnAnchorResize(const ui::EventArgs* args);
+  virtual bool OnAnchorSetFocus(const ui::EventArgs* args);
+  virtual bool OnAnchorKillFocus(const ui::EventArgs* args);
+  virtual bool OnAnchorMouseClick(const ui::EventArgs* args);
+  virtual bool OnAnchorMouseEnter(const ui::EventArgs* args);
+  virtual bool OnAnchorMouseHover(const ui::EventArgs* args);
+  virtual bool OnAnchorMouseLeave(const ui::EventArgs* args);
+  virtual bool OnAnchorLastEvent(const ui::EventArgs* args);
+  virtual bool OnAnchorVisibleChange(const ui::EventArgs* args);
 
   // 定时器
 
@@ -436,7 +436,7 @@ public:
 
   }
 
-  bool OnAnchorResize(ui::EventArgs* /*args*/) {
+  bool OnAnchorResize(const ui::EventArgs* /*args*/) {
     ui::UiRect rc = m_pAnchor->GetPos();
 
     SetFixedWidth(rc.GetWidth());

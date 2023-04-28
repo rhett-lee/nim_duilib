@@ -80,7 +80,7 @@ public:
     HRESULT OnTxInPlaceDeactivate();
     HRESULT OnTxInPlaceActivate(LPCRECT prcClient);
     BOOL GetActiveState(void) { return fInplaceActive; }
-    BOOL DoSetCursor(UiRect *prc, POINT *pt);
+    BOOL DoSetCursor(const UiRect *prc, const POINT *pt);
     void SetTransparent(BOOL fTransparent);
     void GetControlRect(LPRECT prc);
     LONG SetAccelPos(LONG laccelpos);
@@ -1114,7 +1114,7 @@ HRESULT	CTxtWinHost::OnTxInPlaceActivate(LPCRECT prcClient)
     return hr;
 }
 
-BOOL CTxtWinHost::DoSetCursor(UiRect *prc, POINT* pt)
+BOOL CTxtWinHost::DoSetCursor(const UiRect *prc, const POINT* pt)
 {
 	assert(pt != nullptr);
 	if (pt == nullptr) {
@@ -2466,7 +2466,7 @@ UINT RichEdit::GetControlFlags() const
 	return IsEnabled() && IsAllowTabStop() ? UIFLAG_TABSTOP : UIFLAG_DEFAULT;
 }
 
-void RichEdit::HandleEvent(EventArgs& event)
+void RichEdit::HandleEvent(const EventArgs& event)
 {
 	if ((!IsMouseEnabled() && event.Type > kEventMouseBegin && event.Type < kEventMouseEnd) ||
 		(!IsEnabled()&&!IsReadOnly())){
@@ -2578,7 +2578,7 @@ void RichEdit::HandleEvent(EventArgs& event)
 	ScrollableBox::HandleEvent(event);
 }
 
-void RichEdit::OnSetCursor(EventArgs& event)
+void RichEdit::OnSetCursor(const EventArgs& event)
 {
 	std::wstring strLink;
 	if (HittestCustomLink(CPoint(event.ptMouse), strLink))
@@ -2594,7 +2594,7 @@ void RichEdit::OnSetCursor(EventArgs& event)
 	}
 }
 
-void RichEdit::OnSetFocus(EventArgs& /*event*/)
+void RichEdit::OnSetFocus(const EventArgs& /*event*/)
 {
 	if (m_pTwh) {
 		m_pTwh->OnTxInPlaceActivate(NULL);
@@ -2605,7 +2605,7 @@ void RichEdit::OnSetFocus(EventArgs& /*event*/)
 	Invalidate();
 }
 
-void RichEdit::OnKillFocus(EventArgs& /*event*/)
+void RichEdit::OnKillFocus(const EventArgs& /*event*/)
 {
 	if (m_pTwh) {
 		m_pTwh->OnTxInPlaceActivate(NULL);
@@ -2625,7 +2625,7 @@ void RichEdit::OnKillFocus(EventArgs& /*event*/)
 	Invalidate();
 }
 
-void RichEdit::OnChar(EventArgs& event)
+void RichEdit::OnChar(const EventArgs& event)
 {
 	//TAB
 	if (::GetKeyState(VK_TAB) < 0 && !m_bWantTab) {
@@ -2641,7 +2641,7 @@ void RichEdit::OnChar(EventArgs& event)
 	TxSendMessage(WM_CHAR, event.wParam, event.lParam, NULL);
 }
 
-void RichEdit::OnKeyDown(EventArgs& event)
+void RichEdit::OnKeyDown(const EventArgs& event)
 {
 	if (event.wParam == VK_RETURN && ::GetAsyncKeyState(VK_SHIFT) >= 0)	{
 		if (m_bNeedReturnMsg && ((m_bReturnMsgWantCtrl && ::GetAsyncKeyState(VK_CONTROL) < 0) ||
@@ -2672,7 +2672,7 @@ void RichEdit::OnKeyDown(EventArgs& event)
 	TxSendMessage(WM_KEYDOWN, event.wParam, event.lParam, NULL);
 }
 
-void RichEdit::OnImeStartComposition(EventArgs& /*event*/)
+void RichEdit::OnImeStartComposition(const EventArgs& /*event*/)
 {
 	HWND hWnd = GetWindowHandle();
 	if (hWnd == NULL)
@@ -2698,12 +2698,12 @@ void RichEdit::OnImeStartComposition(EventArgs& /*event*/)
 	m_bIsComposition = true;
 }
 
-void RichEdit::OnImeEndComposition(EventArgs& /*event*/)
+void RichEdit::OnImeEndComposition(const EventArgs& /*event*/)
 {
 	m_bIsComposition = false;
 }
 
-void RichEdit::OnMouseMessage(UINT uMsg, EventArgs& event)
+void RichEdit::OnMouseMessage(UINT uMsg, const EventArgs& event)
 {
 	CPoint pt(GET_X_LPARAM(event.lParam), GET_Y_LPARAM(event.lParam));
 	pt.Offset(GetScrollOffset());
@@ -2961,8 +2961,8 @@ void RichEdit::SetAttribute(const std::wstring& strName, const std::wstring& str
 	else if (strName == _T("prompttextid")) SetPromptTextId(strValue);
 	else if (strName == _T("focusedimage")) SetFocusedImage(strValue);
 	else if (strName == _T("font")) SetFont(strValue);
-	else if (strName == _T("text")) SetText(strValue.c_str());
-	else if (strName == _T("textid")) SetTextId(strValue.c_str());
+	else if (strName == _T("text")) SetText(strValue);
+	else if (strName == _T("textid")) SetTextId(strValue);
 	else if (strName == _T("wanttab")) SetWantTab(strValue == _T("true"));
 	else if (strName == _T("wantreturnmsg")) SetNeedReturnMsg(strValue == _T("true"));
 	else if (strName == _T("returnmsgwantctrl")) SetReturnMsgWantCtrl(strValue == _T("true"));

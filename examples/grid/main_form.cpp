@@ -112,7 +112,7 @@ void MainForm::OnInitWindow()
 	re_fixed_row->SetText(nbase::IntToString16(grid->GetFixedRowCount()));
 	re_fixed_col->SetText(nbase::IntToString16(grid->GetFixedColCount()));
 	
-	re_row->AttachBubbledEvent(kEventReturn, [this, grid, re_row](ui::EventArgs* args){
+	re_row->AttachBubbledEvent(kEventReturn, [this, grid, re_row](const ui::EventArgs* args){
 		std::wstring text = re_row->GetText();
 		if (!text.empty())
 		{
@@ -125,7 +125,7 @@ void MainForm::OnInitWindow()
 		return true;
 	});
 
-	re_col->AttachBubbledEvent(kEventReturn, [this, grid, re_col](ui::EventArgs* args){
+	re_col->AttachBubbledEvent(kEventReturn, [this, grid, re_col](const ui::EventArgs* args){
 		std::wstring text = re_col->GetText();
 		if (!text.empty())
 		{
@@ -138,7 +138,7 @@ void MainForm::OnInitWindow()
 		return true;
 	});
 	
-	re_fixed_row->AttachBubbledEvent(kEventReturn, [this, grid, re_fixed_row](ui::EventArgs* args){
+	re_fixed_row->AttachBubbledEvent(kEventReturn, [this, grid, re_fixed_row](const ui::EventArgs* args){
 		std::wstring text = re_fixed_row->GetText();
 		if (!text.empty())
 		{
@@ -151,7 +151,7 @@ void MainForm::OnInitWindow()
 		return true;
 	});
 
-	re_fixed_col->AttachBubbledEvent(kEventReturn, [this, grid, re_fixed_col](ui::EventArgs* args){
+	re_fixed_col->AttachBubbledEvent(kEventReturn, [this, grid, re_fixed_col](const ui::EventArgs* args){
 		std::wstring text = re_fixed_col->GetText();
 		if (!text.empty())
 		{
@@ -169,24 +169,24 @@ void MainForm::OnInitWindow()
 	Button *btn_add_col = static_cast<Button*>(FindControl(L"btn_add_col"));
 	Button *btn_remove_col = static_cast<Button*>(FindControl(L"btn_remove_col"));
 	Button *btn_import_excel = static_cast<Button*>(FindControl(L"btn_import_excel"));
-	btn_add_row->AttachClick([this, grid](ui::EventArgs* args){
+	btn_add_row->AttachClick([this, grid](const ui::EventArgs* args){
 		grid->AddRow();
 		return true;
 	});
 
-	btn_remove_row->AttachClick([this, grid](ui::EventArgs* args){
+	btn_remove_row->AttachClick([this, grid](const ui::EventArgs* args){
 		grid->RemoveRow(2);
 		return true;
 	});
-	btn_add_col->AttachClick([this, grid](ui::EventArgs* args){
+	btn_add_col->AttachClick([this, grid](const ui::EventArgs* args){
 		grid->AddCol(L"111");
 		return true;
 	});
-	btn_remove_col->AttachClick([this, grid](ui::EventArgs* args){
+	btn_remove_col->AttachClick([this, grid](const ui::EventArgs* args){
 		grid->RemoveCol(2);
 		return true;
 	});
-	btn_import_excel->AttachClick([this, grid](ui::EventArgs* args){
+	btn_import_excel->AttachClick([this, grid](const ui::EventArgs* args){
 		grid->Clear(true);
 		
 		//LoadExcel(L"grid_test.xlsx", 0, true);

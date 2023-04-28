@@ -29,7 +29,7 @@ public:
 	static const std::wstring kClassName;
 
 private:
-	bool OnSelected(ui::EventArgs* args);
+	bool OnSelected(const ui::EventArgs* args);
 
 private:
 	ui::ListBox*	list_;

@@ -118,7 +118,7 @@ void ScrollBar::SetVisible(bool bVisible)
 	}
 }
 
-bool ScrollBar::ButtonUp(EventArgs& msg)
+bool ScrollBar::ButtonUp(const EventArgs& msg)
 {
 	bool ret = false;
 	if( IsMouseFocused() ) {
@@ -150,7 +150,7 @@ bool ScrollBar::HasHotState()
 	return true;
 }
 
-bool ScrollBar::MouseEnter(EventArgs& msg)
+bool ScrollBar::MouseEnter(const EventArgs& msg)
 {
 	bool ret = __super::MouseEnter(msg);
 	if (ret) {
@@ -162,7 +162,7 @@ bool ScrollBar::MouseEnter(EventArgs& msg)
 	return ret;
 }
 
-bool ScrollBar::MouseLeave(EventArgs& msg)
+bool ScrollBar::MouseLeave(const EventArgs& msg)
 {
 	bool ret = __super::MouseLeave(msg);
 	if (ret) {
@@ -327,7 +327,7 @@ void ScrollBar::SetPos(UiRect rc)
 	}
 }
 
-void ScrollBar::HandleEvent(EventArgs& event)
+void ScrollBar::HandleEvent(const EventArgs& event)
 {
 	ASSERT(m_pOwner != nullptr);
 	if (!IsMouseEnabled() && 

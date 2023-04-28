@@ -207,7 +207,7 @@ LRESULT WindowImplBase::OnSysCommand(UINT uMsg, WPARAM wParam, LPARAM lParam, bo
 	return lRes;
 }
 
-bool WindowImplBase::OnButtonClick(EventArgs* msg)
+bool WindowImplBase::OnButtonClick(const EventArgs* msg)
 {
 	ASSERT(msg != nullptr);
 	if (msg == nullptr) {

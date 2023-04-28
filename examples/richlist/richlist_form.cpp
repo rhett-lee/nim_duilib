@@ -49,7 +49,7 @@ void RichlistForm::OnInitWindow()
 }
 
 
-bool RichlistForm::OnSelected(ui::EventArgs* args)
+bool RichlistForm::OnSelected(const ui::EventArgs* args)
 {
 	int current = static_cast<int>(args->wParam);
 	int old = static_cast<int>(args->lParam);

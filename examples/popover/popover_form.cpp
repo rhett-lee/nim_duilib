@@ -208,7 +208,7 @@ void PopoverForm::TestOthers()
 
     m_pPopoverLayer->ShowNotification(popover);
 
-    btn_updatetitle->AttachClick(ToWeakCallback([this, popover](ui::EventArgs* args) {
+    btn_updatetitle->AttachClick(ToWeakCallback([this, popover](const ui::EventArgs* args) {
       auto header = popover->GetHeader();
       if (header)
         header->UpdateTitle(L"Title Updated");
@@ -225,7 +225,7 @@ void PopoverForm::TestOthers()
     m_pPopoverLayer->ShowTooltip(popover);
 
 
-    btn_updatecontent->AttachClick(ToWeakCallback([this, popover](ui::EventArgs* args) {
+    btn_updatecontent->AttachClick(ToWeakCallback([this, popover](const ui::EventArgs* args) {
       auto body = popover->GetBody();
       if (body)
         body->UpdateContent(L"Content Updated");

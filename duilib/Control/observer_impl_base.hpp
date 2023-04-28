@@ -69,7 +69,7 @@ public:
 		}
 	}
 
-	virtual ReturnT Broadcast(ParamT param)
+	virtual ReturnT Broadcast(ParamT param) override
 	{
 		auto it = receivers_.begin();
 		for (; it != receivers_.end(); ++it)
@@ -80,7 +80,7 @@ public:
 		return ReturnT();
 	}
 
-	virtual ReturnT RBroadcast(ParamT param)
+	virtual ReturnT RBroadcast(ParamT param) override
 	{
 		auto it = receivers_.rbegin();
 		for (; it != receivers_.rend(); ++it)
@@ -91,7 +91,7 @@ public:
 		return ReturnT();
 	}
 
-	virtual ReturnT Notify(ParamT param)
+	virtual ReturnT Notify(ParamT param) override
 	{
 		auto it = receivers_.begin();
 		for (; it != receivers_.end(); ++it)
@@ -147,12 +147,12 @@ public:
 
 	virtual ~ReceiverImpl()	{}
 
-	virtual void AddObserver(ObserverImplBase<ReturnT, ParamT>* observer)
+	virtual void AddObserver(ObserverImplBase<ReturnT, ParamT>* observer) override
 	{
 		observers_.push_back(observer);
 	}
 
-	virtual void RemoveObserver()
+	virtual void RemoveObserver() override
 	{
 		auto it = observers_.begin();
 		for (; it != observers_.end(); ++it)
@@ -161,12 +161,12 @@ public:
 		}
 	}
 
-	virtual ReturnT Receive(ParamT /*param*/)
+	virtual ReturnT Receive(ParamT /*param*/) override
 	{
 		return ReturnT();
 	}
 
-	virtual ReturnT Respond(ParamT /*param*/, ObserverImplBase<ReturnT, ParamT>* /*observer*/)
+	virtual ReturnT Respond(ParamT /*param*/, ObserverImplBase<ReturnT, ParamT>* /*observer*/) override
 	{
 		return ReturnT();
 	}

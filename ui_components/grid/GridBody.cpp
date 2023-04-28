@@ -924,7 +924,7 @@ namespace ui
 		return m_selRange;
 	}
 
-	void GridBody::HandleEvent(EventArgs& event)
+	void GridBody::HandleEvent(const EventArgs& event)
 	{
 		if (!IsMouseEnabled() && event.Type > kEventMouseBegin && event.Type < kEventMouseEnd) {
 			if (m_pParent != NULL) m_pParent->SendEvent(event);
@@ -951,7 +951,7 @@ namespace ui
 			__super::HandleEvent(event);
 	}
 
-	bool GridBody::ButtonDown(EventArgs& msg)
+	bool GridBody::ButtonDown(const EventArgs& msg)
 	{
 		_EndEdit();
 		CPoint position;
@@ -1053,7 +1053,7 @@ namespace ui
 		return true;
 	}
 
-	bool GridBody::ButtonUp(EventArgs& msg)
+	bool GridBody::ButtonUp(const EventArgs& msg)
 	{
 		if (m_nDragColIndex != -1)
 		{
@@ -1078,7 +1078,7 @@ namespace ui
 		return true;
 	}
 
-	bool GridBody::OnMouseDoubleClick(EventArgs& msg)
+	bool GridBody::OnMouseDoubleClick(const EventArgs& msg)
 	{
 		CPoint position;
 		bool bFind = _GetGridItemByMouse(CPoint(msg.ptMouse), position);
@@ -1137,7 +1137,7 @@ namespace ui
 		return true;
 	}
 
-	bool GridBody::OnMouseMove(EventArgs& msg)
+	bool GridBody::OnMouseMove(const EventArgs& msg)
 	{
 		CSize szOff = m_pGrid->GetScrollPos();
 		int fixed_col_width = GetFixedColWidth();
@@ -1219,7 +1219,7 @@ namespace ui
 		return true;
 	}
 
-	bool GridBody::OnKeyDown(EventArgs& msg)
+	bool GridBody::OnKeyDown(const EventArgs& msg)
 	{
 		bool ctrl = (::GetKeyState(VK_CONTROL) & 0x80) > 0;		//判断CTRL键是否是被按下的状态
 		bool shift = (::GetKeyState(VK_SHIFT) & 0x80) > 0;		//判断Shift键是否是被按下的状态
@@ -1260,7 +1260,7 @@ namespace ui
 		return true;
 	}
 
-	bool GridBody::OnComboEditSelected(EventArgs */*args*/)
+	bool GridBody::OnComboEditSelected(const EventArgs */*args*/)
 	{
 		if (m_pComboEditGridItem && m_pComboEdit && m_pComboEdit->IsVisible())
 		{

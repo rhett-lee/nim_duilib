@@ -38,7 +38,7 @@ void ListBox::SetAttribute(const std::wstring& strName, const std::wstring& strV
 	}
 }
 
-void ListBox::HandleEvent(EventArgs& event)
+void ListBox::HandleEvent(const EventArgs& event)
 {
 	if (!IsMouseEnabled() && event.Type > kEventMouseBegin && event.Type < kEventMouseEnd) {
 		if (m_pParent != NULL) m_pParent->SendEvent(event);
@@ -96,7 +96,7 @@ void ListBox::SendEvent(EventType eventType, WPARAM wParam, LPARAM lParam, TCHAR
 	return ScrollableBox::SendEvent(eventType, wParam, lParam, tChar, mousePos, pressure);
 }
 
-void ListBox::SendEvent(EventArgs& event)
+void ListBox::SendEvent(const EventArgs& event)
 {
 	ScrollableBox::SendEvent(event);
 }
@@ -201,7 +201,7 @@ void ListBox::StopScroll()
 	m_scrollAnimation->Reset();
 }
 
-bool ListBox::ButtonDown(EventArgs& msg)
+bool ListBox::ButtonDown(const EventArgs& msg)
 {
 	bool ret = __super::ButtonDown(msg);
 	StopScroll();
@@ -452,7 +452,7 @@ void ListContainerElement::Selected(bool bSelected, bool trigger)
 	if (bSelected && m_pOwner != NULL) m_pOwner->SelectItem(m_iIndex, false, trigger);
 }
 
-void ListContainerElement::HandleEvent(EventArgs& event)
+void ListContainerElement::HandleEvent(const EventArgs& event)
 {
 	if (!IsMouseEnabled() && 
 		(event.Type > kEventMouseBegin) && 

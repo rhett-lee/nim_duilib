@@ -201,8 +201,8 @@ private:
 						              std::vector<Control*>& submenuControls);
 
 private:
-	virtual bool ButtonUp(ui::EventArgs& msg) override;
-	virtual bool MouseEnter(ui::EventArgs& msg) override;
+	virtual bool ButtonUp(const ui::EventArgs& msg) override;
+	virtual bool MouseEnter(const ui::EventArgs& msg) override;
 	virtual void PaintChild(ui::IRenderContext* pRender, const ui::UiRect& rcPaint) override;
 
 private:

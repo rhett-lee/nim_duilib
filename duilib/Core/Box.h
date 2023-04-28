@@ -121,11 +121,11 @@ public:
 	virtual void SetPos(UiRect rc) override;
 	virtual void SendEvent(EventType eventType, WPARAM wParam = 0, LPARAM lParam = 0, TCHAR tChar = 0,
 		                   const CPoint& mousePos = CPoint(), FLOAT pressure = 0.0f) override;
-	virtual void SendEvent(EventArgs& msg) override;
+	virtual void SendEvent(const EventArgs& msg) override;
 	virtual void SetReceivePointerMsg(bool bRecv) override;
 	virtual void PaintChild(IRenderContext* pRender, const UiRect& rcPaint) override;
 	virtual void SetEnabled(bool bEnabled) override;
-	virtual void SetVisible(bool bVisible);
+	virtual void SetVisible(bool bVisible) override;
 	virtual CSize EstimateSize(CSize szAvailable) override;
 	virtual Control* FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, CPoint scrollPos = CPoint()) override;
 	virtual void InvokeLoadImageCache() override;
@@ -348,9 +348,9 @@ public:
 #endif
 	virtual void SetAttribute(const std::wstring& pstrName, const std::wstring& pstrValue) override;
 	virtual void SetPos(UiRect rc) override;
-	virtual void HandleEvent(EventArgs& event) override;
-	virtual bool MouseEnter(EventArgs& msg) override;
-	virtual bool MouseLeave(EventArgs& msg) override;
+	virtual void HandleEvent(const EventArgs& event) override;
+	virtual bool MouseEnter(const EventArgs& msg) override;
+	virtual bool MouseLeave(const EventArgs& msg) override;
 	virtual void PaintChild(IRenderContext* pRender, const UiRect& rcPaint) override;
 	virtual void SetMouseEnabled(bool bEnable = true) override;
 	virtual void SetWindow(Window* pManager, Box* pParent, bool bInit) override;

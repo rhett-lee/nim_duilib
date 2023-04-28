@@ -32,7 +32,7 @@ void TreeNode::SetTreeView(TreeView* pTreeView)
     m_pTreeView = pTreeView;
 }
 
-bool TreeNode::OnClickItem(EventArgs* pMsg)
+bool TreeNode::OnClickItem(const EventArgs* pMsg)
 {
 	ASSERT(pMsg != nullptr);
 	if (pMsg == nullptr) {

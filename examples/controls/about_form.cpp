@@ -33,7 +33,7 @@ void AboutForm::OnInitWindow()
 	ui::Label* link = static_cast<ui::Label*>(FindControl(L"link"));
 	if (link)
 	{
-		link->AttachButtonUp([link](ui::EventArgs* args) {
+		link->AttachButtonUp([link](const ui::EventArgs* args) {
 			ShellExecute(NULL, L"open", link->GetText().c_str(), NULL, NULL, SW_SHOWDEFAULT);
 			return true;
 		});

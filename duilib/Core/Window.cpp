@@ -515,9 +515,7 @@ void Window::InitWnd(HWND hWnd)
 		return;
 	}
 	ASSERT((m_hWnd == nullptr) || (m_hWnd == hWnd));
-	if (m_hWnd != hWnd) {
-		m_hWnd = hWnd;
-	}
+	m_hWnd = hWnd;
 
 	// Remember the window context we came from
 	ASSERT(m_hDcPaint == nullptr);

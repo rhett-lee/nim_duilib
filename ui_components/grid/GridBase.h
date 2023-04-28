@@ -145,7 +145,7 @@ namespace ui
 			}
 		};
 		//virtual bool IsValid() override { return type == GIT_String && text.empty() && iValue == 0 && dValue == 0.0 && combo_list.empty() && date.empty(); }
-		virtual ui::Control *GetControl(){ return control_; }
+		virtual ui::Control *GetControl() override{ return control_; }
 
 		ui::Control *control_ = nullptr;
 	};

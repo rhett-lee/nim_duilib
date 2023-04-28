@@ -113,7 +113,7 @@ void MoveControlForm::ShowCustomWindow(const std::wstring& class_name, const std
 }
 
 //得想办法抓起鼠标弹起的一刻
-bool MoveControlForm::OnProcessAppItemDrag(ui::EventArgs* param)
+bool MoveControlForm::OnProcessAppItemDrag(const ui::EventArgs* param)
 {
 	switch (param->Type)
 	{

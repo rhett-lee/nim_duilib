@@ -751,7 +751,7 @@ CMenuElementUI* CMenuElementUI::GetSubMenuItemAt(size_t iIndex) const
 	CMenuElementUI* foundItem = nullptr;
 	std::vector<CMenuElementUI*> submenuItems;
 	GetAllSubMenuItem(this, submenuItems);
-	if (iIndex <= submenuItems.size()) {
+	if (iIndex < submenuItems.size()) {
 		foundItem = submenuItems.at(iIndex);
 	}
 	return foundItem;
@@ -771,7 +771,7 @@ CMenuElementUI* CMenuElementUI::GetSubMenuItemByName(const std::wstring& name) c
 	return subMenuItem;
 }
 
-bool CMenuElementUI::ButtonUp(ui::EventArgs& msg)
+bool CMenuElementUI::ButtonUp(const ui::EventArgs& msg)
 {
 	Window* pWindow = GetWindow();
 	ASSERT(pWindow != nullptr);
@@ -792,7 +792,7 @@ bool CMenuElementUI::ButtonUp(ui::EventArgs& msg)
 	return ret;
 }
 
-bool CMenuElementUI::MouseEnter(ui::EventArgs& msg)
+bool CMenuElementUI::MouseEnter(const ui::EventArgs& msg)
 {
 	Window* pWindow = GetWindow();
 	ASSERT(pWindow != nullptr);

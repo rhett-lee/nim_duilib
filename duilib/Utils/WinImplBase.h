@@ -42,7 +42,7 @@ public:
     /**@brief 创建窗口时被调用，由子类实现用以获取窗口唯一的类名称
      * @return 子类需实现并返回窗口唯一的类名称
      */
-    virtual std::wstring GetWindowClassName() const = 0;
+    virtual std::wstring GetWindowClassName() const override = 0;
 
 public:
 
@@ -232,7 +232,7 @@ private:
      * @param[in] param 携带的参数
      * @return 始终返回 true
      */
-	bool OnButtonClick(EventArgs* param);
+	bool OnButtonClick(const EventArgs* param);
 };
 
 }

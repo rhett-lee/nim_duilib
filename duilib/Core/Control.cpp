@@ -781,7 +781,7 @@ void Control::SendEvent(EventType eventType,
 	SendEvent(msg);
 }
 
-void Control::SendEvent(EventArgs& msg)
+void Control::SendEvent(const EventArgs& msg)
 {
 	if ((msg.Type == kEventInternalDoubleClick) || 
 		(msg.Type == kEventInternalSetFocus) || 
@@ -836,7 +836,7 @@ void Control::SendEvent(EventArgs& msg)
 	}
 }
 
-void Control::HandleEvent(EventArgs& msg)
+void Control::HandleEvent(const EventArgs& msg)
 {
 	if( !IsMouseEnabled() && 
 		(msg.Type > kEventMouseBegin) && 
@@ -928,7 +928,7 @@ bool Control::HasHotState()
 	return m_colorMap->HasHotColor() || m_imageMap->HasHotImage();
 }
 
-bool Control::MouseEnter(EventArgs& /*msg*/)
+bool Control::MouseEnter(const EventArgs& /*msg*/)
 {
 	if( IsEnabled() ) {
 		if ( m_uButtonState == kControlStateNormal) {
@@ -947,7 +947,7 @@ bool Control::MouseEnter(EventArgs& /*msg*/)
 	return true;
 }
 
-bool Control::MouseLeave(EventArgs& /*msg*/)
+bool Control::MouseLeave(const EventArgs& /*msg*/)
 {
 	if( IsEnabled() ) {
 		if (m_uButtonState == kControlStateHot) {
@@ -966,7 +966,7 @@ bool Control::MouseLeave(EventArgs& /*msg*/)
 	return true;
 }
 
-bool Control::ButtonDown(EventArgs& /*msg*/)
+bool Control::ButtonDown(const EventArgs& /*msg*/)
 {
 	bool ret = false;
 	if( IsEnabled() ) {
@@ -979,7 +979,7 @@ bool Control::ButtonDown(EventArgs& /*msg*/)
 	return ret;
 }
 
-bool Control::ButtonUp(EventArgs& msg)
+bool Control::ButtonUp(const EventArgs& msg)
 {
 	bool ret = false;
 	if( IsMouseFocused() ) {
@@ -1258,7 +1258,7 @@ void Control::ApplyAttributeList(const std::wstring& strList)
     return;
 }
 
-bool Control::OnApplyAttributeList(const std::wstring& strReceiver, const std::wstring& strList, EventArgs* /*eventArgs*/)
+bool Control::OnApplyAttributeList(const std::wstring& strReceiver, const std::wstring& strList, const EventArgs* /*eventArgs*/)
 {
 	Control* pReceiverControl = nullptr;
 	if (strReceiver.substr(0, 2) == L".\\" || strReceiver.substr(0, 2) == L"./") {
@@ -1569,11 +1569,7 @@ void Control::PaintBorder(IRenderContext* pRender)
 	if (pRender == nullptr) {
 		return;
 	}
-	DWORD dwBorderColor = 0;
-	if (!m_strBorderColor.empty()) {
-		dwBorderColor = this->GetWindowColor(m_strBorderColor);
-	}
-
+	DWORD dwBorderColor = GetWindowColor(m_strBorderColor);
 	if (dwBorderColor != 0) {
 		if (m_rcBorderSize.left > 0 || m_rcBorderSize.top > 0 || m_rcBorderSize.right > 0 || m_rcBorderSize.bottom > 0) {
 			UiRect rcBorder;

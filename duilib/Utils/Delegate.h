@@ -12,7 +12,7 @@
 namespace ui 
 {
 
-typedef std::function<bool(ui::EventArgs*)> EventCallback;
+typedef std::function<bool(const ui::EventArgs*)> EventCallback;
 
 class CEventSource : public std::vector<EventCallback>
 {
@@ -23,7 +23,7 @@ public:
 		return *this;
 	}
 
-	bool operator() (ui::EventArgs* param) const 
+	bool operator() (const ui::EventArgs* param) const
 	{
 		for (auto it = this->begin(); it != this->end(); it++) {
 			if(!(*it)(param)) return false;

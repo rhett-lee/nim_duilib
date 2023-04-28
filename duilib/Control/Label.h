@@ -35,7 +35,7 @@ public:
 	virtual void SetUTF8Text(const std::string& strText);
 	virtual void SetTextId(const std::wstring& strTextId);
 	virtual void SetUTF8TextId(const std::string& strTextId);
-	virtual bool HasHotState();
+	virtual bool HasHotState() override;
 	virtual CSize EstimateText(CSize szAvailable, bool& bReEstimateSize) override;
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 	virtual void PaintText(IRenderContext* pRender) override;

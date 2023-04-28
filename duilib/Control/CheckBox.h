@@ -24,7 +24,7 @@ public:
     virtual void PaintStatusColor(IRenderContext* pRender) override;
     virtual void PaintStatusImage(IRenderContext* pRender) override;
     virtual void PaintText(IRenderContext* pRender) override;
-    virtual bool HasHotState();
+    virtual bool HasHotState() override;
 
     /**
      * @brief 选择状态下，没有设置背景色或背景图时，是否用非选择状态的对应属性来绘制

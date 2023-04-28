@@ -151,7 +151,7 @@ HRESULT MultiBrowserForm::Drop(IDataObject *pDataObj, DWORD grfKeyState, POINTL 
 	return S_OK;
 }
 
-bool MultiBrowserForm::OnProcessTabItemDrag(ui::EventArgs* param)
+bool MultiBrowserForm::OnProcessTabItemDrag(const ui::EventArgs* param)
 {
 	if (!MultiBrowserManager::GetInstance()->IsEnableMerge())
 		return true;

@@ -67,8 +67,8 @@ public:
 
 private:
 	void OnWndSizeMax(bool max);
-	bool OnClicked(ui::EventArgs* arg);
-	bool OnReturn(ui::EventArgs* arg);
+	bool OnClicked(const ui::EventArgs* arg);
+	bool OnReturn(const ui::EventArgs* arg);
 
 public:
 	/**
@@ -154,7 +154,7 @@ private:
 	* @param[in] param 消息的相关信息
 	* @return bool true 继续传递控件消息，false 停止传递控件消息
 	*/
-	bool OnTabItemSelected(ui::EventArgs* param);
+	bool OnTabItemSelected(const ui::EventArgs* param);
 
 	/**
 	* 处理标签控件的关闭按钮的单击消息
@@ -162,7 +162,7 @@ private:
 	* @param[in] browser_id 列表项对应的浏览器id
 	* @return bool true 继续传递控件消息，false 停止传递控件消息
 	*/
-	bool OnTabItemClose(ui::EventArgs* param, const std::string& browser_id);
+	bool OnTabItemClose(const ui::EventArgs* param, const std::string& browser_id);
 
 	/**
 	* 在本窗口内查找浏览器盒子
@@ -256,7 +256,7 @@ private:
 	* @param[in] param 处理浏览器窗口左侧会话合并列表项发送的事件
 	* @return bool 返回值true: 继续传递控件消息， false: 停止传递控件消息
 	*/
-	bool OnProcessTabItemDrag(ui::EventArgs* param);
+	bool OnProcessTabItemDrag(const ui::EventArgs* param);
 
 	/**
 	* 生成当前窗体中某个区域对应的位图，用于离屏渲染模式

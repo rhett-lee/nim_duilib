@@ -183,7 +183,7 @@ namespace ui
 		
 
 	protected:
-		virtual bool ButtonDown(EventArgs& msg) override;
+		virtual bool ButtonDown(const EventArgs& msg) override;
 		virtual void PaintChild(IRenderContext* pRender, const UiRect& rcPaint) override;
 	protected:
 		GridBody *m_pBody = nullptr;

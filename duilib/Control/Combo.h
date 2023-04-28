@@ -126,7 +126,7 @@ public:
 	 * @brief 获取所有子项数量
 	 * @return 返回所有子项数量
 	 */
-	virtual int GetCount() const;
+	virtual int GetCount() const override;
     
 	/**
 	 * @brief 监听子项被选择事件
@@ -148,7 +148,7 @@ private:
 	 * @param[in] args 参数列表
 	 * @return 始终返回 true
 	 */
-	bool OnSelectItem(EventArgs* args);
+	bool OnSelectItem(const EventArgs* args);
 
 	/**
 	 * @brief 选择一个子项

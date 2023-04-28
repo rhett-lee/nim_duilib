@@ -21,7 +21,7 @@ void AlertFooter::DoInit()
     m_pButtonCancel->SetName(L"btn_cancel");
     m_pButtonCancel->SetClass(L"popover_btn_cancel alert_btn_cancel");
     m_pButtonCancel->SetText(m_strCancel);
-    m_pButtonCancel->AttachClick(ToWeakCallback([this](ui::EventArgs* args) {
+    m_pButtonCancel->AttachClick(ToWeakCallback([this](const ui::EventArgs* args) {
       return OnCancel(args);
       }));
 
@@ -33,7 +33,7 @@ void AlertFooter::DoInit()
     m_pButtonOk->SetName(L"btn_ok");
     m_pButtonOk->SetClass(L"popover_btn_ok alert_btn_ok");
     m_pButtonOk->SetText(m_strOk);
-    m_pButtonOk->AttachClick(ToWeakCallback([this](ui::EventArgs* args) {
+    m_pButtonOk->AttachClick(ToWeakCallback([this](const ui::EventArgs* args) {
       return OnOk(args);
       }));
 

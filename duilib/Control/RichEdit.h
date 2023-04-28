@@ -619,7 +619,7 @@ public:
 	 * @param[in] szPos 要设置的滚动条位置信息
 	 * @return 无
 	 */
-    void SetScrollPos(CSize szPos);
+    virtual void SetScrollPos(CSize szPos) override;
 
 	/**
 	 * @brief 向上一行
@@ -637,19 +637,19 @@ public:
 	 * @brief 向上翻页
 	 * @return 无
 	 */
-    void PageUp();
+    virtual void PageUp() override;
 
 	/**
 	 * @brief 向下翻页
 	 * @return 无
 	 */
-    void PageDown();
+    virtual void PageDown() override;
 
 	/**
 	 * @brief 返回到顶端
 	 * @return 无
 	 */
-    void HomeUp();
+    virtual void HomeUp() override;
 
 	/**
 	 * @brief 返回到底部
@@ -673,25 +673,25 @@ public:
 	 * @brief 水平向左翻页
 	 * @return 无
 	 */
-    void PageLeft();
+    virtual void PageLeft() override;
 
 	/**
 	 * @brief 水平向右翻页
 	 * @return 无
 	 */
-    void PageRight();
+    virtual void PageRight() override;
 
 	/**
 	 * @brief 返回到最左侧
 	 * @return 无
 	 */
-    void HomeLeft();
+    virtual void HomeLeft() override;
 
 	/**
 	 * @brief 返回到最后侧
 	 * @return 无
 	 */
-    void EndRight();
+    virtual void EndRight() override;
 
 	virtual std::wstring GetType() const override;
 #if defined(ENABLE_UIAUTOMATION)
@@ -703,15 +703,15 @@ public:
 	virtual CSize EstimateText(CSize szAvailable);
 	virtual void SetPos(UiRect rc) override;
 	virtual UINT GetControlFlags() const override;
-	virtual void HandleEvent(EventArgs& event) override;
-	void OnSetCursor(EventArgs& event);
-	void OnSetFocus(EventArgs& event);
-	void OnKillFocus(EventArgs& event);
-	void OnChar(EventArgs& event);
-	void OnKeyDown(EventArgs& event);
-	void OnImeStartComposition(EventArgs& event);
-	void OnImeEndComposition(EventArgs& event);
-	void OnMouseMessage(UINT uMsg, EventArgs& event);
+	virtual void HandleEvent(const EventArgs& event) override;
+	void OnSetCursor(const EventArgs& event);
+	void OnSetFocus(const EventArgs& event);
+	void OnKillFocus(const EventArgs& event);
+	void OnChar(const EventArgs& event);
+	void OnKeyDown(const EventArgs& event);
+	void OnImeStartComposition(const EventArgs& event);
+	void OnImeEndComposition(const EventArgs& event);
+	void OnMouseMessage(UINT uMsg, const EventArgs& event);
 
 	virtual void Paint(IRenderContext* pRender, const UiRect& rcPaint) override;
 	virtual void PaintChild(IRenderContext* pRender, const UiRect& rcPaint) override;

@@ -19,7 +19,7 @@ public:
     virtual UIAControlProvider* GetUIAProvider() override;
 #endif
     virtual void Activate() override;
-    virtual void HandleEvent(EventArgs& event) override;
+    virtual void HandleEvent(const EventArgs& event) override;
     virtual UINT GetControlFlags() const override;
 
     /** 该控件是否可以放置在标题栏上（以用于处理NC消息响应）
@@ -41,7 +41,7 @@ ButtonTemplate<InheritType>::ButtonTemplate()
 }
 
 template<typename InheritType>
-void ButtonTemplate<InheritType>::HandleEvent(EventArgs& event)
+void ButtonTemplate<InheritType>::HandleEvent(const EventArgs& event)
 {
     if (!this->IsMouseEnabled() && 
         (event.Type > kEventMouseBegin) && 

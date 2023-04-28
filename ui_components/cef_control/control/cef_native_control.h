@@ -17,7 +17,7 @@ public:
 
 	virtual void Init() override;
 	virtual void SetPos(ui::UiRect rc) override;
-	virtual void HandleEvent(ui::EventArgs& event) override;
+	virtual void HandleEvent(const ui::EventArgs& event) override;
 	virtual void SetVisible(bool bVisible) override;
 	virtual void SetWindow(ui::Window* pManager, ui::Box* pParent, bool bInit) override;
 

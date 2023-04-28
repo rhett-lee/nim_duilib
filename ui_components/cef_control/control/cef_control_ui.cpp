@@ -85,7 +85,7 @@ void CefControl::SetPos(ui::UiRect rc)
 	}
 }
 
-void CefControl::HandleEvent(ui::EventArgs& event)
+void CefControl::HandleEvent(const ui::EventArgs& event)
 {
 	if (browser_handler_.get() && browser_handler_->GetBrowser().get() == NULL)
 		return __super::HandleEvent(event);

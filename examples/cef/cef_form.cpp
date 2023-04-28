@@ -74,7 +74,7 @@ LRESULT CefForm::OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled
 	return __super::OnClose(uMsg, wParam, lParam, bHandled);
 }
 
-bool CefForm::OnClicked(ui::EventArgs* msg)
+bool CefForm::OnClicked(const ui::EventArgs* msg)
 {
 	std::wstring name = msg->pSender->GetName();
 
@@ -114,7 +114,7 @@ bool CefForm::OnClicked(ui::EventArgs* msg)
 	return true;
 }
 
-bool CefForm::OnNavigate(ui::EventArgs* msg)
+bool CefForm::OnNavigate(const ui::EventArgs* msg)
 {
 	if (!edit_url_->GetText().empty())
 	{

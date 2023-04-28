@@ -74,7 +74,7 @@ private:
 	AsyncModalRunnerManager();
 	virtual ~AsyncModalRunnerManager();
 
-	void OnThreadWillExit(AsyncModalRunner *runner);
+	virtual void OnThreadWillExit(AsyncModalRunner *runner) override;
 	void Deregister(AsyncModalRunner *runner);
 
 	nbase::NLock threads_lock_;

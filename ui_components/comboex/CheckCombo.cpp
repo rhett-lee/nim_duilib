@@ -293,7 +293,7 @@ namespace nim_comp
 		return m_pDropList->GetItemAt(iIndex);
 	}
 
-	bool CheckCombo::OnSelectItem(ui::EventArgs* args)
+	bool CheckCombo::OnSelectItem(const ui::EventArgs* args)
 	{
 		std::string date = args->pSender->GetUTF8DataID();
 		std::string text = date;
@@ -328,7 +328,7 @@ namespace nim_comp
 		return true;
 	}
 
-	bool CheckCombo::OnUnSelectItem(ui::EventArgs* args)
+	bool CheckCombo::OnUnSelectItem(const ui::EventArgs* args)
 	{
 		std::string date = args->pSender->GetUTF8DataID();
 		if (date.empty())
@@ -364,7 +364,7 @@ namespace nim_comp
 		m_vecDate.clear();
 	}
 
-	bool CheckCombo::OnListButtonDown(ui::EventArgs* /*args*/)
+	bool CheckCombo::OnListButtonDown(const ui::EventArgs* /*args*/)
 	{
 		Activate();
 		return true;

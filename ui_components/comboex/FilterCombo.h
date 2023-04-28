@@ -42,7 +42,7 @@ public:
 	FilterCombo& operator=(const FilterCombo& r) = delete;
 	virtual ~FilterCombo(){};
 
-	virtual void HandleEvent(ui::EventArgs& args) override;
+	virtual void HandleEvent(const ui::EventArgs& args) override;
 
 	/// 重写父类方法，提供个性化功能，请参考父类声明
 	virtual bool Add(Control* pControl) override;
@@ -143,10 +143,10 @@ private:
 	 * @param[in] args 参数列表
 	 * @return 始终返回 true
 	 */
-	bool OnSelectItem(ui::EventArgs* args);
+	bool OnSelectItem(const ui::EventArgs* args);
 
-	bool OnRichEditTextChanged(ui::EventArgs* args);
-	bool OnRichEditButtonDown(ui::EventArgs* args);
+	bool OnRichEditTextChanged(const ui::EventArgs* args);
+	bool OnRichEditButtonDown(const ui::EventArgs* args);
 
 protected:
 	CFilterComboWnd *m_pComboWnd;

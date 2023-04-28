@@ -32,7 +32,7 @@ UiRect Slider::GetProgressPos()
 	return rc;
 }
 
-void Slider::HandleEvent(EventArgs& event)
+void Slider::HandleEvent(const EventArgs& event)
 {
 	if (!IsMouseEnabled() && 
 		(event.Type > kEventMouseBegin) && 

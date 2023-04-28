@@ -66,7 +66,7 @@ public:
     //基类的虚函数
     virtual std::wstring GetType() const override;
     virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
-    virtual void HandleEvent(EventArgs& event) override;
+    virtual void HandleEvent(const EventArgs& event) override;
 
 private:
     //比较两个时间是否相同

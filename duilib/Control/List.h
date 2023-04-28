@@ -20,7 +20,7 @@ class UILIB_API IListOwner
 public:
 	virtual int GetCurSel() const = 0;
 	virtual bool SelectItem(int iIndex, bool bTakeFocus = false, bool bTrigger = true) = 0;
-	virtual void SendEvent(EventArgs& event) = 0;
+	virtual void SendEvent(const EventArgs& event) = 0;
 	virtual void EnsureVisible(const UiRect& rcItem) = 0;
 	virtual void StopScroll() {}
 };
@@ -43,15 +43,15 @@ public:
 	virtual UIAControlProvider* GetUIAProvider() override;
 #endif
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
-	virtual void HandleEvent(EventArgs& event) override;
+	virtual void HandleEvent(const EventArgs& event) override;
 	virtual void SendEvent(EventType eventType, WPARAM wParam = 0, LPARAM lParam = 0, TCHAR tChar = 0,
 						   const CPoint& mousePos = CPoint(), FLOAT pressure = 0.0f) override;
-	virtual void SendEvent(EventArgs& event) override;
+	virtual void SendEvent(const EventArgs& event) override;
 	virtual int GetCurSel() const override;
 	virtual bool SelectItem(int iIndex, bool bTakeFocus = false, bool bTrigger = true) override;
 	virtual void EnsureVisible(const UiRect& rcItem) override;
 	virtual void StopScroll() override;
-	virtual bool ButtonDown(EventArgs& msg) override;
+	virtual bool ButtonDown(const EventArgs& msg) override;
 
 	/**
 	 * @brief 滚动到指定子项位置
@@ -72,7 +72,7 @@ public:
 	 * @param[in] iIndex 索引号
 	 * @return 成功返回 true，否则返回 false
 	 */
-	bool SetItemIndex(Control* pControl, size_t iIndex);
+	virtual bool SetItemIndex(Control* pControl, size_t iIndex) override;
 
 	/**
 	 * @brief 选中上一项
@@ -196,7 +196,7 @@ public:
 	virtual UIAControlProvider* GetUIAProvider() override;
 #endif
 	virtual void Selected(bool bSelect, bool trigger) override;
-	virtual void HandleEvent(EventArgs& event) override;
+	virtual void HandleEvent(const EventArgs& event) override;
 
 	/** 判断控件类型是否为可选择的
 	 * @return 返回true

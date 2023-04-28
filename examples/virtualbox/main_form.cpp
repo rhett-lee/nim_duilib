@@ -57,7 +57,7 @@ LRESULT MainForm::OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandle
 }
 
 
-bool MainForm::OnClicked(ui::EventArgs* args)
+bool MainForm::OnClicked(const ui::EventArgs* args)
 {
 	auto sName = args->pSender->GetName();
 	if (sName == L"btn_set_total")

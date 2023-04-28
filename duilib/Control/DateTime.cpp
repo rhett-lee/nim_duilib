@@ -76,10 +76,7 @@ void DateTimeWnd::Init(DateTime* pOwner)
 RECT DateTimeWnd::CalPos()
 {
     UiRect rcPos = m_pOwner->GetPos();
-    Control* pParent = m_pOwner;
-    if (pParent != nullptr) {
-        pParent = pParent->GetParent();
-    }
+    Control* pParent = m_pOwner->GetParent();
     RECT rcParent = {0,};
     while (pParent != nullptr) {
         if (!pParent->IsVisible()) {
@@ -308,7 +305,7 @@ void DateTime::SetFormat(const std::wstring& val)
     Invalidate();
 }
 
-void DateTime::HandleEvent(EventArgs& event)
+void DateTime::HandleEvent(const EventArgs& event)
 {
     if (!IsMouseEnabled() && 
         (event.Type > kEventMouseBegin) && 

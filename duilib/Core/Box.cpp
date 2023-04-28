@@ -308,7 +308,7 @@ void Box::SendEvent(EventType eventType, WPARAM wParam, LPARAM lParam, TCHAR tCh
 	return __super::SendEvent(eventType, wParam, lParam, tChar, mousePos, pressure);
 }
 
-void Box::SendEvent(EventArgs& msg)
+void Box::SendEvent(const EventArgs& msg)
 {
 	if ((msg.Type == kEventInternalDoubleClick) || 
 		(msg.Type == kEventInternalSetFocus) || 
@@ -1053,7 +1053,7 @@ CSize ScrollableBox::CalcRequiredSize(const UiRect& rc)
 	return requiredSize;
 }
 
-void ScrollableBox::HandleEvent(EventArgs& event)
+void ScrollableBox::HandleEvent(const EventArgs& event)
 {
 	if( (!IsMouseEnabled() && event.Type > kEventMouseBegin && event.Type < kEventMouseEnd) || 
 		event.Type == kEventLast) {
@@ -1167,7 +1167,7 @@ void ScrollableBox::HandleEvent(EventArgs& event)
 	Box::HandleEvent(event);
 }
 
-bool ScrollableBox::MouseEnter(EventArgs& msg)
+bool ScrollableBox::MouseEnter(const EventArgs& msg)
 {
 	bool bRet = __super::MouseEnter(msg);
 	if (bRet && m_pVerticalScrollBar != NULL && m_pVerticalScrollBar->IsValid() && m_pVerticalScrollBar->IsEnabled()) {
@@ -1184,7 +1184,7 @@ bool ScrollableBox::MouseEnter(EventArgs& msg)
 	return bRet;
 }
 
-bool ScrollableBox::MouseLeave(EventArgs& msg)
+bool ScrollableBox::MouseLeave(const EventArgs& msg)
 {
 	bool bRet = __super::MouseLeave(msg);
 	if (bRet && m_pVerticalScrollBar != NULL && m_pVerticalScrollBar->IsValid() && m_pVerticalScrollBar->IsEnabled()) {

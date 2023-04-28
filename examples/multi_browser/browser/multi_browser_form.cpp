@@ -224,7 +224,7 @@ void MultiBrowserForm::OnWndSizeMax(bool max)
 		btn_max_restore_->SetClass(max ? L"btn_wnd_restore" : L"btn_wnd_max");
 }
 
-bool MultiBrowserForm::OnClicked( ui::EventArgs* arg )
+bool MultiBrowserForm::OnClicked(const ui::EventArgs* arg )
 {
 	std::wstring name = arg->pSender->GetName();
 	if (name == L"btn_max_restore")
@@ -278,7 +278,7 @@ bool MultiBrowserForm::OnClicked( ui::EventArgs* arg )
 	return true;
 }
 
-bool MultiBrowserForm::OnReturn(ui::EventArgs* arg)
+bool MultiBrowserForm::OnReturn(const ui::EventArgs* arg)
 {
 	std::wstring name = arg->pSender->GetName();
 	if (name == L"edit_url")
@@ -585,7 +585,7 @@ void MultiBrowserForm::OnAfterDragBoxCallback(bool drop_succeed)
 	}
 }
 
-bool MultiBrowserForm::OnTabItemSelected(ui::EventArgs* param)
+bool MultiBrowserForm::OnTabItemSelected(const ui::EventArgs* param)
 {
 	if (kEventSelect == param->Type)
 	{
@@ -615,7 +615,7 @@ bool MultiBrowserForm::OnTabItemSelected(ui::EventArgs* param)
 	return false;
 }
 
-bool MultiBrowserForm::OnTabItemClose(ui::EventArgs* param, const std::string& browser_id)
+bool MultiBrowserForm::OnTabItemClose(const ui::EventArgs* param, const std::string& browser_id)
 {
 	if (param->pSender->GetName() == L"tab_item_close")
 	{

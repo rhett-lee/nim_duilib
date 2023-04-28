@@ -406,7 +406,7 @@ public:
 	/** 设置控件是否可见
 	 * @param[in] @param[in] bVisible 为 true 时控件可见，为 false 时控件被隐藏
 	 */
-	virtual void SetVisible(bool bVisible);
+	virtual void SetVisible(bool bVisible) override;
 
 	/**
 	 * @brief 检查控件是否可用
@@ -556,7 +556,7 @@ public:
 	 * @param[in] szAvailable 暂无意义
 	 * @return szAvailable 控件实际大小（如果设置了图片并设置 width 或 height 任意一项为 auto，将根据图片来计算最终大小）
 	 */
-	virtual CSize EstimateSize(CSize szAvailable);
+	virtual CSize EstimateSize(CSize szAvailable) override;
 
 	/**
 	 * @brief 待补充
@@ -598,7 +598,7 @@ public:
 	/** @brief 将转换后的消息派发到消息处理函数
 	 * @param[in] msg 消息内容
 	 */
-    virtual void SendEvent(EventArgs& msg);
+    virtual void SendEvent(const EventArgs& msg);
 
 	/**
 	 * @brief 判断控件是否有 HOT 状态
@@ -660,7 +660,7 @@ public:
 	 * @param[in] 待补充
 	 * @return 待补充
 	 */
-	bool OnApplyAttributeList(const std::wstring& strReceiver, const std::wstring& strList, EventArgs* eventArgs);
+	bool OnApplyAttributeList(const std::wstring& strReceiver, const std::wstring& strList, const EventArgs* eventArgs);
 
 	/// 绘制操作
 	/**
@@ -1029,11 +1029,11 @@ protected:
 	void EnsureNoFocus();
 	
 	/// 消息处理的保护成员函数，不允许外部直接调用
-	virtual void HandleEvent(EventArgs& msg);
-	virtual bool MouseEnter(EventArgs& msg);
-	virtual bool MouseLeave(EventArgs& msg);
-	virtual bool ButtonDown(EventArgs& msg);
-	virtual bool ButtonUp(EventArgs& msg);
+	virtual void HandleEvent(const EventArgs& msg);
+	virtual bool MouseEnter(const EventArgs& msg);
+	virtual bool MouseLeave(const EventArgs& msg);
+	virtual bool ButtonDown(const EventArgs& msg);
+	virtual bool ButtonUp(const EventArgs& msg);
 
 	/// 绘制相关保护成员函数，不允许外部直接调用
 	virtual void PaintShadow(IRenderContext* pRender);

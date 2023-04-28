@@ -31,14 +31,14 @@ void BrowserTabItem::SetIcon(std::wstring icon)
 	icon_->SetBkImage(icon);
 }
 
-bool BrowserTabItem::OnMouseEnter(ui::EventArgs* msg)
+bool BrowserTabItem::OnMouseEnter(const ui::EventArgs* msg)
 {
 	button_close_->SetFadeVisible(true);
 
 	return true;
 }
 
-bool BrowserTabItem::OnMouseLeave(ui::EventArgs* msg)
+bool BrowserTabItem::OnMouseLeave(const ui::EventArgs* msg)
 {
 	if (!m_rcItem.IsPointIn(CPoint(msg->ptMouse)))
 	{
@@ -48,7 +48,7 @@ bool BrowserTabItem::OnMouseLeave(ui::EventArgs* msg)
 	return false;
 }
 
-bool BrowserTabItem::OnItemMenu(ui::EventArgs* arg)
+bool BrowserTabItem::OnItemMenu(const ui::EventArgs* arg)
 {
 	POINT point;
 	::GetCursorPos(&point);
@@ -61,7 +61,7 @@ void BrowserTabItem::PopupItemMenu(POINT point)
 
 }
 
-bool BrowserTabItem::MergeItemMenuItemClick(ui::EventArgs* param)
+bool BrowserTabItem::MergeItemMenuItemClick(const ui::EventArgs* param)
 {
 	return true;
 }
