@@ -4,9 +4,6 @@
     <Filter Include="Animation">
       <UniqueIdentifier>{8d57cd68-fc27-46d6-bfbf-d43c969f12b9}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Automation">
-      <UniqueIdentifier>{623ddc0c-42d7-4f44-837c-0c1b71880b73}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Box">
       <UniqueIdentifier>{876147e7-d0f8-4380-9bd3-0075cf7ea1cc}</UniqueIdentifier>
     </Filter>
@@ -32,48 +29,6 @@
     </ClCompile>
     <ClCompile Include="Animation\AnimationManager.cpp">
       <Filter>Animation</Filter>
-    </ClCompile>
-    <ClCompile Include="Automation\UIABoxProvider.cpp">
-      <Filter>Automation</Filter>
-    </ClCompile>
-    <ClCompile Include="Automation\UIAButtonProvider.cpp">
-      <Filter>Automation</Filter>
-    </ClCompile>
-    <ClCompile Include="Automation\UIACheckBoxProvider.cpp">
-      <Filter>Automation</Filter>
-    </ClCompile>
-    <ClCompile Include="Automation\UIAComboBoxProvider.cpp">
-      <Filter>Automation</Filter>
-    </ClCompile>
-    <ClCompile Include="Automation\UIAControlProvider.cpp">
-      <Filter>Automation</Filter>
-    </ClCompile>
-    <ClCompile Include="Automation\UIALabelProvider.cpp">
-      <Filter>Automation</Filter>
-    </ClCompile>
-    <ClCompile Include="Automation\UIAListBoxItemProvider.cpp">
-      <Filter>Automation</Filter>
-    </ClCompile>
-    <ClCompile Include="Automation\UIAListBoxProvider.cpp">
-      <Filter>Automation</Filter>
-    </ClCompile>
-    <ClCompile Include="Automation\UIAProgressProvider.cpp">
-      <Filter>Automation</Filter>
-    </ClCompile>
-    <ClCompile Include="Automation\UIARichEditProvider.cpp">
-      <Filter>Automation</Filter>
-    </ClCompile>
-    <ClCompile Include="Automation\UIAScrollableBoxProvider.cpp">
-      <Filter>Automation</Filter>
-    </ClCompile>
-    <ClCompile Include="Automation\UIAScrollBarProvider.cpp">
-      <Filter>Automation</Filter>
-    </ClCompile>
-    <ClCompile Include="Automation\UIATreeNodeProvider.cpp">
-      <Filter>Automation</Filter>
-    </ClCompile>
-    <ClCompile Include="Automation\UIAWindowProvider.cpp">
-      <Filter>Automation</Filter>
     </ClCompile>
     <ClCompile Include="Box\ChildBox.cpp">
       <Filter>Box</Filter>
@@ -232,48 +187,6 @@
     </ClInclude>
     <ClInclude Include="Animation\AnimationPlayer.h">
       <Filter>Animation</Filter>
-    </ClInclude>
-    <ClInclude Include="Automation\UIABoxProvider.h">
-      <Filter>Automation</Filter>
-    </ClInclude>
-    <ClInclude Include="Automation\UIAButtonProvider.h">
-      <Filter>Automation</Filter>
-    </ClInclude>
-    <ClInclude Include="Automation\UIACheckBoxProvider.h">
-      <Filter>Automation</Filter>
-    </ClInclude>
-    <ClInclude Include="Automation\UIAComboBoxProvider.h">
-      <Filter>Automation</Filter>
-    </ClInclude>
-    <ClInclude Include="Automation\UIAControlProvider.h">
-      <Filter>Automation</Filter>
-    </ClInclude>
-    <ClInclude Include="Automation\UIALabelProvider.h">
-      <Filter>Automation</Filter>
-    </ClInclude>
-    <ClInclude Include="Automation\UIAListBoxItemProvider.h">
-      <Filter>Automation</Filter>
-    </ClInclude>
-    <ClInclude Include="Automation\UIAListBoxProvider.h">
-      <Filter>Automation</Filter>
-    </ClInclude>
-    <ClInclude Include="Automation\UIAProgressProvider.h">
-      <Filter>Automation</Filter>
-    </ClInclude>
-    <ClInclude Include="Automation\UIARichEditProvider.h">
-      <Filter>Automation</Filter>
-    </ClInclude>
-    <ClInclude Include="Automation\UIAScrollableBoxProvider.h">
-      <Filter>Automation</Filter>
-    </ClInclude>
-    <ClInclude Include="Automation\UIAScrollBarProvider.h">
-      <Filter>Automation</Filter>
-    </ClInclude>
-    <ClInclude Include="Automation\UIATreeNodeProvider.h">
-      <Filter>Automation</Filter>
-    </ClInclude>
-    <ClInclude Include="Automation\UIAWindowProvider.h">
-      <Filter>Automation</Filter>
     </ClInclude>
     <ClInclude Include="Box\ChildBox.h">
       <Filter>Box</Filter>

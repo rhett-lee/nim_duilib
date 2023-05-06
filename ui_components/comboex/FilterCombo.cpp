@@ -74,13 +74,7 @@ void CFilterComboWnd::InitComboWnd(FilterCombo* pOwner)
     }
     
     CreateWnd(pOwner->GetWindow()->GetHWND(), L"", WS_POPUP, WS_EX_TOOLWINDOW, true, rc);
-    // HACK: Don't deselect the parent's caption
-    HWND hWndParent = GetHWND();
-	while (::GetParent(hWndParent) != NULL) {
-		hWndParent = ::GetParent(hWndParent);
-	}
     ::ShowWindow(GetHWND(), SW_SHOW);
-    //::SendMessage(hWndParent, WM_NCACTIVATE, TRUE, 0L);
 }
 
 std::wstring CFilterComboWnd::GetWindowClassName() const
@@ -133,6 +127,16 @@ LRESULT CFilterComboWnd::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam
 			PostMessage(WM_CLOSE);
 		}
     }
+	else if (uMsg == WM_IME_STARTCOMPOSITION) {
+		if (m_pOwner) {
+			m_pOwner->SendEvent(ui::kEventImeStartComposition, wParam, lParam, static_cast<TCHAR>(wParam));
+		}
+	}
+	else if (uMsg == WM_IME_ENDCOMPOSITION) {
+		if (m_pOwner) {
+			m_pOwner->SendEvent(ui::kEventImeEndComposition, wParam, lParam, static_cast<TCHAR>(wParam));
+		}
+	}
 #if 1
 	else if (uMsg == WM_KEYDOWN && wParam == VK_ESCAPE) {
 		PostMessage(WM_CLOSE);
@@ -153,19 +157,6 @@ LRESULT CFilterComboWnd::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam
 			}
 			args.wParam = wParam;
 			args.lParam = lParam;
-			args.dwTimestamp = ::GetTickCount();
-			m_pOwner->HandleEvent(args);
-		}
-	}
-	else if (uMsg == WM_SYSKEYDOWN){
-		if (m_pOwner)
-		{
-			ui::EventArgs args;
-			args.pSender = m_pOwner->GetListBox();
-			args.chKey = static_cast<TCHAR>(wParam);
-			args.Type = ui::kEventSystemKey;
-			args.wParam = 0;
-			args.lParam = 0;
 			args.dwTimestamp = ::GetTickCount();
 			m_pOwner->HandleEvent(args);
 		}
@@ -304,11 +295,15 @@ FilterCombo::FilterCombo() :
 
 void FilterCombo::HandleEvent(const ui::EventArgs& args)
 {
-	if (args.Type == ui::kEventChar || args.Type == ui::kEventKeyDown)
-	{
+	if ((args.Type == ui::kEventChar) || 
+		(args.Type == ui::kEventKeyDown) || 
+		(args.Type == ui::kEventImeStartComposition) ||
+		(args.Type == ui::kEventImeEndComposition)) {
 		m_pRichEdit->HandleEvent(args);
 	}
-	return __super::HandleEvent(args);
+	else {
+		return __super::HandleEvent(args);
+	}
 }
 
 bool FilterCombo::Add(Control* pControl)
@@ -356,14 +351,16 @@ void FilterCombo::Activate()
 	if (!IsActivatable()) {
 		return;
 	}
-	if (m_pComboWnd) {
+	if (m_pComboWnd != nullptr) {
 		return;
 	}
 
 	m_pComboWnd = new CFilterComboWnd();
 	m_pComboWnd->InitComboWnd(this);
-
-	//if (m_pComboWnd != NULL) m_pComboWnd->SendNotify(this, kEventClick);
+	m_pComboWnd->AttachWindowClose(ToWeakCallback([this](const ui::EventArgs& msg) {
+		FireAllEvents(msg);
+		return true;
+	}));
     Invalidate();
 }
 

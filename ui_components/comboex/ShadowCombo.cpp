@@ -266,35 +266,10 @@ void ShadowCombo::Activate()
     m_pWindow = new CShadowComboWnd;
     m_pWindow->InitComboWnd(this);
     m_pWindow->AttachWindowClose(ToWeakCallback([this](const ui::EventArgs& msg) {
-        auto callback = m_OnEvent.find(msg.Type);
-        if (callback != m_OnEvent.end()) {
-            callback->second(msg);
-        }
+        FireAllEvents(msg);
         return true;
         }));
-
-    SendEvent(ui::kEventClick);
     Invalidate();
-}
-
-void ShadowCombo::Deactivate()
-{
-    if (!IsActivatable()) {
-        return;
-    }
-    if (!IsActivated()) {
-        return;
-    }
-
-    if (m_pWindow) {
-        m_pWindow->PostMessage(WM_KILLFOCUS);
-    }    
-    Invalidate();
-}
-
-bool ShadowCombo::IsActivated()
-{
-    return (m_pWindow && !m_pWindow->IsClosingWnd());
 }
 
 void ShadowCombo::SetAttribute(const std::wstring& strName, const std::wstring& strValue)

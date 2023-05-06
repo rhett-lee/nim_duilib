@@ -47,8 +47,6 @@ public:
   bool RemoveAt(size_t iIndex) override;
   void RemoveAll() override;
   void Activate() override;
-  void Deactivate() override;
-  bool IsActivated() override;
   void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
   void PaintText(ui::IRenderContext* pRender) override;
   void PaintChild(ui::IRenderContext* pRender, const ui::UiRect& rcPaint) override;
@@ -193,14 +191,14 @@ public:
    * @param[in] callback 子项被选择后触发的回调函数
    * @return 无
    */
-  void AttachSelect(const ui::EventCallback& callback) { m_OnEvent[ui::kEventSelect] += callback;/*m_pLayout->AttachSelect(callback);*/ }	//mod by djj
+  void AttachSelect(const ui::EventCallback& callback) { AttachEvent(ui::kEventSelect, callback); /*m_pLayout->AttachSelect(callback);*/ }	//mod by djj
 
   /**
    * @brief 监听下拉窗关闭事件
    * @param[in] callback 下拉窗关闭后触发的回调函数
    * @return 无
    */
-  void AttachWindowClose(const ui::EventCallback& callback) { m_OnEvent[ui::kEventWindowClose] += callback; };
+  void AttachWindowClose(const ui::EventCallback& callback) { AttachEvent(ui::kEventWindowClose, callback); }
 
 private:
   /**

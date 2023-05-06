@@ -466,11 +466,10 @@ void ListContainerElement::HandleEvent(const EventArgs& event)
 		}
 		return;
 	}
-	else if (event.Type == kEventInternalDoubleClick) {
-		if (IsActivatable()) {
-			SendEvent(kEventMouseDoubleClick);
+	else if (event.Type == kEventMouseDoubleClick) {
+		if (!IsActivatable()) {
+			return;
 		}
-		return;
 	}
 	else if (event.Type == kEventKeyDown && IsEnabled()) {
 		if (event.chKey == VK_RETURN) {

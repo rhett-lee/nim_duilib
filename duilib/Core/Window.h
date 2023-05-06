@@ -750,7 +750,7 @@ public:
 	/**@name 控件查找相关接口
 	* @{
 	*/
-	/**@brief 根据坐标查找指定控件
+	/**@brief 根据坐标查找指定控件，采用默认属性：UIFIND_VISIBLE | UIFIND_HITTEST | UIFIND_TOP_FIRST
 	 * @param[in] pt 指定坐标
 	 */
 	Control* FindControl(const POINT& pt) const;
@@ -779,6 +779,11 @@ public:
 	Control* FindSubControlByName(Control* pParent, const std::wstring& strName) const;
 
 	/** @} */
+
+private:
+	/** 检查并确保当前窗口为焦点窗口
+	*/
+	void CheckSetFocusWindow();
 
 #if defined(ENABLE_UIAUTOMATION)
 public:

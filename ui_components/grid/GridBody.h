@@ -167,7 +167,7 @@ namespace ui
 		* @brief 表格内容变更后的回调注册
 		* @param[in] callback
 		*/
-		void AttachTextChange(const EventCallback& callback)	{ this->m_OnEvent[kEventTextChange] += callback; }
+		void AttachTextChange(const EventCallback& callback)	{ this->AttachEvent(kEventTextChange, callback); }
 
 		/**
 		* @brief 列根据内容自动调整宽度

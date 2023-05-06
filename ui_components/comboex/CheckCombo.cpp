@@ -213,15 +213,16 @@ namespace nim_comp
 		if (!IsActivatable()) {
 		    return;
 		}
-		if (m_pCheckComboWnd) {
+		if (m_pCheckComboWnd != nullptr) {
 		    return;
 		}
 
 		m_pCheckComboWnd = new CCheckComboWnd();
-		ASSERT(m_pCheckComboWnd);
 		m_pCheckComboWnd->InitComboWnd(this);
-
-		SendEvent(ui::kEventClick);
+		m_pCheckComboWnd->AttachWindowClose(ToWeakCallback([this](const ui::EventArgs& msg) {
+			FireAllEvents(msg);
+			return true;
+		}));
 		Invalidate();
 	}
 

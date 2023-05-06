@@ -47,7 +47,7 @@ void Slider::HandleEvent(const EventArgs& event)
 		return;
 	}
 
-	if (event.Type == kEventMouseButtonDown || event.Type == kEventInternalDoubleClick || event.Type == kEventPointDown) {
+	if (event.Type == kEventMouseButtonDown || event.Type == kEventMouseDoubleClick || event.Type == kEventPointDown) {
 		if( IsEnabled() ) {
 			CPoint newPtMouse(event.ptMouse);
 			newPtMouse.Offset(GetScrollOffset());

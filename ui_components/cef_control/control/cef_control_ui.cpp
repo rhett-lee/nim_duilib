@@ -90,14 +90,14 @@ void CefControl::HandleEvent(const ui::EventArgs& event)
 	if (browser_handler_.get() && browser_handler_->GetBrowser().get() == NULL)
 		return __super::HandleEvent(event);
 
-	else if (event.Type == ui::kEventInternalSetFocus)
+	else if (event.Type == ui::kEventSetFocus)
 	{
 		if (browser_handler_->GetBrowserHost().get())
 		{
 			browser_handler_->GetBrowserHost()->SendFocusEvent(true);
 		}
 	}
-	else if (event.Type == ui::kEventInternalKillFocus)
+	else if (event.Type == ui::kEventKillFocus)
 	{
 		if (browser_handler_->GetBrowserHost().get())
 		{

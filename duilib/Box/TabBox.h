@@ -69,7 +69,8 @@ public:
 	  * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
 	  * @return 无
 	  */
-	void AttachSelect(const EventCallback& callback) { m_OnEvent[kEventSelect] += callback; }
+	void AttachSelect(const EventCallback& callback) { AttachEvent(kEventSelect, callback); }
+
 protected:
 	/**
 	 * @brief 显示一个 TAB 项时，处理一些属性

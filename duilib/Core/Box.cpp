@@ -232,8 +232,7 @@ Box::Box(Layout* pLayout) :
 	m_bAutoDestroy(true),
 	m_bDelayedDestroy(true),
 	m_bMouseChildEnabled(true),
-	m_items(),
-	m_OnBubbledEvent()
+	m_items()
 {
 	ASSERT(m_pLayout != nullptr);
 	if (m_pLayout) {
@@ -293,104 +292,12 @@ void Box::SetPos(UiRect rc)
 	rc.bottom -= m_pLayout->GetPadding().bottom;
 
 	CSize requiredSize;
-	if( m_items.size() == 0) {
+	if( m_items.empty()) {
 		requiredSize.cx = 0;
 		requiredSize.cy = 0;
 	}
 	else {
 		requiredSize = m_pLayout->ArrangeChild(m_items, rc);
-	}
-}
-
-void Box::SendEvent(EventType eventType, WPARAM wParam, LPARAM lParam, TCHAR tChar,
-				    const CPoint& mousePos, FLOAT pressure)
-{
-	return __super::SendEvent(eventType, wParam, lParam, tChar, mousePos, pressure);
-}
-
-void Box::SendEvent(const EventArgs& msg)
-{
-	if ((msg.Type == kEventInternalDoubleClick) || 
-		(msg.Type == kEventInternalSetFocus) || 
-		(msg.Type == kEventInternalKillFocus)) {
-		HandleEvent(msg);
-		return;
-	}
-
-	bool bRet = true;
-	std::weak_ptr<nbase::WeakFlag> weakflag = GetWeakFlag();
-	if (this == msg.pSender) {
-		auto callback = m_OnEvent.find(msg.Type);
-		if (callback != m_OnEvent.end()) {
-			bRet = callback->second(msg);
-		}
-		if (weakflag.expired()) {
-			return;
-		}
-
-		callback = m_OnEvent.find(kEventAll);
-		if (callback != m_OnEvent.end()) {
-			bRet = callback->second(msg);
-		}
-		if (weakflag.expired()) {
-			return;
-		}
-
-		if (bRet) {
-			auto callback2 = m_OnXmlEvent.find(msg.Type);
-			if (callback2 != m_OnXmlEvent.end()) {
-				bRet = callback2->second(msg);
-			}
-			if (weakflag.expired()) {
-				return;
-			}
-
-			callback2 = m_OnXmlEvent.find(kEventAll);
-			if (callback2 != m_OnXmlEvent.end()) {
-				bRet = callback2->second(msg);
-			}
-			if (weakflag.expired()) {
-				return;
-			}
-		}
-	}
-
-	auto callback = m_OnBubbledEvent.find(msg.Type);
-	if (callback != m_OnBubbledEvent.end()) {
-		bRet = callback->second(msg);
-	}
-	if (weakflag.expired()) {
-		return;
-	}
-
-	callback = m_OnBubbledEvent.find(kEventAll);
-	if (callback != m_OnBubbledEvent.end()) {
-		bRet = callback->second(msg);
-	}
-	if (weakflag.expired()) {
-		return;
-	}
-
-	if (bRet) {
-		auto callback2 = m_OnXmlBubbledEvent.find(msg.Type);
-		if (callback2 != m_OnXmlBubbledEvent.end()) {
-			bRet = callback2->second(msg);
-		}
-		if (weakflag.expired()) {
-			return;
-		}
-
-		callback2 = m_OnXmlBubbledEvent.find(kEventAll);
-		if (callback2 != m_OnXmlBubbledEvent.end()) {
-			bRet = callback2->second(msg);
-		}
-		if (weakflag.expired()) {
-			return;
-		}
-	}
-
-	if (bRet) {
-		HandleEvent(msg);
 	}
 }
 
@@ -427,7 +334,7 @@ void Box::PaintChild(IRenderContext* pRender, const UiRect& rcPaint)
 
 void Box::SetEnabled(bool bEnabled)
 {
-	if (m_bEnabled == bEnabled) {
+	if (IsEnabled() == bEnabled) {
 		return;
 	}
 
@@ -906,38 +813,9 @@ UINT Box::GetControlFlags() const
 	return UIFLAG_DEFAULT; // Box 默认不支持 TAB 切换焦点
 }
 
-void Box::AttachBubbledEvent(EventType eventType, const EventCallback& callback)
-{ 
-	m_OnBubbledEvent[eventType] += callback;
-}
-
-void Box::DetachBubbledEvent(EventType eventType)
-{
-    auto event = m_OnBubbledEvent.find(eventType);
-    if (event != m_OnBubbledEvent.end())
-    {
-		m_OnBubbledEvent.erase(eventType);
-    }
-}
-
-void Box::AttachXmlBubbledEvent(EventType eventType, const EventCallback& callback)
-{ 
-	m_OnXmlBubbledEvent[eventType] += callback; 
-}
-
-void Box::DetachXmlBubbledEvent(EventType eventType)
-{
-	auto event = m_OnXmlBubbledEvent.find(eventType);
-	if (event != m_OnXmlBubbledEvent.end())
-	{
-		m_OnXmlBubbledEvent.erase(eventType);
-	}
-}
-
 /////////////////////////////////////////////////////////////////////////////////////
 //
 //
-
 ScrollableBox::ScrollableBox(Layout* pLayout) :
 	Box(pLayout),
 	m_pVerticalScrollBar(),
@@ -1285,7 +1163,7 @@ Control* ScrollableBox::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFl
 		if (!::PtInRect(&m_rcItem, *(static_cast<LPPOINT>(pData)))) {
 			return nullptr;
 		}
-		if (!m_bMouseChildEnabled) {
+		if (!IsMouseChildEnabled()) {
 			Control* pResult = nullptr;
 			if (m_pVerticalScrollBar != nullptr) {
 				pResult = m_pVerticalScrollBar->FindControl(Proc, pData, uFlags);

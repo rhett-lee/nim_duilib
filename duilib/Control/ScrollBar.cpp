@@ -329,7 +329,6 @@ void ScrollBar::SetPos(UiRect rc)
 
 void ScrollBar::HandleEvent(const EventArgs& event)
 {
-	ASSERT(m_pOwner != nullptr);
 	if (!IsMouseEnabled() && 
 		(event.Type > kEventMouseBegin) && 
 		(event.Type < kEventMouseEnd)) {
@@ -339,15 +338,12 @@ void ScrollBar::HandleEvent(const EventArgs& event)
 		}
 		return;
 	}
-
-	if (event.Type == kEventInternalSetFocus) {
-		return;
-	}
-	else if (event.Type == kEventInternalKillFocus) {
-		return;
-	}
-	else if (event.Type == kEventMouseButtonDown || event.Type == kEventInternalDoubleClick || event.Type == kEventPointDown) {
-		if (!IsEnabled()) return;
+	else if ((event.Type == kEventMouseButtonDown) || 
+		     (event.Type == kEventMouseDoubleClick) || 
+		     (event.Type == kEventPointDown)) {
+		if (!IsEnabled()) {
+			return;
+		}
 
 		m_nLastScrollOffset = 0;
 		m_nScrollRepeatDelay = 0;
@@ -358,23 +354,39 @@ void ScrollBar::HandleEvent(const EventArgs& event)
 		if (::PtInRect(&m_rcButton1, event.ptMouse)) {
 			m_uButton1State = kControlStatePushed;
 			if (!m_bHorizontal) {
-				if (m_pOwner != NULL) m_pOwner->LineUp();
-				else SetScrollPos(m_nScrollPos - m_nLineSize);
+				if (m_pOwner != nullptr) {
+					m_pOwner->LineUp();
+				}
+				else {
+					SetScrollPos(m_nScrollPos - m_nLineSize);
+				}
 			}
 			else {
-				if (m_pOwner != NULL) m_pOwner->LineLeft();
-				else SetScrollPos(m_nScrollPos - m_nLineSize);
+				if (m_pOwner != nullptr) {
+					m_pOwner->LineLeft();
+				}
+				else {
+					SetScrollPos(m_nScrollPos - m_nLineSize);
+				}
 			}
 		}
 		else if (::PtInRect(&m_rcButton2, event.ptMouse)) {
 			m_uButton2State = kControlStatePushed;
 			if (!m_bHorizontal) {
-				if (m_pOwner != NULL) m_pOwner->LineDown();
-				else SetScrollPos(m_nScrollPos + m_nLineSize);
+				if (m_pOwner != nullptr) {
+					m_pOwner->LineDown();
+				}
+				else {
+					SetScrollPos(m_nScrollPos + m_nLineSize);
+				}
 			}
 			else {
-				if (m_pOwner != NULL) m_pOwner->LineRight();
-				else SetScrollPos(m_nScrollPos + m_nLineSize);
+				if (m_pOwner != nullptr) {
+					m_pOwner->LineRight();
+				}
+				else {
+					SetScrollPos(m_nScrollPos + m_nLineSize);
+				}
 			}
 		}
 		else if (::PtInRect(&m_rcThumb, event.ptMouse)) {
@@ -386,22 +398,38 @@ void ScrollBar::HandleEvent(const EventArgs& event)
 		else {
 			if (!m_bHorizontal) {
 				if (event.ptMouse.y < m_rcThumb.top) {
-					if (m_pOwner != NULL) m_pOwner->PageUp();
-					else SetScrollPos(m_nScrollPos + m_rcItem.top - m_rcItem.bottom);
+					if (m_pOwner != nullptr) {
+						m_pOwner->PageUp();
+					}
+					else {
+						SetScrollPos(m_nScrollPos + m_rcItem.top - m_rcItem.bottom);
+					}
 				}
 				else if (event.ptMouse.y > m_rcThumb.bottom){
-					if (m_pOwner != NULL) m_pOwner->PageDown();
-					else SetScrollPos(m_nScrollPos - m_rcItem.top + m_rcItem.bottom);
+					if (m_pOwner != nullptr) {
+						m_pOwner->PageDown();
+					}
+					else {
+						SetScrollPos(m_nScrollPos - m_rcItem.top + m_rcItem.bottom);
+					}
 				}
 			}
 			else {
 				if (event.ptMouse.x < m_rcThumb.left) {
-					if (m_pOwner != NULL) m_pOwner->PageLeft();
-					else SetScrollPos(m_nScrollPos + m_rcItem.left - m_rcItem.right);
+					if (m_pOwner != nullptr) {
+						m_pOwner->PageLeft();
+					}
+					else {
+						SetScrollPos(m_nScrollPos + m_rcItem.left - m_rcItem.right);
+					}
 				}
 				else if (event.ptMouse.x > m_rcThumb.right){
-					if (m_pOwner != NULL) m_pOwner->PageRight();
-					else SetScrollPos(m_nScrollPos - m_rcItem.left + m_rcItem.right);
+					if (m_pOwner != nullptr) {
+						m_pOwner->PageRight();
+					}
+					else {
+						SetScrollPos(m_nScrollPos - m_rcItem.left + m_rcItem.right);
+					}
 				}
 			}
 		}
@@ -453,8 +481,9 @@ void ScrollBar::HandleEvent(const EventArgs& event)
 					vRange -= m_cxyFixed.cx;
 				}
 
-				if (vRange != 0)
+				if (vRange != 0) {
 					m_nLastScrollOffset = (event.ptMouse.y - m_ptLastMouse.y) * m_nRange / vRange;
+				}
 			}
 			else {
 
@@ -466,8 +495,9 @@ void ScrollBar::HandleEvent(const EventArgs& event)
 					hRange -= m_cxyFixed.cy;
 				}
 
-				if (hRange != 0)
+				if (hRange != 0) {
 					m_nLastScrollOffset = (event.ptMouse.x - m_ptLastMouse.x) * m_nRange / hRange;
+				}
 			}
 		}
 
@@ -487,7 +517,9 @@ void ScrollBar::HandleEvent(const EventArgs& event)
 		}
 	}
 
-	if (m_pOwner != NULL) m_pOwner->SendEvent(event);
+	if (m_pOwner != nullptr) {
+		m_pOwner->SendEvent(event);
+	}
 }
 
 void ScrollBar::SetAttribute(const std::wstring& strName, const std::wstring& strValue)

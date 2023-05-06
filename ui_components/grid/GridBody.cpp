@@ -926,13 +926,19 @@ namespace ui
 
 	void GridBody::HandleEvent(const EventArgs& event)
 	{
-		if (!IsMouseEnabled() && event.Type > kEventMouseBegin && event.Type < kEventMouseEnd) {
-			if (m_pParent != NULL) m_pParent->SendEvent(event);
-			else Box::HandleEvent(event);
+		if (!IsMouseEnabled() && 
+			(event.Type > kEventMouseBegin) && 
+			(event.Type < kEventMouseEnd)) {
+			if (m_pParent != nullptr) {
+				m_pParent->SendEvent(event);
+			}
+			else {
+				Box::HandleEvent(event);
+			}
 			return;
 		}
 		bool bHandle = false;
-		if (event.Type == kEventInternalDoubleClick)
+		if (event.Type == kEventMouseDoubleClick)
 		{
 			OnMouseDoubleClick(event);
 			bHandle = true;

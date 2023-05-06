@@ -139,14 +139,14 @@ public:
      * @param[in] callback 被选择时触发的回调函数
      * @return 无
      */
-    void AttachSelect(const EventCallback& callback) { this->m_OnEvent[kEventSelect] += callback; }
+    void AttachSelect(const EventCallback& callback) { this->AttachEvent(kEventSelect, callback); }
 
     /**
      * @brief 监听取消选择时的事件
      * @param[in] callback 取消选择时触发的回调函数
      * @return 无
      */
-    void AttachUnSelect(const EventCallback& callback) { this->m_OnEvent[kEventUnSelect] += callback; }
+    void AttachUnSelect(const EventCallback& callback) { this->AttachEvent(kEventUnSelect, callback); }
 
 protected:
     bool			m_bSelected;
@@ -180,8 +180,9 @@ inline UIAControlProvider* CheckBoxTemplate<InheritType>::GetUIAProvider()
 template<typename InheritType>
 void CheckBoxTemplate<InheritType>::Activate()
 {
-    if (!this->IsActivatable())
+    if (!this->IsActivatable()) {
         return;
+    }
     Selected(!m_bSelected, true);
 }
 

@@ -625,7 +625,6 @@ Popover::Popover(ui::Control* pAnchor,
   SetFadeVisible(false);
 
   // DO NOT DELAY DESTROY
-  // Coz AttachLastEvent
   SetDelayedDestroy(false);
 
   // attach last event of anchor
@@ -1258,7 +1257,6 @@ PopoverLayer::PopoverLayer() :
   SetFixedHeight(DUI_LENGTH_STRETCH);
 
   // DO NOT DELAY DESTROY
-  // Coz AttachLastEvent
   SetDelayedDestroy(false);
 }
 

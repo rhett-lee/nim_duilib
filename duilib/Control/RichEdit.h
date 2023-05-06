@@ -930,28 +930,28 @@ public:
 	 * @param[in] callback 回车被按下的自定义回调函数
 	 * @return 无
 	 */
-	void AttachReturn(const EventCallback& callback) { m_OnEvent[kEventReturn] += callback; }
+	void AttachReturn(const EventCallback& callback) { AttachEvent(kEventReturn, callback); }
 
 	/**
 	 * @brief 监听 TAB 按键按下事件
 	 * @param[in] callback TAB 被按下的自定义回调函数
 	 * @return 无
 	 */
-	void AttachTab(const EventCallback& callback) {	m_OnEvent[kEventTab] += callback;	}
+	void AttachTab(const EventCallback& callback) { AttachEvent(kEventTab, callback); }
 
 	/**
 	 * @brief 监听文本被修改事件
 	 * @param[in] callback 文本被修改后的自定义回调函数
 	 * @return 无
 	 */
-	void AttachTextChange(const EventCallback& callback) { m_OnEvent[kEventTextChange] += callback; }
+	void AttachTextChange(const EventCallback& callback) { AttachEvent(kEventTextChange, callback); }
 
 	/**
 	 * @brief 监听自定义链接被点击事件
 	 * @param[in] callback 自定义链接被点击后的自定义回调函数
 	 * @return 无
 	 */
-	void AttachCustomLinkClk(const EventCallback& callback)	{ m_OnEvent[kEventCustomLinkClick] += callback; }
+	void AttachCustomLinkClk(const EventCallback& callback)	{ AttachEvent(kEventCustomLinkClick, callback); }
 
 	/**
 	 * @brief 监听大小变化事件
@@ -959,14 +959,6 @@ public:
 	 * @return 无
 	 */
 	void AttachGetNaturalSize(const FunGetNaturalSize& callback) { m_cbGetNaturalSize = callback; };
-
-	/**
-	 * @brief 通知控件值发生变化
-	 * @param[in] oldText 旧值
-	 * @param[in] newText 新值
-	 * @return 无
-	 */
-	void RaiseTextValueEvent(const std::wstring& oldText, const std::wstring& newText);
 
 protected:
     CTxtWinHost* m_pTwh;

@@ -232,32 +232,12 @@ void Combo::Activate()
 
     m_pWindow = new CComboWnd();
     m_pWindow->InitComboWnd(this);
-	m_pWindow->AttachWindowClose(ToWeakCallback([this](const ui::EventArgs& msg) {
-		auto callback = m_OnEvent.find(msg.Type);
-		if (callback != m_OnEvent.end()) {
-			callback->second(msg);
-		}
-		return true;
+    m_pWindow->AttachWindowClose(ToWeakCallback([this](const ui::EventArgs& msg) {
+        FireAllEvents(msg);
+        return true;
 	}));
 
-	SendEvent(kEventClick);
     Invalidate();
-}
-
-void Combo::Deactivate()
-{
-	if (!IsActivatable()) {
-		return;
-	}
-	if (m_pWindow != nullptr) {
-		m_pWindow->CloseWnd();
-	}	
-	Invalidate();
-}
-
-bool Combo::IsActivated()
-{
-	return ((m_pWindow != nullptr) && !m_pWindow->IsClosingWnd());
 }
 
 void Combo::SetAttribute(const std::wstring& strName, const std::wstring& strValue)

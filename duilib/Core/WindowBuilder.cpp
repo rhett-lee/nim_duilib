@@ -646,17 +646,11 @@ void WindowBuilder::AttachXmlEvent(bool bBubbled, CMarkupNode& node, Control* pP
 		for (auto itReceiver = receiverList.begin(); itReceiver != receiverList.end(); itReceiver++) {
 			EventType eventType = StringToEnum(*itType);
 			auto callback = nbase::Bind(&Control::OnApplyAttributeList, pParent, *itReceiver, strApplyAttribute, std::placeholders::_1);
-			if (bBubbled == false) {
+			if (!bBubbled) {
 				pParent->AttachXmlEvent(eventType, callback);
 			}
 			else {
-				if (Box* tmpParent = dynamic_cast<Box*>(pParent)) {
-					tmpParent->AttachXmlBubbledEvent(eventType, callback);
-				}
-				else {
-					ASSERT(FALSE);
-				}
-
+				pParent->AttachXmlBubbledEvent(eventType, callback);
 			}
 		}
 	}

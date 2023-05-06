@@ -341,14 +341,14 @@ public:
 
     /// 菜单
 	/**
-	 * @brief 控件是否响应右键菜单消息
-	 * @return 返回结果表示了是否响应右键菜单消息，true 响应右键菜单消息，false 不响应右键菜单消息
+	 * @brief 控件是否响应上下文菜单消息
+	 * @return 返回结果表示了是否响应上下文菜单消息，true 响应上下文菜单消息，false 不响应上下文菜单消息
 	 */
-    virtual bool IsContextMenuUsed() const;
+	virtual bool IsContextMenuUsed() const { return m_bContextMenuUsed; };
 
 	/**
-	 * @brief 设置控件响应右键菜单消息
-	 * @param[in] bMenuUsed 是否响应右键菜单消息，true 为是，false 为否
+	 * @brief 设置控件响应上下文菜单消息
+	 * @param[in] bMenuUsed 是否响应上下文菜单消息，true 为是，false 为否
 	 * @return 无
 	 */
     virtual void SetContextMenuUsed(bool bMenuUsed);
@@ -412,7 +412,7 @@ public:
 	 * @brief 检查控件是否可用
 	 * @return 控件可用状态，返回 true 控件可用，否则为 false
 	 */
-    virtual bool IsEnabled() const;
+	virtual bool IsEnabled() const { return m_bEnabled; };
 
 	/**
 	 * @brief 设置控件可用状态
@@ -425,7 +425,7 @@ public:
 	 * @brief 检查控件是否响应鼠标事件
 	 * @return 返回控件是否响应鼠标事件，返回 true 响应鼠标事件，false 为不响应
 	 */
-    virtual bool IsMouseEnabled() const;
+	virtual bool IsMouseEnabled() const { return m_bMouseEnabled; };
 
 	/**
 	 * @brief 设置控件是否响应鼠标事件
@@ -438,7 +438,7 @@ public:
 	 * @brief 检查控件是否响应键盘事件
 	 * @return 返回控件是否响应键盘事件，返回 true 响应键盘事件，false 不响应键盘事件
 	 */
-    virtual bool IsKeyboardEnabled() const;
+	virtual bool IsKeyboardEnabled() const { return m_bKeyboardEnabled; };
 
 	/**
 	 * @brief 设置控件是否响应键盘事件
@@ -485,8 +485,8 @@ public:
 	virtual void SetMouseFocused(bool bMouseFocused) { m_bMouseFocused = bMouseFocused; }
 
 	/**
-	 * @brief 判断控件当前是否是激活状态
-	 * @return 返回控件状态，true 控件当前是激活状态，可见并可用，false 控件当前非激活状态，可能不可见或被禁用
+	 * @brief 判断控件当前是否是可激活状态
+	 * @return 返回控件状态，true 控件当前是可激活状态，可见并可用，false 控件当前非可激活状态，可能不可见或被禁用
 	 */
 	virtual bool IsActivatable() const;
 
@@ -496,20 +496,6 @@ public:
 	 * @return 待补充
 	 */
 	virtual void Activate();
-
-	/**
-	 * @brief 取消激活控件，如反选、隐藏等操作
-	 * @param[in] 待补充
-	 * @return 待补充
-	 */
-	virtual void Deactivate();
-
-	/**
-	 * @brief 是否激活，如选中、展开等
-	 * @param[in] 待补充
-	 * @return 待补充
-	 */
-	virtual bool IsActivated();
 
 	/// 控件搜索
 	/**
@@ -886,49 +872,49 @@ public:
 	 * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
 	 * @return 无
 	 */
-	void AttachMouseEnter(const EventCallback& callback) { m_OnEvent[kEventMouseEnter] += callback; }
+	void AttachMouseEnter(const EventCallback& callback) { AttachEvent(kEventMouseEnter, callback); }
 
 	/**
 	 * @brief 监听鼠标离开事件
 	 * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
 	 * @return 无
 	 */
-	void AttachMouseLeave(const EventCallback& callback) { m_OnEvent[kEventMouseLeave] += callback; }
+	void AttachMouseLeave(const EventCallback& callback) { AttachEvent(kEventMouseLeave, callback); }
 
 	/**
 	 * @brief 监听鼠标悬浮事件
 	 * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
 	 * @return 无
 	 */
-	void AttachMouseHover(const EventCallback& callback) { m_OnEvent[kEventMouseHover] += callback; }
+	void AttachMouseHover(const EventCallback& callback) { AttachEvent(kEventMouseHover, callback); }
 
 	/**
 	 * @brief 监听鼠标按下事件
 	 * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
 	 * @return 无
 	 */
-	void AttachButtonDown(const EventCallback& callback) { m_OnEvent[kEventMouseButtonDown] += callback; }
+	void AttachButtonDown(const EventCallback& callback) { AttachEvent(kEventMouseButtonDown, callback); }
 
 	/**
 	 * @brief 监听鼠标弹起事件
 	 * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
 	 * @return 无
 	 */
-	void AttachButtonUp(const EventCallback& callback) { m_OnEvent[kEventMouseButtonUp] += callback; }
+	void AttachButtonUp(const EventCallback& callback) { AttachEvent(kEventMouseButtonUp, callback); }
 
 	/**
 	 * @brief 监听获得焦点事件
 	 * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
 	 * @return 无
 	 */
-	void AttachSetFocus(const EventCallback& callback) { m_OnEvent[kEventSetFocus] += callback; }
+	void AttachSetFocus(const EventCallback& callback) { AttachEvent(kEventSetFocus, callback); }
 
 	/**
 	 * @brief 监听失去焦点事件
 	 * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
 	 * @return 无
 	 */
-	void AttachKillFocus(const EventCallback& callback) { m_OnEvent[kEventKillFocus] += callback; }
+	void AttachKillFocus(const EventCallback& callback) { AttachEvent(kEventKillFocus, callback); }
 
 	/**
 	 * @brief 监听右键菜单事件
@@ -942,50 +928,36 @@ public:
 	 * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
 	 * @return 无
 	 */
-	void AttachResize(const EventCallback& callback) { m_OnEvent[kEventResize] += callback; }
+	void AttachResize(const EventCallback& callback) { AttachEvent(kEventResize, callback); }
 
 	/**
 	 * @brief 监听双击事件
 	 * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
 	 * @return 无
 	 */
-	void AttachDoubleClick(const EventCallback& callback) { m_OnEvent[kEventMouseDoubleClick] += callback; }
+	void AttachDoubleClick(const EventCallback& callback) { AttachEvent(kEventMouseDoubleClick, callback); }
 
 	/**
 		* @brief 绑定鼠标点击处理函数
 		* @param[in] callback 要绑定的回调函数
 		* @return 无
 		*/
-	void AttachClick(const EventCallback& callback) { this->m_OnEvent[kEventClick] += callback; }
+	void AttachClick(const EventCallback& callback) { AttachEvent(kEventClick, callback); }
 
 	/**
 	* @brief 监听控件关闭前最后一条消息
 	* @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
 	* @return 无
 	*/
-	void AttachLastEvent(const EventCallback& callback) { m_OnEvent[kEventLast] += callback; }
+	void AttachLastEvent(const EventCallback& callback) { AttachEvent(kEventLast, callback); }
 
 	/**
 	* @brief 监听控件显示或隐藏事件
 	* @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
 	* @return 无
 	*/
-	void AttachVisibleChange(const EventCallback& callback) { m_OnEvent[kEventVisibleChange] += callback; }
+	void AttachVisibleChange(const EventCallback& callback) { AttachEvent(kEventVisibleChange, callback); }
 
-	/**
-	 * @brief 监听指定事件，见 EventType 枚举
-	 * @param[in] type 事件类型，见 EventType 枚举
-	 * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
-	 * @return 无
-	 */
-	void AttachEvent(EventType type, const EventCallback& callback);
-
-	/**
-	 * @brief 取消监听指定事件
-	 * @param[in] type 事件类型，见 EventType 枚举
-	 * @return 无
-	 */
-	void DetachEvent(EventType type);
 
 	/**
 	* @brief 获取某个颜色对应的值，优先获取窗口颜色
@@ -1009,15 +981,68 @@ public:
 	 */
 	virtual bool CanPlaceCaptionBar() const;
 
-	/** 设置监听XML事件
-	*/
-	void AttachXmlEvent(EventType eventType, const EventCallback& callback) { m_OnXmlEvent[eventType] += callback; }
-
 	/** 当前控件以及级联父容器是否可见（从当前控件到最顶层父控件，只要有一个Visible为false，则返回false）
 	* @return true 表示当前控件以及所有父控件，均是可见状态
 	*         false 表示当前控件或者所有父控件中，有非可见状态的控件
 	 */
 	bool CheckVisibleAncestor(void) const;
+
+public:
+	/**@name 事件监听相关接口
+	* @{
+	*/
+
+	/**@brief (m_OnEvent)监听指定事件
+	 * @param[in] type 事件类型，见 EventType 枚举
+	 * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
+	 */
+	void AttachEvent(EventType type, const EventCallback& callback);
+
+	/**@brief (m_OnEvent)取消监听指定事件
+	 * @param[in] type 事件类型，见 EventType 枚举
+	 */
+	void DetachEvent(EventType type);
+
+	/**@brief (m_OnXmlEvent)通过XML中，配置<Event标签添加的响应事件，最终由Control::OnApplyAttributeList函数响应具体操作
+	 * @param[in] type 事件类型，见 EventType 枚举
+	 * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
+	 */
+	void AttachXmlEvent(EventType eventType, const EventCallback& callback);
+
+	/**@brief (m_OnXmlEvent)取消监听指定事件
+	 * @param[in] type 事件类型，见 EventType 枚举
+	 */
+	void DetachXmlEvent(EventType type);
+
+	/**@brief (m_OnBubbledEvent)绑定事件处理函数
+	 * @param[in] eventType 事件类型
+	 * @param[in] callback 指定回调函数
+	 */
+	void AttachBubbledEvent(EventType eventType, const EventCallback& callback);
+
+	/**@brief (m_OnBubbledEvent)解绑事件处理函数
+	 * @param[in] eventType 事件类型
+	 */
+	void DetachBubbledEvent(EventType eventType);
+
+	/** @brief 绑定 XML 中编写的 Event 和 BubbleEvent 事件的处理函数
+	 * @param[in] eventType 事件类型
+	 * @param[in] callback 指定回调函数
+	 */
+	void AttachXmlBubbledEvent(EventType eventType, const EventCallback& callback);
+
+	/** @brief 解绑XML事件处理函数
+	 * @param[in] eventType 事件类型
+	 */
+	void DetachXmlBubbledEvent(EventType eventType);
+
+	/** 触发事件，向所有容器的监听者发送事件（m_OnEvent，m_OnXmlEvent，m_OnBubbledEvent， m_OnXmlBubbledEvent）
+	* @param [in] msg 消息内容
+	* @return 如果所有监听者回调函数返回true，则该函数返回true；否则返回false
+	*/
+	bool FireAllEvents(const EventArgs& msg);
+
+	/** @} */
 
 protected:
 	
@@ -1050,18 +1075,10 @@ private:
 	int GetGifFrameIndex(GifStopType frame);
 
 protected:
-	EventMap m_OnXmlEvent;
-	EventMap m_OnEvent;
+
 	GifEventMap m_OnGifEvent;
 	std::unique_ptr<UserDataBase> m_pUserDataBase;
-	bool m_bContextMenuUsed;
-	bool m_bEnabled;
-	bool m_bMouseEnabled;
-	bool m_bKeyboardEnabled;
-	bool m_bFocused;
-	bool m_bMouseFocused;
-	bool m_bSetPos;		// 防止SetPos循环调用
-	bool m_bNoFocus;	//控件不需要焦点
+	
 	bool m_bClip;
 	bool m_bGifPlay;
 	bool m_bReceivePointerMsg;
@@ -1098,6 +1115,38 @@ protected:
 	static const int m_nVirtualEventGifStop;	
 	BoxShadow m_boxShadow;
 	std::unique_ptr<IRenderContext> m_renderContext;
+
+private:
+	//通过AttachXXX接口，添加的监听事件
+	EventMap m_OnEvent;
+
+	//通过XML中，配置<Event标签添加的响应事件，最终由Control::OnApplyAttributeList函数响应具体操作
+	EventMap m_OnXmlEvent;
+
+	//通过AttachBubbledEvent接口添加的事件
+	EventMap m_OnBubbledEvent;
+
+	//通过XML中，配置<BubbledEvent标签添加的响应事件，最终由Control::OnApplyAttributeList函数响应具体操作
+	EventMap m_OnXmlBubbledEvent;
+
+private:
+	//控件的Enable状态（当为false的时候，不响应鼠标、键盘等输入消息）
+	bool m_bEnabled;
+
+	//鼠标消息的Enable状态（当为false的时候，不响应鼠标消息）
+	bool m_bMouseEnabled;
+
+	//键盘消息的Enable状态（当为false的时候，不响应键盘消息）
+	bool m_bKeyboardEnabled;
+
+	//鼠标焦点是否在控件上
+	bool m_bMouseFocused;
+
+	//控件是否响应上下文菜单
+	bool m_bContextMenuUsed;
+
+	//控件不需要焦点（如果为true，则控件不会获得焦点）
+	bool m_bNoFocus;
 
 #if defined(ENABLE_UIAUTOMATION)
 	UIAControlProvider* m_pUIAProvider;

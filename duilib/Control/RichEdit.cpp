@@ -1540,11 +1540,7 @@ void RichEdit::SetText(const std::wstring& strText)
 
     SetSel(0, -1);
 
-	std::wstring oldText = GetText();
-
     ReplaceSel(strText, FALSE);
-
-	RaiseTextValueEvent(oldText, strText);
 
 	m_linkInfo.clear();
 }
@@ -1552,8 +1548,7 @@ void RichEdit::SetText(const std::wstring& strText)
 void RichEdit::SetTextId(const std::wstring& strTextId)
 {
 	MultiLangSupport* mutilan = MultiLangSupport::GetInstance();
-	if (mutilan)
-	{
+	if (mutilan) {
 		std::wstring strText = mutilan->GetStringViaID(strTextId);
 		SetText(strText);
 	}
@@ -1739,24 +1734,16 @@ int RichEdit::InsertText(long nInsertAfterChar, LPCTSTR lpstrText, bool bCanUndo
 {
     int nRet = SetSel(nInsertAfterChar, nInsertAfterChar);
 
-	std::wstring oldText = GetText();
-
     ReplaceSel(lpstrText, bCanUndo);
-
-	RaiseTextValueEvent(oldText, GetText());
-    
+   
 	return nRet;
 }
 
 int RichEdit::AppendText(const std::wstring& strText, bool bCanUndo)
 {
     int nRet = SetSel(-1, -1);
-
-	std::wstring oldText = GetText();
-    
+   
 	ReplaceSel(strText, bCanUndo);
-
-	RaiseTextValueEvent(oldText, GetText());
 
 	return nRet;
 }
@@ -2057,7 +2044,6 @@ void RichEdit::OnTxNotify(DWORD iNotify, void *pv)
 bool RichEdit::OnTxTextChanged()
 {
 	SendEvent(kEventTextChange);
-	RaiseTextValueEvent(GetText(), GetText());
 	return true;
 }
 
@@ -2315,9 +2301,9 @@ void RichEdit::DoInit()
 
 void RichEdit::SetEnabled(bool bEnable /*= true*/)
 {
-	if (m_bEnabled == bEnable)
+	if (IsEnabled() == bEnable)
 		return;
-	m_bEnabled = bEnable;
+	__super::SetEnabled(bEnable);
 
 	if (bEnable) {
 		m_uButtonState = kControlStateNormal;
@@ -2521,7 +2507,7 @@ void RichEdit::HandleEvent(const EventArgs& event)
 		return;
 	}
 	if (event.Type == kEventMouseButtonUp || event.Type == kEventPointUp) {
-		if (m_bEnabled && !m_bSelAllEver) {
+		if (IsEnabled() && !m_bSelAllEver) {
 			m_bSelAllEver = true;
 
 			if (m_bSelAllOnFocus) {
@@ -2536,7 +2522,7 @@ void RichEdit::HandleEvent(const EventArgs& event)
 		OnMouseMessage(WM_LBUTTONUP, event);
 		return;
 	}
-	if (event.Type == kEventInternalDoubleClick) {
+	if (event.Type == kEventMouseDoubleClick) {
 		if (m_bReadOnly) {
 			SetSelAll();
 			return;
@@ -2563,16 +2549,14 @@ void RichEdit::HandleEvent(const EventArgs& event)
 		return;
 	}
 
-	if (event.Type == kEventInternalSetFocus) {
+	if (event.Type == kEventSetFocus) {
 		OnSetFocus(event);
 		SetImmStatus(TRUE);
-		return;
 	}
-	if (event.Type == kEventInternalKillFocus) {
+	if (event.Type == kEventKillFocus) {
 		OnKillFocus(event);
 		OnScreenKeyboardManager::GetInstance()->ShowOSK(false);
 		SetImmStatus(FALSE);
-		return;
 	}
 
 	ScrollableBox::HandleEvent(event);
@@ -2601,7 +2585,6 @@ void RichEdit::OnSetFocus(const EventArgs& /*event*/)
 		m_pTwh->GetTextServices()->TxSendMessage(WM_SETFOCUS, 0, 0, 0);
 		ShowCaret(true);
 	}
-	m_bFocused = true;
 	Invalidate();
 }
 
@@ -2613,12 +2596,11 @@ void RichEdit::OnKillFocus(const EventArgs& /*event*/)
 		ShowCaret(false);
 	}
 
-	m_bFocused = false;
 	m_bSelAllEver = false;
-	if (m_bNoSelOnKillFocus && m_bReadOnly && m_bEnabled) {
+	if (m_bNoSelOnKillFocus && m_bReadOnly && IsEnabled()) {
 		SetSelNone();
 	}
-	if (m_bSelAllOnFocus && m_bEnabled) {
+	if (m_bSelAllOnFocus && IsEnabled()) {
 		SetSelNone();
 	}
 
@@ -2933,14 +2915,14 @@ void RichEdit::SetAttribute(const std::wstring& strName, const std::wstring& str
 		LPCTSTR pValue = strValue.c_str();
 		while (*pValue > _T('\0') && *pValue <= _T(' ')) pValue = ::CharNext(pValue);
 		m_sTextColor = pValue;
-		if (m_bEnabled)
+		if (IsEnabled())
 			SetTextColor(m_sTextColor);
 	}
 	else if (strName == L"disabledtextcolor") {
 		LPCTSTR pValue = strValue.c_str();
 		while (*pValue > _T('\0') && *pValue <= _T(' ')) pValue = ::CharNext(pValue);
 		m_sDisabledTextColor = pValue;
-		if (!m_bEnabled)
+		if (!IsEnabled())
 			SetTextColor(m_sDisabledTextColor);
 	}
 	else if (strName == L"caretcolor") {
@@ -3308,24 +3290,6 @@ void RichEdit::ClearImageCache()
 	__super::ClearImageCache();
 	m_sFocusedImage.ClearCache();
 }
-
-
-void RichEdit::RaiseTextValueEvent(const std::wstring& oldText, const std::wstring& newText)
-{
-	(void)oldText;
-	(void)newText;
-#if defined(ENABLE_UIAUTOMATION)
-	if (m_pUIAProvider != nullptr && UiaClientsAreListening()) {
-		VARIANT vtOld = { 0 }, vtNew = { 0 };
-		vtOld.vt = vtNew.vt = VT_BSTR;
-		vtOld.bstrVal = SysAllocString(oldText.c_str());
-		vtNew.bstrVal = SysAllocString(newText.c_str());
-
-		UiaRaiseAutomationPropertyChangedEvent(m_pUIAProvider, UIA_ValueValuePropertyId, vtOld, vtNew);
-	}
-#endif
-}
-
 
 //----------------下面函数用作辅助 字节数限制
 bool IsAsciiChar(const wchar_t ch)

@@ -553,7 +553,8 @@ CMenuElementUI* CMenuWnd::GetMenuItemByName(const std::wstring& name) const
 CMenuElementUI::CMenuElementUI():
 	m_pSubWindow(nullptr)
 {
-	m_bMouseChildEnabled = false;
+	//在菜单元素上，不让子控件响应鼠标消息
+	SetMouseChildEnabled(false);
 }
 
 void CMenuElementUI::GetAllSubMenuItem(const CMenuElementUI* pParentElementUI,

@@ -100,6 +100,13 @@ namespace nim_comp
 		//*/
 		//void AttachSelect(const EventCallback& callback) { m_pLayout->AttachSelect(callback); }
 
+		/**
+	    * @brief 监听下拉窗关闭事件
+	    * @param[in] callback 下拉窗关闭后触发的回调函数
+	    * @return 无
+	    */
+		void AttachWindowClose(const ui::EventCallback& callback) { AttachEvent(ui::kEventWindowClose, callback); }
+
 	private:
 		/**
 		* @brief 默认的子项被选择处理函数

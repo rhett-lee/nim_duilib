@@ -119,9 +119,6 @@ public:
 	virtual void SetWindow(Window* pManager, Box* pParent, bool bInit = true) override;
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 	virtual void SetPos(UiRect rc) override;
-	virtual void SendEvent(EventType eventType, WPARAM wParam = 0, LPARAM lParam = 0, TCHAR tChar = 0,
-		                   const CPoint& mousePos = CPoint(), FLOAT pressure = 0.0f) override;
-	virtual void SendEvent(const EventArgs& msg) override;
 	virtual void SetReceivePointerMsg(bool bRecv) override;
 	virtual void PaintChild(IRenderContext* pRender, const UiRect& rcPaint) override;
 	virtual void SetEnabled(bool bEnabled) override;
@@ -293,45 +290,16 @@ public:
 	 */
 	virtual	UiRect GetPaddingPos() const;
 
-	/**
-	 * @brief 绑定事件处理函数
-	 * @param[in] eventType 事件类型
-	 * @param[in] callback 指定回调函数
-	 * @return void 无
-	 */
-	void AttachBubbledEvent(EventType eventType, const EventCallback& callback);
- 
-	/**
-	 * @brief 解绑事件处理函数
-	 * @param[in] eventType 事件类型
-	 * @return void 无
-	 */
-	void DetachBubbledEvent(EventType eventType);
-
-	/**
-	 * @brief 绑定 XML 中编写的 Event 和 BubbleEvent 事件的处理函数
-	 * @param[in] eventType 事件类型
-	 * @param[in] callback 指定回调函数
-	 * @return void 无
-	 */
-	void AttachXmlBubbledEvent(EventType eventType, const EventCallback& callback);
-
-	/**
-	 * @brief 解绑XML事件处理函数
-	 * @param[in] eventType 事件类型
-	 * @return void 无
-	 */
-	void DetachXmlBubbledEvent(EventType eventType);
-
 protected:
 	std::unique_ptr<Layout> m_pLayout;
 	bool m_bAutoDestroy;
 	bool m_bDelayedDestroy;
-	bool m_bMouseChildEnabled;
+	
 	std::vector<Control*> m_items;
 
-	EventMap m_OnBubbledEvent;
-	EventMap m_OnXmlBubbledEvent;
+private:
+	//是否允许响应子控件的鼠标消息
+	bool m_bMouseChildEnabled;
 };
 
  /// 带有垂直或水平滚动条的容器，使容器可以容纳更多内容
@@ -645,7 +613,7 @@ public:
 	 * @param[in] callback 有变化后通知的回调函数
 	 * @return 无
 	 */
-	void AttachScrollChange(const EventCallback& callback) { m_OnEvent[kEventScrollChange] += callback; }
+	void AttachScrollChange(const EventCallback& callback) { AttachEvent(kEventScrollChange, callback); }
 protected:
 
 	/**

@@ -17,9 +17,6 @@ EventType StringToEnum(const std::wstring& messageType)
 	else if (messageType == EVENTSTR_CHAR) {
 		return kEventChar;
 	}
-	else if (messageType == EVENTSTR_SYSKEY) {
-		return kEventSystemKey;
-	}
 	else if (messageType == EVENTSTR_SETFOCUS) {
 		return kEventSetFocus;
 	}

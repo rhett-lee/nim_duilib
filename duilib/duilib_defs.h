@@ -95,8 +95,7 @@ namespace ui
 	#define	EVENTSTR_KEYDOWN			(L"keydown")
 	#define	EVENTSTR_KEYUP				(L"keyup")
 	#define	EVENTSTR_CHAR				(L"char")
-	#define	EVENTSTR_SYSKEY				(L"syskey")
-
+	
 	#define EVENTSTR_SETFOCUS			(L"setfocus")
 	#define EVENTSTR_KILLFOCUS			(L"killfocus")
 	#define	EVENTSTR_SETCURSOR			(L"setcursor")
@@ -193,79 +192,69 @@ namespace ui
 	//定义所有消息类型
 	enum EventType
 	{
-		kEventInternalDoubleClick,
-		kEventInternalSetFocus,
-		kEventInternalKillFocus,
-
 		kEventNone,
-
-		kEventFirst,
-
-		kEventAll,
+		kEventFirst,					//第一个消息（暂时没用到）
+		kEventAll,						//代表所有消息
 
 		kEventKeyBegin,
-		kEventKeyDown,
-		kEventKeyUp,
-		kEventChar,
-		kEventSystemKey,
+		kEventKeyDown,					//Window类：当收到WM_KEYDOWN消息时触发，发送给Focus控件
+		kEventKeyUp,					//Window类：当收到WM_KEYUP消息时触发，发送给WM_KEYDOWN事件中的那个Focus控件
+		kEventChar,						//Window类：当收到WM_CHAR消息时触发，发送给WM_KEYDOWN事件中的那个Focus控件
 		kEventKeyEnd,
 
 		kEventMouseBegin,
-		kEventMouseMove,
-		kEventMouseEnter,
-		kEventMouseLeave,
-		kEventMouseHover,
-		kEventMouseButtonDown,
-		kEventMouseButtonUp,
-		kEventMouseRightButtonDown,
-		kEventMouseRightButtonUp,
-		kEventMouseDoubleClick,
-		kEventMouseMenu,
-		kEventMouseScrollWheel,
+		kEventMouseMove,				//Window类：当收到WM_MOUSEMOVE消息时触发，发送给鼠标左键、右键、双击时记录的那个控件
+		kEventMouseEnter,				//Window类：当收到WM_MOUSEMOVE消息时触发，发送给MouseMove时，鼠标进入的那个控件，表明鼠标进入到这个控件内
+		kEventMouseLeave,				//Window类：当收到WM_MOUSEMOVE消息时触发，发送给MouseMove时，鼠标进入的那个控件，表明鼠标已经离开这个控件
+		kEventMouseHover,				//Window类：当收到WM_MOUSEHOVER消息时触发，发送给MouseMove时，鼠标进入的那个控件，表明鼠标在这个控件内悬停
+		kEventMouseButtonDown,			//Window类：当收到WM_LBUTTONDOWN消息时触发，发送给鼠标左键按下时对应的控件
+		kEventMouseButtonUp,			//Window类：当收到WM_LBUTTONUP消息时触发，发送给鼠标左键按下时对应的控件
+		kEventMouseRightButtonDown,		//Window类：当收到WM_RBUTTONDOWN消息时触发，发送给鼠标右键按下时对应的控件
+		kEventMouseRightButtonUp,		//Window类：当收到WM_RBUTTONUP消息时触发，发送给鼠标右键按下时对应的控件
+		kEventMouseDoubleClick,			//Window类：当收到WM_LBUTTONDBLCLK消息时触发，发送给当前鼠标所在位置对应的控件
+		kEventMouseMenu,				//Window类：当收到WM_CONTEXTMENU消息时触发，发送给所有注册回调函数的控件
+		kEventMouseScrollWheel,			//Window类：当收到WM_MOUSEWHEEL消息时触发，发送给当前鼠标所在位置对应的控件
 		kEventMouseEnd,
 
 		kEventTouchBegin,
-		kEventTouchDown,
-		kEventTouchMove,
-		kEventTouchUp,
+		kEventTouchDown,			//Window类：
+		kEventTouchMove,			//Window类：
+		kEventTouchUp,				//Window类：
 		kEventTouchEnd,
 
 		kEventPointBegin,
-		kEventPointDown,
-		kEventPointMove,
-		kEventPointUp,
+		kEventPointDown,			//Window类：
+		kEventPointMove,			//Window类：
+		kEventPointUp,				//Window类：
 		kEventPointEnd,
 
-		kEventSetFocus,
-		kEventKillFocus,
-		kEventWindowSize,
-		kEventWindowClose,
-		kEventSetCursor,
+		kEventSetFocus,				//Window类：发送给Focus控件，当控件获得焦点时触发事件（控件焦点不是窗口焦点，两者完全不同）
+		kEventKillFocus,			//Window类：发送给Focus控件，当控件失去焦点时触发事件（控件焦点不是窗口焦点，两者完全不同）		
+		kEventSetCursor,			//Window类：发送给当前鼠标所在控件，设置光标
+		kEventImeStartComposition,	//Window类：发送给Focus控件，当收到系统WM_IME_STARTCOMPOSITION消息时触发
+		kEventImeEndComposition,	//Window类：发送给Focus控件，当收到系统WM_IME_ENDCOMPOSITION消息时触发
+		kEventWindowSize,			//Window类：发送给Focus控件，当窗口大小发生变化时触发事件
+		kEventWindowClose,			//Window类，Combo控件：当窗口关闭（或者Combo的下拉框窗口关闭）时触发
 
-		kEventClick,
-		kEventSelect,
-		kEventUnSelect,
+		kEventClick,				//Button类、ListContainerElement、Option、CheckBox等：当点击按钮（或者键盘回车）时触发
 
-		kEventExpand,
-		kEventUnExpand,
+		kEventSelect,				//CheckBox类、Option类、ListBox类、Combo类：当变成选中状态时触发
+		kEventUnSelect,			    //CheckBox类、Option类、ListBox类、Combo类：当变成非选中状态时触发
 
-		kEventTextChange,
-		kEventReturn,
-		kEventTab,
-		kEventCustomLinkClick,
+		kEventExpand,				//TreeNode类：当树节点展开时触发
+		kEventUnExpand,				//TreeNode类：当树节点收起时触发
 
-		kEventImeStartComposition,
-		kEventImeEndComposition,
+		kEventTextChange,			//RichEdit类：当文本内容发生变化时触发
+		kEventReturn,				//ListContainerElement、RichEdit类：当收到回车键时触发
+		kEventTab,					//RichEdit类：在WantTab为false时，当收到TAB键时触发
+		kEventCustomLinkClick,		//RichEdit类：当点击到自定义link的数据上时触发		
 
-		kEventScrollChange,
-		kEventValueChange,
-		kEventResize,
+		kEventScrollChange,			//ScrollableBox类：当滚动条位置发生变化时触发
+		kEventValueChange,			//DateTime、Slider类：当值发生变化时触发
+		kEventResize,				//Control类：当控件的大小和位置发生变化时触发
+		kEventVisibleChange,		//Control类：当控件的Visible属性发生变化时触发
 
-		kEventNotify,	//仅作简单的通知，有复杂数据请通过其他方式实现
-
-		kEventVisibleChange,
-
-		kEventLast,
+		kEventLast					//Control类：该控件的最后一个消息，当这个控件对象销毁时触发
 	};
 
 }// namespace ui

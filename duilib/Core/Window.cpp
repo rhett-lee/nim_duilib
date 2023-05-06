@@ -1548,7 +1548,7 @@ LRESULT Window::OnLButtonDownMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& 
 	// We alway set focus back to our app (this helps
 	// when Win32 child windows are placed on the dialog
 	// and we need to remove them on focus change).
-	::SetFocus(m_hWnd);
+	CheckSetFocusWindow();
 	POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
 	m_ptLastMousePos = CPoint(pt);
 	Control* pControl = FindControl(pt);
@@ -1569,7 +1569,7 @@ LRESULT Window::OnRButtonDownMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& 
 		return 0;
 	}
 
-	::SetFocus(m_hWnd);
+	CheckSetFocusWindow();
 	POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
 	m_ptLastMousePos = CPoint(pt);
 	Control* pControl = FindControl(pt);
@@ -1590,14 +1590,14 @@ LRESULT Window::OnLButtonDoubleClickMsg(UINT uMsg, WPARAM wParam, LPARAM lParam,
 		return 0;
 	}
 
-	::SetFocus(m_hWnd);
+	CheckSetFocusWindow();
 	POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
 	m_ptLastMousePos = CPoint(pt);
 	Control* pControl = FindControl(pt);
 	if ((pControl != nullptr) && (pControl->GetWindow() == this)) {
 		m_pEventClick = pControl;
 		SetCapture();
-		pControl->SendEvent(kEventInternalDoubleClick, wParam, lParam, 0, CPoint(pt));
+		pControl->SendEvent(kEventMouseDoubleClick, wParam, lParam, 0, CPoint(pt));
 	}	
 	return 0;
 }
@@ -1740,8 +1740,8 @@ LRESULT Window::OnCharMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandle
 {
 	ASSERT_UNUSED_VARIABLE(uMsg == WM_CHAR);
 	bHandled = false;
-	if (m_pFocus != nullptr) {
-		m_pFocus->SendEvent(kEventChar, wParam, lParam, static_cast<TCHAR>(wParam));
+	if (m_pEventKey != nullptr) {
+		m_pEventKey->SendEvent(kEventChar, wParam, lParam, static_cast<TCHAR>(wParam));
 	}
 	return 0;
 }
@@ -1894,7 +1894,7 @@ LRESULT Window::OnTouchMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandl
 			return 0;
         }
 
-        ::SetFocus(m_hWnd);
+		CheckSetFocusWindow();
         m_ptLastMousePos = CPoint(pt);
         Control* pControl = FindControl(pt);
         if (pControl == nullptr) {
@@ -2005,7 +2005,7 @@ LRESULT Window::OnPointerMsgs(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHa
             break;
         }
 
-        ::SetFocus(m_hWnd);
+		CheckSetFocusWindow();
         m_ptLastMousePos = CPoint(pt);
         Control* pControl = FindControl(pt);
         if (pControl == nullptr) {
@@ -2097,10 +2097,8 @@ void Window::SetFocus(Control* pControl)
 	}
 	// Remove focus from old control
 	if (m_pFocus != nullptr) {
-		m_pFocus->SendEvent(kEventInternalKillFocus);
-		Control* tmp = m_pFocus;
+		m_pFocus->SendEvent(kEventKillFocus);
 		m_pFocus = nullptr;
-		tmp->SendEvent(kEventKillFocus);
 	}
 	// Set focus to new control
 	if ((pControl != nullptr)			&& 
@@ -2111,9 +2109,6 @@ void Window::SetFocus(Control* pControl)
 		m_pFocus = pControl;
 		ASSERT(::GetFocus() == m_hWnd);
 		if (m_pFocus) {
-			m_pFocus->SendEvent(kEventInternalSetFocus);
-		}
-		if (m_pFocus) {
 			m_pFocus->SendEvent(kEventSetFocus);
 		}
 	}
@@ -2122,9 +2117,15 @@ void Window::SetFocus(Control* pControl)
 void Window::KillFocus()
 {
 	if (m_pFocus != nullptr) {
-		m_pFocus->SendEvent(kEventInternalKillFocus);
 		m_pFocus->SendEvent(kEventKillFocus);
 		m_pFocus = nullptr;
+	}
+}
+
+void Window::CheckSetFocusWindow()
+{
+	if (::GetFocus() != m_hWnd) {
+		::SetFocus(m_hWnd);
 	}
 }
 

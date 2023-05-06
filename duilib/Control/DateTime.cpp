@@ -171,8 +171,6 @@ DateTime::DateTime():
     m_sFormat(L"%Y-%m-%d"),
     m_pDateWindow(nullptr)
 {
-    m_bMouseEnabled = true;
-
     //ÉèÖÃÄ¬ÈÏÊôÐÔ
     SetAttribute(L"bordersize", L"1");
     SetAttribute(L"bordercolor", L"gray");
@@ -232,13 +230,10 @@ void DateTime::SetTime(const SYSTEMTIME& systemTime)
     SetText(GetDateTime());
     Invalidate();
 
-    auto iter = m_OnEvent.find(kEventValueChange);
-    if (iter != m_OnEvent.cend()) {
-        ui::EventArgs args;
-        args.pSender = this;
-        args.Type = kEventValueChange;
-        iter->second(args);
-    }
+    ui::EventArgs args;
+    args.pSender = this;
+    args.Type = kEventValueChange;
+    FireAllEvents(args);
 }
 
 bool DateTime::IsEqual(const SYSTEMTIME& st) const
@@ -345,7 +340,7 @@ void DateTime::HandleEvent(const EventArgs& event)
         Invalidate();
     }
     if ((event.Type == kEventMouseButtonDown) || 
-        (event.Type == kEventInternalDoubleClick) ||
+        (event.Type == kEventMouseDoubleClick) ||
         (event.Type == kEventMouseRightButtonDown)) {
         if (IsEnabled()) {
             if (m_pWindow != nullptr) {

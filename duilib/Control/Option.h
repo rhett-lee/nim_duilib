@@ -107,9 +107,11 @@ void OptionTemplate<InheritType>::Selected(bool bSelected, bool bTriggerEvent)
 template<typename InheritType>
 void OptionTemplate<InheritType>::Activate()
 {
-    ButtonTemplate<InheritType>::Activate();
-    if (!this->IsActivatable()) return;
+    if (!this->IsActivatable()) {
+        return;
+    }
     Selected(true, true);
+    ButtonTemplate<InheritType>::Activate();
 }
 
 template<typename InheritType>

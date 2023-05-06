@@ -25,9 +25,7 @@ Control::Control() :
 	m_bEnabled(true),
 	m_bMouseEnabled(true),
 	m_bKeyboardEnabled(true),
-	m_bFocused(false),
 	m_bMouseFocused(false),
-	m_bSetPos(false),
 	m_bNoFocus(false),
 	m_bClip(true),
 	m_bGifPlay(true),
@@ -429,11 +427,6 @@ int Control::GetToolTipWidth(void) const
 	return m_nTooltipWidth;
 }
 
-bool Control::IsContextMenuUsed() const
-{
-    return m_bContextMenuUsed;
-}
-
 void Control::SetContextMenuUsed(bool bMenuUsed)
 {
 	m_bContextMenuUsed = bMenuUsed;
@@ -491,7 +484,6 @@ void Control::SetVisible(bool bVisible)
 	bool v = IsVisible();
 	__super::SetVisible(bVisible);
 
-	m_bFocused = false;
 	if (!IsVisible()) {
 		EnsureNoFocus();
 	}
@@ -503,14 +495,8 @@ void Control::SetVisible(bool bVisible)
 	if (!IsVisible()) {
 		StopGifPlay();
 	}
-	if (m_pWindow != nullptr) {
-		SendEvent(kEventVisibleChange);
-	}	
-}
 
-bool Control::IsEnabled() const
-{
-    return m_bEnabled;
+	SendEvent(kEventVisibleChange);
 }
 
 void Control::SetEnabled(bool bEnabled)
@@ -528,20 +514,11 @@ void Control::SetEnabled(bool bEnabled)
     Invalidate();
 }
 
-bool Control::IsMouseEnabled() const
-{
-    return m_bMouseEnabled;
-}
-
 void Control::SetMouseEnabled(bool bEnabled)
 {
     m_bMouseEnabled = bEnabled;
 }
 
-bool Control::IsKeyboardEnabled() const
-{
-	return m_bKeyboardEnabled ;
-}
 void Control::SetKeyboardEnabled(bool bEnabled)
 {
 	m_bKeyboardEnabled = bEnabled ; 
@@ -576,16 +553,6 @@ void Control::SetNoFocus()
 void Control::Activate()
 {
 
-}
-
-void Control::Deactivate()
-{
-
-}
-
-bool Control::IsActivated()
-{
-	return true;
 }
 
 bool Control::IsActivatable() const
@@ -623,8 +590,12 @@ UiRect Control::GetPos(bool bContainShadow) const
 
 void Control::SetPos(UiRect rc)
 {
-	if (rc.right < rc.left) rc.right = rc.left;
-	if (rc.bottom < rc.top) rc.bottom = rc.top;
+	if (rc.right < rc.left) {
+		rc.right = rc.left;
+	}
+	if (rc.bottom < rc.top) {
+		rc.bottom = rc.top;
+	}
 
 	if (m_rcItem.Equal(rc)) {
 		m_bIsArranged = false;
@@ -632,36 +603,38 @@ void Control::SetPos(UiRect rc)
 	}
 
 	UiRect invalidateRc = m_rcItem;
-	if (::IsRectEmpty(&invalidateRc)) invalidateRc = rc;
+	if (::IsRectEmpty(&invalidateRc)) {
+		invalidateRc = rc;
+	}
 
 	m_rcItem = rc;
 	if (m_pWindow == nullptr) {
 		return;
 	}
 
-	if (!m_bSetPos) {
-		m_bSetPos = true;
-		SendEvent(kEventResize);
-		m_bSetPos = false;
-	}
-
 	m_bIsArranged = false;
 	invalidateRc.Union(m_rcItem);
 
-	Control* pParent = this;
+	bool needInvalidate = true;
 	UiRect rcTemp;
 	UiRect rcParent;
 	CPoint offset = GetScrollOffset();
 	invalidateRc.Offset(-offset.x, -offset.y);
-	while ((pParent = pParent->GetParent()) != nullptr)
-	{
+	Control* pParent = GetParent();
+	while (pParent != nullptr) {
 		rcTemp = invalidateRc;
 		rcParent = pParent->GetPos();
 		if (!::IntersectRect(&invalidateRc, &rcTemp, &rcParent)) {
-			return;
+			needInvalidate = false;
+			break;
 		}
+		pParent = pParent->GetParent();
 	}
-	m_pWindow->Invalidate(invalidateRc);
+	if (needInvalidate && (m_pWindow != nullptr)) {
+		m_pWindow->Invalidate(invalidateRc);
+	}
+
+	SendEvent(kEventResize);
 }
 
 UiRect Control::GetMargin() const
@@ -783,54 +756,7 @@ void Control::SendEvent(EventType eventType,
 
 void Control::SendEvent(const EventArgs& msg)
 {
-	if ((msg.Type == kEventInternalDoubleClick) || 
-		(msg.Type == kEventInternalSetFocus) || 
-		(msg.Type == kEventInternalKillFocus)) {
-		HandleEvent(msg);
-		return;
-	}
-	bool bRet = true;
-
-	if (this == msg.pSender) {
-		std::weak_ptr<nbase::WeakFlag> weakflag = GetWeakFlag();
-		auto callback = m_OnEvent.find(msg.Type);
-		if (callback != m_OnEvent.end()) {
-			bRet = callback->second(msg);
-		}
-		if (weakflag.expired()) {
-			return;
-		}
-
-		callback = m_OnEvent.find(kEventAll);
-		if (callback != m_OnEvent.end()) {
-			bRet = callback->second(msg);
-		}
-		if (weakflag.expired()) {
-			return;
-		}
-
-		if (bRet) {
-			auto callback2 = m_OnXmlEvent.find(msg.Type);
-			if (callback2 != m_OnXmlEvent.end()) {
-				bRet = callback2->second(msg);
-			}
-			if (weakflag.expired()) {
-				return;
-			}
-
-			callback2 = m_OnXmlEvent.find(kEventAll);
-			if (callback2 != m_OnXmlEvent.end()) {
-				bRet = callback2->second(msg);
-			}
-			if (weakflag.expired()) {
-				return;
-			}
-		}
-	}
-	else {
-		ASSERT(FALSE);
-	}
-	
+	bool bRet = FireAllEvents(msg);	
     if(bRet) {
 		HandleEvent(msg);
 	}
@@ -842,7 +768,7 @@ void Control::HandleEvent(const EventArgs& msg)
 		(msg.Type > kEventMouseBegin) && 
 		(msg.Type < kEventMouseEnd)) {
 		//当前控件禁止接收鼠标消息时，将鼠标相关消息转发给上层处理
-		if (m_pParent != nullptr) {			
+		if (m_pParent != nullptr) {
 			m_pParent->SendEvent(msg);
 		}
 		return;
@@ -869,15 +795,13 @@ void Control::HandleEvent(const EventArgs& msg)
 			ASSERT(FALSE);
 		}
 	}
-	else if (msg.Type == kEventInternalSetFocus && m_uButtonState == kControlStateNormal) {
+	else if (msg.Type == kEventSetFocus && m_uButtonState == kControlStateNormal) {
 		SetState(kControlStateHot);
-		m_bFocused = true;
 		Invalidate();
 		return;
 	}
-	else if (msg.Type == kEventInternalKillFocus && m_uButtonState == kControlStateHot) {
+	else if (msg.Type == kEventKillFocus && m_uButtonState == kControlStateHot) {
 		SetState(kControlStateNormal);
-		m_bFocused = false;
 		Invalidate();
 		return;
 	}
@@ -915,12 +839,10 @@ void Control::HandleEvent(const EventArgs& msg)
 		ButtonUp(msg);
 		return;
 	}
-	else if (msg.Type == kEventInternalDoubleClick) {
-		SendEvent(kEventMouseDoubleClick);
-		return;
-	}
 
-    if( m_pParent != NULL ) m_pParent->SendEvent(msg);
+	if (m_pParent != nullptr) {
+		m_pParent->SendEvent(msg);
+	}
 }
 
 bool Control::HasHotState()
@@ -1893,6 +1815,135 @@ void Control::DetachEvent(EventType type)
 			SetContextMenuUsed(false);
 		}
 	}
+}
+
+void Control::AttachXmlEvent(EventType eventType, const EventCallback& callback)
+{
+	m_OnXmlEvent[eventType] += callback; 
+}
+
+void Control::DetachXmlEvent(EventType type)
+{
+	auto event = m_OnXmlEvent.find(type);
+	if (event != m_OnXmlEvent.end()) {
+		m_OnXmlEvent.erase(event);
+	}
+}
+
+void Control::AttachBubbledEvent(EventType eventType, const EventCallback& callback)
+{
+	m_OnBubbledEvent[eventType] += callback;
+}
+
+void Control::DetachBubbledEvent(EventType eventType)
+{
+	auto event = m_OnBubbledEvent.find(eventType);
+	if (event != m_OnBubbledEvent.end()) {
+		m_OnBubbledEvent.erase(eventType);
+	}
+}
+
+void Control::AttachXmlBubbledEvent(EventType eventType, const EventCallback& callback)
+{
+	m_OnXmlBubbledEvent[eventType] += callback;
+}
+
+void Control::DetachXmlBubbledEvent(EventType eventType)
+{
+	auto event = m_OnXmlBubbledEvent.find(eventType);
+	if (event != m_OnXmlBubbledEvent.end())	{
+		m_OnXmlBubbledEvent.erase(eventType);
+	}
+}
+
+bool Control::FireAllEvents(const EventArgs& msg)
+{
+	std::weak_ptr<nbase::WeakFlag> weakflag = GetWeakFlag();
+	bool bRet = true;//当值为false时，就不再调用回调函数和处理函数
+
+	if (msg.pSender == this) {
+		if (bRet && !m_OnEvent.empty()) {
+			auto callback = m_OnEvent.find(msg.Type);
+			if (callback != m_OnEvent.end()) {
+				bRet = callback->second(msg);
+			}
+			if (weakflag.expired()) {
+				return false;
+			}
+		}
+
+		if (bRet && !m_OnEvent.empty()) {
+			auto callback = m_OnEvent.find(kEventAll);
+			if (callback != m_OnEvent.end()) {
+				bRet = callback->second(msg);
+			}
+			if (weakflag.expired()) {
+				return false;
+			}
+		}
+
+		if (bRet && !m_OnXmlEvent.empty()) {
+			auto callback = m_OnXmlEvent.find(msg.Type);
+			if (callback != m_OnXmlEvent.end()) {
+				bRet = callback->second(msg);
+			}
+			if (weakflag.expired()) {
+				return false;
+			}
+		}
+
+		if (bRet && !m_OnXmlEvent.empty()) {
+			auto callback = m_OnXmlEvent.find(kEventAll);
+			if (callback != m_OnXmlEvent.end()) {
+				bRet = callback->second(msg);
+			}
+			if (weakflag.expired()) {
+				return false;
+			}
+		}
+	}
+
+	if (bRet && !m_OnBubbledEvent.empty()) {
+		auto callback = m_OnBubbledEvent.find(msg.Type);
+		if (callback != m_OnBubbledEvent.end()) {
+			bRet = callback->second(msg);
+		}
+		if (weakflag.expired()) {
+			return false;
+		}
+	}
+
+	if (bRet && !m_OnBubbledEvent.empty()) {
+		auto callback = m_OnBubbledEvent.find(kEventAll);
+		if (callback != m_OnBubbledEvent.end()) {
+			bRet = callback->second(msg);
+		}
+		if (weakflag.expired()) {
+			return false;
+		}
+	}
+
+	if (bRet && !m_OnXmlBubbledEvent.empty()) {
+		auto callback = m_OnXmlBubbledEvent.find(msg.Type);
+		if (callback != m_OnXmlBubbledEvent.end()) {
+			bRet = callback->second(msg);
+		}
+		if (weakflag.expired()) {
+			return false;
+		}
+	}
+
+	if (bRet && !m_OnXmlBubbledEvent.empty()) {
+		auto callback = m_OnXmlBubbledEvent.find(kEventAll);
+		if (callback != m_OnXmlBubbledEvent.end()) {
+			bRet = callback->second(msg);
+		}
+		if (weakflag.expired()) {
+			return false;
+		}
+	}
+
+	return bRet && !weakflag.expired();
 }
 
 DWORD Control::GetWindowColor(const std::wstring& strName)

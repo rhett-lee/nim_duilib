@@ -163,7 +163,7 @@ public:
 	 * @param[in] callback 选择子项时的回调函数
 	 * @return 无
 	 */
-	void AttachSelect(const EventCallback& callback) { m_OnEvent[kEventSelect] += callback; }
+	void AttachSelect(const EventCallback& callback) { AttachEvent(kEventSelect, callback); }
 
 	/**
 	 * @brief 在移除一个子项后自动选择下一项
@@ -234,14 +234,14 @@ public:
 	 * @param[in] callback 收到双击消息时的回调函数
 	 * @return 无
 	 */
-	void AttachDoubleClick(const EventCallback& callback) { m_OnEvent[kEventMouseDoubleClick] += callback; }
+	void AttachDoubleClick(const EventCallback& callback) { AttachEvent(kEventMouseDoubleClick, callback); }
 
 	/**
 	 * @brief 监听回车事件
 	 * @param[in] callback 收到回车时的回调函数
 	 * @return 无
 	 */
-	void AttachReturn(const EventCallback& callback) { m_OnEvent[kEventReturn] += callback; }
+	void AttachReturn(const EventCallback& callback) { AttachEvent(kEventReturn, callback); }
 
 protected:
 	int m_iIndex;

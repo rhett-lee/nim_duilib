@@ -250,7 +250,6 @@ class PopoverRoot :public ui::VBox
 public:
   PopoverRoot() {
     // DO NOT DELAY DESTROY
-    // Coz AttachLastEvent
     SetDelayedDestroy(false);
   }
 
@@ -397,7 +396,6 @@ public:
     SetKeyboardEnabled(false);
 
     // DO NOT DELAY DESTROY
-    // Coz AttachLastEvent
     SetDelayedDestroy(false);
   }
 
