@@ -963,7 +963,7 @@ void ScrollableBox::HandleEvent(const EventArgs& event)
 				return;
 			}
 		}
-		else if( event.Type == kEventMouseScrollWheel ) {
+		else if( event.Type == kEventMouseWheel ) {
 			int deltaValue = static_cast<int>(event.wParam);
 			if (deltaValue > 0 ) {
 				LineUp(abs(deltaValue));
@@ -1029,7 +1029,7 @@ void ScrollableBox::HandleEvent(const EventArgs& event)
 				return;
 			}
 		}
-		else if( event.Type == kEventMouseScrollWheel )	{
+		else if( event.Type == kEventMouseWheel )	{
 			int deltaValue = static_cast<int>(event.wParam);
 			if (deltaValue > 0 ) {
 				LineLeft();

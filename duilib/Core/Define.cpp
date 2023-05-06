@@ -66,7 +66,7 @@ EventType StringToEnum(const std::wstring& messageType)
 		return kEventUnExpand;
 	}
 	else if (messageType == EVENTSTR_SCROLLWHEEL) {
-		return kEventMouseScrollWheel;
+		return kEventMouseWheel;
 	}
 	else if (messageType == EVENTSTR_SCROLLCHANGE) {
 		return kEventScrollChange;

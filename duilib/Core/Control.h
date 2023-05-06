@@ -605,19 +605,6 @@ public:
 	 */
 	bool IsReceivePointerMsg() const { return m_bReceivePointerMsg; };
 
-	/**
-	 * @brief 设置控件失去焦点时是否发送鼠标弹起消息
-	 * @param[in] bNeed 设置为 true 表示响应触控消息，false 为不响应
-	 * @return 无
-	 */
-	void SetNeedButtonUpWhenKillFocus(bool bNeed) { m_bNeedButtonUpWhenKillFocus = bNeed; };
-
-	/**
-	 * @brief 判断控件失去焦点时是否发送鼠标弹起消息
-	 * @return 返回 true 为需要，false 为不需要
-	 */
-	bool IsNeedButtonUpWhenKillFocus() const { return m_bNeedButtonUpWhenKillFocus; };
-
 	// 属性设置
 	/**
 	 * @brief 设置控件指定属性
@@ -1082,7 +1069,6 @@ protected:
 	bool m_bClip;
 	bool m_bGifPlay;
 	bool m_bReceivePointerMsg;
-	bool m_bNeedButtonUpWhenKillFocus;
 	bool m_bAllowTabstop;
 	bool m_bIsLoading;
 	int m_nBorderSize;

@@ -2480,7 +2480,7 @@ void RichEdit::HandleEvent(const EventArgs& event)
 		OnMouseMessage(WM_MOUSEMOVE, event);
 		return;
 	}
-	if (event.Type == kEventMouseScrollWheel) {
+	if (event.Type == kEventMouseWheel) {
 		if (::GetAsyncKeyState(VK_CONTROL) < 0)
 			return;
 		

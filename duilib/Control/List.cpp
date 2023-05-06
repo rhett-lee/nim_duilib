@@ -66,7 +66,7 @@ void ListBox::HandleEvent(const EventArgs& event)
 			return;
 		}
 		break;
-	case kEventMouseScrollWheel:
+	case kEventMouseWheel:
 	{
 		int detaValue = static_cast<int>(event.wParam);
 		if (detaValue > 0) {

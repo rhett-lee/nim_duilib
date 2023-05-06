@@ -202,18 +202,18 @@ namespace ui
 		kEventChar,						//Window类：当收到WM_CHAR消息时触发，发送给WM_KEYDOWN事件中的那个Focus控件
 		kEventKeyEnd,
 
-		kEventMouseBegin,
-		kEventMouseMove,				//Window类：当收到WM_MOUSEMOVE消息时触发，发送给鼠标左键、右键、双击时记录的那个控件
+		kEventMouseBegin,		
 		kEventMouseEnter,				//Window类：当收到WM_MOUSEMOVE消息时触发，发送给MouseMove时，鼠标进入的那个控件，表明鼠标进入到这个控件内
 		kEventMouseLeave,				//Window类：当收到WM_MOUSEMOVE消息时触发，发送给MouseMove时，鼠标进入的那个控件，表明鼠标已经离开这个控件
+		kEventMouseMove,				//Window类：当收到WM_MOUSEMOVE消息时触发，发送给鼠标左键、右键、双击时记录的那个控件
 		kEventMouseHover,				//Window类：当收到WM_MOUSEHOVER消息时触发，发送给MouseMove时，鼠标进入的那个控件，表明鼠标在这个控件内悬停
+		kEventMouseWheel,				//Window类：当收到WM_MOUSEWHEEL消息时触发，发送给当前鼠标所在位置对应的控件
 		kEventMouseButtonDown,			//Window类：当收到WM_LBUTTONDOWN消息时触发，发送给鼠标左键按下时对应的控件
 		kEventMouseButtonUp,			//Window类：当收到WM_LBUTTONUP消息时触发，发送给鼠标左键按下时对应的控件
-		kEventMouseRightButtonDown,		//Window类：当收到WM_RBUTTONDOWN消息时触发，发送给鼠标右键按下时对应的控件
-		kEventMouseRightButtonUp,		//Window类：当收到WM_RBUTTONUP消息时触发，发送给鼠标右键按下时对应的控件
 		kEventMouseDoubleClick,			//Window类：当收到WM_LBUTTONDBLCLK消息时触发，发送给当前鼠标所在位置对应的控件
 		kEventMouseMenu,				//Window类：当收到WM_CONTEXTMENU消息时触发，发送给所有注册回调函数的控件
-		kEventMouseScrollWheel,			//Window类：当收到WM_MOUSEWHEEL消息时触发，发送给当前鼠标所在位置对应的控件
+		kEventMouseRightButtonDown,		//Window类：当收到WM_RBUTTONDOWN消息时触发，发送给鼠标右键按下时对应的控件
+		kEventMouseRightButtonUp,		//Window类：当收到WM_RBUTTONUP消息时触发，发送给鼠标右键按下时对应的控件		
 		kEventMouseEnd,
 
 		kEventTouchBegin,
@@ -233,6 +233,8 @@ namespace ui
 		kEventSetCursor,			//Window类：发送给当前鼠标所在控件，设置光标
 		kEventImeStartComposition,	//Window类：发送给Focus控件，当收到系统WM_IME_STARTCOMPOSITION消息时触发
 		kEventImeEndComposition,	//Window类：发送给Focus控件，当收到系统WM_IME_ENDCOMPOSITION消息时触发
+
+		kEventWindowKillFocus,	    //Window类：发送给鼠标左键、右键按下时记录的控件，当窗口失去焦点时触发事件（主要用于恢复一些内部状态）
 		kEventWindowSize,			//Window类：发送给Focus控件，当窗口大小发生变化时触发事件
 		kEventWindowClose,			//Window类，Combo控件：当窗口关闭（或者Combo的下拉框窗口关闭）时触发
 

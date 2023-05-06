@@ -30,7 +30,6 @@ Control::Control() :
 	m_bClip(true),
 	m_bGifPlay(true),
 	m_bReceivePointerMsg(true),
-	m_bNeedButtonUpWhenKillFocus(false),
 	m_bAllowTabstop(true),
     m_bIsLoading(false),
 	m_szEstimateSize(),

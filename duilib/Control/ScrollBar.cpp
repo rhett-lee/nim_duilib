@@ -54,7 +54,6 @@ ScrollBar::ScrollBar() :
 	m_ptLastMouse.x = 0;
 	m_ptLastMouse.y = 0;
 	m_bFloat = true;
-	SetNeedButtonUpWhenKillFocus(true);
 }
 
 Box* ScrollBar::GetOwner() const
@@ -128,7 +127,6 @@ bool ScrollBar::ButtonUp(const EventArgs& msg)
 		if (::PtInRect(&pos, msg.ptMouse)) {
 			m_uButtonState = kControlStateHot;
 			m_nHotAlpha = 255;
-			Activate();
 			ret = true;
 		}
 		else {
@@ -437,7 +435,9 @@ void ScrollBar::HandleEvent(const EventArgs& event)
 		ButtonDown(event);
 		return;
 	}
-	else if (event.Type == kEventMouseButtonUp || event.Type == kEventPointUp) {
+	else if ((event.Type == kEventMouseButtonUp) || 
+		     (event.Type == kEventPointUp)       ||
+			 (event.Type == kEventWindowKillFocus) ){
 		m_nScrollRepeatDelay = 0;
 		m_nLastScrollOffset = 0;
 

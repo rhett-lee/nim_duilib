@@ -1532,7 +1532,7 @@ LRESULT Window::OnMouseWheelMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& b
 	Control* pControl = FindControl(pt);
 	if ((pControl != nullptr) && (pControl->GetWindow() == this)) {
 		int zDelta = (int)(short)HIWORD(wParam);
-		pControl->SendEvent(kEventMouseScrollWheel, zDelta, lParam);
+		pControl->SendEvent(kEventMouseWheel, zDelta, lParam);
 	}	
 	return 0;
 }
@@ -1690,17 +1690,15 @@ LRESULT Window::OnKillFocusMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bH
 	if (m_pEventPointer != nullptr) {
 		pControl = m_pEventPointer;
 	}
-	//TODO: 此消息的实现有问题，待纠正
-	POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
-	m_ptLastMousePos = CPoint(pt);
-	if (pControl == nullptr || !pControl->IsNeedButtonUpWhenKillFocus()) {
-		return 0;
-	}
 	ReleaseCapture();
 
-	pControl->SendEvent(kEventMouseButtonUp, wParam, lParam, 0, CPoint(pt));
 	m_pEventClick = nullptr;
 	m_pEventPointer = nullptr;
+
+	if (pControl != nullptr) {
+		POINT pt = { 0, 0 };
+		pControl->SendEvent(kEventWindowKillFocus, wParam, lParam, 0, CPoint(pt));
+	}
 	return 0;
 }
 
@@ -2108,7 +2106,7 @@ void Window::SetFocus(Control* pControl)
 	{
 		m_pFocus = pControl;
 		ASSERT(::GetFocus() == m_hWnd);
-		if (m_pFocus) {
+		if (m_pFocus != nullptr) {
 			m_pFocus->SendEvent(kEventSetFocus);
 		}
 	}

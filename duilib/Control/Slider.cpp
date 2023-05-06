@@ -78,7 +78,7 @@ void Slider::HandleEvent(const EventArgs& event)
 		}
 		return;
 	}
-	if (event.Type == kEventMouseScrollWheel) {
+	if (event.Type == kEventMouseWheel) {
 		int detaValue = static_cast<int>(event.wParam);
 		if (detaValue > 0) {
 			SetValue(GetValue() + GetChangeStep());
