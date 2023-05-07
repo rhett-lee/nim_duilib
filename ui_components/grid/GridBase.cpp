@@ -585,7 +585,7 @@ namespace ui
 		if (IsRowSelected(row_index) || IsColSelected(col_index))
 			return true;
 		bool ret = false;
-		CPoint pt(col_index, row_index);
+		UiPoint pt(col_index, row_index);
 		for (auto it = m_vecRange.cbegin(); it != m_vecRange.cend(); it++)
 		{
 			UiRect rc = *it;

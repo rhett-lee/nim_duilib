@@ -760,7 +760,7 @@ void Window::SetCaptionRect(const UiRect& rcCaption)
 	DpiManager::GetInstance()->ScaleRect(m_rcCaption);
 }
 
-const CSize& Window::GetRoundCorner() const
+const UiSize& Window::GetRoundCorner() const
 {
 	return m_szRoundCorner;
 }
@@ -867,9 +867,9 @@ void Window::SetPos(const UiRect& rc, bool bNeedDpiScale, UINT uFlags, HWND hWnd
 	::SetWindowPos(m_hWnd, hWndInsertAfter, rcNewPos.left, rcNewPos.top, rcNewPos.GetWidth(), rcNewPos.GetHeight(), uFlags);
 }
 
-CSize Window::GetMinInfo(bool bContainShadow) const
+UiSize Window::GetMinInfo(bool bContainShadow) const
 {
-	CSize xy = m_szMinWindow;
+	UiSize xy = m_szMinWindow;
 	if (!bContainShadow) {
 		UiRect rcShadow = m_shadow->GetShadowCorner();
 		if (xy.cx != 0) {
@@ -904,9 +904,9 @@ void Window::SetMinInfo(int cx, int cy, bool bContainShadow, bool bNeedDpiScale)
 	m_szMinWindow.cy = cy;
 }
 
-CSize Window::GetMaxInfo(bool bContainShadow) const
+UiSize Window::GetMaxInfo(bool bContainShadow) const
 {
-	CSize xy = m_szMaxWindow;
+	UiSize xy = m_szMaxWindow;
 	if (!bContainShadow) {
 		UiRect rcShadow = m_shadow->GetShadowCorner();
 		if (xy.cx != 0) {
@@ -941,9 +941,9 @@ void Window::SetMaxInfo(int cx, int cy, bool bContainShadow, bool bNeedDpiScale)
 	m_szMaxWindow.cy = cy;
 }
 
-CSize Window::GetInitSize(bool bContainShadow) const
+UiSize Window::GetInitSize(bool bContainShadow) const
 {
-	CSize xy = m_szInitWindowSize;
+	UiSize xy = m_szInitWindowSize;
 	if (!bContainShadow) {
 		UiRect rcShadow = m_shadow->GetShadowCorner();
 		if (xy.cx != 0) {
@@ -1339,7 +1339,7 @@ LRESULT Window::OnSizeMsg(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/, bool& bHa
 {
 	ASSERT_UNUSED_VARIABLE(uMsg == WM_SIZE);
 	bHandled = false;
-	CSize szRoundCorner = GetRoundCorner();
+	UiSize szRoundCorner = GetRoundCorner();
 	if (!::IsIconic(GetHWND()) && (szRoundCorner.cx != 0 || szRoundCorner.cy != 0)) {
 		UiRect rcWnd;
 		::GetWindowRect(GetHWND(), &rcWnd);
@@ -1386,7 +1386,7 @@ LRESULT Window::OnMouseHoverMsg(UINT uMsg, WPARAM /*wParam*/, LPARAM lParam, boo
 	bHandled = false;
 	m_toolTip->SetMouseTracking(m_hWnd, false);
 
-	CPoint trackPos = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+	UiPoint trackPos = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
 	Control* pHover = FindControl(trackPos);
 	if (pHover == nullptr) {
 		return 0;
@@ -1425,7 +1425,7 @@ bool Window::HandleMouseEnterLeave(const POINT& pt, WPARAM wParam, LPARAM lParam
 
 	if ((pNewHover != pOldHover) && (pOldHover != nullptr)) {
 		//Hover状态的控件发生变化，原来Hover控件的Tooltip应消失
-		pOldHover->SendEvent(kEventMouseLeave, 0, 0, 0, CPoint(pt));
+		pOldHover->SendEvent(kEventMouseLeave, 0, 0, 0, UiPoint(pt));
 		m_toolTip->HideToolTip();
 	}
 	ASSERT(pNewHover == m_pEventHover);
@@ -1434,7 +1434,7 @@ bool Window::HandleMouseEnterLeave(const POINT& pt, WPARAM wParam, LPARAM lParam
 	}
 
 	if ((pNewHover != pOldHover) && (pNewHover != nullptr)) {
-		pNewHover->SendEvent(kEventMouseEnter, wParam, lParam, 0, CPoint(pt));
+		pNewHover->SendEvent(kEventMouseEnter, wParam, lParam, 0, UiPoint(pt));
 	}
 	return true;
 }
@@ -1451,7 +1451,7 @@ LRESULT Window::OnMouseMoveMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bH
 	m_toolTip->SetMouseTracking(m_hWnd, true);
 	// Generate the appropriate mouse messages
 	POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
-	m_ptLastMousePos = CPoint(pt);
+	m_ptLastMousePos = UiPoint(pt);
 
 	// Do not move the focus to the new control when the mouse is pressed
 	if (!IsCaptured()) {
@@ -1461,10 +1461,10 @@ LRESULT Window::OnMouseMoveMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bH
 	}
 
 	if (m_pEventClick != nullptr) {
-		m_pEventClick->SendEvent(kEventMouseMove, wParam, lParam, 0, CPoint(pt));
+		m_pEventClick->SendEvent(kEventMouseMove, wParam, lParam, 0, UiPoint(pt));
 	}
 	else if (m_pEventHover != nullptr) {
-		m_pEventHover->SendEvent(kEventMouseMove, wParam, lParam, 0, CPoint(pt));
+		m_pEventHover->SendEvent(kEventMouseMove, wParam, lParam, 0, UiPoint(pt));
 	}
 	return 0;
 }
@@ -1475,7 +1475,7 @@ LRESULT Window::OnMouseWheelMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& b
 	bHandled = false;
 	POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
 	::ScreenToClient(m_hWnd, &pt);
-	m_ptLastMousePos = CPoint(pt);
+	m_ptLastMousePos = UiPoint(pt);
 	Control* pControl = FindControl(pt);
 	if (pControl != nullptr) {
 		int zDelta = (int)(short)HIWORD(wParam);
@@ -1497,13 +1497,13 @@ LRESULT Window::OnLButtonDownMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& 
 	// and we need to remove them on focus change).
 	CheckSetFocusWindow();
 	POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
-	m_ptLastMousePos = CPoint(pt);
+	m_ptLastMousePos = UiPoint(pt);
 	Control* pControl = FindControl(pt);
 	if (pControl != nullptr) {
 		m_pEventClick = pControl;
 		pControl->SetFocus();
 		SetCapture();
-		pControl->SendEvent(kEventMouseButtonDown, wParam, lParam, 0, CPoint(pt));
+		pControl->SendEvent(kEventMouseButtonDown, wParam, lParam, 0, UiPoint(pt));
 	}	
 	return 0;
 }
@@ -1518,13 +1518,13 @@ LRESULT Window::OnRButtonDownMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& 
 
 	CheckSetFocusWindow();
 	POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
-	m_ptLastMousePos = CPoint(pt);
+	m_ptLastMousePos = UiPoint(pt);
 	Control* pControl = FindControl(pt);
 	if (pControl != nullptr) {
 		m_pEventClick = pControl;
 		pControl->SetFocus();
 		SetCapture();
-		pControl->SendEvent(kEventMouseRightButtonDown, wParam, lParam, 0, CPoint(pt));
+		pControl->SendEvent(kEventMouseRightButtonDown, wParam, lParam, 0, UiPoint(pt));
 	}	
 	return 0;
 }
@@ -1539,12 +1539,12 @@ LRESULT Window::OnLButtonDoubleClickMsg(UINT uMsg, WPARAM wParam, LPARAM lParam,
 
 	CheckSetFocusWindow();
 	POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
-	m_ptLastMousePos = CPoint(pt);
+	m_ptLastMousePos = UiPoint(pt);
 	Control* pControl = FindControl(pt);
 	if (pControl != nullptr) {
 		m_pEventClick = pControl;
 		SetCapture();
-		pControl->SendEvent(kEventMouseDoubleClick, wParam, lParam, 0, CPoint(pt));
+		pControl->SendEvent(kEventMouseDoubleClick, wParam, lParam, 0, UiPoint(pt));
 	}	
 	return 0;
 }
@@ -1558,10 +1558,10 @@ LRESULT Window::OnLButtonUpMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bH
 		m_pEventPointer = nullptr;
 	}
 	POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
-	m_ptLastMousePos = CPoint(pt);
+	m_ptLastMousePos = UiPoint(pt);
 	ReleaseCapture();
 	if (m_pEventClick != nullptr) {
-		m_pEventClick->SendEvent(kEventMouseButtonUp, wParam, lParam, 0, CPoint(pt));
+		m_pEventClick->SendEvent(kEventMouseButtonUp, wParam, lParam, 0, UiPoint(pt));
 		m_pEventClick = nullptr;
 	}
 	return 0;
@@ -1576,10 +1576,10 @@ LRESULT Window::OnRButtonUpMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bH
 		m_pEventPointer = nullptr;
 	}
 	POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
-	m_ptLastMousePos = CPoint(pt);
+	m_ptLastMousePos = UiPoint(pt);
 	ReleaseCapture();
 	if (m_pEventClick != nullptr) {
-		m_pEventClick->SendEvent(kEventMouseRightButtonUp, wParam, lParam, 0, CPoint(pt));
+		m_pEventClick->SendEvent(kEventMouseRightButtonUp, wParam, lParam, 0, UiPoint(pt));
 		m_pEventClick = nullptr;
 	}
 	return 0;
@@ -1644,7 +1644,7 @@ LRESULT Window::OnKillFocusMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bH
 
 	if (pControl != nullptr) {
 		POINT pt = { 0, 0 };
-		pControl->SendEvent(kEventWindowKillFocus, wParam, lParam, 0, CPoint(pt));
+		pControl->SendEvent(kEventWindowKillFocus, wParam, lParam, 0, UiPoint(pt));
 	}
 	return 0;
 }
@@ -1663,11 +1663,11 @@ LRESULT Window::OnContextMenuMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& 
 	POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
 	if ((pt.x != -1) && (pt.y != -1)) {
 		::ScreenToClient(m_hWnd, &pt);
-		m_ptLastMousePos = CPoint(pt);
+		m_ptLastMousePos = UiPoint(pt);
 		Control* pControl = FindContextMenuControl(&pt);
 		if (pControl != nullptr) {
 			Control* ptControl = FindControl(pt);//当前点击点所在的控件
-			pControl->SendEvent(kEventMouseMenu, wParam, (LPARAM)ptControl, 0, CPoint(pt));
+			pControl->SendEvent(kEventMouseMenu, wParam, (LPARAM)ptControl, 0, UiPoint(pt));
 		}
 	}
 	else {
@@ -1675,7 +1675,7 @@ LRESULT Window::OnContextMenuMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& 
 		//应用程序应在当前所选内容的位置（而不是 (xPos、yPos) ）显示上下文菜单。
 		Control* pControl = FindContextMenuControl(nullptr);
 		if (pControl != nullptr) {
-			pControl->SendEvent(kEventMouseMenu, wParam, 0, 0, CPoint(pt));
+			pControl->SendEvent(kEventMouseMenu, wParam, 0, 0, UiPoint(pt));
 		}
 	}
 	return 0;
@@ -1742,10 +1742,10 @@ LRESULT Window::OnSetCusorMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHa
 	POINT pt = { 0 };
 	::GetCursorPos(&pt);
 	::ScreenToClient(m_hWnd, &pt);
-	m_ptLastMousePos = CPoint(pt);
+	m_ptLastMousePos = UiPoint(pt);
 	Control* pControl = FindControl(pt);
 	if (pControl != nullptr) {
-		pControl->SendEvent(kEventSetCursor, wParam, lParam, 0, CPoint(pt));
+		pControl->SendEvent(kEventSetCursor, wParam, lParam, 0, UiPoint(pt));
 		bHandled = true;
 	}	
 	return 0;
@@ -1840,7 +1840,7 @@ LRESULT Window::OnTouchMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandl
         }
 
 		CheckSetFocusWindow();
-        m_ptLastMousePos = CPoint(pt);
+        m_ptLastMousePos = UiPoint(pt);
         Control* pControl = FindControl(pt);
         if (pControl == nullptr) {
 			return 0;
@@ -1849,7 +1849,7 @@ LRESULT Window::OnTouchMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandl
         pControl->SetFocus();
         SetCapture();
 
-        pControl->SendEvent(kEventTouchDown, 0, lParam, 0, CPoint(pt));
+        pControl->SendEvent(kEventTouchDown, 0, lParam, 0, UiPoint(pt));
     }
     else if (pInputs[0].dwFlags & TOUCHEVENTF_MOVE)
     {
@@ -1861,7 +1861,7 @@ LRESULT Window::OnTouchMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandl
 			return 0;
         }
 
-        m_ptLastMousePos = CPoint(pt);
+        m_ptLastMousePos = UiPoint(pt);
         if (m_pEventPointer == nullptr) {
             return 0;
         }
@@ -1870,15 +1870,15 @@ LRESULT Window::OnTouchMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandl
 			return 0;
         }
 
-        m_pEventPointer->SendEvent(kEventTouchMove, 0, 0, 0, CPoint(pt));
+        m_pEventPointer->SendEvent(kEventTouchMove, 0, 0, 0, UiPoint(pt));
     }
     else if (pInputs[0].dwFlags & TOUCHEVENTF_UP)
     {
         ReleaseEventClick(true, wParam, lParam);
-        m_ptLastMousePos = CPoint(pt);
+        m_ptLastMousePos = UiPoint(pt);
         ReleaseCapture();
         if (m_pEventPointer != nullptr) {
-			m_pEventPointer->SendEvent(kEventTouchUp, 0, lParam, 0, CPoint(pt));
+			m_pEventPointer->SendEvent(kEventTouchUp, 0, lParam, 0, UiPoint(pt));
 			m_pEventPointer = nullptr;
         }        
     }
@@ -1948,7 +1948,7 @@ LRESULT Window::OnPointerMsgs(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHa
         }
 
 		CheckSetFocusWindow();
-        m_ptLastMousePos = CPoint(pt);
+        m_ptLastMousePos = UiPoint(pt);
         Control* pControl = FindControl(pt);
         if (pControl == nullptr) {
             break;
@@ -1957,7 +1957,7 @@ LRESULT Window::OnPointerMsgs(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHa
         pControl->SetFocus();
         SetCapture();
 
-        pControl->SendEvent(kEventPointDown, 0, lParam, 0, CPoint(pt), pressure);
+        pControl->SendEvent(kEventPointDown, 0, lParam, 0, UiPoint(pt), pressure);
 
         // 如果控件不支持处理WM_POINTERUPDATE消息，则不设置bHandled，程序会进入WM_BUTTON处理流程
         if (m_pEventPointer && m_pEventPointer->IsReceivePointerMsg()) {
@@ -1974,7 +1974,7 @@ LRESULT Window::OnPointerMsgs(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHa
         if (m_ptLastMousePos.x == pt.x && m_ptLastMousePos.y == pt.y)
             break;
 
-        m_ptLastMousePos = CPoint(pt);
+        m_ptLastMousePos = UiPoint(pt);
         // 如果没有按下，则不设置bHandled，程序会转换为WM_BUTTON类消息
         if (m_pEventPointer == nullptr) {
             break;
@@ -1982,7 +1982,7 @@ LRESULT Window::OnPointerMsgs(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHa
 
         if (!HandleMouseEnterLeave(pt, wParam, lParam)) break;
 
-        m_pEventPointer->SendEvent(kEventPointMove, 0, 0, 0, CPoint(pt), pressure);
+        m_pEventPointer->SendEvent(kEventPointMove, 0, 0, 0, UiPoint(pt), pressure);
 
         // 如果控件不支持处理WM_POINTERUPDATE消息，则不设置bHandled，程序会进入WM_MOUSEMOVE处理流程
         if (m_pEventPointer && m_pEventPointer->IsReceivePointerMsg()) {
@@ -1993,7 +1993,7 @@ LRESULT Window::OnPointerMsgs(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHa
     case WM_POINTERLEAVE:
     case WM_POINTERCAPTURECHANGED:
         ReleaseEventClick(true, wParam, lParam);
-        m_ptLastMousePos = CPoint(pt);
+        m_ptLastMousePos = UiPoint(pt);
         // 如果没有按下，则不设置bHandled，程序会转换为WM_BUTTON类消息
         if (uMsg != WM_POINTERLEAVE) {
             // Refer to LBUTTONUP and MOUSELEAVE，LBUTTOUP ReleaseCapture while MOUSELEAVE DONOT ReleaseCapture
@@ -2003,7 +2003,7 @@ LRESULT Window::OnPointerMsgs(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHa
             break;
         }
 
-        m_pEventPointer->SendEvent(kEventPointUp, 0, lParam, 0, CPoint(pt), pressure);
+        m_pEventPointer->SendEvent(kEventPointUp, 0, lParam, 0, UiPoint(pt), pressure);
 
         // 如果控件不支持处理WM_POINTERUPDATE消息，则不设置bHandled，程序会进入WM_BUTTON处理流程
         if (m_pEventPointer && m_pEventPointer->IsReceivePointerMsg()) {
@@ -2198,8 +2198,8 @@ void Window::Paint()
 	}
 
 	if (m_bIsArranged && m_pRoot->IsArranged() && (m_pRoot->GetFixedWidth() == DUI_LENGTH_AUTO || m_pRoot->GetFixedHeight() == DUI_LENGTH_AUTO)) {
-		CSize maxSize(99999, 99999);
-		CSize needSize = m_pRoot->EstimateSize(maxSize);
+		UiSize maxSize(99999, 99999);
+		UiSize needSize = m_pRoot->EstimateSize(maxSize);
 		if (needSize.cx < m_pRoot->GetMinWidth()) {
 			needSize.cx = m_pRoot->GetMinWidth();
 		}
@@ -2289,7 +2289,7 @@ void Window::Paint()
 
 	// 绘制
 	AutoClip rectClip(m_renderContext.get(), rcPaint, true);
-	CPoint ptOldWindOrg = m_renderContext->OffsetWindowOrg(m_renderOffset);
+	UiPoint ptOldWindOrg = m_renderContext->OffsetWindowOrg(m_renderOffset);
 	m_pRoot->Paint(m_renderContext.get(), rcPaint);
 	m_pRoot->PaintChild(m_renderContext.get(), rcPaint);
 	m_renderContext->SetWindowOrg(ptOldWindOrg);
@@ -2327,9 +2327,9 @@ void Window::Paint()
 
 	// 渲染到窗口
 	if (m_bIsLayeredWindow) {
-		CPoint pt(rcWindow.left, rcWindow.top);
-		CSize szWindow(rcClient.right - rcClient.left, rcClient.bottom - rcClient.top);
-		CPoint ptSrc;
+		UiPoint pt(rcWindow.left, rcWindow.top);
+		UiSize szWindow(rcClient.right - rcClient.left, rcClient.bottom - rcClient.top);
+		UiPoint ptSrc;
 		BLENDFUNCTION bf = { AC_SRC_OVER, 0, static_cast<BYTE>(m_nAlpha), AC_SRC_ALPHA };
 		::UpdateLayeredWindow(m_hWnd, NULL, &pt, &szWindow, m_renderContext->GetDC(), &ptSrc, 0, &bf, ULW_ALPHA);
 	}
@@ -2365,7 +2365,7 @@ bool Window::IsLayeredWindow() const
 	return m_bIsLayeredWindow;
 }
 
-void Window::SetRenderOffset(CPoint renderOffset)
+void Window::SetRenderOffset(UiPoint renderOffset)
 {
 	if (m_pRoot != nullptr) {
 		m_renderOffset = renderOffset;

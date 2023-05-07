@@ -70,7 +70,7 @@ LRESULT Toast::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bH
 		::GetClientRect(GetHWND(), &client_rect);
 		// leave消息触发时，获取的鼠标坐标有可能还在client_rect范围内，会偏差1像素，这里缩减1像素
 		client_rect.Deflate(ui::UiRect(1, 1, 1, 1));
-		if (NULL != close_button_ && !client_rect.IsPointIn(ui::CPoint(pt)))
+		if (NULL != close_button_ && !client_rect.IsPointIn(ui::UiPoint(pt)))
 			close_button_->SetFadeVisible(false);
 	}
 	return __super::OnWindowMessage(uMsg, wParam, lParam, bHandled);
@@ -114,7 +114,7 @@ void Toast::SetContent(const std::wstring &str)
 
 	int width = content_->GetFixedWidth();
 
-	ui::CSize sz = content_->GetNaturalSize(width, 0);
+	ui::UiSize sz = content_->GetNaturalSize(width, 0);
 	content_->SetFixedHeight(sz.cy);
 }
 }

@@ -160,7 +160,7 @@ protected:
   bool m_bInited;
   int m_nPlacement;
   ui::UiRect m_rcArea;
-  ui::CPoint m_ptTriangle[3];
+  ui::UiPoint m_ptTriangle[3];
   std::unique_ptr<ui::IPath> m_pPath;
   std::unique_ptr<ui::IPen> m_pPen;
   std::unique_ptr<ui::IBrush> m_pBrush;
@@ -177,7 +177,7 @@ public:
 
   // 重载父类
   virtual std::wstring GetType() const override;
-  virtual ui::CSize EstimateSize(ui::CSize szAvailable) override;
+  virtual ui::UiSize EstimateSize(ui::UiSize szAvailable) override;
   virtual void DoInit() override;
 
   // 更新内容
@@ -210,7 +210,7 @@ public:
   virtual ~PopoverBody();
 
   virtual std::wstring GetType() const override;
-  virtual ui::CSize EstimateSize(ui::CSize szAvailable) override;
+  virtual ui::UiSize EstimateSize(ui::UiSize szAvailable) override;
   virtual void DoInit() override;
 
   virtual void UpdateContent(const std::wstring& strContent);
@@ -228,7 +228,7 @@ public:
   virtual ~PopoverFooter();
 
   virtual std::wstring GetType() const override;
-  virtual ui::CSize EstimateSize(ui::CSize szAvailable) override;
+  virtual ui::UiSize EstimateSize(ui::UiSize szAvailable) override;
   virtual void DoInit() override;
 
   void AttachCancelClicked(const ui::EventCallback& callback) { OnCancel += callback; }
@@ -255,7 +255,7 @@ public:
 
   virtual ~PopoverRoot() = default;
 
-  ui::CSize EstimateSize(ui::CSize szAvailable) override;
+  ui::UiSize EstimateSize(ui::UiSize szAvailable) override;
 
 public:
   std::wstring GetType() const override {
@@ -288,7 +288,7 @@ public:
 
   // 重载父类
   virtual std::wstring GetType() const override;
-  virtual ui::CSize EstimateSize(ui::CSize szAvailable) override;
+  virtual ui::UiSize EstimateSize(ui::UiSize szAvailable) override;
   virtual void DoInit() override;
   virtual void SetPos(ui::UiRect rc) override;
 
@@ -453,7 +453,7 @@ public:
 
     ui::Control::SetPos(rc);
 
-    ui::CSize requiredSize;
+    ui::UiSize requiredSize;
     if (m_items.size() == 0) {
       requiredSize.cx = 0;
       requiredSize.cy = 0;

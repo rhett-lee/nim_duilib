@@ -15,7 +15,7 @@ GdiClip::~GdiClip()
 void GdiClip::CreateClip(HDC hDC, UiRect rcItem)
 {
 	if (hDC != NULL) {
-		CPoint ptWinOrg;
+		UiPoint ptWinOrg;
 		GetWindowOrgEx(hDC, &ptWinOrg);
 		rcItem.Offset(-ptWinOrg.x, -ptWinOrg.y);
 
@@ -29,7 +29,7 @@ void GdiClip::CreateClip(HDC hDC, UiRect rcItem)
 void GdiClip::CreateRoundClip(HDC hDC, UiRect rcItem, int width, int height)
 {
 	if (hDC != NULL) {
-		CPoint ptWinOrg;
+		UiPoint ptWinOrg;
 		GetWindowOrgEx(hDC, &ptWinOrg);
 		rcItem.Offset(-ptWinOrg.x, -ptWinOrg.y);
 

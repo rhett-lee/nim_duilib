@@ -613,7 +613,7 @@ void CTxtWinHost::TxInvalidateRect(LPCRECT prc, BOOL /*fMode*/)
 	if (!m_re->GetWindow())
 		return;
 
-	CPoint scrollOffset = m_re->GetScrollOffset();
+	UiPoint scrollOffset = m_re->GetScrollOffset();
     if( prc == NULL ) {
 		UiRect newRcClient = rcClient;
 		newRcClient.Offset(-scrollOffset.x, -scrollOffset.y);
@@ -1124,7 +1124,7 @@ BOOL CTxtWinHost::DoSetCursor(const UiRect *prc, const POINT* pt)
     UiRect rc = (prc != NULL) ? *prc : rcClient;
 
     // Is this in our rectangle?
-	CPoint newPt(*pt);
+	UiPoint newPt(*pt);
 	newPt.Offset(m_re->GetScrollOffset());
     if (PtInRect(&rc, newPt))
     {
@@ -1911,9 +1911,9 @@ bool RichEdit::LineScroll(int nLines, int nChars)
     return (BOOL)lResult == TRUE;
 }
 
-CPoint RichEdit::GetCharPos(long lChar) const
+UiPoint RichEdit::GetCharPos(long lChar) const
 { 
-    CPoint pt; 
+    UiPoint pt; 
     TxSendMessage(EM_POSFROMCHAR, (WPARAM)&pt, (LPARAM)lChar, 0); 
     return pt;
 }
@@ -1926,14 +1926,14 @@ long RichEdit::LineFromChar(long nIndex) const
     return (long)lResult;
 }
 
-CPoint RichEdit::PosFromChar(UINT nChar) const
+UiPoint RichEdit::PosFromChar(UINT nChar) const
 { 
 	POINTL pt = { 0 };
     TxSendMessage(EM_POSFROMCHAR, (WPARAM)&pt, nChar, 0); 
-    return CPoint(pt.x, pt.y); 
+    return UiPoint(pt.x, pt.y); 
 }
 
-int RichEdit::CharFromPos(CPoint pt) const
+int RichEdit::CharFromPos(UiPoint pt) const
 { 
     POINTL ptl = {pt.x, pt.y}; 
     if( !m_pTwh ) return 0;
@@ -2080,7 +2080,7 @@ BOOL RichEdit::SetOleCallback(IRichEditOleCallback* pCallback)
 	return m_pTwh->SetOleCallback(pCallback);
 }
 
-CSize RichEdit::GetNaturalSize(LONG width, LONG height)
+UiSize RichEdit::GetNaturalSize(LONG width, LONG height)
 {
 	if (width < 0) {
 		width = 0;
@@ -2088,7 +2088,7 @@ CSize RichEdit::GetNaturalSize(LONG width, LONG height)
 	if (height < 0) {
 		height = 0;
 	}	
-	CSize sz(0,0);
+	UiSize sz(0,0);
 	if (m_cbGetNaturalSize != nullptr && m_cbGetNaturalSize(width, height, sz))
 		return sz;
 	LONG lWidth = width;
@@ -2158,7 +2158,7 @@ void RichEdit::KillTimer(UINT idTimer)
 
 // 多行非rich格式的richedit有一个滚动条bug，在最后一行是空行时，LineDown和SetScrollPos无法滚动到最后
 // 引入iPos就是为了修正这个bug
-void RichEdit::SetScrollPos(CSize szPos)
+void RichEdit::SetScrollPos(UiSize szPos)
 {
 	int64_t cx = 0;
 	int64_t cy = 0;
@@ -2315,9 +2315,9 @@ void RichEdit::SetEnabled(bool bEnable /*= true*/)
 	}
 }
 
-CSize RichEdit::EstimateSize(CSize /*szAvailable*/)
+UiSize RichEdit::EstimateSize(UiSize /*szAvailable*/)
 {
-	CSize size(GetFixedWidth(), GetFixedHeight());
+	UiSize size(GetFixedWidth(), GetFixedHeight());
 	if (size.cx == DUI_LENGTH_AUTO || size.cy == DUI_LENGTH_AUTO) {
 		LONG iWidth = size.cx;
 		LONG iHeight = size.cy;
@@ -2351,7 +2351,7 @@ CSize RichEdit::EstimateSize(CSize /*szAvailable*/)
     return size;
 }
 
-CSize RichEdit::EstimateText(CSize szAvailable)
+UiSize RichEdit::EstimateText(UiSize szAvailable)
 {
   LONG iWidth = szAvailable.cx;
   LONG iHeight = 0;
@@ -2492,7 +2492,7 @@ void RichEdit::HandleEvent(const EventArgs& event)
 	if (event.Type == kEventMouseButtonDown || event.Type == kEventPointDown) {
 		if (m_linkInfo.size() > 0)	{
 			std::wstring strLink;
-			if (HittestCustomLink(CPoint(event.ptMouse), strLink))
+			if (HittestCustomLink(UiPoint(event.ptMouse), strLink))
 			{
 				//::SetCursor(::LoadCursor(NULL, MAKEINTRESOURCE(IDC_HAND)));
 				SendEvent(kEventCustomLinkClick);
@@ -2565,7 +2565,7 @@ void RichEdit::HandleEvent(const EventArgs& event)
 void RichEdit::OnSetCursor(const EventArgs& event)
 {
 	std::wstring strLink;
-	if (HittestCustomLink(CPoint(event.ptMouse), strLink))
+	if (HittestCustomLink(UiPoint(event.ptMouse), strLink))
 	{
 		::SetCursor(::LoadCursor(NULL, IDC_HAND));
 		return;
@@ -2665,7 +2665,7 @@ void RichEdit::OnImeStartComposition(const EventArgs& /*event*/)
 		return;
 
 	COMPOSITIONFORM	cfs;
-	CPoint ptScrollOffset = GetScrollOffset();
+	UiPoint ptScrollOffset = GetScrollOffset();
 	POINT pt;
 	pt.x = m_iCaretPosX - ptScrollOffset.x;
 	pt.y = m_iCaretPosY - ptScrollOffset.y;
@@ -2687,7 +2687,7 @@ void RichEdit::OnImeEndComposition(const EventArgs& /*event*/)
 
 void RichEdit::OnMouseMessage(UINT uMsg, const EventArgs& event)
 {
-	CPoint pt(GET_X_LPARAM(event.lParam), GET_Y_LPARAM(event.lParam));
+	UiPoint pt(GET_X_LPARAM(event.lParam), GET_Y_LPARAM(event.lParam));
 	pt.Offset(GetScrollOffset());
 	TxSendMessage(uMsg, event.wParam, MAKELPARAM(pt.x, pt.y), NULL);
 }
@@ -3265,7 +3265,7 @@ void RichEdit::AddLinkInfoEx(const CHARRANGE cr, const std::wstring& linkInfo)
 }
 
 //根据point来hittest自定义link的数据，返回true表示在link上，info是link的自定义属性
-bool RichEdit::HittestCustomLink(CPoint pt, std::wstring& info)
+bool RichEdit::HittestCustomLink(UiPoint pt, std::wstring& info)
 {
 	bool bLink = false;
 	info.clear();

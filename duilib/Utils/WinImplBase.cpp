@@ -89,8 +89,8 @@ LRESULT WindowImplBase::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 	AttachBox(pRoot);
 	
 	if (pRoot->GetFixedWidth() == DUI_LENGTH_AUTO || pRoot->GetFixedHeight() == DUI_LENGTH_AUTO) {
-		CSize maxSize(99999, 99999);
-		CSize needSize = pRoot->EstimateSize(maxSize);
+		UiSize maxSize(99999, 99999);
+		UiSize needSize = pRoot->EstimateSize(maxSize);
 		if (needSize.cx < pRoot->GetMinWidth()) needSize.cx = pRoot->GetMinWidth();
 		if (pRoot->GetMaxWidth() >= 0 && needSize.cx > pRoot->GetMaxWidth()) needSize.cx = pRoot->GetMaxWidth();
 		if (needSize.cy < pRoot->GetMinHeight()) needSize.cy = pRoot->GetMinHeight();

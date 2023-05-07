@@ -11,7 +11,7 @@ public:
   ~TooltipBody() = default;
 
   std::wstring GetType() const override;
-  virtual ui::CSize EstimateSize(ui::CSize szAvailable) override;
+  virtual ui::UiSize EstimateSize(ui::UiSize szAvailable) override;
   void DoInit() override;
 };
 

@@ -49,7 +49,7 @@ void Slider::HandleEvent(const EventArgs& event)
 
 	if (event.Type == kEventMouseButtonDown || event.Type == kEventMouseDoubleClick || event.Type == kEventPointDown) {
 		if( IsEnabled() ) {
-			CPoint newPtMouse(event.ptMouse);
+			UiPoint newPtMouse(event.ptMouse);
 			newPtMouse.Offset(GetScrollOffset());
 			UiRect rcThumb = GetThumbRect();
 			if (rcThumb.IsPointIn(newPtMouse)) {
@@ -120,7 +120,7 @@ void Slider::SetAttribute(const std::wstring& strName, const std::wstring& strVa
 	else if (strName == L"thumbpushedimage") SetThumbStateImage(kControlStatePushed, strValue);
 	else if (strName == L"thumbdisabledimage") SetThumbStateImage(kControlStateDisabled, strValue);
 	else if (strName == L"thumbsize") {
-		CSize szXY;
+		UiSize szXY;
 		LPTSTR pstr = NULL;
 		szXY.cx = wcstol(strValue.c_str(), &pstr, 10);  ASSERT(pstr);
 		szXY.cy = wcstol(pstr + 1, &pstr, 10);    ASSERT(pstr);
@@ -200,7 +200,7 @@ void Slider::SetChangeStep(int step)
 	m_nStep = step;
 }
 
-void Slider::SetThumbSize(CSize szXY)
+void Slider::SetThumbSize(UiSize szXY)
 {
 	DpiManager::GetInstance()->ScaleSize(szXY);
 	m_szThumb = szXY;

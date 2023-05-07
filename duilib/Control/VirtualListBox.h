@@ -47,13 +47,13 @@ public:
 class UILIB_API VirtualVLayout : public VLayout
 {
 protected:
-	virtual ui::CSize ArrangeChild(const std::vector<ui::Control*>& items, ui::UiRect rc);
+	virtual ui::UiSize ArrangeChild(const std::vector<ui::Control*>& items, ui::UiRect rc);
 };
 
 class UILIB_API VirtualHLayout : public HLayout
 {
 protected:
-	virtual ui::CSize ArrangeChild(const std::vector<ui::Control*>& items, ui::UiRect rc);
+	virtual ui::UiSize ArrangeChild(const std::vector<ui::Control*>& items, ui::UiRect rc);
 };
 
 class UILIB_API VirtualListBox : public ListBox
@@ -134,7 +134,7 @@ public:
 
 protected:
 	/// 重写父类接口，提供个性化功能
-	virtual void SetScrollPos(ui::CSize szPos) override;
+	virtual void SetScrollPos(ui::UiSize szPos) override;
 	virtual void HandleEvent(const ui::EventArgs& event) override;
 	virtual void SetPos(UiRect rc) override;
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;

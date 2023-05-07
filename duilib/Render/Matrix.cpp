@@ -23,7 +23,7 @@ void Matrix_Gdiplus::Rotate(float angle)
 	matrix_->Rotate(angle);
 }
 
-void Matrix_Gdiplus::RotateAt(float angle, const CPoint& center)
+void Matrix_Gdiplus::RotateAt(float angle, const UiPoint& center)
 {
 	matrix_->RotateAt(angle, Gdiplus::PointF(static_cast<Gdiplus::REAL>(center.x), static_cast<Gdiplus::REAL>(center.y)));
 }

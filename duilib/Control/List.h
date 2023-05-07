@@ -45,7 +45,7 @@ public:
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 	virtual void HandleEvent(const EventArgs& event) override;
 	virtual void SendEvent(EventType eventType, WPARAM wParam = 0, LPARAM lParam = 0, TCHAR tChar = 0,
-						   const CPoint& mousePos = CPoint(), FLOAT pressure = 0.0f) override;
+						   const UiPoint& mousePos = UiPoint(), FLOAT pressure = 0.0f) override;
 	virtual void SendEvent(const EventArgs& event) override;
 	virtual int GetCurSel() const override;
 	virtual bool SelectItem(int iIndex, bool bTakeFocus = false, bool bTrigger = true) override;

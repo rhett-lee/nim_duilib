@@ -77,14 +77,14 @@ public:
 	 * @brief 获取下拉框容器大小
 	 * @return 返回容器大小
 	 */
-    CSize GetDropBoxSize() const;
+    UiSize GetDropBoxSize() const;
 
 	/**
 	 * @brief 设置下拉框容器大小
 	 * @param[in] szDropBox 要设置的大小信息
 	 * @return 无
 	 */
-    void SetDropBoxSize(CSize szDropBox);
+    void SetDropBoxSize(UiSize szDropBox);
 	
 	/**
 	 * @brief 设置 Combobox 是否向上弹出
@@ -160,7 +160,7 @@ protected:
 	std::unique_ptr<ListBox> m_pLayout;
     int m_iCurSel;  
 	ControlStateType m_uButtonState;
-	CSize m_szDropBox;
+	UiSize m_szDropBox;
 	std::wstring m_sDropBoxAttributes;
 	bool m_bPopupTop;
 	UiRect	m_rcTextPadding;	//add by djj

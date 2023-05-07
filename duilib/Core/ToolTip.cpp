@@ -41,7 +41,7 @@ void ToolTip::ShowToolTip(HWND hParentWnd,
 					 	  HMODULE hModule,
 						  const UiRect& rect,
 						  uint32_t maxWidth,
-						  const CPoint& trackPos,
+						  const UiPoint& trackPos,
 						  bool bHoverChanged,
 						  const std::wstring& text)
 {

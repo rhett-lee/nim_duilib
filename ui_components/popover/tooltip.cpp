@@ -10,12 +10,12 @@ TooltipBody::TooltipBody(const std::wstring& content):
 
 std::wstring TooltipBody::GetType() const { return L"TooltipBody"; }
 
-ui::CSize TooltipBody::EstimateSize(ui::CSize szAvailable)
+ui::UiSize TooltipBody::EstimateSize(ui::UiSize szAvailable)
 {
   if (m_cxyFixed.cx > 0 && m_cxyFixed.cy > 0 && !m_bReEstimateSize)
     return m_cxyFixed;
 
-  ui::CSize maxSize = szAvailable;
+  ui::UiSize maxSize = szAvailable;
   maxSize.cy = 0;
 
   ui::UiRect marginRect = GetMargin();
@@ -24,7 +24,7 @@ ui::CSize TooltipBody::EstimateSize(ui::CSize szAvailable)
   ui::UiRect paddingRect = m_pLayout->GetPadding();
   maxSize.cx -= paddingRect.left + paddingRect.right;
 
-  ui::CSize editSize{ 0,0 };
+  ui::UiSize editSize{ 0,0 };
   if (m_pRichEditContent) {
     ui::UiRect editMargin = m_pRichEditContent->GetMargin();
     editSize = m_pRichEditContent->EstimateText({ maxSize.cx - editMargin.left - editMargin.right,maxSize.cy });
@@ -36,7 +36,7 @@ ui::CSize TooltipBody::EstimateSize(ui::CSize szAvailable)
     editSize.cy += editMargin.top + editMargin.bottom;
   }
 
-  ui::CSize fixedSize = editSize;
+  ui::UiSize fixedSize = editSize;
 
   fixedSize.cx += paddingRect.left + paddingRect.right;
   fixedSize.cy += paddingRect.top + paddingRect.bottom;

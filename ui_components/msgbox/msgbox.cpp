@@ -121,7 +121,7 @@ void MsgBox::SetContent(const std::wstring &str)
 
 	int width = content_->GetFixedWidth();
 
-	ui::CSize sz = content_->GetNaturalSize(width, 0);
+	ui::UiSize sz = content_->GetNaturalSize(width, 0);
 	content_->SetFixedHeight(sz.cy, false);
 }
 

@@ -119,7 +119,7 @@ void MyGridBody::ResetHeanderComboPos()
 	GridHeader* pHeader = GetHeader();
 	if (pHeader)
 	{
-		CSize szOff = m_pGrid->GetScrollPos();
+		UiSize szOff = m_pGrid->GetScrollPos();
 		int posx = 0;
 		for (size_t i = 0; i < pHeader->size(); i++)
 		{
@@ -146,7 +146,7 @@ void MyGridBody::ResetHeanderComboPos()
 
 void MyGridBody::PaintBody(IRenderContext* pRender)
 {
-	CSize szOff = m_pGrid->GetScrollPos();
+	UiSize szOff = m_pGrid->GetScrollPos();
 	int posx = 0;
 	int posy = 0;
 	int row_count = GetRowCount();

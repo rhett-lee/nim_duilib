@@ -51,7 +51,7 @@ void Path_Gdiplus::AddLine(int x1, int y1, int x2, int y2)
 	path_->AddLine(x1, y1, x2, y2);
 }
 
-void Path_Gdiplus::AddLines(const CPoint* points, int count)
+void Path_Gdiplus::AddLines(const UiPoint* points, int count)
 {
 	ASSERT(points != nullptr);
 	if (points == nullptr) {
@@ -72,7 +72,7 @@ void Path_Gdiplus::AddBezier(int x1, int y1, int x2, int y2, int x3, int y3, int
 	path_->AddBezier(x1, y1, x2, y2, x3, y3, x4, y4);
 }
 
-void Path_Gdiplus::AddCurve(const CPoint* points, int count)
+void Path_Gdiplus::AddCurve(const UiPoint* points, int count)
 {
 	ASSERT(points != nullptr);
 	if (points == nullptr) {
@@ -118,7 +118,7 @@ void Path_Gdiplus::AddPie(int x, int y, int width, int height, float startAngle,
 	path_->AddPie(x, y, width, height, startAngle, sweepAngle);
 }
 
-void Path_Gdiplus::AddPolygon(const CPoint* points, int count)
+void Path_Gdiplus::AddPolygon(const UiPoint* points, int count)
 {
 	ASSERT(points != nullptr);
 	if (points == nullptr) {

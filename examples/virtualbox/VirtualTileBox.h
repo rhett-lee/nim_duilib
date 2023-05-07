@@ -42,8 +42,8 @@ class UILIB_API VirtualTileLayout : public ui::TileLayout
 {
 public:
 	VirtualTileLayout();
-	virtual ui::CSize ArrangeChild(const std::vector<ui::Control*>& items, ui::UiRect rc) override;
-	virtual ui::CSize AjustSizeByChild(const std::vector<ui::Control*>& items, ui::CSize szAvailable) override;
+	virtual ui::UiSize ArrangeChild(const std::vector<ui::Control*>& items, ui::UiRect rc) override;
+	virtual ui::UiSize AjustSizeByChild(const std::vector<ui::Control*>& items, ui::UiSize szAvailable) override;
 	virtual bool SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 	virtual int GetElementsHeight(int nCount);
 	virtual void LazyArrangeChild();
@@ -104,7 +104,7 @@ public:
 
 protected:
 	/// 重写父类接口，提供个性化功能
-	virtual void SetScrollPos(ui::CSize szPos) override;
+	virtual void SetScrollPos(ui::UiSize szPos) override;
 	virtual void HandleEvent(const ui::EventArgs& event) override;
 	virtual void SetPos(ui::UiRect rc) override;
 

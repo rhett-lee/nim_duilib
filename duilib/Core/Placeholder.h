@@ -256,7 +256,7 @@ public:
 	 * @param[in] 待补充
 	 * @return 待补充
 	 */
-	virtual CSize EstimateSize(CSize szAvailable);
+	virtual UiSize EstimateSize(UiSize szAvailable);
 
 	/**
 	 * @brief 获取控件位置
@@ -310,9 +310,9 @@ public:
 
 	/**
 	 * @brief 获取外层滚动偏移
-	 * @return CPoint
+	 * @return UiPoint
 	 */
-	CPoint GetScrollOffset() const;
+	UiPoint GetScrollOffset() const;
 
 	static bool IsChild(PlaceHolder* pAncestor, PlaceHolder* pChild);
 protected:
@@ -329,9 +329,9 @@ protected:
 	Window* m_pWindow;
 	Box* m_pParent;
 
-	CSize m_cxyFixed;
-	CSize m_cxyMin;
-	CSize m_cxyMax;
+	UiSize m_cxyFixed;
+	UiSize m_cxyMin;
+	UiSize m_cxyMax;
 	UiRect m_rcItem;
 	HorAlignType m_horAlignType;
 	VerAlignType m_verAlignType;

@@ -154,7 +154,7 @@ void ControlForm::OnInitWindow()
 	ui::Button* settings = static_cast<ui::Button*>(FindControl(L"settings"));
 	settings->AttachClick([this](const ui::EventArgs& args) {
 		RECT rect = args.pSender->GetPos();
-		ui::CPoint point;
+		ui::UiPoint point;
 		point.x = rect.left - 175;
 		point.y = rect.top + 10;
 		::ClientToScreen(GetHWND(), &point);
@@ -176,20 +176,20 @@ void ControlForm::OnInitWindow()
 
 				//鼠标消息产生的上下文菜单
 				::ClientToScreen(GetHWND(), &pt);
-				ShowPopupMenu(ui::CPoint(pt));
+				ShowPopupMenu(ui::UiPoint(pt));
 			}
 			else {
 				//按Shif + F10，由系统产生上下文菜单
 				pt = { 100, 100 };
 				::ClientToScreen(GetHWND(), &pt);
-				ShowPopupMenu(ui::CPoint(pt));
+				ShowPopupMenu(ui::UiPoint(pt));
 			}
 		}
 		return true;
 	});
 }
 
-void ControlForm::ShowPopupMenu(const ui::CPoint& point)
+void ControlForm::ShowPopupMenu(const ui::UiPoint& point)
 {
     ui::CMenuWnd* menu = new ui::CMenuWnd(GetHWND());//需要设置父窗口，否在菜单弹出的时候，程序状态栏编程非激活状态
     std::wstring xml(L"settings_menu.xml");

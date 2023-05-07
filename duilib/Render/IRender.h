@@ -126,7 +126,7 @@ public:
 	virtual void Translate(int offsetX, int offsetY) = 0;
 	virtual void Scale(int scaleX, int scaleY) = 0;
 	virtual void Rotate(float angle) = 0;
-	virtual void RotateAt(float angle, const CPoint& center) = 0;
+	virtual void RotateAt(float angle, const UiPoint& center) = 0;
 };
 
 class UILIB_API IPath : public virtual nbase::SupportWeakCallback
@@ -151,16 +151,16 @@ public:
 	virtual void CloseFigure() = 0;
 
 	virtual void AddLine(int x1, int y1, int x2, int y2) = 0;
-	virtual void AddLines(const CPoint* points, int count) = 0;
+	virtual void AddLines(const UiPoint* points, int count) = 0;
 	virtual void AddBezier(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4) = 0;
-	virtual void AddCurve(const CPoint* points, int count) = 0;
+	virtual void AddCurve(const UiPoint* points, int count) = 0;
 	virtual void AddRect(int left, int top, int right, int bottom) = 0;
 	virtual void AddRect(const UiRect& rect) = 0;
 	virtual void AddEllipse(int left, int top, int right, int bottom) = 0;
 	virtual void AddEllipse(const UiRect& rect) = 0;
 	virtual void AddArc(int x, int y, int width, int height, float startAngle, float sweepAngle) = 0;
 	virtual void AddPie(int x, int y, int width, int height, float startAngle, float sweepAngle) = 0;
-	virtual void AddPolygon(const CPoint* points, int count) = 0;
+	virtual void AddPolygon(const UiPoint* points, int count) = 0;
 
 	virtual UiRect GetBound(const IPen* pen) = 0;
 	virtual bool IsContainsPoint(int x, int y) = 0;
@@ -191,9 +191,9 @@ public:
 
 	virtual void Save() = 0;
 	virtual void Restore() = 0;
-	virtual CPoint OffsetWindowOrg(CPoint ptOffset) = 0;
-	virtual CPoint SetWindowOrg(CPoint ptOffset) = 0;
-	virtual CPoint GetWindowOrg() const = 0;
+	virtual UiPoint OffsetWindowOrg(UiPoint ptOffset) = 0;
+	virtual UiPoint SetWindowOrg(UiPoint ptOffset) = 0;
+	virtual UiPoint GetWindowOrg() const = 0;
 
 	virtual void SetClip(const UiRect& rc) = 0;
 	virtual void SetRoundClip(const UiRect& rcItem, int width, int height) = 0;
@@ -215,7 +215,7 @@ public:
 	virtual void DrawLine(const IPen* pen, int x1, int y1, int x2, int y2) = 0;
 	virtual void DrawBezier(const IPen* pen, int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4) = 0;
 	virtual void DrawRect(const UiRect& rc, int nSize, DWORD dwPenColor) = 0;
-	virtual void DrawRoundRect(const UiRect& rc, const CSize& roundSize, int nSize, DWORD dwPenColor) = 0;
+	virtual void DrawRoundRect(const UiRect& rc, const UiSize& roundSize, int nSize, DWORD dwPenColor) = 0;
 
 	virtual void DrawText(const UiRect& rc, const std::wstring& strText, DWORD dwTextColor, const std::wstring& strFontId, UINT uStyle, BYTE uFade = 255, bool bLineLimit = false, bool bFillPath = false) = 0;
 
@@ -227,7 +227,7 @@ public:
 	virtual void DrawPath(const IPath* path, const IPen* pen) = 0;
 	virtual void FillPath(const IPath* path, const IBrush* brush) = 0;
 
-	virtual void DrawBoxShadow(const UiRect& rc, const CSize& roundSize, const CPoint& cpOffset, int nBlurRadius, int nBlurSize, int nSpreadSize, DWORD dwColor, bool bExclude) = 0;
+	virtual void DrawBoxShadow(const UiRect& rc, const UiSize& roundSize, const UiPoint& cpOffset, int nBlurRadius, int nBlurSize, int nSpreadSize, DWORD dwColor, bool bExclude) = 0;
 };
 
 class UILIB_API IRenderFactory

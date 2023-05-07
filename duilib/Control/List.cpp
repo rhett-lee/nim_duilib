@@ -91,7 +91,7 @@ void ListBox::HandleEvent(const EventArgs& event)
 }
 
 void ListBox::SendEvent(EventType eventType, WPARAM wParam, LPARAM lParam, TCHAR tChar,
-					    const CPoint& mousePos, FLOAT pressure)
+					    const UiPoint& mousePos, FLOAT pressure)
 {
 	return ScrollableBox::SendEvent(eventType, wParam, lParam, tChar, mousePos, pressure);
 }
@@ -192,8 +192,8 @@ void ListBox::EnsureVisible(const UiRect& rcItem)
 	if (rcNewItem.top < rcList.top) dy = rcNewItem.top - rcList.top;
 	if (rcNewItem.bottom > rcList.bottom) dy = rcNewItem.bottom - rcList.bottom;
 
-	CSize sz = GetScrollPos();
-	SetScrollPos(CSize(sz.cx + dx, sz.cy + dy));
+	UiSize sz = GetScrollPos();
+	SetScrollPos(UiSize(sz.cx + dx, sz.cy + dy));
 }
 
 void ListBox::StopScroll()
@@ -214,7 +214,7 @@ bool ListBox::ScrollItemToTop(const std::wstring& strItemName)
 	for (auto it = m_items.begin(); it != m_items.end(); it++) {
 		if ((*it)->GetName() == strItemName) {
 			if (GetScrollRange().cy != 0) {
-				CSize scrollPos = GetScrollPos();
+				UiSize scrollPos = GetScrollPos();
 				scrollPos.cy = (*it)->GetPos().top - m_pLayout->GetInternalPos().top;
 				if (scrollPos.cy >= 0) {
 					SetScrollPos(scrollPos);

@@ -36,7 +36,7 @@ public:
 	virtual void SetTextId(const std::wstring& strTextId);
 	virtual void SetUTF8TextId(const std::string& strTextId);
 	virtual bool HasHotState() override;
-	virtual CSize EstimateText(CSize szAvailable, bool& bReEstimateSize) override;
+	virtual UiSize EstimateText(UiSize szAvailable, bool& bReEstimateSize) override;
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 	virtual void PaintText(IRenderContext* pRender) override;
 	virtual void SetPos(UiRect rc) override;
@@ -339,7 +339,7 @@ bool LabelTemplate<InheritType>::HasHotState()
 }
 
 template<typename InheritType>
-CSize LabelTemplate<InheritType>::EstimateText(CSize szAvailable, bool& bReEstimateSize)
+UiSize LabelTemplate<InheritType>::EstimateText(UiSize szAvailable, bool& bReEstimateSize)
 {
     if (m_bSingleLine)
         m_uTextStyle |= DT_SINGLELINE;
@@ -350,7 +350,7 @@ CSize LabelTemplate<InheritType>::EstimateText(CSize szAvailable, bool& bReEstim
     if (width < 0) {
         width = 0;
     }
-    CSize fixedSize;
+    UiSize fixedSize;
     std::wstring textValue = GetText();
     if (!textValue.empty() && (this->m_pWindow != nullptr)) {
         auto pRender = this->m_pWindow->GetRenderContext();

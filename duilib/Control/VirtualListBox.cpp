@@ -10,9 +10,9 @@
 namespace ui
 {
 
-CSize VirtualVLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
+UiSize VirtualVLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 {
-	CSize sz(rc.GetWidth(), 0);
+	UiSize sz(rc.GetWidth(), 0);
 
 	VirtualListBox *pList = dynamic_cast<VirtualListBox*>(m_pOwner);
 	ASSERT(pList);
@@ -28,9 +28,9 @@ CSize VirtualVLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc
 	return sz;
 }
 
-CSize VirtualHLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
+UiSize VirtualHLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 {
-	CSize sz(0, rc.GetHeight());
+	UiSize sz(0, rc.GetHeight());
 
 	VirtualListBox *pList = dynamic_cast<VirtualListBox*>(m_pOwner);
 	ASSERT(pList);
@@ -213,12 +213,12 @@ void VirtualListBox::EnsureVisible(int iIndex, bool bToTop)
 			nNewPos = CalcElementsHeight(iIndex);
 		}
 	}
-	CSize sz;
+	UiSize sz;
 	if (m_eDirection == kListVertical) {
-		sz = CSize(0, nNewPos);
+		sz = UiSize(0, nNewPos);
 	}
 	else {
-		sz = CSize(nNewPos, 0);
+		sz = UiSize(nNewPos, 0);
 	}
 	SetScrollPos(sz);
 }
@@ -348,7 +348,7 @@ void VirtualListBox::RemoveElement(int iIndex)
 	}
 }
 
-void VirtualListBox::SetScrollPos(ui::CSize szPos)
+void VirtualListBox::SetScrollPos(ui::UiSize szPos)
 {
 	m_nOldYScrollPos = (m_eDirection == kListVertical) ? GetScrollPos().cy : GetScrollPos().cx;
 	ListBox::SetScrollPos(szPos);

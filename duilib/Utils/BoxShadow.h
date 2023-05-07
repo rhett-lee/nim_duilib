@@ -44,7 +44,7 @@ public:
 	// https://codersblock.com/blog/creating-glow-effects-with-css/
 
 	std::wstring m_strColor;
-	CPoint m_cpOffset;
+	UiPoint m_cpOffset;
 	int m_nBlurRadius;
 	int m_nBlurSize;
 	int m_nSpreadSize;

@@ -60,7 +60,7 @@ void CircleProgress::PaintStatusImage(IRenderContext* pRender)
 		graphics.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
 		Gdiplus::Pen bgPen(m_dwBackgroundColor, static_cast<Gdiplus::REAL>(m_nCircleWidth));
 		// Ô²ÐÎÖÐÐÄ
-		CPoint center;
+		UiPoint center;
 		center.x = m_rcItem.left + (m_rcItem.right - m_rcItem.left) / 2;
 		center.y = m_rcItem.top + (m_rcItem.bottom - m_rcItem.top) / 2;
 

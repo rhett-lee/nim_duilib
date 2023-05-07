@@ -34,7 +34,7 @@ public:
 	 * @param[in] rcContainer 要设置的位置信息
 	 * @return 返回控件最终的位置信息
 	 */
-	static CSize SetFloatPos(Control* pControl, UiRect rcContainer);
+	static UiSize SetFloatPos(Control* pControl, UiRect rcContainer);
 
 	/**
 	 * @brief 设置布局属性
@@ -50,7 +50,7 @@ public:
 	 * @param[in] rc 当前容器位置信息
 	 * @return 返回排列后最终盒子的宽度和高度信息
 	 */
-	virtual CSize ArrangeChild(const std::vector<Control*>& items, UiRect rc);
+	virtual UiSize ArrangeChild(const std::vector<Control*>& items, UiRect rc);
 
 	/**
 	 * @brief 根据内部子控件大小调整容器自身大小
@@ -58,7 +58,7 @@ public:
 	 * @param[in] szAvailable 子控件允许的最大宽度
 	 * @return 返回排列后最终盒子的宽度和高度信息
 	 */
-	virtual CSize AjustSizeByChild(const std::vector<Control*>& items, CSize szAvailable);
+	virtual UiSize AjustSizeByChild(const std::vector<Control*>& items, UiSize szAvailable);
 
 	/**
 	 * @brief 获取内边距
@@ -123,8 +123,8 @@ public:
 	virtual void PaintChild(IRenderContext* pRender, const UiRect& rcPaint) override;
 	virtual void SetEnabled(bool bEnabled) override;
 	virtual void SetVisible(bool bVisible) override;
-	virtual CSize EstimateSize(CSize szAvailable) override;
-	virtual Control* FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, CPoint scrollPos = CPoint()) override;
+	virtual UiSize EstimateSize(UiSize szAvailable) override;
+	virtual Control* FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, UiPoint scrollPos = UiPoint()) override;
 	virtual void InvokeLoadImageCache() override;
 	virtual void UnLoadImageCache() override;
 	virtual void ClearImageCache() override;
@@ -322,27 +322,27 @@ public:
 	virtual void PaintChild(IRenderContext* pRender, const UiRect& rcPaint) override;
 	virtual void SetMouseEnabled(bool bEnable = true) override;
 	virtual void SetWindow(Window* pManager, Box* pParent, bool bInit) override;
-	virtual Control* FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, CPoint scrollPos = CPoint()) override;
+	virtual Control* FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, UiPoint scrollPos = UiPoint()) override;
 	virtual void ClearImageCache() override;
 
 	/**
 	 * @brief 获取滚动条位置
 	 * @return 返回滚动条的位置信息
 	 */
-	virtual CSize GetScrollPos() const;
+	virtual UiSize GetScrollPos() const;
 
 	/**
 	 * @brief 获取滚动条的范围
 	 * @return 返回滚动条的范围信息
 	 */
-	virtual CSize GetScrollRange() const;
+	virtual UiSize GetScrollRange() const;
 
 	/**
 	 * @brief 设置滚动条位置
 	 * @param[in] szPos 要设置的位置数据
 	 * @return 无
 	 */
-	virtual void SetScrollPos(CSize szPos);
+	virtual void SetScrollPos(UiSize szPos);
 
 	/**
 	 * @brief 设置滚动条 Y 轴坐标
@@ -621,7 +621,7 @@ protected:
 	 * @param[in] rc 当前位置信息
 	 * @return 返回所需尺寸大小
 	 */
-	virtual CSize CalcRequiredSize(const UiRect& rc);
+	virtual UiSize CalcRequiredSize(const UiRect& rc);
 
 	/**
 	 * @brief 加载图片缓存，仅供 ScrollableBox 内部使用
@@ -650,7 +650,7 @@ protected:
 	bool m_bVScrollBarLeftPos;
 	UiRect m_rcScrollBarPadding;
 
-	CPoint m_ptLastTouchPos;
+	UiPoint m_ptLastTouchPos;
 	std::unique_ptr<AnimationPlayer> m_scrollAnimation;
 	std::unique_ptr<AnimationPlayer> m_renderOffsetYAnimation;
 };

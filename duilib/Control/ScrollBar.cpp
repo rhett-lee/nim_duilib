@@ -750,12 +750,12 @@ void ScrollBar::ScrollTimeHandle()
 	++m_nScrollRepeatDelay;
 	if(m_uThumbState == kControlStatePushed) {
 		if( !m_bHorizontal ) {
-			if( m_pOwner != NULL ) m_pOwner->SetScrollPos(CSize(m_pOwner->GetScrollPos().cx, 
+			if( m_pOwner != NULL ) m_pOwner->SetScrollPos(UiSize(m_pOwner->GetScrollPos().cx, 
 				                                                static_cast<int>(m_nLastScrollPos + m_nLastScrollOffset))); 
 			else SetScrollPos(m_nLastScrollPos + m_nLastScrollOffset);
 		}
 		else {
-			if( m_pOwner != NULL ) m_pOwner->SetScrollPos(CSize(static_cast<int>(m_nLastScrollPos + m_nLastScrollOffset),
+			if( m_pOwner != NULL ) m_pOwner->SetScrollPos(UiSize(static_cast<int>(m_nLastScrollPos + m_nLastScrollOffset),
 															    m_pOwner->GetScrollPos().cy)); 
 			else SetScrollPos(m_nLastScrollPos + m_nLastScrollOffset);
 		}

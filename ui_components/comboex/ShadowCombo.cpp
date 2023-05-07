@@ -17,7 +17,7 @@ void CShadowComboWnd::InitComboWnd(ShadowCombo* pOwner)
     m_iOldSel = m_pOwner->GetCurSel();
 
     // Position the popup window in absolute space
-    ui::CSize szDrop = m_pOwner->GetDropBoxSize();
+    ui::UiSize szDrop = m_pOwner->GetDropBoxSize();
     ui::UiRect rcOwner = pOwner->GetPosWithScrollOffset();
     int iItemHeight = m_iOldSel > -1 ? pOwner->GetItemAt(m_iOldSel)->GetFixedHeight() : 0;
     int iOffset = iItemHeight * (m_iOldSel + 1);
@@ -33,7 +33,7 @@ void CShadowComboWnd::InitComboWnd(ShadowCombo* pOwner)
     rc.bottom = rc.top + szDrop.cy;	// 计算弹出窗口高度
     if (szDrop.cx > 0) rc.right = rc.left + szDrop.cx;	// 计算弹出窗口宽度
 
-    ui::CSize szAvailable(rc.right - rc.left, rc.bottom - rc.top);
+    ui::UiSize szAvailable(rc.right - rc.left, rc.bottom - rc.top);
     int cyFixed = 0;
     for (int it = 0; it < pOwner->GetListBox()->GetCount(); it++) {
         ui::Control* pControl = pOwner->GetListBox()->GetItemAt(it);
@@ -43,7 +43,7 @@ void CShadowComboWnd::InitComboWnd(ShadowCombo* pOwner)
         if (!pControl->IsVisible()) {
             continue;
         }
-        ui::CSize sz = pControl->EstimateSize(szAvailable);
+        ui::UiSize sz = pControl->EstimateSize(szAvailable);
         cyFixed += sz.cy;
     }
 
@@ -166,7 +166,7 @@ ShadowCombo::ShadowCombo():
     m_sShadowImage(L"file = '../public/bk/bk_combo_shadow.png' corner = '5,4,5,6'"),
     m_cArrow(nullptr),
     m_bInit(false) {
-    SetDropBoxSize(ui::CSize(0, 150));
+    SetDropBoxSize(ui::UiSize(0, 150));
     SetShadowCorner({ 5,4,5,6 });
     SetArrowOffset(10);
 
@@ -202,7 +202,7 @@ void ShadowCombo::DoInit()
         m_cArrow->SetWindow(GetWindow());
         AttachResize(ToWeakCallback([this](const ui::EventArgs& /*args*/) {
             ui::UiRect rect = m_rcItem;
-            ui::CSize ArrrowSize = m_cArrow->EstimateSize(ui::CSize(m_rcItem.GetWidth(), m_rcItem.GetHeight()));
+            ui::UiSize ArrrowSize = m_cArrow->EstimateSize(ui::UiSize(m_rcItem.GetWidth(), m_rcItem.GetHeight()));
             rect.top = m_rcItem.top + (m_rcItem.GetHeight() - ArrrowSize.cy) / 2;
             rect.bottom = rect.top + ArrrowSize.cy;
             rect.left = m_rcItem.right - ArrrowSize.cx - m_iArrowOffset;
@@ -278,7 +278,7 @@ void ShadowCombo::SetAttribute(const std::wstring& strName, const std::wstring& 
     else if (strName == L"vscrollbar") {}
     else if (strName == L"dropboxsize")
     {
-        ui::CSize szDropBoxSize;
+        ui::UiSize szDropBoxSize;
         LPTSTR pstr = NULL;
         szDropBoxSize.cx = wcstol(strValue.c_str(), &pstr, 10); ASSERT(pstr);
         szDropBoxSize.cy = wcstol(pstr + 1, &pstr, 10); ASSERT(pstr);
@@ -394,12 +394,12 @@ void ShadowCombo::SetDropBoxAttributeList(const std::wstring& pstrList)
     m_pLayout->ApplyAttributeList(pstrList);
 }
 
-ui::CSize ShadowCombo::GetDropBoxSize() const
+ui::UiSize ShadowCombo::GetDropBoxSize() const
 {
     return m_szDropBox;
 }
 
-void ShadowCombo::SetDropBoxSize(ui::CSize szDropBox)
+void ShadowCombo::SetDropBoxSize(ui::UiSize szDropBox)
 {
     ui::DpiManager::GetInstance()->ScaleSize(szDropBox);
     m_szDropBox = szDropBox;

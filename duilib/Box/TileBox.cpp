@@ -9,7 +9,7 @@ TileLayout::TileLayout() : m_nColumns(1), m_szItem(0, 0)
 
 }
 
-CSize TileLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
+UiSize TileLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 {
 	// Position the elements
 	if( m_szItem.cx > 0 ) m_nColumns = (rc.right - rc.left) / m_szItem.cx;
@@ -21,7 +21,7 @@ CSize TileLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 	int tmpDeviation = deviation;
 	int cyHeight = 0;
 	int iCount = 0;
-	CPoint ptTile(rc.left, rc.top);
+	UiPoint ptTile(rc.left, rc.top);
 	int iPosX = rc.left;
 
 	for( auto it = items.begin(); it != items.end(); ++it ) {
@@ -59,7 +59,7 @@ CSize TileLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 				}
 
 				UiRect rcMargin = pLineControl->GetMargin();
-				CSize szAvailable(rcTile.right - rcTile.left - rcMargin.left - rcMargin.right, 9999);
+				UiSize szAvailable(rcTile.right - rcTile.left - rcMargin.left - rcMargin.right, 9999);
 				if( iIndex == iCount || (iIndex + 1) % m_nColumns == 0 ) {
 					szAvailable.cx -= m_iChildMargin / 2;
 				}
@@ -70,7 +70,7 @@ CSize TileLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 				if( szAvailable.cx < pControl->GetMinWidth() ) szAvailable.cx = pControl->GetMinWidth();
 				if( pControl->GetMaxWidth() >= 0 && szAvailable.cx > pControl->GetMaxWidth() ) szAvailable.cx = pControl->GetMaxWidth();
 
-				CSize szTile = pLineControl->EstimateSize(szAvailable);
+				UiSize szTile = pLineControl->EstimateSize(szAvailable);
 				if( szTile.cx < pControl->GetMinWidth() ) szTile.cx = pControl->GetMinWidth();
 				if( pControl->GetMaxWidth() >= 0 && szTile.cx > pControl->GetMaxWidth() ) szTile.cx = pControl->GetMaxWidth();
 				if( szTile.cy < pControl->GetMinHeight() ) szTile.cy = pControl->GetMinHeight();
@@ -90,8 +90,8 @@ CSize TileLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 		newRcTile.top = ptTile.y + rcMargin.top;
 		newRcTile.bottom = ptTile.y + cyHeight;
 
-		CSize szAvailable(newRcTile.right - newRcTile.left, newRcTile.bottom - newRcTile.top);
-		CSize szTile = pControl->EstimateSize(szAvailable);
+		UiSize szAvailable(newRcTile.right - newRcTile.left, newRcTile.bottom - newRcTile.top);
+		UiSize szTile = pControl->EstimateSize(szAvailable);
 		if( szTile.cx == DUI_LENGTH_STRETCH ) szTile.cx = szAvailable.cx;
 		if( szTile.cy == DUI_LENGTH_STRETCH ) szTile.cy = szAvailable.cy;
 		if( szTile.cx < pControl->GetMinWidth() ) szTile.cx = pControl->GetMinWidth();
@@ -114,13 +114,13 @@ CSize TileLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 		cyNeeded = newRcTile.bottom - rc.top;
 	}
 
-	CSize size(rc.right - rc.left, cyNeeded);
+	UiSize size(rc.right - rc.left, cyNeeded);
 	return size;
 }
 
-CSize TileLayout::AjustSizeByChild(const std::vector<Control*>& items, CSize szAvailable)
+UiSize TileLayout::AjustSizeByChild(const std::vector<Control*>& items, UiSize szAvailable)
 {
-	CSize size = m_pOwner->Control::EstimateSize(szAvailable);
+	UiSize size = m_pOwner->Control::EstimateSize(szAvailable);
 	size.cy = 0;
 
 	if( m_szItem.cx > 0 ) m_nColumns = m_pOwner->GetFixedWidth() / m_szItem.cx;
@@ -156,7 +156,7 @@ bool TileLayout::SetAttribute(const std::wstring& strName, const std::wstring& s
 {
 	bool hasAttribute = true;
 	if( strName == L"itemsize") {
-		CSize szItem;
+		UiSize szItem;
 		LPTSTR pstr = NULL;
 		szItem.cx = wcstol(strValue.c_str(), &pstr, 10);  ASSERT(pstr);
 		szItem.cy = wcstol(pstr + 1, &pstr, 10);   ASSERT(pstr);
@@ -174,12 +174,12 @@ bool TileLayout::SetAttribute(const std::wstring& strName, const std::wstring& s
 	return hasAttribute;
 }
 
-CSize TileLayout::GetItemSize() const
+UiSize TileLayout::GetItemSize() const
 {
 	return m_szItem;
 }
 
-void TileLayout::SetItemSize(CSize szItem, bool bNeedDpiScale)
+void TileLayout::SetItemSize(UiSize szItem, bool bNeedDpiScale)
 {
   if (bNeedDpiScale)
 	  DpiManager::GetInstance()->ScaleSize(szItem);

@@ -83,11 +83,11 @@ namespace ui
 		}
 	}
 
-	bool GridBody::_GetGridItemByMouse(CPoint pt, CPoint& position, bool fixed)
+	bool GridBody::_GetGridItemByMouse(UiPoint pt, UiPoint& position, bool fixed)
 	{
 		int fixed_row_height = GetFixedRowHeight();
 		int fixed_col_width = GetFixedColWidth();
-		CSize szOff = m_pGrid->GetScrollPos();
+		UiSize szOff = m_pGrid->GetScrollPos();
 
 		pt.Offset(-m_rcItem.left, -m_rcItem.top);
 		ASSERT(pt.x > 0 && pt.y > 0);
@@ -108,7 +108,7 @@ namespace ui
 					posx = -szOff.cx;
 				else if (rcFixedCol.IsPointIn(pt))
 					posy = -szOff.cy;
-				CPoint pt_position;
+				UiPoint pt_position;
 				for (size_t i = 0; i < (size_t)GetRowCount(); i++)
 				{
 					posy += m_vLayout[i];
@@ -142,7 +142,7 @@ namespace ui
 		ASSERT(pt.x - fixed_col_width > 0 && pt.y - fixed_row_height > 0 && pt.x < m_pGrid->GetWidth() && pt.y < m_pGrid->GetHeight());
 		if (pt.x - fixed_col_width > 0 && pt.y - fixed_row_height > 0 && pt.x < m_pGrid->GetWidth() && pt.y < m_pGrid->GetHeight())	
 		{
-			CPoint ptOff = pt, pt_position;
+			UiPoint ptOff = pt, pt_position;
 			ptOff.Offset(szOff.cx, szOff.cy);
 			int posx = 0, posy = 0;
 
@@ -219,7 +219,7 @@ namespace ui
 		m_rcPaintRange.right = -1;
 		m_rcPaintRange.bottom = -1;
 
-		CSize szOff = m_pGrid->GetScrollPos();
+		UiSize szOff = m_pGrid->GetScrollPos();
 		int posx = 0;
 		int posy = 0;
 		int row_count = GetRowCount();
@@ -960,18 +960,18 @@ namespace ui
 	bool GridBody::ButtonDown(const EventArgs& msg)
 	{
 		_EndEdit();
-		CPoint position;
+		UiPoint position;
 		bool ctrl = (msg.wParam & MK_CONTROL);
 		bool shift = (msg.wParam& MK_SHIFT);
-		bool bFind = _GetGridItemByMouse(CPoint(msg.ptMouse), position, true);
+		bool bFind = _GetGridItemByMouse(UiPoint(msg.ptMouse), position, true);
 		if (bFind)
 		{
 			printf("GridBody::ButtonDown item position{%d,%d}\n", position.x, position.y);
 
-			CSize szOff = m_pGrid->GetScrollPos();
+			UiSize szOff = m_pGrid->GetScrollPos();
 			int fixed_col_width = GetFixedColWidth();
 			int grid_width = m_pGrid->GetWidth();
-			CPoint pt (msg.ptMouse);
+			UiPoint pt (msg.ptMouse);
 			pt.Offset(-m_rcItem.left, -m_rcItem.top);
 			ASSERT(pt.x > 0 && pt.y > 0);
 			if (pt.x <= 0 || pt.y <= 0 || m_vLayout.size() == 0)
@@ -1064,7 +1064,7 @@ namespace ui
 		if (m_nDragColIndex != -1)
 		{
 			ASSERT(m_nDragColIndex < GetColCount());
-			CPoint pt(msg.ptMouse);
+			UiPoint pt(msg.ptMouse);
 			pt.Offset(-m_rcItem.left, -m_rcItem.top);
 			int width = GetColumnWidth(m_nDragColIndex) + pt.x - m_ptDragColumnStart.x;
 			if (width < MIN_COLUMN_WIDTH)
@@ -1086,8 +1086,8 @@ namespace ui
 
 	bool GridBody::OnMouseDoubleClick(const EventArgs& msg)
 	{
-		CPoint position;
-		bool bFind = _GetGridItemByMouse(CPoint(msg.ptMouse), position);
+		UiPoint position;
+		bool bFind = _GetGridItemByMouse(UiPoint(msg.ptMouse), position);
 		if (bFind)
 		{
 			GridItem *item = GetGridItem(position.y, position.x);
@@ -1100,10 +1100,10 @@ namespace ui
 		}
 		else
 		{
-			CSize szOff = m_pGrid->GetScrollPos();
+			UiSize szOff = m_pGrid->GetScrollPos();
 			int fixed_col_width = GetFixedColWidth();
 
-			CPoint pt(msg.ptMouse);
+			UiPoint pt(msg.ptMouse);
 
 			pt.Offset(-m_rcItem.left, -m_rcItem.top);
 			ASSERT(pt.x > 0 && pt.y > 0);
@@ -1145,10 +1145,10 @@ namespace ui
 
 	bool GridBody::OnMouseMove(const EventArgs& msg)
 	{
-		CSize szOff = m_pGrid->GetScrollPos();
+		UiSize szOff = m_pGrid->GetScrollPos();
 		int fixed_col_width = GetFixedColWidth();
 
-		CPoint pt(msg.ptMouse);
+		UiPoint pt(msg.ptMouse);
 		pt.Offset(-m_rcItem.left, -m_rcItem.top);
 		//ASSERT(pt.x > 0 && pt.y > 0);
 		if (pt.x <= 0 || pt.y <= 0 || m_vLayout.size() == 0)
@@ -1164,10 +1164,10 @@ namespace ui
 			{
 				if (pt.x >= m_pGrid->GetWidth() || pt.y >= m_pGrid->GetHeight())		//超出Grid控件位置限制
 					return true;
-				CPoint position;
+				UiPoint position;
 				bool ctrl = (msg.wParam & MK_CONTROL);
 				bool shift = (msg.wParam& MK_SHIFT);
-				bool bFind = _GetGridItemByMouse(CPoint(msg.ptMouse), position, true);
+				bool bFind = _GetGridItemByMouse(UiPoint(msg.ptMouse), position, true);
 				if (bFind && (position != m_ptDragSelStart || m_bDrageSelChanged))
 				{
 					if (position != m_ptDragSelStart)
@@ -1291,7 +1291,7 @@ namespace ui
 				pControl->AlphaPaint(pRender, rcPaint);
 			}
 			else */{
-				CSize scrollPos = m_pGrid->GetScrollPos();
+				UiSize scrollPos = m_pGrid->GetScrollPos();
 				UiRect rcNewPaint = GetPaddingPos();
 				rcNewPaint.left += GetFixedColWidth();			
 				/*rcNewPaint.top += GetFixedRowHeight();*/		//可能表头存在控件
@@ -1301,8 +1301,8 @@ namespace ui
 				rcNewPaint.Offset(scrollPos.cx, scrollPos.cy);
 				rcNewPaint.Offset(GetRenderOffset().x, GetRenderOffset().y);
 
-				CPoint ptOffset(scrollPos.cx, scrollPos.cy);
-				CPoint ptOldOrg = pRender->OffsetWindowOrg(ptOffset);
+				UiPoint ptOffset(scrollPos.cx, scrollPos.cy);
+				UiPoint ptOldOrg = pRender->OffsetWindowOrg(ptOffset);
 				pControl->AlphaPaint(pRender, rcNewPaint);
 				pRender->SetWindowOrg(ptOldOrg);
 			}
@@ -1328,7 +1328,7 @@ namespace ui
 		__super::PaintBorder(pRender);
 		if (m_pGrid->m_bPaintGridLine && m_hLayout.size() > 0 && m_vLayout.size() > 0)
 		{
-			CSize szOff = m_pGrid->GetScrollPos();
+			UiSize szOff = m_pGrid->GetScrollPos();
 			int posx = 0, posy = 0;
 			int fixed_col_width = GetFixedColWidth();
 			int fixed_row_height = GetFixedRowHeight();
@@ -1337,7 +1337,7 @@ namespace ui
 			UiRect rcLineH, rcLineV;
 			DWORD dwGridLineColor = GlobalManager::GetTextColor(m_strGridLineColor);
 
-			CPoint ptOldOrg = pRender->OffsetWindowOrg({ -m_rcItem.left, -m_rcItem.top });
+			UiPoint ptOldOrg = pRender->OffsetWindowOrg({ -m_rcItem.left, -m_rcItem.top });
 			{
 				//draw fixed HLine
 				rcLineH.left = 0;
@@ -1401,7 +1401,7 @@ namespace ui
 
 	void GridBody::PaintBody(IRenderContext* pRender)
 	{
-		CSize szOff = m_pGrid->GetScrollPos();
+		UiSize szOff = m_pGrid->GetScrollPos();
 		int posx = 0;
 		int posy = 0;
 		int row_count = GetRowCount();

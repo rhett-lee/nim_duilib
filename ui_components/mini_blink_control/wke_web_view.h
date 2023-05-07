@@ -29,7 +29,7 @@ class WkeWebView : public ui::Control,
  private:
   void OnCursorChange();
   bool SetCursorInfoTypeByCache();
-  bool GetWebViewPos(ui::CPoint& point);
+  bool GetWebViewPos(ui::UiPoint& point);
 
   bool m_bInit = false;
   bool m_bWheelEnabled = true;

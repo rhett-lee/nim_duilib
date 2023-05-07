@@ -37,10 +37,10 @@ VirtualTileLayout::VirtualTileLayout()
   m_nColumns = -1;
 }
 
-ui::CSize VirtualTileLayout::ArrangeChild(const std::vector<ui::Control*>& items, ui::UiRect rc)
+ui::UiSize VirtualTileLayout::ArrangeChild(const std::vector<ui::Control*>& items, ui::UiRect rc)
 {
     (void)items;
-  ui::CSize sz(rc.GetWidth(), rc.GetHeight());
+  ui::UiSize sz(rc.GetWidth(), rc.GetHeight());
 
   VirtualTileBox* pList = dynamic_cast<VirtualTileBox*>(m_pOwner);
   (void)pList;
@@ -53,14 +53,14 @@ ui::CSize VirtualTileLayout::ArrangeChild(const std::vector<ui::Control*>& items
   return sz;
 }
 
-ui::CSize VirtualTileLayout::AjustSizeByChild(const std::vector<ui::Control*>& items, ui::CSize szAvailable)
+ui::UiSize VirtualTileLayout::AjustSizeByChild(const std::vector<ui::Control*>& items, ui::UiSize szAvailable)
 {
   (void)items;
   VirtualTileBox* pList = dynamic_cast<VirtualTileBox*>(m_pOwner);
   (void)pList;
   ASSERT(pList);
 
-  ui::CSize size = m_pOwner->Control::EstimateSize(szAvailable);
+  ui::UiSize size = m_pOwner->Control::EstimateSize(szAvailable);
   if (size.cx == DUI_LENGTH_AUTO || size.cx == 0)
   {
     size.cx = m_szItem.cx * m_nColumns + m_iChildMargin * (m_nColumns - 1);
@@ -134,7 +134,7 @@ void VirtualTileLayout::LazyArrangeChild()
   // 子项的顶部起始位置 
   int iPosTop = rc.top + pList->GetScrollPos().cy;
 
-  ui::CPoint ptTile(iPosLeft, iPosTop);
+  ui::UiPoint ptTile(iPosLeft, iPosTop);
 
   // 顶部index
   int nTopBottom = 0;
@@ -328,11 +328,11 @@ void VirtualTileBox::EnsureVisible(int iIndex, bool bToTop /*= false*/)
       nNewPos = CalcElementsHeight(iIndex);
     }
   }
-  ui::CSize sz(0, nNewPos);
+  ui::UiSize sz(0, nNewPos);
   SetScrollPos(sz);
 }
 
-void VirtualTileBox::SetScrollPos(ui::CSize szPos)
+void VirtualTileBox::SetScrollPos(ui::UiSize szPos)
 {
   m_nOldYScrollPos = GetScrollPos().cy;
   ListBox::SetScrollPos(szPos);

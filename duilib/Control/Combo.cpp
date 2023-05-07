@@ -32,14 +32,14 @@ void CComboWnd::InitComboWnd(Combo* pOwner)
     m_iOldSel = m_pOwner->GetCurSel();
 
     // Position the popup window in absolute space
-    CSize szDrop = m_pOwner->GetDropBoxSize();
+    UiSize szDrop = m_pOwner->GetDropBoxSize();
     UiRect rcOwner = pOwner->GetPosWithScrollOffset();
     UiRect rc = rcOwner;
     rc.top = rc.bottom + 1;		// 父窗口left、bottom位置作为弹出窗口起点
     rc.bottom = rc.top + szDrop.cy;	// 计算弹出窗口高度
     if( szDrop.cx > 0 ) rc.right = rc.left + szDrop.cx;	// 计算弹出窗口宽度
 
-    CSize szAvailable(rc.right - rc.left, rc.bottom - rc.top);
+    UiSize szAvailable(rc.right - rc.left, rc.bottom - rc.top);
     int cyFixed = 0;
 	for (int it = 0; it < pOwner->GetListBox()->GetCount(); it++) {
 		Control* pControl = pOwner->GetListBox()->GetItemAt(it);
@@ -49,7 +49,7 @@ void CComboWnd::InitComboWnd(Combo* pOwner)
 		if (!pControl->IsVisible()) {
 			continue;
 		}
-        CSize sz = pControl->EstimateSize(szAvailable);
+        UiSize sz = pControl->EstimateSize(szAvailable);
         cyFixed += sz.cy;
     }
 
@@ -246,7 +246,7 @@ void Combo::SetAttribute(const std::wstring& strName, const std::wstring& strVal
 	else if (strName == L"vscrollbar") {}
 	else if (strName == L"dropboxsize")
 	{
-		CSize szDropBoxSize;
+		UiSize szDropBoxSize;
 		LPTSTR pstr = NULL;
 		szDropBoxSize.cx = wcstol(strValue.c_str(), &pstr, 10); ASSERT(pstr);
 		szDropBoxSize.cy = wcstol(pstr + 1, &pstr, 10); ASSERT(pstr);
@@ -343,12 +343,12 @@ void Combo::SetDropBoxAttributeList(const std::wstring& pstrList)
 	m_pLayout->ApplyAttributeList(pstrList);
 }
 
-CSize Combo::GetDropBoxSize() const
+UiSize Combo::GetDropBoxSize() const
 {
     return m_szDropBox;
 }
 
-void Combo::SetDropBoxSize(CSize szDropBox)
+void Combo::SetDropBoxSize(UiSize szDropBox)
 {
 	DpiManager::GetInstance()->ScaleSize(szDropBox);
     m_szDropBox = szDropBox;

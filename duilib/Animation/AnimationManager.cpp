@@ -70,7 +70,7 @@ AnimationPlayer* AnimationManager::SetFadeWidth(bool bFadeWidth)
 	if (bFadeWidth) {
 		animationArgs = new AnimationPlayer();
 		animationArgs->SetStartValue(0);
-		CSize size(999999, 999999);
+		UiSize size(999999, 999999);
 		size = m_pControl->EstimateSize(size);
 		ASSERT(size.cy >= -2);
 		animationArgs->SetEndValue(size.cx);
@@ -94,7 +94,7 @@ AnimationPlayer* AnimationManager::SetFadeHeight(bool bFadeHeight)
 	if (bFadeHeight) {
 		animationArgs = new AnimationPlayer();
 		animationArgs->SetStartValue(0);
-		CSize size(999999, 999999);
+		UiSize size(999999, 999999);
 		size = m_pControl->EstimateSize(size);
 		ASSERT(size.cy > 0);
 		animationArgs->SetEndValue(size.cy);
@@ -117,7 +117,7 @@ AnimationPlayer* AnimationManager::SetFadeInOutX(bool bFade, bool bIsFromRight)
 	AnimationPlayer* animationArgs = nullptr;
 	if (bFade) {
 		animationArgs = new AnimationPlayer();
-		CSize size(999999, 999999);
+		UiSize size(999999, 999999);
 		size = m_pControl->EstimateSize(size);
 		if (size.cx <= 0) {
 			size.cx = 100;
@@ -155,7 +155,7 @@ AnimationPlayer* AnimationManager::SetFadeInOutY(bool bFade, bool bIsFromBottom)
 	AnimationPlayer* animationArgs = nullptr;
 	if (bFade) {
 		animationArgs = new AnimationPlayer();
-		CSize size(999999, 999999);
+		UiSize size(999999, 999999);
 		size = m_pControl->EstimateSize(size);
 		if (size.cy <= 0) {
 			size.cy = 100;

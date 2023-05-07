@@ -154,14 +154,14 @@ LRESULT WkeWebView::FilterMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool&
   case WM_RBUTTONUP:
   case WM_MOUSEMOVE:
   {
-    ui::CPoint pOriginPt;
+    ui::UiPoint pOriginPt;
     pOriginPt.x = GET_X_LPARAM(lParam);
     pOriginPt.y = GET_Y_LPARAM(lParam);
     if (pOriginPt.x == -1 || pOriginPt.y == -1) {
       break;
     }
 
-    ui::CPoint pWebPt = pOriginPt;
+    ui::UiPoint pWebPt = pOriginPt;
 
     if (!GetWebViewPos(pWebPt)) {
       break;
@@ -204,7 +204,7 @@ LRESULT WkeWebView::FilterMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool&
 
   case WM_CONTEXTMENU:
   {
-    ui::CPoint pt;
+    ui::UiPoint pt;
     pt.x = GET_X_LPARAM(lParam);
     pt.y = GET_Y_LPARAM(lParam);
     if (pt.x == -1 || pt.y == -1) {
@@ -240,7 +240,7 @@ LRESULT WkeWebView::FilterMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool&
       break;
     }
 
-    ui::CPoint pt;
+    ui::UiPoint pt;
     pt.x = GET_X_LPARAM(lParam);
     pt.y = GET_Y_LPARAM(lParam);
     if (pt.x == -1 || pt.y == -1) {
@@ -326,7 +326,7 @@ void WkeWebView::OnCursorChange() {
 bool WkeWebView::SetCursorInfoTypeByCache() {
   HWND hWnd = GetWindow()->GetHWND();
 
-  ui::CPoint pt;
+  ui::UiPoint pt;
   ::GetCursorPos(&pt);
   ::ScreenToClient(hWnd, &pt);
   if (!GetWebViewPos(pt))
@@ -388,7 +388,7 @@ bool WkeWebView::SetCursorInfoTypeByCache() {
   return false;
 }
 
-bool WkeWebView::GetWebViewPos(ui::CPoint& point) {
+bool WkeWebView::GetWebViewPos(ui::UiPoint& point) {
   point.Offset(GetScrollOffset());
   if (!m_rcItem.IsPointIn(point))
     return false;

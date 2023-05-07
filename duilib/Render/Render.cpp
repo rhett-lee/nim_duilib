@@ -157,26 +157,26 @@ void RenderContext_GdiPlus::Restore()
 	RestoreDC(m_hDC, m_saveDC);
 }
 
-CPoint RenderContext_GdiPlus::OffsetWindowOrg(CPoint ptOffset)
+UiPoint RenderContext_GdiPlus::OffsetWindowOrg(UiPoint ptOffset)
 {
-	CPoint ptOldWindowOrg;
+	UiPoint ptOldWindowOrg;
 	GetWindowOrgEx(m_hDC, &ptOldWindowOrg);
 	ptOffset.Offset(ptOldWindowOrg.x, ptOldWindowOrg.y);
 	::SetWindowOrgEx(m_hDC, ptOffset.x, ptOffset.y, NULL);
 	return ptOldWindowOrg;
 }
 
-CPoint RenderContext_GdiPlus::SetWindowOrg(CPoint ptOffset)
+UiPoint RenderContext_GdiPlus::SetWindowOrg(UiPoint ptOffset)
 {
-	CPoint ptOldWindowOrg;
+	UiPoint ptOldWindowOrg;
 	GetWindowOrgEx(m_hDC, &ptOldWindowOrg);
 	::SetWindowOrgEx(m_hDC, ptOffset.x, ptOffset.y, NULL);
 	return ptOldWindowOrg;
 }
 
-CPoint RenderContext_GdiPlus::GetWindowOrg() const
+UiPoint RenderContext_GdiPlus::GetWindowOrg() const
 {
-	CPoint ptWindowOrg;
+	UiPoint ptWindowOrg;
 	GetWindowOrgEx(m_hDC, &ptWindowOrg);
 	return ptWindowOrg;
 }
@@ -519,7 +519,7 @@ void RenderContext_GdiPlus::DrawRect(const UiRect& rc, int nSize, DWORD dwPenCol
 }
 
 
-void RenderContext_GdiPlus::DrawRoundRect(const UiRect& rc, const CSize& roundSize, int nSize, DWORD dwPenColor)
+void RenderContext_GdiPlus::DrawRoundRect(const UiRect& rc, const UiSize& roundSize, int nSize, DWORD dwPenColor)
 {
 	Gdiplus::Graphics graphics(m_hDC);
 	graphics.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
@@ -688,8 +688,8 @@ void RenderContext_GdiPlus::FillPath(const IPath* path, const IBrush* brush)
 }
 
 void RenderContext_GdiPlus::DrawBoxShadow(const UiRect& rc, 
-	const CSize& roundSize, 
-	const CPoint& cpOffset, 
+	const UiSize& roundSize, 
+	const UiPoint& cpOffset, 
 	int nBlurRadius, 
 	int nBlurSize, 
 	int nSpreadSize, 
@@ -720,7 +720,7 @@ void RenderContext_GdiPlus::DrawBoxShadow(const UiRect& rc,
 	Gdiplus::GraphicsPath shadowPath;
 	Gdiplus::GraphicsPath excludePath;
 
-	auto add_roundcorner_path = [](Gdiplus::GraphicsPath& path, const Gdiplus::RectF& rect, const CSize& roundSize) {
+	auto add_roundcorner_path = [](Gdiplus::GraphicsPath& path, const Gdiplus::RectF& rect, const UiSize& roundSize) {
 		path.AddArc(rect.GetLeft(), rect.GetTop(), (Gdiplus::REAL)roundSize.cx, (Gdiplus::REAL)roundSize.cy, 180, 90);
 		path.AddLine(rect.GetLeft() + (Gdiplus::REAL)roundSize.cx, rect.GetTop(), rect.GetRight() - (Gdiplus::REAL)roundSize.cx, rect.GetTop());
 		path.AddArc(rect.GetRight() - (Gdiplus::REAL)roundSize.cx, rect.GetTop(), (Gdiplus::REAL)roundSize.cx, (Gdiplus::REAL)roundSize.cy, 270, 90);

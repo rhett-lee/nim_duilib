@@ -256,14 +256,14 @@ public:
 	 * @brief 获取边框大小
 	 * @return 四个方向的边框大小
 	 */
-	CSize GetBorderRound() const;
+	UiSize GetBorderRound() const;
 
 	/**
 	 * @brief 设置边框大小
-	 * @param[in] cxyRound 一个 CSize 结构表示了四个方向边框的大小
+	 * @param[in] cxyRound 一个 UiSize 结构表示了四个方向边框的大小
 	 * @return 无
 	 */
-	void SetBorderRound(CSize cxyRound);
+	void SetBorderRound(UiSize cxyRound);
 
 	/**
 	 * @brief 设置边框阴影
@@ -506,7 +506,7 @@ public:
 	 * @param[in] scrollPos
 	 * @return 返回控件的指针
 	 */
-    virtual Control* FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, CPoint scrollPos = CPoint());
+    virtual Control* FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, UiPoint scrollPos = UiPoint());
 
 	/// 位置相关
 	/**
@@ -542,21 +542,21 @@ public:
 	 * @param[in] szAvailable 暂无意义
 	 * @return szAvailable 控件实际大小（如果设置了图片并设置 width 或 height 任意一项为 auto，将根据图片来计算最终大小）
 	 */
-	virtual CSize EstimateSize(CSize szAvailable) override;
+	virtual UiSize EstimateSize(UiSize szAvailable) override;
 
 	/**
 	 * @brief 待补充
 	 * @param[in] 待补充
 	 * @return 待补充
 	 */
-	virtual CSize EstimateText(CSize szAvailable, bool& bReEstimateSize);
+	virtual UiSize EstimateText(UiSize szAvailable, bool& bReEstimateSize);
 
 	/**
 	 * @brief 检查指定坐标是否在滚动条当前滚动位置的范围内
 	 * @param[in] point 具体坐标
 	 * @return 返回是否在范围内，true 在滚动条当前滚动位置范围内，false 不在滚动条当前滚动位置范围内
 	 */
-	virtual bool IsPointInWithScrollOffset(const CPoint& point) const;
+	virtual bool IsPointInWithScrollOffset(const UiPoint& point) const;
 
 #if defined(ENABLE_UIAUTOMATION)
 	/**
@@ -578,7 +578,7 @@ public:
 			        	   WPARAM wParam = 0, 
 						   LPARAM lParam = 0, 
 						   TCHAR tChar = 0, 
-						   const CPoint& mousePos = CPoint(),
+						   const UiPoint& mousePos = UiPoint(),
 						   FLOAT pressure = 0.0f);
 
 	/** @brief 将转换后的消息派发到消息处理函数
@@ -750,14 +750,14 @@ public:
 	 * @brief 获取控件绘制偏移量
 	 * @return 返回当前控件的绘制偏移量
 	 */
-	CPoint GetRenderOffset() const { return m_renderOffset;	}
+	UiPoint GetRenderOffset() const { return m_renderOffset;	}
 
 	/**
 	 * @brief 设置控件绘制偏移量
 	 * @param[in] renderOffset 控件偏移数据
 	 * @return 无
 	 */
-	void SetRenderOffset(CPoint renderOffset);
+	void SetRenderOffset(UiPoint renderOffset);
 
 	/**
 	 * @brief 设置控件偏移的 X 坐标
@@ -1076,9 +1076,9 @@ protected:
 	int m_nAlpha;
 	int m_nHotAlpha;
 	int m_fCurrrentAngele;
-	CSize m_szEstimateSize;
-	CPoint m_renderOffset;
-	CSize m_cxyBorderRound;
+	UiSize m_szEstimateSize;
+	UiPoint m_renderOffset;
+	UiSize m_cxyBorderRound;
 	UiRect m_rcMargin;
 	UiRect m_rcPaint;
 	UiRect m_rcBorderSize;

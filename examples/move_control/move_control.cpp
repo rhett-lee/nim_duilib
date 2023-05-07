@@ -218,14 +218,14 @@ bool MoveControlForm::DoAfterDrag(ui::Box* check)
 	ScreenToClient(GetHWND(), &pt);
 	int findIndex = 0;
 	UiRect rectBox = check->GetPos();
-	if (rectBox.IsPointIn(CPoint(pt)))
+	if (rectBox.IsPointIn(UiPoint(pt)))
 	{
 		//最好是重合面积更大的，这里根据鼠标位置来了
 		for (findIndex = 0; findIndex < check->GetCount(); findIndex++)
 		{
 			auto control = check->GetItemAt(findIndex);
 			UiRect rectCtrl = control->GetPos();
-			if (rectCtrl.IsPointIn(CPoint(pt)))
+			if (rectCtrl.IsPointIn(UiPoint(pt)))
 			{
 				//插入到该index
 				break;

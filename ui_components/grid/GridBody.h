@@ -233,7 +233,7 @@ namespace ui
 		* @param[in] fixed:	是否包含fixed区域;
 		* @return true为成功, 坐标从position获取, false为失败;
 		*/
-		bool _GetGridItemByMouse(CPoint pt, CPoint& position, bool fixed = false);
+		bool _GetGridItemByMouse(UiPoint pt, UiPoint& position, bool fixed = false);
 
 		/*
 		* @brief 获取row_index的GridItem的top位置;
@@ -298,15 +298,15 @@ namespace ui
 
 		/* 拖动表头相关 */
 		int m_nDragColIndex = -1;					//被拖动的col_index
-		CPoint m_ptDragColumnStart;					//鼠标按下时mousepoint, 以Grid为zero点
-		CPoint m_ptDragColumnMoving;				//拖动列宽状态下鼠标移动的位置, 以Grid为zero点
+		UiPoint m_ptDragColumnStart;					//鼠标按下时mousepoint, 以Grid为zero点
+		UiPoint m_ptDragColumnMoving;				//拖动列宽状态下鼠标移动的位置, 以Grid为zero点
 		int m_nDrawDragColumnMovingOffX = 0;		// = m_nDragColIndex的右边界 -  m_ptDragColumnMoving.x; 为了保证拖动线的位置准确性
 
 		/* 拖动选中相关 */
 		bool m_bDragSel = false;
 		bool m_bDrageSelChanged = false;
-		CPoint m_ptDragSelStart;					//保存选中拖动起始row_index和col_index
-		CPoint m_ptDragSelMoving;					//拖动选中状态下row_index和col_index的位置
+		UiPoint m_ptDragSelStart;					//保存选中拖动起始row_index和col_index
+		UiPoint m_ptDragSelMoving;					//拖动选中状态下row_index和col_index的位置
 
 		/*	(暂不用)
 		*  非fixed区域的显示GridItem坐标区域;

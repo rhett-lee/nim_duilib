@@ -267,7 +267,7 @@ public:
 
 	/**@brief 获取窗口圆角大小，对应 XML 中 roundcorner 属性
 	 */
-	const CSize& GetRoundCorner() const;
+	const UiSize& GetRoundCorner() const;
 
 	/**@brief 设置窗口圆角大小
 	 * @param[in] cx 圆角宽
@@ -325,7 +325,7 @@ public:
 	/**@brief 获取窗口最小范围，对应 XML 中 mininfo 属性
 	 * @param[in] bContainShadow 是否包含阴影范围，默认为 false
 	 */
-	CSize GetMinInfo(bool bContainShadow = false) const;
+	UiSize GetMinInfo(bool bContainShadow = false) const;
 
 	/**@brief 设置窗口最小范围
 	 * @param[in] cx 宽度
@@ -338,7 +338,7 @@ public:
 	/**@brief 获取窗口最大范围，对应 XML 中 maxinfo 属性
 	 * @param[in] bContainShadow 是否包含阴影范围，默认为 false
 	 */
-	CSize GetMaxInfo(bool bContainShadow = false) const;
+	UiSize GetMaxInfo(bool bContainShadow = false) const;
 
 	/**@brief 设置窗口最大范围
 	 * @param[in] cx 宽度
@@ -351,7 +351,7 @@ public:
 	/**@brief 获取窗口初始大小
 	 * @param[in] bContainShadow 是否包含阴影范围，默认为 false
 	 */
-	CSize GetInitSize(bool bContainShadow = false) const;
+	UiSize GetInitSize(bool bContainShadow = false) const;
 
 	/**@brief 设置窗口初始大小
 	 * @param[in] cx 宽度
@@ -727,7 +727,7 @@ private:
 	/**@brief 设置绘制偏移
 	 * @param[in] renderOffset 偏移值
 	 */
-	void SetRenderOffset(CPoint renderOffset);
+	void SetRenderOffset(UiPoint renderOffset);
 
 	/**@brief 设置绘制偏移 x 坐标
 	 * @param[in] renderOffsetX 坐标值
@@ -803,13 +803,13 @@ private:
 
 private:
 	//窗口的初始化大小
-	CSize m_szInitWindowSize;
+	UiSize m_szInitWindowSize;
 
 	//窗口最小信息
-	CSize m_szMinWindow;
+	UiSize m_szMinWindow;
 
 	//窗口最大信息
-	CSize m_szMaxWindow;	
+	UiSize m_szMaxWindow;	
 
 	//窗口最大化信息
 	UiRect m_rcMaximizeInfo;
@@ -821,7 +821,7 @@ private:
 	UiRect m_rcAlphaFix;
 
 	//窗口圆角信息
-	CSize m_szRoundCorner;
+	UiSize m_szRoundCorner;
 
 	//标题栏区域信息
 	UiRect m_rcCaption;
@@ -843,7 +843,7 @@ private:
 	int m_nAlpha;
 
 	//绘制时的偏移量（动画用）
-	CPoint m_renderOffset;
+	UiPoint m_renderOffset;
 
 	//绘制引擎
 	std::unique_ptr<IRenderContext> m_renderContext;
@@ -878,7 +878,7 @@ private:
 	bool m_bHandlePointerMsg;
 
 	//鼠标所在位置
-	CPoint m_ptLastMousePos;
+	UiPoint m_ptLastMousePos;
 
 	//鼠标事件的捕获状态
 	bool m_bMouseCapture;

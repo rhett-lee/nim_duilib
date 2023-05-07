@@ -2,12 +2,12 @@
 
 using namespace ui;
 
-ui::CSize CustomLayout::ArrangeChild(const std::vector<ui::Control*>& m_items, ui::UiRect rc)
+ui::UiSize CustomLayout::ArrangeChild(const std::vector<ui::Control*>& m_items, ui::UiRect rc)
 {
-	CSize size;
+	UiSize size;
 	for (auto it = m_items.begin(); it != m_items.end(); it++) {
 		Control* pControl = *it;
-		CSize new_size = this->SetCustomPos(pControl, rc);
+		UiSize new_size = this->SetCustomPos(pControl, rc);
 		size.cx = std::max(size.cx, new_size.cx);
 		size.cy = std::max(size.cy, new_size.cy);
 	}
@@ -15,7 +15,7 @@ ui::CSize CustomLayout::ArrangeChild(const std::vector<ui::Control*>& m_items, u
 	return size;
 }
 
-CSize CustomLayout::SetCustomPos(Control* pControl, UiRect containerRect)
+UiSize CustomLayout::SetCustomPos(Control* pControl, UiRect containerRect)
 {
 	int childLeft = 0;
 	int childRight = 0;
@@ -26,8 +26,8 @@ CSize CustomLayout::SetCustomPos(Control* pControl, UiRect containerRect)
 	int iPosRight = containerRect.right - rcMargin.right;
 	int iPosTop = containerRect.top + rcMargin.top;
 	int iPosBottom = containerRect.bottom - rcMargin.bottom;
-	CSize szAvailable(iPosRight - iPosLeft, iPosBottom - iPosTop);
-	CSize childSize = pControl->EstimateSize(szAvailable);
+	UiSize szAvailable(iPosRight - iPosLeft, iPosBottom - iPosTop);
+	UiSize childSize = pControl->EstimateSize(szAvailable);
 	if (pControl->GetFixedWidth() == DUI_LENGTH_AUTO && pControl->GetFixedHeight() == DUI_LENGTH_AUTO
 		&& pControl->GetMaxWidth() == DUI_LENGTH_STRETCH) {
 		int maxwidth = std::max(0, (int)szAvailable.cx);
@@ -83,5 +83,5 @@ CSize CustomLayout::SetCustomPos(Control* pControl, UiRect containerRect)
 
 	UiRect childPos(childLeft, childTop, childRight, childBottm);
 	pControl->SetPos(childPos);
-	return CSize(childPos.GetWidth(), childPos.GetHeight());
+	return UiSize(childPos.GetWidth(), childPos.GetHeight());
 }

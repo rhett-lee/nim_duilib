@@ -41,7 +41,7 @@ public:
 	 * @param[in] szXY 要设置的大小
 	 * @return 无
 	 */
-	void SetThumbSize(CSize szXY);
+	void SetThumbSize(UiSize szXY);
 
 	/**
 	 * @brief 获取滑块的矩形信息
@@ -86,7 +86,7 @@ public:
 
 protected:
 	int m_nStep;
-	CSize m_szThumb;
+	UiSize m_szThumb;
 	StateImage m_thumbStateImage;
 	UiRect	m_rcProgressBarPadding;
 	ControlStateType m_uButtonState;

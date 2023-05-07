@@ -153,7 +153,7 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pManager, Bo
 							nWindowHeight = nMaxHeight;
 						}
 
-						CSize xy = pManager->GetInitSize();
+						UiSize xy = pManager->GetInitSize();
 						pManager->SetInitSize(xy.cx, nWindowHeight, false, false);
 					}
 					else if( strName == _T("sizebox") ) {

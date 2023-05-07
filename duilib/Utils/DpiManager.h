@@ -82,7 +82,7 @@ public:
 	*/
 	void ScaleSize(SIZE &size);
 
-	void ScaleSize(CSize &size);
+	void ScaleSize(UiSize &size);
 
 	/**
 	* @brief 根据界面缩放比来缩放POINT，只有程序自己处理DPI缩放时才有效
@@ -91,7 +91,7 @@ public:
 	*/
 	void ScalePoint(POINT &point);
 
-	void ScalePoint(CPoint &point);
+	void ScalePoint(UiPoint &point);
 
 	/**
 	* @brief 根据界面缩放比来缩放RECT，只有程序自己处理DPI缩放时才有效

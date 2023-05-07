@@ -245,15 +245,15 @@ PopoverHeader::~PopoverHeader()
 
 std::wstring PopoverHeader::GetType() const { return L"PopoverHeader"; }
 
-ui::CSize PopoverHeader::EstimateSize(ui::CSize szAvailable)
+ui::UiSize PopoverHeader::EstimateSize(ui::UiSize szAvailable)
 {
-  ui::CSize fixedSize = m_cxyFixed;
+  ui::UiSize fixedSize = m_cxyFixed;
   if (GetFixedWidth() == DUI_LENGTH_AUTO || GetFixedHeight() == DUI_LENGTH_AUTO) {
     if (!m_bReEstimateSize) {
       return m_szEstimateSize;
     }
 
-    ui::CSize maxSize = szAvailable;
+    ui::UiSize maxSize = szAvailable;
 
     ui::UiRect marginRect = GetMargin();
     ui::UiRect paddingRect = m_pLayout->GetPadding();
@@ -262,7 +262,7 @@ ui::CSize PopoverHeader::EstimateSize(ui::CSize szAvailable)
     maxSize.cx -= paddingRect.left + paddingRect.right;
     maxSize.cy = 0;
 
-    ui::CSize editMaxSize = maxSize;
+    ui::UiSize editMaxSize = maxSize;
     if (m_pControlIcon) {
       editMaxSize.cx -= m_pControlIcon->GetFixedWidth();
     }
@@ -274,7 +274,7 @@ ui::CSize PopoverHeader::EstimateSize(ui::CSize szAvailable)
     int childMargin = m_pLayout->GetChildMargin();
     editMaxSize.cx -= ((int)m_items.size() - 1) * childMargin;
 
-    ui::CSize editSize{ 0,0 };
+    ui::UiSize editSize{ 0,0 };
     if (m_pRichEditTitle) {
       ui::UiRect editMargin = m_pRichEditTitle->GetMargin();
       editSize = m_pRichEditTitle->EstimateText({ editMaxSize.cx - editMargin.left - editMargin.right,editMaxSize.cy });
@@ -368,15 +368,15 @@ PopoverBody::~PopoverBody()
 
 std::wstring PopoverBody::GetType() const { return L"PopoverBody"; }
 
-ui::CSize PopoverBody::EstimateSize(ui::CSize szAvailable)
+ui::UiSize PopoverBody::EstimateSize(ui::UiSize szAvailable)
 {
-  ui::CSize fixedSize = m_cxyFixed;
+  ui::UiSize fixedSize = m_cxyFixed;
   if (GetFixedWidth() == DUI_LENGTH_AUTO || GetFixedHeight() == DUI_LENGTH_AUTO) {
     if (!m_bReEstimateSize) {
       return m_szEstimateSize;
     }
 
-    ui::CSize maxSize = szAvailable;
+    ui::UiSize maxSize = szAvailable;
     maxSize.cy = 0;
 
     ui::UiRect marginRect = GetMargin();
@@ -385,7 +385,7 @@ ui::CSize PopoverBody::EstimateSize(ui::CSize szAvailable)
     ui::UiRect paddingRect = m_pLayout->GetPadding();
     maxSize.cx -= paddingRect.left + paddingRect.right;
 
-    ui::CSize editSize{ 0,0 };
+    ui::UiSize editSize{ 0,0 };
     if (m_pRichEditContent) {
       ui::UiRect editMargin = m_pRichEditContent->GetMargin();
       editSize = m_pRichEditContent->EstimateText({ maxSize.cx - editMargin.left - editMargin.right,maxSize.cy });
@@ -451,15 +451,15 @@ PopoverFooter::~PopoverFooter()
 
 std::wstring PopoverFooter::GetType() const { return L"PopoverFooter"; }
 
-ui::CSize PopoverFooter::EstimateSize(ui::CSize szAvailable)
+ui::UiSize PopoverFooter::EstimateSize(ui::UiSize szAvailable)
 {
-  ui::CSize fixedSize = m_cxyFixed;
+  ui::UiSize fixedSize = m_cxyFixed;
   if (GetFixedWidth() == DUI_LENGTH_AUTO || GetFixedHeight() == DUI_LENGTH_AUTO) {
     if (!m_bReEstimateSize) {
       return m_szEstimateSize;
     }
 
-    ui::CSize maxSize = szAvailable;
+    ui::UiSize maxSize = szAvailable;
     maxSize.cy = 0;
 
     ui::UiRect marginRect = GetMargin();
@@ -468,13 +468,13 @@ ui::CSize PopoverFooter::EstimateSize(ui::CSize szAvailable)
     ui::UiRect paddingRect = m_pLayout->GetPadding();
     maxSize.cx -= paddingRect.left + paddingRect.right;
 
-    ui::CSize okSize{ 0,0 };
+    ui::UiSize okSize{ 0,0 };
     if (m_pButtonOk) {
       okSize.cx = m_pButtonOk->GetFixedWidth();
       okSize.cy = m_pButtonOk->GetFixedHeight();
     }
 
-    ui::CSize cancelSize{ 0,0 };
+    ui::UiSize cancelSize{ 0,0 };
     if (m_pButtonCancel) {
       cancelSize.cx = m_pButtonCancel->GetFixedWidth();
       cancelSize.cy = m_pButtonCancel->GetFixedHeight();
@@ -531,9 +531,9 @@ void PopoverFooter::DoInit()
 }
 
 // PopoverRoot
-ui::CSize PopoverRoot::EstimateSize(ui::CSize szAvailable)
+ui::UiSize PopoverRoot::EstimateSize(ui::UiSize szAvailable)
 {
-  ui::CSize fixedSize = m_cxyFixed;
+  ui::UiSize fixedSize = m_cxyFixed;
   if (GetFixedWidth() == DUI_LENGTH_AUTO || GetFixedHeight() == DUI_LENGTH_AUTO) {
     if (!m_bReEstimateSize) {
       return m_szEstimateSize;
@@ -542,11 +542,11 @@ ui::CSize PopoverRoot::EstimateSize(ui::CSize szAvailable)
     ui::UiRect paddingRect = m_pLayout->GetPadding();
     ui::UiRect marginRect = GetMargin();
 
-    ui::CSize maxSize{ szAvailable.cx,0 };
+    ui::UiSize maxSize{ szAvailable.cx,0 };
     maxSize.cx -= paddingRect.left + paddingRect.right;
     maxSize.cx -= marginRect.left + marginRect.right;
 
-    ui::CSize sizeRoot = m_pLayout->AjustSizeByChild(m_items, maxSize);
+    ui::UiSize sizeRoot = m_pLayout->AjustSizeByChild(m_items, maxSize);
 
     fixedSize.cx = sizeRoot.cx;
     fixedSize.cy = sizeRoot.cy;
@@ -643,9 +643,9 @@ Popover::~Popover()
 
 std::wstring Popover::GetType() const { return L"Popover"; }
 
-ui::CSize Popover::EstimateSize(ui::CSize /*szAvailable*/)
+ui::UiSize Popover::EstimateSize(ui::UiSize /*szAvailable*/)
 {
-  ui::CSize fixedSize = m_cxyFixed;
+  ui::UiSize fixedSize = m_cxyFixed;
   if (GetFixedWidth() == DUI_LENGTH_AUTO || GetFixedHeight() == DUI_LENGTH_AUTO) {
     if (!m_bReEstimateSize) {
       return m_szEstimateSize;
@@ -653,10 +653,10 @@ ui::CSize Popover::EstimateSize(ui::CSize /*szAvailable*/)
 
     ui::UiRect paddingRect = m_pLayout->GetPadding();
 
-    ui::CSize maxSize{ 0,0 };
+    ui::UiSize maxSize{ 0,0 };
     maxSize.cx = GetMaxWidth();
     maxSize.cx -= paddingRect.left + paddingRect.right;
-    ui::CSize sizeRoot = m_pLayout->AjustSizeByChild({ m_pPopoverRoot }, maxSize);
+    ui::UiSize sizeRoot = m_pLayout->AjustSizeByChild({ m_pPopoverRoot }, maxSize);
 
     fixedSize.cx = sizeRoot.cx;
     fixedSize.cy = sizeRoot.cy;
@@ -709,7 +709,7 @@ void Popover::SetPos(ui::UiRect rc)
   rc.right -= m_pLayout->GetPadding().right;
   rc.bottom -= m_pLayout->GetPadding().bottom;
 
-  ui::CSize requiredSize;
+  ui::UiSize requiredSize;
   if (m_items.size() == 0) {
     requiredSize.cx = 0;
     requiredSize.cy = 0;

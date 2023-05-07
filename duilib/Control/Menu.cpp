@@ -76,7 +76,7 @@ void CMenuWnd::SetSubMenuXml(const std::wstring& submenuXml, const std::wstring&
 	m_submenuNodeName = submenuNodeName;
 }
 
-void CMenuWnd::ShowMenu(const std::wstring& xml, const CPoint& point, MenuPopupPosType popupPosType, bool noFocus, CMenuElementUI* pOwner)
+void CMenuWnd::ShowMenu(const std::wstring& xml, const UiPoint& point, MenuPopupPosType popupPosType, bool noFocus, CMenuElementUI* pOwner)
 {
 	m_menuPoint = point;
 	m_popupPosType = popupPosType;
@@ -235,15 +235,15 @@ void CMenuWnd::ResizeMenu()
 	::GetMonitorInfo(::MonitorFromPoint(m_menuPoint, MONITOR_DEFAULTTOPRIMARY), &oMonitor);
 	ui::UiRect rcWork(oMonitor.rcWork);
 
-	ui::CSize szAvailable = { rcWork.right - rcWork.left, rcWork.bottom - rcWork.top };
+	ui::UiSize szAvailable = { rcWork.right - rcWork.left, rcWork.bottom - rcWork.top };
 	szAvailable = pRoot->EstimateSize(szAvailable);   //这里带上了阴影窗口
 	SetInitSize(szAvailable.cx, szAvailable.cy);
 	ui::UiRect rcCorner = GetShadowCorner();
-	ui::CSize szInit=szAvailable;
+	ui::UiSize szInit=szAvailable;
 	szInit.cx -= rcCorner.left + rcCorner.right;
 	szInit.cy -= rcCorner.top + rcCorner.bottom; //这里去掉阴影窗口，即用户的视觉有效面积 szInit<=szAvailable
 	
-	ui::CPoint point(m_menuPoint);  //这里有个bug，由于坐标点与包含在窗口内，会直接出发mouseenter导致出来子菜单，偏移1个像素
+	ui::UiPoint point(m_menuPoint);  //这里有个bug，由于坐标点与包含在窗口内，会直接出发mouseenter导致出来子菜单，偏移1个像素
 	if (static_cast<int>(m_popupPosType) & static_cast<int>(eMenuAlignment_Right)) {
 		point.x += -szAvailable.cx + rcCorner.right + rcCorner.left;
 		point.x -= 1;
@@ -301,7 +301,7 @@ void CMenuWnd::ResizeSubMenu()
 	oMonitor.cbSize = sizeof(oMonitor);
 	::GetMonitorInfo(::MonitorFromPoint(m_menuPoint, MONITOR_DEFAULTTOPRIMARY), &oMonitor);
 	ui::UiRect rcWork (oMonitor.rcWork);
-	ui::CSize szAvailable = { rcWork.right - rcWork.left, rcWork.bottom - rcWork.top };
+	ui::UiSize szAvailable = { rcWork.right - rcWork.left, rcWork.bottom - rcWork.top };
 
 	for (int it = 0; it < m_pLayout->GetCount(); ++it) {
 		//取子菜单项中的最大值作为菜单项
@@ -894,7 +894,7 @@ void CMenuElementUI::CreateMenuWnd()
 	if (pParentWindow != nullptr) {
 		m_pSubWindow->SetSkinFolder(pParentWindow->m_skinFolder);
 		m_pSubWindow->SetSubMenuXml(pParentWindow->m_submenuXml, pParentWindow->m_submenuNodeName);
-		m_pSubWindow->ShowMenu(pParentWindow->m_submenuXml, CPoint(), MenuPopupPosType::RIGHT_BOTTOM, false, this);
+		m_pSubWindow->ShowMenu(pParentWindow->m_submenuXml, UiPoint(), MenuPopupPosType::RIGHT_BOTTOM, false, this);
 	}
 }
 

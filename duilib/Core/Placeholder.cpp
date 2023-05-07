@@ -276,7 +276,7 @@ void PlaceHolder::SetReEstimateSize(bool bReEstimateSize)
 	m_bReEstimateSize = bReEstimateSize;
 }
 
-CSize PlaceHolder::EstimateSize(CSize /*szAvailable*/)
+UiSize PlaceHolder::EstimateSize(UiSize /*szAvailable*/)
 {
 	return m_cxyFixed;
 }
@@ -376,14 +376,14 @@ void PlaceHolder::Invalidate()
 UiRect PlaceHolder::GetPosWithScrollOffset(bool bContainShadow) const
 {
 	UiRect pos = GetPos(bContainShadow);
-	CPoint offset = GetScrollOffset();
+	UiPoint offset = GetScrollOffset();
 	pos.Offset(-offset.x, -offset.y);
 	return pos;
 }
 
-CPoint PlaceHolder::GetScrollOffset() const
+UiPoint PlaceHolder::GetScrollOffset() const
 {
-	CPoint scrollPos;
+	UiPoint scrollPos;
 	Control* parent = GetParent();
 	ScrollableBox* lbParent = dynamic_cast<ScrollableBox*>(parent);
 	if (lbParent && (lbParent->IsVScrollBarValid() || lbParent->IsHScrollBarValid()) && IsFloat()) {

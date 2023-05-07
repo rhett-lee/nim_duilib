@@ -84,7 +84,7 @@ public:
 	* @Param [in] pOwner 父菜单的接口，如果这个值不是nullptr，则这个菜单是多级菜单模式
 	*/
 	void ShowMenu(const std::wstring& xml, 
-		          const CPoint& point,
+		          const UiPoint& point,
 		          MenuPopupPosType popupPosType = MenuPopupPosType::LEFT_TOP, 
 		          bool noFocus = false,
 		          CMenuElementUI* pOwner = nullptr);
@@ -142,7 +142,7 @@ private:
 	HWND m_hParent;
 
 	//菜单弹出位置
-	CPoint m_menuPoint;
+	UiPoint m_menuPoint;
 
 	//菜单弹出位置的类型
 	MenuPopupPosType m_popupPosType;

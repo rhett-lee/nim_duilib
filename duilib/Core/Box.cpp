@@ -23,14 +23,14 @@ void Layout::SetOwner(Box* pOwner)
 	m_pOwner = pOwner;
 }
 
-CSize Layout::SetFloatPos(Control* pControl, UiRect rcContainer)
+UiSize Layout::SetFloatPos(Control* pControl, UiRect rcContainer)
 {
 	ASSERT(pControl != nullptr);
 	if (pControl == nullptr) {
-		return CSize();
+		return UiSize();
 	}
 	if (!pControl->IsVisible()) {
-		return CSize();
+		return UiSize();
 	}
 
 	int childLeft = 0;
@@ -42,8 +42,8 @@ CSize Layout::SetFloatPos(Control* pControl, UiRect rcContainer)
 	int iPosRight = rcContainer.right - rcMargin.right;
 	int iPosTop = rcContainer.top + rcMargin.top;
 	int iPosBottom = rcContainer.bottom - rcMargin.bottom;
-	CSize szAvailable(iPosRight - iPosLeft, iPosBottom - iPosTop);
-	CSize childSize = pControl->EstimateSize(szAvailable);
+	UiSize szAvailable(iPosRight - iPosLeft, iPosBottom - iPosTop);
+	UiSize childSize = pControl->EstimateSize(szAvailable);
 	if (pControl->GetFixedWidth() == DUI_LENGTH_AUTO && pControl->GetFixedHeight() == DUI_LENGTH_AUTO
 		&& pControl->GetMaxWidth() == DUI_LENGTH_STRETCH) {
 		int maxwidth = std::max(0, (int)szAvailable.cx);
@@ -102,7 +102,7 @@ CSize Layout::SetFloatPos(Control* pControl, UiRect rcContainer)
 
 	UiRect childPos(childLeft, childTop, childRight, childBottm);
 	pControl->SetPos(childPos);
-	return CSize(childPos.GetWidth(), childPos.GetHeight());
+	return UiSize(childPos.GetWidth(), childPos.GetHeight());
 }
 
 bool Layout::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
@@ -127,9 +127,9 @@ bool Layout::SetAttribute(const std::wstring& strName, const std::wstring& strVa
 	return hasAttribute;
 }
 
-CSize Layout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
+UiSize Layout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 {
-	CSize size;
+	UiSize size;
 	for (auto it = items.begin(); it != items.end(); ++it) 
 	{
 		Control* pControl = *it;
@@ -139,17 +139,17 @@ CSize Layout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 		if (!pControl->IsVisible()) {
 			continue;
 		}
-		CSize new_size = SetFloatPos(pControl, rc);
+		UiSize new_size = SetFloatPos(pControl, rc);
 		size.cx = std::max(size.cx, new_size.cx);
 		size.cy = std::max(size.cy, new_size.cy);
 	}
 	return size;
 }
 
-CSize Layout::AjustSizeByChild(const std::vector<Control*>& items, CSize szAvailable)
+UiSize Layout::AjustSizeByChild(const std::vector<Control*>& items, UiSize szAvailable)
 {
-	CSize maxSize(-9999, -9999);
-	CSize itemSize;
+	UiSize maxSize(-9999, -9999);
+	UiSize itemSize;
 	for (auto it = items.begin(); it != items.end(); it++) 
 	{
 		Control* pControl = *it;
@@ -291,7 +291,7 @@ void Box::SetPos(UiRect rc)
 	rc.right -= m_pLayout->GetPadding().right;
 	rc.bottom -= m_pLayout->GetPadding().bottom;
 
-	CSize requiredSize;
+	UiSize requiredSize;
 	if( m_items.empty()) {
 		requiredSize.cx = 0;
 		requiredSize.cy = 0;
@@ -371,9 +371,9 @@ void Box::SetVisible(bool bVisible)
 	}
 }
 
-CSize Box::EstimateSize(CSize szAvailable)
+UiSize Box::EstimateSize(UiSize szAvailable)
 {
-	CSize fixedSize = m_cxyFixed;
+	UiSize fixedSize = m_cxyFixed;
 	if (GetFixedWidth() == DUI_LENGTH_AUTO || GetFixedHeight() == DUI_LENGTH_AUTO) {
 		if (!m_bReEstimateSize) {
 			return m_szEstimateSize;
@@ -381,7 +381,7 @@ CSize Box::EstimateSize(CSize szAvailable)
 
 		szAvailable.cx -= m_pLayout->GetPadding().left + m_pLayout->GetPadding().right;
 		szAvailable.cy -= m_pLayout->GetPadding().top + m_pLayout->GetPadding().bottom;
-		CSize sizeByChild = m_pLayout->AjustSizeByChild(m_items, szAvailable);
+		UiSize sizeByChild = m_pLayout->AjustSizeByChild(m_items, szAvailable);
 		if (GetFixedWidth() == DUI_LENGTH_AUTO) {
 			fixedSize.cx = sizeByChild.cx;
 		}
@@ -413,7 +413,7 @@ CSize Box::EstimateSize(CSize szAvailable)
 	return fixedSize;
 }
 
-Control* Box::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, CPoint scrollPos)
+Control* Box::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, UiPoint scrollPos)
 {
 	// Check if this guy is valid
 	if ((uFlags & UIFIND_VISIBLE) != 0 && !IsVisible()) {
@@ -454,7 +454,7 @@ Control* Box::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, CPoin
 			if ((uFlags & UIFIND_HITTEST) != 0) {
 				ASSERT(pData != nullptr);
 				if (pData != nullptr) {
-					CPoint newPoint(*(static_cast<LPPOINT>(pData)));
+					UiPoint newPoint(*(static_cast<LPPOINT>(pData)));
 					newPoint.Offset(scrollPos);
 					pControl = m_items[it]->FindControl(Proc, &newPoint, uFlags);
 				}				
@@ -485,7 +485,7 @@ Control* Box::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, CPoin
 			if ((uFlags & UIFIND_HITTEST) != 0) {
 				ASSERT(pData != nullptr);
 				if (pData != nullptr) {
-					CPoint newPoint(*(static_cast<LPPOINT>(pData)));
+					UiPoint newPoint(*(static_cast<LPPOINT>(pData)));
 					newPoint.Offset(scrollPos);
 					pControl = pItemControl->FindControl(Proc, &newPoint, uFlags);
 				}
@@ -903,14 +903,14 @@ void ScrollableBox::SetPosInternally(UiRect rc)
 	rc.right -= m_pLayout->GetPadding().right;
 	rc.bottom -= m_pLayout->GetPadding().bottom;
 
-	CSize requiredSize = CalcRequiredSize(rc);
+	UiSize requiredSize = CalcRequiredSize(rc);
 	ProcessVScrollBar(rcRaw, requiredSize.cy);
 	ProcessHScrollBar(rcRaw, requiredSize.cx);
 }
 
-CSize ScrollableBox::CalcRequiredSize(const UiRect& rc)
+UiSize ScrollableBox::CalcRequiredSize(const UiRect& rc)
 {
-	CSize requiredSize;
+	UiSize requiredSize;
 	if (m_items.size() == 0) {
 		requiredSize.cx = 0;
 		requiredSize.cy = 0;
@@ -977,7 +977,7 @@ void ScrollableBox::HandleEvent(const EventArgs& event)
 		else if (event.Type == kEventTouchDown || event.Type == kEventPointDown) {
 			if (IsEnabled()) {
 				SetMouseFocused(true);
-				m_ptLastTouchPos = CPoint(event.ptMouse);
+				m_ptLastTouchPos = UiPoint(event.ptMouse);
 				return;
 			}
 		}
@@ -987,7 +987,7 @@ void ScrollableBox::HandleEvent(const EventArgs& event)
 				if (detaValue == 0)
 					return;
 
-				m_ptLastTouchPos = CPoint(event.ptMouse);
+				m_ptLastTouchPos = UiPoint(event.ptMouse);
 
 				if (detaValue > 0) {
 					TouchUp(abs(detaValue));
@@ -1001,7 +1001,7 @@ void ScrollableBox::HandleEvent(const EventArgs& event)
 		else if (event.Type == kEventTouchUp || event.Type == kEventPointUp) {
 			if (IsMouseFocused()) {
 				SetMouseFocused(false);
-				m_ptLastTouchPos = CPoint(event.ptMouse);
+				m_ptLastTouchPos = UiPoint(event.ptMouse);
 				return;
 			}
 		}
@@ -1104,14 +1104,14 @@ void ScrollableBox::PaintChild(IRenderContext* pRender, const UiRect& rcPaint)
 			pControl->AlphaPaint(pRender, rcPaint);	
 		}
 		else {
-			CSize scrollPos = GetScrollPos();
+			UiSize scrollPos = GetScrollPos();
 			UiRect rcNewPaint = GetPaddingPos();
 			AutoClip alphaClip(pRender, rcNewPaint, IsClip());
 			rcNewPaint.Offset(scrollPos.cx, scrollPos.cy);
 			rcNewPaint.Offset(GetRenderOffset().x, GetRenderOffset().y);
 
-			CPoint ptOffset(scrollPos.cx, scrollPos.cy);
-			CPoint ptOldOrg = pRender->OffsetWindowOrg(ptOffset);
+			UiPoint ptOffset(scrollPos.cx, scrollPos.cy);
+			UiPoint ptOldOrg = pRender->OffsetWindowOrg(ptOffset);
 			pControl->AlphaPaint(pRender, rcNewPaint);
 			pRender->SetWindowOrg(ptOldOrg);
 		}
@@ -1146,7 +1146,7 @@ void ScrollableBox::SetWindow(Window* pManager, Box* pParent, bool bInit)
 	Box::SetWindow(pManager, pParent, bInit);
 }
 
-Control* ScrollableBox::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, CPoint /*scrollPos*/)
+Control* ScrollableBox::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, UiPoint /*scrollPos*/)
 {
 	// Check if this guy is valid
 	if ((uFlags & UIFIND_VISIBLE) != 0 && !IsVisible()) {
@@ -1189,13 +1189,13 @@ Control* ScrollableBox::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFl
 		return pResult;
 	}
 
-	CPoint ptNewScrollPos(GetScrollPos().cx, GetScrollPos().cy);
+	UiPoint ptNewScrollPos(GetScrollPos().cx, GetScrollPos().cy);
 	return Box::FindControl(Proc, pData, uFlags, ptNewScrollPos);
 }
 
-CSize ScrollableBox::GetScrollPos() const
+UiSize ScrollableBox::GetScrollPos() const
 {
-	CSize sz;
+	UiSize sz;
 	if (m_pVerticalScrollBar && m_pVerticalScrollBar->IsValid()) {
 		sz.cy = static_cast<LONG>(m_pVerticalScrollBar->GetScrollPos());
 	}
@@ -1205,9 +1205,9 @@ CSize ScrollableBox::GetScrollPos() const
 	return sz;
 }
 
-CSize ScrollableBox::GetScrollRange() const
+UiSize ScrollableBox::GetScrollRange() const
 {
-	CSize sz;
+	UiSize sz;
 	if (m_pVerticalScrollBar && m_pVerticalScrollBar->IsValid()) {
 		sz.cy = static_cast<LONG>(m_pVerticalScrollBar->GetScrollRange());
 	}
@@ -1217,7 +1217,7 @@ CSize ScrollableBox::GetScrollRange() const
 	return sz;
 }
 
-void ScrollableBox::SetScrollPos(CSize szPos)
+void ScrollableBox::SetScrollPos(UiSize szPos)
 {
 	if (szPos.cy < 0) {
 		szPos.cy = 0;
@@ -1250,7 +1250,7 @@ void ScrollableBox::SetScrollPos(CSize szPos)
 
 void ScrollableBox::LoadImageCache(bool bFromTopLeft)
 {
-	CSize scrollPos = GetScrollPos();
+	UiSize scrollPos = GetScrollPos();
 	UiRect rcImageCachePos = GetPos();
 	rcImageCachePos.Offset(scrollPos.cx, scrollPos.cy);
 	rcImageCachePos.Offset(GetRenderOffset().x, GetRenderOffset().y);
@@ -1286,14 +1286,14 @@ void ScrollableBox::LoadImageCache(bool bFromTopLeft)
 
 void ScrollableBox::SetScrollPosY(int y)
 {
-	CSize scrollPos = GetScrollPos();
+	UiSize scrollPos = GetScrollPos();
 	scrollPos.cy = y;
 	SetScrollPos(scrollPos);
 }
 
 void ScrollableBox::SetScrollPosX(int x)
 {
-    CSize scrollPos = GetScrollPos();
+    UiSize scrollPos = GetScrollPos();
     scrollPos.cx = x;
     SetScrollPos(scrollPos);
 }
@@ -1308,7 +1308,7 @@ void ScrollableBox::LineUp(int deltaValue, bool withAnimation)
 		cyLine = std::min(cyLine, deltaValue);
 	}
 
-	CSize scrollPos = GetScrollPos();
+	UiSize scrollPos = GetScrollPos();
 	if (scrollPos.cy <= 0) {
 		return;
 	}
@@ -1353,7 +1353,7 @@ void ScrollableBox::LineDown(int deltaValue, bool withAnimation)
 		cyLine = std::min(cyLine, deltaValue);
 	}
 
-	CSize scrollPos = GetScrollPos();
+	UiSize scrollPos = GetScrollPos();
 	if (scrollPos.cy >= GetScrollRange().cy) {
 		return;
 	}
@@ -1397,7 +1397,7 @@ void ScrollableBox::LineLeft(int detaValue)
         cxLine = std::min(cxLine, detaValue);
     }
 
-    CSize scrollPos = GetScrollPos();
+    UiSize scrollPos = GetScrollPos();
     if (scrollPos.cx <= 0) {
         return;
     }
@@ -1438,7 +1438,7 @@ void ScrollableBox::LineRight(int detaValue)
         cxLine = std::min(cxLine, detaValue);
     }
 
-    CSize scrollPos = GetScrollPos();
+    UiSize scrollPos = GetScrollPos();
     if (scrollPos.cx >= GetScrollRange().cx) {
         return;
     }
@@ -1469,7 +1469,7 @@ void ScrollableBox::LineRight(int detaValue)
 }
 void ScrollableBox::PageUp()
 {
-	CSize sz = GetScrollPos();
+	UiSize sz = GetScrollPos();
 	int iOffset = m_rcItem.bottom - m_rcItem.top - m_pLayout->GetPadding().top - m_pLayout->GetPadding().bottom;
 	if( m_pHorizontalScrollBar && m_pHorizontalScrollBar->IsValid() ) iOffset -= m_pHorizontalScrollBar->GetFixedHeight();
 	sz.cy -= iOffset;
@@ -1478,7 +1478,7 @@ void ScrollableBox::PageUp()
 
 void ScrollableBox::PageDown()
 {
-	CSize sz = GetScrollPos();
+	UiSize sz = GetScrollPos();
 	int iOffset = m_rcItem.bottom - m_rcItem.top - m_pLayout->GetPadding().top - m_pLayout->GetPadding().bottom;
 	if( m_pHorizontalScrollBar && m_pHorizontalScrollBar->IsValid() ) iOffset -= m_pHorizontalScrollBar->GetFixedHeight();
 	sz.cy += iOffset;
@@ -1487,7 +1487,7 @@ void ScrollableBox::PageDown()
 
 void ScrollableBox::HomeUp()
 {
-	CSize sz = GetScrollPos();
+	UiSize sz = GetScrollPos();
 	sz.cy = 0;
 	SetScrollPos(sz);
 }
@@ -1503,14 +1503,14 @@ void ScrollableBox::EndDown(bool arrange, bool withAnimation)
 		PlayRenderOffsetYAnimation(-renderOffsetY);
 	}
 
-	CSize sz = GetScrollPos();
+	UiSize sz = GetScrollPos();
 	sz.cy = GetScrollRange().cy;
 	SetScrollPos(sz);
 }
 
 void ScrollableBox::PageLeft()
 {
-	CSize sz = GetScrollPos();
+	UiSize sz = GetScrollPos();
 	int iOffset = m_rcItem.right - m_rcItem.left - m_pLayout->GetPadding().left - m_pLayout->GetPadding().right;
 	//if( m_pVerticalScrollBar && m_pVerticalScrollBar->IsValid() ) iOffset -= m_pVerticalScrollBar->GetFixedWidth();
 	sz.cx -= iOffset;
@@ -1519,7 +1519,7 @@ void ScrollableBox::PageLeft()
 
 void ScrollableBox::PageRight()
 {
-	CSize sz = GetScrollPos();
+	UiSize sz = GetScrollPos();
 	int iOffset = m_rcItem.right - m_rcItem.left - m_pLayout->GetPadding().left - m_pLayout->GetPadding().right;
 	//if( m_pVerticalScrollBar && m_pVerticalScrollBar->IsValid() ) iOffset -= m_pVerticalScrollBar->GetFixedWidth();
 	sz.cx += iOffset;
@@ -1528,21 +1528,21 @@ void ScrollableBox::PageRight()
 
 void ScrollableBox::HomeLeft()
 {
-	CSize sz = GetScrollPos();
+	UiSize sz = GetScrollPos();
 	sz.cx = 0;
 	SetScrollPos(sz);
 }
 
 void ScrollableBox::EndRight()
 {
-	CSize sz = GetScrollPos();
+	UiSize sz = GetScrollPos();
 	sz.cx = GetScrollRange().cx;
 	SetScrollPos(sz);
 }
 
 void ScrollableBox::TouchUp(int deltaValue)
 {
-	CSize scrollPos = GetScrollPos();
+	UiSize scrollPos = GetScrollPos();
 	if (scrollPos.cy <= 0) {
 		return;
 	}
@@ -1553,7 +1553,7 @@ void ScrollableBox::TouchUp(int deltaValue)
 
 void ScrollableBox::TouchDown(int deltaValue)
 {
-	CSize scrollPos = GetScrollPos();
+	UiSize scrollPos = GetScrollPos();
 	if (scrollPos.cy >= GetScrollRange().cy) {
 		return;
 	}

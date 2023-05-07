@@ -51,14 +51,14 @@ namespace nim_comp
 		* @brief 获取下拉框容器大小
 		* @return 返回容器大小
 		*/
-		ui::CSize GetDropBoxSize() const;
+		ui::UiSize GetDropBoxSize() const;
 
 		/**
 		* @brief 设置下拉框容器大小
 		* @param[in] szDropBox 要设置的大小信息
 		* @return 无
 		*/
-		void SetDropBoxSize(ui::CSize szDropBox);
+		void SetDropBoxSize(ui::UiSize szDropBox);
 
 		/**
 		* @brief 设置 Combobox 是否向上弹出
@@ -125,7 +125,7 @@ namespace nim_comp
 		std::vector<std::string> m_vecDate;
 		
 		ui::ControlStateType m_uButtonState;
-		ui::CSize m_szDropBox;
+		ui::UiSize m_szDropBox;
 		std::wstring m_sDropBoxAttributes;
 		bool m_bPopupTop;
 

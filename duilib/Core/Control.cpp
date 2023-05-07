@@ -333,12 +333,12 @@ void Control::SetBottomBorderSize(int nSize)
 	Invalidate();
 }
 
-CSize Control::GetBorderRound() const
+UiSize Control::GetBorderRound() const
 {
     return m_cxyBorderRound;
 }
 
-void Control::SetBorderRound(CSize cxyRound)
+void Control::SetBorderRound(UiSize cxyRound)
 {
 	DpiManager::GetInstance()->ScaleSize(cxyRound);
     m_cxyBorderRound = cxyRound;
@@ -561,7 +561,7 @@ bool Control::IsActivatable() const
 	return true;
 }
 
-Control* Control::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, CPoint /*scrollPos*/)
+Control* Control::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, UiPoint /*scrollPos*/)
 {
 	if ((uFlags & UIFIND_VISIBLE) != 0 && !IsVisible()) {
 		return nullptr;
@@ -617,7 +617,7 @@ void Control::SetPos(UiRect rc)
 	bool needInvalidate = true;
 	UiRect rcTemp;
 	UiRect rcParent;
-	CPoint offset = GetScrollOffset();
+	UiPoint offset = GetScrollOffset();
 	invalidateRc.Offset(-offset.x, -offset.y);
 	Control* pParent = GetParent();
 	while (pParent != nullptr) {
@@ -652,9 +652,9 @@ void Control::SetMargin(UiRect rcMargin, bool bNeedDpiScale)
 	}
 }
 
-CSize Control::EstimateSize(CSize szAvailable)
+UiSize Control::EstimateSize(UiSize szAvailable)
 {
-	CSize imageSize = m_cxyFixed;
+	UiSize imageSize = m_cxyFixed;
 	if (GetFixedWidth() == DUI_LENGTH_AUTO || GetFixedHeight() == DUI_LENGTH_AUTO) {
 		if (!m_bReEstimateSize) {
 			return m_szEstimateSize;
@@ -688,7 +688,7 @@ CSize Control::EstimateSize(CSize szAvailable)
 		}
 
 		m_bReEstimateSize = false;
-		CSize textSize = EstimateText(szAvailable, m_bReEstimateSize);
+		UiSize textSize = EstimateText(szAvailable, m_bReEstimateSize);
 		if (GetFixedWidth() == DUI_LENGTH_AUTO && imageSize.cx < textSize.cx) {
 			imageSize.cx = textSize.cx;
 		}
@@ -702,15 +702,15 @@ CSize Control::EstimateSize(CSize szAvailable)
 	return imageSize;
 }
 
-CSize Control::EstimateText(CSize /*szAvailable*/, bool& /*bReEstimateSize*/)
+UiSize Control::EstimateText(UiSize /*szAvailable*/, bool& /*bReEstimateSize*/)
 {
-	return CSize();
+	return UiSize();
 }
 
-bool Control::IsPointInWithScrollOffset(const CPoint& point) const
+bool Control::IsPointInWithScrollOffset(const UiPoint& point) const
 {
-	CPoint scrollOffset = GetScrollOffset();
-	CPoint newPoint = point;
+	UiPoint scrollOffset = GetScrollOffset();
+	UiPoint newPoint = point;
 	newPoint.Offset(scrollOffset);
 	return m_rcItem.IsPointIn(newPoint);
 }
@@ -730,7 +730,7 @@ void Control::SendEvent(EventType eventType,
 					    WPARAM wParam, 
 					    LPARAM lParam, 
 					    TCHAR tChar, 
-					    const CPoint& mousePos,
+					    const UiPoint& mousePos,
 					    FLOAT pressure)
 {
 	EventArgs msg;
@@ -910,7 +910,7 @@ bool Control::ButtonUp(const EventArgs& msg)
 			player->Stop();
 
 		Invalidate();
-		if( IsPointInWithScrollOffset(CPoint(msg.ptMouse)) ) {
+		if( IsPointInWithScrollOffset(UiPoint(msg.ptMouse)) ) {
 			if (msg.Type == kEventPointUp) {
 				m_uButtonState = kControlStateNormal;
 				m_nHotAlpha = 0;
@@ -996,7 +996,7 @@ void Control::SetAttribute(const std::wstring& strName, const std::wstring& strV
 		}
 	}
 	else if (strName == _T("borderround")) {
-		CSize cxyRound;
+		UiSize cxyRound;
 		LPTSTR pstr = NULL;
 		cxyRound.cx = _tcstol(strValue.c_str(), &pstr, 10);  ASSERT(pstr);
 		cxyRound.cy = _tcstol(pstr + 1, &pstr, 10);    ASSERT(pstr);
@@ -1073,7 +1073,7 @@ void Control::SetAttribute(const std::wstring& strName, const std::wstring& strV
 		}
 	}
 	else if (strName == _T("renderoffset")) {
-		CPoint renderOffset;
+		UiPoint renderOffset;
 		LPTSTR pstr = NULL;
 		renderOffset.x = _tcstol(strValue.c_str(), &pstr, 10);  ASSERT(pstr);
 		renderOffset.y = _tcstol(pstr + 1, &pstr, 10);    ASSERT(pstr);
@@ -1320,7 +1320,7 @@ void Control::AlphaPaint(IRenderContext* pRender, const UiRect& rcPaint)
 	}
 
 	if (IsAlpha()) {
-		CSize size;
+		UiSize size;
 		size.cx = m_rcItem.right - m_rcItem.left;
 		size.cy = m_rcItem.bottom - m_rcItem.top;
 		auto pCacheRender = GetRenderContext();
@@ -1338,8 +1338,8 @@ void Control::AlphaPaint(IRenderContext* pRender, const UiRect& rcPaint)
 				AutoClip roundAlphaClip(pCacheRender, rcClip, m_cxyBorderRound.cx, m_cxyBorderRound.cy, bRoundClip);
 
 				pCacheRender->SetRenderTransparent(true);
-				CPoint ptOffset(m_rcItem.left + m_renderOffset.x, m_rcItem.top + m_renderOffset.y);
-				CPoint ptOldOrg = pCacheRender->OffsetWindowOrg(ptOffset);
+				UiPoint ptOffset(m_rcItem.left + m_renderOffset.x, m_rcItem.top + m_renderOffset.y);
+				UiPoint ptOldOrg = pCacheRender->OffsetWindowOrg(ptOffset);
 				Paint(pCacheRender, m_rcItem);
 				PaintChild(pCacheRender, rcPaint);
 				pCacheRender->SetWindowOrg(ptOldOrg);
@@ -1360,7 +1360,7 @@ void Control::AlphaPaint(IRenderContext* pRender, const UiRect& rcPaint)
 		}
 	}
 	else if (IsUseCache()) {
-		CSize size;
+		UiSize size;
 		size.cx = m_rcItem.right - m_rcItem.left;
 		size.cy = m_rcItem.bottom - m_rcItem.top;
 		auto pCacheRender = GetRenderContext();
@@ -1377,8 +1377,8 @@ void Control::AlphaPaint(IRenderContext* pRender, const UiRect& rcPaint)
 				AutoClip roundAlphaClip(pCacheRender, rcClip, m_cxyBorderRound.cx, m_cxyBorderRound.cy, bRoundClip);
 
 				pCacheRender->SetRenderTransparent(true);
-				CPoint ptOffset(m_rcItem.left + m_renderOffset.x, m_rcItem.top + m_renderOffset.y);
-				CPoint ptOldOrg = pCacheRender->OffsetWindowOrg(ptOffset);
+				UiPoint ptOffset(m_rcItem.left + m_renderOffset.x, m_rcItem.top + m_renderOffset.y);
+				UiPoint ptOldOrg = pCacheRender->OffsetWindowOrg(ptOffset);
 				Paint(pCacheRender, m_rcItem);
 				pCacheRender->SetWindowOrg(ptOldOrg);
 				SetCacheDirty(false);
@@ -1398,7 +1398,7 @@ void Control::AlphaPaint(IRenderContext* pRender, const UiRect& rcPaint)
 		};
 		AutoClip clip(pRender, rcClip, IsClip());
 		AutoClip roundClip(pRender, rcClip, m_cxyBorderRound.cx, m_cxyBorderRound.cy, bRoundClip);
-		CPoint ptOldOrg = pRender->OffsetWindowOrg(m_renderOffset);
+		UiPoint ptOldOrg = pRender->OffsetWindowOrg(m_renderOffset);
 		Paint(pRender, rcPaint);
 		PaintChild(pRender, rcPaint);
 		pRender->SetWindowOrg(ptOldOrg);
@@ -1617,7 +1617,7 @@ void Control::SetTabStop(bool enable)
 	m_bAllowTabstop = enable;
 }
 
-void Control::SetRenderOffset(CPoint renderOffset)
+void Control::SetRenderOffset(UiPoint renderOffset)
 {
 	m_renderOffset = renderOffset;
 	Invalidate();

@@ -13,22 +13,22 @@ public:
 	TileLayout();
 
 	/// 重写父类方法，提供个性化功能，请参考父类声明
-	virtual CSize ArrangeChild(const std::vector<Control*>& items, UiRect rc) override;
-	virtual CSize AjustSizeByChild(const std::vector<Control*>& items, CSize szAvailable) override;
+	virtual UiSize ArrangeChild(const std::vector<Control*>& items, UiRect rc) override;
+	virtual UiSize AjustSizeByChild(const std::vector<Control*>& items, UiSize szAvailable) override;
 	virtual bool SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 
 	/**
 	 * @brief 获取子项大小
 	 * @return 返回子项大小
 	 */
-	CSize GetItemSize() const;
+	UiSize GetItemSize() const;
 
 	/**
 	 * @brief 设置子项大小
 	 * @param[in] szItem 子项大小数据
 	 * @return 无
 	 */
-	void SetItemSize(CSize szItem, bool bNeedDpiScale = true);
+	void SetItemSize(UiSize szItem, bool bNeedDpiScale = true);
 
 	/**
 	 * @brief 获取列数量
@@ -45,7 +45,7 @@ public:
 
 protected:
 	int m_nColumns;
-	CSize m_szItem;
+	UiSize m_szItem;
 };
 
 class UILIB_API TileBox : public Box

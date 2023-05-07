@@ -8,10 +8,10 @@ HLayout::HLayout()
 
 }
 
-CSize HLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
+UiSize HLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 {
 	// Determine the width of elements that are sizeable
-	CSize szAvailable(rc.right - rc.left, rc.bottom - rc.top);
+	UiSize szAvailable(rc.right - rc.left, rc.bottom - rc.top);
 
 	int nAdjustables = 0;
 	int cxFixed = 0;
@@ -24,7 +24,7 @@ CSize HLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 		}
 		if( !pControl->IsVisible() ) continue;
 		if( pControl->IsFloat() ) continue;
-		CSize sz = pControl->EstimateSize(szAvailable);
+		UiSize sz = pControl->EstimateSize(szAvailable);
 		if( sz.cx == DUI_LENGTH_STRETCH ) {
 			nAdjustables++;
 			cxFixed += pControl->GetMargin().left + pControl->GetMargin().right;
@@ -44,7 +44,7 @@ CSize HLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 	if( nAdjustables > 0 ) cxExpand = std::max(0, (int)(szAvailable.cx - cxFixed) / nAdjustables);
 	int deviation = szAvailable.cx - cxFixed - cxExpand * nAdjustables;
 	// Position the elements
-	CSize szRemaining = szAvailable;
+	UiSize szRemaining = szAvailable;
 	int iPosX = rc.left;
 	int iPosTop = rc.top;
 	int iPosBottom = rc.bottom;
@@ -66,7 +66,7 @@ CSize HLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 
 		UiRect rcMargin = pControl->GetMargin();
 		szRemaining.cx -= rcMargin.left;
-		CSize sz = pControl->EstimateSize(szRemaining);
+		UiSize sz = pControl->EstimateSize(szRemaining);
 		if( sz.cx == DUI_LENGTH_STRETCH ) {
 			iAdjustable++;
 			sz.cx = cxExpand;
@@ -108,14 +108,14 @@ CSize HLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 	}
 	cxNeeded += (nEstimateNum - 1) * m_iChildMargin;
 
-	CSize size(cxNeeded, max_height);
+	UiSize size(cxNeeded, max_height);
 	return size;
 }
 
-CSize HLayout::AjustSizeByChild(const std::vector<Control*>& items, CSize szAvailable)
+UiSize HLayout::AjustSizeByChild(const std::vector<Control*>& items, UiSize szAvailable)
 {
-	CSize totalSize;
-	CSize itemSize;
+	UiSize totalSize;
+	UiSize itemSize;
 	Control* pChildControl = NULL;
 	const int count = (int)items.size();
 	int estimateChildCount = 0;

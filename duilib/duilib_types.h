@@ -37,21 +37,21 @@
 
 namespace ui
 {
-	class UILIB_API CPoint : public tagPOINT
+	class UILIB_API UiPoint : public tagPOINT
 	{
 	public:
-		CPoint()
+		UiPoint()
 		{
 			x = y = 0;
 		}
 
-		explicit CPoint(const POINT& src)
+		explicit UiPoint(const POINT& src)
 		{
 			x = src.x;
 			y = src.y;
 		}
 
-		CPoint(int _x, int _y)
+		UiPoint(int _x, int _y)
 		{
 			x = _x;
 			y = _y;
@@ -63,17 +63,17 @@ namespace ui
 			y += offsetY;
 		}
 
-		void Offset(CPoint offsetPoint)
+		void Offset(UiPoint offsetPoint)
 		{
 			x += offsetPoint.x;
 			y += offsetPoint.y;
 		}
 
-		bool operator==(const CPoint& dst) {
+		bool operator==(const UiPoint& dst) {
 			return x == dst.x && y == dst.y;
 		}
 
-		bool operator!=(const CPoint& dst) {
+		bool operator!=(const UiPoint& dst) {
 			return x != dst.x || y != dst.y;
 		}
 	};
@@ -81,21 +81,21 @@ namespace ui
 	/////////////////////////////////////////////////////////////////////////////////////
 	//
 
-	class UILIB_API CSize : public tagSIZE
+	class UILIB_API UiSize : public tagSIZE
 	{
 	public:
-		CSize()
+		UiSize()
 		{
 			cx = cy = 0;
 		}
 
-		CSize(const CSize& src)
+		UiSize(const UiSize& src)
 		{
 			cx = src.cx;
 			cy = src.cy;
 		}
 
-		CSize(int _cx, int _cy)
+		UiSize(int _cx, int _cy)
 		{
 			cx = _cx;
 			cy = _cy;
@@ -107,7 +107,7 @@ namespace ui
 			cy += offsetCY;
 		}
 
-		void Offset(CSize offsetPoint)
+		void Offset(UiSize offsetPoint)
 		{
 			cx += offsetPoint.cx;
 			cy += offsetPoint.cy;
@@ -177,7 +177,7 @@ namespace ui
 			::OffsetRect(this, cx, cy);
 		}
 
-		void Offset(const CPoint& offset)
+		void Offset(const UiPoint& offset)
 		{
 			::OffsetRect(this, offset.x, offset.y);
 		}
@@ -223,7 +223,7 @@ namespace ui
 			::SubtractRect(this, this, &rc);
 		}
 
-		bool IsPointIn(const CPoint& point) const
+		bool IsPointIn(const UiPoint& point) const
 		{
 			return ::PtInRect(this, point) == TRUE;
 		}

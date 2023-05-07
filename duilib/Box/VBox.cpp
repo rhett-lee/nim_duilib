@@ -8,10 +8,10 @@ VLayout::VLayout()
 
 }
 
-CSize VLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
+UiSize VLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 {
 	// Determine the minimum size
-	CSize szAvailable(rc.right - rc.left, rc.bottom - rc.top);
+	UiSize szAvailable(rc.right - rc.left, rc.bottom - rc.top);
 
 	int nAdjustables = 0;
 	int cyFixed = 0;
@@ -27,7 +27,7 @@ CSize VLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 		if (pControl->IsFloat()) {
 			continue;
 		}
-		CSize sz = pControl->EstimateSize(szAvailable);
+		UiSize sz = pControl->EstimateSize(szAvailable);
 		if( sz.cy == DUI_LENGTH_STRETCH ) {
 			nAdjustables++;
 			cyFixed += pControl->GetMargin().top + pControl->GetMargin().bottom;
@@ -48,7 +48,7 @@ CSize VLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 	if( nAdjustables > 0 ) cyExpand = std::max(0, ((int)szAvailable.cy - cyFixed) / nAdjustables);
 	int deviation = szAvailable.cy - cyFixed - cyExpand * nAdjustables;
 	// Position the elements
-	CSize szRemaining = szAvailable;
+	UiSize szRemaining = szAvailable;
 	int iPosLeft = rc.left;
 	int iPosRight = rc.right;
 	int iPosY = rc.top;
@@ -70,7 +70,7 @@ CSize VLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 
 		UiRect rcMargin = pControl->GetMargin();
 		szRemaining.cy -= rcMargin.top;
-		CSize sz = pControl->EstimateSize(szRemaining);
+		UiSize sz = pControl->EstimateSize(szRemaining);
 		if( sz.cy == DUI_LENGTH_STRETCH ) {
 			iAdjustable++;
 			sz.cy = cyExpand;
@@ -113,14 +113,14 @@ CSize VLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 	}
 	cyNeeded += (nEstimateNum - 1) * m_iChildMargin;
 
-	CSize size(max_width, cyNeeded);
+	UiSize size(max_width, cyNeeded);
 	return size;
 }
 
-CSize VLayout::AjustSizeByChild(const std::vector<Control*>& items, CSize szAvailable)
+UiSize VLayout::AjustSizeByChild(const std::vector<Control*>& items, UiSize szAvailable)
 {
-	CSize totalSize;
-	CSize itemSize;
+	UiSize totalSize;
+	UiSize itemSize;
 	Control* pChildControl = NULL;
 	const int count = (int)items.size();
 	int estimateChildCount = 0;

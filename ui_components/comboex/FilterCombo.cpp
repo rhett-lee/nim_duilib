@@ -32,7 +32,7 @@ void CFilterComboWnd::InitComboWnd(FilterCombo* pOwner)
     m_iOldSel = m_pOwner->GetCurSel();
 
     // Position the popup window in absolute space
-	ui::CSize szDrop = m_pOwner->GetDropBoxSize();
+	ui::UiSize szDrop = m_pOwner->GetDropBoxSize();
 	ui::UiRect rcOwner = pOwner->GetPosWithScrollOffset();
 	ui::UiRect rc = rcOwner;
     rc.top = rc.bottom + 1;		// 父窗口left、bottom位置作为弹出窗口起点
@@ -41,7 +41,7 @@ void CFilterComboWnd::InitComboWnd(FilterCombo* pOwner)
 		rc.right = rc.left + szDrop.cx;	// 计算弹出窗口宽度
 	}
 
-	ui::CSize szAvailable(rc.right - rc.left, rc.bottom - rc.top);
+	ui::UiSize szAvailable(rc.right - rc.left, rc.bottom - rc.top);
     int cyFixed = 0;
 	for (int it = 0; it < pOwner->GetListBox()->GetCount(); it++) {
 		ui::Control* pControl = pOwner->GetListBox()->GetItemAt(it);
@@ -51,7 +51,7 @@ void CFilterComboWnd::InitComboWnd(FilterCombo* pOwner)
 		if (!pControl->IsVisible()) {
 			continue;
 		}
-		ui::CSize sz = pControl->EstimateSize(szAvailable);
+		ui::UiSize sz = pControl->EstimateSize(szAvailable);
         cyFixed += sz.cy;
     }
     cyFixed += 2; // VBox 默认的Padding 调整
@@ -370,7 +370,7 @@ void FilterCombo::SetAttribute(const std::wstring& strName, const std::wstring& 
 	else if (strName == L"vscrollbar") {}
 	else if (strName == L"dropboxsize")
 	{
-		ui::CSize szDropBoxSize;
+		ui::UiSize szDropBoxSize;
 		LPTSTR pstr = NULL;
 		szDropBoxSize.cx = wcstol(strValue.c_str(), &pstr, 10); ASSERT(pstr);
 		szDropBoxSize.cy = wcstol(pstr + 1, &pstr, 10); ASSERT(pstr);
@@ -409,12 +409,12 @@ void FilterCombo::SetDropBoxAttributeList(const std::wstring& pstrList)
     m_sDropBoxAttributes = pstrList;
 }
 
-ui::CSize FilterCombo::GetDropBoxSize() const
+ui::UiSize FilterCombo::GetDropBoxSize() const
 {
     return m_szDropBox;
 }
 
-void FilterCombo::SetDropBoxSize(ui::CSize szDropBox)
+void FilterCombo::SetDropBoxSize(ui::UiSize szDropBox)
 {
 	ui::DpiManager::GetInstance()->ScaleSize(szDropBox);
     m_szDropBox = szDropBox;
@@ -472,19 +472,19 @@ bool FilterCombo::OnRichEditTextChanged(const ui::EventArgs& /*args*/)
 	{
 		return false;
 	}
-	ui::CSize szDrop = GetDropBoxSize();
+	ui::UiSize szDrop = GetDropBoxSize();
 	ui::UiRect rcOwner = GetPosWithScrollOffset();
 	ui::UiRect rc = rcOwner;
 	rc.top = rc.bottom + 1;		// 父窗口left、bottom位置作为弹出窗口起点
 	rc.bottom = rc.top + szDrop.cy;	// 计算弹出窗口高度
 	if (szDrop.cx > 0) rc.right = rc.left + szDrop.cx;	// 计算弹出窗口宽度
 
-	ui::CSize szAvailable(rc.right - rc.left, rc.bottom - rc.top);
+	ui::UiSize szAvailable(rc.right - rc.left, rc.bottom - rc.top);
 	int cyFixed = 0;
 	for (int it = 0; it < GetListBox()->GetCount(); it++) {
 		Control* pControl = GetListBox()->GetItemAt(it);
 		if (!pControl->IsVisible()) continue;
-		ui::CSize sz = pControl->EstimateSize(szAvailable);
+		ui::UiSize sz = pControl->EstimateSize(szAvailable);
 		cyFixed += sz.cy;
 	}
 	cyFixed += 2; // VBox 默认的Padding 调整
