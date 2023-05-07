@@ -180,6 +180,9 @@
     <ClCompile Include="Core\ControlFinder.cpp">
       <Filter>Core</Filter>
     </ClCompile>
+    <ClCompile Include="Core\ToolTip.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -373,6 +376,9 @@
     </ClInclude>
     <ClInclude Include="duilib_types.h">
       <Filter>duilib</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ToolTip.h">
+      <Filter>Core</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

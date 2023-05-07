@@ -343,6 +343,7 @@
     <ClCompile Include="Core\Define.cpp" />
     <ClCompile Include="Core\Image.cpp" />
     <ClCompile Include="Core\Placeholder.cpp" />
+    <ClCompile Include="Core\ToolTip.cpp" />
     <ClCompile Include="duilib.cpp" />
     <ClCompile Include="Render\Bitmap.cpp" />
     <ClCompile Include="Render\Brush.cpp" />
@@ -398,6 +399,7 @@
     <ClInclude Include="Core\Image.h" />
     <ClInclude Include="Control\CircleProgress.h" />
     <ClInclude Include="Core\Placeholder.h" />
+    <ClInclude Include="Core\ToolTip.h" />
     <ClInclude Include="duilib.h" />
     <ClInclude Include="duilib_config.h" />
     <ClInclude Include="duilib_defs.h" />

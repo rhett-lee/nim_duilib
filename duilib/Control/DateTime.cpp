@@ -4,6 +4,7 @@
 #include <sstream>
 #include <iomanip>
 #include <olectl.h>
+#include <CommCtrl.h>
 
 namespace ui
 {

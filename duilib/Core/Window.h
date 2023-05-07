@@ -8,7 +8,6 @@
 #include "base/callback/callback.h"
 #include "duilib/Core/ControlFinder.h"
 
-#include <CommCtrl.h>
 #include <string>
 
 namespace ui 
@@ -18,6 +17,7 @@ class Box;
 class Control;
 class IRenderContext;
 class Shadow;
+class ToolTip;
 
 /** @brief 窗口消息过滤接口，用于截获窗口过程的消息，优先于Window类进行消息处理
 */
@@ -239,10 +239,6 @@ public:
 	 * @param[in] strTextId 语言 ID，该 ID 必须在语言文件中存在
 	 */
 	void SetTextId(const std::wstring& strTextId);
-
-	/**@brief 获取提示信息所属的窗口句柄
-	*/
-	HWND GetTooltipWindow() const;
 
 	/** @} */
 
@@ -853,10 +849,10 @@ private:
 	std::unique_ptr<IRenderContext> m_renderContext;
 
 private:
-	//Tooltip信息
-	HWND m_hwndTooltip;
-	TOOLINFO m_ToolTip;
 
+	//绘制引擎
+	std::unique_ptr<ToolTip> m_toolTip;
+	
 	//焦点控件
 	Control* m_pFocus;
 	
@@ -883,9 +879,6 @@ private:
 
 	//鼠标所在位置
 	CPoint m_ptLastMousePos;
-
-	//鼠标跟踪状态
-	bool m_bMouseTracking;
 
 	//鼠标事件的捕获状态
 	bool m_bMouseCapture;

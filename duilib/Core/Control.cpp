@@ -391,7 +391,7 @@ void Control::SetUTF8ToolTipText(const std::string& strText)
 	StringHelper::MBCSToUnicode(strText, strOut, CP_UTF8);
 	if (strOut.empty()) {
 		m_sToolTipText = _T("");
-		Invalidate();//~{N*?UTrR;BIVXK"~}
+		Invalidate();
 		return ;
 	}
 

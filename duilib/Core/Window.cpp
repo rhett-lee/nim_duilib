@@ -2,6 +2,7 @@
 #include "duilib/Core/Control.h"
 #include "duilib/Core/Box.h"
 #include "duilib/Core/GlobalManager.h"
+#include "duilib/Core/ToolTip.h"
 #include "duilib/Render/IRender.h"
 #include "duilib/Animation/AnimationManager.h"
 #include "duilib/Animation/AnimationPlayer.h"
@@ -26,8 +27,6 @@ Window::Window() :
 	m_nAlpha(255),
 	m_renderOffset(),
 	m_hDcPaint(nullptr),
-	m_hwndTooltip(nullptr),
-	m_ToolTip(),
 	m_pFocus(nullptr),
 	m_pEventHover(nullptr),
 	m_pEventClick(nullptr),
@@ -45,7 +44,6 @@ Window::Window() :
 	m_rcCaption(),
 	m_bFirstLayout(true),
 	m_bIsArranged(false),
-	m_bMouseTracking(false),
 	m_bMouseCapture(false),
 	m_bIsLayeredWindow(true),
 	m_aMessageFilters(),
@@ -56,6 +54,7 @@ Window::Window() :
 	m_strResourcePath(),
 	m_closeFlag()
 {
+	m_toolTip = std::make_unique<ToolTip>();
 	m_shadow = std::make_unique<Shadow>();
 	LOGFONT lf = { 0 };
 	::GetObject(::GetStockObject(DEFAULT_GUI_FONT), sizeof(LOGFONT), &lf);
@@ -100,11 +99,7 @@ Window::~Window()
 	RemoveAllClass();
 	RemoveAllOptionGroups();
 
-	// Reset other parts...
-	if (m_hwndTooltip != nullptr) {
-		::DestroyWindow(m_hwndTooltip);
-		m_hwndTooltip = nullptr;
-	}
+	m_toolTip.reset();
 	if (m_hDcPaint != nullptr) {
 		::ReleaseDC(m_hWnd, m_hDcPaint);
 		m_hDcPaint = nullptr;
@@ -1355,9 +1350,6 @@ LRESULT Window::OnSizeMsg(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/, bool& bHa
 		::SetWindowRgn(GetHWND(), hRgn, TRUE);
 		::DeleteObject(hRgn);
 	}
-	if (m_pFocus != nullptr) {
-		m_pFocus->SendEvent(kEventWindowSize);
-	}
 	if (m_pRoot != nullptr) {
 		m_pRoot->Arrange();
 	}
@@ -1366,6 +1358,9 @@ LRESULT Window::OnSizeMsg(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/, bool& bHa
 	}
 	else if (wParam == SIZE_RESTORED) {
 		m_shadow->MaximizedOrRestored(false);
+	}
+	if (m_pFocus != nullptr) {
+		m_pFocus->SendEvent(kEventWindowSize);
 	}
 	return 0;
 }
@@ -1389,56 +1384,26 @@ LRESULT Window::OnMouseHoverMsg(UINT uMsg, WPARAM /*wParam*/, LPARAM lParam, boo
 {
 	ASSERT_UNUSED_VARIABLE(uMsg == WM_MOUSEHOVER);
 	bHandled = false;
-	m_bMouseTracking = false;
-	POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
-	Control* pHover = FindControl(pt);
+	m_toolTip->SetMouseTracking(m_hWnd, false);
+
+	CPoint trackPos = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+	Control* pHover = FindControl(trackPos);
 	if (pHover == nullptr) {
 		return 0;
 	}
-	// Generate mouse hover event
+
+	//检查按需显示ToolTip信息	
+	UiRect rect = pHover->GetPos();
+	uint32_t maxWidth = pHover->GetToolTipWidth();
+	HMODULE hModule = GetResModuleHandle();
+	std::wstring toolTipText = pHover->GetToolTipText();
+	bool bHoverChanged = (m_pEventHover != pHover);
+	m_toolTip->ShowToolTip(m_hWnd, hModule, rect, maxWidth, trackPos, bHoverChanged, toolTipText);
+
 	if (m_pEventHover != nullptr) {
-		m_pEventHover->SendEvent(kEventMouseHover, 0, 0, 0, CPoint(pt));
+		m_pEventHover->SendEvent(kEventMouseHover, 0, 0, 0, trackPos);
 	}
-	// Create tooltip information
-	std::wstring sToolTip = pHover->GetToolTipText();
-	if (sToolTip.empty()) {
-		return 0;
-	}
-
-	if (m_hwndTooltip != nullptr && IsWindowVisible(m_hwndTooltip)) {
-		TOOLINFO toolTip = { 0 };
-		toolTip.cbSize = sizeof(TOOLINFO);
-		toolTip.hwnd = m_hWnd;
-		toolTip.uId = (UINT_PTR)m_hWnd;
-		std::wstring toolTipText;
-		toolTipText.resize(MAX_PATH);
-		toolTip.lpszText = const_cast<LPTSTR>((LPCTSTR)toolTipText.c_str());
-		::SendMessage(m_hwndTooltip, TTM_GETTOOLINFO, 0, (LPARAM)&toolTip);
-		if (pHover == m_pEventHover && sToolTip == std::wstring(toolTipText.c_str())) {
-			return 0;
-		}
-	}
-
-	::ZeroMemory(&m_ToolTip, sizeof(TOOLINFO));
-	m_ToolTip.cbSize = sizeof(TOOLINFO);
-	m_ToolTip.uFlags = TTF_IDISHWND;
-	m_ToolTip.hwnd = m_hWnd;
-	m_ToolTip.uId = (UINT_PTR)m_hWnd;
-	m_ToolTip.hinst = GetResModuleHandle();
-	m_ToolTip.lpszText = const_cast<LPTSTR>((LPCTSTR)sToolTip.c_str());
-	m_ToolTip.rect = pHover->GetPos();
-	if (m_hwndTooltip == nullptr) {
-		m_hwndTooltip = ::CreateWindowEx(0, TOOLTIPS_CLASS, NULL, WS_POPUP | TTS_NOPREFIX | TTS_ALWAYSTIP, CW_USEDEFAULT,
-			CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, m_hWnd, NULL, GetResModuleHandle(), NULL);
-		::SendMessage(m_hwndTooltip, TTM_ADDTOOL, 0, (LPARAM)&m_ToolTip);
-		::SetWindowPos(m_hwndTooltip, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
-	}
-	if (!::IsWindowVisible(m_hwndTooltip)) {
-		::SendMessage(m_hwndTooltip, TTM_SETMAXTIPWIDTH, 0, pHover->GetToolTipWidth());
-		::SendMessage(m_hwndTooltip, TTM_SETTOOLINFO, 0, (LPARAM)&m_ToolTip);
-		::SendMessage(m_hwndTooltip, TTM_TRACKACTIVATE, TRUE, (LPARAM)&m_ToolTip);
-	}
-	::SendMessage(m_hwndTooltip, TTM_TRACKPOSITION, 0, (LPARAM)(DWORD)MAKELONG(pt.x, pt.y));
+	
 	return 0;
 }
 
@@ -1446,22 +1411,14 @@ LRESULT Window::OnMouseLeaveMsg(UINT uMsg, WPARAM /*wParam*/, LPARAM /*lParam*/,
 {
 	ASSERT_UNUSED_VARIABLE(uMsg == WM_MOUSELEAVE);
 	bHandled = false;
-	if (m_hwndTooltip != nullptr) {
-		::SendMessage(m_hwndTooltip, TTM_TRACKACTIVATE, FALSE, (LPARAM)&m_ToolTip);
-	}
-	if (m_bMouseTracking) {
-		::SendMessage(m_hWnd, WM_MOUSEMOVE, 0, (LPARAM)-1);
-	}
-	m_bMouseTracking = false;
+	m_toolTip->HideToolTip();
+	m_toolTip->ClearMouseTracking();	
 	return 0;
 }
 
 bool Window::HandleMouseEnterLeave(const POINT& pt, WPARAM wParam, LPARAM lParam)
 {
 	Control* pNewHover = FindControl(pt);
-	if (pNewHover != nullptr && pNewHover->GetWindow() != this) {
-		return false;
-	}
 	//设置为新的Hover控件
 	Control* pOldHover = m_pEventHover;
 	m_pEventHover = pNewHover;
@@ -1469,9 +1426,7 @@ bool Window::HandleMouseEnterLeave(const POINT& pt, WPARAM wParam, LPARAM lParam
 	if ((pNewHover != pOldHover) && (pOldHover != nullptr)) {
 		//Hover状态的控件发生变化，原来Hover控件的Tooltip应消失
 		pOldHover->SendEvent(kEventMouseLeave, 0, 0, 0, CPoint(pt));
-		if (m_hwndTooltip != nullptr) {
-			::SendMessage(m_hwndTooltip, TTM_TRACKACTIVATE, FALSE, (LPARAM)&m_ToolTip);
-		}
+		m_toolTip->HideToolTip();
 	}
 	ASSERT(pNewHover == m_pEventHover);
 	if (pNewHover != m_pEventHover) {
@@ -1493,15 +1448,7 @@ LRESULT Window::OnMouseMoveMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bH
 	}
 
 	// Start tracking this entire window again...
-	if (!m_bMouseTracking) {
-		TRACKMOUSEEVENT tme = { 0 };
-		tme.cbSize = sizeof(TRACKMOUSEEVENT);
-		tme.dwFlags = TME_HOVER | TME_LEAVE;
-		tme.hwndTrack = m_hWnd;
-		tme.dwHoverTime = m_hwndTooltip == nullptr ? 400UL : (DWORD) ::SendMessage(m_hwndTooltip, TTM_GETDELAYTIME, TTDT_INITIAL, 0L);
-		_TrackMouseEvent(&tme);//TODO: tooltip的流程，待梳理。
-		m_bMouseTracking = true;
-	}
+	m_toolTip->SetMouseTracking(m_hWnd, true);
 	// Generate the appropriate mouse messages
 	POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
 	m_ptLastMousePos = CPoint(pt);
@@ -1530,7 +1477,7 @@ LRESULT Window::OnMouseWheelMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& b
 	::ScreenToClient(m_hWnd, &pt);
 	m_ptLastMousePos = CPoint(pt);
 	Control* pControl = FindControl(pt);
-	if ((pControl != nullptr) && (pControl->GetWindow() == this)) {
+	if (pControl != nullptr) {
 		int zDelta = (int)(short)HIWORD(wParam);
 		pControl->SendEvent(kEventMouseWheel, zDelta, lParam);
 	}	
@@ -1552,7 +1499,7 @@ LRESULT Window::OnLButtonDownMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& 
 	POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
 	m_ptLastMousePos = CPoint(pt);
 	Control* pControl = FindControl(pt);
-	if ((pControl != nullptr) && (pControl->GetWindow() == this)) {
+	if (pControl != nullptr) {
 		m_pEventClick = pControl;
 		pControl->SetFocus();
 		SetCapture();
@@ -1573,7 +1520,7 @@ LRESULT Window::OnRButtonDownMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& 
 	POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
 	m_ptLastMousePos = CPoint(pt);
 	Control* pControl = FindControl(pt);
-	if ((pControl != nullptr) && (pControl->GetWindow() == this)) {
+	if (pControl != nullptr) {
 		m_pEventClick = pControl;
 		pControl->SetFocus();
 		SetCapture();
@@ -1594,7 +1541,7 @@ LRESULT Window::OnLButtonDoubleClickMsg(UINT uMsg, WPARAM wParam, LPARAM lParam,
 	POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
 	m_ptLastMousePos = CPoint(pt);
 	Control* pControl = FindControl(pt);
-	if ((pControl != nullptr) && (pControl->GetWindow() == this)) {
+	if (pControl != nullptr) {
 		m_pEventClick = pControl;
 		SetCapture();
 		pControl->SendEvent(kEventMouseDoubleClick, wParam, lParam, 0, CPoint(pt));
@@ -1718,7 +1665,7 @@ LRESULT Window::OnContextMenuMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& 
 		::ScreenToClient(m_hWnd, &pt);
 		m_ptLastMousePos = CPoint(pt);
 		Control* pControl = FindContextMenuControl(&pt);
-		if ((pControl != nullptr) && (pControl->GetWindow() == this)) {
+		if (pControl != nullptr) {
 			Control* ptControl = FindControl(pt);//当前点击点所在的控件
 			pControl->SendEvent(kEventMouseMenu, wParam, (LPARAM)ptControl, 0, CPoint(pt));
 		}
@@ -1727,7 +1674,7 @@ LRESULT Window::OnContextMenuMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& 
 		//如果用户键入 SHIFT+F10，则上下文菜单为 -1, -1，
 		//应用程序应在当前所选内容的位置（而不是 (xPos、yPos) ）显示上下文菜单。
 		Control* pControl = FindContextMenuControl(nullptr);
-		if ((pControl != nullptr) && (pControl->GetWindow() == this)) {
+		if (pControl != nullptr) {
 			pControl->SendEvent(kEventMouseMenu, wParam, 0, 0, CPoint(pt));
 		}
 	}
@@ -1797,7 +1744,7 @@ LRESULT Window::OnSetCusorMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHa
 	::ScreenToClient(m_hWnd, &pt);
 	m_ptLastMousePos = CPoint(pt);
 	Control* pControl = FindControl(pt);
-	if ((pControl != nullptr) && (pControl->GetWindow() == this)) {
+	if (pControl != nullptr) {
 		pControl->SendEvent(kEventSetCursor, wParam, lParam, 0, CPoint(pt));
 		bHandled = true;
 	}	
@@ -1896,9 +1843,6 @@ LRESULT Window::OnTouchMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandl
         m_ptLastMousePos = CPoint(pt);
         Control* pControl = FindControl(pt);
         if (pControl == nullptr) {
-			return 0;
-        }
-        if (pControl->GetWindow() != this) {
 			return 0;
         }
         m_pEventPointer = pControl;
@@ -2007,9 +1951,6 @@ LRESULT Window::OnPointerMsgs(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHa
         m_ptLastMousePos = CPoint(pt);
         Control* pControl = FindControl(pt);
         if (pControl == nullptr) {
-            break;
-        }
-        if (pControl->GetWindow() != this) {
             break;
         }
         m_pEventPointer = pControl;
@@ -2154,11 +2095,6 @@ bool Window::IsCaptured() const
 ui::Control* Window::GetHoverControl() const
 {
 	return m_pEventHover;
-}
-
-HWND Window::GetTooltipWindow() const
-{
-	return m_hwndTooltip;
 }
 
 bool Window::SetNextTabControl(bool bForward)
@@ -2466,12 +2402,22 @@ void Window::OnInitLayout()
 
 Control* Window::FindControl(const POINT& pt) const
 {
-	return m_controlFinder.FindControl(pt);
+	Control* pControl = m_controlFinder.FindControl(pt);
+	if ((pControl != nullptr) && (pControl->GetWindow() != this)) {
+		ASSERT(FALSE);
+		pControl = nullptr;
+	}
+	return pControl;
 }
 
 Control* Window::FindContextMenuControl(const POINT* pt) const
 {
-	return m_controlFinder.FindContextMenuControl(pt);
+	Control* pControl = m_controlFinder.FindContextMenuControl(pt);
+	if ((pControl != nullptr) && (pControl->GetWindow() != this)) {
+		ASSERT(FALSE);
+		pControl = nullptr;
+	}
+	return pControl;
 }
 
 Control* Window::FindControl(const std::wstring& strName) const
