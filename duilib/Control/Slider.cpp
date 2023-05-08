@@ -47,7 +47,7 @@ void Slider::HandleEvent(const EventArgs& event)
 		return;
 	}
 
-	if (event.Type == kEventMouseButtonDown || event.Type == kEventMouseDoubleClick || event.Type == kEventPointDown) {
+	if (event.Type == kEventMouseButtonDown || event.Type == kEventMouseDoubleClick) {
 		if( IsEnabled() ) {
 			UiPoint newPtMouse(event.ptMouse);
 			newPtMouse.Offset(GetScrollOffset());
@@ -58,7 +58,7 @@ void Slider::HandleEvent(const EventArgs& event)
 		}
 		return;
 	}
-	if (event.Type == kEventMouseButtonUp || event.Type == kEventPointUp) {
+	if (event.Type == kEventMouseButtonUp) {
 		if(IsMouseFocused()) {
 			SetMouseFocused(false);
 		}
@@ -91,7 +91,7 @@ void Slider::HandleEvent(const EventArgs& event)
 			return;
 		}
 	}
-	if (event.Type == kEventMouseMove || event.Type == kEventPointMove) {
+	if (event.Type == kEventMouseMove) {
 		if (IsMouseFocused()) {
 			if (m_bHorizontal) {
 				if (event.ptMouse.x >= m_rcItem.right - m_szThumb.cx / 2) m_nValue = m_nMax;

@@ -2489,7 +2489,7 @@ void RichEdit::HandleEvent(const EventArgs& event)
 		return;
 	}
 
-	if (event.Type == kEventMouseButtonDown || event.Type == kEventPointDown) {
+	if (event.Type == kEventMouseButtonDown) {
 		if (m_linkInfo.size() > 0)	{
 			std::wstring strLink;
 			if (HittestCustomLink(UiPoint(event.ptMouse), strLink))
@@ -2499,14 +2499,10 @@ void RichEdit::HandleEvent(const EventArgs& event)
 				return;
 			}
 		}
-
-		if (event.Type == kEventPointDown) {
-			OnScreenKeyboardManager::GetInstance()->ShowOSK(true);
-		}
 		OnMouseMessage(WM_LBUTTONDOWN, event);
 		return;
 	}
-	if (event.Type == kEventMouseButtonUp || event.Type == kEventPointUp) {
+	if (event.Type == kEventMouseButtonUp) {
 		if (IsEnabled() && !m_bSelAllEver) {
 			m_bSelAllEver = true;
 

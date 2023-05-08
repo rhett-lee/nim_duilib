@@ -301,18 +301,6 @@ void Box::SetPos(UiRect rc)
 	}
 }
 
-void Box::SetReceivePointerMsg(bool bRecv)
-{
-	__super::SetReceivePointerMsg(bRecv);
-	for (auto it = m_items.begin(); it != m_items.end(); ++it) {
-		Control* pControl = *it;
-		ASSERT(pControl != nullptr);
-		if (pControl != nullptr) {
-			pControl->SetReceivePointerMsg(bRecv);
-		}
-	}
-}
-
 void Box::PaintChild(IRenderContext* pRender, const UiRect& rcPaint)
 {
 	UiRect rcTemp;
@@ -827,8 +815,7 @@ ScrollableBox::ScrollableBox(Layout* pLayout) :
 	m_bVScrollBarLeftPos(false),
 	m_bHoldEnd(false),
 	m_bDefaultDisplayScrollbar(true),
-	m_rcScrollBarPadding(),
-	m_ptLastTouchPos(-1, -1)
+	m_rcScrollBarPadding()
 {
 	m_scrollAnimation = std::make_unique<AnimationPlayer>();
 	m_renderOffsetYAnimation = std::make_unique<AnimationPlayer>();
@@ -965,46 +952,26 @@ void ScrollableBox::HandleEvent(const EventArgs& event)
 		}
 		else if( event.Type == kEventMouseWheel ) {
 			int deltaValue = static_cast<int>(event.wParam);
-			if (deltaValue > 0 ) {
-				LineUp(abs(deltaValue));
-			}
-			else {
-				LineDown(abs(deltaValue));
-			}
-
-			return;
-		}
-		else if (event.Type == kEventTouchDown || event.Type == kEventPointDown) {
-			if (IsEnabled()) {
-				SetMouseFocused(true);
-				m_ptLastTouchPos = UiPoint(event.ptMouse);
-				return;
-			}
-		}
-		else if (event.Type == kEventTouchMove || event.Type == kEventPointMove) {
-			if (IsMouseFocused()) {
-				int detaValue = event.ptMouse.y - m_ptLastTouchPos.y;
-				if (detaValue == 0)
-					return;
-
-				m_ptLastTouchPos = UiPoint(event.ptMouse);
-
-				if (detaValue > 0) {
-					TouchUp(abs(detaValue));
+			if (event.lParam != 0) {
+				//正常逻辑滚动
+				if (deltaValue > 0) {
+					LineUp(abs(deltaValue));
 				}
 				else {
-					TouchDown(abs(detaValue));
+					LineDown(abs(deltaValue));
 				}
-				return;
 			}
-		}
-		else if (event.Type == kEventTouchUp || event.Type == kEventPointUp) {
-			if (IsMouseFocused()) {
-				SetMouseFocused(false);
-				m_ptLastTouchPos = UiPoint(event.ptMouse);
-				return;
+			else {
+				//严格按照传入参数滚动
+				if (deltaValue > 0) {
+					TouchUp(abs(deltaValue));
+				}
+				else {
+					TouchDown(abs(deltaValue));
+				}
 			}
-		}
+			return;
+		}		
 	}
 	else if( m_pHorizontalScrollBar != NULL && m_pHorizontalScrollBar->IsValid() && m_pHorizontalScrollBar->IsEnabled() ) {
 		if( event.Type == kEventKeyDown ) {

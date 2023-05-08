@@ -559,15 +559,6 @@ private:
 	/** @name 私有窗口消息处理相关
 	* @{
 	*/
-
-	/**@brief 判断是否需要发送鼠标进入或离开消息
-	 * @param[in] pt 鼠标当前位置
-	 * @param[in] wParam 消息附加参数
-	 * @param[in] lParam 消息附加参数
-	 * @return 返回 true 需要发送鼠标进入或离开消息，返回 false 为不需要
-	 */
-	bool HandleMouseEnterLeave(const POINT& pt, WPARAM wParam, LPARAM lParam);
-
 	//部分消息处理函数，以实现基本功能
 	LRESULT OnCloseMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
 	LRESULT OnNcActivateMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
@@ -586,14 +577,15 @@ private:
 	LRESULT OnLButtonDownMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
 	LRESULT OnRButtonDownMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
 	LRESULT OnLButtonDoubleClickMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
+	LRESULT OnRButtonDoubleClickMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
 	LRESULT OnLButtonUpMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
 	LRESULT OnRButtonUpMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
+	LRESULT OnContextMenuMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
 
 	LRESULT OnIMEStartCompositionMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
 	LRESULT OnIMEEndCompositionMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
 	LRESULT OnSetFocusMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
 	LRESULT OnKillFocusMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
-	LRESULT OnContextMenuMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
 	LRESULT OnCharMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
 	LRESULT OnKeyDownMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
 	LRESULT OnKeyUpMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
@@ -604,6 +596,34 @@ private:
 
 	LRESULT OnTouchMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
 	LRESULT OnPointerMsgs(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);	
+
+	//鼠标等按下消息处理函数
+	void OnButtonDown(EventType eventType, WPARAM wParam, LPARAM lParam, const UiPoint& pt);
+
+	//鼠标等弹起消息处理函数
+	void OnButtonUp(EventType eventType, WPARAM wParam, LPARAM lParam, const UiPoint& pt);
+
+	//鼠标移动消息处理函数
+	void OnMouseMove(WPARAM wParam, LPARAM lParam, const UiPoint& pt);
+
+	/**@brief 鼠标滚轮消息处理函数
+	*  @param [in] wParam 滚轮旋转的距离，正值表示滚轮向前旋转，远离用户;负值表示滚轮向后向用户旋转。
+	*  @param [in] lParam 含有特殊处理， 0表示严格按照wParam指定的距离滚动, 非0表示按照常规逻辑处理滚轮旋转的距离 
+	*  @param [in] pt 鼠标所在的坐标值，为窗口客户区坐标 
+	*/
+	void OnMouseWheel(WPARAM wParam, LPARAM lParam, const UiPoint& pt);
+
+	//清除鼠标键盘操作状态
+	void ClearStatus();
+
+	/**@brief 判断是否需要发送鼠标进入或离开消息
+	 * @param[in] pt 鼠标当前位置
+	 * @param[in] wParam 消息附加参数
+	 * @param[in] lParam 消息附加参数
+	 * @return 返回 true 需要发送鼠标进入或离开消息，返回 false 为不需要
+	 */
+	bool HandleMouseEnterLeave(const UiPoint& pt, WPARAM wParam, LPARAM lParam);
+
 
 	/** @}*/
 
@@ -633,11 +653,6 @@ public:
 	 */
 	void ReleaseCapture();
 
-	/**@brief 判断指定控件是否被点击或触控
-	 * @paran[in] pControl 控件指针
-	 */
-	bool IsCaptureControl(const Control* pControl) const;
-
 	/**@brief 判断当前是否捕获鼠标输入
 	 */
 	bool IsCaptured() const;
@@ -650,23 +665,10 @@ public:
 	 */
 	const POINT& GetLastMousePos() const;
 
-	/**@brief 设置是否处理触控消息(触摸屏支持)
-	 * @param[in] bHandle 设置为 true 表示处理，false 为不处理
-	 */
-	void SetHandlePointerMsg(bool bHandle) { m_bHandlePointerMsg = bHandle; };
-
 	/**@brief 切换控件焦点到下一个（或上一个）控件
 	 * @param[in] bForward true 为上一个控件，否则为 false，默认为 true
 	 */
 	bool SetNextTabControl(bool bForward = true);
-
-protected:
-	/**@brief 释放指定控件的按下状态
-	 * @param[in] bClickOrPointer 单击控件还是触摸控件
-	 * @param[in] wParam 消息附加参数
-	 * @param[in] lParam 消息附加参数
-	 */
-	void ReleaseEventClick(bool bClickOrPointer, WPARAM wParam, LPARAM lParam);
 
 	/** @}*/
 
@@ -870,12 +872,6 @@ private:
 	*   在 WM_KEYUP 清空
 	*/
 	Control* m_pEventKey;
-
-	//触摸屏事件相关的控件
-	Control* m_pEventPointer;
-
-	//设置是否处理触控消息(触摸屏支持)
-	bool m_bHandlePointerMsg;
 
 	//鼠标所在位置
 	UiPoint m_ptLastMousePos;

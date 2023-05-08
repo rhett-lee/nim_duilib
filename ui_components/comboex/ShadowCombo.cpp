@@ -229,7 +229,6 @@ UIAControlProvider* ShadowCombo::GetUIAProvider()
 bool ShadowCombo::Add(Control* pControl)
 {
     m_pLayout->Add(pControl);
-    pControl->SetReceivePointerMsg(true);
     m_iCurSel = m_pLayout->GetCurSel();
     return true;
 }

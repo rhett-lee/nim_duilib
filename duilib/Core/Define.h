@@ -18,8 +18,7 @@ namespace ui
             dwTimestamp(0),
             chKey(0),
             wParam(0),
-            lParam(0),
-            pressure(0.0f)
+            lParam(0)
         {
             ptMouse.x = 0;
             ptMouse.y = 0;
@@ -32,7 +31,6 @@ namespace ui
         TCHAR chKey;
         WPARAM wParam;
         LPARAM lParam;
-        FLOAT pressure;
     };
 
     EventType StringToEnum(const std::wstring& messageType);

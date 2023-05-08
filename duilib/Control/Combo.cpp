@@ -192,7 +192,6 @@ bool Combo::Add(Control* pControl)
 		return false;
 	}
 	m_pLayout->Add(pControl);
-	pControl->SetReceivePointerMsg(true);
 	m_iCurSel = m_pLayout->GetCurSel();
 	return true;
 }

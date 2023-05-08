@@ -44,11 +44,17 @@ EventType StringToEnum(const std::wstring& messageType)
 	else if (messageType == EVENTSTR_BUTTONUP) {
 		return kEventMouseButtonUp;
 	}
+	else if (messageType == EVENTSTR_DOUBLECLICK) {
+		return kEventMouseDoubleClick;
+	}
 	else if (messageType == EVENTSTR_RBUTTONDOWN) {
 		return kEventMouseRightButtonDown;
 	}
-	else if (messageType == EVENTSTR_DOUBLECLICK) {
-		return kEventMouseDoubleClick;
+	else if (messageType == EVENTSTR_RBUTTONUP) {
+		return kEventMouseRightButtonUp;
+	}
+	else if (messageType == EVENTSTR_RDOUBLECLICK) {
+		return kEventMouseRightDoubleClick;
 	}
 	else if (messageType == EVENTSTR_SELECT) {
 		return kEventSelect;

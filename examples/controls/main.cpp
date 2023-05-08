@@ -13,6 +13,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	UNREFERENCED_PARAMETER(hPrevInstance);
 	UNREFERENCED_PARAMETER(lpCmdLine);
 
+	//开启用鼠标模拟WM_POINTER消息
+	//BOOL isOk = EnableMouseInPointer(TRUE);
+	//BOOL isOk2 = IsMouseInPointerEnabled();
+
 	MainThread().RunOnCurrentThreadWithLoop(nbase::MessageLoop::kUIMessageLoop);
 
 	return 0;

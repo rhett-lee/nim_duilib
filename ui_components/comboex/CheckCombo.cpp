@@ -187,7 +187,6 @@ namespace nim_comp
 			}
 		}
 		m_pDropList->Add(pControl);
-		pControl->SetReceivePointerMsg(true);
 		return true;
 	}
 

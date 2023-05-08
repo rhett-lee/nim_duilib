@@ -119,7 +119,6 @@ public:
 	virtual void SetWindow(Window* pManager, Box* pParent, bool bInit = true) override;
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 	virtual void SetPos(UiRect rc) override;
-	virtual void SetReceivePointerMsg(bool bRecv) override;
 	virtual void PaintChild(IRenderContext* pRender, const UiRect& rcPaint) override;
 	virtual void SetEnabled(bool bEnabled) override;
 	virtual void SetVisible(bool bVisible) override;
@@ -650,7 +649,6 @@ protected:
 	bool m_bVScrollBarLeftPos;
 	UiRect m_rcScrollBarPadding;
 
-	UiPoint m_ptLastTouchPos;
 	std::unique_ptr<AnimationPlayer> m_scrollAnimation;
 	std::unique_ptr<AnimationPlayer> m_renderOffsetYAnimation;
 };

@@ -578,8 +578,7 @@ public:
 			        	   WPARAM wParam = 0, 
 						   LPARAM lParam = 0, 
 						   TCHAR tChar = 0, 
-						   const UiPoint& mousePos = UiPoint(),
-						   FLOAT pressure = 0.0f);
+						   const UiPoint& mousePos = UiPoint());
 
 	/** @brief 将转换后的消息派发到消息处理函数
 	 * @param[in] msg 消息内容
@@ -591,19 +590,6 @@ public:
 	 * @return 返回 true 有 HOT 状态， 否则为 false
 	 */
 	virtual bool HasHotState();
-
-	/**
-	 * @brief 设置控件是否响应触控消息
-	 * @param[in] bRecv 设置为 true 表示响应触控消息，false 为不响应
-	 * @return 无
-	 */
-	virtual void SetReceivePointerMsg(bool bRecv) { m_bReceivePointerMsg = bRecv; };
-	
-	/**
-	 * @brief 判断控件是否响应触控消息
-	 * @return 返回 true 为响应，否则为 false
-	 */
-	bool IsReceivePointerMsg() const { return m_bReceivePointerMsg; };
 
 	// 属性设置
 	/**
@@ -1068,7 +1054,6 @@ protected:
 	
 	bool m_bClip;
 	bool m_bGifPlay;
-	bool m_bReceivePointerMsg;
 	bool m_bAllowTabstop;
 	bool m_bIsLoading;
 	int m_nBorderSize;

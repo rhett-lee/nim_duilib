@@ -337,8 +337,7 @@ void ScrollBar::HandleEvent(const EventArgs& event)
 		return;
 	}
 	else if ((event.Type == kEventMouseButtonDown) || 
-		     (event.Type == kEventMouseDoubleClick) || 
-		     (event.Type == kEventPointDown)) {
+		     (event.Type == kEventMouseDoubleClick)) {
 		if (!IsEnabled()) {
 			return;
 		}
@@ -436,7 +435,6 @@ void ScrollBar::HandleEvent(const EventArgs& event)
 		return;
 	}
 	else if ((event.Type == kEventMouseButtonUp) || 
-		     (event.Type == kEventPointUp)       ||
 			 (event.Type == kEventWindowKillFocus) ){
 		m_nScrollRepeatDelay = 0;
 		m_nLastScrollOffset = 0;
@@ -469,7 +467,7 @@ void ScrollBar::HandleEvent(const EventArgs& event)
 	else if (event.Type == kEventMouseLeave) {
 		MouseLeave(event);
 	}
-	else if (event.Type == kEventMouseMove || event.Type == kEventPointMove) {
+	else if (event.Type == kEventMouseMove) {
 		if (IsMouseFocused()) {
 			if (!m_bHorizontal) {
 

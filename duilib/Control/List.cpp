@@ -90,10 +90,9 @@ void ListBox::HandleEvent(const EventArgs& event)
 	ScrollableBox::HandleEvent(event);
 }
 
-void ListBox::SendEvent(EventType eventType, WPARAM wParam, LPARAM lParam, TCHAR tChar,
-					    const UiPoint& mousePos, FLOAT pressure)
+void ListBox::SendEvent(EventType eventType, WPARAM wParam, LPARAM lParam, TCHAR tChar, const UiPoint& mousePos)
 {
-	return ScrollableBox::SendEvent(eventType, wParam, lParam, tChar, mousePos, pressure);
+	return ScrollableBox::SendEvent(eventType, wParam, lParam, tChar, mousePos);
 }
 
 void ListBox::SendEvent(const EventArgs& event)
@@ -429,8 +428,6 @@ ListContainerElement::ListContainerElement() :
 	m_pOwner(nullptr)
 {
 	m_uTextStyle = DT_LEFT | DT_VCENTER | DT_END_ELLIPSIS | DT_NOCLIP | DT_SINGLELINE;
-	// 列表项不处理WM_POINTER消息，可以顺利收到右键菜单消息
-	SetReceivePointerMsg(false);
 }
 
 std::wstring ListContainerElement::GetType() const {  return DUI_CTR_LISTCONTAINERELEMENT; }

@@ -29,7 +29,6 @@ Control::Control() :
 	m_bNoFocus(false),
 	m_bClip(true),
 	m_bGifPlay(true),
-	m_bReceivePointerMsg(true),
 	m_bAllowTabstop(true),
     m_bIsLoading(false),
 	m_szEstimateSize(),
@@ -730,8 +729,7 @@ void Control::SendEvent(EventType eventType,
 					    WPARAM wParam, 
 					    LPARAM lParam, 
 					    TCHAR tChar, 
-					    const UiPoint& mousePos,
-					    FLOAT pressure)
+					    const UiPoint& mousePos)
 {
 	EventArgs msg;
 	msg.pSender = this;
@@ -739,7 +737,6 @@ void Control::SendEvent(EventType eventType,
 	msg.chKey = tChar;
 	msg.wParam = wParam;
 	msg.lParam = lParam;
-	msg.pressure = pressure;
 	if ((mousePos.x == 0) && (mousePos.y == 0)) {
 		if (m_pWindow != nullptr) {
 			msg.ptMouse = m_pWindow->GetLastMousePos();
@@ -830,14 +827,6 @@ void Control::HandleEvent(const EventArgs& msg)
 		ButtonUp(msg);
 		return;
 	}
-	else if (msg.Type == kEventPointDown && m_bReceivePointerMsg) {
-		ButtonDown(msg);
-		return;
-	}
-	else if (msg.Type == kEventPointUp && m_bReceivePointerMsg) {
-		ButtonUp(msg);
-		return;
-	}
 
 	if (m_pParent != nullptr) {
 		m_pParent->SendEvent(msg);
@@ -911,14 +900,8 @@ bool Control::ButtonUp(const EventArgs& msg)
 
 		Invalidate();
 		if( IsPointInWithScrollOffset(UiPoint(msg.ptMouse)) ) {
-			if (msg.Type == kEventPointUp) {
-				m_uButtonState = kControlStateNormal;
-				m_nHotAlpha = 0;
-			}
-			else {
-				m_uButtonState = kControlStateHot;
-				m_nHotAlpha = 255;
-			}
+			m_uButtonState = kControlStateHot;
+			m_nHotAlpha = 255;
 			Activate();
 			ret = true;
 		}
@@ -1122,7 +1105,6 @@ void Control::SetAttribute(const std::wstring& strName, const std::wstring& strV
 	else if (strName == _T("fadeinoutxfromright")) m_animationManager->SetFadeInOutX(strValue == _T("true"), true);
 	else if (strName == _T("fadeinoutyfromtop")) m_animationManager->SetFadeInOutY(strValue == _T("true"), false);
 	else if (strName == _T("fadeinoutyfrombottom")) m_animationManager->SetFadeInOutY(strValue == _T("true"), true);
-	else if (strName == _T("receivepointer")) SetReceivePointerMsg(strValue == _T("true"));
 	else if (strName == _T("tabstop")) SetTabStop(strValue == _T("true"));
 	else if (strName == _T("loadingimage")) SetLoadingImage(strValue);
 	else if (strName == _T("loadingbkcolor")) SetLoadingBkColor(strValue);
