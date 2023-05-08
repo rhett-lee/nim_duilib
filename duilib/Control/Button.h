@@ -47,8 +47,8 @@ void ButtonTemplate<InheritType>::HandleEvent(const EventArgs& event)
         (event.Type > kEventMouseBegin) && 
         (event.Type < kEventMouseEnd)) {
         //当前控件禁止接收鼠标消息时，将鼠标相关消息转发给上层处理
-        if (this->m_pParent != nullptr) {
-            this->m_pParent->SendEvent(event);
+        if (this->GetParent() != nullptr) {
+            this->GetParent()->SendEvent(event);
         }
         else {
             __super::HandleEvent(event);

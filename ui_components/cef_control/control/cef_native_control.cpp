@@ -35,12 +35,12 @@ void CefNativeControl::Init()
 {
 	if (browser_handler_.get() == nullptr)
 	{
-		LONG style = GetWindowLong(m_pWindow->GetHWND(), GWL_STYLE);
-		SetWindowLong(m_pWindow->GetHWND(), GWL_STYLE, style | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
-		ASSERT((GetWindowExStyle(m_pWindow->GetHWND()) & WS_EX_LAYERED) == 0 && L"无法在分层窗口内使用本控件");
+		LONG style = GetWindowLong(GetWindow()->GetHWND(), GWL_STYLE);
+		SetWindowLong(GetWindow()->GetHWND(), GWL_STYLE, style | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
+		ASSERT((GetWindowExStyle(GetWindow()->GetHWND()) & WS_EX_LAYERED) == 0 && L"无法在分层窗口内使用本控件");
 
 		browser_handler_ = new nim_comp::BrowserHandler;
-		browser_handler_->SetHostWindow(m_pWindow->GetHWND());
+		browser_handler_->SetHostWindow(GetWindow()->GetHWND());
 		browser_handler_->SetHandlerDelegate(this);
 		ReCreateBrowser();
 	}
@@ -59,7 +59,7 @@ void CefNativeControl::ReCreateBrowser()
 	{
 		// 使用有窗模式
 		CefWindowInfo window_info;
-		window_info.SetAsChild(this->m_pWindow->GetHWND(), m_rcItem);
+		window_info.SetAsChild(this->GetWindow()->GetHWND(), GetRect());
 
 		CefBrowserSettings browser_settings;
 		CefBrowserHost::CreateBrowser(window_info, browser_handler_, L"", browser_settings, NULL);

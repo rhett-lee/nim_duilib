@@ -14,7 +14,6 @@ PlaceHolder::PlaceHolder() :
 	m_cxyMin(-1, -1),
 	m_cxyMax(9999999, 9999999),
 	m_pParent(nullptr),
-	m_rcItem(),
 	m_horAlignType(kHorAlignLeft),
 	m_verAlignType(kVerAlignTop),
 	m_bFloat(false),
@@ -24,28 +23,19 @@ PlaceHolder::PlaceHolder() :
 	m_bUseCache(false),
 	m_bCacheDirty(false)
 {
-
 }
 
 PlaceHolder::~PlaceHolder()
-{
-	
+{	
 }
 
 ui::Box* PlaceHolder::GetAncestor(const std::wstring& strName)
 {
 	Box* pAncestor = this->GetParent();
-	while (pAncestor && pAncestor->GetName() != strName)
-	{
+	while ((pAncestor != nullptr) && pAncestor->GetName() != strName) {
 		pAncestor = pAncestor->GetParent();
 	}
-
 	return pAncestor;
-}
-
-const std::wstring& PlaceHolder::GetName() const
-{
-	return m_sName;
 }
 
 std::string PlaceHolder::GetUTF8Name() const
@@ -65,11 +55,6 @@ void PlaceHolder::SetUTF8Name(const std::string& strName)
 	std::wstring strOut;
 	StringHelper::MBCSToUnicode(strName, strOut, CP_UTF8);
 	m_sName = strOut;
-}
-
-Window* PlaceHolder::GetWindow() const
-{
-	return m_pWindow;
 }
 
 void PlaceHolder::SetWindow(Window* pManager, Box* pParent, bool bInit)
@@ -101,27 +86,13 @@ void PlaceHolder::SetVisible(bool bVisible)
 	m_bVisible = bVisible;
 }
 
-bool PlaceHolder::IsVisible() const
-{
-	return m_bVisible;
-}
-
-bool PlaceHolder::IsFloat() const
-{
-	return m_bFloat;
-}
-
 void PlaceHolder::SetFloat(bool bFloat)
 {
-	if (m_bFloat == bFloat) return;
-
+	if (m_bFloat == bFloat) {
+		return;
+	}
 	m_bFloat = bFloat;
 	ArrangeAncestor();
-}
-
-int PlaceHolder::GetFixedWidth() const
-{
-	return m_cxyFixed.cx;
 }
 
 void PlaceHolder::SetFixedWidth(int cx, bool bArrange, bool bNeedDpiScale)
@@ -131,11 +102,11 @@ void PlaceHolder::SetFixedWidth(int cx, bool bArrange, bool bNeedDpiScale)
 		return;
 	}
 
-	if (bNeedDpiScale && cx > 0)
+	if (bNeedDpiScale && cx > 0) {
 		DpiManager::GetInstance()->ScaleInt(cx);
+	}		
 
-	if (m_cxyFixed.cx != cx)
-	{
+	if (m_cxyFixed.cx != cx) {
 		m_cxyFixed.cx = cx;
 
 		if (bArrange) {
@@ -145,13 +116,6 @@ void PlaceHolder::SetFixedWidth(int cx, bool bArrange, bool bNeedDpiScale)
 			m_bReEstimateSize = true;
 		}
 	}
-	//if( !m_bFloat ) ArrangeAncestor();
-	//else Arrange();
-}
-
-int PlaceHolder::GetFixedHeight() const
-{
-	return m_cxyFixed.cy;
 }
 
 void PlaceHolder::SetFixedHeight(int cy, bool bNeedDpiScale)
@@ -161,94 +125,84 @@ void PlaceHolder::SetFixedHeight(int cy, bool bNeedDpiScale)
 		return;
 	}
 
-	if (bNeedDpiScale && cy > 0)
+	if (bNeedDpiScale && cy > 0) {
 		DpiManager::GetInstance()->ScaleInt(cy);
+	}
 
-	if (m_cxyFixed.cy != cy)
-	{
+	if (m_cxyFixed.cy != cy) {
 		m_cxyFixed.cy = cy;
-
 		ArrangeAncestor();
 	}
-	//if( !m_bFloat ) ArrangeAncestor();
-	//else Arrange();
-}
-
-int PlaceHolder::GetMinWidth() const
-{
-	return m_cxyMin.cx;
 }
 
 void PlaceHolder::SetMinWidth(int cx)
 {
 	DpiManager::GetInstance()->ScaleInt(cx);
-	if (m_cxyMin.cx == cx) return;
+	if (m_cxyMin.cx == cx) {
+		return;
+	}
 
-	if (cx < 0) return;
+	if (cx < 0) {
+		return;
+	}
 	m_cxyMin.cx = cx;
-	if (!m_bFloat) ArrangeAncestor();
-	else Arrange();
-}
-
-int PlaceHolder::GetMaxWidth() const
-{
-	return m_cxyMax.cx;
+	if (!m_bFloat) {
+		ArrangeAncestor();
+	}
+	else {
+		Arrange();
+	}
 }
 
 void PlaceHolder::SetMaxWidth(int cx)
 {
 	DpiManager::GetInstance()->ScaleInt(cx);
-	if (m_cxyMax.cx == cx) return;
+	if (m_cxyMax.cx == cx) {
+		return;
+	}
 
 	m_cxyMax.cx = cx;
-	if (!m_bFloat) ArrangeAncestor();
-	else Arrange();
-}
-
-int PlaceHolder::GetMinHeight() const
-{
-	return m_cxyMin.cy;
+	if (!m_bFloat) {
+		ArrangeAncestor();
+	}
+	else {
+		Arrange();
+	}
 }
 
 void PlaceHolder::SetMinHeight(int cy)
 {
 	DpiManager::GetInstance()->ScaleInt(cy);
-	if (m_cxyMin.cy == cy) return;
+	if (m_cxyMin.cy == cy) {
+		return;
+	}
 
-	if (cy < 0) return;
+	if (cy < 0) {
+		return;
+	}
 	m_cxyMin.cy = cy;
-	if (!m_bFloat) ArrangeAncestor();
-	else Arrange();
-}
-
-int PlaceHolder::GetMaxHeight() const
-{
-	return m_cxyMax.cy;
+	if (!m_bFloat) {
+		ArrangeAncestor();
+	}
+	else {
+		Arrange();
+	}
 }
 
 void PlaceHolder::SetMaxHeight(int cy)
 {
 	DpiManager::GetInstance()->ScaleInt(cy);
-	if (m_cxyMax.cy == cy) return;
+	if (m_cxyMax.cy == cy) {
+		return;
+	}
 
 	m_cxyMax.cy = cy;
-	if (!m_bFloat) ArrangeAncestor();
-	else Arrange();
-}
-
-int PlaceHolder::GetWidth() const
-{
-	return m_rcItem.right - m_rcItem.left;
-}
-
-int PlaceHolder::GetHeight() const
-{
-	return m_rcItem.bottom - m_rcItem.top;
-}
-
-ui::HorAlignType PlaceHolder::GetHorAlignType() const
-{
-	return m_horAlignType;
+	if (!m_bFloat) {
+		ArrangeAncestor();
+	}
+	else {
+		Arrange();
+	}
 }
 
 void PlaceHolder::SetHorAlignType(HorAlignType horAlignType)
@@ -256,19 +210,9 @@ void PlaceHolder::SetHorAlignType(HorAlignType horAlignType)
 	m_horAlignType = horAlignType;
 }
 
-ui::VerAlignType PlaceHolder::GetVerAlignType() const
-{
-	return m_verAlignType;
-}
-
 void PlaceHolder::SetVerAlignType(VerAlignType verAlignType)
 {
 	m_verAlignType = verAlignType;
-}
-
-bool PlaceHolder::IsReEstimateSize() const
-{
-	return m_bReEstimateSize;
 }
 
 void PlaceHolder::SetReEstimateSize(bool bReEstimateSize)
@@ -276,29 +220,12 @@ void PlaceHolder::SetReEstimateSize(bool bReEstimateSize)
 	m_bReEstimateSize = bReEstimateSize;
 }
 
-UiSize PlaceHolder::EstimateSize(UiSize /*szAvailable*/)
-{
-	return m_cxyFixed;
-}
-
-UiRect PlaceHolder::GetPos(bool /*bContainShadow*/) const
-{
-	return m_rcItem;
-}
-
-void PlaceHolder::SetPos(UiRect rc)
-{
-	m_rcItem = rc;
-}
-
 void PlaceHolder::Arrange()
 {
-	if (GetFixedWidth() == DUI_LENGTH_AUTO || GetFixedHeight() == DUI_LENGTH_AUTO)
-	{
+	if (GetFixedWidth() == DUI_LENGTH_AUTO || GetFixedHeight() == DUI_LENGTH_AUTO) {
 		ArrangeAncestor();
 	}
-	else
-	{
+	else {
 		ArrangeSelf();
 	}
 }
@@ -306,8 +233,7 @@ void PlaceHolder::Arrange()
 void PlaceHolder::ArrangeAncestor()
 {
 	m_bReEstimateSize = true;
-	if (!m_pWindow || !m_pWindow->GetRoot())
-	{
+	if ((m_pWindow == nullptr) || (m_pWindow->GetRoot() == nullptr)) {
 		if (GetParent()) {
 			GetParent()->ArrangeSelf();
 		}
@@ -315,39 +241,35 @@ void PlaceHolder::ArrangeAncestor()
 			ArrangeSelf();
 		}
 	}
-	else
-	{
+	else {
 		Control* parent = GetParent();
-		while (parent && (parent->GetFixedWidth() == DUI_LENGTH_AUTO || parent->GetFixedHeight() == DUI_LENGTH_AUTO))
-		{
+		while (parent && (parent->GetFixedWidth() == DUI_LENGTH_AUTO || parent->GetFixedHeight() == DUI_LENGTH_AUTO)) {
 			parent->SetReEstimateSize(true);
 			parent = parent->GetParent();
 		}
-		if (parent)
-		{
+		if (parent) {
 			parent->ArrangeSelf();
 		}
-		else	//说明root具有AutoAdjustSize属性
-		{
+		else {
+			//说明root具有AutoAdjustSize属性
 			m_pWindow->GetRoot()->ArrangeSelf();
 		}
 	}
 
 }
 
-bool PlaceHolder::IsArranged() const
-{
-	return m_bIsArranged;
-}
-
 void PlaceHolder::ArrangeSelf()
 {
-	if (!IsVisible()) return;
+	if (!IsVisible()) {
+		return;
+	}
 	m_bReEstimateSize = true;
 	m_bIsArranged = true;
 	Invalidate();
 
-	if (m_pWindow != NULL) m_pWindow->SetArrange(true);
+	if (m_pWindow != nullptr) {
+		m_pWindow->SetArrange(true);
+	}
 }
 
 void PlaceHolder::SetUseCache(bool cache)
@@ -367,7 +289,7 @@ void PlaceHolder::Invalidate()
 	}
 
 	SetCacheDirty(true);
-	UiRect rcInvalidate = GetPosWithScrollOffset();
+	UiRect rcInvalidate = GetPosWithScrollOffset(true);
 	if (m_pWindow != nullptr) {
 		m_pWindow->Invalidate(rcInvalidate);
 	}
@@ -390,18 +312,16 @@ UiPoint PlaceHolder::GetScrollOffset() const
 		return scrollPos;
 	}
 
-	while (parent)
-	{
-		while (parent && (!dynamic_cast<ScrollableBox*>(parent) || (!dynamic_cast<ScrollableBox*>(parent)->IsVScrollBarValid() && !dynamic_cast<ScrollableBox*>(parent)->IsHScrollBarValid())))
-		{
+	while (parent != nullptr) {
+		ScrollableBox* listbox = dynamic_cast<ScrollableBox*>(parent);
+		while ( (parent != nullptr) && 
+			    ((listbox == nullptr) || (!listbox->IsVScrollBarValid() && !listbox->IsHScrollBarValid()))) {
 			parent = parent->GetParent();
+			listbox = dynamic_cast<ScrollableBox*>(parent);
 		}
 
-		if (parent) {
-			//说明控件在Listbox内部
-			
-			ScrollableBox* listbox = dynamic_cast<ScrollableBox*>(parent);
-			ASSERT(listbox != nullptr);
+		if (parent != nullptr) {
+			//说明控件在Listbox内部			
 			if (listbox != nullptr) {
 				scrollPos.x += listbox->GetScrollPos().cx;
 				scrollPos.y += listbox->GetScrollPos().cy;
@@ -413,13 +333,11 @@ UiPoint PlaceHolder::GetScrollOffset() const
 	return scrollPos;
 }
 
-bool PlaceHolder::IsChild(PlaceHolder* pAncestor, PlaceHolder* pControl)
+bool PlaceHolder::IsChild(PlaceHolder* pAncestor, PlaceHolder* pControl) const
 {
-	while (pControl && pControl != pAncestor)
-	{
+	while (pControl && pControl != pAncestor) {
 		pControl = pControl->GetParent();
 	}
-
 	return pControl != nullptr;
 }
 

@@ -321,7 +321,7 @@ void VirtualTileBox::EnsureVisible(int iIndex, bool bToTop /*= false*/)
     {
       // 向下
       int height = CalcElementsHeight(iIndex + 1);
-      nNewPos = height - m_rcItem.GetHeight();
+      nNewPos = height - GetRect().GetHeight();
     }
     else {
       // 向上
@@ -342,8 +342,8 @@ void VirtualTileBox::SetScrollPos(ui::UiSize szPos)
 void VirtualTileBox::HandleEvent(const ui::EventArgs& event)
 {
     if (!IsMouseEnabled() && event.Type > ui::kEventMouseBegin && event.Type < ui::kEventMouseEnd) {
-        if (m_pParent != nullptr)
-            m_pParent->SendEvent(event);
+        if (GetParent() != nullptr)
+            GetParent()->SendEvent(event);
         else
             ui::ScrollableBox::HandleEvent(event);
         return;
@@ -396,7 +396,7 @@ void VirtualTileBox::HandleEvent(const ui::EventArgs& event)
 void VirtualTileBox::SetPos(ui::UiRect rc)
 {
   bool bChange = false;
-  if (!m_rcItem.Equal(rc))
+  if (!GetRect().Equal(rc))
     bChange = true;
 
   ListBox::SetPos(rc);

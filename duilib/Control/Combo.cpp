@@ -33,7 +33,7 @@ void CComboWnd::InitComboWnd(Combo* pOwner)
 
     // Position the popup window in absolute space
     UiSize szDrop = m_pOwner->GetDropBoxSize();
-    UiRect rcOwner = pOwner->GetPosWithScrollOffset();
+    UiRect rcOwner = pOwner->GetPosWithScrollOffset(true);
     UiRect rc = rcOwner;
     rc.top = rc.bottom + 1;		// 父窗口left、bottom位置作为弹出窗口起点
     rc.bottom = rc.top + szDrop.cy;	// 计算弹出窗口高度
@@ -270,8 +270,7 @@ void Combo::PaintText(IRenderContext* pRender)
 	if (pRender == nullptr) {
 		return;
 	}
-	UiRect rcText = m_rcItem;
-
+	UiRect rcText = GetRect();
 	if (m_iCurSel >= 0) {
 		Control* pControl = m_pLayout->GetItemAt(m_iCurSel);
 		ListContainerElement* pElement = nullptr;

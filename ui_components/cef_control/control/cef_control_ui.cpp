@@ -38,17 +38,17 @@ CefControl::~CefControl(void)
 			browser_handler_->CloseAllBrowser();
 		}
 	}
-	m_pWindow->RemoveMessageFilter(this);
+	GetWindow()->RemoveMessageFilter(this);
 }
 
 void CefControl::Init()
 {
 	if (browser_handler_.get() == nullptr)
 	{
-		m_pWindow->AddMessageFilter(this);
+		GetWindow()->AddMessageFilter(this);
 		
 		browser_handler_ = new nim_comp::BrowserHandler;
-		browser_handler_->SetHostWindow(m_pWindow->GetHWND());
+		browser_handler_->SetHostWindow(GetWindow()->GetHWND());
 		browser_handler_->SetHandlerDelegate(this);
 		ReCreateBrowser();
 	}
@@ -67,7 +67,7 @@ void CefControl::ReCreateBrowser()
 	{
 		// 使用无窗模式，离屏渲染
 		CefWindowInfo window_info;
-		window_info.SetAsWindowless(m_pWindow->GetHWND(), false);
+		window_info.SetAsWindowless(GetWindow()->GetHWND(), false);
 		CefBrowserSettings browser_settings;
 		//browser_settings.file_access_from_file_urls = STATE_ENABLED;
 		//browser_settings.universal_access_from_file_urls = STATE_ENABLED;
@@ -124,7 +124,7 @@ void CefControl::Paint(ui::IRenderContext* pRender, const ui::UiRect& rcPaint)
 	if (dc_cef_.IsValid() && browser_handler_.get() && browser_handler_->GetBrowser().get())
 	{
 		// 绘制cef PET_VIEW类型的位图
-		BitBlt(pRender->GetDC(), m_rcItem.left, m_rcItem.top, m_rcItem.GetWidth(), m_rcItem.GetHeight(), dc_cef_.GetDC(), 0, 0, SRCCOPY);
+		BitBlt(pRender->GetDC(), GetRect().left, GetRect().top, GetRect().GetWidth(), GetRect().GetHeight(), dc_cef_.GetDC(), 0, 0, SRCCOPY);
 
 		// 绘制cef PET_POPUP类型的位图
 		if (!rect_popup_.IsEmpty() && dc_cef_popup_.IsValid())
@@ -145,7 +145,7 @@ void CefControl::Paint(ui::IRenderContext* pRender, const ui::UiRect& rcPaint)
 				paint_buffer_y = -rect_popup_.y;
 			}
 
-			BitBlt(pRender->GetDC(), m_rcItem.left + paint_x, m_rcItem.top + paint_y, rect_popup_.width, rect_popup_.height, dc_cef_popup_.GetDC(), paint_buffer_x, paint_buffer_y, SRCCOPY);
+			BitBlt(pRender->GetDC(), GetRect().left + paint_x, GetRect().top + paint_y, rect_popup_.width, rect_popup_.height, dc_cef_popup_.GetDC(), paint_buffer_x, paint_buffer_y, SRCCOPY);
 		}
 	}
 }
@@ -158,9 +158,9 @@ void CefControl::SetWindow(ui::Window* pManager, ui::Box* pParent, bool bInit)
 		return;
 	}
 
-	if (m_pWindow)
+	if (GetWindow())
 	{
-		m_pWindow->RemoveMessageFilter(this);
+		GetWindow()->RemoveMessageFilter(this);
 		__super::SetWindow(pManager, pParent, bInit);
 		pManager->AddMessageFilter(this);
 	}
@@ -193,11 +193,11 @@ LRESULT CefControl::FilterMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool&
 		// 这里拦截WM_SETCURSOR消息，不让duilib处理（duilib会改变光标样式），否则会影响Cef中的鼠标光标
 		POINT pt = { 0 };
 		::GetCursorPos(&pt);
-		::ScreenToClient(m_pWindow->GetHWND(), &pt);
-		if (!m_rcItem.IsPointIn(ui::UiPoint(pt)))
+		::ScreenToClient(GetWindow()->GetHWND(), &pt);
+		if (!GetRect().IsPointIn(ui::UiPoint(pt)))
 			return 0;
 
-		m_pWindow->CallDefaultWindowProc(uMsg, wParam, lParam);
+		GetWindow()->CallDefaultWindowProc(uMsg, wParam, lParam);
 		bHandled = true;
 		return 0;
 	}
@@ -307,13 +307,13 @@ LRESULT CefControl::SendButtonDownEvent(UINT uMsg, WPARAM wParam, LPARAM lParam,
 
 	ui::UiPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
 	pt.Offset(GetScrollOffset());
-	if (!m_rcItem.IsPointIn(pt))
+	if (!GetRect().IsPointIn(pt))
 		return 0;
 
 	this->SetFocus();
 	CefMouseEvent mouse_event;
-	mouse_event.x = pt.x - m_rcItem.left;
-	mouse_event.y = pt.y - m_rcItem.top;
+	mouse_event.x = pt.x - GetRect().left;
+	mouse_event.y = pt.y - GetRect().top;
 	mouse_event.modifiers = GetCefMouseModifiers(wParam);
 
 	CefBrowserHost::MouseButtonType btnType =
@@ -332,12 +332,12 @@ LRESULT CefControl::SendButtonDoubleDownEvent(UINT uMsg, WPARAM wParam, LPARAM l
 
 	ui::UiPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
 	pt.Offset(GetScrollOffset());
-	if (!m_rcItem.IsPointIn(pt))
+	if (!GetRect().IsPointIn(pt))
 		return 0;
 
 	CefMouseEvent mouse_event;
-	mouse_event.x = pt.x - m_rcItem.left;
-	mouse_event.y = pt.y - m_rcItem.top;
+	mouse_event.x = pt.x - GetRect().left;
+	mouse_event.y = pt.y - GetRect().top;
 	mouse_event.modifiers = GetCefMouseModifiers(wParam);
 
 	CefBrowserHost::MouseButtonType btnType =
@@ -356,19 +356,19 @@ LRESULT CefControl::SendButtonUpEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, b
 
 	ui::UiPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
 	pt.Offset(GetScrollOffset());
-	if (!m_rcItem.IsPointIn(pt) && !m_pWindow->IsCaptured())
+	if (!GetRect().IsPointIn(pt) && !GetWindow()->IsCaptured())
 		return 0;
 
 	CefMouseEvent mouse_event;
 	if (uMsg == WM_RBUTTONUP)
 	{
-		mouse_event.x = pt.x/* - m_rcItem.left*/;	// 这里不进行坐标转换，否则右键菜单位置不正确
-		mouse_event.y = pt.y/* - m_rcItem.top*/;
+		mouse_event.x = pt.x/* - GetRect().left*/;	// 这里不进行坐标转换，否则右键菜单位置不正确
+		mouse_event.y = pt.y/* - GetRect().top*/;
 	}
 	else
 	{
-		mouse_event.x = pt.x - m_rcItem.left;
-		mouse_event.y = pt.y - m_rcItem.top;
+		mouse_event.x = pt.x - GetRect().left;
+		mouse_event.y = pt.y - GetRect().top;
 	}
 
 	mouse_event.modifiers = GetCefMouseModifiers(wParam);
@@ -389,12 +389,12 @@ LRESULT CefControl::SendMouseMoveEvent(UINT /*uMsg*/, WPARAM wParam, LPARAM lPar
 
 	ui::UiPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
 	pt.Offset(GetScrollOffset());
-	if (!m_rcItem.IsPointIn(pt) && !m_pWindow->IsCaptured())
+	if (!GetRect().IsPointIn(pt) && !GetWindow()->IsCaptured())
 		return 0;
 
 	CefMouseEvent mouse_event;
-	mouse_event.x = pt.x - m_rcItem.left;
-	mouse_event.y = pt.y - m_rcItem.top;
+	mouse_event.x = pt.x - GetRect().left;
+	mouse_event.y = pt.y - GetRect().top;
 	mouse_event.modifiers = GetCefMouseModifiers(wParam);
 	host->SendMouseMoveEvent(mouse_event, false);
 
@@ -408,19 +408,19 @@ LRESULT CefControl::SendMouseWheelEvent(UINT /*uMsg*/, WPARAM wParam, LPARAM lPa
 
 	ui::UiPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
 	HWND scrolled_wnd = ::WindowFromPoint(pt);
-	if (scrolled_wnd != m_pWindow->GetHWND())
+	if (scrolled_wnd != GetWindow()->GetHWND())
 		return 0;
 
-	ScreenToClient(m_pWindow->GetHWND(), &pt);
+	ScreenToClient(GetWindow()->GetHWND(), &pt);
 	pt.Offset(GetScrollOffset());
-	if (!m_rcItem.IsPointIn(pt))
+	if (!GetRect().IsPointIn(pt))
 		return 0;
 
 	int delta = GET_WHEEL_DELTA_WPARAM(wParam);
 
 	CefMouseEvent mouse_event;
-	mouse_event.x = pt.x - m_rcItem.left;
-	mouse_event.y = pt.y - m_rcItem.top;
+	mouse_event.x = pt.x - GetRect().left;
+	mouse_event.y = pt.y - GetRect().top;
 	mouse_event.modifiers = GetCefMouseModifiers(wParam);
 	host->SendMouseWheelEvent(mouse_event, IsKeyDown(VK_SHIFT) ? delta : 0, !IsKeyDown(VK_SHIFT) ? delta : 0);
 
@@ -434,12 +434,12 @@ LRESULT CefControl::SendMouseLeaveEvent(UINT /*uMsg*/, WPARAM wParam, LPARAM lPa
 
 	ui::UiPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
 	pt.Offset(GetScrollOffset());
-	if (!m_rcItem.IsPointIn(pt))
+	if (!GetRect().IsPointIn(pt))
 		return 0;
 
 	CefMouseEvent mouse_event;
-	mouse_event.x = pt.x - m_rcItem.left;
-	mouse_event.y = pt.y - m_rcItem.top;
+	mouse_event.x = pt.x - GetRect().left;
+	mouse_event.y = pt.y - GetRect().top;
 	mouse_event.modifiers = GetCefMouseModifiers(wParam);
 
 	host->SendMouseMoveEvent(mouse_event, true);

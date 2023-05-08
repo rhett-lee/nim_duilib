@@ -303,7 +303,7 @@ void CheckBoxTemplate<InheritType>::PaintText(IRenderContext* pRender)
     }
 
     if (this->GetText().empty()) return;
-    UiRect rc = this->m_rcItem;
+    UiRect rc = this->GetRect();
     rc.left += this->m_rcTextPadding.left;
     rc.right -= this->m_rcTextPadding.right;
     rc.top += this->m_rcTextPadding.top;

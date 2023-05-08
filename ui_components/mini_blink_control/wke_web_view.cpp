@@ -17,7 +17,7 @@ namespace nim_comp {
 WkeWebView::WkeWebView() {}
 
 WkeWebView::~WkeWebView() {
-  m_pWindow->RemoveMessageFilter(this);
+    GetWindow()->RemoveMessageFilter(this);
 
   if (m_wke_web_view) {
     wkeDestroyWebView(m_wke_web_view);
@@ -37,7 +37,7 @@ void WkeWebView::DoInit() {
 
   wkeOnPaintBitUpdated(m_wke_web_view, OnPaintCallback, this);
 
-  m_pWindow->AddMessageFilter(this);
+  GetWindow()->AddMessageFilter(this);
 
   AttachResize(ToWeakCallback([this](const ui::EventArgs& /*args*/) {
     resize(GetWidth(), GetHeight());
@@ -57,7 +57,7 @@ void WkeWebView::Paint(ui::IRenderContext* pRender, const ui::UiRect& rcPaint) {
     return;
   }
 
-  BitBlt(pRender->GetDC(), m_rcItem.left, m_rcItem.top, m_rcItem.GetWidth(), m_rcItem.GetHeight(), m_web_view_dc->GetDC(), 0, 0, SRCCOPY);
+  BitBlt(pRender->GetDC(), GetRect().left, GetRect().top, GetRect().GetWidth(), GetRect().GetHeight(), m_web_view_dc->GetDC(), 0, 0, SRCCOPY);
 }
 
 void WkeWebView::SetWindow(ui::Window* pManager, ui::Box* pParent, bool bInit) {
@@ -67,9 +67,9 @@ void WkeWebView::SetWindow(ui::Window* pManager, ui::Box* pParent, bool bInit) {
     return;
   }
 
-  if (m_pWindow)
+  if (GetWindow())
   {
-    m_pWindow->RemoveMessageFilter(this);
+      GetWindow()->RemoveMessageFilter(this);
     __super::SetWindow(pManager, pParent, bInit);
     pManager->AddMessageFilter(this);
   }
@@ -195,7 +195,7 @@ LRESULT WkeWebView::FilterMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool&
 
     bHandled = wkeFireMouseEvent(m_wke_web_view, uMsg, pWebPt.x, pWebPt.y, flags);
 
-    ui::Control* control = m_pWindow->FindControl(pOriginPt);
+    ui::Control* control = GetWindow()->FindControl(pOriginPt);
     if (bHandled && control != this && control->IsMouseEnabled()) {
       bHandled = false;
     }
@@ -308,7 +308,7 @@ void WkeWebView::OnPaint(wkeWebView /*webView*/, const void* buffer, const wkeRe
     return;
   }
   if (m_web_view_dc->GetWidth() != width || m_web_view_dc->GetHeight() != height)
-    m_web_view_dc->Init(m_pWindow->GetPaintDC(), width, height, false);
+    m_web_view_dc->Init(GetWindow()->GetPaintDC(), width, height, false);
 
   LPBYTE pDst = (LPBYTE)m_web_view_dc->GetBits();
   if (pDst)
@@ -390,11 +390,11 @@ bool WkeWebView::SetCursorInfoTypeByCache() {
 
 bool WkeWebView::GetWebViewPos(ui::UiPoint& point) {
   point.Offset(GetScrollOffset());
-  if (!m_rcItem.IsPointIn(point))
+  if (!GetRect().IsPointIn(point))
     return false;
 
-  point.x = point.x - m_rcItem.left;
-  point.y = point.y - m_rcItem.top;
+  point.x = point.x - GetRect().left;
+  point.y = point.y - GetRect().top;
   return true;
 }
 

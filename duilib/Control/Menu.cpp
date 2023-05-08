@@ -821,7 +821,7 @@ bool CMenuElementUI::MouseEnter(const ui::EventArgs& msg)
 void CMenuElementUI::PaintChild(ui::IRenderContext* pRender, const ui::UiRect& rcPaint)
 {
 	ui::UiRect rcTemp;
-	if (!::IntersectRect(&rcTemp, &rcPaint, &m_rcItem)) {
+	if (!::IntersectRect(&rcTemp, &rcPaint, &GetRect())) {
 		return;
 	}
 

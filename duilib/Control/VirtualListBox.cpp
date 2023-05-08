@@ -123,7 +123,7 @@ void VirtualListBox::Refresh()
 		// 刚从虚拟列表转换到普通模式时，存在布局错误的情况（虚拟列表滚动条接近底部，
 		// 然后数据减少，变成普通模式）
 		if (nItemCount == m_nMaxItemCount) {
-			this->GetLayout()->ArrangeChild(m_items, m_rcItem);
+			this->GetLayout()->ArrangeChild(m_items, GetRect());
 		}
 
 		for (int i = 0; i < (int)m_items.size(); i++)
@@ -206,7 +206,7 @@ void VirtualListBox::EnsureVisible(int iIndex, bool bToTop)
 		if (iIndex > nTopIndex) {
 			// 向下
 			int length = CalcElementsHeight(iIndex + 1);
-			nNewPos = length - ((m_eDirection == kListVertical) ? m_rcItem.GetHeight() : m_rcItem.GetWidth());
+			nNewPos = length - ((m_eDirection == kListVertical) ? GetRect().GetHeight() : GetRect().GetWidth());
 		}
 		else {
 			// 向上
@@ -238,7 +238,7 @@ void VirtualListBox::ReArrangeChild(bool bForce)
 
 	if (direction == kScrollDown) {
 		// 向下滚动
-		ui::UiRect rcItem = m_rcItem;
+		ui::UiRect rcItem = GetRect();
 		if (m_eDirection == kListVertical) {
 			rcItem.bottom = rcItem.top + nTopIndexBottom;
 		}
@@ -265,15 +265,15 @@ void VirtualListBox::ReArrangeChild(bool bForce)
 	}
 	else {
 		// 向上滚动
-		int nDisplayCount = ((m_eDirection == kListVertical) ? m_rcItem.GetHeight() : m_rcItem.GetWidth()) / m_nElementHeight + 1;
+		int nDisplayCount = ((m_eDirection == kListVertical) ? GetRect().GetHeight() : GetRect().GetWidth()) / m_nElementHeight + 1;
 		int nHideCount = (int)m_items.size() - nDisplayCount;
 		if (nHideCount < 0)
 			return;
 
 		// 上半部分
-		UiRect rcItem = m_rcItem;
+		UiRect rcItem = GetRect();
 		if (m_eDirection == kListVertical) {
-			rcItem.top = m_rcItem.top + nTopIndexBottom;
+			rcItem.top = GetRect().top + nTopIndexBottom;
 		}
 		else {
 			rcItem.left = rcItem.left + nTopIndexBottom;
@@ -296,9 +296,9 @@ void VirtualListBox::ReArrangeChild(bool bForce)
 		}
 
 		// 下半部分
-		rcItem = m_rcItem;
+		rcItem = GetRect();
 		if (m_eDirection == kListVertical) {
-			rcItem.bottom = m_rcItem.top + nTopIndexBottom;
+			rcItem.bottom = GetRect().top + nTopIndexBottom;
 		}
 		else {
 			rcItem.right = rcItem.left + nTopIndexBottom;
@@ -362,10 +362,12 @@ void VirtualListBox::SetScrollPos(ui::UiSize szPos)
 void VirtualListBox::HandleEvent(const ui::EventArgs& event)
 {
 	if (!IsMouseEnabled() && event.Type > ui::kEventMouseBegin && event.Type < ui::kEventMouseEnd) {
-		if (m_pParent != NULL)
-			m_pParent->SendEvent(event);
-		else
+		if (GetParent() != nullptr) {
+			GetParent()->SendEvent(event);
+		}
+		else {
 			ui::ScrollableBox::HandleEvent(event);
+		}
 		return;
 	}
 
@@ -418,7 +420,7 @@ void VirtualListBox::HandleEvent(const ui::EventArgs& event)
 void VirtualListBox::SetPos(UiRect rc)
 {
 	bool bChange = false;
-	if (!m_rcItem.Equal(rc))
+	if (!GetRect().Equal(rc))
 		bChange = true;
 
 	ListBox::SetPos(rc);

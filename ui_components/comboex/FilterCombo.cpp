@@ -33,7 +33,7 @@ void CFilterComboWnd::InitComboWnd(FilterCombo* pOwner)
 
     // Position the popup window in absolute space
 	ui::UiSize szDrop = m_pOwner->GetDropBoxSize();
-	ui::UiRect rcOwner = pOwner->GetPosWithScrollOffset();
+	ui::UiRect rcOwner = pOwner->GetPosWithScrollOffset(true);
 	ui::UiRect rc = rcOwner;
     rc.top = rc.bottom + 1;		// 父窗口left、bottom位置作为弹出窗口起点
     rc.bottom = rc.top + szDrop.cy;	// 计算弹出窗口高度
@@ -283,8 +283,8 @@ FilterCombo::FilterCombo() :
 	m_pRichEdit->AttachTextChange(nbase::Bind(&FilterCombo::OnRichEditTextChanged, this, std::placeholders::_1));
 	m_pRichEdit->AttachButtonDown(nbase::Bind(&FilterCombo::OnRichEditButtonDown, this, std::placeholders::_1));
 	m_pRichEdit->SetClass(L"simple");
-	m_pRichEdit->SetFixedWidth(DUI_LENGTH_STRETCH);
-	m_pRichEdit->SetFixedHeight(DUI_LENGTH_STRETCH);
+	m_pRichEdit->SetFixedWidth(DUI_LENGTH_STRETCH, true, true);
+	m_pRichEdit->SetFixedHeight(DUI_LENGTH_STRETCH, true);
 	m_pRichEdit->SetMargin({ 1, 1, 1, 1 });
 	m_pRichEdit->SetAttribute(L"padding", L"2,3");
 	m_pRichEdit->SetFont(L"system_14");
@@ -472,7 +472,7 @@ bool FilterCombo::OnRichEditTextChanged(const ui::EventArgs& /*args*/)
 		return false;
 	}
 	ui::UiSize szDrop = GetDropBoxSize();
-	ui::UiRect rcOwner = GetPosWithScrollOffset();
+	ui::UiRect rcOwner = GetPosWithScrollOffset(true);
 	ui::UiRect rc = rcOwner;
 	rc.top = rc.bottom + 1;		// 父窗口left、bottom位置作为弹出窗口起点
 	rc.bottom = rc.top + szDrop.cy;	// 计算弹出窗口高度

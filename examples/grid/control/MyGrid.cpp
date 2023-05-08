@@ -24,13 +24,13 @@ void MyGridBody::SetColCount(int count)
 	for (size_t i = 1; i < header->size(); i++)
 	{
 		GridHeaderItem *pItem = dynamic_cast<GridHeaderItem*>(header->at(static_cast<int>(i)));
-		assert(pItem);
+		ASSERT(pItem);
 		if (!pItem)
 			continue;
 		int col_width = GetColumnWidth(static_cast<int>(i));
 		Combo* combo = new Combo;
-		combo->SetFixedWidth(col_width - HEADER_COMBO_MARGIN_LEFT * 2);
-		combo->SetFixedHeight(header_height / 2 - HEADER_COMBO_MARGIN_BOTTOM);
+		combo->SetFixedWidth(col_width - HEADER_COMBO_MARGIN_LEFT * 2, true, true);
+		combo->SetFixedHeight(header_height / 2 - HEADER_COMBO_MARGIN_BOTTOM, true);
 		combo->SetMargin(ui::UiRect(margin_left + HEADER_COMBO_MARGIN_LEFT, header_height / 2, 0, 0));
 		combo->SetClass(L"combo2");
 		combo->SetAttribute(L"cursortype", L"hand");
@@ -47,7 +47,7 @@ void MyGridBody::SetColCount(int count)
 			ListContainerElement *combo_item = new ListContainerElement;
 			combo_item->SetClass(L"listitem");
 			combo_item->SetUTF8Text("item0");
-			combo_item->SetFixedHeight(24);
+			combo_item->SetFixedHeight(24, true);
 			combo->Add(combo_item);
 		}
 	}
@@ -65,8 +65,8 @@ GridHeaderItem* MyGridBody::AddCol(std::wstring text, int width)
 		{
 			int col_width = GetColumnWidth(col_index);
 			Combo* combo = new Combo;
-			combo->SetFixedWidth(col_width - HEADER_COMBO_MARGIN_LEFT * 2);
-			combo->SetFixedHeight(GetHeaderHeight() / 2 - HEADER_COMBO_MARGIN_BOTTOM);
+			combo->SetFixedWidth(col_width - HEADER_COMBO_MARGIN_LEFT * 2, true, true);
+			combo->SetFixedHeight(GetHeaderHeight() / 2 - HEADER_COMBO_MARGIN_BOTTOM, true);
 			combo->SetMargin(ui::UiRect(margin_left + HEADER_COMBO_MARGIN_LEFT, GetHeaderHeight() / 2, 0, 0));
 			combo->SetClass(L"combo2");
 			combo->SetAttribute(L"cursortype", L"hand");
@@ -83,7 +83,7 @@ GridHeaderItem* MyGridBody::AddCol(std::wstring text, int width)
 				ListContainerElement *combo_item = new ListContainerElement;
 				combo_item->SetClass(L"listitem");
 				combo_item->SetUTF8Text("item0");
-				combo_item->SetFixedHeight(24);
+				combo_item->SetFixedHeight(24, true);
 				combo->Add(combo_item);
 			}
 		}
@@ -137,7 +137,7 @@ void MyGridBody::ResetHeanderComboPos()
 			rcMargin.left = posx + HEADER_COMBO_MARGIN_LEFT;
 			rcMargin.top = GetHeaderHeight() / 2 + szOff.cy;
 			pControl->SetMargin(rcMargin);
-			pControl->SetFixedWidth(m_hLayout[i] - HEADER_COMBO_MARGIN_LEFT * 2);
+			pControl->SetFixedWidth(m_hLayout[i] - HEADER_COMBO_MARGIN_LEFT * 2, true, true);
 
 			posx += m_hLayout[i];
 		}
@@ -185,7 +185,7 @@ void MyGridBody::PaintBody(IRenderContext* pRender)
 			if (m_hLayout[j] == 0)
 				continue;
 			UiRect rc = { posx, posy, posx + m_hLayout[j], posy + m_vLayout[i] };
-			rc.Offset({ m_rcItem.left, m_rcItem.top });
+			rc.Offset({ GetRect().left, GetRect().top });
 			pRender->DrawText(rc, grid_row->at(static_cast<int>(j))->text, dwDefColor, m_strGridFont, m_uTextStyle, 255, false);
 			posx += m_hLayout[j];
 		}
@@ -217,7 +217,7 @@ void MyGridBody::PaintBody(IRenderContext* pRender)
 						{
 							rc.bottom = posy + m_vLayout[i] / 2;
 						}
-						rc.Offset({ m_rcItem.left - szOff.cx, m_rcItem.top });
+						rc.Offset({ GetRect().left - szOff.cx, GetRect().top });
 						pRender->DrawText(rc, str, dwDefColor, m_strGridFont, m_uTextStyle, 255, false);
 					}
 					posx += m_hLayout[j];
@@ -251,7 +251,7 @@ void MyGridBody::PaintBody(IRenderContext* pRender)
 					if (!str.empty() && posy + m_vLayout[j] - szOff.cy > fixed_row_height)		//单元格下边线没有超过fixed_row_height
 					{
 						UiRect rc = { posx, posy, posx + m_hLayout[i], posy + m_vLayout[j] };
-						rc.Offset({ m_rcItem.left, m_rcItem.top - szOff.cy });
+						rc.Offset({ GetRect().left, GetRect().top - szOff.cy });
 						pRender->DrawText(rc, str, dwDefColor, m_strGridFont, m_uTextStyle, 255, false);
 					}
 					posy += m_vLayout[j];
@@ -287,7 +287,7 @@ void MyGridBody::PaintBody(IRenderContext* pRender)
 						GridItem *pItem = grid_row->at(static_cast<int>(j));
 
 						UiRect rc = { posx, posy, posx + m_hLayout[j], posy + m_vLayout[i] };
-						rc.Offset({ m_rcItem.left - szOff.cx, m_rcItem.top - szOff.cy });
+						rc.Offset({ GetRect().left - szOff.cx, GetRect().top - szOff.cy });
 						rc.Deflate({ 1, 1, 2, 2 });
 						//绘制单元格背景色
 						if (pItem->IsSelected())

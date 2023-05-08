@@ -18,7 +18,7 @@ void CShadowComboWnd::InitComboWnd(ShadowCombo* pOwner)
 
     // Position the popup window in absolute space
     ui::UiSize szDrop = m_pOwner->GetDropBoxSize();
-    ui::UiRect rcOwner = pOwner->GetPosWithScrollOffset();
+    ui::UiRect rcOwner = pOwner->GetPosWithScrollOffset(true);
     int iItemHeight = m_iOldSel > -1 ? pOwner->GetItemAt(m_iOldSel)->GetFixedHeight() : 0;
     int iOffset = iItemHeight * (m_iOldSel + 1);
     iOffset = std::max(iOffset, 0);
@@ -182,8 +182,8 @@ ShadowCombo::ShadowCombo():
     m_cArrow = new ui::Control;
     m_cArrow->SetStateImage(ui::kControlStateNormal, L"../public/combo/arrow_normal.svg");
     m_cArrow->SetStateImage(ui::kControlStateHot, L"../public/combo/arrow_hot.svg");
-    m_cArrow->SetFixedWidth(DUI_LENGTH_AUTO);
-    m_cArrow->SetFixedHeight(DUI_LENGTH_AUTO);
+    m_cArrow->SetFixedWidth(DUI_LENGTH_AUTO, true, true);
+    m_cArrow->SetFixedHeight(DUI_LENGTH_AUTO, true);
 }
 
 ShadowCombo::~ShadowCombo() 
@@ -201,11 +201,11 @@ void ShadowCombo::DoInit()
 
         m_cArrow->SetWindow(GetWindow());
         AttachResize(ToWeakCallback([this](const ui::EventArgs& /*args*/) {
-            ui::UiRect rect = m_rcItem;
-            ui::UiSize ArrrowSize = m_cArrow->EstimateSize(ui::UiSize(m_rcItem.GetWidth(), m_rcItem.GetHeight()));
-            rect.top = m_rcItem.top + (m_rcItem.GetHeight() - ArrrowSize.cy) / 2;
+            ui::UiRect rect = GetRect();
+            ui::UiSize ArrrowSize = m_cArrow->EstimateSize(ui::UiSize(GetRect().GetWidth(), GetRect().GetHeight()));
+            rect.top = GetRect().top + (GetRect().GetHeight() - ArrrowSize.cy) / 2;
             rect.bottom = rect.top + ArrrowSize.cy;
-            rect.left = m_rcItem.right - ArrrowSize.cx - m_iArrowOffset;
+            rect.left = GetRect().right - ArrrowSize.cx - m_iArrowOffset;
             rect.right = rect.left + ArrrowSize.cx;
             m_cArrow->SetPos(rect);
             return true;
@@ -323,7 +323,7 @@ void ShadowCombo::SetAttribute(const std::wstring& strName, const std::wstring& 
 
 void ShadowCombo::PaintText(ui::IRenderContext* pRender)
 {
-    ui::UiRect rcText = m_rcItem;
+    ui::UiRect rcText = GetRect();
     rcText.right = m_cArrow->GetPos().left;
 
     if (m_iCurSel >= 0) {

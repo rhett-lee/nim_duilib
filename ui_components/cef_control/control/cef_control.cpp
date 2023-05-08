@@ -11,7 +11,7 @@ void CefControl::OnPaint(CefRefPtr<CefBrowser> browser, CefRenderHandler::PaintE
 	if (type == PET_VIEW)
 	{
 		if (dc_cef_.GetWidth() != width || dc_cef_.GetHeight() != height)
-			dc_cef_.Init(m_pWindow->GetPaintDC(), width, height);
+			dc_cef_.Init(GetWindow()->GetPaintDC(), width, height);
 
 		LPBYTE pDst = (LPBYTE)dc_cef_.GetBits();
 		if (pDst)
@@ -21,7 +21,7 @@ void CefControl::OnPaint(CefRefPtr<CefBrowser> browser, CefRenderHandler::PaintE
 	{
 		// 单独保存popup窗口的位图
 		if (dc_cef_popup_.GetWidth() != width || dc_cef_popup_.GetHeight() != height)
-			dc_cef_popup_.Init(m_pWindow->GetPaintDC(), width, height);
+			dc_cef_popup_.Init(GetWindow()->GetPaintDC(), width, height);
 
 		LPBYTE pDst = (LPBYTE)dc_cef_popup_.GetBits();
 		if (pDst)
@@ -34,8 +34,8 @@ void CefControl::OnPaint(CefRefPtr<CefBrowser> browser, CefRenderHandler::PaintE
 void CefControl::ClientToControl(POINT &pt)
 {
 	auto offset = GetScrollOffset();
-	pt.x = pt.x + offset.x - m_rcItem.left;
-	pt.y = pt.y + offset.y - m_rcItem.top;
+	pt.x = pt.x + offset.x - GetRect().left;
+	pt.y = pt.y + offset.y - GetRect().top;
 }
 
 void CefControl::OnPopupShow(CefRefPtr<CefBrowser> browser, bool show)

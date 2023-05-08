@@ -20,13 +20,13 @@ UiRect Slider::GetProgressPos()
 {
 	UiRect rc;
 	if (m_bHorizontal) {
-		rc.right = int((m_nValue - m_nMin) * (m_rcItem.right - m_rcItem.left - m_szThumb.cx) / (m_nMax - m_nMin) + m_szThumb.cx / 2 + 0.5);
-		rc.bottom = m_rcItem.bottom - m_rcItem.top;
+		rc.right = int((m_nValue - m_nMin) * (GetRect().right - GetRect().left - m_szThumb.cx) / (m_nMax - m_nMin) + m_szThumb.cx / 2 + 0.5);
+		rc.bottom = GetRect().bottom - GetRect().top;
 	}
 	else {
-		rc.top = int((m_nMax - m_nValue) * (m_rcItem.bottom - m_rcItem.top - m_szThumb.cy) / (m_nMax - m_nMin) + m_szThumb.cy / 2 + 0.5);
-		rc.right = m_rcItem.right - m_rcItem.left;
-		rc.bottom = m_rcItem.bottom - m_rcItem.top;
+		rc.top = int((m_nMax - m_nValue) * (GetRect().bottom - GetRect().top - m_szThumb.cy) / (m_nMax - m_nMin) + m_szThumb.cy / 2 + 0.5);
+		rc.right = GetRect().right - GetRect().left;
+		rc.bottom = GetRect().bottom - GetRect().top;
 	}
 
 	return rc;
@@ -38,8 +38,8 @@ void Slider::HandleEvent(const EventArgs& event)
 		(event.Type > kEventMouseBegin) && 
 		(event.Type < kEventMouseEnd)) {
 		//当前控件禁止接收鼠标消息时，将鼠标相关消息转发给上层处理
-		if (m_pParent != nullptr) {
-			m_pParent->SendEvent(event);
+		if (GetParent() != nullptr) {
+			GetParent()->SendEvent(event);
 		}
 		else {
 			Progress::HandleEvent(event);
@@ -64,14 +64,14 @@ void Slider::HandleEvent(const EventArgs& event)
 		}
 		if (IsEnabled()) {
 			if (m_bHorizontal) {
-				if (event.ptMouse.x >= m_rcItem.right - m_szThumb.cx / 2) m_nValue = m_nMax;
-				else if (event.ptMouse.x <= m_rcItem.left + m_szThumb.cx / 2) m_nValue = m_nMin;
-				else m_nValue = m_nMin + double((m_nMax - m_nMin) * (event.ptMouse.x - m_rcItem.left - m_szThumb.cx / 2)) / (m_rcItem.right - m_rcItem.left - m_szThumb.cx);
+				if (event.ptMouse.x >= GetRect().right - m_szThumb.cx / 2) m_nValue = m_nMax;
+				else if (event.ptMouse.x <= GetRect().left + m_szThumb.cx / 2) m_nValue = m_nMin;
+				else m_nValue = m_nMin + double((m_nMax - m_nMin) * (event.ptMouse.x - GetRect().left - m_szThumb.cx / 2)) / (GetRect().right - GetRect().left - m_szThumb.cx);
 			}
 			else {
-				if (event.ptMouse.y >= m_rcItem.bottom - m_szThumb.cy / 2) m_nValue = m_nMin;
-				else if (event.ptMouse.y <= m_rcItem.top + m_szThumb.cy / 2) m_nValue = m_nMax;
-				else m_nValue = m_nMin + double((m_nMax - m_nMin) * (m_rcItem.bottom - event.ptMouse.y - m_szThumb.cy / 2)) / (m_rcItem.bottom - m_rcItem.top - m_szThumb.cy);
+				if (event.ptMouse.y >= GetRect().bottom - m_szThumb.cy / 2) m_nValue = m_nMin;
+				else if (event.ptMouse.y <= GetRect().top + m_szThumb.cy / 2) m_nValue = m_nMax;
+				else m_nValue = m_nMin + double((m_nMax - m_nMin) * (GetRect().bottom - event.ptMouse.y - m_szThumb.cy / 2)) / (GetRect().bottom - GetRect().top - m_szThumb.cy);
 			}
 			SendEvent(kEventValueChange);
 			Invalidate();
@@ -94,14 +94,14 @@ void Slider::HandleEvent(const EventArgs& event)
 	if (event.Type == kEventMouseMove) {
 		if (IsMouseFocused()) {
 			if (m_bHorizontal) {
-				if (event.ptMouse.x >= m_rcItem.right - m_szThumb.cx / 2) m_nValue = m_nMax;
-				else if (event.ptMouse.x <= m_rcItem.left + m_szThumb.cx / 2) m_nValue = m_nMin;
-				else m_nValue = m_nMin + double((m_nMax - m_nMin) * (event.ptMouse.x - m_rcItem.left - m_szThumb.cx / 2)) / (m_rcItem.right - m_rcItem.left - m_szThumb.cx);
+				if (event.ptMouse.x >= GetRect().right - m_szThumb.cx / 2) m_nValue = m_nMax;
+				else if (event.ptMouse.x <= GetRect().left + m_szThumb.cx / 2) m_nValue = m_nMin;
+				else m_nValue = m_nMin + double((m_nMax - m_nMin) * (event.ptMouse.x - GetRect().left - m_szThumb.cx / 2)) / (GetRect().right - GetRect().left - m_szThumb.cx);
 			}
 			else {
-				if (event.ptMouse.y >= m_rcItem.bottom - m_szThumb.cy / 2) m_nValue = m_nMin;
-				else if (event.ptMouse.y <= m_rcItem.top + m_szThumb.cy / 2) m_nValue = m_nMax;
-				else m_nValue = m_nMin + double((m_nMax - m_nMin) * (m_rcItem.bottom - event.ptMouse.y - m_szThumb.cy / 2)) / (m_rcItem.bottom - m_rcItem.top - m_szThumb.cy);
+				if (event.ptMouse.y >= GetRect().bottom - m_szThumb.cy / 2) m_nValue = m_nMin;
+				else if (event.ptMouse.y <= GetRect().top + m_szThumb.cy / 2) m_nValue = m_nMax;
+				else m_nValue = m_nMin + double((m_nMax - m_nMin) * (GetRect().bottom - event.ptMouse.y - m_szThumb.cy / 2)) / (GetRect().bottom - GetRect().top - m_szThumb.cy);
 			}
 			SendEvent(kEventValueChange);
 			Invalidate();
@@ -140,24 +140,36 @@ void Slider::SetAttribute(const std::wstring& strName, const std::wstring& strVa
 
 void Slider::PaintBkColor(IRenderContext* pRender)
 {
-	m_rcItem.Deflate(m_rcProgressBarPadding);
+	UiRect rc = GetRect();
+	rc.Deflate(m_rcProgressBarPadding);
+	SetRect(rc);
+
 	m_rcPaint.Deflate(m_rcProgressBarPadding);
 	Control::PaintBkColor(pRender);
 	m_rcPaint.Inflate(m_rcProgressBarPadding);
-	m_rcItem.Inflate(m_rcProgressBarPadding);
+
+	rc = GetRect();
+	rc.Inflate(m_rcProgressBarPadding);
+	SetRect(rc);
 }
 
 void Slider::PaintStatusImage(IRenderContext* pRender)
 {
-	m_rcItem.Deflate(m_rcProgressBarPadding);
+	UiRect rc = GetRect();
+	rc.Deflate(m_rcProgressBarPadding);
+	SetRect(rc);
+
 	Progress::PaintStatusImage(pRender);
-	m_rcItem.Inflate(m_rcProgressBarPadding);
+
+	rc = GetRect();
+	rc.Inflate(m_rcProgressBarPadding);
+	SetRect(rc);
 
 	UiRect rcThumb = GetThumbRect();
-	rcThumb.left -= m_rcItem.left;
-	rcThumb.top -= m_rcItem.top;
-	rcThumb.right -= m_rcItem.left;
-	rcThumb.bottom -= m_rcItem.top;
+	rcThumb.left -= GetRect().left;
+	rcThumb.top -= GetRect().top;
+	rcThumb.right -= GetRect().left;
+	rcThumb.bottom -= GetRect().top;
 
 	if (IsMouseFocused()) {
 		m_sImageModify.clear();
@@ -209,13 +221,13 @@ void Slider::SetThumbSize(UiSize szXY)
 UiRect Slider::GetThumbRect() const
 {
 	if( m_bHorizontal ) {
-		int left = int(m_rcItem.left + (m_rcItem.right - m_rcItem.left - m_szThumb.cx) * (m_nValue - m_nMin) / (m_nMax - m_nMin));
-		int top = (m_rcItem.bottom + m_rcItem.top - m_szThumb.cy) / 2;
+		int left = int(GetRect().left + (GetRect().right - GetRect().left - m_szThumb.cx) * (m_nValue - m_nMin) / (m_nMax - m_nMin));
+		int top = (GetRect().bottom + GetRect().top - m_szThumb.cy) / 2;
 		return UiRect(left, top, left + m_szThumb.cx, top + m_szThumb.cy); 
 	}
 	else {
-		int left = (m_rcItem.right + m_rcItem.left - m_szThumb.cx) / 2;
-		int top = int(m_rcItem.bottom - m_szThumb.cy - (m_rcItem.bottom - m_rcItem.top - m_szThumb.cy) * (m_nValue - m_nMin) / (m_nMax - m_nMin));
+		int left = (GetRect().right + GetRect().left - m_szThumb.cx) / 2;
+		int top = int(GetRect().bottom - m_szThumb.cy - (GetRect().bottom - GetRect().top - m_szThumb.cy) * (m_nValue - m_nMin) / (m_nMax - m_nMin));
 		return UiRect(left, top, left + m_szThumb.cx, top + m_szThumb.cy); 
 	}
 }

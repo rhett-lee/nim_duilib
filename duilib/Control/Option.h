@@ -49,7 +49,7 @@ OptionTemplate<InheritType>::OptionTemplate() :
 template<typename InheritType>
 OptionTemplate<InheritType>::~OptionTemplate()
 {
-    if (!m_sGroupName.empty() && this->m_pWindow) this->m_pWindow->RemoveOptionGroup(m_sGroupName, this);
+    if (!m_sGroupName.empty() && this->GetWindow()) this->GetWindow()->RemoveOptionGroup(m_sGroupName, this);
 }
 
 template<typename InheritType>
@@ -60,7 +60,7 @@ void OptionTemplate<InheritType>::SetWindow(Window* pManager, Box* pParent, bool
 {
     __super::SetWindow(pManager, pParent, bInit);
     if (bInit && !m_sGroupName.empty()) {
-        if (this->m_pWindow) this->m_pWindow->AddOptionGroup(m_sGroupName, this);
+        if (this->GetWindow()) this->GetWindow()->AddOptionGroup(m_sGroupName, this);
     }
 }
 
@@ -77,10 +77,10 @@ void OptionTemplate<InheritType>::Selected(bool bSelected, bool bTriggerEvent)
     //if( m_bSelected == bSelected ) return;
     this->m_bSelected = bSelected;
 
-    if (this->m_pWindow != NULL) {
+    if (this->GetWindow() != nullptr) {
         if (this->m_bSelected) {
             if (!m_sGroupName.empty()) {
-                std::vector<Control*>* aOptionGroup = this->m_pWindow->GetOptionGroup(m_sGroupName);
+                std::vector<Control*>* aOptionGroup = this->GetWindow()->GetOptionGroup(m_sGroupName);
                 ASSERT(aOptionGroup);
                 if (aOptionGroup) {
                     for (auto it = aOptionGroup->begin(); it != aOptionGroup->end(); ++it) {
@@ -125,14 +125,14 @@ void OptionTemplate<InheritType>::SetGroup(const std::wstring& strGroupName)
 {
     if (strGroupName.empty()) {
         if (m_sGroupName.empty()) return;
-        if (this->m_pWindow) this->m_pWindow->RemoveOptionGroup(m_sGroupName, this);
+        if (this->GetWindow()) this->GetWindow()->RemoveOptionGroup(m_sGroupName, this);
         m_sGroupName.clear();
     }
     else {
         if (m_sGroupName == strGroupName) return;
-        if (!m_sGroupName.empty() && this->m_pWindow) this->m_pWindow->RemoveOptionGroup(m_sGroupName, this);
+        if (!m_sGroupName.empty() && this->GetWindow()) this->GetWindow()->RemoveOptionGroup(m_sGroupName, this);
         m_sGroupName = strGroupName;
-        if (this->m_pWindow) this->m_pWindow->AddOptionGroup(m_sGroupName, this);
+        if (this->GetWindow()) this->GetWindow()->AddOptionGroup(m_sGroupName, this);
     }
 
     Selected(this->m_bSelected, true);

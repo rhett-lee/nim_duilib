@@ -2376,7 +2376,7 @@ UiSize RichEdit::EstimateText(UiSize szAvailable)
 void RichEdit::SetPos(UiRect rc)
 {
     Control::SetPos(rc);
-    rc = m_rcItem;
+    rc = GetRect();
 
     rc.left += m_pLayout->GetPadding().left;
     rc.top += m_pLayout->GetPadding().top;
@@ -2456,8 +2456,12 @@ void RichEdit::HandleEvent(const EventArgs& event)
 {
 	if ((!IsMouseEnabled() && event.Type > kEventMouseBegin && event.Type < kEventMouseEnd) ||
 		(!IsEnabled()&&!IsReadOnly())){
-		if (m_pParent != NULL) m_pParent->SendEvent(event);
-		else Control::HandleEvent(event);
+		if (GetParent() != nullptr) {
+			GetParent()->SendEvent(event);
+		}
+		else {
+			Control::HandleEvent(event);
+		}
 		return;
 	}
 
@@ -2691,7 +2695,7 @@ void RichEdit::OnMouseMessage(UINT uMsg, const EventArgs& event)
 void RichEdit::Paint(IRenderContext* pRender, const UiRect& rcPaint)
 {
     UiRect rcTemp;
-    if( !::IntersectRect(&rcTemp, &rcPaint, &m_rcItem) ) return;
+    if( !::IntersectRect(&rcTemp, &rcPaint, &GetRect()) ) return;
 
     Control::Paint(pRender, rcPaint);
 
@@ -2739,12 +2743,12 @@ void RichEdit::Paint(IRenderContext* pRender, const UiRect& rcPaint)
 void RichEdit::PaintChild(IRenderContext* pRender, const UiRect& rcPaint)
 {
 	UiRect rcTemp;
-	if (!::IntersectRect(&rcTemp, &rcPaint, &m_rcItem)) return;
+	if (!::IntersectRect(&rcTemp, &rcPaint, &GetRect())) return;
 
 	PaintCaret(pRender, rcPaint);
 
     if( m_items.size() > 0 ) {
-        UiRect rc = m_rcItem;
+        UiRect rc = GetRect();
         rc.left += m_pLayout->GetPadding().left;
         rc.top += m_pLayout->GetPadding().top;
         rc.right -= m_pLayout->GetPadding().right;
@@ -2766,7 +2770,7 @@ void RichEdit::PaintChild(IRenderContext* pRender, const UiRect& rcPaint)
 					continue;
 				}
                 if( pControl ->IsFloat() ) {
-					if (!::IntersectRect(&rcTemp, &m_rcItem, &controlPos)) {
+					if (!::IntersectRect(&rcTemp, &GetRect(), &controlPos)) {
 						continue;
 					}
                     pControl->AlphaPaint(pRender, rcPaint);
@@ -2788,7 +2792,7 @@ void RichEdit::PaintChild(IRenderContext* pRender, const UiRect& rcPaint)
 					continue;
 				}
                 if( pControl ->IsFloat() ) {
-					if (!::IntersectRect(&rcTemp, &m_rcItem, &controlPos)) {
+					if (!::IntersectRect(&rcTemp, &GetRect(), &controlPos)) {
 						continue;
 					}
                     pControl->AlphaPaint(pRender, rcPaint);

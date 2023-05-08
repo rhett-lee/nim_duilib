@@ -30,8 +30,8 @@ namespace ui
 		if (item->type == GIT_String || item->type == GIT_Int || item->type == GIT_Double)
 		{
 			m_pReEdit->SetVisible(true);
-			m_pReEdit->SetFixedWidth(m_hLayout[col_index] - 1);
-			m_pReEdit->SetFixedHeight(m_vLayout[row_index] - 1);
+			m_pReEdit->SetFixedWidth(m_hLayout[col_index] - 1, true, true);
+			m_pReEdit->SetFixedHeight(m_vLayout[row_index] - 1, true);
 			m_pReEdit->SetMargin({ posx, posy, 0, 0 });
 			m_pReEdit->SetText(item->text);
 			m_pReEdit->SetFocus();
@@ -41,15 +41,15 @@ namespace ui
 		else if (item->type == GIT_Combo)
 		{
 			m_pComboEdit->SetVisible(true);
-			m_pComboEdit->SetFixedWidth(m_hLayout[col_index] - 1);
-			m_pComboEdit->SetFixedHeight(m_vLayout[row_index] - 1);
+			m_pComboEdit->SetFixedWidth(m_hLayout[col_index] - 1, true, true);
+			m_pComboEdit->SetFixedHeight(m_vLayout[row_index] - 1, true);
 			m_pComboEdit->SetMargin({ posx, posy, 0, 0 });
 
 			m_pComboEdit->RemoveAll();
 			for (size_t i = 0; i < item->combo_list.size(); i++)
 			{
 				ui::ListContainerElement *combo_item = new ui::ListContainerElement;
-				combo_item->SetFixedHeight(20);
+				combo_item->SetFixedHeight(20, true);
 				combo_item->SetText(item->combo_list[i]);
 				m_pComboEdit->Add(combo_item);
 				if (item->text == item->combo_list[i])
@@ -89,7 +89,7 @@ namespace ui
 		int fixed_col_width = GetFixedColWidth();
 		UiSize szOff = m_pGrid->GetScrollPos();
 
-		pt.Offset(-m_rcItem.left, -m_rcItem.top);
+		pt.Offset(-GetRect().left, -GetRect().top);
 		ASSERT(pt.x > 0 && pt.y > 0);
 		if (pt.x <= 0 || pt.y <= 0)
 			return false;
@@ -304,7 +304,7 @@ namespace ui
 	GridBody::GridBody(Grid *pGrid) : m_selRange(this), m_pGrid(pGrid){
 		m_vLayout.push_back(m_defaultRowHeight);		//insert header hegith
 		m_vecRow.push_back(new GridRow());
-		SetFixedHeight(m_defaultRowHeight);
+		SetFixedHeight(m_defaultRowHeight, true);
 		AddCol(L"行号", 30);
 		SetFixedColCount(1);
 		SetFixedRowCount(1);
@@ -359,7 +359,7 @@ namespace ui
 				}
 			}
 
-			SetFixedWidth(_SumIntList(m_hLayout));
+			SetFixedWidth(_SumIntList(m_hLayout), true, true);
 
 			OnColumnCountChanged(-1, false);
 			Invalidate();
@@ -392,8 +392,6 @@ namespace ui
 				int index = 0;
 				for (auto it = delay_delete_items.cbegin(); it < delay_delete_items.cend(); it++, index++)
 				{
-					if (index % 1000 == 0)	//防止cpu卡死
-						::Sleep(1);
 					delete *it;
 				}
 			});
@@ -405,7 +403,7 @@ namespace ui
 
 			m_hLayout.erase(m_hLayout.begin() + count, m_hLayout.end());
 
-			SetFixedWidth(_SumIntList(m_hLayout));
+			SetFixedWidth(_SumIntList(m_hLayout), true, true);
 
 			OnColumnCountChanged(-1, true);
 			Invalidate();
@@ -461,7 +459,7 @@ namespace ui
 			}
 			
 			ASSERT(m_vecRow.size() == m_vLayout.size());
-			SetFixedHeight(_SumIntList(m_vLayout));
+			SetFixedHeight(_SumIntList(m_vLayout), true);
 
 			m_selRange.Clear();
 			Invalidate();
@@ -499,7 +497,7 @@ namespace ui
 			m_vecRow.erase(m_vecRow.begin() + count, m_vecRow.end());
 			m_vLayout.erase(m_vLayout.begin() + count, m_vLayout.end());
 
-			SetFixedHeight(_SumIntList(m_vLayout));
+			SetFixedHeight(_SumIntList(m_vLayout), true);
 			Invalidate();
 		}
 #ifdef _DEBUG
@@ -554,7 +552,7 @@ namespace ui
 			if (m_hLayout[col_index] != width)
 			{
 				m_hLayout[col_index] = width;
-				SetFixedWidth(_SumIntList(m_hLayout));
+				SetFixedWidth(_SumIntList(m_hLayout), true, true);
 				OnColumnWidthChanged(col_index, width);
 				Invalidate();
 			}
@@ -578,7 +576,7 @@ namespace ui
 			if (m_vLayout[row_index] != height)
 			{
 				m_vLayout[row_index] = height;
-				SetFixedHeight(_SumIntList(m_vLayout));
+				SetFixedHeight(_SumIntList(m_vLayout), true);
 				/*OnRowHeightChanged(row_index, height);*/
 				Invalidate();
 			}
@@ -599,7 +597,7 @@ namespace ui
 		if (m_vLayout.size() > 0 && m_vLayout[0] != height)
 		{
 			m_vLayout[0] = height;
-			SetFixedHeight(_SumIntList(m_vLayout));
+			SetFixedHeight(_SumIntList(m_vLayout), true);
 			Invalidate();
 		}
 	}
@@ -700,7 +698,7 @@ namespace ui
 		GridHeaderItem *item = new GridHeaderItem(&itemInfo);
 		GetHeader()->push_back(item);
 		m_hLayout.push_back(width);
-		SetFixedWidth(_SumIntList(m_hLayout));
+		SetFixedWidth(_SumIntList(m_hLayout), true, true);
 
 		itemInfo.txt = L"";
 		for (size_t i = 1; i < m_vecRow.size(); i++)
@@ -741,9 +739,9 @@ namespace ui
 		ASSERT(m_vecRow.size() == m_vLayout.size());
 		int fixHeight = GetFixedHeight();
 		if (fixHeight >= 0)
-			SetFixedHeight(fixHeight + m_defaultRowHeight);
+			SetFixedHeight(fixHeight + m_defaultRowHeight, true);
 		else
-			SetFixedHeight(_SumIntList(m_vLayout));
+			SetFixedHeight(_SumIntList(m_vLayout), true);
 
 		/*m_selRange.Clear();*/
 		Invalidate();
@@ -808,7 +806,7 @@ namespace ui
 			if (m_nFixedRow > (size_t)row_index)
 				m_nFixedRow--;
 
-			SetFixedHeight(_SumIntList(m_vLayout));
+			SetFixedHeight(_SumIntList(m_vLayout), true);
 			Invalidate();
 			ret = true;
 		}
@@ -868,7 +866,7 @@ namespace ui
 			if (m_nFixedCol > (size_t)col_index)
 				m_nFixedCol--;
 
-			SetFixedWidth(_SumIntList(m_hLayout));
+			SetFixedWidth(_SumIntList(m_hLayout), true, true);
 
 			OnColumnCountChanged(col_index, true);
 			Invalidate();
@@ -899,7 +897,7 @@ namespace ui
 			return false;
 		int col_width = min_width;
 		int row_count = GetRowCount();
-		auto pRender = this->m_pWindow->GetRenderContext();
+		auto pRender = this->GetWindow()->GetRenderContext();
 		for (int i = 0; i < row_count; i++)
 		{
 			GridRow *pRow = m_vecRow[i];
@@ -929,8 +927,8 @@ namespace ui
 		if (!IsMouseEnabled() && 
 			(event.Type > kEventMouseBegin) && 
 			(event.Type < kEventMouseEnd)) {
-			if (m_pParent != nullptr) {
-				m_pParent->SendEvent(event);
+			if (GetParent() != nullptr) {
+				GetParent()->SendEvent(event);
 			}
 			else {
 				Box::HandleEvent(event);
@@ -972,7 +970,7 @@ namespace ui
 			int fixed_col_width = GetFixedColWidth();
 			int grid_width = m_pGrid->GetWidth();
 			UiPoint pt (msg.ptMouse);
-			pt.Offset(-m_rcItem.left, -m_rcItem.top);
+			pt.Offset(-GetRect().left, -GetRect().top);
 			ASSERT(pt.x > 0 && pt.y > 0);
 			if (pt.x <= 0 || pt.y <= 0 || m_vLayout.size() == 0)
 				return true;
@@ -1065,7 +1063,7 @@ namespace ui
 		{
 			ASSERT(m_nDragColIndex < GetColCount());
 			UiPoint pt(msg.ptMouse);
-			pt.Offset(-m_rcItem.left, -m_rcItem.top);
+			pt.Offset(-GetRect().left, -GetRect().top);
 			int width = GetColumnWidth(m_nDragColIndex) + pt.x - m_ptDragColumnStart.x;
 			if (width < MIN_COLUMN_WIDTH)
 				width = MIN_COLUMN_WIDTH;
@@ -1105,7 +1103,7 @@ namespace ui
 
 			UiPoint pt(msg.ptMouse);
 
-			pt.Offset(-m_rcItem.left, -m_rcItem.top);
+			pt.Offset(-GetRect().left, -GetRect().top);
 			ASSERT(pt.x > 0 && pt.y > 0);
 			if (pt.x <= 0 || pt.y <= 0 || m_vLayout.size() == 0)
 				return true;
@@ -1149,7 +1147,7 @@ namespace ui
 		int fixed_col_width = GetFixedColWidth();
 
 		UiPoint pt(msg.ptMouse);
-		pt.Offset(-m_rcItem.left, -m_rcItem.top);
+		pt.Offset(-GetRect().left, -GetRect().top);
 		//ASSERT(pt.x > 0 && pt.y > 0);
 		if (pt.x <= 0 || pt.y <= 0 || m_vLayout.size() == 0)
 			return true;
@@ -1282,7 +1280,7 @@ namespace ui
 	void GridBody::PaintChild(IRenderContext* pRender, const UiRect& rcPaint)
 	{
 		UiRect rcTemp;
-		if (!::IntersectRect(&rcTemp, &rcPaint, &m_rcItem)) return;
+		if (!::IntersectRect(&rcTemp, &rcPaint, &GetRect())) return;
 
 		for (auto it = m_items.begin(); it != m_items.end(); it++) {
 			Control* pControl = *it;
@@ -1311,7 +1309,7 @@ namespace ui
 
 	void GridBody::Paint(IRenderContext* pRender, const UiRect& rcPaint)
 	{
-		if (!::IntersectRect(&m_rcPaint, &rcPaint, &m_rcItem)) return;
+		if (!::IntersectRect(&m_rcPaint, &rcPaint, &GetRect())) return;
 
 		PaintBkColor(pRender);
 		PaintBkImage(pRender);
@@ -1337,7 +1335,7 @@ namespace ui
 			UiRect rcLineH, rcLineV;
 			DWORD dwGridLineColor = GlobalManager::GetTextColor(m_strGridLineColor);
 
-			UiPoint ptOldOrg = pRender->OffsetWindowOrg({ -m_rcItem.left, -m_rcItem.top });
+			UiPoint ptOldOrg = pRender->OffsetWindowOrg({ -GetRect().left, -GetRect().top });
 			{
 				//draw fixed HLine
 				rcLineH.left = 0;
@@ -1440,7 +1438,7 @@ namespace ui
 				if (m_hLayout[j] == 0)
 					continue;
 				UiRect rc = { posx, posy, posx + m_hLayout[j], posy + m_vLayout[i] };
-				rc.Offset({ m_rcItem.left, m_rcItem.top });
+				rc.Offset({ GetRect().left, GetRect().top });
 				pRender->DrawText(rc, grid_row->at(static_cast<int>(j))->text, dwDefColor, m_strGridFont, m_uTextStyle, 255, false);
 				posx += m_hLayout[j];
 			}
@@ -1468,7 +1466,7 @@ namespace ui
 					if (!str.empty() && posx + m_hLayout[j] - szOff.cx > fixed_col_width)		//单元格右边线没有超过fixed_col_width
 					{
 						UiRect rc = { posx, posy, posx + m_hLayout[j], posy + m_vLayout[i] };
-						rc.Offset({ m_rcItem.left - szOff.cx, m_rcItem.top });
+						rc.Offset({ GetRect().left - szOff.cx, GetRect().top });
 						pRender->DrawText(rc, str, dwDefColor, m_strGridFont, m_uTextStyle, 255, false);
 					}
 					posx += m_hLayout[j];
@@ -1502,7 +1500,7 @@ namespace ui
 					if (!str.empty() && posy + m_vLayout[j] - szOff.cy > fixed_row_height)		//单元格下边线没有超过fixed_row_height
 					{
 						UiRect rc = { posx, posy, posx + m_hLayout[i], posy + m_vLayout[j] };
-						rc.Offset({ m_rcItem.left, m_rcItem.top - szOff.cy });
+						rc.Offset({ GetRect().left, GetRect().top - szOff.cy });
 						pRender->DrawText(rc, str, dwDefColor, m_strGridFont, m_uTextStyle, 255, false);
 					}
 					posy += m_vLayout[j];
@@ -1537,7 +1535,7 @@ namespace ui
 						GridItem *pItem = grid_row->at(static_cast<int>(j));
 
 						UiRect rc = { posx, posy, posx + m_hLayout[j], posy + m_vLayout[i] };
-						rc.Offset({ m_rcItem.left - szOff.cx, m_rcItem.top - szOff.cy });
+						rc.Offset({ GetRect().left - szOff.cx, GetRect().top - szOff.cy });
 						rc.Deflate({ 1, 1, 2, 2 });
 						//绘制单元格背景色
 						if (pItem->IsSelected())

@@ -81,8 +81,9 @@ Control::~Control()
 
 	SendEvent(kEventLast);
 
-	if (m_pWindow) {
-		m_pWindow->ReapObjects(this);
+	Window* pWindow = GetWindow();
+	if (pWindow) {
+		pWindow->ReapObjects(this);
 	}
 
 #if defined(ENABLE_UIAUTOMATION)
@@ -524,7 +525,8 @@ void Control::SetKeyboardEnabled(bool bEnabled)
 
 bool Control::IsFocused() const
 {
-    return ((m_pWindow != nullptr) && (m_pWindow->GetFocus() == this) );
+	Window* pWindow = GetWindow();
+    return ((pWindow != nullptr) && (pWindow->GetFocus() == this) );
 }
 
 void Control::SetFocus()
@@ -532,8 +534,9 @@ void Control::SetFocus()
 	if (m_bNoFocus) {
 		return;
 	}
-	if (m_pWindow != nullptr) {
-		m_pWindow->SetFocus(this);
+	Window* pWindow = GetWindow();
+	if (pWindow != nullptr) {
+		pWindow->SetFocus(this);
 	}
 }
 
@@ -569,7 +572,7 @@ Control* Control::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, U
 		return nullptr;
 	}
 	if ((uFlags & UIFIND_HITTEST) != 0 && 
-		(!m_bMouseEnabled || ((pData != nullptr) && !::PtInRect(&m_rcItem, *static_cast<LPPOINT>(pData))))) {
+		(!m_bMouseEnabled || ((pData != nullptr) && !::PtInRect(&GetRect(), *static_cast<LPPOINT>(pData))))) {
 		return nullptr;
 	}
     return Proc(this, pData);
@@ -577,12 +580,12 @@ Control* Control::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, U
 
 UiRect Control::GetPos(bool bContainShadow) const
 {
-	UiRect pos = m_rcItem;
-	if (m_pWindow && !bContainShadow) {
-		UiRect shadowLength = m_pWindow->GetShadowCorner();
+	UiRect pos = GetRect();
+	Window* pWindow = GetWindow();
+	if (pWindow && !bContainShadow) {
+		UiRect shadowLength = pWindow->GetShadowCorner();
 		pos.Offset(-shadowLength.left, -shadowLength.top);
 	}
-
 	return pos;
 }
 
@@ -595,23 +598,23 @@ void Control::SetPos(UiRect rc)
 		rc.bottom = rc.top;
 	}
 
-	if (m_rcItem.Equal(rc)) {
-		m_bIsArranged = false;
+	if (GetRect().Equal(rc)) {
+		SetArranged(false);
 		return;
 	}
 
-	UiRect invalidateRc = m_rcItem;
+	UiRect invalidateRc = GetRect();
 	if (::IsRectEmpty(&invalidateRc)) {
 		invalidateRc = rc;
 	}
 
-	m_rcItem = rc;
-	if (m_pWindow == nullptr) {
+	SetRect(rc);
+	if (GetWindow() == nullptr) {
 		return;
 	}
 
-	m_bIsArranged = false;
-	invalidateRc.Union(m_rcItem);
+	SetArranged(false);
+	invalidateRc.Union(GetRect());
 
 	bool needInvalidate = true;
 	UiRect rcTemp;
@@ -628,8 +631,8 @@ void Control::SetPos(UiRect rc)
 		}
 		pParent = pParent->GetParent();
 	}
-	if (needInvalidate && (m_pWindow != nullptr)) {
-		m_pWindow->Invalidate(invalidateRc);
+	if (needInvalidate && (GetWindow() != nullptr)) {
+		GetWindow()->Invalidate(invalidateRc);
 	}
 
 	SendEvent(kEventResize);
@@ -653,9 +656,9 @@ void Control::SetMargin(UiRect rcMargin, bool bNeedDpiScale)
 
 UiSize Control::EstimateSize(UiSize szAvailable)
 {
-	UiSize imageSize = m_cxyFixed;
+	UiSize imageSize = GetFixedSize();
 	if (GetFixedWidth() == DUI_LENGTH_AUTO || GetFixedHeight() == DUI_LENGTH_AUTO) {
-		if (!m_bReEstimateSize) {
+		if (!IsReEstimateSize()) {
 			return m_szEstimateSize;
 		}
 		Image* image = GetEstimateImage();
@@ -664,12 +667,12 @@ UiSize Control::EstimateSize(UiSize szAvailable)
 			if (imageAttribute.rcSource.left != DUI_NOSET_VALUE && imageAttribute.rcSource.top != DUI_NOSET_VALUE
 				&& imageAttribute.rcSource.right != DUI_NOSET_VALUE && imageAttribute.rcSource.bottom != DUI_NOSET_VALUE) {
 				if ((GetFixedWidth() != imageAttribute.rcSource.right - imageAttribute.rcSource.left)) {
-					SetFixedWidth(imageAttribute.rcSource.right - imageAttribute.rcSource.left);
+					SetFixedWidth(imageAttribute.rcSource.right - imageAttribute.rcSource.left, true, true);
 				}
 				if ((GetFixedHeight() != imageAttribute.rcSource.bottom - imageAttribute.rcSource.top)) {
-					SetFixedHeight(imageAttribute.rcSource.bottom - imageAttribute.rcSource.top);
+					SetFixedHeight(imageAttribute.rcSource.bottom - imageAttribute.rcSource.top, true);
 				}
-				return m_cxyFixed;
+				return GetFixedSize();
 			}
 
 			GetImage(*image);
@@ -686,8 +689,10 @@ UiSize Control::EstimateSize(UiSize szAvailable)
 			}
 		}
 
-		m_bReEstimateSize = false;
-		UiSize textSize = EstimateText(szAvailable, m_bReEstimateSize);
+		SetReEstimateSize(false);
+		bool bReEstimateSize = IsReEstimateSize();
+		UiSize textSize = EstimateText(szAvailable, bReEstimateSize);
+		SetReEstimateSize(bReEstimateSize);
 		if (GetFixedWidth() == DUI_LENGTH_AUTO && imageSize.cx < textSize.cx) {
 			imageSize.cx = textSize.cx;
 		}
@@ -711,7 +716,7 @@ bool Control::IsPointInWithScrollOffset(const UiPoint& point) const
 	UiPoint scrollOffset = GetScrollOffset();
 	UiPoint newPoint = point;
 	newPoint.Offset(scrollOffset);
-	return m_rcItem.IsPointIn(newPoint);
+	return GetRect().IsPointIn(newPoint);
 }
 
 #if defined(ENABLE_UIAUTOMATION)
@@ -738,8 +743,9 @@ void Control::SendEvent(EventType eventType,
 	msg.wParam = wParam;
 	msg.lParam = lParam;
 	if ((mousePos.x == 0) && (mousePos.y == 0)) {
-		if (m_pWindow != nullptr) {
-			msg.ptMouse = m_pWindow->GetLastMousePos();
+		Window* pWindow = GetWindow();
+		if (pWindow != nullptr) {
+			msg.ptMouse = pWindow->GetLastMousePos();
 		}
 	}
 	else {
@@ -764,8 +770,9 @@ void Control::HandleEvent(const EventArgs& msg)
 		(msg.Type > kEventMouseBegin) && 
 		(msg.Type < kEventMouseEnd)) {
 		//当前控件禁止接收鼠标消息时，将鼠标相关消息转发给上层处理
-		if (m_pParent != nullptr) {
-			m_pParent->SendEvent(msg);
+		Box* pParent = GetParent();
+		if (pParent != nullptr) {
+			pParent->SendEvent(msg);
 		}
 		return;
 	}
@@ -802,8 +809,8 @@ void Control::HandleEvent(const EventArgs& msg)
 		return;
 	}
 	else if( msg.Type == kEventMouseEnter ) {
-		if (m_pWindow) {
-			if (!IsChild(this, m_pWindow->GetHoverControl())) {
+		if (GetWindow()) {
+			if (!IsChild(this, GetWindow()->GetHoverControl())) {
 				return;
 			}
 		}
@@ -811,8 +818,8 @@ void Control::HandleEvent(const EventArgs& msg)
 			return;
 	}
 	else if( msg.Type == kEventMouseLeave ) {
-		if (m_pWindow) {
-			if (IsChild(this, m_pWindow->GetHoverControl())) {
+		if (GetWindow()) {
+			if (IsChild(this, GetWindow()->GetHoverControl())) {
 				return;
 			}
 		}
@@ -828,8 +835,8 @@ void Control::HandleEvent(const EventArgs& msg)
 		return;
 	}
 
-	if (m_pParent != nullptr) {
-		m_pParent->SendEvent(msg);
+	if (GetParent() != nullptr) {
+		GetParent()->SendEvent(msg);
 	}
 }
 
@@ -988,26 +995,26 @@ void Control::SetAttribute(const std::wstring& strName, const std::wstring& strV
 	else if (strName == _T("boxshadow")) SetBoxShadow(strValue);
 	else if( strName == _T("width") ) {
 		if ( strValue == _T("stretch") ) {
-			SetFixedWidth(DUI_LENGTH_STRETCH);
+			SetFixedWidth(DUI_LENGTH_STRETCH, true, true);
 		}
 		else if ( strValue == _T("auto") ) {
-			SetFixedWidth(DUI_LENGTH_AUTO);
+			SetFixedWidth(DUI_LENGTH_AUTO, true, true);
 		}
 		else {
 			ASSERT(_ttoi(strValue.c_str()) >= 0);
-			SetFixedWidth(_ttoi(strValue.c_str()));
+			SetFixedWidth(_ttoi(strValue.c_str()), true, true);
 		}
 	}
 	else if( strName == _T("height") ) {
 		if ( strValue == _T("stretch") ) {
-			SetFixedHeight(DUI_LENGTH_STRETCH);
+			SetFixedHeight(DUI_LENGTH_STRETCH, true);
 		}
 		else if ( strValue == _T("auto") ) {
-			SetFixedHeight(DUI_LENGTH_AUTO);
+			SetFixedHeight(DUI_LENGTH_AUTO, true);
 		}
 		else {
 			ASSERT(_ttoi(strValue.c_str()) >= 0);
-			SetFixedHeight(_ttoi(strValue.c_str()));
+			SetFixedHeight(_ttoi(strValue.c_str()), true);
 		}
 	}
 	else if( strName == _T("maxwidth") ) {
@@ -1118,8 +1125,9 @@ void Control::SetClass(const std::wstring& strClass)
 	std::list<std::wstring> splitList = StringHelper::Split(strClass, L" ");
 	for (auto it = splitList.begin(); it != splitList.end(); it++) {
 		std::wstring pDefaultAttributes = GlobalManager::GetClassAttributes((*it));
-		if (pDefaultAttributes.empty() && m_pWindow) {
-			pDefaultAttributes = m_pWindow->GetClassAttributes(*it);
+		Window* pWindow = GetWindow();
+		if (pDefaultAttributes.empty() && (pWindow != nullptr)) {
+			pDefaultAttributes = pWindow->GetClassAttributes(*it);
 		}
 
 		ASSERT(!pDefaultAttributes.empty());
@@ -1183,14 +1191,15 @@ bool Control::OnApplyAttributeList(const std::wstring& strReceiver, const std::w
 
 void Control::GetImage(Image& duiImage) const
 {
-	ASSERT(m_pWindow != nullptr);
-	if (m_pWindow == nullptr) {
+	Window* pWindow = GetWindow();
+	ASSERT(pWindow != nullptr);
+	if (pWindow == nullptr) {
 		return;
 	}
 	// should optimize later
 	// use hash or md5 is better than compare strings
 	std::wstring sImageName = duiImage.GetImageAttribute().sImageName;
-	std::wstring imageFullPath = GlobalManager::GetResPath(sImageName, m_pWindow->GetResourcePath());
+	std::wstring imageFullPath = GlobalManager::GetResPath(sImageName, pWindow->GetResourcePath());
 
 	imageFullPath = StringHelper::ReparsePath(imageFullPath);
 
@@ -1223,13 +1232,13 @@ bool Control::DrawImage(IRenderContext* pRender, Image& duiImage, const std::wst
 	if (!strModify.empty()) {
 		ImageAttribute::ModifyAttribute(newImageAttribute, strModify);
 	}
-	UiRect rcNewDest = m_rcItem;
+	UiRect rcNewDest = GetRect();
 	if (newImageAttribute.rcDest.left != DUI_NOSET_VALUE && newImageAttribute.rcDest.top != DUI_NOSET_VALUE
 		&& newImageAttribute.rcDest.right != DUI_NOSET_VALUE && newImageAttribute.rcDest.bottom != DUI_NOSET_VALUE) {
-		rcNewDest.left = m_rcItem.left + newImageAttribute.rcDest.left;
-		rcNewDest.right = m_rcItem.left + newImageAttribute.rcDest.right;
-		rcNewDest.top = m_rcItem.top + newImageAttribute.rcDest.top;
-		rcNewDest.bottom = m_rcItem.top + newImageAttribute.rcDest.bottom;
+		rcNewDest.left = GetRect().left + newImageAttribute.rcDest.left;
+		rcNewDest.right = GetRect().left + newImageAttribute.rcDest.right;
+		rcNewDest.top = GetRect().top + newImageAttribute.rcDest.top;
+		rcNewDest.bottom = GetRect().top + newImageAttribute.rcDest.bottom;
 	}
 	UiRect rcNewSource = newImageAttribute.rcSource;
 	if (rcNewSource.left == DUI_NOSET_VALUE || rcNewSource.top == DUI_NOSET_VALUE
@@ -1294,7 +1303,7 @@ void Control::AlphaPaint(IRenderContext* pRender, const UiRect& rcPaint)
 	}
 
 	UiRect rcUnion;
-	if( !::IntersectRect(&rcUnion, &rcPaint, &m_rcItem) ) return;
+	if( !::IntersectRect(&rcUnion, &rcPaint, &GetRect()) ) return;
 
 	bool bRoundClip = false;
 	if (m_cxyBorderRound.cx > 0 || m_cxyBorderRound.cy > 0) {
@@ -1303,15 +1312,15 @@ void Control::AlphaPaint(IRenderContext* pRender, const UiRect& rcPaint)
 
 	if (IsAlpha()) {
 		UiSize size;
-		size.cx = m_rcItem.right - m_rcItem.left;
-		size.cy = m_rcItem.bottom - m_rcItem.top;
+		size.cx = GetRect().right - GetRect().left;
+		size.cy = GetRect().bottom - GetRect().top;
 		auto pCacheRender = GetRenderContext();
 		if (pCacheRender) {
 			if (pCacheRender->Resize(size.cx, size.cy)) {
 				SetCacheDirty(true);
 			}
 
-			if (m_bCacheDirty) {
+			if (IsCacheDirty()) {
 				pCacheRender->Clear();
 				int scaleOffset = m_boxShadow.HasShadow() ? (m_boxShadow.m_nBlurSize * 2 + abs(m_boxShadow.m_cpOffset.x)) : 0;
 				UiRect rcClip = { 0, 0, size.cx + scaleOffset,size.cy + scaleOffset };
@@ -1320,9 +1329,9 @@ void Control::AlphaPaint(IRenderContext* pRender, const UiRect& rcPaint)
 				AutoClip roundAlphaClip(pCacheRender, rcClip, m_cxyBorderRound.cx, m_cxyBorderRound.cy, bRoundClip);
 
 				pCacheRender->SetRenderTransparent(true);
-				UiPoint ptOffset(m_rcItem.left + m_renderOffset.x, m_rcItem.top + m_renderOffset.y);
+				UiPoint ptOffset(GetRect().left + m_renderOffset.x, GetRect().top + m_renderOffset.y);
 				UiPoint ptOldOrg = pCacheRender->OffsetWindowOrg(ptOffset);
-				Paint(pCacheRender, m_rcItem);
+				Paint(pCacheRender, GetRect());
 				PaintChild(pCacheRender, rcPaint);
 				pCacheRender->SetWindowOrg(ptOldOrg);
 				SetCacheDirty(false);
@@ -1333,8 +1342,8 @@ void Control::AlphaPaint(IRenderContext* pRender, const UiRect& rcPaint)
 				                rcUnion.right - rcUnion.left, 
 				                rcUnion.bottom - rcUnion.top, 
 				                pCacheRender->GetDC(),
-				                rcUnion.left - m_rcItem.left, 
-				                rcUnion.top - m_rcItem.top, 
+				                rcUnion.left - GetRect().left,
+				                rcUnion.top - GetRect().top,
 				                rcUnion.right - rcUnion.left, 
 				                rcUnion.bottom - rcUnion.top, 
 				                static_cast<BYTE>(m_nAlpha));
@@ -1343,8 +1352,8 @@ void Control::AlphaPaint(IRenderContext* pRender, const UiRect& rcPaint)
 	}
 	else if (IsUseCache()) {
 		UiSize size;
-		size.cx = m_rcItem.right - m_rcItem.left;
-		size.cy = m_rcItem.bottom - m_rcItem.top;
+		size.cx = GetRect().right - GetRect().left;
+		size.cy = GetRect().bottom - GetRect().top;
 		auto pCacheRender = GetRenderContext();
 		if (pCacheRender) {
 			if (pCacheRender->Resize(size.cx, size.cy)) {
@@ -1359,24 +1368,24 @@ void Control::AlphaPaint(IRenderContext* pRender, const UiRect& rcPaint)
 				AutoClip roundAlphaClip(pCacheRender, rcClip, m_cxyBorderRound.cx, m_cxyBorderRound.cy, bRoundClip);
 
 				pCacheRender->SetRenderTransparent(true);
-				UiPoint ptOffset(m_rcItem.left + m_renderOffset.x, m_rcItem.top + m_renderOffset.y);
+				UiPoint ptOffset(GetRect().left + m_renderOffset.x, GetRect().top + m_renderOffset.y);
 				UiPoint ptOldOrg = pCacheRender->OffsetWindowOrg(ptOffset);
-				Paint(pCacheRender, m_rcItem);
+				Paint(pCacheRender, GetRect());
 				pCacheRender->SetWindowOrg(ptOldOrg);
 				SetCacheDirty(false);
 			}
 
 			pRender->AlphaBlend(rcUnion.left, rcUnion.top, rcUnion.right - rcUnion.left, rcUnion.bottom - rcUnion.top, pCacheRender->GetDC(),
-				rcUnion.left - m_rcItem.left, rcUnion.top - m_rcItem.top, rcUnion.right - rcUnion.left, rcUnion.bottom - rcUnion.top, static_cast<BYTE>(m_nAlpha));
+				rcUnion.left - GetRect().left, rcUnion.top - GetRect().top, rcUnion.right - rcUnion.left, rcUnion.bottom - rcUnion.top, static_cast<BYTE>(m_nAlpha));
 			PaintChild(pRender, rcPaint);
 		}
 	}
 	else {
 		int scaleOffset = m_boxShadow.HasShadow() ? (m_boxShadow.m_nBlurSize + abs(m_boxShadow.m_cpOffset.x)) : 0;
-		UiRect rcClip = { m_rcItem.left - scaleOffset,
-					m_rcItem.top - scaleOffset,
-					m_rcItem.right + scaleOffset,
-					m_rcItem.bottom + scaleOffset,
+		UiRect rcClip = { GetRect().left - scaleOffset,
+					      GetRect().top - scaleOffset,
+					      GetRect().right + scaleOffset,
+						  GetRect().bottom + scaleOffset,
 		};
 		AutoClip clip(pRender, rcClip, IsClip());
 		AutoClip roundClip(pRender, rcClip, m_cxyBorderRound.cx, m_cxyBorderRound.cy, bRoundClip);
@@ -1389,7 +1398,7 @@ void Control::AlphaPaint(IRenderContext* pRender, const UiRect& rcPaint)
 
 void Control::Paint(IRenderContext* pRender, const UiRect& rcPaint)
 {
-	if( !::IntersectRect(&m_rcPaint, &rcPaint, &m_rcItem) ) return;
+	if( !::IntersectRect(&m_rcPaint, &rcPaint, &GetRect()) ) return;
 
 	PaintShadow(pRender);
 	PaintBkColor(pRender);
@@ -1437,7 +1446,7 @@ void Control::PaintBkColor(IRenderContext* pRender)
 			pRender->DrawColor(m_rcPaint, dwBackColor);
 		}
 		else {
-			pRender->DrawColor(m_rcItem, dwBackColor);
+			pRender->DrawColor(GetRect(), dwBackColor);
 		}
 	}
 }
@@ -1477,32 +1486,32 @@ void Control::PaintBorder(IRenderContext* pRender)
 		if (m_rcBorderSize.left > 0 || m_rcBorderSize.top > 0 || m_rcBorderSize.right > 0 || m_rcBorderSize.bottom > 0) {
 			UiRect rcBorder;
 			if (m_rcBorderSize.left > 0) {
-				rcBorder = m_rcItem;
-				rcBorder.right = rcBorder.left = m_rcItem.left + m_rcBorderSize.left / 2;
+				rcBorder = GetRect();
+				rcBorder.right = rcBorder.left = GetRect().left + m_rcBorderSize.left / 2;
 				if (m_rcBorderSize.left == 1) {
 					rcBorder.bottom -= 1;
 				}
 				pRender->DrawLine(rcBorder, m_rcBorderSize.left, dwBorderColor);
 			}
 			if (m_rcBorderSize.top > 0) {
-				rcBorder = m_rcItem;
-				rcBorder.bottom = rcBorder.top = m_rcItem.top + m_rcBorderSize.top / 2;
+				rcBorder = GetRect();
+				rcBorder.bottom = rcBorder.top = GetRect().top + m_rcBorderSize.top / 2;
 				if (m_rcBorderSize.top == 1) {
 					rcBorder.right -= 1;
 				}
 				pRender->DrawLine(rcBorder, m_rcBorderSize.top, dwBorderColor);
 			}
 			if (m_rcBorderSize.right > 0) {
-				rcBorder = m_rcItem;
-				rcBorder.left = rcBorder.right = m_rcItem.right - (m_rcBorderSize.right + 1) / 2;
+				rcBorder = GetRect();
+				rcBorder.left = rcBorder.right = GetRect().right - (m_rcBorderSize.right + 1) / 2;
 				if (m_rcBorderSize.right == 1) {
 					rcBorder.bottom -= 1;
 				}
 				pRender->DrawLine(rcBorder, m_rcBorderSize.right, dwBorderColor);
 			}
 			if (m_rcBorderSize.bottom > 0) {
-				rcBorder = m_rcItem;
-				rcBorder.top = rcBorder.bottom = m_rcItem.bottom - (m_rcBorderSize.bottom + 1) / 2;
+				rcBorder = GetRect();
+				rcBorder.top = rcBorder.bottom = GetRect().bottom - (m_rcBorderSize.bottom + 1) / 2;
 				if (m_rcBorderSize.bottom == 1) {
 					rcBorder.right -= 1;
 				}
@@ -1510,7 +1519,7 @@ void Control::PaintBorder(IRenderContext* pRender)
 			}
 		}
 		else if (m_nBorderSize > 0) {
-			UiRect rcDraw = m_rcItem;
+			UiRect rcDraw = GetRect();
 			int nDeltaValue = m_nBorderSize / 2;
 			rcDraw.top += nDeltaValue;
 			rcDraw.bottom -= nDeltaValue;
@@ -1557,18 +1566,18 @@ void Control::PaintLoading(IRenderContext* pRender)
 	}
 
 	//居中
-	ui::UiRect rcFill = m_rcItem;
-	rcFill.left = m_rcItem.left + (m_rcItem.GetWidth() - imageWidth) / 2;
+	ui::UiRect rcFill = GetRect();
+	rcFill.left = GetRect().left + (GetRect().GetWidth() - imageWidth) / 2;
 	rcFill.right = rcFill.left + imageWidth;
-	rcFill.top = m_rcItem.top + (m_rcItem.GetHeight() - imageHeight) / 2;
+	rcFill.top = GetRect().top + (GetRect().GetHeight() - imageHeight) / 2;
 	rcFill.bottom = rcFill.top + imageHeight;
 
 	ui::UiRect rcDest = m_loadingImage->GetImageAttribute().rcDest;
 	if (!rcDest.IsRectEmpty()) {
-		rcFill.left = m_rcItem.left + rcDest.left;
-		rcFill.right = m_rcItem.left + rcDest.right;
-		rcFill.top = m_rcItem.top + rcDest.top;
-		rcFill.bottom = m_rcItem.bottom + rcDest.bottom;
+		rcFill.left = GetRect().left + rcDest.left;
+		rcFill.right = GetRect().left + rcDest.right;
+		rcFill.top = GetRect().top + rcDest.top;
+		rcFill.bottom = GetRect().bottom + rcDest.bottom;
 	}
 
     if (!m_strLoadingBkColor.empty()) {
@@ -1576,7 +1585,7 @@ void Control::PaintLoading(IRenderContext* pRender)
     }
 	
 	wchar_t modify[64] = { 0 };
-	swprintf_s(modify, L"dest='%d,%d,%d,%d'", rcFill.left - m_rcItem.left, rcFill.top - m_rcItem.top, rcFill.right - m_rcItem.left, rcFill.bottom - m_rcItem.top);
+	swprintf_s(modify, L"dest='%d,%d,%d,%d'", rcFill.left - GetRect().left, rcFill.top - GetRect().top, rcFill.right - GetRect().left, rcFill.bottom - GetRect().top);
 	DrawImage(pRender, *m_loadingImage, modify);
 }
 
@@ -1753,7 +1762,11 @@ void Control::InvokeLoadImageCache()
 	if (sImageName.empty()) {
 		return;
 	}
-	std::wstring imageFullPath = GlobalManager::GetResPath(sImageName, m_pWindow->GetResourcePath());
+	std::wstring imageFullPath;
+	Window* pWindow = GetWindow();
+	if (pWindow != nullptr) {
+		imageFullPath = GlobalManager::GetResPath(sImageName, pWindow->GetResourcePath());
+	}
 
 	if (!m_bkImage->GetImageCache() || m_bkImage->GetImageCache()->sImageFullPath != imageFullPath) {
 		auto shared_image = GlobalManager::IsImageCached(imageFullPath);
@@ -1930,11 +1943,14 @@ bool Control::FireAllEvents(const EventArgs& msg)
 DWORD Control::GetWindowColor(const std::wstring& strName)
 {
 	DWORD color = 0;
-	if (m_pWindow)
-		color = m_pWindow->GetTextColor(strName);
+	Window* pWindow = GetWindow();
+	if (pWindow != nullptr) {
+		color = pWindow->GetTextColor(strName);
+	}
 
-	if (color == 0)
+	if (color == 0) {
 		color = GlobalManager::GetTextColor(strName);
+	}
 
 	ASSERT(color != 0);
 	return color;
@@ -2028,13 +2044,14 @@ bool Control::CheckVisibleAncestor(void) const
 
 void Control::EnsureNoFocus()
 {
-	if ((m_pWindow != nullptr) && m_pWindow->GetFocus() != nullptr) {
-		if (m_pWindow->GetFocus() == this) {
-			m_pWindow->SetFocus(nullptr);
+	Window* pWindow = GetWindow();
+	if ((pWindow != nullptr) && pWindow->GetFocus() != nullptr) {
+		if (pWindow->GetFocus() == this) {
+			pWindow->SetFocus(nullptr);
 		}
 		/*
-		else if (IsChild(this, m_pWindow->GetFocus())) {
-			m_pWindow->SetFocus(nullptr);
+		else if (IsChild(this, pWindow->GetFocus())) {
+			pWindow->SetFocus(nullptr);
 		}
 		*/
 	}

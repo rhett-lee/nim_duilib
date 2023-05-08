@@ -49,11 +49,11 @@ ScrollBar::ScrollBar() :
 	m_bkStateImage->SetControl(this);
 	m_thumbStateImage->SetControl(this);
 
-	m_cxyFixed.cx = DEFAULT_SCROLLBAR_SIZE;
-	m_cxyFixed.cy = 0;
+	SetFixedWidth(DEFAULT_SCROLLBAR_SIZE, false, false);
+	SetFixedHeight(0, false);
 	m_ptLastMouse.x = 0;
 	m_ptLastMouse.y = 0;
-	m_bFloat = true;
+	SetFloat(true);
 }
 
 Box* ScrollBar::GetOwner() const
@@ -175,18 +175,18 @@ bool ScrollBar::MouseLeave(const EventArgs& msg)
 void ScrollBar::SetPos(UiRect rc)
 {
 	Control::SetPos(rc);
-	rc = m_rcItem;
+	rc = GetRect();
 
 	if (m_bHorizontal) {
 		int cx = rc.right - rc.left;
-		if (m_bShowButton1) cx -= m_cxyFixed.cy;
-		if (m_bShowButton2) cx -= m_cxyFixed.cy;
-		if (cx > m_cxyFixed.cy) {
+		if (m_bShowButton1) cx -= GetFixedHeight();
+		if (m_bShowButton2) cx -= GetFixedHeight();
+		if (cx > GetFixedHeight()) {
 			m_rcButton1.left = rc.left;
 			m_rcButton1.top = rc.top;
 			if (m_bShowButton1) {
-				m_rcButton1.right = rc.left + m_cxyFixed.cy;
-				m_rcButton1.bottom = rc.top + m_cxyFixed.cy;
+				m_rcButton1.right = rc.left + GetFixedHeight();
+				m_rcButton1.bottom = rc.top + GetFixedHeight();
 			}
 			else {
 				m_rcButton1.right = m_rcButton1.left;
@@ -196,8 +196,8 @@ void ScrollBar::SetPos(UiRect rc)
 			m_rcButton2.top = rc.top;
 			m_rcButton2.right = rc.right;
 			if (m_bShowButton2) {
-				m_rcButton2.left = rc.right - m_cxyFixed.cy;
-				m_rcButton2.bottom = rc.top + m_cxyFixed.cy;
+				m_rcButton2.left = rc.right - GetFixedHeight();
+				m_rcButton2.bottom = rc.top + GetFixedHeight();
 			}
 			else {
 				m_rcButton2.left = m_rcButton2.right;
@@ -205,7 +205,7 @@ void ScrollBar::SetPos(UiRect rc)
 			}
 
 			m_rcThumb.top = rc.top;
-			m_rcThumb.bottom = rc.top + m_cxyFixed.cy;
+			m_rcThumb.bottom = rc.top + GetFixedHeight();
 			if (m_nRange > 0) {
 				int64_t cxThumb = cx * (rc.right - rc.left) / (m_nRange + rc.right - rc.left);
 				if (cxThumb < m_nThumbMinLength) cxThumb = m_nThumbMinLength;
@@ -224,12 +224,14 @@ void ScrollBar::SetPos(UiRect rc)
 		}
 		else {
 			int cxButton = (rc.right - rc.left) / 2;
-			if (cxButton > m_cxyFixed.cy) cxButton = m_cxyFixed.cy;
+			if (cxButton > GetFixedHeight()) {
+				cxButton = GetFixedHeight();
+			}
 			m_rcButton1.left = rc.left;
 			m_rcButton1.top = rc.top;
 			if (m_bShowButton1) {
 				m_rcButton1.right = rc.left + cxButton;
-				m_rcButton1.bottom = rc.top + m_cxyFixed.cy;
+				m_rcButton1.bottom = rc.top + GetFixedHeight();
 			}
 			else {
 				m_rcButton1.right = m_rcButton1.left;
@@ -240,7 +242,7 @@ void ScrollBar::SetPos(UiRect rc)
 			m_rcButton2.right = rc.right;
 			if (m_bShowButton2) {
 				m_rcButton2.left = rc.right - cxButton;
-				m_rcButton2.bottom = rc.top + m_cxyFixed.cy;
+				m_rcButton2.bottom = rc.top + GetFixedHeight();
 			}
 			else {
 				m_rcButton2.left = m_rcButton2.right;
@@ -252,14 +254,14 @@ void ScrollBar::SetPos(UiRect rc)
 	}
 	else {
 		int cy = rc.bottom - rc.top;
-		if (m_bShowButton1) cy -= m_cxyFixed.cx;
-		if (m_bShowButton2) cy -= m_cxyFixed.cx;
-		if (cy > m_cxyFixed.cx) {
+		if (m_bShowButton1) cy -= GetFixedWidth();
+		if (m_bShowButton2) cy -= GetFixedWidth();
+		if (cy > GetFixedWidth()) {
 			m_rcButton1.left = rc.left;
 			m_rcButton1.top = rc.top;
 			if (m_bShowButton1) {
-				m_rcButton1.right = rc.left + m_cxyFixed.cx;
-				m_rcButton1.bottom = rc.top + m_cxyFixed.cx;
+				m_rcButton1.right = rc.left + GetFixedWidth();
+				m_rcButton1.bottom = rc.top + GetFixedWidth();
 			}
 			else {
 				m_rcButton1.right = m_rcButton1.left;
@@ -269,8 +271,8 @@ void ScrollBar::SetPos(UiRect rc)
 			m_rcButton2.left = rc.left;
 			m_rcButton2.bottom = rc.bottom;
 			if (m_bShowButton2) {
-				m_rcButton2.top = rc.bottom - m_cxyFixed.cx;
-				m_rcButton2.right = rc.left + m_cxyFixed.cx;
+				m_rcButton2.top = rc.bottom - GetFixedWidth();
+				m_rcButton2.right = rc.left + GetFixedWidth();
 			}
 			else {
 				m_rcButton2.top = m_rcButton2.bottom;
@@ -278,7 +280,7 @@ void ScrollBar::SetPos(UiRect rc)
 			}
 
 			m_rcThumb.left = rc.left;
-			m_rcThumb.right = rc.left + m_cxyFixed.cx;
+			m_rcThumb.right = rc.left + GetFixedWidth();
 			if (m_nRange > 0) {
 				int64_t cyThumb = cy * (rc.bottom - rc.top) / (m_nRange + rc.bottom - rc.top);
 				if (cyThumb < m_nThumbMinLength) cyThumb = m_nThumbMinLength;
@@ -297,11 +299,11 @@ void ScrollBar::SetPos(UiRect rc)
 		}
 		else {
 			int cyButton = (rc.bottom - rc.top) / 2;
-			if (cyButton > m_cxyFixed.cx) cyButton = m_cxyFixed.cx;
+			if (cyButton > GetFixedWidth()) cyButton = GetFixedWidth();
 			m_rcButton1.left = rc.left;
 			m_rcButton1.top = rc.top;
 			if (m_bShowButton1) {
-				m_rcButton1.right = rc.left + m_cxyFixed.cx;
+				m_rcButton1.right = rc.left + GetFixedWidth();
 				m_rcButton1.bottom = rc.top + cyButton;
 			}
 			else {
@@ -313,7 +315,7 @@ void ScrollBar::SetPos(UiRect rc)
 			m_rcButton2.bottom = rc.bottom;
 			if (m_bShowButton2) {
 				m_rcButton2.top = rc.bottom - cyButton;
-				m_rcButton2.right = rc.left + m_cxyFixed.cx;
+				m_rcButton2.right = rc.left + GetFixedWidth();
 			}
 			else {
 				m_rcButton2.top = m_rcButton2.bottom;
@@ -399,7 +401,7 @@ void ScrollBar::HandleEvent(const EventArgs& event)
 						m_pOwner->PageUp();
 					}
 					else {
-						SetScrollPos(m_nScrollPos + m_rcItem.top - m_rcItem.bottom);
+						SetScrollPos(m_nScrollPos + GetRect().top - GetRect().bottom);
 					}
 				}
 				else if (event.ptMouse.y > m_rcThumb.bottom){
@@ -407,7 +409,7 @@ void ScrollBar::HandleEvent(const EventArgs& event)
 						m_pOwner->PageDown();
 					}
 					else {
-						SetScrollPos(m_nScrollPos - m_rcItem.top + m_rcItem.bottom);
+						SetScrollPos(m_nScrollPos - GetRect().top + GetRect().bottom);
 					}
 				}
 			}
@@ -417,7 +419,7 @@ void ScrollBar::HandleEvent(const EventArgs& event)
 						m_pOwner->PageLeft();
 					}
 					else {
-						SetScrollPos(m_nScrollPos + m_rcItem.left - m_rcItem.right);
+						SetScrollPos(m_nScrollPos + GetRect().left - GetRect().right);
 					}
 				}
 				else if (event.ptMouse.x > m_rcThumb.right){
@@ -425,7 +427,7 @@ void ScrollBar::HandleEvent(const EventArgs& event)
 						m_pOwner->PageRight();
 					}
 					else {
-						SetScrollPos(m_nScrollPos - m_rcItem.left + m_rcItem.right);
+						SetScrollPos(m_nScrollPos - GetRect().left + GetRect().right);
 					}
 				}
 			}
@@ -442,7 +444,7 @@ void ScrollBar::HandleEvent(const EventArgs& event)
 		m_weakFlagOwner.Cancel();
 
 		if (IsMouseFocused()) {
-			if (::PtInRect(&m_rcItem, event.ptMouse)) {
+			if (::PtInRect(&GetRect(), event.ptMouse)) {
 				m_uThumbState = kControlStateHot;
 			}
 			else {
@@ -471,12 +473,12 @@ void ScrollBar::HandleEvent(const EventArgs& event)
 		if (IsMouseFocused()) {
 			if (!m_bHorizontal) {
 
-				int vRange = m_rcItem.bottom - m_rcItem.top - m_rcThumb.bottom + m_rcThumb.top;
+				int vRange = GetRect().bottom - GetRect().top - m_rcThumb.bottom + m_rcThumb.top;
 				if (m_bShowButton1) {
-					vRange -= m_cxyFixed.cx;
+					vRange -= GetFixedWidth();
 				}
 				if (m_bShowButton2) {
-					vRange -= m_cxyFixed.cx;
+					vRange -= GetFixedWidth();
 				}
 
 				if (vRange != 0) {
@@ -485,12 +487,12 @@ void ScrollBar::HandleEvent(const EventArgs& event)
 			}
 			else {
 
-				int hRange = m_rcItem.right - m_rcItem.left - m_rcThumb.right + m_rcThumb.left;
+				int hRange = GetRect().right - GetRect().left - m_rcThumb.right + m_rcThumb.left;
 				if (m_bShowButton1) {
-					hRange -= m_cxyFixed.cy;
+					hRange -= GetFixedHeight();
 				}
 				if (m_bShowButton2) {
-					hRange -= m_cxyFixed.cy;
+					hRange -= GetFixedHeight();
 				}
 
 				if (hRange != 0) {
@@ -555,7 +557,7 @@ void ScrollBar::SetAttribute(const std::wstring& strName, const std::wstring& st
 
 void ScrollBar::Paint(IRenderContext* pRender, const UiRect& rcPaint)
 {
-	if (!::IntersectRect(&m_rcPaint, &rcPaint, &m_rcItem)) return;
+	if (!::IntersectRect(&m_rcPaint, &rcPaint, &GetRect())) return;
 	PaintBk(pRender);
 	PaintButton1(pRender);
 	PaintButton2(pRender);
@@ -584,15 +586,15 @@ void ScrollBar::SetHorizontal(bool bHorizontal)
 
 	m_bHorizontal = bHorizontal;
 	if( m_bHorizontal ) {
-		if( m_cxyFixed.cy == 0 ) {
-			m_cxyFixed.cx = 0;
-			m_cxyFixed.cy = DEFAULT_SCROLLBAR_SIZE;
+		if(GetFixedHeight() == 0 ) {
+			SetFixedWidth(0, false, false);
+			SetFixedHeight(DEFAULT_SCROLLBAR_SIZE, false);
 		}
 	}
 	else {
-		if( m_cxyFixed.cx == 0 ) {
-			m_cxyFixed.cx = DEFAULT_SCROLLBAR_SIZE;
-			m_cxyFixed.cy = 0;
+		if(GetFixedWidth() == 0) {
+			SetFixedWidth(DEFAULT_SCROLLBAR_SIZE, false, false);
+			SetFixedHeight(0, false);
 		}
 	}
 
@@ -621,7 +623,7 @@ void ScrollBar::SetScrollRange(int64_t nRange)
 	else if (!m_bAutoHide && !IsVisible()) {
 		SetFadeVisible(true);
 	}
-	SetPos(m_rcItem);
+	SetPos(GetRect());
 }
 
 int64_t ScrollBar::GetScrollPos() const
@@ -636,7 +638,7 @@ void ScrollBar::SetScrollPos(int64_t nPos)
 	m_nScrollPos = nPos;
 	if( m_nScrollPos < 0 ) m_nScrollPos = 0;
 	if( m_nScrollPos > m_nRange ) m_nScrollPos = m_nRange;
-	SetPos(m_rcItem);
+	SetPos(GetRect());
 }
 
 int ScrollBar::GetLineSize() const
@@ -669,7 +671,7 @@ bool ScrollBar::IsShowButton1()
 void ScrollBar::SetShowButton1(bool bShow)
 {
 	m_bShowButton1 = bShow;
-	SetPos(m_rcItem);
+	SetPos(GetRect());
 }
 
 std::wstring ScrollBar::GetButton1StateImage(ControlStateType stateType)
@@ -691,7 +693,7 @@ bool ScrollBar::IsShowButton2()
 void ScrollBar::SetShowButton2(bool bShow)
 {
 	m_bShowButton2 = bShow;
-	SetPos(m_rcItem);
+	SetPos(GetRect());
 }
 
 std::wstring ScrollBar::GetButton2StateImage(ControlStateType stateType)
@@ -784,25 +786,25 @@ void ScrollBar::ScrollTimeHandle()
 		if( m_nScrollRepeatDelay <= 5 ) return;
 		POINT pt = { 0 };
 		::GetCursorPos(&pt);
-		::ScreenToClient(m_pWindow->GetHWND(), &pt);
+		::ScreenToClient(GetWindow()->GetHWND(), &pt);
 		if( !m_bHorizontal ) {
 			if( pt.y < m_rcThumb.top ) {
 				if( m_pOwner != NULL ) m_pOwner->PageUp(); 
-				else SetScrollPos(m_nScrollPos + m_rcItem.top - m_rcItem.bottom);
+				else SetScrollPos(m_nScrollPos + GetRect().top - GetRect().bottom);
 			}
 			else if ( pt.y > m_rcThumb.bottom ){
 				if( m_pOwner != NULL ) m_pOwner->PageDown(); 
-				else SetScrollPos(m_nScrollPos - m_rcItem.top + m_rcItem.bottom);                    
+				else SetScrollPos(m_nScrollPos - GetRect().top + GetRect().bottom);
 			}
 		}
 		else {
 			if( pt.x < m_rcThumb.left ) {
 				if( m_pOwner != NULL ) m_pOwner->PageLeft(); 
-				else SetScrollPos(m_nScrollPos + m_rcItem.left - m_rcItem.right);
+				else SetScrollPos(m_nScrollPos + GetRect().left - GetRect().right);
 			}
 			else if ( pt.x > m_rcThumb.right ){
 				if( m_pOwner != NULL ) m_pOwner->PageRight(); 
-				else SetScrollPos(m_nScrollPos - m_rcItem.left + m_rcItem.right);                    
+				else SetScrollPos(m_nScrollPos - GetRect().left + GetRect().right);
 			}
 		}
 	}
@@ -819,8 +821,8 @@ void ScrollBar::PaintButton1(IRenderContext* pRender)
 	if (!m_bShowButton1) return;
 
 	m_sImageModify.clear();
-	m_sImageModify = StringHelper::Printf(_T("destscale='false' dest='%d,%d,%d,%d'"), m_rcButton1.left - m_rcItem.left, \
-		m_rcButton1.top - m_rcItem.top, m_rcButton1.right - m_rcItem.left, m_rcButton1.bottom - m_rcItem.top);
+	m_sImageModify = StringHelper::Printf(_T("destscale='false' dest='%d,%d,%d,%d'"), m_rcButton1.left - GetRect().left, \
+		m_rcButton1.top - GetRect().top, m_rcButton1.right - GetRect().left, m_rcButton1.bottom - GetRect().top);
 
 	if (m_uButton1State == kControlStateDisabled) {
 		if (!DrawImage(pRender, (*m_button1StateImage)[kControlStateDisabled], m_sImageModify)) {
@@ -857,8 +859,8 @@ void ScrollBar::PaintButton2(IRenderContext* pRender)
 	if (!m_bShowButton2) return;
 
 	m_sImageModify.clear();
-	m_sImageModify = StringHelper::Printf(_T("destscale='false' dest='%d,%d,%d,%d'"), m_rcButton2.left - m_rcItem.left, \
-		m_rcButton2.top - m_rcItem.top, m_rcButton2.right - m_rcItem.left, m_rcButton2.bottom - m_rcItem.top);
+	m_sImageModify = StringHelper::Printf(_T("destscale='false' dest='%d,%d,%d,%d'"), m_rcButton2.left - GetRect().left, \
+		m_rcButton2.top - GetRect().top, m_rcButton2.right - GetRect().left, m_rcButton2.bottom - GetRect().top);
 
 	if (m_uButton2State == kControlStateDisabled) {
 		if (!DrawImage(pRender, (*m_button2StateImage)[kControlStateDisabled], m_sImageModify)) {
@@ -895,8 +897,8 @@ void ScrollBar::PaintThumb(IRenderContext* pRender)
 	if (m_rcThumb.left == 0 && m_rcThumb.top == 0 && m_rcThumb.right == 0 && m_rcThumb.bottom == 0) return;
 
 	m_sImageModify.clear();
-	m_sImageModify = StringHelper::Printf(_T("destscale='false' dest='%d,%d,%d,%d'"), m_rcThumb.left - m_rcItem.left, \
-		m_rcThumb.top - m_rcItem.top, m_rcThumb.right - m_rcItem.left, m_rcThumb.bottom - m_rcItem.top);
+	m_sImageModify = StringHelper::Printf(_T("destscale='false' dest='%d,%d,%d,%d'"), m_rcThumb.left - GetRect().left, \
+		m_rcThumb.top - GetRect().top, m_rcThumb.right - GetRect().left, m_rcThumb.bottom - GetRect().top);
 
 	m_thumbStateImage->PaintStatusImage(pRender, m_uThumbState, m_sImageModify);
 }
@@ -907,17 +909,17 @@ void ScrollBar::PaintRail(IRenderContext* pRender)
 
 	m_sImageModify.clear();
 	if (!m_bHorizontal) {
-		m_sImageModify = StringHelper::Printf(_T("destscale='false' dest='%d,%d,%d,%d'"), m_rcThumb.left - m_rcItem.left, \
-			(m_rcThumb.top + m_rcThumb.bottom) / 2 - m_rcItem.top - m_cxyFixed.cx / 2, \
-			m_rcThumb.right - m_rcItem.left, \
-			(m_rcThumb.top + m_rcThumb.bottom) / 2 - m_rcItem.top + m_cxyFixed.cx - m_cxyFixed.cx / 2);
+		m_sImageModify = StringHelper::Printf(_T("destscale='false' dest='%d,%d,%d,%d'"), m_rcThumb.left - GetRect().left, \
+			(m_rcThumb.top + m_rcThumb.bottom) / 2 - GetRect().top - GetFixedWidth() / 2, \
+			m_rcThumb.right - GetRect().left, \
+			(m_rcThumb.top + m_rcThumb.bottom) / 2 - GetRect().top + GetFixedWidth() - GetFixedWidth() / 2);
 	}
 	else {
 		m_sImageModify = StringHelper::Printf(_T("destscale='false' dest='%d,%d,%d,%d'"), \
-			(m_rcThumb.left + m_rcThumb.right) / 2 - m_rcItem.left - m_cxyFixed.cy / 2, \
-			m_rcThumb.top - m_rcItem.top, \
-			(m_rcThumb.left + m_rcThumb.right) / 2 - m_rcItem.left + m_cxyFixed.cy - m_cxyFixed.cy / 2, \
-			m_rcThumb.bottom - m_rcItem.top);
+			(m_rcThumb.left + m_rcThumb.right) / 2 - GetRect().left - GetFixedHeight() / 2, \
+			m_rcThumb.top - GetRect().top, \
+			(m_rcThumb.left + m_rcThumb.right) / 2 - GetRect().left + GetFixedHeight() - GetFixedHeight() / 2, \
+			m_rcThumb.bottom - GetRect().top);
 	}
 
 	if (m_uThumbState == kControlStateDisabled) {

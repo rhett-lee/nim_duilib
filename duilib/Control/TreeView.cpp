@@ -89,8 +89,8 @@ bool TreeNode::AddChildNodeAt(TreeNode* pTreeNode, size_t iIndex)
 	pTreeNode->m_iDepth = m_iDepth + 1;
 	pTreeNode->SetParentNode(this);
 	pTreeNode->SetTreeView(m_pTreeView);
-	if (m_pWindow != nullptr) {
-		m_pWindow->InitControls(pTreeNode, nullptr);
+	if (GetWindow() != nullptr) {
+		GetWindow()->InitControls(pTreeNode, nullptr);
 	}
 	pTreeNode->AttachEvent(kEventClick, nbase::Bind(&TreeNode::OnClickItem, this, std::placeholders::_1));
 
@@ -204,17 +204,15 @@ void TreeNode::SetExpand(bool bExpand, bool bTriggerEvent)
 	}
 	m_bExpand = bExpand;
 
-	if (m_pWindow != nullptr) {
-		if (bTriggerEvent) {
-			SendEvent(m_bExpand ? kEventExpand : kEventUnExpand);
-		}
+	if (bTriggerEvent) {
+		SendEvent(m_bExpand ? kEventExpand : kEventUnExpand);
 	}
 	if (m_pTreeView != nullptr) {
 		m_pTreeView->Arrange();
 	}	
 }
 
-int TreeNode::GetDepth()
+int TreeNode::GetDepth() const
 {
 	return m_iDepth;
 }

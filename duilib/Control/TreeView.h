@@ -131,7 +131,7 @@ public:
 	 * @brief 获取子项层级
 	 * @return 返回当前层级
 	 */
-	int GetDepth();
+	int GetDepth() const;
 
 	/**
 	 * @brief 监听子项展开事件

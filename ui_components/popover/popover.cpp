@@ -39,8 +39,8 @@ void PopoverArrow::DoInit()
     return;
 
   SetBkColor(L"white");
-  SetFixedWidth(kWidth);
-  SetFixedHeight(kHeight);
+  SetFixedWidth(kWidth, true, true);
+  SetFixedHeight(kHeight, true);
 
   SetFloat(true);
 
@@ -198,8 +198,8 @@ PopoverHeader::PopoverHeader(
   m_pRichEditTitle(nullptr),
   m_pButtonClose(nullptr)
 {
-  SetFixedWidth(DUI_LENGTH_AUTO);
-  SetFixedHeight(DUI_LENGTH_AUTO);
+  SetFixedWidth(DUI_LENGTH_AUTO, true, true);
+  SetFixedHeight(DUI_LENGTH_AUTO, true);
   m_pLayout->SetChildMargin(12);
 
   if (m_nIconType != kIconNone) {
@@ -220,8 +220,8 @@ PopoverHeader::PopoverHeader(
     m_pRichEditTitle = new ui::RichEdit();
     m_pRichEditTitle->SetName(L"edit_title");
     m_pRichEditTitle->SetClass(L"popover_label popover_label_title");
-    m_pRichEditTitle->SetFixedWidth(DUI_LENGTH_AUTO);
-    m_pRichEditTitle->SetFixedHeight(DUI_LENGTH_AUTO);
+    m_pRichEditTitle->SetFixedWidth(DUI_LENGTH_AUTO, true, true);
+    m_pRichEditTitle->SetFixedHeight(DUI_LENGTH_AUTO, true);
     m_pRichEditTitle->SetText(m_strTitle);
 
     Add(m_pRichEditTitle);
@@ -247,10 +247,10 @@ std::wstring PopoverHeader::GetType() const { return L"PopoverHeader"; }
 
 ui::UiSize PopoverHeader::EstimateSize(ui::UiSize szAvailable)
 {
-  ui::UiSize fixedSize = m_cxyFixed;
+  ui::UiSize fixedSize = GetFixedSize();
   if (GetFixedWidth() == DUI_LENGTH_AUTO || GetFixedHeight() == DUI_LENGTH_AUTO) {
-    if (!m_bReEstimateSize) {
-      return m_szEstimateSize;
+    if (!IsReEstimateSize()) {
+        return m_szEstimateSize;
     }
 
     ui::UiSize maxSize = szAvailable;
@@ -314,8 +314,7 @@ ui::UiSize PopoverHeader::EstimateSize(ui::UiSize szAvailable)
       fixedSize.cx = maxSize.cx;
 
     m_szEstimateSize = fixedSize;
-
-    m_bReEstimateSize = false;
+    SetReEstimateSize(false);
   }
 
   return fixedSize;
@@ -343,15 +342,15 @@ PopoverBody::PopoverBody(const std::wstring& content, const std::wstring& colorI
   m_bUseMaxSize(false),
   m_pRichEditContent(nullptr)
 {
-  SetFixedWidth(DUI_LENGTH_AUTO);
-  SetFixedHeight(DUI_LENGTH_AUTO);
+  SetFixedWidth(DUI_LENGTH_AUTO, true, true);
+  SetFixedHeight(DUI_LENGTH_AUTO, true);
 
   if (content.length()) {
     m_pRichEditContent = new ui::RichEdit();
     m_pRichEditContent->SetName(L"edit_content");
     m_pRichEditContent->SetClass(L"popover_label popover_label_content");
-    m_pRichEditContent->SetFixedWidth(DUI_LENGTH_AUTO);
-    m_pRichEditContent->SetFixedHeight(DUI_LENGTH_AUTO);
+    m_pRichEditContent->SetFixedWidth(DUI_LENGTH_AUTO, true, true);
+    m_pRichEditContent->SetFixedHeight(DUI_LENGTH_AUTO, true);
     m_pRichEditContent->SetText(content);
 
     Add(m_pRichEditContent);
@@ -370,10 +369,10 @@ std::wstring PopoverBody::GetType() const { return L"PopoverBody"; }
 
 ui::UiSize PopoverBody::EstimateSize(ui::UiSize szAvailable)
 {
-  ui::UiSize fixedSize = m_cxyFixed;
+  ui::UiSize fixedSize = GetFixedSize();
   if (GetFixedWidth() == DUI_LENGTH_AUTO || GetFixedHeight() == DUI_LENGTH_AUTO) {
-    if (!m_bReEstimateSize) {
-      return m_szEstimateSize;
+    if (!IsReEstimateSize()) {
+        return m_szEstimateSize;
     }
 
     ui::UiSize maxSize = szAvailable;
@@ -407,7 +406,7 @@ ui::UiSize PopoverBody::EstimateSize(ui::UiSize szAvailable)
       fixedSize.cx = maxSize.cx;
 
     m_szEstimateSize = fixedSize;
-    m_bReEstimateSize = false;
+    SetReEstimateSize(false);
   }
 
   return fixedSize;
@@ -439,8 +438,8 @@ PopoverFooter::PopoverFooter(const std::wstring& strOk,
   m_strOk(strOk),
   m_strCancel(strCancel)
 {
-  SetFixedWidth(DUI_LENGTH_AUTO);
-  SetFixedHeight(DUI_LENGTH_AUTO);
+  SetFixedWidth(DUI_LENGTH_AUTO, true, true);
+  SetFixedHeight(DUI_LENGTH_AUTO, true);
   m_pLayout->SetChildMargin(12);
 }
 
@@ -453,10 +452,10 @@ std::wstring PopoverFooter::GetType() const { return L"PopoverFooter"; }
 
 ui::UiSize PopoverFooter::EstimateSize(ui::UiSize szAvailable)
 {
-  ui::UiSize fixedSize = m_cxyFixed;
+  ui::UiSize fixedSize = GetFixedSize();
   if (GetFixedWidth() == DUI_LENGTH_AUTO || GetFixedHeight() == DUI_LENGTH_AUTO) {
-    if (!m_bReEstimateSize) {
-      return m_szEstimateSize;
+    if (!IsReEstimateSize()) {
+        return m_szEstimateSize;
     }
 
     ui::UiSize maxSize = szAvailable;
@@ -490,7 +489,7 @@ ui::UiSize PopoverFooter::EstimateSize(ui::UiSize szAvailable)
     if (m_bUseMaxSize && fixedSize.cx < maxSize.cx)
       fixedSize.cx = maxSize.cx;
 
-    m_bReEstimateSize = false;
+    SetReEstimateSize(false);
 
     m_szEstimateSize = fixedSize;
   }
@@ -533,9 +532,9 @@ void PopoverFooter::DoInit()
 // PopoverRoot
 ui::UiSize PopoverRoot::EstimateSize(ui::UiSize szAvailable)
 {
-  ui::UiSize fixedSize = m_cxyFixed;
+  ui::UiSize fixedSize = GetFixedSize();
   if (GetFixedWidth() == DUI_LENGTH_AUTO || GetFixedHeight() == DUI_LENGTH_AUTO) {
-    if (!m_bReEstimateSize) {
+    if (!IsReEstimateSize()) {
       return m_szEstimateSize;
     }
 
@@ -555,14 +554,14 @@ ui::UiSize PopoverRoot::EstimateSize(ui::UiSize szAvailable)
       fixedSize.cx = GetMinWidth();
     }
 
-    m_bReEstimateSize = false;
+    SetReEstimateSize(false);
     for (auto it = m_items.begin(); it != m_items.end(); it++) {
       if (!(*it)->IsVisible()) {
         continue;
       }
       if ((*it)->GetFixedWidth() == DUI_LENGTH_AUTO || (*it)->GetFixedHeight() == DUI_LENGTH_AUTO) {
         if ((*it)->IsReEstimateSize()) {
-          m_bReEstimateSize = true;
+          SetReEstimateSize(true);
           break;
         }
       }
@@ -610,8 +609,8 @@ Popover::Popover(ui::Control* pAnchor,
   SetName(ss.str());
 
   // set width height 
-  SetFixedWidth(DUI_LENGTH_AUTO);
-  SetFixedHeight(DUI_LENGTH_AUTO);
+  SetFixedWidth(DUI_LENGTH_AUTO, true, true);
+  SetFixedHeight(DUI_LENGTH_AUTO, true);
 
   // show shadow
   SetClass(L"popover_shadow");
@@ -645,9 +644,9 @@ std::wstring Popover::GetType() const { return L"Popover"; }
 
 ui::UiSize Popover::EstimateSize(ui::UiSize /*szAvailable*/)
 {
-  ui::UiSize fixedSize = m_cxyFixed;
+  ui::UiSize fixedSize = GetFixedSize();
   if (GetFixedWidth() == DUI_LENGTH_AUTO || GetFixedHeight() == DUI_LENGTH_AUTO) {
-    if (!m_bReEstimateSize) {
+    if (!IsReEstimateSize()) {
       return m_szEstimateSize;
     }
 
@@ -665,14 +664,14 @@ ui::UiSize Popover::EstimateSize(ui::UiSize /*szAvailable*/)
       fixedSize.cx = GetMinWidth();
     }
 
-    m_bReEstimateSize = false;
+    SetReEstimateSize(false);
     for (auto it = m_items.begin(); it != m_items.end(); it++) {
       if (!(*it)->IsVisible()) {
         continue;
       }
       if ((*it)->GetFixedWidth() == DUI_LENGTH_AUTO || (*it)->GetFixedHeight() == DUI_LENGTH_AUTO) {
         if ((*it)->IsReEstimateSize()) {
-          m_bReEstimateSize = true;
+          SetReEstimateSize(true);
           break;
         }
       }
@@ -1251,10 +1250,10 @@ PopoverLayer::PopoverLayer() :
   m_pPopoverLayer(nullptr),
   m_pAlertLayer(nullptr)
 {
-  SetFloat();
+  SetFloat(true);
   SetShowMask(m_bShowMask);
-  SetFixedWidth(DUI_LENGTH_STRETCH);
-  SetFixedHeight(DUI_LENGTH_STRETCH);
+  SetFixedWidth(DUI_LENGTH_STRETCH, true, true);
+  SetFixedHeight(DUI_LENGTH_STRETCH, true);
 
   // DO NOT DELAY DESTROY
   SetDelayedDestroy(false);
@@ -1262,8 +1261,8 @@ PopoverLayer::PopoverLayer() :
 
 PopoverLayer::~PopoverLayer()
 {
-  if (m_pWindow)
-    m_pWindow->RemoveMessageFilter(this);
+  if (GetWindow())
+      GetWindow()->RemoveMessageFilter(this);
 }
 
 void PopoverLayer::ShowAlert(Popover* popover)
@@ -1363,8 +1362,8 @@ void PopoverLayer::DoInit()
   m_pAlertLayer = new PopoverHolderLayer(PopoverHolderLayer::kHolderTypeAlert);
   Add(m_pAlertLayer);
 
-  if (m_pWindow)
-    m_pWindow->AddMessageFilter(this);
+  if (GetWindow())
+      GetWindow()->AddMessageFilter(this);
 
   m_bInited = true;
 }
@@ -1414,7 +1413,7 @@ void PopoverLayer::OnMouseEventButtonDown(POINT pt)
       if (!popover)
         continue;
 
-      auto control = m_pWindow->FindSubControlByPoint(m_pWindow->GetRoot(), pt);
+      auto control = GetWindow()->FindSubControlByPoint(GetWindow()->GetRoot(), pt);
 
       auto pos = popover->GetPos();
       if (!::PtInRect(&pos, pt) && 

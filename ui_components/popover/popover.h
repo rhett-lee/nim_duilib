@@ -437,8 +437,8 @@ public:
   bool OnAnchorResize(const ui::EventArgs& /*args*/) {
     ui::UiRect rc = m_pAnchor->GetPos();
 
-    SetFixedWidth(rc.GetWidth());
-    SetFixedHeight(rc.GetHeight());
+    SetFixedWidth(rc.GetWidth(), true, true);
+    SetFixedHeight(rc.GetHeight(), true);
 
     SetPos(rc);
 
@@ -448,8 +448,8 @@ public:
   virtual void SetPos(ui::UiRect rc) override {
     rc = m_pAnchor->GetPos();
 
-    SetFixedWidth(rc.GetWidth());
-    SetFixedHeight(rc.GetHeight());
+    SetFixedWidth(rc.GetWidth(), true, true);
+    SetFixedHeight(rc.GetHeight(), true);
 
     ui::Control::SetPos(rc);
 

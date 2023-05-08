@@ -41,8 +41,12 @@ void ListBox::SetAttribute(const std::wstring& strName, const std::wstring& strV
 void ListBox::HandleEvent(const EventArgs& event)
 {
 	if (!IsMouseEnabled() && event.Type > kEventMouseBegin && event.Type < kEventMouseEnd) {
-		if (m_pParent != NULL) m_pParent->SendEvent(event);
-		else ScrollableBox::HandleEvent(event);
+		if (GetParent() != nullptr) {
+			GetParent()->SendEvent(event);
+		}
+		else {
+			ScrollableBox::HandleEvent(event);
+		}
 		return;
 	}
 
@@ -178,8 +182,8 @@ void ListBox::EnsureVisible(const UiRect& rcItem)
 
 	if (rcNewItem.left >= rcList.left && rcNewItem.top >= rcList.top
 		&& rcNewItem.right <= rcList.right && rcNewItem.bottom <= rcList.bottom) {
-		if (m_pParent && dynamic_cast<ListContainerElement*>(m_pParent) != NULL) {
-			dynamic_cast<ListContainerElement*>(m_pParent)->GetOwner()->EnsureVisible(rcNewItem);
+		if ((GetParent() != nullptr) && dynamic_cast<ListContainerElement*>(GetParent()) != NULL) {
+			dynamic_cast<ListContainerElement*>(GetParent())->GetOwner()->EnsureVisible(rcNewItem);
 		}
 		return;
 	}

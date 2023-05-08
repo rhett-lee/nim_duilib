@@ -61,11 +61,12 @@ void CircleProgress::PaintStatusImage(IRenderContext* pRender)
 		Gdiplus::Pen bgPen(m_dwBackgroundColor, static_cast<Gdiplus::REAL>(m_nCircleWidth));
 		// 圆形中心
 		UiPoint center;
-		center.x = m_rcItem.left + (m_rcItem.right - m_rcItem.left) / 2;
-		center.y = m_rcItem.top + (m_rcItem.bottom - m_rcItem.top) / 2;
+		const UiRect& rect = GetRect();
+		center.x = rect.left + (rect.right - rect.left) / 2;
+		center.y = rect.top + (rect.bottom - rect.top) / 2;
 
 		// 控件矩形内的最大正方形的边界
-		int side = std::min(m_rcItem.right - m_rcItem.left, m_rcItem.bottom - m_rcItem.top);
+		int side = std::min(rect.right - rect.left, rect.bottom - rect.top);
 		//UiRect rcBorder;  仍然存在UiRect 到 RectF的转换，所以直接用gdi的RectF了
 		Gdiplus::RectF rcBorder;
 		rcBorder.X = static_cast<Gdiplus::REAL>(center.x - side / 2);
@@ -182,8 +183,8 @@ void CircleProgress::SetIndicator(const std::wstring& sIndicatorImage)
 			m_pIndicator = nullptr;
 		}
 		std::wstring imagepath = m_sIndicatorImage;
-		if (!::PathFileExistsW(imagepath.c_str())) {
-			imagepath = GlobalManager::GetResourcePath() + m_pWindow->GetResourcePath() + imagepath;
+		if (!::PathFileExistsW(imagepath.c_str()) && (GetWindow() != nullptr)) {
+			imagepath = GlobalManager::GetResourcePath() + GetWindow()->GetResourcePath() + imagepath;
 		}
 		if (!::PathFileExistsW(imagepath.c_str())) {
 			return;

@@ -170,10 +170,12 @@ LabelTemplate<InheritType>::LabelTemplate() :
     m_textColorMap()
 {
     if (dynamic_cast<Box*>(this)) {
-        this->m_cxyFixed.cx = this->m_cxyFixed.cy = DUI_LENGTH_STRETCH;
+        this->SetFixedWidth(DUI_LENGTH_STRETCH, false, false);
+        this->SetFixedHeight(DUI_LENGTH_STRETCH, false);
     }
     else {
-        this->m_cxyFixed.cx = this->m_cxyFixed.cy = DUI_LENGTH_AUTO;
+        this->SetFixedWidth(DUI_LENGTH_AUTO, false, false);
+        this->SetFixedHeight(DUI_LENGTH_AUTO, false);
     }
 
     m_textColorMap[kControlStateNormal] = GlobalManager::GetDefaultTextColor();
@@ -242,10 +244,10 @@ std::wstring LabelTemplate<InheritType>::GetToolTipText() const
 template<typename InheritType>
 void LabelTemplate<InheritType>::CheckShowToolTip()
 {
-    if (!m_bAutoShowToolTip || (this->m_pWindow == nullptr)) {
+    if (!m_bAutoShowToolTip || (this->GetWindow() == nullptr)) {
         return;
     }
-    auto pRender = this->m_pWindow->GetRenderContext();
+    auto pRender = this->GetWindow()->GetRenderContext();
     if (pRender == nullptr) {
         return;
     }
@@ -255,7 +257,7 @@ void LabelTemplate<InheritType>::CheckShowToolTip()
         return;
     }
 
-    UiRect rc = this->m_rcItem;
+    UiRect rc = this->GetRect();
     rc.left += m_rcTextPadding.left;
     rc.right -= m_rcTextPadding.right;
     rc.top += m_rcTextPadding.top;
@@ -352,8 +354,8 @@ UiSize LabelTemplate<InheritType>::EstimateText(UiSize szAvailable, bool& bReEst
     }
     UiSize fixedSize;
     std::wstring textValue = GetText();
-    if (!textValue.empty() && (this->m_pWindow != nullptr)) {
-        auto pRender = this->m_pWindow->GetRenderContext();
+    if (!textValue.empty() && (this->GetWindow() != nullptr)) {
+        auto pRender = this->GetWindow()->GetRenderContext();
         if (pRender != nullptr) {
             UiRect rect = pRender->MeasureText(textValue, m_sFontId, m_uTextStyle, width);
             if (this->GetFixedWidth() == DUI_LENGTH_AUTO) {
@@ -452,7 +454,7 @@ void LabelTemplate<InheritType>::PaintText(IRenderContext* pRender)
     if (textValue.empty() || (pRender == nullptr)) {
         return;
     }
-    UiRect rc = this->m_rcItem;
+    UiRect rc = this->GetRect();
     rc.left += m_rcTextPadding.left;
     rc.right -= m_rcTextPadding.right;
     rc.top += m_rcTextPadding.top;

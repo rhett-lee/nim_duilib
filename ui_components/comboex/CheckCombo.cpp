@@ -251,7 +251,7 @@ namespace nim_comp
 
 	ui::UiRect CheckCombo::GetOrgPos() const
 	{
-		ui::UiRect rc = GetPosWithScrollOffset();
+		ui::UiRect rc = GetPosWithScrollOffset(true);
 		rc.bottom = rc.top + m_iOrgHeight;
 		return ui::UiRect(rc);
 	}
@@ -298,12 +298,10 @@ namespace nim_comp
 		std::string date = args.pSender->GetUTF8DataID();
 		std::string text = date;
 		ui::CheckBox *check = dynamic_cast<ui::CheckBox*>(args.pSender);
-		if (check)
-		{
+		if (check) {
 			text = check->GetUTF8Text();
 		}
-		if (date.empty())
-		{
+		if (date.empty()) {
 #ifdef _DEBUG
 			printf("CheckCombo::OnSelectItem date.empty()\n");
 			ASSERT(0);
@@ -313,8 +311,8 @@ namespace nim_comp
 		m_vecDate.push_back(date);
 
 		ui::Label *item = new ui::Label;
-		item->SetFixedWidth(DUI_LENGTH_AUTO);
-		item->SetFixedHeight(22);
+		item->SetFixedWidth(DUI_LENGTH_AUTO, true, true);
+		item->SetFixedHeight(22, true);
 		item->SetMargin({ 4, 2, 4, 2 });
 		item->SetBkColor(L"bk_menuitem_selected");
 		item->SetTextPadding({ 2, 3, 2, 3 });
@@ -323,7 +321,7 @@ namespace nim_comp
 
 		m_pList->Add(item);
 
-		SetFixedHeight(m_pList->GetCount() * m_iOrgHeight);
+		SetFixedHeight(m_pList->GetCount() * m_iOrgHeight, true);
 
 		return true;
 	}
@@ -331,8 +329,7 @@ namespace nim_comp
 	bool CheckCombo::OnUnSelectItem(const ui::EventArgs& args)
 	{
 		std::string date = args.pSender->GetUTF8DataID();
-		if (date.empty())
-		{
+		if (date.empty()) {
 #ifdef _DEBUG
 			printf("CheckCombo::OnSelectItem date.empty()\n");
 			ASSERT(0);
@@ -341,18 +338,18 @@ namespace nim_comp
 		}
 
 		ASSERT(std::find(m_vecDate.cbegin(), m_vecDate.cend(), date) != m_vecDate.cend());
-		if (std::find(m_vecDate.cbegin(), m_vecDate.cend(), date) != m_vecDate.cend())
-		{
+		if (std::find(m_vecDate.cbegin(), m_vecDate.cend(), date) != m_vecDate.cend()) {
 			m_vecDate.erase(std::find(m_vecDate.cbegin(), m_vecDate.cend(), date));
 		}
 		std::wstring utf16;
 		ui::StringHelper::MBCSToUnicode(date, utf16, CP_UTF8);
 		Control *pRemove = m_pList->FindSubControl(utf16);
 		ASSERT(pRemove);
-		if (pRemove)
+		if (pRemove) {
 			m_pList->Remove(pRemove);
+		}
 
-		SetFixedHeight(m_pList->GetCount() * m_iOrgHeight);
+		SetFixedHeight(m_pList->GetCount() * m_iOrgHeight, true);
 		return true;
 	}
 
@@ -360,7 +357,7 @@ namespace nim_comp
 	{
 		m_pList->RemoveAll();
 		m_pDropList->RemoveAll();
-		SetFixedHeight(m_iOrgHeight);
+		SetFixedHeight(m_iOrgHeight, true);
 		m_vecDate.clear();
 	}
 

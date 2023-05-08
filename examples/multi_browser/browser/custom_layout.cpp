@@ -32,9 +32,9 @@ UiSize CustomLayout::SetCustomPos(Control* pControl, UiRect containerRect)
 		&& pControl->GetMaxWidth() == DUI_LENGTH_STRETCH) {
 		int maxwidth = std::max(0, (int)szAvailable.cx);
 		if (childSize.cx > maxwidth) {
-			pControl->SetFixedWidth(maxwidth, false);
+			pControl->SetFixedWidth(maxwidth, false, true);
 			childSize = pControl->EstimateSize(szAvailable);
-			pControl->SetFixedWidth(DUI_LENGTH_AUTO, false);
+			pControl->SetFixedWidth(DUI_LENGTH_AUTO, false, true);
 		}
 	}
 	if (childSize.cx == DUI_LENGTH_STRETCH) {

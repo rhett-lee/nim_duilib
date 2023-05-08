@@ -12,8 +12,9 @@ std::wstring TooltipBody::GetType() const { return L"TooltipBody"; }
 
 ui::UiSize TooltipBody::EstimateSize(ui::UiSize szAvailable)
 {
-  if (m_cxyFixed.cx > 0 && m_cxyFixed.cy > 0 && !m_bReEstimateSize)
-    return m_cxyFixed;
+    if (GetFixedWidth() > 0 && GetFixedHeight() > 0 && !IsReEstimateSize()) {
+        return GetFixedSize();
+    }
 
   ui::UiSize maxSize = szAvailable;
   maxSize.cy = 0;
@@ -42,7 +43,7 @@ ui::UiSize TooltipBody::EstimateSize(ui::UiSize szAvailable)
   fixedSize.cy += paddingRect.top + paddingRect.bottom;
 
   m_szEstimateSize = fixedSize;
-  m_bReEstimateSize = false;
+  SetReEstimateSize(false);
 
   return fixedSize;
 }

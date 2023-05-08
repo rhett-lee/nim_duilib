@@ -306,8 +306,8 @@ void DateTime::HandleEvent(const EventArgs& event)
     if (!IsMouseEnabled() && 
         (event.Type > kEventMouseBegin) && 
         (event.Type < kEventMouseEnd)) {
-        if (m_pParent != nullptr) {
-            m_pParent->SendEvent(event);
+        if (GetParent() != nullptr) {
+            GetParent()->SendEvent(event);
         }
         else {
             __super::HandleEvent(event);
@@ -344,8 +344,8 @@ void DateTime::HandleEvent(const EventArgs& event)
         (event.Type == kEventMouseDoubleClick) ||
         (event.Type == kEventMouseRightButtonDown)) {
         if (IsEnabled()) {
-            if (m_pWindow != nullptr) {
-                m_pWindow->ReleaseCapture();
+            if (GetWindow() != nullptr) {
+                GetWindow()->ReleaseCapture();
             }            
             if (IsFocused() && (m_pDateWindow == nullptr)) {
                 m_pDateWindow = new DateTimeWnd();

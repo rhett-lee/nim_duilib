@@ -48,9 +48,9 @@ UiSize Layout::SetFloatPos(Control* pControl, UiRect rcContainer)
 		&& pControl->GetMaxWidth() == DUI_LENGTH_STRETCH) {
 		int maxwidth = std::max(0, (int)szAvailable.cx);
 		if (childSize.cx > maxwidth) {
-			pControl->SetFixedWidth(maxwidth, false);
+			pControl->SetFixedWidth(maxwidth, false, true);
 			childSize = pControl->EstimateSize(szAvailable);
-			pControl->SetFixedWidth(DUI_LENGTH_AUTO, false);
+			pControl->SetFixedWidth(DUI_LENGTH_AUTO, false, true);
 		}
 	}
 	if (childSize.cx == DUI_LENGTH_STRETCH) {
@@ -304,7 +304,7 @@ void Box::SetPos(UiRect rc)
 void Box::PaintChild(IRenderContext* pRender, const UiRect& rcPaint)
 {
 	UiRect rcTemp;
-	if (!::IntersectRect(&rcTemp, &rcPaint, &m_rcItem)) {
+	if (!::IntersectRect(&rcTemp, &rcPaint, &GetRect())) {
 		return;
 	}
 
@@ -361,9 +361,9 @@ void Box::SetVisible(bool bVisible)
 
 UiSize Box::EstimateSize(UiSize szAvailable)
 {
-	UiSize fixedSize = m_cxyFixed;
+	UiSize fixedSize = GetFixedSize();
 	if (GetFixedWidth() == DUI_LENGTH_AUTO || GetFixedHeight() == DUI_LENGTH_AUTO) {
-		if (!m_bReEstimateSize) {
+		if (!IsReEstimateSize()) {
 			return m_szEstimateSize;
 		}
 
@@ -377,7 +377,7 @@ UiSize Box::EstimateSize(UiSize szAvailable)
 			fixedSize.cy = sizeByChild.cy;
 		}
 
-		m_bReEstimateSize = false;
+		SetReEstimateSize(false);
 		for (auto it = m_items.begin(); it != m_items.end(); ++it) {
 			Control* pControl = *it;
 			ASSERT(pControl != nullptr);
@@ -389,7 +389,7 @@ UiSize Box::EstimateSize(UiSize szAvailable)
 			}
 			if (pControl->GetFixedWidth() == DUI_LENGTH_AUTO || pControl->GetFixedHeight() == DUI_LENGTH_AUTO) {
 				if (pControl->IsReEstimateSize()) {
-					m_bReEstimateSize = true;
+					SetReEstimateSize(true);
 					break;
 				}
 			}
@@ -412,7 +412,7 @@ Control* Box::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, UiPoi
 	}
 	if ((uFlags & UIFIND_HITTEST) != 0) {
 		ASSERT(pData != nullptr);
-		if ((pData != nullptr) && !::PtInRect(&m_rcItem, *(static_cast<LPPOINT>(pData)))) {
+		if ((pData != nullptr) && !::PtInRect(&GetRect(), *(static_cast<LPPOINT>(pData)))) {
 			return nullptr;
 		}
 		if (!m_bMouseChildEnabled) {
@@ -427,7 +427,7 @@ Control* Box::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, UiPoi
 			return pControl;
 		}
 	}
-	UiRect rc = m_rcItem;
+	UiRect rc = GetRect();
 	rc.left += m_pLayout->GetPadding().left;
 	rc.top += m_pLayout->GetPadding().top;
 	rc.right -= m_pLayout->GetPadding().right;
@@ -601,8 +601,9 @@ bool Box::AddAt(Control* pControl, size_t iIndex)
 		ASSERT(FALSE);
 		return false;
 	}
-	if (m_pWindow != nullptr) {
-		m_pWindow->InitControls(pControl, this);
+	Window* pWindow = GetWindow();
+	if (pWindow != nullptr) {
+		pWindow->InitControls(pControl, this);
 	}
 	m_items.insert(m_items.begin() + iIndex, pControl);
 	if (IsVisible()) {
@@ -618,12 +619,13 @@ bool Box::Remove(Control* pControl)
 		return false;
 	}
 
+	Window* pWindow = GetWindow();
 	for (auto it = m_items.begin(); it != m_items.end(); ++it) {
 		if( *it == pControl ) {
 			Arrange();
-			if( m_bAutoDestroy ) {
-				if (m_bDelayedDestroy && (m_pWindow != nullptr)) {
-					m_pWindow->AddDelayedCleanup(pControl);
+			if( m_bAutoDestroy ) {				
+				if (m_bDelayedDestroy && (pWindow != nullptr)) {
+					pWindow->AddDelayedCleanup(pControl);
 				}
 				else {
 					delete pControl;
@@ -648,9 +650,10 @@ bool Box::RemoveAt(size_t iIndex)
 void Box::RemoveAll()
 {
 	if (m_bAutoDestroy) {
+		Window* pWindow = GetWindow();
 		for (auto it = m_items.begin(); it != m_items.end(); ++it) {
-			if (m_bDelayedDestroy && (m_pWindow != nullptr)) {
-				m_pWindow->AddDelayedCleanup((*it));
+			if (m_bDelayedDestroy && (pWindow != nullptr)) {
+				pWindow->AddDelayedCleanup((*it));
 			}
 			else {
 				delete (*it);
@@ -922,8 +925,12 @@ void ScrollableBox::HandleEvent(const EventArgs& event)
 {
 	if( (!IsMouseEnabled() && event.Type > kEventMouseBegin && event.Type < kEventMouseEnd) || 
 		event.Type == kEventLast) {
-		if( m_pParent != NULL ) m_pParent->SendEvent(event);
-		else Box::HandleEvent(event);
+		if (GetParent() != nullptr) {
+			GetParent()->SendEvent(event);
+		}
+		else {
+			Box::HandleEvent(event);
+		}
 		return;
 	}
 		
@@ -1055,7 +1062,7 @@ void ScrollableBox::PaintChild(IRenderContext* pRender, const UiRect& rcPaint)
 		return;
 	}
 	UiRect rcTemp;
-	if (!::IntersectRect(&rcTemp, &rcPaint, &m_rcItem)) {
+	if (!::IntersectRect(&rcTemp, &rcPaint, &GetRect())) {
 		return;
 	}
 
@@ -1127,7 +1134,7 @@ Control* ScrollableBox::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFl
 		if (pData == nullptr) {
 			return nullptr;
 		}
-		if (!::PtInRect(&m_rcItem, *(static_cast<LPPOINT>(pData)))) {
+		if (!::PtInRect(&GetRect(), *(static_cast<LPPOINT>(pData)))) {
 			return nullptr;
 		}
 		if (!IsMouseChildEnabled()) {
@@ -1437,7 +1444,7 @@ void ScrollableBox::LineRight(int detaValue)
 void ScrollableBox::PageUp()
 {
 	UiSize sz = GetScrollPos();
-	int iOffset = m_rcItem.bottom - m_rcItem.top - m_pLayout->GetPadding().top - m_pLayout->GetPadding().bottom;
+	int iOffset = GetRect().bottom - GetRect().top - m_pLayout->GetPadding().top - m_pLayout->GetPadding().bottom;
 	if( m_pHorizontalScrollBar && m_pHorizontalScrollBar->IsValid() ) iOffset -= m_pHorizontalScrollBar->GetFixedHeight();
 	sz.cy -= iOffset;
 	SetScrollPos(sz);
@@ -1446,7 +1453,7 @@ void ScrollableBox::PageUp()
 void ScrollableBox::PageDown()
 {
 	UiSize sz = GetScrollPos();
-	int iOffset = m_rcItem.bottom - m_rcItem.top - m_pLayout->GetPadding().top - m_pLayout->GetPadding().bottom;
+	int iOffset = GetRect().bottom - GetRect().top - m_pLayout->GetPadding().top - m_pLayout->GetPadding().bottom;
 	if( m_pHorizontalScrollBar && m_pHorizontalScrollBar->IsValid() ) iOffset -= m_pHorizontalScrollBar->GetFixedHeight();
 	sz.cy += iOffset;
 	SetScrollPos(sz);
@@ -1478,7 +1485,7 @@ void ScrollableBox::EndDown(bool arrange, bool withAnimation)
 void ScrollableBox::PageLeft()
 {
 	UiSize sz = GetScrollPos();
-	int iOffset = m_rcItem.right - m_rcItem.left - m_pLayout->GetPadding().left - m_pLayout->GetPadding().right;
+	int iOffset = GetRect().right - GetRect().left - m_pLayout->GetPadding().left - m_pLayout->GetPadding().right;
 	//if( m_pVerticalScrollBar && m_pVerticalScrollBar->IsValid() ) iOffset -= m_pVerticalScrollBar->GetFixedWidth();
 	sz.cx -= iOffset;
 	SetScrollPos(sz);
@@ -1487,7 +1494,7 @@ void ScrollableBox::PageLeft()
 void ScrollableBox::PageRight()
 {
 	UiSize sz = GetScrollPos();
-	int iOffset = m_rcItem.right - m_rcItem.left - m_pLayout->GetPadding().left - m_pLayout->GetPadding().right;
+	int iOffset = GetRect().right - GetRect().left - m_pLayout->GetPadding().left - m_pLayout->GetPadding().right;
 	//if( m_pVerticalScrollBar && m_pVerticalScrollBar->IsValid() ) iOffset -= m_pVerticalScrollBar->GetFixedWidth();
 	sz.cx += iOffset;
 	SetScrollPos(sz);
@@ -1536,7 +1543,7 @@ void ScrollableBox::EnableScrollBar(bool bEnableVertical, bool bEnableHorizontal
 		m_pVerticalScrollBar->SetVisible(false);
 		m_pVerticalScrollBar->SetScrollRange(0);
 		m_pVerticalScrollBar->SetOwner(this);
-		m_pVerticalScrollBar->SetWindow(m_pWindow, NULL, false);
+		m_pVerticalScrollBar->SetWindow(GetWindow(), NULL, false);
 		m_pVerticalScrollBar->SetClass(_T("vscrollbar"));
 	}
 	else if( !bEnableVertical && m_pVerticalScrollBar ) {
@@ -1549,7 +1556,7 @@ void ScrollableBox::EnableScrollBar(bool bEnableVertical, bool bEnableHorizontal
 		m_pHorizontalScrollBar->SetScrollRange(0);
 		m_pHorizontalScrollBar->SetHorizontal(true);
 		m_pHorizontalScrollBar->SetOwner(this);
-		m_pHorizontalScrollBar->SetWindow(m_pWindow, NULL, false);
+		m_pHorizontalScrollBar->SetWindow(GetWindow(), NULL, false);
 		m_pHorizontalScrollBar->SetClass(_T("hscrollbar"));
 	}
 	else if( !bEnableHorizontal && m_pHorizontalScrollBar ) {
@@ -1588,7 +1595,7 @@ void ScrollableBox::ProcessVScrollBar(UiRect rc, int cyRequired)
 		m_pVerticalScrollBar->SetScrollRange(cyRequired - nHeight);
 		m_pVerticalScrollBar->SetScrollPos(0);
 		m_bScrollProcess = true;
-		SetPos(m_rcItem);
+		SetPos(GetRect());
 		m_bScrollProcess = false;
 
 		return;
@@ -1601,7 +1608,7 @@ void ScrollableBox::ProcessVScrollBar(UiRect rc, int cyRequired)
 	if( cyScroll <= 0 && !m_bScrollProcess) {
 		m_pVerticalScrollBar->SetScrollPos(0);
 		m_pVerticalScrollBar->SetScrollRange(0);
-		SetPos(m_rcItem);
+		SetPos(GetRect());
 	}
 	else {
 		if (m_bVScrollBarLeftPos) {
@@ -1621,7 +1628,7 @@ void ScrollableBox::ProcessVScrollBar(UiRect rc, int cyRequired)
 			}
 
 			if( iScrollPos > m_pVerticalScrollBar->GetScrollPos() ) {
-				SetPos(m_rcItem);
+				SetPos(GetRect());
 			}
 		}
 	}
@@ -1646,7 +1653,7 @@ void ScrollableBox::ProcessHScrollBar(UiRect rc, int cxRequired)
 		m_pHorizontalScrollBar->SetScrollRange(cxRequired - nWidth);
 		m_pHorizontalScrollBar->SetScrollPos(0);
 		m_bScrollProcess = true;
-		SetPos(m_rcItem);
+		SetPos(GetRect());
 		m_bScrollProcess = false;
 
 		return;
@@ -1659,7 +1666,7 @@ void ScrollableBox::ProcessHScrollBar(UiRect rc, int cxRequired)
 	if (cxScroll <= 0 && !m_bScrollProcess) {
 		m_pHorizontalScrollBar->SetScrollPos(0);
 		m_pHorizontalScrollBar->SetScrollRange(0);
-		SetPos(m_rcItem);
+		SetPos(GetRect());
 	}
 	else {
 		UiRect rcVerScrollBarPos(rcScrollBarPos.left, rcScrollBarPos.bottom - m_pHorizontalScrollBar->GetFixedHeight(), rcScrollBarPos.right, rcScrollBarPos.bottom);
@@ -1673,7 +1680,7 @@ void ScrollableBox::ProcessHScrollBar(UiRect rc, int cxRequired)
 			}
 
 			if (iScrollPos > m_pHorizontalScrollBar->GetScrollPos()) {
-				SetPos(m_rcItem);
+				SetPos(GetRect());
 			}
 		}
 	}

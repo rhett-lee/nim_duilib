@@ -19,7 +19,7 @@ void ChildBox::Init()
 	if (!m_strXMLFile.empty())
 	{
 		CreateControlCallback callback = CreateControlCallback();
-		auto pBaseWindow = dynamic_cast<WindowImplBase*>(m_pWindow);
+		auto pBaseWindow = dynamic_cast<WindowImplBase*>(GetWindow());
 		if (pBaseWindow != nullptr)
 			callback = std::bind(&WindowImplBase::CreateControl, pBaseWindow, std::placeholders::_1);
 

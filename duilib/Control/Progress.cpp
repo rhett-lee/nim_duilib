@@ -21,7 +21,7 @@ Progress::Progress() :
   m_bReverse(false)
 {
 	m_uTextStyle = DT_SINGLELINE | DT_CENTER;
-	SetFixedHeight(12);
+	SetFixedHeight(12, true);
 }
 
 std::wstring Progress::GetType() const { return DUI_CTR_PROGRESS; }
@@ -172,7 +172,7 @@ void Progress::PaintStatusImage(IRenderContext* pRender)
 	if (!m_sProgressColor.empty()) {
 		DWORD dwProgressColor = this->GetWindowColor(m_sProgressColor);
 		if (dwProgressColor != 0) {
-			UiRect rcProgressColor = m_rcItem;
+			UiRect rcProgressColor = GetRect();
 			if (m_bHorizontal) {
 				rcProgressColor.right = rcProgressColor.left + rc.right;
 			}
@@ -232,25 +232,25 @@ UiRect Progress::GetProgressPos()
     UiRect rc;
     if (m_bHorizontal) {
         if (m_bReverse) {
-            rc.right = m_rcItem.GetWidth();
-            rc.left = rc.right - static_cast<int>(std::floor(static_cast<double>((m_nValue - m_nMin) * (m_rcItem.right - m_rcItem.left)) / static_cast<double>(m_nMax - m_nMin)));
+            rc.right = GetRect().GetWidth();
+            rc.left = rc.right - static_cast<int>(std::floor(static_cast<double>((m_nValue - m_nMin) * (GetRect().right - GetRect().left)) / static_cast<double>(m_nMax - m_nMin)));
         }
         else {
-            rc.right = static_cast<int>(std::ceil(static_cast<double>((m_nValue - m_nMin) * (m_rcItem.right - m_rcItem.left)) / static_cast<double>(m_nMax - m_nMin)));
+            rc.right = static_cast<int>(std::ceil(static_cast<double>((m_nValue - m_nMin) * (GetRect().right - GetRect().left)) / static_cast<double>(m_nMax - m_nMin)));
         }
 
-        rc.bottom = m_rcItem.bottom - m_rcItem.top;
+        rc.bottom = GetRect().bottom - GetRect().top;
     }
     else {
         if (m_bReverse) {
-            rc.bottom = static_cast<int>(std::floor(static_cast<double>((m_nMax - m_nValue) * (m_rcItem.bottom - m_rcItem.top)) / static_cast<double>(m_nMax - m_nMin)));
+            rc.bottom = static_cast<int>(std::floor(static_cast<double>((m_nMax - m_nValue) * (GetRect().bottom - GetRect().top)) / static_cast<double>(m_nMax - m_nMin)));
         }
         else {
-            rc.top = static_cast<int>(std::ceil(static_cast<double>((m_nMax - m_nValue) * (m_rcItem.bottom - m_rcItem.top)) / static_cast<double>(m_nMax - m_nMin)));
-            rc.bottom = m_rcItem.bottom - m_rcItem.top;
+            rc.top = static_cast<int>(std::ceil(static_cast<double>((m_nMax - m_nValue) * (GetRect().bottom - GetRect().top)) / static_cast<double>(m_nMax - m_nMin)));
+            rc.bottom = GetRect().bottom - GetRect().top;
         }
 
-        rc.right = m_rcItem.right - m_rcItem.left;
+        rc.right = GetRect().right - GetRect().left;
     }
 
     return rc;
@@ -270,7 +270,7 @@ void Progress::Play()
     }
     m_nMarqueePos = m_nMarqueePos + m_nMarqueeStep;
 
-    ui::UiRect rc = m_rcItem;
+    ui::UiRect rc = GetRect();
     if (m_bHorizontal) {
         if (m_nMarqueePos > rc.right - rc.left) {
             m_nMarqueePos = (m_nMarqueePos - (rc.right - rc.left)) - m_nMarqueeWidth;
@@ -294,8 +294,8 @@ void Progress::PaintMarquee(IRenderContext* pRender)
 	if (!m_sProgressColor.empty()) {
 		DWORD dwProgressColor = GlobalManager::GetTextColor(m_sProgressColor);
 		if (dwProgressColor != 0) {
-			UiRect rcProgressColor = m_rcItem;
-			ui::UiRect rc = m_rcItem;
+			UiRect rcProgressColor = GetRect();
+			ui::UiRect rc = GetRect();
 			if (m_bHorizontal) {
 				rc.left = std::max(m_nMarqueePos, 0) + rc.left;
 				rc.right = rc.left + (m_nMarqueePos >= 0 ? m_nMarqueeWidth : (m_nMarqueeWidth + m_nMarqueePos));
