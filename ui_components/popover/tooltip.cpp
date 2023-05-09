@@ -42,7 +42,7 @@ ui::UiSize TooltipBody::EstimateSize(ui::UiSize szAvailable)
   fixedSize.cx += paddingRect.left + paddingRect.right;
   fixedSize.cy += paddingRect.top + paddingRect.bottom;
 
-  m_szEstimateSize = fixedSize;
+  SetEstimateSize(fixedSize);
   SetReEstimateSize(false);
 
   return fixedSize;

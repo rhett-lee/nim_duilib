@@ -20,12 +20,6 @@ namespace ui
 
 	typedef Control* (CALLBACK* FINDCONTROLPROC)(Control*, LPVOID);
 
-class UILIB_API UserDataBase
-{
-public:
-	virtual ~UserDataBase() = default;
-};
-
 #if defined(ENABLE_UIAUTOMATION)
 	class UIAControlProvider;
 #endif
@@ -43,14 +37,12 @@ public:
 	virtual std::wstring GetType() const;
 
     /// 图形相关
-	/**
-	 * @brief 获取背景颜色
+	/**@brief 获取背景颜色
 	 * @return 返回背景颜色的字符串，该值在 global.xml 中定义
 	 */
-	std::wstring GetBkColor() const;
+	const std::wstring& GetBkColor() const { return m_strBkColor; }
 
-	/**
-	 * @brief 设置背景颜色
+	/** @brief 设置背景颜色
 	 * @param[in] strColor 要设置的背景颜色值，该值必须在 global.xml 中存在
 	 * @return 无
 	 */
@@ -61,7 +53,7 @@ public:
 	 * @param[in] stateType 要获取何种状态下的颜色值，参考 ControlStateType 枚举
 	 * @return 指定状态下设定的颜色字符串，对应 global.xml 中指定色值
 	 */
-	std::wstring GetStateColor(ControlStateType stateType);
+	std::wstring GetStateColor(ControlStateType stateType) const;
 
 	/**
 	 * @brief 设置某个状态下的字体颜色
@@ -147,18 +139,15 @@ public:
 	 */
 	void SetForeStateImage(ControlStateType stateType, const std::wstring& strImage);
 
-	/**
-	 * @brief 获取控件状态
+	/**@brief 获取控件状态
 	 * @return 控件的状态，请参考 `ControlStateType` 枚举
 	 */
 	ControlStateType GetState() const;
 
-	/**
-	 * @brief 设置控件状态
-	 * @param[in] pStrState 要设置的控件状态，请参考 `ControlStateType` 枚举
-	 * @return 无
+	/**@brief 设置控件状态
+	 * @param[in] controlState 要设置的控件状态，请参考 `ControlStateType` 枚举
 	 */
-	void SetState(ControlStateType pStrState);
+	void SetState(ControlStateType controlState);
 
 	/**
 	 * @brief 获取控件图片指针
@@ -180,11 +169,10 @@ public:
 	 */
 	void SetBorderSize(int nSize);
 
-	/**
-	 * @brief 获取边框颜色
+	/**@brief 获取边框颜色
 	 * @return 边框的颜色字符串，对应 global.xml 中的具体颜色值
 	 */
-	std::wstring GetBorderColor() const;
+	const std::wstring& GetBorderColor() const;
 
 	/**
 	 * @brief 设置边框颜色
@@ -245,18 +233,15 @@ public:
 	 */
 	int GetBottomBorderSize() const;
 
-	/**
-	 * @brief 设置下方边框大小
+	/**@brief 设置下方边框大小
 	 * @param[in] nSize 要设置的下方边框大小
-	 * @return 无
 	 */
 	void SetBottomBorderSize(int nSize);
 
-	/**
-	 * @brief 获取边框大小
+	/**@brief 获取边框大小
 	 * @return 四个方向的边框大小
 	 */
-	UiSize GetBorderRound() const;
+	const UiSize& GetBorderRound() const;
 
 	/**
 	 * @brief 设置边框大小
@@ -275,16 +260,13 @@ public:
     /// 鼠标相关
 	/**
 	 * @brief 获取鼠标指针类型
-	 * @return 当前鼠标类型
 	 */
 	virtual CursorType GetCursorType() const;
 
-	/**
-	 * @brief 设置当前鼠标指针类型
-	 * @param[in] flag 要设置的鼠标类型，参考 CursorType 枚举
-	 * @return 无
+	/**@brief 设置当前鼠标指针类型
+	 * @param[in] cursorType 要设置的鼠标类型，参考 CursorType 枚举
 	 */
-	void SetCursorType(CursorType flag);
+	void SetCursorType(CursorType cursorType);
 
 	/**
 	 * @brief 获取控件在鼠标悬浮状态下的提示文本
@@ -380,19 +362,6 @@ public:
 	 */
 	virtual void SetUTF8DataID(const std::string& strText);	
 
-	/**
-	 * @brief 获取用户绑定的自定义数据结构
-	 * @return 用户绑定的自定义结构数据指针
-	 */
-	virtual UserDataBase* GetUserDataBase() const;
-
-	/**
-	 * @brief 绑定自定义数据到控件，用户可继承 UserDataBase 来补充需要绑定的数据
-	 * @param[in] pUserDataBase 数据指针
-	 * @return 无
-	 */
-	virtual void SetUserDataBase(UserDataBase* pUserDataBase);
-
     /// 一些重要的属性
 	/**
 	 * @brief 以淡入淡出等动画形式设置控件是否可见, 调用的结果与SetVisible相同，只是过程包含了动画效果。
@@ -432,7 +401,7 @@ public:
 	 * @param[in] bEnable 为 true 响应鼠标事件，为 false 时不响应鼠标事件
 	 * @return 无
 	 */
-    virtual void SetMouseEnabled(bool bEnable = true);
+    virtual void SetMouseEnabled(bool bEnable);
 
 	/**
 	 * @brief 检查控件是否响应键盘事件
@@ -445,7 +414,7 @@ public:
 	 * @param[in] bEnable 为 true 响应键盘事件，为 false 时不响应键盘事件
 	 * @return 无
 	 */
-    virtual void SetKeyboardEnabled(bool bEnable = true);
+    virtual void SetKeyboardEnabled(bool bEnable);
 
 	/**
 	 * @brief 检查控件是否具有焦点
@@ -535,7 +504,7 @@ public:
 	 * @param[in] bNeedDpiScale 是否让外边距根据 DPI 适配，默认为 true，false 不适配 DPI
 	 * @return 无
 	 */
-	virtual void SetMargin(UiRect rcMargin, bool bNeedDpiScale = true);
+	virtual void SetMargin(UiRect rcMargin, bool bNeedDpiScale);
 
 	/**
 	 * @brief 计算控件大小
@@ -807,10 +776,7 @@ public:
     */
     bool IsLoading();
 
-	/// 动画管理
-	/**
-	 * @brief 获取动画管理器指针
-	 * @return 返回动画管理器指针
+	/** @brief 获取动画管理器接口
 	 */
 	AnimationManager& GetAnimationManager();
 
@@ -911,10 +877,10 @@ public:
 	void AttachDoubleClick(const EventCallback& callback) { AttachEvent(kEventMouseDoubleClick, callback); }
 
 	/**
-		* @brief 绑定鼠标点击处理函数
-		* @param[in] callback 要绑定的回调函数
-		* @return 无
-		*/
+	* @brief 绑定鼠标点击处理函数
+	* @param[in] callback 要绑定的回调函数
+	* @return 无
+	*/
 	void AttachClick(const EventCallback& callback) { AttachEvent(kEventClick, callback); }
 
 	/**
@@ -1043,49 +1009,130 @@ protected:
 	virtual void PaintBorder(IRenderContext* pRender);
 	virtual void PaintLoading(IRenderContext* pRender);
 
+protected:
+	/** @brief 获取控件图片类型与状态图片的映射接口
+	*/
+	StateImageMap* GetImageMap() const { return m_imageMap.get(); }
+
+	/** @brief 获取控件状态与颜色值的映射接口
+	*/
+	StateColorMap* GetColorMap() const { return m_colorMap.get(); }
+
+	/** @brief 获取控件的绘制区域
+	*/
+	const UiRect& GetPaintRect() const { return m_rcPaint; }
+
+	/** @brief 设置控件的绘制区域
+	*/
+	void SetPaintRect(const UiRect& rect) { m_rcPaint = rect; }
+
 private:
 	void BroadcastGifEvent(int nVirtualEvent);
 	int GetGifFrameIndex(GifStopType frame);
 
-protected:
-
-	GifEventMap m_OnGifEvent;
-	std::unique_ptr<UserDataBase> m_pUserDataBase;
-	
-	bool m_bClip;
-	bool m_bGifPlay;
-	bool m_bAllowTabstop;
-	bool m_bIsLoading;
-	int m_nBorderSize;
-	int m_nTooltipWidth;
-	int m_nAlpha;
-	int m_nHotAlpha;
-	int m_fCurrrentAngele;
-	UiSize m_szEstimateSize;
-	UiPoint m_renderOffset;
-	UiSize m_cxyBorderRound;
+private:
+	//控件的外边距属性（上，下，左，右边距）
 	UiRect m_rcMargin;
-	UiRect m_rcPaint;
-	UiRect m_rcBorderSize;
-	CursorType m_cursorType;	//影响控件的鼠标形状
-	ControlStateType m_uButtonState;
-	std::wstring m_sToolTipText;
-	std::wstring m_sToolTipTextId;
-	std::wstring m_sUserData;
-	std::wstring m_strBkColor;
-    std::wstring m_strLoadingBkColor;
-	std::unique_ptr<StateColorMap> m_colorMap;
-	std::unique_ptr<Image> m_bkImage;
-	std::unique_ptr<Image> m_loadingImage;
-	std::unique_ptr<StateImageMap> m_imageMap;
-	std::wstring m_strBorderColor;
-	nbase::WeakCallbackFlag m_gifWeakFlag;
-	std::unique_ptr<AnimationManager> m_animationManager;
-	nbase::WeakCallbackFlag m_loadBkImageWeakFlag;
-    nbase::WeakCallbackFlag m_loadingImageFlag;
-	static const int m_nVirtualEventGifStop;	
+
+private:
+	//边框圆角大小（与m_nBorderSize联合应用）或者阴影的圆角大小（与m_boxShadow联合应用）
+	UiSize m_cxyBorderRound;
+
+	//控件阴影
 	BoxShadow m_boxShadow;
+
+private:
+	//控件的背景颜色
+	std::wstring m_strBkColor;
+
+	//控件的背景图片
+	std::unique_ptr<Image> m_bkImage;
+
+	//加载中状态图片(m_bkImage)的生命周期管理、取消机制
+	nbase::WeakCallbackFlag m_loadBkImageWeakFlag;
+
+	//是否为播放GIF的状态（当背景图片m_bkImage是GIF文件时，触发此逻辑）
+	bool m_bGifPlay;
+
+	//GIF背景图片播放的取消机制
+	nbase::WeakCallbackFlag m_gifWeakFlag;
+
+    //GIF播放事件的回调注册管理容器(目前只有播放完成一个事件)
+	GifEventMap m_OnGifEvent;
+
+	//GIF背景图片播放完成事件的ID
+	const int m_nVirtualEventGifStop = 1;	
+
+private:
+	//控件的状态
+	ControlStateType m_controlState;
+
+	//控件状态与颜色值的映射
+	std::unique_ptr<StateColorMap> m_colorMap;
+
+	//控件图片类型与状态图片的映射
+	std::unique_ptr<StateImageMap> m_imageMap;
+
+private:
+	//边框颜色
+	std::wstring m_strBorderColor;
+
+	//控件四边的边框大小（可分别设置top/bottom/left/right四个边的值）
+	UiRect m_rcBorderSize;
+
+	//边框大小（应用于控件的四边，仅当m_rcBorderSize四边均未设置的时候生效），其圆角大小通过m_cxyBorderRound设置
+	int m_nBorderSize;
+
+private:
+	//是否处于加载中的状态
+	bool m_bIsLoading;
+
+	//加载中图片旋转的角度（0-360）
+	int m_fCurrrentAngele;
+
+	//加载中状态时显示的图片
+	std::unique_ptr<Image> m_loadingImage;
+
+	//加载中状态时的背景颜色
+	std::wstring m_strLoadingBkColor;
+
+	//加载中状态图片(m_loadingImage)的生命周期管理、取消机制
+	nbase::WeakCallbackFlag m_loadingImageFlag;
+
+private:
+	//控件动画播放管理器
+	std::unique_ptr<AnimationManager> m_animationManager;
+
+	//控件播放动画时的渲染偏移(X坐标偏移和Y坐标偏移)
+	UiPoint m_renderOffset;
+	
+	//控件的透明度（0 - 255，0为完全透明，255为不透明）
+	int m_nAlpha;
+
+	//控件为Hot状态时的透明度（0 - 255，0为完全透明，255为不透明）
+	int m_nHotAlpha;
+
+	//是否对绘制范围做剪裁限制
+	bool m_bClip;
+
+	//控件的绘制区域
+	UiRect m_rcPaint;
+
+	//绘制渲染引擎接口
 	std::unique_ptr<IRenderContext> m_renderContext;
+
+private:
+	//ToolTip的宽度
+	int m_nTooltipWidth;
+
+	//ToolTip的文本内容
+	std::wstring m_sToolTipText;
+
+	//ToolTip的文本ID
+	std::wstring m_sToolTipTextId;
+	
+	//用户数据ID
+	std::wstring m_sUserDataID;
 
 private:
 	//通过AttachXXX接口，添加的监听事件
@@ -1118,6 +1165,12 @@ private:
 
 	//控件不需要焦点（如果为true，则控件不会获得焦点）
 	bool m_bNoFocus;
+
+	//是否允许TAB切换焦点
+	bool m_bAllowTabstop;
+
+	//控件的光标类型
+	CursorType m_cursorType;
 
 #if defined(ENABLE_UIAUTOMATION)
 	UIAControlProvider* m_pUIAProvider;

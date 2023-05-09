@@ -364,7 +364,7 @@ UiSize Box::EstimateSize(UiSize szAvailable)
 	UiSize fixedSize = GetFixedSize();
 	if (GetFixedWidth() == DUI_LENGTH_AUTO || GetFixedHeight() == DUI_LENGTH_AUTO) {
 		if (!IsReEstimateSize()) {
-			return m_szEstimateSize;
+			return GetEstimateSize();
 		}
 
 		szAvailable.cx -= m_pLayout->GetPadding().left + m_pLayout->GetPadding().right;
@@ -394,8 +394,7 @@ UiSize Box::EstimateSize(UiSize szAvailable)
 				}
 			}
 		}
-
-		m_szEstimateSize = fixedSize;
+		SetEstimateSize(fixedSize);
 	}
 
 	return fixedSize;

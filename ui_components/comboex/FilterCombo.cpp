@@ -85,8 +85,8 @@ std::wstring CFilterComboWnd::GetWindowClassName() const
 void CFilterComboWnd::OnFinalMessage(HWND /*hWnd*/)
 {
 	if (m_pOwner != nullptr) {
-		m_pOwner->m_pComboWnd = NULL;
-		m_pOwner->m_uButtonState = ui::kControlStateNormal;
+		m_pOwner->m_pComboWnd = nullptr;
+		m_pOwner->SetState(ui::kControlStateNormal);
 		m_pOwner->Invalidate();		
 	}
 	delete this;
@@ -263,7 +263,6 @@ FilterCombo::FilterCombo() :
 	m_pComboWnd(nullptr),
 	m_iCurSel(-1),
 	m_szDropBox(0, 150),
-	m_uButtonState(ui::kControlStateNormal),
 	m_sDropBoxAttributes(),
 	m_bPopupTop(false)
 {
@@ -285,7 +284,7 @@ FilterCombo::FilterCombo() :
 	m_pRichEdit->SetClass(L"simple");
 	m_pRichEdit->SetFixedWidth(DUI_LENGTH_STRETCH, true, true);
 	m_pRichEdit->SetFixedHeight(DUI_LENGTH_STRETCH, true);
-	m_pRichEdit->SetMargin({ 1, 1, 1, 1 });
+	m_pRichEdit->SetMargin({ 1, 1, 1, 1 }, true);
 	m_pRichEdit->SetAttribute(L"padding", L"2,3");
 	m_pRichEdit->SetFont(L"system_14");
 	//m_pRichEdit->SetMouseChildEnabled(false);

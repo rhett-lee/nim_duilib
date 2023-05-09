@@ -32,7 +32,7 @@ namespace ui
 			m_pReEdit->SetVisible(true);
 			m_pReEdit->SetFixedWidth(m_hLayout[col_index] - 1, true, true);
 			m_pReEdit->SetFixedHeight(m_vLayout[row_index] - 1, true);
-			m_pReEdit->SetMargin({ posx, posy, 0, 0 });
+			m_pReEdit->SetMargin({ posx, posy, 0, 0 }, true);
 			m_pReEdit->SetText(item->text);
 			m_pReEdit->SetFocus();
 			m_pReEdit->SetSelAll();
@@ -43,7 +43,7 @@ namespace ui
 			m_pComboEdit->SetVisible(true);
 			m_pComboEdit->SetFixedWidth(m_hLayout[col_index] - 1, true, true);
 			m_pComboEdit->SetFixedHeight(m_vLayout[row_index] - 1, true);
-			m_pComboEdit->SetMargin({ posx, posy, 0, 0 });
+			m_pComboEdit->SetMargin({ posx, posy, 0, 0 }, true);
 
 			m_pComboEdit->RemoveAll();
 			for (size_t i = 0; i < item->combo_list.size(); i++)
@@ -1295,7 +1295,7 @@ namespace ui
 				/*rcNewPaint.top += GetFixedRowHeight();*/		//可能表头存在控件
 				if (rcNewPaint.left > rcNewPaint.right) rcNewPaint.left = rcNewPaint.right;
 				if (rcNewPaint.top > rcNewPaint.bottom) rcNewPaint.top = rcNewPaint.bottom;
-				AutoClip alphaClip(pRender, rcNewPaint, m_bClip);
+				AutoClip alphaClip(pRender, rcNewPaint, IsClip());
 				rcNewPaint.Offset(scrollPos.cx, scrollPos.cy);
 				rcNewPaint.Offset(GetRenderOffset().x, GetRenderOffset().y);
 
@@ -1309,7 +1309,11 @@ namespace ui
 
 	void GridBody::Paint(IRenderContext* pRender, const UiRect& rcPaint)
 	{
-		if (!::IntersectRect(&m_rcPaint, &rcPaint, &GetRect())) return;
+		UiRect paintRect = GetPaintRect();
+		if (!::IntersectRect(&paintRect, &rcPaint, &GetRect())) {
+			return;
+		}
+		SetPaintRect(paintRect);
 
 		PaintBkColor(pRender);
 		PaintBkImage(pRender);
@@ -1450,7 +1454,7 @@ namespace ui
 			UiRect rcClip = m_pGrid->GetPos();
 			rcClip.left += GetFixedColWidth();
 			rcClip.bottom = rcClip.top + GetFixedRowHeight();
-			AutoClip clip(pRender, rcClip, m_bClip);
+			AutoClip clip(pRender, rcClip, IsClip());
 			posy = 0;
 			for (int i = 0; i < (int)m_nFixedRow; i++)
 			{
@@ -1484,7 +1488,7 @@ namespace ui
 			UiRect rcClip = m_pGrid->GetPos();
 			rcClip.top += GetFixedRowHeight();
 			rcClip.right = rcClip.left + GetFixedColWidth();
-			AutoClip clip(pRender, rcClip, m_bClip);
+			AutoClip clip(pRender, rcClip, IsClip());
 			posx = 0;
 			for (int i = 0; i < (int)m_nFixedCol; i++)
 			{
@@ -1518,7 +1522,7 @@ namespace ui
 			UiRect rcClip = m_pGrid->GetPos();
 			rcClip.left += GetFixedColWidth();
 			rcClip.top += GetFixedRowHeight();;
-			AutoClip clip(pRender, rcClip, m_bClip);
+			AutoClip clip(pRender, rcClip, IsClip());
 			posy = GetFixedRowHeight();
 			for (int i = static_cast<int>(m_nFixedRow); i < row_count; i++)
 			{

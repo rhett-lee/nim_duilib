@@ -161,7 +161,6 @@ protected:
 
 	ui::RichEdit* m_pRichEdit;
     int m_iCurSel;  
-	ui::ControlStateType m_uButtonState;
 	ui::UiSize m_szDropBox;
 	std::wstring m_sDropBoxAttributes;
 	bool m_bPopupTop;

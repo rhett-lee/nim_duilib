@@ -125,13 +125,11 @@ bool ScrollBar::ButtonUp(const EventArgs& msg)
 		Invalidate();
 		UiRect pos = GetPos();
 		if (::PtInRect(&pos, msg.ptMouse)) {
-			m_uButtonState = kControlStateHot;
-			m_nHotAlpha = 255;
+			SetState(kControlStateHot);
 			ret = true;
 		}
 		else {
-			m_uButtonState = kControlStateNormal;
-			m_nHotAlpha = 0;
+			SetState(kControlStateNormal);
 		}
 	}
 
@@ -504,11 +502,11 @@ void ScrollBar::HandleEvent(const EventArgs& event)
 		return;
 	}
 	else if (event.Type == kEventSetCursor) {
-		if (m_cursorType == kCursorHand) {
+		if (GetCursorType() == kCursorHand) {
 			::SetCursor(::LoadCursor(NULL, IDC_HAND));
 			return;
 		}
-		else if (m_cursorType == kCursorArrow){
+		else if (GetCursorType() == kCursorArrow){
 			::SetCursor(::LoadCursor(NULL, IDC_ARROW));
 			return;
 		}
@@ -557,7 +555,12 @@ void ScrollBar::SetAttribute(const std::wstring& strName, const std::wstring& st
 
 void ScrollBar::Paint(IRenderContext* pRender, const UiRect& rcPaint)
 {
-	if (!::IntersectRect(&m_rcPaint, &rcPaint, &GetRect())) return;
+	UiRect paintRect = GetPaintRect();
+	if (!::IntersectRect(&paintRect, &rcPaint, &GetRect())) {
+		return;
+	}
+	SetPaintRect(paintRect);
+
 	PaintBk(pRender);
 	PaintButton1(pRender);
 	PaintButton2(pRender);
@@ -813,7 +816,7 @@ void ScrollBar::ScrollTimeHandle()
 
 void ScrollBar::PaintBk(IRenderContext* pRender)
 {
-	m_bkStateImage->PaintStatusImage(pRender, m_uButtonState);
+	m_bkStateImage->PaintStatusImage(pRender, GetState());
 }
 
 void ScrollBar::PaintButton1(IRenderContext* pRender)

@@ -80,7 +80,7 @@ namespace nim_comp
 	void CCheckComboWnd::OnFinalMessage(HWND /*hWnd*/)
 	{
 		m_pOwner->m_pCheckComboWnd = NULL;
-		m_pOwner->m_uButtonState = ui::kControlStateNormal;
+		m_pOwner->SetState(ui::kControlStateNormal);
 		m_pOwner->Invalidate();
 		delete this;
 	}
@@ -131,7 +131,6 @@ namespace nim_comp
 	CheckCombo::CheckCombo() :
 		m_pCheckComboWnd(nullptr),
 		m_szDropBox(0, 150),
-		m_uButtonState(ui::kControlStateNormal),
 		m_sDropBoxAttributes(),
 		m_bPopupTop(false),
 		m_iOrgHeight(20)
@@ -313,7 +312,7 @@ namespace nim_comp
 		ui::Label *item = new ui::Label;
 		item->SetFixedWidth(DUI_LENGTH_AUTO, true, true);
 		item->SetFixedHeight(22, true);
-		item->SetMargin({ 4, 2, 4, 2 });
+		item->SetMargin({ 4, 2, 4, 2 }, true);
 		item->SetBkColor(L"bk_menuitem_selected");
 		item->SetTextPadding({ 2, 3, 2, 3 });
 		item->SetUTF8Name(date);

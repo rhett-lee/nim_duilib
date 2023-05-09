@@ -52,7 +52,7 @@ void AppItemUi::FixPos(int step, int index)
 
 	ui::UiRect marginRect = { (index_ % EACH_LINE)*APP_WIDTH, (index_ / EACH_LINE)*APP_HEIGHT,0,0 };
 	
-	SetMargin(marginRect);
+	SetMargin(marginRect, true);
 }
 
 

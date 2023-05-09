@@ -89,7 +89,6 @@ protected:
 	UiSize m_szThumb;
 	StateImage m_thumbStateImage;
 	UiRect	m_rcProgressBarPadding;
-	ControlStateType m_uButtonState;
 	std::wstring m_sImageModify;
 };
 

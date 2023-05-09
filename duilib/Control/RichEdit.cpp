@@ -2306,11 +2306,11 @@ void RichEdit::SetEnabled(bool bEnable /*= true*/)
 	__super::SetEnabled(bEnable);
 
 	if (bEnable) {
-		m_uButtonState = kControlStateNormal;
+		SetState(kControlStateNormal);
 		SetTextColor(m_sTextColor);
 	}
 	else {
-		m_uButtonState = kControlStateDisabled;
+		SetState(kControlStateDisabled);
 		SetTextColor(m_sDisabledTextColor);
 	}
 }

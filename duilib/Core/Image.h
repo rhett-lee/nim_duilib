@@ -117,6 +117,8 @@ private:
 	std::shared_ptr<ImageInfo> m_imageCache;
 };
 
+/** 控件状态与图片的映射
+*/
 class UILIB_API StateImage
 {
 public:
@@ -136,6 +138,8 @@ private:
 	std::map<ControlStateType, Image> m_stateImageMap;
 };
 
+/** 控件图片类型与状态图片的映射
+*/
 class UILIB_API StateImageMap
 {
 public:
@@ -157,15 +161,24 @@ private:
 	std::map<StateImageType, StateImage> m_stateImageMap;
 };
 
+/** 控件状态与颜色值的映射
+*/
 class UILIB_API StateColorMap
 {
 public:
 	StateColorMap();
 
+	/** 设置管理的控件接口
+	*/
 	void SetControl(Control* control);
-	std::wstring& operator[](ControlStateType stateType) { return m_stateColorMap[stateType]; }
-	//获取颜色值，如果不包含此颜色，则返回空
+
+	/** 获取颜色值，如果不包含此颜色，则返回空
+	*/
 	std::wstring GetStateColor(ControlStateType stateType) const;
+
+	/** 设置颜色值
+	*/
+	void SetStateColor(ControlStateType stateType, const std::wstring& color);
 
 	bool HasHotColor();
 	bool HasColor();

@@ -9,7 +9,12 @@ BitmapControl::BitmapControl()
 
 void BitmapControl::Paint(ui::IRenderContext* pRender, const ui::UiRect& rcPaint)
 {
-	if (!::IntersectRect(&m_rcPaint, &rcPaint, &GetRect())) return;
+	UiRect paintRect = GetPaintRect();
+	if (!::IntersectRect(&paintRect, &rcPaint, &GetRect())) {
+		return;
+	}
+	SetPaintRect(paintRect);
+
 	__super::Paint(pRender, rcPaint);
 
 	if (NULL == bitmap_)

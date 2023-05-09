@@ -57,7 +57,7 @@ void PopoverArrow::DoInit()
   SetHorAlignType(horAlignType);
   SetVerAlignType(verAlignType);
 
-  SetMargin(GetMarginByPlacement());
+  SetMargin(GetMarginByPlacement(), true);
 
   m_bInited = true;;
 }
@@ -250,7 +250,7 @@ ui::UiSize PopoverHeader::EstimateSize(ui::UiSize szAvailable)
   ui::UiSize fixedSize = GetFixedSize();
   if (GetFixedWidth() == DUI_LENGTH_AUTO || GetFixedHeight() == DUI_LENGTH_AUTO) {
     if (!IsReEstimateSize()) {
-        return m_szEstimateSize;
+        return GetEstimateSize();
     }
 
     ui::UiSize maxSize = szAvailable;
@@ -313,7 +313,7 @@ ui::UiSize PopoverHeader::EstimateSize(ui::UiSize szAvailable)
     if (m_bUseMaxSize && fixedSize.cx < maxSize.cx)
       fixedSize.cx = maxSize.cx;
 
-    m_szEstimateSize = fixedSize;
+    SetEstimateSize(fixedSize);
     SetReEstimateSize(false);
   }
 
@@ -372,7 +372,7 @@ ui::UiSize PopoverBody::EstimateSize(ui::UiSize szAvailable)
   ui::UiSize fixedSize = GetFixedSize();
   if (GetFixedWidth() == DUI_LENGTH_AUTO || GetFixedHeight() == DUI_LENGTH_AUTO) {
     if (!IsReEstimateSize()) {
-        return m_szEstimateSize;
+        return GetEstimateSize();
     }
 
     ui::UiSize maxSize = szAvailable;
@@ -405,7 +405,7 @@ ui::UiSize PopoverBody::EstimateSize(ui::UiSize szAvailable)
     if (m_bUseMaxSize && fixedSize.cx < maxSize.cx)
       fixedSize.cx = maxSize.cx;
 
-    m_szEstimateSize = fixedSize;
+    SetEstimateSize(fixedSize);
     SetReEstimateSize(false);
   }
 
@@ -455,7 +455,7 @@ ui::UiSize PopoverFooter::EstimateSize(ui::UiSize szAvailable)
   ui::UiSize fixedSize = GetFixedSize();
   if (GetFixedWidth() == DUI_LENGTH_AUTO || GetFixedHeight() == DUI_LENGTH_AUTO) {
     if (!IsReEstimateSize()) {
-        return m_szEstimateSize;
+        return GetEstimateSize();
     }
 
     ui::UiSize maxSize = szAvailable;
@@ -490,8 +490,7 @@ ui::UiSize PopoverFooter::EstimateSize(ui::UiSize szAvailable)
       fixedSize.cx = maxSize.cx;
 
     SetReEstimateSize(false);
-
-    m_szEstimateSize = fixedSize;
+    SetEstimateSize(fixedSize);
   }
 
   return fixedSize;
@@ -535,7 +534,7 @@ ui::UiSize PopoverRoot::EstimateSize(ui::UiSize szAvailable)
   ui::UiSize fixedSize = GetFixedSize();
   if (GetFixedWidth() == DUI_LENGTH_AUTO || GetFixedHeight() == DUI_LENGTH_AUTO) {
     if (!IsReEstimateSize()) {
-      return m_szEstimateSize;
+      return GetEstimateSize();
     }
 
     ui::UiRect paddingRect = m_pLayout->GetPadding();
@@ -567,7 +566,7 @@ ui::UiSize PopoverRoot::EstimateSize(ui::UiSize szAvailable)
       }
     }
 
-    m_szEstimateSize = fixedSize;
+    SetEstimateSize(fixedSize);
   }
 
   return fixedSize;
@@ -647,7 +646,7 @@ ui::UiSize Popover::EstimateSize(ui::UiSize /*szAvailable*/)
   ui::UiSize fixedSize = GetFixedSize();
   if (GetFixedWidth() == DUI_LENGTH_AUTO || GetFixedHeight() == DUI_LENGTH_AUTO) {
     if (!IsReEstimateSize()) {
-      return m_szEstimateSize;
+      return GetEstimateSize();
     }
 
     ui::UiRect paddingRect = m_pLayout->GetPadding();
@@ -677,7 +676,7 @@ ui::UiSize Popover::EstimateSize(ui::UiSize /*szAvailable*/)
       }
     }
 
-    m_szEstimateSize = fixedSize;
+    SetEstimateSize(fixedSize);
   }
 
   return fixedSize;

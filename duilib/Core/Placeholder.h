@@ -179,7 +179,7 @@ public:
 	 */
 	void SetVerAlignType(VerAlignType verAlignType);
 
-	/**@brief 判断是否重新评估大小
+	/**@brief 判断是否需要重新评估大小
 	 */
 	bool IsReEstimateSize() const { return m_bReEstimateSize; }
 
@@ -187,7 +187,16 @@ public:
 	 */
 	void SetReEstimateSize(bool bReEstimateSize);
 
-	/**@brief 获取估算大小
+	/**@brief 获取控件的已估算大小（长度和宽度），相当于EstimateSize函数估算后的缓存值
+	*/
+	const UiSize& GetEstimateSize() const { return m_szEstimateSize; }
+
+	/**@brief 设置控件的已估算大小（长度和宽度），相当于EstimateSize函数估算后的缓存值
+	*/
+	void SetEstimateSize(const UiSize& szEstimateSize) { m_szEstimateSize = szEstimateSize; }
+
+	/**@brief 估算控件大小（基类中无具体实现, 返回设置的固定大小）
+	*  @param [in] szAvailable 已有大小
 	 */
 	virtual UiSize EstimateSize(UiSize /*szAvailable*/) { return m_cxyFixed; }
 
@@ -296,7 +305,10 @@ private:
 	bool m_bFloat;
 
 	//是否需要重新评估大小
-	bool m_bReEstimateSize;	
+	bool m_bReEstimateSize;
+
+	//控件的已估算大小（长度和宽度），相当于估算后的缓存值
+	UiSize m_szEstimateSize;
 
 	//是否需要布局重排
 	bool m_bIsArranged;

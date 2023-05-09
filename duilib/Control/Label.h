@@ -178,8 +178,8 @@ LabelTemplate<InheritType>::LabelTemplate() :
         this->SetFixedHeight(DUI_LENGTH_AUTO, false);
     }
 
-    m_textColorMap[kControlStateNormal] = GlobalManager::GetDefaultTextColor();
-    m_textColorMap[kControlStateDisabled] = GlobalManager::GetDefaultDisabledTextColor();
+    m_textColorMap.SetStateColor(kControlStateNormal, GlobalManager::GetDefaultTextColor());
+    m_textColorMap.SetStateColor(kControlStateDisabled, GlobalManager::GetDefaultDisabledTextColor());
     m_textColorMap.SetControl(this);
 }
 
@@ -460,8 +460,8 @@ void LabelTemplate<InheritType>::PaintText(IRenderContext* pRender)
     rc.top += m_rcTextPadding.top;
     rc.bottom -= m_rcTextPadding.bottom;
 
-    auto stateType = this->m_uButtonState;
-    DWORD dwClrColor = this->GetWindowColor(GetPaintStateTextColor(this->m_uButtonState, stateType));
+    auto stateType = this->GetState();
+    DWORD dwClrColor = this->GetWindowColor(GetPaintStateTextColor(this->GetState(), stateType));
 
     if (m_bSingleLine) {
         m_uTextStyle |= DT_SINGLELINE;
@@ -470,7 +470,7 @@ void LabelTemplate<InheritType>::PaintText(IRenderContext* pRender)
         m_uTextStyle &= ~DT_SINGLELINE;
     }
 
-    if (this->m_animationManager->GetAnimationPlayer(kAnimationHot)) {
+    if (this->GetAnimationManager().GetAnimationPlayer(kAnimationHot)) {
         if ((stateType == kControlStateNormal || stateType == kControlStateHot)
             && !GetStateTextColor(kControlStateHot).empty()) {
             std::wstring clrColor = GetStateTextColor(kControlStateNormal);
@@ -479,11 +479,11 @@ void LabelTemplate<InheritType>::PaintText(IRenderContext* pRender)
                 pRender->DrawText(rc, textValue, dwWinColor, m_sFontId, m_uTextStyle, 255, m_bLineLimit, m_bDrawTextFillPath);
             }
 
-            if (this->m_nHotAlpha > 0) {
+            if (this->GetHotAlpha() > 0) {
                 std::wstring textColor = GetStateTextColor(kControlStateHot);
                 if (!textColor.empty()) {
                     DWORD dwTextColor = this->GetWindowColor(textColor);
-                    pRender->DrawText(rc, textValue, dwTextColor, m_sFontId, m_uTextStyle, (BYTE)this->m_nHotAlpha, m_bLineLimit, m_bDrawTextFillPath);
+                    pRender->DrawText(rc, textValue, dwTextColor, m_sFontId, m_uTextStyle, (BYTE)this->GetHotAlpha(), m_bLineLimit, m_bDrawTextFillPath);
                 }
             }
 
@@ -517,9 +517,9 @@ template<typename InheritType>
 void LabelTemplate<InheritType>::SetStateTextColor(ControlStateType stateType, const std::wstring& dwTextColor)
 {
     if (stateType == kControlStateHot) {
-        this->m_animationManager->SetFadeHot(true);
+        this->GetAnimationManager().SetFadeHot(true);
     }
-    m_textColorMap[stateType] = dwTextColor;
+    m_textColorMap.SetStateColor(stateType, dwTextColor);
     this->Invalidate();
 }
 

@@ -634,6 +634,11 @@ std::wstring StateColorMap::GetStateColor(ControlStateType stateType) const
 	return std::wstring();
 }
 
+void StateColorMap::SetStateColor(ControlStateType stateType, const std::wstring& color)
+{
+	m_stateColorMap[stateType] = color;
+}
+
 void StateColorMap::PaintStatusColor(IRenderContext* pRender, UiRect rcPaint, ControlStateType stateType)
 {
 	ASSERT(pRender != nullptr);

@@ -159,7 +159,6 @@ protected:
 	CComboWnd *m_pWindow;
 	std::unique_ptr<ListBox> m_pLayout;
     int m_iCurSel;  
-	ControlStateType m_uButtonState;
 	UiSize m_szDropBox;
 	std::wstring m_sDropBoxAttributes;
 	bool m_bPopupTop;

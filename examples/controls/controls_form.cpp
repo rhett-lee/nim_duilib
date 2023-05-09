@@ -77,7 +77,7 @@ void ControlForm::OnInitWindow()
 		if (parent_node)
 		{
 			node->SetText(nbase::StringPrintf(L"ui::TreeView::TreeNode %d", j));
-			node->SetMargin({ 10, 0, 0, 0 });
+			node->SetMargin({ 10, 0, 0, 0 }, true);
 			parent_node->AddChildNode(node);
 		}
 		else

@@ -124,7 +124,6 @@ namespace nim_comp
 		std::unique_ptr<ui::ScrollableBox> m_pList;
 		std::vector<std::string> m_vecDate;
 		
-		ui::ControlStateType m_uButtonState;
 		ui::UiSize m_szDropBox;
 		std::wstring m_sDropBoxAttributes;
 		bool m_bPopupTop;

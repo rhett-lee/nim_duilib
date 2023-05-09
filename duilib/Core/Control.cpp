@@ -15,12 +15,9 @@
 
 namespace ui 
 {
-	const int Control::m_nVirtualEventGifStop = 1;
-
 Control::Control() :
 	m_OnXmlEvent(),
 	m_OnEvent(),
-	m_pUserDataBase(),
 	m_bContextMenuUsed(false),
 	m_bEnabled(true),
 	m_bMouseEnabled(true),
@@ -31,14 +28,13 @@ Control::Control() :
 	m_bGifPlay(true),
 	m_bAllowTabstop(true),
     m_bIsLoading(false),
-	m_szEstimateSize(),
 	m_renderOffset(),
 	m_cxyBorderRound(),
 	m_rcMargin(),
 	m_rcPaint(),
 	m_rcBorderSize(),
 	m_cursorType(kCursorArrow),
-	m_uButtonState(kControlStateNormal),
+	m_controlState(kControlStateNormal),
 	m_nBorderSize(0),
 	m_nTooltipWidth(300),
 	m_nAlpha(255),
@@ -46,7 +42,7 @@ Control::Control() :
     m_fCurrrentAngele(0),
 	m_sToolTipText(),
 	m_sToolTipTextId(),
-	m_sUserData(),
+	m_sUserDataID(),
 	m_strBkColor(),
 	m_strBorderColor(),
 	m_gifWeakFlag(),	
@@ -99,34 +95,32 @@ Control::~Control()
 
 std::wstring Control::GetType() const { return _T("Control"); }
 
-std::wstring Control::GetBkColor() const
-{
-	return m_strBkColor;
-}
-
 void Control::SetBkColor(const std::wstring& strColor)
 {
 	ASSERT(strColor.empty() || this->GetWindowColor(strColor) != 0);
-	if( m_strBkColor == strColor ) return;
-
+	if (m_strBkColor == strColor) {
+		return;
+	}
 	m_strBkColor = strColor;
 	Invalidate();
 }
 
-std::wstring Control::GetStateColor(ControlStateType stateType)
+std::wstring Control::GetStateColor(ControlStateType stateType) const
 {
-	return (*m_colorMap)[stateType];
+	return m_colorMap->GetStateColor(stateType);
 }
 
 void Control::SetStateColor(ControlStateType stateType, const std::wstring& strColor)
 {
 	ASSERT(this->GetWindowColor(strColor) != 0);
-	if((*m_colorMap)[stateType] == strColor ) return;
+	if (m_colorMap->GetStateColor(stateType) == strColor) {
+		return;
+	}
 
 	if (stateType == kControlStateHot) {
 		m_animationManager->SetFadeHot(true);
 	}
-	(*m_colorMap)[stateType] = strColor;
+	m_colorMap->SetStateColor(stateType, strColor);
 	Invalidate();
 }
 
@@ -218,19 +212,18 @@ void Control::SetForeStateImage(ControlStateType stateType, const std::wstring& 
 
 ControlStateType Control::GetState() const
 {
-	return m_uButtonState;
+	return m_controlState;
 }
 
-void Control::SetState(ControlStateType pStrState) 
+void Control::SetState(ControlStateType controlState)
 {
-	if (pStrState == kControlStateNormal) {
+	if (controlState == kControlStateNormal) {
 		m_nHotAlpha = 0;
 	}
-	else if (pStrState == kControlStateHot) {
+	else if (controlState == kControlStateHot) {
 		m_nHotAlpha = 255;
 	}
-
-	m_uButtonState = pStrState;
+	m_controlState = controlState;
 	Invalidate();
 }
 
@@ -263,7 +256,7 @@ void Control::SetBorderSize(int nSize)
 	Invalidate();
 }
 
-std::wstring Control::GetBorderColor() const
+const std::wstring& Control::GetBorderColor() const
 {
     return m_strBorderColor;
 }
@@ -273,7 +266,6 @@ void Control::SetBorderColor(const std::wstring& strBorderColor)
 	if (m_strBorderColor == strBorderColor) {
 		return;
 	}
-
     m_strBorderColor = strBorderColor;
     Invalidate();
 }
@@ -333,7 +325,7 @@ void Control::SetBottomBorderSize(int nSize)
 	Invalidate();
 }
 
-UiSize Control::GetBorderRound() const
+const UiSize& Control::GetBorderRound() const
 {
     return m_cxyBorderRound;
 }
@@ -355,9 +347,9 @@ CursorType Control::GetCursorType() const
 	return m_cursorType;
 }
 
-void Control::SetCursorType(CursorType flag)
+void Control::SetCursorType(CursorType cursorType)
 {
-	m_cursorType = flag;
+	m_cursorType = cursorType;
 }
 
 std::wstring Control::GetToolTipText() const
@@ -402,9 +394,10 @@ void Control::SetUTF8ToolTipText(const std::string& strText)
 
 void Control::SetToolTipTextId(const std::wstring& strTextId)
 {
-	if (m_sToolTipTextId == strTextId) return;
+	if (m_sToolTipTextId == strTextId) {
+		return;
+	}
 	m_sToolTipTextId = strTextId;
-
 	Invalidate();
 }
 
@@ -418,7 +411,7 @@ void Control::SetUTF8ToolTipTextId(const std::string& strTextId)
 void Control::SetToolTipWidth( int nWidth )
 {
 	DpiManager::GetInstance()->ScaleInt(nWidth);
-	m_nTooltipWidth=nWidth;
+	m_nTooltipWidth = nWidth;
 }
 
 int Control::GetToolTipWidth(void) const
@@ -433,36 +426,26 @@ void Control::SetContextMenuUsed(bool bMenuUsed)
 
 std::wstring Control::GetDataID() const
 {
-    return m_sUserData;
+    return m_sUserDataID;
 }
 
 std::string Control::GetUTF8DataID() const
 {
 	std::string strOut;
-	StringHelper::UnicodeToMBCS(m_sUserData, strOut, CP_UTF8);
+	StringHelper::UnicodeToMBCS(m_sUserDataID, strOut, CP_UTF8);
 	return strOut;
 }
 
 void Control::SetDataID(const std::wstring& strText)
 {
-    m_sUserData = strText;
+	m_sUserDataID = strText;
 }
 
 void Control::SetUTF8DataID(const std::string& strText)
 {
 	std::wstring strOut;
 	StringHelper::MBCSToUnicode(strText, strOut, CP_UTF8);
-	m_sUserData = strOut;
-}
-
-UserDataBase* Control::GetUserDataBase() const
-{
-	return m_pUserDataBase.get();
-}
-
-void Control::SetUserDataBase(UserDataBase* pUserDataBase)
-{
-	m_pUserDataBase.reset(pUserDataBase);
+	m_sUserDataID = strOut;
 }
 
 void Control::SetFadeVisible(bool bVisible)
@@ -500,15 +483,17 @@ void Control::SetVisible(bool bVisible)
 
 void Control::SetEnabled(bool bEnabled)
 {
-    if( m_bEnabled == bEnabled ) return;
+	if (m_bEnabled == bEnabled) {
+		return;
+	}
 
     m_bEnabled = bEnabled;
 	if (m_bEnabled) {
-		m_uButtonState = kControlStateNormal;
+		m_controlState = kControlStateNormal;
 		m_nHotAlpha = 0;
 	}
 	else {
-		m_uButtonState = kControlStateDisabled;
+		m_controlState = kControlStateDisabled;
 	}
     Invalidate();
 }
@@ -558,8 +543,9 @@ void Control::Activate()
 
 bool Control::IsActivatable() const
 {
-	if (!IsVisible()) return false;
-	if (!IsEnabled()) return false;
+	if (!IsVisible() || !IsEnabled()) {
+		return false;
+	}
 	return true;
 }
 
@@ -659,7 +645,7 @@ UiSize Control::EstimateSize(UiSize szAvailable)
 	UiSize imageSize = GetFixedSize();
 	if (GetFixedWidth() == DUI_LENGTH_AUTO || GetFixedHeight() == DUI_LENGTH_AUTO) {
 		if (!IsReEstimateSize()) {
-			return m_szEstimateSize;
+			return GetEstimateSize();
 		}
 		Image* image = GetEstimateImage();
 		if (image) {
@@ -699,8 +685,7 @@ UiSize Control::EstimateSize(UiSize szAvailable)
 		if (GetFixedHeight() == DUI_LENGTH_AUTO && imageSize.cy < textSize.cy) {
 			imageSize.cy = textSize.cy;
 		}
-
-		m_szEstimateSize = imageSize;
+		SetEstimateSize(imageSize);
 	}
 
 	return imageSize;
@@ -798,12 +783,12 @@ void Control::HandleEvent(const EventArgs& msg)
 			ASSERT(FALSE);
 		}
 	}
-	else if (msg.Type == kEventSetFocus && m_uButtonState == kControlStateNormal) {
+	else if (msg.Type == kEventSetFocus && m_controlState == kControlStateNormal) {
 		SetState(kControlStateHot);
 		Invalidate();
 		return;
 	}
-	else if (msg.Type == kEventKillFocus && m_uButtonState == kControlStateHot) {
+	else if (msg.Type == kEventKillFocus && m_controlState == kControlStateHot) {
 		SetState(kControlStateNormal);
 		Invalidate();
 		return;
@@ -848,8 +833,8 @@ bool Control::HasHotState()
 bool Control::MouseEnter(const EventArgs& /*msg*/)
 {
 	if( IsEnabled() ) {
-		if ( m_uButtonState == kControlStateNormal) {
-			m_uButtonState = kControlStateHot;
+		if (m_controlState == kControlStateNormal) {
+			m_controlState = kControlStateHot;
 			if (HasHotState()) {
 				m_animationManager->MouseEnter();
 				Invalidate();
@@ -867,8 +852,8 @@ bool Control::MouseEnter(const EventArgs& /*msg*/)
 bool Control::MouseLeave(const EventArgs& /*msg*/)
 {
 	if( IsEnabled() ) {
-		if (m_uButtonState == kControlStateHot) {
-			m_uButtonState = kControlStateNormal;
+		if (m_controlState == kControlStateHot) {
+			m_controlState = kControlStateNormal;
 			if (HasHotState()) {
 				m_animationManager->MouseLeave();
 				Invalidate();
@@ -887,7 +872,7 @@ bool Control::ButtonDown(const EventArgs& /*msg*/)
 {
 	bool ret = false;
 	if( IsEnabled() ) {
-		m_uButtonState = kControlStatePushed;
+		m_controlState = kControlStatePushed;
 		SetMouseFocused(true);
 		Invalidate();
 		ret = true;
@@ -907,13 +892,13 @@ bool Control::ButtonUp(const EventArgs& msg)
 
 		Invalidate();
 		if( IsPointInWithScrollOffset(UiPoint(msg.ptMouse)) ) {
-			m_uButtonState = kControlStateHot;
+			m_controlState = kControlStateHot;
 			m_nHotAlpha = 255;
 			Activate();
 			ret = true;
 		}
 		else {
-			m_uButtonState = kControlStateNormal;
+			m_controlState = kControlStateNormal;
 			m_nHotAlpha = 0;
 		}
 	}
@@ -961,7 +946,7 @@ void Control::SetAttribute(const std::wstring& strName, const std::wstring& strV
 		rcMargin.top = _tcstol(pstr + 1, &pstr, 10);    ASSERT(pstr);
 		rcMargin.right = _tcstol(pstr + 1, &pstr, 10);  ASSERT(pstr);
 		rcMargin.bottom = _tcstol(pstr + 1, &pstr, 10); ASSERT(pstr);
-		SetMargin(rcMargin);
+		SetMargin(rcMargin, true);
 	}
 	else if (strName == _T("bkcolor") || strName == _T("bkcolor1")) {
 		LPCTSTR pValue = strValue.c_str();
@@ -1398,7 +1383,9 @@ void Control::AlphaPaint(IRenderContext* pRender, const UiRect& rcPaint)
 
 void Control::Paint(IRenderContext* pRender, const UiRect& rcPaint)
 {
-	if( !::IntersectRect(&m_rcPaint, &rcPaint, &GetRect()) ) return;
+	if (!::IntersectRect(&m_rcPaint, &rcPaint, &GetRect())) {
+		return;
+	}
 
 	PaintShadow(pRender);
 	PaintBkColor(pRender);
@@ -1407,7 +1394,7 @@ void Control::Paint(IRenderContext* pRender, const UiRect& rcPaint)
 	PaintStatusImage(pRender);
 	PaintText(pRender);
 	PaintBorder(pRender);
-  PaintLoading(pRender);
+    PaintLoading(pRender);
 }
 
 void Control::PaintShadow(IRenderContext* pRender)
@@ -1458,13 +1445,13 @@ void Control::PaintBkImage(IRenderContext* pRender)
 
 void Control::PaintStatusColor(IRenderContext* pRender)
 {
-	m_colorMap->PaintStatusColor(pRender, m_rcPaint, m_uButtonState);
+	m_colorMap->PaintStatusColor(pRender, m_rcPaint, m_controlState);
 }
 
 void Control::PaintStatusImage(IRenderContext* pRender)
 {
-	m_imageMap->PaintStatusImage(pRender, kStateImageBk, m_uButtonState);
-	m_imageMap->PaintStatusImage(pRender, kStateImageFore, m_uButtonState);
+	m_imageMap->PaintStatusImage(pRender, kStateImageBk, m_controlState);
+	m_imageMap->PaintStatusImage(pRender, kStateImageFore, m_controlState);
 }
 
 void Control::PaintText(IRenderContext* /*pRender*/)

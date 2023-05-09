@@ -96,7 +96,7 @@ void CComboWnd::OnFinalMessage(HWND hWnd)
 	if (m_pOwner)
 	{
 		m_pOwner->m_pWindow = NULL;
-		m_pOwner->m_uButtonState = kControlStateNormal;
+		m_pOwner->SetState(kControlStateNormal);
 		m_pOwner->Invalidate();
 	}
 	__super::OnFinalMessage(hWnd);
@@ -153,7 +153,6 @@ Combo::Combo() :
     m_pWindow(nullptr),
 	m_iCurSel(-1),
 	m_szDropBox(0, 150),
-	m_uButtonState(kControlStateNormal),
 	m_sDropBoxAttributes(),
 	m_bPopupTop(false)
 {

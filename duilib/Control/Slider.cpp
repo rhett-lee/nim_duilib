@@ -5,7 +5,6 @@ namespace ui
 
 Slider::Slider() :
 	m_szThumb(10, 10),
-	m_uButtonState(kControlStateNormal),
 	m_nStep(1),
 	m_sImageModify(),
 	m_thumbStateImage(),
@@ -144,9 +143,15 @@ void Slider::PaintBkColor(IRenderContext* pRender)
 	rc.Deflate(m_rcProgressBarPadding);
 	SetRect(rc);
 
-	m_rcPaint.Deflate(m_rcProgressBarPadding);
+	UiRect painttRect = GetPaintRect();
+	painttRect.Deflate(m_rcProgressBarPadding);
+	SetPaintRect(painttRect);
+
 	Control::PaintBkColor(pRender);
-	m_rcPaint.Inflate(m_rcProgressBarPadding);
+
+	painttRect = GetPaintRect();
+	painttRect.Inflate(m_rcProgressBarPadding);
+	SetPaintRect(painttRect);
 
 	rc = GetRect();
 	rc.Inflate(m_rcProgressBarPadding);
@@ -179,7 +184,7 @@ void Slider::PaintStatusImage(IRenderContext* pRender)
 		}
 		else return;
 	}
-	else if (m_uButtonState == kControlStateHot) {
+	else if (GetState() == kControlStateHot) {
 		m_sImageModify.clear();
 		m_sImageModify = StringHelper::Printf(L"destscale='false' dest='%d,%d,%d,%d'", rcThumb.left, rcThumb.top, rcThumb.right, rcThumb.bottom);
 		if (!DrawImage(pRender, m_thumbStateImage[kControlStateHot], m_sImageModify)) {
