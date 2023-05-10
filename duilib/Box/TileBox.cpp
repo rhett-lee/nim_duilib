@@ -12,8 +12,12 @@ TileLayout::TileLayout() : m_nColumns(1), m_szItem(0, 0)
 UiSize TileLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 {
 	// Position the elements
-	if( m_szItem.cx > 0 ) m_nColumns = (rc.right - rc.left) / m_szItem.cx;
-	if( m_nColumns == 0 ) m_nColumns = 1;
+	if (m_szItem.cx > 0) {
+		m_nColumns = (rc.right - rc.left) / m_szItem.cx;
+	}
+	if (m_nColumns < 1) {
+		m_nColumns = 1;
+	}
 
 	int cyNeeded = 0;
 	int cxWidth = rc.GetWidth() / m_nColumns;
@@ -43,8 +47,7 @@ UiSize TileLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 			rcTile.right += 1;
 			tmpDeviation--;
 		}
-		if( (iCount % m_nColumns) == 0 )
-		{
+		if( (iCount % m_nColumns) == 0) {
 			int iIndex = iCount;
 			for (auto it2 = it; it2 != items.end(); ++it2) {
 				auto pLineControl = *it2;
@@ -67,17 +70,31 @@ UiSize TileLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 					szAvailable.cx -= m_iChildMargin;
 				}
 
-				if( szAvailable.cx < pControl->GetMinWidth() ) szAvailable.cx = pControl->GetMinWidth();
-				if( pControl->GetMaxWidth() >= 0 && szAvailable.cx > pControl->GetMaxWidth() ) szAvailable.cx = pControl->GetMaxWidth();
+				if (szAvailable.cx < pControl->GetMinWidth()) {
+					szAvailable.cx = pControl->GetMinWidth();
+				}
+				if (pControl->GetMaxWidth() >= 0 && szAvailable.cx > pControl->GetMaxWidth()) {
+					szAvailable.cx = pControl->GetMaxWidth();
+				}
 
 				UiSize szTile = pLineControl->EstimateSize(szAvailable);
-				if( szTile.cx < pControl->GetMinWidth() ) szTile.cx = pControl->GetMinWidth();
-				if( pControl->GetMaxWidth() >= 0 && szTile.cx > pControl->GetMaxWidth() ) szTile.cx = pControl->GetMaxWidth();
-				if( szTile.cy < pControl->GetMinHeight() ) szTile.cy = pControl->GetMinHeight();
-				if( szTile.cy > pControl->GetMaxHeight() ) szTile.cy = pControl->GetMaxHeight();
+				if (szTile.cx < pControl->GetMinWidth()) {
+					szTile.cx = pControl->GetMinWidth();
+				}
+				if (pControl->GetMaxWidth() >= 0 && szTile.cx > pControl->GetMaxWidth()) {
+					szTile.cx = pControl->GetMaxWidth();
+				}
+				if (szTile.cy < pControl->GetMinHeight()) {
+					szTile.cy = pControl->GetMinHeight();
+				}
+				if (szTile.cy > pControl->GetMaxHeight()) {
+					szTile.cy = pControl->GetMaxHeight();
+				}
 
 				cyHeight = std::max(cyHeight, int(szTile.cy + rcMargin.top + rcMargin.bottom));
-				if( (++iIndex % m_nColumns) == 0) break;
+				if ((++iIndex % m_nColumns) == 0) {
+					break;
+				}
 			}
 		}
 
@@ -92,14 +109,26 @@ UiSize TileLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 
 		UiSize szAvailable(newRcTile.right - newRcTile.left, newRcTile.bottom - newRcTile.top);
 		UiSize szTile = pControl->EstimateSize(szAvailable);
-		if( szTile.cx == DUI_LENGTH_STRETCH ) szTile.cx = szAvailable.cx;
-		if( szTile.cy == DUI_LENGTH_STRETCH ) szTile.cy = szAvailable.cy;
-		if( szTile.cx < pControl->GetMinWidth() ) szTile.cx = pControl->GetMinWidth();
-		if( pControl->GetMaxWidth() >= 0 && szTile.cx > pControl->GetMaxWidth() ) szTile.cx = pControl->GetMaxWidth();
-		if( szTile.cy < pControl->GetMinHeight() ) szTile.cy = pControl->GetMinHeight();
-		if( szTile.cy > pControl->GetMaxHeight() ) szTile.cy = pControl->GetMaxHeight();
+		if (szTile.cx == DUI_LENGTH_STRETCH) {
+			szTile.cx = szAvailable.cx;
+		}
+		if (szTile.cy == DUI_LENGTH_STRETCH) {
+			szTile.cy = szAvailable.cy;
+		}
+		if (szTile.cx < pControl->GetMinWidth()) {
+			szTile.cx = pControl->GetMinWidth();
+		}
+		if (pControl->GetMaxWidth() >= 0 && szTile.cx > pControl->GetMaxWidth()) {
+			szTile.cx = pControl->GetMaxWidth();
+		}
+		if (szTile.cy < pControl->GetMinHeight()) {
+			szTile.cy = pControl->GetMinHeight();
+		}
+		if (szTile.cy > pControl->GetMaxHeight()) {
+			szTile.cy = pControl->GetMaxHeight();
+		}
 		UiRect rcPos((newRcTile.left + newRcTile.right - szTile.cx) / 2, (newRcTile.top + newRcTile.bottom - szTile.cy) / 2,
-			(newRcTile.left + newRcTile.right - szTile.cx) / 2 + szTile.cx, (newRcTile.top + newRcTile.bottom - szTile.cy) / 2 + szTile.cy);
+			         (newRcTile.left + newRcTile.right - szTile.cx) / 2 + szTile.cx, (newRcTile.top + newRcTile.bottom - szTile.cy) / 2 + szTile.cy);
 		pControl->SetPos(rcPos);
 
 		if( (++iCount % m_nColumns) == 0 ) {
@@ -123,8 +152,12 @@ UiSize TileLayout::AjustSizeByChild(const std::vector<Control*>& items, UiSize s
 	UiSize size = m_pOwner->Control::EstimateSize(szAvailable);
 	size.cy = 0;
 
-	if( m_szItem.cx > 0 ) m_nColumns = m_pOwner->GetFixedWidth() / m_szItem.cx;
-	if( m_nColumns == 0 ) m_nColumns = 1;
+	if (m_szItem.cx > 0) {
+		m_nColumns = m_pOwner->GetFixedWidth() / m_szItem.cx;
+	}
+	if (m_nColumns < 1) {
+		m_nColumns = 1;
+	}
 	int visibleCount = (int)items.size();
 	for (auto it = items.begin(); it != items.end(); it++) {
 		if (!(*it)->IsVisible()) {
@@ -162,19 +195,16 @@ bool TileLayout::SetAttribute(const std::wstring& strName, const std::wstring& s
 		szItem.cy = wcstol(pstr + 1, &pstr, 10);   ASSERT(pstr);
 		SetItemSize(szItem);
 	}
-	else if( strName == L"columns") 
-	{
+	else if( strName == L"columns") {
 		SetColumns(_wtoi(strValue.c_str()));
 	}
-	else 
-	{
+	else {
 		hasAttribute = Layout::SetAttribute(strName, strValue);
 	}
-
 	return hasAttribute;
 }
 
-UiSize TileLayout::GetItemSize() const
+const UiSize& TileLayout::GetItemSize() const
 {
 	return m_szItem;
 }
@@ -184,7 +214,7 @@ void TileLayout::SetItemSize(UiSize szItem, bool bNeedDpiScale)
   if (bNeedDpiScale)
 	  DpiManager::GetInstance()->ScaleSize(szItem);
 
-	if( m_szItem.cx != szItem.cx || m_szItem.cy != szItem.cy ) {
+	if( (m_szItem.cx != szItem.cx) || (m_szItem.cy != szItem.cy) ) {
 		m_szItem = szItem;
 		m_pOwner->Arrange();
 	}
@@ -197,7 +227,9 @@ int TileLayout::GetColumns() const
 
 void TileLayout::SetColumns(int nCols)
 {
-	if( nCols <= 0 ) return;
+	if (nCols <= 0) {
+		return;
+	}
 	m_nColumns = nCols;
 	m_pOwner->Arrange();
 }

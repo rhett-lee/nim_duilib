@@ -17,22 +17,29 @@ UiSize HLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 	int cxFixed = 0;
 	int nEstimateNum = 0;
 
-	for( auto it = items.begin(); it != items.end(); it++ ) {
-		auto pControl = *it;
+	for(auto pControl : items) {
 		if (pControl == nullptr) {
 			continue;
 		}
-		if( !pControl->IsVisible() ) continue;
-		if( pControl->IsFloat() ) continue;
+		if (!pControl->IsVisible()) {
+			continue;
+		}
+		if (pControl->IsFloat()) {
+			continue;
+		}
 		UiSize sz = pControl->EstimateSize(szAvailable);
 		if( sz.cx == DUI_LENGTH_STRETCH ) {
 			nAdjustables++;
-			cxFixed += pControl->GetMargin().left + pControl->GetMargin().right;
+			cxFixed += (pControl->GetMargin().left + pControl->GetMargin().right);
 		}
 		else {
-			if( sz.cx < pControl->GetMinWidth() ) sz.cx = pControl->GetMinWidth();
-			if( pControl->GetMaxWidth() >= 0 && sz.cx > pControl->GetMaxWidth() ) sz.cx = pControl->GetMaxWidth();
-			cxFixed += sz.cx +  pControl->GetMargin().left + pControl->GetMargin().right;
+			if (sz.cx < pControl->GetMinWidth()) {
+				sz.cx = pControl->GetMinWidth();
+			}
+			if (pControl->GetMaxWidth() >= 0 && sz.cx > pControl->GetMaxWidth()) {
+				sz.cx = pControl->GetMaxWidth();
+			}
+			cxFixed += (sz.cx +  pControl->GetMargin().left + pControl->GetMargin().right);
 		}
 			
 		nEstimateNum++;
@@ -41,7 +48,9 @@ UiSize HLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 
 	int cxExpand = 0;
 	int cxNeeded = 0;
-	if( nAdjustables > 0 ) cxExpand = std::max(0, (int)(szAvailable.cx - cxFixed) / nAdjustables);
+	if (nAdjustables > 0) {
+		cxExpand = std::max(0, (int)(szAvailable.cx - cxFixed) / nAdjustables);
+	}
 	int deviation = szAvailable.cx - cxFixed - cxExpand * nAdjustables;
 	// Position the elements
 	UiSize szRemaining = szAvailable;
@@ -51,8 +60,7 @@ UiSize HLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 	int iAdjustable = 0;
 	int max_height = 0;
 
-	for( auto it = items.begin(); it != items.end(); it++ ) {
-		auto pControl = *it;
+	for(auto pControl : items) {
 		if (pControl == nullptr) {
 			continue;
 		}
@@ -75,13 +83,25 @@ UiSize HLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 				deviation--;
 			}
 		}
-		if( sz.cx < pControl->GetMinWidth() ) sz.cx = pControl->GetMinWidth();
-		if( pControl->GetMaxWidth() >= 0 && sz.cx > pControl->GetMaxWidth() ) sz.cx = pControl->GetMaxWidth();
+		if (sz.cx < pControl->GetMinWidth()) {
+			sz.cx = pControl->GetMinWidth();
+		}
+		if (pControl->GetMaxWidth() >= 0 && sz.cx > pControl->GetMaxWidth()) {
+			sz.cx = pControl->GetMaxWidth();
+		}
 
-		if( sz.cy == DUI_LENGTH_STRETCH ) sz.cy = szAvailable.cy - rcMargin.top - rcMargin.bottom;
-		if( sz.cy < 0 ) sz.cy = 0;
-		if( sz.cy < pControl->GetMinHeight() ) sz.cy = pControl->GetMinHeight();
-		if( sz.cy > pControl->GetMaxHeight() ) sz.cy = pControl->GetMaxHeight();
+		if (sz.cy == DUI_LENGTH_STRETCH) {
+			sz.cy = szAvailable.cy - rcMargin.top - rcMargin.bottom;
+		}
+		if (sz.cy < 0) {
+			sz.cy = 0;
+		}
+		if (sz.cy < pControl->GetMinHeight()) {
+			sz.cy = pControl->GetMinHeight();
+		}
+		if (sz.cy > pControl->GetMaxHeight()) {
+			sz.cy = pControl->GetMaxHeight();
+		}
 
 		int childTop = 0;
 		int childBottm = 0;
@@ -116,13 +136,8 @@ UiSize HLayout::AjustSizeByChild(const std::vector<Control*>& items, UiSize szAv
 {
 	UiSize totalSize;
 	UiSize itemSize;
-	Control* pChildControl = NULL;
-	const int count = (int)items.size();
 	int estimateChildCount = 0;
-
-	for(int it = 0; it < count; it++) 
-	{
-		pChildControl = (Control*)items[it];
+	for(Control* pChildControl : items)	{
 		if (pChildControl == nullptr) {
 			continue;
 		}
@@ -132,11 +147,19 @@ UiSize HLayout::AjustSizeByChild(const std::vector<Control*>& items, UiSize szAv
 
 		estimateChildCount++;
 		itemSize = pChildControl->EstimateSize(szAvailable);
-		if( itemSize.cx < pChildControl->GetMinWidth() ) itemSize.cx = pChildControl->GetMinWidth();
-		if( pChildControl->GetMaxWidth() >= 0 && itemSize.cx > pChildControl->GetMaxWidth() ) itemSize.cx = pChildControl->GetMaxWidth();
-		if( itemSize.cy < pChildControl->GetMinHeight() ) itemSize.cy = pChildControl->GetMinHeight();
-		if( itemSize.cy > pChildControl->GetMaxHeight() ) itemSize.cy = pChildControl->GetMaxHeight();
-		totalSize.cx += itemSize.cx + pChildControl->GetMargin().left + pChildControl->GetMargin().right;
+		if (itemSize.cx < pChildControl->GetMinWidth()) {
+			itemSize.cx = pChildControl->GetMinWidth();
+		}
+		if (pChildControl->GetMaxWidth() >= 0 && itemSize.cx > pChildControl->GetMaxWidth()) {
+			itemSize.cx = pChildControl->GetMaxWidth();
+		}
+		if (itemSize.cy < pChildControl->GetMinHeight()) {
+			itemSize.cy = pChildControl->GetMinHeight();
+		}
+		if (itemSize.cy > pChildControl->GetMaxHeight()) {
+			itemSize.cy = pChildControl->GetMaxHeight();
+		}
+		totalSize.cx += (itemSize.cx + pChildControl->GetMargin().left + pChildControl->GetMargin().right);
 		totalSize.cy = std::max(itemSize.cy + pChildControl->GetMargin().top + pChildControl->GetMargin().bottom, totalSize.cy);
 	}
 

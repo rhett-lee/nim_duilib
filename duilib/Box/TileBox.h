@@ -21,7 +21,7 @@ public:
 	 * @brief 获取子项大小
 	 * @return 返回子项大小
 	 */
-	UiSize GetItemSize() const;
+	const UiSize& GetItemSize() const;
 
 	/**
 	 * @brief 设置子项大小
@@ -44,7 +44,11 @@ public:
 	void SetColumns(int nCols);
 
 protected:
+
+	//显示几列数据
 	int m_nColumns;
+
+	//子项大小
 	UiSize m_szItem;
 };
 
