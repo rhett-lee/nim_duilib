@@ -40,13 +40,12 @@ WindowBuilder::~WindowBuilder()
 
 Box* WindowBuilder::Create(const std::wstring& xml, 
 	                       CreateControlCallback pCallback,
-						   Window* pManager, 
+						   Window* pWindow, 
 	                       Box* pParent, 
 	                       Box* pUserDefinedBox)
 {
 	ASSERT(!xml.empty() && L"xml 参数为空！");
-	if (xml.empty())
-	{
+	if (xml.empty()) {
 		return nullptr;
 	}
 	//字符串以<开头认为是XML字符串，否则认为是XML文件
@@ -62,15 +61,14 @@ Box* WindowBuilder::Create(const std::wstring& xml,
 		sFile += xml;
 
 		std::vector<unsigned char> file_data;
-		if (GlobalManager::GetZipData(sFile, file_data))
-		{
+		if (GlobalManager::GetZipData(sFile, file_data)) {
 			bool ret = m_xml->LoadFromMem(file_data.data(), static_cast<DWORD>(file_data.size()));
 			if (!ret) {
 				ASSERT(!L"LoadFromMem 失败");
 				return nullptr;
 			}
 		}
-		else{
+		else {
 			if (!m_xml->LoadFromFile(xml.c_str())) {
 				ASSERT(!L"LoadFromFile 失败");
 				return nullptr;
@@ -80,21 +78,22 @@ Box* WindowBuilder::Create(const std::wstring& xml,
 	else {
 		if (!m_xml->LoadFromFile(xml.c_str())) {
 			ASSERT(!L"LoadFromFile 失败");
-			return NULL;
+			return nullptr;
 		}
 	}
-	return Create(pCallback, pManager, pParent, pUserDefinedBox);
+	return Create(pCallback, pWindow, pParent, pUserDefinedBox);
 }
 
-Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pManager, Box* pParent, Box* pUserDefinedBox)
+Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box* pParent, Box* pUserDefinedBox)
 {
 	m_createControlCallback = pCallback;
 	CMarkupNode root = m_xml->GetRoot();
+	ASSERT(root.IsValid());
 	if (!root.IsValid()) {
 		return nullptr;
 	}
 
-	if( pManager != nullptr) {
+	if( pWindow != nullptr) {
 		std::wstring strClass;
 		std::wstring strName;
 		std::wstring strValue;
@@ -126,7 +125,7 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pManager, Bo
 			}
 		}
 		else if( strClass == _T("Window") ) {
-			if( pManager->GetHWND() ) {
+			if( pWindow->GetHWND() ) {
 				int nAttributes = root.GetAttributeCount();
 				for( int i = 0; i < nAttributes; i++ ) {
 					strName = root.GetAttributeName(i);
@@ -135,17 +134,17 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pManager, Bo
 						LPTSTR pstr = NULL;
 						int cx = _tcstol(strValue.c_str(), &pstr, 10);	ASSERT(pstr);    
 						int cy = _tcstol(pstr + 1, &pstr, 10);	ASSERT(pstr); 
-						pManager->SetInitSize(cx, cy);
+						pWindow->SetInitSize(cx, cy);
 					} 
 					else if( strName == _T("heightpercent") ) {
 						double lfHeightPercent = _ttof(strValue.c_str());
 	
 						MONITORINFO oMonitor = {}; 
 						oMonitor.cbSize = sizeof(oMonitor);
-						::GetMonitorInfo(::MonitorFromWindow(pManager->GetHWND(), MONITOR_DEFAULTTOPRIMARY), &oMonitor);
+						::GetMonitorInfo(::MonitorFromWindow(pWindow->GetHWND(), MONITOR_DEFAULTTOPRIMARY), &oMonitor);
 						int nWindowHeight = int((oMonitor.rcWork.bottom - oMonitor.rcWork.top) * lfHeightPercent);
-						int nMinHeight = pManager->GetMinInfo().cy;
-						int nMaxHeight = pManager->GetMaxInfo().cy;
+						int nMinHeight = pWindow->GetMinInfo().cy;
+						int nMaxHeight = pWindow->GetMaxInfo().cy;
 						if (nMinHeight != 0 && nWindowHeight < nMinHeight) {
 							nWindowHeight = nMinHeight;
 						}
@@ -153,8 +152,8 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pManager, Bo
 							nWindowHeight = nMaxHeight;
 						}
 
-						UiSize xy = pManager->GetInitSize();
-						pManager->SetInitSize(xy.cx, nWindowHeight, false, false);
+						UiSize xy = pWindow->GetInitSize();
+						pWindow->SetInitSize(xy.cx, nWindowHeight, false, false);
 					}
 					else if( strName == _T("sizebox") ) {
 						UiRect rcSizeBox;
@@ -163,7 +162,7 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pManager, Bo
 						rcSizeBox.top = _tcstol(pstr + 1, &pstr, 10);    ASSERT(pstr);    
 						rcSizeBox.right = _tcstol(pstr + 1, &pstr, 10);  ASSERT(pstr);    
 						rcSizeBox.bottom = _tcstol(pstr + 1, &pstr, 10); ASSERT(pstr);    
-						pManager->SetSizeBox(rcSizeBox);
+						pWindow->SetSizeBox(rcSizeBox);
 					}
 					else if( strName == _T("caption") ) {
 						UiRect rcCaption;
@@ -172,37 +171,37 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pManager, Bo
 						rcCaption.top = _tcstol(pstr + 1, &pstr, 10);    ASSERT(pstr);    
 						rcCaption.right = _tcstol(pstr + 1, &pstr, 10);  ASSERT(pstr);    
 						rcCaption.bottom = _tcstol(pstr + 1, &pstr, 10); ASSERT(pstr);
-						pManager->SetCaptionRect(rcCaption);
+						pWindow->SetCaptionRect(rcCaption);
 					}
 					else if( strName == _T("text") ) {
-						pManager->SetText(strValue);
+						pWindow->SetText(strValue);
 					}
 					else if (strName == _T("textid")) {
-						pManager->SetTextId(strValue);
+						pWindow->SetTextId(strValue);
 					}
 					else if( strName == _T("roundcorner") ) {
 						LPTSTR pstr = NULL;
 						int cx = _tcstol(strValue.c_str(), &pstr, 10);  ASSERT(pstr);    
 						int cy = _tcstol(pstr + 1, &pstr, 10);    ASSERT(pstr); 
-						pManager->SetRoundCorner(cx, cy);
+						pWindow->SetRoundCorner(cx, cy);
 					} 
 					else if( strName == _T("mininfo") ) {
 						LPTSTR pstr = NULL;
 						int cx = _tcstol(strValue.c_str(), &pstr, 10);  ASSERT(pstr);    
 						int cy = _tcstol(pstr + 1, &pstr, 10);    ASSERT(pstr); 
-						pManager->SetMinInfo(cx, cy);
+						pWindow->SetMinInfo(cx, cy);
 					}
 					else if( strName == _T("maxinfo") ) {
 						LPTSTR pstr = NULL;
 						int cx = _tcstol(strValue.c_str(), &pstr, 10);  ASSERT(pstr);    
 						int cy = _tcstol(pstr + 1, &pstr, 10);    ASSERT(pstr); 
-						pManager->SetMaxInfo(cx, cy);
+						pWindow->SetMaxInfo(cx, cy);
 					}
 					else if( strName == _T("shadowattached") ) {
-						pManager->SetShadowAttached(strValue == _T("true"));
+						pWindow->SetShadowAttached(strValue == _T("true"));
 					}
 					else if (strName == _T("shadowimage")) {
-						pManager->SetShadowImage(strValue);
+						pWindow->SetShadowImage(strValue);
 					}
 					else if (strName == _T("shadowcorner")) {
 						UiRect rc;
@@ -211,7 +210,7 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pManager, Bo
 						rc.top = _tcstol(pstr + 1, &pstr, 10);    ASSERT(pstr);
 						rc.right = _tcstol(pstr + 1, &pstr, 10);  ASSERT(pstr);
 						rc.bottom = _tcstol(pstr + 1, &pstr, 10); ASSERT(pstr);
-						pManager->SetShadowCorner(rc);
+						pWindow->SetShadowCorner(rc);
 					}
 					else if (strName == _T("alphafixcorner") || strName == _T("custom_shadow")) {
 						UiRect rc;
@@ -220,10 +219,10 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pManager, Bo
 						rc.top = _tcstol(pstr + 1, &pstr, 10);    ASSERT(pstr);
 						rc.right = _tcstol(pstr + 1, &pstr, 10);  ASSERT(pstr);
 						rc.bottom = _tcstol(pstr + 1, &pstr, 10); ASSERT(pstr);
-						pManager->SetAlphaFixCorner(rc);
+						pWindow->SetAlphaFixCorner(rc);
 					}
 					else if (strName == _T("renderalpha")) {
-						pManager->SetRenderTransparent(strValue == _T("true"));
+						pWindow->SetRenderTransparent(strValue == _T("true"));
 					}
 				}
 			}
@@ -374,7 +373,7 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pManager, Bo
 					if( !strClassName.empty() ) {
 						ASSERT( GlobalManager::GetClassAttributes(strClassName).empty() );	//窗口中的Class不能与全局的重名
 						StringHelper::TrimLeft(strAttribute);
-						pManager->AddClass(strClassName, strAttribute);
+						pWindow->AddClass(strClassName, strAttribute);
 					}
 				}
 				else if (strClass == _T("TextColor")) {
@@ -392,7 +391,7 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pManager, Bo
 						}
 					}
 					if (!strColorName.empty()) {
-						pManager->AddTextColor(strColorName, strColor);
+						pWindow->AddTextColor(strColorName, strColor);
 					}
 				}
 			}
@@ -407,10 +406,10 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pManager, Bo
 		}
 		else {
 			if (!pUserDefinedBox) {
-				return (Box*)_Parse(&root, pParent, pManager);
+				return (Box*)_Parse(&root, pParent, pWindow);
 			}
 			else {
-				_Parse(&node, pUserDefinedBox, pManager);
+				_Parse(&node, pUserDefinedBox, pWindow);
 
 				int nAttributes = node.GetAttributeCount();
 				for (int i = 0; i < nAttributes; i++) {
@@ -425,7 +424,7 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pManager, Bo
 	return nullptr;
 }
 
-Control* WindowBuilder::_Parse(CMarkupNode* pRoot, Control* pParent, Window* pManager)
+Control* WindowBuilder::_Parse(CMarkupNode* pRoot, Control* pParent, Window* pWindow)
 {
 	ASSERT(pRoot != nullptr);
 	if (pRoot == nullptr) {
@@ -459,7 +458,7 @@ Control* WindowBuilder::_Parse(CMarkupNode* pRoot, Control* pParent, Window* pMa
 			}
             for ( int i = 0; i < nCount; i++ ) {
                 WindowBuilder builder;
-                pControl = builder.Create(szValue, m_createControlCallback, pManager, (Box*)pParent);
+                pControl = builder.Create(szValue, m_createControlCallback, pWindow, (Box*)pParent);
             }
             continue;
         }
@@ -507,10 +506,10 @@ Control* WindowBuilder::_Parse(CMarkupNode* pRoot, Control* pParent, Window* pMa
 			}
 		}
 
-		pControl->SetWindow(pManager);
+		pControl->SetWindow(pWindow);
 		// Add children
 		if (node.HasChildren()) {
-			_Parse(&node, (Box*)pControl, pManager);
+			_Parse(&node, (Box*)pControl, pWindow);
 		}
 
 		// Process attributes

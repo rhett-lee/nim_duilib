@@ -47,12 +47,6 @@ public:
 	static void Shutdown();
 
 	/**
-	 * @brief 获取当前程序所在目录
-	 * @return 返回当前程序所在目录
-	 */
-	static std::wstring GetCurrentPath();
-
-	/**
 	 * @brief 获取当前资源所在目录
 	 * @return 返回当前资源所在目录
 	 */
@@ -63,13 +57,6 @@ public:
 	* @return 返回当前语言文件路径
 	*/
 	static std::wstring GetLanguagePath();
-
-	/**
-	 * @brief 设置程序当前目录
-	 * @param[in] strPath 要设置的路径
-	 * @return 无
-	 */
-	static void SetCurrentPath(const std::wstring& strPath);
 
 	/**
 	 * @brief 设置皮肤资源所在目录

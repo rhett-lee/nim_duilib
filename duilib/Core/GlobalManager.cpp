@@ -143,13 +143,6 @@ void GlobalManager::Shutdown()
 	Gdiplus::GdiplusShutdown(g_gdiplusToken);
 }
 
-std::wstring GlobalManager::GetCurrentPath()
-{
-	TCHAR tszModule[MAX_PATH + 1] = { 0 };
-	::GetCurrentDirectory(MAX_PATH, tszModule);
-	return tszModule;
-}
-
 std::wstring GlobalManager::GetResourcePath()
 {
 	return m_pStrResourcePath;
@@ -158,11 +151,6 @@ std::wstring GlobalManager::GetResourcePath()
 std::wstring GlobalManager::GetLanguagePath()
 {
 	return m_pStrLanguagePath;
-}
-
-void GlobalManager::SetCurrentPath(const std::wstring& strPath)
-{
-	::SetCurrentDirectory(strPath.c_str());
 }
 
 void GlobalManager::SetResourcePath(const std::wstring& strPath)
