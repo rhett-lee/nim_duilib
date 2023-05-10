@@ -22,7 +22,7 @@ ui::UiSize TooltipBody::EstimateSize(ui::UiSize szAvailable)
   ui::UiRect marginRect = GetMargin();
   maxSize.cx -= marginRect.left + marginRect.right;
 
-  ui::UiRect paddingRect = m_pLayout->GetPadding();
+  ui::UiRect paddingRect = GetLayout()->GetPadding();
   maxSize.cx -= paddingRect.left + paddingRect.right;
 
   ui::UiSize editSize{ 0,0 };

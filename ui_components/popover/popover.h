@@ -459,7 +459,7 @@ public:
       requiredSize.cy = 0;
     }
     else {
-      requiredSize = m_pLayout->ArrangeChild(m_items, rc);
+      requiredSize = GetLayout()->ArrangeChild(m_items, rc);
     }
   }
 

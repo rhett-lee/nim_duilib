@@ -170,7 +170,7 @@ void ListBox::EnsureVisible(const UiRect& rcItem)
 	UiRect rcNewItem = rcItem;
 	rcNewItem.Offset(-GetScrollPos().cx, -GetScrollPos().cy);
 	UiRect rcList = GetPos();
-	UiRect rcListInset = m_pLayout->GetPadding();
+	UiRect rcListInset = GetLayout()->GetPadding();
 
 	rcList.left += rcListInset.left;
 	rcList.top += rcListInset.top;
@@ -218,7 +218,7 @@ bool ListBox::ScrollItemToTop(const std::wstring& strItemName)
 		if ((*it)->GetName() == strItemName) {
 			if (GetScrollRange().cy != 0) {
 				UiSize scrollPos = GetScrollPos();
-				scrollPos.cy = (*it)->GetPos().top - m_pLayout->GetInternalPos().top;
+				scrollPos.cy = (*it)->GetPos().top - GetLayout()->GetInternalPos().top;
 				if (scrollPos.cy >= 0) {
 					SetScrollPos(scrollPos);
 					return true;
@@ -238,7 +238,7 @@ bool ListBox::ScrollItemToTop(const std::wstring& strItemName)
 
 Control* ListBox::GetTopItem()
 {
-	int listTop = GetPos().top + m_pLayout->GetPadding().top + GetScrollPos().cy;
+	int listTop = GetPos().top + GetLayout()->GetPadding().top + GetScrollPos().cy;
 	for (auto it = m_items.begin(); it != m_items.end(); it++) {
 		if ((*it)->IsVisible() && !(*it)->IsFloat() && (*it)->GetPos().bottom >= listTop) {
 			return (*it);

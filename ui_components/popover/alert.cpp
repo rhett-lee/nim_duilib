@@ -6,7 +6,7 @@ AlertFooter::AlertFooter(const std::wstring& strOk,
   const std::wstring& strCancel) :
   PopoverFooter(strOk, strCancel)
 {
-  m_pLayout->SetChildMargin(0);
+    GetLayout()->SetChildMargin(0);
 }
 
 std::wstring AlertFooter::GetType() const { return L"AlertFooter"; }

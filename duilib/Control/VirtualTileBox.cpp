@@ -522,7 +522,7 @@ bool VirtualTileBox::NeedReArrange(ScrollDirection& direction)
 
 VirtualTileLayout* VirtualTileBox::GetTileLayout()
 {
-  auto* pLayout = dynamic_cast<VirtualTileLayout*>(m_pLayout.get());
+  auto* pLayout = dynamic_cast<VirtualTileLayout*>(GetLayout());
   return pLayout;
 }
 

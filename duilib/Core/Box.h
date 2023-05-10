@@ -14,6 +14,8 @@ namespace ui
 class Box;
 class AnimationPlayer;
 
+/** 控件布局
+*/
 class UILIB_API Layout
 {
 public:
@@ -64,28 +66,27 @@ public:
 	 * @brief 获取内边距
 	 * @return 返回内边距四边的大小
 	 */
-	virtual UiRect GetPadding() const;
+	const UiRect& GetPadding() const { return m_rcPadding; }
 
 	/**
 	 * @brief 设置内边距，相当于设置客户区
 	 * @param[in] rcPadding 内边距数据
 	 * @param[in] bNeedDpiScale 是否根据 DPI 自适应，默认为 true
-	 * @return 无
 	 */
-	virtual void SetPadding(UiRect rcPadding, bool bNeedDpiScale = true);
+	void SetPadding(UiRect rcPadding, bool bNeedDpiScale);
 
 	/**
 	 * @brief 获取子控件之间的额外边距
 	 * @return 返回额外间距的数值
 	 */
-	virtual int GetChildMargin() const;
+	int GetChildMargin() const { return m_iChildMargin; }
 
 	/**
 	 * @brief 设置子控件之间的额外边距
 	 * @param[in] iMargin 要设置的边距数值
 	 * @return 无
 	 */
-	virtual void SetChildMargin(int iMargin);
+	void SetChildMargin(int iMargin);
 
 	/**
 	 * @brief 获取除了内边距外的可用范围
@@ -94,8 +95,14 @@ public:
 	UiRect GetInternalPos() const;
 
 protected:
+
+	//内边距四边的大小
 	UiRect m_rcPadding;
+
+	//子控件之间的额外边距
 	int m_iChildMargin;
+
+	//所属Box对象
 	Box *m_pOwner;
 };
 
@@ -129,22 +136,8 @@ public:
 	virtual void ClearImageCache() override;
 	virtual UINT GetControlFlags() const override;
 
+public:
 	/// 容器自有方法
-	/**
-	 * @brief 查找指定子控件
-	 * @param[in] pstrSubControlName 子控件名称
-	 * @return 返回子控件指针
-	 */
-	Control* FindSubControl(const std::wstring& pstrSubControlName);
-
-	/**
-	 * @brief 查找下一个可选控件的索引（面向 list、combo）
-	 * @param[in] iIndex 指定要起始查找的索引
-	 * @param[in] bForward true 为递增查找， false 为递减查找
-	 * @return 下一个可选控件的索引，返回 -1 为没有可选控件
-	 */
-	virtual int FindSelectable(int iIndex, bool bForward = true) const;
-
 	/**
 	 * @brief 根据索引查找指定控件
 	 * @param[in] iIndex 控件索引
@@ -208,6 +201,7 @@ public:
 	 */
 	virtual void RemoveAll();
 
+public:
 	/**
 	 * @brief 检查是否包含某一个控件
 	 * @param[in] pControl 控件的指针
@@ -231,72 +225,106 @@ public:
 	 */
 	void ResetChildIndex(Control* pChild, size_t iIndex);
 
+public:
+	/**
+	 * @brief 查找指定子控件
+	 * @param[in] pstrSubControlName 子控件名称
+	 * @return 返回子控件指针
+	 */
+	Control* FindSubControl(const std::wstring& pstrSubControlName);
+
+	/**
+	 * @brief 查找下一个可选控件的索引（面向 list、combo）
+	 * @param[in] iIndex 指定要起始查找的索引
+	 * @param[in] bForward true 为递增查找， false 为递减查找
+	 * @return 下一个可选控件的索引，返回 -1 为没有可选控件
+	 */
+	int FindSelectable(int iIndex, bool bForward = true) const;
+
 	/**
 	 * @brief 判断是否自动销毁
 	 * @return true 为自动销毁，false 为不自动销毁
 	 */
-    virtual bool IsAutoDestroy() const;
+    bool IsAutoDestroyChild() const { return m_bAutoDestroyChild; }
 
 	/**
 	 * @brief 设置控件是否自动销毁
 	 * @param[in] bAuto true 为自动销毁，false 为不自动销毁
 	 * @return 无
 	 */
-    virtual void SetAutoDestroyChild(bool bAuto);
+    void SetAutoDestroyChild(bool bAuto) { m_bAutoDestroyChild = bAuto; }
 
 	/**
 	 * @brief 判断窗口关闭后是否自动销毁
 	 * @return true 为自动销毁，false 为不自动销毁
 	 */
-    virtual bool IsDelayedDestroy() const;
+    bool IsDelayedDestroy() const { return m_bDelayedDestroy; }
 
 	/**
 	 * @brief 设置窗口关闭后是否自动销毁
-	 * @param[in] bDelayed true 为自动销毁，false 为不自动销毁
+	 * @param[in] bDelayedDestroy true 为自动销毁，false 为不自动销毁
 	 * @return 无
 	 */
-    virtual void SetDelayedDestroy(bool bDelayed);
+	void SetDelayedDestroy(bool bDelayedDestroy) { m_bDelayedDestroy = bDelayedDestroy; }
 
 	/**
 	 * @brief 获取容器是否响应鼠标操作
 	 * @return true 为响应，false 为不响应
 	 */
-    virtual bool IsMouseChildEnabled() const;
+    bool IsMouseChildEnabled() const { return m_bMouseChildEnabled; }
 
 	/**
 	 * @brief 设置容器响应鼠标操作
 	 * @param[in] bEnable 设置为 true 为响应鼠标操作，设置为 false 为不响应，默认为 true
-	 * @return 无
 	 */
-    virtual void SetMouseChildEnabled(bool bEnable = true);
+	void SetMouseChildEnabled(bool bEnable) { m_bMouseChildEnabled = bEnable; }
 
 	/**
 	 * @brief 获取容器布局对象指针
 	 * @return 返回容器关联的布局对象指针
 	 */
-	virtual Layout* GetLayout() const;
+	Layout* GetLayout() const { return m_pLayout.get(); }
 
 	/**
 	 * @brief 重新关联布局对象
 	 * @param[in] pLayout 布局对象指针
 	 * @return 无
 	 */
-	virtual void ReSetLayout(Layout* pLayout);
+	void ReSetLayout(Layout* pLayout);
 
 	/**
-	 * @brief 获取内边距的位置信息
-	 * @return 返回内边距的位置信息
+	 * @brief 获取该控件去掉内边距后的位置大小信息
 	 */
-	virtual	UiRect GetPaddingPos() const;
+	UiRect GetPaddingPos() const;
+
+private:
+	/**@brief 向指定位置添加一个控件
+	 * @param[in] pControl 控件指针
+	 * @param[in] iIndex 在该索引之后插入控件
+	 */
+	bool AddItemAt(Control* pControl, size_t iIndex);
+
+	/**@brief 根据控件指针从容器中移除一个控件
+	 * @param[in] pControl 控件的指针
+	 */
+	bool RemoveItem(Control* pControl);
 
 protected:
-	std::unique_ptr<Layout> m_pLayout;
-	bool m_bAutoDestroy;
-	bool m_bDelayedDestroy;
-	
+
+	//容器中的子控件列表
 	std::vector<Control*> m_items;
 
 private:
+
+	//是否自动删除item的对象（如果为true：在从m_items移除元素时，会delete掉这个对象；如果为false，不delete）
+	bool m_bAutoDestroyChild;
+
+	//是否延迟删除item对象，如果为true，则元素移除后，会放到Window对象中，延迟delete这个对象，仅当m_bAutoDestroyChild时有效
+	bool m_bDelayedDestroy;
+	
+	//布局管理接口
+	std::unique_ptr<Layout> m_pLayout;
+
 	//是否允许响应子控件的鼠标消息
 	bool m_bMouseChildEnabled;
 };
@@ -594,25 +622,12 @@ public:
 	void SetScrollBarPadding(UiRect rcScrollBarPadding);
 
 	/**
-	 * @brief 待补充
-	 * @param[in] 待补充
-	 * @return 待补充
-	 */
-	bool GetDefaultDisplayScrollbar() const;
-
-	/**
-	 * @brief 待补充
-	 * @param[in] 待补充
-	 * @return 待补充
-	 */
-	void SetDefaultDisplayScrollbar(bool bDefaultDisplay);
-
-	/**
 	 * @brief 监听滚动条位置变化事件
 	 * @param[in] callback 有变化后通知的回调函数
 	 * @return 无
 	 */
 	void AttachScrollChange(const EventCallback& callback) { AttachEvent(kEventScrollChange, callback); }
+
 protected:
 
 	/**
@@ -628,28 +643,44 @@ protected:
 	 * @return 无
 	 */
 	virtual void LoadImageCache(bool bFromTopLeft);
+
 private:
-	/**
-	 * @brief 待补充
-	 * @param[in] 待补充
-	 * @return 待补充
+	/**@brief 设置位置大小
 	 */
 	void SetPosInternally(UiRect rc);
 
 protected:
+	//垂直滚动条接口
 	std::unique_ptr<ScrollBar> m_pVerticalScrollBar;
+
+	//水平滚动条接口
 	std::unique_ptr<ScrollBar> m_pHorizontalScrollBar;
 
+	//垂直滚动条滚动步长
 	int m_nVerScrollUnitPixels;
+
+	//水平滚动条滚动步长
     int m_nHerScrollUnitPixels;
-	bool m_bScrollProcess; // 防止SetPos循环调用
+
+	// 防止SetPos循环调用
+	bool m_bScrollProcess; 
+
+	//是否锁定到底部
 	bool m_bHoldEnd;
+
+	//容器的滚动条是否悬浮在子控件上面
 	bool m_bScrollBarFloat;
-	bool m_bDefaultDisplayScrollbar;
+
+	//容器的滚动条是否在左侧显示
 	bool m_bVScrollBarLeftPos;
+
+	//滚动条的外边距
 	UiRect m_rcScrollBarPadding;
 
+	//滚动条动画效果支持
 	std::unique_ptr<AnimationPlayer> m_scrollAnimation;
+
+	//滚动条动画效果支持
 	std::unique_ptr<AnimationPlayer> m_renderOffsetYAnimation;
 };
 

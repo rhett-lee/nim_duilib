@@ -139,7 +139,7 @@ namespace nim_comp
 		// reassigned by this operation - which is why it is important to reassign
 		// the items back to the righfull owner/manager when the window closes.
 		m_pDropList.reset(new ui::ListBox(new ui::VLayout));
-		m_pDropList->GetLayout()->SetPadding(ui::UiRect(1, 1, 1, 1));
+		m_pDropList->GetLayout()->SetPadding(ui::UiRect(1, 1, 1, 1), true);
 		m_pDropList->SetBkColor(L"bk_wnd_lightcolor");
 		m_pDropList->SetBorderColor(L"splitline_level1");
 		m_pDropList->SetBorderSize(ui::UiRect(1, 1, 1, 1));

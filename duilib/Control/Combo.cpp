@@ -160,7 +160,7 @@ Combo::Combo() :
 	// reassigned by this operation - which is why it is important to reassign
 	// the items back to the righfull owner/manager when the window closes.
 	m_pLayout.reset(new ListBox(new VLayout));
-	m_pLayout->GetLayout()->SetPadding(UiRect(1, 1, 1, 1));
+	m_pLayout->GetLayout()->SetPadding(UiRect(1, 1, 1, 1), true);
 	m_pLayout->SetBkColor(L"bk_wnd_lightcolor");
 	m_pLayout->SetBorderColor(L"combobox_border");
 	m_pLayout->SetBorderSize(UiRect(1, 1, 1, 1));

@@ -2342,10 +2342,10 @@ UiSize RichEdit::EstimateSize(UiSize /*szAvailable*/)
 			&iHeight);
 		
 		if (size.cx == DUI_LENGTH_AUTO) {
-			size.cx = iWidth + m_pLayout->GetPadding().left + m_pLayout->GetPadding().right;
+			size.cx = iWidth + GetLayout()->GetPadding().left + GetLayout()->GetPadding().right;
 		}
 		else if (size.cy == DUI_LENGTH_AUTO) {
-			size.cy = iHeight + m_pLayout->GetPadding().top + m_pLayout->GetPadding().bottom;
+			size.cy = iHeight + GetLayout()->GetPadding().top + GetLayout()->GetPadding().bottom;
 		}
 	}
     return size;
@@ -2378,10 +2378,10 @@ void RichEdit::SetPos(UiRect rc)
     Control::SetPos(rc);
     rc = GetRect();
 
-    rc.left += m_pLayout->GetPadding().left;
-    rc.top += m_pLayout->GetPadding().top;
-    rc.right -= m_pLayout->GetPadding().right;
-    rc.bottom -= m_pLayout->GetPadding().bottom;
+    rc.left += GetLayout()->GetPadding().left;
+    rc.top += GetLayout()->GetPadding().top;
+    rc.right -= GetLayout()->GetPadding().right;
+    rc.bottom -= GetLayout()->GetPadding().bottom;
     bool bVScrollBarVisiable = false;
     if( m_pVerticalScrollBar && m_pVerticalScrollBar->IsValid() ) {
         bVScrollBarVisiable = true;
@@ -2749,10 +2749,10 @@ void RichEdit::PaintChild(IRenderContext* pRender, const UiRect& rcPaint)
 
     if( m_items.size() > 0 ) {
         UiRect rc = GetRect();
-        rc.left += m_pLayout->GetPadding().left;
-        rc.top += m_pLayout->GetPadding().top;
-        rc.right -= m_pLayout->GetPadding().right;
-        rc.bottom -= m_pLayout->GetPadding().bottom;
+        rc.left += GetLayout()->GetPadding().left;
+        rc.top += GetLayout()->GetPadding().top;
+        rc.right -= GetLayout()->GetPadding().right;
+        rc.bottom -= GetLayout()->GetPadding().bottom;
         if( m_pVerticalScrollBar && m_pVerticalScrollBar->IsValid() ) rc.right -= m_pVerticalScrollBar->GetFixedWidth();
         if( m_pHorizontalScrollBar && m_pHorizontalScrollBar->IsValid() ) rc.bottom -= m_pHorizontalScrollBar->GetFixedHeight();
 

@@ -444,7 +444,7 @@ bool MultiBrowserForm::DetachBox(BrowserBox *browser_box)
 		taskbar_manager_.UnregisterTab(*taskbar_item);
 	// 在右侧Tab浏览器盒子列表中找到浏览器盒子并且移除盒子
 	// 在这里不能delete browser_box
-	bool auto_destroy = borwser_box_tab_->IsAutoDestroy();
+	bool auto_destroy = borwser_box_tab_->IsAutoDestroyChild();
 	borwser_box_tab_->SetAutoDestroyChild(false);
 	if (!borwser_box_tab_->Remove(browser_box))
 	{

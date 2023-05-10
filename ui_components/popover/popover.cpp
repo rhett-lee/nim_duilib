@@ -200,7 +200,7 @@ PopoverHeader::PopoverHeader(
 {
   SetFixedWidth(DUI_LENGTH_AUTO, true, true);
   SetFixedHeight(DUI_LENGTH_AUTO, true);
-  m_pLayout->SetChildMargin(12);
+  GetLayout()->SetChildMargin(12);
 
   if (m_nIconType != kIconNone) {
     m_pControlIcon = new ui::Control();
@@ -256,7 +256,7 @@ ui::UiSize PopoverHeader::EstimateSize(ui::UiSize szAvailable)
     ui::UiSize maxSize = szAvailable;
 
     ui::UiRect marginRect = GetMargin();
-    ui::UiRect paddingRect = m_pLayout->GetPadding();
+    ui::UiRect paddingRect = GetLayout()->GetPadding();
 
     maxSize.cx -= marginRect.left + marginRect.right;
     maxSize.cx -= paddingRect.left + paddingRect.right;
@@ -271,7 +271,7 @@ ui::UiSize PopoverHeader::EstimateSize(ui::UiSize szAvailable)
       editMaxSize.cx -= m_pButtonClose->GetFixedWidth();
     }
 
-    int childMargin = m_pLayout->GetChildMargin();
+    int childMargin = GetLayout()->GetChildMargin();
     editMaxSize.cx -= ((int)m_items.size() - 1) * childMargin;
 
     ui::UiSize editSize{ 0,0 };
@@ -381,7 +381,7 @@ ui::UiSize PopoverBody::EstimateSize(ui::UiSize szAvailable)
     ui::UiRect marginRect = GetMargin();
     maxSize.cx -= marginRect.left + marginRect.right;
 
-    ui::UiRect paddingRect = m_pLayout->GetPadding();
+    ui::UiRect paddingRect = GetLayout()->GetPadding();
     maxSize.cx -= paddingRect.left + paddingRect.right;
 
     ui::UiSize editSize{ 0,0 };
@@ -440,7 +440,7 @@ PopoverFooter::PopoverFooter(const std::wstring& strOk,
 {
   SetFixedWidth(DUI_LENGTH_AUTO, true, true);
   SetFixedHeight(DUI_LENGTH_AUTO, true);
-  m_pLayout->SetChildMargin(12);
+  GetLayout()->SetChildMargin(12);
 }
 
 PopoverFooter::~PopoverFooter()
@@ -464,7 +464,7 @@ ui::UiSize PopoverFooter::EstimateSize(ui::UiSize szAvailable)
     ui::UiRect marginRect = GetMargin();
     maxSize.cx -= marginRect.left + marginRect.right;
 
-    ui::UiRect paddingRect = m_pLayout->GetPadding();
+    ui::UiRect paddingRect = GetLayout()->GetPadding();
     maxSize.cx -= paddingRect.left + paddingRect.right;
 
     ui::UiSize okSize{ 0,0 };
@@ -479,7 +479,7 @@ ui::UiSize PopoverFooter::EstimateSize(ui::UiSize szAvailable)
       cancelSize.cy = m_pButtonCancel->GetFixedHeight();
     }
 
-    int childMargin = m_pLayout->GetChildMargin();
+    int childMargin = GetLayout()->GetChildMargin();
 
     fixedSize.cx = okSize.cx + cancelSize.cx +
       paddingRect.left + paddingRect.right +
@@ -537,14 +537,14 @@ ui::UiSize PopoverRoot::EstimateSize(ui::UiSize szAvailable)
       return GetEstimateSize();
     }
 
-    ui::UiRect paddingRect = m_pLayout->GetPadding();
+    ui::UiRect paddingRect = GetLayout()->GetPadding();
     ui::UiRect marginRect = GetMargin();
 
     ui::UiSize maxSize{ szAvailable.cx,0 };
     maxSize.cx -= paddingRect.left + paddingRect.right;
     maxSize.cx -= marginRect.left + marginRect.right;
 
-    ui::UiSize sizeRoot = m_pLayout->AjustSizeByChild(m_items, maxSize);
+    ui::UiSize sizeRoot = GetLayout()->AjustSizeByChild(m_items, maxSize);
 
     fixedSize.cx = sizeRoot.cx;
     fixedSize.cy = sizeRoot.cy;
@@ -649,12 +649,12 @@ ui::UiSize Popover::EstimateSize(ui::UiSize /*szAvailable*/)
       return GetEstimateSize();
     }
 
-    ui::UiRect paddingRect = m_pLayout->GetPadding();
+    ui::UiRect paddingRect = GetLayout()->GetPadding();
 
     ui::UiSize maxSize{ 0,0 };
     maxSize.cx = GetMaxWidth();
     maxSize.cx -= paddingRect.left + paddingRect.right;
-    ui::UiSize sizeRoot = m_pLayout->AjustSizeByChild({ m_pPopoverRoot }, maxSize);
+    ui::UiSize sizeRoot = GetLayout()->AjustSizeByChild({ m_pPopoverRoot }, maxSize);
 
     fixedSize.cx = sizeRoot.cx;
     fixedSize.cy = sizeRoot.cy;
@@ -702,10 +702,10 @@ void Popover::SetPos(ui::UiRect rc)
   }
 
   ui::Control::SetPos(rc);
-  rc.left += m_pLayout->GetPadding().left;
-  rc.top += m_pLayout->GetPadding().top;
-  rc.right -= m_pLayout->GetPadding().right;
-  rc.bottom -= m_pLayout->GetPadding().bottom;
+  rc.left += GetLayout()->GetPadding().left;
+  rc.top += GetLayout()->GetPadding().top;
+  rc.right -= GetLayout()->GetPadding().right;
+  rc.bottom -= GetLayout()->GetPadding().bottom;
 
   ui::UiSize requiredSize;
   if (m_items.size() == 0) {
@@ -713,7 +713,7 @@ void Popover::SetPos(ui::UiRect rc)
     requiredSize.cy = 0;
   }
   else {
-    requiredSize = m_pLayout->ArrangeChild(m_items, rc);
+    requiredSize = GetLayout()->ArrangeChild(m_items, rc);
   }
 }
 

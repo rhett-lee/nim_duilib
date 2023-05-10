@@ -44,8 +44,9 @@ UiSize Layout::SetFloatPos(Control* pControl, UiRect rcContainer)
 	int iPosBottom = rcContainer.bottom - rcMargin.bottom;
 	UiSize szAvailable(iPosRight - iPosLeft, iPosBottom - iPosTop);
 	UiSize childSize = pControl->EstimateSize(szAvailable);
-	if (pControl->GetFixedWidth() == DUI_LENGTH_AUTO && pControl->GetFixedHeight() == DUI_LENGTH_AUTO
-		&& pControl->GetMaxWidth() == DUI_LENGTH_STRETCH) {
+	if ((pControl->GetFixedWidth() == DUI_LENGTH_AUTO)  && 
+		(pControl->GetFixedHeight() == DUI_LENGTH_AUTO)	&& 
+		(pControl->GetMaxWidth() == DUI_LENGTH_STRETCH)) {
 		int maxwidth = std::max(0, (int)szAvailable.cx);
 		if (childSize.cx > maxwidth) {
 			pControl->SetFixedWidth(maxwidth, false, true);
@@ -56,8 +57,12 @@ UiSize Layout::SetFloatPos(Control* pControl, UiRect rcContainer)
 	if (childSize.cx == DUI_LENGTH_STRETCH) {
 		childSize.cx = std::max(0, (int)szAvailable.cx);
 	}
-	if (childSize.cx < pControl->GetMinWidth()) childSize.cx = pControl->GetMinWidth();
-	if (pControl->GetMaxWidth() >= 0 && childSize.cx > pControl->GetMaxWidth()) childSize.cx = pControl->GetMaxWidth();
+	if (childSize.cx < pControl->GetMinWidth()) {
+		childSize.cx = pControl->GetMinWidth();
+	}
+	if (pControl->GetMaxWidth() >= 0 && childSize.cx > pControl->GetMaxWidth()) {
+		childSize.cx = pControl->GetMaxWidth();
+	}
 
 	if (childSize.cy == DUI_LENGTH_STRETCH) {
 		childSize.cy = std::max(0, (int)szAvailable.cy);
@@ -115,7 +120,7 @@ bool Layout::SetAttribute(const std::wstring& strName, const std::wstring& strVa
 		rcPadding.top = _tcstol(pstr + 1, &pstr, 10);    ASSERT(pstr);    
 		rcPadding.right = _tcstol(pstr + 1, &pstr, 10);  ASSERT(pstr);    
 		rcPadding.bottom = _tcstol(pstr + 1, &pstr, 10); ASSERT(pstr);    
-		SetPadding(rcPadding);
+		SetPadding(rcPadding, true);
 	}
 	else if( strName == _T("childmargin") ) {
 		SetChildMargin(_ttoi(strValue.c_str()));
@@ -130,9 +135,7 @@ bool Layout::SetAttribute(const std::wstring& strName, const std::wstring& strVa
 UiSize Layout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 {
 	UiSize size;
-	for (auto it = items.begin(); it != items.end(); ++it) 
-	{
-		Control* pControl = *it;
+	for (Control* pControl : items) {
 		if (pControl == nullptr){
 			continue;
 		}
@@ -150,9 +153,7 @@ UiSize Layout::AjustSizeByChild(const std::vector<Control*>& items, UiSize szAva
 {
 	UiSize maxSize(-9999, -9999);
 	UiSize itemSize;
-	for (auto it = items.begin(); it != items.end(); it++) 
-	{
-		Control* pControl = *it;
+	for (Control* pControl : items) {
 		if (pControl == nullptr) {
 			continue;
 		}
@@ -163,13 +164,13 @@ UiSize Layout::AjustSizeByChild(const std::vector<Control*>& items, UiSize szAva
 		if (itemSize.cx < pControl->GetMinWidth()) {
 			itemSize.cx = pControl->GetMinWidth();
 		}
-		if (pControl->GetMaxWidth() >= 0 && itemSize.cx > pControl->GetMaxWidth()) {
+		if ((pControl->GetMaxWidth() >= 0) && (itemSize.cx > pControl->GetMaxWidth())) {
 			itemSize.cx = pControl->GetMaxWidth();
 		}
 		if (itemSize.cy < pControl->GetMinHeight()) {
 			itemSize.cy = pControl->GetMinHeight();
 		}
-		if (itemSize.cy > pControl->GetMaxHeight()) {
+		if ((pControl->GetMaxHeight() >= 0) && (itemSize.cy > pControl->GetMaxHeight())) {
 			itemSize.cy = pControl->GetMaxHeight();
 		}
 		maxSize.cx = std::max(itemSize.cx + pControl->GetMargin().left + pControl->GetMargin().right, maxSize.cx);
@@ -178,11 +179,6 @@ UiSize Layout::AjustSizeByChild(const std::vector<Control*>& items, UiSize szAva
 	maxSize.cx += m_rcPadding.left + m_rcPadding.right;
 	maxSize.cy += m_rcPadding.top + m_rcPadding.bottom;
 	return maxSize;
-}
-
-UiRect Layout::GetPadding() const
-{
-	return m_rcPadding;
 }
 
 void Layout::SetPadding(UiRect rcPadding, bool bNeedDpiScale /*= true*/)
@@ -195,11 +191,6 @@ void Layout::SetPadding(UiRect rcPadding, bool bNeedDpiScale /*= true*/)
 	if (m_pOwner != nullptr) {
 		m_pOwner->Arrange();
 	}
-}
-
-int Layout::GetChildMargin() const
-{
-	return m_iChildMargin;
 }
 
 void Layout::SetChildMargin(int iMargin)
@@ -229,7 +220,7 @@ UiRect Layout::GetInternalPos() const
 
 Box::Box(Layout* pLayout) :
 	m_pLayout(pLayout),
-	m_bAutoDestroy(true),
+	m_bAutoDestroyChild(true),
 	m_bDelayedDestroy(true),
 	m_bMouseChildEnabled(true),
 	m_items()
@@ -261,8 +252,7 @@ UIAControlProvider* Box::GetUIAProvider()
 
 void Box::SetWindow(Window* pManager, Box* pParent, bool bInit)
 {
-	for (auto it = m_items.begin(); it != m_items.end(); ++it) {
-		Control* pControl = *it;
+	for (auto pControl : m_items) {
 		ASSERT(pControl != nullptr);
 		if (pControl != nullptr) {
 			pControl->SetWindow(pManager, this, bInit);
@@ -274,6 +264,7 @@ void Box::SetWindow(Window* pManager, Box* pParent, bool bInit)
 void Box::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
 	if (m_pLayout->SetAttribute(strName, strValue))	{
+		return;
 	}
 	else if (strName == _T("mousechild")) {
 		SetMouseChildEnabled(strValue == _T("true"));
@@ -285,20 +276,14 @@ void Box::SetAttribute(const std::wstring& strName, const std::wstring& strValue
 
 void Box::SetPos(UiRect rc)
 {
-	Control::SetPos(rc);
+	UiRect rect = rc;	
 	rc.left += m_pLayout->GetPadding().left;
 	rc.top += m_pLayout->GetPadding().top;
 	rc.right -= m_pLayout->GetPadding().right;
 	rc.bottom -= m_pLayout->GetPadding().bottom;
+	m_pLayout->ArrangeChild(m_items, rc);
 
-	UiSize requiredSize;
-	if( m_items.empty()) {
-		requiredSize.cx = 0;
-		requiredSize.cy = 0;
-	}
-	else {
-		requiredSize = m_pLayout->ArrangeChild(m_items, rc);
-	}
+	Control::SetPos(rect);
 }
 
 void Box::PaintChild(IRenderContext* pRender, const UiRect& rcPaint)
@@ -308,8 +293,7 @@ void Box::PaintChild(IRenderContext* pRender, const UiRect& rcPaint)
 		return;
 	}
 
-	for (auto it = m_items.begin(); it != m_items.end(); ++it) {
-		Control* pControl = *it;
+	for (auto pControl : m_items) {
 		if (pControl == nullptr) {
 			continue;
 		}
@@ -327,9 +311,7 @@ void Box::SetEnabled(bool bEnabled)
 	}
 
 	Control::SetEnabled(bEnabled);
-	if (m_items.empty()) {
-		return;
-	}
+
 	//子控件的Enable状态，与父控件是同步的(如果支持不同步，相关业务逻辑需要做调整)
 	for (auto pControl : m_items) {
 		ASSERT(pControl != nullptr);
@@ -367,8 +349,8 @@ UiSize Box::EstimateSize(UiSize szAvailable)
 			return GetEstimateSize();
 		}
 
-		szAvailable.cx -= m_pLayout->GetPadding().left + m_pLayout->GetPadding().right;
-		szAvailable.cy -= m_pLayout->GetPadding().top + m_pLayout->GetPadding().bottom;
+		szAvailable.cx -= (m_pLayout->GetPadding().left + m_pLayout->GetPadding().right);
+		szAvailable.cy -= (m_pLayout->GetPadding().top + m_pLayout->GetPadding().bottom);
 		UiSize sizeByChild = m_pLayout->AjustSizeByChild(m_items, szAvailable);
 		if (GetFixedWidth() == DUI_LENGTH_AUTO) {
 			fixedSize.cx = sizeByChild.cx;
@@ -378,8 +360,7 @@ UiSize Box::EstimateSize(UiSize szAvailable)
 		}
 
 		SetReEstimateSize(false);
-		for (auto it = m_items.begin(); it != m_items.end(); ++it) {
-			Control* pControl = *it;
+		for (auto pControl : m_items) {
 			ASSERT(pControl != nullptr);
 			if (pControl == nullptr) {
 				continue;
@@ -463,8 +444,7 @@ Control* Box::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, UiPoi
 		}
 	}
 	else {
-		for (auto it = m_items.begin(); it != m_items.end(); ++it) {
-			Control* pItemControl = (*it);
+		for (Control* pItemControl : m_items) {
 			if (pItemControl == nullptr) {
 				continue;
 			}
@@ -587,10 +567,15 @@ int Box::GetCount() const
 
 bool Box::Add(Control* pControl)
 {
-	return AddAt(pControl, m_items.size());
+	return AddItemAt(pControl, m_items.size());
 }
 
 bool Box::AddAt(Control* pControl, size_t iIndex)
+{
+	return AddItemAt(pControl, iIndex);
+}
+
+bool Box::AddItemAt(Control* pControl, size_t iIndex)
 {
 	ASSERT(pControl != nullptr);
 	if (pControl == NULL) {
@@ -613,6 +598,20 @@ bool Box::AddAt(Control* pControl, size_t iIndex)
 
 bool Box::Remove(Control* pControl)
 {
+	return RemoveItem(pControl);
+}
+
+bool Box::RemoveAt(size_t iIndex)
+{
+	Control* pControl = GetItemAt(iIndex);
+	if (pControl != NULL) {
+		return RemoveItem(pControl);
+	}
+	return false;
+}
+
+bool Box::RemoveItem(Control* pControl)
+{
 	ASSERT(pControl != nullptr);
 	if (pControl == nullptr) {
 		return false;
@@ -620,9 +619,9 @@ bool Box::Remove(Control* pControl)
 
 	Window* pWindow = GetWindow();
 	for (auto it = m_items.begin(); it != m_items.end(); ++it) {
-		if( *it == pControl ) {
+		if (*it == pControl) {
 			Arrange();
-			if( m_bAutoDestroy ) {				
+			if (m_bAutoDestroyChild) {
 				if (m_bDelayedDestroy && (pWindow != nullptr)) {
 					pWindow->AddDelayedCleanup(pControl);
 				}
@@ -637,18 +636,9 @@ bool Box::Remove(Control* pControl)
 	return false;
 }
 
-bool Box::RemoveAt(size_t iIndex)
-{
-	Control* pControl = GetItemAt(iIndex);
-	if (pControl != NULL) {
-		return Box::Remove(pControl);
-	}
-	return false;
-}
-
 void Box::RemoveAll()
 {
-	if (m_bAutoDestroy) {
+	if (m_bAutoDestroyChild) {
 		Window* pWindow = GetWindow();
 		for (auto it = m_items.begin(); it != m_items.end(); ++it) {
 			if (m_bDelayedDestroy && (pWindow != nullptr)) {
@@ -666,12 +656,7 @@ void Box::RemoveAll()
 
 bool Box::HasItem(Control* pControl) const
 {
-	for (auto it = m_items.begin(); it != m_items.end(); ++it) {
-		if (*it == pControl) {
-			return true;
-		}
-	}
-	return false;
+	return std::find(m_items.begin(), m_items.end(), pControl) != m_items.end();
 }
 
 void Box::SwapChild(Control* pChild1, Control* pChild2)
@@ -697,52 +682,15 @@ void Box::ResetChildIndex(Control* pChild, size_t iIndex)
 		if (*it == pChild) {
 			m_items.erase(it);
 			if (oldIndex >= iIndex) {
-				AddAt(pChild, iIndex);
+				AddItemAt(pChild, iIndex);
 			}
 			else {
-				AddAt(pChild, iIndex - 1);
+				AddItemAt(pChild, iIndex - 1);
 			}
-
 			break;
 		}
 		oldIndex++;
 	}
-}
-
-bool Box::IsAutoDestroy() const
-{
-	return m_bAutoDestroy;
-}
-
-void Box::SetAutoDestroyChild(bool bAuto)
-{
-	m_bAutoDestroy = bAuto;
-}
-
-bool Box::IsDelayedDestroy() const
-{
-	return m_bDelayedDestroy;
-}
-
-void Box::SetDelayedDestroy(bool bDelayed)
-{
-	m_bDelayedDestroy = bDelayed;
-}
-
-bool Box::IsMouseChildEnabled() const
-{
-	return m_bMouseChildEnabled;
-}
-
-void Box::SetMouseChildEnabled(bool bEnable)
-{
-	m_bMouseChildEnabled = bEnable;
-}
-
-Layout* Box::GetLayout() const
-{
-	ASSERT(m_pLayout != nullptr);
-	return m_pLayout.get();
 }
 
 void Box::ReSetLayout(Layout* pLayout)
@@ -768,8 +716,7 @@ UiRect Box::GetPaddingPos() const
 void Box::InvokeLoadImageCache()
 {
 	__super::InvokeLoadImageCache();
-	for (auto it = m_items.begin(); it != m_items.end(); ++it) {
-		Control* pControl = *it;
+	for (Control* pControl : m_items) {
 		if (pControl != nullptr) {
 			pControl->InvokeLoadImageCache();
 		}		
@@ -779,8 +726,7 @@ void Box::InvokeLoadImageCache()
 void Box::UnLoadImageCache()
 {
 	__super::UnLoadImageCache();
-	for (auto it = m_items.begin(); it != m_items.end(); ++it) {
-		Control* pControl = *it;
+	for (Control* pControl : m_items) {
 		if (pControl != nullptr) {
 			pControl->UnLoadImageCache();
 		}
@@ -790,8 +736,7 @@ void Box::UnLoadImageCache()
 void Box::ClearImageCache()
 {
 	__super::ClearImageCache();
-	for (auto it = m_items.begin(); it != m_items.end(); ++it) {
-		Control* pControl = *it;
+	for (Control* pControl : m_items) {
 		if (pControl != nullptr) {
 			pControl->ClearImageCache();
 		}
@@ -816,12 +761,10 @@ ScrollableBox::ScrollableBox(Layout* pLayout) :
 	m_bScrollBarFloat(true),
 	m_bVScrollBarLeftPos(false),
 	m_bHoldEnd(false),
-	m_bDefaultDisplayScrollbar(true),
 	m_rcScrollBarPadding()
 {
 	m_scrollAnimation = std::make_unique<AnimationPlayer>();
 	m_renderOffsetYAnimation = std::make_unique<AnimationPlayer>();
-	m_rcScrollBarPadding.left = m_rcScrollBarPadding.top = m_rcScrollBarPadding.right = m_rcScrollBarPadding.bottom = 0;
 }
 
 std::wstring ScrollableBox::GetType() const { return std::wstring(_T("Scrollable")) + DUI_CTR_BOX; }//ScrollableBox
@@ -840,18 +783,22 @@ UIAControlProvider* ScrollableBox::GetUIAProvider()
 void ScrollableBox::SetAttribute(const std::wstring& pstrName, const std::wstring& pstrValue)
 {
 	if( pstrName == _T("vscrollbar") ) {
-		EnableScrollBar(pstrValue == _T("true"), GetHorizontalScrollBar() != NULL);
+		EnableScrollBar(pstrValue == _T("true"), GetHorizontalScrollBar() != nullptr);
 	}
 	else if( pstrName == _T("vscrollbarstyle") ) {
-		EnableScrollBar(true, GetHorizontalScrollBar() != NULL);
-		if( GetVerticalScrollBar() ) GetVerticalScrollBar()->ApplyAttributeList(pstrValue);
+		EnableScrollBar(true, GetHorizontalScrollBar() != nullptr);
+		if (GetVerticalScrollBar() != nullptr) {
+			GetVerticalScrollBar()->ApplyAttributeList(pstrValue);
+		}
 	}
 	else if( pstrName == _T("hscrollbar") ) {
-		EnableScrollBar(GetVerticalScrollBar() != NULL, pstrValue == _T("true"));
+		EnableScrollBar(GetVerticalScrollBar() != nullptr, pstrValue == _T("true"));
 	}
 	else if( pstrName == _T("hscrollbarstyle") ) {
-		EnableScrollBar(GetVerticalScrollBar() != NULL, true);
-		if( GetHorizontalScrollBar() ) GetHorizontalScrollBar()->ApplyAttributeList(pstrValue);
+		EnableScrollBar(GetVerticalScrollBar() != nullptr, true);
+		if (GetHorizontalScrollBar() != nullptr) {
+			GetHorizontalScrollBar()->ApplyAttributeList(pstrValue);
+		}
 	}
 	else if( pstrName == _T("scrollbarpadding") ) {
 		UiRect rcScrollbarPadding;
@@ -866,7 +813,6 @@ void ScrollableBox::SetAttribute(const std::wstring& pstrName, const std::wstrin
 	else if (pstrName == _T("hscrollunit")) SetHorScrollUnitPixels(_ttoi(pstrValue.c_str()));
 	else if (pstrName == _T("scrollbarfloat")) SetScrollBarFloat(pstrValue == _T("true"));
 	else if (pstrName == _T("vscrollbarleft")) SetVScrollBarLeftPos(pstrValue == _T("true"));
-	else if( pstrName == _T("defaultdisplayscrollbar") ) SetDefaultDisplayScrollbar(pstrValue == _T("true"));
 	else if( pstrName == _T("holdend") ) SetHoldEnd(pstrValue == _T("true"));
 	else Box::SetAttribute(pstrName, pstrValue);
 }
@@ -885,12 +831,14 @@ void ScrollableBox::SetPos(UiRect rc)
 
 void ScrollableBox::SetPosInternally(UiRect rc)
 {
+	Layout* pLayout = GetLayout();
+	ASSERT(pLayout != nullptr);
 	Control::SetPos(rc);
 	UiRect rcRaw = rc;
-	rc.left += m_pLayout->GetPadding().left;
-	rc.top += m_pLayout->GetPadding().top;
-	rc.right -= m_pLayout->GetPadding().right;
-	rc.bottom -= m_pLayout->GetPadding().bottom;
+	rc.left += pLayout->GetPadding().left;
+	rc.top += pLayout->GetPadding().top;
+	rc.right -= pLayout->GetPadding().right;
+	rc.bottom -= pLayout->GetPadding().bottom;
 
 	UiSize requiredSize = CalcRequiredSize(rc);
 	ProcessVScrollBar(rcRaw, requiredSize.cy);
@@ -900,30 +848,28 @@ void ScrollableBox::SetPosInternally(UiRect rc)
 UiSize ScrollableBox::CalcRequiredSize(const UiRect& rc)
 {
 	UiSize requiredSize;
-	if (m_items.size() == 0) {
-		requiredSize.cx = 0;
-		requiredSize.cy = 0;
-	}
-	else {
+	if (!m_items.empty()) {
 		UiRect childSize = rc;
 		if (!m_bScrollBarFloat && m_pVerticalScrollBar && m_pVerticalScrollBar->IsValid()) {
-			if (m_bVScrollBarLeftPos)
+			if (m_bVScrollBarLeftPos) {
 				childSize.left += m_pVerticalScrollBar->GetFixedWidth();
-			else
+			}
+			else {
 				childSize.right -= m_pVerticalScrollBar->GetFixedWidth();
+			}
 		}
 		if (!m_bScrollBarFloat && m_pHorizontalScrollBar && m_pHorizontalScrollBar->IsValid()) {
 			childSize.bottom -= m_pHorizontalScrollBar->GetFixedHeight();
 		}
-		requiredSize = m_pLayout->ArrangeChild(m_items, childSize);
+		requiredSize = GetLayout()->ArrangeChild(m_items, childSize);
 	}
 	return requiredSize;
 }
 
 void ScrollableBox::HandleEvent(const EventArgs& event)
 {
-	if( (!IsMouseEnabled() && event.Type > kEventMouseBegin && event.Type < kEventMouseEnd) || 
-		event.Type == kEventLast) {
+	if( (!IsMouseEnabled() && (event.Type > kEventMouseBegin) && (event.Type < kEventMouseEnd)) || 
+		(event.Type == kEventLast)) {
 		if (GetParent() != nullptr) {
 			GetParent()->SendEvent(event);
 		}
@@ -933,7 +879,7 @@ void ScrollableBox::HandleEvent(const EventArgs& event)
 		return;
 	}
 		
-	if( m_pVerticalScrollBar != NULL && m_pVerticalScrollBar->IsValid() && m_pVerticalScrollBar->IsEnabled() ) {
+	if( (m_pVerticalScrollBar != nullptr) && m_pVerticalScrollBar->IsValid() && m_pVerticalScrollBar->IsEnabled() ) {
 		if( event.Type == kEventKeyDown ) {
 			switch( event.chKey ) {
 			case VK_DOWN:
@@ -979,7 +925,7 @@ void ScrollableBox::HandleEvent(const EventArgs& event)
 			return;
 		}		
 	}
-	else if( m_pHorizontalScrollBar != NULL && m_pHorizontalScrollBar->IsValid() && m_pHorizontalScrollBar->IsEnabled() ) {
+	else if( (m_pHorizontalScrollBar != nullptr) && m_pHorizontalScrollBar->IsValid() && m_pHorizontalScrollBar->IsEnabled() ) {
 		if( event.Type == kEventKeyDown ) {
 			switch( event.chKey ) {
 			case VK_DOWN:
@@ -1021,32 +967,31 @@ void ScrollableBox::HandleEvent(const EventArgs& event)
 bool ScrollableBox::MouseEnter(const EventArgs& msg)
 {
 	bool bRet = __super::MouseEnter(msg);
-	if (bRet && m_pVerticalScrollBar != NULL && m_pVerticalScrollBar->IsValid() && m_pVerticalScrollBar->IsEnabled()) {
+	if (bRet && (m_pVerticalScrollBar != nullptr) && m_pVerticalScrollBar->IsValid() && m_pVerticalScrollBar->IsEnabled()) {
 		if (m_pVerticalScrollBar->IsAutoHideScroll()) {
 			m_pVerticalScrollBar->SetFadeVisible(true);
 		}
 	}
-	if (bRet && m_pHorizontalScrollBar != NULL && m_pHorizontalScrollBar->IsValid() && m_pHorizontalScrollBar->IsEnabled()) {
+	if (bRet && (m_pHorizontalScrollBar != nullptr) && m_pHorizontalScrollBar->IsValid() && m_pHorizontalScrollBar->IsEnabled()) {
 		if (m_pHorizontalScrollBar->IsAutoHideScroll()) {
 			m_pHorizontalScrollBar->SetFadeVisible(true);
 		}
 	}
-
 	return bRet;
 }
 
 bool ScrollableBox::MouseLeave(const EventArgs& msg)
 {
 	bool bRet = __super::MouseLeave(msg);
-	if (bRet && m_pVerticalScrollBar != NULL && m_pVerticalScrollBar->IsValid() && m_pVerticalScrollBar->IsEnabled()) {
-		if (m_pVerticalScrollBar->GetThumbState() == kControlStateNormal
-			&& m_pVerticalScrollBar->IsAutoHideScroll()) {
+	if (bRet && (m_pVerticalScrollBar != nullptr) && m_pVerticalScrollBar->IsValid() && m_pVerticalScrollBar->IsEnabled()) {
+		if ((m_pVerticalScrollBar->GetThumbState() == kControlStateNormal) && 
+			 m_pVerticalScrollBar->IsAutoHideScroll()) {
 			m_pVerticalScrollBar->SetFadeVisible(false);
 		}
 	}
-	if (bRet && m_pHorizontalScrollBar != NULL && m_pHorizontalScrollBar->IsValid() && m_pHorizontalScrollBar->IsEnabled()) {
-		if (m_pHorizontalScrollBar->GetThumbState() == kControlStateNormal
-			&& m_pHorizontalScrollBar->IsAutoHideScroll()) {
+	if (bRet && (m_pHorizontalScrollBar != nullptr) && m_pHorizontalScrollBar->IsValid() && m_pHorizontalScrollBar->IsEnabled()) {
+		if ((m_pHorizontalScrollBar->GetThumbState() == kControlStateNormal) && 
+			 m_pHorizontalScrollBar->IsAutoHideScroll()) {
 			m_pHorizontalScrollBar->SetFadeVisible(false);
 		}
 	}
@@ -1065,8 +1010,7 @@ void ScrollableBox::PaintChild(IRenderContext* pRender, const UiRect& rcPaint)
 		return;
 	}
 
-	for (auto it = m_items.begin(); it != m_items.end(); ++it) {
-		Control* pControl = *it;
+	for (Control* pControl : m_items) {
 		if (pControl == nullptr) {
 			continue;
 		}
@@ -1090,11 +1034,11 @@ void ScrollableBox::PaintChild(IRenderContext* pRender, const UiRect& rcPaint)
 		}
 	}
 
-	if( m_pHorizontalScrollBar && m_pHorizontalScrollBar->IsVisible()) {
+	if( (m_pHorizontalScrollBar != nullptr) && m_pHorizontalScrollBar->IsVisible()) {
 		m_pHorizontalScrollBar->AlphaPaint(pRender, rcPaint);
 	}
 		
-	if( m_pVerticalScrollBar && m_pVerticalScrollBar->IsVisible()) {
+	if( (m_pVerticalScrollBar != nullptr) && m_pVerticalScrollBar->IsVisible()) {
 		m_pVerticalScrollBar->AlphaPaint(pRender, rcPaint);
 	}
 		
@@ -1107,15 +1051,23 @@ void ScrollableBox::PaintChild(IRenderContext* pRender, const UiRect& rcPaint)
 
 void ScrollableBox::SetMouseEnabled(bool bEnabled)
 {
-	if (m_pVerticalScrollBar != NULL) m_pVerticalScrollBar->SetMouseEnabled(bEnabled);
-	if (m_pHorizontalScrollBar != NULL) m_pHorizontalScrollBar->SetMouseEnabled(bEnabled);
+	if (m_pVerticalScrollBar != nullptr) {
+		m_pVerticalScrollBar->SetMouseEnabled(bEnabled);
+	}
+	if (m_pHorizontalScrollBar != nullptr) {
+		m_pHorizontalScrollBar->SetMouseEnabled(bEnabled);
+	}
 	Box::SetMouseEnabled(bEnabled);
 }
 
 void ScrollableBox::SetWindow(Window* pManager, Box* pParent, bool bInit)
 {
-	if (m_pVerticalScrollBar != NULL) m_pVerticalScrollBar->SetWindow(pManager, this, bInit);
-	if (m_pHorizontalScrollBar != NULL) m_pHorizontalScrollBar->SetWindow(pManager, this, bInit);
+	if (m_pVerticalScrollBar != nullptr) {
+		m_pVerticalScrollBar->SetWindow(pManager, this, bInit);
+	}
+	if (m_pHorizontalScrollBar != nullptr) {
+		m_pHorizontalScrollBar->SetWindow(pManager, this, bInit);
+	}
 	Box::SetWindow(pManager, pParent, bInit);
 }
 
@@ -1169,10 +1121,10 @@ Control* ScrollableBox::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFl
 UiSize ScrollableBox::GetScrollPos() const
 {
 	UiSize sz;
-	if (m_pVerticalScrollBar && m_pVerticalScrollBar->IsValid()) {
+	if ((m_pVerticalScrollBar != nullptr) && m_pVerticalScrollBar->IsValid()) {
 		sz.cy = static_cast<LONG>(m_pVerticalScrollBar->GetScrollPos());
 	}
-	if (m_pHorizontalScrollBar && m_pHorizontalScrollBar->IsValid()) {
+	if ((m_pHorizontalScrollBar != nullptr) && m_pHorizontalScrollBar->IsValid()) {
 		sz.cx = static_cast<LONG>(m_pHorizontalScrollBar->GetScrollPos());
 	}
 	return sz;
@@ -1181,10 +1133,10 @@ UiSize ScrollableBox::GetScrollPos() const
 UiSize ScrollableBox::GetScrollRange() const
 {
 	UiSize sz;
-	if (m_pVerticalScrollBar && m_pVerticalScrollBar->IsValid()) {
+	if ((m_pVerticalScrollBar != nullptr) && m_pVerticalScrollBar->IsValid()) {
 		sz.cy = static_cast<LONG>(m_pVerticalScrollBar->GetScrollRange());
 	}
-	if (m_pHorizontalScrollBar && m_pHorizontalScrollBar->IsValid()) {
+	if ((m_pHorizontalScrollBar != nullptr) && m_pHorizontalScrollBar->IsValid()) {
 		sz.cx = static_cast<LONG>(m_pHorizontalScrollBar->GetScrollRange());
 	}
 	return sz;
@@ -1203,19 +1155,21 @@ void ScrollableBox::SetScrollPos(UiSize szPos)
 
 	int64_t cx = 0;
 	int64_t cy = 0;
-	if( m_pVerticalScrollBar && m_pVerticalScrollBar->IsValid() ) {
+	if( (m_pVerticalScrollBar != nullptr) && m_pVerticalScrollBar->IsValid() ) {
 		int64_t iLastScrollPos = m_pVerticalScrollBar->GetScrollPos();
 		m_pVerticalScrollBar->SetScrollPos(szPos.cy);
 		cy = m_pVerticalScrollBar->GetScrollPos() - iLastScrollPos;
 	}
 
-	if( m_pHorizontalScrollBar && m_pHorizontalScrollBar->IsValid() ) {
+	if( (m_pHorizontalScrollBar != nullptr) && m_pHorizontalScrollBar->IsValid() ) {
 		int64_t iLastScrollPos = m_pHorizontalScrollBar->GetScrollPos();
 		m_pHorizontalScrollBar->SetScrollPos(szPos.cx);
 		cx = m_pHorizontalScrollBar->GetScrollPos() - iLastScrollPos;
 	}
 
-	if( cx == 0 && cy == 0 ) return;
+	if (cx == 0 && cy == 0) {
+		return;
+	}
 	LoadImageCache(cy > 0);
 	Invalidate();
 	SendEvent(kEventScrollChange, (cy == 0) ? 0 : 1, (cx == 0) ? 0 : 1);
@@ -1443,7 +1397,7 @@ void ScrollableBox::LineRight(int detaValue)
 void ScrollableBox::PageUp()
 {
 	UiSize sz = GetScrollPos();
-	int iOffset = GetRect().bottom - GetRect().top - m_pLayout->GetPadding().top - m_pLayout->GetPadding().bottom;
+	int iOffset = GetRect().bottom - GetRect().top - GetLayout()->GetPadding().top - GetLayout()->GetPadding().bottom;
 	if( m_pHorizontalScrollBar && m_pHorizontalScrollBar->IsValid() ) iOffset -= m_pHorizontalScrollBar->GetFixedHeight();
 	sz.cy -= iOffset;
 	SetScrollPos(sz);
@@ -1452,8 +1406,10 @@ void ScrollableBox::PageUp()
 void ScrollableBox::PageDown()
 {
 	UiSize sz = GetScrollPos();
-	int iOffset = GetRect().bottom - GetRect().top - m_pLayout->GetPadding().top - m_pLayout->GetPadding().bottom;
-	if( m_pHorizontalScrollBar && m_pHorizontalScrollBar->IsValid() ) iOffset -= m_pHorizontalScrollBar->GetFixedHeight();
+	int iOffset = GetRect().bottom - GetRect().top - GetLayout()->GetPadding().top - GetLayout()->GetPadding().bottom;
+	if ((m_pHorizontalScrollBar != nullptr) && m_pHorizontalScrollBar->IsValid()) {
+		iOffset -= m_pHorizontalScrollBar->GetFixedHeight();
+	}
 	sz.cy += iOffset;
 	SetScrollPos(sz);
 }
@@ -1484,7 +1440,7 @@ void ScrollableBox::EndDown(bool arrange, bool withAnimation)
 void ScrollableBox::PageLeft()
 {
 	UiSize sz = GetScrollPos();
-	int iOffset = GetRect().right - GetRect().left - m_pLayout->GetPadding().left - m_pLayout->GetPadding().right;
+	int iOffset = GetRect().right - GetRect().left - GetLayout()->GetPadding().left - GetLayout()->GetPadding().right;
 	//if( m_pVerticalScrollBar && m_pVerticalScrollBar->IsValid() ) iOffset -= m_pVerticalScrollBar->GetFixedWidth();
 	sz.cx -= iOffset;
 	SetScrollPos(sz);
@@ -1493,7 +1449,7 @@ void ScrollableBox::PageLeft()
 void ScrollableBox::PageRight()
 {
 	UiSize sz = GetScrollPos();
-	int iOffset = GetRect().right - GetRect().left - m_pLayout->GetPadding().left - m_pLayout->GetPadding().right;
+	int iOffset = GetRect().right - GetRect().left - GetLayout()->GetPadding().left - GetLayout()->GetPadding().right;
 	//if( m_pVerticalScrollBar && m_pVerticalScrollBar->IsValid() ) iOffset -= m_pVerticalScrollBar->GetFixedWidth();
 	sz.cx += iOffset;
 	SetScrollPos(sz);
@@ -1537,28 +1493,28 @@ void ScrollableBox::TouchDown(int deltaValue)
 
 void ScrollableBox::EnableScrollBar(bool bEnableVertical, bool bEnableHorizontal)
 {
-	if( bEnableVertical && !m_pVerticalScrollBar ) {
+	if( bEnableVertical && (m_pVerticalScrollBar == nullptr) ) {
 		m_pVerticalScrollBar.reset(new ScrollBar);
 		m_pVerticalScrollBar->SetVisible(false);
 		m_pVerticalScrollBar->SetScrollRange(0);
 		m_pVerticalScrollBar->SetOwner(this);
-		m_pVerticalScrollBar->SetWindow(GetWindow(), NULL, false);
+		m_pVerticalScrollBar->SetWindow(GetWindow(), nullptr, false);
 		m_pVerticalScrollBar->SetClass(_T("vscrollbar"));
 	}
-	else if( !bEnableVertical && m_pVerticalScrollBar ) {
+	else if( !bEnableVertical && (m_pVerticalScrollBar != nullptr) ) {
 		m_pVerticalScrollBar.reset();
 	}
 
-	if( bEnableHorizontal && !m_pHorizontalScrollBar ) {
+	if( bEnableHorizontal && (m_pHorizontalScrollBar == nullptr)) {
 		m_pHorizontalScrollBar.reset(new ScrollBar);
 		m_pHorizontalScrollBar->SetVisible(false);
 		m_pHorizontalScrollBar->SetScrollRange(0);
 		m_pHorizontalScrollBar->SetHorizontal(true);
 		m_pHorizontalScrollBar->SetOwner(this);
-		m_pHorizontalScrollBar->SetWindow(GetWindow(), NULL, false);
+		m_pHorizontalScrollBar->SetWindow(GetWindow(), nullptr, false);
 		m_pHorizontalScrollBar->SetClass(_T("hscrollbar"));
 	}
-	else if( !bEnableHorizontal && m_pHorizontalScrollBar ) {
+	else if( !bEnableHorizontal && (m_pHorizontalScrollBar != nullptr)) {
 		m_pHorizontalScrollBar.reset();
 	}
 
@@ -1583,12 +1539,14 @@ void ScrollableBox::ProcessVScrollBar(UiRect rc, int cyRequired)
 	rcScrollBarPos.right -= m_rcScrollBarPadding.right;
 	rcScrollBarPos.bottom -= m_rcScrollBarPadding.bottom;
 
-	if( m_pVerticalScrollBar == NULL ) return;
+	if (m_pVerticalScrollBar == nullptr) {
+		return;
+	}
 
-	rc.left += m_pLayout->GetPadding().left;
-	rc.top += m_pLayout->GetPadding().top;
-	rc.right -= m_pLayout->GetPadding().right;
-	rc.bottom -= m_pLayout->GetPadding().bottom;
+	rc.left += GetLayout()->GetPadding().left;
+	rc.top += GetLayout()->GetPadding().top;
+	rc.right -= GetLayout()->GetPadding().right;
+	rc.bottom -= GetLayout()->GetPadding().bottom;
 	int nHeight = rc.bottom - rc.top;
 	if (cyRequired > nHeight && !m_pVerticalScrollBar->IsValid()) {
 		m_pVerticalScrollBar->SetScrollRange(cyRequired - nHeight);
@@ -1600,7 +1558,9 @@ void ScrollableBox::ProcessVScrollBar(UiRect rc, int cyRequired)
 		return;
 	}
 	// No scrollbar required
-	if( !m_pVerticalScrollBar->IsValid() ) return;
+	if (!m_pVerticalScrollBar->IsValid()) {
+		return;
+	}
 
 	// Scroll not needed anymore?
 	int cyScroll = cyRequired - nHeight;
@@ -1641,12 +1601,14 @@ void ScrollableBox::ProcessHScrollBar(UiRect rc, int cxRequired)
 	rcScrollBarPos.right -= m_rcScrollBarPadding.right;
 	rcScrollBarPos.bottom -= m_rcScrollBarPadding.bottom;
 
-	if (m_pHorizontalScrollBar == NULL) return;
+	if (m_pHorizontalScrollBar == nullptr) {
+		return;
+	}
 
-	rc.left += m_pLayout->GetPadding().left;
-	rc.top += m_pLayout->GetPadding().top;
-	rc.right -= m_pLayout->GetPadding().right;
-	rc.bottom -= m_pLayout->GetPadding().bottom;
+	rc.left += GetLayout()->GetPadding().left;
+	rc.top += GetLayout()->GetPadding().top;
+	rc.right -= GetLayout()->GetPadding().right;
+	rc.bottom -= GetLayout()->GetPadding().bottom;
 	int nWidth = rc.right - rc.left;
 	if (cxRequired > nWidth && !m_pHorizontalScrollBar->IsValid()) {
 		m_pHorizontalScrollBar->SetScrollRange(cxRequired - nWidth);
@@ -1658,7 +1620,9 @@ void ScrollableBox::ProcessHScrollBar(UiRect rc, int cxRequired)
 		return;
 	}
 	// No scrollbar required
-	if (!m_pHorizontalScrollBar->IsValid()) return;
+	if (!m_pHorizontalScrollBar->IsValid()) {
+		return;
+	}
 
 	// Scroll not needed anymore?
 	int cxScroll = cxRequired - nWidth;
@@ -1687,7 +1651,7 @@ void ScrollableBox::ProcessHScrollBar(UiRect rc, int cxRequired)
 
 bool ScrollableBox::IsVScrollBarValid() const
 {
-	if (m_pVerticalScrollBar) {
+	if (m_pVerticalScrollBar != nullptr) {
 		return m_pVerticalScrollBar->IsValid();
 	}
 	return false;
@@ -1695,7 +1659,7 @@ bool ScrollableBox::IsVScrollBarValid() const
 
 bool ScrollableBox::IsHScrollBarValid() const
 {
-	if (m_pHorizontalScrollBar) {
+	if (m_pHorizontalScrollBar != nullptr) {
 		return m_pHorizontalScrollBar->IsValid();
 	}
 	return false;
@@ -1795,24 +1759,16 @@ void ScrollableBox::SetScrollBarPadding(UiRect rcScrollBarPadding)
 	m_rcScrollBarPadding = rcScrollBarPadding;
 }
 
-bool ScrollableBox::GetDefaultDisplayScrollbar() const
-{
-	return m_bDefaultDisplayScrollbar;
-}
-
-void ScrollableBox::SetDefaultDisplayScrollbar(bool bDefaultDisplay)
-{
-	m_bDefaultDisplayScrollbar = bDefaultDisplay;
-}
-
 void ScrollableBox::ClearImageCache()
 {
 	__super::ClearImageCache();
 
-	if (m_pHorizontalScrollBar)
+	if (m_pHorizontalScrollBar != nullptr) {
 		m_pHorizontalScrollBar->ClearImageCache();
-	if (m_pVerticalScrollBar)
+	}
+	if (m_pVerticalScrollBar != nullptr) {
 		m_pVerticalScrollBar->ClearImageCache();
+	}
 }
 
 } // namespace ui

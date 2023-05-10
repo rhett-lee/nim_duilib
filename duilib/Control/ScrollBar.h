@@ -15,6 +15,8 @@ namespace ui
 	class ScrollableBox;
 	class StateImage;
 
+/** 滚动条控件
+*/
 class UILIB_API ScrollBar: 
 	public Control
 {
@@ -57,7 +59,7 @@ public:
 	 * @param[in] 设置 true 代表是水平滚动条，设置 false 代表是垂直滚动条，默认为 true
 	 * @return 无
 	 */
-	void SetHorizontal(bool bHorizontal = true);
+	void SetHorizontal(bool bHorizontal);
 
 	/**
 	 * @brief 获取滚动范围，对应 XML 中 range 属性
@@ -247,38 +249,89 @@ private:
 	void PaintThumb(IRenderContext* pRender);
 	void PaintRail(IRenderContext* pRender);
 
-protected:
+private:
 	enum
 	{ 
 		DEFAULT_SCROLLBAR_SIZE = 16,
 	};
 
+	//是否为水平滚动条：true表示水平滚动条，false表示垂直滚动条
 	bool m_bHorizontal;
+
+	//是否显示左或上按钮
 	bool m_bShowButton1;
+
+	//是否显示右或下按钮
 	bool m_bShowButton2;
+
+	//是否自动隐藏滚动条
 	bool m_bAutoHide;
+
+	//滚动范围
 	int64_t m_nRange;
+
+	//滚动条位置
 	int64_t m_nScrollPos;
+
+	//滚动一行的大小
 	int m_nLineSize;
+
+	//滚动条滑块的最小长度
 	int m_nThumbMinLength;
+
+	//上次的滚动条位置
 	int64_t m_nLastScrollPos;
+
+	//上次滚动条位置偏移
 	int64_t m_nLastScrollOffset;
+
+	//延迟滚动重复次数
 	int m_nScrollRepeatDelay;
-	ScrollableBox* m_pOwner;
+	
+	//上次鼠标所在位置
 	POINT m_ptLastMouse;
+
+	//左或上按钮的位置和大小
 	UiRect m_rcButton1;
+
+	//右或下按钮的位置和大小
 	UiRect m_rcButton2;
+
+	//滑块的位置和大小
 	UiRect m_rcThumb;
+
+	//左或上按钮的状态
 	ControlStateType m_uButton1State;
+
+	//右或下按钮的状态
 	ControlStateType m_uButton2State;
+
+	//滑块的状态
 	ControlStateType m_uThumbState;
+
+	//图片的目标区域，绘制用
 	std::wstring m_sImageModify;
+
+	//背景各个状态的图片
 	std::unique_ptr<StateImage> m_bkStateImage;
+
+	//左或上按钮的状态图片
 	std::unique_ptr<StateImage> m_button1StateImage;
+
+	//右或下按钮的状态图片
 	std::unique_ptr<StateImage> m_button2StateImage;
+
+	//滑块的状态图片
 	std::unique_ptr<StateImage> m_thumbStateImage;
+
+	//指定状态下滑块中间标识图片
 	std::unique_ptr<StateImage> m_railStateImage;
+
+	//延迟滚动的取消机制
 	nbase::WeakCallbackFlag m_weakFlagOwner;
+
+	//支持滚动条的容器接口
+	ScrollableBox* m_pOwner;
 };
 
 }
