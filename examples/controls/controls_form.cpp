@@ -59,11 +59,11 @@ void ControlForm::OnInitWindow()
 	ui::ListBox* list = static_cast<ui::ListBox*>(FindControl(L"list"));
 	for (auto i = 0; i < 30; i++)
 	{
-		ui::ListContainerElement* element = new ui::ListContainerElement;
-		element->SetText(nbase::StringPrintf(L"ui::VListBox::ListContainerElement %d", i));
+		ui::ListBoxElement* element = new ui::ListBoxElement;
+		element->SetText(nbase::StringPrintf(L"ui::VListBox::ListBoxElement %d", i));
 		element->SetClass(L"listitem");
 		element->SetFixedHeight(20, true);
-		list->Add(element);
+		list->AddItem(element);
 	}
 
 	/* Initialize TreeView data */
@@ -92,13 +92,13 @@ void ControlForm::OnInitWindow()
 	ui::Combo* combo = static_cast<ui::Combo*>(FindControl(L"combo"));
 	for (auto i = 0; i < 10; i++)
 	{
-		ui::ListContainerElement* element = new ui::ListContainerElement;
+		ui::ListBoxElement* element = new ui::ListBoxElement;
 		element->SetClass(L"listitem");
 		element->SetFixedHeight(30, true);
 		element->SetBkColor(L"white");
 		element->SetTextPadding({ 6,0,6,0 });
-		element->SetText(nbase::StringPrintf(L"ui::Combo::ListContainerElement %d", i));
-		combo->Add(element);
+		element->SetText(nbase::StringPrintf(L"ui::Combo::ListBoxElement %d", i));
+		combo->AddItem(element);
 	}
 
 	std::string checks[7] = { "nim_comp::CheckCombo", "check1", "check2", "check3", "check4", "check5", "check6" };
@@ -120,7 +120,7 @@ void ControlForm::OnInitWindow()
 		item->SetStateImage(ui::kControlStateNormal, image_normal);
 		item->SetSelectedStateImage(ui::kControlStateNormal, image_select);
 
-		check_combo->Add(item);
+		check_combo->AddItem(item);
 	}
 
 	nim_comp::FilterCombo* filter_combo = static_cast<nim_comp::FilterCombo*>(FindControl(L"filter_combo"));
@@ -137,7 +137,7 @@ void ControlForm::OnInitWindow()
 		str += buf;
 		item->SetText(nbase::UTF8ToUTF16(str));
 		item->SetUTF8DataID(str);
-		filter_combo->Add(item);
+		filter_combo->AddItem(item);
 	}
 
 	/* Load xml file content in global misc thread, and post update RichEdit task to UI thread */
@@ -313,12 +313,12 @@ void ControlForm::OnResourceFileLoaded(const std::wstring& xml)
 void ControlForm::OnProgressValueChagned(float value)
 {
 	auto progress = static_cast<ui::Progress*>(FindControl(L"progress"));
-	if (progress)
+	if (progress) {
 		progress->SetValue(value);
+	}
 
 	auto circleprogress = static_cast<ui::Progress*>(FindControl(L"circleprogress"));
-	if (circleprogress)
-	{
+	if (circleprogress)	{
 		circleprogress->SetValue(value);
 		circleprogress->SetText(nbase::StringPrintf(L"%.0f%%", value));
 	}

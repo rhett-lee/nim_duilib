@@ -212,7 +212,7 @@ PopoverHeader::PopoverHeader(
       m_pControlIcon->SetClass(L"popover_icon popover_icon_error");
 
     m_pControlIcon->SetFadeVisible(true);
-    Add(m_pControlIcon);
+    AddItem(m_pControlIcon);
   }
 
   if (m_strTitle.length())
@@ -224,7 +224,7 @@ PopoverHeader::PopoverHeader(
     m_pRichEditTitle->SetFixedHeight(DUI_LENGTH_AUTO, true);
     m_pRichEditTitle->SetText(m_strTitle);
 
-    Add(m_pRichEditTitle);
+    AddItem(m_pRichEditTitle);
   }
 
   if (m_bShowClose) {
@@ -234,7 +234,7 @@ PopoverHeader::PopoverHeader(
     m_pButtonClose->AttachClick(ToWeakCallback([this](const ui::EventArgs& args) {
       return OnClose(args);
       }));
-    Add(m_pButtonClose);
+    AddItem(m_pButtonClose);
   }
 }
 
@@ -353,7 +353,7 @@ PopoverBody::PopoverBody(const std::wstring& content, const std::wstring& colorI
     m_pRichEditContent->SetFixedHeight(DUI_LENGTH_AUTO, true);
     m_pRichEditContent->SetText(content);
 
-    Add(m_pRichEditContent);
+    AddItem(m_pRichEditContent);
   }
 
   if (m_pRichEditContent && !colorId.empty())
@@ -510,7 +510,7 @@ void PopoverFooter::DoInit()
       return OnCancel(args);
       }));
 
-    Add(m_pButtonCancel);
+    AddItem(m_pButtonCancel);
   }
 
   if (m_strOk.length()) {
@@ -522,7 +522,7 @@ void PopoverFooter::DoInit()
       return OnOk(args);
       }));
 
-    Add(m_pButtonOk);
+    AddItem(m_pButtonOk);
   }
 
   m_bInited = true;
@@ -617,7 +617,7 @@ Popover::Popover(ui::Control* pAnchor,
   // create popover root
   m_pPopoverRoot = new PopoverRoot();
   m_pPopoverRoot->SetClass(L"popover_root");
-  Add(m_pPopoverRoot);
+  AddItem(m_pPopoverRoot);
 
   // hide popover first
   SetFadeVisible(false);
@@ -723,7 +723,7 @@ void Popover::Update(PopoverHeader* header, PopoverBody* body, PopoverFooter* fo
 
   if (header) {
     if (m_pPopoverHeader) {
-      m_pPopoverRoot->Remove(m_pPopoverHeader);
+      m_pPopoverRoot->RemoveItem(m_pPopoverHeader);
     }
 
     m_pPopoverHeader = header;
@@ -732,25 +732,25 @@ void Popover::Update(PopoverHeader* header, PopoverBody* body, PopoverFooter* fo
       nbase::ThreadManager::PostTask(kThreadUI, ToWeakCallback([this]() {TriggerResult({ kResultNone }); }));
       return true;
       }));
-    m_pPopoverRoot->AddAt(m_pPopoverHeader, 0);
+    m_pPopoverRoot->AddItemAt(m_pPopoverHeader, 0);
   }
 
   if (body) {
-    int index = GetCount() - 1;
+    int index = GetItemCount() - 1;
     if (m_pPopoverBody) {
       index = GetItemIndex(m_pPopoverBody);
-      m_pPopoverRoot->Remove(m_pPopoverBody);
+      m_pPopoverRoot->RemoveItem(m_pPopoverBody);
     }
 
     m_pPopoverBody = body;
-    m_pPopoverRoot->AddAt(m_pPopoverBody, index < 0 ? 0 : index);
+    m_pPopoverRoot->AddItemAt(m_pPopoverBody, index < 0 ? 0 : index);
   }
 
   if (footer) {
-    int index = GetCount() - 1;
+    int index = GetItemCount() - 1;
     if (m_pPopoverFooter) {
       index = GetItemIndex(m_pPopoverFooter);
-      m_pPopoverRoot->Remove(m_pPopoverFooter);
+      m_pPopoverRoot->RemoveItem(m_pPopoverFooter);
     }
 
     m_pPopoverFooter = footer;
@@ -762,7 +762,7 @@ void Popover::Update(PopoverHeader* header, PopoverBody* body, PopoverFooter* fo
       nbase::ThreadManager::PostTask(kThreadUI, ToWeakCallback([this]() {TriggerResult({ kResultOk }); }));
       return true;
       }));
-    m_pPopoverRoot->AddAt(m_pPopoverFooter, index < 0 ? 0 : index);
+    m_pPopoverRoot->AddItemAt(m_pPopoverFooter, index < 0 ? 0 : index);
   }
 
   ArrangeSelf();
@@ -997,11 +997,11 @@ void Popover::InitializeElements()
       nbase::ThreadManager::PostTask(kThreadUI, ToWeakCallback([this]() {TriggerResult({ kResultNone }); }));
       return true;
       }));
-    m_pPopoverRoot->Add(m_pPopoverHeader);
+    m_pPopoverRoot->AddItem(m_pPopoverHeader);
   }
 
   if (m_pPopoverBody) {
-    m_pPopoverRoot->Add(m_pPopoverBody);
+    m_pPopoverRoot->AddItem(m_pPopoverBody);
   }
 
   if (m_pPopoverFooter) {
@@ -1014,13 +1014,13 @@ void Popover::InitializeElements()
       return true;
       }));
 
-    m_pPopoverRoot->Add(m_pPopoverFooter);
+    m_pPopoverRoot->AddItem(m_pPopoverFooter);
   }
 
   if (m_pPopoverArrow) {
     ui::UiRect rootMargin = m_pPopoverRoot->GetMargin();
     m_pPopoverArrow->SetArrowArea(rootMargin);
-    Add(m_pPopoverArrow);
+    AddItem(m_pPopoverArrow);
   }
 }
 
@@ -1139,7 +1139,7 @@ void Popover::TriggerClose()
 
   if (m_bRemoveOnClose) {
     if (GetParent())
-      GetParent()->Remove(this);
+      GetParent()->RemoveItem(this);
     else
       delete this;
   }
@@ -1209,7 +1209,7 @@ bool Popover::OnAnchorLastEvent(const ui::EventArgs& /*args*/)
   this->SetFadeVisible(false);
 
   if (GetParent())
-    GetParent()->Remove(this);
+    GetParent()->RemoveItem(this);
   else
     delete this;
 
@@ -1285,20 +1285,20 @@ void PopoverLayer::ShowAlert(Popover* popover)
       }
     ));
 
-    m_pAlertLayer->Add(popover);
+    m_pAlertLayer->AddItem(popover);
   }
 }
 
 void PopoverLayer::ShowPopover(Popover* popover)
 {
   if (m_pPopoverLayer && popover)
-    m_pPopoverLayer->Add(popover);
+    m_pPopoverLayer->AddItem(popover);
 }
 
 void PopoverLayer::ShowTooltip(Popover* popover)
 {
   if (m_pPopoverLayer && popover)
-    m_pPopoverLayer->Add(popover);
+    m_pPopoverLayer->AddItem(popover);
 }
 
 void PopoverLayer::ShowNotification(Popover* popover)
@@ -1309,27 +1309,27 @@ void PopoverLayer::ShowNotification(Popover* popover)
 
   auto itr = m_NotifyLayerMap.find(pAnchor);
   if (itr != m_NotifyLayerMap.end()) {
-    itr->second->Add(popover);
+    itr->second->AddItem(popover);
     return;
   }
 
   auto pHolderLayer = new NotificationHolderLayer(pAnchor);
   m_NotifyLayerMap[pAnchor] = pHolderLayer;
-  this->AddAt(pHolderLayer, 0);
+  this->AddItemAt(pHolderLayer, 0);
 
-  pHolderLayer->Add(popover);
+  pHolderLayer->AddItem(popover);
 }
 
-bool PopoverLayer::Remove(Control* pControl)
+bool PopoverLayer::RemoveItem(Control* pControl)
 {
   if (pControl->GetParent() == this)
-    return __super::Remove(pControl);
+    return __super::RemoveItem(pControl);
 
   auto pHolderLayer = static_cast<PopoverHolderLayer*>(pControl->GetParent());
   if (pHolderLayer) {
     // alert popover depends visible event to disable or enable mouse
     pControl->SetFadeVisible(false);
-    return pHolderLayer->Remove(pControl);
+    return pHolderLayer->RemoveItem(pControl);
   }
 
   return false;
@@ -1338,10 +1338,10 @@ bool PopoverLayer::Remove(Control* pControl)
 void PopoverLayer::ClearAll()
 {
   for (auto pair : m_NotifyLayerMap)
-    pair.second->RemoveAll();
+    pair.second->RemoveAllItems();
 
-  m_pAlertLayer->RemoveAll();
-  m_pPopoverLayer->RemoveAll();
+  m_pAlertLayer->RemoveAllItems();
+  m_pPopoverLayer->RemoveAllItems();
 }
 
 std::wstring PopoverLayer::GetType() const { return L"PopoverLayer"; }
@@ -1353,13 +1353,13 @@ void PopoverLayer::DoInit()
 
   auto pHolderLayer = new NotificationHolderLayer(GetParent());
   m_NotifyLayerMap[GetParent()] = pHolderLayer;
-  Add(pHolderLayer);
+  AddItem(pHolderLayer);
 
   m_pPopoverLayer = new PopoverHolderLayer(PopoverHolderLayer::kHolderTypePopover);
-  Add(m_pPopoverLayer);
+  AddItem(m_pPopoverLayer);
 
   m_pAlertLayer = new PopoverHolderLayer(PopoverHolderLayer::kHolderTypeAlert);
-  Add(m_pAlertLayer);
+  AddItem(m_pAlertLayer);
 
   if (GetWindow())
       GetWindow()->AddMessageFilter(this);
@@ -1407,7 +1407,7 @@ void PopoverLayer::SetShowMask(bool show)
 void PopoverLayer::OnMouseEventButtonDown(POINT pt)
 {
   auto trigger_loop = [this](PopoverHolderLayer* holder, POINT pt) {
-    for (int index = 0; index < holder->GetCount(); index++) {
+    for (int index = 0; index < holder->GetItemCount(); index++) {
       auto popover = static_cast<Popover*>(holder->GetItemAt(index));
       if (!popover)
         continue;

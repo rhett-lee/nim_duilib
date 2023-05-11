@@ -78,7 +78,7 @@ public:
 	* @brief 删除所有子项
 	* @return 无
 	*/
-	virtual void RemoveAll() override;
+	virtual void RemoveAllItems() override;
 
 	/**
 	* @brief 设置是否强制重新布局

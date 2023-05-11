@@ -44,7 +44,7 @@ bool TreeNode::OnClickItem(const EventArgs& param)
 
 bool TreeNode::IsVisible() const
 {
-	if (!ListContainerElement::IsVisible()) {
+	if (!ListBoxElement::IsVisible()) {
 		return false;
 	}
 	if (m_pParentTreeNode != nullptr) {
@@ -57,7 +57,7 @@ bool TreeNode::IsVisible() const
 
 void TreeNode::SetWindow(Window* pManager, Box* pParent, bool bInit)
 {
-	ListContainerElement::SetWindow(pManager, pParent, bInit);
+	ListBoxElement::SetWindow(pManager, pParent, bInit);
 }
 
 TreeNode* TreeNode::GetParentNode()
@@ -108,7 +108,7 @@ bool TreeNode::AddChildNodeAt(TreeNode* pTreeNode, size_t iIndex)
 		nGlobalIndex += ((TreeNode*)m_aTreeNodes[i])->GetDescendantNodeCount();
 	}
 
-	return m_pTreeView->ListBox::AddAt(pTreeNode, (int)(nodeIndex + nGlobalIndex + 1));
+	return m_pTreeView->ListBox::AddItemAt(pTreeNode, (int)(nodeIndex + nGlobalIndex + 1));
 }
 
 bool TreeNode::RemoveChildNodeAt(size_t iIndex)
@@ -153,7 +153,7 @@ bool TreeNode::RemoveSelf()
 	m_aTreeNodes.clear();
 
 	if (m_iDepth != ROOT_NODE_DEPTH) {
-		return m_pTreeView->ListBox::RemoveAt(GetIndex());
+		return m_pTreeView->ListBox::RemoveItemAt(GetIndex());
 	}
 
 	return false;
@@ -238,31 +238,31 @@ void TreeView::SetAttribute(const std::wstring& strName, const std::wstring& str
 	}
 }
 
-bool TreeView::Add(Control* /*pControl*/)
+bool TreeView::AddItem(Control* /*pControl*/)
 {
 	ASSERT(FALSE);
 	return true;
 }
 
-bool TreeView::AddAt(Control* /*pControl*/, size_t /*iIndex*/)
+bool TreeView::AddItemAt(Control* /*pControl*/, size_t /*iIndex*/)
 {
 	ASSERT(FALSE);
 	return true;
 }
 
-bool TreeView::Remove(Control* /*pControl*/)
+bool TreeView::RemoveItem(Control* /*pControl*/)
 {
 	ASSERT(FALSE);
 	return true;
 }
 
-bool TreeView::RemoveAt(size_t /*iIndex*/)
+bool TreeView::RemoveItemAt(size_t /*iIndex*/)
 {
 	ASSERT(FALSE);
 	return true;
 }
 
-void TreeView::RemoveAll()
+void TreeView::RemoveAllItems()
 {
 	ASSERT(FALSE);
 }

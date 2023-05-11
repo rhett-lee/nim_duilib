@@ -26,7 +26,7 @@ public:
 	 * @brief 获取所属组名称
 	 * @return 返回组名称
 	 */
-	virtual  std::wstring GetGroup() const;
+	virtual std::wstring GetGroup() const;
 
 	/**
 	 * @brief 设置所属组
@@ -35,21 +35,24 @@ public:
 	 */
 	virtual void SetGroup(const std::wstring& strGroupName);
 
-protected:
-	std::wstring	m_sGroupName;
+private:
+
+    //所属组名称(同一个组内的控件，进行单选状态控制)
+	std::wstring m_sGroupName;
 };
 
 template<typename InheritType>
 OptionTemplate<InheritType>::OptionTemplate() :
     m_sGroupName()
 {
-
 }
 
 template<typename InheritType>
 OptionTemplate<InheritType>::~OptionTemplate()
 {
-    if (!m_sGroupName.empty() && this->GetWindow()) this->GetWindow()->RemoveOptionGroup(m_sGroupName, this);
+    if (!m_sGroupName.empty() && this->GetWindow()) {
+        this->GetWindow()->RemoveOptionGroup(m_sGroupName, this);
+    }
 }
 
 template<typename InheritType>
@@ -60,21 +63,26 @@ void OptionTemplate<InheritType>::SetWindow(Window* pManager, Box* pParent, bool
 {
     __super::SetWindow(pManager, pParent, bInit);
     if (bInit && !m_sGroupName.empty()) {
-        if (this->GetWindow()) this->GetWindow()->AddOptionGroup(m_sGroupName, this);
+        if (this->GetWindow()) {
+            this->GetWindow()->AddOptionGroup(m_sGroupName, this);
+        }
     }
 }
 
 template<typename InheritType>
 void OptionTemplate<InheritType>::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
-    if (strName == L"group") SetGroup(strValue);
-    else __super::SetAttribute(strName, strValue);
+    if (strName == L"group") {
+        SetGroup(strValue);
+    }
+    else {
+        __super::SetAttribute(strName, strValue);
+    }
 }
 
 template<typename InheritType>
 void OptionTemplate<InheritType>::Selected(bool bSelected, bool bTriggerEvent)
 {
-    //if( m_bSelected == bSelected ) return;
     this->m_bSelected = bSelected;
 
     if (this->GetWindow() != nullptr) {
@@ -124,15 +132,25 @@ template<typename InheritType>
 void OptionTemplate<InheritType>::SetGroup(const std::wstring& strGroupName)
 {
     if (strGroupName.empty()) {
-        if (m_sGroupName.empty()) return;
-        if (this->GetWindow()) this->GetWindow()->RemoveOptionGroup(m_sGroupName, this);
+        if (m_sGroupName.empty()) {
+            return;
+        }
+        if (this->GetWindow()) {
+            this->GetWindow()->RemoveOptionGroup(m_sGroupName, this);
+        }
         m_sGroupName.clear();
     }
     else {
-        if (m_sGroupName == strGroupName) return;
-        if (!m_sGroupName.empty() && this->GetWindow()) this->GetWindow()->RemoveOptionGroup(m_sGroupName, this);
+        if (m_sGroupName == strGroupName) {
+            return;
+        }
+        if (!m_sGroupName.empty() && this->GetWindow()) {
+            this->GetWindow()->RemoveOptionGroup(m_sGroupName, this);
+        }
         m_sGroupName = strGroupName;
-        if (this->GetWindow()) this->GetWindow()->AddOptionGroup(m_sGroupName, this);
+        if (this->GetWindow()) {
+            this->GetWindow()->AddOptionGroup(m_sGroupName, this);
+        }
     }
 
     Selected(this->m_bSelected, true);

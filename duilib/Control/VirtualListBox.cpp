@@ -83,7 +83,7 @@ void VirtualListBox::InitElement(int nMaxItemCount)
 
 	for (int i = 0; i < nCount; i++) {
 		Control *pControl = CreateElement();
-		this->Add(pControl);
+		this->AddItem(pControl);
 		FillElement(pControl, i);
 	}
 }
@@ -97,12 +97,12 @@ void VirtualListBox::SetDirection(ListDirection direction)
 void VirtualListBox::Refresh()
 {
 	int nElementCount = GetElementCount();
-	int nItemCount = GetCount();
+	int nItemCount = GetItemCount();
 
 	if (nItemCount > nElementCount) {
 		int n = nItemCount - nElementCount;
 		for (int i = 0; i < n; i++)
-			this->RemoveAt(0);
+			this->RemoveItemAt(0);
 	}
 	else if (nItemCount < nElementCount) {
 		int n = 0;
@@ -115,7 +115,7 @@ void VirtualListBox::Refresh()
 
 		for (int i = 0; i < n; i++) {
 			Control *pControl = CreateElement();
-			this->Add(pControl);
+			this->AddItem(pControl);
 		}
 	}
 
@@ -139,9 +139,9 @@ void VirtualListBox::Refresh()
 	}
 }
 
-void VirtualListBox::RemoveAll()
+void VirtualListBox::RemoveAllItems()
 {
-	__super::RemoveAll();
+	__super::RemoveAllItems();
 
 	if (m_pVerticalScrollBar)
 		m_pVerticalScrollBar->SetScrollPos(0);
@@ -162,7 +162,7 @@ void VirtualListBox::GetDisplayCollection(std::vector<int>& collection)
 {
 	collection.clear();
 
-	if (GetCount() == 0)
+	if (GetItemCount() == 0)
 		return;
 
 	UiRect rcThis = this->GetPos(false);
@@ -327,7 +327,7 @@ void VirtualListBox::AddElement(int iIndex)
 	int nCount = GetElementCount();
 	if (nCount <= m_nMaxItemCount) {
 		Control *pControl = CreateElement();
-		this->AddAt(pControl, iIndex);
+		this->AddItemAt(pControl, iIndex);
 		FillElement(pControl, iIndex);
 	}
 	else {
@@ -340,7 +340,7 @@ void VirtualListBox::RemoveElement(int iIndex)
 {
 	int nCount = GetElementCount();
 	if (nCount < m_nMaxItemCount) {
-		this->RemoveAt(iIndex);
+		this->RemoveItemAt(iIndex);
 	}
 	else {
 		ReArrangeChild(true);
@@ -467,7 +467,7 @@ int VirtualListBox::GetElementCount()
 
 bool VirtualListBox::UseDefaultLayout()
 {
-	return GetElementCount() <= GetCount();
+	return GetElementCount() <= GetItemCount();
 }
 
 int VirtualListBox::CalcElementsHeight(int nCount)
@@ -511,7 +511,7 @@ bool VirtualListBox::NeedReArrange(ScrollDirection &direction)
 		return true;
 	}
 
-	int nCount = GetCount();
+	int nCount = GetItemCount();
 	if (nCount <= 0)
 		return false;
 

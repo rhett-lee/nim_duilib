@@ -25,13 +25,13 @@ public:
 
 	/**
 	 * @brief 判断是否是水平进度条
-	 * @return 返回 true 是水平进度条，false 为垂直滚动条
+	 * @return 返回 true 是水平进度条，false 为垂直进度条
 	 */
 	bool IsHorizontal();
 
 	/**
-	 * @brief 设置水平或垂直滚动条
-	 * @param[in] bHorizontal 为 true 时设置为水平滚动条，false 时设置为垂直滚动条，默认为 true
+	 * @brief 设置水平或垂直进度条
+	 * @param[in] bHorizontal 为 true 时设置为水平进度条，false 时设置为垂直进度条，默认为 true
 	 * @return 无
 	 */
 	void SetHorizontal(bool bHorizontal = true);
@@ -187,23 +187,41 @@ public:
   void SetReverse(bool bReverse);
 
 protected:
+	//进度条是水平或垂直: true为水平，false为垂直
 	bool m_bHorizontal;
+
+	//指定进度条前景图片是否缩放显示
 	bool m_bStretchForeImage;
+
+	//进度最大值（默认为100）
 	int m_nMax;
+
+	//进度最小值（默认为0）
 	int m_nMin;
+
+	//当前进度值
 	double m_nValue;
+
+	//进度条前景图片
 	Image m_progressImage;
-	std::wstring m_sProgressColor;
+
+	//进度条前景图片属性
 	std::wstring m_sProgressImageModify;
 
+	//进度条前景颜色,不指定则使用默认颜色
+	std::wstring m_sProgressColor;
+
+	//滚动效果
 	bool m_bMarquee;
 	int m_nMarqueeWidth;
 	int m_nMarqueeStep;
 	int m_nMarqueeElapsed;
 	int m_nMarqueePos;
 
-  bool m_bReverse;
+	//是否倒数（进度从100 到 0）
+	bool m_bReverse;
 
+	//定时器取消机制
 	nbase::WeakCallbackFlag m_timer;
 };
 

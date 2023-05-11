@@ -26,14 +26,14 @@ void TabBox::DoInit()
 
 std::wstring TabBox::GetType() const { return DUI_CTR_TABBOX; }
 
-bool TabBox::Add(Control* pControl)
+bool TabBox::AddItem(Control* pControl)
 {
-	return AddAt(pControl, GetCount());
+	return AddItemAt(pControl, GetItemCount());
 }
 
-bool TabBox::AddAt(Control* pControl, size_t iIndex)
+bool TabBox::AddItemAt(Control* pControl, size_t iIndex)
 {
-	bool ret = Box::AddAt(pControl, iIndex);
+	bool ret = Box::AddItemAt(pControl, iIndex);
 	if (!ret) {
 		return ret;
 	}		
@@ -54,7 +54,7 @@ bool TabBox::AddAt(Control* pControl, size_t iIndex)
 	return ret;
 }
 
-bool TabBox::Remove(Control* pControl)
+bool TabBox::RemoveItem(Control* pControl)
 {
 	if (pControl == nullptr) {
 		return false;
@@ -62,16 +62,16 @@ bool TabBox::Remove(Control* pControl)
 
 	int index = GetItemIndex(pControl);
 	ASSERT(index >= 0);
-	bool ret = Box::Remove(pControl);
+	bool ret = Box::RemoveItem(pControl);
 	if (!ret) {
 		return false;
 	}
 
 	if( m_iCurSel == index)	{
-		if( GetCount() > 0 ) {
+		if( GetItemCount() > 0 ) {
 			//移除当前选择的TAB页面后，选择被移除页面的前一个TAB页面
 			int newSel = m_iCurSel - 1;
-			if (newSel >= GetCount()) {
+			if (newSel >= GetItemCount()) {
 				newSel = -1;
 			}
 			if (newSel < 0) {
@@ -93,19 +93,19 @@ bool TabBox::Remove(Control* pControl)
 	return ret;
 }
 
-bool TabBox::RemoveAt(size_t iIndex)
+bool TabBox::RemoveItemAt(size_t iIndex)
 {
 	Control* pControl = GetItemAt(iIndex);
 	if (pControl == nullptr) {
 		return false;
 	}
-	return Remove(pControl);
+	return RemoveItem(pControl);
 }
 
-void TabBox::RemoveAll()
+void TabBox::RemoveAllItems()
 {
 	m_iCurSel = -1;
-	Box::RemoveAll();
+	Box::RemoveAllItems();
 	ArrangeAncestor();
 }
 

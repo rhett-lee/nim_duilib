@@ -528,7 +528,7 @@ Control* WindowBuilder::_Parse(CMarkupNode* pRoot, Control* pParent, Window* pWi
 			Box* pContainer = dynamic_cast<Box*>(pParent);
 			ASSERT(pContainer);
 			if( pContainer == NULL ) return NULL;
-			if( !pContainer->Add(pControl) ) {
+			if( !pContainer->AddItem(pControl) ) {
 				ASSERT(FALSE);
 				delete pControl;
 				continue;
@@ -601,7 +601,7 @@ Control* WindowBuilder::CreateControlByClass(const std::wstring& strControlClass
 	case 16:
 		break;
 	case 20:
-		if( strControlClass == DUI_CTR_LISTCONTAINERELEMENT )   pControl = new ListContainerElement;
+		if( strControlClass == DUI_CTR_LISTBOX_ELEMENT)   pControl = new ListBoxElement;
 		break;
 	default:
 		break;

@@ -234,7 +234,7 @@ Box::Box(Layout* pLayout) :
 Box::~Box()
 {
 	m_bDelayedDestroy = false;
-	RemoveAll();
+	RemoveAllItems();
 }
 
 std::wstring Box::GetType() const { return DUI_CTR_BOX; }
@@ -487,18 +487,22 @@ Control* Box::FindSubControl(const std::wstring& pstrSubControlName)
 	return pSubControl;
 }
 
-#define CLAMP(x,a,b) (std::min(b, std::max(a,x)))
-
 int Box::FindSelectable(int iIndex, bool bForward /*= true*/) const
 {
 	// NOTE: This is actually a helper-function for the list/combo/ect controls
 	//       that allow them to find the next enabled/available selectable item
-	if (GetCount() == 0) {
+	const int itemCount = GetItemCount();
+	if (itemCount == 0) {
 		return -1;
 	}
-	iIndex = CLAMP(iIndex, 0, GetCount() - 1);
+	if (iIndex < 0) {
+		iIndex = 0;
+	}
+	if (iIndex >= (itemCount - 1)) {
+		iIndex = itemCount - 1;
+	}
 	if (bForward) {
-		for (int i = iIndex; i < GetCount(); ++i) {
+		for (int i = iIndex; i < itemCount; ++i) {
 			Control* pControl = GetItemAt(i);
 			if (pControl == nullptr) {
 				continue;
@@ -560,22 +564,22 @@ bool Box::SetItemIndex(Control* pControl, size_t iIndex)
 	return false;
 }
 
-int Box::GetCount() const
+int Box::GetItemCount() const
 {
 	return (int)m_items.size();
 }
 
-bool Box::Add(Control* pControl)
+bool Box::AddItem(Control* pControl)
 {
-	return AddItemAt(pControl, m_items.size());
-}
-
-bool Box::AddAt(Control* pControl, size_t iIndex)
-{
-	return AddItemAt(pControl, iIndex);
+	return DoAddItemAt(pControl, m_items.size());
 }
 
 bool Box::AddItemAt(Control* pControl, size_t iIndex)
+{
+	return DoAddItemAt(pControl, iIndex);
+}
+
+bool Box::DoAddItemAt(Control* pControl, size_t iIndex)
 {
 	ASSERT(pControl != nullptr);
 	if (pControl == NULL) {
@@ -596,21 +600,21 @@ bool Box::AddItemAt(Control* pControl, size_t iIndex)
 	return true;
 }
 
-bool Box::Remove(Control* pControl)
+bool Box::RemoveItem(Control* pControl)
 {
-	return RemoveItem(pControl);
+	return DoRemoveItem(pControl);
 }
 
-bool Box::RemoveAt(size_t iIndex)
+bool Box::RemoveItemAt(size_t iIndex)
 {
 	Control* pControl = GetItemAt(iIndex);
 	if (pControl != NULL) {
-		return RemoveItem(pControl);
+		return DoRemoveItem(pControl);
 	}
 	return false;
 }
 
-bool Box::RemoveItem(Control* pControl)
+bool Box::DoRemoveItem(Control* pControl)
 {
 	ASSERT(pControl != nullptr);
 	if (pControl == nullptr) {
@@ -636,7 +640,7 @@ bool Box::RemoveItem(Control* pControl)
 	return false;
 }
 
-void Box::RemoveAll()
+void Box::RemoveAllItems()
 {
 	if (m_bAutoDestroyChild) {
 		Window* pWindow = GetWindow();
@@ -652,45 +656,6 @@ void Box::RemoveAll()
 
 	m_items.clear();
 	Arrange();
-}
-
-bool Box::HasItem(Control* pControl) const
-{
-	return std::find(m_items.begin(), m_items.end(), pControl) != m_items.end();
-}
-
-void Box::SwapChild(Control* pChild1, Control* pChild2)
-{
-	ASSERT(std::find(m_items.begin(), m_items.end(), pChild1) != m_items.end());
-	ASSERT(std::find(m_items.begin(), m_items.end(), pChild2) != m_items.end());
-
-	for (auto it = m_items.begin(); it != m_items.end(); ++it) {
-		if (*it == pChild1 || *it == pChild2) {
-			Control* child = (*it == pChild1) ? pChild2 : pChild1;
-			it = m_items.erase(it);
-			it = m_items.insert(it, child);
-		}
-	}
-}
-
-void Box::ResetChildIndex(Control* pChild, size_t iIndex)
-{
-	ASSERT(std::find(m_items.begin(), m_items.end(), pChild) != m_items.end());
-
-	size_t oldIndex = 0;
-	for (auto it = m_items.begin(); it != m_items.end(); ++it) {
-		if (*it == pChild) {
-			m_items.erase(it);
-			if (oldIndex >= iIndex) {
-				AddItemAt(pChild, iIndex);
-			}
-			else {
-				AddItemAt(pChild, iIndex - 1);
-			}
-			break;
-		}
-		oldIndex++;
-	}
 }
 
 void Box::ReSetLayout(Layout* pLayout)

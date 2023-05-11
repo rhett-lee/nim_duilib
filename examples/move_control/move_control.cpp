@@ -51,13 +51,13 @@ void MoveControlForm::OnInitWindow()
 		pAppUi->AttachAllEvents(nbase::Bind(&MoveControlForm::OnProcessAppItemDrag, this, std::placeholders::_1));
 		if (item._isFrequent)
 		{
-			pAppUi->FixPos(0, frequent_app_->GetCount());
-			frequent_app_->Add(pAppUi);
+			pAppUi->FixPos(0, frequent_app_->GetItemCount());
+			frequent_app_->AddItem(pAppUi);
 		}
 		else
 		{
-			pAppUi->FixPos(0, my_app_->GetCount());
-			my_app_->Add(pAppUi);
+			pAppUi->FixPos(0, my_app_->GetItemCount());
+			my_app_->AddItem(pAppUi);
 		}
 	}
 }
@@ -82,9 +82,9 @@ LRESULT MoveControlForm::OnLButtonUp(UINT uMsg, WPARAM wParam, LPARAM lParam, bo
 	if (!DoAfterDrag(frequent_app_) && !DoAfterDrag(my_app_))
 	{
 		//回滚
-		pParent->AddAt(current_item_, current_item_->getIndex());
+		pParent->AddItemAt(current_item_, current_item_->getIndex());
 		//从index处开始补缺口
-		for (int index = current_item_->getIndex()+1; index < pParent->GetCount(); ++index)
+		for (int index = current_item_->getIndex()+1; index < pParent->GetItemCount(); ++index)
 		{
 			AppItemUi* _pItem = dynamic_cast<AppItemUi*>(pParent->GetItemAt(index));
 			if (_pItem)
@@ -179,10 +179,10 @@ void MoveControlForm::DoBeforeDrag()
 		Box* pParent = current_item_->GetParent();
 		ASSERT(pParent);
 		pParent->SetAutoDestroyChild(false);  //子控件不销毁
-		pParent->Remove(current_item_);
+		pParent->RemoveItem(current_item_);
 
 		//从index处开始补缺口
-		for (int index = current_item_->getIndex(); index < pParent->GetCount(); ++index)
+		for (int index = current_item_->getIndex(); index < pParent->GetItemCount(); ++index)
 		{
 			AppItemUi* _pItem = dynamic_cast<AppItemUi*>(pParent->GetItemAt(index));
 			if (_pItem)
@@ -221,7 +221,7 @@ bool MoveControlForm::DoAfterDrag(ui::Box* check)
 	if (rectBox.IsPointIn(UiPoint(pt)))
 	{
 		//最好是重合面积更大的，这里根据鼠标位置来了
-		for (findIndex = 0; findIndex < check->GetCount(); findIndex++)
+		for (findIndex = 0; findIndex < check->GetItemCount(); findIndex++)
 		{
 			auto control = check->GetItemAt(findIndex);
 			UiRect rectCtrl = control->GetPos();
@@ -232,12 +232,12 @@ bool MoveControlForm::DoAfterDrag(ui::Box* check)
 			}
 		}
 		//合理安排区域
-		if (findIndex < check->GetCount())
+		if (findIndex < check->GetItemCount())
 		{
 			current_item_->FixPos(0, findIndex);
-			check->AddAt(current_item_, findIndex);
+			check->AddItemAt(current_item_, findIndex);
 			//从index处开始补缺口
-			for (int index = findIndex + 1; index < check->GetCount(); ++index)
+			for (int index = findIndex + 1; index < check->GetItemCount(); ++index)
 			{
 				AppItemUi* _pItem = dynamic_cast<AppItemUi*>(check->GetItemAt(index));
 				if (_pItem)
@@ -251,7 +251,7 @@ bool MoveControlForm::DoAfterDrag(ui::Box* check)
 		{
 			//放到最后面
 			current_item_->FixPos(0, findIndex);
-			check->Add(current_item_);
+			check->AddItem(current_item_);
 			return true;
 		}
 	}

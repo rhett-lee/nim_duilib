@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "duilib/Control/List.h"
+#include "duilib/Control/ListBox.h"
 
 namespace ui
 {
@@ -11,7 +11,7 @@ namespace ui
 #define ROOT_NODE_DEPTH  -1
 
 class TreeView;
-class UILIB_API TreeNode : public ListContainerElement
+class UILIB_API TreeNode : public ListBoxElement
 {
 public:
 	TreeNode();
@@ -192,11 +192,11 @@ public:
 
 private:
 	//以下函数故意私有化，表明禁止使用；应该使用TreeNode中的相关函数
-	bool Add(Control* pControl) override;
-	bool AddAt(Control* pControl, size_t iIndex) override;
-	bool Remove(Control* pControl) override;
-	bool RemoveAt(size_t iIndex) override;
-	void RemoveAll() override;
+	bool AddItem(Control* pControl) override;
+	bool AddItemAt(Control* pControl, size_t iIndex) override;
+	bool RemoveItem(Control* pControl) override;
+	bool RemoveItemAt(size_t iIndex) override;
+	void RemoveAllItems() override;
 
 	virtual void SetWindow(Window* pManager, Box* pParent, bool bInit = true) override;
 

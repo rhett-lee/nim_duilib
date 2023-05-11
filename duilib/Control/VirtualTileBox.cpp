@@ -220,7 +220,7 @@ void VirtualTileBox::Refresh()
   m_nMaxItemCount = GetTileLayout()->AjustMaxItem();
 
   int nElementCount = GetElementCount();
-  int nItemCount = GetCount();
+  int nItemCount = GetItemCount();
 
   // 如果现有子项总数大于数据总数， 移出比数据总数多出的子项
   if (nItemCount > nElementCount)
@@ -228,7 +228,7 @@ void VirtualTileBox::Refresh()
 
     int n = nItemCount - nElementCount;
     for (int i = 0; i < n; i++)
-      this->RemoveAt(0);
+      this->RemoveItemAt(0);
   }
   // 如果子项总数据小于数据总数
   else if (nItemCount < nElementCount) {
@@ -243,7 +243,7 @@ void VirtualTileBox::Refresh()
 
     for (int i = 0; i < n; i++) {
       Control* pControl = CreateElement();
-      this->Add(pControl);
+      this->AddItem(pControl);
     }
   }
 
@@ -255,9 +255,9 @@ void VirtualTileBox::Refresh()
 
 }
 
-void VirtualTileBox::RemoveAll()
+void VirtualTileBox::RemoveAllItems()
 {
-  __super::RemoveAll();
+  __super::RemoveAllItems();
 
   if (m_pVerticalScrollBar)
     m_pVerticalScrollBar->SetScrollPos(0);
@@ -276,7 +276,7 @@ void VirtualTileBox::GetDisplayCollection(std::vector<int>& collection)
 {
   collection.clear();
 
-  if (GetCount() == 0)
+  if (GetItemCount() == 0)
     return;
 
   // 获取Box的Rect
@@ -481,7 +481,7 @@ bool VirtualTileBox::NeedReArrange(ScrollDirection& direction)
     return true;
   }
 
-  int nCount = GetCount();
+  int nCount = GetItemCount();
   if (nCount <= 0)
     return false;
 

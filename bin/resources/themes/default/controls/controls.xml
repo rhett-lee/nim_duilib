@@ -68,7 +68,7 @@
                     </HBox>
                     <!-- DateTime -->
                     <HBox childmargin="10">
-                        <Label text="默认的日期格式" margin="0,0,0,8" valign="center" />
+                        <Label text="默认的日期格式" margin="0,0,0,8" valign="center" hottextcolor="red" pushedtextcolor="blue"/>
                         <DateTime width="140" height="24" />
                     </HBox>
                     <HBox childmargin="10">

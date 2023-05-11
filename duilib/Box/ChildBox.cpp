@@ -25,11 +25,11 @@ void ChildBox::Init()
 
 		Box* pChildWindow = static_cast<Box*>(GlobalManager::CreateBoxWithCache(m_strXMLFile.c_str(), callback));
 		if (pChildWindow) {
-			this->Add(pChildWindow);
+			this->AddItem(pChildWindow);
 		}
 		else {
 			ASSERT(FALSE);
-			this->RemoveAll();
+			this->RemoveAllItems();
 		}
 	}
 }

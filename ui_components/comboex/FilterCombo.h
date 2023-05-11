@@ -1,5 +1,5 @@
 #pragma once
-#include "duilib/Control/List.h"
+#include "duilib/Control/ListBox.h"
 #include "duilib/Core/Box.h"
 #include "duilib/Box/VBox.h"
 #include "duilib/Control/RichEdit.h"
@@ -12,7 +12,7 @@ class UILIB_API IMatch {
 	virtual bool StringMatch(const std::string& utf8str) = 0;
 };
 
-class UILIB_API ListElementMatch : public ui::ListContainerElement, public IMatch
+class UILIB_API ListElementMatch : public ui::ListBoxElement, public IMatch
 {
 public:
 	virtual bool StringMatch(const std::string& utf8str) override;
@@ -45,10 +45,10 @@ public:
 	virtual void HandleEvent(const ui::EventArgs& args) override;
 
 	/// 重写父类方法，提供个性化功能，请参考父类声明
-	virtual bool Add(Control* pControl) override;
-	virtual bool Remove(Control* pControl) override;
-	virtual bool RemoveAt(size_t iIndex) override;
-	virtual void RemoveAll() override;
+	virtual bool AddItem(Control* pControl) override;
+	virtual bool RemoveItem(Control* pControl) override;
+	virtual bool RemoveItemAt(size_t iIndex) override;
+	virtual void RemoveAllItems() override;
 	virtual void Activate() override;
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 	//virtual void PaintText(IRenderContext* pRender) override;
@@ -128,7 +128,7 @@ public:
 	 * @brief 获取所有子项数量
 	 * @return 返回所有子项数量
 	 */
-	virtual int GetCount() const;
+	virtual int GetItemCount() const;
     
 	/**
 	 * @brief 监听子项被选择事件

@@ -1,7 +1,7 @@
 #include "CheckCombo.h"
 #include "duilib/Core/Window.h"
 #include "duilib/Box/VBox.h"
-#include "duilib/Control/List.h"
+#include "duilib/Control/ListBox.h"
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Utils/Macros.h"
 
@@ -39,7 +39,7 @@ namespace nim_comp
 
 		ui::UiSize szAvailable(rc.right - rc.left, rc.bottom - rc.top);
 		int cyFixed = 0;
-		for (int it = 0; it < pOwner->GetListBox()->GetCount(); it++) {
+		for (int it = 0; it < pOwner->GetListBox()->GetItemCount(); it++) {
 			ui::Control* pControl = pOwner->GetListBox()->GetItemAt(it);
 			if (!pControl->IsVisible()) continue;
 			ui::UiSize sz = pControl->EstimateSize(szAvailable);
@@ -97,7 +97,7 @@ namespace nim_comp
 			this->InitWnd(GetHWND());
 			ui::Box* pRoot = new ui::Box;
 			pRoot->SetAutoDestroyChild(false);
-			pRoot->Add(m_pOwner->GetListBox());
+			pRoot->AddItem(m_pOwner->GetListBox());
 			this->AttachBox(pRoot);
 			this->SetResourcePath(m_pOwner->GetWindow()->GetResourcePath());
 			this->SetShadowAttached(false);
@@ -110,7 +110,7 @@ namespace nim_comp
 		}
 		else if (uMsg == WM_KILLFOCUS) {
 			if (GetHWND() != (HWND)wParam)	{
-				((ui::Box*)this->GetRoot())->RemoveAt(0);
+				((ui::Box*)this->GetRoot())->RemoveItemAt(0);
 				m_pOwner->GetListBox()->PlaceHolder::SetWindow(nullptr, nullptr, false);
 				PostMessage(WM_CLOSE);
 			}
@@ -152,7 +152,7 @@ namespace nim_comp
 		m_pList->SetMouseChildEnabled(false);
 		//m_pList->SetAutoDestroyChild(false);
 		m_pList->EnableScrollBar();
-		Box::Add(m_pList.get());
+		Box::AddItem(m_pList.get());
 
 		SetMaxHeight(m_iOrgHeight * 3);
 		SetMinHeight(m_iOrgHeight);
@@ -160,10 +160,10 @@ namespace nim_comp
 
 	CheckCombo::~CheckCombo()
 	{
-		Box::Remove(m_pList.get());
+		Box::RemoveItem(m_pList.get());
 	}
 
-	bool CheckCombo::Add(Control* pControl)
+	bool CheckCombo::AddItem(Control* pControl)
 	{
 		ui::CheckBox* pCheckBox = dynamic_cast<ui::CheckBox*>(pControl);
 		if (pCheckBox)
@@ -180,30 +180,30 @@ namespace nim_comp
 			}
 			else
 			{
-				printf("CheckCombo::Add pControl is not CheckBox object\n");
+				printf("CheckCombo::AddItem pControl is not CheckBox object\n");
 				ASSERT(0);
 				return true;
 			}
 		}
-		m_pDropList->Add(pControl);
+		m_pDropList->AddItem(pControl);
 		return true;
 	}
 
-	bool CheckCombo::Remove(Control * pControl)
+	bool CheckCombo::RemoveItem(Control * pControl)
 	{
-		bool ret = m_pDropList->Remove(pControl);
+		bool ret = m_pDropList->RemoveItem(pControl);
 		return ret;
 	}
 
-	bool CheckCombo::RemoveAt(size_t iIndex)
+	bool CheckCombo::RemoveItemAt(size_t iIndex)
 	{
-		bool ret = m_pDropList->RemoveAt((int)iIndex);
+		bool ret = m_pDropList->RemoveItemAt((int)iIndex);
 		return ret;
 	}
 
-	void CheckCombo::RemoveAll()
+	void CheckCombo::RemoveAllItems()
 	{
-		m_pDropList->RemoveAll();
+		m_pDropList->RemoveAllItems();
 	}
 
 	void CheckCombo::Activate()
@@ -278,7 +278,7 @@ namespace nim_comp
 
 	bool CheckCombo::SelectItem(int /*iIndex*/)
 	{
-		/*if (iIndex < 0 || iIndex >= m_pDropList->GetCount() || m_iCurSel == iIndex)
+		/*if (iIndex < 0 || iIndex >= m_pDropList->GetItemCount() || m_iCurSel == iIndex)
 			return false;
 
 		m_iCurSel = iIndex;
@@ -318,9 +318,9 @@ namespace nim_comp
 		item->SetUTF8Name(date);
 		item->SetUTF8Text(text);
 
-		m_pList->Add(item);
+		m_pList->AddItem(item);
 
-		SetFixedHeight(m_pList->GetCount() * m_iOrgHeight, true);
+		SetFixedHeight(m_pList->GetItemCount() * m_iOrgHeight, true);
 
 		return true;
 	}
@@ -345,17 +345,17 @@ namespace nim_comp
 		Control *pRemove = m_pList->FindSubControl(utf16);
 		ASSERT(pRemove);
 		if (pRemove) {
-			m_pList->Remove(pRemove);
+			m_pList->RemoveItem(pRemove);
 		}
 
-		SetFixedHeight(m_pList->GetCount() * m_iOrgHeight, true);
+		SetFixedHeight(m_pList->GetItemCount() * m_iOrgHeight, true);
 		return true;
 	}
 
 	void CheckCombo::ClearAllDate()
 	{
-		m_pList->RemoveAll();
-		m_pDropList->RemoveAll();
+		m_pList->RemoveAllItems();
+		m_pDropList->RemoveAllItems();
 		SetFixedHeight(m_iOrgHeight, true);
 		m_vecDate.clear();
 	}

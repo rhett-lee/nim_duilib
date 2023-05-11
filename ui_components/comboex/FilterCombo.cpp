@@ -43,7 +43,7 @@ void CFilterComboWnd::InitComboWnd(FilterCombo* pOwner)
 
 	ui::UiSize szAvailable(rc.right - rc.left, rc.bottom - rc.top);
     int cyFixed = 0;
-	for (int it = 0; it < pOwner->GetListBox()->GetCount(); it++) {
+	for (int it = 0; it < pOwner->GetListBox()->GetItemCount(); it++) {
 		ui::Control* pControl = pOwner->GetListBox()->GetItemAt(it);
 		if (pControl == nullptr) {
 			continue;
@@ -104,7 +104,7 @@ LRESULT CFilterComboWnd::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam
 		this->InitWnd(GetHWND());
 		ui::Box* pRoot = new ui::Box;
 		pRoot->SetAutoDestroyChild(false);
-		pRoot->Add(m_pOwner->GetListBox());
+		pRoot->AddItem(m_pOwner->GetListBox());
 		m_pOwner->GetListBox()->SetFilterComboWnd(this);
 		this->AttachBox(pRoot);
 		this->SetResourcePath(m_pOwner->GetWindow()->GetResourcePath());
@@ -120,7 +120,7 @@ LRESULT CFilterComboWnd::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam
 		if (GetHWND() != (HWND)wParam)	{
 			if ((m_pOwner != nullptr) && (m_pOwner->GetListBox() != nullptr)){
 				m_pOwner->SelectItem(m_pOwner->GetListBox()->GetCurSel());
-				((ui::Box*)this->GetRoot())->RemoveAt(0);
+				((ui::Box*)this->GetRoot())->RemoveItemAt(0);
 				m_pOwner->GetListBox()->PlaceHolder::SetWindow(nullptr, nullptr, false);
 				m_pOwner->GetListBox()->SetFilterComboWnd(nullptr);
 			}
@@ -195,7 +195,7 @@ bool FilterListBox::SelectItem(int iIndex, bool bTakeFocus, bool bTrigger)
 	if (m_iCurSel >= 0) {
 		Control* pControl = GetItemAt(m_iCurSel);
 		if (pControl != NULL) {
-			ui::ListContainerElement* pListItem = dynamic_cast<ui::ListContainerElement*>(pControl);
+			ui::ListBoxElement* pListItem = dynamic_cast<ui::ListBoxElement*>(pControl);
 			if (pListItem != NULL) {
 				pListItem->OptionTemplate<Box>::Selected(false, bTrigger);
 			}
@@ -219,7 +219,7 @@ bool FilterListBox::SelectItem(int iIndex, bool bTakeFocus, bool bTrigger)
 		return false;
 	}
 
-	ui::ListContainerElement* pListItem = dynamic_cast<ui::ListContainerElement*>(pControl);
+	ui::ListBoxElement* pListItem = dynamic_cast<ui::ListBoxElement*>(pControl);
 	if (pListItem == nullptr) {
 		return false;
 	}
@@ -242,7 +242,7 @@ bool FilterListBox::SelectItem(int iIndex, bool bTakeFocus, bool bTrigger)
 void FilterListBox::Filter(const std::string& utf8_str)
 {
 	ListElementMatch *item = nullptr;
-	for (size_t i = 0; i < (size_t)GetCount(); ++i)
+	for (size_t i = 0; i < (size_t)GetItemCount(); ++i)
 	{
 		item = dynamic_cast<ListElementMatch*>(GetItemAt(i));
 		if (item){
@@ -289,7 +289,7 @@ FilterCombo::FilterCombo() :
 	m_pRichEdit->SetFont(L"system_14");
 	//m_pRichEdit->SetMouseChildEnabled(false);
 	//m_pRichEdit->EnableScrollBar();
-	Box::Add(m_pRichEdit);
+	Box::AddItem(m_pRichEdit);
 }
 
 void FilterCombo::HandleEvent(const ui::EventArgs& args)
@@ -305,7 +305,7 @@ void FilterCombo::HandleEvent(const ui::EventArgs& args)
 	}
 }
 
-bool FilterCombo::Add(Control* pControl)
+bool FilterCombo::AddItem(Control* pControl)
 {
 	ListElementMatch *pListElementMatch = dynamic_cast<ListElementMatch*>(pControl);
 	if (pListElementMatch)
@@ -314,33 +314,33 @@ bool FilterCombo::Add(Control* pControl)
 	}
 	else
 	{
-		printf("CheckCombo::Add pControl is not CheckBox object\n");
+		printf("CheckCombo::AddItem pControl is not CheckBox object\n");
 		ASSERT(0);
 		return true;
 	}
 
-	m_pLayout->Add(pControl);
+	m_pLayout->AddItem(pControl);
 	m_iCurSel = m_pLayout->GetCurSel();
 	return true;
 }
 
-bool FilterCombo::Remove(Control * pControl)
+bool FilterCombo::RemoveItem(Control * pControl)
 {
-	bool ret = m_pLayout->Remove(pControl);
+	bool ret = m_pLayout->RemoveItem(pControl);
 	m_iCurSel = m_pLayout->GetCurSel();
 	return ret;
 }
 
-bool FilterCombo::RemoveAt(size_t iIndex)
+bool FilterCombo::RemoveItemAt(size_t iIndex)
 {
-	bool ret = m_pLayout->RemoveAt((int)iIndex);
+	bool ret = m_pLayout->RemoveItemAt((int)iIndex);
 	m_iCurSel = m_pLayout->GetCurSel();
 	return ret;
 }
 
-void FilterCombo::RemoveAll()
+void FilterCombo::RemoveAllItems()
 {
-	m_pLayout->RemoveAll();
+	m_pLayout->RemoveAllItems();
 	m_iCurSel = -1;
 }
 
@@ -382,7 +382,7 @@ std::wstring FilterCombo::GetText() const
 {
 #if 0
     if( m_iCurSel < 0 ) return _T("");
-	ListContainerElement* pControl = static_cast<ListContainerElement*>(m_pLayout->GetItemAt(m_iCurSel));
+	ListBoxElement* pControl = static_cast<ListBoxElement*>(m_pLayout->GetItemAt(m_iCurSel));
     return pControl->GetText();
 #else
 	if (m_pRichEdit)
@@ -420,7 +420,7 @@ void FilterCombo::SetDropBoxSize(ui::UiSize szDropBox)
 
 bool FilterCombo::SelectItem(int iIndex)
 {
-	if (iIndex < 0 || iIndex >= m_pLayout->GetCount() || m_iCurSel == iIndex)
+	if (iIndex < 0 || iIndex >= m_pLayout->GetItemCount() || m_iCurSel == iIndex)
 		return false;
 
 	m_iCurSel = iIndex;
@@ -434,9 +434,9 @@ ui::Control* FilterCombo::GetItemAt(int iIndex)
 	return m_pLayout->GetItemAt(iIndex);
 }
 
-int FilterCombo::GetCount() const 
+int FilterCombo::GetItemCount() const 
 {
-	return m_pLayout->GetCount(); 
+	return m_pLayout->GetItemCount(); 
 }
 
 void FilterCombo::AttachSelect(const ui::EventCallback& callback)
@@ -455,7 +455,7 @@ bool FilterCombo::OnSelectItem(const ui::EventArgs& /*args*/)
 		pControl->SetState(ui::kControlStateNormal);
 	}
 	SendEvent(ui::kEventSelect, m_iCurSel, -1);
-	ui::ListContainerElement *ele = dynamic_cast<ui::ListContainerElement*>(pControl);
+	ui::ListBoxElement *ele = dynamic_cast<ui::ListBoxElement*>(pControl);
 	if (m_pRichEdit && ele)
 	{
 		m_pRichEdit->SetText(ele->GetText());
@@ -479,7 +479,7 @@ bool FilterCombo::OnRichEditTextChanged(const ui::EventArgs& /*args*/)
 
 	ui::UiSize szAvailable(rc.right - rc.left, rc.bottom - rc.top);
 	int cyFixed = 0;
-	for (int it = 0; it < GetListBox()->GetCount(); it++) {
+	for (int it = 0; it < GetListBox()->GetItemCount(); it++) {
 		Control* pControl = GetListBox()->GetItemAt(it);
 		if (!pControl->IsVisible()) continue;
 		ui::UiSize sz = pControl->EstimateSize(szAvailable);

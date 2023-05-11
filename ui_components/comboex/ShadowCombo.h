@@ -2,7 +2,7 @@
 
 #include "duilib/Core/Window.h"
 #include "duilib/Core/Box.h"
-#include "duilib/Control/List.h"
+#include "duilib/Control/ListBox.h"
 
 namespace nim_comp
 {
@@ -42,10 +42,10 @@ public:
 #if defined(ENABLE_UIAUTOMATION)
   UIAControlProvider* GetUIAProvider() override;
 #endif
-  bool Add(Control* pControl) override;
-  bool Remove(Control* pControl) override;
-  bool RemoveAt(size_t iIndex) override;
-  void RemoveAll() override;
+  bool AddItem(Control* pControl) override;
+  bool RemoveItem(Control* pControl) override;
+  bool RemoveItemAt(size_t iIndex) override;
+  void RemoveAllItems() override;
   void Activate() override;
   void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
   void PaintText(ui::IRenderContext* pRender) override;
@@ -140,7 +140,7 @@ public:
    * @brief 获取所有子项数量
    * @return 返回所有子项数量
    */
-  virtual int GetCount() const { return m_pLayout->GetCount(); }
+  virtual int GetItemCount() const { return m_pLayout->GetItemCount(); }
 
   /**
   * @brief 设置下拉框的窗口

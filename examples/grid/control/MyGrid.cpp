@@ -36,7 +36,7 @@ void MyGridBody::SetColCount(int count)
 		combo->SetAttribute(L"cursortype", L"hand");
 		combo->SetFloat(true);
 		pItem->control_ = combo;
-		if (Add(combo) == false)
+		if (AddItem(combo) == false)
 		{
 			assert(0);
 		}
@@ -44,11 +44,11 @@ void MyGridBody::SetColCount(int count)
 
 		for (size_t i = 0; i < 3; i++)
 		{
-			ListContainerElement *combo_item = new ListContainerElement;
+			ListBoxElement *combo_item = new ListBoxElement;
 			combo_item->SetClass(L"listitem");
 			combo_item->SetUTF8Text("item0");
 			combo_item->SetFixedHeight(24, true);
-			combo->Add(combo_item);
+			combo->AddItem(combo_item);
 		}
 	}
 
@@ -72,7 +72,7 @@ GridHeaderItem* MyGridBody::AddCol(std::wstring text, int width)
 			combo->SetAttribute(L"cursortype", L"hand");
 			combo->SetFloat(true);
 			item->control_ = combo;
-			if (Add(combo) == false)
+			if (AddItem(combo) == false)
 			{
 				assert(0);
 			}
@@ -80,11 +80,11 @@ GridHeaderItem* MyGridBody::AddCol(std::wstring text, int width)
 
 			for (size_t i = 0; i < 3; i++)
 			{
-				ListContainerElement *combo_item = new ListContainerElement;
+				ListBoxElement *combo_item = new ListBoxElement;
 				combo_item->SetClass(L"listitem");
 				combo_item->SetUTF8Text("item0");
 				combo_item->SetFixedHeight(24, true);
-				combo->Add(combo_item);
+				combo->AddItem(combo_item);
 			}
 		}
 	}

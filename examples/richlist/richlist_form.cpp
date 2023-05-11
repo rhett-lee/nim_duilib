@@ -41,7 +41,7 @@ void RichlistForm::OnInitWindow()
 		std::wstring title = nbase::StringPrintf(L"下载任务 [%02d]", i + 1);
 
 		item->InitSubControls(img, title);
-		list_->Add(item);
+		list_->AddItem(item);
 	}
 
 	// 监听列表中点击选择子项的事件

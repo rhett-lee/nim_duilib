@@ -615,7 +615,7 @@ public:
 
 public:
   // 重载
-  bool Remove(Control* pControl) override;
+  bool RemoveItem(Control* pControl) override;
 
   // 清除所有弹窗，保留弹窗Holder
   void ClearAll();

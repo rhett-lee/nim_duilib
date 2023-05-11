@@ -1,7 +1,7 @@
 #include "Combo.h"
 #include "duilib/Core/Window.h"
 #include "duilib/Utils/Macros.h"
-#include "duilib/Control/List.h"
+#include "duilib/Control/ListBox.h"
 
 namespace ui
 {
@@ -41,7 +41,7 @@ void CComboWnd::InitComboWnd(Combo* pOwner)
 
     UiSize szAvailable(rc.right - rc.left, rc.bottom - rc.top);
     int cyFixed = 0;
-	for (int it = 0; it < pOwner->GetListBox()->GetCount(); it++) {
+	for (int it = 0; it < pOwner->GetListBox()->GetItemCount(); it++) {
 		Control* pControl = pOwner->GetListBox()->GetItemAt(it);
 		if (pControl == nullptr) {
 			continue;
@@ -115,7 +115,7 @@ LRESULT CComboWnd::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool
 		this->InitWnd(GetHWND());
 		Box* pRoot = new Box;
 		pRoot->SetAutoDestroyChild(false);
-		pRoot->Add(m_pOwner->GetListBox());
+		pRoot->AddItem(m_pOwner->GetListBox());
 		this->AttachBox(pRoot);
 		this->SetResourcePath(m_pOwner->GetWindow()->GetResourcePath());
 		this->SetShadowAttached(false);
@@ -130,7 +130,7 @@ LRESULT CComboWnd::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool
     else if( uMsg == WM_KILLFOCUS ) {
 		if (GetHWND() != (HWND)wParam)	{
 			m_pOwner->SelectItemInternal(m_pOwner->GetListBox()->GetCurSel());
-			((Box*)this->GetRoot())->RemoveAt(0);
+			((Box*)this->GetRoot())->RemoveItemAt(0);
 			m_pOwner->GetListBox()->PlaceHolder::SetWindow(nullptr, nullptr, false);
 			//采取延迟关闭，从而实现展开时再点击一次是关闭，而不是每次点击都展开。
 			CloseWnd();
@@ -184,38 +184,38 @@ UIAControlProvider* Combo::GetUIAProvider()
 }
 #endif
 
-bool Combo::Add(Control* pControl)
+bool Combo::AddItem(Control* pControl)
 {
 	ASSERT(pControl != nullptr);
 	if (pControl == nullptr) {
 		return false;
 	}
-	m_pLayout->Add(pControl);
+	m_pLayout->AddItem(pControl);
 	m_iCurSel = m_pLayout->GetCurSel();
 	return true;
 }
 
-bool Combo::Remove(Control * pControl)
+bool Combo::RemoveItem(Control * pControl)
 {
 	ASSERT(pControl != nullptr);
 	if (pControl == nullptr){
 		return false;
 	}
-	bool ret = m_pLayout->Remove(pControl);
+	bool ret = m_pLayout->RemoveItem(pControl);
 	m_iCurSel = m_pLayout->GetCurSel();
 	return ret;
 }
 
-bool Combo::RemoveAt(size_t iIndex)
+bool Combo::RemoveItemAt(size_t iIndex)
 {
-	bool ret = m_pLayout->RemoveAt((int)iIndex);
+	bool ret = m_pLayout->RemoveItemAt((int)iIndex);
 	m_iCurSel = m_pLayout->GetCurSel();
 	return ret;
 }
 
-void Combo::RemoveAll()
+void Combo::RemoveAllItems()
 {
-	m_pLayout->RemoveAll();
+	m_pLayout->RemoveAllItems();
 	m_iCurSel = -1;
 }
 
@@ -272,9 +272,9 @@ void Combo::PaintText(IRenderContext* pRender)
 	UiRect rcText = GetRect();
 	if (m_iCurSel >= 0) {
 		Control* pControl = m_pLayout->GetItemAt(m_iCurSel);
-		ListContainerElement* pElement = nullptr;
+		ListBoxElement* pElement = nullptr;
 		if (pControl) {
-			pElement = dynamic_cast<ListContainerElement*>(pControl);
+			pElement = dynamic_cast<ListBoxElement*>(pControl);
 		}
 		ASSERT(pElement != nullptr);
 		if (pElement == nullptr) {
@@ -313,7 +313,7 @@ std::wstring Combo::GetText() const
 	if (m_iCurSel < 0) {
 		return std::wstring();
 	}
-	ListContainerElement* pControl = dynamic_cast<ListContainerElement*>(m_pLayout->GetItemAt(m_iCurSel));
+	ListBoxElement* pControl = dynamic_cast<ListBoxElement*>(m_pLayout->GetItemAt(m_iCurSel));
 	return pControl ? pControl->GetText() : std::wstring();
 }
 
@@ -353,7 +353,7 @@ void Combo::SetDropBoxSize(UiSize szDropBox)
 
 bool Combo::SelectItemInternal(int iIndex)
 {
-	if (iIndex < 0 || iIndex >= m_pLayout->GetCount()) {
+	if (iIndex < 0 || iIndex >= m_pLayout->GetItemCount()) {
 		return false;
 	}
 	int iOldSel = m_iCurSel;
@@ -369,7 +369,7 @@ bool Combo::SelectItemInternal(int iIndex)
 		VARIANT vtNew = { 0 };
 		vtOld.vt = VT_BSTR;
 		vtNew.vt = VT_BSTR;
-		ListContainerElement* pControl = dynamic_cast<ListContainerElement*>(m_pLayout->GetItemAt(m_iCurSel));
+		ListBoxElement* pControl = dynamic_cast<ListBoxElement*>(m_pLayout->GetItemAt(m_iCurSel));
 		vtOld.bstrVal = SysAllocString(pControl ? pControl->GetText().c_str() : L"");
 		vtNew.bstrVal = SysAllocString(GetText().c_str());
 
@@ -400,9 +400,9 @@ Control* Combo::GetItemAt(int iIndex)
 	return m_pLayout->GetItemAt(iIndex);
 }
 
-int Combo::GetCount() const 
+int Combo::GetItemCount() const 
 { 
-	return m_pLayout->GetCount(); 
+	return m_pLayout->GetItemCount(); 
 }
 
 bool Combo::OnSelectItem(const EventArgs& /*args*/)

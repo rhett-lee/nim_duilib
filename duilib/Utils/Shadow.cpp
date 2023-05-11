@@ -97,7 +97,7 @@ Box* Shadow::AttachShadow(Box* pRoot)
 		pRoot->SetBorderRound(size);
 	}
 
-	m_pRoot->Add(pRoot);
+	m_pRoot->AddItem(pRoot);
 	m_pRoot->SetBkImage(m_strImage);
 
 	return m_pRoot;

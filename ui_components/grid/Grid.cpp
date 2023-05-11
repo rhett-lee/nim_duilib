@@ -27,7 +27,7 @@ namespace ui
 		m_pBody = CreateGridBody();
 		if (!m_pBody)
 			m_pBody = new GridBody(this);
-		Add(m_pBody);
+		AddItem(m_pBody);
 
 		SetBkColor(L"white");
 		SetBorderColor(L"splitline_level1");

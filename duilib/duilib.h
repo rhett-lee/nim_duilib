@@ -123,7 +123,7 @@
 #include "Box/TabBox.h"
 #include "Box/ChildBox.h"
 
-#include "Control/List.h"
+#include "Control/ListBox.h"
 #include "Control/Combo.h"
 #include "Control/ScrollBar.h"
 #include "Control/TreeView.h"

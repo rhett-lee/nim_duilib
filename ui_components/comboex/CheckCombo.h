@@ -15,10 +15,10 @@ namespace nim_comp
 		virtual ~CheckCombo();
 
 		/// 重写父类方法，提供个性化功能，请参考父类声明
-		virtual bool Add(Control* pControl) override;
-		virtual bool Remove(Control* pControl) override;
-		virtual bool RemoveAt(size_t iIndex) override;
-		virtual void RemoveAll() override;
+		virtual bool AddItem(Control* pControl) override;
+		virtual bool RemoveItem(Control* pControl) override;
+		virtual bool RemoveItemAt(size_t iIndex) override;
+		virtual void RemoveAllItems() override;
 		virtual void Activate() override;
 		virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 
@@ -91,7 +91,7 @@ namespace nim_comp
 		* @brief 获取所有子项数量
 		* @return 返回所有子项数量
 		*/
-		virtual int GetCount() const { return m_pDropList->GetCount(); }
+		virtual int GetItemCount() const { return m_pDropList->GetItemCount(); }
 
 		///**
 		//* @brief 监听子项被选择事件

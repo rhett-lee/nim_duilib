@@ -22,10 +22,10 @@ public:
 #if defined(ENABLE_UIAUTOMATION)
 	virtual UIAControlProvider* GetUIAProvider() override;
 #endif
-	virtual bool Add(Control* pControl) override;
-	virtual bool Remove(Control* pControl) override;
-	virtual bool RemoveAt(size_t iIndex) override;
-	virtual void RemoveAll() override;
+	virtual bool AddItem(Control* pControl) override;
+	virtual bool RemoveItem(Control* pControl) override;
+	virtual bool RemoveItemAt(size_t iIndex) override;
+	virtual void RemoveAllItems() override;
 	virtual void Activate() override;
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 	virtual void PaintText(IRenderContext* pRender) override;
@@ -124,7 +124,7 @@ public:
 	 * @brief 获取所有子项数量
 	 * @return 返回所有子项数量
 	 */
-	virtual int GetCount() const override;
+	virtual int GetItemCount() const override;
     
 	/**
 	 * @brief 监听子项被选择事件

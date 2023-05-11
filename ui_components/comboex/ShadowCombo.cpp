@@ -35,7 +35,7 @@ void CShadowComboWnd::InitComboWnd(ShadowCombo* pOwner)
 
     ui::UiSize szAvailable(rc.right - rc.left, rc.bottom - rc.top);
     int cyFixed = 0;
-    for (int it = 0; it < pOwner->GetListBox()->GetCount(); it++) {
+    for (int it = 0; it < pOwner->GetListBox()->GetItemCount(); it++) {
         ui::Control* pControl = pOwner->GetListBox()->GetItemAt(it);
         if (pControl == nullptr) {
             continue;
@@ -121,7 +121,7 @@ LRESULT CShadowComboWnd::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam
         this->InitWnd(GetHWND());
         ui::Box* pRoot = new ui::Box;
         pRoot->SetAutoDestroyChild(false);
-        pRoot->Add(m_pOwner->GetListBox());
+        pRoot->AddItem(m_pOwner->GetListBox());
         if (!m_pOwner->GetShadowImage().empty()) {
             pRoot->SetBkImage(m_pOwner->GetShadowImage());
         }
@@ -140,7 +140,7 @@ LRESULT CShadowComboWnd::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam
     else if (uMsg == WM_KILLFOCUS) {
         if (GetHWND() != (HWND)wParam) {
             m_pOwner->SelectItemInternal(m_pOwner->GetListBox()->GetCurSel());
-            ((ui::Box*)this->GetRoot())->RemoveAt(0);
+            ((ui::Box*)this->GetRoot())->RemoveItemAt(0);
             m_pOwner->GetListBox()->PlaceHolder::SetWindow(nullptr, nullptr, false);
             PostMessage(WM_CLOSE);
         }
@@ -226,30 +226,30 @@ UIAControlProvider* ShadowCombo::GetUIAProvider()
 }
 #endif
 
-bool ShadowCombo::Add(Control* pControl)
+bool ShadowCombo::AddItem(Control* pControl)
 {
-    m_pLayout->Add(pControl);
+    m_pLayout->AddItem(pControl);
     m_iCurSel = m_pLayout->GetCurSel();
     return true;
 }
 
-bool ShadowCombo::Remove(Control* pControl)
+bool ShadowCombo::RemoveItem(Control* pControl)
 {
-    bool ret = m_pLayout->Remove(pControl);
+    bool ret = m_pLayout->RemoveItem(pControl);
     m_iCurSel = m_pLayout->GetCurSel();
     return ret;
 }
 
-bool ShadowCombo::RemoveAt(size_t iIndex)
+bool ShadowCombo::RemoveItemAt(size_t iIndex)
 {
-    bool ret = m_pLayout->RemoveAt((int)iIndex);
+    bool ret = m_pLayout->RemoveItemAt((int)iIndex);
     m_iCurSel = m_pLayout->GetCurSel();
     return ret;
 }
 
-void ShadowCombo::RemoveAll()
+void ShadowCombo::RemoveAllItems()
 {
-    m_pLayout->RemoveAll();
+    m_pLayout->RemoveAllItems();
     m_iCurSel = -1;
 }
 
@@ -328,7 +328,7 @@ void ShadowCombo::PaintText(ui::IRenderContext* pRender)
 
     if (m_iCurSel >= 0) {
         Control* pControl = static_cast<Control*>((m_pLayout->GetItemAt(m_iCurSel)));
-        ui::ListContainerElement* pElement = dynamic_cast<ui::ListContainerElement*>(pControl);
+        ui::ListBoxElement* pElement = dynamic_cast<ui::ListBoxElement*>(pControl);
         ASSERT(pElement);
         if (pElement == nullptr) {
             return;
@@ -366,7 +366,7 @@ void ShadowCombo::PaintChild(ui::IRenderContext* pRender, const ui::UiRect& rcPa
 std::wstring ShadowCombo::GetText() const
 {
     if (m_iCurSel < 0) return L"";
-    ui::ListContainerElement* pControl = static_cast<ui::ListContainerElement*>(m_pLayout->GetItemAt(m_iCurSel));
+    ui::ListBoxElement* pControl = static_cast<ui::ListBoxElement*>(m_pLayout->GetItemAt(m_iCurSel));
     return pControl ? pControl->GetText() : L"";
 }
 
@@ -406,7 +406,7 @@ void ShadowCombo::SetDropBoxSize(ui::UiSize szDropBox)
 
 bool ShadowCombo::SelectItemInternal(int iIndex)
 {
-    if (iIndex < 0 || iIndex >= m_pLayout->GetCount())
+    if (iIndex < 0 || iIndex >= m_pLayout->GetItemCount())
         return false;
 
     int iOldSel = m_iCurSel;
@@ -420,7 +420,7 @@ bool ShadowCombo::SelectItemInternal(int iIndex)
     if (m_pUIAProvider != nullptr && UiaClientsAreListening()) {
         VARIANT vtOld = { 0 }, vtNew = { 0 };
         vtOld.vt = vtNew.vt = VT_BSTR;
-        ListContainerElement* pControl = static_cast<ListContainerElement*>(m_pLayout->GetItemAt(m_iCurSel));
+        ListBoxElement* pControl = static_cast<ListBoxElement*>(m_pLayout->GetItemAt(m_iCurSel));
         vtOld.bstrVal = SysAllocString(pControl ? pControl->GetText().c_str() : L"");
         vtNew.bstrVal = SysAllocString(GetText().c_str());
 

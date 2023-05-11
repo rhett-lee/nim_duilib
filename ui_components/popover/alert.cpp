@@ -25,7 +25,7 @@ void AlertFooter::DoInit()
       return OnCancel(args);
       }));
 
-    Add(m_pButtonCancel);
+    AddItem(m_pButtonCancel);
   }
 
   if (m_strOk.length()) {
@@ -37,7 +37,7 @@ void AlertFooter::DoInit()
       return OnOk(args);
       }));
 
-    Add(m_pButtonOk);
+    AddItem(m_pButtonOk);
   }
 
   m_bInited = true;

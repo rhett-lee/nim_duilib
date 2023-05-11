@@ -88,7 +88,7 @@ void AppWindow::OnInitWindow()
 	if (root)
 	{
 		auto app_item = AppItemUi::Create(item_);
-		root->Add(app_item);
+		root->AddItem(app_item);
 	}
 
 	//设置消息钩子，不然无法即时移动

@@ -34,5 +34,5 @@ void Item::InitSubControls(const std::wstring& img, const std::wstring& title)
 bool Item::OnRemove(const ui::EventArgs& args)
 {
 	ui::ListBox* parent = dynamic_cast<ui::ListBox*>(this->GetParent());
-	return parent->Remove(this);
+	return parent->RemoveItem(this);
 }

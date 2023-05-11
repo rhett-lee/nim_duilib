@@ -1,7 +1,7 @@
 #include "GridBody.h"
 #include "Grid.h"
 #include "duilib/Core/Window.h"
-#include "duilib/Control/List.h"
+#include "duilib/Control/ListBox.h"
 
 #include <sstream>
 #include <thread>
@@ -45,13 +45,13 @@ namespace ui
 			m_pComboEdit->SetFixedHeight(m_vLayout[row_index] - 1, true);
 			m_pComboEdit->SetMargin({ posx, posy, 0, 0 }, true);
 
-			m_pComboEdit->RemoveAll();
+			m_pComboEdit->RemoveAllItems();
 			for (size_t i = 0; i < item->combo_list.size(); i++)
 			{
-				ui::ListContainerElement *combo_item = new ui::ListContainerElement;
+				ui::ListBoxElement *combo_item = new ui::ListBoxElement;
 				combo_item->SetFixedHeight(20, true);
 				combo_item->SetText(item->combo_list[i]);
-				m_pComboEdit->Add(combo_item);
+				m_pComboEdit->AddItem(combo_item);
 				if (item->text == item->combo_list[i])
 					m_pComboEdit->SelectItem(static_cast<int>(i));
 			}
@@ -315,14 +315,14 @@ namespace ui
 		m_pReEdit->SetAttribute(L"align", L"vcenter");
 		m_pReEdit->SetAttribute(L"padding", L"2,0,2,0");
 		m_pReEdit->SetVisible(false);
-		Add(m_pReEdit);
+		AddItem(m_pReEdit);
 
 		m_pComboEdit = new Combo;
 		m_pComboEdit->SetAttribute(L"class", L"combo2");
 		m_pComboEdit->SetAttribute(L"bkcolor", L"white");
 		m_pComboEdit->SetVisible(false);
 		m_pComboEdit->AttachSelect(nbase::Bind(&GridBody::OnComboEditSelected, this, std::placeholders::_1));
-		Add(m_pComboEdit);
+		AddItem(m_pComboEdit);
 
 		SetAutoDestroyChild(false);
 	};
@@ -379,10 +379,10 @@ namespace ui
 						GridHeaderItem *pHeaderItem = dynamic_cast<GridHeaderItem*>(delay_delete_items[j]);
 						if (pHeaderItem && pHeaderItem->control_)
 						{
-							Remove(pHeaderItem->control_);
+							RemoveItem(pHeaderItem->control_);
 						}
 					}
-					ASSERT(GetCount() == GRIDBODY_CHILD_COUNT);
+					ASSERT(GetItemCount() == GRIDBODY_CHILD_COUNT);
 				}
 				m_vecRow[i]->items.erase(m_vecRow[i]->items.begin() + count, m_vecRow[i]->items.end());
 			}
@@ -832,9 +832,9 @@ namespace ui
 					GridHeaderItem *pHeaderItem = dynamic_cast<GridHeaderItem*>(delay_delete_items[0]);
 					if (pHeaderItem && pHeaderItem->control_)
 					{
-						Remove(pHeaderItem->control_);
+						RemoveItem(pHeaderItem->control_);
 					}
-					ASSERT(GetCount() == GRIDBODY_CHILD_COUNT);
+					ASSERT(GetItemCount() == GRIDBODY_CHILD_COUNT);
 				}
 				pRow->items.erase(pRow->items.begin() + col_index);
 			}

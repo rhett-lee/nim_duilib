@@ -336,6 +336,7 @@
     <ClCompile Include="Box\VBox.cpp" />
     <ClCompile Include="Control\CircleProgress.cpp" />
     <ClCompile Include="Control\DateTime.cpp" />
+    <ClCompile Include="Control\ListBox.cpp" />
     <ClCompile Include="Control\Menu.cpp" />
     <ClCompile Include="Control\VirtualListBox.cpp" />
     <ClCompile Include="Control\VirtualTileBox.cpp" />
@@ -372,7 +373,6 @@
     <ClCompile Include="Core\GlobalManager.cpp" />
     <ClCompile Include="Core\Markup.cpp" />
     <ClCompile Include="Control\Combo.cpp" />
-    <ClCompile Include="Control\List.cpp" />
     <ClCompile Include="Control\Progress.cpp" />
     <ClCompile Include="Control\RichEdit.cpp" />
     <ClCompile Include="Control\ScrollBar.cpp" />
@@ -390,6 +390,7 @@
     <ClInclude Include="Box\TileBox.h" />
     <ClInclude Include="Box\VBox.h" />
     <ClInclude Include="Control\DateTime.h" />
+    <ClInclude Include="Control\ListBox.h" />
     <ClInclude Include="Control\Menu.h" />
     <ClInclude Include="Control\observer_impl_base.hpp" />
     <ClInclude Include="Control\VirtualListBox.h" />
@@ -440,7 +441,6 @@
     <ClInclude Include="Control\CheckBox.h" />
     <ClInclude Include="Control\Combo.h" />
     <ClInclude Include="Control\Label.h" />
-    <ClInclude Include="Control\List.h" />
     <ClInclude Include="Control\Option.h" />
     <ClInclude Include="Control\Progress.h" />
     <ClInclude Include="Control\RichEdit.h" />

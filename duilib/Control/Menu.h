@@ -5,7 +5,7 @@
 
 #include "duilib/duilib_defs.h"
 #include "duilib/Utils/WinImplBase.h"
-#include "duilib/Control/List.h"
+#include "duilib/Control/ListBox.h"
 
 namespace ui {
 
@@ -169,7 +169,7 @@ private:
 	ui::ListBox* m_pLayout;
 };
 
-class CMenuElementUI : public ui::ListContainerElement
+class CMenuElementUI : public ui::ListBoxElement
 {
 public:
 	CMenuElementUI();

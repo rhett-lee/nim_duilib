@@ -10,27 +10,50 @@
 namespace ui 
 {
 
-typedef int (CALLBACK *PULVCompareFunc)(UINT_PTR, UINT_PTR, UINT_PTR);
+/** 用户自定义的排序函数
+@param [in] pControl1 第一个控件接口
+@param [in] pControl2 第二个控件接口
+@param [in] pCompareContext 用户自定义上下文数据
+@return < 0 控件1小于控件2
+        = 0 控件1等于控件2
+		> 0 控件1大于控件2
+*/
+typedef int (CALLBACK *PFNCompareFunc)(Control* pControl1, Control* pControl2, void* pCompareContext);
 
-/////////////////////////////////////////////////////////////////////////////////////
-//
-
-class UILIB_API IListOwner
+/** ListBox所有者接口
+*/
+class UILIB_API IListBoxOwner
 {
 public:
-	virtual int GetCurSel() const = 0;
-	virtual bool SelectItem(int iIndex, bool bTakeFocus = false, bool bTrigger = true) = 0;
+	/**@brief 触发事件
+	*/
 	virtual void SendEvent(const EventArgs& event) = 0;
-	virtual void EnsureVisible(const UiRect& rcItem) = 0;
-	virtual void StopScroll() {}
-};
 
+	/**@brief 获取当前选择项ID
+	*/
+	virtual int GetCurSel() const = 0;
+
+	/**@brief 选择子项
+	*  @param [in] iIndex 子项目的ID
+	*  @param [in] bTakeFocus 是否让子项控件成为焦点控件
+	*  @param [in] bTrigger 是否触发选择事件 
+	*/
+	virtual bool SelectItem(int iIndex, bool bTakeFocus = false, bool bTrigger = true) = 0;	
+
+	/**@brief 确保区域可见
+	*/
+	virtual void EnsureVisible(const UiRect& rcItem) = 0;
+
+	/**@brief 停止滚动条动画
+	*/
+	virtual void StopScroll() = 0;
+};
 
 /////////////////////////////////////////////////////////////////////////////////////
 //
 
 /// 列表容器，用于展示一组数据使用
-class UILIB_API ListBox : public ScrollableBox, public IListOwner
+class UILIB_API ListBox : public ScrollableBox, public IListBoxOwner
 {
 public:
 	explicit ListBox(Layout* pLayout = new VLayout);
@@ -44,97 +67,91 @@ public:
 #endif
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 	virtual void HandleEvent(const EventArgs& event) override;
+	virtual bool ButtonDown(const EventArgs& msg) override;
 	virtual void SendEvent(EventType eventType, WPARAM wParam = 0, LPARAM lParam = 0, TCHAR tChar = 0,
 						   const UiPoint& mousePos = UiPoint()) override;
 	virtual void SendEvent(const EventArgs& event) override;
+
 	virtual int GetCurSel() const override;
 	virtual bool SelectItem(int iIndex, bool bTakeFocus = false, bool bTrigger = true) override;
 	virtual void EnsureVisible(const UiRect& rcItem) override;
 	virtual void StopScroll() override;
-	virtual bool ButtonDown(const EventArgs& msg) override;
-
-	/**
-	 * @brief 滚动到指定子项位置
+	
+	/**@brief 滚动到指定子项位置
 	 * @param[in] strItemName 子项名称
-	 * @return 成功返回 true，否则为 false，可能控件不存在
 	 */
 	virtual bool ScrollItemToTop(const std::wstring& strItemName);
 
-	/**
-	 * @brief 获取当前位置第一个子项
-	 * @return 返回第一个子项指针
+	/**@brief 获取当前位置第一个子项
 	 */
 	virtual Control* GetTopItem();
 	
-	/**
-	 * @brief 设置子项的位置索引
+	/**@brief 设置子项的位置索引
 	 * @param[in] pControl 子项指针
 	 * @param[in] iIndex 索引号
-	 * @return 成功返回 true，否则返回 false
 	 */
 	virtual bool SetItemIndex(Control* pControl, size_t iIndex) override;
 
-	/**
-	 * @brief 选中上一项
-	 * @return 无
-	 */
-	void Previous();
-
-	/**
-	 * @brief 选中下一项
-	 * @return 无
-	 */
-	void Next();
-
-	/**
-	 * @brief 触发选中项的双击事件
-	 * @return 无
-	 */
-	void ActiveItem();
-
-	/**
-	 * @brief 追加一个子项到末尾
+	/**@brief 追加一个子项到末尾
 	 * @param[in] pControl 子项指针
-	 * @return 成功返回 true，失败返回 false
 	 */
-	virtual bool Add(Control* pControl) override;
+	virtual bool AddItem(Control* pControl) override;
 
-	/**
-	 * @brief 在指定位置之后插入一个子项
+	/**@brief 在指定位置之后插入一个子项
 	 * @param[in] pControl 子项指针
 	 * @param[in] iIndex 要插入的位置索引
-	 * @return 成功返回 true，失败返回 false
 	 */
-    virtual bool AddAt(Control* pControl, size_t  iIndex) override;
+    virtual bool AddItemAt(Control* pControl, size_t  iIndex) override;
 
-	/**
-	 * @brief 根据子项指针
+	/**@brief 根据子项指针
 	 * @param[in] pControl 子项指针
-	 * @return 成功返回 true，失败返回 false
 	 */
-    virtual bool Remove(Control* pControl) override;
+    virtual bool RemoveItem(Control* pControl) override;
 
-	/**
-	 * @brief 根据索引移除一个子项
+	/**@brief 根据索引移除一个子项
 	 * @param[in] iIndex 子项索引
-	 * @return 成功返回 true，失败返回 false
 	 */
-    virtual bool RemoveAt(size_t  iIndex) override;
+    virtual bool RemoveItemAt(size_t  iIndex) override;
 
-	/**
-	 * @brief 移除所有子项
-	 * @return 无
+	/**@brief 移除所有子项
 	 */
-    virtual void RemoveAll() override;
+    virtual void RemoveAllItems() override;
 
-	/**
-	 * @brief 排列子项
-	 * @param[in] pfnCompare 自定义排序函数
-	 * @param[in] dwData 用于子项对比时的数据
-	 * @return 成功返回 true，失败返回 false
+	/**@brief 选中上一项
+	*/
+	void SelectPreviousItem();
+
+	/**@brief 选中下一项
 	 */
-	bool SortItems(PULVCompareFunc pfnCompare, UINT_PTR dwData);
+	void SelectNextItem();
 
+	/**@brief 排列子项
+	 * @param [in] pfnCompare 自定义排序函数
+	 * @param [in] pCompareContext 传递给比较函数的用户自定义数据
+	 */
+	bool SortItems(PFNCompareFunc pfnCompare, void* pCompareContext);
+
+	/**@brief 获取是否随滚动改变选中项设置
+	 * @return 返回 true 表示跟随滚动条改变选择项，否则为 false
+	 */
+	bool GetScrollSelect() const;
+
+	/**@brief 设置是否随滚动改变选中项设置
+	 * @param[in] bScrollSelect 为 true 是为跟随滚动条改变选中项，false 为不跟随
+	 */
+	void SetScrollSelect(bool bScrollSelect);
+
+	/**@brief 监听选择子项的事件
+	 * @param[in] callback 选择子项时的回调函数
+	 */
+	void AttachSelect(const EventCallback& callback) { AttachEvent(kEventSelect, callback); }
+
+	/**@brief 在移除一个子项后自动选择下一项
+	 * @param[in] bSelectNextItem 为 true 时自动选择下一项，false 为不自动选择
+	 */
+	void SelectNextWhenActiveRemoved(bool bSelectNextItem);
+
+private:
 	/**
 	 * @brief 默认的子项对比方法
 	 * @param[in] pvlocale 保存 List 指针
@@ -142,53 +159,35 @@ public:
 	 * @param[in] item2 子项2
 	 * @return 返回对比结果
 	 */
-	static int __cdecl ItemComareFunc(void *pvlocale, const void *item1, const void *item2);
-	int __cdecl ItemComareFunc(const void *item1, const void *item2);
+	static int __cdecl ItemComareFunc(void* pvlocale, const void* item1, const void* item2);
+	int __cdecl ItemComareFunc(const void* item1, const void* item2);
 
-	/**
-	 * @brief 获取是否随滚动改变选中项设置
-	 * @return 返回 true 表示跟随滚动条改变选择项，否则为 false
-	 */
-	bool GetScrollSelect();
-
-	/**
-	 * @brief 设置是否随滚动改变选中项设置
-	 * @param[in] bScrollSelect 为 true 是为跟随滚动条改变选中项，false 为不跟随
-	 * @return 无
-	 */
-	void SetScrollSelect(bool bScrollSelect);
-
-	/**
-	 * @brief 监听选择子项的事件
-	 * @param[in] callback 选择子项时的回调函数
-	 * @return 无
-	 */
-	void AttachSelect(const EventCallback& callback) { AttachEvent(kEventSelect, callback); }
-
-	/**
-	 * @brief 在移除一个子项后自动选择下一项
-	 * @param[in] bSelectNextItem 为 true 时自动选择下一项，false 为不自动选择
-	 * @return 无
-	 */
-	void SelectNextWhenActiveRemoved(bool bSelectNextItem);
 protected:
+	//是否随滚动改变选中项
 	bool m_bScrollSelect;
+
+	//当前选择的子项ID
     int m_iCurSel;
+
+	//在移除一个子项后自动选择下一项
 	bool m_bSelNextWhenRemoveActive;
-	PULVCompareFunc m_pCompareFunc;
-	UINT_PTR m_pCompareData;
+
+	//用户自定义的排序比较函数
+	PFNCompareFunc m_pCompareFunc;
+
+	//用户自定义的排序比较函数中的上下文数据
+	void* m_pCompareContext;
 };
 
 /////////////////////////////////////////////////////////////////////////////////////
 //
 
-
 /// 列表项，用于在列表中展示数据的子项
-class UILIB_API ListContainerElement: 
+class UILIB_API ListBoxElement: 
 	public OptionTemplate<Box>
 {
 public:
-	ListContainerElement();
+	ListBoxElement();
 
 	/// 重写父类方法，提供个性化功能，请参考父类声明
 	virtual std::wstring GetType() const override;
@@ -207,14 +206,14 @@ public:
 	 * @brief 获取父容器
 	 * @return 返回父容器指针
 	 */
-	IListOwner* GetOwner();
+	IListBoxOwner* GetOwner();
 
 	/**
 	 * @brief 设置父容器
 	 * @param[in] pOwner 父容器指针
 	 * @return 无
 	 */
-	void SetOwner(IListOwner* pOwner);
+	void SetOwner(IListBoxOwner* pOwner);
 
 	/**
 	 * @brief 获取当前索引
@@ -243,9 +242,14 @@ public:
 	 */
 	void AttachReturn(const EventCallback& callback) { AttachEvent(kEventReturn, callback); }
 
-protected:
+private:
+	/** 在ListBox容器中的子项索引号
+	*/
 	int m_iIndex;
-	IListOwner* m_pOwner;
+
+	/** 在ListBox容器接口
+	*/
+	IListBoxOwner* m_pOwner;
 };
 
 } // namespace ui

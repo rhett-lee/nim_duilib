@@ -18,7 +18,7 @@ Progress::Progress() :
 	m_nMarqueeStep(4),
 	m_nMarqueeElapsed(50), // for 1s 25fps,will use 20fps default
 	m_nMarqueePos(0),
-  m_bReverse(false)
+   m_bReverse(false)
 {
 	m_uTextStyle = DT_SINGLELINE | DT_CENTER;
 	SetFixedHeight(12, true);
@@ -44,8 +44,9 @@ bool Progress::IsHorizontal()
 
 void Progress::SetHorizontal(bool bHorizontal)
 {
-	if (m_bHorizontal == bHorizontal) return;
-
+	if (m_bHorizontal == bHorizontal) {
+		return;
+	}
 	m_bHorizontal = bHorizontal;
 	Invalidate();
 }
@@ -92,7 +93,6 @@ void Progress::SetValue(double nValue)
 #endif
 
 	m_nValue = nValue;
-
 	Invalidate();
 }
 
@@ -103,7 +103,9 @@ bool Progress::IsStretchForeImage()
 
 void Progress::SetStretchForeImage(bool bStretchForeImage /*= true*/)
 {
-	if (m_bStretchForeImage == bStretchForeImage) return;
+	if (m_bStretchForeImage == bStretchForeImage) {
+		return;
+	}
 	m_bStretchForeImage = bStretchForeImage;
 	Invalidate();
 }
@@ -127,30 +129,31 @@ std::wstring Progress::GetProgressColor() const
 void Progress::SetProgressColor(const std::wstring& strProgressColor)
 {
 	ASSERT(this->GetWindowColor(strProgressColor) != 0);
-	if (m_sProgressColor == strProgressColor) return;
-
+	if (m_sProgressColor == strProgressColor) {
+		return;
+	}
 	m_sProgressColor = strProgressColor;
 	Invalidate();
 }
 
 void Progress::SetAttribute(const std::wstring& srName, const std::wstring& strValue)
 {
-  if (srName == L"hor") SetHorizontal(strValue == L"true");
-  else if (srName == L"min") SetMinValue(_wtoi(strValue.c_str()));
-  else if (srName == L"max") SetMaxValue(_wtoi(strValue.c_str()));
-  else if (srName == L"value") SetValue(_wtoi(strValue.c_str()));
-  else if (srName == L"progressimage") SetProgressImage(strValue);
-  else if (srName == L"isstretchfore") SetStretchForeImage(strValue == L"true");
-  else if (srName == L"progresscolor") {
-    LPCTSTR pValue = strValue.c_str();
-    while (*pValue > L'\0' && *pValue <= L' ') pValue = ::CharNext(pValue);
-    SetProgressColor(pValue);
-  }
-  else if (srName == L"marquee") SetMarquee(strValue == L"true");
-  else if (srName == L"marqueewidth") SetMarqueeWidth(_wtoi(strValue.c_str()));
-  else if (srName == L"marqueestep") SetMarqueeStep(_wtoi(strValue.c_str()));
-  else if (srName == L"reverse") SetReverse(strValue == L"true");
-	else Label::SetAttribute(srName, strValue);
+    if (srName == L"hor") SetHorizontal(strValue == L"true");
+    else if (srName == L"min") SetMinValue(_wtoi(strValue.c_str()));
+    else if (srName == L"max") SetMaxValue(_wtoi(strValue.c_str()));
+    else if (srName == L"value") SetValue(_wtoi(strValue.c_str()));
+    else if (srName == L"progressimage") SetProgressImage(strValue);
+    else if (srName == L"isstretchfore") SetStretchForeImage(strValue == L"true");
+    else if (srName == L"progresscolor") {
+        LPCTSTR pValue = strValue.c_str();
+        while (*pValue > L'\0' && *pValue <= L' ') pValue = ::CharNext(pValue);
+        SetProgressColor(pValue);
+    }
+    else if (srName == L"marquee") SetMarquee(strValue == L"true");
+    else if (srName == L"marqueewidth") SetMarqueeWidth(_wtoi(strValue.c_str()));
+    else if (srName == L"marqueestep") SetMarqueeStep(_wtoi(strValue.c_str()));
+    else if (srName == L"reverse") SetReverse(strValue == L"true");
+    else Label::SetAttribute(srName, strValue);
 }
 
 void Progress::PaintStatusImage(IRenderContext* pRender)
@@ -317,8 +320,9 @@ bool Progress::IsMarquee()
 
 void Progress::SetMarquee(bool bMarquee)
 {
-	if (m_bMarquee == bMarquee)
+	if (m_bMarquee == bMarquee) {
 		return;
+	}
 
 	m_bMarquee = bMarquee;
 	m_nMarqueePos = 0;
@@ -330,7 +334,6 @@ void Progress::SetMarquee(bool bMarquee)
 	else {
 		m_timer.Cancel();
 	}
-
 	Invalidate();
 }
 
@@ -341,11 +344,10 @@ int Progress::GetMarqueeWidth()
 
 void Progress::SetMarqueeWidth(int nMarqueeWidth)
 {
-	if (m_nMarqueeWidth == nMarqueeWidth)
+	if (m_nMarqueeWidth == nMarqueeWidth) {
 		return;
-
+	}
 	m_nMarqueeWidth = nMarqueeWidth;
-
 	Invalidate();
 }
 
@@ -356,11 +358,10 @@ int Progress::GetMarqueeStep()
 
 void Progress::SetMarqueeStep(int nMarqueeStep)
 {
-	if (m_nMarqueeStep == nMarqueeStep)
+	if (m_nMarqueeStep == nMarqueeStep) {
 		return;
-
+	}
 	m_nMarqueeStep = nMarqueeStep;
-
 	Invalidate();
 }
 
@@ -384,8 +385,9 @@ void Progress::SetMarqueeElapsed(int nMarqueeElapsed)
 	Invalidate();
 }
 
-void Progress::SetReverse(bool bReverse){
-  m_bReverse = bReverse;
+void Progress::SetReverse(bool bReverse)
+{
+	m_bReverse = bReverse;
 }
 
 }

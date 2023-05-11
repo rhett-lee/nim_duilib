@@ -30,14 +30,14 @@ public:
      * @brief 选择状态下，没有设置背景色或背景图时，是否用非选择状态的对应属性来绘制
      * @return 返回 true 为选择状态，否则为 false
      */
-    bool IsPaintNormalFirst() const { return m_bPaintNormalFirst; };
+    bool IsPaintNormalFirst() const { return m_bPaintNormalFirst; }
 
     /**
      * @brief 设置控件选择状态下，没有设置背景色或背景图时，用非选择状态的对应属性来绘制
      * @param[in] bFirst 为 true 绘制非选择状态属性，false 不绘制
      * @return 无
      */
-    void SetPaintNormalFirst(bool bFirst) { m_bPaintNormalFirst = bFirst; };
+    void SetPaintNormalFirst(bool bFirst) { m_bPaintNormalFirst = bFirst; }
 
     /**
      * @brief 判断当前是否是选择状态
@@ -228,7 +228,7 @@ template<typename InheritType>
 Image* CheckBoxTemplate<InheritType>::GetEstimateImage()
 {
     Image* estimateImage = __super::GetEstimateImage();
-    if (!estimateImage) {
+    if (estimateImage == nullptr) {
         estimateImage = this->GetImageMap()->GetEstimateImage(kStateImageSelectedBk);
     }
 
@@ -308,7 +308,9 @@ void CheckBoxTemplate<InheritType>::PaintText(IRenderContext* pRender)
         return;
     }
 
-    if (this->GetText().empty()) return;
+    if (this->GetText().empty()) {
+        return;
+    }
     UiRect rc = this->GetRect();
     rc.left += this->m_rcTextPadding.left;
     rc.right -= this->m_rcTextPadding.right;
@@ -317,8 +319,9 @@ void CheckBoxTemplate<InheritType>::PaintText(IRenderContext* pRender)
 
     auto stateType = this->GetState();
     std::wstring clrColor = GetPaintSelectedStateTextColor(this->GetState(), stateType);
-    if (clrColor.empty())
+    if (clrColor.empty()) {
         clrColor = m_dwSelectedTextColor.empty() ? this->GetPaintStateTextColor(this->GetState(), stateType) : m_dwSelectedTextColor;
+    }
     DWORD dwClrColor = this->GetWindowColor(clrColor);
 
     if (this->m_bSingleLine) {

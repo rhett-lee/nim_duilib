@@ -137,7 +137,13 @@ public:
 	virtual UINT GetControlFlags() const override;
 
 public:
-	/// 容器自有方法
+	/** @name 操作子控件(item)相关的方法
+	* @{
+	*/
+	/**@brief 获取子控件数量
+	 */
+	virtual int GetItemCount() const;
+
 	/**
 	 * @brief 根据索引查找指定控件
 	 * @param[in] iIndex 控件索引
@@ -161,17 +167,11 @@ public:
 	virtual bool SetItemIndex(Control* pControl, size_t iIndex);
 
 	/**
-	 * @brief 获取子控件数量
-	 * @return 返回子控件数量
-	 */
-	virtual int GetCount() const;
-
-	/**
 	 * @brief 添加一个控件到容器中
 	 * @param[in] pControl 控件指针
 	 * @return 返回 true 添加成功，false 为添加失败
 	 */
-	virtual bool Add(Control* pControl);
+	virtual bool AddItem(Control* pControl);
 
 	/**
 	 * @brief 向指定位置添加一个控件
@@ -179,51 +179,29 @@ public:
 	 * @param[in] iIndex 在该索引之后插入控件
 	 * @return 返回 true 为添加成功，false 为添加失败
 	 */
-	virtual bool AddAt(Control* pControl, size_t iIndex);
+	virtual bool AddItemAt(Control* pControl, size_t iIndex);
 
 	/**
 	 * @brief 根据控件指针从容器中移除一个控件
 	 * @param[in] pControl 控件的指针
 	 * @return 返回 true 为移除成功，false 为移除失败（控件可能不存在）
 	 */
-	virtual bool Remove(Control* pControl);
+	virtual bool RemoveItem(Control* pControl);
 
 	/**
 	 * @brief 根据控件索引从容器中移除一个控件
 	 * @param[in] iIndex 要移除的控件索引
 	 * @return 返回 true 为移除成功，false 为移除失败（索引值太小或超出了子控件总数）
 	 */
-	virtual bool RemoveAt(size_t iIndex);
+	virtual bool RemoveItemAt(size_t iIndex);
 
 	/**
 	 * @brief 移除所有子控件
 	 * @return 无
 	 */
-	virtual void RemoveAll();
+	virtual void RemoveAllItems();
 
-public:
-	/**
-	 * @brief 检查是否包含某一个控件
-	 * @param[in] pControl 控件的指针
-	 * @return 返回 true 包含，false 不包含
-	 */
-	bool HasItem(Control* pControl) const;
-
-	/**
-	 * @brief 交换子控件位置
-	 * @param[in] pChild1 子控件1 指针
-	 * @param[in] pChild2 子控件2 指针
-	 * @return 无
-	 */
-	void SwapChild(Control* pChild1, Control* pChild2);
-
-	/**
-	 * @brief 重置一个子控件位置
-	 * @param[in] pChild 控件指针
-	 * @param[in] iIndex 要重置的位置
-	 * @return 无
-	 */
-	void ResetChildIndex(Control* pChild, size_t iIndex);
+	/** @} */
 
 public:
 	/**
@@ -302,12 +280,12 @@ private:
 	 * @param[in] pControl 控件指针
 	 * @param[in] iIndex 在该索引之后插入控件
 	 */
-	bool AddItemAt(Control* pControl, size_t iIndex);
+	bool DoAddItemAt(Control* pControl, size_t iIndex);
 
 	/**@brief 根据控件指针从容器中移除一个控件
 	 * @param[in] pControl 控件的指针
 	 */
-	bool RemoveItem(Control* pControl);
+	bool DoRemoveItem(Control* pControl);
 
 protected:
 

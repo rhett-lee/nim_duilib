@@ -6,7 +6,7 @@
   * @author Redrain
   * @date 2019/3/20
   */
-class BrowserTabItem : public ui::ListContainerElement
+class BrowserTabItem : public ui::ListBoxElement
 {
 public:
 	BrowserTabItem();

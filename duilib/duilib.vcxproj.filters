@@ -51,9 +51,6 @@
     <ClCompile Include="Control\Combo.cpp">
       <Filter>Control</Filter>
     </ClCompile>
-    <ClCompile Include="Control\List.cpp">
-      <Filter>Control</Filter>
-    </ClCompile>
     <ClCompile Include="Control\Menu.cpp">
       <Filter>Control</Filter>
     </ClCompile>
@@ -183,6 +180,9 @@
     <ClCompile Include="Core\ToolTip.cpp">
       <Filter>Core</Filter>
     </ClCompile>
+    <ClCompile Include="Control\ListBox.cpp">
+      <Filter>Control</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -219,9 +219,6 @@
       <Filter>Control</Filter>
     </ClInclude>
     <ClInclude Include="Control\Label.h">
-      <Filter>Control</Filter>
-    </ClInclude>
-    <ClInclude Include="Control\List.h">
       <Filter>Control</Filter>
     </ClInclude>
     <ClInclude Include="Control\Menu.h">
@@ -379,6 +376,9 @@
     </ClInclude>
     <ClInclude Include="Core\ToolTip.h">
       <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\ListBox.h">
+      <Filter>Control</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
