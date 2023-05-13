@@ -27,16 +27,16 @@ public:
 
 	/**
 	 * @brief 获取当前选择项
-	 * @return 返回当前选择项索引
+	 * @return 返回当前选择项索引(如果无有效索引，则返回Box::InvalidIndex)
 	 */
-	int GetCurSel() const;
+	size_t GetCurSel() const;
 
 	/**
 	 * @brief 根据控件索引选择一个子项
 	 * @param[in] iIndex 要选择的子项索引
 	 * @return 成功返回 true，否则返回 false
 	 */
-	bool SelectItem(int iIndex);
+	bool SelectItem(size_t iIndex);
 
 	/**
 	 * @brief 根据控件指针选择一个子项
@@ -93,10 +93,10 @@ protected:
 
 private:
 	//当前选择的Item下标
-	int m_iCurSel;
+	size_t m_iCurSel;
 
 	//初始化时需要选择的Item下表
-	int m_iInitSel;
+	size_t m_iInitSel;
 
 	//是否已经完成初始化
 	bool m_bIsInit;

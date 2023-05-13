@@ -51,12 +51,12 @@ void MoveControlForm::OnInitWindow()
 		pAppUi->AttachAllEvents(nbase::Bind(&MoveControlForm::OnProcessAppItemDrag, this, std::placeholders::_1));
 		if (item._isFrequent)
 		{
-			pAppUi->FixPos(0, frequent_app_->GetItemCount());
+			pAppUi->FixPos(0, (int)frequent_app_->GetItemCount());
 			frequent_app_->AddItem(pAppUi);
 		}
 		else
 		{
-			pAppUi->FixPos(0, my_app_->GetItemCount());
+			pAppUi->FixPos(0, (int)my_app_->GetItemCount());
 			my_app_->AddItem(pAppUi);
 		}
 	}

@@ -209,7 +209,7 @@ void ScrollBar::SetPos(UiRect rc)
 			m_rcThumb.top = rc.top;
 			m_rcThumb.bottom = rc.top + GetFixedHeight();
 			if (m_nRange > 0) {
-				int64_t cxThumb = cx * (rc.right - rc.left) / (m_nRange + rc.right - rc.left);
+				int64_t cxThumb = (int64_t)cx * (rc.right - rc.left) / (m_nRange + rc.right - rc.left);
 				if (cxThumb < m_nThumbMinLength) {
 					cxThumb = m_nThumbMinLength;
 				}
@@ -258,8 +258,12 @@ void ScrollBar::SetPos(UiRect rc)
 	}
 	else {
 		int cy = rc.bottom - rc.top;
-		if (m_bShowButton1) cy -= GetFixedWidth();
-		if (m_bShowButton2) cy -= GetFixedWidth();
+		if (m_bShowButton1) {
+			cy -= GetFixedWidth();
+		}
+		if (m_bShowButton2) {
+			cy -= GetFixedWidth();
+		}
 		if (cy > GetFixedWidth()) {
 			m_rcButton1.left = rc.left;
 			m_rcButton1.top = rc.top;
@@ -286,7 +290,7 @@ void ScrollBar::SetPos(UiRect rc)
 			m_rcThumb.left = rc.left;
 			m_rcThumb.right = rc.left + GetFixedWidth();
 			if (m_nRange > 0) {
-				int64_t cyThumb = cy * (rc.bottom - rc.top) / (m_nRange + rc.bottom - rc.top);
+				int64_t cyThumb = (int64_t)cy * (rc.bottom - rc.top) / (m_nRange + rc.bottom - rc.top);
 				if (cyThumb < m_nThumbMinLength) cyThumb = m_nThumbMinLength;
 
 				m_rcThumb.top = static_cast<LONG>(m_nScrollPos * (cy - cyThumb) / m_nRange + m_rcButton1.bottom);
@@ -303,7 +307,9 @@ void ScrollBar::SetPos(UiRect rc)
 		}
 		else {
 			int cyButton = (rc.bottom - rc.top) / 2;
-			if (cyButton > GetFixedWidth()) cyButton = GetFixedWidth();
+			if (cyButton > GetFixedWidth()) {
+				cyButton = GetFixedWidth();
+			}
 			m_rcButton1.left = rc.left;
 			m_rcButton1.top = rc.top;
 			if (m_bShowButton1) {
@@ -589,7 +595,9 @@ bool ScrollBar::IsHorizontal()
 
 void ScrollBar::SetHorizontal(bool bHorizontal)
 {
-	if( m_bHorizontal == bHorizontal ) return;
+	if (m_bHorizontal == bHorizontal) {
+		return;
+	}
 
 	m_bHorizontal = bHorizontal;
 	if( m_bHorizontal ) {
@@ -623,7 +631,7 @@ void ScrollBar::SetScrollRange(int64_t nRange)
 	if (m_nRange == nRange) {
 		return;
 	}
-
+	ASSERT(nRange >= 0);
 	m_nRange = nRange;
 	if (m_nRange < 0) {
 		m_nRange = 0;
@@ -651,7 +659,7 @@ void ScrollBar::SetScrollPos(int64_t nPos)
 	if (m_nScrollPos == nPos) {
 		return;
 	}
-
+	ASSERT(nPos >= 0);
 	m_nScrollPos = nPos;
 	if (m_nScrollPos < 0) {
 		m_nScrollPos = 0;
@@ -669,8 +677,11 @@ int ScrollBar::GetLineSize() const
 
 void ScrollBar::SetLineSize(int nSize)
 {
-	DpiManager::GetInstance()->ScaleInt(nSize);
-	m_nLineSize = nSize;
+	ASSERT(nSize > 0);
+	if (nSize > 0) {
+		DpiManager::GetInstance()->ScaleInt(nSize);
+		m_nLineSize = nSize;
+	}	
 }
 
 int ScrollBar::GetThumbMinLength() const
@@ -680,8 +691,11 @@ int ScrollBar::GetThumbMinLength() const
 
 void ScrollBar::SetThumbMinLength(int nThumbMinLength)
 {
-	DpiManager::GetInstance()->ScaleInt(nThumbMinLength);
-	m_nThumbMinLength = nThumbMinLength;
+	ASSERT(nThumbMinLength > 0);
+	if (nThumbMinLength > 0) {
+		DpiManager::GetInstance()->ScaleInt(nThumbMinLength);
+		m_nThumbMinLength = nThumbMinLength;
+	}
 }
 
 bool ScrollBar::IsShowButton1()

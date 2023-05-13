@@ -22,7 +22,7 @@ ui::Control* Provider::CreateElement()
 	return item;
 }
 
-void Provider::FillElement(ui::Control *control, int index)
+void Provider::FillElement(ui::Control *control, size_t index)
 {
 	Item* pItem = dynamic_cast<Item*>(control);
 
@@ -33,7 +33,7 @@ void Provider::FillElement(ui::Control *control, int index)
 
 }
 
-int Provider::GetElementtCount()
+size_t Provider::GetElementtCount()
 {
 	// ¼ÓËø
 	nbase::NAutoLock auto_lock(&lock_);
@@ -61,7 +61,7 @@ void Provider::SetTotal(int nTotal)
 	EmitCountChanged();
 }
 
-void Provider::RemoveTask(int nIndex)
+void Provider::RemoveTask(size_t nIndex)
 {	
 	lock_.Lock();
 
@@ -74,9 +74,9 @@ void Provider::RemoveTask(int nIndex)
 	EmitCountChanged();
 }
 
-void Provider::ChangeTaskName(int nIndex, const std::wstring& sName)
+void Provider::ChangeTaskName(size_t nIndex, const std::wstring& sName)
 {
-	if (nIndex > 0 && nIndex < (int)m_vTasks.size())
+	if (nIndex < (int)m_vTasks.size())
 	{
 		m_vTasks[nIndex].sName = sName;
 	}

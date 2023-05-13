@@ -487,22 +487,22 @@ Control* Box::FindSubControl(const std::wstring& pstrSubControlName)
 	return pSubControl;
 }
 
-int Box::FindSelectable(int iIndex, bool bForward /*= true*/) const
+size_t Box::FindSelectable(size_t iIndex, bool bForward /*= true*/) const
 {
 	// NOTE: This is actually a helper-function for the list/combo/ect controls
 	//       that allow them to find the next enabled/available selectable item
-	const int itemCount = GetItemCount();
+	const size_t itemCount = GetItemCount();
 	if (itemCount == 0) {
-		return -1;
+		return Box::InvalidIndex;
 	}
-	if (iIndex < 0) {
+	if (!Box::IsValidItemIndex(iIndex)) {
 		iIndex = 0;
 	}
 	if (iIndex >= (itemCount - 1)) {
 		iIndex = itemCount - 1;
 	}
 	if (bForward) {
-		for (int i = iIndex; i < itemCount; ++i) {
+		for (size_t i = iIndex; i < itemCount; ++i) {
 			Control* pControl = GetItemAt(i);
 			if (pControl == nullptr) {
 				continue;
@@ -513,18 +513,18 @@ int Box::FindSelectable(int iIndex, bool bForward /*= true*/) const
 				return i;
 			}
 		}
-		return -1;
+		return Box::InvalidIndex;
 	}
 	else {
-		for (int i = iIndex; i >= 0; --i) {
-			Control* pControl = GetItemAt(i);
+		for (int i = (int)iIndex; i >= 0; --i) {
+			Control* pControl = GetItemAt(static_cast<size_t>(i));
 			if (pControl == nullptr) {
 				continue;
 			}
 			if (pControl->IsSelectableType() &&
 				pControl->IsVisible()        &&
 				pControl->IsEnabled()) {
-				return i;
+				return static_cast<size_t>(i);
 			}
 		}
 		return FindSelectable(0, true);
@@ -539,11 +539,11 @@ Control* Box::GetItemAt(size_t iIndex) const
 	return m_items[iIndex];
 }
 
-int Box::GetItemIndex(Control* pControl) const
+size_t Box::GetItemIndex(Control* pControl) const
 {
 	auto it = std::find(m_items.begin(), m_items.end(), pControl);
 	if (it == m_items.end()) {
-		return -1;
+		return Box::InvalidIndex;
 	}
 	return static_cast<int>(it - m_items.begin());
 }
@@ -564,9 +564,9 @@ bool Box::SetItemIndex(Control* pControl, size_t iIndex)
 	return false;
 }
 
-int Box::GetItemCount() const
+size_t Box::GetItemCount() const
 {
-	return (int)m_items.size();
+	return m_items.size();
 }
 
 bool Box::AddItem(Control* pControl)

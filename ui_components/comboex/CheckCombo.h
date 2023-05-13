@@ -19,6 +19,10 @@ namespace nim_comp
 		virtual bool RemoveItem(Control* pControl) override;
 		virtual bool RemoveItemAt(size_t iIndex) override;
 		virtual void RemoveAllItems() override;
+		virtual Control* GetItemAt(size_t iIndex) const override;
+		virtual size_t GetItemCount() const override  { return m_pDropList->GetItemCount(); }
+
+
 		virtual void Activate() override;
 		virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 
@@ -78,20 +82,7 @@ namespace nim_comp
 		* @param[in] iIndex 要选择的子项索引
 		* @return 返回 true 表示成功，否则为 false
 		*/
-		bool SelectItem(int iIndex);
-
-		/**
-		* @brief 获取指定索引下的子项控件
-		* @param[in] iIndex 要获取的子项索引
-		* @return 返回控件指针
-		*/
-		Control* GetItemAt(int iIndex);
-
-		/**
-		* @brief 获取所有子项数量
-		* @return 返回所有子项数量
-		*/
-		virtual int GetItemCount() const { return m_pDropList->GetItemCount(); }
+		bool SelectItem(size_t iIndex);
 
 		///**
 		//* @brief 监听子项被选择事件

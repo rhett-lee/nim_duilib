@@ -102,7 +102,7 @@ LRESULT MultiBrowserForm::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lPara
 		// 处理Ctrl+Tab快捷键
 		if (wParam == VK_TAB && ::GetKeyState(VK_CONTROL) < 0)
 		{
-			int next = tab_list_->GetCurSel();
+			int next = (int)tab_list_->GetCurSel();
 			next = (next + 1) % GetBoxCount();
 			tab_list_->SelectItem(next);
 			return 0;
@@ -124,21 +124,22 @@ LRESULT MultiBrowserForm::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lPara
 		taskbar_manager_.Init(this);
 
 		// 因为窗口刚创建时，浏览器盒子已经创建但是那时还没有收到WM_TASKBARBUTTONCREATED消息，导致RegisterTab函数没有被调用，所以收到消息后重新遍历一下没有被注册的Tab
-		for (int i = 0; i < borwser_box_tab_->GetItemCount(); i++)
-		{
+		for (size_t i = 0; i < borwser_box_tab_->GetItemCount(); ++i) {
 			Control *box_item = borwser_box_tab_->GetItemAt(i);
-			ASSERT(NULL != box_item);
-			if (NULL == box_item)
+			ASSERT(nullptr != box_item);
+			if (nullptr == box_item) {
 				continue;
+			}
 
 			BrowserBox* browser_box = dynamic_cast<BrowserBox*>(box_item);
-			if (NULL == browser_box)
+			if (nullptr == browser_box) {
 				continue;
+			}
 
 			TaskbarTabItem* taskbar_item = browser_box->GetTaskbarItem();
-			if (NULL == taskbar_item)
+			if (nullptr == taskbar_item) {
 				continue;
-
+			}
 			taskbar_manager_.RegisterTab(*taskbar_item);
 		}
 
@@ -343,39 +344,40 @@ BrowserBox* MultiBrowserForm::CreateBox(const std::string &browser_id, std::wstr
 
 void MultiBrowserForm::CloseBox(const std::string &browser_id)
 {
-	if (browser_id.empty())
+	if (browser_id.empty()) {
 		return;
+	}
 
 	std::wstring id = nbase::UTF8ToUTF16(browser_id);
 
 	// 从左侧会话列表项移除对应item
 	BrowserTabItem *tab_item = FindTabItem(id);
-	if (NULL != tab_item)
-	{
+	if (nullptr != tab_item) {
 		tab_list_->RemoveItem(tab_item);
 	}
 
 	// 在浏览器列表中找到浏览器盒子并且移除盒子
 	BrowserBox *browser_box = FindBox(id);
-	ASSERT(NULL != browser_box);
-	if (NULL != browser_box)
-	{
+	ASSERT(nullptr != browser_box);
+	if (nullptr != browser_box) {
 		auto taskbar_item = browser_box->GetTaskbarItem();
-		if (taskbar_item)
+		if (taskbar_item) {
 			taskbar_manager_.UnregisterTab(*taskbar_item);
+		}
 		browser_box->UninitBrowserBox();
 		// 如果浏览器盒子的数量大于1就立马移除盒子，否则不移除
 		// 如果最后一个浏览器盒子在这里立马移除，在窗口关闭时界面会因为没有控件而变成黑色
 		// 窗口关闭时，会自动的移除这个浏览器盒子
-		if (borwser_box_tab_->GetItemCount() > 1)
+		if (borwser_box_tab_->GetItemCount() > 1) {
 			borwser_box_tab_->RemoveItem(browser_box);
-		else
-			active_browser_box_ = NULL;
+		}
+		else {
+			active_browser_box_ = nullptr;
+		}
 	}
 
 	// 当浏览器盒子清空时，关闭浏览器窗口
-	if (GetBoxCount() == 0)
-	{
+	if (GetBoxCount() == 0) {
 		this->CloseWnd(kBrowserBoxClose);
 	}
 }
@@ -499,7 +501,7 @@ bool MultiBrowserForm::IsActiveBox(const std::wstring &browser_id)
 
 int MultiBrowserForm::GetBoxCount() const
 {
-	return tab_list_->GetItemCount() - 1; // 减去右边那个加号的数量
+	return (int)tab_list_->GetItemCount() - 1; // 减去右边那个加号的数量
 }
 
 void MultiBrowserForm::OnBeforeDragBoxCallback(const std::wstring &browser_id)
@@ -627,18 +629,18 @@ bool MultiBrowserForm::OnTabItemClose(const ui::EventArgs& param, const std::str
 
 BrowserBox* MultiBrowserForm::FindBox(const std::wstring &browser_id)
 {
-	for (int i = 0; i < borwser_box_tab_->GetItemCount(); i++)
-	{
+	for (int i = 0; i < (int)borwser_box_tab_->GetItemCount(); i++)	{
 		Control *box_item = borwser_box_tab_->GetItemAt(i);
-		ASSERT(NULL != box_item);
-		if (NULL == box_item)
-			return NULL;
+		ASSERT(nullptr != box_item);
+		if (nullptr == box_item) {
+			return nullptr;
+		}
 
-		if (box_item->GetName() == browser_id)
+		if (box_item->GetName() == browser_id) {
 			return dynamic_cast<BrowserBox*>(box_item);
+		}
 	}
-
-	return NULL;
+	return nullptr;
 }
 
 BrowserTabItem* MultiBrowserForm::FindTabItem(const std::wstring &browser_id)

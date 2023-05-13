@@ -26,6 +26,9 @@ public:
 	virtual bool RemoveItem(Control* pControl) override;
 	virtual bool RemoveItemAt(size_t iIndex) override;
 	virtual void RemoveAllItems() override;
+	virtual Control* GetItemAt(size_t iIndex) const override;
+	virtual size_t GetItemCount() const override;
+
 	virtual void Activate() override;
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 	virtual void PaintText(IRenderContext* pRender) override;
@@ -91,13 +94,13 @@ public:
 	 * @param[in] top 为 true 则向上弹出，false 为默认向下弹出
 	 * @return 无
 	 */
-	void SetPopupTop(bool top) { m_bPopupTop = top; };
+	void SetPopupTop(bool top) { m_bPopupTop = top; }
 	
 	/**
 	 * @brief 判断 Combobox 弹出模式是否是向上弹出
 	 * @return 返回 true 表示向上弹出，否则为 false
 	 */
-	bool IsPopupTop() const { return m_bPopupTop; };
+	bool IsPopupTop() const { return m_bPopupTop; }
 
 	/**
 	 * @brief 选择一个子项
@@ -105,27 +108,14 @@ public:
 	 * @param[in] bTrigger 是否触发选择事件
 	 * @return 返回 true 表示成功，否则为 false
 	 */
-	bool SelectItem(int iIndex, bool bTrigger = false);
-
-	/**
-	 * @brief 获取指定索引下的子项控件
-	 * @param[in] iIndex 要获取的子项索引
-	 * @return 返回控件指针
-	 */
-	Control* GetItemAt(int iIndex);
+	bool SelectItem(size_t iIndex, bool bTrigger = false);
 
 	/**
 	 * @brief 获取当前选择项索引
-	 * @return 返回当前选择项索引
+	 * @return 返回当前选择项索引, (如果无有效索引，则返回Box::InvalidIndex)
 	 */
-	int GetCurSel() const { return m_iCurSel; }
-
-	/**
-	 * @brief 获取所有子项数量
-	 * @return 返回所有子项数量
-	 */
-	virtual int GetItemCount() const override;
-    
+	size_t GetCurSel() const { return m_iCurSel; }
+   
 	/**
 	 * @brief 监听子项被选择事件
 	 * @param[in] callback 子项被选择后触发的回调函数
@@ -153,12 +143,12 @@ private:
 	 * @param[in] iIndex 要选择的子项索引
 	 * @return 返回 true 表示成功，否则为 false
 	 */
-	bool SelectItemInternal(int iIndex);
+	bool SelectItemInternal(size_t iIndex);
 
 protected:
 	CComboWnd *m_pWindow;
 	std::unique_ptr<ListBox> m_pLayout;
-    int m_iCurSel;  
+	size_t m_iCurSel;
 	UiSize m_szDropBox;
 	std::wstring m_sDropBoxAttributes;
 	bool m_bPopupTop;

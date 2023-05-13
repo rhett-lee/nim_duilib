@@ -8,8 +8,8 @@ namespace ui
 
 TabBox::TabBox(Layout* pLayout) 
 : Box(pLayout)
-, m_iCurSel(-1)
-, m_iInitSel(-1)
+, m_iCurSel(Box::InvalidIndex)
+, m_iInitSel(Box::InvalidIndex)
 , m_bIsInit(false)
 , m_bFadeSwith(false)
 {
@@ -19,7 +19,7 @@ TabBox::TabBox(Layout* pLayout)
 void TabBox::DoInit()
 {
 	m_bIsInit = true;
-	if (m_iInitSel != -1) {
+	if (Box::IsValidItemIndex(m_iInitSel)) {
 		SelectItem(m_iInitSel);
 	}
 }
@@ -38,12 +38,12 @@ bool TabBox::AddItemAt(Control* pControl, size_t iIndex)
 		return ret;
 	}		
 
-	if(m_iCurSel == -1 && pControl->IsVisible()) {
-		int iCurSel = GetItemIndex(pControl);
-		ASSERT(iCurSel == (int)iIndex);
+	if(!Box::IsValidItemIndex(m_iCurSel) && pControl->IsVisible()) {
+		size_t iCurSel = GetItemIndex(pControl);
+		ASSERT(iCurSel == iIndex);
 		ret = SelectItem(iCurSel);
 	}
-	else if( m_iCurSel != -1 && iIndex <= (size_t)m_iCurSel ) {
+	else if(Box::IsValidItemIndex(m_iCurSel) && (iIndex <= m_iCurSel)) {
 		m_iCurSel += 1;
 	}
 
@@ -60,8 +60,8 @@ bool TabBox::RemoveItem(Control* pControl)
 		return false;
 	}
 
-	int index = GetItemIndex(pControl);
-	ASSERT(index >= 0);
+	size_t index = GetItemIndex(pControl);
+	ASSERT(Box::IsValidItemIndex(index));
 	bool ret = Box::RemoveItem(pControl);
 	if (!ret) {
 		return false;
@@ -70,19 +70,16 @@ bool TabBox::RemoveItem(Control* pControl)
 	if( m_iCurSel == index)	{
 		if( GetItemCount() > 0 ) {
 			//移除当前选择的TAB页面后，选择被移除页面的前一个TAB页面
-			int newSel = m_iCurSel - 1;
+			size_t newSel = m_iCurSel - 1;
 			if (newSel >= GetItemCount()) {
-				newSel = -1;
+				newSel = Box::InvalidIndex;
 			}
-			if (newSel < 0) {
-				newSel = 0;
-			}
-			m_iCurSel = -1;
+			m_iCurSel = Box::InvalidIndex;
 			ret = SelectItem(newSel);
 		}
 		else {
 			//当前只有一个TAB页，被移除以后，更新选择为未选择
-			m_iCurSel = -1;
+			m_iCurSel = Box::InvalidIndex;
 		}
 		ArrangeAncestor();
 	}
@@ -104,34 +101,34 @@ bool TabBox::RemoveItemAt(size_t iIndex)
 
 void TabBox::RemoveAllItems()
 {
-	m_iCurSel = -1;
+	m_iCurSel = Box::InvalidIndex;
 	Box::RemoveAllItems();
 	ArrangeAncestor();
 }
 
-int TabBox::GetCurSel() const
+size_t TabBox::GetCurSel() const
 {
 	return m_iCurSel;
 }
 	
-bool TabBox::SelectItem(int iIndex)
+bool TabBox::SelectItem(size_t iIndex)
 {
-	if ((iIndex < 0) || ((size_t)iIndex >= m_items.size())) {
+	if (!Box::IsValidItemIndex(iIndex) || (iIndex >= m_items.size())) {
 		return false;
 	}
 	if (iIndex == m_iCurSel) {
 		return true;
 	}
 
-	const int iOldSel = m_iCurSel;
+	const size_t iOldSel = m_iCurSel;
 	m_iCurSel = iIndex;
-	const int itemCount = (int)m_items.size();
-	for( int it = 0; it < itemCount; ++it ){
+	const size_t itemCount = m_items.size();
+	for(size_t it = 0; it < itemCount; ++it ){
 		Control* pItemControl = m_items.at(it);
 		ASSERT(pItemControl != nullptr);
 		if (it == iIndex) {
 			//当前选择的TAB Item
-			OnShowTabItem((size_t)it);
+			OnShowTabItem(it);
 
 			if (!IsFadeSwitch()) {
 				pItemControl->SetFadeVisible(true);
@@ -162,7 +159,7 @@ bool TabBox::SelectItem(int iIndex)
 		}
 		else {
 			//不是当前选择的TAB页面
-			OnHideTabItem((size_t)it);
+			OnHideTabItem(it);
 			if ((it == iOldSel) && IsFadeSwitch()) {
 				//对于原来选择的TAB页面，出发动画效果
 				pItemControl->SetVisible(true);
@@ -238,15 +235,15 @@ void TabBox::OnShowTabItem(size_t index)
 
 void TabBox::OnAnimationComplete(size_t index)
 {
-	ASSERT((size_t)index < m_items.size());
-	if ((size_t)index >= m_items.size()) {
+	ASSERT(index < m_items.size());
+	if (index >= m_items.size()) {
 		return;
 	}
 	Control* pContol = m_items.at(index);
 	ASSERT(pContol != nullptr);
 	if (pContol != nullptr) {
 		pContol->SetRenderOffsetX(0);
-		if (m_iCurSel != (int)index) {
+		if (m_iCurSel != index) {
 			pContol->SetVisible(false);
 		}
 	}
@@ -254,8 +251,8 @@ void TabBox::OnAnimationComplete(size_t index)
 
 bool TabBox::SelectItem( Control* pControl )
 {
-	int iIndex = GetItemIndex(pControl);
-	if (iIndex == -1) {
+	size_t iIndex = GetItemIndex(pControl);
+	if (!Box::IsValidItemIndex(iIndex)) {
 		return false;
 	}		
 	else {
@@ -273,7 +270,7 @@ bool TabBox::SelectItem(const std::wstring& pControlName)
 void TabBox::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
 	if (strName == L"selectedid"){
-		int iSel = _wtoi(strValue.c_str());
+		size_t iSel = (size_t)_wtoi(strValue.c_str());
 		if (m_bIsInit) {
 			SelectItem(iSel);
 		}

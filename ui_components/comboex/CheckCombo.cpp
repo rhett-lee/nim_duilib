@@ -20,14 +20,12 @@ namespace nim_comp
 
 	private:
 		CheckCombo *m_pOwner = nullptr;
-		int m_iOldSel = -1;
 	};
 
 
 	void CCheckComboWnd::InitComboWnd(CheckCombo* pOwner)
 	{
 		m_pOwner = pOwner;
-		//m_iOldSel = m_pOwner->GetCurSel();
 
 		// Position the popup window in absolute space
 		ui::UiSize szDrop = m_pOwner->GetDropBoxSize();
@@ -35,13 +33,18 @@ namespace nim_comp
 		ui::UiRect rc = rcOwner;
 		rc.top = rc.bottom + 1;		// 父窗口left、bottom位置作为弹出窗口起点
 		rc.bottom = rc.top + szDrop.cy;	// 计算弹出窗口高度
-		if (szDrop.cx > 0) rc.right = rc.left + szDrop.cx;	// 计算弹出窗口宽度
+		if (szDrop.cx > 0) {
+			rc.right = rc.left + szDrop.cx;	// 计算弹出窗口宽度
+		}
 
 		ui::UiSize szAvailable(rc.right - rc.left, rc.bottom - rc.top);
 		int cyFixed = 0;
-		for (int it = 0; it < pOwner->GetListBox()->GetItemCount(); it++) {
+		const size_t itemCount = pOwner->GetListBox()->GetItemCount();
+		for (size_t it = 0; it < itemCount; ++it) {
 			ui::Control* pControl = pOwner->GetListBox()->GetItemAt(it);
-			if (!pControl->IsVisible()) continue;
+			if (!pControl->IsVisible()) {
+				continue;
+			}
 			ui::UiSize sz = pControl->EstimateSize(szAvailable);
 			cyFixed += sz.cy;
 		}
@@ -79,7 +82,7 @@ namespace nim_comp
 
 	void CCheckComboWnd::OnFinalMessage(HWND /*hWnd*/)
 	{
-		m_pOwner->m_pCheckComboWnd = NULL;
+		m_pOwner->m_pCheckComboWnd = nullptr;
 		m_pOwner->SetState(ui::kControlStateNormal);
 		m_pOwner->Invalidate();
 		delete this;
@@ -197,7 +200,7 @@ namespace nim_comp
 
 	bool CheckCombo::RemoveItemAt(size_t iIndex)
 	{
-		bool ret = m_pDropList->RemoveItemAt((int)iIndex);
+		bool ret = m_pDropList->RemoveItemAt(iIndex);
 		return ret;
 	}
 
@@ -276,7 +279,7 @@ namespace nim_comp
 		m_szDropBox = szDropBox;
 	}
 
-	bool CheckCombo::SelectItem(int /*iIndex*/)
+	bool CheckCombo::SelectItem(size_t /*iIndex*/)
 	{
 		/*if (iIndex < 0 || iIndex >= m_pDropList->GetItemCount() || m_iCurSel == iIndex)
 			return false;
@@ -287,7 +290,7 @@ namespace nim_comp
 		return true;
 	}
 
-	ui::Control* CheckCombo::GetItemAt(int iIndex)
+	ui::Control* CheckCombo::GetItemAt(size_t iIndex) const
 	{
 		return m_pDropList->GetItemAt(iIndex);
 	}
@@ -320,7 +323,7 @@ namespace nim_comp
 
 		m_pList->AddItem(item);
 
-		SetFixedHeight(m_pList->GetItemCount() * m_iOrgHeight, true);
+		SetFixedHeight((int)m_pList->GetItemCount() * m_iOrgHeight, true);
 
 		return true;
 	}
@@ -348,7 +351,7 @@ namespace nim_comp
 			m_pList->RemoveItem(pRemove);
 		}
 
-		SetFixedHeight(m_pList->GetItemCount() * m_iOrgHeight, true);
+		SetFixedHeight((int)m_pList->GetItemCount() * m_iOrgHeight, true);
 		return true;
 	}
 

@@ -19,7 +19,7 @@ public:
 
 private:
     FilterCombo *m_pOwner = nullptr;
-    int m_iOldSel = -1;
+    size_t m_iOldSel = ui::Box::InvalidIndex;
 };
 
 void CFilterComboWnd::InitComboWnd(FilterCombo* pOwner)
@@ -43,7 +43,7 @@ void CFilterComboWnd::InitComboWnd(FilterCombo* pOwner)
 
 	ui::UiSize szAvailable(rc.right - rc.left, rc.bottom - rc.top);
     int cyFixed = 0;
-	for (int it = 0; it < pOwner->GetListBox()->GetItemCount(); it++) {
+	for (size_t it = 0; it < pOwner->GetListBox()->GetItemCount(); ++it) {
 		ui::Control* pControl = pOwner->GetListBox()->GetItemAt(it);
 		if (pControl == nullptr) {
 			continue;
@@ -163,8 +163,7 @@ LRESULT CFilterComboWnd::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam
 	}
 #endif
 	LRESULT lResult = 0;
-	if (!bHandled)
-	{
+	if (!bHandled) {
 		lResult = __super::OnWindowMessage(uMsg, wParam, lParam, bHandled);
 	}
 	return lResult;
@@ -179,20 +178,21 @@ bool ListElementMatch::StringMatch(const std::string& utf8str)
 	std::string utf8date = nbase::MakeLowerString(GetUTF8DataID());
 	std::string searchkey = nbase::MakeLowerString(utf8str);
 
-	if (utf8text.find(searchkey) != std::string::npos || utf8date.find(searchkey) != std::string::npos)
-	{
+	if (utf8text.find(searchkey) != std::string::npos || utf8date.find(searchkey) != std::string::npos)	{
 		return true;
 	}
 	return false;
 }
 
 
-bool FilterListBox::SelectItem(int iIndex, bool bTakeFocus, bool bTrigger)
+bool FilterListBox::SelectItem(size_t iIndex, bool bTakeFocus, bool bTrigger)
 {
-	if (iIndex == m_iCurSel) return true;
-	int iOldSel = m_iCurSel;
+	if (iIndex == m_iCurSel) {
+		return true;
+	}
+	size_t iOldSel = m_iCurSel;
 	// We should first unselect the currently selected item
-	if (m_iCurSel >= 0) {
+	if (Box::IsValidItemIndex(m_iCurSel)) {
 		Control* pControl = GetItemAt(m_iCurSel);
 		if (pControl != NULL) {
 			ui::ListBoxElement* pListItem = dynamic_cast<ui::ListBoxElement*>(pControl);
@@ -200,9 +200,9 @@ bool FilterListBox::SelectItem(int iIndex, bool bTakeFocus, bool bTrigger)
 				pListItem->OptionTemplate<Box>::Selected(false, bTrigger);
 			}
 		}
-		m_iCurSel = -1;
+		m_iCurSel = Box::InvalidIndex;
 	}
-	if (iIndex < 0) {
+	if (!Box::IsValidItemIndex(iIndex)) {
 		if (bTrigger) {
 			SendEvent(ui::kEventSelect, m_iCurSel, iOldSel);
 		}
@@ -242,10 +242,10 @@ bool FilterListBox::SelectItem(int iIndex, bool bTakeFocus, bool bTrigger)
 void FilterListBox::Filter(const std::string& utf8_str)
 {
 	ListElementMatch *item = nullptr;
-	for (size_t i = 0; i < (size_t)GetItemCount(); ++i)
-	{
+	const size_t itemCount = GetItemCount();
+	for (size_t i = 0; i < itemCount; ++i) {
 		item = dynamic_cast<ListElementMatch*>(GetItemAt(i));
-		if (item){
+		if (item != nullptr) {
 			if (item->StringMatch(utf8_str)) {
 				item->SetFadeVisible(true);
 			}
@@ -261,7 +261,7 @@ void FilterListBox::Filter(const std::string& utf8_str)
 
 FilterCombo::FilterCombo() :
 	m_pComboWnd(nullptr),
-	m_iCurSel(-1),
+	m_iCurSel(Box::InvalidIndex),
 	m_szDropBox(0, 150),
 	m_sDropBoxAttributes(),
 	m_bPopupTop(false)
@@ -307,13 +307,8 @@ void FilterCombo::HandleEvent(const ui::EventArgs& args)
 
 bool FilterCombo::AddItem(Control* pControl)
 {
-	ListElementMatch *pListElementMatch = dynamic_cast<ListElementMatch*>(pControl);
-	if (pListElementMatch)
-	{
-		
-	}
-	else
-	{
+	ListElementMatch* pListElementMatch = dynamic_cast<ListElementMatch*>(pControl);
+	if (pListElementMatch == nullptr) {
 		printf("CheckCombo::AddItem pControl is not CheckBox object\n");
 		ASSERT(0);
 		return true;
@@ -333,7 +328,7 @@ bool FilterCombo::RemoveItem(Control * pControl)
 
 bool FilterCombo::RemoveItemAt(size_t iIndex)
 {
-	bool ret = m_pLayout->RemoveItemAt((int)iIndex);
+	bool ret = m_pLayout->RemoveItemAt(iIndex);
 	m_iCurSel = m_pLayout->GetCurSel();
 	return ret;
 }
@@ -341,7 +336,7 @@ bool FilterCombo::RemoveItemAt(size_t iIndex)
 void FilterCombo::RemoveAllItems()
 {
 	m_pLayout->RemoveAllItems();
-	m_iCurSel = -1;
+	m_iCurSel = Box::InvalidIndex;
 }
 
 void FilterCombo::Activate()
@@ -385,8 +380,9 @@ std::wstring FilterCombo::GetText() const
 	ListBoxElement* pControl = static_cast<ListBoxElement*>(m_pLayout->GetItemAt(m_iCurSel));
     return pControl->GetText();
 #else
-	if (m_pRichEdit)
+	if (m_pRichEdit != nullptr) {
 		return m_pRichEdit->GetText();
+	}
 	return L"";
 #endif
 }
@@ -418,23 +414,22 @@ void FilterCombo::SetDropBoxSize(ui::UiSize szDropBox)
     m_szDropBox = szDropBox;
 }
 
-bool FilterCombo::SelectItem(int iIndex)
+bool FilterCombo::SelectItem(size_t iIndex)
 {
-	if (iIndex < 0 || iIndex >= m_pLayout->GetItemCount() || m_iCurSel == iIndex)
+	if (!Box::IsValidItemIndex(iIndex) || iIndex >= m_pLayout->GetItemCount() || m_iCurSel == iIndex) {
 		return false;
-
+	}
 	m_iCurSel = iIndex;
 	m_pLayout->SelectItem(m_iCurSel);
-
 	return true;
 }
 
-ui::Control* FilterCombo::GetItemAt(int iIndex)
+ui::Control* FilterCombo::GetItemAt(size_t iIndex) const
 {
 	return m_pLayout->GetItemAt(iIndex);
 }
 
-int FilterCombo::GetItemCount() const 
+size_t FilterCombo::GetItemCount() const 
 {
 	return m_pLayout->GetItemCount(); 
 }
@@ -451,13 +446,12 @@ bool FilterCombo::OnSelectItem(const ui::EventArgs& /*args*/)
 	}	
 	m_iCurSel = m_pLayout->GetCurSel();
 	auto pControl = m_pLayout->GetItemAt(m_iCurSel);
-	if (pControl != NULL) {
+	if (pControl != nullptr) {
 		pControl->SetState(ui::kControlStateNormal);
 	}
 	SendEvent(ui::kEventSelect, m_iCurSel, -1);
 	ui::ListBoxElement *ele = dynamic_cast<ui::ListBoxElement*>(pControl);
-	if (m_pRichEdit && ele)
-	{
+	if (m_pRichEdit && ele)	{
 		m_pRichEdit->SetText(ele->GetText());
 	}
 	return true;
@@ -466,8 +460,7 @@ bool FilterCombo::OnSelectItem(const ui::EventArgs& /*args*/)
 bool FilterCombo::OnRichEditTextChanged(const ui::EventArgs& /*args*/)
 {
 	m_pLayout->Filter(m_pRichEdit->GetUTF8Text());
-	if (m_pComboWnd == nullptr)
-	{
+	if (m_pComboWnd == nullptr)	{
 		return false;
 	}
 	ui::UiSize szDrop = GetDropBoxSize();
@@ -475,13 +468,18 @@ bool FilterCombo::OnRichEditTextChanged(const ui::EventArgs& /*args*/)
 	ui::UiRect rc = rcOwner;
 	rc.top = rc.bottom + 1;		// 父窗口left、bottom位置作为弹出窗口起点
 	rc.bottom = rc.top + szDrop.cy;	// 计算弹出窗口高度
-	if (szDrop.cx > 0) rc.right = rc.left + szDrop.cx;	// 计算弹出窗口宽度
+	if (szDrop.cx > 0) {
+		rc.right = rc.left + szDrop.cx;	// 计算弹出窗口宽度
+	}
 
 	ui::UiSize szAvailable(rc.right - rc.left, rc.bottom - rc.top);
 	int cyFixed = 0;
-	for (int it = 0; it < GetListBox()->GetItemCount(); it++) {
+	const size_t itemCount = GetListBox()->GetItemCount();
+	for (size_t it = 0; it < itemCount; ++it) {
 		Control* pControl = GetListBox()->GetItemAt(it);
-		if (!pControl->IsVisible()) continue;
+		if (!pControl->IsVisible()) {
+			continue;
+		}
 		ui::UiSize sz = pControl->EstimateSize(szAvailable);
 		cyFixed += sz.cy;
 	}

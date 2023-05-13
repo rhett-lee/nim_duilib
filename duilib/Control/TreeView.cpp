@@ -95,20 +95,19 @@ bool TreeNode::AddChildNodeAt(TreeNode* pTreeNode, size_t iIndex)
 	pTreeNode->AttachEvent(kEventClick, nbase::Bind(&TreeNode::OnClickItem, this, std::placeholders::_1));
 
 	UiRect padding = GetLayout()->GetPadding();
-	int nodeIndex = -1;
+	size_t nodeIndex = 0;
 	if (m_iDepth != ROOT_NODE_DEPTH) {
-		nodeIndex = GetIndex();
+		nodeIndex = GetIndex() + 1;
 		padding.left += m_pTreeView->GetIndent();
 	}
 	pTreeNode->GetLayout()->SetPadding(padding, true);
 
 	size_t nGlobalIndex = iIndex;
-	for (size_t i = 0; i < iIndex; i++)
-	{
+	for (size_t i = 0; i < iIndex; i++)	{
 		nGlobalIndex += ((TreeNode*)m_aTreeNodes[i])->GetDescendantNodeCount();
 	}
 
-	return m_pTreeView->ListBox::AddItemAt(pTreeNode, (int)(nodeIndex + nGlobalIndex + 1));
+	return m_pTreeView->ListBox::AddItemAt(pTreeNode, nodeIndex + nGlobalIndex);
 }
 
 bool TreeNode::RemoveChildNodeAt(size_t iIndex)

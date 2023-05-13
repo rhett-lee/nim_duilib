@@ -118,7 +118,16 @@ public:
     virtual ~Box();
 
 public:
-	/// 重写父类接口，提供个性化功能。方法具体说明请查看 Control 控件             */
+	/** 无效的子项索引
+	*/
+	static constexpr auto InvalidIndex{ static_cast<size_t>(-1) };
+
+	/** @brief 是否为有效的子控件索引
+	*/
+	static bool IsValidItemIndex(size_t index) { return index != Box::InvalidIndex; }
+
+public:
+	/// 重写父类接口，提供个性化功能。方法具体说明请查看 Control 控件
 	virtual std::wstring GetType() const override;
 #if defined(ENABLE_UIAUTOMATION)
 	virtual UIAControlProvider* GetUIAProvider() override;
@@ -142,7 +151,7 @@ public:
 	*/
 	/**@brief 获取子控件数量
 	 */
-	virtual int GetItemCount() const;
+	virtual size_t GetItemCount() const;
 
 	/**
 	 * @brief 根据索引查找指定控件
@@ -154,9 +163,9 @@ public:
 	/**
 	 * @brief 根据控件指针获取索引
 	 * @param[in] pControl 控件指针
-	 * @return 返回 pControl 所指向的控件索引
+	 * @return 返回 pControl 所指向的控件索引, 如果没找到，则返回 Box::InvalidIndex
 	 */
-	virtual int GetItemIndex(Control* pControl) const;
+	virtual size_t GetItemIndex(Control* pControl) const;
 
 	/**
 	 * @brief 设置控件索引（内部会重新排列控件位置）
@@ -205,19 +214,19 @@ public:
 
 public:
 	/**
+	 * @brief 查找下一个可选控件的索引（面向 list、combo）
+	 * @param[in] iIndex 指定要起始查找的索引
+	 * @param[in] bForward true 为递增查找， false 为递减查找
+	 * @return 下一个可选控件的索引，返回 Box::InvalidIndex 为没有可选控件
+	 */
+	size_t FindSelectable(size_t iIndex, bool bForward = true) const;
+
+	/**
 	 * @brief 查找指定子控件
 	 * @param[in] pstrSubControlName 子控件名称
 	 * @return 返回子控件指针
 	 */
 	Control* FindSubControl(const std::wstring& pstrSubControlName);
-
-	/**
-	 * @brief 查找下一个可选控件的索引（面向 list、combo）
-	 * @param[in] iIndex 指定要起始查找的索引
-	 * @param[in] bForward true 为递增查找， false 为递减查找
-	 * @return 下一个可选控件的索引，返回 -1 为没有可选控件
-	 */
-	int FindSelectable(int iIndex, bool bForward = true) const;
 
 	/**
 	 * @brief 判断是否自动销毁

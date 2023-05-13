@@ -4,7 +4,6 @@
 #include "stdafx.h"
 #include "main.h"
 #include "main_form.h"
-#include "VirtualTileBox.h"
 
 enum ThreadId
 {
@@ -15,7 +14,7 @@ ui::Control* MyCreateControlCallback(const std::wstring& sName)
 {
 	if (sName == L"VirtualTileBox")
 	{
-		return new VirtualTileBox();
+		return new ui::VirtualTileBox();
 	}
 	return nullptr;
 }

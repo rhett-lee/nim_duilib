@@ -9,7 +9,7 @@ struct DownloadTask
 	std::wstring sName;
 };
 
-class Provider : public ui::VirtualTileInterface
+class Provider : public ui::VirtualTileBoxElement
 {
 public:
 	Provider();
@@ -23,18 +23,18 @@ public:
 	* @param[in] index 索引
 	* @return 返回创建后的子项指针
 	*/
-	virtual void FillElement(ui::Control *control, int index) override;
+	virtual void FillElement(ui::Control *control, size_t index) override;
 
 	/**
 	* @brief 获取子项总数
 	* @return 返回子项总数
 	*/
-	virtual int GetElementtCount() override;
+	virtual size_t GetElementtCount() override;
 
 public:
 	void SetTotal(int nTotal);
-	void RemoveTask(int nIndex);
-	void ChangeTaskName(int nIndex, const std::wstring& sName);
+	void RemoveTask(size_t nIndex);
+	void ChangeTaskName(size_t nIndex, const std::wstring& sName);
 
 private:
 	int m_nTotal;

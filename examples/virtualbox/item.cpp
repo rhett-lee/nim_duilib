@@ -1,6 +1,5 @@
 #include "stdafx.h"
 #include "item.h"
-#include "VirtualTileBox.h"
 #include "provider.h"
 
 Item::Item()
@@ -12,7 +11,7 @@ Item::Item()
 Item::~Item()
 = default;
 
-void Item::InitSubControls(const std::wstring& img, const std::wstring& title, int nDataIndex)
+void Item::InitSubControls(const std::wstring& img, const std::wstring& title, size_t nDataIndex)
 {
 	// 查找 Item 下的控件
 	if (control_img_ == nullptr)

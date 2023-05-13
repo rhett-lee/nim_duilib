@@ -113,7 +113,7 @@ void CMenuWnd::DetachOwner()
 {
 	if (m_pOwner != nullptr) {
 		if (m_pLayout != nullptr) {
-			m_pLayout->SelectItem(-1);
+			m_pLayout->SelectItem(Box::InvalidIndex);
 		}
 
 		//将在OnInitWindow中，添加到Layout上的节点，接触关联关系
@@ -191,7 +191,7 @@ LRESULT CMenuWnd::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool&
 		}
 		else if (wParam == VK_RIGHT) {
 			if (m_pLayout) {
-				int index = m_pLayout->GetCurSel();
+				size_t index = m_pLayout->GetCurSel();
 				CMenuElementUI* pItem = dynamic_cast<CMenuElementUI*>(m_pLayout->GetItemAt(index));
 				if (pItem != nullptr) {
 					pItem->CheckSubMenuItem();
@@ -201,9 +201,9 @@ LRESULT CMenuWnd::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool&
 		else if (wParam == VK_RETURN || wParam == VK_SPACE)
 		{
 			if (m_pLayout) {
-				int index = m_pLayout->GetCurSel();
+				size_t index = m_pLayout->GetCurSel();
 				CMenuElementUI* pItem = dynamic_cast<CMenuElementUI*>(m_pLayout->GetItemAt(index));
-				if (pItem) {
+				if (pItem != nullptr) {
 					if (!pItem->CheckSubMenuItem()) {
 						ContextMenuParam param;
 						param.hWnd = GetHWND();
@@ -303,7 +303,8 @@ void CMenuWnd::ResizeSubMenu()
 	ui::UiRect rcWork (oMonitor.rcWork);
 	ui::UiSize szAvailable = { rcWork.right - rcWork.left, rcWork.bottom - rcWork.top };
 
-	for (int it = 0; it < m_pLayout->GetItemCount(); ++it) {
+	const size_t itemCount = m_pLayout->GetItemCount();
+	for (size_t it = 0; it < itemCount; ++it) {
 		//取子菜单项中的最大值作为菜单项
 		CMenuElementUI* pItem = dynamic_cast<CMenuElementUI*>(m_pLayout->GetItemAt(it));
 		if (pItem != nullptr) {
@@ -444,7 +445,7 @@ bool CMenuWnd::AddMenuItemAt(CMenuElementUI* pMenuItem, size_t iIndex)
 	
 	size_t itemIndex = 0;
 	CMenuElementUI* pElementUI = nullptr;
-	const int count = m_pLayout->GetItemCount();
+	const size_t count = m_pLayout->GetItemCount();
 	for (size_t i = 0; i < count; ++i) {
 		Control* pControl = m_pLayout->GetItemAt(i);
 		pElementUI = dynamic_cast<CMenuElementUI*>(pControl);
@@ -466,8 +467,8 @@ bool CMenuWnd::RemoveMenuItem(CMenuElementUI* pMenuItem)
 	ASSERT(m_pLayout != nullptr);
 	CMenuElementUI* pElementUI = nullptr;
 	if (m_pLayout != nullptr) {
-		const int count = m_pLayout->GetItemCount();
-		for (int i = 0; i < count; ++i) {
+		const size_t count = m_pLayout->GetItemCount();
+		for (size_t i = 0; i < count; ++i) {
 			pElementUI = dynamic_cast<CMenuElementUI*>(m_pLayout->GetItemAt(i));
 			if (pMenuItem == pElementUI) {
 				m_pLayout->RemoveItemAt(i);
@@ -497,7 +498,7 @@ size_t CMenuWnd::GetMenuItemCount() const
 		return 0;
 	}
 	size_t itemCount = 0;
-	const int count = m_pLayout->GetItemCount();
+	const size_t count = m_pLayout->GetItemCount();
 	for (size_t i = 0; i < count; ++i) {
 		if (dynamic_cast<CMenuElementUI*>(m_pLayout->GetItemAt(i)) != nullptr) {
 			++itemCount;
@@ -516,7 +517,7 @@ CMenuElementUI* CMenuWnd::GetMenuItemAt(size_t iIndex) const
 	}
 	size_t itemIndex = 0;
 	CMenuElementUI* pElementUI = nullptr;
-	const int count = m_pLayout->GetItemCount();
+	const size_t count = m_pLayout->GetItemCount();
 	for (size_t i = 0; i < count; ++i) {
 		Control* pControl = m_pLayout->GetItemAt(i);
 		pElementUI = dynamic_cast<CMenuElementUI*>(pControl);
@@ -538,8 +539,8 @@ CMenuElementUI* CMenuWnd::GetMenuItemByName(const std::wstring& name) const
 	ASSERT(m_pLayout != nullptr);
 	CMenuElementUI* pElementUI = nullptr;
 	if (m_pLayout != nullptr) {
-		const int count = m_pLayout->GetItemCount();
-		for (int i = 0; i < count; ++i) {
+		const size_t count = m_pLayout->GetItemCount();
+		for (size_t i = 0; i < count; ++i) {
 			pElementUI = dynamic_cast<CMenuElementUI*>(m_pLayout->GetItemAt(i));
 			if ((pElementUI != nullptr) && (pElementUI->GetName() == name)) {
 				break;
@@ -565,8 +566,8 @@ void CMenuElementUI::GetAllSubMenuItem(const CMenuElementUI* pParentElementUI,
 	if (pParentElementUI == nullptr) {
 		return;
 	}
-	const int itemCount = pParentElementUI->GetItemCount();
-	for (int i = 0; i < itemCount; ++i) {
+	const size_t itemCount = pParentElementUI->GetItemCount();
+	for (size_t i = 0; i < itemCount; ++i) {
 		Control* pControl = pParentElementUI->GetItemAt(i);
 		CMenuElementUI* menuElementUI = dynamic_cast<CMenuElementUI*>(pControl);
 		if (menuElementUI != nullptr) {
@@ -577,8 +578,8 @@ void CMenuElementUI::GetAllSubMenuItem(const CMenuElementUI* pParentElementUI,
 		menuElementUI = nullptr;
 		CSubMenuUI* subMenu = dynamic_cast<CSubMenuUI*>(pControl);
 		if (subMenu != nullptr) {
-			const int count = subMenu->GetItemCount();
-			for (int j = 0; j < count; ++j) {
+			const size_t count = subMenu->GetItemCount();
+			for (size_t j = 0; j < count; ++j) {
 				menuElementUI = dynamic_cast<CMenuElementUI*>(subMenu->GetItemAt(j));
 				if (menuElementUI != nullptr) {
 					submenuItems.push_back(menuElementUI);
@@ -597,8 +598,8 @@ void CMenuElementUI::GetAllSubMenuControls(const CMenuElementUI* pParentElementU
 	if (pParentElementUI == nullptr) {
 		return;
 	}
-	const int itemCount = pParentElementUI->GetItemCount();
-	for (int i = 0; i < itemCount; ++i) {
+	const size_t itemCount = pParentElementUI->GetItemCount();
+	for (size_t i = 0; i < itemCount; ++i) {
 		Control* pControl = pParentElementUI->GetItemAt(i);
 		CMenuElementUI* menuElementUI = dynamic_cast<CMenuElementUI*>(pControl);
 		if (menuElementUI != nullptr) {
@@ -608,8 +609,8 @@ void CMenuElementUI::GetAllSubMenuControls(const CMenuElementUI* pParentElementU
 
 		CSubMenuUI* subMenu = dynamic_cast<CSubMenuUI*>(pControl);
 		if (subMenu != nullptr) {
-			const int count = subMenu->GetItemCount();
-			for (int j = 0; j < count; ++j) {
+			const size_t count = subMenu->GetItemCount();
+			for (size_t j = 0; j < count; ++j) {
 				Control* pSubControl = subMenu->GetItemAt(j);
 				if (pSubControl != nullptr) {
 					submenuControls.push_back(pSubControl);
@@ -633,8 +634,8 @@ bool CMenuElementUI::AddSubMenuItemAt(CMenuElementUI* pMenuItem, size_t iIndex)
 	}
 	
 	size_t itemIndex = 0;
-	const int itemCount = GetItemCount();
-	for (int i = 0; i < itemCount; ++i) {
+	const size_t itemCount = GetItemCount();
+	for (size_t i = 0; i < itemCount; ++i) {
 		Control* pControl = GetItemAt(i);
 		CMenuElementUI* menuElementUI = dynamic_cast<CMenuElementUI*>(pControl);
 		if (menuElementUI != nullptr) {
@@ -649,8 +650,8 @@ bool CMenuElementUI::AddSubMenuItemAt(CMenuElementUI* pMenuItem, size_t iIndex)
 		menuElementUI = nullptr;
 		CSubMenuUI* subMenu = dynamic_cast<CSubMenuUI*>(pControl);
 		if (subMenu != nullptr) {
-			const int count = subMenu->GetItemCount();
-			for (int j = 0; j < count; ++j) {
+			const size_t count = subMenu->GetItemCount();
+			for (size_t j = 0; j < count; ++j) {
 				menuElementUI = dynamic_cast<CMenuElementUI*>(subMenu->GetItemAt(j));
 				if (menuElementUI != nullptr) {
 					if (itemIndex == iIndex) {
@@ -669,8 +670,8 @@ bool CMenuElementUI::AddSubMenuItemAt(CMenuElementUI* pMenuItem, size_t iIndex)
 
 bool CMenuElementUI::RemoveSubMenuItem(CMenuElementUI* pMenuItem)
 {
-	const int itemCount = GetItemCount();
-	for (int i = 0; i < itemCount; ++i) {
+	const size_t itemCount = GetItemCount();
+	for (size_t i = 0; i < itemCount; ++i) {
 		Control* pControl = GetItemAt(i);
 		CMenuElementUI* menuElementUI = dynamic_cast<CMenuElementUI*>(pControl);
 		if (menuElementUI != nullptr) {
@@ -684,8 +685,8 @@ bool CMenuElementUI::RemoveSubMenuItem(CMenuElementUI* pMenuItem)
 		menuElementUI = nullptr;
 		CSubMenuUI* subMenu = dynamic_cast<CSubMenuUI*>(pControl);
 		if (subMenu != nullptr) {
-			const int count = subMenu->GetItemCount();
-			for (int j = 0; j < count; ++j) {
+			const size_t count = subMenu->GetItemCount();
+			for (size_t j = 0; j < count; ++j) {
 				menuElementUI = dynamic_cast<CMenuElementUI*>(subMenu->GetItemAt(j));
 				if (menuElementUI != nullptr) {
 					if (menuElementUI == pMenuItem) {
@@ -702,8 +703,8 @@ bool CMenuElementUI::RemoveSubMenuItem(CMenuElementUI* pMenuItem)
 bool CMenuElementUI::RemoveSubMenuItemAt(size_t iIndex)
 {
 	size_t itemIndex = 0;
-	const int itemCount = GetItemCount();
-	for (int i = 0; i < itemCount; ++i) {
+	const size_t itemCount = GetItemCount();
+	for (size_t i = 0; i < itemCount; ++i) {
 		Control* pControl = GetItemAt(i);
 		CMenuElementUI* menuElementUI = dynamic_cast<CMenuElementUI*>(pControl);
 		if (menuElementUI != nullptr) {
@@ -718,8 +719,8 @@ bool CMenuElementUI::RemoveSubMenuItemAt(size_t iIndex)
 		menuElementUI = nullptr;
 		CSubMenuUI* subMenu = dynamic_cast<CSubMenuUI*>(pControl);
 		if (subMenu != nullptr) {
-			const int count = subMenu->GetItemCount();
-			for (int j = 0; j < count; ++j) {
+			const size_t count = subMenu->GetItemCount();
+			for (size_t j = 0; j < count; ++j) {
 				menuElementUI = dynamic_cast<CMenuElementUI*>(subMenu->GetItemAt(j));
 				if (menuElementUI != nullptr) {
 					if (itemIndex == iIndex) {
@@ -811,7 +812,7 @@ bool CMenuElementUI::MouseEnter(const ui::EventArgs& msg)
 			CMenuWnd::GetMenuObserver().RBroadcast(param);
 			//这里得把之前选中的置为未选中
 			if (GetOwner() != nullptr) {
-				GetOwner()->SelectItem(-1, false);
+				GetOwner()->SelectItem(Box::InvalidIndex, false);
 			}
 		}
 	}

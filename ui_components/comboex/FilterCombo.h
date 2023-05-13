@@ -24,7 +24,7 @@ public:
 	explicit FilterListBox(ui::Layout* pLayout = new ui::VLayout) : ui::ListBox(pLayout), m_pFilterComboWnd(nullptr){};
 	virtual ~FilterListBox(){};
 
-	virtual bool SelectItem(int iIndex, bool bTakeFocus = false, bool bTrigger = true) override;
+	virtual bool SelectItem(size_t iIndex, bool bTakeFocus = false, bool bTrigger = true) override;
 	void Filter(const std::string& utf8_str);
 
 	void SetFilterComboWnd(CFilterComboWnd *pFilterComboWnd){ m_pFilterComboWnd = pFilterComboWnd; };
@@ -49,6 +49,9 @@ public:
 	virtual bool RemoveItem(Control* pControl) override;
 	virtual bool RemoveItemAt(size_t iIndex) override;
 	virtual void RemoveAllItems() override;
+	virtual Control* GetItemAt(size_t iIndex) const override;
+	virtual size_t GetItemCount() const override;
+
 	virtual void Activate() override;
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 	//virtual void PaintText(IRenderContext* pRender) override;
@@ -109,26 +112,13 @@ public:
 	 * @param[in] iIndex 要选择的子项索引
 	 * @return 返回 true 表示成功，否则为 false
 	 */
-	bool SelectItem(int iIndex);
-
-	/**
-	 * @brief 获取指定索引下的子项控件
-	 * @param[in] iIndex 要获取的子项索引
-	 * @return 返回控件指针
-	 */
-	Control* GetItemAt(int iIndex);
+	bool SelectItem(size_t iIndex);
 
 	/**
 	 * @brief 获取当前选择项索引
-	 * @return 返回当前选择项索引
+	 * @return 返回当前选择项索引, (如果无有效索引，则返回Box::InvalidIndex)
 	 */
-	int GetCurSel() const { return m_iCurSel; }
-
-	/**
-	 * @brief 获取所有子项数量
-	 * @return 返回所有子项数量
-	 */
-	virtual int GetItemCount() const;
+	size_t GetCurSel() const { return m_iCurSel; }
     
 	/**
 	 * @brief 监听子项被选择事件
@@ -160,7 +150,7 @@ protected:
 	std::unique_ptr<FilterListBox> m_pLayout;
 
 	ui::RichEdit* m_pRichEdit;
-    int m_iCurSel;  
+    size_t m_iCurSel;
 	ui::UiSize m_szDropBox;
 	std::wstring m_sDropBoxAttributes;
 	bool m_bPopupTop;

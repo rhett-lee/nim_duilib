@@ -29,16 +29,16 @@ public:
 	*/
 	virtual void SendEvent(const EventArgs& event) = 0;
 
-	/**@brief 获取当前选择项ID
+	/**@brief 获取当前选择的索引，(如果无有效索引，则返回Box::InvalidIndex)
 	*/
-	virtual int GetCurSel() const = 0;
+	virtual size_t GetCurSel() const = 0;
 
 	/**@brief 选择子项
 	*  @param [in] iIndex 子项目的ID
 	*  @param [in] bTakeFocus 是否让子项控件成为焦点控件
 	*  @param [in] bTrigger 是否触发选择事件 
 	*/
-	virtual bool SelectItem(int iIndex, bool bTakeFocus = false, bool bTrigger = true) = 0;	
+	virtual bool SelectItem(size_t iIndex, bool bTakeFocus = false, bool bTrigger = true) = 0;
 
 	/**@brief 确保区域可见
 	*/
@@ -72,8 +72,10 @@ public:
 						   const UiPoint& mousePos = UiPoint()) override;
 	virtual void SendEvent(const EventArgs& event) override;
 
-	virtual int GetCurSel() const override;
-	virtual bool SelectItem(int iIndex, bool bTakeFocus = false, bool bTrigger = true) override;
+	/**@brief 获取当前选择的索引，(如果无有效索引，则返回Box::InvalidIndex)
+	*/
+	virtual size_t GetCurSel() const override;
+	virtual bool SelectItem(size_t iIndex, bool bTakeFocus = false, bool bTrigger = true) override;
 	virtual void EnsureVisible(const UiRect& rcItem) override;
 	virtual void StopScroll() override;
 	
@@ -167,7 +169,7 @@ protected:
 	bool m_bScrollSelect;
 
 	//当前选择的子项ID
-    int m_iCurSel;
+	size_t m_iCurSel;
 
 	//在移除一个子项后自动选择下一项
 	bool m_bSelNextWhenRemoveActive;
@@ -219,14 +221,14 @@ public:
 	 * @brief 获取当前索引
 	 * @return 返回当前索引
 	 */
-	int GetIndex() const;
+	size_t GetIndex() const;
 
 	/**
 	 * @brief 设置索引
 	 * @param[in] iIndex 索引值
 	 * @return 无
 	 */
-	void SetIndex(int iIndex);
+	void SetIndex(size_t iIndex);
 
 	/**
 	 * @brief 监听控件双击事件
@@ -245,7 +247,7 @@ public:
 private:
 	/** 在ListBox容器中的子项索引号
 	*/
-	int m_iIndex;
+	size_t m_iIndex;
 
 	/** 在ListBox容器接口
 	*/

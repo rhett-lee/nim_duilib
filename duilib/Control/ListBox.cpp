@@ -7,7 +7,7 @@ namespace ui
 ListBox::ListBox(Layout* pLayout) : 
 	ScrollableBox(pLayout),
 	m_bScrollSelect(false),
-	m_iCurSel(-1),
+	m_iCurSel(Box::InvalidIndex),
 	m_pCompareFunc(nullptr),
 	m_pCompareContext(nullptr),
 	m_bSelNextWhenRemoveActive(true)
@@ -56,10 +56,10 @@ void ListBox::HandleEvent(const EventArgs& event)
 	case kEventKeyDown:
 		switch (event.chKey) {
 		case VK_UP:
-			SelectItem(FindSelectable(m_iCurSel - 1, false), true);
+			SelectItem(FindSelectable(!Box::IsValidItemIndex(m_iCurSel) ? 0 : m_iCurSel - 1, false), true);
 			return;
 		case VK_DOWN:
-			SelectItem(FindSelectable(m_iCurSel + 1, true), true);
+			SelectItem(FindSelectable(!Box::IsValidItemIndex(m_iCurSel) ? 0 : m_iCurSel + 1, true), true);
 			return;
 		case VK_HOME:
 			SelectItem(FindSelectable(0, false), true);
@@ -74,14 +74,14 @@ void ListBox::HandleEvent(const EventArgs& event)
 		int detaValue = static_cast<int>(event.wParam);
 		if (detaValue > 0) {
 			if (m_bScrollSelect) {
-				SelectItem(FindSelectable(m_iCurSel - 1, false), true);
+				SelectItem(FindSelectable(!Box::IsValidItemIndex(m_iCurSel) ? 0 : m_iCurSel - 1, false), true);
 				return;
 			}
 			break;
 		}
 		else {
 			if (m_bScrollSelect) {
-				SelectItem(FindSelectable(m_iCurSel + 1, true), true);
+				SelectItem(FindSelectable(!Box::IsValidItemIndex(m_iCurSel) ? 0 : m_iCurSel + 1, true), true);
 				return;
 			}
 			break;
@@ -103,7 +103,7 @@ void ListBox::SendEvent(const EventArgs& event)
 	ScrollableBox::SendEvent(event);
 }
 
-int ListBox::GetCurSel() const
+size_t ListBox::GetCurSel() const
 {
 	return m_iCurSel;
 }
@@ -112,7 +112,7 @@ void ListBox::SelectNextWhenActiveRemoved(bool bSelectNextItem)
 	m_bSelNextWhenRemoveActive = bSelectNextItem;
 }
 
-bool ListBox::SelectItem(int iIndex, bool bTakeFocus, bool bTrigger)
+bool ListBox::SelectItem(size_t iIndex, bool bTakeFocus, bool bTrigger)
 {
 	if (iIndex == m_iCurSel) {
 		Control* pControl = GetItemAt(iIndex);
@@ -125,9 +125,9 @@ bool ListBox::SelectItem(int iIndex, bool bTakeFocus, bool bTrigger)
 		}
 		return true;
 	}
-	int iOldSel = m_iCurSel;
+	size_t iOldSel = m_iCurSel;
 	// We should first unselect the currently selected item
-	if (m_iCurSel >= 0) {
+	if (Box::IsValidItemIndex(m_iCurSel)) {
 		Control* pControl = GetItemAt(m_iCurSel);
 		if (pControl != nullptr) {
 			ListBoxElement* pListItem = dynamic_cast<ListBoxElement*>(pControl);
@@ -135,9 +135,9 @@ bool ListBox::SelectItem(int iIndex, bool bTakeFocus, bool bTrigger)
 				pListItem->OptionTemplate<Box>::Selected(false, bTrigger);
 			}
 		}
-		m_iCurSel = -1;
+		m_iCurSel = Box::InvalidIndex;
 	}
-	if (iIndex < 0) {
+	if (!Box::IsValidItemIndex(iIndex)) {
 		return false;
 	}
 
@@ -262,31 +262,31 @@ Control* ListBox::GetTopItem()
 
 bool ListBox::SetItemIndex(Control* pControl, size_t iIndex)
 {
-	int iOrginIndex = GetItemIndex(pControl);
-	if (iOrginIndex == -1) {
+	size_t iOrginIndex = GetItemIndex(pControl);
+	if (!Box::IsValidItemIndex(iOrginIndex)) {
 		return false;
 	}
-	if (iOrginIndex == (int)iIndex) {
+	if (iOrginIndex == iIndex) {
 		return true;
 	}
 
-	ListBoxElement* pSelectedListItem = NULL;
-	if (m_iCurSel >= 0) {
+	ListBoxElement* pSelectedListItem = nullptr;
+	if (Box::IsValidItemIndex(m_iCurSel)) {
 		pSelectedListItem = dynamic_cast<ListBoxElement*>(GetItemAt(m_iCurSel));
 	}
 	if (!ScrollableBox::SetItemIndex(pControl, iIndex)) {
 		return false;
 	}
-	size_t iMinIndex = std::min((size_t)iOrginIndex, iIndex);
-	size_t iMaxIndex = std::max((size_t)iOrginIndex, iIndex);
+	size_t iMinIndex = std::min(iOrginIndex, iIndex);
+	size_t iMaxIndex = std::max(iOrginIndex, iIndex);
 	for(size_t i = iMinIndex; i < iMaxIndex + 1; ++i) {
 		Control* pItemControl = GetItemAt(i);
 		ListBoxElement* pListItem = dynamic_cast<ListBoxElement*>(pItemControl);
 		if( pListItem != NULL ) {
-			pListItem->SetIndex((int)i);
+			pListItem->SetIndex(i);
 		}
 	}
-	if (m_iCurSel >= 0 && pSelectedListItem != nullptr) {
+	if (Box::IsValidItemIndex(m_iCurSel) && pSelectedListItem != nullptr) {
 		m_iCurSel = pSelectedListItem->GetIndex();
 	}
 	return true;
@@ -294,15 +294,14 @@ bool ListBox::SetItemIndex(Control* pControl, size_t iIndex)
 
 void ListBox::SelectPreviousItem()
 {
-	if (m_iCurSel > 0) {
+	if (Box::IsValidItemIndex(m_iCurSel) && (m_iCurSel > 0)) {
 		SelectItem(m_iCurSel - 1);
 	}
 }
 
 void ListBox::SelectNextItem()
 {
-	int count = GetItemCount();
-	if (m_iCurSel < count - 1) {
+	if (m_iCurSel < GetItemCount() - 1) {
 		SelectItem(m_iCurSel + 1);
 	}
 }
@@ -335,18 +334,18 @@ bool ListBox::AddItemAt(Control* pControl, size_t iIndex)
 	ListBoxElement* pListItem = dynamic_cast<ListBoxElement*>(pControl);
 	if( pListItem != nullptr ) {
 		pListItem->SetOwner(this);
-		pListItem->SetIndex(static_cast<int>(iIndex));
+		pListItem->SetIndex(iIndex);
 	}
 
-	const int itemCount = GetItemCount();
-	for(int i = (int)iIndex + 1; i < itemCount; ++i) {
+	const size_t itemCount = GetItemCount();
+	for(size_t i = iIndex + 1; i < itemCount; ++i) {
 		Control* p = GetItemAt(i);
 		pListItem = dynamic_cast<ListBoxElement*>(p);
-		if( pListItem != NULL ) {
+		if( pListItem != nullptr ) {
 			pListItem->SetIndex(i);
 		}
 	}
-	if (m_iCurSel >= (int)iIndex) {
+	if (Box::IsValidItemIndex(m_iCurSel) && (m_iCurSel >= iIndex)) {
 		m_iCurSel += 1;
 	}
 	return true;
@@ -354,8 +353,8 @@ bool ListBox::AddItemAt(Control* pControl, size_t iIndex)
 
 bool ListBox::RemoveItem(Control* pControl)
 {
-	int iIndex = GetItemIndex(pControl);
-	if (iIndex < 0) {
+	size_t iIndex = GetItemIndex(pControl);
+	if (!Box::IsValidItemIndex(iIndex)) {
 		return false;
 	}
 	return RemoveItemAt(iIndex);
@@ -366,8 +365,8 @@ bool ListBox::RemoveItemAt(size_t iIndex)
 	if (!ScrollableBox::RemoveItemAt(iIndex)) {
 		return false;
 	}
-	const int itemCount = GetItemCount();
-	for(int i = (int)iIndex; i < itemCount; ++i) {
+	const size_t itemCount = GetItemCount();
+	for(size_t i = iIndex; i < itemCount; ++i) {
 		Control* p = GetItemAt(i);
 		ListBoxElement* pListItem = dynamic_cast<ListBoxElement*>(p);
 		if (pListItem != nullptr) {
@@ -375,23 +374,25 @@ bool ListBox::RemoveItemAt(size_t iIndex)
 		}
 	}
 
-	if( (int)iIndex == m_iCurSel && m_iCurSel >= 0 ) {
-		if (m_bSelNextWhenRemoveActive) {
-			SelectItem(FindSelectable(m_iCurSel--, false));
+	if (Box::IsValidItemIndex(m_iCurSel)) {
+		if (iIndex == m_iCurSel) {
+			if (m_bSelNextWhenRemoveActive) {
+				SelectItem(FindSelectable(m_iCurSel--, false));
+			}
+			else {
+				m_iCurSel = Box::InvalidIndex;
+			}
 		}
-		else {
-			m_iCurSel = -1;
+		else if (iIndex < m_iCurSel) {
+			m_iCurSel -= 1;
 		}
-	}
-	else if ((int)iIndex < m_iCurSel) {
-		m_iCurSel -= 1;
 	}
 	return true;
 }
 
 void ListBox::RemoveAllItems()
 {
-	m_iCurSel = -1;
+	m_iCurSel = Box::InvalidIndex;
 	ScrollableBox::RemoveAllItems();
 }
 
@@ -408,15 +409,15 @@ bool ListBox::SortItems(PFNCompareFunc pfnCompare, void* pCompareContext)
 	m_pCompareContext = pCompareContext;
 	qsort_s(&(*m_items.begin()), m_items.size(), sizeof(Control*), ListBox::ItemComareFunc, this);	
 	ListBoxElement* pItem = nullptr;
-	const int itemCount = (int)m_items.size();
-	for (int i = 0; i < itemCount; ++i) {
+	const size_t itemCount = m_items.size();
+	for (size_t i = 0; i < itemCount; ++i) {
 		pItem = dynamic_cast<ListBoxElement*>(static_cast<Control*>(m_items[i]));
 		if (pItem != nullptr) {
 			pItem->SetIndex(i);
 			pItem->Selected(false, false);
 		}
 	}
-	SelectItem(-1);
+	SelectItem(Box::InvalidIndex);
 	SetPos(GetPos());
 	Invalidate();
 	return true;
@@ -451,7 +452,7 @@ void ListBox::SetScrollSelect(bool bScrollSelect)
 /////////////////////////////////////////////////////////////////////////////////////
 
 ListBoxElement::ListBoxElement() :
-	m_iIndex(-1),
+	m_iIndex(Box::InvalidIndex),
 	m_pOwner(nullptr)
 {
 	m_uTextStyle = DT_LEFT | DT_VCENTER | DT_END_ELLIPSIS | DT_NOCLIP | DT_SINGLELINE;
@@ -525,12 +526,12 @@ void ListBoxElement::SetOwner(IListBoxOwner* pOwner)
     m_pOwner = pOwner;
 }
 
-int ListBoxElement::GetIndex() const
+size_t ListBoxElement::GetIndex() const
 {
     return m_iIndex;
 }
 
-void ListBoxElement::SetIndex(int iIndex)
+void ListBoxElement::SetIndex(size_t iIndex)
 {
     m_iIndex = iIndex;
 }

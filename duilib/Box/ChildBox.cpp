@@ -16,20 +16,16 @@ std::wstring ChildBox::GetType() const { return DUI_CTR_CHILDBOX; }
 
 void ChildBox::Init()
 {
-	if (!m_strXMLFile.empty())
-	{
+	if (!m_strXMLFile.empty()) {
 		CreateControlCallback callback = CreateControlCallback();
 		auto pBaseWindow = dynamic_cast<WindowImplBase*>(GetWindow());
-		if (pBaseWindow != nullptr)
+		if (pBaseWindow != nullptr) {
 			callback = std::bind(&WindowImplBase::CreateControl, pBaseWindow, std::placeholders::_1);
+		}
 
-		Box* pChildWindow = static_cast<Box*>(GlobalManager::CreateBoxWithCache(m_strXMLFile.c_str(), callback));
+		Box* pChildWindow = static_cast<Box*>(GlobalManager::CreateBoxWithCache(m_strXMLFile, callback));
 		if (pChildWindow) {
 			this->AddItem(pChildWindow);
-		}
-		else {
-			ASSERT(FALSE);
-			this->RemoveAllItems();
 		}
 	}
 }

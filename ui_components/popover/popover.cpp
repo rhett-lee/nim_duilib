@@ -736,18 +736,18 @@ void Popover::Update(PopoverHeader* header, PopoverBody* body, PopoverFooter* fo
   }
 
   if (body) {
-    int index = GetItemCount() - 1;
+    size_t index = GetItemCount() - 1;
     if (m_pPopoverBody) {
       index = GetItemIndex(m_pPopoverBody);
       m_pPopoverRoot->RemoveItem(m_pPopoverBody);
     }
 
     m_pPopoverBody = body;
-    m_pPopoverRoot->AddItemAt(m_pPopoverBody, index < 0 ? 0 : index);
+    m_pPopoverRoot->AddItemAt(m_pPopoverBody, (index == Box::InvalidIndex) ? 0 : index);
   }
 
   if (footer) {
-    int index = GetItemCount() - 1;
+    size_t index = GetItemCount() - 1;
     if (m_pPopoverFooter) {
       index = GetItemIndex(m_pPopoverFooter);
       m_pPopoverRoot->RemoveItem(m_pPopoverFooter);
@@ -762,7 +762,7 @@ void Popover::Update(PopoverHeader* header, PopoverBody* body, PopoverFooter* fo
       nbase::ThreadManager::PostTask(kThreadUI, ToWeakCallback([this]() {TriggerResult({ kResultOk }); }));
       return true;
       }));
-    m_pPopoverRoot->AddItemAt(m_pPopoverFooter, index < 0 ? 0 : index);
+    m_pPopoverRoot->AddItemAt(m_pPopoverFooter, (index == Box::InvalidIndex) ? 0 : index);
   }
 
   ArrangeSelf();
@@ -1407,7 +1407,7 @@ void PopoverLayer::SetShowMask(bool show)
 void PopoverLayer::OnMouseEventButtonDown(POINT pt)
 {
   auto trigger_loop = [this](PopoverHolderLayer* holder, POINT pt) {
-    for (int index = 0; index < holder->GetItemCount(); index++) {
+    for (size_t index = 0; index < holder->GetItemCount(); ++index) {
       auto popover = static_cast<Popover*>(holder->GetItemAt(index));
       if (!popover)
         continue;

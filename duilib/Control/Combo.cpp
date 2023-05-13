@@ -18,7 +18,7 @@ public:
 
 private:
     Combo* m_pOwner = nullptr;
-    int m_iOldSel = -1;
+    size_t m_iOldSel = Box::InvalidIndex;
 };
 
 
@@ -37,11 +37,14 @@ void CComboWnd::InitComboWnd(Combo* pOwner)
     UiRect rc = rcOwner;
     rc.top = rc.bottom + 1;		// 父窗口left、bottom位置作为弹出窗口起点
     rc.bottom = rc.top + szDrop.cy;	// 计算弹出窗口高度
-    if( szDrop.cx > 0 ) rc.right = rc.left + szDrop.cx;	// 计算弹出窗口宽度
+	if (szDrop.cx > 0) {
+		rc.right = rc.left + szDrop.cx;	// 计算弹出窗口宽度
+	}
 
     UiSize szAvailable(rc.right - rc.left, rc.bottom - rc.top);
     int cyFixed = 0;
-	for (int it = 0; it < pOwner->GetListBox()->GetItemCount(); it++) {
+	const size_t itemCount = pOwner->GetListBox()->GetItemCount();
+	for (size_t it = 0; it < itemCount; ++it) {
 		Control* pControl = pOwner->GetListBox()->GetItemAt(it);
 		if (pControl == nullptr) {
 			continue;
@@ -95,7 +98,7 @@ void CComboWnd::OnFinalMessage(HWND hWnd)
 {
 	if (m_pOwner)
 	{
-		m_pOwner->m_pWindow = NULL;
+		m_pOwner->m_pWindow = nullptr;
 		m_pOwner->SetState(kControlStateNormal);
 		m_pOwner->Invalidate();
 	}
@@ -151,7 +154,7 @@ LRESULT CComboWnd::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool
 
 Combo::Combo() :
     m_pWindow(nullptr),
-	m_iCurSel(-1),
+	m_iCurSel(Box::InvalidIndex),
 	m_szDropBox(0, 150),
 	m_sDropBoxAttributes(),
 	m_bPopupTop(false)
@@ -216,7 +219,17 @@ bool Combo::RemoveItemAt(size_t iIndex)
 void Combo::RemoveAllItems()
 {
 	m_pLayout->RemoveAllItems();
-	m_iCurSel = -1;
+	m_iCurSel = Box::InvalidIndex;
+}
+
+Control* Combo::GetItemAt(size_t iIndex) const
+{
+	return m_pLayout->GetItemAt(iIndex);
+}
+
+size_t Combo::GetItemCount() const
+{
+	return m_pLayout->GetItemCount();
 }
 
 void Combo::Activate()
@@ -269,38 +282,39 @@ void Combo::PaintText(IRenderContext* pRender)
 	if (pRender == nullptr) {
 		return;
 	}
-	UiRect rcText = GetRect();
-	if (m_iCurSel >= 0) {
-		Control* pControl = m_pLayout->GetItemAt(m_iCurSel);
-		ListBoxElement* pElement = nullptr;
-		if (pControl) {
-			pElement = dynamic_cast<ListBoxElement*>(pControl);
-		}
-		ASSERT(pElement != nullptr);
-		if (pElement == nullptr) {
-			return;
-		}			
-		UiRect rcPadding = m_rcTextPadding;
-		if (GetText().empty()) {
-			return;
-		}
-
-		if (pElement->GetOwner() == NULL) {
-			return;
-		}			
-
-		if (rcPadding.left == 0 && rcPadding.top == 0 && rcPadding.right == 0 && rcPadding.bottom == 0) {
-			rcPadding = pElement->GetTextPadding();
-		}				
-		rcText.left += rcPadding.left;
-		rcText.right -= rcPadding.right;
-		rcText.top += rcPadding.top;
-		rcText.bottom -= rcPadding.bottom;
-
-		DWORD dwTextColor = 0xFF000000;
-		dwTextColor = this->GetWindowColor(pElement->GetStateTextColor(kControlStateNormal));
-		pRender->DrawText(rcText, GetText(), dwTextColor, pElement->GetFont(), DT_SINGLELINE | DT_VCENTER | DT_END_ELLIPSIS);
+	if (!Box::IsValidItemIndex(m_iCurSel)) {
+		return;
 	}
+	UiRect rcText = GetRect();	
+	Control* pControl = m_pLayout->GetItemAt(m_iCurSel);
+	ListBoxElement* pElement = nullptr;
+	if (pControl) {
+		pElement = dynamic_cast<ListBoxElement*>(pControl);
+	}
+	ASSERT(pElement != nullptr);
+	if (pElement == nullptr) {
+		return;
+	}			
+	UiRect rcPadding = m_rcTextPadding;
+	if (GetText().empty()) {
+		return;
+	}
+
+	if (pElement->GetOwner() == NULL) {
+		return;
+	}			
+
+	if (rcPadding.left == 0 && rcPadding.top == 0 && rcPadding.right == 0 && rcPadding.bottom == 0) {
+		rcPadding = pElement->GetTextPadding();
+	}				
+	rcText.left += rcPadding.left;
+	rcText.right -= rcPadding.right;
+	rcText.top += rcPadding.top;
+	rcText.bottom -= rcPadding.bottom;
+
+	DWORD dwTextColor = 0xFF000000;
+	dwTextColor = this->GetWindowColor(pElement->GetStateTextColor(kControlStateNormal));
+	pRender->DrawText(rcText, GetText(), dwTextColor, pElement->GetFont(), DT_SINGLELINE | DT_VCENTER | DT_END_ELLIPSIS);
 }
 
 bool Combo::CanPlaceCaptionBar() const
@@ -310,7 +324,7 @@ bool Combo::CanPlaceCaptionBar() const
 
 std::wstring Combo::GetText() const
 {
-	if (m_iCurSel < 0) {
+	if (!Box::IsValidItemIndex(m_iCurSel)) {
 		return std::wstring();
 	}
 	ListBoxElement* pControl = dynamic_cast<ListBoxElement*>(m_pLayout->GetItemAt(m_iCurSel));
@@ -351,12 +365,12 @@ void Combo::SetDropBoxSize(UiSize szDropBox)
     m_szDropBox = szDropBox;
 }
 
-bool Combo::SelectItemInternal(int iIndex)
+bool Combo::SelectItemInternal(size_t iIndex)
 {
-	if (iIndex < 0 || iIndex >= m_pLayout->GetItemCount()) {
+	if (!Box::IsValidItemIndex(iIndex) || iIndex >= m_pLayout->GetItemCount()) {
 		return false;
 	}
-	int iOldSel = m_iCurSel;
+	size_t iOldSel = m_iCurSel;
 	m_iCurSel = iIndex;
 	m_pLayout->SelectItem(m_iCurSel, false, false);
 
@@ -382,7 +396,7 @@ bool Combo::SelectItemInternal(int iIndex)
 	return true;
 }
 
-bool Combo::SelectItem(int iIndex, bool bTrigger)
+bool Combo::SelectItem(size_t iIndex, bool bTrigger)
 {
     m_pLayout->SelectItem(iIndex, false, false);
 	if (!SelectItemInternal(iIndex)) {
@@ -395,22 +409,12 @@ bool Combo::SelectItem(int iIndex, bool bTrigger)
 	return true;
 }
 
-Control* Combo::GetItemAt(int iIndex)
-{
-	return m_pLayout->GetItemAt(iIndex);
-}
-
-int Combo::GetItemCount() const 
-{ 
-	return m_pLayout->GetItemCount(); 
-}
-
 bool Combo::OnSelectItem(const EventArgs& /*args*/)
 {
 	if (m_pWindow != nullptr) {
 		m_pWindow->OnSeleteItem();
 	}        
-	int iOldSel = m_iCurSel;
+	size_t iOldSel = m_iCurSel;
 	m_iCurSel = m_pLayout->GetCurSel();
 	auto pControl = m_pLayout->GetItemAt(m_iCurSel);
 	if (pControl != nullptr) {

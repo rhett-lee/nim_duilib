@@ -30,16 +30,12 @@ public:
 	 */
 	void SetItemSize(UiSize szItem, bool bNeedDpiScale = true);
 
-	/**
-	 * @brief 获取列数量
-	 * @return 返回列数量
+	/* @brief 获取列数量
 	 */
 	int GetColumns() const;
 
-	/**
-	 * @brief 设置显示几列数据
+	/**@brief 设置显示几列数据
 	 * @param[in] nCols 要设置显示几列的数值
-	 * @return 无
 	 */
 	void SetColumns(int nCols);
 
