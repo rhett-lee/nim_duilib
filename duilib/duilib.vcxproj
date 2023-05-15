@@ -409,6 +409,8 @@
     <ClInclude Include="Render\Brush.h" />
     <ClInclude Include="Render\Clip.h" />
     <ClInclude Include="Render\Factory.h" />
+    <ClInclude Include="Render\Font_GDI.h" />
+    <ClInclude Include="Render\IFont.h" />
     <ClInclude Include="Render\IRender.h" />
     <ClInclude Include="Render\Matrix.h" />
     <ClInclude Include="Render\Path.h" />

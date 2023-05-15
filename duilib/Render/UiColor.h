@@ -1,5 +1,5 @@
-#ifndef UI_RENDER_COLOR_H_
-#define UI_RENDER_COLOR_H_
+#ifndef UI_RENDER_UICOLOR_H_
+#define UI_RENDER_UICOLOR_H_
 
 #pragma once
 
@@ -130,4 +130,4 @@ private:
 
 } // namespace ui
 
-#endif // UI_RENDER_CLIP_H_
+#endif // UI_RENDER_UICOLOR_H_

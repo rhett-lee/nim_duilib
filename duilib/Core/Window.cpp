@@ -47,30 +47,12 @@ Window::Window() :
 	m_aMessageFilters(),
 	m_aDelayedCleanup(),
 	m_mOptionGroup(),
-	m_defaultFontInfo(),
 	m_defaultAttrHash(),
 	m_strResourcePath(),
 	m_closeFlag()
 {
 	m_toolTip = std::make_unique<ToolTip>();
 	m_shadow = std::make_unique<Shadow>();
-	LOGFONT lf = { 0 };
-	::GetObject(::GetStockObject(DEFAULT_GUI_FONT), sizeof(LOGFONT), &lf);
-	lf.lfCharSet = DEFAULT_CHARSET;
-	if (GlobalManager::GetDefaultFontName().length() > 0) {
-		_tcscpy_s(lf.lfFaceName, LF_FACESIZE, GlobalManager::GetDefaultFontName().c_str());
-	}
-
-	HFONT hDefaultFont = ::CreateFontIndirect(&lf);
-	m_defaultFontInfo.hFont = hDefaultFont;
-	m_defaultFontInfo.sFontName = lf.lfFaceName;
-	m_defaultFontInfo.iSize = -lf.lfHeight;
-	m_defaultFontInfo.iWeight = FW_NORMAL;
-	m_defaultFontInfo.bBold = (lf.lfWeight >= FW_BOLD);
-	m_defaultFontInfo.bUnderline = (lf.lfUnderline == TRUE);
-	m_defaultFontInfo.bStrikeout = (lf.lfStrikeOut == TRUE);
-	m_defaultFontInfo.bItalic = (lf.lfItalic == TRUE);
-	::ZeroMemory(&m_defaultFontInfo.tm, sizeof(m_defaultFontInfo.tm));
 #if defined(ENABLE_UIAUTOMATION)
 	m_pUIAProvider = nullptr;
 #endif
@@ -87,11 +69,6 @@ Window::~Window()
 	if (m_pRoot != nullptr) {
 		delete m_pRoot;
 		m_pRoot = nullptr;
-	}
-	
-	if (m_defaultFontInfo.hFont != nullptr) {
-		::DeleteObject(m_defaultFontInfo.hFont);
-		m_defaultFontInfo.hFont = nullptr;
 	}
 	
 	RemoveAllClass();
@@ -594,17 +571,6 @@ void Window::SetResourcePath(const std::wstring& strPath)
 			m_strResourcePath += _T('\\');
 		}
 	}	
-}
-
-TFontInfo* Window::GetDefaultFontInfo()
-{
-	ASSERT(m_hDcPaint != nullptr);
-	if (m_defaultFontInfo.tm.tmHeight == 0) {
-		HFONT hOldFont = (HFONT) ::SelectObject(m_hDcPaint, m_defaultFontInfo.hFont);
-		::GetTextMetrics(m_hDcPaint, &m_defaultFontInfo.tm);
-		::SelectObject(m_hDcPaint, hOldFont);
-	}
-	return &m_defaultFontInfo;
 }
 
 void Window::AddClass(const std::wstring& strClassName, const std::wstring& strControlAttrList)

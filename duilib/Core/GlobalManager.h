@@ -6,6 +6,7 @@
 #include "duilib/duilib_defs.h"
 #include "duilib/Core/WindowBuilder.h"
 #include "duilib/Render/UiColor.h"
+#include "duilib/Render/IFont.h"
 
 #include <string>
 #include <vector>
@@ -21,7 +22,6 @@ namespace ui
 	class IMatrix;
 	class IPath;
 	class ImageInfo;
-	class TFontInfo;
 
 /**
 * @brief 全局属性管理工具类
@@ -227,12 +227,6 @@ public:
 	static void RemoveAllImages();
 
 	/**
-	 * @brief 获取默认字体名称
-	 * @return 字体名称
-	 */
-	static std::wstring GetDefaultFontName();
-
-	/**
 	 * @brief 添加一个字体
 	 * @param[in] strFontId 指定字体的ID标记
 	 * @param[in] strFontName 字体名称
@@ -243,17 +237,16 @@ public:
 	 * @param[in] bItalic 是否倾斜
 	 * @param[in] bDefault 是否默认
 	 * @param[in] nWeight 字体粗细，自重，默认为 FW_NORMAL(400)
-	 * @return 返回字体的 HFONT 句柄
 	 */
-	static HFONT AddFont(const std::wstring& strFontId, const std::wstring& strFontName, 
-		int nSize, bool bBold, bool bUnderline, bool bStrikeout, bool bItalic, bool bDefault, int nWeight = 0);
-
-	/**
-	 * @brief 根据索引返回一个字体信息
-	 * @param[in] strFontId 字体ID
-	 * @return 返回字体的 TFontInfo 信息
-	 */
-	static TFontInfo* GetTFontInfo(const std::wstring& strFontId);
+	static bool AddFont(const std::wstring& strFontId, 
+						const std::wstring& strFontName, 
+					    int nSize, 
+					    bool bBold, 
+					    bool bUnderline, 
+					    bool bStrikeout, 
+					    bool bItalic, 
+					    bool bDefault, 
+					    int nWeight = 0);
 
 	/**
 	 * @brief 根据字体ID返回一个字体对象
@@ -261,65 +254,6 @@ public:
 	 * @return 返回字体的 HFONT 句柄
 	 */
 	static HFONT GetFont(const std::wstring& strFontId);
-	/**
-	 * @brief 根据字体属性获取字体对象
-	 * @param[in] strFontName 字体名称
-	 * @param[in] nSize 字体大小
-	 * @param[in] bBold 是否粗体
-	 * @param[in] bUnderline 是否有下划线
-	 * @param[in] bStrikeout 是否带有删除线
-	 * @param[in] bItalic 是否倾斜
-	 * @return 返回字体的 HFONT 句柄
-	 */
-	static HFONT GetFont(const std::wstring& strFontName, int nSize, bool bBold, bool bUnderline, bool bStrikeout, bool bItalic);
-
-	/**
-	 * @brief 获取字体信息
-	 * @param[in] strFontId 字体ID
-	 * @param[in] hDcPaint 设备句柄
-	 * @return 返回字体的 TFontInfo 信息
-	 */
-	static TFontInfo* GetFontInfo(const std::wstring& strFontId, HDC hDcPaint);
-
-	/**
-	 * @brief 获取字体信息
-	 * @param[in] hFont 字体对象句柄
-	 * @param[in] hDcPaint 设备句柄
-	 * @return 返回字体的 TFontInfo 信息
-	 */
-	static TFontInfo* GetFontInfo(HFONT hFont, HDC hDcPaint);
-
-	/**
-	 * @brief 根据字体对象查找指定字体是否存在
-	 * @param[in] hFont 字体对象句柄
-	 * @return 返回是否存在
-	 *     @retval true 存在
-	 *     @retval false 不存在
-	 */
-	static bool FindFont(HFONT hFont);
-
-	/**
-	 * @brief 根据字体信息查找字体是否存在
-	 * @param[in] strFontName 字体名称
-	 * @param[in] nSize 字体大小
-	 * @param[in] bBold 是否粗体
-	 * @param[in] bUnderline 是否有下划线
-	 * @param[in] bStrikeout 是否带有删除线
-	 * @param[in] bItalic 是否倾斜
-	 * @return 返回是否存在
-	 *     @retval true 存在
-	 *     @retval false 不存在
-	 */
-	static bool FindFont(const std::wstring& strFontName, int nSize, bool bBold, bool bUnderline, bool bStrikeout, bool bItalic);
-
-	/**
-	 * @brief 根据字体索引删除字体
-	 * @param[in] strFontId 字体ID
-	 * @return 返回是否删除成功
-	 *     @retval true 删除成功
-	 *     @retval false 字体不存在或删除失败
-	 */
-	static bool RemoveFontAt(const std::wstring& strFontId);
 
 	/**
 	 * @brief 删除所有字体
@@ -532,11 +466,7 @@ private:
 	static MapStringToImagePtr m_mImageHash;
 	static std::map<std::wstring, UiColor> m_mapTextColor;
 	static std::map<std::wstring, std::wstring> m_mGlobalClass;
-	static std::map<std::wstring, TFontInfo*> m_mCustomFonts;
 
-	static std::wstring m_sDefaultFontId;
-
-	static std::wstring m_strDefaultFontName;
 	static std::wstring m_strDefaultDisabledColor;
 	static std::wstring m_strDefaultFontColor;
 	static UiColor m_dwDefaultLinkFontColor;
@@ -544,6 +474,15 @@ private:
 	static UiColor m_dwDefaultSelectedBkColor;
 
 	static DWORD m_dwUiThreadId;
+
+	/** 可选字体列表
+	*/
+	static std::map<std::wstring, IFont*> m_mCustomFonts;
+
+	/** 默认字体ID
+	*/
+	static std::wstring m_sDefaultFontId;
+
 
 #if defined(ENABLE_UIAUTOMATION)
 	//是否开启UI自动化

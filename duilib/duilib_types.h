@@ -234,22 +234,6 @@ namespace ui
 				&& this->right == rect.right && this->bottom == rect.bottom;
 		}
 	};
-
-
-	class TFontInfo
-	{
-	public:
-		HFONT hFont = nullptr;
-		std::wstring sFontName;
-		int iSize = 0;
-		int iWeight = 0;
-		bool bBold = false;
-		bool bUnderline = false;
-		bool bStrikeout = false;
-		bool bItalic = false;
-		TEXTMETRIC tm = { 0 };
-	};
-
 }// namespace ui
 
 #endif //DUILIB_TYPES_H_

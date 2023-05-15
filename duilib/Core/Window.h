@@ -412,10 +412,6 @@ public:
 	 */
 	void AddDelayedCleanup(Control* pControl);
 
-	/**@brief 获取默认字体信息
-	 */
-	TFontInfo* GetDefaultFontInfo();
-
 	/**@brief 添加一个通用样式
 	 * @param[in] strClassName 通用样式的名称
 	 * @param[in] strControlAttrList 通用样式的 XML 转义格式数据
@@ -883,9 +879,6 @@ private:
 private:
 	//每个窗口的资源路径(相对于资源根目录的路径)
 	std::wstring m_strResourcePath;
-
-	//默认字体数据
-	TFontInfo m_defaultFontInfo;
 
 	//窗口配置中class名称与属性映射关系
 	std::map<std::wstring, std::wstring> m_defaultAttrHash;

@@ -610,12 +610,6 @@ void RenderContext_GdiPlus::DrawText(const UiRect& rc, const std::wstring& strTe
 		stringFormat.SetLineAlignment(Gdiplus::StringAlignmentNear);
 	}
 	else if ((uStyle & DT_VCENTER) != 0) {
-		TFontInfo* fontInfo = GlobalManager::GetTFontInfo(strFontId);
-		if (fontInfo->sFontName == L"ÐÂËÎÌå") {
-			if (rcPaint.Height >= fontInfo->iSize + 2) {
-				rcPaint.Offset(0, 1);
-			}
-		}
 		stringFormat.SetLineAlignment(Gdiplus::StringAlignmentCenter);
 	}
 	else if ((uStyle & DT_BOTTOM) != 0) {
