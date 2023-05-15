@@ -4,6 +4,7 @@
 #include "tooltip.h"
 
 #include "duilib/Utils/Macros.h"
+#include "duilib/Render/UiColor.h"
 #include "base/thread/thread_manager.h"
 #include "ui_components/public_define.h"
 
@@ -22,8 +23,8 @@ PopoverArrow::PopoverArrow(int nPlacement) :
   m_rcArea({ 0,0,0,0 })
 {
   m_pPath = ui::GlobalManager::CreatePath();
-  m_pPen = ui::GlobalManager::CreatePen(0xFFFFFFFF, 1);
-  m_pBrush = ui::GlobalManager::CreateBrush(0xFFFFFFFF);
+  m_pPen = ui::GlobalManager::CreatePen(ui::UiColor(0xFFFFFFFF), 1);
+  m_pBrush = ui::GlobalManager::CreateBrush(ui::UiColor(0xFFFFFFFF));
 }
 
 PopoverArrow::~PopoverArrow()

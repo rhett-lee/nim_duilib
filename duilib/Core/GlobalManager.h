@@ -5,6 +5,7 @@
 
 #include "duilib/duilib_defs.h"
 #include "duilib/Core/WindowBuilder.h"
+#include "duilib/Render/UiColor.h"
 
 #include <string>
 #include <vector>
@@ -113,14 +114,14 @@ public:
 	 * @param[in] width 画笔宽度
 	 * @return 返回画笔对象
 	 */
-	static std::unique_ptr<IPen> CreatePen(DWORD color, int width = 1);
+	static std::unique_ptr<IPen> CreatePen(UiColor color, int width = 1);
 
 	/**
 	 * @brief 创建一个画刷
 	 * @param[in] color 画刷颜色
 	 * @return 返回画刷对象
 	 */
-	static std::unique_ptr<IBrush> CreateBrush(DWORD color);
+	static std::unique_ptr<IBrush> CreateBrush(UiColor color);
 
 	/**
 	 * @brief 创建一个矩阵
@@ -166,17 +167,17 @@ public:
 	/**
 	 * @brief 添加一个全局颜色值提供程序使用
 	 * @param[in] strName 颜色名称（如 white）
-	  * @param[in] strValue 颜色具体数值（如 #FFFFFFFF）
+	  *@param[in] argb 颜色具体数值, 以ARGB格式表示
 	 * @return 无
 	 */
-	static void AddTextColor(const std::wstring& strName, DWORD argb);
+	static void AddTextColor(const std::wstring& strName, UiColor argb);
 
 	/**
 	 * @brief 根据名称获取一个颜色的具体数值
 	 * @param[in] strName 要获取的颜色名称
 	 * @return 返回 DWORD 格式的颜色描述值
 	 */
-	static DWORD GetTextColor(const std::wstring& strName);
+	static UiColor GetTextColor(const std::wstring& strName);
 
 	/**
 	 * @brief 删除所有全局颜色属性
@@ -356,40 +357,40 @@ public:
 	 * @brief 获取默认链接字体颜色
 	 * @return 链接字体颜色 DWORD 格式的色值
 	 */
-	static DWORD GetDefaultLinkFontColor();
+	static UiColor GetDefaultLinkFontColor();
 
 	/**
 	 * @brief 设置默认链接字体颜色
 	 * @param[in] dwColor 默认链接字体颜色
 	 * @return 无
 	 */
-	static void SetDefaultLinkFontColor(DWORD dwColor);
+	static void SetDefaultLinkFontColor(UiColor dwColor);
 
 	/**
 	 * @brief 获取焦点链接的默认字体颜色
 	 * @return 返回焦点链接的默认字体颜色
 	 */
-	static DWORD GetDefaultLinkHoverFontColor();
+	static UiColor GetDefaultLinkHoverFontColor();
 
 	/**
 	 * @brief 设置焦点链接的默认字体颜色
 	 * @param[in] dwColor 焦点链接的默认字体颜色
 	 * @return 无
 	 */
-	static void SetDefaultLinkHoverFontColor(DWORD dwColor);
+	static void SetDefaultLinkHoverFontColor(UiColor dwColor);
 
 	/**
 	 * @brief 获取默认选择状态字体颜色
 	 * @return 返回默认选择状态的字体颜色
 	 */
-	static DWORD GetDefaultSelectedBkColor();
+	static UiColor GetDefaultSelectedBkColor();
 
 	/**
 	 * @brief 设置默认选择状态的字体颜色
 	 * @param[in] dwColor 字体颜色值
 	 * @return 无
 	 */
-	static void SetDefaultSelectedBkColor(DWORD dwColor);
+	static void SetDefaultSelectedBkColor(UiColor dwColor);
 
 	/**
 	 * @brief 根据 XML 创建一个 Box
@@ -529,22 +530,18 @@ private:
 	static CreateControlCallback m_createControlCallback;
 
 	static MapStringToImagePtr m_mImageHash;
-	static std::map<std::wstring, DWORD> m_mapTextColor;
+	static std::map<std::wstring, UiColor> m_mapTextColor;
 	static std::map<std::wstring, std::wstring> m_mGlobalClass;
 	static std::map<std::wstring, TFontInfo*> m_mCustomFonts;
 
 	static std::wstring m_sDefaultFontId;
 
-	static short m_H;
-	static short m_S;
-	static short m_L;
-
 	static std::wstring m_strDefaultFontName;
 	static std::wstring m_strDefaultDisabledColor;
 	static std::wstring m_strDefaultFontColor;
-	static DWORD m_dwDefaultLinkFontColor;
-	static DWORD m_dwDefaultLinkHoverFontColor;
-	static DWORD m_dwDefaultSelectedBkColor;
+	static UiColor m_dwDefaultLinkFontColor;
+	static UiColor m_dwDefaultLinkHoverFontColor;
+	static UiColor m_dwDefaultSelectedBkColor;
 
 	static DWORD m_dwUiThreadId;
 

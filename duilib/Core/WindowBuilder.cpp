@@ -111,15 +111,15 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
 					GlobalManager::SetDefaultTextColor(strValue);
 				}
 				else if( strName == _T("linkfontcolor") ) {
-					DWORD clrColor = GlobalManager::GetTextColor(strValue);
+					UiColor clrColor = GlobalManager::GetTextColor(strValue);
 					GlobalManager::SetDefaultLinkFontColor(clrColor);
 				} 
 				else if( strName == _T("linkhoverfontcolor") ) {
-					DWORD clrColor = GlobalManager::GetTextColor(strValue);
+					UiColor clrColor = GlobalManager::GetTextColor(strValue);
 					GlobalManager::SetDefaultLinkHoverFontColor(clrColor);
 				} 
 				else if( strName == _T("selectedcolor") ) {
-					DWORD clrColor = GlobalManager::GetTextColor(strValue);
+					UiColor clrColor = GlobalManager::GetTextColor(strValue);
 					GlobalManager::SetDefaultSelectedBkColor(clrColor);
 				}
 			}

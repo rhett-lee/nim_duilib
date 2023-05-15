@@ -380,5 +380,8 @@
     <ClInclude Include="Control\ListBox.h">
       <Filter>Control</Filter>
     </ClInclude>
+    <ClInclude Include="Render\UiColor.h">
+      <Filter>Render</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

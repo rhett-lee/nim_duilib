@@ -462,12 +462,12 @@ void RenderContext_GdiPlus::DrawImage(const UiRect& rcPaint, HBITMAP hBitmap, bo
 	::DeleteDC(hCloneDC);
 }
 
-void RenderContext_GdiPlus::DrawColor(const UiRect& rc, DWORD dwColor, BYTE uFade)
+void RenderContext_GdiPlus::DrawColor(const UiRect& rc, UiColor dwColor, BYTE uFade)
 {
-	DWORD dwNewColor = dwColor;
+	UiColor::ARGB dwNewColor = dwColor.GetARGB();
 	if (uFade < 255) {
-		int alpha = dwColor >> 24;
-		dwNewColor = dwColor & 0xffffff;
+		int alpha = dwColor.GetARGB() >> 24;
+		dwNewColor = dwColor.GetARGB() & 0xffffff;
 		alpha *= static_cast<int>(static_cast<double>(uFade) / 255);
 		dwNewColor += alpha << 24;
 	}
@@ -486,14 +486,14 @@ void RenderContext_GdiPlus::DrawColor(const UiRect& rc, const std::wstring& colo
         return;
     }
 
-    DWORD dwColor = GlobalManager::GetTextColor(colorStr);
+	UiColor dwColor = GlobalManager::GetTextColor(colorStr);
     DrawColor(rc, dwColor, uFade);
 }
 
-void RenderContext_GdiPlus::DrawLine( const UiRect& rc, int nSize, DWORD dwPenColor)
+void RenderContext_GdiPlus::DrawLine( const UiRect& rc, int nSize, UiColor dwPenColor)
 {
 	Gdiplus::Graphics graphics(m_hDC);
-	Gdiplus::Pen pen(Gdiplus::Color(dwPenColor), (Gdiplus::REAL)nSize);
+	Gdiplus::Pen pen(Gdiplus::Color(dwPenColor.GetARGB()), (Gdiplus::REAL)nSize);
 	graphics.DrawLine(&pen, Gdiplus::Point(rc.left, rc.top), Gdiplus::Point(rc.right, rc.bottom));
 }
 
@@ -511,19 +511,19 @@ void RenderContext_GdiPlus::DrawBezier(const IPen* pen, int x1, int y1, int x2, 
 	graphics.DrawBezier(((Pen_GdiPlus*)pen)->GetPen(), x1, y1, x2, y2, x3, y3, x4, y4);
 }
 
-void RenderContext_GdiPlus::DrawRect(const UiRect& rc, int nSize, DWORD dwPenColor)
+void RenderContext_GdiPlus::DrawRect(const UiRect& rc, int nSize, UiColor dwPenColor)
 {
 	Gdiplus::Graphics graphics(m_hDC);
-	Gdiplus::Pen pen(Gdiplus::Color(dwPenColor), (Gdiplus::REAL)nSize);
+	Gdiplus::Pen pen(Gdiplus::Color(dwPenColor.GetARGB()), (Gdiplus::REAL)nSize);
 	graphics.DrawRectangle(&pen, rc.left, rc.top, rc.GetWidth(), rc.GetHeight());
 }
 
 
-void RenderContext_GdiPlus::DrawRoundRect(const UiRect& rc, const UiSize& roundSize, int nSize, DWORD dwPenColor)
+void RenderContext_GdiPlus::DrawRoundRect(const UiRect& rc, const UiSize& roundSize, int nSize, UiColor dwPenColor)
 {
 	Gdiplus::Graphics graphics(m_hDC);
 	graphics.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
-	Gdiplus::Pen pen(Gdiplus::Color(dwPenColor), (Gdiplus::REAL)nSize);
+	Gdiplus::Pen pen(Gdiplus::Color(dwPenColor.GetARGB()), (Gdiplus::REAL)nSize);
 
 	// 裁剪区域不能作画，导致边框有时不全，往里收缩一个像素
 	// UiRect rcInflate = rc;
@@ -543,7 +543,7 @@ void RenderContext_GdiPlus::DrawRoundRect(const UiRect& rc, const UiSize& roundS
 	graphics.DrawPath(&pen, &pPath);
 }
 
-void RenderContext_GdiPlus::DrawText(const UiRect& rc, const std::wstring& strText, DWORD dwTextColor, const std::wstring& strFontId, UINT uStyle, BYTE uFade /*= 255*/, bool bLineLimit /*= false*/, bool bFillPath /*= false*/)
+void RenderContext_GdiPlus::DrawText(const UiRect& rc, const std::wstring& strText, UiColor dwTextColor, const std::wstring& strFontId, UINT uStyle, BYTE uFade /*= 255*/, bool bLineLimit /*= false*/, bool bFillPath /*= false*/)
 {
 	ASSERT(::GetObjectType(m_hDC) == OBJ_DC || ::GetObjectType(m_hDC) == OBJ_MEMDC);
 	if (strText.empty()) return;
@@ -555,8 +555,7 @@ void RenderContext_GdiPlus::DrawText(const UiRect& rc, const std::wstring& strTe
 	if (count == 0) {
 
 		::SetBkMode(m_hDC, TRANSPARENT);
-		::SetTextColor(m_hDC, RGB(GetBValue(dwTextColor), GetGValue(dwTextColor),
-			GetRValue(dwTextColor)));
+		::SetTextColor(m_hDC, dwTextColor.ToCOLORREF());
 		HFONT hOldFont = (HFONT)::SelectObject(m_hDC, GlobalManager::GetFont(strFontId));
 
 		RECT rcGdi = { rc.left,rc.top,rc.right,rc.bottom };
@@ -570,12 +569,12 @@ void RenderContext_GdiPlus::DrawText(const UiRect& rc, const std::wstring& strTe
 	Gdiplus::Font font(m_hDC, GlobalManager::GetFont(strFontId));
 
 	Gdiplus::RectF rcPaint((Gdiplus::REAL)rc.left, (Gdiplus::REAL)rc.top, (Gdiplus::REAL)(rc.right - rc.left), (Gdiplus::REAL)(rc.bottom - rc.top));
-	int alpha = dwTextColor >> 24;
+	int alpha = dwTextColor.GetARGB() >> 24;
 	uFade = static_cast<BYTE>(uFade * static_cast<double>(alpha) / 255);
 	if (uFade == 255) {
 		uFade = 254;
 	}
-	Gdiplus::SolidBrush tBrush(Gdiplus::Color(uFade, GetBValue(dwTextColor), GetGValue(dwTextColor), GetRValue(dwTextColor)));
+	Gdiplus::SolidBrush tBrush(Gdiplus::Color(uFade, dwTextColor.GetR(), dwTextColor.GetG(), dwTextColor.GetB()));
 
 	Gdiplus::StringFormat stringFormat = Gdiplus::StringFormat::GenericTypographic();
 	if ((uStyle & DT_END_ELLIPSIS) != 0) {
@@ -647,19 +646,19 @@ void RenderContext_GdiPlus::DrawText(const UiRect& rc, const std::wstring& strTe
 	graphics.DrawString(strText.c_str(), (int)strText.length(), &font, rcPaint, &stringFormat, &tBrush);
 }
 
-void RenderContext_GdiPlus::DrawEllipse(const UiRect& rc, int nSize, DWORD dwColor)
+void RenderContext_GdiPlus::DrawEllipse(const UiRect& rc, int nSize, UiColor dwColor)
 {
 	Gdiplus::Graphics graphics(m_hDC);
 	graphics.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
-	Gdiplus::Pen pen(dwColor, static_cast<Gdiplus::REAL>(nSize));
+	Gdiplus::Pen pen(dwColor.GetARGB(), static_cast<Gdiplus::REAL>(nSize));
 	graphics.DrawEllipse(&pen, rc.left, rc.top, rc.GetWidth(), rc.GetHeight());
 }
 
-void RenderContext_GdiPlus::FillEllipse(const UiRect& rc, DWORD dwColor)
+void RenderContext_GdiPlus::FillEllipse(const UiRect& rc, UiColor dwColor)
 {
 	Gdiplus::Graphics graphics(m_hDC);
 	graphics.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
-	Gdiplus::SolidBrush brush(dwColor);
+	Gdiplus::SolidBrush brush(dwColor.GetARGB());
 	graphics.FillEllipse(&brush, rc.left, rc.top, rc.GetWidth(), rc.GetHeight());
 }
 
@@ -688,19 +687,19 @@ void RenderContext_GdiPlus::FillPath(const IPath* path, const IBrush* brush)
 }
 
 void RenderContext_GdiPlus::DrawBoxShadow(const UiRect& rc, 
-	const UiSize& roundSize, 
-	const UiPoint& cpOffset, 
-	int nBlurRadius, 
-	int nBlurSize, 
-	int nSpreadSize, 
-	DWORD dwColor, 
-	bool bExclude)
+									  	 const UiSize& roundSize, 
+										 const UiPoint& cpOffset, 
+										 int nBlurRadius, 
+										 int nBlurSize, 
+										 int nSpreadSize, 
+										 UiColor dwColor,
+										 bool bExclude)
 {
 	(void)nSpreadSize;
 #define USE_BLUR 1
 #define USE_COLOR_MATRIX 0
 
-	ASSERT(dwColor != 0);
+	ASSERT(dwColor.GetARGB() != 0);
 
 	ui::UiRect destRc = rc;
 	destRc.Offset(cpOffset);
@@ -740,7 +739,7 @@ void RenderContext_GdiPlus::DrawBoxShadow(const UiRect& rc,
 	Gdiplus::PathGradientBrush gradientPathBrush(&shadowPath);
 	gradientPathBrush.SetWrapMode(Gdiplus::WrapMode::WrapModeClamp);
 
-	Gdiplus::Color colors[] = { Gdiplus::Color::Transparent,Gdiplus::Color(dwColor) ,Gdiplus::Color(dwColor) };
+	Gdiplus::Color colors[] = { Gdiplus::Color::Transparent,Gdiplus::Color(dwColor.GetARGB()) ,Gdiplus::Color(dwColor.GetARGB()) };
 	Gdiplus::REAL pos[] = { 0.0f,0.7f,1.0f };
 
 	gradientPathBrush.SetInterpolationColors(colors, pos, 3);

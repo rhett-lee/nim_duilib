@@ -171,14 +171,14 @@ public:
 	 * @return 无
 	 */
 	virtual void SetTextColor(const std::wstring& dwTextColor);
-	void SetTextColor(DWORD color);
+	void SetTextColor(UiColor color);
 
 	/**
 	 * @brief 获取文本颜色
 	 * @return 返回当前文本颜色
 	 */
 	std::wstring GetTextColor();
-	DWORD GetTextColorValue();
+	UiColor GetTextColorValue();
 
 	/**
 	 * @brief 获取限制字符数量

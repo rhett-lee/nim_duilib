@@ -414,6 +414,7 @@
     <ClInclude Include="Render\Path.h" />
     <ClInclude Include="Render\Pen.h" />
     <ClInclude Include="Render\Render.h" />
+    <ClInclude Include="Render\UiColor.h" />
     <ClInclude Include="Utils\ApiWrapper.h" />
     <ClInclude Include="Utils\BoxShadow.h" />
     <ClInclude Include="Utils\DpiManager.h" />

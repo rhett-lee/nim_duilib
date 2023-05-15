@@ -469,7 +469,7 @@ void LabelTemplate<InheritType>::PaintText(IRenderContext* pRender)
     rc.bottom -= m_rcTextPadding.bottom;
 
     auto stateType = this->GetState();
-    DWORD dwClrColor = this->GetWindowColor(GetPaintStateTextColor(this->GetState(), stateType));
+    UiColor dwClrColor = this->GetWindowColor(GetPaintStateTextColor(this->GetState(), stateType));
 
     if (m_bSingleLine) {
         m_uTextStyle |= DT_SINGLELINE;
@@ -483,14 +483,14 @@ void LabelTemplate<InheritType>::PaintText(IRenderContext* pRender)
             !GetStateTextColor(kControlStateHot).empty()) {
             std::wstring clrColor = GetStateTextColor(kControlStateNormal);
             if (!clrColor.empty()) {
-                DWORD dwTextColor = this->GetWindowColor(clrColor);
+                UiColor dwTextColor = this->GetWindowColor(clrColor);
                 pRender->DrawText(rc, textValue, dwTextColor, m_sFontId, m_uTextStyle, 255, m_bLineLimit, m_bDrawTextFillPath);
             }
 
             if (this->GetHotAlpha() > 0) {
                 std::wstring textColor = GetStateTextColor(kControlStateHot);
                 if (!textColor.empty()) {
-                    DWORD dwTextColor = this->GetWindowColor(textColor);
+                    UiColor dwTextColor = this->GetWindowColor(textColor);
                     pRender->DrawText(rc, textValue, dwTextColor, m_sFontId, m_uTextStyle, (BYTE)this->GetHotAlpha(), m_bLineLimit, m_bDrawTextFillPath);
                 }
             }

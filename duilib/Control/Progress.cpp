@@ -128,7 +128,7 @@ std::wstring Progress::GetProgressColor() const
 
 void Progress::SetProgressColor(const std::wstring& strProgressColor)
 {
-	ASSERT(this->GetWindowColor(strProgressColor) != 0);
+	ASSERT(this->GetWindowColor(strProgressColor).GetARGB() != 0);
 	if (m_sProgressColor == strProgressColor) {
 		return;
 	}
@@ -173,8 +173,8 @@ void Progress::PaintStatusImage(IRenderContext* pRender)
 
 	UiRect rc = GetProgressPos();
 	if (!m_sProgressColor.empty()) {
-		DWORD dwProgressColor = this->GetWindowColor(m_sProgressColor);
-		if (dwProgressColor != 0) {
+		UiColor dwProgressColor = this->GetWindowColor(m_sProgressColor);
+		if (dwProgressColor.GetARGB() != 0) {
 			UiRect rcProgressColor = GetRect();
 			if (m_bHorizontal) {
 				rcProgressColor.right = rcProgressColor.left + rc.right;
@@ -295,8 +295,8 @@ void Progress::PaintMarquee(IRenderContext* pRender)
 		return;
 	}
 	if (!m_sProgressColor.empty()) {
-		DWORD dwProgressColor = GlobalManager::GetTextColor(m_sProgressColor);
-		if (dwProgressColor != 0) {
+		UiColor dwProgressColor = GlobalManager::GetTextColor(m_sProgressColor);
+		if (dwProgressColor.GetARGB() != 0) {
 			UiRect rcProgressColor = GetRect();
 			ui::UiRect rc = GetRect();
 			if (m_bHorizontal) {

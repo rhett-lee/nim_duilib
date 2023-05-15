@@ -11,6 +11,7 @@
 #pragma once
 
 #include "duilib/Control/Progress.h"
+#include "duilib/Render/UiColor.h"
 
 namespace ui
 {
@@ -79,9 +80,9 @@ protected:
 	bool			m_bCircular;
 	bool			m_bClockwise;
 	int				m_nCircleWidth;
-	DWORD			m_dwBackgroundColor;
-	DWORD			m_dwForegroundColor;
-	DWORD			m_dwGradientColor;
+	UiColor			m_dwBackgroundColor;
+	UiColor			m_dwForegroundColor;
+	UiColor			m_dwGradientColor;
 	Gdiplus::Image*	m_pIndicator;   //此类目前维护资源管理
 	std::wstring	m_sIndicatorImage;
 

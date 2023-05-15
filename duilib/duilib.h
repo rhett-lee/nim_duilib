@@ -104,6 +104,7 @@
 #include "Render/Matrix.h"
 #include "Render/Path.h"
 #include "Render/Factory.h"
+#include "Render/UiColor.h"
 
 #include "Core/Define.h"
 #include "Core/Markup.h"

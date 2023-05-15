@@ -3,10 +3,10 @@
 
 namespace ui {
 
-Brush_Gdiplus::Brush_Gdiplus(DWORD color)
+Brush_Gdiplus::Brush_Gdiplus(UiColor color)
 	: IBrush(color)
 {
-	brush_.reset(new Gdiplus::SolidBrush(color));
+	brush_.reset(new Gdiplus::SolidBrush(color.GetARGB()));
 }
 
 Brush_Gdiplus::Brush_Gdiplus(HBITMAP bitmap)

@@ -1337,7 +1337,7 @@ namespace ui
 			int grid_width = m_pGrid->GetWidth();
 			int grid_height = m_pGrid->GetHeight();
 			UiRect rcLineH, rcLineV;
-			DWORD dwGridLineColor = GlobalManager::GetTextColor(m_strGridLineColor);
+			UiColor dwGridLineColor = GlobalManager::GetTextColor(m_strGridLineColor);
 
 			UiPoint ptOldOrg = pRender->OffsetWindowOrg({ -GetRect().left, -GetRect().top });
 			{
@@ -1392,7 +1392,7 @@ namespace ui
 				{
 					int pos = m_ptDragColumnMoving.x + m_nDrawDragColumnMovingOffX;
 					UiRect rcLine = { pos, 0, pos, m_pGrid->GetHeight() };
-					DWORD dwColorLine = 0x8f888888;
+					UiColor dwColorLine(0x8f888888);
 					pRender->DrawLine(rcLine, 2, dwColorLine);
 				}
 			}
@@ -1412,7 +1412,7 @@ namespace ui
 		int fixed_row_height = GetFixedRowHeight();
 		int grid_width = m_pGrid->GetWidth();
 		int grid_height = m_pGrid->GetHeight();
-		DWORD dwDefColor = GlobalManager::GetTextColor(L"textdefaultcolor");
+		UiColor dwDefColor = GlobalManager::GetTextColor(L"textdefaultcolor");
 
 		//draw fixed col && fixed row bkcolor
 		if (fixed_row_height > 0)
@@ -1558,7 +1558,7 @@ namespace ui
 							if (pItem->text_color.empty() && pItem->text_style == 0)
 								pRender->DrawText(rc, str, dwDefColor, m_strGridFont, m_uTextStyle, 255, false);
 							else{
-								DWORD dwColor = (pItem->text_color.empty() ? dwDefColor : GlobalManager::GetTextColor(pItem->text_color));
+								UiColor dwColor = (pItem->text_color.empty() ? dwDefColor : GlobalManager::GetTextColor(pItem->text_color));
 								UINT text_style = (pItem->text_style == 0 ? m_uTextStyle : pItem->text_style);
 								pRender->DrawText(rc, str, dwColor, m_strGridFont, text_style, 255, false);
 							}

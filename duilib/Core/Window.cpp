@@ -645,24 +645,23 @@ void Window::AddTextColor(const std::wstring& strName, const std::wstring& strVa
 		strColor = strValue.substr(1);
 	}
 	LPTSTR pstr = nullptr;
-	DWORD dwBackColor = _tcstoul(strColor.c_str(), &pstr, 16);
-
-	m_mapTextColor[strName] = dwBackColor;
+	UiColor::ARGB dwBackColor = _tcstoul(strColor.c_str(), &pstr, 16);
+	AddTextColor(strName, UiColor(dwBackColor));
 }
 
-void Window::AddTextColor(const std::wstring& strName, DWORD argb)
+void Window::AddTextColor(const std::wstring& strName, UiColor argb)
 {
 	ASSERT(!strName.empty());
 	m_mapTextColor[strName] = argb;
 }
 
-DWORD Window::GetTextColor(const std::wstring& strName) const
+UiColor Window::GetTextColor(const std::wstring& strName) const
 {
 	auto it = m_mapTextColor.find(strName);
 	if (it != m_mapTextColor.end()) {
 		return it->second;
 	}
-	return 0;
+	return UiColor();
 }
 
 bool Window::AddOptionGroup(const std::wstring& strGroupName, Control* pControl)

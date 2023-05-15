@@ -6,6 +6,7 @@
 #include "duilib/Core/PlaceHolder.h"
 #include "duilib/Utils/Delegate.h"
 #include "duilib/Utils/BoxShadow.h"
+#include "duilib/Render/UiColor.h"
 #include <map>
 #include <memory>
 
@@ -901,9 +902,9 @@ public:
 	/**
 	* @brief 获取某个颜色对应的值，优先获取窗口颜色
 	* @param[in] strName 颜色名字
-	* @return DWORD ARGB颜色值
+	* @return ARGB颜色值
 	*/
-    DWORD GetWindowColor(const std::wstring& strName);
+    UiColor GetWindowColor(const std::wstring& strName);
 
 	/** 判断控件类型是否为可选择的
 	 * @return 默认返回false

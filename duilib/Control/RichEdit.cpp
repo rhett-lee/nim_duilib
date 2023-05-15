@@ -239,9 +239,9 @@ HRESULT InitDefaultCharFormat(RichEdit* re, CHARFORMAT2W* pcf, HFONT hfont)
 	}
     ::GetObject(hfont, sizeof(LOGFONT), &lf);
 
-	DWORD dwColor = re->GetTextColorValue();
+	UiColor dwColor = re->GetTextColorValue();
     pcf->cbSize = sizeof(CHARFORMAT2W);
-    pcf->crTextColor = RGB(GetBValue(dwColor), GetGValue(dwColor), GetRValue(dwColor));
+    pcf->crTextColor = dwColor.ToCOLORREF();
     LONG yPixPerInch = GetDeviceCaps(re->GetWindowDC(), LOGPIXELSY);
 	if (yPixPerInch == 0) {
 		yPixPerInch = 96;
@@ -1450,16 +1450,16 @@ void RichEdit::SetTextColor(const std::wstring& dwTextColor)
 		return;
 	m_sCurrentColor = dwTextColor;
 
-	DWORD dwTextColor2 = this->GetWindowColor(dwTextColor);
+	UiColor dwTextColor2 = this->GetWindowColor(dwTextColor);
     if( m_pTwh ) {
-        m_pTwh->SetColor(dwTextColor2);
+        m_pTwh->SetColor(dwTextColor2.GetARGB());
     }
 }
 
-void RichEdit::SetTextColor(DWORD color)
+void RichEdit::SetTextColor(UiColor color)
 {
 	if (m_pTwh) {
-		m_pTwh->SetColor(color);
+		m_pTwh->SetColor(color.GetARGB());
 	}
 }
 
@@ -1468,7 +1468,7 @@ std::wstring RichEdit::GetTextColor()
 	return m_sCurrentColor;
 }
 
-DWORD RichEdit::GetTextColorValue()
+UiColor RichEdit::GetTextColorValue()
 {
 	return this->GetWindowColor(m_sCurrentColor);
 }
@@ -3019,10 +3019,10 @@ void RichEdit::PaintCaret(IRenderContext* pRender, const UiRect& /*rcPaint*/)
 
 	if (m_bIsCaretVisiable && !m_bIsComposition) {
 		UiRect rect(m_iCaretPosX, m_iCaretPosY, m_iCaretPosX, m_iCaretPosY + m_iCaretHeight);
-		DWORD dwClrColor = 0xff000000;
-
-		if (!m_sCaretColor.empty())
+		UiColor dwClrColor(0xff000000);
+		if (!m_sCaretColor.empty()) {
 			dwClrColor = this->GetWindowColor(m_sCaretColor);
+		}
 
 		pRender->DrawLine(rect, m_iCaretWidth, dwClrColor);
 	}
@@ -3106,7 +3106,7 @@ void RichEdit::PaintPromptText(IRenderContext* pRender)
 	UiRect rc;
 	m_pTwh->GetControlRect(&rc);
 
-	DWORD dwClrColor = this->GetWindowColor(m_sPromptColor);
+	UiColor dwClrColor = this->GetWindowColor(m_sPromptColor);
 	UINT dwStyle = DT_NOCLIP;
 	pRender->DrawText(rc, strPrompt, dwClrColor, m_sFontId, dwStyle);
 }
@@ -3158,14 +3158,14 @@ void RichEdit::AddColorText(const std::wstring &str, const std::wstring &color)
 		ASSERT(FALSE);
 		return;
 	}
-	DWORD dwColor = this->GetWindowColor(color);
+	UiColor dwColor = this->GetWindowColor(color);
 
 	CHARFORMAT2W cf;
 	ZeroMemory(&cf, sizeof(cf));
 	cf.cbSize = sizeof(CHARFORMAT2W);
 	cf.dwMask = CFM_COLOR;
 	cf.dwEffects = 0;
-	cf.crTextColor = RGB(GetBValue(dwColor), GetGValue(dwColor), GetRValue(dwColor));
+	cf.crTextColor = dwColor.ToCOLORREF();
 
 	this->ReplaceSel(str, FALSE);
 	int len = GetTextLength();
@@ -3183,13 +3183,13 @@ void RichEdit::AddLinkColorText(const std::wstring &str, const std::wstring &col
 		ASSERT(FALSE);
 		return;
 	}
-	DWORD dwColor = this->GetWindowColor(color);
+	UiColor dwColor = this->GetWindowColor(color);
 
 	CHARFORMAT2W cf;
 	ZeroMemory(&cf, sizeof(cf));
 	cf.cbSize = sizeof(CHARFORMAT2W);
 	cf.dwMask = CFM_COLOR;
-	cf.crTextColor = RGB(GetBValue(dwColor), GetGValue(dwColor), GetRValue(dwColor));
+	cf.crTextColor = dwColor.ToCOLORREF();
 
 	this->ReplaceSel(str, FALSE);
 	int len = GetTextLength();
@@ -3224,14 +3224,14 @@ void  RichEdit::AddLinkColorTextEx(const std::wstring& str, const std::wstring &
 	LOGFONT lf;
 	::GetObject(hFont, sizeof(LOGFONT), &lf);
 	StringHelper::UnicodeToMBCS(lf.lfFaceName, font_face);
-	DWORD dwTextColor = GlobalManager::GetTextColor(color);
+	UiColor dwTextColor = GlobalManager::GetTextColor(color);
 	static std::string font_format = "{\\fonttbl{\\f0\\fnil\\fcharset%d %s;}}";
 	static std::string color_format = "{\\colortbl ;\\red%d\\green%d\\blue%d;}";
 	static std::string link_format = "{\\rtf1%s%s\\f0\\fs%d{\\field{\\*\\fldinst{HYPERLINK \"%s\"}}{\\fldrslt{\\cf1 %s}}}}";
 	char sfont[255] = { 0 };
 	sprintf_s(sfont, font_format.c_str(), lf.lfCharSet, font_face.c_str());
 	char scolor[255] = { 0 };
-	sprintf_s(scolor, color_format.c_str(), GetBValue(dwTextColor), GetGValue(dwTextColor), GetRValue(dwTextColor));
+	sprintf_s(scolor, color_format.c_str(), dwTextColor.GetR(), dwTextColor.GetG(), dwTextColor.GetB());
 	char slinke[1024] = { 0 };
 	sprintf_s(slinke, link_format.c_str(), sfont, scolor, ((int)(-lf.lfHeight *1.5))/2*2, link.c_str(), text.c_str());
 	std::wstring temp;

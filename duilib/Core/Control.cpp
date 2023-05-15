@@ -97,7 +97,7 @@ std::wstring Control::GetType() const { return _T("Control"); }
 
 void Control::SetBkColor(const std::wstring& strColor)
 {
-	ASSERT(strColor.empty() || this->GetWindowColor(strColor) != 0);
+	ASSERT(strColor.empty() || this->GetWindowColor(strColor).GetARGB() != 0);
 	if (m_strBkColor == strColor) {
 		return;
 	}
@@ -112,7 +112,7 @@ std::wstring Control::GetStateColor(ControlStateType stateType) const
 
 void Control::SetStateColor(ControlStateType stateType, const std::wstring& strColor)
 {
-	ASSERT(this->GetWindowColor(strColor) != 0);
+	ASSERT(this->GetWindowColor(strColor).GetARGB() != 0);
 	if (m_colorMap->GetStateColor(stateType) == strColor) {
 		return;
 	}
@@ -1427,9 +1427,9 @@ void Control::PaintBkColor(IRenderContext* pRender)
 		return;
 	}
 
-	DWORD dwBackColor = this->GetWindowColor(m_strBkColor);
-	if(dwBackColor != 0) {
-		if (dwBackColor >= 0xFF000000) {
+	UiColor dwBackColor = this->GetWindowColor(m_strBkColor);
+	if(dwBackColor.GetARGB() != 0) {
+		if (dwBackColor.GetARGB() >= 0xFF000000) {
 			pRender->DrawColor(m_rcPaint, dwBackColor);
 		}
 		else {
@@ -1468,8 +1468,8 @@ void Control::PaintBorder(IRenderContext* pRender)
 	if (pRender == nullptr) {
 		return;
 	}
-	DWORD dwBorderColor = GetWindowColor(m_strBorderColor);
-	if (dwBorderColor != 0) {
+	UiColor dwBorderColor = GetWindowColor(m_strBorderColor);
+	if (dwBorderColor.GetARGB() != 0) {
 		if (m_rcBorderSize.left > 0 || m_rcBorderSize.top > 0 || m_rcBorderSize.right > 0 || m_rcBorderSize.bottom > 0) {
 			UiRect rcBorder;
 			if (m_rcBorderSize.left > 0) {
@@ -1927,19 +1927,19 @@ bool Control::FireAllEvents(const EventArgs& msg)
 	return bRet && !weakflag.expired();
 }
 
-DWORD Control::GetWindowColor(const std::wstring& strName)
+UiColor Control::GetWindowColor(const std::wstring& strName)
 {
-	DWORD color = 0;
+	UiColor color;
 	Window* pWindow = GetWindow();
 	if (pWindow != nullptr) {
 		color = pWindow->GetTextColor(strName);
 	}
 
-	if (color == 0) {
+	if (color.GetARGB() == 0) {
 		color = GlobalManager::GetTextColor(strName);
 	}
 
-	ASSERT(color != 0);
+	ASSERT(color.GetARGB() != 0);
 	return color;
 }
 

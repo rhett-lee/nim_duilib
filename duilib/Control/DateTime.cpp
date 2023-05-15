@@ -24,7 +24,6 @@ public:
     virtual LRESULT OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
 protected:
     DateTime* m_pOwner;
-    HBRUSH m_hBkBrush;
     bool m_bInit;
     bool m_bDropOpen;
     SYSTEMTIME m_oldSysTime;
@@ -32,7 +31,6 @@ protected:
 
 DateTimeWnd::DateTimeWnd() : 
     m_pOwner(nullptr), 
-    m_hBkBrush(nullptr),
     m_bInit(false), 
     m_bDropOpen(false),
     m_oldSysTime({0,})
@@ -106,10 +104,6 @@ std::wstring DateTimeWnd::GetSuperClassName() const
 
 void DateTimeWnd::OnFinalMessage(HWND /*hWnd*/)
 {
-    if (m_hBkBrush != nullptr) {
-        ::DeleteObject(m_hBkBrush);
-        m_hBkBrush = nullptr;
-    } 
     m_pOwner->m_pDateWindow = nullptr;
     delete this;
 }

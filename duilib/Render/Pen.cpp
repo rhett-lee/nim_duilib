@@ -3,10 +3,10 @@
 
 namespace ui {
 
-Pen_GdiPlus::Pen_GdiPlus(DWORD color, int width /*= 1*/)
+Pen_GdiPlus::Pen_GdiPlus(UiColor color, int width /*= 1*/)
 	: IPen(color, width)
 {
-	pen_.reset(new Gdiplus::Pen(color_, static_cast<Gdiplus::REAL>(width)));
+	pen_.reset(new Gdiplus::Pen(color_.GetARGB(), static_cast<Gdiplus::REAL>(width)));
 }
 
 Pen_GdiPlus::Pen_GdiPlus(const Pen_GdiPlus& r)
@@ -30,10 +30,10 @@ int Pen_GdiPlus::GetWidth()
 	return (int)pen_->GetWidth();
 }
 
-void Pen_GdiPlus::SetColor(DWORD color)
+void Pen_GdiPlus::SetColor(UiColor color)
 {
 	color_ = color;
-	pen_->SetColor(color);
+	pen_->SetColor(color.GetARGB());
 }
 
 void Pen_GdiPlus::SetStartCap(LineCap cap)

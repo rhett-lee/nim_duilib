@@ -72,21 +72,18 @@ std::map<std::wstring, std::unique_ptr<WindowBuilder>> GlobalManager::m_builderM
 CreateControlCallback GlobalManager::m_createControlCallback;
 
 GlobalManager::MapStringToImagePtr GlobalManager::m_mImageHash;
-std::map<std::wstring, DWORD> GlobalManager::m_mapTextColor;
+std::map<std::wstring, UiColor> GlobalManager::m_mapTextColor;
 std::map<std::wstring, std::wstring> GlobalManager::m_mGlobalClass;
 std::map<std::wstring, TFontInfo*> GlobalManager::m_mCustomFonts;
 std::wstring GlobalManager::m_sDefaultFontId;
 
-short GlobalManager::m_H = 180;
-short GlobalManager::m_S = 100;
-short GlobalManager::m_L = 100;
 
 std::wstring GlobalManager::m_strDefaultFontName;
 std::wstring GlobalManager::m_strDefaultDisabledColor = L"textdefaultdisablecolor";
 std::wstring GlobalManager::m_strDefaultFontColor = L"textdefaultcolor";
-DWORD GlobalManager::m_dwDefaultLinkFontColor = 0xFF0000FF;
-DWORD GlobalManager::m_dwDefaultLinkHoverFontColor = 0xFFD3215F;
-DWORD GlobalManager::m_dwDefaultSelectedBkColor = 0xFFBAE4FF;
+UiColor GlobalManager::m_dwDefaultLinkFontColor = UiColor(0xFF0000FF);
+UiColor GlobalManager::m_dwDefaultLinkHoverFontColor = UiColor(0xFFD3215F);
+UiColor GlobalManager::m_dwDefaultSelectedBkColor = UiColor(0xFFBAE4FF);
 
 std::unique_ptr<IRenderFactory> GlobalManager::m_renderFactory;
 DWORD GlobalManager::m_dwUiThreadId = 0;
@@ -229,14 +226,14 @@ std::unique_ptr<ui::IRenderContext> GlobalManager::CreateRenderContext()
 	return p;
 }
 
-std::unique_ptr<ui::IPen> GlobalManager::CreatePen(DWORD color, int width /*= 1*/)
+std::unique_ptr<ui::IPen> GlobalManager::CreatePen(UiColor color, int width /*= 1*/)
 {
 	std::unique_ptr<ui::IPen> p;
 	p.reset(m_renderFactory->CreatePen(color, width));
 	return p;
 }
 
-std::unique_ptr<ui::IBrush> GlobalManager::CreateBrush(DWORD color)
+std::unique_ptr<ui::IBrush> GlobalManager::CreateBrush(UiColor color)
 {
 	std::unique_ptr<ui::IBrush> p;
 	p.reset(m_renderFactory->CreateBrush(color));
@@ -283,24 +280,22 @@ void GlobalManager::AddTextColor(const std::wstring& strName, const std::wstring
 {
 	std::wstring strColor = strValue.substr(1);
 	LPTSTR pstr = NULL;
-	DWORD dwBackColor = _tcstoul(strColor.c_str(), &pstr, 16);
-
-	m_mapTextColor[strName] = dwBackColor;
+	UiColor::ARGB dwBackColor = _tcstoul(strColor.c_str(), &pstr, 16);
+	AddTextColor(strName, UiColor(dwBackColor));
 }
 
-void GlobalManager::AddTextColor(const std::wstring& strName, DWORD argb)
+void GlobalManager::AddTextColor(const std::wstring& strName, UiColor argb)
 {
 	m_mapTextColor[strName] = argb;
 }
 
-DWORD GlobalManager::GetTextColor(const std::wstring& strName)
+UiColor GlobalManager::GetTextColor(const std::wstring& strName)
 {
 	auto it = m_mapTextColor.find(strName);
 	if (it != m_mapTextColor.end()) {
 		return it->second;
 	}
-
-	return 0;
+	return UiColor();
 }
 
 void GlobalManager::RemoveAllTextColors()
@@ -579,32 +574,32 @@ void GlobalManager::SetDefaultTextColor(const std::wstring& strColor)
 	m_strDefaultFontColor = strColor;
 }
 
-DWORD GlobalManager::GetDefaultLinkFontColor()
+UiColor GlobalManager::GetDefaultLinkFontColor()
 {
 	return m_dwDefaultLinkFontColor;
 }
 
-void GlobalManager::SetDefaultLinkFontColor(DWORD strColor)
+void GlobalManager::SetDefaultLinkFontColor(UiColor strColor)
 {
 	m_dwDefaultLinkFontColor = strColor;
 }
 
-DWORD GlobalManager::GetDefaultLinkHoverFontColor()
+UiColor GlobalManager::GetDefaultLinkHoverFontColor()
 {
 	return m_dwDefaultLinkHoverFontColor;
 }
 
-void GlobalManager::SetDefaultLinkHoverFontColor(DWORD dwColor)
+void GlobalManager::SetDefaultLinkHoverFontColor(UiColor dwColor)
 {
 	m_dwDefaultLinkHoverFontColor = dwColor;
 }
 
-DWORD GlobalManager::GetDefaultSelectedBkColor()
+UiColor GlobalManager::GetDefaultSelectedBkColor()
 {
 	return m_dwDefaultSelectedBkColor;
 }
 
-void GlobalManager::SetDefaultSelectedBkColor(DWORD dwColor)
+void GlobalManager::SetDefaultSelectedBkColor(UiColor dwColor)
 {
 	m_dwDefaultSelectedBkColor = dwColor;
 }

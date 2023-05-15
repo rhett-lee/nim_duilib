@@ -16,7 +16,7 @@ namespace ui
 class UILIB_API Pen_GdiPlus : public IPen
 {
 public:
-	explicit Pen_GdiPlus(DWORD color, int width = 1);
+	explicit Pen_GdiPlus(UiColor color, int width = 1);
 	Pen_GdiPlus(const Pen_GdiPlus& r);
 	Pen_GdiPlus& operator=(const Pen_GdiPlus& r) = delete;
 
@@ -24,7 +24,7 @@ public:
 
 	virtual void SetWidth(int width) override;
 	virtual int GetWidth() override;
-	virtual void SetColor(DWORD color) override;
+	virtual void SetColor(UiColor color) override;
 
 	virtual void SetStartCap(LineCap cap) override;
 	virtual void SetEndCap(LineCap cap) override;

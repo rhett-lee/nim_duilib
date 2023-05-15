@@ -676,7 +676,7 @@ void StateColorMap::PaintStatusColor(IRenderContext* pRender, UiRect rcPaint, Co
 
 	auto strColor = m_stateColorMap[stateType];
 	if (!strColor.empty()) {
-		DWORD color = m_pControl ? m_pControl->GetWindowColor(strColor) : GlobalManager::GetTextColor(strColor);
+		UiColor color = m_pControl ? m_pControl->GetWindowColor(strColor) : GlobalManager::GetTextColor(strColor);
 		pRender->DrawColor(rcPaint, color);
 	}
 }

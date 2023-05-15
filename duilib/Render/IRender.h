@@ -5,6 +5,7 @@
 
 #include "duilib/duilib_defs.h"
 #include "duilib/Core/Define.h"
+#include "duilib/Render/UiColor.h"
 #include "base/callback/callback.h"
 
 namespace ui 
@@ -51,7 +52,7 @@ public:
 class UILIB_API IPen : public virtual nbase::SupportWeakCallback
 {
 public:
-	IPen(DWORD color, int width = 1) : color_(color) { (void)width; };
+	IPen(UiColor color, int width = 1) : color_(color) { (void)width; };
 	IPen(const IPen& r) : color_(r.color_) {};
 	IPen& operator=(const IPen& r) = delete;
 
@@ -59,8 +60,8 @@ public:
 
 	virtual void SetWidth(int width) = 0;
 	virtual int GetWidth() = 0;
-	virtual void SetColor(DWORD color) = 0;
-	virtual DWORD GetColor() { return color_; };
+	virtual void SetColor(UiColor color) = 0;
+	virtual UiColor GetColor() { return color_; };
 
 	enum LineCap
 	{
@@ -99,24 +100,24 @@ public:
 	virtual DashStyle GetDashStyle() = 0;
 
 protected:
-	DWORD color_ = 0;
+	UiColor color_;
 };
 
 class UILIB_API IBrush : public virtual nbase::SupportWeakCallback
 {
 public:
-	IBrush(DWORD color) : color_(color){};
+	IBrush(UiColor color) : color_(color){};
 	IBrush(HBITMAP bitmap) { (void)bitmap; };
 	IBrush(const IBrush& r)	: color_(r.color_)	{};
 	IBrush& operator=(const IBrush& r) = delete;
 
 	virtual IBrush* Clone() = 0;
 
-	virtual DWORD GetColor() { return color_; };
+	virtual UiColor GetColor() { return color_; };
 	virtual IBitmap* GetBitmap() { return bitmap_.get(); };
 
 protected:
-	DWORD color_ = 0;
+	UiColor color_;
 	std::unique_ptr<IBitmap> bitmap_;
 };
 
@@ -208,34 +209,34 @@ public:
 		bool bBitmapDpiScale = false, BYTE uFade = 255,
 		bool xtiled = false, bool ytiled = false, bool fullxtiled = true, bool fullytiled = true, int nTiledMargin = 0) = 0;
 
-	virtual void DrawColor(const UiRect& rc, DWORD dwColor, BYTE uFade = 255) = 0;
+	virtual void DrawColor(const UiRect& rc, UiColor dwColor, BYTE uFade = 255) = 0;
 	virtual void DrawColor(const UiRect& rc, const std::wstring& colorStr, BYTE uFade = 255) = 0;
 
-	virtual void DrawLine(const UiRect& rc, int nSize, DWORD dwPenColor) = 0;
+	virtual void DrawLine(const UiRect& rc, int nSize, UiColor dwPenColor) = 0;
 	virtual void DrawLine(const IPen* pen, int x1, int y1, int x2, int y2) = 0;
 	virtual void DrawBezier(const IPen* pen, int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4) = 0;
-	virtual void DrawRect(const UiRect& rc, int nSize, DWORD dwPenColor) = 0;
-	virtual void DrawRoundRect(const UiRect& rc, const UiSize& roundSize, int nSize, DWORD dwPenColor) = 0;
+	virtual void DrawRect(const UiRect& rc, int nSize, UiColor dwPenColor) = 0;
+	virtual void DrawRoundRect(const UiRect& rc, const UiSize& roundSize, int nSize, UiColor dwPenColor) = 0;
 
-	virtual void DrawText(const UiRect& rc, const std::wstring& strText, DWORD dwTextColor, const std::wstring& strFontId, UINT uStyle, BYTE uFade = 255, bool bLineLimit = false, bool bFillPath = false) = 0;
+	virtual void DrawText(const UiRect& rc, const std::wstring& strText, UiColor dwTextColor, const std::wstring& strFontId, UINT uStyle, BYTE uFade = 255, bool bLineLimit = false, bool bFillPath = false) = 0;
 
-	virtual void DrawEllipse(const UiRect& rc, int nSize, DWORD dwColor) = 0;
-	virtual void FillEllipse(const UiRect& rc, DWORD dwColor) = 0;
+	virtual void DrawEllipse(const UiRect& rc, int nSize, UiColor dwColor) = 0;
+	virtual void FillEllipse(const UiRect& rc, UiColor dwColor) = 0;
 
 	virtual UiRect MeasureText(const std::wstring& strText, const std::wstring& strFontId, UINT uStyle, int width = DUI_NOSET_VALUE) = 0;
 
 	virtual void DrawPath(const IPath* path, const IPen* pen) = 0;
 	virtual void FillPath(const IPath* path, const IBrush* brush) = 0;
 
-	virtual void DrawBoxShadow(const UiRect& rc, const UiSize& roundSize, const UiPoint& cpOffset, int nBlurRadius, int nBlurSize, int nSpreadSize, DWORD dwColor, bool bExclude) = 0;
+	virtual void DrawBoxShadow(const UiRect& rc, const UiSize& roundSize, const UiPoint& cpOffset, int nBlurRadius, int nBlurSize, int nSpreadSize, UiColor dwColor, bool bExclude) = 0;
 };
 
 class UILIB_API IRenderFactory
 {
 public:
 	virtual ~IRenderFactory() = default;
-	virtual ui::IPen* CreatePen(DWORD color, int width = 1) = 0;
-	virtual ui::IBrush* CreateBrush(DWORD corlor) = 0;
+	virtual ui::IPen* CreatePen(UiColor color, int width = 1) = 0;
+	virtual ui::IBrush* CreateBrush(UiColor corlor) = 0;
 	virtual ui::IBrush* CreateBrush(HBITMAP bitmap) = 0;
 	virtual ui::IMatrix* CreateMatrix() = 0;
 	virtual ui::IPath* CreatePath() = 0;

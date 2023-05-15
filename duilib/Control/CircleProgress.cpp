@@ -58,7 +58,7 @@ void CircleProgress::PaintStatusImage(IRenderContext* pRender)
 
 		Gdiplus::Graphics graphics(pRender->GetDC());
 		graphics.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
-		Gdiplus::Pen bgPen(m_dwBackgroundColor, static_cast<Gdiplus::REAL>(m_nCircleWidth));
+		Gdiplus::Pen bgPen(m_dwBackgroundColor.GetARGB(), static_cast<Gdiplus::REAL>(m_nCircleWidth));
 		// 圆形中心
 		UiPoint center;
 		const UiRect& rect = GetRect();
@@ -84,10 +84,10 @@ void CircleProgress::PaintStatusImage(IRenderContext* pRender)
 		outer.Inflate(-1, -1);
 
 
-		if (m_dwGradientColor == 0)
+		if (m_dwGradientColor.GetARGB() == 0)
 		{
 			//不使用渐变色，直接用前景色铺满
-			Gdiplus::Pen fgPen(m_dwForegroundColor, static_cast<Gdiplus::REAL>(m_nCircleWidth));
+			Gdiplus::Pen fgPen(m_dwForegroundColor.GetARGB(), static_cast<Gdiplus::REAL>(m_nCircleWidth));
 			graphics.DrawArc(&bgPen, outer, 270, 360);   //270从最上面开始递增，设为0的话，是最右边开始
 			graphics.DrawArc(&fgPen, outer, 270, static_cast<Gdiplus::REAL>(direction * 360 * (m_nValue - m_nMin) / (m_nMax - m_nMin)));
 		}
@@ -96,7 +96,7 @@ void CircleProgress::PaintStatusImage(IRenderContext* pRender)
 			Gdiplus::REAL factors[4] = { 0.0f, 0.4f, 0.6f, 1.0f };
 			Gdiplus::REAL positions[4] = { 0.0f, 0.2f, 0.8f, 1.0f };
 
-			Gdiplus::LinearGradientBrush lgbrush(rcBorder, m_dwForegroundColor, m_dwGradientColor, Gdiplus::LinearGradientModeVertical);
+			Gdiplus::LinearGradientBrush lgbrush(rcBorder, m_dwForegroundColor.GetARGB(), m_dwGradientColor.GetARGB(), Gdiplus::LinearGradientModeVertical);
 			lgbrush.SetBlend(factors, positions, 4);
 			graphics.DrawArc(&bgPen, outer, 270, 360);
 			Gdiplus::Pen fgPen(&lgbrush, static_cast<Gdiplus::REAL>(m_nCircleWidth));
@@ -161,14 +161,14 @@ void CircleProgress::SetCircleWidth(int nCircleWidth)
 void CircleProgress::SetBackgroudColor(const std::wstring& strColor)
 {
 	m_dwBackgroundColor = GlobalManager::GetTextColor(strColor);
-	ASSERT(m_dwBackgroundColor != 0);
+	ASSERT(m_dwBackgroundColor.GetARGB() != 0);
 	Invalidate();
 }
 
 void CircleProgress::SetForegroudColor(const std::wstring& strColor)
 {
 	m_dwForegroundColor = GlobalManager::GetTextColor(strColor);
-	ASSERT(m_dwForegroundColor != 0);
+	ASSERT(m_dwForegroundColor.GetARGB() != 0);
 	Invalidate();
 }
 
@@ -204,7 +204,7 @@ void CircleProgress::SetIndicator(const std::wstring& sIndicatorImage)
 void CircleProgress::SetCircleGradientColor(const std::wstring& strColor)
 {
 	m_dwGradientColor = GlobalManager::GetTextColor(strColor);
-	ASSERT(m_dwGradientColor != 0);
+	ASSERT(m_dwGradientColor.GetARGB() != 0);
 	Invalidate();
 }
 

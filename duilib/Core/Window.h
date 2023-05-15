@@ -7,6 +7,7 @@
 #include "duilib/Utils/Delegate.h"
 #include "base/callback/callback.h"
 #include "duilib/Core/ControlFinder.h"
+#include "duilib/Render/UiColor.h"
 
 #include <string>
 
@@ -444,15 +445,15 @@ public:
 
 	/**@brief 添加一个颜色值提供窗口内使用
 	 * @param[in] strName 颜色名称（如 white）
-	 * @param[in] strValue 颜色具体数值（如 #FFFFFFFF）
+	 * @param[in] argb 颜色具体数值, 以ARGB格式表示
 	 */
-	void AddTextColor(const std::wstring& strName, DWORD argb);
+	void AddTextColor(const std::wstring& strName, UiColor argb);
 
 	/**@brief 根据名称获取一个颜色的具体数值
 	 * @param[in] strName 要获取的颜色名称
 	 * @return 返回 DWORD 格式的颜色描述值
 	 */
-	DWORD GetTextColor(const std::wstring& strName) const;
+	UiColor GetTextColor(const std::wstring& strName) const;
 
 	/**@brief 添加一个选项组
 	 * @param[in] strGroupName 组名称
@@ -889,8 +890,8 @@ private:
 	//窗口配置中class名称与属性映射关系
 	std::map<std::wstring, std::wstring> m_defaultAttrHash;
 
-	//窗口颜色字符串与颜色值的映射关系
-	std::map<std::wstring, DWORD> m_mapTextColor;
+	//窗口颜色字符串与颜色值（ARGB）的映射关系
+	std::map<std::wstring, UiColor> m_mapTextColor;
 
 	//该窗口下每个Option group下的控件（即单选控件是分组的）
 	std::map<std::wstring, std::vector<Control*>> m_mOptionGroup;

@@ -322,7 +322,7 @@ void CheckBoxTemplate<InheritType>::PaintText(IRenderContext* pRender)
     if (clrColor.empty()) {
         clrColor = m_dwSelectedTextColor.empty() ? this->GetPaintStateTextColor(this->GetState(), stateType) : m_dwSelectedTextColor;
     }
-    DWORD dwClrColor = this->GetWindowColor(clrColor);
+    UiColor dwClrColor = this->GetWindowColor(clrColor);
 
     if (this->m_bSingleLine) {
         this->m_uTextStyle |= DT_SINGLELINE;
@@ -336,14 +336,14 @@ void CheckBoxTemplate<InheritType>::PaintText(IRenderContext* pRender)
             && !GetSelectedStateTextColor(kControlStateHot).empty()) {
             std::wstring clrStateColor = GetSelectedStateTextColor(kControlStateNormal);
             if (!clrStateColor.empty()) {
-                DWORD dwWinColor = this->GetWindowColor(clrStateColor);
+                UiColor dwWinColor = this->GetWindowColor(clrStateColor);
                 pRender->DrawText(rc, this->GetText(), dwWinColor, this->m_sFontId, this->m_uTextStyle, 255, this->m_bLineLimit);
             }
 
             if (this->GetHotAlpha() > 0) {
                 std::wstring textColor = GetSelectedStateTextColor(kControlStateHot);
                 if (!textColor.empty()) {
-                    DWORD dwTextColor = this->GetWindowColor(textColor);
+                    UiColor dwTextColor = this->GetWindowColor(textColor);
                     pRender->DrawText(rc, this->GetText(), dwTextColor, this->m_sFontId, this->m_uTextStyle, (BYTE)this->GetHotAlpha(), this->m_bLineLimit);
                 }
             }

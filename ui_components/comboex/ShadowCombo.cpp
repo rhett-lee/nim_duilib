@@ -1,5 +1,6 @@
 #include "ShadowCombo.h"
 #include "duilib/Utils/Macros.h"
+#include "duilib/Render/UiColor.h"
 
 namespace nim_comp
 {
@@ -358,8 +359,7 @@ void ShadowCombo::PaintText(ui::IRenderContext* pRender)
     rcText.top += rcPadding.top;
     rcText.bottom -= rcPadding.bottom;
 
-    DWORD dwTextColor = 0xFF000000;
-    dwTextColor = this->GetWindowColor(pElement->GetStateTextColor(ui::kControlStateNormal));
+    ui::UiColor dwTextColor = this->GetWindowColor(pElement->GetStateTextColor(ui::kControlStateNormal));
     pRender->DrawText(rcText, GetText(), dwTextColor, pElement->GetFont(), DT_SINGLELINE | DT_VCENTER | DT_END_ELLIPSIS);
 }
 

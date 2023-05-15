@@ -8,12 +8,12 @@
 
 namespace ui {
 
-ui::IPen* RenderFactory_GdiPlus::CreatePen(DWORD color, int width /*= 1*/)
+ui::IPen* RenderFactory_GdiPlus::CreatePen(UiColor color, int width /*= 1*/)
 {
 	return new Pen_GdiPlus(color, width);
 }
 
-ui::IBrush* RenderFactory_GdiPlus::CreateBrush(DWORD color)
+ui::IBrush* RenderFactory_GdiPlus::CreateBrush(UiColor color)
 {
 	return new Brush_Gdiplus(color);
 }

@@ -53,25 +53,25 @@ public:
 		bool bBitmapDpiScale = false, BYTE uFade = 255,
 		bool xtiled = false, bool ytiled = false, bool fullxtiled = true, bool fullytiled = true, int nTiledMargin = 0) override;
 
-	virtual void DrawColor(const UiRect& rc, DWORD dwColor, BYTE uFade = 255) override;
+	virtual void DrawColor(const UiRect& rc, UiColor dwColor, BYTE uFade = 255) override;
     virtual void DrawColor(const UiRect& rc, const std::wstring& colorStr, BYTE uFade = 255) override;
 
-	virtual void DrawLine(const UiRect& rc, int nSize, DWORD dwPenColor) override;
+	virtual void DrawLine(const UiRect& rc, int nSize, UiColor dwPenColor) override;
 	virtual void DrawLine(const IPen* pen, int x1, int y1, int x2, int y2) override;
 	virtual void DrawBezier(const IPen* pen, int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4) override;
-	virtual void DrawRect(const UiRect& rc, int nSize, DWORD dwPenColor) override;
-	virtual void DrawRoundRect(const UiRect& rc, const UiSize& roundSize, int nSize, DWORD dwPenColor) override;
-	virtual void DrawText(const UiRect& rc, const std::wstring& strText, DWORD dwTextColor, const std::wstring& strFontId, UINT uStyle, BYTE uFade = 255, bool bLineLimit = false, bool bFillPath = false) override;
+	virtual void DrawRect(const UiRect& rc, int nSize, UiColor dwPenColor) override;
+	virtual void DrawRoundRect(const UiRect& rc, const UiSize& roundSize, int nSize, UiColor dwPenColor) override;
+	virtual void DrawText(const UiRect& rc, const std::wstring& strText, UiColor dwTextColor, const std::wstring& strFontId, UINT uStyle, BYTE uFade = 255, bool bLineLimit = false, bool bFillPath = false) override;
 
-	virtual void DrawEllipse(const UiRect& rc, int nSize, DWORD dwColor) override;
-	virtual void FillEllipse(const UiRect& rc, DWORD dwColor) override;
+	virtual void DrawEllipse(const UiRect& rc, int nSize, UiColor dwColor) override;
+	virtual void FillEllipse(const UiRect& rc, UiColor dwColor) override;
 
 	virtual UiRect MeasureText(const std::wstring& strText, const std::wstring& strFontId, UINT uStyle, int width = DUI_NOSET_VALUE) override;
 
 	virtual void DrawPath(const IPath* path, const IPen* pen) override;
 	virtual void FillPath(const IPath* path, const IBrush* brush) override;
 
-	void DrawBoxShadow(const UiRect& rc, const UiSize& roundSize, const UiPoint& cpOffset, int nBlurRadius, int nBlurSize, int nSpreadSize, DWORD dwColor, bool bExclude) override;
+	void DrawBoxShadow(const UiRect& rc, const UiSize& roundSize, const UiPoint& cpOffset, int nBlurRadius, int nBlurSize, int nSpreadSize, UiColor dwColor, bool bExclude) override;
 
 private:
 	HDC			m_hDC;
