@@ -779,7 +779,7 @@ public:
 
 	/** @brief 获取动画管理器接口
 	 */
-	AnimationManager& GetAnimationManager();
+	AnimationManager& GetAnimationManager() const;
 
 	/// 图片缓存
 	/**
@@ -904,7 +904,7 @@ public:
 	* @param[in] strName 颜色名字
 	* @return ARGB颜色值
 	*/
-    UiColor GetWindowColor(const std::wstring& strName);
+    UiColor GetWindowColor(const std::wstring& strName) const;
 
 	/** 判断控件类型是否为可选择的
 	 * @return 默认返回false
@@ -1029,7 +1029,7 @@ protected:
 
 private:
 	void BroadcastGifEvent(int nVirtualEvent);
-	int GetGifFrameIndex(GifStopType frame);
+	size_t GetGifFrameIndex(GifStopType frame);
 
 private:
 	//控件的外边距属性（上，下，左，右边距）

@@ -656,17 +656,17 @@ int64_t ScrollBar::GetScrollPos() const
 
 void ScrollBar::SetScrollPos(int64_t nPos)
 {
+	//ASSERT(nPos >= 0);
+	if (nPos < 0) {
+		nPos = 0;
+	}
+	if (nPos > m_nRange) {
+		nPos = m_nRange;
+	}
 	if (m_nScrollPos == nPos) {
 		return;
 	}
-	ASSERT(nPos >= 0);
-	m_nScrollPos = nPos;
-	if (m_nScrollPos < 0) {
-		m_nScrollPos = 0;
-	}
-	if (m_nScrollPos > m_nRange) {
-		m_nScrollPos = m_nRange;
-	}
+	m_nScrollPos = nPos;	
 	SetPos(GetRect());
 }
 
@@ -711,12 +711,12 @@ void ScrollBar::SetShowButton1(bool bShow)
 
 std::wstring ScrollBar::GetButton1StateImage(ControlStateType stateType)
 {
-	return (*m_button1StateImage)[stateType].GetImageAttribute().simageString;
+	return (*m_button1StateImage).GetImageString(stateType);
 }
 
 void ScrollBar::SetButton1StateImage(ControlStateType stateType, const std::wstring& pStrImage)
 {
-	(*m_button1StateImage)[stateType].SetImageString(pStrImage);
+	(*m_button1StateImage).SetImageString(stateType, pStrImage);
 	Invalidate();
 }
 
@@ -733,45 +733,45 @@ void ScrollBar::SetShowButton2(bool bShow)
 
 std::wstring ScrollBar::GetButton2StateImage(ControlStateType stateType)
 {
-	return (*m_button2StateImage)[stateType].GetImageAttribute().simageString;
+	return (*m_button2StateImage).GetImageString(stateType);
 }
 
 void ScrollBar::SetButton2StateImage(ControlStateType stateType, const std::wstring& pStrImage)
 {
-	(*m_button2StateImage)[stateType].SetImageString(pStrImage);
+	(*m_button2StateImage).SetImageString(stateType, pStrImage);
 	Invalidate();
 }
 
 std::wstring ScrollBar::GetThumbStateImage(ControlStateType stateType)
 {
-	return (*m_thumbStateImage)[stateType].GetImageAttribute().simageString;
+	return (*m_thumbStateImage).GetImageString(stateType);
 }
 
 void ScrollBar::SetThumbStateImage(ControlStateType stateType, const std::wstring& pStrImage)
 {
-	(*m_thumbStateImage)[stateType].SetImageString(pStrImage);
+	(*m_thumbStateImage).SetImageString(stateType, pStrImage);
 	Invalidate();
 }
 
 std::wstring ScrollBar::GetRailStateImage(ControlStateType stateType)
 {
-	return (*m_railStateImage)[stateType].GetImageAttribute().simageString;
+	return (*m_railStateImage).GetImageString(stateType);
 }
 
 void ScrollBar::SetRailStateImage(ControlStateType stateType, const std::wstring& pStrImage)
 {
-	(*m_railStateImage)[stateType].SetImageString(pStrImage);
+	(*m_railStateImage).SetImageString(stateType, pStrImage);
 	Invalidate();
 }
 
 std::wstring ScrollBar::GetBkStateImage(ControlStateType stateType)
 {
-	return (*m_bkStateImage)[stateType].GetImageAttribute().simageString;
+	return (*m_bkStateImage).GetImageString(stateType);
 }
 
 void ScrollBar::SetBkStateImage(ControlStateType stateType, const std::wstring& pStrImage)
 {
-	(*m_bkStateImage)[stateType].SetImageString(pStrImage);
+	(*m_bkStateImage).SetImageString(stateType, pStrImage);
 	Invalidate();
 }
 
@@ -894,7 +894,7 @@ void ScrollBar::ScrollTimeHandle()
 
 void ScrollBar::PaintBk(IRenderContext* pRender)
 {
-	m_bkStateImage->PaintStatusImage(pRender, GetState());
+	m_bkStateImage->PaintStateImage(pRender, GetState());
 }
 
 void ScrollBar::PaintButton1(IRenderContext* pRender)
@@ -908,25 +908,25 @@ void ScrollBar::PaintButton1(IRenderContext* pRender)
 		m_rcButton1.top - GetRect().top, m_rcButton1.right - GetRect().left, m_rcButton1.bottom - GetRect().top);
 
 	if (m_uButton1State == kControlStateDisabled) {
-		if (DrawImage(pRender, (*m_button1StateImage)[kControlStateDisabled], m_sImageModify)) {
+		if (DrawImage(pRender, (*m_button1StateImage).GetStateImage(kControlStateDisabled), m_sImageModify)) {
 			return;
 		}
 	}
 	else if (m_uButton1State == kControlStatePushed) {
-		if (DrawImage(pRender, (*m_button1StateImage)[kControlStatePushed], m_sImageModify)) {
+		if (DrawImage(pRender, (*m_button1StateImage).GetStateImage(kControlStatePushed), m_sImageModify)) {
 			return;
 		}
-		else if (DrawImage(pRender, (*m_button1StateImage)[kControlStateHot], m_sImageModify)) {
+		else if (DrawImage(pRender, (*m_button1StateImage).GetStateImage(kControlStateHot), m_sImageModify)) {
 			return;
 		}
 	}
 	else if (m_uButton1State == kControlStateHot || m_uThumbState == kControlStatePushed) {
-		if (DrawImage(pRender, (*m_button1StateImage)[kControlStateHot], m_sImageModify)) {
+		if (DrawImage(pRender, (*m_button1StateImage).GetStateImage(kControlStateHot), m_sImageModify)) {
 			return;
 		}
 	}
 	//如果各个状态绘制失败，默认绘制Normal状态的图片
-	DrawImage(pRender, (*m_button1StateImage)[kControlStateNormal], m_sImageModify);
+	DrawImage(pRender, (*m_button1StateImage).GetStateImage(kControlStateNormal), m_sImageModify);
 }
 
 void ScrollBar::PaintButton2(IRenderContext* pRender)
@@ -939,24 +939,24 @@ void ScrollBar::PaintButton2(IRenderContext* pRender)
 		m_rcButton2.top - GetRect().top, m_rcButton2.right - GetRect().left, m_rcButton2.bottom - GetRect().top);
 
 	if (m_uButton2State == kControlStateDisabled) {
-		if (DrawImage(pRender, (*m_button2StateImage)[kControlStateDisabled], m_sImageModify)) {
+		if (DrawImage(pRender, (*m_button2StateImage).GetStateImage(kControlStateDisabled), m_sImageModify)) {
 			return;
 		}
 	}
 	else if (m_uButton2State == kControlStatePushed) {
-		if (DrawImage(pRender, (*m_button2StateImage)[kControlStatePushed], m_sImageModify)) {
-			if (DrawImage(pRender, (*m_button2StateImage)[kControlStateHot], m_sImageModify)) {
+		if (DrawImage(pRender, (*m_button2StateImage).GetStateImage(kControlStatePushed), m_sImageModify)) {
+			if (DrawImage(pRender, (*m_button2StateImage).GetStateImage(kControlStateHot), m_sImageModify)) {
 				return;
 			}
 		}
 	}
 	else if (m_uButton2State == kControlStateHot || m_uThumbState == kControlStatePushed) {
-		if (DrawImage(pRender, (*m_button2StateImage)[kControlStateHot], m_sImageModify)) {
+		if (DrawImage(pRender, (*m_button2StateImage).GetStateImage(kControlStateHot), m_sImageModify)) {
 			return;
 		}
 	}
 	//如果各个状态绘制失败，默认绘制Normal状态的图片
-	DrawImage(pRender, (*m_button2StateImage)[kControlStateNormal], m_sImageModify);
+	DrawImage(pRender, (*m_button2StateImage).GetStateImage(kControlStateNormal), m_sImageModify);
 }
 
 void ScrollBar::PaintThumb(IRenderContext* pRender)
@@ -969,7 +969,7 @@ void ScrollBar::PaintThumb(IRenderContext* pRender)
 	m_sImageModify = StringHelper::Printf(_T("destscale='false' dest='%d,%d,%d,%d'"), m_rcThumb.left - GetRect().left, \
 		m_rcThumb.top - GetRect().top, m_rcThumb.right - GetRect().left, m_rcThumb.bottom - GetRect().top);
 
-	m_thumbStateImage->PaintStatusImage(pRender, m_uThumbState, m_sImageModify);
+	m_thumbStateImage->PaintStateImage(pRender, m_uThumbState, m_sImageModify);
 }
 
 void ScrollBar::PaintRail(IRenderContext* pRender)
@@ -994,24 +994,24 @@ void ScrollBar::PaintRail(IRenderContext* pRender)
 	}
 
 	if (m_uThumbState == kControlStateDisabled) {
-		if (DrawImage(pRender, (*m_railStateImage)[kControlStateDisabled], m_sImageModify)) {
+		if (DrawImage(pRender, (*m_railStateImage).GetStateImage(kControlStateDisabled), m_sImageModify)) {
 			return;
 		}
 	}
 	else if (m_uThumbState == kControlStatePushed) {
-		if (DrawImage(pRender, (*m_railStateImage)[kControlStatePushed], m_sImageModify)) {
-			if (DrawImage(pRender, (*m_railStateImage)[kControlStateHot], m_sImageModify)) {
+		if (DrawImage(pRender, (*m_railStateImage).GetStateImage(kControlStatePushed), m_sImageModify)) {
+			if (DrawImage(pRender, (*m_railStateImage).GetStateImage(kControlStateHot), m_sImageModify)) {
 				return;
 			}
 		}
 	}
 	else if (m_uThumbState == kControlStateHot) {
-		if (DrawImage(pRender, (*m_railStateImage)[kControlStateHot], m_sImageModify)) {
+		if (DrawImage(pRender, (*m_railStateImage).GetStateImage(kControlStateHot), m_sImageModify)) {
 			return;
 		}
 	}
 	//绘制Normal状态的图片
-	DrawImage(pRender, (*m_railStateImage)[kControlStateNormal], m_sImageModify);
+	DrawImage(pRender, (*m_railStateImage).GetStateImage(kControlStateNormal), m_sImageModify);
 }
 
 }

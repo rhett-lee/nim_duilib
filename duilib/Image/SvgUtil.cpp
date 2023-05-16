@@ -118,11 +118,10 @@ std::unique_ptr<ui::ImageInfo> SvgUtil::LoadImageBySvg(void *data, const std::ws
 	}
 
 	std::unique_ptr<ImageInfo> imageInfo(new ImageInfo);
-	imageInfo->nX = w;
-	imageInfo->nY = h;
-	imageInfo->sImageFullPath = strImageFullPath;
+	imageInfo->SetImageSize(w, h);
+	imageInfo->SetImageFullPath(strImageFullPath);
 	imageInfo->SetAlpha(true);
-	imageInfo->SetSvg(true);
+	imageInfo->SetBitmapSizeDpiScaled(true);
 	imageInfo->PushBackHBitmap(hBitmap);
 	return imageInfo;
 }

@@ -179,7 +179,7 @@ void Slider::PaintStatusImage(IRenderContext* pRender)
 	if (IsMouseFocused()) {
 		m_sImageModify.clear();
 		m_sImageModify = StringHelper::Printf(L"destscale='false' dest='%d,%d,%d,%d'", rcThumb.left, rcThumb.top, rcThumb.right, rcThumb.bottom);
-		if (!DrawImage(pRender, m_thumbStateImage[kControlStatePushed], m_sImageModify)) {
+		if (!DrawImage(pRender, m_thumbStateImage.GetStateImage(kControlStatePushed), m_sImageModify)) {
 
 		}
 		else return;
@@ -187,7 +187,7 @@ void Slider::PaintStatusImage(IRenderContext* pRender)
 	else if (GetState() == kControlStateHot) {
 		m_sImageModify.clear();
 		m_sImageModify = StringHelper::Printf(L"destscale='false' dest='%d,%d,%d,%d'", rcThumb.left, rcThumb.top, rcThumb.right, rcThumb.bottom);
-		if (!DrawImage(pRender, m_thumbStateImage[kControlStateHot], m_sImageModify)) {
+		if (!DrawImage(pRender, m_thumbStateImage.GetStateImage(kControlStateHot), m_sImageModify)) {
 
 		}
 		else return;
@@ -195,7 +195,7 @@ void Slider::PaintStatusImage(IRenderContext* pRender)
 
 	m_sImageModify.clear();
 	m_sImageModify = StringHelper::Printf(L"destscale='false' dest='%d,%d,%d,%d'", rcThumb.left, rcThumb.top, rcThumb.right, rcThumb.bottom);
-	if (!DrawImage(pRender, m_thumbStateImage[kControlStateNormal], m_sImageModify)) {
+	if (!DrawImage(pRender, m_thumbStateImage.GetStateImage(kControlStateNormal), m_sImageModify)) {
 
 	}
 	else return;
@@ -237,14 +237,14 @@ UiRect Slider::GetThumbRect() const
 	}
 }
 
-std::wstring Slider::GetThumbStateImage(ControlStateType stateType)
+std::wstring Slider::GetThumbStateImage(ControlStateType stateType) const
 {
-	return m_thumbStateImage[stateType].GetImageAttribute().simageString;
+	return m_thumbStateImage.GetImageString(stateType);
 }
 
 void Slider::SetThumbStateImage(ControlStateType stateType, const std::wstring& pStrImage)
 {
-	m_thumbStateImage[stateType].SetImageString(pStrImage);
+	m_thumbStateImage.GetStateImage(stateType).SetImageString(pStrImage);
 	Invalidate();
 }
 

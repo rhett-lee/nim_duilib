@@ -269,11 +269,11 @@ void CheckBoxTemplate<InheritType>::PaintStatusColor(IRenderContext* pRender)
         return;
     }
 
-    if (IsPaintNormalFirst() && !m_selectedColorMap.HasColor()) {
-        this->GetColorMap()->PaintStatusColor(pRender, this->GetPaintRect(), this->GetState());
+    if (IsPaintNormalFirst() && !m_selectedColorMap.HasStateColors()) {
+        this->GetColorMap()->PaintStateColor(pRender, this->GetPaintRect(), this->GetState());
     }
     else {
-        m_selectedColorMap.PaintStatusColor(pRender, this->GetPaintRect(), this->GetState());
+        m_selectedColorMap.PaintStateColor(pRender, this->GetPaintRect(), this->GetState());
     }
 }
 
@@ -286,17 +286,17 @@ void CheckBoxTemplate<InheritType>::PaintStatusImage(IRenderContext* pRender)
     }
 
     if (IsPaintNormalFirst() && !this->GetImageMap()->HasImageType(kStateImageSelectedBk)) {
-        this->GetImageMap()->PaintStatusImage(pRender, kStateImageBk, this->GetState());
+        this->GetImageMap()->PaintStateImage(pRender, kStateImageBk, this->GetState());
     }
     else {
-        this->GetImageMap()->PaintStatusImage(pRender, kStateImageSelectedBk, this->GetState());
+        this->GetImageMap()->PaintStateImage(pRender, kStateImageSelectedBk, this->GetState());
     }
 
     if (IsPaintNormalFirst() && !this->GetImageMap()->HasImageType(kStateImageSelectedFore)) {
-        this->GetImageMap()->PaintStatusImage(pRender, kStateImageFore, this->GetState());
+        this->GetImageMap()->PaintStateImage(pRender, kStateImageFore, this->GetState());
     }
     else {
-        this->GetImageMap()->PaintStatusImage(pRender, kStateImageSelectedFore, this->GetState());
+        this->GetImageMap()->PaintStateImage(pRender, kStateImageSelectedFore, this->GetState());
     }
 }
 
@@ -364,7 +364,7 @@ std::wstring CheckBoxTemplate<InheritType>::GetSelectedStateImage(ControlStateTy
 template<typename InheritType>
 void CheckBoxTemplate<InheritType>::SetSelectedStateImage(ControlStateType stateType, const std::wstring& pStrImage)
 {
-    this->GetImageMap()->SetImage(kStateImageSelectedBk, stateType, pStrImage);
+    this->GetImageMap()->SetImageString(kStateImageSelectedBk, stateType, pStrImage);
     if (this->GetFixedWidth() == DUI_LENGTH_AUTO || this->GetFixedHeight() == DUI_LENGTH_AUTO) {
         this->ArrangeAncestor();
     }
@@ -437,7 +437,7 @@ std::wstring CheckBoxTemplate<InheritType>::GetSelectedForeStateImage(ControlSta
 template<typename InheritType>
 void CheckBoxTemplate<InheritType>::SetSelectedForeStateImage(ControlStateType stateType, const std::wstring& pStrImage)
 {
-    this->GetImageMap()->SetImage(kStateImageSelectedFore, stateType, pStrImage);
+    this->GetImageMap()->SetImageString(kStateImageSelectedFore, stateType, pStrImage);
     if (this->GetFixedWidth() == DUI_LENGTH_AUTO || this->GetFixedHeight() == DUI_LENGTH_AUTO) {
         this->ArrangeAncestor();
     }

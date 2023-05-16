@@ -186,6 +186,9 @@
     <ClCompile Include="Core\WindowBuilder.cpp">
       <Filter>Core</Filter>
     </ClCompile>
+    <ClCompile Include="Image\ImageDecoder.cpp">
+      <Filter>Image</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -397,6 +400,9 @@
     </ClInclude>
     <ClInclude Include="Core\WindowBuilder.h">
       <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Image\ImageDecoder.h">
+      <Filter>Image</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

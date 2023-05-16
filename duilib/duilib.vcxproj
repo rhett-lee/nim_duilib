@@ -353,6 +353,7 @@
     <ClCompile Include="duilib.cpp" />
     <ClCompile Include="Image\GdiHepler.cpp" />
     <ClCompile Include="Image\Image.cpp" />
+    <ClCompile Include="Image\ImageDecoder.cpp" />
     <ClCompile Include="Image\SvgUtil.cpp" />
     <ClCompile Include="Render\Bitmap.cpp" />
     <ClCompile Include="Render\Brush.cpp" />
@@ -413,6 +414,7 @@
     <ClInclude Include="Image\GdiHepler.h" />
     <ClInclude Include="Image\GdiPlusDefs.h" />
     <ClInclude Include="Image\Image.h" />
+    <ClInclude Include="Image\ImageDecoder.h" />
     <ClInclude Include="Image\nanosvg.h" />
     <ClInclude Include="Image\nanosvgrast.h" />
     <ClInclude Include="Image\SvgUtil.h" />

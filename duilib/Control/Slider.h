@@ -54,7 +54,7 @@ public:
 	 * @param[in] stateType 要获取的状态标识，参考 ControlStateType 枚举
 	 * @return 返回图片路径
 	 */
-	std::wstring GetThumbStateImage(ControlStateType stateType);
+	std::wstring GetThumbStateImage(ControlStateType stateType) const;
 
 	/**
 	 * @brief 设置指定状态下滑块的图片

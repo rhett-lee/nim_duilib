@@ -194,11 +194,11 @@ void Progress::PaintStatusImage(IRenderContext* pRender)
         else {
             ui::UiRect m_rcSrc = rc;
             if (m_progressImage.GetImageCache()) {
-                if (m_rcSrc.right > m_progressImage.GetImageCache()->nX) {
-                    m_rcSrc.right = m_progressImage.GetImageCache()->nX;
+                if (m_rcSrc.right > m_progressImage.GetImageCache()->GetWidth()) {
+                    m_rcSrc.right = m_progressImage.GetImageCache()->GetWidth();
                 }
-                if (m_rcSrc.bottom > m_progressImage.GetImageCache()->nY) {
-                    m_rcSrc.bottom = m_progressImage.GetImageCache()->nY;
+                if (m_rcSrc.bottom > m_progressImage.GetImageCache()->GetHeight()) {
+                    m_rcSrc.bottom = m_progressImage.GetImageCache()->GetHeight();
                 }
             }
             m_sProgressImageModify = StringHelper::Printf(L"destscale='false' dest='%d,%d,%d,%d' source='%d,%d,%d,%d'"

@@ -64,7 +64,7 @@ Control::Control() :
 	m_animationManager->Init(this);
 }
 
-AnimationManager& Control::GetAnimationManager()
+AnimationManager& Control::GetAnimationManager() const
 { 
 	return *m_animationManager;
 }
@@ -179,7 +179,7 @@ void Control::SetLoadingBkColor(const std::wstring& strColor)
 
 std::wstring Control::GetStateImage(ControlStateType stateType)
 {
-	return m_imageMap->GetImagePath(kStateImageBk, stateType);
+	return m_imageMap->GetImageString(kStateImageBk, stateType);
 }
 
 void Control::SetStateImage(ControlStateType stateType, const std::wstring& strImage)
@@ -187,7 +187,7 @@ void Control::SetStateImage(ControlStateType stateType, const std::wstring& strI
 	if (stateType == kControlStateHot) {
 		m_animationManager->SetFadeHot(true);
 	}
-	m_imageMap->SetImage(kStateImageBk, stateType, strImage);
+	m_imageMap->SetImageString(kStateImageBk, stateType, strImage);
 	if (GetFixedWidth() == DUI_LENGTH_AUTO || GetFixedHeight() == DUI_LENGTH_AUTO) {
 		ArrangeAncestor();
 	}
@@ -198,7 +198,7 @@ void Control::SetStateImage(ControlStateType stateType, const std::wstring& strI
 
 std::wstring Control::GetForeStateImage(ControlStateType stateType)
 {
-	return m_imageMap->GetImagePath(kStateImageFore, stateType);
+	return m_imageMap->GetImageString(kStateImageFore, stateType);
 }
 
 void Control::SetForeStateImage(ControlStateType stateType, const std::wstring& strImage)
@@ -206,7 +206,7 @@ void Control::SetForeStateImage(ControlStateType stateType, const std::wstring& 
 	if (stateType == kControlStateHot) {
 		m_animationManager->SetFadeHot(true);
 	}
-	m_imageMap->SetImage(kStateImageFore, stateType, strImage);
+	m_imageMap->SetImageString(kStateImageFore, stateType, strImage);
 	Invalidate();
 }
 
@@ -665,11 +665,11 @@ UiSize Control::EstimateSize(UiSize szAvailable)
 			std::shared_ptr<ImageInfo> imageCache = image->GetImageCache();
 			if (imageCache) {
 				if (GetFixedWidth() == DUI_LENGTH_AUTO) {
-					int image_width = imageCache->nX;
+					int image_width = imageCache->GetWidth();
 					imageSize.cx = image_width;
 				}
 				if (GetFixedHeight() == DUI_LENGTH_AUTO) {
-					int image_height = imageCache->nY;
+					int image_height = imageCache->GetHeight();
 					imageSize.cy = image_height;
 				}
 			}
@@ -1189,7 +1189,7 @@ void Control::GetImage(Image& duiImage) const
 	imageFullPath = StringHelper::ReparsePath(imageFullPath);
 
 	std::shared_ptr<ImageInfo> imageCache = duiImage.GetImageCache();
-	if (!imageCache || imageCache->sImageFullPath != imageFullPath) {
+	if (!imageCache || imageCache->GetImageFullPath() != imageFullPath) {
 		imageCache = GlobalManager::GetImage(imageFullPath);
 		duiImage.SetImageCache(imageCache);
 	}
@@ -1209,13 +1209,13 @@ bool Control::DrawImage(IRenderContext* pRender, Image& duiImage, const std::wst
 
 	if (!duiImage.GetImageCache()) {
 		ASSERT(FALSE);
-		duiImage.SetImageAttribute().Init();
+		duiImage.InitImageAttribute();
 		return false;
 	}
 
 	ImageAttribute newImageAttribute = duiImage.GetImageAttribute();
 	if (!strModify.empty()) {
-		ImageAttribute::ModifyAttribute(newImageAttribute, strModify);
+		newImageAttribute.ModifyAttribute(strModify);
 	}
 	UiRect rcNewDest = GetRect();
 	if (newImageAttribute.rcDest.left != DUI_NOSET_VALUE && newImageAttribute.rcDest.top != DUI_NOSET_VALUE
@@ -1230,11 +1230,11 @@ bool Control::DrawImage(IRenderContext* pRender, Image& duiImage, const std::wst
 		|| rcNewSource.right == DUI_NOSET_VALUE || rcNewSource.bottom == DUI_NOSET_VALUE) {
 		rcNewSource.left = 0;
 		rcNewSource.top = 0;
-		rcNewSource.right = duiImage.GetImageCache()->nX;
-		rcNewSource.bottom = duiImage.GetImageCache()->nY;
+		rcNewSource.right = duiImage.GetImageCache()->GetWidth();
+		rcNewSource.bottom = duiImage.GetImageCache()->GetHeight();
 	}
 
-	if (m_bkImage->GetImageCache() && m_bkImage->GetImageCache()->IsGif() && m_bGifPlay && !m_bkImage->IsPlaying()) {
+	if (m_bkImage->GetImageCache() && m_bkImage->GetImageCache()->IsMultiFrameImage() && m_bGifPlay && !m_bkImage->IsPlaying()) {
 		GifPlay();
 	}
 	else {
@@ -1248,7 +1248,7 @@ bool Control::DrawImage(IRenderContext* pRender, Image& duiImage, const std::wst
 				needDeleteObj = true;
 			}
 			pRender->DrawImage(m_rcPaint, hCurrentBitmap, imageInfo->IsAlpha(),
-				rcNewDest, rcNewSource, newImageAttribute.rcCorner, imageInfo->IsSvg(), iFade,
+				rcNewDest, rcNewSource, newImageAttribute.rcCorner, imageInfo->IsBitmapSizeDpiScaled(), iFade,
 				newImageAttribute.bTiledX, newImageAttribute.bTiledY, newImageAttribute.bFullTiledX, newImageAttribute.bFullTiledY,
 				newImageAttribute.nTiledMargin);
 			if (needDeleteObj) {
@@ -1445,13 +1445,13 @@ void Control::PaintBkImage(IRenderContext* pRender)
 
 void Control::PaintStatusColor(IRenderContext* pRender)
 {
-	m_colorMap->PaintStatusColor(pRender, m_rcPaint, m_controlState);
+	m_colorMap->PaintStateColor(pRender, m_rcPaint, m_controlState);
 }
 
 void Control::PaintStatusImage(IRenderContext* pRender)
 {
-	m_imageMap->PaintStatusImage(pRender, kStateImageBk, m_controlState);
-	m_imageMap->PaintStatusImage(pRender, kStateImageFore, m_controlState);
+	m_imageMap->PaintStateImage(pRender, kStateImageBk, m_controlState);
+	m_imageMap->PaintStateImage(pRender, kStateImageFore, m_controlState);
 }
 
 void Control::PaintText(IRenderContext* /*pRender*/)
@@ -1615,7 +1615,7 @@ void Control::SetRenderOffsetY(int renderOffsetY)
 
 void Control::GifPlay()
 {
-	if (!m_bkImage->IsValid() || !m_bkImage->GetImageCache()->IsGif() || !m_bkImage->ContinuePlay()) {
+	if (!m_bkImage->IsValid() || !m_bkImage->GetImageCache()->IsMultiFrameImage() || !m_bkImage->ContinuePlay()) {
 		m_bkImage->SetPlaying(false);
 		m_gifWeakFlag.Cancel();
 		return;
@@ -1661,10 +1661,10 @@ void Control::GifPlay()
 
 void Control::StopGifPlay(GifStopType frame)
 {
-	if (m_bkImage->GetImageCache() && m_bkImage->GetImageCache()->IsGif()) {
+	if (m_bkImage->GetImageCache() && m_bkImage->GetImageCache()->IsMultiFrameImage()) {
 		m_bkImage->SetPlaying(false);
 		m_gifWeakFlag.Cancel();
-		int index = GetGifFrameIndex(frame);
+		size_t index = GetGifFrameIndex(frame);
 		m_bkImage->SetCurrentFrame(index);
 		Invalidate();
 	}
@@ -1673,7 +1673,7 @@ void Control::StopGifPlay(GifStopType frame)
 void Control::StartGifPlayForUI(GifStopType frame, int playcount)
 {
 	GetImage(*m_bkImage);
-	if (!m_bkImage->IsValid() || !m_bkImage->GetImageCache()->IsGif()) {
+	if (!m_bkImage->IsValid() || !m_bkImage->GetImageCache()->IsMultiFrameImage()) {
 		m_bGifPlay = false;
 		m_bkImage->SetPlaying(false);
 		m_gifWeakFlag.Cancel();
@@ -1694,7 +1694,7 @@ void Control::StartGifPlayForUI(GifStopType frame, int playcount)
 			return;
 		}
 		m_bkImage->SetPlaying(true);
-		m_bkImage->SetImageAttribute().nPlayCount = playcount;
+		m_bkImage->SetImagePlayCount(playcount);
 		m_bkImage->ClearCycledCount();
 		auto gifPlayCallback = nbase::Bind(&Control::GifPlay, this);
 		TimerManager::GetInstance()->AddCancelableTimer(m_gifWeakFlag.GetWeakFlag(), gifPlayCallback,
@@ -1710,9 +1710,10 @@ void Control::StopGifPlayForUI(bool transfer, GifStopType frame)
 	if (transfer)
 		BroadcastGifEvent(m_nVirtualEventGifStop);
 }
-int Control::GetGifFrameIndex(GifStopType frame)
+
+size_t Control::GetGifFrameIndex(GifStopType frame)
 {
-	int ret = frame;
+	size_t ret = frame;
 	switch (frame)
 	{
 	case kGifStopCurrent:
@@ -1723,7 +1724,7 @@ int Control::GetGifFrameIndex(GifStopType frame)
 		break;
 	case kGifStopLast:
 	{
-		int nFrameCount = m_bkImage->GetImageCache()->GetFrameCount();
+		size_t nFrameCount = m_bkImage->GetImageCache()->GetFrameCount();
 		ret = nFrameCount > 0 ? nFrameCount - 1 : 0;		
 	}
 	break;
@@ -1755,7 +1756,7 @@ void Control::InvokeLoadImageCache()
 		imageFullPath = GlobalManager::GetResPath(sImageName, pWindow->GetResourcePath());
 	}
 
-	if (!m_bkImage->GetImageCache() || m_bkImage->GetImageCache()->sImageFullPath != imageFullPath) {
+	if (!m_bkImage->GetImageCache() || m_bkImage->GetImageCache()->GetImageFullPath() != imageFullPath) {
 		auto shared_image = GlobalManager::IsImageCached(imageFullPath);
 		if (shared_image) {
 			m_bkImage->SetImageCache(shared_image);
@@ -1927,7 +1928,7 @@ bool Control::FireAllEvents(const EventArgs& msg)
 	return bRet && !weakflag.expired();
 }
 
-UiColor Control::GetWindowColor(const std::wstring& strName)
+UiColor Control::GetWindowColor(const std::wstring& strName) const
 {
 	UiColor color;
 	Window* pWindow = GetWindow();

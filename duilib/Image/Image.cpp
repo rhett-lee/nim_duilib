@@ -2,7 +2,6 @@
 #include "duilib/Core/Control.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Render/IRender.h"
-#include "duilib/Image/SvgUtil.h"
 #include "duilib/Utils//DpiManager.h"
 #include "duilib/Animation/AnimationManager.h"
 #include <tchar.h>
@@ -10,63 +9,86 @@
 namespace ui 
 {
 
-ImageInfo::ImageInfo()
+ImageInfo::ImageInfo():
+	m_bAlphaChannel(false),
+	m_bCached(false),
+	m_bDpiScaled(false),
+	m_nWidth(0),
+	m_nHeight(0)
 {
 }
 
 ImageInfo::~ImageInfo()
 {
-	for (auto it = m_vecBitmap.begin(); it != m_vecBitmap.end(); ++it) {
-		::DeleteObject(*it);
+	for (HBITMAP hBitmap : m_frameBitmaps) {
+		::DeleteObject(hBitmap);
 	}
-	m_propertyItem.reset();
 }
 
-void ImageInfo::SetPropertyItem(Gdiplus::PropertyItem* pPropertyItem)
+void ImageInfo::SetImageFullPath(const std::wstring& path)
 {
-	ASSERT(pPropertyItem != nullptr);
-	if (pPropertyItem != nullptr) {
-		m_propertyItem.reset(pPropertyItem);
-	}	
+	m_imageFullPath = path;
+}
+
+const std::wstring& ImageInfo::GetImageFullPath() const
+{
+	return m_imageFullPath;
+}
+
+void ImageInfo::SetFrameInterval(const std::vector<int>& frameIntervals)
+{
+	m_frameIntervals = frameIntervals;
 }
 
 void ImageInfo::PushBackHBitmap(HBITMAP hBitmap)
 {
 	ASSERT(hBitmap != nullptr);
 	if (hBitmap != nullptr) {
-		m_vecBitmap.push_back(hBitmap);
+		m_frameBitmaps.push_back(hBitmap);
 	}
 }
 
-HBITMAP ImageInfo::GetHBitmap(int nIndex)
+HBITMAP ImageInfo::GetHBitmap(size_t nIndex) const
 {
-	ASSERT((nIndex >= 0) && (nIndex < (int)m_vecBitmap.size()));
-	if ((nIndex >= 0) && (nIndex < (int)m_vecBitmap.size())) {
-		return m_vecBitmap[nIndex];
+	ASSERT(nIndex < m_frameBitmaps.size());
+	if (nIndex < m_frameBitmaps.size()) {
+		return m_frameBitmaps[nIndex];
 	}
 	return nullptr;
 }
 
-int ImageInfo::GetFrameCount()
+void ImageInfo::SetImageSize(int nWidth, int nHeight)
 {
-	return (int)m_vecBitmap.size();
+	ASSERT(nWidth > 0);
+	ASSERT(nHeight > 0);
+	if (nWidth > 0) {
+		m_nWidth = nWidth; 
+	}
+	if (nHeight > 0) {
+		m_nHeight = nHeight;
+	}	
 }
 
-bool ImageInfo::IsGif()
+size_t ImageInfo::GetFrameCount() const
 {
-	return m_vecBitmap.size() > 1;
+	return m_frameBitmaps.size();
 }
 
-int ImageInfo::GetInterval(int nIndex)
+bool ImageInfo::IsMultiFrameImage() const
 {
-	if (m_propertyItem == nullptr) {
+	return m_frameBitmaps.size() > 1;
+}
+
+int ImageInfo::GetFrameInterval(size_t nIndex)
+{
+	if (nIndex >= m_frameIntervals.size()) {
 		return 0;
 	}
-	if (nIndex >= (int)m_vecBitmap.size()) {
+	if (nIndex >= m_frameBitmaps.size()) {
 		return 0;
 	}
 
-	int interval = ((long*)(m_propertyItem->value))[nIndex] * 10;
+	int interval = m_frameIntervals[nIndex]; 
 	if (interval < 30) {
 		interval = 100;
 	}
@@ -74,147 +96,6 @@ int ImageInfo::GetInterval(int nIndex)
 		interval = 50;
 	}
 	return interval;
-}
-
-std::unique_ptr<ImageInfo> ImageInfo::LoadImage(const std::wstring& strImageFullPath)
-{
-	if (SvgUtil::IsSvgFile(strImageFullPath)) {
-		return SvgUtil::LoadSvg(strImageFullPath);
-	}
-	
-	std::unique_ptr<Gdiplus::Bitmap> gdiplusBitmap(Gdiplus::Bitmap::FromFile(strImageFullPath.c_str()));
-	return LoadImageByBitmap(gdiplusBitmap, strImageFullPath);
-}
-
-std::unique_ptr<ImageInfo> ImageInfo::LoadImage(std::vector<unsigned char>& file_data, const std::wstring& strImageFullPath)
-{
-	if (SvgUtil::IsSvgFile(strImageFullPath)) {
-		return SvgUtil::LoadSvg(file_data, strImageFullPath);
-	}
-
-	if (file_data.empty()) {
-		return nullptr;
-	}
-
-	HGLOBAL hGlobal = ::GlobalAlloc(GMEM_MOVEABLE | GMEM_NODISCARD, file_data.size());
-	if (hGlobal == nullptr) {
-		return nullptr;
-	}
-	unsigned char* pData = (unsigned char*)::GlobalLock(hGlobal);
-	if (pData == nullptr){
-		::GlobalFree(hGlobal);
-		return nullptr;
-	}
-	memcpy(pData, file_data.data(), file_data.size());
-	::GlobalUnlock(hGlobal);
-
-	IStream* stream = NULL;
-	::GlobalLock(hGlobal);
-	::CreateStreamOnHGlobal(hGlobal, FALSE, &stream);
-	if (stream == NULL) {
-		::GlobalUnlock(hGlobal);
-		::GlobalFree(hGlobal);
-		return nullptr;
-	}
-	else {
-		std::unique_ptr<Gdiplus::Bitmap> gdiplusBitmap(Gdiplus::Bitmap::FromStream(stream));
-		stream->Release();
-		::GlobalUnlock(hGlobal);
-		::GlobalFree(hGlobal);
-		return LoadImageByBitmap(gdiplusBitmap, strImageFullPath);
-	}
-}
-
-std::unique_ptr<ImageInfo> ImageInfo::LoadImageByBitmap(std::unique_ptr<Gdiplus::Bitmap>& pGdiplusBitmap, const std::wstring& strImageFullPath)
-{
-	if (pGdiplusBitmap == nullptr) {
-		return nullptr;
-	}
-	Gdiplus::Status status;
-	status = pGdiplusBitmap->GetLastStatus();
-	ASSERT((status == Gdiplus::Ok) && "ImageInfo::LoadImageByBitmap: 失败");
-	if (status != Gdiplus::Ok) {
-		return nullptr;
-	}
-
-	UINT nCount	= pGdiplusBitmap->GetFrameDimensionsCount();
-	std::unique_ptr<GUID[]> pDimensionIDs(new GUID[nCount]);
-	pGdiplusBitmap->GetFrameDimensionsList(pDimensionIDs.get(), nCount);
-	int iFrameCount = pGdiplusBitmap->GetFrameCount(&pDimensionIDs.get()[0]);
-
-	std::unique_ptr<ImageInfo> imageInfo(new ImageInfo);
-	if (iFrameCount > 1) {
-		int iSize = pGdiplusBitmap->GetPropertyItemSize(PropertyTagFrameDelay);
-		Gdiplus::PropertyItem* pPropertyItem = (Gdiplus::PropertyItem*)malloc(iSize);
-		status = pGdiplusBitmap->GetPropertyItem(PropertyTagFrameDelay, iSize, pPropertyItem);
-		ASSERT(status == Gdiplus::Ok);
-		if (status != Gdiplus::Ok) {
-			return nullptr;
-		}
-		imageInfo->SetPropertyItem(pPropertyItem);
-	}
-
-	for (int i = 0; i < iFrameCount; i++) {
-		status = pGdiplusBitmap->SelectActiveFrame(&Gdiplus::FrameDimensionTime, i);
-		ASSERT(status == Gdiplus::Ok);
-		if (status != Gdiplus::Ok) {
-			return nullptr;
-		}
-
-		HBITMAP hBitmap;
-		status = pGdiplusBitmap->GetHBITMAP(Gdiplus::Color(), &hBitmap);
-		ASSERT(status == Gdiplus::Ok);
-		if (status != Gdiplus::Ok) {
-			return nullptr;
-		}
-		imageInfo->PushBackHBitmap(hBitmap);
-	}
-
-	imageInfo->nX = pGdiplusBitmap->GetWidth();
-	imageInfo->nY = pGdiplusBitmap->GetHeight();
-	imageInfo->sImageFullPath = strImageFullPath;
-	Gdiplus::PixelFormat format = pGdiplusBitmap->GetPixelFormat();
-	imageInfo->SetAlpha((format & PixelFormatAlpha) != 0);
-
-	if ((format & PixelFormatIndexed) != 0) {
-		int nPalSize = pGdiplusBitmap->GetPaletteSize();
-		if (nPalSize > 0) {
-			Gdiplus::ColorPalette *palette = (Gdiplus::ColorPalette*)malloc(nPalSize);
-			if (palette != nullptr) {
-				status = pGdiplusBitmap->GetPalette(palette, nPalSize);
-				if (status == Gdiplus::Ok) {
-					imageInfo->SetAlpha((palette->Flags & Gdiplus::PaletteFlagsHasAlpha) != 0);
-				}
-				free(palette);
-			}
-		}
-	}
-
-	if (format == PixelFormat32bppARGB) {
-		for (int nFrameIndex = 0; nFrameIndex < iFrameCount; nFrameIndex++) {
-			HBITMAP hBitmap = imageInfo->GetHBitmap(nFrameIndex);
-			BITMAP bm = { 0 };
-			::GetObject(hBitmap, sizeof(bm), &bm);
-			LPBYTE imageBits = (LPBYTE)bm.bmBits;
-			if (imageBits == nullptr) {
-				continue;
-			}
-			for (int i = 0; i < bm.bmHeight; ++i) {
-				for (int j = 0; j < bm.bmWidthBytes; j += 4) {
-					int x = i * bm.bmWidthBytes + j;
-					if (imageBits[x + 3] != 255) {
-						imageInfo->SetAlpha(true);
-						return imageInfo;
-					}
-				}
-			}
-		}
-
-		imageInfo->SetAlpha(false);
-		return imageInfo;
-	}
-
-	return imageInfo;
 }
 
 ImageAttribute::ImageAttribute()
@@ -238,16 +119,18 @@ void ImageAttribute::Init()
 	nPlayCount = -1;
 }
 
-void ImageAttribute::SetImageString(const std::wstring& strImageString)
+void ImageAttribute::InitByImageString(const std::wstring& strImageString)
 {
 	Init();
 	simageString = strImageString;
 	sImageName = strImageString;
-	ModifyAttribute(*this, strImageString);
+	ModifyAttribute(strImageString);
 }
 
-void ImageAttribute::ModifyAttribute(ImageAttribute& imageAttribute, const std::wstring& strImageString)
+void ImageAttribute::ModifyAttribute(const std::wstring& strImageString)
 {
+	ImageAttribute& imageAttribute = *this;
+
 	std::wstring sItem;
 	std::wstring sValue;
 	LPTSTR pstr = NULL;
@@ -326,7 +209,9 @@ void ImageAttribute::ModifyAttribute(ImageAttribute& imageAttribute, const std::
 				imageAttribute.nPlayCount = _tcstol(sValue.c_str(), &pstr, 10);  ASSERT(pstr);
 			}
 		}
-		if (*pStrImage++ != _T(' ')) break;
+		if (*pStrImage++ != _T(' ')) {
+			break;
+		}
 	}
 }
 
@@ -338,10 +223,15 @@ Image::Image() :
 {
 }
 
+void Image::InitImageAttribute()
+{
+	m_imageAttribute.Init();
+}
+
 void Image::SetImageString(const std::wstring& strImageString)
 {
 	ClearCache();
-	m_imageAttribute.SetImageString(strImageString);
+	m_imageAttribute.InitByImageString(strImageString);
 }
 
 void Image::ClearCache()
@@ -350,6 +240,16 @@ void Image::ClearCache()
 	m_bPlaying = false;
 	m_imageCache.reset();
 	m_nCycledCount = 0;
+}
+
+void Image::SetImagePlayCount(int nPlayCount)
+{
+	m_imageAttribute.nPlayCount = nPlayCount;
+}
+
+void Image::SetImageFade(uint8_t nFade)
+{
+	m_imageAttribute.bFade = nFade;
 }
 
 bool Image::IncrementCurrentFrame()
@@ -365,33 +265,33 @@ bool Image::IncrementCurrentFrame()
 	return true;
 }
 
-void Image::SetCurrentFrame(int nCurrentFrame)
+void Image::SetCurrentFrame(size_t nCurrentFrame)
 {
 	m_nCurrentFrame = nCurrentFrame;
 }
 
-HBITMAP Image::GetCurrentHBitmap()
+HBITMAP Image::GetCurrentHBitmap() const
 {
 	if (!m_imageCache) {
-		return NULL;
+		return nullptr;
 	}
 	return m_imageCache->GetHBitmap(m_nCurrentFrame);
 }
 
-int Image::GetCurrentInterval()
+int Image::GetCurrentInterval() const
 {
 	if (!m_imageCache) {
 		return 0;
 	}
-	return m_imageCache->GetInterval(m_nCurrentFrame);
+	return m_imageCache->GetFrameInterval(m_nCurrentFrame);
 }
 
-int Image::GetCurrentFrameIndex()
+size_t Image::GetCurrentFrameIndex() const
 {
 	return m_nCurrentFrame;
 }
 
-int Image::GetCycledCount()
+int Image::GetCycledCount() const
 {
 	return m_nCycledCount;
 }
@@ -401,7 +301,7 @@ void Image::ClearCycledCount()
 	m_nCycledCount = 0;
 }
 
-bool Image::ContinuePlay()
+bool Image::ContinuePlay() const
 {
 	if (m_imageAttribute.nPlayCount < 0) {
 		return true;
@@ -415,11 +315,6 @@ bool Image::ContinuePlay()
 }
 
 const ImageAttribute& Image::GetImageAttribute() const
-{
-	return m_imageAttribute;
-}
-
-ImageAttribute& Image::SetImageAttribute()
 {
 	return m_imageAttribute;
 }
@@ -441,102 +336,147 @@ StateImage::StateImage() :
 
 }
 
-bool StateImage::HasHotImage()
+void StateImage::SetImageString(ControlStateType stateType, const std::wstring& strImageString)
 {
-	return !m_stateImageMap[kControlStateHot].GetImageAttribute().simageString.empty();
+	m_stateImageMap[stateType].SetImageString(strImageString);
 }
 
-bool StateImage::HasImage()
+std::wstring StateImage::GetImageString(ControlStateType stateType) const
 {
-	return !m_stateImageMap[kControlStateNormal].GetImageAttribute().simageString.empty() ||
-		   !m_stateImageMap[kControlStateHot].GetImageAttribute().simageString.empty() ||
-		   !m_stateImageMap[kControlStatePushed].GetImageAttribute().simageString.empty() ||
-		   !m_stateImageMap[kControlStateDisabled].GetImageAttribute().simageString.empty();
+	std::wstring imageString;
+	auto iter = m_stateImageMap.find(stateType);
+	if (iter != m_stateImageMap.end()) {
+		imageString = iter->second.GetImageAttribute().simageString;
+	}
+	return imageString;
 }
 
-bool StateImage::PaintStatusImage(IRenderContext* pRender, ControlStateType stateType, const std::wstring& sImageModify /*= L""*/)
+std::wstring StateImage::GetImageFilePath(ControlStateType stateType) const
 {
-	if (m_pControl) {
+	std::wstring imageFilePath;
+	auto iter = m_stateImageMap.find(stateType);
+	if (iter != m_stateImageMap.end()) {
+		imageFilePath = iter->second.GetImageAttribute().sImageName;
+	}
+	return imageFilePath;
+}
+
+UiRect StateImage::GetImageSourceRect(ControlStateType stateType) const
+{
+	UiRect rcSource;
+	auto iter = m_stateImageMap.find(stateType);
+	if (iter != m_stateImageMap.end()) {
+		rcSource = iter->second.GetImageAttribute().rcSource;
+	}
+	return rcSource;
+}
+
+int StateImage::GetImageFade(ControlStateType stateType) const
+{
+	int nFade = 0xFF;
+	auto iter = m_stateImageMap.find(stateType);
+	if (iter != m_stateImageMap.end()) {
+		nFade = iter->second.GetImageAttribute().bFade;
+	}
+	return nFade;
+}
+
+bool StateImage::HasHotImage() const
+{
+	return !GetImageString(kControlStateHot).empty();
+}
+
+bool StateImage::HasImage() const
+{
+	return !GetImageString(kControlStateNormal).empty() ||
+		   !GetImageString(kControlStateHot).empty()    ||
+		   !GetImageString(kControlStatePushed).empty() ||
+		   !GetImageString(kControlStateDisabled).empty();
+}
+
+bool StateImage::PaintStateImage(IRenderContext* pRender, ControlStateType stateType, const std::wstring& sImageModify)
+{
+	if (m_pControl != nullptr) {
 		bool bFadeHot = m_pControl->GetAnimationManager().GetAnimationPlayer(kAnimationHot) != nullptr;
 		int nHotAlpha = m_pControl->GetHotAlpha();
 		if (bFadeHot) {
 			if (stateType == kControlStateNormal || stateType == kControlStateHot) {
-				std::wstring strNormalImagePath = m_stateImageMap[kControlStateNormal].GetImageAttribute().sImageName;
-				std::wstring strHotImagePath = m_stateImageMap[kControlStateHot].GetImageAttribute().sImageName;
+				std::wstring strNormalImagePath = GetImageFilePath(kControlStateNormal);
+				std::wstring strHotImagePath = GetImageFilePath(kControlStateHot);
+				if (strNormalImagePath.empty() || 
+					strHotImagePath.empty()    || 
+					(strNormalImagePath != strHotImagePath) || 
+					!GetImageSourceRect(kControlStateNormal).Equal(GetImageSourceRect(kControlStateHot))) {
 
-				if (strNormalImagePath.empty() || strHotImagePath.empty()
-					|| strNormalImagePath != strHotImagePath
-					|| !m_stateImageMap[kControlStateNormal].GetImageAttribute().rcSource.Equal(m_stateImageMap[kControlStateHot].GetImageAttribute().rcSource)) {
-
-					m_pControl->DrawImage(pRender, m_stateImageMap[kControlStateNormal], sImageModify);
-					int nHotFade = m_stateImageMap[kControlStateHot].GetImageAttribute().bFade;
+					m_pControl->DrawImage(pRender, GetStateImage(kControlStateNormal), sImageModify);
+					int nHotFade = GetImageFade(kControlStateHot);
 					nHotFade = int(nHotFade * (double)nHotAlpha / 255);
-					return m_pControl->DrawImage(pRender, m_stateImageMap[kControlStateHot], sImageModify, nHotFade);
+					return m_pControl->DrawImage(pRender, GetStateImage(kControlStateHot), sImageModify, nHotFade);
 				}
 				else {
-					int nNormalFade = m_stateImageMap[kControlStateNormal].GetImageAttribute().bFade;
-					int nHotFade = m_stateImageMap[kControlStateHot].GetImageAttribute().bFade;
+					int nNormalFade = GetImageFade(kControlStateNormal);
+					int nHotFade = GetImageFade(kControlStateHot);
 					int nBlendFade = int((1 - (double)nHotAlpha / 255) * nNormalFade + (double)nHotAlpha / 255 * nHotFade);
-					return m_pControl->DrawImage(pRender, m_stateImageMap[kControlStateHot], sImageModify, nBlendFade);
+					return m_pControl->DrawImage(pRender, GetStateImage(kControlStateHot), sImageModify, nBlendFade);
 				}
 			}
 		}
 	}
 
-	if (stateType == kControlStatePushed && m_stateImageMap[kControlStatePushed].GetImageAttribute().simageString.empty()) {
+	if (stateType == kControlStatePushed && GetImageString(kControlStatePushed).empty()) {
 		stateType = kControlStateHot;
-		m_stateImageMap[kControlStateHot].SetImageAttribute().bFade = 255;
+		m_stateImageMap[kControlStateHot].SetImageFade(255);
 	}
-	if (stateType == kControlStateHot && m_stateImageMap[kControlStateHot].GetImageAttribute().simageString.empty()) {
+	if (stateType == kControlStateHot && GetImageString(kControlStateHot).empty()) {
 		stateType = kControlStateNormal;
 	}
-	if (stateType == kControlStateDisabled && m_stateImageMap[kControlStateDisabled].GetImageAttribute().simageString.empty()) {
+	if (stateType == kControlStateDisabled && GetImageString(kControlStateDisabled).empty()) {
 		stateType = kControlStateNormal;
 	}
 
-	return m_pControl->DrawImage(pRender, m_stateImageMap[stateType], sImageModify);
+	return m_pControl->DrawImage(pRender, GetStateImage(stateType), sImageModify);
 }
 
 Image* StateImage::GetEstimateImage()
 {
 	Image* pEstimateImage = nullptr;
-	if (!m_stateImageMap[kControlStateNormal].GetImageAttribute().sImageName.empty()){
-		pEstimateImage = &m_stateImageMap[kControlStateNormal];
+	auto iter = m_stateImageMap.find(kControlStateNormal);
+	if (iter != m_stateImageMap.end()) {
+		if (!iter->second.GetImageAttribute().sImageName.empty()) {
+			pEstimateImage = &(iter->second);
+		}		
 	}
-	else if (!m_stateImageMap[kControlStateHot].GetImageAttribute().sImageName.empty()) {
-		pEstimateImage = &m_stateImageMap[kControlStateHot];
+	if(pEstimateImage == nullptr) {
+		iter = m_stateImageMap.find(kControlStateHot);
+		if (iter != m_stateImageMap.end()) {
+			if (!iter->second.GetImageAttribute().sImageName.empty()) {
+				pEstimateImage = &(iter->second);
+			}
+		}
 	}
-	else if (!m_stateImageMap[kControlStatePushed].GetImageAttribute().sImageName.empty()) {
-		pEstimateImage = &m_stateImageMap[kControlStatePushed];
+	if (pEstimateImage == nullptr) {
+		iter = m_stateImageMap.find(kControlStatePushed);
+		if (iter != m_stateImageMap.end()) {
+			if (!iter->second.GetImageAttribute().sImageName.empty()) {
+				pEstimateImage = &(iter->second);
+			}
+		}
 	}
-	else if (!m_stateImageMap[kControlStateDisabled].GetImageAttribute().sImageName.empty()) {
-		pEstimateImage = &m_stateImageMap[kControlStateDisabled];
+	if (pEstimateImage == nullptr) {
+		iter = m_stateImageMap.find(kControlStateDisabled);
+		if (iter != m_stateImageMap.end()) {
+			if (!iter->second.GetImageAttribute().sImageName.empty()) {
+				pEstimateImage = &(iter->second);
+			}
+		}
 	}
-
 	return pEstimateImage;
 }
 
 void StateImage::ClearCache()
-{
-	auto it = m_stateImageMap.find(kControlStateNormal);
-	if (it != m_stateImageMap.end())
-	{
-		it->second.ClearCache();
-	}
-	it = m_stateImageMap.find(kControlStateHot);
-	if (it != m_stateImageMap.end())
-	{
-		it->second.ClearCache();
-	}
-	it = m_stateImageMap.find(kControlStatePushed);
-	if (it != m_stateImageMap.end())
-	{
-		it->second.ClearCache();
-	}
-	it = m_stateImageMap.find(kControlStateDisabled);
-	if (it != m_stateImageMap.end())
-	{
-		it->second.ClearCache();
+{	
+	for (auto iter = m_stateImageMap.begin(); iter != m_stateImageMap.end(); ++iter)	{
+		iter->second.ClearCache();
 	}
 }
 
@@ -549,17 +489,22 @@ void StateImageMap::SetControl(Control* control)
 	m_stateImageMap[kStateImageSelectedFore].SetControl(control);
 }
 
-void StateImageMap::SetImage(StateImageType stateImageType, ControlStateType stateType, const std::wstring& strImagePath)
+void StateImageMap::SetImageString(StateImageType stateImageType, ControlStateType stateType, const std::wstring& strImagePath)
 {
-	m_stateImageMap[stateImageType][stateType].SetImageString(strImagePath);
+	m_stateImageMap[stateImageType].SetImageString(stateType, strImagePath);
 }
 
-std::wstring StateImageMap::GetImagePath(StateImageType stateImageType, ControlStateType stateType)
+std::wstring StateImageMap::GetImageString(StateImageType stateImageType, ControlStateType stateType) const
 {
-	return m_stateImageMap[stateImageType][stateType].GetImageAttribute().simageString;
+	std::wstring imageString;
+	auto iter = m_stateImageMap.find(stateImageType);
+	if (iter != m_stateImageMap.end()) {
+		imageString = iter->second.GetImageString(stateType);
+	}
+	return imageString;
 }
 
-bool StateImageMap::HasHotImage()
+bool StateImageMap::HasHotImage() const
 {
 	for (auto& it : m_stateImageMap) {
 		if (it.second.HasHotImage()) {
@@ -569,16 +514,21 @@ bool StateImageMap::HasHotImage()
 	return false;
 }
 
-bool StateImageMap::HasImageType(StateImageType stateImageType)
+bool StateImageMap::HasImageType(StateImageType stateImageType) const
 {
-	return m_stateImageMap[stateImageType].HasImage();
+	bool bHasImage = false;
+	auto iter = m_stateImageMap.find(stateImageType);
+	if (iter != m_stateImageMap.end()) {
+		bHasImage = iter->second.HasImage();
+	}
+	return bHasImage;
 }
 
-bool StateImageMap::PaintStatusImage(IRenderContext* pRender, StateImageType stateImageType, ControlStateType stateType, const std::wstring& sImageModify /*= L""*/)
+bool StateImageMap::PaintStateImage(IRenderContext* pRender, StateImageType stateImageType, ControlStateType stateType, const std::wstring& sImageModify /*= L""*/)
 {
 	auto it = m_stateImageMap.find(stateImageType);
 	if (it != m_stateImageMap.end()) {
-		return it->second.PaintStatusImage(pRender, stateType, sImageModify);
+		return it->second.PaintStateImage(pRender, stateType, sImageModify);
 	}
 	return false;
 }
@@ -594,12 +544,10 @@ Image* StateImageMap::GetEstimateImage(StateImageType stateImageType)
 
 void StateImageMap::ClearCache()
 {
-	m_stateImageMap[kStateImageBk].ClearCache();
-	m_stateImageMap[kStateImageFore].ClearCache();
-	m_stateImageMap[kStateImageSelectedBk].ClearCache();
-	m_stateImageMap[kStateImageSelectedFore].ClearCache();
+	for (auto iter = m_stateImageMap.begin(); iter != m_stateImageMap.end(); ++iter) {
+		iter->second.ClearCache();
+	}
 }
-
 
 StateColorMap::StateColorMap() :
 	m_pControl(nullptr),
@@ -612,17 +560,22 @@ void StateColorMap::SetControl(Control* control)
 	m_pControl = control;
 }
 
-bool StateColorMap::HasHotColor()
+bool StateColorMap::HasHotColor() const
 {
-	return !m_stateColorMap[kControlStateHot].empty();
+	return m_stateColorMap.find(kControlStateHot) != m_stateColorMap.end();
 }
 
-bool StateColorMap::HasColor()
+bool StateColorMap::HasStateColors() const
 {
-	return !m_stateColorMap[kControlStateNormal].empty() ||
-		   !m_stateColorMap[kControlStateHot].empty() ||
-		   !m_stateColorMap[kControlStatePushed].empty() ||
-		   !m_stateColorMap[kControlStateDisabled].empty();
+	return (m_stateColorMap.find(kControlStateNormal) != m_stateColorMap.end()) ||
+		   (m_stateColorMap.find(kControlStateHot) != m_stateColorMap.end())    ||
+	       (m_stateColorMap.find(kControlStatePushed) != m_stateColorMap.end()) ||
+		   (m_stateColorMap.find(kControlStateDisabled) != m_stateColorMap.end()) ;
+}
+
+bool StateColorMap::HasStateColor(ControlStateType stateType) const
+{
+	return m_stateColorMap.find(stateType) != m_stateColorMap.end();
 }
 
 std::wstring StateColorMap::GetStateColor(ControlStateType stateType) const
@@ -636,45 +589,51 @@ std::wstring StateColorMap::GetStateColor(ControlStateType stateType) const
 
 void StateColorMap::SetStateColor(ControlStateType stateType, const std::wstring& color)
 {
-	m_stateColorMap[stateType] = color;
+	if (!color.empty()) {
+		m_stateColorMap[stateType] = color;
+	}
+	else {
+		//确保颜色值不是空字符串
+		auto iter = m_stateColorMap.find(stateType);
+		if (iter != m_stateColorMap.end()) {
+			m_stateColorMap.erase(iter);
+		}
+	}
 }
 
-void StateColorMap::PaintStatusColor(IRenderContext* pRender, UiRect rcPaint, ControlStateType stateType)
+void StateColorMap::PaintStateColor(IRenderContext* pRender, UiRect rcPaint, ControlStateType stateType) const
 {
 	ASSERT(pRender != nullptr);
 	if (pRender == nullptr) {
 		return;
 	}
-	if (m_pControl) {
+	if (m_pControl != nullptr) {
 		bool bFadeHot = m_pControl->GetAnimationManager().GetAnimationPlayer(kAnimationHot) != nullptr;
 		int nHotAlpha = m_pControl->GetHotAlpha();
 		if (bFadeHot) {
-			if ((stateType == kControlStateNormal || stateType == kControlStateHot)
-				&& !m_stateColorMap[kControlStateHot].empty()) {
-
-				auto strColor = m_stateColorMap[kControlStateNormal];
+			if ((stateType == kControlStateNormal || stateType == kControlStateHot) && HasStateColor(kControlStateHot)) {
+				std::wstring strColor = GetStateColor(kControlStateNormal);
 				if (!strColor.empty()) {
 					pRender->DrawColor(rcPaint, m_pControl->GetWindowColor(strColor));
 				}
 				if (nHotAlpha > 0) {
-					pRender->DrawColor(rcPaint, m_pControl->GetWindowColor(m_stateColorMap[kControlStateHot]), static_cast<BYTE>(nHotAlpha));
+					pRender->DrawColor(rcPaint, m_pControl->GetWindowColor(GetStateColor(kControlStateHot)), static_cast<BYTE>(nHotAlpha));
 				}
 				return;
 			}
 		}
 	}
 
-	if (stateType == kControlStatePushed && m_stateColorMap[kControlStatePushed].empty()) {
+	if (stateType == kControlStatePushed && HasStateColor(kControlStatePushed)) {
 		stateType = kControlStateHot;
 	}
-	if (stateType == kControlStateHot && m_stateColorMap[kControlStateHot].empty()) {
+	if (stateType == kControlStateHot && HasStateColor(kControlStateHot)) {
 		stateType = kControlStateNormal;
 	}
-	if (stateType == kControlStateDisabled && m_stateColorMap[kControlStateDisabled].empty()) {
+	if (stateType == kControlStateDisabled && HasStateColor(kControlStateDisabled)) {
 		stateType = kControlStateNormal;
 	}
-
-	auto strColor = m_stateColorMap[stateType];
+	std::wstring strColor = GetStateColor(stateType);
 	if (!strColor.empty()) {
 		UiColor color = m_pControl ? m_pControl->GetWindowColor(strColor) : GlobalManager::GetTextColor(strColor);
 		pRender->DrawColor(rcPaint, color);

@@ -12,7 +12,7 @@
 #include "duilib/Core/Control.h"
 #include "duilib/Core/Box.h"
 #include "duilib/Image/Image.h"
-#include "duilib/Image/GdiPlusDefs.h"
+#include "duilib/Image/ImageDecoder.h"
 
 #include <commctrl.h>
 #include <tchar.h>
@@ -317,8 +317,8 @@ std::shared_ptr<ImageInfo> GlobalManager::IsImageCached(const std::wstring& strI
 
 std::shared_ptr<ImageInfo> GlobalManager::AddImageCached(const std::shared_ptr<ImageInfo>& sharedImage)
 {
-	ASSERT(m_mImageHash[sharedImage->sImageFullPath].expired() == true);
-	m_mImageHash[sharedImage->sImageFullPath] = sharedImage;
+	ASSERT(m_mImageHash[sharedImage->GetImageFullPath()].expired() == true);
+	m_mImageHash[sharedImage->GetImageFullPath()] = sharedImage;
 	sharedImage->SetCached(true);
 	return sharedImage;
 }
@@ -338,8 +338,8 @@ void GlobalManager::OnImageInfoDestroy(ImageInfo* pImageInfo)
 {
 	ASSERT(pImageInfo);
 	if (pImageInfo && pImageInfo->IsCached()) {
-		if (!pImageInfo->sImageFullPath.empty()) {
-			GlobalManager::RemoveFromImageCache(pImageInfo->sImageFullPath);
+		if (!pImageInfo->GetImageFullPath().empty()) {
+			GlobalManager::RemoveFromImageCache(pImageInfo->GetImageFullPath());
 		}
 	}
 	delete pImageInfo;
@@ -354,16 +354,16 @@ std::shared_ptr<ImageInfo> GlobalManager::GetImage(const std::wstring& bitmap)
     auto it = m_mImageHash.find(imageFullPath);
     if (it == m_mImageHash.end()) {
         std::unique_ptr<ImageInfo> data;
-        if (IsUseZip())
-        {
+        if (IsUseZip()) {
 			std::vector<unsigned char> file_data;
             if (GetZipData(imageFullPath, file_data)) {
-                data = ImageInfo::LoadImage(file_data, imageFullPath);
+				ImageDecoder imageDecoder;
+                data = imageDecoder.LoadImageData(file_data, imageFullPath);
             }
         }
-        if (!data)
-        {
-            data = ImageInfo::LoadImage(imageFullPath);
+        if (!data) {
+			ImageDecoder imageDecoder;
+            data = imageDecoder.LoadImageFile(imageFullPath);
         }
 		if (!data) {
 			return sharedImage;
