@@ -10,9 +10,6 @@
     <Filter Include="Control">
       <UniqueIdentifier>{84f4111f-0a08-43c9-8509-9063f8802cb2}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Core">
-      <UniqueIdentifier>{05bb1367-b7c8-4364-a43d-6f1034fccad3}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Render">
       <UniqueIdentifier>{5be13808-6dcf-4769-a719-b80d560bc6c7}</UniqueIdentifier>
     </Filter>
@@ -21,6 +18,12 @@
     </Filter>
     <Filter Include="duilib">
       <UniqueIdentifier>{d63d44fa-8100-4713-9f44-4f9c9d043250}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Image">
+      <UniqueIdentifier>{5a541f18-9357-4061-8935-710d8a836568}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core">
+      <UniqueIdentifier>{1f234e59-8715-40b0-956f-f4522df552bf}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -75,33 +78,6 @@
     <ClCompile Include="Control\VirtualTileBox.cpp">
       <Filter>Control</Filter>
     </ClCompile>
-    <ClCompile Include="Core\Box.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\Control.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\Define.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\GlobalManager.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\Image.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\Markup.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\Placeholder.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\Window.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\WindowBuilder.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
     <ClCompile Include="Render\Bitmap.cpp">
       <Filter>Render</Filter>
     </ClCompile>
@@ -141,9 +117,6 @@
     <ClCompile Include="Utils\FontManager.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
-    <ClCompile Include="Utils\GdiHepler.cpp">
-      <Filter>Utils</Filter>
-    </ClCompile>
     <ClCompile Include="Utils\MultiLangSupport.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
@@ -154,9 +127,6 @@
       <Filter>Utils</Filter>
     </ClCompile>
     <ClCompile Include="Utils\StringUtil.cpp">
-      <Filter>Utils</Filter>
-    </ClCompile>
-    <ClCompile Include="Utils\SvgUtil.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
     <ClCompile Include="Utils\TimerManager.cpp">
@@ -174,14 +144,47 @@
     <ClCompile Include="Control\DateTime.cpp">
       <Filter>Control</Filter>
     </ClCompile>
+    <ClCompile Include="Control\ListBox.cpp">
+      <Filter>Control</Filter>
+    </ClCompile>
+    <ClCompile Include="Image\GdiHepler.cpp">
+      <Filter>Image</Filter>
+    </ClCompile>
+    <ClCompile Include="Image\Image.cpp">
+      <Filter>Image</Filter>
+    </ClCompile>
+    <ClCompile Include="Image\SvgUtil.cpp">
+      <Filter>Image</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Box.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Control.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
     <ClCompile Include="Core\ControlFinder.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Define.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\GlobalManager.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Markup.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Placeholder.cpp">
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="Core\ToolTip.cpp">
       <Filter>Core</Filter>
     </ClCompile>
-    <ClCompile Include="Control\ListBox.cpp">
-      <Filter>Control</Filter>
+    <ClCompile Include="Core\Window.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\WindowBuilder.cpp">
+      <Filter>Core</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -251,36 +254,6 @@
     <ClInclude Include="Control\VirtualTileBox.h">
       <Filter>Control</Filter>
     </ClInclude>
-    <ClInclude Include="Core\Box.h">
-      <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\Control.h">
-      <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\Define.h">
-      <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\GdiPlusDefs.h">
-      <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\GlobalManager.h">
-      <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\Image.h">
-      <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\Markup.h">
-      <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\Placeholder.h">
-      <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\Window.h">
-      <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\WindowBuilder.h">
-      <Filter>Core</Filter>
-    </ClInclude>
     <ClInclude Include="Render\Bitmap.h">
       <Filter>Render</Filter>
     </ClInclude>
@@ -323,9 +296,6 @@
     <ClInclude Include="Utils\FontManager.h">
       <Filter>Utils</Filter>
     </ClInclude>
-    <ClInclude Include="Utils\GdiHepler.h">
-      <Filter>Utils</Filter>
-    </ClInclude>
     <ClInclude Include="Utils\Macros.h">
       <Filter>Utils</Filter>
     </ClInclude>
@@ -339,9 +309,6 @@
       <Filter>Utils</Filter>
     </ClInclude>
     <ClInclude Include="Utils\StringUtil.h">
-      <Filter>Utils</Filter>
-    </ClInclude>
-    <ClInclude Include="Utils\SvgUtil.h">
       <Filter>Utils</Filter>
     </ClInclude>
     <ClInclude Include="Utils\TimerManager.h">
@@ -368,14 +335,8 @@
     <ClInclude Include="Control\DateTime.h">
       <Filter>Control</Filter>
     </ClInclude>
-    <ClInclude Include="Core\ControlFinder.h">
-      <Filter>Core</Filter>
-    </ClInclude>
     <ClInclude Include="duilib_types.h">
       <Filter>duilib</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\ToolTip.h">
-      <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="Control\ListBox.h">
       <Filter>Control</Filter>
@@ -388,6 +349,54 @@
     </ClInclude>
     <ClInclude Include="Render\Font_GDI.h">
       <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Image\GdiHepler.h">
+      <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="Image\GdiPlusDefs.h">
+      <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="Image\Image.h">
+      <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="Image\SvgUtil.h">
+      <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="Image\nanosvg.h">
+      <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="Image\nanosvgrast.h">
+      <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Box.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Control.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ControlFinder.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Define.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\GlobalManager.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Markup.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Placeholder.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ToolTip.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Window.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\WindowBuilder.h">
+      <Filter>Core</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

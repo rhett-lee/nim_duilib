@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "duilib/Core/GdiPlusDefs.h"
+#include "duilib/Image/GdiPlusDefs.h"
 #include "duilib/Core/Define.h"
 #include "duilib/duilib_defs.h"
 #include <memory>

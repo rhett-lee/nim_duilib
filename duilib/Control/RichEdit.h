@@ -4,7 +4,7 @@
 #pragma once
 
 #include "duilib/Core/Box.h"
-#include "duilib/Core/Image.h"
+#include "duilib/Image/Image.h"
 #include <Imm.h>
 #include <richedit.h>
 #include <RichOle.h>

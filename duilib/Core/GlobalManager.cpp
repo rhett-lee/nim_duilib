@@ -3,7 +3,7 @@
 #include "duilib/Render/Font_GDI.h"
 #include "duilib/Utils/DpiManager.h"
 #include "duilib/Utils/UnZip.h"
-#include "duilib/Utils/SvgUtil.h"
+#include "duilib/Image/SvgUtil.h"
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Utils/MultiLangSupport.h"
 #include "duilib/Utils/VersionHelpers.h"
@@ -11,8 +11,8 @@
 #include "duilib/Core/Window.h"
 #include "duilib/Core/Control.h"
 #include "duilib/Core/Box.h"
-#include "duilib/Core/Image.h"
-#include "duilib/Core/GdiPlusDefs.h"
+#include "duilib/Image/Image.h"
+#include "duilib/Image/GdiPlusDefs.h"
 
 #include <commctrl.h>
 #include <tchar.h>

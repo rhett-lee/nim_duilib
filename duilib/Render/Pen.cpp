@@ -1,5 +1,5 @@
 #include "Pen.h"
-#include "duilib/Core/GdiPlusDefs.h"
+#include "duilib/Image/GdiPlusDefs.h"
 
 namespace ui {
 

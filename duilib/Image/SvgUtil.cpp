@@ -2,13 +2,13 @@
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Utils/DpiManager.h"
 #include "duilib/Render/Bitmap.h"
-#include "duilib/Core/Image.h"
+#include "duilib/Image/Image.h"
 
 #define NANOSVG_IMPLEMENTATION
 #define NANOSVG_ALL_COLOR_KEYWORDS
-#include "duilib/Render/nanosvg.h"
+#include "duilib/Image/nanosvg.h"
 #define NANOSVGRAST_IMPLEMENTATION
-#include "duilib/Render/nanosvgrast.h"
+#include "duilib/Image/nanosvgrast.h"
 
 namespace ui
 {

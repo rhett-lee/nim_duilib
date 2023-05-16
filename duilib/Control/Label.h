@@ -5,9 +5,9 @@
 
 #include "duilib/Core/Control.h"
 #include "duilib/Core/GlobalManager.h"
-#include "duilib/Core/Image.h"
 #include "duilib/Core/Box.h"
 #include "duilib/Core/Window.h"
+#include "duilib/Image/Image.h"
 #include "duilib/Utils/MultiLangSupport.h"
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Utils/DpiManager.h"

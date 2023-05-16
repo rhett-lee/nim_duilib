@@ -2,7 +2,7 @@
 #include "duilib/Core/Control.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Render/IRender.h"
-#include "duilib/Utils/SvgUtil.h"
+#include "duilib/Image/SvgUtil.h"
 #include "duilib/Utils//DpiManager.h"
 #include "duilib/Animation/AnimationManager.h"
 #include <tchar.h>

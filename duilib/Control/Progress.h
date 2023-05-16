@@ -4,7 +4,7 @@
 #pragma once
 
 #include "duilib/Control/Label.h"
-#include "duilib/Core/Image.h"
+#include "duilib/Image/Image.h"
 
 namespace ui
 {

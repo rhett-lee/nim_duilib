@@ -1,7 +1,7 @@
 #include "Path.h"
 #include "duilib/Render/Pen.h"
 #include "duilib/Render/Matrix.h"
-#include "duilib/Core/GdiPlusDefs.h"
+#include "duilib/Image/GdiPlusDefs.h"
 
 namespace ui {
 

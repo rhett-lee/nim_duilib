@@ -1,7 +1,7 @@
 #include "ScrollBar.h"
 #include "duilib/Core/Box.h"
 #include "duilib/Core/Window.h"
-#include "duilib/Core/Image.h"
+#include "duilib/Image/Image.h"
 #include "duilib/Core/Define.h"
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Utils/TimerManager.h"

@@ -90,7 +90,10 @@
 #include "Utils/OnScreenKeyboardManager.h"
 #include "Utils/Shadow.h"
 #include "Utils/BoxShadow.h"
-#include "Utils/GdiHepler.h"
+
+#include "Image/GdiHepler.h"
+#include "Image/Image.h"
+#include "Image/SvgUtil.h"
 
 #include "Animation/AnimationPlayer.h"
 #include "Animation/AnimationManager.h"
@@ -109,14 +112,12 @@
 #include "Core/Define.h"
 #include "Core/Markup.h"
 #include "Core/WindowBuilder.h"
-#include "Core/Image.h"
 #include "Core/GlobalManager.h"
 #include "Core/Window.h"
 #include "Core/Placeholder.h"
 #include "Core/Control.h"
 #include "Core/Box.h"
 #include "Utils/WinImplBase.h"
-#include "Utils/SvgUtil.h"
 
 #include "Box/VBox.h"
 #include "Box/HBox.h"

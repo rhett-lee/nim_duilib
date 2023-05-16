@@ -1,5 +1,5 @@
 #include "GdiHepler.h"
-#include "duilib/Core/GdiPlusDefs.h"
+#include "duilib/Image/GdiPlusDefs.h"
 #include <algorithm>
 
 namespace ui {

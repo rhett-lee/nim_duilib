@@ -1,5 +1,6 @@
 #include "Control.h"
-#include "duilib/Core/Image.h"
+#include "duilib/Image/Image.h"
+#include "duilib/Image/GdiHepler.h"
 #include "duilib/Core/Window.h"
 #include "duilib/Core/Box.h"
 #include "duilib/Core/GlobalManager.h"
@@ -9,7 +10,6 @@
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Utils/DpiManager.h"
 #include "duilib/Utils/MultiLangSupport.h"
-#include "duilib/Utils/GdiHepler.h"
 #include "duilib/Utils/TimerManager.h"
 #include <tchar.h>
 

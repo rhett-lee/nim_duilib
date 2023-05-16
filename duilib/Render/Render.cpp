@@ -4,7 +4,7 @@
 #include "duilib/Render/Pen.h"
 #include "duilib/Render/Path.h"
 #include "duilib/Render/Brush.h"
-#include "duilib/Core/GdiPlusDefs.h"
+#include "duilib/Image/GdiPlusDefs.h"
 
 namespace ui {
 
