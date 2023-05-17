@@ -112,7 +112,7 @@ void Progress::SetStretchForeImage(bool bStretchForeImage /*= true*/)
 
 std::wstring Progress::GetProgressImage() const
 {
-	return m_progressImage.GetImageAttribute().simageString;
+	return m_progressImage.GetImageString();
 }
 
 void Progress::SetProgressImage(const std::wstring& strImage)
@@ -186,7 +186,7 @@ void Progress::PaintStatusImage(IRenderContext* pRender)
 		}
 	}
 
-    if (!m_progressImage.GetImageAttribute().simageString.empty()) {
+    if (!m_progressImage.GetImageString().empty()) {
         m_sProgressImageModify.clear();
         if (m_bStretchForeImage) {
             m_sProgressImageModify = StringHelper::Printf(L"destscale='false' dest='%d,%d,%d,%d'", rc.left, rc.top, rc.right, rc.bottom);
@@ -262,7 +262,7 @@ UiRect Progress::GetProgressPos()
 void Progress::ClearImageCache()
 {
 	__super::ClearImageCache();
-	m_progressImage.ClearCache();
+	m_progressImage.ClearImageCache();
 }
 
 void Progress::Play()

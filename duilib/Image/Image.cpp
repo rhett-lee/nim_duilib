@@ -105,8 +105,8 @@ ImageAttribute::ImageAttribute()
 
 void ImageAttribute::Init()
 {
-	simageString.clear();
-	sImageName.clear();
+	sImageString.clear();
+	sImagePath.clear();
 	bFade = 0xFF;
 	bTiledX = false;
 	bFullTiledX = true;
@@ -122,8 +122,8 @@ void ImageAttribute::Init()
 void ImageAttribute::InitByImageString(const std::wstring& strImageString)
 {
 	Init();
-	simageString = strImageString;
-	sImageName = strImageString;
+	sImageString = strImageString;
+	sImagePath = strImageString;
 	ModifyAttribute(strImageString);
 }
 
@@ -160,7 +160,7 @@ void ImageAttribute::ModifyAttribute(const std::wstring& strImageString)
 		if (*pStrImage++ != _T('\'')) break;
 		if (!sValue.empty()) {
 			if (sItem == _T("file") || sItem == _T("res")) {
-				imageAttribute.sImageName = sValue;
+				imageAttribute.sImagePath = sValue;
 			}
 			else if (sItem == _T("destscale")) {
 				bScaleDest = (_tcscmp(sValue.c_str(), _T("true")) == 0);
@@ -230,11 +230,21 @@ void Image::InitImageAttribute()
 
 void Image::SetImageString(const std::wstring& strImageString)
 {
-	ClearCache();
+	ClearImageCache();
 	m_imageAttribute.InitByImageString(strImageString);
 }
 
-void Image::ClearCache()
+const std::wstring& Image::GetImageString() const
+{
+	return m_imageAttribute.sImageString;
+}
+
+const std::wstring Image::GetImagePath() const
+{
+	return m_imageAttribute.sImagePath;
+}
+
+void Image::ClearImageCache()
 {
 	m_nCurrentFrame = 0;
 	m_bPlaying = false;
@@ -346,17 +356,17 @@ std::wstring StateImage::GetImageString(ControlStateType stateType) const
 	std::wstring imageString;
 	auto iter = m_stateImageMap.find(stateType);
 	if (iter != m_stateImageMap.end()) {
-		imageString = iter->second.GetImageAttribute().simageString;
+		imageString = iter->second.GetImageString();
 	}
 	return imageString;
 }
 
-std::wstring StateImage::GetImageFilePath(ControlStateType stateType) const
+std::wstring StateImage::GetImagePath(ControlStateType stateType) const
 {
 	std::wstring imageFilePath;
 	auto iter = m_stateImageMap.find(stateType);
 	if (iter != m_stateImageMap.end()) {
-		imageFilePath = iter->second.GetImageAttribute().sImageName;
+		imageFilePath = iter->second.GetImagePath();
 	}
 	return imageFilePath;
 }
@@ -401,8 +411,8 @@ bool StateImage::PaintStateImage(IRenderContext* pRender, ControlStateType state
 		int nHotAlpha = m_pControl->GetHotAlpha();
 		if (bFadeHot) {
 			if (stateType == kControlStateNormal || stateType == kControlStateHot) {
-				std::wstring strNormalImagePath = GetImageFilePath(kControlStateNormal);
-				std::wstring strHotImagePath = GetImageFilePath(kControlStateHot);
+				std::wstring strNormalImagePath = GetImagePath(kControlStateNormal);
+				std::wstring strHotImagePath = GetImagePath(kControlStateHot);
 				if (strNormalImagePath.empty() || 
 					strHotImagePath.empty()    || 
 					(strNormalImagePath != strHotImagePath) || 
@@ -442,14 +452,14 @@ Image* StateImage::GetEstimateImage()
 	Image* pEstimateImage = nullptr;
 	auto iter = m_stateImageMap.find(kControlStateNormal);
 	if (iter != m_stateImageMap.end()) {
-		if (!iter->second.GetImageAttribute().sImageName.empty()) {
+		if (!iter->second.GetImagePath().empty()) {
 			pEstimateImage = &(iter->second);
 		}		
 	}
 	if(pEstimateImage == nullptr) {
 		iter = m_stateImageMap.find(kControlStateHot);
 		if (iter != m_stateImageMap.end()) {
-			if (!iter->second.GetImageAttribute().sImageName.empty()) {
+			if (!iter->second.GetImagePath().empty()) {
 				pEstimateImage = &(iter->second);
 			}
 		}
@@ -457,7 +467,7 @@ Image* StateImage::GetEstimateImage()
 	if (pEstimateImage == nullptr) {
 		iter = m_stateImageMap.find(kControlStatePushed);
 		if (iter != m_stateImageMap.end()) {
-			if (!iter->second.GetImageAttribute().sImageName.empty()) {
+			if (!iter->second.GetImagePath().empty()) {
 				pEstimateImage = &(iter->second);
 			}
 		}
@@ -465,7 +475,7 @@ Image* StateImage::GetEstimateImage()
 	if (pEstimateImage == nullptr) {
 		iter = m_stateImageMap.find(kControlStateDisabled);
 		if (iter != m_stateImageMap.end()) {
-			if (!iter->second.GetImageAttribute().sImageName.empty()) {
+			if (!iter->second.GetImagePath().empty()) {
 				pEstimateImage = &(iter->second);
 			}
 		}
@@ -473,25 +483,31 @@ Image* StateImage::GetEstimateImage()
 	return pEstimateImage;
 }
 
-void StateImage::ClearCache()
+void StateImage::ClearImageCache()
 {	
 	for (auto iter = m_stateImageMap.begin(); iter != m_stateImageMap.end(); ++iter)	{
-		iter->second.ClearCache();
+		iter->second.ClearImageCache();
 	}
 }
 
+StateImageMap::StateImageMap():
+	m_pControl(nullptr)
+{
+}
 
 void StateImageMap::SetControl(Control* control)
 {
-	m_stateImageMap[kStateImageBk].SetControl(control);
-	m_stateImageMap[kStateImageFore].SetControl(control);
-	m_stateImageMap[kStateImageSelectedBk].SetControl(control);
-	m_stateImageMap[kStateImageSelectedFore].SetControl(control);
+	m_pControl = control;
+	for (auto& it : m_stateImageMap) {
+		it.second.SetControl(control);
+	}
 }
 
 void StateImageMap::SetImageString(StateImageType stateImageType, ControlStateType stateType, const std::wstring& strImagePath)
 {
-	m_stateImageMap[stateImageType].SetImageString(stateType, strImagePath);
+	StateImage& stateImage = m_stateImageMap[stateImageType];
+	stateImage.SetControl(m_pControl);
+	stateImage.SetImageString(stateType, strImagePath);
 }
 
 std::wstring StateImageMap::GetImageString(StateImageType stateImageType, ControlStateType stateType) const
@@ -542,10 +558,10 @@ Image* StateImageMap::GetEstimateImage(StateImageType stateImageType)
 	return nullptr;
 }
 
-void StateImageMap::ClearCache()
+void StateImageMap::ClearImageCache()
 {
 	for (auto iter = m_stateImageMap.begin(); iter != m_stateImageMap.end(); ++iter) {
-		iter->second.ClearCache();
+		iter->second.ClearImageCache();
 	}
 }
 

@@ -204,7 +204,7 @@ void Slider::PaintStatusImage(IRenderContext* pRender)
 void Slider::ClearImageCache()
 {
 	__super::ClearImageCache();
-	m_thumbStateImage.ClearCache();
+	m_thumbStateImage.ClearImageCache();
 }
 
 int Slider::GetChangeStep()

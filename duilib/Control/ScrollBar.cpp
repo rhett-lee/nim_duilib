@@ -581,11 +581,11 @@ void ScrollBar::Paint(IRenderContext* pRender, const UiRect& rcPaint)
 void ScrollBar::ClearImageCache()
 {
 	__super::ClearImageCache();
-	m_bkStateImage->ClearCache();
-	m_button1StateImage->ClearCache();
-	m_button2StateImage->ClearCache();
-	m_thumbStateImage->ClearCache();
-	m_railStateImage->ClearCache();
+	m_bkStateImage->ClearImageCache();
+	m_button1StateImage->ClearImageCache();
+	m_button2StateImage->ClearImageCache();
+	m_thumbStateImage->ClearImageCache();
+	m_railStateImage->ClearImageCache();
 }
 
 bool ScrollBar::IsHorizontal()

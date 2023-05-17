@@ -126,13 +126,13 @@ void Control::SetStateColor(ControlStateType stateType, const std::wstring& strC
 
 std::wstring Control::GetBkImage() const
 {
-	return m_bkImage->GetImageAttribute().simageString;
+	return m_bkImage->GetImageString();
 }
 
 std::string Control::GetUTF8BkImage() const
 {
 	std::string strOut;
-	StringHelper::UnicodeToMBCS(m_bkImage->GetImageAttribute().simageString.c_str(), strOut, CP_UTF8);
+	StringHelper::UnicodeToMBCS(m_bkImage->GetImageString().c_str(), strOut, CP_UTF8);
 	return strOut;
 }
 
@@ -158,7 +158,7 @@ void Control::SetUTF8BkImage(const std::string& strImage)
 
 std::wstring Control::GetLoadingImage() const 
 {
-	return m_loadingImage->GetImageAttribute().simageString;
+	return m_loadingImage->GetImageString();
 }
 
 void Control::SetLoadingImage(const std::wstring& strImage) 
@@ -230,7 +230,7 @@ void Control::SetState(ControlStateType controlState)
 Image* Control::GetEstimateImage()
 {
 	Image* estimateImage = nullptr;
-	if (!m_bkImage->GetImageAttribute().sImageName.empty()) {
+	if (!m_bkImage->GetImagePath().empty()) {
 		estimateImage = m_bkImage.get();
 	}
 	else {
@@ -1181,10 +1181,9 @@ void Control::GetImage(Image& duiImage) const
 	if (pWindow == nullptr) {
 		return;
 	}
-	// should optimize later
-	// use hash or md5 is better than compare strings
-	std::wstring sImageName = duiImage.GetImageAttribute().sImageName;
-	std::wstring imageFullPath = GlobalManager::GetResPath(sImageName, pWindow->GetResourcePath());
+
+	std::wstring sImagePath = duiImage.GetImagePath();
+	std::wstring imageFullPath = GlobalManager::GetResPath(sImagePath, pWindow->GetResourcePath());
 
 	imageFullPath = StringHelper::ReparsePath(imageFullPath);
 
@@ -1201,7 +1200,7 @@ bool Control::DrawImage(IRenderContext* pRender, Image& duiImage, const std::wst
 	if (pRender == nullptr) {
 		return false;
 	}
-	if (duiImage.GetImageAttribute().sImageName.empty()) {
+	if (duiImage.GetImagePath().empty()) {
 		return false;
 	}
 
@@ -1535,7 +1534,7 @@ void Control::PaintLoading(IRenderContext* pRender)
 	if (pRender == nullptr) {
 		return;
 	}
-    if (!m_bIsLoading || m_loadingImage->GetImageAttribute().sImageName.empty()) {
+    if (!m_bIsLoading || m_loadingImage->GetImagePath().empty()) {
         return;
     }
 
@@ -1615,7 +1614,7 @@ void Control::SetRenderOffsetY(int renderOffsetY)
 
 void Control::GifPlay()
 {
-	if (!m_bkImage->IsValid() || !m_bkImage->GetImageCache()->IsMultiFrameImage() || !m_bkImage->ContinuePlay()) {
+	if (!m_bkImage->GetImageCache() || !m_bkImage->GetImageCache()->IsMultiFrameImage() || !m_bkImage->ContinuePlay()) {
 		m_bkImage->SetPlaying(false);
 		m_gifWeakFlag.Cancel();
 		return;
@@ -1673,7 +1672,7 @@ void Control::StopGifPlay(GifStopType frame)
 void Control::StartGifPlayForUI(GifStopType frame, int playcount)
 {
 	GetImage(*m_bkImage);
-	if (!m_bkImage->IsValid() || !m_bkImage->GetImageCache()->IsMultiFrameImage()) {
+	if (!m_bkImage->GetImageCache() || !m_bkImage->GetImageCache()->IsMultiFrameImage()) {
 		m_bGifPlay = false;
 		m_bkImage->SetPlaying(false);
 		m_gifWeakFlag.Cancel();
@@ -1746,14 +1745,14 @@ void Control::InvokeLoadImageCache()
 	if (m_loadBkImageWeakFlag.HasUsed()) {
 		return;
 	}
-	std::wstring sImageName = m_bkImage->GetImageAttribute().sImageName;
-	if (sImageName.empty()) {
+	std::wstring sImagePath = m_bkImage->GetImagePath();
+	if (sImagePath.empty()) {
 		return;
 	}
 	std::wstring imageFullPath;
 	Window* pWindow = GetWindow();
 	if (pWindow != nullptr) {
-		imageFullPath = GlobalManager::GetResPath(sImageName, pWindow->GetResourcePath());
+		imageFullPath = GlobalManager::GetResPath(sImagePath, pWindow->GetResourcePath());
 	}
 
 	if (!m_bkImage->GetImageCache() || m_bkImage->GetImageCache()->GetImageFullPath() != imageFullPath) {
@@ -1768,13 +1767,13 @@ void Control::InvokeLoadImageCache()
 void Control::UnLoadImageCache()
 {
 	m_loadBkImageWeakFlag.Cancel();
-	m_bkImage->ClearCache();
+	m_bkImage->ClearImageCache();
 }
 
 void Control::ClearImageCache()
 {
-	m_imageMap->ClearCache();
-	m_bkImage->ClearCache();
+	m_imageMap->ClearImageCache();
+	m_bkImage->ClearImageCache();
 }
 
 void Control::AttachEvent(EventType type, const EventCallback& callback)

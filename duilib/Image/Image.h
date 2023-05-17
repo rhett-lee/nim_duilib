@@ -144,10 +144,10 @@ public:
 
 public:
 	//图片文件属性字符串
-	std::wstring simageString;
+	std::wstring sImageString;
 
-	//图片文件名，不包含属性
-	std::wstring sImageName;
+	//图片文件文件名，含相对路径，不包含属性
+	std::wstring sImagePath;
 
 	//绘制目标区域大小位置
 	UiRect rcDest;
@@ -187,10 +187,6 @@ class UILIB_API Image
 public:
 	Image();
 
-	/** 判断图片信息是否有效
-	*/
-	bool IsValid() const { return (m_imageCache.get() != nullptr); }
-
 	/** 初始化图片属性
 	*/
 	void InitImageAttribute();
@@ -200,14 +196,19 @@ public:
 	*/
 	void SetImageString(const std::wstring& strImageString);
 
-	/** 清除图片信息缓存数据
+	/** 获取图片属性（含文件名，和图片设置属性等）
 	*/
-	void ClearCache();
+	const std::wstring& GetImageString() const;
+
+	/** 获取图片文件名（含相对路径，不含图片属性）
+	*/
+	const std::wstring GetImagePath() const;
 
 	/** 获取图片属性（只读）
 	*/
 	const ImageAttribute& GetImageAttribute() const;
 
+public:
 	/** 获取图片信息接口
 	*/
 	const std::shared_ptr<ImageInfo>& GetImageCache() const;
@@ -215,6 +216,10 @@ public:
 	/** 设置图片信息接口
 	*/
 	void SetImageCache(const std::shared_ptr<ImageInfo>& imageInfo);
+
+	/** 清除图片信息缓存数据, 释放资源
+	*/
+	void ClearImageCache();
 
 public:
 	/** 设置图片属性：播放次数（仅当多帧图片时）
@@ -308,7 +313,7 @@ public:
 	/** 获取图片文件名
 	*@param [in] stateType 图片类型
 	*/
-	std::wstring GetImageFilePath(ControlStateType stateType) const;
+	std::wstring GetImagePath(ControlStateType stateType) const;
 
 	/** 获取图片的源区域大小
 	*@param [in] stateType 图片类型
@@ -343,7 +348,7 @@ public:
 
 	/** 清空图片缓存，释放资源
 	*/
-	void ClearCache();
+	void ClearImageCache();
 
 private:
 	//关联的控件接口
@@ -358,7 +363,7 @@ private:
 class UILIB_API StateImageMap
 {
 public:
-	StateImageMap()	{ }
+	StateImageMap();
 
 	/** 设置关联的控件接口
 	*/
@@ -395,10 +400,13 @@ public:
 
 	/** 清除所有图片类型的缓存，释放资源
 	*/
-	void ClearCache();
+	void ClearImageCache();
 
 private:
-	//每个图片类型的状态图片
+	//关联的控件接口
+	Control* m_pControl;
+
+	//每个图片类型的状态图片(正常状态前景图片、背景图片；选择状态的前景图片、背景图片)
 	std::map<StateImageType, StateImage> m_stateImageMap;
 };
 

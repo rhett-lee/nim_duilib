@@ -3113,7 +3113,7 @@ void RichEdit::PaintPromptText(IRenderContext* pRender)
 
 std::wstring RichEdit::GetFocusedImage()
 {
-	return m_sFocusedImage.GetImageAttribute().simageString;
+	return m_sFocusedImage.GetImageString();
 }
 
 void RichEdit::SetFocusedImage( const std::wstring& strImage )
@@ -3288,7 +3288,7 @@ bool RichEdit::HittestCustomLink(UiPoint pt, std::wstring& info)
 void RichEdit::ClearImageCache()
 {
 	__super::ClearImageCache();
-	m_sFocusedImage.ClearCache();
+	m_sFocusedImage.ClearImageCache();
 }
 
 //----------------下面函数用作辅助 字节数限制
