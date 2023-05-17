@@ -1,4 +1,5 @@
 #include "CircleProgress.h"
+#include "duilib/Image/GdiPlusDefs.h"
 #include <shlwapi.h>
 
 namespace ui

@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include "duilib/Image/GdiPlusDefs.h"
 #include "duilib/Core/Define.h"
 #include "duilib/duilib_defs.h"
 #include <memory>
@@ -149,10 +148,10 @@ public:
 	//图片文件文件名，含相对路径，不包含属性
 	std::wstring sImagePath;
 
-	//绘制目标区域大小位置
+	//绘制目标区域位置和大小（相对于控件区域的位置）
 	UiRect rcDest;
 
-	//图片源区域大小和位置
+	//图片源区域位置和大小
 	UiRect rcSource;
 
 	//圆角属性

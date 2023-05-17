@@ -661,7 +661,7 @@ UiSize Control::EstimateSize(UiSize szAvailable)
 				return GetFixedSize();
 			}
 
-			GetImage(*image);
+			LoadImageData(*image);
 			std::shared_ptr<ImageInfo> imageCache = image->GetImageCache();
 			if (imageCache) {
 				if (GetFixedWidth() == DUI_LENGTH_AUTO) {
@@ -1174,27 +1174,28 @@ bool Control::OnApplyAttributeList(const std::wstring& strReceiver, const std::w
 	return true;
 }
 
-void Control::GetImage(Image& duiImage) const
+bool Control::LoadImageData(Image& duiImage) const
 {
 	Window* pWindow = GetWindow();
 	ASSERT(pWindow != nullptr);
 	if (pWindow == nullptr) {
-		return;
+		return false;
 	}
 
 	std::wstring sImagePath = duiImage.GetImagePath();
-	std::wstring imageFullPath = GlobalManager::GetResPath(sImagePath, pWindow->GetResourcePath());
-
-	imageFullPath = StringHelper::ReparsePath(imageFullPath);
-
+	if (sImagePath.empty()) {
+		return false;
+	}
+	std::wstring imageFullPath = GlobalManager::GetResFullPath(pWindow->GetResourcePath(), sImagePath);
 	std::shared_ptr<ImageInfo> imageCache = duiImage.GetImageCache();
 	if (!imageCache || imageCache->GetImageFullPath() != imageFullPath) {
 		imageCache = GlobalManager::GetImage(imageFullPath);
 		duiImage.SetImageCache(imageCache);
 	}
+	return imageCache ? true : false;
 }
 
-bool Control::DrawImage(IRenderContext* pRender, Image& duiImage, const std::wstring& strModify /*= L""*/, int nFade /*= DUI_NOSET_VALUE*/)
+bool Control::DrawImage(IRenderContext* pRender, Image& duiImage, const std::wstring& strModify, int nFade)
 {
 	ASSERT(pRender != nullptr);
 	if (pRender == nullptr) {
@@ -1204,8 +1205,7 @@ bool Control::DrawImage(IRenderContext* pRender, Image& duiImage, const std::wst
 		return false;
 	}
 
-	GetImage(duiImage);
-
+	LoadImageData(duiImage);
 	if (!duiImage.GetImageCache()) {
 		ASSERT(FALSE);
 		duiImage.InitImageAttribute();
@@ -1217,26 +1217,32 @@ bool Control::DrawImage(IRenderContext* pRender, Image& duiImage, const std::wst
 		newImageAttribute.ModifyAttribute(strModify);
 	}
 	UiRect rcNewDest = GetRect();
-	if (newImageAttribute.rcDest.left != DUI_NOSET_VALUE && newImageAttribute.rcDest.top != DUI_NOSET_VALUE
-		&& newImageAttribute.rcDest.right != DUI_NOSET_VALUE && newImageAttribute.rcDest.bottom != DUI_NOSET_VALUE) {
-		rcNewDest.left = GetRect().left + newImageAttribute.rcDest.left;
-		rcNewDest.right = GetRect().left + newImageAttribute.rcDest.right;
-		rcNewDest.top = GetRect().top + newImageAttribute.rcDest.top;
+	if ((newImageAttribute.rcDest.left != DUI_NOSET_VALUE)   && 
+		(newImageAttribute.rcDest.top != DUI_NOSET_VALUE)    && 
+		(newImageAttribute.rcDest.right != DUI_NOSET_VALUE)  && 
+		(newImageAttribute.rcDest.bottom != DUI_NOSET_VALUE)) {
+		rcNewDest.left   = GetRect().left + newImageAttribute.rcDest.left;
+		rcNewDest.right  = GetRect().left + newImageAttribute.rcDest.right;
+		rcNewDest.top    = GetRect().top + newImageAttribute.rcDest.top;
 		rcNewDest.bottom = GetRect().top + newImageAttribute.rcDest.bottom;
 	}
 	UiRect rcNewSource = newImageAttribute.rcSource;
-	if (rcNewSource.left == DUI_NOSET_VALUE || rcNewSource.top == DUI_NOSET_VALUE
-		|| rcNewSource.right == DUI_NOSET_VALUE || rcNewSource.bottom == DUI_NOSET_VALUE) {
+	if ((rcNewSource.left == DUI_NOSET_VALUE)  || 
+		(rcNewSource.top == DUI_NOSET_VALUE)   || 
+		(rcNewSource.right == DUI_NOSET_VALUE) || 
+		(rcNewSource.bottom == DUI_NOSET_VALUE)) {
 		rcNewSource.left = 0;
 		rcNewSource.top = 0;
 		rcNewSource.right = duiImage.GetImageCache()->GetWidth();
 		rcNewSource.bottom = duiImage.GetImageCache()->GetHeight();
 	}
 
+	bool isPlayingGif = false;
 	if (m_bkImage->GetImageCache() && m_bkImage->GetImageCache()->IsMultiFrameImage() && m_bGifPlay && !m_bkImage->IsPlaying()) {
-		GifPlay();
+		isPlayingGif = GifPlay();
 	}
-	else {
+	
+	if(!isPlayingGif){
 		BYTE iFade = (nFade == DUI_NOSET_VALUE) ? newImageAttribute.bFade : static_cast<BYTE>(nFade);
 		std::shared_ptr<ImageInfo> imageInfo = duiImage.GetImageCache();
 		if (imageInfo) {
@@ -1246,10 +1252,19 @@ bool Control::DrawImage(IRenderContext* pRender, Image& duiImage, const std::wst
 				hCurrentBitmap = GdiHelper::RotateBitmapAroundCenter(hCurrentBitmap, m_fCurrrentAngele);
 				needDeleteObj = true;
 			}
-			pRender->DrawImage(m_rcPaint, hCurrentBitmap, imageInfo->IsAlpha(),
-				rcNewDest, rcNewSource, newImageAttribute.rcCorner, imageInfo->IsBitmapSizeDpiScaled(), iFade,
-				newImageAttribute.bTiledX, newImageAttribute.bTiledY, newImageAttribute.bFullTiledX, newImageAttribute.bFullTiledY,
-				newImageAttribute.nTiledMargin);
+            pRender->DrawImage(m_rcPaint, 
+							   hCurrentBitmap, 
+							   imageInfo->IsAlpha(),
+							   rcNewDest, 
+							   rcNewSource, 
+							   newImageAttribute.rcCorner, 
+							   imageInfo->IsBitmapSizeDpiScaled(), 
+							   iFade,
+							   newImageAttribute.bTiledX, 
+							   newImageAttribute.bTiledY, 
+							   newImageAttribute.bFullTiledX, 
+							   newImageAttribute.bFullTiledY,
+							   newImageAttribute.nTiledMargin);
 			if (needDeleteObj) {
 				::DeleteObject(hCurrentBitmap);
 			}
@@ -1259,10 +1274,14 @@ bool Control::DrawImage(IRenderContext* pRender, Image& duiImage, const std::wst
 	return true;
 }
 
-ui::IRenderContext* Control::GetRenderContext()
+IRenderContext* Control::GetRenderContext()
 {
 	if (!m_renderContext) {
-		m_renderContext = GlobalManager::CreateRenderContext();
+		IRenderFactory* pRenderFactory = GlobalManager::GetRenderFactory();
+		ASSERT(pRenderFactory != nullptr);
+		if (pRenderFactory != nullptr) {
+			m_renderContext.reset(pRenderFactory->CreateRenderContext());
+		}
 	}
 	return m_renderContext.get();
 }
@@ -1538,7 +1557,7 @@ void Control::PaintLoading(IRenderContext* pRender)
         return;
     }
 
-    GetImage(*m_loadingImage);
+	LoadImageData(*m_loadingImage);
 	std::shared_ptr<ImageInfo> spImageInfo = m_loadingImage->GetImageCache();
 	ASSERT(spImageInfo != nullptr);
     if (!spImageInfo) {
@@ -1612,50 +1631,56 @@ void Control::SetRenderOffsetY(int renderOffsetY)
 	Invalidate();
 }
 
-void Control::GifPlay()
+bool Control::GifPlay()
 {
 	if (!m_bkImage->GetImageCache() || !m_bkImage->GetImageCache()->IsMultiFrameImage() || !m_bkImage->ContinuePlay()) {
 		m_bkImage->SetPlaying(false);
 		m_gifWeakFlag.Cancel();
-		return;
+		return false;
 	}
 
 	if (!m_bkImage->IsPlaying()) {
 		m_bkImage->SetCurrentFrame(0);
 		m_gifWeakFlag.Cancel();
-		int lPause = m_bkImage->GetCurrentInterval();
-		if (lPause == 0)
-			return;
+		int timerInterval = m_bkImage->GetCurrentInterval();//≤•∑≈º‰∏Ù£∫∫¡√Î
+		if (timerInterval <= 0) {
+			return false;
+		}
 		m_bkImage->SetPlaying(true);
 		auto gifPlayCallback = nbase::Bind(&Control::GifPlay, this);
-		TimerManager::GetInstance()->AddCancelableTimer(m_gifWeakFlag.GetWeakFlag(), gifPlayCallback,
-			lPause, TimerManager::REPEAT_FOREVER);
+		TimerManager::GetInstance()->AddCancelableTimer(m_gifWeakFlag.GetWeakFlag(), 
+													    gifPlayCallback,
+														timerInterval, 
+													    TimerManager::REPEAT_FOREVER);
 	}
 	else {
-		int lPrePause = m_bkImage->GetCurrentInterval();
+		int preInterval = m_bkImage->GetCurrentInterval();
 		m_bkImage->IncrementCurrentFrame();
-		int lPause = m_bkImage->GetCurrentInterval();
-		if (!m_bkImage->ContinuePlay())
-		{
+		int nowInterval = m_bkImage->GetCurrentInterval();
+		if (!m_bkImage->ContinuePlay()) {
 			StopGifPlayForUI(true, kGifStopLast);
 		}
 		else
 		{
-			if (lPrePause == 0 || lPause == 0) {//0~{1mJ>~}GetCurrentInterval~{3v4m~}
+			if ((preInterval <= 0) || (nowInterval <= 0)) {
 				m_bkImage->SetPlaying(false);
 				m_gifWeakFlag.Cancel();
-				return;
+				return false;
 			}
 
-			if (lPrePause != lPause) {
+			if (preInterval != nowInterval) {
 				m_gifWeakFlag.Cancel();
+				m_bkImage->SetPlaying(true);
 				auto gifPlayCallback = nbase::Bind(&Control::GifPlay, this);
-				TimerManager::GetInstance()->AddCancelableTimer(m_gifWeakFlag.GetWeakFlag(), gifPlayCallback,
-					lPause, TimerManager::REPEAT_FOREVER);
+				TimerManager::GetInstance()->AddCancelableTimer(m_gifWeakFlag.GetWeakFlag(), 
+																gifPlayCallback,
+																nowInterval, 
+															    TimerManager::REPEAT_FOREVER);
 			}
 		}			
 	}
 	Invalidate();
+	return m_bkImage->IsPlaying();
 }
 
 void Control::StopGifPlay(GifStopType frame)
@@ -1671,15 +1696,14 @@ void Control::StopGifPlay(GifStopType frame)
 
 void Control::StartGifPlayForUI(GifStopType frame, int playcount)
 {
-	GetImage(*m_bkImage);
+	LoadImageData(*m_bkImage);
 	if (!m_bkImage->GetImageCache() || !m_bkImage->GetImageCache()->IsMultiFrameImage()) {
 		m_bGifPlay = false;
 		m_bkImage->SetPlaying(false);
 		m_gifWeakFlag.Cancel();
 		return;
 	}
-	if (playcount == 0)
-	{
+	if (playcount == 0)	{
 		StopGifPlayForUI(false);
 	}		
 	else
@@ -1687,8 +1711,8 @@ void Control::StartGifPlayForUI(GifStopType frame, int playcount)
 		m_gifWeakFlag.Cancel();
 		m_bGifPlay = true;
 		m_bkImage->SetCurrentFrame(GetGifFrameIndex(frame));
-		int lPause = m_bkImage->GetCurrentInterval();
-		if (lPause == 0) {
+		int timerInterval = m_bkImage->GetCurrentInterval();
+		if (timerInterval <= 0) {
 			m_bGifPlay = false;
 			return;
 		}
@@ -1696,8 +1720,10 @@ void Control::StartGifPlayForUI(GifStopType frame, int playcount)
 		m_bkImage->SetImagePlayCount(playcount);
 		m_bkImage->ClearCycledCount();
 		auto gifPlayCallback = nbase::Bind(&Control::GifPlay, this);
-		TimerManager::GetInstance()->AddCancelableTimer(m_gifWeakFlag.GetWeakFlag(), gifPlayCallback,
-			lPause, TimerManager::REPEAT_FOREVER);
+		TimerManager::GetInstance()->AddCancelableTimer(m_gifWeakFlag.GetWeakFlag(), 
+													    gifPlayCallback,
+													    timerInterval, 
+													    TimerManager::REPEAT_FOREVER);
 		Invalidate();
 	}	
 }
@@ -1706,8 +1732,9 @@ void Control::StopGifPlayForUI(bool transfer, GifStopType frame)
 {
 	m_bGifPlay = false;
 	StopGifPlay(frame);
-	if (transfer)
+	if (transfer) {
 		BroadcastGifEvent(m_nVirtualEventGifStop);
+	}
 }
 
 size_t Control::GetGifFrameIndex(GifStopType frame)
@@ -1749,12 +1776,11 @@ void Control::InvokeLoadImageCache()
 	if (sImagePath.empty()) {
 		return;
 	}
-	std::wstring imageFullPath;
 	Window* pWindow = GetWindow();
-	if (pWindow != nullptr) {
-		imageFullPath = GlobalManager::GetResPath(sImagePath, pWindow->GetResourcePath());
+	if (pWindow == nullptr) {
+		return;
 	}
-
+	std::wstring imageFullPath = GlobalManager::GetResFullPath(pWindow->GetResourcePath(), sImagePath);
 	if (!m_bkImage->GetImageCache() || m_bkImage->GetImageCache()->GetImageFullPath() != imageFullPath) {
 		auto shared_image = GlobalManager::IsImageCached(imageFullPath);
 		if (shared_image) {

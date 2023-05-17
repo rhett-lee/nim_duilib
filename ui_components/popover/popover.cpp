@@ -5,6 +5,7 @@
 
 #include "duilib/Utils/Macros.h"
 #include "duilib/Render/UiColor.h"
+#include "duilib/Render/IRender.h"
 #include "base/thread/thread_manager.h"
 #include "ui_components/public_define.h"
 
@@ -22,9 +23,13 @@ PopoverArrow::PopoverArrow(int nPlacement) :
   m_nPlacement(nPlacement),
   m_rcArea({ 0,0,0,0 })
 {
-  m_pPath = ui::GlobalManager::CreatePath();
-  m_pPen = ui::GlobalManager::CreatePen(ui::UiColor(0xFFFFFFFF), 1);
-  m_pBrush = ui::GlobalManager::CreateBrush(ui::UiColor(0xFFFFFFFF));
+    ui::IRenderFactory* pRenderFactory = ui::GlobalManager::GetRenderFactory();
+    ASSERT(pRenderFactory != nullptr);
+    if (pRenderFactory != nullptr) {
+        m_pPath.reset(pRenderFactory->CreatePath());
+        m_pPen.reset(pRenderFactory->CreatePen(ui::UiColor(0xFFFFFFFF), 1));
+        m_pBrush.reset(pRenderFactory->CreateBrush(ui::UiColor(0xFFFFFFFF)));
+    }
 }
 
 PopoverArrow::~PopoverArrow()

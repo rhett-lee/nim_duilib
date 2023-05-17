@@ -492,7 +492,12 @@ void Window::InitWnd(HWND hWnd)
 	m_hDcPaint = ::GetDC(hWnd);
 
 	ASSERT(m_renderContext == nullptr);
-	m_renderContext = GlobalManager::CreateRenderContext();
+	IRenderFactory* pRenderFactory = GlobalManager::GetRenderFactory();
+	ASSERT(pRenderFactory != nullptr);
+	if (pRenderFactory != nullptr) {
+		m_renderContext.reset(pRenderFactory->CreateRenderContext());
+	}
+	ASSERT(m_renderContext != nullptr);
 
 	RegisterTouchWindowWrapper(hWnd, 0);
 }
@@ -570,7 +575,7 @@ void Window::SetResourcePath(const std::wstring& strPath)
 		if (cEnd != _T('\\') && cEnd != _T('/')) {
 			m_strResourcePath += _T('\\');
 		}
-	}	
+	}
 }
 
 void Window::AddClass(const std::wstring& strClassName, const std::wstring& strControlAttrList)

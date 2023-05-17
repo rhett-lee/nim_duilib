@@ -12,7 +12,7 @@ FontManager* FontManager::GetInstance()
 
 void FontManager::AddFontResource(const std::wstring& strFontFile, const std::wstring& strFontName)
 {
-	std::wstring path = GlobalManager::GetResPath(L"font\\" + strFontFile, L"");
+	std::wstring path = GlobalManager::GetResFullPath(L"", L"font\\" + strFontFile);
 	bool res = false;
 	if (GlobalManager::IsUseZip()) {
 		std::vector<unsigned char> file_data;

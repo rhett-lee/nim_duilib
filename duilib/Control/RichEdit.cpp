@@ -2333,7 +2333,7 @@ UiSize RichEdit::EstimateSize(UiSize /*szAvailable*/)
 		SIZEL szExtent = { -1, -1 };
 		m_pTwh->GetTextServices()->TxGetNaturalSize(
 			DVASPECT_CONTENT, 
-			GetWindowDC(), 
+			GetWindowDC(),
 			NULL,
 			NULL,
 			TXTNS_FITTOCONTENT,

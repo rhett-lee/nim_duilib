@@ -16,11 +16,6 @@
 namespace ui 
 {
 	class IRenderFactory;
-	class IRenderContext;
-	class IPen;
-	class IBrush;
-	class IMatrix;
-	class IPath;
 	class ImageInfo;
 
 /**
@@ -101,39 +96,6 @@ public:
 	 * @return 返回接口类对象指针
 	 */
 	static IRenderFactory* GetRenderFactory();
-
-	/**
-	 * @brief 创建全局的绘制上下文区域
-	 * @return 返回绘制区域对象
-	 */
-	static std::unique_ptr<IRenderContext> CreateRenderContext();
-
-	/**
-	 * @brief 创建一个画笔
-	 * @param[in] color 画笔颜色
-	 * @param[in] width 画笔宽度
-	 * @return 返回画笔对象
-	 */
-	static std::unique_ptr<IPen> CreatePen(UiColor color, int width = 1);
-
-	/**
-	 * @brief 创建一个画刷
-	 * @param[in] color 画刷颜色
-	 * @return 返回画刷对象
-	 */
-	static std::unique_ptr<IBrush> CreateBrush(UiColor color);
-
-	/**
-	 * @brief 创建一个矩阵
-	 * @return 返回矩阵对象
-	 */
-	static std::unique_ptr<IMatrix> CreateMatrix();
-
-	/**
-	 * @brief 创建一个绘制路径
-	 * @return 返回绘制路径对象
-	 */
-	static std::unique_ptr<IPath> CreatePath();
 
 	/**
 	 * @brief 添加一个全局 class 属性
@@ -412,7 +374,7 @@ public:
 	 * @param[in] path 要获取的资源路径
 	 * @return 可用的资源路径
 	 */
-	static std::wstring GetResPath(const std::wstring& res_path, const std::wstring& window_res_path);
+	static std::wstring GetResFullPath(const std::wstring& window_res_path, const std::wstring& res_path);
 
 	/**
 	 * @brief 判断资源是否存在zip当中

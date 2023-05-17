@@ -248,7 +248,13 @@ HBITMAP TaskbarManager::GenerateBindControlBitmapWithForm(ui::Control *control)
 		return nullptr;
 
 	// 1.创建内存dc
-	auto render = GlobalManager::CreateRenderContext();
+	std::unique_ptr<IRenderContext> render;
+	IRenderFactory* pRenderFactory = GlobalManager::GetRenderFactory();
+	ASSERT(pRenderFactory != nullptr);
+	if (pRenderFactory != nullptr) {
+		render.reset(pRenderFactory->CreateRenderContext());
+	}
+	ASSERT(render != nullptr);
 	render->Resize(window_width, window_height);
 
 	// 2.把窗口双缓冲的位图画到内存dc
@@ -305,7 +311,13 @@ HBITMAP TaskbarManager::GenerateBindControlBitmap(ui::Control *control, const in
 		return nullptr;
 
 	// 1.创建内存dc
-	auto render = GlobalManager::CreateRenderContext();
+	std::unique_ptr<IRenderContext> render;
+	IRenderFactory* pRenderFactory = GlobalManager::GetRenderFactory();
+	ASSERT(pRenderFactory != nullptr);
+	if (pRenderFactory != nullptr) {
+		render.reset(pRenderFactory->CreateRenderContext());
+	}
+	ASSERT(render != nullptr);
 	render->Resize(window_width, window_height);
 
 	// 2.把某个会话盒子的位图画到内存dc，覆盖原窗口对应位置的位图
@@ -330,7 +342,13 @@ HBITMAP TaskbarManager::GenerateBindControlBitmap(ui::Control *control, const in
 
 HBITMAP TaskbarManager::ResizeBitmap(int dest_width, int dest_height, HDC src_dc, int src_x, int src_y, int src_width, int src_height)
 {
-	auto render = GlobalManager::CreateRenderContext();
+	std::unique_ptr<IRenderContext> render;
+	IRenderFactory* pRenderFactory = GlobalManager::GetRenderFactory();
+	ASSERT(pRenderFactory != nullptr);
+	if (pRenderFactory != nullptr) {
+		render.reset(pRenderFactory->CreateRenderContext());
+	}
+	ASSERT(render != nullptr);
 	if (render->Resize(dest_width, dest_height))
 	{
 		int scale_width = 0;

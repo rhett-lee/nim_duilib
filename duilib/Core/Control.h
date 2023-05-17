@@ -593,11 +593,11 @@ public:
 
 	/// 绘制操作
 	/**
-	 * @brief 根据图片路径缓存图片信息
+	 * @brief 根据图片路径, 加载图片信息到缓存中
 	 * @param[in，out] duiImage 传入时标注图片的路径信息，如果成功则会缓存图片并记录到该参数的成员中
 	 * @return 无
 	 */
-	void GetImage(Image& duiImage) const;
+	bool LoadImageData(Image& duiImage) const;
 
 	/**
 	 * @brief 绘制图片
@@ -986,8 +986,8 @@ public:
 
 protected:
 	
-	/// Gif图片
-	void GifPlay();
+	/// Gif等多帧图片，播放动画
+	bool GifPlay();
 	void StopGifPlay(GifStopType frame = kGifStopCurrent);
 
 	//处理放弃控件焦点相关逻辑

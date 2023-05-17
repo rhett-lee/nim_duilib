@@ -206,9 +206,14 @@ HBITMAP MultiBrowserForm::GenerateBoxOffsetRenderBitmap(const UiRect& src_rect)
 	int src_width = src_rect.right - src_rect.left;
 	int src_height = src_rect.bottom - src_rect.top;
 
-	auto render = GlobalManager::CreateRenderContext();
-	if (render->Resize(kDragImageWidth, kDragImageHeight))
-	{
+	std::unique_ptr<IRenderContext> render;
+	IRenderFactory* pRenderFactory = GlobalManager::GetRenderFactory();
+	ASSERT(pRenderFactory != nullptr);
+	if (pRenderFactory != nullptr) {
+		render.reset(pRenderFactory->CreateRenderContext());
+	}
+	ASSERT(render != nullptr);
+	if (render->Resize(kDragImageWidth, kDragImageHeight)) {
 		int dest_width = 0;
 		int dest_height = 0;
 		float scale = (float)src_width / (float)src_height;
@@ -252,9 +257,14 @@ HBITMAP MultiBrowserForm::GenerateBoxWindowBitmap()
 	//复制Cef内部子窗体的位图到内存DC
 	BitBlt(cef_Dc, 0, 0, src_width, src_height, cef_window_dc, 0, 0, SRCCOPY);
 
-	auto render = GlobalManager::CreateRenderContext();
-	if (render->Resize(kDragImageWidth, kDragImageHeight))
-	{
+	std::unique_ptr<IRenderContext> render;
+	IRenderFactory* pRenderFactory = GlobalManager::GetRenderFactory();
+	ASSERT(pRenderFactory != nullptr);
+	if (pRenderFactory != nullptr) {
+		render.reset(pRenderFactory->CreateRenderContext());
+	}
+	ASSERT(render != nullptr);
+	if (render->Resize(kDragImageWidth, kDragImageHeight)) {
 		int dest_width = 0;
 		int dest_height = 0;
 		float scale = (float)src_width / (float)src_height;

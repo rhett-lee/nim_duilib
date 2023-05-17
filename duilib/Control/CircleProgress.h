@@ -13,6 +13,11 @@
 #include "duilib/Control/Progress.h"
 #include "duilib/Render/UiColor.h"
 
+namespace Gdiplus
+{
+	class Image;
+}
+
 namespace ui
 {
 

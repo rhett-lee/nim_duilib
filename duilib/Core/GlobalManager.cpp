@@ -14,6 +14,8 @@
 #include "duilib/Image/Image.h"
 #include "duilib/Image/ImageDecoder.h"
 
+#include "duilib/Image/GdiPlusDefs.h"
+
 #include <commctrl.h>
 #include <tchar.h>
 #include <unordered_set>
@@ -123,7 +125,7 @@ void GlobalManager::Startup(const std::wstring& strResourcePath, const CreateCon
 		MultiLangSupport::GetInstance()->LoadStringTable(GetLanguagePath() + L"\\" + kLanguageFileName);
 	}
 
-	GdiplusStartup(&g_gdiplusToken, &g_gdiplusStartupInput, NULL);
+	Gdiplus::GdiplusStartup(&g_gdiplusToken, &g_gdiplusStartupInput, NULL);
 	// Boot Windows Common Controls (for the ToolTip control)
 	::InitCommonControls();
 }
@@ -153,9 +155,13 @@ std::wstring GlobalManager::GetLanguagePath()
 void GlobalManager::SetResourcePath(const std::wstring& strPath)
 {
 	m_pStrResourcePath = strPath;
-	if (m_pStrResourcePath.empty()) return;
-	TCHAR cEnd = m_pStrResourcePath.at(m_pStrResourcePath.length() - 1);
-	if (cEnd != _T('\\') && cEnd != _T('/')) m_pStrResourcePath += _T('\\');
+	if (!m_pStrResourcePath.empty()) {
+		//确保路径最后字符是分割字符
+		TCHAR cEnd = m_pStrResourcePath.back();
+		if (cEnd != _T('\\') && cEnd != _T('/')) {
+			m_pStrResourcePath += _T('\\');
+		}
+	}
 }
 
 void GlobalManager::SetLanguagePath(const std::wstring& strPath)
@@ -214,44 +220,9 @@ void GlobalManager::ReloadLanguage(const std::wstring& languagePath, bool invali
 
 }
 
-ui::IRenderFactory* GlobalManager::GetRenderFactory()
+IRenderFactory* GlobalManager::GetRenderFactory()
 {
 	return m_renderFactory.get();
-}
-
-std::unique_ptr<ui::IRenderContext> GlobalManager::CreateRenderContext()
-{
-	std::unique_ptr<ui::IRenderContext> p;
-	p.reset(m_renderFactory->CreateRenderContext());
-	return p;
-}
-
-std::unique_ptr<ui::IPen> GlobalManager::CreatePen(UiColor color, int width /*= 1*/)
-{
-	std::unique_ptr<ui::IPen> p;
-	p.reset(m_renderFactory->CreatePen(color, width));
-	return p;
-}
-
-std::unique_ptr<ui::IBrush> GlobalManager::CreateBrush(UiColor color)
-{
-	std::unique_ptr<ui::IBrush> p;
-	p.reset(m_renderFactory->CreateBrush(color));
-	return p;
-}
-
-std::unique_ptr<ui::IMatrix> GlobalManager::CreateMatrix()
-{
-	std::unique_ptr<ui::IMatrix> p;
-	p.reset(m_renderFactory->CreateMatrix());
-	return p;
-}
-
-std::unique_ptr<ui::IPath> GlobalManager::CreatePath()
-{
-	std::unique_ptr<ui::IPath> p;
-	p.reset(m_renderFactory->CreatePath());
-	return p;
 }
 
 void GlobalManager::AddClass(const std::wstring& strClassName, const std::wstring& strControlAttrList)
@@ -712,9 +683,9 @@ std::wstring GlobalManager::GetZipFilePath(const std::wstring& path)
 	return file_path;
 }
 
-std::wstring GlobalManager::GetResPath(const std::wstring& res_path, const std::wstring& window_res_path)
+std::wstring GlobalManager::GetResFullPath(const std::wstring& window_res_path, const std::wstring& res_path)
 {
-	if (!::PathIsRelative(res_path.c_str())){
+	if (res_path.empty() || !::PathIsRelative(res_path.c_str())){
 		return res_path;
 	}
 
