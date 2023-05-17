@@ -1,6 +1,5 @@
 #include "Path.h"
 #include "duilib/Render/Pen.h"
-#include "duilib/Render/Matrix.h"
 #include "duilib/Image/GdiPlusDefs.h"
 
 namespace ui {
@@ -154,19 +153,6 @@ bool Path_Gdiplus::IsStrokeContainsPoint(int x, int y, const IPen* pen)
 		return false;
 	}
 	return path_->IsOutlineVisible(x, y, ((Pen_GdiPlus*)pen)->GetPen()) == TRUE;
-}
-
-void Path_Gdiplus::Transform(const IMatrix* matrix)
-{
-	ASSERT(matrix != nullptr);
-	if (matrix == nullptr) {
-		return;
-	}
-	auto p = dynamic_cast<const Matrix_Gdiplus*>(matrix);
-	ASSERT(p != nullptr);
-	if (p) {
-		path_->Transform(p->GetMatrix());
-	}	
 }
 
 Gdiplus::GraphicsPath* Path_Gdiplus::GetPath() const

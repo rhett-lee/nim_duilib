@@ -45,7 +45,6 @@ public:
 	virtual bool IsContainsPoint(int x, int y) override;
 	virtual bool IsStrokeContainsPoint(int x, int y, const IPen* pen) override;
 
-	virtual void Transform(const IMatrix* matrix) override;
 
 	Gdiplus::GraphicsPath* GetPath() const;
 protected:

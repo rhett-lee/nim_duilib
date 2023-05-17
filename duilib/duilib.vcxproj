@@ -360,7 +360,6 @@
     <ClCompile Include="Render\Clip.cpp" />
     <ClCompile Include="Render\Factory.cpp" />
     <ClCompile Include="Render\IRender.cpp" />
-    <ClCompile Include="Render\Matrix.cpp" />
     <ClCompile Include="Render\Path.cpp" />
     <ClCompile Include="Render\Pen.cpp" />
     <ClCompile Include="Render\Render.cpp" />
@@ -425,7 +424,6 @@
     <ClInclude Include="Render\Font_GDI.h" />
     <ClInclude Include="Render\IFont.h" />
     <ClInclude Include="Render\IRender.h" />
-    <ClInclude Include="Render\Matrix.h" />
     <ClInclude Include="Render\Path.h" />
     <ClInclude Include="Render\Pen.h" />
     <ClInclude Include="Render\Render.h" />

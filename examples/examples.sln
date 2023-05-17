@@ -35,6 +35,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "grid", "grid\grid.vcxproj",
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "popover", "popover\popover.vcxproj", "{879B7BE5-249C-47E4-8160-9BE9CFA8BA3B}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "render", "render\render.vcxproj", "{E0CD42A9-0B6B-48AE-8151-1872D9EFBBB6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -155,6 +157,14 @@ Global
 		{879B7BE5-249C-47E4-8160-9BE9CFA8BA3B}.Release|Win32.Build.0 = Release|Win32
 		{879B7BE5-249C-47E4-8160-9BE9CFA8BA3B}.Release|x64.ActiveCfg = Release|x64
 		{879B7BE5-249C-47E4-8160-9BE9CFA8BA3B}.Release|x64.Build.0 = Release|x64
+		{E0CD42A9-0B6B-48AE-8151-1872D9EFBBB6}.Debug|Win32.ActiveCfg = Debug|Win32
+		{E0CD42A9-0B6B-48AE-8151-1872D9EFBBB6}.Debug|Win32.Build.0 = Debug|Win32
+		{E0CD42A9-0B6B-48AE-8151-1872D9EFBBB6}.Debug|x64.ActiveCfg = Debug|x64
+		{E0CD42A9-0B6B-48AE-8151-1872D9EFBBB6}.Debug|x64.Build.0 = Debug|x64
+		{E0CD42A9-0B6B-48AE-8151-1872D9EFBBB6}.Release|Win32.ActiveCfg = Release|Win32
+		{E0CD42A9-0B6B-48AE-8151-1872D9EFBBB6}.Release|Win32.Build.0 = Release|Win32
+		{E0CD42A9-0B6B-48AE-8151-1872D9EFBBB6}.Release|x64.ActiveCfg = Release|x64
+		{E0CD42A9-0B6B-48AE-8151-1872D9EFBBB6}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -171,6 +181,7 @@ Global
 		{D31E3A5D-7AD3-41FF-B8CF-D02FB1D0412F} = {B2087994-3DF6-4A57-B8C6-6F744520D7FA}
 		{460D27D5-75DE-4806-863E-7DD4D9315406} = {B2087994-3DF6-4A57-B8C6-6F744520D7FA}
 		{879B7BE5-249C-47E4-8160-9BE9CFA8BA3B} = {B2087994-3DF6-4A57-B8C6-6F744520D7FA}
+		{E0CD42A9-0B6B-48AE-8151-1872D9EFBBB6} = {B2087994-3DF6-4A57-B8C6-6F744520D7FA}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {68CA0970-4242-4E4F-94D2-C19760FCA05D}

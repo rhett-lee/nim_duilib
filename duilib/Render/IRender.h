@@ -121,15 +121,6 @@ protected:
 	std::unique_ptr<IBitmap> bitmap_;
 };
 
-class UILIB_API IMatrix : public virtual nbase::SupportWeakCallback
-{
-public:
-	virtual void Translate(int offsetX, int offsetY) = 0;
-	virtual void Scale(int scaleX, int scaleY) = 0;
-	virtual void Rotate(float angle) = 0;
-	virtual void RotateAt(float angle, const UiPoint& center) = 0;
-};
-
 class UILIB_API IPath : public virtual nbase::SupportWeakCallback
 {
 public:
@@ -166,8 +157,6 @@ public:
 	virtual UiRect GetBound(const IPen* pen) = 0;
 	virtual bool IsContainsPoint(int x, int y) = 0;
 	virtual bool IsStrokeContainsPoint(int x, int y, const IPen* pen) = 0;
-
-	virtual void Transform(const IMatrix* matrix) = 0;
 };
 
 class UILIB_API IRenderContext : public virtual nbase::SupportWeakCallback
@@ -238,7 +227,6 @@ public:
 	virtual ui::IPen* CreatePen(UiColor color, int width = 1) = 0;
 	virtual ui::IBrush* CreateBrush(UiColor corlor) = 0;
 	virtual ui::IBrush* CreateBrush(HBITMAP bitmap) = 0;
-	virtual ui::IMatrix* CreateMatrix() = 0;
 	virtual ui::IPath* CreatePath() = 0;
 	virtual ui::IBitmap* CreateBitmap() = 0;
 	virtual ui::IRenderContext* CreateRenderContext() = 0;

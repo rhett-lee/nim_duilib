@@ -2,7 +2,6 @@
 #include "duilib/Render/Bitmap.h"
 #include "duilib/Render/Pen.h"
 #include "duilib/Render/Brush.h"
-#include "duilib/Render/Matrix.h"
 #include "duilib/Render/Path.h"
 #include "duilib/Render/Render.h"
 
@@ -21,11 +20,6 @@ ui::IBrush* RenderFactory_GdiPlus::CreateBrush(UiColor color)
 ui::IBrush* RenderFactory_GdiPlus::CreateBrush(HBITMAP bitmap)
 {
 	return new Brush_Gdiplus(bitmap);
-}
-
-ui::IMatrix* RenderFactory_GdiPlus::CreateMatrix()
-{
-	return new Matrix_Gdiplus();
 }
 
 ui::IPath* RenderFactory_GdiPlus::CreatePath()
