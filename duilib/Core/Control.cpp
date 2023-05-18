@@ -1496,7 +1496,7 @@ void Control::PaintBorder(IRenderContext* pRender)
 				if (m_rcBorderSize.left == 1) {
 					rcBorder.bottom -= 1;
 				}
-				pRender->DrawLine(rcBorder, m_rcBorderSize.left, dwBorderColor);
+				pRender->DrawLine(UiPoint(rcBorder.left, rcBorder.top), UiPoint(rcBorder.right, rcBorder.bottom), dwBorderColor, m_rcBorderSize.left);
 			}
 			if (m_rcBorderSize.top > 0) {
 				rcBorder = GetRect();
@@ -1504,7 +1504,7 @@ void Control::PaintBorder(IRenderContext* pRender)
 				if (m_rcBorderSize.top == 1) {
 					rcBorder.right -= 1;
 				}
-				pRender->DrawLine(rcBorder, m_rcBorderSize.top, dwBorderColor);
+				pRender->DrawLine(UiPoint(rcBorder.left, rcBorder.top), UiPoint(rcBorder.right, rcBorder.bottom), dwBorderColor, m_rcBorderSize.top);
 			}
 			if (m_rcBorderSize.right > 0) {
 				rcBorder = GetRect();
@@ -1512,7 +1512,7 @@ void Control::PaintBorder(IRenderContext* pRender)
 				if (m_rcBorderSize.right == 1) {
 					rcBorder.bottom -= 1;
 				}
-				pRender->DrawLine(rcBorder, m_rcBorderSize.right, dwBorderColor);
+				pRender->DrawLine(UiPoint(rcBorder.left, rcBorder.top), UiPoint(rcBorder.right, rcBorder.bottom), dwBorderColor, m_rcBorderSize.right);
 			}
 			if (m_rcBorderSize.bottom > 0) {
 				rcBorder = GetRect();
@@ -1520,7 +1520,7 @@ void Control::PaintBorder(IRenderContext* pRender)
 				if (m_rcBorderSize.bottom == 1) {
 					rcBorder.right -= 1;
 				}
-				pRender->DrawLine(rcBorder, m_rcBorderSize.bottom, dwBorderColor);
+				pRender->DrawLine(UiPoint(rcBorder.left, rcBorder.top), UiPoint(rcBorder.right, rcBorder.bottom), dwBorderColor, m_rcBorderSize.bottom);
 			}
 		}
 		else if (m_nBorderSize > 0) {
@@ -1538,10 +1538,10 @@ void Control::PaintBorder(IRenderContext* pRender)
 			}
 
 			if (m_cxyBorderRound.cx > 0 || m_cxyBorderRound.cy > 0) {
-				pRender->DrawRoundRect(rcDraw, m_cxyBorderRound, m_nBorderSize, dwBorderColor);
+				pRender->DrawRoundRect(rcDraw, m_cxyBorderRound, dwBorderColor, m_nBorderSize);
 			}
 			else {
-				pRender->DrawRect(rcDraw, m_nBorderSize, dwBorderColor);
+				pRender->DrawRect(rcDraw, dwBorderColor, m_nBorderSize);
 			}
 		}
 	}

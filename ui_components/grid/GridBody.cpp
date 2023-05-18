@@ -1349,7 +1349,7 @@ namespace ui
 				{
 					posy += m_vLayout[i];
 					rcLineH.top = rcLineH.bottom = posy - 1;
-					pRender->DrawLine(rcLineH, 1, dwGridLineColor);
+					pRender->DrawLine(UiPoint(rcLineH.left, rcLineH.top), UiPoint(rcLineH.right, rcLineH.bottom), dwGridLineColor, 1);
 				}
 				//draw HLine
 				for (size_t i = m_nFixedRow; i < m_vLayout.size(); i++)
@@ -1360,7 +1360,7 @@ namespace ui
 					if (posy - szOff.cy > fixed_row_height && posy - szOff.cy < grid_height)
 					{
 						rcLineH.top = rcLineH.bottom = posy - szOff.cy - 1;
-						pRender->DrawLine(rcLineH, 1, dwGridLineColor);
+						pRender->DrawLine(UiPoint(rcLineH.left, rcLineH.top), UiPoint(rcLineH.right, rcLineH.bottom), dwGridLineColor, 1);
 					}
 				}
 			
@@ -1372,7 +1372,7 @@ namespace ui
 				{
 					posx += m_hLayout[i];
 					rcLineV.left = rcLineV.right = posx - 1;
-					pRender->DrawLine(rcLineV, 1, dwGridLineColor);
+					pRender->DrawLine(UiPoint(rcLineV.left, rcLineV.top), UiPoint(rcLineV.right, rcLineV.bottom), dwGridLineColor, 1);
 				}
 				//draw VLine
 				for (size_t i = m_nFixedCol; i < m_hLayout.size(); i++)
@@ -1383,7 +1383,7 @@ namespace ui
 					if (posx - szOff.cx > fixed_col_width)
 					{
 						rcLineV.left = rcLineV.right = posx - szOff.cx - 1;
-						pRender->DrawLine(rcLineV, 1, dwGridLineColor);
+						pRender->DrawLine(UiPoint(rcLineV.left, rcLineV.top), UiPoint(rcLineV.right, rcLineV.bottom), dwGridLineColor, 1);
 					}
 				}
 
@@ -1393,7 +1393,7 @@ namespace ui
 					int pos = m_ptDragColumnMoving.x + m_nDrawDragColumnMovingOffX;
 					UiRect rcLine = { pos, 0, pos, m_pGrid->GetHeight() };
 					UiColor dwColorLine(0x8f888888);
-					pRender->DrawLine(rcLine, 2, dwColorLine);
+					pRender->DrawLine(UiPoint(rcLine.left, rcLine.top), UiPoint(rcLine.right, rcLine.bottom), dwColorLine, 2);
 				}
 			}
 			
@@ -1420,14 +1420,14 @@ namespace ui
 			UiRect rcPaint = GetPos();
 			rcPaint.bottom = rcPaint.top + fixed_row_height;
 			rcPaint.right = rcPaint.left + (GetFixedWidth() - szOff.cx > grid_width ? grid_width : GetFixedWidth() - szOff.cx);
-			pRender->DrawColor(rcPaint, m_strFixedBkColor, 255);
+			pRender->DrawColor(rcPaint, GlobalManager::GetTextColor(m_strFixedBkColor), 255);
 		}
 		if (fixed_col_width > 0)
 		{
 			UiRect rcPaint = GetPos();
 			rcPaint.right = rcPaint.left + fixed_col_width;
 			rcPaint.bottom = rcPaint.top + (GetFixedHeight() - szOff.cy > grid_height ? grid_height : GetFixedHeight() - szOff.cy);
-			pRender->DrawColor(rcPaint, m_strFixedBkColor, 255);
+			pRender->DrawColor(rcPaint, GlobalManager::GetTextColor(m_strFixedBkColor), 255);
 		}
 
 		//draw fixed col && fixed row text
@@ -1544,11 +1544,11 @@ namespace ui
 						//绘制单元格背景色
 						if (pItem->IsSelected())
 						{
-							pRender->DrawColor(rc, m_strSelForeColor, 255);
+							pRender->DrawColor(rc, GlobalManager::GetTextColor(m_strSelForeColor), 255);
 						}
 						else if (!pItem->bk_color.empty())
 						{
-							pRender->DrawColor(rc, pItem->bk_color, 255);
+							pRender->DrawColor(rc, GlobalManager::GetTextColor(pItem->bk_color), 255);
 						}
 
 						//绘制text

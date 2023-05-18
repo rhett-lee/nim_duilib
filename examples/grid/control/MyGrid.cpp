@@ -163,14 +163,14 @@ void MyGridBody::PaintBody(IRenderContext* pRender)
 		UiRect rcPaint = GetPos();
 		rcPaint.bottom = rcPaint.top + fixed_row_height;
 		rcPaint.right = rcPaint.left + (GetFixedWidth() - szOff.cx > grid_width ? grid_width : GetFixedWidth() - szOff.cx);
-		pRender->DrawColor(rcPaint, m_strFixedBkColor, 255);
+		pRender->DrawColor(rcPaint, GlobalManager::GetTextColor(m_strFixedBkColor), 255);
 	}
 	if (fixed_col_width > 0)
 	{
 		UiRect rcPaint = GetPos();
 		rcPaint.right = rcPaint.left + fixed_col_width;
 		rcPaint.bottom = rcPaint.top + (GetFixedHeight() - szOff.cy > grid_height ? grid_height : GetFixedHeight() - szOff.cy);
-		pRender->DrawColor(rcPaint, m_strFixedBkColor, 255);
+		pRender->DrawColor(rcPaint, GlobalManager::GetTextColor(m_strFixedBkColor), 255);
 	}
 
 	//draw fixed col && fixed row text
@@ -292,11 +292,11 @@ void MyGridBody::PaintBody(IRenderContext* pRender)
 						//绘制单元格背景色
 						if (pItem->IsSelected())
 						{
-							pRender->DrawColor(rc, m_strSelForeColor, 255);
+							pRender->DrawColor(rc, GlobalManager::GetTextColor(m_strSelForeColor), 255);
 						}
 						else if (!pItem->bk_color.empty())
 						{
-							pRender->DrawColor(rc, pItem->bk_color, 255);
+							pRender->DrawColor(rc, GlobalManager::GetTextColor(pItem->bk_color), 255);
 						}
 
 						//绘制text

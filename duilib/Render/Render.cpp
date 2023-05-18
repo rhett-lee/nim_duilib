@@ -221,7 +221,6 @@ void RenderContext_GdiPlus::DrawImage(const UiRect& rcPaint, HBITMAP hBitmap, bo
 	BYTE uFade /*= 255*/, bool xtiled /*= false*/, bool ytiled /*= false*/,
 	bool fullxtiled /*= true*/, bool fullytiled /*= true*/, int nTiledMargin /*=0*/)
 {
-	(void)fullxtiled;
 	UiRect rcTestTemp;
 	if (!::IntersectRect(&rcTestTemp, &rcImageDest, &rcPaint)) return;
 
@@ -256,76 +255,101 @@ void RenderContext_GdiPlus::DrawImage(const UiRect& rcPaint, HBITMAP hBitmap, bo
 			DrawFunction(m_hDC, m_bTransparent, rcDest, hCloneDC, rcSource, bAlphaChannel, uFade);
 		}
 		else if (xtiled && ytiled) {
-			LONG lWidth = rcImageSource.right - rcImageSource.left - rcCorners.left - rcCorners.right;
-			LONG lHeight = rcImageSource.bottom - rcImageSource.top - rcCorners.top - rcCorners.bottom;
-			int iTimesX = (rcDest.right - rcDest.left + lWidth - 1) / lWidth;
-			int iTimesY = (rcDest.bottom - rcDest.top + lHeight - 1) / lHeight;
+			const LONG imageDrawWidth = rcImageSource.right - rcImageSource.left - rcCorners.left - rcCorners.right;
+			const LONG imageDrawHeight = rcImageSource.bottom - rcImageSource.top - rcCorners.top - rcCorners.bottom;
+			int iTimesX = (rcDest.right - rcDest.left) / (imageDrawWidth + nTiledMargin);
+			if (!fullxtiled) {
+				if ((rcDest.right - rcDest.left) % (imageDrawWidth + nTiledMargin) > 0) {
+					iTimesX += 1;
+				}
+			}
+			int iTimesY = (rcDest.bottom - rcDest.top) / (imageDrawHeight + nTiledMargin);
+			if (!fullytiled) {
+				if ((rcDest.bottom - rcDest.top) % (imageDrawHeight + nTiledMargin) > 0) {
+					iTimesY += 1;
+				}
+			}
 			for (int j = 0; j < iTimesY; ++j) {
-				LONG lDestTop = rcDest.top + lHeight * j;
-				LONG lDestBottom = rcDest.top + lHeight * (j + 1);
-				LONG lDrawHeight = lHeight;
+				LONG lDestTop = rcDest.top + j * imageDrawHeight + j * nTiledMargin;
+				LONG lDestBottom = lDestTop + imageDrawHeight;
+				LONG lDrawHeight = imageDrawHeight;
 				if (lDestBottom > rcDest.bottom) {
 					lDrawHeight -= lDestBottom - rcDest.bottom;
 					lDestBottom = rcDest.bottom;
 				}
 				for (int i = 0; i < iTimesX; ++i) {
-					LONG lDestLeft = rcDest.left + lWidth * i;
-					LONG lDestRight = rcDest.left + lWidth * (i + 1);
-					LONG lDrawWidth = lWidth;
+					LONG lDestLeft = rcDest.left + i * imageDrawWidth + i * nTiledMargin;
+					LONG lDestRight = lDestLeft + imageDrawWidth;
+					LONG lDrawWidth = imageDrawWidth;
 					if (lDestRight > rcDest.right) {
-						lDrawWidth -= lDestRight - rcDest.right;
+						lDrawWidth -= (lDestRight - rcDest.right);
 						lDestRight = rcDest.right;
 					}
-					rcDest.left = rcDest.left + lWidth * i;
-					rcDest.top = rcDest.top + lHeight * j;
-					rcDest.right = rcDest.left + lDestRight - lDestLeft;
-					rcDest.bottom = rcDest.top + lDestBottom - lDestTop;
+
 					rcSource.left = rcImageSource.left + rcCorners.left;
 					rcSource.top = rcImageSource.top + rcCorners.top;
 					rcSource.right = rcSource.left + lDrawWidth;
 					rcSource.bottom = rcSource.top + lDrawHeight;
-					DrawFunction(m_hDC, m_bTransparent, rcDest, hCloneDC, rcSource, bAlphaChannel, uFade);
+
+					UiRect rcDestTemp;
+					rcDestTemp.left = lDestLeft;
+					rcDestTemp.right = lDestRight;
+					rcDestTemp.top = lDestTop;
+					rcDestTemp.bottom = lDestBottom;
+					
+					DrawFunction(m_hDC, m_bTransparent, rcDestTemp, hCloneDC, rcSource, bAlphaChannel, uFade);
 				}
 			}
 		}
 		else if (xtiled) { // supp
-			LONG lWidth = rcImageSource.right - rcImageSource.left - rcCorners.left - rcCorners.right;
-			int iTimes = (rcDest.right - rcDest.left + lWidth - 1) / lWidth;
+			const LONG imageDrawWidth = rcImageSource.right - rcImageSource.left - rcCorners.left - rcCorners.right;
+			int iTimes = iTimes = (rcDest.right - rcDest.left) / (imageDrawWidth + nTiledMargin);
+			if (!fullxtiled) {
+				if ((rcDest.right - rcDest.left) % (imageDrawWidth + nTiledMargin) > 0) {
+					iTimes += 1;
+				}
+			}
+
 			for (int i = 0; i < iTimes; ++i) {
-				LONG lDestLeft = rcDest.left + lWidth * i;
-				LONG lDestRight = rcDest.left + lWidth * (i + 1);
-				LONG lDrawWidth = lWidth;
+				LONG lDestLeft = rcDest.left + i * imageDrawWidth + i * nTiledMargin;
+				LONG lDestRight = lDestLeft + imageDrawWidth;
+				LONG lDrawWidth = imageDrawWidth;
 				if (lDestRight > rcDest.right) {
-					lDrawWidth -= lDestRight - rcDest.right;
+					lDrawWidth -= (lDestRight - rcDest.right);
 					lDestRight = rcDest.right;
 				}
-				rcDest.left = lDestLeft;
-				rcDest.top = rcDest.top;
-				rcDest.right = lDestRight;
-				rcDest.bottom = rcDest.top + rcDest.bottom;
+
+				//源区域：如果设置了边角，则仅包含中间区域
 				rcSource.left = rcImageSource.left + rcCorners.left;
 				rcSource.top = rcImageSource.top + rcCorners.top;
 				rcSource.right = rcSource.left + lDrawWidth;
 				rcSource.bottom = rcImageSource.bottom - rcCorners.bottom;
-				DrawFunction(m_hDC, m_bTransparent, rcDest, hCloneDC, rcSource, bAlphaChannel, uFade);
+
+				UiRect rcDestTemp = rcDest;
+				rcDestTemp.top = rcDest.top;
+				rcDestTemp.bottom = rcDest.top + rcSource.GetHeight();
+				rcDestTemp.left = lDestLeft;
+				rcDestTemp.right = lDestRight;
+
+				DrawFunction(m_hDC, m_bTransparent, rcDestTemp, hCloneDC, rcSource, bAlphaChannel, uFade);
 			}
 		}
 		else { // ytiled
-			LONG lHeight = rcImageSource.bottom - rcImageSource.top - rcCorners.top - rcCorners.bottom;
-			int iTimes = 0;
-			if(fullytiled)
-				iTimes = (rcDest.bottom - rcDest.top + lHeight + nTiledMargin - 1) / (lHeight + nTiledMargin);
-			else
-				iTimes = (rcDest.bottom - rcDest.top + nTiledMargin) / (lHeight + nTiledMargin);
+			const LONG imageDrawHeight = rcImageSource.bottom - rcImageSource.top - rcCorners.top - rcCorners.bottom;
+			int iTimes = (rcDest.bottom - rcDest.top) / (imageDrawHeight + nTiledMargin);
+			if (!fullytiled) {
+				if ((rcDest.bottom - rcDest.top) % (imageDrawHeight + nTiledMargin) > 0) {
+					iTimes += 1;
+				}
+			}
 
 			UiRect rcDestTemp;
-			rcDestTemp.left = rcDest.left;
-			rcDestTemp.right = rcDest.left + rcSource.GetWidth();
+			rcDestTemp.left = rcDest.left;			
 
 			for (int i = 0; i < iTimes; ++i) {
-				LONG lDestTop = rcDest.top + lHeight*i + i*nTiledMargin;
-				LONG lDestBottom = lDestTop + lHeight;
-				LONG lDrawHeight = lHeight;
+				LONG lDestTop = rcDest.top + i * imageDrawHeight + i*nTiledMargin;
+				LONG lDestBottom = lDestTop + imageDrawHeight;
+				LONG lDrawHeight = imageDrawHeight;
 				if (lDestBottom > rcDest.bottom) {
 					lDrawHeight -= lDestBottom - rcDest.bottom;
 					lDestBottom = rcDest.bottom;
@@ -336,6 +360,7 @@ void RenderContext_GdiPlus::DrawImage(const UiRect& rcPaint, HBITMAP hBitmap, bo
 				rcSource.right = rcImageSource.right - rcCorners.right;
 				rcSource.bottom = rcSource.top + lDrawHeight;
 
+				rcDestTemp.right = rcDest.left + rcSource.GetWidth();
 				rcDestTemp.top = lDestTop;
 				rcDestTemp.bottom = lDestBottom;
 				
@@ -466,9 +491,10 @@ void RenderContext_GdiPlus::DrawColor(const UiRect& rc, UiColor dwColor, BYTE uF
 {
 	UiColor::ARGB dwNewColor = dwColor.GetARGB();
 	if (uFade < 255) {
+		//在原来颜色值的透明度基础上，在做一次透明度计算（uFade是在原来基础上在设置透明度）
 		int alpha = dwColor.GetARGB() >> 24;
 		dwNewColor = dwColor.GetARGB() & 0xffffff;
-		alpha *= static_cast<int>(static_cast<double>(uFade) / 255);
+		alpha = static_cast<int>(static_cast<double>(alpha) * static_cast<double>(uFade) / 255.0);
 		dwNewColor += alpha << 24;
 	}
 
@@ -480,50 +506,25 @@ void RenderContext_GdiPlus::DrawColor(const UiRect& rc, UiColor dwColor, BYTE uF
 	graphics.FillRectangle(&brush, rcFill);
 }
 
-void RenderContext_GdiPlus::DrawColor(const UiRect& rc, const std::wstring& colorStr, BYTE uFade /*= 255*/)
-{
-    if (colorStr.empty()) {
-        return;
-    }
-
-	UiColor dwColor = GlobalManager::GetTextColor(colorStr);
-    DrawColor(rc, dwColor, uFade);
-}
-
-void RenderContext_GdiPlus::DrawLine( const UiRect& rc, int nSize, UiColor dwPenColor)
+void RenderContext_GdiPlus::DrawLine(const UiPoint& pt1, const UiPoint& pt2, UiColor penColor, int nWidth)
 {
 	Gdiplus::Graphics graphics(m_hDC);
-	Gdiplus::Pen pen(Gdiplus::Color(dwPenColor.GetARGB()), (Gdiplus::REAL)nSize);
-	graphics.DrawLine(&pen, Gdiplus::Point(rc.left, rc.top), Gdiplus::Point(rc.right, rc.bottom));
+	Gdiplus::Pen pen(Gdiplus::Color(penColor.GetARGB()), (Gdiplus::REAL)nWidth);
+	graphics.DrawLine(&pen, Gdiplus::Point(pt1.x, pt1.y), Gdiplus::Point(pt2.x, pt2.y));
 }
 
-void RenderContext_GdiPlus::DrawLine(const IPen* pen, int x1, int y1, int x2, int y2)
+void RenderContext_GdiPlus::DrawRect(const UiRect& rc, UiColor penColor, int nWidth)
 {
 	Gdiplus::Graphics graphics(m_hDC);
-	graphics.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
-	graphics.DrawLine(((Pen_GdiPlus*)pen)->GetPen(), x1, y1, x2, y2);
-}
-
-void RenderContext_GdiPlus::DrawBezier(const IPen* pen, int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4)
-{
-	Gdiplus::Graphics graphics(m_hDC);
-	graphics.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
-	graphics.DrawBezier(((Pen_GdiPlus*)pen)->GetPen(), x1, y1, x2, y2, x3, y3, x4, y4);
-}
-
-void RenderContext_GdiPlus::DrawRect(const UiRect& rc, int nSize, UiColor dwPenColor)
-{
-	Gdiplus::Graphics graphics(m_hDC);
-	Gdiplus::Pen pen(Gdiplus::Color(dwPenColor.GetARGB()), (Gdiplus::REAL)nSize);
+	Gdiplus::Pen pen(Gdiplus::Color(penColor.GetARGB()), (Gdiplus::REAL)nWidth);
 	graphics.DrawRectangle(&pen, rc.left, rc.top, rc.GetWidth(), rc.GetHeight());
 }
 
-
-void RenderContext_GdiPlus::DrawRoundRect(const UiRect& rc, const UiSize& roundSize, int nSize, UiColor dwPenColor)
+void RenderContext_GdiPlus::DrawRoundRect(const UiRect& rc, const UiSize& roundSize, UiColor penColor, int nWidth)
 {
 	Gdiplus::Graphics graphics(m_hDC);
 	graphics.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
-	Gdiplus::Pen pen(Gdiplus::Color(dwPenColor.GetARGB()), (Gdiplus::REAL)nSize);
+	Gdiplus::Pen pen(Gdiplus::Color(penColor.GetARGB()), (Gdiplus::REAL)nWidth);
 
 	// 裁剪区域不能作画，导致边框有时不全，往里收缩一个像素
 	// UiRect rcInflate = rc;
@@ -541,6 +542,30 @@ void RenderContext_GdiPlus::DrawRoundRect(const UiRect& rc, const UiSize& roundS
 	pPath.CloseFigure();
 
 	graphics.DrawPath(&pen, &pPath);
+}
+
+void RenderContext_GdiPlus::DrawPath(const IPath* path, const IPen* pen)
+{
+	ASSERT(path != nullptr);
+	ASSERT(pen != nullptr);
+	if ((path == nullptr) || (pen == nullptr)) {
+		return;
+	}
+	Gdiplus::Graphics graphics(m_hDC);
+	graphics.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
+	graphics.DrawPath(((Pen_GdiPlus*)pen)->GetPen(), ((Path_Gdiplus*)path)->GetPath());
+}
+
+void RenderContext_GdiPlus::FillPath(const IPath* path, const IBrush* brush)
+{
+	ASSERT(path != nullptr);
+	ASSERT(brush != nullptr);
+	if ((path == nullptr) || (brush == nullptr)) {
+		return;
+	}
+	Gdiplus::Graphics graphics(m_hDC);
+	graphics.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
+	graphics.FillPath(((Brush_Gdiplus*)brush)->GetBrush(), ((Path_Gdiplus*)path)->GetPath());
 }
 
 void RenderContext_GdiPlus::DrawText(const UiRect& rc, const std::wstring& strText, UiColor dwTextColor, const std::wstring& strFontId, UINT uStyle, BYTE uFade /*= 255*/, bool bLineLimit /*= false*/, bool bFillPath /*= false*/)
@@ -638,46 +663,6 @@ void RenderContext_GdiPlus::DrawText(const UiRect& rc, const std::wstring& strTe
     return;
   }
 	graphics.DrawString(strText.c_str(), (int)strText.length(), &font, rcPaint, &stringFormat, &tBrush);
-}
-
-void RenderContext_GdiPlus::DrawEllipse(const UiRect& rc, int nSize, UiColor dwColor)
-{
-	Gdiplus::Graphics graphics(m_hDC);
-	graphics.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
-	Gdiplus::Pen pen(dwColor.GetARGB(), static_cast<Gdiplus::REAL>(nSize));
-	graphics.DrawEllipse(&pen, rc.left, rc.top, rc.GetWidth(), rc.GetHeight());
-}
-
-void RenderContext_GdiPlus::FillEllipse(const UiRect& rc, UiColor dwColor)
-{
-	Gdiplus::Graphics graphics(m_hDC);
-	graphics.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
-	Gdiplus::SolidBrush brush(dwColor.GetARGB());
-	graphics.FillEllipse(&brush, rc.left, rc.top, rc.GetWidth(), rc.GetHeight());
-}
-
-void RenderContext_GdiPlus::DrawPath(const IPath* path, const IPen* pen)
-{
-	ASSERT(path != nullptr);
-	ASSERT(pen != nullptr);
-	if ((path == nullptr) || (pen == nullptr)) {
-		return;
-	}
-	Gdiplus::Graphics graphics(m_hDC);
-	graphics.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
-	graphics.DrawPath(((Pen_GdiPlus*)pen)->GetPen(), ((Path_Gdiplus*)path)->GetPath());
-}
-
-void RenderContext_GdiPlus::FillPath(const IPath* path, const IBrush* brush)
-{
-	ASSERT(path != nullptr);
-	ASSERT(brush != nullptr);
-	if ((path == nullptr) || (brush == nullptr)) {
-		return;
-	}
-	Gdiplus::Graphics graphics(m_hDC);
-	graphics.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
-	graphics.FillPath(((Brush_Gdiplus*)brush)->GetBrush(), ((Path_Gdiplus*)path)->GetPath());
 }
 
 void RenderContext_GdiPlus::DrawBoxShadow(const UiRect& rc, 

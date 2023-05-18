@@ -41,7 +41,7 @@ LRESULT RenderForm::OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHand
 ui::Control* RenderForm::CreateControl(const std::wstring& strClass)
 {
 	if (strClass == L"RenderTest") {
-		return new RenderTest;
+		return new ui::RenderTest;
 	}
 	return nullptr;
 }
