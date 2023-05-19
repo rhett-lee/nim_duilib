@@ -1,8 +1,8 @@
 #include "SvgUtil.h"
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Utils/DpiManager.h"
-#include "duilib/Render/Bitmap.h"
 #include "duilib/Image/Image.h"
+#include "duilib/Core/GlobalManager.h"
 
 #define NANOSVG_IMPLEMENTATION
 #define NANOSVG_ALL_COLOR_KEYWORDS
@@ -71,34 +71,34 @@ std::unique_ptr<ui::ImageInfo> SvgUtil::LoadSvg(std::vector<unsigned char>& file
 std::unique_ptr<ui::ImageInfo> SvgUtil::LoadImageBySvg(void *data, const std::wstring& strImageFullPath)
 {
 	std::unique_ptr<NSVGimage, SvgDeleter> svg((NSVGimage*)data);
-	if (!svg)
+	if (!svg) {
 		return nullptr;
+	}
 
 	int w = (int)svg->width;
 	int h = (int)svg->height;
 	std::unique_ptr<NSVGrasterizer, RasterizerDeleter> rast(nsvgCreateRasterizer());
-	if (w == 0 || h == 0 || rast == NULL)
-		return nullptr;
-
-	float scale = (float)DpiManager::GetInstance()->GetScale() / 100;
-	w = static_cast<int>(w*scale);
-	h = static_cast<int>(h*scale);
-
-	unsigned char* pBmpBits = NULL;
-	HDC hdc = GetDC(NULL);
-	HBITMAP hBitmap = GdiBitmap::CreateDIBBitmap(hdc, w, h, true, (LPVOID*)&pBmpBits);
-	ReleaseDC(NULL, hdc);
-
-	if (!hBitmap) {
-		//DWORD err = GetLastError();
-		ASSERT(FALSE);
+	float scale = 1.0f;
+	UINT dpiScale = DpiManager::GetInstance()->GetScale();
+	if ((dpiScale != 100) && (dpiScale != 0)){
+		scale = (float)DpiManager::GetInstance()->GetScale() / 100;
+		w = static_cast<int>(w * scale);
+		h = static_cast<int>(h * scale);
+	}
+	if (w <= 0 || h <= 0 || !rast) {
 		return nullptr;
 	}
-	nsvgRasterize(rast.get(), svg.get(), 0, 0, scale, pBmpBits, w, h, w * 4);
+
+	const int dataSize = 4;
+	unsigned char* pBmpBits = NULL;
+	std::vector<unsigned char> bitmapData;
+	bitmapData.resize(h * w * dataSize);
+	pBmpBits = bitmapData.data();
+	nsvgRasterize(rast.get(), svg.get(), 0, 0, scale, pBmpBits, w, h, w * dataSize);
 
 	// nanosvg内部已经做过alpha预乘，这里只做R和B的交换
 	for (int y = 0; y < h; y++) {
-		unsigned char *row = &pBmpBits[y*w*4];
+		unsigned char* row = &pBmpBits[y * w * dataSize];
 		for (int x = 0; x < w; x++) {
 			int r = row[0], g = row[1], b = row[2], a = row[3];
 			(void)a;
@@ -117,12 +117,24 @@ std::unique_ptr<ui::ImageInfo> SvgUtil::LoadImageBySvg(void *data, const std::ws
 		}
 	}
 
+	IBitmap* pBitmap = nullptr;
+	IRenderFactory* pRenderFactroy = GlobalManager::GetRenderFactory();
+	ASSERT(pRenderFactroy != nullptr);
+	if (pRenderFactroy != nullptr) {
+		pBitmap = pRenderFactroy->CreateBitmap();
+	}
+	ASSERT(pBitmap != nullptr);
+	if (pBitmap == nullptr) {
+		return nullptr;
+	}
+	pBitmap->Init(w, h, true, pBmpBits);
+
 	std::unique_ptr<ImageInfo> imageInfo(new ImageInfo);
 	imageInfo->SetImageSize(w, h);
 	imageInfo->SetImageFullPath(strImageFullPath);
 	imageInfo->SetAlpha(true);
 	imageInfo->SetBitmapSizeDpiScaled(true);
-	imageInfo->PushBackHBitmap(hBitmap);
+	imageInfo->PushBackHBitmap(pBitmap);
 	return imageInfo;
 }
 

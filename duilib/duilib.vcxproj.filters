@@ -78,9 +78,6 @@
     <ClCompile Include="Control\VirtualTileBox.cpp">
       <Filter>Control</Filter>
     </ClCompile>
-    <ClCompile Include="Render\Bitmap.cpp">
-      <Filter>Render</Filter>
-    </ClCompile>
     <ClCompile Include="Render\Brush.cpp">
       <Filter>Render</Filter>
     </ClCompile>
@@ -97,9 +94,6 @@
       <Filter>Render</Filter>
     </ClCompile>
     <ClCompile Include="Render\Pen.cpp">
-      <Filter>Render</Filter>
-    </ClCompile>
-    <ClCompile Include="Render\Render.cpp">
       <Filter>Render</Filter>
     </ClCompile>
     <ClCompile Include="Utils\ApiWrapper.cpp">
@@ -144,9 +138,6 @@
     <ClCompile Include="Control\ListBox.cpp">
       <Filter>Control</Filter>
     </ClCompile>
-    <ClCompile Include="Image\GdiHepler.cpp">
-      <Filter>Image</Filter>
-    </ClCompile>
     <ClCompile Include="Image\Image.cpp">
       <Filter>Image</Filter>
     </ClCompile>
@@ -185,6 +176,18 @@
     </ClCompile>
     <ClCompile Include="Image\ImageDecoder.cpp">
       <Filter>Image</Filter>
+    </ClCompile>
+    <ClCompile Include="Render\RenderBitmap_GDI.cpp">
+      <Filter>Render</Filter>
+    </ClCompile>
+    <ClCompile Include="Render\Render_GdiPlus.cpp">
+      <Filter>Render</Filter>
+    </ClCompile>
+    <ClCompile Include="Render\Bitmap_GDI.cpp">
+      <Filter>Render</Filter>
+    </ClCompile>
+    <ClCompile Include="Render\BitmapHepler.cpp">
+      <Filter>Render</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -254,9 +257,6 @@
     <ClInclude Include="Control\VirtualTileBox.h">
       <Filter>Control</Filter>
     </ClInclude>
-    <ClInclude Include="Render\Bitmap.h">
-      <Filter>Render</Filter>
-    </ClInclude>
     <ClInclude Include="Render\Brush.h">
       <Filter>Render</Filter>
     </ClInclude>
@@ -273,9 +273,6 @@
       <Filter>Render</Filter>
     </ClInclude>
     <ClInclude Include="Render\Pen.h">
-      <Filter>Render</Filter>
-    </ClInclude>
-    <ClInclude Include="Render\Render.h">
       <Filter>Render</Filter>
     </ClInclude>
     <ClInclude Include="Utils\ApiWrapper.h">
@@ -347,9 +344,6 @@
     <ClInclude Include="Render\Font_GDI.h">
       <Filter>Render</Filter>
     </ClInclude>
-    <ClInclude Include="Image\GdiHepler.h">
-      <Filter>Image</Filter>
-    </ClInclude>
     <ClInclude Include="Image\GdiPlusDefs.h">
       <Filter>Image</Filter>
     </ClInclude>
@@ -397,6 +391,18 @@
     </ClInclude>
     <ClInclude Include="Image\ImageDecoder.h">
       <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\RenderBitmap_GDI.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\Render_GdiPlus.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\Bitmap_GDI.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\BitmapHelper.h">
+      <Filter>Render</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

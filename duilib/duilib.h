@@ -91,17 +91,14 @@
 #include "Utils/Shadow.h"
 #include "Utils/BoxShadow.h"
 
-#include "Image/GdiHepler.h"
 #include "Image/Image.h"
-#include "Image/SvgUtil.h"
-
 #include "Animation/AnimationPlayer.h"
 #include "Animation/AnimationManager.h"
 
 #include "Render/IRender.h"
 #include "Render/Clip.h"
-#include "Render/Bitmap.h"
-#include "Render/Render.h"
+#include "Render/Render_GdiPlus.h"
+#include "Render/Bitmap_GDI.h"
 #include "Render/Pen.h"
 #include "Render/Brush.h"
 #include "Render/Path.h"

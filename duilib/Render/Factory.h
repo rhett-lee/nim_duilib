@@ -12,7 +12,6 @@ class UILIB_API RenderFactory_GdiPlus : public IRenderFactory
 public:
 	virtual ui::IPen* CreatePen(UiColor color, int width = 1) override;
 	virtual ui::IBrush* CreateBrush(UiColor corlor) override;
-	virtual ui::IBrush* CreateBrush(HBITMAP bitmap) override;
 	virtual ui::IPath* CreatePath() override;
 	virtual ui::IBitmap* CreateBitmap() override;
 	virtual ui::IRenderContext* CreateRenderContext() override;

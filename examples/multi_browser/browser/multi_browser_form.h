@@ -263,14 +263,14 @@ private:
 	* @param[in] src_rect 目标位图的位置
 	* @return HBITMAP 生成的位图
 	*/
-	HBITMAP GenerateBoxOffsetRenderBitmap(const ui::UiRect &src_rect);
+	ui::IBitmap* GenerateBoxOffsetRenderBitmap(const ui::UiRect &src_rect);
 
 	/**
 	* 生成当前激活的浏览器盒子的位图，用于有窗模式
 	* @param[in] src_rect 目标位图的位置
 	* @return HBITMAP 生成的位图
 	*/
-	HBITMAP GenerateBoxWindowBitmap();
+	ui::IBitmap* GenerateBoxWindowBitmap();
 
 public:
 	static const LPCTSTR kClassName;

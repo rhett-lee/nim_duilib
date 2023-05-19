@@ -1,29 +1,31 @@
-#ifndef UI_CORE_RENDER_H_
-#define UI_CORE_RENDER_H_
+#ifndef UI_CORE_RENDER_GDIPLUS_H_
+#define UI_CORE_RENDER_GDIPLUS_H_
 
 #pragma once
 
 #include "duilib/Render/IRender.h"
 #include "duilib/Render/Clip.h"
-#include "duilib/Render/Bitmap.h"
+#include "duilib/Render/RenderBitmap_GDI.h"
 
 namespace ui 
 {
 
-class UILIB_API RenderContext_GdiPlus : public IRenderContext
+class UILIB_API Render_GdiPlus : public IRenderContext
 {
 public:
-	RenderContext_GdiPlus();
-	virtual ~RenderContext_GdiPlus();
+	Render_GdiPlus();
+	virtual ~Render_GdiPlus();
 
 	virtual HDC GetDC() override;
-	virtual bool Resize(int width, int height, bool flipBItmap = true) override;
+	virtual bool Resize(int width, int height) override;
 	virtual void Clear() override;
 	virtual std::unique_ptr<IRenderContext> Clone() override;
 
-	virtual HBITMAP DetachBitmap() override;
-	virtual BYTE* GetBits() override;
-	virtual HBITMAP GetBitmap() override;
+	/** 分离位图
+	*@return 返回位图接口，返回后由调用方管理资源（包括释放资源等）
+	*/
+	virtual IBitmap* DetachBitmap();
+
 	virtual int	GetWidth() override;
 	virtual int GetHeight() override;
 	virtual void ClearAlpha(const UiRect& rcDirty, int alpha = 0) override;
@@ -48,10 +50,34 @@ public:
 	virtual bool StretchBlt(int xDest, int yDest, int widthDest, int heightDest, HDC hdcSrc, int xSrc, int yScr, int widthSrc, int heightSrc, DWORD rop = SRCCOPY) override;
 	virtual bool AlphaBlend(int xDest, int yDest, int widthDest, int heightDest, HDC hdcSrc, int xSrc, int yScr, int widthSrc, int heightSrc, BYTE uFade = 255) override;
 
-	virtual void DrawImage(const UiRect& rcPaint, HBITMAP hBitmap, bool bAlphaChannel,
-		const UiRect& rcImageDest, const UiRect& rcImageSource, UiRect rcCorners,
-		bool bBitmapDpiScale = false, BYTE uFade = 255,
-		bool xtiled = false, bool ytiled = false, bool fullxtiled = true, bool fullytiled = true, int nTiledMargin = 0) override;
+	/** 绘制图片（采用九宫格方式绘制图片）
+	* @param [in] rcPaint 当前全部可绘制区域（用于避免非可绘制区域的绘制，以提高绘制性能）
+	* @param [in] pBitmap 用于绘制的位图接口
+	* @param [in] bAlphaChannel 图片是否含有Alpha通道
+	* @param [in] rcImageDest 绘制的目标区域
+	* @param [in] rcImageSource 绘制的源图片区域
+	* @param [in] rcImageCorners 绘制源图片的边角信息，用于九宫格绘制
+	* @param [in] bBitmapDpiScale 位图尺寸是否已经做过DPI适应
+	* @param [in] uFade 透明度（0 - 255）
+	* @param [in] xtiled 横向平铺
+	* @param [in] ytiled 纵向平铺
+	* @param [in] fullxtiled 如果为true，横向平铺绘制时，确保是完整绘制图片，该参数仅当xtiled为true时有效
+	* @param [in] fullytiled 如果为true，纵向平铺绘制时，确保是完整绘制图片，该参数仅当ytiled为true时有效
+	* @param [in] nTiledMargin 平铺绘制时，图片的横向、纵向间隔，该参数仅当xtiled为true或者ytiled为true时有效
+	*/
+	virtual void DrawImage(const UiRect& rcPaint, 
+						   IBitmap* pBitmap, 
+						   bool bAlphaChannel,
+						   const UiRect& rcImageDest, 
+						   const UiRect& rcImageSource, 
+						   UiRect rcImageCorners,
+						   bool bBitmapDpiScale = false,
+						   uint8_t uFade = 255,
+						   bool xtiled = false, 
+						   bool ytiled = false, 
+						   bool fullxtiled = true, 
+						   bool fullytiled = true, 
+						   int nTiledMargin = 0) override;
 
 	virtual void DrawColor(const UiRect& rc, UiColor dwColor, BYTE uFade = 255) override;
 	virtual void DrawLine(const UiPoint& pt1, const UiPoint& pt2, UiColor penColor, int nWidth) override;
@@ -74,9 +100,9 @@ private:
 
 	bool		m_bTransparent;
 	GdiClip		m_clip;
-	GdiBitmap	m_bitmap;
+	RenderBitmap_GDI m_bitmap;
 };
 
 } // namespace ui
 
-#endif // UI_CORE_RENDER_H_
+#endif // UI_CORE_RENDER_GDIPLUS_H_

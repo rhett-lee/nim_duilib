@@ -1,9 +1,9 @@
- #include "Bitmap.h"
+ #include "RenderBitmap_GDI.h"
 
 namespace ui
 {
 
-HBITMAP GdiBitmap::CreateDIBBitmap(HDC hdc, int width, int height, bool flipBItmap, LPVOID* pBits)
+HBITMAP RenderBitmap_GDI::CreateDIBBitmap(HDC hdc, int width, int height, LPVOID* pBits)
 {
 	if (hdc == NULL || width <= 0 || height <= 0)
 		return NULL;
@@ -12,7 +12,7 @@ HBITMAP GdiBitmap::CreateDIBBitmap(HDC hdc, int width, int height, bool flipBItm
 	::ZeroMemory(&bmi, sizeof(BITMAPINFO));
 	bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
 	bmi.bmiHeader.biWidth = width;
-	bmi.bmiHeader.biHeight = flipBItmap ? -height : height;
+	bmi.bmiHeader.biHeight = -height;//负数表示位图时从上到下方向的，左上角为圆点
 	bmi.bmiHeader.biPlanes = 1;
 	bmi.bmiHeader.biBitCount = 32;
 	bmi.bmiHeader.biCompression = BI_RGB;
@@ -21,18 +21,18 @@ HBITMAP GdiBitmap::CreateDIBBitmap(HDC hdc, int width, int height, bool flipBItm
 	return ::CreateDIBSection(hdc, &bmi, DIB_RGB_COLORS, pBits, NULL, 0);
 }
 
-GdiBitmap::GdiBitmap() 
+RenderBitmap_GDI::RenderBitmap_GDI() 
 {
 	m_hBitmap = NULL;
 	CleanUp();
 }
 
-GdiBitmap::~GdiBitmap()
+RenderBitmap_GDI::~RenderBitmap_GDI()
 {
 	CleanUp();
 }
 
-void GdiBitmap::CleanUp()
+void RenderBitmap_GDI::CleanUp()
 {
 	if (m_hBitmap != NULL)
 	{
@@ -44,12 +44,12 @@ void GdiBitmap::CleanUp()
 	m_nWidth = m_nHeight = 0;
 }
 
-bool GdiBitmap::Init(HDC hSrcDC, int width, int height, bool flipBItmap)
+bool RenderBitmap_GDI::Init(HDC hSrcDC, int width, int height)
 {
 	CleanUp();
 
 	LPVOID pBmpBits = NULL;
-	m_hBitmap = CreateDIBBitmap(hSrcDC, width, height, flipBItmap, &pBmpBits);
+	m_hBitmap = CreateDIBBitmap(hSrcDC, width, height, &pBmpBits);
 	if (m_hBitmap != NULL)
 	{
 		m_nWidth = width;
@@ -68,7 +68,7 @@ bool GdiBitmap::Init(HDC hSrcDC, int width, int height, bool flipBItmap)
 	}
 }
 
-void GdiBitmap::Clear()
+void RenderBitmap_GDI::Clear()
 {
 	ASSERT(m_hBitmap && m_pPiexl != NULL);
 	if (m_pPiexl == NULL)
@@ -77,7 +77,7 @@ void GdiBitmap::Clear()
 	::memset(m_pPiexl, 0, m_nWidth * m_nHeight * 4);
 }
 
-HBITMAP GdiBitmap::DetachBitmap()
+HBITMAP RenderBitmap_GDI::DetachBitmap()
 {
 	HBITMAP hBitmap = m_hBitmap;
 	m_hBitmap = NULL;
@@ -86,23 +86,17 @@ HBITMAP GdiBitmap::DetachBitmap()
 	return hBitmap;
 }
 
-BYTE* GdiBitmap::GetBits()
-{
-	ASSERT(m_hBitmap && m_pPiexl != NULL);
-	return m_pPiexl;
-}
-
-int GdiBitmap::GetWidth()
+int RenderBitmap_GDI::GetWidth()
 {
 	return m_nWidth;
 }
 
-int GdiBitmap::GetHeight()
+int RenderBitmap_GDI::GetHeight()
 {
 	return m_nHeight;
 }
 
-void GdiBitmap::ClearAlpha(const UiRect& rcDirty, int alpha)
+void RenderBitmap_GDI::ClearAlpha(const UiRect& rcDirty, int alpha)
 {
 	ASSERT(m_hBitmap && m_pPiexl != NULL);
 	if (m_pPiexl == NULL)
@@ -120,7 +114,7 @@ void GdiBitmap::ClearAlpha(const UiRect& rcDirty, int alpha)
 	}
 }
 
-void GdiBitmap::RestoreAlpha(const UiRect& rcDirty, const UiRect& rcShadowPadding, int alpha)
+void RenderBitmap_GDI::RestoreAlpha(const UiRect& rcDirty, const UiRect& rcShadowPadding, int alpha)
 {
 	// 此函数适用于GDI等API渲染位图，导致丢失alpha通道的情况，可以把alpha通道补回来
 	// 但是渲染位图时，还有GDI+、AlphaBlend等API给位图设置了半透明的alpha通道时，可能导致没法正确的修正alpha通道
@@ -153,7 +147,7 @@ void GdiBitmap::RestoreAlpha(const UiRect& rcDirty, const UiRect& rcShadowPaddin
 	}
 }
 
-void GdiBitmap::RestoreAlpha(const UiRect& rcDirty, const UiRect& rcShadowPadding)
+void RenderBitmap_GDI::RestoreAlpha(const UiRect& rcDirty, const UiRect& rcShadowPadding)
 {
 	// 无论什么情况，都把此区域的alphaa通道设置为255
 	ASSERT(m_hBitmap && m_pPiexl != NULL);
@@ -178,9 +172,9 @@ void GdiBitmap::RestoreAlpha(const UiRect& rcDirty, const UiRect& rcShadowPaddin
 	}
 }
 
-HBITMAP GdiBitmap::GetBitmap()
+HBITMAP RenderBitmap_GDI::GetHBitmap()
 {
-	ASSERT(m_hBitmap);
+	ASSERT(m_hBitmap != nullptr);
 	return m_hBitmap;
 }
 

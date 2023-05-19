@@ -174,17 +174,26 @@ bool MultiBrowserForm::OnProcessTabItemDrag(const ui::EventArgs& param)
 			is_drag_state_ = true;
 
 			// 把被拖拽的浏览器盒子生成一个宽度300的位图
-			HBITMAP bitmap = NULL;
-			if (nim_comp::CefManager::GetInstance()->IsEnableOffsetRender())
-				bitmap = GenerateBoxOffsetRenderBitmap(borwser_box_tab_->GetPos(true));
-			else
-				bitmap = GenerateBoxWindowBitmap();
-
+			IBitmap* pBitmap = nullptr;
+			if (nim_comp::CefManager::GetInstance()->IsEnableOffsetRender()) {
+				pBitmap = GenerateBoxOffsetRenderBitmap(borwser_box_tab_->GetPos(true));
+			}
+			else {
+				pBitmap = GenerateBoxWindowBitmap();
+			}
+			ui::Bitmap_GDI* pGdiBitmap = dynamic_cast<Bitmap_GDI*>(pBitmap);
+			ASSERT(pGdiBitmap != nullptr);
+			HBITMAP hBitmap = pGdiBitmap->DetachHBitmap();
+			if (pBitmap != nullptr) {
+				delete pBitmap;
+				pBitmap = nullptr;
+			}
 			// pt应该指定相对bitmap位图的左上角(0,0)的坐标,这里设置为bitmap的中上点
 			POINT pt = { kDragImageWidth / 2, 0 };
 
 			StdClosure cb = [=]{
-				MultiBrowserManager::GetInstance()->DoDragBorwserBox(active_browser_box_, bitmap, pt);
+				MultiBrowserManager::GetInstance()->DoDragBorwserBox(active_browser_box_, hBitmap, pt);
+				::DeleteObject(hBitmap);
 			};
 			nbase::ThreadManager::PostTask(kThreadUI, cb);
 		}
@@ -200,7 +209,7 @@ bool MultiBrowserForm::OnProcessTabItemDrag(const ui::EventArgs& param)
 	return true;
 }
 
-HBITMAP MultiBrowserForm::GenerateBoxOffsetRenderBitmap(const UiRect& src_rect)
+ui::IBitmap* MultiBrowserForm::GenerateBoxOffsetRenderBitmap(const UiRect& src_rect)
 {
 	ASSERT(!src_rect.IsRectEmpty());
 	int src_width = src_rect.right - src_rect.left;
@@ -236,7 +245,7 @@ HBITMAP MultiBrowserForm::GenerateBoxOffsetRenderBitmap(const UiRect& src_rect)
 
 }
 
-HBITMAP MultiBrowserForm::GenerateBoxWindowBitmap()
+ui::IBitmap* MultiBrowserForm::GenerateBoxWindowBitmap()
 {
 	if (!active_browser_box_)
 		return NULL;

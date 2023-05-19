@@ -5,6 +5,7 @@
 
 #include "duilib/Core/Define.h"
 #include "duilib/duilib_defs.h"
+#include "duilib/Render/IRender.h"
 #include <memory>
 #include <string>
 #include <map>
@@ -58,13 +59,13 @@ public:
 	*/
 	bool IsBitmapSizeDpiScaled() const { return m_bDpiScaled; }
 
-	/** 添加一个图片帧数据
+	/** 添加一个图片帧数据, 添加后该资源由该类内部托管
 	*/
-	void PushBackHBitmap(HBITMAP hBitmap);
+	void PushBackHBitmap(IBitmap* pBitmap);
 
 	/** 获取一个图片帧数据
 	*/
-	HBITMAP GetHBitmap(size_t nIndex) const;
+	IBitmap* GetBitmap(size_t nIndex) const;
 
 	/** 设置图片的宽和高
 	*/
@@ -117,7 +118,7 @@ private:
 	std::vector<int> m_frameIntervals;
 
 	//图片帧数据
-	std::vector<HBITMAP> m_frameBitmaps;
+	std::vector<IBitmap*> m_frameBitmaps;
 };
 
 /** 图片属性
@@ -251,7 +252,7 @@ public:
 
 	/** 获取当前图片帧的图片数据
 	*/
-	HBITMAP GetCurrentHBitmap() const;
+	IBitmap* GetCurrentBitmap() const;
 
 	/** 获取当前图片帧播放的时间间隔（单位: 毫秒，仅当多帧图片时）
 	*/

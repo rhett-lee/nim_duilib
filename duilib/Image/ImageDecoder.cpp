@@ -2,6 +2,8 @@
 #include "duilib/Image/Image.h"
 #include "duilib/Image/GdiPlusDefs.h"
 #include "duilib/Image/SvgUtil.h"
+#include "duilib/Core/GlobalManager.h"
+#include "duilib/Render/Bitmap_GDI.h"
 
 namespace ui 
 {
@@ -54,7 +56,31 @@ namespace ImageLoader
 			if (status != Gdiplus::Ok) {
 				return nullptr;
 			}
-			imageInfo->PushBackHBitmap(hBitmap);
+
+			BITMAP bm = { 0 };
+			::GetObject(hBitmap, sizeof(bm), &bm);			
+			LPBYTE imageBits = (LPBYTE)bm.bmBits;
+			ASSERT(imageBits != nullptr);
+			ASSERT(bm.bmBitsPixel == 32);
+			if ((imageBits != nullptr) && (bm.bmBitsPixel == 32)) {
+				IBitmap* pBitmap = nullptr;
+				IRenderFactory* pRenderFactroy = GlobalManager::GetRenderFactory();
+				ASSERT(pRenderFactroy != nullptr);
+				if (pRenderFactroy != nullptr) {
+					pBitmap = pRenderFactroy->CreateBitmap();
+				}
+				ASSERT(pBitmap != nullptr);
+				if (pBitmap == nullptr) {
+					return nullptr;
+				}
+				pBitmap->Init(bm.bmWidth, bm.bmHeight, false, imageBits);
+				imageInfo->PushBackHBitmap(pBitmap);
+				::DeleteObject(hBitmap);
+			}
+			else {
+				::DeleteObject(hBitmap);
+				return nullptr;
+			}
 		}
 
 		imageInfo->SetImageSize(pGdiplusBitmap->GetWidth(), pGdiplusBitmap->GetHeight());
@@ -78,7 +104,11 @@ namespace ImageLoader
 
 		if (format == PixelFormat32bppARGB) {
 			for (int nFrameIndex = 0; nFrameIndex < iFrameCount; nFrameIndex++) {
-				HBITMAP hBitmap = imageInfo->GetHBitmap(nFrameIndex);
+				IBitmap* pBitmap = imageInfo->GetBitmap(nFrameIndex);
+				//TODO: ¸ÄÐ´
+				Bitmap_GDI* pGdiBitmap = dynamic_cast<Bitmap_GDI*>(pBitmap);
+				ASSERT(pGdiBitmap != nullptr);
+				HBITMAP hBitmap = pGdiBitmap->GetHBitmap();
 				BITMAP bm = { 0 };
 				::GetObject(hBitmap, sizeof(bm), &bm);
 				LPBYTE imageBits = (LPBYTE)bm.bmBits;

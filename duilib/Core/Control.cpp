@@ -1,10 +1,10 @@
 #include "Control.h"
 #include "duilib/Image/Image.h"
-#include "duilib/Image/GdiHepler.h"
 #include "duilib/Core/Window.h"
 #include "duilib/Core/Box.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Render/IRender.h"
+#include "duilib/Render/BitmapHelper.h"
 #include "duilib/Animation/AnimationPlayer.h"
 #include "duilib/Animation/AnimationManager.h"
 #include "duilib/Utils/StringUtil.h"
@@ -1246,14 +1246,13 @@ bool Control::DrawImage(IRenderContext* pRender, Image& duiImage, const std::wst
 		BYTE iFade = (nFade == DUI_NOSET_VALUE) ? newImageAttribute.bFade : static_cast<BYTE>(nFade);
 		std::shared_ptr<ImageInfo> imageInfo = duiImage.GetImageCache();
 		if (imageInfo) {
-			bool needDeleteObj = false;
-			HBITMAP hCurrentBitmap = duiImage.GetCurrentHBitmap();
+			IBitmap* pNewBitmap = nullptr;
+			IBitmap* pCurrentBitmap = duiImage.GetCurrentBitmap();
 			if (!strModify.empty()) {
-				hCurrentBitmap = GdiHelper::RotateBitmapAroundCenter(hCurrentBitmap, m_fCurrrentAngele);
-				needDeleteObj = true;
+				pNewBitmap = BitmapHelper::RotateBitmapAroundCenter(pCurrentBitmap, m_fCurrrentAngele);
 			}
             pRender->DrawImage(m_rcPaint, 
-							   hCurrentBitmap, 
+							   (pNewBitmap != nullptr) ? pNewBitmap : pCurrentBitmap,
 							   imageInfo->IsAlpha(),
 							   rcNewDest, 
 							   rcNewSource, 
@@ -1265,8 +1264,9 @@ bool Control::DrawImage(IRenderContext* pRender, Image& duiImage, const std::wst
 							   newImageAttribute.bFullTiledX, 
 							   newImageAttribute.bFullTiledY,
 							   newImageAttribute.nTiledMargin);
-			if (needDeleteObj) {
-				::DeleteObject(hCurrentBitmap);
+			if (pNewBitmap != nullptr) {
+				delete pNewBitmap;
+				pNewBitmap = nullptr;
 			}
 		}
 	}
@@ -1564,11 +1564,13 @@ void Control::PaintLoading(IRenderContext* pRender)
         return;
     }
 
-	int imageWidth = 0;
-	int imageHeight = 0;
-	if (!GdiHelper::GetBitmapWidthHeight(spImageInfo->GetHBitmap(0), imageWidth, imageHeight)) {
+	IBitmap* pBitmap = spImageInfo->GetBitmap(0);
+	ASSERT(pBitmap != nullptr);
+	if (pBitmap == nullptr) {
 		return;
 	}
+	int imageWidth = pBitmap->GetWidth();
+	int imageHeight = pBitmap->GetHeight();
 
 	//æ”÷–
 	ui::UiRect rcFill = GetRect();

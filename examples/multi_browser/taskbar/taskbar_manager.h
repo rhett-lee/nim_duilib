@@ -204,7 +204,7 @@ public:
 	* @param[in] control 控件指针
 	* @return HBITMAP	生成的位图
 	*/
-	HBITMAP GenerateBindControlBitmapWithForm(ui::Control *control);
+	ui::IBitmap* GenerateBindControlBitmapWithForm(ui::Control *control);
 
 	/**
 	* 生成某个控件对应的位图
@@ -213,7 +213,7 @@ public:
 	* @param[in] dest_height 目标高度
 	* @return HBITMAP	生成的位图
 	*/
-	HBITMAP GenerateBindControlBitmap(ui::Control *control, const int dest_width, const int dest_height);
+	ui::IBitmap* GenerateBindControlBitmap(ui::Control *control, const int dest_width, const int dest_height);
 
 	/**
 	* 缩放一个内存位图
@@ -226,7 +226,7 @@ public:
 	* @param[in] src_height 源高度
 	* @return HBITMAP	生成的位图
 	*/
-	HBITMAP ResizeBitmap(int dest_width, int dest_height, HDC src_dc, int src_x, int src_y, int src_width, int src_height);
+	ui::IBitmap* ResizeBitmap(int dest_width, int dest_height, HDC src_dc, int src_x, int src_y, int src_width, int src_height);
 
 	/**
 	* 处理任务栏Tab的缩略图的WM_CLOSE消息

@@ -1,9 +1,9 @@
 #include "Factory.h"
-#include "duilib/Render/Bitmap.h"
 #include "duilib/Render/Pen.h"
 #include "duilib/Render/Brush.h"
 #include "duilib/Render/Path.h"
-#include "duilib/Render/Render.h"
+#include "duilib/Render/Render_GdiPlus.h"
+#include "duilib/Render/Bitmap_GDI.h"
 
 namespace ui {
 
@@ -17,11 +17,6 @@ ui::IBrush* RenderFactory_GdiPlus::CreateBrush(UiColor color)
 	return new Brush_Gdiplus(color);
 }
 
-ui::IBrush* RenderFactory_GdiPlus::CreateBrush(HBITMAP bitmap)
-{
-	return new Brush_Gdiplus(bitmap);
-}
-
 ui::IPath* RenderFactory_GdiPlus::CreatePath()
 {
 	return new Path_Gdiplus();
@@ -29,12 +24,12 @@ ui::IPath* RenderFactory_GdiPlus::CreatePath()
 
 ui::IBitmap* RenderFactory_GdiPlus::CreateBitmap()
 {
-	return new GdiBitmap();
+	return new Bitmap_GDI();
 }
 
 ui::IRenderContext* RenderFactory_GdiPlus::CreateRenderContext()
 {
-	return new RenderContext_GdiPlus();
+	return new Render_GdiPlus();
 }
 
 } // namespace ui

@@ -74,10 +74,16 @@ void TaskbarTabItem::OnSendThumbnail(int width, int height)
 	if (!is_win7_or_greater_ || NULL == taskbar_manager_)
 		return;
 
-	HBITMAP bitmap = taskbar_manager_->GenerateBindControlBitmap(bind_control_, width, height);
-	DwmSetIconicThumbnail(GetHWND(), bitmap, 0);
-
-	DeleteObject(bitmap);
+	ui::IBitmap* pBitmap = taskbar_manager_->GenerateBindControlBitmap(bind_control_, width, height);
+	ui::Bitmap_GDI* pGdiBitmap = dynamic_cast<Bitmap_GDI*>(pBitmap);
+	ASSERT(pGdiBitmap != nullptr);
+	if (pGdiBitmap != nullptr) {
+		DwmSetIconicThumbnail(GetHWND(), pGdiBitmap->GetHBitmap(), 0);
+	}
+	if (pBitmap != nullptr) {
+		delete pBitmap;
+		pBitmap = nullptr;
+	}
 }
 
 void TaskbarTabItem::OnSendPreview()
@@ -85,10 +91,16 @@ void TaskbarTabItem::OnSendPreview()
 	if (!is_win7_or_greater_ || NULL == taskbar_manager_)
 		return;
 
-	HBITMAP bitmap = taskbar_manager_->GenerateBindControlBitmapWithForm(bind_control_);
-	DwmSetIconicLivePreviewBitmap(GetHWND(), bitmap, NULL, 0);
-
-	DeleteObject(bitmap);
+	ui::IBitmap* pBitmap = taskbar_manager_->GenerateBindControlBitmapWithForm(bind_control_);
+	ui::Bitmap_GDI* pGdiBitmap = dynamic_cast<Bitmap_GDI*>(pBitmap);
+	ASSERT(pGdiBitmap != nullptr);
+	if (pGdiBitmap != nullptr) {
+		DwmSetIconicLivePreviewBitmap(GetHWND(), pGdiBitmap->GetHBitmap(), NULL, 0);
+	}
+	if (pBitmap != nullptr) {
+		delete pBitmap;
+		pBitmap = nullptr;
+	}
 }
 
 std::wstring TaskbarTabItem::GetWindowClassName() const
@@ -215,7 +227,7 @@ bool TaskbarManager::SetTabActive(const TaskbarTabItem &tab_item)
 		return false;
 }
 
-HBITMAP TaskbarManager::GenerateBindControlBitmapWithForm(ui::Control *control)
+ui::IBitmap* TaskbarManager::GenerateBindControlBitmapWithForm(ui::Control *control)
 {
 	ASSERT( NULL != control);
 	if ( NULL == control)
@@ -274,11 +286,10 @@ HBITMAP TaskbarManager::GenerateBindControlBitmapWithForm(ui::Control *control)
 
 	// 4.修复绘制区域的alpha通道
 	render->RestoreAlpha(rcPaint);
-
 	return render->DetachBitmap();
 }
 
-HBITMAP TaskbarManager::GenerateBindControlBitmap(ui::Control *control, const int dest_width, const int dest_height)
+ui::IBitmap* TaskbarManager::GenerateBindControlBitmap(ui::Control *control, const int dest_width, const int dest_height)
 {
 	ASSERT(dest_width > 0 && dest_height > 0 && NULL != control);
 	if (dest_width <= 0 || dest_height <= 0 || NULL == control)
@@ -340,7 +351,7 @@ HBITMAP TaskbarManager::GenerateBindControlBitmap(ui::Control *control, const in
 	return ResizeBitmap(dest_width, dest_height, render->GetDC(), rcControl.left, rcControl.top, rcControl.GetWidth(), rcControl.GetHeight());
 }
 
-HBITMAP TaskbarManager::ResizeBitmap(int dest_width, int dest_height, HDC src_dc, int src_x, int src_y, int src_width, int src_height)
+ui::IBitmap* TaskbarManager::ResizeBitmap(int dest_width, int dest_height, HDC src_dc, int src_x, int src_y, int src_width, int src_height)
 {
 	std::unique_ptr<IRenderContext> render;
 	IRenderFactory* pRenderFactory = GlobalManager::GetRenderFactory();

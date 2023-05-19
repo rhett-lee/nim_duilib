@@ -19,14 +19,16 @@ void RenderTest::AlphaPaint(IRenderContext* pRender, const UiRect& rcPaint)
 
 void RenderTest::Paint(IRenderContext* pRender, const UiRect& rcPaint)
 {
-    int nSize = 50;
-    int marginSize = 10;
+    const int marginSize = 8;
     UiRect rect = GetRect();
     rect.left += marginSize;
     rect.top += 4;
 
+    int nSize = 50;
     rect.right = rect.left + nSize;
     rect.bottom = rect.top + nSize;
+    int currentBottom = rect.bottom;//记录当前的bottom值
+
     //绘制颜色
     pRender->DrawColor(rect, UiColor(0xFF000000));
 
@@ -137,8 +139,8 @@ void RenderTest::Paint(IRenderContext* pRender, const UiRect& rcPaint)
     //换行
     rect = GetRect();
     rect.left += marginSize;    
-    rect.top = rect.top + nSize * 1 + marginSize;
-
+    rect.top = currentBottom + marginSize;
+    
     //绘图相同接口
     Image image;
     image.SetImageString(L"autumn.png");
@@ -147,22 +149,27 @@ void RenderTest::Paint(IRenderContext* pRender, const UiRect& rcPaint)
     rect.bottom = rect.top + image.GetImageCache()->GetHeight();
 
     UiRect rcImageSource(0, 0, image.GetImageCache()->GetWidth(), image.GetImageCache()->GetHeight());
-    pRender->DrawImage(rcPaint, image.GetCurrentHBitmap(), false, rect, rcImageSource, UiRect());
+    pRender->DrawImage(rcPaint, image.GetCurrentBitmap(), false, rect, rcImageSource, UiRect());
 
     //半透明绘制图片
     rect.left = rect.right + marginSize;
     rect.right = rect.left + image.GetImageCache()->GetWidth();
-    pRender->DrawImage(rcPaint, image.GetCurrentHBitmap(), false, rect, rcImageSource, UiRect(), false, 100);
+    pRender->DrawImage(rcPaint, image.GetCurrentBitmap(), false, rect, rcImageSource, UiRect(), false, 100);
 
     //缩小绘制
     rect.left = rect.right + marginSize;
     rect.right = rect.left + image.GetImageCache()->GetWidth() / 2;
     rect.bottom = rect.top + image.GetImageCache()->GetHeight() / 2;
-    pRender->DrawImage(rcPaint, image.GetCurrentHBitmap(), false, rect, rcImageSource, UiRect());
+    pRender->DrawImage(rcPaint, image.GetCurrentBitmap(), false, rect, rcImageSource, UiRect());
 
     //BitBlt/StretchBlt/AlphaBlend三个绘制函数
+    Bitmap_GDI* pGdiBitmap = dynamic_cast<Bitmap_GDI*>(image.GetCurrentBitmap());
+    ASSERT(pGdiBitmap != nullptr);
+    HBITMAP hBitmap = pGdiBitmap->GetHBitmap();
+    ASSERT(hBitmap != nullptr);
+
     HDC hdcSrc = ::CreateCompatibleDC(NULL);
-    HGDIOBJ oldBitmap = ::SelectObject(hdcSrc, image.GetCurrentHBitmap());
+    HGDIOBJ oldBitmap = ::SelectObject(hdcSrc, hBitmap);
     rect.left = rect.right + marginSize;
     rect.right = rect.left + image.GetImageCache()->GetWidth();
     rect.bottom = rect.top + image.GetImageCache()->GetHeight();
@@ -182,14 +189,33 @@ void RenderTest::Paint(IRenderContext* pRender, const UiRect& rcPaint)
     ::DeleteDC(hdcSrc);
     hdcSrc = nullptr;
 
+    currentBottom = rect.bottom;//记录当前的bottom值
+
     //换行
     rect = GetRect();
     rect.left += marginSize;
-    rect.top = rect.top + nSize * 1 + image.GetImageCache()->GetHeight() + marginSize * 2;
+    rect.top = currentBottom + marginSize;
+    rect.bottom = rect.top + 100;
+    currentBottom = rect.bottom;//记录当前的bottom值
+
+    //svg格式测试
+    Image svgImage;
+    svgImage.SetImageString(L"svg_test.svg");
+    LoadImageData(svgImage);
+    UiRect svgRect = rect;
+    svgRect.right = svgRect.left + svgImage.GetImageCache()->GetWidth();
+    svgRect.bottom = svgRect.top + svgImage.GetImageCache()->GetHeight();
+    UiRect svgImageSource(0, 0, svgImage.GetImageCache()->GetWidth(), svgImage.GetImageCache()->GetHeight());
+    pRender->DrawImage(rcPaint, svgImage.GetCurrentBitmap(), false, svgRect, svgImageSource, UiRect());
+
+    //换行
+    rect = GetRect();
+    rect.left += marginSize;
+    rect.top = currentBottom + marginSize;
 
     //平铺绘制
     rect.right = rcPaint.right;
-    rect.bottom = rcPaint.bottom;// rect.top + image.GetImageCache()->GetHeight();
+    rect.bottom = rcPaint.bottom;
 
     bool xtiled = true;
     bool ytiled = true;
@@ -197,7 +223,7 @@ void RenderTest::Paint(IRenderContext* pRender, const UiRect& rcPaint)
     bool fullytiled = false;//完整平铺，如果控件不够绘制完整图片，就不会绘制。如果为false，则只要有空间就绘制，但此时图片只是绘制一部分的。
     int nTiledMargin = 0;
     UiRect rcCorners(48, 48, 48, 48);
-    pRender->DrawImage(rcPaint, image.GetCurrentHBitmap(), false, rect, rcImageSource, rcCorners, false, 255, xtiled, ytiled, fullxtiled, fullytiled, nTiledMargin);
+    pRender->DrawImage(rcPaint, image.GetCurrentBitmap(), false, rect, rcImageSource, rcCorners, false, 255, xtiled, ytiled, fullxtiled, fullytiled, nTiledMargin);
 }
 
 void RenderTest::PaintChild(IRenderContext* pRender, const UiRect& rcPaint)

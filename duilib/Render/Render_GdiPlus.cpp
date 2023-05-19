@@ -1,9 +1,10 @@
-#include "Render.h"
+#include "Render_GdiPlus.h"
 #include "duilib/Utils/DpiManager.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Render/Pen.h"
 #include "duilib/Render/Path.h"
 #include "duilib/Render/Brush.h"
+#include "duilib/Render/Bitmap_GDI.h"
 #include "duilib/Image/GdiPlusDefs.h"
 
 namespace ui {
@@ -22,7 +23,7 @@ static inline void DrawFunction(HDC hDC, bool bTransparent, UiRect rcDest, HDC h
 	}
 }
 
-RenderContext_GdiPlus::RenderContext_GdiPlus()
+Render_GdiPlus::Render_GdiPlus()
 	: m_hDC(NULL)
 	, m_saveDC(0)
 	, m_hOldBitmap(NULL)
@@ -34,7 +35,7 @@ RenderContext_GdiPlus::RenderContext_GdiPlus()
 	ASSERT(m_hDC);	
 }
 
-RenderContext_GdiPlus::~RenderContext_GdiPlus()
+Render_GdiPlus::~Render_GdiPlus()
 {
 	if (m_hOldBitmap != NULL)
 	{
@@ -49,12 +50,12 @@ RenderContext_GdiPlus::~RenderContext_GdiPlus()
 	}
 }
 
-HDC RenderContext_GdiPlus::GetDC()
+HDC Render_GdiPlus::GetDC()
 {
 	return m_hDC;
 }
 
-bool RenderContext_GdiPlus::Resize(int width, int height, bool flipBItmap)
+bool Render_GdiPlus::Resize(int width, int height)
 {
     if (width <= 0)
         width = 1;
@@ -70,94 +71,90 @@ bool RenderContext_GdiPlus::Resize(int width, int height, bool flipBItmap)
 		::SelectObject(m_hDC, m_hOldBitmap);
 	}
 
-	bool ret = m_bitmap.Init(m_hDC, width, height, flipBItmap);
-	m_hOldBitmap = (HBITMAP)::SelectObject(m_hDC, m_bitmap.GetBitmap());
+	bool ret = m_bitmap.Init(m_hDC, width, height);
+	m_hOldBitmap = (HBITMAP)::SelectObject(m_hDC, m_bitmap.GetHBitmap());
 	return ret;
 }
 
-void RenderContext_GdiPlus::Clear()
+void Render_GdiPlus::Clear()
 {
 	ASSERT(m_hDC);
 	m_bitmap.Clear();
 }
 
-std::unique_ptr<ui::IRenderContext> RenderContext_GdiPlus::Clone()
+std::unique_ptr<ui::IRenderContext> Render_GdiPlus::Clone()
 {
-	std::unique_ptr<ui::IRenderContext> pClone = std::make_unique<ui::RenderContext_GdiPlus>();
+	std::unique_ptr<ui::IRenderContext> pClone = std::make_unique<ui::Render_GdiPlus>();
 	pClone->Resize(GetWidth(), GetHeight());
 	pClone->BitBlt(0, 0, GetWidth(), GetHeight(), m_hDC);
 	return pClone;
 }
 
-HBITMAP RenderContext_GdiPlus::DetachBitmap()
+IBitmap* Render_GdiPlus::DetachBitmap()
 {
 	ASSERT(m_hDC && m_hOldBitmap);
 	ASSERT(m_bitmap.GetHeight() != 0 && m_bitmap.GetWidth() != 0);
-	if (m_hOldBitmap == NULL)
-		return NULL;
 
-	::SelectObject(m_hDC, m_hOldBitmap);
-	return m_bitmap.DetachBitmap();
+	IBitmap* pBitmap = nullptr;
+	if (m_hOldBitmap != nullptr) {
+		::SelectObject(m_hDC, m_hOldBitmap);
+		m_hOldBitmap = nullptr;
+		HBITMAP hBitmap = m_bitmap.DetachBitmap();
+		if (hBitmap != nullptr) {
+			pBitmap = new Bitmap_GDI(hBitmap, true);
+		}
+	}
+	return pBitmap;
 }
 
-BYTE* RenderContext_GdiPlus::GetBits()
-{
-	return m_bitmap.GetBits();
-}
-
-HBITMAP RenderContext_GdiPlus::GetBitmap()
-{
-	return m_bitmap.GetBitmap();
-}
-
-int RenderContext_GdiPlus::GetWidth()
+int Render_GdiPlus::GetWidth()
 {
 	return m_bitmap.GetWidth();
 }
 
-int RenderContext_GdiPlus::GetHeight()
+int Render_GdiPlus::GetHeight()
 {
 	return m_bitmap.GetHeight();
 }
 
-void RenderContext_GdiPlus::ClearAlpha(const UiRect& rcDirty, int alpha)
+void Render_GdiPlus::ClearAlpha(const UiRect& rcDirty, int alpha)
 {
 	m_bitmap.ClearAlpha(rcDirty, alpha);
 }
 
-void RenderContext_GdiPlus::RestoreAlpha(const UiRect& rcDirty, const UiRect& rcShadowPadding, int alpha)
+void Render_GdiPlus::RestoreAlpha(const UiRect& rcDirty, const UiRect& rcShadowPadding, int alpha)
 {
 	m_bitmap.RestoreAlpha(rcDirty, rcShadowPadding, alpha);
 }
 
-void RenderContext_GdiPlus::RestoreAlpha(const UiRect& rcDirty, const UiRect& rcShadowPadding /*= UiRect()*/)
+void Render_GdiPlus::RestoreAlpha(const UiRect& rcDirty, const UiRect& rcShadowPadding /*= UiRect()*/)
 {
 	m_bitmap.RestoreAlpha(rcDirty, rcShadowPadding);
 }
 
-bool RenderContext_GdiPlus::IsRenderTransparent() const
+bool Render_GdiPlus::IsRenderTransparent() const
 {
 	return m_bTransparent;
 }
 
-bool RenderContext_GdiPlus::SetRenderTransparent(bool bTransparent)
+bool Render_GdiPlus::SetRenderTransparent(bool bTransparent)
 {
 	bool oldValue = m_bTransparent;
 	m_bTransparent = bTransparent;
 	return oldValue;
 }
 
-void RenderContext_GdiPlus::Save()
+void Render_GdiPlus::Save()
 {
 	m_saveDC = SaveDC(m_hDC);
 }
 
-void RenderContext_GdiPlus::Restore()
+void Render_GdiPlus::Restore()
 {
 	RestoreDC(m_hDC, m_saveDC);
 }
 
-UiPoint RenderContext_GdiPlus::OffsetWindowOrg(UiPoint ptOffset)
+UiPoint Render_GdiPlus::OffsetWindowOrg(UiPoint ptOffset)
 {
 	UiPoint ptOldWindowOrg;
 	GetWindowOrgEx(m_hDC, &ptOldWindowOrg);
@@ -166,7 +163,7 @@ UiPoint RenderContext_GdiPlus::OffsetWindowOrg(UiPoint ptOffset)
 	return ptOldWindowOrg;
 }
 
-UiPoint RenderContext_GdiPlus::SetWindowOrg(UiPoint ptOffset)
+UiPoint Render_GdiPlus::SetWindowOrg(UiPoint ptOffset)
 {
 	UiPoint ptOldWindowOrg;
 	GetWindowOrgEx(m_hDC, &ptOldWindowOrg);
@@ -174,34 +171,34 @@ UiPoint RenderContext_GdiPlus::SetWindowOrg(UiPoint ptOffset)
 	return ptOldWindowOrg;
 }
 
-UiPoint RenderContext_GdiPlus::GetWindowOrg() const
+UiPoint Render_GdiPlus::GetWindowOrg() const
 {
 	UiPoint ptWindowOrg;
 	GetWindowOrgEx(m_hDC, &ptWindowOrg);
 	return ptWindowOrg;
 }
 
-void RenderContext_GdiPlus::SetClip(const UiRect& rc)
+void Render_GdiPlus::SetClip(const UiRect& rc)
 {
 	m_clip.CreateClip(m_hDC, rc);
 }
 
-void RenderContext_GdiPlus::SetRoundClip(const UiRect& rc, int width, int height)
+void Render_GdiPlus::SetRoundClip(const UiRect& rc, int width, int height)
 {
 	m_clip.CreateRoundClip(m_hDC, rc, width, height);
 }
 
-void RenderContext_GdiPlus::ClearClip()
+void Render_GdiPlus::ClearClip()
 {
 	m_clip.ClearClip(m_hDC);
 }
 
-HRESULT RenderContext_GdiPlus::BitBlt(int x, int y, int cx, int cy, HDC hdcSrc, int xSrc /*= 0*/, int yScr /*= 0*/, DWORD rop /*= SRCCOPY*/)
+HRESULT Render_GdiPlus::BitBlt(int x, int y, int cx, int cy, HDC hdcSrc, int xSrc /*= 0*/, int yScr /*= 0*/, DWORD rop /*= SRCCOPY*/)
 {
 	return ::BitBlt(m_hDC, x, y, cx, cy, hdcSrc, xSrc, yScr, rop);
 }
 
-bool RenderContext_GdiPlus::StretchBlt(int xDest, int yDest, int widthDest, int heightDest,	HDC hdcSrc, int xSrc, int yScr, int widthSrc, int heightSrc, DWORD rop /*= SRCCOPY*/)
+bool Render_GdiPlus::StretchBlt(int xDest, int yDest, int widthDest, int heightDest,	HDC hdcSrc, int xSrc, int yScr, int widthSrc, int heightSrc, DWORD rop /*= SRCCOPY*/)
 {
 	int stretchBltMode = ::SetStretchBltMode(m_hDC, HALFTONE);
 	bool ret = (TRUE == ::StretchBlt(m_hDC, xDest, yDest, widthDest, heightDest,
@@ -210,23 +207,47 @@ bool RenderContext_GdiPlus::StretchBlt(int xDest, int yDest, int widthDest, int 
 	return ret;
 }
 
-bool RenderContext_GdiPlus::AlphaBlend(int xDest, int yDest, int widthDest, int heightDest, HDC hdcSrc, int xSrc, int yScr, int widthSrc, int heightSrc, BYTE uFade /*= 255*/)
+bool Render_GdiPlus::AlphaBlend(int xDest, int yDest, int widthDest, int heightDest, HDC hdcSrc, int xSrc, int yScr, int widthSrc, int heightSrc, BYTE uFade /*= 255*/)
 {
 	BLENDFUNCTION bf = { AC_SRC_OVER, 0, uFade, AC_SRC_ALPHA };
 	return (TRUE == ::AlphaBlend(m_hDC, xDest, yDest, widthDest, heightDest, hdcSrc, xSrc, yScr, widthSrc, heightSrc, bf));
 }
 
-void RenderContext_GdiPlus::DrawImage(const UiRect& rcPaint, HBITMAP hBitmap, bool bAlphaChannel,
-	const UiRect& rcImageDest, const UiRect& rcImageSource, UiRect rcCorners, bool bBitmapDpiScale, 
-	BYTE uFade /*= 255*/, bool xtiled /*= false*/, bool ytiled /*= false*/,
-	bool fullxtiled /*= true*/, bool fullytiled /*= true*/, int nTiledMargin /*=0*/)
+void Render_GdiPlus::DrawImage(const UiRect& rcPaint, 
+							   IBitmap* pBitmap, 
+						       bool bAlphaChannel,
+						       const UiRect& rcImageDest, 
+							   const UiRect& rcImageSource, 
+						       UiRect rcImageCorners,
+						       bool bBitmapDpiScale,
+						       uint8_t uFade,
+						       bool xtiled, 
+						       bool ytiled, 
+						       bool fullxtiled, 
+						       bool fullytiled, 
+						       int nTiledMargin)
 {
 	UiRect rcTestTemp;
-	if (!::IntersectRect(&rcTestTemp, &rcImageDest, &rcPaint)) return;
+	if (!::IntersectRect(&rcTestTemp, &rcImageDest, &rcPaint)) {
+		return;
+	}
+
+	ASSERT(pBitmap != nullptr);
+	if (pBitmap == nullptr) {
+		return;
+	}
+	Bitmap_GDI* gdiBitmap = dynamic_cast<Bitmap_GDI*>(pBitmap);
+	ASSERT(gdiBitmap != nullptr);
+	if (gdiBitmap == nullptr) {
+		return;
+	}
+	HBITMAP hBitmap = gdiBitmap->GetHBitmap();
+	ASSERT(hBitmap != nullptr);
+	if (hBitmap == nullptr) {
+		return;
+	}
 
 	ASSERT(::GetObjectType(m_hDC) == OBJ_DC || ::GetObjectType(m_hDC) == OBJ_MEMDC);
-
-	if (hBitmap == NULL) return;
 
 	HDC hCloneDC = ::CreateCompatibleDC(m_hDC);
 	HBITMAP hOldBitmap = (HBITMAP) ::SelectObject(hCloneDC, hBitmap);
@@ -235,28 +256,29 @@ void RenderContext_GdiPlus::DrawImage(const UiRect& rcPaint, HBITMAP hBitmap, bo
 	UiRect rcTemp;
 	UiRect rcSource;
 	UiRect rcDest;
-	UiRect rcDpiCorner = rcCorners;
+	UiRect rcDpiCorner = rcImageCorners;
 	DpiManager::GetInstance()->ScaleRect(rcDpiCorner);
 	// 如果源位图已经按照DPI缩放过，那么对应的corner也缩放一下
-	if (bBitmapDpiScale)
-		rcCorners = rcDpiCorner;
+	if (bBitmapDpiScale) {
+		rcImageCorners = rcDpiCorner;
+	}
 
 	// middle
 	rcDest.left = rcImageDest.left + rcDpiCorner.left;
 	rcDest.top = rcImageDest.top + rcDpiCorner.top;
 	rcDest.right = rcImageDest.right - rcDpiCorner.right;
 	rcDest.bottom = rcImageDest.bottom - rcDpiCorner.bottom;
-	rcSource.left = rcImageSource.left + rcCorners.left;
-	rcSource.top = rcImageSource.top + rcCorners.top;
-	rcSource.right = rcImageSource.right - rcCorners.right;
-	rcSource.bottom = rcImageSource.bottom - rcCorners.bottom;
+	rcSource.left = rcImageSource.left + rcImageCorners.left;
+	rcSource.top = rcImageSource.top + rcImageCorners.top;
+	rcSource.right = rcImageSource.right - rcImageCorners.right;
+	rcSource.bottom = rcImageSource.bottom - rcImageCorners.bottom;
 	if (::IntersectRect(&rcTemp, &rcPaint, &rcDest)) {
 		if (!xtiled && !ytiled) {
 			DrawFunction(m_hDC, m_bTransparent, rcDest, hCloneDC, rcSource, bAlphaChannel, uFade);
 		}
 		else if (xtiled && ytiled) {
-			const LONG imageDrawWidth = rcImageSource.right - rcImageSource.left - rcCorners.left - rcCorners.right;
-			const LONG imageDrawHeight = rcImageSource.bottom - rcImageSource.top - rcCorners.top - rcCorners.bottom;
+			const LONG imageDrawWidth = rcImageSource.right - rcImageSource.left - rcImageCorners.left - rcImageCorners.right;
+			const LONG imageDrawHeight = rcImageSource.bottom - rcImageSource.top - rcImageCorners.top - rcImageCorners.bottom;
 			int iTimesX = (rcDest.right - rcDest.left) / (imageDrawWidth + nTiledMargin);
 			if (!fullxtiled) {
 				if ((rcDest.right - rcDest.left) % (imageDrawWidth + nTiledMargin) > 0) {
@@ -286,8 +308,8 @@ void RenderContext_GdiPlus::DrawImage(const UiRect& rcPaint, HBITMAP hBitmap, bo
 						lDestRight = rcDest.right;
 					}
 
-					rcSource.left = rcImageSource.left + rcCorners.left;
-					rcSource.top = rcImageSource.top + rcCorners.top;
+					rcSource.left = rcImageSource.left + rcImageCorners.left;
+					rcSource.top = rcImageSource.top + rcImageCorners.top;
 					rcSource.right = rcSource.left + lDrawWidth;
 					rcSource.bottom = rcSource.top + lDrawHeight;
 
@@ -302,7 +324,7 @@ void RenderContext_GdiPlus::DrawImage(const UiRect& rcPaint, HBITMAP hBitmap, bo
 			}
 		}
 		else if (xtiled) { // supp
-			const LONG imageDrawWidth = rcImageSource.right - rcImageSource.left - rcCorners.left - rcCorners.right;
+			const LONG imageDrawWidth = rcImageSource.right - rcImageSource.left - rcImageCorners.left - rcImageCorners.right;
 			int iTimes = iTimes = (rcDest.right - rcDest.left) / (imageDrawWidth + nTiledMargin);
 			if (!fullxtiled) {
 				if ((rcDest.right - rcDest.left) % (imageDrawWidth + nTiledMargin) > 0) {
@@ -320,10 +342,10 @@ void RenderContext_GdiPlus::DrawImage(const UiRect& rcPaint, HBITMAP hBitmap, bo
 				}
 
 				//源区域：如果设置了边角，则仅包含中间区域
-				rcSource.left = rcImageSource.left + rcCorners.left;
-				rcSource.top = rcImageSource.top + rcCorners.top;
+				rcSource.left = rcImageSource.left + rcImageCorners.left;
+				rcSource.top = rcImageSource.top + rcImageCorners.top;
 				rcSource.right = rcSource.left + lDrawWidth;
-				rcSource.bottom = rcImageSource.bottom - rcCorners.bottom;
+				rcSource.bottom = rcImageSource.bottom - rcImageCorners.bottom;
 
 				UiRect rcDestTemp = rcDest;
 				rcDestTemp.top = rcDest.top;
@@ -335,7 +357,7 @@ void RenderContext_GdiPlus::DrawImage(const UiRect& rcPaint, HBITMAP hBitmap, bo
 			}
 		}
 		else { // ytiled
-			const LONG imageDrawHeight = rcImageSource.bottom - rcImageSource.top - rcCorners.top - rcCorners.bottom;
+			const LONG imageDrawHeight = rcImageSource.bottom - rcImageSource.top - rcImageCorners.top - rcImageCorners.bottom;
 			int iTimes = (rcDest.bottom - rcDest.top) / (imageDrawHeight + nTiledMargin);
 			if (!fullytiled) {
 				if ((rcDest.bottom - rcDest.top) % (imageDrawHeight + nTiledMargin) > 0) {
@@ -355,9 +377,9 @@ void RenderContext_GdiPlus::DrawImage(const UiRect& rcPaint, HBITMAP hBitmap, bo
 					lDestBottom = rcDest.bottom;
 				}
 
-				rcSource.left = rcImageSource.left + rcCorners.left;
-				rcSource.top = rcImageSource.top + rcCorners.top;
-				rcSource.right = rcImageSource.right - rcCorners.right;
+				rcSource.left = rcImageSource.left + rcImageCorners.left;
+				rcSource.top = rcImageSource.top + rcImageCorners.top;
+				rcSource.right = rcImageSource.right - rcImageCorners.right;
 				rcSource.bottom = rcSource.top + lDrawHeight;
 
 				rcDestTemp.right = rcDest.left + rcSource.GetWidth();
@@ -370,111 +392,111 @@ void RenderContext_GdiPlus::DrawImage(const UiRect& rcPaint, HBITMAP hBitmap, bo
 	}
 
 	// left-top
-	if (rcCorners.left > 0 && rcCorners.top > 0) {
+	if (rcImageCorners.left > 0 && rcImageCorners.top > 0) {
 		rcDest.left = rcImageDest.left;
 		rcDest.top = rcImageDest.top;
 		rcDest.right = rcImageDest.left + rcDpiCorner.left;
 		rcDest.bottom = rcImageDest.top + rcDpiCorner.top;
 		rcSource.left = rcImageSource.left;
 		rcSource.top = rcImageSource.top;
-		rcSource.right = rcImageSource.left + rcCorners.left;
-		rcSource.bottom = rcImageSource.top + rcCorners.top;
+		rcSource.right = rcImageSource.left + rcImageCorners.left;
+		rcSource.bottom = rcImageSource.top + rcImageCorners.top;
 		if (::IntersectRect(&rcTemp, &rcPaint, &rcDest)) {
 			DrawFunction(m_hDC, m_bTransparent, rcDest, hCloneDC, rcSource, bAlphaChannel, uFade);
 		}
 	}
 	// top
-	if (rcCorners.top > 0) {
+	if (rcImageCorners.top > 0) {
 		rcDest.left = rcImageDest.left + rcDpiCorner.left;
 		rcDest.top = rcImageDest.top;
 		rcDest.right = rcImageDest.right - rcDpiCorner.right;
 		rcDest.bottom = rcImageDest.top + rcDpiCorner.top;
-		rcSource.left = rcImageSource.left + rcCorners.left;
+		rcSource.left = rcImageSource.left + rcImageCorners.left;
 		rcSource.top = rcImageSource.top;
-		rcSource.right = rcImageSource.right - rcCorners.right;
-		rcSource.bottom = rcImageSource.top + rcCorners.top;
+		rcSource.right = rcImageSource.right - rcImageCorners.right;
+		rcSource.bottom = rcImageSource.top + rcImageCorners.top;
 		if (::IntersectRect(&rcTemp, &rcPaint, &rcDest)) {
 			DrawFunction(m_hDC, m_bTransparent, rcDest, hCloneDC, rcSource, bAlphaChannel, uFade);
 		}
 	}
 	// right-top
-	if (rcCorners.right > 0 && rcCorners.top > 0) {
+	if (rcImageCorners.right > 0 && rcImageCorners.top > 0) {
 		rcDest.left = rcImageDest.right - rcDpiCorner.right;
 		rcDest.top = rcImageDest.top;
 		rcDest.right = rcImageDest.right;
 		rcDest.bottom = rcImageDest.top + rcDpiCorner.top;
-		rcSource.left = rcImageSource.right - rcCorners.right;
+		rcSource.left = rcImageSource.right - rcImageCorners.right;
 		rcSource.top = rcImageSource.top;
 		rcSource.right = rcImageSource.right;
-		rcSource.bottom = rcImageSource.top + rcCorners.top;
+		rcSource.bottom = rcImageSource.top + rcImageCorners.top;
 		if (::IntersectRect(&rcTemp, &rcPaint, &rcDest)) {
 			DrawFunction(m_hDC, m_bTransparent, rcDest, hCloneDC, rcSource, bAlphaChannel, uFade);
 		}
 	}
 	// left
-	if (rcCorners.left > 0) {
+	if (rcImageCorners.left > 0) {
 		rcDest.left = rcImageDest.left;
 		rcDest.top = rcImageDest.top + rcDpiCorner.top;
 		rcDest.right = rcImageDest.left + rcDpiCorner.left;
 		rcDest.bottom = rcImageDest.bottom - rcDpiCorner.bottom;
 		rcSource.left = rcImageSource.left;
-		rcSource.top = rcImageSource.top + rcCorners.top;
-		rcSource.right = rcImageSource.left + rcCorners.left;
-		rcSource.bottom = rcImageSource.bottom - rcCorners.bottom;
+		rcSource.top = rcImageSource.top + rcImageCorners.top;
+		rcSource.right = rcImageSource.left + rcImageCorners.left;
+		rcSource.bottom = rcImageSource.bottom - rcImageCorners.bottom;
 		if (::IntersectRect(&rcTemp, &rcPaint, &rcDest)) {
 			DrawFunction(m_hDC, m_bTransparent, rcDest, hCloneDC, rcSource, bAlphaChannel, uFade);
 		}
 	}
 	// right
-	if (rcCorners.right > 0) {
+	if (rcImageCorners.right > 0) {
 		rcDest.left = rcImageDest.right - rcDpiCorner.right;
 		rcDest.top = rcImageDest.top + rcDpiCorner.top;
 		rcDest.right = rcImageDest.right;
 		rcDest.bottom = rcImageDest.bottom - rcDpiCorner.bottom;
-		rcSource.left = rcImageSource.right - rcCorners.right;
-		rcSource.top = rcImageSource.top + rcCorners.top;
+		rcSource.left = rcImageSource.right - rcImageCorners.right;
+		rcSource.top = rcImageSource.top + rcImageCorners.top;
 		rcSource.right = rcImageSource.right;
-		rcSource.bottom = rcImageSource.bottom - rcCorners.bottom;
+		rcSource.bottom = rcImageSource.bottom - rcImageCorners.bottom;
 		if (::IntersectRect(&rcTemp, &rcPaint, &rcDest)) {
 			DrawFunction(m_hDC, m_bTransparent, rcDest, hCloneDC, rcSource, bAlphaChannel, uFade);
 		}
 	}
 	// left-bottom
-	if (rcCorners.left > 0 && rcCorners.bottom > 0) {
+	if (rcImageCorners.left > 0 && rcImageCorners.bottom > 0) {
 		rcDest.left = rcImageDest.left;
 		rcDest.top = rcImageDest.bottom - rcDpiCorner.bottom;
 		rcDest.right = rcImageDest.left + rcDpiCorner.left;
 		rcDest.bottom = rcImageDest.bottom;
 		rcSource.left = rcImageSource.left;
-		rcSource.top = rcImageSource.bottom - rcCorners.bottom;
-		rcSource.right = rcImageSource.left + rcCorners.left;
+		rcSource.top = rcImageSource.bottom - rcImageCorners.bottom;
+		rcSource.right = rcImageSource.left + rcImageCorners.left;
 		rcSource.bottom = rcImageSource.bottom;
 		if (::IntersectRect(&rcTemp, &rcPaint, &rcDest)) {
 			DrawFunction(m_hDC, m_bTransparent, rcDest, hCloneDC, rcSource, bAlphaChannel, uFade);
 		}
 	}
 	// bottom
-	if (rcCorners.bottom > 0) {
+	if (rcImageCorners.bottom > 0) {
 		rcDest.left = rcImageDest.left + rcDpiCorner.left;
 		rcDest.top = rcImageDest.bottom - rcDpiCorner.bottom;
 		rcDest.right = rcImageDest.right - rcDpiCorner.right;
 		rcDest.bottom = rcImageDest.bottom;
-		rcSource.left = rcImageSource.left + rcCorners.left;
-		rcSource.top = rcImageSource.bottom - rcCorners.bottom;
-		rcSource.right = rcImageSource.right - rcCorners.right;
+		rcSource.left = rcImageSource.left + rcImageCorners.left;
+		rcSource.top = rcImageSource.bottom - rcImageCorners.bottom;
+		rcSource.right = rcImageSource.right - rcImageCorners.right;
 		rcSource.bottom = rcImageSource.bottom;
 		if (::IntersectRect(&rcTemp, &rcPaint, &rcDest)) {
 			DrawFunction(m_hDC, m_bTransparent, rcDest, hCloneDC, rcSource, bAlphaChannel, uFade);
 		}
 	}
 	// right-bottom
-	if (rcCorners.right > 0 && rcCorners.bottom > 0) {
+	if (rcImageCorners.right > 0 && rcImageCorners.bottom > 0) {
 		rcDest.left = rcImageDest.right - rcDpiCorner.right;
 		rcDest.top = rcImageDest.bottom - rcDpiCorner.bottom;
 		rcDest.right = rcImageDest.right;
 		rcDest.bottom = rcImageDest.bottom;
-		rcSource.left = rcImageSource.right - rcCorners.right;
-		rcSource.top = rcImageSource.bottom - rcCorners.bottom;
+		rcSource.left = rcImageSource.right - rcImageCorners.right;
+		rcSource.top = rcImageSource.bottom - rcImageCorners.bottom;
 		rcSource.right = rcImageSource.right;
 		rcSource.bottom = rcImageSource.bottom;
 		if (::IntersectRect(&rcTemp, &rcPaint, &rcDest)) {
@@ -487,7 +509,7 @@ void RenderContext_GdiPlus::DrawImage(const UiRect& rcPaint, HBITMAP hBitmap, bo
 	::DeleteDC(hCloneDC);
 }
 
-void RenderContext_GdiPlus::DrawColor(const UiRect& rc, UiColor dwColor, BYTE uFade)
+void Render_GdiPlus::DrawColor(const UiRect& rc, UiColor dwColor, BYTE uFade)
 {
 	UiColor::ARGB dwNewColor = dwColor.GetARGB();
 	if (uFade < 255) {
@@ -506,21 +528,21 @@ void RenderContext_GdiPlus::DrawColor(const UiRect& rc, UiColor dwColor, BYTE uF
 	graphics.FillRectangle(&brush, rcFill);
 }
 
-void RenderContext_GdiPlus::DrawLine(const UiPoint& pt1, const UiPoint& pt2, UiColor penColor, int nWidth)
+void Render_GdiPlus::DrawLine(const UiPoint& pt1, const UiPoint& pt2, UiColor penColor, int nWidth)
 {
 	Gdiplus::Graphics graphics(m_hDC);
 	Gdiplus::Pen pen(Gdiplus::Color(penColor.GetARGB()), (Gdiplus::REAL)nWidth);
 	graphics.DrawLine(&pen, Gdiplus::Point(pt1.x, pt1.y), Gdiplus::Point(pt2.x, pt2.y));
 }
 
-void RenderContext_GdiPlus::DrawRect(const UiRect& rc, UiColor penColor, int nWidth)
+void Render_GdiPlus::DrawRect(const UiRect& rc, UiColor penColor, int nWidth)
 {
 	Gdiplus::Graphics graphics(m_hDC);
 	Gdiplus::Pen pen(Gdiplus::Color(penColor.GetARGB()), (Gdiplus::REAL)nWidth);
 	graphics.DrawRectangle(&pen, rc.left, rc.top, rc.GetWidth(), rc.GetHeight());
 }
 
-void RenderContext_GdiPlus::DrawRoundRect(const UiRect& rc, const UiSize& roundSize, UiColor penColor, int nWidth)
+void Render_GdiPlus::DrawRoundRect(const UiRect& rc, const UiSize& roundSize, UiColor penColor, int nWidth)
 {
 	Gdiplus::Graphics graphics(m_hDC);
 	graphics.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
@@ -544,7 +566,7 @@ void RenderContext_GdiPlus::DrawRoundRect(const UiRect& rc, const UiSize& roundS
 	graphics.DrawPath(&pen, &pPath);
 }
 
-void RenderContext_GdiPlus::DrawPath(const IPath* path, const IPen* pen)
+void Render_GdiPlus::DrawPath(const IPath* path, const IPen* pen)
 {
 	ASSERT(path != nullptr);
 	ASSERT(pen != nullptr);
@@ -556,7 +578,7 @@ void RenderContext_GdiPlus::DrawPath(const IPath* path, const IPen* pen)
 	graphics.DrawPath(((Pen_GdiPlus*)pen)->GetPen(), ((Path_Gdiplus*)path)->GetPath());
 }
 
-void RenderContext_GdiPlus::FillPath(const IPath* path, const IBrush* brush)
+void Render_GdiPlus::FillPath(const IPath* path, const IBrush* brush)
 {
 	ASSERT(path != nullptr);
 	ASSERT(brush != nullptr);
@@ -568,7 +590,7 @@ void RenderContext_GdiPlus::FillPath(const IPath* path, const IBrush* brush)
 	graphics.FillPath(((Brush_Gdiplus*)brush)->GetBrush(), ((Path_Gdiplus*)path)->GetPath());
 }
 
-void RenderContext_GdiPlus::DrawText(const UiRect& rc, const std::wstring& strText, UiColor dwTextColor, const std::wstring& strFontId, UINT uStyle, BYTE uFade /*= 255*/, bool bLineLimit /*= false*/, bool bFillPath /*= false*/)
+void Render_GdiPlus::DrawText(const UiRect& rc, const std::wstring& strText, UiColor dwTextColor, const std::wstring& strFontId, UINT uStyle, BYTE uFade /*= 255*/, bool bLineLimit /*= false*/, bool bFillPath /*= false*/)
 {
 	ASSERT(::GetObjectType(m_hDC) == OBJ_DC || ::GetObjectType(m_hDC) == OBJ_MEMDC);
 	if (strText.empty()) return;
@@ -665,7 +687,7 @@ void RenderContext_GdiPlus::DrawText(const UiRect& rc, const std::wstring& strTe
 	graphics.DrawString(strText.c_str(), (int)strText.length(), &font, rcPaint, &stringFormat, &tBrush);
 }
 
-void RenderContext_GdiPlus::DrawBoxShadow(const UiRect& rc, 
+void Render_GdiPlus::DrawBoxShadow(const UiRect& rc, 
 									  	 const UiSize& roundSize, 
 										 const UiPoint& cpOffset, 
 										 int nBlurRadius, 
@@ -779,7 +801,7 @@ void RenderContext_GdiPlus::DrawBoxShadow(const UiRect& rc,
 		Gdiplus::UnitPixel);
 }
 
-ui::UiRect RenderContext_GdiPlus::MeasureText(const std::wstring& strText, const std::wstring& strFontId, UINT uStyle, int width /*= DUI_NOSET_VALUE*/)
+ui::UiRect Render_GdiPlus::MeasureText(const std::wstring& strText, const std::wstring& strFontId, UINT uStyle, int width /*= DUI_NOSET_VALUE*/)
 {
 	
 	Gdiplus::InstalledFontCollection installedFontCollection;

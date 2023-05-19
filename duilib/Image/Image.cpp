@@ -20,8 +20,8 @@ ImageInfo::ImageInfo():
 
 ImageInfo::~ImageInfo()
 {
-	for (HBITMAP hBitmap : m_frameBitmaps) {
-		::DeleteObject(hBitmap);
+	for (IBitmap* pBitmap : m_frameBitmaps) {
+		delete pBitmap;
 	}
 }
 
@@ -40,15 +40,15 @@ void ImageInfo::SetFrameInterval(const std::vector<int>& frameIntervals)
 	m_frameIntervals = frameIntervals;
 }
 
-void ImageInfo::PushBackHBitmap(HBITMAP hBitmap)
+void ImageInfo::PushBackHBitmap(IBitmap* pBitmap)
 {
-	ASSERT(hBitmap != nullptr);
-	if (hBitmap != nullptr) {
-		m_frameBitmaps.push_back(hBitmap);
+	ASSERT(pBitmap != nullptr);
+	if (pBitmap != nullptr) {
+		m_frameBitmaps.push_back(pBitmap);
 	}
 }
 
-HBITMAP ImageInfo::GetHBitmap(size_t nIndex) const
+IBitmap* ImageInfo::GetBitmap(size_t nIndex) const
 {
 	ASSERT(nIndex < m_frameBitmaps.size());
 	if (nIndex < m_frameBitmaps.size()) {
@@ -280,12 +280,12 @@ void Image::SetCurrentFrame(size_t nCurrentFrame)
 	m_nCurrentFrame = nCurrentFrame;
 }
 
-HBITMAP Image::GetCurrentHBitmap() const
+IBitmap* Image::GetCurrentBitmap() const
 {
 	if (!m_imageCache) {
 		return nullptr;
 	}
-	return m_imageCache->GetHBitmap(m_nCurrentFrame);
+	return m_imageCache->GetBitmap(m_nCurrentFrame);
 }
 
 int Image::GetCurrentInterval() const

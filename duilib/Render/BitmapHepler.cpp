@@ -1,11 +1,13 @@
-#include "GdiHepler.h"
+#include "BitmapHelper.h"
+#include "duilib/Render/Bitmap_GDI.h"
 #include <algorithm>
 
 namespace ui {
-namespace GdiHelper {
+
+namespace BitmapHelper {
 
     //将图像以中心为圆点，旋转角度dAngle(0 - 360度)
-    HBITMAP RotateBitmapAroundCenter(HBITMAP hBitmap, double dAngle)
+    HBITMAP RotateHBitmapAroundCenter(HBITMAP hBitmap, double dAngle)
     {
         dAngle = dAngle * 3.14159265 / 180.0;
         // Create a memory DC compatible with the display
@@ -61,16 +63,30 @@ namespace GdiHelper {
         return hRotatedBitmap;
     }
 
-    bool GetBitmapWidthHeight(HBITMAP hBitmap, int& imageWidth, int& imageHeight)
+    IBitmap* RotateBitmapAroundCenter(const IBitmap* pBitmap, double dAngle)
     {
-        BITMAP bm = { 0 };
-        if (0 == GetObject(hBitmap, sizeof(BITMAP), (LPVOID)&bm))
-        {
-            return false;
+        ASSERT(pBitmap != nullptr);
+        if (pBitmap == nullptr) {
+            return nullptr;
         }
-        imageWidth = (int)bm.bmWidth;
-        imageHeight = (int)bm.bmHeight;
-        return true;
+        const Bitmap_GDI* pGdiBitmap = dynamic_cast<const Bitmap_GDI*>(pBitmap);
+        ASSERT(pGdiBitmap != nullptr);
+        if (pGdiBitmap == nullptr) {
+            return nullptr;
+        }
+        HBITMAP hBitmap = pGdiBitmap->GetHBitmap();
+        ASSERT(hBitmap != nullptr);
+        if (hBitmap == nullptr) {
+            return nullptr;
+        }
+        HBITMAP hRotatedBitmap = RotateHBitmapAroundCenter(hBitmap, dAngle);
+        ASSERT(hRotatedBitmap != nullptr);
+        if (hRotatedBitmap == nullptr) {
+            return nullptr;
+        }
+        return new Bitmap_GDI(hRotatedBitmap, true);
     }
-}
-}
+    
+} //namespace BitmapHelper
+
+} //namespace ui 
