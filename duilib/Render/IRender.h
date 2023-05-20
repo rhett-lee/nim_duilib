@@ -19,16 +19,16 @@ public:
 	virtual void ClearClip(HDC hDC) = 0;
 };
 
-class IRenderContext;
+class IRender;
 class UILIB_API AutoClip
 {
 public:
-	AutoClip(IRenderContext* pRender, const UiRect& rc, bool bClip = true);
-	AutoClip(IRenderContext* pRender, const UiRect& rcRound, int width, int height, bool bClip = true);
+	AutoClip(IRender* pRender, const UiRect& rc, bool bClip = true);
+	AutoClip(IRender* pRender, const UiRect& rcRound, int width, int height, bool bClip = true);
 	~AutoClip();
 
 private:
-	IRenderContext *m_pRender;
+	IRender *m_pRender;
 	bool			m_bClip;
 };
 
@@ -176,13 +176,13 @@ public:
 	virtual bool IsStrokeContainsPoint(int x, int y, const IPen* pen) = 0;
 };
 
-class UILIB_API IRenderContext : public virtual nbase::SupportWeakCallback
+class UILIB_API IRender : public virtual nbase::SupportWeakCallback
 {
 public:
 	virtual HDC GetDC() = 0;
 	virtual bool Resize(int width, int height) = 0;
 	virtual void Clear() = 0;
-	virtual std::unique_ptr<IRenderContext> Clone() = 0;
+	virtual std::unique_ptr<IRender> Clone() = 0;
 
 	/** 分离位图
 	*@return 返回位图接口，返回后由调用方管理资源（包括释放资源等）
@@ -262,7 +262,7 @@ public:
 	virtual ui::IBrush* CreateBrush(UiColor corlor) = 0;
 	virtual ui::IPath* CreatePath() = 0;
 	virtual ui::IBitmap* CreateBitmap() = 0;
-	virtual ui::IRenderContext* CreateRenderContext() = 0;
+	virtual ui::IRender* CreateRender() = 0;
 };
 
 } // namespace ui

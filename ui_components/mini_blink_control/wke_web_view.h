@@ -16,7 +16,7 @@ class WkeWebView : public ui::Control,
 
   // override form ui::Control
   void DoInit() override;
-  void Paint(ui::IRenderContext* pRender, const ui::UiRect& rcPaint) override;
+  void Paint(ui::IRender* pRender, const ui::UiRect& rcPaint) override;
   void SetWindow(ui::Window* pManager, ui::Box* pParent, bool bInit) override;
 
   // override from ui::IUIMessageFilter

@@ -10,7 +10,7 @@ class ShadowBox : public Box
 public:
 	virtual std::wstring GetType() const override { return L"ShadowBox"; }
 
-	virtual void Paint(IRenderContext* pRender, const UiRect& rcPaint) override
+	virtual void Paint(IRender* pRender, const UiRect& rcPaint) override
 	{
 		// 作为阴影，中间部分是空的，不需要处理重绘
 		auto rcPos = GetPaddingPos();

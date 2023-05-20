@@ -54,7 +54,7 @@ public:
 
 	virtual void Activate() override;
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
-	//virtual void PaintText(IRenderContext* pRender) override;
+	//virtual void PaintText(IRender* pRender) override;
 
 	/**
 	 * @brief 获取当前选择项文本

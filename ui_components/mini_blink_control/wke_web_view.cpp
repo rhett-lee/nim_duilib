@@ -50,7 +50,7 @@ void WkeWebView::DoInit() {
   }));
 }
 
-void WkeWebView::Paint(ui::IRenderContext* pRender, const ui::UiRect& rcPaint) {
+void WkeWebView::Paint(ui::IRender* pRender, const ui::UiRect& rcPaint) {
   __super::Paint(pRender, rcPaint);
 
   if (!m_web_view_dc || !m_web_view_dc->IsValid()) {

@@ -31,7 +31,7 @@ public:
 
 	virtual void Activate() override;
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
-	virtual void PaintText(IRenderContext* pRender) override;
+	virtual void PaintText(IRender* pRender) override;
 
 	/** 该控件是否可以放置在标题栏上（以用于处理NC消息响应）
 	 * @return 返回 true 表示可以，false 表示不可以

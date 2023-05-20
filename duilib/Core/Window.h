@@ -16,7 +16,7 @@ namespace ui
 
 class Box;
 class Control;
-class IRenderContext;
+class IRender;
 class Shadow;
 class ToolTip;
 
@@ -689,7 +689,7 @@ public:
 
 	/**@brief 获取绘制对象
 	 */
-	IRenderContext* GetRenderContext() const;
+	IRender* GetRender() const;
 
 	/**@brief 绘制函数体
 	 */
@@ -845,7 +845,7 @@ private:
 	UiPoint m_renderOffset;
 
 	//绘制引擎
-	std::unique_ptr<IRenderContext> m_renderContext;
+	std::unique_ptr<IRender> m_render;
 
 private:
 

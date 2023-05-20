@@ -27,7 +27,7 @@ ui::IBitmap* RenderFactory_GdiPlus::CreateBitmap()
 	return new Bitmap_GDI();
 }
 
-ui::IRenderContext* RenderFactory_GdiPlus::CreateRenderContext()
+ui::IRender* RenderFactory_GdiPlus::CreateRender()
 {
 	return new Render_GdiPlus();
 }

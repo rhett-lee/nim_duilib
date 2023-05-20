@@ -14,7 +14,7 @@ public:
 	virtual ui::IBrush* CreateBrush(UiColor corlor) override;
 	virtual ui::IPath* CreatePath() override;
 	virtual ui::IBitmap* CreateBitmap() override;
-	virtual ui::IRenderContext* CreateRenderContext() override;
+	virtual ui::IRender* CreateRender() override;
 };
 
 } // namespace ui

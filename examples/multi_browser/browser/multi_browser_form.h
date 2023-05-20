@@ -194,9 +194,9 @@ public:
 
 	/**
 	* 获取渲染上下文
-	* @return IRenderContext*	渲染上下文
+	* @return IRender*	渲染上下文
 	*/
-	virtual HDC GetRenderDC() const override { return this->GetRenderContext()->GetDC(); };
+	virtual HDC GetRenderDC() const override { return this->GetRender()->GetDC(); };
 
 	/**
 	* 关闭一个任务栏项

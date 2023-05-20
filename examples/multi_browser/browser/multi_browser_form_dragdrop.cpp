@@ -215,11 +215,11 @@ ui::IBitmap* MultiBrowserForm::GenerateBoxOffsetRenderBitmap(const UiRect& src_r
 	int src_width = src_rect.right - src_rect.left;
 	int src_height = src_rect.bottom - src_rect.top;
 
-	std::unique_ptr<IRenderContext> render;
+	std::unique_ptr<IRender> render;
 	IRenderFactory* pRenderFactory = GlobalManager::GetRenderFactory();
 	ASSERT(pRenderFactory != nullptr);
 	if (pRenderFactory != nullptr) {
-		render.reset(pRenderFactory->CreateRenderContext());
+		render.reset(pRenderFactory->CreateRender());
 	}
 	ASSERT(render != nullptr);
 	if (render->Resize(kDragImageWidth, kDragImageHeight)) {
@@ -237,7 +237,7 @@ ui::IBitmap* MultiBrowserForm::GenerateBoxOffsetRenderBitmap(const UiRect& src_r
 			dest_width = (int)(kDragImageHeight * (float)src_width / (float)src_height);
 		}
 
-		render->AlphaBlend((kDragImageWidth - dest_width) / 2, 0, dest_width, dest_height, this->GetRenderContext()->GetDC(),
+		render->AlphaBlend((kDragImageWidth - dest_width) / 2, 0, dest_width, dest_height, this->GetRender()->GetDC(),
 			src_rect.left, src_rect.top, src_rect.right - src_rect.left, src_rect.bottom - src_rect.top);
 	}
 
@@ -266,11 +266,11 @@ ui::IBitmap* MultiBrowserForm::GenerateBoxWindowBitmap()
 	//复制Cef内部子窗体的位图到内存DC
 	BitBlt(cef_Dc, 0, 0, src_width, src_height, cef_window_dc, 0, 0, SRCCOPY);
 
-	std::unique_ptr<IRenderContext> render;
+	std::unique_ptr<IRender> render;
 	IRenderFactory* pRenderFactory = GlobalManager::GetRenderFactory();
 	ASSERT(pRenderFactory != nullptr);
 	if (pRenderFactory != nullptr) {
-		render.reset(pRenderFactory->CreateRenderContext());
+		render.reset(pRenderFactory->CreateRender());
 	}
 	ASSERT(render != nullptr);
 	if (render->Resize(kDragImageWidth, kDragImageHeight)) {

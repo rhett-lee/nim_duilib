@@ -286,7 +286,7 @@ void Box::SetPos(UiRect rc)
 	Control::SetPos(rect);
 }
 
-void Box::PaintChild(IRenderContext* pRender, const UiRect& rcPaint)
+void Box::PaintChild(IRender* pRender, const UiRect& rcPaint)
 {
 	UiRect rcTemp;
 	if (!::IntersectRect(&rcTemp, &rcPaint, &GetRect())) {
@@ -964,7 +964,7 @@ bool ScrollableBox::MouseLeave(const EventArgs& msg)
 	return bRet;
 }
 
-void ScrollableBox::PaintChild(IRenderContext* pRender, const UiRect& rcPaint)
+void ScrollableBox::PaintChild(IRender* pRender, const UiRect& rcPaint)
 {
 	ASSERT(pRender != nullptr);
 	if (pRender == nullptr) {

@@ -82,9 +82,9 @@ void Render_GdiPlus::Clear()
 	m_bitmap.Clear();
 }
 
-std::unique_ptr<ui::IRenderContext> Render_GdiPlus::Clone()
+std::unique_ptr<ui::IRender> Render_GdiPlus::Clone()
 {
-	std::unique_ptr<ui::IRenderContext> pClone = std::make_unique<ui::Render_GdiPlus>();
+	std::unique_ptr<ui::IRender> pClone = std::make_unique<ui::Render_GdiPlus>();
 	pClone->Resize(GetWidth(), GetHeight());
 	pClone->BitBlt(0, 0, GetWidth(), GetHeight(), m_hDC);
 	return pClone;

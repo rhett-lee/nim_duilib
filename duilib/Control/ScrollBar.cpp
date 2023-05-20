@@ -563,7 +563,7 @@ void ScrollBar::SetAttribute(const std::wstring& strName, const std::wstring& st
 	else Control::SetAttribute(strName, strValue);
 }
 
-void ScrollBar::Paint(IRenderContext* pRender, const UiRect& rcPaint)
+void ScrollBar::Paint(IRender* pRender, const UiRect& rcPaint)
 {
 	UiRect paintRect = GetPaintRect();
 	if (!::IntersectRect(&paintRect, &rcPaint, &GetRect())) {
@@ -892,12 +892,12 @@ void ScrollBar::ScrollTimeHandle()
 	return;
 }
 
-void ScrollBar::PaintBk(IRenderContext* pRender)
+void ScrollBar::PaintBk(IRender* pRender)
 {
 	m_bkStateImage->PaintStateImage(pRender, GetState());
 }
 
-void ScrollBar::PaintButton1(IRenderContext* pRender)
+void ScrollBar::PaintButton1(IRender* pRender)
 {
 	if (!m_bShowButton1) {
 		return;
@@ -929,7 +929,7 @@ void ScrollBar::PaintButton1(IRenderContext* pRender)
 	DrawImage(pRender, (*m_button1StateImage).GetStateImage(kControlStateNormal), m_sImageModify);
 }
 
-void ScrollBar::PaintButton2(IRenderContext* pRender)
+void ScrollBar::PaintButton2(IRender* pRender)
 {
 	if (!m_bShowButton2) {
 		return;
@@ -959,7 +959,7 @@ void ScrollBar::PaintButton2(IRenderContext* pRender)
 	DrawImage(pRender, (*m_button2StateImage).GetStateImage(kControlStateNormal), m_sImageModify);
 }
 
-void ScrollBar::PaintThumb(IRenderContext* pRender)
+void ScrollBar::PaintThumb(IRender* pRender)
 {
 	if (m_rcThumb.left == 0 && m_rcThumb.top == 0 && m_rcThumb.right == 0 && m_rcThumb.bottom == 0) {
 		return;
@@ -972,7 +972,7 @@ void ScrollBar::PaintThumb(IRenderContext* pRender)
 	m_thumbStateImage->PaintStateImage(pRender, m_uThumbState, m_sImageModify);
 }
 
-void ScrollBar::PaintRail(IRenderContext* pRender)
+void ScrollBar::PaintRail(IRender* pRender)
 {
 	if (m_rcThumb.left == 0 && m_rcThumb.top == 0 && m_rcThumb.right == 0 && m_rcThumb.bottom == 0) {
 		return;

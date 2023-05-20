@@ -51,8 +51,8 @@ public:
 
     void Activate() override;
     void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
-    void PaintText(ui::IRenderContext* pRender) override;
-    void PaintChild(ui::IRenderContext* pRender, const ui::UiRect& rcPaint) override;
+    void PaintText(ui::IRender* pRender) override;
+    void PaintChild(ui::IRender* pRender, const ui::UiRect& rcPaint) override;
 
     /**
      * @brief 获取当前选择项文本

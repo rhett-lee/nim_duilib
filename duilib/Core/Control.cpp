@@ -1195,7 +1195,7 @@ bool Control::LoadImageData(Image& duiImage) const
 	return imageCache ? true : false;
 }
 
-bool Control::DrawImage(IRenderContext* pRender, Image& duiImage, const std::wstring& strModify, int nFade)
+bool Control::DrawImage(IRender* pRender, Image& duiImage, const std::wstring& strModify, int nFade)
 {
 	ASSERT(pRender != nullptr);
 	if (pRender == nullptr) {
@@ -1274,27 +1274,27 @@ bool Control::DrawImage(IRenderContext* pRender, Image& duiImage, const std::wst
 	return true;
 }
 
-IRenderContext* Control::GetRenderContext()
+IRender* Control::GetRender()
 {
-	if (!m_renderContext) {
+	if (!m_render) {
 		IRenderFactory* pRenderFactory = GlobalManager::GetRenderFactory();
 		ASSERT(pRenderFactory != nullptr);
 		if (pRenderFactory != nullptr) {
-			m_renderContext.reset(pRenderFactory->CreateRenderContext());
+			m_render.reset(pRenderFactory->CreateRender());
 		}
 	}
-	return m_renderContext.get();
+	return m_render.get();
 }
 
 
-void Control::ClearRenderContext()
+void Control::ClearRender()
 {
-	if (m_renderContext) {
-		m_renderContext.reset();
+	if (m_render) {
+		m_render.reset();
 	}
 }
 
-void Control::AlphaPaint(IRenderContext* pRender, const UiRect& rcPaint)
+void Control::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
 {
 	ASSERT(pRender != nullptr);
 	if (pRender == nullptr) {
@@ -1317,7 +1317,7 @@ void Control::AlphaPaint(IRenderContext* pRender, const UiRect& rcPaint)
 		UiSize size;
 		size.cx = GetRect().right - GetRect().left;
 		size.cy = GetRect().bottom - GetRect().top;
-		auto pCacheRender = GetRenderContext();
+		auto pCacheRender = GetRender();
 		if (pCacheRender) {
 			if (pCacheRender->Resize(size.cx, size.cy)) {
 				SetCacheDirty(true);
@@ -1350,14 +1350,14 @@ void Control::AlphaPaint(IRenderContext* pRender, const UiRect& rcPaint)
 				                rcUnion.right - rcUnion.left, 
 				                rcUnion.bottom - rcUnion.top, 
 				                static_cast<BYTE>(m_nAlpha));
-			m_renderContext.reset();
+			m_render.reset();
 		}
 	}
 	else if (IsUseCache()) {
 		UiSize size;
 		size.cx = GetRect().right - GetRect().left;
 		size.cy = GetRect().bottom - GetRect().top;
-		auto pCacheRender = GetRenderContext();
+		auto pCacheRender = GetRender();
 		if (pCacheRender) {
 			if (pCacheRender->Resize(size.cx, size.cy)) {
 				SetCacheDirty(true);
@@ -1399,7 +1399,7 @@ void Control::AlphaPaint(IRenderContext* pRender, const UiRect& rcPaint)
 	}
 }
 
-void Control::Paint(IRenderContext* pRender, const UiRect& rcPaint)
+void Control::Paint(IRender* pRender, const UiRect& rcPaint)
 {
 	if (!::IntersectRect(&m_rcPaint, &rcPaint, &GetRect())) {
 		return;
@@ -1415,7 +1415,7 @@ void Control::Paint(IRenderContext* pRender, const UiRect& rcPaint)
     PaintLoading(pRender);
 }
 
-void Control::PaintShadow(IRenderContext* pRender)
+void Control::PaintShadow(IRender* pRender)
 {
 	if (!m_boxShadow.HasShadow()) {
 		return;
@@ -1435,7 +1435,7 @@ void Control::PaintShadow(IRenderContext* pRender)
 		m_boxShadow.m_bExclude);
 }
 
-void Control::PaintBkColor(IRenderContext* pRender)
+void Control::PaintBkColor(IRender* pRender)
 {
 	if (m_strBkColor.empty()) {
 		return;
@@ -1456,28 +1456,28 @@ void Control::PaintBkColor(IRenderContext* pRender)
 	}
 }
 
-void Control::PaintBkImage(IRenderContext* pRender)
+void Control::PaintBkImage(IRender* pRender)
 {
     DrawImage(pRender, *m_bkImage);
 }
 
-void Control::PaintStatusColor(IRenderContext* pRender)
+void Control::PaintStatusColor(IRender* pRender)
 {
 	m_colorMap->PaintStateColor(pRender, m_rcPaint, m_controlState);
 }
 
-void Control::PaintStatusImage(IRenderContext* pRender)
+void Control::PaintStatusImage(IRender* pRender)
 {
 	m_imageMap->PaintStateImage(pRender, kStateImageBk, m_controlState);
 	m_imageMap->PaintStateImage(pRender, kStateImageFore, m_controlState);
 }
 
-void Control::PaintText(IRenderContext* /*pRender*/)
+void Control::PaintText(IRender* /*pRender*/)
 {
     return;
 }
 
-void Control::PaintBorder(IRenderContext* pRender)
+void Control::PaintBorder(IRender* pRender)
 {
 	if (m_strBorderColor.empty()) {
 		return;
@@ -1547,7 +1547,7 @@ void Control::PaintBorder(IRenderContext* pRender)
 	}
 }
 
-void Control::PaintLoading(IRenderContext* pRender)
+void Control::PaintLoading(IRender* pRender)
 {
 	ASSERT(pRender != nullptr);
 	if (pRender == nullptr) {

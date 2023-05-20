@@ -276,7 +276,7 @@ void Combo::SetAttribute(const std::wstring& strName, const std::wstring& strVal
 	else Box::SetAttribute(strName, strValue);
 }
 
-void Combo::PaintText(IRenderContext* pRender)
+void Combo::PaintText(IRender* pRender)
 {
 	ASSERT(pRender != nullptr);
 	if (pRender == nullptr) {

@@ -2692,7 +2692,7 @@ void RichEdit::OnMouseMessage(UINT uMsg, const EventArgs& event)
 	TxSendMessage(uMsg, event.wParam, MAKELPARAM(pt.x, pt.y), NULL);
 }
 
-void RichEdit::Paint(IRenderContext* pRender, const UiRect& rcPaint)
+void RichEdit::Paint(IRender* pRender, const UiRect& rcPaint)
 {
     UiRect rcTemp;
     if( !::IntersectRect(&rcTemp, &rcPaint, &GetRect()) ) return;
@@ -2740,7 +2740,7 @@ void RichEdit::Paint(IRenderContext* pRender, const UiRect& rcPaint)
     }
 }
 
-void RichEdit::PaintChild(IRenderContext* pRender, const UiRect& rcPaint)
+void RichEdit::PaintChild(IRender* pRender, const UiRect& rcPaint)
 {
 	UiRect rcTemp;
 	if (!::IntersectRect(&rcTemp, &rcPaint, &GetRect())) return;
@@ -3008,7 +3008,7 @@ void RichEdit::ChangeCaretVisiable()
 	Invalidate();
 }
 
-void RichEdit::PaintCaret(IRenderContext* pRender, const UiRect& /*rcPaint*/)
+void RichEdit::PaintCaret(IRender* pRender, const UiRect& /*rcPaint*/)
 {
 	assert(pRender != nullptr);
 	if (pRender == nullptr) {
@@ -3082,7 +3082,7 @@ void RichEdit::SetUTF8PromptTextId(const std::string& strTextId)
 	SetPromptTextId(strOut);
 }
 
-void RichEdit::PaintPromptText(IRenderContext* pRender)
+void RichEdit::PaintPromptText(IRender* pRender)
 {
 	assert(pRender != nullptr);
 	if (pRender == nullptr) {
@@ -3121,7 +3121,7 @@ void RichEdit::SetFocusedImage( const std::wstring& strImage )
 	Invalidate();
 }
 
-void RichEdit::PaintStatusImage(IRenderContext* pRender)
+void RichEdit::PaintStatusImage(IRender* pRender)
 {
 	if( IsReadOnly() )
 		return;

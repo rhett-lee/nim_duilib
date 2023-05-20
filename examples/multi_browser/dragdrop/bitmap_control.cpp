@@ -7,7 +7,7 @@ BitmapControl::BitmapControl()
 	bitmap_ = NULL;
 }
 
-void BitmapControl::Paint(ui::IRenderContext* pRender, const ui::UiRect& rcPaint)
+void BitmapControl::Paint(ui::IRender* pRender, const ui::UiRect& rcPaint)
 {
 	UiRect paintRect = GetPaintRect();
 	if (!::IntersectRect(&paintRect, &rcPaint, &GetRect())) {

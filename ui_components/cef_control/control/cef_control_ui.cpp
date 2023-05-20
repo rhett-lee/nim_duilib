@@ -117,7 +117,7 @@ void CefControl::SetVisible(bool bVisible)
 	}	
 }
 
-void CefControl::Paint(ui::IRenderContext* pRender, const ui::UiRect& rcPaint)
+void CefControl::Paint(ui::IRender* pRender, const ui::UiRect& rcPaint)
 {
 	__super::Paint(pRender, rcPaint);
 

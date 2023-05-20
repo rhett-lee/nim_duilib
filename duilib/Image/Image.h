@@ -13,7 +13,7 @@
 
 namespace ui 
 {
-	class IRenderContext;
+	class IRender;
 
 /** 图片信息
 */
@@ -340,7 +340,7 @@ public:
 
 	/** 绘制指定状态的图片
 	*/
-	bool PaintStateImage(IRenderContext* pRender, ControlStateType stateType, const std::wstring& sImageModify = L"");
+	bool PaintStateImage(IRender* pRender, ControlStateType stateType, const std::wstring& sImageModify = L"");
 
 	/** 获取用于估算的图片接口
 	*/
@@ -392,7 +392,7 @@ public:
 
 	/** 绘制指定图片类型和状态的图片
 	*/
-	bool PaintStateImage(IRenderContext* pRender, StateImageType stateImageType, ControlStateType stateType, const std::wstring& sImageModify = L"");
+	bool PaintStateImage(IRender* pRender, StateImageType stateImageType, ControlStateType stateType, const std::wstring& sImageModify = L"");
 	
 	/** 获取用于估算的图片接口
 	*/
@@ -443,7 +443,7 @@ public:
 
 	/** 绘制指定状态的颜色
 	*/
-	void PaintStateColor(IRenderContext* pRender, UiRect rcPaint, ControlStateType stateType) const;
+	void PaintStateColor(IRender* pRender, UiRect rcPaint, ControlStateType stateType) const;
 
 private:
 	//关联的控件接口

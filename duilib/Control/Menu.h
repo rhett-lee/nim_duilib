@@ -203,7 +203,7 @@ private:
 private:
 	virtual bool ButtonUp(const ui::EventArgs& msg) override;
 	virtual bool MouseEnter(const ui::EventArgs& msg) override;
-	virtual void PaintChild(ui::IRenderContext* pRender, const ui::UiRect& rcPaint) override;
+	virtual void PaintChild(ui::IRender* pRender, const ui::UiRect& rcPaint) override;
 
 private:
 	friend CMenuWnd; //需要访问部分私有成员函数

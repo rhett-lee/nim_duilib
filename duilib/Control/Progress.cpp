@@ -156,7 +156,7 @@ void Progress::SetAttribute(const std::wstring& srName, const std::wstring& strV
     else Label::SetAttribute(srName, strValue);
 }
 
-void Progress::PaintStatusImage(IRenderContext* pRender)
+void Progress::PaintStatusImage(IRender* pRender)
 {
 	ASSERT(pRender != nullptr);
 	if (pRender == nullptr) {
@@ -288,7 +288,7 @@ void Progress::Play()
     Invalidate();
 }
 
-void Progress::PaintMarquee(IRenderContext* pRender) 
+void Progress::PaintMarquee(IRender* pRender) 
 {
 	ASSERT(pRender != nullptr);
 	if (pRender == nullptr) {

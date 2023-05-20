@@ -38,7 +38,7 @@ public:
 	virtual bool HasHotState() override;
 	virtual UiSize EstimateText(UiSize szAvailable, bool& bReEstimateSize) override;
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
-	virtual void PaintText(IRenderContext* pRender) override;
+	virtual void PaintText(IRender* pRender) override;
 	virtual void SetPos(UiRect rc) override;
     virtual std::wstring GetToolTipText() const override;
 
@@ -248,7 +248,7 @@ void LabelTemplate<InheritType>::CheckShowToolTip()
     if (!m_bAutoShowToolTip || (this->GetWindow() == nullptr)) {
         return;
     }
-    auto pRender = this->GetWindow()->GetRenderContext();
+    auto pRender = this->GetWindow()->GetRender();
     if (pRender == nullptr) {
         return;
     }
@@ -363,7 +363,7 @@ UiSize LabelTemplate<InheritType>::EstimateText(UiSize szAvailable, bool& bReEst
     UiSize fixedSize;
     std::wstring textValue = GetText();
     if (!textValue.empty() && (this->GetWindow() != nullptr)) {
-        auto pRender = this->GetWindow()->GetRenderContext();
+        auto pRender = this->GetWindow()->GetRender();
         if (pRender != nullptr) {
             UiRect rect = pRender->MeasureText(textValue, m_sFontId, m_uTextStyle, width);
             if (this->GetFixedWidth() == DUI_LENGTH_AUTO) {
@@ -456,7 +456,7 @@ void LabelTemplate<InheritType>::SetAttribute(const std::wstring& strName, const
 }
 
 template<typename InheritType>
-void LabelTemplate<InheritType>::PaintText(IRenderContext* pRender)
+void LabelTemplate<InheritType>::PaintText(IRender* pRender)
 {
     std::wstring textValue = GetText();
     if (textValue.empty() || (pRender == nullptr)) {

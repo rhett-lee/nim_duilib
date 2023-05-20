@@ -20,7 +20,7 @@ public:
 	virtual UIAControlProvider* GetUIAProvider() override;
 #endif
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
-	virtual void PaintStatusImage(IRenderContext* pRender) override;
+	virtual void PaintStatusImage(IRender* pRender) override;
 	virtual void ClearImageCache() override;
 
 	/**
@@ -130,7 +130,7 @@ public:
 	 * @brief 绘制Marquee
 	 * @return 无
 	 */
-	void PaintMarquee(IRenderContext* pRender);
+	void PaintMarquee(IRender* pRender);
 
 	/**
 	 * @brief 是否是Marquee

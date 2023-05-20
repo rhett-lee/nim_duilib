@@ -41,7 +41,7 @@ public:
 	virtual void SetPos(UiRect rc) override;
 	virtual void HandleEvent(const EventArgs& event) override;
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
-	virtual void Paint(IRenderContext* pRender, const UiRect& rcPaint) override;
+	virtual void Paint(IRender* pRender, const UiRect& rcPaint) override;
 	virtual void ClearImageCache() override;
 
 #if defined(ENABLE_UIAUTOMATION)
@@ -243,11 +243,11 @@ private:
 	void ScrollTimeHandle();
 
 	/// 绘制相关函数
-	void PaintBk(IRenderContext* pRender);
-	void PaintButton1(IRenderContext* pRender);
-	void PaintButton2(IRenderContext* pRender);
-	void PaintThumb(IRenderContext* pRender);
-	void PaintRail(IRenderContext* pRender);
+	void PaintBk(IRender* pRender);
+	void PaintButton1(IRender* pRender);
+	void PaintButton2(IRender* pRender);
+	void PaintThumb(IRender* pRender);
+	void PaintRail(IRender* pRender);
 
 private:
 	enum

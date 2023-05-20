@@ -12,12 +12,12 @@ RenderTest::~RenderTest()
 
 }
 
-void RenderTest::AlphaPaint(IRenderContext* pRender, const UiRect& rcPaint)
+void RenderTest::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
 {
     __super::AlphaPaint(pRender, rcPaint);
 }
 
-void RenderTest::Paint(IRenderContext* pRender, const UiRect& rcPaint)
+void RenderTest::Paint(IRender* pRender, const UiRect& rcPaint)
 {
     const int marginSize = 8;
     UiRect rect = GetRect();
@@ -226,7 +226,7 @@ void RenderTest::Paint(IRenderContext* pRender, const UiRect& rcPaint)
     pRender->DrawImage(rcPaint, image.GetCurrentBitmap(), false, rect, rcImageSource, rcCorners, false, 255, xtiled, ytiled, fullxtiled, fullytiled, nTiledMargin);
 }
 
-void RenderTest::PaintChild(IRenderContext* pRender, const UiRect& rcPaint)
+void RenderTest::PaintChild(IRender* pRender, const UiRect& rcPaint)
 {
     __super::PaintChild(pRender, rcPaint);
 }

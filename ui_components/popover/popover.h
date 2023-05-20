@@ -155,7 +155,7 @@ protected:
   ui::UiRect GetMarginByPlacement();
 
   virtual void CalcTrianglePoints();
-  virtual void PaintBkColor(ui::IRenderContext* pRender) override;
+  virtual void PaintBkColor(ui::IRender* pRender) override;
 protected:
   bool m_bInited;
   int m_nPlacement;

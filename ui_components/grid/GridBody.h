@@ -191,10 +191,10 @@ namespace ui
 		virtual bool OnMouseMove(const EventArgs& msg);				//not override
 		virtual bool OnKeyDown(const EventArgs& msg);					//not override
 
-		virtual void PaintChild(IRenderContext* pRender, const UiRect& rcPaint) override;
-		virtual void Paint(IRenderContext* pRender, const UiRect& rcPaint) override;
-		virtual void PaintBody(IRenderContext* pRender);		//not override
-		virtual void PaintBorder(IRenderContext* pRender) override;
+		virtual void PaintChild(IRender* pRender, const UiRect& rcPaint) override;
+		virtual void Paint(IRender* pRender, const UiRect& rcPaint) override;
+		virtual void PaintBody(IRender* pRender);		//not override
+		virtual void PaintBorder(IRender* pRender) override;
 	protected:
 		/**
 		* @brief 编辑的单元格为Combo类型时, 选中了ComboItem调用;

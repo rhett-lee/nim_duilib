@@ -144,7 +144,7 @@ void MyGridBody::ResetHeanderComboPos()
 	}
 }
 
-void MyGridBody::PaintBody(IRenderContext* pRender)
+void MyGridBody::PaintBody(IRender* pRender)
 {
 	UiSize szOff = m_pGrid->GetScrollPos();
 	int posx = 0;

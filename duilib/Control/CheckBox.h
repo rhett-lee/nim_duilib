@@ -21,9 +21,9 @@ public:
     virtual void Activate() override;
     virtual Image* GetEstimateImage() override;
     virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
-    virtual void PaintStatusColor(IRenderContext* pRender) override;
-    virtual void PaintStatusImage(IRenderContext* pRender) override;
-    virtual void PaintText(IRenderContext* pRender) override;
+    virtual void PaintStatusColor(IRender* pRender) override;
+    virtual void PaintStatusImage(IRender* pRender) override;
+    virtual void PaintText(IRender* pRender) override;
     virtual bool HasHotState() override;
 
     /**
@@ -262,7 +262,7 @@ void CheckBoxTemplate<InheritType>::SetAttribute(const std::wstring& strName, co
 }
 
 template<typename InheritType>
-void CheckBoxTemplate<InheritType>::PaintStatusColor(IRenderContext* pRender)
+void CheckBoxTemplate<InheritType>::PaintStatusColor(IRender* pRender)
 {
     if (!IsSelected()) {
         __super::PaintStatusColor(pRender);
@@ -278,7 +278,7 @@ void CheckBoxTemplate<InheritType>::PaintStatusColor(IRenderContext* pRender)
 }
 
 template<typename InheritType>
-void CheckBoxTemplate<InheritType>::PaintStatusImage(IRenderContext* pRender)
+void CheckBoxTemplate<InheritType>::PaintStatusImage(IRender* pRender)
 {
     if (!IsSelected()) {
         __super::PaintStatusImage(pRender);
@@ -301,7 +301,7 @@ void CheckBoxTemplate<InheritType>::PaintStatusImage(IRenderContext* pRender)
 }
 
 template<typename InheritType>
-void CheckBoxTemplate<InheritType>::PaintText(IRenderContext* pRender)
+void CheckBoxTemplate<InheritType>::PaintText(IRender* pRender)
 {
     if (!IsSelected()) {
         __super::PaintText(pRender);

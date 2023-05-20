@@ -897,7 +897,7 @@ namespace ui
 			return false;
 		int col_width = min_width;
 		int row_count = GetRowCount();
-		auto pRender = this->GetWindow()->GetRenderContext();
+		auto pRender = this->GetWindow()->GetRender();
 		for (int i = 0; i < row_count; i++)
 		{
 			GridRow *pRow = m_vecRow[i];
@@ -1277,7 +1277,7 @@ namespace ui
 		return true;
 	}
 
-	void GridBody::PaintChild(IRenderContext* pRender, const UiRect& rcPaint)
+	void GridBody::PaintChild(IRender* pRender, const UiRect& rcPaint)
 	{
 		UiRect rcTemp;
 		if (!::IntersectRect(&rcTemp, &rcPaint, &GetRect())) return;
@@ -1307,7 +1307,7 @@ namespace ui
 		}
 	}
 
-	void GridBody::Paint(IRenderContext* pRender, const UiRect& rcPaint)
+	void GridBody::Paint(IRender* pRender, const UiRect& rcPaint)
 	{
 		UiRect paintRect = GetPaintRect();
 		if (!::IntersectRect(&paintRect, &rcPaint, &GetRect())) {
@@ -1325,7 +1325,7 @@ namespace ui
 
 	}
 
-	void GridBody::PaintBorder(IRenderContext* pRender)
+	void GridBody::PaintBorder(IRender* pRender)
 	{
 		__super::PaintBorder(pRender);
 		if (m_pGrid->m_bPaintGridLine && m_hLayout.size() > 0 && m_vLayout.size() > 0)
@@ -1401,7 +1401,7 @@ namespace ui
 		}
 	}
 
-	void GridBody::PaintBody(IRenderContext* pRender)
+	void GridBody::PaintBody(IRender* pRender)
 	{
 		UiSize szOff = m_pGrid->GetScrollPos();
 		int posx = 0;

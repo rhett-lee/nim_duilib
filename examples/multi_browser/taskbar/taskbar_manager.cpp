@@ -260,11 +260,11 @@ ui::IBitmap* TaskbarManager::GenerateBindControlBitmapWithForm(ui::Control *cont
 		return nullptr;
 
 	// 1.创建内存dc
-	std::unique_ptr<IRenderContext> render;
+	std::unique_ptr<IRender> render;
 	IRenderFactory* pRenderFactory = GlobalManager::GetRenderFactory();
 	ASSERT(pRenderFactory != nullptr);
 	if (pRenderFactory != nullptr) {
-		render.reset(pRenderFactory->CreateRenderContext());
+		render.reset(pRenderFactory->CreateRender());
 	}
 	ASSERT(render != nullptr);
 	render->Resize(window_width, window_height);
@@ -322,11 +322,11 @@ ui::IBitmap* TaskbarManager::GenerateBindControlBitmap(ui::Control *control, con
 		return nullptr;
 
 	// 1.创建内存dc
-	std::unique_ptr<IRenderContext> render;
+	std::unique_ptr<IRender> render;
 	IRenderFactory* pRenderFactory = GlobalManager::GetRenderFactory();
 	ASSERT(pRenderFactory != nullptr);
 	if (pRenderFactory != nullptr) {
-		render.reset(pRenderFactory->CreateRenderContext());
+		render.reset(pRenderFactory->CreateRender());
 	}
 	ASSERT(render != nullptr);
 	render->Resize(window_width, window_height);
@@ -353,11 +353,11 @@ ui::IBitmap* TaskbarManager::GenerateBindControlBitmap(ui::Control *control, con
 
 ui::IBitmap* TaskbarManager::ResizeBitmap(int dest_width, int dest_height, HDC src_dc, int src_x, int src_y, int src_width, int src_height)
 {
-	std::unique_ptr<IRenderContext> render;
+	std::unique_ptr<IRender> render;
 	IRenderFactory* pRenderFactory = GlobalManager::GetRenderFactory();
 	ASSERT(pRenderFactory != nullptr);
 	if (pRenderFactory != nullptr) {
-		render.reset(pRenderFactory->CreateRenderContext());
+		render.reset(pRenderFactory->CreateRender());
 	}
 	ASSERT(render != nullptr);
 	if (render->Resize(dest_width, dest_height))

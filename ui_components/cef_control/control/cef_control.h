@@ -22,7 +22,7 @@ public:
 	virtual void SetPos(ui::UiRect rc) override;
 	virtual void HandleEvent(const ui::EventArgs& event) override;
 	virtual void SetVisible(bool bVisible) override;
-	virtual void Paint(ui::IRenderContext* pRender, const ui::UiRect& rcPaint) override;
+	virtual void Paint(ui::IRender* pRender, const ui::UiRect& rcPaint) override;
 	virtual void SetWindow(ui::Window* pManager, ui::Box* pParent, bool bInit) override;
 
 	virtual LRESULT FilterMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override; // 处理窗体消息，转发到Cef浏览器对象

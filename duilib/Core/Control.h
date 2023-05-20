@@ -17,7 +17,7 @@ namespace ui
 	class StateColorMap;
 	class StateImageMap;
 	class AnimationManager;
-	class IRenderContext;
+	class IRender;
 
 	typedef Control* (CALLBACK* FINDCONTROLPROC)(Control*, LPVOID);
 
@@ -607,26 +607,26 @@ public:
 	 * @param[in] nFade 控件的透明度，如果启用动画效果该值在绘制时是不断变化的
 	 * @return 成功返回 true，失败返回 false
 	 */
-	bool DrawImage(IRenderContext* pRender, Image& duiImage, const std::wstring& strModify = L"", int nFade = DUI_NOSET_VALUE);
+	bool DrawImage(IRender* pRender, Image& duiImage, const std::wstring& strModify = L"", int nFade = DUI_NOSET_VALUE);
 
 	/**
 	* @brief 获取绘制上下文对象
 	* @return 返回绘制上下文对象
 	*/
-	IRenderContext* GetRenderContext();
+	IRender* GetRender();
 
 	/**
 	* @brief 清理绘制上下文对象
 	* @return 无
 	*/
-	void ClearRenderContext();
+	void ClearRender();
 
 	/**
 	 * @brief 待补充
 	 * @param[in] 待补充
 	 * @return 待补充
 	 */
-	virtual void AlphaPaint(IRenderContext* pRender, const UiRect& rcPaint);
+	virtual void AlphaPaint(IRender* pRender, const UiRect& rcPaint);
 	
 	/**
 	* @brief 绘制控件的入口函数
@@ -634,7 +634,7 @@ public:
 	* @param[in] rcPaint 指定绘制坐标
 	* @return 无
 	*/
-	virtual void Paint(IRenderContext* pRender, const UiRect& rcPaint);
+	virtual void Paint(IRender* pRender, const UiRect& rcPaint);
 
 	/**
 	* @brief 绘制控件子项入口函数
@@ -642,7 +642,7 @@ public:
 	* @param[in] rcPaint 指定绘制坐标
 	* @return 无
 	*/
-	virtual void PaintChild(IRenderContext* pRender, const UiRect& rcPaint) { (void)pRender; (void)rcPaint; };
+	virtual void PaintChild(IRender* pRender, const UiRect& rcPaint) { (void)pRender; (void)rcPaint; };
 
 	/**
 	* @brief 设置是否对绘制范围做剪裁限制
@@ -1001,14 +1001,14 @@ protected:
 	virtual bool ButtonUp(const EventArgs& msg);
 
 	/// 绘制相关保护成员函数，不允许外部直接调用
-	virtual void PaintShadow(IRenderContext* pRender);
-	virtual void PaintBkColor(IRenderContext* pRender);
-	virtual void PaintBkImage(IRenderContext* pRender);
-	virtual void PaintStatusColor(IRenderContext* pRender);
-	virtual void PaintStatusImage(IRenderContext* pRender);
-	virtual void PaintText(IRenderContext* pRender);
-	virtual void PaintBorder(IRenderContext* pRender);
-	virtual void PaintLoading(IRenderContext* pRender);
+	virtual void PaintShadow(IRender* pRender);
+	virtual void PaintBkColor(IRender* pRender);
+	virtual void PaintBkImage(IRender* pRender);
+	virtual void PaintStatusColor(IRender* pRender);
+	virtual void PaintStatusImage(IRender* pRender);
+	virtual void PaintText(IRender* pRender);
+	virtual void PaintBorder(IRender* pRender);
+	virtual void PaintLoading(IRender* pRender);
 
 protected:
 	/** @brief 获取控件图片类型与状态图片的映射接口
@@ -1120,7 +1120,7 @@ private:
 	UiRect m_rcPaint;
 
 	//绘制渲染引擎接口
-	std::unique_ptr<IRenderContext> m_renderContext;
+	std::unique_ptr<IRender> m_render;
 
 private:
 	//ToolTip的宽度

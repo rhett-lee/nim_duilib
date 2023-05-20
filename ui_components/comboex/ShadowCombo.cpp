@@ -326,7 +326,7 @@ void ShadowCombo::SetAttribute(const std::wstring& strName, const std::wstring& 
     else Box::SetAttribute(strName, strValue);
 }
 
-void ShadowCombo::PaintText(ui::IRenderContext* pRender)
+void ShadowCombo::PaintText(ui::IRender* pRender)
 {
     ui::UiRect rcText = GetRect();
     rcText.right = m_cArrow->GetPos().left;
@@ -363,7 +363,7 @@ void ShadowCombo::PaintText(ui::IRenderContext* pRender)
     pRender->DrawText(rcText, GetText(), dwTextColor, pElement->GetFont(), DT_SINGLELINE | DT_VCENTER | DT_END_ELLIPSIS);
 }
 
-void ShadowCombo::PaintChild(ui::IRenderContext* pRender, const ui::UiRect& rcPaint)
+void ShadowCombo::PaintChild(ui::IRender* pRender, const ui::UiRect& rcPaint)
 {
     __super::PaintChild(pRender, rcPaint);
     if (m_cArrow->GetState() != GetState()) {

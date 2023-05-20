@@ -491,13 +491,13 @@ void Window::InitWnd(HWND hWnd)
 	ASSERT(m_hDcPaint == nullptr);
 	m_hDcPaint = ::GetDC(hWnd);
 
-	ASSERT(m_renderContext == nullptr);
+	ASSERT(m_render == nullptr);
 	IRenderFactory* pRenderFactory = GlobalManager::GetRenderFactory();
 	ASSERT(pRenderFactory != nullptr);
 	if (pRenderFactory != nullptr) {
-		m_renderContext.reset(pRenderFactory->CreateRenderContext());
+		m_render.reset(pRenderFactory->CreateRender());
 	}
-	ASSERT(m_renderContext != nullptr);
+	ASSERT(m_render != nullptr);
 
 	RegisterTouchWindowWrapper(hWnd, 0);
 }
@@ -1964,9 +1964,9 @@ HDC Window::GetPaintDC() const
 	return m_hDcPaint;
 }
 
-ui::IRenderContext* Window::GetRenderContext() const
+ui::IRender* Window::GetRender() const
 {
-	return m_renderContext.get();
+	return m_render.get();
 }
 
 void Window::Invalidate(const UiRect& rcItem)
@@ -2070,7 +2070,7 @@ void Window::Paint()
 
 	int width = rcClient.right - rcClient.left;
 	int height = rcClient.bottom - rcClient.top;
-	if (m_renderContext->Resize(width, height))	{
+	if (m_render->Resize(width, height))	{
 		rcPaint.left = 0;
 		rcPaint.top = 0;
 		rcPaint.right = width;
@@ -2079,15 +2079,15 @@ void Window::Paint()
 
 	// 去掉alpha通道
 	if (m_bIsLayeredWindow) {
-		m_renderContext->ClearAlpha(rcPaint);
+		m_render->ClearAlpha(rcPaint);
 	}
 
 	// 绘制
-	AutoClip rectClip(m_renderContext.get(), rcPaint, true);
-	UiPoint ptOldWindOrg = m_renderContext->OffsetWindowOrg(m_renderOffset);
-	m_pRoot->Paint(m_renderContext.get(), rcPaint);
-	m_pRoot->PaintChild(m_renderContext.get(), rcPaint);
-	m_renderContext->SetWindowOrg(ptOldWindOrg);
+	AutoClip rectClip(m_render.get(), rcPaint, true);
+	UiPoint ptOldWindOrg = m_render->OffsetWindowOrg(m_renderOffset);
+	m_pRoot->Paint(m_render.get(), rcPaint);
+	m_pRoot->PaintChild(m_render.get(), rcPaint);
+	m_render->SetWindowOrg(ptOldWindOrg);
 
 	// alpha修复
 	if (m_bIsLayeredWindow) {
@@ -2103,7 +2103,7 @@ void Window::Paint()
 			rcRootPadding.right += 1;
 			rcRootPadding.bottom += 1;
 
-			m_renderContext->RestoreAlpha(rcNewPaint, rcRootPadding);
+			m_render->RestoreAlpha(rcNewPaint, rcRootPadding);
 		}
 		else {
 			UiRect rcAlphaFixCorner = GetAlphaFixCorner();
@@ -2115,7 +2115,7 @@ void Window::Paint()
 				rcNewPaint.Intersect(rcRootPaddingPos);
 
 				UiRect rcRootPadding;
-				m_renderContext->RestoreAlpha(rcNewPaint, rcRootPadding);
+				m_render->RestoreAlpha(rcNewPaint, rcRootPadding);
 			}
 		}
 	}
@@ -2126,11 +2126,11 @@ void Window::Paint()
 		UiSize szWindow(rcClient.right - rcClient.left, rcClient.bottom - rcClient.top);
 		UiPoint ptSrc;
 		BLENDFUNCTION bf = { AC_SRC_OVER, 0, static_cast<BYTE>(m_nAlpha), AC_SRC_ALPHA };
-		::UpdateLayeredWindow(m_hWnd, NULL, &pt, &szWindow, m_renderContext->GetDC(), &ptSrc, 0, &bf, ULW_ALPHA);
+		::UpdateLayeredWindow(m_hWnd, NULL, &pt, &szWindow, m_render->GetDC(), &ptSrc, 0, &bf, ULW_ALPHA);
 	}
 	else {
 		::BitBlt(ps.hdc, rcPaint.left, rcPaint.top, rcPaint.GetWidth(),
-			rcPaint.GetHeight(), m_renderContext->GetDC(), rcPaint.left, rcPaint.top, SRCCOPY);
+			rcPaint.GetHeight(), m_render->GetDC(), rcPaint.left, rcPaint.top, SRCCOPY);
 	}
 
 	::EndPaint(m_hWnd, &ps);
@@ -2147,12 +2147,12 @@ void Window::SetAlpha(int nAlpha)
 
 bool Window::IsRenderTransparent() const
 {
-	return m_renderContext->IsRenderTransparent();
+	return m_render->IsRenderTransparent();
 }
 
 bool Window::SetRenderTransparent(bool bCanvasTransparent)
 {
-	return m_renderContext->SetRenderTransparent(bCanvasTransparent);
+	return m_render->SetRenderTransparent(bCanvasTransparent);
 }
 
 bool Window::IsLayeredWindow() const

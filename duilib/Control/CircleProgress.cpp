@@ -43,7 +43,7 @@ void CircleProgress::SetAttribute(const std::wstring& srName, const std::wstring
 	else Progress::SetAttribute(srName, strValue);
 }
 
-void CircleProgress::PaintStatusImage(IRenderContext* pRender)
+void CircleProgress::PaintStatusImage(IRender* pRender)
 {
 	ASSERT(pRender != nullptr);
 	if (pRender == nullptr) {
@@ -52,7 +52,7 @@ void CircleProgress::PaintStatusImage(IRenderContext* pRender)
 	Progress::PaintStatusImage(pRender);
 	if (m_bCircular)
 	{
-		//目前IRenderContext还有很多GDI+接口未实现，暂时直接用gdi+画图了
+		//目前IRender还有很多GDI+接口未实现，暂时直接用gdi+画图了
 		//以后可能会调整：需实现1、DrawArc  2、Pen增加brush(渐变)入参 3、可以自由设置Graphics属性
 		int direction = m_bClockwise ? 1 : -1;   //旋转方向
 		int bordersize = 1;          //弧度宽度目前使用1像素

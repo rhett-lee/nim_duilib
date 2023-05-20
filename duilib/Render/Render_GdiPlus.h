@@ -10,7 +10,7 @@
 namespace ui 
 {
 
-class UILIB_API Render_GdiPlus : public IRenderContext
+class UILIB_API Render_GdiPlus : public IRender
 {
 public:
 	Render_GdiPlus();
@@ -19,7 +19,7 @@ public:
 	virtual HDC GetDC() override;
 	virtual bool Resize(int width, int height) override;
 	virtual void Clear() override;
-	virtual std::unique_ptr<IRenderContext> Clone() override;
+	virtual std::unique_ptr<IRender> Clone() override;
 
 	/** 分离位图
 	*@return 返回位图接口，返回后由调用方管理资源（包括释放资源等）
