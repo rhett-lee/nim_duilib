@@ -180,7 +180,7 @@ public:
 	int nPlayCount;	
 };
 
-/** 图片相关封装
+/** 图片相关封装，支持的文件格式：SVG/PNG/GIF/JPG/BMP/
 */
 class UILIB_API Image
 {
