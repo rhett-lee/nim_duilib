@@ -1,6 +1,6 @@
 #pragma once
 
-#include "third_party/mini_blink/include/wke.h"
+#include "ui_components/third_party/mini_blink/include/wke.h"
 #include <functional>
 #include <string>
 
