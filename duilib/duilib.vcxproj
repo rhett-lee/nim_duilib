@@ -345,7 +345,6 @@
     <ClCompile Include="Core\ControlFinder.cpp" />
     <ClCompile Include="Core\Define.cpp" />
     <ClCompile Include="Core\GlobalManager.cpp" />
-    <ClCompile Include="Core\Markup.cpp" />
     <ClCompile Include="Core\Placeholder.cpp" />
     <ClCompile Include="Core\ToolTip.cpp" />
     <ClCompile Include="Core\Window.cpp" />
@@ -364,6 +363,8 @@
     <ClCompile Include="Render\Pen.cpp" />
     <ClCompile Include="Render\RenderBitmap_GDI.cpp" />
     <ClCompile Include="Render\Render_GdiPlus.cpp" />
+    <ClCompile Include="third_party\unzip\UnZip.cpp" />
+    <ClCompile Include="third_party\xml\Markup.cpp" />
     <ClCompile Include="Utils\ApiWrapper.cpp" />
     <ClCompile Include="Utils\BoxShadow.cpp" />
     <ClCompile Include="Utils\DpiManager.cpp" />
@@ -379,7 +380,6 @@
     <ClCompile Include="Control\ScrollBar.cpp" />
     <ClCompile Include="Control\Slider.cpp" />
     <ClCompile Include="Control\TreeView.cpp" />
-    <ClCompile Include="Utils\UnZip.cpp" />
     <ClCompile Include="Utils\WinImplBase.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -402,7 +402,6 @@
     <ClInclude Include="Core\ControlFinder.h" />
     <ClInclude Include="Core\Define.h" />
     <ClInclude Include="Core\GlobalManager.h" />
-    <ClInclude Include="Core\Markup.h" />
     <ClInclude Include="Core\Placeholder.h" />
     <ClInclude Include="Core\ToolTip.h" />
     <ClInclude Include="Core\Window.h" />
@@ -414,8 +413,6 @@
     <ClInclude Include="Image\GdiPlusDefs.h" />
     <ClInclude Include="Image\Image.h" />
     <ClInclude Include="Image\ImageDecoder.h" />
-    <ClInclude Include="Image\nanosvg.h" />
-    <ClInclude Include="Image\nanosvgrast.h" />
     <ClInclude Include="Image\SvgUtil.h" />
     <ClInclude Include="Render\BitmapHelper.h" />
     <ClInclude Include="Render\Bitmap_GDI.h" />
@@ -430,6 +427,10 @@
     <ClInclude Include="Render\RenderBitmap_GDI.h" />
     <ClInclude Include="Render\Render_GdiPlus.h" />
     <ClInclude Include="Render\UiColor.h" />
+    <ClInclude Include="third_party\svg\nanosvg.h" />
+    <ClInclude Include="third_party\svg\nanosvgrast.h" />
+    <ClInclude Include="third_party\unzip\UnZip.h" />
+    <ClInclude Include="third_party\xml\Markup.h" />
     <ClInclude Include="Utils\ApiWrapper.h" />
     <ClInclude Include="Utils\BoxShadow.h" />
     <ClInclude Include="Utils\DpiManager.h" />
@@ -441,7 +442,6 @@
     <ClInclude Include="Utils\StringUtil.h" />
     <ClInclude Include="Utils\Delegate.h" />
     <ClInclude Include="Utils\TimerManager.h" />
-    <ClInclude Include="Utils\UnZip.h" />
     <ClInclude Include="Utils\VersionHelpers.h" />
     <ClInclude Include="Utils\WinImplBase.h" />
     <ClInclude Include="Control\Button.h" />

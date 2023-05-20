@@ -6,9 +6,9 @@
 
 #define NANOSVG_IMPLEMENTATION
 #define NANOSVG_ALL_COLOR_KEYWORDS
-#include "duilib/Image/nanosvg.h"
+#include "duilib/third_party/svg/nanosvg.h"
 #define NANOSVGRAST_IMPLEMENTATION
-#include "duilib/Image/nanosvgrast.h"
+#include "duilib/third_party/svg/nanosvgrast.h"
 
 namespace ui
 {

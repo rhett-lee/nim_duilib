@@ -106,7 +106,6 @@
 #include "Render/UiColor.h"
 
 #include "Core/Define.h"
-#include "Core/Markup.h"
 #include "Core/WindowBuilder.h"
 #include "Core/GlobalManager.h"
 #include "Core/Window.h"

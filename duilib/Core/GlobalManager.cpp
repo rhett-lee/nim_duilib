@@ -2,7 +2,6 @@
 #include "duilib/Render/Factory.h"
 #include "duilib/Render/Font_GDI.h"
 #include "duilib/Utils/DpiManager.h"
-#include "duilib/Utils/UnZip.h"
 #include "duilib/Image/SvgUtil.h"
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Utils/MultiLangSupport.h"
@@ -15,6 +14,8 @@
 #include "duilib/Image/ImageDecoder.h"
 
 #include "duilib/Image/GdiPlusDefs.h"
+
+#include "duilib/third_party/unzip/UnZip.h"
 
 #include <commctrl.h>
 #include <tchar.h>

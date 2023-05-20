@@ -1,10 +1,8 @@
 #include "WindowBuilder.h"
-#include "duilib/Core/Markup.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/Window.h"
 #include "duilib/Core/Box.h"
 #include "duilib/Core/Control.h"
-#include "duilib/Core/Markup.h"
 #include "duilib/Control/TreeView.h"
 #include "duilib/Control/ScrollBar.h"
 #include "duilib/Control/Combo.h"
@@ -24,6 +22,8 @@
 
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Utils/FontManager.h"
+
+#include "duilib/third_party/xml/Markup.h"
 #include <tchar.h>
 
 namespace ui 

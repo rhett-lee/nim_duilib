@@ -25,6 +25,18 @@
     <Filter Include="Core">
       <UniqueIdentifier>{1f234e59-8715-40b0-956f-f4522df552bf}</UniqueIdentifier>
     </Filter>
+    <Filter Include="third_party">
+      <UniqueIdentifier>{f35d83ee-c8c5-43ae-90a2-7b32443ee0dc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="third_party\svg">
+      <UniqueIdentifier>{fb600588-5462-4429-bd41-b718781b7509}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="third_party\unzip">
+      <UniqueIdentifier>{e830306f-8d26-4a7d-8c75-488fd6671c6f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="third_party\xml">
+      <UniqueIdentifier>{4d0e7c52-2577-4dce-9921-d90a4354dd6f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Animation\AnimationPlayer.cpp">
@@ -123,9 +135,6 @@
     <ClCompile Include="Utils\TimerManager.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
-    <ClCompile Include="Utils\UnZip.cpp">
-      <Filter>Utils</Filter>
-    </ClCompile>
     <ClCompile Include="Utils\WinImplBase.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
@@ -159,9 +168,6 @@
     <ClCompile Include="Core\GlobalManager.cpp">
       <Filter>Core</Filter>
     </ClCompile>
-    <ClCompile Include="Core\Markup.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
     <ClCompile Include="Core\Placeholder.cpp">
       <Filter>Core</Filter>
     </ClCompile>
@@ -188,6 +194,12 @@
     </ClCompile>
     <ClCompile Include="Render\BitmapHepler.cpp">
       <Filter>Render</Filter>
+    </ClCompile>
+    <ClCompile Include="third_party\unzip\UnZip.cpp">
+      <Filter>third_party\unzip</Filter>
+    </ClCompile>
+    <ClCompile Include="third_party\xml\Markup.cpp">
+      <Filter>third_party\xml</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -308,9 +320,6 @@
     <ClInclude Include="Utils\TimerManager.h">
       <Filter>Utils</Filter>
     </ClInclude>
-    <ClInclude Include="Utils\UnZip.h">
-      <Filter>Utils</Filter>
-    </ClInclude>
     <ClInclude Include="Utils\VersionHelpers.h">
       <Filter>Utils</Filter>
     </ClInclude>
@@ -353,12 +362,6 @@
     <ClInclude Include="Image\SvgUtil.h">
       <Filter>Image</Filter>
     </ClInclude>
-    <ClInclude Include="Image\nanosvg.h">
-      <Filter>Image</Filter>
-    </ClInclude>
-    <ClInclude Include="Image\nanosvgrast.h">
-      <Filter>Image</Filter>
-    </ClInclude>
     <ClInclude Include="Core\Box.h">
       <Filter>Core</Filter>
     </ClInclude>
@@ -372,9 +375,6 @@
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="Core\GlobalManager.h">
-      <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\Markup.h">
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="Core\Placeholder.h">
@@ -403,6 +403,18 @@
     </ClInclude>
     <ClInclude Include="Render\BitmapHelper.h">
       <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="third_party\svg\nanosvg.h">
+      <Filter>third_party\svg</Filter>
+    </ClInclude>
+    <ClInclude Include="third_party\svg\nanosvgrast.h">
+      <Filter>third_party\svg</Filter>
+    </ClInclude>
+    <ClInclude Include="third_party\unzip\UnZip.h">
+      <Filter>third_party\unzip</Filter>
+    </ClInclude>
+    <ClInclude Include="third_party\xml\Markup.h">
+      <Filter>third_party\xml</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
