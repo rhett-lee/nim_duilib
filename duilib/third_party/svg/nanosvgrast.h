@@ -1206,19 +1206,20 @@ static void nsvg__unpremultiplyAlpha(unsigned char* image, int w, int h, int str
 {
 	int x,y;
 
+    // 由redrain修复Bug： nanosvg已经对数据做了预乘，这里对RGBA数据做反预乘。但是最终解析时需要预乘数据，所以屏蔽掉反预乘处理
 	// Unpremultiply
-	for (y = 0; y < h; y++) {
-		unsigned char *row = &image[y*stride];
-		for (x = 0; x < w; x++) {
-			int r = row[0], g = row[1], b = row[2], a = row[3];
-			if (a != 0) {
-				row[0] = (unsigned char)(r*255/a);
-				row[1] = (unsigned char)(g*255/a);
-				row[2] = (unsigned char)(b*255/a);
-			}
-			row += 4;
-		}
-	}
+	//for (y = 0; y < h; y++) {
+	//	unsigned char *row = &image[y*stride];
+	//	for (x = 0; x < w; x++) {
+	//		int r = row[0], g = row[1], b = row[2], a = row[3];
+	//		if (a != 0) {
+	//			row[0] = (unsigned char)(r*255/a);
+	//			row[1] = (unsigned char)(g*255/a);
+	//			row[2] = (unsigned char)(b*255/a);
+	//		}
+	//		row += 4;
+	//	}
+	//}
 
 	// Defringe
 	for (y = 0; y < h; y++) {
