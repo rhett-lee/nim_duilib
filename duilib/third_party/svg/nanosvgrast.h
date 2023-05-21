@@ -25,6 +25,8 @@
 #ifndef NANOSVGRAST_H
 #define NANOSVGRAST_H
 
+#include "nanosvg.h"
+
 #ifndef NANOSVGRAST_CPLUSPLUS
 #ifdef __cplusplus
 extern "C" {
@@ -47,7 +49,7 @@ typedef struct NSVGrasterizer NSVGrasterizer;
 */
 
 // Allocated rasterizer context.
-NSVGrasterizer* nsvgCreateRasterizer();
+NSVGrasterizer* nsvgCreateRasterizer(void);
 
 // Rasterizes SVG image, returns RGBA image (non-premultiplied alpha)
 //   r - pointer to rasterizer context
@@ -72,11 +74,11 @@ void nsvgDeleteRasterizer(NSVGrasterizer*);
 #endif
 #endif
 
-#endif // NANOSVGRAST_H
-
 #ifdef NANOSVGRAST_IMPLEMENTATION
 
 #include <math.h>
+#include <stdlib.h>
+#include <string.h>
 
 #define NSVG__SUBSAMPLES	5
 #define NSVG__FIXSHIFT		10
@@ -112,7 +114,7 @@ typedef struct NSVGmemPage {
 } NSVGmemPage;
 
 typedef struct NSVGcachedPaint {
-	char type;
+	signed char type;
 	char spread;
 	float xform[6];
 	unsigned int colors[256];
@@ -148,7 +150,7 @@ struct NSVGrasterizer
 	int width, height, stride;
 };
 
-NSVGrasterizer* nsvgCreateRasterizer()
+NSVGrasterizer* nsvgCreateRasterizer(void)
 {
 	NSVGrasterizer* r = (NSVGrasterizer*)malloc(sizeof(NSVGrasterizer));
 	if (r == NULL) goto error;
@@ -956,7 +958,7 @@ static float nsvg__clampf(float a, float mn, float mx) { return a < mn ? mn : (a
 
 static unsigned int nsvg__RGBA(unsigned char r, unsigned char g, unsigned char b, unsigned char a)
 {
-	return (r) | (g << 8) | (b << 16) | (a << 24);
+	return ((unsigned int)r) | ((unsigned int)g << 8) | ((unsigned int)b << 16) | ((unsigned int)a << 24);
 }
 
 static unsigned int nsvg__lerpRGBA(unsigned int c0, unsigned int c1, float u)
@@ -1205,19 +1207,18 @@ static void nsvg__unpremultiplyAlpha(unsigned char* image, int w, int h, int str
 	int x,y;
 
 	// Unpremultiply
-// redrain: nanosvg已经对数据做了预乘，这里对RGBA数据做反预乘。但是最终解析时需要预乘数据，所以屏蔽掉反预乘处理
-// 	for (y = 0; y < h; y++) {
-// 		unsigned char *row = &image[y*stride];
-// 		for (x = 0; x < w; x++) {
-// 			int r = row[0], g = row[1], b = row[2], a = row[3];
-// 			if (a != 0) {
-// 				row[0] = (unsigned char)(r*255/a);
-// 				row[1] = (unsigned char)(g*255/a);
-// 				row[2] = (unsigned char)(b*255/a);
-// 			}
-// 			row += 4;
-// 		}
-// 	}
+	for (y = 0; y < h; y++) {
+		unsigned char *row = &image[y*stride];
+		for (x = 0; x < w; x++) {
+			int r = row[0], g = row[1], b = row[2], a = row[3];
+			if (a != 0) {
+				row[0] = (unsigned char)(r*255/a);
+				row[1] = (unsigned char)(g*255/a);
+				row[2] = (unsigned char)(b*255/a);
+			}
+			row += 4;
+		}
+	}
 
 	// Defringe
 	for (y = 0; y < h; y++) {
@@ -1407,7 +1408,8 @@ void nsvgRasterize(NSVGrasterizer* r,
 			}
 
 			// Rasterize edges
-			qsort(r->edges, r->nedges, sizeof(NSVGedge), nsvg__cmpEdge);
+			if (r->nedges != 0)
+				qsort(r->edges, r->nedges, sizeof(NSVGedge), nsvg__cmpEdge);
 
 			// now, traverse the scanlines and find the intersections on each scanline, use non-zero rule
 			nsvg__initPaint(&cache, &shape->fill, shape->opacity);
@@ -1433,7 +1435,8 @@ void nsvgRasterize(NSVGrasterizer* r,
 			}
 
 			// Rasterize edges
-			qsort(r->edges, r->nedges, sizeof(NSVGedge), nsvg__cmpEdge);
+			if (r->nedges != 0)
+				qsort(r->edges, r->nedges, sizeof(NSVGedge), nsvg__cmpEdge);
 
 			// now, traverse the scanlines and find the intersections on each scanline, use non-zero rule
 			nsvg__initPaint(&cache, &shape->stroke, shape->opacity);
@@ -1450,4 +1453,6 @@ void nsvgRasterize(NSVGrasterizer* r,
 	r->stride = 0;
 }
 
-#endif
+#endif // NANOSVGRAST_IMPLEMENTATION
+
+#endif // NANOSVGRAST_H
