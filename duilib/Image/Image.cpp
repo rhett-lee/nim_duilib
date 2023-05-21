@@ -170,9 +170,6 @@ void ImageAttribute::ModifyAttribute(const std::wstring& strImageString)
 				imageAttribute.rcDest.top = _tcstol(pstr + 1, &pstr, 10);    ASSERT(pstr);
 				imageAttribute.rcDest.right = _tcstol(pstr + 1, &pstr, 10);  ASSERT(pstr);
 				imageAttribute.rcDest.bottom = _tcstol(pstr + 1, &pstr, 10); ASSERT(pstr);
-
-				if (bScaleDest)
-					DpiManager::GetInstance()->ScaleRect(imageAttribute.rcDest);
 			}
 			else if (sItem == _T("source")) {
 				imageAttribute.rcSource.left = _tcstol(sValue.c_str(), &pstr, 10);  ASSERT(pstr);
@@ -213,6 +210,10 @@ void ImageAttribute::ModifyAttribute(const std::wstring& strImageString)
 			break;
 		}
 	}
+
+	if (bScaleDest) {
+		DpiManager::GetInstance()->ScaleRect(imageAttribute.rcDest);
+	}		
 }
 
 

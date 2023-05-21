@@ -4,19 +4,21 @@
 #include "duilib/Image/SvgUtil.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Render/Bitmap_GDI.h"
+#include "duilib/Utils/StringUtil.h"
 
 namespace ui 
 {
-namespace ImageLoader
+
+namespace GdiplusImageLoader
 {
-    std::unique_ptr<ImageInfo> LoadImageByBitmap(std::unique_ptr<Gdiplus::Bitmap>& pGdiplusBitmap, const std::wstring& imageFullPath)
-    {
-		if (pGdiplusBitmap == nullptr) {
+	std::unique_ptr<ImageInfo> LoadImageByGdiplus(std::unique_ptr<Gdiplus::Bitmap>& pGdiplusBitmap, const std::wstring & imageFullPath)
+	{
+		if (!pGdiplusBitmap) {
+			ASSERT(!"ImageInfo::LoadImageByGdiplus: Ê§°Ü");
 			return nullptr;
 		}
-		Gdiplus::Status status;
-		status = pGdiplusBitmap->GetLastStatus();
-		ASSERT((status == Gdiplus::Ok) && "ImageInfo::LoadImageByBitmap: Ê§°Ü");
+		Gdiplus::Status status = pGdiplusBitmap->GetLastStatus();
+		ASSERT((status == Gdiplus::Ok) && "ImageInfo::LoadImageByGdiplus: Ê§°Ü");
 		if (status != Gdiplus::Ok) {
 			return nullptr;
 		}
@@ -132,55 +134,104 @@ namespace ImageLoader
 
 		return imageInfo;
     }
+
+	std::unique_ptr<ImageInfo> LoadImageByGdiplus(std::vector<unsigned char>& file_data, const std::wstring& imageFullPath)
+	{
+		HGLOBAL hGlobal = ::GlobalAlloc(GMEM_MOVEABLE | GMEM_NODISCARD, file_data.size());
+		if (hGlobal == nullptr) {
+			return nullptr;
+		}
+		unsigned char* pData = (unsigned char*)::GlobalLock(hGlobal);
+		if (pData == nullptr) {
+			::GlobalFree(hGlobal);
+			return nullptr;
+		}
+		memcpy(pData, file_data.data(), file_data.size());
+		IStream* stream = nullptr;
+		::CreateStreamOnHGlobal(hGlobal, FALSE, &stream);
+		if (stream == nullptr) {
+			::GlobalUnlock(hGlobal);
+			::GlobalFree(hGlobal);
+			return nullptr;
+		}
+		std::unique_ptr<Gdiplus::Bitmap> pGdiplusBitmap(Gdiplus::Bitmap::FromStream(stream));
+		std::unique_ptr<ImageInfo> imageInfo = LoadImageByGdiplus(pGdiplusBitmap, imageFullPath);
+		stream->Release();
+		::GlobalUnlock(hGlobal);
+		::GlobalFree(hGlobal);
+		return imageInfo;
+	}
 }
 
-std::unique_ptr<ImageInfo> ImageDecoder::LoadImageFile(const std::wstring& imageFullPath)
+ImageDecoder::ImageFormat ImageDecoder::GetImageFormat(const std::wstring& path) const
 {
-	if (SvgUtil::IsSvgFile(imageFullPath)) {
-		return SvgUtil::LoadSvg(imageFullPath);
+	ImageDecoder::ImageFormat imageFormat = ImageFormat::kUnknown;
+	if (path.size() < 4) {
+		return imageFormat;
 	}
-
-	std::unique_ptr<Gdiplus::Bitmap> gdiplusBitmap(Gdiplus::Bitmap::FromFile(imageFullPath.c_str()));
-	return ImageLoader::LoadImageByBitmap(gdiplusBitmap, imageFullPath);
+	std::wstring fileExt;
+	size_t pos = path.rfind(L".");
+	if ((pos != std::wstring::npos) && ((pos + 1) < path.size())) {
+		fileExt = path.substr(pos + 1, std::wstring::npos);
+		fileExt = StringHelper::MakeUpperString(fileExt);
+	}
+	if (fileExt == L"PNG") {
+		imageFormat = ImageFormat::kPNG;
+	}
+	else if (fileExt == L"SVG") {
+		imageFormat = ImageFormat::kSVG;
+	}
+	else if (fileExt == L"GIF") {
+		imageFormat = ImageFormat::kGIF;
+	}
+	else if (fileExt == L"APNG") {
+		imageFormat = ImageFormat::kAPNG;
+	}
+	else if (fileExt == L"WEBP") {
+		imageFormat = ImageFormat::kWEBP;
+	}
+	else if ((fileExt == L"JPEG") || (fileExt == L"JPG")) {
+		imageFormat = ImageFormat::kJPEG;
+	}
+	else if (fileExt == L"BMP") {
+		imageFormat = ImageFormat::kBMP;
+	}
+	else if (fileExt == L"ICO") {
+		imageFormat = ImageFormat::kICO;
+	}
+	return imageFormat;
 }
 
 std::unique_ptr<ImageInfo> ImageDecoder::LoadImageData(std::vector<unsigned char>& file_data, const std::wstring& imageFullPath)
 {
-	if (SvgUtil::IsSvgFile(imageFullPath)) {
+	ASSERT(!file_data.empty() && !imageFullPath.empty());
+	if (file_data.empty() || imageFullPath.empty()) {
+		return nullptr;
+	}
+
+	ImageDecoder::ImageFormat imageFormat = GetImageFormat(imageFullPath);
+	switch (imageFormat) {
+	case ImageFormat::kPNG:
+		break;
+	case ImageFormat::kSVG:
 		return SvgUtil::LoadSvg(file_data, imageFullPath);
+	case ImageFormat::kGIF:
+		break;
+	case ImageFormat::kAPNG:
+		break;
+	case ImageFormat::kWEBP:
+		break;
+	case ImageFormat::kJPEG:
+		break;
+	case ImageFormat::kBMP:
+		break;
+	case ImageFormat::kICO:
+		break;
+	default:
+		break;
 	}
 
-	if (file_data.empty()) {
-		return nullptr;
-	}
-
-	HGLOBAL hGlobal = ::GlobalAlloc(GMEM_MOVEABLE | GMEM_NODISCARD, file_data.size());
-	if (hGlobal == nullptr) {
-		return nullptr;
-	}
-	unsigned char* pData = (unsigned char*)::GlobalLock(hGlobal);
-	if (pData == nullptr) {
-		::GlobalFree(hGlobal);
-		return nullptr;
-	}
-	memcpy(pData, file_data.data(), file_data.size());
-	::GlobalUnlock(hGlobal);
-
-	IStream* stream = NULL;
-	::GlobalLock(hGlobal);
-	::CreateStreamOnHGlobal(hGlobal, FALSE, &stream);
-	if (stream == NULL) {
-		::GlobalUnlock(hGlobal);
-		::GlobalFree(hGlobal);
-		return nullptr;
-	}
-	else {
-		std::unique_ptr<Gdiplus::Bitmap> gdiplusBitmap(Gdiplus::Bitmap::FromStream(stream));
-		stream->Release();
-		::GlobalUnlock(hGlobal);
-		::GlobalFree(hGlobal);
-		return ImageLoader::LoadImageByBitmap(gdiplusBitmap, imageFullPath);
-	}
+	return GdiplusImageLoader::LoadImageByGdiplus(file_data, imageFullPath);
 }
 
 } // namespace ui

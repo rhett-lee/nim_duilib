@@ -325,18 +325,30 @@ std::shared_ptr<ImageInfo> GlobalManager::GetImage(const std::wstring& bitmap)
     std::shared_ptr<ImageInfo> sharedImage;
     auto it = m_mImageHash.find(imageFullPath);
     if (it == m_mImageHash.end()) {
+		std::vector<unsigned char> file_data;
         std::unique_ptr<ImageInfo> data;
         if (IsUseZip()) {
-			std::vector<unsigned char> file_data;
-            if (GetZipData(imageFullPath, file_data)) {
-				ImageDecoder imageDecoder;
-                data = imageDecoder.LoadImageData(file_data, imageFullPath);
-            }
+			GetZipData(imageFullPath, file_data);
         }
-        if (!data) {
+		else {
+			FILE* f = nullptr;
+			errno_t ret = _wfopen_s(&f, imageFullPath.c_str(), L"rb");
+			if ((ret == 0) && (f != nullptr)) {
+				fseek(f, 0, SEEK_END);
+				int fileSize = ftell(f);
+				fseek(f, 0, SEEK_SET);
+				if (fileSize > 0) {
+					file_data.resize((size_t)fileSize);
+					size_t readLen = fread(file_data.data(), 1, file_data.size(), f);
+					ASSERT_UNUSED_VARIABLE(readLen == file_data.size());
+				}
+				fclose(f);
+			}
+		}
+		if (!file_data.empty()) {
 			ImageDecoder imageDecoder;
-            data = imageDecoder.LoadImageFile(imageFullPath);
-        }
+			data = imageDecoder.LoadImageData(file_data, imageFullPath);
+		}
 		if (!data) {
 			return sharedImage;
 		}

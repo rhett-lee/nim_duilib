@@ -16,12 +16,24 @@ class ImageInfo;
 */
 class UILIB_API ImageDecoder
 {
-public:    
-    /** 从文件中加载图片并解码图片数据
-    * @param [in] imageFullPath 文件的完整路径
-    */
-    std::unique_ptr<ImageInfo> LoadImageFile(const std::wstring& imageFullPath);
+public:
+    enum class ImageFormat {
+        kUnknown,
+        kPNG,
+        kSVG,
+        kGIF, 
+        kAPNG,
+        kWEBP,
+        kJPEG,
+        kBMP,
+        kICO 
+    };
 
+    /** 根据图片文件的扩展名获取图片格式
+    */
+    ImageFormat GetImageFormat(const std::wstring& path) const;
+
+public:    
     /** 从内存文件数据中加载图片并解码图片数据
     * @param [in] file_data 图片文件的数据，内部有增加尾0的写操作
     * @param [in] imageFullPath 文件的完整路径
