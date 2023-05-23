@@ -4,6 +4,7 @@
 #include "duilib/Render/IRender.h"
 #include "duilib/Utils//DpiManager.h"
 #include "duilib/Animation/AnimationManager.h"
+#include "duilib/Utils/StringUtil.h"
 #include <tchar.h>
 
 namespace ui 
@@ -11,10 +12,10 @@ namespace ui
 
 ImageInfo::ImageInfo():
 	m_bAlphaChannel(false),
-	m_bCached(false),
 	m_bDpiScaled(false),
 	m_nWidth(0),
-	m_nHeight(0)
+	m_nHeight(0),
+	m_nPlayCount(-1)
 {
 }
 
@@ -98,6 +99,26 @@ int ImageInfo::GetFrameInterval(size_t nIndex)
 	return interval;
 }
 
+void ImageInfo::SetPlayCount(int32_t nPlayCount)
+{
+	m_nPlayCount = nPlayCount;
+}
+
+int32_t ImageInfo::GetPlayCount() const
+{
+	return m_nPlayCount;
+}
+
+void ImageInfo::SetCacheKey(const std::wstring& cacheKey)
+{
+	m_cacheKey = cacheKey;
+}
+
+const std::wstring& ImageInfo::GetCacheKey() const
+{
+	return m_cacheKey;
+}
+
 ImageAttribute::ImageAttribute()
 {
 	Init();
@@ -160,51 +181,71 @@ void ImageAttribute::ModifyAttribute(const std::wstring& strImageString)
 		if (*pStrImage++ != _T('\'')) break;
 		if (!sValue.empty()) {
 			if (sItem == _T("file") || sItem == _T("res")) {
+				//图片资源文件名，根据此设置去加载图片资源
 				imageAttribute.sImagePath = sValue;
 			}
+			else if (sItem == _T("width")) {
+				//设置图片宽度，可以放大或缩小图像：pixels或者百分比%，比如300，或者30%
+				imageAttribute.srcWidth = sValue;
+			}
+			else if (sItem == _T("height")) {
+				//设置图片高度，可以放大或缩小图像：pixels或者百分比%，比如200，或者30%
+				imageAttribute.srcHeight = sValue;
+			}
 			else if (sItem == _T("destscale")) {
+				//加载时，按照DPI缩放图片，仅当设置了dest属性时有效
 				bScaleDest = (_tcscmp(sValue.c_str(), _T("true")) == 0);
 			}
 			else if (sItem == _T("dest")) {
+				//设置目标区域，该区域是指相对于所属控件的Rect区域
 				imageAttribute.rcDest.left = _tcstol(sValue.c_str(), &pstr, 10);  ASSERT(pstr);
 				imageAttribute.rcDest.top = _tcstol(pstr + 1, &pstr, 10);    ASSERT(pstr);
 				imageAttribute.rcDest.right = _tcstol(pstr + 1, &pstr, 10);  ASSERT(pstr);
 				imageAttribute.rcDest.bottom = _tcstol(pstr + 1, &pstr, 10); ASSERT(pstr);
 			}
 			else if (sItem == _T("source")) {
+				//图片源区域设置：可以用于仅包含源图片的部分图片内容（比如通过此机制，将按钮的各个状态图片整合到一张大图片上，方便管理图片资源）
 				imageAttribute.rcSource.left = _tcstol(sValue.c_str(), &pstr, 10);  ASSERT(pstr);
 				imageAttribute.rcSource.top = _tcstol(pstr + 1, &pstr, 10);    ASSERT(pstr);
 				imageAttribute.rcSource.right = _tcstol(pstr + 1, &pstr, 10);  ASSERT(pstr);
 				imageAttribute.rcSource.bottom = _tcstol(pstr + 1, &pstr, 10); ASSERT(pstr);
 			}
 			else if (sItem == _T("corner")) {
+				//图片的圆角属性，如果设置此属性，绘制图片的时候，采用九宫格绘制方式绘制图片：
+				//    四个角不拉伸图片，四个边部分拉伸，中间部分可以拉伸或者根据xtiled、ytiled属性来平铺绘制
 				imageAttribute.rcCorner.left = _tcstol(sValue.c_str(), &pstr, 10);  ASSERT(pstr);
 				imageAttribute.rcCorner.top = _tcstol(pstr + 1, &pstr, 10);    ASSERT(pstr);
 				imageAttribute.rcCorner.right = _tcstol(pstr + 1, &pstr, 10);  ASSERT(pstr);
 				imageAttribute.rcCorner.bottom = _tcstol(pstr + 1, &pstr, 10); ASSERT(pstr);
 			}
 			else if (sItem == _T("fade")) {
+				//图片的透明度
 				imageAttribute.bFade = (BYTE)_tcstoul(sValue.c_str(), &pstr, 10);
 			}
 			else if (sItem == _T("xtiled")) {
+				//横向平铺
 				imageAttribute.bTiledX = (_tcscmp(sValue.c_str(), _T("true")) == 0);
 			}
 			else if (sItem == _T("fullxtiled")) {
+				//横向平铺时，保证整张图片绘制
 				imageAttribute.bFullTiledX = (_tcscmp(sValue.c_str(), _T("true")) == 0);
 			}
 			else if (sItem == _T("ytiled")) {
+				//纵向平铺
 				imageAttribute.bTiledY = (_tcscmp(sValue.c_str(), _T("true")) == 0);
 			}
 			else if (sItem == _T("fullytiled")) {
+				//纵向平铺时，保证整张图片绘制
 				imageAttribute.bFullTiledY = (_tcscmp(sValue.c_str(), _T("true")) == 0);
 			}
 			else if (sItem == _T("tiledmargin")) {
+				//平铺绘制时，各平铺图片之间的间隔，包括横向平铺和纵向平铺
 				imageAttribute.nTiledMargin = _tcstol(sValue.c_str(), &pstr, 10); ASSERT(pstr);
 			}
-			else if (sItem == _T("playcount"))
-			{
+			else if (sItem == _T("playcount")) {
+				//如果是GIF、APNG、WEBP等动画图片，可以指定播放次数 -1 ：一直播放，缺省值。
 				imageAttribute.nPlayCount = _tcstol(sValue.c_str(), &pstr, 10);  ASSERT(pstr);
-			}
+			}			
 		}
 		if (*pStrImage++ != _T(' ')) {
 			break;
@@ -216,6 +257,84 @@ void ImageAttribute::ModifyAttribute(const std::wstring& strImageString)
 	}		
 }
 
+ImageLoadAttribute::ImageLoadAttribute(const std::wstring& srcWidth,
+									   const std::wstring& srcHeight):
+	m_srcWidth(srcWidth),
+	m_srcHeight(srcHeight)
+{
+	StringHelper::Trim(m_srcWidth);
+	StringHelper::Trim(m_srcHeight);
+}
+
+void ImageLoadAttribute::SetImageFullPath(const std::wstring& imageFullPath)
+{
+	m_srcImageFullPath = StringHelper::ReparsePath(imageFullPath);
+	StringHelper::Trim(m_srcImageFullPath);
+}
+
+const std::wstring& ImageLoadAttribute::GetImageFullPath() const
+{
+	ASSERT(!m_srcImageFullPath.empty());
+	return m_srcImageFullPath;
+}
+
+std::wstring ImageLoadAttribute::GetCacheKey() const
+{
+	ASSERT(!m_srcImageFullPath.empty());
+	return m_srcImageFullPath + L"@" + m_srcWidth + L":" + m_srcHeight;
+}
+
+bool ImageLoadAttribute::CalcImageLoadSize(uint32_t& nImageWidth, uint32_t& nImageHeight)
+{
+	ASSERT((nImageWidth != 0) && (nImageHeight != 0));
+	if ((nImageWidth == 0) || (nImageHeight == 0)) {
+		return false;
+	}
+	uint32_t nScaledWidth = GetScacledSize(m_srcWidth, nImageWidth);
+	uint32_t nScaledHeight = GetScacledSize(m_srcHeight, nImageHeight);
+	bool isScaled = false;
+	if ((nScaledWidth > 0) && (nScaledHeight > 0)) {
+		//宽和高都有具体设置的值
+		nImageWidth = nScaledWidth;
+		nImageHeight = nScaledHeight;
+		isScaled = true;
+	}
+	else if ((nScaledWidth > 0) && (nScaledHeight == 0)) {
+		//设置了宽度，高度按图片原始比例自适应
+		nImageHeight = nImageHeight * nScaledWidth / nImageWidth;
+		nImageWidth = nScaledWidth;		
+		isScaled = true;
+	}
+	else if ((nScaledWidth == 0) && (nScaledHeight > 0)) {
+		//设置了高度宽度按图片原始比例自适应
+		nImageWidth = nImageWidth * nScaledHeight / nImageHeight;
+		nImageHeight = nScaledHeight;
+		isScaled = true;
+	}
+	return isScaled;
+}
+
+uint32_t ImageLoadAttribute::GetScacledSize(const std::wstring& srcSize, uint32_t nImageSize)
+{
+	if (srcSize.empty()) {
+		return 0;
+	}
+	uint32_t nScaledSize = 0;
+	if (srcSize.back() == L'%') {
+		//按照百分比缩放
+		double ratio = wcstod(srcSize.c_str(), nullptr);
+		nScaledSize = static_cast<uint32_t>(nImageSize * ratio / 100);
+	}
+	else {
+		//设置固定值
+		nScaledSize = wcstol(srcSize.c_str(), nullptr, 10);
+	}
+
+	if (nScaledSize != nImageSize) {
+		return nScaledSize;
+	}
+	return 0;
+}
 
 Image::Image() :
 	m_nCurrentFrame(0),
@@ -240,7 +359,7 @@ const std::wstring& Image::GetImageString() const
 	return m_imageAttribute.sImageString;
 }
 
-const std::wstring Image::GetImagePath() const
+const std::wstring& Image::GetImagePath() const
 {
 	return m_imageAttribute.sImagePath;
 }
@@ -328,6 +447,12 @@ bool Image::ContinuePlay() const
 const ImageAttribute& Image::GetImageAttribute() const
 {
 	return m_imageAttribute;
+}
+
+ImageLoadAttribute Image::GetImageLoadAttribute() const
+{
+	return ImageLoadAttribute(m_imageAttribute.srcWidth, 
+						      m_imageAttribute.srcHeight);
 }
 
 const std::shared_ptr<ImageInfo>& Image::GetImageCache() const

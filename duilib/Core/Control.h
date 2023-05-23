@@ -593,13 +593,6 @@ public:
 
 	/// 绘制操作
 	/**
-	 * @brief 根据图片路径, 加载图片信息到缓存中
-	 * @param[in，out] duiImage 传入时标注图片的路径信息，如果成功则会缓存图片并记录到该参数的成员中
-	 * @return 无
-	 */
-	bool LoadImageData(Image& duiImage) const;
-
-	/**
 	 * @brief 绘制图片
 	 * @param[in] pRender 绘制上下文
 	 * @param[in] duiImage 图片对象
@@ -782,21 +775,20 @@ public:
 	AnimationManager& GetAnimationManager() const;
 
 	/// 图片缓存
-	/**
-	 * @brief 缓存图片
-	 * @return 无
+	/**@brief 根据图片路径, 加载图片信息到缓存中
+	 * @param[in，out] duiImage 传入时标注图片的路径信息，如果成功则会缓存图片并记录到该参数的成员中
+	 */
+	bool LoadImageData(Image& duiImage) const;
+
+	/**@brief 加载图片到缓存
 	 */
 	virtual void InvokeLoadImageCache();
 
-	/**
-	 * @brief 取消加载图片缓存
-	 * @return 无
+	/**@brief 取消加载图片缓存
 	 */
 	virtual void UnLoadImageCache();
 
-	/**
-	 * @brief 清理图片缓存
-	 * @return 无
+	/**@brief 清理图片缓存
 	 */
 	virtual void ClearImageCache();
 
@@ -1068,7 +1060,8 @@ private:
 	//控件的状态
 	ControlStateType m_controlState;
 
-	//控件状态与颜色值的映射
+	/** 状态与颜色值MAP
+	*/
 	std::unique_ptr<StateColorMap> m_colorMap;
 
 	//控件图片类型与状态图片的映射

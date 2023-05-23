@@ -17,6 +17,7 @@ namespace ui
 {
 	class IRenderFactory;
 	class ImageInfo;
+	class ImageLoadAttribute;
 
 /**
 * @brief 全局属性管理工具类
@@ -149,38 +150,24 @@ public:
 
 	/**
 	 * @brief 检查指定图片是否已经被缓存
-	 * @param[in] bitmap 图片路径
+	 * @param[in] loadAtrribute 图片的加载属性，包含图片路径等信息
 	 * @return 如果已经被缓存，则返回 ImageInfo 的智能指针对象
 	 */
-	static std::shared_ptr<ImageInfo> IsImageCached(const std::wstring& bitmap);
+	static std::shared_ptr<ImageInfo> GetCachedImage(const ImageLoadAttribute& loadAtrribute);
 
 	/**
-	 * @brief 添加一个图片到缓存中
-	 * @param[in] shared_image
-	 * @return 返回被缓存的 ImageInfo 智能指针对象
+	 * @brief 加载图片 ImageInfo 对象
+	 * @param[in] loadAtrribute 图片的加载属性，包含图片路径等信息
+	 * @return 返回图片 ImageInfo 对象的智能指针
 	 */
-	static std::shared_ptr<ImageInfo> AddImageCached(const std::shared_ptr<ImageInfo>& shared_image);
-
-	/**
-	 * @brief 从缓存中一处一个图片
-	 * @param[in] imageFullPath 图片路径
-	 * @return 无
-	 */
-	static void RemoveFromImageCache(const std::wstring& imageFullPath);
+	static std::shared_ptr<ImageInfo> GetImage(const ImageLoadAttribute& loadAtrribute);
 
 	/**
 	 * @brief 图片被销毁的回调
 	 * @param[in] pImageInfo 图片对应的 ImageInfo 对象
 	 * @return 无
 	 */
-	static void OnImageInfoDestroy(ImageInfo *pImageInfo);
-
-	/**
-	 * @brief 获取图片 ImageInfo 对象
-	 * @param[in] bitmap 图片路径
-	 * @return 返回图片 ImageInfo 对象的智能指针
-	 */
-	static std::shared_ptr<ImageInfo> GetImage(const std::wstring& bitmap);
+	static void OnImageInfoDestroy(ImageInfo* pImageInfo);
 
 	/**
 	 * @brief 从缓存中删除所有图片
@@ -409,15 +396,7 @@ private:
 
 private:
 	static std::unique_ptr<IRenderFactory> m_renderFactory;
-	class ImageCacheKeyCompare
-	{
-	public:
-		// 这个比较函数不是比较字典序的，而是按照以下法则：
-		// 首先比较，长度小的更小
-		// 再逆向比较，可以认为是逆向字典序
-		bool operator()(const std::wstring& key1, const std::wstring& key2) const;
-	};
-	typedef std::map<std::wstring, std::weak_ptr<ImageInfo>, ImageCacheKeyCompare> MapStringToImagePtr;
+	typedef std::map<std::wstring, std::weak_ptr<ImageInfo>> MapStringToImagePtr;
 
 	static std::wstring m_pStrResourcePath; //全局的资源路径，换肤的时候修改这个变量
 	static std::wstring m_pStrLanguagePath; //全局语言文件路径

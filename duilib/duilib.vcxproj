@@ -352,7 +352,6 @@
     <ClCompile Include="duilib.cpp" />
     <ClCompile Include="Image\Image.cpp" />
     <ClCompile Include="Image\ImageDecoder.cpp" />
-    <ClCompile Include="Image\SvgUtil.cpp" />
     <ClCompile Include="Render\BitmapHepler.cpp" />
     <ClCompile Include="Render\Bitmap_GDI.cpp" />
     <ClCompile Include="Render\Brush.cpp" />
@@ -363,6 +362,7 @@
     <ClCompile Include="Render\Pen.cpp" />
     <ClCompile Include="Render\RenderBitmap_GDI.cpp" />
     <ClCompile Include="Render\Render_GdiPlus.cpp" />
+    <ClCompile Include="third_party\apng\decoder-apng.cpp" />
     <ClCompile Include="third_party\unzip\UnZip.cpp" />
     <ClCompile Include="third_party\xml\Markup.cpp" />
     <ClCompile Include="Utils\ApiWrapper.cpp" />
@@ -413,7 +413,6 @@
     <ClInclude Include="Image\GdiPlusDefs.h" />
     <ClInclude Include="Image\Image.h" />
     <ClInclude Include="Image\ImageDecoder.h" />
-    <ClInclude Include="Image\SvgUtil.h" />
     <ClInclude Include="Render\BitmapHelper.h" />
     <ClInclude Include="Render\Bitmap_GDI.h" />
     <ClInclude Include="Render\Brush.h" />
@@ -427,6 +426,8 @@
     <ClInclude Include="Render\RenderBitmap_GDI.h" />
     <ClInclude Include="Render\Render_GdiPlus.h" />
     <ClInclude Include="Render\UiColor.h" />
+    <ClInclude Include="third_party\apng\decoder-apng.h" />
+    <ClInclude Include="third_party\stb_image\stb_image.h" />
     <ClInclude Include="third_party\svg\nanosvg.h" />
     <ClInclude Include="third_party\svg\nanosvgrast.h" />
     <ClInclude Include="third_party\unzip\UnZip.h" />

@@ -37,6 +37,12 @@
     <Filter Include="third_party\xml">
       <UniqueIdentifier>{4d0e7c52-2577-4dce-9921-d90a4354dd6f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="third_party\stb_image">
+      <UniqueIdentifier>{3f9265e5-a15a-4e95-9457-ac05cbf88a37}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="third_party\apng">
+      <UniqueIdentifier>{418af93b-1aa2-4345-8118-2af96f4691e5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Animation\AnimationPlayer.cpp">
@@ -150,9 +156,6 @@
     <ClCompile Include="Image\Image.cpp">
       <Filter>Image</Filter>
     </ClCompile>
-    <ClCompile Include="Image\SvgUtil.cpp">
-      <Filter>Image</Filter>
-    </ClCompile>
     <ClCompile Include="Core\Box.cpp">
       <Filter>Core</Filter>
     </ClCompile>
@@ -200,6 +203,9 @@
     </ClCompile>
     <ClCompile Include="third_party\xml\Markup.cpp">
       <Filter>third_party\xml</Filter>
+    </ClCompile>
+    <ClCompile Include="third_party\apng\decoder-apng.cpp">
+      <Filter>third_party\apng</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -359,9 +365,6 @@
     <ClInclude Include="Image\Image.h">
       <Filter>Image</Filter>
     </ClInclude>
-    <ClInclude Include="Image\SvgUtil.h">
-      <Filter>Image</Filter>
-    </ClInclude>
     <ClInclude Include="Core\Box.h">
       <Filter>Core</Filter>
     </ClInclude>
@@ -415,6 +418,12 @@
     </ClInclude>
     <ClInclude Include="third_party\xml\Markup.h">
       <Filter>third_party\xml</Filter>
+    </ClInclude>
+    <ClInclude Include="third_party\stb_image\stb_image.h">
+      <Filter>third_party\stb_image</Filter>
+    </ClInclude>
+    <ClInclude Include="third_party\apng\decoder-apng.h">
+      <Filter>third_party\apng</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

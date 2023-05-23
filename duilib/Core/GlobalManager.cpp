@@ -2,7 +2,6 @@
 #include "duilib/Render/Factory.h"
 #include "duilib/Render/Font_GDI.h"
 #include "duilib/Utils/DpiManager.h"
-#include "duilib/Image/SvgUtil.h"
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Utils/MultiLangSupport.h"
 #include "duilib/Utils/VersionHelpers.h"
@@ -27,10 +26,12 @@ namespace ui
 
 namespace {
 
+	//查找对应DPI下的图片，可以每个DPI设置一个图片，以提高不同DPI下的图片质量
     std::wstring GetDpiImageFullPath(const std::wstring& strImageFullPath, bool bIsUseZip)
     {
         int dpi = DpiManager::GetInstance()->GetScale();
-        if (dpi == 100 || SvgUtil::IsSvgFile(strImageFullPath)) {
+        if (dpi == 100) {
+			//当前DPI无需缩放
             return strImageFullPath;
         }
 
@@ -55,17 +56,17 @@ namespace {
         }
         std::wstring strFileExtension = strPathFileName.substr(iPointPos, strPathFileName.length() - iPointPos);
         std::wstring strFile = strPathFileName.substr(0, iPointPos);
+		//返回指定DPI下的图片，举例DPI为120的图片："image.png" 对应于 "image@120.png"
         strPathFileName = StringHelper::Printf(L"%s%s%d%s", strFile.c_str(), L"@", dpi, strFileExtension.c_str());
-
         std::wstring strNewFilePath = strPathDir + strPathFileName;
         if (bIsUseZip) {
-			std::vector<unsigned char> file_data;
-            bool hasData = ui::GlobalManager::GetZipData(strNewFilePath, file_data);
+            bool hasData = ui::GlobalManager::IsZipResExist(strNewFilePath);
             return hasData ? strNewFilePath : strImageFullPath;
         }
-
-        const DWORD file_attr = ::GetFileAttributesW(strNewFilePath.c_str());
-        return file_attr != INVALID_FILE_ATTRIBUTES ? strNewFilePath : strImageFullPath;
+		else {
+			const DWORD file_attr = ::GetFileAttributesW(strNewFilePath.c_str());
+			return file_attr != INVALID_FILE_ATTRIBUTES ? strNewFilePath : strImageFullPath;
+		}        
     }
 }
 
@@ -275,92 +276,79 @@ void GlobalManager::RemoveAllTextColors()
 	m_mapTextColor.clear();
 }
 
-std::shared_ptr<ImageInfo> GlobalManager::IsImageCached(const std::wstring& strImagePath)
+std::shared_ptr<ImageInfo> GlobalManager::GetCachedImage(const ImageLoadAttribute& loadAtrribute)
 {
-	std::wstring imageFullPath = StringHelper::ReparsePath(strImagePath);
+	std::wstring cacheKey = loadAtrribute.GetCacheKey();
 	std::shared_ptr<ImageInfo> sharedImage;
-	auto it = m_mImageHash.find(imageFullPath);
+	auto it = m_mImageHash.find(cacheKey);
 	if (it != m_mImageHash.end()) {
 		sharedImage = it->second.lock();
 	}
-
 	return sharedImage;
 }
 
-std::shared_ptr<ImageInfo> GlobalManager::AddImageCached(const std::shared_ptr<ImageInfo>& sharedImage)
+std::shared_ptr<ImageInfo> GlobalManager::GetImage(const ImageLoadAttribute& loadAtrribute)
 {
-	ASSERT(m_mImageHash[sharedImage->GetImageFullPath()].expired() == true);
-	m_mImageHash[sharedImage->GetImageFullPath()] = sharedImage;
-	sharedImage->SetCached(true);
-	return sharedImage;
-}
-
-void GlobalManager::RemoveFromImageCache(const std::wstring& imageFullPath)
-{
-	auto it = m_mImageHash.find(imageFullPath);
+    std::wstring imageFullPath = GetDpiImageFullPath(loadAtrribute.GetImageFullPath(), IsUseZip());
+	std::wstring imageCacheKey = loadAtrribute.GetCacheKey();
+    std::shared_ptr<ImageInfo> sharedImage;
+    auto it = m_mImageHash.find(imageCacheKey);
 	if (it != m_mImageHash.end()) {
-		m_mImageHash.erase(it);
+		sharedImage = it->second.lock();
+		if (sharedImage) {
+			//从缓存中，找到有效图片资源
+			return sharedImage;
+		}
 	}
+	
+	//重新加载资源
+	std::vector<unsigned char> file_data;
+    std::unique_ptr<ImageInfo> data;
+    if (IsUseZip()) {
+		GetZipData(imageFullPath, file_data);
+    }
 	else {
-		ASSERT(FALSE);
+		FILE* f = nullptr;
+		errno_t ret = _wfopen_s(&f, imageFullPath.c_str(), L"rb");
+		if ((ret == 0) && (f != nullptr)) {
+			fseek(f, 0, SEEK_END);
+			int fileSize = ftell(f);
+			fseek(f, 0, SEEK_SET);
+			if (fileSize > 0) {
+				file_data.resize((size_t)fileSize);
+				size_t readLen = fread(file_data.data(), 1, file_data.size(), f);
+				ASSERT_UNUSED_VARIABLE(readLen == file_data.size());
+				if (readLen != file_data.size()) {
+					file_data.clear();
+				}
+			}
+			fclose(f);
+		}
 	}
+	if (!file_data.empty()) {
+		ImageDecoder imageDecoder;
+		data = imageDecoder.LoadImageData(file_data, loadAtrribute);
+	}
+	if (data) {
+		sharedImage.reset(data.release(), &OnImageInfoDestroy);
+		sharedImage->SetCacheKey(imageCacheKey);
+		m_mImageHash[imageCacheKey] = sharedImage;
+	}    
+    return sharedImage;
 }
 
 void GlobalManager::OnImageInfoDestroy(ImageInfo* pImageInfo)
 {
-	ASSERT(pImageInfo);
-	if (pImageInfo && pImageInfo->IsCached()) {
-		if (!pImageInfo->GetImageFullPath().empty()) {
-			GlobalManager::RemoveFromImageCache(pImageInfo->GetImageFullPath());
+	ASSERT(pImageInfo != nullptr);
+	if (pImageInfo != nullptr) {
+		if (!pImageInfo->GetCacheKey().empty()) {
+			auto it = m_mImageHash.find(pImageInfo->GetCacheKey());
+			if (it != m_mImageHash.end()) {
+				m_mImageHash.erase(it);
+			}
 		}
 	}
 	delete pImageInfo;
-}
-
-std::shared_ptr<ImageInfo> GlobalManager::GetImage(const std::wstring& bitmap)
-{
-    std::wstring imageFullPath = StringHelper::ReparsePath(bitmap);
-    imageFullPath = GetDpiImageFullPath(imageFullPath, IsUseZip());
-
-    std::shared_ptr<ImageInfo> sharedImage;
-    auto it = m_mImageHash.find(imageFullPath);
-    if (it == m_mImageHash.end()) {
-		std::vector<unsigned char> file_data;
-        std::unique_ptr<ImageInfo> data;
-        if (IsUseZip()) {
-			GetZipData(imageFullPath, file_data);
-        }
-		else {
-			FILE* f = nullptr;
-			errno_t ret = _wfopen_s(&f, imageFullPath.c_str(), L"rb");
-			if ((ret == 0) && (f != nullptr)) {
-				fseek(f, 0, SEEK_END);
-				int fileSize = ftell(f);
-				fseek(f, 0, SEEK_SET);
-				if (fileSize > 0) {
-					file_data.resize((size_t)fileSize);
-					size_t readLen = fread(file_data.data(), 1, file_data.size(), f);
-					ASSERT_UNUSED_VARIABLE(readLen == file_data.size());
-				}
-				fclose(f);
-			}
-		}
-		if (!file_data.empty()) {
-			ImageDecoder imageDecoder;
-			data = imageDecoder.LoadImageData(file_data, imageFullPath);
-		}
-		if (!data) {
-			return sharedImage;
-		}
-        sharedImage.reset(data.release(), &OnImageInfoDestroy);
-        m_mImageHash[imageFullPath] = sharedImage;
-        sharedImage->SetCached(true);
-    }
-    else {
-        sharedImage = it->second.lock();
-    }
-
-    return sharedImage;
 }
 
 void GlobalManager::RemoveAllImages()
@@ -736,28 +724,6 @@ bool GlobalManager::IsZipResExist(const std::wstring& path)
 		return find;
 	}
 	return false;
-}
-
-bool GlobalManager::ImageCacheKeyCompare::operator()(const std::wstring& key1, const std::wstring& key2) const
-{
-	int nLen1 = (int)key1.length();
-	int nLen2 = (int)key2.length();
-	if (nLen1 != nLen2)
-		return nLen1 < nLen2;
-
-	LPCWSTR pStr1Begin = key1.c_str();
-	LPCWSTR pStr2Begin = key2.c_str();
-	LPCWSTR pStr1End = pStr1Begin + nLen1;
-	LPCWSTR pStr2End = pStr2Begin + nLen2;
-
-    // 逆向比较
-	while (--pStr1End >= pStr1Begin && --pStr2End >= pStr2Begin && *pStr1End == *pStr2End);
-
-    // 两个串都已经比光了，那么肯定相等，返回false
-	if (pStr1End < pStr1Begin) {
-		return false;
-	}
-	return *pStr1End < *pStr2End;
 }
 
 void GlobalManager::AssertUIThread()

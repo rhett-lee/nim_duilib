@@ -1174,27 +1174,6 @@ bool Control::OnApplyAttributeList(const std::wstring& strReceiver, const std::w
 	return true;
 }
 
-bool Control::LoadImageData(Image& duiImage) const
-{
-	Window* pWindow = GetWindow();
-	ASSERT(pWindow != nullptr);
-	if (pWindow == nullptr) {
-		return false;
-	}
-
-	std::wstring sImagePath = duiImage.GetImagePath();
-	if (sImagePath.empty()) {
-		return false;
-	}
-	std::wstring imageFullPath = GlobalManager::GetResFullPath(pWindow->GetResourcePath(), sImagePath);
-	std::shared_ptr<ImageInfo> imageCache = duiImage.GetImageCache();
-	if (!imageCache || imageCache->GetImageFullPath() != imageFullPath) {
-		imageCache = GlobalManager::GetImage(imageFullPath);
-		duiImage.SetImageCache(imageCache);
-	}
-	return imageCache ? true : false;
-}
-
 bool Control::DrawImage(IRender* pRender, Image& duiImage, const std::wstring& strModify, int nFade)
 {
 	ASSERT(pRender != nullptr);
@@ -1769,6 +1748,29 @@ void Control::BroadcastGifEvent(int nVirtualEvent)
 	}
 }
 
+bool Control::LoadImageData(Image& duiImage) const
+{
+	Window* pWindow = GetWindow();
+	ASSERT(pWindow != nullptr);
+	if (pWindow == nullptr) {
+		return false;
+	}
+
+	std::wstring sImagePath = duiImage.GetImagePath();
+	if (sImagePath.empty()) {
+		return false;
+	}
+	std::wstring imageFullPath = GlobalManager::GetResFullPath(pWindow->GetResourcePath(), sImagePath);
+	ImageLoadAttribute imageLoadAttr = duiImage.GetImageLoadAttribute();
+	imageLoadAttr.SetImageFullPath(imageFullPath);
+	std::shared_ptr<ImageInfo> imageCache = duiImage.GetImageCache();
+	if (!imageCache || (imageCache->GetCacheKey() != imageLoadAttr.GetCacheKey())) {
+		imageCache = GlobalManager::GetImage(imageLoadAttr);
+		duiImage.SetImageCache(imageCache);
+	}
+	return imageCache ? true : false;
+}
+
 void Control::InvokeLoadImageCache()
 {
 	if (m_loadBkImageWeakFlag.HasUsed()) {
@@ -1783,8 +1785,10 @@ void Control::InvokeLoadImageCache()
 		return;
 	}
 	std::wstring imageFullPath = GlobalManager::GetResFullPath(pWindow->GetResourcePath(), sImagePath);
-	if (!m_bkImage->GetImageCache() || m_bkImage->GetImageCache()->GetImageFullPath() != imageFullPath) {
-		auto shared_image = GlobalManager::IsImageCached(imageFullPath);
+	ImageLoadAttribute imageLoadAttr = m_bkImage->GetImageLoadAttribute();
+	imageLoadAttr.SetImageFullPath(imageFullPath);
+	if (!m_bkImage->GetImageCache() || m_bkImage->GetImageCache()->GetCacheKey() != imageLoadAttr.GetCacheKey()) {
+		auto shared_image = GlobalManager::GetCachedImage(imageLoadAttr);
 		if (shared_image) {
 			m_bkImage->SetImageCache(shared_image);
 			return;

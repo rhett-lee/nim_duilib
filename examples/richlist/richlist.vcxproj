@@ -214,6 +214,12 @@
     <ProjectReference Include="..\..\duilib\duilib.vcxproj">
       <Project>{e106acd7-4e53-4aee-942b-d0dd426db34e}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\..\duilib\third_party\libpng\projects\vstudio\libpng\libpng.vcxproj">
+      <Project>{d6973076-9317-4ef2-a0b8-b7a18ac0713e}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\duilib\third_party\libpng\projects\vstudio\zlib\zlib.vcxproj">
+      <Project>{60f89955-91c6-3a36-8000-13c592fec2df}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\..\ui_components\ui_components.vcxproj">
       <Project>{0149ba6e-3c0a-426d-aa0a-0b9ec7742f19}</Project>
     </ProjectReference>

@@ -195,23 +195,6 @@ void RenderTest::Paint(IRender* pRender, const UiRect& rcPaint)
     rect = GetRect();
     rect.left += marginSize;
     rect.top = currentBottom + marginSize;
-    rect.bottom = rect.top + 100;
-    currentBottom = rect.bottom;//记录当前的bottom值
-
-    //svg格式测试
-    Image svgImage;
-    svgImage.SetImageString(L"svg_test.svg");
-    LoadImageData(svgImage);
-    UiRect svgRect = rect;
-    svgRect.right = svgRect.left + svgImage.GetImageCache()->GetWidth();
-    svgRect.bottom = svgRect.top + svgImage.GetImageCache()->GetHeight();
-    UiRect svgImageSource(0, 0, svgImage.GetImageCache()->GetWidth(), svgImage.GetImageCache()->GetHeight());
-    pRender->DrawImage(rcPaint, svgImage.GetCurrentBitmap(), false, svgRect, svgImageSource, UiRect());
-
-    //换行
-    rect = GetRect();
-    rect.left += marginSize;
-    rect.top = currentBottom + marginSize;
 
     //平铺绘制
     rect.right = rcPaint.right;

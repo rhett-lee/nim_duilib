@@ -43,14 +43,6 @@ public:
 	*/
 	bool IsAlpha() const { return m_bAlphaChannel; }
 	
-	/** 设置是否保存在缓存中
-	*/
-	void SetCached(bool bCached) { m_bCached = bCached; }
-
-	/** 判断是否保存在缓存中
-	*/
-	bool IsCached() const { return m_bCached; }
-
 	/** 设置该图片的大小是否已经做过适应DPI处理
 	*/
 	void SetBitmapSizeDpiScaled(bool isDpiScaled) { m_bDpiScaled = isDpiScaled; }
@@ -95,15 +87,31 @@ public:
 	*/
 	int GetFrameInterval(size_t nIndex);
 
+	/** 设置循环播放次数(大于等于0，如果等于0，表示动画是循环播放的, APNG格式支持设置循环播放次数)
+	*/
+	void SetPlayCount(int32_t nPlayCount);
+
+	/** 获取循环播放次数
+	*@return 返回值：-1 表示未设置
+	*               0  表示动画是一致循环播放的
+	*              > 0 表示动画循环播放的具体次数
+	*/
+	int32_t GetPlayCount() const;
+
+	/** 设置图片的缓存KEY, 用于图片的生命周期管理
+	*/
+	void SetCacheKey(const std::wstring& cacheKey);
+
+	/** 获取图片的缓存KEY
+	*/
+	const std::wstring& GetCacheKey() const;
+
 private:
 	//图片的完整路径
 	std::wstring m_imageFullPath;
 
 	//是否包含Alpha通道
 	bool m_bAlphaChannel;
-
-	//是否保存在缓存中
-	bool m_bCached;
 
 	//该图片的大小是否已经做过适应DPI处理
 	bool m_bDpiScaled;
@@ -119,6 +127,13 @@ private:
 
 	//图片帧数据
 	std::vector<IBitmap*> m_frameBitmaps;
+
+	//循环播放次数(大于等于0，如果等于0，表示动画是循环播放的, APNG格式支持设置循环播放次数)
+	int32_t m_nPlayCount;
+
+	/** 图片的缓存KEY, 用于图片的生命周期管理
+	*/
+	std::wstring m_cacheKey;
 };
 
 /** 图片属性
@@ -148,6 +163,12 @@ public:
 
 	//图片文件文件名，含相对路径，不包含属性
 	std::wstring sImagePath;
+
+	//设置图片宽度，可以放大或缩小图像：pixels或者百分比%，比如300，或者30%
+	std::wstring srcWidth;
+
+	//设置图片高度，可以放大或缩小图像：pixels或者百分比%，比如200，或者30%
+	std::wstring srcHeight;
 
 	//绘制目标区域位置和大小（相对于控件区域的位置）
 	UiRect rcDest;
@@ -180,6 +201,49 @@ public:
 	int nPlayCount;	
 };
 
+/** 图片加载属性，用于加载一个图片
+*/
+class UILIB_API ImageLoadAttribute
+{
+public:
+	ImageLoadAttribute(const std::wstring& srcWidth,
+					   const std::wstring& srcHeight);
+
+	/** 设置图片路径（本地绝对路径或者压缩包内的相对路径）
+	*/
+	void SetImageFullPath(const std::wstring& imageFullPath);
+
+	/** 获取图片路径（本地绝对路径或者压缩包内的相对路径）
+	*/
+	const std::wstring& GetImageFullPath() const;
+
+	/** 获取加载图片的缓存KEY
+	*/
+	std::wstring GetCacheKey() const;
+
+	/** 获取图片加载后应当缩放的宽度和高度
+	* @param [in,out] nImageWidth 传入原始图片的宽度，返回计算后的宽度
+	* @param [in,out] nImageHeight 原始图片的高度，返回计算后的高度
+	* @return 返回true表示图片大小有缩放，返回false表示图片大小无缩放
+	*/
+	bool CalcImageLoadSize(uint32_t& nImageWidth, uint32_t& nImageHeight);
+
+private:
+	/** 获取设置的缩放后的大小
+	*/
+	uint32_t GetScacledSize(const std::wstring& srcSize, uint32_t nImageSize);
+
+private:
+	//本地绝对路径或者压缩包内的相对路径，不包含属性
+	std::wstring m_srcImageFullPath;
+
+	//设置图片宽度，可以放大或缩小图像：pixels或者百分比%，比如300，或者30%
+	std::wstring m_srcWidth;
+
+	//设置图片高度，可以放大或缩小图像：pixels或者百分比%，比如200，或者30%
+	std::wstring m_srcHeight;
+};
+
 /** 图片相关封装，支持的文件格式：SVG/PNG/GIF/JPG/BMP/APNG/WEBP/ICO
 */
 class UILIB_API Image
@@ -202,11 +266,15 @@ public:
 
 	/** 获取图片文件名（含相对路径，不含图片属性）
 	*/
-	const std::wstring GetImagePath() const;
+	const std::wstring& GetImagePath() const;
 
 	/** 获取图片属性（只读）
 	*/
 	const ImageAttribute& GetImageAttribute() const;
+
+	/** 获取图片加载属性
+	*/
+	ImageLoadAttribute GetImageLoadAttribute() const;
 
 public:
 	/** 获取图片信息接口
