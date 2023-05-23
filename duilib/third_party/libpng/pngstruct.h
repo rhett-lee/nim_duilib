@@ -27,7 +27,11 @@
    /* We must ensure that zlib uses 'const' in declarations. */
 #  define ZLIB_CONST
 #endif
-#include "zlib.h"
+
+#ifndef ZLIB_H
+    #include "zlib.h"
+#endif
+
 #ifdef const
    /* zlib.h sometimes #defines const to nothing, undo this. */
 #  undef const
@@ -398,6 +402,27 @@ struct png_struct_def
 #ifdef PNG_MNG_FEATURES_SUPPORTED
    png_byte filter_type;
 #endif
+
+#ifdef PNG_APNG_SUPPORTED
+   png_uint_32 apng_flags;
+   png_uint_32 next_seq_num;         /* next fcTL/fdAT chunk sequence number */
+   png_uint_32 first_frame_width;
+   png_uint_32 first_frame_height;
+
+#ifdef PNG_READ_APNG_SUPPORTED
+   png_uint_32 num_frames_read;      /* incremented after all image data of */
+                                     /* a frame is read */
+#ifdef PNG_PROGRESSIVE_READ_SUPPORTED
+   png_progressive_frame_ptr frame_info_fn; /* frame info read callback */
+   png_progressive_frame_ptr frame_end_fn;  /* frame data read callback */
+#endif
+#endif
+
+#ifdef PNG_WRITE_APNG_SUPPORTED
+   png_uint_32 num_frames_to_write;
+   png_uint_32 num_frames_written;
+#endif
+#endif /* PNG_APNG_SUPPORTED */
 
 /* New members added in libpng-1.2.0 */
 

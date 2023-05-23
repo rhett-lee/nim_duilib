@@ -24,7 +24,7 @@
     <RootNamespace>libpng</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
-  <Import Project="$(SolutionDir)\zlib.props" />
+  <Import Project="..\zlib.props" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
@@ -65,30 +65,30 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <CustomBuildBeforeTargets />
-    <TargetName>$(ProjectName)1.6.39</TargetName>
-    <OutDir>$(ProjectDir)..\build_temp\$(Platform)\$(ProjectName)\$(Configuration)\</OutDir>
-    <IntDir>$(ProjectDir)..\build_temp\$(Platform)\$(ProjectName)\$(Configuration)\</IntDir>
+    <TargetName>$(ProjectName)_d</TargetName>
+    <OutDir>$(ProjectDir)..\..\..\..\..\..\Libs\</OutDir>
+    <IntDir>$(ProjectDir)..\..\..\..\..\..\tmp\$(Platform)\$(ProjectName)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>false</LinkIncremental>
     <CustomBuildBeforeTargets />
-    <TargetName>$(ProjectName)1.6.39</TargetName>
-    <OutDir>$(ProjectDir)..\build_temp\$(Platform)\$(ProjectName)\$(Configuration)\</OutDir>
-    <IntDir>$(ProjectDir)..\build_temp\$(Platform)\$(ProjectName)\$(Configuration)\</IntDir>
+    <TargetName>$(ProjectName)_d</TargetName>
+    <OutDir>$(ProjectDir)..\..\..\..\..\..\Libs\$(Platform)\</OutDir>
+    <IntDir>$(ProjectDir)..\..\..\..\..\..\tmp\$(Platform)\$(ProjectName)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <CustomBuildBeforeTargets />
-    <TargetName>$(ProjectName)1.6.39</TargetName>
-    <OutDir>$(ProjectDir)..\build_temp\$(Platform)\$(ProjectName)\$(Configuration)\</OutDir>
-    <IntDir>$(ProjectDir)..\build_temp\$(Platform)\$(ProjectName)\$(Configuration)\</IntDir>
+    <TargetName>$(ProjectName)</TargetName>
+    <OutDir>$(ProjectDir)..\..\..\..\..\..\Libs\</OutDir>
+    <IntDir>$(ProjectDir)..\..\..\..\..\..\tmp\$(Platform)\$(ProjectName)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <CustomBuildBeforeTargets />
-    <TargetName>$(ProjectName)1.6.39</TargetName>
-    <OutDir>$(ProjectDir)..\build_temp\$(Platform)\$(ProjectName)\$(Configuration)\</OutDir>
-    <IntDir>$(ProjectDir)..\build_temp\$(Platform)\$(ProjectName)\$(Configuration)\</IntDir>
+    <TargetName>$(ProjectName)</TargetName>
+    <OutDir>$(ProjectDir)..\..\..\..\..\..\Libs\$(Platform)\</OutDir>
+    <IntDir>$(ProjectDir)..\..\..\..\..\..\tmp\$(Platform)\$(ProjectName)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

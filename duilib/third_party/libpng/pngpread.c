@@ -19,6 +19,11 @@
 #define PNG_READ_SIG_MODE   0
 #define PNG_READ_CHUNK_MODE 1
 #define PNG_READ_IDAT_MODE  2
+
+#ifdef PNG_READ_APNG_SUPPORTED
+#define PNG_SKIP_MODE       3
+#endif
+
 #define PNG_READ_tEXt_MODE  4
 #define PNG_READ_zTXt_MODE  5
 #define PNG_READ_DONE_MODE  6
@@ -87,6 +92,82 @@ png_process_data_skip(png_structrp png_ptr)
    return 0;
 }
 
+#ifdef PNG_READ_APNG_SUPPORTED
+void /* PRIVATE */
+png_push_crc_skip(png_structp png_ptr, png_uint_32 skip)
+{
+    png_ptr->process_mode = PNG_SKIP_MODE;
+    png_ptr->skip_length = skip;
+}
+
+void /* PRIVATE */
+png_push_crc_finish(png_structp png_ptr)
+{
+    if (png_ptr->process_mode != PNG_SKIP_MODE) {
+        return;
+    }
+    if (png_ptr->skip_length && png_ptr->save_buffer_size)
+    {
+        png_size_t save_size = png_ptr->save_buffer_size;
+        png_uint_32 skip_length = png_ptr->skip_length;
+
+        /* We want the smaller of 'skip_length' and 'save_buffer_size', but
+         * they are of different types and we don't know which variable has the
+         * fewest bits.  Carefully select the smaller and cast it to the type of
+         * the larger - this cannot overflow.  Do not cast in the following test
+         * - it will break on either 16 or 64 bit platforms.
+         */
+        if (skip_length < save_size)
+            save_size = (png_size_t)skip_length;
+
+        else
+            skip_length = (png_uint_32)save_size;
+
+        png_calculate_crc(png_ptr, png_ptr->save_buffer_ptr, save_size);
+
+        png_ptr->skip_length -= skip_length;
+        png_ptr->buffer_size -= save_size;
+        png_ptr->save_buffer_size -= save_size;
+        png_ptr->save_buffer_ptr += save_size;
+    }
+
+    if (png_ptr->skip_length && png_ptr->current_buffer_size)
+    {
+        png_size_t save_size = png_ptr->current_buffer_size;
+        png_uint_32 skip_length = png_ptr->skip_length;
+
+        /* We want the smaller of 'skip_length' and 'current_buffer_size', here,
+         * the same problem exists as above and the same solution.
+         */
+        if (skip_length < save_size)
+            save_size = (png_size_t)skip_length;
+
+        else
+            skip_length = (png_uint_32)save_size;
+
+        png_calculate_crc(png_ptr, png_ptr->current_buffer_ptr, save_size);
+
+        png_ptr->skip_length -= skip_length;
+        png_ptr->buffer_size -= save_size;
+        png_ptr->current_buffer_size -= save_size;
+        png_ptr->current_buffer_ptr += save_size;
+    }
+
+    if (!png_ptr->skip_length)
+    {
+        if (png_ptr->buffer_size < 4)
+        {
+            png_push_save_buffer(png_ptr);
+            return;
+        }
+
+        png_crc_finish(png_ptr, 0);
+        png_ptr->process_mode = PNG_READ_CHUNK_MODE;
+    }
+}
+
+#endif //PNG_READ_APNG_SUPPORTED
+
 /* What we do with the incoming data depends on what we were previously
  * doing before we ran out of data...
  */
@@ -114,6 +195,12 @@ png_process_some_data(png_structrp png_ptr, png_inforp info_ptr)
       {
          png_push_read_IDAT(png_ptr);
          break;
+      }
+
+      case PNG_SKIP_MODE:
+      {
+          png_push_crc_finish(png_ptr);
+          break;
       }
 
       default:
@@ -194,6 +281,109 @@ png_push_read_chunk(png_structrp png_ptr, png_inforp info_ptr)
    }
 
    chunk_name = png_ptr->chunk_name;
+   
+#ifdef PNG_READ_APNG_SUPPORTED
+   if (png_ptr->num_frames_read > 0 &&
+       png_ptr->num_frames_read < info_ptr->num_frames)
+   {
+      if (chunk_name == png_IDAT)
+      {
+         /* Discard trailing IDATs for the first frame */
+         if (png_ptr->mode & PNG_HAVE_fcTL || png_ptr->num_frames_read > 1)
+            png_error(png_ptr, "out of place IDAT");
+
+         if (png_ptr->push_length + 4 > png_ptr->buffer_size)
+         {
+            png_push_save_buffer(png_ptr);
+            return;
+         }
+
+         png_push_crc_skip(png_ptr, png_ptr->push_length);
+         png_ptr->mode &= ~PNG_HAVE_CHUNK_HEADER;
+         return;
+      }
+      else if (chunk_name == png_fdAT)
+      {
+         if (png_ptr->buffer_size < 4)
+         {
+            png_push_save_buffer(png_ptr);
+            return;
+         }
+
+         png_ensure_sequence_number(png_ptr, 4);
+
+         if (!(png_ptr->mode & PNG_HAVE_fcTL))
+         {
+            /* Discard trailing fdATs for frames other than the first */
+            if (png_ptr->num_frames_read < 2)
+               png_error(png_ptr, "out of place fdAT");
+
+            if (png_ptr->push_length + 4 > png_ptr->buffer_size)
+            {
+               png_push_save_buffer(png_ptr);
+               return;
+            }
+
+            png_push_crc_skip(png_ptr, png_ptr->push_length);
+            png_ptr->mode &= ~PNG_HAVE_CHUNK_HEADER;
+            return;
+         }
+
+         else
+         {
+            /* frame data follows */
+            png_ptr->idat_size = png_ptr->push_length - 4;
+            png_ptr->mode |= PNG_HAVE_IDAT;
+            png_ptr->process_mode = PNG_READ_IDAT_MODE;
+
+            return;
+         }
+      }
+
+      else if (chunk_name == png_fcTL)
+      {
+         if (png_ptr->push_length + 4 > png_ptr->buffer_size)
+         {
+            png_push_save_buffer(png_ptr);
+            return;
+         }
+
+         png_read_reset(png_ptr);
+         png_ptr->mode &= ~PNG_HAVE_fcTL;
+
+         png_handle_fcTL(png_ptr, info_ptr, png_ptr->push_length);
+
+         if (!(png_ptr->mode & PNG_HAVE_fcTL))
+            png_error(png_ptr, "missing required fcTL chunk");
+
+         png_read_reinit(png_ptr, info_ptr);
+         png_progressive_read_reset(png_ptr);
+
+         if (png_ptr->frame_info_fn != NULL)
+            (*(png_ptr->frame_info_fn))(png_ptr, png_ptr->num_frames_read);
+
+         png_ptr->mode &= ~PNG_HAVE_CHUNK_HEADER;
+
+         return;
+      }
+
+      else
+      {
+         if (png_ptr->push_length + 4 > png_ptr->buffer_size)
+         {
+            png_push_save_buffer(png_ptr);
+            return;
+         }
+         png_warning(png_ptr, "Skipped (ignored) a chunk "
+                              "between APNG chunks");
+         png_push_crc_skip(png_ptr, png_ptr->push_length);
+         png_ptr->mode &= ~PNG_HAVE_CHUNK_HEADER;
+         return;
+      }
+
+      return;
+   }
+#endif /* PNG_READ_APNG_SUPPORTED */
 
    if (chunk_name == png_IDAT)
    {
@@ -261,6 +451,9 @@ png_push_read_chunk(png_structrp png_ptr, png_inforp info_ptr)
 
    else if (chunk_name == png_IDAT)
    {
+#ifdef PNG_READ_APNG_SUPPORTED
+      png_have_info(png_ptr, info_ptr);
+#endif
       png_ptr->idat_size = png_ptr->push_length;
       png_ptr->process_mode = PNG_READ_IDAT_MODE;
       png_push_have_info(png_ptr, info_ptr);
@@ -407,6 +600,27 @@ png_push_read_chunk(png_structrp png_ptr, png_inforp info_ptr)
    }
 #endif
 
+#ifdef PNG_READ_APNG_SUPPORTED
+   else if (chunk_name == png_acTL)
+   {
+      if (png_ptr->push_length + 4 > png_ptr->buffer_size)
+      {
+         png_push_save_buffer(png_ptr);
+         return;
+      }
+      png_handle_acTL(png_ptr, info_ptr, png_ptr->push_length);
+   }
+
+   else if (chunk_name == png_fcTL)
+   {
+      if (png_ptr->push_length + 4 > png_ptr->buffer_size)
+      {
+         png_push_save_buffer(png_ptr);
+         return;
+      }
+      png_handle_fcTL(png_ptr, info_ptr, png_ptr->push_length);
+   }
+#endif /* PNG_READ_APNG_SUPPORTED */
    else
    {
       PNG_PUSH_SAVE_BUFFER_IF_FULL
@@ -539,7 +753,11 @@ png_push_read_IDAT(png_structrp png_ptr)
       png_byte chunk_tag[4];
 
       /* TODO: this code can be commoned up with the same code in push_read */
+#ifdef PNG_READ_APNG_SUPPORTED
+      PNG_PUSH_SAVE_BUFFER_IF_LT(12)
+#else
       PNG_PUSH_SAVE_BUFFER_IF_LT(8)
+#endif
       png_push_fill_buffer(png_ptr, chunk_length, 4);
       png_ptr->push_length = png_get_uint_31(png_ptr, chunk_length);
       png_reset_crc(png_ptr);
@@ -547,17 +765,63 @@ png_push_read_IDAT(png_structrp png_ptr)
       png_ptr->chunk_name = PNG_CHUNK_FROM_STRING(chunk_tag);
       png_ptr->mode |= PNG_HAVE_CHUNK_HEADER;
 
+#ifdef PNG_READ_APNG_SUPPORTED
+      if (png_ptr->chunk_name != png_fdAT && png_ptr->num_frames_read > 0)
+      {
+          if (png_ptr->flags & PNG_FLAG_ZSTREAM_ENDED)
+          {
+              png_ptr->process_mode = PNG_READ_CHUNK_MODE;
+              if (png_ptr->frame_end_fn != NULL)
+                 (*(png_ptr->frame_end_fn))(png_ptr, png_ptr->num_frames_read);
+              png_ptr->num_frames_read++;
+              return;
+          }
+          else
+          {
+              if (png_ptr->chunk_name == png_IEND)
+                  png_error(png_ptr, "Not enough image data");
+              if (png_ptr->push_length + 4 > png_ptr->buffer_size)
+              {
+                 png_push_save_buffer(png_ptr);
+                 return;
+              }
+              png_warning(png_ptr, "Skipping (ignoring) a chunk between "
+                                   "APNG chunks");
+              png_crc_finish(png_ptr, png_ptr->push_length);
+              png_ptr->mode &= ~PNG_HAVE_CHUNK_HEADER;
+              return;
+          }
+      }
+      else
+#endif
+#ifdef PNG_READ_APNG_SUPPORTED
+      if (png_ptr->chunk_name != png_IDAT && png_ptr->num_frames_read == 0)
+#else
       if (png_ptr->chunk_name != png_IDAT)
+#endif
       {
          png_ptr->process_mode = PNG_READ_CHUNK_MODE;
 
          if ((png_ptr->flags & PNG_FLAG_ZSTREAM_ENDED) == 0)
             png_error(png_ptr, "Not enough compressed data");
 
+#ifdef PNG_READ_APNG_SUPPORTED
+         if (png_ptr->frame_end_fn != NULL)
+            (*(png_ptr->frame_end_fn))(png_ptr, png_ptr->num_frames_read);
+         png_ptr->num_frames_read++;
+#endif
          return;
       }
 
       png_ptr->idat_size = png_ptr->push_length;
+      
+#ifdef PNG_READ_APNG_SUPPORTED
+      if (png_ptr->num_frames_read > 0)
+      {
+         png_ensure_sequence_number(png_ptr, 4);
+         png_ptr->idat_size -= 4;
+      }
+#endif
    }
 
    if (png_ptr->idat_size != 0 && png_ptr->save_buffer_size != 0)
@@ -630,6 +894,15 @@ png_process_IDAT_data(png_structrp png_ptr, png_bytep buffer,
    /* The caller checks for a non-zero buffer length. */
    if (!(buffer_length > 0) || buffer == NULL)
       png_error(png_ptr, "No IDAT data (internal error)");
+
+#ifdef PNG_READ_APNG_SUPPORTED
+   /* If the app is not APNG-aware, decode only the first frame */
+   if (!(png_ptr->apng_flags & PNG_APNG_APP) && png_ptr->num_frames_read > 0)
+   {
+     png_ptr->flags |= PNG_FLAG_ZSTREAM_ENDED;
+     return;
+   }
+#endif
 
    /* This routine must process all the data it has been given
     * before returning, calling the row callback as required to
@@ -1084,6 +1357,18 @@ png_set_progressive_read_fn(png_structrp png_ptr, png_voidp progressive_ptr,
 
    png_set_read_fn(png_ptr, progressive_ptr, png_push_fill_buffer);
 }
+
+#ifdef PNG_READ_APNG_SUPPORTED
+void PNGAPI
+png_set_progressive_frame_fn(png_structp png_ptr,
+   png_progressive_frame_ptr frame_info_fn,
+   png_progressive_frame_ptr frame_end_fn)
+{
+   png_ptr->frame_info_fn = frame_info_fn;
+   png_ptr->frame_end_fn = frame_end_fn;
+   png_ptr->apng_flags |= PNG_APNG_APP;
+}
+#endif
 
 png_voidp PNGAPI
 png_get_progressive_ptr(png_const_structrp png_ptr)

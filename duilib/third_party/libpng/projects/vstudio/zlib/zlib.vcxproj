@@ -37,7 +37,7 @@
     <RootNamespace>zlib</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
-  <Import Project="$(SolutionDir)\zlib.props" />
+  <Import Project="..\zlib.props" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
@@ -73,27 +73,27 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(ProjectDir)..\build_temp\$(Platform)\$(ProjectName)\$(Configuration)\</OutDir>
-    <IntDir>$(ProjectDir)..\build_temp\$(Platform)\$(ProjectName)\$(Configuration)\</IntDir>
-    <TargetName>$(ProjectName)1.2.13</TargetName>
+    <OutDir>$(ProjectDir)..\..\..\..\..\..\Libs\</OutDir>
+    <IntDir>$(ProjectDir)..\..\..\..\..\..\tmp\$(Platform)\$(ProjectName)\$(Configuration)\</IntDir>
+    <TargetName>$(ProjectName)_d</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(ProjectDir)..\build_temp\$(Platform)\$(ProjectName)\$(Configuration)\</OutDir>
-    <IntDir>$(ProjectDir)..\build_temp\$(Platform)\$(ProjectName)\$(Configuration)\</IntDir>
-    <TargetName>$(ProjectName)1.2.13</TargetName>
+    <OutDir>$(ProjectDir)..\..\..\..\..\..\Libs\$(Platform)\</OutDir>
+    <IntDir>$(ProjectDir)..\..\..\..\..\..\tmp\$(Platform)\$(ProjectName)\$(Configuration)\</IntDir>
+    <TargetName>$(ProjectName)_d</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(ProjectDir)..\build_temp\$(Platform)\$(ProjectName)\$(Configuration)\</OutDir>
-    <IntDir>$(ProjectDir)..\build_temp\$(Platform)\$(ProjectName)\$(Configuration)\</IntDir>
-    <TargetName>$(ProjectName)1.2.13</TargetName>
+    <OutDir>$(ProjectDir)..\..\..\..\..\..\Libs\</OutDir>
+    <IntDir>$(ProjectDir)..\..\..\..\..\..\tmp\$(Platform)\$(ProjectName)\$(Configuration)\</IntDir>
+    <TargetName>$(ProjectName)</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(ProjectDir)..\build_temp\$(Platform)\$(ProjectName)\$(Configuration)\</OutDir>
-    <IntDir>$(ProjectDir)..\build_temp\$(Platform)\$(ProjectName)\$(Configuration)\</IntDir>
-    <TargetName>$(ProjectName)1.2.13</TargetName>
+    <OutDir>$(ProjectDir)..\..\..\..\..\..\Libs\$(Platform)\</OutDir>
+    <IntDir>$(ProjectDir)..\..\..\..\..\..\tmp\$(Platform)\$(ProjectName)\$(Configuration)\</IntDir>
+    <TargetName>$(ProjectName)</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

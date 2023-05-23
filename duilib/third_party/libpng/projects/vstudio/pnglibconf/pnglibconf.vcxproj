@@ -71,23 +71,25 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <CustomBuildBeforeTargets>Build</CustomBuildBeforeTargets>
-    <OutDir>$(ProjectDir)..\build_temp\$(Platform)\$(ProjectName)\$(Configuration)\</OutDir>
-    <IntDir>$(ProjectDir)..\build_temp\$(Platform)\$(ProjectName)\$(Configuration)\</IntDir>
+    <OutDir>$(ProjectDir)..\..\..\..\..\..\Libs\</OutDir>
+    <IntDir>$(ProjectDir)..\..\..\..\..\..\tmp\$(Platform)\$(ProjectName)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <CustomBuildBeforeTargets>Build</CustomBuildBeforeTargets>
-    <OutDir>$(ProjectDir)..\build_temp\$(Platform)\$(ProjectName)\$(Configuration)\</OutDir>
-    <IntDir>$(ProjectDir)..\build_temp\$(Platform)\$(ProjectName)\$(Configuration)\</IntDir>
+    <OutDir>$(ProjectDir)..\..\..\..\..\..\Libs\</OutDir>
+    <IntDir>$(ProjectDir)..\..\..\..\..\..\tmp\$(Platform)\$(ProjectName)\$(Configuration)\</IntDir>
+    <TargetName>$(ProjectName)_d</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <CustomBuildBeforeTargets>Build</CustomBuildBeforeTargets>
-    <OutDir>$(ProjectDir)..\build_temp\$(Platform)\$(ProjectName)\$(Configuration)\</OutDir>
-    <IntDir>$(ProjectDir)..\build_temp\$(Platform)\$(ProjectName)\$(Configuration)\</IntDir>
+    <OutDir>$(ProjectDir)..\..\..\..\..\..\Libs\$(Platform)\</OutDir>
+    <IntDir>$(ProjectDir)..\..\..\..\..\..\tmp\$(Platform)\$(ProjectName)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <CustomBuildBeforeTargets>Build</CustomBuildBeforeTargets>
-    <OutDir>$(ProjectDir)..\build_temp\$(Platform)\$(ProjectName)\$(Configuration)\</OutDir>
-    <IntDir>$(ProjectDir)..\build_temp\$(Platform)\$(ProjectName)\$(Configuration)\</IntDir>
+    <OutDir>$(ProjectDir)..\..\..\..\..\..\Libs\$(Platform)\</OutDir>
+    <IntDir>$(ProjectDir)..\..\..\..\..\..\tmp\$(Platform)\$(ProjectName)\$(Configuration)\</IntDir>
+    <TargetName>$(ProjectName)_d</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>

@@ -627,7 +627,13 @@
 #define PNG_HAVE_PNG_SIGNATURE    0x1000U
 #define PNG_HAVE_CHUNK_AFTER_IDAT 0x2000U /* Have another chunk after IDAT */
                    /*             0x4000U (unused) */
+
 #define PNG_IS_READ_STRUCT        0x8000U /* Else is a write struct */
+
+#ifdef PNG_APNG_SUPPORTED
+#define PNG_HAVE_acTL             0x10000U
+#define PNG_HAVE_fcTL             0x20000U
+#endif
 
 /* Flags for the transformations the PNG library does on the image data */
 #define PNG_BGR                 0x0001U
@@ -863,6 +869,16 @@
 #define png_tIME PNG_U32(116,  73,  77,  69)
 #define png_tRNS PNG_U32(116,  82,  78,  83)
 #define png_zTXt PNG_U32(122,  84,  88, 116)
+
+#ifdef PNG_APNG_SUPPORTED
+    #define png_acTL PNG_U32( 97,  99,  84,  76)
+    #define png_fcTL PNG_U32(102,  99,  84,  76)
+    #define png_fdAT PNG_U32(102, 100,  65,  84)
+
+    /* For png_struct.apng_flags: */
+    #define PNG_FIRST_FRAME_HIDDEN       0x0001
+    #define PNG_APNG_APP                 0x0002
+#endif
 
 /* The following will work on (signed char*) strings, whereas the get_uint_32
  * macro will fail on top-bit-set values because of the sign extension.
@@ -1571,6 +1587,7 @@ PNG_INTERNAL_FUNCTION(void,png_push_read_chunk,(png_structrp png_ptr,
 PNG_INTERNAL_FUNCTION(void,png_push_read_sig,(png_structrp png_ptr,
     png_inforp info_ptr),PNG_EMPTY);
 PNG_INTERNAL_FUNCTION(void,png_push_check_crc,(png_structrp png_ptr),PNG_EMPTY);
+PNG_INTERNAL_FUNCTION(void,png_push_crc_skip,(png_structp png_ptr, png_uint_32 length),PNG_EMPTY);
 PNG_INTERNAL_FUNCTION(void,png_push_save_buffer,(png_structrp png_ptr),
     PNG_EMPTY);
 PNG_INTERNAL_FUNCTION(void,png_push_restore_buffer,(png_structrp png_ptr,
@@ -1614,6 +1631,45 @@ PNG_INTERNAL_FUNCTION(void,png_push_read_iTXt,(png_structrp png_ptr,
 #  endif
 
 #endif /* PROGRESSIVE_READ */
+
+#ifdef PNG_APNG_SUPPORTED
+PNG_INTERNAL_FUNCTION(void, png_ensure_fcTL_is_valid, (png_structp png_ptr,
+   png_uint_32 width, png_uint_32 height,
+   png_uint_32 x_offset, png_uint_32 y_offset,
+   png_uint_16 delay_num, png_uint_16 delay_den,
+   png_byte dispose_op, png_byte blend_op), PNG_EMPTY);
+
+#ifdef PNG_READ_APNG_SUPPORTED
+PNG_INTERNAL_FUNCTION(void, png_handle_acTL, (png_structp png_ptr, png_infop info_ptr,
+   png_uint_32 length), PNG_EMPTY);
+PNG_INTERNAL_FUNCTION(void, png_handle_fcTL, (png_structp png_ptr, png_infop info_ptr,
+   png_uint_32 length), PNG_EMPTY);
+PNG_INTERNAL_FUNCTION(void, png_handle_fdAT, (png_structp png_ptr, png_infop info_ptr,
+   png_uint_32 length), PNG_EMPTY);
+PNG_INTERNAL_FUNCTION(void, png_have_info, (png_structp png_ptr, png_infop info_ptr), PNG_EMPTY);
+PNG_INTERNAL_FUNCTION(void, png_ensure_sequence_number, (png_structp png_ptr,
+   png_uint_32 length), PNG_EMPTY);
+PNG_INTERNAL_FUNCTION(void, png_read_reset, (png_structp png_ptr), PNG_EMPTY);
+PNG_INTERNAL_FUNCTION(void, png_read_reinit, (png_structp png_ptr,
+   png_infop info_ptr), PNG_EMPTY);
+#ifdef PNG_PROGRESSIVE_READ_SUPPORTED
+PNG_INTERNAL_FUNCTION(void, png_progressive_read_reset, (png_structp png_ptr), PNG_EMPTY);
+#endif /* PNG_PROGRESSIVE_READ_SUPPORTED */
+#endif /* PNG_READ_APNG_SUPPORTED */
+
+#ifdef PNG_WRITE_APNG_SUPPORTED
+PNG_INTERNAL_FUNCTION(void, png_write_acTL, (png_structp png_ptr,
+   png_uint_32 num_frames, png_uint_32 num_plays), PNG_EMPTY);
+PNG_INTERNAL_FUNCTION(void, png_write_fcTL, (png_structp png_ptr,
+   png_uint_32 width, png_uint_32 height,
+   png_uint_32 x_offset, png_uint_32 y_offset,
+   png_uint_16 delay_num, png_uint_16 delay_den,
+   png_byte dispose_op, png_byte blend_op), PNG_EMPTY);
+PNG_INTERNAL_FUNCTION(void, png_write_reset, (png_structp png_ptr), PNG_EMPTY);
+PNG_INTERNAL_FUNCTION(void, png_write_reinit, (png_structp png_ptr,
+   png_infop info_ptr, png_uint_32 width, png_uint_32 height), PNG_EMPTY);
+#endif /* PNG_WRITE_APNG_SUPPORTED */
+#endif /* PNG_APNG_SUPPORTED */
 
 /* Added at libpng version 1.6.0 */
 #ifdef PNG_GAMMA_SUPPORTED
