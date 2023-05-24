@@ -48,6 +48,10 @@ public:
 	*/
 	virtual void UnLockPixelBits() override;
 
+	/** 该位图是否有透明属性(即透明通道中，含有不是255的数据)
+	*/
+	virtual bool IsAlphaBitmap() const override;
+
 	/** 克隆生成新的的位图
 	*@return 返回新生成的位图接口，由调用方释放资源
 	*/
@@ -68,6 +72,11 @@ public:
 	static HBITMAP CreateBitmap(int32_t nWidth, int32_t nHeight, bool flipHeight, LPVOID* pBits);
 
 private:
+	/** 更新图片的透明通道标志
+	*/
+	void UpdateAlphaFlag(const uint8_t* pPixelBits);
+
+private:
 	//位图GDI句柄
 	HBITMAP m_hBitmap;
 
@@ -81,6 +90,10 @@ private:
 	                 false表示：位图方向：从下到上，左下角为圆点
 	*/
 	bool m_bFlipHeight;
+
+	/** 该位图是否有透明属性(即透明通道中，含有不是255的数据)
+	*/
+	bool m_bAlphaBitmap;
 };
 
 } // namespace ui

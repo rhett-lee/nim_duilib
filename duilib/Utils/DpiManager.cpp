@@ -139,11 +139,11 @@ bool DpiManager::SetAdaptDPI()
 	return m_bAdaptDPI;
 }
 
-UINT DpiManager::GetScale()
+UINT DpiManager::GetScale() const
 {
-	if (!m_bAdaptDPI)
+	if (!m_bAdaptDPI) {
 		return 100;
-
+	}
 	return m_nScaleFactor;
 }
 

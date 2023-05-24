@@ -14,7 +14,7 @@
             <Button class="btn_wnd_close" name="closebtn" margin="4,6,8,0"/>
         </HBox>
         <!-- 标准控件: 测试所有支持的文件格式 -->
-        <HBox width="stretch" height="auto">
+        <HBox width="stretch" height="200">
             <Control width="120" height="auto" bkimage="bmp_test_24.bmp" valign="center" margin="8"/>
             <Control width="120" height="auto" bkimage="jpg_test.jpg" valign="center" margin="8"/>
             <Control width="auto" height="auto" bkimage="icon_test.ico" valign="center" margin="8"/>
@@ -22,7 +22,7 @@
             <Control width="120" height="auto" bkimage="autumn.png" valign="center" margin="8"/>
             <Control width="120" height="auto" bkimage="apng_test.png" valign="center" margin="8"/>
             <Control width="120" height="auto" bkimage="apng_test2.png" valign="center" margin="8"/>
-            <Control width="auto" height="auto" bkimage="svg_test.svg" valign="center" margin="8"/>
+            <Control width="auto" height="auto" bkimage="file='svg_test.svg' width='300%'" valign="center" margin="8"/>
         </HBox>
         <!-- 工作区域，创建一个渲染引擎测试控件（自定义控件） -->
         <Box>

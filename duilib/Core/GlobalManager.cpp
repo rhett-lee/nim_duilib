@@ -29,7 +29,7 @@ namespace {
 	//查找对应DPI下的图片，可以每个DPI设置一个图片，以提高不同DPI下的图片质量
     std::wstring GetDpiImageFullPath(const std::wstring& strImageFullPath, bool bIsUseZip)
     {
-        int dpi = DpiManager::GetInstance()->GetScale();
+        UINT dpi = DpiManager::GetInstance()->GetScale();
         if (dpi == 100) {
 			//当前DPI无需缩放
             return strImageFullPath;
@@ -77,6 +77,7 @@ std::map<std::wstring, std::unique_ptr<WindowBuilder>> GlobalManager::m_builderM
 CreateControlCallback GlobalManager::m_createControlCallback;
 
 GlobalManager::MapStringToImagePtr GlobalManager::m_mImageHash;
+bool GlobalManager::m_bDpiScaleAllImages = true;
 std::map<std::wstring, UiColor> GlobalManager::m_mapTextColor;
 std::map<std::wstring, std::wstring> GlobalManager::m_mGlobalClass;
 
@@ -289,21 +290,19 @@ std::shared_ptr<ImageInfo> GlobalManager::GetCachedImage(const ImageLoadAttribut
 
 std::shared_ptr<ImageInfo> GlobalManager::GetImage(const ImageLoadAttribute& loadAtrribute)
 {
-    std::wstring imageFullPath = GetDpiImageFullPath(loadAtrribute.GetImageFullPath(), IsUseZip());
-	std::wstring imageCacheKey = loadAtrribute.GetCacheKey();
-    std::shared_ptr<ImageInfo> sharedImage;
+    std::wstring imageCacheKey = loadAtrribute.GetCacheKey();
     auto it = m_mImageHash.find(imageCacheKey);
 	if (it != m_mImageHash.end()) {
-		sharedImage = it->second.lock();
+		std::shared_ptr<ImageInfo> sharedImage = it->second.lock();
 		if (sharedImage) {
-			//从缓存中，找到有效图片资源
+			//从缓存中，找到有效图片资源，直接返回
 			return sharedImage;
 		}
 	}
 	
 	//重新加载资源
+	std::wstring imageFullPath = GetDpiImageFullPath(loadAtrribute.GetImageFullPath(), IsUseZip());
 	std::vector<unsigned char> file_data;
-    std::unique_ptr<ImageInfo> data;
     if (IsUseZip()) {
 		GetZipData(imageFullPath, file_data);
     }
@@ -325,13 +324,25 @@ std::shared_ptr<ImageInfo> GlobalManager::GetImage(const ImageLoadAttribute& loa
 			fclose(f);
 		}
 	}
+	//标记DPI自适应图片属性，如果路径不同，说明已经选择了对应DPI下的文件
+	bool isDpiScaledImageFile = imageFullPath != loadAtrribute.GetImageFullPath();
+	std::unique_ptr<ImageInfo> imageInfo;
 	if (!file_data.empty()) {
 		ImageDecoder imageDecoder;
-		data = imageDecoder.LoadImageData(file_data, loadAtrribute);
+		ImageLoadAttribute imageLoadAtrribute(loadAtrribute);
+		if (isDpiScaledImageFile) {
+			imageLoadAtrribute.SetNeedDpiScale(false);
+		}
+		imageInfo = imageDecoder.LoadImageData(file_data, imageLoadAtrribute);
 	}
-	if (data) {
-		sharedImage.reset(data.release(), &OnImageInfoDestroy);
+	std::shared_ptr<ImageInfo> sharedImage;
+	if (imageInfo) {
+		sharedImage.reset(imageInfo.release(), &OnImageInfoDestroy);
 		sharedImage->SetCacheKey(imageCacheKey);
+		if (isDpiScaledImageFile) {
+			//使用了DPI自适应的图片，做标记
+			sharedImage->SetBitmapSizeDpiScaled(true);
+		}
 		m_mImageHash[imageCacheKey] = sharedImage;
 	}    
     return sharedImage;
@@ -358,6 +369,16 @@ void GlobalManager::RemoveAllImages()
 	}
 
 	m_mImageHash.clear();
+}
+
+void GlobalManager::SetDpiScaleAllImages(bool bEnable)
+{
+	m_bDpiScaleAllImages = bEnable;
+}
+
+bool GlobalManager::IsDpiScaleAllImages()
+{
+	return m_bDpiScaleAllImages;
 }
 
 bool GlobalManager::AddFont(const std::wstring& strFontId, 

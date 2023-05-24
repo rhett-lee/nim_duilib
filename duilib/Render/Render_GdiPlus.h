@@ -53,11 +53,10 @@ public:
 	/** 绘制图片（采用九宫格方式绘制图片）
 	* @param [in] rcPaint 当前全部可绘制区域（用于避免非可绘制区域的绘制，以提高绘制性能）
 	* @param [in] pBitmap 用于绘制的位图接口
-	* @param [in] bAlphaChannel 图片是否含有Alpha通道
 	* @param [in] rcImageDest 绘制的目标区域
 	* @param [in] rcImageSource 绘制的源图片区域
 	* @param [in] rcImageCorners 绘制源图片的边角信息，用于九宫格绘制
-	* @param [in] bBitmapDpiScale 位图尺寸是否已经做过DPI适应
+	* @param [in] bBitmapDpiScaled 位图尺寸是否已经做过DPI适应
 	* @param [in] uFade 透明度（0 - 255）
 	* @param [in] xtiled 横向平铺
 	* @param [in] ytiled 纵向平铺
@@ -67,11 +66,10 @@ public:
 	*/
 	virtual void DrawImage(const UiRect& rcPaint, 
 						   IBitmap* pBitmap, 
-						   bool bAlphaChannel,
 						   const UiRect& rcImageDest, 
-						   const UiRect& rcImageSource, 
+						   UiRect rcImageSource, 
 						   UiRect rcImageCorners,
-						   bool bBitmapDpiScale = false,
+						   bool bBitmapDpiScaled = false,
 						   uint8_t uFade = 255,
 						   bool xtiled = false, 
 						   bool ytiled = false, 

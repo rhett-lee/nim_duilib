@@ -11,7 +11,6 @@ namespace ui
 {
 
 ImageInfo::ImageInfo():
-	m_bAlphaChannel(false),
 	m_bDpiScaled(false),
 	m_nWidth(0),
 	m_nHeight(0),
@@ -138,6 +137,11 @@ void ImageAttribute::Init()
 	rcSource.left = rcSource.top = rcSource.right = rcSource.bottom = DUI_NOSET_VALUE;
 	rcCorner.left = rcCorner.top = rcCorner.right = rcCorner.bottom = 0;
 	nPlayCount = -1;
+
+	srcDpiScale = false;
+	bHasSrcDpiScale = false;
+	srcWidth.clear();
+	srcHeight.clear();
 }
 
 void ImageAttribute::InitByImageString(const std::wstring& strImageString)
@@ -156,6 +160,8 @@ void ImageAttribute::ModifyAttribute(const std::wstring& strImageString)
 	std::wstring sValue;
 	LPTSTR pstr = NULL;
 	bool bScaleDest = true;
+	bool bHasDest = false;	
+	bHasSrcDpiScale = false;
 
 	LPCTSTR pStrImage = strImageString.c_str();
 	while (*pStrImage != _T('\0')) {
@@ -192,8 +198,13 @@ void ImageAttribute::ModifyAttribute(const std::wstring& strImageString)
 				//设置图片高度，可以放大或缩小图像：pixels或者百分比%，比如200，或者30%
 				imageAttribute.srcHeight = sValue;
 			}
+			else if (sItem == _T("dpiscale")) {
+				//加载图片时，按照DPI缩放图片大小
+				imageAttribute.srcDpiScale = (_tcscmp(sValue.c_str(), _T("true")) == 0);
+				bHasSrcDpiScale = true;
+			}
 			else if (sItem == _T("destscale")) {
-				//加载时，按照DPI缩放图片，仅当设置了dest属性时有效
+				//加载时，对dest属性按照DPI缩放图片，仅当设置了dest属性时有效
 				bScaleDest = (_tcscmp(sValue.c_str(), _T("true")) == 0);
 			}
 			else if (sItem == _T("dest")) {
@@ -202,6 +213,7 @@ void ImageAttribute::ModifyAttribute(const std::wstring& strImageString)
 				imageAttribute.rcDest.top = _tcstol(pstr + 1, &pstr, 10);    ASSERT(pstr);
 				imageAttribute.rcDest.right = _tcstol(pstr + 1, &pstr, 10);  ASSERT(pstr);
 				imageAttribute.rcDest.bottom = _tcstol(pstr + 1, &pstr, 10); ASSERT(pstr);
+				bHasDest = true;
 			}
 			else if (sItem == _T("source")) {
 				//图片源区域设置：可以用于仅包含源图片的部分图片内容（比如通过此机制，将按钮的各个状态图片整合到一张大图片上，方便管理图片资源）
@@ -252,15 +264,19 @@ void ImageAttribute::ModifyAttribute(const std::wstring& strImageString)
 		}
 	}
 
-	if (bScaleDest) {
+	if (bHasDest && bScaleDest) {
 		DpiManager::GetInstance()->ScaleRect(imageAttribute.rcDest);
-	}		
+	}
 }
 
 ImageLoadAttribute::ImageLoadAttribute(const std::wstring& srcWidth,
-									   const std::wstring& srcHeight):
+									   const std::wstring& srcHeight,
+	                                   bool srcDpiScale,
+									   bool bHasSrcDpiScale):
 	m_srcWidth(srcWidth),
-	m_srcHeight(srcHeight)
+	m_srcHeight(srcHeight),
+	m_srcDpiScale(srcDpiScale),
+	m_bHasSrcDpiScale(bHasSrcDpiScale)
 {
 	StringHelper::Trim(m_srcWidth);
 	StringHelper::Trim(m_srcHeight);
@@ -284,7 +300,22 @@ std::wstring ImageLoadAttribute::GetCacheKey() const
 	return m_srcImageFullPath + L"@" + m_srcWidth + L":" + m_srcHeight;
 }
 
-bool ImageLoadAttribute::CalcImageLoadSize(uint32_t& nImageWidth, uint32_t& nImageHeight)
+bool ImageLoadAttribute::NeedDpiScale() const
+{
+	return m_srcDpiScale;
+}
+
+void ImageLoadAttribute::SetNeedDpiScale(bool bNeedDpiScale)
+{
+	m_srcDpiScale = bNeedDpiScale;
+}
+
+bool ImageLoadAttribute::HasSrcDpiScale() const
+{
+	return m_bHasSrcDpiScale;
+}
+
+bool ImageLoadAttribute::CalcImageLoadSize(uint32_t& nImageWidth, uint32_t& nImageHeight) const
 {
 	ASSERT((nImageWidth != 0) && (nImageHeight != 0));
 	if ((nImageWidth == 0) || (nImageHeight == 0)) {
@@ -314,7 +345,7 @@ bool ImageLoadAttribute::CalcImageLoadSize(uint32_t& nImageWidth, uint32_t& nIma
 	return isScaled;
 }
 
-uint32_t ImageLoadAttribute::GetScacledSize(const std::wstring& srcSize, uint32_t nImageSize)
+uint32_t ImageLoadAttribute::GetScacledSize(const std::wstring& srcSize, uint32_t nImageSize) const
 {
 	if (srcSize.empty()) {
 		return 0;
@@ -452,7 +483,9 @@ const ImageAttribute& Image::GetImageAttribute() const
 ImageLoadAttribute Image::GetImageLoadAttribute() const
 {
 	return ImageLoadAttribute(m_imageAttribute.srcWidth, 
-						      m_imageAttribute.srcHeight);
+						      m_imageAttribute.srcHeight,
+		                      m_imageAttribute.srcDpiScale,
+							  m_imageAttribute.bHasSrcDpiScale);
 }
 
 const std::shared_ptr<ImageInfo>& Image::GetImageCache() const

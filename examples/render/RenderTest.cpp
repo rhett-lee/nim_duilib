@@ -149,18 +149,18 @@ void RenderTest::Paint(IRender* pRender, const UiRect& rcPaint)
     rect.bottom = rect.top + image.GetImageCache()->GetHeight();
 
     UiRect rcImageSource(0, 0, image.GetImageCache()->GetWidth(), image.GetImageCache()->GetHeight());
-    pRender->DrawImage(rcPaint, image.GetCurrentBitmap(), false, rect, rcImageSource, UiRect());
+    pRender->DrawImage(rcPaint, image.GetCurrentBitmap(), rect, rcImageSource, UiRect());
 
     //半透明绘制图片
     rect.left = rect.right + marginSize;
     rect.right = rect.left + image.GetImageCache()->GetWidth();
-    pRender->DrawImage(rcPaint, image.GetCurrentBitmap(), false, rect, rcImageSource, UiRect(), false, 100);
+    pRender->DrawImage(rcPaint, image.GetCurrentBitmap(), rect, rcImageSource, UiRect(), false, 100);
 
     //缩小绘制
     rect.left = rect.right + marginSize;
     rect.right = rect.left + image.GetImageCache()->GetWidth() / 2;
     rect.bottom = rect.top + image.GetImageCache()->GetHeight() / 2;
-    pRender->DrawImage(rcPaint, image.GetCurrentBitmap(), false, rect, rcImageSource, UiRect());
+    pRender->DrawImage(rcPaint, image.GetCurrentBitmap(), rect, rcImageSource, UiRect());
 
     //BitBlt/StretchBlt/AlphaBlend三个绘制函数
     Bitmap_GDI* pGdiBitmap = dynamic_cast<Bitmap_GDI*>(image.GetCurrentBitmap());
@@ -206,7 +206,7 @@ void RenderTest::Paint(IRender* pRender, const UiRect& rcPaint)
     bool fullytiled = false;//完整平铺，如果控件不够绘制完整图片，就不会绘制。如果为false，则只要有空间就绘制，但此时图片只是绘制一部分的。
     int nTiledMargin = 0;
     UiRect rcCorners(48, 48, 48, 48);
-    pRender->DrawImage(rcPaint, image.GetCurrentBitmap(), false, rect, rcImageSource, rcCorners, false, 255, xtiled, ytiled, fullxtiled, fullytiled, nTiledMargin);
+    pRender->DrawImage(rcPaint, image.GetCurrentBitmap(), rect, rcImageSource, rcCorners, false, 255, xtiled, ytiled, fullxtiled, fullytiled, nTiledMargin);
 }
 
 void RenderTest::PaintChild(IRender* pRender, const UiRect& rcPaint)

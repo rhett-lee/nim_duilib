@@ -175,6 +175,15 @@ public:
 	 */
 	static void RemoveAllImages();
 
+	/** 设置是否默认对所有图片在加载时根据DPI进行缩放，这个是全局属性，默认为true，应用于所有图片
+	   （设置为true后，也可以通过在xml中，使用"dpiscale='false'"属性关闭某个图片的DPI自动缩放）
+	*/
+	static void SetDpiScaleAllImages(bool bEnable);
+
+	/**判断是否默认对所有图片在加载时根据DPI进行缩放
+	*/
+	static bool IsDpiScaleAllImages();
+
 	/**
 	 * @brief 添加一个字体
 	 * @param[in] strFontId 指定字体的ID标记
@@ -405,6 +414,12 @@ private:
 	static CreateControlCallback m_createControlCallback;
 
 	static MapStringToImagePtr m_mImageHash;
+
+	/** 设置是否默认对所有图片在加载时根据DPI进行缩放，这个是全局属性，默认为true，应用于所有图片
+	   （设置为true后，也可以通过在xml中，使用"dpiscale='false'"属性关闭某个图片的DPI自动缩放）
+	*/
+	static bool m_bDpiScaleAllImages;
+
 	static std::map<std::wstring, UiColor> m_mapTextColor;
 	static std::map<std::wstring, std::wstring> m_mGlobalClass;
 

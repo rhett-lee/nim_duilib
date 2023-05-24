@@ -1176,6 +1176,8 @@ bool Control::OnApplyAttributeList(const std::wstring& strReceiver, const std::w
 
 bool Control::DrawImage(IRender* pRender, Image& duiImage, const std::wstring& strModify, int nFade)
 {
+	//注解：strModify参数，目前外部传入的主要是："destscale='false' dest='%d,%d,%d,%d'"
+	//                   也有一个类传入了：L" corner='%d,%d,%d,%d'"。
 	ASSERT(pRender != nullptr);
 	if (pRender == nullptr) {
 		return false;
@@ -1205,17 +1207,7 @@ bool Control::DrawImage(IRender* pRender, Image& duiImage, const std::wstring& s
 		rcNewDest.top    = GetRect().top + newImageAttribute.rcDest.top;
 		rcNewDest.bottom = GetRect().top + newImageAttribute.rcDest.bottom;
 	}
-	UiRect rcNewSource = newImageAttribute.rcSource;
-	if ((rcNewSource.left == DUI_NOSET_VALUE)  || 
-		(rcNewSource.top == DUI_NOSET_VALUE)   || 
-		(rcNewSource.right == DUI_NOSET_VALUE) || 
-		(rcNewSource.bottom == DUI_NOSET_VALUE)) {
-		rcNewSource.left = 0;
-		rcNewSource.top = 0;
-		rcNewSource.right = duiImage.GetImageCache()->GetWidth();
-		rcNewSource.bottom = duiImage.GetImageCache()->GetHeight();
-	}
-
+	
 	bool isPlayingGif = false;
 	if (m_bkImage->GetImageCache() && m_bkImage->GetImageCache()->IsMultiFrameImage() && m_bGifPlay && !m_bkImage->IsPlaying()) {
 		isPlayingGif = GifPlay();
@@ -1232,9 +1224,8 @@ bool Control::DrawImage(IRender* pRender, Image& duiImage, const std::wstring& s
 			}
             pRender->DrawImage(m_rcPaint, 
 							   (pNewBitmap != nullptr) ? pNewBitmap : pCurrentBitmap,
-							   imageInfo->IsAlpha(),
 							   rcNewDest, 
-							   rcNewSource, 
+							   newImageAttribute.rcSource, 
 							   newImageAttribute.rcCorner, 
 							   imageInfo->IsBitmapSizeDpiScaled(), 
 							   iFade,

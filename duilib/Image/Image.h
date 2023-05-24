@@ -35,14 +35,6 @@ public:
 	*/
 	const std::wstring& GetImageFullPath() const;
 
-	/** 设置是否有Alpha通道
-	*/
-	void SetAlpha(bool bAlphaChannel) {	m_bAlphaChannel = bAlphaChannel; }
-
-	/** 判断是否有Alpha通道
-	*/
-	bool IsAlpha() const { return m_bAlphaChannel; }
-	
 	/** 设置该图片的大小是否已经做过适应DPI处理
 	*/
 	void SetBitmapSizeDpiScaled(bool isDpiScaled) { m_bDpiScaled = isDpiScaled; }
@@ -110,9 +102,6 @@ private:
 	//图片的完整路径
 	std::wstring m_imageFullPath;
 
-	//是否包含Alpha通道
-	bool m_bAlphaChannel;
-
 	//该图片的大小是否已经做过适应DPI处理
 	bool m_bDpiScaled;
 
@@ -170,6 +159,12 @@ public:
 	//设置图片高度，可以放大或缩小图像：pixels或者百分比%，比如200，或者30%
 	std::wstring srcHeight;
 
+	//加载图片时，DPI自适应属性，即按照DPI缩放图片大小
+	bool srcDpiScale;
+
+	//加载图片时，是否设置了DPI自适应属性
+	bool bHasSrcDpiScale;
+
 	//绘制目标区域位置和大小（相对于控件区域的位置）
 	UiRect rcDest;
 
@@ -207,7 +202,9 @@ class UILIB_API ImageLoadAttribute
 {
 public:
 	ImageLoadAttribute(const std::wstring& srcWidth,
-					   const std::wstring& srcHeight);
+					   const std::wstring& srcHeight,
+		               bool srcDpiScale,
+		               bool bHasSrcDpiScale);
 
 	/** 设置图片路径（本地绝对路径或者压缩包内的相对路径）
 	*/
@@ -221,17 +218,29 @@ public:
 	*/
 	std::wstring GetCacheKey() const;
 
+	/** 设置加载图片时，是否按照DPI缩放图片大小
+	*/
+	void SetNeedDpiScale(bool bNeedDpiScale);
+
+	/** 获取加载图片时，是否按照DPI缩放图片大小
+	*/
+	bool NeedDpiScale() const;
+
+	/** 获取加载图片时，是否设置了DPI自适应属性
+	*/
+	bool HasSrcDpiScale() const;
+
 	/** 获取图片加载后应当缩放的宽度和高度
 	* @param [in,out] nImageWidth 传入原始图片的宽度，返回计算后的宽度
 	* @param [in,out] nImageHeight 原始图片的高度，返回计算后的高度
 	* @return 返回true表示图片大小有缩放，返回false表示图片大小无缩放
 	*/
-	bool CalcImageLoadSize(uint32_t& nImageWidth, uint32_t& nImageHeight);
+	bool CalcImageLoadSize(uint32_t& nImageWidth, uint32_t& nImageHeight) const;
 
 private:
 	/** 获取设置的缩放后的大小
 	*/
-	uint32_t GetScacledSize(const std::wstring& srcSize, uint32_t nImageSize);
+	uint32_t GetScacledSize(const std::wstring& srcSize, uint32_t nImageSize) const;
 
 private:
 	//本地绝对路径或者压缩包内的相对路径，不包含属性
@@ -242,6 +251,12 @@ private:
 
 	//设置图片高度，可以放大或缩小图像：pixels或者百分比%，比如200，或者30%
 	std::wstring m_srcHeight;
+
+	//加载图片时，按照DPI缩放图片大小
+	bool m_srcDpiScale;
+
+	//加载图片时，是否设置了DPI自适应属性
+	bool m_bHasSrcDpiScale;
 };
 
 /** 图片相关封装，支持的文件格式：SVG/PNG/GIF/JPG/BMP/APNG/WEBP/ICO
@@ -255,7 +270,7 @@ public:
 	*/
 	void InitImageAttribute();
 
-	/** 设置图片属性
+	/** 设置并初始化图片属性
 	*@param [in] strImageString 图片属性字符串
 	*/
 	void SetImageString(const std::wstring& strImageString);

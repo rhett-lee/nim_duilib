@@ -425,5 +425,8 @@
     <ClInclude Include="third_party\apng\decoder-apng.h">
       <Filter>third_party\apng</Filter>
     </ClInclude>
+    <ClInclude Include="third_party\stb_image\stb_image_resize.h">
+      <Filter>third_party\stb_image</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

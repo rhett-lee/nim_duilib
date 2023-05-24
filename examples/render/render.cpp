@@ -31,14 +31,17 @@ void MainThread::Init()
 {
 	nbase::ThreadManager::RegisterThread(kThreadUI);
 
+	//开启DPI自适应功能
+	bool bAdaptDpi = true;
+
+#ifdef _DEBUG
 	// 获取资源路径，初始化全局参数
 	std::wstring theme_dir = nbase::win32::GetCurrentModuleDirectory();
-#ifdef _DEBUG
 	// Debug 模式下使用本地文件夹作为资源
 	// 默认皮肤使用 resources\\themes\\default
 	// 默认语言使用 resources\\lang\\zh_CN
 	// 如需修改请指定 Startup 最后两个参数
-	ui::GlobalManager::Startup(theme_dir + L"resources\\", ui::CreateControlCallback(), false);
+	ui::GlobalManager::Startup(theme_dir + L"resources\\", ui::CreateControlCallback(), bAdaptDpi);
 #else
 	// Release 模式下使用资源中的压缩包作为资源
 	// 资源被导入到资源列表分类为 THEME，资源名称为 IDR_THEME
@@ -46,7 +49,7 @@ void MainThread::Init()
 	// 可以使用 OpenResZip 另一个重载函数打开本地的资源压缩包
 	ui::GlobalManager::OpenResZip(MAKEINTRESOURCE(IDR_THEME), L"THEME", "");
 	// ui::GlobalManager::OpenResZip(L"resources.zip", "");
-	ui::GlobalManager::Startup(L"resources\\", ui::CreateControlCallback(), false);
+	ui::GlobalManager::Startup(L"resources\\", ui::CreateControlCallback(), bAdaptDpi);
 #endif
 
 	// 创建一个默认带有阴影的居中窗口

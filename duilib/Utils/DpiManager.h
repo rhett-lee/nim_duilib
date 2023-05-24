@@ -16,8 +16,6 @@ namespace ui
 class UILIB_API DpiManager
 {
 public:
-	static DpiManager* GetInstance();
-
 	/**
 	* @brief 获取系统DPI，开启DPI感知后有效
 	* @return UINT DPI
@@ -43,6 +41,11 @@ public:
 	*/
 	static UINT GetDPIFromRegistry();
 
+public:
+	/** 获取单例对象
+	*/
+	static DpiManager* GetInstance();
+
 	/**
 	* @brief 是否程序自己适配DPI缩放效果
 	* @return bool true 是，false 否
@@ -56,10 +59,10 @@ public:
 	bool SetAdaptDPI();
 
 	/**
-	* @brief 获取当前界面缩放比
+	* @brief 获取当前界面缩放比（100代表无缩放）
 	* @return UINT	缩放比
 	*/
-	UINT GetScale();
+	UINT GetScale() const;
 
 	/**
 	* @brief 根据DPI值设置界面缩放比，只有程序自己处理DPI缩放时才有效

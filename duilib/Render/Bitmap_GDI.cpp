@@ -3,17 +3,19 @@
 namespace ui
 {
 
-Bitmap_GDI::Bitmap_GDI(): 
-    m_hBitmap(nullptr),
-    m_nWidth(0),
-    m_nHeight(0),
-    m_bFlipHeight(true)
+Bitmap_GDI::Bitmap_GDI():
+    m_hBitmap(nullptr),    
+    m_bFlipHeight(true),
+    m_bAlphaBitmap(false)
 {
 }
 
-Bitmap_GDI::Bitmap_GDI(HBITMAP hBitmap, bool flipHeight) :
+Bitmap_GDI::Bitmap_GDI(HBITMAP hBitmap, bool flipHeight):
     m_hBitmap(hBitmap),
-    m_bFlipHeight(flipHeight)
+    m_bFlipHeight(flipHeight),
+    m_bAlphaBitmap(false),
+    m_nWidth(0),
+    m_nHeight(0)
 {
     if (hBitmap != nullptr) {
         BITMAP bm = { 0 };
@@ -21,11 +23,19 @@ Bitmap_GDI::Bitmap_GDI(HBITMAP hBitmap, bool flipHeight) :
         ASSERT(bm.bmBitsPixel == 32);
         m_nHeight = bm.bmHeight;
         m_nWidth = bm.bmWidth;
+        UpdateAlphaFlag((const uint8_t*)bm.bmBits);
     }
-    else {
-        m_nHeight = 0;
-        m_nWidth = 0;
-    }
+}
+
+HBITMAP Bitmap_GDI::DetachHBitmap()
+{
+    HBITMAP hBitmap = m_hBitmap;
+    m_hBitmap = nullptr;
+    m_nHeight = 0;
+    m_nWidth = 0;
+    m_bFlipHeight = true;
+    m_bAlphaBitmap = false;
+    return hBitmap;
 }
 
 Bitmap_GDI::~Bitmap_GDI()
@@ -52,8 +62,8 @@ bool Bitmap_GDI::Init(uint32_t nWidth, uint32_t nHeight, bool flipHeight, const 
         return false;
     }
     if (pPixelBits != nullptr) {
-        memcpy(pBits, pPixelBits, nWidth * nHeight * 4);
-    }    
+        memcpy(pBits, pPixelBits, nWidth * nHeight * 4);        
+    }
     if (m_hBitmap != nullptr) {
         ::DeleteObject(m_hBitmap);
     }
@@ -61,6 +71,7 @@ bool Bitmap_GDI::Init(uint32_t nWidth, uint32_t nHeight, bool flipHeight, const 
     m_nWidth = nWidth;
     m_nHeight = nHeight;
     m_bFlipHeight = flipHeight;
+    UpdateAlphaFlag((const uint8_t*)pBits);
     return true;
 }
 
@@ -93,6 +104,17 @@ void* Bitmap_GDI::LockPixelBits()
 
 void Bitmap_GDI::UnLockPixelBits()
 {
+    if (m_hBitmap != nullptr) {
+        BITMAP bm = { 0 };
+        ::GetObject(m_hBitmap, sizeof(bm), &bm);
+        ASSERT((bm.bmBitsPixel == 32) && (bm.bmWidth == (LONG)m_nWidth) && (bm.bmHeight == (LONG)m_nHeight));
+        UpdateAlphaFlag((const uint8_t*)bm.bmBits);
+    }    
+}
+
+bool Bitmap_GDI::IsAlphaBitmap() const
+{
+    return m_bAlphaBitmap;
 }
 
 IBitmap* Bitmap_GDI::Clone()
@@ -118,16 +140,6 @@ IBitmap* Bitmap_GDI::Clone()
 HBITMAP Bitmap_GDI::GetHBitmap() const
 { 
     return m_hBitmap; 
-}
-
-HBITMAP Bitmap_GDI::DetachHBitmap()
-{
-    HBITMAP hBitmap = m_hBitmap;
-    m_hBitmap = nullptr;
-    m_nHeight = 0;
-    m_nWidth = 0;
-    m_bFlipHeight = true;
-    return hBitmap;
 }
 
 HBITMAP Bitmap_GDI::CreateBitmap(int32_t nWidth, int32_t nHeight, bool flipHeight, LPVOID* pBits)
@@ -156,6 +168,23 @@ HBITMAP Bitmap_GDI::CreateBitmap(int32_t nWidth, int32_t nHeight, bool flipHeigh
     HBITMAP hBitmap = ::CreateDIBSection(hdc, &bmi, DIB_RGB_COLORS, pBits, NULL, 0);
     ::ReleaseDC(NULL, hdc);
     return hBitmap;
+}
+
+void Bitmap_GDI::UpdateAlphaFlag(const uint8_t* pPixelBits)
+{
+    m_bAlphaBitmap = false;
+    if (pPixelBits == nullptr) {
+        return;
+    }
+    for (uint32_t i = 0; i < m_nHeight; ++i) {
+        for (uint32_t j = 0; j < m_nWidth; j += 4) {
+            uint32_t x = i * m_nWidth + j;
+            if (pPixelBits[x + 3] != 255) {
+                m_bAlphaBitmap = true;
+                break;
+            }
+        }
+    }
 }
 
 } // namespace ui

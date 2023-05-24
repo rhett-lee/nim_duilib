@@ -30,11 +30,6 @@ struct IPngReader_Mem : public IPngReader
         memcpy(data,pbuf,length);
         pbuf += length;
         nLen -= length;
-#ifdef _DEBUG
-        char msg[256] = { 0 };
-        sprintf_s(msg, "IPngReader_Mem::read nLen=%d, length=%d\n", (int)nLen, (int)length);
-        ::OutputDebugStringA(msg);
-#endif
         return length;
     }
 };

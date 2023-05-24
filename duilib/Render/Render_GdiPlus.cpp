@@ -214,12 +214,11 @@ bool Render_GdiPlus::AlphaBlend(int xDest, int yDest, int widthDest, int heightD
 }
 
 void Render_GdiPlus::DrawImage(const UiRect& rcPaint, 
-							   IBitmap* pBitmap, 
-						       bool bAlphaChannel,
+							   IBitmap* pBitmap, 						       
 						       const UiRect& rcImageDest, 
-							   const UiRect& rcImageSource, 
+							   UiRect rcImageSource, 
 						       UiRect rcImageCorners,
-						       bool bBitmapDpiScale,
+						       bool bBitmapDpiScaled,
 						       uint8_t uFade,
 						       bool xtiled, 
 						       bool ytiled, 
@@ -253,21 +252,63 @@ void Render_GdiPlus::DrawImage(const UiRect& rcPaint,
 	HBITMAP hOldBitmap = (HBITMAP) ::SelectObject(hCloneDC, hBitmap);
 	int stretchBltMode = ::SetStretchBltMode(m_hDC, HALFTONE);
 
+	//对边角值进行容错处理
+	if ((rcImageCorners.left < 0)  ||
+		(rcImageCorners.top < 0)   ||
+		(rcImageCorners.right < 0) ||
+		(rcImageCorners.bottom < 0)) {
+		rcImageCorners.left = 0;
+		rcImageCorners.top = 0;
+		rcImageCorners.right = 0;
+		rcImageCorners.bottom = 0;
+	}
+
 	UiRect rcTemp;
 	UiRect rcSource;
 	UiRect rcDest;
 	UiRect rcDpiCorner = rcImageCorners;
 	DpiManager::GetInstance()->ScaleRect(rcDpiCorner);
-	// 如果源位图已经按照DPI缩放过，那么对应的corner也缩放一下
-	if (bBitmapDpiScale) {
+	// 如果源位图已经按照DPI缩放过，那么对应的rcImageCorners也需要缩放
+	if (bBitmapDpiScaled) {
 		rcImageCorners = rcDpiCorner;
 	}
+	// 如果源位图已经按照DPI缩放过，那么对应的rcImageSource也需要缩放
+	if ((rcImageSource.left < 0)  ||
+		(rcImageSource.top < 0)   ||
+		(rcImageSource.right < 0) ||
+		(rcImageSource.bottom < 0)) {
+		//如果是无效值，则重置为整个图片大小
+		rcImageSource.left = 0;
+		rcImageSource.top = 0;
+		rcImageSource.right = pBitmap->GetWidth();
+		rcImageSource.bottom = pBitmap->GetHeight();
+	}
+	else if (bBitmapDpiScaled) {
+		//如果外部设置此值，做DPI自适应处理
+		DpiManager::GetInstance()->ScaleRect(rcImageSource);
+	}
+	//图片源容错处理
+	if (rcImageSource.left < 0) {
+		rcImageSource.left = 0;
+	}
+	if (rcImageSource.top < 0) {
+		rcImageSource.top = 0;
+	}
+	if (rcImageSource.right > (LONG)pBitmap->GetWidth()) {
+		rcImageSource.right = pBitmap->GetWidth();
+	}
+	if (rcImageSource.bottom > (LONG)pBitmap->GetHeight()) {
+		rcImageSource.bottom = pBitmap->GetHeight();
+	}
+
+	bool bAlphaChannel = pBitmap->IsAlphaBitmap();
 
 	// middle
 	rcDest.left = rcImageDest.left + rcDpiCorner.left;
 	rcDest.top = rcImageDest.top + rcDpiCorner.top;
 	rcDest.right = rcImageDest.right - rcDpiCorner.right;
 	rcDest.bottom = rcImageDest.bottom - rcDpiCorner.bottom;
+
 	rcSource.left = rcImageSource.left + rcImageCorners.left;
 	rcSource.top = rcImageSource.top + rcImageCorners.top;
 	rcSource.right = rcImageSource.right - rcImageCorners.right;

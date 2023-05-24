@@ -19,6 +19,10 @@
 #define STBI_NO_GIF
 #define STBI_NO_PNG
 #include "duilib/third_party/stb_image/stb_image.h"
+
+#define STB_IMAGE_RESIZE_IMPLEMENTATION
+#define STBIR_DEFAULT_FILTER_UPSAMPLE STBIR_FILTER_TRIANGLE
+#include "duilib/third_party/stb_image/stb_image_resize.h"
 #pragma warning (pop)
 
 #pragma warning (push)
@@ -71,22 +75,6 @@ namespace GdiplusImageLoader
 			}
 		}
 
-		Gdiplus::PixelFormat format = pGdiplusBitmap->GetPixelFormat();
-		bool bAlphaChannel = (format & PixelFormatAlpha) != 0;
-		if (!bAlphaChannel && ((format & PixelFormatIndexed) != 0)) {
-			int nPalSize = pGdiplusBitmap->GetPaletteSize();
-			if (nPalSize > 0) {
-				Gdiplus::ColorPalette* palette = (Gdiplus::ColorPalette*)malloc(nPalSize);
-				if (palette != nullptr) {
-					status = pGdiplusBitmap->GetPalette(palette, nPalSize);
-					if (status == Gdiplus::Ok) {
-						bAlphaChannel = (palette->Flags & Gdiplus::PaletteFlagsHasAlpha) != 0;
-					}
-					free(palette);
-				}
-			}
-		}
-
 		for (size_t i = 0; i < iFrameCount; ++i) {
 			status = pGdiplusBitmap->SelectActiveFrame(&Gdiplus::FrameDimensionTime, (UINT)i);
 			ASSERT(status == Gdiplus::Ok);
@@ -108,20 +96,7 @@ namespace GdiplusImageLoader
 			ASSERT((bm.bmBits != nullptr) && (bm.bmBitsPixel == 32) && (bm.bmHeight > 0) && (bm.bmWidth > 0));
 			if ((bm.bmBits != nullptr) && (bm.bmBitsPixel == 32) && (bm.bmHeight > 0) && (bm.bmWidth > 0)) {
 				const uint32_t imageDataSize = bm.bmHeight * bm.bmWidth * 4;
-				if (!bAlphaChannel && (format == PixelFormat32bppARGB)) {
-					LPBYTE imageBits = (LPBYTE)bm.bmBits;
-					for (int ii = 0; ii < bm.bmHeight; ++ii) {
-						for (int j = 0; j < bm.bmWidthBytes; j += 4) {
-							int x = ii * bm.bmWidthBytes + j;
-							if (imageBits[x + 3] != 255) {
-								bAlphaChannel = true;
-								break;
-							}
-						}
-					}
-				}
 				ImageDecoder::ImageData& bitmapData = imageData[i];
-				bitmapData.m_bAlphaChannel = bAlphaChannel;
 				bitmapData.bFlipHeight = false;
 				bitmapData.m_imageWidth = bm.bmWidth;
 				bitmapData.m_imageHeight = bm.bmHeight;
@@ -186,7 +161,6 @@ namespace STBImageLoader
 		int len = (int)fileData.size();
 		int nWidth = 0;
 		int nHeight = 0;
-		bool bAlphaChannel = false; 
 		std::vector<uint8_t>& argbData = imageData.m_bitmapData;
 		argbData.clear();
 		ASSERT((buffer != nullptr) && (len > 0));
@@ -204,7 +178,6 @@ namespace STBImageLoader
 		ASSERT((nWidth > 0) && (nHeight > 0));
 		if (((channels_in_file == 3) || (channels_in_file == 4)) && 
 			(nWidth > 0) && (nHeight > 0)) {
-			bAlphaChannel = false;
 			argbData.resize(nHeight * nWidth * desired_channels);
 			const size_t colorCount = nHeight * nWidth;
 
@@ -213,9 +186,6 @@ namespace STBImageLoader
 				size_t colorIndex = i * 4;
 				if (channels_in_file == 4) {
 					argbData[colorIndex + 3] = rgbaData[colorIndex + 3]; //A, alpha
-					if (!bAlphaChannel && (argbData[colorIndex + 3] < 255)) {
-						bAlphaChannel = true;
-					}
 				}
 				else {
 					argbData[colorIndex + 3] = 255; //A, alpha
@@ -226,7 +196,6 @@ namespace STBImageLoader
 			}
 
 			imageData.bFlipHeight = true;
-			imageData.m_bAlphaChannel = bAlphaChannel;
 			imageData.m_frameInterval = 0;
 			imageData.m_imageWidth = nWidth;
 			imageData.m_imageHeight = nHeight;
@@ -252,7 +221,6 @@ namespace APNGImageLoader
 			return false;
 		}
 
-		bool bAlphaChannel = false;
 		//swap rgba to bgra and do premultiply
 		uint8_t* p = pngData->pdata;
 		int pixel_count = nWid * nHei * pngData->nFrames;
@@ -269,9 +237,6 @@ namespace APNGImageLoader
 			{
 				memset(p, 0, 4);
 			}
-			if (!bAlphaChannel && (p[3] != 255)) {
-				bAlphaChannel = true;
-			}
 			p += 4;
 		}
 
@@ -283,7 +248,6 @@ namespace APNGImageLoader
 			ImageDecoder::ImageData& bitmapData = imageData[i];
 			bitmapData.m_frameInterval = pngData->pDelay ? pngData->pDelay[i] : 0;
 			bitmapData.bFlipHeight = true;
-			bitmapData.m_bAlphaChannel = bAlphaChannel;
 			bitmapData.m_imageWidth = nWid;
 			bitmapData.m_imageHeight = nHei;
 			bitmapData.m_bitmapData.resize(imageDataSize);
@@ -328,12 +292,16 @@ namespace SVGImageLoader
 
 	/** 从内存数据加载图片
 	*/
-	bool LoadImageFromMemory(std::vector<uint8_t>& fileData, ImageDecoder::ImageData& imageData)
+	bool LoadImageFromMemory(std::vector<uint8_t>& fileData, 
+						     const ImageLoadAttribute& imageLoadAttribute, 
+							 ImageDecoder::ImageData& imageData,
+							 bool& bDpiScaled)
 	{
 		ASSERT(!fileData.empty());
 		if (fileData.empty()) {
 			return false;
 		}
+		bDpiScaled = false;
 		bool hasAppended = false;
 		if (fileData.back() != '\0') {
 			//确保是含尾0的字符串，避免越界访问内存
@@ -341,65 +309,74 @@ namespace SVGImageLoader
 			hasAppended = true;
 		}
 		char* pData = (char*)fileData.data();
-		NSVGimage* svgData = nsvgParse(pData, "px", 96.0f);
+		NSVGimage* svgData = nsvgParse(pData, "px", 96.0f);//传入"px"时，第三个参数dpi是不起作用的。
 		if (hasAppended) {
 			fileData.pop_back();
 		}
 
 		std::unique_ptr<NSVGimage, SvgDeleter> svg((NSVGimage*)svgData);
-		int w = (int)svg->width;
-		int h = (int)svg->height;
-		std::unique_ptr<NSVGrasterizer, RasterizerDeleter> rast(nsvgCreateRasterizer());
+		int width = (int)svg->width;
+		int height = (int)svg->height;
+		//计算缩放后的大小
+		uint32_t nImageWidth = width;
+		uint32_t nImageHeight = height;
 		float scale = 1.0f;
-		UINT dpiScale = DpiManager::GetInstance()->GetScale();
-		if ((dpiScale != 100) && (dpiScale != 0)) {
-			scale = (float)DpiManager::GetInstance()->GetScale() / 100;
-			w = static_cast<int>(w * scale);
-			h = static_cast<int>(h * scale);
+		if (imageLoadAttribute.CalcImageLoadSize(nImageWidth, nImageHeight)) {
+			scale = 1.0f * nImageWidth / width;
+			width = (int)nImageWidth;
+			height = (int)nImageHeight;
 		}
-		if (w <= 0 || h <= 0 || !rast) {
+		bool needDpiScale = GlobalManager::IsDpiScaleAllImages();
+		if (imageLoadAttribute.HasSrcDpiScale()) {
+			//如果配置文件中有设置scaledpi属性，则以配置文件中的设置为准
+			needDpiScale = imageLoadAttribute.NeedDpiScale();
+		}
+		if (needDpiScale) {
+			UINT dpiScale = DpiManager::GetInstance()->GetScale();
+			if ((dpiScale != 100) && (dpiScale != 0)) {
+				float scaleRatio = (float)dpiScale / 100.0f;
+				scale *= scaleRatio;
+				width = static_cast<int>(width * scaleRatio);
+				height = static_cast<int>(height * scaleRatio);
+				bDpiScaled = true;
+			}
+		}
+
+		std::unique_ptr<NSVGrasterizer, RasterizerDeleter> rast(nsvgCreateRasterizer());		
+		if (width <= 0 || height <= 0 || !rast) {
 			return false;
 		}
 
 		const int dataSize = 4;
 		std::vector<uint8_t>& bitmapData = imageData.m_bitmapData;
-		bitmapData.resize(h * w * dataSize);
+		bitmapData.resize(height * width * dataSize);
 		uint8_t* pBmpBits = bitmapData.data();
-		nsvgRasterize(rast.get(), svg.get(), 0, 0, scale, pBmpBits, w, h, w * dataSize);
+		nsvgRasterize(rast.get(), svg.get(), 0, 0, scale, pBmpBits, width, height, width * dataSize);
 
 		// nanosvg内部已经做过alpha预乘，这里只做R和B的交换
-		for (int y = 0; y < h; y++) {
-			unsigned char* row = &pBmpBits[y * w * dataSize];
-			for (int x = 0; x < w; x++) {
-				int r = row[0], g = row[1], b = row[2], a = row[3];
-				(void)a;
-				(void)g;
-				// 			if (a < 255) {
-				// 				row[0] = (unsigned char)(b * a / 255);
-				// 				row[1] = (unsigned char)(g * a / 255);
-				// 				row[2] = (unsigned char)(r * a / 255);
-				// 			}
-				// 			else {
-				row[0] = static_cast<unsigned char>(b);
-				//row[1] = g;
-				row[2] = static_cast<unsigned char>(r);
-				//			}
+		for (int y = 0; y < height; ++y) {
+			unsigned char* row = &pBmpBits[y * width * dataSize];
+			for (int x = 0; x < width; ++x) {
+				//SVG	数据的各个颜色值：row[0]:R, row[1]: G, row[2]: B, row[3]: A
+				//输出	数据的各个颜色值：row[0]:B, row[1]: G, row[2]: R, row[3]: A
+				unsigned char r = row[0];
+				row[0] = row[2];
+				row[2] = r;
 				row += 4;
 			}
 		}
 
 		imageData.m_frameInterval = 0;
 		imageData.bFlipHeight = true;
-		imageData.m_bAlphaChannel = true;
-		imageData.m_imageWidth = w;
-		imageData.m_imageHeight = h;
+		imageData.m_imageWidth = width;
+		imageData.m_imageHeight = height;
 		return true;
 	}
 }
 
-ImageDecoder::ImageFormat ImageDecoder::GetImageFormat(const std::wstring& path) const
+ImageDecoder::ImageFormat ImageDecoder::GetImageFormat(const std::wstring& path)
 {
-	ImageDecoder::ImageFormat imageFormat = ImageFormat::kUnknown;
+	ImageFormat imageFormat = ImageFormat::kUnknown;
 	if (path.size() < 4) {
 		return imageFormat;
 	}
@@ -448,16 +425,48 @@ std::unique_ptr<ImageInfo> ImageDecoder::LoadImageData(std::vector<uint8_t>& fil
 	}
 
 	std::vector<ImageData> imageData;
+	bool bDpiScaled = false;
 	int32_t playCount = -1;
-	ImageDecoder::ImageFormat imageFormat = GetImageFormat(imageFullPath);
-	bool isLoaded = DecodeImageData(fileData, imageFormat, imageData, playCount);
+	bool isLoaded = DecodeImageData(fileData, imageLoadAttribute, imageData, playCount, bDpiScaled);
 	if (!isLoaded || imageData.empty()) {
 		return nullptr;
 	}
 
+	ImageFormat imageFormat = GetImageFormat(imageLoadAttribute.GetImageFullPath());
+	if (imageFormat != ImageFormat::kSVG) {
+		//计算缩放后的大小
+		const ImageData& image = imageData[0];
+		uint32_t nImageWidth = image.m_imageWidth;
+		uint32_t nImageHeight = image.m_imageHeight;
+		if (!imageLoadAttribute.CalcImageLoadSize(nImageWidth, nImageHeight)) {
+			nImageWidth = image.m_imageWidth;
+			nImageHeight = image.m_imageHeight;
+		}
+
+		//加载图片时，按需对图片大小进行DPI自适应
+		bool needDpiScale = GlobalManager::IsDpiScaleAllImages();
+		if (imageLoadAttribute.HasSrcDpiScale()) {
+			//如果配置文件中有设置scaledpi属性，则以配置文件中的设置为准
+			needDpiScale = imageLoadAttribute.NeedDpiScale();
+		}
+		if (needDpiScale) {
+			UINT dpiScale = DpiManager::GetInstance()->GetScale();
+			if ((dpiScale != 100) && (dpiScale != 0)) {
+				float scaleRatio = (float)dpiScale / 100.0f;
+				nImageWidth = static_cast<int>(nImageWidth * scaleRatio);
+				nImageHeight = static_cast<int>(nImageHeight * scaleRatio);
+				bDpiScaled = true;
+			}
+		}
+		if ((nImageWidth != image.m_imageWidth) ||
+			(nImageHeight != image.m_imageHeight)) {
+			//加载图像后，根据配置属性，进行大小调整(用算法对原图缩放，图片质量显示效果会好些)
+			ResizeImageData(imageData, nImageWidth, nImageHeight);
+		}
+	}
+
 	std::unique_ptr<ImageInfo> imageInfo(new ImageInfo);
 	std::vector<int> frameIntervals;
-	bool bAlphaChannel = false;
 	uint32_t imageWidth = 0;
 	uint32_t imageHeight = 0;
 	for (const ImageData& bitmapData : imageData) {
@@ -466,9 +475,6 @@ std::unique_ptr<ImageInfo> ImageDecoder::LoadImageData(std::vector<uint8_t>& fil
 			return nullptr;
 		}
 		frameIntervals.push_back(bitmapData.m_frameInterval);
-		if (!bAlphaChannel) {
-			bAlphaChannel = bitmapData.m_bAlphaChannel;
-		}
 		if (imageWidth == 0) {
 			imageWidth = bitmapData.m_imageWidth;
 		}
@@ -490,15 +496,47 @@ std::unique_ptr<ImageInfo> ImageDecoder::LoadImageData(std::vector<uint8_t>& fil
 	}	
 	imageInfo->SetImageSize(imageWidth, imageHeight);
 	imageInfo->SetImageFullPath(imageFullPath);
-	imageInfo->SetAlpha(bAlphaChannel);
 	imageInfo->SetPlayCount(playCount);
+	imageInfo->SetBitmapSizeDpiScaled(bDpiScaled);
 	return imageInfo;
 }
 
+void ImageDecoder::ResizeImageData(std::vector<ImageData>& imageData,
+								   uint32_t nNewWidth,
+								   uint32_t nNewHeight)
+{
+	ASSERT((nNewWidth > 0) && (nNewHeight > 0));
+	if ((nNewWidth == 0) || (nNewHeight == 0)) {
+		return;
+	}
+	for (ImageData& image : imageData) {
+		std::vector<uint8_t> resizedBitmapData;
+		resizedBitmapData.resize(nNewWidth * nNewHeight * 4);
+		const unsigned char* input_pixels = image.m_bitmapData.data();
+		int input_w = image.m_imageWidth;
+		int input_h = image.m_imageHeight;
+		int input_stride_in_bytes = 0;
+		unsigned char* output_pixels = resizedBitmapData.data();
+		int output_w = nNewWidth;
+		int output_h = nNewHeight;
+		int output_stride_in_bytes = 0;
+		int num_channels = 4;
+		int result = stbir_resize_uint8(input_pixels, input_w, input_h, input_stride_in_bytes,
+										output_pixels, output_w, output_h, output_stride_in_bytes,
+										num_channels);
+		if (result == 1) {
+			image.m_bitmapData.swap(resizedBitmapData);
+			image.m_imageWidth = nNewWidth;
+			image.m_imageHeight = nNewHeight;
+		}
+	}
+}
+
 bool ImageDecoder::DecodeImageData(std::vector<uint8_t>& fileData,
-								   ImageDecoder::ImageFormat imageFormat,
+								   const ImageLoadAttribute& imageLoadAttribute,
 								   std::vector<ImageData>& imageData,
-								   int32_t& playCount)
+								   int32_t& playCount,
+	                               bool& bDpiScaled)
 {
 	ASSERT(!fileData.empty());
 	if (fileData.empty()) {
@@ -509,6 +547,8 @@ bool ImageDecoder::DecodeImageData(std::vector<uint8_t>& fileData,
 	imageData.clear();
 
 	bool isLoaded = false;
+	std::wstring imageFullPath = imageLoadAttribute.GetImageFullPath();
+	ImageFormat imageFormat = GetImageFormat(imageFullPath);
 	switch (imageFormat) {
 	case ImageFormat::kJPEG:
 	case ImageFormat::kBMP:
@@ -517,7 +557,7 @@ bool ImageDecoder::DecodeImageData(std::vector<uint8_t>& fileData,
 		break;
 	case ImageFormat::kSVG:
 		imageData.resize(1);
-		isLoaded = SVGImageLoader::LoadImageFromMemory(fileData, imageData[0]);
+		isLoaded = SVGImageLoader::LoadImageFromMemory(fileData, imageLoadAttribute, imageData[0], bDpiScaled);
 		break;
 	case ImageFormat::kGIF:
 		break;

@@ -31,9 +31,12 @@ void MainThread::Init()
 {
 	nbase::ThreadManager::RegisterThread(kThreadUI);
 
+	//开启DPI自适应功能
+	bool bAdaptDpi = true;
+
 	// 获取资源路径，初始化全局参数
 	std::wstring theme_dir = nbase::win32::GetCurrentModuleDirectory();
-	ui::GlobalManager::Startup(theme_dir + L"resources\\", ui::CreateControlCallback(), false);
+	ui::GlobalManager::Startup(theme_dir + L"resources\\", ui::CreateControlCallback(), bAdaptDpi);
 
 	// 创建一个默认带有阴影的居中窗口
 	RichlistForm* window = new RichlistForm();
