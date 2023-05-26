@@ -197,6 +197,9 @@
     <ProjectReference Include="..\..\duilib\third_party\libpng\projects\vstudio\zlib\zlib.vcxproj">
       <Project>{60f89955-91c6-3a36-8000-13c592fec2df}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\..\duilib\third_party\libwebp\libwebp.vcxproj">
+      <Project>{9ce07309-2808-45fa-b1af-ef49510e83ab}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -39,6 +39,9 @@
 #include "duilib/third_party/cximage/ximage.h"
 #pragma warning (pop)
 
+#include "duilib/third_party/libwebp/src/webp/decode.h"
+#include "duilib/third_party/libwebp/src/webp/demux.h"
+
 namespace ui 
 {
 
@@ -537,6 +540,69 @@ namespace CxImageLoader
 	}
 }//CxImageLoader
 
+/**  π”√libWebPº”‘ÿÕº∆¨
+*/
+namespace WebPImageLoader
+{
+	bool LoadImageFromMemory(std::vector<uint8_t>& fileData, std::vector<ImageDecoder::ImageData>& imageData, int32_t& playCount)
+	{
+		ASSERT(!fileData.empty());
+		if (fileData.empty()) {
+			return false;
+		}
+		imageData.clear();
+		playCount = 0;
+		WebPData wd = { fileData.data() , fileData.size() };
+		WebPDemuxer* demuxer = WebPDemux(&wd);
+		if (demuxer == nullptr) {
+			return false;
+		}
+		//uint32_t flags = WebPDemuxGetI(demuxer, WEBP_FF_FORMAT_FLAGS);
+		//bool hasAnimation = flags & ANIMATION_FLAG;
+		uint32_t loopCount = WebPDemuxGetI(demuxer, WEBP_FF_LOOP_COUNT);
+		//uint32_t backGroundColor = WebPDemuxGetI(demuxer, WEBP_FF_BACKGROUND_COLOR);
+		uint32_t frameCount = WebPDemuxGetI(demuxer, WEBP_FF_FRAME_COUNT);
+		if (frameCount == 0) {
+			return false;
+		}
+
+		imageData.resize(frameCount);
+
+		// libwebp's index start with 1
+		for (int frame_idx = 1; frame_idx <= (int)frameCount; ++frame_idx) {
+			WebPIterator iter;
+			int ret = WebPDemuxGetFrame(demuxer, frame_idx, &iter);
+			ASSERT(ret != 0);
+			if (ret == 0) {
+				imageData.clear();
+				WebPDemuxReleaseIterator(&iter);
+				break;
+			}
+			int width = 0;
+			int hight = 0;
+			uint8_t* decode_data = WebPDecodeBGRA(iter.fragment.bytes, iter.fragment.size, &width, &hight);
+			ASSERT((decode_data != nullptr) && (width > 0) && (hight > 0));
+			if ((decode_data == nullptr) || (width <= 0) || (hight <= 0)) {
+				imageData.clear();
+				WebPDemuxReleaseIterator(&iter);
+				break;
+			}
+			ImageDecoder::ImageData& bitmapData = imageData[frame_idx - 1];
+			const size_t dataSize = width * hight * 4;
+			bitmapData.m_bitmapData.resize(dataSize);
+			memcpy(bitmapData.m_bitmapData.data(), decode_data, dataSize);
+			bitmapData.m_imageWidth = width;
+			bitmapData.m_imageHeight = hight;
+			bitmapData.m_frameInterval = iter.duration;
+
+			WebPDemuxReleaseIterator(&iter);
+		}
+		WebPDemuxDelete(demuxer);
+		playCount = (int32_t)loopCount;
+		return !imageData.empty();
+	}
+}
+
 ImageDecoder::ImageFormat ImageDecoder::GetImageFormat(const std::wstring& path)
 {
 	ImageFormat imageFormat = ImageFormat::kUnknown;
@@ -732,6 +798,7 @@ bool ImageDecoder::DecodeImageData(std::vector<uint8_t>& fileData,
 		isLoaded = CxImageLoader::LoadImageFromMemory(fileData, imageData, true, imageLoadAttribute.GetIconSize());
 		break;
 	case ImageFormat::kWEBP:
+		isLoaded = WebPImageLoader::LoadImageFromMemory(fileData, imageData, playCount);
 		break;
 	
 	default:
