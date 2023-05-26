@@ -137,6 +137,7 @@ void ImageAttribute::Init()
 	rcSource.left = rcSource.top = rcSource.right = rcSource.bottom = DUI_NOSET_VALUE;
 	rcCorner.left = rcCorner.top = rcCorner.right = rcCorner.bottom = 0;
 	nPlayCount = -1;
+	iconSize = 0;
 
 	srcDpiScale = false;
 	bHasSrcDpiScale = false;
@@ -257,7 +258,11 @@ void ImageAttribute::ModifyAttribute(const std::wstring& strImageString)
 			else if (sItem == _T("playcount")) {
 				//如果是GIF、APNG、WEBP等动画图片，可以指定播放次数 -1 ：一直播放，缺省值。
 				imageAttribute.nPlayCount = _tcstol(sValue.c_str(), &pstr, 10);  ASSERT(pstr);
-			}			
+			}
+			else if (sItem == _T("iconsize")) {
+				//指定加载ICO文件的图片大小(仅当图片文件是ICO文件时有效)
+				imageAttribute.iconSize = (uint32_t)_tcstol(sValue.c_str(), &pstr, 10);  ASSERT(pstr);
+			}
 		}
 		if (*pStrImage++ != _T(' ')) {
 			break;
@@ -272,11 +277,13 @@ void ImageAttribute::ModifyAttribute(const std::wstring& strImageString)
 ImageLoadAttribute::ImageLoadAttribute(const std::wstring& srcWidth,
 									   const std::wstring& srcHeight,
 	                                   bool srcDpiScale,
-									   bool bHasSrcDpiScale):
+									   bool bHasSrcDpiScale,
+	                                   uint32_t iconSize):
 	m_srcWidth(srcWidth),
 	m_srcHeight(srcHeight),
 	m_srcDpiScale(srcDpiScale),
-	m_bHasSrcDpiScale(bHasSrcDpiScale)
+	m_bHasSrcDpiScale(bHasSrcDpiScale),
+	m_iconSize(iconSize)
 {
 	StringHelper::Trim(m_srcWidth);
 	StringHelper::Trim(m_srcHeight);
@@ -313,6 +320,11 @@ void ImageLoadAttribute::SetNeedDpiScale(bool bNeedDpiScale)
 bool ImageLoadAttribute::HasSrcDpiScale() const
 {
 	return m_bHasSrcDpiScale;
+}
+
+uint32_t ImageLoadAttribute::GetIconSize() const
+{
+	return m_iconSize;
 }
 
 bool ImageLoadAttribute::CalcImageLoadSize(uint32_t& nImageWidth, uint32_t& nImageHeight) const
@@ -485,7 +497,8 @@ ImageLoadAttribute Image::GetImageLoadAttribute() const
 	return ImageLoadAttribute(m_imageAttribute.srcWidth, 
 						      m_imageAttribute.srcHeight,
 		                      m_imageAttribute.srcDpiScale,
-							  m_imageAttribute.bHasSrcDpiScale);
+							  m_imageAttribute.bHasSrcDpiScale,
+		                      m_imageAttribute.iconSize);
 }
 
 const std::shared_ptr<ImageInfo>& Image::GetImageCache() const

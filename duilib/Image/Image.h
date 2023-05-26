@@ -194,6 +194,11 @@ public:
 
 	//如果是GIF等动画图片，可以指定播放次数 -1 ：一直播放，缺省值。
 	int nPlayCount;	
+
+	//如果是ICO文件，用于指定需要加载的ICO图片的大小
+	//(ICO文件中包含很多个不同大小的图片，常见的有256，48，32，16，并且每个大小都有32位真彩、256色、16色之分）
+	//目前ICO文件在加载时，只会选择一个大小的ICO图片进行加载，加载后为单张图片
+	uint32_t iconSize;
 };
 
 /** 图片加载属性，用于加载一个图片
@@ -204,7 +209,8 @@ public:
 	ImageLoadAttribute(const std::wstring& srcWidth,
 					   const std::wstring& srcHeight,
 		               bool srcDpiScale,
-		               bool bHasSrcDpiScale);
+		               bool bHasSrcDpiScale,
+		               uint32_t iconSize);
 
 	/** 设置图片路径（本地绝对路径或者压缩包内的相对路径）
 	*/
@@ -237,6 +243,10 @@ public:
 	*/
 	bool CalcImageLoadSize(uint32_t& nImageWidth, uint32_t& nImageHeight) const;
 
+	/** 如果是ICO文件，用于指定需要加载的ICO图片的大小
+	*/
+	uint32_t GetIconSize() const;
+
 private:
 	/** 获取设置的缩放后的大小
 	*/
@@ -257,6 +267,11 @@ private:
 
 	//加载图片时，是否设置了DPI自适应属性
 	bool m_bHasSrcDpiScale;
+
+	//如果是ICO文件，用于指定需要加载的ICO图片的大小
+	//(ICO文件中包含很多个不同大小的图片，常见的有256，48，32，16，并且每个大小都有32位真彩、256色、16色之分）
+	//目前ICO文件在加载时，只会选择一个大小的ICO图片进行加载，加载后为单张图片
+	uint32_t m_iconSize;
 };
 
 /** 图片相关封装，支持的文件格式：SVG/PNG/GIF/JPG/BMP/APNG/WEBP/ICO

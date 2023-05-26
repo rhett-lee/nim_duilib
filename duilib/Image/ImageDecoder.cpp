@@ -34,6 +34,11 @@
 #include "duilib/third_party/svg/nanosvgrast.h"
 #pragma warning (pop)
 
+#pragma warning (push)
+#pragma warning (disable: 4996)
+#include "duilib/third_party/cximage/ximage.h"
+#pragma warning (pop)
+
 namespace ui 
 {
 
@@ -143,7 +148,7 @@ namespace GdiplusImageLoader
 		::GlobalFree(hGlobal);
 		return isLoaded;
 	}
-}
+}//GdiplusImageLoader
 
 /** 使用stb_image加载图片
 */
@@ -203,7 +208,7 @@ namespace STBImageLoader
 		stbi_image_free(rgbaData);
 		return !argbData.empty();
 	}
-}
+}//STBImageLoader
 
 /** 使用APNG加载图片
 */
@@ -272,7 +277,7 @@ namespace APNGImageLoader
 		}		
 		return isLoaded;
 	}
-}
+}//APNGImageLoader
 
 /** 加载SVG图片
 */
@@ -372,7 +377,165 @@ namespace SVGImageLoader
 		imageData.m_imageHeight = height;
 		return true;
 	}
-}
+} //SVGImageLoader
+
+/** 使用cximage加载图片（只支持GIF和ICO）两种格式
+@param [in] isIconFile 如果为true表示是ICO文件，否则为GIF文件
+@param [in] iconSize 需要加载ICO图标的大小，因ICO文件中包含了各种大小的图标，加载的时候，只加载其中一个图标
+*/
+namespace CxImageLoader
+{
+	bool LoadImageFromMemory(std::vector<uint8_t>& fileData, 
+							 std::vector<ImageDecoder::ImageData>& imageData, 
+		                     bool isIconFile,
+						     uint32_t iconSize)
+	{
+		ASSERT(!fileData.empty());
+		if (fileData.empty()) {
+			return false;
+		}
+		uint32_t imagetype = isIconFile ? CXIMAGE_FORMAT_ICO : CXIMAGE_FORMAT_GIF;
+		CxMemFile stream(fileData.data(), (uint32_t)fileData.size());
+		CxImage cxImage(imagetype);
+		cxImage.SetRetreiveAllFrames(true);		
+		bool isLoaded = cxImage.Decode(&stream, imagetype);
+		const int32_t frameCount = cxImage.GetNumFrames();
+		ASSERT(isLoaded && cxImage.IsValid() && (frameCount > 0));
+		if (!isLoaded || !cxImage.IsValid() || (frameCount < 1)) {
+			return false;
+		}
+
+		//ICO
+		std::vector<uint32_t> frameNumColors;  //用于记录ICO文件中，每个Frame的颜色数
+		std::unique_ptr<CxImage> cxIcoImage;   //每个Frame的ICO文件提取接口
+		std::unique_ptr<CxMemFile> cxIcoStream;//每个Frame的ICO文件数据流
+		//
+		uint32_t lastFrameDelay = 0;
+		imageData.resize(frameCount);
+		frameNumColors.resize(frameCount);
+		for (int32_t index = 0; index < frameCount; ++index) {
+			CxImage* cxFrame = nullptr;
+			if (imagetype == CXIMAGE_FORMAT_GIF) {
+				cxFrame = cxImage.GetFrame(index);
+			}
+			else {
+				cxIcoStream = std::make_unique<CxMemFile>(fileData.data(), (uint32_t)fileData.size());
+				cxIcoImage = std::make_unique<CxImage>(imagetype);
+				cxIcoImage->SetFrame(index);
+				if (cxIcoImage->Decode(cxIcoStream.get(), imagetype) && cxIcoImage->IsValid()) {
+					cxFrame = cxIcoImage.get();
+				}
+			}
+			
+			//ASSERT(cxFrame != nullptr);
+			if (cxFrame == nullptr) {
+				imageData.clear();
+				return false;
+			}
+			uint32_t frameDelay = cxFrame->GetFrameDelay();
+			if (frameDelay == 0) {
+				frameDelay = lastFrameDelay;
+			}
+			else {
+				lastFrameDelay = frameDelay;
+			}
+			frameNumColors[index] = cxFrame->GetNumColors();////2, 16, 256; 0 for RGB images.
+
+			uint32_t nWidth = cxFrame->GetWidth();
+			uint32_t nHeight = cxFrame->GetHeight();
+			ASSERT((nWidth > 0) && (nHeight > 0));
+			if ((nWidth == 0) && (nHeight == 0)) {
+				imageData.clear();
+				return false;
+			}
+
+			int32_t lPx = 0;
+			int32_t lPy = 0;
+			ImageDecoder::ImageData& bitmapData = imageData[index];
+			bitmapData.m_bitmapData.resize(nHeight * nWidth * 4);
+			RGBQUAD* pBit = (RGBQUAD*)bitmapData.m_bitmapData.data();
+			for (lPy = 0; lPy < (int32_t)nHeight; ++lPy) {
+				for (lPx = 0; lPx < (int32_t)nWidth; ++lPx) {
+					*pBit = cxFrame->GetPixelColor(lPx, lPy, true);
+					if (!cxFrame->AlphaIsValid() && !cxFrame->IsTransparent() && !cxFrame->AlphaPaletteIsEnabled()) {
+						//如果不含有Alpha通道，则填充A值为固定值
+						pBit->rgbReserved = 255;
+					}
+					else {
+						//图片含有Alpha通道
+						uint8_t a = pBit->rgbReserved;
+						if (!cxFrame->AlphaIsValid()) {
+							a = 255;
+						}
+
+						int32_t transIndex = cxFrame->GetTransIndex();//Gets the index used for transparency. Returns -1 for no transparancy.
+						int32_t bitCount = cxFrame->GetBpp();//1, 4, 8, 24.
+						int32_t numColors = cxFrame->GetNumColors();//2, 16, 256; 0 for RGB images.
+						if ((transIndex >= 0) && (bitCount < 24) && (numColors != 0) && (cxFrame->GetDIB() != nullptr)) {
+							RGBQUAD	transColor = cxFrame->GetTransColor();
+							if ((transColor.rgbRed == pBit->rgbRed) &&
+								(transColor.rgbGreen == pBit->rgbGreen) &&
+								(transColor.rgbBlue == pBit->rgbBlue)) {
+								//透明色，标记Alpha通道为全透明
+								a = 0;
+							}
+						}																
+						pBit->rgbReserved = a;
+
+						if ((a > 0) && (a < 255)) {
+							pBit->rgbRed = pBit->rgbRed * a / 255;
+							pBit->rgbGreen = pBit->rgbGreen * a / 255;
+							pBit->rgbBlue = pBit->rgbBlue * a / 255;
+						}
+					}
+					++pBit;
+				}
+			}
+			bitmapData.m_frameInterval = frameDelay * 10;
+			bitmapData.m_imageWidth = nWidth;
+			bitmapData.m_imageHeight = nHeight;
+			bitmapData.bFlipHeight = false;
+		}
+
+		if (isIconFile) {
+			//目前只支持加载一个ICO文件，后续再根据实际应用场景扩展(优先选择32位真彩的图片，然后选择256色的，然再选择16色的)
+			bool isIconSizeValid = false;
+			const size_t imageCount = imageData.size();
+			for (size_t i = 0; i < imageCount; ++i) {
+				const ImageDecoder::ImageData& icoData = imageData[i];
+				if (icoData.m_imageWidth == iconSize) {
+					isIconSizeValid = true;
+					break;
+				}
+			}
+
+			std::vector<uint32_t> colors = {0, 256, 16, 2};
+			bool isFound = false;
+			for (auto color : colors) {
+				for (size_t i = 0; i < imageCount; ++i) {
+					const ImageDecoder::ImageData& icoData = imageData[i];
+					uint32_t numColors = frameNumColors[i];
+					if ((!isIconSizeValid || (icoData.m_imageWidth == iconSize)) && (numColors == color)) {
+						ImageDecoder::ImageData oneData = icoData;
+						imageData.resize(1);
+						imageData[0] = oneData;
+						isFound = true;
+						break;
+					}
+				}
+				if (isFound) {
+					break;
+				}
+			}
+			if (imageData.size() > 1) {
+				ImageDecoder::ImageData oneData = imageData.front();
+				imageData.resize(1);
+				imageData[0] = oneData;
+			}
+		}
+		return !imageData.empty();
+	}
+}//CxImageLoader
 
 ImageDecoder::ImageFormat ImageDecoder::GetImageFormat(const std::wstring& path)
 {
@@ -550,24 +713,27 @@ bool ImageDecoder::DecodeImageData(std::vector<uint8_t>& fileData,
 	std::wstring imageFullPath = imageLoadAttribute.GetImageFullPath();
 	ImageFormat imageFormat = GetImageFormat(imageFullPath);
 	switch (imageFormat) {
-	case ImageFormat::kJPEG:
-	case ImageFormat::kBMP:
-		imageData.resize(1);
-		isLoaded = STBImageLoader::LoadImageFromMemory(fileData, imageData[0]);
+	case ImageFormat::kPNG:
+		isLoaded = APNGImageLoader::LoadImageFromMemory(fileData, imageData, playCount);
 		break;
 	case ImageFormat::kSVG:
 		imageData.resize(1);
 		isLoaded = SVGImageLoader::LoadImageFromMemory(fileData, imageLoadAttribute, imageData[0], bDpiScaled);
 		break;
+	case ImageFormat::kJPEG:
+	case ImageFormat::kBMP:
+		imageData.resize(1);
+		isLoaded = STBImageLoader::LoadImageFromMemory(fileData, imageData[0]);
+		break;	
 	case ImageFormat::kGIF:
+		isLoaded = CxImageLoader::LoadImageFromMemory(fileData, imageData, false, 0);
 		break;
-	case ImageFormat::kPNG:
-		isLoaded = APNGImageLoader::LoadImageFromMemory(fileData, imageData, playCount);
+	case ImageFormat::kICO:
+		isLoaded = CxImageLoader::LoadImageFromMemory(fileData, imageData, true, imageLoadAttribute.GetIconSize());
 		break;
 	case ImageFormat::kWEBP:
 		break;
-	case ImageFormat::kICO:
-		break;
+	
 	default:
 		break;
 	}
