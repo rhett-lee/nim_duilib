@@ -12,6 +12,7 @@
 #include "duilib/Utils/DpiManager.h"
 #include "duilib/Utils/Shadow.h"
 #include "duilib/Utils/MultiLangSupport.h"
+#include "duilib/Utils/PerformanceUtil.h"
 
 #include <tchar.h>
 #include <Olectl.h>
@@ -1334,7 +1335,9 @@ LRESULT Window::OnPaintMsg(UINT uMsg, WPARAM /*wParam*/, LPARAM /*lParam*/, bool
 {
 	ASSERT_UNUSED_VARIABLE(uMsg == WM_PAINT);
 	bHandled = true;
-	Paint();	
+	PerformanceUtil::Instance().BeginStat(L"Window::OnPaintMsg");
+	Paint();
+	PerformanceUtil::Instance().EndStat(L"Window::OnPaintMsg");
 	return 0;
 }
 

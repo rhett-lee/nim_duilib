@@ -42,6 +42,8 @@
 #include "duilib/third_party/libwebp/src/webp/decode.h"
 #include "duilib/third_party/libwebp/src/webp/demux.h"
 
+#include "duilib/Utils/PerformanceUtil.h"
+
 namespace ui 
 {
 
@@ -656,7 +658,10 @@ std::unique_ptr<ImageInfo> ImageDecoder::LoadImageData(std::vector<uint8_t>& fil
 	std::vector<ImageData> imageData;
 	bool bDpiScaled = false;
 	int32_t playCount = -1;
+
+	PerformanceUtil::Instance().BeginStat(L"DecodeImageData");
 	bool isLoaded = DecodeImageData(fileData, imageLoadAttribute, imageData, playCount, bDpiScaled);
+	PerformanceUtil::Instance().EndStat(L"DecodeImageData");
 	if (!isLoaded || imageData.empty()) {
 		return nullptr;
 	}
@@ -690,7 +695,10 @@ std::unique_ptr<ImageInfo> ImageDecoder::LoadImageData(std::vector<uint8_t>& fil
 		if ((nImageWidth != image.m_imageWidth) ||
 			(nImageHeight != image.m_imageHeight)) {
 			//加载图像后，根据配置属性，进行大小调整(用算法对原图缩放，图片质量显示效果会好些)
+
+			PerformanceUtil::Instance().BeginStat(L"ResizeImageData");
 			ResizeImageData(imageData, nImageWidth, nImageHeight);
+			PerformanceUtil::Instance().EndStat(L"ResizeImageData");
 		}
 	}
 

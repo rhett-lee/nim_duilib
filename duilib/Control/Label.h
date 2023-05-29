@@ -118,26 +118,11 @@ public:
 	void SetSingleLine(bool bSingleLine);
 
     /**
-     * @brief 是否限制整行输出
-     * @return 返回 true 为限制，false 为不限制
-     */
-	bool IsLineLimit() const;
-
-    /**
-     * @brief 限制整行输出
-     * @param[in] bLineLimit 设置 true 为限制，false 为不限制
-     * @return 无
-     */
-	void SetLineLimit(bool bLineLimit);
-
-    /**
     * @brief 设置鼠标悬浮到控件显示的提示文本是否省略号出现时才显示
     * @param[in] bAutoShow true 省略号出现才显示 false 不做任何控制
     * @return 无
     */
 	void SetAutoToolTip(bool bAutoShow);
-
-    void SetDrawTextFillPath(bool bDrawTextFillPath);
 
 protected:
 	void CheckShowToolTip();
@@ -147,9 +132,7 @@ protected:
 	std::wstring m_sAutoShowTooltipCache;
 	UINT	m_uTextStyle;
 	bool    m_bSingleLine;
-	bool    m_bLineLimit;
 	bool    m_bAutoShowToolTip;
-    bool    m_bDrawTextFillPath;
 	UiRect	m_rcTextPadding;
 	std::wstring	m_sText;
 	std::wstring	m_sTextId;
@@ -161,9 +144,7 @@ LabelTemplate<InheritType>::LabelTemplate() :
     m_sFontId(),
     m_uTextStyle(DT_LEFT | DT_VCENTER | DT_END_ELLIPSIS | DT_NOCLIP | DT_SINGLELINE),
     m_bSingleLine(true),
-    m_bLineLimit(false),
     m_bAutoShowToolTip(false),
-    m_bDrawTextFillPath(false),
     m_rcTextPadding(),
     m_sText(),
     m_sTextId(),
@@ -214,12 +195,6 @@ void LabelTemplate<InheritType>::SetAutoToolTip(bool bAutoShow)
 {
 	m_bAutoShowToolTip = bAutoShow;
 	CheckShowToolTip();
-}
-
-template<typename InheritType>
-void LabelTemplate<InheritType>::SetDrawTextFillPath(bool bDrawTextFillPath) 
-{
-    m_bDrawTextFillPath = bDrawTextFillPath;
 }
 
 template<typename InheritType /*= Control*/>
@@ -428,7 +403,6 @@ void LabelTemplate<InheritType>::SetAttribute(const std::wstring& strName, const
             m_uTextStyle &= ~DT_END_ELLIPSIS;
         }
     }
-    else if (strName == L"linelimit") SetLineLimit(strValue == L"true");
     else if (strName == L"singleline") SetSingleLine(strValue == L"true");
     else if (strName == L"text") SetText(strValue);
     else if (strName == L"textid") SetTextId(strValue);
@@ -446,9 +420,6 @@ void LabelTemplate<InheritType>::SetAttribute(const std::wstring& strName, const
         rcTextPadding.right = wcstol(pstr + 1, &pstr, 10);  ASSERT(pstr);
         rcTextPadding.bottom = wcstol(pstr + 1, &pstr, 10); ASSERT(pstr);
         SetTextPadding(rcTextPadding);
-    }
-    else if (strName== L"drawtextfillpath") {
-        SetDrawTextFillPath(strValue == L"true");
     }
     else {
         __super::SetAttribute(strName, strValue);
@@ -484,14 +455,14 @@ void LabelTemplate<InheritType>::PaintText(IRender* pRender)
             std::wstring clrColor = GetStateTextColor(kControlStateNormal);
             if (!clrColor.empty()) {
                 UiColor dwTextColor = this->GetWindowColor(clrColor);
-                pRender->DrawText(rc, textValue, dwTextColor, m_sFontId, m_uTextStyle, 255, m_bLineLimit, m_bDrawTextFillPath);
+                pRender->DrawText(rc, textValue, dwTextColor, m_sFontId, m_uTextStyle);
             }
 
             if (this->GetHotAlpha() > 0) {
                 std::wstring textColor = GetStateTextColor(kControlStateHot);
                 if (!textColor.empty()) {
                     UiColor dwTextColor = this->GetWindowColor(textColor);
-                    pRender->DrawText(rc, textValue, dwTextColor, m_sFontId, m_uTextStyle, (BYTE)this->GetHotAlpha(), m_bLineLimit, m_bDrawTextFillPath);
+                    pRender->DrawText(rc, textValue, dwTextColor, m_sFontId, m_uTextStyle, (BYTE)this->GetHotAlpha());
                 }
             }
 
@@ -499,7 +470,7 @@ void LabelTemplate<InheritType>::PaintText(IRender* pRender)
         }
     }
 
-    pRender->DrawText(rc, textValue, dwClrColor, m_sFontId, m_uTextStyle, 255, m_bLineLimit, m_bDrawTextFillPath);
+    pRender->DrawText(rc, textValue, dwClrColor, m_sFontId, m_uTextStyle);
 }
 
 template<typename InheritType>
@@ -592,22 +563,6 @@ void LabelTemplate<InheritType>::SetSingleLine(bool bSingleLine)
         return;
     }
     m_bSingleLine = bSingleLine;
-    this->Invalidate();
-}
-
-template<typename InheritType>
-bool LabelTemplate<InheritType>::IsLineLimit() const
-{
-    return m_bLineLimit;
-}
-
-template<typename InheritType>
-void LabelTemplate<InheritType>::SetLineLimit(bool bLineLimit)
-{
-    if (m_bLineLimit == bLineLimit) {
-        return;
-    }
-    m_bLineLimit = bLineLimit;
     this->Invalidate();
 }
 

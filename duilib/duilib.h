@@ -89,7 +89,6 @@
 #include "Utils/TimerManager.h"
 #include "Utils/OnScreenKeyboardManager.h"
 #include "Utils/Shadow.h"
-#include "Utils/BoxShadow.h"
 
 #include "Image/Image.h"
 #include "Animation/AnimationPlayer.h"
@@ -111,6 +110,7 @@
 #include "Core/Window.h"
 #include "Core/Placeholder.h"
 #include "Core/Control.h"
+#include "Core/BoxShadow.h"
 #include "Core/Box.h"
 #include "Utils/WinImplBase.h"
 

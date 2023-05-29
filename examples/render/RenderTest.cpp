@@ -110,7 +110,7 @@ void RenderTest::Paint(IRender* pRender, const UiRect& rcPaint)
     //DrawBoxShadow
     rect.left = rect.right + marginSize*2;
     rect.right = rect.left + nSize;
-    pRender->DrawBoxShadow(rect, roundSize, UiPoint(0, 0), 4, 4, 1, UiColor(0xffC63535), true);
+    pRender->DrawBoxShadow(rect, roundSize, UiPoint(0, 0), 4, 4, UiColor(0xffC63535), true);
 
     //»æÖÆÎÄ×Ö
     const UiRect oldRect = rect;
@@ -131,10 +131,10 @@ void RenderTest::Paint(IRender* pRender, const UiRect& rcPaint)
     rect.left = rect.right + textRect.GetWidth() + marginSize * 2;
     rect.right = rect.left + textRect.GetWidth();
     uStyle = DT_SINGLELINE | DT_TOP | DT_CENTER;
-    pRender->DrawText(rect, strText, UiColor(0xFFC63535), L"system_14", uStyle, 128, true, true);
+    pRender->DrawText(rect, strText, UiColor(0xFFC63535), L"system_14", uStyle, 128);
 
     uStyle = DT_SINGLELINE | DT_BOTTOM | DT_CENTER;
-    pRender->DrawText(rect, strText, UiColor(0xFFC63535), L"system_14", uStyle, 128, true, false);
+    pRender->DrawText(rect, strText, UiColor(0xFFC63535), L"system_14", uStyle, 128);
 
     //»»ÐÐ
     rect = GetRect();

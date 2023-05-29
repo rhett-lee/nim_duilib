@@ -193,24 +193,24 @@ void Render_GdiPlus::ClearClip()
 	m_clip.ClearClip(m_hDC);
 }
 
-HRESULT Render_GdiPlus::BitBlt(int x, int y, int cx, int cy, HDC hdcSrc, int xSrc /*= 0*/, int yScr /*= 0*/, DWORD rop /*= SRCCOPY*/)
+bool Render_GdiPlus::BitBlt(int x, int y, int cx, int cy, HDC hdcSrc, int xSrc /*= 0*/, int yScr /*= 0*/, DWORD rop /*= SRCCOPY*/)
 {
-	return ::BitBlt(m_hDC, x, y, cx, cy, hdcSrc, xSrc, yScr, rop);
+	return ::BitBlt(m_hDC, x, y, cx, cy, hdcSrc, xSrc, yScr, rop) != FALSE;
 }
 
 bool Render_GdiPlus::StretchBlt(int xDest, int yDest, int widthDest, int heightDest,	HDC hdcSrc, int xSrc, int yScr, int widthSrc, int heightSrc, DWORD rop /*= SRCCOPY*/)
 {
 	int stretchBltMode = ::SetStretchBltMode(m_hDC, HALFTONE);
-	bool ret = (TRUE == ::StretchBlt(m_hDC, xDest, yDest, widthDest, heightDest,
-		hdcSrc, xSrc, yScr, widthSrc, heightSrc, rop));
+	bool ret = ::StretchBlt(m_hDC, xDest, yDest, widthDest, heightDest,
+		                    hdcSrc, xSrc, yScr, widthSrc, heightSrc, rop) != FALSE;
 	::SetStretchBltMode(m_hDC, stretchBltMode);
 	return ret;
 }
 
-bool Render_GdiPlus::AlphaBlend(int xDest, int yDest, int widthDest, int heightDest, HDC hdcSrc, int xSrc, int yScr, int widthSrc, int heightSrc, BYTE uFade /*= 255*/)
+bool Render_GdiPlus::AlphaBlend(int xDest, int yDest, int widthDest, int heightDest, HDC hdcSrc, int xSrc, int yScr, int widthSrc, int heightSrc, uint8_t alpha /*= 255*/)
 {
-	BLENDFUNCTION bf = { AC_SRC_OVER, 0, uFade, AC_SRC_ALPHA };
-	return (TRUE == ::AlphaBlend(m_hDC, xDest, yDest, widthDest, heightDest, hdcSrc, xSrc, yScr, widthSrc, heightSrc, bf));
+	BLENDFUNCTION bf = { AC_SRC_OVER, 0, alpha, AC_SRC_ALPHA };
+	return ::AlphaBlend(m_hDC, xDest, yDest, widthDest, heightDest, hdcSrc, xSrc, yScr, widthSrc, heightSrc, bf) != FALSE;
 }
 
 void Render_GdiPlus::DrawImage(const UiRect& rcPaint, 
@@ -631,7 +631,7 @@ void Render_GdiPlus::FillPath(const IPath* path, const IBrush* brush)
 	graphics.FillPath(((Brush_Gdiplus*)brush)->GetBrush(), ((Path_Gdiplus*)path)->GetPath());
 }
 
-void Render_GdiPlus::DrawText(const UiRect& rc, const std::wstring& strText, UiColor dwTextColor, const std::wstring& strFontId, UINT uStyle, BYTE uFade /*= 255*/, bool bLineLimit /*= false*/, bool bFillPath /*= false*/)
+void Render_GdiPlus::DrawText(const UiRect& rc, const std::wstring& strText, UiColor dwTextColor, const std::wstring& strFontId, UINT uStyle, BYTE uFade /*= 255*/)
 {
 	ASSERT(::GetObjectType(m_hDC) == OBJ_DC || ::GetObjectType(m_hDC) == OBJ_MEMDC);
 	if (strText.empty()) return;
@@ -676,9 +676,6 @@ void Render_GdiPlus::DrawText(const UiRect& rc, const std::wstring& strText, UiC
 	if ((uStyle & DT_SINGLELINE) != 0) {
 		formatFlags |= Gdiplus::StringFormatFlagsNoWrap;
 	}
-	if (bLineLimit) {
-		formatFlags |= Gdiplus::StringFormatFlagsLineLimit;
-	}
 	stringFormat.SetFormatFlags(formatFlags);
 
 	if ((uStyle & DT_LEFT) != 0) {
@@ -715,16 +712,6 @@ void Render_GdiPlus::DrawText(const UiRect& rc, const std::wstring& strText, UiC
 #else
 	graphics.SetTextRenderingHint(Gdiplus::TextRenderingHintAntiAlias);
 #endif
-  if (bFillPath) {
-    graphics.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
-    Gdiplus::GraphicsPath path;
-    Gdiplus::FontFamily font_family;
-    font.GetFamily(&font_family);
-    path.AddString(strText.c_str(), (int)strText.length(), &font_family, font.GetStyle(),
-      font.GetSize(), rcPaint, &stringFormat);
-    graphics.FillPath(&tBrush, &path);
-    return;
-  }
 	graphics.DrawString(strText.c_str(), (int)strText.length(), &font, rcPaint, &stringFormat, &tBrush);
 }
 
@@ -732,12 +719,10 @@ void Render_GdiPlus::DrawBoxShadow(const UiRect& rc,
 									  	 const UiSize& roundSize, 
 										 const UiPoint& cpOffset, 
 										 int nBlurRadius, 
-										 int nBlurSize, 
-										 int nSpreadSize, 
+										 int nSpreadRadius,
 										 UiColor dwColor,
 										 bool bExclude)
 {
-	(void)nSpreadSize;
 #define USE_BLUR 1
 #define USE_COLOR_MATRIX 0
 
@@ -745,18 +730,18 @@ void Render_GdiPlus::DrawBoxShadow(const UiRect& rc,
 
 	ui::UiRect destRc = rc;
 	destRc.Offset(cpOffset);
-	destRc.left -= nBlurSize;
-	destRc.top -= nBlurSize;
-	destRc.right += nBlurSize;
-	destRc.bottom += nBlurSize;
+	destRc.left -= nSpreadRadius;
+	destRc.top -= nSpreadRadius;
+	destRc.right += nSpreadRadius;
+	destRc.bottom += nSpreadRadius;
 
 	Gdiplus::REAL scale = 1.0f;
 
 	Gdiplus::RectF srcRc(0.0f, 0.0f, destRc.GetWidth()/ scale, destRc.GetHeight()/ scale);
-	Gdiplus::RectF excludeRc(abs(nBlurSize) / scale,
-		abs(nBlurSize) / scale,
-		srcRc.Width - abs(nBlurSize) * 2.0f / scale,
-		srcRc.Height - abs(nBlurSize) * 2.0f / scale);
+	Gdiplus::RectF excludeRc(abs(nSpreadRadius) / scale,
+		abs(nSpreadRadius) / scale,
+		srcRc.Width - abs(nSpreadRadius) * 2.0f / scale,
+		srcRc.Height - abs(nSpreadRadius) * 2.0f / scale);
 
 	Gdiplus::GraphicsPath shadowPath;
 	Gdiplus::GraphicsPath excludePath;
@@ -805,7 +790,7 @@ void Render_GdiPlus::DrawBoxShadow(const UiRect& rc,
 	Gdiplus::Blur blurEffect;
 	blurEffect.SetParameters(&blurParams);
 
-	RECT rcBlurEffect{ nBlurSize,nBlurSize,static_cast<LONG>(srcRc.Width) - 2 * nBlurSize,static_cast<LONG>(srcRc.Height) - 2 * nBlurSize };
+	RECT rcBlurEffect{ nSpreadRadius,nSpreadRadius,static_cast<LONG>(srcRc.Width) - 2 * nSpreadRadius,static_cast<LONG>(srcRc.Height) - 2 * nSpreadRadius };
 	tempBitmap.ApplyEffect(&blurEffect, &rcBlurEffect);
 #endif
 

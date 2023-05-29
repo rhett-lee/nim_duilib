@@ -51,7 +51,7 @@ namespace BitmapHelper {
         SetWorldTransform(hMemDC, &xform);
 
         // Draw the original bitmap onto the new bitmap with the rotated transform
-        BitBlt(hMemDC, 0, 0, bm.bmWidth, bm.bmHeight, hDC, 0, 0, SRCCOPY);
+        ::BitBlt(hMemDC, 0, 0, bm.bmWidth, bm.bmHeight, hDC, 0, 0, SRCCOPY);
 
         // Clean up
         SelectObject(hMemDC, hOldMemBitmap);

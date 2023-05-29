@@ -117,9 +117,6 @@
     <ClCompile Include="Utils\ApiWrapper.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
-    <ClCompile Include="Utils\BoxShadow.cpp">
-      <Filter>Utils</Filter>
-    </ClCompile>
     <ClCompile Include="Utils\DpiManager.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
@@ -206,6 +203,12 @@
     </ClCompile>
     <ClCompile Include="third_party\apng\decoder-apng.cpp">
       <Filter>third_party\apng</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\BoxShadow.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils\PerformanceUtil.cpp">
+      <Filter>Utils</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -294,9 +297,6 @@
       <Filter>Render</Filter>
     </ClInclude>
     <ClInclude Include="Utils\ApiWrapper.h">
-      <Filter>Utils</Filter>
-    </ClInclude>
-    <ClInclude Include="Utils\BoxShadow.h">
       <Filter>Utils</Filter>
     </ClInclude>
     <ClInclude Include="Utils\Delegate.h">
@@ -427,6 +427,12 @@
     </ClInclude>
     <ClInclude Include="third_party\stb_image\stb_image_resize.h">
       <Filter>third_party\stb_image</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\BoxShadow.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\PerformanceUtil.h">
+      <Filter>Utils</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

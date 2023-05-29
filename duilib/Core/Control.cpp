@@ -1295,7 +1295,7 @@ void Control::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
 
 			if (IsCacheDirty()) {
 				pCacheRender->Clear();
-				int scaleOffset = m_boxShadow.HasShadow() ? (m_boxShadow.m_nBlurSize * 2 + abs(m_boxShadow.m_cpOffset.x)) : 0;
+				int scaleOffset = m_boxShadow.HasShadow() ? (m_boxShadow.m_nSpreadRadius * 2 + abs(m_boxShadow.m_cpOffset.x)) : 0;
 				UiRect rcClip = { 0, 0, size.cx + scaleOffset,size.cy + scaleOffset };
 
 				AutoClip alphaClip(pCacheRender, rcClip, IsClip());
@@ -1335,7 +1335,7 @@ void Control::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
 
 			if (IsCacheDirty()) {
 				pCacheRender->Clear();
-				int scaleOffset = m_boxShadow.HasShadow() ? (m_boxShadow.m_nBlurSize * 2 + abs(m_boxShadow.m_cpOffset.x)) : 0;
+				int scaleOffset = m_boxShadow.HasShadow() ? (m_boxShadow.m_nSpreadRadius * 2 + abs(m_boxShadow.m_cpOffset.x)) : 0;
 				UiRect rcClip = { 0,0,size.cx + scaleOffset,size.cy + scaleOffset };
 				AutoClip alphaClip(pCacheRender, rcClip, IsClip());
 				AutoClip roundAlphaClip(pCacheRender, rcClip, m_cxyBorderRound.cx, m_cxyBorderRound.cy, bRoundClip);
@@ -1354,7 +1354,7 @@ void Control::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
 		}
 	}
 	else {
-		int scaleOffset = m_boxShadow.HasShadow() ? (m_boxShadow.m_nBlurSize + abs(m_boxShadow.m_cpOffset.x)) : 0;
+		int scaleOffset = m_boxShadow.HasShadow() ? (m_boxShadow.m_nSpreadRadius + abs(m_boxShadow.m_cpOffset.x)) : 0;
 		UiRect rcClip = { GetRect().left - scaleOffset,
 					      GetRect().top - scaleOffset,
 					      GetRect().right + scaleOffset,
@@ -1396,13 +1396,12 @@ void Control::PaintShadow(IRender* pRender)
 		return;
 	}
 	pRender->DrawBoxShadow(m_rcPaint,
-		m_cxyBorderRound,
-		m_boxShadow.m_cpOffset,
-		m_boxShadow.m_nBlurRadius,
-		m_boxShadow.m_nBlurSize,
-		m_boxShadow.m_nSpreadSize,
-		GlobalManager::GetTextColor(m_boxShadow.m_strColor),
-		m_boxShadow.m_bExclude);
+						   m_cxyBorderRound,
+						   m_boxShadow.m_cpOffset,
+						   m_boxShadow.m_nBlurRadius,
+						   m_boxShadow.m_nSpreadRadius,
+						   GlobalManager::GetTextColor(m_boxShadow.m_strColor),
+						   m_boxShadow.m_bExclude);
 }
 
 void Control::PaintBkColor(IRender* pRender)

@@ -27,7 +27,6 @@
             <Control width="auto" height="auto" bkimage="file='gif_test.gif' width='40%'" valign="center" margin="8"/>            
             <Control width="auto" height="auto" bkimage="file='apng_test.png' width='50%'" valign="center" margin="8"/>
             <Control width="auto" height="auto" bkimage="file='apng_test2.png' width='50%'" valign="center" margin="8"/>
-            <Control width="auto" height="auto" bkimage="file='apng_test2.png' width='50%'" valign="center" margin="8"/>
             <Control width="auto" height="auto" bkimage="file='webp_test.webp' width='40%'" valign="center" margin="8"/>
         </HBox>
         <!-- 工作区域，创建一个渲染引擎测试控件（自定义控件） -->

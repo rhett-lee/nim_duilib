@@ -4,8 +4,7 @@
 ui::BoxShadow::BoxShadow() :
 	m_cpOffset(0, 0),
 	m_nBlurRadius(2),
-	m_nBlurSize(2),
-	m_nSpreadSize(2),
+	m_nSpreadRadius(2),
 	m_bExclude(true)
 {
 
@@ -54,11 +53,8 @@ void ui::BoxShadow::SetBoxShadowString(const std::wstring& strBoxShadow)
 			else if (sItem == _T("blurradius")) {
 				m_nBlurRadius = _tcstol(sValue.c_str(), &pstr, 10); ASSERT(pstr);
 			}
-			else if (sItem == _T("blursize")) {
-				m_nBlurSize = _tcstol(sValue.c_str(), &pstr, 10); ASSERT(pstr);
-			}
-			else if (sItem == _T("spreadsize")) {
-				m_nSpreadSize = _tcstol(sValue.c_str(), &pstr, 10); ASSERT(pstr);
+			else if (sItem == _T("spreadradius")) {
+				m_nSpreadRadius = _tcstol(sValue.c_str(), &pstr, 10); ASSERT(pstr);
 			}
 			else if (sItem == _T("exclude")) {
 				if (pstr != nullptr) {

@@ -341,6 +341,7 @@
     <ClCompile Include="Control\VirtualListBox.cpp" />
     <ClCompile Include="Control\VirtualTileBox.cpp" />
     <ClCompile Include="Core\Box.cpp" />
+    <ClCompile Include="Core\BoxShadow.cpp" />
     <ClCompile Include="Core\Control.cpp" />
     <ClCompile Include="Core\ControlFinder.cpp" />
     <ClCompile Include="Core\Define.cpp" />
@@ -366,11 +367,11 @@
     <ClCompile Include="third_party\unzip\UnZip.cpp" />
     <ClCompile Include="third_party\xml\Markup.cpp" />
     <ClCompile Include="Utils\ApiWrapper.cpp" />
-    <ClCompile Include="Utils\BoxShadow.cpp" />
     <ClCompile Include="Utils\DpiManager.cpp" />
     <ClCompile Include="Utils\FontManager.cpp" />
     <ClCompile Include="Utils\MultiLangSupport.cpp" />
     <ClCompile Include="Utils\OnScreenKeyboardManager.cpp" />
+    <ClCompile Include="Utils\PerformanceUtil.cpp" />
     <ClCompile Include="Utils\Shadow.cpp" />
     <ClCompile Include="Utils\StringUtil.cpp" />
     <ClCompile Include="Utils\TimerManager.cpp" />
@@ -398,6 +399,7 @@
     <ClInclude Include="Control\VirtualTileBox.h" />
     <ClInclude Include="Control\CircleProgress.h" />
     <ClInclude Include="Core\Box.h" />
+    <ClInclude Include="Core\BoxShadow.h" />
     <ClInclude Include="Core\Control.h" />
     <ClInclude Include="Core\ControlFinder.h" />
     <ClInclude Include="Core\Define.h" />
@@ -434,12 +436,12 @@
     <ClInclude Include="third_party\unzip\UnZip.h" />
     <ClInclude Include="third_party\xml\Markup.h" />
     <ClInclude Include="Utils\ApiWrapper.h" />
-    <ClInclude Include="Utils\BoxShadow.h" />
     <ClInclude Include="Utils\DpiManager.h" />
     <ClInclude Include="Utils\FontManager.h" />
     <ClInclude Include="Utils\Macros.h" />
     <ClInclude Include="Utils\MultiLangSupport.h" />
     <ClInclude Include="Utils\OnScreenKeyboardManager.h" />
+    <ClInclude Include="Utils\PerformanceUtil.h" />
     <ClInclude Include="Utils\Shadow.h" />
     <ClInclude Include="Utils\StringUtil.h" />
     <ClInclude Include="Utils\Delegate.h" />

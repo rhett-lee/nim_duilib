@@ -183,38 +183,115 @@ public:
 class UILIB_API IRender : public virtual nbase::SupportWeakCallback
 {
 public:
-	virtual HDC GetDC() = 0;
-	virtual bool Resize(int width, int height) = 0;
-	virtual void Clear() = 0;
-	virtual std::unique_ptr<IRender> Clone() = 0;
-
-	/** 分离位图
-	*@return 返回位图接口，返回后由调用方管理资源（包括释放资源等）
+	/** 获取画布宽度
 	*/
-	virtual IBitmap* DetachBitmap() = 0;
-
 	virtual int	GetWidth() = 0;
-	virtual int GetHeight() = 0;
-	virtual void ClearAlpha(const UiRect& rcDirty, int alpha = 0) = 0;
-	virtual void RestoreAlpha(const UiRect& rcDirty, const UiRect& rcShadowPadding, int alpha) = 0;
-	virtual void RestoreAlpha(const UiRect& rcDirty, const UiRect& rcShadowPadding = UiRect()) = 0;
 
+	/** 获取画布高度
+	*/
+	virtual int GetHeight() = 0;
+
+	/** 调整画布大小
+	*/
+	virtual bool Resize(int width, int height) = 0;
+
+	/** 判断画布是否支持透明
+	*/
 	virtual bool IsRenderTransparent() const = 0;
+
+	/** 设置画布是否支持透明
+	*/
 	virtual bool SetRenderTransparent(bool bTransparent) = 0;
 
-	virtual void Save() = 0;
-	virtual void Restore() = 0;
+	/** 设置窗口视区原点坐标偏移，
+	 *  将原视区原点x值增加ptOffset.x后，作为新的视区原点x;
+	 *  将原视区原点y值增加ptOffset.y后，作为新的视区原点y;
+	 * @param [in] ptOffset 视区原点坐标偏移量
+	 *@return 返回原来的视区原点坐标(x,y)
+	 */
 	virtual UiPoint OffsetWindowOrg(UiPoint ptOffset) = 0;
-	virtual UiPoint SetWindowOrg(UiPoint ptOffset) = 0;
-	virtual UiPoint GetWindowOrg() const = 0;
 
+	/** 将点(pt.x, pt.y)映射到视区原点 (0, 0)
+	 *@return 返回原来的视区原点坐标(x,y)
+	 */
+	virtual UiPoint SetWindowOrg(UiPoint pt) = 0;
+
+	/** 获取视区原点坐标(x,y)
+	 * @return 返回当前的视区原点坐标(x,y)
+	 */
+	virtual UiPoint GetWindowOrg() const = 0;
+	
+	/** 保存指定设备上下文的当前状态
+	 */
+	virtual void Save() = 0;
+
+	/** 将设备上下文还原到最近一次保存的状态
+	 */
+	virtual void Restore() = 0;
+
+	/** 设置矩形剪辑区域，并保存当前设备上下文的状态
+	* @param [in] rc剪辑区域
+	*/
 	virtual void SetClip(const UiRect& rc) = 0;
+
+	/** 设置圆角矩形剪辑区域，并保存当前设备上下文的状态
+	* @param [in] rcItem 剪辑区域
+	* @param [in] width 圆角的宽度
+	* @param [in] height 圆角的的度
+	*/
 	virtual void SetRoundClip(const UiRect& rcItem, int width, int height) = 0;
+
+	/** 清除矩形剪辑区域，并恢复设备上下文到最近一次保存的状态
+	*/
 	virtual void ClearClip() = 0;
 
-	virtual HRESULT BitBlt(int x, int y, int cx, int cy, HDC hdcSrc, int xSrc = 0, int yScr = 0, DWORD rop = SRCCOPY) = 0;
-	virtual bool StretchBlt(int xDest, int yDest, int widthDest, int heightDest, HDC hdcSrc, int xSrc, int yScr, int widthSrc, int heightSrc, DWORD rop = SRCCOPY) = 0;
-	virtual bool AlphaBlend(int xDest, int yDest, int widthDest, int heightDest, HDC hdcSrc, int xSrc, int yScr, int widthSrc, int heightSrc, BYTE uFade = 255) = 0;
+	/** 函数执行与从指定源设备上下文到目标设备上下文中的像素矩形对应的颜色数据的位块传输
+	* @param [in] x 目标矩形左上角的 x 坐标
+	* @param [in] y 目标矩形左上角的 y 坐标
+	* @param [in] cx 源矩形和目标矩形的宽度
+	* @param [in] cy 源和目标矩形的高度
+	* @param [in] hdcSrc 源设备上下文的句柄
+	* @param [in] xSrc 源矩形左上角的 x 坐标
+	* @param [in] yScr 源矩形左上角的 y 坐标
+	* @param [in] rop 光栅操作代码
+	*/
+	virtual bool BitBlt(int x, int y, int cx, int cy, 
+		                HDC hdcSrc, int xSrc = 0, int yScr = 0, 
+		                DWORD rop = SRCCOPY) = 0;
+
+	/** 函数将一个位图从源矩形复制到目标矩形中，并拉伸或压缩位图以适应目标矩形的尺寸（如有必要）。 
+	    系统根据当前在目标设备上下文中设置的拉伸模式拉伸或压缩位图。
+	* @param [in] xDest 目标矩形左上角的 x 坐标
+	* @param [in] yDest 目标矩形左上角的 y 坐标
+	* @param [in] widthDest 目标矩形的宽度
+	* @param [in] heightDest 目标矩形的高度
+	* @param [in] hdcSrc 源设备上下文的句柄
+	* @param [in] xSrc 源矩形左上角的 x 坐标
+	* @param [in] yScr 源矩形左上角的 y 坐标
+	* @param [in] widthSrc 源矩形的宽度
+	* @param [in] heightSrc 源矩形的高度
+	* @param [in] rop 光栅操作代码
+	*/
+	virtual bool StretchBlt(int xDest, int yDest, int widthDest, int heightDest,
+		                    HDC hdcSrc, int xSrc, int yScr, int widthSrc, int heightSrc, 
+		                    DWORD rop = SRCCOPY) = 0;
+
+
+	/** 显示具有透明或半透明像素的位图，如果源矩形和目标矩形的大小不相同，则会拉伸源位图以匹配目标矩形。
+	* @param [in] xDest 目标矩形左上角的 x 坐标
+	* @param [in] yDest 目标矩形左上角的 y 坐标
+	* @param [in] widthDest 目标矩形的宽度
+	* @param [in] heightDest 目标矩形的高度
+	* @param [in] hdcSrc 源设备上下文的句柄
+	* @param [in] xSrc 源矩形左上角的 x 坐标
+	* @param [in] yScr 源矩形左上角的 y 坐标
+	* @param [in] widthSrc 源矩形的宽度
+	* @param [in] heightSrc 源矩形的高度
+	* @param [in] alpha 透明度 alpha 值（0 - 255）
+	*/
+	virtual bool AlphaBlend(int xDest, int yDest, int widthDest, int heightDest,
+		                    HDC hdcSrc, int xSrc, int yScr, int widthSrc, int heightSrc, 
+		                    uint8_t alpha = 255) = 0;
 
 	/** 绘制图片（采用九宫格方式绘制图片）
 	* @param [in] rcPaint 当前全部可绘制区域（用于避免非可绘制区域的绘制，以提高绘制性能）
@@ -243,17 +320,106 @@ public:
 						   bool fullytiled = true, 
 						   int nTiledMargin = 0) = 0;
 
+	/** 绘制颜色
+	* @param [in] rc 目标矩形区域
+	* @param [in] dwColor 颜色值
+	* @param [in] uFade 透明度（0 - 255）
+	*/
 	virtual void DrawColor(const UiRect& rc, UiColor dwColor, BYTE uFade = 255) = 0;
+
+	/** 绘制直线
+	* @param [in] pt1 起始点坐标
+	* @param [in] pt2 终止点坐标
+	* @param [in] penColor 画笔的颜色值
+	* @param [in] nWidth 画笔的宽度
+	*/
 	virtual void DrawLine(const UiPoint& pt1, const UiPoint& pt2, UiColor penColor, int nWidth) = 0;
+
+	/** 绘制矩形
+	* @param [in] rc 矩形区域
+	* @param [in] penColor 画笔的颜色值
+	* @param [in] nWidth 画笔的宽度
+	*/
 	virtual void DrawRect(const UiRect& rc, UiColor penColor, int nWidth) = 0;
+
+	/** 绘制圆角矩形
+	* @param [in] rc 矩形区域
+	* @param [in] roundSize 圆角的宽和高
+	* @param [in] penColor 画笔的颜色值
+	* @param [in] nWidth 画笔的宽度
+	*/
 	virtual void DrawRoundRect(const UiRect& rc, const UiSize& roundSize, UiColor penColor, int nWidth) = 0;
+
 	virtual void DrawPath(const IPath* path, const IPen* pen) = 0;
 	virtual void FillPath(const IPath* path, const IBrush* brush) = 0;
 
-	virtual void DrawText(const UiRect& rc, const std::wstring& strText, UiColor dwTextColor, const std::wstring& strFontId, UINT uStyle, BYTE uFade = 255, bool bLineLimit = false, bool bFillPath = false) = 0;
-	virtual UiRect MeasureText(const std::wstring& strText, const std::wstring& strFontId, UINT uStyle, int width = DUI_NOSET_VALUE) = 0;
+	/** 绘制文字
+	* @param [in] 矩形区域
+	* @param [in] strText 文字内容
+	* @param [in] dwTextColor 文字颜色值
+	* @param [in] strFontId 文字的字体ID，字体属性在全局配置中设置
+	* @param [in] uStyle 文字的格式，比如对齐方式等
+	* @param [in] uFade 透明度（0 - 255）
+	*/
+	virtual void DrawText(const UiRect& rc, 
+		                  const std::wstring& strText,
+		                  UiColor dwTextColor,
+		                  const std::wstring& strFontId, 
+		                  UINT uStyle, 
+		                  BYTE uFade = 255) = 0;
 
-	virtual void DrawBoxShadow(const UiRect& rc, const UiSize& roundSize, const UiPoint& cpOffset, int nBlurRadius, int nBlurSize, int nSpreadSize, UiColor dwColor, bool bExclude) = 0;
+	/** 计算指定文本字符串的宽度和高度
+	* @param [in] strText 文字内容
+	* @param [in] strFontId 文字的字体ID，字体属性在全局配置中设置
+	* @param [in] uStyle 文字的格式，
+	* @param [in] width 当前区域的限制宽度
+	* @return 返回文本字符串的宽度和高度，以矩形表示结果
+	*/
+	virtual UiRect MeasureText(const std::wstring& strText, 
+		                       const std::wstring& strFontId, 
+		                       UINT uStyle, 
+		                       int width = DUI_NOSET_VALUE) = 0;
+
+	/** 在指定矩形周围绘制阴影（高斯模糊）
+	* @param [in] rc 矩形区域
+	* @param [in] roundSize 阴影的圆角宽度和高度
+	* @param [in] cpOffset 设置阴影偏移量（offset-x 和 offset-y）
+	*                      <offset-x> 设置水平偏移量，如果是负值则阴影位于矩形左边。 
+	*                      <offset-y> 设置垂直偏移量，如果是负值则阴影位于矩形上面。
+	* @param [in] nBlurRadius 模糊半径，半径必须介于 0 到 255 的范围内。
+	*                         值越大，模糊面积越大，阴影就越大越淡。 不能为负值。默认为0，此时阴影边缘锐利。
+	* @param [in] nSpreadRadius 扩展半径，即模糊区域距离rc矩形边缘多少个像素。
+	*                         取正值时，阴影扩大；取负值时，阴影收缩。默认为0，此时阴影与元素同样大。
+	* @param [in] dwColor 阴影的颜色值
+	* @param [in] bExclude 当为true的时候表示阴影在矩形边框外面，为false的时候表示阴影在边框矩形内部
+	*/
+	virtual void DrawBoxShadow(const UiRect& rc, 
+		                       const UiSize& roundSize, 
+		                       const UiPoint& cpOffset, 
+		                       int nBlurRadius, 
+		                       int nSpreadRadius,
+		                       UiColor dwColor, 
+		                       bool bExclude) = 0;
+
+
+	/** 分离位图
+	*@return 返回位图接口，返回后由调用方管理资源（包括释放资源等）
+	*/
+	virtual IBitmap* DetachBitmap() = 0;
+
+	virtual void ClearAlpha(const UiRect& rcDirty, int alpha = 0) = 0;
+	virtual void RestoreAlpha(const UiRect& rcDirty, const UiRect& rcShadowPadding, int alpha) = 0;
+	virtual void RestoreAlpha(const UiRect& rcDirty, const UiRect& rcShadowPadding = UiRect()) = 0;
+
+	virtual HDC GetDC() = 0;
+
+	/** 清除资源
+	*/
+	virtual void Clear() = 0;
+
+	/** 克隆一个新的对象
+	*/
+	virtual std::unique_ptr<IRender> Clone() = 0;
 };
 
 class UILIB_API IRenderFactory
