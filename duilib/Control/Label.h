@@ -142,7 +142,7 @@ protected:
 template<typename InheritType>
 LabelTemplate<InheritType>::LabelTemplate() :
     m_sFontId(),
-    m_uTextStyle(DT_LEFT | DT_VCENTER | DT_END_ELLIPSIS | DT_NOCLIP | DT_SINGLELINE),
+    m_uTextStyle(TEXT_LEFT | TEXT_VCENTER | TEXT_END_ELLIPSIS | TEXT_NOCLIP | TEXT_SINGLELINE),
     m_bSingleLine(true),
     m_bAutoShowToolTip(false),
     m_rcTextPadding(),
@@ -240,17 +240,17 @@ void LabelTemplate<InheritType>::CheckShowToolTip()
     rc.bottom -= m_rcTextPadding.bottom;
 
     if (m_bSingleLine) {
-        m_uTextStyle |= DT_SINGLELINE;
+        m_uTextStyle |= TEXT_SINGLELINE;
     }
     else {
-        m_uTextStyle &= ~DT_SINGLELINE;
+        m_uTextStyle &= ~TEXT_SINGLELINE;
     }
     int width = this->GetFixedWidth();
     if (width < 0) {
         width = 0;
     }
 
-    UiRect rcMessure = pRender->MeasureText(sText, m_sFontId, m_uTextStyle, width);
+    UiRect rcMessure = pRender->MeasureString(sText, m_sFontId, m_uTextStyle, width);
     if (rc.GetWidth() < rcMessure.GetWidth() || rc.GetHeight() < rcMessure.GetHeight()) {
         m_sAutoShowTooltipCache = sText;
     }
@@ -325,10 +325,10 @@ template<typename InheritType>
 UiSize LabelTemplate<InheritType>::EstimateText(UiSize szAvailable, bool& bReEstimateSize)
 {
     if (m_bSingleLine) {
-        m_uTextStyle |= DT_SINGLELINE;
+        m_uTextStyle |= TEXT_SINGLELINE;
     }
     else {
-        m_uTextStyle &= ~DT_SINGLELINE;
+        m_uTextStyle &= ~TEXT_SINGLELINE;
     }
 
     int width = this->GetFixedWidth();
@@ -340,7 +340,7 @@ UiSize LabelTemplate<InheritType>::EstimateText(UiSize szAvailable, bool& bReEst
     if (!textValue.empty() && (this->GetWindow() != nullptr)) {
         auto pRender = this->GetWindow()->GetRender();
         if (pRender != nullptr) {
-            UiRect rect = pRender->MeasureText(textValue, m_sFontId, m_uTextStyle, width);
+            UiRect rect = pRender->MeasureString(textValue, m_sFontId, m_uTextStyle, width);
             if (this->GetFixedWidth() == DUI_LENGTH_AUTO) {
                 fixedSize.cx = rect.right - rect.left + m_rcTextPadding.left + m_rcTextPadding.right;
             }
@@ -353,7 +353,7 @@ UiSize LabelTemplate<InheritType>::EstimateText(UiSize szAvailable, bool& bReEst
                     int maxWidth = szAvailable.cx - m_rcTextPadding.left - m_rcTextPadding.right;
                     if (estimateWidth > maxWidth) {
                         estimateWidth = maxWidth;
-                        UiRect newRect = pRender->MeasureText(GetText(), m_sFontId, m_uTextStyle, estimateWidth);
+                        UiRect newRect = pRender->MeasureString(GetText(), m_sFontId, m_uTextStyle, estimateWidth);
                         estimateHeight = newRect.bottom - newRect.top;
                     }
                 }
@@ -371,36 +371,36 @@ void LabelTemplate<InheritType>::SetAttribute(const std::wstring& strName, const
 {
     if (strName == L"align") {
         if (strValue.find(L"left") != std::wstring::npos) {
-            m_uTextStyle &= ~(DT_CENTER | DT_RIGHT);
-            m_uTextStyle |= DT_LEFT;
+            m_uTextStyle &= ~(TEXT_CENTER | TEXT_RIGHT);
+            m_uTextStyle |= TEXT_LEFT;
         }
         if (strValue.find(L"center") != std::wstring::npos) {
-            m_uTextStyle &= ~(DT_LEFT | DT_RIGHT);
-            m_uTextStyle |= DT_CENTER;
+            m_uTextStyle &= ~(TEXT_LEFT | TEXT_RIGHT);
+            m_uTextStyle |= TEXT_CENTER;
         }
         if (strValue.find(L"right") != std::wstring::npos) {
-            m_uTextStyle &= ~(DT_LEFT | DT_CENTER);
-            m_uTextStyle |= DT_RIGHT;
+            m_uTextStyle &= ~(TEXT_LEFT | TEXT_CENTER);
+            m_uTextStyle |= TEXT_RIGHT;
         }
         if (strValue.find(L"top") != std::wstring::npos) {
-            m_uTextStyle &= ~(DT_BOTTOM | DT_VCENTER);
-            m_uTextStyle |= DT_TOP;
+            m_uTextStyle &= ~(TEXT_BOTTOM | TEXT_VCENTER);
+            m_uTextStyle |= TEXT_TOP;
         }
         if (strValue.find(L"vcenter") != std::wstring::npos) {
-            m_uTextStyle &= ~(DT_TOP | DT_BOTTOM);
-            m_uTextStyle |= DT_VCENTER;
+            m_uTextStyle &= ~(TEXT_TOP | TEXT_BOTTOM);
+            m_uTextStyle |= TEXT_VCENTER;
         }
         if (strValue.find(L"bottom") != std::wstring::npos) {
-            m_uTextStyle &= ~(DT_TOP | DT_VCENTER);
-            m_uTextStyle |= DT_BOTTOM;
+            m_uTextStyle &= ~(TEXT_TOP | TEXT_VCENTER);
+            m_uTextStyle |= TEXT_BOTTOM;
         }        
     }
     else if (strName == L"endellipsis") {
         if (strValue == L"true") {
-            m_uTextStyle |= DT_END_ELLIPSIS;
+            m_uTextStyle |= TEXT_END_ELLIPSIS;
         }
         else {
-            m_uTextStyle &= ~DT_END_ELLIPSIS;
+            m_uTextStyle &= ~TEXT_END_ELLIPSIS;
         }
     }
     else if (strName == L"singleline") SetSingleLine(strValue == L"true");
@@ -443,10 +443,10 @@ void LabelTemplate<InheritType>::PaintText(IRender* pRender)
     UiColor dwClrColor = this->GetWindowColor(GetPaintStateTextColor(this->GetState(), stateType));
 
     if (m_bSingleLine) {
-        m_uTextStyle |= DT_SINGLELINE;
+        m_uTextStyle |= TEXT_SINGLELINE;
     }
     else {
-        m_uTextStyle &= ~DT_SINGLELINE;
+        m_uTextStyle &= ~TEXT_SINGLELINE;
     }
 
     if (this->GetAnimationManager().GetAnimationPlayer(kAnimationHot)) {
@@ -455,14 +455,14 @@ void LabelTemplate<InheritType>::PaintText(IRender* pRender)
             std::wstring clrColor = GetStateTextColor(kControlStateNormal);
             if (!clrColor.empty()) {
                 UiColor dwTextColor = this->GetWindowColor(clrColor);
-                pRender->DrawText(rc, textValue, dwTextColor, m_sFontId, m_uTextStyle);
+                pRender->DrawString(rc, textValue, dwTextColor, m_sFontId, m_uTextStyle);
             }
 
             if (this->GetHotAlpha() > 0) {
                 std::wstring textColor = GetStateTextColor(kControlStateHot);
                 if (!textColor.empty()) {
                     UiColor dwTextColor = this->GetWindowColor(textColor);
-                    pRender->DrawText(rc, textValue, dwTextColor, m_sFontId, m_uTextStyle, (BYTE)this->GetHotAlpha());
+                    pRender->DrawString(rc, textValue, dwTextColor, m_sFontId, m_uTextStyle, (BYTE)this->GetHotAlpha());
                 }
             }
 
@@ -470,7 +470,7 @@ void LabelTemplate<InheritType>::PaintText(IRender* pRender)
         }
     }
 
-    pRender->DrawText(rc, textValue, dwClrColor, m_sFontId, m_uTextStyle);
+    pRender->DrawString(rc, textValue, dwClrColor, m_sFontId, m_uTextStyle);
 }
 
 template<typename InheritType>

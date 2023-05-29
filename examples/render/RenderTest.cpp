@@ -115,8 +115,8 @@ void RenderTest::Paint(IRender* pRender, const UiRect& rcPaint)
     //绘制文字
     const UiRect oldRect = rect;
     std::wstring strText = L"绘制文字测试";
-    UINT uStyle = DT_SINGLELINE | DT_VCENTER | DT_CENTER;
-    UiRect textRect = pRender->MeasureText(strText, L"system_14", uStyle);
+    UINT uFormat = TEXT_SINGLELINE | TEXT_VCENTER | TEXT_CENTER;
+    UiRect textRect = pRender->MeasureString(strText, L"system_14", uFormat);
     rect.left = rect.right + marginSize;
     rect.right = rect.left + textRect.GetWidth();
     rect.bottom = rect.top + textRect.GetHeight();
@@ -125,16 +125,16 @@ void RenderTest::Paint(IRender* pRender, const UiRect& rcPaint)
     rect.top = rect.bottom + marginSize;
     rect.bottom = rect.top + textRect.GetHeight();
 
-    pRender->DrawText(rect, strText, UiColor(0xFFC63535), L"system_14", uStyle);
+    pRender->DrawString(rect, strText, UiColor(0xFFC63535), L"system_14", uFormat);
 
     rect = oldRect;
     rect.left = rect.right + textRect.GetWidth() + marginSize * 2;
     rect.right = rect.left + textRect.GetWidth();
-    uStyle = DT_SINGLELINE | DT_TOP | DT_CENTER;
-    pRender->DrawText(rect, strText, UiColor(0xFFC63535), L"system_14", uStyle, 128);
+    uFormat = TEXT_SINGLELINE | TEXT_TOP | TEXT_CENTER;
+    pRender->DrawString(rect, strText, UiColor(0xFFC63535), L"system_14", uFormat, 128);
 
-    uStyle = DT_SINGLELINE | DT_BOTTOM | DT_CENTER;
-    pRender->DrawText(rect, strText, UiColor(0xFFC63535), L"system_14", uStyle, 128);
+    uFormat = TEXT_SINGLELINE | TEXT_BOTTOM | TEXT_CENTER;
+    pRender->DrawString(rect, strText, UiColor(0xFFC63535), L"system_14", uFormat, 128);
 
     //换行
     rect = GetRect();
@@ -173,12 +173,12 @@ void RenderTest::Paint(IRender* pRender, const UiRect& rcPaint)
     rect.left = rect.right + marginSize;
     rect.right = rect.left + image.GetImageCache()->GetWidth();
     rect.bottom = rect.top + image.GetImageCache()->GetHeight();
-    pRender->BitBlt(rect.left, rect.top, rect.GetWidth(), rect.GetHeight(), hdcSrc);
+    pRender->BitBlt(rect.left, rect.top, rect.GetWidth(), rect.GetHeight(), hdcSrc, 0, 0, RopMode::kSrcCopy);
 
     rect.left = rect.right + marginSize;
     rect.right = rect.left + image.GetImageCache()->GetWidth() / 2;
     rect.bottom = rect.top + image.GetImageCache()->GetHeight() / 2;
-    pRender->StretchBlt(rect.left, rect.top, rect.GetWidth(), rect.GetHeight(), hdcSrc, 0, 0, image.GetImageCache()->GetWidth(), image.GetImageCache()->GetHeight());
+    pRender->StretchBlt(rect.left, rect.top, rect.GetWidth(), rect.GetHeight(), hdcSrc, 0, 0, image.GetImageCache()->GetWidth(), image.GetImageCache()->GetHeight(), RopMode::kSrcCopy);
 
     rect.left = rect.right + marginSize;
     rect.right = rect.left + image.GetImageCache()->GetWidth() ;

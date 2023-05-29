@@ -196,7 +196,7 @@ void MainForm::OnInitWindow()
 			pItem->text_color = L"blue";
 		pItem = grid->GetGridItem(2, 2);
 		if (pItem)
-			pItem->text_style = DT_LEFT | DT_VCENTER | DT_SINGLELINE;
+			pItem->text_style = TEXT_LEFT | TEXT_VCENTER | TEXT_SINGLELINE;
 
 		pItem = grid->GetGridItem(3, 3);
 		if (pItem)

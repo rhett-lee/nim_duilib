@@ -13,7 +13,7 @@ static inline void DrawFunction(HDC hDC, bool bTransparent, UiRect rcDest, HDC h
 {
 	if (bTransparent || bAlphaChannel || uFade < 255 
 		|| (rcSrc.GetWidth() == rcDest.GetWidth() && rcSrc.GetHeight() == rcDest.GetHeight())) {
-		BLENDFUNCTION ftn = { AC_SRC_OVER, 0, static_cast<BYTE>(uFade), AC_SRC_ALPHA };
+		BLENDFUNCTION ftn = { AC_SRC_OVER, 0, static_cast<uint8_t>(uFade), AC_SRC_ALPHA };
 		::AlphaBlend(hDC, rcDest.left, rcDest.top, rcDest.GetWidth(), rcDest.GetHeight(),
 			hdcSrc, rcSrc.left, rcSrc.top, rcSrc.GetWidth(), rcSrc.GetHeight(), ftn);
 	}
@@ -86,7 +86,7 @@ std::unique_ptr<ui::IRender> Render_GdiPlus::Clone()
 {
 	std::unique_ptr<ui::IRender> pClone = std::make_unique<ui::Render_GdiPlus>();
 	pClone->Resize(GetWidth(), GetHeight());
-	pClone->BitBlt(0, 0, GetWidth(), GetHeight(), m_hDC);
+	pClone->BitBlt(0, 0, GetWidth(), GetHeight(), m_hDC, 0, 0, RopMode::kSrcCopy);
 	return pClone;
 }
 
@@ -193,16 +193,39 @@ void Render_GdiPlus::ClearClip()
 	m_clip.ClearClip(m_hDC);
 }
 
-bool Render_GdiPlus::BitBlt(int x, int y, int cx, int cy, HDC hdcSrc, int xSrc /*= 0*/, int yScr /*= 0*/, DWORD rop /*= SRCCOPY*/)
+DWORD Render_GdiPlus::GetRopMode(RopMode rop) const
 {
-	return ::BitBlt(m_hDC, x, y, cx, cy, hdcSrc, xSrc, yScr, rop) != FALSE;
+	DWORD ropMode = SRCCOPY;
+	switch (rop) {
+	case RopMode::kSrcCopy:
+		ropMode = SRCCOPY;
+		break;
+	case RopMode::kDstInvert:
+		ropMode = DSTINVERT;
+		break;
+	case RopMode::kSrcInvert:
+		ropMode = SRCINVERT;
+		break;
+	case RopMode::kSrcAnd:
+		ropMode = SRCAND;
+		break;
+	default:
+		break;
+	}
+	return ropMode;
 }
 
-bool Render_GdiPlus::StretchBlt(int xDest, int yDest, int widthDest, int heightDest,	HDC hdcSrc, int xSrc, int yScr, int widthSrc, int heightSrc, DWORD rop /*= SRCCOPY*/)
+bool Render_GdiPlus::BitBlt(int x, int y, int cx, int cy, HDC hdcSrc, int xSrc, int yScr, RopMode rop)
+{
+	return ::BitBlt(m_hDC, x, y, cx, cy, hdcSrc, xSrc, yScr, GetRopMode(rop)) != FALSE;
+}
+
+bool Render_GdiPlus::StretchBlt(int xDest, int yDest, int widthDest, int heightDest,
+	                            HDC hdcSrc, int xSrc, int yScr, int widthSrc, int heightSrc, RopMode rop)
 {
 	int stretchBltMode = ::SetStretchBltMode(m_hDC, HALFTONE);
 	bool ret = ::StretchBlt(m_hDC, xDest, yDest, widthDest, heightDest,
-		                    hdcSrc, xSrc, yScr, widthSrc, heightSrc, rop) != FALSE;
+		                    hdcSrc, xSrc, yScr, widthSrc, heightSrc, GetRopMode(rop)) != FALSE;
 	::SetStretchBltMode(m_hDC, stretchBltMode);
 	return ret;
 }
@@ -550,7 +573,7 @@ void Render_GdiPlus::DrawImage(const UiRect& rcPaint,
 	::DeleteDC(hCloneDC);
 }
 
-void Render_GdiPlus::DrawColor(const UiRect& rc, UiColor dwColor, BYTE uFade)
+void Render_GdiPlus::DrawColor(const UiRect& rc, UiColor dwColor, uint8_t uFade)
 {
 	UiColor::ARGB dwNewColor = dwColor.GetARGB();
 	if (uFade < 255) {
@@ -631,7 +654,8 @@ void Render_GdiPlus::FillPath(const IPath* path, const IBrush* brush)
 	graphics.FillPath(((Brush_Gdiplus*)brush)->GetBrush(), ((Path_Gdiplus*)path)->GetPath());
 }
 
-void Render_GdiPlus::DrawText(const UiRect& rc, const std::wstring& strText, UiColor dwTextColor, const std::wstring& strFontId, UINT uStyle, BYTE uFade /*= 255*/)
+void Render_GdiPlus::DrawString(const UiRect& rc, const std::wstring& strText,
+	                            UiColor dwTextColor, const std::wstring& strFontId, uint32_t uFormat, uint8_t uFade /*= 255*/)
 {
 	ASSERT(::GetObjectType(m_hDC) == OBJ_DC || ::GetObjectType(m_hDC) == OBJ_MEMDC);
 	if (strText.empty()) return;
@@ -647,7 +671,7 @@ void Render_GdiPlus::DrawText(const UiRect& rc, const std::wstring& strText, UiC
 		HFONT hOldFont = (HFONT)::SelectObject(m_hDC, GlobalManager::GetFont(strFontId));
 
 		RECT rcGdi = { rc.left,rc.top,rc.right,rc.bottom };
-		::DrawText(m_hDC, strText.c_str(), -1, &rcGdi, uStyle);
+		::DrawText(m_hDC, strText.c_str(), -1, &rcGdi, uFormat);
 		::SelectObject(m_hDC, hOldFont);
 
 		return;
@@ -658,46 +682,46 @@ void Render_GdiPlus::DrawText(const UiRect& rc, const std::wstring& strText, UiC
 
 	Gdiplus::RectF rcPaint((Gdiplus::REAL)rc.left, (Gdiplus::REAL)rc.top, (Gdiplus::REAL)(rc.right - rc.left), (Gdiplus::REAL)(rc.bottom - rc.top));
 	int alpha = dwTextColor.GetARGB() >> 24;
-	uFade = static_cast<BYTE>(uFade * static_cast<double>(alpha) / 255);
+	uFade = static_cast<uint8_t>(uFade * static_cast<double>(alpha) / 255);
 	if (uFade == 255) {
 		uFade = 254;
 	}
 	Gdiplus::SolidBrush tBrush(Gdiplus::Color(uFade, dwTextColor.GetR(), dwTextColor.GetG(), dwTextColor.GetB()));
 
 	Gdiplus::StringFormat stringFormat = Gdiplus::StringFormat::GenericTypographic();
-	if ((uStyle & DT_END_ELLIPSIS) != 0) {
+	if ((uFormat & TEXT_END_ELLIPSIS) != 0) {
 		stringFormat.SetTrimming(Gdiplus::StringTrimmingEllipsisCharacter);
 	}
 
 	int formatFlags = 0;
-	if ((uStyle & DT_NOCLIP) != 0) {
+	if ((uFormat & TEXT_NOCLIP) != 0) {
 		formatFlags |= Gdiplus::StringFormatFlagsNoClip;
 	}
-	if ((uStyle & DT_SINGLELINE) != 0) {
+	if ((uFormat & TEXT_SINGLELINE) != 0) {
 		formatFlags |= Gdiplus::StringFormatFlagsNoWrap;
 	}
 	stringFormat.SetFormatFlags(formatFlags);
 
-	if ((uStyle & DT_LEFT) != 0) {
+	if ((uFormat & TEXT_LEFT) != 0) {
 		stringFormat.SetAlignment(Gdiplus::StringAlignmentNear);
 	}
-	else if ((uStyle & DT_CENTER) != 0) {
+	else if ((uFormat & TEXT_CENTER) != 0) {
 		stringFormat.SetAlignment(Gdiplus::StringAlignmentCenter);
 	}
-	else if ((uStyle & DT_RIGHT) != 0) {
+	else if ((uFormat & TEXT_RIGHT) != 0) {
 		stringFormat.SetAlignment(Gdiplus::StringAlignmentFar);
 	}
 	else {
 		stringFormat.SetAlignment(Gdiplus::StringAlignmentNear);
 	}
 
-	if ((uStyle & DT_TOP) != 0) {
+	if ((uFormat & TEXT_TOP) != 0) {
 		stringFormat.SetLineAlignment(Gdiplus::StringAlignmentNear);
 	}
-	else if ((uStyle & DT_VCENTER) != 0) {
+	else if ((uFormat & TEXT_VCENTER) != 0) {
 		stringFormat.SetLineAlignment(Gdiplus::StringAlignmentCenter);
 	}
-	else if ((uStyle & DT_BOTTOM) != 0) {
+	else if ((uFormat & TEXT_BOTTOM) != 0) {
 		stringFormat.SetLineAlignment(Gdiplus::StringAlignmentFar);
 	}
 	else {
@@ -716,12 +740,12 @@ void Render_GdiPlus::DrawText(const UiRect& rc, const std::wstring& strText, UiC
 }
 
 void Render_GdiPlus::DrawBoxShadow(const UiRect& rc, 
-									  	 const UiSize& roundSize, 
-										 const UiPoint& cpOffset, 
-										 int nBlurRadius, 
-										 int nSpreadRadius,
-										 UiColor dwColor,
-										 bool bExclude)
+								   const UiSize& roundSize, 
+						     	   const UiPoint& cpOffset, 
+								   int nBlurRadius, 
+								   int nSpreadRadius,
+								   UiColor dwColor,
+								   bool bExclude)
 {
 #define USE_BLUR 1
 #define USE_COLOR_MATRIX 0
@@ -827,7 +851,8 @@ void Render_GdiPlus::DrawBoxShadow(const UiRect& rc,
 		Gdiplus::UnitPixel);
 }
 
-ui::UiRect Render_GdiPlus::MeasureText(const std::wstring& strText, const std::wstring& strFontId, UINT uStyle, int width /*= DUI_NOSET_VALUE*/)
+ui::UiRect Render_GdiPlus::MeasureString(const std::wstring& strText, const std::wstring& strFontId,
+	                                     uint32_t uFormat, int width /*= DUI_NOSET_VALUE*/)
 {
 	
 	Gdiplus::InstalledFontCollection installedFontCollection;
@@ -852,7 +877,7 @@ ui::UiRect Render_GdiPlus::MeasureText(const std::wstring& strText, const std::w
 
 	Gdiplus::StringFormat stringFormat = Gdiplus::StringFormat::GenericTypographic();
 	int formatFlags = 0;
-	if ((uStyle & DT_SINGLELINE) != 0) {
+	if ((uFormat & TEXT_SINGLELINE) != 0) {
 		formatFlags |= Gdiplus::StringFormatFlagsNoWrap;
 	}
 	stringFormat.SetFormatFlags(formatFlags);
@@ -862,7 +887,7 @@ ui::UiRect Render_GdiPlus::MeasureText(const std::wstring& strText, const std::w
 	}
 	else {
 		Gdiplus::REAL height = 0;
-		if ((uStyle & DT_SINGLELINE) != 0) {
+		if ((uFormat & TEXT_SINGLELINE) != 0) {
 			Gdiplus::RectF rcEmpty((Gdiplus::REAL)0, (Gdiplus::REAL)0, (Gdiplus::REAL)0, (Gdiplus::REAL)0);
 			graphics.MeasureString(L"≤‚ ‘", 2, &font, rcEmpty, &stringFormat, &bounds);
 			height = bounds.Height;

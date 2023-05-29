@@ -325,10 +325,10 @@ void CheckBoxTemplate<InheritType>::PaintText(IRender* pRender)
     UiColor dwClrColor = this->GetWindowColor(clrColor);
 
     if (this->m_bSingleLine) {
-        this->m_uTextStyle |= DT_SINGLELINE;
+        this->m_uTextStyle |= TEXT_SINGLELINE;
     }
     else {
-        this->m_uTextStyle &= ~~DT_SINGLELINE;
+        this->m_uTextStyle &= ~~TEXT_SINGLELINE;
     }
 
     if (this->GetAnimationManager().GetAnimationPlayer(kAnimationHot)) {
@@ -337,14 +337,14 @@ void CheckBoxTemplate<InheritType>::PaintText(IRender* pRender)
             std::wstring clrStateColor = GetSelectedStateTextColor(kControlStateNormal);
             if (!clrStateColor.empty()) {
                 UiColor dwWinColor = this->GetWindowColor(clrStateColor);
-                pRender->DrawText(rc, this->GetText(), dwWinColor, this->m_sFontId, this->m_uTextStyle);
+                pRender->DrawString(rc, this->GetText(), dwWinColor, this->m_sFontId, this->m_uTextStyle);
             }
 
             if (this->GetHotAlpha() > 0) {
                 std::wstring textColor = GetSelectedStateTextColor(kControlStateHot);
                 if (!textColor.empty()) {
                     UiColor dwTextColor = this->GetWindowColor(textColor);
-                    pRender->DrawText(rc, this->GetText(), dwTextColor, this->m_sFontId, this->m_uTextStyle, (BYTE)this->GetHotAlpha());
+                    pRender->DrawString(rc, this->GetText(), dwTextColor, this->m_sFontId, this->m_uTextStyle, (BYTE)this->GetHotAlpha());
                 }
             }
 
@@ -352,7 +352,7 @@ void CheckBoxTemplate<InheritType>::PaintText(IRender* pRender)
         }
     }
 
-    pRender->DrawText(rc, this->GetText(), dwClrColor, this->m_sFontId, this->m_uTextStyle);
+    pRender->DrawString(rc, this->GetText(), dwClrColor, this->m_sFontId, this->m_uTextStyle);
 }
 
 template<typename InheritType>

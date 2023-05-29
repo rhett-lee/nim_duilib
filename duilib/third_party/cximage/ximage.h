@@ -244,7 +244,7 @@ typedef struct tagCxTextInfo
 #endif
 	LOGFONT  lfont;      ///< font and codepage data
     COLORREF fcolor;     ///< foreground color
-    int32_t     align;      ///< DT_CENTER, DT_RIGHT, DT_LEFT aligment for multiline text
+    int32_t     align;      ///< TEXT_CENTER, TEXT_RIGHT, TEXT_LEFT aligment for multiline text
     uint8_t     smooth;     ///< text smoothing option. Default is false.
     uint8_t     opaque;     ///< text has background or hasn't. Default is true.
 						 ///< data for background (ignored if .opaque==FALSE) 

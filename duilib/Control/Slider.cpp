@@ -10,7 +10,7 @@ Slider::Slider() :
 	m_thumbStateImage(),
 	m_rcProgressBarPadding()
 {
-	m_uTextStyle = DT_SINGLELINE | DT_CENTER;
+	m_uTextStyle = TEXT_SINGLELINE | TEXT_CENTER;
 }
 
 std::wstring Slider::GetType() const { return DUI_CTR_SLIDER; }

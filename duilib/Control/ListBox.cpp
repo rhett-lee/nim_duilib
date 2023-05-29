@@ -455,7 +455,7 @@ ListBoxElement::ListBoxElement() :
 	m_iIndex(Box::InvalidIndex),
 	m_pOwner(nullptr)
 {
-	m_uTextStyle = DT_LEFT | DT_VCENTER | DT_END_ELLIPSIS | DT_NOCLIP | DT_SINGLELINE;
+	m_uTextStyle = TEXT_LEFT | TEXT_VCENTER | TEXT_END_ELLIPSIS | TEXT_NOCLIP | TEXT_SINGLELINE;
 }
 
 std::wstring ListBoxElement::GetType() const {  return DUI_CTR_LISTBOX_ELEMENT; }

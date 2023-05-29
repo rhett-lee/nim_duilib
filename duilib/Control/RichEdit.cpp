@@ -3106,8 +3106,8 @@ void RichEdit::PaintPromptText(IRender* pRender)
 	m_pTwh->GetControlRect(&rc);
 
 	UiColor dwClrColor = this->GetWindowColor(m_sPromptColor);
-	UINT dwStyle = DT_NOCLIP;
-	pRender->DrawText(rc, strPrompt, dwClrColor, m_sFontId, dwStyle);
+	UINT dwStyle = TEXT_NOCLIP;
+	pRender->DrawString(rc, strPrompt, dwClrColor, m_sFontId, dwStyle);
 }
 
 std::wstring RichEdit::GetFocusedImage()

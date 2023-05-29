@@ -180,6 +180,31 @@ public:
 	virtual bool IsStrokeContainsPoint(int x, int y, const IPen* pen) = 0;
 };
 
+/** 光栅操作代码
+*/
+enum class UILIB_API RopMode
+{
+	kSrcCopy,	//对应于 SRCCOPY
+	kDstInvert, //对应于 DSTINVERT
+	kSrcInvert, //对应于 SRCINVERT
+	kSrcAnd     //对应于 SRCAND
+};
+
+/** 绘制文本时的格式
+*/
+enum UILIB_API DrawStringFormat
+{
+	TEXT_SINGLELINE		= DT_SINGLELINE,
+	TEXT_LEFT			= DT_LEFT,
+	TEXT_CENTER			= DT_CENTER,
+	TEXT_RIGHT			= DT_RIGHT,
+	TEXT_TOP			= DT_TOP,
+	TEXT_VCENTER		= DT_VCENTER,
+	TEXT_BOTTOM			= DT_BOTTOM,
+	TEXT_END_ELLIPSIS	= DT_END_ELLIPSIS,
+	TEXT_NOCLIP			= DT_NOCLIP,
+};
+
 class UILIB_API IRender : public virtual nbase::SupportWeakCallback
 {
 public:
@@ -256,8 +281,8 @@ public:
 	* @param [in] rop 光栅操作代码
 	*/
 	virtual bool BitBlt(int x, int y, int cx, int cy, 
-		                HDC hdcSrc, int xSrc = 0, int yScr = 0, 
-		                DWORD rop = SRCCOPY) = 0;
+		                HDC hdcSrc, int xSrc, int yScr, 
+		                RopMode rop) = 0;
 
 	/** 函数将一个位图从源矩形复制到目标矩形中，并拉伸或压缩位图以适应目标矩形的尺寸（如有必要）。 
 	    系统根据当前在目标设备上下文中设置的拉伸模式拉伸或压缩位图。
@@ -274,7 +299,7 @@ public:
 	*/
 	virtual bool StretchBlt(int xDest, int yDest, int widthDest, int heightDest,
 		                    HDC hdcSrc, int xSrc, int yScr, int widthSrc, int heightSrc, 
-		                    DWORD rop = SRCCOPY) = 0;
+		                    RopMode rop) = 0;
 
 
 	/** 显示具有透明或半透明像素的位图，如果源矩形和目标矩形的大小不相同，则会拉伸源位图以匹配目标矩形。
@@ -325,7 +350,7 @@ public:
 	* @param [in] dwColor 颜色值
 	* @param [in] uFade 透明度（0 - 255）
 	*/
-	virtual void DrawColor(const UiRect& rc, UiColor dwColor, BYTE uFade = 255) = 0;
+	virtual void DrawColor(const UiRect& rc, UiColor dwColor, uint8_t uFade = 255) = 0;
 
 	/** 绘制直线
 	* @param [in] pt1 起始点坐标
@@ -358,27 +383,27 @@ public:
 	* @param [in] strText 文字内容
 	* @param [in] dwTextColor 文字颜色值
 	* @param [in] strFontId 文字的字体ID，字体属性在全局配置中设置
-	* @param [in] uStyle 文字的格式，比如对齐方式等
+	* @param [in] uFormat 文字的格式，参见 enum DrawStringFormat 类型定义
 	* @param [in] uFade 透明度（0 - 255）
 	*/
-	virtual void DrawText(const UiRect& rc, 
-		                  const std::wstring& strText,
-		                  UiColor dwTextColor,
-		                  const std::wstring& strFontId, 
-		                  UINT uStyle, 
-		                  BYTE uFade = 255) = 0;
+	virtual void DrawString(const UiRect& rc,
+		                    const std::wstring& strText,
+		                    UiColor dwTextColor,
+		                    const std::wstring& strFontId, 
+		                    uint32_t uFormat,
+		                    uint8_t uFade = 255) = 0;
 
 	/** 计算指定文本字符串的宽度和高度
 	* @param [in] strText 文字内容
 	* @param [in] strFontId 文字的字体ID，字体属性在全局配置中设置
-	* @param [in] uStyle 文字的格式，
+	* @param [in] uFormat 文字的格式，参见 enum DrawStringFormat 类型定义
 	* @param [in] width 当前区域的限制宽度
 	* @return 返回文本字符串的宽度和高度，以矩形表示结果
 	*/
-	virtual UiRect MeasureText(const std::wstring& strText, 
-		                       const std::wstring& strFontId, 
-		                       UINT uStyle, 
-		                       int width = DUI_NOSET_VALUE) = 0;
+	virtual UiRect MeasureString(const std::wstring& strText, 
+		                         const std::wstring& strFontId, 
+		                         uint32_t uFormat,
+		                         int width = DUI_NOSET_VALUE) = 0;
 
 	/** 在指定矩形周围绘制阴影（高斯模糊）
 	* @param [in] rc 矩形区域

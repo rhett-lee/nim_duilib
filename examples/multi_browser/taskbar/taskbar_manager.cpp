@@ -270,7 +270,7 @@ ui::IBitmap* TaskbarManager::GenerateBindControlBitmapWithForm(ui::Control *cont
 	render->Resize(window_width, window_height);
 
 	// 2.把窗口双缓冲的位图画到内存dc
-	render->BitBlt(0, 0, window_width, window_height, taskbar_delegate_->GetRenderDC());
+	render->BitBlt(0, 0, window_width, window_height, taskbar_delegate_->GetRenderDC(), 0, 0, RopMode::kSrcCopy);
 
 	// 3.把某个会话盒子的位图画到内存dc，覆盖原窗口对应位置的位图
 	UiRect rcPaint = control->GetPos();

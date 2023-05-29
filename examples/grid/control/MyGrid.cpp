@@ -186,7 +186,7 @@ void MyGridBody::PaintBody(IRender* pRender)
 				continue;
 			UiRect rc = { posx, posy, posx + m_hLayout[j], posy + m_vLayout[i] };
 			rc.Offset({ GetRect().left, GetRect().top });
-			pRender->DrawText(rc, grid_row->at(static_cast<int>(j))->text, dwDefColor, m_strGridFont, m_uTextStyle);
+			pRender->DrawString(rc, grid_row->at(static_cast<int>(j))->text, dwDefColor, m_strGridFont, m_uTextStyle);
 			posx += m_hLayout[j];
 		}
 		posy += m_vLayout[i];
@@ -218,7 +218,7 @@ void MyGridBody::PaintBody(IRender* pRender)
 							rc.bottom = posy + m_vLayout[i] / 2;
 						}
 						rc.Offset({ GetRect().left - szOff.cx, GetRect().top });
-						pRender->DrawText(rc, str, dwDefColor, m_strGridFont, m_uTextStyle);
+						pRender->DrawString(rc, str, dwDefColor, m_strGridFont, m_uTextStyle);
 					}
 					posx += m_hLayout[j];
 					if (posx - szOff.cx > grid_width)	//超出grid宽度
@@ -252,7 +252,7 @@ void MyGridBody::PaintBody(IRender* pRender)
 					{
 						UiRect rc = { posx, posy, posx + m_hLayout[i], posy + m_vLayout[j] };
 						rc.Offset({ GetRect().left, GetRect().top - szOff.cy });
-						pRender->DrawText(rc, str, dwDefColor, m_strGridFont, m_uTextStyle);
+						pRender->DrawString(rc, str, dwDefColor, m_strGridFont, m_uTextStyle);
 					}
 					posy += m_vLayout[j];
 					if (posy - szOff.cy > grid_height)	//超出grid高度
@@ -304,11 +304,11 @@ void MyGridBody::PaintBody(IRender* pRender)
 						if (!str.empty() && posx + m_hLayout[j] - szOff.cx > fixed_col_width)		//单元格右边线没有超过fixed_col_width
 						{
 							if (pItem->text_color.empty() && pItem->text_style == 0)
-								pRender->DrawText(rc, str, dwDefColor, m_strGridFont, m_uTextStyle);
+								pRender->DrawString(rc, str, dwDefColor, m_strGridFont, m_uTextStyle);
 							else{
 								UiColor dwColor = (pItem->text_color.empty() ? dwDefColor : GlobalManager::GetTextColor(pItem->text_color));
 								UINT text_style = (pItem->text_style == 0 ? m_uTextStyle : pItem->text_style);
-								pRender->DrawText(rc, str, dwColor, m_strGridFont, text_style);
+								pRender->DrawString(rc, str, dwColor, m_strGridFont, text_style);
 							}
 						}
 						posx += m_hLayout[j];

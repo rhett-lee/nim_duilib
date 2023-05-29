@@ -904,7 +904,7 @@ namespace ui
 			std::wstring str = pRow->at(col_index)->text;
 			if (!str.empty())
 			{
-				UiRect rcMessure = pRender->MeasureText(str, m_strGridFont, m_uTextStyle, 0);
+				UiRect rcMessure = pRender->MeasureString(str, m_strGridFont, m_uTextStyle, 0);
 				int width = rcMessure.right - rcMessure.left + 8;
 				if (col_width < width)
 					col_width = width;
@@ -1443,7 +1443,7 @@ namespace ui
 					continue;
 				UiRect rc = { posx, posy, posx + m_hLayout[j], posy + m_vLayout[i] };
 				rc.Offset({ GetRect().left, GetRect().top });
-				pRender->DrawText(rc, grid_row->at(static_cast<int>(j))->text, dwDefColor, m_strGridFont, m_uTextStyle);
+				pRender->DrawString(rc, grid_row->at(static_cast<int>(j))->text, dwDefColor, m_strGridFont, m_uTextStyle);
 				posx += m_hLayout[j];
 			}
 			posy += m_vLayout[i];
@@ -1471,7 +1471,7 @@ namespace ui
 					{
 						UiRect rc = { posx, posy, posx + m_hLayout[j], posy + m_vLayout[i] };
 						rc.Offset({ GetRect().left - szOff.cx, GetRect().top });
-						pRender->DrawText(rc, str, dwDefColor, m_strGridFont, m_uTextStyle);
+						pRender->DrawString(rc, str, dwDefColor, m_strGridFont, m_uTextStyle);
 					}
 					posx += m_hLayout[j];
 					if (posx - szOff.cx > grid_width)	//超出grid宽度
@@ -1505,7 +1505,7 @@ namespace ui
 					{
 						UiRect rc = { posx, posy, posx + m_hLayout[i], posy + m_vLayout[j] };
 						rc.Offset({ GetRect().left, GetRect().top - szOff.cy });
-						pRender->DrawText(rc, str, dwDefColor, m_strGridFont, m_uTextStyle);
+						pRender->DrawString(rc, str, dwDefColor, m_strGridFont, m_uTextStyle);
 					}
 					posy += m_vLayout[j];
 					if (posy - szOff.cy > grid_height)	//超出grid高度
@@ -1556,11 +1556,11 @@ namespace ui
 						if (!str.empty() && posx + m_hLayout[j] - szOff.cx > fixed_col_width)		//单元格右边线没有超过fixed_col_width
 						{
 							if (pItem->text_color.empty() && pItem->text_style == 0)
-								pRender->DrawText(rc, str, dwDefColor, m_strGridFont, m_uTextStyle);
+								pRender->DrawString(rc, str, dwDefColor, m_strGridFont, m_uTextStyle);
 							else{
 								UiColor dwColor = (pItem->text_color.empty() ? dwDefColor : GlobalManager::GetTextColor(pItem->text_color));
 								UINT text_style = (pItem->text_style == 0 ? m_uTextStyle : pItem->text_style);
-								pRender->DrawText(rc, str, dwColor, m_strGridFont, text_style);
+								pRender->DrawString(rc, str, dwColor, m_strGridFont, text_style);
 							}
 						}
 						posx += m_hLayout[j];

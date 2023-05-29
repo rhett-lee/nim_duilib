@@ -322,7 +322,7 @@ namespace ui
 		std::wstring m_strSelForeColor = L"grid_sel_fore";
 		std::wstring m_strGridLineColor = L"grid_line";
 		std::wstring m_strGridFont = L"system_12";
-		UINT	m_uTextStyle =  DT_CENTER | DT_VCENTER | DT_SINGLELINE;
+		UINT	m_uTextStyle =  TEXT_CENTER | TEXT_VCENTER | TEXT_SINGLELINE;
 		
 #define GRIDBODY_CHILD_COUNT	2
 		/* ±à¼­Ê±ºòµÄRichEdit/Combo¿Ø¼þ */

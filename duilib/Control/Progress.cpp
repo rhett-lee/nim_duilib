@@ -20,7 +20,7 @@ Progress::Progress() :
 	m_nMarqueePos(0),
    m_bReverse(false)
 {
-	m_uTextStyle = DT_SINGLELINE | DT_CENTER;
+	m_uTextStyle = TEXT_SINGLELINE | TEXT_CENTER;
 	SetFixedHeight(12, true);
 }
 
