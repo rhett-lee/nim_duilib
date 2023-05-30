@@ -24,29 +24,27 @@ static inline void DrawFunction(HDC hDC, bool bTransparent, UiRect rcDest, HDC h
 }
 
 Render_GdiPlus::Render_GdiPlus()
-	: m_hDC(NULL)
+	: m_hDC(nullptr)
 	, m_saveDC(0)
-	, m_hOldBitmap(NULL)
+	, m_hOldBitmap(nullptr)
 	, m_bTransparent(false)
 {
 	HDC hDC = ::GetDC(NULL);
 	m_hDC = ::CreateCompatibleDC(hDC);
 	::ReleaseDC(NULL, hDC);
-	ASSERT(m_hDC);	
+	ASSERT(m_hDC != nullptr);
 }
 
 Render_GdiPlus::~Render_GdiPlus()
 {
-	if (m_hOldBitmap != NULL)
-	{
+	if (m_hOldBitmap != nullptr) {
 		::SelectObject(m_hDC, m_hOldBitmap);
-		m_hOldBitmap = NULL;
+		m_hOldBitmap = nullptr;
 	}
 
-	if (m_hDC != NULL)
-	{
+	if (m_hDC != nullptr) {
 		::DeleteDC(m_hDC);
-		m_hDC = NULL;
+		m_hDC = nullptr;
 	}
 }
 
@@ -55,30 +53,38 @@ HDC Render_GdiPlus::GetDC()
 	return m_hDC;
 }
 
+void Render_GdiPlus::ReleaseDC(HDC hdc)
+{
+	ASSERT(hdc == m_hDC);
+}
+
 bool Render_GdiPlus::Resize(int width, int height)
 {
-    if (width <= 0)
-        width = 1;
-    if (height <= 0)
-        height = 1;
-
-	ASSERT(m_hDC);
-	if (m_bitmap.GetWidth() == width && m_bitmap.GetHeight() == height)
+	ASSERT((width > 0) && (height > 0));
+	if ((width <= 0) || (height <= 0)) {
 		return false;
+	}
 
-	if (m_hOldBitmap != NULL)
-	{
+	ASSERT(m_hDC != nullptr);
+	if ((m_bitmap.GetWidth() == width) && (m_bitmap.GetHeight() == height)) {
+		return true;
+	}
+
+	if (m_hOldBitmap != nullptr) {
 		::SelectObject(m_hDC, m_hOldBitmap);
+		m_hOldBitmap = nullptr;
 	}
 
 	bool ret = m_bitmap.Init(m_hDC, width, height);
-	m_hOldBitmap = (HBITMAP)::SelectObject(m_hDC, m_bitmap.GetHBitmap());
+	if (ret) {
+		m_hOldBitmap = (HBITMAP)::SelectObject(m_hDC, m_bitmap.GetHBitmap());
+	}	
 	return ret;
 }
 
 void Render_GdiPlus::Clear()
 {
-	ASSERT(m_hDC);
+	ASSERT(m_hDC != nullptr);
 	m_bitmap.Clear();
 }
 
@@ -86,14 +92,14 @@ std::unique_ptr<ui::IRender> Render_GdiPlus::Clone()
 {
 	std::unique_ptr<ui::IRender> pClone = std::make_unique<ui::Render_GdiPlus>();
 	pClone->Resize(GetWidth(), GetHeight());
-	pClone->BitBlt(0, 0, GetWidth(), GetHeight(), m_hDC, 0, 0, RopMode::kSrcCopy);
+	::BitBlt(pClone->GetDC(), 0, 0, GetWidth(), GetHeight(), m_hDC, 0, 0, SRCCOPY);
 	return pClone;
 }
 
 IBitmap* Render_GdiPlus::DetachBitmap()
 {
-	ASSERT(m_hDC && m_hOldBitmap);
-	ASSERT(m_bitmap.GetHeight() != 0 && m_bitmap.GetWidth() != 0);
+	ASSERT(m_hOldBitmap != nullptr);
+	ASSERT(m_bitmap.GetHeight() > 0 && m_bitmap.GetWidth() > 0);
 
 	IBitmap* pBitmap = nullptr;
 	if (m_hOldBitmap != nullptr) {
@@ -119,16 +125,19 @@ int Render_GdiPlus::GetHeight()
 
 void Render_GdiPlus::ClearAlpha(const UiRect& rcDirty, int alpha)
 {
+	ASSERT((GetWidth() > 0) && (GetHeight() > 0));
 	m_bitmap.ClearAlpha(rcDirty, alpha);
 }
 
 void Render_GdiPlus::RestoreAlpha(const UiRect& rcDirty, const UiRect& rcShadowPadding, int alpha)
 {
+	ASSERT((GetWidth() > 0) && (GetHeight() > 0));
 	m_bitmap.RestoreAlpha(rcDirty, rcShadowPadding, alpha);
 }
 
 void Render_GdiPlus::RestoreAlpha(const UiRect& rcDirty, const UiRect& rcShadowPadding /*= UiRect()*/)
 {
+	ASSERT((GetWidth() > 0) && (GetHeight() > 0));
 	m_bitmap.RestoreAlpha(rcDirty, rcShadowPadding);
 }
 
@@ -146,18 +155,24 @@ bool Render_GdiPlus::SetRenderTransparent(bool bTransparent)
 
 void Render_GdiPlus::Save()
 {
-	m_saveDC = SaveDC(m_hDC);
+	m_saveDC = ::SaveDC(m_hDC);
 }
 
 void Render_GdiPlus::Restore()
 {
-	RestoreDC(m_hDC, m_saveDC);
+	if (m_saveDC != 0) {
+		::RestoreDC(m_hDC, m_saveDC);
+		m_saveDC = 0;
+	}
+	else {
+		::RestoreDC(m_hDC, -1);
+	}
 }
 
 UiPoint Render_GdiPlus::OffsetWindowOrg(UiPoint ptOffset)
 {
 	UiPoint ptOldWindowOrg;
-	GetWindowOrgEx(m_hDC, &ptOldWindowOrg);
+	::GetWindowOrgEx(m_hDC, &ptOldWindowOrg);
 	ptOffset.Offset(ptOldWindowOrg.x, ptOldWindowOrg.y);
 	::SetWindowOrgEx(m_hDC, ptOffset.x, ptOffset.y, NULL);
 	return ptOldWindowOrg;
@@ -166,7 +181,7 @@ UiPoint Render_GdiPlus::OffsetWindowOrg(UiPoint ptOffset)
 UiPoint Render_GdiPlus::SetWindowOrg(UiPoint ptOffset)
 {
 	UiPoint ptOldWindowOrg;
-	GetWindowOrgEx(m_hDC, &ptOldWindowOrg);
+	::GetWindowOrgEx(m_hDC, &ptOldWindowOrg);
 	::SetWindowOrgEx(m_hDC, ptOffset.x, ptOffset.y, NULL);
 	return ptOldWindowOrg;
 }
@@ -174,7 +189,7 @@ UiPoint Render_GdiPlus::SetWindowOrg(UiPoint ptOffset)
 UiPoint Render_GdiPlus::GetWindowOrg() const
 {
 	UiPoint ptWindowOrg;
-	GetWindowOrgEx(m_hDC, &ptWindowOrg);
+	::GetWindowOrgEx(m_hDC, &ptWindowOrg);
 	return ptWindowOrg;
 }
 
@@ -215,25 +230,77 @@ DWORD Render_GdiPlus::GetRopMode(RopMode rop) const
 	return ropMode;
 }
 
-bool Render_GdiPlus::BitBlt(int x, int y, int cx, int cy, HDC hdcSrc, int xSrc, int yScr, RopMode rop)
+bool Render_GdiPlus::BitBlt(int x, int y, int cx, int cy, IBitmap* pSrcBitmap, int xSrc, int yScr, RopMode rop)
 {
-	return ::BitBlt(m_hDC, x, y, cx, cy, hdcSrc, xSrc, yScr, GetRopMode(rop)) != FALSE;
+	ASSERT((GetWidth() > 0) && (GetHeight() > 0));
+	ASSERT(pSrcBitmap != nullptr);
+	if (pSrcBitmap == nullptr) {
+		return false;
+	}
+	Bitmap_GDI* gdiBitmap = dynamic_cast<Bitmap_GDI*>(pSrcBitmap);
+	ASSERT(gdiBitmap != nullptr);
+	if (gdiBitmap == nullptr) {
+		return false;
+	}
+	HBITMAP hBitmap = gdiBitmap->GetHBitmap();
+	ASSERT(hBitmap != nullptr);
+	if (hBitmap == nullptr) {
+		return false;
+	}
+	ASSERT(::GetObjectType(m_hDC) == OBJ_DC || ::GetObjectType(m_hDC) == OBJ_MEMDC);
+
+	HDC hCloneDC = ::CreateCompatibleDC(m_hDC);
+	HBITMAP hOldBitmap = (HBITMAP) ::SelectObject(hCloneDC, hBitmap);
+	bool bResult = ::BitBlt(m_hDC, x, y, cx, cy, hCloneDC, xSrc, yScr, GetRopMode(rop)) != FALSE;
+	::SelectObject(hCloneDC, hOldBitmap);
+	::DeleteDC(hCloneDC);
+	return bResult;
 }
 
-bool Render_GdiPlus::StretchBlt(int xDest, int yDest, int widthDest, int heightDest,
-	                            HDC hdcSrc, int xSrc, int yScr, int widthSrc, int heightSrc, RopMode rop)
+bool Render_GdiPlus::BitBlt(int x, int y, int cx, int cy, IRender* pSrcRender, int xSrc, int yScr, RopMode rop)
 {
-	int stretchBltMode = ::SetStretchBltMode(m_hDC, HALFTONE);
-	bool ret = ::StretchBlt(m_hDC, xDest, yDest, widthDest, heightDest,
-		                    hdcSrc, xSrc, yScr, widthSrc, heightSrc, GetRopMode(rop)) != FALSE;
-	::SetStretchBltMode(m_hDC, stretchBltMode);
-	return ret;
+	ASSERT((GetWidth() > 0) && (GetHeight() > 0));
+	ASSERT(pSrcRender != nullptr);
+	bool bResult = false;
+	if (pSrcRender != nullptr) {
+		HDC hdcSrc = pSrcRender->GetDC();
+		ASSERT(hdcSrc != nullptr);
+		bResult = ::BitBlt(m_hDC, x, y, cx, cy, hdcSrc, xSrc, yScr, GetRopMode(rop)) != FALSE;
+		pSrcRender->ReleaseDC(hdcSrc);
+	}
+	return bResult;
 }
 
-bool Render_GdiPlus::AlphaBlend(int xDest, int yDest, int widthDest, int heightDest, HDC hdcSrc, int xSrc, int yScr, int widthSrc, int heightSrc, uint8_t alpha /*= 255*/)
+bool Render_GdiPlus::StretchBlt(int xDest, int yDest, int widthDest, int heightDest, IRender* pSrcRender, int xSrc, int yScr, int widthSrc, int heightSrc, RopMode rop)
 {
-	BLENDFUNCTION bf = { AC_SRC_OVER, 0, alpha, AC_SRC_ALPHA };
-	return ::AlphaBlend(m_hDC, xDest, yDest, widthDest, heightDest, hdcSrc, xSrc, yScr, widthSrc, heightSrc, bf) != FALSE;
+	ASSERT((GetWidth() > 0) && (GetHeight() > 0));
+	ASSERT(pSrcRender != nullptr);
+	bool bResult = false;
+	if (pSrcRender != nullptr) {
+		HDC hdcSrc = pSrcRender->GetDC();
+		ASSERT(hdcSrc != nullptr);
+		int stretchBltMode = ::SetStretchBltMode(m_hDC, HALFTONE);
+		bResult = ::StretchBlt(m_hDC, xDest, yDest, widthDest, heightDest,
+							   hdcSrc, xSrc, yScr, widthSrc, heightSrc, GetRopMode(rop)) != FALSE;
+		::SetStretchBltMode(m_hDC, stretchBltMode);
+		pSrcRender->ReleaseDC(hdcSrc);
+	}
+	return bResult;
+}
+
+bool Render_GdiPlus::AlphaBlend(int xDest, int yDest, int widthDest, int heightDest, IRender* pSrcRender, int xSrc, int yScr, int widthSrc, int heightSrc, uint8_t alpha)
+{
+	ASSERT((GetWidth() > 0) && (GetHeight() > 0));
+	ASSERT(pSrcRender != nullptr);
+	bool bResult = false;
+	if (pSrcRender != nullptr) {
+		BLENDFUNCTION bf = { AC_SRC_OVER, 0, alpha, AC_SRC_ALPHA };
+		HDC hdcSrc = pSrcRender->GetDC();
+		ASSERT(hdcSrc != nullptr);
+		bResult =::AlphaBlend(m_hDC, xDest, yDest, widthDest, heightDest, hdcSrc, xSrc, yScr, widthSrc, heightSrc, bf) != FALSE;
+		pSrcRender->ReleaseDC(hdcSrc);
+	}
+	return bResult;
 }
 
 void Render_GdiPlus::DrawImage(const UiRect& rcPaint, 
@@ -249,6 +316,7 @@ void Render_GdiPlus::DrawImage(const UiRect& rcPaint,
 						       bool fullytiled, 
 						       int nTiledMargin)
 {
+	ASSERT((GetWidth() > 0) && (GetHeight() > 0));
 	UiRect rcTestTemp;
 	if (!::IntersectRect(&rcTestTemp, &rcImageDest, &rcPaint)) {
 		return;
@@ -575,6 +643,7 @@ void Render_GdiPlus::DrawImage(const UiRect& rcPaint,
 
 void Render_GdiPlus::DrawColor(const UiRect& rc, UiColor dwColor, uint8_t uFade)
 {
+	ASSERT((GetWidth() > 0) && (GetHeight() > 0));
 	UiColor::ARGB dwNewColor = dwColor.GetARGB();
 	if (uFade < 255) {
 		//在原来颜色值的透明度基础上，在做一次透明度计算（uFade是在原来基础上在设置透明度）
@@ -594,6 +663,7 @@ void Render_GdiPlus::DrawColor(const UiRect& rc, UiColor dwColor, uint8_t uFade)
 
 void Render_GdiPlus::DrawLine(const UiPoint& pt1, const UiPoint& pt2, UiColor penColor, int nWidth)
 {
+	ASSERT((GetWidth() > 0) && (GetHeight() > 0));
 	Gdiplus::Graphics graphics(m_hDC);
 	Gdiplus::Pen pen(Gdiplus::Color(penColor.GetARGB()), (Gdiplus::REAL)nWidth);
 	graphics.DrawLine(&pen, Gdiplus::Point(pt1.x, pt1.y), Gdiplus::Point(pt2.x, pt2.y));
@@ -601,6 +671,7 @@ void Render_GdiPlus::DrawLine(const UiPoint& pt1, const UiPoint& pt2, UiColor pe
 
 void Render_GdiPlus::DrawRect(const UiRect& rc, UiColor penColor, int nWidth)
 {
+	ASSERT((GetWidth() > 0) && (GetHeight() > 0));
 	Gdiplus::Graphics graphics(m_hDC);
 	Gdiplus::Pen pen(Gdiplus::Color(penColor.GetARGB()), (Gdiplus::REAL)nWidth);
 	graphics.DrawRectangle(&pen, rc.left, rc.top, rc.GetWidth(), rc.GetHeight());
@@ -608,6 +679,7 @@ void Render_GdiPlus::DrawRect(const UiRect& rc, UiColor penColor, int nWidth)
 
 void Render_GdiPlus::DrawRoundRect(const UiRect& rc, const UiSize& roundSize, UiColor penColor, int nWidth)
 {
+	ASSERT((GetWidth() > 0) && (GetHeight() > 0));
 	Gdiplus::Graphics graphics(m_hDC);
 	graphics.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
 	Gdiplus::Pen pen(Gdiplus::Color(penColor.GetARGB()), (Gdiplus::REAL)nWidth);
@@ -657,6 +729,7 @@ void Render_GdiPlus::FillPath(const IPath* path, const IBrush* brush)
 void Render_GdiPlus::DrawString(const UiRect& rc, const std::wstring& strText,
 	                            UiColor dwTextColor, const std::wstring& strFontId, uint32_t uFormat, uint8_t uFade /*= 255*/)
 {
+	ASSERT((GetWidth() > 0) && (GetHeight() > 0));
 	ASSERT(::GetObjectType(m_hDC) == OBJ_DC || ::GetObjectType(m_hDC) == OBJ_MEMDC);
 	if (strText.empty()) return;
 
@@ -747,6 +820,7 @@ void Render_GdiPlus::DrawBoxShadow(const UiRect& rc,
 								   UiColor dwColor,
 								   bool bExclude)
 {
+	ASSERT((GetWidth() > 0) && (GetHeight() > 0));
 #define USE_BLUR 1
 #define USE_COLOR_MATRIX 0
 
@@ -854,7 +928,6 @@ void Render_GdiPlus::DrawBoxShadow(const UiRect& rc,
 ui::UiRect Render_GdiPlus::MeasureString(const std::wstring& strText, const std::wstring& strFontId,
 	                                     uint32_t uFormat, int width /*= DUI_NOSET_VALUE*/)
 {
-	
 	Gdiplus::InstalledFontCollection installedFontCollection;
 
 	// How many font families are installed?

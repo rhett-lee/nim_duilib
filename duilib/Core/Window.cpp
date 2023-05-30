@@ -2129,11 +2129,15 @@ void Window::Paint()
 		UiSize szWindow(rcClient.right - rcClient.left, rcClient.bottom - rcClient.top);
 		UiPoint ptSrc;
 		BLENDFUNCTION bf = { AC_SRC_OVER, 0, static_cast<BYTE>(m_nAlpha), AC_SRC_ALPHA };
-		::UpdateLayeredWindow(m_hWnd, NULL, &pt, &szWindow, m_render->GetDC(), &ptSrc, 0, &bf, ULW_ALPHA);
+		HDC hdc = m_render->GetDC();
+		::UpdateLayeredWindow(m_hWnd, NULL, &pt, &szWindow, hdc, &ptSrc, 0, &bf, ULW_ALPHA);
+		m_render->ReleaseDC(hdc);
 	}
 	else {
+		HDC hdc = m_render->GetDC();
 		::BitBlt(ps.hdc, rcPaint.left, rcPaint.top, rcPaint.GetWidth(),
-			rcPaint.GetHeight(), m_render->GetDC(), rcPaint.left, rcPaint.top, SRCCOPY);
+			rcPaint.GetHeight(), hdc, rcPaint.left, rcPaint.top, SRCCOPY);
+		m_render->ReleaseDC(hdc);
 	}
 
 	::EndPaint(m_hWnd, &ps);

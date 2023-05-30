@@ -27,6 +27,12 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+/** Windows SDK 实现(内部采用Windows API实现部分功能)
+*/
+#define UILIB_IMPL_WINSDK 1
+
+#ifdef UILIB_IMPL_WINSDK
+
 #if defined(UILIB_DLL)
     #if defined(UILIB_EXPORTS)
         #if defined(_MSC_VER)
@@ -78,13 +84,29 @@
     #define NOMINMAX 1
 #endif
 
+#ifndef ASSERT
+    #define ASSERT(expr)  _ASSERTE(expr)
+#endif
+
+#include <SDKDDKVer.h>
+#include <windows.h>
+#include <crtdbg.h>
+
+#else //UILIB_IMPL_WINSDK
+    #define UILIB_API
+    #ifdef _DEBUG
+        #define ASSERT(expr)  assert(expr)
+    #else
+        #define ASSERT(expr)  ((void)(0))
+    #endif
+
+#include <cassert>
+
+#endif //UILIB_IMPL_WINSDK
+
 //未使用的变量宏，避免编译器报警报
 #ifndef UNUSED_VARIABLE
     #define UNUSED_VARIABLE(x) ((void)(x))
-#endif
-
-#ifndef ASSERT
-    #define ASSERT(expr)  _ASSERTE(expr)
 #endif
 
 #ifndef ASSERT_UNUSED_VARIABLE
@@ -94,7 +116,3 @@
         #define ASSERT_UNUSED_VARIABLE(expr)  UNUSED_VARIABLE(expr)
     #endif
 #endif
-
-#include <SDKDDKVer.h>
-#include <windows.h>
-#include <crtdbg.h>

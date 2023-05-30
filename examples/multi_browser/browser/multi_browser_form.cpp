@@ -25,16 +25,27 @@ const LPCTSTR MultiBrowserForm::kClassName = L"MultiBrowserForm";
 
 MultiBrowserForm::MultiBrowserForm()
 {
+	lbl_title_ = nullptr;
 	btn_max_restore_ = nullptr;
-
-	drop_helper_ = NULL;
-
-	tab_list_ = NULL;
-	borwser_box_tab_ = NULL;
-	active_browser_box_ = NULL;
-
+	edit_url_ = nullptr;
+	tab_list_ = nullptr;
+	borwser_box_tab_ = nullptr;
+	active_browser_box_ = nullptr;
+	drop_helper_ = nullptr;
 	is_drag_state_ = false;
-	old_drag_point_.x = old_drag_point_.y = 0;
+	old_drag_point_ = {0, 0}; 
+
+}
+
+MultiBrowserForm::~MultiBrowserForm()
+{
+	lbl_title_ = nullptr;
+	btn_max_restore_ = nullptr;
+	edit_url_ = nullptr;
+	tab_list_ = nullptr;
+	borwser_box_tab_ = nullptr;
+	active_browser_box_ = nullptr;
+	drop_helper_ = nullptr;
 }
 
 std::wstring MultiBrowserForm::GetSkinFolder()
@@ -370,6 +381,13 @@ void MultiBrowserForm::CloseBox(const std::string &browser_id)
 		// 窗口关闭时，会自动的移除这个浏览器盒子
 		if (borwser_box_tab_->GetItemCount() > 1) {
 			borwser_box_tab_->RemoveItem(browser_box);
+			if (active_browser_box_ == browser_box) {
+				active_browser_box_ = nullptr;
+				size_t nSelItem = borwser_box_tab_->GetCurSel();
+				if (nSelItem != Box::InvalidIndex) {
+					active_browser_box_ = dynamic_cast<BrowserBox*>(borwser_box_tab_->GetItemAt(nSelItem));
+				}				
+			}
 		}
 		else {
 			active_browser_box_ = nullptr;
@@ -454,6 +472,9 @@ bool MultiBrowserForm::DetachBox(BrowserBox *browser_box)
 		return false;
 	}
 	borwser_box_tab_->SetAutoDestroyChild(auto_destroy);
+	if (active_browser_box_ == browser_box) {
+		active_browser_box_ = nullptr;
+	}
 
 	// 当浏览器盒子清空时，关闭浏览器窗口
 	if (GetBoxCount() == 0)

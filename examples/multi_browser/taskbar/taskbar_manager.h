@@ -138,10 +138,10 @@ public:
 		virtual HWND GetHandle() const = 0;
 
 		/**
-		* 获取渲染上下文
-		* @return HDC HDC
+		* 获取渲染接口
+		* @return 渲染接口
 		*/
-		virtual HDC GetRenderDC() const = 0;
+		virtual ui::IRender* GetTaskbarRender() const = 0;
 
 		/**
 		* 关闭一个任务栏项
@@ -219,14 +219,14 @@ public:
 	* 缩放一个内存位图
 	* @param[in] dest_width 目标宽度
 	* @param[in] dest_height 目标高度
-	* @param[in] src_dc 源HDC
+	* @param[in] pSrcRender 源Render接口
 	* @param[in] src_x 源横坐标
 	* @param[in] src_y 源纵坐标
 	* @param[in] src_width 源宽度
 	* @param[in] src_height 源高度
 	* @return HBITMAP	生成的位图
 	*/
-	ui::IBitmap* ResizeBitmap(int dest_width, int dest_height, HDC src_dc, int src_x, int src_y, int src_width, int src_height);
+	ui::IBitmap* ResizeBitmap(int dest_width, int dest_height, ui::IRender* pSrcRender, int src_x, int src_y, int src_width, int src_height);
 
 	/**
 	* 处理任务栏Tab的缩略图的WM_CLOSE消息

@@ -57,7 +57,8 @@ void CircleProgress::PaintStatusImage(IRender* pRender)
 		int direction = m_bClockwise ? 1 : -1;   //旋转方向
 		int bordersize = 1;          //弧度宽度目前使用1像素
 
-		Gdiplus::Graphics graphics(pRender->GetDC());
+		HDC hdc = pRender->GetDC();
+		Gdiplus::Graphics graphics(hdc);
 		graphics.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
 		Gdiplus::Pen bgPen(m_dwBackgroundColor.GetARGB(), static_cast<Gdiplus::REAL>(m_nCircleWidth));
 		// 圆形中心
@@ -118,7 +119,7 @@ void CircleProgress::PaintStatusImage(IRender* pRender)
 			rectf.Height = static_cast<Gdiplus::REAL>(m_pIndicator->GetHeight());
 			graphics.DrawImage(m_pIndicator, rectf);
 		}
-
+		pRender->ReleaseDC(hdc);
 	}
 }
 

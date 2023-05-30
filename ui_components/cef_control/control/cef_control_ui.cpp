@@ -4,6 +4,7 @@
 #include "ui_components/cef_control/app/cef_js_bridge.h"
 #include "ui_components/public_define.h"
 #include "duilib/Render/IRender.h"
+#include "duilib/Core/GlobalManager.h"
 
 #include "base/thread/thread_manager.h"
 
@@ -124,7 +125,24 @@ void CefControl::Paint(ui::IRender* pRender, const ui::UiRect& rcPaint)
 	if (dc_cef_.IsValid() && browser_handler_.get() && browser_handler_->GetBrowser().get())
 	{
 		// 绘制cef PET_VIEW类型的位图
-		BitBlt(pRender->GetDC(), GetRect().left, GetRect().top, GetRect().GetWidth(), GetRect().GetHeight(), dc_cef_.GetDC(), 0, 0, SRCCOPY);
+		ui::UiRect rect = GetRect();
+
+		std::unique_ptr<ui::IBitmap> bitmap;
+		ui::IRenderFactory* pRenderFactory = ui::GlobalManager::GetRenderFactory();
+		ASSERT(pRenderFactory != nullptr);
+		if (pRenderFactory != nullptr) {
+			bitmap.reset(pRenderFactory->CreateBitmap());
+		}
+		ASSERT(bitmap != nullptr);
+		if (bitmap == nullptr) {
+			return;
+		}
+
+		if (!bitmap->Init(dc_cef_.GetWidth(), dc_cef_.GetHeight(), true, dc_cef_.GetBits())) {
+			return;
+		}
+
+		pRender->BitBlt(rect.left, rect.top, rect.GetWidth(), rect.GetHeight(), bitmap.get(), 0, 0, ui::RopMode::kSrcCopy);
 
 		// 绘制cef PET_POPUP类型的位图
 		if (!rect_popup_.IsEmpty() && dc_cef_popup_.IsValid())
@@ -143,9 +161,12 @@ void CefControl::Paint(ui::IRender* pRender, const ui::UiRect& rcPaint)
 			{
 				paint_y = 0;
 				paint_buffer_y = -rect_popup_.y;
+			}			
+			if (!bitmap->Init(dc_cef_popup_.GetWidth(), dc_cef_popup_.GetHeight(), true, dc_cef_popup_.GetBits())) {
+				return;
 			}
-
-			BitBlt(pRender->GetDC(), GetRect().left + paint_x, GetRect().top + paint_y, rect_popup_.width, rect_popup_.height, dc_cef_popup_.GetDC(), paint_buffer_x, paint_buffer_y, SRCCOPY);
+			rect = GetRect();
+			pRender->BitBlt(rect.left + paint_x, rect.top + paint_y, rect_popup_.width, rect_popup_.height, bitmap.get(), paint_buffer_x, paint_buffer_y, ui::RopMode::kSrcCopy);
 		}
 	}
 }

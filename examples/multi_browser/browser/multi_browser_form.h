@@ -16,7 +16,7 @@ class MultiBrowserForm : public nim_comp::ShadowWndBase, public IDropTarget, pub
 {
 public:
 	MultiBrowserForm();
-	~MultiBrowserForm() { };
+	virtual ~MultiBrowserForm();
 	
 	//覆盖虚函数
 	virtual std::wstring GetSkinFolder() override;
@@ -193,10 +193,10 @@ public:
 	virtual HWND GetHandle() const override { return this->GetHWND(); };
 
 	/**
-	* 获取渲染上下文
-	* @return IRender*	渲染上下文
+	* 获取渲染接口
+	* @return IRender*	渲染接口
 	*/
-	virtual HDC GetRenderDC() const override { return this->GetRender()->GetDC(); };
+	virtual ui::IRender* GetTaskbarRender() const override { return this->GetRender(); };
 
 	/**
 	* 关闭一个任务栏项

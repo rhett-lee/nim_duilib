@@ -1,5 +1,6 @@
 #include "BitmapHelper.h"
 #include "duilib/Render/Bitmap_GDI.h"
+#include "duilib/Core/GlobalManager.h"
 #include <algorithm>
 
 namespace ui {
@@ -86,6 +87,115 @@ namespace BitmapHelper {
         }
         return new Bitmap_GDI(hRotatedBitmap, true);
     }
+
+    IRender* CreateRenderObject(int srcRenderWidth, int srcRenderHeight, HDC hSrcDc, int srcDcWidth, int srcDcHeight)
+    {
+        ASSERT((srcRenderWidth > 0) && (srcRenderHeight > 0) && (hSrcDc != nullptr) && (srcDcWidth > 0) && (srcDcHeight > 0));
+        if ((srcRenderWidth <= 0) || (srcRenderHeight <= 0) || (hSrcDc == nullptr) || (srcDcWidth <= 0) || (srcDcHeight <= 0)) {
+            return nullptr;
+        }
+        std::unique_ptr<IBitmap> bitmap;
+        IRender* pRender = nullptr;
+        IRenderFactory* pRenderFactory = GlobalManager::GetRenderFactory();
+        ASSERT(pRenderFactory != nullptr);
+        if (pRenderFactory != nullptr) {
+            pRender = pRenderFactory->CreateRender();
+            bitmap.reset(pRenderFactory->CreateBitmap());
+        }
+        ASSERT(pRender != nullptr);
+        if (pRender == nullptr) {
+            return nullptr;
+        }
+        ASSERT(bitmap != nullptr);
+        if (bitmap == nullptr) {
+            delete pRender;
+            return nullptr;
+        }
+
+        HDC hMemDC = ::CreateCompatibleDC(hSrcDc);
+ 
+        BITMAPINFO bmi;
+        ::ZeroMemory(&bmi, sizeof(bmi));
+        bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+        bmi.bmiHeader.biWidth = srcDcWidth;
+        bmi.bmiHeader.biHeight = -srcDcHeight;
+        bmi.bmiHeader.biPlanes = 1;
+        bmi.bmiHeader.biBitCount = 32;
+        bmi.bmiHeader.biCompression = BI_RGB;
+        bmi.bmiHeader.biSizeImage = srcDcWidth * srcDcHeight * 4;
+
+        void* pBits = nullptr;
+        HBITMAP hBitmap = ::CreateDIBSection(hMemDC, &bmi, DIB_RGB_COLORS, &pBits, NULL, 0);
+
+        ::SelectObject(hMemDC, hBitmap);
+
+        //复制位图到内存DC
+        ::BitBlt(hMemDC, 0, 0, srcDcWidth, srcDcHeight, hSrcDc, 0, 0, SRCCOPY);
+
+        bitmap->Init(srcDcWidth, srcDcHeight, true, pBits);
+
+        // 释放资源
+        ::DeleteDC(hMemDC);
+        ::DeleteObject(hBitmap);
+
+        if (pRender->Resize(srcRenderWidth, srcRenderHeight)) {
+            int dest_width = 0;
+            int dest_height = 0;
+            float scale = (float)srcDcWidth / (float)srcDcHeight;
+            if (scale >= 1.0)
+            {
+                dest_width = srcRenderWidth;
+                dest_height = (int)(srcRenderWidth * (float)srcDcHeight / (float)srcDcWidth);
+            }
+            else
+            {
+                dest_height = srcRenderHeight;
+                dest_width = (int)(srcRenderHeight * (float)srcDcWidth / (float)srcDcHeight);
+            }
+
+            pRender->DrawImage(UiRect(0, 0, srcDcWidth, srcDcHeight),
+                              bitmap.get(),
+                              UiRect((srcRenderWidth - dest_width) / 2, 0, dest_width, dest_height),
+                              UiRect(0, 0, srcDcWidth, srcDcHeight),
+                              UiRect(0, 0, 0, 0));
+        }
+        return pRender;
+    }
+
+    IRender* CreateRenderObject(IBitmap* pBitmap)
+    {
+        ASSERT(pBitmap != nullptr);
+        if (pBitmap == nullptr) {
+            return nullptr;
+        }
+        IRender* pRender = nullptr;
+        IRenderFactory* pRenderFactory = GlobalManager::GetRenderFactory();
+        ASSERT(pRenderFactory != nullptr);
+        if (pRenderFactory != nullptr) {
+            pRender = pRenderFactory->CreateRender();
+        }
+        ASSERT(pRender != nullptr);
+        if (pRender == nullptr) {
+            return nullptr;
+        }
+        if (pRender->Resize((int)pBitmap->GetWidth(), (int)pBitmap->GetHeight())) {
+            UiRect rect = { 0, 0, (int)pBitmap->GetWidth(), (int)pBitmap->GetHeight() };
+            pRender->DrawImage(rect, pBitmap, rect, rect, UiRect());
+        }        
+        return pRender;
+    }
+
+    IBitmap* CreateBitmapObject(int srcRenderWidth, int srcRenderHeight, HDC hSrcDc, int srcDcWidth, int srcDcHeight)
+    {
+        IBitmap* pBitmap = nullptr;
+        IRender* pRender = CreateRenderObject(srcRenderWidth, srcRenderHeight, hSrcDc, srcDcWidth, srcDcHeight);
+        if (pRender != nullptr) {
+            pBitmap = pRender->DetachBitmap();
+            delete pRender;
+            pRender = nullptr;
+        }
+        return pBitmap;
+    }    
     
 } //namespace BitmapHelper
 

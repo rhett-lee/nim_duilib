@@ -237,8 +237,9 @@ ui::IBitmap* MultiBrowserForm::GenerateBoxOffsetRenderBitmap(const UiRect& src_r
 			dest_width = (int)(kDragImageHeight * (float)src_width / (float)src_height);
 		}
 
-		render->AlphaBlend((kDragImageWidth - dest_width) / 2, 0, dest_width, dest_height, this->GetRender()->GetDC(),
-			src_rect.left, src_rect.top, src_rect.right - src_rect.left, src_rect.bottom - src_rect.top);
+		render->AlphaBlend((kDragImageWidth - dest_width) / 2, 0, dest_width, dest_height, 
+			               this->GetRender(),
+			               src_rect.left, src_rect.top, src_rect.right - src_rect.left, src_rect.bottom - src_rect.top);
 	}
 
 	return render->DetachBitmap();
@@ -258,43 +259,8 @@ ui::IBitmap* MultiBrowserForm::GenerateBoxWindowBitmap()
 	int src_height = src_rect.bottom - src_rect.top;
 
 	//创建一个内存DC
-	HDC cef_window_dc = GetDC(cef_window);
-	HDC cef_Dc = CreateCompatibleDC(cef_window_dc);
-	HBITMAP cef_bitmap = CreateCompatibleBitmap(cef_window_dc, src_width, src_height);
-	SelectObject(cef_Dc, cef_bitmap);
-
-	//复制Cef内部子窗体的位图到内存DC
-	BitBlt(cef_Dc, 0, 0, src_width, src_height, cef_window_dc, 0, 0, SRCCOPY);
-
-	std::unique_ptr<IRender> render;
-	IRenderFactory* pRenderFactory = GlobalManager::GetRenderFactory();
-	ASSERT(pRenderFactory != nullptr);
-	if (pRenderFactory != nullptr) {
-		render.reset(pRenderFactory->CreateRender());
-	}
-	ASSERT(render != nullptr);
-	if (render->Resize(kDragImageWidth, kDragImageHeight)) {
-		int dest_width = 0;
-		int dest_height = 0;
-		float scale = (float)src_width / (float)src_height;
-		if (scale >= 1.0)
-		{
-			dest_width = kDragImageWidth;
-			dest_height = (int)(kDragImageWidth * (float)src_height / (float)src_width);
-		}
-		else
-		{
-			dest_height = kDragImageHeight;
-			dest_width = (int)(kDragImageHeight * (float)src_width / (float)src_height);
-		}
-	
-		render->AlphaBlend((kDragImageWidth - dest_width) / 2, 0, dest_width, dest_height, cef_Dc,
-			src_rect.left, src_rect.top, src_rect.right - src_rect.left, src_rect.bottom - src_rect.top);
-	}
-
-	// 释放资源
-	DeleteDC(cef_Dc);
-	DeleteObject(cef_bitmap);
-	ReleaseDC(NULL, cef_window_dc);
-	return render->DetachBitmap();
+	HDC cef_window_dc = ::GetDC(cef_window);
+	ui::IBitmap* pBitmap = ui::BitmapHelper::CreateBitmapObject(kDragImageWidth, kDragImageHeight, cef_window_dc, src_width, src_height);
+	::ReleaseDC(cef_window, cef_window_dc);
+	return pBitmap;
 }

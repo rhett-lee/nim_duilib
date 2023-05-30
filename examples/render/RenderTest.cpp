@@ -163,31 +163,26 @@ void RenderTest::Paint(IRender* pRender, const UiRect& rcPaint)
     pRender->DrawImage(rcPaint, image.GetCurrentBitmap(), rect, rcImageSource, UiRect());
 
     //BitBlt/StretchBlt/AlphaBlend三个绘制函数
-    Bitmap_GDI* pGdiBitmap = dynamic_cast<Bitmap_GDI*>(image.GetCurrentBitmap());
-    ASSERT(pGdiBitmap != nullptr);
-    HBITMAP hBitmap = pGdiBitmap->GetHBitmap();
-    ASSERT(hBitmap != nullptr);
+    IRender* pSrcRender = BitmapHelper::CreateRenderObject(image.GetCurrentBitmap());
+    ASSERT(pSrcRender != nullptr);
 
-    HDC hdcSrc = ::CreateCompatibleDC(NULL);
-    HGDIOBJ oldBitmap = ::SelectObject(hdcSrc, hBitmap);
     rect.left = rect.right + marginSize;
     rect.right = rect.left + image.GetImageCache()->GetWidth();
     rect.bottom = rect.top + image.GetImageCache()->GetHeight();
-    pRender->BitBlt(rect.left, rect.top, rect.GetWidth(), rect.GetHeight(), hdcSrc, 0, 0, RopMode::kSrcCopy);
+    pRender->BitBlt(rect.left, rect.top, rect.GetWidth(), rect.GetHeight(), pSrcRender, 0, 0, RopMode::kSrcCopy);
 
     rect.left = rect.right + marginSize;
     rect.right = rect.left + image.GetImageCache()->GetWidth() / 2;
     rect.bottom = rect.top + image.GetImageCache()->GetHeight() / 2;
-    pRender->StretchBlt(rect.left, rect.top, rect.GetWidth(), rect.GetHeight(), hdcSrc, 0, 0, image.GetImageCache()->GetWidth(), image.GetImageCache()->GetHeight(), RopMode::kSrcCopy);
+    pRender->StretchBlt(rect.left, rect.top, rect.GetWidth(), rect.GetHeight(), pSrcRender, 0, 0, pSrcRender->GetWidth(), pSrcRender->GetHeight(), RopMode::kSrcCopy);
 
     rect.left = rect.right + marginSize;
     rect.right = rect.left + image.GetImageCache()->GetWidth() ;
     rect.bottom = rect.top + image.GetImageCache()->GetHeight() ;
-    pRender->AlphaBlend(rect.left, rect.top, rect.GetWidth() , rect.GetHeight() , hdcSrc, 0, 0, image.GetImageCache()->GetWidth(), image.GetImageCache()->GetHeight(), 96);
+    pRender->AlphaBlend(rect.left, rect.top, rect.GetWidth() , rect.GetHeight() , pSrcRender, 0, 0, pSrcRender->GetWidth(), pSrcRender->GetHeight(), 96);
 
-    ::SelectObject(hdcSrc, oldBitmap);
-    ::DeleteDC(hdcSrc);
-    hdcSrc = nullptr;
+    delete pSrcRender;
+    pSrcRender = nullptr;
 
     currentBottom = rect.bottom;//记录当前的bottom值
 

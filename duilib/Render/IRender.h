@@ -275,13 +275,17 @@ public:
 	* @param [in] y 目标矩形左上角的 y 坐标
 	* @param [in] cx 源矩形和目标矩形的宽度
 	* @param [in] cy 源和目标矩形的高度
-	* @param [in] hdcSrc 源设备上下文的句柄
+	* @param [in] pSrcBitmap 源图片接口
+	* @param [in] pSrcRender 源Render对象
 	* @param [in] xSrc 源矩形左上角的 x 坐标
 	* @param [in] yScr 源矩形左上角的 y 坐标
 	* @param [in] rop 光栅操作代码
 	*/
 	virtual bool BitBlt(int x, int y, int cx, int cy, 
-		                HDC hdcSrc, int xSrc, int yScr, 
+		                IBitmap* pSrcBitmap, int xSrc, int yScr,
+		                RopMode rop) = 0;
+	virtual bool BitBlt(int x, int y, int cx, int cy, 
+		                IRender* pSrcRender, int xSrc, int yScr, 
 		                RopMode rop) = 0;
 
 	/** 函数将一个位图从源矩形复制到目标矩形中，并拉伸或压缩位图以适应目标矩形的尺寸（如有必要）。 
@@ -290,7 +294,7 @@ public:
 	* @param [in] yDest 目标矩形左上角的 y 坐标
 	* @param [in] widthDest 目标矩形的宽度
 	* @param [in] heightDest 目标矩形的高度
-	* @param [in] hdcSrc 源设备上下文的句柄
+	* @param [in] pSrcRender 源Render对象
 	* @param [in] xSrc 源矩形左上角的 x 坐标
 	* @param [in] yScr 源矩形左上角的 y 坐标
 	* @param [in] widthSrc 源矩形的宽度
@@ -298,7 +302,7 @@ public:
 	* @param [in] rop 光栅操作代码
 	*/
 	virtual bool StretchBlt(int xDest, int yDest, int widthDest, int heightDest,
-		                    HDC hdcSrc, int xSrc, int yScr, int widthSrc, int heightSrc, 
+		                    IRender* pSrcRender, int xSrc, int yScr, int widthSrc, int heightSrc, 
 		                    RopMode rop) = 0;
 
 
@@ -307,7 +311,7 @@ public:
 	* @param [in] yDest 目标矩形左上角的 y 坐标
 	* @param [in] widthDest 目标矩形的宽度
 	* @param [in] heightDest 目标矩形的高度
-	* @param [in] hdcSrc 源设备上下文的句柄
+	* @param [in] pSrcRender 源Render对象
 	* @param [in] xSrc 源矩形左上角的 x 坐标
 	* @param [in] yScr 源矩形左上角的 y 坐标
 	* @param [in] widthSrc 源矩形的宽度
@@ -315,7 +319,7 @@ public:
 	* @param [in] alpha 透明度 alpha 值（0 - 255）
 	*/
 	virtual bool AlphaBlend(int xDest, int yDest, int widthDest, int heightDest,
-		                    HDC hdcSrc, int xSrc, int yScr, int widthSrc, int heightSrc, 
+		                    IRender* pSrcRender, int xSrc, int yScr, int widthSrc, int heightSrc, 
 		                    uint8_t alpha = 255) = 0;
 
 	/** 绘制图片（采用九宫格方式绘制图片）
@@ -436,7 +440,18 @@ public:
 	virtual void RestoreAlpha(const UiRect& rcDirty, const UiRect& rcShadowPadding, int alpha) = 0;
 	virtual void RestoreAlpha(const UiRect& rcDirty, const UiRect& rcShadowPadding = UiRect()) = 0;
 
+#ifdef UILIB_IMPL_WINSDK
+	/** 获取DC句柄，当不使用后，需要调用ReleaseDC接口释放资源
+	*/
 	virtual HDC GetDC() = 0;
+
+	/** 释放DC资源
+	* @param [in] hdc 需要释放的DC句柄
+	*/
+	virtual void ReleaseDC(HDC hdc) = 0;
+#endif
+
+public:
 
 	/** 清除资源
 	*/
@@ -451,11 +466,11 @@ class UILIB_API IRenderFactory
 {
 public:
 	virtual ~IRenderFactory() = default;
-	virtual ui::IPen* CreatePen(UiColor color, int width = 1) = 0;
-	virtual ui::IBrush* CreateBrush(UiColor corlor) = 0;
-	virtual ui::IPath* CreatePath() = 0;
-	virtual ui::IBitmap* CreateBitmap() = 0;
-	virtual ui::IRender* CreateRender() = 0;
+	virtual IPen* CreatePen(UiColor color, int width = 1) = 0;
+	virtual IBrush* CreateBrush(UiColor corlor) = 0;
+	virtual IPath* CreatePath() = 0;
+	virtual IBitmap* CreateBitmap() = 0;
+	virtual IRender* CreateRender() = 0;
 };
 
 } // namespace ui

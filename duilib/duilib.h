@@ -98,6 +98,7 @@
 #include "Render/Clip.h"
 #include "Render/Render_GdiPlus.h"
 #include "Render/Bitmap_GDI.h"
+#include "Render/BitmapHelper.h"
 #include "Render/Pen.h"
 #include "Render/Brush.h"
 #include "Render/Path.h"

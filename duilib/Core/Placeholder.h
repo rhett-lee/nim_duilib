@@ -248,7 +248,7 @@ public:
 
 	/**@brief 判断缓存脏标志位值
 	 */
-	bool IsCacheDirty() { return m_bUseCache && m_bCacheDirty; }
+	bool IsCacheDirty() { return m_bCacheDirty; }
 
 	/**@brief 重绘控件
 	 */

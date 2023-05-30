@@ -270,7 +270,7 @@ ui::IBitmap* TaskbarManager::GenerateBindControlBitmapWithForm(ui::Control *cont
 	render->Resize(window_width, window_height);
 
 	// 2.把窗口双缓冲的位图画到内存dc
-	render->BitBlt(0, 0, window_width, window_height, taskbar_delegate_->GetRenderDC(), 0, 0, RopMode::kSrcCopy);
+	render->BitBlt(0, 0, window_width, window_height, taskbar_delegate_->GetTaskbarRender(), 0, 0, RopMode::kSrcCopy);
 
 	// 3.把某个会话盒子的位图画到内存dc，覆盖原窗口对应位置的位图
 	UiRect rcPaint = control->GetPos();
@@ -348,10 +348,10 @@ ui::IBitmap* TaskbarManager::GenerateBindControlBitmap(ui::Control *control, con
 
 	// 4.缩放到目标尺寸
 	UiRect rcControl = control->GetPos();
-	return ResizeBitmap(dest_width, dest_height, render->GetDC(), rcControl.left, rcControl.top, rcControl.GetWidth(), rcControl.GetHeight());
+	return ResizeBitmap(dest_width, dest_height, render.get(), rcControl.left, rcControl.top, rcControl.GetWidth(), rcControl.GetHeight());
 }
 
-ui::IBitmap* TaskbarManager::ResizeBitmap(int dest_width, int dest_height, HDC src_dc, int src_x, int src_y, int src_width, int src_height)
+ui::IBitmap* TaskbarManager::ResizeBitmap(int dest_width, int dest_height, ui::IRender* pSrcRender, int src_x, int src_y, int src_width, int src_height)
 {
 	std::unique_ptr<IRender> render;
 	IRenderFactory* pRenderFactory = GlobalManager::GetRenderFactory();
@@ -378,7 +378,7 @@ ui::IBitmap* TaskbarManager::ResizeBitmap(int dest_width, int dest_height, HDC s
 			scale_width = (int)(dest_height * (float)src_width / (float)src_height);
 		}
 
-		render->AlphaBlend((dest_width - scale_width) / 2, (dest_height - scale_height) / 2, scale_width, scale_height, src_dc, src_x, src_y, src_width, src_height);
+		render->AlphaBlend((dest_width - scale_width) / 2, (dest_height - scale_height) / 2, scale_width, scale_height, pSrcRender, src_x, src_y, src_width, src_height);
 	}
 
 	return render->DetachBitmap();

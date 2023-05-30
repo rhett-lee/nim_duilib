@@ -1314,12 +1314,12 @@ void Control::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
 				                rcUnion.top, 
 				                rcUnion.right - rcUnion.left, 
 				                rcUnion.bottom - rcUnion.top, 
-				                pCacheRender->GetDC(),
+				                pCacheRender,
 				                rcUnion.left - GetRect().left,
 				                rcUnion.top - GetRect().top,
 				                rcUnion.right - rcUnion.left, 
 				                rcUnion.bottom - rcUnion.top, 
-				                static_cast<BYTE>(m_nAlpha));
+				                static_cast<uint8_t>(m_nAlpha));
 			m_render.reset();
 		}
 	}
@@ -1348,8 +1348,16 @@ void Control::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
 				SetCacheDirty(false);
 			}
 
-			pRender->AlphaBlend(rcUnion.left, rcUnion.top, rcUnion.right - rcUnion.left, rcUnion.bottom - rcUnion.top, pCacheRender->GetDC(),
-				rcUnion.left - GetRect().left, rcUnion.top - GetRect().top, rcUnion.right - rcUnion.left, rcUnion.bottom - rcUnion.top, static_cast<BYTE>(m_nAlpha));
+			pRender->AlphaBlend(rcUnion.left, 
+								rcUnion.top, 
+							    rcUnion.right - rcUnion.left, 
+								rcUnion.bottom - rcUnion.top, 
+								pCacheRender,
+							    rcUnion.left - GetRect().left, 
+								rcUnion.top - GetRect().top, 
+								rcUnion.right - rcUnion.left, 
+								rcUnion.bottom - rcUnion.top, 
+								static_cast<uint8_t>(m_nAlpha));
 			PaintChild(pRender, rcPaint);
 		}
 	}

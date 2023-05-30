@@ -143,8 +143,6 @@
 	<Class name="prompt" promptmode="true" promptcolor="light_gray"/>
 	<Class name="edit" hotimage="file='../public/edit/edit1.png' corner='10,10,10,10'" focusedimage="file='../public/edit/edit2.png' corner='10,10,10,10'"/>
 	<Class name="input" normalimage="file='../public/edit/edit0.png' corner='10,10,10,10'" hotimage="file='../public/edit/edit0.png' corner='10,10,10,10'" focusedimage="file='../public/edit/edit0.png' corner='10,10,10,10'" disabledimage="file='../public/edit/edit0.png' corner='10,10,10,10' fade='80'"/>
-	<!--头像蒙版-->
-	<Class name="icon_headimage_mask_40x40" width="40" height="40" bkimage="../public/headmask/icon_headimage_mask_40x40_normal.png"/>
 	<!--气泡框通用样式-->
 	<TextColor name="popover_color_0" value="#FFECF1F8"/>
 	<TextColor name="popover_color_1" value="#FFF2F7FF"/>

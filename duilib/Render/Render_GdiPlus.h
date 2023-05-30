@@ -16,7 +16,6 @@ public:
 	Render_GdiPlus();
 	virtual ~Render_GdiPlus();
 
-	virtual HDC GetDC() override;
 	virtual bool Resize(int width, int height) override;
 	virtual void Clear() override;
 	virtual std::unique_ptr<IRender> Clone() override;
@@ -46,9 +45,10 @@ public:
 	virtual void SetRoundClip(const UiRect& rc, int width, int height) override;
 	virtual void ClearClip() override;
 
-	virtual bool BitBlt(int x, int y, int cx, int cy, HDC hdcSrc, int xSrc, int yScr, RopMode rop) override;
-	virtual bool StretchBlt(int xDest, int yDest, int widthDest, int heightDest, HDC hdcSrc, int xSrc, int yScr, int widthSrc, int heightSrc, RopMode rop) override;
-	virtual bool AlphaBlend(int xDest, int yDest, int widthDest, int heightDest, HDC hdcSrc, int xSrc, int yScr, int widthSrc, int heightSrc, uint8_t alpha = 255) override;
+	virtual bool BitBlt(int x, int y, int cx, int cy, IBitmap* pSrcBitmap, int xSrc, int yScr, RopMode rop) override;
+	virtual bool BitBlt(int x, int y, int cx, int cy, IRender* pSrcRender, int xSrc, int yScr, RopMode rop) override;
+	virtual bool StretchBlt(int xDest, int yDest, int widthDest, int heightDest, IRender* pSrcRender, int xSrc, int yScr, int widthSrc, int heightSrc, RopMode rop) override;
+	virtual bool AlphaBlend(int xDest, int yDest, int widthDest, int heightDest, IRender* pSrcRender, int xSrc, int yScr, int widthSrc, int heightSrc, uint8_t alpha = 255) override;
 
 	/** 绘制图片（采用九宫格方式绘制图片）
 	* @param [in] rcPaint 当前全部可绘制区域（用于避免非可绘制区域的绘制，以提高绘制性能）
@@ -92,6 +92,17 @@ public:
 		                         const std::wstring& strFontId, uint32_t uFormat, int width = DUI_NOSET_VALUE) override;
 
 	void DrawBoxShadow(const UiRect& rc, const UiSize& roundSize, const UiPoint& cpOffset, int nBlurRadius, int nSpreadRadius, UiColor dwColor, bool bExclude) override;
+
+#ifdef UILIB_IMPL_WINSDK
+	/** 获取DC句柄，当不使用后，需要调用ReleaseDC接口释放资源
+	*/
+	virtual HDC GetDC() override;
+
+	/** 释放DC资源
+	* @param [in] hdc 需要释放的DC句柄
+	*/
+	virtual void ReleaseDC(HDC hdc) override;
+#endif
 
 private:
 	/** 获取GDI的光栅操作代码

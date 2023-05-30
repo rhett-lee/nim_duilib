@@ -1,6 +1,7 @@
 #include "wke_web_view.h"
 #include "wke_memory_dc.h"
 #include "duilib/Render/IRender.h"
+#include "duilib/Core/GlobalManager.h"
 #include "duilib/Utils/Macros.h"
 
 namespace {
@@ -56,8 +57,22 @@ void WkeWebView::Paint(ui::IRender* pRender, const ui::UiRect& rcPaint) {
   if (!m_web_view_dc || !m_web_view_dc->IsValid()) {
     return;
   }
+  std::unique_ptr<ui::IBitmap> bitmap;
+  ui::IRenderFactory* pRenderFactory = ui::GlobalManager::GetRenderFactory();
+  ASSERT(pRenderFactory != nullptr);
+  if (pRenderFactory != nullptr) {
+      bitmap.reset(pRenderFactory->CreateBitmap());
+  }
+  ASSERT(bitmap != nullptr);
+  if (bitmap == nullptr) {
+      return;
+  }
 
-  BitBlt(pRender->GetDC(), GetRect().left, GetRect().top, GetRect().GetWidth(), GetRect().GetHeight(), m_web_view_dc->GetDC(), 0, 0, SRCCOPY);
+  if (!bitmap->Init(m_web_view_dc->GetWidth(), m_web_view_dc->GetHeight(), true, m_web_view_dc->GetBits())) {
+      return;
+  }
+  ui::UiRect rect = GetRect();
+  pRender->BitBlt(rect.left, rect.top, rect.GetWidth(), rect.GetHeight(), bitmap.get(), 0, 0, ui::RopMode::kSrcCopy);
 }
 
 void WkeWebView::SetWindow(ui::Window* pManager, ui::Box* pParent, bool bInit) {

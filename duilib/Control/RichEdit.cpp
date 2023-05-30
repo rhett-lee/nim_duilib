@@ -2704,21 +2704,22 @@ void RichEdit::Paint(IRender* pRender, const UiRect& rcPaint)
         m_pTwh->GetControlRect(&rc);
         // Remember wparam is actually the hdc and lparam is the update
         // rect because this message has been preprocessed by the window.
-        m_pTwh->GetTextServices()->TxDraw(
-            DVASPECT_CONTENT,  		// Draw Aspect
-            /*-1*/0,				// Lindex
-            NULL,					// Info for drawing optimazation
-            NULL,					// target device information
-            pRender->GetDC(),			        // Draw device HDC
-            NULL, 				   	// Target device HDC
-            (RECTL*)&rc,			// Bounding client rectangle
-            NULL, 		            // Clipping rectangle for metafiles
-            (UiRect*)&rcPaint,		// Update rectangle
-            NULL, 	   				// Call back function
-            NULL,					// Call back parameter
-            0);				        // What view of the object
+		HDC hdc = pRender->GetDC();
+        m_pTwh->GetTextServices()->TxDraw(DVASPECT_CONTENT,  	// Draw Aspect
+										  /*-1*/0,				// Lindex
+										  NULL,					// Info for drawing optimazation
+										  NULL,					// target device information
+										  hdc,			        // Draw device HDC
+										  NULL, 				// Target device HDC
+										  (RECTL*)&rc,			// Bounding client rectangle
+										  NULL, 		        // Clipping rectangle for metafiles
+										  (UiRect*)&rcPaint,	// Update rectangle
+										  NULL, 	   			// Call back function
+										  NULL,					// Call back parameter
+										  0);				    // What view of the object
 
-        if( m_bVScrollBarFixing ) {
+		pRender->ReleaseDC(hdc);
+		if( m_bVScrollBarFixing ) {
             LONG lWidth = rc.right - rc.left + m_pVerticalScrollBar->GetFixedWidth();
 			//LONG lWidth = rc.right - rc.left;
             LONG lHeight = 0;
