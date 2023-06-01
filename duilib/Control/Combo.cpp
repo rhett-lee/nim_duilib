@@ -176,17 +176,6 @@ Combo::Combo() :
 
 std::wstring Combo::GetType() const { return DUI_CTR_COMBO; }
 
-#if defined(ENABLE_UIAUTOMATION)
-UIAControlProvider* Combo::GetUIAProvider()
-{
-	if (m_pUIAProvider == nullptr)
-	{
-		m_pUIAProvider = static_cast<UIAControlProvider*>(new (std::nothrow) UIAComboBoxProvider(this));
-	}
-	return m_pUIAProvider;
-}
-#endif
-
 bool Combo::AddItem(Control* pControl)
 {
 	ASSERT(pControl != nullptr);
@@ -376,23 +365,7 @@ bool Combo::SelectItemInternal(size_t iIndex)
 
 	//add by djj below
 	SendEvent(kEventSelect, m_iCurSel, iOldSel);
-
-#if defined(ENABLE_UIAUTOMATION)
-	if (m_pUIAProvider != nullptr && UiaClientsAreListening()) {
-		VARIANT vtOld = { 0 };
-		VARIANT vtNew = { 0 };
-		vtOld.vt = VT_BSTR;
-		vtNew.vt = VT_BSTR;
-		ListBoxElement* pControl = dynamic_cast<ListBoxElement*>(m_pLayout->GetItemAt(m_iCurSel));
-		vtOld.bstrVal = SysAllocString(pControl ? pControl->GetText().c_str() : L"");
-		vtNew.bstrVal = SysAllocString(GetText().c_str());
-
-		UiaRaiseAutomationPropertyChangedEvent(m_pUIAProvider, UIA_ValueValuePropertyId, vtOld, vtNew);
-	}
-#endif
-
-	Invalidate();	
-
+	Invalidate();
 	return true;
 }
 

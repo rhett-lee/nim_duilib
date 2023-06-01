@@ -8,10 +8,6 @@
 
 namespace ui
 {
-#if defined(ENABLE_UIAUTOMATION)
-	class UIAControlProvider;
-#endif
-
 	class ScrollableBox;
 	class StateImage;
 
@@ -43,10 +39,6 @@ public:
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 	virtual void Paint(IRender* pRender, const UiRect& rcPaint) override;
 	virtual void ClearImageCache() override;
-
-#if defined(ENABLE_UIAUTOMATION)
-	virtual UIAControlProvider* GetUIAProvider() override;
-#endif
 
 	/**
 	 * @brief 是否是水平滚动条

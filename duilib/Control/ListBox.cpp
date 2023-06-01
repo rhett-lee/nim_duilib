@@ -16,17 +16,6 @@ ListBox::ListBox(Layout* pLayout) :
 
 std::wstring ListBox::GetType() const { return DUI_CTR_LISTBOX; }
 
-#if defined(ENABLE_UIAUTOMATION)
-UIAControlProvider* ListBox::GetUIAProvider()
-{
-	if (m_pUIAProvider == nullptr)
-	{
-		m_pUIAProvider = static_cast<UIAControlProvider*>(new (std::nothrow) UIAListBoxProvider(this));
-	}
-	return m_pUIAProvider;
-}
-#endif
-
 void ListBox::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
 	if( strName == L"scrollselect") {
@@ -459,17 +448,6 @@ ListBoxElement::ListBoxElement() :
 }
 
 std::wstring ListBoxElement::GetType() const {  return DUI_CTR_LISTBOX_ELEMENT; }
-
-#if defined(ENABLE_UIAUTOMATION)
-UIAControlProvider* ListBoxElement::GetUIAProvider()
-{
-	if (m_pUIAProvider == nullptr)
-	{
-		m_pUIAProvider = static_cast<UIAControlProvider*>(new (std::nothrow) UIAListBoxItemProvider(this));
-	}
-	return m_pUIAProvider;
-}
-#endif
 
 void ListBoxElement::Selected(bool bSelected, bool trigger)
 {

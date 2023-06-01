@@ -51,11 +51,6 @@
     #define UILIB_API
 #endif
 
-#if defined(_MSC_VER) && (_MSC_VER >= 1928)
-    //支持UI自动化的编译选项，默认关闭
-    //#define ENABLE_UIAUTOMATION
-#endif
-
 #ifndef VC_EXTRALEAN
     #define VC_EXTRALEAN
 #endif

@@ -379,23 +379,6 @@ public:
 	 */
 	static bool IsZipResExist(const std::wstring& path);
 
-#if defined(ENABLE_UIAUTOMATION)
-	/**
-	 * @brief 开启禁用UI自动化测试支持
-	 * @param[in] bAdaptDpi 是否启用 DPI 适配
-	 * @return 无
-	 */
-	static void EnableAutomation(bool bEnabled = true);
-
-	/**
-	 * @brief 是否开启UI自动化测试支持
-	 * @return 返回是否开启
-	 *     @retval true 开启
-	 *     @retval false 禁用
-	 */
-	static bool IsAutomationEnabled();
-#endif
-
 private:
 	/**
 	 * @brief 加载全局资源
@@ -438,12 +421,6 @@ private:
 	/** 默认字体ID
 	*/
 	static std::wstring m_sDefaultFontId;
-
-
-#if defined(ENABLE_UIAUTOMATION)
-	//是否开启UI自动化
-	static bool m_bAutomationEnabled = false;
-#endif
 };
 
 } // namespace ui

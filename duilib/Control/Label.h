@@ -26,9 +26,6 @@ public:
 
 	/// 重写父类方法，提供个性化功能，请参考父类声明
 	virtual std::wstring GetType() const override;
-#if defined(ENABLE_UIAUTOMATION)
-	virtual UIAControlProvider* GetUIAProvider() override;
-#endif
 	virtual std::wstring GetText() const;
 	virtual std::string GetUTF8Text() const;
 	virtual void SetText(const std::wstring& strText);
@@ -166,18 +163,6 @@ LabelTemplate<InheritType>::LabelTemplate() :
 
 template<typename InheritType>
 inline std::wstring LabelTemplate<InheritType>::GetType() const { return DUI_CTR_LABEL; }
-
-#if defined(ENABLE_UIAUTOMATION)
-template<typename InheritType>
-inline UIAControlProvider* LabelTemplate<InheritType>::GetUIAProvider()
-{
-	if (this->m_pUIAProvider == nullptr)
-	{
-		this->m_pUIAProvider = static_cast<UIAControlProvider*>(new (std::nothrow) UIALabelProvider(this));
-	}
-	return this->m_pUIAProvider;
-}
-#endif
 
 template<typename InheritType>
 std::wstring LabelTemplate<InheritType>::GetText() const

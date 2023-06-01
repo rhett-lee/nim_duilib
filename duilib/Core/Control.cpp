@@ -48,9 +48,6 @@ Control::Control() :
 	m_gifWeakFlag(),	
 	m_loadBkImageWeakFlag(),
     m_loadingImageFlag(),
-#if defined(ENABLE_UIAUTOMATION)
-	m_pUIAProvider(nullptr),
-#endif
 	m_boxShadow()
 {
 	m_colorMap = std::make_unique<StateColorMap>();
@@ -81,16 +78,6 @@ Control::~Control()
 	if (pWindow) {
 		pWindow->ReapObjects(this);
 	}
-
-#if defined(ENABLE_UIAUTOMATION)
-	if (nullptr != m_pUIAProvider) {
-		// Coz UiaDisconnectProviderd require at least win8
-		// UiaDisconnectProvider(m_pUIAProvider);
-		m_pUIAProvider->ResetControl();
-		m_pUIAProvider->Release();
-		m_pUIAProvider = nullptr;
-	}
-#endif
 }
 
 std::wstring Control::GetType() const { return _T("Control"); }
@@ -703,17 +690,6 @@ bool Control::IsPointInWithScrollOffset(const UiPoint& point) const
 	newPoint.Offset(scrollOffset);
 	return GetRect().IsPointIn(newPoint);
 }
-
-#if defined(ENABLE_UIAUTOMATION)
-UIAControlProvider* Control::GetUIAProvider()
-{
-	if (m_pUIAProvider == nullptr)
-	{
-		m_pUIAProvider = new (std::nothrow) UIAControlProvider(this);
-	}
-	return m_pUIAProvider;
-}
-#endif;
 
 void Control::SendEvent(EventType eventType, 
 					    WPARAM wParam, 

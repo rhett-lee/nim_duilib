@@ -754,16 +754,4 @@ void GlobalManager::AssertUIThread()
 #endif
 }
 
-#if defined(ENABLE_UIAUTOMATION)
-void GlobalManager::EnableAutomation(bool bEnabled)
-{
-	m_bAutomationEnabled = bEnabled;
-}
-
-bool GlobalManager::IsAutomationEnabled()
-{
-	return m_bAutomationEnabled;
-}
-#endif
-
 } // namespace ui

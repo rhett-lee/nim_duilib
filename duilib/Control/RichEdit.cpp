@@ -2258,17 +2258,6 @@ void RichEdit::EndRight()
 
 std::wstring RichEdit::GetType() const { return DUI_CTR_RICHEDIT; }
 
-#if defined(ENABLE_UIAUTOMATION)
-UIAControlProvider* RichEdit::GetUIAProvider()
-{
-	if (m_pUIAProvider == nullptr)
-	{
-		m_pUIAProvider = static_cast<UIAControlProvider*>(new (std::nothrow) UIARichEditProvider(this));
-	}
-	return m_pUIAProvider;
-}
-#endif
-
 void RichEdit::DoInit()
 {
 	if (m_bInited)

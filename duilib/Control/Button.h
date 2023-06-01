@@ -15,9 +15,6 @@ public:
 
     /// 重写父类方法，提供个性化功能，请参考父类声明
     virtual std::wstring GetType() const override;
-#if defined(ENABLE_UIAUTOMATION)
-    virtual UIAControlProvider* GetUIAProvider() override;
-#endif
     virtual void Activate() override;
     virtual void HandleEvent(const EventArgs& event) override;
     virtual UINT GetControlFlags() const override;
@@ -69,18 +66,6 @@ void ButtonTemplate<InheritType>::HandleEvent(const EventArgs& event)
 template<typename InheritType>
 inline std::wstring ButtonTemplate<InheritType>::GetType() const { return DUI_CTR_BUTTON; }
 
-#if defined(ENABLE_UIAUTOMATION)
-template<typename InheritType>
-inline UIAControlProvider* ButtonTemplate<InheritType>::GetUIAProvider()
-{
-    if (this->m_pUIAProvider == nullptr)
-    {
-        this->m_pUIAProvider = (UIAControlProvider*)(new (std::nothrow) UIAButtonProvider(this));
-    }
-    return this->m_pUIAProvider;
-}
-#endif
-
 template<typename InheritType>
 void ButtonTemplate<InheritType>::Activate()
 {
@@ -88,11 +73,6 @@ void ButtonTemplate<InheritType>::Activate()
         return;
     }
     this->SendEvent(kEventClick);
-
-#if defined(ENABLE_UIAUTOMATION)
-    if (this->m_pUIAProvider != nullptr && UiaClientsAreListening())
-        UiaRaiseAutomationEvent(this->m_pUIAProvider, UIA_Invoke_InvokedEventId);
-#endif
 }
 
 template<typename InheritType>

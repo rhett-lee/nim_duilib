@@ -129,9 +129,6 @@ public:
 public:
 	/// 重写父类接口，提供个性化功能。方法具体说明请查看 Control 控件
 	virtual std::wstring GetType() const override;
-#if defined(ENABLE_UIAUTOMATION)
-	virtual UIAControlProvider* GetUIAProvider() override;
-#endif
 	virtual void SetWindow(Window* pManager, Box* pParent, bool bInit = true) override;
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 	virtual void SetPos(UiRect rc) override;
@@ -325,9 +322,6 @@ public:
 	ScrollableBox& operator=(const ScrollableBox& r) = delete;
 
 	virtual std::wstring GetType() const override;
-#if defined(ENABLE_UIAUTOMATION)
-	virtual UIAControlProvider* GetUIAProvider() override;
-#endif
 	virtual void SetAttribute(const std::wstring& pstrName, const std::wstring& pstrValue) override;
 	virtual void SetPos(UiRect rc) override;
 	virtual void HandleEvent(const EventArgs& event) override;

@@ -19,9 +19,6 @@ public:
 
 	/// 重写父类方法，提供个性化功能，请参考父类声明
 	virtual std::wstring GetType() const override;
-#if defined(ENABLE_UIAUTOMATION)
-	virtual UIAControlProvider* GetUIAProvider() override;
-#endif
 	virtual bool AddItem(Control* pControl) override;
 	virtual bool RemoveItem(Control* pControl) override;
 	virtual bool RemoveItemAt(size_t iIndex) override;

@@ -220,17 +220,6 @@ void ShadowCombo::DoInit()
 
 std::wstring ShadowCombo::GetType() const { return L"ShadowCombo"; }
 
-#if defined(ENABLE_UIAUTOMATION)
-UIAControlProvider* ShadowCombo::GetUIAProvider()
-{
-    if (m_pUIAProvider == nullptr)
-    {
-        m_pUIAProvider = static_cast<UIAControlProvider*>(new (std::nothrow) UIAComboBoxProvider(this));
-    }
-    return m_pUIAProvider;
-}
-#endif
-
 bool ShadowCombo::AddItem(Control* pControl)
 {
     m_pLayout->AddItem(pControl);
@@ -428,20 +417,7 @@ bool ShadowCombo::SelectItemInternal(size_t iIndex)
     //add by djj below
     SendEvent(ui::kEventSelect, m_iCurSel, iOldSel);
 
-#if defined(ENABLE_UIAUTOMATION)
-    if (m_pUIAProvider != nullptr && UiaClientsAreListening()) {
-        VARIANT vtOld = { 0 }, vtNew = { 0 };
-        vtOld.vt = vtNew.vt = VT_BSTR;
-        ListBoxElement* pControl = static_cast<ListBoxElement*>(m_pLayout->GetItemAt(m_iCurSel));
-        vtOld.bstrVal = SysAllocString(pControl ? pControl->GetText().c_str() : L"");
-        vtNew.bstrVal = SysAllocString(GetText().c_str());
-
-        UiaRaiseAutomationPropertyChangedEvent(m_pUIAProvider, UIA_ValueValuePropertyId, vtOld, vtNew);
-    }
-#endif
-
     Invalidate();
-
     return true;
 }
 bool ShadowCombo::SelectItem(size_t iIndex, bool bTrigger)

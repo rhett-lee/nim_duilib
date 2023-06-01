@@ -694,9 +694,6 @@ public:
     virtual void EndRight() override;
 
 	virtual std::wstring GetType() const override;
-#if defined(ENABLE_UIAUTOMATION)
-	virtual UIAControlProvider* GetUIAProvider() override;
-#endif
 	virtual void DoInit() override;
 	virtual void SetEnabled(bool bEnable = true) override;
 	virtual UiSize EstimateSize(UiSize szAvailable) override;

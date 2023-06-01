@@ -239,17 +239,6 @@ Box::~Box()
 
 std::wstring Box::GetType() const { return DUI_CTR_BOX; }
 
-#if defined(ENABLE_UIAUTOMATION)
-UIAControlProvider* Box::GetUIAProvider()
-{
-	if (m_pUIAProvider == nullptr)
-	{
-		m_pUIAProvider = static_cast<UIAControlProvider*>(new (std::nothrow) UIABoxProvider(this));
-	}
-	return m_pUIAProvider;
-}
-#endif
-
 void Box::SetWindow(Window* pManager, Box* pParent, bool bInit)
 {
 	for (auto pControl : m_items) {
@@ -733,17 +722,6 @@ ScrollableBox::ScrollableBox(Layout* pLayout) :
 }
 
 std::wstring ScrollableBox::GetType() const { return std::wstring(_T("Scrollable")) + DUI_CTR_BOX; }//ScrollableBox
-
-#if defined(ENABLE_UIAUTOMATION)
-UIAControlProvider* ScrollableBox::GetUIAProvider()
-{
-	if (m_pUIAProvider == nullptr)
-	{
-		m_pUIAProvider = static_cast<UIAControlProvider*>(new (std::nothrow) UIAScrollableBoxProvider(this));
-	}
-	return m_pUIAProvider;
-}
-#endif
 
 void ScrollableBox::SetAttribute(const std::wstring& pstrName, const std::wstring& pstrValue)
 {

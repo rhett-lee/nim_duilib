@@ -38,10 +38,6 @@ public:
 /////////////////////////////////////////////////////////////////////////////////////
 //
 
-#if defined(ENABLE_UIAUTOMATION)
-class UIAWindowProvider;
-#endif
-
 /**@brief 窗口类
 *  外部调用需要初始化的基本流程：
 *  1. 调用Window::CreateWnd创建窗口；
@@ -797,13 +793,6 @@ private:
 	*/
 	void CheckSetFocusWindow();
 
-#if defined(ENABLE_UIAUTOMATION)
-public:
-	/** @brief Get ui automation provider
-	 */
-	UIAWindowProvider* GetUIAProvider();
-#endif
-
 private:
 	//窗口句柄
 	HWND m_hWnd;
@@ -932,11 +921,6 @@ private:
 	/** 窗口关联的容器，根节点
 	*/
 	Box* m_pRoot;
-
-protected:
-#if defined(ENABLE_UIAUTOMATION)
-	UIAWindowProvider* m_pUIAProvider;
-#endif
 };
 
 } // namespace ui

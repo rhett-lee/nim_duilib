@@ -16,17 +16,6 @@ TreeNode::TreeNode() :
 
 std::wstring TreeNode::GetType() const { return DUI_CTR_TREENODE; }
 
-#if defined(ENABLE_UIAUTOMATION)
-UIAControlProvider* TreeNode::GetUIAProvider()
-{
-	if (m_pUIAProvider == nullptr)
-	{
-		m_pUIAProvider = static_cast<UIAControlProvider*>(new (std::nothrow) UIATreeNodeProvider(this));
-	}
-	return m_pUIAProvider;
-}
-#endif
-
 void TreeNode::SetTreeView(TreeView* pTreeView)
 {
     m_pTreeView = pTreeView;

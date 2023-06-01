@@ -54,9 +54,6 @@ Window::Window() :
 {
 	m_toolTip = std::make_unique<ToolTip>();
 	m_shadow = std::make_unique<Shadow>();
-#if defined(ENABLE_UIAUTOMATION)
-	m_pUIAProvider = nullptr;
-#endif
 }
 
 Window::~Window()
@@ -377,18 +374,6 @@ void Window::OnFinalMessage(HWND hWnd)
 	//»ØÊÕ¿Ø¼þ
 	ReapObjects(GetRoot());
 	m_hWnd = nullptr;
-
-#if defined(ENABLE_UIAUTOMATION)
-	if (nullptr != m_pUIAProvider) {
-		// Coz UiaDisconnectProviderd require at least win8
-		// UiaDisconnectProvider(m_pUIAProvider);
-
-		m_pUIAProvider->ResetWindow();
-		m_pUIAProvider->Release();
-
-		m_pUIAProvider = nullptr;
-	}
-#endif
 }
 
 LRESULT CALLBACK Window::__WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -457,17 +442,6 @@ LRESULT CALLBACK Window::__ControlProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
         return ::DefWindowProc(hWnd, uMsg, wParam, lParam);
     }
 }
-
-#if defined(ENABLE_UIAUTOMATION)
-UIAWindowProvider* Window::GetUIAProvider()
-{
-	if (m_pUIAProvider == nullptr)
-	{
-		m_pUIAProvider = new (std::nothrow) UIAWindowProvider(this);
-	}
-	return m_pUIAProvider;
-}
-#endif
 
 void Window::InitWnd(HWND hWnd)
 {
@@ -1088,18 +1062,7 @@ LRESULT Window::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHa
 		case WM_POINTERWHEEL:
 		case WM_POINTERCAPTURECHANGED:
 			lResult = OnPointerMsgs(uMsg, wParam, lParam, bHandled); 
-			break;		
-		
-#if defined(ENABLE_UIAUTOMATION)
-		case WM_GETOBJECT:
-		{
-			if (static_cast<long>(lParam) == static_cast<long>(UiaRootObjectId) && GlobalManager::IsAutomationEnabled()) {
-				bHandled = TRUE;
-				return UiaReturnRawElementProvider(m_hWnd, wParam, lParam, GetUIAProvider());
-			}
-		}
-		break;
-#endif
+			break;
 
 		default:
 			break;

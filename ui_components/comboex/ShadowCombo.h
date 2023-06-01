@@ -39,9 +39,6 @@ public:
     // 重写父类方法，提供个性化功能，请参考父类声明
     void DoInit() override;
     std::wstring GetType() const override;
-#if defined(ENABLE_UIAUTOMATION)
-    UIAControlProvider* GetUIAProvider() override;
-#endif
     bool AddItem(Control* pControl) override;
     bool RemoveItem(Control* pControl) override;
     bool RemoveItemAt(size_t iIndex) override;

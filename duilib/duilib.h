@@ -55,28 +55,6 @@
 #include <queue>
 #include <functional>
 
-#if defined(ENABLE_UIAUTOMATION)
-    #include <UIAutomation.h>
-    #include <UIAutomationCoreApi.h>
-    
-    #pragma comment(lib, "uiautomationcore.lib")
-
-    #include "Automation/UIAControlProvider.h"
-    #include "Automation/UIAWindowProvider.h"
-    #include "Automation/UIAScrollBarProvider.h"
-    #include "Automation/UIABoxProvider.h"
-    #include "Automation/UIAScrollableBoxProvider.h"
-    #include "Automation/UIALabelProvider.h"
-    #include "Automation/UIAButtonProvider.h"
-    #include "Automation/UIACheckBoxProvider.h"
-    #include "Automation/UIAProgressProvider.h"
-    #include "Automation/UIARichEditProvider.h"
-    #include "Automation/UIAComboBoxProvider.h"
-    #include "Automation/UIAListBoxProvider.h"
-    #include "Automation/UIAListBoxItemProvider.h"
-    #include "Automation/UIATreeNodeProvider.h"
-#endif
-
 #include "duilib_defs.h"
 #include "Utils/Macros.h"
 #include "Utils/VersionHelpers.h"

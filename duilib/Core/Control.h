@@ -21,10 +21,6 @@ namespace ui
 
 	typedef Control* (CALLBACK* FINDCONTROLPROC)(Control*, LPVOID);
 
-#if defined(ENABLE_UIAUTOMATION)
-	class UIAControlProvider;
-#endif
-
 class UILIB_API Control : 
 	public PlaceHolder
 {
@@ -527,14 +523,6 @@ public:
 	 * @return 返回是否在范围内，true 在滚动条当前滚动位置范围内，false 不在滚动条当前滚动位置范围内
 	 */
 	virtual bool IsPointInWithScrollOffset(const UiPoint& point) const;
-
-#if defined(ENABLE_UIAUTOMATION)
-	/**
-	 * @brief Get ui automation provider 
-	 * @return nullptr or pointer
-	 */
-	virtual UIAControlProvider* GetUIAProvider();
-#endif
 
 	// 消息处理
 	/** @brief 控件统一的消息处理入口，将传统 Windows 消息转换为自定义格式的消息
@@ -1165,10 +1153,6 @@ private:
 
 	//控件的光标类型
 	CursorType m_cursorType;
-
-#if defined(ENABLE_UIAUTOMATION)
-	UIAControlProvider* m_pUIAProvider;
-#endif
 };
 
 } // namespace ui
