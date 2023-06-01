@@ -43,6 +43,13 @@ class UIAWindowProvider;
 #endif
 
 /**@brief 窗口类
+*  外部调用需要初始化的基本流程：
+*  1. 调用Window::CreateWnd创建窗口；
+*  2. Window::InitWnd；
+*  3. Window::SetResourcePath；
+*  4. WindowBuilder::Create, 得到Box* pRoot；
+*  5. Window::AttachShadow(pRoot), 得到附加阴影的Box* pRoot, 以支持窗口阴影效果
+*  6. Window::AttachBox(pRoot)
 */
 class UILIB_API Window : public virtual nbase::SupportWeakCallback
 {
@@ -59,8 +66,7 @@ public:
 	 * @param[in] hwndParent 父窗口句柄
 	 * @param[in] windowName 窗口名称
 	 * @param[in] dwStyle 窗口样式
-	 * @param[in] dwExStyle 窗口拓展样式
-	 * @param[in] isLayeredWindow 是否带有层窗口属性，默认为 true
+	 * @param[in] dwExStyle 窗口拓展样式, 可以设置层窗口（WS_EX_LAYERED）等属性
 	 * @param[in] rc 窗口大小
 	 * @return 返回窗口句柄
 	 */
@@ -68,7 +74,6 @@ public:
 						   const wchar_t* windowName,
 						   uint32_t dwStyle, 
 						   uint32_t dwExStyle, 
-						   bool isLayeredWindow = true, 
 						   const UiRect& rc = UiRect(0, 0, 0, 0));
 
 	/**@brief 获取窗口所属的 Windows 句柄
@@ -114,12 +119,6 @@ protected:
 	 * @return 返回窗口类的样式，该方法基类返回 CS_DBLCLKS
 	 */
 	virtual UINT GetClassStyle() const;
-
-	/**@brief 获取窗口样式
-	* @return 默认返回当前窗口的样式去掉WS_CAPTION属性
-	*         如果子类重写该函数后，返回值为0，则不改变当前窗口的样式
-	*/
-	virtual UINT GetStyle() const;
 
 	/** 获取资源的句柄
 	* @return 默认返回当前进程exe的句柄
@@ -244,10 +243,9 @@ public:
 	/** @} */
 
 public:
-	/** @name 窗口初始大小、标题栏、阴影等相关接口
+	/** @name 窗口初始大小、标题栏等相关接口
 	* @{
 	*/
-
 	/**@brief 获取窗口四边可拉伸范围的大小
 	 */
 	const UiRect& GetSizeBox() const;
@@ -294,35 +292,6 @@ public:
 	 */
 	void SetAlphaFixCorner(const UiRect& rc);
 
-	/// 阴影相关部分
-	/**@brief 设置窗口是否附加阴影效果
-	 * @param[in] bShadowAttached 为 true 时附加，false 时不附加
-	 */
-	void SetShadowAttached(bool bShadowAttached);
-
-	/**@brief 获取是否附加阴影效果
-	*/
-	bool IsShadowAttached() const;
-
-	/**@brief 获取阴影图片
-	 */
-	const std::wstring& GetShadowImage() const;
-
-	/**@brief 设置窗口阴影图片
-	 * @param[in] strImage 图片位置
-	 */
-	void SetShadowImage(const std::wstring& strImage);
-
-	/**@brief 获取阴影的九宫格描述信息
-	 */
-	UiRect GetShadowCorner() const;
-
-	/**@brief 指定阴影素材的九宫格描述
-	 * @param[in] rect 九宫格描述信息
-	 * @param[in] bNeedDpiScale 为 false 表示不需要把 rc 根据 DPI 自动调整
-	 */
-	void SetShadowCorner(const UiRect& rect, bool bNeedDpiScale = true);
-
 	/**@brief 获取窗口最小范围，对应 XML 中 mininfo 属性
 	 * @param[in] bContainShadow 是否包含阴影范围，默认为 false
 	 */
@@ -368,12 +337,6 @@ public:
 	/** @name 窗口布局相关接口
 	* @{
 	*/
-	/* @brief 将阴影附加到窗口
-	 * @param[in] pRoot 窗口的顶层容器
-	 * @return 返回附加阴影后的容器指针
-	 */
-	Box* AttachShadow(Box* pRoot);
-
 	/**@brief 绑定窗口的顶层容器
 	 * @param[in] pRoot 容器指针
 	 */
@@ -621,7 +584,6 @@ private:
 	 */
 	bool HandleMouseEnterLeave(const UiPoint& pt, WPARAM wParam, LPARAM lParam);
 
-
 	/** @}*/
 
 public:
@@ -670,6 +632,70 @@ public:
 	/** @}*/
 
 public:
+	/** @name 窗口阴影、层窗口透明度相关接口
+	* @{
+	*/
+	/** 附加窗口阴影
+	*/
+	virtual Box* AttachShadow(Box* pRoot);
+
+	/**@brief 设置窗口是否附加阴影效果
+	 * @param[in] bShadowAttached 为 true 时附加，false 时不附加
+	 */
+	void SetShadowAttached(bool bShadowAttached);
+
+	/**@brief 获取是否附加阴影效果
+	*/
+	bool IsShadowAttached() const;
+
+	/** 当前阴影效果值，是否为默认值
+	*/
+	bool IsUseDefaultShadowAttached() const;
+
+	/** 设置当前阴影效果值，是否为默认值
+	*/
+	void SetUseDefaultShadowAttached(bool isDefault);
+
+	/**@brief 获取阴影图片
+	 */
+	const std::wstring& GetShadowImage() const;
+
+	/**@brief 设置窗口阴影图片
+	 * @param[in] strImage 图片位置
+	 */
+	void SetShadowImage(const std::wstring& strImage);
+
+	/**@brief 获取阴影的九宫格描述信息
+	 */
+	UiRect GetShadowCorner() const;
+
+	/**@brief 指定阴影素材的九宫格描述
+	 * @param[in] rect 九宫格描述信息
+	 * @param[in] bNeedDpiScale 为 false 表示不需要把 rc 根据 DPI 自动调整
+	 */
+	void SetShadowCorner(const UiRect& rect, bool bNeedDpiScale = true);
+
+	/**@brief 设置窗口透明度
+	 * @param[in] nAlpha 透明度数值[0, 255]
+	 */
+	void SetWindowAlpha(int nAlpha);
+
+	/**@brief 获取窗口透明度
+	 * @param[in] nAlpha 透明度数值[0, 255]
+	 */
+	uint8_t GetWindowAlpha() const;
+
+	/**@brief 设置是否为层窗口
+	*/
+	void SetLayeredWindow(bool bIsLayeredWindow);
+
+	/**@brief 是否为层窗口
+	*/
+	bool IsLayeredWindow() const;
+
+	/** @}*/
+
+public:
 	/** @name 窗口绘制相关接口
 	* @{
 	*/
@@ -695,11 +721,6 @@ public:
 	 */
 	void Paint();
 
-	/**@brief 设置透明度
-	 * @param[in] nAlpha 透明度数值[0, 255]
-	 */
-	void SetAlpha(int nAlpha);
-
 	/**@brief 判断当前是否渲染透明图层
 	 */
 	bool IsRenderTransparent() const;
@@ -708,10 +729,6 @@ public:
 	 * @param[in] bCanvasTransparent 设置 true 为渲染透明图层，否则为 false
 	 */
 	bool SetRenderTransparent(bool bCanvasTransparent);
-
-	/**@brief 是否为层窗口
-	*/
-	bool IsLayeredWindow() const;
 
 	/**@brief 清理图片缓存
 	*/
@@ -838,8 +855,8 @@ private:
 	//是否为层窗口
 	bool m_bIsLayeredWindow;
 
-	//窗口透明度
-	int m_nAlpha;
+	//窗口透明度(仅当使用层窗口时有效)
+	uint8_t m_nWindowAlpha;
 
 	//绘制时的偏移量（动画用）
 	UiPoint m_renderOffset;

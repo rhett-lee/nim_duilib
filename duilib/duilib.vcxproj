@@ -373,6 +373,7 @@
     <ClCompile Include="Utils\OnScreenKeyboardManager.cpp" />
     <ClCompile Include="Utils\PerformanceUtil.cpp" />
     <ClCompile Include="Utils\Shadow.cpp" />
+    <ClCompile Include="Utils\ShadowWnd.cpp" />
     <ClCompile Include="Utils\StringUtil.cpp" />
     <ClCompile Include="Utils\TimerManager.cpp" />
     <ClCompile Include="Control\Combo.cpp" />
@@ -443,6 +444,7 @@
     <ClInclude Include="Utils\OnScreenKeyboardManager.h" />
     <ClInclude Include="Utils\PerformanceUtil.h" />
     <ClInclude Include="Utils\Shadow.h" />
+    <ClInclude Include="Utils\ShadowWnd.h" />
     <ClInclude Include="Utils\StringUtil.h" />
     <ClInclude Include="Utils\Delegate.h" />
     <ClInclude Include="Utils\TimerManager.h" />

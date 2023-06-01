@@ -9,7 +9,7 @@ const LPCTSTR Toast::kClassName = L"Toast";
 void Toast::ShowToast(const std::wstring &content, int duration, HWND parent)
 {
 	Toast *toast = new Toast;
-	HWND hWnd = toast->CreateWnd(parent, L"", WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX, 0);
+	HWND hWnd = toast->CreateWnd(parent, L"", WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX, WS_EX_LAYERED);
 	if (hWnd == NULL)
 		return;
 

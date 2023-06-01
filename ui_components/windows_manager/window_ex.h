@@ -1,6 +1,6 @@
 #pragma once
 
-#include "duilib/Utils/WinImplBase.h"
+#include "duilib/Utils/ShadowWnd.h"
 
 namespace nim_comp
 {
@@ -9,7 +9,7 @@ namespace nim_comp
  * @copyright (c) 2015, NetEase Inc. All rights reserved
  * @date 2015/9/16
  */
-class WindowEx : public ui::WindowImplBase
+class WindowEx : public ui::ShadowWnd
 {
 public:
 	WindowEx();
@@ -29,7 +29,6 @@ public:
 						   const wchar_t* windowName,
 						   uint32_t dwStyle,
 						   uint32_t dwExStyle,
-						   bool isLayeredWindow = true,
 						   const ui::UiRect& rc = ui::UiRect(0, 0, 0, 0)) override;
 
 	/**

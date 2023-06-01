@@ -11,14 +11,14 @@ WindowEx::~WindowEx()
 {
 }
 
-HWND WindowEx::CreateWnd(HWND hwndParent, const wchar_t* windowName, uint32_t dwStyle, uint32_t dwExStyle, bool isLayeredWindow, const ui::UiRect& rc)
+HWND WindowEx::CreateWnd(HWND hwndParent, const wchar_t* windowName, uint32_t dwStyle, uint32_t dwExStyle, const ui::UiRect& rc)
 {
 	if (!RegisterWnd())
 	{
 		return NULL;
 	}
 
-	HWND hwnd = __super::CreateWnd(hwndParent, windowName, dwStyle, dwExStyle, isLayeredWindow, rc);
+	HWND hwnd = __super::CreateWnd(hwndParent, windowName, dwStyle, dwExStyle, rc);
 	ASSERT(hwnd);
 	return hwnd;
 }

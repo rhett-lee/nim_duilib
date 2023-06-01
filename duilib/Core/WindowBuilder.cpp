@@ -196,22 +196,7 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
 						int cx = _tcstol(strValue.c_str(), &pstr, 10);  ASSERT(pstr);    
 						int cy = _tcstol(pstr + 1, &pstr, 10);    ASSERT(pstr); 
 						pWindow->SetMaxInfo(cx, cy);
-					}
-					else if( strName == _T("shadowattached") ) {
-						pWindow->SetShadowAttached(strValue == _T("true"));
-					}
-					else if (strName == _T("shadowimage")) {
-						pWindow->SetShadowImage(strValue);
-					}
-					else if (strName == _T("shadowcorner")) {
-						UiRect rc;
-						LPTSTR pstr = NULL;
-						rc.left = _tcstol(strValue.c_str(), &pstr, 10);  ASSERT(pstr);
-						rc.top = _tcstol(pstr + 1, &pstr, 10);    ASSERT(pstr);
-						rc.right = _tcstol(pstr + 1, &pstr, 10);  ASSERT(pstr);
-						rc.bottom = _tcstol(pstr + 1, &pstr, 10); ASSERT(pstr);
-						pWindow->SetShadowCorner(rc);
-					}
+					}					
 					else if (strName == _T("alphafixcorner") || strName == _T("custom_shadow")) {
 						UiRect rc;
 						LPTSTR pstr = NULL;
@@ -223,6 +208,37 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
 					}
 					else if (strName == _T("renderalpha")) {
 						pWindow->SetRenderTransparent(strValue == _T("true"));
+					}
+					else if ((strName == _T("shadow_attached")) || (strName == _T("shadowattached"))) {
+						//设置是否支持窗口阴影（阴影实现有两种：层窗口和普通窗口）
+						pWindow->SetShadowAttached(strValue == _T("true"));
+					}
+					else if ((strName == _T("shado_wimage")) || (strName == _T("shadowimage"))) {
+						//设置阴影图片
+						pWindow->SetShadowImage(strValue);
+					}
+					else if ((strName == _T("shadow_corner")) || (strName == _T("shadowcorner"))) {
+						//设置窗口阴影的九宫格属性
+						UiRect rc;
+						LPTSTR pstr = NULL;
+						rc.left = _tcstol(strValue.c_str(), &pstr, 10);  ASSERT(pstr);
+						rc.top = _tcstol(pstr + 1, &pstr, 10);    ASSERT(pstr);
+						rc.right = _tcstol(pstr + 1, &pstr, 10);  ASSERT(pstr);
+						rc.bottom = _tcstol(pstr + 1, &pstr, 10); ASSERT(pstr);
+						pWindow->SetShadowCorner(rc);
+					}
+					else if (strName == _T("layered_window")) {
+						//设置是否设置层窗口属性（层窗口还是普通窗口）
+						pWindow->SetLayeredWindow(strValue == _T("true"));
+					}
+					else if (strName == _T("alpha")) {
+						//设置窗口的透明度（0 - 255），仅当使用层窗口时有效
+						LPTSTR pstr = NULL;
+						int nAlpha = _tcstol(strValue.c_str(), &pstr, 10);  ASSERT(pstr);
+						ASSERT(nAlpha >= 0 && nAlpha <= 255);
+						if ((nAlpha >= 0) && (nAlpha <= 255)) {
+							pWindow->SetWindowAlpha(nAlpha);
+						}
 					}
 				}
 			}

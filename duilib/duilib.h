@@ -114,6 +114,7 @@
 #include "Core/BoxShadow.h"
 #include "Core/Box.h"
 #include "Utils/WinImplBase.h"
+#include "Utils/ShadowWnd.h"
 
 #include "Box/VBox.h"
 #include "Box/HBox.h"

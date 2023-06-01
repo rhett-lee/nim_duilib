@@ -48,7 +48,7 @@ void MainThread::Init()
 
 	// 创建一个默认带有阴影的居中窗口
 	RenderForm* window = new RenderForm();
-	window->CreateWnd(NULL, RenderForm::kClassName.c_str(), UI_WNDSTYLE_FRAME, 0);
+	window->CreateWnd(NULL, RenderForm::kClassName.c_str(), UI_WNDSTYLE_FRAME, WS_EX_LAYERED);
 	window->CenterWindow();
 	window->ShowWindow();
 }

@@ -45,7 +45,7 @@ public:
 	{
 		AppWindow* ret = new AppWindow;
 		ret->SetBeforeCreate(Item, pt);
-		ret->CreateWnd(hParent, L"", WS_POPUP, WS_EX_TOOLWINDOW);
+		ret->CreateWnd(hParent, L"", WS_POPUP, WS_EX_TOOLWINDOW | WS_EX_LAYERED);
 		pThis_ = ret;
 		//需要改变下pos,延后到initWindows
 		return ret;

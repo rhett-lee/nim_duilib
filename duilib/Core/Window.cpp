@@ -24,8 +24,7 @@ Window::Window() :
 	m_pRoot(nullptr),
 	m_OnEvent(),
 	m_OldWndProc(::DefWindowProc),
-	m_bSubclassed(false),
-	m_nAlpha(255),
+	m_bSubclassed(false),	
 	m_renderOffset(),
 	m_hDcPaint(nullptr),
 	m_pFocus(nullptr),
@@ -44,7 +43,8 @@ Window::Window() :
 	m_bFirstLayout(true),
 	m_bIsArranged(false),
 	m_bMouseCapture(false),
-	m_bIsLayeredWindow(true),
+	m_bIsLayeredWindow(false),
+	m_nWindowAlpha(255),
 	m_aMessageFilters(),
 	m_aDelayedCleanup(),
 	m_mOptionGroup(),
@@ -144,15 +144,6 @@ UINT Window::GetClassStyle() const
 	return CS_DBLCLKS ;
 }
 
-UINT Window::GetStyle() const
-{
-	//从原来窗口样式中，移除 WS_CAPTION 属性
-	ASSERT(::IsWindow(GetHWND()));
-	UINT styleValue = (UINT)::GetWindowLong(GetHWND(), GWL_STYLE);
-	styleValue &= ~WS_CAPTION;
-	return styleValue;
-}
-
 HMODULE Window::GetResModuleHandle() const
 {
 	return ::GetModuleHandle(NULL);
@@ -185,7 +176,7 @@ void Window::Unsubclass()
 	}	
 }
 
-HWND Window::CreateWnd(HWND hwndParent, const wchar_t* windowName, uint32_t dwStyle, uint32_t dwExStyle, bool isLayeredWindow, const UiRect& rc)
+HWND Window::CreateWnd(HWND hwndParent, const wchar_t* windowName, uint32_t dwStyle, uint32_t dwExStyle, const UiRect& rc)
 {
 	if (!GetSuperClassName().empty()){
 		if (!RegisterSuperClass()) {
@@ -198,9 +189,17 @@ HWND Window::CreateWnd(HWND hwndParent, const wchar_t* windowName, uint32_t dwSt
 		}		
 	}
 	std::wstring className = GetWindowClassName();
-	m_bIsLayeredWindow = isLayeredWindow;
-	if (m_bIsLayeredWindow) {
-		dwExStyle |= WS_EX_LAYERED;
+
+	//初始化层窗口属性
+	m_bIsLayeredWindow = false;
+	if (dwExStyle & WS_EX_LAYERED) {
+		m_bIsLayeredWindow = true;
+	}
+
+	//根据窗口是否为层窗口，重新初始化阴影附加属性值(层窗口为true，否则为false)
+	if (m_shadow->IsUseDefaultShadowAttached()) {
+		m_shadow->SetShadowAttached(m_bIsLayeredWindow);
+		m_shadow->SetUseDefaultShadowAttached(true);
 	}
 
     HWND hWnd = ::CreateWindowEx(dwExStyle, 
@@ -231,16 +230,7 @@ void Window::CloseWnd(UINT nRet)
 		return;
 	}
 
-	if (m_pRoot && IsWindowsVistaOrGreater()) {
-		m_pRoot->SetFadeVisible(false);
-		auto closeCallback = [this, nRet]() {
-			this->PostMessage(WM_CLOSE, (WPARAM)nRet, 0L);
-		};
-		TimerManager::GetInstance()->AddCancelableTimer(m_closeFlag.GetWeakFlag(), closeCallback, 300, 1);
-	}
-	else {
-		PostMessage(WM_CLOSE, (WPARAM)nRet, 0L);
-	}
+	PostMessage(WM_CLOSE, (WPARAM)nRet, 0L);
 	m_bCloseing = true;
 }
 
@@ -503,11 +493,6 @@ void Window::InitWnd(HWND hWnd)
 	RegisterTouchWindowWrapper(hWnd, 0);
 }
 
-Box* Window::AttachShadow(Box* pRoot)
-{
-	return m_shadow->AttachShadow(pRoot);
-}
-
 bool Window::AttachBox(Box* pRoot)
 {
 	ASSERT(::IsWindow(m_hWnd));	
@@ -528,7 +513,26 @@ bool Window::AttachBox(Box* pRoot)
 	m_bIsArranged = true;
 	m_bFirstLayout = true;
 	// Initiate all control
-	return InitControls(m_pRoot);
+	bool isInit = InitControls(m_pRoot);
+	if ( (pRoot != nullptr) && 
+		 ((pRoot->GetFixedWidth() == DUI_LENGTH_AUTO) || (pRoot->GetFixedHeight() == DUI_LENGTH_AUTO))) {
+		UiSize maxSize(99999, 99999);
+		UiSize needSize = pRoot->EstimateSize(maxSize);
+		if (needSize.cx < pRoot->GetMinWidth()) {
+			needSize.cx = pRoot->GetMinWidth();
+		}
+		if (pRoot->GetMaxWidth() >= 0 && needSize.cx > pRoot->GetMaxWidth()) {
+			needSize.cx = pRoot->GetMaxWidth();
+		}
+		if (needSize.cy < pRoot->GetMinHeight()) {
+			needSize.cy = pRoot->GetMinHeight();
+		}
+		if (needSize.cy > pRoot->GetMaxHeight()) {
+			needSize.cy = pRoot->GetMaxHeight();
+		}
+		::MoveWindow(GetHWND(), 0, 0, needSize.cx, needSize.cy, FALSE);
+	}
+	return isInit;
 }
 
 bool Window::InitControls(Control* pControl, Box* pParent /*= NULL*/)
@@ -772,6 +776,12 @@ void Window::SetTextId(const std::wstring& strTextId)
 	::SetWindowText(m_hWnd, MultiLangSupport::GetInstance()->GetStringViaID(strTextId).c_str());
 }
 
+Box* Window::AttachShadow(Box* pRoot)
+{
+	//将阴影附加到窗口
+	return m_shadow->AttachShadow(pRoot);
+}
+
 void Window::SetShadowAttached(bool bShadowAttached)
 {
 	m_shadow->SetShadowAttached(bShadowAttached);
@@ -795,6 +805,16 @@ UiRect Window::GetShadowCorner() const
 bool Window::IsShadowAttached() const
 {
     return m_shadow->IsShadowAttached();
+}
+
+bool Window::IsUseDefaultShadowAttached() const
+{
+	return m_shadow->IsUseDefaultShadowAttached();
+}
+
+void Window::SetUseDefaultShadowAttached(bool isDefault)
+{
+	m_shadow->SetUseDefaultShadowAttached(isDefault);
 }
 
 void Window::SetShadowCorner(const UiRect& rect, bool bNeedDpiScale)
@@ -2128,7 +2148,7 @@ void Window::Paint()
 		UiPoint pt(rcWindow.left, rcWindow.top);
 		UiSize szWindow(rcClient.right - rcClient.left, rcClient.bottom - rcClient.top);
 		UiPoint ptSrc;
-		BLENDFUNCTION bf = { AC_SRC_OVER, 0, static_cast<BYTE>(m_nAlpha), AC_SRC_ALPHA };
+		BLENDFUNCTION bf = { AC_SRC_OVER, 0, static_cast<BYTE>(m_nWindowAlpha), AC_SRC_ALPHA };
 		HDC hdc = m_render->GetDC();
 		::UpdateLayeredWindow(m_hWnd, NULL, &pt, &szWindow, hdc, &ptSrc, 0, &bf, ULW_ALPHA);
 		m_render->ReleaseDC(hdc);
@@ -2143,13 +2163,21 @@ void Window::Paint()
 	::EndPaint(m_hWnd, &ps);
 }
 
-void Window::SetAlpha(int nAlpha)
+void Window::SetWindowAlpha(int nAlpha)
 {
 	ASSERT(nAlpha >= 0 && nAlpha <= 255);
-	if (m_pRoot != nullptr) {
-		m_nAlpha = nAlpha;
+	if ((nAlpha < 0) || (nAlpha > 255)) {
+		return;
+	}
+	m_nWindowAlpha = static_cast<uint8_t>(nAlpha);
+	if (m_pRoot != nullptr) {		
 		Invalidate(m_pRoot->GetPos());
 	}
+}
+
+uint8_t Window::GetWindowAlpha() const
+{
+	return m_nWindowAlpha;
 }
 
 bool Window::IsRenderTransparent() const
@@ -2160,6 +2188,31 @@ bool Window::IsRenderTransparent() const
 bool Window::SetRenderTransparent(bool bCanvasTransparent)
 {
 	return m_render->SetRenderTransparent(bCanvasTransparent);
+}
+
+void Window::SetLayeredWindow(bool bIsLayeredWindow)
+{
+	m_bIsLayeredWindow = bIsLayeredWindow;
+
+	//根据窗口是否为层窗口，重新初始化阴影附加属性值(层窗口为true，否则为false)
+	if (m_shadow->IsUseDefaultShadowAttached()) {
+		m_shadow->SetShadowAttached(m_bIsLayeredWindow);
+		m_shadow->SetUseDefaultShadowAttached(true);
+	}
+
+	if (::IsWindow(m_hWnd)) {
+		LONG dwExStyle = ::GetWindowLong(m_hWnd, GWL_EXSTYLE);
+		if (m_bIsLayeredWindow) {
+			dwExStyle |= WS_EX_LAYERED;
+		}
+		else {
+			dwExStyle &= ~WS_EX_LAYERED;
+		}
+		::SetWindowLong(m_hWnd, GWL_EXSTYLE, dwExStyle);
+		if (m_pRoot != nullptr) {
+			Invalidate(m_pRoot->GetPos());
+		}
+	}
 }
 
 bool Window::IsLayeredWindow() const
@@ -2194,10 +2247,6 @@ void Window::SetRenderOffsetY(int renderOffsetY)
 void Window::OnInitLayout()
 {
 	if ((m_pRoot != nullptr) && IsWindowsVistaOrGreater()) {
-		AnimationPlayer* animationArgs = m_pRoot->GetAnimationManager().SetFadeAlpha(true);
-		m_nAlpha = 0;
-		std::function<void(int)> playCallback = nbase::Bind(&Window::SetAlpha, this, std::placeholders::_1);
-		animationArgs->SetCallback(playCallback);
 		m_pRoot->SetFadeVisible(true);
 	}
 }

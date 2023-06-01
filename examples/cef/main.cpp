@@ -65,7 +65,11 @@ void MainThread::Init()
 
 	// 创建一个默认带有阴影的居中窗口
 	CefForm* window = new CefForm();
-	window->CreateWnd(NULL, CefForm::kClassName.c_str(), UI_WNDSTYLE_FRAME, 0, nim_comp::CefManager::GetInstance()->IsEnableOffsetRender());
+	uint32_t dwExStyle = 0;
+	if (nim_comp::CefManager::GetInstance()->IsEnableOffsetRender()) {
+		dwExStyle |= WS_EX_LAYERED;
+	}
+	window->CreateWnd(NULL, CefForm::kClassName.c_str(), UI_WNDSTYLE_FRAME, dwExStyle);
 	window->CenterWindow();
 	window->ShowWindow();
 }

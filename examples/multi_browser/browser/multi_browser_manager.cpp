@@ -22,7 +22,7 @@ BrowserBox* MultiBrowserManager::CreateBorwserBox(MultiBrowserForm *browser_form
 		if (!browser_form)
 		{
 			browser_form = new MultiBrowserForm;
-			HWND hwnd = browser_form->CreateWnd(NULL, L"MultiBrowser", UI_WNDSTYLE_FRAME, 0, false);
+			HWND hwnd = browser_form->CreateWnd(NULL, L"MultiBrowser", UI_WNDSTYLE_FRAME, 0);
 			if (hwnd == NULL)
 			{
 				browser_form = NULL;
@@ -39,7 +39,7 @@ BrowserBox* MultiBrowserManager::CreateBorwserBox(MultiBrowserForm *browser_form
 	else
 	{
 		browser_form = new MultiBrowserForm;
-		HWND hwnd = browser_form->CreateWnd(NULL, L"MultiBrowser", UI_WNDSTYLE_FRAME, 0, false);
+		HWND hwnd = browser_form->CreateWnd(NULL, L"MultiBrowser", UI_WNDSTYLE_FRAME, 0);
 		if (hwnd == NULL)
 			return NULL;
 
@@ -162,7 +162,7 @@ void MultiBrowserManager::SetEnableMerge(bool enable)
 			else if (parent_form->DetachBox(it_box.second))
 			{
 				MultiBrowserForm *browser_form = new MultiBrowserForm;
-				HWND hwnd = browser_form->CreateWnd(NULL, L"MultiBrowser", UI_WNDSTYLE_FRAME, 0, false);
+				HWND hwnd = browser_form->CreateWnd(NULL, L"MultiBrowser", UI_WNDSTYLE_FRAME, 0);
 				if (hwnd == NULL)
 				{
 					ASSERT(0);
@@ -370,7 +370,7 @@ void MultiBrowserManager::OnAfterDragBorwserBox()
 			if (drag_browser_form->DetachBox(draging_box_))
 			{
 				MultiBrowserForm *browser_form = new MultiBrowserForm;
-				HWND hwnd = browser_form->CreateWnd(NULL, L"MultiBrowser", UI_WNDSTYLE_FRAME, 0, false);
+				HWND hwnd = browser_form->CreateWnd(NULL, L"MultiBrowser", UI_WNDSTYLE_FRAME, 0);
 				if (hwnd != NULL)
 				{
 					if (browser_form->AttachBox(draging_box_))

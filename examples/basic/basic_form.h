@@ -1,6 +1,6 @@
 #pragma once
 
-class BasicForm : public ui::WindowImplBase
+class BasicForm : public ui::ShadowWnd
 {
 public:
 	BasicForm();

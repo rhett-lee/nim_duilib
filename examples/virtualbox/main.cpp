@@ -49,7 +49,7 @@ void MainThread::Init()
 
 	// 创建一个默认带有阴影的居中窗口
 	MainForm* window = new MainForm();
-	window->CreateWnd(NULL, MainForm::kClassName.c_str(), UI_WNDSTYLE_FRAME, 0);
+	window->CreateWnd(NULL, MainForm::kClassName.c_str(), UI_WNDSTYLE_FRAME, WS_EX_LAYERED);
 	window->CenterWindow();
 	window->ShowWindow();
 }

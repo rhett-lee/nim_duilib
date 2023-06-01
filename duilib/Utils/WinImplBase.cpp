@@ -24,6 +24,15 @@ Control* WindowImplBase::CreateControl(const std::wstring& /*strClass*/)
 	return nullptr;
 }
 
+UINT WindowImplBase::GetStyle() const
+{
+	//从原来窗口样式中，移除 WS_CAPTION 属性
+	ASSERT(::IsWindow(GetHWND()));
+	UINT styleValue = (UINT)::GetWindowLong(GetHWND(), GWL_STYLE);
+	styleValue &= ~WS_CAPTION;
+	return styleValue;
+}
+
 LRESULT WindowImplBase::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
 	LRESULT lRes = 0;
@@ -63,7 +72,6 @@ LRESULT WindowImplBase::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 	InitWnd(GetHWND());
 	SetResourcePath(GetSkinFolder());
 
-	WindowBuilder builder;
 	std::wstring strSkinFile;
 	std::wstring xmlFile = GetSkinFile();
 	if (!xmlFile.empty() && xmlFile.front() == L'<') {
@@ -73,8 +81,8 @@ LRESULT WindowImplBase::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 	else {
 		strSkinFile = GetResourcePath() + xmlFile;
 	}
-
 	auto callback = nbase::Bind(&WindowImplBase::CreateControl, this, std::placeholders::_1);
+	WindowBuilder builder;
 	Box* pRoot = builder.Create(strSkinFile, callback, this);
 
 	ASSERT(pRoot && L"Faield to load xml file.");
@@ -84,20 +92,11 @@ LRESULT WindowImplBase::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 		MessageBox(NULL, szErrMsg, _T("Duilib"), MB_OK | MB_ICONERROR);
 		return -1;
 	}
-	//关联边框阴影
+	//关联窗口附加阴影
 	pRoot = AttachShadow(pRoot);
-	AttachBox(pRoot);
-	
-	if (pRoot->GetFixedWidth() == DUI_LENGTH_AUTO || pRoot->GetFixedHeight() == DUI_LENGTH_AUTO) {
-		UiSize maxSize(99999, 99999);
-		UiSize needSize = pRoot->EstimateSize(maxSize);
-		if (needSize.cx < pRoot->GetMinWidth()) needSize.cx = pRoot->GetMinWidth();
-		if (pRoot->GetMaxWidth() >= 0 && needSize.cx > pRoot->GetMaxWidth()) needSize.cx = pRoot->GetMaxWidth();
-		if (needSize.cy < pRoot->GetMinHeight()) needSize.cy = pRoot->GetMinHeight();
-		if (needSize.cy > pRoot->GetMaxHeight()) needSize.cy = pRoot->GetMaxHeight();
 
-		::MoveWindow(GetHWND(), 0, 0, needSize.cx, needSize.cy, FALSE);
-	}
+	//关联Root对象
+	AttachBox(pRoot);
 
 	Control* pControl = (Control*)FindControl(DUI_CTR_BUTTON_CLOSE);
 	if (pControl) {

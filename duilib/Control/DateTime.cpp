@@ -47,7 +47,7 @@ void DateTimeWnd::Init(DateTime* pOwner)
         POINT pt2 = { rcPos.right, rcPos.bottom };
         ::ClientToScreen(pOwner->GetWindow()->GetHWND(), &pt1);
         ::ClientToScreen(pOwner->GetWindow()->GetHWND(), &pt2);
-        CreateWnd(m_pOwner->GetWindow()->GetHWND(), L"", uStyle, 0, false, {pt1.x, pt1.y, pt2.x, pt2.y});
+        CreateWnd(m_pOwner->GetWindow()->GetHWND(), L"", uStyle, 0, {pt1.x, pt1.y, pt2.x, pt2.y});
         ASSERT(GetHWND() != nullptr);
         SetWindowFont(GetHWND(), ui::GlobalManager::GetFont(L"system_12"), TRUE);
     }

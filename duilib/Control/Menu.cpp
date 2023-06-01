@@ -87,7 +87,7 @@ void CMenuWnd::ShowMenu(const std::wstring& xml, const UiPoint& point, MenuPopup
 
 	CMenuWnd::GetMenuObserver().AddReceiver(this);
 
-	CreateWnd(m_hParent, L"DUILIB_MENU_WINDOW", WS_POPUP, WS_EX_TOOLWINDOW | WS_EX_TOPMOST, true, ui::UiRect());
+	CreateWnd(m_hParent, L"DUILIB_MENU_WINDOW", WS_POPUP, WS_EX_TOOLWINDOW | WS_EX_TOPMOST | WS_EX_LAYERED);
 	// HACK: Don't deselect the parent's caption
 	HWND hWndParent = GetHWND();
 	while (::GetParent(hWndParent) != NULL) {

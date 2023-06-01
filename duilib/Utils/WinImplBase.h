@@ -16,7 +16,15 @@ namespace ui
 #define UI_CLASSSTYLE_DIALOG	(CS_VREDRAW | CS_HREDRAW | CS_DBLCLKS | CS_SAVEBITS)
 
 /** 实现一个带有标题栏的窗体，带有最大化、最小化、还原按钮的支持
-*/
+ * 该实现支持窗口阴影，单仅提供带有 WS_EX_LAYERED 属性窗口阴影。
+ * 该类实现，封装了2种窗口模式：
+ * （1）正常模式，不附加阴影的窗口：可以通过XML配置文件<Window>如下配置（举例）：
+ *              shadow_attached="false" layered_window="false" ，不需要配置alpha属性，不支持alpha属性;
+ *              上述配置等同于：layered_window="false"，不设置shadow_attached属性
+ * （2）附加阴影窗口模式，需要使用层窗口(带有WS_EX_LAYERED属性)，可以通过XML配置文件<Window>如下配置（举例）：
+ *              shadow_attached="true" layered_window="true" ，alpha为可选，设置窗口透明度，如果不设置默认为255；
+ *              上述配置等同于：layered_window="true"，不设置shadow_attached属性
+ */
 class UILIB_API WindowImplBase: public Window
 {
 public:
@@ -43,6 +51,12 @@ public:
      * @return 子类需实现并返回窗口唯一的类名称
      */
     virtual std::wstring GetWindowClassName() const override = 0;
+
+    /**@brief 获取窗口样式
+	* @return 默认返回当前窗口的样式去掉WS_CAPTION属性
+	*         如果子类重写该函数后，返回值为0，则不改变当前窗口的样式
+	*/
+	virtual UINT GetStyle() const;
 
 public:
 

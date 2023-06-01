@@ -90,7 +90,7 @@ void CShadowComboWnd::InitComboWnd(ShadowCombo* pOwner)
         ::MapWindowRect(pOwner->GetWindow()->GetHWND(), HWND_DESKTOP, &rc);
     }
 
-    CreateWnd(pOwner->GetWindow()->GetHWND(), L"", WS_POPUP, WS_EX_TOOLWINDOW, true, rc);
+    CreateWnd(pOwner->GetWindow()->GetHWND(), L"", WS_POPUP, WS_EX_TOOLWINDOW, rc);
     // HACK: Don't deselect the parent's caption
     HWND hWndParent = GetHWND();
     while (::GetParent(hWndParent) != NULL) {

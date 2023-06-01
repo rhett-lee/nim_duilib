@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Window size="800,600" caption="0,0,0,35">
-  <VBox bkcolor="bk_wnd_darkcolor">
-    <HBox width="stretch" height="35" bkcolor="bk_wnd_lightcolor">
+<Window size="800,600" caption="0,0,0,35" shadowattached="true" layered_window="false" alpha="192" sizebox="4,4,4,4">
+  <VBox bkcolor="bk_wnd_darkcolor" bordersize="1" bordercolor="lightcolor">
+    <HBox width="stretch" height="35" bkcolor="bk_wnd_lightcolor" margin="1,1,1,0">
       <Control />
       <Button class="btn_wnd_min" name="minbtn" margin="4,6,0,0"/>
       <Box width="21" margin="4,6,0,0">

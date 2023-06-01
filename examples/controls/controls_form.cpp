@@ -248,7 +248,7 @@ void ControlForm::ShowPopupMenu(const ui::UiPoint& point)
         if (!about_form)
         {
             about_form = new AboutForm();
-            about_form->CreateWnd(GetHWND(), AboutForm::kClassName, WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX, 0);
+            about_form->CreateWnd(GetHWND(), AboutForm::kClassName, WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX, WS_EX_LAYERED);
             about_form->CenterWindow();
             about_form->ShowWindow();
         }

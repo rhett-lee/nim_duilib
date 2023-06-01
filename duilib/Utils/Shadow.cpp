@@ -21,11 +21,34 @@ public:
 	};
 };
 
-Shadow::Shadow() :
+Shadow::Shadow():
 	m_bShadowAttached(true),
+	m_bUseDefaultShadowAttached(true),
 	m_pRoot(nullptr)
 {
 	ResetDefaultShadow();
+}
+
+void Shadow::SetShadowAttached(bool bShadowAttached)
+{
+	m_bShadowAttached = bShadowAttached; 
+	//外部设置后，即更新为非默认值
+	m_bUseDefaultShadowAttached = false;
+}
+
+bool Shadow::IsShadowAttached() const
+{ 
+	return m_bShadowAttached;
+}
+
+bool Shadow::IsUseDefaultShadowAttached() const
+{
+	return m_bUseDefaultShadowAttached;
+}
+
+void Shadow::SetUseDefaultShadowAttached(bool isDefault)
+{
+	m_bUseDefaultShadowAttached = isDefault;
 }
 
 void Shadow::SetShadowImage(const std::wstring &image)
@@ -72,6 +95,11 @@ Box* Shadow::AttachShadow(Box* pRoot)
 	if (!m_bShadowAttached) {
 		return pRoot;
 	}
+	ASSERT(m_pRoot == nullptr);
+	if (m_pRoot != nullptr) {
+		return pRoot;
+	}
+
 	if (pRoot == nullptr) {
 		return nullptr;
 	}
@@ -105,8 +133,9 @@ Box* Shadow::AttachShadow(Box* pRoot)
 
 void Shadow::MaximizedOrRestored(bool isMaximized)
 {
-	if (!m_bShadowAttached)
+	if (!m_bShadowAttached) {
 		return;
+	}
 
 	if (isMaximized && m_pRoot) {
 		m_rcShadowCorner = UiRect(0, 0, 0, 0);
@@ -139,7 +168,9 @@ ui::Control* Shadow::GetRoot()
 
 void Shadow::ClearImageCache()
 {
-	m_pRoot->ClearImageCache();
+	if (m_pRoot) {
+		m_pRoot->ClearImageCache();
+	}	
 }
 
 }

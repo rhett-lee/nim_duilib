@@ -12,7 +12,7 @@ interface IDropTargetHelper;
 
 class BrowserBox;
 class BrowserTabItem;
-class MultiBrowserForm : public nim_comp::ShadowWndBase, public IDropTarget, public TaskbarManager::ITaskbarDelegate
+class MultiBrowserForm : public ui::ShadowWnd, public IDropTarget, public TaskbarManager::ITaskbarDelegate
 {
 public:
 	MultiBrowserForm();

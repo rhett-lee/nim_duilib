@@ -235,7 +235,6 @@
     <ClInclude Include="modal_wnd\file_dialog_ex.h" />
     <ClInclude Include="modal_wnd\modal_wnd_base.h" />
     <ClInclude Include="msgbox\msgbox.h" />
-    <ClInclude Include="shadow_wnd\shadow_wnd.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="toast\toast.h" />
     <ClInclude Include="ui_components.h" />
@@ -277,7 +276,6 @@
     <ClCompile Include="popover\notification.cpp" />
     <ClCompile Include="popover\popover.cpp" />
     <ClCompile Include="popover\tooltip.cpp" />
-    <ClCompile Include="shadow_wnd\shadow_wnd.cpp" />
     <ClCompile Include="toast\toast.cpp" />
     <ClCompile Include="windows_manager\windows_manager.cpp" />
     <ClCompile Include="windows_manager\window_ex.cpp" />

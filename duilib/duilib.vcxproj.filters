@@ -210,6 +210,9 @@
     <ClCompile Include="Utils\PerformanceUtil.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
+    <ClCompile Include="Utils\ShadowWnd.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -432,6 +435,9 @@
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="Utils\PerformanceUtil.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\ShadowWnd.h">
       <Filter>Utils</Filter>
     </ClInclude>
   </ItemGroup>

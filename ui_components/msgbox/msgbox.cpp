@@ -12,7 +12,7 @@ void ShowMsgBox(HWND hwnd, MsgboxCallback cb,
 	const std::wstring &no, bool btn_no_is_id)
 {
 	MsgBox* msgbox = new MsgBox;
-	HWND hWnd = msgbox->CreateWnd(hwnd, L"", WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX, 0);
+	HWND hWnd = msgbox->CreateWnd(hwnd, L"", WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX, WS_EX_LAYERED);
 	if (hWnd == NULL)
 		return;
 	ui::MultiLangSupport *multilan = ui::MultiLangSupport::GetInstance();

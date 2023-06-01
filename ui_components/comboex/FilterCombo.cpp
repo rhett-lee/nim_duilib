@@ -73,7 +73,7 @@ void CFilterComboWnd::InitComboWnd(FilterCombo* pOwner)
         ::MapWindowRect(pOwner->GetWindow()->GetHWND(), HWND_DESKTOP, &rc);
     }
     
-    CreateWnd(pOwner->GetWindow()->GetHWND(), L"", WS_POPUP, WS_EX_TOOLWINDOW, true, rc);
+    CreateWnd(pOwner->GetWindow()->GetHWND(), L"", WS_POPUP, WS_EX_TOOLWINDOW, rc);
     ::ShowWindow(GetHWND(), SW_SHOW);
 }
 

@@ -5,7 +5,6 @@
 #include "ui_components/modal_wnd/file_dialog_ex.h"
 #include "ui_components/windows_manager/windows_manager.h"
 #include "ui_components/windows_manager/window_ex.h"
-#include "ui_components/shadow_wnd/shadow_wnd.h"
 #include "ui_components/toast/toast.h"
 #include "ui_components/popover/popover.h"
 #include "ui_components/popover/notification.h"
