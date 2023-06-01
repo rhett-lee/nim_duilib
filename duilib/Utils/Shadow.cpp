@@ -83,7 +83,7 @@ UiRect Shadow::GetShadowCorner() const
 void Shadow::ResetDefaultShadow()
 {
 	m_bUseDefaultImage = true;
-	m_strImage = L"file='public/bk/bk_shadow.png' corner='30,30,30,30'";
+	m_strImage = L"file='public/shadow/bk_shadow.png' corner='30,30,30,30'";
 
 	m_rcShadowCorner = { 14, 14, 14, 14 };
 	DpiManager::GetInstance()->ScaleRect(m_rcShadowCorner);

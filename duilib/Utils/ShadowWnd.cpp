@@ -19,10 +19,13 @@ public:
 	HWND Create(Window* window);
 private:
 	Window* m_pWindow;
+	//标记被跟随的窗口是否完成首次绘制
+	bool m_isFirstPainted;
 };
 
 ShadowWndBase::ShadowWndBase():
-	m_pWindow(nullptr)
+	m_pWindow(nullptr),
+	m_isFirstPainted(false)
 {
 }
 
@@ -34,7 +37,7 @@ std::wstring ShadowWndBase::GetSkinFolder()
 std::wstring ShadowWndBase::GetSkinFile()
 {
 	//内置XML文件内容，不使用文件，已简化管理
-	return LR"(<?xml version="1.0" encoding="UTF-8"?><Window><Control /></Window>)";
+	return L"public/shadow/shadow.xml";
 }
 
 std::wstring ShadowWndBase::GetWindowClassName() const
@@ -62,11 +65,14 @@ LRESULT ShadowWndBase::FilterMessage(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/
 		case WM_MOVE:
 		case WM_ACTIVATE:
 		case WM_NCACTIVATE:
-			if (::IsWindowVisible(hWnd)) {
-				RECT rc = {0};
-				::GetWindowRect(hWnd, &rc);
-				SetPos(ui::UiRect(rc), false, SWP_SHOWWINDOW | SWP_NOACTIVATE, hWnd);
-			}
+			if (m_isFirstPainted || (uMsg == WM_PAINT)) {
+				if (::IsWindowVisible(hWnd)) {
+					RECT rc = { 0 };
+					::GetWindowRect(hWnd, &rc);
+					SetPos(ui::UiRect(rc), false, SWP_SHOWWINDOW | SWP_NOACTIVATE, hWnd);
+					m_isFirstPainted = true;
+				}
+			}			
 			break;
 		case WM_CLOSE:
 			ShowWindow(false, false);

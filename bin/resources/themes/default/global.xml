@@ -154,7 +154,7 @@
 	<TextColor name="popover_content_color" value="#FF878787"/>
 	<TextColor name="popover_content_color1" value="#FF393430"/>
 	<TextColor name="popover_tooltip_color" value="#FF040405"/>
-	<Class name="popover_shadow" width="auto" height="auto" maxwidth="244" minwidth="100" bkimage="file='../public/bk/bk_shadow.png' corner='30,30,30,30'"/>
+	<Class name="popover_shadow" width="auto" height="auto" maxwidth="244" minwidth="100" bkimage="file='../public/shadow/bk_shadow.png' corner='30,30,30,30'"/>
 	<Class name="popover_root" width="auto" height="auto" bkcolor="white" margin="8,8,8,8" padding="16,12,16,12" childmargin="8" borderround="2,2"/>
 	<Class name="popover_footer" padding="0,4,0,0" halign="right" childmargin="12"/>
 	<Class name="popover_popover" maxwidth="228"/>
