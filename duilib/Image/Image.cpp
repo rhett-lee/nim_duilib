@@ -812,13 +812,13 @@ void StateColorMap::PaintStateColor(IRender* pRender, UiRect rcPaint, ControlSta
 		}
 	}
 
-	if (stateType == kControlStatePushed && HasStateColor(kControlStatePushed)) {
+	if (stateType == kControlStatePushed && !HasStateColor(kControlStatePushed)) {
 		stateType = kControlStateHot;
 	}
-	if (stateType == kControlStateHot && HasStateColor(kControlStateHot)) {
+	if (stateType == kControlStateHot && !HasStateColor(kControlStateHot)) {
 		stateType = kControlStateNormal;
 	}
-	if (stateType == kControlStateDisabled && HasStateColor(kControlStateDisabled)) {
+	if (stateType == kControlStateDisabled && !HasStateColor(kControlStateDisabled)) {
 		stateType = kControlStateNormal;
 	}
 	std::wstring strColor = GetStateColor(stateType);
