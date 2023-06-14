@@ -34,8 +34,17 @@ public:
 	*/
 	virtual bool AttachDevTools(Control* view) override;
 
+	/**
+	* @brief 关闭开发者工具
+	* @return 无
+	*/
+	virtual void DettachDevTools() override;
+
 protected:
 	virtual void ReCreateBrowser() override;
+
+	// 在非UI线程中被调用
+	virtual void OnBeforeContextMenu(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefContextMenuParams> params, CefRefPtr<CefMenuModel> model) override;
 
 protected:
 	/**
@@ -157,10 +166,14 @@ private:
 
 	virtual void OnPopupSize(CefRefPtr<CefBrowser> browser, const CefRect& rect) OVERRIDE;
 
+	//处理DPI自适应（离屏渲染模式与正常模式不同）
+	void AdaptDpiScale(CefMouseEvent& mouse_event);
+
 private:
 	MemoryDC			dc_cef_;		// 内存dc,把cef离屏渲染的数据保存到dc中
 	MemoryDC			dc_cef_popup_;	// 内存dc,把cef的popup窗口的离屏渲染数据保存到dc中
 	CefRect				rect_popup_;	// 当网页的组合框一类的控件弹出时，记录弹出的位置
+	CefControl*         devtool_view_;  //开发者工具对应的控件
 };
 
 }

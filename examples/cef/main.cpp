@@ -10,7 +10,8 @@ enum ThreadId
 	kThreadUI
 };
 
-#pragma comment(lib, "dbghelp.lib")
+//开启DPI自适应功能
+bool bAdaptDpi = true;
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
@@ -27,6 +28,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	HRESULT hr = ::OleInitialize(NULL);
 	if (FAILED(hr))
 		return 0;
+
+	//必须在CefManager::Initialize前调用，设置DPI自适应属性，否则会导致显示不正常
+	ui::DpiManager::GetInstance()->SetAdaptDPI(bAdaptDpi);
 
 	// 初始化 CEF
 	CefSettings settings;
@@ -52,9 +56,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 void MainThread::Init()
 {
 	nbase::ThreadManager::RegisterThread(kThreadUI);
-
-	//开启DPI自适应功能
-	bool bAdaptDpi = true;
 
 	// 获取资源路径，初始化全局参数
 	// 默认皮肤使用 resources\\themes\\default

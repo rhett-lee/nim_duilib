@@ -337,8 +337,10 @@ private:
 
 	virtual void UpdateWindowPos() OVERRIDE;
 
+protected:
 	virtual void OnBeforeContextMenu(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefContextMenuParams> params, CefRefPtr<CefMenuModel> model) OVERRIDE;
 
+public:
 	virtual bool OnContextMenuCommand(CefRefPtr<CefBrowser> browser,
 		CefRefPtr<CefFrame> frame,
 		CefRefPtr<CefContextMenuParams> params,

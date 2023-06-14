@@ -7,7 +7,8 @@
 
 #include <clocale>
 
-#pragma comment(lib, "dbghelp.lib")
+//开启DPI自适应功能
+bool bAdaptDpi = true;
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
@@ -34,6 +35,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	if (FAILED(hr))
 		return 0;
 
+	//必须在CefManager::Initialize前调用，设置DPI自适应属性，否则会导致显示不正常
+	ui::DpiManager::GetInstance()->SetAdaptDPI(bAdaptDpi);
+
 	// 初始化 CEF
 	CefSettings settings;
 	if (!nim_comp::CefManager::GetInstance()->Initialize(nbase::win32::GetCurrentModuleDirectory() + L"cef_temp\\", settings, true))
@@ -58,9 +62,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 void MainThread::Init()
 {
 	nbase::ThreadManager::RegisterThread(kThreadUI);
-
-	//开启DPI自适应功能
-	bool bAdaptDpi = true;
 
 	std::wstring theme_dir = nbase::win32::GetCurrentModuleDirectory();
 	ui::GlobalManager::Startup(theme_dir + L"resources\\", ui::CreateControlCallback(), bAdaptDpi);

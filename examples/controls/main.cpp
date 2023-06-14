@@ -41,7 +41,7 @@ void MainThread::Init()
 	misc_thread_->Start();
 
 	//开启DPI自适应功能
-	bool bAdaptDpi = true;
+	bool bAdaptDpi = false;
 
 	// 获取资源路径，初始化全局参数
 	std::wstring app_dir = nbase::win32::GetCurrentModuleDirectory();

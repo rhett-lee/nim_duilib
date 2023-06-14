@@ -5,6 +5,7 @@
 #include "ui_components/public_define.h"
 #include "duilib/Render/IRender.h"
 #include "duilib/Core/GlobalManager.h"
+#include "duilib/Utils/DpiManager.h"
 
 #include "base/thread/thread_manager.h"
 
@@ -22,9 +23,9 @@ namespace {
 	#define GET_Y_LPARAM(lp)                        ((int)(short)HIWORD(lp))
 }
 
-CefControl::CefControl(void)
+CefControl::CefControl(void):
+	devtool_view_(nullptr)
 {
-
 }
 
 CefControl::~CefControl(void)
@@ -291,9 +292,9 @@ LRESULT CefControl::FilterMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool&
 bool CefControl::AttachDevTools(Control* control)
 {
 	CefControl *view = dynamic_cast<CefControl*>(control);
-	if (devtool_attached_ || !view)
+	if (devtool_attached_ || !view) {
 		return true;
-
+	}
 	auto browser = browser_handler_->GetBrowser();
 	auto view_browser = view->browser_handler_->GetBrowser();
 	if (browser == nullptr || view_browser == nullptr)
@@ -315,10 +316,50 @@ bool CefControl::AttachDevTools(Control* control)
 		CefBrowserSettings settings;
 		browser->GetHost()->ShowDevTools(windowInfo, view_browser->GetHost()->GetClient(), settings, CefPoint());
 		devtool_attached_ = true;
-		if (cb_devtool_visible_change_ != nullptr)
+		devtool_view_ = view;
+		if (cb_devtool_visible_change_ != nullptr) {
 			cb_devtool_visible_change_(devtool_attached_);
+		}
 	}
 	return true;
+}
+
+void CefControl::DettachDevTools()
+{
+	CefControlBase::DettachDevTools();
+	devtool_view_ = nullptr;
+}
+
+void CefControl::OnBeforeContextMenu(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefContextMenuParams> params, CefRefPtr<CefMenuModel> model)
+{
+	if (devtool_attached_ && (devtool_view_ != nullptr) && CefManager::GetInstance()->IsEnableOffsetRender()) {
+		//离屏渲染模式，开发者工具与页面位于相同的客户区位置
+		int x = params->GetXCoord();
+		int y = params->GetYCoord();
+		//离屏渲染模式下，给到的参数是原始坐标，未经DPI自适应，所以需要做DPI自适应处理，否则页面的右键菜单位置显示不对
+		uint32_t dpiScale = ui::DpiManager::GetInstance()->GetScale();
+		if (dpiScale > 100) {
+			x = x * dpiScale / 100;
+			y = y * dpiScale / 100;
+		}
+
+		ui::UiPoint pt = { x + GetRect().left, y + GetRect().top};
+		ui::UiPoint offsetPt = GetScrollOffset();
+		pt.Offset(offsetPt);
+		ui::UiRect rect = GetRect();
+		ui::UiRect rectView = devtool_view_->GetRect();
+		bool isPtInPageRect = GetRect().IsPointIn(pt);
+		bool isPtInToolRect = devtool_view_->GetRect().IsPointIn(pt);
+		if (isPtInToolRect && !isPtInPageRect) {
+			//如果点击区域，位于开发工具区域，则不弹出页面的右键菜单
+			if (model->GetCount() > 0)			{
+				// 禁止右键菜单
+				model->Clear();
+			}
+			return;
+		}
+	}
+	CefControlBase::OnBeforeContextMenu(browser, frame, params, model);
 }
 
 //////////////////////////////////////////////////////////////////////////////////
@@ -340,7 +381,7 @@ LRESULT CefControl::SendButtonDownEvent(UINT uMsg, WPARAM wParam, LPARAM lParam,
 	CefBrowserHost::MouseButtonType btnType =
 		(uMsg == WM_LBUTTONDOWN ? MBT_LEFT : (
 		uMsg == WM_RBUTTONDOWN ? MBT_RIGHT : MBT_MIDDLE));
-
+	AdaptDpiScale(mouse_event);
 	host->SendMouseClickEvent(mouse_event, btnType, false, 1);
 
 	bHandled = false;
@@ -360,7 +401,7 @@ LRESULT CefControl::SendButtonDoubleDownEvent(UINT uMsg, WPARAM wParam, LPARAM l
 	mouse_event.x = pt.x - GetRect().left;
 	mouse_event.y = pt.y - GetRect().top;
 	mouse_event.modifiers = GetCefMouseModifiers(wParam);
-
+	AdaptDpiScale(mouse_event);
 	CefBrowserHost::MouseButtonType btnType =
 		(uMsg == WM_LBUTTONDOWN ? MBT_LEFT : (
 		uMsg == WM_RBUTTONDOWN ? MBT_RIGHT : MBT_MIDDLE));
@@ -381,19 +422,10 @@ LRESULT CefControl::SendButtonUpEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, b
 		return 0;
 
 	CefMouseEvent mouse_event;
-	if (uMsg == WM_RBUTTONUP)
-	{
-		mouse_event.x = pt.x/* - GetRect().left*/;	// 这里不进行坐标转换，否则右键菜单位置不正确
-		mouse_event.y = pt.y/* - GetRect().top*/;
-	}
-	else
-	{
-		mouse_event.x = pt.x - GetRect().left;
-		mouse_event.y = pt.y - GetRect().top;
-	}
-
+	mouse_event.x = pt.x - GetRect().left;
+	mouse_event.y = pt.y - GetRect().top;
 	mouse_event.modifiers = GetCefMouseModifiers(wParam);
-
+	AdaptDpiScale(mouse_event);
 	CefBrowserHost::MouseButtonType btnType =
 		(uMsg == WM_LBUTTONUP ? MBT_LEFT : (
 		uMsg == WM_RBUTTONUP ? MBT_RIGHT : MBT_MIDDLE));
@@ -417,6 +449,7 @@ LRESULT CefControl::SendMouseMoveEvent(UINT /*uMsg*/, WPARAM wParam, LPARAM lPar
 	mouse_event.x = pt.x - GetRect().left;
 	mouse_event.y = pt.y - GetRect().top;
 	mouse_event.modifiers = GetCefMouseModifiers(wParam);
+	AdaptDpiScale(mouse_event);
 	host->SendMouseMoveEvent(mouse_event, false);
 
 	bHandled = false;
@@ -443,6 +476,7 @@ LRESULT CefControl::SendMouseWheelEvent(UINT /*uMsg*/, WPARAM wParam, LPARAM lPa
 	mouse_event.x = pt.x - GetRect().left;
 	mouse_event.y = pt.y - GetRect().top;
 	mouse_event.modifiers = GetCefMouseModifiers(wParam);
+	AdaptDpiScale(mouse_event);
 	host->SendMouseWheelEvent(mouse_event, IsKeyDown(VK_SHIFT) ? delta : 0, !IsKeyDown(VK_SHIFT) ? delta : 0);
 
 	bHandled = true;
@@ -462,7 +496,7 @@ LRESULT CefControl::SendMouseLeaveEvent(UINT /*uMsg*/, WPARAM wParam, LPARAM lPa
 	mouse_event.x = pt.x - GetRect().left;
 	mouse_event.y = pt.y - GetRect().top;
 	mouse_event.modifiers = GetCefMouseModifiers(wParam);
-
+	AdaptDpiScale(mouse_event);
 	host->SendMouseMoveEvent(mouse_event, true);
 
 	bHandled = true;
@@ -609,6 +643,18 @@ int CefControl::GetCefKeyboardModifiers(WPARAM wparam, LPARAM lparam)
 		break;
 	}
 	return modifiers;
+}
+
+void CefControl::AdaptDpiScale(CefMouseEvent& mouse_event)
+{
+	if (CefManager::GetInstance()->IsEnableOffsetRender()) {
+		//离屏渲染模式，需要传给原始宽度和高度，因为CEF内部会进一步做DPI自适应
+		uint32_t dpiScale = ui::DpiManager::GetInstance()->GetScale();
+		if (dpiScale > 100) {
+			mouse_event.x = mouse_event.x * 100 / dpiScale;
+			mouse_event.y = mouse_event.y * 100 / dpiScale;
+		}
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////////////

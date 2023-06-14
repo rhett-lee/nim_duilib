@@ -107,8 +107,8 @@ void GlobalManager::Startup(const std::wstring& strResourcePath, const CreateCon
 	m_createControlCallback = callback;
 
     // ÊÊÅäDPI
+	DpiManager::GetInstance()->SetAdaptDPI(bAdaptDpi);
 	if (bAdaptDpi) {
-		DpiManager::GetInstance()->SetAdaptDPI();
 		DpiManager::GetInstance()->SetScale(DpiManager::GetMainMonitorDPI());
 	}
 

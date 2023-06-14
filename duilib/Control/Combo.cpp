@@ -159,6 +159,8 @@ Combo::Combo() :
 	m_sDropBoxAttributes(),
 	m_bPopupTop(false)
 {
+	//需要调用设置函数，内部有DPI自适应的逻辑调整大小
+	SetDropBoxSize({ 0, 150 });
 	// The trick is to add the items to the new container. Their owner gets
 	// reassigned by this operation - which is why it is important to reassign
 	// the items back to the righfull owner/manager when the window closes.

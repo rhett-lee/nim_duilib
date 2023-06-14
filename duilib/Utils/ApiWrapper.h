@@ -9,14 +9,20 @@
 namespace ui
 {
 	// DPI适配
-	bool GetDpiForSystemWrapper(UINT& dpi);
 	bool GetDpiForMonitorWrapper(HMONITOR hMonitor, MONITOR_DPI_TYPE dpiType, UINT *dpiX, UINT *dpiY);
 
+	//Windows 10 版本 1607以上
+	bool SetProcessDpiAwarenessContextWrapper(PROCESS_DPI_AWARENESS_CONTEXT value);
+	bool GetProcessDpiAwarenessContextWrapper(PROCESS_DPI_AWARENESS_CONTEXT& value);
+	bool AreDpiAwarenessContextsEqualWrapper(PROCESS_DPI_AWARENESS_CONTEXT dpiContextA, PROCESS_DPI_AWARENESS_CONTEXT dpiContextB);
+	
+	//Windows 8.1以上
 	bool SetProcessDPIAwarenessWrapper(PROCESS_DPI_AWARENESS value);
-	bool SetProcessDPIAwareWrapper();
-
 	bool GetProcessDPIAwarenessWrapper(PROCESS_DPI_AWARENESS& awareness);
-	bool IsProcessDPIAwareWrapper(bool& bAware);
+
+	//Windows Vista 以上
+	bool SetProcessDPIAwareWrapper();
+    bool IsProcessDPIAwareWrapper(bool& bAware);
 
 	// WM_TOUCH
 	bool RegisterTouchWindowWrapper(HWND hwnd, ULONG ulFlags);
