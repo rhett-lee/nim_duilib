@@ -1,5 +1,5 @@
-#include "Path.h"
-#include "duilib/Render/Pen.h"
+#include "Path_Gdiplus.h"
+#include "duilib/Render/Pen_Gdiplus.h"
 #include "duilib/Image/GdiPlusDefs.h"
 
 namespace ui {

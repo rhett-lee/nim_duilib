@@ -1,7 +1,7 @@
-#include "Factory.h"
-#include "duilib/Render/Pen.h"
-#include "duilib/Render/Brush.h"
-#include "duilib/Render/Path.h"
+#include "RenderFactory_GdiPlus.h"
+#include "duilib/Render/Pen_GdiPlus.h"
+#include "duilib/Render/Brush_GdiPlus.h"
+#include "duilib/Render/Path_GdiPlus.h"
 #include "duilib/Render/Render_GdiPlus.h"
 #include "duilib/Render/Bitmap_GDI.h"
 

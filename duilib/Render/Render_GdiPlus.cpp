@@ -1,9 +1,9 @@
 #include "Render_GdiPlus.h"
 #include "duilib/Utils/DpiManager.h"
 #include "duilib/Core/GlobalManager.h"
-#include "duilib/Render/Pen.h"
-#include "duilib/Render/Path.h"
-#include "duilib/Render/Brush.h"
+#include "duilib/Render/Pen_Gdiplus.h"
+#include "duilib/Render/Path_Gdiplus.h"
+#include "duilib/Render/Brush_Gdiplus.h"
 #include "duilib/Render/Bitmap_GDI.h"
 #include "duilib/Image/GdiPlusDefs.h"
 

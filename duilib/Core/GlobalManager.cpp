@@ -1,5 +1,5 @@
 #include "GlobalManager.h"
-#include "duilib/Render/Factory.h"
+#include "duilib/Render/RenderFactory_Gdiplus.h"
 #include "duilib/Render/Font_GDI.h"
 #include "duilib/Utils/DpiManager.h"
 #include "duilib/Utils/StringUtil.h"

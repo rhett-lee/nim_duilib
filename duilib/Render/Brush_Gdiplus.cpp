@@ -1,4 +1,4 @@
-#include "Brush.h"
+#include "Brush_Gdiplus.h"
 #include "duilib/Image/GdiPlusDefs.h"
 
 namespace ui {
