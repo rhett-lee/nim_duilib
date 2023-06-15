@@ -5,9 +5,6 @@
 #include "duilib/Utils/DpiManager.h"
 #include "duilib/third_party/apng/decoder-apng.h"
 
-#include "duilib/RenderGdiPlus/GdiPlusDefs.h"
-#include "duilib/RenderGdiPlus/Bitmap_GDI.h"
-
 #pragma warning (push)
 #pragma warning (disable: 4244)
 #define STB_IMAGE_IMPLEMENTATION
@@ -46,114 +43,6 @@
 
 namespace ui 
 {
-
-/**  π”√Gdiplusº”‘ÿÕº∆¨
-*/
-namespace GdiplusImageLoader
-{
-	bool LoadImageByGdiplus(std::unique_ptr<Gdiplus::Bitmap>& pGdiplusBitmap, std::vector<ImageDecoder::ImageData>& imageData)
-	{
-		if (!pGdiplusBitmap) {
-			ASSERT(!"ImageInfo::LoadImageByGdiplus:  ß∞‹");
-			return false;
-		}
-		Gdiplus::Status status = pGdiplusBitmap->GetLastStatus();
-		ASSERT((status == Gdiplus::Ok) && "ImageInfo::LoadImageByGdiplus:  ß∞‹");
-		if (status != Gdiplus::Ok) {
-			return false;
-		}
-
-		UINT nCount = pGdiplusBitmap->GetFrameDimensionsCount();
-		std::unique_ptr<GUID[]> pDimensionIDs(new GUID[nCount]);
-		pGdiplusBitmap->GetFrameDimensionsList(pDimensionIDs.get(), nCount);
-		const size_t iFrameCount = pGdiplusBitmap->GetFrameCount(&pDimensionIDs.get()[0]);
-		if (iFrameCount < 1) {
-			return false;
-		}
-		imageData.resize(iFrameCount);
-		if (iFrameCount > 1) {
-			UINT iSize = pGdiplusBitmap->GetPropertyItemSize(PropertyTagFrameDelay);
-			if (iSize > 0) {
-				Gdiplus::PropertyItem* pPropertyItem = (Gdiplus::PropertyItem*)malloc(iSize);
-				status = pGdiplusBitmap->GetPropertyItem(PropertyTagFrameDelay, iSize, pPropertyItem);
-				ASSERT(status == Gdiplus::Ok);
-				if (status == Gdiplus::Ok) {
-					for (size_t i = 0; i < iFrameCount; ++i) {
-						imageData[i].m_frameInterval = (((long*)(pPropertyItem->value))[i] * 10);
-					}
-				}
-			}
-		}
-
-		for (size_t i = 0; i < iFrameCount; ++i) {
-			status = pGdiplusBitmap->SelectActiveFrame(&Gdiplus::FrameDimensionTime, (UINT)i);
-			ASSERT(status == Gdiplus::Ok);
-			if (status != Gdiplus::Ok) {
-				imageData.clear();
-				break;
-			}
-
-			HBITMAP hBitmap = nullptr;
-			status = pGdiplusBitmap->GetHBITMAP(Gdiplus::Color(), &hBitmap);
-			ASSERT(status == Gdiplus::Ok);
-			if (status != Gdiplus::Ok) {
-				imageData.clear();
-				break;
-			}
-
-			BITMAP bm = { 0 };
-			::GetObject(hBitmap, sizeof(bm), &bm);			
-			ASSERT((bm.bmBits != nullptr) && (bm.bmBitsPixel == 32) && (bm.bmHeight > 0) && (bm.bmWidth > 0));
-			if ((bm.bmBits != nullptr) && (bm.bmBitsPixel == 32) && (bm.bmHeight > 0) && (bm.bmWidth > 0)) {
-				const uint32_t imageDataSize = bm.bmHeight * bm.bmWidth * 4;
-				ImageDecoder::ImageData& bitmapData = imageData[i];
-				bitmapData.bFlipHeight = false;
-				bitmapData.m_imageWidth = bm.bmWidth;
-				bitmapData.m_imageHeight = bm.bmHeight;
-				bitmapData.m_bitmapData.resize(imageDataSize);
-				memcpy(bitmapData.m_bitmapData.data(), bm.bmBits, imageDataSize);
-				::DeleteObject(hBitmap);
-			}
-			else {
-				imageData.clear();
-				::DeleteObject(hBitmap);
-				break;
-			}
-		}
-		return !imageData.empty();
-    }
-
-	bool LoadImageFromMemory(std::vector<uint8_t>& fileData, std::vector<ImageDecoder::ImageData>& imageData)
-	{
-		ASSERT(!fileData.empty());
-		if (fileData.empty()) {
-			return false;
-		}
-		HGLOBAL hGlobal = ::GlobalAlloc(GMEM_MOVEABLE | GMEM_NODISCARD, fileData.size());
-		if (hGlobal == nullptr) {
-			return false;
-		}
-		unsigned char* pData = (unsigned char*)::GlobalLock(hGlobal);
-		if (pData == nullptr) {
-			::GlobalFree(hGlobal);
-			return false;
-		}
-		memcpy(pData, fileData.data(), fileData.size());
-		IStream* stream = nullptr;
-		::CreateStreamOnHGlobal(hGlobal, FALSE, &stream);
-		if (stream == nullptr) {
-			::GlobalUnlock(hGlobal);
-			::GlobalFree(hGlobal);
-			return false;
-		}
-		std::unique_ptr<Gdiplus::Bitmap> pGdiplusBitmap(Gdiplus::Bitmap::FromStream(stream));
-		bool isLoaded = LoadImageByGdiplus(pGdiplusBitmap, imageData);
-		stream->Release();
-		::GlobalUnlock(hGlobal);
-		::GlobalFree(hGlobal);
-		return isLoaded;
-	}
-}//GdiplusImageLoader
 
 /**  π”√stb_imageº”‘ÿÕº∆¨
 */
@@ -811,9 +700,6 @@ bool ImageDecoder::DecodeImageData(std::vector<uint8_t>& fileData,
 	
 	default:
 		break;
-	}
-	if (!isLoaded) {
-		isLoaded = GdiplusImageLoader::LoadImageFromMemory(fileData, imageData);
 	}
 	return isLoaded;
 }
