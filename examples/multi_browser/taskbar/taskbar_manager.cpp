@@ -1,4 +1,5 @@
 #include "taskbar_manager.h"
+#include "duilib/RenderGdiPlus/BitmapHelper.h"
 #include "dwm_util.h"
 #include <shobjidl.h>
 
@@ -75,11 +76,7 @@ void TaskbarTabItem::OnSendThumbnail(int width, int height)
 		return;
 
 	ui::IBitmap* pBitmap = taskbar_manager_->GenerateBindControlBitmap(bind_control_, width, height);
-	ui::Bitmap_GDI* pGdiBitmap = dynamic_cast<Bitmap_GDI*>(pBitmap);
-	ASSERT(pGdiBitmap != nullptr);
-	if (pGdiBitmap != nullptr) {
-		DwmSetIconicThumbnail(GetHWND(), pGdiBitmap->GetHBitmap(), 0);
-	}
+	DwmSetIconicThumbnail(GetHWND(), ui::BitmapHelper::GetHBitmap(pBitmap), 0);
 	if (pBitmap != nullptr) {
 		delete pBitmap;
 		pBitmap = nullptr;
@@ -92,11 +89,7 @@ void TaskbarTabItem::OnSendPreview()
 		return;
 
 	ui::IBitmap* pBitmap = taskbar_manager_->GenerateBindControlBitmapWithForm(bind_control_);
-	ui::Bitmap_GDI* pGdiBitmap = dynamic_cast<Bitmap_GDI*>(pBitmap);
-	ASSERT(pGdiBitmap != nullptr);
-	if (pGdiBitmap != nullptr) {
-		DwmSetIconicLivePreviewBitmap(GetHWND(), pGdiBitmap->GetHBitmap(), NULL, 0);
-	}
+	DwmSetIconicLivePreviewBitmap(GetHWND(), ui::BitmapHelper::GetHBitmap(pBitmap), NULL, 0);
 	if (pBitmap != nullptr) {
 		delete pBitmap;
 		pBitmap = nullptr;

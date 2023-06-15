@@ -1,4 +1,5 @@
 #include "RenderTest.h"
+#include "duilib/RenderGdiPlus/BitmapHelper.h"
 
 namespace ui {
 

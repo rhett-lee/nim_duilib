@@ -195,7 +195,29 @@ namespace BitmapHelper {
             pRender = nullptr;
         }
         return pBitmap;
-    }    
+    }
+
+    HBITMAP GetHBitmap(IBitmap* pBitmap)
+    {
+        ui::Bitmap_GDI* pGdiBitmap = dynamic_cast<Bitmap_GDI*>(pBitmap);
+        ASSERT(pGdiBitmap != nullptr);
+        HBITMAP hBitmap = nullptr;
+        if (pGdiBitmap != nullptr) {
+            hBitmap = pGdiBitmap->GetHBitmap();
+        }
+        return hBitmap;
+    }
+
+    HBITMAP DetachHBitmap(IBitmap* pBitmap)
+    {
+        ui::Bitmap_GDI* pGdiBitmap = dynamic_cast<Bitmap_GDI*>(pBitmap);
+        ASSERT(pGdiBitmap != nullptr);
+        HBITMAP hBitmap = nullptr;
+        if (pGdiBitmap != nullptr) {
+            hBitmap = pGdiBitmap->DetachHBitmap();
+        }
+        return hBitmap;
+    }
     
 } //namespace BitmapHelper
 

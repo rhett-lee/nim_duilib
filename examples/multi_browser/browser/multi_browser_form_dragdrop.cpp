@@ -1,6 +1,9 @@
 #include "multi_browser_form.h"
 #include "browser_box.h"
 #include "multi_browser_manager.h"
+
+#include "duilib/RenderGdiPlus/BitmapHelper.h"
+
 #include "OleIdl.h"
 #include "ShObjIdl.h"
 #include <shlobj.h>
@@ -181,9 +184,7 @@ bool MultiBrowserForm::OnProcessTabItemDrag(const ui::EventArgs& param)
 			else {
 				pBitmap = GenerateBoxWindowBitmap();
 			}
-			ui::Bitmap_GDI* pGdiBitmap = dynamic_cast<Bitmap_GDI*>(pBitmap);
-			ASSERT(pGdiBitmap != nullptr);
-			HBITMAP hBitmap = pGdiBitmap->DetachHBitmap();
+			HBITMAP hBitmap = ui::BitmapHelper::DetachHBitmap(pBitmap);
 			if (pBitmap != nullptr) {
 				delete pBitmap;
 				pBitmap = nullptr;
