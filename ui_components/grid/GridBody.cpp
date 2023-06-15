@@ -2,6 +2,7 @@
 #include "Grid.h"
 #include "duilib/Core/Window.h"
 #include "duilib/Control/ListBox.h"
+#include "duilib/Render/AutoClip.h"
 
 #include <sstream>
 #include <thread>

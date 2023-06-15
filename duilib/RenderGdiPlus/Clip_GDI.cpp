@@ -1,18 +1,18 @@
-#include "Clip.h"
+#include "Clip_GDI.h"
 
 namespace ui {
 
-GdiClip::GdiClip()
+Clip_GDI::Clip_GDI()
 {
 
 }
 
-GdiClip::~GdiClip()
+Clip_GDI::~Clip_GDI()
 {
 
 }
 
-void GdiClip::CreateClip(HDC hDC, UiRect rcItem)
+void Clip_GDI::CreateClip(HDC hDC, UiRect rcItem)
 {
 	if (hDC != NULL) {
 		UiPoint ptWinOrg;
@@ -26,7 +26,7 @@ void GdiClip::CreateClip(HDC hDC, UiRect rcItem)
 	}
 }
 
-void GdiClip::CreateRoundClip(HDC hDC, UiRect rcItem, int width, int height)
+void Clip_GDI::CreateRoundClip(HDC hDC, UiRect rcItem, int width, int height)
 {
 	if (hDC != NULL) {
 		UiPoint ptWinOrg;
@@ -40,7 +40,7 @@ void GdiClip::CreateRoundClip(HDC hDC, UiRect rcItem, int width, int height)
 	}
 }
 
-void GdiClip::ClearClip(HDC hDC)
+void Clip_GDI::ClearClip(HDC hDC)
 {
 	if (hDC != NULL) {
 		ASSERT(::GetObjectType(hDC) == OBJ_DC || ::GetObjectType(hDC) == OBJ_MEMDC);

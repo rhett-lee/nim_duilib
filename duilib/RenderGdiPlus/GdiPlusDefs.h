@@ -1,5 +1,5 @@
-#ifndef UI_CORE_GDIPLUSDEFS_H_
-#define UI_CORE_GDIPLUSDEFS_H_ 1
+#ifndef UI_RENDER_GDIPLUS_GDIPLUSDEFS_H_
+#define UI_RENDER_GDIPLUS_GDIPLUSDEFS_H_ 1
 
 #include "duilib/duilib_defs.h"
 
@@ -13,4 +13,4 @@
 
 #pragma warning(pop)
 
-#endif //UI_CORE_GDIPLUSDEFS_H_
+#endif //UI_RENDER_GDIPLUS_GDIPLUSDEFS_H_

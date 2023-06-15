@@ -1,5 +1,5 @@
-#ifndef UI_RENDER_CLIP_H_
-#define UI_RENDER_CLIP_H_
+#ifndef UI_RENDER_GDIPLUS_CLIP_H_
+#define UI_RENDER_GDIPLUS_CLIP_H_
 
 #pragma once
 
@@ -8,11 +8,11 @@
 namespace ui 
 {
 
-class UILIB_API GdiClip : public IClip
+class UILIB_API Clip_GDI : public IClip
 {
 public:
-	GdiClip();
-    ~GdiClip();
+	Clip_GDI();
+    ~Clip_GDI();
 
 	virtual void CreateClip(HDC hDC, UiRect rc) override;
 	virtual void CreateRoundClip(HDC hDC, UiRect rc, int width, int height) override;
@@ -22,4 +22,4 @@ public:
 
 } // namespace ui
 
-#endif // UI_RENDER_CLIP_H_
+#endif // UI_RENDER_GDIPLUS_CLIP_H_

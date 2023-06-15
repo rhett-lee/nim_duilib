@@ -1,9 +1,9 @@
 #include "RenderFactory_GdiPlus.h"
-#include "duilib/Render/Pen_GdiPlus.h"
-#include "duilib/Render/Brush_GdiPlus.h"
-#include "duilib/Render/Path_GdiPlus.h"
-#include "duilib/Render/Render_GdiPlus.h"
-#include "duilib/Render/Bitmap_GDI.h"
+#include "duilib/RenderGdiPlus/Pen_GdiPlus.h"
+#include "duilib/RenderGdiPlus/Brush_GdiPlus.h"
+#include "duilib/RenderGdiPlus/Path_GdiPlus.h"
+#include "duilib/RenderGdiPlus/Render_GdiPlus.h"
+#include "duilib/RenderGdiPlus/Bitmap_GDI.h"
 
 namespace ui {
 

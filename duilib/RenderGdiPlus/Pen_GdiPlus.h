@@ -1,5 +1,5 @@
-#ifndef UI_CORE_RENDER_PEN_H_
-#define UI_CORE_RENDER_PEN_H_
+#ifndef UI_RENDER_GDIPLUS_PEN_H_
+#define UI_RENDER_GDIPLUS_PEN_H_
 
 #pragma once
 
@@ -46,4 +46,4 @@ private:
 
 } // namespace ui
 
-#endif // UI_CORE_RENDER_PEN_H_
+#endif // UI_RENDER_GDIPLUS_PEN_H_

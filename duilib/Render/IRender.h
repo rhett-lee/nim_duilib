@@ -19,19 +19,6 @@ public:
 	virtual void ClearClip(HDC hDC) = 0;
 };
 
-class IRender;
-class UILIB_API AutoClip
-{
-public:
-	AutoClip(IRender* pRender, const UiRect& rc, bool bClip = true);
-	AutoClip(IRender* pRender, const UiRect& rcRound, int width, int height, bool bClip = true);
-	~AutoClip();
-
-private:
-	IRender *m_pRender;
-	bool			m_bClip;
-};
-
 class UILIB_API IBitmap : public virtual nbase::SupportWeakCallback
 {
 public:

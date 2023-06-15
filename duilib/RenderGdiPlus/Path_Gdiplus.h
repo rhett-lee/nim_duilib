@@ -1,5 +1,5 @@
-#ifndef UI_CORE_RENDER_PATH_H_
-#define UI_CORE_RENDER_PATH_H_
+#ifndef UI_RENDER_GDIPLUS_PATH_H_
+#define UI_RENDER_GDIPLUS_PATH_H_
 
 #pragma once
 
@@ -53,4 +53,4 @@ protected:
 
 } // namespace ui
 
-#endif // UI_CORE_RENDER_PATH_H_
+#endif // UI_RENDER_GDIPLUS_PATH_H_

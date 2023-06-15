@@ -1,6 +1,6 @@
 #include "Path_Gdiplus.h"
-#include "duilib/Render/Pen_Gdiplus.h"
-#include "duilib/Image/GdiPlusDefs.h"
+#include "duilib/RenderGdiPlus/Pen_Gdiplus.h"
+#include "duilib/RenderGdiPlus/GdiPlusDefs.h"
 
 namespace ui {
 

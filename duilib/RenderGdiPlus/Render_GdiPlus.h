@@ -1,11 +1,11 @@
-#ifndef UI_CORE_RENDER_GDIPLUS_H_
-#define UI_CORE_RENDER_GDIPLUS_H_
+#ifndef UI_RENDER_GDIPLUS_RENDER_H_
+#define UI_RENDER_GDIPLUS_RENDER_H_
 
 #pragma once
 
 #include "duilib/Render/IRender.h"
-#include "duilib/Render/Clip.h"
-#include "duilib/Render/RenderBitmap_GDI.h"
+#include "duilib/RenderGdiPlus/Clip_GDI.h"
+#include "duilib/RenderGdiPlus/RenderBitmap_GDI.h"
 
 namespace ui 
 {
@@ -115,10 +115,10 @@ private:
 	HBITMAP		m_hOldBitmap;
 
 	bool		m_bTransparent;
-	GdiClip		m_clip;
+	Clip_GDI	m_clip;
 	RenderBitmap_GDI m_bitmap;
 };
 
 } // namespace ui
 
-#endif // UI_CORE_RENDER_GDIPLUS_H_
+#endif // UI_RENDER_GDIPLUS_RENDER_H_

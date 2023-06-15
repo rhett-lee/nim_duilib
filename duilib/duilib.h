@@ -73,6 +73,7 @@
 #include "Animation/AnimationManager.h"
 
 #include "Render/IRender.h"
+#include "Render/AutoClip.h"
 #include "Render/UiColor.h"
 
 #include "Core/Define.h"

@@ -1,11 +1,11 @@
 #include "Render_GdiPlus.h"
 #include "duilib/Utils/DpiManager.h"
 #include "duilib/Core/GlobalManager.h"
-#include "duilib/Render/Pen_Gdiplus.h"
-#include "duilib/Render/Path_Gdiplus.h"
-#include "duilib/Render/Brush_Gdiplus.h"
-#include "duilib/Render/Bitmap_GDI.h"
-#include "duilib/Image/GdiPlusDefs.h"
+#include "duilib/RenderGdiPlus/Pen_Gdiplus.h"
+#include "duilib/RenderGdiPlus/Path_Gdiplus.h"
+#include "duilib/RenderGdiPlus/Brush_Gdiplus.h"
+#include "duilib/RenderGdiPlus/Bitmap_GDI.h"
+#include "duilib/RenderGdiPlus/GdiPlusDefs.h"
 
 namespace ui {
 

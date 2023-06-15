@@ -1,5 +1,5 @@
-#ifndef UI_CORE_RENDER_BRUSH_H_
-#define UI_CORE_RENDER_BRUSH_H_
+#ifndef UI_RENDER_GDIPLUS_BRUSH_H_
+#define UI_RENDER_GDIPLUS_BRUSH_H_
 
 #pragma once
 
@@ -30,4 +30,4 @@ private:
 
 } // namespace ui
 
-#endif // UI_CORE_RENDER_BRUSH_H_
+#endif // UI_RENDER_GDIPLUS_BRUSH_H_

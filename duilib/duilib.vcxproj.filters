@@ -43,6 +43,9 @@
     <Filter Include="third_party\apng">
       <UniqueIdentifier>{418af93b-1aa2-4345-8118-2af96f4691e5}</UniqueIdentifier>
     </Filter>
+    <Filter Include="RenderGdiPlus">
+      <UniqueIdentifier>{36e9cdf8-f81c-44f3-8841-dfc3e02a50ba}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Animation\AnimationPlayer.cpp">
@@ -95,21 +98,6 @@
     </ClCompile>
     <ClCompile Include="Control\VirtualTileBox.cpp">
       <Filter>Control</Filter>
-    </ClCompile>
-    <ClCompile Include="Render\Brush_Gdiplus.cpp">
-      <Filter>Render</Filter>
-    </ClCompile>
-    <ClCompile Include="Render\Clip.cpp">
-      <Filter>Render</Filter>
-    </ClCompile>
-    <ClCompile Include="Render\RenderFactory_GdiPlus.cpp">
-      <Filter>Render</Filter>
-    </ClCompile>
-    <ClCompile Include="Render\IRender.cpp">
-      <Filter>Render</Filter>
-    </ClCompile>
-    <ClCompile Include="Render\Pen_GdiPlus.cpp">
-      <Filter>Render</Filter>
     </ClCompile>
     <ClCompile Include="Utils\ApiWrapper.cpp">
       <Filter>Utils</Filter>
@@ -180,18 +168,6 @@
     <ClCompile Include="Image\ImageDecoder.cpp">
       <Filter>Image</Filter>
     </ClCompile>
-    <ClCompile Include="Render\RenderBitmap_GDI.cpp">
-      <Filter>Render</Filter>
-    </ClCompile>
-    <ClCompile Include="Render\Render_GdiPlus.cpp">
-      <Filter>Render</Filter>
-    </ClCompile>
-    <ClCompile Include="Render\Bitmap_GDI.cpp">
-      <Filter>Render</Filter>
-    </ClCompile>
-    <ClCompile Include="Render\BitmapHepler.cpp">
-      <Filter>Render</Filter>
-    </ClCompile>
     <ClCompile Include="third_party\unzip\UnZip.cpp">
       <Filter>third_party\unzip</Filter>
     </ClCompile>
@@ -210,7 +186,34 @@
     <ClCompile Include="Utils\ShadowWnd.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
-    <ClCompile Include="Render\Path_Gdiplus.cpp">
+    <ClCompile Include="RenderGdiPlus\Bitmap_GDI.cpp">
+      <Filter>RenderGdiPlus</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderGdiPlus\BitmapHepler.cpp">
+      <Filter>RenderGdiPlus</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderGdiPlus\Brush_Gdiplus.cpp">
+      <Filter>RenderGdiPlus</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderGdiPlus\Path_Gdiplus.cpp">
+      <Filter>RenderGdiPlus</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderGdiPlus\Pen_GdiPlus.cpp">
+      <Filter>RenderGdiPlus</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderGdiPlus\Render_GdiPlus.cpp">
+      <Filter>RenderGdiPlus</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderGdiPlus\RenderBitmap_GDI.cpp">
+      <Filter>RenderGdiPlus</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderGdiPlus\RenderFactory_GdiPlus.cpp">
+      <Filter>RenderGdiPlus</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderGdiPlus\Clip_GDI.cpp">
+      <Filter>RenderGdiPlus</Filter>
+    </ClCompile>
+    <ClCompile Include="Render\AutoClip.cpp">
       <Filter>Render</Filter>
     </ClCompile>
   </ItemGroup>
@@ -281,22 +284,7 @@
     <ClInclude Include="Control\VirtualTileBox.h">
       <Filter>Control</Filter>
     </ClInclude>
-    <ClInclude Include="Render\Brush_Gdiplus.h">
-      <Filter>Render</Filter>
-    </ClInclude>
-    <ClInclude Include="Render\Clip.h">
-      <Filter>Render</Filter>
-    </ClInclude>
-    <ClInclude Include="Render\RenderFactory_GdiPlus.h">
-      <Filter>Render</Filter>
-    </ClInclude>
     <ClInclude Include="Render\IRender.h">
-      <Filter>Render</Filter>
-    </ClInclude>
-    <ClInclude Include="Render\Path_Gdiplus.h">
-      <Filter>Render</Filter>
-    </ClInclude>
-    <ClInclude Include="Render\Pen_GdiPlus.h">
       <Filter>Render</Filter>
     </ClInclude>
     <ClInclude Include="Utils\ApiWrapper.h">
@@ -362,9 +350,6 @@
     <ClInclude Include="Render\Font_GDI.h">
       <Filter>Render</Filter>
     </ClInclude>
-    <ClInclude Include="Image\GdiPlusDefs.h">
-      <Filter>Image</Filter>
-    </ClInclude>
     <ClInclude Include="Image\Image.h">
       <Filter>Image</Filter>
     </ClInclude>
@@ -398,18 +383,6 @@
     <ClInclude Include="Image\ImageDecoder.h">
       <Filter>Image</Filter>
     </ClInclude>
-    <ClInclude Include="Render\RenderBitmap_GDI.h">
-      <Filter>Render</Filter>
-    </ClInclude>
-    <ClInclude Include="Render\Render_GdiPlus.h">
-      <Filter>Render</Filter>
-    </ClInclude>
-    <ClInclude Include="Render\Bitmap_GDI.h">
-      <Filter>Render</Filter>
-    </ClInclude>
-    <ClInclude Include="Render\BitmapHelper.h">
-      <Filter>Render</Filter>
-    </ClInclude>
     <ClInclude Include="third_party\svg\nanosvg.h">
       <Filter>third_party\svg</Filter>
     </ClInclude>
@@ -439,6 +412,39 @@
     </ClInclude>
     <ClInclude Include="Utils\ShadowWnd.h">
       <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderGdiPlus\Bitmap_GDI.h">
+      <Filter>RenderGdiPlus</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderGdiPlus\BitmapHelper.h">
+      <Filter>RenderGdiPlus</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderGdiPlus\Brush_Gdiplus.h">
+      <Filter>RenderGdiPlus</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderGdiPlus\Path_Gdiplus.h">
+      <Filter>RenderGdiPlus</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderGdiPlus\Pen_GdiPlus.h">
+      <Filter>RenderGdiPlus</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderGdiPlus\Render_GdiPlus.h">
+      <Filter>RenderGdiPlus</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderGdiPlus\RenderBitmap_GDI.h">
+      <Filter>RenderGdiPlus</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderGdiPlus\RenderFactory_GdiPlus.h">
+      <Filter>RenderGdiPlus</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderGdiPlus\Clip_GDI.h">
+      <Filter>RenderGdiPlus</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderGdiPlus\GdiPlusDefs.h">
+      <Filter>RenderGdiPlus</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\AutoClip.h">
+      <Filter>Render</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

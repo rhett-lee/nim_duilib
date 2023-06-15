@@ -1,5 +1,5 @@
-#ifndef UI_RENDER_BITMAP_GDI_H_
-#define UI_RENDER_BITMAP_GDI_H_
+#ifndef UI_RENDER_GDIPLUS_BITMAP_H_
+#define UI_RENDER_GDIPLUS_BITMAP_H_
 
 #pragma once
 
@@ -98,4 +98,4 @@ private:
 
 } // namespace ui
 
-#endif // UI_RENDER_BITMAP_GDI_H_
+#endif // UI_RENDER_GDIPLUS_BITMAP_H_

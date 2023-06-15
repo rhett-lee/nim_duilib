@@ -8,6 +8,7 @@
 #include "duilib/Utils/MultiLangSupport.h"
 #include "duilib/Utils/OnScreenKeyboardManager.h"
 #include "duilib/Render/IRender.h"
+#include "duilib/Render/AutoClip.h"
 #include "duilib/Animation/AnimationManager.h"
 #include "duilib/Animation/AnimationPlayer.h"
 #include "base/win32/path_util.h"

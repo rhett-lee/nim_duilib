@@ -1,5 +1,5 @@
 #include "GlobalManager.h"
-#include "duilib/Render/RenderFactory_Gdiplus.h"
+#include "duilib/RenderGdiPlus/RenderFactory_Gdiplus.h"
 #include "duilib/Render/Font_GDI.h"
 #include "duilib/Utils/DpiManager.h"
 #include "duilib/Utils/StringUtil.h"
@@ -12,7 +12,7 @@
 #include "duilib/Image/Image.h"
 #include "duilib/Image/ImageDecoder.h"
 
-#include "duilib/Image/GdiPlusDefs.h"
+#include "duilib/RenderGdiPlus/GdiPlusDefs.h"
 
 #include "duilib/third_party/unzip/UnZip.h"
 

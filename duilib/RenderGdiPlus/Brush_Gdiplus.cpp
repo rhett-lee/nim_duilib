@@ -1,5 +1,5 @@
 #include "Brush_Gdiplus.h"
-#include "duilib/Image/GdiPlusDefs.h"
+#include "duilib/RenderGdiPlus/GdiPlusDefs.h"
 
 namespace ui {
 

@@ -1,5 +1,6 @@
 #include "Box.h"
 #include "duilib/Render/IRender.h"
+#include "duilib/Render/AutoClip.h"
 #include "duilib/Core/Window.h"
 #include "duilib/Control/ScrollBar.h"
 #include "duilib/Utils/DpiManager.h"

@@ -1,5 +1,6 @@
-#ifndef UI_CORE_RENDER_FACTORY_H_
-#define UI_CORE_RENDER_FACTORY_H_
+#ifndef UI_RENDER_GDIPLUS_RENDER_FACTORY_H_
+#define UI_RENDER_GDIPLUS_RENDER_FACTORY_H_
+
 #pragma once
 
 #include "duilib/Render/IRender.h"
@@ -19,4 +20,4 @@ public:
 
 } // namespace ui
 
-#endif // UI_CORE_RENDER_FACTORY_H_
+#endif // UI_RENDER_GDIPLUS_RENDER_FACTORY_H_

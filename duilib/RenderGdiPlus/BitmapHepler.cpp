@@ -1,5 +1,5 @@
 #include "BitmapHelper.h"
-#include "duilib/Render/Bitmap_GDI.h"
+#include "duilib/RenderGdiPlus/Bitmap_GDI.h"
 #include "duilib/Core/GlobalManager.h"
 #include <algorithm>
 

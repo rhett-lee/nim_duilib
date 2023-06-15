@@ -4,6 +4,7 @@
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/ToolTip.h"
 #include "duilib/Render/IRender.h"
+#include "duilib/Render/AutoClip.h"
 #include "duilib/Animation/AnimationManager.h"
 #include "duilib/Animation/AnimationPlayer.h"
 #include "duilib/Utils/VersionHelpers.h"

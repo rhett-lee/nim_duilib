@@ -1,12 +1,12 @@
 #include "ImageDecoder.h"
 #include "duilib/Image/Image.h"
-#include "duilib/Image/GdiPlusDefs.h"
 #include "duilib/Core/GlobalManager.h"
-#include "duilib/Render/Bitmap_GDI.h"
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Utils/DpiManager.h"
-
 #include "duilib/third_party/apng/decoder-apng.h"
+
+#include "duilib/RenderGdiPlus/GdiPlusDefs.h"
+#include "duilib/RenderGdiPlus/Bitmap_GDI.h"
 
 #pragma warning (push)
 #pragma warning (disable: 4244)
