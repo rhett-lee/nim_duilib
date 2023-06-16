@@ -1881,6 +1881,9 @@ Control* Window::GetHoverControl() const
 
 bool Window::SetNextTabControl(bool bForward)
 {
+	if (m_pRoot == nullptr) {
+		return false;
+	}
 	// Find next/previous tabbable control
 	FINDTABINFO info1 = { 0 };
 	info1.pFocus = m_pFocus;

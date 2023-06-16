@@ -1,24 +1,24 @@
-#include "RenderTest.h"
+#include "RenderTest1.h"
 #include "duilib/RenderGdiPlus/BitmapHelper.h"
 
 namespace ui {
 
-RenderTest::RenderTest()
+RenderTest1::RenderTest1()
 {
 
 }
 
-RenderTest::~RenderTest()
+RenderTest1::~RenderTest1()
 {
 
 }
 
-void RenderTest::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
+void RenderTest1::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
 {
     __super::AlphaPaint(pRender, rcPaint);
 }
 
-void RenderTest::Paint(IRender* pRender, const UiRect& rcPaint)
+void RenderTest1::Paint(IRender* pRender, const UiRect& rcPaint)
 {
     const int marginSize = 8;
     UiRect rect = GetRect();
@@ -26,6 +26,7 @@ void RenderTest::Paint(IRender* pRender, const UiRect& rcPaint)
     rect.top += 4;
 
     int nSize = 50;
+    DpiManager::GetInstance()->ScaleInt(nSize);
     rect.right = rect.left + nSize;
     rect.bottom = rect.top + nSize;
     int currentBottom = rect.bottom;//记录当前的bottom值
@@ -205,7 +206,7 @@ void RenderTest::Paint(IRender* pRender, const UiRect& rcPaint)
     pRender->DrawImage(rcPaint, image.GetCurrentBitmap(), rect, rcImageSource, rcCorners, false, 255, xtiled, ytiled, fullxtiled, fullytiled, nTiledMargin);
 }
 
-void RenderTest::PaintChild(IRender* pRender, const UiRect& rcPaint)
+void RenderTest1::PaintChild(IRender* pRender, const UiRect& rcPaint)
 {
     __super::PaintChild(pRender, rcPaint);
 }

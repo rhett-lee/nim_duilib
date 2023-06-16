@@ -1,5 +1,7 @@
 #include "render_form.h"
-#include "RenderTest.h"
+#include "RenderTest1.h"
+#include "RenderTest2.h"
+#include "RenderTest3.h"
 
 const std::wstring RenderForm::kClassName = L"render";
 
@@ -40,8 +42,14 @@ LRESULT RenderForm::OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHand
 
 ui::Control* RenderForm::CreateControl(const std::wstring& strClass)
 {
-	if (strClass == L"RenderTest") {
-		return new ui::RenderTest;
+	if (strClass == L"RenderTest1") {
+		return new ui::RenderTest1;
+	}
+	else if (strClass == L"RenderTest2") {
+		return new ui::RenderTest2;
+	}
+	if (strClass == L"RenderTest3") {
+		return new ui::RenderTest3;
 	}
 	return nullptr;
 }

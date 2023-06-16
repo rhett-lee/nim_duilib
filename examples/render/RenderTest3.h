@@ -5,11 +5,11 @@
 
 namespace ui {
 
-class RenderTest : public ui::Control
+class RenderTest3 : public ui::Control
 {
 public:
-	RenderTest();
-	virtual ~RenderTest();
+	RenderTest3();
+	virtual ~RenderTest3();
 
 public:
 	/**

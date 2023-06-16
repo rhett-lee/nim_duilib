@@ -30,7 +30,13 @@
     <ClInclude Include="render_form.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="RenderTest.h">
+    <ClInclude Include="RenderTest1.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderTest2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderTest3.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -41,7 +47,13 @@
     <ClCompile Include="render_form.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="RenderTest.cpp">
+    <ClCompile Include="RenderTest1.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderTest2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderTest3.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
