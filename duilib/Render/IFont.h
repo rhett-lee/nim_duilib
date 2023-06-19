@@ -23,9 +23,17 @@ public:
      */
     virtual const wchar_t* FontName() const = 0;
 
-    /**@brief 获取字体大小
+    /**@brief 获取字体大小(字体高度)
      */
     virtual int FontSize() const = 0;
+
+    /**@brief 获取字体宽度
+     */
+    virtual int FontWidth() const = 0;
+
+    /**@brief 获取字体Weight值
+     */
+    virtual int FontWeight() const = 0;
 
     /**@brief 是否为粗体
      */

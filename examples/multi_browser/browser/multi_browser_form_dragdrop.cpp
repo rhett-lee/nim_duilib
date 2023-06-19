@@ -184,7 +184,7 @@ bool MultiBrowserForm::OnProcessTabItemDrag(const ui::EventArgs& param)
 			else {
 				pBitmap = GenerateBoxWindowBitmap();
 			}
-			HBITMAP hBitmap = ui::BitmapHelper::DetachHBitmap(pBitmap);
+			HBITMAP hBitmap = ui::BitmapHelper::CreateGDIBitmap(pBitmap);
 			if (pBitmap != nullptr) {
 				delete pBitmap;
 				pBitmap = nullptr;

@@ -15,7 +15,7 @@ namespace ui
         * @param [in] dAngle 需要旋转的角度(0 - 360度)
         * @return 返回新生成的位图接口，资源由调用方负责释放
         */
-        IBitmap* RotateBitmapAroundCenter(const IBitmap* pBitmap, double dAngle);
+        IBitmap* RotateBitmapAroundCenter(IBitmap* pBitmap, double dAngle);
 
 #ifdef UILIB_IMPL_WINSDK
 
@@ -34,15 +34,15 @@ namespace ui
         */
         IBitmap* CreateBitmapObject(int srcRenderWidth, int srcRenderHeight, HDC hSrcDc, int srcDcWidth, int srcDcHeight);
 
-        /** 从一个Bitmap对象，获取一个HBITMAP句柄
-        * @return 返回HBITMAP句柄，外部调用者不需要释放资源
-        */
-        HBITMAP GetHBitmap(IBitmap* pBitmap);
-
-        /** 从一个Bitmap对象，获取一个HBITMAP句柄
+        /** 从一个GDI Bitmap对象，获取一个HBITMAP句柄
         * @return 返回HBITMAP句柄，外部调用者需要释放资源，以避免资源泄露
         */
-        HBITMAP DetachHBitmap(IBitmap* pBitmap);
+        HBITMAP CreateGDIBitmap(IBitmap* pBitmap);
+
+        /** 创建一个设备无关的位图
+	    *@return 返回位图句柄，由调用方释放位图资源
+	    */
+	    HBITMAP CreateGDIBitmap(int32_t nWidth, int32_t nHeight, bool flipHeight, LPVOID* pBits);
 #endif
     }
 }

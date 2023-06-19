@@ -1,20 +1,25 @@
-#ifndef UI_RENDER_GDIPLUS_RENDER_H_
-#define UI_RENDER_GDIPLUS_RENDER_H_
+#ifndef UI_RENDER_SKIA_RENDER_H_
+#define UI_RENDER_SKIA_RENDER_H_
 
 #pragma once
 
 #include "duilib/Render/IRender.h"
-#include "duilib/RenderGdiPlus/Clip_GDI.h"
-#include "duilib/RenderGdiPlus/RenderBitmap_GDI.h"
+
+//Skia相关类的前置声明
+class SkCanvas;
+struct SkPoint;
+class SkPaint;
 
 namespace ui 
 {
 
-class UILIB_API Render_GdiPlus : public IRender
+class Bitmap_Skia;
+
+class UILIB_API Render_Skia : public IRender
 {
 public:
-	Render_GdiPlus();
-	virtual ~Render_GdiPlus();
+	Render_Skia();
+	virtual ~Render_Skia();
 
 	virtual bool Resize(int width, int height) override;
 	virtual void Clear() override;
@@ -105,48 +110,41 @@ public:
 #endif
 
 private:
+	/** 位图绘制封装
+	*/
+	bool BitBlt(int x, int y, int cx, int cy, Bitmap_Skia* pSrcBitmap, int xSrc, int yScr, RopMode rop);
+
 	/** 获取GDI的光栅操作代码
 	*/
-	DWORD GetRopMode(RopMode rop) const;
+	void SetRopMode(SkPaint& skPaint, RopMode rop) const;
 
 private:
-	/** DC句柄
-	*/
-	HDC m_hDC;
 
-	/** 保存的DC的状态
+	/** 位图对象
 	*/
-	int m_saveDC;
+	std::unique_ptr<Bitmap_Skia> m_pBitmapSkia;
 
-	/** 是否指定为支持透明
+	/** Canvas 接口
+	*/
+	SkCanvas* m_pSkCanvas;
+
+	/** 绘制属性
+	*/
+	SkPaint* m_pSkPaint;
+
+	/** 视图的原点坐标
+	*/
+	SkPoint* m_pSkPointOrg;
+
+	/** 是否透明
 	*/
 	bool m_bTransparent;
 
-	/** 剪辑区域
+	/** 关联的DC句柄
 	*/
-	Clip_GDI m_clip;
-
-	/** DC原来关联的位图句柄
-	*/
-	HBITMAP m_hOldBitmap;
-
-	/** Render所用的位图
-	*/
-	HBITMAP	m_hBitmap;
-
-	/** Render所用的位图数据
-	*/
-	BYTE* m_pPiexl;
-
-	/** Render所用的位图宽度
-	*/
-	int m_nWidth;
-
-	/** Render所用的位图高度
-	*/
-	int m_nHeight;
+	HDC m_hDC;
 };
 
 } // namespace ui
 
-#endif // UI_RENDER_GDIPLUS_RENDER_H_
+#endif // UI_RENDER_SKIA_RENDER_H_

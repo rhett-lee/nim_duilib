@@ -1,5 +1,4 @@
 #include "BitmapHelper.h"
-#include "duilib/RenderGdiPlus/Bitmap_GDI.h"
 #include "duilib/Core/GlobalManager.h"
 #include <algorithm>
 
@@ -64,28 +63,30 @@ namespace BitmapHelper {
         return hRotatedBitmap;
     }
 
-    IBitmap* RotateBitmapAroundCenter(const IBitmap* pBitmap, double dAngle)
+    IBitmap* RotateBitmapAroundCenter(IBitmap* pBitmap, double dAngle)
     {
         ASSERT(pBitmap != nullptr);
         if (pBitmap == nullptr) {
             return nullptr;
         }
-        const Bitmap_GDI* pGdiBitmap = dynamic_cast<const Bitmap_GDI*>(pBitmap);
-        ASSERT(pGdiBitmap != nullptr);
-        if (pGdiBitmap == nullptr) {
-            return nullptr;
-        }
-        HBITMAP hBitmap = pGdiBitmap->GetHBitmap();
-        ASSERT(hBitmap != nullptr);
+        //TODO: 改进实现方式(目前性能比较低，后续再改进)
+        HBITMAP hBitmap = CreateGDIBitmap(pBitmap);
+        ASSERT(hBitmap != nullptr);        
         if (hBitmap == nullptr) {
             return nullptr;
         }
         HBITMAP hRotatedBitmap = RotateHBitmapAroundCenter(hBitmap, dAngle);
-        ASSERT(hRotatedBitmap != nullptr);
-        if (hRotatedBitmap == nullptr) {
-            return nullptr;
+        IBitmap* pNewBitmap = pBitmap->Clone();
+        if (hRotatedBitmap != nullptr) {
+            BITMAP bm = { 0 };
+            ::GetObject(hRotatedBitmap, sizeof(bm), &bm);
+            pNewBitmap->Init(bm.bmWidth, bm.bmHeight, true, bm.bmBits);
+            ::DeleteObject(hRotatedBitmap);
+            hRotatedBitmap = nullptr;
         }
-        return new Bitmap_GDI(hRotatedBitmap, true);
+        ::DeleteObject(hBitmap);
+        hBitmap = nullptr;
+        return pNewBitmap;
     }
 
     IRender* CreateRenderObject(int srcRenderWidth, int srcRenderHeight, HDC hSrcDc, int srcDcWidth, int srcDcHeight)
@@ -113,20 +114,8 @@ namespace BitmapHelper {
         }
 
         HDC hMemDC = ::CreateCompatibleDC(hSrcDc);
- 
-        BITMAPINFO bmi;
-        ::ZeroMemory(&bmi, sizeof(bmi));
-        bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-        bmi.bmiHeader.biWidth = srcDcWidth;
-        bmi.bmiHeader.biHeight = -srcDcHeight;
-        bmi.bmiHeader.biPlanes = 1;
-        bmi.bmiHeader.biBitCount = 32;
-        bmi.bmiHeader.biCompression = BI_RGB;
-        bmi.bmiHeader.biSizeImage = srcDcWidth * srcDcHeight * 4;
-
         void* pBits = nullptr;
-        HBITMAP hBitmap = ::CreateDIBSection(hMemDC, &bmi, DIB_RGB_COLORS, &pBits, NULL, 0);
-
+        HBITMAP hBitmap = CreateGDIBitmap(srcDcWidth, srcDcHeight, true, &pBits);
         ::SelectObject(hMemDC, hBitmap);
 
         //复制位图到内存DC
@@ -197,25 +186,49 @@ namespace BitmapHelper {
         return pBitmap;
     }
 
-    HBITMAP GetHBitmap(IBitmap* pBitmap)
+    HBITMAP CreateGDIBitmap(IBitmap* pBitmap)
     {
-        ui::Bitmap_GDI* pGdiBitmap = dynamic_cast<Bitmap_GDI*>(pBitmap);
-        ASSERT(pGdiBitmap != nullptr);
-        HBITMAP hBitmap = nullptr;
-        if (pGdiBitmap != nullptr) {
-            hBitmap = pGdiBitmap->GetHBitmap();
+        if (pBitmap == nullptr) {
+            return nullptr;
         }
+        void* pLockBits = pBitmap->LockPixelBits();
+        if (pLockBits == nullptr) {
+            return nullptr;
+        }
+        LPVOID pBitmapBits = nullptr;
+        HBITMAP hBitmap = CreateGDIBitmap(pBitmap->GetWidth(), pBitmap->GetHeight(), true, &pBitmapBits);
+        if ((hBitmap != nullptr) && (pBitmapBits != nullptr)){
+            memcpy(pBitmapBits, pLockBits, pBitmap->GetWidth() * pBitmap->GetHeight() * 4);
+        }        
+        pBitmap->UnLockPixelBits();
         return hBitmap;
     }
 
-    HBITMAP DetachHBitmap(IBitmap* pBitmap)
+    HBITMAP CreateGDIBitmap(int32_t nWidth, int32_t nHeight, bool flipHeight, LPVOID* pBits)
     {
-        ui::Bitmap_GDI* pGdiBitmap = dynamic_cast<Bitmap_GDI*>(pBitmap);
-        ASSERT(pGdiBitmap != nullptr);
-        HBITMAP hBitmap = nullptr;
-        if (pGdiBitmap != nullptr) {
-            hBitmap = pGdiBitmap->DetachHBitmap();
+        ASSERT((nWidth > 0) && (nHeight > 0));
+        if (nWidth == 0 || nHeight == 0) {
+            return nullptr;
         }
+
+        BITMAPINFO bmi = { 0 };
+        ::ZeroMemory(&bmi, sizeof(BITMAPINFO));
+        bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+        bmi.bmiHeader.biWidth = nWidth;
+        if (flipHeight) {
+            bmi.bmiHeader.biHeight = -nHeight;//负数表示位图方向：从上到下，左上角为圆点
+        }
+        else {
+            bmi.bmiHeader.biHeight = nHeight; //正数表示位图方向：从下到上，左下角为圆点
+        }
+        bmi.bmiHeader.biPlanes = 1;
+        bmi.bmiHeader.biBitCount = 32;
+        bmi.bmiHeader.biCompression = BI_RGB;
+        bmi.bmiHeader.biSizeImage = nWidth * nHeight * sizeof(DWORD);
+
+        HDC hdc = ::GetDC(NULL);
+        HBITMAP hBitmap = ::CreateDIBSection(hdc, &bmi, DIB_RGB_COLORS, pBits, NULL, 0);
+        ::ReleaseDC(NULL, hdc);
         return hBitmap;
     }
     

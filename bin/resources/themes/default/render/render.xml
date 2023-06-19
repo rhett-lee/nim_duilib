@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Window size="900,600" sizebox="4,4,4,4" caption="0,0,0,36" text="渲染引擎测试程序">
+<Window size="960,660" sizebox="4,4,4,4" caption="0,0,0,36" text="渲染引擎测试程序">
     <!-- 整个窗口中，所有控件都放在这个VBox容器中 -->  
     <VBox bkcolor="bk_wnd_darkcolor">
         <!-- 标题栏区域 -->  
@@ -21,6 +21,9 @@
                 <Button class="btn_global_blue_80x30" width="48" height="32" text="页面3" margin="8,0,0,0" tooltiptext="页面3">
                     <Event type="buttonup" receiver="main_view_tab" applyattribute="selectedid=&quot;2&quot;" />
                 </Button>
+                <Button class="btn_global_blue_80x30" width="48" height="32" text="页面4" margin="8,0,0,0" tooltiptext="页面3">
+                    <Event type="buttonup" receiver="main_view_tab" applyattribute="selectedid=&quot;3&quot;" />
+                </Button>
              </HBox>
             <Control />
             <!-- 标题栏：右侧窗口控制区域，窗口最小化、最大化、还原、关闭按钮 -->
@@ -36,7 +39,7 @@
         
         <!-- 显示区域 --> 
         <VBox>            
-            <TabBox name="main_view_tab" bkcolor="white" fadeswitch="true">
+            <TabBox name="main_view_tab" bkcolor="white" fadeswitch="true" selectedid="3">
                 <VBox name="main_view_page_01">
                     <Label text="页面1："/>
                     <RenderTest1 />
@@ -64,6 +67,51 @@
                 <VBox name="main_view_page_03">
                     <Label text="页面3："/>
                     <RenderTest3 />
+                </VBox>
+                <VBox name="main_view_page_04">
+                    <Label text="页面4：文字绘制测试"/>
+                    <HBox>
+                        <VBox width="300" margin="4">
+                            <HBox height="100" bkcolor="blue">
+                                <Label height="stretch" width="stretch" text="文字(横向：左对齐，纵向：上对齐)" align="left,top"/>
+                            </HBox>
+                            <HBox height="100" bkcolor="dark_gray">
+                                <Label height="stretch" width="stretch" text="文字(横向：左对齐，纵向：中对齐)" align="left,vcenter"/>
+                            </HBox>
+                            <HBox height="100" bkcolor="blue">
+                                <Label height="stretch" width="stretch" text="文字(横向：左对齐，纵向：下对齐)" align="left,bottom"/>
+                            </HBox>
+                            <HBox height="100" bkcolor="dark_gray">
+                                <Label height="stretch" width="stretch" text="文字(横向：中对齐，纵向：上对齐)" align="center,top"/>
+                            </HBox>
+                            <HBox height="100" bkcolor="blue">
+                                <Label height="stretch" width="stretch" text="文字(横向：中对齐，纵向：中对齐)" align="center,vcenter"/>
+                            </HBox>
+                            <HBox height="100" bkcolor="dark_gray">
+                                <Label height="stretch" width="stretch" text="文字(横向：中对齐，纵向：下对齐)" align="center,bottom"/>
+                            </HBox>
+                        </VBox>
+                        <VBox width="300" margin="4">
+                            <HBox height="100" bkcolor="blue">
+                                <Label height="stretch" width="stretch" text="文字(横向：右对齐，纵向：上对齐)" align="right,top"/>
+                            </HBox>
+                            <HBox height="100" bkcolor="dark_gray">
+                                <Label height="stretch" width="stretch" text="文字(横向：右对齐，纵向：中对齐)" align="right,vcenter"/>
+                            </HBox>
+                            <HBox height="100" bkcolor="blue">
+                                <Label height="stretch" width="stretch" text="文字(横向：右对齐，纵向：下对齐)" align="right,bottom"/>
+                            </HBox>
+                            <HBox height="100" bkcolor="dark_gray">
+                                <Label height="stretch" width="stretch" text="页面4：文字绘制\n测试, 多行文本测试，这个是很多文字。1234567890-。qwertyuiopasdfghjkl;lmnozxccvb.NBVCXZASDFGHJKLPOIUYTREWQ."/>
+                            </HBox>
+                            <HBox height="100" bkcolor="blue">
+                                <Label height="stretch" width="stretch" text="页面4：文字绘制测试"/>
+                            </HBox>
+                            <HBox height="100" bkcolor="dark_gray">
+                                <Label height="stretch" width="stretch" text="页面4：文字绘制测试"/>
+                            </HBox>
+                        </VBox>
+                    </HBox>
                 </VBox>
             </TabBox>
         </VBox>

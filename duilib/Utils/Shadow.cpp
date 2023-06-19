@@ -119,8 +119,7 @@ Box* Shadow::AttachShadow(Box* pRoot)
 	}
 	m_pRoot->SetFixedHeight(rootHeight, false);
 
-	if (m_bUseDefaultImage)
-	{
+	if (m_bUseDefaultImage)	{
 		UiSize size(3, 3);
 		pRoot->SetBorderRound(size);
 	}
@@ -144,8 +143,10 @@ void Shadow::MaximizedOrRestored(bool isMaximized)
 		if (m_bUseDefaultImage)
 		{
 			Control* control = m_pRoot->GetItemAt(0);
-			UiSize size(0, 0);
-			control->SetBorderRound(size);
+			if (control != nullptr) {
+				UiSize size(0, 0);
+				control->SetBorderRound(size);
+			}			
 		}
 	}
 	else if (!isMaximized && m_pRoot) {
@@ -155,8 +156,10 @@ void Shadow::MaximizedOrRestored(bool isMaximized)
 		if (m_bUseDefaultImage)
 		{
 			Control* control = m_pRoot->GetItemAt(0);
-			UiSize size(3, 3);
-			control->SetBorderRound(size);
+			if (control != nullptr) {
+				UiSize size(3, 3);
+				control->SetBorderRound(size);
+			}			
 		}
 	}
 }

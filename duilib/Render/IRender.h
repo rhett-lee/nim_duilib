@@ -440,7 +440,7 @@ public:
 
 public:
 
-	/** 清除资源
+	/** 清除位图数据，使其变成全透明位图（位图数据全部清零）
 	*/
 	virtual void Clear() = 0;
 

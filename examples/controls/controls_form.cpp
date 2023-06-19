@@ -90,54 +90,60 @@ void ControlForm::OnInitWindow()
 
 	/* Initialize ComboBox data */
 	ui::Combo* combo = static_cast<ui::Combo*>(FindControl(L"combo"));
-	for (auto i = 0; i < 10; i++)
-	{
-		ui::ListBoxElement* element = new ui::ListBoxElement;
-		element->SetClass(L"listitem");
-		element->SetFixedHeight(30, true);
-		element->SetBkColor(L"white");
-		element->SetTextPadding({ 6,0,6,0 });
-		element->SetText(nbase::StringPrintf(L"ui::Combo::ListBoxElement %d", i));
-		combo->AddItem(element);
+	if (combo != nullptr) {
+		for (auto i = 0; i < 10; i++)
+		{
+			ui::ListBoxElement* element = new ui::ListBoxElement;
+			element->SetClass(L"listitem");
+			element->SetFixedHeight(30, true);
+			element->SetBkColor(L"white");
+			element->SetTextPadding({ 6,0,6,0 });
+			element->SetText(nbase::StringPrintf(L"ui::Combo::ListBoxElement %d", i));
+			combo->AddItem(element);
+		}
 	}
 
 	std::string checks[7] = { "nim_comp::CheckCombo", "check1", "check2", "check3", "check4", "check5", "check6" };
 	nim_comp::CheckCombo* check_combo = static_cast<nim_comp::CheckCombo*>(FindControl(L"check_combo"));
-	for (auto i = 0; i < 7; i++)
-	{
-		ui::CheckBox *item = new ui::CheckBox;
-		item->SetFixedWidth(DUI_LENGTH_STRETCH, true, true);
-		item->SetFixedHeight(24, true);
-		item->SetUTF8Text(checks[i]);
-		item->SetUTF8DataID(checks[i]);
-		item->SetToolTipText(L"nim_comp::CheckCombo");
+	if (check_combo != nullptr) {
+		for (auto i = 0; i < 7; i++)
+		{
+			ui::CheckBox* item = new ui::CheckBox;
+			item->SetFixedWidth(DUI_LENGTH_STRETCH, true, true);
+			item->SetFixedHeight(24, true);
+			item->SetUTF8Text(checks[i]);
+			item->SetUTF8DataID(checks[i]);
+			item->SetToolTipText(L"nim_comp::CheckCombo");
 
-		item->SetTextPadding({ 20, 2, 2, 0 });
-		item->SetTextStyle(ui::TEXT_LEFT | ui::TEXT_VCENTER);
-		std::wstring image_normal = nbase::StringPrintf(L"file='../public/checkbox/check_no.png' dest='%d,4,%d,20'", 2, 18);
-		std::wstring image_select = nbase::StringPrintf(L"file='../public/checkbox/check_yes.png' dest='%d,4,%d,20'", 2, 18);
+			item->SetTextPadding({ 20, 2, 2, 0 });
+			item->SetTextStyle(ui::TEXT_LEFT | ui::TEXT_VCENTER);
+			std::wstring image_normal = nbase::StringPrintf(L"file='../public/checkbox/check_no.png' dest='%d,4,%d,20'", 2, 18);
+			std::wstring image_select = nbase::StringPrintf(L"file='../public/checkbox/check_yes.png' dest='%d,4,%d,20'", 2, 18);
 
-		item->SetStateImage(ui::kControlStateNormal, image_normal);
-		item->SetSelectedStateImage(ui::kControlStateNormal, image_select);
+			item->SetStateImage(ui::kControlStateNormal, image_normal);
+			item->SetSelectedStateImage(ui::kControlStateNormal, image_select);
 
-		check_combo->AddItem(item);
+			check_combo->AddItem(item);
+		}
 	}
 
 	nim_comp::FilterCombo* filter_combo = static_cast<nim_comp::FilterCombo*>(FindControl(L"filter_combo"));
-	char buf[16] = {};
-	for (auto i = 0; i < 100; i++)
-	{
-		nim_comp::ListElementMatch *item = new nim_comp::ListElementMatch;
-		item->SetFixedHeight(20, true);
-		//ui::GlobalManager::FillBoxWithCache(item, L"date_export/combo/date_item.xml");
-		//Label *label = new label;
+	if (filter_combo != nullptr) {
+		char buf[16] = {};
+		for (auto i = 0; i < 100; i++)
+		{
+			nim_comp::ListElementMatch* item = new nim_comp::ListElementMatch;
+			item->SetFixedHeight(20, true);
+			//ui::GlobalManager::FillBoxWithCache(item, L"date_export/combo/date_item.xml");
+			//Label *label = new label;
 
-		std::string str = "nim_comp::FilterCombo item";
-		_itoa_s(i, buf, 10);
-		str += buf;
-		item->SetText(nbase::UTF8ToUTF16(str));
-		item->SetUTF8DataID(str);
-		filter_combo->AddItem(item);
+			std::string str = "nim_comp::FilterCombo item";
+			_itoa_s(i, buf, 10);
+			str += buf;
+			item->SetText(nbase::UTF8ToUTF16(str));
+			item->SetUTF8DataID(str);
+			filter_combo->AddItem(item);
+		}
 	}
 
 	/* Load xml file content in global misc thread, and post update RichEdit task to UI thread */
@@ -167,26 +173,27 @@ void ControlForm::OnInitWindow()
 	//m_pRoot->AttachAllEvents([this](ui::EventArgs& args) {
 	//m_pRoot->AttachMenu([this](ui::EventArgs& args) {
 	ui::RichEdit* edit = static_cast<ui::RichEdit*>(FindControl(L"edit"));
-	ASSERT(edit != nullptr);
-	edit->AttachMenu([this](const ui::EventArgs& args) {
-		if (args.Type == ui::kEventMouseMenu) {
-			POINT pt = args.ptMouse;
-			if ((pt.x != -1) && (pt.y != -1)) {
-				ui::Control* pControl = (ui::Control*)args.lParam;//当前点击点所在的控件
+	if (edit != nullptr) {
+		edit->AttachMenu([this](const ui::EventArgs& args) {
+			if (args.Type == ui::kEventMouseMenu) {
+				POINT pt = args.ptMouse;
+				if ((pt.x != -1) && (pt.y != -1)) {
+					ui::Control* pControl = (ui::Control*)args.lParam;//当前点击点所在的控件
 
-				//鼠标消息产生的上下文菜单
-				::ClientToScreen(GetHWND(), &pt);
-				ShowPopupMenu(ui::UiPoint(pt));
+					//鼠标消息产生的上下文菜单
+					::ClientToScreen(GetHWND(), &pt);
+					ShowPopupMenu(ui::UiPoint(pt));
+				}
+				else {
+					//按Shif + F10，由系统产生上下文菜单
+					pt = { 100, 100 };
+					::ClientToScreen(GetHWND(), &pt);
+					ShowPopupMenu(ui::UiPoint(pt));
+				}
 			}
-			else {
-				//按Shif + F10，由系统产生上下文菜单
-				pt = { 100, 100 };
-				::ClientToScreen(GetHWND(), &pt);
-				ShowPopupMenu(ui::UiPoint(pt));
-			}
-		}
-		return true;
-	});
+			return true;
+			});
+	}
 }
 
 void ControlForm::ShowPopupMenu(const ui::UiPoint& point)

@@ -1,5 +1,6 @@
 #include "GlobalManager.h"
 #include "duilib/RenderGdiPlus/RenderFactory_Gdiplus.h"
+#include "duilib/RenderSkia/RenderFactory_Skia.h"
 #include "duilib/Render/Font_GDI.h"
 #include "duilib/Utils/DpiManager.h"
 #include "duilib/Utils/StringUtil.h"
@@ -103,6 +104,7 @@ void GlobalManager::Startup(const std::wstring& strResourcePath, const CreateCon
 	m_dwUiThreadId = GetCurrentThreadId();
 
 	m_renderFactory = std::make_unique<RenderFactory_GdiPlus>();
+	//m_renderFactory = std::make_unique<RenderFactory_Skia>();
 	GlobalManager::SetResourcePath(strResourcePath + theme);
 	m_createControlCallback = callback;
 
@@ -405,7 +407,8 @@ bool GlobalManager::AddFont(const std::wstring& strFontId,
 	static bool bOsOverXp = IsWindowsVistaOrGreater();
 	std::wstring fontName = strFontName;
 	if (fontName == L"system") {
-		fontName = bOsOverXp ? L"微软雅黑" : L"宋体";
+		//字体使用英文名称，保持兼容性
+		fontName = bOsOverXp ? L"Microsoft YaHei" : L"SimSun";
 	}
 
 	LOGFONT lf = { 0 };
@@ -457,6 +460,20 @@ HFONT GlobalManager::GetFont(const std::wstring& strFontId)
 		}
 	}
 	return nullptr;
+}
+
+IFont* GlobalManager::GetIFont(const std::wstring& strFontId)
+{
+	auto iter = m_mCustomFonts.find(strFontId);
+	if (iter == m_mCustomFonts.end()) {
+		//如果找不到，则用默认字体
+		iter = m_mCustomFonts.find(m_sDefaultFontId);
+	}
+	IFont* pFont = nullptr;
+	if (iter != m_mCustomFonts.end()) {
+		pFont = iter->second;
+	}
+	return pFont;
 }
 
 void GlobalManager::RemoveAllFonts()

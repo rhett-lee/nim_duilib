@@ -6,6 +6,7 @@
 #include "duilib/RenderGdiPlus/Brush_Gdiplus.h"
 #include "duilib/RenderGdiPlus/Bitmap_GDI.h"
 #include "duilib/RenderGdiPlus/GdiPlusDefs.h"
+#include "duilib/Render/BitmapAlpha.h"
 
 namespace ui {
 
@@ -26,8 +27,12 @@ static inline void DrawFunction(HDC hDC, bool bTransparent, UiRect rcDest, HDC h
 Render_GdiPlus::Render_GdiPlus()
 	: m_hDC(nullptr)
 	, m_saveDC(0)
-	, m_hOldBitmap(nullptr)
 	, m_bTransparent(false)
+	, m_hOldBitmap(nullptr)
+	, m_hBitmap(nullptr)
+	, m_pPiexl(nullptr)
+	, m_nWidth(0)
+	, m_nHeight(0)
 {
 	HDC hDC = ::GetDC(NULL);
 	m_hDC = ::CreateCompatibleDC(hDC);
@@ -41,10 +46,13 @@ Render_GdiPlus::~Render_GdiPlus()
 		::SelectObject(m_hDC, m_hOldBitmap);
 		m_hOldBitmap = nullptr;
 	}
-
 	if (m_hDC != nullptr) {
 		::DeleteDC(m_hDC);
 		m_hDC = nullptr;
+	}
+	if (m_hBitmap != nullptr) {
+		::DeleteObject(m_hBitmap);
+		m_hBitmap = nullptr;
 	}
 }
 
@@ -66,7 +74,7 @@ bool Render_GdiPlus::Resize(int width, int height)
 	}
 
 	ASSERT(m_hDC != nullptr);
-	if ((m_bitmap.GetWidth() == width) && (m_bitmap.GetHeight() == height)) {
+	if ((m_nWidth == width) && (m_nHeight == height)) {
 		return true;
 	}
 
@@ -74,71 +82,114 @@ bool Render_GdiPlus::Resize(int width, int height)
 		::SelectObject(m_hDC, m_hOldBitmap);
 		m_hOldBitmap = nullptr;
 	}
-
-	bool ret = m_bitmap.Init(m_hDC, width, height);
-	if (ret) {
-		m_hOldBitmap = (HBITMAP)::SelectObject(m_hDC, m_bitmap.GetHBitmap());
+	if (m_hBitmap != nullptr) {
+		::DeleteObject(m_hBitmap);
+		m_hBitmap = nullptr;
+	}
+	m_pPiexl = nullptr;
+	m_nWidth = width;
+	m_nHeight = height;
+	m_hBitmap = Bitmap_GDI::CreateBitmap(width, height, true, (LPVOID*)&m_pPiexl);
+	ASSERT(m_pPiexl != nullptr);
+	if (m_pPiexl == nullptr) {
+		if (m_hBitmap != nullptr) {
+			::DeleteObject(m_hBitmap);
+			m_hBitmap = nullptr;
+		}
+	}
+	if (m_hBitmap == nullptr) {
+		m_pPiexl = nullptr;
+		m_nWidth = 0;
+		m_nHeight = 0;
+		return false;
 	}	
-	return ret;
+	m_hOldBitmap = (HBITMAP)::SelectObject(m_hDC, m_hBitmap);
+	return true;
 }
 
 void Render_GdiPlus::Clear()
 {
-	ASSERT(m_hDC != nullptr);
-	m_bitmap.Clear();
+	//将位图数据清零
+	if ((m_pPiexl != nullptr) && (m_nWidth > 0) && (m_nHeight > 0)) {
+		::memset(m_pPiexl, 0, m_nWidth * m_nHeight * 4);
+	}
 }
 
 std::unique_ptr<ui::IRender> Render_GdiPlus::Clone()
 {
 	std::unique_ptr<ui::IRender> pClone = std::make_unique<ui::Render_GdiPlus>();
 	pClone->Resize(GetWidth(), GetHeight());
-	::BitBlt(pClone->GetDC(), 0, 0, GetWidth(), GetHeight(), m_hDC, 0, 0, SRCCOPY);
+	pClone->BitBlt(0, 0, GetWidth(), GetHeight(), this, 0, 0, RopMode::kSrcCopy);
 	return pClone;
 }
 
 IBitmap* Render_GdiPlus::DetachBitmap()
 {
 	ASSERT(m_hOldBitmap != nullptr);
-	ASSERT(m_bitmap.GetHeight() > 0 && m_bitmap.GetWidth() > 0);
-
-	IBitmap* pBitmap = nullptr;
+	ASSERT(GetHeight() > 0 && GetWidth() > 0);
 	if (m_hOldBitmap != nullptr) {
 		::SelectObject(m_hDC, m_hOldBitmap);
 		m_hOldBitmap = nullptr;
-		HBITMAP hBitmap = m_bitmap.DetachBitmap();
-		if (hBitmap != nullptr) {
-			pBitmap = new Bitmap_GDI(hBitmap, true);
-		}
 	}
+	if (m_hBitmap == nullptr) {
+		return nullptr;
+	}
+	IBitmap* pBitmap = nullptr;	
+	HBITMAP hBitmap = m_hBitmap;
+	if (hBitmap != nullptr) {
+		pBitmap = new Bitmap_GDI(hBitmap, true);
+	}
+	m_hBitmap = nullptr;
+	m_pPiexl = nullptr;
+	m_nWidth = 0;
+	m_nHeight = 0;
 	return pBitmap;
 }
 
 int Render_GdiPlus::GetWidth()
 {
-	return m_bitmap.GetWidth();
+	return m_nWidth;
 }
 
 int Render_GdiPlus::GetHeight()
 {
-	return m_bitmap.GetHeight();
+	return m_nHeight;
 }
 
 void Render_GdiPlus::ClearAlpha(const UiRect& rcDirty, int alpha)
 {
-	ASSERT((GetWidth() > 0) && (GetHeight() > 0));
-	m_bitmap.ClearAlpha(rcDirty, alpha);
+	HBITMAP hBitmap = m_hBitmap;
+	ASSERT(hBitmap != nullptr);
+	if (hBitmap != nullptr) {
+		BITMAP bm = { 0 };
+		::GetObject(hBitmap, sizeof(bm), &bm);
+		BitmapAlpha bitmapAlpha((uint8_t*)bm.bmBits, bm.bmWidth, bm.bmHeight, bm.bmBitsPixel / 8);
+		bitmapAlpha.ClearAlpha(rcDirty, alpha);
+	}
 }
 
 void Render_GdiPlus::RestoreAlpha(const UiRect& rcDirty, const UiRect& rcShadowPadding, int alpha)
 {
-	ASSERT((GetWidth() > 0) && (GetHeight() > 0));
-	m_bitmap.RestoreAlpha(rcDirty, rcShadowPadding, alpha);
+	HBITMAP hBitmap = m_hBitmap;
+	ASSERT(hBitmap != nullptr);
+	if (hBitmap != nullptr) {
+		BITMAP bm = { 0 };
+		::GetObject(hBitmap, sizeof(bm), &bm);
+		BitmapAlpha bitmapAlpha((uint8_t*)bm.bmBits, bm.bmWidth, bm.bmHeight, bm.bmBitsPixel / 8);
+		bitmapAlpha.RestoreAlpha(rcDirty, rcShadowPadding, alpha);
+	}
 }
 
 void Render_GdiPlus::RestoreAlpha(const UiRect& rcDirty, const UiRect& rcShadowPadding /*= UiRect()*/)
 {
-	ASSERT((GetWidth() > 0) && (GetHeight() > 0));
-	m_bitmap.RestoreAlpha(rcDirty, rcShadowPadding);
+	HBITMAP hBitmap = m_hBitmap;
+	ASSERT(hBitmap != nullptr);
+	if (hBitmap != nullptr) {
+		BITMAP bm = { 0 };
+		::GetObject(hBitmap, sizeof(bm), &bm);
+		BitmapAlpha bitmapAlpha((uint8_t*)bm.bmBits, bm.bmWidth, bm.bmHeight, bm.bmBitsPixel / 8);
+		bitmapAlpha.RestoreAlpha(rcDirty, rcShadowPadding);
+	}
 }
 
 bool Render_GdiPlus::IsRenderTransparent() const

@@ -213,6 +213,10 @@ public:
 	 */
 	static HFONT GetFont(const std::wstring& strFontId);
 
+	/** 获取字体接口
+	*/
+	static IFont* GetIFont(const std::wstring& strFontId);
+
 	/**
 	 * @brief 删除所有字体
 	 * @return 无

@@ -71,19 +71,20 @@ void RenderTest1::Paint(IRender* pRender, const UiRect& rcPaint)
     if (pRenderFactory != nullptr) {
         std::unique_ptr<IPen> pen(pRenderFactory->CreatePen(UiColor(0xff006DD9), 2));
         std::unique_ptr<IPath> path(pRenderFactory->CreatePath());
+        if (pen && path) {
+            const UiRect& rc = rect;
+            path->AddArc((INT)rc.left, rc.top, roundSize.cx, roundSize.cy, 180, 90);
+            path->AddLine(rc.left + roundSize.cx, (INT)rc.top, rc.right - roundSize.cx, rc.top);
+            path->AddArc(rc.right - roundSize.cx, (INT)rc.top, roundSize.cx, roundSize.cy, 270, 90);
+            path->AddLine((INT)rc.right, rc.top + roundSize.cy, rc.right, rc.bottom - roundSize.cy);
+            path->AddArc(rc.right - roundSize.cx, rc.bottom - roundSize.cy, (INT)roundSize.cx, roundSize.cy, 0, 90);
+            path->AddLine(rc.right - roundSize.cx, (INT)rc.bottom, rc.left + roundSize.cx, rc.bottom);
+            path->AddArc((INT)rc.left, rc.bottom - roundSize.cy, roundSize.cx, roundSize.cy, 90, 90);
+            path->AddLine((INT)rc.left, rc.bottom - roundSize.cy, rc.left, rc.top + roundSize.cy);
+            path->CloseFigure();
 
-        const UiRect& rc = rect;
-        path->AddArc((INT)rc.left, rc.top, roundSize.cx, roundSize.cy, 180, 90);
-        path->AddLine(rc.left + roundSize.cx, (INT)rc.top, rc.right - roundSize.cx, rc.top);
-        path->AddArc(rc.right - roundSize.cx, (INT)rc.top, roundSize.cx, roundSize.cy, 270, 90);
-        path->AddLine((INT)rc.right, rc.top + roundSize.cy, rc.right, rc.bottom - roundSize.cy);
-        path->AddArc(rc.right - roundSize.cx, rc.bottom - roundSize.cy, (INT)roundSize.cx, roundSize.cy, 0, 90);
-        path->AddLine(rc.right - roundSize.cx, (INT)rc.bottom, rc.left + roundSize.cx, rc.bottom);
-        path->AddArc((INT)rc.left, rc.bottom - roundSize.cy, roundSize.cx, roundSize.cy, 90, 90);
-        path->AddLine((INT)rc.left, rc.bottom - roundSize.cy, rc.left, rc.top + roundSize.cy);
-        path->CloseFigure();
-
-        pRender->DrawPath(path.get(), pen.get());
+            pRender->DrawPath(path.get(), pen.get());
+        }
     }
 
     //ÓÃFillPath»­Ô²½ÇËÄ±ßÐÎ
@@ -94,19 +95,21 @@ void RenderTest1::Paint(IRender* pRender, const UiRect& rcPaint)
         std::unique_ptr<IBrush> brush(pRenderFactory->CreateBrush(UiColor(0x23006DD9)));
         std::unique_ptr<IPath> path(pRenderFactory->CreatePath());
 
-        const UiRect& rc = rect;
-        path->AddArc((INT)rc.left, rc.top, roundSize.cx, roundSize.cy, 180, 90);
-        path->AddLine(rc.left + roundSize.cx, (INT)rc.top, rc.right - roundSize.cx, rc.top);
-        path->AddArc(rc.right - roundSize.cx, (INT)rc.top, roundSize.cx, roundSize.cy, 270, 90);
-        path->AddLine((INT)rc.right, rc.top + roundSize.cy, rc.right, rc.bottom - roundSize.cy);
-        path->AddArc(rc.right - roundSize.cx, rc.bottom - roundSize.cy, (INT)roundSize.cx, roundSize.cy, 0, 90);
-        path->AddLine(rc.right - roundSize.cx, (INT)rc.bottom, rc.left + roundSize.cx, rc.bottom);
-        path->AddArc((INT)rc.left, rc.bottom - roundSize.cy, roundSize.cx, roundSize.cy, 90, 90);
-        path->AddLine((INT)rc.left, rc.bottom - roundSize.cy, rc.left, rc.top + roundSize.cy);
-        path->CloseFigure();
+        if (pen && brush && path) {
+            const UiRect& rc = rect;
+            path->AddArc((INT)rc.left, rc.top, roundSize.cx, roundSize.cy, 180, 90);
+            path->AddLine(rc.left + roundSize.cx, (INT)rc.top, rc.right - roundSize.cx, rc.top);
+            path->AddArc(rc.right - roundSize.cx, (INT)rc.top, roundSize.cx, roundSize.cy, 270, 90);
+            path->AddLine((INT)rc.right, rc.top + roundSize.cy, rc.right, rc.bottom - roundSize.cy);
+            path->AddArc(rc.right - roundSize.cx, rc.bottom - roundSize.cy, (INT)roundSize.cx, roundSize.cy, 0, 90);
+            path->AddLine(rc.right - roundSize.cx, (INT)rc.bottom, rc.left + roundSize.cx, rc.bottom);
+            path->AddArc((INT)rc.left, rc.bottom - roundSize.cy, roundSize.cx, roundSize.cy, 90, 90);
+            path->AddLine((INT)rc.left, rc.bottom - roundSize.cy, rc.left, rc.top + roundSize.cy);
+            path->CloseFigure();
 
-        pRender->DrawPath(path.get(), pen.get());
-        pRender->FillPath(path.get(), brush.get());
+            pRender->DrawPath(path.get(), pen.get());
+            pRender->FillPath(path.get(), brush.get());
+        }
     }
 
     //DrawBoxShadow

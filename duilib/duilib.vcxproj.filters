@@ -46,6 +46,9 @@
     <Filter Include="RenderGdiPlus">
       <UniqueIdentifier>{36e9cdf8-f81c-44f3-8841-dfc3e02a50ba}</UniqueIdentifier>
     </Filter>
+    <Filter Include="RenderSkia">
+      <UniqueIdentifier>{0a39786a-5478-4647-b38c-4e57f94acfb4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Animation\AnimationPlayer.cpp">
@@ -204,9 +207,6 @@
     <ClCompile Include="RenderGdiPlus\Render_GdiPlus.cpp">
       <Filter>RenderGdiPlus</Filter>
     </ClCompile>
-    <ClCompile Include="RenderGdiPlus\RenderBitmap_GDI.cpp">
-      <Filter>RenderGdiPlus</Filter>
-    </ClCompile>
     <ClCompile Include="RenderGdiPlus\RenderFactory_GdiPlus.cpp">
       <Filter>RenderGdiPlus</Filter>
     </ClCompile>
@@ -214,6 +214,18 @@
       <Filter>RenderGdiPlus</Filter>
     </ClCompile>
     <ClCompile Include="Render\AutoClip.cpp">
+      <Filter>Render</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderSkia\RenderFactory_Skia.cpp">
+      <Filter>RenderSkia</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderSkia\Render_Skia.cpp">
+      <Filter>RenderSkia</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderSkia\Bitmap_Skia.cpp">
+      <Filter>RenderSkia</Filter>
+    </ClCompile>
+    <ClCompile Include="Render\BitmapAlpha.cpp">
       <Filter>Render</Filter>
     </ClCompile>
   </ItemGroup>
@@ -431,9 +443,6 @@
     <ClInclude Include="RenderGdiPlus\Render_GdiPlus.h">
       <Filter>RenderGdiPlus</Filter>
     </ClInclude>
-    <ClInclude Include="RenderGdiPlus\RenderBitmap_GDI.h">
-      <Filter>RenderGdiPlus</Filter>
-    </ClInclude>
     <ClInclude Include="RenderGdiPlus\RenderFactory_GdiPlus.h">
       <Filter>RenderGdiPlus</Filter>
     </ClInclude>
@@ -444,6 +453,18 @@
       <Filter>RenderGdiPlus</Filter>
     </ClInclude>
     <ClInclude Include="Render\AutoClip.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderSkia\RenderFactory_Skia.h">
+      <Filter>RenderSkia</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderSkia\Render_Skia.h">
+      <Filter>RenderSkia</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderSkia\Bitmap_Skia.h">
+      <Filter>RenderSkia</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\BitmapAlpha.h">
       <Filter>Render</Filter>
     </ClInclude>
   </ItemGroup>

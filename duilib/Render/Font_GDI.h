@@ -46,6 +46,14 @@ public:
      */
     virtual int FontSize() const override { return -m_logFont.lfHeight; }
 
+    /**@brief 获取字体宽度
+     */
+    virtual int FontWidth() const override { return m_logFont.lfWidth; }
+
+    /**@brief 获取字体Weight值
+     */
+    virtual int FontWeight() const override { return m_logFont.lfWeight; }
+
     /**@brief 是否为粗体
      */
     virtual bool IsBold() const override { return m_logFont.lfWeight >= FW_BOLD; }

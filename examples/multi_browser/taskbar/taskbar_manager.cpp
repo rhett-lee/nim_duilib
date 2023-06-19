@@ -76,10 +76,15 @@ void TaskbarTabItem::OnSendThumbnail(int width, int height)
 		return;
 
 	ui::IBitmap* pBitmap = taskbar_manager_->GenerateBindControlBitmap(bind_control_, width, height);
-	DwmSetIconicThumbnail(GetHWND(), ui::BitmapHelper::GetHBitmap(pBitmap), 0);
+	HBITMAP hBitmap = ui::BitmapHelper::CreateGDIBitmap(pBitmap);
+	DwmSetIconicThumbnail(GetHWND(), hBitmap, 0);
 	if (pBitmap != nullptr) {
 		delete pBitmap;
 		pBitmap = nullptr;
+	}
+	if (hBitmap != nullptr) {
+		::DeleteObject(hBitmap);
+		hBitmap = nullptr;
 	}
 }
 
@@ -89,10 +94,15 @@ void TaskbarTabItem::OnSendPreview()
 		return;
 
 	ui::IBitmap* pBitmap = taskbar_manager_->GenerateBindControlBitmapWithForm(bind_control_);
-	DwmSetIconicLivePreviewBitmap(GetHWND(), ui::BitmapHelper::GetHBitmap(pBitmap), NULL, 0);
+	HBITMAP hBitmap = ui::BitmapHelper::CreateGDIBitmap(pBitmap);
+	DwmSetIconicLivePreviewBitmap(GetHWND(), hBitmap, NULL, 0);
 	if (pBitmap != nullptr) {
 		delete pBitmap;
 		pBitmap = nullptr;
+	}
+	if (hBitmap != nullptr) {
+		::DeleteObject(hBitmap);
+		hBitmap = nullptr;
 	}
 }
 

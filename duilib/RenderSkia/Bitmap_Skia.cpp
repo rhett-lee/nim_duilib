@@ -1,24 +1,28 @@
-#include "Bitmap_GDI.h"
+#include "Bitmap_Skia.h"
+#include "include/core/SkBitmap.h"
 
 namespace ui
 {
 
-Bitmap_GDI::Bitmap_GDI():
+Bitmap_Skia::Bitmap_Skia():
     m_hBitmap(nullptr),
     m_nWidth(0),
     m_nHeight(0),
     m_bFlipHeight(true),
     m_bAlphaBitmap(false)
 {
+    m_pSkBitmap = std::make_unique<SkBitmap>();
 }
 
-Bitmap_GDI::Bitmap_GDI(HBITMAP hBitmap, bool flipHeight):
+Bitmap_Skia::Bitmap_Skia(HBITMAP hBitmap, bool flipHeight):
     m_hBitmap(hBitmap),
     m_bFlipHeight(flipHeight),
     m_bAlphaBitmap(false),
     m_nWidth(0),
     m_nHeight(0)
 {
+    ASSERT(flipHeight && "flipHeight value should be true!");
+    m_pSkBitmap = std::make_unique<SkBitmap>();
     if (hBitmap != nullptr) {
         BITMAP bm = { 0 };
         ::GetObject(hBitmap, sizeof(bm), &bm);
@@ -26,10 +30,14 @@ Bitmap_GDI::Bitmap_GDI(HBITMAP hBitmap, bool flipHeight):
         m_nHeight = bm.bmHeight;
         m_nWidth = bm.bmWidth;
         UpdateAlphaFlag((const uint8_t*)bm.bmBits);
+
+        m_pSkBitmap->reset();
+        m_pSkBitmap->setInfo(SkImageInfo::Make(m_nWidth, m_nHeight, kN32_SkColorType, kPremul_SkAlphaType));
+        m_pSkBitmap->setPixels(bm.bmBits);
     }
 }
 
-HBITMAP Bitmap_GDI::DetachHBitmap()
+HBITMAP Bitmap_Skia::DetachHBitmap()
 {
     HBITMAP hBitmap = m_hBitmap;
     m_hBitmap = nullptr;
@@ -37,23 +45,39 @@ HBITMAP Bitmap_GDI::DetachHBitmap()
     m_nWidth = 0;
     m_bFlipHeight = true;
     m_bAlphaBitmap = false;
+    m_pSkBitmap->reset();
     return hBitmap;
 }
 
-Bitmap_GDI::~Bitmap_GDI()
+Bitmap_Skia::~Bitmap_Skia()
 {
+    m_pSkBitmap.reset();
     if (m_hBitmap != nullptr) {
         ::DeleteObject(m_hBitmap);
         m_hBitmap = nullptr;
     }
 }
 
-bool Bitmap_GDI::Init(uint32_t nWidth, uint32_t nHeight, bool flipHeight, const void* pPixelBits)
+bool Bitmap_Skia::Init(uint32_t nWidth, uint32_t nHeight, bool flipHeight, const void* pPixelBits)
 {
     ASSERT((nWidth > 0) && (nHeight > 0));
     if ((nWidth == 0) || (nHeight == 0)) {
         return false;
     }
+
+    std::vector<uint8_t> flipPixelBits;
+    if (!flipHeight) {
+        //避免图像是倒着的，此处对图片数据进行翻转处理（Skia似乎不支持flipHeight的情况）
+        ASSERT(pPixelBits != nullptr);
+        if (pPixelBits != nullptr) {
+            //需要对图片数据进行垂直翻转，否则图片是倒着的            
+            flipPixelBits.resize(nWidth * nHeight * 4);
+            FlipPixelBits((const uint8_t*)pPixelBits, nWidth, nHeight, flipPixelBits);
+            pPixelBits = flipPixelBits.data();
+            flipHeight = true;
+        }
+    }
+
     LPVOID pBits = nullptr;
     HBITMAP hBitmap = CreateBitmap(nWidth, nHeight, flipHeight, &pBits);
     if (hBitmap == nullptr) {
@@ -74,25 +98,41 @@ bool Bitmap_GDI::Init(uint32_t nWidth, uint32_t nHeight, bool flipHeight, const 
     m_nHeight = nHeight;
     m_bFlipHeight = flipHeight;
     UpdateAlphaFlag((const uint8_t*)pBits);
+    
+    m_pSkBitmap->reset();
+    m_pSkBitmap->setInfo(SkImageInfo::Make(m_nWidth, m_nHeight, kN32_SkColorType, kPremul_SkAlphaType));
+    m_pSkBitmap->setPixels(pBits);   
     return true;
 }
 
-uint32_t Bitmap_GDI::GetWidth() const
+void Bitmap_Skia::FlipPixelBits(const uint8_t* pPixelBits, uint32_t nWidth, uint32_t nHeight, std::vector<uint8_t>& flipBits)
+{
+    ASSERT(flipBits.size() == nWidth* nHeight*4);
+
+    const uint32_t dwEffWidth = nWidth * 4;//每行数据字节数, 按行复制数据
+    for (uint32_t row = 0; row < nHeight; ++row) {
+        uint8_t* dest = flipBits.data() + row * dwEffWidth;
+        const uint8_t* src = pPixelBits + (nHeight - 1 - row) * dwEffWidth;
+        memcpy(dest, src, dwEffWidth);
+    }
+}
+
+uint32_t Bitmap_Skia::GetWidth() const
 {
     return m_nWidth;
 }
 
-uint32_t Bitmap_GDI::GetHeight() const
+uint32_t Bitmap_Skia::GetHeight() const
 {
     return m_nHeight;
 }
 
-UiSize Bitmap_GDI::GetSize() const
+UiSize Bitmap_Skia::GetSize() const
 {
     return UiSize(m_nWidth, m_nHeight);
 }
 
-void* Bitmap_GDI::LockPixelBits()
+void* Bitmap_Skia::LockPixelBits()
 {
     void* pPixelBits = nullptr;
     if (m_hBitmap != nullptr) {
@@ -104,7 +144,7 @@ void* Bitmap_GDI::LockPixelBits()
     return pPixelBits;
 }
 
-void Bitmap_GDI::UnLockPixelBits()
+void Bitmap_Skia::UnLockPixelBits()
 {
     if (m_hBitmap != nullptr) {
         BITMAP bm = { 0 };
@@ -114,12 +154,12 @@ void Bitmap_GDI::UnLockPixelBits()
     }    
 }
 
-bool Bitmap_GDI::IsAlphaBitmap() const
+bool Bitmap_Skia::IsAlphaBitmap() const
 {
     return m_bAlphaBitmap;
 }
 
-IBitmap* Bitmap_GDI::Clone()
+IBitmap* Bitmap_Skia::Clone()
 {
     uint32_t nWidth = GetWidth();
     uint32_t nHeight = GetHeight();
@@ -131,7 +171,7 @@ IBitmap* Bitmap_GDI::Clone()
     ASSERT(bm.bmBitsPixel == 32);
     ASSERT(bm.bmBits != nullptr);
     
-    IBitmap* pBitmap = new Bitmap_GDI();
+    IBitmap* pBitmap = new Bitmap_Skia();
     if (!pBitmap->Init(nWidth, nHeight, m_bFlipHeight, bm.bmBits)) {
         delete pBitmap;
         pBitmap = nullptr;
@@ -139,12 +179,12 @@ IBitmap* Bitmap_GDI::Clone()
     return pBitmap;
 }
 
-HBITMAP Bitmap_GDI::GetHBitmap() const
+HBITMAP Bitmap_Skia::GetHBitmap() const
 { 
     return m_hBitmap; 
 }
 
-HBITMAP Bitmap_GDI::CreateBitmap(int32_t nWidth, int32_t nHeight, bool flipHeight, LPVOID* pBits)
+HBITMAP Bitmap_Skia::CreateBitmap(int32_t nWidth, int32_t nHeight, bool flipHeight, LPVOID* pBits)
 {
     ASSERT((nWidth > 0) && (nHeight > 0));
     if (nWidth == 0 || nHeight == 0) {
@@ -172,7 +212,7 @@ HBITMAP Bitmap_GDI::CreateBitmap(int32_t nWidth, int32_t nHeight, bool flipHeigh
     return hBitmap;
 }
 
-void Bitmap_GDI::UpdateAlphaFlag(const uint8_t* pPixelBits)
+void Bitmap_Skia::UpdateAlphaFlag(const uint8_t* pPixelBits)
 {
     m_bAlphaBitmap = false;
     if (pPixelBits == nullptr) {
@@ -187,6 +227,12 @@ void Bitmap_GDI::UpdateAlphaFlag(const uint8_t* pPixelBits)
             }
         }
     }
+}
+
+const SkBitmap& Bitmap_Skia::GetSkBitmap() const
+{
+    ASSERT(m_pSkBitmap.get() != nullptr);
+    return *m_pSkBitmap.get();
 }
 
 } // namespace ui

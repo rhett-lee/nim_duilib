@@ -1982,6 +1982,12 @@ void Window::Paint()
 		return;
 	}
 
+	if (m_render->GetWidth() == 0) {
+		UiRect rcClient;
+		::GetClientRect(m_hWnd, &rcClient);
+		m_render->Resize(rcClient.GetWidth(), rcClient.GetHeight());
+	}
+
 	if (m_bIsArranged && m_pRoot->IsArranged() && (m_pRoot->GetFixedWidth() == DUI_LENGTH_AUTO || m_pRoot->GetFixedHeight() == DUI_LENGTH_AUTO)) {
 		UiSize maxSize(99999, 99999);
 		UiSize needSize = m_pRoot->EstimateSize(maxSize);
@@ -2060,7 +2066,7 @@ void Window::Paint()
 
 	int width = rcClient.right - rcClient.left;
 	int height = rcClient.bottom - rcClient.top;
-	if (m_render->Resize(width, height))	{
+	if (m_render->Resize(width, height)) {
 		rcPaint.left = 0;
 		rcPaint.top = 0;
 		rcPaint.right = width;
