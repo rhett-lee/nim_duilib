@@ -356,7 +356,6 @@
     <ClCompile Include="RenderGdiPlus\BitmapHepler.cpp" />
     <ClCompile Include="RenderGdiPlus\Bitmap_GDI.cpp" />
     <ClCompile Include="RenderGdiPlus\Brush_Gdiplus.cpp" />
-    <ClCompile Include="RenderGdiPlus\Clip_GDI.cpp" />
     <ClCompile Include="RenderGdiPlus\Path_Gdiplus.cpp" />
     <ClCompile Include="RenderGdiPlus\Pen_GdiPlus.cpp" />
     <ClCompile Include="RenderGdiPlus\RenderFactory_GdiPlus.cpp" />
@@ -421,7 +420,6 @@
     <ClInclude Include="RenderGdiPlus\BitmapHelper.h" />
     <ClInclude Include="RenderGdiPlus\Bitmap_GDI.h" />
     <ClInclude Include="RenderGdiPlus\Brush_Gdiplus.h" />
-    <ClInclude Include="RenderGdiPlus\Clip_GDI.h" />
     <ClInclude Include="RenderGdiPlus\GdiPlusDefs.h" />
     <ClInclude Include="RenderGdiPlus\Path_Gdiplus.h" />
     <ClInclude Include="RenderGdiPlus\Pen_GdiPlus.h" />

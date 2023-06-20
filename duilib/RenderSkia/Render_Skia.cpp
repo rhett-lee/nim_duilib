@@ -1027,12 +1027,12 @@ ui::UiRect Render_Skia::MeasureString(const std::wstring& strText,
 }
 
 void Render_Skia::DrawBoxShadow(const UiRect& rc,
-								   const UiSize& roundSize, 
-						     	   const UiPoint& cpOffset, 
-								   int nBlurRadius, 
-								   int nSpreadRadius,
-								   UiColor dwColor,
-								   bool bExclude)
+								const UiSize& roundSize, 
+						        const UiPoint& cpOffset, 
+						 	    int nBlurRadius, 
+								int nSpreadRadius,
+								UiColor dwColor,
+								bool bExclude)
 {
 	return;
 	ASSERT((GetWidth() > 0) && (GetHeight() > 0));
@@ -1072,37 +1072,8 @@ HDC Render_Skia::GetDC()
 	else
 	{
 		//ASSERT(!"no impl!");
-		/*SkRegion rgn = m_pSkCanvas->getTotalClip();
-		SkRegion::Iterator it(rgn);
-		int nCount = 0;
-		for (; !it.done(); it.next())
-		{
-			nCount++;
-		}
-		it.rewind();
-
-		int nSize = sizeof(RGNDATAHEADER) + nCount * sizeof(RECT);
-		RGNDATA* rgnData = (RGNDATA*)malloc(nSize);
-		memset(rgnData, 0, nSize);
-		rgnData->rdh.dwSize = sizeof(RGNDATAHEADER);
-		rgnData->rdh.iType = RDH_RECTANGLES;
-		rgnData->rdh.nCount = nCount;
-		rgnData->rdh.rcBound.right = m_curBmp->Width();
-		rgnData->rdh.rcBound.bottom = m_curBmp->Height();
-
-		nCount = 0;
-		LPRECT pRc = (LPRECT)rgnData->Buffer;
-		for (; !it.done(); it.next())
-		{
-			SkIRect skrc = it.rect();
-			RECT rc = { skrc.fLeft,skrc.fTop,skrc.fRight,skrc.fBottom };
-			pRc[nCount++] = rc;
-		}
-
-		HRGN hRgn = ExtCreateRegion(NULL, nSize, rgnData);
-		free(rgnData);
-		::SelectClipRgn(m_hGetDC, hRgn);
-		DeleteObject(hRgn);*/
+		//目前不支持复杂剪辑区域设置，Skia没有公开接口获取这个数据；
+		//暂时没有影响，因为现在GetDC主要是绘制到窗口区域使用的，不存在使用DC和Skia混合绘图的问题。
 	}
 
 	::SetGraphicsMode(hGetDC, GM_ADVANCED);

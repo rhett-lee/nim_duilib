@@ -210,9 +210,6 @@
     <ClCompile Include="RenderGdiPlus\RenderFactory_GdiPlus.cpp">
       <Filter>RenderGdiPlus</Filter>
     </ClCompile>
-    <ClCompile Include="RenderGdiPlus\Clip_GDI.cpp">
-      <Filter>RenderGdiPlus</Filter>
-    </ClCompile>
     <ClCompile Include="Render\AutoClip.cpp">
       <Filter>Render</Filter>
     </ClCompile>
@@ -444,9 +441,6 @@
       <Filter>RenderGdiPlus</Filter>
     </ClInclude>
     <ClInclude Include="RenderGdiPlus\RenderFactory_GdiPlus.h">
-      <Filter>RenderGdiPlus</Filter>
-    </ClInclude>
-    <ClInclude Include="RenderGdiPlus\Clip_GDI.h">
       <Filter>RenderGdiPlus</Filter>
     </ClInclude>
     <ClInclude Include="RenderGdiPlus\GdiPlusDefs.h">

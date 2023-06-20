@@ -4,7 +4,6 @@
 #pragma once
 
 #include "duilib/Render/IRender.h"
-#include "duilib/RenderGdiPlus/Clip_GDI.h"
 
 namespace ui 
 {
@@ -119,10 +118,6 @@ private:
 	/** 是否指定为支持透明
 	*/
 	bool m_bTransparent;
-
-	/** 剪辑区域
-	*/
-	Clip_GDI m_clip;
 
 	/** DC原来关联的位图句柄
 	*/

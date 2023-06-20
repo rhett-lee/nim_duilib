@@ -11,14 +11,6 @@
 namespace ui 
 {
 
-class UILIB_API IClip : public virtual nbase::SupportWeakCallback
-{
-public:
-	virtual void CreateClip(HDC hDC, UiRect rc) = 0;
-	virtual void CreateRoundClip(HDC hDC, UiRect rc, int width, int height) = 0;
-	virtual void ClearClip(HDC hDC) = 0;
-};
-
 class UILIB_API IBitmap : public virtual nbase::SupportWeakCallback
 {
 public:

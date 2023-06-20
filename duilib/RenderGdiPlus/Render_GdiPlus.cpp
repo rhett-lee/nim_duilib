@@ -251,17 +251,38 @@ void Render_GdiPlus::RestoreClip(int nState)
 
 void Render_GdiPlus::SetClip(const UiRect& rc)
 {
-	m_clip.CreateClip(m_hDC, rc);
+	HDC hDC = m_hDC;
+	UiRect rcItem = rc;
+
+	UiPoint ptWinOrg;
+	::GetWindowOrgEx(hDC, &ptWinOrg);	
+	rcItem.Offset(-ptWinOrg.x, -ptWinOrg.y);
+	HRGN hRgn = ::CreateRectRgnIndirect(&rcItem);
+	::SaveDC(hDC);
+	::ExtSelectClipRgn(hDC, hRgn, RGN_AND);
+	::DeleteObject(hRgn);
 }
 
 void Render_GdiPlus::SetRoundClip(const UiRect& rc, int width, int height)
 {
-	m_clip.CreateRoundClip(m_hDC, rc, width, height);
+	HDC hDC = m_hDC;
+	UiRect rcItem = rc;
+
+	UiPoint ptWinOrg;
+	::GetWindowOrgEx(hDC, &ptWinOrg);
+	rcItem.Offset(-ptWinOrg.x, -ptWinOrg.y);
+
+	HRGN hRgn = ::CreateRoundRectRgn(rcItem.left, rcItem.top, rcItem.right + 1, rcItem.bottom + 1, width, height);
+	::SaveDC(hDC);
+	::ExtSelectClipRgn(hDC, hRgn, RGN_AND);
+	::DeleteObject(hRgn);
 }
 
 void Render_GdiPlus::ClearClip()
 {
-	m_clip.ClearClip(m_hDC);
+	HDC hDC = m_hDC;
+	ASSERT(::GetObjectType(hDC) == OBJ_DC || ::GetObjectType(hDC) == OBJ_MEMDC);
+	::RestoreDC(hDC, -1);
 }
 
 DWORD Render_GdiPlus::GetRopMode(RopMode rop) const
