@@ -234,12 +234,14 @@ public:
 	virtual UiPoint GetWindowOrg() const = 0;
 	
 	/** 保存指定设备上下文的当前状态
-	 */
-	virtual void Save() = 0;
+	* @param [out] 返回保存的设备上下文标志，在RestoreClip的时候，作为参数传入
+	*/
+	virtual void SaveClip(int& nState) = 0;
 
 	/** 将设备上下文还原到最近一次保存的状态
-	 */
-	virtual void Restore() = 0;
+	* @param [in] 保存的设备上下文标志（由SaveClip返回）
+	*/
+	virtual void RestoreClip(int nState) = 0;
 
 	/** 设置矩形剪辑区域，并保存当前设备上下文的状态
 	* @param [in] rc剪辑区域
@@ -265,14 +267,14 @@ public:
 	* @param [in] pSrcBitmap 源图片接口
 	* @param [in] pSrcRender 源Render对象
 	* @param [in] xSrc 源矩形左上角的 x 坐标
-	* @param [in] yScr 源矩形左上角的 y 坐标
+	* @param [in] ySrc 源矩形左上角的 y 坐标
 	* @param [in] rop 光栅操作代码
 	*/
 	virtual bool BitBlt(int x, int y, int cx, int cy, 
-		                IBitmap* pSrcBitmap, int xSrc, int yScr,
+		                IBitmap* pSrcBitmap, int xSrc, int ySrc,
 		                RopMode rop) = 0;
 	virtual bool BitBlt(int x, int y, int cx, int cy, 
-		                IRender* pSrcRender, int xSrc, int yScr, 
+		                IRender* pSrcRender, int xSrc, int ySrc,
 		                RopMode rop) = 0;
 
 	/** 函数将一个位图从源矩形复制到目标矩形中，并拉伸或压缩位图以适应目标矩形的尺寸（如有必要）。 
@@ -283,13 +285,13 @@ public:
 	* @param [in] heightDest 目标矩形的高度
 	* @param [in] pSrcRender 源Render对象
 	* @param [in] xSrc 源矩形左上角的 x 坐标
-	* @param [in] yScr 源矩形左上角的 y 坐标
+	* @param [in] ySrc 源矩形左上角的 y 坐标
 	* @param [in] widthSrc 源矩形的宽度
 	* @param [in] heightSrc 源矩形的高度
 	* @param [in] rop 光栅操作代码
 	*/
 	virtual bool StretchBlt(int xDest, int yDest, int widthDest, int heightDest,
-		                    IRender* pSrcRender, int xSrc, int yScr, int widthSrc, int heightSrc, 
+		                    IRender* pSrcRender, int xSrc, int ySrc, int widthSrc, int heightSrc,
 		                    RopMode rop) = 0;
 
 
@@ -300,13 +302,13 @@ public:
 	* @param [in] heightDest 目标矩形的高度
 	* @param [in] pSrcRender 源Render对象
 	* @param [in] xSrc 源矩形左上角的 x 坐标
-	* @param [in] yScr 源矩形左上角的 y 坐标
+	* @param [in] ySrc 源矩形左上角的 y 坐标
 	* @param [in] widthSrc 源矩形的宽度
 	* @param [in] heightSrc 源矩形的高度
 	* @param [in] alpha 透明度 alpha 值（0 - 255）
 	*/
 	virtual bool AlphaBlend(int xDest, int yDest, int widthDest, int heightDest,
-		                    IRender* pSrcRender, int xSrc, int yScr, int widthSrc, int heightSrc, 
+		                    IRender* pSrcRender, int xSrc, int ySrc, int widthSrc, int heightSrc,
 		                    uint8_t alpha = 255) = 0;
 
 	/** 绘制图片（采用九宫格方式绘制图片）

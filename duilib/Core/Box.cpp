@@ -985,8 +985,8 @@ void ScrollableBox::PaintChild(IRender* pRender, const UiRect& rcPaint)
 	if( (m_pVerticalScrollBar != nullptr) && m_pVerticalScrollBar->IsVisible()) {
 		m_pVerticalScrollBar->AlphaPaint(pRender, rcPaint);
 	}
-		
-	static bool bFirstPaint = true;
+	
+	static bool bFirstPaint = true;//TODO: static变量待改进
 	if (bFirstPaint) {
 		bFirstPaint = false;
 		LoadImageCache(true);

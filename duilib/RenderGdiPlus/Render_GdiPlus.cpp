@@ -204,22 +204,6 @@ bool Render_GdiPlus::SetRenderTransparent(bool bTransparent)
 	return oldValue;
 }
 
-void Render_GdiPlus::Save()
-{
-	m_saveDC = ::SaveDC(m_hDC);
-}
-
-void Render_GdiPlus::Restore()
-{
-	if (m_saveDC != 0) {
-		::RestoreDC(m_hDC, m_saveDC);
-		m_saveDC = 0;
-	}
-	else {
-		::RestoreDC(m_hDC, -1);
-	}
-}
-
 UiPoint Render_GdiPlus::OffsetWindowOrg(UiPoint ptOffset)
 {
 	UiPoint ptOldWindowOrg;
@@ -242,6 +226,27 @@ UiPoint Render_GdiPlus::GetWindowOrg() const
 	UiPoint ptWindowOrg;
 	::GetWindowOrgEx(m_hDC, &ptWindowOrg);
 	return ptWindowOrg;
+}
+
+void Render_GdiPlus::SaveClip(int& nState)
+{
+	m_saveDC = ::SaveDC(m_hDC);
+	nState = m_saveDC;
+}
+
+void Render_GdiPlus::RestoreClip(int nState)
+{
+	ASSERT(m_saveDC == nState);
+	if (nState != m_saveDC) {
+		return;
+	}
+	if (m_saveDC != 0) {
+		::RestoreDC(m_hDC, m_saveDC);
+		m_saveDC = 0;
+	}
+	else {
+		::RestoreDC(m_hDC, -1);
+	}
 }
 
 void Render_GdiPlus::SetClip(const UiRect& rc)
@@ -281,7 +286,7 @@ DWORD Render_GdiPlus::GetRopMode(RopMode rop) const
 	return ropMode;
 }
 
-bool Render_GdiPlus::BitBlt(int x, int y, int cx, int cy, IBitmap* pSrcBitmap, int xSrc, int yScr, RopMode rop)
+bool Render_GdiPlus::BitBlt(int x, int y, int cx, int cy, IBitmap* pSrcBitmap, int xSrc, int ySrc, RopMode rop)
 {
 	ASSERT((GetWidth() > 0) && (GetHeight() > 0));
 	ASSERT(pSrcBitmap != nullptr);
@@ -302,13 +307,13 @@ bool Render_GdiPlus::BitBlt(int x, int y, int cx, int cy, IBitmap* pSrcBitmap, i
 
 	HDC hCloneDC = ::CreateCompatibleDC(m_hDC);
 	HBITMAP hOldBitmap = (HBITMAP) ::SelectObject(hCloneDC, hBitmap);
-	bool bResult = ::BitBlt(m_hDC, x, y, cx, cy, hCloneDC, xSrc, yScr, GetRopMode(rop)) != FALSE;
+	bool bResult = ::BitBlt(m_hDC, x, y, cx, cy, hCloneDC, xSrc, ySrc, GetRopMode(rop)) != FALSE;
 	::SelectObject(hCloneDC, hOldBitmap);
 	::DeleteDC(hCloneDC);
 	return bResult;
 }
 
-bool Render_GdiPlus::BitBlt(int x, int y, int cx, int cy, IRender* pSrcRender, int xSrc, int yScr, RopMode rop)
+bool Render_GdiPlus::BitBlt(int x, int y, int cx, int cy, IRender* pSrcRender, int xSrc, int ySrc, RopMode rop)
 {
 	ASSERT((GetWidth() > 0) && (GetHeight() > 0));
 	ASSERT(pSrcRender != nullptr);
@@ -316,13 +321,13 @@ bool Render_GdiPlus::BitBlt(int x, int y, int cx, int cy, IRender* pSrcRender, i
 	if (pSrcRender != nullptr) {
 		HDC hdcSrc = pSrcRender->GetDC();
 		ASSERT(hdcSrc != nullptr);
-		bResult = ::BitBlt(m_hDC, x, y, cx, cy, hdcSrc, xSrc, yScr, GetRopMode(rop)) != FALSE;
+		bResult = ::BitBlt(m_hDC, x, y, cx, cy, hdcSrc, xSrc, ySrc, GetRopMode(rop)) != FALSE;
 		pSrcRender->ReleaseDC(hdcSrc);
 	}
 	return bResult;
 }
 
-bool Render_GdiPlus::StretchBlt(int xDest, int yDest, int widthDest, int heightDest, IRender* pSrcRender, int xSrc, int yScr, int widthSrc, int heightSrc, RopMode rop)
+bool Render_GdiPlus::StretchBlt(int xDest, int yDest, int widthDest, int heightDest, IRender* pSrcRender, int xSrc, int ySrc, int widthSrc, int heightSrc, RopMode rop)
 {
 	ASSERT((GetWidth() > 0) && (GetHeight() > 0));
 	ASSERT(pSrcRender != nullptr);
@@ -332,14 +337,14 @@ bool Render_GdiPlus::StretchBlt(int xDest, int yDest, int widthDest, int heightD
 		ASSERT(hdcSrc != nullptr);
 		int stretchBltMode = ::SetStretchBltMode(m_hDC, HALFTONE);
 		bResult = ::StretchBlt(m_hDC, xDest, yDest, widthDest, heightDest,
-							   hdcSrc, xSrc, yScr, widthSrc, heightSrc, GetRopMode(rop)) != FALSE;
+							   hdcSrc, xSrc, ySrc, widthSrc, heightSrc, GetRopMode(rop)) != FALSE;
 		::SetStretchBltMode(m_hDC, stretchBltMode);
 		pSrcRender->ReleaseDC(hdcSrc);
 	}
 	return bResult;
 }
 
-bool Render_GdiPlus::AlphaBlend(int xDest, int yDest, int widthDest, int heightDest, IRender* pSrcRender, int xSrc, int yScr, int widthSrc, int heightSrc, uint8_t alpha)
+bool Render_GdiPlus::AlphaBlend(int xDest, int yDest, int widthDest, int heightDest, IRender* pSrcRender, int xSrc, int ySrc, int widthSrc, int heightSrc, uint8_t alpha)
 {
 	ASSERT((GetWidth() > 0) && (GetHeight() > 0));
 	ASSERT(pSrcRender != nullptr);
@@ -348,7 +353,7 @@ bool Render_GdiPlus::AlphaBlend(int xDest, int yDest, int widthDest, int heightD
 		BLENDFUNCTION bf = { AC_SRC_OVER, 0, alpha, AC_SRC_ALPHA };
 		HDC hdcSrc = pSrcRender->GetDC();
 		ASSERT(hdcSrc != nullptr);
-		bResult =::AlphaBlend(m_hDC, xDest, yDest, widthDest, heightDest, hdcSrc, xSrc, yScr, widthSrc, heightSrc, bf) != FALSE;
+		bResult =::AlphaBlend(m_hDC, xDest, yDest, widthDest, heightDest, hdcSrc, xSrc, ySrc, widthSrc, heightSrc, bf) != FALSE;
 		pSrcRender->ReleaseDC(hdcSrc);
 	}
 	return bResult;

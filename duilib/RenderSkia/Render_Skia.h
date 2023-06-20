@@ -39,21 +39,20 @@ public:
 	virtual bool IsRenderTransparent() const override;
 	virtual bool SetRenderTransparent(bool bTransparent) override;
 
-	virtual void Save() override;
-	virtual void Restore() override;
-
 	virtual UiPoint OffsetWindowOrg(UiPoint ptOffset) override;
 	virtual UiPoint SetWindowOrg(UiPoint ptOffset) override;
 	virtual UiPoint GetWindowOrg() const override;
 
+	virtual void SaveClip(int& nState) override;
+	virtual void RestoreClip(int nState) override;
 	virtual void SetClip(const UiRect& rc) override;
 	virtual void SetRoundClip(const UiRect& rc, int width, int height) override;
 	virtual void ClearClip() override;
 
-	virtual bool BitBlt(int x, int y, int cx, int cy, IBitmap* pSrcBitmap, int xSrc, int yScr, RopMode rop) override;
-	virtual bool BitBlt(int x, int y, int cx, int cy, IRender* pSrcRender, int xSrc, int yScr, RopMode rop) override;
-	virtual bool StretchBlt(int xDest, int yDest, int widthDest, int heightDest, IRender* pSrcRender, int xSrc, int yScr, int widthSrc, int heightSrc, RopMode rop) override;
-	virtual bool AlphaBlend(int xDest, int yDest, int widthDest, int heightDest, IRender* pSrcRender, int xSrc, int yScr, int widthSrc, int heightSrc, uint8_t alpha = 255) override;
+	virtual bool BitBlt(int x, int y, int cx, int cy, IBitmap* pSrcBitmap, int xSrc, int ySrc, RopMode rop) override;
+	virtual bool BitBlt(int x, int y, int cx, int cy, IRender* pSrcRender, int xSrc, int ySrc, RopMode rop) override;
+	virtual bool StretchBlt(int xDest, int yDest, int widthDest, int heightDest, IRender* pSrcRender, int xSrc, int ySrc, int widthSrc, int heightSrc, RopMode rop) override;
+	virtual bool AlphaBlend(int xDest, int yDest, int widthDest, int heightDest, IRender* pSrcRender, int xSrc, int ySrc, int widthSrc, int heightSrc, uint8_t alpha = 255) override;
 
 	/** 绘制图片（采用九宫格方式绘制图片）
 	* @param [in] rcPaint 当前全部可绘制区域（用于避免非可绘制区域的绘制，以提高绘制性能）
@@ -112,7 +111,7 @@ public:
 private:
 	/** 位图绘制封装
 	*/
-	bool BitBlt(int x, int y, int cx, int cy, Bitmap_Skia* pSrcBitmap, int xSrc, int yScr, RopMode rop);
+	bool BitBlt(int x, int y, int cx, int cy, Bitmap_Skia* pSrcBitmap, int xSrc, int ySrc, RopMode rop);
 
 	/** 获取GDI的光栅操作代码
 	*/
@@ -127,6 +126,10 @@ private:
 	/** Canvas 接口
 	*/
 	SkCanvas* m_pSkCanvas;
+
+	/** Canval保存的状态
+	*/
+	int m_saveCount;
 
 	/** 绘制属性
 	*/

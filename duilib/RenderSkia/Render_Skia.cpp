@@ -45,7 +45,8 @@ static inline void DrawFunction(SkCanvas* pSkCanvas,
 Render_Skia::Render_Skia()
 	: m_bTransparent(false),
 	m_pSkCanvas(nullptr),
-	m_hDC(nullptr)
+	m_hDC(nullptr),
+	m_saveCount(0)
 {
 	m_pSkPointOrg = new SkPoint;
 	m_pSkPointOrg->iset(0, 0);
@@ -211,27 +212,12 @@ bool Render_Skia::SetRenderTransparent(bool bTransparent)
 	return oldValue;
 }
 
-void Render_Skia::Save()
-{
-	ASSERT(m_pSkCanvas != nullptr);
-	if (m_pSkCanvas != nullptr) {
-		m_pSkCanvas->save();
-	}
-}
-
-void Render_Skia::Restore()
-{
-	ASSERT(m_pSkCanvas != nullptr);
-	if (m_pSkCanvas != nullptr) {
-		m_pSkCanvas->restore();
-	}
-}
-
 UiPoint Render_Skia::OffsetWindowOrg(UiPoint ptOffset)
 {
 	UiPoint ptOldWindowOrg = { SkScalarTruncToInt(m_pSkPointOrg->fX), SkScalarTruncToInt(m_pSkPointOrg->fY) };
 	SkPoint ptOff = { SkIntToScalar(ptOffset.x), SkIntToScalar(ptOffset.y) };
-	m_pSkPointOrg->offset(ptOff.fX, ptOff.fY);
+	//Gdiplus版本使用的是SetWindowOrgEx，而Skia内部是用的SetViewportOrgEx逻辑，所以这里要符号取反
+	m_pSkPointOrg->offset(-ptOff.fX, -ptOff.fY);
 	return ptOldWindowOrg;
 }
 
@@ -245,8 +231,28 @@ UiPoint Render_Skia::SetWindowOrg(UiPoint ptOffset)
 
 UiPoint Render_Skia::GetWindowOrg() const
 {
-	UiPoint ptOldWindowOrg = { SkScalarTruncToInt(m_pSkPointOrg->fX), SkScalarTruncToInt(m_pSkPointOrg->fY) };
-	return ptOldWindowOrg;
+	return UiPoint { SkScalarTruncToInt(m_pSkPointOrg->fX), SkScalarTruncToInt(m_pSkPointOrg->fY) };
+}
+
+void Render_Skia::SaveClip(int& nState)
+{
+	ASSERT(m_pSkCanvas != nullptr);
+	if (m_pSkCanvas != nullptr) {
+		m_saveCount = m_pSkCanvas->save();
+		nState = m_saveCount;
+	}
+}
+
+void Render_Skia::RestoreClip(int nState)
+{
+	ASSERT(m_pSkCanvas != nullptr);
+	ASSERT(m_saveCount == nState);
+	if (m_saveCount != nState) {
+		return;
+	}
+	if (m_pSkCanvas != nullptr) {
+		m_pSkCanvas->restoreToCount(nState);
+	}
 }
 
 void Render_Skia::SetClip(const UiRect& rc)
@@ -300,7 +306,7 @@ void Render_Skia::SetRopMode(SkPaint& skPaint, RopMode rop) const
 	}
 }
 
-bool Render_Skia::BitBlt(int x, int y, int cx, int cy, Bitmap_Skia* pSrcBitmap, int xSrc, int yScr, RopMode rop)
+bool Render_Skia::BitBlt(int x, int y, int cx, int cy, Bitmap_Skia* pSrcBitmap, int xSrc, int ySrc, RopMode rop)
 {
 	Bitmap_Skia* skiaBitmap = pSrcBitmap;
 	ASSERT(skiaBitmap != nullptr);
@@ -312,11 +318,11 @@ bool Render_Skia::BitBlt(int x, int y, int cx, int cy, Bitmap_Skia* pSrcBitmap, 
 	skPaint.setStyle(SkPaint::kFill_Style);
 	SetRopMode(skPaint, rop);
 
-	SkIRect rcSkDestI = { x, y, x + cx, y + cy };
+	SkIRect rcSkDestI = SkIRect::MakeXYWH(x, y, cx, cy);
 	SkRect rcSkDest = SkRect::Make(rcSkDestI);
 	rcSkDest.offset(*m_pSkPointOrg);
 
-	SkIRect rcSkSrcI = { xSrc, yScr, xSrc + cx, yScr + cy };
+	SkIRect rcSkSrcI = SkIRect::MakeXYWH(xSrc, ySrc, cx, cy);
 	SkRect rcSkSrc = SkRect::Make(rcSkSrcI);
 
 	ASSERT(m_pSkCanvas != nullptr);
@@ -327,7 +333,7 @@ bool Render_Skia::BitBlt(int x, int y, int cx, int cy, Bitmap_Skia* pSrcBitmap, 
 	return false;
 }
 
-bool Render_Skia::BitBlt(int x, int y, int cx, int cy, IBitmap* pSrcBitmap, int xSrc, int yScr, RopMode rop)
+bool Render_Skia::BitBlt(int x, int y, int cx, int cy, IBitmap* pSrcBitmap, int xSrc, int ySrc, RopMode rop)
 {
 	ASSERT((GetWidth() > 0) && (GetHeight() > 0));
 	ASSERT(pSrcBitmap != nullptr);
@@ -335,10 +341,10 @@ bool Render_Skia::BitBlt(int x, int y, int cx, int cy, IBitmap* pSrcBitmap, int 
 		return false;
 	}
 	Bitmap_Skia* skiaBitmap = dynamic_cast<Bitmap_Skia*>(pSrcBitmap);
-	return BitBlt(x, y, cx, cy, skiaBitmap, xSrc, yScr, rop);
+	return BitBlt(x, y, cx, cy, skiaBitmap, xSrc, ySrc, rop);
 }
 
-bool Render_Skia::BitBlt(int x, int y, int cx, int cy, IRender* pSrcRender, int xSrc, int yScr, RopMode rop)
+bool Render_Skia::BitBlt(int x, int y, int cx, int cy, IRender* pSrcRender, int xSrc, int ySrc, RopMode rop)
 {
 	ASSERT((GetWidth() > 0) && (GetHeight() > 0));
 	ASSERT(pSrcRender != nullptr);
@@ -352,10 +358,10 @@ bool Render_Skia::BitBlt(int x, int y, int cx, int cy, IRender* pSrcRender, int 
 		return false;
 	}
 	Bitmap_Skia* skiaBitmap = pSkiaRender->m_pBitmapSkia.get();
-	return BitBlt(x, y, cx, cy, skiaBitmap, xSrc, yScr, rop);
+	return BitBlt(x, y, cx, cy, skiaBitmap, xSrc, ySrc, rop);
 }
 
-bool Render_Skia::StretchBlt(int xDest, int yDest, int widthDest, int heightDest, IRender* pSrcRender, int xSrc, int yScr, int widthSrc, int heightSrc, RopMode rop)
+bool Render_Skia::StretchBlt(int xDest, int yDest, int widthDest, int heightDest, IRender* pSrcRender, int xSrc, int ySrc, int widthSrc, int heightSrc, RopMode rop)
 {
 	ASSERT((GetWidth() > 0) && (GetHeight() > 0));
 	ASSERT(pSrcRender != nullptr);
@@ -378,11 +384,11 @@ bool Render_Skia::StretchBlt(int xDest, int yDest, int widthDest, int heightDest
 	skPaint.setStyle(SkPaint::kFill_Style);
 	SetRopMode(skPaint, rop);
 
-	SkIRect rcSkDestI = { xDest, yDest, xDest + widthDest, yDest + heightDest };
+	SkIRect rcSkDestI = SkIRect::MakeXYWH(xDest, yDest, widthDest, heightDest);
 	SkRect rcSkDest = SkRect::Make(rcSkDestI);
 	rcSkDest.offset(*m_pSkPointOrg);
 
-	SkIRect rcSkSrcI = { xSrc, yScr, xSrc + widthSrc, yScr + heightSrc };
+	SkIRect rcSkSrcI = SkIRect::MakeXYWH(xSrc, ySrc, widthSrc, heightSrc);
 	SkRect rcSkSrc = SkRect::Make(rcSkSrcI);
 
 	ASSERT(m_pSkCanvas != nullptr);
@@ -394,7 +400,7 @@ bool Render_Skia::StretchBlt(int xDest, int yDest, int widthDest, int heightDest
 
 }
 
-bool Render_Skia::AlphaBlend(int xDest, int yDest, int widthDest, int heightDest, IRender* pSrcRender, int xSrc, int yScr, int widthSrc, int heightSrc, uint8_t alpha)
+bool Render_Skia::AlphaBlend(int xDest, int yDest, int widthDest, int heightDest, IRender* pSrcRender, int xSrc, int ySrc, int widthSrc, int heightSrc, uint8_t alpha)
 {
 	ASSERT((GetWidth() > 0) && (GetHeight() > 0));
 	ASSERT(pSrcRender != nullptr);
@@ -419,11 +425,11 @@ bool Render_Skia::AlphaBlend(int xDest, int yDest, int widthDest, int heightDest
 		skPaint.setAlpha(alpha);
 	}
 
-	SkIRect rcSkDestI = { xDest, yDest, xDest + widthDest, yDest + heightDest };
+	SkIRect rcSkDestI = SkIRect::MakeXYWH(xDest, yDest, widthDest, heightDest);
 	SkRect rcSkDest = SkRect::Make(rcSkDestI);
 	rcSkDest.offset(*m_pSkPointOrg);
 
-	SkIRect rcSkSrcI = { xSrc, yScr, xSrc + widthSrc, yScr + heightSrc };
+	SkIRect rcSkSrcI = SkIRect::MakeXYWH(xSrc, ySrc, widthSrc, heightSrc);
 	SkRect rcSkSrc = SkRect::Make(rcSkSrcI);
 
 	ASSERT(m_pSkCanvas != nullptr);
