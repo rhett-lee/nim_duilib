@@ -1402,10 +1402,10 @@ void Control::PaintBkColor(IRender* pRender)
 	UiColor dwBackColor = this->GetWindowColor(m_strBkColor);
 	if(dwBackColor.GetARGB() != 0) {
 		if (dwBackColor.GetARGB() >= 0xFF000000) {
-			pRender->DrawColor(m_rcPaint, dwBackColor);
+			pRender->FillRect(m_rcPaint, dwBackColor);
 		}
 		else {
-			pRender->DrawColor(GetRect(), dwBackColor);
+			pRender->FillRect(GetRect(), dwBackColor);
 		}
 	}
 }
@@ -1542,7 +1542,7 @@ void Control::PaintLoading(IRender* pRender)
 	}
 
     if (!m_strLoadingBkColor.empty()) {
-        pRender->DrawColor(rcFill, GetWindowColor(m_strLoadingBkColor));
+        pRender->FillRect(rcFill, GetWindowColor(m_strLoadingBkColor));
     }
 	
 	wchar_t modify[64] = { 0 };

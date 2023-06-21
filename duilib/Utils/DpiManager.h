@@ -66,6 +66,7 @@ public:
 	* @return int	缩放后的值
 	*/
 	int ScaleInt(int &iValue);
+	int GetScaledInt(int iValue);
 
 	/**
 	* @brief 根据界面缩放比来缩放SIZE，只有程序自己处理DPI缩放时才有效

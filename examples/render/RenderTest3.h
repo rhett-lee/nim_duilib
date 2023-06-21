@@ -35,6 +35,8 @@ public:
 	*/
 	virtual void PaintChild(IRender* pRender, const UiRect& rcPaint);
 
+private:
+	int DpiScaledInt(int iValue);
 };
 
 } //end of namespace ui

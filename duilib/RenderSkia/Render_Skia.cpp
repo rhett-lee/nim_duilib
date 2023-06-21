@@ -775,7 +775,7 @@ void Render_Skia::DrawImage(const UiRect& rcPaint,
 	}
 }
 
-void Render_Skia::DrawColor(const UiRect& rc, UiColor dwColor, uint8_t uFade)
+void Render_Skia::FillRect(const UiRect& rc, UiColor dwColor, uint8_t uFade)
 {
 	ASSERT((GetWidth() > 0) && (GetHeight() > 0));
 	SkPaint skPaint = *m_pSkPaint;
@@ -852,6 +852,11 @@ void Render_Skia::DrawRoundRect(const UiRect& rc, const UiSize& roundSize, UiCol
 	}
 }
 
+void Render_Skia::FillRoundRect(const UiRect& rc, const UiSize& roundSize, UiColor dwColor, uint8_t uFade)
+{
+
+}
+
 void Render_Skia::DrawPath(const IPath* path, const IPen* pen)
 {
 	return;
@@ -889,7 +894,7 @@ void Render_Skia::DrawString(const UiRect& rc,
 	                         uint32_t uFormat, 
 	                         uint8_t uFade /*= 255*/)
 {
-	//DrawColor(rc, dwTextColor, uFade);
+	//FillRect(rc, dwTextColor, uFade);
 	ASSERT((GetWidth() > 0) && (GetHeight() > 0));
 	ASSERT(!strText.empty());
 	if (strText.empty()) {

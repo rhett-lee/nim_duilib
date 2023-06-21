@@ -4,91 +4,96 @@
 namespace ui {
 
 Pen_GdiPlus::Pen_GdiPlus(UiColor color, int width /*= 1*/)
-	: IPen(color, width)
 {
-	pen_.reset(new Gdiplus::Pen(color_.GetARGB(), static_cast<Gdiplus::REAL>(width)));
+	m_color = color;
+	m_pen.reset(new Gdiplus::Pen(color.GetARGB(), static_cast<Gdiplus::REAL>(width)));
 }
 
 Pen_GdiPlus::Pen_GdiPlus(const Pen_GdiPlus& r)
-	: IPen(r)
 {
-	pen_.reset(r.pen_->Clone());
+	m_color = r.m_color;
+	m_pen.reset(r.m_pen->Clone());
 }
 
-ui::IPen* Pen_GdiPlus::Clone()
+ui::IPen* Pen_GdiPlus::Clone() const
 {
 	return new Pen_GdiPlus(*this);
 }
 
 void Pen_GdiPlus::SetWidth(int width)
 {
-	pen_->SetWidth(static_cast<Gdiplus::REAL>(width));
+	m_pen->SetWidth(static_cast<Gdiplus::REAL>(width));
 }
 
-int Pen_GdiPlus::GetWidth()
+int Pen_GdiPlus::GetWidth() const
 {
-	return (int)pen_->GetWidth();
+	return (int)m_pen->GetWidth();
 }
 
 void Pen_GdiPlus::SetColor(UiColor color)
 {
-	color_ = color;
-	pen_->SetColor(color.GetARGB());
+	m_color = color;
+	m_pen->SetColor(color.GetARGB());
+}
+
+UiColor Pen_GdiPlus::GetColor() const
+{
+	return m_color;
 }
 
 void Pen_GdiPlus::SetStartCap(LineCap cap)
 {
-	pen_->SetStartCap((Gdiplus::LineCap)cap);
+	m_pen->SetStartCap((Gdiplus::LineCap)cap);
 }
 
 void Pen_GdiPlus::SetEndCap(LineCap cap)
 {
-	pen_->SetEndCap((Gdiplus::LineCap)cap);
+	m_pen->SetEndCap((Gdiplus::LineCap)cap);
 }
 
 void Pen_GdiPlus::SetDashCap(LineCap cap)
 {
-	pen_->SetDashCap((Gdiplus::DashCap)cap);
+	m_pen->SetDashCap((Gdiplus::DashCap)cap);
 }
 
-IPen::LineCap Pen_GdiPlus::GetStartCap()
+IPen::LineCap Pen_GdiPlus::GetStartCap() const
 {
-	return (IPen::LineCap)pen_->GetStartCap();
+	return (IPen::LineCap)m_pen->GetStartCap();
 }
 
-IPen::LineCap Pen_GdiPlus::GetEndCap()
+IPen::LineCap Pen_GdiPlus::GetEndCap() const
 {
-	return (IPen::LineCap)pen_->GetEndCap();
+	return (IPen::LineCap)m_pen->GetEndCap();
 }
 
-IPen::LineCap Pen_GdiPlus::GetDashCap()
+IPen::LineCap Pen_GdiPlus::GetDashCap() const
 {
-	return (IPen::LineCap)pen_->GetDashCap();
+	return (IPen::LineCap)m_pen->GetDashCap();
 }
 
 void Pen_GdiPlus::SetLineJoin(LineJoin join)
 {
-	pen_->SetLineJoin((Gdiplus::LineJoin)join);
+	m_pen->SetLineJoin((Gdiplus::LineJoin)join);
 }
 
-IPen::LineJoin Pen_GdiPlus::GetLineJoin()
+IPen::LineJoin Pen_GdiPlus::GetLineJoin() const
 {
-	return (IPen::LineJoin)pen_->GetLineJoin();
+	return (IPen::LineJoin)m_pen->GetLineJoin();
 }
 
 void Pen_GdiPlus::SetDashStyle(DashStyle style)
 {
-	pen_->SetDashStyle((Gdiplus::DashStyle)style);
+	m_pen->SetDashStyle((Gdiplus::DashStyle)style);
 }
 
-IPen::DashStyle Pen_GdiPlus::GetDashStyle()
+IPen::DashStyle Pen_GdiPlus::GetDashStyle() const
 {
-	return (IPen::DashStyle)pen_->GetDashStyle();
+	return (IPen::DashStyle)m_pen->GetDashStyle();
 }
 
 Gdiplus::Pen* Pen_GdiPlus::GetPen() const
 { 
-	return pen_.get(); 
+	return m_pen.get();
 };
 
 } // namespace ui

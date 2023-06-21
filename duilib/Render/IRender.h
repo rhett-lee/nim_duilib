@@ -57,16 +57,13 @@ public:
 class UILIB_API IPen : public virtual nbase::SupportWeakCallback
 {
 public:
-	IPen(UiColor color, int width = 1) : color_(color) { (void)width; };
-	IPen(const IPen& r) : color_(r.color_) {};
-	IPen& operator=(const IPen& r) = delete;
 
-	virtual IPen* Clone() = 0;
+	virtual IPen* Clone() const = 0;
 
 	virtual void SetWidth(int width) = 0;
-	virtual int GetWidth() = 0;
+	virtual int GetWidth() const = 0;
 	virtual void SetColor(UiColor color) = 0;
-	virtual UiColor GetColor() { return color_; };
+	virtual UiColor GetColor() const = 0;
 
 	enum LineCap
 	{
@@ -78,9 +75,9 @@ public:
 	virtual void SetStartCap(LineCap cap) = 0;
 	virtual void SetEndCap(LineCap cap) = 0;
 	virtual void SetDashCap(LineCap cap) = 0;
-	virtual LineCap GetStartCap() = 0;
-	virtual LineCap GetEndCap() = 0;
-	virtual LineCap GetDashCap() = 0;
+	virtual LineCap GetStartCap() const = 0;
+	virtual LineCap GetEndCap() const = 0;
+	virtual LineCap GetDashCap() const = 0;
 
 	enum LineJoin
 	{
@@ -90,7 +87,7 @@ public:
 		LineJoinMiterClipped = 3
 	};
 	virtual void SetLineJoin(LineJoin join) = 0;
-	virtual LineJoin GetLineJoin() = 0;
+	virtual LineJoin GetLineJoin() const = 0;
 
 	enum DashStyle
 	{
@@ -102,10 +99,7 @@ public:
 		DashStyleCustom          // 5
 	};
 	virtual void SetDashStyle(DashStyle style) = 0;
-	virtual DashStyle GetDashStyle() = 0;
-
-protected:
-	UiColor color_;
+	virtual DashStyle GetDashStyle() const = 0;
 };
 
 class UILIB_API IBrush : public virtual nbase::SupportWeakCallback
@@ -330,13 +324,6 @@ public:
 						   bool fullytiled = true, 
 						   int nTiledMargin = 0) = 0;
 
-	/** 绘制颜色
-	* @param [in] rc 目标矩形区域
-	* @param [in] dwColor 颜色值
-	* @param [in] uFade 透明度（0 - 255）
-	*/
-	virtual void DrawColor(const UiRect& rc, UiColor dwColor, uint8_t uFade = 255) = 0;
-
 	/** 绘制直线
 	* @param [in] pt1 起始点坐标
 	* @param [in] pt2 终止点坐标
@@ -352,6 +339,13 @@ public:
 	*/
 	virtual void DrawRect(const UiRect& rc, UiColor penColor, int nWidth) = 0;
 
+	/** 用颜色填充矩形
+	* @param [in] rc 目标矩形区域
+	* @param [in] dwColor 颜色值
+	* @param [in] uFade 透明度（0 - 255）
+	*/
+	virtual void FillRect(const UiRect& rc, UiColor dwColor, uint8_t uFade = 255) = 0;
+
 	/** 绘制圆角矩形
 	* @param [in] rc 矩形区域
 	* @param [in] roundSize 圆角的宽和高
@@ -360,9 +354,28 @@ public:
 	*/
 	virtual void DrawRoundRect(const UiRect& rc, const UiSize& roundSize, UiColor penColor, int nWidth) = 0;
 
+	/** 用颜色填充圆角矩形
+	* @param [in] rc 矩形区域
+	* @param [in] roundSize 圆角的宽和高
+	* @param [in] dwColor 颜色值
+	* @param [in] uFade 透明度（0 - 255）
+	*/
+	virtual void FillRoundRect(const UiRect& rc, const UiSize& roundSize, UiColor dwColor, uint8_t uFade = 255) = 0;
+
 	virtual void DrawPath(const IPath* path, const IPen* pen) = 0;
 	virtual void FillPath(const IPath* path, const IBrush* brush) = 0;
 
+	/** 计算指定文本字符串的宽度和高度
+	* @param [in] strText 文字内容
+	* @param [in] strFontId 文字的字体ID，字体属性在全局配置中设置
+	* @param [in] uFormat 文字的格式，参见 enum DrawStringFormat 类型定义
+	* @param [in] width 当前区域的限制宽度
+	* @return 返回文本字符串的宽度和高度，以矩形表示结果
+	*/
+	virtual UiRect MeasureString(const std::wstring& strText, 
+		                         const std::wstring& strFontId, 
+		                         uint32_t uFormat,
+		                         int width = DUI_NOSET_VALUE) = 0;
 	/** 绘制文字
 	* @param [in] 矩形区域
 	* @param [in] strText 文字内容
@@ -377,18 +390,6 @@ public:
 		                    const std::wstring& strFontId, 
 		                    uint32_t uFormat,
 		                    uint8_t uFade = 255) = 0;
-
-	/** 计算指定文本字符串的宽度和高度
-	* @param [in] strText 文字内容
-	* @param [in] strFontId 文字的字体ID，字体属性在全局配置中设置
-	* @param [in] uFormat 文字的格式，参见 enum DrawStringFormat 类型定义
-	* @param [in] width 当前区域的限制宽度
-	* @return 返回文本字符串的宽度和高度，以矩形表示结果
-	*/
-	virtual UiRect MeasureString(const std::wstring& strText, 
-		                         const std::wstring& strFontId, 
-		                         uint32_t uFormat,
-		                         int width = DUI_NOSET_VALUE) = 0;
 
 	/** 在指定矩形周围绘制阴影（高斯模糊）
 	* @param [in] rc 矩形区域

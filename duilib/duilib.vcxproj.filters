@@ -225,6 +225,9 @@
     <ClCompile Include="Render\BitmapAlpha.cpp">
       <Filter>Render</Filter>
     </ClCompile>
+    <ClCompile Include="RenderSkia\Pen_Skia.cpp">
+      <Filter>RenderSkia</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -460,6 +463,9 @@
     </ClInclude>
     <ClInclude Include="Render\BitmapAlpha.h">
       <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderSkia\Pen_Skia.h">
+      <Filter>RenderSkia</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

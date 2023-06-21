@@ -718,7 +718,7 @@ void Render_GdiPlus::DrawImage(const UiRect& rcPaint,
 	::DeleteDC(hCloneDC);
 }
 
-void Render_GdiPlus::DrawColor(const UiRect& rc, UiColor dwColor, uint8_t uFade)
+void Render_GdiPlus::FillRect(const UiRect& rc, UiColor dwColor, uint8_t uFade)
 {
 	ASSERT((GetWidth() > 0) && (GetHeight() > 0));
 	UiColor::ARGB dwNewColor = dwColor.GetARGB();
@@ -761,10 +761,6 @@ void Render_GdiPlus::DrawRoundRect(const UiRect& rc, const UiSize& roundSize, Ui
 	graphics.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
 	Gdiplus::Pen pen(Gdiplus::Color(penColor.GetARGB()), (Gdiplus::REAL)nWidth);
 
-	// 裁剪区域不能作画，导致边框有时不全，往里收缩一个像素
-	// UiRect rcInflate = rc;
-	// rcInflate.Inflate({ -1, -1, -1, -1 });
-
 	Gdiplus::GraphicsPath pPath;
 	pPath.AddArc((INT)rc.left, rc.top, roundSize.cx, roundSize.cy, 180, 90);
 	pPath.AddLine(rc.left + roundSize.cx, (INT)rc.top, rc.right - roundSize.cx, rc.top);
@@ -777,6 +773,37 @@ void Render_GdiPlus::DrawRoundRect(const UiRect& rc, const UiSize& roundSize, Ui
 	pPath.CloseFigure();
 
 	graphics.DrawPath(&pen, &pPath);
+}
+
+void Render_GdiPlus::FillRoundRect(const UiRect& rc, const UiSize& roundSize, UiColor dwColor, uint8_t uFade)
+{
+	ASSERT((GetWidth() > 0) && (GetHeight() > 0));
+	Gdiplus::Graphics graphics(m_hDC);
+	graphics.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
+
+	UiColor::ARGB dwNewColor = dwColor.GetARGB();
+	if (uFade < 255) {
+		//在原来颜色值的透明度基础上，在做一次透明度计算（uFade是在原来基础上在设置透明度）
+		int alpha = dwColor.GetARGB() >> 24;
+		dwNewColor = dwColor.GetARGB() & 0xffffff;
+		alpha = static_cast<int>(static_cast<double>(alpha) * static_cast<double>(uFade) / 255.0);
+		dwNewColor += alpha << 24;
+	}
+	Gdiplus::Color color(dwNewColor);
+	Gdiplus::SolidBrush brush(color);
+
+	Gdiplus::GraphicsPath pPath;
+	pPath.AddArc((INT)rc.left, rc.top, roundSize.cx, roundSize.cy, 180, 90);
+	pPath.AddLine(rc.left + roundSize.cx, (INT)rc.top, rc.right - roundSize.cx, rc.top);
+	pPath.AddArc(rc.right - roundSize.cx, (INT)rc.top, roundSize.cx, roundSize.cy, 270, 90);
+	pPath.AddLine((INT)rc.right, rc.top + roundSize.cy, rc.right, rc.bottom - roundSize.cy);
+	pPath.AddArc(rc.right - roundSize.cx, rc.bottom - roundSize.cy, (INT)roundSize.cx, roundSize.cy, 0, 90);
+	pPath.AddLine(rc.right - roundSize.cx, (INT)rc.bottom, rc.left + roundSize.cx, rc.bottom);
+	pPath.AddArc((INT)rc.left, rc.bottom - roundSize.cy, roundSize.cx, roundSize.cy, 90, 90);
+	pPath.AddLine((INT)rc.left, rc.bottom - roundSize.cy, rc.left, rc.top + roundSize.cy);
+	pPath.CloseFigure();
+
+	graphics.FillPath(&brush, &pPath);
 }
 
 void Render_GdiPlus::DrawPath(const IPath* path, const IPen* pen)

@@ -81,20 +81,25 @@ public:
 						   bool fullytiled = true, 
 						   int nTiledMargin = 0) override;
 
-	virtual void DrawColor(const UiRect& rc, UiColor dwColor, uint8_t uFade = 255) override;
 	virtual void DrawLine(const UiPoint& pt1, const UiPoint& pt2, UiColor penColor, int nWidth) override;
+
 	virtual void DrawRect(const UiRect& rc, UiColor penColor, int nWidth) override;
+	virtual void FillRect(const UiRect& rc, UiColor dwColor, uint8_t uFade = 255) override;
+
 	virtual void DrawRoundRect(const UiRect& rc, const UiSize& roundSize, UiColor penColor, int nWidth) override;
-	
+	virtual void FillRoundRect(const UiRect& rc, const UiSize& roundSize, UiColor dwColor, uint8_t uFade = 255) override;
+
 	virtual void DrawPath(const IPath* path, const IPen* pen) override;
 	virtual void FillPath(const IPath* path, const IBrush* brush) override;
 
-	virtual void DrawString(const UiRect& rc, const std::wstring& strText,
-		                    UiColor dwTextColor, const std::wstring& strFontId, uint32_t uFormat, uint8_t uFade = 255) override;
-
-
 	virtual UiRect MeasureString(const std::wstring& strText,
-		                         const std::wstring& strFontId, uint32_t uFormat, int width = DUI_NOSET_VALUE) override;
+		                         const std::wstring& strFontId, 
+								 uint32_t uFormat, int width = DUI_NOSET_VALUE) override;
+
+
+	virtual void DrawString(const UiRect& rc, const std::wstring& strText,
+		                    UiColor dwTextColor, const std::wstring& strFontId, 
+							uint32_t uFormat, uint8_t uFade = 255) override;
 
 	void DrawBoxShadow(const UiRect& rc, const UiSize& roundSize, const UiPoint& cpOffset, int nBlurRadius, int nSpreadRadius, UiColor dwColor, bool bExclude) override;
 

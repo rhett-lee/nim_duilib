@@ -120,6 +120,11 @@ int DpiManager::ScaleInt(int &iValue)
 	return iValue;
 }
 
+int DpiManager::GetScaledInt(int iValue)
+{
+	return ScaleInt(iValue);
+}
+
 void DpiManager::ScaleSize(SIZE &size)
 {
 	if (!m_bAdaptDPI || m_nScaleFactor == 100) {

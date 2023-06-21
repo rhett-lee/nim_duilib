@@ -1,24 +1,19 @@
-#ifndef UI_RENDER_GDIPLUS_PEN_H_
-#define UI_RENDER_GDIPLUS_PEN_H_
+#ifndef UI_RENDER_SKIA_PEN_H_
+#define UI_RENDER_SKIA_PEN_H_
 
 #pragma once
 
 #include "duilib/Render/IRender.h"
 
-namespace Gdiplus
-{
-	class Pen;
-}
-
 namespace ui 
 {
 
-class UILIB_API Pen_GdiPlus : public IPen
+class UILIB_API Pen_Skia : public IPen
 {
 public:
-	explicit Pen_GdiPlus(UiColor color, int width = 1);
-	Pen_GdiPlus(const Pen_GdiPlus& r);
-	Pen_GdiPlus& operator=(const Pen_GdiPlus& r) = delete;
+	explicit Pen_Skia(UiColor color, int width = 1);
+	Pen_Skia(const Pen_Skia& r);
+	Pen_Skia& operator=(const Pen_Skia& r) = delete;
 
 	virtual IPen* Clone() const override;
 
@@ -40,12 +35,13 @@ public:
 	virtual void SetDashStyle(DashStyle style) override;
 	virtual DashStyle GetDashStyle() const override;
 
-	Gdiplus::Pen* GetPen() const;
+	//Gdiplus::Pen* GetPen() const;
+
 private:
 	UiColor m_color;
-	std::unique_ptr<Gdiplus::Pen> m_pen;
+	//std::unique_ptr<Gdiplus::Pen> pen_;
 };
 
 } // namespace ui
 
-#endif // UI_RENDER_GDIPLUS_PEN_H_
+#endif // UI_RENDER_SKIA_PEN_H_

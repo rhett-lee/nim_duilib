@@ -159,7 +159,7 @@ void Progress::PaintStatusImage(IRender* pRender)
 			else {
 				rcProgressColor.top = rcProgressColor.top + rc.top;
 			}
-			pRender->DrawColor(rcProgressColor, dwProgressColor);
+			pRender->FillRect(rcProgressColor, dwProgressColor);
 		}
 	}
 
@@ -285,7 +285,7 @@ void Progress::PaintMarquee(IRender* pRender)
 				rc.bottom = rc.top + (m_nMarqueePos >= 0 ? m_nMarqueeWidth : (m_nMarqueeWidth + m_nMarqueePos));
 			}
 			DpiManager::GetInstance()->ScaleRect(rc);
-			pRender->DrawColor(rc, dwProgressColor);
+			pRender->FillRect(rc, dwProgressColor);
 		}
 	}
 }

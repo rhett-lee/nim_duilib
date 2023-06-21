@@ -21,8 +21,11 @@
                 <Button class="btn_global_blue_80x30" width="48" height="32" text="页面3" margin="8,0,0,0" tooltiptext="页面3">
                     <Event type="buttonup" receiver="main_view_tab" applyattribute="selectedid=&quot;2&quot;" />
                 </Button>
-                <Button class="btn_global_blue_80x30" width="48" height="32" text="页面4" margin="8,0,0,0" tooltiptext="页面3">
+                <Button class="btn_global_blue_80x30" width="48" height="32" text="页面4" margin="8,0,0,0" tooltiptext="页面4">
                     <Event type="buttonup" receiver="main_view_tab" applyattribute="selectedid=&quot;3&quot;" />
+                </Button>
+                <Button class="btn_global_blue_80x30" width="48" height="32" text="页面5" margin="8,0,0,0" tooltiptext="页面5">
+                    <Event type="buttonup" receiver="main_view_tab" applyattribute="selectedid=&quot;4&quot;" />
                 </Button>
              </HBox>
             <Control />
@@ -39,37 +42,59 @@
         
         <!-- 显示区域 --> 
         <VBox>            
-            <TabBox name="main_view_tab" bkcolor="white" fadeswitch="true" selectedid="3">
+            <TabBox name="main_view_tab" bkcolor="white" fadeswitch="true" selectedid="2">
                 <VBox name="main_view_page_01">
-                    <Label text="页面1："/>
+                    <Label text="页面1：IRender接口的图片绘制相关接口测试（DrawImage，BitBlt，StretchBlt，AlphaBlend）"/>
                     <RenderTest1 />
                 </VBox>
                 <VBox name="main_view_page_02">
-                    <Label text="页面2："/>                    
-                    <!-- 标准控件: 测试所有支持的文件格式 -->
-                    <HBox width="auto" height="auto">
-                        <Control width="auto" height="auto" bkimage="file='bmp_test_24.bmp' width='150'" valign="center" margin="8"/>
-                        <Control width="auto" height="auto" bkimage="file='jpg_test.jpg' width='150'" valign="center" margin="8"/>
-                        <Control width="auto" height="auto" bkimage="file='icon_test.ico' width='150' iconsize='256'" valign="center" margin="8"/>
-                        <Control width="auto" height="auto" bkimage="file='autumn.png' width='150'" valign="center" margin="8"/>
-                        <Control width="auto" height="auto" bkimage="file='svg_test.svg' width='400%'" valign="center" margin="8"/>
-                        <Control width="auto" height="auto" bkimage="file='gif_test2.gif' width='150'" valign="center" margin="8"/>
-                        <Control width="auto" height="auto" bkimage="file='webp_test2.webp' width='150'" valign="center" margin="8"/>
-                    </HBox>
-                    <HBox width="auto" height="auto">           
-                        <Control width="auto" height="auto" bkimage="file='gif_test.gif' width='40%'" valign="center" margin="8"/>            
-                        <Control width="auto" height="auto" bkimage="file='apng_test.png' width='50%'" valign="center" margin="8"/>
-                        <Control width="auto" height="auto" bkimage="file='apng_test2.png' width='50%'" valign="center" margin="8"/>
-                        <Control width="auto" height="auto" bkimage="file='webp_test.webp' width='40%'" valign="center" margin="8"/>
-                    </HBox>
+                    <Label text="页面2："/>                   
                     <RenderTest2 />
                 </VBox>
                 <VBox name="main_view_page_03">
-                    <Label text="页面3："/>
+                    <Label text="页面3：IRender接口的画线、画矩形、填充矩形等基本图形绘制测试"/>
                     <RenderTest3 />
                 </VBox>
                 <VBox name="main_view_page_04">
-                    <Label text="页面4：文字绘制测试"/>
+                    <Label text="页面4：用标准控件测试所有支持的文件格式"/>                    
+                    <!-- 标准控件: 测试所有支持的文件格式 -->
+                    <HBox width="auto" height="auto">
+                        <Control width="auto" height="auto" bkimage="file='bmp_test_24.bmp' width='140'" valign="center" margin="8"/>
+                        <Control width="auto" height="auto" bkimage="file='webp_test2.webp' width='140'" valign="center" margin="8"/>
+                        <Control width="auto" height="auto" bkimage="file='jpg_test.jpg' width='140'" valign="center" margin="8"/>
+                        <Control width="auto" height="auto" bkimage="file='icon_test.ico' width='140' iconsize='256'" valign="center" margin="8"/>                    
+                    </HBox>
+                    <HBox width="auto" height="auto">
+                        <Label width="140" height="auto" text="BMP格式" align="center" margin="8"/>
+                        <Label width="140" height="auto" text="WEBP格式" align="center" margin="8"/>
+                        <Label width="140" height="auto" text="JPG格式" align="center" margin="8"/>
+                        <Label width="140" height="auto" text="ICO格式" align="center" margin="8"/>               
+                    </HBox>
+                    <HBox width="auto" height="auto">
+                        <Control width="auto" height="auto" bkimage="file='autumn.png' width='140'" valign="center" margin="8"/>
+                        <Control width="auto" height="auto" bkimage="file='svg_test.svg' width='140'" valign="center" margin="8"/>
+                        <Control width="auto" height="auto" bkimage="file='gif_test2.gif' width='140'" valign="center" margin="8"/>                        
+                    </HBox>
+                    <HBox width="auto" height="auto">
+                        <Label width="140" height="auto" text="PNG格式" align="center" margin="8"/>
+                        <Label width="140" height="auto" text="SVG格式" align="center" margin="8"/>
+                        <Label width="140" height="auto" text="GIF格式" align="center" margin="8"/>            
+                    </HBox>
+                    <HBox width="auto" height="auto">           
+                        <Control width="auto" height="auto" bkimage="file='gif_test.gif' width='150'" valign="center" margin="8"/>            
+                        <Control width="auto" height="auto" bkimage="file='apng_test.png' width='150'" valign="center" margin="8"/>
+                        <Control width="auto" height="auto" bkimage="file='apng_test2.png' width='150'" valign="center" margin="8"/>
+                        <Control width="auto" height="auto" bkimage="file='webp_test.webp' width='150'" valign="center" margin="8"/>
+                    </HBox>
+                    <HBox width="auto" height="auto">
+                        <Label width="150" height="auto" text="GIF格式动画" align="center" margin="8"/>
+                        <Label width="150" height="auto" text="APNG格式动画" align="center" margin="8"/>
+                        <Label width="150" height="auto" text="APNG格式动画" align="center" margin="8"/>
+                        <Label width="150" height="auto" text="WEBP格式动画" align="center" margin="8"/>               
+                    </HBox>
+                </VBox>
+                <VBox name="main_view_page_05">
+                    <Label text="页面5：文字绘制测试"/>
                     <HBox>
                         <VBox width="300" margin="4">
                             <HBox height="100" bkcolor="blue">
