@@ -137,12 +137,11 @@ void PlaceHolder::SetFixedHeight(int cy, bool bNeedDpiScale)
 
 void PlaceHolder::SetMinWidth(int cx)
 {
-	DpiManager::GetInstance()->ScaleInt(cx);
-	if (m_cxyMin.cx == cx) {
+	if (cx < 0) {
 		return;
 	}
-
-	if (cx < 0) {
+	DpiManager::GetInstance()->ScaleInt(cx);
+	if (m_cxyMin.cx == cx) {
 		return;
 	}
 	m_cxyMin.cx = cx;
@@ -156,7 +155,10 @@ void PlaceHolder::SetMinWidth(int cx)
 
 void PlaceHolder::SetMaxWidth(int cx)
 {
-	DpiManager::GetInstance()->ScaleInt(cx);
+	//可能是 DUI_LENGTH_AUTO 或者 DUI_LENGTH_STRETCH
+	if (cx > 0) {
+		DpiManager::GetInstance()->ScaleInt(cx);
+	}	
 	if (m_cxyMax.cx == cx) {
 		return;
 	}
@@ -172,12 +174,11 @@ void PlaceHolder::SetMaxWidth(int cx)
 
 void PlaceHolder::SetMinHeight(int cy)
 {
-	DpiManager::GetInstance()->ScaleInt(cy);
-	if (m_cxyMin.cy == cy) {
+	if (cy < 0) {
 		return;
 	}
-
-	if (cy < 0) {
+	DpiManager::GetInstance()->ScaleInt(cy);
+	if (m_cxyMin.cy == cy) {
 		return;
 	}
 	m_cxyMin.cy = cy;

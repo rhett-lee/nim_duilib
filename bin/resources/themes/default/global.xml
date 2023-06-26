@@ -13,6 +13,25 @@
 	<Font id="system_bold_18" name="system" size="18" bold="true"/>
 	<Font id="system_bold_20" name="system" size="20" bold="true"/>
 	<Font id="system_bold_22" name="system" size="22" bold="true"/>
+    <Font id="system_underline_12" name="system" size="12" underline="true"/>
+	<Font id="system_underline_14" name="system" size="14" underline="true"/>
+	<Font id="system_underline_16" name="system" size="16" underline="true"/>
+	<Font id="system_underline_18" name="system" size="18" underline="true"/>
+	<Font id="system_underline_20" name="system" size="20" underline="true"/>
+	<Font id="system_underline_22" name="system" size="22" underline="true"/>
+	<Font id="system_italic_12" name="system" size="12" italic="true"/>
+	<Font id="system_italic_14" name="system" size="14" italic="true"/>
+	<Font id="system_italic_16" name="system" size="16" italic="true"/>
+	<Font id="system_italic_18" name="system" size="18" italic="true"/>
+	<Font id="system_italic_20" name="system" size="20" italic="true"/>
+	<Font id="system_italic_22" name="system" size="22" italic="true"/>
+	<Font id="system_strikeout_12" name="system" size="12" strikeout="true"/>
+	<Font id="system_strikeout_14" name="system" size="14" strikeout="true"/>
+	<Font id="system_strikeout_16" name="system" size="16" strikeout="true"/>
+	<Font id="system_strikeout_18" name="system" size="18" strikeout="true"/>
+	<Font id="system_strikeout_20" name="system" size="20" strikeout="true"/>
+	<Font id="system_strikeout_22" name="system" size="22" strikeout="true"/>
+	<Font id="system_fullstyle_20" name="system" size="20" italic="true" strikeout="true" underline="true" bold="true"/>
 	<Font id="arial_12" name="arial" size="12"/>
 	<Font id="arial_14" name="arial" size="14"/>
 	<Font id="arial_16" name="arial" size="16"/>
@@ -25,12 +44,6 @@
 	<Font id="arial_bold_18" name="arial" size="18" bold="true"/>
 	<Font id="arial_bold_20" name="arial" size="20" bold="true"/>
 	<Font id="arial_bold_22" name="arial" size="22" bold="true"/>
-	<Font id="system_underline_12" name="system" size="12" underline="true"/>
-	<Font id="system_underline_14" name="system" size="14" underline="true"/>
-	<Font id="system_underline_16" name="system" size="16" underline="true"/>
-	<Font id="system_underline_18" name="system" size="18" underline="true"/>
-	<Font id="system_underline_20" name="system" size="20" underline="true"/>
-	<Font id="system_underline_22" name="system" size="22" underline="true"/>
 	<!--一些常规固定颜色-->
 	<TextColor name="white" value="#ffffffff"/>
 	<TextColor name="black" value="#ff000000"/>

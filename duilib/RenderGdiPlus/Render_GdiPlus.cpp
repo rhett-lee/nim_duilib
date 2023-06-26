@@ -835,22 +835,7 @@ void Render_GdiPlus::DrawString(const UiRect& rc, const std::wstring& strText,
 {
 	ASSERT((GetWidth() > 0) && (GetHeight() > 0));
 	ASSERT(::GetObjectType(m_hDC) == OBJ_DC || ::GetObjectType(m_hDC) == OBJ_MEMDC);
-	if (strText.empty()) return;
-
-	Gdiplus::InstalledFontCollection installedFontCollection;
-
-	// How many font families are installed?
-	int count = installedFontCollection.GetFamilyCount();
-	if (count == 0) {
-
-		::SetBkMode(m_hDC, TRANSPARENT);
-		::SetTextColor(m_hDC, dwTextColor.ToCOLORREF());
-		HFONT hOldFont = (HFONT)::SelectObject(m_hDC, GlobalManager::GetFont(strFontId));
-
-		RECT rcGdi = { rc.left,rc.top,rc.right,rc.bottom };
-		::DrawText(m_hDC, strText.c_str(), -1, &rcGdi, uFormat);
-		::SelectObject(m_hDC, hOldFont);
-
+	if (strText.empty()) {
 		return;
 	}
 
@@ -870,7 +855,7 @@ void Render_GdiPlus::DrawString(const UiRect& rc, const std::wstring& strText,
 		stringFormat.SetTrimming(Gdiplus::StringTrimmingEllipsisCharacter);
 	}
 
-	int formatFlags = 0;
+	int formatFlags = Gdiplus::StringFormatFlagsLineLimit;
 	if ((uFormat & TEXT_NOCLIP) != 0) {
 		formatFlags |= Gdiplus::StringFormatFlagsNoClip;
 	}
@@ -879,10 +864,7 @@ void Render_GdiPlus::DrawString(const UiRect& rc, const std::wstring& strText,
 	}
 	stringFormat.SetFormatFlags(formatFlags);
 
-	if ((uFormat & TEXT_LEFT) != 0) {
-		stringFormat.SetAlignment(Gdiplus::StringAlignmentNear);
-	}
-	else if ((uFormat & TEXT_CENTER) != 0) {
+	if ((uFormat & TEXT_CENTER) != 0) {
 		stringFormat.SetAlignment(Gdiplus::StringAlignmentCenter);
 	}
 	else if ((uFormat & TEXT_RIGHT) != 0) {
@@ -892,10 +874,7 @@ void Render_GdiPlus::DrawString(const UiRect& rc, const std::wstring& strText,
 		stringFormat.SetAlignment(Gdiplus::StringAlignmentNear);
 	}
 
-	if ((uFormat & TEXT_TOP) != 0) {
-		stringFormat.SetLineAlignment(Gdiplus::StringAlignmentNear);
-	}
-	else if ((uFormat & TEXT_VCENTER) != 0) {
+	if ((uFormat & TEXT_VCENTER) != 0) {
 		stringFormat.SetLineAlignment(Gdiplus::StringAlignmentCenter);
 	}
 	else if ((uFormat & TEXT_BOTTOM) != 0) {
@@ -914,6 +893,38 @@ void Render_GdiPlus::DrawString(const UiRect& rc, const std::wstring& strText,
 	graphics.SetTextRenderingHint(Gdiplus::TextRenderingHintAntiAlias);
 #endif
 	graphics.DrawString(strText.c_str(), (int)strText.length(), &font, rcPaint, &stringFormat, &tBrush);
+}
+
+ui::UiRect Render_GdiPlus::MeasureString(const std::wstring& strText, const std::wstring& strFontId,
+	uint32_t uFormat, int width /*= DUI_NOSET_VALUE*/)
+{
+	Gdiplus::Graphics graphics(m_hDC);
+	Gdiplus::Font font(m_hDC, GlobalManager::GetFont(strFontId));
+	Gdiplus::RectF bounds;
+
+	Gdiplus::StringFormat stringFormat = Gdiplus::StringFormat::GenericTypographic();
+	int formatFlags = 0;
+	if ((uFormat & TEXT_SINGLELINE) != 0) {
+		formatFlags |= Gdiplus::StringFormatFlagsNoWrap;
+	}
+	stringFormat.SetFormatFlags(formatFlags);
+
+	if (width == DUI_NOSET_VALUE) {
+		graphics.MeasureString(strText.c_str(), (int)strText.length(), &font, Gdiplus::PointF(), &stringFormat, &bounds);
+	}
+	else {
+		Gdiplus::REAL height = 0;
+		if ((uFormat & TEXT_SINGLELINE) != 0) {
+			Gdiplus::RectF rcEmpty((Gdiplus::REAL)0, (Gdiplus::REAL)0, (Gdiplus::REAL)0, (Gdiplus::REAL)0);
+			graphics.MeasureString(L"≤‚ ‘", 2, &font, rcEmpty, &stringFormat, &bounds);
+			height = bounds.Height;
+		}
+		Gdiplus::RectF rcText((Gdiplus::REAL)0, (Gdiplus::REAL)0, (Gdiplus::REAL)width, height);
+		graphics.MeasureString(strText.c_str(), (int)strText.length(), &font, rcText, &stringFormat, &bounds);
+	}
+
+	UiRect rc(int(bounds.GetLeft()), int(bounds.GetTop()), int(bounds.GetRight() + 1), int(bounds.GetBottom() + 1));
+	return rc;
 }
 
 void Render_GdiPlus::DrawBoxShadow(const UiRect& rc, 
@@ -1027,54 +1038,6 @@ void Render_GdiPlus::DrawBoxShadow(const UiRect& rc,
 			           static_cast<Gdiplus::REAL>(destRc.GetWidth()), static_cast<Gdiplus::REAL>(destRc.GetHeight())),
 		0, 0, srcRc.Width, srcRc.Height,
 		Gdiplus::UnitPixel);
-}
-
-ui::UiRect Render_GdiPlus::MeasureString(const std::wstring& strText, const std::wstring& strFontId,
-	                                     uint32_t uFormat, int width /*= DUI_NOSET_VALUE*/)
-{
-	Gdiplus::InstalledFontCollection installedFontCollection;
-
-	// How many font families are installed?
-	int count = installedFontCollection.GetFamilyCount();
-	if (count == 0) {
-		::SetBkMode(m_hDC, TRANSPARENT);
-		HFONT hOldFont = (HFONT)::SelectObject(m_hDC, GlobalManager::GetFont(strFontId));
-
-		SIZE size = { 0 };
-		GetTextExtentPoint32(m_hDC, strText.c_str(), (int)strText.size(), &size);
-		::SelectObject(m_hDC, hOldFont);
-
-		UiRect rc(int(0), int(0), int(size.cx + 1), int(size.cy + 1));
-		return rc;
-	}
-
-	Gdiplus::Graphics graphics(m_hDC);
-	Gdiplus::Font font(m_hDC, GlobalManager::GetFont(strFontId));
-	Gdiplus::RectF bounds;
-
-	Gdiplus::StringFormat stringFormat = Gdiplus::StringFormat::GenericTypographic();
-	int formatFlags = 0;
-	if ((uFormat & TEXT_SINGLELINE) != 0) {
-		formatFlags |= Gdiplus::StringFormatFlagsNoWrap;
-	}
-	stringFormat.SetFormatFlags(formatFlags);
-
-	if (width == DUI_NOSET_VALUE) {
-		graphics.MeasureString(strText.c_str(), (int)strText.length(), &font, Gdiplus::PointF(), &stringFormat, &bounds);
-	}
-	else {
-		Gdiplus::REAL height = 0;
-		if ((uFormat & TEXT_SINGLELINE) != 0) {
-			Gdiplus::RectF rcEmpty((Gdiplus::REAL)0, (Gdiplus::REAL)0, (Gdiplus::REAL)0, (Gdiplus::REAL)0);
-			graphics.MeasureString(L"≤‚ ‘", 2, &font, rcEmpty, &stringFormat, &bounds);
-			height = bounds.Height;
-		}
-		Gdiplus::RectF rcText((Gdiplus::REAL)0, (Gdiplus::REAL)0, (Gdiplus::REAL)width, height);
-		graphics.MeasureString(strText.c_str(), (int)strText.length(), &font, rcText, &stringFormat, &bounds);
-	}
-
-	UiRect rc(int(bounds.GetLeft()), int(bounds.GetTop()), int(bounds.GetRight() + 1), int(bounds.GetBottom() + 1));
-	return rc;
 }
 
 } // namespace ui

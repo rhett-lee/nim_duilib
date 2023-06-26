@@ -1,10 +1,12 @@
 #include "Render_Skia.h"
+#include "duilib/RenderSkia/DrawText_Skia.h"
+#include "duilib/RenderSkia/Bitmap_Skia.h"
+
 #include "duilib/Utils/DpiManager.h"
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Render/BitmapAlpha.h"
 
-#include "duilib/RenderSkia/Bitmap_Skia.h"
 #include "include/core/SkBitmap.h"
 #include "include/core/SkImage.h"
 #include "include/core/SkCanvas.h"
@@ -894,7 +896,6 @@ void Render_Skia::DrawString(const UiRect& rc,
 	                         uint32_t uFormat, 
 	                         uint8_t uFade /*= 255*/)
 {
-	//FillRect(rc, dwTextColor, uFade);
 	ASSERT((GetWidth() > 0) && (GetHeight() > 0));
 	ASSERT(!strText.empty());
 	if (strText.empty()) {
@@ -904,7 +905,10 @@ void Render_Skia::DrawString(const UiRect& rc,
 	if (m_pSkCanvas == nullptr) {
 		return;
 	}
-
+	//文本编码
+	SkTextEncoding textEncoding = SkTextEncoding::kUTF16;
+	
+	//字体设置
 	IFont* pFont = GlobalManager::GetIFont(strFontId);
 	ASSERT(pFont != nullptr);
 	if (pFont == nullptr) {
@@ -915,15 +919,15 @@ void Render_Skia::DrawString(const UiRect& rc,
 	skFont.setTypeface(MakeSkFont(pFont));
 	skFont.setSize(SkIntToScalar(std::abs(pFont->FontSize())));
 	skFont.setEdging(SkFont::Edging::kAntiAlias);
-
-	SkTextEncoding textEncoding = SkTextEncoding::kUTF16;
 	
+	//绘制属性设置
 	SkPaint skPaint = *m_pSkPaint;
 	skPaint.setARGB(dwTextColor.GetA(), dwTextColor.GetR(), dwTextColor.GetG(), dwTextColor.GetB());
 	if (uFade != 0xFF) {
 		skPaint.setAlpha(uFade);
 	}
 
+	//绘制区域
 	SkIRect rcSkDestI = { rc.left, rc.top, rc.right, rc.bottom };
 	SkRect rcSkDest = SkRect::Make(rcSkDestI);
 	rcSkDest.offset(*m_pSkPointOrg);
@@ -1008,6 +1012,7 @@ ui::UiRect Render_Skia::MeasureString(const std::wstring& strText,
 		return rc;
 	}
 
+	//字体设置
 	IFont* pFont = GlobalManager::GetIFont(strFontId);
 	ASSERT(pFont != nullptr);
 	if (pFont == nullptr) {
@@ -1019,16 +1024,15 @@ ui::UiRect Render_Skia::MeasureString(const std::wstring& strText,
 	skFont.setSize(SkIntToScalar(std::abs(pFont->FontSize())));
 	skFont.setEdging(SkFont::Edging::kAntiAlias);
 
-	SkTextEncoding textEncoding = SkTextEncoding::kUTF16;
-	SkScalar textWidth = skFont.measureText(strText.c_str(), strText.size()*sizeof(std::wstring::value_type), textEncoding, nullptr);
-	rc.left = 0;
-	rc.right = SkScalarTruncToInt(textWidth) + 1;
+	//绘制属性设置
+	SkPaint skPaint = *m_pSkPaint;
 
-	SkFontMetrics fontMetrics;
-	skFont.getMetrics(&fontMetrics);
-	rc.top = 0;
-	rc.bottom = SkScalarTruncToInt(fontMetrics.fBottom - fontMetrics.fTop) + 1;
-	return rc;
+	bool isSingleLineMode = false;
+	if (uFormat & DrawStringFormat::TEXT_SINGLELINE) {
+		isSingleLineMode = true;
+	}
+	float spacingMul = 1.0f;
+	return DrawText_Skia::MeasureString(strText, skFont, skPaint, isSingleLineMode, spacingMul, width);
 }
 
 void Render_Skia::DrawBoxShadow(const UiRect& rc,
@@ -1076,9 +1080,36 @@ HDC Render_Skia::GetDC()
 	}
 	else
 	{
-		//ASSERT(!"no impl!");
-		//目前不支持复杂剪辑区域设置，Skia没有公开接口获取这个数据；
-		//暂时没有影响，因为现在GetDC主要是绘制到窗口区域使用的，不存在使用DC和Skia混合绘图的问题。
+		SkRegion rgn;
+		m_pSkCanvas->temporary_internal_getRgnClip(&rgn);
+		SkRegion::Iterator it(rgn);
+		int nCount = 0;
+		for (; !it.done(); it.next()) {
+			++nCount;
+		}
+		it.rewind();
+
+		int nSize = sizeof(RGNDATAHEADER) + nCount * sizeof(RECT);
+		RGNDATA* rgnData = (RGNDATA*)::malloc(nSize);
+		memset(rgnData, 0, nSize);
+		rgnData->rdh.dwSize = sizeof(RGNDATAHEADER);
+		rgnData->rdh.iType = RDH_RECTANGLES;
+		rgnData->rdh.nCount = nCount;
+		rgnData->rdh.rcBound.right = GetWidth();
+		rgnData->rdh.rcBound.bottom = GetHeight();
+
+		nCount = 0;
+		LPRECT pRc = (LPRECT)rgnData->Buffer;
+		for (; !it.done(); it.next()) {
+			SkIRect skrc = it.rect();
+			RECT rc = { skrc.fLeft,skrc.fTop,skrc.fRight,skrc.fBottom };
+			pRc[nCount++] = rc;
+		}
+
+		HRGN hRgn = ::ExtCreateRegion(NULL, nSize, rgnData);
+		::free(rgnData);
+		::SelectClipRgn(hGetDC, hRgn);
+		::DeleteObject(hRgn);
 	}
 
 	::SetGraphicsMode(hGetDC, GM_ADVANCED);

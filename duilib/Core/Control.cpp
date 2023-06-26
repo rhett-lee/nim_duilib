@@ -636,16 +636,19 @@ UiSize Control::EstimateSize(UiSize szAvailable)
 			return GetEstimateSize();
 		}
 		Image* image = GetEstimateImage();
-		if (image) {
+		if (image != nullptr) {
 			auto imageAttribute = image->GetImageAttribute();
-			if (imageAttribute.rcSource.left != DUI_NOSET_VALUE && imageAttribute.rcSource.top != DUI_NOSET_VALUE
-				&& imageAttribute.rcSource.right != DUI_NOSET_VALUE && imageAttribute.rcSource.bottom != DUI_NOSET_VALUE) {
-				if ((GetFixedWidth() != imageAttribute.rcSource.right - imageAttribute.rcSource.left)) {
-					SetFixedWidth(imageAttribute.rcSource.right - imageAttribute.rcSource.left, true, true);
+			if ((imageAttribute.rcSource.left != DUI_NOSET_VALUE)  && 
+				(imageAttribute.rcSource.top != DUI_NOSET_VALUE)   && 
+				(imageAttribute.rcSource.right != DUI_NOSET_VALUE) &&
+				(imageAttribute.rcSource.bottom != DUI_NOSET_VALUE)) {
+				if ((GetFixedWidth() != imageAttribute.rcSource.GetWidth())) {
+					SetFixedWidth(imageAttribute.rcSource.GetWidth(), true, true);
 				}
-				if ((GetFixedHeight() != imageAttribute.rcSource.bottom - imageAttribute.rcSource.top)) {
-					SetFixedHeight(imageAttribute.rcSource.bottom - imageAttribute.rcSource.top, true);
+				if ((GetFixedHeight() != imageAttribute.rcSource.GetHeight())) {
+					SetFixedHeight(imageAttribute.rcSource.GetHeight(), true);
 				}
+				//TODO: 检查DPI自适应情况下，是否正确
 				return GetFixedSize();
 			}
 
@@ -662,7 +665,7 @@ UiSize Control::EstimateSize(UiSize szAvailable)
 				}
 			}
 		}
-
+		//TODO：检查逻辑正确性
 		SetReEstimateSize(false);
 		bool bReEstimateSize = IsReEstimateSize();
 		UiSize textSize = EstimateText(szAvailable, bReEstimateSize);

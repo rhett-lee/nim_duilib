@@ -48,6 +48,7 @@ UiSize Layout::SetFloatPos(Control* pControl, UiRect rcContainer)
 	if ((pControl->GetFixedWidth() == DUI_LENGTH_AUTO)  && 
 		(pControl->GetFixedHeight() == DUI_LENGTH_AUTO)	&& 
 		(pControl->GetMaxWidth() == DUI_LENGTH_STRETCH)) {
+		//TODO：检查逻辑合理性
 		int maxwidth = std::max(0, (int)szAvailable.cx);
 		if (childSize.cx > maxwidth) {
 			pControl->SetFixedWidth(maxwidth, false, true);

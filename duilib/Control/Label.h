@@ -234,6 +234,10 @@ void LabelTemplate<InheritType>::CheckShowToolTip()
     if (width < 0) {
         width = 0;
     }
+    if (!m_bSingleLine && (width == 0)) {
+        //多行文本评估宽高的时候，必须指定宽度
+        width = rc.GetWidth();
+    }
 
     UiRect rcMessure = pRender->MeasureString(sText, m_sFontId, m_uTextStyle, width);
     if (rc.GetWidth() < rcMessure.GetWidth() || rc.GetHeight() < rcMessure.GetHeight()) {
@@ -359,9 +363,19 @@ void LabelTemplate<InheritType>::SetAttribute(const std::wstring& strName, const
             m_uTextStyle &= ~(TEXT_CENTER | TEXT_RIGHT);
             m_uTextStyle |= TEXT_LEFT;
         }
-        if (strValue.find(L"center") != std::wstring::npos) {
-            m_uTextStyle &= ~(TEXT_LEFT | TEXT_RIGHT);
-            m_uTextStyle |= TEXT_CENTER;
+        size_t centerPos = strValue.find(L"center");
+        if (centerPos != std::wstring::npos) {
+            bool isCenter = true;
+            size_t vCenterPos = strValue.find(L"vcenter");
+            if (vCenterPos != std::wstring::npos) {
+                if ((vCenterPos + 1) == centerPos) {
+                    isCenter = false;
+                }
+            }
+            if (isCenter) {
+                m_uTextStyle &= ~(TEXT_LEFT | TEXT_RIGHT);
+                m_uTextStyle |= TEXT_CENTER;
+            }            
         }
         if (strValue.find(L"right") != std::wstring::npos) {
             m_uTextStyle &= ~(TEXT_LEFT | TEXT_CENTER);
@@ -378,7 +392,7 @@ void LabelTemplate<InheritType>::SetAttribute(const std::wstring& strName, const
         if (strValue.find(L"bottom") != std::wstring::npos) {
             m_uTextStyle &= ~(TEXT_TOP | TEXT_VCENTER);
             m_uTextStyle |= TEXT_BOTTOM;
-        }        
+        }
     }
     else if (strName == L"endellipsis") {
         if (strValue == L"true") {
