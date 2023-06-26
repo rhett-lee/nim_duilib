@@ -228,9 +228,6 @@
     <ClCompile Include="RenderSkia\Pen_Skia.cpp">
       <Filter>RenderSkia</Filter>
     </ClCompile>
-    <ClCompile Include="RenderSkia\DrawText_Skia.cpp">
-      <Filter>RenderSkia</Filter>
-    </ClCompile>
     <ClCompile Include="RenderSkia\SkTextBox.cpp">
       <Filter>RenderSkia</Filter>
     </ClCompile>
@@ -474,9 +471,6 @@
       <Filter>Render</Filter>
     </ClInclude>
     <ClInclude Include="RenderSkia\Pen_Skia.h">
-      <Filter>RenderSkia</Filter>
-    </ClInclude>
-    <ClInclude Include="RenderSkia\DrawText_Skia.h">
       <Filter>RenderSkia</Filter>
     </ClInclude>
     <ClInclude Include="RenderSkia\SkTextBox.h">

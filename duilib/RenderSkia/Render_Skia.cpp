@@ -1,6 +1,6 @@
 #include "Render_Skia.h"
-#include "duilib/RenderSkia/DrawText_Skia.h"
 #include "duilib/RenderSkia/Bitmap_Skia.h"
+#include "duilib/RenderSkia/SkTextBox.h"
 
 #include "duilib/Utils/DpiManager.h"
 #include "duilib/Utils/StringUtil.h"
@@ -932,68 +932,51 @@ void Render_Skia::DrawString(const UiRect& rc,
 	SkRect rcSkDest = SkRect::Make(rcSkDestI);
 	rcSkDest.offset(*m_pSkPointOrg);
 
-	SkScalar textWidth = skFont.measureText(strText.c_str(), strText.size() * sizeof(std::wstring::value_type), textEncoding, nullptr);
-	SkFontMetrics fontMetrics;
-	skFont.getMetrics(&fontMetrics);
-
-	SkScalar x = rcSkDest.fLeft;//默认值：左对齐
-	SkScalar y = rcSkDest.fTop + std::fabs(fontMetrics.fAscent);//默认值：上对齐
-
+	//设置绘制属性
+	SkTextBox skTextBox;
+	skTextBox.setBox(rcSkDest);
 	if (uFormat & DrawStringFormat::TEXT_SINGLELINE) {
-		//单行文本， 暂不支持
-
+		//单行文本
+		skTextBox.setLineMode(SkTextBox::kOneLine_Mode);
 	}
 	if (uFormat & DrawStringFormat::TEXT_END_ELLIPSIS) {
 		//暂不支持
 	}
 	if (uFormat & DrawStringFormat::TEXT_NOCLIP) {
-		//不支持
+		skTextBox.setClipBox(false);
 	}
 
 	if (uFormat & DrawStringFormat::TEXT_CENTER) {
 		//横向对齐：居中对齐
-		x = rcSkDest.fLeft + (rcSkDest.width() / 2) - textWidth / 2;
-		if (x < rcSkDest.fLeft) {
-			x = rcSkDest.fLeft;
-		}
+		skTextBox.setTextAlign(SkTextBox::kCenter_Align);
 	}
 	else if (uFormat & DrawStringFormat::TEXT_RIGHT) {
 		//横向对齐：右对齐
-		x = rcSkDest.fRight - textWidth;
-		if (x < rcSkDest.fLeft) {
-			x = rcSkDest.fLeft;
-		}
+		skTextBox.setTextAlign(SkTextBox::kRight_Align);
 	}
 	else {
-		//DrawStringFormat::TEXT_LEFT（这个是0，不能通过与操作判断结果）
 		//横向对齐：左对齐
-		x = rcSkDest.fLeft;
+		skTextBox.setTextAlign(SkTextBox::kLeft_Align);
 	}
 
 	if (uFormat & DrawStringFormat::TEXT_VCENTER) {
 		//纵向对齐：居中对齐
-		y = rcSkDest.centerY() + (fontMetrics.fBottom - fontMetrics.fTop) / 2 - fontMetrics.fBottom;
+		skTextBox.setSpacingAlign(SkTextBox::kCenter_SpacingAlign);
 	}
 	else if (uFormat & DrawStringFormat::TEXT_BOTTOM) {
 		//纵向对齐：下对齐
-		y = rcSkDest.fBottom - fontMetrics.fDescent - fontMetrics.fLeading;
+		skTextBox.setSpacingAlign(SkTextBox::kEnd_SpacingAlign);
 	}
 	else {
-		//DrawStringFormat::TEXT_TOP（这个是0，不能通过与操作判断结果）
 		//纵向对齐：上对齐
-		y = rcSkDest.fTop + std::fabs(fontMetrics.fAscent);
+		skTextBox.setSpacingAlign(SkTextBox::kStart_SpacingAlign);
 	}
-
-	ASSERT(m_pSkCanvas != nullptr);
-	if (m_pSkCanvas != nullptr) {
-		m_pSkCanvas->drawSimpleText(strText.c_str(), 
-								    strText.size() * sizeof(std::wstring::value_type), 
-									textEncoding,
-			                        x,
-			                        y,
-			                        skFont,
-			                        skPaint);
-	}
+	skTextBox.draw(m_pSkCanvas, 
+		           (const char*)strText.c_str(), 
+		           strText.size() * sizeof(std::wstring::value_type),
+		           textEncoding, 
+		           skFont,
+		           skPaint);
 }
 
 ui::UiRect Render_Skia::MeasureString(const std::wstring& strText, 
@@ -1031,8 +1014,71 @@ ui::UiRect Render_Skia::MeasureString(const std::wstring& strText,
 	if (uFormat & DrawStringFormat::TEXT_SINGLELINE) {
 		isSingleLineMode = true;
 	}
-	float spacingMul = 1.0f;
-	return DrawText_Skia::MeasureString(strText, skFont, skPaint, isSingleLineMode, spacingMul, width);
+		
+	//计算行高
+	SkFontMetrics fontMetrics;
+	SkScalar fontHeight = skFont.getMetrics(&fontMetrics);
+
+	if (isSingleLineMode || (width <= 0)) {
+		//单行模式, 或者没有限制宽度
+		SkScalar textWidth = skFont.measureText(strText.c_str(),
+												strText.size() * sizeof(std::wstring::value_type),
+												SkTextEncoding::kUTF16,
+												nullptr,
+												&skPaint);
+		int textIWidth = SkScalarTruncToInt(textWidth + 0.5f);
+		if (textWidth > textIWidth) {
+			textIWidth += 1;
+		}
+		if (textIWidth <= 0) {
+			return UiRect();
+		}
+		UiRect rc;
+		rc.left = 0;
+		if (width <= 0) {
+			rc.right = textIWidth;
+		}
+		else if (textIWidth < width) {
+			rc.right = textIWidth;
+		}
+		else {
+			//返回限制宽度
+			rc.right = width;
+		}
+		rc.top = 0;
+		rc.bottom = SkScalarTruncToInt(fontHeight + 0.5f);
+		if (fontHeight > rc.bottom) {
+			rc.bottom += 1;
+		}
+		return rc;
+	}
+	else {
+		//多行模式，并且限制宽度width为有效值
+		ASSERT(width > 0);
+		int lineCount = SkTextLineBreaker::CountLines((const char*)strText.c_str(),
+													  strText.size() * sizeof(std::wstring::value_type),
+													  SkTextEncoding::kUTF16,
+													  skFont,
+													  skPaint,
+													  SkScalar(width),
+													  SkTextBox::kWordBreak_Mode);
+
+		float spacingMul = 1.0f;//行间距倍数，暂不支持设置
+		SkScalar scaledSpacing = fontHeight * spacingMul;
+		SkScalar textHeight = fontHeight;
+		if (lineCount > 0) {
+			textHeight += scaledSpacing * (lineCount - 1);
+		}
+		UiRect rc;
+		rc.left = 0;
+		rc.right = width;
+		rc.top = 0;
+		rc.bottom = SkScalarTruncToInt(textHeight + 0.5f);
+		if (textHeight > rc.bottom) {
+			rc.bottom += 1;
+		}
+		return rc;
+	}
 }
 
 void Render_Skia::DrawBoxShadow(const UiRect& rc,

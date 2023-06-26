@@ -48,14 +48,15 @@ public:
 
 public:
     //换行模式
-    enum Mode {
-        kOneLine_Mode,   //Char Break模式，按字符分行
-        kLineBreak_Mode, //Word Break模式，按单词分行（默认）
+    enum LineMode {
+        kOneLine_Mode,   //单行模式
+        kWordBreak_Mode, //Word Break模式，多行模式，按单词分行（默认）
+        kCharBreak_Mode, //Char Break模式，多行模式，按字符分行（英文单词和数字都会被换行切分）
 
         kModeCount
     };
-    Mode    getMode() const { return (Mode)fMode; }
-    void    setMode(Mode);
+    LineMode getLineMode() const { return fLineMode; }
+    void setLineMode(LineMode);
 
     //纵向对齐方式
     enum SpacingAlign {
@@ -83,6 +84,10 @@ public:
     void setBox(const SkRect&);
     void setBox(SkScalar left, SkScalar top, SkScalar right, SkScalar bottom);
 
+    //设置是否对Box区域做裁剪，设置裁剪可以避免文字绘制超出边界
+    bool getClipBox() const { return fClipBox; }
+    void setClipBox(bool bClipBox);
+
     //行间距：mul为行间距的倍数，add 为增加多少
     //设置后，实际的行间距为：fontHeight * mul + add;
     void getSpacing(SkScalar* mul, SkScalar* add) const;
@@ -95,6 +100,7 @@ public:
     void setText(const char text[], size_t len, SkTextEncoding, 
                  const SkFont&, const SkPaint&);
     void draw(SkCanvas*);
+
     int  countLines() const;
     SkScalar getTextHeight() const;
 
@@ -109,25 +115,50 @@ public:
     };
 
 private:
-    SkRect      fBox;
-    SkScalar    fSpacingMul, fSpacingAdd;
-    uint8_t     fMode, fSpacingAlign, fTextAlign;
+    //文字绘制区域
+    SkRect fBox;
+
+    //是否对Box区域做裁剪，默认为true
+    bool fClipBox;
+
+    //行间距设置参数
+    SkScalar fSpacingMul, fSpacingAdd;
+
+    //换行模式
+    LineMode fLineMode;
+
+    //文字纵向对齐方式
+    uint8_t fSpacingAlign;
+
+    //文字横向对齐方式
+    uint8_t fTextAlign;
+
+    //文字数据
     const char* fText;
-    size_t      fLen;
+
+    //文字长度
+    size_t fLen;
+
+    //文字编码
     SkTextEncoding fTextEncoding;
+
+    //绘制属性设置
     const SkPaint* fPaint;
+
+    //绘制字体设置
     const SkFont* fFont;
 
     SkScalar visit(Visitor&, 
                    const char text[], size_t len, SkTextEncoding, 
-                   const SkFont&, const SkPaint&) const;
+                   const SkFont&, const SkPaint&,
+                   LineMode lineMode) const;
 };
 
 class SkTextLineBreaker {
 public:
     static int CountLines(const char text[], size_t len, SkTextEncoding, 
                           const SkFont&, const SkPaint&, 
-                          SkScalar width);
+                          SkScalar width, SkTextBox::LineMode lineMode);
 };
 
 } //namespace ui

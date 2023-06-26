@@ -105,10 +105,15 @@ static int SkUTF_CountUTFBytes(const void* utf, SkTextEncoding textEncoding)
 }
 
 static size_t linebreak(const char text[], const char stop[], SkTextEncoding textEncoding,
-                        const SkFont& font, const SkPaint& paint, SkScalar margin,
+                        const SkFont& font, const SkPaint& paint, 
+                        SkScalar margin, SkTextBox::LineMode lineMode,
                         size_t* trailing = nullptr)
 {
-    size_t lengthBreak = SkTextBox::breakText(text, stop - text, textEncoding, font, paint, margin);
+    size_t lengthBreak = stop - text;//单行模式
+    if (lineMode != SkTextBox::kOneLine_Mode) {
+        //多行模式
+        lengthBreak = SkTextBox::breakText(text, stop - text, textEncoding, font, paint, margin);
+    }
     
     //Check for white space or line breakers before the lengthBreak
     const char* start = text;
@@ -130,8 +135,12 @@ static size_t linebreak(const char text[], const char stop[], SkTextEncoding tex
         bool currIsWhiteSpace = SkUTF_IsWhiteSpace(uni);
 
         //当前字符是否可以分行，分行条件：当前字符是空格（或非可见字符），或者不是字母/数字
-        //分行逻辑：按Word分行，保证一个英文单词或者一个完整的数字不被分行显示
+        //Word分行逻辑：按Word分行，保证一个英文单词或者一个完整的数字不被分行显示
         bool currIsLineBreaker = SkUTF_IsLineBreaker(uni);
+        if (lineMode == SkTextBox::kCharBreak_Mode) {
+            //按字符分行，每个字符都可以分行
+            currIsLineBreaker = true;
+        }
         if(prevIsLineBreaker){
             //如果前面字符可以分行, 就执行前面一个字符
             word_start = prevText;
@@ -197,7 +206,8 @@ static size_t linebreak(const char text[], const char stop[], SkTextEncoding tex
 }
 
 int SkTextLineBreaker::CountLines(const char text[], size_t len, SkTextEncoding textEncoding, 
-                                  const SkFont& font, const SkPaint& paint, SkScalar width)
+                                  const SkFont& font, const SkPaint& paint, 
+                                  SkScalar width, SkTextBox::LineMode lineMode)
 {
     const char* stop = text + len;
     int         count = 0;
@@ -206,7 +216,7 @@ int SkTextLineBreaker::CountLines(const char text[], size_t len, SkTextEncoding 
     {
         do {
             count += 1;
-            text += linebreak(text, stop, textEncoding, font, paint, width);
+            text += linebreak(text, stop, textEncoding, font, paint, width, lineMode);
         } while (text < stop);
     }
     return count;
@@ -216,10 +226,11 @@ int SkTextLineBreaker::CountLines(const char text[], size_t len, SkTextEncoding 
 
 SkTextBox::SkTextBox()
 {
+    fClipBox = true;
     fBox.setEmpty();
     fSpacingMul = SK_Scalar1;
     fSpacingAdd = 0;
-    fMode = kLineBreak_Mode;
+    fLineMode = kWordBreak_Mode;
     fSpacingAlign = kStart_SpacingAlign;
     fTextAlign = kLeft_Align;
 
@@ -231,10 +242,10 @@ SkTextBox::SkTextBox()
     fFont = nullptr;
 }
 
-void SkTextBox::setMode(Mode mode)
+void SkTextBox::setLineMode(LineMode mode)
 {
     SkASSERT((unsigned)mode < kModeCount);
-    fMode = SkToU8(mode);
+    fLineMode = mode;
 }
 
 void SkTextBox::setSpacingAlign(SpacingAlign align)
@@ -266,6 +277,11 @@ void SkTextBox::setBox(SkScalar left, SkScalar top, SkScalar right, SkScalar bot
     fBox.setLTRB(left, top, right, bottom);
 }
 
+void SkTextBox::setClipBox(bool bClipBox)
+{
+    fClipBox = bClipBox;
+}
+
 void SkTextBox::getSpacing(SkScalar* mul, SkScalar* add) const
 {
     if (mul) {
@@ -286,7 +302,8 @@ void SkTextBox::setSpacing(SkScalar mul, SkScalar add)
 
 SkScalar SkTextBox::visit(Visitor& visitor, 
                           const char text[], size_t len, SkTextEncoding textEncoding,
-                          const SkFont& font, const SkPaint& paint) const {
+                          const SkFont& font, const SkPaint& paint,
+                          LineMode lineMode) const {
     SkScalar marginWidth = fBox.width();
 
     if (marginWidth <= 0 || len == 0) {
@@ -310,9 +327,9 @@ SkScalar SkTextBox::visit(Visitor& visitor,
     {
         SkScalar textHeight = fontHeight;
 
-        if (fMode == kLineBreak_Mode && fSpacingAlign != kStart_SpacingAlign) {
+        if (fSpacingAlign != kStart_SpacingAlign) {
             int count = SkTextLineBreaker::CountLines(text, textStop - text, textEncoding,
-                                                      font, paint, marginWidth);
+                                                      font, paint, marginWidth, lineMode);
             SkASSERT(count > 0);
             textHeight += scaledSpacing * (count - 1);
         }
@@ -323,6 +340,10 @@ SkScalar SkTextBox::visit(Visitor& visitor,
             break;
         case kCenter_SpacingAlign:
             y = SkScalarHalf(height - textHeight);
+            if (y < 0) {
+                //如果居中对齐绘制区域不足，那么按照Top对齐绘制
+                y = 0;
+            }
             break;
         default:
             SkASSERT(fSpacingAlign == kEnd_SpacingAlign);
@@ -334,7 +355,10 @@ SkScalar SkTextBox::visit(Visitor& visitor,
 
     for (;;) {
         size_t trailing = 0;
-        len = linebreak(text, textStop, textEncoding, font, paint, marginWidth, &trailing);
+        len = linebreak(text, textStop, textEncoding, 
+                        font, paint, 
+                        marginWidth, lineMode,
+                        &trailing);
         if (y + metrics.fDescent + metrics.fLeading > 0) {
 
             if (fTextAlign == kLeft_Align) {
@@ -434,8 +458,21 @@ void SkTextBox::draw(SkCanvas* canvas,
     }
 #endif
 
+    SkASSERT(canvas != nullptr);
+    if (canvas == nullptr) {
+        return;
+    }
+
+    int saveCount = 0;
+    if (fClipBox) {
+        saveCount = canvas->save();
+        canvas->clipRect(fBox);
+    }    
     CanvasVisitor sink(canvas);
-    this->visit(sink, text, len, textEncoding, font, paint);
+    this->visit(sink, text, len, textEncoding, font, paint, fLineMode);
+    if (fClipBox) {
+        canvas->restoreToCount(saveCount);
+    }
 }
 
 void SkTextBox::draw(SkCanvas* canvas) {
@@ -443,7 +480,9 @@ void SkTextBox::draw(SkCanvas* canvas) {
 }
 
 int SkTextBox::countLines() const {
-    return SkTextLineBreaker::CountLines(fText, fLen, fTextEncoding, *fFont, *fPaint, fBox.width());
+    return SkTextLineBreaker::CountLines(fText, fLen, fTextEncoding, 
+                                         *fFont, *fPaint, fBox.width(),
+                                         fLineMode);
 }
 
 SkScalar SkTextBox::getTextHeight() const {
@@ -468,7 +507,9 @@ public:
 
 sk_sp<SkTextBlob> SkTextBox::snapshotTextBlob(SkScalar* computedBottom) const {
     TextBlobVisitor visitor;
-    SkScalar newB = this->visit(visitor, fText, fLen, fTextEncoding, *fFont, *fPaint);
+    SkScalar newB = this->visit(visitor, fText, fLen, fTextEncoding, 
+                                *fFont, *fPaint,
+                                fLineMode);
     if (computedBottom) {
         *computedBottom = newB;
     }
