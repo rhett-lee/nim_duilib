@@ -918,7 +918,7 @@ void Render_Skia::DrawString(const UiRect& rc,
 	SkFont skFont;
 	skFont.setTypeface(MakeSkFont(pFont));
 	skFont.setSize(SkIntToScalar(std::abs(pFont->FontSize())));
-	skFont.setEdging(SkFont::Edging::kAntiAlias);
+	skFont.setEdging(SkFont::Edging::kSubpixelAntiAlias);
 	
 	//绘制属性设置
 	SkPaint skPaint = *m_pSkPaint;
@@ -939,12 +939,28 @@ void Render_Skia::DrawString(const UiRect& rc,
 		//单行文本
 		skTextBox.setLineMode(SkTextBox::kOneLine_Mode);
 	}
+
+	//绘制区域不足时，自动在末尾绘制省略号
+	bool bEndEllipsis = false;
 	if (uFormat & DrawStringFormat::TEXT_END_ELLIPSIS) {
-		//暂不支持
+		bEndEllipsis = true;
 	}
+	skTextBox.setEndEllipsis(bEndEllipsis);
+
+	bool bPathEllipsis = false;
+	if (uFormat & DrawStringFormat::TEXT_PATH_ELLIPSIS) {
+		bPathEllipsis = true;
+	}
+	skTextBox.setPathEllipsis(bPathEllipsis);
+
+	//绘制文字时，不使用裁剪区域（可能会导致文字绘制超出边界）
 	if (uFormat & DrawStringFormat::TEXT_NOCLIP) {
 		skTextBox.setClipBox(false);
 	}
+	//删除线
+	skTextBox.setStrikeOut(pFont->IsStrikeOut());
+	//下划线
+	skTextBox.setUnderline(pFont->IsUnderline());
 
 	if (uFormat & DrawStringFormat::TEXT_CENTER) {
 		//横向对齐：居中对齐

@@ -144,6 +144,9 @@
                             <HBox height="60" bkcolor="dark_gray">
                                 <Label height="stretch" width="stretch" text="超长文字绘制\n测试, 多行文本，不自动增加点点点，1234567890NBVCXZASDFGHJKLPOIUYTREWQNBVCXZASDFGHJKLPOIUYTREWQ 超长文本测试good bad test text is -。qwertyuiopasdfghjkl;lmnozxccvb.NBVCXZASDFGHJKLPOIUYTREWQ. 超长文本测试，超长文本测试，超长文本测试，超长文本测试，超长文本测试，超长文本测试，超长文本测试，超长文本测试，，超长文本测试，超长文本测试，超长文本测试，超长文本测试" autotooltip="true" singleline="false" endellipsis="false"/>
                             </HBox>
+                            <HBox height="60" bkcolor="blue">
+                                <Label height="stretch" width="stretch" text="C:\develop\编程开发学习\Windows内核原理与实现\编程开发\测试编程开发编程开发编程开发.txt" autotooltip="true" singleline="true" path_ellipsis="true"/>
+                            </HBox>
                         </VBox>
                         <VBox width="300" margin="4">                            
                             <HBox height="60" bkcolor="dark_gray">

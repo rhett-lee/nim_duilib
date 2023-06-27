@@ -9,6 +9,7 @@
 #define UI_RENDER_SKIA_SK_TEXT_BOX_H_
 
 #include "include/core/SkCanvas.h"
+#include <vector>
 
 //该文件原始文件的出处：skia/chrome_67/include/utils/SkTextBox.h
 //基于原始文件，有修改，以兼容最新版本的skia代码（2023-06-25）
@@ -80,6 +81,23 @@ public:
     TextAlign getTextAlign() const { return (TextAlign)fTextAlign; }
     void      setTextAlign(TextAlign);
 
+    //绘制区域不足时，自动在末尾绘制省略号
+    bool getEndEllipsis() const { return fEndEllipsis; };
+    void setEndEllipsis(bool);
+
+    //绘制区域不足时，自动在绘制省略号代替文本(仅限单行文本模式，多行文本模式不支持此属性)
+    //如果字符串包含反斜杠 (\\) 字符，在最后一个反斜杠之后保留尽可能多的文本。
+    bool getPathEllipsis() const { return fPathEllipsis; };
+    void setPathEllipsis(bool);
+
+    //字体属性：下划线
+    bool getUnderline() const { return fUnderline; }
+    void setUnderline(bool);
+
+    //字体属性：删除线
+    bool getStrikeOut() const { return fStrikeOut; }
+    void setStrikeOut(bool);
+
     void getBox(SkRect*) const;
     void setBox(const SkRect&);
     void setBox(SkScalar left, SkScalar top, SkScalar right, SkScalar bottom);
@@ -93,6 +111,11 @@ public:
     void getSpacing(SkScalar* mul, SkScalar* add) const;
     void setSpacing(SkScalar mul, SkScalar add);
 
+    /** 绘制文字，该函数为draw(SkCanvas*)和setText的便利性封装。
+    *   等价于以下代码：
+    *       setText(text, len, textEncoding, font, paint);
+    *       draw(canvas);
+    */
     void draw(SkCanvas*, 
               const char text[], size_t len, SkTextEncoding, 
               const SkFont&, const SkPaint&);
@@ -111,8 +134,23 @@ public:
         virtual ~Visitor() {}
         virtual void operator()(const char*, size_t, SkTextEncoding, 
                                 SkScalar x, SkScalar y, 
-                                const SkFont&, const SkPaint&) = 0;
+                                const SkFont&, const SkPaint&,
+                                bool hasMoreText, bool isLastLine) = 0;
     };
+
+private:
+    SkScalar visit(Visitor& visitor) const;
+
+    /** 将文本转换为Glyphs
+    * @param [out] glyphs 转换结果Glyphs
+    * @param [out] 每个SkGlyphID对应的原text字符串中的字符个数
+    * @param [out] 每个字符占的字节数
+    */
+    static bool TextToGlyphs(const void* text, size_t byteLength, SkTextEncoding textEncoding, 
+                             const SkFont& font,
+                             std::vector<SkGlyphID>& glyphs,
+                             std::vector<size_t>& glyphChars,
+                             size_t& charBytes);
 
 private:
     //文字绘制区域
@@ -148,10 +186,18 @@ private:
     //绘制字体设置
     const SkFont* fFont;
 
-    SkScalar visit(Visitor&, 
-                   const char text[], size_t len, SkTextEncoding, 
-                   const SkFont&, const SkPaint&,
-                   LineMode lineMode) const;
+    //绘制区域不足时，自动在末尾绘制省略号
+    bool fEndEllipsis;
+
+    //绘制区域不足时，自动在绘制省略号代替文本
+    //如果字符串包含反斜杠 (\\) 字符，在最后一个反斜杠之后保留尽可能多的文本。
+    bool fPathEllipsis;
+
+    //字体属性：下划线
+    bool fUnderline;
+
+    //字体属性：删除线
+    bool fStrikeOut;
 };
 
 class SkTextLineBreaker {

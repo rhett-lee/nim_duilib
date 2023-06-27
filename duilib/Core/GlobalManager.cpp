@@ -105,6 +105,7 @@ void GlobalManager::Startup(const std::wstring& strResourcePath, const CreateCon
 
 	//m_renderFactory = std::make_unique<RenderFactory_GdiPlus>();
 	m_renderFactory = std::make_unique<RenderFactory_Skia>();
+	
 	GlobalManager::SetResourcePath(strResourcePath + theme);
 	m_createControlCallback = callback;
 

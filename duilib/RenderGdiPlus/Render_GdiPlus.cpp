@@ -854,6 +854,9 @@ void Render_GdiPlus::DrawString(const UiRect& rc, const std::wstring& strText,
 	if ((uFormat & TEXT_END_ELLIPSIS) != 0) {
 		stringFormat.SetTrimming(Gdiplus::StringTrimmingEllipsisCharacter);
 	}
+	if ((uFormat & TEXT_PATH_ELLIPSIS) != 0) {
+		stringFormat.SetTrimming(Gdiplus::StringTrimmingEllipsisPath);
+	}
 
 	int formatFlags = Gdiplus::StringFormatFlagsLineLimit;
 	if ((uFormat & TEXT_NOCLIP) != 0) {

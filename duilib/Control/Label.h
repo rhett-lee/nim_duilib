@@ -402,6 +402,14 @@ void LabelTemplate<InheritType>::SetAttribute(const std::wstring& strName, const
             m_uTextStyle &= ~TEXT_END_ELLIPSIS;
         }
     }
+    else if (strName == L"path_ellipsis") {
+        if (strValue == L"true") {
+            m_uTextStyle |= TEXT_PATH_ELLIPSIS;
+        }
+        else {
+            m_uTextStyle &= ~TEXT_PATH_ELLIPSIS;
+        }
+    }
     else if (strName == L"singleline") SetSingleLine(strValue == L"true");
     else if (strName == L"text") SetText(strValue);
     else if (strName == L"textid") SetTextId(strValue);
