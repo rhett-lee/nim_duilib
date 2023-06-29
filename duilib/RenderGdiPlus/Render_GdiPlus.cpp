@@ -156,7 +156,7 @@ int Render_GdiPlus::GetHeight()
 	return m_nHeight;
 }
 
-void Render_GdiPlus::ClearAlpha(const UiRect& rcDirty, int alpha)
+void Render_GdiPlus::ClearAlpha(const UiRect& rcDirty, uint8_t alpha)
 {
 	HBITMAP hBitmap = m_hBitmap;
 	ASSERT(hBitmap != nullptr);
@@ -168,7 +168,7 @@ void Render_GdiPlus::ClearAlpha(const UiRect& rcDirty, int alpha)
 	}
 }
 
-void Render_GdiPlus::RestoreAlpha(const UiRect& rcDirty, const UiRect& rcShadowPadding, int alpha)
+void Render_GdiPlus::RestoreAlpha(const UiRect& rcDirty, const UiRect& rcShadowPadding, uint8_t alpha)
 {
 	HBITMAP hBitmap = m_hBitmap;
 	ASSERT(hBitmap != nullptr);

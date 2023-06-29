@@ -234,6 +234,12 @@
     <ClCompile Include="RenderSkia\SkUtils.cpp">
       <Filter>RenderSkia</Filter>
     </ClCompile>
+    <ClCompile Include="RenderSkia\Brush_Skia.cpp">
+      <Filter>RenderSkia</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderSkia\Path_Skia.cpp">
+      <Filter>RenderSkia</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -477,6 +483,12 @@
       <Filter>RenderSkia</Filter>
     </ClInclude>
     <ClInclude Include="RenderSkia\SkUtils.h">
+      <Filter>RenderSkia</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderSkia\Brush_Skia.h">
+      <Filter>RenderSkia</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderSkia\Path_Skia.h">
       <Filter>RenderSkia</Filter>
     </ClInclude>
   </ItemGroup>

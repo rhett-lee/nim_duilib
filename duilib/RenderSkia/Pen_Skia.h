@@ -15,31 +15,94 @@ public:
 	Pen_Skia(const Pen_Skia& r);
 	Pen_Skia& operator=(const Pen_Skia& r) = delete;
 
-	virtual IPen* Clone() const override;
-
+	/** 设置画笔宽度
+	*/
 	virtual void SetWidth(int width) override;
+
+	/** 获取画笔宽度
+	*/
 	virtual int GetWidth() const override;
+
+	/** 设置画笔颜色
+	*/
 	virtual void SetColor(UiColor color) override;
+
+	/** 获取画笔颜色
+	*/
 	virtual UiColor GetColor() const override;
 
+	/** 设置线段起始的笔帽样式
+	*/
 	virtual void SetStartCap(LineCap cap) override;
-	virtual void SetEndCap(LineCap cap) override;
-	virtual void SetDashCap(LineCap cap) override;
+
+	/** 获取线段起始的笔帽样式
+	*/
 	virtual LineCap GetStartCap() const override;
+
+	/** 设置线段结束的笔帽样式
+	*/
+	virtual void SetEndCap(LineCap cap) override;
+
+	/** 获取线段结束的笔帽样式
+	*/
 	virtual LineCap GetEndCap() const override;
+
+	/** 设置短划线笔帽的样式
+	*/
+	virtual void SetDashCap(LineCap cap) override;
+
+	/** 获取短划线笔帽的样式
+	*/
 	virtual LineCap GetDashCap() const override;
 
+	/** 设置线段末尾使用的联接样式
+	*/
 	virtual void SetLineJoin(LineJoin join) override;
+
+	/** 获取线段末尾使用的联接样式
+	*/
 	virtual LineJoin GetLineJoin() const override;
 
+	/** 设置绘制的线条样式
+	*/
 	virtual void SetDashStyle(DashStyle style) override;
+
+	/** 获取绘制的线条样式
+	*/
 	virtual DashStyle GetDashStyle() const override;
 
-	//Gdiplus::Pen* GetPen() const;
+	/** 复制Pen对象
+	*/
+	virtual IPen* Clone() const override;
 
 private:
+	/** 画笔颜色
+	*/
 	UiColor m_color;
-	//std::unique_ptr<Gdiplus::Pen> pen_;
+
+	/** 画笔宽度
+	*/
+	int m_width;
+
+	/** 线段起始笔帽形状
+	*/
+	LineCap m_startCap;
+
+	/** 短划线笔帽形状
+	*/
+	LineCap m_dashCap;
+
+	/** 线段结束笔帽形状
+	*/
+	LineCap m_endCap;
+
+	/** 线段末尾使用的联接样式，该线段与另一个线段相遇
+	*/
+	LineJoin m_lineJoin;
+
+	/** 短划线样式
+	*/
+	DashStyle m_dashStyle;
 };
 
 } // namespace ui

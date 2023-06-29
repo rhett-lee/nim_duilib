@@ -766,7 +766,7 @@ void SkTextBox::draw(SkCanvas* canvas) {
     int saveCount = 0;
     if (fClipBox) {
         saveCount = canvas->save();
-        canvas->clipRect(fBox);
+        canvas->clipRect(fBox, true);
     }
     CanvasVisitor sink(canvas, this);
     this->visit(sink);

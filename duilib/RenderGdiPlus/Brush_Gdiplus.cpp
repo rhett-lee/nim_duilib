@@ -4,14 +4,14 @@
 namespace ui {
 
 Brush_Gdiplus::Brush_Gdiplus(UiColor color)
-	: IBrush(color)
 {
+	color_ = color;
 	brush_.reset(new Gdiplus::SolidBrush(color.GetARGB()));
 }
 
 Brush_Gdiplus::Brush_Gdiplus(const Brush_Gdiplus& r)
-	: IBrush(r)
 {
+	color_ = r.color_;
 	if (r.brush_)
 		brush_.reset(r.brush_->Clone());
 }

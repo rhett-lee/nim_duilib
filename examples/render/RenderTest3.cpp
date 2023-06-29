@@ -138,15 +138,15 @@ void RenderTest3::Paint(IRender* pRender, const UiRect& rcPaint)
         std::unique_ptr<IPath> path(pRenderFactory->CreatePath());
         if (pen && path) {
             const UiRect& rc = rect;
-            path->AddArc((INT)rc.left, rc.top, roundSize.cx, roundSize.cy, 180, 90);
-            path->AddLine(rc.left + roundSize.cx, (INT)rc.top, rc.right - roundSize.cx, rc.top);
-            path->AddArc(rc.right - roundSize.cx, (INT)rc.top, roundSize.cx, roundSize.cy, 270, 90);
-            path->AddLine((INT)rc.right, rc.top + roundSize.cy, rc.right, rc.bottom - roundSize.cy);
-            path->AddArc(rc.right - roundSize.cx, rc.bottom - roundSize.cy, (INT)roundSize.cx, roundSize.cy, 0, 90);
-            path->AddLine(rc.right - roundSize.cx, (INT)rc.bottom, rc.left + roundSize.cx, rc.bottom);
-            path->AddArc((INT)rc.left, rc.bottom - roundSize.cy, roundSize.cx, roundSize.cy, 90, 90);
-            path->AddLine((INT)rc.left, rc.bottom - roundSize.cy, rc.left, rc.top + roundSize.cy);
-            path->CloseFigure();
+            path->AddArc(UiRect((INT)rc.left, rc.top, rc.left + roundSize.cx, rc.top + roundSize.cy), 180, 90);
+            path->AddLine(rc.left + roundSize.cx / 2, (INT)rc.top, rc.right - roundSize.cx / 2, rc.top);
+            path->AddArc(UiRect(rc.right - roundSize.cx, (INT)rc.top, rc.right, rc.top + roundSize.cy), 270, 90);
+            path->AddLine((INT)rc.right, rc.top + roundSize.cy / 2, rc.right, rc.bottom - roundSize.cy / 2);
+            path->AddArc(UiRect(rc.right - roundSize.cx, rc.bottom - roundSize.cy, rc.right, rc.bottom), 0, 90);
+            path->AddLine(rc.right - roundSize.cx / 2, (INT)rc.bottom, rc.left + roundSize.cx / 2, rc.bottom);
+            path->AddArc(UiRect((INT)rc.left, rc.bottom - roundSize.cy, rc.left + roundSize.cx, rc.bottom), 90, 90);
+            path->AddLine((INT)rc.left, rc.bottom - roundSize.cy / 2, rc.left, rc.top + roundSize.cy / 2);
+            path->Close();
 
             pRender->DrawPath(path.get(), pen.get());
         }
@@ -162,20 +162,21 @@ void RenderTest3::Paint(IRender* pRender, const UiRect& rcPaint)
     rect.right = rect.left + nSize;
     if (pRenderFactory != nullptr) {
         std::unique_ptr<IPen> pen(pRenderFactory->CreatePen(UiColor(0xff006DD9), DpiScaledInt(2)));
-        std::unique_ptr<IBrush> brush(pRenderFactory->CreateBrush(UiColor(0x23006DD9)));
+        std::unique_ptr<IBrush> brush(pRenderFactory->CreateBrush(UiColor(UiColor::Red)));
         std::unique_ptr<IPath> path(pRenderFactory->CreatePath());
 
         if (pen && brush && path) {
             const UiRect& rc = rect;
-            path->AddArc((INT)rc.left, rc.top, roundSize.cx, roundSize.cy, 180, 90);
-            path->AddLine(rc.left + roundSize.cx, (INT)rc.top, rc.right - roundSize.cx, rc.top);
-            path->AddArc(rc.right - roundSize.cx, (INT)rc.top, roundSize.cx, roundSize.cy, 270, 90);
-            path->AddLine((INT)rc.right, rc.top + roundSize.cy, rc.right, rc.bottom - roundSize.cy);
-            path->AddArc(rc.right - roundSize.cx, rc.bottom - roundSize.cy, (INT)roundSize.cx, roundSize.cy, 0, 90);
-            path->AddLine(rc.right - roundSize.cx, (INT)rc.bottom, rc.left + roundSize.cx, rc.bottom);
-            path->AddArc((INT)rc.left, rc.bottom - roundSize.cy, roundSize.cx, roundSize.cy, 90, 90);
-            path->AddLine((INT)rc.left, rc.bottom - roundSize.cy, rc.left, rc.top + roundSize.cy);
-            path->CloseFigure();
+
+            path->AddArc(UiRect((INT)rc.left, rc.top, rc.left + roundSize.cx, rc.top + roundSize.cy), 180, 90);
+            path->AddLine(rc.left + roundSize.cx / 2, (INT)rc.top, rc.right - roundSize.cx / 2, rc.top);                      
+            path->AddArc(UiRect(rc.right - roundSize.cx, (INT)rc.top, rc.right, rc.top + roundSize.cy), 270, 90);
+            path->AddLine((INT)rc.right, rc.top + roundSize.cy / 2, rc.right, rc.bottom - roundSize.cy / 2);
+            path->AddArc(UiRect(rc.right - roundSize.cx, rc.bottom - roundSize.cy, rc.right, rc.bottom), 0, 90);
+            path->AddLine(rc.right - roundSize.cx / 2, (INT)rc.bottom, rc.left + roundSize.cx / 2, rc.bottom);
+            path->AddArc(UiRect(rc.left, rc.bottom - roundSize.cy, rc.left + roundSize.cx, rc.bottom), 90, 90);
+            path->AddLine((INT)rc.left, rc.bottom - roundSize.cy / 2, rc.left, rc.top + roundSize.cy / 2);
+            path->Close();
 
             pRender->DrawPath(path.get(), pen.get());
             pRender->FillPath(path.get(), brush.get());
@@ -190,7 +191,14 @@ void RenderTest3::Paint(IRender* pRender, const UiRect& rcPaint)
     //DrawBoxShadow
     rect.left = rect.right + marginLeft * 2;
     rect.right = rect.left + nSize;
-    pRender->DrawBoxShadow(rect, roundSize, UiPoint(0, 0), 4, 4, UiColor(0xffC63535), true);
+    int nBlurRadius = DpiScaledInt(5);
+    int nSpreadRadius = DpiScaledInt(5);
+    pRender->DrawBoxShadow(rect, roundSize, UiPoint(0, 0), nBlurRadius, nSpreadRadius, UiColor(0xffC63535), true);
+
+    textRect = rect;
+    textRect.top = rect.bottom;
+    textRect.bottom = textRect.top + nTextLineHeight;
+    pRender->DrawString(textRect, L"DrawBoxShadow", UiColor(UiColor::Blue), L"system_12", TEXT_CENTER);
 }
 
 void RenderTest3::PaintChild(IRender* pRender, const UiRect& rcPaint)

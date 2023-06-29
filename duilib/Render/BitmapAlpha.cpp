@@ -19,7 +19,7 @@ BitmapAlpha::~BitmapAlpha()
 {
 }
 
-void BitmapAlpha::ClearAlpha(const UiRect& rcDirty, int alpha) const
+void BitmapAlpha::ClearAlpha(const UiRect& rcDirty, uint8_t alpha) const
 {
 	ASSERT((m_pPiexl != nullptr) && (m_nChannels == 4) && (m_nWidth > 0) && (m_nHeight > 0));
 	if ((m_pPiexl == nullptr) || (m_nChannels != 4) || (m_nWidth <= 0) ||(m_nHeight <= 0)){
@@ -38,7 +38,7 @@ void BitmapAlpha::ClearAlpha(const UiRect& rcDirty, int alpha) const
 	}
 }
 
-void BitmapAlpha::RestoreAlpha(const UiRect& rcDirty, const UiRect& rcShadowPadding, int alpha) const
+void BitmapAlpha::RestoreAlpha(const UiRect& rcDirty, const UiRect& rcShadowPadding, uint8_t alpha) const
 {
 	// 此函数适用于GDI等API渲染位图，导致丢失alpha通道的情况，可以把alpha通道补回来
 	// 但是渲染位图时，还有GDI+、AlphaBlend等API给位图设置了半透明的alpha通道时，可能导致没法正确的修正alpha通道
@@ -76,7 +76,7 @@ void BitmapAlpha::RestoreAlpha(const UiRect& rcDirty, const UiRect& rcShadowPadd
 
 void BitmapAlpha::RestoreAlpha(const UiRect& rcDirty, const UiRect& rcShadowPadding) const
 {
-	// 无论什么情况，都把此区域的alphaa通道设置为255
+	// 无论什么情况，都把此区域的alpha通道设置为255
 	ASSERT((m_pPiexl != nullptr) && (m_nChannels == 4) && (m_nWidth > 0) && (m_nHeight > 0));
 	if ((m_pPiexl == nullptr) || (m_nChannels != 4) || (m_nWidth <= 0) || (m_nHeight <= 0)) {
 		return;

@@ -1,6 +1,7 @@
 #include "Render_Skia.h"
 #include "duilib/RenderSkia/Bitmap_Skia.h"
 #include "duilib/RenderSkia/SkTextBox.h"
+#include "duilib/RenderSkia/Path_Skia.h"
 
 #include "duilib/Utils/DpiManager.h"
 #include "duilib/Utils/StringUtil.h"
@@ -17,6 +18,8 @@
 #include "include/core/SkFont.h"
 #include "include/core/SkFontStyle.h"
 #include "include/core/SkFontMetrics.h"
+#include "include/core/SkPathEffect.h"
+#include "include/effects/SkDashPathEffect.h"
 
 #ifdef _DEBUG
 #pragma comment (lib, "../../../../develop/skia/skia/out/Debug/skia.lib")
@@ -160,7 +163,7 @@ int Render_Skia::GetHeight()
 	return 0;
 }
 
-void Render_Skia::ClearAlpha(const UiRect& rcDirty, int alpha)
+void Render_Skia::ClearAlpha(const UiRect& rcDirty, uint8_t alpha)
 {
 	HBITMAP hBitmap = nullptr;
 	if (m_pBitmapSkia != nullptr) {
@@ -174,7 +177,7 @@ void Render_Skia::ClearAlpha(const UiRect& rcDirty, int alpha)
 	}
 }
 
-void Render_Skia::RestoreAlpha(const UiRect& rcDirty, const UiRect& rcShadowPadding, int alpha)
+void Render_Skia::RestoreAlpha(const UiRect& rcDirty, const UiRect& rcShadowPadding, uint8_t alpha)
 {
 	HBITMAP hBitmap = nullptr;
 	if (m_pBitmapSkia != nullptr) {
@@ -856,23 +859,156 @@ void Render_Skia::DrawRoundRect(const UiRect& rc, const UiSize& roundSize, UiCol
 
 void Render_Skia::FillRoundRect(const UiRect& rc, const UiSize& roundSize, UiColor dwColor, uint8_t uFade)
 {
+	ASSERT((GetWidth() > 0) && (GetHeight() > 0));
+	SkPaint skPaint = *m_pSkPaint;
+	skPaint.setARGB(dwColor.GetA(), dwColor.GetR(), dwColor.GetG(), dwColor.GetB());
+	skPaint.setStyle(SkPaint::kFill_Style);
+	if (uFade != 0xFF) {
+		skPaint.setAlpha(uFade);
+	}
 
+	SkIRect rcSkDestI = { rc.left, rc.top, rc.right, rc.bottom };
+	SkRect rcSkDest = SkRect::Make(rcSkDestI);
+	rcSkDest.offset(*m_pSkPointOrg);
+
+	ASSERT(m_pSkCanvas != nullptr);
+	if (m_pSkCanvas != nullptr) {
+		m_pSkCanvas->drawRoundRect(rcSkDest, SkIntToScalar(roundSize.cx), SkIntToScalar(roundSize.cy), skPaint);
+	}
 }
 
 void Render_Skia::DrawPath(const IPath* path, const IPen* pen)
 {
-	return;
 	ASSERT(path != nullptr);
 	ASSERT(pen != nullptr);
 	if ((path == nullptr) || (pen == nullptr)) {
 		return;
 	}
+	const Path_Skia* pSkiaPath = dynamic_cast<const Path_Skia*>(path);
+	ASSERT(pSkiaPath != nullptr);
+	if (pSkiaPath == nullptr) {
+		return;
+	}
 
+	SkPaint paint = *m_pSkPaint;
+	paint.setColor(pen->GetColor().GetARGB());
+
+	sk_sp<SkPathEffect> skPathEffect;
+	IPen::DashStyle dashStyle = pen->GetDashStyle();
+	switch (dashStyle) {
+		case IPen::kDashStyleSolid:
+		{
+			SkScalar intervals[] = { 1.0f, 0.0f };
+			skPathEffect = SkDashPathEffect::Make(intervals, 2, 0.0f);
+			break;
+		}
+		case IPen::kDashStyleDash:
+		{
+			SkScalar intervals[] = { 5.0f,5.0f };
+			skPathEffect = SkDashPathEffect::Make(intervals, 2, 0.0f);
+			break;
+		}
+		case IPen::kDashStyleDot:
+		{
+			SkScalar intervals[] = { 1.0f,4.0f };
+			skPathEffect = SkDashPathEffect::Make(intervals, 2, 0.0f);
+			break;
+		}
+		case IPen::kDashStyleDashDot:
+		{
+			SkScalar intervals[] = { 4.0f,1.0f,1.0f,1.0f };
+			skPathEffect = SkDashPathEffect::Make(intervals, 4, 0.0f);
+			break;
+		}
+		case IPen::kDashStyleDashDotDot:
+		{
+			SkScalar intervals[] = { 4.0f,1.0f,1.0f,1.0f,1.0f,1.0f };
+			skPathEffect = SkDashPathEffect::Make(intervals, 6, 0.0f);
+			break;
+		}
+		default:
+		{
+			SkScalar intervals[] = { 1.0f, 0.0f };
+			skPathEffect = SkDashPathEffect::Make(intervals, 2, 0.0f);
+			break;
+		}
+	}
+	paint.setPathEffect(skPathEffect);
+
+	SkPaint::Cap cap;
+	switch (pen->GetDashCap()) {
+	case IPen::kButt_Cap:
+		cap = SkPaint::Cap::kButt_Cap;
+		break;
+	case IPen::kRound_Cap:
+		cap = SkPaint::Cap::kRound_Cap;
+		break;
+	case IPen::kSquare_Cap:
+		cap = SkPaint::Cap::kSquare_Cap;
+		break;
+	default:
+		cap = SkPaint::Cap::kDefault_Cap;
+		break;
+	}
+
+	paint.setStrokeCap(cap);
+
+	SkPaint::Join join;
+	switch (pen->GetLineJoin()) {
+	case IPen::LineJoin::kMiter_Join:
+		join = SkPaint::Join::kMiter_Join;
+		break;
+	case IPen::LineJoin::kBevel_Join:
+		join = SkPaint::Join::kBevel_Join;
+		break;
+	case IPen::LineJoin::kRound_Join:
+		join = SkPaint::Join::kRound_Join;
+		break;
+	default:
+		join = SkPaint::Join::kDefault_Join;
+		break;
+	}
+	
+	paint.setStrokeJoin(join);
+	paint.setStyle(SkPaint::kStroke_Style);
+	if (paint.isAntiAlias()){
+		paint.setStrokeWidth((SkScalar)pen->GetWidth() - 0.5f);
+	}
+	else {
+		paint.setStrokeWidth((SkScalar)pen->GetWidth());
+	}
+
+	SkPath skPath;
+	pSkiaPath->GetSkPath()->offset(m_pSkPointOrg->fX, m_pSkPointOrg->fY, &skPath);
+	ASSERT(m_pSkCanvas != nullptr);
+	if (m_pSkCanvas != nullptr) {
+		m_pSkCanvas->drawPath(skPath, paint);
+	}
 }
 
 void Render_Skia::FillPath(const IPath* path, const IBrush* brush)
 {
+	ASSERT(path != nullptr);
+	ASSERT(brush != nullptr);
+	if ((path == nullptr) || (brush == nullptr)) {
+		return;
+	}
+	const Path_Skia* pSkiaPath = dynamic_cast<const Path_Skia*>(path);
+	ASSERT(pSkiaPath != nullptr);
+	if (pSkiaPath == nullptr) {
+		return;
+	}
 
+	SkPaint paint = *m_pSkPaint;
+	paint.setColor(brush->GetColor().GetARGB());
+	paint.setStyle(SkPaint::kFill_Style);
+	
+	SkPath skPath;
+	pSkiaPath->GetSkPath()->offset(m_pSkPointOrg->fX, m_pSkPointOrg->fY, &skPath);
+	ASSERT(m_pSkCanvas != nullptr);
+	if (m_pSkCanvas != nullptr) {
+		m_pSkCanvas->drawPath(skPath, paint);
+	}
 }
 
 /** 生成Skia字体信息

@@ -22,9 +22,11 @@ public:
 	Brush_Gdiplus& operator=(const Brush_Gdiplus& r) = delete;
 
 	virtual IBrush* Clone() override;
+	virtual UiColor GetColor() const override { return color_; };
 
 	Gdiplus::Brush* GetBrush() const;
 private:
+	UiColor color_;
 	std::unique_ptr<Gdiplus::Brush> brush_;
 };
 

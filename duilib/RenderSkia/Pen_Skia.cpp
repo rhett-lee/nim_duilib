@@ -2,16 +2,26 @@
 
 namespace ui {
 
-Pen_Skia::Pen_Skia(UiColor color, int width /*= 1*/)
+Pen_Skia::Pen_Skia(UiColor color, int width /*= 1*/):
+	m_color(color),
+	m_width(width),
+	m_startCap(kButt_Cap),
+	m_dashCap(kButt_Cap),
+	m_endCap(kButt_Cap),
+	m_lineJoin(kMiter_Join),
+	m_dashStyle(kDashStyleSolid)
 {
-	m_color = color;
-	//pen_.reset(new Gdiplus::Pen(color_.GetARGB(), static_cast<Gdiplus::REAL>(width)));
 }
 
 Pen_Skia::Pen_Skia(const Pen_Skia& r)
 {
 	m_color = r.m_color;
-	//pen_.reset(r.pen_->Clone());
+	m_width = r.m_width;
+	m_startCap = r.m_startCap;
+	m_dashCap = r.m_dashCap;
+	m_endCap = r.m_endCap;
+	m_lineJoin = r.m_lineJoin;
+	m_dashStyle = r.m_dashStyle;
 }
 
 ui::IPen* Pen_Skia::Clone() const
@@ -21,19 +31,17 @@ ui::IPen* Pen_Skia::Clone() const
 
 void Pen_Skia::SetWidth(int width)
 {
-	//pen_->SetWidth(static_cast<Gdiplus::REAL>(width));
+	m_width = width;
 }
 
 int Pen_Skia::GetWidth() const
 {
-	return 0;
-	//return (int)pen_->GetWidth();
+	return m_width;
 }
 
 void Pen_Skia::SetColor(UiColor color)
 {
 	m_color = color;
-	//pen_->SetColor(color.GetARGB());
 }
 
 UiColor Pen_Skia::GetColor() const
@@ -43,62 +51,52 @@ UiColor Pen_Skia::GetColor() const
 
 void Pen_Skia::SetStartCap(LineCap cap)
 {
-	//pen_->SetStartCap((Gdiplus::LineCap)cap);
-}
-
-void Pen_Skia::SetEndCap(LineCap cap)
-{
-	//pen_->SetEndCap((Gdiplus::LineCap)cap);
-}
-
-void Pen_Skia::SetDashCap(LineCap cap)
-{
-	//pen_->SetDashCap((Gdiplus::DashCap)cap);
+	m_startCap = cap;
 }
 
 IPen::LineCap Pen_Skia::GetStartCap() const
 {
-	return IPen::LineCap::LineCapFlat;
-	//return (IPen::LineCap)pen_->GetStartCap();
+	return m_startCap;
+}
+
+void Pen_Skia::SetEndCap(LineCap cap)
+{
+	m_endCap = cap;
 }
 
 IPen::LineCap Pen_Skia::GetEndCap() const
 {
-	return IPen::LineCap::LineCapFlat;
-	//return (IPen::LineCap)pen_->GetEndCap();
+	return m_endCap;
+}
+
+void Pen_Skia::SetDashCap(LineCap cap)
+{
+	m_dashCap = cap;
 }
 
 IPen::LineCap Pen_Skia::GetDashCap() const
 {
-	return IPen::LineCap::LineCapFlat;
-	//return (IPen::LineCap)pen_->GetDashCap();
+	return m_dashCap;
 }
 
 void Pen_Skia::SetLineJoin(LineJoin join)
 {
-	//pen_->SetLineJoin((Gdiplus::LineJoin)join);
+	m_lineJoin = join;
 }
 
 IPen::LineJoin Pen_Skia::GetLineJoin() const
 {
-	return IPen::LineJoin::LineJoinBevel;
-	//return (IPen::LineJoin)pen_->GetLineJoin();
+	return m_lineJoin;
 }
 
 void Pen_Skia::SetDashStyle(DashStyle style)
 {
-	//pen_->SetDashStyle((Gdiplus::DashStyle)style);
+	m_dashStyle = style;
 }
 
 IPen::DashStyle Pen_Skia::GetDashStyle() const
 {
-	return IPen::DashStyle::DashStyleDash;
-	//return (IPen::DashStyle)pen_->GetDashStyle();
+	return m_dashStyle;
 }
-//
-//Gdiplus::Pen* Pen_Skia::GetPen() const
-//{ 
-//	return pen_.get(); 
-//};
 
 } // namespace ui

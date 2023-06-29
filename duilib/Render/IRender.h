@@ -57,100 +57,221 @@ public:
 class UILIB_API IPen : public virtual nbase::SupportWeakCallback
 {
 public:
-
-	virtual IPen* Clone() const = 0;
-
+	/** 设置画笔宽度
+	*/
 	virtual void SetWidth(int width) = 0;
+
+	/** 获取画笔宽度
+	*/
 	virtual int GetWidth() const = 0;
+
+	/** 设置画笔颜色
+	*/
 	virtual void SetColor(UiColor color) = 0;
+
+	/** 获取画笔颜色
+	*/
 	virtual UiColor GetColor() const = 0;
 
+	/** 笔帽样式
+	*/
 	enum LineCap
 	{
-		LineCapFlat = 0,
-		LineCapSquare = 1,
-		LineCapRound = 2,
-		LineCapTriangle = 3
+		kButt_Cap   = 0,	//平笔帽（默认）
+		kRound_Cap  = 1,	//圆笔帽
+		kSquare_Cap = 2		//方笔帽
 	};
+
+	/** 设置线段起始的笔帽样式
+	*/
 	virtual void SetStartCap(LineCap cap) = 0;
-	virtual void SetEndCap(LineCap cap) = 0;
-	virtual void SetDashCap(LineCap cap) = 0;
+
+	/** 获取线段起始的笔帽样式
+	*/
 	virtual LineCap GetStartCap() const = 0;
+
+	/** 设置线段结束的笔帽样式
+	*/
+	virtual void SetEndCap(LineCap cap) = 0;
+
+	/** 获取线段结束的笔帽样式
+	*/
 	virtual LineCap GetEndCap() const = 0;
+
+	/** 设置短划线笔帽的样式
+	*/
+	virtual void SetDashCap(LineCap cap) = 0;
+
+	/** 获取短划线笔帽的样式
+	*/
 	virtual LineCap GetDashCap() const = 0;
 
+	/** 线段末尾使用的联接样式，该线段与另一个线段相遇
+	*/
 	enum LineJoin
 	{
-		LineJoinMiter = 0,
-		LineJoinBevel = 1,
-		LineJoinRound = 2,
-		LineJoinMiterClipped = 3
+		kMiter_Join = 0,	//尖角（默认）
+		kBevel_Join = 1,	//平角
+		kRound_Join = 2		//圆角		
 	};
+
+	/** 设置线段末尾使用的联接样式
+	*/
 	virtual void SetLineJoin(LineJoin join) = 0;
+
+	/** 获取线段末尾使用的联接样式
+	*/
 	virtual LineJoin GetLineJoin() const = 0;
 
+	/** 笔绘制的线条的线条样式
+	*/
 	enum DashStyle
 	{
-		DashStyleSolid,          // 0
-		DashStyleDash,           // 1
-		DashStyleDot,            // 2
-		DashStyleDashDot,        // 3
-		DashStyleDashDotDot,     // 4
-		DashStyleCustom          // 5
+		kDashStyleSolid			= 0,	//实线（默认）
+		kDashStyleDash			= 1,	//虚线
+		kDashStyleDot			= 2,	//虚线
+		kDashStyleDashDot		= 3,	//交替虚线
+		kDashStyleDashDotDot	= 4		//交替短划线点点线
 	};
+
+	/** 设置绘制的线条样式
+	*/
 	virtual void SetDashStyle(DashStyle style) = 0;
+
+	/** 获取绘制的线条样式
+	*/
 	virtual DashStyle GetDashStyle() const = 0;
+
+	/** 复制Pen对象
+	*/
+	virtual IPen* Clone() const = 0;
 };
 
+//目前只支持一个SolidBrush
 class UILIB_API IBrush : public virtual nbase::SupportWeakCallback
 {
 public:
-	IBrush(UiColor color) : color_(color){};
-	IBrush(const IBrush& r)	: color_(r.color_)	{};
-	IBrush& operator=(const IBrush& r) = delete;
-
 	virtual IBrush* Clone() = 0;
-	virtual UiColor GetColor() { return color_; };
-protected:
-	UiColor color_;
+	virtual UiColor GetColor() const = 0;
 };
 
 class UILIB_API IPath : public virtual nbase::SupportWeakCallback
 {
-public:
-	IPath(){};
-	IPath(const IPath& r) { (void)r; };
-	IPath& operator=(const IPath& r) = delete;
-
-	virtual IPath* Clone() = 0;
-	virtual void Reset() = 0;
-
-	enum FillMode
+public:	
+	/** 填充类型，在路径或曲线相交时如何填充形成的区域
+	*/
+	enum class FillType 
 	{
-		FillModeAlternate,        // 0
-		FillModeWinding           // 1
+		/** Specifies that "inside" is computed by an odd number of edge crossings
+		*/
+		kEvenOdd		= 0, //FillModeAlternate
+
+		/** Specifies that "inside" is computed by a non-zero sum of signed edge crossings 
+		*/
+		kWinding		= 1, //FillModeWinding
+
+		/** Same as EvenOdd, but draws outside of the path, rather than inside 
+		*/
+		kInverseEvenOdd	= 2,
+
+		/** Same as Winding, but draws outside of the path, rather than inside 
+		*/
+		kInverseWinding	= 3
 	};
-	virtual void SetFillMode(FillMode mode) = 0;
-	virtual FillMode GetFillMode() = 0;
 
-	virtual void StartFigure() = 0;
-	virtual void CloseFigure() = 0;
+	/** 设置填充类型
+	*/
+	virtual void SetFillType(FillType mode) = 0;
 
+	/** 获取填充类型
+	*/
+	virtual FillType GetFillType() = 0;
+
+	/** 将一行添加到此路径的当前图中
+	* @param [in] x1 线条起点的 x 坐标
+	* @param [in] y1 线条起点的 y 坐标
+	* @param [in] x2 线条终点的 x 坐标
+	* @param [in] y2 线条终点的 y 坐标
+	*/
 	virtual void AddLine(int x1, int y1, int x2, int y2) = 0;
+
+	/** 向此路径的当前图添加一系列连接线
+	* @param [in] points 线条起点和终点的点数组, 数组中的第一个点是第一行的起点，
+	                     数组中的最后一个点是最后一行的终点。 
+						 其他每个点都用作一行的终点，下一行的起点。
+	* @param [in] count 点数组中的元素数
+	*/
 	virtual void AddLines(const UiPoint* points, int count) = 0;
+
+	/** 将贝塞尔(Bézier)曲线样条添加到此路径的当前图中
+	*    贝塞尔自由绘制曲线是一条由四个点指定的曲线：
+	*    两个端点（p1[x1,y1] 和 p2[x4,y4]）和两个控制点（c1[x2,y2] 和 c2[x3,y3]）。 
+	*	 曲线从 p1 开始，以 p2 结尾。 
+	*	 曲线不通过控制点，但控制点充当磁铁，将曲线拉向某个方向，并影响曲线的弯曲方式。
+	* @param [in] x1 起点的 x 坐标
+	* @param [in] y1 起点的 y 坐标
+	* @param [in] x2 第一个控制点的 x 坐标
+	* @param [in] y2 第一个控制点的 y 坐标
+	* @param [in] x3 第二个控制点的 x 坐标
+	* @param [in] y3 第二个控制点的 y 坐标
+	* @param [in] x4 终点的 x 坐标
+	* @param [in] y4 终点的 y 坐标
+	*
+	*/
 	virtual void AddBezier(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4) = 0;
-	virtual void AddCurve(const UiPoint* points, int count) = 0;
-	virtual void AddRect(int left, int top, int right, int bottom) = 0;
+
+	/** 将连接的 Bézier 样条序列添加到此路径的当前图中
+	* @param [in] points 指向连接的样条的起始点、结束点和控制点数组的指针。 
+	*                   第一个样条从第一个点到数组的第四个点构造，并使用第二和第三个点作为控制点。 
+	*					序列中的每个后续样条只需要另外三个点：
+	*					前一个样条的终点用作起点，序列中的下两个点是控制点，第三个点是终点。
+	* @param [in] count 数组中的元素数
+	*/
+	virtual void AddBeziers(const UiPoint* points, int count) = 0;
+
+	/** 将矩形添加到此路径
+	* @param [in] rect 矩形区域
+	*/
 	virtual void AddRect(const UiRect& rect) = 0;
-	virtual void AddEllipse(int left, int top, int right, int bottom) = 0;
+
+	/** 将椭圆添加到此路径
+	* @param [in] 椭圆的矩形区域 
+	*             left 椭圆边框左上角的 x 坐标
+	*             top  椭圆边框左上角的 y 坐标
+	*             right left + 椭圆边界矩形的宽度
+	*             bottom top + 椭圆边界矩形的高度
+	*/
 	virtual void AddEllipse(const UiRect& rect) = 0;
-	virtual void AddArc(int x, int y, int width, int height, float startAngle, float sweepAngle) = 0;
-	virtual void AddPie(int x, int y, int width, int height, float startAngle, float sweepAngle) = 0;
+
+	/** 将椭圆弧添加到此路径
+	* @param [in] 椭圆的矩形区域 
+	* @param [in] startAngle 椭圆水平轴与弧线起点之间的顺时针角度（以度为单位）
+	* @param [in] sweepAngle 起点 (startAngle) 和弧的终点之间的顺时针角度（以度为单位）
+	*/
+	virtual void AddArc(const UiRect& rect, float startAngle, float sweepAngle) = 0;
+
+	/** 将多边形添加到此路径
+	* @param [in] points 指定多边形顶点的点数组
+	* @param [in] count 数组中的元素数
+	*/
 	virtual void AddPolygon(const UiPoint* points, int count) = 0;
 
-	virtual UiRect GetBound(const IPen* pen) = 0;
-	virtual bool IsContainsPoint(int x, int y) = 0;
-	virtual bool IsStrokeContainsPoint(int x, int y, const IPen* pen) = 0;
+	/** 获取此路径的边界矩形
+	* @param [in] pen 关联的Pen对象，可以为nullptr
+	*/
+	virtual UiRect GetBounds(const IPen* pen) = 0;
+
+	/** 关闭当前绘图
+	*/
+	virtual void Close() = 0;
+
+	/** 重置Path数据
+	*/
+	virtual void Reset() = 0;
+
+	/** 复制Path对象
+	*/
+	virtual IPath* Clone() = 0;
 };
 
 /** 光栅操作代码
@@ -363,7 +484,16 @@ public:
 	*/
 	virtual void FillRoundRect(const UiRect& rc, const UiSize& roundSize, UiColor dwColor, uint8_t uFade = 255) = 0;
 
+	/** 绘制路径
+	* @param [in] path 路径的接口
+	* @param [in] pen 绘制路径使用的画笔
+	*/
 	virtual void DrawPath(const IPath* path, const IPen* pen) = 0;
+
+	/** 填充路径
+	* @param [in] path 路径的接口
+	* @param [in] brush 填充路径使用的画刷
+	*/
 	virtual void FillPath(const IPath* path, const IBrush* brush) = 0;
 
 	/** 计算指定文本字符串的宽度和高度
@@ -419,8 +549,23 @@ public:
 	*/
 	virtual IBitmap* DetachBitmap() = 0;
 
-	virtual void ClearAlpha(const UiRect& rcDirty, int alpha = 0) = 0;
-	virtual void RestoreAlpha(const UiRect& rcDirty, const UiRect& rcShadowPadding, int alpha) = 0;
+	/** 将矩形区域内的图像Alpha设定为指定值alpha(0 - 255)
+	* @param [in] rcDirty 矩形区域
+	* @param [in] alpha 需要设定的Aplpa值
+	*/
+	virtual void ClearAlpha(const UiRect& rcDirty, uint8_t alpha = 0) = 0;
+
+	/** 恢复矩形区域内的图像Alpha值为alpha(0 - 255)
+	* @param [in] rcDirty 矩形区域
+	* @param [in] rcShadowPadding 阴影边距（分别对应矩形的左/右/上/下边距的Padding值）
+	* @param [in] alpha 需要恢复的Alpha值（需要与ClearAlpha时传入的alpha值相同）
+	*/
+	virtual void RestoreAlpha(const UiRect& rcDirty, const UiRect& rcShadowPadding, uint8_t alpha) = 0;
+
+	/** 恢复矩形区域内的图像Alpha值为255
+	* @param [in] rcDirty 矩形区域
+	* @param [in] rcShadowPadding 阴影边距（分别对应矩形的左/右/上/下边距的Padding值）
+	*/
 	virtual void RestoreAlpha(const UiRect& rcDirty, const UiRect& rcShadowPadding = UiRect()) = 0;
 
 #ifdef UILIB_IMPL_WINSDK

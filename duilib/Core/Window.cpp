@@ -468,7 +468,9 @@ void Window::InitWnd(HWND hWnd)
 		//在估算控件大小的时候，需要Render有宽高等数据，所以需要进行Resize初始化
 		UiRect rcClient;
 		::GetClientRect(m_hWnd, &rcClient);
-		m_render->Resize(rcClient.GetWidth(), rcClient.GetHeight());
+		if ((rcClient.GetWidth() > 0) && (rcClient.GetHeight() > 0)) {
+			m_render->Resize(rcClient.GetWidth(), rcClient.GetHeight());
+		}		
 	}
 
 	RegisterTouchWindowWrapper(hWnd, 0);
@@ -1992,7 +1994,9 @@ void Window::Paint()
 		//在估算控件大小的时候，需要Render有宽高等数据，所以需要进行Resize初始化
 		UiRect rcClient;
 		::GetClientRect(m_hWnd, &rcClient);
-		m_render->Resize(rcClient.GetWidth(), rcClient.GetHeight());
+		if ((rcClient.GetWidth() > 0) && (rcClient.GetHeight() > 0)) {
+			m_render->Resize(rcClient.GetWidth(), rcClient.GetHeight());
+		}
 	}
 
 	if (m_bIsArranged && m_pRoot->IsArranged() && (m_pRoot->GetFixedWidth() == DUI_LENGTH_AUTO || m_pRoot->GetFixedHeight() == DUI_LENGTH_AUTO)) {

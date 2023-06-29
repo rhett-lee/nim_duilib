@@ -17,8 +17,8 @@ public:
 	~BitmapAlpha();
 
 public:
-	void ClearAlpha(const UiRect& rcDirty, int alpha) const;
-	void RestoreAlpha(const UiRect& rcDirty, const UiRect& rcShadowPadding, int alpha) const;
+	void ClearAlpha(const UiRect& rcDirty, uint8_t alpha) const;
+	void RestoreAlpha(const UiRect& rcDirty, const UiRect& rcShadowPadding, uint8_t alpha) const;
 	void RestoreAlpha(const UiRect& rcDirty, const UiRect& rcShadowPadding) const;
 
 private:
