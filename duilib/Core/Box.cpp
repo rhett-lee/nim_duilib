@@ -711,14 +711,14 @@ ScrollableBox::ScrollableBox(Layout* pLayout) :
 	Box(pLayout),
 	m_pVerticalScrollBar(),
 	m_pHorizontalScrollBar(),
-	m_nVerScrollUnitPixels(30),
-    m_nHerScrollUnitPixels(30),
 	m_bScrollProcess(false),
 	m_bScrollBarFloat(true),
 	m_bVScrollBarLeftPos(false),
 	m_bHoldEnd(false),
 	m_rcScrollBarPadding()
 {
+	m_nVerScrollUnitPixels = DpiManager::GetInstance()->GetScaledInt(m_nVerScrollUnitPixelsDefault);
+	m_nHerScrollUnitPixels = DpiManager::GetInstance()->GetScaledInt(m_nHerScrollUnitPixelsDefault);
 	m_scrollAnimation = std::make_unique<AnimationPlayer>();
 	m_renderOffsetYAnimation = std::make_unique<AnimationPlayer>();
 }
@@ -1174,7 +1174,7 @@ void ScrollableBox::LineUp(int deltaValue, bool withAnimation)
 {
 	int cyLine = GetVerScrollUnitPixels();
 	if (cyLine == 0) {
-		cyLine = 20;
+		cyLine = DpiManager::GetInstance()->GetScaledInt(m_nVerScrollUnitPixelsDefault);
 	}
 	if (deltaValue != DUI_NOSET_VALUE) {
 		cyLine = std::min(cyLine, deltaValue);
@@ -1219,7 +1219,7 @@ void ScrollableBox::LineDown(int deltaValue, bool withAnimation)
 {
 	int cyLine = GetVerScrollUnitPixels();
 	if (cyLine == 0) {
-		cyLine = 20;
+		cyLine = DpiManager::GetInstance()->GetScaledInt(m_nVerScrollUnitPixelsDefault);
 	}
 	if (deltaValue != DUI_NOSET_VALUE) {
 		cyLine = std::min(cyLine, deltaValue);
@@ -1263,7 +1263,7 @@ void ScrollableBox::LineLeft(int detaValue)
 {
     int cxLine = GetHorScrollUnitPixels();
     if (cxLine == 0) {
-        cxLine = 20;
+        cxLine = DpiManager::GetInstance()->GetScaledInt(m_nHerScrollUnitPixelsDefault);
     }
     if (detaValue != DUI_NOSET_VALUE) {
         cxLine = std::min(cxLine, detaValue);
@@ -1304,7 +1304,7 @@ void ScrollableBox::LineRight(int detaValue)
 {
     int cxLine = GetHorScrollUnitPixels();
     if (cxLine == 0) {
-        cxLine = 20;
+        cxLine = DpiManager::GetInstance()->GetScaledInt(m_nHerScrollUnitPixelsDefault);
     }
     if (detaValue != DUI_NOSET_VALUE) {
         cxLine = std::min(cxLine, detaValue);

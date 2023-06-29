@@ -1154,7 +1154,8 @@ bool Control::OnApplyAttributeList(const std::wstring& strReceiver, const std::w
 	return true;
 }
 
-bool Control::DrawImage(IRender* pRender, Image& duiImage, const std::wstring& strModify, int nFade)
+bool Control::DrawImage(IRender* pRender, Image& duiImage, 	                           
+					    const std::wstring& strModify, int nFade, bool isLoadingImage)
 {
 	//注解：strModify参数，目前外部传入的主要是："destscale='false' dest='%d,%d,%d,%d'"
 	//                   也有一个类传入了：L" corner='%d,%d,%d,%d'"。
@@ -1182,10 +1183,8 @@ bool Control::DrawImage(IRender* pRender, Image& duiImage, const std::wstring& s
 		(newImageAttribute.rcDest.top != DUI_NOSET_VALUE)    && 
 		(newImageAttribute.rcDest.right != DUI_NOSET_VALUE)  && 
 		(newImageAttribute.rcDest.bottom != DUI_NOSET_VALUE)) {
-		rcNewDest.left   = GetRect().left + newImageAttribute.rcDest.left;
-		rcNewDest.right  = GetRect().left + newImageAttribute.rcDest.right;
-		rcNewDest.top    = GetRect().top + newImageAttribute.rcDest.top;
-		rcNewDest.bottom = GetRect().top + newImageAttribute.rcDest.bottom;
+		rcNewDest = newImageAttribute.rcDest;
+		rcNewDest.Offset(GetRect().left, GetRect().top);
 	}
 	
 	bool isPlayingGif = false;
@@ -1199,7 +1198,7 @@ bool Control::DrawImage(IRender* pRender, Image& duiImage, const std::wstring& s
 		if (imageInfo) {
 			IBitmap* pNewBitmap = nullptr;
 			IBitmap* pCurrentBitmap = duiImage.GetCurrentBitmap();
-			if (!strModify.empty()) {
+			if (isLoadingImage && (m_fCurrrentAngele != 0)) {				
 				pNewBitmap = BitmapHelper::RotateBitmapAroundCenter(pCurrentBitmap, m_fCurrrentAngele);
 			}
             pRender->DrawImage(m_rcPaint, 
@@ -1415,7 +1414,7 @@ void Control::PaintBkColor(IRender* pRender)
 
 void Control::PaintBkImage(IRender* pRender)
 {
-    DrawImage(pRender, *m_bkImage);
+	DrawImage(pRender, *m_bkImage);
 }
 
 void Control::PaintStatusColor(IRender* pRender)
@@ -1538,19 +1537,18 @@ void Control::PaintLoading(IRender* pRender)
 
 	ui::UiRect rcDest = m_loadingImage->GetImageAttribute().rcDest;
 	if (!rcDest.IsRectEmpty()) {
-		rcFill.left = GetRect().left + rcDest.left;
-		rcFill.right = GetRect().left + rcDest.right;
-		rcFill.top = GetRect().top + rcDest.top;
-		rcFill.bottom = GetRect().bottom + rcDest.bottom;
+		rcFill = rcDest;
+		rcFill.Offset(GetRect().left, GetRect().top);
 	}
 
     if (!m_strLoadingBkColor.empty()) {
         pRender->FillRect(rcFill, GetWindowColor(m_strLoadingBkColor));
     }
+	rcFill.Offset(-GetRect().left, -GetRect().top);
 	
 	wchar_t modify[64] = { 0 };
-	swprintf_s(modify, L"dest='%d,%d,%d,%d'", rcFill.left - GetRect().left, rcFill.top - GetRect().top, rcFill.right - GetRect().left, rcFill.bottom - GetRect().top);
-	DrawImage(pRender, *m_loadingImage, modify);
+	swprintf_s(modify, L"destscale='false' dest='%d,%d,%d,%d'", rcFill.left, rcFill.top, rcFill.right, rcFill.bottom);
+	DrawImage(pRender, *m_loadingImage, modify, -1, true);
 }
 
 void Control::SetAlpha(int alpha)

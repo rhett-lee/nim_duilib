@@ -954,9 +954,11 @@ void ScrollBar::PaintThumb(IRender* pRender)
 	}
 
 	m_sImageModify.clear();
-	m_sImageModify = StringHelper::Printf(_T("destscale='false' dest='%d,%d,%d,%d'"), m_rcThumb.left - GetRect().left, \
-		m_rcThumb.top - GetRect().top, m_rcThumb.right - GetRect().left, m_rcThumb.bottom - GetRect().top);
-
+	m_sImageModify = StringHelper::Printf(_T("destscale='false' dest='%d,%d,%d,%d'"), 
+										  m_rcThumb.left - GetRect().left, 
+										  m_rcThumb.top - GetRect().top, 
+										  m_rcThumb.right - GetRect().left, 
+									      m_rcThumb.bottom - GetRect().top);
 	m_thumbStateImage->PaintStateImage(pRender, m_uThumbState, m_sImageModify);
 }
 

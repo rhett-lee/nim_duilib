@@ -640,8 +640,14 @@ protected:
 	//垂直滚动条滚动步长
 	int m_nVerScrollUnitPixels;
 
+	//垂直滚动条滚动步长(默认)
+	const int m_nVerScrollUnitPixelsDefault = 30;
+
 	//水平滚动条滚动步长
     int m_nHerScrollUnitPixels;
+
+	//水平滚动条滚动步长(默认)
+	int m_nHerScrollUnitPixelsDefault = 30;
 
 	// 防止SetPos循环调用
 	bool m_bScrollProcess; 

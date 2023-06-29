@@ -90,7 +90,7 @@
             <!-- RichEdit -->
             <RichEdit class="prompt" name="edit" bkcolor="bk_wnd_lightcolor" width="stretch" height="stretch"
                         multiline="true" vscrollbar="true" hscrollbar="true" autovscroll="true"
-                        normaltextcolor="darkcolor" wantreturnmsg="true" rich="true" loadingimage="../move_control/1.png" loadingbkcolor="red"/>
+                        normaltextcolor="darkcolor" wantreturnmsg="true" rich="true" loadingimage="file='autumn.png'" loadingbkcolor="red"/>
         </VBox>
     </VBox>
 </Window>

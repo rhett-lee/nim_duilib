@@ -584,11 +584,15 @@ public:
 	 * @brief 绘制图片
 	 * @param[in] pRender 绘制上下文
 	 * @param[in] duiImage 图片对象
+	 * @param[in] isLoadingImage true表示Loading Image，绘制时会旋转该图片;false表示正常图片
 	 * @param[in] strModify 图片的附加属性
 	 * @param[in] nFade 控件的透明度，如果启用动画效果该值在绘制时是不断变化的
 	 * @return 成功返回 true，失败返回 false
 	 */
-	bool DrawImage(IRender* pRender, Image& duiImage, const std::wstring& strModify = L"", int nFade = DUI_NOSET_VALUE);
+	bool DrawImage(IRender* pRender, Image& duiImage,	               
+				   const std::wstring& strModify = L"",
+		           int nFade = DUI_NOSET_VALUE,
+		           bool isLoadingImage = false);
 
 	/**
 	* @brief 获取绘制上下文对象
@@ -1052,7 +1056,8 @@ private:
 	*/
 	std::unique_ptr<StateColorMap> m_colorMap;
 
-	//控件图片类型与状态图片的映射
+	/** 控件图片类型与状态图片的MAP
+	*/
 	std::unique_ptr<StateImageMap> m_imageMap;
 
 private:
