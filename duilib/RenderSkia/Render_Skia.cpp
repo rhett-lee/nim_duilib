@@ -7,6 +7,7 @@
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Render/BitmapAlpha.h"
+#include "duilib/Utils/PerformanceUtil.h"
 
 #include "include/core/SkBitmap.h"
 #include "include/core/SkImage.h"
@@ -20,13 +21,6 @@
 #include "include/core/SkFontMetrics.h"
 #include "include/core/SkPathEffect.h"
 #include "include/effects/SkDashPathEffect.h"
-
-#ifdef _DEBUG
-#pragma comment (lib, "../../../../develop/skia/skia/out/Debug/skia.lib")
-#else
-#pragma comment (lib, "../../../../develop/skia/skia/out/StaticLLVM/skia.lib")
-#endif
-#pragma comment (lib, "opengl32.lib")
 
 namespace ui {
 
@@ -463,6 +457,7 @@ void Render_Skia::DrawImage(const UiRect& rcPaint,
 	if (!::IntersectRect(&rcTestTemp, &rcImageDest, &rcPaint)) {
 		return;
 	}
+	PerformanceStat statPerformance(L"Render_Skia::DrawImage");
 
 	ASSERT(pBitmap != nullptr);
 	if (pBitmap == nullptr) {
@@ -1032,6 +1027,7 @@ void Render_Skia::DrawString(const UiRect& rc,
 	                         uint32_t uFormat, 
 	                         uint8_t uFade /*= 255*/)
 {
+	PerformanceStat statPerformance(L"Render_Skia::MeasureString");
 	ASSERT((GetWidth() > 0) && (GetHeight() > 0));
 	ASSERT(!strText.empty());
 	if (strText.empty()) {
@@ -1136,6 +1132,7 @@ ui::UiRect Render_Skia::MeasureString(const std::wstring& strText,
 								      uint32_t uFormat, 
 									  int width /*= DUI_NOSET_VALUE*/)
 {
+	PerformanceStat statPerformance(L"Render_Skia::MeasureString");
 	ASSERT((GetWidth() > 0) && (GetHeight() > 0));
 	ASSERT(!strText.empty());
 	UiRect rc;

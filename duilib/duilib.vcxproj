@@ -443,6 +443,7 @@
     <ClInclude Include="Render\Font_GDI.h" />
     <ClInclude Include="Render\IFont.h" />
     <ClInclude Include="Render\IRender.h" />
+    <ClInclude Include="Render\RenderConfig.h" />
     <ClInclude Include="Render\UiColor.h" />
     <ClInclude Include="third_party\apng\decoder-apng.h" />
     <ClInclude Include="third_party\stb_image\stb_image.h" />

@@ -6,7 +6,7 @@
 // duilib
 #include "duilib/duilib.h"
 
-class RenderForm : public ui::WindowImplBase
+class RenderForm : public ui::ShadowWnd
 {
 public:
 	RenderForm();

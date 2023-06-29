@@ -1,6 +1,4 @@
 #include "GlobalManager.h"
-#include "duilib/RenderGdiPlus/RenderFactory_Gdiplus.h"
-#include "duilib/RenderSkia/RenderFactory_Skia.h"
 #include "duilib/Render/Font_GDI.h"
 #include "duilib/Utils/DpiManager.h"
 #include "duilib/Utils/StringUtil.h"
@@ -13,9 +11,26 @@
 #include "duilib/Image/Image.h"
 #include "duilib/Image/ImageDecoder.h"
 
-#include "duilib/RenderGdiPlus/GdiPlusDefs.h"
-
 #include "duilib/third_party/unzip/UnZip.h"
+
+//渲染引擎的选择(目前仅支持在编译期间选择)
+#include "duilib/Render/RenderConfig.h"
+#if (duilib_kRenderType == duilib_kRenderType_Skia)
+//Skia引擎
+#include "duilib/RenderSkia/RenderFactory_Skia.h"
+	#pragma comment (lib, "opengl32.lib")
+#ifdef _DEBUG
+	#pragma comment (lib, "../../../../develop/skia/skia/out/DebugLLVM/skia.lib")
+#else
+	#pragma comment (lib, "../../../../develop/skia/skia/out/ReleaseLLVM/skia.lib")
+#endif
+
+#else if(duilib_kRenderType == duilib_kRenderType_GdiPlus)
+//Gdiplus引擎
+#include "duilib/RenderGdiPlus/GdiPlusDefs.h"
+#include "duilib/RenderGdiPlus/RenderFactory_Gdiplus.h"
+
+#endif
 
 #include <commctrl.h>
 #include <tchar.h>
@@ -94,18 +109,27 @@ UiColor GlobalManager::m_dwDefaultSelectedBkColor = UiColor(0xFFBAE4FF);
 std::unique_ptr<IRenderFactory> GlobalManager::m_renderFactory;
 DWORD GlobalManager::m_dwUiThreadId = 0;
 
+#if (duilib_kRenderType == duilib_kRenderType_GdiPlus)
+//Gdiplus引擎
 static ULONG_PTR g_gdiplusToken;
 static Gdiplus::GdiplusStartupInput g_gdiplusStartupInput;
+#endif
+
 static HZIP g_hzip = NULL;
 const std::wstring kLanguageFileName = L"gdstrings.ini";
 
 void GlobalManager::Startup(const std::wstring& strResourcePath, const CreateControlCallback& callback, bool bAdaptDpi, const std::wstring& theme, const std::wstring& language)
 {
+	ASSERT(m_renderFactory == nullptr);
 	m_dwUiThreadId = GetCurrentThreadId();
 
-	//m_renderFactory = std::make_unique<RenderFactory_GdiPlus>();
-	m_renderFactory = std::make_unique<RenderFactory_Skia>();
-	
+#if (duilib_kRenderType == duilib_kRenderType_Skia)
+	m_renderFactory = std::make_unique<RenderFactory_Skia>();	
+#else if (duilib_kRenderType == duilib_kRenderType_GdiPlus)
+	m_renderFactory = std::make_unique<RenderFactory_GdiPlus>();
+#endif
+	ASSERT(m_renderFactory != nullptr);
+
 	GlobalManager::SetResourcePath(strResourcePath + theme);
 	m_createControlCallback = callback;
 
@@ -130,8 +154,9 @@ void GlobalManager::Startup(const std::wstring& strResourcePath, const CreateCon
 	else {
 		MultiLangSupport::GetInstance()->LoadStringTable(GetLanguagePath() + L"\\" + kLanguageFileName);
 	}
-
+#if (duilib_kRenderType == duilib_kRenderType_GdiPlus)
 	Gdiplus::GdiplusStartup(&g_gdiplusToken, &g_gdiplusStartupInput, NULL);
+#endif
 	// Boot Windows Common Controls (for the ToolTip control)
 	::InitCommonControls();
 }
@@ -145,7 +170,9 @@ void GlobalManager::Shutdown()
 	}
 	m_renderFactory.reset();
 	RemoveAllFonts();
+#if (duilib_kRenderType == duilib_kRenderType_GdiPlus)
 	Gdiplus::GdiplusShutdown(g_gdiplusToken);
+#endif
 }
 
 std::wstring GlobalManager::GetResourcePath()

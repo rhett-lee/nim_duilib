@@ -1327,9 +1327,8 @@ LRESULT Window::OnPaintMsg(UINT uMsg, WPARAM /*wParam*/, LPARAM /*lParam*/, bool
 {
 	ASSERT_UNUSED_VARIABLE(uMsg == WM_PAINT);
 	bHandled = true;
-	PerformanceUtil::Instance().BeginStat(L"Window::OnPaintMsg");
+	PerformanceStat statPerformance(L"Window::OnPaintMsg");
 	Paint();
-	PerformanceUtil::Instance().EndStat(L"Window::OnPaintMsg");
 	return 0;
 }
 

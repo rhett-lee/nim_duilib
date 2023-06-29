@@ -1,6 +1,11 @@
 #include "CircleProgress.h"
-#include "duilib/RenderGdiPlus/GdiPlusDefs.h"
 #include <shlwapi.h>
+
+#include "duilib/Render/RenderConfig.h"
+#if (duilib_kRenderType == duilib_kRenderType_GdiPlus)
+//Gdiplus引擎
+#include "duilib/RenderGdiPlus/GdiPlusDefs.h"
+#endif
 
 namespace ui
 {
@@ -50,8 +55,8 @@ void CircleProgress::PaintStatusImage(IRender* pRender)
 		return;
 	}
 	Progress::PaintStatusImage(pRender);
-	if (m_bCircular)
-	{
+#if (duilib_kRenderType == duilib_kRenderType_GdiPlus)
+	if (m_bCircular) {
 		//目前IRender还有很多GDI+接口未实现，暂时直接用gdi+画图了
 		//以后可能会调整：需实现1、DrawArc  2、Pen增加brush(渐变)入参 3、可以自由设置Graphics属性
 		int direction = m_bClockwise ? 1 : -1;   //旋转方向
@@ -121,16 +126,18 @@ void CircleProgress::PaintStatusImage(IRender* pRender)
 		}
 		pRender->ReleaseDC(hdc);
 	}
+#endif
 }
 
 void CircleProgress::ClearImageCache()
 {
 	__super::ClearImageCache();
-	if (m_pIndicator)
-	{
+#if (duilib_kRenderType == duilib_kRenderType_GdiPlus)
+	if (m_pIndicator) {
 		delete m_pIndicator;
 		m_pIndicator = nullptr;
 	}
+#endif
 }
 
 void CircleProgress::SetCircular(bool bCircular /*= true*/)
@@ -144,12 +151,12 @@ void CircleProgress::SetClockwiseRotation(bool bClockwise /*= true*/)
 	if (bClockwise != m_bClockwise)
 	{
 		m_bClockwise = bClockwise;
-		if (m_pIndicator)
-		{
+#if (duilib_kRenderType == duilib_kRenderType_GdiPlus)
+		if (m_pIndicator) {
 			//已经旋转了图片，旋转到相反的方向
 			m_pIndicator->RotateFlip(Gdiplus::Rotate180FlipNone);
 		}
-
+#endif
 	}
 }
 
@@ -179,8 +186,9 @@ void CircleProgress::SetIndicator(const std::wstring& sIndicatorImage)
 	if (m_sIndicatorImage != sIndicatorImage)
 	{
 		m_sIndicatorImage = sIndicatorImage;
-		if (m_pIndicator)
-		{
+
+#if (duilib_kRenderType == duilib_kRenderType_GdiPlus)		
+		if (m_pIndicator) {
 			delete m_pIndicator;
 			m_pIndicator = nullptr;
 		}
@@ -200,6 +208,7 @@ void CircleProgress::SetIndicator(const std::wstring& sIndicatorImage)
 			m_pIndicator->RotateFlip(m_bClockwise ? Gdiplus::Rotate90FlipNone : Gdiplus::Rotate270FlipNone);
 			Invalidate();
 		}
+#endif
 	}
 }
 

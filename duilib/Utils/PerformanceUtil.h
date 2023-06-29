@@ -61,6 +61,22 @@ private:
 	std::map<std::wstring, TStat> m_stat;
 };
 
+class PerformanceStat
+{
+public:
+	PerformanceStat(const std::wstring& statName):
+		m_statName(statName)
+	{
+		PerformanceUtil::Instance().BeginStat(m_statName);
+	}
+	~PerformanceStat()
+	{
+		PerformanceUtil::Instance().EndStat(m_statName);
+	}
+private:
+	std::wstring m_statName;
+};
+
 }
 
 #endif // UI_UTILS_PERFORMANCE_UTIL_H_
