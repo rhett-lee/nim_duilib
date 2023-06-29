@@ -2076,11 +2076,10 @@ void Window::Paint()
 
 	int width = rcClient.right - rcClient.left;
 	int height = rcClient.bottom - rcClient.top;
-	if (m_render->Resize(width, height)) {
-		rcPaint.left = 0;
-		rcPaint.top = 0;
-		rcPaint.right = width;
-		rcPaint.bottom = height;
+	if (!m_render->Resize(width, height)) {
+		ASSERT(!"m_render->Resize resize failed!");
+		::EndPaint(m_hWnd, &ps);
+		return;
 	}
 
 	// 去掉alpha通道
@@ -2127,21 +2126,21 @@ void Window::Paint()
 	}
 
 	// 渲染到窗口
-	if (m_bIsLayeredWindow) {
-		UiPoint pt(rcWindow.left, rcWindow.top);
-		UiSize szWindow(rcClient.right - rcClient.left, rcClient.bottom - rcClient.top);
-		UiPoint ptSrc;
-		BLENDFUNCTION bf = { AC_SRC_OVER, 0, static_cast<BYTE>(m_nWindowAlpha), AC_SRC_ALPHA };
-		HDC hdc = m_render->GetDC();
-		::UpdateLayeredWindow(m_hWnd, NULL, &pt, &szWindow, hdc, &ptSrc, 0, &bf, ULW_ALPHA);
-		m_render->ReleaseDC(hdc);
-	}
-	else {
-		HDC hdc = m_render->GetDC();
-		::BitBlt(ps.hdc, rcPaint.left, rcPaint.top, rcPaint.GetWidth(),
-			rcPaint.GetHeight(), hdc, rcPaint.left, rcPaint.top, SRCCOPY);
-		m_render->ReleaseDC(hdc);
-	}
+    if (m_bIsLayeredWindow) {
+        UiPoint pt(rcWindow.left, rcWindow.top);
+        UiSize szWindow(rcClient.right - rcClient.left, rcClient.bottom - rcClient.top);
+        UiPoint ptSrc;
+        BLENDFUNCTION bf = { AC_SRC_OVER, 0, static_cast<BYTE>(m_nWindowAlpha), AC_SRC_ALPHA };
+        HDC hdc = m_render->GetDC();
+        ::UpdateLayeredWindow(m_hWnd, NULL, &pt, &szWindow, hdc, &ptSrc, 0, &bf, ULW_ALPHA);
+        m_render->ReleaseDC(hdc);
+    }
+    else {
+        HDC hdc = m_render->GetDC();
+        ::BitBlt(ps.hdc, rcPaint.left, rcPaint.top, rcPaint.GetWidth(), rcPaint.GetHeight(), 
+			     hdc, rcPaint.left, rcPaint.top, SRCCOPY);
+        m_render->ReleaseDC(hdc);
+    }
 
 	::EndPaint(m_hWnd, &ps);
 }

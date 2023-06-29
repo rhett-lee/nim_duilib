@@ -82,7 +82,6 @@ bool Render_Skia::Resize(int width, int height)
 		return false;
 	}
 	if ((GetWidth() == width) && (GetHeight() == height)) {
-		Clear();
 		return true;
 	}
 
