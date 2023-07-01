@@ -1,7 +1,8 @@
 #include "Render_Skia.h"
 #include "duilib/RenderSkia/Bitmap_Skia.h"
-#include "duilib/RenderSkia/SkTextBox.h"
 #include "duilib/RenderSkia/Path_Skia.h"
+#include "duilib/RenderSkia/Matrix_Skia.h"
+#include "duilib/RenderSkia/SkTextBox.h"
 
 #include "duilib/Utils/DpiManager.h"
 #include "duilib/Utils/StringUtil.h"
@@ -9,6 +10,10 @@
 #include "duilib/Render/BitmapAlpha.h"
 #include "duilib/Utils/PerformanceUtil.h"
 
+#pragma warning (push)
+#pragma warning (disable: 4244)
+
+#include "include/core/SkMatrix.h"
 #include "include/core/SkBitmap.h"
 #include "include/core/SkImage.h"
 #include "include/core/SkCanvas.h"
@@ -21,13 +26,16 @@
 #include "include/core/SkFontMetrics.h"
 #include "include/core/SkPathEffect.h"
 #include "include/effects/SkDashPathEffect.h"
+#include "include/effects/SkGradientShader.h"
+
+#pragma warning (pop)
 
 namespace ui {
 
 static inline void DrawFunction(SkCanvas* pSkCanvas, 
 	                            const UiRect& rcDest,
 								const SkPoint& skPointOrg,
-								const SkBitmap& skSrcBitmap,
+								const sk_sp<SkImage>& skImage,
 								const UiRect& rcSrc,
 	                            const SkPaint& skPaint)
 {
@@ -38,7 +46,7 @@ static inline void DrawFunction(SkCanvas* pSkCanvas,
 	SkIRect rcSkSrcI = { rcSrc.left, rcSrc.top, rcSrc.right, rcSrc.bottom };
 	SkRect rcSkSrc = SkRect::Make(rcSkSrcI);
 
-	pSkCanvas->drawImageRect(skSrcBitmap.asImage(), rcSkSrc, rcSkDest, SkSamplingOptions(), &skPaint, SkCanvas::kStrict_SrcRectConstraint);
+	pSkCanvas->drawImageRect(skImage, rcSkSrc, rcSkDest, SkSamplingOptions(), &skPaint, SkCanvas::kStrict_SrcRectConstraint);
 }
 
 Render_Skia::Render_Skia()
@@ -472,6 +480,7 @@ void Render_Skia::DrawImage(const UiRect& rcPaint,
 		return;
 	}
 	const SkBitmap& skSrcBitmap = skiaBitmap->GetSkBitmap();
+	sk_sp<SkImage> skImage = skSrcBitmap.asImage();//这里是复制了一份位图数据的，有性能损耗
 
 	//对边角值进行容错处理
 	if ((rcImageCorners.left < 0)  ||
@@ -529,7 +538,6 @@ void Render_Skia::DrawImage(const UiRect& rcPaint,
 	}
 	if (m_bTransparent || bAlphaChannel || (uFade != 0xFF)) {
 		skPaint.setBlendMode(SkBlendMode::kSrcOver);
-		//skPaint.setBlender(SkBlender::Mode(SkBlendMode::kSrcOver));
 	}
 
 	// middle
@@ -544,7 +552,7 @@ void Render_Skia::DrawImage(const UiRect& rcPaint,
 	rcSource.bottom = rcImageSource.bottom - rcImageCorners.bottom;
 	if (::IntersectRect(&rcTemp, &rcPaint, &rcDest)) {
 		if (!xtiled && !ytiled) {
-			DrawFunction(m_pSkCanvas, rcDest, *m_pSkPointOrg, skSrcBitmap, rcSource, skPaint);
+			DrawFunction(m_pSkCanvas, rcDest, *m_pSkPointOrg, skImage, rcSource, skPaint);
 		}
 		else if (xtiled && ytiled) {
 			const LONG imageDrawWidth = rcImageSource.right - rcImageSource.left - rcImageCorners.left - rcImageCorners.right;
@@ -588,7 +596,7 @@ void Render_Skia::DrawImage(const UiRect& rcPaint,
 					rcDestTemp.right = lDestRight;
 					rcDestTemp.top = lDestTop;
 					rcDestTemp.bottom = lDestBottom;
-					DrawFunction(m_pSkCanvas, rcDestTemp, *m_pSkPointOrg, skSrcBitmap, rcSource, skPaint);
+					DrawFunction(m_pSkCanvas, rcDestTemp, *m_pSkPointOrg, skImage, rcSource, skPaint);
 				}
 			}
 		}
@@ -622,7 +630,7 @@ void Render_Skia::DrawImage(const UiRect& rcPaint,
 				rcDestTemp.left = lDestLeft;
 				rcDestTemp.right = lDestRight;
 
-				DrawFunction(m_pSkCanvas, rcDestTemp, *m_pSkPointOrg, skSrcBitmap, rcSource, skPaint);
+				DrawFunction(m_pSkCanvas, rcDestTemp, *m_pSkPointOrg, skImage, rcSource, skPaint);
 			}
 		}
 		else { // ytiled
@@ -655,7 +663,7 @@ void Render_Skia::DrawImage(const UiRect& rcPaint,
 				rcDestTemp.top = lDestTop;
 				rcDestTemp.bottom = lDestBottom;
 				
-				DrawFunction(m_pSkCanvas, rcDestTemp, *m_pSkPointOrg, skSrcBitmap, rcSource, skPaint);
+				DrawFunction(m_pSkCanvas, rcDestTemp, *m_pSkPointOrg, skImage, rcSource, skPaint);
 			}
 		}
 	}
@@ -671,7 +679,7 @@ void Render_Skia::DrawImage(const UiRect& rcPaint,
 		rcSource.right = rcImageSource.left + rcImageCorners.left;
 		rcSource.bottom = rcImageSource.top + rcImageCorners.top;
 		if (::IntersectRect(&rcTemp, &rcPaint, &rcDest)) {
-			DrawFunction(m_pSkCanvas, rcDest, *m_pSkPointOrg, skSrcBitmap, rcSource, skPaint);
+			DrawFunction(m_pSkCanvas, rcDest, *m_pSkPointOrg, skImage, rcSource, skPaint);
 		}
 	}
 	// top
@@ -685,7 +693,7 @@ void Render_Skia::DrawImage(const UiRect& rcPaint,
 		rcSource.right = rcImageSource.right - rcImageCorners.right;
 		rcSource.bottom = rcImageSource.top + rcImageCorners.top;
 		if (::IntersectRect(&rcTemp, &rcPaint, &rcDest)) {
-			DrawFunction(m_pSkCanvas, rcDest, *m_pSkPointOrg, skSrcBitmap, rcSource, skPaint);
+			DrawFunction(m_pSkCanvas, rcDest, *m_pSkPointOrg, skImage, rcSource, skPaint);
 		}
 	}
 	// right-top
@@ -699,7 +707,7 @@ void Render_Skia::DrawImage(const UiRect& rcPaint,
 		rcSource.right = rcImageSource.right;
 		rcSource.bottom = rcImageSource.top + rcImageCorners.top;
 		if (::IntersectRect(&rcTemp, &rcPaint, &rcDest)) {
-			DrawFunction(m_pSkCanvas, rcDest, *m_pSkPointOrg, skSrcBitmap, rcSource, skPaint);
+			DrawFunction(m_pSkCanvas, rcDest, *m_pSkPointOrg, skImage, rcSource, skPaint);
 		}
 	}
 	// left
@@ -713,7 +721,7 @@ void Render_Skia::DrawImage(const UiRect& rcPaint,
 		rcSource.right = rcImageSource.left + rcImageCorners.left;
 		rcSource.bottom = rcImageSource.bottom - rcImageCorners.bottom;
 		if (::IntersectRect(&rcTemp, &rcPaint, &rcDest)) {
-			DrawFunction(m_pSkCanvas, rcDest, *m_pSkPointOrg, skSrcBitmap, rcSource, skPaint);
+			DrawFunction(m_pSkCanvas, rcDest, *m_pSkPointOrg, skImage, rcSource, skPaint);
 		}
 	}
 	// right
@@ -727,7 +735,7 @@ void Render_Skia::DrawImage(const UiRect& rcPaint,
 		rcSource.right = rcImageSource.right;
 		rcSource.bottom = rcImageSource.bottom - rcImageCorners.bottom;
 		if (::IntersectRect(&rcTemp, &rcPaint, &rcDest)) {
-			DrawFunction(m_pSkCanvas, rcDest, *m_pSkPointOrg, skSrcBitmap, rcSource, skPaint);
+			DrawFunction(m_pSkCanvas, rcDest, *m_pSkPointOrg, skImage, rcSource, skPaint);
 		}
 	}
 	// left-bottom
@@ -741,7 +749,7 @@ void Render_Skia::DrawImage(const UiRect& rcPaint,
 		rcSource.right = rcImageSource.left + rcImageCorners.left;
 		rcSource.bottom = rcImageSource.bottom;
 		if (::IntersectRect(&rcTemp, &rcPaint, &rcDest)) {
-			DrawFunction(m_pSkCanvas, rcDest, *m_pSkPointOrg, skSrcBitmap, rcSource, skPaint);
+			DrawFunction(m_pSkCanvas, rcDest, *m_pSkPointOrg, skImage, rcSource, skPaint);
 		}
 	}
 	// bottom
@@ -755,7 +763,7 @@ void Render_Skia::DrawImage(const UiRect& rcPaint,
 		rcSource.right = rcImageSource.right - rcImageCorners.right;
 		rcSource.bottom = rcImageSource.bottom;
 		if (::IntersectRect(&rcTemp, &rcPaint, &rcDest)) {
-			DrawFunction(m_pSkCanvas, rcDest, *m_pSkPointOrg, skSrcBitmap, rcSource, skPaint);
+			DrawFunction(m_pSkCanvas, rcDest, *m_pSkPointOrg, skImage, rcSource, skPaint);
 		}
 	}
 	// right-bottom
@@ -769,8 +777,96 @@ void Render_Skia::DrawImage(const UiRect& rcPaint,
 		rcSource.right = rcImageSource.right;
 		rcSource.bottom = rcImageSource.bottom;
 		if (::IntersectRect(&rcTemp, &rcPaint, &rcDest)) {
-			DrawFunction(m_pSkCanvas, rcDest, *m_pSkPointOrg, skSrcBitmap, rcSource, skPaint);
+			DrawFunction(m_pSkCanvas, rcDest, *m_pSkPointOrg, skImage, rcSource, skPaint);
 		}
+	}
+}
+
+void Render_Skia::DrawImageRect(const UiRect& rcPaint,
+								IBitmap* pBitmap,
+								const UiRect& rcImageDest,
+								UiRect rcImageSource,
+								bool bBitmapDpiScaled,
+								uint8_t uFade,
+								IMatrix* pMatrix)
+{
+	ASSERT((GetWidth() > 0) && (GetHeight() > 0));
+	if (pMatrix == nullptr) {
+		//仅在没有Matrix的情况下判断裁剪区域，
+		//因为有Matrix时，实际绘制区域并不是rcImageDest，而是变换过后的位置，需要调整判断方法
+		UiRect rcTestTemp;
+		if (!::IntersectRect(&rcTestTemp, &rcImageDest, &rcPaint)) {
+			return;
+		}
+	}
+
+	ASSERT(pBitmap != nullptr);
+	if (pBitmap == nullptr) {
+		return;
+	}
+	// 如果源位图已经按照DPI缩放过，那么对应的rcImageSource也需要缩放
+	if ((rcImageSource.left < 0) ||
+		(rcImageSource.top < 0) ||
+		(rcImageSource.right < 0) ||
+		(rcImageSource.bottom < 0)) {
+		//如果是无效值，则重置为整个图片大小
+		rcImageSource.left = 0;
+		rcImageSource.top = 0;
+		rcImageSource.right = pBitmap->GetWidth();
+		rcImageSource.bottom = pBitmap->GetHeight();
+	}
+	else if (bBitmapDpiScaled) {
+		//如果外部设置此值，做DPI自适应处理
+		DpiManager::GetInstance()->ScaleRect(rcImageSource);
+	}
+	//图片源容错处理
+	if (rcImageSource.left < 0) {
+		rcImageSource.left = 0;
+	}
+	if (rcImageSource.top < 0) {
+		rcImageSource.top = 0;
+	}
+	if (rcImageSource.right > (LONG)pBitmap->GetWidth()) {
+		rcImageSource.right = pBitmap->GetWidth();
+	}
+	if (rcImageSource.bottom > (LONG)pBitmap->GetHeight()) {
+		rcImageSource.bottom = pBitmap->GetHeight();
+	}
+
+	ASSERT(m_pSkCanvas != nullptr);
+	if (m_pSkCanvas == nullptr) {
+		return;
+	}
+
+	bool bAlphaChannel = pBitmap->IsAlphaBitmap();
+	SkPaint skPaint = *m_pSkPaint;
+	if (uFade != 0xFF) {
+		skPaint.setAlpha(uFade);
+	}
+	if (m_bTransparent || bAlphaChannel || (uFade != 0xFF)) {
+		skPaint.setBlendMode(SkBlendMode::kSrcOver);
+	}
+
+	Bitmap_Skia* skiaBitmap = dynamic_cast<Bitmap_Skia*>(pBitmap);
+	ASSERT(skiaBitmap != nullptr);
+	if (skiaBitmap == nullptr) {
+		return;
+	}
+	const SkBitmap& skSrcBitmap = skiaBitmap->GetSkBitmap();
+	sk_sp<SkImage> skImage = skSrcBitmap.asImage();//这里是复制了一份位图数据的，有性能损耗
+
+	bool isMatrixSet = false;
+	if (pMatrix != nullptr) {
+		Matrix_Skia* pSkMatrix = dynamic_cast<Matrix_Skia*>(pMatrix);
+		if (pSkMatrix != nullptr) {
+			SkM44 skM44(*pSkMatrix->GetMatrix());
+			m_pSkCanvas->setMatrix(skM44);
+			isMatrixSet = true;
+		}
+	}
+	DrawFunction(m_pSkCanvas, rcImageDest, *m_pSkPointOrg, skImage, rcImageSource, skPaint);
+	if (isMatrixSet) {
+		m_pSkCanvas->resetMatrix();
 	}
 }
 
@@ -871,6 +967,42 @@ void Render_Skia::FillRoundRect(const UiRect& rc, const UiSize& roundSize, UiCol
 	}
 }
 
+void Render_Skia::DrawArc(const UiRect& rc, float startAngle, float sweepAngle, bool useCenter, 
+						  const IPen* pen, 
+						  UiColor* gradientColor,
+	                      const UiRect* gradientRect)
+{
+	ASSERT(pen != nullptr);
+	if (pen == nullptr) {
+		return;
+	}
+	SkPaint paint = *m_pSkPaint;
+	SetPaintByPen(paint, pen);
+
+	SkIRect rcSkDestI = { rc.left, rc.top, rc.right, rc.bottom };
+	SkRect ovalRect = SkRect::Make(rcSkDestI);
+	ovalRect.offset(*m_pSkPointOrg);
+
+	if((gradientColor != nullptr) && (gradientRect != nullptr)) {		
+		SkColor colors[2];
+		colors[0] = pen->GetColor().GetARGB();
+		colors[1] = gradientColor->GetARGB();
+		
+		SkIRect rcGradientDestI = { gradientRect->left, gradientRect->top, gradientRect->right, gradientRect->bottom };
+		SkRect rcGradientDest = SkRect::Make(rcGradientDestI);
+		rcGradientDest.offset(*m_pSkPointOrg);
+
+		SkPoint pts[2];
+		pts[0].set(rcGradientDest.fLeft, rcGradientDest.fTop);
+		pts[1].set(rcGradientDest.fRight, rcGradientDest.fBottom);
+		
+		sk_sp<SkShader> shaderA = SkGradientShader::MakeLinear(pts, colors, nullptr, 2, SkTileMode::kClamp);
+		paint.setShader(shaderA);
+	}
+
+	m_pSkCanvas->drawArc(ovalRect, startAngle, sweepAngle, useCenter, paint);
+}
+
 void Render_Skia::DrawPath(const IPath* path, const IPen* pen)
 {
 	ASSERT(path != nullptr);
@@ -885,49 +1017,61 @@ void Render_Skia::DrawPath(const IPath* path, const IPen* pen)
 	}
 
 	SkPaint paint = *m_pSkPaint;
-	paint.setColor(pen->GetColor().GetARGB());
+	SetPaintByPen(paint, pen);
+
+	SkPath skPath;
+	pSkiaPath->GetSkPath()->offset(m_pSkPointOrg->fX, m_pSkPointOrg->fY, &skPath);
+	ASSERT(m_pSkCanvas != nullptr);
+	if (m_pSkCanvas != nullptr) {
+		m_pSkCanvas->drawPath(skPath, paint);
+	}
+}
+
+void Render_Skia::SetPaintByPen(SkPaint& skPaint, const IPen* pen)
+{
+	skPaint.setColor(pen->GetColor().GetARGB());
 
 	sk_sp<SkPathEffect> skPathEffect;
 	IPen::DashStyle dashStyle = pen->GetDashStyle();
 	switch (dashStyle) {
-		case IPen::kDashStyleSolid:
-		{
-			SkScalar intervals[] = { 1.0f, 0.0f };
-			skPathEffect = SkDashPathEffect::Make(intervals, 2, 0.0f);
-			break;
-		}
-		case IPen::kDashStyleDash:
-		{
-			SkScalar intervals[] = { 5.0f,5.0f };
-			skPathEffect = SkDashPathEffect::Make(intervals, 2, 0.0f);
-			break;
-		}
-		case IPen::kDashStyleDot:
-		{
-			SkScalar intervals[] = { 1.0f,4.0f };
-			skPathEffect = SkDashPathEffect::Make(intervals, 2, 0.0f);
-			break;
-		}
-		case IPen::kDashStyleDashDot:
-		{
-			SkScalar intervals[] = { 4.0f,1.0f,1.0f,1.0f };
-			skPathEffect = SkDashPathEffect::Make(intervals, 4, 0.0f);
-			break;
-		}
-		case IPen::kDashStyleDashDotDot:
-		{
-			SkScalar intervals[] = { 4.0f,1.0f,1.0f,1.0f,1.0f,1.0f };
-			skPathEffect = SkDashPathEffect::Make(intervals, 6, 0.0f);
-			break;
-		}
-		default:
-		{
-			SkScalar intervals[] = { 1.0f, 0.0f };
-			skPathEffect = SkDashPathEffect::Make(intervals, 2, 0.0f);
-			break;
-		}
+	case IPen::kDashStyleSolid:
+	{
+		SkScalar intervals[] = { 1.0f, 0.0f };
+		skPathEffect = SkDashPathEffect::Make(intervals, 2, 0.0f);
+		break;
 	}
-	paint.setPathEffect(skPathEffect);
+	case IPen::kDashStyleDash:
+	{
+		SkScalar intervals[] = { 5.0f,5.0f };
+		skPathEffect = SkDashPathEffect::Make(intervals, 2, 0.0f);
+		break;
+	}
+	case IPen::kDashStyleDot:
+	{
+		SkScalar intervals[] = { 1.0f,4.0f };
+		skPathEffect = SkDashPathEffect::Make(intervals, 2, 0.0f);
+		break;
+	}
+	case IPen::kDashStyleDashDot:
+	{
+		SkScalar intervals[] = { 4.0f,1.0f,1.0f,1.0f };
+		skPathEffect = SkDashPathEffect::Make(intervals, 4, 0.0f);
+		break;
+	}
+	case IPen::kDashStyleDashDotDot:
+	{
+		SkScalar intervals[] = { 4.0f,1.0f,1.0f,1.0f,1.0f,1.0f };
+		skPathEffect = SkDashPathEffect::Make(intervals, 6, 0.0f);
+		break;
+	}
+	default:
+	{
+		SkScalar intervals[] = { 1.0f, 0.0f };
+		skPathEffect = SkDashPathEffect::Make(intervals, 2, 0.0f);
+		break;
+	}
+	}
+	skPaint.setPathEffect(skPathEffect);
 
 	SkPaint::Cap cap;
 	switch (pen->GetDashCap()) {
@@ -945,7 +1089,7 @@ void Render_Skia::DrawPath(const IPath* path, const IPen* pen)
 		break;
 	}
 
-	paint.setStrokeCap(cap);
+	skPaint.setStrokeCap(cap);
 
 	SkPaint::Join join;
 	switch (pen->GetLineJoin()) {
@@ -962,21 +1106,14 @@ void Render_Skia::DrawPath(const IPath* path, const IPen* pen)
 		join = SkPaint::Join::kDefault_Join;
 		break;
 	}
-	
-	paint.setStrokeJoin(join);
-	paint.setStyle(SkPaint::kStroke_Style);
-	if (paint.isAntiAlias()){
-		paint.setStrokeWidth((SkScalar)pen->GetWidth() - 0.5f);
+
+	skPaint.setStrokeJoin(join);
+	skPaint.setStyle(SkPaint::kStroke_Style);
+	if (skPaint.isAntiAlias()) {
+		skPaint.setStrokeWidth((SkScalar)pen->GetWidth() - 0.5f);
 	}
 	else {
-		paint.setStrokeWidth((SkScalar)pen->GetWidth());
-	}
-
-	SkPath skPath;
-	pSkiaPath->GetSkPath()->offset(m_pSkPointOrg->fX, m_pSkPointOrg->fY, &skPath);
-	ASSERT(m_pSkCanvas != nullptr);
-	if (m_pSkCanvas != nullptr) {
-		m_pSkCanvas->drawPath(skPath, paint);
+		skPaint.setStrokeWidth((SkScalar)pen->GetWidth());
 	}
 }
 
@@ -1126,28 +1263,27 @@ void Render_Skia::DrawString(const UiRect& rc,
 		           skPaint);
 }
 
-ui::UiRect Render_Skia::MeasureString(const std::wstring& strText, 
-								      const std::wstring& strFontId,
-								      uint32_t uFormat, 
-									  int width /*= DUI_NOSET_VALUE*/)
+UiRect Render_Skia::MeasureString(const std::wstring& strText, 
+								  const std::wstring& strFontId,
+						          uint32_t uFormat, 
+						    	  int width /*= DUI_NOSET_VALUE*/)
 {
 	PerformanceStat statPerformance(L"Render_Skia::MeasureString");
 	ASSERT((GetWidth() > 0) && (GetHeight() > 0));
 	ASSERT(!strText.empty());
-	UiRect rc;
 	if (strText.empty()) {
-		return rc;
+		return UiRect();
 	}
 	ASSERT(m_pSkCanvas != nullptr);
 	if (m_pSkCanvas == nullptr) {
-		return rc;
+		return UiRect();
 	}
 
 	//字体设置
 	IFont* pFont = GlobalManager::GetIFont(strFontId);
 	ASSERT(pFont != nullptr);
 	if (pFont == nullptr) {
-		return rc;
+		return UiRect();
 	}	
 
 	SkFont skFont;

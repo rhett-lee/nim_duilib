@@ -180,16 +180,16 @@ public:
 	//横向平铺
 	bool bTiledX;
 
-	//横向完全平铺，未用到
+	//横向完全平铺，仅当bTiledX为true时有效
 	bool bFullTiledX;
 
 	//纵向平铺
 	bool bTiledY;
 
-	//横向完全平铺
+	//纵向完全平铺，仅当bTiledY为true时有效
 	bool bFullTiledY;
 
-	//平铺时的边距
+	//平铺时的边距（仅当bTiledX为true或者bTiledY为true时有效）
 	int nTiledMargin;
 
 	//如果是GIF等动画图片，可以指定播放次数 -1 ：一直播放，缺省值。

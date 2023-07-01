@@ -14,6 +14,7 @@ namespace ui
 {
 	class Control;
 	class Image;
+	class IMatrix;
 	class StateColorMap;
 	class StateImageMap;
 	class AnimationManager;
@@ -587,12 +588,13 @@ public:
 	 * @param[in] isLoadingImage true表示Loading Image，绘制时会旋转该图片;false表示正常图片
 	 * @param[in] strModify 图片的附加属性
 	 * @param[in] nFade 控件的透明度，如果启用动画效果该值在绘制时是不断变化的
+	 * @param[in] pMatrix 绘制图片时使用的变换矩阵
 	 * @return 成功返回 true，失败返回 false
 	 */
 	bool DrawImage(IRender* pRender, Image& duiImage,	               
 				   const std::wstring& strModify = L"",
 		           int nFade = DUI_NOSET_VALUE,
-		           bool isLoadingImage = false);
+		           IMatrix* pMatrix = nullptr);
 
 	/**
 	* @brief 获取绘制上下文对象
@@ -767,7 +769,8 @@ public:
 	AnimationManager& GetAnimationManager() const;
 
 	/// 图片缓存
-	/**@brief 根据图片路径, 加载图片信息到缓存中
+	/**@brief 根据图片路径, 加载图片信息到缓存中。
+	 *        加载策略：如果图片没有加载则执行加载图片；如果图片路径发生变化，则重新加载该图片。
 	 * @param[in，out] duiImage 传入时标注图片的路径信息，如果成功则会缓存图片并记录到该参数的成员中
 	 */
 	bool LoadImageData(Image& duiImage) const;
@@ -1009,7 +1012,7 @@ protected:
 
 	/** @brief 设置控件的绘制区域
 	*/
-	void SetPaintRect(const UiRect& rect) { m_rcPaint = rect; }
+	void SetPaintRect(const UiRect& rect);
 
 private:
 	void BroadcastGifEvent(int nVirtualEvent);
@@ -1049,7 +1052,8 @@ private:
 	const int m_nVirtualEventGifStop = 1;	
 
 private:
-	//控件的状态
+	/** 控件状态
+	*/
 	ControlStateType m_controlState;
 
 	/** 状态与颜色值MAP

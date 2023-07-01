@@ -2,6 +2,7 @@
 #include "duilib/RenderGdiPlus/Pen_GdiPlus.h"
 #include "duilib/RenderGdiPlus/Brush_GdiPlus.h"
 #include "duilib/RenderGdiPlus/Path_GdiPlus.h"
+#include "duilib/RenderGdiPlus/Matrix_Gdiplus.h"
 #include "duilib/RenderGdiPlus/Render_GdiPlus.h"
 #include "duilib/RenderGdiPlus/Bitmap_GDI.h"
 
@@ -20,6 +21,11 @@ ui::IBrush* RenderFactory_GdiPlus::CreateBrush(UiColor color)
 ui::IPath* RenderFactory_GdiPlus::CreatePath()
 {
 	return new Path_Gdiplus();
+}
+
+IMatrix* RenderFactory_GdiPlus::CreateMatrix()
+{
+	return new Matrix_Gdiplus();
 }
 
 ui::IBitmap* RenderFactory_GdiPlus::CreateBitmap()

@@ -5,7 +5,6 @@
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Render/IRender.h"
 #include "duilib/Render/AutoClip.h"
-#include "duilib/RenderGdiPlus/BitmapHelper.h"
 #include "duilib/Animation/AnimationPlayer.h"
 #include "duilib/Animation/AnimationManager.h"
 #include "duilib/Utils/StringUtil.h"
@@ -1154,8 +1153,8 @@ bool Control::OnApplyAttributeList(const std::wstring& strReceiver, const std::w
 	return true;
 }
 
-bool Control::DrawImage(IRender* pRender, Image& duiImage, 	                           
-					    const std::wstring& strModify, int nFade, bool isLoadingImage)
+bool Control::DrawImage(IRender* pRender,  Image& duiImage, 	                           
+					    const std::wstring& strModify, int nFade, IMatrix* pMatrix)
 {
 	//注解：strModify参数，目前外部传入的主要是："destscale='false' dest='%d,%d,%d,%d'"
 	//                   也有一个类传入了：L" corner='%d,%d,%d,%d'"。
@@ -1166,10 +1165,10 @@ bool Control::DrawImage(IRender* pRender, Image& duiImage,
 	if (duiImage.GetImagePath().empty()) {
 		return false;
 	}
-
 	LoadImageData(duiImage);
-	if (!duiImage.GetImageCache()) {
-		ASSERT(FALSE);
+	std::shared_ptr<ImageInfo> imageInfo = duiImage.GetImageCache();
+	ASSERT(imageInfo != nullptr);
+	if (imageInfo == nullptr) {
 		duiImage.InitImageAttribute();
 		return false;
 	}
@@ -1191,35 +1190,40 @@ bool Control::DrawImage(IRender* pRender, Image& duiImage,
 	if (m_bkImage->GetImageCache() && m_bkImage->GetImageCache()->IsMultiFrameImage() && m_bGifPlay && !m_bkImage->IsPlaying()) {
 		isPlayingGif = GifPlay();
 	}
-	
-	if(!isPlayingGif){
-		BYTE iFade = (nFade == DUI_NOSET_VALUE) ? newImageAttribute.bFade : static_cast<BYTE>(nFade);
-		std::shared_ptr<ImageInfo> imageInfo = duiImage.GetImageCache();
-		if (imageInfo) {
-			IBitmap* pNewBitmap = nullptr;
-			IBitmap* pCurrentBitmap = duiImage.GetCurrentBitmap();
-			if (isLoadingImage && (m_fCurrrentAngele != 0)) {				
-				pNewBitmap = BitmapHelper::RotateBitmapAroundCenter(pCurrentBitmap, m_fCurrrentAngele);
-			}
-            pRender->DrawImage(m_rcPaint, 
-							   (pNewBitmap != nullptr) ? pNewBitmap : pCurrentBitmap,
-							   rcNewDest, 
-							   newImageAttribute.rcSource, 
-							   newImageAttribute.rcCorner, 
-							   imageInfo->IsBitmapSizeDpiScaled(), 
-							   iFade,
-							   newImageAttribute.bTiledX, 
-							   newImageAttribute.bTiledY, 
-							   newImageAttribute.bFullTiledX, 
-							   newImageAttribute.bFullTiledY,
-							   newImageAttribute.nTiledMargin);
-			if (pNewBitmap != nullptr) {
-				delete pNewBitmap;
-				pNewBitmap = nullptr;
-			}
-		}
+	if (isPlayingGif) {
+		//如果正在播放背景动画，则不绘制其他图片
+		return true;
 	}
 
+	//图片透明度属性
+	uint8_t iFade = (nFade == DUI_NOSET_VALUE) ? newImageAttribute.bFade : static_cast<uint8_t>(nFade);
+	if (pMatrix != nullptr) {
+		//矩阵绘制: 对不支持的属性，增加断言，避免出错
+		ASSERT(newImageAttribute.rcCorner.IsRectEmpty());
+		ASSERT(!newImageAttribute.bTiledX);
+		ASSERT(!newImageAttribute.bTiledY);
+		pRender->DrawImageRect(m_rcPaint, 
+							   duiImage.GetCurrentBitmap(),
+							   rcNewDest, 
+							   newImageAttribute.rcSource, 
+							   imageInfo->IsBitmapSizeDpiScaled(), 
+							   iFade,
+							   pMatrix);
+	}
+	else{
+		pRender->DrawImage(m_rcPaint, 
+						   duiImage.GetCurrentBitmap(),
+						   rcNewDest, 
+						   newImageAttribute.rcSource, 
+						   newImageAttribute.rcCorner, 
+						   imageInfo->IsBitmapSizeDpiScaled(), 
+						   iFade,
+						   newImageAttribute.bTiledX, 
+						   newImageAttribute.bTiledY, 
+						   newImageAttribute.bFullTiledX, 
+						   newImageAttribute.bFullTiledY,
+						   newImageAttribute.nTiledMargin);
+	}
 	return true;
 }
 
@@ -1354,6 +1358,11 @@ void Control::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
 		PaintChild(pRender, rcPaint);
 		pRender->SetWindowOrg(ptOldOrg);
 	}
+}
+
+void Control::SetPaintRect(const UiRect& rect)
+{ 
+	m_rcPaint = rect; 
 }
 
 void Control::Paint(IRender* pRender, const UiRect& rcPaint)
@@ -1544,11 +1553,27 @@ void Control::PaintLoading(IRender* pRender)
     if (!m_strLoadingBkColor.empty()) {
         pRender->FillRect(rcFill, GetWindowColor(m_strLoadingBkColor));
     }
+
+	UiRect imageDestRect = rcFill;
 	rcFill.Offset(-GetRect().left, -GetRect().top);
+
+	//图片旋转矩阵
+	IRenderFactory* pRenderFactory = GlobalManager::GetRenderFactory();
+	ASSERT(pRenderFactory != nullptr);
+	if (pRenderFactory == nullptr) {
+		return;
+	}
+	std::unique_ptr<IMatrix> spMatrix(pRenderFactory->CreateMatrix());
+	if (spMatrix != nullptr){
+		spMatrix->RotateAt((float)m_fCurrrentAngele, imageDestRect.Center());
+	}
 	
 	wchar_t modify[64] = { 0 };
-	swprintf_s(modify, L"destscale='false' dest='%d,%d,%d,%d'", rcFill.left, rcFill.top, rcFill.right, rcFill.bottom);
-	DrawImage(pRender, *m_loadingImage, modify, -1, true);
+	swprintf_s(modify, L"destscale='false' dest='%d,%d,%d,%d'", rcFill.left, rcFill.top, rcFill.right, rcFill.bottom);	
+	
+	//绘制时需要设置裁剪区域，避免绘制超出范围（因为旋转图片后，图片区域会超出显示区域）
+	AutoClip autoClip(pRender, imageDestRect, true);
+	DrawImage(pRender, *m_loadingImage, modify, -1, spMatrix.get());
 }
 
 void Control::SetAlpha(int alpha)
@@ -1740,7 +1765,8 @@ bool Control::LoadImageData(Image& duiImage) const
 	ImageLoadAttribute imageLoadAttr = duiImage.GetImageLoadAttribute();
 	imageLoadAttr.SetImageFullPath(imageFullPath);
 	std::shared_ptr<ImageInfo> imageCache = duiImage.GetImageCache();
-	if (!imageCache || (imageCache->GetCacheKey() != imageLoadAttr.GetCacheKey())) {
+	if ((imageCache == nullptr) || (imageCache->GetCacheKey() != imageLoadAttr.GetCacheKey())) {
+		//如果图片没有加载则执行加载图片；如果图片发生变化，则重新加载该图片
 		imageCache = GlobalManager::GetImage(imageLoadAttr);
 		duiImage.SetImageCache(imageCache);
 	}

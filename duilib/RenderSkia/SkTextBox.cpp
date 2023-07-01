@@ -376,7 +376,7 @@ SkScalar SkTextBox::visit(Visitor& visitor) const {
             y = SkScalarHalf(height - textHeight);
             if (y < 0) {
                 //如果居中对齐绘制区域不足，那么按照可显示的文字进行居中对齐
-                y = ((int)height % (int)fontHeight) / 2 ;
+                y = static_cast<SkScalar>((((int)height % (int)fontHeight) / 2)) ;
             }
             break;
         default:
@@ -471,7 +471,7 @@ static bool EllipsisTextUTF(const char text[], size_t length, SkTextEncoding tex
     SkScalar pathEndWidth = 0;    
     string.assign((const T::value_type*)text, length / charBytes);
     if (bPathEllipsis) {
-        int pos = string.find_last_of(pathSep);
+        int pos = (int)string.find_last_of(pathSep);
         if (pos > 0) {
             pathEnd = string.substr(pos);
             pathEndWidth = font.measureText(pathEnd.c_str(), pathEnd.size()* charBytes, textEncoding, nullptr, &paint);

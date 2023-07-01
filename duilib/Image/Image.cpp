@@ -263,6 +263,9 @@ void ImageAttribute::ModifyAttribute(const std::wstring& strImageString)
 				//指定加载ICO文件的图片大小(仅当图片文件是ICO文件时有效)
 				imageAttribute.iconSize = (uint32_t)_tcstol(sValue.c_str(), &pstr, 10);  ASSERT(pstr);
 			}
+			else {
+				ASSERT(!"Fount unknown attribute!");
+			}
 		}
 		if (*pStrImage++ != _T(' ')) {
 			break;

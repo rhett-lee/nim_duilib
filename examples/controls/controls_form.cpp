@@ -154,7 +154,7 @@ void ControlForm::OnInitWindow()
 	nbase::ThreadManager::PostRepeatedTask(kThreadGlobalMisc, ToWeakCallback([this](){
 		nbase::TimeDelta time_delta = nbase::TimeDelta::FromMicroseconds(nbase::Time::Now().ToInternalValue());
 		nbase::ThreadManager::PostTask(kThreadUI, nbase::Bind(&ControlForm::OnProgressValueChagned, this, (float)(time_delta.ToMilliseconds() % 100)));
-	}), nbase::TimeDelta::FromMilliseconds(200));
+	}), nbase::TimeDelta::FromMilliseconds(300));
 
 	/* Show settings menu */
 	ui::Button* settings = static_cast<ui::Button*>(FindControl(L"settings"));
@@ -310,7 +310,9 @@ void ControlForm::OnResourceFileLoaded(const std::wstring& xml)
 		control_edit->SetFocus();
 		control_edit->HomeUp();
 	}
-	//control_edit->StartLoading();
+
+	//启动加载动画
+	control_edit->StartLoading();
 	//control_edit->StartGifPlayForUI();
 
 	// Show about form
@@ -319,6 +321,8 @@ void ControlForm::OnResourceFileLoaded(const std::wstring& xml)
 
 void ControlForm::OnProgressValueChagned(float value)
 {
+	//回调给的进度范围是：[0, 99), 转换为[0, 100]
+	value = value * 100 / 99 + 0.5f;
 	auto progress = static_cast<ui::Progress*>(FindControl(L"progress"));
 	if (progress) {
 		progress->SetValue(value);
@@ -328,5 +332,13 @@ void ControlForm::OnProgressValueChagned(float value)
 	if (circleprogress)	{
 		circleprogress->SetValue(value);
 		circleprogress->SetText(nbase::StringPrintf(L"%.0f%%", value));
+	}
+
+	if ((int)value == progress->GetMaxValue()) {
+		//进度达到最大值，停止加载动画
+		auto control_edit = static_cast<ui::RichEdit*>(FindControl(L"edit"));
+		if (control_edit) {
+			control_edit->StopLoading();
+		}
 	}
 }

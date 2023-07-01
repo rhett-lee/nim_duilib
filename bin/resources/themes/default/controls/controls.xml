@@ -80,8 +80,8 @@
                 <!-- CircleProgress -->
                 <VBox width="160" margin="10,0">
                     <CircleProgress name="circleprogress" circular="true" height="80" width="80"
-                    circlewidth="10" bgcolor="gray" fgcolor="green"  clockwise="true"  min="1" max="100" value="75" margin="10"
-                    textpadding="10,32,10,10" normaltextcolor="darkcolor" indicator="logo_18x18.png" tooltiptext="ui::CircleProgress"/>
+                    circlewidth="10" bgcolor="gray" fgcolor="green" gradientcolor="red" clockwise="true"  min="0" max="100" value="75" margin="10"
+                    textpadding="10,32,10,10" normaltextcolor="darkcolor" indicator="file='logo_18x18.png' width='70%'" tooltiptext="ui::CircleProgress"/>
                 </VBox>
             </HBox>
             
@@ -90,7 +90,7 @@
             <!-- RichEdit -->
             <RichEdit class="prompt" name="edit" bkcolor="bk_wnd_lightcolor" width="stretch" height="stretch"
                         multiline="true" vscrollbar="true" hscrollbar="true" autovscroll="true"
-                        normaltextcolor="darkcolor" wantreturnmsg="true" rich="true" loadingimage="file='autumn.png'" loadingbkcolor="red"/>
+                        normaltextcolor="darkcolor" wantreturnmsg="true" rich="true" loadingimage="file='autumn.png'" loadingbkcolor="blue"/>
         </VBox>
     </VBox>
 </Window>

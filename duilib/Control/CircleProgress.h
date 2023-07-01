@@ -13,11 +13,6 @@
 #include "duilib/Control/Progress.h"
 #include "duilib/Render/UiColor.h"
 
-namespace Gdiplus
-{
-	class Image;
-}
-
 namespace ui
 {
 
@@ -82,15 +77,13 @@ public:
 	void SetIndicator(const std::wstring& sIndicatorImage);
 
 protected:
-	bool			m_bCircular;
-	bool			m_bClockwise;
-	int				m_nCircleWidth;
-	UiColor			m_dwBackgroundColor;
-	UiColor			m_dwForegroundColor;
-	UiColor			m_dwGradientColor;
-	Gdiplus::Image*	m_pIndicator;   //此类目前维护资源管理
-	std::wstring	m_sIndicatorImage;
-
+	bool m_bCircular;
+	bool m_bClockwise;
+	int m_nCircleWidth;
+	UiColor m_dwBackgroundColor;
+	UiColor m_dwForegroundColor;
+	UiColor m_dwGradientColor;
+	Image m_indicatorImage;
 };
 
 } // namespace ui

@@ -1,11 +1,4 @@
 #include "CircleProgress.h"
-#include <shlwapi.h>
-
-#include "duilib/Render/RenderConfig.h"
-#if (duilib_kRenderType == duilib_kRenderType_GdiPlus)
-//Gdiplus引擎
-#include "duilib/RenderGdiPlus/GdiPlusDefs.h"
-#endif
 
 namespace ui
 {
@@ -16,10 +9,8 @@ CircleProgress::CircleProgress() :
 	m_nCircleWidth(1),
 	m_dwBackgroundColor(0),
 	m_dwForegroundColor(0),
-	m_dwGradientColor(0),
-	m_pIndicator(nullptr)
+	m_dwGradientColor(0)
 {
-
 }
 
 std::wstring CircleProgress::GetType() const { return DUI_CTR_CIRCLEPROGRESS; }
@@ -55,89 +46,104 @@ void CircleProgress::PaintStatusImage(IRender* pRender)
 		return;
 	}
 	Progress::PaintStatusImage(pRender);
-#if (duilib_kRenderType == duilib_kRenderType_GdiPlus)
-	if (m_bCircular) {
-		//目前IRender还有很多GDI+接口未实现，暂时直接用gdi+画图了
-		//以后可能会调整：需实现1、DrawArc  2、Pen增加brush(渐变)入参 3、可以自由设置Graphics属性
-		int direction = m_bClockwise ? 1 : -1;   //旋转方向
-		int bordersize = 1;          //弧度宽度目前使用1像素
-
-		HDC hdc = pRender->GetDC();
-		Gdiplus::Graphics graphics(hdc);
-		graphics.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
-		Gdiplus::Pen bgPen(m_dwBackgroundColor.GetARGB(), static_cast<Gdiplus::REAL>(m_nCircleWidth));
-		// 圆形中心
-		UiPoint center;
-		const UiRect& rect = GetRect();
-		center.x = rect.left + (rect.right - rect.left) / 2;
-		center.y = rect.top + (rect.bottom - rect.top) / 2;
-
-		// 控件矩形内的最大正方形的边界
-		int side = std::min(rect.right - rect.left, rect.bottom - rect.top);
-		//UiRect rcBorder;  仍然存在UiRect 到 RectF的转换，所以直接用gdi的RectF了
-		Gdiplus::RectF rcBorder;
-		rcBorder.X = static_cast<Gdiplus::REAL>(center.x - side / 2);
-		rcBorder.Y = static_cast<Gdiplus::REAL>(center.y - side / 2);
-		rcBorder.Width = rcBorder.Height = static_cast<Gdiplus::REAL>(side);
-
-		Gdiplus::RectF outer = rcBorder;
-		if (m_pIndicator) {
-			outer.Inflate(-1.0F *m_pIndicator->GetWidth() / 2, -1.0F * m_pIndicator->GetWidth() / 2);
-		}
-		else
-		{
-			outer.Inflate(-0.5F * m_nCircleWidth, -0.5F * m_nCircleWidth);
-		}
-		outer.Inflate(-1, -1);
-
-
-		if (m_dwGradientColor.GetARGB() == 0)
-		{
-			//不使用渐变色，直接用前景色铺满
-			Gdiplus::Pen fgPen(m_dwForegroundColor.GetARGB(), static_cast<Gdiplus::REAL>(m_nCircleWidth));
-			graphics.DrawArc(&bgPen, outer, 270, 360);   //270从最上面开始递增，设为0的话，是最右边开始
-			graphics.DrawArc(&fgPen, outer, 270, static_cast<Gdiplus::REAL>(direction * 360 * (m_nValue - m_nMin) / (m_nMax - m_nMin)));
-		}
-		else
-		{
-			Gdiplus::REAL factors[4] = { 0.0f, 0.4f, 0.6f, 1.0f };
-			Gdiplus::REAL positions[4] = { 0.0f, 0.2f, 0.8f, 1.0f };
-
-			Gdiplus::LinearGradientBrush lgbrush(rcBorder, m_dwForegroundColor.GetARGB(), m_dwGradientColor.GetARGB(), Gdiplus::LinearGradientModeVertical);
-			lgbrush.SetBlend(factors, positions, 4);
-			graphics.DrawArc(&bgPen, outer, 270, 360);
-			Gdiplus::Pen fgPen(&lgbrush, static_cast<Gdiplus::REAL>(m_nCircleWidth));
-			graphics.DrawArc(&fgPen, outer, 270, static_cast<Gdiplus::REAL>(direction * 360 * (m_nValue - m_nMin) / (m_nMax - m_nMin)));
-
-		}
-
-		//画旋转指示器图标，需要用到矩阵
-		if (m_pIndicator)
-		{
-			Gdiplus::Matrix matrix;
-			matrix.RotateAt(static_cast<Gdiplus::REAL>(direction * 360 * (m_nValue - m_nMin) / (m_nMax - m_nMin)), Gdiplus::PointF(static_cast<Gdiplus::REAL>(center.x), static_cast<Gdiplus::REAL>(center.y)), Gdiplus::MatrixOrderAppend);
-			graphics.SetTransform(&matrix);
-			Gdiplus::RectF rectf;
-			rectf.X = static_cast<Gdiplus::REAL>(center.x - m_pIndicator->GetWidth() / 2);
-			rectf.Y = outer.Y + bordersize / 2 - m_pIndicator->GetHeight() / 2;
-			rectf.Width = static_cast<Gdiplus::REAL>(m_pIndicator->GetWidth());
-			rectf.Height = static_cast<Gdiplus::REAL>(m_pIndicator->GetHeight());
-			graphics.DrawImage(m_pIndicator, rectf);
-		}
-		pRender->ReleaseDC(hdc);
+	if (!m_bCircular) {
+		return;
 	}
-#endif
+
+	IRenderFactory* pRenderFactory = GlobalManager::GetRenderFactory();
+	ASSERT(pRenderFactory != nullptr);
+	if (pRenderFactory == nullptr) {
+		return;
+	}
+	IPen* bgPen = pRenderFactory->CreatePen(m_dwBackgroundColor, m_nCircleWidth);
+	std::unique_ptr<IPen> spBgPen(bgPen);
+	ASSERT(bgPen != nullptr);
+	if (bgPen == nullptr) {
+		return;
+	}
+	IPen* fgPen = pRenderFactory->CreatePen(m_dwForegroundColor, m_nCircleWidth);
+	std::unique_ptr<IPen> spFgPen(fgPen);
+	ASSERT(fgPen != nullptr);
+	if (fgPen == nullptr) {
+		return;
+	}
+
+	int direction = m_bClockwise ? 1 : -1;   //旋转方向
+	int bordersize = DpiManager::GetInstance()->GetScaledInt(1); //弧度宽度目前使用1像素
+
+	// 圆形中心
+	UiPoint center;
+	const UiRect& rect = GetRect();
+	center.x = rect.left + (rect.right - rect.left) / 2;
+	center.y = rect.top + (rect.bottom - rect.top) / 2;
+
+	// 控件矩形内的最大正方形的边界
+	int side = std::min(rect.right - rect.left, rect.bottom - rect.top);
+
+	UiRect rcBorder;
+	rcBorder.left = center.x - side / 2;
+	rcBorder.top = center.y - side / 2;
+	rcBorder.right = rcBorder.left + side;
+	rcBorder.bottom = rcBorder.top + side;
+
+	//加载图片
+	LoadImageData(m_indicatorImage);
+	ASSERT(m_indicatorImage.GetImageCache() != nullptr);
+	if (m_indicatorImage.GetImageCache() != nullptr) {
+		// 假定图片指向上
+		//RotateFlip(m_bClockwise ? Rotate90FlipNone : Rotate270FlipNone);
+	}
+
+	UiRect outer = rcBorder;
+	if (m_indicatorImage.GetImageCache() != nullptr) {
+		outer.Inflate(-1 * m_indicatorImage.GetImageCache()->GetWidth() / 2, 
+					  -1 * m_indicatorImage.GetImageCache()->GetWidth() / 2);
+	}
+	else {
+		outer.Inflate(-1 * m_nCircleWidth / 2, -1 * m_nCircleWidth / 2);
+	}
+	int inflateValue = DpiManager::GetInstance()->GetScaledInt(-1);
+	outer.Inflate(inflateValue, inflateValue);
+
+	if (m_dwGradientColor.GetARGB() == 0) {
+		//不使用渐变色，直接用前景色铺满
+		pRender->DrawArc(outer, 270, 360, false, bgPen);
+
+		float sweepAngle = static_cast<float>(direction * 360 * (m_nValue - m_nMin) / (m_nMax - m_nMin));
+		pRender->DrawArc(outer, 270, sweepAngle, false, fgPen);
+	}
+	else {
+		//不使用渐变色，直接用前景色铺满
+		pRender->DrawArc(outer, 270, 360, false, bgPen);
+
+		float sweepAngle = static_cast<float>(direction * 360 * (m_nValue - m_nMin) / (m_nMax - m_nMin));
+		pRender->DrawArc(outer, 270, sweepAngle, false, fgPen, &m_dwGradientColor, &rcBorder);
+	}
+	
+	if (m_indicatorImage.GetImageCache() != nullptr) {
+
+		std::unique_ptr<IMatrix> spMatrix(pRenderFactory->CreateMatrix());
+		if ((spMatrix != nullptr) && ((m_nMax - m_nMin) != 0)){
+			float angle = direction * 360 * ((float)m_nValue - m_nMin) / (m_nMax - m_nMin);
+			spMatrix->RotateAt(angle, UiPoint(center.x, center.y));
+		}
+
+		UiRect imageRect;
+		imageRect.left = center.x - m_indicatorImage.GetImageCache()->GetWidth() / 2;
+		imageRect.top = outer.top + bordersize / 2 - m_indicatorImage.GetImageCache()->GetHeight() / 2;
+		imageRect.right = imageRect.left + m_indicatorImage.GetImageCache()->GetWidth();
+		imageRect.bottom = imageRect.top + m_indicatorImage.GetImageCache()->GetHeight();
+		imageRect.Offset(-GetRect().left, -GetRect().top);
+		std::wstring imageModify = StringHelper::Printf(L"destscale='false' dest='%d,%d,%d,%d'", 
+			imageRect.left, imageRect.top, imageRect.right, imageRect.bottom);
+		DrawImage(pRender, m_indicatorImage, imageModify, -1, spMatrix.get());
+	}
 }
 
 void CircleProgress::ClearImageCache()
 {
 	__super::ClearImageCache();
-#if (duilib_kRenderType == duilib_kRenderType_GdiPlus)
-	if (m_pIndicator) {
-		delete m_pIndicator;
-		m_pIndicator = nullptr;
-	}
-#endif
+	m_indicatorImage.ClearImageCache();
 }
 
 void CircleProgress::SetCircular(bool bCircular /*= true*/)
@@ -148,21 +154,13 @@ void CircleProgress::SetCircular(bool bCircular /*= true*/)
 
 void CircleProgress::SetClockwiseRotation(bool bClockwise /*= true*/)
 {
-	if (bClockwise != m_bClockwise)
-	{
-		m_bClockwise = bClockwise;
-#if (duilib_kRenderType == duilib_kRenderType_GdiPlus)
-		if (m_pIndicator) {
-			//已经旋转了图片，旋转到相反的方向
-			m_pIndicator->RotateFlip(Gdiplus::Rotate180FlipNone);
-		}
-#endif
-	}
+	m_bClockwise = bClockwise;
 }
 
 void CircleProgress::SetCircleWidth(int nCircleWidth)
 {
 	m_nCircleWidth = nCircleWidth;
+	DpiManager::GetInstance()->ScaleInt(m_nCircleWidth);
 	Invalidate();
 }
 
@@ -183,32 +181,10 @@ void CircleProgress::SetForegroudColor(const std::wstring& strColor)
 
 void CircleProgress::SetIndicator(const std::wstring& sIndicatorImage)
 {
-	if (m_sIndicatorImage != sIndicatorImage)
-	{
-		m_sIndicatorImage = sIndicatorImage;
-
-#if (duilib_kRenderType == duilib_kRenderType_GdiPlus)		
-		if (m_pIndicator) {
-			delete m_pIndicator;
-			m_pIndicator = nullptr;
-		}
-		std::wstring imagepath = m_sIndicatorImage;
-		if (!::PathFileExistsW(imagepath.c_str()) && (GetWindow() != nullptr)) {
-			imagepath = GlobalManager::GetResourcePath() + GetWindow()->GetResourcePath() + imagepath;
-		}
-		if (!::PathFileExistsW(imagepath.c_str())) {
-			return;
-		}
-		m_pIndicator = new Gdiplus::Image(imagepath.c_str());
-
-		Gdiplus::Status state = m_pIndicator->GetLastStatus();
-		if (Gdiplus::Ok == state)
-		{
-			// 假定图片指向上
-			m_pIndicator->RotateFlip(m_bClockwise ? Gdiplus::Rotate90FlipNone : Gdiplus::Rotate270FlipNone);
-			Invalidate();
-		}
-#endif
+	if (m_indicatorImage.GetImageString() != sIndicatorImage) {
+		m_indicatorImage.ClearImageCache();
+		m_indicatorImage.SetImageString(sIndicatorImage);
+		Invalidate();		
 	}
 }
 

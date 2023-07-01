@@ -11,11 +11,12 @@ namespace ui
 class UILIB_API RenderFactory_Skia : public IRenderFactory
 {
 public:
-	virtual ui::IPen* CreatePen(UiColor color, int width = 1) override;
-	virtual ui::IBrush* CreateBrush(UiColor corlor) override;
-	virtual ui::IPath* CreatePath() override;
-	virtual ui::IBitmap* CreateBitmap() override;
-	virtual ui::IRender* CreateRender() override;
+	virtual IPen* CreatePen(UiColor color, int width = 1) override;
+	virtual IBrush* CreateBrush(UiColor corlor) override;
+	virtual IPath* CreatePath() override;
+	virtual IMatrix* CreateMatrix() override;
+	virtual IBitmap* CreateBitmap() override;
+	virtual IRender* CreateRender() override;
 };
 
 } // namespace ui

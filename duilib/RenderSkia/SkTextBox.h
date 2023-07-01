@@ -8,7 +8,11 @@
 #ifndef UI_RENDER_SKIA_SK_TEXT_BOX_H_
 #define UI_RENDER_SKIA_SK_TEXT_BOX_H_
 
+#pragma warning (push)
+#pragma warning (disable: 4244)
 #include "include/core/SkCanvas.h"
+#pragma warning (pop)
+
 #include <vector>
 
 //该文件原始文件的出处：skia/chrome_67/include/utils/SkTextBox.h

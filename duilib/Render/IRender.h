@@ -274,6 +274,35 @@ public:
 	virtual IPath* Clone() = 0;
 };
 
+/** 3x3 矩阵的封装
+*/
+class UILIB_API IMatrix : public nbase::SupportWeakCallback
+{
+public:
+	/** 平移操作
+	* @param [in] offsetX X轴方向平移的偏移量
+	* @param [in] offsetY Y轴方向平移的偏移量
+	*/
+	virtual void Translate(int offsetX, int offsetY) = 0;
+
+	/** 缩放操作
+	* @param [in] scaleX X轴方向缩放比例
+	* @param [in] scaleY Y轴方向缩放比例
+	*/
+	virtual void Scale(float scaleX, float scaleY) = 0;
+
+	/** 旋转操作，以源点坐标(0,0)为中心点做旋转操作
+	* @param [in] angle 旋转的角度，正数为顺时针操作，负数为逆时针操作
+	*/
+	virtual void Rotate(float angle) = 0;
+
+	/** 旋转操作，以坐标(center)为中心点做旋转操作
+	* @param [in] angle 旋转的角度，正数为顺时针操作，负数为逆时针操作
+	* @param [in] center 旋转的中心点坐标值
+	*/
+	virtual void RotateAt(float angle, const UiPoint& center) = 0;
+};
+
 /** 光栅操作代码
 */
 enum class UILIB_API RopMode
@@ -446,6 +475,23 @@ public:
 						   bool fullytiled = true, 
 						   int nTiledMargin = 0) = 0;
 
+	/** 绘制图片
+	* @param [in] rcPaint 当前全部可绘制区域（用于避免非可绘制区域的绘制，以提高绘制性能）
+	* @param [in] pBitmap 用于绘制的位图接口
+	* @param [in] rcImageDest 绘制的目标区域
+	* @param [in] rcImageSource 绘制的源图片区域
+	* @param [in] bBitmapDpiScaled 位图尺寸是否已经做过DPI适应
+	* @param [in] uFade 透明度（0 - 255）
+	* @param [in] pMatrix 绘制时的变换矩阵接口
+	*/
+	virtual void DrawImageRect(const UiRect& rcPaint, 
+						       IBitmap* pBitmap, 
+						       const UiRect& rcImageDest, 
+						       UiRect rcImageSource, 
+						       bool bBitmapDpiScaled = false,
+						       uint8_t uFade = 255,
+		                       IMatrix* pMatrix = nullptr) = 0;
+
 	/** 绘制直线
 	* @param [in] pt1 起始点坐标
 	* @param [in] pt2 终止点坐标
@@ -483,6 +529,19 @@ public:
 	* @param [in] uFade 透明度（0 - 255）
 	*/
 	virtual void FillRoundRect(const UiRect& rc, const UiSize& roundSize, UiColor dwColor, uint8_t uFade = 255) = 0;
+
+	/** 绘制曲线（椭圆的一部分）
+	* @param [in] rc 包含圆弧的椭圆的矩形边界区域
+	* @param [in] startAngle  x轴与弧起点之间的角度
+	* @param [in] sweepAngle  圆弧起点和终点之间的角度，正数是顺时针方向，负数是逆时针方向
+	* @param [in] useCenter 如果为true，则包含椭圆的中心点（仅Skia引擎使用）
+	* @param [in] pen 画笔的接口，设置画笔颜色和画笔宽度
+	* @param [in] gradientColor 可选参数，渐变颜色
+	* @param [in] gradientRect 可选参数，渐变颜色的矩形区域设置，仅当gradientColor不为nullptr时有效
+	*/
+	virtual void DrawArc(const UiRect& rc, float startAngle, float sweepAngle, bool useCenter, 
+						 const IPen* pen, 
+		                 UiColor* gradientColor = nullptr, const UiRect* gradientRect = nullptr) = 0;
 
 	/** 绘制路径
 	* @param [in] path 路径的接口
@@ -597,6 +656,7 @@ public:
 	virtual IPen* CreatePen(UiColor color, int width = 1) = 0;
 	virtual IBrush* CreateBrush(UiColor corlor) = 0;
 	virtual IPath* CreatePath() = 0;
+	virtual IMatrix* CreateMatrix() = 0;
 	virtual IBitmap* CreateBitmap() = 0;
 	virtual IRender* CreateRender() = 0;
 };

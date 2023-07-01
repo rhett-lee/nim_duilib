@@ -4,6 +4,7 @@
 #include "duilib/RenderGdiPlus/Pen_Gdiplus.h"
 #include "duilib/RenderGdiPlus/Path_Gdiplus.h"
 #include "duilib/RenderGdiPlus/Brush_Gdiplus.h"
+#include "duilib/RenderGdiPlus/Matrix_Gdiplus.h"
 #include "duilib/RenderGdiPlus/Bitmap_GDI.h"
 #include "duilib/RenderGdiPlus/GdiPlusDefs.h"
 #include "duilib/Render/BitmapAlpha.h"
@@ -718,6 +719,102 @@ void Render_GdiPlus::DrawImage(const UiRect& rcPaint,
 	::DeleteDC(hCloneDC);
 }
 
+void Render_GdiPlus::DrawImageRect(const UiRect& rcPaint,
+						           IBitmap* pBitmap, 
+						           const UiRect& rcImageDest, 
+						           UiRect rcImageSource, 
+						           bool bBitmapDpiScaled,
+						           uint8_t uFade,
+		                           IMatrix* pMatrix)
+{
+	ASSERT((GetWidth() > 0) && (GetHeight() > 0));
+	if (pMatrix == nullptr) {
+		//仅在没有Matrix的情况下判断裁剪区域，
+		//因为有Matrix时，实际绘制区域并不是rcImageDest，而是变换过后的位置，需要调整判断方法
+		UiRect rcTestTemp;
+		if (!::IntersectRect(&rcTestTemp, &rcImageDest, &rcPaint)) {
+			return;
+		}
+	}	
+
+	ASSERT(pBitmap != nullptr);
+	if (pBitmap == nullptr) {
+		return;
+	}
+	// 如果源位图已经按照DPI缩放过，那么对应的rcImageSource也需要缩放
+	if ((rcImageSource.left < 0) ||
+		(rcImageSource.top < 0) ||
+		(rcImageSource.right < 0) ||
+		(rcImageSource.bottom < 0)) {
+		//如果是无效值，则重置为整个图片大小
+		rcImageSource.left = 0;
+		rcImageSource.top = 0;
+		rcImageSource.right = pBitmap->GetWidth();
+		rcImageSource.bottom = pBitmap->GetHeight();
+	}
+	else if (bBitmapDpiScaled) {
+		//如果外部设置此值，做DPI自适应处理
+		DpiManager::GetInstance()->ScaleRect(rcImageSource);
+	}
+	//图片源容错处理
+	if (rcImageSource.left < 0) {
+		rcImageSource.left = 0;
+	}
+	if (rcImageSource.top < 0) {
+		rcImageSource.top = 0;
+	}
+	if (rcImageSource.right > (LONG)pBitmap->GetWidth()) {
+		rcImageSource.right = pBitmap->GetWidth();
+	}
+	if (rcImageSource.bottom > (LONG)pBitmap->GetHeight()) {
+		rcImageSource.bottom = pBitmap->GetHeight();
+	}
+
+	Gdiplus::Graphics graphics(m_hDC);
+	graphics.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
+	if (pMatrix != nullptr) {
+		Matrix_Gdiplus* pGdiplusMatrix = dynamic_cast<Matrix_Gdiplus*>(pMatrix);
+		if (pGdiplusMatrix != nullptr) {
+			graphics.SetTransform(pGdiplusMatrix->GetMatrix());
+		}
+	}
+		
+	Gdiplus::RectF rectf;
+	rectf.X = static_cast<Gdiplus::REAL>(rcImageDest.left);
+	rectf.Y = static_cast<Gdiplus::REAL>(rcImageDest.top);
+	rectf.Width = static_cast<Gdiplus::REAL>(rcImageDest.GetWidth());
+	rectf.Height = static_cast<Gdiplus::REAL>(rcImageDest.GetHeight());
+
+	Gdiplus::REAL srcx = (Gdiplus::REAL)rcImageSource.left;
+	Gdiplus::REAL srcy = (Gdiplus::REAL)rcImageSource.top;
+	Gdiplus::REAL srcWidth = (Gdiplus::REAL)rcImageSource.GetWidth();
+	Gdiplus::REAL srcHeight = (Gdiplus::REAL)rcImageSource.GetHeight();
+	Gdiplus::Unit srcUnit = Gdiplus::UnitPixel;
+
+	void* data = pBitmap->LockPixelBits();
+	Gdiplus::Bitmap gdiplusBitmap(pBitmap->GetWidth(),
+							      pBitmap->GetHeight(), 
+		                          pBitmap->GetWidth() * 4,
+		                          PixelFormat32bppARGB,
+		                          (BYTE*)data);
+	if (uFade < 255) {
+		//设置了透明度
+		float alpha = (float)uFade / 255;
+		Gdiplus::ColorMatrix cm = { 1,0,0,0,0,
+									0,1,0,0,0,
+									0,0,1,0,0,
+									0,0,0,alpha,0,
+									0,0,0,0,1 };
+		Gdiplus::ImageAttributes imageAttr;
+		imageAttr.SetColorMatrix(&cm);
+		graphics.DrawImage(&gdiplusBitmap, rectf, srcx, srcy, srcWidth, srcHeight, srcUnit, &imageAttr);
+	}
+	else {
+		graphics.DrawImage(&gdiplusBitmap, rectf, srcx, srcy, srcWidth, srcHeight, srcUnit);
+	}	
+	pBitmap->UnLockPixelBits();
+}
+
 void Render_GdiPlus::FillRect(const UiRect& rc, UiColor dwColor, uint8_t uFade)
 {
 	ASSERT((GetWidth() > 0) && (GetHeight() > 0));
@@ -804,6 +901,38 @@ void Render_GdiPlus::FillRoundRect(const UiRect& rc, const UiSize& roundSize, Ui
 	pPath.CloseFigure();
 
 	graphics.FillPath(&brush, &pPath);
+}
+
+void Render_GdiPlus::DrawArc(const UiRect& rc, float startAngle, float sweepAngle, bool /*useCenter*/, 
+							 const IPen* pen,
+	                         UiColor* gradientColor, const UiRect* gradientRect)
+{
+	ASSERT(pen != nullptr);
+	if (pen == nullptr) {
+		return;
+	}
+	Gdiplus::Graphics graphics(m_hDC);
+	graphics.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
+
+	Gdiplus::RectF rect((Gdiplus::REAL)rc.left, (Gdiplus::REAL)rc.top, (Gdiplus::REAL)(rc.right - rc.left), (Gdiplus::REAL)(rc.bottom - rc.top));
+	
+	if ((gradientColor == nullptr) || (gradientRect == nullptr)){
+		graphics.DrawArc(((Pen_GdiPlus*)pen)->GetPen(), rect, startAngle, sweepAngle);
+	}
+	else {
+		Gdiplus::RectF gradientRectF((Gdiplus::REAL)gradientRect->left, 
+								     (Gdiplus::REAL)gradientRect->top,
+								     (Gdiplus::REAL)(gradientRect->right - gradientRect->left),
+									 (Gdiplus::REAL)(gradientRect->bottom - gradientRect->top));
+		Gdiplus::LinearGradientBrush lgbrush(gradientRectF, pen->GetColor().GetARGB(), gradientColor->GetARGB(), Gdiplus::LinearGradientModeVertical);
+
+		Gdiplus::REAL factors[4] = { 0.0f, 0.4f, 0.6f, 1.0f };
+		Gdiplus::REAL positions[4] = { 0.0f, 0.2f, 0.8f, 1.0f };
+		lgbrush.SetBlend(factors, positions, 4);
+
+		Gdiplus::Pen fgPen(&lgbrush, static_cast<Gdiplus::REAL>(pen->GetWidth()));
+		graphics.DrawArc(&fgPen, rect, startAngle, sweepAngle);
+	}
 }
 
 void Render_GdiPlus::DrawPath(const IPath* path, const IPen* pen)

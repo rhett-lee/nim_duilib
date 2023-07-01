@@ -240,6 +240,12 @@
     <ClCompile Include="RenderSkia\Path_Skia.cpp">
       <Filter>RenderSkia</Filter>
     </ClCompile>
+    <ClCompile Include="RenderGdiPlus\Matrix_Gdiplus.cpp">
+      <Filter>RenderGdiPlus</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderSkia\Matrix_Skia.cpp">
+      <Filter>RenderSkia</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -493,6 +499,12 @@
     </ClInclude>
     <ClInclude Include="Render\RenderConfig.h">
       <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderGdiPlus\Matrix_Gdiplus.h">
+      <Filter>RenderGdiPlus</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderSkia\Matrix_Skia.h">
+      <Filter>RenderSkia</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

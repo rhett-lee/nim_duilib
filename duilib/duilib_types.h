@@ -151,6 +151,21 @@ namespace ui
 			return bottom - top;
 		}
 
+		int CenterX() const
+		{
+			return (left + right) / 2;
+		}
+
+		int CenterY() const
+		{
+			return (top + bottom) / 2;
+		}
+
+		UiPoint Center() const
+		{
+			return { CenterX(), CenterY() };
+		}
+
 		void Clear()
 		{
 			left = top = right = bottom = 0;

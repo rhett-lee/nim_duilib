@@ -4,6 +4,7 @@
 #include "duilib/RenderSkia/Brush_Skia.h"
 #include "duilib/RenderSkia/Pen_Skia.h"
 #include "duilib/RenderSkia/Path_Skia.h"
+#include "duilib/RenderSkia/Matrix_Skia.h"
 
 namespace ui {
 
@@ -20,6 +21,11 @@ ui::IBrush* RenderFactory_Skia::CreateBrush(UiColor color)
 ui::IPath* RenderFactory_Skia::CreatePath()
 {
 	return new Path_Skia();
+}
+
+IMatrix* RenderFactory_Skia::CreateMatrix()
+{
+	return new Matrix_Skia();
 }
 
 ui::IBitmap* RenderFactory_Skia::CreateBitmap()
