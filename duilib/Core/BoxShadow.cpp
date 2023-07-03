@@ -1,21 +1,21 @@
 #include "BoxShadow.h"
+#include "duilib/Utils/DpiManager.h"
 #include <tchar.h>
 
-ui::BoxShadow::BoxShadow() :
+namespace ui {
+
+BoxShadow::BoxShadow():
 	m_cpOffset(0, 0),
 	m_nBlurRadius(2),
-	m_nSpreadRadius(2),
-	m_bExclude(true)
+	m_nSpreadRadius(2)
 {
-
+	DpiManager::GetInstance()->ScaleInt(m_nBlurRadius);
+	DpiManager::GetInstance()->ScaleInt(m_nSpreadRadius);
 }
 
-ui::BoxShadow::~BoxShadow()
+void BoxShadow::SetBoxShadowString(const std::wstring& strBoxShadow)
 {
-}
-
-void ui::BoxShadow::SetBoxShadowString(const std::wstring& strBoxShadow)
-{
+	//格式如：如 "color='black' offset='1,1' blur_radius='2' spread_radius='2'"
 	std::wstring sItem;
 	std::wstring sValue;
 	LPTSTR pstr = NULL;
@@ -43,23 +43,32 @@ void ui::BoxShadow::SetBoxShadowString(const std::wstring& strBoxShadow)
 		}
 		if (*pStrKey++ != _T('\'')) break;
 		if (!sValue.empty()) {
-			if (sItem == _T("color") || sItem == _T("res")) {
+			if (sItem == _T("color")) {
 				m_strColor = sValue;
 			}
 			else if (sItem == _T("offset")) {
 				m_cpOffset.x = _tcstol(sValue.c_str(), &pstr, 10);  ASSERT(pstr);
 				m_cpOffset.y = _tcstol(pstr + 1, &pstr, 10);    ASSERT(pstr);
+				DpiManager::GetInstance()->ScalePoint(m_cpOffset);
 			}
-			else if (sItem == _T("blurradius")) {
+			else if ((sItem == _T("blur_radius")) || sItem == _T("blurradius")) {
 				m_nBlurRadius = _tcstol(sValue.c_str(), &pstr, 10); ASSERT(pstr);
+				ASSERT(m_nBlurRadius >= 0);
+				if (m_nBlurRadius < 0) {
+					m_nBlurRadius = 2;
+				}
+				DpiManager::GetInstance()->ScaleInt(m_nBlurRadius);
 			}
-			else if (sItem == _T("spreadradius")) {
+			else if ((sItem == _T("spread_radius")) || (sItem == _T("spreadradius"))) {
 				m_nSpreadRadius = _tcstol(sValue.c_str(), &pstr, 10); ASSERT(pstr);
+				ASSERT(m_nSpreadRadius >= 0);
+				if (m_nSpreadRadius < 0) {
+					m_nSpreadRadius = 2;
+				}
+				DpiManager::GetInstance()->ScaleInt(m_nSpreadRadius);
 			}
-			else if (sItem == _T("exclude")) {
-				if (pstr != nullptr) {
-					m_bExclude = (_tcscmp(pstr, _T("true")) == 0);
-				}				
+			else {
+				ASSERT(!"BoxShadow::SetBoxShadowString found unknown item!");
 			}
 		}
 		if (*pStrKey++ != _T(' ')) {
@@ -68,7 +77,9 @@ void ui::BoxShadow::SetBoxShadowString(const std::wstring& strBoxShadow)
 	}
 }
 
-bool ui::BoxShadow::HasShadow() const
+bool BoxShadow::HasShadow() const
 {
 	return !m_strColor.empty();
 }
+
+} // namespace ui

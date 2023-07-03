@@ -35,7 +35,6 @@ Control::Control() :
 	m_rcBorderSize(),
 	m_cursorType(kCursorArrow),
 	m_controlState(kControlStateNormal),
-	m_nBorderSize(0),
 	m_nTooltipWidth(300),
 	m_nAlpha(255),
 	m_nHotAlpha(0),
@@ -48,7 +47,8 @@ Control::Control() :
 	m_gifWeakFlag(),	
 	m_loadBkImageWeakFlag(),
     m_loadingImageFlag(),
-	m_boxShadow()
+	m_boxShadow(),
+	m_isBoxShadowPainted(false)
 {
 	m_colorMap = std::make_unique<StateColorMap>();
 	m_imageMap = std::make_unique<StateImageMap>();
@@ -225,22 +225,6 @@ Image* Control::GetEstimateImage()
 	}
 
 	return estimateImage;
-}
-
-int Control::GetBorderSize() const
-{
-	return m_nBorderSize;
-}
-
-void Control::SetBorderSize(int nSize)
-{
-	DpiManager::GetInstance()->ScaleInt(nSize);
-	if (m_nBorderSize == nSize) {
-		return;
-	}
-
-	m_nBorderSize = nSize;
-	Invalidate();
 }
 
 const std::wstring& Control::GetBorderColor() const
@@ -935,8 +919,8 @@ void Control::SetAttribute(const std::wstring& strName, const std::wstring& strV
 	else if (strName == _T("bordersize")) {
 		std::wstring nValue = strValue;
 		if (nValue.find(',') == std::wstring::npos) {
-			SetBorderSize(_ttoi(strValue.c_str()));
-			UiRect rcBorder;
+			int nBorderSize = _ttoi(strValue.c_str());
+			UiRect rcBorder(nBorderSize, nBorderSize, nBorderSize, nBorderSize);
 			SetBorderSize(rcBorder);
 		}
 		else {
@@ -1229,7 +1213,7 @@ bool Control::DrawImage(IRender* pRender,  Image& duiImage,
 
 IRender* Control::GetRender()
 {
-	if (!m_render) {
+	if (m_render == nullptr) {
 		IRenderFactory* pRenderFactory = GlobalManager::GetRenderFactory();
 		ASSERT(pRenderFactory != nullptr);
 		if (pRenderFactory != nullptr) {
@@ -1258,103 +1242,111 @@ void Control::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
 		return;
 	}
 
+	//绘制剪辑区域
 	UiRect rcUnion;
-	if( !::IntersectRect(&rcUnion, &rcPaint, &GetRect()) ) return;
+	if (!::IntersectRect(&rcUnion, &rcPaint, &GetRect())) {
+		return;
+	}
 
+	//是否为圆角矩形区域裁剪
 	bool bRoundClip = false;
 	if (m_cxyBorderRound.cx > 0 || m_cxyBorderRound.cy > 0) {
 		bRoundClip = true;
 	}
 
-	if (IsAlpha()) {
-		UiSize size;
-		size.cx = GetRect().right - GetRect().left;
-		size.cy = GetRect().bottom - GetRect().top;
-		auto pCacheRender = GetRender();
-		if (pCacheRender) {
-			if (pCacheRender->Resize(size.cx, size.cy)) {
-				SetCacheDirty(true);
+	//当前控件是否设置了透明度（透明度值不是255）
+	const bool isAlpha = IsAlpha();
+
+	//是否使用绘制缓存
+	const bool isUseCache = IsUseCache();
+
+	if (isAlpha || isUseCache) {
+		UiSize size{ GetRect().GetWidth(), GetRect().GetHeight() };
+		IRender* pCacheRender = GetRender();
+		ASSERT(pCacheRender != nullptr);
+		if (pCacheRender == nullptr) {
+			return;
+		}
+		bool isSizeChanged = (size.cx != pCacheRender->GetWidth()) || (size.cy != pCacheRender->GetHeight());
+		if (!pCacheRender->Resize(size.cx, size.cy)) {
+			//存在错误，绘制失败
+			ASSERT(!"pCacheRender->Resize failed!");
+			return;
+		}
+		if (isSizeChanged) {
+			//Render画布大小发生变化，需要设置缓存脏标记
+			SetCacheDirty(true);
+		}			
+		if (IsCacheDirty()) {
+			//重新绘制，首先清楚原内容
+			pCacheRender->Clear();
+			pCacheRender->SetRenderTransparent(true);
+
+			UiPoint ptOffset(GetRect().left + m_renderOffset.x, GetRect().top + m_renderOffset.y);
+			UiPoint ptOldOrg = pCacheRender->OffsetWindowOrg(ptOffset);
+
+			bool hasBoxShadowPainted = m_boxShadow.HasShadow();
+			if (hasBoxShadowPainted) {
+				//先绘制box-shadow，可能会超出rect边界绘制(如果使用裁剪，可能会显示不全)
+				m_isBoxShadowPainted = false;
+				PaintShadow(pCacheRender);
+				m_isBoxShadowPainted = true;
 			}
 
-			if (IsCacheDirty()) {
-				pCacheRender->Clear();
-				int scaleOffset = m_boxShadow.HasShadow() ? (m_boxShadow.m_nSpreadRadius * 2 + abs(m_boxShadow.m_cpOffset.x)) : 0;
-				UiRect rcClip = { 0, 0, size.cx + scaleOffset,size.cy + scaleOffset };
+			UiRect rcClip = { 0, 0, size.cx,size.cy};
+			AutoClip alphaClip(pCacheRender, rcClip, IsClip());
+			AutoClip roundAlphaClip(pCacheRender, rcClip, m_cxyBorderRound.cx, m_cxyBorderRound.cy, bRoundClip);		
 
-				AutoClip alphaClip(pCacheRender, rcClip, IsClip());
-				AutoClip roundAlphaClip(pCacheRender, rcClip, m_cxyBorderRound.cx, m_cxyBorderRound.cy, bRoundClip);
-
-				pCacheRender->SetRenderTransparent(true);
-				UiPoint ptOffset(GetRect().left + m_renderOffset.x, GetRect().top + m_renderOffset.y);
-				UiPoint ptOldOrg = pCacheRender->OffsetWindowOrg(ptOffset);
-				Paint(pCacheRender, GetRect());
+			//首先绘制自己
+			Paint(pCacheRender, GetRect());
+			if (hasBoxShadowPainted) {
+				//Paint绘制后，立即复位标志，避免影响其他绘制逻辑
+				m_isBoxShadowPainted = false;
+			}
+			if (isAlpha) {
+				//设置了透明度，需要先绘制子控件（绘制到pCacheRender上面），然后整体AlphaBlend到pRender
 				PaintChild(pCacheRender, rcPaint);
-				pCacheRender->SetWindowOrg(ptOldOrg);
-				SetCacheDirty(false);
-			}
+			}		
+			pCacheRender->SetWindowOrg(ptOldOrg);
+			SetCacheDirty(false);
+		}
 
-			pRender->AlphaBlend(rcUnion.left, 
-				                rcUnion.top, 
-				                rcUnion.right - rcUnion.left, 
-				                rcUnion.bottom - rcUnion.top, 
-				                pCacheRender,
-				                rcUnion.left - GetRect().left,
-				                rcUnion.top - GetRect().top,
-				                rcUnion.right - rcUnion.left, 
-				                rcUnion.bottom - rcUnion.top, 
-				                static_cast<uint8_t>(m_nAlpha));
+		pRender->AlphaBlend(rcUnion.left, 
+				            rcUnion.top, 
+				            rcUnion.right - rcUnion.left, 
+				            rcUnion.bottom - rcUnion.top, 
+				            pCacheRender,
+				            rcUnion.left - GetRect().left,
+				            rcUnion.top - GetRect().top,
+				            rcUnion.right - rcUnion.left, 
+				            rcUnion.bottom - rcUnion.top, 
+				            static_cast<uint8_t>(m_nAlpha));
+		if (!isAlpha) {
+			//没有设置透明度，后绘制子控件（直接绘制到pRender上面）
+			PaintChild(pRender, rcPaint);
+		}
+		if (isAlpha) {
+			SetCacheDirty(true);
 			m_render.reset();
 		}
 	}
-	else if (IsUseCache()) {
-		UiSize size;
-		size.cx = GetRect().right - GetRect().left;
-		size.cy = GetRect().bottom - GetRect().top;
-		auto pCacheRender = GetRender();
-		if (pCacheRender) {
-			if (pCacheRender->Resize(size.cx, size.cy)) {
-				SetCacheDirty(true);
-			}
-
-			if (IsCacheDirty()) {
-				pCacheRender->Clear();
-				int scaleOffset = m_boxShadow.HasShadow() ? (m_boxShadow.m_nSpreadRadius * 2 + abs(m_boxShadow.m_cpOffset.x)) : 0;
-				UiRect rcClip = { 0,0,size.cx + scaleOffset,size.cy + scaleOffset };
-				AutoClip alphaClip(pCacheRender, rcClip, IsClip());
-				AutoClip roundAlphaClip(pCacheRender, rcClip, m_cxyBorderRound.cx, m_cxyBorderRound.cy, bRoundClip);
-
-				pCacheRender->SetRenderTransparent(true);
-				UiPoint ptOffset(GetRect().left + m_renderOffset.x, GetRect().top + m_renderOffset.y);
-				UiPoint ptOldOrg = pCacheRender->OffsetWindowOrg(ptOffset);
-				Paint(pCacheRender, GetRect());
-				pCacheRender->SetWindowOrg(ptOldOrg);
-				SetCacheDirty(false);
-			}
-
-			pRender->AlphaBlend(rcUnion.left, 
-								rcUnion.top, 
-							    rcUnion.right - rcUnion.left, 
-								rcUnion.bottom - rcUnion.top, 
-								pCacheRender,
-							    rcUnion.left - GetRect().left, 
-								rcUnion.top - GetRect().top, 
-								rcUnion.right - rcUnion.left, 
-								rcUnion.bottom - rcUnion.top, 
-								static_cast<uint8_t>(m_nAlpha));
-			PaintChild(pRender, rcPaint);
-		}
-	}
 	else {
-		int scaleOffset = m_boxShadow.HasShadow() ? (m_boxShadow.m_nSpreadRadius + abs(m_boxShadow.m_cpOffset.x)) : 0;
-		UiRect rcClip = { GetRect().left - scaleOffset,
-					      GetRect().top - scaleOffset,
-					      GetRect().right + scaleOffset,
-						  GetRect().bottom + scaleOffset,
-		};
-		AutoClip clip(pRender, rcClip, IsClip());
-		AutoClip roundClip(pRender, rcClip, m_cxyBorderRound.cx, m_cxyBorderRound.cy, bRoundClip);
 		UiPoint ptOldOrg = pRender->OffsetWindowOrg(m_renderOffset);
+		bool hasBoxShadowPainted = m_boxShadow.HasShadow();
+		if (hasBoxShadowPainted) {
+			//先绘制box-shadow，可能会超出rect边界绘制(如果使用裁剪，可能会显示不全)
+			m_isBoxShadowPainted = false;
+			PaintShadow(pRender);
+			m_isBoxShadowPainted = true;
+		}
+		UiRect rcClip = GetRect();
+		AutoClip clip(pRender, rcClip, IsClip());
+		AutoClip roundClip(pRender, rcClip, m_cxyBorderRound.cx, m_cxyBorderRound.cy, bRoundClip);		
 		Paint(pRender, rcPaint);
+		if (hasBoxShadowPainted) {
+			//Paint绘制后，立即复位标志，避免影响其他绘制逻辑
+			m_isBoxShadowPainted = false;
+		}
 		PaintChild(pRender, rcPaint);
 		pRender->SetWindowOrg(ptOldOrg);
 	}
@@ -1369,9 +1361,13 @@ void Control::Paint(IRender* pRender, const UiRect& rcPaint)
 {
 	if (!::IntersectRect(&m_rcPaint, &rcPaint, &GetRect())) {
 		return;
-	}
+	}	
+	if (!m_isBoxShadowPainted) {
+		//绘制box-shadow，可能会超出rect边界绘制(如果使用裁剪，可能会显示不全)
+		PaintShadow(pRender);
+	}	
 
-	PaintShadow(pRender);
+	//绘制其他内容
 	PaintBkColor(pRender);
 	PaintBkImage(pRender);
 	PaintStatusColor(pRender);
@@ -1388,16 +1384,14 @@ void Control::PaintShadow(IRender* pRender)
 	}
 
 	ASSERT(pRender != nullptr);
-	if (pRender == nullptr) {
-		return;
-	}
-	pRender->DrawBoxShadow(m_rcPaint,
-						   m_cxyBorderRound,
-						   m_boxShadow.m_cpOffset,
-						   m_boxShadow.m_nBlurRadius,
-						   m_boxShadow.m_nSpreadRadius,
-						   GlobalManager::GetTextColor(m_boxShadow.m_strColor),
-						   m_boxShadow.m_bExclude);
+	if (pRender != nullptr) {
+		pRender->DrawBoxShadow(m_rcPaint,
+							   m_cxyBorderRound,
+							   m_boxShadow.m_cpOffset,
+							   m_boxShadow.m_nBlurRadius,
+							   m_boxShadow.m_nSpreadRadius,
+							   GlobalManager::GetTextColor(m_boxShadow.m_strColor));
+	}	
 }
 
 void Control::PaintBkColor(IRender* pRender)
@@ -1411,12 +1405,18 @@ void Control::PaintBkColor(IRender* pRender)
 	}
 
 	UiColor dwBackColor = this->GetWindowColor(m_strBkColor);
-	if(dwBackColor.GetARGB() != 0) {
-		if (dwBackColor.GetARGB() >= 0xFF000000) {
-			pRender->FillRect(m_rcPaint, dwBackColor);
+	if(dwBackColor.GetARGB() != 0) {		
+		if (IsRoundRect()) {
+			//需要绘制圆角矩形，填充也需要填充圆角矩形
+			pRender->FillRoundRect(GetRect(), m_cxyBorderRound, dwBackColor);
 		}
 		else {
-			pRender->FillRect(GetRect(), dwBackColor);
+			if (dwBackColor.GetARGB() >= 0xFF000000) {
+				pRender->FillRect(m_rcPaint, dwBackColor);
+			}
+			else {
+				pRender->FillRect(GetRect(), dwBackColor);
+			}
 		}
 	}
 }
@@ -1444,72 +1444,100 @@ void Control::PaintText(IRender* /*pRender*/)
 
 void Control::PaintBorder(IRender* pRender)
 {
-	if (m_strBorderColor.empty()) {
-		return;
-	}
 	ASSERT(pRender != nullptr);
 	if (pRender == nullptr) {
 		return;
 	}
-	UiColor dwBorderColor = GetWindowColor(m_strBorderColor);
-	if (dwBorderColor.GetARGB() != 0) {
-		if (m_rcBorderSize.left > 0 || m_rcBorderSize.top > 0 || m_rcBorderSize.right > 0 || m_rcBorderSize.bottom > 0) {
-			UiRect rcBorder;
-			if (m_rcBorderSize.left > 0) {
-				rcBorder = GetRect();
-				rcBorder.right = rcBorder.left = GetRect().left + m_rcBorderSize.left / 2;
-				if (m_rcBorderSize.left == 1) {
-					rcBorder.bottom -= 1;
-				}
-				pRender->DrawLine(UiPoint(rcBorder.left, rcBorder.top), UiPoint(rcBorder.right, rcBorder.bottom), dwBorderColor, m_rcBorderSize.left);
+	UiColor dwBorderColor((UiColor::ARGB)0);
+	if (!m_strBorderColor.empty()) {
+		dwBorderColor = GetWindowColor(m_strBorderColor);
+	}
+	if (dwBorderColor.GetARGB() == 0) {
+		return;
+	}
+	if ((m_rcBorderSize.left > 0) && 
+		(m_rcBorderSize.left == m_rcBorderSize.right) &&
+		(m_rcBorderSize.left == m_rcBorderSize.top)   &&
+		(m_rcBorderSize.left == m_rcBorderSize.bottom)){
+		//四个边都存在，且大小相同，则直接绘制矩形, 支持圆角矩形
+		PaintBorders(pRender, GetRect(), (int)m_rcBorderSize.left, m_cxyBorderRound, dwBorderColor);
+	}
+	else {
+		//四个边分别按照设置绘制边线
+		if (m_rcBorderSize.left > 0) {
+			UiRect rcBorder = GetRect();
+			rcBorder.right = rcBorder.left = GetRect().left + m_rcBorderSize.left / 2;
+			if (m_rcBorderSize.left == 1) {
+				rcBorder.bottom -= 1;
 			}
-			if (m_rcBorderSize.top > 0) {
-				rcBorder = GetRect();
-				rcBorder.bottom = rcBorder.top = GetRect().top + m_rcBorderSize.top / 2;
-				if (m_rcBorderSize.top == 1) {
-					rcBorder.right -= 1;
-				}
-				pRender->DrawLine(UiPoint(rcBorder.left, rcBorder.top), UiPoint(rcBorder.right, rcBorder.bottom), dwBorderColor, m_rcBorderSize.top);
-			}
-			if (m_rcBorderSize.right > 0) {
-				rcBorder = GetRect();
-				rcBorder.left = rcBorder.right = GetRect().right - (m_rcBorderSize.right + 1) / 2;
-				if (m_rcBorderSize.right == 1) {
-					rcBorder.bottom -= 1;
-				}
-				pRender->DrawLine(UiPoint(rcBorder.left, rcBorder.top), UiPoint(rcBorder.right, rcBorder.bottom), dwBorderColor, m_rcBorderSize.right);
-			}
-			if (m_rcBorderSize.bottom > 0) {
-				rcBorder = GetRect();
-				rcBorder.top = rcBorder.bottom = GetRect().bottom - (m_rcBorderSize.bottom + 1) / 2;
-				if (m_rcBorderSize.bottom == 1) {
-					rcBorder.right -= 1;
-				}
-				pRender->DrawLine(UiPoint(rcBorder.left, rcBorder.top), UiPoint(rcBorder.right, rcBorder.bottom), dwBorderColor, m_rcBorderSize.bottom);
-			}
+			pRender->DrawLine(UiPoint(rcBorder.left, rcBorder.top), UiPoint(rcBorder.right, rcBorder.bottom), dwBorderColor, m_rcBorderSize.left);
 		}
-		else if (m_nBorderSize > 0) {
-			UiRect rcDraw = GetRect();
-			int nDeltaValue = m_nBorderSize / 2;
-			rcDraw.top += nDeltaValue;
-			rcDraw.bottom -= nDeltaValue;
-			if (m_nBorderSize % 2 != 0) {
-				rcDraw.bottom -= 1;
+		if (m_rcBorderSize.top > 0) {
+			UiRect rcBorder = GetRect();
+			rcBorder.bottom = rcBorder.top = GetRect().top + m_rcBorderSize.top / 2;
+			if (m_rcBorderSize.top == 1) {
+				rcBorder.right -= 1;
 			}
-			rcDraw.left += nDeltaValue;
-			rcDraw.right -= nDeltaValue;
-			if (m_nBorderSize % 2 != 0) {
-				rcDraw.right -= 1;
+			pRender->DrawLine(UiPoint(rcBorder.left, rcBorder.top), UiPoint(rcBorder.right, rcBorder.bottom), dwBorderColor, m_rcBorderSize.top);
+		}
+		if (m_rcBorderSize.right > 0) {
+			UiRect rcBorder = GetRect();
+			rcBorder.left = rcBorder.right = GetRect().right - (m_rcBorderSize.right + 1) / 2;
+			if (m_rcBorderSize.right == 1) {
+				rcBorder.bottom -= 1;
 			}
-
-			if (m_cxyBorderRound.cx > 0 || m_cxyBorderRound.cy > 0) {
-				pRender->DrawRoundRect(rcDraw, m_cxyBorderRound, dwBorderColor, m_nBorderSize);
+			pRender->DrawLine(UiPoint(rcBorder.left, rcBorder.top), UiPoint(rcBorder.right, rcBorder.bottom), dwBorderColor, m_rcBorderSize.right);
+		}
+		if (m_rcBorderSize.bottom > 0) {
+			UiRect rcBorder = GetRect();
+			rcBorder.top = rcBorder.bottom = GetRect().bottom - (m_rcBorderSize.bottom + 1) / 2;
+			if (m_rcBorderSize.bottom == 1) {
+				rcBorder.right -= 1;
 			}
-			else {
-				pRender->DrawRect(rcDraw, dwBorderColor, m_nBorderSize);
-			}
+			pRender->DrawLine(UiPoint(rcBorder.left, rcBorder.top), UiPoint(rcBorder.right, rcBorder.bottom), dwBorderColor, m_rcBorderSize.bottom);
 		}
 	}
+}
+
+void Control::PaintBorders(IRender* pRender, UiRect rcDraw, 
+	                       int nBorderSize, UiSize cxyBorderRound, UiColor dwBorderColor)
+{
+	if ((pRender == nullptr) || rcDraw.IsRectEmpty() || (nBorderSize < 1) || (dwBorderColor.GetARGB() == 0)) {
+		return;
+	}
+	int nDeltaValue = nBorderSize / 2;
+	rcDraw.top += nDeltaValue;
+	rcDraw.bottom -= nDeltaValue;
+	if (nBorderSize % 2 != 0) {
+		rcDraw.bottom -= 1;
+	}
+	rcDraw.left += nDeltaValue;
+	rcDraw.right -= nDeltaValue;
+	if (nBorderSize % 2 != 0) {
+		rcDraw.right -= 1;
+	}
+
+	if (cxyBorderRound.cx > 0 || cxyBorderRound.cy > 0) {
+		pRender->DrawRoundRect(rcDraw, cxyBorderRound, dwBorderColor, nBorderSize);
+	}
+	else {
+		pRender->DrawRect(rcDraw, dwBorderColor, nBorderSize);
+	}
+}
+
+bool Control::IsRoundRect() const
+{
+	bool isRoundRect = false;
+	if ((m_rcBorderSize.left > 0) &&
+		(m_rcBorderSize.left == m_rcBorderSize.right) &&
+		(m_rcBorderSize.left == m_rcBorderSize.top) &&
+		(m_rcBorderSize.left == m_rcBorderSize.bottom)) {
+		//四个边大小相同，且都存在，支持圆角矩形
+		if (m_cxyBorderRound.cx > 0 || m_cxyBorderRound.cy > 0) {
+			isRoundRect = true;
+		}
+	}
+	return isRoundRect;
 }
 
 void Control::PaintLoading(IRender* pRender)

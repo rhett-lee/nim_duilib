@@ -8,28 +8,16 @@
 
 namespace ui {
 
-// 控件阴影属性类
-// 待优化：
-// 1.实现真正高斯模糊
-//   参考资料：
-//           https://www.cnblogs.com/mfbzr/p/14154156.html
-//           https://stackoverflow.com/questions/42314939/diagonal-shadow-with-gdi
-//           https://blog.csdn.net/aoshilang2249/article/details/45153375
-//			 https://codersblock.com/blog/creating-glow-effects-with-css/
-//   算法:
-//           http://blog.ivank.net/fastest-gaussian-blur.html
-//           https://software.intel.com/content/www/us/en/develop/articles/iir-gaussian-blur-filter-implementation-using-intel-advanced-vector-extensions.html
-//           https://software.intel.com/content/dam/develop/public/us/en/downloads/gaussian_blur_0311.cpp
-// 2.阴影应提前绘制好并进行缓存，而不是实时绘制
-class UILIB_API BoxShadow 
+/** 控件阴影属性类
+*/
+class UILIB_API BoxShadow
 {
 public:
 	BoxShadow();
-	~BoxShadow();
 
 	/**
 	 * @brief 设置阴影属性
-	 * @param[in] strBoxShadow 要设置的属性,如 "color='black' offset='1,1' blursize='2'"
+	 * @param[in] strBoxShadow 要设置的属性,如 "color='black' offset='1,1' blur_radius='2' spread_radius='2'"
 	 * @return 无
 	 */
 	void SetBoxShadowString(const std::wstring& strBoxShadow);
@@ -54,19 +42,13 @@ public:
 	 */
 	UiPoint m_cpOffset;
 
-	/** 模糊半径，半径必须介于 0 到 255 的范围内。
-	 *  值越大，模糊面积越大，阴影就越大越淡。 不能为负值。默认为0，此时阴影边缘锐利。
+	/** 模糊半径，值越大，模糊面积越大，阴影就越大越淡, 如果为0，此时阴影边缘锐利，无模糊效果，不能为负值。
 	 */
 	int m_nBlurRadius;
 
-	/** 扩展半径，即模糊区域距离rc矩形边缘多少个像素。
-	 *   取正值时，阴影扩大；取负值时，阴影收缩。默认为0，此时阴影与元素同样大。
+	/** 扩展半径，即模糊区域距离rc矩形边缘多少个像素。取正值时，阴影扩大；取负值时，阴影收缩。
 	 */
 	int m_nSpreadRadius;
-
-	/** 当为true的时候表示阴影在矩形边框外面，为false的时候表示阴影在边框矩形内部
-	*/
-	bool m_bExclude;
 };
 
 } // namespace ui

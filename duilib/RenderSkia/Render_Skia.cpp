@@ -11,7 +11,7 @@
 #include "duilib/Utils/PerformanceUtil.h"
 
 #pragma warning (push)
-#pragma warning (disable: 4244)
+#pragma warning (disable: 4244 4201)
 
 #include "include/core/SkMatrix.h"
 #include "include/core/SkBitmap.h"
@@ -27,6 +27,7 @@
 #include "include/core/SkPathEffect.h"
 #include "include/effects/SkDashPathEffect.h"
 #include "include/effects/SkGradientShader.h"
+#include "include/effects/SkImageFilters.h"
 
 #pragma warning (pop)
 
@@ -59,6 +60,7 @@ Render_Skia::Render_Skia()
 	m_pSkPointOrg->iset(0, 0);
 	m_pSkPaint = new SkPaint;
 	m_pSkPaint->setAntiAlias(true);
+	m_pSkPaint->setDither(true);
 	m_pSkPaint->setStyle(SkPaint::kStrokeAndFill_Style);
 }
 
@@ -269,7 +271,7 @@ void Render_Skia::SetClip(const UiRect& rc)
 	ASSERT(m_pSkCanvas != nullptr);
 	if (m_pSkCanvas != nullptr) {
 		m_pSkCanvas->save();
-		m_pSkCanvas->clipRect(rcSk, false);
+		m_pSkCanvas->clipRect(rcSk, true);
 	}
 }
 
@@ -1370,12 +1372,71 @@ void Render_Skia::DrawBoxShadow(const UiRect& rc,
 						        const UiPoint& cpOffset, 
 						 	    int nBlurRadius, 
 								int nSpreadRadius,
-								UiColor dwColor,
-								bool bExclude)
+								UiColor dwColor)
 {
-	return;
 	ASSERT((GetWidth() > 0) && (GetHeight() > 0));
+	ASSERT(dwColor.GetARGB() != 0);
+	if (nBlurRadius < 0) {
+		nBlurRadius = 0;
+	}
 
+	//阴影的扩撒区域
+	ui::UiRect destRc = rc;	
+	destRc.left -= nSpreadRadius;
+	destRc.top -= nSpreadRadius;
+	destRc.right += nSpreadRadius;
+	destRc.bottom += nSpreadRadius;
+
+	SkRect srcRc;
+	srcRc.setXYWH((SkScalar)destRc.left, (SkScalar)destRc.top, (SkScalar)destRc.GetWidth(), (SkScalar)destRc.GetHeight());
+
+	//原始区域，做裁剪用
+	SkRect excludeRc;
+	excludeRc.setXYWH((SkScalar)rc.left, (SkScalar)rc.top, (SkScalar)rc.GetWidth(), (SkScalar)rc.GetHeight());
+
+	SkPath shadowPath;
+	shadowPath.addRoundRect(srcRc, (SkScalar)roundSize.cx, (SkScalar)roundSize.cy);
+
+	SkPath excludePath;	
+	excludePath.addRoundRect(excludeRc, (SkScalar)roundSize.cx, (SkScalar)roundSize.cy);
+
+	SkPaint paint = *m_pSkPaint;
+	paint.setColor(dwColor.GetARGB());
+	paint.setStyle(SkPaint::kFill_Style);
+
+	SkAutoCanvasRestore autoCanvasRestore(m_pSkCanvas, true);
+
+	//裁剪中间区域
+	SkPath skPathExclude;
+	excludePath.offset(m_pSkPointOrg->fX, m_pSkPointOrg->fY, &skPathExclude);
+	ASSERT(m_pSkCanvas != nullptr);
+	if (m_pSkCanvas != nullptr) {
+		m_pSkCanvas->clipPath(skPathExclude, SkClipOp::kDifference);
+	}
+
+	SkPath skPath;
+	shadowPath.offset(m_pSkPointOrg->fX, m_pSkPointOrg->fY, &skPath);
+
+	//设置绘制阴影的属性
+	const SkScalar sigmaX = (SkScalar)nBlurRadius;
+	const SkScalar sigmaY = (SkScalar)nBlurRadius;
+	paint.setAntiAlias(true);
+	paint.setStyle(SkPaint::kStrokeAndFill_Style);
+	paint.setColor(dwColor.GetARGB());
+
+	paint.setImageFilter(SkImageFilters::Blur(sigmaX, sigmaY, SkTileMode::kDecal, nullptr));
+
+	//设置绘制阴影的偏移量
+	const SkScalar offsetX = (SkScalar)cpOffset.x;
+	const SkScalar offsetY = (SkScalar)cpOffset.y;
+	SkMatrix mat;
+	mat.postTranslate(offsetX, offsetY);
+	skPath.transform(mat);
+
+	ASSERT(m_pSkCanvas != nullptr);
+	if (m_pSkCanvas != nullptr) {
+		m_pSkCanvas->drawPath(skPath, paint);
+	}
 }
 
 HDC Render_Skia::GetDC()

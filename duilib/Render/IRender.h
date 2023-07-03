@@ -581,26 +581,23 @@ public:
 		                    uint32_t uFormat,
 		                    uint8_t uFade = 255) = 0;
 
-	/** 在指定矩形周围绘制阴影（高斯模糊）
+	/** 在指定矩形周围绘制阴影（高斯模糊, 只支持外部阴影，不支持内部阴影）
 	* @param [in] rc 矩形区域
 	* @param [in] roundSize 阴影的圆角宽度和高度
 	* @param [in] cpOffset 设置阴影偏移量（offset-x 和 offset-y）
 	*                      <offset-x> 设置水平偏移量，如果是负值则阴影位于矩形左边。 
 	*                      <offset-y> 设置垂直偏移量，如果是负值则阴影位于矩形上面。
-	* @param [in] nBlurRadius 模糊半径，半径必须介于 0 到 255 的范围内。
-	*                         值越大，模糊面积越大，阴影就越大越淡。 不能为负值。默认为0，此时阴影边缘锐利。
+	* @param [in] nBlurRadius 模糊半径，值越大，模糊面积越大，阴影就越大越淡, 如果为0，此时阴影边缘锐利，无模糊效果，不能为负值。
 	* @param [in] nSpreadRadius 扩展半径，即模糊区域距离rc矩形边缘多少个像素。
-	*                         取正值时，阴影扩大；取负值时，阴影收缩。默认为0，此时阴影与元素同样大。
+	*                           取正值时，阴影扩大；取负值时，阴影收缩。
 	* @param [in] dwColor 阴影的颜色值
-	* @param [in] bExclude 当为true的时候表示阴影在矩形边框外面，为false的时候表示阴影在边框矩形内部
 	*/
 	virtual void DrawBoxShadow(const UiRect& rc, 
 		                       const UiSize& roundSize, 
 		                       const UiPoint& cpOffset, 
 		                       int nBlurRadius, 
 		                       int nSpreadRadius,
-		                       UiColor dwColor, 
-		                       bool bExclude) = 0;
+		                       UiColor dwColor) = 0;
 
 
 	/** 分离位图

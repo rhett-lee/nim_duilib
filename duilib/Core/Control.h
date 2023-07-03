@@ -154,19 +154,6 @@ public:
 	virtual Image* GetEstimateImage();
 
 	/// 边框相关
-	/**
-	 * @brief 获取边框大小
-	 * @return 返回边框的大小
-	 */
-	int GetBorderSize() const;
-
-	/**
-	 * @brief 设置边框大小
-	 * @param[in] nSize 要设置的边框大小
-	 * @return 无
-	 */
-	void SetBorderSize(int nSize);
-
 	/**@brief 获取边框颜色
 	 * @return 边框的颜色字符串，对应 global.xml 中的具体颜色值
 	 */
@@ -179,10 +166,8 @@ public:
 	 */
 	void SetBorderColor(const std::wstring& strBorderColor);
 
-	/**
-	 * @brief 设置边框的大小
+	/** @brief 设置边框的大小(left、top、right、bottom分别对应左边框大小，上边框大小，右边框大小、下边框大小)
 	 * @param[in] rc 一个 `UiRect` 结构的边框大小集合
-	 * @return 无
 	 */
 	void SetBorderSize(UiRect rc);
 
@@ -1018,16 +1003,32 @@ private:
 	void BroadcastGifEvent(int nVirtualEvent);
 	size_t GetGifFrameIndex(GifStopType frame);
 
+	/** 绘制边框
+	*/
+	static void PaintBorders(IRender* pRender, UiRect rcDraw, 
+		                     int nBorderSize, UiSize cxyBorderRound, UiColor dwBorderColor);
+
+	/** 判断是否为圆角矩形
+	*/
+	bool IsRoundRect() const;
+
 private:
 	//控件的外边距属性（上，下，左，右边距）
 	UiRect m_rcMargin;
 
 private:
-	//边框圆角大小（与m_nBorderSize联合应用）或者阴影的圆角大小（与m_boxShadow联合应用）
+	//边框圆角大小（与m_rcBorderSize联合应用）或者阴影的圆角大小（与m_boxShadow联合应用）
+	//仅当m_rcBorderSize四个边框都设置，并且边框大小相同时有效
 	UiSize m_cxyBorderRound;
 
-	//控件阴影
+	//控件阴影，其圆角大小通过m_cxyBorderRound变量控制
 	BoxShadow m_boxShadow;
+
+	//边框颜色
+	std::wstring m_strBorderColor;
+
+	//控件四边的边框大小（可分别设置top/bottom/left/right四个边的值）
+	UiRect m_rcBorderSize;
 
 private:
 	//控件的背景颜色
@@ -1063,16 +1064,6 @@ private:
 	/** 控件图片类型与状态图片的MAP
 	*/
 	std::unique_ptr<StateImageMap> m_imageMap;
-
-private:
-	//边框颜色
-	std::wstring m_strBorderColor;
-
-	//控件四边的边框大小（可分别设置top/bottom/left/right四个边的值）
-	UiRect m_rcBorderSize;
-
-	//边框大小（应用于控件的四边，仅当m_rcBorderSize四边均未设置的时候生效），其圆角大小通过m_cxyBorderRound设置
-	int m_nBorderSize;
 
 private:
 	//是否处于加载中的状态
@@ -1111,6 +1102,9 @@ private:
 
 	//绘制渲染引擎接口
 	std::unique_ptr<IRender> m_render;
+
+	//box-shadow是否已经绘制（由于box-shadow绘制会超过GetRect()范围，所以需要特殊处理）
+	bool m_isBoxShadowPainted;
 
 private:
 	//ToolTip的宽度

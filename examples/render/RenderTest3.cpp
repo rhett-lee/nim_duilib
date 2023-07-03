@@ -95,7 +95,7 @@ void RenderTest3::Paint(IRender* pRender, const UiRect& rcPaint)
     //»­Ô²½Ç¾ØÐÎ
     rect.left = rect.right + marginLeft;
     rect.right = rect.left + nSize;
-    UiSize roundSize(24, 24);
+    UiSize roundSize(12, 12);
     DpiManager::GetInstance()->ScaleSize(roundSize);
     pRender->DrawRoundRect(rect, roundSize, UiColor(0xffC63535), DpiScaledInt(2));
     textRect = rect;
@@ -191,9 +191,33 @@ void RenderTest3::Paint(IRender* pRender, const UiRect& rcPaint)
     //DrawBoxShadow
     rect.left = rect.right + marginLeft * 2;
     rect.right = rect.left + nSize;
-    int nBlurRadius = DpiScaledInt(5);
-    int nSpreadRadius = DpiScaledInt(5);
-    pRender->DrawBoxShadow(rect, roundSize, UiPoint(0, 0), nBlurRadius, nSpreadRadius, UiColor(0xffC63535), true);
+    int nBlurRadius = DpiScaledInt(6);
+    int nSpreadRadius = DpiScaledInt(2);
+    pRender->DrawBoxShadow(rect, roundSize, UiPoint(0, 0), nBlurRadius, nSpreadRadius, UiColor(0xffC63535));
+
+    textRect = rect;
+    textRect.top = rect.bottom;
+    textRect.bottom = textRect.top + nTextLineHeight;
+    pRender->DrawString(textRect, L"DrawBoxShadow", UiColor(UiColor::Blue), L"system_12", TEXT_CENTER);
+
+    //DrawBoxShadow
+    rect.left = rect.right + marginLeft * 2 + 40;
+    rect.right = rect.left + nSize;
+    nBlurRadius = DpiScaledInt(6);
+    nSpreadRadius = DpiScaledInt(4);
+    pRender->DrawBoxShadow(rect, UiSize(0, 0), UiPoint(0, 0), nBlurRadius, nSpreadRadius, UiColor(0xffC63535));
+
+    textRect = rect;
+    textRect.top = rect.bottom;
+    textRect.bottom = textRect.top + nTextLineHeight;
+    pRender->DrawString(textRect, L"DrawBoxShadow", UiColor(UiColor::Blue), L"system_12", TEXT_CENTER);
+
+    //DrawBoxShadow
+    rect.left = rect.right + marginLeft * 2 + 40;
+    rect.right = rect.left + nSize;
+    nBlurRadius = DpiScaledInt(4);
+    nSpreadRadius = DpiScaledInt(4);
+    pRender->DrawBoxShadow(rect, UiSize(0, 0), UiPoint(8, 8), nBlurRadius, nSpreadRadius, UiColor(0xffC63535));
 
     textRect = rect;
     textRect.top = rect.bottom;

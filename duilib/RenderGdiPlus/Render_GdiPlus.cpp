@@ -1064,12 +1064,9 @@ void Render_GdiPlus::DrawBoxShadow(const UiRect& rc,
 						     	   const UiPoint& cpOffset, 
 								   int nBlurRadius, 
 								   int nSpreadRadius,
-								   UiColor dwColor,
-								   bool bExclude)
+								   UiColor dwColor)
 {
 	ASSERT((GetWidth() > 0) && (GetHeight() > 0));
-#define USE_BLUR 1
-#define USE_COLOR_MATRIX 0
 
 	ASSERT(dwColor.GetARGB() != 0);
 
@@ -1080,13 +1077,11 @@ void Render_GdiPlus::DrawBoxShadow(const UiRect& rc,
 	destRc.right += nSpreadRadius;
 	destRc.bottom += nSpreadRadius;
 
-	Gdiplus::REAL scale = 1.0f;
-
-	Gdiplus::RectF srcRc(0.0f, 0.0f, destRc.GetWidth()/ scale, destRc.GetHeight()/ scale);
-	Gdiplus::RectF excludeRc(abs(nSpreadRadius) / scale,
-		abs(nSpreadRadius) / scale,
-		srcRc.Width - abs(nSpreadRadius) * 2.0f / scale,
-		srcRc.Height - abs(nSpreadRadius) * 2.0f / scale);
+	Gdiplus::RectF srcRc(0.0f, 0.0f, (Gdiplus::REAL)destRc.GetWidth(), (Gdiplus::REAL)destRc.GetHeight());
+	Gdiplus::RectF excludeRc(std::abs(nSpreadRadius) * 1.0f,
+							 std::abs(nSpreadRadius) * 1.0f,
+		                     srcRc.Width - std::abs(nSpreadRadius) * 2.0f,
+		                     srcRc.Height - std::abs(nSpreadRadius) * 2.0f);
 
 	Gdiplus::GraphicsPath shadowPath;
 	Gdiplus::GraphicsPath excludePath;
@@ -1103,10 +1098,9 @@ void Render_GdiPlus::DrawBoxShadow(const UiRect& rc,
 		path.CloseFigure();
 	};
 
-	add_roundcorner_path(shadowPath, srcRc, roundSize);
-	
-	if (bExclude)
-		add_roundcorner_path(excludePath, excludeRc, roundSize);
+	add_roundcorner_path(shadowPath, srcRc, roundSize);	
+	add_roundcorner_path(excludePath, excludeRc, roundSize);
+		
 	
 	Gdiplus::PathGradientBrush gradientPathBrush(&shadowPath);
 	gradientPathBrush.SetWrapMode(Gdiplus::WrapMode::WrapModeClamp);
@@ -1119,14 +1113,10 @@ void Render_GdiPlus::DrawBoxShadow(const UiRect& rc,
 	Gdiplus::Bitmap tempBitmap(static_cast<INT>(srcRc.Width), static_cast<INT>(srcRc.Height));
 	Gdiplus::Graphics tempRender(&tempBitmap);
 
-	if (bExclude) {
-		Gdiplus::Region excludeRegion(&excludePath);
-		tempRender.ExcludeClip(&excludeRegion);
-	}
-
+	Gdiplus::Region excludeRegion(&excludePath);
+	tempRender.ExcludeClip(&excludeRegion);
 	tempRender.FillPath(&gradientPathBrush, &shadowPath);
 
-#if USE_BLUR
 	// blur effect
 	Gdiplus::BlurParams blurParams;
 	blurParams.expandEdge = false;
@@ -1135,41 +1125,15 @@ void Render_GdiPlus::DrawBoxShadow(const UiRect& rc,
 	Gdiplus::Blur blurEffect;
 	blurEffect.SetParameters(&blurParams);
 
-	RECT rcBlurEffect{ nSpreadRadius,nSpreadRadius,static_cast<LONG>(srcRc.Width) - 2 * nSpreadRadius,static_cast<LONG>(srcRc.Height) - 2 * nSpreadRadius };
+	RECT rcBlurEffect{ 2 * nSpreadRadius, 2 * nSpreadRadius,static_cast<LONG>(srcRc.Width) - 2 * nSpreadRadius,static_cast<LONG>(srcRc.Height) - 2 * nSpreadRadius };
 	tempBitmap.ApplyEffect(&blurEffect, &rcBlurEffect);
-#endif
-
-#if USE_COLOR_MATRIX
-	// color matrix
-	//https://docs.microsoft.com/en-us/windows/win32/gdiplus/-gdiplus-using-a-color-matrix-to-transform-a-single-color-use
-	//https://docs.microsoft.com/en-us/windows/win32/api/gdipluscolormatrix/ns-gdipluscolormatrix-colormatrix
-	//A 5¡Á5 color matrix is a homogeneous matrix for a 4 - space transformation.
-	//The element in the fifth row and fifth column of a 5¡Á5 homogeneous matrix must be 1, 
-	//and all of the other elements in the fifth column must be 0. 
-	//Color matrices are used to transform color vectors.
-	//The first four components of a color vector hold the red, green, blue,
-	//and alpha components(in that order) of a color.
-	//The fifth component of a color vector is always 1.
-	Gdiplus::ColorMatrix colorMatrix = {
-	0.99215,0,0,0,0,
-	0,0.24313,0,0,0,
-	0,0,0.24705,0,0,
-	0,0,0,0.53923,0,
-	0,0,0,0,1
-	};
-
-	Gdiplus::ColorMatrixEffect colorEffect;
-	colorEffect.SetParameters(&colorMatrix);
-	tempBitmap.ApplyEffect(&colorEffect, NULL);
-#endif
-
 
 	Gdiplus::Graphics graphics(m_hDC);
 	graphics.DrawImage(&tempBitmap,
-		Gdiplus::RectF(static_cast<Gdiplus::REAL>(destRc.left), static_cast<Gdiplus::REAL>(destRc.top), 
-			           static_cast<Gdiplus::REAL>(destRc.GetWidth()), static_cast<Gdiplus::REAL>(destRc.GetHeight())),
-		0, 0, srcRc.Width, srcRc.Height,
-		Gdiplus::UnitPixel);
+					   Gdiplus::RectF(static_cast<Gdiplus::REAL>(destRc.left), static_cast<Gdiplus::REAL>(destRc.top), 
+									  static_cast<Gdiplus::REAL>(destRc.GetWidth()), static_cast<Gdiplus::REAL>(destRc.GetHeight())),
+					   0, 0, srcRc.Width, srcRc.Height,
+		               Gdiplus::UnitPixel);
 }
 
 } // namespace ui
