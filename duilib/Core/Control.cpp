@@ -1257,11 +1257,17 @@ void Control::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
 	//当前控件是否设置了透明度（透明度值不是255）
 	const bool isAlpha = IsAlpha();
 
-	//是否使用绘制缓存
-	const bool isUseCache = IsUseCache();
+	//是否使用绘制缓存(如果存在box-shadow，就不能使用绘制缓存，因为box-shadow绘制的时候是超出GetRect来绘制外部阴影的)
+	const bool isUseCache = IsUseCache() && !m_boxShadow.HasShadow();
 
 	if (isAlpha || isUseCache) {
-		UiSize size{ GetRect().GetWidth(), GetRect().GetHeight() };
+		//绘制区域（局部绘制）
+		UiRect rcUnionRect = rcUnion;
+		if (isUseCache) {
+			//如果使用绘制缓存，绘制的时候，必须绘制整个区域，因为局部绘制每次请求绘制的区域是不同的，缓存中保存的必须是完整的缓存图
+			rcUnionRect = GetRect();
+		}
+		UiSize size{GetRect().GetWidth(), GetRect().GetHeight() };
 		IRender* pCacheRender = GetRender();
 		ASSERT(pCacheRender != nullptr);
 		if (pCacheRender == nullptr) {
@@ -1294,36 +1300,37 @@ void Control::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
 			}
 
 			UiRect rcClip = { 0, 0, size.cx,size.cy};
+			rcClip.Offset((GetRect().left + m_renderOffset.x), (GetRect().top + m_renderOffset.y));
 			AutoClip alphaClip(pCacheRender, rcClip, IsClip());
 			AutoClip roundAlphaClip(pCacheRender, rcClip, m_cxyBorderRound.cx, m_cxyBorderRound.cy, bRoundClip);		
 
 			//首先绘制自己
-			Paint(pCacheRender, GetRect());
+			Paint(pCacheRender, rcUnionRect);
 			if (hasBoxShadowPainted) {
 				//Paint绘制后，立即复位标志，避免影响其他绘制逻辑
 				m_isBoxShadowPainted = false;
 			}
 			if (isAlpha) {
 				//设置了透明度，需要先绘制子控件（绘制到pCacheRender上面），然后整体AlphaBlend到pRender
-				PaintChild(pCacheRender, rcPaint);
+				PaintChild(pCacheRender, rcUnionRect);
 			}		
 			pCacheRender->SetWindowOrg(ptOldOrg);
 			SetCacheDirty(false);
 		}
 
-		pRender->AlphaBlend(rcUnion.left, 
-				            rcUnion.top, 
-				            rcUnion.right - rcUnion.left, 
-				            rcUnion.bottom - rcUnion.top, 
-				            pCacheRender,
-				            rcUnion.left - GetRect().left,
-				            rcUnion.top - GetRect().top,
-				            rcUnion.right - rcUnion.left, 
-				            rcUnion.bottom - rcUnion.top, 
+		pRender->AlphaBlend(rcUnionRect.left,
+							rcUnionRect.top,
+							rcUnionRect.GetWidth(),
+							rcUnionRect.GetHeight(),
+							pCacheRender,
+							rcUnionRect.left - GetRect().left,
+							rcUnionRect.top - GetRect().top,
+							rcUnionRect.GetWidth(),
+							rcUnionRect.GetHeight(),
 				            static_cast<uint8_t>(m_nAlpha));
 		if (!isAlpha) {
 			//没有设置透明度，后绘制子控件（直接绘制到pRender上面）
-			PaintChild(pRender, rcPaint);
+			PaintChild(pRender, rcUnionRect);
 		}
 		if (isAlpha) {
 			SetCacheDirty(true);

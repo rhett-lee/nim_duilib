@@ -7,6 +7,8 @@ namespace nim_comp {
 
 void CefControlBase::OnPaint(CefRefPtr<CefBrowser> /*browser*/, CefRenderHandler::PaintElementType /*type*/, const CefRenderHandler::RectList& /*dirtyRects*/, const std::string* /*buffer*/, int /*width*/, int /*height*/)
 {
+	//必须不使用缓存，否则绘制异常
+	ASSERT(IsUseCache() == false);
 	return;
 }
 

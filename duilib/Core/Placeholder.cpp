@@ -21,7 +21,7 @@ PlaceHolder::PlaceHolder() :
 	m_bVisible(true),
 	m_bIsArranged(true),
 	m_bUseCache(false),
-	m_bCacheDirty(false)
+	m_bCacheDirty(true)
 {
 }
 
@@ -113,7 +113,7 @@ void PlaceHolder::SetFixedWidth(int cx, bool bArrange, bool bNeedDpiScale)
 			ArrangeAncestor();
 		}
 		else {
-			m_bReEstimateSize = true;
+			SetReEstimateSize(true);
 		}
 	}
 }
@@ -233,7 +233,7 @@ void PlaceHolder::Arrange()
 
 void PlaceHolder::ArrangeAncestor()
 {
-	m_bReEstimateSize = true;
+	SetReEstimateSize(true);
 	if ((m_pWindow == nullptr) || (m_pWindow->GetRoot() == nullptr)) {
 		if (GetParent()) {
 			GetParent()->ArrangeSelf();
@@ -256,7 +256,6 @@ void PlaceHolder::ArrangeAncestor()
 			m_pWindow->GetRoot()->ArrangeSelf();
 		}
 	}
-
 }
 
 void PlaceHolder::ArrangeSelf()
@@ -264,7 +263,7 @@ void PlaceHolder::ArrangeSelf()
 	if (!IsVisible()) {
 		return;
 	}
-	m_bReEstimateSize = true;
+	SetReEstimateSize(true);
 	m_bIsArranged = true;
 	Invalidate();
 
@@ -281,6 +280,26 @@ void PlaceHolder::SetUseCache(bool cache)
 void PlaceHolder::SetCacheDirty(bool dirty)
 {
 	m_bCacheDirty = dirty;
+}
+
+void PlaceHolder::SetPos(UiRect rc)
+{ 
+	SetRect(rc);
+}
+
+void PlaceHolder::SetArranged(bool bArranged)
+{ 
+	m_bIsArranged = bArranged; 
+}
+
+void PlaceHolder::SetRect(const UiRect& rc)
+{
+	//所有调整矩形区域的操作，最终都会通过这里设置
+	if (!m_uiRect.Equal(rc)) {
+		//区域变化，标注绘制缓存脏标记位
+		SetCacheDirty(true);
+	}
+	m_uiRect = rc;	
 }
 
 void PlaceHolder::Invalidate()

@@ -20,6 +20,8 @@ CefControlBase::CefControlBase(void)
 #if !defined(SUPPORT_CEF)
 	ASSERT(FALSE && L"要使用Cef功能请开启SUPPORT_CEF宏");
 #endif
+	//这个标记必须为false，否则绘制有问题
+	SetUseCache(false);
 }
 
 CefControlBase::~CefControlBase(void)

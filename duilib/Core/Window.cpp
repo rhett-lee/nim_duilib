@@ -723,6 +723,12 @@ void Window::SetRoundCorner(int cx, int cy)
 	DpiManager::GetInstance()->ScaleInt(cy);
 	m_szRoundCorner.cx = cx;
 	m_szRoundCorner.cy = cy;
+	if (m_szRoundCorner.cx < 0) {
+		m_szRoundCorner.cx = 0;
+	}
+	if (m_szRoundCorner.cy < 0) {
+		m_szRoundCorner.cy = 0;
+	}
 }
 
 const UiRect& Window::GetMaximizeInfo() const
@@ -1291,7 +1297,7 @@ LRESULT Window::OnSizeMsg(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/, bool& bHa
 	ASSERT_UNUSED_VARIABLE(uMsg == WM_SIZE);
 	bHandled = false;
 	UiSize szRoundCorner = GetRoundCorner();
-	if (!::IsIconic(GetHWND()) && (szRoundCorner.cx != 0 || szRoundCorner.cy != 0)) {
+	if (!::IsIconic(GetHWND()) && (szRoundCorner.cx > 0 || szRoundCorner.cy > 0)) {
 		UiRect rcWnd;
 		::GetWindowRect(GetHWND(), &rcWnd);
 		rcWnd.Offset(-rcWnd.left, -rcWnd.top);

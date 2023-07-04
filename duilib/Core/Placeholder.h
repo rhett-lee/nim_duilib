@@ -208,7 +208,7 @@ public:
 	/**@brief 设置控件位置（子类可改变行为）
 	 * @param[in] rc 要设置的位置信息
 	 */
-	virtual void SetPos(UiRect rc) { m_uiRect = rc; }
+	virtual void SetPos(UiRect rc);
 
 	/**@brief 获取控件区域(单纯返回m_uiRect值)
 	*/
@@ -216,7 +216,7 @@ public:
 
 	/**@brief 设置控件区域(单纯设置m_uiRect值)
 	*/
-	void SetRect(const UiRect& rc) { m_uiRect = rc; }
+	void SetRect(const UiRect& rc);
 
 	/**@brief 进行布局重排
 	 */
@@ -232,7 +232,7 @@ public:
 
 	/**@brief 设置是否已经排列过
 	 */
-	void SetArranged(bool bArranged) { m_bIsArranged = bArranged; }
+	void SetArranged(bool bArranged);
 
 	/**@brief 设置是否使用缓存
 	 */
@@ -313,7 +313,10 @@ private:
 	//是否需要布局重排
 	bool m_bIsArranged;
 
-	//是否使用缓存
+	//是否使用绘制缓存
+	// 如果为true，每个控件自己保存一份绘制缓存，会占用较多内存，理论上会提升绘制性能，但实际未测试出效果）
+	// 如果为false，表示无绘制缓存，内存占用比较少。
+	// TODO: 这个模式下内存占有率很高，对绘制性能提升不明显，未来可能会删除掉这个逻辑，以简化代码。
 	bool m_bUseCache;
 
 	//缓存是否存在脏标志值

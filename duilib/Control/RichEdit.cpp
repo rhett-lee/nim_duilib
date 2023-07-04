@@ -1303,6 +1303,9 @@ RichEdit::RichEdit() :
 	m_sCurrentColor = GlobalManager::GetDefaultTextColor();
 	m_sTextColor = m_sCurrentColor;
 	m_sDisabledTextColor = m_sCurrentColor;
+
+	//这个标记必须为false，否则绘制有问题
+	SetUseCache(false);
 }
 
 RichEdit::~RichEdit()
@@ -2684,6 +2687,8 @@ void RichEdit::OnMouseMessage(UINT uMsg, const EventArgs& event)
 
 void RichEdit::Paint(IRender* pRender, const UiRect& rcPaint)
 {
+	//必须不使用缓存，否则绘制异常
+	ASSERT(IsUseCache() == false);
     UiRect rcTemp;
     if( !::IntersectRect(&rcTemp, &rcPaint, &GetRect()) ) return;
 
