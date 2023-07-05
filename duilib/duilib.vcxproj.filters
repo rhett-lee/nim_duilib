@@ -34,9 +34,6 @@
     <Filter Include="third_party\unzip">
       <UniqueIdentifier>{e830306f-8d26-4a7d-8c75-488fd6671c6f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="third_party\xml">
-      <UniqueIdentifier>{4d0e7c52-2577-4dce-9921-d90a4354dd6f}</UniqueIdentifier>
-    </Filter>
     <Filter Include="third_party\stb_image">
       <UniqueIdentifier>{3f9265e5-a15a-4e95-9457-ac05cbf88a37}</UniqueIdentifier>
     </Filter>
@@ -48,6 +45,9 @@
     </Filter>
     <Filter Include="RenderSkia">
       <UniqueIdentifier>{0a39786a-5478-4647-b38c-4e57f94acfb4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="third_party\xml">
+      <UniqueIdentifier>{94f29640-b8f0-4c7e-ad1d-dae80f83d3f5}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -174,9 +174,6 @@
     <ClCompile Include="third_party\unzip\UnZip.cpp">
       <Filter>third_party\unzip</Filter>
     </ClCompile>
-    <ClCompile Include="third_party\xml\Markup.cpp">
-      <Filter>third_party\xml</Filter>
-    </ClCompile>
     <ClCompile Include="third_party\apng\decoder-apng.cpp">
       <Filter>third_party\apng</Filter>
     </ClCompile>
@@ -245,6 +242,9 @@
     </ClCompile>
     <ClCompile Include="RenderSkia\Matrix_Skia.cpp">
       <Filter>RenderSkia</Filter>
+    </ClCompile>
+    <ClCompile Include="third_party\xml\pugixml.cpp">
+      <Filter>third_party\xml</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -422,9 +422,6 @@
     <ClInclude Include="third_party\unzip\UnZip.h">
       <Filter>third_party\unzip</Filter>
     </ClInclude>
-    <ClInclude Include="third_party\xml\Markup.h">
-      <Filter>third_party\xml</Filter>
-    </ClInclude>
     <ClInclude Include="third_party\stb_image\stb_image.h">
       <Filter>third_party\stb_image</Filter>
     </ClInclude>
@@ -505,6 +502,12 @@
     </ClInclude>
     <ClInclude Include="RenderSkia\Matrix_Skia.h">
       <Filter>RenderSkia</Filter>
+    </ClInclude>
+    <ClInclude Include="third_party\xml\pugiconfig.hpp">
+      <Filter>third_party\xml</Filter>
+    </ClInclude>
+    <ClInclude Include="third_party\xml\pugixml.hpp">
+      <Filter>third_party\xml</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

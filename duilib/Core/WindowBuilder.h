@@ -8,15 +8,19 @@
 #include <string>
 #include <memory>
 
+namespace pugi
+{
+    //XML 解析器相关定义
+    class xml_document;
+    class xml_node;
+}
+
 namespace ui 
 {
 
 class Box;
 class Window;
 class Control;
-
-class CMarkup;
-class CMarkupNode;
 
 /** 创建控件的回调函数
 */
@@ -54,12 +58,12 @@ public:
 
 
 private:
-    Control* _Parse(CMarkupNode* parent, Control* pParent = NULL, Window* pWindow = NULL);
+    Control* ParseXmlNode(pugi::xml_node& parent, Control* pParent = NULL, Window* pWindow = NULL);
 	Control* CreateControlByClass(const std::wstring& strControlClass);
-	void AttachXmlEvent(bool bBubbled, CMarkupNode& node, Control* pParent);
+	void AttachXmlEvent(bool bBubbled, pugi::xml_node& node, Control* pParent);
 
 private:
-    std::unique_ptr<CMarkup> m_xml;
+    std::unique_ptr<pugi::xml_document> m_xml;
 	CreateControlCallback m_createControlCallback;
 };
 

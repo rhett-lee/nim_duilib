@@ -374,7 +374,7 @@
     <ClCompile Include="Render\BitmapAlpha.cpp" />
     <ClCompile Include="third_party\apng\decoder-apng.cpp" />
     <ClCompile Include="third_party\unzip\UnZip.cpp" />
-    <ClCompile Include="third_party\xml\Markup.cpp" />
+    <ClCompile Include="third_party\xml\pugixml.cpp" />
     <ClCompile Include="Utils\ApiWrapper.cpp" />
     <ClCompile Include="Utils\DpiManager.cpp" />
     <ClCompile Include="Utils\FontManager.cpp" />
@@ -455,7 +455,8 @@
     <ClInclude Include="third_party\svg\nanosvg.h" />
     <ClInclude Include="third_party\svg\nanosvgrast.h" />
     <ClInclude Include="third_party\unzip\UnZip.h" />
-    <ClInclude Include="third_party\xml\Markup.h" />
+    <ClInclude Include="third_party\xml\pugiconfig.hpp" />
+    <ClInclude Include="third_party\xml\pugixml.hpp" />
     <ClInclude Include="Utils\ApiWrapper.h" />
     <ClInclude Include="Utils\DpiManager.h" />
     <ClInclude Include="Utils\FontManager.h" />

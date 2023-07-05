@@ -23,7 +23,8 @@
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Utils/FontManager.h"
 
-#include "duilib/third_party/xml/Markup.h"
+#include "duilib/third_party/xml/pugixml.hpp"
+#include <shlwapi.h>
 #include <tchar.h>
 
 namespace ui 
@@ -31,7 +32,7 @@ namespace ui
 
 WindowBuilder::WindowBuilder()
 {
-	m_xml = std::make_unique<CMarkup>();
+	m_xml = std::make_unique<pugi::xml_document>();
 }
 
 WindowBuilder::~WindowBuilder()
@@ -51,8 +52,12 @@ Box* WindowBuilder::Create(const std::wstring& xml,
 	//字符串以<开头认为是XML字符串，否则认为是XML文件
 	//如果使用了 zip 压缩包，则从内存中读取
 	if (xml.front() == L'<') {
-		if (!m_xml->Load(xml.c_str())) {
-			ASSERT(!L"Load xml 失败");
+		pugi::xml_parse_result result = m_xml->load_buffer(xml.c_str(), 
+														   xml.size() * sizeof(std::wstring::value_type), 
+														   pugi::parse_default, 
+			                                               pugi::xml_encoding::encoding_utf16);
+		if (result.status != pugi::status_ok) {
+			ASSERT(!L"WindowBuilder::Create load xml from string data failed!");
 			return nullptr;
 		}
 	}
@@ -62,22 +67,38 @@ Box* WindowBuilder::Create(const std::wstring& xml,
 
 		std::vector<unsigned char> file_data;
 		if (GlobalManager::GetZipData(sFile, file_data)) {
-			bool ret = m_xml->LoadFromMem(file_data.data(), static_cast<DWORD>(file_data.size()));
-			if (!ret) {
-				ASSERT(!L"LoadFromMem 失败");
+			pugi::xml_parse_result result = m_xml->load_buffer(file_data.data(), file_data.size());
+			if (result.status != pugi::status_ok) {
+				ASSERT(!L"WindowBuilder::Create load xml from zip data failed!");
 				return nullptr;
 			}
 		}
 		else {
-			if (!m_xml->LoadFromFile(xml.c_str())) {
-				ASSERT(!L"LoadFromFile 失败");
+			std::wstring xmlFilePath = GlobalManager::GetResourcePath();
+			if (::PathIsRelative(xml.c_str())) {
+				xmlFilePath += xml;
+			}
+			else {
+				xmlFilePath = xml;
+			}
+			pugi::xml_parse_result result = m_xml->load_file(xmlFilePath.c_str());
+			if (result.status != pugi::status_ok) {
+				ASSERT(!L"WindowBuilder::Create load xml file failed!");
 				return nullptr;
 			}
 		}
 	}
 	else {
-		if (!m_xml->LoadFromFile(xml.c_str())) {
-			ASSERT(!L"LoadFromFile 失败");
+		std::wstring xmlFilePath = GlobalManager::GetResourcePath();
+		if (::PathIsRelative(xml.c_str())) {
+			xmlFilePath += xml;
+		}
+		else {
+			xmlFilePath = xml;
+		}
+		pugi::xml_parse_result result = m_xml->load_file(xmlFilePath.c_str());
+		if (result.status != pugi::status_ok) {
+			ASSERT(!L"WindowBuilder::Create load xml file failed!");
 			return nullptr;
 		}
 	}
@@ -87,9 +108,9 @@ Box* WindowBuilder::Create(const std::wstring& xml,
 Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box* pParent, Box* pUserDefinedBox)
 {
 	m_createControlCallback = pCallback;
-	CMarkupNode root = m_xml->GetRoot();
-	ASSERT(root.IsValid());
-	if (!root.IsValid()) {
+	pugi::xml_node root = m_xml->root().first_child();
+	ASSERT(!root.empty());
+	if (root.empty()) {
 		return nullptr;
 	}
 
@@ -97,13 +118,12 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
 		std::wstring strClass;
 		std::wstring strName;
 		std::wstring strValue;
-		strClass = root.GetName();
+		strClass = root.name();
 
 		if( strClass == L"Global") {
-			int nAttributes = root.GetAttributeCount();
-			for( int i = 0; i < nAttributes; i++ ) {
-				strName = root.GetAttributeName(i);
-				strValue = root.GetAttributeValue(i);
+			for (pugi::xml_attribute attr : root.attributes()) {
+				strName = attr.name();
+				strValue = attr.value();
 				if( strName == _T("disabledfontcolor") ) {
 					GlobalManager::SetDefaultDisabledTextColor(strValue);
 				} 
@@ -126,10 +146,9 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
 		}
 		else if( strClass == _T("Window") ) {
 			if( pWindow->GetHWND() ) {
-				int nAttributes = root.GetAttributeCount();
-				for( int i = 0; i < nAttributes; i++ ) {
-					strName = root.GetAttributeName(i);
-					strValue = root.GetAttributeValue(i);
+				for (pugi::xml_attribute attr : root.attributes()) {
+					strName = attr.name();
+					strValue = attr.value();
 					if( strName == _T("size") ) {
 						LPTSTR pstr = NULL;
 						int cx = _tcstol(strValue.c_str(), &pstr, 10);	ASSERT(pstr);    
@@ -245,18 +264,17 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
 		}
 
 		if( strClass == _T("Global") ) {
-			for( CMarkupNode node = root.GetChild() ; node.IsValid(); node = node.GetSibling() ) {
-				strClass = node.GetName();
+			for(pugi::xml_node node : root.children()) {
+				strClass = node.name();
 				if( strClass == _T("Image") ) {
 					ASSERT(FALSE);	//废弃
 				}
 				else if (strClass == _T("FontResource")) {
-					int nAttributes = node.GetAttributeCount();
 					std::wstring strFontFile;
 					std::wstring strFontName;
-					for (int i = 0; i < nAttributes; i++) {
-						strName = node.GetAttributeName(i);
-						strValue = node.GetAttributeValue(i);
+					for (pugi::xml_attribute attr : node.attributes()) {
+						strName = attr.name();
+						strValue = attr.value();
 						if (strName == _T("file")) {
 							strFontFile = strValue;
 						}
@@ -268,8 +286,7 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
 						FontManager::GetInstance()->AddFontResource(strFontFile, strFontName);
 					}
 				}
-				else if( strClass == _T("Font") ) {
-					int nAttributes = node.GetAttributeCount();
+				else if( strClass == _T("Font") ) {					
 					std::wstring strFontId;
 					std::wstring strFontName;
 					int size = 12;
@@ -279,9 +296,9 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
 					bool strikeout = false;
 					bool italic = false;
 					bool isDefault = false;
-					for( int i = 0; i < nAttributes; i++ ) {
-						strName = node.GetAttributeName(i);
-						strValue = node.GetAttributeValue(i);
+					for (pugi::xml_attribute attr : node.attributes()) {
+						strName = attr.name();
+						strValue = attr.value();
 						if (strName == _T("id"))
 						{
 							strFontId = strValue;
@@ -316,12 +333,11 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
 					}
 				}
 				else if( strClass == _T("Class") ) {
-					int nAttributes = node.GetAttributeCount();
 					std::wstring strClassName;
 					std::wstring strAttribute;
-					for( int i = 0; i < nAttributes; i++ ) {
-						strName = node.GetAttributeName(i);
-						strValue = node.GetAttributeValue(i);
+					for (pugi::xml_attribute attr : node.attributes()) {
+						strName = attr.name();
+						strValue = attr.value();
 						if( strName == _T("name") ) {
 							strClassName = strValue;
 						}
@@ -342,12 +358,11 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
 					}
 				}
 				else if( strClass == _T("TextColor") ) {
-					int nAttributes = node.GetAttributeCount();
 					std::wstring strColorName;
 					std::wstring strColor;
-					for( int i = 0; i < nAttributes; i++ ) {
-						strName = node.GetAttributeName(i);
-						strValue = node.GetAttributeValue(i);
+					for (pugi::xml_attribute attr : node.attributes()) {
+						strName = attr.name();
+						strValue = attr.value();
 						if( strName == _T("name") ) {
 							strColorName = strValue;
 						}
@@ -363,15 +378,14 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
 		}
 		else if ( strClass == _T("Window") )
 		{
-			for( CMarkupNode node = root.GetChild() ; node.IsValid(); node = node.GetSibling() ) {
-				strClass = node.GetName();
-				if( strClass == _T("Class") ) {
-					int nAttributes = node.GetAttributeCount();
+			for (pugi::xml_node node : root.children()) {
+				strClass = node.name();
+				if( strClass == _T("Class") ) {					
 					std::wstring strClassName;
 					std::wstring strAttribute;
-					for( int i = 0; i < nAttributes; i++ ) {
-						strName = node.GetAttributeName(i);
-						strValue = node.GetAttributeValue(i);
+					for (pugi::xml_attribute attr : node.attributes()) {
+						strName = attr.name();
+						strValue = attr.value();
 						if( strName == _T("name") ) {
 							strClassName = strValue;
 						}
@@ -393,12 +407,11 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
 					}
 				}
 				else if (strClass == _T("TextColor")) {
-					int nAttributes = node.GetAttributeCount();
 					std::wstring strColorName;
 					std::wstring strColor;
-					for (int i = 0; i < nAttributes; i++) {
-						strName = node.GetAttributeName(i);
-						strValue = node.GetAttributeValue(i);
+					for (pugi::xml_attribute attr : node.attributes()) {
+						strName = attr.name();
+						strValue = attr.value();
 						if (strName == _T("name")) {
 							strColorName = strValue;
 						}
@@ -414,23 +427,26 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
 		}
 	}
 
-	for( CMarkupNode node = root.GetChild() ; node.IsValid(); node = node.GetSibling() ) {
-		std::wstring strClass = node.GetName();
+	for (pugi::xml_node node : root.children()) {
+		std::wstring strClass = node.name();
 		if (strClass == _T("Image") || strClass == _T("FontResource") || strClass == _T("Font")
 			|| strClass == _T("Class") || strClass == _T("TextColor") ) {
 
 		}
 		else {
 			if (!pUserDefinedBox) {
-				return (Box*)_Parse(&root, pParent, pWindow);
+				return (Box*)ParseXmlNode(root, pParent, pWindow);
 			}
 			else {
-				_Parse(&node, pUserDefinedBox, pWindow);
-
-				int nAttributes = node.GetAttributeCount();
-				for (int i = 0; i < nAttributes; i++) {
-					ASSERT(i == 0 || _tcscmp(node.GetAttributeName(i), _T("class")) != 0);	//class必须是第一个属性
-					pUserDefinedBox->SetAttribute(node.GetAttributeName(i), node.GetAttributeValue(i));
+				ParseXmlNode(node, pUserDefinedBox, pWindow);
+				int i = 0;
+				for (pugi::xml_attribute attr : node.attributes()) {					
+					if (_tcscmp(attr.name(), _T("class")) == 0) {
+						//class必须是第一个属性
+						ASSERT(i == 0);
+					}
+					++i;
+					pUserDefinedBox->SetAttribute(attr.name(), attr.value());
 				}
 				return pUserDefinedBox;
 			}
@@ -440,15 +456,14 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
 	return nullptr;
 }
 
-Control* WindowBuilder::_Parse(CMarkupNode* pRoot, Control* pParent, Window* pWindow)
+Control* WindowBuilder::ParseXmlNode(pugi::xml_node& parent, Control* pParent, Window* pWindow)
 {
-	ASSERT(pRoot != nullptr);
-	if (pRoot == nullptr) {
+	if (parent.empty()) {
 		return nullptr;
 	}
     Control* pReturn = NULL;
-    for( CMarkupNode node = pRoot->GetChild() ; node.IsValid(); node = node.GetSibling() ) {
-        std::wstring strClass = node.GetName();
+	for (pugi::xml_node node : parent.children()) {
+		std::wstring strClass = node.name();
 		if( (strClass == L"Image") || 
 			(strClass == L"Font")  ||
 			(strClass == L"Class") || 
@@ -458,23 +473,20 @@ Control* WindowBuilder::_Parse(CMarkupNode* pRoot, Control* pParent, Window* pWi
 
         Control* pControl = NULL;
         if (strClass == L"Include") {
-			if (!node.HasAttributes()) {
+			if (node.attributes().empty()) {
 				continue;
 			}
-            int nCount = 1;
-            LPTSTR pstr = NULL;
-            TCHAR szValue[500] = { 0 };
-            SIZE_T cchLen = sizeof(szValue)/sizeof(szValue[0]) - 1;
-			if (node.GetAttributeValue(L"count", szValue, cchLen)) {
-				nCount = _tcstol(szValue, &pstr, 10);
-			}
-            cchLen = sizeof(szValue) / sizeof(szValue[0]) - 1;
-			if (!node.GetAttributeValue(L"source", szValue, cchLen)) {
+			pugi::xml_attribute countAttr = node.attribute(L"count");
+			int nCount = countAttr.as_int();
+
+			pugi::xml_attribute sourceAttr = node.attribute(L"source");
+			std::wstring sourceValue = sourceAttr.as_string();
+			if (sourceValue.empty()) {
 				continue;
 			}
             for ( int i = 0; i < nCount; i++ ) {
                 WindowBuilder builder;
-                pControl = builder.Create(szValue, m_createControlCallback, pWindow, (Box*)pParent);
+                pControl = builder.Create(sourceValue, m_createControlCallback, pWindow, (Box*)pParent);
             }
             continue;
         }
@@ -524,17 +536,18 @@ Control* WindowBuilder::_Parse(CMarkupNode* pRoot, Control* pParent, Window* pWi
 
 		pControl->SetWindow(pWindow);
 		// Add children
-		if (node.HasChildren()) {
-			_Parse(&node, (Box*)pControl, pWindow);
+		if (!node.children().empty()) {
+			ParseXmlNode(node, (Box*)pControl, pWindow);
 		}
 
 		// Process attributes
-		if( node.HasAttributes() ) {
+		if(!node.attributes().empty()) {
 			// Set ordinary attributes
-			int nAttributes = node.GetAttributeCount();
-			for( int i = 0; i < nAttributes; i++ ) {
-				ASSERT(i == 0 || _tcscmp(node.GetAttributeName(i), L"class") != 0);	//class必须是第一个属性
-				pControl->SetAttribute(node.GetAttributeName(i), node.GetAttributeValue(i));
+			int i = 0;
+			for (pugi::xml_attribute attr : node.attributes()) {
+				ASSERT(i == 0 || _tcscmp(attr.name(), L"class") != 0);	//class必须是第一个属性
+				++i;
+				pControl->SetAttribute(attr.name(), attr.value());
 			}
 		}
 
@@ -626,24 +639,25 @@ Control* WindowBuilder::CreateControlByClass(const std::wstring& strControlClass
 	return pControl;
 }
 
-void WindowBuilder::AttachXmlEvent(bool bBubbled, CMarkupNode& node, Control* pParent)
+void WindowBuilder::AttachXmlEvent(bool bBubbled, pugi::xml_node& node, Control* pParent)
 {
 	ASSERT(pParent != nullptr);
 	if (pParent == nullptr) {
 		return;
 	}
-	auto nAttributes = node.GetAttributeCount();
 	std::wstring strType;
 	std::wstring strReceiver;
 	std::wstring strApplyAttribute;
 	std::wstring strName;
 	std::wstring strValue;
-	for( int i = 0; i < nAttributes; i++ ) {
-		strName = node.GetAttributeName(i);
-		strValue = node.GetAttributeValue(i);
+	int i = 0;
+	for (pugi::xml_attribute attr : node.attributes()) {
+		strName = attr.name();
+		strValue = attr.value();
 		ASSERT(i != 0 || strName == _T("type"));
 		ASSERT(i != 1 || strName == _T("receiver"));
 		ASSERT(i != 2 || strName == _T("applyattribute"));
+		++i;
 		if( strName == _T("type") ) {
 			strType = strValue;
 		}
