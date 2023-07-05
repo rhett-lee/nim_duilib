@@ -14,6 +14,10 @@ public:
 	Render_GdiPlus();
 	virtual ~Render_GdiPlus();
 
+	/** 获取Render实现类型
+	*/
+	virtual RenderType GetRenderType() const override;
+
 	virtual bool Resize(int width, int height) override;
 	virtual void Clear() override;
 	virtual std::unique_ptr<IRender> Clone() override;

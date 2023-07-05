@@ -335,6 +335,11 @@ void Window::ActiveWindow()
 	}
 }
 
+bool Window::IsWindowMaximized() const
+{
+	return ::IsWindow(m_hWnd) && ::IsZoomed(m_hWnd);
+}
+
 void Window::SetIcon(UINT nRes)
 {
 	ASSERT(::IsWindow(m_hWnd));
@@ -719,16 +724,27 @@ const UiSize& Window::GetRoundCorner() const
 
 void Window::SetRoundCorner(int cx, int cy)
 {
+	ASSERT(cx >= 0);
+	ASSERT(cy >= 0);
+	if ((cx < 0) || (cy < 0)) {
+		return;
+	}
+	//两个参数要么同时等于0，要么同时大于0，否则参数无效
+	ASSERT( ((cx > 0) && (cy > 0)) || ((cx == 0) && (cy == 0)));
+	if (cx == 0) {
+		if (cy != 0) {
+			return;
+		}
+	}
+	else {
+		if (cy == 0) {
+			return;
+		}
+	}
 	DpiManager::GetInstance()->ScaleInt(cx);
 	DpiManager::GetInstance()->ScaleInt(cy);
 	m_szRoundCorner.cx = cx;
 	m_szRoundCorner.cy = cy;
-	if (m_szRoundCorner.cx < 0) {
-		m_szRoundCorner.cx = 0;
-	}
-	if (m_szRoundCorner.cy < 0) {
-		m_szRoundCorner.cy = 0;
-	}
 }
 
 const UiRect& Window::GetMaximizeInfo() const
@@ -1297,7 +1313,9 @@ LRESULT Window::OnSizeMsg(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/, bool& bHa
 	ASSERT_UNUSED_VARIABLE(uMsg == WM_SIZE);
 	bHandled = false;
 	UiSize szRoundCorner = GetRoundCorner();
-	if (!::IsIconic(GetHWND()) && (szRoundCorner.cx > 0 || szRoundCorner.cy > 0)) {
+	bool isIconic = ::IsIconic(GetHWND());
+	if (!isIconic && (wParam != SIZE_MAXIMIZED) && (szRoundCorner.cx > 0 && szRoundCorner.cy > 0)) {
+		//最大化、最小化时，均不设置圆角RGN，只有普通状态下设置
 		UiRect rcWnd;
 		::GetWindowRect(GetHWND(), &rcWnd);
 		rcWnd.Offset(-rcWnd.left, -rcWnd.top);
@@ -1305,7 +1323,11 @@ LRESULT Window::OnSizeMsg(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/, bool& bHa
 		rcWnd.bottom++;
 		HRGN hRgn = ::CreateRoundRectRgn(rcWnd.left, rcWnd.top, rcWnd.right, rcWnd.bottom, szRoundCorner.cx, szRoundCorner.cy);
 		::SetWindowRgn(GetHWND(), hRgn, TRUE);
-		::DeleteObject(hRgn);
+		::DeleteObject(hRgn);//TODO: 检查是否需要删除，按MSDN说法，是不需要删除的。
+	}
+	else if (!isIconic) {
+		//不需要设置RGN的时候，清除原RGN设置，避免最大化以后显示不正确
+		::SetWindowRgn(GetHWND(), NULL, TRUE);
 	}
 	if (m_pRoot != nullptr) {
 		m_pRoot->Arrange();
@@ -2093,12 +2115,21 @@ void Window::Paint()
 		m_render->ClearAlpha(rcPaint);
 	}
 
-	// 绘制
-	AutoClip rectClip(m_render.get(), rcPaint, true);
-	UiPoint ptOldWindOrg = m_render->OffsetWindowOrg(m_renderOffset);
-	m_pRoot->Paint(m_render.get(), rcPaint);
-	m_pRoot->PaintChild(m_render.get(), rcPaint);
-	m_render->SetWindowOrg(ptOldWindOrg);
+	// 绘制	
+	if (m_pRoot->IsVisible()) {
+		AutoClip rectClip(m_render.get(), rcPaint, true);
+		UiPoint ptOldWindOrg = m_render->OffsetWindowOrg(m_renderOffset);
+		m_pRoot->Paint(m_render.get(), rcPaint);
+		m_pRoot->PaintChild(m_render.get(), rcPaint);
+		m_render->SetWindowOrg(ptOldWindOrg);
+	}
+	else {
+		UiColor bkColor = UiColor(UiColor::LightGray);
+		if (!m_pRoot->GetBkColor().empty()) {
+			bkColor = m_pRoot->GetWindowColor(m_pRoot->GetBkColor());
+		}
+		m_render->FillRect(rcPaint, bkColor);
+	}
 
 	// alpha修复
 	if (m_bIsLayeredWindow) {
@@ -2235,7 +2266,9 @@ void Window::SetRenderOffsetY(int renderOffsetY)
 void Window::OnInitLayout()
 {
 	if ((m_pRoot != nullptr) && IsWindowsVistaOrGreater()) {
-		m_pRoot->SetFadeVisible(true);
+		if (m_pRoot->IsVisible()) {
+			m_pRoot->SetFadeVisible(true);
+		}		
 	}
 }
 

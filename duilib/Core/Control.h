@@ -19,6 +19,7 @@ namespace ui
 	class StateImageMap;
 	class AnimationManager;
 	class IRender;
+	class IPath;
 
 	typedef Control* (CALLBACK* FINDCONTROLPROC)(Control*, LPVOID);
 
@@ -1003,22 +1004,48 @@ private:
 	void BroadcastGifEvent(int nVirtualEvent);
 	size_t GetGifFrameIndex(GifStopType frame);
 
-	/** 绘制边框
+	/** 绘制边框：根据条件判断绘制圆角矩形边框还是普通矩形边框
 	*/
-	static void PaintBorders(IRender* pRender, UiRect rcDraw, 
-		                     int nBorderSize, UiSize cxyBorderRound, UiColor dwBorderColor);
+	void PaintBorders(IRender* pRender, UiRect rcDraw, 
+		              int nBorderSize, UiColor dwBorderColor) const;
 
-	/** 判断是否为圆角矩形
+	/** 绘制圆角矩形
 	*/
-	bool IsRoundRect() const;
+	void DrawRoundRect(IRender* pRender, const UiRect& rc, const UiSize& roundSize, UiColor dwBorderColor, int nBorderSize) const;
+
+	/** 填充圆角矩形
+	*/
+	void FillRoundRect(IRender* pRender, const UiRect& rc, const UiSize& roundSize, UiColor dwColor) const;
+
+	/** 填充路径, 形成圆角矩形
+	*/
+	void AddRoundRectPath(IPath* path, const UiRect& rc, const UiSize& roundSize) const;
+
+	/** 当前控件是否为窗口的Root节点
+	*/
+	bool IsRootBox() const;
+
+	/** 当前Window是否为圆角的(用于确定是否采用与Windows一样的圆角绘制方式)
+	*/
+	bool IsWindowRoundRect() const;
+
+	/** 判断是否需要采用圆角矩形绘制边框
+	*/
+	bool ShouldBeRoundRectBorders() const;
+
+public:
+	/** 判断是否需要采用圆角矩形填充背景色
+	*/
+	bool ShouldBeRoundRectFill() const;
 
 private:
 	//控件的外边距属性（上，下，左，右边距）
 	UiRect m_rcMargin;
 
 private:
-	//边框圆角大小（与m_rcBorderSize联合应用）或者阴影的圆角大小（与m_boxShadow联合应用）
-	//仅当m_rcBorderSize四个边框都设置，并且边框大小相同时有效
+	/** 边框圆角大小(与m_rcBorderSize联合应用)或者阴影的圆角大小(与m_boxShadow联合应用)
+	    仅当 m_rcBorderSize 四个边框值都有效, 并且都相同时
+	*/
 	UiSize m_cxyBorderRound;
 
 	//控件阴影，其圆角大小通过m_cxyBorderRound变量控制

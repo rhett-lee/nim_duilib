@@ -14,6 +14,11 @@ class Control;
 class UILIB_API Shadow
 {
 public:
+	/** Attach的Box圆角属性（Attach后，需要修改原来Box的圆角属性）
+	*/
+	static UiSize GetChildBoxBorderRound();
+
+public:
 	Shadow();
 
 	/** 设置是否支持阴影效果

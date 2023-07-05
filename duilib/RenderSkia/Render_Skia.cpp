@@ -85,6 +85,11 @@ Render_Skia::~Render_Skia()
 	}
 }
 
+RenderType Render_Skia::GetRenderType() const
+{
+	return RenderType::kRenderType_Skia;
+}
+
 bool Render_Skia::Resize(int width, int height)
 {
 	ASSERT((width > 0) && (height > 0));

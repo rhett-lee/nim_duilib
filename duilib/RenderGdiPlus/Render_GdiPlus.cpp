@@ -57,6 +57,11 @@ Render_GdiPlus::~Render_GdiPlus()
 	}
 }
 
+RenderType Render_GdiPlus::GetRenderType() const
+{
+	return RenderType::kRenderType_GdiPlus;
+}
+
 HDC Render_GdiPlus::GetDC()
 {
 	return m_hDC;

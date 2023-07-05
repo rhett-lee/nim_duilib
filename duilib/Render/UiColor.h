@@ -15,7 +15,7 @@ class UILIB_API UiColor
 public:
 
     //颜色值类型
-    typedef DWORD ARGB;
+    typedef uint32_t ARGB;
 
     UiColor():
         Argb(0)
@@ -35,6 +35,11 @@ public:
     explicit UiColor(ARGB argb)
     {
         Argb = argb;
+    }
+
+    explicit UiColor(int32_t argb)
+    {
+        Argb = (ARGB)argb;
     }
 
     uint8_t GetAlpha() const

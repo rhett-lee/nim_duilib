@@ -1,4 +1,6 @@
 #include "ShadowWnd.h"
+#include "duilib/Core/Box.h"
+#include "duilib/Utils/Shadow.h"
 
 namespace ui {
 
@@ -36,7 +38,6 @@ std::wstring ShadowWndBase::GetSkinFolder()
 
 std::wstring ShadowWndBase::GetSkinFile()
 {
-	//内置XML文件内容，不使用文件，已简化管理
 	return L"public/shadow/shadow.xml";
 }
 
@@ -63,6 +64,10 @@ LRESULT ShadowWndBase::FilterMessage(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/
 		case WM_ERASEBKGND:
 		case WM_PAINT:
 		case WM_MOVE:
+		case WM_SIZE:
+		case WM_SIZING:
+		case WM_WINDOWPOSCHANGING:
+		case WM_WINDOWPOSCHANGED:
 		case WM_ACTIVATE:
 		case WM_NCACTIVATE:
 			if (m_isFirstPainted || (uMsg == WM_PAINT)) {
@@ -126,7 +131,7 @@ HWND ShadowWnd::CreateWnd(HWND hwndParent, const wchar_t* windowName, uint32_t d
 		if (::IsWindowVisible(GetHWND())) {
 			m_pShadowWnd->ShowWindow();
 		}
-	}		
+	}
 	return GetHWND();
 }
 
@@ -146,6 +151,11 @@ Box* ShadowWnd::AttachShadow(Box* pRoot)
 		//不附加默认的阴影，而是创建自己的透明窗口，作为阴影
 		m_pShadowWnd = new ShadowWndBase;
 		AddMessageFilter(m_pShadowWnd);
+
+		//外置的阴影窗口需要将原窗口设置为圆角，避免圆角处出现黑色背景
+		UiSize borderRound = Shadow::GetChildBoxBorderRound();
+		SetRoundCorner(borderRound.cx, borderRound.cy);
+		pRoot->SetBorderRound(borderRound);
 		return pRoot;
 	}
 }

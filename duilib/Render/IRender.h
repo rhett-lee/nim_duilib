@@ -329,9 +329,21 @@ enum UILIB_API DrawStringFormat
 	TEXT_NOCLIP			= DT_NOCLIP,
 };
 
+/** Render类型
+*/
+enum class RenderType
+{
+	kRenderType_Skia = 0,
+	kRenderType_GdiPlus = 1
+};
+
 class UILIB_API IRender : public virtual nbase::SupportWeakCallback
 {
 public:
+	/** 获取Render实现类型
+	*/
+	virtual RenderType GetRenderType() const = 0;
+
 	/** 获取画布宽度
 	*/
 	virtual int	GetWidth() = 0;

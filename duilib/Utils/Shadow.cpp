@@ -1,6 +1,8 @@
 #include "Shadow.h"
 #include "duilib/Core/Box.h"
+#include "duilib/Core/Window.h"
 #include "duilib/Utils/DpiManager.h"
+#include "duilib/Render/IRender.h"
 
 namespace ui 
 {
@@ -12,14 +14,77 @@ public:
 
 	virtual void Paint(IRender* pRender, const UiRect& rcPaint) override
 	{
-		// 作为阴影，中间部分是空的，不需要处理重绘
-		auto rcPos = GetPaddingPos();
+		if (pRender == nullptr) {
+			return;
+		}		
+		UiRect rcPos = GetPaddingPos();		
 		if (rcPaint.left >= rcPos.left && rcPaint.top >= rcPos.top && rcPaint.right <= rcPos.right && rcPaint.bottom <= rcPos.bottom) {
+			//作为阴影，中间部分是空的，不需要处理重绘, 只填充圆角空隙
+			FillRoundRect(pRender, rcPos);
 			return;
 		}
-		__super::Paint(pRender, rcPaint);
+		else {
+			__super::Paint(pRender, rcPaint);
+			FillRoundRect(pRender, rcPos);
+		}
 	};
+
+	/** 当Box有圆角的时候，四个角采用填充色绘制背景，避免出现黑色背景
+	*/
+	void FillRoundRect(IRender* pRender, const UiRect& rcPos)
+	{
+		Control* pChildBox = GetItemAt(0);
+		if (pChildBox == nullptr) {
+			return;
+		}
+		if (!pChildBox->IsVisible() || !pChildBox->ShouldBeRoundRectFill()) {
+			//如果不是圆角的，或者不可见的，就需要不填充
+			return;
+		}
+		UiSize borderRound = pChildBox->GetBorderRound();
+		const int nRectSize = std::max(borderRound.cx, borderRound.cy);
+		if (nRectSize <= 0) {
+			return;
+		}
+
+		uint8_t uFade = 0xFF;
+		Window* pWindow = GetWindow();
+		if ((pWindow != nullptr) && (pWindow->IsLayeredWindow())) {
+			uFade = pWindow->GetWindowAlpha();
+		}
+
+		if (pChildBox->GetAlpha() != 0xFF) {
+			uFade = static_cast<uint8_t>((int32_t)uFade * pChildBox->GetAlpha() / 0xFF);
+		}
+		
+		UiRect fillRect;
+		//左上角
+		fillRect = UiRect(rcPos.left, rcPos.top, rcPos.left + nRectSize, rcPos.top + nRectSize);
+		pRender->FillRect(fillRect, m_bkColor, uFade);
+
+		//右上角
+		fillRect = UiRect(rcPos.right - nRectSize, rcPos.top, rcPos.right, rcPos.top + nRectSize);
+		pRender->FillRect(fillRect, m_bkColor, uFade);
+
+		//左下角
+		fillRect = UiRect(rcPos.left, rcPos.bottom - nRectSize, rcPos.left + nRectSize, rcPos.bottom);
+		pRender->FillRect(fillRect, m_bkColor, uFade);
+
+		//右下角
+		fillRect = UiRect(rcPos.right - nRectSize, rcPos.bottom - nRectSize, rcPos.right, rcPos.bottom);
+		pRender->FillRect(fillRect, m_bkColor, uFade);
+	}
+
+private:
+	/** 背景色
+	*/
+	UiColor m_bkColor = UiColor(UiColor::LightGray);
 };
+
+UiSize Shadow::GetChildBoxBorderRound()
+{
+	return { 3, 3 };
+}
 
 Shadow::Shadow():
 	m_bShadowAttached(true),
@@ -120,8 +185,7 @@ Box* Shadow::AttachShadow(Box* pRoot)
 	m_pRoot->SetFixedHeight(rootHeight, false);
 
 	if (m_bUseDefaultImage)	{
-		UiSize size(3, 3);
-		pRoot->SetBorderRound(size);
+		pRoot->SetBorderRound(Shadow::GetChildBoxBorderRound());
 	}
 
 	m_pRoot->AddItem(pRoot);
@@ -139,28 +203,10 @@ void Shadow::MaximizedOrRestored(bool isMaximized)
 	if (isMaximized && m_pRoot) {
 		m_rcShadowCorner = UiRect(0, 0, 0, 0);
 		m_pRoot->GetLayout()->SetPadding(m_rcShadowCorner, false);
-
-		if (m_bUseDefaultImage)
-		{
-			Control* control = m_pRoot->GetItemAt(0);
-			if (control != nullptr) {
-				UiSize size(0, 0);
-				control->SetBorderRound(size);
-			}			
-		}
 	}
 	else if (!isMaximized && m_pRoot) {
 		m_rcShadowCorner = m_rcShadowCornerBackup;
 		m_pRoot->GetLayout()->SetPadding(m_rcShadowCorner, false);
-
-		if (m_bUseDefaultImage)
-		{
-			Control* control = m_pRoot->GetItemAt(0);
-			if (control != nullptr) {
-				UiSize size(3, 3);
-				control->SetBorderRound(size);
-			}			
-		}
 	}
 }
 
