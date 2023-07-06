@@ -246,6 +246,9 @@
     <ClCompile Include="third_party\xml\pugixml.cpp">
       <Filter>third_party\xml</Filter>
     </ClCompile>
+    <ClCompile Include="Control\RichText.cpp">
+      <Filter>Control</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -508,6 +511,9 @@
     </ClInclude>
     <ClInclude Include="third_party\xml\pugixml.hpp">
       <Filter>third_party\xml</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\RichText.h">
+      <Filter>Control</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

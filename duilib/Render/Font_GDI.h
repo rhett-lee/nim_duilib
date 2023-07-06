@@ -34,9 +34,8 @@ public:
         }
     }
 
-    /**@brief 获得字体的LOGFONT
-     */
-    virtual const LOGFONT* LogFont() const override { return &m_logFont; }
+    Font_GDI(const Font_GDI&) = delete;
+    Font_GDI& operator=(const Font_GDI&) = delete;
 
     /**@brief 获取字体名
      */
@@ -69,19 +68,6 @@ public:
     /**@brief 字体的删除线状态
      */
     virtual bool IsStrikeOut() const override { return m_logFont.lfStrikeOut; }
-
-    /** 设置字体信息
-    */
-    virtual bool UpdateFont(const LOGFONT& logFont) override
-    {
-        if (m_hFont != nullptr) {
-            ::DeleteObject(m_hFont);
-            m_hFont = nullptr;
-        }        
-        memcpy(&m_logFont, &logFont, sizeof(LOGFONT));
-        m_hFont = ::CreateFontIndirect(&m_logFont);
-        return (m_hFont != nullptr);
-    }
 
     /** 获取字体句柄
     */

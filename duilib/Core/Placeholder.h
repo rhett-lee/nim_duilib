@@ -218,6 +218,10 @@ public:
 	*/
 	void SetRect(const UiRect& rc);
 
+	/**@brief 重绘控件
+	*/
+	virtual void Invalidate();
+
 	/**@brief 进行布局重排
 	 */
 	virtual void Arrange();
@@ -225,6 +229,10 @@ public:
 	/**@brief 让父容器重排
 	 */
 	virtual void ArrangeAncestor();
+
+	/** 根据控件属性，判断需要重排布局或者只是重绘
+	*/
+	void RelayoutOrRedraw();
 
 	/**@brief 判断是否已经排列过
 	 */
@@ -249,10 +257,6 @@ public:
 	/**@brief 判断缓存脏标志位值
 	 */
 	bool IsCacheDirty() { return m_bCacheDirty; }
-
-	/**@brief 重绘控件
-	 */
-	virtual void Invalidate();
 
 	/**@brief 获取控件实际的位置（布局位置加外层滚动后的偏移位置）
 	 * @param[in] bContainShadow 是否考虑窗口阴影尺寸

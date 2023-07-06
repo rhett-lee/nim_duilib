@@ -10,6 +10,7 @@
 #include "duilib/Control/Progress.h"
 #include "duilib/Control/CircleProgress.h"
 #include "duilib/Control/RichEdit.h"
+#include "duilib/Control/RichText.h"
 #include "duilib/Control/VirtualListBox.h"
 #include "duilib/Control/VirtualTileBox.h"
 #include "duilib/Control/DateTime.h"
@@ -456,13 +457,13 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
 	return nullptr;
 }
 
-Control* WindowBuilder::ParseXmlNode(pugi::xml_node& parent, Control* pParent, Window* pWindow)
+Control* WindowBuilder::ParseXmlNode(const pugi::xml_node& xmlNode, Control* pParent, Window* pWindow)
 {
-	if (parent.empty()) {
+	if (xmlNode.empty()) {
 		return nullptr;
 	}
-    Control* pReturn = NULL;
-	for (pugi::xml_node node : parent.children()) {
+    Control* pReturn = nullptr;
+	for (pugi::xml_node node : xmlNode.children()) {
 		std::wstring strClass = node.name();
 		if( (strClass == L"Image") || 
 			(strClass == L"Font")  ||
@@ -471,7 +472,7 @@ Control* WindowBuilder::ParseXmlNode(pugi::xml_node& parent, Control* pParent, W
 				continue;
 		}
 
-        Control* pControl = NULL;
+        Control* pControl = nullptr;
         if (strClass == L"Include") {
 			if (node.attributes().empty()) {
 				continue;
@@ -502,17 +503,18 @@ Control* WindowBuilder::ParseXmlNode(pugi::xml_node& parent, Control* pParent, W
 			}
 
             // User-supplied control factory
-            if( pControl == NULL ) {
+            if( pControl == nullptr) {
 				pControl = GlobalManager::CreateControl(strClass);
             }
 
-            if( pControl == NULL && m_createControlCallback ) {
+            if( pControl == nullptr && m_createControlCallback ) {
                 pControl = m_createControlCallback(strClass);
             }
         }
 
-		if( pControl == NULL ) {
-			ASSERT(FALSE);
+		if(pControl == nullptr) {
+			std::wstring nodeName = strClass;
+			ASSERT(!"Found unknown node name, can't create control!");
 			continue;
 		}
 
@@ -535,14 +537,10 @@ Control* WindowBuilder::ParseXmlNode(pugi::xml_node& parent, Control* pParent, W
 		}
 
 		pControl->SetWindow(pWindow);
-		// Add children
-		if (!node.children().empty()) {
-			ParseXmlNode(node, (Box*)pControl, pWindow);
-		}
-
+		
 		// Process attributes
 		if(!node.attributes().empty()) {
-			// Set ordinary attributes
+			//读取节点的属性，设置控件的属性
 			int i = 0;
 			for (pugi::xml_attribute attr : node.attributes()) {
 				ASSERT(i == 0 || _tcscmp(attr.name(), L"class") != 0);	//class必须是第一个属性
@@ -551,12 +549,34 @@ Control* WindowBuilder::ParseXmlNode(pugi::xml_node& parent, Control* pParent, W
 			}
 		}
 
+		if (strClass == DUI_CTR_RICHTEXT) {
+			ParseRichTextXmlNode(node, pControl);
+#ifdef _DEBUG
+			//测试效果：反向生成带格式的文本，用于测试验证解析的正确性
+			RichText* pRichText = dynamic_cast<RichText*>(pControl);
+			std::wstring richText;
+			if (pRichText) {
+				richText = pRichText->ToString();
+			}
+			richText.clear();
+#endif
+		}
+		else {
+			// Add children
+			if (!node.children().empty()) {
+				//递归该节点的所有子节点，继续添加
+				ParseXmlNode(node, (Box*)pControl, pWindow);
+			}
+		}
+
 		// Attach to parent
         // 因为某些属性和父窗口相关，比如selected，必须先Add到父窗口
-		if (pParent != NULL && strClass != DUI_CTR_TREENODE) {
+		if (pParent != nullptr && strClass != DUI_CTR_TREENODE) {
 			Box* pContainer = dynamic_cast<Box*>(pParent);
-			ASSERT(pContainer);
-			if( pContainer == NULL ) return NULL;
+			ASSERT(pContainer != nullptr);
+			if (pContainer == nullptr) {
+				return nullptr;
+			}
 			if( !pContainer->AddItem(pControl) ) {
 				ASSERT(FALSE);
 				delete pControl;
@@ -570,6 +590,109 @@ Control* WindowBuilder::ParseXmlNode(pugi::xml_node& parent, Control* pParent, W
 		}
     }
     return pReturn;
+}
+
+bool WindowBuilder::ParseRichTextXmlText(const std::wstring& xmlText, Control* pControl)
+{
+	pugi::xml_document doc;
+	pugi::xml_parse_result result = doc.load_buffer(xmlText.c_str(),
+													xmlText.size() * sizeof(std::wstring::value_type),
+													pugi::parse_default,
+													pugi::xml_encoding::encoding_utf16);
+	if (result.status != pugi::status_ok) {
+		ASSERT(!L"WindowBuilder::ParseRichTextXmlText load xml text failed!");
+		return false;
+	}
+	pugi::xml_node root = doc.root();
+	std::wstring rootName = root.name();
+	std::wstring rootValue = root.value();
+	if (rootName.empty() && rootValue.empty()) {
+		root = doc.root().first_child();
+	}
+	rootName = root.name();
+	ASSERT(rootName == DUI_CTR_RICHTEXT);
+	if (rootName != DUI_CTR_RICHTEXT) {
+		return false;
+	}
+	return ParseRichTextXmlNode(root, pControl, nullptr);
+}
+
+bool WindowBuilder::ParseRichTextXmlNode(const pugi::xml_node& xmlNode, Control* pControl, RichTextSlice* pTextSlice)
+{
+	RichText* pRichText = dynamic_cast<RichText*>(pControl);
+	ASSERT(pRichText != nullptr);
+	if (pRichText == nullptr) {
+		return false;
+	}
+
+	for (pugi::xml_node node : xmlNode.children()) {
+		RichTextSlice textSlice;
+		textSlice.m_nodeName = node.name();
+		const std::wstring& nodeName = textSlice.m_nodeName;
+
+		bool bParseChildren = true;
+		if (nodeName.empty()) {
+			std::wstring nodeValue = node.value();
+			if (!nodeValue.empty()) {
+				textSlice.m_text = nodeValue;
+				StringHelper::Trim(textSlice.m_text);
+			}
+			//无节点名称，只读取文本内容, 不需要递归遍历子节点
+			bParseChildren = false;
+		}		
+		else if (nodeName == L"a") {			
+			textSlice.m_text = node.first_child().value();
+			textSlice.m_linkUrl = node.attribute(L"href").as_string();
+			StringHelper::Trim(textSlice.m_text);
+			StringHelper::Trim(textSlice.m_linkUrl);
+			//超级链接节点, 不需要递归遍历子节点
+			bParseChildren = false;
+		}
+		else if (nodeName == L"b") {
+			//粗体字
+			textSlice.m_fontInfo.m_bBold = true;
+		}
+		else if (nodeName == L"i") {
+			//斜体字
+			textSlice.m_fontInfo.m_bItalic = true;
+		}
+		else if ((nodeName == L"del") || (nodeName == L"s") || (nodeName == L"strike")) {
+			//删除字
+			textSlice.m_fontInfo.m_bStrikeOut = true;
+		}
+		else if ( (nodeName == L"ins") || (nodeName == L"u") ){
+			//下划线
+			textSlice.m_fontInfo.m_bUnderline = true;
+		}
+		else if (nodeName == L"bgcolor") {
+			//背景颜色
+			textSlice.m_bgColor = node.attribute(L"color").as_string();
+			StringHelper::Trim(textSlice.m_bgColor);
+		}
+		else if (nodeName == L"font") {
+			//字体设置：文本颜色
+			textSlice.m_textColor = node.attribute(L"color").as_string();
+			textSlice.m_fontInfo.m_fontName = node.attribute(L"face").as_string();
+			textSlice.m_fontInfo.m_fontSize = node.attribute(L"size").as_int();
+		}
+		else {
+			//遇到不认识的节点，忽略
+			ASSERT(!"Found unknown xml node name!");
+			continue;
+		}
+		if (bParseChildren) {
+			//递归子节点
+			ParseRichTextXmlNode(node, pRichText, &textSlice);
+		}
+		//将子节点添加到Control或者父节点(注意：std::move以后，textSlice对象失效)
+		if (pTextSlice != nullptr) {
+			pTextSlice->m_childs.emplace_back(std::move(textSlice));
+		}
+		else {
+			pRichText->AppendTextSlice(std::move(textSlice));
+		}
+	}
+	return true;
 }
 
 Control* WindowBuilder::CreateControlByClass(const std::wstring& strControlClass)
@@ -602,6 +725,7 @@ Control* WindowBuilder::CreateControlByClass(const std::wstring& strControlClass
 	case 8:
 		if( strControlClass == DUI_CTR_PROGRESS )               pControl = new Progress;
 		else if( strControlClass == DUI_CTR_RICHEDIT )          pControl = new RichEdit;
+		else if (strControlClass == DUI_CTR_RICHTEXT)           pControl = new RichText;
 		else if( strControlClass == DUI_CTR_CHECKBOX )			pControl = new CheckBox;
 		else if( strControlClass == DUI_CTR_TREEVIEW )			pControl = new TreeView;
 		else if( strControlClass == DUI_CTR_TREENODE )			pControl = new TreeNode;
@@ -639,7 +763,7 @@ Control* WindowBuilder::CreateControlByClass(const std::wstring& strControlClass
 	return pControl;
 }
 
-void WindowBuilder::AttachXmlEvent(bool bBubbled, pugi::xml_node& node, Control* pParent)
+void WindowBuilder::AttachXmlEvent(bool bBubbled, const pugi::xml_node& node, Control* pParent)
 {
 	ASSERT(pParent != nullptr);
 	if (pParent == nullptr) {

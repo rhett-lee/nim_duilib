@@ -257,12 +257,7 @@ void Slider::SetProgressBarPadding(UiRect rc)
 {
 	DpiManager::GetInstance()->ScaleRect(rc);
 	m_rcProgressBarPadding = rc;
-	if (GetFixedWidth() == DUI_LENGTH_AUTO || GetFixedHeight() == DUI_LENGTH_AUTO) {
-		ArrangeAncestor();
-	}
-	else {
-		Invalidate();
-	}
+	RelayoutOrRedraw();
 }
 
 }

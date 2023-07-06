@@ -261,13 +261,7 @@ void LabelTemplate<InheritType>::SetText(const std::wstring& strText)
         return;
     }
     m_sText = strText;
-
-    if (this->GetFixedWidth() == DUI_LENGTH_AUTO || this->GetFixedHeight() == DUI_LENGTH_AUTO) {
-        this->ArrangeAncestor();
-    }
-    else {
-        this->Invalidate();
-    }
+    this->RelayoutOrRedraw();
 	CheckShowToolTip();
 }
 
@@ -286,13 +280,7 @@ void LabelTemplate<InheritType>::SetTextId(const std::wstring& strTextId)
         return;
     }
     m_sTextId = strTextId;
-
-    if (this->GetFixedWidth() == DUI_LENGTH_AUTO || this->GetFixedHeight() == DUI_LENGTH_AUTO) {
-        this->ArrangeAncestor();
-    }
-    else {
-        this->Invalidate();
-    }
+    this->RelayoutOrRedraw();
     CheckShowToolTip();
 }
 
@@ -547,14 +535,14 @@ UiRect LabelTemplate<InheritType>::GetTextPadding() const
 template<typename InheritType>
 void LabelTemplate<InheritType>::SetTextPadding(UiRect rc)
 {
+    ASSERT((rc.left >= 0) && (rc.top >= 0) && (rc.right >= 0) && (rc.bottom >= 0));
+    if ((rc.left < 0) || (rc.top < 0) ||
+        (rc.right < 0) || (rc.bottom < 0)) {
+        return;
+    }
     DpiManager::GetInstance()->ScaleRect(rc);
     m_rcTextPadding = rc;
-    if (this->GetFixedWidth() == DUI_LENGTH_AUTO || this->GetFixedHeight() == DUI_LENGTH_AUTO) {
-        this->ArrangeAncestor();
-    }
-    else {
-        this->Invalidate();
-    }
+    this->RelayoutOrRedraw();
 }
 
 template<typename InheritType>

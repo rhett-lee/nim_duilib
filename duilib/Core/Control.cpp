@@ -128,12 +128,7 @@ void Control::SetBkImage(const std::wstring& strImage)
 	StopGifPlay();
 	m_bkImage->SetImageString(strImage);
 	m_bGifPlay = m_bkImage->GetImageAttribute().nPlayCount != 0;
-	if (GetFixedWidth() == DUI_LENGTH_AUTO || GetFixedHeight() == DUI_LENGTH_AUTO) {
-		ArrangeAncestor();
-	}
-	else {
-		Invalidate();
-	}
+	RelayoutOrRedraw();
 }
 
 void Control::SetUTF8BkImage(const std::string& strImage)
@@ -175,12 +170,7 @@ void Control::SetStateImage(ControlStateType stateType, const std::wstring& strI
 		m_animationManager->SetFadeHot(true);
 	}
 	m_imageMap->SetImageString(kStateImageBk, stateType, strImage);
-	if (GetFixedWidth() == DUI_LENGTH_AUTO || GetFixedHeight() == DUI_LENGTH_AUTO) {
-		ArrangeAncestor();
-	}
-	else {
-		Invalidate();
-	}
+	RelayoutOrRedraw();
 }
 
 std::wstring Control::GetForeStateImage(ControlStateType stateType)

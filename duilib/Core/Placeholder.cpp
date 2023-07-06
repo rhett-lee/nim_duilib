@@ -315,6 +315,18 @@ void PlaceHolder::Invalidate()
 	}
 }
 
+void PlaceHolder::RelayoutOrRedraw()
+{
+	if ((GetFixedWidth() == DUI_LENGTH_AUTO) || (GetFixedHeight() == DUI_LENGTH_AUTO)) {
+		//如果当前控件的宽高有的是AUTO的，需要父控件Box进行布局重排（一般在可能引起布局变化时调用），布局重排后会进行重绘
+		ArrangeAncestor();
+	}
+	else {
+		//仅仅进行重绘制
+		Invalidate();
+	}
+}
+
 UiRect PlaceHolder::GetPosWithScrollOffset(bool bContainShadow) const
 {
 	UiRect pos = GetPos(bContainShadow);

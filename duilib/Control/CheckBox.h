@@ -338,12 +338,7 @@ template<typename InheritType>
 void CheckBoxTemplate<InheritType>::SetSelectedStateImage(ControlStateType stateType, const std::wstring& pStrImage)
 {
     this->GetImageMap()->SetImageString(kStateImageSelectedBk, stateType, pStrImage);
-    if (this->GetFixedWidth() == DUI_LENGTH_AUTO || this->GetFixedHeight() == DUI_LENGTH_AUTO) {
-        this->ArrangeAncestor();
-    }
-    else {
-        this->Invalidate();
-    }
+    this->RelayoutOrRedraw();
 }
 
 template<typename InheritType>
@@ -411,12 +406,7 @@ template<typename InheritType>
 void CheckBoxTemplate<InheritType>::SetSelectedForeStateImage(ControlStateType stateType, const std::wstring& pStrImage)
 {
     this->GetImageMap()->SetImageString(kStateImageSelectedFore, stateType, pStrImage);
-    if (this->GetFixedWidth() == DUI_LENGTH_AUTO || this->GetFixedHeight() == DUI_LENGTH_AUTO) {
-        this->ArrangeAncestor();
-    }
-    else {
-        this->Invalidate();
-    }
+    this->RelayoutOrRedraw();
 }
 
 typedef CheckBoxTemplate<Control> CheckBox;

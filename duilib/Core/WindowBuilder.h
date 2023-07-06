@@ -21,6 +21,7 @@ namespace ui
 class Box;
 class Window;
 class Control;
+class RichTextSlice;
 
 /** 创建控件的回调函数
 */
@@ -56,11 +57,19 @@ public:
                 Box* pParent = nullptr, 
                 Box* pUserDefinedBox = nullptr);
 
+public:
+    /** 解析带格式的文本内容，并设置到RichText Control对象
+    */
+    static bool ParseRichTextXmlText(const std::wstring& xmlText, Control* pControl);
+    
+    /** 解析带格式的文本内容，并设置到RichText Control对象
+    */
+    static bool ParseRichTextXmlNode(const pugi::xml_node& xmlNode, Control* pControl, RichTextSlice* pTextSlice = nullptr);
 
 private:
-    Control* ParseXmlNode(pugi::xml_node& parent, Control* pParent = NULL, Window* pWindow = NULL);
+    Control* ParseXmlNode(const pugi::xml_node& xmlNode, Control* pParent = nullptr, Window* pWindow = nullptr);
 	Control* CreateControlByClass(const std::wstring& strControlClass);
-	void AttachXmlEvent(bool bBubbled, pugi::xml_node& node, Control* pParent);
+	void AttachXmlEvent(bool bBubbled, const pugi::xml_node& node, Control* pParent);
 
 private:
     std::unique_ptr<pugi::xml_document> m_xml;

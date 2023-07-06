@@ -44,6 +44,7 @@ namespace ui
 	//定义所有控件类型
 	#define  DUI_CTR_CONTROL                         (L"Control")
 	#define  DUI_CTR_LABEL                           (L"Label")
+	#define  DUI_CTR_RICHTEXT                        (L"RichText")
 	#define  DUI_CTR_BUTTON                          (L"Button")
 	#define  DUI_CTR_OPTION                          (L"Option")
 	#define  DUI_CTR_CHECKBOX                        (L"CheckBox")
