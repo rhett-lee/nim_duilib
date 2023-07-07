@@ -1338,7 +1338,7 @@ namespace ui
 			int grid_width = m_pGrid->GetWidth();
 			int grid_height = m_pGrid->GetHeight();
 			UiRect rcLineH, rcLineV;
-			UiColor dwGridLineColor = GlobalManager::GetTextColor(m_strGridLineColor);
+			UiColor dwGridLineColor = GlobalManager::GetColorManager().GetColor(m_strGridLineColor);
 
 			UiPoint ptOldOrg = pRender->OffsetWindowOrg({ -GetRect().left, -GetRect().top });
 			{
@@ -1413,7 +1413,7 @@ namespace ui
 		int fixed_row_height = GetFixedRowHeight();
 		int grid_width = m_pGrid->GetWidth();
 		int grid_height = m_pGrid->GetHeight();
-		UiColor dwDefColor = GlobalManager::GetTextColor(L"textdefaultcolor");
+		UiColor dwDefColor = GlobalManager::GetColorManager().GetColor(L"textdefaultcolor");
 
 		//draw fixed col && fixed row bkcolor
 		if (fixed_row_height > 0)
@@ -1421,14 +1421,14 @@ namespace ui
 			UiRect rcPaint = GetPos();
 			rcPaint.bottom = rcPaint.top + fixed_row_height;
 			rcPaint.right = rcPaint.left + (GetFixedWidth() - szOff.cx > grid_width ? grid_width : GetFixedWidth() - szOff.cx);
-			pRender->FillRect(rcPaint, GlobalManager::GetTextColor(m_strFixedBkColor), 255);
+			pRender->FillRect(rcPaint, GlobalManager::GetColorManager().GetColor(m_strFixedBkColor), 255);
 		}
 		if (fixed_col_width > 0)
 		{
 			UiRect rcPaint = GetPos();
 			rcPaint.right = rcPaint.left + fixed_col_width;
 			rcPaint.bottom = rcPaint.top + (GetFixedHeight() - szOff.cy > grid_height ? grid_height : GetFixedHeight() - szOff.cy);
-			pRender->FillRect(rcPaint, GlobalManager::GetTextColor(m_strFixedBkColor), 255);
+			pRender->FillRect(rcPaint, GlobalManager::GetColorManager().GetColor(m_strFixedBkColor), 255);
 		}
 
 		//draw fixed col && fixed row text
@@ -1545,11 +1545,11 @@ namespace ui
 						//绘制单元格背景色
 						if (pItem->IsSelected())
 						{
-							pRender->FillRect(rc, GlobalManager::GetTextColor(m_strSelForeColor), 255);
+							pRender->FillRect(rc, GlobalManager::GetColorManager().GetColor(m_strSelForeColor), 255);
 						}
 						else if (!pItem->bk_color.empty())
 						{
-							pRender->FillRect(rc, GlobalManager::GetTextColor(pItem->bk_color), 255);
+							pRender->FillRect(rc, GlobalManager::GetColorManager().GetColor(pItem->bk_color), 255);
 						}
 
 						//绘制text
@@ -1559,7 +1559,7 @@ namespace ui
 							if (pItem->text_color.empty() && pItem->text_style == 0)
 								pRender->DrawString(rc, str, dwDefColor, m_strGridFont, m_uTextStyle);
 							else{
-								UiColor dwColor = (pItem->text_color.empty() ? dwDefColor : GlobalManager::GetTextColor(pItem->text_color));
+								UiColor dwColor = (pItem->text_color.empty() ? dwDefColor : GlobalManager::GetColorManager().GetColor(pItem->text_color));
 								UINT text_style = (pItem->text_style == 0 ? m_uTextStyle : pItem->text_style);
 								pRender->DrawString(rc, str, dwColor, m_strGridFont, text_style);
 							}

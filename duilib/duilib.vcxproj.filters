@@ -249,6 +249,12 @@
     <ClCompile Include="Control\RichText.cpp">
       <Filter>Control</Filter>
     </ClCompile>
+    <ClCompile Include="Core\ColorManager.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Render\UiColors.cpp">
+      <Filter>Render</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -514,6 +520,12 @@
     </ClInclude>
     <ClInclude Include="Control\RichText.h">
       <Filter>Control</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ColorManager.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\UiColors.h">
+      <Filter>Render</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

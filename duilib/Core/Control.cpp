@@ -3,6 +3,7 @@
 #include "duilib/Core/Window.h"
 #include "duilib/Core/Box.h"
 #include "duilib/Core/GlobalManager.h"
+#include "duilib/Core/ColorManager.h"
 #include "duilib/Render/IRender.h"
 #include "duilib/Render/AutoClip.h"
 #include "duilib/Animation/AnimationPlayer.h"
@@ -84,7 +85,7 @@ std::wstring Control::GetType() const { return _T("Control"); }
 
 void Control::SetBkColor(const std::wstring& strColor)
 {
-	ASSERT(strColor.empty() || this->GetWindowColor(strColor).GetARGB() != 0);
+	ASSERT(strColor.empty() || HasUiColor(strColor));
 	if (m_strBkColor == strColor) {
 		return;
 	}
@@ -99,7 +100,7 @@ std::wstring Control::GetStateColor(ControlStateType stateType) const
 
 void Control::SetStateColor(ControlStateType stateType, const std::wstring& strColor)
 {
-	ASSERT(this->GetWindowColor(strColor).GetARGB() != 0);
+	ASSERT(strColor.empty() || HasUiColor(strColor));
 	if (m_colorMap->GetStateColor(stateType) == strColor) {
 		return;
 	}
@@ -1403,7 +1404,7 @@ void Control::PaintShadow(IRender* pRender)
 							   m_boxShadow.m_cpOffset,
 							   m_boxShadow.m_nBlurRadius,
 							   m_boxShadow.m_nSpreadRadius,
-							   GlobalManager::GetTextColor(m_boxShadow.m_strColor));
+							   GlobalManager::GetColorManager().GetColor(m_boxShadow.m_strColor));
 	}	
 }
 
@@ -1417,7 +1418,7 @@ void Control::PaintBkColor(IRender* pRender)
 		return;
 	}
 
-	UiColor dwBackColor = this->GetWindowColor(m_strBkColor);
+	UiColor dwBackColor = GetUiColor(m_strBkColor);
 	if(dwBackColor.GetARGB() != 0) {
 		int nBorderSize = 0;
 		if ((m_rcBorderSize.left > 0) &&
@@ -1454,7 +1455,7 @@ void Control::PaintBorder(IRender* pRender)
 	}
 	UiColor dwBorderColor((UiColor::ARGB)0);
 	if (!m_strBorderColor.empty()) {
-		dwBorderColor = GetWindowColor(m_strBorderColor);
+		dwBorderColor = GetUiColor(m_strBorderColor);
 	}
 	if (dwBorderColor.GetARGB() == 0) {
 		return;
@@ -1729,7 +1730,7 @@ void Control::PaintLoading(IRender* pRender)
 	}
 
     if (!m_strLoadingBkColor.empty()) {
-        pRender->FillRect(rcFill, GetWindowColor(m_strLoadingBkColor));
+        pRender->FillRect(rcFill, GetUiColor(m_strLoadingBkColor));
     }
 
 	UiRect imageDestRect = rcFill;
@@ -2139,18 +2140,44 @@ bool Control::FireAllEvents(const EventArgs& msg)
 	return bRet && !weakflag.expired();
 }
 
-UiColor Control::GetWindowColor(const std::wstring& strName) const
+bool Control::HasUiColor(const std::wstring& colorName) const
+{
+	UiColor color = GetUiColorByName(colorName);
+	return color.GetARGB() != 0;
+}
+
+UiColor Control::GetUiColor(const std::wstring& colorName) const
+{
+	UiColor color = GetUiColorByName(colorName);
+	ASSERT(color.GetARGB() != 0);
+	return color;
+}
+
+UiColor Control::GetUiColorByName(const std::wstring& colorName) const
 {
 	UiColor color;
-	Window* pWindow = GetWindow();
-	if (pWindow != nullptr) {
-		color = pWindow->GetTextColor(strName);
+	if (colorName.empty()) {
+		return color;
 	}
-
+	if (colorName.at(0) == L'#') {
+		//优先级1：以'#'字符开头，直接指定颜色值，举例：#FFFFFFFF
+		color = ColorManager::ConvertToUiColor(colorName);
+	}
 	if (color.GetARGB() == 0) {
-		color = GlobalManager::GetTextColor(strName);
+		Window* pWindow = GetWindow();
+		if (pWindow != nullptr) {
+			//优先级2：获取在配置XML中的<Window>节点中定义子节点<TextColor>指定的颜色
+			color = pWindow->GetTextColor(colorName);
+		}
 	}
-
+	if (color.GetARGB() == 0) {
+		//优先级3：获取在global.xml中的<Global>节点中定义子节点<TextColor>指定的颜色
+		color = GlobalManager::GetColorManager().GetColor(colorName);
+	}
+	if (color.GetARGB() == 0) {
+		//优先级4：直接指定预定义的颜色别名
+		color = GlobalManager::GetColorManager().GetColor(colorName);
+	}
 	ASSERT(color.GetARGB() != 0);
 	return color;
 }

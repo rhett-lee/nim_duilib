@@ -805,10 +805,10 @@ void StateColorMap::PaintStateColor(IRender* pRender, UiRect rcPaint, ControlSta
 			if ((stateType == kControlStateNormal || stateType == kControlStateHot) && HasStateColor(kControlStateHot)) {
 				std::wstring strColor = GetStateColor(kControlStateNormal);
 				if (!strColor.empty()) {
-					pRender->FillRect(rcPaint, m_pControl->GetWindowColor(strColor));
+					pRender->FillRect(rcPaint, m_pControl->GetUiColor(strColor));
 				}
 				if (nHotAlpha > 0) {
-					pRender->FillRect(rcPaint, m_pControl->GetWindowColor(GetStateColor(kControlStateHot)), static_cast<BYTE>(nHotAlpha));
+					pRender->FillRect(rcPaint, m_pControl->GetUiColor(GetStateColor(kControlStateHot)), static_cast<BYTE>(nHotAlpha));
 				}
 				return;
 			}
@@ -826,7 +826,7 @@ void StateColorMap::PaintStateColor(IRender* pRender, UiRect rcPaint, ControlSta
 	}
 	std::wstring strColor = GetStateColor(stateType);
 	if (!strColor.empty()) {
-		UiColor color = m_pControl ? m_pControl->GetWindowColor(strColor) : GlobalManager::GetTextColor(strColor);
+		UiColor color = m_pControl ? m_pControl->GetUiColor(strColor) : GlobalManager::GetColorManager().GetColor(strColor);
 		pRender->FillRect(rcPaint, color);
 	}
 }

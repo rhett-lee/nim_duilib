@@ -343,6 +343,7 @@
     <ClCompile Include="Control\VirtualTileBox.cpp" />
     <ClCompile Include="Core\Box.cpp" />
     <ClCompile Include="Core\BoxShadow.cpp" />
+    <ClCompile Include="Core\ColorManager.cpp" />
     <ClCompile Include="Core\Control.cpp" />
     <ClCompile Include="Core\ControlFinder.cpp" />
     <ClCompile Include="Core\Define.cpp" />
@@ -373,6 +374,7 @@
     <ClCompile Include="RenderSkia\SkUtils.cpp" />
     <ClCompile Include="Render\AutoClip.cpp" />
     <ClCompile Include="Render\BitmapAlpha.cpp" />
+    <ClCompile Include="Render\UiColors.cpp" />
     <ClCompile Include="third_party\apng\decoder-apng.cpp" />
     <ClCompile Include="third_party\unzip\UnZip.cpp" />
     <ClCompile Include="third_party\xml\pugixml.cpp" />
@@ -412,6 +414,7 @@
     <ClInclude Include="Control\CircleProgress.h" />
     <ClInclude Include="Core\Box.h" />
     <ClInclude Include="Core\BoxShadow.h" />
+    <ClInclude Include="Core\ColorManager.h" />
     <ClInclude Include="Core\Control.h" />
     <ClInclude Include="Core\ControlFinder.h" />
     <ClInclude Include="Core\Define.h" />
@@ -451,6 +454,7 @@
     <ClInclude Include="Render\IRender.h" />
     <ClInclude Include="Render\RenderConfig.h" />
     <ClInclude Include="Render\UiColor.h" />
+    <ClInclude Include="Render\UiColors.h" />
     <ClInclude Include="third_party\apng\decoder-apng.h" />
     <ClInclude Include="third_party\stb_image\stb_image.h" />
     <ClInclude Include="third_party\stb_image\stb_image_resize.h" />

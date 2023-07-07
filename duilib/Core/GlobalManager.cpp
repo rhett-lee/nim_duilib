@@ -104,17 +104,10 @@ CreateControlCallback GlobalManager::m_createControlCallback;
 
 GlobalManager::MapStringToImagePtr GlobalManager::m_mImageHash;
 bool GlobalManager::m_bDpiScaleAllImages = true;
-std::map<std::wstring, UiColor> GlobalManager::m_mapTextColor;
 std::map<std::wstring, std::wstring> GlobalManager::m_mGlobalClass;
 
 std::map<std::wstring, IFont*> GlobalManager::m_mCustomFonts;
 std::wstring GlobalManager::m_sDefaultFontId;
-
-std::wstring GlobalManager::m_strDefaultDisabledColor = L"textdefaultdisablecolor";
-std::wstring GlobalManager::m_strDefaultFontColor = L"textdefaultcolor";
-UiColor GlobalManager::m_dwDefaultLinkFontColor = UiColor(0xFF0000FF);
-UiColor GlobalManager::m_dwDefaultLinkHoverFontColor = UiColor(0xFFD3215F);
-UiColor GlobalManager::m_dwDefaultSelectedBkColor = UiColor(0xFFBAE4FF);
 
 std::unique_ptr<IRenderFactory> GlobalManager::m_renderFactory;
 DWORD GlobalManager::m_dwUiThreadId = 0;
@@ -127,6 +120,8 @@ static Gdiplus::GdiplusStartupInput g_gdiplusStartupInput;
 
 static HZIP g_hzip = NULL;
 const std::wstring kLanguageFileName = L"gdstrings.ini";
+
+ColorManager GlobalManager::m_colorManager;
 
 void GlobalManager::Startup(const std::wstring& strResourcePath, const CreateControlCallback& callback, bool bAdaptDpi, const std::wstring& theme, const std::wstring& language)
 {
@@ -235,7 +230,7 @@ void GlobalManager::RemovePreMessage(Window* pWindow)
 void GlobalManager::ReloadSkin(const std::wstring& resourcePath)
 {
 	RemoveAllFonts();
-	RemoveAllTextColors();
+	m_colorManager.RemoveAllColors();
 	RemoveAllClasss();
 	RemoveAllImages();
 
@@ -290,31 +285,9 @@ void GlobalManager::RemoveAllClasss()
 	m_mGlobalClass.clear();
 }
 
-void GlobalManager::AddTextColor(const std::wstring& strName, const std::wstring& strValue)
+ColorManager& GlobalManager::GetColorManager()
 {
-	std::wstring strColor = strValue.substr(1);
-	LPTSTR pstr = NULL;
-	UiColor::ARGB dwBackColor = _tcstoul(strColor.c_str(), &pstr, 16);
-	AddTextColor(strName, UiColor(dwBackColor));
-}
-
-void GlobalManager::AddTextColor(const std::wstring& strName, UiColor argb)
-{
-	m_mapTextColor[strName] = argb;
-}
-
-UiColor GlobalManager::GetTextColor(const std::wstring& strName)
-{
-	auto it = m_mapTextColor.find(strName);
-	if (it != m_mapTextColor.end()) {
-		return it->second;
-	}
-	return UiColor();
-}
-
-void GlobalManager::RemoveAllTextColors()
-{
-	m_mapTextColor.clear();
+	return m_colorManager;
 }
 
 std::shared_ptr<ImageInfo> GlobalManager::GetCachedImage(const ImageLoadAttribute& loadAtrribute)
@@ -520,56 +493,6 @@ void GlobalManager::RemoveAllFonts()
 		delete iter.second;
 	}
 	m_mCustomFonts.clear();
-}
-
-std::wstring GlobalManager::GetDefaultDisabledTextColor()
-{
-	return m_strDefaultDisabledColor;
-}
-
-void GlobalManager::SetDefaultDisabledTextColor(const std::wstring& strColor)
-{
-	m_strDefaultDisabledColor = strColor;
-}
-
-std::wstring GlobalManager::GetDefaultTextColor()
-{
-	return m_strDefaultFontColor;
-}
-
-void GlobalManager::SetDefaultTextColor(const std::wstring& strColor)
-{
-	m_strDefaultFontColor = strColor;
-}
-
-UiColor GlobalManager::GetDefaultLinkFontColor()
-{
-	return m_dwDefaultLinkFontColor;
-}
-
-void GlobalManager::SetDefaultLinkFontColor(UiColor strColor)
-{
-	m_dwDefaultLinkFontColor = strColor;
-}
-
-UiColor GlobalManager::GetDefaultLinkHoverFontColor()
-{
-	return m_dwDefaultLinkHoverFontColor;
-}
-
-void GlobalManager::SetDefaultLinkHoverFontColor(UiColor dwColor)
-{
-	m_dwDefaultLinkHoverFontColor = dwColor;
-}
-
-UiColor GlobalManager::GetDefaultSelectedBkColor()
-{
-	return m_dwDefaultSelectedBkColor;
-}
-
-void GlobalManager::SetDefaultSelectedBkColor(UiColor dwColor)
-{
-	m_dwDefaultSelectedBkColor = dwColor;
 }
 
 Box* GlobalManager::CreateBox(const std::wstring& strXmlPath, CreateControlCallback callback)

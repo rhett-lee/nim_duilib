@@ -121,31 +121,7 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
 		std::wstring strValue;
 		strClass = root.name();
 
-		if( strClass == L"Global") {
-			for (pugi::xml_attribute attr : root.attributes()) {
-				strName = attr.name();
-				strValue = attr.value();
-				if( strName == _T("disabledfontcolor") ) {
-					GlobalManager::SetDefaultDisabledTextColor(strValue);
-				} 
-				else if( strName == _T("defaultfontcolor") ) {	
-					GlobalManager::SetDefaultTextColor(strValue);
-				}
-				else if( strName == _T("linkfontcolor") ) {
-					UiColor clrColor = GlobalManager::GetTextColor(strValue);
-					GlobalManager::SetDefaultLinkFontColor(clrColor);
-				} 
-				else if( strName == _T("linkhoverfontcolor") ) {
-					UiColor clrColor = GlobalManager::GetTextColor(strValue);
-					GlobalManager::SetDefaultLinkHoverFontColor(clrColor);
-				} 
-				else if( strName == _T("selectedcolor") ) {
-					UiColor clrColor = GlobalManager::GetTextColor(strValue);
-					GlobalManager::SetDefaultSelectedBkColor(clrColor);
-				}
-			}
-		}
-		else if( strClass == _T("Window") ) {
+		if( strClass == _T("Window") ) {
 			if( pWindow->GetHWND() ) {
 				for (pugi::xml_attribute attr : root.attributes()) {
 					strName = attr.name();
@@ -359,20 +335,23 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
 					}
 				}
 				else if( strClass == _T("TextColor") ) {
-					std::wstring strColorName;
-					std::wstring strColor;
-					for (pugi::xml_attribute attr : node.attributes()) {
-						strName = attr.name();
-						strValue = attr.value();
-						if( strName == _T("name") ) {
-							strColorName = strValue;
+					std::wstring colorName = node.attribute(L"name").as_string();
+					std::wstring colorValue = node.attribute(L"value").as_string();
+					if(!colorName.empty() && !colorValue.empty()) {
+						ColorManager& colorManager = GlobalManager::GetColorManager();
+						colorManager.AddColor(colorName, colorValue);
+						if (colorName == _T("default_font_color")) {
+							colorManager.SetDefaultTextColor(colorName);
 						}
-						else if( strName == _T("value") ) {
-							strColor = strValue;
+						else if (colorName == _T("disabled_font_color")) {
+							colorManager.SetDefaultDisabledTextColor(colorName);
 						}
-					}
-					if( !strColorName.empty()) {
-						GlobalManager::AddTextColor(strColorName, strColor);
+						else if (colorName == _T("default_link_font_color")) {
+							colorManager.SetDefaultLinkFontColor(colorName);
+						}
+						else if (colorName == _T("hover_link_font_color")) {
+							colorManager.SetDefaultLinkHoverFontColor(colorName);
+						}
 					}
 				}
 			}

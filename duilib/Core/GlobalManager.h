@@ -5,6 +5,7 @@
 
 #include "duilib/duilib_defs.h"
 #include "duilib/Core/WindowBuilder.h"
+#include "duilib/Core/ColorManager.h"
 #include "duilib/Render/UiColor.h"
 #include "duilib/Render/IFont.h"
 
@@ -119,34 +120,9 @@ public:
 	 */
 	static void RemoveAllClasss();
 
-	/**
-	 * @brief 添加一个全局颜色值提供程序使用
-	 * @param[in] strName 颜色名称（如 white）
-	 * @param[in] strValue 颜色具体数值（如 #FFFFFFFF）
-	 * @return 无
-	 */
-	static void AddTextColor(const std::wstring& strName, const std::wstring& strValue);
-
-	/**
-	 * @brief 添加一个全局颜色值提供程序使用
-	 * @param[in] strName 颜色名称（如 white）
-	  *@param[in] argb 颜色具体数值, 以ARGB格式表示
-	 * @return 无
-	 */
-	static void AddTextColor(const std::wstring& strName, UiColor argb);
-
-	/**
-	 * @brief 根据名称获取一个颜色的具体数值
-	 * @param[in] strName 要获取的颜色名称
-	 * @return 返回 DWORD 格式的颜色描述值
-	 */
-	static UiColor GetTextColor(const std::wstring& strName);
-
-	/**
-	 * @brief 删除所有全局颜色属性
-	 * @return 无
-	 */
-	static void RemoveAllTextColors();
+	/** 获取颜色管理器
+	*/
+	static ColorManager& GetColorManager();
 
 	/**
 	 * @brief 检查指定图片是否已经被缓存
@@ -222,71 +198,6 @@ public:
 	 * @return 无
 	 */
 	static void RemoveAllFonts();
-
-	/**
-	 * @brief 获取默认禁用状态下字体颜色
-	 * @return 默认禁用状态颜色的字符串表示，对应 global.xml 中指定颜色值
-	 */
-	static std::wstring GetDefaultDisabledTextColor();
-
-	/**
-	 * @brief 设置默认禁用状态下的字体颜色
-	 * @param[in] dwColor 字体颜色字符串值（如 white）
-	 * @return 无
-	 */
-	static void SetDefaultDisabledTextColor(const std::wstring& strColor);
-
-	/**
-	 * @brief 获取默认字体颜色
-	 * @return 默认字体颜色字符串表示，对应 global.xml 中指定颜色值
-	 */
-	static std::wstring GetDefaultTextColor();
-
-	/**
-	 * @brief 设置默认字体颜色
-	 * @param[in] 字体颜色的字符串值，对应 global.xml 中指定颜色值
-	 * @return 无
-	 */
-	static void SetDefaultTextColor(const std::wstring& strColor);
-
-	/**
-	 * @brief 获取默认链接字体颜色
-	 * @return 链接字体颜色 DWORD 格式的色值
-	 */
-	static UiColor GetDefaultLinkFontColor();
-
-	/**
-	 * @brief 设置默认链接字体颜色
-	 * @param[in] dwColor 默认链接字体颜色
-	 * @return 无
-	 */
-	static void SetDefaultLinkFontColor(UiColor dwColor);
-
-	/**
-	 * @brief 获取焦点链接的默认字体颜色
-	 * @return 返回焦点链接的默认字体颜色
-	 */
-	static UiColor GetDefaultLinkHoverFontColor();
-
-	/**
-	 * @brief 设置焦点链接的默认字体颜色
-	 * @param[in] dwColor 焦点链接的默认字体颜色
-	 * @return 无
-	 */
-	static void SetDefaultLinkHoverFontColor(UiColor dwColor);
-
-	/**
-	 * @brief 获取默认选择状态字体颜色
-	 * @return 返回默认选择状态的字体颜色
-	 */
-	static UiColor GetDefaultSelectedBkColor();
-
-	/**
-	 * @brief 设置默认选择状态的字体颜色
-	 * @param[in] dwColor 字体颜色值
-	 * @return 无
-	 */
-	static void SetDefaultSelectedBkColor(UiColor dwColor);
 
 	/**
 	 * @brief 根据 XML 创建一个 Box
@@ -407,14 +318,7 @@ private:
 	*/
 	static bool m_bDpiScaleAllImages;
 
-	static std::map<std::wstring, UiColor> m_mapTextColor;
 	static std::map<std::wstring, std::wstring> m_mGlobalClass;
-
-	static std::wstring m_strDefaultDisabledColor;
-	static std::wstring m_strDefaultFontColor;
-	static UiColor m_dwDefaultLinkFontColor;
-	static UiColor m_dwDefaultLinkHoverFontColor;
-	static UiColor m_dwDefaultSelectedBkColor;
 
 	static DWORD m_dwUiThreadId;
 
@@ -425,6 +329,10 @@ private:
 	/** 默认字体ID
 	*/
 	static std::wstring m_sDefaultFontId;
+
+	/** 颜色管理器
+	*/
+	static ColorManager m_colorManager;
 };
 
 } // namespace ui

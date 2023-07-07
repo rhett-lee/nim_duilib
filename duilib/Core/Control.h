@@ -871,13 +871,24 @@ public:
 	*/
 	void AttachVisibleChange(const EventCallback& callback) { AttachEvent(kEventVisibleChange, callback); }
 
+	/** 判断颜色定义是否有效
+	* @param [in] colorName 颜色的名称，有效的颜色名称可以是以下定义（按获取优先级顺序）：
+	*           (1) 优先级1：以'#'字符开头，直接指定颜色值，举例：#FFFFFFFF       
+	*		    (2) 优先级2：在配置XML中的<Window>节点中定义子节点，举例：<TextColor name="wnd_darkcolor" value="#FF00BB96"/>
+	*           (3) 优先级3：在global.xml中的<Global>节点中定义子节点，举例：<TextColor name="white" value="#FFFFFFFF"/>                    
+	*           (4) 优先级4：参见ui::UiColors::UiColorConsts函数中的定义
+	*/
+	bool HasUiColor(const std::wstring& colorName) const;
 
-	/**
-	* @brief 获取某个颜色对应的值，优先获取窗口的颜色配置，如果未取到，再获取全局颜色配置
-	* @param[in] strName 颜色名字
+	/** 获取某个颜色对应的值
+	* @param [in] colorName 颜色的名称，有效的颜色名称可以是以下定义（按获取优先级顺序）：
+	*           (1) 优先级1：以'#'字符开头，直接指定颜色值，举例：#FFFFFFFF
+	*		    (2) 优先级2：在配置XML中的<Window>节点中定义子节点，举例：<TextColor name="wnd_darkcolor" value="#FF00BB96"/>
+	*           (3) 优先级3：在global.xml中的<Global>节点中定义子节点，举例：<TextColor name="white" value="#FFFFFFFF"/>                    
+	*           (4) 优先级4：直接指定预定义的颜色别名，参见ui::UiColors::UiColorConsts函数中的定义
 	* @return ARGB颜色值
 	*/
-    UiColor GetWindowColor(const std::wstring& strName) const;
+    UiColor GetUiColor(const std::wstring& colorName) const;
 
 	/** 判断控件类型是否为可选择的
 	 * @return 默认返回false
@@ -1037,6 +1048,12 @@ public:
 	/** 判断是否需要采用圆角矩形填充背景色
 	*/
 	bool ShouldBeRoundRectFill() const;
+
+private:
+
+	/** 获取颜色名称对应的颜色值
+	*/
+	UiColor GetUiColorByName(const std::wstring& colorName) const;
 
 private:
 	//控件的外边距属性（上，下，左，右边距）

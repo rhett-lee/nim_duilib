@@ -43,12 +43,12 @@ void RenderTest3::Paint(IRender* pRender, const UiRect& rcPaint)
     //画直线
     int sep = DpiScaledInt(10);
     for (LONG topValue = rect.top; topValue <= rect.bottom; topValue += sep) {
-        pRender->DrawLine(UiPoint(rect.left, topValue), UiPoint(rect.right, topValue), UiColor(UiColor::DarkCyan), DpiScaledInt(4));
+        pRender->DrawLine(UiPoint(rect.left, topValue), UiPoint(rect.right, topValue), UiColor(UiColors::DarkCyan), DpiScaledInt(4));
     }
     textRect = rect;
     textRect.top = rect.bottom;
     textRect.bottom = textRect.top + nTextLineHeight;
-    pRender->DrawString(textRect, L"DrawLine", UiColor(UiColor::Blue), L"system_14", TEXT_CENTER);
+    pRender->DrawString(textRect, L"DrawLine", UiColor(UiColors::Blue), L"system_14", TEXT_CENTER);
 
     //换行
     currentBottom = textRect.bottom;//记录当前的bottom值
@@ -61,28 +61,28 @@ void RenderTest3::Paint(IRender* pRender, const UiRect& rcPaint)
     //画矩形
     rect.left = rect.right + marginLeft;
     rect.right = rect.left + nSize;
-    pRender->DrawRect(rect, UiColor(UiColor::Fuchsia), DpiScaledInt(2));
+    pRender->DrawRect(rect, UiColor(UiColors::Fuchsia), DpiScaledInt(2));
     textRect = rect;
     textRect.top = rect.bottom;
     textRect.bottom = textRect.top + nTextLineHeight;
-    pRender->DrawString(textRect, L"DrawRect", UiColor(UiColor::Blue), L"system_14", TEXT_CENTER);
+    pRender->DrawString(textRect, L"DrawRect", UiColor(UiColors::Blue), L"system_14", TEXT_CENTER);
 
     //填充矩形
     rect.left = rect.right + marginLeft;
     rect.right = rect.left + nSize;
-    pRender->FillRect(rect, UiColor(UiColor::Brown));
+    pRender->FillRect(rect, UiColor(UiColors::Brown));
     textRect = rect;
     textRect.top = rect.bottom;
     textRect.bottom = textRect.top + nTextLineHeight;
-    pRender->DrawString(textRect, L"FillRect", UiColor(UiColor::Blue), L"system_14", TEXT_CENTER);
+    pRender->DrawString(textRect, L"FillRect", UiColor(UiColors::Blue), L"system_14", TEXT_CENTER);
 
     rect.left = rect.right + marginLeft;
     rect.right = rect.left + nSize;
-    pRender->FillRect(rect, UiColor(UiColor::Brown), 128);
+    pRender->FillRect(rect, UiColor(UiColors::Brown), 128);
     textRect = rect;
     textRect.top = rect.bottom;
     textRect.bottom = textRect.top + nTextLineHeight;
-    pRender->DrawString(textRect, L"FillRect Alpha", UiColor(UiColor::Blue), L"system_14", TEXT_CENTER);
+    pRender->DrawString(textRect, L"FillRect Alpha", UiColor(UiColors::Blue), L"system_14", TEXT_CENTER);
 
     //换行
     currentBottom = textRect.bottom;//记录当前的bottom值
@@ -101,24 +101,24 @@ void RenderTest3::Paint(IRender* pRender, const UiRect& rcPaint)
     textRect = rect;
     textRect.top = rect.bottom;
     textRect.bottom = textRect.top + nTextLineHeight;
-    pRender->DrawString(textRect, L"DrawRoundRect", UiColor(UiColor::Blue), L"system_14", TEXT_CENTER);
+    pRender->DrawString(textRect, L"DrawRoundRect", UiColor(UiColors::Blue), L"system_14", TEXT_CENTER);
 
     //填充圆角矩形
     rect.left = rect.right + marginLeft;
     rect.right = rect.left + nSize;
-    pRender->FillRoundRect(rect, roundSize, UiColor(UiColor::Blue));
+    pRender->FillRoundRect(rect, roundSize, UiColor(UiColors::Blue));
     textRect = rect;
     textRect.top = rect.bottom;
     textRect.bottom = textRect.top + nTextLineHeight;
-    pRender->DrawString(textRect, L"FillRoundRect", UiColor(UiColor::Blue), L"system_14", TEXT_CENTER);
+    pRender->DrawString(textRect, L"FillRoundRect", UiColor(UiColors::Blue), L"system_14", TEXT_CENTER);
 
     rect.left = rect.right + marginLeft;
     rect.right = rect.left + nSize;
-    pRender->FillRoundRect(rect, roundSize, UiColor(UiColor::Blue), 128);
+    pRender->FillRoundRect(rect, roundSize, UiColor(UiColors::Blue), 128);
     textRect = rect;
     textRect.top = rect.bottom;
     textRect.bottom = textRect.top + nTextLineHeight;
-    pRender->DrawString(textRect, L"FillRoundRect Alpha", UiColor(UiColor::Blue), L"system_14", TEXT_CENTER);
+    pRender->DrawString(textRect, L"FillRoundRect Alpha", UiColor(UiColors::Blue), L"system_14", TEXT_CENTER);
 
     //换行
     currentBottom = textRect.bottom;//记录当前的bottom值
@@ -155,14 +155,14 @@ void RenderTest3::Paint(IRender* pRender, const UiRect& rcPaint)
     textRect = rect;
     textRect.top = rect.bottom;
     textRect.bottom = textRect.top + nTextLineHeight;
-    pRender->DrawString(textRect, L"DrawPath", UiColor(UiColor::Blue), L"system_14", TEXT_CENTER);
+    pRender->DrawString(textRect, L"DrawPath", UiColor(UiColors::Blue), L"system_14", TEXT_CENTER);
 
     //用FillPath画圆角四边形
     rect.left = rect.right + marginLeft;
     rect.right = rect.left + nSize;
     if (pRenderFactory != nullptr) {
         std::unique_ptr<IPen> pen(pRenderFactory->CreatePen(UiColor(0xff006DD9), DpiScaledInt(2)));
-        std::unique_ptr<IBrush> brush(pRenderFactory->CreateBrush(UiColor(UiColor::Red)));
+        std::unique_ptr<IBrush> brush(pRenderFactory->CreateBrush(UiColor(UiColors::Red)));
         std::unique_ptr<IPath> path(pRenderFactory->CreatePath());
 
         if (pen && brush && path) {
@@ -186,7 +186,7 @@ void RenderTest3::Paint(IRender* pRender, const UiRect& rcPaint)
     textRect = rect;
     textRect.top = rect.bottom;
     textRect.bottom = textRect.top + nTextLineHeight;
-    pRender->DrawString(textRect, L"FillPath", UiColor(UiColor::Blue), L"system_14", TEXT_CENTER);
+    pRender->DrawString(textRect, L"FillPath", UiColor(UiColors::Blue), L"system_14", TEXT_CENTER);
 
     //DrawBoxShadow
     rect.left = rect.right + marginLeft * 2;
@@ -198,7 +198,7 @@ void RenderTest3::Paint(IRender* pRender, const UiRect& rcPaint)
     textRect = rect;
     textRect.top = rect.bottom;
     textRect.bottom = textRect.top + nTextLineHeight;
-    pRender->DrawString(textRect, L"DrawBoxShadow", UiColor(UiColor::Blue), L"system_12", TEXT_CENTER);
+    pRender->DrawString(textRect, L"DrawBoxShadow", UiColor(UiColors::Blue), L"system_12", TEXT_CENTER);
 
     //DrawBoxShadow
     rect.left = rect.right + marginLeft * 2 + 40;
@@ -210,7 +210,7 @@ void RenderTest3::Paint(IRender* pRender, const UiRect& rcPaint)
     textRect = rect;
     textRect.top = rect.bottom;
     textRect.bottom = textRect.top + nTextLineHeight;
-    pRender->DrawString(textRect, L"DrawBoxShadow", UiColor(UiColor::Blue), L"system_12", TEXT_CENTER);
+    pRender->DrawString(textRect, L"DrawBoxShadow", UiColor(UiColors::Blue), L"system_12", TEXT_CENTER);
 
     //DrawBoxShadow
     rect.left = rect.right + marginLeft * 2 + 40;
@@ -222,7 +222,7 @@ void RenderTest3::Paint(IRender* pRender, const UiRect& rcPaint)
     textRect = rect;
     textRect.top = rect.bottom;
     textRect.bottom = textRect.top + nTextLineHeight;
-    pRender->DrawString(textRect, L"DrawBoxShadow", UiColor(UiColor::Blue), L"system_12", TEXT_CENTER);
+    pRender->DrawString(textRect, L"DrawBoxShadow", UiColor(UiColors::Blue), L"system_12", TEXT_CENTER);
 }
 
 void RenderTest3::PaintChild(IRender* pRender, const UiRect& rcPaint)

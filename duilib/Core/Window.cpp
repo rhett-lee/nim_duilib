@@ -604,28 +604,17 @@ void Window::RemoveAllClass()
 
 void Window::AddTextColor(const std::wstring& strName, const std::wstring& strValue)
 {
-	std::wstring strColor;
-	if (strValue.size() > 1) {
-		strColor = strValue.substr(1);
-	}
-	LPTSTR pstr = nullptr;
-	UiColor::ARGB dwBackColor = _tcstoul(strColor.c_str(), &pstr, 16);
-	AddTextColor(strName, UiColor(dwBackColor));
+	m_colorMap.AddColor(strName, strValue);
 }
 
 void Window::AddTextColor(const std::wstring& strName, UiColor argb)
 {
-	ASSERT(!strName.empty());
-	m_mapTextColor[strName] = argb;
+	m_colorMap.AddColor(strName, argb);
 }
 
 UiColor Window::GetTextColor(const std::wstring& strName) const
 {
-	auto it = m_mapTextColor.find(strName);
-	if (it != m_mapTextColor.end()) {
-		return it->second;
-	}
-	return UiColor();
+	return m_colorMap.GetColor(strName);
 }
 
 bool Window::AddOptionGroup(const std::wstring& strGroupName, Control* pControl)
@@ -1069,7 +1058,7 @@ LRESULT Window::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHa
 		case WM_SETFOCUS:			lResult = OnSetFocusMsg(uMsg, wParam, lParam, bHandled); break;
 		case WM_KILLFOCUS:			lResult = OnKillFocusMsg(uMsg, wParam, lParam, bHandled); break;
 
-		case WM_CHAR:				lResult = OnCharMsg(uMsg, wParam, lParam, bHandled); break;
+		case WM_CHAR:				lResult = OnCharMsg(uMsg, wParam, lParam, bHandled); break; 
 		case WM_KEYDOWN:			lResult = OnKeyDownMsg(uMsg, wParam, lParam, bHandled); break;
 		case WM_KEYUP:				lResult = OnKeyUpMsg(uMsg, wParam, lParam, bHandled); break;
 
@@ -2124,9 +2113,9 @@ void Window::Paint()
 		m_render->SetWindowOrg(ptOldWindOrg);
 	}
 	else {
-		UiColor bkColor = UiColor(UiColor::LightGray);
+		UiColor bkColor = UiColor(UiColors::LightGray);
 		if (!m_pRoot->GetBkColor().empty()) {
-			bkColor = m_pRoot->GetWindowColor(m_pRoot->GetBkColor());
+			bkColor = m_pRoot->GetUiColor(m_pRoot->GetBkColor());
 		}
 		m_render->FillRect(rcPaint, bkColor);
 	}

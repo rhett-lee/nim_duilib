@@ -156,8 +156,8 @@ LabelTemplate<InheritType>::LabelTemplate() :
         this->SetFixedHeight(DUI_LENGTH_AUTO, false);
     }
 
-    m_textColorMap.SetStateColor(kControlStateNormal, GlobalManager::GetDefaultTextColor());
-    m_textColorMap.SetStateColor(kControlStateDisabled, GlobalManager::GetDefaultDisabledTextColor());
+    m_textColorMap.SetStateColor(kControlStateNormal, GlobalManager::GetColorManager().GetDefaultTextColor());
+    m_textColorMap.SetStateColor(kControlStateDisabled, GlobalManager::GetColorManager().GetDefaultDisabledTextColor());
     m_textColorMap.SetControl(this);
 }
 
@@ -435,7 +435,7 @@ void LabelTemplate<InheritType>::PaintText(IRender* pRender)
     rc.bottom -= m_rcTextPadding.bottom;
 
     auto stateType = this->GetState();
-    UiColor dwClrColor = this->GetWindowColor(GetPaintStateTextColor(this->GetState(), stateType));
+    UiColor dwClrColor = this->GetUiColor(GetPaintStateTextColor(this->GetState(), stateType));
 
     if (m_bSingleLine) {
         m_uTextStyle |= TEXT_SINGLELINE;
@@ -449,14 +449,14 @@ void LabelTemplate<InheritType>::PaintText(IRender* pRender)
             !GetStateTextColor(kControlStateHot).empty()) {
             std::wstring clrColor = GetStateTextColor(kControlStateNormal);
             if (!clrColor.empty()) {
-                UiColor dwTextColor = this->GetWindowColor(clrColor);
+                UiColor dwTextColor = this->GetUiColor(clrColor);
                 pRender->DrawString(rc, textValue, dwTextColor, m_sFontId, m_uTextStyle);
             }
 
             if (this->GetHotAlpha() > 0) {
                 std::wstring textColor = GetStateTextColor(kControlStateHot);
                 if (!textColor.empty()) {
-                    UiColor dwTextColor = this->GetWindowColor(textColor);
+                    UiColor dwTextColor = this->GetUiColor(textColor);
                     pRender->DrawString(rc, textValue, dwTextColor, m_sFontId, m_uTextStyle, (BYTE)this->GetHotAlpha());
                 }
             }

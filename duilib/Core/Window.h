@@ -7,7 +7,7 @@
 #include "duilib/Utils/Delegate.h"
 #include "base/callback/callback.h"
 #include "duilib/Core/ControlFinder.h"
-#include "duilib/Render/UiColor.h"
+#include "duilib/Core/ColorManager.h"
 
 #include <string>
 
@@ -894,7 +894,7 @@ private:
 	std::map<std::wstring, std::wstring> m_defaultAttrHash;
 
 	//窗口颜色字符串与颜色值（ARGB）的映射关系
-	std::map<std::wstring, UiColor> m_mapTextColor;
+	ColorMap m_colorMap;
 
 	//该窗口下每个Option group下的控件（即单选控件是分组的）
 	std::map<std::wstring, std::vector<Control*>> m_mOptionGroup;

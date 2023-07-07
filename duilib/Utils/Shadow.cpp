@@ -78,7 +78,7 @@ public:
 private:
 	/** ±³¾°É«
 	*/
-	UiColor m_bkColor = UiColor(UiColor::LightGray);
+	UiColor m_bkColor = UiColor(UiColors::LightGray);
 };
 
 UiSize Shadow::GetChildBoxBorderRound()

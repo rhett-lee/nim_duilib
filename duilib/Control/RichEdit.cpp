@@ -1300,7 +1300,7 @@ RichEdit::RichEdit() :
 	m_sFocusedImage()
 {
 	m_iLimitText = cInitTextMax;
-	m_sCurrentColor = GlobalManager::GetDefaultTextColor();
+	m_sCurrentColor = GlobalManager::GetColorManager().GetDefaultTextColor();
 	m_sTextColor = m_sCurrentColor;
 	m_sDisabledTextColor = m_sCurrentColor;
 
@@ -1454,7 +1454,7 @@ void RichEdit::SetTextColor(const std::wstring& dwTextColor)
 		return;
 	m_sCurrentColor = dwTextColor;
 
-	UiColor dwTextColor2 = this->GetWindowColor(dwTextColor);
+	UiColor dwTextColor2 = this->GetUiColor(dwTextColor);
     if( m_pTwh ) {
         m_pTwh->SetColor(dwTextColor2.GetARGB());
     }
@@ -1474,7 +1474,7 @@ std::wstring RichEdit::GetTextColor()
 
 UiColor RichEdit::GetTextColorValue()
 {
-	return this->GetWindowColor(m_sCurrentColor);
+	return this->GetUiColor(m_sCurrentColor);
 }
 
 int RichEdit::GetLimitText()
@@ -3017,7 +3017,7 @@ void RichEdit::PaintCaret(IRender* pRender, const UiRect& /*rcPaint*/)
 		UiRect rect(m_iCaretPosX, m_iCaretPosY, m_iCaretPosX, m_iCaretPosY + m_iCaretHeight);
 		UiColor dwClrColor(0xff000000);
 		if (!m_sCaretColor.empty()) {
-			dwClrColor = this->GetWindowColor(m_sCaretColor);
+			dwClrColor = this->GetUiColor(m_sCaretColor);
 		}
 		pRender->DrawLine(UiPoint(rect.left, rect.top), UiPoint(rect.right, rect.bottom), dwClrColor, m_iCaretWidth);
 	}
@@ -3101,7 +3101,7 @@ void RichEdit::PaintPromptText(IRender* pRender)
 	UiRect rc;
 	m_pTwh->GetControlRect(&rc);
 
-	UiColor dwClrColor = this->GetWindowColor(m_sPromptColor);
+	UiColor dwClrColor = this->GetUiColor(m_sPromptColor);
 	UINT dwStyle = TEXT_NOCLIP;
 	pRender->DrawString(rc, strPrompt, dwClrColor, m_sFontId, dwStyle);
 }
@@ -3153,7 +3153,7 @@ void RichEdit::AddColorText(const std::wstring &str, const std::wstring &color)
 		ASSERT(FALSE);
 		return;
 	}
-	UiColor dwColor = this->GetWindowColor(color);
+	UiColor dwColor = this->GetUiColor(color);
 
 	CHARFORMAT2W cf;
 	ZeroMemory(&cf, sizeof(cf));
@@ -3178,7 +3178,7 @@ void RichEdit::AddLinkColorText(const std::wstring &str, const std::wstring &col
 		ASSERT(FALSE);
 		return;
 	}
-	UiColor dwColor = this->GetWindowColor(color);
+	UiColor dwColor = this->GetUiColor(color);
 
 	CHARFORMAT2W cf;
 	ZeroMemory(&cf, sizeof(cf));
@@ -3219,7 +3219,7 @@ void  RichEdit::AddLinkColorTextEx(const std::wstring& str, const std::wstring &
 	LOGFONT lf;
 	::GetObject(hFont, sizeof(LOGFONT), &lf);
 	StringHelper::UnicodeToMBCS(lf.lfFaceName, font_face);
-	UiColor dwTextColor = GlobalManager::GetTextColor(color);
+	UiColor dwTextColor = GlobalManager::GetColorManager().GetColor(color);
 	static std::string font_format = "{\\fonttbl{\\f0\\fnil\\fcharset%d %s;}}";
 	static std::string color_format = "{\\colortbl ;\\red%d\\green%d\\blue%d;}";
 	static std::string link_format = "{\\rtf1%s%s\\f0\\fs%d{\\field{\\*\\fldinst{HYPERLINK \"%s\"}}{\\fldrslt{\\cf1 %s}}}}";

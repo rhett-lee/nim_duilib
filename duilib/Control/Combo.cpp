@@ -304,7 +304,7 @@ void Combo::PaintText(IRender* pRender)
 	rcText.bottom -= rcPadding.bottom;
 
 	UiColor dwTextColor(0xFF000000);
-	dwTextColor = this->GetWindowColor(pElement->GetStateTextColor(kControlStateNormal));
+	dwTextColor = this->GetUiColor(pElement->GetStateTextColor(kControlStateNormal));
 	pRender->DrawString(rcText, GetText(), dwTextColor, pElement->GetFont(), TEXT_SINGLELINE | TEXT_VCENTER | TEXT_END_ELLIPSIS);
 }
 
