@@ -1946,7 +1946,7 @@ bool Control::LoadImageData(Image& duiImage) const
 	std::shared_ptr<ImageInfo> imageCache = duiImage.GetImageCache();
 	if ((imageCache == nullptr) || (imageCache->GetCacheKey() != imageLoadAttr.GetCacheKey())) {
 		//如果图片没有加载则执行加载图片；如果图片发生变化，则重新加载该图片
-		imageCache = GlobalManager::GetImage(imageLoadAttr);
+		imageCache = GlobalManager::GetImageManager().GetImage(imageLoadAttr);
 		duiImage.SetImageCache(imageCache);
 	}
 	return imageCache ? true : false;
@@ -1969,7 +1969,7 @@ void Control::InvokeLoadImageCache()
 	ImageLoadAttribute imageLoadAttr = m_bkImage->GetImageLoadAttribute();
 	imageLoadAttr.SetImageFullPath(imageFullPath);
 	if (!m_bkImage->GetImageCache() || m_bkImage->GetImageCache()->GetCacheKey() != imageLoadAttr.GetCacheKey()) {
-		auto shared_image = GlobalManager::GetCachedImage(imageLoadAttr);
+		auto shared_image = GlobalManager::GetImageManager().GetCachedImage(imageLoadAttr);
 		if (shared_image) {
 			m_bkImage->SetImageCache(shared_image);
 			return;

@@ -1,5 +1,5 @@
-#ifndef UI_CORE_WINDOWHELPER_H_
-#define UI_CORE_WINDOWHELPER_H_
+#ifndef UI_CORE_GLOBALMANAGER_H_
+#define UI_CORE_GLOBALMANAGER_H_
 
 #pragma once
 
@@ -7,7 +7,7 @@
 #include "duilib/Core/WindowBuilder.h"
 #include "duilib/Core/ColorManager.h"
 #include "duilib/Core/FontManager.h"
-#include "duilib/Render/UiColor.h"
+#include "duilib/Core/ImageManager.h"
 
 #include <string>
 #include <vector>
@@ -17,9 +17,7 @@
 namespace ui 
 {
 	class IRenderFactory;
-	class ImageInfo;
-	class ImageLoadAttribute;
-
+;
 /**
 * @brief 全局属性管理工具类
 * 用于管理一些全局属性的工具类，包含全局样式（global.xml）和语言设置等
@@ -128,41 +126,9 @@ public:
 	*/
 	static FontManager& GetFontManager();
 
-	/**
-	 * @brief 检查指定图片是否已经被缓存
-	 * @param[in] loadAtrribute 图片的加载属性，包含图片路径等信息
-	 * @return 如果已经被缓存，则返回 ImageInfo 的智能指针对象
-	 */
-	static std::shared_ptr<ImageInfo> GetCachedImage(const ImageLoadAttribute& loadAtrribute);
-
-	/**
-	 * @brief 加载图片 ImageInfo 对象
-	 * @param[in] loadAtrribute 图片的加载属性，包含图片路径等信息
-	 * @return 返回图片 ImageInfo 对象的智能指针
-	 */
-	static std::shared_ptr<ImageInfo> GetImage(const ImageLoadAttribute& loadAtrribute);
-
-	/**
-	 * @brief 图片被销毁的回调
-	 * @param[in] pImageInfo 图片对应的 ImageInfo 对象
-	 * @return 无
-	 */
-	static void OnImageInfoDestroy(ImageInfo* pImageInfo);
-
-	/**
-	 * @brief 从缓存中删除所有图片
-	 * @return 无
-	 */
-	static void RemoveAllImages();
-
-	/** 设置是否默认对所有图片在加载时根据DPI进行缩放，这个是全局属性，默认为true，应用于所有图片
-	   （设置为true后，也可以通过在xml中，使用"dpiscale='false'"属性关闭某个图片的DPI自动缩放）
+	/** 获取图片管理器
 	*/
-	static void SetDpiScaleAllImages(bool bEnable);
-
-	/**判断是否默认对所有图片在加载时根据DPI进行缩放
-	*/
-	static bool IsDpiScaleAllImages();
+	static ImageManager& GetImageManager();
 
 	/**
 	 * @brief 根据 XML 创建一个 Box
@@ -266,22 +232,18 @@ private:
 	 */
 	static void LoadGlobalResource();
 
+	/** 从缓存中删除所有图片
+	 */
+	static void RemoveAllImages();
+
 private:
 	static std::unique_ptr<IRenderFactory> m_renderFactory;
-	typedef std::map<std::wstring, std::weak_ptr<ImageInfo>> MapStringToImagePtr;
 
 	static std::wstring m_pStrResourcePath; //全局的资源路径，换肤的时候修改这个变量
 	static std::wstring m_pStrLanguagePath; //全局语言文件路径
 	static std::vector<Window*> m_aPreMessages;
 	static std::map<std::wstring, std::unique_ptr<WindowBuilder>> m_builderMap;
 	static CreateControlCallback m_createControlCallback;
-
-	static MapStringToImagePtr m_mImageHash;
-
-	/** 设置是否默认对所有图片在加载时根据DPI进行缩放，这个是全局属性，默认为true，应用于所有图片
-	   （设置为true后，也可以通过在xml中，使用"dpiscale='false'"属性关闭某个图片的DPI自动缩放）
-	*/
-	static bool m_bDpiScaleAllImages;
 
 	static std::map<std::wstring, std::wstring> m_mGlobalClass;
 
@@ -294,8 +256,12 @@ private:
 	/** 字体管理器
 	*/
 	static FontManager m_fontManager;
+
+	/** 图片管理器
+	*/
+	static ImageManager m_imageManager;
 };
 
 } // namespace ui
 
-#endif // UI_CORE_WINDOWHELPER_H_
+#endif // UI_CORE_GLOBALMANAGER_H_

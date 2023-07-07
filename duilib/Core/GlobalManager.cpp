@@ -7,8 +7,6 @@
 #include "duilib/Core/Window.h"
 #include "duilib/Core/Control.h"
 #include "duilib/Core/Box.h"
-#include "duilib/Image/Image.h"
-#include "duilib/Image/ImageDecoder.h"
 
 #include "duilib/third_party/unzip/UnZip.h"
 
@@ -49,60 +47,12 @@
 namespace ui 
 {
 
-namespace {
-
-	//查找对应DPI下的图片，可以每个DPI设置一个图片，以提高不同DPI下的图片质量
-    std::wstring GetDpiImageFullPath(const std::wstring& strImageFullPath, bool bIsUseZip)
-    {
-        UINT dpi = DpiManager::GetInstance()->GetScale();
-        if (dpi == 100) {
-			//当前DPI无需缩放
-            return strImageFullPath;
-        }
-
-        std::wstring strPathDir;
-        std::wstring strPathFileName;
-        std::list<std::wstring> strPathList = StringHelper::Split(strImageFullPath, L"\\");
-        for (auto it = strPathList.begin(); it != strPathList.end(); ++it) {
-            auto itTemp = it;
-            if (++itTemp == strPathList.end()) {
-                strPathFileName = *it;
-            }
-            else {
-                strPathDir += *it + L"\\";
-            }
-        }
-
-        size_t iPointPos = strPathFileName.rfind('.');
-        ASSERT(iPointPos != std::wstring::npos);
-        if (iPointPos == std::wstring::npos)
-        {
-            return std::wstring();
-        }
-        std::wstring strFileExtension = strPathFileName.substr(iPointPos, strPathFileName.length() - iPointPos);
-        std::wstring strFile = strPathFileName.substr(0, iPointPos);
-		//返回指定DPI下的图片，举例DPI为120的图片："image.png" 对应于 "image@120.png"
-        strPathFileName = StringHelper::Printf(L"%s%s%d%s", strFile.c_str(), L"@", dpi, strFileExtension.c_str());
-        std::wstring strNewFilePath = strPathDir + strPathFileName;
-        if (bIsUseZip) {
-            bool hasData = ui::GlobalManager::IsZipResExist(strNewFilePath);
-            return hasData ? strNewFilePath : strImageFullPath;
-        }
-		else {
-			const DWORD file_attr = ::GetFileAttributesW(strNewFilePath.c_str());
-			return file_attr != INVALID_FILE_ATTRIBUTES ? strNewFilePath : strImageFullPath;
-		}        
-    }
-}
-
 std::wstring GlobalManager::m_pStrResourcePath;
 std::wstring GlobalManager::m_pStrLanguagePath;
 std::vector<Window*> GlobalManager::m_aPreMessages;
 std::map<std::wstring, std::unique_ptr<WindowBuilder>> GlobalManager::m_builderMap;
 CreateControlCallback GlobalManager::m_createControlCallback;
 
-GlobalManager::MapStringToImagePtr GlobalManager::m_mImageHash;
-bool GlobalManager::m_bDpiScaleAllImages = true;
 std::map<std::wstring, std::wstring> GlobalManager::m_mGlobalClass;
 
 std::unique_ptr<IRenderFactory> GlobalManager::m_renderFactory;
@@ -119,6 +69,7 @@ const std::wstring kLanguageFileName = L"gdstrings.ini";
 
 ColorManager GlobalManager::m_colorManager;
 FontManager GlobalManager::m_fontManager;
+ImageManager GlobalManager::m_imageManager;
 
 void GlobalManager::Startup(const std::wstring& strResourcePath, const CreateControlCallback& callback, bool bAdaptDpi, const std::wstring& theme, const std::wstring& language)
 {
@@ -172,6 +123,7 @@ void GlobalManager::Shutdown()
 	}
 	m_renderFactory.reset();
 	m_fontManager.RemoveAllFonts();
+	m_fontManager.RemoveAllFontFiles();
 
 #if (duilib_kRenderType == duilib_kRenderType_GdiPlus)
 	Gdiplus::GdiplusShutdown(g_gdiplusToken);
@@ -225,12 +177,22 @@ void GlobalManager::RemovePreMessage(Window* pWindow)
 	}
 }
 
+void GlobalManager::RemoveAllImages()
+{
+	for (auto it = m_aPreMessages.begin(); it != m_aPreMessages.end(); it++) {
+		(*it)->GetRoot()->ClearImageCache();
+	}
+	m_imageManager.RemoveAllImages();
+}
+
 void GlobalManager::ReloadSkin(const std::wstring& resourcePath)
 {
 	m_fontManager.RemoveAllFonts();
+	m_fontManager.RemoveAllFontFiles();
 	m_colorManager.RemoveAllColors();
-	RemoveAllClasss();
 	RemoveAllImages();
+
+	RemoveAllClasss();
 
 	SetResourcePath(resourcePath);
 	LoadGlobalResource();
@@ -293,108 +255,9 @@ FontManager& GlobalManager::GetFontManager()
 	return m_fontManager;
 }
 
-std::shared_ptr<ImageInfo> GlobalManager::GetCachedImage(const ImageLoadAttribute& loadAtrribute)
+ImageManager& GlobalManager::GetImageManager()
 {
-	std::wstring cacheKey = loadAtrribute.GetCacheKey();
-	std::shared_ptr<ImageInfo> sharedImage;
-	auto it = m_mImageHash.find(cacheKey);
-	if (it != m_mImageHash.end()) {
-		sharedImage = it->second.lock();
-	}
-	return sharedImage;
-}
-
-std::shared_ptr<ImageInfo> GlobalManager::GetImage(const ImageLoadAttribute& loadAtrribute)
-{
-    std::wstring imageCacheKey = loadAtrribute.GetCacheKey();
-    auto it = m_mImageHash.find(imageCacheKey);
-	if (it != m_mImageHash.end()) {
-		std::shared_ptr<ImageInfo> sharedImage = it->second.lock();
-		if (sharedImage) {
-			//从缓存中，找到有效图片资源，直接返回
-			return sharedImage;
-		}
-	}
-	
-	//重新加载资源
-	std::wstring imageFullPath = GetDpiImageFullPath(loadAtrribute.GetImageFullPath(), IsUseZip());
-	std::vector<unsigned char> file_data;
-    if (IsUseZip()) {
-		GetZipData(imageFullPath, file_data);
-    }
-	else {
-		FILE* f = nullptr;
-		errno_t ret = _wfopen_s(&f, imageFullPath.c_str(), L"rb");
-		if ((ret == 0) && (f != nullptr)) {
-			fseek(f, 0, SEEK_END);
-			int fileSize = ftell(f);
-			fseek(f, 0, SEEK_SET);
-			if (fileSize > 0) {
-				file_data.resize((size_t)fileSize);
-				size_t readLen = fread(file_data.data(), 1, file_data.size(), f);
-				ASSERT_UNUSED_VARIABLE(readLen == file_data.size());
-				if (readLen != file_data.size()) {
-					file_data.clear();
-				}
-			}
-			fclose(f);
-		}
-	}
-	//标记DPI自适应图片属性，如果路径不同，说明已经选择了对应DPI下的文件
-	bool isDpiScaledImageFile = imageFullPath != loadAtrribute.GetImageFullPath();
-	std::unique_ptr<ImageInfo> imageInfo;
-	if (!file_data.empty()) {
-		ImageDecoder imageDecoder;
-		ImageLoadAttribute imageLoadAtrribute(loadAtrribute);
-		if (isDpiScaledImageFile) {
-			imageLoadAtrribute.SetNeedDpiScale(false);
-		}
-		imageInfo = imageDecoder.LoadImageData(file_data, imageLoadAtrribute);
-	}
-	std::shared_ptr<ImageInfo> sharedImage;
-	if (imageInfo) {
-		sharedImage.reset(imageInfo.release(), &OnImageInfoDestroy);
-		sharedImage->SetCacheKey(imageCacheKey);
-		if (isDpiScaledImageFile) {
-			//使用了DPI自适应的图片，做标记
-			sharedImage->SetBitmapSizeDpiScaled(true);
-		}
-		m_mImageHash[imageCacheKey] = sharedImage;
-	}    
-    return sharedImage;
-}
-
-void GlobalManager::OnImageInfoDestroy(ImageInfo* pImageInfo)
-{
-	ASSERT(pImageInfo != nullptr);
-	if (pImageInfo != nullptr) {
-		if (!pImageInfo->GetCacheKey().empty()) {
-			auto it = m_mImageHash.find(pImageInfo->GetCacheKey());
-			if (it != m_mImageHash.end()) {
-				m_mImageHash.erase(it);
-			}
-		}
-	}
-	delete pImageInfo;
-}
-
-void GlobalManager::RemoveAllImages()
-{
-	for (auto it = m_aPreMessages.begin(); it != m_aPreMessages.end(); it++) {
-		(*it)->GetRoot()->ClearImageCache();
-	}
-
-	m_mImageHash.clear();
-}
-
-void GlobalManager::SetDpiScaleAllImages(bool bEnable)
-{
-	m_bDpiScaleAllImages = bEnable;
-}
-
-bool GlobalManager::IsDpiScaleAllImages()
-{
-	return m_bDpiScaleAllImages;
+	return m_imageManager;
 }
 
 Box* GlobalManager::CreateBox(const std::wstring& strXmlPath, CreateControlCallback callback)

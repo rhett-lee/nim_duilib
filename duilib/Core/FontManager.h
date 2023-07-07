@@ -1,5 +1,5 @@
-#ifndef UI_UTILS_FONTMANAGER_H_
-#define UI_UTILS_FONTMANAGER_H_
+#ifndef UI_CORE_FONTMANAGER_H_
+#define UI_CORE_FONTMANAGER_H_
 
 #pragma once
 
@@ -40,7 +40,7 @@ public:
 	*/
 	IFont* GetIFont(const std::wstring& strFontId);
 
-	/** 删除所有字体, 包含已经加载的字体文件
+	/** 删除所有字体, 不包含已经加载的字体文件
 	 */
 	void RemoveAllFonts();
 
@@ -84,4 +84,4 @@ private:
 };
 
 }
-#endif //UI_UTILS_FONTMANAGER_H_
+#endif //UI_CORE_FONTMANAGER_H_

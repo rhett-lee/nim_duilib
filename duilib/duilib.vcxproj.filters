@@ -261,6 +261,9 @@
     <ClCompile Include="RenderSkia\Font_Skia.cpp">
       <Filter>RenderSkia</Filter>
     </ClCompile>
+    <ClCompile Include="Core\ImageManager.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -535,6 +538,9 @@
     </ClInclude>
     <ClInclude Include="RenderSkia\Font_Skia.h">
       <Filter>RenderSkia</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ImageManager.h">
+      <Filter>Core</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

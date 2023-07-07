@@ -17,7 +17,7 @@
         bordercolor="gray" bordersize="1" font="system_14" prompttextid="STRID_CEF_BROWSER_INPUT_ADDRESS" vscrollbar="false" autovscroll="false" hscrollbar="false" autohscroll="true" wantreturnmsg="true" />
 		<!-- 顶部标签列表 -->
 		<HListBox class="list" name="tab_list" >
-			<Button class="btn_global_blue_80x30" name="btn_add" text="+" width="20" height="20" valign="center" font="system_16" />
+			<Button class="btn_global_blue_80x30" name="btn_add" text="+" width="20" height="20" valign="center" align="center,vcenter" font="system_14" />
 		</HListBox>
     </HBox>
     <Control class="splitline_hor_level1" margin="0,0,0,0" />
