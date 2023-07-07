@@ -2,6 +2,7 @@
 #include "duilib/RenderSkia/Bitmap_Skia.h"
 #include "duilib/RenderSkia/Path_Skia.h"
 #include "duilib/RenderSkia/Matrix_Skia.h"
+#include "duilib/RenderSkia/Font_Skia.h"
 #include "duilib/RenderSkia/SkTextBox.h"
 
 #include "duilib/Utils/DpiManager.h"
@@ -1149,20 +1150,6 @@ void Render_Skia::FillPath(const IPath* path, const IBrush* brush)
 	}
 }
 
-/** 生成Skia字体信息
-*/
-sk_sp<SkTypeface> MakeSkFont(IFont* pFont)
-{
-	ASSERT(pFont != nullptr);
-	if (pFont == nullptr){
-		return nullptr;
-	}
-	SkFontStyle fontStyle = SkFontStyle(pFont->FontWeight(), pFont->FontWidth(), pFont->IsItalic() ? SkFontStyle::kItalic_Slant : SkFontStyle::kUpright_Slant);
-	std::string fontName; //UTF8编码的字体名称
-	StringHelper::UnicodeToMBCS(pFont->FontName(), fontName, CP_UTF8);
-	return SkTypeface::MakeFromName(fontName.c_str(), fontStyle);
-}
-
 void Render_Skia::DrawString(const UiRect& rc, 
 							 const std::wstring& strText,
 	                         UiColor dwTextColor, 
@@ -1183,18 +1170,19 @@ void Render_Skia::DrawString(const UiRect& rc,
 	//文本编码
 	SkTextEncoding textEncoding = SkTextEncoding::kUTF16;
 	
-	//字体设置
-	IFont* pFont = GlobalManager::GetIFont(strFontId);
+	//获取字体接口
+	IFont* pFont = GlobalManager::GetFontManager().GetIFont(strFontId);
 	ASSERT(pFont != nullptr);
 	if (pFont == nullptr) {
 		return;
 	}
+	Font_Skia* pSkiaFont = dynamic_cast<Font_Skia*>(pFont);
+	const SkFont* pSkFont = pSkiaFont->GetFontHandle();
+	ASSERT(pSkFont != nullptr);
+	if (pSkFont == nullptr) {
+		return;
+	}
 
-	SkFont skFont;
-	skFont.setTypeface(MakeSkFont(pFont));
-	skFont.setSize(SkIntToScalar(std::abs(pFont->FontSize())));
-	skFont.setEdging(SkFont::Edging::kSubpixelAntiAlias);
-	
 	//绘制属性设置
 	SkPaint skPaint = *m_pSkPaint;
 	skPaint.setARGB(dwTextColor.GetA(), dwTextColor.GetR(), dwTextColor.GetG(), dwTextColor.GetB());
@@ -1266,7 +1254,7 @@ void Render_Skia::DrawString(const UiRect& rc,
 		           (const char*)strText.c_str(), 
 		           strText.size() * sizeof(std::wstring::value_type),
 		           textEncoding, 
-		           skFont,
+		           *pSkFont,
 		           skPaint);
 }
 
@@ -1286,17 +1274,18 @@ UiRect Render_Skia::MeasureString(const std::wstring& strText,
 		return UiRect();
 	}
 
-	//字体设置
-	IFont* pFont = GlobalManager::GetIFont(strFontId);
+	//获取字体接口
+	IFont* pFont = GlobalManager::GetFontManager().GetIFont(strFontId);
 	ASSERT(pFont != nullptr);
 	if (pFont == nullptr) {
 		return UiRect();
-	}	
-
-	SkFont skFont;
-	skFont.setTypeface(MakeSkFont(pFont));
-	skFont.setSize(SkIntToScalar(std::abs(pFont->FontSize())));
-	skFont.setEdging(SkFont::Edging::kAntiAlias);
+	}
+	Font_Skia* pSkiaFont = dynamic_cast<Font_Skia*>(pFont);
+	const SkFont* pSkFont = pSkiaFont->GetFontHandle();
+	ASSERT(pSkFont != nullptr);
+	if (pSkFont == nullptr) {
+		return UiRect();
+	}
 
 	//绘制属性设置
 	SkPaint skPaint = *m_pSkPaint;
@@ -1308,15 +1297,15 @@ UiRect Render_Skia::MeasureString(const std::wstring& strText,
 		
 	//计算行高
 	SkFontMetrics fontMetrics;
-	SkScalar fontHeight = skFont.getMetrics(&fontMetrics);
+	SkScalar fontHeight = pSkFont->getMetrics(&fontMetrics);
 
 	if (isSingleLineMode || (width <= 0)) {
 		//单行模式, 或者没有限制宽度
-		SkScalar textWidth = skFont.measureText(strText.c_str(),
-												strText.size() * sizeof(std::wstring::value_type),
-												SkTextEncoding::kUTF16,
-												nullptr,
-												&skPaint);
+		SkScalar textWidth = pSkFont->measureText(strText.c_str(),
+												  strText.size() * sizeof(std::wstring::value_type),
+												  SkTextEncoding::kUTF16,
+												  nullptr,
+												  &skPaint);
 		int textIWidth = SkScalarTruncToInt(textWidth + 0.5f);
 		if (textWidth > textIWidth) {
 			textIWidth += 1;
@@ -1349,7 +1338,7 @@ UiRect Render_Skia::MeasureString(const std::wstring& strText,
 		int lineCount = SkTextLineBreaker::CountLines((const char*)strText.c_str(),
 													  strText.size() * sizeof(std::wstring::value_type),
 													  SkTextEncoding::kUTF16,
-													  skFont,
+													  *pSkFont,
 													  skPaint,
 													  SkScalar(width),
 													  SkTextBox::kWordBreak_Mode);

@@ -288,7 +288,7 @@ FilterCombo::FilterCombo() :
 	m_pRichEdit->SetFixedHeight(DUI_LENGTH_STRETCH, true);
 	m_pRichEdit->SetMargin({ 1, 1, 1, 1 }, true);
 	m_pRichEdit->SetAttribute(L"padding", L"2,3");
-	m_pRichEdit->SetFont(L"system_14");
+	m_pRichEdit->SetFontId(L"system_14");
 	//m_pRichEdit->SetMouseChildEnabled(false);
 	//m_pRichEdit->EnableScrollBar();
 	Box::AddItem(m_pRichEdit);

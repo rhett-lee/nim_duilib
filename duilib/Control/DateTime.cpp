@@ -13,8 +13,10 @@ class DateTimeWnd : public Window
 {
 public:
     DateTimeWnd();
+    virtual ~DateTimeWnd();
 
     void Init(DateTime* pOwner);
+    HFONT CreateHFont() const;
     RECT CalPos();
 
     virtual std::wstring GetWindowClassName() const override;
@@ -27,14 +29,24 @@ protected:
     bool m_bInit;
     bool m_bDropOpen;
     SYSTEMTIME m_oldSysTime;
+    HFONT m_hFont;
 };
 
 DateTimeWnd::DateTimeWnd() : 
     m_pOwner(nullptr), 
     m_bInit(false), 
     m_bDropOpen(false),
-    m_oldSysTime({0,})
+    m_oldSysTime({0,}),
+    m_hFont(nullptr)
 {
+}
+
+DateTimeWnd::~DateTimeWnd()
+{
+    if (m_hFont != nullptr) {
+        ::DeleteObject(m_hFont);
+        m_hFont = nullptr;
+    }
 }
 
 void DateTimeWnd::Init(DateTime* pOwner)
@@ -49,7 +61,16 @@ void DateTimeWnd::Init(DateTime* pOwner)
         ::ClientToScreen(pOwner->GetWindow()->GetHWND(), &pt2);
         CreateWnd(m_pOwner->GetWindow()->GetHWND(), L"", uStyle, 0, {pt1.x, pt1.y, pt2.x, pt2.y});
         ASSERT(GetHWND() != nullptr);
-        SetWindowFont(GetHWND(), ui::GlobalManager::GetFont(L"system_12"), TRUE);
+
+        HFONT hFont = CreateHFont();
+        if (hFont != nullptr) {
+            if (m_hFont != nullptr) {
+                ::DeleteObject(m_hFont);
+                m_hFont = nullptr;
+            }
+            m_hFont = hFont;
+        }
+        SetWindowFont(GetHWND(), m_hFont, TRUE);
     }
 
     if (m_pOwner->IsValidTime()) {
@@ -70,6 +91,39 @@ void DateTimeWnd::Init(DateTime* pOwner)
     }        
     ::SendMessage(hWndParent, WM_NCACTIVATE, TRUE, 0L);
     m_bInit = true;
+}
+
+HFONT DateTimeWnd::CreateHFont() const
+{
+    //优先获取默认字体
+    IFont* pFont = GlobalManager::GetFontManager().GetIFont(L"");
+    if (pFont == nullptr) {
+        pFont = GlobalManager::GetFontManager().GetIFont(L"system_12");
+    }
+    ASSERT(pFont != nullptr);
+    if (pFont == nullptr) {
+        return nullptr;
+    }
+    LOGFONT lf = { 0 };
+    ::GetObject(::GetStockObject(DEFAULT_GUI_FONT), sizeof(LOGFONT), &lf);
+    wcscpy_s(lf.lfFaceName, pFont->FontName());
+    lf.lfCharSet = DEFAULT_CHARSET;
+    lf.lfHeight = -pFont->FontSize();
+    if (pFont->IsUnderline()) {
+        lf.lfUnderline = TRUE;
+    }
+    if (pFont->IsStrikeOut()) {
+        lf.lfStrikeOut = TRUE;
+    }
+    if (pFont->IsItalic()) {
+        lf.lfItalic = TRUE;
+    }
+    if (pFont->IsBold()) {
+        lf.lfWeight = FW_BOLD;
+    }
+    HFONT hFont = ::CreateFontIndirect(&lf);
+    ASSERT(hFont != nullptr);
+    return hFont;
 }
 
 RECT DateTimeWnd::CalPos()

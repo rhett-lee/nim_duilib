@@ -22,7 +22,6 @@
 #include "duilib/Box/TileBox.h"
 
 #include "duilib/Utils/StringUtil.h"
-#include "duilib/Utils/FontManager.h"
 
 #include "duilib/third_party/xml/pugixml.hpp"
 #include <shlwapi.h>
@@ -246,28 +245,27 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
 				if( strClass == _T("Image") ) {
 					ASSERT(FALSE);	//·ÏÆú
 				}
-				else if (strClass == _T("FontResource")) {
+				else if (strClass == L"FontResource") {
 					std::wstring strFontFile;
 					std::wstring strFontName;
 					for (pugi::xml_attribute attr : node.attributes()) {
 						strName = attr.name();
 						strValue = attr.value();
-						if (strName == _T("file")) {
+						if (strName == L"file") {
 							strFontFile = strValue;
 						}
-						else if (strName == _T("name")) {
+						else if (strName == L"name") {
 							strFontName = strValue;
 						}
 					}
-					if (!strFontFile.empty()) {
-						FontManager::GetInstance()->AddFontResource(strFontFile, strFontName);
+					if (!strFontFile.empty() && !strFontName.empty()) {
+						GlobalManager::GetFontManager().AddFontFile(strFontFile, strFontName);
 					}
 				}
-				else if( strClass == _T("Font") ) {					
+				else if( strClass == L"Font") {					
 					std::wstring strFontId;
 					std::wstring strFontName;
 					int size = 12;
-					int weight = 0;
 					bool bold = false;
 					bool underline = false;
 					bool strikeout = false;
@@ -276,37 +274,41 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
 					for (pugi::xml_attribute attr : node.attributes()) {
 						strName = attr.name();
 						strValue = attr.value();
-						if (strName == _T("id"))
+						if (strName == L"id")
 						{
 							strFontId = strValue;
 						}
-						else if( strName == _T("name") ) {
+						else if( strName == L"name") {
 							strFontName = strValue;
 						}
-						else if( strName == _T("size") ) {
-							size = _tcstol(strValue.c_str(), NULL, 10);
+						else if( strName == L"size") {
+							size = wcstol(strValue.c_str(), nullptr, 10);
 						}
-						else if( strName == _T("bold") ) {
-							bold = (strValue == _T("true"));
+						else if( strName == L"bold") {
+							bold = (strValue == L"true");
 						}
-						else if( strName == _T("underline") ) {
+						else if( strName == L"underline") {
 							underline = (strValue == _T("true"));
 						}
-						else if (strName == _T("strikeout")) {
+						else if (strName == L"strikeout") {
 							strikeout = (strValue == _T("true"));
 						}
-						else if( strName == _T("italic") ) {
+						else if( strName == L"italic") {
 							italic = (strValue == _T("true"));
 						}
-						else if( strName == _T("default") ) {
-							isDefault = (strValue == _T("true"));
-						}
-						else if ( strName == _T("weight") ) {
-							weight = _tcstol(strValue.c_str(), NULL, 10);
+						else if( strName == L"default") {
+							isDefault = (strValue == L"true");
 						}
 					}
-					if( !strFontName.empty() ) {
-						GlobalManager::AddFont(strFontId, strFontName, size, bold, underline, strikeout, italic, isDefault, weight);
+					if (!strFontName.empty() && !strFontId.empty()) {
+						UiFont fontInfo;
+						fontInfo.m_fontName = strFontName;
+						fontInfo.m_fontSize = DpiManager::GetInstance()->GetScaledInt(size);
+						fontInfo.m_bBold = bold;
+						fontInfo.m_bItalic = italic;
+						fontInfo.m_bUnderline = underline;
+						fontInfo.m_bStrikeOut = strikeout;
+						GlobalManager::GetFontManager().AddFont(strFontId, fontInfo, isDefault);
 					}
 				}
 				else if( strClass == _T("Class") ) {

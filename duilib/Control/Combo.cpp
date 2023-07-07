@@ -305,7 +305,7 @@ void Combo::PaintText(IRender* pRender)
 
 	UiColor dwTextColor(0xFF000000);
 	dwTextColor = this->GetUiColor(pElement->GetStateTextColor(kControlStateNormal));
-	pRender->DrawString(rcText, GetText(), dwTextColor, pElement->GetFont(), TEXT_SINGLELINE | TEXT_VCENTER | TEXT_END_ELLIPSIS);
+	pRender->DrawString(rcText, GetText(), dwTextColor, pElement->GetFontId(), TEXT_SINGLELINE | TEXT_VCENTER | TEXT_END_ELLIPSIS);
 }
 
 bool Combo::CanPlaceCaptionBar() const

@@ -10,6 +10,39 @@
 
 namespace ui 
 {
+/** 字体接口
+*/
+class UILIB_API IFont: public virtual nbase::SupportWeakCallback
+{
+public:
+	/** 初始化字体(内部未对字体大小做DPI自适应)
+ 	*/
+	virtual bool InitFont(const UiFont& fontInfo) = 0;
+
+	/** 获取字体名
+	*/
+	virtual const wchar_t* FontName() const = 0;
+
+	/** 获取字体大小(字体高度)
+	*/
+	virtual int FontSize() const = 0;
+
+	/** 是否为粗体
+	*/
+	virtual bool IsBold() const = 0;
+
+	/** 字体下划线状态
+	*/
+	virtual bool IsUnderline() const = 0;
+
+	/** 字体的斜体状态
+	*/
+	virtual bool IsItalic() const = 0;
+
+	/** 字体的删除线状态
+	*/
+	virtual bool IsStrikeOut() const = 0;
+};
 
 class UILIB_API IBitmap : public virtual nbase::SupportWeakCallback
 {
@@ -662,6 +695,7 @@ class UILIB_API IRenderFactory
 {
 public:
 	virtual ~IRenderFactory() = default;
+	virtual IFont* CreateIFont() = 0;
 	virtual IPen* CreatePen(UiColor color, int width = 1) = 0;
 	virtual IBrush* CreateBrush(UiColor corlor) = 0;
 	virtual IPath* CreatePath() = 0;

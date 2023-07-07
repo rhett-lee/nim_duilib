@@ -6,8 +6,8 @@
 #include "duilib/duilib_defs.h"
 #include "duilib/Core/WindowBuilder.h"
 #include "duilib/Core/ColorManager.h"
+#include "duilib/Core/FontManager.h"
 #include "duilib/Render/UiColor.h"
-#include "duilib/Render/IFont.h"
 
 #include <string>
 #include <vector>
@@ -124,6 +124,10 @@ public:
 	*/
 	static ColorManager& GetColorManager();
 
+	/** 获取字体管理器
+	*/
+	static FontManager& GetFontManager();
+
 	/**
 	 * @brief 检查指定图片是否已经被缓存
 	 * @param[in] loadAtrribute 图片的加载属性，包含图片路径等信息
@@ -159,45 +163,6 @@ public:
 	/**判断是否默认对所有图片在加载时根据DPI进行缩放
 	*/
 	static bool IsDpiScaleAllImages();
-
-	/**
-	 * @brief 添加一个字体
-	 * @param[in] strFontId 指定字体的ID标记
-	 * @param[in] strFontName 字体名称
-	 * @param[in] nSize 字体大小
-	 * @param[in] bBold 是否粗体
-	 * @param[in] bUnderline 是否有下划线
-	 * @param[in] bStrikeout 是否带有删除线
-	 * @param[in] bItalic 是否倾斜
-	 * @param[in] bDefault 是否默认
-	 * @param[in] nWeight 字体粗细，自重，默认为 FW_NORMAL(400)
-	 */
-	static bool AddFont(const std::wstring& strFontId, 
-						const std::wstring& strFontName, 
-					    int nSize, 
-					    bool bBold, 
-					    bool bUnderline, 
-					    bool bStrikeout, 
-					    bool bItalic, 
-					    bool bDefault, 
-					    int nWeight = 0);
-
-	/**
-	 * @brief 根据字体ID返回一个字体对象
-	 * @param[in] strFontId 字体ID
-	 * @return 返回字体的 HFONT 句柄
-	 */
-	static HFONT GetFont(const std::wstring& strFontId);
-
-	/** 获取字体接口
-	*/
-	static IFont* GetIFont(const std::wstring& strFontId);
-
-	/**
-	 * @brief 删除所有字体
-	 * @return 无
-	 */
-	static void RemoveAllFonts();
 
 	/**
 	 * @brief 根据 XML 创建一个 Box
@@ -322,17 +287,13 @@ private:
 
 	static DWORD m_dwUiThreadId;
 
-	/** 可选字体列表
-	*/
-	static std::map<std::wstring, IFont*> m_mCustomFonts;
-
-	/** 默认字体ID
-	*/
-	static std::wstring m_sDefaultFontId;
-
 	/** 颜色管理器
 	*/
 	static ColorManager m_colorManager;
+
+	/** 字体管理器
+	*/
+	static FontManager m_fontManager;
 };
 
 } // namespace ui

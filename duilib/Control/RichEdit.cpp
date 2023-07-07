@@ -62,7 +62,7 @@ public:
     void SetReadOnly(BOOL fReadOnly);
 	BOOL IsPassword();
 	void SetPassword(BOOL bPassword);
-    void SetFont(HFONT hFont);
+    void SetFontId(const std::wstring& fontId);
     void SetColor(DWORD dwColor);
     SIZEL* GetExtent();
     void SetExtent(SIZEL *psizelExtent);
@@ -226,7 +226,34 @@ LONG DYtoHimetricY(LONG dy, LONG yPerInch)
     return (LONG) MulDiv(dy, HIMETRIC_PER_INCH, yPerInch);
 }
 
-HRESULT InitDefaultCharFormat(RichEdit* re, CHARFORMAT2W* pcf, HFONT hfont) 
+static void GetLogFont(const std::wstring& fontId, LOGFONT& lf)
+{
+	//优先获取默认字体
+	lf = { 0 };
+	::GetObject(::GetStockObject(DEFAULT_GUI_FONT), sizeof(LOGFONT), &lf);
+	IFont* pFont = GlobalManager::GetFontManager().GetIFont(fontId);
+	ASSERT(pFont != nullptr);
+	if (pFont == nullptr) {
+		return;
+	}	
+	wcscpy_s(lf.lfFaceName, pFont->FontName());
+	lf.lfCharSet = DEFAULT_CHARSET;
+	lf.lfHeight = -pFont->FontSize();
+	if (pFont->IsUnderline()) {
+		lf.lfUnderline = TRUE;
+	}
+	if (pFont->IsStrikeOut()) {
+		lf.lfStrikeOut = TRUE;
+	}
+	if (pFont->IsItalic()) {
+		lf.lfItalic = TRUE;
+	}
+	if (pFont->IsBold()) {
+		lf.lfWeight = FW_BOLD;
+	}
+}
+
+static HRESULT InitDefaultCharFormat(RichEdit* re, CHARFORMAT2W* pcf) 
 {
 	assert(re != nullptr);
 	assert(pcf != nullptr);
@@ -235,11 +262,7 @@ HRESULT InitDefaultCharFormat(RichEdit* re, CHARFORMAT2W* pcf, HFONT hfont)
 	}
     memset(pcf, 0, sizeof(CHARFORMAT2W));
 	LOGFONT lf = { 0 };
-	if (!hfont) {
-		hfont = GlobalManager::GetFont(re->GetFont());
-	}
-    ::GetObject(hfont, sizeof(LOGFONT), &lf);
-
+	GetLogFont(re->GetFontId(), lf);
 	UiColor dwColor = re->GetTextColorValue();
     pcf->cbSize = sizeof(CHARFORMAT2W);
     pcf->crTextColor = dwColor.ToCOLORREF();
@@ -364,7 +387,7 @@ BOOL CTxtWinHost::Init(RichEdit *re, const CREATESTRUCT *pcs)
     cRefs = 1;
 
     // Create and cache CHARFORMAT for this control
-    if(FAILED(InitDefaultCharFormat(re, &cf, NULL)))
+    if(FAILED(InitDefaultCharFormat(re, &cf)))
 	{
 		return FALSE;
 	}
@@ -945,11 +968,14 @@ void CTxtWinHost::SetPassword(BOOL bPassword)
 		bPassword ? TXTBIT_USEPASSWORD : 0);
 }
 
-void CTxtWinHost::SetFont(HFONT hFont) 
+void CTxtWinHost::SetFontId(const std::wstring& fontId)
 {
-    if( hFont == NULL ) return;
-    LOGFONT lf;
-    ::GetObject(hFont, sizeof(LOGFONT), &lf);
+	ASSERT(!fontId.empty());
+	if (fontId.empty()) {
+		return;
+	}
+	LOGFONT lf = {0, };
+	GetLogFont(fontId, lf);
     LONG yPixPerInch = ::GetDeviceCaps(m_re->GetWindowDC(), LOGPIXELSY);
 	if (yPixPerInch == 0)
 		yPixPerInch = 96;
@@ -1394,43 +1420,17 @@ void RichEdit::SetWordWrap(bool bWordWrap)
     if( m_pTwh ) m_pTwh->SetWordWrap(bWordWrap);
 }
 
-std::wstring RichEdit::GetFont() const
+const std::wstring& RichEdit::GetFontId() const
 {
     return m_sFontId;
 }
 
-void RichEdit::SetFont(const std::wstring& strFontId)
+void RichEdit::SetFontId(const std::wstring& strFontId)
 {
     m_sFontId = strFontId;
     if( m_pTwh ) {
-		m_pTwh->SetFont(GlobalManager::GetFont(m_sFontId));
+		m_pTwh->SetFontId(strFontId);
     }
-}
-
-void RichEdit::SetFont(const std::wstring& pStrFontName, int nSize, bool bBold, bool bUnderline, bool bStrikeout, bool bItalic)
-{
-    if( m_pTwh ) {
-        LOGFONT lf = { 0 };
-        ::GetObject(::GetStockObject(DEFAULT_GUI_FONT), sizeof(LOGFONT), &lf);
-        _tcscpy_s(lf.lfFaceName, pStrFontName.c_str());
-        lf.lfCharSet = DEFAULT_CHARSET;
-        lf.lfHeight = -nSize;
-        if( bBold ) lf.lfWeight += FW_BOLD;
-        if( bUnderline ) lf.lfUnderline = TRUE;
-		if (bStrikeout) lf.lfStrikeOut = TRUE;
-        if( bItalic ) lf.lfItalic = TRUE;
-        HFONT hFont = ::CreateFontIndirect(&lf);
-        if( hFont == NULL ) return;
-        m_pTwh->SetFont(hFont);
-        ::DeleteObject(hFont);
-    }
-}
-
-void RichEdit::SetFont(HFONT font)
-{
-	if (m_pTwh)	{
-		m_pTwh->SetFont(font);
-	}
 }
 
 LONG RichEdit::GetWinStyle()
@@ -2938,7 +2938,7 @@ void RichEdit::SetAttribute(const std::wstring& strName, const std::wstring& str
 	else if (strName == _T("prompttext")) SetPromptText(strValue);
 	else if (strName == _T("prompttextid")) SetPromptTextId(strValue);
 	else if (strName == _T("focusedimage")) SetFocusedImage(strValue);
-	else if (strName == _T("font")) SetFont(strValue);
+	else if (strName == _T("font")) SetFontId(strValue);
 	else if (strName == _T("text")) SetText(strValue);
 	else if (strName == _T("textid")) SetTextId(strValue);
 	else if (strName == _T("wanttab")) SetWantTab(strValue == _T("true"));
@@ -3211,13 +3211,13 @@ void  RichEdit::AddLinkColorTextEx(const std::wstring& str, const std::wstring &
 	std::string font_face;
 	StringHelper::UnicodeToMBCS(linkInfo, link);
 	StringHelper::UnicodeToMBCS(str, text);
-	auto hFont = GlobalManager::GetFont(strFontId);
-	if (hFont == NULL)
-		hFont = GlobalManager::GetFont(m_sFontId);
-	if (hFont == NULL)
-		hFont = GlobalManager::GetFont(L"");
-	LOGFONT lf;
-	::GetObject(hFont, sizeof(LOGFONT), &lf);
+	LOGFONT lf = {0,};
+	if (strFontId.empty()) {
+		GetLogFont(m_sFontId, lf);
+	}
+	else {
+		GetLogFont(strFontId, lf);
+	}
 	StringHelper::UnicodeToMBCS(lf.lfFaceName, font_face);
 	UiColor dwTextColor = GlobalManager::GetColorManager().GetColor(color);
 	static std::string font_format = "{\\fonttbl{\\f0\\fnil\\fcharset%d %s;}}";

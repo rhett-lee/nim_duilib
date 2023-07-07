@@ -11,6 +11,7 @@ namespace ui
 class UILIB_API RenderFactory_Skia : public IRenderFactory
 {
 public:
+	virtual IFont* CreateIFont() override;
 	virtual IPen* CreatePen(UiColor color, int width = 1) override;
 	virtual IBrush* CreateBrush(UiColor corlor) override;
 	virtual IPath* CreatePath() override;

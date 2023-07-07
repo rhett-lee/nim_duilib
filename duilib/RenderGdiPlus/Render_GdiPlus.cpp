@@ -6,6 +6,7 @@
 #include "duilib/RenderGdiPlus/Brush_Gdiplus.h"
 #include "duilib/RenderGdiPlus/Matrix_Gdiplus.h"
 #include "duilib/RenderGdiPlus/Bitmap_GDI.h"
+#include "duilib/RenderGdiPlus/Font_GDI.h"
 #include "duilib/RenderGdiPlus/GdiPlusDefs.h"
 #include "duilib/Render/BitmapAlpha.h"
 
@@ -973,8 +974,14 @@ void Render_GdiPlus::DrawString(const UiRect& rc, const std::wstring& strText,
 		return;
 	}
 
+	IFont* pFont = GlobalManager::GetFontManager().GetIFont(strFontId);
+	Font_GDI* pGdiFont = dynamic_cast<Font_GDI*>(pFont);
+	ASSERT(pGdiFont != nullptr);
+	if (pGdiFont == nullptr) {
+		return;
+	}
 	Gdiplus::Graphics graphics(m_hDC);
-	Gdiplus::Font font(m_hDC, GlobalManager::GetFont(strFontId));
+	Gdiplus::Font font(m_hDC, pGdiFont->GetFontHandle());
 
 	Gdiplus::RectF rcPaint((Gdiplus::REAL)rc.left, (Gdiplus::REAL)rc.top, (Gdiplus::REAL)(rc.right - rc.left), (Gdiplus::REAL)(rc.bottom - rc.top));
 	int alpha = dwTextColor.GetARGB() >> 24;
@@ -1032,11 +1039,17 @@ void Render_GdiPlus::DrawString(const UiRect& rc, const std::wstring& strText,
 	graphics.DrawString(strText.c_str(), (int)strText.length(), &font, rcPaint, &stringFormat, &tBrush);
 }
 
-ui::UiRect Render_GdiPlus::MeasureString(const std::wstring& strText, const std::wstring& strFontId,
-	uint32_t uFormat, int width /*= DUI_NOSET_VALUE*/)
+UiRect Render_GdiPlus::MeasureString(const std::wstring& strText, const std::wstring& strFontId,
+								     uint32_t uFormat, int width /*= DUI_NOSET_VALUE*/)
 {
+	IFont* pFont = GlobalManager::GetFontManager().GetIFont(strFontId);
+	Font_GDI* pGdiFont = dynamic_cast<Font_GDI*>(pFont);
+	ASSERT(pGdiFont != nullptr);
+	if (pGdiFont == nullptr) {
+		return UiRect();
+	}
 	Gdiplus::Graphics graphics(m_hDC);
-	Gdiplus::Font font(m_hDC, GlobalManager::GetFont(strFontId));
+	Gdiplus::Font font(m_hDC, pGdiFont->GetFontHandle());
 	Gdiplus::RectF bounds;
 
 	Gdiplus::StringFormat stringFormat = Gdiplus::StringFormat::GenericTypographic();

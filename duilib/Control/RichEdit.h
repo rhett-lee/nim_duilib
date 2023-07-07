@@ -125,26 +125,14 @@ public:
 	 * @brief 获取当前设置的字体索引
 	 * @return 返回字体索引（对应 global.xml 中字体的顺序）
 	 */
-	std::wstring GetFont() const;
+	const std::wstring& GetFontId() const;
 
 	/**
 	 * @brief 设置字体索引
 	 * @param[in] index 要设置的字体索引（对应 global.xml 中字体的顺序）
 	 * @return 无
 	 */
-	void SetFont(const std::wstring& strFontId);
-	void SetFont(HFONT font);
-	/**
-	 * @brief 根据字体名称设置字体
-	 * @param[in] pStrFontName 字体名称
-	 * @param[in] nSize 字体大小
-	 * @param[in] bBold 是否粗体显示
-	 * @param[in] bUnderline 是否带有下划线
-	 * @param[in] bStrikeout 是否带有删除线
-	 * @param[in] bItalic 是否斜体显示
-	 * @return 无
-	 */
-	void SetFont(const std::wstring& pStrFontName, int nSize, bool bBold, bool bUnderline, bool bStrikeout, bool bItalic);
+	void SetFontId(const std::wstring& strFontId);
 
 	/**
 	 * @brief 获取窗口样式

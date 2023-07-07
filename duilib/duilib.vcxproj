@@ -347,6 +347,7 @@
     <ClCompile Include="Core\Control.cpp" />
     <ClCompile Include="Core\ControlFinder.cpp" />
     <ClCompile Include="Core\Define.cpp" />
+    <ClCompile Include="Core\FontManager.cpp" />
     <ClCompile Include="Core\GlobalManager.cpp" />
     <ClCompile Include="Core\Placeholder.cpp" />
     <ClCompile Include="Core\ToolTip.cpp" />
@@ -358,6 +359,7 @@
     <ClCompile Include="RenderGdiPlus\BitmapHepler.cpp" />
     <ClCompile Include="RenderGdiPlus\Bitmap_GDI.cpp" />
     <ClCompile Include="RenderGdiPlus\Brush_Gdiplus.cpp" />
+    <ClCompile Include="RenderGdiPlus\Font_GDI.cpp" />
     <ClCompile Include="RenderGdiPlus\Matrix_Gdiplus.cpp" />
     <ClCompile Include="RenderGdiPlus\Path_Gdiplus.cpp" />
     <ClCompile Include="RenderGdiPlus\Pen_GdiPlus.cpp" />
@@ -365,6 +367,7 @@
     <ClCompile Include="RenderGdiPlus\Render_GdiPlus.cpp" />
     <ClCompile Include="RenderSkia\Bitmap_Skia.cpp" />
     <ClCompile Include="RenderSkia\Brush_Skia.cpp" />
+    <ClCompile Include="RenderSkia\Font_Skia.cpp" />
     <ClCompile Include="RenderSkia\Matrix_Skia.cpp" />
     <ClCompile Include="RenderSkia\Path_Skia.cpp" />
     <ClCompile Include="RenderSkia\Pen_Skia.cpp" />
@@ -380,7 +383,6 @@
     <ClCompile Include="third_party\xml\pugixml.cpp" />
     <ClCompile Include="Utils\ApiWrapper.cpp" />
     <ClCompile Include="Utils\DpiManager.cpp" />
-    <ClCompile Include="Utils\FontManager.cpp" />
     <ClCompile Include="Utils\MultiLangSupport.cpp" />
     <ClCompile Include="Utils\OnScreenKeyboardManager.cpp" />
     <ClCompile Include="Utils\PerformanceUtil.cpp" />
@@ -418,6 +420,7 @@
     <ClInclude Include="Core\Control.h" />
     <ClInclude Include="Core\ControlFinder.h" />
     <ClInclude Include="Core\Define.h" />
+    <ClInclude Include="Core\FontManager.h" />
     <ClInclude Include="Core\GlobalManager.h" />
     <ClInclude Include="Core\Placeholder.h" />
     <ClInclude Include="Core\ToolTip.h" />
@@ -432,6 +435,7 @@
     <ClInclude Include="RenderGdiPlus\BitmapHelper.h" />
     <ClInclude Include="RenderGdiPlus\Bitmap_GDI.h" />
     <ClInclude Include="RenderGdiPlus\Brush_Gdiplus.h" />
+    <ClInclude Include="RenderGdiPlus\Font_GDI.h" />
     <ClInclude Include="RenderGdiPlus\GdiPlusDefs.h" />
     <ClInclude Include="RenderGdiPlus\Matrix_Gdiplus.h" />
     <ClInclude Include="RenderGdiPlus\Path_Gdiplus.h" />
@@ -440,6 +444,7 @@
     <ClInclude Include="RenderGdiPlus\Render_GdiPlus.h" />
     <ClInclude Include="RenderSkia\Bitmap_Skia.h" />
     <ClInclude Include="RenderSkia\Brush_Skia.h" />
+    <ClInclude Include="RenderSkia\Font_Skia.h" />
     <ClInclude Include="RenderSkia\Matrix_Skia.h" />
     <ClInclude Include="RenderSkia\Path_Skia.h" />
     <ClInclude Include="RenderSkia\Pen_Skia.h" />
@@ -450,7 +455,6 @@
     <ClInclude Include="Render\AutoClip.h" />
     <ClInclude Include="Render\BitmapAlpha.h" />
     <ClInclude Include="Render\Font_GDI.h" />
-    <ClInclude Include="Render\IFont.h" />
     <ClInclude Include="Render\IRender.h" />
     <ClInclude Include="Render\RenderConfig.h" />
     <ClInclude Include="Render\UiColor.h" />
@@ -465,7 +469,6 @@
     <ClInclude Include="third_party\xml\pugixml.hpp" />
     <ClInclude Include="Utils\ApiWrapper.h" />
     <ClInclude Include="Utils\DpiManager.h" />
-    <ClInclude Include="Utils\FontManager.h" />
     <ClInclude Include="Utils\Macros.h" />
     <ClInclude Include="Utils\MultiLangSupport.h" />
     <ClInclude Include="Utils\OnScreenKeyboardManager.h" />

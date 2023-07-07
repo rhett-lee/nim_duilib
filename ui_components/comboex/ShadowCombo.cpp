@@ -349,7 +349,7 @@ void ShadowCombo::PaintText(ui::IRender* pRender)
     rcText.bottom -= rcPadding.bottom;
 
     ui::UiColor dwTextColor = this->GetUiColor(pElement->GetStateTextColor(ui::kControlStateNormal));
-    pRender->DrawString(rcText, GetText(), dwTextColor, pElement->GetFont(), ui::TEXT_SINGLELINE | ui::TEXT_VCENTER | ui::TEXT_END_ELLIPSIS);
+    pRender->DrawString(rcText, GetText(), dwTextColor, pElement->GetFontId(), ui::TEXT_SINGLELINE | ui::TEXT_VCENTER | ui::TEXT_END_ELLIPSIS);
 }
 
 void ShadowCombo::PaintChild(ui::IRender* pRender, const ui::UiRect& rcPaint)

@@ -45,8 +45,7 @@
     <Font id="arial_bold_20" name="arial" size="20" bold="true"/>
     <Font id="arial_bold_22" name="arial" size="22" bold="true"/>
     <!-- 设置默认颜色值 -->
-    <!--TextColor name="default_font_color" value="#ff333333"/-->
-    <TextColor name="default_font_color" value="blue"/>
+    <TextColor name="default_font_color" value="#ff333333"/>
     <TextColor name="disabled_font_color" value="#ffa1aebc"/>
     <TextColor name="default_link_font_color" value="#FF0000FF"/>
     <TextColor name="hover_link_font_color" value="#FFD3215F"/>

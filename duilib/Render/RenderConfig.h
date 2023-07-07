@@ -16,7 +16,7 @@ namespace ui
 
 /** 当前选择的渲染引擎(通过修改此值，来设置支持哪个引擎)
 */
-#define duilib_kRenderType          duilib_kRenderType_Skia
+#define duilib_kRenderType          1
 
 }//namespace ui
 

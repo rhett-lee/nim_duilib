@@ -1,9 +1,9 @@
-#ifndef UI_RENDER_FONT_GDI_H_
-#define UI_RENDER_FONT_GDI_H_
+#ifndef UI_RENDER_GDIPLUS_FONT_GDI_H_
+#define UI_RENDER_GDIPLUS_FONT_GDI_H_
 
 #pragma once
 
-#include "duilib/Render/IFont.h"
+#include "duilib/Render/IRender.h"
 
 namespace ui 
 {
@@ -13,29 +13,14 @@ namespace ui
 class UILIB_API Font_GDI: public IFont
 {
 public:
-    Font_GDI() : 
-        m_logFont{ 0, }, 
-        m_hFont(nullptr) 
-    {
-    }
-
-    explicit Font_GDI(const LOGFONT& logFont): 
-        m_logFont(logFont)
-    {
-        m_hFont = ::CreateFontIndirect(&m_logFont);
-        ASSERT(m_hFont != nullptr);
-    }
-
-    virtual ~Font_GDI()
-    {
-        if (m_hFont != nullptr) {
-            ::DeleteObject(m_hFont);
-            m_hFont = nullptr;
-        }
-    }
-
+    Font_GDI();
     Font_GDI(const Font_GDI&) = delete;
     Font_GDI& operator=(const Font_GDI&) = delete;
+    virtual ~Font_GDI();
+
+    /** 初始化字体(内部未对字体大小做DPI自适应)
+    */
+    virtual bool InitFont(const UiFont& fontInfo) override;
 
     /**@brief 获取字体名
      */
@@ -44,14 +29,6 @@ public:
     /**@brief 获取字体大小
      */
     virtual int FontSize() const override { return -m_logFont.lfHeight; }
-
-    /**@brief 获取字体宽度
-     */
-    virtual int FontWidth() const override { return m_logFont.lfWidth; }
-
-    /**@brief 获取字体Weight值
-     */
-    virtual int FontWeight() const override { return m_logFont.lfWeight; }
 
     /**@brief 是否为粗体
      */
@@ -69,9 +46,10 @@ public:
      */
     virtual bool IsStrikeOut() const override { return m_logFont.lfStrikeOut; }
 
+public:
     /** 获取字体句柄
     */
-    HFONT GetFontHandle() const { return m_hFont; }
+    HFONT GetFontHandle();
 
 private:
     //字体信息
@@ -83,4 +61,4 @@ private:
 
 } // namespace ui
 
-#endif // UI_RENDER_FONT_GDI_H_
+#endif // UI_RENDER_GDIPLUS_FONT_GDI_H_

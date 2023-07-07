@@ -79,14 +79,14 @@ public:
      * @brief 获取当前字体编号
      * @return 返回字体编号，该编号在 global.xml 中标识
      */
-	std::wstring GetFont() const;
+	const std::wstring& GetFontId() const;
 
     /**
      * @brief 设置当前字体
      * @param[in] index 要设置的字体编号，该编号必须在 global.xml 中存在
      * @return 无
      */
-	void SetFont(const std::wstring& strFontId);
+	void SetFontId(const std::wstring& strFontId);
 
     /**
      * @brief 获取文字边距
@@ -402,7 +402,7 @@ void LabelTemplate<InheritType>::SetAttribute(const std::wstring& strName, const
     else if (strName == L"text") SetText(strValue);
     else if (strName == L"textid") SetTextId(strValue);
     else if (strName == L"autotooltip") SetAutoToolTip(strValue == L"true");
-    else if (strName == L"font") SetFont(strValue);
+    else if (strName == L"font") SetFontId(strValue);
     else if (strName == L"normaltextcolor") SetStateTextColor(kControlStateNormal, strValue);
     else if (strName == L"hottextcolor")	SetStateTextColor(kControlStateHot, strValue);
     else if (strName == L"pushedtextcolor")	SetStateTextColor(kControlStatePushed, strValue);
@@ -514,13 +514,13 @@ std::wstring ui::LabelTemplate<InheritType>::GetPaintStateTextColor(ControlState
 }
 
 template<typename InheritType>
-std::wstring LabelTemplate<InheritType>::GetFont() const
+const std::wstring& LabelTemplate<InheritType>::GetFontId() const
 {
     return m_sFontId;
 }
 
 template<typename InheritType>
-void LabelTemplate<InheritType>::SetFont(const std::wstring& strFontId)
+void LabelTemplate<InheritType>::SetFontId(const std::wstring& strFontId)
 {
     m_sFontId = strFontId;
     this->Invalidate();

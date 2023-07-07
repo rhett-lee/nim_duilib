@@ -63,10 +63,11 @@
 #include "Utils/Delegate.h"
 #include "Utils/StringUtil.h"
 #include "Utils/MultiLangSupport.h"
-#include "Utils/FontManager.h"
 #include "Utils/TimerManager.h"
 #include "Utils/OnScreenKeyboardManager.h"
+#include "Utils/WinImplBase.h"
 #include "Utils/Shadow.h"
+#include "Utils/ShadowWnd.h"
 
 #include "Image/Image.h"
 #include "Animation/AnimationPlayer.h"
@@ -84,8 +85,8 @@
 #include "Core/Control.h"
 #include "Core/BoxShadow.h"
 #include "Core/Box.h"
-#include "Utils/WinImplBase.h"
-#include "Utils/ShadowWnd.h"
+#include "Core/FontManager.h"
+#include "Core/ColorManager.h"
 
 #include "Box/VBox.h"
 #include "Box/HBox.h"

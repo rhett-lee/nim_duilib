@@ -4,7 +4,6 @@
 #pragma once
 
 #include "duilib/Core/Control.h"
-#include "duilib/Render/IFont.h"
 
 namespace ui 
 {

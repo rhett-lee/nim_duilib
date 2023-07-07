@@ -108,9 +108,6 @@
     <ClCompile Include="Utils\DpiManager.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
-    <ClCompile Include="Utils\FontManager.cpp">
-      <Filter>Utils</Filter>
-    </ClCompile>
     <ClCompile Include="Utils\MultiLangSupport.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
@@ -255,6 +252,15 @@
     <ClCompile Include="Render\UiColors.cpp">
       <Filter>Render</Filter>
     </ClCompile>
+    <ClCompile Include="Core\FontManager.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderGdiPlus\Font_GDI.cpp">
+      <Filter>RenderGdiPlus</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderSkia\Font_Skia.cpp">
+      <Filter>RenderSkia</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -335,9 +341,6 @@
     <ClInclude Include="Utils\DpiManager.h">
       <Filter>Utils</Filter>
     </ClInclude>
-    <ClInclude Include="Utils\FontManager.h">
-      <Filter>Utils</Filter>
-    </ClInclude>
     <ClInclude Include="Utils\Macros.h">
       <Filter>Utils</Filter>
     </ClInclude>
@@ -381,9 +384,6 @@
       <Filter>Control</Filter>
     </ClInclude>
     <ClInclude Include="Render\UiColor.h">
-      <Filter>Render</Filter>
-    </ClInclude>
-    <ClInclude Include="Render\IFont.h">
       <Filter>Render</Filter>
     </ClInclude>
     <ClInclude Include="Render\Font_GDI.h">
@@ -526,6 +526,15 @@
     </ClInclude>
     <ClInclude Include="Render\UiColors.h">
       <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\FontManager.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderGdiPlus\Font_GDI.h">
+      <Filter>RenderGdiPlus</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderSkia\Font_Skia.h">
+      <Filter>RenderSkia</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

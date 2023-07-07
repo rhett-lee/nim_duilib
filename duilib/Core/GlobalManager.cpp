@@ -1,5 +1,4 @@
 #include "GlobalManager.h"
-#include "duilib/Render/Font_GDI.h"
 #include "duilib/Utils/DpiManager.h"
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Utils/MultiLangSupport.h"
@@ -106,9 +105,6 @@ GlobalManager::MapStringToImagePtr GlobalManager::m_mImageHash;
 bool GlobalManager::m_bDpiScaleAllImages = true;
 std::map<std::wstring, std::wstring> GlobalManager::m_mGlobalClass;
 
-std::map<std::wstring, IFont*> GlobalManager::m_mCustomFonts;
-std::wstring GlobalManager::m_sDefaultFontId;
-
 std::unique_ptr<IRenderFactory> GlobalManager::m_renderFactory;
 DWORD GlobalManager::m_dwUiThreadId = 0;
 
@@ -122,6 +118,7 @@ static HZIP g_hzip = NULL;
 const std::wstring kLanguageFileName = L"gdstrings.ini";
 
 ColorManager GlobalManager::m_colorManager;
+FontManager GlobalManager::m_fontManager;
 
 void GlobalManager::Startup(const std::wstring& strResourcePath, const CreateControlCallback& callback, bool bAdaptDpi, const std::wstring& theme, const std::wstring& language)
 {
@@ -174,7 +171,8 @@ void GlobalManager::Shutdown()
 		g_hzip = NULL;
 	}
 	m_renderFactory.reset();
-	RemoveAllFonts();
+	m_fontManager.RemoveAllFonts();
+
 #if (duilib_kRenderType == duilib_kRenderType_GdiPlus)
 	Gdiplus::GdiplusShutdown(g_gdiplusToken);
 #endif
@@ -229,7 +227,7 @@ void GlobalManager::RemovePreMessage(Window* pWindow)
 
 void GlobalManager::ReloadSkin(const std::wstring& resourcePath)
 {
-	RemoveAllFonts();
+	m_fontManager.RemoveAllFonts();
 	m_colorManager.RemoveAllColors();
 	RemoveAllClasss();
 	RemoveAllImages();
@@ -288,6 +286,11 @@ void GlobalManager::RemoveAllClasss()
 ColorManager& GlobalManager::GetColorManager()
 {
 	return m_colorManager;
+}
+
+FontManager& GlobalManager::GetFontManager()
+{
+	return m_fontManager;
 }
 
 std::shared_ptr<ImageInfo> GlobalManager::GetCachedImage(const ImageLoadAttribute& loadAtrribute)
@@ -392,107 +395,6 @@ void GlobalManager::SetDpiScaleAllImages(bool bEnable)
 bool GlobalManager::IsDpiScaleAllImages()
 {
 	return m_bDpiScaleAllImages;
-}
-
-bool GlobalManager::AddFont(const std::wstring& strFontId, 
-						    const std::wstring& strFontName, 
-							int nSize, 
-							bool bBold,
-	                        bool bUnderline, 
-							bool bStrikeout, 
-						    bool bItalic, 
-							bool bDefault, 
-						    int nWeight)
-{
-	ASSERT(!strFontId.empty());
-	if (strFontId.empty()) {
-		return false;
-	}
-
-	auto iter = m_mCustomFonts.find(strFontId);
-	ASSERT(iter == m_mCustomFonts.end());
-	if (iter != m_mCustomFonts.end()) {
-		return false;
-	}
-
-	static bool bOsOverXp = IsWindowsVistaOrGreater();
-	std::wstring fontName = strFontName;
-	if (fontName == L"system") {
-		//字体使用英文名称，保持兼容性
-		fontName = bOsOverXp ? L"Microsoft YaHei" : L"SimSun";
-	}
-
-	LOGFONT lf = { 0 };
-	::GetObject(::GetStockObject(DEFAULT_GUI_FONT), sizeof(LOGFONT), &lf);
-	wcscpy_s(lf.lfFaceName, fontName.c_str());
-	lf.lfCharSet = DEFAULT_CHARSET;
-	lf.lfHeight = -DpiManager::GetInstance()->ScaleInt(nSize);
-	if (bUnderline) {
-		lf.lfUnderline = TRUE;
-	}
-	if (bStrikeout) {
-		lf.lfStrikeOut = TRUE;
-	}
-	if (bItalic) {
-		lf.lfItalic = TRUE;
-	}
-	if (nWeight > 0) {
-		lf.lfWeight = nWeight;
-	}
-	if (bBold) {
-		if (lf.lfWeight < FW_BOLD) {
-			lf.lfWeight = FW_BOLD;
-		}		
-	}
-
-	Font_GDI* pGdiFont = new Font_GDI(lf);
-	if (pGdiFont->GetFontHandle() == nullptr) {
-		delete pGdiFont;
-		return false;
-	}
-	m_mCustomFonts.insert(std::make_pair(strFontId, pGdiFont));
-	if (bDefault) {
-		m_sDefaultFontId = strFontId;
-	}
-	return true;
-}
-
-HFONT GlobalManager::GetFont(const std::wstring& strFontId)
-{
-	auto iter = m_mCustomFonts.find(strFontId);
-	if (iter == m_mCustomFonts.end()) {
-		//如果找不到，则用默认字体
-		iter = m_mCustomFonts.find(m_sDefaultFontId);
-	}
-	if (iter != m_mCustomFonts.end()) {
-		Font_GDI* pGdiFont = dynamic_cast<Font_GDI*>(iter->second);
-		if (pGdiFont != nullptr) {
-			return pGdiFont->GetFontHandle();
-		}
-	}
-	return nullptr;
-}
-
-IFont* GlobalManager::GetIFont(const std::wstring& strFontId)
-{
-	auto iter = m_mCustomFonts.find(strFontId);
-	if (iter == m_mCustomFonts.end()) {
-		//如果找不到，则用默认字体
-		iter = m_mCustomFonts.find(m_sDefaultFontId);
-	}
-	IFont* pFont = nullptr;
-	if (iter != m_mCustomFonts.end()) {
-		pFont = iter->second;
-	}
-	return pFont;
-}
-
-void GlobalManager::RemoveAllFonts()
-{
-	for (auto iter : m_mCustomFonts) {
-		delete iter.second;
-	}
-	m_mCustomFonts.clear();
 }
 
 Box* GlobalManager::CreateBox(const std::wstring& strXmlPath, CreateControlCallback callback)
