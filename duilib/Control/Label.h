@@ -156,8 +156,8 @@ LabelTemplate<InheritType>::LabelTemplate() :
         this->SetFixedHeight(DUI_LENGTH_AUTO, false);
     }
 
-    m_textColorMap.SetStateColor(kControlStateNormal, GlobalManager::GetColorManager().GetDefaultTextColor());
-    m_textColorMap.SetStateColor(kControlStateDisabled, GlobalManager::GetColorManager().GetDefaultDisabledTextColor());
+    m_textColorMap.SetStateColor(kControlStateNormal, GlobalManager::Instance().Color().GetDefaultTextColor());
+    m_textColorMap.SetStateColor(kControlStateDisabled, GlobalManager::Instance().Color().GetDefaultDisabledTextColor());
     m_textColorMap.SetControl(this);
 }
 

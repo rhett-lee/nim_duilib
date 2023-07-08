@@ -325,7 +325,7 @@ BrowserBox* MultiBrowserForm::CreateBox(const std::string &browser_id, std::wstr
 	}
 
 	BrowserTabItem *tab_item = new BrowserTabItem;
-	GlobalManager::FillBoxWithCache(tab_item, L"multi_browser/tab_item.xml");
+	GlobalManager::Instance().FillBoxWithCache(tab_item, L"multi_browser/tab_item.xml");
 	tab_list_->AddItemAt(tab_item, GetBoxCount());
 	tab_item->AttachAllEvents(nbase::Bind(&MultiBrowserForm::OnProcessTabItemDrag, this, std::placeholders::_1));
 	tab_item->AttachButtonDown(nbase::Bind(&MultiBrowserForm::OnTabItemSelected, this, std::placeholders::_1));
@@ -335,7 +335,7 @@ BrowserBox* MultiBrowserForm::CreateBox(const std::string &browser_id, std::wstr
 
 	BrowserBox* browser_box = new BrowserBox(browser_id);
 	borwser_box_tab_->AddItem(browser_box);
-	GlobalManager::FillBoxWithCache(browser_box, L"multi_browser/browser_box.xml", nbase::Bind(&BrowserBox::CreateControl, browser_box, std::placeholders::_1));
+	GlobalManager::Instance().FillBoxWithCache(browser_box, L"multi_browser/browser_box.xml", nbase::Bind(&BrowserBox::CreateControl, browser_box, std::placeholders::_1));
 	browser_box->SetName(id);
 	browser_box->InitBrowserBox(url);
 	auto taskbar_item = browser_box->GetTaskbarItem();
@@ -418,7 +418,7 @@ bool MultiBrowserForm::AttachBox(BrowserBox *browser_box)
 	}
 
 	BrowserTabItem *tab_item = new BrowserTabItem;
-	GlobalManager::FillBoxWithCache(tab_item, L"multi_browser/tab_item.xml");
+	GlobalManager::Instance().FillBoxWithCache(tab_item, L"multi_browser/tab_item.xml");
 	tab_list_->AddItemAt(tab_item, GetBoxCount());
 	tab_item->AttachAllEvents(nbase::Bind(&MultiBrowserForm::OnProcessTabItemDrag, this, std::placeholders::_1));
 	tab_item->AttachButtonDown(nbase::Bind(&MultiBrowserForm::OnTabItemSelected, this, std::placeholders::_1));

@@ -264,6 +264,9 @@
     <ClCompile Include="Core\ImageManager.cpp">
       <Filter>Core</Filter>
     </ClCompile>
+    <ClCompile Include="Core\ZipManager.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -540,6 +543,9 @@
       <Filter>RenderSkia</Filter>
     </ClInclude>
     <ClInclude Include="Core\ImageManager.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ZipManager.h">
       <Filter>Core</Filter>
     </ClInclude>
   </ItemGroup>

@@ -11,8 +11,25 @@ namespace ui
 class UILIB_API StringHelper
 {
 public:
-	static std::wstring ReparsePath(const std::wstring& strFilePath);
+	//对路径中的分隔符/点（"/\\."）字符进行规范化处理, 确保目录以分隔符结束(适用于目录)
+	static std::wstring NormalizeDirPath(const std::wstring& strFilePath);
 
+	//对路径中的分隔符/点（"/\\."）字符进行规范化处理, （适用于文件）
+	static std::wstring NormalizeFilePath(const std::wstring& strFilePath);
+
+	//连接两个路径，生成一个新的路径，用于路径拼接
+	static std::wstring JoinFilePath(const std::wstring& path1, const std::wstring& path2);
+
+	//判断路径指向的文件是否存在
+	static bool IsExistsPath(const std::wstring& strFilePath);
+
+	//判断路径是否为相对路径
+	static bool IsRelativePath(const std::wstring& strFilePath);
+
+	//判断路径是否为绝对路径
+	static bool IsAbsolutePath(const std::wstring& strFilePath);
+
+public:
 	// format a string
 	static std::wstring Printf(const wchar_t *format, ...);
 

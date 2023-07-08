@@ -1082,7 +1082,7 @@ void Control::SetClass(const std::wstring& strClass)
 {
 	std::list<std::wstring> splitList = StringHelper::Split(strClass, L" ");
 	for (auto it = splitList.begin(); it != splitList.end(); it++) {
-		std::wstring pDefaultAttributes = GlobalManager::GetClassAttributes((*it));
+		std::wstring pDefaultAttributes = GlobalManager::Instance().GetClassAttributes((*it));
 		Window* pWindow = GetWindow();
 		if (pDefaultAttributes.empty() && (pWindow != nullptr)) {
 			pDefaultAttributes = pWindow->GetClassAttributes(*it);
@@ -1224,7 +1224,7 @@ bool Control::DrawImage(IRender* pRender,  Image& duiImage,
 IRender* Control::GetRender()
 {
 	if (m_render == nullptr) {
-		IRenderFactory* pRenderFactory = GlobalManager::GetRenderFactory();
+		IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
 		ASSERT(pRenderFactory != nullptr);
 		if (pRenderFactory != nullptr) {
 			m_render.reset(pRenderFactory->CreateRender());
@@ -1404,7 +1404,7 @@ void Control::PaintShadow(IRender* pRender)
 							   m_boxShadow.m_cpOffset,
 							   m_boxShadow.m_nBlurRadius,
 							   m_boxShadow.m_nSpreadRadius,
-							   GlobalManager::GetColorManager().GetColor(m_boxShadow.m_strColor));
+							   GlobalManager::Instance().Color().GetColor(m_boxShadow.m_strColor));
 	}	
 }
 
@@ -1621,7 +1621,7 @@ void Control::DrawRoundRect(IRender* pRender, const UiRect& rc, const UiSize& ro
 	if (IsRootBox() && IsWindowRoundRect()) {
 		//使用与Windows一致的绘制方式，避免与Windows的不一致
 		//参见：Window::OnSizeMsg中的CreateRoundRectRgn（Skia的圆角画法和CreateRoundRectRgn不一样）
-		IRenderFactory* pRenderFactory = GlobalManager::GetRenderFactory();
+		IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
 		if (pRenderFactory != nullptr) {
 			std::unique_ptr<IPen> pen(pRenderFactory->CreatePen(dwBorderColor, nBorderSize));
 			std::unique_ptr<IPath> path(pRenderFactory->CreatePath());
@@ -1653,7 +1653,7 @@ void Control::FillRoundRect(IRender* pRender, const UiRect& rc, const UiSize& ro
 	if (IsRootBox() && IsWindowRoundRect()) {
 		//使用与Windows一致的绘制方式，避免与Windows的不一致
 		//参见：Window::OnSizeMsg中的CreateRoundRectRgn（Skia的圆角画法和CreateRoundRectRgn不一样）
-		IRenderFactory* pRenderFactory = GlobalManager::GetRenderFactory();
+		IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
 		if (pRenderFactory != nullptr) {
 			std::unique_ptr<IBrush> brush(pRenderFactory->CreateBrush(dwColor));
 			std::unique_ptr<IPath> path(pRenderFactory->CreatePath());
@@ -1737,7 +1737,7 @@ void Control::PaintLoading(IRender* pRender)
 	rcFill.Offset(-GetRect().left, -GetRect().top);
 
 	//图片旋转矩阵
-	IRenderFactory* pRenderFactory = GlobalManager::GetRenderFactory();
+	IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
 	ASSERT(pRenderFactory != nullptr);
 	if (pRenderFactory == nullptr) {
 		return;
@@ -1940,13 +1940,13 @@ bool Control::LoadImageData(Image& duiImage) const
 	if (sImagePath.empty()) {
 		return false;
 	}
-	std::wstring imageFullPath = GlobalManager::GetResFullPath(pWindow->GetResourcePath(), sImagePath);
+	std::wstring imageFullPath = GlobalManager::Instance().GetResFullPath(pWindow->GetResourcePath(), sImagePath);
 	ImageLoadAttribute imageLoadAttr = duiImage.GetImageLoadAttribute();
 	imageLoadAttr.SetImageFullPath(imageFullPath);
 	std::shared_ptr<ImageInfo> imageCache = duiImage.GetImageCache();
 	if ((imageCache == nullptr) || (imageCache->GetCacheKey() != imageLoadAttr.GetCacheKey())) {
 		//如果图片没有加载则执行加载图片；如果图片发生变化，则重新加载该图片
-		imageCache = GlobalManager::GetImageManager().GetImage(imageLoadAttr);
+		imageCache = GlobalManager::Instance().Image().GetImage(imageLoadAttr);
 		duiImage.SetImageCache(imageCache);
 	}
 	return imageCache ? true : false;
@@ -1965,11 +1965,11 @@ void Control::InvokeLoadImageCache()
 	if (pWindow == nullptr) {
 		return;
 	}
-	std::wstring imageFullPath = GlobalManager::GetResFullPath(pWindow->GetResourcePath(), sImagePath);
+	std::wstring imageFullPath = GlobalManager::Instance().GetResFullPath(pWindow->GetResourcePath(), sImagePath);
 	ImageLoadAttribute imageLoadAttr = m_bkImage->GetImageLoadAttribute();
 	imageLoadAttr.SetImageFullPath(imageFullPath);
 	if (!m_bkImage->GetImageCache() || m_bkImage->GetImageCache()->GetCacheKey() != imageLoadAttr.GetCacheKey()) {
-		auto shared_image = GlobalManager::GetImageManager().GetCachedImage(imageLoadAttr);
+		auto shared_image = GlobalManager::Instance().Image().GetCachedImage(imageLoadAttr);
 		if (shared_image) {
 			m_bkImage->SetImageCache(shared_image);
 			return;
@@ -2172,11 +2172,11 @@ UiColor Control::GetUiColorByName(const std::wstring& colorName) const
 	}
 	if (color.GetARGB() == 0) {
 		//优先级3：获取在global.xml中的<Global>节点中定义子节点<TextColor>指定的颜色
-		color = GlobalManager::GetColorManager().GetColor(colorName);
+		color = GlobalManager::Instance().Color().GetColor(colorName);
 	}
 	if (color.GetARGB() == 0) {
 		//优先级4：直接指定预定义的颜色别名
-		color = GlobalManager::GetColorManager().GetColor(colorName);
+		color = GlobalManager::Instance().Color().GetColor(colorName);
 	}
 	ASSERT(color.GetARGB() != 0);
 	return color;

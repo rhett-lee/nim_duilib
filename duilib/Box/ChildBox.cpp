@@ -23,7 +23,7 @@ void ChildBox::Init()
 			callback = std::bind(&WindowImplBase::CreateControl, pBaseWindow, std::placeholders::_1);
 		}
 
-		Box* pChildWindow = static_cast<Box*>(GlobalManager::CreateBoxWithCache(m_strXMLFile, callback));
+		Box* pChildWindow = static_cast<Box*>(GlobalManager::Instance().CreateBoxWithCache(m_strXMLFile, callback));
 		if (pChildWindow) {
 			this->AddItem(pChildWindow);
 		}

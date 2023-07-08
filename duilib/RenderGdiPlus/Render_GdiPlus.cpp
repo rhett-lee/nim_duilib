@@ -974,7 +974,7 @@ void Render_GdiPlus::DrawString(const UiRect& rc, const std::wstring& strText,
 		return;
 	}
 
-	IFont* pFont = GlobalManager::GetFontManager().GetIFont(strFontId);
+	IFont* pFont = GlobalManager::Instance().Font().GetIFont(strFontId);
 	Font_GDI* pGdiFont = dynamic_cast<Font_GDI*>(pFont);
 	ASSERT(pGdiFont != nullptr);
 	if (pGdiFont == nullptr) {
@@ -1042,7 +1042,7 @@ void Render_GdiPlus::DrawString(const UiRect& rc, const std::wstring& strText,
 UiRect Render_GdiPlus::MeasureString(const std::wstring& strText, const std::wstring& strFontId,
 								     uint32_t uFormat, int width /*= DUI_NOSET_VALUE*/)
 {
-	IFont* pFont = GlobalManager::GetFontManager().GetIFont(strFontId);
+	IFont* pFont = GlobalManager::Instance().Font().GetIFont(strFontId);
 	Font_GDI* pGdiFont = dynamic_cast<Font_GDI*>(pFont);
 	ASSERT(pGdiFont != nullptr);
 	if (pGdiFont == nullptr) {

@@ -45,7 +45,7 @@ void MainThread::Init()
 
 	// 获取资源路径，初始化全局参数
 	std::wstring theme_dir = nbase::win32::GetCurrentModuleDirectory();
-	ui::GlobalManager::Startup(theme_dir + L"resources\\", MyCreateControlCallback, bAdaptDpi);
+	ui::GlobalManager::Instance().Startup(theme_dir + L"resources\\", MyCreateControlCallback, bAdaptDpi);
 
 	// 创建一个默认带有阴影的居中窗口
 	MainForm* window = new MainForm();
@@ -56,7 +56,7 @@ void MainThread::Init()
 
 void MainThread::Cleanup()
 {
-	ui::GlobalManager::Shutdown();
+	ui::GlobalManager::Instance().Shutdown();
 	SetThreadWasQuitProperly(true);
 	nbase::ThreadManager::UnregisterThread();
 }

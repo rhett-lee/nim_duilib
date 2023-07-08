@@ -278,7 +278,7 @@ void Progress::PaintMarquee(IRender* pRender)
 		return;
 	}
 	if (!m_sProgressColor.empty()) {
-		UiColor dwProgressColor = GlobalManager::GetColorManager().GetColor(m_sProgressColor);
+		UiColor dwProgressColor = GlobalManager::Instance().Color().GetColor(m_sProgressColor);
 		if (dwProgressColor.GetARGB() != 0) {
 			UiRect rcProgressColor = GetRect();
 			ui::UiRect rc = GetRect();

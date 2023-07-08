@@ -23,7 +23,7 @@ PopoverArrow::PopoverArrow(int nPlacement) :
   m_nPlacement(nPlacement),
   m_rcArea({ 0,0,0,0 })
 {
-    ui::IRenderFactory* pRenderFactory = ui::GlobalManager::GetRenderFactory();
+    ui::IRenderFactory* pRenderFactory = ui::GlobalManager::Instance().GetRenderFactory();
     ASSERT(pRenderFactory != nullptr);
     if (pRenderFactory != nullptr) {
         m_pPath.reset(pRenderFactory->CreatePath());

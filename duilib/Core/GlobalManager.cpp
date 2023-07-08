@@ -8,8 +8,6 @@
 #include "duilib/Core/Control.h"
 #include "duilib/Core/Box.h"
 
-#include "duilib/third_party/unzip/UnZip.h"
-
 //渲染引擎的选择(目前仅支持在编译期间选择)
 #include "duilib/Render/RenderConfig.h"
 #if (duilib_kRenderType == duilib_kRenderType_Skia)
@@ -39,37 +37,37 @@
 
 #endif
 
+//ToolTip/日期时间等标准控件，需要初始化commctrl
 #include <commctrl.h>
-#include <tchar.h>
-#include <unordered_set>
-#include <shlwapi.h>
 
 namespace ui 
 {
 
-std::wstring GlobalManager::m_pStrResourcePath;
-std::wstring GlobalManager::m_pStrLanguagePath;
-std::vector<Window*> GlobalManager::m_aPreMessages;
-std::map<std::wstring, std::unique_ptr<WindowBuilder>> GlobalManager::m_builderMap;
-CreateControlCallback GlobalManager::m_createControlCallback;
-
-std::map<std::wstring, std::wstring> GlobalManager::m_mGlobalClass;
-
-std::unique_ptr<IRenderFactory> GlobalManager::m_renderFactory;
-DWORD GlobalManager::m_dwUiThreadId = 0;
-
 #if (duilib_kRenderType == duilib_kRenderType_GdiPlus)
 //Gdiplus引擎
-static ULONG_PTR g_gdiplusToken;
+static ULONG_PTR g_gdiplusToken = 0;
 static Gdiplus::GdiplusStartupInput g_gdiplusStartupInput;
 #endif
 
-static HZIP g_hzip = NULL;
+
 const std::wstring kLanguageFileName = L"gdstrings.ini";
 
-ColorManager GlobalManager::m_colorManager;
-FontManager GlobalManager::m_fontManager;
-ImageManager GlobalManager::m_imageManager;
+GlobalManager::GlobalManager():
+	m_dwUiThreadId(0),
+	m_pfnCreateControlCallback(nullptr)
+{
+}
+
+GlobalManager::~GlobalManager()
+{
+	Shutdown();
+}
+
+GlobalManager& GlobalManager::Instance()
+{
+	static GlobalManager self;
+	return self;
+}
 
 void GlobalManager::Startup(const std::wstring& strResourcePath, const CreateControlCallback& callback, bool bAdaptDpi, const std::wstring& theme, const std::wstring& language)
 {
@@ -77,14 +75,18 @@ void GlobalManager::Startup(const std::wstring& strResourcePath, const CreateCon
 	m_dwUiThreadId = GetCurrentThreadId();
 
 #if (duilib_kRenderType == duilib_kRenderType_Skia)
+	//Skia渲染引擎实现
 	m_renderFactory = std::make_unique<RenderFactory_Skia>();	
 #else if (duilib_kRenderType == duilib_kRenderType_GdiPlus)
+	//Gdiplus渲染引擎实现
+	Gdiplus::GdiplusStartup(&g_gdiplusToken, &g_gdiplusStartupInput, NULL);
 	m_renderFactory = std::make_unique<RenderFactory_GdiPlus>();
 #endif
+
 	ASSERT(m_renderFactory != nullptr);
 
-	GlobalManager::SetResourcePath(strResourcePath + theme);
-	m_createControlCallback = callback;
+	GlobalManager::SetResourcePath(StringHelper::JoinFilePath(strResourcePath, theme));
+	m_pfnCreateControlCallback = callback;
 
     // 适配DPI
 	DpiManager::GetInstance()->SetAdaptDPI(bAdaptDpi);
@@ -95,66 +97,81 @@ void GlobalManager::Startup(const std::wstring& strResourcePath, const CreateCon
     // 解析全局资源信息
 	LoadGlobalResource();
 
-	SetLanguagePath(strResourcePath + language);
+	SetLanguagePath(StringHelper::JoinFilePath(strResourcePath, language));
 
     // 加载多语言文件，如果使用了资源压缩包则从内存中加载语言文件
-	if (g_hzip) {
+	if (m_zipManager.IsUseZip()) {
 		std::vector<unsigned char> file_data;
-		if (GetZipData(GetLanguagePath() + L"\\" + kLanguageFileName, file_data)) {
+		std::wstring filePath = StringHelper::JoinFilePath(GetLanguagePath(), kLanguageFileName);
+		if (m_zipManager.GetZipData(filePath, file_data)) {
 			MultiLangSupport::GetInstance()->LoadStringTable(file_data);
 		}
 	}
 	else {
-		MultiLangSupport::GetInstance()->LoadStringTable(GetLanguagePath() + L"\\" + kLanguageFileName);
+		std::wstring filePath = StringHelper::JoinFilePath(GetLanguagePath(), kLanguageFileName);
+		MultiLangSupport::GetInstance()->LoadStringTable(filePath);
 	}
-#if (duilib_kRenderType == duilib_kRenderType_GdiPlus)
-	Gdiplus::GdiplusStartup(&g_gdiplusToken, &g_gdiplusStartupInput, NULL);
-#endif
 	// Boot Windows Common Controls (for the ToolTip control)
 	::InitCommonControls();
 }
 
 void GlobalManager::Shutdown()
 {
-	if (g_hzip)
-	{
-		CloseZip(g_hzip);
-		g_hzip = NULL;
-	}
+	m_zipManager.CloseResZip();
 	m_renderFactory.reset();
 	m_fontManager.RemoveAllFonts();
 	m_fontManager.RemoveAllFontFiles();
+	m_renderFactory = nullptr;
+	m_pfnCreateControlCallback = nullptr;
+	m_resourcePath.clear();
+	m_languagePath.clear();
+	m_builderMap.clear();
+	m_globalClass.clear();
+	m_windowList.clear();
+	m_dwUiThreadId = 0;
 
 #if (duilib_kRenderType == duilib_kRenderType_GdiPlus)
-	Gdiplus::GdiplusShutdown(g_gdiplusToken);
+	if (g_gdiplusToken != 0) {
+		Gdiplus::GdiplusShutdown(g_gdiplusToken);
+		g_gdiplusToken = 0;
+	}	
 #endif
 }
 
-std::wstring GlobalManager::GetResourcePath()
+const std::wstring& GlobalManager::GetResourcePath()
 {
-	return m_pStrResourcePath;
+	return m_resourcePath;
 }
 
-std::wstring GlobalManager::GetLanguagePath()
+const std::wstring& GlobalManager::GetLanguagePath()
 {
-	return m_pStrLanguagePath;
+	return m_languagePath;
 }
 
 void GlobalManager::SetResourcePath(const std::wstring& strPath)
 {
-	m_pStrResourcePath = strPath;
-	if (!m_pStrResourcePath.empty()) {
-		//确保路径最后字符是分割字符
-		TCHAR cEnd = m_pStrResourcePath.back();
-		if (cEnd != _T('\\') && cEnd != _T('/')) {
-			m_pStrResourcePath += _T('\\');
-		}
-	}
+	m_resourcePath = StringHelper::NormalizeDirPath(strPath);
 }
 
 void GlobalManager::SetLanguagePath(const std::wstring& strPath)
 {
-	m_pStrLanguagePath = strPath;
+	m_languagePath = StringHelper::NormalizeDirPath(strPath);
+}
+
+std::wstring GlobalManager::GetResFullPath(const std::wstring& windowResPath, const std::wstring& resPath)
+{
+	if (resPath.empty() || !StringHelper::IsRelativePath(resPath)) {
+		return resPath;
+	}
+
+	std::wstring imageFullPath = StringHelper::JoinFilePath(GlobalManager::GetResourcePath(), windowResPath);
+	imageFullPath = StringHelper::JoinFilePath(imageFullPath, resPath);
+	imageFullPath = StringHelper::NormalizeFilePath(imageFullPath);
+	if (!m_zipManager.IsZipResExist(imageFullPath) && !StringHelper::IsExistsPath(imageFullPath)) {
+		imageFullPath = StringHelper::JoinFilePath(GlobalManager::GetResourcePath(), resPath);
+		imageFullPath = StringHelper::NormalizeFilePath(imageFullPath);
+	}
+	return imageFullPath;
 }
 
 void GlobalManager::LoadGlobalResource()
@@ -164,58 +181,85 @@ void GlobalManager::LoadGlobalResource()
 	dialog_builder.Create(L"global.xml", CreateControlCallback(), &paint_manager);
 }
 
-void GlobalManager::AddPreMessage(Window* pWindow)
+void GlobalManager::AddWindow(Window* pWindow)
 {
-	m_aPreMessages.push_back(pWindow);
+	AssertUIThread();
+	ASSERT(pWindow != nullptr);
+	if (pWindow != nullptr) {
+		m_windowList.push_back(pWindow);
+	}	
 }
 
-void GlobalManager::RemovePreMessage(Window* pWindow)
+void GlobalManager::RemoveWindow(Window* pWindow)
 {
-	auto it = std::find(m_aPreMessages.begin(), m_aPreMessages.end(), pWindow);
-	if (it != m_aPreMessages.end()) {
-		m_aPreMessages.erase(it);
+	AssertUIThread();
+	auto it = std::find(m_windowList.begin(), m_windowList.end(), pWindow);
+	if (it != m_windowList.end()) {
+		m_windowList.erase(it);
 	}
 }
 
 void GlobalManager::RemoveAllImages()
 {
-	for (auto it = m_aPreMessages.begin(); it != m_aPreMessages.end(); it++) {
-		(*it)->GetRoot()->ClearImageCache();
+	AssertUIThread();
+	for (Window* pWindow : m_windowList) {
+		Box* pBox = nullptr;
+		if (pWindow != nullptr) {
+			pBox = pWindow->GetRoot();
+		}
+		if (pBox != nullptr) {
+			pBox->ClearImageCache();
+		}
 	}
 	m_imageManager.RemoveAllImages();
 }
 
 void GlobalManager::ReloadSkin(const std::wstring& resourcePath)
 {
+	AssertUIThread();
+	if (GetResourcePath() == StringHelper::NormalizeDirPath(resourcePath)) {
+		return;
+	}
+
 	m_fontManager.RemoveAllFonts();
 	m_fontManager.RemoveAllFontFiles();
 	m_colorManager.RemoveAllColors();
 	RemoveAllImages();
-
 	RemoveAllClasss();
 
 	SetResourcePath(resourcePath);
 	LoadGlobalResource();
-
-	for (auto it = m_aPreMessages.begin(); it != m_aPreMessages.end(); it++) {
-		(*it)->GetRoot()->Invalidate();
+	for (Window* pWindow : m_windowList) {
+		Box* pBox = nullptr;
+		if (pWindow != nullptr) {
+			pBox = pWindow->GetRoot();
+		}
+		if (pBox != nullptr) {
+			pBox->Invalidate();
+		}
 	}
 }
 
 void GlobalManager::ReloadLanguage(const std::wstring& languagePath, bool invalidateAll) 
 {
-	if (GetLanguagePath() != languagePath) {
-		SetLanguagePath(languagePath);
-
-		MultiLangSupport::GetInstance()->LoadStringTable(languagePath + L"\\" + kLanguageFileName);
-
-		if (invalidateAll) {
-			for (auto it = m_aPreMessages.begin(); it != m_aPreMessages.end(); it++) {
-				(*it)->GetRoot()->Invalidate();
+	AssertUIThread();
+	if (GetLanguagePath() == StringHelper::NormalizeDirPath(languagePath)) {
+		return;
+	}
+	SetLanguagePath(languagePath);
+	std::wstring filePath = StringHelper::JoinFilePath(languagePath, kLanguageFileName);
+	MultiLangSupport::GetInstance()->LoadStringTable(filePath);
+	if (invalidateAll) {
+		for (Window* pWindow : m_windowList) {
+			Box* pBox = nullptr;
+			if (pWindow != nullptr) {
+				pBox = pWindow->GetRoot();
+			}
+			if (pBox != nullptr) {
+				pBox->Invalidate();
 			}
 		}
 	}
-
 }
 
 IRenderFactory* GlobalManager::GetRenderFactory()
@@ -225,47 +269,54 @@ IRenderFactory* GlobalManager::GetRenderFactory()
 
 void GlobalManager::AddClass(const std::wstring& strClassName, const std::wstring& strControlAttrList)
 {
-	ASSERT(!strClassName.empty());
-	ASSERT(!strControlAttrList.empty());
-	m_mGlobalClass[strClassName] = strControlAttrList;
+	AssertUIThread();
+	ASSERT(!strClassName.empty() && !strControlAttrList.empty());
+	if (!strClassName.empty() && !strControlAttrList.empty()) {
+		m_globalClass[strClassName] = strControlAttrList;
+	}	
 }
 
 std::wstring GlobalManager::GetClassAttributes(const std::wstring& strClassName)
 {
-	auto it = m_mGlobalClass.find(strClassName);
-	if (it != m_mGlobalClass.end()) {
+	AssertUIThread();
+	auto it = m_globalClass.find(strClassName);
+	if (it != m_globalClass.end()) {
 		return it->second;
 	}
-
-	return L"";
+	return std::wstring();
 }
 
 void GlobalManager::RemoveAllClasss()
 {
-	m_mGlobalClass.clear();
+	AssertUIThread();
+	m_globalClass.clear();
 }
 
-ColorManager& GlobalManager::GetColorManager()
+ColorManager& GlobalManager::Color()
 {
 	return m_colorManager;
 }
 
-FontManager& GlobalManager::GetFontManager()
+FontManager& GlobalManager::Font()
 {
 	return m_fontManager;
 }
 
-ImageManager& GlobalManager::GetImageManager()
+ImageManager& GlobalManager::Image()
 {
 	return m_imageManager;
+}
+
+ZipManager& GlobalManager::Zip()
+{
+	return m_zipManager;
 }
 
 Box* GlobalManager::CreateBox(const std::wstring& strXmlPath, CreateControlCallback callback)
 {
 	WindowBuilder builder;
 	Box* box = builder.Create(strXmlPath, callback);
-	ASSERT(box);
-
+	ASSERT(box != nullptr);
 	return box;
 }
 
@@ -276,32 +327,29 @@ Box* GlobalManager::CreateBoxWithCache(const std::wstring& strXmlPath, CreateCon
 	if (it == m_builderMap.end()) {
 		WindowBuilder* builder = new WindowBuilder();
 		box = builder->Create(strXmlPath, callback);
-		if (box) {
+		if (box != nullptr) {
 			m_builderMap[strXmlPath].reset(builder);
 		}
 		else {
-			ASSERT(FALSE);
+			delete builder;
+			builder = nullptr;
 		}
 	}
 	else {
 		box = it->second->Create(callback);
 	}
-
+	ASSERT(box != nullptr);
 	return box;
 }
 
 void GlobalManager::FillBox(Box* pUserDefinedBox, const std::wstring& strXmlPath, CreateControlCallback callback)
 {
 	ASSERT(pUserDefinedBox != nullptr);
-	if (pUserDefinedBox == nullptr) {
-		return;
-	}
-	WindowBuilder winBuilder;
-	Box* box = winBuilder.Create(strXmlPath, callback, pUserDefinedBox->GetWindow(), nullptr, pUserDefinedBox);
-	(void)box;
-	ASSERT(box);
-
-	return;
+	if (pUserDefinedBox != nullptr) {
+		WindowBuilder winBuilder;
+		Box* box = winBuilder.Create(strXmlPath, callback, pUserDefinedBox->GetWindow(), nullptr, pUserDefinedBox);
+		ASSERT_UNUSED_VARIABLE(box != nullptr);
+	}	
 }
 
 void GlobalManager::FillBoxWithCache(Box* pUserDefinedBox, const std::wstring& strXmlPath, CreateControlCallback callback)
@@ -315,186 +363,31 @@ void GlobalManager::FillBoxWithCache(Box* pUserDefinedBox, const std::wstring& s
 	if (it == m_builderMap.end()) {
 		WindowBuilder* winBuilder = new WindowBuilder();
 		box = winBuilder->Create(strXmlPath, callback, pUserDefinedBox->GetWindow(), nullptr, pUserDefinedBox);
-		if (box) {
+		if (box != nullptr) {
 			m_builderMap[strXmlPath].reset(winBuilder);
 		}
 		else {
-			ASSERT(FALSE);
+			delete winBuilder;
+			winBuilder = nullptr;
 		}
 	}
 	else {
 		box = it->second->Create(callback, pUserDefinedBox->GetWindow(), nullptr, pUserDefinedBox);
 	}
+	ASSERT_UNUSED_VARIABLE(box != nullptr);
 }
 
 Control* GlobalManager::CreateControl(const std::wstring& strControlName)
 {
-	if (m_createControlCallback) {
-		return m_createControlCallback(strControlName);
+	if (m_pfnCreateControlCallback) {
+		return m_pfnCreateControlCallback(strControlName);
 	}
-
 	return nullptr;
-}
-
-bool GlobalManager::IsUseZip()
-{
-	return g_hzip != NULL;
-}
-
-bool GlobalManager::OpenResZip(LPCTSTR  resource_name, LPCTSTR  resource_type, const std::string& password)
-{
-	HRSRC rsc = FindResource(NULL, resource_name, resource_type);
-	HGLOBAL resource = LoadResource(NULL, rsc);
-	DWORD   size = SizeofResource(NULL, rsc);
-	if (resource && size > 0)
-	{
-
-	}
-
-	if (g_hzip)
-	{
-		CloseZip(g_hzip);
-		g_hzip = NULL;
-	}
-	g_hzip = OpenZip(resource, size, password.c_str());
-	return g_hzip != NULL;
-}
-
-bool GlobalManager::OpenResZip(const std::wstring& path, const std::string& password)
-{
-	if (g_hzip)
-	{
-		CloseZip(g_hzip);
-		g_hzip = NULL;
-	}
-	g_hzip = OpenZip(path.c_str(), password.c_str());
-	return g_hzip != NULL;
-}
-
-bool GlobalManager::GetZipData(const std::wstring& path, std::vector<unsigned char>& file_data)
-{
-	ASSERT(g_hzip != nullptr);	
-	std::wstring file_path = GetZipFilePath(path);
-	ASSERT(!file_path.empty());
-	if ((g_hzip == nullptr) || file_path.empty())
-	{
-		return false;
-	}
-
-	AssertUIThread();
-
-	ZIPENTRY ze = {0};
-	int i = 0;
-	if (FindZipItem(g_hzip, file_path.c_str(), true, &i, &ze) == ZR_OK) {
-		if ((ze.index >= 0) && (ze.unc_size > 0)){
-			file_data.resize(ze.unc_size);
-			ZRESULT res = UnzipItem(g_hzip, ze.index, file_data.data(), ze.unc_size);
-			if (res == ZR_OK) {
-				return true;
-			}
-			else {
-				file_data.clear();
-			}
-		}
-	}
-	return false;
-}
-
-std::wstring GlobalManager::GetZipFilePath(const std::wstring& path)
-{
-	if (!::PathIsRelative(path.c_str()))
-		return L"";
-
-	std::wstring file_path = path;
-	StringHelper::ReplaceAll(L"\\", L"/", file_path);
-	StringHelper::ReplaceAll(L"//", L"/", file_path);
-	for (unsigned int i = 0; i < file_path.size();)
-	{
-		bool start_node = false;
-		if (i == 0 || file_path.at(i - 1) == L'/')
-		{
-			start_node = true;
-		}
-		WCHAR wch = file_path.at(i);
-		if (start_node && wch == L'/')//"//"
-		{
-			file_path.erase(i, 1);
-			continue;
-		}
-		if (start_node && wch == L'.')
-		{
-			if (i + 1 < file_path.size() && file_path.at(i + 1) == L'/')// "./"
-			{
-				file_path.erase(i, 2);
-				continue;
-			}
-			else if (i + 2 < file_path.size() && file_path.at(i + 1) == L'.' && file_path.at(i + 2) == L'/')// "../"
-			{
-				file_path.erase(i, 2);
-				int i_erase = i - 2;
-				if (i_erase < 0)
-				{
-					ASSERT(0);
-				}
-				while (i_erase > 0 && file_path.at(i_erase) != L'/')
-					i_erase--;
-				file_path.erase(i_erase, i - i_erase);
-				i = i_erase;
-				continue;
-			}
-		}
-		i++;
-	}
-	return file_path;
-}
-
-std::wstring GlobalManager::GetResFullPath(const std::wstring& window_res_path, const std::wstring& res_path)
-{
-	if (res_path.empty() || !::PathIsRelative(res_path.c_str())){
-		return res_path;
-	}
-
-	std::wstring imageFullPath = GlobalManager::GetResourcePath() + window_res_path + res_path;
-	imageFullPath = StringHelper::ReparsePath(imageFullPath);
-
-	if (!GlobalManager::IsZipResExist(imageFullPath) && !::PathFileExists(imageFullPath.c_str())) {
-		imageFullPath = GlobalManager::GetResourcePath() + res_path;
-		imageFullPath = StringHelper::ReparsePath(imageFullPath);
-	}
-	return imageFullPath;
-}
-
-bool GlobalManager::IsZipResExist(const std::wstring& path)
-{
-	AssertUIThread();
-
-	if (g_hzip && !path.empty()) {
-		std::wstring file_path = GetZipFilePath(path);
-		if (file_path.empty()) {
-			return false;
-		}
-		static std::unordered_set<std::wstring> zip_path_cache;
-		auto it = zip_path_cache.find(path);
-		if (it != zip_path_cache.end()) {
-			return true;
-		}		
-
-		ZIPENTRY ze = { 0 };
-		int i = 0;
-		bool find = FindZipItem(g_hzip, file_path.c_str(), true, &i, &ze) == ZR_OK;
-		if (find) {
-			zip_path_cache.insert(path);
-		}
-		return find;
-	}
-	return false;
 }
 
 void GlobalManager::AssertUIThread()
 {
-#ifdef _DEBUG
-	ASSERT(m_dwUiThreadId == GetCurrentThreadId());
-#endif
+	ASSERT(m_dwUiThreadId == ::GetCurrentThreadId());
 }
 
 } // namespace ui

@@ -35,7 +35,7 @@ void RichlistForm::OnInitWindow()
 	for (auto i = 0; i < 100; i++)
 	{
 		Item* item = new Item;
-		ui::GlobalManager::FillBoxWithCache(item, L"richlist/item.xml");
+		ui::GlobalManager::Instance().FillBoxWithCache(item, L"richlist/item.xml");
 
 		std::wstring img = L"icon.png";
 		std::wstring title = nbase::StringPrintf(L"ÏÂÔØÈÎÎñ [%02d]", i + 1);

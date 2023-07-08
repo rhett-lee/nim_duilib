@@ -1171,7 +1171,7 @@ void Render_Skia::DrawString(const UiRect& rc,
 	SkTextEncoding textEncoding = SkTextEncoding::kUTF16;
 	
 	//获取字体接口
-	IFont* pFont = GlobalManager::GetFontManager().GetIFont(strFontId);
+	IFont* pFont = GlobalManager::Instance().Font().GetIFont(strFontId);
 	ASSERT(pFont != nullptr);
 	if (pFont == nullptr) {
 		return;
@@ -1275,7 +1275,7 @@ UiRect Render_Skia::MeasureString(const std::wstring& strText,
 	}
 
 	//获取字体接口
-	IFont* pFont = GlobalManager::GetFontManager().GetIFont(strFontId);
+	IFont* pFont = GlobalManager::Instance().Font().GetIFont(strFontId);
 	ASSERT(pFont != nullptr);
 	if (pFont == nullptr) {
 		return UiRect();

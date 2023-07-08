@@ -39,7 +39,7 @@ void MainThread::Init()
 	// 默认语言使用 resources\\lang\\zh_CN
 	// 如需修改请指定 Startup 最后两个参数
 	std::wstring theme_dir = nbase::win32::GetCurrentModuleDirectory();
-	ui::GlobalManager::Startup(theme_dir + L"resources\\", ui::CreateControlCallback(), bAdaptDpi);
+	ui::GlobalManager::Instance().Startup(theme_dir + L"resources\\", ui::CreateControlCallback(), bAdaptDpi);
 
 	// 一个仿微信的布局示例
 	LayoutsForm::ShowCustomWindow(L"basic_layout", L"layouts", L"wechat.xml");
@@ -50,7 +50,7 @@ void MainThread::Init()
 
 void MainThread::Cleanup()
 {
-	ui::GlobalManager::Shutdown();
+	ui::GlobalManager::Instance().Shutdown();
 	SetThreadWasQuitProperly(true);
 	nbase::ThreadManager::UnregisterThread();
 }

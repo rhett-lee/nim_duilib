@@ -22,7 +22,7 @@ void BitmapControl::Paint(ui::IRender* pRender, const ui::UiRect& rcPaint)
 
 	std::unique_ptr<IRender> render;
 	std::unique_ptr<IBitmap> bitmap;
-	IRenderFactory* pRenderFactory = GlobalManager::GetRenderFactory();
+	IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
 	ASSERT(pRenderFactory != nullptr);
 	if (pRenderFactory != nullptr) {
 		render.reset(pRenderFactory->CreateRender());

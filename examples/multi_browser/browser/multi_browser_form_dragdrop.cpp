@@ -217,7 +217,7 @@ ui::IBitmap* MultiBrowserForm::GenerateBoxOffsetRenderBitmap(const UiRect& src_r
 	int src_height = src_rect.bottom - src_rect.top;
 
 	std::unique_ptr<IRender> render;
-	IRenderFactory* pRenderFactory = GlobalManager::GetRenderFactory();
+	IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
 	ASSERT(pRenderFactory != nullptr);
 	if (pRenderFactory != nullptr) {
 		render.reset(pRenderFactory->CreateRender());

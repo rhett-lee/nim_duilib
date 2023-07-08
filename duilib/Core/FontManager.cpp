@@ -40,7 +40,7 @@ bool FontManager::AddFont(const std::wstring& strFontId,
 	}
 
 	IFont* pFont = nullptr;
-	IRenderFactory* pRenderFactory = GlobalManager::GetRenderFactory();
+	IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
 	if (pRenderFactory != nullptr) {
 		pFont = pRenderFactory->CreateIFont();
 	}
@@ -94,11 +94,11 @@ void FontManager::RemoveAllFonts()
 void FontManager::AddFontFile(const std::wstring& strFontFile, const std::wstring& strFontName)
 {
 	FontFileInfo fontFileInfo;
-	std::wstring path = GlobalManager::GetResFullPath(L"", L"font\\" + strFontFile);
+	std::wstring path = GlobalManager::Instance().GetResFullPath(L"", L"font\\" + strFontFile);
 	bool res = false;
-	if (GlobalManager::IsUseZip()) {
+	if (GlobalManager::Instance().Zip().IsUseZip()) {
 		std::vector<unsigned char> file_data;
-		if (GlobalManager::GetZipData(path, file_data)) {
+		if (GlobalManager::Instance().Zip().GetZipData(path, file_data)) {
 			DWORD dwFonts = 0;
 			fontFileInfo.m_hFontFile = ::AddFontMemResourceEx(file_data.data(), static_cast<DWORD>(file_data.size()), NULL, &dwFonts);
 			res = fontFileInfo.m_hFontFile != nullptr;

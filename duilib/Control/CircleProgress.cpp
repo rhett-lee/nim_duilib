@@ -50,7 +50,7 @@ void CircleProgress::PaintStatusImage(IRender* pRender)
 		return;
 	}
 
-	IRenderFactory* pRenderFactory = GlobalManager::GetRenderFactory();
+	IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
 	ASSERT(pRenderFactory != nullptr);
 	if (pRenderFactory == nullptr) {
 		return;
@@ -167,14 +167,14 @@ void CircleProgress::SetCircleWidth(int nCircleWidth)
 
 void CircleProgress::SetBackgroudColor(const std::wstring& strColor)
 {
-	m_dwBackgroundColor = GlobalManager::GetColorManager().GetColor(strColor);
+	m_dwBackgroundColor = GlobalManager::Instance().Color().GetColor(strColor);
 	ASSERT(m_dwBackgroundColor.GetARGB() != 0);
 	Invalidate();
 }
 
 void CircleProgress::SetForegroudColor(const std::wstring& strColor)
 {
-	m_dwForegroundColor = GlobalManager::GetColorManager().GetColor(strColor);
+	m_dwForegroundColor = GlobalManager::Instance().Color().GetColor(strColor);
 	ASSERT(m_dwForegroundColor.GetARGB() != 0);
 	Invalidate();
 }
@@ -190,7 +190,7 @@ void CircleProgress::SetIndicator(const std::wstring& sIndicatorImage)
 
 void CircleProgress::SetCircleGradientColor(const std::wstring& strColor)
 {
-	m_dwGradientColor = GlobalManager::GetColorManager().GetColor(strColor);
+	m_dwGradientColor = GlobalManager::Instance().Color().GetColor(strColor);
 	ASSERT(m_dwGradientColor.GetARGB() != 0);
 	Invalidate();
 }

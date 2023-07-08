@@ -131,7 +131,7 @@ void RenderTest3::Paint(IRender* pRender, const UiRect& rcPaint)
     //ÓÃDrawPath»­Ô²½ÇËÄ±ßÐÎ
     rect.left = rect.right + marginLeft;
     rect.right = rect.left + nSize;
-    IRenderFactory* pRenderFactory = GlobalManager::GetRenderFactory();
+    IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
     ASSERT(pRenderFactory != nullptr);
     if (pRenderFactory != nullptr) {
         std::unique_ptr<IPen> pen(pRenderFactory->CreatePen(UiColor(0xff006DD9), DpiScaledInt(2)));

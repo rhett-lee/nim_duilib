@@ -129,7 +129,7 @@ void CefControl::Paint(ui::IRender* pRender, const ui::UiRect& rcPaint)
 		ui::UiRect rect = GetRect();
 
 		std::unique_ptr<ui::IBitmap> bitmap;
-		ui::IRenderFactory* pRenderFactory = ui::GlobalManager::GetRenderFactory();
+		ui::IRenderFactory* pRenderFactory = ui::GlobalManager::Instance().GetRenderFactory();
 		ASSERT(pRenderFactory != nullptr);
 		if (pRenderFactory != nullptr) {
 			bitmap.reset(pRenderFactory->CreateBitmap());

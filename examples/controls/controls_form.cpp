@@ -134,7 +134,7 @@ void ControlForm::OnInitWindow()
 		{
 			nim_comp::ListElementMatch* item = new nim_comp::ListElementMatch;
 			item->SetFixedHeight(20, true);
-			//ui::GlobalManager::FillBoxWithCache(item, L"date_export/combo/date_item.xml");
+			//ui::GlobalManager::Instance().FillBoxWithCache(item, L"date_export/combo/date_item.xml");
 			//Label *label = new label;
 
 			std::string str = "nim_comp::FilterCombo item";
@@ -277,7 +277,7 @@ void ControlForm::LoadRichEditData()
 {
 	std::streamoff length = 0;
 	std::string xml;
-	std::wstring controls_xml = ui::GlobalManager::GetResourcePath() + GetResourcePath() + GetSkinFile();
+	std::wstring controls_xml = ui::GlobalManager::Instance().GetResourcePath() + GetResourcePath() + GetSkinFile();
 
 	std::ifstream ifs(controls_xml.c_str());
 	if (ifs.is_open())

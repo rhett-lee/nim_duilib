@@ -225,7 +225,7 @@ namespace SVGImageLoader
 			width = (int)nImageWidth;
 			height = (int)nImageHeight;
 		}
-		bool needDpiScale = GlobalManager::GetImageManager().IsDpiScaleAllImages();
+		bool needDpiScale = GlobalManager::Instance().Image().IsDpiScaleAllImages();
 		if (imageLoadAttribute.HasSrcDpiScale()) {
 			//如果配置文件中有设置scaledpi属性，则以配置文件中的设置为准
 			needDpiScale = imageLoadAttribute.NeedDpiScale();
@@ -538,7 +538,7 @@ std::unique_ptr<ImageInfo> ImageDecoder::LoadImageData(std::vector<uint8_t>& fil
 	if (fileData.empty() || imageFullPath.empty()) {
 		return nullptr;
 	}
-	IRenderFactory* pRenderFactroy = GlobalManager::GetRenderFactory();
+	IRenderFactory* pRenderFactroy = GlobalManager::Instance().GetRenderFactory();
 	ASSERT(pRenderFactroy != nullptr);
 	if (pRenderFactroy == nullptr) {
 		return nullptr;
@@ -567,7 +567,7 @@ std::unique_ptr<ImageInfo> ImageDecoder::LoadImageData(std::vector<uint8_t>& fil
 		}
 
 		//加载图片时，按需对图片大小进行DPI自适应
-		bool needDpiScale = GlobalManager::GetImageManager().IsDpiScaleAllImages();
+		bool needDpiScale = GlobalManager::Instance().Image().IsDpiScaleAllImages();
 		if (imageLoadAttribute.HasSrcDpiScale()) {
 			//如果配置文件中有设置scaledpi属性，则以配置文件中的设置为准
 			needDpiScale = imageLoadAttribute.NeedDpiScale();

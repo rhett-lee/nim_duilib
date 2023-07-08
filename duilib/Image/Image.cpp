@@ -294,7 +294,7 @@ ImageLoadAttribute::ImageLoadAttribute(const std::wstring& srcWidth,
 
 void ImageLoadAttribute::SetImageFullPath(const std::wstring& imageFullPath)
 {
-	m_srcImageFullPath = StringHelper::ReparsePath(imageFullPath);
+	m_srcImageFullPath = StringHelper::NormalizeFilePath(imageFullPath);
 	StringHelper::Trim(m_srcImageFullPath);
 }
 
@@ -826,7 +826,8 @@ void StateColorMap::PaintStateColor(IRender* pRender, UiRect rcPaint, ControlSta
 	}
 	std::wstring strColor = GetStateColor(stateType);
 	if (!strColor.empty()) {
-		UiColor color = m_pControl ? m_pControl->GetUiColor(strColor) : GlobalManager::GetColorManager().GetColor(strColor);
+		UiColor color = m_pControl ? m_pControl->GetUiColor(strColor) : 
+			                         GlobalManager::Instance().Color().GetColor(strColor);
 		pRender->FillRect(rcPaint, color);
 	}
 }

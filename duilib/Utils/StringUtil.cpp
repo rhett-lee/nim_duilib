@@ -1,4 +1,5 @@
 #include "StringUtil.h"
+#include <filesystem>
 
 namespace ui
 {
@@ -245,12 +246,57 @@ void StringTrimRightT(std::basic_string<CharType> &output)
 
 } // anonymous namespace
 
-std::wstring StringHelper::ReparsePath(const std::wstring& strFilePath)
+std::wstring StringHelper::NormalizeDirPath(const std::wstring& strFilePath)
+{
+	std::wstring dirPath(strFilePath);
+	ReplaceAll(L"/", L"\\", dirPath);
+	ReplaceAll(L"\\\\", L"\\", dirPath);
+	std::filesystem::path dir_path(dirPath);
+	dir_path = dir_path.lexically_normal();
+	dirPath = dir_path.native();
+	if (!dirPath.empty()) {
+		//确保路径最后字符是分割字符
+		auto cEnd = dirPath.back();
+		if (cEnd != L'\\' && cEnd != L'/') {
+			dirPath += L'\\';
+		}
+	}
+	return dirPath;
+}
+
+std::wstring StringHelper::NormalizeFilePath(const std::wstring& strFilePath)
 {
 	std::wstring tmp(strFilePath);
 	ReplaceAll(L"/", L"\\", tmp);
 	ReplaceAll(L"\\\\", L"\\", tmp);
+	std::filesystem::path file_path(tmp);
+	file_path = file_path.lexically_normal();
+	tmp = file_path.native();
 	return tmp;
+}
+
+std::wstring StringHelper::JoinFilePath(const std::wstring& path1, const std::wstring& path2)
+{
+	std::filesystem::path file_path(path1);
+	file_path /= path2;
+	file_path = file_path.lexically_normal();
+	std::wstring tmp = file_path.native();
+	return tmp;
+}
+
+bool StringHelper::IsExistsPath(const std::wstring& strFilePath)
+{
+	return std::filesystem::exists(strFilePath);
+}
+
+bool StringHelper::IsRelativePath(const std::wstring& strFilePath)
+{
+	return std::filesystem::path(strFilePath).is_relative();
+}
+
+bool StringHelper::IsAbsolutePath(const std::wstring& strFilePath)
+{
+	return std::filesystem::path(strFilePath).is_absolute();
 }
 
 std::wstring StringHelper::Printf(const wchar_t *format, ...)

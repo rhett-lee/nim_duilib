@@ -463,7 +463,7 @@ void Window::InitWnd(HWND hWnd)
 	m_hDcPaint = ::GetDC(hWnd);
 
 	ASSERT(m_render == nullptr);
-	IRenderFactory* pRenderFactory = GlobalManager::GetRenderFactory();
+	IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
 	ASSERT(pRenderFactory != nullptr);
 	if (pRenderFactory != nullptr) {
 		m_render.reset(pRenderFactory->CreateRender());
@@ -1985,7 +1985,7 @@ ui::IRender* Window::GetRender() const
 
 void Window::Invalidate(const UiRect& rcItem)
 {
-	GlobalManager::AssertUIThread();
+	GlobalManager::Instance().AssertUIThread();
 
 	::InvalidateRect(m_hWnd, &rcItem, FALSE);
 	// Invalidating a layered window will not trigger a WM_PAINT message,
@@ -1997,7 +1997,7 @@ void Window::Invalidate(const UiRect& rcItem)
 
 void Window::Paint()
 {
-	GlobalManager::AssertUIThread();
+	GlobalManager::Instance().AssertUIThread();
 
 	if (::IsIconic(m_hWnd) || (m_pRoot == nullptr)) {
 		PAINTSTRUCT ps = { 0 };

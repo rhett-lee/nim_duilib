@@ -14,7 +14,7 @@ namespace BitmapHelper {
         }
         std::unique_ptr<IBitmap> bitmap;
         IRender* pRender = nullptr;
-        IRenderFactory* pRenderFactory = GlobalManager::GetRenderFactory();
+        IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
         ASSERT(pRenderFactory != nullptr);
         if (pRenderFactory != nullptr) {
             pRender = pRenderFactory->CreateRender();
@@ -75,7 +75,7 @@ namespace BitmapHelper {
             return nullptr;
         }
         IRender* pRender = nullptr;
-        IRenderFactory* pRenderFactory = GlobalManager::GetRenderFactory();
+        IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
         ASSERT(pRenderFactory != nullptr);
         if (pRenderFactory != nullptr) {
             pRender = pRenderFactory->CreateRender();

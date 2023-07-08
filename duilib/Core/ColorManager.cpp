@@ -57,7 +57,7 @@ UiColor ColorManager::ConvertToUiColor(const std::wstring& strColor)
 	}
 	if (strColor.at(0) != L'#') {
 		//按标准颜色值获取
-		color = GlobalManager::GetColorManager().GetStandardColor(strColor);
+		color = GlobalManager::Instance().Color().GetStandardColor(strColor);
 		if (!color.IsEmpty()) {
 			return color;
 		}

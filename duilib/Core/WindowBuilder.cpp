@@ -24,7 +24,7 @@
 #include "duilib/Utils/StringUtil.h"
 
 #include "duilib/third_party/xml/pugixml.hpp"
-#include <shlwapi.h>
+
 #include <tchar.h>
 
 namespace ui 
@@ -61,12 +61,10 @@ Box* WindowBuilder::Create(const std::wstring& xml,
 			return nullptr;
 		}
 	}
-	else if (GlobalManager::IsUseZip()) {
-		std::wstring sFile = GlobalManager::GetResourcePath();
-		sFile += xml;
-
+	else if (GlobalManager::Instance().Zip().IsUseZip()) {
+		std::wstring sFile = StringHelper::JoinFilePath(GlobalManager::Instance().GetResourcePath(), xml);
 		std::vector<unsigned char> file_data;
-		if (GlobalManager::GetZipData(sFile, file_data)) {
+		if (GlobalManager::Instance().Zip().GetZipData(sFile, file_data)) {
 			pugi::xml_parse_result result = m_xml->load_buffer(file_data.data(), file_data.size());
 			if (result.status != pugi::status_ok) {
 				ASSERT(!L"WindowBuilder::Create load xml from zip data failed!");
@@ -74,9 +72,9 @@ Box* WindowBuilder::Create(const std::wstring& xml,
 			}
 		}
 		else {
-			std::wstring xmlFilePath = GlobalManager::GetResourcePath();
-			if (::PathIsRelative(xml.c_str())) {
-				xmlFilePath += xml;
+			std::wstring xmlFilePath = GlobalManager::Instance().GetResourcePath();
+			if (StringHelper::IsRelativePath(xml)) {
+				xmlFilePath = StringHelper::JoinFilePath(xmlFilePath, xml);
 			}
 			else {
 				xmlFilePath = xml;
@@ -89,9 +87,9 @@ Box* WindowBuilder::Create(const std::wstring& xml,
 		}
 	}
 	else {
-		std::wstring xmlFilePath = GlobalManager::GetResourcePath();
-		if (::PathIsRelative(xml.c_str())) {
-			xmlFilePath += xml;
+		std::wstring xmlFilePath = GlobalManager::Instance().GetResourcePath();
+		if (StringHelper::IsRelativePath(xml)) {
+			xmlFilePath = StringHelper::JoinFilePath(xmlFilePath, xml);
 		}
 		else {
 			xmlFilePath = xml;
@@ -259,7 +257,7 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
 						}
 					}
 					if (!strFontFile.empty() && !strFontName.empty()) {
-						GlobalManager::GetFontManager().AddFontFile(strFontFile, strFontName);
+						GlobalManager::Instance().Font().AddFontFile(strFontFile, strFontName);
 					}
 				}
 				else if( strClass == L"Font") {					
@@ -308,7 +306,7 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
 						fontInfo.m_bItalic = italic;
 						fontInfo.m_bUnderline = underline;
 						fontInfo.m_bStrikeOut = strikeout;
-						GlobalManager::GetFontManager().AddFont(strFontId, fontInfo, isDefault);
+						GlobalManager::Instance().Font().AddFont(strFontId, fontInfo, isDefault);
 					}
 				}
 				else if( strClass == _T("Class") ) {
@@ -333,14 +331,14 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
 					}
 					if( !strClassName.empty() ) {
 						StringHelper::TrimLeft(strAttribute);
-						GlobalManager::AddClass(strClassName, strAttribute);
+						GlobalManager::Instance().AddClass(strClassName, strAttribute);
 					}
 				}
 				else if( strClass == _T("TextColor") ) {
 					std::wstring colorName = node.attribute(L"name").as_string();
 					std::wstring colorValue = node.attribute(L"value").as_string();
 					if(!colorName.empty() && !colorValue.empty()) {
-						ColorManager& colorManager = GlobalManager::GetColorManager();
+						ColorManager& colorManager = GlobalManager::Instance().Color();
 						colorManager.AddColor(colorName, colorValue);
 						if (colorName == _T("default_font_color")) {
 							colorManager.SetDefaultTextColor(colorName);
@@ -383,7 +381,7 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
 						}
 					}
 					if( !strClassName.empty() ) {
-						ASSERT( GlobalManager::GetClassAttributes(strClassName).empty() );	//窗口中的Class不能与全局的重名
+						ASSERT(GlobalManager::Instance().GetClassAttributes(strClassName).empty() );	//窗口中的Class不能与全局的重名
 						StringHelper::TrimLeft(strAttribute);
 						pWindow->AddClass(strClassName, strAttribute);
 					}
@@ -485,7 +483,7 @@ Control* WindowBuilder::ParseXmlNode(const pugi::xml_node& xmlNode, Control* pPa
 
             // User-supplied control factory
             if( pControl == nullptr) {
-				pControl = GlobalManager::CreateControl(strClass);
+				pControl = GlobalManager::Instance().CreateControl(strClass);
             }
 
             if( pControl == nullptr && m_createControlCallback ) {

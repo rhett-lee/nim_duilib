@@ -41,11 +41,11 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const ImageLoadAttribute& load
 	}
 
 	//重新加载资源
-	bool isUseZip = GlobalManager::IsUseZip();
+	bool isUseZip = GlobalManager::Instance().Zip().IsUseZip();
 	std::wstring imageFullPath = GetDpiImageFullPath(loadAtrribute.GetImageFullPath(), isUseZip);
 	std::vector<unsigned char> file_data;
 	if (isUseZip) {
-		GlobalManager::GetZipData(imageFullPath, file_data);
+		GlobalManager::Instance().Zip().GetZipData(imageFullPath, file_data);
 	}
 	else {
 		FILE* f = nullptr;
@@ -92,7 +92,7 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const ImageLoadAttribute& load
 void ImageManager::OnImageInfoDestroy(ImageInfo* pImageInfo)
 {
 	ASSERT(pImageInfo != nullptr);
-	ImageManager& imageManager = GlobalManager::GetImageManager();
+	ImageManager& imageManager = GlobalManager::Instance().Image();
 	if (pImageInfo != nullptr) {
 		std::wstring imageCacheKey = pImageInfo->GetCacheKey();
 		if (!imageCacheKey.empty()) {
@@ -153,12 +153,11 @@ std::wstring ImageManager::GetDpiImageFullPath(const std::wstring& strImageFullP
 	strPathFileName = StringHelper::Printf(L"%s%s%d%s", strFile.c_str(), L"@", dpi, strFileExtension.c_str());
 	std::wstring strNewFilePath = strPathDir + strPathFileName;
 	if (bIsUseZip) {
-		bool hasData = ui::GlobalManager::IsZipResExist(strNewFilePath);
+		bool hasData = GlobalManager::Instance().Zip().IsZipResExist(strNewFilePath);
 		return hasData ? strNewFilePath : strImageFullPath;
 	}
 	else {
-		const DWORD file_attr = ::GetFileAttributesW(strNewFilePath.c_str());
-		return file_attr != INVALID_FILE_ATTRIBUTES ? strNewFilePath : strImageFullPath;
+		return StringHelper::IsExistsPath(strNewFilePath) ? strNewFilePath : strImageFullPath;
 	}
 }
 

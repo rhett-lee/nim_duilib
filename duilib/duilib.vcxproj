@@ -354,6 +354,7 @@
     <ClCompile Include="Core\ToolTip.cpp" />
     <ClCompile Include="Core\Window.cpp" />
     <ClCompile Include="Core\WindowBuilder.cpp" />
+    <ClCompile Include="Core\ZipManager.cpp" />
     <ClCompile Include="duilib.cpp" />
     <ClCompile Include="Image\Image.cpp" />
     <ClCompile Include="Image\ImageDecoder.cpp" />
@@ -428,6 +429,7 @@
     <ClInclude Include="Core\ToolTip.h" />
     <ClInclude Include="Core\Window.h" />
     <ClInclude Include="Core\WindowBuilder.h" />
+    <ClInclude Include="Core\ZipManager.h" />
     <ClInclude Include="duilib.h" />
     <ClInclude Include="duilib_config.h" />
     <ClInclude Include="duilib_defs.h" />

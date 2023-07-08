@@ -64,7 +64,7 @@ void MainThread::Init()
 	nbase::ThreadManager::RegisterThread(kThreadUI);
 
 	std::wstring theme_dir = nbase::win32::GetCurrentModuleDirectory();
-	ui::GlobalManager::Startup(theme_dir + L"resources\\", ui::CreateControlCallback(), bAdaptDpi);
+	ui::GlobalManager::Instance().Startup(theme_dir + L"resources\\", ui::CreateControlCallback(), bAdaptDpi);
 
 	nbase::TimeDelta time_delta = nbase::TimeDelta::FromMicroseconds(nbase::Time::Now().ToInternalValue());
 	std::string timeStamp = nbase::StringPrintf("%I64u", time_delta.ToMilliseconds());
@@ -73,7 +73,7 @@ void MainThread::Init()
 
 void MainThread::Cleanup()
 {
-	ui::GlobalManager::Shutdown();
+	ui::GlobalManager::Instance().Shutdown();
 	SetThreadWasQuitProperly(true);
 	nbase::ThreadManager::UnregisterThread();
 }

@@ -27,7 +27,7 @@ private:
 	//开启DPI自适应功能
 	bool bAdaptDpi = true;
 
-	ui::GlobalManager::Startup(theme_dir + L"resources\\", ui::CreateControlCallback(), bAdaptDpi);
+	ui::GlobalManager::Instance().Startup(theme_dir + L"resources\\", ui::CreateControlCallback(), bAdaptDpi);
 
 
 	// 创建一个默认带有阴影的居中窗口
@@ -43,7 +43,7 @@ private:
   */
   virtual void Cleanup() override
   {
-    ui::GlobalManager::Shutdown();
+    ui::GlobalManager::Instance().Shutdown();
     SetThreadWasQuitProperly(true);
     nbase::ThreadManager::UnregisterThread();
   }

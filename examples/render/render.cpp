@@ -41,7 +41,7 @@ void MainThread::Init()
 	// 默认皮肤使用 resources\\themes\\default
 	// 默认语言使用 resources\\lang\\zh_CN
 	// 如需修改请指定 Startup 最后两个参数
-	ui::GlobalManager::Startup(theme_dir + L"resources\\", ui::CreateControlCallback(), bAdaptDpi);
+	ui::GlobalManager::Instance().Startup(theme_dir + L"resources\\", ui::CreateControlCallback(), bAdaptDpi);
 
 	// 创建一个默认带有阴影的居中窗口
 	RenderForm* window = new RenderForm();
@@ -52,7 +52,7 @@ void MainThread::Init()
 
 void MainThread::Cleanup()
 {
-	ui::GlobalManager::Shutdown();
+	ui::GlobalManager::Instance().Shutdown();
 	SetThreadWasQuitProperly(true);
 	nbase::ThreadManager::UnregisterThread();
 }

@@ -231,7 +231,7 @@ static void GetLogFont(const std::wstring& fontId, LOGFONT& lf)
 	//优先获取默认字体
 	lf = { 0 };
 	::GetObject(::GetStockObject(DEFAULT_GUI_FONT), sizeof(LOGFONT), &lf);
-	IFont* pFont = GlobalManager::GetFontManager().GetIFont(fontId);
+	IFont* pFont = GlobalManager::Instance().Font().GetIFont(fontId);
 	ASSERT(pFont != nullptr);
 	if (pFont == nullptr) {
 		return;
@@ -1326,7 +1326,7 @@ RichEdit::RichEdit() :
 	m_sFocusedImage()
 {
 	m_iLimitText = cInitTextMax;
-	m_sCurrentColor = GlobalManager::GetColorManager().GetDefaultTextColor();
+	m_sCurrentColor = GlobalManager::Instance().Color().GetDefaultTextColor();
 	m_sTextColor = m_sCurrentColor;
 	m_sDisabledTextColor = m_sCurrentColor;
 
@@ -3219,7 +3219,7 @@ void  RichEdit::AddLinkColorTextEx(const std::wstring& str, const std::wstring &
 		GetLogFont(strFontId, lf);
 	}
 	StringHelper::UnicodeToMBCS(lf.lfFaceName, font_face);
-	UiColor dwTextColor = GlobalManager::GetColorManager().GetColor(color);
+	UiColor dwTextColor = GlobalManager::Instance().Color().GetColor(color);
 	static std::string font_format = "{\\fonttbl{\\f0\\fnil\\fcharset%d %s;}}";
 	static std::string color_format = "{\\colortbl ;\\red%d\\green%d\\blue%d;}";
 	static std::string link_format = "{\\rtf1%s%s\\f0\\fs%d{\\field{\\*\\fldinst{HYPERLINK \"%s\"}}{\\fldrslt{\\cf1 %s}}}}";
