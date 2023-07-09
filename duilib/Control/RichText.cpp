@@ -2,8 +2,8 @@
 #include "duilib/Animation/AnimationManager.h"
 #include "duilib/Animation/AnimationPlayer.h"
 #include "duilib/Core/WindowBuilder.h"
+#include "duilib/Core/GlobalManager.h"
 #include "duilib/Utils/StringUtil.h"
-#include "duilib/Utils/DpiManager.h"
 #include "duilib/Render/IRender.h"
 
 namespace ui 
@@ -61,7 +61,7 @@ void RichText::SetTextPadding(const UiRect& padding)
         return;
     }
     m_rcTextPadding = padding;
-    DpiManager::GetInstance()->ScaleRect(m_rcTextPadding);
+    GlobalManager::Instance().Dpi().ScaleRect(m_rcTextPadding);
     RelayoutOrRedraw();
 }
 

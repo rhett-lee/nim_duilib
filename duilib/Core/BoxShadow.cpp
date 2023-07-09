@@ -1,5 +1,5 @@
 #include "BoxShadow.h"
-#include "duilib/Utils/DpiManager.h"
+#include "duilib/Core/GlobalManager.h"
 #include <tchar.h>
 
 namespace ui {
@@ -9,8 +9,8 @@ BoxShadow::BoxShadow():
 	m_nBlurRadius(2),
 	m_nSpreadRadius(2)
 {
-	DpiManager::GetInstance()->ScaleInt(m_nBlurRadius);
-	DpiManager::GetInstance()->ScaleInt(m_nSpreadRadius);
+	GlobalManager::Instance().Dpi().ScaleInt(m_nBlurRadius);
+	GlobalManager::Instance().Dpi().ScaleInt(m_nSpreadRadius);
 }
 
 void BoxShadow::SetBoxShadowString(const std::wstring& strBoxShadow)
@@ -49,7 +49,7 @@ void BoxShadow::SetBoxShadowString(const std::wstring& strBoxShadow)
 			else if (sItem == _T("offset")) {
 				m_cpOffset.x = _tcstol(sValue.c_str(), &pstr, 10);  ASSERT(pstr);
 				m_cpOffset.y = _tcstol(pstr + 1, &pstr, 10);    ASSERT(pstr);
-				DpiManager::GetInstance()->ScalePoint(m_cpOffset);
+				GlobalManager::Instance().Dpi().ScalePoint(m_cpOffset);
 			}
 			else if ((sItem == _T("blur_radius")) || sItem == _T("blurradius")) {
 				m_nBlurRadius = _tcstol(sValue.c_str(), &pstr, 10); ASSERT(pstr);
@@ -57,7 +57,7 @@ void BoxShadow::SetBoxShadowString(const std::wstring& strBoxShadow)
 				if (m_nBlurRadius < 0) {
 					m_nBlurRadius = 2;
 				}
-				DpiManager::GetInstance()->ScaleInt(m_nBlurRadius);
+				GlobalManager::Instance().Dpi().ScaleInt(m_nBlurRadius);
 			}
 			else if ((sItem == _T("spread_radius")) || (sItem == _T("spreadradius"))) {
 				m_nSpreadRadius = _tcstol(sValue.c_str(), &pstr, 10); ASSERT(pstr);
@@ -65,7 +65,7 @@ void BoxShadow::SetBoxShadowString(const std::wstring& strBoxShadow)
 				if (m_nSpreadRadius < 0) {
 					m_nSpreadRadius = 2;
 				}
-				DpiManager::GetInstance()->ScaleInt(m_nSpreadRadius);
+				GlobalManager::Instance().Dpi().ScaleInt(m_nSpreadRadius);
 			}
 			else {
 				ASSERT(!"BoxShadow::SetBoxShadowString found unknown item!");

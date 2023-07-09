@@ -2,7 +2,6 @@
 #include "duilib/Core/Control.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Render/IRender.h"
-#include "duilib/Utils//DpiManager.h"
 #include "duilib/Animation/AnimationManager.h"
 #include "duilib/Utils/StringUtil.h"
 #include <tchar.h>
@@ -273,7 +272,7 @@ void ImageAttribute::ModifyAttribute(const std::wstring& strImageString)
 	}
 
 	if (bHasDest && bScaleDest) {
-		DpiManager::GetInstance()->ScaleRect(imageAttribute.rcDest);
+		GlobalManager::Instance().Dpi().ScaleRect(imageAttribute.rcDest);
 	}
 }
 

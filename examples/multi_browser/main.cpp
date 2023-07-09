@@ -36,7 +36,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		return 0;
 
 	//必须在CefManager::Initialize前调用，设置DPI自适应属性，否则会导致显示不正常
-	ui::DpiManager::GetInstance()->SetAdaptDPI(bAdaptDpi);
+	ui::GlobalManager::Instance().Dpi().SetAdaptDPI(bAdaptDpi);
 
 	// 初始化 CEF
 	CefSettings settings;

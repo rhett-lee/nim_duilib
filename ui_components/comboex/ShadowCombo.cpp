@@ -377,7 +377,7 @@ ui::UiRect ShadowCombo::GetTextPadding() const
 
 void ShadowCombo::SetTextPadding(ui::UiRect rc)
 {
-    ui::DpiManager::GetInstance()->ScaleRect(rc);
+    ui::GlobalManager::Instance().Dpi().ScaleRect(rc);
     m_rcTextPadding = rc;
     this->Invalidate();
 }
@@ -400,7 +400,7 @@ ui::UiSize ShadowCombo::GetDropBoxSize() const
 
 void ShadowCombo::SetDropBoxSize(ui::UiSize szDropBox)
 {
-    ui::DpiManager::GetInstance()->ScaleSize(szDropBox);
+    ui::GlobalManager::Instance().Dpi().ScaleSize(szDropBox);
     m_szDropBox = szDropBox;
 }
 
@@ -457,7 +457,7 @@ void ShadowCombo::SetShadowCorner(const ui::UiRect& rect, bool bNeedDpiScale)
 {
     ui::UiRect rc = rect;
     if (bNeedDpiScale) {
-        ui::DpiManager::GetInstance()->ScaleRect(rc);
+        ui::GlobalManager::Instance().Dpi().ScaleRect(rc);
     }
     m_rcShadowCorner = rc;
 }
@@ -465,7 +465,7 @@ void ShadowCombo::SetShadowCorner(const ui::UiRect& rect, bool bNeedDpiScale)
 void ShadowCombo::SetArrowOffset(int offset, bool bNeedDpiScale) 
 {
     if (bNeedDpiScale) {
-        ui::DpiManager::GetInstance()->ScaleInt(offset);
+        ui::GlobalManager::Instance().Dpi().ScaleInt(offset);
     }
     m_iArrowOffset = offset;
 }

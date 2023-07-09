@@ -3,9 +3,9 @@
 #include "duilib/Core/Window.h"
 #include "duilib/Image/Image.h"
 #include "duilib/Core/Define.h"
+#include "duilib/Core/GlobalManager.h"
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Utils/TimerManager.h"
-#include "duilib/Utils/DpiManager.h"
 
 #include <tchar.h>
 
@@ -667,7 +667,7 @@ void ScrollBar::SetLineSize(int nSize)
 {
 	ASSERT(nSize > 0);
 	if (nSize > 0) {
-		DpiManager::GetInstance()->ScaleInt(nSize);
+		GlobalManager::Instance().Dpi().ScaleInt(nSize);
 		m_nLineSize = nSize;
 	}	
 }
@@ -681,7 +681,7 @@ void ScrollBar::SetThumbMinLength(int nThumbMinLength)
 {
 	ASSERT(nThumbMinLength > 0);
 	if (nThumbMinLength > 0) {
-		DpiManager::GetInstance()->ScaleInt(nThumbMinLength);
+		GlobalManager::Instance().Dpi().ScaleInt(nThumbMinLength);
 		m_nThumbMinLength = nThumbMinLength;
 	}
 }

@@ -5,7 +5,6 @@
 #include "duilib/Utils/TimerManager.h"
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Utils/Macros.h"
-#include "duilib/Utils/MultiLangSupport.h"
 #include "duilib/Utils/OnScreenKeyboardManager.h"
 #include "duilib/Render/IRender.h"
 #include "duilib/Render/AutoClip.h"
@@ -1551,11 +1550,8 @@ void RichEdit::SetText(const std::wstring& strText)
 
 void RichEdit::SetTextId(const std::wstring& strTextId)
 {
-	MultiLangSupport* mutilan = MultiLangSupport::GetInstance();
-	if (mutilan) {
-		std::wstring strText = mutilan->GetStringViaID(strTextId);
-		SetText(strText);
-	}
+	std::wstring strText = GlobalManager::Instance().Lang().GetStringViaID(strTextId);
+	SetText(strText);
 }
 
 void RichEdit::SetUTF8Text( const std::string& strText )
@@ -3035,7 +3031,7 @@ std::wstring RichEdit::GetPromptText() const
 {
 	std::wstring strText = m_sPromptText;
 	if (strText.empty() && !m_sPromptTextId.empty()) {
-		strText = MultiLangSupport::GetInstance()->GetStringViaID(m_sPromptTextId);
+		strText = GlobalManager::Instance().Lang().GetStringViaID(m_sPromptTextId);
 	}
 
 	return strText;

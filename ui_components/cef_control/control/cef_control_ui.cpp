@@ -5,7 +5,6 @@
 #include "ui_components/public_define.h"
 #include "duilib/Render/IRender.h"
 #include "duilib/Core/GlobalManager.h"
-#include "duilib/Utils/DpiManager.h"
 
 #include "base/thread/thread_manager.h"
 
@@ -337,7 +336,7 @@ void CefControl::OnBeforeContextMenu(CefRefPtr<CefBrowser> browser, CefRefPtr<Ce
 		int x = params->GetXCoord();
 		int y = params->GetYCoord();
 		//离屏渲染模式下，给到的参数是原始坐标，未经DPI自适应，所以需要做DPI自适应处理，否则页面的右键菜单位置显示不对
-		uint32_t dpiScale = ui::DpiManager::GetInstance()->GetScale();
+		uint32_t dpiScale = ui::GlobalManager::Instance().Dpi().GetScale();
 		if (dpiScale > 100) {
 			x = x * dpiScale / 100;
 			y = y * dpiScale / 100;
@@ -649,7 +648,7 @@ void CefControl::AdaptDpiScale(CefMouseEvent& mouse_event)
 {
 	if (CefManager::GetInstance()->IsEnableOffsetRender()) {
 		//离屏渲染模式，需要传给原始宽度和高度，因为CEF内部会进一步做DPI自适应
-		uint32_t dpiScale = ui::DpiManager::GetInstance()->GetScale();
+		uint32_t dpiScale = ui::GlobalManager::Instance().Dpi().GetScale();
 		if (dpiScale > 100) {
 			mouse_event.x = mouse_event.x * 100 / dpiScale;
 			mouse_event.y = mouse_event.y * 100 / dpiScale;

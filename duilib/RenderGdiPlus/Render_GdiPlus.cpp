@@ -1,5 +1,4 @@
 #include "Render_GdiPlus.h"
-#include "duilib/Utils/DpiManager.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/RenderGdiPlus/Pen_Gdiplus.h"
 #include "duilib/RenderGdiPlus/Path_Gdiplus.h"
@@ -442,7 +441,7 @@ void Render_GdiPlus::DrawImage(const UiRect& rcPaint,
 	UiRect rcSource;
 	UiRect rcDest;
 	UiRect rcDpiCorner = rcImageCorners;
-	DpiManager::GetInstance()->ScaleRect(rcDpiCorner);
+	GlobalManager::Instance().Dpi().ScaleRect(rcDpiCorner);
 	// 如果源位图已经按照DPI缩放过，那么对应的rcImageCorners也需要缩放
 	if (bBitmapDpiScaled) {
 		rcImageCorners = rcDpiCorner;
@@ -460,7 +459,7 @@ void Render_GdiPlus::DrawImage(const UiRect& rcPaint,
 	}
 	else if (bBitmapDpiScaled) {
 		//如果外部设置此值，做DPI自适应处理
-		DpiManager::GetInstance()->ScaleRect(rcImageSource);
+		GlobalManager::Instance().Dpi().ScaleRect(rcImageSource);
 	}
 	//图片源容错处理
 	if (rcImageSource.left < 0) {
@@ -760,7 +759,7 @@ void Render_GdiPlus::DrawImageRect(const UiRect& rcPaint,
 	}
 	else if (bBitmapDpiScaled) {
 		//如果外部设置此值，做DPI自适应处理
-		DpiManager::GetInstance()->ScaleRect(rcImageSource);
+		GlobalManager::Instance().Dpi().ScaleRect(rcImageSource);
 	}
 	//图片源容错处理
 	if (rcImageSource.left < 0) {

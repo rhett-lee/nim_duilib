@@ -347,9 +347,11 @@
     <ClCompile Include="Core\Control.cpp" />
     <ClCompile Include="Core\ControlFinder.cpp" />
     <ClCompile Include="Core\Define.cpp" />
+    <ClCompile Include="Core\DpiManager.cpp" />
     <ClCompile Include="Core\FontManager.cpp" />
     <ClCompile Include="Core\GlobalManager.cpp" />
     <ClCompile Include="Core\ImageManager.cpp" />
+    <ClCompile Include="Core\MultiLang.cpp" />
     <ClCompile Include="Core\Placeholder.cpp" />
     <ClCompile Include="Core\ToolTip.cpp" />
     <ClCompile Include="Core\Window.cpp" />
@@ -384,8 +386,6 @@
     <ClCompile Include="third_party\unzip\UnZip.cpp" />
     <ClCompile Include="third_party\xml\pugixml.cpp" />
     <ClCompile Include="Utils\ApiWrapper.cpp" />
-    <ClCompile Include="Utils\DpiManager.cpp" />
-    <ClCompile Include="Utils\MultiLangSupport.cpp" />
     <ClCompile Include="Utils\OnScreenKeyboardManager.cpp" />
     <ClCompile Include="Utils\PerformanceUtil.cpp" />
     <ClCompile Include="Utils\Shadow.cpp" />
@@ -422,9 +422,11 @@
     <ClInclude Include="Core\Control.h" />
     <ClInclude Include="Core\ControlFinder.h" />
     <ClInclude Include="Core\Define.h" />
+    <ClInclude Include="Core\DpiManager.h" />
     <ClInclude Include="Core\FontManager.h" />
     <ClInclude Include="Core\GlobalManager.h" />
     <ClInclude Include="Core\ImageManager.h" />
+    <ClInclude Include="Core\MultiLang.h" />
     <ClInclude Include="Core\Placeholder.h" />
     <ClInclude Include="Core\ToolTip.h" />
     <ClInclude Include="Core\Window.h" />
@@ -472,9 +474,7 @@
     <ClInclude Include="third_party\xml\pugiconfig.hpp" />
     <ClInclude Include="third_party\xml\pugixml.hpp" />
     <ClInclude Include="Utils\ApiWrapper.h" />
-    <ClInclude Include="Utils\DpiManager.h" />
     <ClInclude Include="Utils\Macros.h" />
-    <ClInclude Include="Utils\MultiLangSupport.h" />
     <ClInclude Include="Utils\OnScreenKeyboardManager.h" />
     <ClInclude Include="Utils\PerformanceUtil.h" />
     <ClInclude Include="Utils\Shadow.h" />

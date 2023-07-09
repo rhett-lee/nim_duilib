@@ -10,9 +10,7 @@
 #include "duilib/Utils/VersionHelpers.h"
 #include "duilib/Utils/TimerManager.h"
 #include "duilib/Utils/ApiWrapper.h"
-#include "duilib/Utils/DpiManager.h"
 #include "duilib/Utils/Shadow.h"
-#include "duilib/Utils/MultiLangSupport.h"
 #include "duilib/Utils/PerformanceUtil.h"
 
 #include <tchar.h>
@@ -703,7 +701,7 @@ const UiRect& Window::GetCaptionRect() const
 void Window::SetCaptionRect(const UiRect& rcCaption)
 {
 	m_rcCaption = rcCaption;
-	DpiManager::GetInstance()->ScaleRect(m_rcCaption);
+	GlobalManager::Instance().Dpi().ScaleRect(m_rcCaption);
 }
 
 const UiSize& Window::GetRoundCorner() const
@@ -730,8 +728,8 @@ void Window::SetRoundCorner(int cx, int cy)
 			return;
 		}
 	}
-	DpiManager::GetInstance()->ScaleInt(cx);
-	DpiManager::GetInstance()->ScaleInt(cy);
+	GlobalManager::Instance().Dpi().ScaleInt(cx);
+	GlobalManager::Instance().Dpi().ScaleInt(cy);
 	m_szRoundCorner.cx = cx;
 	m_szRoundCorner.cy = cy;
 }
@@ -744,7 +742,7 @@ const UiRect& Window::GetMaximizeInfo() const
 void Window::SetMaximizeInfo(const UiRect& rcMaximize)
 {
 	m_rcMaximizeInfo = rcMaximize;
-	DpiManager::GetInstance()->ScaleRect(m_rcMaximizeInfo);
+	GlobalManager::Instance().Dpi().ScaleRect(m_rcMaximizeInfo);
 }
 
 const UiRect& Window::GetAlphaFixCorner() const
@@ -755,7 +753,7 @@ const UiRect& Window::GetAlphaFixCorner() const
 void Window::SetAlphaFixCorner(const UiRect& rc)
 {
 	m_rcAlphaFix = rc;
-	DpiManager::GetInstance()->ScaleRect(m_rcAlphaFix);
+	GlobalManager::Instance().Dpi().ScaleRect(m_rcAlphaFix);
 }
 
 void Window::SetText(const std::wstring& strText)
@@ -767,7 +765,7 @@ void Window::SetText(const std::wstring& strText)
 void Window::SetTextId(const std::wstring& strTextId)
 {
 	ASSERT(::IsWindow(m_hWnd));
-	::SetWindowText(m_hWnd, MultiLangSupport::GetInstance()->GetStringViaID(strTextId).c_str());
+	::SetWindowText(m_hWnd, GlobalManager::Instance().Lang().GetStringViaID(strTextId).c_str());
 }
 
 Box* Window::AttachShadow(Box* pRoot)
@@ -836,7 +834,7 @@ void Window::SetPos(const UiRect& rc, bool bNeedDpiScale, UINT uFlags, HWND hWnd
 {
 	UiRect rcNewPos = rc;
 	if (bNeedDpiScale) {
-		DpiManager::GetInstance()->ScaleRect(rcNewPos);
+		GlobalManager::Instance().Dpi().ScaleRect(rcNewPos);
 	}
 
 	ASSERT(::IsWindow(m_hWnd));
@@ -865,8 +863,8 @@ UiSize Window::GetMinInfo(bool bContainShadow) const
 void Window::SetMinInfo(int cx, int cy, bool bContainShadow, bool bNeedDpiScale)
 {
 	if (bNeedDpiScale) {
-		DpiManager::GetInstance()->ScaleInt(cx);
-		DpiManager::GetInstance()->ScaleInt(cy);
+		GlobalManager::Instance().Dpi().ScaleInt(cx);
+		GlobalManager::Instance().Dpi().ScaleInt(cy);
 	}
 	ASSERT(cx >= 0 && cy >= 0);
 
@@ -902,8 +900,8 @@ UiSize Window::GetMaxInfo(bool bContainShadow) const
 void Window::SetMaxInfo(int cx, int cy, bool bContainShadow, bool bNeedDpiScale)
 {
 	if (bNeedDpiScale) {
-		DpiManager::GetInstance()->ScaleInt(cx);
-		DpiManager::GetInstance()->ScaleInt(cy);
+		GlobalManager::Instance().Dpi().ScaleInt(cx);
+		GlobalManager::Instance().Dpi().ScaleInt(cy);
 	}
 	ASSERT(cx >= 0 && cy >= 0);
 
@@ -939,8 +937,8 @@ UiSize Window::GetInitSize(bool bContainShadow) const
 void Window::Resize(int cx, int cy, bool bContainShadow, bool bNeedDpiScale)
 {
 	if (bNeedDpiScale) {
-		DpiManager::GetInstance()->ScaleInt(cy);
-		DpiManager::GetInstance()->ScaleInt(cx);
+		GlobalManager::Instance().Dpi().ScaleInt(cy);
+		GlobalManager::Instance().Dpi().ScaleInt(cx);
 	}
 
 	if (!bContainShadow) {

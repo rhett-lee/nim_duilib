@@ -35,6 +35,7 @@ public:
 
 	// replace all 'find' with 'replace' in the string
 	static size_t ReplaceAll(const std::wstring& find, const std::wstring& replace, std::wstring& output);
+	static size_t ReplaceAll(const std::string& find, const std::string& replace, std::string& output);
 
 	static std::wstring MakeLowerString(const std::wstring &str);
 	static std::wstring MakeUpperString(const std::wstring &str);

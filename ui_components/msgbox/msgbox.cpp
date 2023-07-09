@@ -2,6 +2,7 @@
 #include "ui_components/public_define.h"
 #include "base/thread/thread_manager.h"
 #include "duilib/Utils/Macros.h"
+#include "duilib/Core/GlobalManager.h"
 
 namespace nim_comp {
 
@@ -15,10 +16,9 @@ void ShowMsgBox(HWND hwnd, MsgboxCallback cb,
 	HWND hWnd = msgbox->CreateWnd(hwnd, L"", WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX, WS_EX_LAYERED);
 	if (hWnd == NULL)
 		return;
-	ui::MultiLangSupport *multilan = ui::MultiLangSupport::GetInstance();
-	msgbox->SetTitle(title_is_id ? multilan->GetStringViaID(title) : title);
-	msgbox->SetContent(content_is_id ? multilan->GetStringViaID(content) : content);
-	msgbox->SetButton(btn_yes_is_id ? multilan->GetStringViaID(yes) : yes, btn_no_is_id ? multilan->GetStringViaID(no) : no);
+	msgbox->SetTitle(title_is_id ? ui::GlobalManager::Instance().Lang().GetStringViaID(title) : title);
+	msgbox->SetContent(content_is_id ? ui::GlobalManager::Instance().Lang().GetStringViaID(content) : content);
+	msgbox->SetButton(btn_yes_is_id ? ui::GlobalManager::Instance().Lang().GetStringViaID(yes) : yes, btn_no_is_id ? ui::GlobalManager::Instance().Lang().GetStringViaID(no) : no);
 	msgbox->Show(hwnd, cb);
 }
 

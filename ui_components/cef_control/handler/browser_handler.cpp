@@ -6,7 +6,7 @@
 #include "ui_components/public_define.h"
 
 #include "base/thread/thread_manager.h"
-#include "duilib/Utils/DpiManager.h"
+#include "duilib/Core/GlobalManager.h"
 
 #pragma warning (push)
 #pragma warning (disable:4100)
@@ -239,7 +239,7 @@ bool BrowserHandler::GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect)
 
 		if (CefManager::GetInstance()->IsEnableOffsetRender()) {
 			//离屏渲染模式，需要传给原始宽度和高度，因为CEF内部会进一步做DPI自适应
-			uint32_t dpiScale = ui::DpiManager::GetInstance()->GetScale();
+			uint32_t dpiScale = ui::GlobalManager::Instance().Dpi().GetScale();
 			if (dpiScale > 100) {
 				rect.width = rect.width * 100 / dpiScale;
 				rect.height = rect.height * 100 / dpiScale;
@@ -269,7 +269,7 @@ bool BrowserHandler::GetScreenPoint(CefRefPtr<CefBrowser> browser, int viewX, in
 	POINT screen_pt = { viewX, viewY};
 	if (CefManager::GetInstance()->IsEnableOffsetRender()) {
 		//离屏渲染模式下，给到的参数是原始坐标，未经DPI自适应，所以需要做DPI自适应处理，否则页面的右键菜单位置显示不对
-		uint32_t dpiScale = ui::DpiManager::GetInstance()->GetScale();
+		uint32_t dpiScale = ui::GlobalManager::Instance().Dpi().GetScale();
 		if (dpiScale > 100) {
 			screen_pt.x = screen_pt.x * dpiScale / 100;
 			screen_pt.y = screen_pt.y * dpiScale / 100;
@@ -290,7 +290,7 @@ bool BrowserHandler::GetScreenInfo(CefRefPtr<CefBrowser> browser, CefScreenInfo&
 	if (!CefManager::GetInstance()->IsEnableOffsetRender()) {
 		return false;
 	}
-	uint32_t dpiScale = ui::DpiManager::GetInstance()->GetScale();
+	uint32_t dpiScale = ui::GlobalManager::Instance().Dpi().GetScale();
 	if (dpiScale == 100) {
 		return false;
 	}

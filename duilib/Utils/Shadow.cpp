@@ -1,8 +1,8 @@
 #include "Shadow.h"
 #include "duilib/Core/Box.h"
 #include "duilib/Core/Window.h"
-#include "duilib/Utils/DpiManager.h"
 #include "duilib/Render/IRender.h"
+#include "duilib/Core/GlobalManager.h"
 
 namespace ui 
 {
@@ -130,8 +130,9 @@ const std::wstring& Shadow::GetShadowImage() const
 void Shadow::SetShadowCorner(const UiRect &rect, bool bNeedDpiScale)
 {
 	m_rcShadowCorner = rect;
-	if (bNeedDpiScale)
-		DpiManager::GetInstance()->ScaleRect(m_rcShadowCorner);
+	if (bNeedDpiScale) {
+		GlobalManager::Instance().Dpi().ScaleRect(m_rcShadowCorner);
+	}
 	m_rcShadowCornerBackup = m_rcShadowCorner;
 }
 
@@ -151,7 +152,7 @@ void Shadow::ResetDefaultShadow()
 	m_strImage = L"file='public/shadow/bk_shadow.png' corner='30,30,30,30'";
 
 	m_rcShadowCorner = { 14, 14, 14, 14 };
-	DpiManager::GetInstance()->ScaleRect(m_rcShadowCorner);
+	GlobalManager::Instance().Dpi().ScaleRect(m_rcShadowCorner);
 	m_rcShadowCornerBackup = m_rcShadowCorner;
 }
 

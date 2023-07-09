@@ -69,7 +69,7 @@ void CircleProgress::PaintStatusImage(IRender* pRender)
 	}
 
 	int direction = m_bClockwise ? 1 : -1;   //旋转方向
-	int bordersize = DpiManager::GetInstance()->GetScaledInt(1); //弧度宽度目前使用1像素
+	int bordersize = GlobalManager::Instance().Dpi().GetScaleInt(1); //弧度宽度目前使用1像素
 
 	// 圆形中心
 	UiPoint center;
@@ -102,7 +102,7 @@ void CircleProgress::PaintStatusImage(IRender* pRender)
 	else {
 		outer.Inflate(-1 * m_nCircleWidth / 2, -1 * m_nCircleWidth / 2);
 	}
-	int inflateValue = DpiManager::GetInstance()->GetScaledInt(-1);
+	int inflateValue = GlobalManager::Instance().Dpi().GetScaleInt(-1);
 	outer.Inflate(inflateValue, inflateValue);
 
 	if (m_dwGradientColor.GetARGB() == 0) {
@@ -160,7 +160,7 @@ void CircleProgress::SetClockwiseRotation(bool bClockwise /*= true*/)
 void CircleProgress::SetCircleWidth(int nCircleWidth)
 {
 	m_nCircleWidth = nCircleWidth;
-	DpiManager::GetInstance()->ScaleInt(m_nCircleWidth);
+	GlobalManager::Instance().Dpi().ScaleInt(m_nCircleWidth);
 	Invalidate();
 }
 

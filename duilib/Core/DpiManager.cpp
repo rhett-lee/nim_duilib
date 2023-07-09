@@ -5,16 +5,14 @@
 namespace ui
 {
 
-DpiManager* DpiManager::GetInstance()
+DpiManager::DpiManager():
+	m_bAdaptDPI(false),
+	m_nScaleFactor(100)
 {
-	static DpiManager dpiManager;
-	return &dpiManager;
 }
 
-DpiManager::DpiManager()
+DpiManager::~DpiManager()
 {
-	m_nScaleFactor = 100;
-	m_bAdaptDPI = false;
 }
 
 uint32_t DpiManager::GetMonitorDPI(HMONITOR hMonitor)
@@ -92,6 +90,8 @@ bool DpiManager::SetAdaptDPI(bool bAdaptDPI)
 			isOk = true;
 		}
 	}
+	//根据主屏幕的DPI设置默认缩放比
+	SetScale(DpiManager::GetMainMonitorDPI());
 	return isOk;
 }
 
@@ -103,15 +103,26 @@ uint32_t DpiManager::GetScale() const
 	return m_nScaleFactor;
 }
 
-void DpiManager::SetScale(uint32_t uDPI)
+bool DpiManager::IsScaled() const
 {
-	if (m_bAdaptDPI) {
-		m_nScaleFactor = MulDiv(uDPI, 100, 96);
-	}
-	ASSERT(m_nScaleFactor >= 100);
+	return m_nScaleFactor != 100;
 }
 
-int DpiManager::ScaleInt(int &iValue)
+bool DpiManager::SetScale(uint32_t uDPI)
+{
+	bool isSet = false;
+	if (m_bAdaptDPI) {
+		m_nScaleFactor = MulDiv(uDPI, 100, 96);
+		isSet = true;
+	}
+	else {
+		m_nScaleFactor = 100;
+	}
+	ASSERT(m_nScaleFactor >= 100);
+	return isSet;
+}
+
+int32_t DpiManager::ScaleInt(int32_t& iValue)
 {
 	if (!m_bAdaptDPI || m_nScaleFactor == 100) {
 		return iValue;
@@ -120,9 +131,22 @@ int DpiManager::ScaleInt(int &iValue)
 	return iValue;
 }
 
-int DpiManager::GetScaledInt(int iValue)
+int32_t DpiManager::GetScaleInt(int32_t iValue)
 {
-	return ScaleInt(iValue);
+	if (!m_bAdaptDPI || m_nScaleFactor == 100) {
+		return iValue;
+	}
+	iValue = MulDiv(iValue, m_nScaleFactor, 100);
+	return iValue;
+}
+
+uint32_t DpiManager::GetScaleInt(uint32_t iValue)
+{
+	if (!m_bAdaptDPI || m_nScaleFactor == 100) {
+		return iValue;
+	}
+	iValue = (uint32_t)MulDiv((int)iValue, m_nScaleFactor, 100);
+	return iValue;
 }
 
 void DpiManager::ScaleSize(SIZE &size)
@@ -186,6 +210,11 @@ void DpiManager::ScaleRect(UiRect &rect)
 	rect.top = MulDiv(rect.top, m_nScaleFactor, 100);
 	rect.right = rect.left + width;
 	rect.bottom = rect.top + height;
+}
+
+int32_t DpiManager::MulDiv(int32_t nNumber, int32_t nNumerator, int32_t nDenominator)
+{
+	return ::MulDiv(nNumber, nNumerator, nDenominator);
 }
 
 }

@@ -219,7 +219,7 @@ void Slider::SetChangeStep(int step)
 
 void Slider::SetThumbSize(UiSize szXY)
 {
-	DpiManager::GetInstance()->ScaleSize(szXY);
+	GlobalManager::Instance().Dpi().ScaleSize(szXY);
 	m_szThumb = szXY;
 }
 
@@ -255,7 +255,7 @@ UiRect Slider::GetProgressBarPadding() const
 
 void Slider::SetProgressBarPadding(UiRect rc)
 {
-	DpiManager::GetInstance()->ScaleRect(rc);
+	GlobalManager::Instance().Dpi().ScaleRect(rc);
 	m_rcProgressBarPadding = rc;
 	RelayoutOrRedraw();
 }

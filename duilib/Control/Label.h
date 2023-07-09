@@ -8,9 +8,7 @@
 #include "duilib/Core/Box.h"
 #include "duilib/Core/Window.h"
 #include "duilib/Image/Image.h"
-#include "duilib/Utils/MultiLangSupport.h"
 #include "duilib/Utils/StringUtil.h"
-#include "duilib/Utils/DpiManager.h"
 #include "duilib/Render/IRender.h"
 #include "duilib/Animation/AnimationManager.h"
 #include "duilib/Animation/AnimationPlayer.h"
@@ -169,7 +167,7 @@ std::wstring LabelTemplate<InheritType>::GetText() const
 {
     std::wstring strText = m_sText;
     if (strText.empty() && !m_sTextId.empty()) {
-        strText = MultiLangSupport::GetInstance()->GetStringViaID(m_sTextId);
+        strText = GlobalManager::Instance().Lang().GetStringViaID(m_sTextId);
     }
 
     return strText;
@@ -540,7 +538,7 @@ void LabelTemplate<InheritType>::SetTextPadding(UiRect rc)
         (rc.right < 0) || (rc.bottom < 0)) {
         return;
     }
-    DpiManager::GetInstance()->ScaleRect(rc);
+    GlobalManager::Instance().Dpi().ScaleRect(rc);
     m_rcTextPadding = rc;
     this->RelayoutOrRedraw();
 }

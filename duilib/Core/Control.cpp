@@ -9,8 +9,6 @@
 #include "duilib/Animation/AnimationPlayer.h"
 #include "duilib/Animation/AnimationManager.h"
 #include "duilib/Utils/StringUtil.h"
-#include "duilib/Utils/DpiManager.h"
-#include "duilib/Utils/MultiLangSupport.h"
 #include "duilib/Utils/TimerManager.h"
 #include <tchar.h>
 
@@ -234,7 +232,7 @@ void Control::SetBorderColor(const std::wstring& strBorderColor)
 
 void Control::SetBorderSize(UiRect rc)
 {
-	DpiManager::GetInstance()->ScaleRect(rc);
+	GlobalManager::Instance().Dpi().ScaleRect(rc);
 	m_rcBorderSize = rc;
 	Invalidate();
 }
@@ -246,7 +244,7 @@ int Control::GetLeftBorderSize() const
 
 void Control::SetLeftBorderSize(int nSize)
 {
-	DpiManager::GetInstance()->ScaleInt(nSize);
+	GlobalManager::Instance().Dpi().ScaleInt(nSize);
 	m_rcBorderSize.left = nSize;
 	Invalidate();
 }
@@ -258,7 +256,7 @@ int Control::GetTopBorderSize() const
 
 void Control::SetTopBorderSize(int nSize)
 {
-	DpiManager::GetInstance()->ScaleInt(nSize);
+	GlobalManager::Instance().Dpi().ScaleInt(nSize);
 	m_rcBorderSize.top = nSize;
 	Invalidate();
 }
@@ -270,7 +268,7 @@ int Control::GetRightBorderSize() const
 
 void Control::SetRightBorderSize(int nSize)
 {
-	DpiManager::GetInstance()->ScaleInt(nSize);
+	GlobalManager::Instance().Dpi().ScaleInt(nSize);
 	m_rcBorderSize.right = nSize;
 	Invalidate();
 }
@@ -282,7 +280,7 @@ int Control::GetBottomBorderSize() const
 
 void Control::SetBottomBorderSize(int nSize)
 {
-	DpiManager::GetInstance()->ScaleInt(nSize);
+	GlobalManager::Instance().Dpi().ScaleInt(nSize);
 	m_rcBorderSize.bottom = nSize;
 	Invalidate();
 }
@@ -313,7 +311,7 @@ void Control::SetBorderRound(UiSize cxyRound)
 			return;
 		}
 	}
-	DpiManager::GetInstance()->ScaleSize(cxyRound);
+	GlobalManager::Instance().Dpi().ScaleSize(cxyRound);
     m_cxyBorderRound = cxyRound;
     Invalidate();
 }
@@ -337,7 +335,7 @@ std::wstring Control::GetToolTipText() const
 {
 	std::wstring strText = m_sToolTipText;
 	if (strText.empty() && !m_sToolTipTextId.empty()) {
-		strText = MultiLangSupport::GetInstance()->GetStringViaID(m_sToolTipTextId);
+		strText = GlobalManager::Instance().Lang().GetStringViaID(m_sToolTipTextId);
 	}
 	return strText;
 }
@@ -391,7 +389,7 @@ void Control::SetUTF8ToolTipTextId(const std::string& strTextId)
 
 void Control::SetToolTipWidth( int nWidth )
 {
-	DpiManager::GetInstance()->ScaleInt(nWidth);
+	GlobalManager::Instance().Dpi().ScaleInt(nWidth);
 	m_nTooltipWidth = nWidth;
 }
 
@@ -613,7 +611,7 @@ UiRect Control::GetMargin() const
 void Control::SetMargin(UiRect rcMargin, bool bNeedDpiScale)
 {
 	if (bNeedDpiScale)
-		DpiManager::GetInstance()->ScaleRect(rcMargin);
+		GlobalManager::Instance().Dpi().ScaleRect(rcMargin);
 
 	if (!m_rcMargin.Equal(rcMargin)) {
 		m_rcMargin = rcMargin;
@@ -1026,7 +1024,7 @@ void Control::SetAttribute(const std::wstring& strName, const std::wstring& strV
 		renderOffset.x = _tcstol(strValue.c_str(), &pstr, 10);  ASSERT(pstr);
 		renderOffset.y = _tcstol(pstr + 1, &pstr, 10);    ASSERT(pstr);
 
-		DpiManager::GetInstance()->ScalePoint(renderOffset);
+		GlobalManager::Instance().Dpi().ScalePoint(renderOffset);
 		SetRenderOffset(renderOffset);
 	}
 	else if (strName == _T("normalcolor"))	SetStateColor(kControlStateNormal, strValue);

@@ -105,12 +105,6 @@
     <ClCompile Include="Utils\ApiWrapper.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
-    <ClCompile Include="Utils\DpiManager.cpp">
-      <Filter>Utils</Filter>
-    </ClCompile>
-    <ClCompile Include="Utils\MultiLangSupport.cpp">
-      <Filter>Utils</Filter>
-    </ClCompile>
     <ClCompile Include="Utils\OnScreenKeyboardManager.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
@@ -267,6 +261,12 @@
     <ClCompile Include="Core\ZipManager.cpp">
       <Filter>Core</Filter>
     </ClCompile>
+    <ClCompile Include="Core\MultiLang.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\DpiManager.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -344,13 +344,7 @@
     <ClInclude Include="Utils\Delegate.h">
       <Filter>Utils</Filter>
     </ClInclude>
-    <ClInclude Include="Utils\DpiManager.h">
-      <Filter>Utils</Filter>
-    </ClInclude>
     <ClInclude Include="Utils\Macros.h">
-      <Filter>Utils</Filter>
-    </ClInclude>
-    <ClInclude Include="Utils\MultiLangSupport.h">
       <Filter>Utils</Filter>
     </ClInclude>
     <ClInclude Include="Utils\OnScreenKeyboardManager.h">
@@ -546,6 +540,12 @@
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="Core\ZipManager.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\MultiLang.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\DpiManager.h">
       <Filter>Core</Filter>
     </ClInclude>
   </ItemGroup>

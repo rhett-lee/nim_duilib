@@ -1,7 +1,6 @@
 #include "FontManager.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Utils/VersionHelpers.h"
-#include "duilib/Utils/DpiManager.h"
 #include "duilib/Render/IRender.h"
 
 namespace ui 

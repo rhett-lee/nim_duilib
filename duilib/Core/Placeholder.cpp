@@ -2,7 +2,7 @@
 #include "duilib/Core/Box.h"
 #include "duilib/Core/Window.h"
 #include "duilib/Utils/StringUtil.h"
-#include "duilib/Utils/DpiManager.h"
+#include "duilib/Core/GlobalManager.h"
 
 namespace ui
 {
@@ -103,7 +103,7 @@ void PlaceHolder::SetFixedWidth(int cx, bool bArrange, bool bNeedDpiScale)
 	}
 
 	if (bNeedDpiScale && cx > 0) {
-		DpiManager::GetInstance()->ScaleInt(cx);
+		GlobalManager::Instance().Dpi().ScaleInt(cx);
 	}		
 
 	if (m_cxyFixed.cx != cx) {
@@ -126,7 +126,7 @@ void PlaceHolder::SetFixedHeight(int cy, bool bNeedDpiScale)
 	}
 
 	if (bNeedDpiScale && cy > 0) {
-		DpiManager::GetInstance()->ScaleInt(cy);
+		GlobalManager::Instance().Dpi().ScaleInt(cy);
 	}
 
 	if (m_cxyFixed.cy != cy) {
@@ -140,7 +140,7 @@ void PlaceHolder::SetMinWidth(int cx)
 	if (cx < 0) {
 		return;
 	}
-	DpiManager::GetInstance()->ScaleInt(cx);
+	GlobalManager::Instance().Dpi().ScaleInt(cx);
 	if (m_cxyMin.cx == cx) {
 		return;
 	}
@@ -157,7 +157,7 @@ void PlaceHolder::SetMaxWidth(int cx)
 {
 	//可能是 DUI_LENGTH_AUTO 或者 DUI_LENGTH_STRETCH
 	if (cx > 0) {
-		DpiManager::GetInstance()->ScaleInt(cx);
+		GlobalManager::Instance().Dpi().ScaleInt(cx);
 	}	
 	if (m_cxyMax.cx == cx) {
 		return;
@@ -177,7 +177,7 @@ void PlaceHolder::SetMinHeight(int cy)
 	if (cy < 0) {
 		return;
 	}
-	DpiManager::GetInstance()->ScaleInt(cy);
+	GlobalManager::Instance().Dpi().ScaleInt(cy);
 	if (m_cxyMin.cy == cy) {
 		return;
 	}
@@ -192,7 +192,7 @@ void PlaceHolder::SetMinHeight(int cy)
 
 void PlaceHolder::SetMaxHeight(int cy)
 {
-	DpiManager::GetInstance()->ScaleInt(cy);
+	GlobalManager::Instance().Dpi().ScaleInt(cy);
 	if (m_cxyMax.cy == cy) {
 		return;
 	}

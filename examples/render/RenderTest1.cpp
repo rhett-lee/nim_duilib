@@ -23,8 +23,8 @@ void RenderTest1::Paint(IRender* pRender, const UiRect& rcPaint)
     __super::Paint(pRender, rcPaint);
     int marginLeft = 8;
     int marginTop = 4;
-    DpiManager::GetInstance()->ScaleInt(marginLeft);
-    DpiManager::GetInstance()->ScaleInt(marginTop);
+    GlobalManager::Instance().Dpi().ScaleInt(marginLeft);
+    GlobalManager::Instance().Dpi().ScaleInt(marginTop);
 
     UiRect rect = GetRect();
     UiRect textRect = rect;
@@ -33,8 +33,8 @@ void RenderTest1::Paint(IRender* pRender, const UiRect& rcPaint)
 
     int nSize = 110;
     int nTextLineHeight = 40;
-    DpiManager::GetInstance()->ScaleInt(nSize);
-    DpiManager::GetInstance()->ScaleInt(nTextLineHeight);
+    GlobalManager::Instance().Dpi().ScaleInt(nSize);
+    GlobalManager::Instance().Dpi().ScaleInt(nTextLineHeight);
 
     rect.right = rect.left + nSize;
     rect.bottom = rect.top + nSize;

@@ -2,7 +2,7 @@
 #include "duilib/Image/Image.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Utils/StringUtil.h"
-#include "duilib/Utils/DpiManager.h"
+
 #include "duilib/third_party/apng/decoder-apng.h"
 
 #pragma warning (push)
@@ -231,7 +231,7 @@ namespace SVGImageLoader
 			needDpiScale = imageLoadAttribute.NeedDpiScale();
 		}
 		if (needDpiScale) {
-			UINT dpiScale = DpiManager::GetInstance()->GetScale();
+			UINT dpiScale = GlobalManager::Instance().Dpi().GetScale();
 			if ((dpiScale != 100) && (dpiScale != 0)) {
 				float scaleRatio = (float)dpiScale / 100.0f;
 				scale *= scaleRatio;
@@ -573,7 +573,7 @@ std::unique_ptr<ImageInfo> ImageDecoder::LoadImageData(std::vector<uint8_t>& fil
 			needDpiScale = imageLoadAttribute.NeedDpiScale();
 		}
 		if (needDpiScale) {
-			UINT dpiScale = DpiManager::GetInstance()->GetScale();
+			UINT dpiScale = GlobalManager::Instance().Dpi().GetScale();
 			if ((dpiScale != 100) && (dpiScale != 0)) {
 				float scaleRatio = (float)dpiScale / 100.0f;
 				nImageWidth = static_cast<int>(nImageWidth * scaleRatio);

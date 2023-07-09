@@ -329,7 +329,7 @@ UiRect Combo::GetTextPadding() const
 
 void Combo::SetTextPadding(UiRect rc)
 {
-	DpiManager::GetInstance()->ScaleRect(rc);
+	GlobalManager::Instance().Dpi().ScaleRect(rc);
 	m_rcTextPadding = rc;
 	this->Invalidate();
 }
@@ -352,7 +352,7 @@ UiSize Combo::GetDropBoxSize() const
 
 void Combo::SetDropBoxSize(UiSize szDropBox)
 {
-	DpiManager::GetInstance()->ScaleSize(szDropBox);
+	GlobalManager::Instance().Dpi().ScaleSize(szDropBox);
     m_szDropBox = szDropBox;
 }
 

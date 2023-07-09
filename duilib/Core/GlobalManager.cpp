@@ -1,7 +1,5 @@
 #include "GlobalManager.h"
-#include "duilib/Utils/DpiManager.h"
 #include "duilib/Utils/StringUtil.h"
-#include "duilib/Utils/MultiLangSupport.h"
 #include "duilib/Utils/VersionHelpers.h"
 
 #include "duilib/Core/Window.h"
@@ -89,10 +87,7 @@ void GlobalManager::Startup(const std::wstring& strResourcePath, const CreateCon
 	m_pfnCreateControlCallback = callback;
 
     // 适配DPI
-	DpiManager::GetInstance()->SetAdaptDPI(bAdaptDpi);
-	if (bAdaptDpi) {
-		DpiManager::GetInstance()->SetScale(DpiManager::GetMainMonitorDPI());
-	}
+	m_dpiManager.SetAdaptDPI(bAdaptDpi);
 
     // 解析全局资源信息
 	LoadGlobalResource();
@@ -104,12 +99,12 @@ void GlobalManager::Startup(const std::wstring& strResourcePath, const CreateCon
 		std::vector<unsigned char> file_data;
 		std::wstring filePath = StringHelper::JoinFilePath(GetLanguagePath(), kLanguageFileName);
 		if (m_zipManager.GetZipData(filePath, file_data)) {
-			MultiLangSupport::GetInstance()->LoadStringTable(file_data);
+			m_langManager.LoadStringTable(file_data);
 		}
 	}
 	else {
 		std::wstring filePath = StringHelper::JoinFilePath(GetLanguagePath(), kLanguageFileName);
-		MultiLangSupport::GetInstance()->LoadStringTable(filePath);
+		m_langManager.LoadStringTable(filePath);
 	}
 	// Boot Windows Common Controls (for the ToolTip control)
 	::InitCommonControls();
@@ -121,14 +116,17 @@ void GlobalManager::Shutdown()
 	m_renderFactory.reset();
 	m_fontManager.RemoveAllFonts();
 	m_fontManager.RemoveAllFontFiles();
+	m_langManager.ClearStringTable();
+
 	m_renderFactory = nullptr;
 	m_pfnCreateControlCallback = nullptr;
-	m_resourcePath.clear();
-	m_languagePath.clear();
-	m_builderMap.clear();
 	m_globalClass.clear();
 	m_windowList.clear();
 	m_dwUiThreadId = 0;
+	m_resourcePath.clear();
+	m_languagePath.clear();
+	m_builderMap.clear();
+	
 
 #if (duilib_kRenderType == duilib_kRenderType_GdiPlus)
 	if (g_gdiplusToken != 0) {
@@ -248,7 +246,7 @@ void GlobalManager::ReloadLanguage(const std::wstring& languagePath, bool invali
 	}
 	SetLanguagePath(languagePath);
 	std::wstring filePath = StringHelper::JoinFilePath(languagePath, kLanguageFileName);
-	MultiLangSupport::GetInstance()->LoadStringTable(filePath);
+	m_langManager.LoadStringTable(filePath);
 	if (invalidateAll) {
 		for (Window* pWindow : m_windowList) {
 			Box* pBox = nullptr;
@@ -310,6 +308,16 @@ ImageManager& GlobalManager::Image()
 ZipManager& GlobalManager::Zip()
 {
 	return m_zipManager;
+}
+
+DpiManager& GlobalManager::Dpi()
+{
+	return m_dpiManager;
+}
+
+MultiLang& GlobalManager::Lang()
+{
+	return m_langManager;
 }
 
 Box* GlobalManager::CreateBox(const std::wstring& strXmlPath, CreateControlCallback callback)

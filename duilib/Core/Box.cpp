@@ -2,8 +2,8 @@
 #include "duilib/Render/IRender.h"
 #include "duilib/Render/AutoClip.h"
 #include "duilib/Core/Window.h"
+#include "duilib/Core/GlobalManager.h"
 #include "duilib/Control/ScrollBar.h"
-#include "duilib/Utils/DpiManager.h"
 #include "duilib/Animation/AnimationPlayer.h"
 
 #include <tchar.h>
@@ -186,7 +186,7 @@ UiSize Layout::AjustSizeByChild(const std::vector<Control*>& items, UiSize szAva
 void Layout::SetPadding(UiRect rcPadding, bool bNeedDpiScale /*= true*/)
 {
 	if (bNeedDpiScale) {
-		DpiManager::GetInstance()->ScaleRect(rcPadding);
+		GlobalManager::Instance().Dpi().ScaleRect(rcPadding);
 	}
 	m_rcPadding = rcPadding;
 	ASSERT(m_pOwner != nullptr);
@@ -197,7 +197,7 @@ void Layout::SetPadding(UiRect rcPadding, bool bNeedDpiScale /*= true*/)
 
 void Layout::SetChildMargin(int iMargin)
 {
-	DpiManager::GetInstance()->ScaleInt(iMargin);
+	GlobalManager::Instance().Dpi().ScaleInt(iMargin);
 	m_iChildMargin = iMargin;
 	ASSERT(m_pOwner != nullptr);
 	if (m_pOwner != nullptr) {
@@ -717,8 +717,8 @@ ScrollableBox::ScrollableBox(Layout* pLayout) :
 	m_bHoldEnd(false),
 	m_rcScrollBarPadding()
 {
-	m_nVerScrollUnitPixels = DpiManager::GetInstance()->GetScaledInt(m_nVerScrollUnitPixelsDefault);
-	m_nHerScrollUnitPixels = DpiManager::GetInstance()->GetScaledInt(m_nHerScrollUnitPixelsDefault);
+	m_nVerScrollUnitPixels = GlobalManager::Instance().Dpi().GetScaleInt(m_nVerScrollUnitPixelsDefault);
+	m_nHerScrollUnitPixels = GlobalManager::Instance().Dpi().GetScaleInt(m_nHerScrollUnitPixelsDefault);
 	m_scrollAnimation = std::make_unique<AnimationPlayer>();
 	m_renderOffsetYAnimation = std::make_unique<AnimationPlayer>();
 }
@@ -1174,7 +1174,7 @@ void ScrollableBox::LineUp(int deltaValue, bool withAnimation)
 {
 	int cyLine = GetVerScrollUnitPixels();
 	if (cyLine == 0) {
-		cyLine = DpiManager::GetInstance()->GetScaledInt(m_nVerScrollUnitPixelsDefault);
+		cyLine = GlobalManager::Instance().Dpi().GetScaleInt(m_nVerScrollUnitPixelsDefault);
 	}
 	if (deltaValue != DUI_NOSET_VALUE) {
 		cyLine = std::min(cyLine, deltaValue);
@@ -1219,7 +1219,7 @@ void ScrollableBox::LineDown(int deltaValue, bool withAnimation)
 {
 	int cyLine = GetVerScrollUnitPixels();
 	if (cyLine == 0) {
-		cyLine = DpiManager::GetInstance()->GetScaledInt(m_nVerScrollUnitPixelsDefault);
+		cyLine = GlobalManager::Instance().Dpi().GetScaleInt(m_nVerScrollUnitPixelsDefault);
 	}
 	if (deltaValue != DUI_NOSET_VALUE) {
 		cyLine = std::min(cyLine, deltaValue);
@@ -1263,7 +1263,7 @@ void ScrollableBox::LineLeft(int detaValue)
 {
     int cxLine = GetHorScrollUnitPixels();
     if (cxLine == 0) {
-        cxLine = DpiManager::GetInstance()->GetScaledInt(m_nHerScrollUnitPixelsDefault);
+        cxLine = GlobalManager::Instance().Dpi().GetScaleInt(m_nHerScrollUnitPixelsDefault);
     }
     if (detaValue != DUI_NOSET_VALUE) {
         cxLine = std::min(cxLine, detaValue);
@@ -1304,7 +1304,7 @@ void ScrollableBox::LineRight(int detaValue)
 {
     int cxLine = GetHorScrollUnitPixels();
     if (cxLine == 0) {
-        cxLine = DpiManager::GetInstance()->GetScaledInt(m_nHerScrollUnitPixelsDefault);
+        cxLine = GlobalManager::Instance().Dpi().GetScaleInt(m_nHerScrollUnitPixelsDefault);
     }
     if (detaValue != DUI_NOSET_VALUE) {
         cxLine = std::min(cxLine, detaValue);
@@ -1658,7 +1658,7 @@ int ScrollableBox::GetVerScrollUnitPixels() const
 
 void ScrollableBox::SetVerScrollUnitPixels(int nUnitPixels)
 {
-	DpiManager::GetInstance()->ScaleInt(nUnitPixels);
+	GlobalManager::Instance().Dpi().ScaleInt(nUnitPixels);
 	m_nVerScrollUnitPixels = nUnitPixels;
 }
 
@@ -1669,7 +1669,7 @@ int ScrollableBox::GetHorScrollUnitPixels() const
 
 void ScrollableBox::SetHorScrollUnitPixels(int nUnitPixels)
 {
-    DpiManager::GetInstance()->ScaleInt(nUnitPixels);
+    GlobalManager::Instance().Dpi().ScaleInt(nUnitPixels);
     m_nHerScrollUnitPixels = nUnitPixels;
 }
 
@@ -1700,7 +1700,7 @@ ui::UiRect ScrollableBox::GetScrollBarPadding() const
 
 void ScrollableBox::SetScrollBarPadding(UiRect rcScrollBarPadding)
 {
-	DpiManager::GetInstance()->ScaleRect(rcScrollBarPadding);
+	GlobalManager::Instance().Dpi().ScaleRect(rcScrollBarPadding);
 	m_rcScrollBarPadding = rcScrollBarPadding;
 }
 

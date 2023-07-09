@@ -277,7 +277,7 @@ namespace nim_comp
 
 	void CheckCombo::SetDropBoxSize(ui::UiSize szDropBox)
 	{
-		ui::DpiManager::GetInstance()->ScaleSize(szDropBox);
+		ui::GlobalManager::Instance().Dpi().ScaleSize(szDropBox);
 		m_szDropBox = szDropBox;
 	}
 

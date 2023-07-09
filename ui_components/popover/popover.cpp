@@ -6,6 +6,7 @@
 #include "duilib/Utils/Macros.h"
 #include "duilib/Render/UiColor.h"
 #include "duilib/Render/IRender.h"
+#include "duilib/Core/GlobalManager.h"
 #include "base/thread/thread_manager.h"
 #include "ui_components/public_define.h"
 
@@ -955,11 +956,10 @@ ui::UiRect Popover::ReCalcByAnchorPos(ui::UiRect rc)
     
 
     if (bHasArrow) {
-      auto dpi = ui::DpiManager::GetInstance();
       if (m_nPlacement & kPlaceLeftTop ||
         m_nPlacement & kPlaceRightTop) {
         int offset = PopoverArrow::kMargin + PopoverArrow::kHeight / 2;
-        verOffset -= dpi->ScaleInt(offset);
+        verOffset -= ui::GlobalManager::Instance().Dpi().ScaleInt(offset);
       }
       else if (m_nPlacement & kPlaceLeft ||
         m_nPlacement & kPlaceRight) {
@@ -968,13 +968,13 @@ ui::UiRect Popover::ReCalcByAnchorPos(ui::UiRect rc)
       else if (m_nPlacement & kPlaceLeftBottom ||
         m_nPlacement & kPlaceRightBottom) {
         int offset = (PopoverArrow::kMargin + PopoverArrow::kHeight / 2);
-        verOffset -= size.cy - dpi->ScaleInt(offset);
+        verOffset -= size.cy - ui::GlobalManager::Instance().Dpi().ScaleInt(offset);
       }
 
       if (m_nPlacement & kPlaceTopLeft ||
         m_nPlacement & kPlaceBottomLeft) {
         int offset = PopoverArrow::kMargin + PopoverArrow::kWidth / 2;
-        horOffset -= ui::DpiManager::GetInstance()->ScaleInt(offset);
+        horOffset -= ui::GlobalManager::Instance().Dpi().ScaleInt(offset);
       }
       else if (m_nPlacement & kPlaceTop ||
         m_nPlacement & kPlaceBottom) {
@@ -983,7 +983,7 @@ ui::UiRect Popover::ReCalcByAnchorPos(ui::UiRect rc)
       else if (m_nPlacement & kPlaceTopRight ||
         m_nPlacement & kPlaceBottomRight) {
         int offset = (PopoverArrow::kMargin + PopoverArrow::kWidth / 2);
-        horOffset -= size.cx - ui::DpiManager::GetInstance()->ScaleInt(offset);
+        horOffset -= size.cx - ui::GlobalManager::Instance().Dpi().ScaleInt(offset);
       }
     }
   }
@@ -1475,10 +1475,9 @@ Popover* PopoverLayer::CreatePopover(ui::Control* pAnchor,
 
   // Create footer
   if (!footer && (nButtons & kButtonOk | nButtons & kButtonCancel)) {
-    auto pMutiLan = ui::MultiLangSupport::GetInstance();
     footer = new PopoverFooter(
-      nButtons & kButtonOk ? (strOk.length() ? strOk : pMutiLan->GetStringViaID(L"STRING_OK")) : L"",
-      nButtons & kButtonCancel ? (strCancel.length() ? strCancel : pMutiLan->GetStringViaID(L"STRING_CANCEL")) : L"");
+      nButtons & kButtonOk ? (strOk.length() ? strOk : ui::GlobalManager::Instance().Lang().GetStringViaID(L"STRING_OK")) : L"",
+      nButtons & kButtonCancel ? (strCancel.length() ? strCancel : ui::GlobalManager::Instance().Lang().GetStringViaID(L"STRING_CANCEL")) : L"");
     footer->SetClass(L"popover_footer");
   }
 
@@ -1521,10 +1520,9 @@ Popover* PopoverLayer::CreateAlert(ui::Control* pAnchor,
 
   // Create footer
   if (!footer && (nButtons & kButtonOk | nButtons & kButtonCancel)) {
-    auto pMutiLan = ui::MultiLangSupport::GetInstance();
     footer = new AlertFooter(
-      nButtons & kButtonOk ? (strOk.length() ? strOk : pMutiLan->GetStringViaID(L"STRING_OK")) : L"",
-      nButtons & kButtonCancel ? (strCancel.length() ? strCancel : pMutiLan->GetStringViaID(L"STRING_CANCEL")) : L"");
+      nButtons & kButtonOk ? (strOk.length() ? strOk : ui::GlobalManager::Instance().Lang().GetStringViaID(L"STRING_OK")) : L"",
+      nButtons & kButtonCancel ? (strCancel.length() ? strCancel : ui::GlobalManager::Instance().Lang().GetStringViaID(L"STRING_CANCEL")) : L"");
     footer->SetClass(L"alert_footer");
   }
 

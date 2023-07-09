@@ -9,6 +9,8 @@
 #include "duilib/Core/FontManager.h"
 #include "duilib/Core/ImageManager.h"
 #include "duilib/Core/ZipManager.h"
+#include "duilib/Core/MultiLang.h"
+#include "duilib/Core/DpiManager.h"
 
 #include <string>
 #include <vector>
@@ -132,6 +134,14 @@ public:
 	*/
 	ZipManager& Zip();
 
+	/** 获取DPI管理器
+	*/
+	DpiManager& Dpi();
+
+	/** 多语言支持管理器
+	*/
+	MultiLang& Lang();
+
 public:
 	/** 根据 XML 创建一个 Box
 	 * @param[in] strXmlPath XML 文件路径
@@ -231,6 +241,14 @@ private:
 	/** ZIP压缩包管理器
 	*/
 	ZipManager m_zipManager;
+
+	/** DPI管理器
+	*/
+	DpiManager m_dpiManager;
+
+	/** 多语言管理器
+	*/
+	MultiLang m_langManager;
 };
 
 } // namespace ui

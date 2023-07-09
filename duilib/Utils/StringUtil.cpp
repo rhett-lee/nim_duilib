@@ -312,13 +312,19 @@ std::wstring StringHelper::Printf(const wchar_t *format, ...)
 
 size_t StringHelper::ReplaceAll(const std::wstring& find, const std::wstring& replace, std::wstring& output)
 {
-	if (output.empty())
-	{
+	if (output.empty()) {
 		return 0;
 	}
 	return StringReplaceAllT<wchar_t>(find, replace, output);
 }
 
+size_t StringHelper::ReplaceAll(const std::string& find, const std::string& replace, std::string& output)
+{
+	if (output.empty())	{
+		return 0;
+	}
+	return StringReplaceAllT<char>(find, replace, output);
+}
 
 std::wstring StringHelper::MakeLowerString(const std::wstring &str)
 {

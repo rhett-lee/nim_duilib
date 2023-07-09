@@ -301,7 +301,7 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
 					if (!strFontName.empty() && !strFontId.empty()) {
 						UiFont fontInfo;
 						fontInfo.m_fontName = strFontName;
-						fontInfo.m_fontSize = DpiManager::GetInstance()->GetScaledInt(size);
+						fontInfo.m_fontSize = GlobalManager::Instance().Dpi().GetScaleInt(size);
 						fontInfo.m_bBold = bold;
 						fontInfo.m_bItalic = italic;
 						fontInfo.m_bUnderline = underline;

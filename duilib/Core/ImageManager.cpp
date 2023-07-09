@@ -2,7 +2,6 @@
 #include "duilib/Image/Image.h"
 #include "duilib/Image/ImageDecoder.h"
 #include "duilib/Core/GlobalManager.h"
-#include "duilib/Utils/DpiManager.h"
 #include "duilib/Utils/StringUtil.h"
 
 namespace ui 
@@ -122,7 +121,7 @@ bool ImageManager::IsDpiScaleAllImages()
 
 std::wstring ImageManager::GetDpiImageFullPath(const std::wstring& strImageFullPath, bool bIsUseZip)
 {
-	UINT dpi = DpiManager::GetInstance()->GetScale();
+	UINT dpi = GlobalManager::Instance().Dpi().GetScale();
 	if (dpi == 100) {
 		//当前DPI无需缩放
 		return strImageFullPath;

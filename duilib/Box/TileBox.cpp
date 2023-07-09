@@ -1,5 +1,5 @@
 #include "TileBox.h"
-#include "duilib/Utils/DpiManager.h"
+#include "duilib/Core/GlobalManager.h"
 
 namespace ui
 {
@@ -211,8 +211,9 @@ const UiSize& TileLayout::GetItemSize() const
 
 void TileLayout::SetItemSize(UiSize szItem, bool bNeedDpiScale)
 {
-  if (bNeedDpiScale)
-	  DpiManager::GetInstance()->ScaleSize(szItem);
+	if (bNeedDpiScale) {
+		GlobalManager::Instance().Dpi().ScaleSize(szItem);
+	}
 
 	if( (m_szItem.cx != szItem.cx) || (m_szItem.cy != szItem.cy) ) {
 		m_szItem = szItem;
