@@ -2,7 +2,6 @@
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/Window.h"
 #include "duilib/Control/ScrollBar.h"
-#include "duilib/Utils/TimerManager.h"
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Utils/Macros.h"
 #include "duilib/Utils/OnScreenKeyboardManager.h"
@@ -2144,7 +2143,7 @@ void RichEdit::SetTimer(UINT idTimer, UINT uTimeout)
 	auto callback = [this, idTimer]() {
 		this->TxSendMessage(WM_TIMER, idTimer, 0, 0);
 	};
-	TimerManager::GetInstance()->AddCancelableTimer(m_timeFlagMap[idTimer].GetWeakFlag(), callback, uTimeout, TimerManager::REPEAT_FOREVER);
+	GlobalManager::Instance().Timer().AddCancelableTimer(m_timeFlagMap[idTimer].GetWeakFlag(), callback, uTimeout, TimerManager::REPEAT_FOREVER);
 }
 
 void RichEdit::KillTimer(UINT idTimer)
@@ -2958,7 +2957,7 @@ BOOL RichEdit::ShowCaret(BOOL fShow)
 		m_bIsCaretVisiable = true;
 		m_drawCaretFlag.Cancel();
 		std::function<void()> closure = nbase::Bind(&RichEdit::ChangeCaretVisiable, this);
-		TimerManager::GetInstance()->AddCancelableTimer(m_drawCaretFlag.GetWeakFlag(), closure, 500, TimerManager::REPEAT_FOREVER);
+		GlobalManager::Instance().Timer().AddCancelableTimer(m_drawCaretFlag.GetWeakFlag(), closure, 500, TimerManager::REPEAT_FOREVER);
 	}
 	else {
 		m_bIsCaretVisiable = false;

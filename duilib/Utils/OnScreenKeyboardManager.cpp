@@ -1,6 +1,6 @@
 #include "OnScreenKeyboardManager.h"
+#include "duilib/Core/GlobalManager.h"
 #include "duilib/Utils/VersionHelpers.h"
-#include "duilib/Utils/TimerManager.h"
 #include <initguid.h>
 #include <shlobj.h>
 #include <shellapi.h>
@@ -48,7 +48,7 @@ void OnScreenKeyboardManager::ShowOSK(bool show)
 	if (bNeedOsk) {
 		m_bShow = show;
 		auto callback = nbase::Bind(&OnScreenKeyboardManager::TimerCallback, this);
-		TimerManager::GetInstance()->AddCancelableTimer(this->GetWeakFlag(), callback, 10, 1);
+		GlobalManager::Instance().Timer().AddCancelableTimer(this->GetWeakFlag(), callback, 10, 1);
 	}
 }
 

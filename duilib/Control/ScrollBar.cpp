@@ -5,7 +5,6 @@
 #include "duilib/Core/Define.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Utils/StringUtil.h"
-#include "duilib/Utils/TimerManager.h"
 
 #include <tchar.h>
 
@@ -345,7 +344,7 @@ void ScrollBar::HandleEvent(const EventArgs& event)
 		m_nScrollRepeatDelay = 0;
 
 		auto callback = nbase::Bind(&ScrollBar::ScrollTimeHandle, this);
-		TimerManager::GetInstance()->AddCancelableTimer(m_weakFlagOwner.GetWeakFlag(), callback, 50, TimerManager::REPEAT_FOREVER);
+		GlobalManager::Instance().Timer().AddCancelableTimer(m_weakFlagOwner.GetWeakFlag(), callback, 50, TimerManager::REPEAT_FOREVER);
 
 		if (::PtInRect(&m_rcButton1, event.ptMouse)) {
 			m_uButton1State = kControlStatePushed;

@@ -112,6 +112,16 @@ UiColor ColorManager::GetStandardColor(const std::wstring& strName) const
 void ColorManager::RemoveAllColors()
 {
 	m_colorMap.RemoveAllColors();
+	m_defaultDisabledTextColor.clear();
+	m_defaultTextColor.clear();
+	m_defaultLinkFontColor.clear();
+	m_defaultLinkHoverFontColor.clear();
+}
+
+void ColorManager::Clear()
+{
+	RemoveAllColors();
+	m_standardColorMap.RemoveAllColors();
 }
 
 const std::wstring& ColorManager::GetDefaultDisabledTextColor()

@@ -13,13 +13,13 @@ namespace ui
 
 /** 多语言的支持
 */
-class UILIB_API MultiLang
+class UILIB_API LangManager
 {
 public:
-	MultiLang();
-	~MultiLang();
-	MultiLang(const MultiLang&) = delete;
-	MultiLang& operator = (const MultiLang&) = delete;
+	LangManager();
+	~LangManager();
+	LangManager(const LangManager&) = delete;
+	LangManager& operator = (const LangManager&) = delete;
 
 public:
 	/** 从本地文件加载所有语言映射表

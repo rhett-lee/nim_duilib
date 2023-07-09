@@ -33,30 +33,43 @@ struct TIMERINFO
 class TimerManager
 {
 public:
-	const static int REPEAT_FOREVER = -1;
-
-	static TimerManager* GetInstance();
-
-	bool AddCancelableTimer(const std::weak_ptr<nbase::WeakFlag>& weakFlag, const TIMERINFO::TimerCallback& callback, UINT uElapse, int iRepeatTime);
-
-private:
 	TimerManager();
-	~TimerManager() {};
+	~TimerManager();
 	TimerManager(const TimerManager&) = delete;
 	TimerManager& operator = (const TimerManager&) = delete;
+
+public:
+	const static int REPEAT_FOREVER = -1;
+
+	bool AddCancelableTimer(const std::weak_ptr<nbase::WeakFlag>& weakFlag, const TIMERINFO::TimerCallback& callback, UINT uElapse, int iRepeatTime);
 
 	static LRESULT CALLBACK WndProcThunk(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam);
 	static void CALLBACK TimeCallback(UINT uTimerID, UINT uMsg, DWORD_PTR dwUser, DWORD_PTR dw1, DWORD_PTR dw2);
 
 	void Poll();
 
-private:
-	static HWND m_hMessageWnd;
+	/** 关闭定时器管理器，释放资源
+	 */
+	void Clear();
 
+private:
+	/** 消息窗口句柄，用于在UI线程中派发定时器事件
+	*/
+	HWND m_hMessageWnd;
+
+	/** 所有注册的定时器
+	*/
 	std::priority_queue<TIMERINFO> m_aTimers;
+
+	/** 性能计数器频率
+	*/
 	LARGE_INTEGER m_timeFrequency;
+
 	bool m_bMinPause;
-	UINT m_nOldTimerId;
+
+	/** 定时器ID
+	*/
+	UINT m_nTimerId;
 };
 
 } // namespace ui

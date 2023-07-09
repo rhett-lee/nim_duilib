@@ -112,12 +112,15 @@ void GlobalManager::Startup(const std::wstring& strResourcePath, const CreateCon
 
 void GlobalManager::Shutdown()
 {
-	m_zipManager.CloseResZip();
-	m_renderFactory.reset();
+	m_timerManager.Clear();
+	m_colorManager.Clear();	
 	m_fontManager.RemoveAllFonts();
 	m_fontManager.RemoveAllFontFiles();
+	m_imageManager.RemoveAllImages();
+	m_zipManager.CloseResZip();	
 	m_langManager.ClearStringTable();
-
+	
+	m_renderFactory.reset();
 	m_renderFactory = nullptr;
 	m_pfnCreateControlCallback = nullptr;
 	m_globalClass.clear();
@@ -125,8 +128,7 @@ void GlobalManager::Shutdown()
 	m_dwUiThreadId = 0;
 	m_resourcePath.clear();
 	m_languagePath.clear();
-	m_builderMap.clear();
-	
+	m_builderMap.clear();	
 
 #if (duilib_kRenderType == duilib_kRenderType_GdiPlus)
 	if (g_gdiplusToken != 0) {
@@ -315,7 +317,12 @@ DpiManager& GlobalManager::Dpi()
 	return m_dpiManager;
 }
 
-MultiLang& GlobalManager::Lang()
+TimerManager& GlobalManager::Timer()
+{
+	return m_timerManager;
+}
+
+LangManager& GlobalManager::Lang()
 {
 	return m_langManager;
 }

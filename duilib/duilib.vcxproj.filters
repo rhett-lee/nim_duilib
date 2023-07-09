@@ -108,13 +108,7 @@
     <ClCompile Include="Utils\OnScreenKeyboardManager.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
-    <ClCompile Include="Utils\Shadow.cpp">
-      <Filter>Utils</Filter>
-    </ClCompile>
     <ClCompile Include="Utils\StringUtil.cpp">
-      <Filter>Utils</Filter>
-    </ClCompile>
-    <ClCompile Include="Utils\TimerManager.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
     <ClCompile Include="Utils\WinImplBase.cpp">
@@ -261,10 +255,16 @@
     <ClCompile Include="Core\ZipManager.cpp">
       <Filter>Core</Filter>
     </ClCompile>
-    <ClCompile Include="Core\MultiLang.cpp">
+    <ClCompile Include="Core\DpiManager.cpp">
       <Filter>Core</Filter>
     </ClCompile>
-    <ClCompile Include="Core\DpiManager.cpp">
+    <ClCompile Include="Core\Shadow.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\TimerManager.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\LangManager.cpp">
       <Filter>Core</Filter>
     </ClCompile>
   </ItemGroup>
@@ -350,13 +350,7 @@
     <ClInclude Include="Utils\OnScreenKeyboardManager.h">
       <Filter>Utils</Filter>
     </ClInclude>
-    <ClInclude Include="Utils\Shadow.h">
-      <Filter>Utils</Filter>
-    </ClInclude>
     <ClInclude Include="Utils\StringUtil.h">
-      <Filter>Utils</Filter>
-    </ClInclude>
-    <ClInclude Include="Utils\TimerManager.h">
       <Filter>Utils</Filter>
     </ClInclude>
     <ClInclude Include="Utils\VersionHelpers.h">
@@ -542,10 +536,16 @@
     <ClInclude Include="Core\ZipManager.h">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="Core\MultiLang.h">
+    <ClInclude Include="Core\DpiManager.h">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="Core\DpiManager.h">
+    <ClInclude Include="Core\Shadow.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\TimerManager.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\LangManager.h">
       <Filter>Core</Filter>
     </ClInclude>
   </ItemGroup>

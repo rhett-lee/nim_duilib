@@ -351,8 +351,10 @@
     <ClCompile Include="Core\FontManager.cpp" />
     <ClCompile Include="Core\GlobalManager.cpp" />
     <ClCompile Include="Core\ImageManager.cpp" />
-    <ClCompile Include="Core\MultiLang.cpp" />
+    <ClCompile Include="Core\LangManager.cpp" />
     <ClCompile Include="Core\Placeholder.cpp" />
+    <ClCompile Include="Core\Shadow.cpp" />
+    <ClCompile Include="Core\TimerManager.cpp" />
     <ClCompile Include="Core\ToolTip.cpp" />
     <ClCompile Include="Core\Window.cpp" />
     <ClCompile Include="Core\WindowBuilder.cpp" />
@@ -388,10 +390,8 @@
     <ClCompile Include="Utils\ApiWrapper.cpp" />
     <ClCompile Include="Utils\OnScreenKeyboardManager.cpp" />
     <ClCompile Include="Utils\PerformanceUtil.cpp" />
-    <ClCompile Include="Utils\Shadow.cpp" />
     <ClCompile Include="Utils\ShadowWnd.cpp" />
     <ClCompile Include="Utils\StringUtil.cpp" />
-    <ClCompile Include="Utils\TimerManager.cpp" />
     <ClCompile Include="Control\Combo.cpp" />
     <ClCompile Include="Control\Progress.cpp" />
     <ClCompile Include="Control\RichEdit.cpp" />
@@ -426,8 +426,10 @@
     <ClInclude Include="Core\FontManager.h" />
     <ClInclude Include="Core\GlobalManager.h" />
     <ClInclude Include="Core\ImageManager.h" />
-    <ClInclude Include="Core\MultiLang.h" />
+    <ClInclude Include="Core\LangManager.h" />
     <ClInclude Include="Core\Placeholder.h" />
+    <ClInclude Include="Core\Shadow.h" />
+    <ClInclude Include="Core\TimerManager.h" />
     <ClInclude Include="Core\ToolTip.h" />
     <ClInclude Include="Core\Window.h" />
     <ClInclude Include="Core\WindowBuilder.h" />
@@ -477,11 +479,9 @@
     <ClInclude Include="Utils\Macros.h" />
     <ClInclude Include="Utils\OnScreenKeyboardManager.h" />
     <ClInclude Include="Utils\PerformanceUtil.h" />
-    <ClInclude Include="Utils\Shadow.h" />
     <ClInclude Include="Utils\ShadowWnd.h" />
     <ClInclude Include="Utils\StringUtil.h" />
     <ClInclude Include="Utils\Delegate.h" />
-    <ClInclude Include="Utils\TimerManager.h" />
     <ClInclude Include="Utils\VersionHelpers.h" />
     <ClInclude Include="Utils\WinImplBase.h" />
     <ClInclude Include="Control\Button.h" />

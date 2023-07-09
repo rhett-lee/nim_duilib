@@ -1,5 +1,5 @@
 #include "AnimationPlayer.h"
-#include "duilib/Utils/TimerManager.h"
+#include "duilib/Core/GlobalManager.h"
 
 #define AP_NO_VALUE -1
 
@@ -102,7 +102,7 @@ void AnimationPlayerBase::StartTimer()
 
 	Play();
 	auto playCallback = nbase::Bind(&AnimationPlayerBase::Play, this);
-	TimerManager::GetInstance()->AddCancelableTimer(m_weakFlagOwner.GetWeakFlag(), playCallback, m_elapseMillSeconds, TimerManager::REPEAT_FOREVER);
+	GlobalManager::Instance().Timer().AddCancelableTimer(m_weakFlagOwner.GetWeakFlag(), playCallback, m_elapseMillSeconds, TimerManager::REPEAT_FOREVER);
 }
 
 void AnimationPlayerBase::Play()

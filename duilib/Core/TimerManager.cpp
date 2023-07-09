@@ -1,4 +1,5 @@
 #include "TimerManager.h"
+#include "duilib/Core/GlobalManager.h"
 #include <Mmsystem.h>
 
 namespace ui 
@@ -8,43 +9,45 @@ namespace ui
 #define TIMER_INTERVAL	16
 #define TIMER_PRECISION	1
 
-HWND TimerManager::m_hMessageWnd = NULL;
-
-ui::TimerManager* TimerManager::GetInstance()
+TimerManager::TimerManager() : 
+	m_hMessageWnd(nullptr),
+	m_aTimers(),
+	m_timeFrequency(),
+	m_bMinPause(true),
+	m_nTimerId(0)
 {
-	static TimerManager timerManager;
-	return &timerManager;
-}
-
-TimerManager::TimerManager() : m_aTimers(),	m_timeFrequency(),	m_bMinPause(true),	m_nOldTimerId(0)
-{
-	QueryPerformanceFrequency(&m_timeFrequency); 
-
-	HINSTANCE hinst = ::GetModuleHandle(NULL);
-
+	::QueryPerformanceFrequency(&m_timeFrequency); 
+	auto hinst = ::GetModuleHandle(NULL);
 	WNDCLASSEXW wc = {0};
 	wc.cbSize = sizeof(wc);
 	wc.lpfnWndProc = WndProcThunk;
 	wc.hInstance = hinst;
 	wc.lpszClassName = L"UI_ANIMATION_TIMERMANAGER_H_";
 	::RegisterClassExW(&wc);
-
 	m_hMessageWnd = ::CreateWindowW(L"UI_ANIMATION_TIMERMANAGER_H_", 0, 0, 0, 0, 0, 0, HWND_MESSAGE, 0, hinst, 0);
+}
+
+TimerManager::~TimerManager()
+{
+	if (m_hMessageWnd != nullptr) {
+		::DestroyWindow(m_hMessageWnd);
+		m_hMessageWnd = nullptr;
+	}
 }
 
 LRESULT TimerManager::WndProcThunk(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam)
 {
 	if (message == WM_USER_DEFINED_TIMER) {
-		TimerManager::GetInstance()->Poll();
+		GlobalManager::Instance().Timer().Poll();
 		return 1;
 	}
-
 	return ::DefWindowProcW(hwnd, message, wparam, lparam);
 }
 
 void TimerManager::TimeCallback(UINT /*uTimerID*/, UINT /*uMsg*/, DWORD_PTR /*dwUser*/, DWORD_PTR /*dw1*/, DWORD_PTR /*dw2*/)
 {
-	::PostMessage(m_hMessageWnd, WM_USER_DEFINED_TIMER, 0, 0);
+	HWND hWnd = GlobalManager::Instance().Timer().m_hMessageWnd;
+	::PostMessage(hWnd, WM_USER_DEFINED_TIMER, 0, 0);
 }
 
 bool TimerManager::AddCancelableTimer(const std::weak_ptr<nbase::WeakFlag>& weakFlag, const TIMERINFO::TimerCallback& callback, UINT uElapse, int iRepeatTime)
@@ -60,11 +63,11 @@ bool TimerManager::AddCancelableTimer(const std::weak_ptr<nbase::WeakFlag>& weak
 	pTimer.weakFlag = weakFlag;
 	m_aTimers.push(pTimer);
 	
-	if (m_nOldTimerId == 0 || m_bMinPause == false) {
-		timeKillEvent(m_nOldTimerId);
-		m_nOldTimerId = ::timeSetEvent(TIMER_INTERVAL, TIMER_PRECISION, &TimerManager::TimeCallback, NULL, TIME_PERIODIC);
+	if (m_nTimerId == 0 || m_bMinPause == false) {
+		timeKillEvent(m_nTimerId);
+		m_nTimerId = ::timeSetEvent(TIMER_INTERVAL, TIMER_PRECISION, &TimerManager::TimeCallback, NULL, TIME_PERIODIC);
 
-		ASSERT(m_nOldTimerId);
+		ASSERT(m_nTimerId);
 		m_bMinPause = true;
 	}
 
@@ -104,9 +107,9 @@ void TimerManager::Poll()
 		}
 		else if (detaTime > 0 && detaTime < m_timeFrequency.QuadPart) {
 			if (!m_bMinPause) {
-				timeKillEvent(m_nOldTimerId);
-				m_nOldTimerId = ::timeSetEvent(TIMER_INTERVAL, TIMER_PRECISION, &TimerManager::TimeCallback, NULL, TIME_PERIODIC);
-				ASSERT(m_nOldTimerId);
+				timeKillEvent(m_nTimerId);
+				m_nTimerId = ::timeSetEvent(TIMER_INTERVAL, TIMER_PRECISION, &TimerManager::TimeCallback, NULL, TIME_PERIODIC);
+				ASSERT(m_nTimerId);
 				m_bMinPause = true;
 			}
 
@@ -114,18 +117,34 @@ void TimerManager::Poll()
 		}
 		else {
 			double newDetaTime = double(detaTime) * 1000 / m_timeFrequency.QuadPart;
-			timeKillEvent(m_nOldTimerId);
-			m_nOldTimerId = ::timeSetEvent(int(newDetaTime + 2 * TIMER_PRECISION), TIMER_PRECISION, &TimerManager::TimeCallback, NULL, TIME_PERIODIC);
-			ASSERT(m_nOldTimerId);
+			timeKillEvent(m_nTimerId);
+			m_nTimerId = ::timeSetEvent(int(newDetaTime + 2 * TIMER_PRECISION), TIMER_PRECISION, &TimerManager::TimeCallback, NULL, TIME_PERIODIC);
+			ASSERT(m_nTimerId);
 			m_bMinPause = false;
 			break;
 		}
 	}
 
 	if (m_aTimers.empty()) {
-		timeKillEvent(m_nOldTimerId);
-		m_nOldTimerId = 0;
+		::timeKillEvent(m_nTimerId);
+		m_nTimerId = 0;
 	}
+}
+
+void TimerManager::Clear()
+{
+	if (m_nTimerId != 0) {
+		::timeKillEvent(m_nTimerId);
+		m_nTimerId = 0;
+	}
+	if (m_hMessageWnd != nullptr) {
+		::DestroyWindow(m_hMessageWnd);
+		m_hMessageWnd = nullptr;
+	}	
+	while (!m_aTimers.empty()) {
+		m_aTimers.pop();
+	}
+	m_bMinPause = false;
 }
 
 }

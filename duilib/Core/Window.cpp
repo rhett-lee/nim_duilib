@@ -1,6 +1,7 @@
 #include "Window.h"
 #include "duilib/Core/Control.h"
 #include "duilib/Core/Box.h"
+#include "duilib/Core/Shadow.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/ToolTip.h"
 #include "duilib/Render/IRender.h"
@@ -8,9 +9,7 @@
 #include "duilib/Animation/AnimationManager.h"
 #include "duilib/Animation/AnimationPlayer.h"
 #include "duilib/Utils/VersionHelpers.h"
-#include "duilib/Utils/TimerManager.h"
 #include "duilib/Utils/ApiWrapper.h"
-#include "duilib/Utils/Shadow.h"
 #include "duilib/Utils/PerformanceUtil.h"
 
 #include <tchar.h>

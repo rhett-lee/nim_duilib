@@ -88,6 +88,7 @@ void FontManager::RemoveAllFonts()
 		}
 	}
 	m_fontMap.clear();
+	m_defaultFontId.clear();
 }
 
 void FontManager::AddFontFile(const std::wstring& strFontFile, const std::wstring& strFontName)

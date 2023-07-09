@@ -3,14 +3,14 @@
 
 #pragma once
 
-#include "duilib/duilib_defs.h"
 #include "duilib/Core/WindowBuilder.h"
 #include "duilib/Core/ColorManager.h"
 #include "duilib/Core/FontManager.h"
 #include "duilib/Core/ImageManager.h"
 #include "duilib/Core/ZipManager.h"
-#include "duilib/Core/MultiLang.h"
+#include "duilib/Core/LangManager.h"
 #include "duilib/Core/DpiManager.h"
+#include "duilib/Core/TimerManager.h"
 
 #include <string>
 #include <vector>
@@ -138,9 +138,13 @@ public:
 	*/
 	DpiManager& Dpi();
 
+	/** 获取定时器管理器
+	*/
+	TimerManager& Timer();
+
 	/** 多语言支持管理器
 	*/
-	MultiLang& Lang();
+	LangManager& Lang();
 
 public:
 	/** 根据 XML 创建一个 Box
@@ -246,9 +250,13 @@ private:
 	*/
 	DpiManager m_dpiManager;
 
+	/** 定时器管理器
+	*/
+	TimerManager m_timerManager;
+
 	/** 多语言管理器
 	*/
-	MultiLang m_langManager;
+	LangManager m_langManager;
 };
 
 } // namespace ui

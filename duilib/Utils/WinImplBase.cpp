@@ -1,8 +1,6 @@
 #include "WinImplBase.h"
-#include "duilib/Utils/Shadow.h"
 #include "duilib/Core/WindowBuilder.h"
 #include "duilib/Core/Box.h"
-#include <tchar.h>
 
 namespace ui
 {
@@ -86,10 +84,7 @@ LRESULT WindowImplBase::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 	Box* pRoot = builder.Create(strSkinFile, callback, this);
 
 	ASSERT(pRoot && L"Faield to load xml file.");
-	if (pRoot == NULL) {
-		TCHAR szErrMsg[MAX_PATH] = { 0 };
-		_stprintf_s(szErrMsg, L"Failed to load xml file %s", strSkinFile.c_str());
-		MessageBox(NULL, szErrMsg, _T("Duilib"), MB_OK | MB_ICONERROR);
+	if (pRoot == nullptr) {
 		return -1;
 	}
 	//关联窗口附加阴影

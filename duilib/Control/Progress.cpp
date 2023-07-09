@@ -1,5 +1,4 @@
 #include "Progress.h"
-#include "duilib/Utils/TimerManager.h"
 
 namespace ui
 {
@@ -312,7 +311,7 @@ void Progress::SetMarquee(bool bMarquee)
 
 	if (m_bMarquee) {
 		auto playCallback = nbase::Bind(&Progress::Play, this);
-		TimerManager::GetInstance()->AddCancelableTimer(m_timer.GetWeakFlag(), playCallback, m_nMarqueeElapsed, TimerManager::REPEAT_FOREVER);
+		GlobalManager::Instance().Timer().AddCancelableTimer(m_timer.GetWeakFlag(), playCallback, m_nMarqueeElapsed, TimerManager::REPEAT_FOREVER);
 	}
 	else {
 		m_timer.Cancel();
@@ -363,7 +362,7 @@ void Progress::SetMarqueeElapsed(int nMarqueeElapsed)
 	m_timer.Cancel();
 
 	auto playCallback = nbase::Bind(&Progress::Play, this);
-	TimerManager::GetInstance()->AddCancelableTimer(m_timer.GetWeakFlag(), playCallback, m_nMarqueeElapsed, TimerManager::REPEAT_FOREVER);
+	GlobalManager::Instance().Timer().AddCancelableTimer(m_timer.GetWeakFlag(), playCallback, m_nMarqueeElapsed, TimerManager::REPEAT_FOREVER);
 
 	Invalidate();
 }

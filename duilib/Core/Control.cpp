@@ -9,7 +9,6 @@
 #include "duilib/Animation/AnimationPlayer.h"
 #include "duilib/Animation/AnimationManager.h"
 #include "duilib/Utils/StringUtil.h"
-#include "duilib/Utils/TimerManager.h"
 #include <tchar.h>
 
 namespace ui 
@@ -1807,7 +1806,7 @@ bool Control::GifPlay()
 		}
 		m_bkImage->SetPlaying(true);
 		auto gifPlayCallback = nbase::Bind(&Control::GifPlay, this);
-		TimerManager::GetInstance()->AddCancelableTimer(m_gifWeakFlag.GetWeakFlag(), 
+		GlobalManager::Instance().Timer().AddCancelableTimer(m_gifWeakFlag.GetWeakFlag(),
 													    gifPlayCallback,
 														timerInterval, 
 													    TimerManager::REPEAT_FOREVER);
@@ -1831,7 +1830,7 @@ bool Control::GifPlay()
 				m_gifWeakFlag.Cancel();
 				m_bkImage->SetPlaying(true);
 				auto gifPlayCallback = nbase::Bind(&Control::GifPlay, this);
-				TimerManager::GetInstance()->AddCancelableTimer(m_gifWeakFlag.GetWeakFlag(), 
+				GlobalManager::Instance().Timer().AddCancelableTimer(m_gifWeakFlag.GetWeakFlag(),
 																gifPlayCallback,
 																nowInterval, 
 															    TimerManager::REPEAT_FOREVER);
@@ -1879,7 +1878,7 @@ void Control::StartGifPlayForUI(GifStopType frame, int playcount)
 		m_bkImage->SetImagePlayCount(playcount);
 		m_bkImage->ClearCycledCount();
 		auto gifPlayCallback = nbase::Bind(&Control::GifPlay, this);
-		TimerManager::GetInstance()->AddCancelableTimer(m_gifWeakFlag.GetWeakFlag(), 
+		GlobalManager::Instance().Timer().AddCancelableTimer(m_gifWeakFlag.GetWeakFlag(),
 													    gifPlayCallback,
 													    timerInterval, 
 													    TimerManager::REPEAT_FOREVER);
@@ -2206,7 +2205,7 @@ void Control::StartLoading(int fStartAngle)
 
     m_bIsLoading = true;
     SetEnabled(false);
-    TimerManager::GetInstance()->AddCancelableTimer(m_loadingImageFlag.GetWeakFlag(), nbase::Bind(&Control::Loading, this),
+	GlobalManager::Instance().Timer().AddCancelableTimer(m_loadingImageFlag.GetWeakFlag(), nbase::Bind(&Control::Loading, this),
         50, TimerManager::REPEAT_FOREVER);
 }
 

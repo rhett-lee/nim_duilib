@@ -85,6 +85,10 @@ public:
      */
     void RemoveAllColors();
 
+    /** 删除所有颜色属性等缓存
+     */
+    void Clear();
+
 public:
 	/** 获取默认禁用状态下字体颜色
 	 * @return 默认禁用状态颜色的字符串表示，对应 global.xml 中指定颜色值

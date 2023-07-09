@@ -1,17 +1,18 @@
-#include "MultiLang.h"
+#include "LangManager.h"
 #include "duilib/Utils/StringUtil.h"
 
 namespace ui 
 {
-MultiLang::MultiLang()
+LangManager::LangManager()
 {
 };
-MultiLang::~MultiLang()
+
+LangManager::~LangManager()
 {
 	m_stringTable.clear();
 };
 
-bool MultiLang::LoadStringTable(const std::wstring& strFilePath)
+bool LangManager::LoadStringTable(const std::wstring& strFilePath)
 {
 	m_stringTable.clear();
 	std::vector<unsigned char> file_data;
@@ -39,7 +40,7 @@ bool MultiLang::LoadStringTable(const std::wstring& strFilePath)
 	return LoadStringTable(file_data);
 }
 
-bool MultiLang::LoadStringTable(const std::vector<unsigned char>& file_data)
+bool LangManager::LoadStringTable(const std::vector<unsigned char>& file_data)
 {
 	std::vector<std::wstring> string_list;
 	if (file_data.empty()) {
@@ -78,12 +79,12 @@ bool MultiLang::LoadStringTable(const std::vector<unsigned char>& file_data)
 	return true;
 }
 
-void MultiLang::ClearStringTable()
+void LangManager::ClearStringTable()
 {
 	m_stringTable.clear();
 }
 
-bool MultiLang::AnalyzeStringTable(const std::vector<std::wstring>& list)
+bool LangManager::AnalyzeStringTable(const std::vector<std::wstring>& list)
 {
 	int	nCount = (int)list.size();
 	if (nCount <= 0) {
@@ -124,7 +125,7 @@ bool MultiLang::AnalyzeStringTable(const std::vector<std::wstring>& list)
 	return true;
 }
 
-std::wstring MultiLang::GetStringViaID(const std::wstring& id)
+std::wstring LangManager::GetStringViaID(const std::wstring& id)
 {
 	std::wstring text;
 	if (id.empty()) {

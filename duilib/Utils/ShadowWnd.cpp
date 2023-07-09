@@ -1,6 +1,6 @@
 #include "ShadowWnd.h"
 #include "duilib/Core/Box.h"
-#include "duilib/Utils/Shadow.h"
+#include "duilib/Core/Shadow.h"
 
 namespace ui {
 

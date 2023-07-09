@@ -1,5 +1,5 @@
-#ifndef UI_UTILS_SHADOW_H_
-#define UI_UTILS_SHADOW_H_
+#ifndef UI_CORE_SHADOW_H_
+#define UI_CORE_SHADOW_H_
 
 #pragma once
 
@@ -11,6 +11,8 @@ namespace ui
 class Box;
 class Control;
 
+/** ¥∞ø⁄“ı”∞ Ù–‘
+*/
 class UILIB_API Shadow
 {
 public:
@@ -101,4 +103,4 @@ private:
 
 }
 
-#endif // UI_UTILS_SHADOW_H_
+#endif // UI_CORE_SHADOW_H_
