@@ -7,7 +7,7 @@
 
 namespace ui
 {
-	Grid::Grid() : ScrollableBox(new VLayout()){
+	Grid::Grid() : ScrollBox(new VLayout()){
 
 	}
 

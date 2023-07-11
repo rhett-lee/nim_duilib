@@ -1,6 +1,6 @@
 #pragma once
 
-#include "duilib/Core/Box.h"
+#include "duilib/Core/ScrollBox.h"
 
 namespace nim_comp
 {
@@ -36,7 +36,7 @@ namespace nim_comp
 		* @brief 获取当前所属的 List 对象
 		* @return 返回所属的 List 对象指针
 		*/
-		ui::ScrollableBox* GetListBox() { return m_pDropList.get(); }
+		ui::ScrollBox* GetListBox() { return m_pDropList.get(); }
 
 		/**
 		* @brief 获取下拉框属性信息
@@ -110,9 +110,9 @@ namespace nim_comp
 
 	protected:
 		CCheckComboWnd *m_pCheckComboWnd;
-		std::unique_ptr<ui::ScrollableBox> m_pDropList;
+		std::unique_ptr<ui::ScrollBox> m_pDropList;
 
-		std::unique_ptr<ui::ScrollableBox> m_pList;
+		std::unique_ptr<ui::ScrollBox> m_pList;
 		std::vector<std::string> m_vecDate;
 		
 		ui::UiSize m_szDropBox;

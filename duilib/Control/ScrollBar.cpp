@@ -1,5 +1,5 @@
 #include "ScrollBar.h"
-#include "duilib/Core/Box.h"
+#include "duilib/Core/ScrollBox.h"
 #include "duilib/Core/Window.h"
 #include "duilib/Image/Image.h"
 #include "duilib/Core/Define.h"
@@ -55,12 +55,12 @@ ScrollBar::ScrollBar() :
 	SetFloat(true);
 }
 
-Box* ScrollBar::GetOwner() const
+ScrollBox* ScrollBar::GetOwner() const
 {
 	return m_pOwner;
 }
 
-void ScrollBar::SetOwner(ScrollableBox* pOwner)
+void ScrollBar::SetOwner(ScrollBox* pOwner)
 {
 	m_pOwner = pOwner;
 }

@@ -1,5 +1,5 @@
 #include "PlaceHolder.h"
-#include "duilib/Core/Box.h"
+#include "duilib/Core/ScrollBox.h"
 #include "duilib/Core/Window.h"
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Core/GlobalManager.h"
@@ -346,17 +346,17 @@ UiPoint PlaceHolder::GetScrollOffset() const
 {
 	UiPoint scrollPos;
 	Control* parent = GetParent();
-	ScrollableBox* lbParent = dynamic_cast<ScrollableBox*>(parent);
+	ScrollBox* lbParent = dynamic_cast<ScrollBox*>(parent);
 	if (lbParent && (lbParent->IsVScrollBarValid() || lbParent->IsHScrollBarValid()) && IsFloat()) {
 		return scrollPos;
 	}
 
 	while (parent != nullptr) {
-		ScrollableBox* listbox = dynamic_cast<ScrollableBox*>(parent);
+		ScrollBox* listbox = dynamic_cast<ScrollBox*>(parent);
 		while ( (parent != nullptr) && 
 			    ((listbox == nullptr) || (!listbox->IsVScrollBarValid() && !listbox->IsHScrollBarValid()))) {
 			parent = parent->GetParent();
-			listbox = dynamic_cast<ScrollableBox*>(parent);
+			listbox = dynamic_cast<ScrollBox*>(parent);
 		}
 
 		if (parent != nullptr) {

@@ -5,7 +5,7 @@ namespace ui
 {
 
 ListBox::ListBox(Layout* pLayout) : 
-	ScrollableBox(pLayout),
+	ScrollBox(pLayout),
 	m_bScrollSelect(false),
 	m_iCurSel(Box::InvalidIndex),
 	m_pCompareFunc(nullptr),
@@ -22,7 +22,7 @@ void ListBox::SetAttribute(const std::wstring& strName, const std::wstring& strV
 		SetScrollSelect(strValue == L"true");
 	}
 	else {
-		ScrollableBox::SetAttribute(strName, strValue);
+		ScrollBox::SetAttribute(strName, strValue);
 	}
 }
 
@@ -33,7 +33,7 @@ void ListBox::HandleEvent(const EventArgs& event)
 			GetParent()->SendEvent(event);
 		}
 		else {
-			ScrollableBox::HandleEvent(event);
+			ScrollBox::HandleEvent(event);
 		}
 		return;
 	}
@@ -79,17 +79,17 @@ void ListBox::HandleEvent(const EventArgs& event)
 	break;
 	}
 
-	ScrollableBox::HandleEvent(event);
+	ScrollBox::HandleEvent(event);
 }
 
 void ListBox::SendEvent(EventType eventType, WPARAM wParam, LPARAM lParam, TCHAR tChar, const UiPoint& mousePos)
 {
-	return ScrollableBox::SendEvent(eventType, wParam, lParam, tChar, mousePos);
+	return ScrollBox::SendEvent(eventType, wParam, lParam, tChar, mousePos);
 }
 
 void ListBox::SendEvent(const EventArgs& event)
 {
-	ScrollableBox::SendEvent(event);
+	ScrollBox::SendEvent(event);
 }
 
 size_t ListBox::GetCurSel() const
@@ -263,7 +263,7 @@ bool ListBox::SetItemIndex(Control* pControl, size_t iIndex)
 	if (Box::IsValidItemIndex(m_iCurSel)) {
 		pSelectedListItem = dynamic_cast<ListBoxElement*>(GetItemAt(m_iCurSel));
 	}
-	if (!ScrollableBox::SetItemIndex(pControl, iIndex)) {
+	if (!ScrollBox::SetItemIndex(pControl, iIndex)) {
 		return false;
 	}
 	size_t iMinIndex = std::min(iOrginIndex, iIndex);
@@ -306,7 +306,7 @@ bool ListBox::AddItem(Control* pControl)
 		pListItem->SetOwner(this);
 		pListItem->SetIndex(GetItemCount());
 	}
-	return ScrollableBox::AddItem(pControl);
+	return ScrollBox::AddItem(pControl);
 }
 
 bool ListBox::AddItemAt(Control* pControl, size_t iIndex)
@@ -315,7 +315,7 @@ bool ListBox::AddItemAt(Control* pControl, size_t iIndex)
 	// the intended widgets. Headers and are assumed to be
 	// answer the correct interface so we can add multiple list headers.
 
-	if (!ScrollableBox::AddItemAt(pControl, iIndex)) {
+	if (!ScrollBox::AddItemAt(pControl, iIndex)) {
 		return false;
 	}
 
@@ -351,7 +351,7 @@ bool ListBox::RemoveItem(Control* pControl)
 
 bool ListBox::RemoveItemAt(size_t iIndex)
 {
-	if (!ScrollableBox::RemoveItemAt(iIndex)) {
+	if (!ScrollBox::RemoveItemAt(iIndex)) {
 		return false;
 	}
 	const size_t itemCount = GetItemCount();
@@ -382,7 +382,7 @@ bool ListBox::RemoveItemAt(size_t iIndex)
 void ListBox::RemoveAllItems()
 {
 	m_iCurSel = Box::InvalidIndex;
-	ScrollableBox::RemoveAllItems();
+	ScrollBox::RemoveAllItems();
 }
 
 bool ListBox::SortItems(PFNCompareFunc pfnCompare, void* pCompareContext)

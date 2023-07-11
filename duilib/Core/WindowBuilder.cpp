@@ -2,6 +2,7 @@
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/Window.h"
 #include "duilib/Core/Box.h"
+#include "duilib/Core/ScrollBox.h"
 #include "duilib/Core/Control.h"
 #include "duilib/Control/TreeView.h"
 #include "duilib/Control/ScrollBar.h"
@@ -718,6 +719,7 @@ Control* WindowBuilder::CreateControlByClass(const std::wstring& strControlClass
 		if( strControlClass == DUI_CTR_SCROLLBAR )				pControl = new ScrollBar; 
 		else if( strControlClass == DUI_CTR_BUTTONBOX )         pControl = new ButtonBox;
 		else if( strControlClass == DUI_CTR_OPTIONBOX )         pControl = new OptionBox;
+		else if (strControlClass == DUI_CTR_SCROLLBOX)          pControl = new ScrollBox(new Layout);
 		break;
 	case 11:
 		if( strControlClass == DUI_CTR_TILELISTBOX )			pControl = new ListBox(new TileLayout);

@@ -1,11 +1,11 @@
 #pragma once
 #include "ui_components/grid/GridBase.h"
-#include "duilib/Core/Box.h"
+#include "duilib/Core/ScrollBox.h"
 
 namespace ui
 {
 	class GridBody;
-	class UILIB_API Grid : public ScrollableBox
+	class UILIB_API Grid : public ScrollBox
 	{
 		friend class GridBody;
 	public:

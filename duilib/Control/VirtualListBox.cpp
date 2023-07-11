@@ -389,7 +389,7 @@ void VirtualListBox::HandleEvent(const ui::EventArgs& event)
 			GetParent()->SendEvent(event);
 		}
 		else {
-			ui::ScrollableBox::HandleEvent(event);
+			ui::ScrollBox::HandleEvent(event);
 		}
 		return;
 	}

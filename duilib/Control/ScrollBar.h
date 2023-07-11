@@ -8,7 +8,7 @@
 
 namespace ui
 {
-	class ScrollableBox;
+	class ScrollBox;
 	class StateImage;
 
 /** 滚动条控件
@@ -21,8 +21,8 @@ public:
 	ScrollBar(const ScrollBar& r) = delete;
 	ScrollBar& operator=(const ScrollBar& r) = delete;
 
-	Box* GetOwner() const;
-	void SetOwner(ScrollableBox* pOwner);
+	ScrollBox* GetOwner() const;
+	void SetOwner(ScrollBox* pOwner);
 
 	/// 重写父类方法，提供个性化功能，请参考父类声明
 	virtual std::wstring GetType() const override;
@@ -323,7 +323,7 @@ private:
 	nbase::WeakCallbackFlag m_weakFlagOwner;
 
 	//支持滚动条的容器接口
-	ScrollableBox* m_pOwner;
+	ScrollBox* m_pOwner;
 };
 
 }

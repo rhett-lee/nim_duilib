@@ -55,6 +55,7 @@ namespace ui
 	#define  DUI_CTR_CHECKBOXBOX                     (L"CheckBoxBox")
 
 	#define  DUI_CTR_BOX							 (L"Box")
+	#define  DUI_CTR_SCROLLBOX						 (L"ScrollBox")
 	#define  DUI_CTR_HBOX							 (L"HBox")
 	#define  DUI_CTR_VBOX                            (L"VBox")
 	#define  DUI_CTR_TABBOX                          (L"TabBox")
@@ -243,7 +244,7 @@ namespace ui
 		kEventTab,					//RichEdit类：在WantTab为false时，当收到TAB键时触发
 		kEventCustomLinkClick,		//RichEdit类：当点击到自定义link的数据上时触发		
 
-		kEventScrollChange,			//ScrollableBox类：当滚动条位置发生变化时触发
+		kEventScrollChange,			//ScrollBox类：当滚动条位置发生变化时触发
 		kEventValueChange,			//DateTime、Slider类：当值发生变化时触发
 		kEventResize,				//Control类：当控件的大小和位置发生变化时触发
 		kEventVisibleChange,		//Control类：当控件的Visible属性发生变化时触发

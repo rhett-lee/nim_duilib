@@ -1285,7 +1285,7 @@ void CTxtWinHost::SetParaFormat(const PARAFORMAT2& p)
 //
 
 RichEdit::RichEdit() : 
-	ScrollableBox(new Layout),
+	ScrollBox(new Layout),
 	m_pTwh(nullptr), 
 	m_bVScrollBarFixing(false), 
 	m_bWantTab(true),
@@ -2472,7 +2472,7 @@ void RichEdit::HandleEvent(const EventArgs& event)
 		if (::GetAsyncKeyState(VK_CONTROL) < 0)
 			return;
 		
-		ScrollableBox::HandleEvent(event);
+		ScrollBox::HandleEvent(event);
 		//OnMouseMessage(WM_MOUSEWHEEL, event);
 		return;
 	}
@@ -2543,7 +2543,7 @@ void RichEdit::HandleEvent(const EventArgs& event)
 		SetImmStatus(FALSE);
 	}
 
-	ScrollableBox::HandleEvent(event);
+	ScrollBox::HandleEvent(event);
 }
 
 void RichEdit::OnSetCursor(const EventArgs& event)

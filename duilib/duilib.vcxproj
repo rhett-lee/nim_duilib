@@ -353,6 +353,7 @@
     <ClCompile Include="Core\ImageManager.cpp" />
     <ClCompile Include="Core\LangManager.cpp" />
     <ClCompile Include="Core\Placeholder.cpp" />
+    <ClCompile Include="Core\ScrollBox.cpp" />
     <ClCompile Include="Core\Shadow.cpp" />
     <ClCompile Include="Core\TimerManager.cpp" />
     <ClCompile Include="Core\ToolTip.cpp" />
@@ -429,6 +430,7 @@
     <ClInclude Include="Core\ImageManager.h" />
     <ClInclude Include="Core\LangManager.h" />
     <ClInclude Include="Core\Placeholder.h" />
+    <ClInclude Include="Core\ScrollBox.h" />
     <ClInclude Include="Core\Shadow.h" />
     <ClInclude Include="Core\TimerManager.h" />
     <ClInclude Include="Core\ToolTip.h" />

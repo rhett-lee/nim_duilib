@@ -270,6 +270,9 @@
     <ClCompile Include="Utils\FileUtil.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
+    <ClCompile Include="Core\ScrollBox.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -553,6 +556,9 @@
     </ClInclude>
     <ClInclude Include="Utils\FileUtil.h">
       <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ScrollBox.h">
+      <Filter>Core</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

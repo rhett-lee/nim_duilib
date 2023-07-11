@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "duilib/Core/Box.h"
+#include "duilib/Core/ScrollBox.h"
 #include "duilib/Image/Image.h"
 #include <Imm.h>
 #include <richedit.h>
@@ -14,7 +14,7 @@ namespace ui
 {
 
 class CTxtWinHost;
-class UILIB_API RichEdit : public ScrollableBox
+class UILIB_API RichEdit : public ScrollBox
 {
 public:
 	friend class CTxtWinHost;

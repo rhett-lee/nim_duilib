@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "duilib/Core/Box.h"
+#include "duilib/Core/ScrollBox.h"
 #include "duilib/Box/VBox.h"
 #include "duilib/Control/Option.h"
 
@@ -53,7 +53,7 @@ public:
 //
 
 /// 列表容器，用于展示一组数据使用
-class UILIB_API ListBox : public ScrollableBox, public IListBoxOwner
+class UILIB_API ListBox : public ScrollBox, public IListBoxOwner
 {
 public:
 	explicit ListBox(Layout* pLayout = new VLayout);

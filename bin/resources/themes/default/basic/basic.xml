@@ -1,19 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Window size="800,600" caption="0,0,0,35" shadowattached="true" layered_window="true" alpha="255" sizebox="4,4,4,4">
-  <VBox bkcolor="bk_wnd_darkcolor" bordersize="1" bordercolor="lightcolor" visible="true">
-    <HBox width="stretch" height="35" bkcolor="bk_wnd_lightcolor" margin="1,1,1,0">
-      <Control />
-      <Button class="btn_wnd_min" name="minbtn" margin="4,6,0,0"/>
-      <Box width="21" margin="4,6,0,0">
-        <Button class="btn_wnd_max" name="maxbtn"/>
-        <Button class="btn_wnd_restore" name="restorebtn" visible="false"/>
-      </Box>
-      <Button class="btn_wnd_close" name="closebtn" margin="4,6,8,0"/>
+    <HBox bkcolor="white" bordersize="1" bordercolor="red">
+        <Label bkcolor="blue" margin="40,2,40,0" width="stretch" width="stretch" align="left,top" text="Box margin='40,40,40,40'"></Label>
+        <Label bkcolor="green" margin="40,0,50,0" width="stretch" width="stretch" maxwidth="50" align="left,top" text="Box margin='40,50,50,50'"></Label>
+        <Label bkcolor="black" margin="1,0,1,0" width="stretch" width="stretch" minwidth="5000" maxwidth="5001" align="left,top" text="Box margin='0,0,0,0'"></Label>
+        <Label bkcolor="red" margin="40,0,60,2" width="stretch" width="stretch" align="left,top" text="Box margin='40,60,60,60'"></Label>
     </HBox>
-    <Box>
-      <VBox margin="0,0,0,0" valign="center" halign="center" width="auto" height="auto">
-        <Label name="tooltip" text="一个简单窗口，带有标题栏和常规按钮。"/>
-      </VBox>
-    </Box>
-  </VBox>
 </Window>
