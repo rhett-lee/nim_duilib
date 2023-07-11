@@ -1,5 +1,5 @@
-#ifndef UI_CONTROL_SCROLLBAR_H_
-#define UI_CONTROL_SCROLLBAR_H_
+#ifndef UI_CORE_SCROLLBAR_H_
+#define UI_CORE_SCROLLBAR_H_
 
 #pragma once
 
@@ -326,6 +326,6 @@ private:
 	ScrollBox* m_pOwner;
 };
 
-}
+}//namespace ui
 
-#endif // UI_CONTROL_SCROLLBAR_H_
+#endif // UI_CORE_SCROLLBAR_H_

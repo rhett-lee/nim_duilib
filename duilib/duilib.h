@@ -79,8 +79,9 @@
 #include "Core/Window.h"
 #include "Core/Placeholder.h"
 #include "Core/Control.h"
-#include "Core/BoxShadow.h"
 #include "Core/Box.h"
+#include "Core/ScrollBox.h"
+#include "Core/ScrollBar.h"
 
 #include "Box/VBox.h"
 #include "Box/HBox.h"
@@ -90,7 +91,6 @@
 
 #include "Control/ListBox.h"
 #include "Control/Combo.h"
-#include "Control/ScrollBar.h"
 #include "Control/TreeView.h"
 
 #include "Control/Label.h"

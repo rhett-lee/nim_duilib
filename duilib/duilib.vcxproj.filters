@@ -87,9 +87,6 @@
     <ClCompile Include="Control\RichEdit.cpp">
       <Filter>Control</Filter>
     </ClCompile>
-    <ClCompile Include="Control\ScrollBar.cpp">
-      <Filter>Control</Filter>
-    </ClCompile>
     <ClCompile Include="Control\Slider.cpp">
       <Filter>Control</Filter>
     </ClCompile>
@@ -273,6 +270,9 @@
     <ClCompile Include="Core\ScrollBox.cpp">
       <Filter>Core</Filter>
     </ClCompile>
+    <ClCompile Include="Core\ScrollBar.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -324,9 +324,6 @@
       <Filter>Control</Filter>
     </ClInclude>
     <ClInclude Include="Control\RichEdit.h">
-      <Filter>Control</Filter>
-    </ClInclude>
-    <ClInclude Include="Control\ScrollBar.h">
       <Filter>Control</Filter>
     </ClInclude>
     <ClInclude Include="Control\Slider.h">
@@ -558,6 +555,9 @@
       <Filter>Utils</Filter>
     </ClInclude>
     <ClInclude Include="Core\ScrollBox.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ScrollBar.h">
       <Filter>Core</Filter>
     </ClInclude>
   </ItemGroup>

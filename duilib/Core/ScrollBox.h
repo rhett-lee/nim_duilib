@@ -4,7 +4,7 @@
 #pragma once
 
 #include "duilib/Core/Box.h"
-#include "duilib/Control/ScrollBar.h"
+#include "duilib/Core/ScrollBar.h"
 #include "duilib/Animation/AnimationPlayer.h"
 
 namespace ui 

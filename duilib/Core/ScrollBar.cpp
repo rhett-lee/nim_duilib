@@ -1,9 +1,9 @@
 #include "ScrollBar.h"
 #include "duilib/Core/ScrollBox.h"
 #include "duilib/Core/Window.h"
-#include "duilib/Image/Image.h"
 #include "duilib/Core/Define.h"
 #include "duilib/Core/GlobalManager.h"
+#include "duilib/Image/Image.h"
 #include "duilib/Utils/StringUtil.h"
 
 #include <tchar.h>
@@ -1003,4 +1003,4 @@ void ScrollBar::PaintRail(IRender* pRender)
 	PaintImage(pRender, (*m_railStateImage).GetStateImage(kControlStateNormal), m_sImageModify);
 }
 
-}
+}//namespace ui

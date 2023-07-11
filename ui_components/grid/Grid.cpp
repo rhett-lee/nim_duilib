@@ -1,7 +1,7 @@
 #include "Grid.h"
 #include "ui_components/grid/GridBody.h"
 #include "duilib/Box/VBox.h"
-#include "duilib/Control/ScrollBar.h"
+#include "duilib/Core/ScrollBar.h"
 #include "duilib/Animation/AnimationManager.h"
 #include "duilib/Animation/AnimationPlayer.h"
 

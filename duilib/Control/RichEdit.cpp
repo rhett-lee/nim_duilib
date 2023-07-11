@@ -1,7 +1,7 @@
 #include "RichEdit.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/Window.h"
-#include "duilib/Control/ScrollBar.h"
+#include "duilib/Core/ScrollBar.h"
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Utils/Macros.h"
 #include "duilib/Utils/OnScreenKeyboardManager.h"

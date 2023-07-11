@@ -1,5 +1,5 @@
 #include "ListBox.h"
-#include "duilib/Control/ScrollBar.h"
+#include "duilib/Core/ScrollBar.h"
 
 namespace ui 
 {

@@ -353,6 +353,7 @@
     <ClCompile Include="Core\ImageManager.cpp" />
     <ClCompile Include="Core\LangManager.cpp" />
     <ClCompile Include="Core\Placeholder.cpp" />
+    <ClCompile Include="Core\ScrollBar.cpp" />
     <ClCompile Include="Core\ScrollBox.cpp" />
     <ClCompile Include="Core\Shadow.cpp" />
     <ClCompile Include="Core\TimerManager.cpp" />
@@ -397,7 +398,6 @@
     <ClCompile Include="Control\Combo.cpp" />
     <ClCompile Include="Control\Progress.cpp" />
     <ClCompile Include="Control\RichEdit.cpp" />
-    <ClCompile Include="Control\ScrollBar.cpp" />
     <ClCompile Include="Control\Slider.cpp" />
     <ClCompile Include="Control\TreeView.cpp" />
     <ClCompile Include="Utils\WinImplBase.cpp" />
@@ -430,6 +430,7 @@
     <ClInclude Include="Core\ImageManager.h" />
     <ClInclude Include="Core\LangManager.h" />
     <ClInclude Include="Core\Placeholder.h" />
+    <ClInclude Include="Core\ScrollBar.h" />
     <ClInclude Include="Core\ScrollBox.h" />
     <ClInclude Include="Core\Shadow.h" />
     <ClInclude Include="Core\TimerManager.h" />
@@ -495,7 +496,6 @@
     <ClInclude Include="Control\Option.h" />
     <ClInclude Include="Control\Progress.h" />
     <ClInclude Include="Control\RichEdit.h" />
-    <ClInclude Include="Control\ScrollBar.h" />
     <ClInclude Include="Control\Slider.h" />
     <ClInclude Include="Control\TreeView.h" />
   </ItemGroup>

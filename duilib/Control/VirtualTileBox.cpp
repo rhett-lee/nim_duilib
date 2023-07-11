@@ -1,5 +1,5 @@
 #include "VirtualTileBox.h"
-#include "duilib/Control/ScrollBar.h"
+#include "duilib/Core/ScrollBar.h"
 #include <algorithm>
 
 namespace ui {
