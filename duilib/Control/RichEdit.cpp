@@ -541,8 +541,8 @@ int CTxtWinHost::TxReleaseDC(HDC /*hdc*/)
 BOOL CTxtWinHost::TxShowScrollBar(INT /*fnBar*/, BOOL /*fShow*/)
 {
 	ASSERT(FALSE); //暂时注释掉，不知道这代码有啥用   by panqinke 2014.5.6
-    //ScrollBar* pVerticalScrollBar = m_re->GetVerticalScrollBar();
-    //ScrollBar* pHorizontalScrollBar = m_re->GetHorizontalScrollBar();
+    //ScrollBar* pVerticalScrollBar = m_re->GetVScrollBar();
+    //ScrollBar* pHorizontalScrollBar = m_re->GetHScrollBar();
     //if( fnBar == SB_VERT && pVerticalScrollBar ) {
     //    pVerticalScrollBar->SetFadeVisible(fShow == TRUE);
     //}
@@ -560,20 +560,20 @@ BOOL CTxtWinHost::TxEnableScrollBar (INT fuSBFlags, INT fuArrowflags)
 {
 	if( fuSBFlags == SB_VERT ) {
 		if (fuArrowflags == ESB_DISABLE_BOTH) {
-			m_re->GetVerticalScrollBar()->SetScrollRange(0);
+			m_re->GetVScrollBar()->SetScrollRange(0);
 		}		
 	}
 	else if( fuSBFlags == SB_HORZ ) {
 		if (fuArrowflags == ESB_DISABLE_BOTH) {
-			m_re->GetHorizontalScrollBar()->SetScrollRange(0);
+			m_re->GetHScrollBar()->SetScrollRange(0);
 		}
 	}
 	else if( fuSBFlags == SB_BOTH ) {
 		if (fuArrowflags == ESB_DISABLE_BOTH) {
-			m_re->GetVerticalScrollBar()->SetScrollRange(0);
+			m_re->GetVScrollBar()->SetScrollRange(0);
 		}
 		if (fuArrowflags == ESB_DISABLE_BOTH) {
-			m_re->GetHorizontalScrollBar()->SetScrollRange(0);
+			m_re->GetHScrollBar()->SetScrollRange(0);
 		}
 	}
 	
@@ -584,8 +584,8 @@ BOOL CTxtWinHost::TxEnableScrollBar (INT fuSBFlags, INT fuArrowflags)
 
 BOOL CTxtWinHost::TxSetScrollRange(INT fnBar, LONG nMinPos, INT nMaxPos, BOOL /*fRedraw*/)
 {
-    ScrollBar* pVerticalScrollBar = m_re->GetVerticalScrollBar();
-    ScrollBar* pHorizontalScrollBar = m_re->GetHorizontalScrollBar();
+    ScrollBar* pVerticalScrollBar = m_re->GetVScrollBar();
+    ScrollBar* pHorizontalScrollBar = m_re->GetHScrollBar();
 	bool bArrange = false;
     if( fnBar == SB_VERT && pVerticalScrollBar ) {
         if( nMaxPos - nMinPos - rcClient.bottom + rcClient.top <= 0 ) {
@@ -619,8 +619,8 @@ BOOL CTxtWinHost::TxSetScrollRange(INT fnBar, LONG nMinPos, INT nMaxPos, BOOL /*
 
 BOOL CTxtWinHost::TxSetScrollPos (INT fnBar, INT nPos, BOOL /*fRedraw*/)
 {
-    ScrollBar* pVerticalScrollBar = m_re->GetVerticalScrollBar();
-    ScrollBar* pHorizontalScrollBar = m_re->GetHorizontalScrollBar();
+    ScrollBar* pVerticalScrollBar = m_re->GetVScrollBar();
+    ScrollBar* pHorizontalScrollBar = m_re->GetHScrollBar();
     if( fnBar == SB_VERT && pVerticalScrollBar ) {
         pVerticalScrollBar->SetScrollPos(nPos);
     }
@@ -2161,29 +2161,29 @@ void RichEdit::SetScrollPos(UiSize szPos)
 {
 	int64_t cx = 0;
 	int64_t cy = 0;
-    if( m_pVerticalScrollBar && m_pVerticalScrollBar->IsValid() ) {
-        int64_t iLastScrollPos = m_pVerticalScrollBar->GetScrollPos();
-        m_pVerticalScrollBar->SetScrollPos(szPos.cy);
-        cy = m_pVerticalScrollBar->GetScrollPos() - iLastScrollPos;
+    if( m_pVScrollBar && m_pVScrollBar->IsValid() ) {
+        int64_t iLastScrollPos = m_pVScrollBar->GetScrollPos();
+        m_pVScrollBar->SetScrollPos(szPos.cy);
+        cy = m_pVScrollBar->GetScrollPos() - iLastScrollPos;
     }
-    if( m_pHorizontalScrollBar && m_pHorizontalScrollBar->IsValid() ) {
-		int64_t iLastScrollPos = m_pHorizontalScrollBar->GetScrollPos();
-        m_pHorizontalScrollBar->SetScrollPos(szPos.cx);
-        cx = m_pHorizontalScrollBar->GetScrollPos() - iLastScrollPos;
+    if( m_pHScrollBar && m_pHScrollBar->IsValid() ) {
+		int64_t iLastScrollPos = m_pHScrollBar->GetScrollPos();
+        m_pHScrollBar->SetScrollPos(szPos.cx);
+        cx = m_pHScrollBar->GetScrollPos() - iLastScrollPos;
     }
     if( cy != 0 ) {
 		int64_t iPos = 0;
-        if( m_pTwh && !m_bRich && m_pVerticalScrollBar && m_pVerticalScrollBar->IsValid() ) 
-            iPos = m_pVerticalScrollBar->GetScrollPos();
-        WPARAM wParam = MAKEWPARAM(SB_THUMBPOSITION, m_pVerticalScrollBar->GetScrollPos());
+        if( m_pTwh && !m_bRich && m_pVScrollBar && m_pVScrollBar->IsValid() ) 
+            iPos = m_pVScrollBar->GetScrollPos();
+        WPARAM wParam = MAKEWPARAM(SB_THUMBPOSITION, m_pVScrollBar->GetScrollPos());
         TxSendMessage(WM_VSCROLL, wParam, 0L, 0);
-        if( m_pTwh && !m_bRich && m_pVerticalScrollBar && m_pVerticalScrollBar->IsValid() ) {
-            if( cy > 0 && m_pVerticalScrollBar->GetScrollPos() <= iPos )
-                m_pVerticalScrollBar->SetScrollPos(iPos);
+        if( m_pTwh && !m_bRich && m_pVScrollBar && m_pVScrollBar->IsValid() ) {
+            if( cy > 0 && m_pVScrollBar->GetScrollPos() <= iPos )
+                m_pVScrollBar->SetScrollPos(iPos);
         }
     }
     if( cx != 0 ) {
-        WPARAM wParam = MAKEWPARAM(SB_THUMBPOSITION, m_pHorizontalScrollBar->GetScrollPos());
+        WPARAM wParam = MAKEWPARAM(SB_THUMBPOSITION, m_pHScrollBar->GetScrollPos());
         TxSendMessage(WM_HSCROLL, wParam, 0L, 0);
     }
 }
@@ -2196,12 +2196,12 @@ void RichEdit::LineUp()
 void RichEdit::LineDown()
 {
 	int64_t iPos = 0;
-    if( m_pTwh && !m_bRich && m_pVerticalScrollBar && m_pVerticalScrollBar->IsValid() ) 
-        iPos = m_pVerticalScrollBar->GetScrollPos();
+    if( m_pTwh && !m_bRich && m_pVScrollBar && m_pVScrollBar->IsValid() ) 
+        iPos = m_pVScrollBar->GetScrollPos();
     TxSendMessage(WM_VSCROLL, SB_LINEDOWN, 0L, 0);
-    if( m_pTwh && !m_bRich && m_pVerticalScrollBar && m_pVerticalScrollBar->IsValid() ) {
-        if( m_pVerticalScrollBar->GetScrollPos() <= iPos )
-            m_pVerticalScrollBar->SetScrollPos(m_pVerticalScrollBar->GetScrollRange());
+    if( m_pTwh && !m_bRich && m_pVScrollBar && m_pVScrollBar->IsValid() ) {
+        if( m_pVScrollBar->GetScrollPos() <= iPos )
+            m_pVScrollBar->SetScrollPos(m_pVScrollBar->GetScrollRange());
     }
 }
 
@@ -2276,11 +2276,11 @@ void RichEdit::DoInit()
 		m_pTwh->GetTextServices()->TxSendMessage(EM_SETLANGOPTIONS, 0, 0, &lResult);
 		m_pTwh->GetTextServices()->TxSendMessage(EM_SETEVENTMASK, 0, ENM_CHANGE, &lResult);
 		m_pTwh->OnTxInPlaceActivate(NULL);
-		if (m_pHorizontalScrollBar) {
-			m_pHorizontalScrollBar->SetScrollRange(0);
+		if (m_pHScrollBar) {
+			m_pHScrollBar->SetScrollRange(0);
 		}
-		if (m_pVerticalScrollBar) {
-			m_pVerticalScrollBar->SetScrollRange(0);
+		if (m_pVScrollBar) {
+			m_pVScrollBar->SetScrollRange(0);
 		}
 	}
 
@@ -2367,18 +2367,18 @@ void RichEdit::SetPos(UiRect rc)
     rc.right -= GetLayout()->GetPadding().right;
     rc.bottom -= GetLayout()->GetPadding().bottom;
     bool bVScrollBarVisiable = false;
-    if( m_pVerticalScrollBar && m_pVerticalScrollBar->IsValid() ) {
+    if( m_pVScrollBar && m_pVScrollBar->IsValid() ) {
         bVScrollBarVisiable = true;
-        rc.right -= m_pVerticalScrollBar->GetFixedWidth();
+        rc.right -= m_pVScrollBar->GetFixedWidth();
     }
-    if( m_pHorizontalScrollBar && m_pHorizontalScrollBar->IsValid() ) {
-        rc.bottom -= m_pHorizontalScrollBar->GetFixedHeight();
+    if( m_pHScrollBar && m_pHScrollBar->IsValid() ) {
+        rc.bottom -= m_pHScrollBar->GetFixedHeight();
     }
 
     if( m_pTwh ) {
         m_pTwh->SetClientRect(&rc);
-        if( bVScrollBarVisiable && (!m_pVerticalScrollBar->IsValid() || m_bVScrollBarFixing) ) {
-            LONG lWidth = rc.right - rc.left + m_pVerticalScrollBar->GetFixedWidth();
+        if( bVScrollBarVisiable && (!m_pVScrollBar->IsValid() || m_bVScrollBarFixing) ) {
+            LONG lWidth = rc.right - rc.left + m_pVScrollBar->GetFixedWidth();
             LONG lHeight = 0;
             SIZEL szExtent = { -1, -1 };
             m_pTwh->GetTextServices()->TxGetNaturalSize(
@@ -2391,27 +2391,27 @@ void RichEdit::SetPos(UiRect rc)
                 &lWidth,
                 &lHeight);
             if( lHeight > rc.bottom - rc.top ) {
-                //m_pVerticalScrollBar->SetFadeVisible(true);
-                m_pVerticalScrollBar->SetScrollPos(0);
+                //m_pVScrollBar->SetFadeVisible(true);
+                m_pVScrollBar->SetScrollPos(0);
                 m_bVScrollBarFixing = true;
             }
             else {
                 if( m_bVScrollBarFixing ) {
-                    //m_pVerticalScrollBar->SetFadeVisible(false);
-					m_pVerticalScrollBar->SetScrollRange(0);
+                    //m_pVScrollBar->SetFadeVisible(false);
+					m_pVScrollBar->SetScrollRange(0);
                     m_bVScrollBarFixing = false;
                 }
             }
         }
     }
 
-    if( m_pVerticalScrollBar != NULL && m_pVerticalScrollBar->IsValid() ) {
-        UiRect rcScrollBarPos(rc.right, rc.top, rc.right + m_pVerticalScrollBar->GetFixedWidth(), rc.bottom);
-        m_pVerticalScrollBar->SetPos(rcScrollBarPos);
+    if( m_pVScrollBar != NULL && m_pVScrollBar->IsValid() ) {
+        UiRect rcScrollBarPos(rc.right, rc.top, rc.right + m_pVScrollBar->GetFixedWidth(), rc.bottom);
+        m_pVScrollBar->SetPos(rcScrollBarPos);
     }
-    if( m_pHorizontalScrollBar != NULL && m_pHorizontalScrollBar->IsValid() ) {
-        UiRect rcScrollBarPos(rc.left, rc.bottom, rc.right, rc.bottom + m_pHorizontalScrollBar->GetFixedHeight());
-        m_pHorizontalScrollBar->SetPos(rcScrollBarPos);
+    if( m_pHScrollBar != NULL && m_pHScrollBar->IsValid() ) {
+        UiRect rcScrollBarPos(rc.left, rc.bottom, rc.right, rc.bottom + m_pHScrollBar->GetFixedHeight());
+        m_pHScrollBar->SetPos(rcScrollBarPos);
     }
 
 	for( auto it = m_items.begin(); it != m_items.end(); ++it ) {
@@ -2706,7 +2706,7 @@ void RichEdit::Paint(IRender* pRender, const UiRect& rcPaint)
 
 		pRender->ReleaseDC(hdc);
 		if( m_bVScrollBarFixing ) {
-            LONG lWidth = rc.right - rc.left + m_pVerticalScrollBar->GetFixedWidth();
+            LONG lWidth = rc.right - rc.left + m_pVScrollBar->GetFixedWidth();
 			//LONG lWidth = rc.right - rc.left;
             LONG lHeight = 0;
             SIZEL szExtent = { -1, -1 };
@@ -2740,8 +2740,8 @@ void RichEdit::PaintChild(IRender* pRender, const UiRect& rcPaint)
         rc.top += GetLayout()->GetPadding().top;
         rc.right -= GetLayout()->GetPadding().right;
         rc.bottom -= GetLayout()->GetPadding().bottom;
-        if( m_pVerticalScrollBar && m_pVerticalScrollBar->IsValid() ) rc.right -= m_pVerticalScrollBar->GetFixedWidth();
-        if( m_pHorizontalScrollBar && m_pHorizontalScrollBar->IsValid() ) rc.bottom -= m_pHorizontalScrollBar->GetFixedHeight();
+        if( m_pVScrollBar && m_pVScrollBar->IsValid() ) rc.right -= m_pVScrollBar->GetFixedWidth();
+        if( m_pHScrollBar && m_pHScrollBar->IsValid() ) rc.bottom -= m_pHScrollBar->GetFixedHeight();
 
         if( !::IntersectRect(&rcTemp, &rcPaint, &rc) ) {
 			for( auto it = m_items.begin(); it != m_items.end(); ++it ) {
@@ -2794,17 +2794,17 @@ void RichEdit::PaintChild(IRender* pRender, const UiRect& rcPaint)
         }
     }
 
-    if( m_pVerticalScrollBar != NULL && m_pVerticalScrollBar->IsVisible() ) {
-		UiRect verBarPos = m_pVerticalScrollBar->GetPos();
+    if( m_pVScrollBar != NULL && m_pVScrollBar->IsVisible() ) {
+		UiRect verBarPos = m_pVScrollBar->GetPos();
 		if( ::IntersectRect(&rcTemp, &rcPaint, &verBarPos) ) {
-            m_pVerticalScrollBar->AlphaPaint(pRender, rcPaint);
+            m_pVScrollBar->AlphaPaint(pRender, rcPaint);
         }
     }
 
-    if( m_pHorizontalScrollBar != NULL && m_pHorizontalScrollBar->IsVisible() ) {
-		UiRect horBarPos = m_pVerticalScrollBar->GetPos();
+    if( m_pHScrollBar != NULL && m_pHScrollBar->IsVisible() ) {
+		UiRect horBarPos = m_pVScrollBar->GetPos();
 		if( ::IntersectRect(&rcTemp, &rcPaint, &horBarPos) ) {
-            m_pHorizontalScrollBar->AlphaPaint(pRender, rcPaint);
+            m_pHScrollBar->AlphaPaint(pRender, rcPaint);
         }
     }
 }
@@ -2814,12 +2814,12 @@ void RichEdit::SetAttribute(const std::wstring& strName, const std::wstring& str
 	if (strName == _T("vscrollbar")) {
 		if (strValue == _T("true")) {
 			m_lTwhStyle |= ES_DISABLENOSCROLL | WS_VSCROLL;
-			EnableScrollBar(true, GetHorizontalScrollBar() != NULL);
+			EnableScrollBar(true, GetHScrollBar() != NULL);
 		}
 		else {
 			m_lTwhStyle &= ~WS_VSCROLL;
 			if (!(m_lTwhStyle & WS_HSCROLL)) m_lTwhStyle &= ~ES_DISABLENOSCROLL;
-			EnableScrollBar(false, GetHorizontalScrollBar() != NULL);
+			EnableScrollBar(false, GetHScrollBar() != NULL);
 		}
 	}
 	else if (strName == _T("autovscroll")) {
@@ -2829,12 +2829,12 @@ void RichEdit::SetAttribute(const std::wstring& strName, const std::wstring& str
 	else if (strName == _T("hscrollbar")) {
 		if (strValue == _T("true")) {
 			m_lTwhStyle |= ES_DISABLENOSCROLL | WS_HSCROLL;
-			EnableScrollBar(GetVerticalScrollBar() != NULL, true);
+			EnableScrollBar(GetVScrollBar() != NULL, true);
 		}
 		else {
 			m_lTwhStyle &= ~WS_HSCROLL;
 			if (!(m_lTwhStyle & WS_VSCROLL)) m_lTwhStyle &= ~ES_DISABLENOSCROLL;
-			EnableScrollBar(GetVerticalScrollBar() != NULL, false);
+			EnableScrollBar(GetVScrollBar() != NULL, false);
 		}
 	}
 	else if (strName == _T("autohscroll")) {

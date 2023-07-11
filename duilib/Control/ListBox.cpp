@@ -169,7 +169,7 @@ void ListBox::EnsureVisible(const UiRect& rcItem)
 	rcList.right -= rcListInset.right;
 	rcList.bottom -= rcListInset.bottom;
 
-	ScrollBar* pHorizontalScrollBar = GetHorizontalScrollBar();
+	ScrollBar* pHorizontalScrollBar = GetHScrollBar();
 	if (pHorizontalScrollBar && pHorizontalScrollBar->IsVisible()) {
 		rcList.bottom -= pHorizontalScrollBar->GetFixedHeight();
 	}
@@ -202,7 +202,7 @@ void ListBox::EnsureVisible(const UiRect& rcItem)
 
 void ListBox::StopScroll()
 {
-	m_scrollAnimation->Reset();
+	StopScrollAnimation();
 }
 
 bool ListBox::ButtonDown(const EventArgs& msg)

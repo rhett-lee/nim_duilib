@@ -272,8 +272,8 @@ void VirtualTileBox::RemoveAllItems()
 {
     __super::RemoveAllItems();
 
-    if (m_pVerticalScrollBar) {
-        m_pVerticalScrollBar->SetScrollPos(0);
+    if (m_pVScrollBar) {
+        m_pVScrollBar->SetScrollPos(0);
     }
     m_nOldYScrollPos = 0;
     m_bArrangedOnce = false;
@@ -321,7 +321,7 @@ void VirtualTileBox::EnsureVisible(size_t iIndex, bool bToTop /*= false*/)
     if (!Box::IsValidItemIndex(iIndex) || iIndex >= GetElementCount()) {
         return;
     }
-    if (m_pVerticalScrollBar == nullptr) {
+    if (m_pVScrollBar == nullptr) {
         return;
     }
     size_t nPos = (size_t)GetScrollPos().cy;
@@ -331,7 +331,7 @@ void VirtualTileBox::EnsureVisible(size_t iIndex, bool bToTop /*= false*/)
     if (bToTop)
     {
         nNewPos = CalcElementsHeight(iIndex);
-        if (nNewPos >= (size_t)m_pVerticalScrollBar->GetScrollRange()) {
+        if (nNewPos >= (size_t)m_pVScrollBar->GetScrollRange()) {
             return;
         }
     }

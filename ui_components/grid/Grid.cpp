@@ -37,10 +37,10 @@ namespace ui
 		//SetFixedBkColor(L"splitline_level2");
 		//SetGridLineColor(L"grid_line");
 
-		if (m_pVerticalScrollBar)
-			m_pVerticalScrollBar->SetAutoHideScroll(false);
-		if (m_pHorizontalScrollBar)
-			m_pHorizontalScrollBar->SetAutoHideScroll(false);
+		if (m_pVScrollBar)
+			m_pVScrollBar->SetAutoHideScroll(false);
+		if (m_pHScrollBar)
+			m_pHScrollBar->SetAutoHideScroll(false);
 
 		m_bIsInit = true;
 	}
@@ -124,12 +124,12 @@ namespace ui
 			pControl->AlphaPaint(pRender, rcPaint);
 		}
 
-		if (m_pHorizontalScrollBar && m_pHorizontalScrollBar->IsVisible()) {
-			m_pHorizontalScrollBar->AlphaPaint(pRender, rcPaint);
+		if (m_pHScrollBar && m_pHScrollBar->IsVisible()) {
+			m_pHScrollBar->AlphaPaint(pRender, rcPaint);
 		}
 
-		if (m_pVerticalScrollBar && m_pVerticalScrollBar->IsVisible()) {
-			m_pVerticalScrollBar->AlphaPaint(pRender, rcPaint);
+		if (m_pVScrollBar && m_pVScrollBar->IsVisible()) {
+			m_pVScrollBar->AlphaPaint(pRender, rcPaint);
 		}
 
 		static bool bFirstPaint = true;

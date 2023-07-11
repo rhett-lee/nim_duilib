@@ -152,11 +152,11 @@ void VirtualListBox::Refresh()
 void VirtualListBox::RemoveAllItems()
 {
 	__super::RemoveAllItems();
-	if (m_pVerticalScrollBar) {
-		m_pVerticalScrollBar->SetScrollPos(0);
+	if (m_pVScrollBar) {
+		m_pVScrollBar->SetScrollPos(0);
 	}
-	if (m_pHorizontalScrollBar) {
-		m_pHorizontalScrollBar->SetScrollPos(0);
+	if (m_pHScrollBar) {
+		m_pHScrollBar->SetScrollPos(0);
 	}
 	m_nOldScrollPos = 0;
 	m_bArrangedOnce = false;
