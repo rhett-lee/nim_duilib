@@ -3,6 +3,7 @@
 #include "duilib/Image/ImageDecoder.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Utils/StringUtil.h"
+#include "duilib/Utils/FileUtil.h"
 
 namespace ui 
 {
@@ -42,41 +43,29 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const ImageLoadAttribute& load
 	//重新加载资源
 	bool isUseZip = GlobalManager::Instance().Zip().IsUseZip();
 	std::wstring imageFullPath = GetDpiImageFullPath(loadAtrribute.GetImageFullPath(), isUseZip);
-	std::vector<unsigned char> file_data;
-	if (isUseZip) {
-		GlobalManager::Instance().Zip().GetZipData(imageFullPath, file_data);
-	}
-	else {
-		FILE* f = nullptr;
-		errno_t ret = ::_wfopen_s(&f, imageFullPath.c_str(), L"rb");
-		if ((ret == 0) && (f != nullptr)) {
-			::fseek(f, 0, SEEK_END);
-			int fileSize = ::ftell(f);
-			::fseek(f, 0, SEEK_SET);
-			if (fileSize > 0) {
-				file_data.resize((size_t)fileSize);
-				size_t readLen = ::fread(file_data.data(), 1, file_data.size(), f);
-				ASSERT_UNUSED_VARIABLE(readLen == file_data.size());
-				if (readLen != file_data.size()) {
-					file_data.clear();
-				}
-			}
-			::fclose(f);
-		}
-	}
 	//标记DPI自适应图片属性，如果路径不同，说明已经选择了对应DPI下的文件
 	bool isDpiScaledImageFile = imageFullPath != loadAtrribute.GetImageFullPath();
+
+	std::vector<uint8_t> fileData;
+	if (isUseZip) {
+		GlobalManager::Instance().Zip().GetZipData(imageFullPath, fileData);
+	}
+	else {
+		FileUtil::ReadFileData(imageFullPath, fileData);
+	}
+	ASSERT(!fileData.empty());
+
 	std::unique_ptr<ImageInfo> imageInfo;
-	if (!file_data.empty()) {
+	if (!fileData.empty()) {
 		ImageDecoder imageDecoder;
 		ImageLoadAttribute imageLoadAtrribute(loadAtrribute);
 		if (isDpiScaledImageFile) {
 			imageLoadAtrribute.SetNeedDpiScale(false);
 		}
-		imageInfo = imageDecoder.LoadImageData(file_data, imageLoadAtrribute);
+		imageInfo = imageDecoder.LoadImageData(fileData, imageLoadAtrribute);
 	}
 	std::shared_ptr<ImageInfo> sharedImage;
-	if (imageInfo) {
+	if (imageInfo != nullptr) {
 		sharedImage.reset(imageInfo.release(), &OnImageInfoDestroy);
 		sharedImage->SetCacheKey(imageCacheKey);
 		if (isDpiScaledImageFile) {

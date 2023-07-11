@@ -685,7 +685,7 @@ public:
 	virtual void DoInit() override;
 	virtual void SetEnabled(bool bEnable = true) override;
 	virtual UiSize EstimateSize(UiSize szAvailable) override;
-	virtual UiSize EstimateText(UiSize szAvailable);
+	virtual UiSize EstimateText(UiSize szAvailable) override;
 	virtual void SetPos(UiRect rc) override;
 	virtual UINT GetControlFlags() const override;
 	virtual void HandleEvent(const EventArgs& event) override;

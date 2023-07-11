@@ -31,7 +31,7 @@ public:
 	virtual void SetTextId(const std::wstring& strTextId);
 	virtual void SetUTF8TextId(const std::string& strTextId);
 	virtual bool HasHotState() override;
-	virtual UiSize EstimateText(UiSize szAvailable, bool& bReEstimateSize) override;
+	virtual UiSize EstimateText(UiSize szAvailable) override;
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 	virtual void PaintText(IRender* pRender) override;
 	virtual void SetPos(UiRect rc) override;
@@ -297,7 +297,7 @@ bool LabelTemplate<InheritType>::HasHotState()
 }
 
 template<typename InheritType>
-UiSize LabelTemplate<InheritType>::EstimateText(UiSize szAvailable, bool& bReEstimateSize)
+UiSize LabelTemplate<InheritType>::EstimateText(UiSize /*szAvailable*/)
 {
     if (m_bSingleLine) {
         m_uTextStyle |= TEXT_SINGLELINE;
@@ -317,27 +317,13 @@ UiSize LabelTemplate<InheritType>::EstimateText(UiSize szAvailable, bool& bReEst
         if (pRender != nullptr) {
             UiRect rect = pRender->MeasureString(textValue, m_sFontId, m_uTextStyle, width);
             if (this->GetFixedWidth() == DUI_LENGTH_AUTO) {
-                fixedSize.cx = rect.right - rect.left + m_rcTextPadding.left + m_rcTextPadding.right;
+                fixedSize.cx = rect.GetWidth() + m_rcTextPadding.left + m_rcTextPadding.right;
             }
             if (this->GetFixedHeight() == DUI_LENGTH_AUTO) {
-                int estimateWidth = rect.right - rect.left;
-                int estimateHeight = rect.bottom - rect.top;
-
-                if (!m_bSingleLine && this->GetFixedWidth() == DUI_LENGTH_AUTO && this->GetMaxWidth() == DUI_LENGTH_STRETCH) {
-                    bReEstimateSize = true;
-                    int maxWidth = szAvailable.cx - m_rcTextPadding.left - m_rcTextPadding.right;
-                    if (estimateWidth > maxWidth) {
-                        estimateWidth = maxWidth;
-                        UiRect newRect = pRender->MeasureString(GetText(), m_sFontId, m_uTextStyle, estimateWidth);
-                        estimateHeight = newRect.bottom - newRect.top;
-                    }
-                }
-                fixedSize.cx = estimateWidth + m_rcTextPadding.left + m_rcTextPadding.right;
-                fixedSize.cy = estimateHeight + m_rcTextPadding.top + m_rcTextPadding.bottom;
+                fixedSize.cy = rect.GetHeight() + m_rcTextPadding.top + m_rcTextPadding.bottom;
             }
         }        
     }
-
     return fixedSize;
 }
 

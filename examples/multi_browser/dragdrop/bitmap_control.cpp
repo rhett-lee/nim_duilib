@@ -44,6 +44,7 @@ void BitmapControl::Paint(ui::IRender* pRender, const ui::UiRect& rcPaint)
 			render->DrawImage(UiRect(0, 0, bm.bmWidth, bm.bmHeight),
 				              bitmap.get(),
 				              UiRect(0, 0, bm.bmWidth, bm.bmHeight),
+				              UiRect(0, 0, 0, 0),
 				              UiRect(0, 0, bm.bmWidth, bm.bmHeight),
 				              UiRect(0, 0, 0, 0));
 		}

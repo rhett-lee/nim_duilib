@@ -267,6 +267,9 @@
     <ClCompile Include="Core\LangManager.cpp">
       <Filter>Core</Filter>
     </ClCompile>
+    <ClCompile Include="Utils\FileUtil.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -547,6 +550,9 @@
     </ClInclude>
     <ClInclude Include="Core\LangManager.h">
       <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\FileUtil.h">
+      <Filter>Utils</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

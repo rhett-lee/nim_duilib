@@ -148,9 +148,7 @@ public:
 	 */
 	void SetState(ControlStateType controlState);
 
-	/**
-	 * @brief 获取控件图片指针
-	 * @return 返回图片对象指针
+	/** 获取用于估算控件大小（宽和高）图片接口
 	 */
 	virtual Image* GetEstimateImage();
 
@@ -490,19 +488,18 @@ public:
 	 */
 	virtual void SetMargin(UiRect rcMargin, bool bNeedDpiScale);
 
-	/**
-	 * @brief 计算控件大小
-	 * @param[in] szAvailable 暂无意义
-	 * @return szAvailable 控件实际大小（如果设置了图片并设置 width 或 height 任意一项为 auto，将根据图片来计算最终大小）
+	/** 计算控件大小(宽和高)
+	    如果设置了图片并设置 width 或 height 任意一项为 auto，将根据图片来计算最终大小
+	 * @param[in] szAvailable 可用的大小
+	 * @return 控件估算大小
 	 */
 	virtual UiSize EstimateSize(UiSize szAvailable) override;
 
-	/**
-	 * @brief 待补充
-	 * @param[in] 待补充
-	 * @return 待补充
+	/** 计算文本区域大小（宽和高）
+	   @param[in] szAvailable 可用的大小
+	 * @return 控件估算大小
 	 */
-	virtual UiSize EstimateText(UiSize szAvailable, bool& bReEstimateSize);
+	virtual UiSize EstimateText(UiSize szAvailable);
 
 	/**
 	 * @brief 检查指定坐标是否在滚动条当前滚动位置的范围内
@@ -577,10 +574,10 @@ public:
 	 * @param[in] pMatrix 绘制图片时使用的变换矩阵
 	 * @return 成功返回 true，失败返回 false
 	 */
-	bool DrawImage(IRender* pRender, Image& duiImage,	               
-				   const std::wstring& strModify = L"",
-		           int nFade = DUI_NOSET_VALUE,
-		           IMatrix* pMatrix = nullptr);
+	bool PaintImage(IRender* pRender, Image& duiImage,
+				    const std::wstring& strModify = L"",
+		            int nFade = DUI_NOSET_VALUE,
+		            IMatrix* pMatrix = nullptr);
 
 	/**
 	* @brief 获取绘制上下文对象

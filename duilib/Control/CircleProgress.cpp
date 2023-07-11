@@ -136,7 +136,7 @@ void CircleProgress::PaintStatusImage(IRender* pRender)
 		imageRect.Offset(-GetRect().left, -GetRect().top);
 		std::wstring imageModify = StringHelper::Printf(L"destscale='false' dest='%d,%d,%d,%d'", 
 			imageRect.left, imageRect.top, imageRect.right, imageRect.bottom);
-		DrawImage(pRender, m_indicatorImage, imageModify, -1, spMatrix.get());
+		PaintImage(pRender, m_indicatorImage, imageModify, -1, spMatrix.get());
 	}
 }
 

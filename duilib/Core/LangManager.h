@@ -28,9 +28,9 @@ public:
 	bool LoadStringTable(const std::wstring& strFilePath);
 
 	/** 从内存中加载所有语言映射表
-	 * @param[in] hGlobal 要加载的语言映射表内存首地址
+	 * @param[in] fileData 要加载的语言映射表的数据
 	 */
-	bool LoadStringTable(const std::vector<unsigned char>& file_data);
+	bool LoadStringTable(const std::vector<uint8_t>& fileData);
 
 	/** 清理多语言资源
 	*/

@@ -71,7 +71,7 @@ private:
     * @param [in] nNewWidth 新的宽度
     * @param [in] nNewHeight 新的高度
     */
-    void ResizeImageData(std::vector<ImageData>& imageData, 
+    bool ResizeImageData(std::vector<ImageData>& imageData, 
                          uint32_t nNewWidth,
                          uint32_t nNewHeight);
 

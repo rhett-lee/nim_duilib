@@ -48,8 +48,8 @@ class UILIB_API VirtualTileLayout : public ui::TileLayout
 {
 public:
     VirtualTileLayout();
-    virtual ui::UiSize ArrangeChild(const std::vector<ui::Control*>& items, ui::UiRect rc) override;
-    virtual ui::UiSize AjustSizeByChild(const std::vector<ui::Control*>& items, ui::UiSize szAvailable) override;
+    virtual UiSize ArrangeChild(const std::vector<ui::Control*>& items, ui::UiRect rc) override;
+    virtual UiSize EstimateSizeByChild(const std::vector<ui::Control*>& items, ui::UiSize szAvailable) override;
     virtual bool SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
     virtual size_t GetElementsHeight(size_t nCount);
     virtual void LazyArrangeChild();

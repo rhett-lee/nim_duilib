@@ -62,6 +62,7 @@ namespace BitmapHelper {
             pRender->DrawImage(UiRect(0, 0, srcDcWidth, srcDcHeight),
                               bitmap.get(),
                               UiRect((srcRenderWidth - dest_width) / 2, 0, dest_width, dest_height),
+                              UiRect(0, 0, 0, 0),
                               UiRect(0, 0, srcDcWidth, srcDcHeight),
                               UiRect(0, 0, 0, 0));
         }
@@ -86,7 +87,7 @@ namespace BitmapHelper {
         }
         if (pRender->Resize((int)pBitmap->GetWidth(), (int)pBitmap->GetHeight())) {
             UiRect rect = { 0, 0, (int)pBitmap->GetWidth(), (int)pBitmap->GetHeight() };
-            pRender->DrawImage(rect, pBitmap, rect, rect, UiRect());
+            pRender->DrawImage(rect, pBitmap, rect, UiRect(), rect, UiRect());
         }        
         return pRender;
     }

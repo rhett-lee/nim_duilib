@@ -147,6 +147,24 @@ public:
 	void ModifyAttribute(const std::wstring& strImageString);
 
 public:
+	/** 判断rcDest区域是否含有有效值
+	* @param [in] rcDest 需要判断的区域
+	*/
+	static bool HasValidImageRect(const UiRect& rcDest);
+
+	/** 对图片的源区域、目标区域、圆角大小进行校验修正和DPI自适应
+	* @param [in] imageWidth 图片的宽度
+	* @param [in] imageHeight 图片的高度
+	* @param [in] bImageDpiScaled 图片是否做过DPI自适应操作
+	* @param [out] rcDestCorners 绘制目标区域的圆角信息，传出参数，内部根据rcImageCorners来设置，然后传出
+	* @param [in/out] rcSource 图片区域
+	* @param [in/out] rcSourceCorners 图片区域的圆角信息
+	*/
+	static void ScaleImageRect(uint32_t imageWidth, uint32_t imageHeight, bool bImageDpiScaled,
+		                       UiRect& rcDestCorners,
+		                       UiRect& rcSource, UiRect& rcSourceCorners);
+
+public:
 	//图片文件属性字符串
 	std::wstring sImageString;
 
@@ -224,15 +242,15 @@ public:
 	*/
 	std::wstring GetCacheKey() const;
 
-	/** 设置加载图片时，是否按照DPI缩放图片大小
+	/** 设置加载图片时，是否需要按照DPI缩放图片大小
 	*/
 	void SetNeedDpiScale(bool bNeedDpiScale);
 
-	/** 获取加载图片时，是否按照DPI缩放图片大小
+	/** 获取加载图片时，是否需要按照DPI缩放图片大小
 	*/
 	bool NeedDpiScale() const;
 
-	/** 获取加载图片时，是否设置了DPI自适应属性
+	/** 获取加载图片时，是否设置了DPI自适应属性（配置XML文件中，可以通过设置："file='test.png' dpiscale='false'"）
 	*/
 	bool HasSrcDpiScale() const;
 
@@ -440,7 +458,7 @@ public:
 	*/
 	bool PaintStateImage(IRender* pRender, ControlStateType stateType, const std::wstring& sImageModify = L"");
 
-	/** 获取用于估算的图片接口
+	/** 获取用于估算Control控件大小（宽和高）的图片接口
 	*/
 	Image* GetEstimateImage() ;
 
@@ -492,7 +510,7 @@ public:
 	*/
 	bool PaintStateImage(IRender* pRender, StateImageType stateImageType, ControlStateType stateType, const std::wstring& sImageModify = L"");
 	
-	/** 获取用于估算的图片接口
+	/** 获取用于估算Control控件大小（宽和高）的图片接口
 	*/
 	Image* GetEstimateImage(StateImageType stateImageType);
 

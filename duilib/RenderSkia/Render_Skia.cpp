@@ -453,22 +453,15 @@ bool Render_Skia::AlphaBlend(int xDest, int yDest, int widthDest, int heightDest
 	return false;
 }
 
-void Render_Skia::DrawImage(const UiRect& rcPaint,
-							   IBitmap* pBitmap, 						       
-						       const UiRect& rcImageDest, 
-							   UiRect rcImageSource, 
-						       UiRect rcImageCorners,
-						       bool bBitmapDpiScaled,
-						       uint8_t uFade,
-						       bool xtiled, 
-						       bool ytiled, 
-						       bool fullxtiled, 
-						       bool fullytiled, 
-						       int nTiledMargin)
+void Render_Skia::DrawImage(const UiRect& rcPaint, IBitmap* pBitmap,
+							const UiRect& rcDest, const UiRect& rcDestCorners,
+							const UiRect& rcSource, const UiRect& rcSourceCorners,
+							uint8_t uFade, bool xtiled, bool ytiled,
+							bool fullxtiled, bool fullytiled, int nTiledMargin)
 {
 	ASSERT((GetWidth() > 0) && (GetHeight() > 0));
 	UiRect rcTestTemp;
-	if (!::IntersectRect(&rcTestTemp, &rcImageDest, &rcPaint)) {
+	if (!::IntersectRect(&rcTestTemp, &rcDest, &rcPaint)) {
 		return;
 	}
 	PerformanceStat statPerformance(L"Render_Skia::DrawImage");
@@ -489,54 +482,10 @@ void Render_Skia::DrawImage(const UiRect& rcPaint,
 	const SkBitmap& skSrcBitmap = skiaBitmap->GetSkBitmap();
 	sk_sp<SkImage> skImage = skSrcBitmap.asImage();//这里是复制了一份位图数据的，有性能损耗
 
-	//对边角值进行容错处理
-	if ((rcImageCorners.left < 0)  ||
-		(rcImageCorners.top < 0)   ||
-		(rcImageCorners.right < 0) ||
-		(rcImageCorners.bottom < 0)) {
-		rcImageCorners.left = 0;
-		rcImageCorners.top = 0;
-		rcImageCorners.right = 0;
-		rcImageCorners.bottom = 0;
-	}
-
 	UiRect rcTemp;
-	UiRect rcSource;
-	UiRect rcDest;
-	UiRect rcDpiCorner = rcImageCorners;
-	GlobalManager::Instance().Dpi().ScaleRect(rcDpiCorner);
-	// 如果源位图已经按照DPI缩放过，那么对应的rcImageCorners也需要缩放
-	if (bBitmapDpiScaled) {
-		rcImageCorners = rcDpiCorner;
-	}
-	// 如果源位图已经按照DPI缩放过，那么对应的rcImageSource也需要缩放
-	if ((rcImageSource.left < 0)  ||
-		(rcImageSource.top < 0)   ||
-		(rcImageSource.right < 0) ||
-		(rcImageSource.bottom < 0)) {
-		//如果是无效值，则重置为整个图片大小
-		rcImageSource.left = 0;
-		rcImageSource.top = 0;
-		rcImageSource.right = pBitmap->GetWidth();
-		rcImageSource.bottom = pBitmap->GetHeight();
-	}
-	else if (bBitmapDpiScaled) {
-		//如果外部设置此值，做DPI自适应处理
-		GlobalManager::Instance().Dpi().ScaleRect(rcImageSource);
-	}
-	//图片源容错处理
-	if (rcImageSource.left < 0) {
-		rcImageSource.left = 0;
-	}
-	if (rcImageSource.top < 0) {
-		rcImageSource.top = 0;
-	}
-	if (rcImageSource.right > (LONG)pBitmap->GetWidth()) {
-		rcImageSource.right = pBitmap->GetWidth();
-	}
-	if (rcImageSource.bottom > (LONG)pBitmap->GetHeight()) {
-		rcImageSource.bottom = pBitmap->GetHeight();
-	}
+	UiRect rcDrawSource;
+	UiRect rcDrawDest;
+
 	bool bAlphaChannel = pBitmap->IsAlphaBitmap();
 
 	SkPaint skPaint = *m_pSkPaint;
@@ -548,261 +497,279 @@ void Render_Skia::DrawImage(const UiRect& rcPaint,
 	}
 
 	// middle
-	rcDest.left = rcImageDest.left + rcDpiCorner.left;
-	rcDest.top = rcImageDest.top + rcDpiCorner.top;
-	rcDest.right = rcImageDest.right - rcDpiCorner.right;
-	rcDest.bottom = rcImageDest.bottom - rcDpiCorner.bottom;
+	rcDrawDest.left = rcDest.left + rcDestCorners.left;
+	rcDrawDest.top = rcDest.top + rcDestCorners.top;
+	rcDrawDest.right = rcDest.right - rcDestCorners.right;
+	rcDrawDest.bottom = rcDest.bottom - rcDestCorners.bottom;
 
-	rcSource.left = rcImageSource.left + rcImageCorners.left;
-	rcSource.top = rcImageSource.top + rcImageCorners.top;
-	rcSource.right = rcImageSource.right - rcImageCorners.right;
-	rcSource.bottom = rcImageSource.bottom - rcImageCorners.bottom;
-	if (::IntersectRect(&rcTemp, &rcPaint, &rcDest)) {
+	rcDrawSource.left = rcSource.left + rcSourceCorners.left;
+	rcDrawSource.top = rcSource.top + rcSourceCorners.top;
+	rcDrawSource.right = rcSource.right - rcSourceCorners.right;
+	rcDrawSource.bottom = rcSource.bottom - rcSourceCorners.bottom;
+	if (::IntersectRect(&rcTemp, &rcPaint, &rcDrawDest)) {
 		if (!xtiled && !ytiled) {
-			DrawFunction(m_pSkCanvas, rcDest, *m_pSkPointOrg, skImage, rcSource, skPaint);
+			DrawFunction(m_pSkCanvas, rcDrawDest, *m_pSkPointOrg, skImage, rcDrawSource, skPaint);
 		}
 		else if (xtiled && ytiled) {
-			const LONG imageDrawWidth = rcImageSource.right - rcImageSource.left - rcImageCorners.left - rcImageCorners.right;
-			const LONG imageDrawHeight = rcImageSource.bottom - rcImageSource.top - rcImageCorners.top - rcImageCorners.bottom;
-			int iTimesX = (rcDest.right - rcDest.left) / (imageDrawWidth + nTiledMargin);
+			const LONG imageDrawWidth = rcSource.right - rcSource.left - rcSourceCorners.left - rcSourceCorners.right;
+			const LONG imageDrawHeight = rcSource.bottom - rcSource.top - rcSourceCorners.top - rcSourceCorners.bottom;
+			int iTimesX = (rcDrawDest.right - rcDrawDest.left) / (imageDrawWidth + nTiledMargin);
 			if (!fullxtiled) {
-				if ((rcDest.right - rcDest.left) % (imageDrawWidth + nTiledMargin) > 0) {
+				if ((rcDrawDest.right - rcDrawDest.left) % (imageDrawWidth + nTiledMargin) > 0) {
 					iTimesX += 1;
 				}
 			}
-			int iTimesY = (rcDest.bottom - rcDest.top) / (imageDrawHeight + nTiledMargin);
+			int iTimesY = (rcDrawDest.bottom - rcDrawDest.top) / (imageDrawHeight + nTiledMargin);
 			if (!fullytiled) {
-				if ((rcDest.bottom - rcDest.top) % (imageDrawHeight + nTiledMargin) > 0) {
+				if ((rcDrawDest.bottom - rcDrawDest.top) % (imageDrawHeight + nTiledMargin) > 0) {
 					iTimesY += 1;
 				}
 			}
 			for (int j = 0; j < iTimesY; ++j) {
-				LONG lDestTop = rcDest.top + j * imageDrawHeight + j * nTiledMargin;
+				LONG lDestTop = rcDrawDest.top + j * imageDrawHeight + j * nTiledMargin;
 				LONG lDestBottom = lDestTop + imageDrawHeight;
 				LONG lDrawHeight = imageDrawHeight;
-				if (lDestBottom > rcDest.bottom) {
-					lDrawHeight -= lDestBottom - rcDest.bottom;
-					lDestBottom = rcDest.bottom;
+				if (lDestBottom > rcDrawDest.bottom) {
+					lDrawHeight -= lDestBottom - rcDrawDest.bottom;
+					lDestBottom = rcDrawDest.bottom;
 				}
 				for (int i = 0; i < iTimesX; ++i) {
-					LONG lDestLeft = rcDest.left + i * imageDrawWidth + i * nTiledMargin;
+					LONG lDestLeft = rcDrawDest.left + i * imageDrawWidth + i * nTiledMargin;
 					LONG lDestRight = lDestLeft + imageDrawWidth;
 					LONG lDrawWidth = imageDrawWidth;
-					if (lDestRight > rcDest.right) {
-						lDrawWidth -= (lDestRight - rcDest.right);
-						lDestRight = rcDest.right;
+					if (lDestRight > rcDrawDest.right) {
+						lDrawWidth -= (lDestRight - rcDrawDest.right);
+						lDestRight = rcDrawDest.right;
 					}
 
-					rcSource.left = rcImageSource.left + rcImageCorners.left;
-					rcSource.top = rcImageSource.top + rcImageCorners.top;
-					rcSource.right = rcSource.left + lDrawWidth;
-					rcSource.bottom = rcSource.top + lDrawHeight;
+					rcDrawSource.left = rcSource.left + rcSourceCorners.left;
+					rcDrawSource.top = rcSource.top + rcSourceCorners.top;
+					rcDrawSource.right = rcDrawSource.left + lDrawWidth;
+					rcDrawSource.bottom = rcDrawSource.top + lDrawHeight;
 
 					UiRect rcDestTemp;
 					rcDestTemp.left = lDestLeft;
 					rcDestTemp.right = lDestRight;
 					rcDestTemp.top = lDestTop;
 					rcDestTemp.bottom = lDestBottom;
-					DrawFunction(m_pSkCanvas, rcDestTemp, *m_pSkPointOrg, skImage, rcSource, skPaint);
+					DrawFunction(m_pSkCanvas, rcDestTemp, *m_pSkPointOrg, skImage, rcDrawSource, skPaint);
 				}
 			}
 		}
 		else if (xtiled) { // supp
-			const LONG imageDrawWidth = rcImageSource.right - rcImageSource.left - rcImageCorners.left - rcImageCorners.right;
-			int iTimes = iTimes = (rcDest.right - rcDest.left) / (imageDrawWidth + nTiledMargin);
+			const LONG imageDrawWidth = rcSource.right - rcSource.left - rcSourceCorners.left - rcSourceCorners.right;
+			int iTimes = iTimes = (rcDrawDest.right - rcDrawDest.left) / (imageDrawWidth + nTiledMargin);
 			if (!fullxtiled) {
-				if ((rcDest.right - rcDest.left) % (imageDrawWidth + nTiledMargin) > 0) {
+				if ((rcDrawDest.right - rcDrawDest.left) % (imageDrawWidth + nTiledMargin) > 0) {
 					iTimes += 1;
 				}
 			}
 
 			for (int i = 0; i < iTimes; ++i) {
-				LONG lDestLeft = rcDest.left + i * imageDrawWidth + i * nTiledMargin;
+				LONG lDestLeft = rcDrawDest.left + i * imageDrawWidth + i * nTiledMargin;
 				LONG lDestRight = lDestLeft + imageDrawWidth;
 				LONG lDrawWidth = imageDrawWidth;
-				if (lDestRight > rcDest.right) {
-					lDrawWidth -= (lDestRight - rcDest.right);
-					lDestRight = rcDest.right;
+				if (lDestRight > rcDrawDest.right) {
+					lDrawWidth -= (lDestRight - rcDrawDest.right);
+					lDestRight = rcDrawDest.right;
 				}
 
 				//源区域：如果设置了边角，则仅包含中间区域
-				rcSource.left = rcImageSource.left + rcImageCorners.left;
-				rcSource.top = rcImageSource.top + rcImageCorners.top;
-				rcSource.right = rcSource.left + lDrawWidth;
-				rcSource.bottom = rcImageSource.bottom - rcImageCorners.bottom;
+				rcDrawSource.left = rcSource.left + rcSourceCorners.left;
+				rcDrawSource.top = rcSource.top + rcSourceCorners.top;
+				rcDrawSource.right = rcDrawSource.left + lDrawWidth;
+				rcDrawSource.bottom = rcSource.bottom - rcSourceCorners.bottom;
 
-				UiRect rcDestTemp = rcDest;
-				rcDestTemp.top = rcDest.top;
-				rcDestTemp.bottom = rcDest.top + rcSource.GetHeight();
+				UiRect rcDestTemp = rcDrawDest;
+				rcDestTemp.top = rcDrawDest.top;
+				rcDestTemp.bottom = rcDrawDest.top + rcDrawSource.GetHeight();
 				rcDestTemp.left = lDestLeft;
 				rcDestTemp.right = lDestRight;
 
-				DrawFunction(m_pSkCanvas, rcDestTemp, *m_pSkPointOrg, skImage, rcSource, skPaint);
+				DrawFunction(m_pSkCanvas, rcDestTemp, *m_pSkPointOrg, skImage, rcDrawSource, skPaint);
 			}
 		}
 		else { // ytiled
-			const LONG imageDrawHeight = rcImageSource.bottom - rcImageSource.top - rcImageCorners.top - rcImageCorners.bottom;
-			int iTimes = (rcDest.bottom - rcDest.top) / (imageDrawHeight + nTiledMargin);
+			const LONG imageDrawHeight = rcSource.bottom - rcSource.top - rcSourceCorners.top - rcSourceCorners.bottom;
+			int iTimes = (rcDrawDest.bottom - rcDrawDest.top) / (imageDrawHeight + nTiledMargin);
 			if (!fullytiled) {
-				if ((rcDest.bottom - rcDest.top) % (imageDrawHeight + nTiledMargin) > 0) {
+				if ((rcDrawDest.bottom - rcDrawDest.top) % (imageDrawHeight + nTiledMargin) > 0) {
 					iTimes += 1;
 				}
 			}
 
 			UiRect rcDestTemp;
-			rcDestTemp.left = rcDest.left;			
+			rcDestTemp.left = rcDrawDest.left;
 
 			for (int i = 0; i < iTimes; ++i) {
-				LONG lDestTop = rcDest.top + i * imageDrawHeight + i*nTiledMargin;
+				LONG lDestTop = rcDrawDest.top + i * imageDrawHeight + i * nTiledMargin;
 				LONG lDestBottom = lDestTop + imageDrawHeight;
 				LONG lDrawHeight = imageDrawHeight;
-				if (lDestBottom > rcDest.bottom) {
-					lDrawHeight -= lDestBottom - rcDest.bottom;
-					lDestBottom = rcDest.bottom;
+				if (lDestBottom > rcDrawDest.bottom) {
+					lDrawHeight -= lDestBottom - rcDrawDest.bottom;
+					lDestBottom = rcDrawDest.bottom;
 				}
 
-				rcSource.left = rcImageSource.left + rcImageCorners.left;
-				rcSource.top = rcImageSource.top + rcImageCorners.top;
-				rcSource.right = rcImageSource.right - rcImageCorners.right;
-				rcSource.bottom = rcSource.top + lDrawHeight;
+				rcDrawSource.left = rcSource.left + rcSourceCorners.left;
+				rcDrawSource.top = rcSource.top + rcSourceCorners.top;
+				rcDrawSource.right = rcSource.right - rcSourceCorners.right;
+				rcDrawSource.bottom = rcDrawSource.top + lDrawHeight;
 
-				rcDestTemp.right = rcDest.left + rcSource.GetWidth();
+				rcDestTemp.right = rcDrawDest.left + rcDrawSource.GetWidth();
 				rcDestTemp.top = lDestTop;
 				rcDestTemp.bottom = lDestBottom;
-				
-				DrawFunction(m_pSkCanvas, rcDestTemp, *m_pSkPointOrg, skImage, rcSource, skPaint);
+
+				DrawFunction(m_pSkCanvas, rcDestTemp, *m_pSkPointOrg, skImage, rcDrawSource, skPaint);
 			}
 		}
 	}
 
 	// left-top
-	if (rcImageCorners.left > 0 && rcImageCorners.top > 0) {
-		rcDest.left = rcImageDest.left;
-		rcDest.top = rcImageDest.top;
-		rcDest.right = rcImageDest.left + rcDpiCorner.left;
-		rcDest.bottom = rcImageDest.top + rcDpiCorner.top;
-		rcSource.left = rcImageSource.left;
-		rcSource.top = rcImageSource.top;
-		rcSource.right = rcImageSource.left + rcImageCorners.left;
-		rcSource.bottom = rcImageSource.top + rcImageCorners.top;
-		if (::IntersectRect(&rcTemp, &rcPaint, &rcDest)) {
-			DrawFunction(m_pSkCanvas, rcDest, *m_pSkPointOrg, skImage, rcSource, skPaint);
+	if (rcSourceCorners.left > 0 && rcSourceCorners.top > 0) {
+		rcDrawDest.left = rcDest.left;
+		rcDrawDest.top = rcDest.top;
+		rcDrawDest.right = rcDest.left + rcDestCorners.left;
+		rcDrawDest.bottom = rcDest.top + rcDestCorners.top;
+
+		rcDrawSource.left = rcSource.left;
+		rcDrawSource.top = rcSource.top;
+		rcDrawSource.right = rcSource.left + rcSourceCorners.left;
+		rcDrawSource.bottom = rcSource.top + rcSourceCorners.top;
+		if (::IntersectRect(&rcTemp, &rcPaint, &rcDrawDest)) {
+			DrawFunction(m_pSkCanvas, rcDrawDest, *m_pSkPointOrg, skImage, rcDrawSource, skPaint);
 		}
 	}
 	// top
-	if (rcImageCorners.top > 0) {
-		rcDest.left = rcImageDest.left + rcDpiCorner.left;
-		rcDest.top = rcImageDest.top;
-		rcDest.right = rcImageDest.right - rcDpiCorner.right;
-		rcDest.bottom = rcImageDest.top + rcDpiCorner.top;
-		rcSource.left = rcImageSource.left + rcImageCorners.left;
-		rcSource.top = rcImageSource.top;
-		rcSource.right = rcImageSource.right - rcImageCorners.right;
-		rcSource.bottom = rcImageSource.top + rcImageCorners.top;
-		if (::IntersectRect(&rcTemp, &rcPaint, &rcDest)) {
-			DrawFunction(m_pSkCanvas, rcDest, *m_pSkPointOrg, skImage, rcSource, skPaint);
+	if (rcSourceCorners.top > 0) {
+		rcDrawDest.left = rcDest.left + rcDestCorners.left;
+		rcDrawDest.top = rcDest.top;
+		rcDrawDest.right = rcDest.right - rcDestCorners.right;
+		rcDrawDest.bottom = rcDest.top + rcDestCorners.top;
+
+		rcDrawSource.left = rcSource.left + rcSourceCorners.left;
+		rcDrawSource.top = rcSource.top;
+		rcDrawSource.right = rcSource.right - rcSourceCorners.right;
+		rcDrawSource.bottom = rcSource.top + rcSourceCorners.top;
+		if (::IntersectRect(&rcTemp, &rcPaint, &rcDrawDest)) {
+			DrawFunction(m_pSkCanvas, rcDrawDest, *m_pSkPointOrg, skImage, rcDrawSource, skPaint);
 		}
 	}
 	// right-top
-	if (rcImageCorners.right > 0 && rcImageCorners.top > 0) {
-		rcDest.left = rcImageDest.right - rcDpiCorner.right;
-		rcDest.top = rcImageDest.top;
-		rcDest.right = rcImageDest.right;
-		rcDest.bottom = rcImageDest.top + rcDpiCorner.top;
-		rcSource.left = rcImageSource.right - rcImageCorners.right;
-		rcSource.top = rcImageSource.top;
-		rcSource.right = rcImageSource.right;
-		rcSource.bottom = rcImageSource.top + rcImageCorners.top;
-		if (::IntersectRect(&rcTemp, &rcPaint, &rcDest)) {
-			DrawFunction(m_pSkCanvas, rcDest, *m_pSkPointOrg, skImage, rcSource, skPaint);
+	if (rcSourceCorners.right > 0 && rcSourceCorners.top > 0) {
+		rcDrawDest.left = rcDest.right - rcDestCorners.right;
+		rcDrawDest.top = rcDest.top;
+		rcDrawDest.right = rcDest.right;
+		rcDrawDest.bottom = rcDest.top + rcDestCorners.top;
+
+		rcDrawSource.left = rcSource.right - rcSourceCorners.right;
+		rcDrawSource.top = rcSource.top;
+		rcDrawSource.right = rcSource.right;
+		rcDrawSource.bottom = rcSource.top + rcSourceCorners.top;
+		if (::IntersectRect(&rcTemp, &rcPaint, &rcDrawDest)) {
+			DrawFunction(m_pSkCanvas, rcDrawDest, *m_pSkPointOrg, skImage, rcDrawSource, skPaint);
 		}
 	}
 	// left
-	if (rcImageCorners.left > 0) {
-		rcDest.left = rcImageDest.left;
-		rcDest.top = rcImageDest.top + rcDpiCorner.top;
-		rcDest.right = rcImageDest.left + rcDpiCorner.left;
-		rcDest.bottom = rcImageDest.bottom - rcDpiCorner.bottom;
-		rcSource.left = rcImageSource.left;
-		rcSource.top = rcImageSource.top + rcImageCorners.top;
-		rcSource.right = rcImageSource.left + rcImageCorners.left;
-		rcSource.bottom = rcImageSource.bottom - rcImageCorners.bottom;
-		if (::IntersectRect(&rcTemp, &rcPaint, &rcDest)) {
-			DrawFunction(m_pSkCanvas, rcDest, *m_pSkPointOrg, skImage, rcSource, skPaint);
+	if (rcSourceCorners.left > 0) {
+		rcDrawDest.left = rcDest.left;
+		rcDrawDest.top = rcDest.top + rcDestCorners.top;
+		rcDrawDest.right = rcDest.left + rcDestCorners.left;
+		rcDrawDest.bottom = rcDest.bottom - rcDestCorners.bottom;
+
+		rcDrawSource.left = rcSource.left;
+		rcDrawSource.top = rcSource.top + rcSourceCorners.top;
+		rcDrawSource.right = rcSource.left + rcSourceCorners.left;
+		rcDrawSource.bottom = rcSource.bottom - rcSourceCorners.bottom;
+		if (::IntersectRect(&rcTemp, &rcPaint, &rcDrawDest)) {
+			DrawFunction(m_pSkCanvas, rcDrawDest, *m_pSkPointOrg, skImage, rcDrawSource, skPaint);
 		}
 	}
 	// right
-	if (rcImageCorners.right > 0) {
-		rcDest.left = rcImageDest.right - rcDpiCorner.right;
-		rcDest.top = rcImageDest.top + rcDpiCorner.top;
-		rcDest.right = rcImageDest.right;
-		rcDest.bottom = rcImageDest.bottom - rcDpiCorner.bottom;
-		rcSource.left = rcImageSource.right - rcImageCorners.right;
-		rcSource.top = rcImageSource.top + rcImageCorners.top;
-		rcSource.right = rcImageSource.right;
-		rcSource.bottom = rcImageSource.bottom - rcImageCorners.bottom;
-		if (::IntersectRect(&rcTemp, &rcPaint, &rcDest)) {
-			DrawFunction(m_pSkCanvas, rcDest, *m_pSkPointOrg, skImage, rcSource, skPaint);
+	if (rcSourceCorners.right > 0) {
+		rcDrawDest.left = rcDest.right - rcDestCorners.right;
+		rcDrawDest.top = rcDest.top + rcDestCorners.top;
+		rcDrawDest.right = rcDest.right;
+		rcDrawDest.bottom = rcDest.bottom - rcDestCorners.bottom;
+
+		rcDrawSource.left = rcSource.right - rcSourceCorners.right;
+		rcDrawSource.top = rcSource.top + rcSourceCorners.top;
+		rcDrawSource.right = rcSource.right;
+		rcDrawSource.bottom = rcSource.bottom - rcSourceCorners.bottom;
+		if (::IntersectRect(&rcTemp, &rcPaint, &rcDrawDest)) {
+			DrawFunction(m_pSkCanvas, rcDrawDest, *m_pSkPointOrg, skImage, rcDrawSource, skPaint);
 		}
 	}
 	// left-bottom
-	if (rcImageCorners.left > 0 && rcImageCorners.bottom > 0) {
-		rcDest.left = rcImageDest.left;
-		rcDest.top = rcImageDest.bottom - rcDpiCorner.bottom;
-		rcDest.right = rcImageDest.left + rcDpiCorner.left;
-		rcDest.bottom = rcImageDest.bottom;
-		rcSource.left = rcImageSource.left;
-		rcSource.top = rcImageSource.bottom - rcImageCorners.bottom;
-		rcSource.right = rcImageSource.left + rcImageCorners.left;
-		rcSource.bottom = rcImageSource.bottom;
-		if (::IntersectRect(&rcTemp, &rcPaint, &rcDest)) {
-			DrawFunction(m_pSkCanvas, rcDest, *m_pSkPointOrg, skImage, rcSource, skPaint);
+	if (rcSourceCorners.left > 0 && rcSourceCorners.bottom > 0) {
+		rcDrawDest.left = rcDest.left;
+		rcDrawDest.top = rcDest.bottom - rcDestCorners.bottom;
+		rcDrawDest.right = rcDest.left + rcDestCorners.left;
+		rcDrawDest.bottom = rcDest.bottom;
+
+		rcDrawSource.left = rcSource.left;
+		rcDrawSource.top = rcSource.bottom - rcSourceCorners.bottom;
+		rcDrawSource.right = rcSource.left + rcSourceCorners.left;
+		rcDrawSource.bottom = rcSource.bottom;
+		if (::IntersectRect(&rcTemp, &rcPaint, &rcDrawDest)) {
+			DrawFunction(m_pSkCanvas, rcDrawDest, *m_pSkPointOrg, skImage, rcDrawSource, skPaint);
 		}
 	}
 	// bottom
-	if (rcImageCorners.bottom > 0) {
-		rcDest.left = rcImageDest.left + rcDpiCorner.left;
-		rcDest.top = rcImageDest.bottom - rcDpiCorner.bottom;
-		rcDest.right = rcImageDest.right - rcDpiCorner.right;
-		rcDest.bottom = rcImageDest.bottom;
-		rcSource.left = rcImageSource.left + rcImageCorners.left;
-		rcSource.top = rcImageSource.bottom - rcImageCorners.bottom;
-		rcSource.right = rcImageSource.right - rcImageCorners.right;
-		rcSource.bottom = rcImageSource.bottom;
-		if (::IntersectRect(&rcTemp, &rcPaint, &rcDest)) {
-			DrawFunction(m_pSkCanvas, rcDest, *m_pSkPointOrg, skImage, rcSource, skPaint);
+	if (rcSourceCorners.bottom > 0) {
+		rcDrawDest.left = rcDest.left + rcDestCorners.left;
+		rcDrawDest.top = rcDest.bottom - rcDestCorners.bottom;
+		rcDrawDest.right = rcDest.right - rcDestCorners.right;
+		rcDrawDest.bottom = rcDest.bottom;
+
+		rcDrawSource.left = rcSource.left + rcSourceCorners.left;
+		rcDrawSource.top = rcSource.bottom - rcSourceCorners.bottom;
+		rcDrawSource.right = rcSource.right - rcSourceCorners.right;
+		rcDrawSource.bottom = rcSource.bottom;
+		if (::IntersectRect(&rcTemp, &rcPaint, &rcDrawDest)) {
+			DrawFunction(m_pSkCanvas, rcDrawDest, *m_pSkPointOrg, skImage, rcDrawSource, skPaint);
 		}
 	}
 	// right-bottom
-	if (rcImageCorners.right > 0 && rcImageCorners.bottom > 0) {
-		rcDest.left = rcImageDest.right - rcDpiCorner.right;
-		rcDest.top = rcImageDest.bottom - rcDpiCorner.bottom;
-		rcDest.right = rcImageDest.right;
-		rcDest.bottom = rcImageDest.bottom;
-		rcSource.left = rcImageSource.right - rcImageCorners.right;
-		rcSource.top = rcImageSource.bottom - rcImageCorners.bottom;
-		rcSource.right = rcImageSource.right;
-		rcSource.bottom = rcImageSource.bottom;
-		if (::IntersectRect(&rcTemp, &rcPaint, &rcDest)) {
-			DrawFunction(m_pSkCanvas, rcDest, *m_pSkPointOrg, skImage, rcSource, skPaint);
+	if (rcSourceCorners.right > 0 && rcSourceCorners.bottom > 0) {
+		rcDrawDest.left = rcDest.right - rcDestCorners.right;
+		rcDrawDest.top = rcDest.bottom - rcDestCorners.bottom;
+		rcDrawDest.right = rcDest.right;
+		rcDrawDest.bottom = rcDest.bottom;
+
+		rcDrawSource.left = rcSource.right - rcSourceCorners.right;
+		rcDrawSource.top = rcSource.bottom - rcSourceCorners.bottom;
+		rcDrawSource.right = rcSource.right;
+		rcDrawSource.bottom = rcSource.bottom;
+		if (::IntersectRect(&rcTemp, &rcPaint, &rcDrawDest)) {
+			DrawFunction(m_pSkCanvas, rcDrawDest, *m_pSkPointOrg, skImage, rcDrawSource, skPaint);
 		}
 	}
 }
 
-void Render_Skia::DrawImageRect(const UiRect& rcPaint,
-								IBitmap* pBitmap,
-								const UiRect& rcImageDest,
-								UiRect rcImageSource,
-								bool bBitmapDpiScaled,
-								uint8_t uFade,
-								IMatrix* pMatrix)
+void Render_Skia::DrawImage(const UiRect& rcPaint, IBitmap* pBitmap,
+							const UiRect& rcDest, const UiRect& rcSource,
+							uint8_t uFade, bool xtiled, bool ytiled,
+							bool fullxtiled, bool fullytiled, int nTiledMargin)
+{
+	UiRect rcDestCorners;
+	UiRect rcSourceCorners;
+	return DrawImage(rcPaint, pBitmap, 
+					 rcDest, rcDestCorners,
+				     rcSource, rcSourceCorners,
+					 uFade, xtiled, ytiled,
+		             fullxtiled, fullytiled, nTiledMargin);
+}
+
+void Render_Skia::DrawImageRect(const UiRect& rcPaint, IBitmap* pBitmap,
+						        const UiRect& rcDest, const UiRect& rcSource,
+						        uint8_t uFade, IMatrix* pMatrix)
 {
 	ASSERT((GetWidth() > 0) && (GetHeight() > 0));
 	if (pMatrix == nullptr) {
 		//仅在没有Matrix的情况下判断裁剪区域，
-		//因为有Matrix时，实际绘制区域并不是rcImageDest，而是变换过后的位置，需要调整判断方法
+		//因为有Matrix时，实际绘制区域并不是rcDest，而是变换过后的位置，需要调整判断方法
 		UiRect rcTestTemp;
-		if (!::IntersectRect(&rcTestTemp, &rcImageDest, &rcPaint)) {
+		if (!::IntersectRect(&rcTestTemp, &rcDest, &rcPaint)) {
 			return;
 		}
 	}
@@ -810,34 +777,6 @@ void Render_Skia::DrawImageRect(const UiRect& rcPaint,
 	ASSERT(pBitmap != nullptr);
 	if (pBitmap == nullptr) {
 		return;
-	}
-	// 如果源位图已经按照DPI缩放过，那么对应的rcImageSource也需要缩放
-	if ((rcImageSource.left < 0) ||
-		(rcImageSource.top < 0) ||
-		(rcImageSource.right < 0) ||
-		(rcImageSource.bottom < 0)) {
-		//如果是无效值，则重置为整个图片大小
-		rcImageSource.left = 0;
-		rcImageSource.top = 0;
-		rcImageSource.right = pBitmap->GetWidth();
-		rcImageSource.bottom = pBitmap->GetHeight();
-	}
-	else if (bBitmapDpiScaled) {
-		//如果外部设置此值，做DPI自适应处理
-		GlobalManager::Instance().Dpi().ScaleRect(rcImageSource);
-	}
-	//图片源容错处理
-	if (rcImageSource.left < 0) {
-		rcImageSource.left = 0;
-	}
-	if (rcImageSource.top < 0) {
-		rcImageSource.top = 0;
-	}
-	if (rcImageSource.right > (LONG)pBitmap->GetWidth()) {
-		rcImageSource.right = pBitmap->GetWidth();
-	}
-	if (rcImageSource.bottom > (LONG)pBitmap->GetHeight()) {
-		rcImageSource.bottom = pBitmap->GetHeight();
 	}
 
 	ASSERT(m_pSkCanvas != nullptr);
@@ -871,7 +810,7 @@ void Render_Skia::DrawImageRect(const UiRect& rcPaint,
 			isMatrixSet = true;
 		}
 	}
-	DrawFunction(m_pSkCanvas, rcImageDest, *m_pSkPointOrg, skImage, rcImageSource, skPaint);
+	DrawFunction(m_pSkCanvas, rcDest, *m_pSkPointOrg, skImage, rcSource, skPaint);
 	if (isMatrixSet) {
 		m_pSkCanvas->resetMatrix();
 	}

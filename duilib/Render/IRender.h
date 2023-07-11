@@ -496,10 +496,10 @@ public:
 	/** 绘制图片（采用九宫格方式绘制图片）
 	* @param [in] rcPaint 当前全部可绘制区域（用于避免非可绘制区域的绘制，以提高绘制性能）
 	* @param [in] pBitmap 用于绘制的位图接口
-	* @param [in] rcImageDest 绘制的目标区域
-	* @param [in] rcImageSource 绘制的源图片区域
-	* @param [in] rcImageCorners 绘制源图片的边角信息，用于九宫格绘制
-	* @param [in] bBitmapDpiScaled 位图尺寸是否已经做过DPI适应
+	* @param [in] rcDest 绘制的目标区域
+	* @param [in] rcDestCorners 绘制的目标区域的边角信息，用于九宫格绘制
+	* @param [in] rcSource 绘制的源图片区域
+	* @param [in] rcSourceCorners 绘制源图片的边角信息，用于九宫格绘制
 	* @param [in] uFade 透明度（0 - 255）
 	* @param [in] xtiled 横向平铺
 	* @param [in] ytiled 纵向平铺
@@ -507,35 +507,29 @@ public:
 	* @param [in] fullytiled 如果为true，纵向平铺绘制时，确保是完整绘制图片，该参数仅当ytiled为true时有效
 	* @param [in] nTiledMargin 平铺绘制时，图片的横向、纵向间隔，该参数仅当xtiled为true或者ytiled为true时有效
 	*/
-	virtual void DrawImage(const UiRect& rcPaint, 
-						   IBitmap* pBitmap, 
-						   const UiRect& rcImageDest, 
-						   UiRect rcImageSource, 
-						   UiRect rcImageCorners,
-						   bool bBitmapDpiScaled = false,
-						   uint8_t uFade = 255,
-						   bool xtiled = false, 
-						   bool ytiled = false, 
-						   bool fullxtiled = true, 
-						   bool fullytiled = true, 
-						   int nTiledMargin = 0) = 0;
+	virtual void DrawImage(const UiRect& rcPaint, IBitmap* pBitmap, 
+						   const UiRect& rcDest, const UiRect& rcDestCorners,
+						   const UiRect& rcSource, const UiRect& rcSourceCorners,
+						   uint8_t uFade = 255, bool xtiled = false, bool ytiled = false, 
+						   bool fullxtiled = true, bool fullytiled = true, int nTiledMargin = 0) = 0;
+	/** 绘制图片（采用九宫格方式绘制图片）, 无圆角参数
+	*/
+	virtual void DrawImage(const UiRect& rcPaint, IBitmap* pBitmap, 
+						   const UiRect& rcDest,  const UiRect& rcSource, 
+						   uint8_t uFade = 255, bool xtiled = false, bool ytiled = false, 
+						   bool fullxtiled = true, bool fullytiled = true, int nTiledMargin = 0) = 0;
 
 	/** 绘制图片
 	* @param [in] rcPaint 当前全部可绘制区域（用于避免非可绘制区域的绘制，以提高绘制性能）
 	* @param [in] pBitmap 用于绘制的位图接口
-	* @param [in] rcImageDest 绘制的目标区域
-	* @param [in] rcImageSource 绘制的源图片区域
-	* @param [in] bBitmapDpiScaled 位图尺寸是否已经做过DPI适应
+	* @param [in] rcDest 绘制的目标区域
+	* @param [in] rcSource 绘制的源图片区域
 	* @param [in] uFade 透明度（0 - 255）
 	* @param [in] pMatrix 绘制时的变换矩阵接口
 	*/
-	virtual void DrawImageRect(const UiRect& rcPaint, 
-						       IBitmap* pBitmap, 
-						       const UiRect& rcImageDest, 
-						       UiRect rcImageSource, 
-						       bool bBitmapDpiScaled = false,
-						       uint8_t uFade = 255,
-		                       IMatrix* pMatrix = nullptr) = 0;
+	virtual void DrawImageRect(const UiRect& rcPaint, IBitmap* pBitmap,
+						       const UiRect& rcDest, const UiRect& rcSource,
+						       uint8_t uFade = 255, IMatrix* pMatrix = nullptr) = 0;
 
 	/** 绘制直线
 	* @param [in] pt1 起始点坐标

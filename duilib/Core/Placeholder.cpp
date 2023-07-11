@@ -11,8 +11,8 @@ PlaceHolder::PlaceHolder() :
 	m_pWindow(nullptr),
 	m_sName(),
 	m_cxyFixed(DUI_LENGTH_STRETCH, DUI_LENGTH_STRETCH),
-	m_cxyMin(-1, -1),
-	m_cxyMax(9999999, 9999999),
+	m_cxyMin(0, 0),
+	m_cxyMax(INT32_MAX, INT32_MAX),
 	m_pParent(nullptr),
 	m_horAlignType(kHorAlignLeft),
 	m_verAlignType(kVerAlignTop),
@@ -137,6 +137,7 @@ void PlaceHolder::SetFixedHeight(int cy, bool bNeedDpiScale)
 
 void PlaceHolder::SetMinWidth(int cx)
 {
+	ASSERT(cx >= 0);
 	if (cx < 0) {
 		return;
 	}
@@ -155,10 +156,11 @@ void PlaceHolder::SetMinWidth(int cx)
 
 void PlaceHolder::SetMaxWidth(int cx)
 {
-	//可能是 DUI_LENGTH_AUTO 或者 DUI_LENGTH_STRETCH
-	if (cx > 0) {
-		GlobalManager::Instance().Dpi().ScaleInt(cx);
-	}	
+	ASSERT(cx >= 0);
+	if (cx < 0) {
+		return;
+	}
+	GlobalManager::Instance().Dpi().ScaleInt(cx);
 	if (m_cxyMax.cx == cx) {
 		return;
 	}
@@ -174,6 +176,7 @@ void PlaceHolder::SetMaxWidth(int cx)
 
 void PlaceHolder::SetMinHeight(int cy)
 {
+	ASSERT(cy >= 0);
 	if (cy < 0) {
 		return;
 	}
@@ -192,6 +195,10 @@ void PlaceHolder::SetMinHeight(int cy)
 
 void PlaceHolder::SetMaxHeight(int cy)
 {
+	ASSERT(cy >= 0);
+	if (cy < 0) {
+		return;
+	}
 	GlobalManager::Instance().Dpi().ScaleInt(cy);
 	if (m_cxyMax.cy == cy) {
 		return;

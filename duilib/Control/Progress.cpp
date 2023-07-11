@@ -208,7 +208,7 @@ void Progress::PaintStatusImage(IRender* pRender)
                     0);
             }
         }
-        DrawImage(pRender, m_progressImage, m_sProgressImageModify);
+		PaintImage(pRender, m_progressImage, m_sProgressImageModify);
 	}
 }
 

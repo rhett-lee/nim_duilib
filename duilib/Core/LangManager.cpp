@@ -1,5 +1,6 @@
 #include "LangManager.h"
 #include "duilib/Utils/StringUtil.h"
+#include "duilib/Utils/FileUtil.h"
 
 namespace ui 
 {
@@ -15,46 +16,30 @@ LangManager::~LangManager()
 bool LangManager::LoadStringTable(const std::wstring& strFilePath)
 {
 	m_stringTable.clear();
-	std::vector<unsigned char> file_data;
-	FILE* f = nullptr;
-	errno_t ret = ::_wfopen_s(&f, strFilePath.c_str(), L"rb");
-	if ((ret == 0) && (f != nullptr)) {
-		::fseek(f, 0, SEEK_END);
-		int fileSize = ::ftell(f);
-		::fseek(f, 0, SEEK_SET);
-		if (fileSize > 0) {
-			file_data.resize((size_t)fileSize);
-			size_t readLen = ::fread(file_data.data(), 1, file_data.size(), f);
-			ASSERT_UNUSED_VARIABLE(readLen == file_data.size());
-			if (readLen != file_data.size()) {
-				file_data.clear();
-			}
-		}
-		::fclose(f);
-		f = nullptr;
-	}
-	ASSERT(!file_data.empty());
-	if (file_data.empty()) {
+	std::vector<uint8_t> fileData;
+	FileUtil::ReadFileData(strFilePath, fileData);
+	ASSERT(!fileData.empty());
+	if (fileData.empty()) {
 		return false;
 	}
-	return LoadStringTable(file_data);
+	return LoadStringTable(fileData);
 }
 
-bool LangManager::LoadStringTable(const std::vector<unsigned char>& file_data)
+bool LangManager::LoadStringTable(const std::vector<uint8_t>& fileData)
 {
 	std::vector<std::wstring> string_list;
-	if (file_data.empty()) {
+	if (fileData.empty()) {
 		return false;
 	}
 	size_t bomSize = 0;
-	if ((file_data.size() >= 3)   && 
-		(file_data.at(0) == 0xEF) &&
-		(file_data.at(1) == 0xBB) &&
-		(file_data.at(2) == 0xBF) ) {
+	if ((fileData.size() >= 3)   &&
+		(fileData.at(0) == 0xEF) &&
+		(fileData.at(1) == 0xBB) &&
+		(fileData.at(2) == 0xBF) ) {
 		//Ìø¹ýUTF8µÄBOMÍ·
 		bomSize = 3;
 	}
-	std::string fragment((const char*)file_data.data() + bomSize, file_data.size() - bomSize);
+	std::string fragment((const char*)fileData.data() + bomSize, fileData.size() - bomSize);
 	StringHelper::ReplaceAll("\r\n", "\n", fragment);
 	StringHelper::ReplaceAll("\r", "\n", fragment);
 	fragment.append("\n");

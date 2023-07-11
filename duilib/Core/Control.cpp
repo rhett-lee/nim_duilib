@@ -202,19 +202,6 @@ void Control::SetState(ControlStateType controlState)
 	Invalidate();
 }
 
-Image* Control::GetEstimateImage()
-{
-	Image* estimateImage = nullptr;
-	if (!m_bkImage->GetImagePath().empty()) {
-		estimateImage = m_bkImage.get();
-	}
-	else {
-		estimateImage = m_imageMap->GetEstimateImage(kStateImageBk);
-	}
-
-	return estimateImage;
-}
-
 const std::wstring& Control::GetBorderColor() const
 {
     return m_strBorderColor;
@@ -609,8 +596,14 @@ UiRect Control::GetMargin() const
 
 void Control::SetMargin(UiRect rcMargin, bool bNeedDpiScale)
 {
-	if (bNeedDpiScale)
+	rcMargin.left = std::max((int)rcMargin.left, 0);
+	rcMargin.right = std::max((int)rcMargin.right, 0);
+	rcMargin.top = std::max((int)rcMargin.top, 0);
+	rcMargin.bottom = std::max((int)rcMargin.bottom, 0);
+
+	if (bNeedDpiScale) {
 		GlobalManager::Instance().Dpi().ScaleRect(rcMargin);
+	}
 
 	if (!m_rcMargin.Equal(rcMargin)) {
 		m_rcMargin = rcMargin;
@@ -621,60 +614,101 @@ void Control::SetMargin(UiRect rcMargin, bool bNeedDpiScale)
 UiSize Control::EstimateSize(UiSize szAvailable)
 {
 	UiSize imageSize = GetFixedSize();
-	if (GetFixedWidth() == DUI_LENGTH_AUTO || GetFixedHeight() == DUI_LENGTH_AUTO) {
-		if (!IsReEstimateSize()) {
-			return GetEstimateSize();
-		}
-		Image* image = GetEstimateImage();
-		if (image != nullptr) {
-			auto imageAttribute = image->GetImageAttribute();
-			if ((imageAttribute.rcSource.left != DUI_NOSET_VALUE)  && 
-				(imageAttribute.rcSource.top != DUI_NOSET_VALUE)   && 
-				(imageAttribute.rcSource.right != DUI_NOSET_VALUE) &&
-				(imageAttribute.rcSource.bottom != DUI_NOSET_VALUE)) {
-				if ((GetFixedWidth() != imageAttribute.rcSource.GetWidth())) {
-					SetFixedWidth(imageAttribute.rcSource.GetWidth(), true, true);
-				}
-				if ((GetFixedHeight() != imageAttribute.rcSource.GetHeight())) {
-					SetFixedHeight(imageAttribute.rcSource.GetHeight(), true);
-				}
-				//TODO: 检查DPI自适应情况下，是否正确
-				return GetFixedSize();
-			}
-
-			LoadImageData(*image);
-			std::shared_ptr<ImageInfo> imageCache = image->GetImageCache();
-			if (imageCache) {
-				if (GetFixedWidth() == DUI_LENGTH_AUTO) {
-					int image_width = imageCache->GetWidth();
-					imageSize.cx = image_width;
-				}
-				if (GetFixedHeight() == DUI_LENGTH_AUTO) {
-					int image_height = imageCache->GetHeight();
-					imageSize.cy = image_height;
-				}
-			}
-		}
-		//TODO：检查逻辑正确性
-		SetReEstimateSize(false);
-		bool bReEstimateSize = IsReEstimateSize();
-		UiSize textSize = EstimateText(szAvailable, bReEstimateSize);
-		SetReEstimateSize(bReEstimateSize);
-		if (GetFixedWidth() == DUI_LENGTH_AUTO && imageSize.cx < textSize.cx) {
-			imageSize.cx = textSize.cx;
-		}
-		if (GetFixedHeight() == DUI_LENGTH_AUTO && imageSize.cy < textSize.cy) {
-			imageSize.cy = textSize.cy;
-		}
-		SetEstimateSize(imageSize);
+	if ((GetFixedWidth() != DUI_LENGTH_AUTO) && (GetFixedHeight() != DUI_LENGTH_AUTO)) {
+		//如果宽高都不是auto属性，则直接返回
+		return imageSize;
+	}
+	if (!IsReEstimateSize()) {
+		//使用缓存中的估算结果
+		return GetEstimateSize();
 	}
 
+	//估算图片区域大小
+	Image* image = GetEstimateImage();
+	if (image != nullptr) {
+		//加载图片：需要获取图片的宽和高
+		LoadImageData(*image);
+		std::shared_ptr<ImageInfo> imageCache = image->GetImageCache();
+		if (imageCache != nullptr) {
+			ImageAttribute imageAttribute = image->GetImageAttribute();
+			UiRect rcDest;
+			if (ImageAttribute::HasValidImageRect(imageAttribute.rcDest)) {
+				//使用配置中指定的目标区域
+				rcDest = imageAttribute.rcDest;
+			}
+			UiRect rcDestCorners;
+			UiRect rcSource = imageAttribute.rcSource;
+			UiRect rcSourceCorners = imageAttribute.rcCorner;
+			ImageAttribute::ScaleImageRect(imageCache->GetWidth(), imageCache->GetHeight(),
+										   imageCache->IsBitmapSizeDpiScaled(),
+										   rcDestCorners,
+										   rcSource,
+										   rcSourceCorners);
+			if (GetFixedWidth() == DUI_LENGTH_AUTO) {
+				if (rcDest.GetWidth() > 0) {
+					imageSize.cx = rcDest.GetWidth();
+				}
+				else if (rcSource.GetWidth() > 0) {
+					imageSize.cx = rcSource.GetWidth();
+				}
+				else {
+					imageSize.cx = imageCache->GetWidth();
+				}
+			}
+			if (GetFixedHeight() == DUI_LENGTH_AUTO) {
+				if (rcDest.GetHeight() > 0) {
+					imageSize.cy = rcDest.GetHeight();
+				}
+				else if (rcSource.GetHeight() > 0) {
+					imageSize.cy = rcSource.GetHeight();
+				}
+				else {
+					imageSize.cy = imageCache->GetHeight();
+				}
+			}
+		}
+	}
+	//估算文本区域大小
+	UiSize textSize = EstimateText(szAvailable);
+
+	//选取图片和文本区域大小的最大值
+	if ((GetFixedWidth() == DUI_LENGTH_AUTO) && (imageSize.cx < textSize.cx)) {
+		imageSize.cx = textSize.cx;
+	}
+	if ((GetFixedHeight() == DUI_LENGTH_AUTO) && (imageSize.cy < textSize.cy)) {
+		imageSize.cy = textSize.cy;
+	}
+
+	//对估算结果进行有效性校验
+	ASSERT(DUI_LENGTH_AUTO == -2);
+	ASSERT(DUI_LENGTH_STRETCH == -1);
+	if (imageSize.cx <= DUI_LENGTH_AUTO) {
+		imageSize.cx = 0;
+	}
+	if (imageSize.cy <= DUI_LENGTH_AUTO) {
+		imageSize.cy = 0;
+	}
+	//保持结果到缓存，避免每次都重新估算
+	SetEstimateSize(imageSize);
+	SetReEstimateSize(false);
 	return imageSize;
 }
 
-UiSize Control::EstimateText(UiSize /*szAvailable*/, bool& /*bReEstimateSize*/)
+Image* Control::GetEstimateImage()
 {
-	return UiSize();
+	Image* estimateImage = nullptr;
+	if (!m_bkImage->GetImagePath().empty()) {
+		estimateImage = m_bkImage.get();
+	}
+	else {
+		estimateImage = m_imageMap->GetEstimateImage(kStateImageBk);
+	}
+	return estimateImage;
+}
+
+UiSize Control::EstimateText(UiSize /*szAvailable*/)
+{
+	return UiSize(0, 0);
 }
 
 bool Control::IsPointInWithScrollOffset(const UiPoint& point) const
@@ -972,30 +1006,6 @@ void Control::SetAttribute(const std::wstring& strName, const std::wstring& strV
 			SetFixedHeight(_ttoi(strValue.c_str()), true);
 		}
 	}
-	else if( strName == _T("maxwidth") ) {
-		if ( strValue == _T("stretch") ) {
-			SetMaxWidth(DUI_LENGTH_STRETCH);
-		}
-		else if ( strValue == _T("auto") ) {
-			SetMaxWidth(DUI_LENGTH_AUTO);
-		}
-		else {
-			ASSERT(_ttoi(strValue.c_str()) >= 0);
-			SetMaxWidth(_ttoi(strValue.c_str()));
-		}
-	}
-	else if( strName == _T("maxheight") ) {
-		if ( strValue == _T("stretch") ) {
-			SetMaxHeight(DUI_LENGTH_STRETCH);
-		}
-		else if ( strValue == _T("auto") ) {
-			SetMaxHeight(DUI_LENGTH_AUTO);
-		}
-		else {
-			ASSERT(_ttoi(strValue.c_str()) >= 0);
-			SetMaxHeight(_ttoi(strValue.c_str()));
-		}
-	}
 	else if( strName == _T("state") ) {
 		if( strValue == _T("normal") ) SetState(kControlStateNormal);
 		else if( strValue == _T("hot") ) SetState(kControlStateHot);
@@ -1037,7 +1047,9 @@ void Control::SetAttribute(const std::wstring& strName, const std::wstring& strV
 	else if (strName == _T("bottombordersize")) SetBottomBorderSize(_ttoi(strValue.c_str()));
 	else if (strName == _T("bkimage")) SetBkImage(strValue);
 	else if (strName == _T("minwidth")) SetMinWidth(_ttoi(strValue.c_str()));
+	else if (strName == _T("maxwidth")) SetMaxWidth(_ttoi(strValue.c_str()));
 	else if (strName == _T("minheight")) SetMinHeight(_ttoi(strValue.c_str()));
+	else if (strName == _T("maxheight")) SetMaxHeight(_ttoi(strValue.c_str()));
 	else if (strName == _T("name")) SetName(strValue);
 	else if (strName == _T("tooltiptext")) SetToolTipText(strValue);
 	else if (strName == _T("tooltiptextid")) SetToolTipTextId(strValue);
@@ -1144,7 +1156,7 @@ bool Control::OnApplyAttributeList(const std::wstring& strReceiver, const std::w
 	return true;
 }
 
-bool Control::DrawImage(IRender* pRender,  Image& duiImage, 	                           
+bool Control::PaintImage(IRender* pRender,  Image& duiImage,
 					    const std::wstring& strModify, int nFade, IMatrix* pMatrix)
 {
 	//注解：strModify参数，目前外部传入的主要是："destscale='false' dest='%d,%d,%d,%d'"
@@ -1160,25 +1172,13 @@ bool Control::DrawImage(IRender* pRender,  Image& duiImage,
 	std::shared_ptr<ImageInfo> imageInfo = duiImage.GetImageCache();
 	ASSERT(imageInfo != nullptr);
 	if (imageInfo == nullptr) {
-		duiImage.InitImageAttribute();
 		return false;
 	}
 
-	ImageAttribute newImageAttribute = duiImage.GetImageAttribute();
-	if (!strModify.empty()) {
-		newImageAttribute.ModifyAttribute(strModify);
-	}
-	UiRect rcNewDest = GetRect();
-	if ((newImageAttribute.rcDest.left != DUI_NOSET_VALUE)   && 
-		(newImageAttribute.rcDest.top != DUI_NOSET_VALUE)    && 
-		(newImageAttribute.rcDest.right != DUI_NOSET_VALUE)  && 
-		(newImageAttribute.rcDest.bottom != DUI_NOSET_VALUE)) {
-		rcNewDest = newImageAttribute.rcDest;
-		rcNewDest.Offset(GetRect().left, GetRect().top);
-	}
-	
 	bool isPlayingGif = false;
-	if (m_bkImage->GetImageCache() && m_bkImage->GetImageCache()->IsMultiFrameImage() && m_bGifPlay && !m_bkImage->IsPlaying()) {
+	if (m_bGifPlay && !m_bkImage->IsPlaying()   &&
+		(m_bkImage->GetImageCache() != nullptr) &&
+		m_bkImage->GetImageCache()->IsMultiFrameImage()) {
 		isPlayingGif = GifPlay();
 	}
 	if (isPlayingGif) {
@@ -1186,6 +1186,34 @@ bool Control::DrawImage(IRender* pRender,  Image& duiImage,
 		return true;
 	}
 
+	IBitmap* pBitmap = duiImage.GetCurrentBitmap();
+	ASSERT(pBitmap != nullptr);
+	if (pBitmap == nullptr) {
+		return false;
+	}
+
+	ImageAttribute newImageAttribute = duiImage.GetImageAttribute();
+	if (!strModify.empty()) {
+		newImageAttribute.ModifyAttribute(strModify);
+	}
+	UiRect rcDest = GetRect();
+	if (ImageAttribute::HasValidImageRect(newImageAttribute.rcDest)) {
+		//使用配置中指定的目标区域
+		if ((newImageAttribute.rcDest.GetWidth() <= rcDest.GetWidth()) &&
+			(newImageAttribute.rcDest.GetHeight() <= rcDest.GetHeight())) {
+			rcDest = newImageAttribute.rcDest;
+			rcDest.Offset(GetRect().left, GetRect().top);
+		}
+	}
+	UiRect rcDestCorners;
+	UiRect rcSource = newImageAttribute.rcSource;
+	UiRect rcSourceCorners = newImageAttribute.rcCorner;
+	ImageAttribute::ScaleImageRect(pBitmap->GetWidth(), pBitmap->GetHeight(), 
+								   imageInfo->IsBitmapSizeDpiScaled(),
+		                           rcDestCorners,
+		                           rcSource,
+		                           rcSourceCorners);
+	
 	//图片透明度属性
 	uint8_t iFade = (nFade == DUI_NOSET_VALUE) ? newImageAttribute.bFade : static_cast<uint8_t>(nFade);
 	if (pMatrix != nullptr) {
@@ -1193,26 +1221,12 @@ bool Control::DrawImage(IRender* pRender,  Image& duiImage,
 		ASSERT(newImageAttribute.rcCorner.IsRectEmpty());
 		ASSERT(!newImageAttribute.bTiledX);
 		ASSERT(!newImageAttribute.bTiledY);
-		pRender->DrawImageRect(m_rcPaint, 
-							   duiImage.GetCurrentBitmap(),
-							   rcNewDest, 
-							   newImageAttribute.rcSource, 
-							   imageInfo->IsBitmapSizeDpiScaled(), 
-							   iFade,
-							   pMatrix);
+		pRender->DrawImageRect(m_rcPaint, pBitmap, rcDest, rcSource, iFade, pMatrix);
 	}
 	else{
-		pRender->DrawImage(m_rcPaint, 
-						   duiImage.GetCurrentBitmap(),
-						   rcNewDest, 
-						   newImageAttribute.rcSource, 
-						   newImageAttribute.rcCorner, 
-						   imageInfo->IsBitmapSizeDpiScaled(), 
-						   iFade,
-						   newImageAttribute.bTiledX, 
-						   newImageAttribute.bTiledY, 
-						   newImageAttribute.bFullTiledX, 
-						   newImageAttribute.bFullTiledY,
+		pRender->DrawImage(m_rcPaint, pBitmap, rcDest, rcDestCorners, rcSource, rcSourceCorners,
+						   iFade, newImageAttribute.bTiledX, newImageAttribute.bTiledY, 
+						   newImageAttribute.bFullTiledX, newImageAttribute.bFullTiledY,
 						   newImageAttribute.nTiledMargin);
 	}
 	return true;
@@ -1669,7 +1683,7 @@ void Control::FillRoundRect(IRender* pRender, const UiRect& rc, const UiSize& ro
 
 void Control::PaintBkImage(IRender* pRender)
 {
-	DrawImage(pRender, *m_bkImage);
+	PaintImage(pRender, *m_bkImage);
 }
 
 void Control::PaintStatusColor(IRender* pRender)
@@ -1749,7 +1763,7 @@ void Control::PaintLoading(IRender* pRender)
 	
 	//绘制时需要设置裁剪区域，避免绘制超出范围（因为旋转图片后，图片区域会超出显示区域）
 	AutoClip autoClip(pRender, imageDestRect, true);
-	DrawImage(pRender, *m_loadingImage, modify, -1, spMatrix.get());
+	PaintImage(pRender, *m_loadingImage, modify, -1, spMatrix.get());
 }
 
 void Control::SetAlpha(int alpha)
@@ -1941,7 +1955,8 @@ bool Control::LoadImageData(Image& duiImage) const
 	ImageLoadAttribute imageLoadAttr = duiImage.GetImageLoadAttribute();
 	imageLoadAttr.SetImageFullPath(imageFullPath);
 	std::shared_ptr<ImageInfo> imageCache = duiImage.GetImageCache();
-	if ((imageCache == nullptr) || (imageCache->GetCacheKey() != imageLoadAttr.GetCacheKey())) {
+	if ((imageCache == nullptr) || 
+		(imageCache->GetCacheKey() != imageLoadAttr.GetCacheKey())) {
 		//如果图片没有加载则执行加载图片；如果图片发生变化，则重新加载该图片
 		imageCache = GlobalManager::Instance().Image().GetImage(imageLoadAttr);
 		duiImage.SetImageCache(imageCache);

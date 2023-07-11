@@ -551,7 +551,7 @@ ui::UiSize PopoverRoot::EstimateSize(ui::UiSize szAvailable)
     maxSize.cx -= paddingRect.left + paddingRect.right;
     maxSize.cx -= marginRect.left + marginRect.right;
 
-    ui::UiSize sizeRoot = GetLayout()->AjustSizeByChild(m_items, maxSize);
+    ui::UiSize sizeRoot = GetLayout()->EstimateSizeByChild(m_items, maxSize);
 
     fixedSize.cx = sizeRoot.cx;
     fixedSize.cy = sizeRoot.cy;
@@ -661,7 +661,7 @@ ui::UiSize Popover::EstimateSize(ui::UiSize /*szAvailable*/)
     ui::UiSize maxSize{ 0,0 };
     maxSize.cx = GetMaxWidth();
     maxSize.cx -= paddingRect.left + paddingRect.right;
-    ui::UiSize sizeRoot = GetLayout()->AjustSizeByChild({ m_pPopoverRoot }, maxSize);
+    ui::UiSize sizeRoot = GetLayout()->EstimateSizeByChild({ m_pPopoverRoot }, maxSize);
 
     fixedSize.cx = sizeRoot.cx;
     fixedSize.cy = sizeRoot.cy;

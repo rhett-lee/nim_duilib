@@ -58,26 +58,18 @@ public:
 	virtual bool StretchBlt(int xDest, int yDest, int widthDest, int heightDest, IRender* pSrcRender, int xSrc, int ySrc, int widthSrc, int heightSrc, RopMode rop) override;
 	virtual bool AlphaBlend(int xDest, int yDest, int widthDest, int heightDest, IRender* pSrcRender, int xSrc, int ySrc, int widthSrc, int heightSrc, uint8_t alpha = 255) override;
 
-	virtual void DrawImage(const UiRect& rcPaint, 
-						   IBitmap* pBitmap, 
-						   const UiRect& rcImageDest, 
-						   UiRect rcImageSource, 
-						   UiRect rcImageCorners,
-						   bool bBitmapDpiScaled = false,
-						   uint8_t uFade = 255,
-						   bool xtiled = false, 
-						   bool ytiled = false, 
-						   bool fullxtiled = true, 
-						   bool fullytiled = true, 
-						   int nTiledMargin = 0) override;
-
-	virtual void DrawImageRect(const UiRect& rcPaint, 
-						       IBitmap* pBitmap, 
-						       const UiRect& rcImageDest, 
-						       UiRect rcImageSource, 
-						       bool bBitmapDpiScaled = false,
-						       uint8_t uFade = 255,
-		                       IMatrix* pMatrix = nullptr) override;
+	virtual void DrawImage(const UiRect& rcPaint, IBitmap* pBitmap, 
+						   const UiRect& rcDest, const UiRect& rcDestCorners,
+						   const UiRect& rcSource, const UiRect& rcSourceCorners,
+						   uint8_t uFade = 255, bool xtiled = false, bool ytiled = false, 
+						   bool fullxtiled = true,  bool fullytiled = true, int nTiledMargin = 0) override;
+	virtual void DrawImage(const UiRect& rcPaint, IBitmap* pBitmap, 
+						   const UiRect& rcDest,  const UiRect& rcSource, 
+						   uint8_t uFade = 255, bool xtiled = false, bool ytiled = false, 
+						   bool fullxtiled = true, bool fullytiled = true, int nTiledMargin = 0) override;
+	virtual void DrawImageRect(const UiRect& rcPaint, IBitmap* pBitmap,
+						       const UiRect& rcDest, const UiRect& rcSource,
+						       uint8_t uFade = 255, IMatrix* pMatrix = nullptr);
 
 	virtual void DrawLine(const UiPoint& pt1, const UiPoint& pt2, UiColor penColor, int nWidth) override;
 

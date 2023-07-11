@@ -60,7 +60,7 @@ public:
 	 * @param[in] szAvailable 子控件允许的最大宽度
 	 * @return 返回排列后最终盒子的宽度和高度信息
 	 */
-	virtual UiSize AjustSizeByChild(const std::vector<Control*>& items, UiSize szAvailable);
+	virtual UiSize EstimateSizeByChild(const std::vector<Control*>& items, UiSize szAvailable);
 
 	/**
 	 * @brief 获取内边距

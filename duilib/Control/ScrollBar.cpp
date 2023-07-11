@@ -895,25 +895,25 @@ void ScrollBar::PaintButton1(IRender* pRender)
 		m_rcButton1.top - GetRect().top, m_rcButton1.right - GetRect().left, m_rcButton1.bottom - GetRect().top);
 
 	if (m_uButton1State == kControlStateDisabled) {
-		if (DrawImage(pRender, (*m_button1StateImage).GetStateImage(kControlStateDisabled), m_sImageModify)) {
+		if (PaintImage(pRender, (*m_button1StateImage).GetStateImage(kControlStateDisabled), m_sImageModify)) {
 			return;
 		}
 	}
 	else if (m_uButton1State == kControlStatePushed) {
-		if (DrawImage(pRender, (*m_button1StateImage).GetStateImage(kControlStatePushed), m_sImageModify)) {
+		if (PaintImage(pRender, (*m_button1StateImage).GetStateImage(kControlStatePushed), m_sImageModify)) {
 			return;
 		}
-		else if (DrawImage(pRender, (*m_button1StateImage).GetStateImage(kControlStateHot), m_sImageModify)) {
+		else if (PaintImage(pRender, (*m_button1StateImage).GetStateImage(kControlStateHot), m_sImageModify)) {
 			return;
 		}
 	}
 	else if (m_uButton1State == kControlStateHot || m_uThumbState == kControlStatePushed) {
-		if (DrawImage(pRender, (*m_button1StateImage).GetStateImage(kControlStateHot), m_sImageModify)) {
+		if (PaintImage(pRender, (*m_button1StateImage).GetStateImage(kControlStateHot), m_sImageModify)) {
 			return;
 		}
 	}
 	//如果各个状态绘制失败，默认绘制Normal状态的图片
-	DrawImage(pRender, (*m_button1StateImage).GetStateImage(kControlStateNormal), m_sImageModify);
+	PaintImage(pRender, (*m_button1StateImage).GetStateImage(kControlStateNormal), m_sImageModify);
 }
 
 void ScrollBar::PaintButton2(IRender* pRender)
@@ -926,24 +926,24 @@ void ScrollBar::PaintButton2(IRender* pRender)
 		m_rcButton2.top - GetRect().top, m_rcButton2.right - GetRect().left, m_rcButton2.bottom - GetRect().top);
 
 	if (m_uButton2State == kControlStateDisabled) {
-		if (DrawImage(pRender, (*m_button2StateImage).GetStateImage(kControlStateDisabled), m_sImageModify)) {
+		if (PaintImage(pRender, (*m_button2StateImage).GetStateImage(kControlStateDisabled), m_sImageModify)) {
 			return;
 		}
 	}
 	else if (m_uButton2State == kControlStatePushed) {
-		if (DrawImage(pRender, (*m_button2StateImage).GetStateImage(kControlStatePushed), m_sImageModify)) {
-			if (DrawImage(pRender, (*m_button2StateImage).GetStateImage(kControlStateHot), m_sImageModify)) {
+		if (PaintImage(pRender, (*m_button2StateImage).GetStateImage(kControlStatePushed), m_sImageModify)) {
+			if (PaintImage(pRender, (*m_button2StateImage).GetStateImage(kControlStateHot), m_sImageModify)) {
 				return;
 			}
 		}
 	}
 	else if (m_uButton2State == kControlStateHot || m_uThumbState == kControlStatePushed) {
-		if (DrawImage(pRender, (*m_button2StateImage).GetStateImage(kControlStateHot), m_sImageModify)) {
+		if (PaintImage(pRender, (*m_button2StateImage).GetStateImage(kControlStateHot), m_sImageModify)) {
 			return;
 		}
 	}
 	//如果各个状态绘制失败，默认绘制Normal状态的图片
-	DrawImage(pRender, (*m_button2StateImage).GetStateImage(kControlStateNormal), m_sImageModify);
+	PaintImage(pRender, (*m_button2StateImage).GetStateImage(kControlStateNormal), m_sImageModify);
 }
 
 void ScrollBar::PaintThumb(IRender* pRender)
@@ -983,24 +983,24 @@ void ScrollBar::PaintRail(IRender* pRender)
 	}
 
 	if (m_uThumbState == kControlStateDisabled) {
-		if (DrawImage(pRender, (*m_railStateImage).GetStateImage(kControlStateDisabled), m_sImageModify)) {
+		if (PaintImage(pRender, (*m_railStateImage).GetStateImage(kControlStateDisabled), m_sImageModify)) {
 			return;
 		}
 	}
 	else if (m_uThumbState == kControlStatePushed) {
-		if (DrawImage(pRender, (*m_railStateImage).GetStateImage(kControlStatePushed), m_sImageModify)) {
-			if (DrawImage(pRender, (*m_railStateImage).GetStateImage(kControlStateHot), m_sImageModify)) {
+		if (PaintImage(pRender, (*m_railStateImage).GetStateImage(kControlStatePushed), m_sImageModify)) {
+			if (PaintImage(pRender, (*m_railStateImage).GetStateImage(kControlStateHot), m_sImageModify)) {
 				return;
 			}
 		}
 	}
 	else if (m_uThumbState == kControlStateHot) {
-		if (DrawImage(pRender, (*m_railStateImage).GetStateImage(kControlStateHot), m_sImageModify)) {
+		if (PaintImage(pRender, (*m_railStateImage).GetStateImage(kControlStateHot), m_sImageModify)) {
 			return;
 		}
 	}
 	//绘制Normal状态的图片
-	DrawImage(pRender, (*m_railStateImage).GetStateImage(kControlStateNormal), m_sImageModify);
+	PaintImage(pRender, (*m_railStateImage).GetStateImage(kControlStateNormal), m_sImageModify);
 }
 
 }

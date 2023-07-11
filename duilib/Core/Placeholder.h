@@ -117,39 +117,43 @@ public:
 	*/
 	const UiSize& GetFixedSize() const { return m_cxyFixed; }
 
-	/**@brief 获取最小宽度
-	 */
-	int GetMinWidth() const { return m_cxyMin.cx; }
+	/** 获取最小宽度
+	* @return 返回最小宽度（ >= 0）
+	*/
+	int GetMinWidth() const { ASSERT(m_cxyMin.cx >= 0); return m_cxyMin.cx; }
 
 	/**@brief 设置最小宽度
-	 * @param[in] cx 要设置的最小宽度
+	 * @param[in] cx 要设置的最小宽度（ >= 0）
 	 */
 	void SetMinWidth(int cx);
 
-	/**@brief 获取最大宽度
-	 */
-	int GetMaxWidth() const { return m_cxyMax.cx; }
+	/** 获取最大宽度
+	* @return 返回最大宽度（ >= 0）
+	*/
+	int GetMaxWidth() const { ASSERT(m_cxyMax.cx >=0 ); return m_cxyMax.cx; }
 
-	/**@brief 设置最大宽度
-	 * @param[in] cx 要设置的最大宽度
+	/** 设置最大宽度
+	 * @param[in] cx 要设置的最大宽度（ >= 0）
 	 */
 	void SetMaxWidth(int cx);
 
-	/**@brief 获取最小高度
-	 */
-	int GetMinHeight() const { return m_cxyMin.cy; }
+	/** 获取最小高度
+	* @return 返回最小高度（ >= 0）
+	*/
+	int GetMinHeight() const { ASSERT(m_cxyMin.cy >= 0); return m_cxyMin.cy; }
 
-	/**@brief 设置最小高度
-	 * @param[in] cy 要设置的最小高度
+	/** 设置最小高度
+	 * @param[in] cy 要设置的最小高度（ >= 0）
 	 */
 	void SetMinHeight(int cy);
 
-	/**@brief 获取最大高度
-	 */
-	int GetMaxHeight() const { return m_cxyMax.cy; }
+	/** 获取最大高度
+	* @return 返回最大高度（ >= 0）
+	*/
+	int GetMaxHeight() const { ASSERT(m_cxyMax.cy >= 0); return m_cxyMax.cy; }
 
-	/**@brief 设置最大高度
-	 * @param[in] cy 要设置的最大高度
+	/** 设置最大高度
+	 * @param[in] cy 要设置的最大高度（ >= 0）
 	 */
 	void SetMaxHeight(int cy);
 

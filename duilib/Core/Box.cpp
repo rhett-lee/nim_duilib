@@ -27,11 +27,14 @@ void Layout::SetOwner(Box* pOwner)
 UiSize Layout::SetFloatPos(Control* pControl, UiRect rcContainer)
 {
 	ASSERT(pControl != nullptr);
-	if (pControl == nullptr) {
+	if ((pControl == nullptr) || (!pControl->IsVisible())) {
 		return UiSize();
 	}
-	if (!pControl->IsVisible()) {
-		return UiSize();
+	if (rcContainer.GetWidth() < 0) {
+		rcContainer.right = rcContainer.left;
+	}
+	if (rcContainer.GetHeight() < 0) {
+		rcContainer.bottom = rcContainer.bottom;
 	}
 
 	int childLeft = 0;
@@ -45,24 +48,16 @@ UiSize Layout::SetFloatPos(Control* pControl, UiRect rcContainer)
 	int iPosBottom = rcContainer.bottom - rcMargin.bottom;
 	UiSize szAvailable(iPosRight - iPosLeft, iPosBottom - iPosTop);
 	UiSize childSize = pControl->EstimateSize(szAvailable);
-	if ((pControl->GetFixedWidth() == DUI_LENGTH_AUTO)  && 
-		(pControl->GetFixedHeight() == DUI_LENGTH_AUTO)	&& 
-		(pControl->GetMaxWidth() == DUI_LENGTH_STRETCH)) {
-		//TODO：检查逻辑合理性
-		int maxwidth = std::max(0, (int)szAvailable.cx);
-		if (childSize.cx > maxwidth) {
-			pControl->SetFixedWidth(maxwidth, false, true);
-			childSize = pControl->EstimateSize(szAvailable);
-			pControl->SetFixedWidth(DUI_LENGTH_AUTO, false, true);
-		}
-	}
+	ASSERT(childSize.cx >= DUI_LENGTH_STRETCH);
+	ASSERT(childSize.cy >= DUI_LENGTH_STRETCH);
+
 	if (childSize.cx == DUI_LENGTH_STRETCH) {
 		childSize.cx = std::max(0, (int)szAvailable.cx);
 	}
 	if (childSize.cx < pControl->GetMinWidth()) {
 		childSize.cx = pControl->GetMinWidth();
 	}
-	if (pControl->GetMaxWidth() >= 0 && childSize.cx > pControl->GetMaxWidth()) {
+	if (childSize.cx > pControl->GetMaxWidth()) {
 		childSize.cx = pControl->GetMaxWidth();
 	}
 
@@ -138,43 +133,43 @@ UiSize Layout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 {
 	UiSize size;
 	for (Control* pControl : items) {
-		if (pControl == nullptr){
+		if ((pControl == nullptr) || (!pControl->IsVisible())){
 			continue;
 		}
-		if (!pControl->IsVisible()) {
-			continue;
-		}
-		UiSize new_size = SetFloatPos(pControl, rc);
-		size.cx = std::max(size.cx, new_size.cx);
-		size.cy = std::max(size.cy, new_size.cy);
+		UiSize controlSize = SetFloatPos(pControl, rc);
+		size.cx = std::max(size.cx, controlSize.cx);
+		size.cy = std::max(size.cy, controlSize.cy);
 	}
 	return size;
 }
 
-UiSize Layout::AjustSizeByChild(const std::vector<Control*>& items, UiSize szAvailable)
+UiSize Layout::EstimateSizeByChild(const std::vector<Control*>& items, UiSize szAvailable)
 {
-	UiSize maxSize(-9999, -9999);
+	UiSize maxSize;
 	UiSize itemSize;
 	for (Control* pControl : items) {
 		if (pControl == nullptr) {
 			continue;
 		}
-		if (!pControl->IsVisible()) {
+		if (!pControl->IsVisible() || pControl->IsFloat()) {
 			continue;
 		}
 		itemSize = pControl->EstimateSize(szAvailable);
 		if (itemSize.cx < pControl->GetMinWidth()) {
 			itemSize.cx = pControl->GetMinWidth();
 		}
-		if ((pControl->GetMaxWidth() >= 0) && (itemSize.cx > pControl->GetMaxWidth())) {
+		if (itemSize.cx > pControl->GetMaxWidth()) {
 			itemSize.cx = pControl->GetMaxWidth();
 		}
 		if (itemSize.cy < pControl->GetMinHeight()) {
 			itemSize.cy = pControl->GetMinHeight();
 		}
-		if ((pControl->GetMaxHeight() >= 0) && (itemSize.cy > pControl->GetMaxHeight())) {
+		if (itemSize.cy > pControl->GetMaxHeight()) {
 			itemSize.cy = pControl->GetMaxHeight();
 		}
+		itemSize.cx = std::max((int)itemSize.cx, 0);
+		itemSize.cy = std::max((int)itemSize.cy, 0);
+		
 		maxSize.cx = std::max(itemSize.cx + pControl->GetMargin().left + pControl->GetMargin().right, maxSize.cx);
 		maxSize.cy = std::max(itemSize.cy + pControl->GetMargin().top + pControl->GetMargin().bottom, maxSize.cy);
 	}
@@ -185,6 +180,11 @@ UiSize Layout::AjustSizeByChild(const std::vector<Control*>& items, UiSize szAva
 
 void Layout::SetPadding(UiRect rcPadding, bool bNeedDpiScale /*= true*/)
 {
+	rcPadding.left = std::max((int)rcPadding.left, 0);
+	rcPadding.right = std::max((int)rcPadding.right, 0);
+	rcPadding.top = std::max((int)rcPadding.top, 0);
+	rcPadding.bottom = std::max((int)rcPadding.bottom, 0);
+
 	if (bNeedDpiScale) {
 		GlobalManager::Instance().Dpi().ScaleRect(rcPadding);
 	}
@@ -197,6 +197,8 @@ void Layout::SetPadding(UiRect rcPadding, bool bNeedDpiScale /*= true*/)
 
 void Layout::SetChildMargin(int iMargin)
 {
+	ASSERT(iMargin >= 0);
+	iMargin = std::max(iMargin, 0);
 	GlobalManager::Instance().Dpi().ScaleInt(iMargin);
 	m_iChildMargin = iMargin;
 	ASSERT(m_pOwner != nullptr);
@@ -335,40 +337,45 @@ void Box::SetVisible(bool bVisible)
 UiSize Box::EstimateSize(UiSize szAvailable)
 {
 	UiSize fixedSize = GetFixedSize();
-	if (GetFixedWidth() == DUI_LENGTH_AUTO || GetFixedHeight() == DUI_LENGTH_AUTO) {
-		if (!IsReEstimateSize()) {
-			return GetEstimateSize();
-		}
-
-		szAvailable.cx -= (m_pLayout->GetPadding().left + m_pLayout->GetPadding().right);
-		szAvailable.cy -= (m_pLayout->GetPadding().top + m_pLayout->GetPadding().bottom);
-		UiSize sizeByChild = m_pLayout->AjustSizeByChild(m_items, szAvailable);
-		if (GetFixedWidth() == DUI_LENGTH_AUTO) {
-			fixedSize.cx = sizeByChild.cx;
-		}
-		if (GetFixedHeight() == DUI_LENGTH_AUTO) {
-			fixedSize.cy = sizeByChild.cy;
-		}
-
-		SetReEstimateSize(false);
-		for (auto pControl : m_items) {
-			ASSERT(pControl != nullptr);
-			if (pControl == nullptr) {
-				continue;
-			}
-			if (!pControl->IsVisible()) {
-				continue;
-			}
-			if (pControl->GetFixedWidth() == DUI_LENGTH_AUTO || pControl->GetFixedHeight() == DUI_LENGTH_AUTO) {
-				if (pControl->IsReEstimateSize()) {
-					SetReEstimateSize(true);
-					break;
-				}
-			}
-		}
-		SetEstimateSize(fixedSize);
+	if ((GetFixedWidth() != DUI_LENGTH_AUTO) && (GetFixedHeight() != DUI_LENGTH_AUTO)) {
+		//如果宽高都不是auto属性，则直接返回
+		return fixedSize;
+	}
+	if (!IsReEstimateSize()) {
+		//使用缓存中的估算结果
+		return GetEstimateSize();
 	}
 
+	szAvailable.cx -= (m_pLayout->GetPadding().left + m_pLayout->GetPadding().right);
+	szAvailable.cy -= (m_pLayout->GetPadding().top + m_pLayout->GetPadding().bottom);
+	szAvailable.cx = std::max((int)szAvailable.cx, 0);
+	szAvailable.cy = std::max((int)szAvailable.cy, 0);
+	UiSize sizeByChild = m_pLayout->EstimateSizeByChild(m_items, szAvailable);
+	if (GetFixedWidth() == DUI_LENGTH_AUTO) {
+		fixedSize.cx = sizeByChild.cx;
+	}
+	if (GetFixedHeight() == DUI_LENGTH_AUTO) {
+		fixedSize.cy = sizeByChild.cy;
+	}
+
+	SetReEstimateSize(false);
+	for (auto pControl : m_items) {
+		ASSERT(pControl != nullptr);
+		if (pControl == nullptr) {
+			continue;
+		}
+		if (!pControl->IsVisible() || pControl->IsFloat()) {
+			continue;
+		}
+		if ((pControl->GetFixedWidth() == DUI_LENGTH_AUTO) || 
+			(pControl->GetFixedHeight() == DUI_LENGTH_AUTO)) {
+			if (pControl->IsReEstimateSize()) {
+				SetReEstimateSize(true);
+				break;
+			}
+		}
+	}
+	SetEstimateSize(fixedSize);
 	return fixedSize;
 }
 

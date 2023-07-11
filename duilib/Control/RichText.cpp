@@ -22,10 +22,10 @@ RichText::~RichText()
 
 std::wstring RichText::GetType() const { return DUI_CTR_RICHTEXT; }
 
-UiSize RichText::EstimateText(UiSize szAvailable, bool& bReEstimateSize)
+UiSize RichText::EstimateText(UiSize szAvailable)
 {
     return {600, 100};
-    //return __super::EstimateText(szAvailable, bReEstimateSize);
+    //return __super::EstimateText(szAvailable);
 }
 
 void RichText::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
@@ -46,6 +46,11 @@ void RichText::PaintText(IRender* pRender)
 
     UiColor dwTextColor = UiColor(UiColors::Blue);
     pRender->DrawString(rc, L"RichText::PaintText：功能暂未实现。", dwTextColor, L"", 0);
+}
+
+void RichText::SetPos(UiRect rc)
+{
+    return __super::SetPos(rc);
 }
 
 const UiRect& RichText::GetTextPadding() const

@@ -56,9 +56,10 @@ public:
 
     /// 重写父类方法，提供个性化功能，请参考父类声明
     virtual std::wstring GetType() const override;
-    virtual UiSize EstimateText(UiSize szAvailable, bool& bReEstimateSize) override;
+    virtual UiSize EstimateText(UiSize szAvailable) override;
     virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
     virtual void PaintText(IRender* pRender) override;
+    virtual void SetPos(UiRect rc) override;
 
 public:
     /** 获取文字内边距

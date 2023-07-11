@@ -10,91 +10,54 @@ HLayout::HLayout()
 
 UiSize HLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 {
-	// Determine the width of elements that are sizeable
-	UiSize szAvailable(rc.right - rc.left, rc.bottom - rc.top);
+	UiSize szAvailable(rc.GetWidth(), rc.GetHeight());
+	szAvailable.cx = std::max((int)szAvailable.cx, 0);
+	szAvailable.cy = std::max((int)szAvailable.cy, 0);
+	if (rc.GetWidth() < 0) {
+		rc.right = rc.left;
+	}
+	if (rc.GetHeight() < 0) {
+		rc.bottom = rc.bottom;
+	}
 
-	int nAdjustables = 0;
-	int cxFixed = 0;
-	int nEstimateNum = 0;
+	//宽度为stretch的控件数
+	int stretchCount = 0;
+	//固定宽度的控件，总的高度
+	int cxFixedTotal = 0;
+	//需要进行布局处理的所有控件(KEY是控件，VALUE是宽度和高度)
+	std::map<Control*, UiSize> itemsMap;
 
+	//计算每个控件的宽度和高度，并记录到Map中
 	for(auto pControl : items) {
-		if (pControl == nullptr) {
+		if ((pControl == nullptr) || !pControl->IsVisible() || pControl->IsFloat()) {
 			continue;
 		}
-		if (!pControl->IsVisible()) {
-			continue;
-		}
-		if (pControl->IsFloat()) {
-			continue;
-		}
+
 		UiSize sz = pControl->EstimateSize(szAvailable);
+		ASSERT((sz.cx >= DUI_LENGTH_STRETCH) && (sz.cy >= DUI_LENGTH_STRETCH));
+
+		UiRect rcMargin = pControl->GetMargin();
+		//计算宽度
 		if( sz.cx == DUI_LENGTH_STRETCH ) {
-			nAdjustables++;
-			cxFixed += (pControl->GetMargin().left + pControl->GetMargin().right);
+			stretchCount++;
+			cxFixedTotal += (rcMargin.left + rcMargin.right);
 		}
 		else {
 			if (sz.cx < pControl->GetMinWidth()) {
 				sz.cx = pControl->GetMinWidth();
 			}
-			if (pControl->GetMaxWidth() >= 0 && sz.cx > pControl->GetMaxWidth()) {
+			if (sz.cx > pControl->GetMaxWidth()) {
 				sz.cx = pControl->GetMaxWidth();
 			}
-			cxFixed += (sz.cx +  pControl->GetMargin().left + pControl->GetMargin().right);
-		}
-			
-		nEstimateNum++;
-	}
-	cxFixed += (nEstimateNum - 1) * m_iChildMargin;
-
-	int cxExpand = 0;
-	int cxNeeded = 0;
-	if (nAdjustables > 0) {
-		cxExpand = std::max(0, (int)(szAvailable.cx - cxFixed) / nAdjustables);
-	}
-	int deviation = szAvailable.cx - cxFixed - cxExpand * nAdjustables;
-	// Position the elements
-	UiSize szRemaining = szAvailable;
-	int iPosX = rc.left;
-	int iPosTop = rc.top;
-	int iPosBottom = rc.bottom;
-	int iAdjustable = 0;
-	int max_height = 0;
-
-	for(auto pControl : items) {
-		if (pControl == nullptr) {
-			continue;
-		}
-		if (!pControl->IsVisible()) {
-			continue;
-		}
-		if( pControl->IsFloat() ) {
-			SetFloatPos(pControl, rc);
-			continue;
-		}
-
-		UiRect rcMargin = pControl->GetMargin();
-		szRemaining.cx -= rcMargin.left;
-		UiSize sz = pControl->EstimateSize(szRemaining);
-		if( sz.cx == DUI_LENGTH_STRETCH ) {
-			iAdjustable++;
-			sz.cx = cxExpand;
-			if (deviation > 0) {
-				sz.cx += 1;
-				deviation--;
+			if (sz.cx < 0) {
+				sz.cx = 0;
 			}
+			cxFixedTotal += (sz.cx + rcMargin.left + rcMargin.right);
 		}
-		if (sz.cx < pControl->GetMinWidth()) {
-			sz.cx = pControl->GetMinWidth();
-		}
-		if (pControl->GetMaxWidth() >= 0 && sz.cx > pControl->GetMaxWidth()) {
-			sz.cx = pControl->GetMaxWidth();
-		}
-
+		
+		//计算高度
 		if (sz.cy == DUI_LENGTH_STRETCH) {
-			sz.cy = szAvailable.cy - rcMargin.top - rcMargin.bottom;
-		}
-		if (sz.cy < 0) {
-			sz.cy = 0;
+			sz.cy = (szAvailable.cy - rcMargin.top - rcMargin.bottom);
 		}
 		if (sz.cy < pControl->GetMinHeight()) {
 			sz.cy = pControl->GetMinHeight();
@@ -102,7 +65,90 @@ UiSize HLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 		if (sz.cy > pControl->GetMaxHeight()) {
 			sz.cy = pControl->GetMaxHeight();
 		}
+		if (sz.cy < 0) {
+			sz.cy = 0;
+		}
+		itemsMap[pControl] = sz;
+	}
+	if (!itemsMap.empty()) {
+		cxFixedTotal += ((int)itemsMap.size() - 1) * m_iChildMargin;
+	}
 
+	int cxStretch = 0;	
+	if (stretchCount > 0) {
+		cxStretch = std::max(0, (int)(szAvailable.cx - cxFixedTotal) / stretchCount);
+	}
+	//做一次预估：去除需要使用minwidth/maxwidth的控件数后，重新计算平均高度
+	if ((cxStretch > 0) && !itemsMap.empty()) {
+		for (auto iter = itemsMap.begin(); iter != itemsMap.end(); ++iter) {
+			Control* pControl = iter->first;
+			UiSize sz = iter->second;
+			if (sz.cx == DUI_LENGTH_STRETCH) {
+				sz.cx = cxStretch;
+				if (sz.cx < pControl->GetMinWidth()) {
+					sz.cx = pControl->GetMinWidth();
+				}
+				if (sz.cx > pControl->GetMaxWidth()) {
+					sz.cx = pControl->GetMaxWidth();
+				}
+				if (sz.cx != cxStretch) {
+					//这个控件需要使用min或者max宽度，从平均值中移除，按照Fixed控件算
+					iter->second = sz;
+					--stretchCount;
+					cxFixedTotal += sz.cx; //Margin已经累加过，不需要重新累加
+				}
+			}
+		}
+	}
+	//重新计算Stretch控件的宽度，最终以这次计算的为准；
+	//如果横向总空间不足，则按原来评估的平均高度，优先保证前面的控件可以正常显示
+	if ((stretchCount > 0) && ((int)szAvailable.cx > cxFixedTotal)) {
+		cxStretch = std::max(0, ((int)szAvailable.cx - cxFixedTotal) / stretchCount);
+	}
+
+	// Position the elements
+	int deviation = szAvailable.cx - cxFixedTotal - cxStretch * stretchCount;//剩余可用宽度，用于纠正偏差
+	if (deviation < 0) {
+		deviation = 0;
+	}
+
+	int iPosTop = rc.top;
+	int iPosBottom = rc.bottom;
+	int iPosX = rc.left;
+
+	// Place elements
+	int cyNeeded = 0;//需要的总高度（取各个子控件的高度最大值）
+	int cxNeeded = 0;//需要的总宽度
+
+	for(auto pControl : items) {
+		if ((pControl == nullptr) || !pControl->IsVisible()) {
+			continue;
+		}
+		if (pControl->IsFloat()) {
+			SetFloatPos(pControl, rc);
+			continue;
+		}
+
+		UiRect rcMargin = pControl->GetMargin();
+		ASSERT(itemsMap.find(pControl) != itemsMap.end());
+		UiSize sz = itemsMap[pControl];
+
+		//计算宽度
+		if( sz.cx == DUI_LENGTH_STRETCH ) {
+			sz.cx = cxStretch;
+			if (sz.cx < pControl->GetMinWidth()) {
+				sz.cx = pControl->GetMinWidth();
+			}
+			if (sz.cx > pControl->GetMaxWidth()) {
+				sz.cx = pControl->GetMaxWidth();
+			}
+			if ((sz.cx <= cxStretch) && (deviation > 0)) {
+				sz.cx += 1;
+				deviation--;
+			}
+		}
+
+		//调整纵向对齐方式，确定Y轴坐标
 		int childTop = 0;
 		int childBottm = 0;
 		VerAlignType verAlignType = pControl->GetVerAlignType();
@@ -120,54 +166,55 @@ UiSize HLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 		}
 
 		UiRect rcChildPos(iPosX + rcMargin.left, childTop, iPosX + rcMargin.left + sz.cx, childBottm);
-		max_height = std::max(max_height, rcChildPos.GetHeight());
 		pControl->SetPos(rcChildPos);
-		iPosX += sz.cx + m_iChildMargin + rcMargin.left + rcMargin.right;
-		cxNeeded += sz.cx + rcMargin.left + rcMargin.right;
-		szRemaining.cx -= sz.cx + m_iChildMargin + rcMargin.right;
-	}
-	cxNeeded += (nEstimateNum - 1) * m_iChildMargin;
+		cyNeeded = std::max(cyNeeded, rcChildPos.GetHeight());
 
-	UiSize size(cxNeeded, max_height);
+		iPosX += (sz.cx + rcMargin.left + m_iChildMargin + rcMargin.right);
+		cxNeeded += (sz.cx + rcMargin.left + rcMargin.right);
+	}
+	if (!itemsMap.empty()) {
+		cxNeeded += ((int)itemsMap.size() - 1) * m_iChildMargin;
+	}
+
+	UiSize size(cxNeeded, cyNeeded);
 	return size;
 }
 
-UiSize HLayout::AjustSizeByChild(const std::vector<Control*>& items, UiSize szAvailable)
+UiSize HLayout::EstimateSizeByChild(const std::vector<Control*>& items, UiSize szAvailable)
 {
 	UiSize totalSize;
 	UiSize itemSize;
-	int estimateChildCount = 0;
-	for(Control* pChildControl : items)	{
-		if (pChildControl == nullptr) {
-			continue;
-		}
-		if (!pChildControl->IsVisible() || pChildControl->IsFloat()){
+	int estimateCount = 0;
+	for(Control* pControl : items)	{
+		if ((pControl == nullptr) || !pControl->IsVisible() || pControl->IsFloat()){
 			continue;
 		}
 
-		estimateChildCount++;
-		itemSize = pChildControl->EstimateSize(szAvailable);
-		if (itemSize.cx < pChildControl->GetMinWidth()) {
-			itemSize.cx = pChildControl->GetMinWidth();
+		estimateCount++;
+		UiRect rcMargin = pControl->GetMargin();
+		itemSize = pControl->EstimateSize(szAvailable);
+		if (itemSize.cx < pControl->GetMinWidth()) {
+			itemSize.cx = pControl->GetMinWidth();
 		}
-		if (pChildControl->GetMaxWidth() >= 0 && itemSize.cx > pChildControl->GetMaxWidth()) {
-			itemSize.cx = pChildControl->GetMaxWidth();
+		if (itemSize.cx > pControl->GetMaxWidth()) {
+			itemSize.cx = pControl->GetMaxWidth();
 		}
-		if (itemSize.cy < pChildControl->GetMinHeight()) {
-			itemSize.cy = pChildControl->GetMinHeight();
+		if (itemSize.cy < pControl->GetMinHeight()) {
+			itemSize.cy = pControl->GetMinHeight();
 		}
-		if (itemSize.cy > pChildControl->GetMaxHeight()) {
-			itemSize.cy = pChildControl->GetMaxHeight();
+		if (itemSize.cy > pControl->GetMaxHeight()) {
+			itemSize.cy = pControl->GetMaxHeight();
 		}
-		totalSize.cx += (itemSize.cx + pChildControl->GetMargin().left + pChildControl->GetMargin().right);
-		totalSize.cy = std::max(itemSize.cy + pChildControl->GetMargin().top + pChildControl->GetMargin().bottom, totalSize.cy);
+		
+		totalSize.cy = std::max(itemSize.cy + rcMargin.top + rcMargin.bottom, totalSize.cy);
+		totalSize.cx += (itemSize.cx + rcMargin.left + rcMargin.right);
 	}
 
-	if (estimateChildCount - 1 > 0) {
-		totalSize.cx += (estimateChildCount - 1) * m_iChildMargin;
+	if ((estimateCount - 1) > 0) {
+		totalSize.cx += (estimateCount - 1) * m_iChildMargin;
 	}
-	totalSize.cx += m_rcPadding.left + m_rcPadding.right;
-	totalSize.cy += m_rcPadding.top + m_rcPadding.bottom;
+	totalSize.cx += (m_rcPadding.left + m_rcPadding.right);
+	totalSize.cy += (m_rcPadding.top + m_rcPadding.bottom);
 	return totalSize;
 }
 

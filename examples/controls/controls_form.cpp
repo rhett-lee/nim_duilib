@@ -322,9 +322,11 @@ void ControlForm::OnResourceFileLoaded(const std::wstring& xml)
 void ControlForm::OnProgressValueChagned(float value)
 {
 	//回调给的进度范围是：[0, 99), 转换为[0, 100]
+	int lastValue = 0;
 	value = value * 100 / 99 + 0.5f;
 	auto progress = static_cast<ui::Progress*>(FindControl(L"progress"));
 	if (progress) {
+		lastValue = (int)progress->GetValue();
 		progress->SetValue(value);
 	}
 
@@ -334,7 +336,7 @@ void ControlForm::OnProgressValueChagned(float value)
 		circleprogress->SetText(nbase::StringPrintf(L"%.0f%%", value));
 	}
 
-	if ((int)value == progress->GetMaxValue()) {
+	if (((int)value == progress->GetMaxValue()) || (value < lastValue)) {
 		//进度达到最大值，停止加载动画
 		auto control_edit = static_cast<ui::RichEdit*>(FindControl(L"edit"));
 		if (control_edit) {

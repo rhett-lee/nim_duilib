@@ -2306,34 +2306,33 @@ void RichEdit::SetEnabled(bool bEnable /*= true*/)
 UiSize RichEdit::EstimateSize(UiSize /*szAvailable*/)
 {
 	UiSize size(GetFixedWidth(), GetFixedHeight());
-	if (size.cx == DUI_LENGTH_AUTO || size.cy == DUI_LENGTH_AUTO) {
+	if ((size.cx == DUI_LENGTH_AUTO) || (size.cy == DUI_LENGTH_AUTO)) {
 		LONG iWidth = size.cx;
 		LONG iHeight = size.cy;
-		if (size.cx == DUI_LENGTH_AUTO) {
-			ASSERT(size.cy != DUI_LENGTH_AUTO);
-			iWidth = 0;
-		}
-		else if (size.cy == DUI_LENGTH_AUTO) {
+		if (size.cy == DUI_LENGTH_AUTO) {
 			ASSERT(size.cx != DUI_LENGTH_AUTO);
 			iHeight = 0;
 		}
-
-		SIZEL szExtent = { -1, -1 };
-		m_pTwh->GetTextServices()->TxGetNaturalSize(
-			DVASPECT_CONTENT, 
-			GetWindowDC(),
-			NULL,
-			NULL,
-			TXTNS_FITTOCONTENT,
-			&szExtent,
-			&iWidth,
-			&iHeight);
-		
-		if (size.cx == DUI_LENGTH_AUTO) {
-			size.cx = iWidth + GetLayout()->GetPadding().left + GetLayout()->GetPadding().right;
+		else if (size.cx == DUI_LENGTH_AUTO) {
+			ASSERT(size.cy != DUI_LENGTH_AUTO);
+			iWidth = 0;
 		}
-		else if (size.cy == DUI_LENGTH_AUTO) {
-			size.cy = iHeight + GetLayout()->GetPadding().top + GetLayout()->GetPadding().bottom;
+		SIZEL szExtent = { -1, -1 };
+		m_pTwh->GetTextServices()->TxGetNaturalSize(DVASPECT_CONTENT, 
+													GetWindowDC(),
+													NULL,
+													NULL,
+													TXTNS_FITTOCONTENT,
+													&szExtent,
+													&iWidth,
+													&iHeight);
+		
+		UiRect padding = GetLayout()->GetPadding();
+		if (size.cy == DUI_LENGTH_AUTO) {
+			size.cy = iHeight + padding.top + padding.bottom;
+		}
+		else if (size.cx == DUI_LENGTH_AUTO) {
+			size.cx = iWidth + padding.left + padding.right;
 		}
 	}
     return size;
@@ -2345,19 +2344,16 @@ UiSize RichEdit::EstimateText(UiSize szAvailable)
   LONG iHeight = 0;
 
   SIZEL szExtent = { -1, -1 };
-  m_pTwh->GetTextServices()->TxGetNaturalSize(
-	DVASPECT_CONTENT,
-	GetWindow()->GetPaintDC(),
-	NULL,
-	NULL,
-	TXTNS_FITTOCONTENT,
-	&szExtent,
-	&iWidth,
-	&iHeight);
-
-  szAvailable.cx = iWidth;
-  szAvailable.cy = iHeight;
-
+  m_pTwh->GetTextServices()->TxGetNaturalSize(DVASPECT_CONTENT,
+											  GetWindow()->GetPaintDC(),
+											  NULL,
+											  NULL,
+											  TXTNS_FITTOCONTENT,
+											  &szExtent,
+											  &iWidth,
+											  &iHeight);
+  szAvailable.cx = std::max((int)iWidth, 0);
+  szAvailable.cy = std::max((int)iHeight, 0);
   return szAvailable;
 }
 
@@ -3118,7 +3114,7 @@ void RichEdit::PaintStatusImage(IRender* pRender)
 		return;
 
 	if(IsFocused()) {
-		DrawImage(pRender, m_sFocusedImage);
+		PaintImage(pRender, m_sFocusedImage);
 		PaintPromptText(pRender);
 		return;
 	}

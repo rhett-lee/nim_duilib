@@ -506,7 +506,7 @@ bool Window::AttachBox(Box* pRoot)
 		if (needSize.cx < pRoot->GetMinWidth()) {
 			needSize.cx = pRoot->GetMinWidth();
 		}
-		if (pRoot->GetMaxWidth() >= 0 && needSize.cx > pRoot->GetMaxWidth()) {
+		if (needSize.cx > pRoot->GetMaxWidth()) {
 			needSize.cx = pRoot->GetMaxWidth();
 		}
 		if (needSize.cy < pRoot->GetMinHeight()) {
@@ -2018,7 +2018,7 @@ void Window::Paint()
 		if (needSize.cx < m_pRoot->GetMinWidth()) {
 			needSize.cx = m_pRoot->GetMinWidth();
 		}
-		if (m_pRoot->GetMaxWidth() >= 0 && needSize.cx > m_pRoot->GetMaxWidth()) {
+		if (needSize.cx > m_pRoot->GetMaxWidth()) {
 			needSize.cx = m_pRoot->GetMaxWidth();
 		}
 		if (needSize.cy < m_pRoot->GetMinHeight()) {

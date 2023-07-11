@@ -159,8 +159,8 @@ void ImageAttribute::ModifyAttribute(const std::wstring& strImageString)
 	std::wstring sItem;
 	std::wstring sValue;
 	LPTSTR pstr = NULL;
-	bool bScaleDest = true;
-	bool bHasDest = false;	
+	bool bDisalbeScaleDest = false;
+	bool bHasDest = false;
 	bHasSrcDpiScale = false;
 
 	LPCTSTR pStrImage = strImageString.c_str();
@@ -198,23 +198,6 @@ void ImageAttribute::ModifyAttribute(const std::wstring& strImageString)
 				//设置图片高度，可以放大或缩小图像：pixels或者百分比%，比如200，或者30%
 				imageAttribute.srcHeight = sValue;
 			}
-			else if (sItem == _T("dpiscale")) {
-				//加载图片时，按照DPI缩放图片大小
-				imageAttribute.srcDpiScale = (_tcscmp(sValue.c_str(), _T("true")) == 0);
-				bHasSrcDpiScale = true;
-			}
-			else if (sItem == _T("destscale")) {
-				//加载时，对dest属性按照DPI缩放图片，仅当设置了dest属性时有效
-				bScaleDest = (_tcscmp(sValue.c_str(), _T("true")) == 0);
-			}
-			else if (sItem == _T("dest")) {
-				//设置目标区域，该区域是指相对于所属控件的Rect区域
-				imageAttribute.rcDest.left = _tcstol(sValue.c_str(), &pstr, 10);  ASSERT(pstr);
-				imageAttribute.rcDest.top = _tcstol(pstr + 1, &pstr, 10);    ASSERT(pstr);
-				imageAttribute.rcDest.right = _tcstol(pstr + 1, &pstr, 10);  ASSERT(pstr);
-				imageAttribute.rcDest.bottom = _tcstol(pstr + 1, &pstr, 10); ASSERT(pstr);
-				bHasDest = true;
-			}
 			else if (sItem == _T("source")) {
 				//图片源区域设置：可以用于仅包含源图片的部分图片内容（比如通过此机制，将按钮的各个状态图片整合到一张大图片上，方便管理图片资源）
 				imageAttribute.rcSource.left = _tcstol(sValue.c_str(), &pstr, 10);  ASSERT(pstr);
@@ -229,6 +212,24 @@ void ImageAttribute::ModifyAttribute(const std::wstring& strImageString)
 				imageAttribute.rcCorner.top = _tcstol(pstr + 1, &pstr, 10);    ASSERT(pstr);
 				imageAttribute.rcCorner.right = _tcstol(pstr + 1, &pstr, 10);  ASSERT(pstr);
 				imageAttribute.rcCorner.bottom = _tcstol(pstr + 1, &pstr, 10); ASSERT(pstr);
+			}
+			else if (sItem == _T("dpiscale")) {
+				//加载图片时，按照DPI缩放图片大小（会影响width属性、height属性、sources属性、corner属性）
+				imageAttribute.srcDpiScale = (_tcscmp(sValue.c_str(), _T("true")) == 0);
+				bHasSrcDpiScale = true;
+			}
+			else if (sItem == _T("dest")) {
+				//设置目标区域，该区域是指相对于所属控件的Rect区域
+				imageAttribute.rcDest.left = _tcstol(sValue.c_str(), &pstr, 10);  ASSERT(pstr);
+				imageAttribute.rcDest.top = _tcstol(pstr + 1, &pstr, 10);    ASSERT(pstr);
+				imageAttribute.rcDest.right = _tcstol(pstr + 1, &pstr, 10);  ASSERT(pstr);
+				imageAttribute.rcDest.bottom = _tcstol(pstr + 1, &pstr, 10); ASSERT(pstr);
+				bHasDest = true;
+			}
+			else if (sItem == _T("destscale")) {
+				//加载时，对dest属性按照DPI缩放图片，仅当设置了dest属性时有效（会影响dest属性）
+				//绘制时（内部使用），控制是否对dest属性进行DPI缩放
+				bDisalbeScaleDest = (_tcscmp(sValue.c_str(), _T("false")) == 0);
 			}
 			else if (sItem == _T("fade")) {
 				//图片的透明度
@@ -271,8 +272,73 @@ void ImageAttribute::ModifyAttribute(const std::wstring& strImageString)
 		}
 	}
 
-	if (bHasDest && bScaleDest) {
-		GlobalManager::Instance().Dpi().ScaleRect(imageAttribute.rcDest);
+	if (bHasDest && !bDisalbeScaleDest) {
+		//如果没有配置"destscale" 或者 destscale="true"的情况，都需要对rcDest进行DPI自适应
+		//只有设置了destscale="false"的时候，才禁止对rcDest进行DPI自适应
+		GlobalManager::Instance().Dpi().ScaleRect(imageAttribute.rcDest);		
+	}
+}
+
+bool ImageAttribute::HasValidImageRect(const UiRect& rcDest)
+{
+	if (rcDest.IsEmpty() || rcDest.IsRectEmpty()) {
+		return false;
+	}
+	if ((rcDest.left >= 0) && (rcDest.top >= 0) && 
+		(rcDest.GetWidth() > 0) && (rcDest.GetHeight() > 0)){
+		return true;
+	}
+	return false;
+}
+
+void ImageAttribute::ScaleImageRect(uint32_t imageWidth, uint32_t imageHeight, bool bImageDpiScaled,
+					                UiRect& rcDestCorners,
+					                UiRect& rcSource, UiRect& rcSourceCorners)
+{
+	ASSERT((imageWidth > 0) && (imageHeight > 0));
+	if ((imageWidth == 0) || (imageHeight == 0)) {
+		return;
+	}
+	//对rcImageSourceCorners进行处理：对边角值进行容错处理（四个边代表边距，不代表矩形区域）
+	//在XML解析加载的时候，未做DPI自适应；
+	//在绘制的时候，如果图片做过DPI自适应，也要做DPI自适应，如果图片未做DPI自适应，也不需要做。	
+	if ((rcSourceCorners.left < 0) || (rcSourceCorners.top < 0) ||
+		(rcSourceCorners.right < 0)|| (rcSourceCorners.bottom < 0)) {
+		rcSourceCorners.Clear();
+	}
+	else if (bImageDpiScaled) {
+		GlobalManager::Instance().Dpi().ScaleRect(rcSourceCorners);
+	}
+
+	//对rcDestCorners进行处理：由rcSourceCorners赋值，边角保持一致，避免绘制图片的时候四个角有变形；
+	//采用九宫格绘制的时候，四个角的存在，是为了避免绘制的时候四个角出现变形
+	rcDestCorners = rcSourceCorners;
+	if (!bImageDpiScaled) {
+		//rcDestCorners必须做DPI自适应，rcSourceCorners可能不做DPI自适应（根据配置指定，跟随图片）
+		GlobalManager::Instance().Dpi().ScaleRect(rcDestCorners);
+	}
+
+	// 如果源位图已经按照DPI缩放过，那么对应的rcImageSource也需要缩放
+	if ((rcSource.left < 0) || (rcSource.top < 0) ||
+		(rcSource.right < 0) || (rcSource.bottom < 0) ||
+		(rcSource.GetWidth() <= 0) || (rcSource.GetHeight() <= 0)) {
+		//如果是无效值，则重置为整个图片大小
+		rcSource.left = 0;
+		rcSource.top = 0;
+		rcSource.right = (int)imageWidth;
+		rcSource.bottom = (int)imageHeight;
+	}
+	else if (bImageDpiScaled) {
+		//如果外部设置此值，做DPI自适应处理
+		GlobalManager::Instance().Dpi().ScaleRect(rcSource);
+	}
+
+	//图片源容错处理
+	if (rcSource.right > (int)imageWidth) {
+		rcSource.right = (int)imageWidth;
+	}
+	if (rcSource.bottom > (int)imageHeight) {
+		rcSource.bottom = (int)imageHeight;
 	}
 }
 
@@ -592,16 +658,16 @@ bool StateImage::PaintStateImage(IRender* pRender, ControlStateType stateType, c
 					(strNormalImagePath != strHotImagePath) || 
 					!GetImageSourceRect(kControlStateNormal).Equal(GetImageSourceRect(kControlStateHot))) {
 
-					m_pControl->DrawImage(pRender, GetStateImage(kControlStateNormal), sImageModify);
+					m_pControl->PaintImage(pRender, GetStateImage(kControlStateNormal), sImageModify);
 					int nHotFade = GetImageFade(kControlStateHot);
 					nHotFade = int(nHotFade * (double)nHotAlpha / 255);
-					return m_pControl->DrawImage(pRender, GetStateImage(kControlStateHot), sImageModify, nHotFade);
+					return m_pControl->PaintImage(pRender, GetStateImage(kControlStateHot), sImageModify, nHotFade);
 				}
 				else {
 					int nNormalFade = GetImageFade(kControlStateNormal);
 					int nHotFade = GetImageFade(kControlStateHot);
 					int nBlendFade = int((1 - (double)nHotAlpha / 255) * nNormalFade + (double)nHotAlpha / 255 * nHotFade);
-					return m_pControl->DrawImage(pRender, GetStateImage(kControlStateHot), sImageModify, nBlendFade);
+					return m_pControl->PaintImage(pRender, GetStateImage(kControlStateHot), sImageModify, nBlendFade);
 				}
 			}
 		}
@@ -618,7 +684,7 @@ bool StateImage::PaintStateImage(IRender* pRender, ControlStateType stateType, c
 		stateType = kControlStateNormal;
 	}
 
-	return m_pControl->DrawImage(pRender, GetStateImage(stateType), sImageModify);
+	return m_pControl->PaintImage(pRender, GetStateImage(stateType), sImageModify);
 }
 
 Image* StateImage::GetEstimateImage()

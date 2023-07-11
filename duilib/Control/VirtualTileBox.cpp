@@ -52,7 +52,7 @@ ui::UiSize VirtualTileLayout::ArrangeChild(const std::vector<ui::Control*>& /*it
     return sz;
 }
 
-ui::UiSize VirtualTileLayout::AjustSizeByChild(const std::vector<ui::Control*>& /*items*/, ui::UiSize szAvailable)
+ui::UiSize VirtualTileLayout::EstimateSizeByChild(const std::vector<ui::Control*>& /*items*/, ui::UiSize szAvailable)
 {
 #ifdef _DEBUG
     VirtualTileBox* pList = dynamic_cast<VirtualTileBox*>(m_pOwner);

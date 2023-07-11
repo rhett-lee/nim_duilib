@@ -557,6 +557,8 @@ std::unique_ptr<ImageInfo> ImageDecoder::LoadImageData(std::vector<uint8_t>& fil
 
 	ImageFormat imageFormat = GetImageFormat(imageLoadAttribute.GetImageFullPath());
 	if (imageFormat != ImageFormat::kSVG) {
+		//加载图片的时候，应该未做过DPI自适应
+		ASSERT(!bDpiScaled);
 		//计算缩放后的大小
 		const ImageData& image = imageData[0];
 		uint32_t nImageWidth = image.m_imageWidth;
@@ -584,9 +586,10 @@ std::unique_ptr<ImageInfo> ImageDecoder::LoadImageData(std::vector<uint8_t>& fil
 		if ((nImageWidth != image.m_imageWidth) ||
 			(nImageHeight != image.m_imageHeight)) {
 			//加载图像后，根据配置属性，进行大小调整(用算法对原图缩放，图片质量显示效果会好些)
-
 			PerformanceUtil::Instance().BeginStat(L"ResizeImageData");
-			ResizeImageData(imageData, nImageWidth, nImageHeight);
+			if (!ResizeImageData(imageData, nImageWidth, nImageHeight)) {
+				bDpiScaled = false;
+			}
 			PerformanceUtil::Instance().EndStat(L"ResizeImageData");
 		}
 	}
@@ -627,16 +630,33 @@ std::unique_ptr<ImageInfo> ImageDecoder::LoadImageData(std::vector<uint8_t>& fil
 	return imageInfo;
 }
 
-void ImageDecoder::ResizeImageData(std::vector<ImageData>& imageData,
+bool ImageDecoder::ResizeImageData(std::vector<ImageData>& imageData,
 								   uint32_t nNewWidth,
 								   uint32_t nNewHeight)
 {
 	ASSERT((nNewWidth > 0) && (nNewHeight > 0));
 	if ((nNewWidth == 0) || (nNewHeight == 0)) {
-		return;
+		return false;
 	}
+	bool isSizeChanged = false;
+	for (const ImageData& image : imageData) {
+		if ((image.m_imageWidth != nNewWidth) || (image.m_imageHeight != nNewHeight)) {
+			isSizeChanged = true;
+			break;
+		}
+	}
+	if (!isSizeChanged) {
+		//图片大小未发生变化
+		return false;
+	}
+	//可能会出现部分失败的情况(忽略这种情况)
+	bool hasError = false;
 	for (ImageData& image : imageData) {
 		std::vector<uint8_t> resizedBitmapData;
+		if ((image.m_imageWidth == nNewWidth) && (image.m_imageHeight == nNewHeight)) {
+			//图片大小未发生变化
+			continue;
+		}
 		resizedBitmapData.resize(nNewWidth * nNewHeight * 4);
 		const unsigned char* input_pixels = image.m_bitmapData.data();
 		int input_w = image.m_imageWidth;
@@ -655,7 +675,12 @@ void ImageDecoder::ResizeImageData(std::vector<ImageData>& imageData,
 			image.m_imageWidth = nNewWidth;
 			image.m_imageHeight = nNewHeight;
 		}
+		else {
+			//失败了
+			hasError = true;
+		}
 	}
+	return !hasError;
 }
 
 bool ImageDecoder::DecodeImageData(std::vector<uint8_t>& fileData,
