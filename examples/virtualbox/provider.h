@@ -29,7 +29,7 @@ public:
 	* @brief 获取子项总数
 	* @return 返回子项总数
 	*/
-	virtual size_t GetElementtCount() override;
+	virtual size_t GetElementCount() override;
 
 public:
 	void SetTotal(int nTotal);

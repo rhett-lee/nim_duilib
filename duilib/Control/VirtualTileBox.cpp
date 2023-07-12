@@ -8,7 +8,6 @@ VirtualTileBoxElement::VirtualTileBoxElement():
     m_CountChangedNotify(), 
     m_DataChangedNotify()
 {
-
 }
 
 void VirtualTileBoxElement::RegNotifys(const DataChangedNotify& dcNotify, const CountChangedNotify& ccNotify)
@@ -31,7 +30,6 @@ void VirtualTileBoxElement::EmitCountChanged()
     }
 }
 
-
 VirtualTileLayout::VirtualTileLayout():
     m_bAutoCalcColumn(true)
 {
@@ -47,6 +45,7 @@ ui::UiSize VirtualTileLayout::ArrangeChild(const std::vector<ui::Control*>& /*it
 
     ui::UiSize sz(rc.GetWidth(), rc.GetHeight());
     size_t nTotalHeight = GetElementsHeight(Box::InvalidIndex);
+    ASSERT(nTotalHeight <= INT32_MAX);
     sz.cy = std::max(LONG(nTotalHeight), sz.cy);
     LazyArrangeChild();
     return sz;
@@ -231,41 +230,41 @@ VirtualTileBoxElement* VirtualTileBox::GetDataProvider()
 
 void VirtualTileBox::Refresh()
 {
+    //最大子项数
     size_t nMaxItemCount = GetTileLayout()->AjustMaxItem();
     m_nMaxItemCount = nMaxItemCount;
 
+    //当前数据总数
     size_t nElementCount = GetElementCount();
+
+    //当前子项数
     size_t nItemCount = GetItemCount();
 
-    // 如果现有子项总数大于数据总数， 移出比数据总数多出的子项
-    if (nItemCount > nElementCount) {
-        size_t n = nItemCount - nElementCount;
+    //刷新后的子项数
+    size_t nNewItemCount = nElementCount;
+    if (nNewItemCount > nMaxItemCount) {
+        nNewItemCount = nMaxItemCount;
+    }
+    
+    if (nItemCount > nNewItemCount) {
+        //如果现有子项总数大于新计算的子项数，移除比数据总数多出的子项
+        size_t n = nItemCount - nNewItemCount;
         for (size_t i = 0; i < n; ++i) {
             this->RemoveItemAt(0);
         }
     }
-    // 如果子项总数据小于数据总数
-    else if (nItemCount < nElementCount) {
-        size_t n = 0;
-        if (nElementCount <= nMaxItemCount) {
-            n = nElementCount - nItemCount;
-        }
-        else {
-            n = nMaxItemCount - nItemCount;
-        }
-
+    else if (nItemCount < nNewItemCount) {
+        //如果现有子项总数小于新计算的子项数，新增比数据总数少的子项
+        size_t n = nNewItemCount - nItemCount;
         for (size_t i = 0; i < n; ++i) {
             Control* pControl = CreateElement();
             this->AddItem(pControl);
         }
     }
-
-    if (nElementCount == 0) {
-        return;
-    }
-    ReArrangeChild(true);
-    Arrange();
-
+    if (nElementCount > 0) {
+        ReArrangeChild(true);
+        Arrange();
+    }    
 }
 
 void VirtualTileBox::RemoveAllItems()
@@ -460,7 +459,7 @@ void VirtualTileBox::FillElement(Control* pControl, size_t iIndex)
 size_t VirtualTileBox::GetElementCount()
 {
     if (m_pDataProvider != nullptr) {
-        return m_pDataProvider->GetElementtCount();
+        return m_pDataProvider->GetElementCount();
     }
     return 0;
 }

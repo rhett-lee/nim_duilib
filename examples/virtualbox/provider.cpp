@@ -33,7 +33,7 @@ void Provider::FillElement(ui::Control *control, size_t index)
 
 }
 
-size_t Provider::GetElementtCount()
+size_t Provider::GetElementCount()
 {
 	// 加锁
 	nbase::NAutoLock auto_lock(&lock_);
@@ -48,12 +48,13 @@ void Provider::SetTotal(int nTotal)
 	// 加锁
 	lock_.Lock();
 	m_vTasks.clear();
+	m_vTasks.reserve(nTotal);
 	for (auto i=1; i <= nTotal; i++)
 	{
 		DownloadTask task;
 		task.nId = i;
 		task.sName = L"任务名称";
-		m_vTasks.emplace_back(task);
+		m_vTasks.emplace_back(std::move(task));
 	}
 	lock_.Unlock();
 
@@ -64,10 +65,10 @@ void Provider::SetTotal(int nTotal)
 void Provider::RemoveTask(size_t nIndex)
 {	
 	lock_.Lock();
-
-	auto iter =	m_vTasks.begin() + nIndex;
-	m_vTasks.erase(iter);
-
+	if (nIndex < m_vTasks.size()) {
+		auto iter = m_vTasks.begin() + nIndex;
+		m_vTasks.erase(iter);
+	}
 	lock_.Unlock();
 
 	// 通知TileBox数据总数变动

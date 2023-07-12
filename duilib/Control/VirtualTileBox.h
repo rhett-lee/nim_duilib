@@ -14,33 +14,49 @@ class UILIB_API VirtualTileBoxElement : public virtual nbase::SupportWeakCallbac
 {
 public:
     VirtualTileBoxElement();
-    /**
-    * @brief 创建一个子项
-    * @return 返回创建后的子项指针
+
+    /** 创建一个数据项
+    * @return 返回创建后的数据项指针
     */
     virtual ui::Control* CreateElement() = 0;
 
-    /**
-    * @brief 填充指定子项
-    * @param[in] control 子项控件指针
+    /** 填充指定数据项
+    * @param[in] control 数据项控件指针
     * @param[in] index 索引
     */
     virtual void FillElement(ui::Control* control, size_t index) = 0;
 
-    /**
-    * @brief 获取子项总数
-    * @return 返回子项总数
+    /** 获取数据项总数
+    * @return 返回数据项总数
     */
-    virtual size_t GetElementtCount() = 0;
+    virtual size_t GetElementCount() = 0;
 
+    /** 注册事件通知回调
+    * @param [in] dcNotify 数据内容变化通知接口
+    * @param [in] ccNotify 数据项个数变化通知接口
+    */
     void RegNotifys(const DataChangedNotify& dcNotify, const CountChangedNotify& ccNotify);
 
 protected:
+
+    /** 发送通知：数据内容发生变化
+    * @param [in] nStartIndex 数据的开始下标
+    * @param [in] nEndIndex 数据的结束下标
+    */
     void EmitDataChanged(size_t nStartIndex, size_t nEndIndex);
+
+    /** 发送通知：数据项个数发生变化
+    */
     void EmitCountChanged();
 
 private:
+
+    /** 数据内容发生变化的响应函数
+    */
     DataChangedNotify m_DataChangedNotify;
+
+    /** 数据个数发生变化的响应函数
+    */
     CountChangedNotify m_CountChangedNotify;
 };
 
