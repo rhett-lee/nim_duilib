@@ -41,7 +41,6 @@
 #include <commctrl.h>
 #include <stddef.h>
 #include <richedit.h>
-#include <tchar.h>
 #include <assert.h>
 #include <crtdbg.h>
 #include <malloc.h>

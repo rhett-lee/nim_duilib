@@ -211,27 +211,69 @@ Image* CheckBoxTemplate<InheritType>::GetEstimateImage()
 template<typename InheritType>
 void CheckBoxTemplate<InheritType>::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
-    if (strName == L"selected") Selected(strValue == L"true", true);
-    else if (strName == L"normalfirst") SetPaintNormalFirst(strValue == L"true");
-    else if (strName == L"selectednormalimage") SetSelectedStateImage(kControlStateNormal, strValue);
-    else if (strName == L"selectedhotimage") SetSelectedStateImage(kControlStateHot, strValue);
-    else if (strName == L"selectedpushedimage") SetSelectedStateImage(kControlStatePushed, strValue);
-    else if (strName == L"selecteddisabledimage") SetSelectedStateImage(kControlStateDisabled, strValue);
-    else if (strName == L"selectedtextcolor") SetSelectedTextColor(strValue);
-    else if (strName == L"selectednormaltextcolor") SetSelectedStateTextColor(kControlStateNormal, strValue);
-    else if (strName == L"selectedhottextcolor")	SetSelectedStateTextColor(kControlStateHot, strValue);
-    else if (strName == L"selectedpushedtextcolor") SetSelectedStateTextColor(kControlStatePushed, strValue);
-    else if (strName == L"selecteddisabledtextcolor") SetSelectedStateTextColor(kControlStateDisabled, strValue);
-    else if (strName == L"selectednormalcolor") SetSelectedStateColor(kControlStateNormal, strValue);
-    else if (strName == L"selectedhotcolor") SetSelectedStateColor(kControlStateHot, strValue);
-    else if (strName == L"selectedpushedcolor") SetSelectedStateColor(kControlStatePushed, strValue);
-    else if (strName == L"selecteddisabledcolor") SetSelectedStateColor(kControlStateDisabled, strValue);
-    else if (strName == L"selectedforenormalimage") SetSelectedForeStateImage(kControlStateNormal, strValue);
-    else if (strName == L"selectedforehotimage") SetSelectedForeStateImage(kControlStateHot, strValue);
-    else if (strName == L"selectedforepushedimage") SetSelectedForeStateImage(kControlStatePushed, strValue);
-    else if (strName == L"selectedforedisabledimage") SetSelectedForeStateImage(kControlStateDisabled, strValue);
-    else if (strName == L"switchselect") Selected(!IsSelected());
-    else __super::SetAttribute(strName, strValue);
+    if (strName == L"selected") {
+        Selected(strValue == L"true", true);
+    }
+    else if ((strName == L"normal_first") || (strName == L"normalfirst")) {
+        SetPaintNormalFirst(strValue == L"true");
+    }
+    else if ((strName == L"selected_normal_image") || (strName == L"selectednormalimage")){
+        SetSelectedStateImage(kControlStateNormal, strValue);
+    }
+    else if ((strName == L"selected_hot_image") || (strName == L"selectedhotimage")) {
+        SetSelectedStateImage(kControlStateHot, strValue);
+    }
+    else if ((strName == L"selected_pushed_image") || (strName == L"selectedpushedimage")) {
+        SetSelectedStateImage(kControlStatePushed, strValue);
+    }
+    else if ((strName == L"selected_disabled_image") || (strName == L"selecteddisabledimage")) {
+        SetSelectedStateImage(kControlStateDisabled, strValue);
+    }
+    else if ((strName == L"selected_text_color") || (strName == L"selectedtextcolor") ){
+        SetSelectedTextColor(strValue);
+    }
+    else if ((strName == L"selected_normal_text_color") || (strName == L"selectednormaltextcolor")) {
+        SetSelectedStateTextColor(kControlStateNormal, strValue);
+    }
+    else if ((strName == L"selected_hot_text_color") || (strName == L"selectedhottextcolor") ){
+        SetSelectedStateTextColor(kControlStateHot, strValue);
+    }
+    else if ((strName == L"selected_pushed_text_color") || (strName == L"selectedpushedtextcolor")) {
+        SetSelectedStateTextColor(kControlStatePushed, strValue);
+    }
+    else if ((strName == L"selected_disabled_text_color") || (strName == L"selecteddisabledtextcolor") ){
+        SetSelectedStateTextColor(kControlStateDisabled, strValue);
+    }
+    else if ((strName == L"selected_normal_color") || (strName == L"selectednormalcolor") ){
+        SetSelectedStateColor(kControlStateNormal, strValue);
+    }
+    else if ((strName == L"selected_hot_color") || (strName == L"selectedhotcolor") ){
+        SetSelectedStateColor(kControlStateHot, strValue);
+    }
+    else if ((strName == L"selected_pushed_color") || (strName == L"selectedpushedcolor") ){
+        SetSelectedStateColor(kControlStatePushed, strValue);
+    }
+    else if ((strName == L"selected_disabled_color") || (strName == L"selecteddisabledcolor") ){
+        SetSelectedStateColor(kControlStateDisabled, strValue);
+    }
+    else if ((strName == L"selected_fore_normal_image") || (strName == L"selectedforenormalimage")) {
+        SetSelectedForeStateImage(kControlStateNormal, strValue);
+    }
+    else if ((strName == L"selected_fore_hot_image") || (strName == L"selectedforehotimage") ){
+        SetSelectedForeStateImage(kControlStateHot, strValue);
+    }
+    else if ((strName == L"selected_fore_pushed_image") || (strName == L"selectedforepushedimage") ){
+        SetSelectedForeStateImage(kControlStatePushed, strValue);
+    }
+    else if ((strName == L"selected_fore_disabled_image") || (strName == L"selectedforedisabledimage") ){
+        SetSelectedForeStateImage(kControlStateDisabled, strValue);
+    }
+    else if ((strName == L"switch_select") || (strName == L"switchselect")) {
+        Selected(!IsSelected());
+    }
+    else {
+        __super::SetAttribute(strName, strValue);
+    }
 }
 
 template<typename InheritType>

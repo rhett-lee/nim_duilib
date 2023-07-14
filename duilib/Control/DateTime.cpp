@@ -221,8 +221,8 @@ DateTime::DateTime():
     m_pDateWindow(nullptr)
 {
     //…Ë÷√ƒ¨»œ Ù–‘
-    SetAttribute(L"bordersize", L"1");
-    SetAttribute(L"bordercolor", L"gray");
+    SetAttribute(L"border_size", L"1");
+    SetAttribute(L"border_color", L"gray");
     SetAttribute(L"align", L"vcenter");
 }
 

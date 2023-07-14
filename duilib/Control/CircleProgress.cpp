@@ -17,20 +17,30 @@ std::wstring CircleProgress::GetType() const { return DUI_CTR_CIRCLEPROGRESS; }
 
 void CircleProgress::SetAttribute(const std::wstring& srName, const std::wstring& strValue)
 {
-	if (srName == L"circular") SetCircular(strValue == L"true");
-	else if (srName == L"circlewidth") SetCircleWidth(_wtoi(strValue.c_str()));
-	else if (srName == L"indicator") SetIndicator(strValue);
-	else if (srName == L"clockwise") SetClockwiseRotation(strValue == L"true");
+	if (srName == L"circular") {
+		SetCircular(strValue == L"true");
+	}
+	else if ((srName == L"circle_width") || (srName == L"circlewidth")) {
+		SetCircleWidth(_wtoi(strValue.c_str()));
+	}
+	else if (srName == L"indicator") {
+		SetIndicator(strValue);
+	}
+	else if (srName == L"clockwise") {
+		SetClockwiseRotation(strValue == L"true");
+	}
 	else if (srName == L"bgcolor") {
 		SetBackgroudColor(strValue);
 	}
 	else if (srName == L"fgcolor") {
 		SetForegroudColor(strValue);
 	}
-	else if (srName == L"gradientcolor") {
+	else if ((srName == L"gradient_color") || (srName == L"gradientcolor")) {
 		SetCircleGradientColor(strValue);
 	}
-	else Progress::SetAttribute(srName, strValue);
+	else {
+		Progress::SetAttribute(srName, strValue);
+	}
 }
 
 void CircleProgress::PaintStatusImage(IRender* pRender)

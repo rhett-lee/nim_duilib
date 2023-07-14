@@ -109,7 +109,7 @@ bool Layout::SetAttribute(const std::wstring& strName, const std::wstring& strVa
 		AttributeUtil::ParseRectValue(strValue.c_str(), rcPadding);
 		SetPadding(rcPadding, true);
 	}
-	else if( strName == L"childmargin") {
+	else if ((strName == L"child_margin") || (strName == L"childmargin")) {
 		SetChildMargin(_wtoi(strValue.c_str()));
 	}
 	else {
@@ -249,7 +249,7 @@ void Box::SetAttribute(const std::wstring& strName, const std::wstring& strValue
 	if (m_pLayout->SetAttribute(strName, strValue))	{
 		return;
 	}
-	else if (strName == L"mousechild") {
+	else if ((strName == L"mouse_child") || (strName == L"mousechild")) {
 		SetMouseChildEnabled(strValue == L"true");
 	}
 	else {

@@ -190,7 +190,7 @@ UiSize TileLayout::EstimateSizeByChild(const std::vector<Control*>& items, UiSiz
 bool TileLayout::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
 	bool hasAttribute = true;
-	if( strName == L"itemsize") {
+	if((strName == L"item_size") || (strName == L"itemsize")){
 		UiSize szItem;
 		AttributeUtil::ParseSizeValue(strValue.c_str(), szItem);
 		SetItemSize(szItem);
@@ -228,6 +228,7 @@ int TileLayout::GetColumns() const
 
 void TileLayout::SetColumns(int nCols)
 {
+	ASSERT(nCols > 0);
 	if (nCols <= 0) {
 		return;
 	}

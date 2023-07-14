@@ -12,7 +12,6 @@
 #include "duilib/Utils/ApiWrapper.h"
 #include "duilib/Utils/PerformanceUtil.h"
 
-#include <tchar.h>
 #include <Olectl.h>
 
 namespace ui 
@@ -416,18 +415,18 @@ LRESULT CALLBACK Window::__ControlProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
         LPCREATESTRUCT lpcs = reinterpret_cast<LPCREATESTRUCT>(lParam);
         pThis = static_cast<Window*>(lpcs->lpCreateParams);        
 		if (pThis != nullptr) {
-			::SetProp(hWnd, _T("WndX"), (HANDLE)pThis);
+			::SetPropW(hWnd, L"WndX", (HANDLE)pThis);
 			pThis->m_hWnd = hWnd;
 		}        
     } 
     else {
-        pThis = reinterpret_cast<Window*>(::GetProp(hWnd, _T("WndX")));
+        pThis = reinterpret_cast<Window*>(::GetPropW(hWnd, L"WndX"));
         if( uMsg == WM_NCDESTROY && pThis != nullptr ) {
             LRESULT lRes = ::CallWindowProc(pThis->m_OldWndProc, hWnd, uMsg, wParam, lParam);
 			if (pThis->m_bSubclassed) {
 				pThis->Unsubclass();
 			}
-            ::SetProp(hWnd, _T("WndX"), NULL);
+            ::SetPropW(hWnd, L"WndX", NULL);
 			ASSERT(hWnd == pThis->GetHWND());
             pThis->OnFinalMessage(hWnd);
             return lRes;
@@ -557,9 +556,9 @@ void Window::SetResourcePath(const std::wstring& strPath)
 	m_strResourcePath = strPath;
 	if (!m_strResourcePath.empty()) {
 		//确保路径最后字符是分割字符
-		TCHAR cEnd = m_strResourcePath.back();
-		if (cEnd != _T('\\') && cEnd != _T('/')) {
-			m_strResourcePath += _T('\\');
+		wchar_t cEnd = m_strResourcePath.back();
+		if (cEnd != L'\\' && cEnd != L'/') {
+			m_strResourcePath += L'\\';
 		}
 	}
 }

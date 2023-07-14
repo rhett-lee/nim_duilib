@@ -242,21 +242,27 @@ void Combo::Activate()
 
 void Combo::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
-	if (strName == L"dropbox") SetDropBoxAttributeList(strValue);
-	else if (strName == L"vscrollbar") {}
-	else if (strName == L"dropboxsize")
-	{
+	if (strName == L"dropbox") {
+		SetDropBoxAttributeList(strValue);
+	}
+	else if (strName == L"vscrollbar") {
+	}
+	else if ((strName == L"dropbox_size") || (strName == L"dropboxsize") ){
 		UiSize szDropBoxSize;
 		AttributeUtil::ParseSizeValue(strValue.c_str(), szDropBoxSize);
 		SetDropBoxSize(szDropBoxSize);
 	}
-	else if (strName == L"popuptop") SetPopupTop(strValue == L"true");
-	else if (strName == L"textpadding") {
+	else if ((strName == L"popup_top") || (strName == L"popuptop")){
+		SetPopupTop(strValue == L"true");
+	}
+	else if ((strName == L"text_padding") || (strName == L"textpadding")){
 		UiRect rcTextPadding;
 		AttributeUtil::ParseRectValue(strValue.c_str(), rcTextPadding);
 		SetTextPadding(rcTextPadding);
 	}
-	else Box::SetAttribute(strName, strValue);
+	else {
+		Box::SetAttribute(strName, strValue);
+	}
 }
 
 void Combo::PaintText(IRender* pRender)

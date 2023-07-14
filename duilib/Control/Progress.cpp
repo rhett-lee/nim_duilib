@@ -120,20 +120,42 @@ void Progress::SetProgressColor(const std::wstring& strProgressColor)
 
 void Progress::SetAttribute(const std::wstring& srName, const std::wstring& strValue)
 {
-    if (srName == L"hor") SetHorizontal(strValue == L"true");
-    else if (srName == L"min") SetMinValue(_wtoi(strValue.c_str()));
-    else if (srName == L"max") SetMaxValue(_wtoi(strValue.c_str()));
-    else if (srName == L"value") SetValue(_wtoi(strValue.c_str()));
-    else if (srName == L"progressimage") SetProgressImage(strValue);
-    else if (srName == L"isstretchfore") SetStretchForeImage(strValue == L"true");
-    else if (srName == L"progresscolor") {
+	if ((srName == L"hor") || (srName == L"horizontal")){
+		SetHorizontal(strValue == L"true");
+	}
+	else if (srName == L"min") {
+		SetMinValue(_wtoi(strValue.c_str()));
+	}
+	else if (srName == L"max") {
+		SetMaxValue(_wtoi(strValue.c_str()));
+	}
+	else if (srName == L"value") {
+		SetValue(_wtoi(strValue.c_str()));
+	}
+	else if ((srName == L"progress_image") || (srName == L"progressimage")){
+		SetProgressImage(strValue);
+	}
+	else if ((srName == L"stretch_fore_image") || (srName == L"is_stretch_fore") || (srName == L"isstretchfore")){
+		SetStretchForeImage(strValue == L"true");
+	}
+    else if ((srName == L"progress_color") || (srName == L"progresscolor")) {
         SetProgressColor(strValue);
     }
-    else if (srName == L"marquee") SetMarquee(strValue == L"true");
-    else if (srName == L"marqueewidth") SetMarqueeWidth(_wtoi(strValue.c_str()));
-    else if (srName == L"marqueestep") SetMarqueeStep(_wtoi(strValue.c_str()));
-    else if (srName == L"reverse") SetReverse(strValue == L"true");
-    else Label::SetAttribute(srName, strValue);
+	else if (srName == L"marquee") {
+		SetMarquee(strValue == L"true");
+	}
+	else if ((srName == L"marquee_width") || (srName == L"marqueewidth")){
+		SetMarqueeWidth(_wtoi(strValue.c_str()));
+	}
+	else if ((srName == L"marquee_step") || (srName == L"marqueestep")){
+		SetMarqueeStep(_wtoi(strValue.c_str()));
+	}
+	else if (srName == L"reverse") {
+		SetReverse(strValue == L"true");
+	}
+	else {
+		Label::SetAttribute(srName, strValue);
+	}
 }
 
 void Progress::PaintStatusImage(IRender* pRender)

@@ -31,7 +31,7 @@ void ChildBox::Init()
 
 void ChildBox::SetAttribute( const::std::wstring& strName, const std::wstring& strValue )
 {
-	if (strName == L"xmlfile") {
+	if ((strName == L"xml_file") || (strName == L"xmlfile")) {
 		SetChildLayoutXML(strValue);
 	}
 	else {

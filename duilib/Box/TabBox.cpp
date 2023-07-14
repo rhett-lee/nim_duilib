@@ -269,7 +269,7 @@ bool TabBox::SelectItem(const std::wstring& pControlName)
 
 void TabBox::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
-	if (strName == L"selectedid"){
+	if ((strName == L"selected_id") || (strName == L"selectedid")){
 		size_t iSel = (size_t)_wtoi(strValue.c_str());
 		if (m_bIsInit) {
 			SelectItem(iSel);
@@ -278,7 +278,7 @@ void TabBox::SetAttribute(const std::wstring& strName, const std::wstring& strVa
 			m_iInitSel = iSel;
 		}
 	}
-	else if (strName == L"fadeswitch") {
+	else if ((strName == L"fade_switch") || (strName == L"fadeswitch")) {
 		SetFadeSwitch(strValue == L"true");
 	}
 	else {

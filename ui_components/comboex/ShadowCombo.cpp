@@ -266,42 +266,48 @@ void ShadowCombo::Activate()
 
 void ShadowCombo::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
-    if (strName == L"dropbox") SetDropBoxAttributeList(strValue);
-    else if (strName == L"vscrollbar") {}
-    else if (strName == L"dropboxsize")
+    if (strName == L"dropbox") {
+        SetDropBoxAttributeList(strValue);
+    }
+    else if (strName == L"vscrollbar") 
     {
+    }
+    else if ((strName == L"dropbox_size") || (strName == L"dropboxsize")) {
         ui::UiSize szDropBoxSize;
         ui::AttributeUtil::ParseSizeValue(strValue.c_str(), szDropBoxSize);
         SetDropBoxSize(szDropBoxSize);
     }
-    else if (strName == L"popuptop") SetPopupTop(strValue == L"true");
-    else if (strName == L"textpadding") {
+    else if ((strName == L"popup_top") || (strName == L"popuptop")) {
+        SetPopupTop(strValue == L"true");
+    }
+    else if ((strName == L"text_padding") || (strName == L"textpadding")) {
         ui::UiRect rcTextPadding;
         ui::AttributeUtil::ParseRectValue(strValue.c_str(), rcTextPadding);
         SetTextPadding(rcTextPadding);
     }
-    else if (strName == L"shadowcorner") {
+    else if ((strName == L"shadow_corner") || (strName == L"shadowcorner")) {
         ui::UiRect rcShadowCorner;
         ui::AttributeUtil::ParseRectValue(strValue.c_str(), rcShadowCorner);
         SetShadowCorner(rcShadowCorner);
     }
-    else if (strName == L"arrownormalimage") {
+    else if ((strName == L"arrow_normal_image") || (strName == L"arrownormalimage")) {
         m_cArrow->SetStateImage(ui::kControlStateNormal, strValue);
     }
-    else if (strName == L"arrowhotimage") {
+    else if ((strName == L"arrow_hot_image") || (strName == L"arrowhotimage")) {
         m_cArrow->SetStateImage(ui::kControlStateHot, strValue);
     }
-    else if (strName == L"arrowpushedimage") {
+    else if ((strName == L"arrow_pushed_image") || (strName == L"arrowpushedimage")) {
         m_cArrow->SetStateImage(ui::kControlStatePushed, strValue);
     }
-    else if (strName == L"arrowdisabledimage") {
+    else if ((strName == L"arrow_disabled_image") || (strName == L"arrowdisabledimage")) {
         m_cArrow->SetStateImage(ui::kControlStateDisabled, strValue);
     }
-    else if (strName == L"arrowoffset") {
+    else if ((strName == L"arrow_offset") || (strName == L"arrowoffset")) {
         SetArrowOffset(_wtoi(strValue.c_str()));
     }
-
-    else Box::SetAttribute(strName, strValue);
+    else {
+        Box::SetAttribute(strName, strValue);
+    }
 }
 
 void ShadowCombo::PaintText(ui::IRender* pRender)

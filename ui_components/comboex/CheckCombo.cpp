@@ -229,14 +229,20 @@ namespace nim_comp
 
 	void CheckCombo::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 	{
-		if (strName == L"dropbox") SetDropBoxAttributeList(strValue);
-		else if (strName == L"vscrollbar") {}
-		else if (strName == L"dropboxsize"){
+		if (strName == L"dropbox") {
+			SetDropBoxAttributeList(strValue);
+		}
+		else if (strName == L"vscrollbar")
+		{
+		}
+		else if ((strName == L"dropbox_size") || (strName == L"dropboxsize")) {
 			ui::UiSize szDropBoxSize;
 			ui::AttributeUtil::ParseSizeValue(strValue.c_str(), szDropBoxSize);
 			SetDropBoxSize(szDropBoxSize);
 		}
-		else if (strName == L"popuptop") SetPopupTop(strValue == L"true");
+		else if ((strName == L"popup_top") || (strName == L"popuptop")) {
+			SetPopupTop(strValue == L"true");
+		}
 		else if (strName == L"height") {
 			__super::SetAttribute(strName, strValue);
 			if (strValue != L"stretch" && strValue != L"auto") {
@@ -246,7 +252,9 @@ namespace nim_comp
 				SetMinHeight(m_iOrgHeight);
 			}
 		}
-		else Box::SetAttribute(strName, strValue);
+		else {
+			Box::SetAttribute(strName, strValue);
+		}
 	}
 
 	ui::UiRect CheckCombo::GetOrgPos() const

@@ -359,16 +359,23 @@ void FilterCombo::Activate()
 
 void FilterCombo::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
-	if (strName == L"dropbox") SetDropBoxAttributeList(strValue);
-	else if (strName == L"vscrollbar") {}
-	else if (strName == L"dropboxsize")
+	if (strName == L"dropbox") {
+		SetDropBoxAttributeList(strValue);
+	}
+	else if (strName == L"vscrollbar") 
 	{
+	}
+	else if ((strName == L"dropbox_size") || (strName == L"dropboxsize")) {
 		ui::UiSize szDropBoxSize;
 		ui::AttributeUtil::ParseSizeValue(strValue.c_str(), szDropBoxSize);
 		SetDropBoxSize(szDropBoxSize);
 	}
-	else if (strName == L"popuptop") SetPopupTop(strValue == L"true");
-	else Box::SetAttribute(strName, strValue);
+	else if ((strName == L"popup_top") || (strName == L"popuptop")) {
+		SetPopupTop(strValue == L"true");
+	}
+	else {
+		Box::SetAttribute(strName, strValue);
+	}
 }
 
 std::wstring FilterCombo::GetText() const

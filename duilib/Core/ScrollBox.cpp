@@ -27,35 +27,47 @@ std::wstring ScrollBox::GetType() const { return DUI_CTR_SCROLLBOX; }//ScrollBox
 
 void ScrollBox::SetAttribute(const std::wstring& pstrName, const std::wstring& pstrValue)
 {
-	if(pstrName == L"vscrollbar") {
+	if (pstrName == L"vscrollbar") {
 		EnableScrollBar(pstrValue == L"true", GetHScrollBar() != nullptr);
 	}
-	else if( pstrName == L"vscrollbarstyle") {
+	else if ((pstrName == L"vscrollbar_style") || (pstrName == L"vscrollbarstyle")) {
 		EnableScrollBar(true, GetHScrollBar() != nullptr);
 		if (GetVScrollBar() != nullptr) {
 			GetVScrollBar()->ApplyAttributeList(pstrValue);
 		}
 	}
-	else if(pstrName == L"hscrollbar") {
+	else if (pstrName == L"hscrollbar") {
 		EnableScrollBar(GetVScrollBar() != nullptr, pstrValue == L"true");
 	}
-	else if( pstrName == L"hscrollbarstyle") {
+	else if ((pstrName == L"hscrollbar_style") || (pstrName == L"hscrollbarstyle")) {
 		EnableScrollBar(GetVScrollBar() != nullptr, true);
 		if (GetHScrollBar() != nullptr) {
 			GetHScrollBar()->ApplyAttributeList(pstrValue);
 		}
 	}
-	else if(pstrName == L"scrollbarpadding") {
+	else if ((pstrName == L"scrollbar_padding") || (pstrName == L"scrollbarpadding")) {
 		UiRect rcScrollbarPadding;
 		AttributeUtil::ParseRectValue(pstrValue.c_str(), rcScrollbarPadding);
 		SetScrollBarPadding(rcScrollbarPadding);
 	}
-	else if (pstrName == L"vscrollunit") SetVerScrollUnitPixels(_wtoi(pstrValue.c_str()));
-	else if (pstrName == L"hscrollunit") SetHorScrollUnitPixels(_wtoi(pstrValue.c_str()));
-	else if (pstrName == L"scrollbarfloat") SetScrollBarFloat(pstrValue == L"true");
-	else if (pstrName == L"vscrollbarleft") SetVScrollBarLeftPos(pstrValue == L"true");
-	else if (pstrName == L"holdend") SetHoldEnd(pstrValue == L"true");
-	else Box::SetAttribute(pstrName, pstrValue);
+	else if ((pstrName == L"vscroll_unit") || (pstrName == L"vscrollunit")) {
+		SetVerScrollUnitPixels(_wtoi(pstrValue.c_str()));
+	}
+	else if ((pstrName == L"hscroll_unit") || (pstrName == L"hscrollunit")) {
+		SetHorScrollUnitPixels(_wtoi(pstrValue.c_str()));
+	}
+	else if ((pstrName == L"scrollbar_float") || (pstrName == L"scrollbarfloat")) {
+		SetScrollBarFloat(pstrValue == L"true");
+	}
+	else if ((pstrName == L"vscrollbar_left") || (pstrName == L"vscrollbarleft")) {
+		SetVScrollBarLeftPos(pstrValue == L"true");
+	}
+	else if ((pstrName == L"hold_end") || (pstrName == L"holdend")) {
+		SetHoldEnd(pstrValue == L"true");
+	}
+	else {
+		Box::SetAttribute(pstrName, pstrValue);
+	}
 }
 
 void ScrollBox::SetPos(UiRect rc)

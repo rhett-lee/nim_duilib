@@ -18,7 +18,7 @@ std::wstring ListBox::GetType() const { return DUI_CTR_LISTBOX; }
 
 void ListBox::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
-	if( strName == L"scrollselect") {
+	if ((strName == L"scroll_select") || (strName == L"scrollselect")){
 		SetScrollSelect(strValue == L"true");
 	}
 	else {

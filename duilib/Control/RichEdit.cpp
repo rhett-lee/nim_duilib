@@ -11,7 +11,6 @@
 #include "duilib/Animation/AnimationPlayer.h"
 #include "base/win32/path_util.h"
 #include "base/thread/thread_manager.h"
-#include <tchar.h>
 
 // These constants are for backward compatibility. They are the 
 // sizes used for initialization and reset in RichEdit 1.0
@@ -292,7 +291,7 @@ static HRESULT InitDefaultCharFormat(RichEdit* re, CHARFORMAT2W* pcf)
     pcf->bCharSet = lf.lfCharSet;
     pcf->bPitchAndFamily = lf.lfPitchAndFamily;
 #ifdef _UNICODE
-    _tcscpy_s(pcf->szFaceName, lf.lfFaceName);
+    wcscpy_s(pcf->szFaceName, lf.lfFaceName);
 #else
     //need to thunk pcf->szFaceName to a standard char string.in this case it's easy because our thunk is also our copy
     MultiByteToWideChar(CP_ACP, 0, lf.lfFaceName, LF_FACESIZE, pcf->szFaceName, LF_FACESIZE) ;
@@ -995,7 +994,7 @@ void CTxtWinHost::SetFontId(const std::wstring& fontId)
     cf.bCharSet = lf.lfCharSet;
     cf.bPitchAndFamily = lf.lfPitchAndFamily;
 #ifdef _UNICODE
-    _tcscpy_s(cf.szFaceName, lf.lfFaceName);
+    wcscpy_s(cf.szFaceName, lf.lfFaceName);
 #else
     //need to thunk pcf->szFaceName to a standard char string.in this case it's easy because our thunk is also our copy
     MultiByteToWideChar(CP_ACP, 0, lf.lfFaceName, LF_FACESIZE, cf.szFaceName, LF_FACESIZE) ;
@@ -2828,125 +2827,168 @@ void RichEdit::PaintChild(IRender* pRender, const UiRect& rcPaint)
 
 void RichEdit::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
-	if (strName == _T("vscrollbar")) {
-		if (strValue == _T("true")) {
+	if (strName == L"vscrollbar") {
+		if (strValue == L"true") {
 			m_lTwhStyle |= ES_DISABLENOSCROLL | WS_VSCROLL;
 			EnableScrollBar(true, GetHScrollBar() != NULL);
 		}
 		else {
 			m_lTwhStyle &= ~WS_VSCROLL;
-			if (!(m_lTwhStyle & WS_HSCROLL)) m_lTwhStyle &= ~ES_DISABLENOSCROLL;
+			if (!(m_lTwhStyle & WS_HSCROLL)) {
+				m_lTwhStyle &= ~ES_DISABLENOSCROLL;
+			}
 			EnableScrollBar(false, GetHScrollBar() != NULL);
 		}
 	}
-	else if (strName == _T("autovscroll")) {
-		if (strValue == _T("true")) m_lTwhStyle |= ES_AUTOVSCROLL;
-		else if (strValue == _T("false")) m_lTwhStyle &= ~ES_AUTOVSCROLL;
+	else if ((strName == L"auto_vscroll") || (strName == L"autovscroll")){
+		if (strValue == L"true") {
+			m_lTwhStyle |= ES_AUTOVSCROLL;
+		}
+		else if (strValue == L"false") {
+			m_lTwhStyle &= ~ES_AUTOVSCROLL;
+		}
 	}
-	else if (strName == _T("hscrollbar")) {
-		if (strValue == _T("true")) {
+	else if (strName == L"hscrollbar") {
+		if (strValue == L"true") {
 			m_lTwhStyle |= ES_DISABLENOSCROLL | WS_HSCROLL;
 			EnableScrollBar(GetVScrollBar() != NULL, true);
 		}
 		else {
 			m_lTwhStyle &= ~WS_HSCROLL;
-			if (!(m_lTwhStyle & WS_VSCROLL)) m_lTwhStyle &= ~ES_DISABLENOSCROLL;
+			if (!(m_lTwhStyle & WS_VSCROLL)) {
+				m_lTwhStyle &= ~ES_DISABLENOSCROLL;
+			}
 			EnableScrollBar(GetVScrollBar() != NULL, false);
 		}
 	}
-	else if (strName == _T("autohscroll")) {
-		if (strValue == _T("true")) m_lTwhStyle |= ES_AUTOHSCROLL;
-		else if (strValue == _T("false")) m_lTwhStyle &= ~ES_AUTOHSCROLL;
+	else if ((strName == L"auto_hscroll") || (strName == L"autohscroll")){
+		if (strValue == L"true") {
+			m_lTwhStyle |= ES_AUTOHSCROLL;
+		}
+		else if (strValue == L"false") {
+			m_lTwhStyle &= ~ES_AUTOHSCROLL;
+		}
 	}
-	else if (strName == _T("multiline")) {
-		if (strValue == _T("false")) m_lTwhStyle &= ~ES_MULTILINE;
-		else if (strValue == _T("true")) m_lTwhStyle |= ES_MULTILINE;
+	else if ((strName == L"multi_line") || (strName == L"multiline")) {
+		if (strValue == L"false") {
+			m_lTwhStyle &= ~ES_MULTILINE;
+		}
+		else if (strValue == L"true") {
+			m_lTwhStyle |= ES_MULTILINE;
+		}
 	}
-	else if (strName == _T("readonly")) {
-		if (strValue == _T("true")) {
+	else if (strName == L"readonly") {
+		if (strValue == L"true") {
 			m_lTwhStyle |= ES_READONLY;
 			m_bReadOnly = true;
 		}
-		else if (strValue == _T("false")) {
+		else if (strValue == L"false") {
 			m_lTwhStyle &= ~ES_READONLY;
 			m_bReadOnly = false;
 		}
 	}
-	else if (strName == _T("password")) {
-		if (strValue == _T("true")) {
+	else if (strName == L"password") {
+		if (strValue == L"true") {
 			m_lTwhStyle |= ES_PASSWORD;
 			m_bPassword = true;
 		}
-		else if (strValue == _T("false")) {
+		else if (strValue == L"false") {
 			m_lTwhStyle &= ~ES_PASSWORD;
 			m_bPassword = false;
 		}
 	}
-	else if (strName == _T("number")) {
-		if (strValue == _T("true")) {
+	else if (strName == L"number") {
+		if (strValue == L"true") {
 			m_lTwhStyle |= ES_NUMBER;
 			m_bNumberOnly = true;
 		}
-		else if (strValue == _T("false")){
+		else if (strValue == L"false"){
 			m_lTwhStyle &= ~ES_NUMBER;
 			m_bNumberOnly = false;
 		}
 	}
-	else if (strName == _T("align")) {
-		if (strValue.find(_T("left")) != std::wstring::npos) {
+	else if (strName == L"align") {
+		if (strValue.find(L"left") != std::wstring::npos) {
 			m_lTwhStyle &= ~(ES_CENTER | ES_RIGHT);
 			m_lTwhStyle |= ES_LEFT;
-		}
-		if (strValue.find(_T("hcenter")) != std::wstring::npos) {
-			m_lTwhStyle &= ~(ES_LEFT | ES_RIGHT);
-			m_lTwhStyle |= ES_CENTER;
-		}
-		if (strValue.find(_T("right")) != std::wstring::npos) {
+		}		
+		if (strValue.find(L"right") != std::wstring::npos) {
 			m_lTwhStyle &= ~(ES_LEFT | ES_CENTER);
 			m_lTwhStyle |= ES_RIGHT;
 		}
-		if (strValue.find(_T("top")) != std::wstring::npos) {
+		if (strValue.find(L"hcenter") != std::wstring::npos) {
+			m_lTwhStyle &= ~(ES_LEFT | ES_RIGHT);
+			m_lTwhStyle |= ES_CENTER;
+		}
+		if (strValue.find(L"top") != std::wstring::npos) {
 			m_textVerAlignType = kVerAlignTop;
 		}
-		if (strValue.find(_T("vcenter")) != std::wstring::npos) {
-			m_textVerAlignType = kVerAlignCenter;
-		}
-		if (strValue.find(_T("bottom")) != std::wstring::npos) {
+		if (strValue.find(L"bottom") != std::wstring::npos) {
 			m_textVerAlignType = kVerAlignBottom;
 		}
+		if (strValue.find(L"vcenter") != std::wstring::npos) {
+			m_textVerAlignType = kVerAlignCenter;
+		}		
 	}
-	else if (strName == _T("normaltextcolor")) {
+	else if ((strName == L"normal_text_color") || (strName == L"normaltextcolor")){
 		m_sTextColor = strValue;
-		if (IsEnabled())
+		if (IsEnabled()) {
 			SetTextColor(m_sTextColor);
+		}
 	}
-	else if (strName == L"disabledtextcolor") {
+	else if ((strName == L"disabled_text_color") || (strName == L"disabledtextcolor")){
 		m_sDisabledTextColor = strValue;
-		if (!IsEnabled())
+		if (!IsEnabled()) {
 			SetTextColor(m_sDisabledTextColor);
+		}
 	}
-	else if (strName == L"caretcolor") {
+	else if ((strName == L"caret_color") || (strName == L"caretcolor")){
 		SetCaretColor(strValue);
 	}
-	else if (strName == _T("promptmode")) {
-		if (strValue == _T("true"))
+	else if ((strName == L"prompt_mode") || (strName == L"promptmode")){
+		if (strValue == L"true") {
 			m_bAllowPrompt = true;
+		}
 	}
-	else if (strName == _T("promptcolor")) {
+	else if ((strName == L"prompt_color") || (strName == L"promptcolor")){
 		m_sPromptColor = strValue;
 	}
-	else if (strName == _T("prompttext")) SetPromptText(strValue);
-	else if (strName == _T("prompttextid")) SetPromptTextId(strValue);
-	else if (strName == _T("focusedimage")) SetFocusedImage(strValue);
-	else if (strName == _T("font")) SetFontId(strValue);
-	else if (strName == _T("text")) SetText(strValue);
-	else if (strName == _T("textid")) SetTextId(strValue);
-	else if (strName == _T("wanttab")) SetWantTab(strValue == _T("true"));
-	else if (strName == _T("wantreturnmsg")) SetNeedReturnMsg(strValue == _T("true"));
-	else if (strName == _T("returnmsgwantctrl")) SetReturnMsgWantCtrl(strValue == _T("true"));
-	else if (strName == _T("rich")) SetRich(strValue == _T("true"));
-	else if (strName == _T("maxchar")) SetLimitText(_ttoi(strValue.c_str()));
-	else Box::SetAttribute(strName, strValue);
+	else if ((strName == L"prompt_text") || (strName == L"prompttext")) {
+		SetPromptText(strValue);
+	}
+	else if ((strName == L"prompt_textid") || (strName == L"prompttextid")){
+		SetPromptTextId(strValue);
+	}
+	else if ((strName == L"focused_image") || (strName == L"focusedimage")){
+		SetFocusedImage(strValue);
+	}
+	else if (strName == L"font") {
+		SetFontId(strValue);
+	}
+	else if (strName == L"text") {
+		SetText(strValue);
+	}
+	else if ((strName == L"textid") || (strName == L"textid")){
+		SetTextId(strValue);
+	}
+	else if ((strName == L"want_tab") || (strName == L"wanttab")){
+		SetWantTab(strValue == L"true");
+	}
+	else if ((strName == L"want_return_msg") || (strName == L"wantreturnmsg")){
+		SetNeedReturnMsg(strValue == L"true");
+	}
+	else if ((strName == L"return_msg_want_ctrl") || (strName == L"returnmsgwantctrl")){
+		SetReturnMsgWantCtrl(strValue == L"true");
+	}
+	else if (strName == L"rich") {
+		SetRich(strValue == L"true");
+	}
+	else if ((strName == L"max_char") || (strName == L"maxchar")){
+		SetLimitText(_wtoi(strValue.c_str()));
+	}
+	else {
+		Box::SetAttribute(strName, strValue);
+	}
 }
 
 BOOL RichEdit::CreateCaret(INT xWidth, INT yHeight)

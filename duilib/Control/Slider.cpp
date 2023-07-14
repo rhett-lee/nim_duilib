@@ -114,22 +114,34 @@ void Slider::HandleEvent(const EventArgs& event)
 
 void Slider::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
-	if (strName == L"step") SetChangeStep(_wtoi(strValue.c_str()));
-	else if (strName == L"thumbnormalimage") SetThumbStateImage(kControlStateNormal, strValue);
-	else if (strName == L"thumbhotimage") SetThumbStateImage(kControlStateHot, strValue);
-	else if (strName == L"thumbpushedimage") SetThumbStateImage(kControlStatePushed, strValue);
-	else if (strName == L"thumbdisabledimage") SetThumbStateImage(kControlStateDisabled, strValue);
-	else if (strName == L"thumbsize") {
+	if (strName == L"step") {
+		SetChangeStep(_wtoi(strValue.c_str()));
+	}
+	else if ((strName == L"thumb_normal_image") || (strName == L"thumbnormalimage")) {
+		SetThumbStateImage(kControlStateNormal, strValue);
+	}
+	else if ((strName == L"thumb_hot_image") || (strName == L"thumbhotimage")) {
+		SetThumbStateImage(kControlStateHot, strValue);
+	}
+	else if ((strName == L"thumb_pushed_image") || (strName == L"thumbpushedimage")) {
+		SetThumbStateImage(kControlStatePushed, strValue);
+	}
+	else if ((strName == L"thumb_disabled_image") || (strName == L"thumbdisabledimage")) {
+		SetThumbStateImage(kControlStateDisabled, strValue);
+	}
+	else if ((strName == L"thumb_size") || (strName == L"thumbsize")) {
 		UiSize szXY;
 		AttributeUtil::ParseSizeValue(strValue.c_str(), szXY);
 		SetThumbSize(szXY);
 	}
-	else if (strName == L"progressbarpadding") {
+	else if ((strName == L"progress_bar_padding") || (strName == L"progressbarpadding")) {
 		UiRect rcPadding;
 		AttributeUtil::ParseRectValue(strValue.c_str(), rcPadding);
 		SetProgressBarPadding(rcPadding);
 	}
-	else Progress::SetAttribute(strName, strValue);
+	else {
+		Progress::SetAttribute(strName, strValue);
+	}
 }
 
 void Slider::PaintBkColor(IRender* pRender)

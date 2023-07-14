@@ -10,7 +10,6 @@
 #include "duilib/Animation/AnimationManager.h"
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Utils/AttributeUtil.h"
-#include <tchar.h>
 
 namespace ui 
 {
@@ -79,7 +78,7 @@ Control::~Control()
 	}
 }
 
-std::wstring Control::GetType() const { return _T("Control"); }
+std::wstring Control::GetType() const { return L"Control"; }
 
 void Control::SetBkColor(const std::wstring& strColor)
 {
@@ -337,7 +336,7 @@ std::string Control::GetUTF8ToolTipText() const
 void Control::SetToolTipText(const std::wstring& strText)
 {
 	std::wstring strTemp(strText);
-	StringHelper::ReplaceAll(_T("<n>"),_T("\r\n"), strTemp);
+	StringHelper::ReplaceAll(L"<n>",L"\r\n", strTemp);
 	m_sToolTipText = strTemp;
 
 	Invalidate();
@@ -348,7 +347,7 @@ void Control::SetUTF8ToolTipText(const std::string& strText)
 	std::wstring strOut;
 	StringHelper::MBCSToUnicode(strText, strOut, CP_UTF8);
 	if (strOut.empty()) {
-		m_sToolTipText = _T("");
+		m_sToolTipText.clear();
 		Invalidate();
 		return ;
 	}
@@ -913,49 +912,52 @@ bool Control::ButtonUp(const EventArgs& msg)
 
 void Control::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
-	if (strName == _T("class")) {
+	if (strName == L"class") {
 		SetClass(strValue);
 	}
-	else if (strName == _T("halign")) {
-		if (strValue == _T("left")) {
+	else if (strName == L"halign") {
+		if (strValue == L"left") {
 			SetHorAlignType(kHorAlignLeft);
 		}
-		else if (strValue == _T("center")) {
+		else if (strValue == L"center") {
 			SetHorAlignType(kHorAlignCenter);
 		}
-		else if (strValue == _T("right")) {
+		else if (strValue == L"right") {
 			SetHorAlignType(kHorAlignRight);
 		}
 		else {
 			ASSERT(FALSE);
 		}
 	}
-	else if (strName == _T("valign")) {
-		if (strValue == _T("top")) {
+	else if (strName == L"valign") {
+		if (strValue == L"top") {
 			SetVerAlignType(kVerAlignTop);
 		}
-		else if (strValue == _T("center")) {
+		else if (strValue == L"center") {
 			SetVerAlignType(kVerAlignCenter);
 		}
-		else if (strValue == _T("bottom")) {
+		else if (strValue == L"bottom") {
 			SetVerAlignType(kVerAlignBottom);
 		}
 		else {
 			ASSERT(FALSE);
 		}
 	}
-	else if (strName == _T("margin")) {
+	else if (strName == L"margin") {
 		UiRect rcMargin;
 		AttributeUtil::ParseRectValue(strValue.c_str(), rcMargin);
 		SetMargin(rcMargin, true);
 	}
-	else if (strName == _T("bkcolor") || strName == _T("bkcolor1")) {
+	else if (strName == L"bkcolor" || strName == L"bkcolor1") {
 		SetBkColor(strValue);
 	}
-	else if (strName == _T("bordersize")) {
+	else if ((strName == L"border_size") || (strName == L"bordersize")){
 		std::wstring nValue = strValue;
-		if (nValue.find(',') == std::wstring::npos) {
-			int nBorderSize = _ttoi(strValue.c_str());
+		if (nValue.find(L',') == std::wstring::npos) {
+			int nBorderSize = _wtoi(strValue.c_str());
+			if (nBorderSize < 0) {
+				nBorderSize = 0;
+			}
 			UiRect rcBorder(nBorderSize, nBorderSize, nBorderSize, nBorderSize);
 			SetBorderSize(rcBorder);
 		}
@@ -965,109 +967,213 @@ void Control::SetAttribute(const std::wstring& strName, const std::wstring& strV
 			SetBorderSize(rcBorder);
 		}
 	}
-	else if (strName == _T("borderround")) {
+	else if ((strName == L"border_round") || (strName == L"borderround")) {
 		UiSize cxyRound;
 		AttributeUtil::ParseSizeValue(strValue.c_str(), cxyRound);
 		SetBorderRound(cxyRound);
 	}
-	else if (strName == _T("boxshadow")) SetBoxShadow(strValue);
-	else if( strName == _T("width") ) {
-		if ( strValue == _T("stretch") ) {
+	else if ((strName == L"box_shadow") || (strName == L"boxshadow")) {
+		SetBoxShadow(strValue);
+	}
+	else if(strName == L"width") {
+		if (strValue == L"stretch") {
 			SetFixedWidth(DUI_LENGTH_STRETCH, true, true);
 		}
-		else if ( strValue == _T("auto") ) {
+		else if (strValue == L"auto") {
 			SetFixedWidth(DUI_LENGTH_AUTO, true, true);
 		}
 		else {
-			ASSERT(_ttoi(strValue.c_str()) >= 0);
-			SetFixedWidth(_ttoi(strValue.c_str()), true, true);
+			ASSERT(_wtoi(strValue.c_str()) >= 0);
+			SetFixedWidth(_wtoi(strValue.c_str()), true, true);
 		}
 	}
-	else if( strName == _T("height") ) {
-		if ( strValue == _T("stretch") ) {
+	else if(strName == L"height") {
+		if (strValue == L"stretch") {
 			SetFixedHeight(DUI_LENGTH_STRETCH, true);
 		}
-		else if ( strValue == _T("auto") ) {
+		else if (strValue == L"auto") {
 			SetFixedHeight(DUI_LENGTH_AUTO, true);
 		}
 		else {
-			ASSERT(_ttoi(strValue.c_str()) >= 0);
-			SetFixedHeight(_ttoi(strValue.c_str()), true);
+			ASSERT(_wtoi(strValue.c_str()) >= 0);
+			SetFixedHeight(_wtoi(strValue.c_str()), true);
 		}
 	}
-	else if( strName == _T("state") ) {
-		if( strValue == _T("normal") ) SetState(kControlStateNormal);
-		else if( strValue == _T("hot") ) SetState(kControlStateHot);
-		else if( strValue == _T("pushed") ) SetState(kControlStatePushed);
-		else if( strValue == _T("disabled") ) SetState(kControlStateDisabled);
-		else ASSERT(FALSE);
+	else if(strName == L"state") {
+		if (strValue == L"normal") {
+			SetState(kControlStateNormal);
+		}
+		else if (strValue == L"hot") {
+			SetState(kControlStateHot);
+		}
+		else if (strValue == L"pushed") {
+			SetState(kControlStatePushed);
+		}
+		else if (strValue == L"disabled") {
+			SetState(kControlStateDisabled);
+		}
+		else {
+			ASSERT(FALSE);
+		}
 	}
-	else if( strName == _T("cursortype") ) {
-		if (strValue == _T("arrow")) {
+	else if (strName == L"cursortype") {
+		if (strValue == L"arrow") {
 			SetCursorType(kCursorArrow);
 		}
-		else if ( strValue == _T("hand") ) {
+		else if (strValue == L"hand") {
 			SetCursorType(kCursorHand);
 		}
-		else if (strValue == _T("ibeam")) {
+		else if (strValue == L"ibeam") {
 			SetCursorType(kCursorHandIbeam);
 		}
 		else {
 			ASSERT(FALSE);
 		}
 	}
-	else if (strName == _T("renderoffset")) {
+	else if ((strName == L"render_offset") || (strName == L"renderoffset")) {
 		UiPoint renderOffset;
 		AttributeUtil::ParsePointValue(strValue.c_str(), renderOffset);
 		GlobalManager::Instance().Dpi().ScalePoint(renderOffset);
 		SetRenderOffset(renderOffset);
 	}
-	else if (strName == _T("normalcolor"))	SetStateColor(kControlStateNormal, strValue);
-	else if (strName == _T("hotcolor"))	SetStateColor(kControlStateHot, strValue);
-	else if (strName == _T("pushedcolor"))	SetStateColor(kControlStatePushed, strValue);
-	else if (strName == _T("disabledcolor"))	SetStateColor(kControlStateDisabled, strValue);
-	else if (strName == _T("bordercolor")) SetBorderColor(strValue);
-	else if (strName == _T("leftbordersize")) SetLeftBorderSize(_ttoi(strValue.c_str()));
-	else if (strName == _T("topbordersize")) SetTopBorderSize(_ttoi(strValue.c_str()));
-	else if (strName == _T("rightbordersize")) SetRightBorderSize(_ttoi(strValue.c_str()));
-	else if (strName == _T("bottombordersize")) SetBottomBorderSize(_ttoi(strValue.c_str()));
-	else if (strName == _T("bkimage")) SetBkImage(strValue);
-	else if (strName == _T("minwidth")) SetMinWidth(_ttoi(strValue.c_str()));
-	else if (strName == _T("maxwidth")) SetMaxWidth(_ttoi(strValue.c_str()));
-	else if (strName == _T("minheight")) SetMinHeight(_ttoi(strValue.c_str()));
-	else if (strName == _T("maxheight")) SetMaxHeight(_ttoi(strValue.c_str()));
-	else if (strName == _T("name")) SetName(strValue);
-	else if (strName == _T("tooltiptext")) SetToolTipText(strValue);
-	else if (strName == _T("tooltiptextid")) SetToolTipTextId(strValue);
-	else if (strName == _T("dataid")) SetDataID(strValue);
-	else if (strName == _T("enabled")) SetEnabled(strValue == _T("true"));
-	else if (strName == _T("mouse")) SetMouseEnabled(strValue == _T("true"));
-	else if (strName == _T("keyboard")) SetKeyboardEnabled(strValue == _T("true"));
-	else if (strName == _T("visible")) SetVisible(strValue == _T("true"));
-	else if (strName == _T("fadevisible")) SetFadeVisible(strValue == _T("true"));
-	else if (strName == _T("float")) SetFloat(strValue == _T("true"));
-	else if (strName == _T("cache")) SetUseCache(strValue == _T("true"));
-	else if (strName == _T("nofocus")) SetNoFocus();
-	else if (strName == _T("alpha")) SetAlpha(_ttoi(strValue.c_str()));
-	else if (strName == _T("normalimage") ) SetStateImage(kControlStateNormal, strValue);
-	else if (strName == _T("hotimage") ) SetStateImage(kControlStateHot, strValue);
-	else if (strName == _T("pushedimage") ) SetStateImage(kControlStatePushed, strValue);
-	else if (strName == _T("disabledimage") ) SetStateImage(kControlStateDisabled, strValue);
-	else if (strName == _T("forenormalimage") ) SetForeStateImage(kControlStateNormal, strValue);
-	else if (strName == _T("forehotimage") ) SetForeStateImage(kControlStateHot, strValue);
-	else if (strName == _T("forepushedimage") ) SetForeStateImage(kControlStatePushed, strValue);
-	else if (strName == _T("foredisabledimage") ) SetForeStateImage(kControlStateDisabled, strValue);
-	else if (strName == _T("fadealpha")) m_animationManager->SetFadeAlpha(strValue == _T("true"));
-	else if (strName == _T("fadehot")) m_animationManager->SetFadeHot(strValue == _T("true"));
-	else if (strName == _T("fadewidth")) m_animationManager->SetFadeWidth(strValue == _T("true"));
-	else if (strName == _T("fadeheight")) m_animationManager->SetFadeHeight(strValue == _T("true"));
-	else if (strName == _T("fadeinoutxfromleft")) m_animationManager->SetFadeInOutX(strValue == _T("true"), false);
-	else if (strName == _T("fadeinoutxfromright")) m_animationManager->SetFadeInOutX(strValue == _T("true"), true);
-	else if (strName == _T("fadeinoutyfromtop")) m_animationManager->SetFadeInOutY(strValue == _T("true"), false);
-	else if (strName == _T("fadeinoutyfrombottom")) m_animationManager->SetFadeInOutY(strValue == _T("true"), true);
-	else if (strName == _T("tabstop")) SetTabStop(strValue == _T("true"));
-	else if (strName == _T("loadingimage")) SetLoadingImage(strValue);
-	else if (strName == _T("loadingbkcolor")) SetLoadingBkColor(strValue);
+	else if ((strName == L"normal_color") || (strName == L"normalcolor")) {
+		SetStateColor(kControlStateNormal, strValue);
+	}
+	else if ((strName == L"hot_color") || (strName == L"hotcolor")) {
+		SetStateColor(kControlStateHot, strValue);
+	}
+	else if ((strName == L"pushed_color") || (strName == L"pushedcolor")) {
+		SetStateColor(kControlStatePushed, strValue);
+	}
+	else if ((strName == L"disabled_color") || (strName == L"disabledcolor")) {
+		SetStateColor(kControlStateDisabled, strValue);
+	}
+	else if ((strName == L"border_color") || (strName == L"bordercolor")) {
+		SetBorderColor(strValue);
+	}
+	else if ((strName == L"left_border_size") || (strName == L"leftbordersize")) {
+		SetLeftBorderSize(_wtoi(strValue.c_str()));
+	}
+	else if ((strName == L"top_border_size") || (strName == L"topbordersize")){
+		SetTopBorderSize(_wtoi(strValue.c_str()));
+	}
+	else if ((strName == L"right_border_size") || (strName == L"rightbordersize")) {
+		SetRightBorderSize(_wtoi(strValue.c_str()));
+	}
+	else if ((strName == L"bottom_border_size") || (strName == L"bottombordersize")) {
+		SetBottomBorderSize(_wtoi(strValue.c_str()));
+	}
+	else if (strName == L"bkimage") {
+		SetBkImage(strValue);
+	}
+	else if ((strName == L"min_width") || (strName == L"minwidth")) {
+		SetMinWidth(_wtoi(strValue.c_str()));
+	}
+	else if ((strName == L"max_width") || (strName == L"maxwidth")) {
+		SetMaxWidth(_wtoi(strValue.c_str()));
+	}
+	else if ((strName == L"min_height") || (strName == L"minheight")) {
+		SetMinHeight(_wtoi(strValue.c_str()));
+	}
+	else if ((strName == L"max_height") || (strName == L"maxheight")) {
+		SetMaxHeight(_wtoi(strValue.c_str()));
+	}
+	else if (strName == L"name") {
+		SetName(strValue);
+	}
+	else if ((strName == L"tooltip_text") || (strName == L"tooltiptext")) {
+		SetToolTipText(strValue);
+	}
+	else if ((strName == L"tooltip_textid") || (strName == L"tooltiptextid")) {
+		SetToolTipTextId(strValue);
+	}
+	else if (strName == L"dataid") {
+		SetDataID(strValue);
+	}
+	else if (strName == L"enabled") {
+		SetEnabled(strValue == L"true");
+	}
+	else if (strName == L"mouse") {
+		SetMouseEnabled(strValue == L"true");
+	}
+	else if (strName == L"keyboard") {
+		SetKeyboardEnabled(strValue == L"true");
+	}
+	else if (strName == L"visible") {
+		SetVisible(strValue == L"true");
+	}
+	else if ((strName == L"fade_visible") || (strName == L"fadevisible")) {
+		SetFadeVisible(strValue == L"true");
+	}
+	else if (strName == L"float") {
+		SetFloat(strValue == L"true");
+	}
+	else if (strName == L"cache") {
+		SetUseCache(strValue == L"true");
+	}
+	else if (strName == L"nofocus") {
+		SetNoFocus();
+	}
+	else if (strName == L"alpha") {
+		SetAlpha(_wtoi(strValue.c_str()));
+	}
+	else if ((strName == L"normal_image") || (strName == L"normalimage")) {
+		SetStateImage(kControlStateNormal, strValue);
+	}
+	else if ((strName == L"hot_image") || (strName == L"hotimage")) {
+		SetStateImage(kControlStateHot, strValue);
+	}
+	else if ((strName == L"pushed_image") || (strName == L"pushedimage")) {
+		SetStateImage(kControlStatePushed, strValue);
+	}
+	else if ((strName == L"disabled_image") || (strName == L"disabledimage")) {
+		SetStateImage(kControlStateDisabled, strValue);
+	}
+	else if ((strName == L"fore_normal_image") || (strName == L"forenormalimage")) {
+		SetForeStateImage(kControlStateNormal, strValue);
+	}
+	else if ((strName == L"fore_hot_image") || (strName == L"forehotimage")) {
+		SetForeStateImage(kControlStateHot, strValue);
+	}
+	else if ((strName == L"fore_pushed_image") || (strName == L"forepushedimage")) {
+		SetForeStateImage(kControlStatePushed, strValue);
+	}
+	else if ((strName == L"fore_disabled_image") || (strName == L"foredisabledimage")) {
+		SetForeStateImage(kControlStateDisabled, strValue);
+	}
+	else if ((strName == L"fade_alpha") || (strName == L"fadealpha")) {
+		m_animationManager->SetFadeAlpha(strValue == L"true");
+	}
+	else if ((strName == L"fade_hot") || (strName == L"fadehot")) {
+		m_animationManager->SetFadeHot(strValue == L"true");
+	}
+	else if ((strName == L"fade_width") || (strName == L"fadewidth")) {
+		m_animationManager->SetFadeWidth(strValue == L"true");
+	}
+	else if ((strName == L"fade_height") || (strName == L"fadeheight")) {
+		m_animationManager->SetFadeHeight(strValue == L"true");
+	}
+	else if ((strName == L"fade_in_out_x_from_left") || (strName == L"fadeinoutxfromleft")) {
+		m_animationManager->SetFadeInOutX(strValue == L"true", false);
+	}
+	else if ((strName == L"fade_in_out_x_from_right") || (strName == L"fadeinoutxfromright")) {
+		m_animationManager->SetFadeInOutX(strValue == L"true", true);
+	}
+	else if ((strName == L"fade_in_out_y_from_top") || (strName == L"fadeinoutyfromtop")) {
+		m_animationManager->SetFadeInOutY(strValue == L"true", false);
+	}
+	else if ((strName == L"fade_in_out_y_from_bottom") || (strName == L"fadeinoutyfrombottom")) {
+		m_animationManager->SetFadeInOutY(strValue == L"true", true);
+	}
+	else if ((strName == L"tab_stop") || (strName == L"tabstop")) {
+		SetTabStop(strValue == L"true");
+	}
+	else if ((strName == L"loading_image") || (strName == L"loadingimage")) {
+		SetLoadingImage(strValue);
+	}
+	else if ((strName == L"loading_bkcolor") || (strName == L"loadingbkcolor")){
+		SetLoadingBkColor(strValue);
+	}
 	else {
 		ASSERT(!"Control::SetAttribute失败: 发现不能识别的属性");
 	}
