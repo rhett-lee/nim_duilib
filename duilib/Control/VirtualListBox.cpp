@@ -12,7 +12,7 @@ namespace ui
 
 UiSize VirtualVLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 {
-	UiSize sz(rc.GetWidth(), 0);
+	UiSize sz(rc.Width(), 0);
 
 	VirtualListBox *pList = dynamic_cast<VirtualListBox*>(m_pOwner);
 	ASSERT(pList);
@@ -33,7 +33,7 @@ UiSize VirtualVLayout::ArrangeChild(const std::vector<Control*>& items, UiRect r
 
 UiSize VirtualHLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 {
-	UiSize sz(0, rc.GetHeight());
+	UiSize sz(0, rc.Height());
 
 	VirtualListBox *pList = dynamic_cast<VirtualListBox*>(m_pOwner);
 	ASSERT(pList);
@@ -180,7 +180,7 @@ void VirtualListBox::GetDisplayCollection(std::vector<size_t>& collection)
 	}
 
 	UiRect rcThis = this->GetPos(false);
-	size_t length = (ListDirection::kListVertical == m_eDirection) ? (size_t)rcThis.GetWidth() : (size_t)rcThis.GetHeight();
+	size_t length = (ListDirection::kListVertical == m_eDirection) ? (size_t)rcThis.Width() : (size_t)rcThis.Height();
 	size_t scroll_pos = (ListDirection::kListVertical == m_eDirection) ? (size_t)GetScrollPos().cy : (size_t)GetScrollPos().cx;
 	size_t min = scroll_pos / m_nElementHeight;
 	size_t max = min + (length / m_nElementHeight);
@@ -231,7 +231,7 @@ void VirtualListBox::EnsureVisible(size_t iIndex, bool bToTop)
 		if (iIndex > nTopIndex) {
 			// 向下
 			size_t length = CalcElementsHeight(iIndex + 1);
-			nNewPos = length - ((m_eDirection == ListDirection::kListVertical) ? GetRect().GetHeight() : GetRect().GetWidth());
+			nNewPos = length - ((m_eDirection == ListDirection::kListVertical) ? GetRect().Height() : GetRect().Width());
 		}
 		else {
 			// 向上
@@ -291,7 +291,7 @@ void VirtualListBox::ReArrangeChild(bool bForce)
 	}
 	else {
 		// 向上滚动
-		const size_t nDisplayCount = ((m_eDirection == ListDirection::kListVertical) ? GetRect().GetHeight() : GetRect().GetWidth()) / m_nElementHeight + 1;
+		const size_t nDisplayCount = ((m_eDirection == ListDirection::kListVertical) ? GetRect().Height() : GetRect().Width()) / m_nElementHeight + 1;
 		if (m_items.size() < nDisplayCount) {
 			return;
 		}
@@ -445,7 +445,7 @@ void VirtualListBox::HandleEvent(const ui::EventArgs& event)
 void VirtualListBox::SetPos(UiRect rc)
 {
 	bool bChange = false;
-	if (!GetRect().Equal(rc)) {
+	if (!GetRect().Equals(rc)) {
 		bChange = true;
 	}
 
@@ -548,7 +548,7 @@ bool VirtualListBox::NeedReArrange(ScrollDirection& direction)
 	}
 
 	UiRect rcThis = this->GetPos();
-	if (rcThis.GetWidth() <= 0) {
+	if (rcThis.Width() <= 0) {
 		return false;
 	}
 
@@ -572,14 +572,14 @@ bool VirtualListBox::NeedReArrange(ScrollDirection& direction)
 		// 下
 		rcItem = m_items[nCount - 1]->GetPos();
 		if (ListDirection::kListVertical == m_eDirection) {
-			int nSub = (rcItem.bottom - rcThis.top) - ((int)nPos + rcThis.GetHeight());
+			int nSub = (rcItem.bottom - rcThis.top) - ((int)nPos + rcThis.Height());
 			if (nSub < 0) {
 				direction = kScrollDown;
 				return true;
 			}
 		}
 		else {
-			int nSub = (rcItem.right - rcThis.left) - ((int)nPos + rcThis.GetWidth());
+			int nSub = (rcItem.right - rcThis.left) - ((int)nPos + rcThis.Width());
 			if (nSub < 0) {
 				direction = kScrollDown;
 				return true;

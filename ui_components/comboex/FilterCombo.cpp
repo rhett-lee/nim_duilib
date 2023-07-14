@@ -55,22 +55,19 @@ void CFilterComboWnd::InitComboWnd(FilterCombo* pOwner)
         cyFixed += sz.cy;
     }
     cyFixed += 2; // VBox 默认的Padding 调整
-    rc.bottom = rc.top + std::min((LONG)cyFixed, szDrop.cy);
+    rc.bottom = rc.top + std::min(cyFixed, szDrop.cy);
 
 	ASSERT(pOwner->GetWindow() != nullptr);
-    ::MapWindowRect(pOwner->GetWindow()->GetHWND(), HWND_DESKTOP, &rc);
-
-    MONITORINFO oMonitor = {};
-    oMonitor.cbSize = sizeof(oMonitor);
-    ::GetMonitorInfo(::MonitorFromWindow(GetHWND(), MONITOR_DEFAULTTOPRIMARY), &oMonitor);
-	ui::UiRect rcWork(oMonitor.rcWork);
+    MapWindowRect(pOwner->GetWindow()->GetHWND(), HWND_DESKTOP, rc);
+	ui::UiRect rcWork;
+	GetMonitorWorkRect(rcWork);
     if( rc.bottom > rcWork.bottom || m_pOwner->IsPopupTop()) {
         rc.left = rcOwner.left;
         rc.right = rcOwner.right;
         if( szDrop.cx > 0 ) rc.right = rc.left + szDrop.cx;
-        rc.top = rcOwner.top - std::min((LONG)cyFixed, szDrop.cy);
+        rc.top = rcOwner.top - std::min(cyFixed, szDrop.cy);
         rc.bottom = rcOwner.top;
-        ::MapWindowRect(pOwner->GetWindow()->GetHWND(), HWND_DESKTOP, &rc);
+        MapWindowRect(pOwner->GetWindow()->GetHWND(), HWND_DESKTOP, rc);
     }
     
     CreateWnd(pOwner->GetWindow()->GetHWND(), L"", WS_POPUP, WS_EX_TOOLWINDOW, rc);
@@ -486,21 +483,18 @@ bool FilterCombo::OnRichEditTextChanged(const ui::EventArgs& /*args*/)
 		cyFixed += sz.cy;
 	}
 	cyFixed += 2; // VBox 默认的Padding 调整
-	rc.bottom = rc.top + std::min((LONG)cyFixed, szDrop.cy);
+	rc.bottom = rc.top + std::min(cyFixed, szDrop.cy);
 
-	::MapWindowRect(GetWindow()->GetHWND(), HWND_DESKTOP, &rc);
-
-	MONITORINFO oMonitor = {};
-	oMonitor.cbSize = sizeof(oMonitor);
-	::GetMonitorInfo(::MonitorFromWindow(m_pComboWnd->GetHWND(), MONITOR_DEFAULTTOPRIMARY), &oMonitor);
-	ui::UiRect rcWork(oMonitor.rcWork);
+	GetWindow()->MapWindowRect(GetWindow()->GetHWND(), HWND_DESKTOP, rc);
+	ui::UiRect rcWork;
+	m_pComboWnd->GetMonitorWorkRect(rcWork);
 	if (rc.bottom > rcWork.bottom || IsPopupTop()) {
 		rc.left = rcOwner.left;
 		rc.right = rcOwner.right;
 		if (szDrop.cx > 0) rc.right = rc.left + szDrop.cx;
-		rc.top = rcOwner.top - std::min((LONG)cyFixed, szDrop.cy);
+		rc.top = rcOwner.top - std::min(cyFixed, szDrop.cy);
 		rc.bottom = rcOwner.top;
-		::MapWindowRect(GetWindow()->GetHWND(), HWND_DESKTOP, &rc);
+		GetWindow()->MapWindowRect(GetWindow()->GetHWND(), HWND_DESKTOP, rc);
 	}
 
 	m_pComboWnd->SetPos(rc, true, SWP_NOACTIVATE);

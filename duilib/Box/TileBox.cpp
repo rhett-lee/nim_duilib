@@ -21,8 +21,8 @@ UiSize TileLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 	}
 
 	int cyNeeded = 0;
-	int cxWidth = rc.GetWidth() / m_nColumns;
-	int deviation = rc.GetWidth() - cxWidth * m_nColumns;
+	int cxWidth = rc.Width() / m_nColumns;
+	int deviation = rc.Width() - cxWidth * m_nColumns;
 	int tmpDeviation = deviation;
 	int cyHeight = 0;
 	int iCount = 0;
@@ -139,7 +139,7 @@ UiSize TileLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 			tmpDeviation = deviation;
 		}
 		else {
-			ptTile.x += rcTile.GetWidth();
+			ptTile.x += rcTile.Width();
 		}
 		cyNeeded = newRcTile.bottom - rc.top;
 	}

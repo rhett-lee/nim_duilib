@@ -68,17 +68,17 @@ void RenderTest1::Paint(IRender* pRender, const UiRect& rcPaint)
     rect.left = rect.right + marginLeft;
     rect.right = rect.left + image.GetImageCache()->GetWidth();
     rect.bottom = rect.top + image.GetImageCache()->GetHeight();
-    pRender->BitBlt(rect.left, rect.top, rect.GetWidth(), rect.GetHeight(), pSrcRender, 0, 0, RopMode::kSrcCopy);
+    pRender->BitBlt(rect.left, rect.top, rect.Width(), rect.Height(), pSrcRender, 0, 0, RopMode::kSrcCopy);
 
     rect.left = rect.right + marginLeft;
     rect.right = rect.left + image.GetImageCache()->GetWidth() / 2;
     rect.bottom = rect.top + image.GetImageCache()->GetHeight() / 2;
-    pRender->StretchBlt(rect.left, rect.top, rect.GetWidth(), rect.GetHeight(), pSrcRender, 0, 0, pSrcRender->GetWidth(), pSrcRender->GetHeight(), RopMode::kSrcCopy);
+    pRender->StretchBlt(rect.left, rect.top, rect.Width(), rect.Height(), pSrcRender, 0, 0, pSrcRender->GetWidth(), pSrcRender->GetHeight(), RopMode::kSrcCopy);
 
     rect.left = rect.right + marginLeft;
     rect.right = rect.left + image.GetImageCache()->GetWidth() ;
     rect.bottom = rect.top + image.GetImageCache()->GetHeight() ;
-    pRender->AlphaBlend(rect.left, rect.top, rect.GetWidth() , rect.GetHeight() , pSrcRender, 0, 0, pSrcRender->GetWidth(), pSrcRender->GetHeight(), 96);
+    pRender->AlphaBlend(rect.left, rect.top, rect.Width() , rect.Height() , pSrcRender, 0, 0, pSrcRender->GetWidth(), pSrcRender->GetHeight(), 96);
 
     delete pSrcRender;
     pSrcRender = nullptr;

@@ -17,7 +17,7 @@ public:
 
     void Init(DateTime* pOwner);
     HFONT CreateHFont() const;
-    RECT CalPos();
+    UiRect CalPos();
 
     virtual std::wstring GetWindowClassName() const override;
     virtual std::wstring GetSuperClassName() const override;
@@ -53,12 +53,12 @@ void DateTimeWnd::Init(DateTime* pOwner)
 {
     m_pOwner = pOwner;
     if (GetHWND() == nullptr) {
-        RECT rcPos = CalPos();
+        UiRect rcPos = CalPos();
         UINT uStyle = WS_POPUP;
-        POINT pt1 = { rcPos.left, rcPos.top };
-        POINT pt2 = { rcPos.right, rcPos.bottom };
-        ::ClientToScreen(pOwner->GetWindow()->GetHWND(), &pt1);
-        ::ClientToScreen(pOwner->GetWindow()->GetHWND(), &pt2);
+        UiPoint pt1 = { rcPos.left, rcPos.top };
+        UiPoint pt2 = { rcPos.right, rcPos.bottom };
+        ClientToScreen(pOwner->GetWindow()->GetHWND(), pt1);
+        ClientToScreen(pOwner->GetWindow()->GetHWND(), pt2);
         CreateWnd(m_pOwner->GetWindow()->GetHWND(), L"", uStyle, 0, {pt1.x, pt1.y, pt2.x, pt2.y});
         ASSERT(GetHWND() != nullptr);
 
@@ -126,18 +126,18 @@ HFONT DateTimeWnd::CreateHFont() const
     return hFont;
 }
 
-RECT DateTimeWnd::CalPos()
+UiRect DateTimeWnd::CalPos()
 {
     UiRect rcPos = m_pOwner->GetPos();
     Control* pParent = m_pOwner->GetParent();
-    RECT rcParent = {0,};
+    UiRect rcParent;
     while (pParent != nullptr) {
         if (!pParent->IsVisible()) {
             rcPos.left = rcPos.top = rcPos.right = rcPos.bottom = 0;
             break;
         }
         rcParent = pParent->GetPos();
-        if (!::IntersectRect(&rcPos, &rcPos, &rcParent)) {
+        if (!UiRect::Intersect(rcPos, rcPos, rcParent)) {
             rcPos.left = rcPos.top = rcPos.right = rcPos.bottom = 0;
             break;
         }

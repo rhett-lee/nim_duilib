@@ -97,17 +97,17 @@ namespace ui
 		UiRect rcFixed({ 0, 0, fixed_col_width + 1, fixed_row_height + 1 });
 		UiRect rcFixedRow({ fixed_col_width, 0, m_pGrid->GetWidth(), fixed_row_height + 1 });
 		UiRect rcFixedCol({ 0, fixed_row_height, fixed_col_width + 1, m_pGrid->GetHeight() });
-		if (rcFixed.IsPointIn(pt) || rcFixedRow.IsPointIn(pt) || rcFixedCol.IsPointIn(pt))		//in position of fixed row or fixed col
+		if (rcFixed.ContainsPt(pt) || rcFixedRow.ContainsPt(pt) || rcFixedCol.ContainsPt(pt))		//in position of fixed row or fixed col
 		{
 			bool bFind = false;
 			if (fixed)
 			{
 				int posx = 0, posy = 0;
-				if (rcFixed.IsPointIn(pt))			//in position of fixed row or fixed col
+				if (rcFixed.ContainsPt(pt))			//in position of fixed row or fixed col
 					;
-				else if (rcFixedRow.IsPointIn(pt))
+				else if (rcFixedRow.ContainsPt(pt))
 					posx = -szOff.cx;
-				else if (rcFixedCol.IsPointIn(pt))
+				else if (rcFixedCol.ContainsPt(pt))
 					posy = -szOff.cy;
 				UiPoint pt_position;
 				for (size_t i = 0; i < (size_t)GetRowCount(); i++)
@@ -1111,7 +1111,7 @@ namespace ui
 			UiRect rcFixedHeader({ 0, 0, fixed_col_width, m_vLayout[0] });
 			UiRect rcHeader({ fixed_col_width, 0, m_pGrid->GetWidth(), m_vLayout[0] });
 			int posx = 0;
-			if (rcFixedHeader.IsPointIn(pt))
+			if (rcFixedHeader.ContainsPt(pt))
 			{
 				for (size_t i = 0; i < m_nFixedCol; i++)
 				{
@@ -1124,7 +1124,7 @@ namespace ui
 					}
 				}
 			}
-			else if (rcHeader.IsPointIn(pt))
+			else if (rcHeader.ContainsPt(pt))
 			{
 				posx = fixed_col_width;
 				for (size_t i = m_nFixedCol; i < m_hLayout.size(); i++)
@@ -1196,7 +1196,7 @@ namespace ui
 		UiRect rcFixedHeader({ 0, 0, fixed_col_width, m_vLayout[0] });
 		UiRect rcHeader({ fixed_col_width, 0, m_pGrid->GetWidth(), m_vLayout[0] });
 		int posx = 0;
-		if (rcFixedHeader.IsPointIn(pt))
+		if (rcFixedHeader.ContainsPt(pt))
 		{
 			for (size_t i = 0; i < m_nFixedCol; i++)
 			{
@@ -1208,7 +1208,7 @@ namespace ui
 				}
 			}
 		}
-		else if (rcHeader.IsPointIn(pt))
+		else if (rcHeader.ContainsPt(pt))
 		{
 			posx = fixed_col_width;
 			for (size_t i = m_nFixedCol; i < m_hLayout.size(); i++)
@@ -1281,7 +1281,9 @@ namespace ui
 	void GridBody::PaintChild(IRender* pRender, const UiRect& rcPaint)
 	{
 		UiRect rcTemp;
-		if (!::IntersectRect(&rcTemp, &rcPaint, &GetRect())) return;
+		if (!UiRect::Intersect(rcTemp, rcPaint, GetRect())) {
+			return;
+		}
 
 		for (auto it = m_items.begin(); it != m_items.end(); it++) {
 			Control* pControl = *it;
@@ -1311,7 +1313,7 @@ namespace ui
 	void GridBody::Paint(IRender* pRender, const UiRect& rcPaint)
 	{
 		UiRect paintRect = GetPaintRect();
-		if (!::IntersectRect(&paintRect, &rcPaint, &GetRect())) {
+		if (!UiRect::Intersect(paintRect, rcPaint, GetRect())) {
 			return;
 		}
 		SetPaintRect(paintRect);
@@ -1541,7 +1543,7 @@ namespace ui
 
 						UiRect rc = { posx, posy, posx + m_hLayout[j], posy + m_vLayout[i] };
 						rc.Offset({ GetRect().left - szOff.cx, GetRect().top - szOff.cy });
-						rc.Deflate({ 1, 1, 2, 2 });
+						rc.Deflate(1, 1, 2, 2);
 						//绘制单元格背景色
 						if (pItem->IsSelected())
 						{

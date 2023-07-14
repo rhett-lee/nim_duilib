@@ -281,11 +281,11 @@ void ImageAttribute::ModifyAttribute(const std::wstring& strImageString)
 
 bool ImageAttribute::HasValidImageRect(const UiRect& rcDest)
 {
-	if (rcDest.IsEmpty() || rcDest.IsRectEmpty()) {
+	if (rcDest.IsZero() || rcDest.IsEmpty()) {
 		return false;
 	}
 	if ((rcDest.left >= 0) && (rcDest.top >= 0) && 
-		(rcDest.GetWidth() > 0) && (rcDest.GetHeight() > 0)){
+		(rcDest.Width() > 0) && (rcDest.Height() > 0)){
 		return true;
 	}
 	return false;
@@ -321,7 +321,7 @@ void ImageAttribute::ScaleImageRect(uint32_t imageWidth, uint32_t imageHeight, b
 	// 如果源位图已经按照DPI缩放过，那么对应的rcImageSource也需要缩放
 	if ((rcSource.left < 0) || (rcSource.top < 0) ||
 		(rcSource.right < 0) || (rcSource.bottom < 0) ||
-		(rcSource.GetWidth() <= 0) || (rcSource.GetHeight() <= 0)) {
+		(rcSource.Width() <= 0) || (rcSource.Height() <= 0)) {
 		//如果是无效值，则重置为整个图片大小
 		rcSource.left = 0;
 		rcSource.top = 0;
@@ -656,7 +656,7 @@ bool StateImage::PaintStateImage(IRender* pRender, ControlStateType stateType, c
 				if (strNormalImagePath.empty() || 
 					strHotImagePath.empty()    || 
 					(strNormalImagePath != strHotImagePath) || 
-					!GetImageSourceRect(kControlStateNormal).Equal(GetImageSourceRect(kControlStateHot))) {
+					!GetImageSourceRect(kControlStateNormal).Equals(GetImageSourceRect(kControlStateHot))) {
 
 					m_pControl->PaintImage(pRender, GetStateImage(kControlStateNormal), sImageModify);
 					int nHotFade = GetImageFade(kControlStateHot);

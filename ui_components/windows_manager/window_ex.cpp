@@ -97,8 +97,8 @@ POINT GetPopupWindowPos(WindowEx* window)
 	ui::UiRect rect = window->GetPos(true);
 
 	POINT pt = { 0, 0 };
-	pt.x = screen.right - rect.GetWidth();
-	pt.y = screen.bottom - rect.GetHeight();
+	pt.x = screen.right - rect.Width();
+	pt.y = screen.bottom - rect.Height();
 
 	return pt;
 }

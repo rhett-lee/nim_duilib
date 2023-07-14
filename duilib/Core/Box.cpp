@@ -23,10 +23,10 @@ UiSize Layout::SetFloatPos(Control* pControl, UiRect rcContainer)
 	if ((pControl == nullptr) || (!pControl->IsVisible())) {
 		return UiSize();
 	}
-	if (rcContainer.GetWidth() < 0) {
+	if (rcContainer.Width() < 0) {
 		rcContainer.right = rcContainer.left;
 	}
-	if (rcContainer.GetHeight() < 0) {
+	if (rcContainer.Height() < 0) {
 		rcContainer.bottom = rcContainer.bottom;
 	}
 
@@ -97,7 +97,7 @@ UiSize Layout::SetFloatPos(Control* pControl, UiRect rcContainer)
 
 	UiRect childPos(childLeft, childTop, childRight, childBottm);
 	pControl->SetPos(childPos);
-	return UiSize(childPos.GetWidth(), childPos.GetHeight());
+	return UiSize(childPos.Width(), childPos.Height());
 }
 
 bool Layout::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
@@ -207,7 +207,7 @@ UiRect Layout::GetInternalPos() const
 		return UiRect();
 	}
 	UiRect internalPos = m_pOwner->GetPos();
-	internalPos.Deflate(m_rcPadding);
+	internalPos.Deflate(m_rcPadding.left, m_rcPadding.top, m_rcPadding.right, m_rcPadding.bottom);
 	return internalPos;
 }
 
@@ -275,7 +275,7 @@ void Box::SetPos(UiRect rc)
 void Box::PaintChild(IRender* pRender, const UiRect& rcPaint)
 {
 	UiRect rcTemp;
-	if (!::IntersectRect(&rcTemp, &rcPaint, &GetRect())) {
+	if (!UiRect::Intersect(rcTemp, rcPaint, GetRect())) {
 		return;
 	}
 
@@ -383,7 +383,8 @@ Control* Box::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, UiPoi
 	}
 	if ((uFlags & UIFIND_HITTEST) != 0) {
 		ASSERT(pData != nullptr);
-		if ((pData != nullptr) && !::PtInRect(&GetRect(), *(static_cast<LPPOINT>(pData)))) {
+		UiPoint pt(*(static_cast<UiPoint*>(pData)));
+		if ((pData != nullptr) && !GetRect().ContainsPt(pt)) {
 			return nullptr;
 		}
 		if (!m_bMouseChildEnabled) {
@@ -413,7 +414,7 @@ Control* Box::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, UiPoi
 			if ((uFlags & UIFIND_HITTEST) != 0) {
 				ASSERT(pData != nullptr);
 				if (pData != nullptr) {
-					UiPoint newPoint(*(static_cast<LPPOINT>(pData)));
+					UiPoint newPoint(*(static_cast<UiPoint*>(pData)));
 					newPoint.Offset(scrollPos);
 					pControl = m_items[it]->FindControl(Proc, &newPoint, uFlags);
 				}				
@@ -425,7 +426,7 @@ Control* Box::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, UiPoi
 				if ((uFlags & UIFIND_HITTEST) != 0 &&
 					!pControl->IsFloat() && 
 					(pData != nullptr) &&
-					!::PtInRect(&rc, *(static_cast<LPPOINT>(pData)))) {
+					!rc.ContainsPt(*(static_cast<UiPoint*>(pData)))) {
 					continue;
 				}
 				else {
@@ -443,7 +444,7 @@ Control* Box::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, UiPoi
 			if ((uFlags & UIFIND_HITTEST) != 0) {
 				ASSERT(pData != nullptr);
 				if (pData != nullptr) {
-					UiPoint newPoint(*(static_cast<LPPOINT>(pData)));
+					UiPoint newPoint(*(static_cast<UiPoint*>(pData)));
 					newPoint.Offset(scrollPos);
 					pControl = pItemControl->FindControl(Proc, &newPoint, uFlags);
 				}
@@ -455,7 +456,7 @@ Control* Box::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, UiPoi
 				if ((uFlags & UIFIND_HITTEST) != 0 && 
 					!pControl->IsFloat() && 
 					(pData != nullptr) &&
-					!::PtInRect(&rc, *(static_cast<LPPOINT>(pData)))) {
+					!rc.ContainsPt(*(static_cast<UiPoint*>(pData)))) {
 					continue;
 				}
 				else {

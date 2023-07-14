@@ -10,13 +10,13 @@ HLayout::HLayout()
 
 UiSize HLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 {
-	UiSize szAvailable(rc.GetWidth(), rc.GetHeight());
+	UiSize szAvailable(rc.Width(), rc.Height());
 	szAvailable.cx = std::max((int)szAvailable.cx, 0);
 	szAvailable.cy = std::max((int)szAvailable.cy, 0);
-	if (rc.GetWidth() < 0) {
+	if (rc.Width() < 0) {
 		rc.right = rc.left;
 	}
-	if (rc.GetHeight() < 0) {
+	if (rc.Height() < 0) {
 		rc.bottom = rc.bottom;
 	}
 
@@ -167,7 +167,7 @@ UiSize HLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 
 		UiRect rcChildPos(iPosX + rcMargin.left, childTop, iPosX + rcMargin.left + sz.cx, childBottm);
 		pControl->SetPos(rcChildPos);
-		cyNeeded = std::max(cyNeeded, rcChildPos.GetHeight());
+		cyNeeded = std::max(cyNeeded, rcChildPos.Height());
 
 		iPosX += (sz.cx + rcMargin.left + m_iChildMargin + rcMargin.right);
 		cxNeeded += (sz.cx + rcMargin.left + rcMargin.right);

@@ -14,14 +14,14 @@ namespace ui {
 static inline void DrawFunction(HDC hDC, bool bTransparent, UiRect rcDest, HDC hdcSrc, UiRect rcSrc, bool bAlphaChannel, int uFade)
 {
 	if (bTransparent || bAlphaChannel || uFade < 255 
-		|| (rcSrc.GetWidth() == rcDest.GetWidth() && rcSrc.GetHeight() == rcDest.GetHeight())) {
+		|| (rcSrc.Width() == rcDest.Width() && rcSrc.Height() == rcDest.Height())) {
 		BLENDFUNCTION ftn = { AC_SRC_OVER, 0, static_cast<uint8_t>(uFade), AC_SRC_ALPHA };
-		::AlphaBlend(hDC, rcDest.left, rcDest.top, rcDest.GetWidth(), rcDest.GetHeight(),
-			hdcSrc, rcSrc.left, rcSrc.top, rcSrc.GetWidth(), rcSrc.GetHeight(), ftn);
+		::AlphaBlend(hDC, rcDest.left, rcDest.top, rcDest.Width(), rcDest.Height(),
+			hdcSrc, rcSrc.left, rcSrc.top, rcSrc.Width(), rcSrc.Height(), ftn);
 	}
 	else {
-		::StretchBlt(hDC, rcDest.left, rcDest.top, rcDest.GetWidth(), rcDest.GetHeight(),
-			hdcSrc, rcSrc.left, rcSrc.top, rcSrc.GetWidth(), rcSrc.GetHeight(), SRCCOPY);
+		::StretchBlt(hDC, rcDest.left, rcDest.top, rcDest.Width(), rcDest.Height(),
+			hdcSrc, rcSrc.left, rcSrc.top, rcSrc.Width(), rcSrc.Height(), SRCCOPY);
 	}
 }
 
@@ -212,8 +212,9 @@ bool Render_GdiPlus::SetRenderTransparent(bool bTransparent)
 
 UiPoint Render_GdiPlus::OffsetWindowOrg(UiPoint ptOffset)
 {
-	UiPoint ptOldWindowOrg;
-	::GetWindowOrgEx(m_hDC, &ptOldWindowOrg);
+	POINT pt = {0, 0};
+	::GetWindowOrgEx(m_hDC, &pt);
+	UiPoint ptOldWindowOrg(pt.x, pt.y);
 	ptOffset.Offset(ptOldWindowOrg.x, ptOldWindowOrg.y);
 	::SetWindowOrgEx(m_hDC, ptOffset.x, ptOffset.y, NULL);
 	return ptOldWindowOrg;
@@ -221,17 +222,17 @@ UiPoint Render_GdiPlus::OffsetWindowOrg(UiPoint ptOffset)
 
 UiPoint Render_GdiPlus::SetWindowOrg(UiPoint ptOffset)
 {
-	UiPoint ptOldWindowOrg;
-	::GetWindowOrgEx(m_hDC, &ptOldWindowOrg);
+	POINT pt = { 0, 0 };
+	::GetWindowOrgEx(m_hDC, &pt);
 	::SetWindowOrgEx(m_hDC, ptOffset.x, ptOffset.y, NULL);
-	return ptOldWindowOrg;
+	return UiPoint(pt.x, pt.y);
 }
 
 UiPoint Render_GdiPlus::GetWindowOrg() const
 {
-	UiPoint ptWindowOrg;
-	::GetWindowOrgEx(m_hDC, &ptWindowOrg);
-	return ptWindowOrg;
+	POINT pt = {0, 0};
+	::GetWindowOrgEx(m_hDC, &pt);
+	return UiPoint(pt.x, pt.y);
 }
 
 void Render_GdiPlus::SaveClip(int& nState)
@@ -260,10 +261,15 @@ void Render_GdiPlus::SetClip(const UiRect& rc)
 	HDC hDC = m_hDC;
 	UiRect rcItem = rc;
 
-	UiPoint ptWinOrg;
+	POINT ptWinOrg = {0, 0};
 	::GetWindowOrgEx(hDC, &ptWinOrg);	
 	rcItem.Offset(-ptWinOrg.x, -ptWinOrg.y);
-	HRGN hRgn = ::CreateRectRgnIndirect(&rcItem);
+	RECT itemRect;
+	itemRect.left = rcItem.left;
+	itemRect.top = rcItem.top;
+	itemRect.right = rcItem.right;
+	itemRect.bottom = rcItem.bottom;
+	HRGN hRgn = ::CreateRectRgnIndirect(&itemRect);
 	::SaveDC(hDC);
 	::ExtSelectClipRgn(hDC, hRgn, RGN_AND);
 	::DeleteObject(hRgn);
@@ -274,7 +280,7 @@ void Render_GdiPlus::SetRoundClip(const UiRect& rc, int width, int height)
 	HDC hDC = m_hDC;
 	UiRect rcItem = rc;
 
-	UiPoint ptWinOrg;
+	POINT ptWinOrg = {0, 0};
 	::GetWindowOrgEx(hDC, &ptWinOrg);
 	rcItem.Offset(-ptWinOrg.x, -ptWinOrg.y);
 
@@ -401,7 +407,7 @@ void Render_GdiPlus::DrawImage(const UiRect& rcPaint,
 {
 	ASSERT((GetWidth() > 0) && (GetHeight() > 0));
 	UiRect rcTestTemp;
-	if (!::IntersectRect(&rcTestTemp, &rcDest, &rcPaint)) {
+	if (!UiRect::Intersect(rcTestTemp, rcDest, rcPaint)) {
 		return;
 	}
 
@@ -442,7 +448,7 @@ void Render_GdiPlus::DrawImage(const UiRect& rcPaint,
 	rcDrawSource.top = rcSource.top + rcSourceCorners.top;
 	rcDrawSource.right = rcSource.right - rcSourceCorners.right;
 	rcDrawSource.bottom = rcSource.bottom - rcSourceCorners.bottom;
-	if (::IntersectRect(&rcTemp, &rcPaint, &rcDrawDest)) {
+	if (UiRect::Intersect(rcTemp, rcPaint, rcDrawDest)) {
 		if (!xtiled && !ytiled) {
 			DrawFunction(m_hDC, m_bTransparent, rcDrawDest, hCloneDC, rcDrawSource, bAlphaChannel, uFade);
 		}
@@ -519,7 +525,7 @@ void Render_GdiPlus::DrawImage(const UiRect& rcPaint,
 
 				UiRect rcDestTemp = rcDrawDest;
 				rcDestTemp.top = rcDrawDest.top;
-				rcDestTemp.bottom = rcDrawDest.top + rcDrawSource.GetHeight();
+				rcDestTemp.bottom = rcDrawDest.top + rcDrawSource.Height();
 				rcDestTemp.left = lDestLeft;
 				rcDestTemp.right = lDestRight;
 
@@ -552,7 +558,7 @@ void Render_GdiPlus::DrawImage(const UiRect& rcPaint,
 				rcDrawSource.right = rcSource.right - rcSourceCorners.right;
 				rcDrawSource.bottom = rcDrawSource.top + lDrawHeight;
 
-				rcDestTemp.right = rcDrawDest.left + rcDrawSource.GetWidth();
+				rcDestTemp.right = rcDrawDest.left + rcDrawSource.Width();
 				rcDestTemp.top = lDestTop;
 				rcDestTemp.bottom = lDestBottom;
 
@@ -572,7 +578,7 @@ void Render_GdiPlus::DrawImage(const UiRect& rcPaint,
 		rcDrawSource.top = rcSource.top;
 		rcDrawSource.right = rcSource.left + rcSourceCorners.left;
 		rcDrawSource.bottom = rcSource.top + rcSourceCorners.top;
-		if (::IntersectRect(&rcTemp, &rcPaint, &rcDrawDest)) {
+		if (UiRect::Intersect(rcTemp, rcPaint, rcDrawDest)) {
 			DrawFunction(m_hDC, m_bTransparent, rcDrawDest, hCloneDC, rcDrawSource, bAlphaChannel, uFade);
 		}
 	}
@@ -587,7 +593,7 @@ void Render_GdiPlus::DrawImage(const UiRect& rcPaint,
 		rcDrawSource.top = rcSource.top;
 		rcDrawSource.right = rcSource.right - rcSourceCorners.right;
 		rcDrawSource.bottom = rcSource.top + rcSourceCorners.top;
-		if (::IntersectRect(&rcTemp, &rcPaint, &rcDrawDest)) {
+		if (UiRect::Intersect(rcTemp, rcPaint, rcDrawDest)) {
 			DrawFunction(m_hDC, m_bTransparent, rcDrawDest, hCloneDC, rcDrawSource, bAlphaChannel, uFade);
 		}
 	}
@@ -602,7 +608,7 @@ void Render_GdiPlus::DrawImage(const UiRect& rcPaint,
 		rcDrawSource.top = rcSource.top;
 		rcDrawSource.right = rcSource.right;
 		rcDrawSource.bottom = rcSource.top + rcSourceCorners.top;
-		if (::IntersectRect(&rcTemp, &rcPaint, &rcDrawDest)) {
+		if (UiRect::Intersect(rcTemp, rcPaint, rcDrawDest)) {
 			DrawFunction(m_hDC, m_bTransparent, rcDrawDest, hCloneDC, rcDrawSource, bAlphaChannel, uFade);
 		}
 	}
@@ -617,7 +623,7 @@ void Render_GdiPlus::DrawImage(const UiRect& rcPaint,
 		rcDrawSource.top = rcSource.top + rcSourceCorners.top;
 		rcDrawSource.right = rcSource.left + rcSourceCorners.left;
 		rcDrawSource.bottom = rcSource.bottom - rcSourceCorners.bottom;
-		if (::IntersectRect(&rcTemp, &rcPaint, &rcDrawDest)) {
+		if (UiRect::Intersect(rcTemp, rcPaint, rcDrawDest)) {
 			DrawFunction(m_hDC, m_bTransparent, rcDrawDest, hCloneDC, rcDrawSource, bAlphaChannel, uFade);
 		}
 	}
@@ -632,7 +638,7 @@ void Render_GdiPlus::DrawImage(const UiRect& rcPaint,
 		rcDrawSource.top = rcSource.top + rcSourceCorners.top;
 		rcDrawSource.right = rcSource.right;
 		rcDrawSource.bottom = rcSource.bottom - rcSourceCorners.bottom;
-		if (::IntersectRect(&rcTemp, &rcPaint, &rcDrawDest)) {
+		if (UiRect::Intersect(rcTemp, rcPaint, rcDrawDest)) {
 			DrawFunction(m_hDC, m_bTransparent, rcDrawDest, hCloneDC, rcDrawSource, bAlphaChannel, uFade);
 		}
 	}
@@ -647,7 +653,7 @@ void Render_GdiPlus::DrawImage(const UiRect& rcPaint,
 		rcDrawSource.top = rcSource.bottom - rcSourceCorners.bottom;
 		rcDrawSource.right = rcSource.left + rcSourceCorners.left;
 		rcDrawSource.bottom = rcSource.bottom;
-		if (::IntersectRect(&rcTemp, &rcPaint, &rcDrawDest)) {
+		if (UiRect::Intersect(rcTemp, rcPaint, rcDrawDest)) {
 			DrawFunction(m_hDC, m_bTransparent, rcDrawDest, hCloneDC, rcDrawSource, bAlphaChannel, uFade);
 		}
 	}
@@ -662,7 +668,7 @@ void Render_GdiPlus::DrawImage(const UiRect& rcPaint,
 		rcDrawSource.top = rcSource.bottom - rcSourceCorners.bottom;
 		rcDrawSource.right = rcSource.right - rcSourceCorners.right;
 		rcDrawSource.bottom = rcSource.bottom;
-		if (::IntersectRect(&rcTemp, &rcPaint, &rcDrawDest)) {
+		if (UiRect::Intersect(rcTemp, rcPaint, rcDrawDest)) {
 			DrawFunction(m_hDC, m_bTransparent, rcDrawDest, hCloneDC, rcDrawSource, bAlphaChannel, uFade);
 		}
 	}
@@ -677,7 +683,7 @@ void Render_GdiPlus::DrawImage(const UiRect& rcPaint,
 		rcDrawSource.top = rcSource.bottom - rcSourceCorners.bottom;
 		rcDrawSource.right = rcSource.right;
 		rcDrawSource.bottom = rcSource.bottom;
-		if (::IntersectRect(&rcTemp, &rcPaint, &rcDrawDest)) {
+		if (UiRect::Intersect(rcTemp, rcPaint, rcDrawDest)) {
 			DrawFunction(m_hDC, m_bTransparent, rcDrawDest, hCloneDC, rcDrawSource, bAlphaChannel, uFade);
 		}
 	}
@@ -713,7 +719,7 @@ void Render_GdiPlus::DrawImageRect(const UiRect& rcPaint,
 		//仅在没有Matrix的情况下判断裁剪区域，
 		//因为有Matrix时，实际绘制区域并不是rcDest，而是变换过后的位置，需要调整判断方法
 		UiRect rcTestTemp;
-		if (!::IntersectRect(&rcTestTemp, &rcDest, &rcPaint)) {
+		if (!UiRect::Intersect(rcTestTemp, rcDest, rcPaint)) {
 			return;
 		}
 	}
@@ -735,13 +741,13 @@ void Render_GdiPlus::DrawImageRect(const UiRect& rcPaint,
 	Gdiplus::RectF rectf;
 	rectf.X = static_cast<Gdiplus::REAL>(rcDest.left);
 	rectf.Y = static_cast<Gdiplus::REAL>(rcDest.top);
-	rectf.Width = static_cast<Gdiplus::REAL>(rcDest.GetWidth());
-	rectf.Height = static_cast<Gdiplus::REAL>(rcDest.GetHeight());
+	rectf.Width = static_cast<Gdiplus::REAL>(rcDest.Width());
+	rectf.Height = static_cast<Gdiplus::REAL>(rcDest.Height());
 
 	Gdiplus::REAL srcx = (Gdiplus::REAL)rcSource.left;
 	Gdiplus::REAL srcy = (Gdiplus::REAL)rcSource.top;
-	Gdiplus::REAL srcWidth = (Gdiplus::REAL)rcSource.GetWidth();
-	Gdiplus::REAL srcHeight = (Gdiplus::REAL)rcSource.GetHeight();
+	Gdiplus::REAL srcWidth = (Gdiplus::REAL)rcSource.Width();
+	Gdiplus::REAL srcHeight = (Gdiplus::REAL)rcSource.Height();
 	Gdiplus::Unit srcUnit = Gdiplus::UnitPixel;
 
 	void* data = pBitmap->LockPixelBits();
@@ -784,7 +790,7 @@ void Render_GdiPlus::FillRect(const UiRect& rc, UiColor dwColor, uint8_t uFade)
 	Gdiplus::Color color(dwNewColor);
 	Gdiplus::SolidBrush brush(color);
 	Gdiplus::RectF rcFill(static_cast<Gdiplus::REAL>(rc.left), static_cast<Gdiplus::REAL>(rc.top), 
-		                  static_cast<Gdiplus::REAL>(rc.GetWidth()), static_cast<Gdiplus::REAL>(rc.GetHeight()));
+		                  static_cast<Gdiplus::REAL>(rc.Width()), static_cast<Gdiplus::REAL>(rc.Height()));
 	graphics.FillRectangle(&brush, rcFill);
 }
 
@@ -801,7 +807,7 @@ void Render_GdiPlus::DrawRect(const UiRect& rc, UiColor penColor, int nWidth)
 	ASSERT((GetWidth() > 0) && (GetHeight() > 0));
 	Gdiplus::Graphics graphics(m_hDC);
 	Gdiplus::Pen pen(Gdiplus::Color(penColor.GetARGB()), (Gdiplus::REAL)nWidth);
-	graphics.DrawRectangle(&pen, rc.left, rc.top, rc.GetWidth(), rc.GetHeight());
+	graphics.DrawRectangle(&pen, rc.left, rc.top, rc.Width(), rc.Height());
 }
 
 void Render_GdiPlus::DrawRoundRect(const UiRect& rc, const UiSize& roundSize, UiColor penColor, int nWidth)
@@ -1042,7 +1048,7 @@ void Render_GdiPlus::DrawBoxShadow(const UiRect& rc,
 	destRc.right += nSpreadRadius;
 	destRc.bottom += nSpreadRadius;
 
-	Gdiplus::RectF srcRc(0.0f, 0.0f, (Gdiplus::REAL)destRc.GetWidth(), (Gdiplus::REAL)destRc.GetHeight());
+	Gdiplus::RectF srcRc(0.0f, 0.0f, (Gdiplus::REAL)destRc.Width(), (Gdiplus::REAL)destRc.Height());
 	Gdiplus::RectF excludeRc(std::abs(nSpreadRadius) * 1.0f,
 							 std::abs(nSpreadRadius) * 1.0f,
 		                     srcRc.Width - std::abs(nSpreadRadius) * 2.0f,
@@ -1096,7 +1102,7 @@ void Render_GdiPlus::DrawBoxShadow(const UiRect& rc,
 	Gdiplus::Graphics graphics(m_hDC);
 	graphics.DrawImage(&tempBitmap,
 					   Gdiplus::RectF(static_cast<Gdiplus::REAL>(destRc.left), static_cast<Gdiplus::REAL>(destRc.top), 
-									  static_cast<Gdiplus::REAL>(destRc.GetWidth()), static_cast<Gdiplus::REAL>(destRc.GetHeight())),
+									  static_cast<Gdiplus::REAL>(destRc.Width()), static_cast<Gdiplus::REAL>(destRc.Height())),
 					   0, 0, srcRc.Width, srcRc.Height,
 		               Gdiplus::UnitPixel);
 }

@@ -288,7 +288,7 @@ void MyGridBody::PaintBody(IRender* pRender)
 
 						UiRect rc = { posx, posy, posx + m_hLayout[j], posy + m_vLayout[i] };
 						rc.Offset({ GetRect().left - szOff.cx, GetRect().top - szOff.cy });
-						rc.Deflate({ 1, 1, 2, 2 });
+						rc.Deflate(1, 1, 2, 2);
 						//绘制单元格背景色
 						if (pItem->IsSelected())
 						{

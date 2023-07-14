@@ -79,9 +79,9 @@ public:
     HRESULT OnTxInPlaceDeactivate();
     HRESULT OnTxInPlaceActivate(LPCRECT prcClient);
     BOOL GetActiveState(void) { return fInplaceActive; }
-    BOOL DoSetCursor(const UiRect *prc, const POINT *pt);
+    BOOL DoSetCursor(const UiRect *prc, const UiPoint* pt);
     void SetTransparent(BOOL fTransparent);
-    void GetControlRect(LPRECT prc);
+    void GetControlRect(UiRect* prc);
     LONG SetAccelPos(LONG laccelpos);
     WCHAR SetPasswordChar(WCHAR chPasswordChar);
     void SetDisabled(BOOL fOn);
@@ -131,55 +131,60 @@ public:
 		pserv->TxSendMessage(EM_PASTESPECIAL, uClipFormat, (LPARAM)&reps, NULL);
 	}
 
+	UiRect MakeUiRect(const RECT& rc)
+	{
+		return UiRect(rc.left, rc.top, rc.right, rc.bottom);
+	}
+
     // -----------------------------
     //	IUnknown interface
     // -----------------------------
-    virtual HRESULT _stdcall QueryInterface(REFIID riid, void **ppvObject);
-    virtual ULONG _stdcall AddRef(void);
-    virtual ULONG _stdcall Release(void);
+    virtual HRESULT _stdcall QueryInterface(REFIID riid, void **ppvObject) override;
+    virtual ULONG _stdcall AddRef(void) override;
+    virtual ULONG _stdcall Release(void) override;
 
     // -----------------------------
     //	ITextHost interface
     // -----------------------------
-    virtual HDC TxGetDC();
-    virtual INT TxReleaseDC(HDC hdc);
-    virtual BOOL TxShowScrollBar(INT fnBar, BOOL fShow);
-    virtual BOOL TxEnableScrollBar (INT fuSBFlags, INT fuArrowflags);
-    virtual BOOL TxSetScrollRange(INT fnBar, LONG nMinPos, INT nMaxPos, BOOL fRedraw);
-    virtual BOOL TxSetScrollPos (INT fnBar, INT nPos, BOOL fRedraw);
-    virtual void TxInvalidateRect(LPCRECT prc, BOOL fMode);
-    virtual void TxViewChange(BOOL fUpdate);
-    virtual BOOL TxCreateCaret(HBITMAP hbmp, INT xWidth, INT yHeight);
-    virtual BOOL TxShowCaret(BOOL fShow);
-    virtual BOOL TxSetCaretPos(INT x, INT y);
-    virtual BOOL TxSetTimer(UINT idTimer, UINT uTimeout);
-    virtual void TxKillTimer(UINT idTimer);
-    virtual void TxScrollWindowEx (INT dx, INT dy, LPCRECT lprcScroll, LPCRECT lprcClip, HRGN hrgnUpdate, LPRECT lprcUpdate, UINT fuScroll);
-    virtual void TxSetCapture(BOOL fCapture);
-    virtual void TxSetFocus();
-    virtual void TxSetCursor(HCURSOR hcur, BOOL fText);
-    virtual BOOL TxScreenToClient (LPPOINT lppt);
-    virtual BOOL TxClientToScreen (LPPOINT lppt);
-    virtual HRESULT TxActivate( LONG * plOldState );
-    virtual HRESULT TxDeactivate( LONG lNewState );
-    virtual HRESULT TxGetClientRect(LPRECT prc);
-    virtual HRESULT TxGetViewInset(LPRECT prc);
-    virtual HRESULT TxGetCharFormat(const CHARFORMATW **ppCF );
-    virtual HRESULT TxGetParaFormat(const PARAFORMAT **ppPF);
-    virtual COLORREF TxGetSysColor(int nIndex);
-    virtual HRESULT TxGetBackStyle(TXTBACKSTYLE *pstyle);
-    virtual HRESULT TxGetMaxLength(DWORD *plength);
-    virtual HRESULT TxGetScrollBars(DWORD *pdwScrollBar);
-    virtual HRESULT TxGetPasswordChar(TCHAR *pch);
-    virtual HRESULT TxGetAcceleratorPos(LONG *pcp);
-    virtual HRESULT TxGetExtent(LPSIZEL lpExtent);
-    virtual HRESULT OnTxCharFormatChange (const CHARFORMATW * pcf);
-    virtual HRESULT OnTxParaFormatChange (const PARAFORMAT * ppf);
-    virtual HRESULT TxGetPropertyBits(DWORD dwMask, DWORD *pdwBits);
-    virtual HRESULT TxNotify(DWORD iNotify, void *pv);
-    virtual HIMC TxImmGetContext(void);
-    virtual void TxImmReleaseContext(HIMC himc);
-    virtual HRESULT TxGetSelectionBarWidth (LONG *lSelBarWidth);
+    virtual HDC TxGetDC() override;
+    virtual INT TxReleaseDC(HDC hdc) override;
+    virtual BOOL TxShowScrollBar(INT fnBar, BOOL fShow) override;
+    virtual BOOL TxEnableScrollBar (INT fuSBFlags, INT fuArrowflags) override;
+    virtual BOOL TxSetScrollRange(INT fnBar, LONG nMinPos, INT nMaxPos, BOOL fRedraw) override;
+    virtual BOOL TxSetScrollPos (INT fnBar, INT nPos, BOOL fRedraw) override;
+    virtual void TxInvalidateRect(LPCRECT prc, BOOL fMode) override;
+    virtual void TxViewChange(BOOL fUpdate) override;
+    virtual BOOL TxCreateCaret(HBITMAP hbmp, INT xWidth, INT yHeight) override;
+    virtual BOOL TxShowCaret(BOOL fShow) override;
+    virtual BOOL TxSetCaretPos(INT x, INT y) override;
+    virtual BOOL TxSetTimer(UINT idTimer, UINT uTimeout) override;
+    virtual void TxKillTimer(UINT idTimer) override;
+    virtual void TxScrollWindowEx (INT dx, INT dy, LPCRECT lprcScroll, LPCRECT lprcClip, HRGN hrgnUpdate, LPRECT lprcUpdate, UINT fuScroll) override;
+    virtual void TxSetCapture(BOOL fCapture) override;
+    virtual void TxSetFocus() override;
+    virtual void TxSetCursor(HCURSOR hcur, BOOL fText) override;
+    virtual BOOL TxScreenToClient (LPPOINT lppt) override;
+    virtual BOOL TxClientToScreen (LPPOINT lppt) override;
+    virtual HRESULT TxActivate( LONG * plOldState ) override;
+    virtual HRESULT TxDeactivate( LONG lNewState ) override;
+    virtual HRESULT TxGetClientRect(LPRECT prc) override;
+    virtual HRESULT TxGetViewInset(LPRECT prc) override;
+    virtual HRESULT TxGetCharFormat(const CHARFORMATW **ppCF ) override;
+    virtual HRESULT TxGetParaFormat(const PARAFORMAT **ppPF) override;
+    virtual COLORREF TxGetSysColor(int nIndex) override;
+    virtual HRESULT TxGetBackStyle(TXTBACKSTYLE *pstyle) override;
+    virtual HRESULT TxGetMaxLength(DWORD *plength) override;
+    virtual HRESULT TxGetScrollBars(DWORD *pdwScrollBar) override;
+    virtual HRESULT TxGetPasswordChar(TCHAR *pch) override;
+    virtual HRESULT TxGetAcceleratorPos(LONG *pcp) override;
+    virtual HRESULT TxGetExtent(LPSIZEL lpExtent) override;
+    virtual HRESULT OnTxCharFormatChange (const CHARFORMATW * pcf) override;
+    virtual HRESULT OnTxParaFormatChange (const PARAFORMAT * ppf) override;
+    virtual HRESULT TxGetPropertyBits(DWORD dwMask, DWORD *pdwBits) override;
+    virtual HRESULT TxNotify(DWORD iNotify, void *pv) override;
+    virtual HIMC TxImmGetContext(void) override;
+    virtual void TxImmReleaseContext(HIMC himc) override;
+    virtual HRESULT TxGetSelectionBarWidth (LONG *lSelBarWidth) override;
 
 private:
     RichEdit* m_re;
@@ -642,7 +647,7 @@ void CTxtWinHost::TxInvalidateRect(LPCRECT prc, BOOL /*fMode*/)
         m_re->GetWindow()->Invalidate(newRcClient);
         return;
     }
-    UiRect rc(*prc);
+    UiRect rc = MakeUiRect(*prc);
 	rc.Offset(-scrollOffset.x, -scrollOffset.y);
     m_re->GetWindow()->Invalidate(rc);
 }
@@ -729,8 +734,9 @@ HRESULT CTxtWinHost::TxGetClientRect(LPRECT prc)
 {
 	assert(prc != nullptr);
 	if (prc) {
-		*prc = rcClient;
-		GetControlRect(prc);
+		UiRect rcTemp = rcClient;
+		GetControlRect(&rcTemp);
+		*prc = { rcTemp.left, rcTemp.top, rcTemp.right, rcTemp.bottom };
 	}    
     return NOERROR;
 }
@@ -1139,7 +1145,7 @@ HRESULT	CTxtWinHost::OnTxInPlaceActivate(LPCRECT prcClient)
     return hr;
 }
 
-BOOL CTxtWinHost::DoSetCursor(const UiRect *prc, const POINT* pt)
+BOOL CTxtWinHost::DoSetCursor(const UiRect *prc, const UiPoint* pt)
 {
 	assert(pt != nullptr);
 	if (pt == nullptr) {
@@ -1149,13 +1155,19 @@ BOOL CTxtWinHost::DoSetCursor(const UiRect *prc, const POINT* pt)
     UiRect rc = (prc != NULL) ? *prc : rcClient;
 
     // Is this in our rectangle?
-	UiPoint newPt(*pt);
+	UiPoint newPt(pt->x, pt->y);
 	newPt.Offset(m_re->GetScrollOffset());
-    if (PtInRect(&rc, newPt))
+    if (rc.ContainsPt(newPt))
     {
-        UiRect *prcClient = (!fInplaceActive || prc) ? &rc : NULL;
+		RECT* pRect = nullptr;
+        const UiRect* prcClient = (!fInplaceActive || prc) ? &rc : nullptr;
+		RECT rect = { 0, };
+		if (prcClient != nullptr) {
+			rect = { prcClient->left, prcClient->top, prcClient->right, prcClient->bottom };
+			pRect = &rect;
+		}
         pserv->OnTxSetCursor(DVASPECT_CONTENT,	-1, NULL, NULL,  m_re->GetWindowDC(),
-            NULL, prcClient, newPt.x, newPt.y);
+                             NULL, pRect, newPt.x, newPt.y);
 
         return TRUE;
     }
@@ -1163,7 +1175,7 @@ BOOL CTxtWinHost::DoSetCursor(const UiRect *prc, const POINT* pt)
     return FALSE;
 }
 
-void CTxtWinHost::GetControlRect(LPRECT prc)
+void CTxtWinHost::GetControlRect(UiRect* prc)
 {
 	assert(prc != nullptr);
 	if (prc == nullptr) {
@@ -2317,7 +2329,7 @@ UiSize RichEdit::EstimateSize(UiSize /*szAvailable*/)
 			ASSERT(size.cy != DUI_LENGTH_AUTO);
 			iWidth = 0;
 		}
-		SIZEL szExtent = { -1, -1 };
+		SIZEL szExtent = {-1, -1};
 		m_pTwh->GetTextServices()->TxGetNaturalSize(DVASPECT_CONTENT, 
 													GetWindowDC(),
 													NULL,
@@ -2325,7 +2337,7 @@ UiSize RichEdit::EstimateSize(UiSize /*szAvailable*/)
 													TXTNS_FITTOCONTENT,
 													&szExtent,
 													&iWidth,
-													&iHeight);
+													&iHeight) ;
 		
 		UiRect padding = GetLayout()->GetPadding();
 		if (size.cy == DUI_LENGTH_AUTO) {
@@ -2681,7 +2693,9 @@ void RichEdit::Paint(IRender* pRender, const UiRect& rcPaint)
 	//必须不使用缓存，否则绘制异常
 	ASSERT(IsUseCache() == false);
     UiRect rcTemp;
-    if( !::IntersectRect(&rcTemp, &rcPaint, &GetRect()) ) return;
+	if (!UiRect::Intersect(rcTemp, rcPaint, GetRect())) {
+		return;
+	}
 
     Control::Paint(pRender, rcPaint);
 
@@ -2691,6 +2705,7 @@ void RichEdit::Paint(IRender* pRender, const UiRect& rcPaint)
         // Remember wparam is actually the hdc and lparam is the update
         // rect because this message has been preprocessed by the window.
 		HDC hdc = pRender->GetDC();
+		RECT paintRect = { rcPaint.left, rcPaint.top, rcPaint.right, rcPaint.bottom };
         m_pTwh->GetTextServices()->TxDraw(DVASPECT_CONTENT,  	// Draw Aspect
 										  /*-1*/0,				// Lindex
 										  NULL,					// Info for drawing optimazation
@@ -2699,7 +2714,7 @@ void RichEdit::Paint(IRender* pRender, const UiRect& rcPaint)
 										  NULL, 				// Target device HDC
 										  (RECTL*)&rc,			// Bounding client rectangle
 										  NULL, 		        // Clipping rectangle for metafiles
-										  (UiRect*)&rcPaint,	// Update rectangle
+										  &paintRect,			// Update rectangle
 										  NULL, 	   			// Call back function
 										  NULL,					// Call back parameter
 										  0);				    // What view of the object
@@ -2730,7 +2745,9 @@ void RichEdit::Paint(IRender* pRender, const UiRect& rcPaint)
 void RichEdit::PaintChild(IRender* pRender, const UiRect& rcPaint)
 {
 	UiRect rcTemp;
-	if (!::IntersectRect(&rcTemp, &rcPaint, &GetRect())) return;
+	if (!UiRect::Intersect(rcTemp, rcPaint, GetRect())) {
+		return;
+	}
 
 	PaintCaret(pRender, rcPaint);
 
@@ -2743,7 +2760,7 @@ void RichEdit::PaintChild(IRender* pRender, const UiRect& rcPaint)
         if( m_pVScrollBar && m_pVScrollBar->IsValid() ) rc.right -= m_pVScrollBar->GetFixedWidth();
         if( m_pHScrollBar && m_pHScrollBar->IsValid() ) rc.bottom -= m_pHScrollBar->GetFixedHeight();
 
-        if( !::IntersectRect(&rcTemp, &rcPaint, &rc) ) {
+        if( !UiRect::Intersect(rcTemp, rcPaint, rc) ) {
 			for( auto it = m_items.begin(); it != m_items.end(); ++it ) {
 				auto pControl = *it;
 				if (pControl == nullptr) {
@@ -2753,11 +2770,11 @@ void RichEdit::PaintChild(IRender* pRender, const UiRect& rcPaint)
 					continue;
 				}
 				UiRect controlPos = pControl->GetPos();
-				if (!::IntersectRect(&rcTemp, &rcPaint, &controlPos)) {
+				if (!UiRect::Intersect(rcTemp, rcPaint, controlPos)) {
 					continue;
 				}
                 if( pControl ->IsFloat() ) {
-					if (!::IntersectRect(&rcTemp, &GetRect(), &controlPos)) {
+					if (!UiRect::Intersect(rcTemp, GetRect(), controlPos)) {
 						continue;
 					}
                     pControl->AlphaPaint(pRender, rcPaint);
@@ -2775,17 +2792,17 @@ void RichEdit::PaintChild(IRender* pRender, const UiRect& rcPaint)
 					continue;
 				}
 				UiRect controlPos = pControl->GetPos();
-				if (!::IntersectRect(&rcTemp, &rcPaint, &controlPos)) {
+				if (!UiRect::Intersect(rcTemp, rcPaint, controlPos)) {
 					continue;
 				}
                 if( pControl ->IsFloat() ) {
-					if (!::IntersectRect(&rcTemp, &GetRect(), &controlPos)) {
+					if (!UiRect::Intersect(rcTemp, GetRect(), controlPos)) {
 						continue;
 					}
                     pControl->AlphaPaint(pRender, rcPaint);
                 }
                 else {
-					if (!::IntersectRect(&rcTemp, &rc, &controlPos)) {
+					if (!UiRect::Intersect(rcTemp, rc, controlPos)) {
 						continue;
 					}
                     pControl->AlphaPaint(pRender, rcPaint);
@@ -2796,14 +2813,14 @@ void RichEdit::PaintChild(IRender* pRender, const UiRect& rcPaint)
 
     if( m_pVScrollBar != NULL && m_pVScrollBar->IsVisible() ) {
 		UiRect verBarPos = m_pVScrollBar->GetPos();
-		if( ::IntersectRect(&rcTemp, &rcPaint, &verBarPos) ) {
+		if(UiRect::Intersect(rcTemp, rcPaint, verBarPos) ) {
             m_pVScrollBar->AlphaPaint(pRender, rcPaint);
         }
     }
 
     if( m_pHScrollBar != NULL && m_pHScrollBar->IsVisible() ) {
 		UiRect horBarPos = m_pVScrollBar->GetPos();
-		if( ::IntersectRect(&rcTemp, &rcPaint, &horBarPos) ) {
+		if(UiRect::Intersect(rcTemp, rcPaint, horBarPos) ) {
             m_pHScrollBar->AlphaPaint(pRender, rcPaint);
         }
     }

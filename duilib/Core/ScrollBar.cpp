@@ -1,7 +1,6 @@
 #include "ScrollBar.h"
 #include "duilib/Core/ScrollBox.h"
 #include "duilib/Core/Window.h"
-#include "duilib/Core/Define.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Image/Image.h"
 #include "duilib/Utils/StringUtil.h"
@@ -111,7 +110,7 @@ bool ScrollBar::ButtonUp(const EventArgs& msg)
 		SetMouseFocused(false);
 		Invalidate();
 		UiRect pos = GetPos();
-		if (::PtInRect(&pos, msg.ptMouse)) {
+		if (pos.ContainsPt(msg.ptMouse)) {
 			SetState(kControlStateHot);
 			ret = true;
 		}
@@ -121,7 +120,7 @@ bool ScrollBar::ButtonUp(const EventArgs& msg)
 	}
 
 	UiRect ownerPos = m_pOwner->GetPos();
-	if (m_bAutoHide && !::PtInRect(&ownerPos, msg.ptMouse)) {
+	if (m_bAutoHide && !ownerPos.ContainsPt(msg.ptMouse)) {
 		SetFadeVisible(false);
 	}
 
@@ -346,7 +345,7 @@ void ScrollBar::HandleEvent(const EventArgs& event)
 		auto callback = nbase::Bind(&ScrollBar::ScrollTimeHandle, this);
 		GlobalManager::Instance().Timer().AddCancelableTimer(m_weakFlagOwner.GetWeakFlag(), callback, 50, TimerManager::REPEAT_FOREVER);
 
-		if (::PtInRect(&m_rcButton1, event.ptMouse)) {
+		if (m_rcButton1.ContainsPt(event.ptMouse)) {
 			m_uButton1State = kControlStatePushed;
 			if (!m_bHorizontal) {
 				if (m_pOwner != nullptr) {
@@ -365,7 +364,7 @@ void ScrollBar::HandleEvent(const EventArgs& event)
 				}
 			}
 		}
-		else if (::PtInRect(&m_rcButton2, event.ptMouse)) {
+		else if (m_rcButton2.ContainsPt(event.ptMouse)) {
 			m_uButton2State = kControlStatePushed;
 			if (!m_bHorizontal) {
 				if (m_pOwner != nullptr) {
@@ -384,7 +383,7 @@ void ScrollBar::HandleEvent(const EventArgs& event)
 				}
 			}
 		}
-		else if (::PtInRect(&m_rcThumb, event.ptMouse)) {
+		else if (m_rcThumb.ContainsPt(event.ptMouse)) {
 			m_uThumbState = kControlStatePushed;
 			SetMouseFocused(true);
 			m_ptLastMouse = event.ptMouse;
@@ -439,7 +438,7 @@ void ScrollBar::HandleEvent(const EventArgs& event)
 		m_weakFlagOwner.Cancel();
 
 		if (IsMouseFocused()) {
-			if (::PtInRect(&GetRect(), event.ptMouse)) {
+			if (GetRect().ContainsPt(event.ptMouse)) {
 				m_uThumbState = kControlStateHot;
 			}
 			else {
@@ -553,7 +552,7 @@ void ScrollBar::SetAttribute(const std::wstring& strName, const std::wstring& st
 void ScrollBar::Paint(IRender* pRender, const UiRect& rcPaint)
 {
 	UiRect paintRect = GetPaintRect();
-	if (!::IntersectRect(&paintRect, &rcPaint, &GetRect())) {
+	if (!UiRect::Intersect(paintRect, rcPaint, GetRect())) {
 		return;
 	}
 	SetPaintRect(paintRect);

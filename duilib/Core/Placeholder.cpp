@@ -302,7 +302,7 @@ void PlaceHolder::SetArranged(bool bArranged)
 void PlaceHolder::SetRect(const UiRect& rc)
 {
 	//所有调整矩形区域的操作，最终都会通过这里设置
-	if (!m_uiRect.Equal(rc)) {
+	if (!m_uiRect.Equals(rc)) {
 		//区域变化，标注绘制缓存脏标记位
 		SetCacheDirty(true);
 	}

@@ -19,22 +19,22 @@ void ControlFinder::SetRoot(Box* pRoot)
 	m_pRoot = pRoot;
 }
 
-Control* ControlFinder::FindControl(const POINT& pt) const
+Control* ControlFinder::FindControl(const UiPoint& pt) const
 {
 	ASSERT(m_pRoot != nullptr);
 	if (m_pRoot != nullptr) {
-		POINT ptLocal = pt;
+		UiPoint ptLocal = pt;
 		return m_pRoot->FindControl(__FindControlFromPoint, &ptLocal, UIFIND_VISIBLE | UIFIND_HITTEST | UIFIND_TOP_FIRST);
 	}
 	return nullptr;
 }
 
-Control* ControlFinder::FindContextMenuControl(const POINT* pt) const
+Control* ControlFinder::FindContextMenuControl(const UiPoint* pt) const
 {
 	Control* pControl = nullptr;
 	if(m_pRoot != nullptr){
 		if (pt != nullptr) {
-			POINT ptLocal = *pt;
+			UiPoint ptLocal = *pt;
 			pControl = m_pRoot->FindControl(__FindContextMenuControl, &ptLocal, UIFIND_VISIBLE | UIFIND_ENABLED | UIFIND_HITTEST | UIFIND_TOP_FIRST);
 		}
 		else {
@@ -54,14 +54,14 @@ Control* ControlFinder::FindControl2(const std::wstring& strName) const
 	return pFindedControl;
 }
 
-Control* ControlFinder::FindSubControlByPoint(Control* pParent, const POINT& pt) const
+Control* ControlFinder::FindSubControlByPoint(Control* pParent, const UiPoint& pt) const
 {
 	if (pParent == nullptr) {
 		pParent = m_pRoot;
 	}
 	ASSERT(pParent);
 	if (pParent != nullptr) {
-		POINT ptLocal = pt;
+		UiPoint ptLocal = pt;
 		return pParent->FindControl(__FindControlFromPoint, &ptLocal, UIFIND_VISIBLE | UIFIND_HITTEST | UIFIND_TOP_FIRST);
 	}
 	return nullptr;
@@ -128,12 +128,12 @@ Control* CALLBACK ControlFinder::__FindControlFromCount(Control* /*pThis*/, LPVO
 
 Control* CALLBACK ControlFinder::__FindControlFromPoint(Control* pThis, LPVOID pData)
 {
-	LPPOINT pPoint = static_cast<LPPOINT>(pData);
+	UiPoint* pPoint = static_cast<UiPoint*>(pData);
 	if ((pPoint == nullptr) || (pThis == nullptr)) {
 		return nullptr;
 	}
 	UiRect pos = pThis->GetPos();
-	return ::PtInRect(&pos, *pPoint) ? pThis : nullptr;
+	return pos.ContainsPt(*pPoint) ? pThis : nullptr;
 }
 
 Control* CALLBACK ControlFinder::__FindControlFromTab(Control* pThis, LPVOID pData)

@@ -3,11 +3,15 @@
 
 #pragma once
 
-#include "duilib/duilib_defs.h"
 #include "duilib/Utils/Delegate.h"
 #include "base/callback/callback.h"
 #include "duilib/Core/ControlFinder.h"
 #include "duilib/Core/ColorManager.h"
+#include "duilib/Core/UiColor.h"
+#include "duilib/Core/UiFont.h"
+#include "duilib/Core/UiRect.h"
+#include "duilib/Core/UiSize.h"
+#include "duilib/Core/UiPoint.h"
 
 #include <string>
 
@@ -622,7 +626,7 @@ public:
 
 	/**@brief 获取鼠标最后的坐标
 	 */
-	const POINT& GetLastMousePos() const;
+	const UiPoint& GetLastMousePos() const;
 
 	/**@brief 切换控件焦点到下一个（或上一个）控件
 	 * @param[in] bForward true 为上一个控件，否则为 false，默认为 true
@@ -765,13 +769,13 @@ public:
 	/**@brief 根据坐标查找指定控件，采用默认属性：UIFIND_VISIBLE | UIFIND_HITTEST | UIFIND_TOP_FIRST
 	 * @param[in] pt 指定坐标
 	 */
-	Control* FindControl(const POINT& pt) const;
+	Control* FindControl(const UiPoint& pt) const;
 
 	/**
 	 * @brief 根据坐标查找可以响应WM_CONTEXTMENU的控件
 	 * @param[in] pt 指定坐标
 	 */
-	Control* FindContextMenuControl(const POINT* pt) const;
+	Control* FindContextMenuControl(const UiPoint* pt) const;
 
 	/**@brief 根据控件名称查找控件
 	 * @param[in] strName 控件名称
@@ -782,7 +786,7 @@ public:
 	 * @param[in] pParent 要搜索的控件
 	 * @param[in] pt 要查找的坐标
 	 */
-	Control* FindSubControlByPoint(Control* pParent, const POINT& pt) const;
+	Control* FindSubControlByPoint(Control* pParent, const UiPoint& pt) const;
 
 	/**@brief 根据名字查找子控件
 	 * @param[in] pParent 要搜索的控件
@@ -791,6 +795,78 @@ public:
 	Control* FindSubControlByName(Control* pParent, const std::wstring& strName) const;
 
 	/** @} */
+
+public:
+	/** 获取当前窗口的客户区矩形
+	*/
+	void GetClientRect(UiRect& rcClient) const;
+
+	/** 获取指定窗口的客户区矩形
+	*/
+	void GetClientRect(HWND hWnd, UiRect& rcClient) const;
+
+	/** 获取当前窗口的窗口区矩形
+	*/
+	void GetWindowRect(UiRect& rcWindow) const;
+
+	/** 获取指定窗口的窗口区矩形
+	*/
+	void GetWindowRect(HWND hWnd, UiRect& rcWindow) const;
+
+	/** 将屏幕坐标转换为当前窗口的客户区坐标
+	*/
+	void ScreenToClient(UiPoint& pt) const;
+
+	/** 将屏幕坐标转换为指定窗口的客户区坐标
+	*/
+	void ScreenToClient(HWND hWnd, UiPoint& pt) const;
+
+	/** 将当前窗口的客户区坐标转换为屏幕坐标
+	*/
+	void ClientToScreen(UiPoint& pt) const;
+
+	/** 将指定窗口的客户区坐标转换为屏幕坐标
+	*/
+	void ClientToScreen(HWND hWnd, UiPoint& pt) const;
+
+	/** 获取当前鼠标所在坐标
+	*/
+	void GetCursorPos(UiPoint& pt) const;
+
+	/* 将rc的左上角坐标和右下角坐标点从相对于一个窗口的坐标空间转换为相对于另一个窗口的坐标空间
+	*/
+	void MapWindowRect(HWND hwndFrom, HWND hwndTo, UiRect& rc) const;
+
+	/** 获取一个点对应的窗口句柄
+	*/
+	HWND WindowFromPoint(const UiPoint& pt) const;
+
+	/** 获取当前窗口Owner窗口句柄
+	*/
+	HWND GetWindowOwner() const;
+
+	/** 替换窗口函数
+	*/
+	WNDPROC SubclassWindow(HWND hWnd, WNDPROC pfnWndProc) const;
+
+	/** 获取当前窗口所在显示器的工作区矩形，以虚拟屏幕坐标表示。
+		请注意，如果显示器不是主显示器，则一些矩形的坐标可能是负值。
+	*/
+	bool GetMonitorWorkRect(UiRect& rcWork) const;
+
+	/** 获取指定窗口所在显示器的工作区矩形，以虚拟屏幕坐标表示。 
+	    请注意，如果显示器不是主显示器，则一些矩形的坐标可能是负值。
+	*/
+	bool GetMonitorWorkRect(HWND hWnd, UiRect& rcWork) const;
+
+	/** 获取指定点所在显示器的工作区矩形，以虚拟屏幕坐标表示。
+		请注意，如果显示器不是主显示器，则一些矩形的坐标可能是负值。
+	*/
+	bool GetMonitorWorkRect(const UiPoint& pt, UiRect& rcWork) const;
+
+	/** 获取指定窗口所在显示器的显示器矩形和工作区矩形
+	*/
+	bool GetMonitorRect(HWND hWnd, UiRect& rcMonitor, UiRect& rcWork) const;
 
 private:
 	/** 检查并确保当前窗口为焦点窗口

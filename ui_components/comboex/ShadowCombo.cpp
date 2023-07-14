@@ -1,6 +1,6 @@
 #include "ShadowCombo.h"
 #include "duilib/Utils/Macros.h"
-#include "duilib/Render/UiColor.h"
+#include "duilib/Core/UiColor.h"
 
 namespace nim_comp
 {
@@ -61,7 +61,7 @@ void CShadowComboWnd::InitComboWnd(ShadowCombo* pOwner)
     }
 
     cyFixed += padding; // VBox 默认的Padding 调整
-    rc.bottom = rc.top + std::min((LONG)cyFixed, szDrop.cy);
+    rc.bottom = rc.top + std::min(cyFixed, szDrop.cy);
     ui::UiRect shadow_corner = m_pOwner->GetShadowCorner();
     rc.left = rc.left - shadow_corner.left;
     rc.right = rc.right + shadow_corner.right;
@@ -72,22 +72,20 @@ void CShadowComboWnd::InitComboWnd(ShadowCombo* pOwner)
     if (pOwner->GetWindow() == nullptr) {
         return;
     }
-    ::MapWindowRect(pOwner->GetWindow()->GetHWND(), HWND_DESKTOP, &rc);
-    MONITORINFO oMonitor = {};
-    oMonitor.cbSize = sizeof(oMonitor);
-    ::GetMonitorInfo(::MonitorFromWindow(GetHWND(), MONITOR_DEFAULTTOPRIMARY), &oMonitor);
-    ui::UiRect rcWork(oMonitor.rcWork);
+    MapWindowRect(pOwner->GetWindow()->GetHWND(), HWND_DESKTOP, rc);
+    ui::UiRect rcWork;
+    GetMonitorWorkRect(rcWork);
     if (rc.bottom > rcWork.bottom || m_pOwner->IsPopupTop()) {
         rc.left = rcOwner.left;
         rc.right = rcOwner.right;
-        rc.top = rcOwner.bottom - std::min((LONG)cyFixed, szDrop.cy);
+        rc.top = rcOwner.bottom - std::min(cyFixed, szDrop.cy);
         rc.bottom = rcOwner.bottom;
 
         rc.left = rc.left - shadow_corner.left;
         rc.right = rc.right + shadow_corner.right;
         rc.top = rc.top - shadow_corner.top;
         rc.bottom = rc.bottom + shadow_corner.bottom;
-        ::MapWindowRect(pOwner->GetWindow()->GetHWND(), HWND_DESKTOP, &rc);
+        MapWindowRect(pOwner->GetWindow()->GetHWND(), HWND_DESKTOP, rc);
     }
 
     CreateWnd(pOwner->GetWindow()->GetHWND(), L"", WS_POPUP, WS_EX_TOOLWINDOW, rc);
@@ -207,8 +205,8 @@ void ShadowCombo::DoInit()
         m_cArrow->SetWindow(GetWindow());
         AttachResize(ToWeakCallback([this](const ui::EventArgs& /*args*/) {
             ui::UiRect rect = GetRect();
-            ui::UiSize ArrrowSize = m_cArrow->EstimateSize(ui::UiSize(GetRect().GetWidth(), GetRect().GetHeight()));
-            rect.top = GetRect().top + (GetRect().GetHeight() - ArrrowSize.cy) / 2;
+            ui::UiSize ArrrowSize = m_cArrow->EstimateSize(ui::UiSize(GetRect().Width(), GetRect().Height()));
+            rect.top = GetRect().top + (GetRect().Height() - ArrrowSize.cy) / 2;
             rect.bottom = rect.top + ArrrowSize.cy;
             rect.left = GetRect().right - ArrrowSize.cx - m_iArrowOffset;
             rect.right = rect.left + ArrrowSize.cx;

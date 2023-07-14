@@ -82,7 +82,7 @@ void CefControl::SetPos(ui::UiRect rc)
 
 	if (browser_handler_.get())
 	{
-		browser_handler_->SetViewRect(rc);
+		browser_handler_->SetViewRect({ rc.left, rc.top, rc.right, rc.bottom });
 	}
 }
 
@@ -142,7 +142,7 @@ void CefControl::Paint(ui::IRender* pRender, const ui::UiRect& rcPaint)
 			return;
 		}
 
-		pRender->BitBlt(rect.left, rect.top, rect.GetWidth(), rect.GetHeight(), bitmap.get(), 0, 0, ui::RopMode::kSrcCopy);
+		pRender->BitBlt(rect.left, rect.top, rect.Width(), rect.Height(), bitmap.get(), 0, 0, ui::RopMode::kSrcCopy);
 
 		// 绘制cef PET_POPUP类型的位图
 		if (!rect_popup_.IsEmpty() && dc_cef_popup_.IsValid())
@@ -212,10 +212,10 @@ LRESULT CefControl::FilterMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool&
 	case WM_SETCURSOR:
 	{
 		// 这里拦截WM_SETCURSOR消息，不让duilib处理（duilib会改变光标样式），否则会影响Cef中的鼠标光标
-		POINT pt = { 0 };
-		::GetCursorPos(&pt);
-		::ScreenToClient(GetWindow()->GetHWND(), &pt);
-		if (!GetRect().IsPointIn(ui::UiPoint(pt)))
+		ui::UiPoint pt;
+		GetWindow()->GetCursorPos(pt);
+		GetWindow()->ScreenToClient(pt);
+		if (!GetRect().ContainsPt(pt))
 			return 0;
 
 		GetWindow()->CallDefaultWindowProc(uMsg, wParam, lParam);
@@ -347,8 +347,8 @@ void CefControl::OnBeforeContextMenu(CefRefPtr<CefBrowser> browser, CefRefPtr<Ce
 		pt.Offset(offsetPt);
 		ui::UiRect rect = GetRect();
 		ui::UiRect rectView = devtool_view_->GetRect();
-		bool isPtInPageRect = GetRect().IsPointIn(pt);
-		bool isPtInToolRect = devtool_view_->GetRect().IsPointIn(pt);
+		bool isPtInPageRect = GetRect().ContainsPt(pt);
+		bool isPtInToolRect = devtool_view_->GetRect().ContainsPt(pt);
 		if (isPtInToolRect && !isPtInPageRect) {
 			//如果点击区域，位于开发工具区域，则不弹出页面的右键菜单
 			if (model->GetCount() > 0)			{
@@ -368,7 +368,7 @@ LRESULT CefControl::SendButtonDownEvent(UINT uMsg, WPARAM wParam, LPARAM lParam,
 
 	ui::UiPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
 	pt.Offset(GetScrollOffset());
-	if (!GetRect().IsPointIn(pt))
+	if (!GetRect().ContainsPt(pt))
 		return 0;
 
 	this->SetFocus();
@@ -393,7 +393,7 @@ LRESULT CefControl::SendButtonDoubleDownEvent(UINT uMsg, WPARAM wParam, LPARAM l
 
 	ui::UiPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
 	pt.Offset(GetScrollOffset());
-	if (!GetRect().IsPointIn(pt))
+	if (!GetRect().ContainsPt(pt))
 		return 0;
 
 	CefMouseEvent mouse_event;
@@ -417,7 +417,7 @@ LRESULT CefControl::SendButtonUpEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, b
 
 	ui::UiPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
 	pt.Offset(GetScrollOffset());
-	if (!GetRect().IsPointIn(pt) && !GetWindow()->IsCaptured())
+	if (!GetRect().ContainsPt(pt) && !GetWindow()->IsCaptured())
 		return 0;
 
 	CefMouseEvent mouse_event;
@@ -441,7 +441,7 @@ LRESULT CefControl::SendMouseMoveEvent(UINT /*uMsg*/, WPARAM wParam, LPARAM lPar
 
 	ui::UiPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
 	pt.Offset(GetScrollOffset());
-	if (!GetRect().IsPointIn(pt) && !GetWindow()->IsCaptured())
+	if (!GetRect().ContainsPt(pt) && !GetWindow()->IsCaptured())
 		return 0;
 
 	CefMouseEvent mouse_event;
@@ -460,13 +460,13 @@ LRESULT CefControl::SendMouseWheelEvent(UINT /*uMsg*/, WPARAM wParam, LPARAM lPa
 	CefRefPtr<CefBrowserHost> host = browser_handler_->GetBrowserHost();
 
 	ui::UiPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
-	HWND scrolled_wnd = ::WindowFromPoint(pt);
+	HWND scrolled_wnd = GetWindow()->WindowFromPoint(pt);
 	if (scrolled_wnd != GetWindow()->GetHWND())
 		return 0;
 
-	ScreenToClient(GetWindow()->GetHWND(), &pt);
+	GetWindow()->ScreenToClient(pt);
 	pt.Offset(GetScrollOffset());
-	if (!GetRect().IsPointIn(pt))
+	if (!GetRect().ContainsPt(pt))
 		return 0;
 
 	int delta = GET_WHEEL_DELTA_WPARAM(wParam);
@@ -488,7 +488,7 @@ LRESULT CefControl::SendMouseLeaveEvent(UINT /*uMsg*/, WPARAM wParam, LPARAM lPa
 
 	ui::UiPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
 	pt.Offset(GetScrollOffset());
-	if (!GetRect().IsPointIn(pt))
+	if (!GetRect().ContainsPt(pt))
 		return 0;
 
 	CefMouseEvent mouse_event;

@@ -144,7 +144,7 @@ bool MoveControlForm::OnProcessAppItemDrag(const ui::EventArgs& param)
 	case kEventMouseButtonDown:
 	{
 		is_drag_state_ = true;
-		old_drag_point_ = param.ptMouse;
+		old_drag_point_ = { param.ptMouse.x, param.ptMouse.y };
 	}
 		break;
 	case kEventMouseButtonUp:
@@ -213,19 +213,19 @@ void MoveControlForm::DoDraging(POINT pos)
 bool MoveControlForm::DoAfterDrag(ui::Box* check)
 {
 	//获取鼠标的位置
-	POINT pt;
-	GetCursorPos(&pt);
-	ScreenToClient(GetHWND(), &pt);
+	UiPoint pt;
+	GetCursorPos(pt);
+	ScreenToClient(pt);
 	int findIndex = 0;
 	UiRect rectBox = check->GetPos();
-	if (rectBox.IsPointIn(UiPoint(pt)))
+	if (rectBox.ContainsPt(pt))
 	{
 		//最好是重合面积更大的，这里根据鼠标位置来了
 		for (findIndex = 0; findIndex < check->GetItemCount(); findIndex++)
 		{
 			auto control = check->GetItemAt(findIndex);
 			UiRect rectCtrl = control->GetPos();
-			if (rectCtrl.IsPointIn(UiPoint(pt)))
+			if (rectCtrl.ContainsPt(pt))
 			{
 				//插入到该index
 				break;

@@ -202,7 +202,7 @@ bool MultiBrowserForm::OnProcessTabItemDrag(const ui::EventArgs& param)
 	break;
 	case kEventMouseButtonDown:
 	{
-		old_drag_point_ = param.ptMouse;
+		old_drag_point_ = { param.ptMouse.x, param.ptMouse.y };
 		is_drag_state_ = false;
 	}
 	break;
@@ -212,7 +212,7 @@ bool MultiBrowserForm::OnProcessTabItemDrag(const ui::EventArgs& param)
 
 ui::IBitmap* MultiBrowserForm::GenerateBoxOffsetRenderBitmap(const UiRect& src_rect)
 {
-	ASSERT(!src_rect.IsRectEmpty());
+	ASSERT(!src_rect.IsEmpty());
 	int src_width = src_rect.right - src_rect.left;
 	int src_height = src_rect.bottom - src_rect.top;
 
@@ -254,7 +254,7 @@ ui::IBitmap* MultiBrowserForm::GenerateBoxWindowBitmap()
 
 	HWND cef_window = active_browser_box_->GetCefControl()->GetCefHandle();
 	UiRect src_rect;
-	GetClientRect(cef_window, &src_rect);
+	GetClientRect(cef_window, src_rect);
 
 	int src_width = src_rect.right - src_rect.left;
 	int src_height = src_rect.bottom - src_rect.top;

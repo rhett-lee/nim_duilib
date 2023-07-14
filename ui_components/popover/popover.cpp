@@ -4,7 +4,7 @@
 #include "tooltip.h"
 
 #include "duilib/Utils/Macros.h"
-#include "duilib/Render/UiColor.h"
+#include "duilib/Core/UiColor.h"
 #include "duilib/Render/IRender.h"
 #include "duilib/Core/GlobalManager.h"
 #include "base/thread/thread_manager.h"
@@ -306,12 +306,12 @@ ui::UiSize PopoverHeader::EstimateSize(ui::UiSize szAvailable)
 
     if (m_pControlIcon) {
       fixedSize.cx += m_pControlIcon->GetFixedWidth();
-      fixedSize.cy = std::max(fixedSize.cy, (LONG)m_pControlIcon->GetFixedHeight());
+      fixedSize.cy = std::max(fixedSize.cy, m_pControlIcon->GetFixedHeight());
     }
 
     if (m_pButtonClose) {
       fixedSize.cx += m_pButtonClose->GetFixedWidth();
-      fixedSize.cy = std::max(fixedSize.cy, (LONG)m_pButtonClose->GetFixedHeight());
+      fixedSize.cy = std::max(fixedSize.cy, m_pButtonClose->GetFixedHeight());
     }
 
     fixedSize.cx += paddingRect.left + paddingRect.right + ((int)m_items.size() - 1) * childMargin;
@@ -894,7 +894,7 @@ ui::UiRect Popover::ReCalcByAnchorPos(ui::UiRect rc)
       rc.top = anchorPos.top;
     else if (m_nPlacement & kPlaceLeft ||
       m_nPlacement & kPlaceRight)
-      rc.top = anchorPos.top + (anchorPos.GetHeight() - size.cy) / 2;
+      rc.top = anchorPos.top + (anchorPos.Height() - size.cy) / 2;
     else if (m_nPlacement & kPlaceLeftBottom ||
       m_nPlacement & kPlaceRightBottom)
       rc.top = anchorPos.bottom - size.cy;
@@ -903,15 +903,15 @@ ui::UiRect Popover::ReCalcByAnchorPos(ui::UiRect rc)
       rc.left = anchorPos.left;
     else if (m_nPlacement & kPlaceTop ||
       m_nPlacement & kPlaceBottom)
-      rc.left = anchorPos.left + (anchorPos.GetWidth() - size.cx) / 2;
+      rc.left = anchorPos.left + (anchorPos.Width() - size.cx) / 2;
     else if (m_nPlacement & kPlaceTopRight ||
       m_nPlacement & kPlaceBottomRight)
       rc.left = anchorPos.right - size.cx;
 
     if (m_nPlacement & kPlaceCenter) {
-      rc.left = anchorPos.left + (anchorPos.GetWidth() - size.cx) / 2;
+      rc.left = anchorPos.left + (anchorPos.Width() - size.cx) / 2;
       rc.right = rc.left + size.cx;
-      rc.top = anchorPos.top + (anchorPos.GetHeight() - size.cy) / 2;
+      rc.top = anchorPos.top + (anchorPos.Height() - size.cy) / 2;
       rc.bottom = rc.top + size.cy;
     }
   }
@@ -921,36 +921,36 @@ ui::UiRect Popover::ReCalcByAnchorPos(ui::UiRect rc)
       m_nPlacement & kPlaceLeftBottom) {
       rc.left = anchorPos.left - size.cx;
       if (bHasArrow)
-        rc.top = anchorPos.top + anchorPos.GetHeight() / 2;
+        rc.top = anchorPos.top + anchorPos.Height() / 2;
       else
-        rc.top = anchorPos.top - (size.cy - anchorPos.GetHeight()) / 2;
+        rc.top = anchorPos.top - (size.cy - anchorPos.Height()) / 2;
     }
     else if (m_nPlacement & kPlaceRightTop ||
       m_nPlacement & kPlaceRight ||
       m_nPlacement & kPlaceRightBottom) {
       rc.left = anchorPos.right;
       if (bHasArrow)
-        rc.top = anchorPos.top + anchorPos.GetHeight() / 2;
+        rc.top = anchorPos.top + anchorPos.Height() / 2;
       else
-        rc.top = anchorPos.top - (size.cy - anchorPos.GetHeight()) / 2;
+        rc.top = anchorPos.top - (size.cy - anchorPos.Height()) / 2;
     }
     else if (m_nPlacement & kPlaceTopLeft ||
       m_nPlacement & kPlaceTop ||
       m_nPlacement & kPlaceTopRight) {
       rc.top = anchorPos.top - size.cy;
       if (bHasArrow)
-        rc.left = anchorPos.left + anchorPos.GetWidth() / 2;
+        rc.left = anchorPos.left + anchorPos.Width() / 2;
       else
-        rc.left = anchorPos.left - (size.cx - anchorPos.GetWidth()) / 2;
+        rc.left = anchorPos.left - (size.cx - anchorPos.Width()) / 2;
     }
     else if (m_nPlacement & kPlaceBottomLeft ||
       m_nPlacement & kPlaceBottom ||
       m_nPlacement & kPlaceBottomRight) {
       rc.top = anchorPos.bottom;
       if (bHasArrow)
-        rc.left = anchorPos.left + anchorPos.GetWidth() / 2;
+        rc.left = anchorPos.left + anchorPos.Width() / 2;
       else
-        rc.left = anchorPos.left - (size.cx - anchorPos.GetWidth()) / 2;
+        rc.left = anchorPos.left - (size.cx - anchorPos.Width()) / 2;
     }
 
     
@@ -1410,9 +1410,9 @@ void PopoverLayer::SetShowMask(bool show)
   SetKeyboardEnabled(m_bShowMask);
 }
 
-void PopoverLayer::OnMouseEventButtonDown(POINT pt)
+void PopoverLayer::OnMouseEventButtonDown(ui::UiPoint pt)
 {
-  auto trigger_loop = [this](PopoverHolderLayer* holder, POINT pt) {
+  auto trigger_loop = [this](PopoverHolderLayer* holder, ui::UiPoint pt) {
     for (size_t index = 0; index < holder->GetItemCount(); ++index) {
       auto popover = static_cast<Popover*>(holder->GetItemAt(index));
       if (!popover)
@@ -1421,7 +1421,7 @@ void PopoverLayer::OnMouseEventButtonDown(POINT pt)
       auto control = GetWindow()->FindSubControlByPoint(GetWindow()->GetRoot(), pt);
 
       auto pos = popover->GetPos();
-      if (!::PtInRect(&pos, pt) && 
+      if (!pos.ContainsPt(pt) &&
         (!(popover->m_nShowType & kTriggerClick) || popover->GetAnchor() != control )&&
         popover->m_nDisappearType & kTriggerClickLayer) {
         nbase::ThreadManager::PostTask(kThreadUI,

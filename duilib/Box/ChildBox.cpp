@@ -1,5 +1,4 @@
 #include "ChildBox.h"
-#include "duilib/Core/Define.h"
 #include "duilib/Core/WindowBuilder.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Utils/WinImplBase.h"

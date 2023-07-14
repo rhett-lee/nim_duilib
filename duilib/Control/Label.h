@@ -234,11 +234,11 @@ void LabelTemplate<InheritType>::CheckShowToolTip()
     }
     if (!m_bSingleLine && (width == 0)) {
         //多行文本评估宽高的时候，必须指定宽度
-        width = rc.GetWidth();
+        width = rc.Width();
     }
 
     UiRect rcMessure = pRender->MeasureString(sText, m_sFontId, m_uTextStyle, width);
-    if (rc.GetWidth() < rcMessure.GetWidth() || rc.GetHeight() < rcMessure.GetHeight()) {
+    if (rc.Width() < rcMessure.Width() || rc.Height() < rcMessure.Height()) {
         m_sAutoShowTooltipCache = sText;
     }
 }
@@ -317,10 +317,10 @@ UiSize LabelTemplate<InheritType>::EstimateText(UiSize /*szAvailable*/)
         if (pRender != nullptr) {
             UiRect rect = pRender->MeasureString(textValue, m_sFontId, m_uTextStyle, width);
             if (this->GetFixedWidth() == DUI_LENGTH_AUTO) {
-                fixedSize.cx = rect.GetWidth() + m_rcTextPadding.left + m_rcTextPadding.right;
+                fixedSize.cx = rect.Width() + m_rcTextPadding.left + m_rcTextPadding.right;
             }
             if (this->GetFixedHeight() == DUI_LENGTH_AUTO) {
-                fixedSize.cy = rect.GetHeight() + m_rcTextPadding.top + m_rcTextPadding.bottom;
+                fixedSize.cy = rect.Height() + m_rcTextPadding.top + m_rcTextPadding.bottom;
             }
         }        
     }

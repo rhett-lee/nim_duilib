@@ -59,7 +59,7 @@ void Notification::SetPos(ui::UiRect rc)
 {
   auto size = EstimateSize({ 0,0 });
 
-  if (rc.GetWidth() < size.cx) {
+  if (rc.Width() < size.cx) {
     rc.left = rc.right - size.cx;
     rc.right = rc.left + size.cx;
   }

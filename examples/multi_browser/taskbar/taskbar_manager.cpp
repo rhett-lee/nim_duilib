@@ -277,7 +277,7 @@ ui::IBitmap* TaskbarManager::GenerateBindControlBitmapWithForm(ui::Control *cont
 
 	// 3.把某个会话盒子的位图画到内存dc，覆盖原窗口对应位置的位图
 	UiRect rcPaint = control->GetPos();
-	if (rcPaint.IsRectEmpty())
+	if (rcPaint.IsEmpty())
 		return NULL;
 	rcPaint.Intersect(UiRect(0, 0, window_width, window_height));
 
@@ -336,7 +336,7 @@ ui::IBitmap* TaskbarManager::GenerateBindControlBitmap(ui::Control *control, con
 
 	// 2.把某个会话盒子的位图画到内存dc，覆盖原窗口对应位置的位图
 	UiRect rcPaint = control->GetPos();
-	if (rcPaint.IsRectEmpty())
+	if (rcPaint.IsEmpty())
 		return NULL;
 	rcPaint.Intersect(UiRect(0, 0, window_width, window_height));
 
@@ -351,7 +351,7 @@ ui::IBitmap* TaskbarManager::GenerateBindControlBitmap(ui::Control *control, con
 
 	// 4.缩放到目标尺寸
 	UiRect rcControl = control->GetPos();
-	return ResizeBitmap(dest_width, dest_height, render.get(), rcControl.left, rcControl.top, rcControl.GetWidth(), rcControl.GetHeight());
+	return ResizeBitmap(dest_width, dest_height, render.get(), rcControl.left, rcControl.top, rcControl.Width(), rcControl.Height());
 }
 
 ui::IBitmap* TaskbarManager::ResizeBitmap(int dest_width, int dest_height, ui::IRender* pSrcRender, int src_x, int src_y, int src_width, int src_height)

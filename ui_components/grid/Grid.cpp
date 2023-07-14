@@ -116,7 +116,7 @@ namespace ui
 	void Grid::PaintChild(IRender* pRender, const UiRect& rcPaint)
 	{
 		UiRect rcTemp;
-		if (!::IntersectRect(&rcTemp, &rcPaint, &GetRect())) return;
+		if (!UiRect::Intersect(rcTemp, rcPaint, GetRect())) return;
 
 		for (auto it = m_items.begin(); it != m_items.end(); it++) {
 			Control* pControl = *it;

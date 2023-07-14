@@ -217,7 +217,7 @@ UiRect Progress::GetProgressPos()
     UiRect rc;
     if (m_bHorizontal) {
         if (m_bReverse) {
-            rc.right = GetRect().GetWidth();
+            rc.right = GetRect().Width();
             rc.left = rc.right - static_cast<int>(std::floor(static_cast<double>((m_nValue - m_nMin) * (GetRect().right - GetRect().left)) / static_cast<double>(m_nMax - m_nMin)));
         }
         else {

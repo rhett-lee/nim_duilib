@@ -72,7 +72,7 @@ void WkeWebView::Paint(ui::IRender* pRender, const ui::UiRect& rcPaint) {
       return;
   }
   ui::UiRect rect = GetRect();
-  pRender->BitBlt(rect.left, rect.top, rect.GetWidth(), rect.GetHeight(), bitmap.get(), 0, 0, ui::RopMode::kSrcCopy);
+  pRender->BitBlt(rect.left, rect.top, rect.Width(), rect.Height(), bitmap.get(), 0, 0, ui::RopMode::kSrcCopy);
 }
 
 void WkeWebView::SetWindow(ui::Window* pManager, ui::Box* pParent, bool bInit) {
@@ -225,7 +225,7 @@ LRESULT WkeWebView::FilterMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool&
     if (pt.x == -1 || pt.y == -1) {
       break;
     }
-    ScreenToClient(hWnd, &pt);
+    GetWindow()->ScreenToClient(hWnd, pt);
 
     if (!GetWebViewPos(pt)) {
       break;
@@ -262,7 +262,7 @@ LRESULT WkeWebView::FilterMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool&
       break;
     }
 
-    ScreenToClient(hWnd, &pt);
+    GetWindow()->ScreenToClient(hWnd, pt);
 
     if (!GetWebViewPos(pt)) {
       break;  
@@ -342,8 +342,8 @@ bool WkeWebView::SetCursorInfoTypeByCache() {
   HWND hWnd = GetWindow()->GetHWND();
 
   ui::UiPoint pt;
-  ::GetCursorPos(&pt);
-  ::ScreenToClient(hWnd, &pt);
+  GetWindow()->GetCursorPos(pt);
+  GetWindow()->ScreenToClient(hWnd, pt);
   if (!GetWebViewPos(pt))
     return false;
 
@@ -405,7 +405,7 @@ bool WkeWebView::SetCursorInfoTypeByCache() {
 
 bool WkeWebView::GetWebViewPos(ui::UiPoint& point) {
   point.Offset(GetScrollOffset());
-  if (!GetRect().IsPointIn(point))
+  if (!GetRect().ContainsPt(point))
     return false;
 
   point.x = point.x - GetRect().left;

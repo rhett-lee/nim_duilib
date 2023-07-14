@@ -3,10 +3,12 @@
 
 #pragma once
 
-#include "duilib/duilib_defs.h"
-#include "duilib/Core/Define.h"
-#include "duilib/Render/UiColor.h"
 #include "base/callback/callback.h"
+#include "duilib/Core/UiColor.h"
+#include "duilib/Core/UiFont.h"
+#include "duilib/Core/UiRect.h"
+#include "duilib/Core/UiSize.h"
+#include "duilib/Core/UiPoint.h"
 
 namespace ui 
 {

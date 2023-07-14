@@ -6,7 +6,6 @@
 #include "duilib/Core/PlaceHolder.h"
 #include "duilib/Core/BoxShadow.h"
 #include "duilib/Utils/Delegate.h"
-#include "duilib/Render/UiColor.h"
 #include <map>
 #include <memory>
 

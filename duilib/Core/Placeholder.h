@@ -3,9 +3,12 @@
 
 #pragma once
 
-#include "duilib/duilib_defs.h"
-#include "duilib/Core/Define.h"
 #include "base/callback/callback.h"
+#include "duilib/Core/UiColor.h"
+#include "duilib/Core/UiFont.h"
+#include "duilib/Core/UiRect.h"
+#include "duilib/Core/UiSize.h"
+#include "duilib/Core/UiPoint.h"
 #include <string>
 #include <memory>
 
@@ -159,11 +162,11 @@ public:
 
 	/**@brief 获取实际宽度
 	 */
-	int GetWidth() const { return m_uiRect.GetWidth(); }
+	int GetWidth() const { return m_uiRect.Width(); }
 
 	/**@brief 获取实际高度
 	 */
-	int GetHeight() const { return m_uiRect.GetHeight(); }
+	int GetHeight() const { return m_uiRect.Height(); }
 
 	/**@brief 获取水平对齐方式， 参考 HorAlignType 枚举
 	 */

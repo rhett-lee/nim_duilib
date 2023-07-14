@@ -51,7 +51,7 @@ void Slider::HandleEvent(const EventArgs& event)
 			UiPoint newPtMouse(event.ptMouse);
 			newPtMouse.Offset(GetScrollOffset());
 			UiRect rcThumb = GetThumbRect();
-			if (rcThumb.IsPointIn(newPtMouse)) {
+			if (rcThumb.ContainsPt(newPtMouse)) {
 				SetMouseFocused(true);
 			}
 		}
@@ -140,34 +140,36 @@ void Slider::SetAttribute(const std::wstring& strName, const std::wstring& strVa
 void Slider::PaintBkColor(IRender* pRender)
 {
 	UiRect rc = GetRect();
-	rc.Deflate(m_rcProgressBarPadding);
+	const UiRect& padding = m_rcProgressBarPadding;
+	rc.Deflate(padding.left, padding.top, padding.right, padding.bottom);
 	SetRect(rc);
 
 	UiRect painttRect = GetPaintRect();
-	painttRect.Deflate(m_rcProgressBarPadding);
+	painttRect.Deflate(padding.left, padding.top, padding.right, padding.bottom);
 	SetPaintRect(painttRect);
 
 	Control::PaintBkColor(pRender);
 
 	painttRect = GetPaintRect();
-	painttRect.Inflate(m_rcProgressBarPadding);
+	painttRect.Inflate(padding.left, padding.top, padding.right, padding.bottom);
 	SetPaintRect(painttRect);
 
 	rc = GetRect();
-	rc.Inflate(m_rcProgressBarPadding);
+	rc.Inflate(padding.left, padding.top, padding.right, padding.bottom);
 	SetRect(rc);
 }
 
 void Slider::PaintStatusImage(IRender* pRender)
 {
 	UiRect rc = GetRect();
-	rc.Deflate(m_rcProgressBarPadding);
+	const UiRect& padding = m_rcProgressBarPadding;
+	rc.Deflate(padding.left, padding.top, padding.right, padding.bottom);
 	SetRect(rc);
 
 	Progress::PaintStatusImage(pRender);
 
 	rc = GetRect();
-	rc.Inflate(m_rcProgressBarPadding);
+	rc.Inflate(padding.left, padding.top, padding.right, padding.bottom);
 	SetRect(rc);
 
 	UiRect rcThumb = GetThumbRect();

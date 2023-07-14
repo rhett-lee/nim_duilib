@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include "duilib/Core/Define.h"
-#include "duilib/duilib_defs.h"
 #include "duilib/Render/IRender.h"
 #include <memory>
 #include <string>
@@ -14,6 +12,7 @@
 namespace ui 
 {
 	class IRender;
+	class Control;
 
 /** Õº∆¨–≈œ¢
 */

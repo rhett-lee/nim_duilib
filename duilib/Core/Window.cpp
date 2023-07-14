@@ -201,7 +201,7 @@ HWND Window::CreateWnd(HWND hwndParent, const wchar_t* windowName, uint32_t dwSt
 							     className.c_str(), 
 							     windowName, 
 							     dwStyle,
-							     rc.left, rc.top, rc.GetWidth(), rc.GetHeight(), 
+							     rc.left, rc.top, rc.Width(), rc.Height(), 
 							     hwndParent, NULL, GetResModuleHandle(), this);
 	ASSERT(::IsWindow(hWnd));
 	if (hWnd != m_hWnd) {
@@ -214,7 +214,7 @@ void Window::CloseWnd(UINT nRet)
 {
 	if (m_bFakeModal)
 	{
-		auto parent_hwnd = GetWindowOwner(m_hWnd);
+		auto parent_hwnd = GetWindowOwner();
 		ASSERT(::IsWindow(parent_hwnd));
 		::EnableWindow(parent_hwnd, TRUE);
 		::SetFocus(parent_hwnd);
@@ -239,7 +239,7 @@ void Window::ShowModalFake(HWND parent_hwnd)
 {
 	ASSERT(::IsWindow(m_hWnd));
 	ASSERT(::IsWindow(parent_hwnd));
-	auto p_hwnd = GetWindowOwner(m_hWnd);
+	auto p_hwnd = GetWindowOwner();
 	ASSERT(::IsWindow(p_hwnd));
 	ASSERT_UNUSED_VARIABLE(p_hwnd == parent_hwnd);
 	::EnableWindow(parent_hwnd, FALSE);
@@ -255,23 +255,19 @@ bool Window::IsFakeModal() const
 void Window::CenterWindow()
 {
     ASSERT(::IsWindow(m_hWnd));
-    ASSERT((GetWindowStyle(m_hWnd) & WS_CHILD) == 0);
-    UiRect rcDlg;
-    ::GetWindowRect(m_hWnd, &rcDlg);
-    UiRect rcArea;
-    UiRect rcCenter;
+    ASSERT((::GetWindowLong(m_hWnd, GWL_STYLE) & WS_CHILD) == 0);
+	UiRect rcDlg;
+    GetWindowRect(rcDlg);
+	UiRect rcArea;
+	UiRect rcCenter;
 	HWND hWnd = GetHWND();
-    HWND hWndCenter = ::GetWindowOwner(m_hWnd);
+    HWND hWndCenter = GetWindowOwner();
 	if (hWndCenter != nullptr) {
 		hWnd = hWndCenter;
 	}		
 
 	// 处理多显示器模式下屏幕居中
-	MONITORINFO oMonitor = {0,};
-	oMonitor.cbSize = sizeof(oMonitor);
-	::GetMonitorInfo(::MonitorFromWindow(hWnd, MONITOR_DEFAULTTONEAREST), &oMonitor);
-	rcArea = UiRect(oMonitor.rcWork);
-
+	GetMonitorWorkRect(hWnd, rcArea);
 	if (hWndCenter == nullptr) {
 		rcCenter = rcArea;
 	}
@@ -279,7 +275,7 @@ void Window::CenterWindow()
 		rcCenter = rcArea;
 	}
 	else {
-		::GetWindowRect(hWndCenter, &rcCenter);
+		GetWindowRect(hWndCenter, rcCenter);
 	}
 
     int DlgWidth = rcDlg.right - rcDlg.left;
@@ -469,9 +465,9 @@ void Window::InitWnd(HWND hWnd)
 	if ((m_render != nullptr) && (m_render->GetWidth() == 0)) {
 		//在估算控件大小的时候，需要Render有宽高等数据，所以需要进行Resize初始化
 		UiRect rcClient;
-		::GetClientRect(m_hWnd, &rcClient);
-		if ((rcClient.GetWidth() > 0) && (rcClient.GetHeight() > 0)) {
-			m_render->Resize(rcClient.GetWidth(), rcClient.GetHeight());
+		GetClientRect(rcClient);
+		if ((rcClient.Width() > 0) && (rcClient.Height() > 0)) {
+			m_render->Resize(rcClient.Width(), rcClient.Height());
 		}		
 	}
 
@@ -677,7 +673,7 @@ void Window::ClearImageCache()
 	}
 }
 
-const POINT& Window::GetLastMousePos() const
+const UiPoint& Window::GetLastMousePos() const
 {
 	return m_ptLastMousePos;
 }
@@ -751,8 +747,11 @@ const UiRect& Window::GetAlphaFixCorner() const
 
 void Window::SetAlphaFixCorner(const UiRect& rc)
 {
-	m_rcAlphaFix = rc;
-	GlobalManager::Instance().Dpi().ScaleRect(m_rcAlphaFix);
+	ASSERT((rc.left >= 0) && (rc.top >= 0) && (rc.right >= 0) && (rc.bottom >= 0));
+	if ((rc.left >= 0) && (rc.top >= 0) && (rc.right >= 0) && (rc.bottom >= 0)) {
+		m_rcAlphaFix = rc;
+		GlobalManager::Instance().Dpi().ScaleRect(m_rcAlphaFix);
+	}	
 }
 
 void Window::SetText(const std::wstring& strText)
@@ -817,8 +816,7 @@ UiRect Window::GetPos(bool bContainShadow) const
 {
 	ASSERT(::IsWindow(m_hWnd));
 	UiRect rcPos;
-	::GetWindowRect(m_hWnd, &rcPos);
-
+	GetWindowRect(rcPos);
 	if (!bContainShadow) {
 		UiRect padding = m_shadow->GetShadowCorner();
 		rcPos.left += padding.left;
@@ -838,9 +836,10 @@ void Window::SetPos(const UiRect& rc, bool bNeedDpiScale, UINT uFlags, HWND hWnd
 
 	ASSERT(::IsWindow(m_hWnd));
 	if (!bContainShadow) {
-		rcNewPos.Inflate(m_shadow->GetShadowCorner());
+		UiRect rcCorner = m_shadow->GetShadowCorner();
+		rcNewPos.Inflate(rcCorner.left, rcCorner.top, rcCorner.right, rcCorner.bottom);
 	}
-	::SetWindowPos(m_hWnd, hWndInsertAfter, rcNewPos.left, rcNewPos.top, rcNewPos.GetWidth(), rcNewPos.GetHeight(), uFlags);
+	::SetWindowPos(m_hWnd, hWndInsertAfter, rcNewPos.left, rcNewPos.top, rcNewPos.Width(), rcNewPos.Height(), uFlags);
 }
 
 UiSize Window::GetMinInfo(bool bContainShadow) const
@@ -861,12 +860,17 @@ UiSize Window::GetMinInfo(bool bContainShadow) const
 
 void Window::SetMinInfo(int cx, int cy, bool bContainShadow, bool bNeedDpiScale)
 {
+	ASSERT(cx >= 0 && cy >= 0);
+	if (cx < 0) {
+		cx = 0;
+	}
+	if (cy < 0) {
+		cy = 0;
+	}
 	if (bNeedDpiScale) {
 		GlobalManager::Instance().Dpi().ScaleInt(cx);
 		GlobalManager::Instance().Dpi().ScaleInt(cy);
 	}
-	ASSERT(cx >= 0 && cy >= 0);
-
 	if (!bContainShadow) {
 		UiRect rcShadow = m_shadow->GetShadowCorner();
 		if (cx != 0) {
@@ -898,12 +902,17 @@ UiSize Window::GetMaxInfo(bool bContainShadow) const
 
 void Window::SetMaxInfo(int cx, int cy, bool bContainShadow, bool bNeedDpiScale)
 {
+	ASSERT(cx >= 0 && cy >= 0);
+	if (cx < 0) {
+		cx = 0;
+	}
+	if (cy < 0) {
+		cy = 0;
+	}
 	if (bNeedDpiScale) {
 		GlobalManager::Instance().Dpi().ScaleInt(cx);
 		GlobalManager::Instance().Dpi().ScaleInt(cy);
 	}
-	ASSERT(cx >= 0 && cy >= 0);
-
 	if (!bContainShadow) {
 		UiRect rcShadow = m_shadow->GetShadowCorner();
 		if (cx != 0) {
@@ -935,6 +944,13 @@ UiSize Window::GetInitSize(bool bContainShadow) const
 
 void Window::Resize(int cx, int cy, bool bContainShadow, bool bNeedDpiScale)
 {
+	ASSERT(cx >= 0 && cy >= 0);
+	if (cx < 0) {
+		cx = 0;
+	}
+	if (cy < 0) {
+		cy = 0;
+	}
 	if (bNeedDpiScale) {
 		GlobalManager::Instance().Dpi().ScaleInt(cy);
 		GlobalManager::Instance().Dpi().ScaleInt(cx);
@@ -1099,7 +1115,7 @@ LRESULT Window::OnCloseMsg(UINT uMsg, WPARAM /*wParam*/, LPARAM /*lParam*/, bool
 	bHandled = false;
 	ClearStatus();
 	if (::GetFocus() == m_hWnd) {
-		HWND hwndParent = ::GetWindowOwner(m_hWnd);
+		HWND hwndParent = GetWindowOwner();
 		if (hwndParent != nullptr) {
 			::SetFocus(hwndParent);
 		}
@@ -1134,16 +1150,17 @@ LRESULT Window::OnNcHitTestMsg(UINT uMsg, WPARAM /*wParam*/, LPARAM lParam, bool
 {
 	ASSERT_UNUSED_VARIABLE(uMsg == WM_NCHITTEST);
 	bHandled = true;
-	POINT pt = { 0 };
+	UiPoint pt;
 	pt.x = GET_X_LPARAM(lParam);
 	pt.y = GET_Y_LPARAM(lParam);
-	::ScreenToClient(GetHWND(), &pt);
+	ScreenToClient(pt);
 
 	UiRect rcClient;
-	::GetClientRect(GetHWND(), &rcClient);
+	GetClientRect(rcClient);
 
 	//客户区域，排除掉阴影部分区域
-	rcClient.Deflate(m_shadow->GetShadowCorner());
+	UiRect rcCorner = m_shadow->GetShadowCorner();
+	rcClient.Deflate(rcCorner.left, rcCorner.top, rcCorner.right, rcCorner.bottom);
 
 	if (!::IsZoomed(GetHWND())) {
 		//非最小化状态
@@ -1221,26 +1238,24 @@ LRESULT Window::OnGetMinMaxInfoMsg(UINT uMsg, WPARAM /*wParam*/, LPARAM lParam, 
 	ASSERT_UNUSED_VARIABLE(uMsg == WM_GETMINMAXINFO);
 	bHandled = false;
 	LPMINMAXINFO lpMMI = (LPMINMAXINFO)lParam;
-	MONITORINFO oMonitor = {};
-	oMonitor.cbSize = sizeof(oMonitor);
-	::GetMonitorInfo(::MonitorFromWindow(GetHWND(), MONITOR_DEFAULTTONEAREST), &oMonitor);
-	UiRect rcWork(oMonitor.rcWork);
-	UiRect rcMonitor(oMonitor.rcMonitor);
-	rcWork.Offset(-oMonitor.rcMonitor.left, -oMonitor.rcMonitor.top);
+	UiRect rcWork;
+	UiRect rcMonitor;
+	GetMonitorRect(GetHWND(), rcMonitor, rcWork);
+	rcWork.Offset(-rcMonitor.left, -rcMonitor.top);
 
 	UiRect rcMaximize = GetMaximizeInfo();
-	if (rcMaximize.GetWidth() > 0 && rcMaximize.GetHeight() > 0) {
+	if (rcMaximize.Width() > 0 && rcMaximize.Height() > 0) {
 		lpMMI->ptMaxPosition.x = rcWork.left + rcMaximize.left;
 		lpMMI->ptMaxPosition.y = rcWork.top + rcMaximize.top;
-		lpMMI->ptMaxSize.x = rcMaximize.GetWidth();
-		lpMMI->ptMaxSize.y = rcMaximize.GetHeight();
+		lpMMI->ptMaxSize.x = rcMaximize.Width();
+		lpMMI->ptMaxSize.y = rcMaximize.Height();
 	}
 	else {
 		// 计算最大化时，正确的原点坐标
 		lpMMI->ptMaxPosition.x = rcWork.left;
 		lpMMI->ptMaxPosition.y = rcWork.top;
-		lpMMI->ptMaxSize.x = rcWork.GetWidth();
-		lpMMI->ptMaxSize.y = rcWork.GetHeight();
+		lpMMI->ptMaxSize.x = rcWork.Width();
+		lpMMI->ptMaxSize.y = rcWork.Height();
 	}
 
 	if (GetMaxInfo().cx != 0) {
@@ -1267,22 +1282,22 @@ LRESULT Window::OnWindowPosChangingMsg(UINT uMsg, WPARAM /*wParam*/, LPARAM lPar
 		if (lpPos->flags & SWP_FRAMECHANGED) // 第一次最大化，而不是最大化之后所触发的WINDOWPOSCHANGE
 		{
 			POINT pt = { 0, 0 };
-			HMONITOR hMontorPrimary = MonitorFromPoint(pt, MONITOR_DEFAULTTOPRIMARY);
-			HMONITOR hMonitorTo = MonitorFromWindow(m_hWnd, MONITOR_DEFAULTTOPRIMARY);
+			HMONITOR hMontorPrimary = ::MonitorFromPoint(pt, MONITOR_DEFAULTTOPRIMARY);
+			HMONITOR hMonitorTo = ::MonitorFromWindow(m_hWnd, MONITOR_DEFAULTTOPRIMARY);
 
 			// 先把窗口最大化，再最小化，然后恢复，此时MonitorFromWindow拿到的HMONITOR不准确
 			// 判断GetWindowRect的位置如果不正确（最小化时得到的位置信息是-38000），则改用normal状态下的位置，来获取HMONITOR
-			RECT rc = { 0 };
-			GetWindowRect(m_hWnd, &rc);
+			UiRect rc;
+			GetWindowRect(rc);
 			if (rc.left < -10000 && rc.top < -10000 && rc.bottom < -10000 && rc.right < -10000) {
 				WINDOWPLACEMENT wp = { sizeof(WINDOWPLACEMENT) };
-				GetWindowPlacement(m_hWnd, &wp);
-				hMonitorTo = MonitorFromRect(&wp.rcNormalPosition, MONITOR_DEFAULTTOPRIMARY);
+				::GetWindowPlacement(m_hWnd, &wp);
+				hMonitorTo = ::MonitorFromRect(&wp.rcNormalPosition, MONITOR_DEFAULTTOPRIMARY);
 			}
 			if (hMonitorTo != hMontorPrimary) {
 				// 解决无边框窗口在双屏下面（副屏分辨率大于主屏）时，最大化不正确的问题
 				MONITORINFO  miTo = { sizeof(miTo), 0 };
-				GetMonitorInfo(hMonitorTo, &miTo);
+				::GetMonitorInfo(hMonitorTo, &miTo);
 
 				lpPos->x = miTo.rcWork.left;
 				lpPos->y = miTo.rcWork.top;
@@ -1303,7 +1318,7 @@ LRESULT Window::OnSizeMsg(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/, bool& bHa
 	if (!isIconic && (wParam != SIZE_MAXIMIZED) && (szRoundCorner.cx > 0 && szRoundCorner.cy > 0)) {
 		//最大化、最小化时，均不设置圆角RGN，只有普通状态下设置
 		UiRect rcWnd;
-		::GetWindowRect(GetHWND(), &rcWnd);
+		GetWindowRect(rcWnd);
 		rcWnd.Offset(-rcWnd.left, -rcWnd.top);
 		rcWnd.right++; 
 		rcWnd.bottom++;
@@ -1396,7 +1411,7 @@ LRESULT Window::OnMouseWheelMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& b
 	ASSERT_UNUSED_VARIABLE(uMsg == WM_MOUSEWHEEL);
 	bHandled = false;
 	UiPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
-	::ScreenToClient(m_hWnd, &pt);
+	ScreenToClient(pt);
 	OnMouseWheel(wParam, lParam, pt);
 	return 0;
 }
@@ -1462,10 +1477,10 @@ LRESULT Window::OnContextMenuMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& 
 	bHandled = false;
 	ReleaseCapture();
 
-	POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+	UiPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
 	if ((pt.x != -1) && (pt.y != -1)) {
-		::ScreenToClient(m_hWnd, &pt);
-		m_ptLastMousePos = UiPoint(pt);
+		ScreenToClient(pt);
+		m_ptLastMousePos = pt;
 		Control* pControl = FindContextMenuControl(&pt);
 		if (pControl != nullptr) {
 			Control* ptControl = FindControl(pt);//当前点击点所在的控件
@@ -1676,13 +1691,13 @@ LRESULT Window::OnSetCusorMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHa
 		return 0;
 	}
 
-	POINT pt = { 0 };
-	::GetCursorPos(&pt);
-	::ScreenToClient(m_hWnd, &pt);
-	m_ptLastMousePos = UiPoint(pt);
+	UiPoint pt;
+	GetCursorPos(pt);	
+	ScreenToClient(pt);
+	m_ptLastMousePos = pt;
 	Control* pControl = FindControl(pt);
 	if (pControl != nullptr) {
-		pControl->SendEvent(kEventSetCursor, wParam, lParam, 0, UiPoint(pt));
+		pControl->SendEvent(kEventSetCursor, wParam, lParam, 0, pt);
 		bHandled = true;
 	}	
 	return 0;
@@ -1748,7 +1763,7 @@ LRESULT Window::OnTouchMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandl
 	}
 	//获取触摸点的坐标，并转换为窗口内的客户区坐标
 	UiPoint pt = { TOUCH_COORD_TO_PIXEL(pInputs[0].x) , TOUCH_COORD_TO_PIXEL(pInputs[0].y) };
-    ScreenToClient(m_hWnd, &pt);
+    ScreenToClient(pt);
 
 	DWORD dwFlags = pInputs[0].dwFlags;
 	delete[] pInputs;
@@ -1789,7 +1804,7 @@ LRESULT Window::OnPointerMsgs(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHa
     }
 	//获取指针位置，并且将屏幕坐标转换为窗口客户区坐标
 	UiPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };	
-    ::ScreenToClient(m_hWnd, &pt);
+    ScreenToClient(pt);
 	UiPoint lastMousePos = m_ptLastMousePos;
 
     switch (uMsg)
@@ -1873,6 +1888,161 @@ void Window::CheckSetFocusWindow()
 {
 	if (::GetFocus() != m_hWnd) {
 		::SetFocus(m_hWnd);
+	}
+}
+
+void Window::GetClientRect(UiRect& rcClient) const
+{
+	GetClientRect(m_hWnd, rcClient);
+}
+
+void Window::GetClientRect(HWND hWnd, UiRect& rcClient) const
+{
+	RECT rc = { 0, 0, 0, 0 };
+	::GetClientRect(hWnd, &rc);
+	rcClient = UiRect(rc.left, rc.top, rc.right, rc.bottom);
+}
+
+void Window::GetWindowRect(UiRect& rcWindow) const
+{
+	GetWindowRect(m_hWnd, rcWindow);
+}
+
+void Window::GetWindowRect(HWND hWnd, UiRect& rcWindow) const
+{
+	RECT rc = { 0, 0, 0, 0 };
+	::GetWindowRect(hWnd, &rc);
+	rcWindow = UiRect(rc.left, rc.top, rc.right, rc.bottom);
+}
+
+void Window::ScreenToClient(UiPoint& pt) const
+{
+	ScreenToClient(m_hWnd, pt);
+}
+
+void Window::ScreenToClient(HWND hWnd, UiPoint& pt) const
+{
+	POINT ptClient = { pt.x, pt.y };
+	::ScreenToClient(hWnd, &ptClient);
+	pt = UiPoint(ptClient.x, ptClient.y);
+}
+
+void Window::ClientToScreen(UiPoint& pt) const
+{
+	ClientToScreen(m_hWnd, pt);
+}
+
+void Window::ClientToScreen(HWND hWnd, UiPoint& pt) const
+{
+	POINT ptClient = { pt.x, pt.y };
+	::ClientToScreen(hWnd, &ptClient);
+	pt = UiPoint(ptClient.x, ptClient.y);
+}
+
+void Window::GetCursorPos(UiPoint& pt) const
+{
+	POINT ptPos;
+	::GetCursorPos(&ptPos);
+	pt = { ptPos.x, ptPos.y};
+}
+
+void Window::MapWindowRect(HWND hwndFrom, HWND hwndTo, UiRect& rc) const
+{
+	POINT pts[2];
+	pts[0].x = rc.left;
+	pts[0].y = rc.top;
+	pts[1].x = rc.right;
+	pts[1].y = rc.bottom;
+	::MapWindowPoints((hwndFrom), (hwndTo), &pts[0], 2);
+	rc.left = pts[0].x;
+	rc.top = pts[0].y;
+	rc.right = pts[1].x;
+	rc.bottom = pts[1].y;
+}
+
+HWND Window::WindowFromPoint(const UiPoint& pt) const
+{
+	return ::WindowFromPoint({pt.x, pt.y});
+}
+
+HWND Window::GetWindowOwner() const
+{
+	return ::GetWindow(m_hWnd, GW_OWNER);
+}
+
+WNDPROC Window::SubclassWindow(HWND hWnd, WNDPROC pfnWndProc) const
+{
+	return (WNDPROC)::SetWindowLongPtr((hWnd), GWLP_WNDPROC, (LPARAM)(WNDPROC)(pfnWndProc));
+}
+
+bool Window::GetMonitorWorkRect(UiRect& rcWork) const
+{
+	return GetMonitorWorkRect(m_hWnd, rcWork);
+}
+
+bool Window::GetMonitorWorkRect(HWND hWnd, UiRect& rcWork) const
+{
+	rcWork.Clear();
+	HMONITOR hMonitor = ::MonitorFromWindow(hWnd, MONITOR_DEFAULTTONEAREST);
+	ASSERT(hMonitor != nullptr);
+	if (hMonitor == nullptr) {
+		return false;
+	}
+	MONITORINFO oMonitor = {0, };
+	oMonitor.cbSize = sizeof(oMonitor);
+	if (::GetMonitorInfo(hMonitor, &oMonitor)) {
+		rcWork = UiRect(oMonitor.rcWork.left, oMonitor.rcWork.top, 
+						oMonitor.rcWork.right, oMonitor.rcWork.bottom);
+		return true;
+	}
+	else {
+		ASSERT(!"Window::GetMonitorWorkRect failed!");
+		return false;
+	}
+}
+
+bool Window::GetMonitorWorkRect(const UiPoint& pt, UiRect& rcWork) const
+{
+	rcWork.Clear();
+	HMONITOR hMonitor = ::MonitorFromPoint({pt.x, pt.y }, MONITOR_DEFAULTTONEAREST);
+	ASSERT(hMonitor != nullptr);
+	if (hMonitor == nullptr) {
+		return false;
+	}
+	MONITORINFO oMonitor = { 0, };
+	oMonitor.cbSize = sizeof(oMonitor);
+	if (::GetMonitorInfo(hMonitor, &oMonitor)) {
+		rcWork = UiRect(oMonitor.rcWork.left, oMonitor.rcWork.top,
+			            oMonitor.rcWork.right, oMonitor.rcWork.bottom);
+		return true;
+	}
+	else {
+		ASSERT(!"Window::GetMonitorWorkRect failed!");
+		return false;
+	}
+}
+
+bool Window::GetMonitorRect(HWND hWnd, UiRect& rcMonitor, UiRect& rcWork) const
+{
+	rcMonitor.Clear();
+	rcWork.Clear();
+	HMONITOR hMonitor = ::MonitorFromWindow(hWnd, MONITOR_DEFAULTTONEAREST);
+	ASSERT(hMonitor != nullptr);
+	if (hMonitor == nullptr) {
+		return false;
+	}
+	MONITORINFO oMonitor = { 0, };
+	oMonitor.cbSize = sizeof(oMonitor);
+	if (::GetMonitorInfo(hMonitor, &oMonitor)) {
+		rcWork = UiRect(oMonitor.rcWork.left, oMonitor.rcWork.top,
+						oMonitor.rcWork.right, oMonitor.rcWork.bottom);
+		rcMonitor = UiRect(oMonitor.rcMonitor.left, oMonitor.rcMonitor.top,
+						   oMonitor.rcMonitor.right, oMonitor.rcMonitor.bottom);
+		return true;
+	}
+	else {
+		ASSERT(!"Window::GetMonitorWorkRect failed!");
+		return false;
 	}
 }
 
@@ -1983,12 +2153,12 @@ ui::IRender* Window::GetRender() const
 void Window::Invalidate(const UiRect& rcItem)
 {
 	GlobalManager::Instance().AssertUIThread();
-
-	::InvalidateRect(m_hWnd, &rcItem, FALSE);
+	RECT rc = { rcItem.left, rcItem.top, rcItem.right, rcItem.bottom};
+	::InvalidateRect(m_hWnd, &rc, FALSE);
 	// Invalidating a layered window will not trigger a WM_PAINT message,
 	// thus we have to post WM_PAINT by ourselves.
 	if (m_bIsLayeredWindow) {
-		::PostMessage(m_hWnd, WM_PAINT, (LPARAM)&rcItem, (WPARAM)FALSE);
+		::PostMessage(m_hWnd, WM_PAINT, 0, 0);
 	}
 }
 
@@ -2006,9 +2176,9 @@ void Window::Paint()
 	if (m_render->GetWidth() == 0) {
 		//在估算控件大小的时候，需要Render有宽高等数据，所以需要进行Resize初始化
 		UiRect rcClient;
-		::GetClientRect(m_hWnd, &rcClient);
-		if ((rcClient.GetWidth() > 0) && (rcClient.GetHeight() > 0)) {
-			m_render->Resize(rcClient.GetWidth(), rcClient.GetHeight());
+		GetClientRect(rcClient);
+		if ((rcClient.Width() > 0) && (rcClient.Height() > 0)) {
+			m_render->Resize(rcClient.Width(), rcClient.Height());
 		}
 	}
 
@@ -2028,20 +2198,21 @@ void Window::Paint()
 			needSize.cy = m_pRoot->GetMaxHeight();
 		}
 		UiRect rect;
-		::GetWindowRect(m_hWnd, &rect);
+		GetWindowRect(rect);
 		::MoveWindow(m_hWnd, rect.left, rect.top, needSize.cx, needSize.cy, TRUE);
 	}
 
 	// Should we paint?
-	UiRect rcPaint;
-	if (!::GetUpdateRect(m_hWnd, &rcPaint, FALSE) && !m_bFirstLayout) {
+	RECT rectPaint = {0, };
+	if (!::GetUpdateRect(m_hWnd, &rectPaint, FALSE) && !m_bFirstLayout) {
 		return;
 	}
+	UiRect rcPaint(rectPaint.left, rectPaint.top, rectPaint.right, rectPaint.bottom);
 
 	UiRect rcClient;
-	::GetClientRect(m_hWnd, &rcClient);
+	GetClientRect(rcClient);
 	UiRect rcWindow;
-	::GetWindowRect(m_hWnd, &rcWindow);
+	GetWindowRect(rcWindow);
 
 	//使用层窗口时，窗口部分在屏幕外时，获取到的无效区域仅仅是屏幕内的部分，这里做修正处理
 	if (m_bIsLayeredWindow) {
@@ -2068,7 +2239,7 @@ void Window::Paint()
 
 	if (m_bIsArranged) {
 		m_bIsArranged = false;
-		if (!::IsRectEmpty(&rcClient)) {
+		if (!rcClient.IsEmpty()) {
 			if (m_pRoot->IsArranged()) {
 				m_pRoot->SetPos(rcClient);
 			}
@@ -2139,7 +2310,8 @@ void Window::Paint()
 			{
 				UiRect rcNewPaint = rcPaint;
 				UiRect rcRootPaddingPos = m_pRoot->GetPaddingPos();
-				rcRootPaddingPos.Deflate(rcAlphaFixCorner);
+				rcRootPaddingPos.Deflate(rcAlphaFixCorner.left, rcAlphaFixCorner.top, 
+					                     rcAlphaFixCorner.right, rcAlphaFixCorner.bottom);
 				rcNewPaint.Intersect(rcRootPaddingPos);
 
 				UiRect rcRootPadding;
@@ -2150,9 +2322,9 @@ void Window::Paint()
 
 	// 渲染到窗口
     if (m_bIsLayeredWindow) {
-        UiPoint pt(rcWindow.left, rcWindow.top);
-        UiSize szWindow(rcClient.right - rcClient.left, rcClient.bottom - rcClient.top);
-        UiPoint ptSrc;
+		POINT pt = { rcWindow.left, rcWindow.top };
+		SIZE szWindow = { rcClient.right - rcClient.left, rcClient.bottom - rcClient.top };
+		POINT ptSrc = {0, 0};
         BLENDFUNCTION bf = { AC_SRC_OVER, 0, static_cast<BYTE>(m_nWindowAlpha), AC_SRC_ALPHA };
         HDC hdc = m_render->GetDC();
         ::UpdateLayeredWindow(m_hWnd, NULL, &pt, &szWindow, hdc, &ptSrc, 0, &bf, ULW_ALPHA);
@@ -2160,7 +2332,7 @@ void Window::Paint()
     }
     else {
         HDC hdc = m_render->GetDC();
-        ::BitBlt(ps.hdc, rcPaint.left, rcPaint.top, rcPaint.GetWidth(), rcPaint.GetHeight(), 
+        ::BitBlt(ps.hdc, rcPaint.left, rcPaint.top, rcPaint.Width(), rcPaint.Height(), 
 			     hdc, rcPaint.left, rcPaint.top, SRCCOPY);
         m_render->ReleaseDC(hdc);
     }
@@ -2258,7 +2430,7 @@ void Window::OnInitLayout()
 	}
 }
 
-Control* Window::FindControl(const POINT& pt) const
+Control* Window::FindControl(const UiPoint& pt) const
 {
 	Control* pControl = m_controlFinder.FindControl(pt);
 	if ((pControl != nullptr) && (pControl->GetWindow() != this)) {
@@ -2268,7 +2440,7 @@ Control* Window::FindControl(const POINT& pt) const
 	return pControl;
 }
 
-Control* Window::FindContextMenuControl(const POINT* pt) const
+Control* Window::FindContextMenuControl(const UiPoint* pt) const
 {
 	Control* pControl = m_controlFinder.FindContextMenuControl(pt);
 	if ((pControl != nullptr) && (pControl->GetWindow() != this)) {
@@ -2283,7 +2455,7 @@ Control* Window::FindControl(const std::wstring& strName) const
 	return m_controlFinder.FindSubControlByName(m_pRoot, strName);
 }
 
-Control* Window::FindSubControlByPoint(Control* pParent, const POINT& pt) const
+Control* Window::FindSubControlByPoint(Control* pParent, const UiPoint& pt) const
 {
 	return m_controlFinder.FindSubControlByPoint(pParent, pt);
 }

@@ -10,13 +10,13 @@ VLayout::VLayout()
 
 UiSize VLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 {
-	UiSize szAvailable(rc.GetWidth(), rc.GetHeight());
+	UiSize szAvailable(rc.Width(), rc.Height());
 	szAvailable.cx = std::max((int)szAvailable.cx, 0);
 	szAvailable.cy = std::max((int)szAvailable.cy, 0);
-	if (rc.GetWidth() < 0) {
+	if (rc.Width() < 0) {
 		rc.right = rc.left;
 	}
-	if (rc.GetHeight() < 0) {
+	if (rc.Height() < 0) {
 		rc.bottom = rc.bottom;
 	}
 
@@ -171,7 +171,7 @@ UiSize VLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 		//设置控件的位置
 		UiRect controlRect(childLeft, iPosY + rcMargin.top, childRight, iPosY + rcMargin.top + sz.cy);		
 		pControl->SetPos(controlRect);
-		cxNeeded = std::max(cxNeeded, controlRect.GetWidth());
+		cxNeeded = std::max(cxNeeded, controlRect.Width());
 
 		//调整当前Y轴坐标值
 		iPosY += (sz.cy + rcMargin.top + rcMargin.bottom + m_iChildMargin);

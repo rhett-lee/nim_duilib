@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "duilib/Render/UiColor.h"
+#include "duilib/Core/UiColor.h"
 #include <unordered_map>
 #include <string>
 

@@ -43,10 +43,10 @@ ui::UiSize VirtualTileLayout::ArrangeChild(const std::vector<ui::Control*>& /*it
     ASSERT(pList != nullptr);
 #endif
 
-    ui::UiSize sz(rc.GetWidth(), rc.GetHeight());
+    ui::UiSize sz(rc.Width(), rc.Height());
     size_t nTotalHeight = GetElementsHeight(Box::InvalidIndex);
     ASSERT(nTotalHeight <= INT32_MAX);
-    sz.cy = std::max(LONG(nTotalHeight), sz.cy);
+    sz.cy = std::max((int32_t)nTotalHeight, sz.cy);
     LazyArrangeChild();
     return sz;
 }
@@ -178,7 +178,7 @@ void VirtualTileLayout::LazyArrangeChild()
             ptTile.y += m_szItem.cy + m_iChildMargin;
         }
         else {
-            ptTile.x += rcTile.GetWidth() + m_iChildMargin;
+            ptTile.x += rcTile.Width() + m_iChildMargin;
         }
     }
 }
@@ -297,7 +297,7 @@ void VirtualTileBox::GetDisplayCollection(std::vector<size_t>& collection)
     size_t nEleHeight = GetRealElementHeight();
 
     size_t min = ((size_t)GetScrollPos().cy / nEleHeight) * GetColumns();
-    size_t max = min + ((size_t)rcThis.GetHeight() / nEleHeight) * GetColumns();
+    size_t max = min + ((size_t)rcThis.Height() / nEleHeight) * GetColumns();
 
     size_t nCount = GetElementCount();
     if (nCount > 0) {
@@ -342,7 +342,7 @@ void VirtualTileBox::EnsureVisible(size_t iIndex, bool bToTop /*= false*/)
         if (iIndex > nTopIndex) {
             // 向下
             size_t height = CalcElementsHeight(iIndex + 1);
-            nNewPos = height - (size_t)GetRect().GetHeight();
+            nNewPos = height - (size_t)GetRect().Height();
         }
         else {
             // 向上
@@ -420,7 +420,7 @@ void VirtualTileBox::HandleEvent(const ui::EventArgs& event)
 void VirtualTileBox::SetPos(ui::UiRect rc)
 {
     bool bChange = false;
-    if (!GetRect().Equal(rc)) {
+    if (!GetRect().Equals(rc)) {
         bChange = true;
     }
     ListBox::SetPos(rc);
@@ -515,7 +515,7 @@ bool VirtualTileBox::NeedReArrange(ScrollDirection& direction)
     }
 
     ui::UiRect rcThis = this->GetPos();
-    if (rcThis.GetWidth() <= 0) {
+    if (rcThis.Width() <= 0) {
         return false;
     }
 
@@ -527,7 +527,7 @@ bool VirtualTileBox::NeedReArrange(ScrollDirection& direction)
     if (nPos >= m_nOldYScrollPos) {
         // 下
         rcItem = m_items[nCount - 1]->GetPos();
-        int nSub = (rcItem.bottom - rcThis.top) - (nPos + rcThis.GetHeight());
+        int nSub = (rcItem.bottom - rcThis.top) - (nPos + rcThis.Height());
         if (nSub < 0) {
             direction = ScrollDirection::kScrollDown;
             return true;

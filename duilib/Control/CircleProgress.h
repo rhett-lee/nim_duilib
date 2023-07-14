@@ -11,7 +11,6 @@
 #pragma once
 
 #include "duilib/Control/Progress.h"
-#include "duilib/Render/UiColor.h"
 
 namespace ui
 {

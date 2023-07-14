@@ -63,21 +63,19 @@ void CComboWnd::InitComboWnd(Combo* pOwner)
 	}
 
 	cyFixed += padding; // VBox 默认的Padding 调整
-    rc.bottom = rc.top + std::min((LONG)cyFixed, szDrop.cy);
+    rc.bottom = rc.top + std::min(cyFixed, szDrop.cy);
 
-    ::MapWindowRect(pOwner->GetWindow()->GetHWND(), HWND_DESKTOP, &rc);
+    MapWindowRect(pOwner->GetWindow()->GetHWND(), HWND_DESKTOP, rc);
 
-    MONITORINFO oMonitor = {};
-    oMonitor.cbSize = sizeof(oMonitor);
-    ::GetMonitorInfo(::MonitorFromWindow(GetHWND(), MONITOR_DEFAULTTOPRIMARY), &oMonitor);
-    UiRect rcWork(oMonitor.rcWork);
-    if( rc.bottom > rcWork.bottom || m_pOwner->IsPopupTop()) {
+	UiRect rcWork;
+	GetMonitorWorkRect(rcWork);
+	if( rc.bottom > rcWork.bottom || m_pOwner->IsPopupTop()) {
         rc.left = rcOwner.left;
         rc.right = rcOwner.right;
         if( szDrop.cx > 0 ) rc.right = rc.left + szDrop.cx;
-        rc.top = rcOwner.top - std::min((LONG)cyFixed, szDrop.cy);
+        rc.top = rcOwner.top - std::min(cyFixed, szDrop.cy);
         rc.bottom = rcOwner.top;
-        ::MapWindowRect(pOwner->GetWindow()->GetHWND(), HWND_DESKTOP, &rc);
+        MapWindowRect(pOwner->GetWindow()->GetHWND(), HWND_DESKTOP, rc);
     }
     
     CreateWnd(pOwner->GetWindow()->GetHWND(), L"", WS_POPUP, WS_EX_TOOLWINDOW, rc);

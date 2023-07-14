@@ -138,11 +138,11 @@ bool TabBox::SelectItem(size_t iIndex)
 				int startValue = 0;
 				int endValue = 0;
 				if (m_iCurSel < iOldSel) {
-					startValue = GetPos().GetWidth();
+					startValue = GetPos().Width();
 					endValue = 0;
 				}
 				else {
-					startValue = -GetPos().GetWidth();
+					startValue = -GetPos().Width();
 					endValue = 0;
 				}
 
@@ -167,11 +167,11 @@ bool TabBox::SelectItem(size_t iIndex)
 				int endValue = 0;
 				if (m_iCurSel < iOldSel) {
 					startValue = 0;
-					endValue = -GetPos().GetWidth();
+					endValue = -GetPos().Width();
 				}
 				else {
 					startValue = 0;
-					endValue = GetPos().GetWidth();
+					endValue = GetPos().Width();
 				}
 
 				auto player = pItemControl->GetAnimationManager().SetFadeInOutX(true, true);

@@ -281,7 +281,7 @@ private:
 	int m_nScrollRepeatDelay;
 	
 	//上次鼠标所在位置
-	POINT m_ptLastMouse;
+	UiPoint m_ptLastMouse;
 
 	//左或上按钮的位置和大小
 	UiRect m_rcButton1;

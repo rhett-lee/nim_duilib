@@ -346,8 +346,8 @@
     <ClCompile Include="Core\ColorManager.cpp" />
     <ClCompile Include="Core\Control.cpp" />
     <ClCompile Include="Core\ControlFinder.cpp" />
-    <ClCompile Include="Core\Define.cpp" />
     <ClCompile Include="Core\DpiManager.cpp" />
+    <ClCompile Include="Core\EventArgs.cpp" />
     <ClCompile Include="Core\FontManager.cpp" />
     <ClCompile Include="Core\GlobalManager.cpp" />
     <ClCompile Include="Core\ImageManager.cpp" />
@@ -358,6 +358,7 @@
     <ClCompile Include="Core\Shadow.cpp" />
     <ClCompile Include="Core\TimerManager.cpp" />
     <ClCompile Include="Core\ToolTip.cpp" />
+    <ClCompile Include="Core\UiColors.cpp" />
     <ClCompile Include="Core\Window.cpp" />
     <ClCompile Include="Core\WindowBuilder.cpp" />
     <ClCompile Include="Core\ZipManager.cpp" />
@@ -385,7 +386,6 @@
     <ClCompile Include="RenderSkia\SkUtils.cpp" />
     <ClCompile Include="Render\AutoClip.cpp" />
     <ClCompile Include="Render\BitmapAlpha.cpp" />
-    <ClCompile Include="Render\UiColors.cpp" />
     <ClCompile Include="third_party\apng\decoder-apng.cpp" />
     <ClCompile Include="third_party\unzip\UnZip.cpp" />
     <ClCompile Include="third_party\xml\pugixml.cpp" />
@@ -423,8 +423,8 @@
     <ClInclude Include="Core\ColorManager.h" />
     <ClInclude Include="Core\Control.h" />
     <ClInclude Include="Core\ControlFinder.h" />
-    <ClInclude Include="Core\Define.h" />
     <ClInclude Include="Core\DpiManager.h" />
+    <ClInclude Include="Core\EventArgs.h" />
     <ClInclude Include="Core\FontManager.h" />
     <ClInclude Include="Core\GlobalManager.h" />
     <ClInclude Include="Core\ImageManager.h" />
@@ -435,13 +435,18 @@
     <ClInclude Include="Core\Shadow.h" />
     <ClInclude Include="Core\TimerManager.h" />
     <ClInclude Include="Core\ToolTip.h" />
+    <ClInclude Include="Core\UiColor.h" />
+    <ClInclude Include="Core\UiColors.h" />
+    <ClInclude Include="Core\UiFont.h" />
+    <ClInclude Include="Core\UiPoint.h" />
+    <ClInclude Include="Core\UiRect.h" />
+    <ClInclude Include="Core\UiSize.h" />
     <ClInclude Include="Core\Window.h" />
     <ClInclude Include="Core\WindowBuilder.h" />
     <ClInclude Include="Core\ZipManager.h" />
     <ClInclude Include="duilib.h" />
     <ClInclude Include="duilib_config.h" />
     <ClInclude Include="duilib_defs.h" />
-    <ClInclude Include="duilib_types.h" />
     <ClInclude Include="Image\Image.h" />
     <ClInclude Include="Image\ImageDecoder.h" />
     <ClInclude Include="RenderGdiPlus\BitmapHelper.h" />
@@ -469,8 +474,6 @@
     <ClInclude Include="Render\Font_GDI.h" />
     <ClInclude Include="Render\IRender.h" />
     <ClInclude Include="Render\RenderConfig.h" />
-    <ClInclude Include="Render\UiColor.h" />
-    <ClInclude Include="Render\UiColors.h" />
     <ClInclude Include="third_party\apng\decoder-apng.h" />
     <ClInclude Include="third_party\stb_image\stb_image.h" />
     <ClInclude Include="third_party\stb_image\stb_image_resize.h" />

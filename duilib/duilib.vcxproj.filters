@@ -132,9 +132,6 @@
     <ClCompile Include="Core\ControlFinder.cpp">
       <Filter>Core</Filter>
     </ClCompile>
-    <ClCompile Include="Core\Define.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
     <ClCompile Include="Core\GlobalManager.cpp">
       <Filter>Core</Filter>
     </ClCompile>
@@ -234,9 +231,6 @@
     <ClCompile Include="Core\ColorManager.cpp">
       <Filter>Core</Filter>
     </ClCompile>
-    <ClCompile Include="Render\UiColors.cpp">
-      <Filter>Render</Filter>
-    </ClCompile>
     <ClCompile Include="Core\FontManager.cpp">
       <Filter>Core</Filter>
     </ClCompile>
@@ -271,6 +265,12 @@
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="Core\ScrollBar.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\UiColors.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\EventArgs.cpp">
       <Filter>Core</Filter>
     </ClCompile>
   </ItemGroup>
@@ -374,14 +374,8 @@
     <ClInclude Include="Control\DateTime.h">
       <Filter>Control</Filter>
     </ClInclude>
-    <ClInclude Include="duilib_types.h">
-      <Filter>duilib</Filter>
-    </ClInclude>
     <ClInclude Include="Control\ListBox.h">
       <Filter>Control</Filter>
-    </ClInclude>
-    <ClInclude Include="Render\UiColor.h">
-      <Filter>Render</Filter>
     </ClInclude>
     <ClInclude Include="Render\Font_GDI.h">
       <Filter>Render</Filter>
@@ -396,9 +390,6 @@
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="Core\ControlFinder.h">
-      <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\Define.h">
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="Core\GlobalManager.h">
@@ -521,9 +512,6 @@
     <ClInclude Include="Core\ColorManager.h">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="Render\UiColors.h">
-      <Filter>Render</Filter>
-    </ClInclude>
     <ClInclude Include="Core\FontManager.h">
       <Filter>Core</Filter>
     </ClInclude>
@@ -558,6 +546,27 @@
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="Core\ScrollBar.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\UiFont.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\UiRect.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\UiSize.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\UiPoint.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\UiColor.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\UiColors.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\EventArgs.h">
       <Filter>Core</Filter>
     </ClInclude>
   </ItemGroup>

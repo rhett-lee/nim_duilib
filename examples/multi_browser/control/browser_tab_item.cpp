@@ -40,7 +40,7 @@ bool BrowserTabItem::OnMouseEnter(const ui::EventArgs& msg)
 
 bool BrowserTabItem::OnMouseLeave(const ui::EventArgs& msg)
 {
-	if (!GetRect().IsPointIn(UiPoint(msg.ptMouse)))
+	if (!GetRect().ContainsPt(msg.ptMouse))
 	{
 		button_close_->SetFadeVisible(false);
 	}

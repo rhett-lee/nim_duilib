@@ -201,10 +201,10 @@ namespace ui
 			if (rc.left > col_index || rc.right < col_index || rc.top > row_index || rc.bottom < row_index)		//不位于rc中
 			{
 				//assert(!bSelected);
-				rc.left = std::min(rc.left, (LONG)col_index);
-				rc.top = std::min(rc.top, (LONG)row_index);
-				rc.right = std::max(rc.right, (LONG)col_index);
-				rc.bottom = std::max(rc.bottom, (LONG)row_index);
+				rc.left = std::min(rc.left, col_index);
+				rc.top = std::min(rc.top, row_index);
+				rc.right = std::max(rc.right, col_index);
+				rc.bottom = std::max(rc.bottom, row_index);
 			}
 
 			if (m_vecRange.empty())
@@ -227,10 +227,10 @@ namespace ui
 			else
 			{
 				UiRect rc = m_vecRange[0];
-				rc.left = std::min(rc.left, (LONG)col_index);
-				rc.top = std::min(rc.top, (LONG)row_index);
-				rc.right = std::max(rc.right, (LONG)col_index);
-				rc.bottom = std::max(rc.bottom, (LONG)row_index);
+				rc.left = std::min(rc.left, col_index);
+				rc.top = std::min(rc.top, row_index);
+				rc.right = std::max(rc.right, col_index);
+				rc.bottom = std::max(rc.bottom, row_index);
 				m_vecRange[0] = rc;
 				m_pBody->_SelRange(rc, true);
 				m_pBody->Invalidate();
@@ -589,7 +589,7 @@ namespace ui
 		for (auto it = m_vecRange.cbegin(); it != m_vecRange.cend(); it++)
 		{
 			UiRect rc = *it;
-			if (rc.IsPointIn(pt))
+			if (rc.ContainsPt(pt))
 			{
 				ret = true;
 				break;

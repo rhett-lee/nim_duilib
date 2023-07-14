@@ -53,7 +53,7 @@ BOOL CMenuWnd::Receive(ContextMenuParam param)
 
 CMenuWnd::CMenuWnd(HWND hParent) :
 	m_hParent(hParent),
-	m_menuPoint({ 0 }),
+	m_menuPoint({ 0, 0 }),
 	m_popupPosType(MenuPopupPosType::RIGHT_TOP),
 	m_skinFolder(L"menu"),
 	m_submenuXml(L"submenu.xml"),
@@ -229,11 +229,9 @@ LRESULT CMenuWnd::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool&
 void CMenuWnd::ResizeMenu()
 {
 	ui::Control* pRoot = GetRoot();
-	MONITORINFO oMonitor = {};
-	oMonitor.cbSize = sizeof(oMonitor);
 	//点击在哪里，以哪里的屏幕为主
-	::GetMonitorInfo(::MonitorFromPoint(m_menuPoint, MONITOR_DEFAULTTOPRIMARY), &oMonitor);
-	ui::UiRect rcWork(oMonitor.rcWork);
+	ui::UiRect rcWork;
+	GetMonitorWorkRect(m_menuPoint, rcWork);
 
 	ui::UiSize szAvailable = { rcWork.right - rcWork.left, rcWork.bottom - rcWork.top };
 	szAvailable = pRoot->EstimateSize(szAvailable);   //这里带上了阴影窗口
@@ -291,24 +289,22 @@ void CMenuWnd::ResizeSubMenu()
 	ASSERT(m_pOwner->GetWindow() != nullptr);
 
 	// Position the popup window in absolute space
-	RECT rcOwner = m_pOwner->GetPos();
-	RECT rc = rcOwner;
+	UiRect rcOwner = m_pOwner->GetPos();
+	UiRect rc = rcOwner;
 
 	int cxFixed = 0;
 	int cyFixed = 0;
 
-	MONITORINFO oMonitor = {};
-	oMonitor.cbSize = sizeof(oMonitor);
-	::GetMonitorInfo(::MonitorFromPoint(m_menuPoint, MONITOR_DEFAULTTOPRIMARY), &oMonitor);
-	ui::UiRect rcWork (oMonitor.rcWork);
-	ui::UiSize szAvailable = { rcWork.right - rcWork.left, rcWork.bottom - rcWork.top };
+	UiRect rcWork;
+	GetMonitorWorkRect(m_menuPoint, rcWork);
+	UiSize szAvailable = { rcWork.right - rcWork.left, rcWork.bottom - rcWork.top };
 
 	const size_t itemCount = m_pLayout->GetItemCount();
 	for (size_t it = 0; it < itemCount; ++it) {
 		//取子菜单项中的最大值作为菜单项
 		CMenuElementUI* pItem = dynamic_cast<CMenuElementUI*>(m_pLayout->GetItemAt(it));
 		if (pItem != nullptr) {
-			SIZE sz = pItem->EstimateSize(szAvailable);
+			UiSize sz = pItem->EstimateSize(szAvailable);
 			cyFixed += sz.cy;
 
 			if (cxFixed < sz.cx) {
@@ -316,9 +312,9 @@ void CMenuWnd::ResizeSubMenu()
 			}				
 		}
 	}
-	ui::UiRect rcCorner = GetShadowCorner();
-	RECT rcWindow;
-	GetWindowRect(m_pOwner->GetWindow()->GetHWND(), &rcWindow);
+	UiRect rcCorner = GetShadowCorner();
+	UiRect rcWindow;
+	GetWindowRect(m_pOwner->GetWindow()->GetHWND(), rcWindow);
 	//去阴影
 	{
 		rcWindow.left += rcCorner.left;
@@ -327,7 +323,7 @@ void CMenuWnd::ResizeSubMenu()
 		rcWindow.bottom -=  rcCorner.bottom;
 	}
 
-	::MapWindowRect(m_pOwner->GetWindow()->GetHWND(), HWND_DESKTOP, &rc);
+	MapWindowRect(m_pOwner->GetWindow()->GetHWND(), HWND_DESKTOP, rc);
 	
 	rc.left = rcWindow.right;
 	rc.right = rc.left + cxFixed;
@@ -336,13 +332,13 @@ void CMenuWnd::ResizeSubMenu()
 	bool bReachBottom = false;
 	bool bReachRight = false;
 
-	RECT rcPreWindow = { 0 };
+	UiRect rcPreWindow;
 	ContextMenuObserver::Iterator<BOOL, ContextMenuParam> iterator(GetMenuObserver());
 	ReceiverImplBase<BOOL, ContextMenuParam>* pReceiver = iterator.next();
 	while (pReceiver != nullptr) {
 		CMenuWnd* pContextMenu = dynamic_cast<CMenuWnd*>(pReceiver);
 		if (pContextMenu != nullptr) {
-			GetWindowRect(pContextMenu->GetHWND(), &rcPreWindow);  //需要减掉阴影
+			GetWindowRect(pContextMenu->GetHWND(), rcPreWindow);  //需要减掉阴影
 
 			bReachRight = (rcPreWindow.left + rcCorner.left) >= rcWindow.right;
 			bReachBottom = (rcPreWindow.top + rcCorner.top) >= rcWindow.bottom;
@@ -821,8 +817,8 @@ bool CMenuElementUI::MouseEnter(const ui::EventArgs& msg)
 
 void CMenuElementUI::PaintChild(ui::IRender* pRender, const ui::UiRect& rcPaint)
 {
-	ui::UiRect rcTemp;
-	if (!::IntersectRect(&rcTemp, &rcPaint, &GetRect())) {
+	UiRect rcTemp;
+	if (!UiRect::Intersect(rcTemp, rcPaint, GetRect())) {
 		return;
 	}
 

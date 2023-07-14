@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "duilib/Core/Define.h"
+#include "duilib/Core/EventArgs.h"
 #include <functional>
 #include <vector>
 #include <string>

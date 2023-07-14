@@ -38,13 +38,13 @@ UiSize CustomLayout::SetCustomPos(Control* pControl, UiRect containerRect)
 		}
 	}
 	if (childSize.cx == DUI_LENGTH_STRETCH) {
-		childSize.cx = std::max(0L, szAvailable.cx);
+		childSize.cx = std::max(0, szAvailable.cx);
 	}
 	if (childSize.cx < pControl->GetMinWidth()) childSize.cx = pControl->GetMinWidth();
 	if (pControl->GetMaxWidth() >= 0 && childSize.cx > pControl->GetMaxWidth()) childSize.cx = pControl->GetMaxWidth();
 
 	if (childSize.cy == DUI_LENGTH_STRETCH) {
-		childSize.cy = std::max(0L, szAvailable.cy);
+		childSize.cy = std::max(0, szAvailable.cy);
 	}
 	if (childSize.cy < pControl->GetMinHeight()) childSize.cy = pControl->GetMinHeight();
 	if (childSize.cy > pControl->GetMaxHeight()) childSize.cy = pControl->GetMaxHeight();
@@ -83,5 +83,5 @@ UiSize CustomLayout::SetCustomPos(Control* pControl, UiRect containerRect)
 
 	UiRect childPos(childLeft, childTop, childRight, childBottm);
 	pControl->SetPos(childPos);
-	return UiSize(childPos.GetWidth(), childPos.GetHeight());
+	return UiSize(childPos.Width(), childPos.Height());
 }

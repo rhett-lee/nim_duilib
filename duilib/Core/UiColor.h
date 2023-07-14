@@ -1,9 +1,9 @@
-#ifndef UI_RENDER_UICOLOR_H_
-#define UI_RENDER_UICOLOR_H_
+#ifndef UI_CORE_UICOLOR_H_
+#define UI_CORE_UICOLOR_H_
 
 #pragma once
 
-#include "duilib/Render/UiColors.h"
+#include "duilib/Core/UiColors.h"
 
 namespace ui 
 {
@@ -42,67 +42,60 @@ public:
         Argb = (ARGB)argb;
     }
 
-    uint8_t GetAlpha() const
-    {
-        return (uint8_t)(Argb >> AlphaShift);
-    }
+    /** 获取颜色的Alpha值
+    */
+    uint8_t GetAlpha() const { return (uint8_t)(Argb >> AlphaShift); }
 
-    uint8_t GetA() const
-    {
-        return GetAlpha();
-    }
+    /** 获取颜色的Alpha值
+    */
+    uint8_t GetA() const { return (uint8_t)(Argb >> AlphaShift); }
 
-    uint8_t GetRed() const
-    {
-        return (uint8_t)(Argb >> RedShift);
-    }
+    /** 获取颜色的Red值
+    */
+    uint8_t GetRed() const { return (uint8_t)(Argb >> RedShift); }
 
-    uint8_t GetR() const
-    {
-        return GetRed();
-    }
+    /** 获取颜色的Red值
+    */
+    uint8_t GetR() const { return (uint8_t)(Argb >> RedShift); }
 
-    uint8_t GetGreen() const
-    {
-        return (uint8_t)(Argb >> GreenShift);
-    }
+    /** 获取颜色的Green值
+    */
+    uint8_t GetGreen() const { return (uint8_t)(Argb >> GreenShift); }
 
-    uint8_t GetG() const
-    {
-        return GetGreen();
-    }
+    /** 获取颜色的Green值
+    */
+    uint8_t GetG() const { return (uint8_t)(Argb >> GreenShift); }
 
-    uint8_t GetBlue() const
-    {
-        return (uint8_t)(Argb >> BlueShift);
-    }
+    /** 获取颜色的Blue值
+    */
+    uint8_t GetBlue() const { return (uint8_t)(Argb >> BlueShift); }
 
-    uint8_t GetB() const
-    {
-        return GetBlue();
-    }
+    /** 获取颜色的Blue值
+    */
+    uint8_t GetB() const { return (uint8_t)(Argb >> BlueShift); }
 
-    ARGB GetARGB() const
-    {
-        return Argb;
-    }
+    /** 获取颜色的ARGB值
+    */
+    ARGB GetARGB() const { return Argb; }
 
-    bool IsEmpty() const
-    {
-        return Argb == 0;
-    }
+    /** 颜色值是否为空值
+    */
+    bool IsEmpty() const { return Argb == 0; }
 
-    void SetARGB(ARGB argb)
-    {
-        Argb = argb;
-    }
+    /** 设置颜色的ARGB值
+    */
+    void SetARGB(ARGB argb) { Argb = argb; }
 
-    void SetFromCOLORREF(COLORREF rgb)
+    /** 从COLORREF颜色值设置颜色（COLORREF仅包含RGB值，不含A值）
+    */
+    void SetFromCOLORREF(uint32_t rgb)
     {
         Argb = MakeARGB(255, GetRValue(rgb), GetGValue(rgb), GetBValue(rgb));
     }
 
-    COLORREF ToCOLORREF() const
+    /** 将ARGB颜色转换为COLORREF颜色值（COLORREF仅包含RGB值，不含A值）
+    */
+    uint32_t ToCOLORREF() const
     {
         return RGB(GetRed(), GetGreen(), GetBlue());
     }
@@ -140,4 +133,4 @@ private:
 
 } // namespace ui
 
-#endif // UI_RENDER_UICOLOR_H_
+#endif // UI_CORE_UICOLOR_H_

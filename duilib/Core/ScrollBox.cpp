@@ -250,7 +250,7 @@ void ScrollBox::PaintChild(IRender* pRender, const UiRect& rcPaint)
 		return;
 	}
 	UiRect rcTemp;
-	if (!::IntersectRect(&rcTemp, &rcPaint, &GetRect())) {
+	if (!UiRect::Intersect(rcTemp, rcPaint, GetRect())) {
 		return;
 	}
 
@@ -329,7 +329,8 @@ Control* ScrollBox::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags,
 		if (pData == nullptr) {
 			return nullptr;
 		}
-		if (!::PtInRect(&GetRect(), *(static_cast<LPPOINT>(pData)))) {
+		UiPoint pt(*(static_cast<UiPoint*>(pData)));
+		if (!GetRect().ContainsPt(pt)) {
 			return nullptr;
 		}
 		if (!IsMouseChildEnabled()) {
@@ -425,7 +426,7 @@ void ScrollBox::LoadImageCache(bool bFromTopLeft)
 	UiRect rcImageCachePos = GetPos();
 	rcImageCachePos.Offset(scrollPos.cx, scrollPos.cy);
 	rcImageCachePos.Offset(GetRenderOffset().x, GetRenderOffset().y);
-	rcImageCachePos.Inflate(UiRect(0, 730, 0, 730));
+	rcImageCachePos.Inflate(0, 730, 0, 730);//TODO: ¼ì²é´úÂëÂß¼­
 
 	auto forEach = [this, scrollPos, rcImageCachePos](ui::Control* pControl) {
 		if (pControl == nullptr) {
@@ -439,7 +440,7 @@ void ScrollBox::LoadImageCache(bool bFromTopLeft)
 		}
 		UiRect rcTemp;
 		UiRect controlPos = pControl->GetPos();
-		if (!::IntersectRect(&rcTemp, &rcImageCachePos, &controlPos)) {
+		if (!UiRect::Intersect(rcTemp, rcImageCachePos, controlPos)) {
 			pControl->UnLoadImageCache();
 		}
 		else {

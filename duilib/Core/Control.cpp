@@ -523,7 +523,7 @@ Control* Control::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, U
 		return nullptr;
 	}
 	if ((uFlags & UIFIND_HITTEST) != 0 && 
-		(!m_bMouseEnabled || ((pData != nullptr) && !::PtInRect(&GetRect(), *static_cast<LPPOINT>(pData))))) {
+		(!m_bMouseEnabled || ((pData != nullptr) && !GetRect().ContainsPt(*static_cast<UiPoint*>(pData))))) {
 		return nullptr;
 	}
     return Proc(this, pData);
@@ -549,13 +549,13 @@ void Control::SetPos(UiRect rc)
 		rc.bottom = rc.top;
 	}
 
-	if (GetRect().Equal(rc)) {
+	if (GetRect().Equals(rc)) {
 		SetArranged(false);
 		return;
 	}
 
 	UiRect invalidateRc = GetRect();
-	if (::IsRectEmpty(&invalidateRc)) {
+	if (invalidateRc.IsEmpty()) {
 		invalidateRc = rc;
 	}
 
@@ -576,7 +576,7 @@ void Control::SetPos(UiRect rc)
 	while (pParent != nullptr) {
 		rcTemp = invalidateRc;
 		rcParent = pParent->GetPos();
-		if (!::IntersectRect(&invalidateRc, &rcTemp, &rcParent)) {
+		if (!UiRect::Intersect(invalidateRc, rcTemp, rcParent)) {
 			needInvalidate = false;
 			break;
 		}
@@ -605,7 +605,7 @@ void Control::SetMargin(UiRect rcMargin, bool bNeedDpiScale)
 		GlobalManager::Instance().Dpi().ScaleRect(rcMargin);
 	}
 
-	if (!m_rcMargin.Equal(rcMargin)) {
+	if (!m_rcMargin.Equals(rcMargin)) {
 		m_rcMargin = rcMargin;
 		ArrangeAncestor();
 	}
@@ -645,22 +645,22 @@ UiSize Control::EstimateSize(UiSize szAvailable)
 										   rcSource,
 										   rcSourceCorners);
 			if (GetFixedWidth() == DUI_LENGTH_AUTO) {
-				if (rcDest.GetWidth() > 0) {
-					imageSize.cx = rcDest.GetWidth();
+				if (rcDest.Width() > 0) {
+					imageSize.cx = rcDest.Width();
 				}
-				else if (rcSource.GetWidth() > 0) {
-					imageSize.cx = rcSource.GetWidth();
+				else if (rcSource.Width() > 0) {
+					imageSize.cx = rcSource.Width();
 				}
 				else {
 					imageSize.cx = imageCache->GetWidth();
 				}
 			}
 			if (GetFixedHeight() == DUI_LENGTH_AUTO) {
-				if (rcDest.GetHeight() > 0) {
-					imageSize.cy = rcDest.GetHeight();
+				if (rcDest.Height() > 0) {
+					imageSize.cy = rcDest.Height();
 				}
-				else if (rcSource.GetHeight() > 0) {
-					imageSize.cy = rcSource.GetHeight();
+				else if (rcSource.Height() > 0) {
+					imageSize.cy = rcSource.Height();
 				}
 				else {
 					imageSize.cy = imageCache->GetHeight();
@@ -716,7 +716,7 @@ bool Control::IsPointInWithScrollOffset(const UiPoint& point) const
 	UiPoint scrollOffset = GetScrollOffset();
 	UiPoint newPoint = point;
 	newPoint.Offset(scrollOffset);
-	return GetRect().IsPointIn(newPoint);
+	return GetRect().ContainsPt(newPoint);
 }
 
 void Control::SendEvent(EventType eventType, 
@@ -1199,8 +1199,8 @@ bool Control::PaintImage(IRender* pRender,  Image& duiImage,
 	UiRect rcDest = GetRect();
 	if (ImageAttribute::HasValidImageRect(newImageAttribute.rcDest)) {
 		//使用配置中指定的目标区域
-		if ((newImageAttribute.rcDest.GetWidth() <= rcDest.GetWidth()) &&
-			(newImageAttribute.rcDest.GetHeight() <= rcDest.GetHeight())) {
+		if ((newImageAttribute.rcDest.Width() <= rcDest.Width()) &&
+			(newImageAttribute.rcDest.Height() <= rcDest.Height())) {
 			rcDest = newImageAttribute.rcDest;
 			rcDest.Offset(GetRect().left, GetRect().top);
 		}
@@ -1218,7 +1218,7 @@ bool Control::PaintImage(IRender* pRender,  Image& duiImage,
 	uint8_t iFade = (nFade == DUI_NOSET_VALUE) ? newImageAttribute.bFade : static_cast<uint8_t>(nFade);
 	if (pMatrix != nullptr) {
 		//矩阵绘制: 对不支持的属性，增加断言，避免出错
-		ASSERT(newImageAttribute.rcCorner.IsRectEmpty());
+		ASSERT(newImageAttribute.rcCorner.IsEmpty());
 		ASSERT(!newImageAttribute.bTiledX);
 		ASSERT(!newImageAttribute.bTiledY);
 		pRender->DrawImageRect(m_rcPaint, pBitmap, rcDest, rcSource, iFade, pMatrix);
@@ -1265,7 +1265,7 @@ void Control::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
 
 	//绘制剪辑区域
 	UiRect rcUnion;
-	if (!::IntersectRect(&rcUnion, &rcPaint, &GetRect())) {
+	if (!UiRect::Intersect(rcUnion, rcPaint, GetRect())) {
 		return;
 	}
 
@@ -1285,7 +1285,7 @@ void Control::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
 			//如果使用绘制缓存，绘制的时候，必须绘制整个区域，因为局部绘制每次请求绘制的区域是不同的，缓存中保存的必须是完整的缓存图
 			rcUnionRect = GetRect();
 		}
-		UiSize size{GetRect().GetWidth(), GetRect().GetHeight() };
+		UiSize size{GetRect().Width(), GetRect().Height() };
 		IRender* pCacheRender = GetRender();
 		ASSERT(pCacheRender != nullptr);
 		if (pCacheRender == nullptr) {
@@ -1338,13 +1338,13 @@ void Control::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
 
 		pRender->AlphaBlend(rcUnionRect.left,
 							rcUnionRect.top,
-							rcUnionRect.GetWidth(),
-							rcUnionRect.GetHeight(),
+							rcUnionRect.Width(),
+							rcUnionRect.Height(),
 							pCacheRender,
 							rcUnionRect.left - GetRect().left,
 							rcUnionRect.top - GetRect().top,
-							rcUnionRect.GetWidth(),
-							rcUnionRect.GetHeight(),
+							rcUnionRect.Width(),
+							rcUnionRect.Height(),
 				            static_cast<uint8_t>(m_nAlpha));
 		if (!isAlpha) {
 			//没有设置透明度，后绘制子控件（直接绘制到pRender上面）
@@ -1384,7 +1384,7 @@ void Control::SetPaintRect(const UiRect& rect)
 
 void Control::Paint(IRender* pRender, const UiRect& rcPaint)
 {
-	if (!::IntersectRect(&m_rcPaint, &rcPaint, &GetRect())) {
+	if (!UiRect::Intersect(m_rcPaint, rcPaint, GetRect())) {
 		return;
 	}	
 	if (!m_isBoxShadowPainted) {
@@ -1446,7 +1446,7 @@ void Control::PaintBkColor(IRender* pRender)
 		if (nBorderSize > 0) {
 			//如果存在边线，则填充的时候，不填充边线所在位置，避免出现背景色的锯齿现象
 			UiRect borderRect(nBorderSize, nBorderSize, nBorderSize, nBorderSize);
-			fillRect.Deflate(borderRect);
+			fillRect.Deflate(borderRect.left, borderRect.top, borderRect.right, borderRect.bottom);
 		}
 		if (ShouldBeRoundRectFill()) {
 			//需要绘制圆角矩形，填充也需要填充圆角矩形
@@ -1518,7 +1518,7 @@ void Control::PaintBorder(IRender* pRender)
 void Control::PaintBorders(IRender* pRender, UiRect rcDraw,
 	                       int nBorderSize, UiColor dwBorderColor) const
 {
-	if ((pRender == nullptr) || rcDraw.IsRectEmpty() || (nBorderSize < 1) || (dwBorderColor.GetARGB() == 0)) {
+	if ((pRender == nullptr) || rcDraw.IsEmpty() || (nBorderSize < 1) || (dwBorderColor.GetARGB() == 0)) {
 		return;
 	}
 	int nDeltaValue = nBorderSize / 2;
@@ -1729,13 +1729,13 @@ void Control::PaintLoading(IRender* pRender)
 
 	//居中
 	ui::UiRect rcFill = GetRect();
-	rcFill.left = GetRect().left + (GetRect().GetWidth() - imageWidth) / 2;
+	rcFill.left = GetRect().left + (GetRect().Width() - imageWidth) / 2;
 	rcFill.right = rcFill.left + imageWidth;
-	rcFill.top = GetRect().top + (GetRect().GetHeight() - imageHeight) / 2;
+	rcFill.top = GetRect().top + (GetRect().Height() - imageHeight) / 2;
 	rcFill.bottom = rcFill.top + imageHeight;
 
 	ui::UiRect rcDest = m_loadingImage->GetImageAttribute().rcDest;
-	if (!rcDest.IsRectEmpty()) {
+	if (!rcDest.IsEmpty()) {
 		rcFill = rcDest;
 		rcFill.Offset(GetRect().left, GetRect().top);
 	}

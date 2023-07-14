@@ -3,7 +3,9 @@
 
 #pragma once
 
-#include "duilib/duilib_defs.h"
+#include "duilib/Core/UiSize.h"
+#include "duilib/Core/UiPoint.h"
+#include "duilib/Core/UiRect.h"
 
 namespace ui
 {

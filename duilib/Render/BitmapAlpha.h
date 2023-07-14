@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "duilib/duilib_defs.h"
+#include "duilib/Core/UiRect.h"
 
 namespace ui
 {

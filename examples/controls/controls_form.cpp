@@ -159,11 +159,11 @@ void ControlForm::OnInitWindow()
 	/* Show settings menu */
 	ui::Button* settings = static_cast<ui::Button*>(FindControl(L"settings"));
 	settings->AttachClick([this](const ui::EventArgs& args) {
-		RECT rect = args.pSender->GetPos();
+		ui::UiRect rect = args.pSender->GetPos();
 		ui::UiPoint point;
 		point.x = rect.left - 175;
 		point.y = rect.top + 10;
-		::ClientToScreen(GetHWND(), &point);
+		ClientToScreen(point);
 
 		ShowPopupMenu(point);
 		return true;
@@ -176,19 +176,19 @@ void ControlForm::OnInitWindow()
 	if (edit != nullptr) {
 		edit->AttachMenu([this](const ui::EventArgs& args) {
 			if (args.Type == ui::kEventMouseMenu) {
-				POINT pt = args.ptMouse;
+				ui::UiPoint pt = args.ptMouse;
 				if ((pt.x != -1) && (pt.y != -1)) {
 					ui::Control* pControl = (ui::Control*)args.lParam;//当前点击点所在的控件
 
 					//鼠标消息产生的上下文菜单
-					::ClientToScreen(GetHWND(), &pt);
-					ShowPopupMenu(ui::UiPoint(pt));
+					ClientToScreen(pt);
+					ShowPopupMenu(pt);
 				}
 				else {
 					//按Shif + F10，由系统产生上下文菜单
 					pt = { 100, 100 };
-					::ClientToScreen(GetHWND(), &pt);
-					ShowPopupMenu(ui::UiPoint(pt));
+					ClientToScreen(pt);
+					ShowPopupMenu(pt);
 				}
 			}
 			return true;

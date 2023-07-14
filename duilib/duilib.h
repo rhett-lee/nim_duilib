@@ -71,9 +71,12 @@
 
 #include "Render/IRender.h"
 #include "Render/AutoClip.h"
-#include "Render/UiColor.h"
 
-#include "Core/Define.h"
+#include "duilib/Core/UiColor.h"
+#include "duilib/Core/UiFont.h"
+#include "duilib/Core/UiRect.h"
+#include "duilib/Core/UiSize.h"
+#include "duilib/Core/UiPoint.h"
 #include "Core/WindowBuilder.h"
 #include "Core/GlobalManager.h"
 #include "Core/Window.h"

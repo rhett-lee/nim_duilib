@@ -53,7 +53,7 @@ void BrowserBox::InitBrowserBox(const std::wstring &url)
 	cef_control_->LoadURL(html_path);
 
 	// 初始化任务栏缩略图
-	if ((GetWindowExStyle(GetWindow()->GetHWND()) & WS_EX_LAYERED) != 0)
+	if ((::GetWindowLong(GetWindow()->GetHWND(), GWL_EXSTYLE) & WS_EX_LAYERED) != 0)
 	{
 		taskbar_item_ = new TaskbarTabItem(this);
 		if (taskbar_item_)

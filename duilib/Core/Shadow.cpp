@@ -127,13 +127,16 @@ const std::wstring& Shadow::GetShadowImage() const
 	return m_strImage;
 }
 
-void Shadow::SetShadowCorner(const UiRect &rect, bool bNeedDpiScale)
+void Shadow::SetShadowCorner(const UiRect& rc, bool bNeedDpiScale)
 {
-	m_rcShadowCorner = rect;
-	if (bNeedDpiScale) {
-		GlobalManager::Instance().Dpi().ScaleRect(m_rcShadowCorner);
-	}
-	m_rcShadowCornerBackup = m_rcShadowCorner;
+	ASSERT((rc.left >= 0) && (rc.top >= 0) && (rc.right >= 0) && (rc.bottom >= 0));
+	if ((rc.left >= 0) && (rc.top >= 0) && (rc.right >= 0) && (rc.bottom >= 0)) {
+		m_rcShadowCorner = rc;
+		if (bNeedDpiScale) {
+			GlobalManager::Instance().Dpi().ScaleRect(m_rcShadowCorner);
+		}
+		m_rcShadowCornerBackup = m_rcShadowCorner;
+	}	
 }
 
 UiRect Shadow::GetShadowCorner() const

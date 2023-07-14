@@ -3,7 +3,9 @@
 
 #pragma once
 
-#include "duilib/duilib_defs.h"
+#include "duilib/Core/UiSize.h"
+#include "duilib/Core/UiRect.h"
+#include <string>
 
 namespace ui 
 {
@@ -41,10 +43,10 @@ public:
 	void SetUseDefaultShadowAttached(bool isDefault);
 
 	/** 设置阴影的九宫格属性
-	 * @param[in] rect 要设置的九宫格属性
+	 * @param[in] rc 要设置的九宫格属性
 	 * @param[in] bNeedDpiScale 为 false 表示不需要把 rc 根据 DPI 自动调整
 	 */
-	void SetShadowCorner(const UiRect &rect, bool bNeedDpiScale = true);
+	void SetShadowCorner(const UiRect &rc, bool bNeedDpiScale = true);
 
 	/** 获取阴影的九宫格属性
 	 */

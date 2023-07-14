@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "duilib/duilib_defs.h"
+#include "duilib/Core/UiPoint.h"
 #include <string>
 #include <vector>
 #include <map>
@@ -51,14 +51,14 @@ public:
 	 * @param[in] pt 指定坐标
 	 * @return 返回控件指针
 	 */
-	Control* FindControl(const POINT& pt) const;
+	Control* FindControl(const UiPoint& pt) const;
 
 	/**
 	 * @brief 根据坐标查找可以响应WM_CONTEXTMENU的控件
 	 * @param[in] pt 指定坐标
 	 * @return 返回控件指针
 	 */
-	Control* FindContextMenuControl(const POINT* pt) const;
+	Control* FindContextMenuControl(const UiPoint* pt) const;
 
 	/**
 	 * @brief 根据控件名称查找控件
@@ -73,7 +73,7 @@ public:
 	 * @param[in] pt 要查找的坐标
 	 * @return 返回控件指针
 	 */
-	Control* FindSubControlByPoint(Control* pParent, const POINT& pt) const;
+	Control* FindSubControlByPoint(Control* pParent, const UiPoint& pt) const;
 
 	/**
 	 * @brief 根据名字查找子控件

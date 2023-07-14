@@ -72,7 +72,7 @@ ui::Control* MultiBrowserForm::CreateControl(const std::wstring& pstrClass)
 {
 	if (pstrClass == _T("CustomTabBox"))
 	{
-		if ((GetWindowExStyle(this->GetHWND()) & WS_EX_LAYERED) != 0)
+		if ((::GetWindowLong(this->GetHWND(), GWL_EXSTYLE) & WS_EX_LAYERED) != 0)
 			return new TabBox(new CustomLayout);
 		else
 			return new TabBox(new Layout);

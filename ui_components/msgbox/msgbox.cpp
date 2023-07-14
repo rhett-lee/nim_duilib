@@ -70,7 +70,7 @@ void MsgBox::OnEsc(BOOL &bHandled)
 void MsgBox::CloseWnd(UINT nRet)
 {
 	// 提示框关闭之前先Enable父窗口，防止父窗口隐到后面去。
-	HWND hWndParent = GetWindowOwner(GetHWND());
+	HWND hWndParent = GetWindowOwner();
 	if (hWndParent)
 	{
 		::EnableWindow(hWndParent, TRUE);

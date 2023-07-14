@@ -83,17 +83,17 @@ void Path_Gdiplus::AddBeziers(const UiPoint* points, int count)
 
 void Path_Gdiplus::AddRect(const UiRect& rect)
 {
-	path_->AddRectangle(Gdiplus::Rect(rect.left, rect.top, rect.GetWidth(), rect.GetHeight()));
+	path_->AddRectangle(Gdiplus::Rect(rect.left, rect.top, rect.Width(), rect.Height()));
 }
 
 void Path_Gdiplus::AddEllipse(const UiRect& rect)
 {
-	path_->AddEllipse(Gdiplus::Rect(rect.left, rect.top, rect.GetWidth(), rect.GetHeight()));
+	path_->AddEllipse(Gdiplus::Rect(rect.left, rect.top, rect.Width(), rect.Height()));
 }
 
 void Path_Gdiplus::AddArc(const UiRect& rect, float startAngle, float sweepAngle)
 {
-	path_->AddArc(rect.left, rect.top, rect.GetWidth(), rect.GetHeight(), startAngle, sweepAngle);
+	path_->AddArc(rect.left, rect.top, rect.Width(), rect.Height(), startAngle, sweepAngle);
 }
 
 void Path_Gdiplus::AddPolygon(const UiPoint* points, int count)

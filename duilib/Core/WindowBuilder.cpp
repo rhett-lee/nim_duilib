@@ -121,33 +121,94 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
 
 		if( strClass == _T("Window") ) {
 			if( pWindow->GetHWND() ) {
+				//首先处理mininfo和maxinfo，因为其他属性有用到这两个属性的
 				for (pugi::xml_attribute attr : root.attributes()) {
 					strName = attr.name();
 					strValue = attr.value();
-					if( strName == _T("size") ) {
+					if (strName == _T("mininfo")) {
 						LPTSTR pstr = NULL;
-						int cx = _tcstol(strValue.c_str(), &pstr, 10);	ASSERT(pstr);    
-						int cy = _tcstol(pstr + 1, &pstr, 10);	ASSERT(pstr); 
-						pWindow->SetInitSize(cx, cy);
-					} 
-					else if( strName == _T("heightpercent") ) {
-						double lfHeightPercent = _ttof(strValue.c_str());
-	
-						MONITORINFO oMonitor = {}; 
-						oMonitor.cbSize = sizeof(oMonitor);
-						::GetMonitorInfo(::MonitorFromWindow(pWindow->GetHWND(), MONITOR_DEFAULTTOPRIMARY), &oMonitor);
-						int nWindowHeight = int((oMonitor.rcWork.bottom - oMonitor.rcWork.top) * lfHeightPercent);
-						int nMinHeight = pWindow->GetMinInfo().cy;
-						int nMaxHeight = pWindow->GetMaxInfo().cy;
-						if (nMinHeight != 0 && nWindowHeight < nMinHeight) {
-							nWindowHeight = nMinHeight;
+						int cx = _tcstol(strValue.c_str(), &pstr, 10);  ASSERT(pstr);
+						int cy = _tcstol(pstr + 1, &pstr, 10);    ASSERT(pstr);
+						pWindow->SetMinInfo(cx, cy);
+					}
+					else if (strName == _T("maxinfo")) {
+						LPTSTR pstr = NULL;
+						int cx = _tcstol(strValue.c_str(), &pstr, 10);  ASSERT(pstr);
+						int cy = _tcstol(pstr + 1, &pstr, 10);    ASSERT(pstr);
+						pWindow->SetMaxInfo(cx, cy);
+					}
+				}
+				for (pugi::xml_attribute attr : root.attributes()) {
+					strName = attr.name();
+					strValue = attr.value();
+					//支持的格式：size="1200,800",或者size="50%,50%",或者size="1200,50%",size="50%,800"
+					//百分比是指屏幕宽度或者高度的百分比
+					if (strName == L"size") {
+						UiRect rcWork;
+						pWindow->GetMonitorWorkRect(rcWork);
+						wchar_t* pstr = nullptr;
+						std::tuple<int32_t, float> x = ParseString(strValue.c_str(), &pstr);
+						if ((pstr != nullptr) && (*pstr == L',')) {
+							//跳过逗号分隔符
+							pstr++;
 						}
-						if (nMaxHeight != 0 && nWindowHeight > nMaxHeight) {
-							nWindowHeight = nMaxHeight;
+						std::tuple<int32_t, float> y = ParseString(pstr, &pstr);
+
+						//获取有效的百分比值
+						auto GetValidPercent = [](const std::tuple<int32_t, float>& xy) -> float {
+							float fPercent = std::get<1>(xy);
+							fPercent /= 100.0f;
+							ASSERT((fPercent >= 0.0001f) && (fPercent < 1.0001f));
+							if ((fPercent < 0.0001f) || (fPercent > 1.0001f)) {
+								fPercent = 0.75f;
+							}
+							return fPercent;
+						};
+
+						bool needScaleCX = true;
+						bool needScaleCY = true;
+						int cx = std::get<0>(x);
+						if (cx <= 0) {
+							float fPercent = GetValidPercent(x);
+							cx = (int)(rcWork.Width() * fPercent);
+							needScaleCX = false;
+						}
+						int cy = std::get<0>(y);
+						if (cy <= 0) {
+							float fPercent = GetValidPercent(y);
+							cy = (int)(rcWork.Height() * fPercent);
+							needScaleCY = false;
 						}
 
-						UiSize xy = pWindow->GetInitSize();
-						pWindow->SetInitSize(xy.cx, nWindowHeight, false, false);
+						ASSERT((cx > 0) && (cy > 0));
+						if (cx < 0) {
+							cx = 0;
+						}
+						if (cy < 0) {
+							cy = 0;
+						}
+						if (needScaleCX) {
+							GlobalManager::Instance().Dpi().ScaleInt(cx);
+						}
+						if (needScaleCY) {
+							GlobalManager::Instance().Dpi().ScaleInt(cy);
+						}
+						
+						UiSize minSize = pWindow->GetMinInfo();
+						UiSize maxSize = pWindow->GetMaxInfo();
+						if ((minSize.cx > 0) && (cx < minSize.cx)) {
+							cx = minSize.cx;
+						}
+						if ((maxSize.cx > 0) && (cx > maxSize.cx)) {
+							cx = maxSize.cx;
+						}
+						if ((minSize.cy > 0) && (cy < minSize.cy)) {
+							cy = minSize.cy;
+						}
+						if ((maxSize.cy > 0) && (cy > maxSize.cy)) {
+							cy = maxSize.cy;
+						}
+						pWindow->SetInitSize(cx, cy, false, false);
 					}
 					else if( strName == _T("sizebox") ) {
 						UiRect rcSizeBox;
@@ -178,19 +239,7 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
 						int cx = _tcstol(strValue.c_str(), &pstr, 10);  ASSERT(pstr);    
 						int cy = _tcstol(pstr + 1, &pstr, 10);    ASSERT(pstr); 
 						pWindow->SetRoundCorner(cx, cy);
-					} 
-					else if( strName == _T("mininfo") ) {
-						LPTSTR pstr = NULL;
-						int cx = _tcstol(strValue.c_str(), &pstr, 10);  ASSERT(pstr);    
-						int cy = _tcstol(pstr + 1, &pstr, 10);    ASSERT(pstr); 
-						pWindow->SetMinInfo(cx, cy);
-					}
-					else if( strName == _T("maxinfo") ) {
-						LPTSTR pstr = NULL;
-						int cx = _tcstol(strValue.c_str(), &pstr, 10);  ASSERT(pstr);    
-						int cy = _tcstol(pstr + 1, &pstr, 10);    ASSERT(pstr); 
-						pWindow->SetMaxInfo(cx, cy);
-					}					
+					}								
 					else if (strName == _T("alphafixcorner") || strName == _T("custom_shadow")) {
 						UiRect rc;
 						LPTSTR pstr = NULL;
@@ -788,6 +837,34 @@ void WindowBuilder::AttachXmlEvent(bool bBubbled, const pugi::xml_node& node, Co
 			}
 		}
 	}
+}
+
+std::tuple<int32_t, float> WindowBuilder::ParseString(const wchar_t* strValue, wchar_t** pEndPtr) const
+{
+	wchar_t* pstr = nullptr;
+	if ((strValue == nullptr) || (*strValue == L'\0')) {
+		if (pEndPtr != nullptr) {
+			*pEndPtr = pstr;
+		}
+		return std::tuple<int32_t, float>(0, 0.0f);
+	}
+	int32_t xValue = 0;
+	float xPercent = wcstof(strValue, &pstr);
+	ASSERT(pstr != nullptr);
+	if ((pstr != nullptr) && (*pstr == L'%')) {
+		//该值是百分比，跳过'%'字符
+		pstr++;
+	}
+	else {
+		//不是百分比, 而是整型值
+		xPercent = 0.0f;
+		xValue = wcstol(strValue, &pstr, 10);
+		ASSERT(pstr != nullptr);
+	}
+	if (pEndPtr != nullptr) {
+		*pEndPtr = pstr;
+	}
+	return std::tuple<int32_t, float>(xValue, xPercent);
 }
 
 } // namespace ui

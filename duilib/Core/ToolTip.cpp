@@ -77,7 +77,10 @@ void ToolTip::ShowToolTip(HWND hParentWnd,
 	m_ToolTip.uId = (UINT_PTR)hParentWnd;
 	m_ToolTip.hinst = hModule;
 	m_ToolTip.lpszText = const_cast<LPTSTR>((LPCTSTR)newText.c_str());
-	m_ToolTip.rect = rect;
+	m_ToolTip.rect.left = rect.left;
+	m_ToolTip.rect.top = rect.top;
+	m_ToolTip.rect.right = rect.right;
+	m_ToolTip.rect.bottom = rect.bottom;
 	if (m_hwndTooltip == nullptr) {
 		m_hwndTooltip = ::CreateWindowEx(0, TOOLTIPS_CLASS, NULL, 
 									     WS_POPUP | TTS_NOPREFIX | TTS_ALWAYSTIP, CW_USEDEFAULT,

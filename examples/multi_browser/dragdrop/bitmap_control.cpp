@@ -10,7 +10,7 @@ BitmapControl::BitmapControl()
 void BitmapControl::Paint(ui::IRender* pRender, const ui::UiRect& rcPaint)
 {
 	UiRect paintRect = GetPaintRect();
-	if (!::IntersectRect(&paintRect, &rcPaint, &GetRect())) {
+	if (!UiRect::Intersect(paintRect, rcPaint, GetRect())) {
 		return;
 	}
 	SetPaintRect(paintRect);
@@ -57,9 +57,9 @@ void BitmapControl::Paint(ui::IRender* pRender, const ui::UiRect& rcPaint)
 	}
 
 	UiRect rect = GetRect();
-	pRender->AlphaBlend(rect.left, rect.top, rect.GetWidth(), rect.GetHeight(),
+	pRender->AlphaBlend(rect.left, rect.top, rect.Width(), rect.Height(),
 						render.get(),
-						0, 0, rect.GetWidth(), rect.GetHeight());
+						0, 0, rect.Width(), rect.Height());
 }
 
 void BitmapControl::SetBitmapImage(HBITMAP bitmap)

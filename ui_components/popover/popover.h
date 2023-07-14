@@ -437,8 +437,8 @@ public:
   bool OnAnchorResize(const ui::EventArgs& /*args*/) {
     ui::UiRect rc = m_pAnchor->GetPos();
 
-    SetFixedWidth(rc.GetWidth(), true, true);
-    SetFixedHeight(rc.GetHeight(), true);
+    SetFixedWidth(rc.Width(), true, true);
+    SetFixedHeight(rc.Height(), true);
 
     SetPos(rc);
 
@@ -448,8 +448,8 @@ public:
   virtual void SetPos(ui::UiRect rc) override {
     rc = m_pAnchor->GetPos();
 
-    SetFixedWidth(rc.GetWidth(), true, true);
-    SetFixedHeight(rc.GetHeight(), true);
+    SetFixedWidth(rc.Width(), true, true);
+    SetFixedHeight(rc.Height(), true);
 
     ui::Control::SetPos(rc);
 
@@ -641,7 +641,7 @@ private:
                    为kTriggerClickLayer的弹窗
   * @param[in] pt 鼠标点击坐标
   */
-  void OnMouseEventButtonDown(POINT pt);
+  void OnMouseEventButtonDown(ui::UiPoint pt);
 
 private:
   bool m_bInited;

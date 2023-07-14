@@ -461,7 +461,7 @@ void Render_Skia::DrawImage(const UiRect& rcPaint, IBitmap* pBitmap,
 {
 	ASSERT((GetWidth() > 0) && (GetHeight() > 0));
 	UiRect rcTestTemp;
-	if (!::IntersectRect(&rcTestTemp, &rcDest, &rcPaint)) {
+	if (!UiRect::Intersect(rcTestTemp, rcDest, rcPaint)) {
 		return;
 	}
 	PerformanceStat statPerformance(L"Render_Skia::DrawImage");
@@ -506,7 +506,7 @@ void Render_Skia::DrawImage(const UiRect& rcPaint, IBitmap* pBitmap,
 	rcDrawSource.top = rcSource.top + rcSourceCorners.top;
 	rcDrawSource.right = rcSource.right - rcSourceCorners.right;
 	rcDrawSource.bottom = rcSource.bottom - rcSourceCorners.bottom;
-	if (::IntersectRect(&rcTemp, &rcPaint, &rcDrawDest)) {
+	if (UiRect::Intersect(rcTemp, rcPaint, rcDrawDest)) {
 		if (!xtiled && !ytiled) {
 			DrawFunction(m_pSkCanvas, rcDrawDest, *m_pSkPointOrg, skImage, rcDrawSource, skPaint);
 		}
@@ -582,7 +582,7 @@ void Render_Skia::DrawImage(const UiRect& rcPaint, IBitmap* pBitmap,
 
 				UiRect rcDestTemp = rcDrawDest;
 				rcDestTemp.top = rcDrawDest.top;
-				rcDestTemp.bottom = rcDrawDest.top + rcDrawSource.GetHeight();
+				rcDestTemp.bottom = rcDrawDest.top + rcDrawSource.Height();
 				rcDestTemp.left = lDestLeft;
 				rcDestTemp.right = lDestRight;
 
@@ -615,7 +615,7 @@ void Render_Skia::DrawImage(const UiRect& rcPaint, IBitmap* pBitmap,
 				rcDrawSource.right = rcSource.right - rcSourceCorners.right;
 				rcDrawSource.bottom = rcDrawSource.top + lDrawHeight;
 
-				rcDestTemp.right = rcDrawDest.left + rcDrawSource.GetWidth();
+				rcDestTemp.right = rcDrawDest.left + rcDrawSource.Width();
 				rcDestTemp.top = lDestTop;
 				rcDestTemp.bottom = lDestBottom;
 
@@ -635,7 +635,7 @@ void Render_Skia::DrawImage(const UiRect& rcPaint, IBitmap* pBitmap,
 		rcDrawSource.top = rcSource.top;
 		rcDrawSource.right = rcSource.left + rcSourceCorners.left;
 		rcDrawSource.bottom = rcSource.top + rcSourceCorners.top;
-		if (::IntersectRect(&rcTemp, &rcPaint, &rcDrawDest)) {
+		if (UiRect::Intersect(rcTemp, rcPaint, rcDrawDest)) {
 			DrawFunction(m_pSkCanvas, rcDrawDest, *m_pSkPointOrg, skImage, rcDrawSource, skPaint);
 		}
 	}
@@ -650,7 +650,7 @@ void Render_Skia::DrawImage(const UiRect& rcPaint, IBitmap* pBitmap,
 		rcDrawSource.top = rcSource.top;
 		rcDrawSource.right = rcSource.right - rcSourceCorners.right;
 		rcDrawSource.bottom = rcSource.top + rcSourceCorners.top;
-		if (::IntersectRect(&rcTemp, &rcPaint, &rcDrawDest)) {
+		if (UiRect::Intersect(rcTemp, rcPaint, rcDrawDest)) {
 			DrawFunction(m_pSkCanvas, rcDrawDest, *m_pSkPointOrg, skImage, rcDrawSource, skPaint);
 		}
 	}
@@ -665,7 +665,7 @@ void Render_Skia::DrawImage(const UiRect& rcPaint, IBitmap* pBitmap,
 		rcDrawSource.top = rcSource.top;
 		rcDrawSource.right = rcSource.right;
 		rcDrawSource.bottom = rcSource.top + rcSourceCorners.top;
-		if (::IntersectRect(&rcTemp, &rcPaint, &rcDrawDest)) {
+		if (UiRect::Intersect(rcTemp, rcPaint, rcDrawDest)) {
 			DrawFunction(m_pSkCanvas, rcDrawDest, *m_pSkPointOrg, skImage, rcDrawSource, skPaint);
 		}
 	}
@@ -680,7 +680,7 @@ void Render_Skia::DrawImage(const UiRect& rcPaint, IBitmap* pBitmap,
 		rcDrawSource.top = rcSource.top + rcSourceCorners.top;
 		rcDrawSource.right = rcSource.left + rcSourceCorners.left;
 		rcDrawSource.bottom = rcSource.bottom - rcSourceCorners.bottom;
-		if (::IntersectRect(&rcTemp, &rcPaint, &rcDrawDest)) {
+		if (UiRect::Intersect(rcTemp, rcPaint, rcDrawDest)) {
 			DrawFunction(m_pSkCanvas, rcDrawDest, *m_pSkPointOrg, skImage, rcDrawSource, skPaint);
 		}
 	}
@@ -695,7 +695,7 @@ void Render_Skia::DrawImage(const UiRect& rcPaint, IBitmap* pBitmap,
 		rcDrawSource.top = rcSource.top + rcSourceCorners.top;
 		rcDrawSource.right = rcSource.right;
 		rcDrawSource.bottom = rcSource.bottom - rcSourceCorners.bottom;
-		if (::IntersectRect(&rcTemp, &rcPaint, &rcDrawDest)) {
+		if (UiRect::Intersect(rcTemp, rcPaint, rcDrawDest)) {
 			DrawFunction(m_pSkCanvas, rcDrawDest, *m_pSkPointOrg, skImage, rcDrawSource, skPaint);
 		}
 	}
@@ -710,7 +710,7 @@ void Render_Skia::DrawImage(const UiRect& rcPaint, IBitmap* pBitmap,
 		rcDrawSource.top = rcSource.bottom - rcSourceCorners.bottom;
 		rcDrawSource.right = rcSource.left + rcSourceCorners.left;
 		rcDrawSource.bottom = rcSource.bottom;
-		if (::IntersectRect(&rcTemp, &rcPaint, &rcDrawDest)) {
+		if (UiRect::Intersect(rcTemp, rcPaint, rcDrawDest)) {
 			DrawFunction(m_pSkCanvas, rcDrawDest, *m_pSkPointOrg, skImage, rcDrawSource, skPaint);
 		}
 	}
@@ -725,7 +725,7 @@ void Render_Skia::DrawImage(const UiRect& rcPaint, IBitmap* pBitmap,
 		rcDrawSource.top = rcSource.bottom - rcSourceCorners.bottom;
 		rcDrawSource.right = rcSource.right - rcSourceCorners.right;
 		rcDrawSource.bottom = rcSource.bottom;
-		if (::IntersectRect(&rcTemp, &rcPaint, &rcDrawDest)) {
+		if (UiRect::Intersect(rcTemp, rcPaint, rcDrawDest)) {
 			DrawFunction(m_pSkCanvas, rcDrawDest, *m_pSkPointOrg, skImage, rcDrawSource, skPaint);
 		}
 	}
@@ -740,7 +740,7 @@ void Render_Skia::DrawImage(const UiRect& rcPaint, IBitmap* pBitmap,
 		rcDrawSource.top = rcSource.bottom - rcSourceCorners.bottom;
 		rcDrawSource.right = rcSource.right;
 		rcDrawSource.bottom = rcSource.bottom;
-		if (::IntersectRect(&rcTemp, &rcPaint, &rcDrawDest)) {
+		if (UiRect::Intersect(rcTemp, rcPaint, rcDrawDest)) {
 			DrawFunction(m_pSkCanvas, rcDrawDest, *m_pSkPointOrg, skImage, rcDrawSource, skPaint);
 		}
 	}
@@ -769,7 +769,7 @@ void Render_Skia::DrawImageRect(const UiRect& rcPaint, IBitmap* pBitmap,
 		//仅在没有Matrix的情况下判断裁剪区域，
 		//因为有Matrix时，实际绘制区域并不是rcDest，而是变换过后的位置，需要调整判断方法
 		UiRect rcTestTemp;
-		if (!::IntersectRect(&rcTestTemp, &rcDest, &rcPaint)) {
+		if (!UiRect::Intersect(rcTestTemp, rcDest, rcPaint)) {
 			return;
 		}
 	}
@@ -1320,11 +1320,11 @@ void Render_Skia::DrawBoxShadow(const UiRect& rc,
 	destRc.bottom += nSpreadRadius;
 
 	SkRect srcRc;
-	srcRc.setXYWH((SkScalar)destRc.left, (SkScalar)destRc.top, (SkScalar)destRc.GetWidth(), (SkScalar)destRc.GetHeight());
+	srcRc.setXYWH((SkScalar)destRc.left, (SkScalar)destRc.top, (SkScalar)destRc.Width(), (SkScalar)destRc.Height());
 
 	//原始区域，做裁剪用
 	SkRect excludeRc;
-	excludeRc.setXYWH((SkScalar)rc.left, (SkScalar)rc.top, (SkScalar)rc.GetWidth(), (SkScalar)rc.GetHeight());
+	excludeRc.setXYWH((SkScalar)rc.left, (SkScalar)rc.top, (SkScalar)rc.Width(), (SkScalar)rc.Height());
 
 	SkPath shadowPath;
 	shadowPath.addRoundRect(srcRc, (SkScalar)roundSize.cx, (SkScalar)roundSize.cy);
