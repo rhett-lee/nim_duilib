@@ -3,6 +3,7 @@
 #include "duilib/Render/AutoClip.h"
 #include "duilib/Core/Window.h"
 #include "duilib/Core/GlobalManager.h"
+#include "duilib/Utils/AttributeUtil.h"
 
 namespace ui
 {
@@ -46,11 +47,7 @@ void ScrollBox::SetAttribute(const std::wstring& pstrName, const std::wstring& p
 	}
 	else if(pstrName == L"scrollbarpadding") {
 		UiRect rcScrollbarPadding;
-		LPTSTR pstr = NULL;
-		rcScrollbarPadding.left = wcstol(pstrValue.c_str(), &pstr, 10);  ASSERT(pstr);    
-		rcScrollbarPadding.top = wcstol(pstr + 1, &pstr, 10);    ASSERT(pstr);
-		rcScrollbarPadding.right = wcstol(pstr + 1, &pstr, 10);  ASSERT(pstr);
-		rcScrollbarPadding.bottom = wcstol(pstr + 1, &pstr, 10); ASSERT(pstr);
+		AttributeUtil::ParseRectValue(pstrValue.c_str(), rcScrollbarPadding);
 		SetScrollBarPadding(rcScrollbarPadding);
 	}
 	else if (pstrName == L"vscrollunit") SetVerScrollUnitPixels(_wtoi(pstrValue.c_str()));

@@ -1,5 +1,6 @@
 #include "ShadowCombo.h"
 #include "duilib/Utils/Macros.h"
+#include "duilib/Utils/AttributeUtil.h"
 #include "duilib/Core/UiColor.h"
 
 namespace nim_comp
@@ -270,28 +271,18 @@ void ShadowCombo::SetAttribute(const std::wstring& strName, const std::wstring& 
     else if (strName == L"dropboxsize")
     {
         ui::UiSize szDropBoxSize;
-        LPTSTR pstr = NULL;
-        szDropBoxSize.cx = wcstol(strValue.c_str(), &pstr, 10); ASSERT(pstr);
-        szDropBoxSize.cy = wcstol(pstr + 1, &pstr, 10); ASSERT(pstr);
+        ui::AttributeUtil::ParseSizeValue(strValue.c_str(), szDropBoxSize);
         SetDropBoxSize(szDropBoxSize);
     }
     else if (strName == L"popuptop") SetPopupTop(strValue == L"true");
     else if (strName == L"textpadding") {
         ui::UiRect rcTextPadding;
-        LPTSTR pstr = NULL;
-        rcTextPadding.left = wcstol(strValue.c_str(), &pstr, 10);  ASSERT(pstr);
-        rcTextPadding.top = wcstol(pstr + 1, &pstr, 10);    ASSERT(pstr);
-        rcTextPadding.right = wcstol(pstr + 1, &pstr, 10);  ASSERT(pstr);
-        rcTextPadding.bottom = wcstol(pstr + 1, &pstr, 10); ASSERT(pstr);
+        ui::AttributeUtil::ParseRectValue(strValue.c_str(), rcTextPadding);
         SetTextPadding(rcTextPadding);
     }
     else if (strName == L"shadowcorner") {
         ui::UiRect rcShadowCorner;
-        LPTSTR pstr = NULL;
-        rcShadowCorner.left = wcstol(strValue.c_str(), &pstr, 10);  ASSERT(pstr);
-        rcShadowCorner.top = wcstol(pstr + 1, &pstr, 10);    ASSERT(pstr);
-        rcShadowCorner.right = wcstol(pstr + 1, &pstr, 10);  ASSERT(pstr);
-        rcShadowCorner.bottom = wcstol(pstr + 1, &pstr, 10); ASSERT(pstr);
+        ui::AttributeUtil::ParseRectValue(strValue.c_str(), rcShadowCorner);
         SetShadowCorner(rcShadowCorner);
     }
     else if (strName == L"arrownormalimage") {

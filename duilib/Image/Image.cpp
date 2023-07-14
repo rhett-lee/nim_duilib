@@ -4,7 +4,7 @@
 #include "duilib/Render/IRender.h"
 #include "duilib/Animation/AnimationManager.h"
 #include "duilib/Utils/StringUtil.h"
-#include <tchar.h>
+#include "duilib/Utils/AttributeUtil.h"
 
 namespace ui 
 {
@@ -154,124 +154,95 @@ void ImageAttribute::InitByImageString(const std::wstring& strImageString)
 
 void ImageAttribute::ModifyAttribute(const std::wstring& strImageString)
 {
-	ImageAttribute& imageAttribute = *this;
+	if (strImageString.find(L'=') == std::wstring::npos) {
+		//不含有等号，说明没有属性，直接返回
+		return;
+	}
+	std::vector<std::pair<std::wstring, std::wstring>> attributeList;
+	AttributeUtil::ParseAttributeList(strImageString, L'\'', attributeList);
 
-	std::wstring sItem;
-	std::wstring sValue;
-	LPTSTR pstr = NULL;
+	ImageAttribute& imageAttribute = *this;
 	bool bDisalbeScaleDest = false;
 	bool bHasDest = false;
 	bHasSrcDpiScale = false;
-
-	LPCTSTR pStrImage = strImageString.c_str();
-	while (*pStrImage != _T('\0')) {
-		sItem.clear();
-		sValue.clear();
-		while (*pStrImage > _T('\0') && *pStrImage <= _T(' ')) pStrImage = ::CharNext(pStrImage);
-		while (*pStrImage != _T('\0') && *pStrImage != _T('=') && *pStrImage > _T(' ')) {
-			LPTSTR pstrTemp = ::CharNext(pStrImage);
-			while (pStrImage < pstrTemp) {
-				sItem += *pStrImage++;
-			}
+	for (const auto& attribute : attributeList) {
+		const std::wstring& name = attribute.first;
+		const std::wstring& value = attribute.second;
+		if (name.empty() || value.empty()) {
+			continue;
 		}
-		while (*pStrImage > _T('\0') && *pStrImage <= _T(' ')) pStrImage = ::CharNext(pStrImage);
-		if (*pStrImage++ != _T('=')) break;
-		while (*pStrImage > _T('\0') && *pStrImage <= _T(' ')) pStrImage = ::CharNext(pStrImage);
-		if (*pStrImage++ != _T('\'')) break;
-		while (*pStrImage != _T('\0') && *pStrImage != _T('\'')) {
-			LPTSTR pstrTemp = ::CharNext(pStrImage);
-			while (pStrImage < pstrTemp) {
-				sValue += *pStrImage++;
-			}
+		if (name == L"file" || name == L"res") {
+			//图片资源文件名，根据此设置去加载图片资源
+			imageAttribute.sImagePath = value;
 		}
-		if (*pStrImage++ != _T('\'')) break;
-		if (!sValue.empty()) {
-			if (sItem == _T("file") || sItem == _T("res")) {
-				//图片资源文件名，根据此设置去加载图片资源
-				imageAttribute.sImagePath = sValue;
-			}
-			else if (sItem == _T("width")) {
-				//设置图片宽度，可以放大或缩小图像：pixels或者百分比%，比如300，或者30%
-				imageAttribute.srcWidth = sValue;
-			}
-			else if (sItem == _T("height")) {
-				//设置图片高度，可以放大或缩小图像：pixels或者百分比%，比如200，或者30%
-				imageAttribute.srcHeight = sValue;
-			}
-			else if (sItem == _T("source")) {
-				//图片源区域设置：可以用于仅包含源图片的部分图片内容（比如通过此机制，将按钮的各个状态图片整合到一张大图片上，方便管理图片资源）
-				imageAttribute.rcSource.left = _tcstol(sValue.c_str(), &pstr, 10);  ASSERT(pstr);
-				imageAttribute.rcSource.top = _tcstol(pstr + 1, &pstr, 10);    ASSERT(pstr);
-				imageAttribute.rcSource.right = _tcstol(pstr + 1, &pstr, 10);  ASSERT(pstr);
-				imageAttribute.rcSource.bottom = _tcstol(pstr + 1, &pstr, 10); ASSERT(pstr);
-			}
-			else if (sItem == _T("corner")) {
-				//图片的圆角属性，如果设置此属性，绘制图片的时候，采用九宫格绘制方式绘制图片：
-				//    四个角不拉伸图片，四个边部分拉伸，中间部分可以拉伸或者根据xtiled、ytiled属性来平铺绘制
-				imageAttribute.rcCorner.left = _tcstol(sValue.c_str(), &pstr, 10);  ASSERT(pstr);
-				imageAttribute.rcCorner.top = _tcstol(pstr + 1, &pstr, 10);    ASSERT(pstr);
-				imageAttribute.rcCorner.right = _tcstol(pstr + 1, &pstr, 10);  ASSERT(pstr);
-				imageAttribute.rcCorner.bottom = _tcstol(pstr + 1, &pstr, 10); ASSERT(pstr);
-			}
-			else if (sItem == _T("dpiscale")) {
-				//加载图片时，按照DPI缩放图片大小（会影响width属性、height属性、sources属性、corner属性）
-				imageAttribute.srcDpiScale = (_tcscmp(sValue.c_str(), _T("true")) == 0);
-				bHasSrcDpiScale = true;
-			}
-			else if (sItem == _T("dest")) {
-				//设置目标区域，该区域是指相对于所属控件的Rect区域
-				imageAttribute.rcDest.left = _tcstol(sValue.c_str(), &pstr, 10);  ASSERT(pstr);
-				imageAttribute.rcDest.top = _tcstol(pstr + 1, &pstr, 10);    ASSERT(pstr);
-				imageAttribute.rcDest.right = _tcstol(pstr + 1, &pstr, 10);  ASSERT(pstr);
-				imageAttribute.rcDest.bottom = _tcstol(pstr + 1, &pstr, 10); ASSERT(pstr);
-				bHasDest = true;
-			}
-			else if (sItem == _T("destscale")) {
-				//加载时，对dest属性按照DPI缩放图片，仅当设置了dest属性时有效（会影响dest属性）
-				//绘制时（内部使用），控制是否对dest属性进行DPI缩放
-				bDisalbeScaleDest = (_tcscmp(sValue.c_str(), _T("false")) == 0);
-			}
-			else if (sItem == _T("fade")) {
-				//图片的透明度
-				imageAttribute.bFade = (BYTE)_tcstoul(sValue.c_str(), &pstr, 10);
-			}
-			else if (sItem == _T("xtiled")) {
-				//横向平铺
-				imageAttribute.bTiledX = (_tcscmp(sValue.c_str(), _T("true")) == 0);
-			}
-			else if (sItem == _T("fullxtiled")) {
-				//横向平铺时，保证整张图片绘制
-				imageAttribute.bFullTiledX = (_tcscmp(sValue.c_str(), _T("true")) == 0);
-			}
-			else if (sItem == _T("ytiled")) {
-				//纵向平铺
-				imageAttribute.bTiledY = (_tcscmp(sValue.c_str(), _T("true")) == 0);
-			}
-			else if (sItem == _T("fullytiled")) {
-				//纵向平铺时，保证整张图片绘制
-				imageAttribute.bFullTiledY = (_tcscmp(sValue.c_str(), _T("true")) == 0);
-			}
-			else if (sItem == _T("tiledmargin")) {
-				//平铺绘制时，各平铺图片之间的间隔，包括横向平铺和纵向平铺
-				imageAttribute.nTiledMargin = _tcstol(sValue.c_str(), &pstr, 10); ASSERT(pstr);
-			}
-			else if (sItem == _T("playcount")) {
-				//如果是GIF、APNG、WEBP等动画图片，可以指定播放次数 -1 ：一直播放，缺省值。
-				imageAttribute.nPlayCount = _tcstol(sValue.c_str(), &pstr, 10);  ASSERT(pstr);
-			}
-			else if (sItem == _T("iconsize")) {
-				//指定加载ICO文件的图片大小(仅当图片文件是ICO文件时有效)
-				imageAttribute.iconSize = (uint32_t)_tcstol(sValue.c_str(), &pstr, 10);  ASSERT(pstr);
-			}
-			else {
-				ASSERT(!"Fount unknown attribute!");
-			}
+		else if (name == L"width") {
+			//设置图片宽度，可以放大或缩小图像：pixels或者百分比%，比如300，或者30%
+			imageAttribute.srcWidth = value;
 		}
-		if (*pStrImage++ != _T(' ')) {
-			break;
+		else if (name == L"height") {
+			//设置图片高度，可以放大或缩小图像：pixels或者百分比%，比如200，或者30%
+			imageAttribute.srcHeight = value;
+		}
+		else if (name == L"source") {
+			//图片源区域设置：可以用于仅包含源图片的部分图片内容（比如通过此机制，将按钮的各个状态图片整合到一张大图片上，方便管理图片资源）
+			AttributeUtil::ParseRectValue(value.c_str(), imageAttribute.rcSource);
+		}
+		else if (name == L"corner") {
+			//图片的圆角属性，如果设置此属性，绘制图片的时候，采用九宫格绘制方式绘制图片：
+			//    四个角不拉伸图片，四个边部分拉伸，中间部分可以拉伸或者根据xtiled、ytiled属性来平铺绘制
+			AttributeUtil::ParseRectValue(value.c_str(), imageAttribute.rcCorner);
+		}
+		else if (name == L"dpiscale") {
+			//加载图片时，按照DPI缩放图片大小（会影响width属性、height属性、sources属性、corner属性）
+			imageAttribute.srcDpiScale = (value == L"true");
+			bHasSrcDpiScale = true;
+		}
+		else if (name == L"dest") {
+			//设置目标区域，该区域是指相对于所属控件的Rect区域
+			AttributeUtil::ParseRectValue(value.c_str(), imageAttribute.rcDest);
+			bHasDest = true;
+		}
+		else if (name == L"destscale") {
+			//加载时，对dest属性按照DPI缩放图片，仅当设置了dest属性时有效（会影响dest属性）
+			//绘制时（内部使用），控制是否对dest属性进行DPI缩放
+			bDisalbeScaleDest = (value == L"false");
+		}
+		else if (name == L"fade") {
+			//图片的透明度
+			imageAttribute.bFade = (uint8_t)wcstoul(value.c_str(), nullptr, 10);
+		}
+		else if (name == L"xtiled") {
+			//横向平铺
+			imageAttribute.bTiledX = (value == L"true");
+		}
+		else if (name == L"fullxtiled") {
+			//横向平铺时，保证整张图片绘制
+			imageAttribute.bFullTiledX = (value == L"true");
+		}
+		else if (name == L"ytiled") {
+			//纵向平铺
+			imageAttribute.bTiledY = (value == L"true");
+		}
+		else if (name == L"fullytiled") {
+			//纵向平铺时，保证整张图片绘制
+			imageAttribute.bFullTiledY = (value == L"true");
+		}
+		else if (name == L"tiledmargin") {
+			//平铺绘制时，各平铺图片之间的间隔，包括横向平铺和纵向平铺
+			imageAttribute.nTiledMargin = wcstol(value.c_str(), nullptr, 10);
+		}
+		else if (name == L"playcount") {
+			//如果是GIF、APNG、WEBP等动画图片，可以指定播放次数 -1 ：一直播放，缺省值。
+			imageAttribute.nPlayCount = wcstol(value.c_str(), nullptr, 10);
+		}
+		else if (name == L"iconsize") {
+			//指定加载ICO文件的图片大小(仅当图片文件是ICO文件时有效)
+			imageAttribute.iconSize = (uint32_t)wcstol(value.c_str(), nullptr, 10);
+		}
+		else {
+			ASSERT(!"ImageAttribute::ModifyAttribute: fount unknown attribute!");
 		}
 	}
-
 	if (bHasDest && !bDisalbeScaleDest) {
 		//如果没有配置"destscale" 或者 destscale="true"的情况，都需要对rcDest进行DPI自适应
 		//只有设置了destscale="false"的时候，才禁止对rcDest进行DPI自适应

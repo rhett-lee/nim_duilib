@@ -1,6 +1,6 @@
 #include "BoxShadow.h"
 #include "duilib/Core/GlobalManager.h"
-#include <tchar.h>
+#include "duilib/Utils/AttributeUtil.h"
 
 namespace ui {
 
@@ -16,63 +16,39 @@ BoxShadow::BoxShadow():
 void BoxShadow::SetBoxShadowString(const std::wstring& strBoxShadow)
 {
 	//格式如：如 "color='black' offset='1,1' blur_radius='2' spread_radius='2'"
-	std::wstring sItem;
-	std::wstring sValue;
-	LPTSTR pstr = NULL;
-
-	LPCTSTR pStrKey = strBoxShadow.c_str();
-	while (*pStrKey != _T('\0')) {
-		sItem.clear();
-		sValue.clear();
-		while (*pStrKey > _T('\0') && *pStrKey <= _T(' ')) pStrKey = ::CharNext(pStrKey);
-		while (*pStrKey != _T('\0') && *pStrKey != _T('=') && *pStrKey > _T(' ')) {
-			LPTSTR pstrTemp = ::CharNext(pStrKey);
-			while (pStrKey < pstrTemp) {
-				sItem += *pStrKey++;
-			}
+	std::vector<std::pair<std::wstring, std::wstring>> attributeList;
+	AttributeUtil::ParseAttributeList(strBoxShadow, L'\'', attributeList);
+	for (const auto& attribute : attributeList) {
+		const std::wstring& name = attribute.first;
+		const std::wstring& value = attribute.second;
+		if (name.empty() || value.empty()) {
+			continue;
 		}
-		while (*pStrKey > _T('\0') && *pStrKey <= _T(' ')) pStrKey = ::CharNext(pStrKey);
-		if (*pStrKey++ != _T('=')) break;
-		while (*pStrKey > _T('\0') && *pStrKey <= _T(' ')) pStrKey = ::CharNext(pStrKey);
-		if (*pStrKey++ != _T('\'')) break;
-		while (*pStrKey != _T('\0') && *pStrKey != _T('\'')) {
-			LPTSTR pstrTemp = ::CharNext(pStrKey);
-			while (pStrKey < pstrTemp) {
-				sValue += *pStrKey++;
-			}
+		if (name == L"color") {
+			m_strColor = value;
 		}
-		if (*pStrKey++ != _T('\'')) break;
-		if (!sValue.empty()) {
-			if (sItem == _T("color")) {
-				m_strColor = sValue;
-			}
-			else if (sItem == _T("offset")) {
-				m_cpOffset.x = _tcstol(sValue.c_str(), &pstr, 10);  ASSERT(pstr);
-				m_cpOffset.y = _tcstol(pstr + 1, &pstr, 10);    ASSERT(pstr);
-				GlobalManager::Instance().Dpi().ScalePoint(m_cpOffset);
-			}
-			else if ((sItem == _T("blur_radius")) || sItem == _T("blurradius")) {
-				m_nBlurRadius = _tcstol(sValue.c_str(), &pstr, 10); ASSERT(pstr);
-				ASSERT(m_nBlurRadius >= 0);
-				if (m_nBlurRadius < 0) {
-					m_nBlurRadius = 2;
-				}
-				GlobalManager::Instance().Dpi().ScaleInt(m_nBlurRadius);
-			}
-			else if ((sItem == _T("spread_radius")) || (sItem == _T("spreadradius"))) {
-				m_nSpreadRadius = _tcstol(sValue.c_str(), &pstr, 10); ASSERT(pstr);
-				ASSERT(m_nSpreadRadius >= 0);
-				if (m_nSpreadRadius < 0) {
-					m_nSpreadRadius = 2;
-				}
-				GlobalManager::Instance().Dpi().ScaleInt(m_nSpreadRadius);
-			}
-			else {
-				ASSERT(!"BoxShadow::SetBoxShadowString found unknown item!");
-			}
+		else if (name == L"offset") {
+			AttributeUtil::ParsePointValue(value.c_str(), m_cpOffset);
+			GlobalManager::Instance().Dpi().ScalePoint(m_cpOffset);			
 		}
-		if (*pStrKey++ != _T(' ')) {
-			break;
+		else if ((name == L"blur_radius") || name == L"blurradius") {
+			m_nBlurRadius = wcstol(value.c_str(), nullptr, 10);
+			ASSERT(m_nBlurRadius >= 0);
+			if (m_nBlurRadius < 0) {
+				m_nBlurRadius = 2;
+			}
+			GlobalManager::Instance().Dpi().ScaleInt(m_nBlurRadius);
+		}
+		else if ((name == L"spread_radius") || (name == L"spreadradius")) {
+			m_nSpreadRadius = wcstol(value.c_str(), nullptr, 10);
+			ASSERT(m_nSpreadRadius >= 0);
+			if (m_nSpreadRadius < 0) {
+				m_nSpreadRadius = 2;
+			}
+			GlobalManager::Instance().Dpi().ScaleInt(m_nSpreadRadius);
+		}
+		else {
+			ASSERT(!"BoxShadow::SetBoxShadowString found unknown item name!");
 		}
 	}
 }

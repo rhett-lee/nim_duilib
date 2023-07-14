@@ -1,4 +1,5 @@
 #include "Slider.h"
+#include "duilib/Utils/AttributeUtil.h"
 
 namespace ui
 {
@@ -120,18 +121,12 @@ void Slider::SetAttribute(const std::wstring& strName, const std::wstring& strVa
 	else if (strName == L"thumbdisabledimage") SetThumbStateImage(kControlStateDisabled, strValue);
 	else if (strName == L"thumbsize") {
 		UiSize szXY;
-		LPTSTR pstr = NULL;
-		szXY.cx = wcstol(strValue.c_str(), &pstr, 10);  ASSERT(pstr);
-		szXY.cy = wcstol(pstr + 1, &pstr, 10);    ASSERT(pstr);
+		AttributeUtil::ParseSizeValue(strValue.c_str(), szXY);
 		SetThumbSize(szXY);
 	}
 	else if (strName == L"progressbarpadding") {
 		UiRect rcPadding;
-		LPTSTR pstr = NULL;
-		rcPadding.left = wcstol(strValue.c_str(), &pstr, 10);  ASSERT(pstr);
-		rcPadding.top = wcstol(pstr + 1, &pstr, 10);    ASSERT(pstr);
-		rcPadding.right = wcstol(pstr + 1, &pstr, 10);  ASSERT(pstr);
-		rcPadding.bottom = wcstol(pstr + 1, &pstr, 10); ASSERT(pstr);
+		AttributeUtil::ParseRectValue(strValue.c_str(), rcPadding);
 		SetProgressBarPadding(rcPadding);
 	}
 	else Progress::SetAttribute(strName, strValue);

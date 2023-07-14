@@ -9,6 +9,7 @@
 #include "duilib/Core/Window.h"
 #include "duilib/Image/Image.h"
 #include "duilib/Utils/StringUtil.h"
+#include "duilib/Utils/AttributeUtil.h"
 #include "duilib/Render/IRender.h"
 #include "duilib/Animation/AnimationManager.h"
 #include "duilib/Animation/AnimationPlayer.h"
@@ -393,11 +394,7 @@ void LabelTemplate<InheritType>::SetAttribute(const std::wstring& strName, const
     else if (strName == L"disabledtextcolor")	SetStateTextColor(kControlStateDisabled, strValue);
     else if (strName == L"textpadding") {
         UiRect rcTextPadding;
-        LPTSTR pstr = nullptr;
-        rcTextPadding.left = wcstol(strValue.c_str(), &pstr, 10);  ASSERT(pstr);
-        rcTextPadding.top = wcstol(pstr + 1, &pstr, 10);    ASSERT(pstr);
-        rcTextPadding.right = wcstol(pstr + 1, &pstr, 10);  ASSERT(pstr);
-        rcTextPadding.bottom = wcstol(pstr + 1, &pstr, 10); ASSERT(pstr);
+        AttributeUtil::ParseRectValue(strValue.c_str(), rcTextPadding);
         SetTextPadding(rcTextPadding);
     }
     else {

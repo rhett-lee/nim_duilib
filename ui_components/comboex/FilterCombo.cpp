@@ -1,6 +1,7 @@
 #include "FilterCombo.h"
 #include "duilib/Core/Window.h"
 #include "duilib/Utils/Macros.h"
+#include "duilib/Utils/AttributeUtil.h"
 #include "base/util/string_util.h"
 
 namespace nim_comp
@@ -363,9 +364,7 @@ void FilterCombo::SetAttribute(const std::wstring& strName, const std::wstring& 
 	else if (strName == L"dropboxsize")
 	{
 		ui::UiSize szDropBoxSize;
-		LPTSTR pstr = NULL;
-		szDropBoxSize.cx = wcstol(strValue.c_str(), &pstr, 10); ASSERT(pstr);
-		szDropBoxSize.cy = wcstol(pstr + 1, &pstr, 10); ASSERT(pstr);
+		ui::AttributeUtil::ParseSizeValue(strValue.c_str(), szDropBoxSize);
 		SetDropBoxSize(szDropBoxSize);
 	}
 	else if (strName == L"popuptop") SetPopupTop(strValue == L"true");

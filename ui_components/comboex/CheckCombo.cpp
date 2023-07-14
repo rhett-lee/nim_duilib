@@ -4,6 +4,7 @@
 #include "duilib/Control/ListBox.h"
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Utils/Macros.h"
+#include "duilib/Utils/AttributeUtil.h"
 
 namespace nim_comp
 {
@@ -232,9 +233,7 @@ namespace nim_comp
 		else if (strName == L"vscrollbar") {}
 		else if (strName == L"dropboxsize"){
 			ui::UiSize szDropBoxSize;
-			LPTSTR pstr = NULL;
-			szDropBoxSize.cx = wcstol(strValue.c_str(), &pstr, 10); ASSERT(pstr);
-			szDropBoxSize.cy = wcstol(pstr + 1, &pstr, 10); ASSERT(pstr);
+			ui::AttributeUtil::ParseSizeValue(strValue.c_str(), szDropBoxSize);
 			SetDropBoxSize(szDropBoxSize);
 		}
 		else if (strName == L"popuptop") SetPopupTop(strValue == L"true");

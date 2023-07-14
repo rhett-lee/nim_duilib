@@ -127,9 +127,7 @@ void Progress::SetAttribute(const std::wstring& srName, const std::wstring& strV
     else if (srName == L"progressimage") SetProgressImage(strValue);
     else if (srName == L"isstretchfore") SetStretchForeImage(strValue == L"true");
     else if (srName == L"progresscolor") {
-        LPCTSTR pValue = strValue.c_str();
-        while (*pValue > L'\0' && *pValue <= L' ') pValue = ::CharNext(pValue);
-        SetProgressColor(pValue);
+        SetProgressColor(strValue);
     }
     else if (srName == L"marquee") SetMarquee(strValue == L"true");
     else if (srName == L"marqueewidth") SetMarqueeWidth(_wtoi(strValue.c_str()));

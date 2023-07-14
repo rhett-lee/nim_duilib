@@ -273,6 +273,9 @@
     <ClCompile Include="Core\EventArgs.cpp">
       <Filter>Core</Filter>
     </ClCompile>
+    <ClCompile Include="Utils\AttributeUtil.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -568,6 +571,9 @@
     </ClInclude>
     <ClInclude Include="Core\EventArgs.h">
       <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\AttributeUtil.h">
+      <Filter>Utils</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

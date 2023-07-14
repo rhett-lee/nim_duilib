@@ -247,19 +247,13 @@ void Combo::SetAttribute(const std::wstring& strName, const std::wstring& strVal
 	else if (strName == L"dropboxsize")
 	{
 		UiSize szDropBoxSize;
-		LPTSTR pstr = NULL;
-		szDropBoxSize.cx = wcstol(strValue.c_str(), &pstr, 10); ASSERT(pstr);
-		szDropBoxSize.cy = wcstol(pstr + 1, &pstr, 10); ASSERT(pstr);
+		AttributeUtil::ParseSizeValue(strValue.c_str(), szDropBoxSize);
 		SetDropBoxSize(szDropBoxSize);
 	}
 	else if (strName == L"popuptop") SetPopupTop(strValue == L"true");
 	else if (strName == L"textpadding") {
 		UiRect rcTextPadding;
-		LPTSTR pstr = NULL;
-		rcTextPadding.left = wcstol(strValue.c_str(), &pstr, 10);  ASSERT(pstr);
-		rcTextPadding.top = wcstol(pstr + 1, &pstr, 10);    ASSERT(pstr);
-		rcTextPadding.right = wcstol(pstr + 1, &pstr, 10);  ASSERT(pstr);
-		rcTextPadding.bottom = wcstol(pstr + 1, &pstr, 10); ASSERT(pstr);
+		AttributeUtil::ParseRectValue(strValue.c_str(), rcTextPadding);
 		SetTextPadding(rcTextPadding);
 	}
 	else Box::SetAttribute(strName, strValue);

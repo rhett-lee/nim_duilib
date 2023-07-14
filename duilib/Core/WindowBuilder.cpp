@@ -23,10 +23,9 @@
 #include "duilib/Box/TileBox.h"
 
 #include "duilib/Utils/StringUtil.h"
+#include "duilib/Utils/AttributeUtil.h"
 
 #include "duilib/third_party/xml/pugixml.hpp"
-
-#include <tchar.h>
 
 namespace ui 
 {
@@ -119,81 +118,31 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
 		std::wstring strValue;
 		strClass = root.name();
 
-		if( strClass == _T("Window") ) {
+		if( strClass == L"Window" ) {
 			if( pWindow->GetHWND() ) {
 				//首先处理mininfo和maxinfo，因为其他属性有用到这两个属性的
 				for (pugi::xml_attribute attr : root.attributes()) {
 					strName = attr.name();
 					strValue = attr.value();
-					if (strName == _T("mininfo")) {
-						LPTSTR pstr = NULL;
-						int cx = _tcstol(strValue.c_str(), &pstr, 10);  ASSERT(pstr);
-						int cy = _tcstol(pstr + 1, &pstr, 10);    ASSERT(pstr);
-						pWindow->SetMinInfo(cx, cy);
+					if (strName == L"mininfo") {
+						UiSize size;
+						AttributeUtil::ParseSizeValue(strValue.c_str(), size);
+						pWindow->SetMinInfo(size.cx, size.cy);
 					}
-					else if (strName == _T("maxinfo")) {
-						LPTSTR pstr = NULL;
-						int cx = _tcstol(strValue.c_str(), &pstr, 10);  ASSERT(pstr);
-						int cy = _tcstol(pstr + 1, &pstr, 10);    ASSERT(pstr);
-						pWindow->SetMaxInfo(cx, cy);
+					else if (strName == L"maxinfo") {
+						UiSize size;
+						AttributeUtil::ParseSizeValue(strValue.c_str(), size);
+						pWindow->SetMaxInfo(size.cx, size.cy);
 					}
 				}
 				for (pugi::xml_attribute attr : root.attributes()) {
 					strName = attr.name();
 					strValue = attr.value();
-					//支持的格式：size="1200,800",或者size="50%,50%",或者size="1200,50%",size="50%,800"
-					//百分比是指屏幕宽度或者高度的百分比
 					if (strName == L"size") {
-						UiRect rcWork;
-						pWindow->GetMonitorWorkRect(rcWork);
-						wchar_t* pstr = nullptr;
-						std::tuple<int32_t, float> x = ParseString(strValue.c_str(), &pstr);
-						if ((pstr != nullptr) && (*pstr == L',')) {
-							//跳过逗号分隔符
-							pstr++;
-						}
-						std::tuple<int32_t, float> y = ParseString(pstr, &pstr);
-
-						//获取有效的百分比值
-						auto GetValidPercent = [](const std::tuple<int32_t, float>& xy) -> float {
-							float fPercent = std::get<1>(xy);
-							fPercent /= 100.0f;
-							ASSERT((fPercent >= 0.0001f) && (fPercent < 1.0001f));
-							if ((fPercent < 0.0001f) || (fPercent > 1.0001f)) {
-								fPercent = 0.75f;
-							}
-							return fPercent;
-						};
-
-						bool needScaleCX = true;
-						bool needScaleCY = true;
-						int cx = std::get<0>(x);
-						if (cx <= 0) {
-							float fPercent = GetValidPercent(x);
-							cx = (int)(rcWork.Width() * fPercent);
-							needScaleCX = false;
-						}
-						int cy = std::get<0>(y);
-						if (cy <= 0) {
-							float fPercent = GetValidPercent(y);
-							cy = (int)(rcWork.Height() * fPercent);
-							needScaleCY = false;
-						}
-
-						ASSERT((cx > 0) && (cy > 0));
-						if (cx < 0) {
-							cx = 0;
-						}
-						if (cy < 0) {
-							cy = 0;
-						}
-						if (needScaleCX) {
-							GlobalManager::Instance().Dpi().ScaleInt(cx);
-						}
-						if (needScaleCY) {
-							GlobalManager::Instance().Dpi().ScaleInt(cy);
-						}
-						
+						UiSize windowSize;
+						AttributeUtil::ParseWindowSize(pWindow, strValue.c_str(), windowSize);
+						int32_t cx = windowSize.cx;
+						int32_t cy = windowSize.cy;
 						UiSize minSize = pWindow->GetMinInfo();
 						UiSize maxSize = pWindow->GetMaxInfo();
 						if ((minSize.cx > 0) && (cx < minSize.cx)) {
@@ -210,74 +159,56 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
 						}
 						pWindow->SetInitSize(cx, cy, false, false);
 					}
-					else if( strName == _T("sizebox") ) {
+					else if( strName == L"sizebox" ) {
 						UiRect rcSizeBox;
-						LPTSTR pstr = NULL;
-						rcSizeBox.left = _tcstol(strValue.c_str(), &pstr, 10);  ASSERT(pstr);    
-						rcSizeBox.top = _tcstol(pstr + 1, &pstr, 10);    ASSERT(pstr);    
-						rcSizeBox.right = _tcstol(pstr + 1, &pstr, 10);  ASSERT(pstr);    
-						rcSizeBox.bottom = _tcstol(pstr + 1, &pstr, 10); ASSERT(pstr);    
+						AttributeUtil::ParseRectValue(strValue.c_str(), rcSizeBox);
 						pWindow->SetSizeBox(rcSizeBox);
 					}
-					else if( strName == _T("caption") ) {
+					else if( strName == L"caption" ) {
 						UiRect rcCaption;
-						LPTSTR pstr = NULL;
-						rcCaption.left = _tcstol(strValue.c_str(), &pstr, 10);  ASSERT(pstr);    
-						rcCaption.top = _tcstol(pstr + 1, &pstr, 10);    ASSERT(pstr);    
-						rcCaption.right = _tcstol(pstr + 1, &pstr, 10);  ASSERT(pstr);    
-						rcCaption.bottom = _tcstol(pstr + 1, &pstr, 10); ASSERT(pstr);
+						AttributeUtil::ParseRectValue(strValue.c_str(), rcCaption);
 						pWindow->SetCaptionRect(rcCaption);
 					}
-					else if( strName == _T("text") ) {
+					else if( strName == L"text" ) {
 						pWindow->SetText(strValue);
 					}
-					else if (strName == _T("textid")) {
+					else if (strName == L"textid") {
 						pWindow->SetTextId(strValue);
 					}
-					else if( strName == _T("roundcorner") ) {
-						LPTSTR pstr = NULL;
-						int cx = _tcstol(strValue.c_str(), &pstr, 10);  ASSERT(pstr);    
-						int cy = _tcstol(pstr + 1, &pstr, 10);    ASSERT(pstr); 
-						pWindow->SetRoundCorner(cx, cy);
+					else if( strName == L"roundcorner" ) {
+						UiSize size;
+						AttributeUtil::ParseSizeValue(strValue.c_str(), size);
+						pWindow->SetRoundCorner(size.cx, size.cy);
 					}								
-					else if (strName == _T("alphafixcorner") || strName == _T("custom_shadow")) {
+					else if (strName == L"alphafixcorner" || strName == L"custom_shadow") {
 						UiRect rc;
-						LPTSTR pstr = NULL;
-						rc.left = _tcstol(strValue.c_str(), &pstr, 10);  ASSERT(pstr);
-						rc.top = _tcstol(pstr + 1, &pstr, 10);    ASSERT(pstr);
-						rc.right = _tcstol(pstr + 1, &pstr, 10);  ASSERT(pstr);
-						rc.bottom = _tcstol(pstr + 1, &pstr, 10); ASSERT(pstr);
+						AttributeUtil::ParseRectValue(strValue.c_str(), rc);
 						pWindow->SetAlphaFixCorner(rc);
 					}
-					else if (strName == _T("renderalpha")) {
-						pWindow->SetRenderTransparent(strValue == _T("true"));
+					else if (strName == L"renderalpha") {
+						pWindow->SetRenderTransparent(strValue == L"true");
 					}
-					else if ((strName == _T("shadow_attached")) || (strName == _T("shadowattached"))) {
+					else if ((strName == L"shadow_attached") || (strName == L"shadowattached")) {
 						//设置是否支持窗口阴影（阴影实现有两种：层窗口和普通窗口）
-						pWindow->SetShadowAttached(strValue == _T("true"));
+						pWindow->SetShadowAttached(strValue == L"true");
 					}
-					else if ((strName == _T("shado_wimage")) || (strName == _T("shadowimage"))) {
+					else if ((strName == L"shado_wimage") || (strName == L"shadowimage")) {
 						//设置阴影图片
 						pWindow->SetShadowImage(strValue);
 					}
-					else if ((strName == _T("shadow_corner")) || (strName == _T("shadowcorner"))) {
+					else if ((strName == L"shadow_corner") || (strName == L"shadowcorner")) {
 						//设置窗口阴影的九宫格属性
 						UiRect rc;
-						LPTSTR pstr = NULL;
-						rc.left = _tcstol(strValue.c_str(), &pstr, 10);  ASSERT(pstr);
-						rc.top = _tcstol(pstr + 1, &pstr, 10);    ASSERT(pstr);
-						rc.right = _tcstol(pstr + 1, &pstr, 10);  ASSERT(pstr);
-						rc.bottom = _tcstol(pstr + 1, &pstr, 10); ASSERT(pstr);
+						AttributeUtil::ParseRectValue(strValue.c_str(), rc);
 						pWindow->SetShadowCorner(rc);
 					}
-					else if (strName == _T("layered_window")) {
+					else if ((strName == L"layered_window") || (strName == L"layeredwindow")) {
 						//设置是否设置层窗口属性（层窗口还是普通窗口）
-						pWindow->SetLayeredWindow(strValue == _T("true"));
+						pWindow->SetLayeredWindow(strValue == L"true");
 					}
-					else if (strName == _T("alpha")) {
+					else if (strName == L"alpha") {
 						//设置窗口的透明度（0 - 255），仅当使用层窗口时有效
-						LPTSTR pstr = NULL;
-						int nAlpha = _tcstol(strValue.c_str(), &pstr, 10);  ASSERT(pstr);
+						int nAlpha = wcstol(strValue.c_str(), nullptr, 10);
 						ASSERT(nAlpha >= 0 && nAlpha <= 255);
 						if ((nAlpha >= 0) && (nAlpha <= 255)) {
 							pWindow->SetWindowAlpha(nAlpha);
@@ -287,10 +218,10 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
 			}
 		}
 
-		if( strClass == _T("Global") ) {
+		if( strClass == L"Global" ) {
 			for(pugi::xml_node node : root.children()) {
 				strClass = node.name();
-				if( strClass == _T("Image") ) {
+				if( strClass == L"Image" ) {
 					ASSERT(FALSE);	//废弃
 				}
 				else if (strClass == L"FontResource") {
@@ -336,13 +267,13 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
 							bold = (strValue == L"true");
 						}
 						else if( strName == L"underline") {
-							underline = (strValue == _T("true"));
+							underline = (strValue == L"true");
 						}
 						else if (strName == L"strikeout") {
-							strikeout = (strValue == _T("true"));
+							strikeout = (strValue == L"true");
 						}
 						else if( strName == L"italic") {
-							italic = (strValue == _T("true"));
+							italic = (strValue == L"true");
 						}
 						else if( strName == L"default") {
 							isDefault = (strValue == L"true");
@@ -359,19 +290,19 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
 						GlobalManager::Instance().Font().AddFont(strFontId, fontInfo, isDefault);
 					}
 				}
-				else if( strClass == _T("Class") ) {
+				else if( strClass == L"Class" ) {
 					std::wstring strClassName;
 					std::wstring strAttribute;
 					for (pugi::xml_attribute attr : node.attributes()) {
 						strName = attr.name();
 						strValue = attr.value();
-						if( strName == _T("name") ) {
+						if( strName == L"name" ) {
 							strClassName = strValue;
 						}
-						else if( strName == _T("value") ) {
+						else if( strName == L"value" ) {
 							strAttribute.append(strValue);
 						}
-						else if (strName == _T("_value")) {
+						else if (strName == L"_value") {
 							strAttribute.append(StringHelper::Printf(L" value=\"%s\"",strValue.c_str()));
 						}
 						else {
@@ -384,45 +315,45 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
 						GlobalManager::Instance().AddClass(strClassName, strAttribute);
 					}
 				}
-				else if( strClass == _T("TextColor") ) {
+				else if( strClass == L"TextColor" ) {
 					std::wstring colorName = node.attribute(L"name").as_string();
 					std::wstring colorValue = node.attribute(L"value").as_string();
 					if(!colorName.empty() && !colorValue.empty()) {
 						ColorManager& colorManager = GlobalManager::Instance().Color();
 						colorManager.AddColor(colorName, colorValue);
-						if (colorName == _T("default_font_color")) {
+						if (colorName == L"default_font_color") {
 							colorManager.SetDefaultTextColor(colorName);
 						}
-						else if (colorName == _T("disabled_font_color")) {
+						else if (colorName == L"disabled_font_color") {
 							colorManager.SetDefaultDisabledTextColor(colorName);
 						}
-						else if (colorName == _T("default_link_font_color")) {
+						else if (colorName == L"default_link_font_color") {
 							colorManager.SetDefaultLinkFontColor(colorName);
 						}
-						else if (colorName == _T("hover_link_font_color")) {
+						else if (colorName == L"hover_link_font_color") {
 							colorManager.SetDefaultLinkHoverFontColor(colorName);
 						}
 					}
 				}
 			}
 		}
-		else if ( strClass == _T("Window") )
+		else if ( strClass == L"Window" )
 		{
 			for (pugi::xml_node node : root.children()) {
 				strClass = node.name();
-				if( strClass == _T("Class") ) {					
+				if( strClass == L"Class" ) {					
 					std::wstring strClassName;
 					std::wstring strAttribute;
 					for (pugi::xml_attribute attr : node.attributes()) {
 						strName = attr.name();
 						strValue = attr.value();
-						if( strName == _T("name") ) {
+						if( strName == L"name" ) {
 							strClassName = strValue;
 						}
-						else if( strName == _T("value") ) {
+						else if( strName == L"value" ) {
 							strAttribute.append(strValue);
 						}
-						else if (strName == _T("_value")) {
+						else if (strName == L"_value") {
 							strAttribute.append(StringHelper::Printf(L" value=\"%s\"", strValue.c_str()));
 						}
 						else {
@@ -436,16 +367,16 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
 						pWindow->AddClass(strClassName, strAttribute);
 					}
 				}
-				else if (strClass == _T("TextColor")) {
+				else if (strClass == L"TextColor") {
 					std::wstring strColorName;
 					std::wstring strColor;
 					for (pugi::xml_attribute attr : node.attributes()) {
 						strName = attr.name();
 						strValue = attr.value();
-						if (strName == _T("name")) {
+						if (strName == L"name") {
 							strColorName = strValue;
 						}
-						else if (strName == _T("value")) {
+						else if (strName == L"value") {
 							strColor = strValue;
 						}
 					}
@@ -459,8 +390,8 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
 
 	for (pugi::xml_node node : root.children()) {
 		std::wstring strClass = node.name();
-		if (strClass == _T("Image") || strClass == _T("FontResource") || strClass == _T("Font")
-			|| strClass == _T("Class") || strClass == _T("TextColor") ) {
+		if (strClass == L"Image" || strClass == L"FontResource" || strClass == L"Font"
+			|| strClass == L"Class" || strClass == L"TextColor" ) {
 
 		}
 		else {
@@ -471,7 +402,7 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
 				ParseXmlNode(node, pUserDefinedBox, pWindow);
 				int i = 0;
 				for (pugi::xml_attribute attr : node.attributes()) {					
-					if (_tcscmp(attr.name(), _T("class")) == 0) {
+					if (wcscmp(attr.name(), L"class") == 0) {
 						//class必须是第一个属性
 						ASSERT(i == 0);
 					}
@@ -572,7 +503,7 @@ Control* WindowBuilder::ParseXmlNode(const pugi::xml_node& xmlNode, Control* pPa
 			//读取节点的属性，设置控件的属性
 			int i = 0;
 			for (pugi::xml_attribute attr : node.attributes()) {
-				ASSERT(i == 0 || _tcscmp(attr.name(), L"class") != 0);	//class必须是第一个属性
+				ASSERT(i == 0 || wcscmp(attr.name(), L"class") != 0);	//class必须是第一个属性
 				++i;
 				pControl->SetAttribute(attr.name(), attr.value());
 			}
@@ -808,17 +739,17 @@ void WindowBuilder::AttachXmlEvent(bool bBubbled, const pugi::xml_node& node, Co
 	for (pugi::xml_attribute attr : node.attributes()) {
 		strName = attr.name();
 		strValue = attr.value();
-		ASSERT(i != 0 || strName == _T("type"));
-		ASSERT(i != 1 || strName == _T("receiver"));
-		ASSERT(i != 2 || strName == _T("applyattribute"));
+		ASSERT(i != 0 || strName == L"type");
+		ASSERT(i != 1 || strName == L"receiver");
+		ASSERT(i != 2 || strName == L"applyattribute");
 		++i;
-		if( strName == _T("type") ) {
+		if( strName == L"type" ) {
 			strType = strValue;
 		}
-		else if( strName == _T("receiver") ) {
+		else if( strName == L"receiver" ) {
 			strReceiver = strValue;
 		}
-		else if( strName == _T("applyattribute") ) {
+		else if( strName == L"applyattribute" ) {
 			strApplyAttribute = strValue;
 		}
 	}
@@ -837,34 +768,6 @@ void WindowBuilder::AttachXmlEvent(bool bBubbled, const pugi::xml_node& node, Co
 			}
 		}
 	}
-}
-
-std::tuple<int32_t, float> WindowBuilder::ParseString(const wchar_t* strValue, wchar_t** pEndPtr) const
-{
-	wchar_t* pstr = nullptr;
-	if ((strValue == nullptr) || (*strValue == L'\0')) {
-		if (pEndPtr != nullptr) {
-			*pEndPtr = pstr;
-		}
-		return std::tuple<int32_t, float>(0, 0.0f);
-	}
-	int32_t xValue = 0;
-	float xPercent = wcstof(strValue, &pstr);
-	ASSERT(pstr != nullptr);
-	if ((pstr != nullptr) && (*pstr == L'%')) {
-		//该值是百分比，跳过'%'字符
-		pstr++;
-	}
-	else {
-		//不是百分比, 而是整型值
-		xPercent = 0.0f;
-		xValue = wcstol(strValue, &pstr, 10);
-		ASSERT(pstr != nullptr);
-	}
-	if (pEndPtr != nullptr) {
-		*pEndPtr = pstr;
-	}
-	return std::tuple<int32_t, float>(xValue, xPercent);
 }
 
 } // namespace ui

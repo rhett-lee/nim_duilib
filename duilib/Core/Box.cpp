@@ -1,6 +1,7 @@
 #include "Box.h"
 #include "duilib/Core/Window.h"
 #include "duilib/Core/GlobalManager.h"
+#include "duilib/Utils/AttributeUtil.h"
 
 namespace ui
 {
@@ -105,11 +106,7 @@ bool Layout::SetAttribute(const std::wstring& strName, const std::wstring& strVa
 	bool hasAttribute = true;
 	if(strName == L"padding") {
 		UiRect rcPadding;
-		LPTSTR pstr = NULL;
-		rcPadding.left = wcstol(strValue.c_str(), &pstr, 10);  ASSERT(pstr);    
-		rcPadding.top = wcstol(pstr + 1, &pstr, 10);    ASSERT(pstr);
-		rcPadding.right = wcstol(pstr + 1, &pstr, 10);  ASSERT(pstr);
-		rcPadding.bottom = wcstol(pstr + 1, &pstr, 10); ASSERT(pstr);
+		AttributeUtil::ParseRectValue(strValue.c_str(), rcPadding);
 		SetPadding(rcPadding, true);
 	}
 	else if( strName == L"childmargin") {

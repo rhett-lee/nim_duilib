@@ -9,6 +9,7 @@
 #include "duilib/Animation/AnimationPlayer.h"
 #include "duilib/Animation/AnimationManager.h"
 #include "duilib/Utils/StringUtil.h"
+#include "duilib/Utils/AttributeUtil.h"
 #include <tchar.h>
 
 namespace ui 
@@ -945,17 +946,11 @@ void Control::SetAttribute(const std::wstring& strName, const std::wstring& strV
 	}
 	else if (strName == _T("margin")) {
 		UiRect rcMargin;
-		LPTSTR pstr = NULL;
-		rcMargin.left = _tcstol(strValue.c_str(), &pstr, 10);  ASSERT(pstr);
-		rcMargin.top = _tcstol(pstr + 1, &pstr, 10);    ASSERT(pstr);
-		rcMargin.right = _tcstol(pstr + 1, &pstr, 10);  ASSERT(pstr);
-		rcMargin.bottom = _tcstol(pstr + 1, &pstr, 10); ASSERT(pstr);
+		AttributeUtil::ParseRectValue(strValue.c_str(), rcMargin);
 		SetMargin(rcMargin, true);
 	}
 	else if (strName == _T("bkcolor") || strName == _T("bkcolor1")) {
-		LPCTSTR pValue = strValue.c_str();
-		while (*pValue > _T('\0') && *pValue <= _T(' ')) pValue = ::CharNext(pValue);
-		SetBkColor(pValue);
+		SetBkColor(strValue);
 	}
 	else if (strName == _T("bordersize")) {
 		std::wstring nValue = strValue;
@@ -966,19 +961,13 @@ void Control::SetAttribute(const std::wstring& strName, const std::wstring& strV
 		}
 		else {
 			UiRect rcBorder;
-			LPTSTR pstr = NULL;
-			rcBorder.left = _tcstol(strValue.c_str(), &pstr, 10);  ASSERT(pstr);
-			rcBorder.top = _tcstol(pstr + 1, &pstr, 10);    ASSERT(pstr);
-			rcBorder.right = _tcstol(pstr + 1, &pstr, 10);  ASSERT(pstr);
-			rcBorder.bottom = _tcstol(pstr + 1, &pstr, 10); ASSERT(pstr);
+			AttributeUtil::ParseRectValue(strValue.c_str(), rcBorder);
 			SetBorderSize(rcBorder);
 		}
 	}
 	else if (strName == _T("borderround")) {
 		UiSize cxyRound;
-		LPTSTR pstr = NULL;
-		cxyRound.cx = _tcstol(strValue.c_str(), &pstr, 10);  ASSERT(pstr);
-		cxyRound.cy = _tcstol(pstr + 1, &pstr, 10);    ASSERT(pstr);
+		AttributeUtil::ParseSizeValue(strValue.c_str(), cxyRound);
 		SetBorderRound(cxyRound);
 	}
 	else if (strName == _T("boxshadow")) SetBoxShadow(strValue);
@@ -1029,10 +1018,7 @@ void Control::SetAttribute(const std::wstring& strName, const std::wstring& strV
 	}
 	else if (strName == _T("renderoffset")) {
 		UiPoint renderOffset;
-		LPTSTR pstr = NULL;
-		renderOffset.x = _tcstol(strValue.c_str(), &pstr, 10);  ASSERT(pstr);
-		renderOffset.y = _tcstol(pstr + 1, &pstr, 10);    ASSERT(pstr);
-
+		AttributeUtil::ParsePointValue(strValue.c_str(), renderOffset);
 		GlobalManager::Instance().Dpi().ScalePoint(renderOffset);
 		SetRenderOffset(renderOffset);
 	}
@@ -1106,54 +1092,47 @@ void Control::SetClass(const std::wstring& strClass)
 
 void Control::ApplyAttributeList(const std::wstring& strList)
 {
-    std::wstring sItem;
-    std::wstring sValue;
-	LPCTSTR pstrList = strList.c_str();
-    while( *pstrList != _T('\0') ) {
-        sItem.clear();
-        sValue.clear();
-        while( *pstrList != _T('\0') && *pstrList != _T('=') ) {
-            LPTSTR pstrTemp = ::CharNext(pstrList);
-            while( pstrList < pstrTemp) {
-                sItem += *pstrList++;
-            }
-        }
-        ASSERT( *pstrList == _T('=') );
-        if( *pstrList++ != _T('=') ) return;
-        ASSERT( *pstrList == _T('\"') );
-        if( *pstrList++ != _T('\"') ) return;
-        while( *pstrList != _T('\0') && *pstrList != _T('\"') ) {
-            LPTSTR pstrTemp = ::CharNext(pstrList);
-            while( pstrList < pstrTemp) {
-                sValue += *pstrList++;
-            }
-        }
-        ASSERT( *pstrList == _T('\"') );
-        if( *pstrList++ != _T('\"') ) return;
-        SetAttribute(sItem, sValue);
-        if( *pstrList++ != _T(' ') ) return;
-    }
-    return;
+	//属性列表，先解析，然后再应用
+	std::vector<std::pair<std::wstring, std::wstring>> attributeList;
+	AttributeUtil::ParseAttributeList(strList, L'\"', attributeList);
+	for (const auto& attribute : attributeList) {
+		SetAttribute(attribute.first, attribute.second);
+	}
 }
 
 bool Control::OnApplyAttributeList(const std::wstring& strReceiver, const std::wstring& strList, const EventArgs& /*eventArgs*/)
 {
+	bool isFindSubControl = false;
+	std::wstring receiverName = strReceiver;
+	if (receiverName.size() >= 2) {
+		if (receiverName.substr(0, 2) == L".\\" || receiverName.substr(0, 2) == L"./") {
+			receiverName = receiverName.substr(2);
+			isFindSubControl = true;
+		}
+	}
 	Control* pReceiverControl = nullptr;
-	if (strReceiver.substr(0, 2) == L".\\" || strReceiver.substr(0, 2) == L"./") {
-		pReceiverControl = ((Box*)this)->FindSubControl(strReceiver.substr(2));
+	if (isFindSubControl) {
+		Box* pBox = dynamic_cast<Box*>(this);
+		if (pBox != nullptr) {
+			pReceiverControl = pBox->FindSubControl(receiverName);
+		}
 	}
 	else {
-		pReceiverControl = GetWindow()->FindControl(strReceiver);
+		pReceiverControl = GetWindow()->FindControl(receiverName);
 	}
 
-	if (pReceiverControl) {
-		pReceiverControl->ApplyAttributeList(strList);
+	if (pReceiverControl != nullptr) {
+		std::wstring strValueList = strList;
+		//这个是手工写入的属性，以花括号{}代替双引号，编写的时候就不需要转义字符了；
+		StringHelper::ReplaceAll(L"{", L"\"", strValueList);
+		StringHelper::ReplaceAll(L"}", L"\"", strValueList);
+		pReceiverControl->ApplyAttributeList(strValueList);
+		return true;
 	}
 	else {
-		ASSERT(FALSE);
-	}
-
-	return true;
+		ASSERT(!"Control::OnApplyAttributeList error!");
+		return false;
+	}	
 }
 
 bool Control::PaintImage(IRender* pRender,  Image& duiImage,

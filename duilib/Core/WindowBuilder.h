@@ -3,11 +3,11 @@
 
 #pragma once
 
-#include "duilib/duilib_defs.h"
+#include "duilib/Core/UiSize.h"
+#include "duilib/Core/UiRect.h"
 #include <functional>
 #include <string>
 #include <memory>
-#include <tuple>
 
 namespace pugi
 {
@@ -72,12 +72,8 @@ private:
 	Control* CreateControlByClass(const std::wstring& strControlClass);
 	void AttachXmlEvent(bool bBubbled, const pugi::xml_node& node, Control* pParent);
 
-    /** 解析一个字符串（格式为："500,"或者"50%,"，逗号可有可无，也可以是其他字符），得到整型值或者浮点数
-    * @param [in] strValue 待解析的字符串地址
-    * @param [out] pEndPtr 解析完成后，字符串结束地址，用于继续解析后面的内容
-    * @return 返回整型值或者百分比，返回值中，0 或者 0.0f 表示无效值
-    */
-    std::tuple<int32_t, float> ParseString(const wchar_t* strValue, wchar_t** pEndPtr) const;
+private:
+ 
 
 private:
     std::unique_ptr<pugi::xml_document> m_xml;

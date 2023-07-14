@@ -82,9 +82,8 @@ UiColor ColorManager::ConvertToUiColor(const std::wstring& strColor)
 			return color;
 		}
 	}
-	LPTSTR pstr = nullptr;
 	std::wstring colorValue = strColor.substr(1);
-	UiColor::ARGB argb = wcstoul(colorValue.c_str(), &pstr, 16);
+	UiColor::ARGB argb = wcstoul(colorValue.c_str(), nullptr, 16);
 	return UiColor(argb);
 }
 

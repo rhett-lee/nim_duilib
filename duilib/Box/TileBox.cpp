@@ -1,5 +1,6 @@
 #include "TileBox.h"
 #include "duilib/Core/GlobalManager.h"
+#include "duilib/Utils/AttributeUtil.h"
 
 namespace ui
 {
@@ -191,9 +192,7 @@ bool TileLayout::SetAttribute(const std::wstring& strName, const std::wstring& s
 	bool hasAttribute = true;
 	if( strName == L"itemsize") {
 		UiSize szItem;
-		LPTSTR pstr = NULL;
-		szItem.cx = wcstol(strValue.c_str(), &pstr, 10);  ASSERT(pstr);
-		szItem.cy = wcstol(pstr + 1, &pstr, 10);   ASSERT(pstr);
+		AttributeUtil::ParseSizeValue(strValue.c_str(), szItem);
 		SetItemSize(szItem);
 	}
 	else if( strName == L"columns") {

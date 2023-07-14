@@ -2916,32 +2916,24 @@ void RichEdit::SetAttribute(const std::wstring& strName, const std::wstring& str
 		}
 	}
 	else if (strName == _T("normaltextcolor")) {
-		LPCTSTR pValue = strValue.c_str();
-		while (*pValue > _T('\0') && *pValue <= _T(' ')) pValue = ::CharNext(pValue);
-		m_sTextColor = pValue;
+		m_sTextColor = strValue;
 		if (IsEnabled())
 			SetTextColor(m_sTextColor);
 	}
 	else if (strName == L"disabledtextcolor") {
-		LPCTSTR pValue = strValue.c_str();
-		while (*pValue > _T('\0') && *pValue <= _T(' ')) pValue = ::CharNext(pValue);
-		m_sDisabledTextColor = pValue;
+		m_sDisabledTextColor = strValue;
 		if (!IsEnabled())
 			SetTextColor(m_sDisabledTextColor);
 	}
 	else if (strName == L"caretcolor") {
-		LPCTSTR pValue = strValue.c_str();
-		while (*pValue > _T('\0') && *pValue <= _T(' ')) pValue = ::CharNext(pValue);
-		SetCaretColor(pValue);
+		SetCaretColor(strValue);
 	}
 	else if (strName == _T("promptmode")) {
 		if (strValue == _T("true"))
 			m_bAllowPrompt = true;
 	}
 	else if (strName == _T("promptcolor")) {
-		LPCTSTR pValue = strValue.c_str();
-		while (*pValue > _T('\0') && *pValue <= _T(' ')) pValue = ::CharNext(pValue);
-		m_sPromptColor = pValue;
+		m_sPromptColor = strValue;
 	}
 	else if (strName == _T("prompttext")) SetPromptText(strValue);
 	else if (strName == _T("prompttextid")) SetPromptTextId(strValue);

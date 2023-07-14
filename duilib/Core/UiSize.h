@@ -61,7 +61,7 @@ public:
 
 	/** cx和cy都设置为0
 	*/
-	void SetEmpty() 
+	void Clear() 
 	{ 
 		cx = 0; 
 		cy = 0; 

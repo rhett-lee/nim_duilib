@@ -22,19 +22,13 @@ void CircleProgress::SetAttribute(const std::wstring& srName, const std::wstring
 	else if (srName == L"indicator") SetIndicator(strValue);
 	else if (srName == L"clockwise") SetClockwiseRotation(strValue == L"true");
 	else if (srName == L"bgcolor") {
-		LPCTSTR pValue = strValue.c_str();
-		while (*pValue > '\0' && *pValue <= ' ') pValue = ::CharNext(pValue);
-		SetBackgroudColor(pValue);
+		SetBackgroudColor(strValue);
 	}
 	else if (srName == L"fgcolor") {
-		LPCTSTR pValue = strValue.c_str();
-		while (*pValue > L'\0' && *pValue <= L' ') pValue = ::CharNext(pValue);
-		SetForegroudColor(pValue);
+		SetForegroudColor(strValue);
 	}
 	else if (srName == L"gradientcolor") {
-		LPCTSTR pValue = strValue.c_str();
-		while (*pValue > L'\0' && *pValue <= L' ') pValue = ::CharNext(pValue);
-		SetCircleGradientColor(pValue);
+		SetCircleGradientColor(strValue);
 	}
 	else Progress::SetAttribute(srName, strValue);
 }
