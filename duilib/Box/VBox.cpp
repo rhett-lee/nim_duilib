@@ -71,7 +71,7 @@ UiSize64 VLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 		itemsMap[pControl] = sz;
 	}
 	if (!itemsMap.empty()) {
-		cyFixedTotal += ((int)itemsMap.size() - 1) * m_iChildMargin;
+		cyFixedTotal += ((int)itemsMap.size() - 1) * GetChildMarginY();
 	}
 	
 	//每个高度为stretch的控件，给与分配的实际高度（取平均值）
@@ -174,11 +174,11 @@ UiSize64 VLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 		cxNeeded = std::max(cxNeeded, (int64_t)controlRect.Width());
 
 		//调整当前Y轴坐标值
-		iPosY += (sz.cy + rcMargin.top + rcMargin.bottom + m_iChildMargin);
+		iPosY += (sz.cy + rcMargin.top + rcMargin.bottom + GetChildMarginY());
 		cyNeeded += (sz.cy + rcMargin.top + rcMargin.bottom);
 	}
 	if (!itemsMap.empty()) {
-		cyNeeded += ((int)itemsMap.size() - 1) * m_iChildMargin;
+		cyNeeded += ((int)itemsMap.size() - 1) * GetChildMarginY();
 	}
 
 	UiSize64 size(cxNeeded, cyNeeded);
@@ -215,10 +215,11 @@ UiSize VLayout::EstimateSizeByChild(const std::vector<Control*>& items, UiSize s
 	}
 
 	if ((estimateCount - 1) > 0) {
-		totalSize.cy += (estimateCount - 1) * m_iChildMargin;
+		totalSize.cy += (estimateCount - 1) * GetChildMarginY();
 	}
-	totalSize.cx += (m_rcPadding.left + m_rcPadding.right);
-	totalSize.cy += (m_rcPadding.top + m_rcPadding.bottom);
+	UiRect rcPadding = GetPadding();
+	totalSize.cx += (rcPadding.left + rcPadding.right);
+	totalSize.cy += (rcPadding.top + rcPadding.bottom);
 	return totalSize;
 }
 

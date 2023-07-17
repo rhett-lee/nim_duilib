@@ -66,10 +66,10 @@ UiSize64 TileLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 				UiRect rcMargin = pLineControl->GetMargin();
 				UiSize szAvailable(rcTile.right - rcTile.left - rcMargin.left - rcMargin.right, 9999);
 				if( iIndex == iCount || (iIndex + 1) % m_nColumns == 0 ) {
-					szAvailable.cx -= m_iChildMargin / 2;
+					szAvailable.cx -= GetChildMarginX() / 2;
 				}
 				else {
-					szAvailable.cx -= m_iChildMargin;
+					szAvailable.cx -= GetChildMarginX();
 				}
 
 				if (szAvailable.cx < pControl->GetMinWidth()) {
@@ -102,8 +102,8 @@ UiSize64 TileLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 
 		UiRect rcMargin = pControl->GetMargin();
 		UiRect newRcTile = rcTile;
-		newRcTile.left += rcMargin.left + m_iChildMargin / 2;
-		newRcTile.right -= rcMargin.right + m_iChildMargin / 2;
+		newRcTile.left += rcMargin.left + GetChildMarginX() / 2;
+		newRcTile.right -= rcMargin.right + GetChildMarginX() / 2;
 			
 		// Set position
 		newRcTile.top = ptTile.y + rcMargin.top;
@@ -135,7 +135,7 @@ UiSize64 TileLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 
 		if( (++iCount % m_nColumns) == 0 ) {
 			ptTile.x = iPosX;
-			ptTile.y += cyHeight + m_iChildMargin;
+			ptTile.y += cyHeight + GetChildMarginY();
 			cyHeight = 0;
 			tmpDeviation = deviation;
 		}
@@ -173,14 +173,15 @@ UiSize TileLayout::EstimateSizeByChild(const std::vector<Control*>& items, UiSiz
 	if (visibleCount > 0) {
 		int childMarginTotal = 0;
 		if (visibleCount % m_nColumns == 0) {
-			childMarginTotal = (visibleCount / m_nColumns - 1) * m_iChildMargin;
+			childMarginTotal = (visibleCount / m_nColumns - 1) * GetChildMarginY();
 		}
 		else {
-			childMarginTotal = (visibleCount / m_nColumns) * m_iChildMargin;
+			childMarginTotal = (visibleCount / m_nColumns) * GetChildMarginY();
 		}
 		Control* pControl = (Control*)(items[0]);
 		if (pControl != nullptr) {
-			size.cy += pControl->GetFixedHeight() * rows + m_rcPadding.top + m_rcPadding.bottom + childMarginTotal;
+			UiRect rcPadding = GetPadding();
+			size.cy += pControl->GetFixedHeight() * rows + rcPadding.top + rcPadding.bottom + childMarginTotal;
 		}		
 	}
 

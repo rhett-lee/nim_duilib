@@ -71,7 +71,7 @@ UiSize64 HLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 		itemsMap[pControl] = sz;
 	}
 	if (!itemsMap.empty()) {
-		cxFixedTotal += ((int)itemsMap.size() - 1) * m_iChildMargin;
+		cxFixedTotal += ((int)itemsMap.size() - 1) * GetChildMarginX();
 	}
 
 	int cxStretch = 0;	
@@ -169,11 +169,11 @@ UiSize64 HLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 		pControl->SetPos(rcChildPos);
 		cyNeeded = std::max(cyNeeded, (int64_t)rcChildPos.Height());
 
-		iPosX += (sz.cx + rcMargin.left + m_iChildMargin + rcMargin.right);
+		iPosX += (sz.cx + rcMargin.left + GetChildMarginX() + rcMargin.right);
 		cxNeeded += (sz.cx + rcMargin.left + rcMargin.right);
 	}
 	if (!itemsMap.empty()) {
-		cxNeeded += ((int)itemsMap.size() - 1) * m_iChildMargin;
+		cxNeeded += ((int)itemsMap.size() - 1) * GetChildMarginX();
 	}
 
 	UiSize64 size(cxNeeded, cyNeeded);
@@ -211,10 +211,12 @@ UiSize HLayout::EstimateSizeByChild(const std::vector<Control*>& items, UiSize s
 	}
 
 	if ((estimateCount - 1) > 0) {
-		totalSize.cx += (estimateCount - 1) * m_iChildMargin;
+		totalSize.cx += (estimateCount - 1) * GetChildMarginX();
 	}
-	totalSize.cx += (m_rcPadding.left + m_rcPadding.right);
-	totalSize.cy += (m_rcPadding.top + m_rcPadding.bottom);
+
+	UiRect rcPadding = GetPadding();
+	totalSize.cx += (rcPadding.left + rcPadding.right);
+	totalSize.cy += (rcPadding.top + rcPadding.bottom);
 	return totalSize;
 }
 

@@ -71,18 +71,30 @@ public:
 	 */
 	void SetPadding(UiRect rcPadding, bool bNeedDpiScale);
 
-	/**
-	 * @brief 获取子控件之间的额外边距
+	/** 获取子控件之间的额外边距（X轴方向）
 	 * @return 返回额外间距的数值
 	 */
-	int GetChildMargin() const { return m_iChildMargin; }
+	int32_t GetChildMarginX() const { return m_iChildMarginX; }
 
-	/**
-	 * @brief 设置子控件之间的额外边距
-	 * @param[in] iMargin 要设置的边距数值
-	 * @return 无
+	/** 获取子控件之间的额外边距（Y轴方向）
+	 * @return 返回额外间距的数值
 	 */
-	void SetChildMargin(int iMargin);
+	int32_t GetChildMarginY() const { return m_iChildMarginY; }
+
+	/** 设置子控件之间的额外边距（X轴方向）
+	 * @param[in] iMarginX 要设置的边距数值
+	 */
+	void SetChildMarginX(int32_t iMarginX);
+
+	/** 设置子控件之间的额外边距（Y轴方向）
+	 * @param[in] iMarginY 要设置的边距数值
+	 */
+	void SetChildMarginY(int32_t iMarginY);
+
+	/** 设置子控件之间的额外边距（X轴方向和Y轴方向，均设置为同一个值）
+	 * @param[in] iMargin 要设置的边距数值
+	 */
+	void SetChildMargin(int32_t iMargin);
 
 	/**
 	 * @brief 获取除了内边距外的可用范围
@@ -92,14 +104,18 @@ public:
 
 protected:
 
+	//所属Box对象
+	Box* m_pOwner;
+
+private:
 	//内边距四边的大小
 	UiRect m_rcPadding;
 
-	//子控件之间的额外边距
-	int m_iChildMargin;
+	//子控件之间的额外边距: X 轴方向
+	int32_t m_iChildMarginX;
 
-	//所属Box对象
-	Box *m_pOwner;
+	//子控件之间的额外边距: Y 轴方向
+	int32_t m_iChildMarginY;
 };
 
 

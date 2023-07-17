@@ -7,7 +7,8 @@ namespace ui
 {
 Layout::Layout() :
 	m_rcPadding(0, 0, 0, 0),
-	m_iChildMargin(0),
+	m_iChildMarginX(0),
+	m_iChildMarginY(0),
 	m_pOwner(nullptr)
 {
 
@@ -111,7 +112,16 @@ bool Layout::SetAttribute(const std::wstring& strName, const std::wstring& strVa
 		SetPadding(rcPadding, true);
 	}
 	else if ((strName == L"child_margin") || (strName == L"childmargin")) {
-		SetChildMargin(_wtoi(strValue.c_str()));
+		int32_t iMargin = _wtoi(strValue.c_str());
+		SetChildMargin(iMargin);
+	}
+	else if ((strName == L"child_margin_x") || (strName == L"childmarginx")) {
+		int32_t iMargin = _wtoi(strValue.c_str());
+		SetChildMarginX(iMargin);
+	}
+	else if ((strName == L"child_margin_y") || (strName == L"childmarginy")) {
+		int32_t iMargin = _wtoi(strValue.c_str());
+		SetChildMarginY(iMargin);
 	}
 	else {
 		hasAttribute = false;
@@ -186,14 +196,42 @@ void Layout::SetPadding(UiRect rcPadding, bool bNeedDpiScale /*= true*/)
 	}
 }
 
-void Layout::SetChildMargin(int iMargin)
+void Layout::SetChildMargin(int32_t iMargin)
 {
 	ASSERT(iMargin >= 0);
 	iMargin = std::max(iMargin, 0);
 	GlobalManager::Instance().Dpi().ScaleInt(iMargin);
-	m_iChildMargin = iMargin;
+	bool isChanged = (m_iChildMarginX != iMargin) || (m_iChildMarginY != iMargin);
+	m_iChildMarginX = iMargin;
+	m_iChildMarginY = iMargin;
 	ASSERT(m_pOwner != nullptr);
-	if (m_pOwner != nullptr) {
+	if (isChanged && (m_pOwner != nullptr)) {
+		m_pOwner->Arrange();
+	}
+}
+
+void Layout::SetChildMarginX(int32_t iMarginX)
+{
+	ASSERT(iMarginX >= 0);
+	iMarginX = std::max(iMarginX, 0);
+	GlobalManager::Instance().Dpi().ScaleInt(iMarginX);
+	bool isChanged = (m_iChildMarginX != iMarginX);
+	m_iChildMarginX = iMarginX;
+	ASSERT(m_pOwner != nullptr);
+	if (isChanged && (m_pOwner != nullptr)) {
+		m_pOwner->Arrange();
+	}
+}
+
+void Layout::SetChildMarginY(int32_t iMarginY)
+{
+	ASSERT(iMarginY >= 0);
+	iMarginY = std::max(iMarginY, 0);
+	GlobalManager::Instance().Dpi().ScaleInt(iMarginY);
+	bool isChanged = (m_iChildMarginY != iMarginY);
+	m_iChildMarginY = iMarginY;
+	ASSERT(m_pOwner != nullptr);
+	if (isChanged && (m_pOwner != nullptr)) {
 		m_pOwner->Arrange();
 	}
 }

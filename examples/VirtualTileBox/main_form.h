@@ -44,5 +44,6 @@ private:
 	ui::RichEdit* m_EditUpdate;
 	ui::RichEdit* m_EditTaskName;
 	ui::RichEdit* m_EditDelete;
-	ui::RichEdit* m_EditChildMargin;
+	ui::RichEdit* m_EditChildMarginX;
+	ui::RichEdit* m_EditChildMarginY;
 };

@@ -278,7 +278,7 @@ ui::UiSize PopoverHeader::EstimateSize(ui::UiSize szAvailable)
       editMaxSize.cx -= m_pButtonClose->GetFixedWidth();
     }
 
-    int childMargin = GetLayout()->GetChildMargin();
+    int childMargin = GetLayout()->GetChildMarginX();
     editMaxSize.cx -= ((int)m_items.size() - 1) * childMargin;
 
     ui::UiSize editSize{ 0,0 };
@@ -486,7 +486,7 @@ ui::UiSize PopoverFooter::EstimateSize(ui::UiSize szAvailable)
       cancelSize.cy = m_pButtonCancel->GetFixedHeight();
     }
 
-    int childMargin = GetLayout()->GetChildMargin();
+    int childMargin = GetLayout()->GetChildMarginX();
 
     fixedSize.cx = okSize.cx + cancelSize.cx +
       paddingRect.left + paddingRect.right +

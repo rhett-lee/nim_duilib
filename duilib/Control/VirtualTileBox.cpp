@@ -50,7 +50,7 @@ ui::UiSize VirtualTileLayout::EstimateSizeByChild(const std::vector<ui::Control*
     ASSERT(m_nColumns > 0);
     ui::UiSize size = m_pOwner->Control::EstimateSize(szAvailable);
     if (size.cx == DUI_LENGTH_AUTO || size.cx == 0) {
-        size.cx = m_szItem.cx * m_nColumns + m_iChildMargin * (m_nColumns - 1);
+        size.cx = m_szItem.cx * m_nColumns + GetChildMarginX() * (m_nColumns - 1);
     }
     return size;
 }
@@ -77,11 +77,11 @@ int64_t VirtualTileLayout::GetElementsHeight(size_t nCount)
 {
     ASSERT(m_nColumns > 0);
     if (m_nColumns < 1) {
-        return m_szItem.cy + m_iChildMargin;
+        return m_szItem.cy + GetChildMarginY();
     }
     if (nCount <= m_nColumns && nCount != Box::InvalidIndex) {
         //不到1行，或者刚好1行
-        return m_szItem.cy + m_iChildMargin;
+        return m_szItem.cy + GetChildMarginY();
     }
     if (!Box::IsValidItemIndex(nCount)) {
         VirtualTileBox* pList = dynamic_cast<VirtualTileBox*>(m_pOwner);
@@ -92,7 +92,7 @@ int64_t VirtualTileLayout::GetElementsHeight(size_t nCount)
     }
     if (!Box::IsValidItemIndex(nCount)) {
         ASSERT(FALSE);
-        return m_szItem.cy + m_iChildMargin;
+        return m_szItem.cy + GetChildMarginY();
     }
 
     int64_t rows = nCount / m_nColumns;
@@ -100,8 +100,8 @@ int64_t VirtualTileLayout::GetElementsHeight(size_t nCount)
         rows += 1;
     }
     int64_t iChildMargin = 0;
-    if (m_iChildMargin > 0) {
-        iChildMargin = m_iChildMargin;
+    if (GetChildMarginY() > 0) {
+        iChildMargin = GetChildMarginY();
     }
     if (nCount > 0) {
         int64_t childMarginTotal = 0;
@@ -166,10 +166,10 @@ void VirtualTileLayout::LazyArrangeChild()
 
         if ((++iCount % m_nColumns) == 0) {
             ptTile.x = iPosLeft;
-            ptTile.y += m_szItem.cy + m_iChildMargin;
+            ptTile.y += m_szItem.cy + GetChildMarginY();
         }
         else {
-            ptTile.x += rcTile.Width() + m_iChildMargin;
+            ptTile.x += rcTile.Width() + GetChildMarginX();
         }
     }
 }
@@ -187,10 +187,10 @@ size_t VirtualTileLayout::AjustMaxItem()
     if (m_bAutoCalcColumn || (m_nColumns <= 0)) {
         //计算需要几列
         if (m_szItem.cx > 0) {
-            m_nColumns = rc.Width() / (m_szItem.cx + m_iChildMargin / 2);
+            m_nColumns = rc.Width() / (m_szItem.cx + GetChildMarginX() / 2);
             //验证并修正
             if (m_nColumns > 1) {
-                int32_t calcWidth = m_nColumns * m_szItem.cx + (m_nColumns - 1) * m_iChildMargin;
+                int32_t calcWidth = m_nColumns * m_szItem.cx + (m_nColumns - 1) * GetChildMarginX();
                 if (calcWidth > rc.Width()) {
                     m_nColumns -= 1;
                 }
@@ -200,10 +200,10 @@ size_t VirtualTileLayout::AjustMaxItem()
     if (m_nColumns <= 0) {
         m_nColumns = 1;
     }
-    int32_t nRows = rc.Height() / (m_szItem.cy + m_iChildMargin / 2);
+    int32_t nRows = rc.Height() / (m_szItem.cy + GetChildMarginY() / 2);
     //验证并修正
     if (nRows > 1) {
-        int32_t calcHeight = nRows * m_szItem.cy + (nRows - 1) * m_iChildMargin;
+        int32_t calcHeight = nRows * m_szItem.cy + (nRows - 1) * GetChildMarginY();
         if (calcHeight < rc.Height()) {
             nRows += 1;
         }

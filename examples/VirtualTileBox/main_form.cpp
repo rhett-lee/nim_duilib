@@ -38,7 +38,8 @@ void MainForm::OnInitWindow()
 	m_EditUpdate = dynamic_cast<ui::RichEdit*>(FindControl(L"edit_update"));
 	m_EditTaskName = dynamic_cast<ui::RichEdit*>(FindControl(L"edit_task_name"));
 	m_EditDelete = dynamic_cast<ui::RichEdit*>(FindControl(L"edit_delete"));
-	m_EditChildMargin = dynamic_cast<ui::RichEdit*>(FindControl(L"edit_child_margin"));
+	m_EditChildMarginX = dynamic_cast<ui::RichEdit*>(FindControl(L"edit_child_margin_x"));
+	m_EditChildMarginY = dynamic_cast<ui::RichEdit*>(FindControl(L"edit_child_margin_y"));
 
 	GetRoot()->AttachBubbledEvent(ui::kEventClick, nbase::Bind(&MainForm::OnClicked, this, std::placeholders::_1));
 
@@ -62,13 +63,15 @@ bool MainForm::OnClicked(const ui::EventArgs& args)
 	auto sName = args.pSender->GetName();
 	if (sName == L"btn_set_total")
 	{
-		if (!m_EditChildMargin->GetText().empty())
-		{
-			m_pTileList->SetAttribute(L"childmargin", m_EditChildMargin->GetText());
+		if (!m_EditChildMarginX->GetText().empty())	{
+			m_pTileList->SetAttribute(L"child_margin_x", m_EditChildMarginX->GetText());
 			m_pTileList->Refresh();
 		}
-		if (m_OptionColumnFix->IsSelected())
-		{
+		if (!m_EditChildMarginY->GetText().empty()) {
+			m_pTileList->SetAttribute(L"child_margin_y", m_EditChildMarginY->GetText());
+			m_pTileList->Refresh();
+		}
+		if (m_OptionColumnFix->IsSelected()) {
 			m_pTileList->SetAttribute(L"column", m_EditColumn->GetText());
 			if (m_CheckBoxItemCenter->IsSelected())
 			{
@@ -83,9 +86,7 @@ bool MainForm::OnClicked(const ui::EventArgs& args)
 		else {
 			m_pTileList->SetAttribute(L"width", L"stretch");
 			m_pTileList->SetAttribute(L"column", L"-1");
-
 		}
-
 
 		int nTotal = _ttoi(m_EditTotal->GetText().c_str());
 		if (nTotal > 0) {

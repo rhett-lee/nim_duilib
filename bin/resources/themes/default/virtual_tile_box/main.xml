@@ -30,12 +30,21 @@
             <CheckBox class="checkbox_font12" name="checkbox_item_center" text="列表居中" margin="0,5,0,10" selected="true" />            
         </HBox>     
         <Control height="1" bkcolor="splitline_level2" />
-        <HBox height="30" childmargin="10">
-            <Label font="system_bold_14" text="子项间隙:"  width="auto" height="auto" valign="center" />
-            <Box bordersize="1" bordercolor="splitline_level1" width="80"  height="26">
-                <RichEdit name="edit_child_margin" margin="10,0,10,0"  font="system_14" width="stretch" height="auto" valign="center" normaltextcolor="black" multiline="false" promptmode="true" prompttext="子项间隙" align="vcenter,hcenter" text="" promptcolor="splitline_level1" autohscroll="true" />                  
-            </Box>           
-        </HBox>          
+        <VBox height="auto">
+            <HBox height="30" childmargin="10">
+                <Label font="system_bold_14" text="子项间隙X:"  width="auto" height="auto" valign="center" />
+                <Box bordersize="1" bordercolor="splitline_level1" width="80"  height="26">
+                    <RichEdit name="edit_child_margin_x" margin="10,0,10,0"  font="system_14" width="stretch" height="auto" valign="center" normaltextcolor="black" multiline="false" promptmode="true" prompttext="子项间隙X" align="vcenter,hcenter" text="" promptcolor="splitline_level1" autohscroll="true" />                  
+                </Box>           
+            </HBox> 
+            <HBox height="30" childmargin="10">
+                <Label font="system_bold_14" text="子项间隙Y:"  width="auto" height="auto" valign="center" />
+                <Box bordersize="1" bordercolor="splitline_level1" width="80"  height="26">
+                    <RichEdit name="edit_child_margin_y" margin="10,0,10,0"  font="system_14" width="stretch" height="auto" valign="center" normaltextcolor="black" multiline="false" promptmode="true" prompttext="子项间隙X" align="vcenter,hcenter" text="" promptcolor="splitline_level1" autohscroll="true" />                  
+                </Box>           
+            </HBox> 
+        </VBox>
+                 
         <HBox height="30" childmargin="10">
             <Label font="system_bold_14" text="总数据:"  width="auto" height="auto" valign="center" />
             <Box bordersize="1" bordercolor="splitline_level1" width="180" >
