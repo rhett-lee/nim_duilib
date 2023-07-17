@@ -327,20 +327,19 @@
   <ItemGroup>
     <ClCompile Include="Animation\AnimationManager.cpp" />
     <ClCompile Include="Animation\AnimationPlayer.cpp" />
-    <ClCompile Include="Box\ChildBox.cpp">
-      <PreprocessToFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</PreprocessToFile>
-    </ClCompile>
-    <ClCompile Include="Box\HBox.cpp" />
+    <ClCompile Include="Box\HLayout.cpp" />
+    <ClCompile Include="Box\Layout.cpp" />
+    <ClCompile Include="Box\ListBox.cpp" />
+    <ClCompile Include="Box\ScrollBox.cpp" />
     <ClCompile Include="Box\TabBox.cpp" />
-    <ClCompile Include="Box\TileBox.cpp" />
-    <ClCompile Include="Box\VBox.cpp" />
+    <ClCompile Include="Box\TileLayout.cpp" />
+    <ClCompile Include="Box\VirtualListBox.cpp" />
+    <ClCompile Include="Box\VirtualTileBox.cpp" />
+    <ClCompile Include="Box\VLayout.cpp" />
     <ClCompile Include="Control\CircleProgress.cpp" />
     <ClCompile Include="Control\DateTime.cpp" />
-    <ClCompile Include="Control\ListBox.cpp" />
     <ClCompile Include="Control\Menu.cpp" />
     <ClCompile Include="Control\RichText.cpp" />
-    <ClCompile Include="Control\VirtualListBox.cpp" />
-    <ClCompile Include="Control\VirtualTileBox.cpp" />
     <ClCompile Include="Core\Box.cpp" />
     <ClCompile Include="Core\BoxShadow.cpp" />
     <ClCompile Include="Core\ColorManager.cpp" />
@@ -354,7 +353,6 @@
     <ClCompile Include="Core\LangManager.cpp" />
     <ClCompile Include="Core\Placeholder.cpp" />
     <ClCompile Include="Core\ScrollBar.cpp" />
-    <ClCompile Include="Core\ScrollBox.cpp" />
     <ClCompile Include="Core\Shadow.cpp" />
     <ClCompile Include="Core\TimerManager.cpp" />
     <ClCompile Include="Core\ToolTip.cpp" />
@@ -406,18 +404,22 @@
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h" />
     <ClInclude Include="Animation\AnimationPlayer.h" />
-    <ClInclude Include="Box\ChildBox.h" />
     <ClInclude Include="Box\HBox.h" />
+    <ClInclude Include="Box\HLayout.h" />
+    <ClInclude Include="Box\Layout.h" />
+    <ClInclude Include="Box\ListBox.h" />
+    <ClInclude Include="Box\ScrollBox.h" />
     <ClInclude Include="Box\TabBox.h" />
     <ClInclude Include="Box\TileBox.h" />
+    <ClInclude Include="Box\TileLayout.h" />
     <ClInclude Include="Box\VBox.h" />
+    <ClInclude Include="Box\VirtualListBox.h" />
+    <ClInclude Include="Box\VirtualTileBox.h" />
+    <ClInclude Include="Box\VLayout.h" />
     <ClInclude Include="Control\DateTime.h" />
-    <ClInclude Include="Control\ListBox.h" />
     <ClInclude Include="Control\Menu.h" />
     <ClInclude Include="Control\observer_impl_base.hpp" />
     <ClInclude Include="Control\RichText.h" />
-    <ClInclude Include="Control\VirtualListBox.h" />
-    <ClInclude Include="Control\VirtualTileBox.h" />
     <ClInclude Include="Control\CircleProgress.h" />
     <ClInclude Include="Core\Box.h" />
     <ClInclude Include="Core\BoxShadow.h" />
@@ -432,7 +434,6 @@
     <ClInclude Include="Core\LangManager.h" />
     <ClInclude Include="Core\Placeholder.h" />
     <ClInclude Include="Core\ScrollBar.h" />
-    <ClInclude Include="Core\ScrollBox.h" />
     <ClInclude Include="Core\Shadow.h" />
     <ClInclude Include="Core\TimerManager.h" />
     <ClInclude Include="Core\ToolTip.h" />

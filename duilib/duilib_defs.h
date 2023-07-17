@@ -54,19 +54,24 @@ namespace ui
 	#define  DUI_CTR_CHECKBOXBOX                     (L"CheckBoxBox")
 
 	#define  DUI_CTR_BOX							 (L"Box")
-	#define  DUI_CTR_SCROLLBOX						 (L"ScrollBox")
 	#define  DUI_CTR_HBOX							 (L"HBox")
 	#define  DUI_CTR_VBOX                            (L"VBox")
-	#define  DUI_CTR_TABBOX                          (L"TabBox")
 	#define  DUI_CTR_TILEBOX						 (L"TileBox")
-	#define  DUI_CTR_CHILDBOX                        (L"ChildBox")
+
+	#define  DUI_CTR_SCROLLBOX						 (L"ScrollBox")
+	#define  DUI_CTR_HSCROLLBOX						 (L"HScrollBox")
+	#define  DUI_CTR_VSCROLLBOX						 (L"VScrollBox")
+	#define  DUI_CTR_TILESCROLLBOX					 (L"TileScrollBox")
+
+	#define  DUI_CTR_TABBOX                          (L"TabBox")
 
 	#define  DUI_CTR_LISTBOX_ELEMENT				 (L"ListBoxElement")
 	#define  DUI_CTR_LISTBOX						 (L"ListBox")
 	#define  DUI_CTR_HLISTBOX						 (L"HListBox")
 	#define  DUI_CTR_VLISTBOX                        (L"VListBox")
-	#define  DUI_CTR_VIRTUALLISTBOX                  (L"VirtualListBox")
 	#define  DUI_CTR_TILELISTBOX                     (L"TileListBox")
+
+	#define  DUI_CTR_VIRTUALLISTBOX                  (L"VirtualListBox")
 	#define  DUI_CTR_VIRTUALTILEBOX                  (L"VirtualTileBox")
 
 	#define  DUI_CTR_TREENODE                        (L"TreeNode")

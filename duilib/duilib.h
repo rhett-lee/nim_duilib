@@ -82,16 +82,17 @@
 #include "Core/Placeholder.h"
 #include "Core/Control.h"
 #include "Core/Box.h"
-#include "Core/ScrollBox.h"
 #include "Core/ScrollBar.h"
 
 #include "Box/VBox.h"
 #include "Box/HBox.h"
 #include "Box/TileBox.h"
 #include "Box/TabBox.h"
-#include "Box/ChildBox.h"
+#include "Box/ScrollBox.h"
+#include "Box/ListBox.h"
+#include "Box/VirtualListBox.h"
+#include "Box/VirtualTileBox.h"
 
-#include "Control/ListBox.h"
 #include "Control/Combo.h"
 #include "Control/TreeView.h"
 
@@ -105,8 +106,5 @@
 #include "Control/Slider.h"
 
 #include "Control/RichEdit.h"
-#include "Control/VirtualListBox.h"
-#include "Control/VirtualTileBox.h"
-
 #include "Control/Menu.h"
 #include "duilib/Control/DateTime.h"

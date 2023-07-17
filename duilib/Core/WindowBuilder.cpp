@@ -2,9 +2,9 @@
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/Window.h"
 #include "duilib/Core/Box.h"
-#include "duilib/Core/ScrollBox.h"
 #include "duilib/Core/Control.h"
 #include "duilib/Core/ScrollBar.h"
+
 #include "duilib/Control/TreeView.h"
 #include "duilib/Control/Combo.h"
 #include "duilib/Control/Slider.h"
@@ -12,15 +12,16 @@
 #include "duilib/Control/CircleProgress.h"
 #include "duilib/Control/RichEdit.h"
 #include "duilib/Control/RichText.h"
-#include "duilib/Control/VirtualListBox.h"
-#include "duilib/Control/VirtualTileBox.h"
 #include "duilib/Control/DateTime.h"
 
 #include "duilib/Box/HBox.h"
 #include "duilib/Box/VBox.h"
-#include "duilib/Box/ChildBox.h"
 #include "duilib/Box/TabBox.h"
 #include "duilib/Box/TileBox.h"
+#include "duilib/Box/ScrollBox.h"
+#include "duilib/Box/ListBox.h"
+#include "duilib/Box/VirtualListBox.h"
+#include "duilib/Box/VirtualTileBox.h"
 
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Utils/AttributeUtil.h"
@@ -657,70 +658,54 @@ bool WindowBuilder::ParseRichTextXmlNode(const pugi::xml_node& xmlNode, Control*
 
 Control* WindowBuilder::CreateControlByClass(const std::wstring& strControlClass)
 {
-	Control* pControl = nullptr;
-	size_t cchLen = strControlClass.size();
-	switch( cchLen ) {
-	case 3:
-		if( strControlClass == DUI_CTR_BOX )					pControl = new Box;
-		break;
-	case 4:
-		if( strControlClass == DUI_CTR_HBOX )					pControl = new HBox;
-		else if( strControlClass == DUI_CTR_VBOX )				pControl = new VBox;
-		break;
-	case 5:
-		if( strControlClass == DUI_CTR_COMBO )                  pControl = new Combo;
-		else if( strControlClass == DUI_CTR_LABEL )             pControl = new Label;
-		break;
-	case 6:
-		if( strControlClass == DUI_CTR_BUTTON )                 pControl = new Button;
-		else if( strControlClass == DUI_CTR_OPTION )            pControl = new Option;
-		else if( strControlClass == DUI_CTR_SLIDER )            pControl = new Slider;
-		else if( strControlClass == DUI_CTR_TABBOX )			pControl = new TabBox;
-		break;
-	case 7:
-		if( strControlClass == DUI_CTR_CONTROL )                pControl = new Control;
-		else if( strControlClass == DUI_CTR_TILEBOX )		  	pControl = new TileBox;
-		else if (strControlClass == DUI_CTR_LISTBOX)			pControl = new ListBox(new Layout);
-		break;
-	case 8:
-		if( strControlClass == DUI_CTR_PROGRESS )               pControl = new Progress;
-		else if( strControlClass == DUI_CTR_RICHEDIT )          pControl = new RichEdit;
-		else if (strControlClass == DUI_CTR_RICHTEXT)           pControl = new RichText;
-		else if( strControlClass == DUI_CTR_CHECKBOX )			pControl = new CheckBox;
-		else if( strControlClass == DUI_CTR_TREEVIEW )			pControl = new TreeView;
-		else if( strControlClass == DUI_CTR_TREENODE )			pControl = new TreeNode;
-		else if( strControlClass == DUI_CTR_HLISTBOX )			pControl = new ListBox(new HLayout);
-		else if( strControlClass == DUI_CTR_VLISTBOX )          pControl = new ListBox(new VLayout);
-		else if( strControlClass == DUI_CTR_CHILDBOX )			pControl = new ChildBox;
-		else if( strControlClass == DUI_CTR_LABELBOX )          pControl = new LabelBox;
-		else if( strControlClass == DUI_CTR_DATETIME)			pControl = new DateTime;
-		break;
-	case 9:
-		if( strControlClass == DUI_CTR_SCROLLBAR )				pControl = new ScrollBar; 
-		else if( strControlClass == DUI_CTR_BUTTONBOX )         pControl = new ButtonBox;
-		else if( strControlClass == DUI_CTR_OPTIONBOX )         pControl = new OptionBox;
-		else if (strControlClass == DUI_CTR_SCROLLBOX)          pControl = new ScrollBox(new Layout);
-		break;
-	case 11:
-		if( strControlClass == DUI_CTR_TILELISTBOX )			pControl = new ListBox(new TileLayout);
-		else if( strControlClass == DUI_CTR_CHECKBOXBOX )		pControl = new CheckBoxBox;
-		break;
-	case 14:
-    if (strControlClass == DUI_CTR_VIRTUALLISTBOX)			pControl = new VirtualListBox;
-    else if (strControlClass == DUI_CTR_CIRCLEPROGRESS)     pControl = new CircleProgress;
-    else if (strControlClass == DUI_CTR_VIRTUALTILEBOX)     pControl = new VirtualTileBox;
-		break;
-	case 15:
-		break;
-	case 16:
-		break;
-	case 20:
-		if( strControlClass == DUI_CTR_LISTBOX_ELEMENT)   pControl = new ListBoxElement;
-		break;
-	default:
-		break;
-	}
+	typedef std::function<Control* (void)> CreateControlFunction;
+	static std::map<std::wstring, CreateControlFunction> createControlMap = 
+	{ 
+		{DUI_CTR_BOX,  []() { return new Box; }},
+		{DUI_CTR_HBOX, []() { return new HBox; }},
+		{DUI_CTR_VBOX, []() { return new VBox; }},
+		{DUI_CTR_TILEBOX, []() { return new TileBox; }},
+		{DUI_CTR_TABBOX, []() { return new TabBox; }},
 
+		{DUI_CTR_SCROLLBOX, []() { return new ScrollBox; }},
+		{DUI_CTR_HSCROLLBOX, []() { return new HScrollBox; }},
+		{DUI_CTR_VSCROLLBOX, []() { return new VScrollBox; }},
+		{DUI_CTR_TILESCROLLBOX, []() { return new TileScrollBox; }},
+	
+		{DUI_CTR_LISTBOX_ELEMENT, []() { return new ListBoxElement; }},
+		{DUI_CTR_LISTBOX, []() { return new ListBox; }},
+		{DUI_CTR_HLISTBOX, []() { return new HListBox; }},
+		{DUI_CTR_VLISTBOX, []() { return new VListBox; }},
+		{DUI_CTR_TILELISTBOX, []() { return new TileListBox; }},
+
+		{DUI_CTR_VIRTUALLISTBOX, []() { return new VirtualListBox; }},
+		{DUI_CTR_VIRTUALTILEBOX, []() { return new VirtualTileBox; }},
+
+		{DUI_CTR_CONTROL, []() { return new Control; }},
+		{DUI_CTR_SCROLLBAR, []() { return new ScrollBar; }},
+		{DUI_CTR_LABEL, []() { return new Label; }},
+		{DUI_CTR_LABELBOX, []() { return new LabelBox; }},
+		{DUI_CTR_BUTTON, []() { return new Button; }},
+		{DUI_CTR_BUTTONBOX, []() { return new ButtonBox; }},
+		{DUI_CTR_OPTION, []() { return new Option; }},
+		{DUI_CTR_OPTIONBOX, []() { return new OptionBox; }},
+		{DUI_CTR_CHECKBOX, []() { return new CheckBox; }},
+		{DUI_CTR_CHECKBOXBOX, []() { return new CheckBoxBox; }},
+		{DUI_CTR_TREEVIEW, []() { return new TreeView; }},
+		{DUI_CTR_TREENODE, []() { return new TreeNode; }},
+		{DUI_CTR_COMBO, []() { return new Combo; }},
+		{DUI_CTR_SLIDER, []() { return new Slider; }},
+		{DUI_CTR_PROGRESS, []() { return new Progress; }},
+		{DUI_CTR_CIRCLEPROGRESS, []() { return new CircleProgress; }},
+		{DUI_CTR_RICHTEXT, []() { return new RichText; }},
+		{DUI_CTR_RICHEDIT, []() { return new RichEdit; }},
+		{DUI_CTR_DATETIME, []() { return new DateTime; }}
+	};
+	Control* pControl = nullptr;
+	auto iter = createControlMap.find(strControlClass);
+	if (iter != createControlMap.end()) {
+		pControl = iter->second();
+	}
 	return pControl;
 }
 

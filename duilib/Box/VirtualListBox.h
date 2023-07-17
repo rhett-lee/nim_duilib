@@ -8,7 +8,7 @@
 
 #include "duilib/Box/VBox.h"
 #include "duilib/Box/HBox.h"
-#include "duilib/Control/ListBox.h"
+#include "duilib/Box/ListBox.h"
 
 namespace ui
 {
@@ -53,6 +53,8 @@ protected:
 	virtual ui::UiSize64 ArrangeChild(const std::vector<ui::Control*>& items, ui::UiRect rc);
 };
 
+/** 虚表实现的ListBox，垂直布局
+*/
 class UILIB_API VirtualListBox : public ListBox
 {
 	friend class VirtualVLayout;

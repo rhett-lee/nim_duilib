@@ -1,9 +1,11 @@
-#ifndef UI_CORE_SCROLLBOX_H_
-#define UI_CORE_SCROLLBOX_H_
+#ifndef UI_BOX_SCROLLBOX_H_
+#define UI_BOX_SCROLLBOX_H_
 
 #pragma once
 
-#include "duilib/Core/Box.h"
+#include "duilib/Box/HBox.h"
+#include "duilib/Box/VBox.h"
+#include "duilib/Box/TileBox.h"
 #include "duilib/Core/ScrollBar.h"
 #include "duilib/Animation/AnimationPlayer.h"
 
@@ -11,11 +13,12 @@ namespace ui
 {
 
  /** 带有垂直或水平滚动条的容器，使容器可以容纳更多内容
+ *   通过修改布局，形成 HScrollBox 和 VScrollBox 和 TileScrollBox三个子类
  */
 class UILIB_API ScrollBox : public Box
 {
 public:
-	explicit ScrollBox(Layout* pLayout);
+	explicit ScrollBox(Layout* pLayout = new Layout);
 	ScrollBox(const ScrollBox& r) = delete;
 	ScrollBox& operator=(const ScrollBox& r) = delete;
 
@@ -311,6 +314,45 @@ private:
 	std::unique_ptr<AnimationPlayer> m_renderOffsetYAnimation;
 };
 
+/** 瓦片布局的ScrollBox
+*/
+class UILIB_API TileScrollBox : public ScrollBox
+{
+public:
+	TileScrollBox() :
+		ScrollBox(new TileLayout)
+	{
+	}
+
+	virtual std::wstring GetType() const override { return DUI_CTR_TILESCROLLBOX; }
+};
+
+/** 水平布局的ScrollBox
+*/
+class UILIB_API HScrollBox : public ScrollBox
+{
+public:
+	HScrollBox() :
+		ScrollBox(new HLayout)
+	{
+	}
+
+	virtual std::wstring GetType() const override { return DUI_CTR_HSCROLLBOX; }
+};
+
+/** 垂直布局的ScrollBox
+*/
+class UILIB_API VScrollBox : public ScrollBox
+{
+public:
+	VScrollBox() :
+		ScrollBox(new VLayout)
+	{
+	}
+
+	virtual std::wstring GetType() const override { return DUI_CTR_VSCROLLBOX; }
+};
+
 } // namespace ui
 
-#endif // UI_CORE_SCROLLBOX_H_
+#endif // UI_BOX_SCROLLBOX_H_

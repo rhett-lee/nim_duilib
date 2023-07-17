@@ -1,5 +1,5 @@
 #include "ScrollBar.h"
-#include "duilib/Core/ScrollBox.h"
+#include "duilib/Box/ScrollBox.h"
 #include "duilib/Core/Window.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Image/Image.h"

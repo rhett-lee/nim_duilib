@@ -1,6 +1,6 @@
-#include "HBox.h"
+#include "HLayout.h"
 
-namespace ui
+namespace ui 
 {
 
 HLayout::HLayout()
@@ -220,12 +220,4 @@ UiSize HLayout::EstimateSizeByChild(const std::vector<Control*>& items, UiSize s
 	return totalSize;
 }
 
-HBox::HBox() : Box(new HLayout())
-{
-
-}
-
-std::wstring HBox::GetType() const { return DUI_CTR_HBOX; }
-
-} //namespace ui
-
+} // namespace ui

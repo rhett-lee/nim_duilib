@@ -1,60 +1,25 @@
-#ifndef UI_CORE_TILEBOX_H_
-#define UI_CORE_TILEBOX_H_
+#ifndef UI_BOX_TILEBOX_H_
+#define UI_BOX_TILEBOX_H_
 
 #pragma once
 #include "duilib/Core/Box.h"
+#include "duilib/Box/TileLayout.h"
 
 namespace ui
 {
 
-class UILIB_API TileLayout : public Layout
-{
-public:
-	TileLayout();
-
-	/// 重写父类方法，提供个性化功能，请参考父类声明
-	virtual UiSize64 ArrangeChild(const std::vector<Control*>& items, UiRect rc) override;
-	virtual UiSize EstimateSizeByChild(const std::vector<Control*>& items, UiSize szAvailable) override;
-	virtual bool SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
-
-	/**
-	 * @brief 获取子项大小
-	 * @return 返回子项大小
-	 */
-	const UiSize& GetItemSize() const;
-
-	/**
-	 * @brief 设置子项大小
-	 * @param[in] szItem 子项大小数据
-	 * @return 无
-	 */
-	void SetItemSize(UiSize szItem, bool bNeedDpiScale = true);
-
-	/* @brief 获取列数量
-	 */
-	int GetColumns() const;
-
-	/**@brief 设置显示几列数据
-	 * @param[in] nCols 要设置显示几列的数值
-	 */
-	void SetColumns(int nCols);
-
-protected:
-
-	//显示几列数据
-	int m_nColumns;
-
-	//子项大小
-	UiSize m_szItem;
-};
-
+/** 瓦片布局的Box
+*/
 class UILIB_API TileBox : public Box
 {
 public:
-	TileBox();
+	TileBox() :
+		Box(new TileLayout())
+	{
+	}
 
-	virtual std::wstring GetType() const override;
+	virtual std::wstring GetType() const override { return DUI_CTR_TILEBOX; }
 };
 
 }
-#endif // UI_CORE_TILEBOX_H_
+#endif // UI_BOX_TILEBOX_H_

@@ -1,6 +1,6 @@
-#include "VBox.h"
+#include "VLayout.h"
 
-namespace ui
+namespace ui 
 {
 
 VLayout::VLayout()
@@ -223,12 +223,4 @@ UiSize VLayout::EstimateSizeByChild(const std::vector<Control*>& items, UiSize s
 	return totalSize;
 }
 
-VBox::VBox() : Box(new VLayout())
-{
-
-}
-
-std::wstring VBox::GetType() const { return DUI_CTR_VBOX; }
-
-}//namespace ui
-
+} // namespace ui

@@ -57,19 +57,7 @@
     <ClCompile Include="Animation\AnimationManager.cpp">
       <Filter>Animation</Filter>
     </ClCompile>
-    <ClCompile Include="Box\ChildBox.cpp">
-      <Filter>Box</Filter>
-    </ClCompile>
-    <ClCompile Include="Box\HBox.cpp">
-      <Filter>Box</Filter>
-    </ClCompile>
     <ClCompile Include="Box\TabBox.cpp">
-      <Filter>Box</Filter>
-    </ClCompile>
-    <ClCompile Include="Box\TileBox.cpp">
-      <Filter>Box</Filter>
-    </ClCompile>
-    <ClCompile Include="Box\VBox.cpp">
       <Filter>Box</Filter>
     </ClCompile>
     <ClCompile Include="Control\CircleProgress.cpp">
@@ -93,12 +81,6 @@
     <ClCompile Include="Control\TreeView.cpp">
       <Filter>Control</Filter>
     </ClCompile>
-    <ClCompile Include="Control\VirtualListBox.cpp">
-      <Filter>Control</Filter>
-    </ClCompile>
-    <ClCompile Include="Control\VirtualTileBox.cpp">
-      <Filter>Control</Filter>
-    </ClCompile>
     <ClCompile Include="Utils\ApiWrapper.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
@@ -115,9 +97,6 @@
       <Filter>duilib</Filter>
     </ClCompile>
     <ClCompile Include="Control\DateTime.cpp">
-      <Filter>Control</Filter>
-    </ClCompile>
-    <ClCompile Include="Control\ListBox.cpp">
       <Filter>Control</Filter>
     </ClCompile>
     <ClCompile Include="Image\Image.cpp">
@@ -261,9 +240,6 @@
     <ClCompile Include="Utils\FileUtil.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
-    <ClCompile Include="Core\ScrollBox.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
     <ClCompile Include="Core\ScrollBar.cpp">
       <Filter>Core</Filter>
     </ClCompile>
@@ -276,6 +252,30 @@
     <ClCompile Include="Utils\AttributeUtil.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
+    <ClCompile Include="Box\Layout.cpp">
+      <Filter>Box</Filter>
+    </ClCompile>
+    <ClCompile Include="Box\VLayout.cpp">
+      <Filter>Box</Filter>
+    </ClCompile>
+    <ClCompile Include="Box\HLayout.cpp">
+      <Filter>Box</Filter>
+    </ClCompile>
+    <ClCompile Include="Box\TileLayout.cpp">
+      <Filter>Box</Filter>
+    </ClCompile>
+    <ClCompile Include="Box\ScrollBox.cpp">
+      <Filter>Box</Filter>
+    </ClCompile>
+    <ClCompile Include="Box\ListBox.cpp">
+      <Filter>Box</Filter>
+    </ClCompile>
+    <ClCompile Include="Box\VirtualListBox.cpp">
+      <Filter>Box</Filter>
+    </ClCompile>
+    <ClCompile Include="Box\VirtualTileBox.cpp">
+      <Filter>Box</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -283,9 +283,6 @@
     </ClInclude>
     <ClInclude Include="Animation\AnimationPlayer.h">
       <Filter>Animation</Filter>
-    </ClInclude>
-    <ClInclude Include="Box\ChildBox.h">
-      <Filter>Box</Filter>
     </ClInclude>
     <ClInclude Include="Box\HBox.h">
       <Filter>Box</Filter>
@@ -335,12 +332,6 @@
     <ClInclude Include="Control\TreeView.h">
       <Filter>Control</Filter>
     </ClInclude>
-    <ClInclude Include="Control\VirtualListBox.h">
-      <Filter>Control</Filter>
-    </ClInclude>
-    <ClInclude Include="Control\VirtualTileBox.h">
-      <Filter>Control</Filter>
-    </ClInclude>
     <ClInclude Include="Render\IRender.h">
       <Filter>Render</Filter>
     </ClInclude>
@@ -375,9 +366,6 @@
       <Filter>duilib</Filter>
     </ClInclude>
     <ClInclude Include="Control\DateTime.h">
-      <Filter>Control</Filter>
-    </ClInclude>
-    <ClInclude Include="Control\ListBox.h">
       <Filter>Control</Filter>
     </ClInclude>
     <ClInclude Include="Render\Font_GDI.h">
@@ -545,9 +533,6 @@
     <ClInclude Include="Utils\FileUtil.h">
       <Filter>Utils</Filter>
     </ClInclude>
-    <ClInclude Include="Core\ScrollBox.h">
-      <Filter>Core</Filter>
-    </ClInclude>
     <ClInclude Include="Core\ScrollBar.h">
       <Filter>Core</Filter>
     </ClInclude>
@@ -577,6 +562,30 @@
     </ClInclude>
     <ClInclude Include="Core\UiSize64.h">
       <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Box\Layout.h">
+      <Filter>Box</Filter>
+    </ClInclude>
+    <ClInclude Include="Box\VLayout.h">
+      <Filter>Box</Filter>
+    </ClInclude>
+    <ClInclude Include="Box\HLayout.h">
+      <Filter>Box</Filter>
+    </ClInclude>
+    <ClInclude Include="Box\TileLayout.h">
+      <Filter>Box</Filter>
+    </ClInclude>
+    <ClInclude Include="Box\ScrollBox.h">
+      <Filter>Box</Filter>
+    </ClInclude>
+    <ClInclude Include="Box\ListBox.h">
+      <Filter>Box</Filter>
+    </ClInclude>
+    <ClInclude Include="Box\VirtualListBox.h">
+      <Filter>Box</Filter>
+    </ClInclude>
+    <ClInclude Include="Box\VirtualTileBox.h">
+      <Filter>Box</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

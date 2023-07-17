@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "duilib/Control/ListBox.h"
+#include "duilib/Box/ListBox.h"
 
 namespace ui
 {

@@ -1,5 +1,5 @@
 #include "PlaceHolder.h"
-#include "duilib/Core/ScrollBox.h"
+#include "duilib/Box/ScrollBox.h"
 #include "duilib/Core/Window.h"
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Core/GlobalManager.h"

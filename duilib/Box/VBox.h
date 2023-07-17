@@ -4,25 +4,22 @@
 #pragma once
 
 #include "duilib/Core/Box.h"
+#include "duilib/Box/VLayout.h"
 
 namespace ui
 {
 
-class UILIB_API VLayout : public Layout
-{
-public:
-	VLayout();
-	/// 重写父类方法，提供个性化功能，请参考父类声明
-	virtual UiSize64 ArrangeChild(const std::vector<Control*>& items, UiRect rc) override;
-	virtual UiSize EstimateSizeByChild(const std::vector<Control*>& items, UiSize szAvailable) override;
-};
-
+/** 垂直布局的Box
+*/
 class UILIB_API VBox : public Box
 {
 public:
-	VBox();
+	VBox() :
+		Box(new VLayout())
+	{
+	}
 
-	virtual std::wstring GetType() const override;
+	virtual std::wstring GetType() const override { return DUI_CTR_VBOX; }
 };
 
 }

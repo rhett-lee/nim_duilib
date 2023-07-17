@@ -1,10 +1,10 @@
-#include "TileBox.h"
-#include "duilib/Core/GlobalManager.h"
+#include "TileLayout.h"
+#include "duilib/Core/Box.h"
 #include "duilib/Utils/AttributeUtil.h"
+#include "duilib/Core/GlobalManager.h"
 
-namespace ui
+namespace ui 
 {
-
 TileLayout::TileLayout() : m_nColumns(1), m_szItem(0, 0)
 {
 
@@ -237,12 +237,4 @@ void TileLayout::SetColumns(int nCols)
 	m_pOwner->Arrange();
 }
 
-TileBox::TileBox() : Box(new TileLayout())
-{
-
-}
-
-std::wstring TileBox::GetType() const {	return DUI_CTR_TILEBOX; }
-
-} //namespace ui
-
+} // namespace ui

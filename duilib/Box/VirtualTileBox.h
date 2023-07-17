@@ -1,7 +1,7 @@
 #pragma once
 
 #include "duilib/Box/TileBox.h"
-#include "duilib/Control/ListBox.h"
+#include "duilib/Box/ListBox.h"
 #include "base/callback/callback.h"
 #include <functional>
 

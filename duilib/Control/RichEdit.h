@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "duilib/Core/ScrollBox.h"
+#include "duilib/Box/ScrollBox.h"
 #include "duilib/Image/Image.h"
 #include <Imm.h>
 #include <richedit.h>

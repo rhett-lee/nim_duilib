@@ -1,6 +1,6 @@
 #pragma once
 #include "ui_components/grid/GridBase.h"
-#include "duilib/Core/ScrollBox.h"
+#include "duilib/Box/ScrollBox.h"
 
 namespace ui
 {

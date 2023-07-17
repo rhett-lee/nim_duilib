@@ -1,7 +1,7 @@
 #include "CheckCombo.h"
 #include "duilib/Core/Window.h"
 #include "duilib/Box/VBox.h"
-#include "duilib/Control/ListBox.h"
+#include "duilib/Box/ListBox.h"
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Utils/Macros.h"
 #include "duilib/Utils/AttributeUtil.h"

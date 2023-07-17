@@ -1,6 +1,6 @@
 #pragma once
 
-#include "duilib/Core/ScrollBox.h"
+#include "duilib/Box/ScrollBox.h"
 
 namespace nim_comp
 {

@@ -1,5 +1,5 @@
 #pragma once
-#include "duilib/Control/ListBox.h"
+#include "duilib/Box/ListBox.h"
 #include "duilib/Core/Box.h"
 #include "duilib/Box/VBox.h"
 #include "duilib/Control/RichEdit.h"

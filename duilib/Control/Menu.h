@@ -5,7 +5,7 @@
 
 #include "duilib/duilib_defs.h"
 #include "duilib/Utils/WinImplBase.h"
-#include "duilib/Control/ListBox.h"
+#include "duilib/Box/ListBox.h"
 
 namespace ui {
 

@@ -2,7 +2,7 @@
 
 #include "duilib/Core/Window.h"
 #include "duilib/Core/Box.h"
-#include "duilib/Control/ListBox.h"
+#include "duilib/Box/ListBox.h"
 
 namespace nim_comp
 {
