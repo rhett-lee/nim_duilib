@@ -36,7 +36,7 @@ void CefControl::OnPaint(CefRefPtr<CefBrowser> browser, CefRenderHandler::PaintE
 
 void CefControl::ClientToControl(POINT &pt)
 {
-	auto offset = GetScrollOffset();
+	auto offset = GetScrollOffsetInScrollBox();
 	pt.x = pt.x + offset.x - GetRect().left;
 	pt.y = pt.y + offset.y - GetRect().top;
 }

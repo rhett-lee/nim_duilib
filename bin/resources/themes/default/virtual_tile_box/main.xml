@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Window size="1200,800" caption="0,0,0,35">
+<Window size="1200,800" caption="0,0,0,35" mininfo="600,400" sizebox="4,4,4,4">
   <VBox bkcolor="bk_wnd_darkcolor">
     <HBox width="stretch" height="35" bkcolor="bk_wnd_lightcolor">
-      <Label text="TileBox数据懒加载实现" font="system_14" valign="center" margin="8"/>
+      <Label text="VirtualTileBox数据懒加载实现（支持千万级别的数据量）" font="system_14" valign="center" margin="8"/>
       <Control />
       <Button class="btn_wnd_min" name="minbtn" margin="4,6,0,0"/>
       <Box width="21" margin="4,6,0,0">

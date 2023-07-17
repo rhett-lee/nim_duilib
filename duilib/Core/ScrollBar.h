@@ -241,6 +241,10 @@ private:
 	void PaintThumb(IRender* pRender);
 	void PaintRail(IRender* pRender);
 
+	/** 获取一次快速滚动的偏移量
+	*/
+	int64_t CalcFastScrollOffset(int32_t posOffset) const;
+
 private:
 	enum
 	{ 

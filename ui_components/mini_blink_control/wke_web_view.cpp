@@ -404,7 +404,7 @@ bool WkeWebView::SetCursorInfoTypeByCache() {
 }
 
 bool WkeWebView::GetWebViewPos(ui::UiPoint& point) {
-  point.Offset(GetScrollOffset());
+  point.Offset(GetScrollOffsetInScrollBox());
   if (!GetRect().ContainsPt(point))
     return false;
 

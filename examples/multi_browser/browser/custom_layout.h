@@ -9,6 +9,6 @@
 class CustomLayout : public ui::Layout
 {
 public:
-	virtual ui::UiSize ArrangeChild(const std::vector<ui::Control*>& m_items, ui::UiRect rc) override;
+	virtual ui::UiSize64 ArrangeChild(const std::vector<ui::Control*>& m_items, ui::UiRect rc) override;
 	ui::UiSize SetCustomPos(ui::Control* pControl, ui::UiRect containerRect);
 };

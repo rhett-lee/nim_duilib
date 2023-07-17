@@ -639,7 +639,7 @@ void CTxtWinHost::TxInvalidateRect(LPCRECT prc, BOOL /*fMode*/)
 	if (!m_re->GetWindow())
 		return;
 
-	UiPoint scrollOffset = m_re->GetScrollOffset();
+	UiPoint scrollOffset = m_re->GetScrollOffsetInScrollBox();
     if( prc == NULL ) {
 		UiRect newRcClient = rcClient;
 		newRcClient.Offset(-scrollOffset.x, -scrollOffset.y);
@@ -1155,7 +1155,7 @@ BOOL CTxtWinHost::DoSetCursor(const UiRect *prc, const UiPoint* pt)
 
     // Is this in our rectangle?
 	UiPoint newPt(pt->x, pt->y);
-	newPt.Offset(m_re->GetScrollOffset());
+	newPt.Offset(m_re->GetScrollOffsetInScrollBox());
     if (rc.ContainsPt(newPt))
     {
 		RECT* pRect = nullptr;
@@ -2168,7 +2168,7 @@ void RichEdit::KillTimer(UINT idTimer)
 
 // 多行非rich格式的richedit有一个滚动条bug，在最后一行是空行时，LineDown和SetScrollPos无法滚动到最后
 // 引入iPos就是为了修正这个bug
-void RichEdit::SetScrollPos(UiSize szPos)
+void RichEdit::SetScrollPos(UiSize64 szPos)
 {
 	int64_t cx = 0;
 	int64_t cy = 0;
@@ -2660,7 +2660,7 @@ void RichEdit::OnImeStartComposition(const EventArgs& /*event*/)
 		return;
 
 	COMPOSITIONFORM	cfs;
-	UiPoint ptScrollOffset = GetScrollOffset();
+	UiPoint ptScrollOffset = GetScrollOffsetInScrollBox();
 	POINT pt;
 	pt.x = m_iCaretPosX - ptScrollOffset.x;
 	pt.y = m_iCaretPosY - ptScrollOffset.y;
@@ -2683,7 +2683,7 @@ void RichEdit::OnImeEndComposition(const EventArgs& /*event*/)
 void RichEdit::OnMouseMessage(UINT uMsg, const EventArgs& event)
 {
 	UiPoint pt(GET_X_LPARAM(event.lParam), GET_Y_LPARAM(event.lParam));
-	pt.Offset(GetScrollOffset());
+	pt.Offset(GetScrollOffsetInScrollBox());
 	TxSendMessage(uMsg, event.wParam, MAKELPARAM(pt.x, pt.y), NULL);
 }
 
@@ -3307,7 +3307,7 @@ bool RichEdit::HittestCustomLink(UiPoint pt, std::wstring& info)
 	bool bLink = false;
 	info.clear();
 	if (m_linkInfo.size() > 0) {
-		pt.Offset(GetScrollOffset());
+		pt.Offset(GetScrollOffsetInScrollBox());
 		int nCharIndex = CharFromPos(pt);
 		for (auto it = m_linkInfo.begin(); it != m_linkInfo.end(); it++)
 		{

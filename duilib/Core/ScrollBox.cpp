@@ -93,14 +93,14 @@ void ScrollBox::SetPosInternally(UiRect rc)
 	rc.right -= pLayout->GetPadding().right;
 	rc.bottom -= pLayout->GetPadding().bottom;
 
-	UiSize requiredSize = CalcRequiredSize(rc);
+	UiSize64 requiredSize = CalcRequiredSize(rc);
 	ProcessVScrollBar(rcRaw, requiredSize.cy);
 	ProcessHScrollBar(rcRaw, requiredSize.cx);
 }
 
-UiSize ScrollBox::CalcRequiredSize(const UiRect& rc)
+UiSize64 ScrollBox::CalcRequiredSize(const UiRect& rc)
 {
-	UiSize requiredSize;
+	UiSize64 requiredSize;
 	if (!m_items.empty()) {
 		UiRect childSize = rc;
 		if (!m_bScrollBarFloat && m_pVScrollBar && m_pVScrollBar->IsValid()) {
@@ -274,7 +274,7 @@ void ScrollBox::PaintChild(IRender* pRender, const UiRect& rcPaint)
 			pControl->AlphaPaint(pRender, rcPaint);	
 		}
 		else {
-			UiSize scrollPos = GetScrollPos();
+			UiSize scrollPos = GetScrollOffset();
 			UiRect rcNewPaint = GetPaddingPos();
 			AutoClip alphaClip(pRender, rcNewPaint, IsClip());
 			rcNewPaint.Offset(scrollPos.cx, scrollPos.cy);
@@ -368,35 +368,36 @@ Control* ScrollBox::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags,
 		return pResult;
 	}
 
-	UiPoint ptNewScrollPos(GetScrollPos().cx, GetScrollPos().cy);
+	UiSize scrollPos = GetScrollOffset();
+	UiPoint ptNewScrollPos(scrollPos.cx, scrollPos.cy);
 	return Box::FindControl(Proc, pData, uFlags, ptNewScrollPos);
 }
 
-UiSize ScrollBox::GetScrollPos() const
+UiSize64 ScrollBox::GetScrollPos() const
 {
-	UiSize sz;
+	UiSize64 sz;
 	if ((m_pVScrollBar != nullptr) && m_pVScrollBar->IsValid()) {
-		sz.cy = static_cast<LONG>(m_pVScrollBar->GetScrollPos());
+		sz.cy = m_pVScrollBar->GetScrollPos();
 	}
 	if ((m_pHScrollBar != nullptr) && m_pHScrollBar->IsValid()) {
-		sz.cx = static_cast<LONG>(m_pHScrollBar->GetScrollPos());
+		sz.cx = m_pHScrollBar->GetScrollPos();
 	}
 	return sz;
 }
 
-UiSize ScrollBox::GetScrollRange() const
+UiSize64 ScrollBox::GetScrollRange() const
 {
-	UiSize sz;
+	UiSize64 sz;
 	if ((m_pVScrollBar != nullptr) && m_pVScrollBar->IsValid()) {
-		sz.cy = static_cast<LONG>(m_pVScrollBar->GetScrollRange());
+		sz.cy = m_pVScrollBar->GetScrollRange();
 	}
 	if ((m_pHScrollBar != nullptr) && m_pHScrollBar->IsValid()) {
-		sz.cx = static_cast<LONG>(m_pHScrollBar->GetScrollRange());
+		sz.cx = m_pHScrollBar->GetScrollRange();
 	}
 	return sz;
 }
 
-void ScrollBox::SetScrollPos(UiSize szPos)
+void ScrollBox::SetScrollPos(UiSize64 szPos)
 {
 	if (szPos.cy < 0) {
 		szPos.cy = 0;
@@ -431,7 +432,7 @@ void ScrollBox::SetScrollPos(UiSize szPos)
 
 void ScrollBox::LoadImageCache(bool bFromTopLeft)
 {
-	UiSize scrollPos = GetScrollPos();
+	UiSize scrollPos = GetScrollOffset();
 	UiRect rcImageCachePos = GetPos();
 	rcImageCachePos.Offset(scrollPos.cx, scrollPos.cy);
 	rcImageCachePos.Offset(GetRenderOffset().x, GetRenderOffset().y);
@@ -465,16 +466,16 @@ void ScrollBox::LoadImageCache(bool bFromTopLeft)
 	}
 }
 
-void ScrollBox::SetScrollPosY(int y)
+void ScrollBox::SetScrollPosY(int64_t y)
 {
-	UiSize scrollPos = GetScrollPos();
+	UiSize64 scrollPos = GetScrollPos();
 	scrollPos.cy = y;
 	SetScrollPos(scrollPos);
 }
 
-void ScrollBox::SetScrollPosX(int x)
+void ScrollBox::SetScrollPosX(int64_t x)
 {
-    UiSize scrollPos = GetScrollPos();
+	UiSize64 scrollPos = GetScrollPos();
     scrollPos.cx = x;
     SetScrollPos(scrollPos);
 }
@@ -489,7 +490,7 @@ void ScrollBox::LineUp(int deltaValue, bool withAnimation)
 		cyLine = std::min(cyLine, deltaValue);
 	}
 
-	UiSize scrollPos = GetScrollPos();
+	UiSize64 scrollPos = GetScrollPos();
 	if (scrollPos.cy <= 0) {
 		return;
 	}
@@ -503,6 +504,7 @@ void ScrollBox::LineUp(int deltaValue, bool withAnimation)
 		SetScrollPos(scrollPos);
 	}
 	else {
+		//TODO:
 		m_scrollAnimation->SetStartValue(scrollPos.cy);
 		if (m_scrollAnimation->IsPlaying()) {
 			if (m_scrollAnimation->GetEndValue() > m_scrollAnimation->GetStartValue()) {
@@ -534,7 +536,7 @@ void ScrollBox::LineDown(int deltaValue, bool withAnimation)
 		cyLine = std::min(cyLine, deltaValue);
 	}
 
-	UiSize scrollPos = GetScrollPos();
+	UiSize64 scrollPos = GetScrollPos();
 	if (scrollPos.cy >= GetScrollRange().cy) {
 		return;
 	}
@@ -578,7 +580,7 @@ void ScrollBox::LineLeft(int detaValue)
         cxLine = std::min(cxLine, detaValue);
     }
 
-    UiSize scrollPos = GetScrollPos();
+    UiSize64 scrollPos = GetScrollPos();
     if (scrollPos.cx <= 0) {
         return;
     }
@@ -619,7 +621,7 @@ void ScrollBox::LineRight(int detaValue)
         cxLine = std::min(cxLine, detaValue);
     }
 
-    UiSize scrollPos = GetScrollPos();
+    UiSize64 scrollPos = GetScrollPos();
     if (scrollPos.cx >= GetScrollRange().cx) {
         return;
     }
@@ -650,16 +652,18 @@ void ScrollBox::LineRight(int detaValue)
 }
 void ScrollBox::PageUp()
 {
-	UiSize sz = GetScrollPos();
+	UiSize64 sz = GetScrollPos();
 	int iOffset = GetRect().bottom - GetRect().top - GetLayout()->GetPadding().top - GetLayout()->GetPadding().bottom;
-	if( m_pHScrollBar && m_pHScrollBar->IsValid() ) iOffset -= m_pHScrollBar->GetFixedHeight();
+	if (m_pHScrollBar && m_pHScrollBar->IsValid()) {
+		iOffset -= m_pHScrollBar->GetFixedHeight();
+	}
 	sz.cy -= iOffset;
 	SetScrollPos(sz);
 }
 
 void ScrollBox::PageDown()
 {
-	UiSize sz = GetScrollPos();
+	UiSize64 sz = GetScrollPos();
 	int iOffset = GetRect().bottom - GetRect().top - GetLayout()->GetPadding().top - GetLayout()->GetPadding().bottom;
 	if ((m_pHScrollBar != nullptr) && m_pHScrollBar->IsValid()) {
 		iOffset -= m_pHScrollBar->GetFixedHeight();
@@ -670,7 +674,7 @@ void ScrollBox::PageDown()
 
 void ScrollBox::HomeUp()
 {
-	UiSize sz = GetScrollPos();
+	UiSize64 sz = GetScrollPos();
 	sz.cy = 0;
 	SetScrollPos(sz);
 }
@@ -681,19 +685,19 @@ void ScrollBox::EndDown(bool arrange, bool withAnimation)
 		SetPosInternally(GetPos());
 	}
 	
-	int renderOffsetY = GetScrollRange().cy - GetScrollPos().cy + (m_renderOffsetYAnimation->GetEndValue() - GetRenderOffset().y);
+	int64_t renderOffsetY = GetScrollRange().cy - GetScrollPos().cy + (m_renderOffsetYAnimation->GetEndValue() - GetRenderOffset().y);
 	if (withAnimation == true && IsVScrollBarValid() && renderOffsetY > 0) {
 		PlayRenderOffsetYAnimation(-renderOffsetY);
 	}
 
-	UiSize sz = GetScrollPos();
+	UiSize64 sz = GetScrollPos();
 	sz.cy = GetScrollRange().cy;
 	SetScrollPos(sz);
 }
 
 void ScrollBox::PageLeft()
 {
-	UiSize sz = GetScrollPos();
+	UiSize64 sz = GetScrollPos();
 	int iOffset = GetRect().right - GetRect().left - GetLayout()->GetPadding().left - GetLayout()->GetPadding().right;
 	//if( m_pVScrollBar && m_pVScrollBar->IsValid() ) iOffset -= m_pVScrollBar->GetFixedWidth();
 	sz.cx -= iOffset;
@@ -702,7 +706,7 @@ void ScrollBox::PageLeft()
 
 void ScrollBox::PageRight()
 {
-	UiSize sz = GetScrollPos();
+	UiSize64 sz = GetScrollPos();
 	int iOffset = GetRect().right - GetRect().left - GetLayout()->GetPadding().left - GetLayout()->GetPadding().right;
 	//if( m_pVScrollBar && m_pVScrollBar->IsValid() ) iOffset -= m_pVScrollBar->GetFixedWidth();
 	sz.cx += iOffset;
@@ -711,21 +715,21 @@ void ScrollBox::PageRight()
 
 void ScrollBox::HomeLeft()
 {
-	UiSize sz = GetScrollPos();
+	UiSize64 sz = GetScrollPos();
 	sz.cx = 0;
 	SetScrollPos(sz);
 }
 
 void ScrollBox::EndRight()
 {
-	UiSize sz = GetScrollPos();
+	UiSize64 sz = GetScrollPos();
 	sz.cx = GetScrollRange().cx;
 	SetScrollPos(sz);
 }
 
 void ScrollBox::TouchUp(int deltaValue)
 {
-	UiSize scrollPos = GetScrollPos();
+	UiSize64 scrollPos = GetScrollPos();
 	if (scrollPos.cy <= 0) {
 		return;
 	}
@@ -736,7 +740,7 @@ void ScrollBox::TouchUp(int deltaValue)
 
 void ScrollBox::TouchDown(int deltaValue)
 {
-	UiSize scrollPos = GetScrollPos();
+	UiSize64 scrollPos = GetScrollPos();
 	if (scrollPos.cy >= GetScrollRange().cy) {
 		return;
 	}
@@ -785,7 +789,7 @@ ScrollBar* ScrollBox::GetHScrollBar() const
 	return m_pHScrollBar.get();
 }
 
-void ScrollBox::ProcessVScrollBar(UiRect rc, int cyRequired)
+void ScrollBox::ProcessVScrollBar(UiRect rc, int64_t cyRequired)
 {
 	UiRect rcScrollBarPos = rc;
 	rcScrollBarPos.left += m_rcScrollBarPadding.left;
@@ -801,14 +805,13 @@ void ScrollBox::ProcessVScrollBar(UiRect rc, int cyRequired)
 	rc.top += GetLayout()->GetPadding().top;
 	rc.right -= GetLayout()->GetPadding().right;
 	rc.bottom -= GetLayout()->GetPadding().bottom;
-	int nHeight = rc.bottom - rc.top;
+	int32_t nHeight = rc.Height();
 	if (cyRequired > nHeight && !m_pVScrollBar->IsValid()) {
 		m_pVScrollBar->SetScrollRange(cyRequired - nHeight);
 		m_pVScrollBar->SetScrollPos(0);
 		m_bScrollProcess = true;
 		SetPos(GetRect());
 		m_bScrollProcess = false;
-
 		return;
 	}
 	// No scrollbar required
@@ -817,7 +820,7 @@ void ScrollBox::ProcessVScrollBar(UiRect rc, int cyRequired)
 	}
 
 	// Scroll not needed anymore?
-	int cyScroll = cyRequired - nHeight;
+	int64_t cyScroll = cyRequired - nHeight;
 	if( cyScroll <= 0 && !m_bScrollProcess) {
 		m_pVScrollBar->SetScrollPos(0);
 		m_pVScrollBar->SetScrollRange(0);
@@ -847,7 +850,7 @@ void ScrollBox::ProcessVScrollBar(UiRect rc, int cyRequired)
 	}
 }
 
-void ScrollBox::ProcessHScrollBar(UiRect rc, int cxRequired)
+void ScrollBox::ProcessHScrollBar(UiRect rc, int64_t cxRequired)
 {
 	UiRect rcScrollBarPos = rc;
 	rcScrollBarPos.left += m_rcScrollBarPadding.left;
@@ -863,14 +866,13 @@ void ScrollBox::ProcessHScrollBar(UiRect rc, int cxRequired)
 	rc.top += GetLayout()->GetPadding().top;
 	rc.right -= GetLayout()->GetPadding().right;
 	rc.bottom -= GetLayout()->GetPadding().bottom;
-	int nWidth = rc.right - rc.left;
+	int32_t nWidth = rc.Width();
 	if (cxRequired > nWidth && !m_pHScrollBar->IsValid()) {
 		m_pHScrollBar->SetScrollRange(cxRequired - nWidth);
 		m_pHScrollBar->SetScrollPos(0);
 		m_bScrollProcess = true;
 		SetPos(GetRect());
 		m_bScrollProcess = false;
-
 		return;
 	}
 	// No scrollbar required
@@ -879,7 +881,7 @@ void ScrollBox::ProcessHScrollBar(UiRect rc, int cxRequired)
 	}
 
 	// Scroll not needed anymore?
-	int cxScroll = cxRequired - nWidth;
+	int64_t cxScroll = cxRequired - nWidth;
 	if (cxScroll <= 0 && !m_bScrollProcess) {
 		m_pHScrollBar->SetScrollPos(0);
 		m_pHScrollBar->SetScrollRange(0);
@@ -919,7 +921,7 @@ bool ScrollBox::IsHScrollBarValid() const
 	return false;
 }
 
-void ScrollBox::PlayRenderOffsetYAnimation(int nRenderY)
+void ScrollBox::PlayRenderOffsetYAnimation(int64_t nRenderY)
 {
 	m_renderOffsetYAnimation->SetStartValue(nRenderY);
 	m_renderOffsetYAnimation->SetEndValue(0);
@@ -928,7 +930,7 @@ void ScrollBox::PlayRenderOffsetYAnimation(int nRenderY)
 	m_renderOffsetYAnimation->SetSpeedDownRatio(0.7);
 	m_renderOffsetYAnimation->SetTotalMillSeconds(DUI_NOSET_VALUE);
 	m_renderOffsetYAnimation->SetMaxTotalMillSeconds(650);
-	std::function<void(int)> playCallback = nbase::Bind(&ScrollBox::SetRenderOffsetY, this, std::placeholders::_1);
+	auto playCallback = nbase::Bind(&ScrollBox::SetRenderOffsetY, this, std::placeholders::_1);
 	m_renderOffsetYAnimation->SetCallback(playCallback);
 	m_renderOffsetYAnimation->Start();
 }
@@ -1016,6 +1018,50 @@ void ScrollBox::ClearImageCache()
 void ScrollBox::StopScrollAnimation()
 {
 	m_scrollAnimation->Reset();
+}
+
+UiSize ScrollBox::GetScrollOffset() const
+{
+	//这种虚拟滚动条位置的引入，是为了解决UiRect用32位整型值不能支持超大虚表（千万数据量级别以上）的问题
+	UiSize64 scrollPos = GetScrollPos();
+	UiSize64 scrollVirtualOffset = GetScrollVirtualOffset();
+	int64_t scrollPosX = scrollPos.cx - scrollVirtualOffset.cx;
+	int64_t scrollPosY = scrollPos.cy - scrollVirtualOffset.cy;
+
+	UiSize realcrollPos;
+	realcrollPos.cx = TruncateToInt32(scrollPosX);
+	realcrollPos.cy = TruncateToInt32(scrollPosY);
+	return realcrollPos;
+}
+
+UiSize64 ScrollBox::GetScrollVirtualOffset() const
+{
+	return m_scrollVirtualOffset;
+}
+
+void ScrollBox::SetScrollVirtualOffset(UiSize64 szOffset)
+{
+	ASSERT(szOffset.cx >= 0);
+	ASSERT(szOffset.cy >= 0);
+	if ((szOffset.cx >= 0) && (szOffset.cy)) {
+		m_scrollVirtualOffset = szOffset;
+	}
+}
+
+void ScrollBox::SetScrollVirtualOffsetY(int64_t yOffset)
+{
+	ASSERT(yOffset >= 0);
+	if (yOffset >= 0) {
+		m_scrollVirtualOffset.cy = yOffset;
+	}
+}
+
+void ScrollBox::SetScrollVirtualOffsetX(int64_t xOffset)
+{
+	ASSERT(xOffset >= 0);
+	if (xOffset >= 0) {
+		m_scrollVirtualOffset.cx = xOffset;
+	}
 }
 
 } // namespace ui

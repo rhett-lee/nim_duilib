@@ -32,7 +32,7 @@ public:
 	Control& operator=(const Control& r) = delete;
     virtual ~Control();
 
-	virtual std::wstring GetType() const;
+	virtual std::wstring GetType() const override;
 
     /// 图形相关
 	/**@brief 获取背景颜色
@@ -317,31 +317,35 @@ public:
     virtual void SetContextMenuUsed(bool bMenuUsed);
 
     /// 用户数据，辅助函数，供用户使用
-	/**
-	 * @brief 获取用户绑定到控件的数据字符串
+
+	/** 获取用户绑定到控件的数据字符串
 	 * @return 返回具体数据字符串
 	 */
-    virtual std::wstring GetDataID() const;
+	std::wstring GetDataID() const;
 
-	/**
-	 * @brief 获取用户绑定到控件的数据字符串（UTF8 格式）
+	/** 获取用户绑定到控件的数据字符串（UTF8 格式）
 	 * @return 返回具体数据字符串
 	 */
-	virtual std::string GetUTF8DataID() const;				
+	std::string GetUTF8DataID() const;
 
-	/**
-	 * @brief 绑定一个字符串数据到控件
+	/** 绑定一个字符串数据到控件
 	 * @param[in] strText 要绑定的字符串数据
-	 * @return 无
 	 */
-    virtual void SetDataID(const std::wstring& strText);
+	void SetDataID(const std::wstring& strText);
 
-	/**
-	 * @brief 绑定一个字符串数据到控件（UTF8 格式）
+	/** 绑定一个字符串数据到控件（UTF8 格式）
 	 * @param[in] strText 要绑定的字符串数据
-	 * @return 无
 	 */
-	virtual void SetUTF8DataID(const std::string& strText);	
+	void SetUTF8DataID(const std::string& strText);
+
+	/** 绑定一个整型值数据到控件
+	 * @param[in] dataID 要绑定的整型数据
+	 */
+	void SetUserDataID(size_t dataID);
+
+	/** 获取控件绑定的整型值数据
+	*/
+	size_t GetUserDataID() const;
 
     /// 一些重要的属性
 	/**
@@ -631,7 +635,7 @@ public:
 	 * @param[in] alpha 0 ~ 255 的透明度值，255 为不透明
 	 * @return 无
 	 */
-	void SetAlpha(int alpha);
+	void SetAlpha(int64_t alpha);
 
 	/**
 	 * @brief 获取控件透明度
@@ -650,7 +654,7 @@ public:
 	 * @param[in] alpha 0 ~ 255 的透明度值，255 为不透明
 	 * @return 无
 	 */
-	void SetHotAlpha(int nHotAlpha);
+	void SetHotAlpha(int64_t nHotAlpha);
 
 	/**
 	 * @brief 设置是否接受TAB键切换焦点
@@ -689,14 +693,14 @@ public:
 	 * @param[in] renderOffsetX X 坐标值
 	 * @return 无
 	 */
-	void SetRenderOffsetX(int renderOffsetX);
+	void SetRenderOffsetX(int64_t renderOffsetX);
 
 	/**
 	 * @brief 设置控件偏移的 Y 坐标
 	 * @param[in] renderOffsetY Y 坐标值
 	 * @return 无
 	 */
-	void SetRenderOffsetY(int renderOffsetY);
+	void SetRenderOffsetY(int64_t renderOffsetY);
 
 	/// Gif图片
 	/**
@@ -1155,9 +1159,14 @@ private:
 
 	//ToolTip的文本ID
 	std::wstring m_sToolTipTextId;
+
+private:
 	
-	//用户数据ID
+	//用户数据ID(字符串)
 	std::wstring m_sUserDataID;
+
+	//用户数据ID(整型值)
+	size_t m_uUserDataID;
 
 private:
 	//通过AttachXXX接口，添加的监听事件

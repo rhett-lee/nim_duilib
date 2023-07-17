@@ -8,7 +8,7 @@ VLayout::VLayout()
 
 }
 
-UiSize VLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
+UiSize64 VLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 {
 	UiSize szAvailable(rc.Width(), rc.Height());
 	szAvailable.cx = std::max((int)szAvailable.cx, 0);
@@ -120,8 +120,8 @@ UiSize VLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 	int iPosY = rc.top;
 
 	// Place elements
-	int cyNeeded = 0;//需要的总高度
-	int cxNeeded = 0;//需要的总宽度（取各个子控件的宽度最大值）
+	int64_t cyNeeded = 0;//需要的总高度
+	int64_t cxNeeded = 0;//需要的总宽度（取各个子控件的宽度最大值）
 
 	for(auto pControl : items) {
 		if ((pControl == nullptr) || !pControl->IsVisible()) {
@@ -171,7 +171,7 @@ UiSize VLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 		//设置控件的位置
 		UiRect controlRect(childLeft, iPosY + rcMargin.top, childRight, iPosY + rcMargin.top + sz.cy);		
 		pControl->SetPos(controlRect);
-		cxNeeded = std::max(cxNeeded, controlRect.Width());
+		cxNeeded = std::max(cxNeeded, (int64_t)controlRect.Width());
 
 		//调整当前Y轴坐标值
 		iPosY += (sz.cy + rcMargin.top + rcMargin.bottom + m_iChildMargin);
@@ -181,7 +181,7 @@ UiSize VLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 		cyNeeded += ((int)itemsMap.size() - 1) * m_iChildMargin;
 	}
 
-	UiSize size(cxNeeded, cyNeeded);
+	UiSize64 size(cxNeeded, cyNeeded);
 	return size;
 }
 

@@ -453,7 +453,7 @@ public:
 
     ui::Control::SetPos(rc);
 
-    ui::UiSize requiredSize;
+    ui::UiSize64 requiredSize;
     if (m_items.size() == 0) {
       requiredSize.cx = 0;
       requiredSize.cy = 0;

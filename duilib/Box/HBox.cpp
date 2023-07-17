@@ -8,7 +8,7 @@ HLayout::HLayout()
 
 }
 
-UiSize HLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
+UiSize64 HLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 {
 	UiSize szAvailable(rc.Width(), rc.Height());
 	szAvailable.cx = std::max((int)szAvailable.cx, 0);
@@ -117,8 +117,8 @@ UiSize HLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 	int iPosX = rc.left;
 
 	// Place elements
-	int cyNeeded = 0;//需要的总高度（取各个子控件的高度最大值）
-	int cxNeeded = 0;//需要的总宽度
+	int64_t cyNeeded = 0;//需要的总高度（取各个子控件的高度最大值）
+	int64_t cxNeeded = 0;//需要的总宽度
 
 	for(auto pControl : items) {
 		if ((pControl == nullptr) || !pControl->IsVisible()) {
@@ -167,7 +167,7 @@ UiSize HLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 
 		UiRect rcChildPos(iPosX + rcMargin.left, childTop, iPosX + rcMargin.left + sz.cx, childBottm);
 		pControl->SetPos(rcChildPos);
-		cyNeeded = std::max(cyNeeded, rcChildPos.Height());
+		cyNeeded = std::max(cyNeeded, (int64_t)rcChildPos.Height());
 
 		iPosX += (sz.cx + rcMargin.left + m_iChildMargin + rcMargin.right);
 		cxNeeded += (sz.cx + rcMargin.left + rcMargin.right);
@@ -176,7 +176,7 @@ UiSize HLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 		cxNeeded += ((int)itemsMap.size() - 1) * m_iChildMargin;
 	}
 
-	UiSize size(cxNeeded, cyNeeded);
+	UiSize64 size(cxNeeded, cyNeeded);
 	return size;
 }
 

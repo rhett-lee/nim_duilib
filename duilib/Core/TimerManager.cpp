@@ -77,6 +77,19 @@ TimerManager::~TimerManager()
 LRESULT TimerManager::WndProcThunk(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam)
 {
 	if (message == WM_USER_DEFINED_TIMER) {
+		//移除队列中多余的消息，避免队列中有大量无用的重复消息，导致无法处理鼠标键盘消息
+		size_t msgCount = 0;
+		MSG msg;
+		while (::PeekMessage(&msg, hwnd, WM_USER_DEFINED_TIMER, WM_USER_DEFINED_TIMER, PM_REMOVE)) {
+			++msgCount;
+		}
+#ifdef _DEBUG
+		if (msgCount > 0) {
+			char str[256];
+			sprintf_s(str, "TimerManager::WndProcThunk eat msgs: %d\n", (int)msgCount);
+			::OutputDebugStringA(str);
+		}
+#endif
 		GlobalManager::Instance().Timer().Poll();
 		return 1;
 	}
@@ -123,6 +136,11 @@ void TimerManager::Poll()
 	::QueryPerformanceCounter(&currentTime);
 
 	while (!m_aTimers.empty()) {
+		//首先删除已经取消的定时器
+		if (m_aTimers.top().weakFlag.expired()) {
+			m_aTimers.pop();
+			continue;
+		}
 		LONGLONG detaTime = m_aTimers.top().dwEndPerformanceCounter.QuadPart - currentTime.QuadPart;
 		if (detaTime <= 0) {
 			//队列顶的定时器：已经达到定时器触发条件

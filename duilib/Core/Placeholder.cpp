@@ -29,6 +29,8 @@ PlaceHolder::~PlaceHolder()
 {	
 }
 
+std::wstring PlaceHolder::GetType() const { return L"PlaceHolder"; }
+
 ui::Box* PlaceHolder::GetAncestor(const std::wstring& strName)
 {
 	Box* pAncestor = this->GetParent();
@@ -95,8 +97,9 @@ void PlaceHolder::SetFloat(bool bFloat)
 	ArrangeAncestor();
 }
 
-void PlaceHolder::SetFixedWidth(int cx, bool bArrange, bool bNeedDpiScale)
+void PlaceHolder::SetFixedWidth(int64_t cx64, bool bArrange, bool bNeedDpiScale)
 {
+	int32_t cx = TruncateToInt32(cx64);
 	if (cx < 0 && cx != DUI_LENGTH_STRETCH && cx != DUI_LENGTH_AUTO) {
 		ASSERT(FALSE);
 		return;
@@ -118,8 +121,9 @@ void PlaceHolder::SetFixedWidth(int cx, bool bArrange, bool bNeedDpiScale)
 	}
 }
 
-void PlaceHolder::SetFixedHeight(int cy, bool bNeedDpiScale)
+void PlaceHolder::SetFixedHeight(int64_t cy64, bool bNeedDpiScale)
 {
+	int32_t cy = TruncateToInt32(cy64);
 	if (cy < 0 && cy != DUI_LENGTH_STRETCH && cy != DUI_LENGTH_AUTO) {
 		ASSERT(FALSE);
 		return;
@@ -316,7 +320,14 @@ void PlaceHolder::Invalidate()
 	}
 
 	SetCacheDirty(true);
-	UiRect rcInvalidate = GetPosWithScrollOffset(true);
+	UiRect rcInvalidate = GetPos(true);	
+	ui::UiPoint scrollBoxOffset = GetScrollOffsetInScrollBox();
+	rcInvalidate.Offset(-scrollBoxOffset.x, -scrollBoxOffset.y);
+#ifdef _DEBUG
+	//char ss[256];
+	//sprintf_s(ss, "Invalidate(%S):{%d,%d,%d,%d} \n", GetType().c_str(), rcInvalidate.left, rcInvalidate.top, rcInvalidate.Width(), rcInvalidate.Height());
+	//::OutputDebugStringA(ss);
+#endif
 	if (m_pWindow != nullptr) {
 		m_pWindow->Invalidate(rcInvalidate);
 	}
@@ -334,41 +345,39 @@ void PlaceHolder::RelayoutOrRedraw()
 	}
 }
 
-UiRect PlaceHolder::GetPosWithScrollOffset(bool bContainShadow) const
-{
-	UiRect pos = GetPos(bContainShadow);
-	UiPoint offset = GetScrollOffset();
-	pos.Offset(-offset.x, -offset.y);
-	return pos;
-}
-
-UiPoint PlaceHolder::GetScrollOffset() const
+UiPoint PlaceHolder::GetScrollOffsetInScrollBox() const
 {
 	UiPoint scrollPos;
-	Control* parent = GetParent();
-	ScrollBox* lbParent = dynamic_cast<ScrollBox*>(parent);
-	if (lbParent && (lbParent->IsVScrollBarValid() || lbParent->IsHScrollBarValid()) && IsFloat()) {
-		return scrollPos;
-	}
-
-	while (parent != nullptr) {
-		ScrollBox* listbox = dynamic_cast<ScrollBox*>(parent);
-		while ( (parent != nullptr) && 
-			    ((listbox == nullptr) || (!listbox->IsVScrollBarValid() && !listbox->IsHScrollBarValid()))) {
-			parent = parent->GetParent();
-			listbox = dynamic_cast<ScrollBox*>(parent);
+	Control* parent = GetParent();	
+	if (IsFloat()) {
+		ScrollBox* pScrollBox= dynamic_cast<ScrollBox*>(parent);
+		if ((pScrollBox != nullptr) &&
+			(pScrollBox->IsVScrollBarValid() || pScrollBox->IsHScrollBarValid())) {
+			//当前控件是浮动的，父控件是ScrollBox， 并且父控件存在横向滚动条或者纵向滚动条
+			return scrollPos;
 		}
-
+	}
+	
+	while (parent != nullptr) {
+		ScrollBox* pScrollBox = dynamic_cast<ScrollBox*>(parent);
+		while (parent != nullptr) {
+			parent = parent->GetParent();
+			pScrollBox = dynamic_cast<ScrollBox*>(parent);
+			if ((pScrollBox != nullptr) &&
+				(pScrollBox->IsVScrollBarValid() || pScrollBox->IsHScrollBarValid())) {
+				//此父控件是ScrollBox，并且父控件存在横向滚动条或者纵向滚动条
+				break;
+			}
+		}
 		if (parent != nullptr) {
-			//说明控件在Listbox内部			
-			if (listbox != nullptr) {
-				scrollPos.x += listbox->GetScrollPos().cx;
-				scrollPos.y += listbox->GetScrollPos().cy;
+			//说明控件在ScrollBox内部			
+			if (pScrollBox != nullptr) {
+				scrollPos.x += pScrollBox->GetScrollOffset().cx;
+				scrollPos.y += pScrollBox->GetScrollOffset().cy;
 			}			
 			parent = parent->GetParent();
 		}
 	}
-
 	return scrollPos;
 }
 
@@ -378,6 +387,13 @@ bool PlaceHolder::IsChild(PlaceHolder* pAncestor, PlaceHolder* pControl) const
 		pControl = pControl->GetParent();
 	}
 	return pControl != nullptr;
+}
+
+int32_t PlaceHolder::TruncateToInt32(int64_t x) const
+{
+	x = x < INT32_MAX ? x : INT32_MAX;
+	x = x > INT32_MIN ? x : INT32_MIN;
+	return static_cast<int32_t>(x);
 }
 
 }

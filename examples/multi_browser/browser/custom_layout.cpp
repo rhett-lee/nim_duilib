@@ -2,7 +2,7 @@
 
 using namespace ui;
 
-ui::UiSize CustomLayout::ArrangeChild(const std::vector<ui::Control*>& m_items, ui::UiRect rc)
+ui::UiSize64 CustomLayout::ArrangeChild(const std::vector<ui::Control*>& m_items, ui::UiRect rc)
 {
 	UiSize size;
 	for (auto it = m_items.begin(); it != m_items.end(); it++) {
@@ -11,8 +11,7 @@ ui::UiSize CustomLayout::ArrangeChild(const std::vector<ui::Control*>& m_items, 
 		size.cx = std::max(size.cx, new_size.cx);
 		size.cy = std::max(size.cy, new_size.cy);
 	}
-
-	return size;
+	return UiSize64(size.cx, size.cy);
 }
 
 UiSize CustomLayout::SetCustomPos(Control* pControl, UiRect containerRect)

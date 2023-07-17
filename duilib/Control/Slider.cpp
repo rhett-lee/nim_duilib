@@ -50,7 +50,7 @@ void Slider::HandleEvent(const EventArgs& event)
 	if (event.Type == kEventMouseButtonDown || event.Type == kEventMouseDoubleClick) {
 		if( IsEnabled() ) {
 			UiPoint newPtMouse(event.ptMouse);
-			newPtMouse.Offset(GetScrollOffset());
+			newPtMouse.Offset(GetScrollOffsetInScrollBox());
 			UiRect rcThumb = GetThumbRect();
 			if (rcThumb.ContainsPt(newPtMouse)) {
 				SetMouseFocused(true);

@@ -344,8 +344,10 @@ void ScrollBar::HandleEvent(const EventArgs& event)
 		GlobalManager::Instance().Timer().AddCancelableTimer(m_weakFlagOwner.GetWeakFlag(), callback, 50, TimerManager::REPEAT_FOREVER);
 
 		if (m_rcButton1.ContainsPt(event.ptMouse)) {
+			//鼠标位置：[上按钮](垂直滚动条) 或者 [左按钮](水平滚动条)
 			m_uButton1State = kControlStatePushed;
 			if (!m_bHorizontal) {
+				//垂直滚动条
 				if (m_pOwner != nullptr) {
 					m_pOwner->LineUp();
 				}
@@ -354,6 +356,7 @@ void ScrollBar::HandleEvent(const EventArgs& event)
 				}
 			}
 			else {
+				//水平滚动条
 				if (m_pOwner != nullptr) {
 					m_pOwner->LineLeft();
 				}
@@ -363,8 +366,10 @@ void ScrollBar::HandleEvent(const EventArgs& event)
 			}
 		}
 		else if (m_rcButton2.ContainsPt(event.ptMouse)) {
+			//鼠标位置：[下按钮](垂直滚动条) 或者 [右按钮](水平滚动条)
 			m_uButton2State = kControlStatePushed;
 			if (!m_bHorizontal) {
+				//垂直滚动条
 				if (m_pOwner != nullptr) {
 					m_pOwner->LineDown();
 				}
@@ -373,6 +378,7 @@ void ScrollBar::HandleEvent(const EventArgs& event)
 				}
 			}
 			else {
+				//水平滚动条
 				if (m_pOwner != nullptr) {
 					m_pOwner->LineRight();
 				}
@@ -382,13 +388,16 @@ void ScrollBar::HandleEvent(const EventArgs& event)
 			}
 		}
 		else if (m_rcThumb.ContainsPt(event.ptMouse)) {
+			//鼠标位置：在滚动条的滑动块按钮上
 			m_uThumbState = kControlStatePushed;
 			SetMouseFocused(true);
 			m_ptLastMouse = event.ptMouse;
 			m_nLastScrollPos = m_nScrollPos;
 		}
 		else {
+			//鼠标位置：滚动条非按钮区域
 			if (!m_bHorizontal) {
+				//垂直滚动条
 				if (event.ptMouse.y < m_rcThumb.top) {
 					if (m_pOwner != nullptr) {
 						m_pOwner->PageUp();
@@ -407,6 +416,7 @@ void ScrollBar::HandleEvent(const EventArgs& event)
 				}
 			}
 			else {
+				//水平滚动条
 				if (event.ptMouse.x < m_rcThumb.left) {
 					if (m_pOwner != nullptr) {
 						m_pOwner->PageLeft();
@@ -464,8 +474,8 @@ void ScrollBar::HandleEvent(const EventArgs& event)
 	else if (event.Type == kEventMouseMove) {
 		if (IsMouseFocused()) {
 			if (!m_bHorizontal) {
-
-				int vRange = GetRect().bottom - GetRect().top - m_rcThumb.bottom + m_rcThumb.top;
+				//垂直滚动条
+				int vRange = GetRect().Height() - m_rcThumb.Height();
 				if (m_bShowButton1) {
 					vRange -= GetFixedWidth();
 				}
@@ -478,8 +488,8 @@ void ScrollBar::HandleEvent(const EventArgs& event)
 				}
 			}
 			else {
-
-				int hRange = GetRect().right - GetRect().left - m_rcThumb.right + m_rcThumb.left;
+				//水平滚动条
+				int hRange = GetRect().Width() - m_rcThumb.Width();
 				if (m_bShowButton1) {
 					hRange -= GetFixedHeight();
 				}
@@ -698,7 +708,6 @@ int64_t ScrollBar::GetScrollPos() const
 
 void ScrollBar::SetScrollPos(int64_t nPos)
 {
-	//ASSERT(nPos >= 0);
 	if (nPos < 0) {
 		nPos = 0;
 	}
@@ -826,9 +835,11 @@ void ScrollBar::ScrollTimeHandle()
 {
 	++m_nScrollRepeatDelay;
 	if(m_uThumbState == kControlStatePushed) {
+		//鼠标位置：在滑动块上
 		if( !m_bHorizontal ) {
+			//垂直滚动条
 			if (m_pOwner != nullptr) {
-				m_pOwner->SetScrollPos(UiSize(m_pOwner->GetScrollPos().cx,
+				m_pOwner->SetScrollPos(UiSize64(m_pOwner->GetScrollPos().cx,
 					                          static_cast<int>(m_nLastScrollPos + m_nLastScrollOffset)));
 			}
 			else {
@@ -836,8 +847,9 @@ void ScrollBar::ScrollTimeHandle()
 			}
 		}
 		else {
+			//水平滚动条
 			if (m_pOwner != nullptr) {
-				m_pOwner->SetScrollPos(UiSize(static_cast<int>(m_nLastScrollPos + m_nLastScrollOffset),
+				m_pOwner->SetScrollPos(UiSize64(static_cast<int>(m_nLastScrollPos + m_nLastScrollOffset),
 									          m_pOwner->GetScrollPos().cy));
 			}
 			else {
@@ -846,6 +858,7 @@ void ScrollBar::ScrollTimeHandle()
 		}
 	}
 	else if( m_uButton1State == kControlStatePushed ) {
+		//鼠标位置：[上按钮](垂直滚动条) 或者 [左按钮](水平滚动条)
 		if (m_nScrollRepeatDelay <= 5) {
 			return;
 		}
@@ -867,6 +880,7 @@ void ScrollBar::ScrollTimeHandle()
 		}
 	}
 	else if( m_uButton2State == kControlStatePushed ) {
+		//鼠标位置：[下按钮](垂直滚动条) 或者 [右按钮](水平滚动条)
 		if (m_nScrollRepeatDelay <= 5) {
 			return;
 		}
@@ -888,6 +902,7 @@ void ScrollBar::ScrollTimeHandle()
 		}
 	}
 	else {
+		//鼠标位置：滚动条非按钮区域
 		if (m_nScrollRepeatDelay <= 5) {
 			return;
 		}
@@ -895,9 +910,19 @@ void ScrollBar::ScrollTimeHandle()
 		::GetCursorPos(&pt);
 		::ScreenToClient(GetWindow()->GetHWND(), &pt);
 		if( !m_bHorizontal ) {
+			//垂直滚动条
 			if( pt.y < m_rcThumb.top ) {
 				if (m_pOwner != nullptr) {
-					m_pOwner->PageUp();
+					//做处理，避免数据量很大时，滚动条的速度非常慢，达不到鼠标所在位置
+					int64_t nScrollOffset = CalcFastScrollOffset(m_rcThumb.top - pt.y);					
+					if (nScrollOffset > GetRect().Height()) {
+						UiSize64 sz = m_pOwner->GetScrollPos();
+						sz.cy -= nScrollOffset;
+						m_pOwner->SetScrollPos(sz);
+					}
+					else {
+						m_pOwner->PageUp();
+					}
 				}
 				else {
 					SetScrollPos(m_nScrollPos + GetRect().top - GetRect().bottom);
@@ -905,7 +930,15 @@ void ScrollBar::ScrollTimeHandle()
 			}
 			else if ( pt.y > m_rcThumb.bottom ){
 				if (m_pOwner != nullptr) {
-					m_pOwner->PageDown();
+					int64_t nScrollOffset = CalcFastScrollOffset(pt.y - m_rcThumb.bottom);
+					if (nScrollOffset > GetRect().Height()) {
+						UiSize64 sz = m_pOwner->GetScrollPos();
+						sz.cy += nScrollOffset;
+						m_pOwner->SetScrollPos(sz);
+					}
+					else {
+						m_pOwner->PageDown();
+					}
 				}
 				else {
 					SetScrollPos(m_nScrollPos - GetRect().top + GetRect().bottom);
@@ -913,9 +946,18 @@ void ScrollBar::ScrollTimeHandle()
 			}
 		}
 		else {
+			//水平滚动条
 			if( pt.x < m_rcThumb.left ) {
 				if (m_pOwner != nullptr) {
-					m_pOwner->PageLeft();
+					int64_t nScrollOffset = CalcFastScrollOffset(m_rcThumb.left - pt.x);
+					if (nScrollOffset > GetRect().Width()) {
+						UiSize64 sz = m_pOwner->GetScrollPos();
+						sz.cx -= nScrollOffset;
+						m_pOwner->SetScrollPos(sz);
+					}
+					else {
+						m_pOwner->PageLeft();
+					}
 				}
 				else {
 					SetScrollPos(m_nScrollPos + GetRect().left - GetRect().right);
@@ -923,7 +965,15 @@ void ScrollBar::ScrollTimeHandle()
 			}
 			else if ( pt.x > m_rcThumb.right ){
 				if (m_pOwner != nullptr) {
-					m_pOwner->PageRight();
+					int64_t nScrollOffset = CalcFastScrollOffset(pt.x - m_rcThumb.right);
+					if (nScrollOffset > GetRect().Width()) {
+						UiSize64 sz = m_pOwner->GetScrollPos();
+						sz.cx += nScrollOffset;
+						m_pOwner->SetScrollPos(sz);
+					}
+					else {
+						m_pOwner->PageRight();
+					}
 				}
 				else {
 					SetScrollPos(m_nScrollPos - GetRect().left + GetRect().right);
@@ -932,6 +982,29 @@ void ScrollBar::ScrollTimeHandle()
 		}
 	}
 	return;
+}
+
+int64_t ScrollBar::CalcFastScrollOffset(int32_t posOffset) const
+{
+	ASSERT(posOffset > 0);
+	if (posOffset <= 0) {
+		return GetRect().Height();
+	}
+	//做处理，避免数据量很大时，滚动条的速度非常慢，达不到鼠标所在位置
+	int64_t nScrollOffset = 0;
+	int vRange = GetRect().Height() - m_rcThumb.Height();
+	if (m_bShowButton1) {
+		vRange -= GetFixedWidth();
+	}
+	if (m_bShowButton2) {
+		vRange -= GetFixedWidth();
+	}
+	if (vRange != 0) {
+		nScrollOffset = posOffset * m_nRange / vRange;
+		//按滚动5次到达鼠标所在位置计算
+		nScrollOffset /= 5;
+	}
+	return nScrollOffset;
 }
 
 void ScrollBar::PaintBk(IRender* pRender)

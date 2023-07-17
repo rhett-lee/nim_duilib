@@ -34,7 +34,10 @@ void CFilterComboWnd::InitComboWnd(FilterCombo* pOwner)
 
     // Position the popup window in absolute space
 	ui::UiSize szDrop = m_pOwner->GetDropBoxSize();
-	ui::UiRect rcOwner = pOwner->GetPosWithScrollOffset(true);
+	ui::UiRect rcOwner = pOwner->GetPos(true);
+	ui::UiPoint scrollBoxOffset = pOwner->GetScrollOffsetInScrollBox();
+	rcOwner.Offset(-scrollBoxOffset.x, -scrollBoxOffset.y);
+
 	ui::UiRect rc = rcOwner;
     rc.top = rc.bottom + 1;		// 父窗口left、bottom位置作为弹出窗口起点
     rc.bottom = rc.top + szDrop.cy;	// 计算弹出窗口高度
@@ -469,7 +472,10 @@ bool FilterCombo::OnRichEditTextChanged(const ui::EventArgs& /*args*/)
 		return false;
 	}
 	ui::UiSize szDrop = GetDropBoxSize();
-	ui::UiRect rcOwner = GetPosWithScrollOffset(true);
+	ui::UiRect rcOwner = GetPos(true);
+	ui::UiPoint scrollBoxOffset = GetScrollOffsetInScrollBox();
+	rcOwner.Offset(-scrollBoxOffset.x, -scrollBoxOffset.y);
+
 	ui::UiRect rc = rcOwner;
 	rc.top = rc.bottom + 1;		// 父窗口left、bottom位置作为弹出窗口起点
 	rc.bottom = rc.top + szDrop.cy;	// 计算弹出窗口高度

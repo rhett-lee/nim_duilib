@@ -25,6 +25,10 @@ public:
 	PlaceHolder& operator=(const PlaceHolder& r) = delete;
 	virtual ~PlaceHolder();
 
+	/** 控件类型
+	*/
+	virtual std::wstring GetType() const;
+
 	/**@brief 获取父容器指针
 	 */
 	Box* GetParent() const { return m_pParent;}
@@ -100,21 +104,21 @@ public:
 	int GetFixedWidth() const { return m_cxyFixed.cx; }
 
 	/**@brief 设置控件固定宽度
-	 * @param[in] cx 要设置的宽度
+	 * @param[in] cx64 要设置的宽度
 	 * @param[in] bArrange 是否重新排列，默认为 true
 	 * @param[in] bNeedDpiScale 兼容 DPI 缩放，默认为 true
 	 */
-	void SetFixedWidth(int cx, bool bArrange, bool bNeedDpiScale);
+	void SetFixedWidth(int64_t cx64, bool bArrange, bool bNeedDpiScale);
 
 	/**@brief 获取固定高度
 	 */
 	int GetFixedHeight() const { return m_cxyFixed.cy; }
 
 	/**@brief 设置固定高度
-	 * @param[in] cy 要设置的固定高度
+	 * @param[in] cy64 要设置的固定高度
 	 * @param[in] bNeedDpiScale 兼容 DPI 缩放，默认为 true
 	 */
-	void SetFixedHeight(int cy, bool bNeedDpiScale);
+	void SetFixedHeight(int64_t cy64, bool bNeedDpiScale);
 
 	/**@brief 获取控件大小
 	*/
@@ -265,18 +269,17 @@ public:
 	 */
 	bool IsCacheDirty() { return m_bCacheDirty; }
 
-	/**@brief 获取控件实际的位置（布局位置加外层滚动后的偏移位置）
-	 * @param[in] bContainShadow 是否考虑窗口阴影尺寸
-	 */
-	UiRect GetPosWithScrollOffset(bool bContainShadow) const;
-
 	/** @brief 获取外层滚动偏移
 	 */
-	UiPoint GetScrollOffset() const;
+	UiPoint GetScrollOffsetInScrollBox() const;
 
 	/** @brief 判断两个控件是否存在父子/子孙关系
 	 */
 	bool IsChild(PlaceHolder* pAncestor, PlaceHolder* pChild) const;
+
+	/** 将64位整型值转换位32位整型值
+	*/
+	int32_t TruncateToInt32(int64_t x) const;
 
 protected:
 	/** @brief 让自己重排

@@ -18,11 +18,11 @@ void Layout::SetOwner(Box* pOwner)
 	m_pOwner = pOwner;
 }
 
-UiSize Layout::SetFloatPos(Control* pControl, UiRect rcContainer)
+UiSize64 Layout::SetFloatPos(Control* pControl, UiRect rcContainer)
 {
 	ASSERT(pControl != nullptr);
 	if ((pControl == nullptr) || (!pControl->IsVisible())) {
-		return UiSize();
+		return UiSize64();
 	}
 	if (rcContainer.Width() < 0) {
 		rcContainer.right = rcContainer.left;
@@ -98,7 +98,8 @@ UiSize Layout::SetFloatPos(Control* pControl, UiRect rcContainer)
 
 	UiRect childPos(childLeft, childTop, childRight, childBottm);
 	pControl->SetPos(childPos);
-	return UiSize(childPos.Width(), childPos.Height());
+	//TODO: 64ŒªºÊ»›–‘ºÏ≤È
+	return UiSize64(childPos.Width(), childPos.Height());
 }
 
 bool Layout::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
@@ -119,14 +120,14 @@ bool Layout::SetAttribute(const std::wstring& strName, const std::wstring& strVa
 	return hasAttribute;
 }
 
-UiSize Layout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
+UiSize64 Layout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 {
-	UiSize size;
+	UiSize64 size;
 	for (Control* pControl : items) {
 		if ((pControl == nullptr) || (!pControl->IsVisible())){
 			continue;
 		}
-		UiSize controlSize = SetFloatPos(pControl, rc);
+		UiSize64 controlSize = SetFloatPos(pControl, rc);
 		size.cx = std::max(size.cx, controlSize.cx);
 		size.cy = std::max(size.cy, controlSize.cy);
 	}

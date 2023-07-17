@@ -575,5 +575,8 @@
     <ClInclude Include="Utils\AttributeUtil.h">
       <Filter>Utils</Filter>
     </ClInclude>
+    <ClInclude Include="Core\UiSize64.h">
+      <Filter>Core</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

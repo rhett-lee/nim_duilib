@@ -3,8 +3,7 @@
 
 #pragma once
 
-#include "duilib/duilib_defs.h"
-#include <cstdint>
+#include "duilib/Core/UiSize64.h"
 
 namespace ui 
 {

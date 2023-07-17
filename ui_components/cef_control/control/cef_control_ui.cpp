@@ -343,7 +343,7 @@ void CefControl::OnBeforeContextMenu(CefRefPtr<CefBrowser> browser, CefRefPtr<Ce
 		}
 
 		ui::UiPoint pt = { x + GetRect().left, y + GetRect().top};
-		ui::UiPoint offsetPt = GetScrollOffset();
+		ui::UiPoint offsetPt = GetScrollOffsetInScrollBox();
 		pt.Offset(offsetPt);
 		ui::UiRect rect = GetRect();
 		ui::UiRect rectView = devtool_view_->GetRect();
@@ -367,7 +367,7 @@ LRESULT CefControl::SendButtonDownEvent(UINT uMsg, WPARAM wParam, LPARAM lParam,
 	CefRefPtr<CefBrowserHost> host = browser_handler_->GetBrowserHost();
 
 	ui::UiPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
-	pt.Offset(GetScrollOffset());
+	pt.Offset(GetScrollOffsetInScrollBox());
 	if (!GetRect().ContainsPt(pt))
 		return 0;
 
@@ -392,7 +392,7 @@ LRESULT CefControl::SendButtonDoubleDownEvent(UINT uMsg, WPARAM wParam, LPARAM l
 	CefRefPtr<CefBrowserHost> host = browser_handler_->GetBrowserHost();
 
 	ui::UiPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
-	pt.Offset(GetScrollOffset());
+	pt.Offset(GetScrollOffsetInScrollBox());
 	if (!GetRect().ContainsPt(pt))
 		return 0;
 
@@ -416,7 +416,7 @@ LRESULT CefControl::SendButtonUpEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, b
 	CefRefPtr<CefBrowserHost> host = browser_handler_->GetBrowserHost();
 
 	ui::UiPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
-	pt.Offset(GetScrollOffset());
+	pt.Offset(GetScrollOffsetInScrollBox());
 	if (!GetRect().ContainsPt(pt) && !GetWindow()->IsCaptured())
 		return 0;
 
@@ -440,7 +440,7 @@ LRESULT CefControl::SendMouseMoveEvent(UINT /*uMsg*/, WPARAM wParam, LPARAM lPar
 	CefRefPtr<CefBrowserHost> host = browser_handler_->GetBrowserHost();
 
 	ui::UiPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
-	pt.Offset(GetScrollOffset());
+	pt.Offset(GetScrollOffsetInScrollBox());
 	if (!GetRect().ContainsPt(pt) && !GetWindow()->IsCaptured())
 		return 0;
 
@@ -465,7 +465,7 @@ LRESULT CefControl::SendMouseWheelEvent(UINT /*uMsg*/, WPARAM wParam, LPARAM lPa
 		return 0;
 
 	GetWindow()->ScreenToClient(pt);
-	pt.Offset(GetScrollOffset());
+	pt.Offset(GetScrollOffsetInScrollBox());
 	if (!GetRect().ContainsPt(pt))
 		return 0;
 
@@ -487,7 +487,7 @@ LRESULT CefControl::SendMouseLeaveEvent(UINT /*uMsg*/, WPARAM wParam, LPARAM lPa
 	CefRefPtr<CefBrowserHost> host = browser_handler_->GetBrowserHost();
 
 	ui::UiPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
-	pt.Offset(GetScrollOffset());
+	pt.Offset(GetScrollOffsetInScrollBox());
 	if (!GetRect().ContainsPt(pt))
 		return 0;
 

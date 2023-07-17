@@ -32,7 +32,7 @@ public:
 	 * @param[in] rcContainer 要设置的位置信息
 	 * @return 返回控件最终的位置信息
 	 */
-	static UiSize SetFloatPos(Control* pControl, UiRect rcContainer);
+	static UiSize64 SetFloatPos(Control* pControl, UiRect rcContainer);
 
 	/**
 	 * @brief 设置布局属性
@@ -48,7 +48,7 @@ public:
 	 * @param[in] rc 当前容器位置信息
 	 * @return 返回排列后最终盒子的宽度和高度信息
 	 */
-	virtual UiSize ArrangeChild(const std::vector<Control*>& items, UiRect rc);
+	virtual UiSize64 ArrangeChild(const std::vector<Control*>& items, UiRect rc);
 
 	/**
 	 * @brief 根据内部子控件大小调整容器自身大小

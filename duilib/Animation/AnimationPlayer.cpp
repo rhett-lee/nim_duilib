@@ -102,7 +102,8 @@ void AnimationPlayerBase::StartTimer()
 
 	Play();
 	auto playCallback = nbase::Bind(&AnimationPlayerBase::Play, this);
-	GlobalManager::Instance().Timer().AddCancelableTimer(m_weakFlagOwner.GetWeakFlag(), playCallback, m_elapseMillSeconds, TimerManager::REPEAT_FOREVER);
+	ASSERT(m_elapseMillSeconds <= INT32_MAX);
+	GlobalManager::Instance().Timer().AddCancelableTimer(m_weakFlagOwner.GetWeakFlag(), playCallback, (uint32_t)m_elapseMillSeconds, TimerManager::REPEAT_FOREVER);
 }
 
 void AnimationPlayerBase::Play()
@@ -112,7 +113,7 @@ void AnimationPlayerBase::Play()
 	m_palyedMillSeconds += (static_cast<double>(newCurrentTime.QuadPart - m_currentTime.QuadPart) * 1000 )/m_timeFrequency.QuadPart;
 	QueryPerformanceCounter(&m_currentTime);
 
-	int newCurrentValue = GetCurrentValue();
+	int64_t newCurrentValue = GetCurrentValue();
 	if (m_playCallback) {
 		if (m_endValue > m_startValue && newCurrentValue >= m_endValue
 			|| m_endValue < m_startValue && newCurrentValue <= m_endValue) {
@@ -177,30 +178,30 @@ void AnimationPlayer::StartTimer()
 	__super::StartTimer();
 }
 
-int AnimationPlayer::GetCurrentValue()
+int64_t AnimationPlayer::GetCurrentValue()
 {
 	if (m_palyedMillSeconds >= m_totalMillSeconds) {
 		return m_endValue;
 	}
 
-	int detaValue = 0;
+	int64_t detaValue = 0;
 	if (m_palyedMillSeconds <= m_speedUpMillSeconds) {
-		detaValue = int(m_speedUpfactorA * m_palyedMillSeconds * m_palyedMillSeconds);
+		detaValue = int64_t(m_speedUpfactorA * m_palyedMillSeconds * m_palyedMillSeconds);
 	}
 	else if (m_palyedMillSeconds <= (m_speedUpMillSeconds + m_linerMillSeconds)) {
 		double linerTime = m_palyedMillSeconds - m_speedUpMillSeconds;
-		detaValue = int(m_speedUpfactorA * m_speedUpMillSeconds * m_speedUpMillSeconds + m_linearSpeed * linerTime);
+		detaValue = int64_t(m_speedUpfactorA * m_speedUpMillSeconds * m_speedUpMillSeconds + m_linearSpeed * linerTime);
 	}
 	else if (m_palyedMillSeconds <= m_totalMillSeconds) {
 		double speedDownTime = m_palyedMillSeconds - m_speedUpMillSeconds - m_linerMillSeconds;
-		detaValue = int(m_speedUpfactorA * m_speedUpMillSeconds * m_speedUpMillSeconds + m_linearSpeed * m_linerMillSeconds
+		detaValue = int64_t(m_speedUpfactorA * m_speedUpMillSeconds * m_speedUpMillSeconds + m_linearSpeed * m_linerMillSeconds
 			+ m_speedDownfactorA * speedDownTime * speedDownTime + m_speedDownfactorB * speedDownTime);
 	}
 	else {
 		ASSERT(FALSE); 
 	}
 
-	int currentValue = 0;
+	int64_t currentValue = 0;
 	if (m_endValue > m_startValue) {
 		currentValue = m_startValue + detaValue;
 	}
@@ -213,18 +214,18 @@ int AnimationPlayer::GetCurrentValue()
 
 void AnimationPlayer::InitFactor()
 {
-	double s = std::abs(m_endValue - m_startValue);
+	int64_t s = std::abs(m_endValue - m_startValue);
 
 	if (m_speedUpRatio == 0 && m_speedDownRatio == 0) {	//liner
 		ASSERT(m_totalMillSeconds == AP_NO_VALUE && !IsZeroValue(m_linearSpeed) || 
 			   m_totalMillSeconds != AP_NO_VALUE && IsZeroValue(m_linearSpeed));
 		if (m_totalMillSeconds == AP_NO_VALUE) {
-			m_totalMillSeconds = int(s / m_linearSpeed);
+			m_totalMillSeconds = static_cast<int64_t>(s / m_linearSpeed);
 		}
 		else {
-			m_linearSpeed = s / m_totalMillSeconds;
+			m_linearSpeed = 1.0 * s / m_totalMillSeconds;
 		}
-		m_linerMillSeconds = m_totalMillSeconds;
+		m_linerMillSeconds = static_cast<double>(m_totalMillSeconds);
 	}
 	else {
 		if (m_totalMillSeconds != AP_NO_VALUE) {

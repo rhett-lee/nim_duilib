@@ -259,7 +259,9 @@ namespace nim_comp
 
 	ui::UiRect CheckCombo::GetOrgPos() const
 	{
-		ui::UiRect rc = GetPosWithScrollOffset(true);
+		ui::UiRect rc = GetPos(true);
+		ui::UiPoint scrollBoxOffset = GetScrollOffsetInScrollBox();
+		rc.Offset(-scrollBoxOffset.x, -scrollBoxOffset.y);
 		rc.bottom = rc.top + m_iOrgHeight;
 		return ui::UiRect(rc);
 	}

@@ -6,7 +6,7 @@
 struct DownloadTask
 {
 	int nId;
-	std::wstring sName;
+	wchar_t* sName = nullptr;
 };
 
 class Provider : public ui::VirtualTileBoxElement

@@ -46,7 +46,8 @@ Control::Control() :
 	m_loadBkImageWeakFlag(),
     m_loadingImageFlag(),
 	m_boxShadow(),
-	m_isBoxShadowPainted(false)
+	m_isBoxShadowPainted(false),
+	m_uUserDataID((size_t)-1)
 {
 	m_colorMap = std::make_unique<StateColorMap>();
 	m_imageMap = std::make_unique<StateImageMap>();
@@ -413,6 +414,16 @@ void Control::SetUTF8DataID(const std::string& strText)
 	m_sUserDataID = strOut;
 }
 
+void Control::SetUserDataID(size_t dataID)
+{
+	m_uUserDataID = dataID;
+}
+
+size_t Control::GetUserDataID() const
+{
+	return m_uUserDataID;
+}
+
 void Control::SetFadeVisible(bool bVisible)
 {
 	if (bVisible) {
@@ -570,7 +581,7 @@ void Control::SetPos(UiRect rc)
 	bool needInvalidate = true;
 	UiRect rcTemp;
 	UiRect rcParent;
-	UiPoint offset = GetScrollOffset();
+	UiPoint offset = GetScrollOffsetInScrollBox();
 	invalidateRc.Offset(-offset.x, -offset.y);
 	Control* pParent = GetParent();
 	while (pParent != nullptr) {
@@ -713,7 +724,7 @@ UiSize Control::EstimateText(UiSize /*szAvailable*/)
 
 bool Control::IsPointInWithScrollOffset(const UiPoint& point) const
 {
-	UiPoint scrollOffset = GetScrollOffset();
+	UiPoint scrollOffset = GetScrollOffsetInScrollBox();
 	UiPoint newPoint = point;
 	newPoint.Offset(scrollOffset);
 	return GetRect().ContainsPt(newPoint);
@@ -1851,17 +1862,17 @@ void Control::PaintLoading(IRender* pRender)
 	PaintImage(pRender, *m_loadingImage, modify, -1, spMatrix.get());
 }
 
-void Control::SetAlpha(int alpha)
+void Control::SetAlpha(int64_t alpha)
 {
 	ASSERT(alpha >= 0 && alpha <= 255);
-	m_nAlpha = alpha;
+	m_nAlpha = TruncateToInt32(alpha);
 	Invalidate();
 }
 
-void Control::SetHotAlpha(int nHotAlpha)
+void Control::SetHotAlpha(int64_t nHotAlpha)
 {
 	ASSERT(nHotAlpha >= 0 && nHotAlpha <= 255);
-	m_nHotAlpha = nHotAlpha;
+	m_nHotAlpha = TruncateToInt32(nHotAlpha);
 	Invalidate();
 }
 
@@ -1876,15 +1887,15 @@ void Control::SetRenderOffset(UiPoint renderOffset)
 	Invalidate();
 }
 
-void Control::SetRenderOffsetX(int renderOffsetX)
+void Control::SetRenderOffsetX(int64_t renderOffsetX)
 {
-	m_renderOffset.x = renderOffsetX;
+	m_renderOffset.x = TruncateToInt32(renderOffsetX);
 	Invalidate();
 }
 
-void Control::SetRenderOffsetY(int renderOffsetY)
+void Control::SetRenderOffsetY(int64_t renderOffsetY)
 {
-	m_renderOffset.y = renderOffsetY;
+	m_renderOffset.y = TruncateToInt32(renderOffsetY);
 	Invalidate();
 }
 

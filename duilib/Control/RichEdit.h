@@ -607,7 +607,7 @@ public:
 	 * @param[in] szPos 要设置的滚动条位置信息
 	 * @return 无
 	 */
-    virtual void SetScrollPos(UiSize szPos) override;
+    virtual void SetScrollPos(UiSize64 szPos) override;
 
 	/**
 	 * @brief 向上一行

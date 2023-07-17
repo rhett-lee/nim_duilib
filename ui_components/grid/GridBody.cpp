@@ -88,7 +88,7 @@ namespace ui
 	{
 		int fixed_row_height = GetFixedRowHeight();
 		int fixed_col_width = GetFixedColWidth();
-		UiSize szOff = m_pGrid->GetScrollPos();
+		UiSize64 szOff = m_pGrid->GetScrollPos();
 
 		pt.Offset(-GetRect().left, -GetRect().top);
 		ASSERT(pt.x > 0 && pt.y > 0);
@@ -102,7 +102,7 @@ namespace ui
 			bool bFind = false;
 			if (fixed)
 			{
-				int posx = 0, posy = 0;
+				int64_t posx = 0, posy = 0;
 				if (rcFixed.ContainsPt(pt))			//in position of fixed row or fixed col
 					;
 				else if (rcFixedRow.ContainsPt(pt))
@@ -144,7 +144,7 @@ namespace ui
 		if (pt.x - fixed_col_width > 0 && pt.y - fixed_row_height > 0 && pt.x < m_pGrid->GetWidth() && pt.y < m_pGrid->GetHeight())	
 		{
 			UiPoint ptOff = pt, pt_position;
-			ptOff.Offset(szOff.cx, szOff.cy);
+			ptOff.Offset((int32_t)szOff.cx, (int32_t)szOff.cy);
 			int posx = 0, posy = 0;
 
 			for (size_t i = 0; i < (size_t)GetRowCount(); i++)
@@ -967,7 +967,7 @@ namespace ui
 		{
 			printf("GridBody::ButtonDown item position{%d,%d}\n", position.x, position.y);
 
-			UiSize szOff = m_pGrid->GetScrollPos();
+			UiSize64 szOff = m_pGrid->GetScrollPos();
 			int fixed_col_width = GetFixedColWidth();
 			int grid_width = m_pGrid->GetWidth();
 			UiPoint pt (msg.ptMouse);
@@ -1022,7 +1022,7 @@ namespace ui
 							m_nDragColIndex = static_cast<int>(i);
 							m_ptDragColumnStart = pt;
 							m_ptDragColumnMoving = pt;
-							m_nDrawDragColumnMovingOffX = posx - pt.x - szOff.cx;
+							m_nDrawDragColumnMovingOffX = posx - pt.x - (int32_t)szOff.cx;
 							Invalidate();
 							::SetCursor(::LoadCursor(NULL, IDC_SIZEWE));
 							drag_col = true;
@@ -1099,7 +1099,7 @@ namespace ui
 		}
 		else
 		{
-			UiSize szOff = m_pGrid->GetScrollPos();
+			UiSize64 szOff = m_pGrid->GetScrollPos();
 			int fixed_col_width = GetFixedColWidth();
 
 			UiPoint pt(msg.ptMouse);
@@ -1144,7 +1144,7 @@ namespace ui
 
 	bool GridBody::OnMouseMove(const EventArgs& msg)
 	{
-		UiSize szOff = m_pGrid->GetScrollPos();
+		UiSize64 szOff = m_pGrid->GetScrollPos();
 		int fixed_col_width = GetFixedColWidth();
 
 		UiPoint pt(msg.ptMouse);
@@ -1292,7 +1292,7 @@ namespace ui
 				pControl->AlphaPaint(pRender, rcPaint);
 			}
 			else */{
-				UiSize scrollPos = m_pGrid->GetScrollPos();
+				UiSize scrollPos = m_pGrid->GetScrollOffset();
 				UiRect rcNewPaint = GetPaddingPos();
 				rcNewPaint.left += GetFixedColWidth();			
 				/*rcNewPaint.top += GetFixedRowHeight();*/		//可能表头存在控件
@@ -1333,7 +1333,7 @@ namespace ui
 		__super::PaintBorder(pRender);
 		if (m_pGrid->m_bPaintGridLine && m_hLayout.size() > 0 && m_vLayout.size() > 0)
 		{
-			UiSize szOff = m_pGrid->GetScrollPos();
+			UiSize szOff = m_pGrid->GetScrollOffset();
 			int posx = 0, posy = 0;
 			int fixed_col_width = GetFixedColWidth();
 			int fixed_row_height = GetFixedRowHeight();
@@ -1406,7 +1406,7 @@ namespace ui
 
 	void GridBody::PaintBody(IRender* pRender)
 	{
-		UiSize szOff = m_pGrid->GetScrollPos();
+		UiSize szOff = m_pGrid->GetScrollOffset();
 		int posx = 0;
 		int posy = 0;
 		int row_count = GetRowCount();
@@ -1473,7 +1473,7 @@ namespace ui
 					if (!str.empty() && posx + m_hLayout[j] - szOff.cx > fixed_col_width)		//单元格右边线没有超过fixed_col_width
 					{
 						UiRect rc = { posx, posy, posx + m_hLayout[j], posy + m_vLayout[i] };
-						rc.Offset({ GetRect().left - szOff.cx, GetRect().top });
+						rc.Offset({ GetRect().left - (int32_t)szOff.cx, GetRect().top });
 						pRender->DrawString(rc, str, dwDefColor, m_strGridFont, m_uTextStyle);
 					}
 					posx += m_hLayout[j];
@@ -1507,7 +1507,7 @@ namespace ui
 					if (!str.empty() && posy + m_vLayout[j] - szOff.cy > fixed_row_height)		//单元格下边线没有超过fixed_row_height
 					{
 						UiRect rc = { posx, posy, posx + m_hLayout[i], posy + m_vLayout[j] };
-						rc.Offset({ GetRect().left, GetRect().top - szOff.cy });
+						rc.Offset({ GetRect().left, GetRect().top - (int32_t)szOff.cy });
 						pRender->DrawString(rc, str, dwDefColor, m_strGridFont, m_uTextStyle);
 					}
 					posy += m_vLayout[j];
@@ -1542,7 +1542,7 @@ namespace ui
 						GridItem *pItem = grid_row->at(static_cast<int>(j));
 
 						UiRect rc = { posx, posy, posx + m_hLayout[j], posy + m_vLayout[i] };
-						rc.Offset({ GetRect().left - szOff.cx, GetRect().top - szOff.cy });
+						rc.Offset({ GetRect().left - (int32_t)szOff.cx, GetRect().top - (int32_t)szOff.cy });
 						rc.Deflate(1, 1, 2, 2);
 						//绘制单元格背景色
 						if (pItem->IsSelected())

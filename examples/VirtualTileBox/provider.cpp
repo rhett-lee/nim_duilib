@@ -18,7 +18,7 @@ Provider::~Provider()
 ui::Control* Provider::CreateElement()
 {
 	Item* item = new Item;
-	ui::GlobalManager::Instance().FillBoxWithCache(item, L"virtualbox/item.xml");
+	ui::GlobalManager::Instance().FillBoxWithCache(item, L"virtual_tile_box/item.xml");
 	return item;
 }
 
@@ -28,32 +28,40 @@ void Provider::FillElement(ui::Control *control, size_t index)
 
 	
 	std::wstring img = L"icon.png";
-	std::wstring title = nbase::StringPrintf(L"%s [%02d]", m_vTasks[index].sName.c_str(), m_vTasks[index].nId);
+	std::wstring title = nbase::StringPrintf(L"%s [%02d]", m_vTasks[index].sName, m_vTasks[index].nId);
 	pItem->InitSubControls(img, title, index);
-
+	//记录该控件绑定的index
+	control->SetUserDataID(index);
 }
 
 size_t Provider::GetElementCount()
 {
 	// 加锁
 	nbase::NAutoLock auto_lock(&lock_);
-	return (int)m_vTasks.size();
+	return m_vTasks.size();
 }
 
 void Provider::SetTotal(int nTotal)
 {
 	if (nTotal == m_nTotal) return;
 	if (nTotal <= 0) return;
+	m_nTotal = nTotal;
 
 	// 加锁
 	lock_.Lock();
+	for (auto task : m_vTasks) {
+		delete [] task.sName;
+	}
 	m_vTasks.clear();
+	std::wstring name = L"任务名称";
 	m_vTasks.reserve(nTotal);
 	for (auto i=1; i <= nTotal; i++)
 	{
 		DownloadTask task;
 		task.nId = i;
-		task.sName = L"任务名称";
+		//不适用std::wstring，因为它占用的内存很多，当数据量达到千万级别以上时，占的内存太多
+		task.sName = new wchar_t[name.size() + 1];
+		wcscpy_s(task.sName, name.size() + 1, name.c_str());
 		m_vTasks.emplace_back(std::move(task));
 	}
 	lock_.Unlock();
@@ -79,7 +87,9 @@ void Provider::ChangeTaskName(size_t nIndex, const std::wstring& sName)
 {
 	if (nIndex < (int)m_vTasks.size())
 	{
-		m_vTasks[nIndex].sName = sName;
+		delete m_vTasks[nIndex].sName;
+		m_vTasks[nIndex].sName = new wchar_t[sName.size() + 1];
+		wcscpy_s(m_vTasks[nIndex].sName, sName.size() + 1, sName.c_str());
 	}
 
 	// 发送数据变动通知

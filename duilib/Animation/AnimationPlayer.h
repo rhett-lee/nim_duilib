@@ -10,7 +10,7 @@
 namespace ui 
 {
 
-typedef std::function<void (int)> PlayCallback;
+typedef std::function<void (int64_t)> PlayCallback;
 typedef std::function<void (void)> CompleteCallback;
 
 class UILIB_API AnimationPlayerBase : public virtual nbase::SupportWeakCallback
@@ -25,11 +25,12 @@ public:
 public:
 	void SetAnimationType(int type) { m_animationType = type; };
 	int GetAnimationType() const { return m_animationType; };
-	void SetStartValue(int startValue) { m_startValue = startValue; }
-	int GetStartValue() { return m_startValue; }
+	
+	void SetStartValue(int64_t startValue) { m_startValue = startValue; }
+	int64_t GetStartValue() { return m_startValue; }
 
-	void SetEndValue(int endValue) { m_endValue = endValue; }
-	int GetEndValue() { return m_endValue; }
+	void SetEndValue(int64_t endValue) { m_endValue = endValue; }
+	int64_t GetEndValue() { return m_endValue; }
 
 	void SetTotalMillSeconds(int totalMillSeconds) { m_totalMillSeconds = totalMillSeconds; }
 	bool IsPlaying() { return m_bPlaying; }
@@ -48,7 +49,8 @@ public:
 	virtual void Continue();
 	virtual void ReverseContinue();
 	virtual void StartTimer();
-	virtual int GetCurrentValue() = 0;
+
+	virtual int64_t GetCurrentValue() = 0;
 
 private:
 	void Play();
@@ -57,13 +59,19 @@ private:
 
 protected:
 	int m_animationType;
-	int m_startValue;
-	int m_endValue;
-	int m_currentValue;
 
-	int m_totalMillSeconds;
+	//起始值
+	int64_t m_startValue;
+
+	//结束值
+	int64_t m_endValue;
+
+	//当前值
+	int64_t m_currentValue;
+
+	int64_t m_totalMillSeconds;
 	double m_palyedMillSeconds;
-	int m_elapseMillSeconds;
+	int64_t m_elapseMillSeconds;
 
 	bool m_bFirstRun;
 	bool m_bPlaying;
@@ -91,7 +99,7 @@ public:
 public:
 	virtual void Init() override;
 	virtual void StartTimer() override;
-	virtual int GetCurrentValue() override;
+	virtual int64_t GetCurrentValue() override;
 
 	void InitFactor();
 	virtual void SetSpeedUpfactorA(double factorA) { m_speedUpfactorA = factorA; }

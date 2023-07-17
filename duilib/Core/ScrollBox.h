@@ -31,28 +31,35 @@ public:
 	virtual Control* FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, UiPoint scrollPos = UiPoint()) override;
 	virtual void ClearImageCache() override;
 
+	/** 获取滚动条的真实偏移量, 以32位整型值标志偏移 (虚表会使用虚拟滚动条位置)
+	*   如果设置了ScrollVirtualOffset，那么这个函数会将滚动条的位置减去这个虚拟偏移；
+	*   如果没有设置ScrollVirtualOffset，那么这个函数返回与UiSize64 GetScrollPos()相同的结果，但会检查是否越界；
+	*   这个函数存在的意义是支持大数据量的虚表（VirtualScrollBox），避免UiRect越界。
+	*/
+	UiSize GetScrollOffset() const;
+
 	/** 获取滚动条位置(cx代表横向滚动条的位置，cy代表纵向滚动条的位置)
 	 */
-	virtual UiSize GetScrollPos() const;
+	virtual UiSize64 GetScrollPos() const;
 
 	/** 获取滚动条的范围(cx代表横向滚动条的范围，cy代表纵向滚动条的范围)
 	 */
-	virtual UiSize GetScrollRange() const;
+	virtual UiSize64 GetScrollRange() const;
 
 	/** 设置滚动条位置
 	 * @param[in] szPos 要设置的位置数据(cx代表横向滚动条的位置，cy代表纵向滚动条的位置)
 	 */
-	virtual void SetScrollPos(UiSize szPos);
+	virtual void SetScrollPos(UiSize64 szPos);
 
 	/** 设置滚动条 Y 轴坐标
 	 * @param[in] y 要设置的 Y 轴坐标数值
 	 */
-	virtual void SetScrollPosY(int y);
+	virtual void SetScrollPosY(int64_t y);
 	
 	/** 设置滚动条 X 轴坐标
 	 * @param[in] x 要设置的 X 轴坐标数值
 	 */
-    virtual void SetScrollPosX(int x);
+    virtual void SetScrollPosX(int64_t x);
 	
 	/** 向上滚动滚动条
 	 * @param[in] deltaValue 滚动距离，默认为 DUI_NOSET_VALUE
@@ -136,11 +143,11 @@ public:
 
 	/** 设置纵向滚动条的位置
 	 */
-	virtual void ProcessVScrollBar(UiRect rc, int cyRequired);
+	virtual void ProcessVScrollBar(UiRect rc, int64_t cyRequired);
 
 	/** 设置横向滚动条的位置
 	 */
-	virtual void ProcessHScrollBar(UiRect rc, int cxRequired);
+	virtual void ProcessHScrollBar(UiRect rc, int64_t cxRequired);
 
 	/** 判断垂直滚动条是否有效
 	 */
@@ -152,7 +159,7 @@ public:
 
 	/** 播放动画
 	 */
-	void PlayRenderOffsetYAnimation(int nRenderY);
+	void PlayRenderOffsetYAnimation(int64_t nRenderY);
 
 	/** 是否已经在底部
 	 */
@@ -223,13 +230,31 @@ public:
 	 */
 	void AttachScrollChange(const EventCallback& callback) { AttachEvent(kEventScrollChange, callback); }
 
+public:
+	/** 获取滚动条虚拟偏移量(cx代表横向滚动条的虚拟偏移量，cy代表纵向滚动条的虚拟偏移量)
+	 */
+	UiSize64 GetScrollVirtualOffset() const;
+
+	/** 设置滚动条虚拟偏移量
+	 * @param[in] szPos 要设置的位置数据(cx代表横向滚动条的位置，cy代表纵向滚动条的位置)
+	 */
+	void SetScrollVirtualOffset(UiSize64 szOffset);
+
+	/** 设置滚动条 Y 轴虚拟偏移量
+	 */
+	void SetScrollVirtualOffsetY(int64_t yOffset);
+
+	/** 设置滚动条 X 轴虚拟偏移量
+	 */
+	void SetScrollVirtualOffsetX(int64_t xOffset);
+
 protected:
 
 	/** 计算所需的尺寸
 	 * @param[in] rc 当前位置信息
 	 * @return 返回所需尺寸大小
 	 */
-	virtual UiSize CalcRequiredSize(const UiRect& rc);
+	virtual UiSize64 CalcRequiredSize(const UiRect& rc);
 
 	/** 加载图片缓存，仅供 ScrollBox 内部使用
 	 * @param[in] bFromTopLeft 暂无意义
@@ -247,6 +272,9 @@ protected:
 
 	//水平滚动条接口
 	std::unique_ptr<ScrollBar> m_pHScrollBar;
+
+	//滚动条的虚拟偏移量
+	UiSize64 m_scrollVirtualOffset;
 
 private:
 	//垂直滚动条滚动步长

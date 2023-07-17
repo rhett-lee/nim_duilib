@@ -30,7 +30,7 @@ AnimationPlayer* AnimationManager::SetFadeHot(bool bFadeHot)
 		animationArgs->SetSpeedUpRatio(0.3);
 		animationArgs->SetSpeedDownRatio(0.7);
 		animationArgs->SetTotalMillSeconds(50);//控件处于焦点状态时，动画效果的总时长
-		std::function<void(int)> playCallback = nbase::Bind(&Control::SetHotAlpha, m_pControl, std::placeholders::_1);
+		auto playCallback = nbase::Bind(&Control::SetHotAlpha, m_pControl, std::placeholders::_1);
 		animationArgs->SetCallback(playCallback);
 		m_animationMap[kAnimationHot].reset(animationArgs);
 	}
@@ -51,7 +51,7 @@ AnimationPlayer* AnimationManager::SetFadeAlpha(bool bFadeVisible)
 		animationArgs->SetSpeedUpRatio(0.3);
 		animationArgs->SetSpeedDownRatio(0.7);
 		animationArgs->SetTotalMillSeconds(250);
-		std::function<void(int)> playCallback = nbase::Bind(&Control::SetAlpha, m_pControl, std::placeholders::_1);
+		auto playCallback = nbase::Bind(&Control::SetAlpha, m_pControl, std::placeholders::_1);
 		animationArgs->SetCallback(playCallback);
 		m_animationMap[kAnimationAlpha].reset(animationArgs);
 		m_pControl->SetAlpha(0);
@@ -77,7 +77,7 @@ AnimationPlayer* AnimationManager::SetFadeWidth(bool bFadeWidth)
 		animationArgs->SetSpeedUpRatio(0.3);
 		animationArgs->SetSpeedUpfactorA(0.00084);
 		animationArgs->SetSpeedDownRatio(0.7);
-		std::function<void(int)> playCallback = nbase::Bind(&Control::SetFixedWidth, m_pControl, std::placeholders::_1, true, false);
+		auto playCallback = nbase::Bind(&Control::SetFixedWidth, m_pControl, std::placeholders::_1, true, false);
 		animationArgs->SetCallback(playCallback);
 		m_animationMap[kAnimationWidth].reset(animationArgs);
 	}
@@ -101,7 +101,7 @@ AnimationPlayer* AnimationManager::SetFadeHeight(bool bFadeHeight)
 		animationArgs->SetSpeedUpRatio(0.3);
 		animationArgs->SetSpeedUpfactorA(0.00084);
 		animationArgs->SetSpeedDownRatio(0.7);
-		std::function<void(int)> playCallback = nbase::Bind(&Control::SetFixedHeight, m_pControl, std::placeholders::_1, false);
+		auto playCallback = nbase::Bind(&Control::SetFixedHeight, m_pControl, std::placeholders::_1, false);
 		animationArgs->SetCallback(playCallback);
 		m_animationMap[kAnimationHeight].reset(animationArgs);
 	}
@@ -126,7 +126,7 @@ AnimationPlayer* AnimationManager::SetFadeInOutX(bool bFade, bool bIsFromRight)
 		animationArgs->SetSpeedUpRatio(0.3);
 		animationArgs->SetSpeedUpfactorA(0.006);
 		animationArgs->SetSpeedDownRatio(0.7);
-		std::function<void(int)> playCallback = nbase::Bind(&Control::SetRenderOffsetX, m_pControl, std::placeholders::_1);
+		auto playCallback = nbase::Bind(&Control::SetRenderOffsetX, m_pControl, std::placeholders::_1);
 		animationArgs->SetCallback(playCallback);
 
 		if (bIsFromRight) {
@@ -164,7 +164,7 @@ AnimationPlayer* AnimationManager::SetFadeInOutY(bool bFade, bool bIsFromBottom)
 		animationArgs->SetSpeedUpRatio(0.3);
 		animationArgs->SetSpeedUpfactorA(0.006);
 		animationArgs->SetSpeedDownRatio(0.7);
-		std::function<void(int)> playCallback = nbase::Bind(&Control::SetRenderOffsetY, m_pControl, std::placeholders::_1);
+		auto playCallback = nbase::Bind(&Control::SetRenderOffsetY, m_pControl, std::placeholders::_1);
 		animationArgs->SetCallback(playCallback);
 
 		if (bIsFromBottom) {

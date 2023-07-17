@@ -2,7 +2,7 @@
 #include "main_form.h"
 #include "provider.h"
 
-const std::wstring MainForm::kClassName = L"VirtualBoxDemo";
+const std::wstring MainForm::kClassName = L"VirtualTileBoxDemo";
 
 
 MainForm::MainForm()
@@ -14,7 +14,7 @@ MainForm::~MainForm()
 
 std::wstring MainForm::GetSkinFolder()
 {
-	return L"virtualbox";
+	return L"virtual_tile_box";
 }
 
 std::wstring MainForm::GetSkinFile()
@@ -65,6 +65,7 @@ bool MainForm::OnClicked(const ui::EventArgs& args)
 		if (!m_EditChildMargin->GetText().empty())
 		{
 			m_pTileList->SetAttribute(L"childmargin", m_EditChildMargin->GetText());
+			m_pTileList->Refresh();
 		}
 		if (m_OptionColumnFix->IsSelected())
 		{

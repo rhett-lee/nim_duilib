@@ -10,7 +10,7 @@ TileLayout::TileLayout() : m_nColumns(1), m_szItem(0, 0)
 
 }
 
-UiSize TileLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
+UiSize64 TileLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 {
 	//TileLayout::ArrangeChild
 	// Position the elements
@@ -145,7 +145,7 @@ UiSize TileLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 		cyNeeded = newRcTile.bottom - rc.top;
 	}
 
-	UiSize size(rc.right - rc.left, cyNeeded);
+	UiSize64 size(rc.right - rc.left, cyNeeded);
 	return size;
 }
 
