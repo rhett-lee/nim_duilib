@@ -40,6 +40,27 @@ WindowBuilder::~WindowBuilder()
 {
 }
 
+bool WindowBuilder::IsXmlFileExists(const std::wstring& xml) const
+{
+	if (xml.empty()) {
+		return false;
+	}
+	if (GlobalManager::Instance().Zip().IsUseZip()) {
+		std::wstring sFile = StringHelper::JoinFilePath(GlobalManager::Instance().GetResourcePath(), xml);
+		if (GlobalManager::Instance().Zip().IsZipResExist(sFile)) {
+			return true;
+		}
+	}
+	std::wstring xmlFilePath = GlobalManager::Instance().GetResourcePath();
+	if (StringHelper::IsRelativePath(xml)) {
+		xmlFilePath = StringHelper::JoinFilePath(xmlFilePath, xml);
+	}
+	else {
+		xmlFilePath = xml;
+	}
+	return StringHelper::IsExistsPath(xmlFilePath);
+}
+
 Box* WindowBuilder::Create(const std::wstring& xml, 
 	                       CreateControlCallback pCallback,
 						   Window* pWindow, 
@@ -50,6 +71,7 @@ Box* WindowBuilder::Create(const std::wstring& xml,
 	if (xml.empty()) {
 		return nullptr;
 	}
+	bool isLoaded = false;
 	//字符串以<开头认为是XML字符串，否则认为是XML文件
 	//如果使用了 zip 压缩包，则从内存中读取
 	if (xml.front() == L'<') {
@@ -61,8 +83,9 @@ Box* WindowBuilder::Create(const std::wstring& xml,
 			ASSERT(!L"WindowBuilder::Create load xml from string data failed!");
 			return nullptr;
 		}
+		isLoaded = true;
 	}
-	else if (GlobalManager::Instance().Zip().IsUseZip()) {
+	if (!isLoaded && GlobalManager::Instance().Zip().IsUseZip()) {
 		std::wstring sFile = StringHelper::JoinFilePath(GlobalManager::Instance().GetResourcePath(), xml);
 		std::vector<unsigned char> file_data;
 		if (GlobalManager::Instance().Zip().GetZipData(sFile, file_data)) {
@@ -71,23 +94,10 @@ Box* WindowBuilder::Create(const std::wstring& xml,
 				ASSERT(!L"WindowBuilder::Create load xml from zip data failed!");
 				return nullptr;
 			}
-		}
-		else {
-			std::wstring xmlFilePath = GlobalManager::Instance().GetResourcePath();
-			if (StringHelper::IsRelativePath(xml)) {
-				xmlFilePath = StringHelper::JoinFilePath(xmlFilePath, xml);
-			}
-			else {
-				xmlFilePath = xml;
-			}
-			pugi::xml_parse_result result = m_xml->load_file(xmlFilePath.c_str());
-			if (result.status != pugi::status_ok) {
-				ASSERT(!L"WindowBuilder::Create load xml file failed!");
-				return nullptr;
-			}
+			isLoaded = true;
 		}
 	}
-	else {
+	if(!isLoaded) {
 		std::wstring xmlFilePath = GlobalManager::Instance().GetResourcePath();
 		if (StringHelper::IsRelativePath(xml)) {
 			xmlFilePath = StringHelper::JoinFilePath(xmlFilePath, xml);
@@ -100,7 +110,9 @@ Box* WindowBuilder::Create(const std::wstring& xml,
 			ASSERT(!L"WindowBuilder::Create load xml file failed!");
 			return nullptr;
 		}
+		isLoaded = true;
 	}
+	m_xmlFilePath = xml;
 	return Create(pCallback, pWindow, pParent, pUserDefinedBox);
 }
 
@@ -443,6 +455,26 @@ Control* WindowBuilder::ParseXmlNode(const pugi::xml_node& xmlNode, Control* pPa
 
 			pugi::xml_attribute sourceAttr = node.attribute(L"source");
 			std::wstring sourceValue = sourceAttr.as_string();
+			if (sourceValue.empty()) {
+				sourceAttr = node.attribute(L"src");
+				sourceValue = sourceAttr.as_string();				
+			}
+			if (!sourceValue.empty()) {
+				StringHelper::ReplaceAll(L"/", L"\\", sourceValue);
+				if (!m_xmlFilePath.empty()) {
+					//优先尝试在原XML文件相同目录加载
+					size_t pos = m_xmlFilePath.find_last_of(L"\\/");
+					if (pos != std::wstring::npos) {
+						std::wstring filePath = m_xmlFilePath.substr(0, pos);
+						filePath = StringHelper::JoinFilePath(filePath, sourceValue);
+						if (IsXmlFileExists(filePath)) {
+							sourceValue = filePath;
+						}
+					}
+				}
+			}
+			ASSERT(nCount > 0);
+			ASSERT(!sourceValue.empty());
 			if (sourceValue.empty()) {
 				continue;
 			}

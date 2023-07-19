@@ -72,12 +72,23 @@ private:
 	Control* CreateControlByClass(const std::wstring& strControlClass);
 	void AttachXmlEvent(bool bBubbled, const pugi::xml_node& node, Control* pParent);
 
-private:
- 
+    /** 判断XML文件是否存在
+    */
+    bool IsXmlFileExists(const std::wstring& xml) const;
 
 private:
+    
+    /** 当前解析的XML文档对象
+    */
     std::unique_ptr<pugi::xml_document> m_xml;
+
+    /** 创建Control的回调接口
+    */
 	CreateControlCallback m_createControlCallback;
+
+    /** 当前解析的XML文件路径
+    */
+    std::wstring m_xmlFilePath;
 };
 
 } // namespace ui
