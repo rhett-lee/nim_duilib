@@ -11,7 +11,6 @@ Layout::Layout() :
 	m_iChildMarginY(0),
 	m_pOwner(nullptr)
 {
-
 }
 
 void Layout::SetOwner(Box* pOwner)
@@ -32,22 +31,26 @@ UiSize64 Layout::SetFloatPos(Control* pControl, UiRect rcContainer)
 		rcContainer.bottom = rcContainer.bottom;
 	}
 
-	int childLeft = 0;
-	int childRight = 0;
-	int childTop = 0;
-	int childBottm = 0;
 	UiRect rcMargin = pControl->GetMargin();
-	int iPosLeft = rcContainer.left + rcMargin.left;
-	int iPosRight = rcContainer.right - rcMargin.right;
-	int iPosTop = rcContainer.top + rcMargin.top;
-	int iPosBottom = rcContainer.bottom - rcMargin.bottom;
+	int32_t iPosLeft = rcContainer.left + rcMargin.left;
+	int32_t iPosRight = rcContainer.right - rcMargin.right;
+	int32_t iPosTop = rcContainer.top + rcMargin.top;
+	int32_t iPosBottom = rcContainer.bottom - rcMargin.bottom;
+	ASSERT(iPosRight >= iPosLeft);
+	if (iPosRight < iPosLeft) {
+		iPosRight = iPosLeft;
+	}
+	ASSERT(iPosBottom >= iPosTop);
+	if (iPosBottom < iPosTop) {
+		iPosBottom = iPosTop;
+	}
 	UiSize szAvailable(iPosRight - iPosLeft, iPosBottom - iPosTop);
 	UiSize childSize = pControl->EstimateSize(szAvailable);
 	ASSERT(childSize.cx >= DUI_LENGTH_STRETCH);
 	ASSERT(childSize.cy >= DUI_LENGTH_STRETCH);
 
 	if (childSize.cx == DUI_LENGTH_STRETCH) {
-		childSize.cx = std::max(0, (int)szAvailable.cx);
+		childSize.cx = std::max(0, szAvailable.cx);
 	}
 	if (childSize.cx < pControl->GetMinWidth()) {
 		childSize.cx = pControl->GetMinWidth();
@@ -57,7 +60,7 @@ UiSize64 Layout::SetFloatPos(Control* pControl, UiRect rcContainer)
 	}
 
 	if (childSize.cy == DUI_LENGTH_STRETCH) {
-		childSize.cy = std::max(0, (int)szAvailable.cy);
+		childSize.cy = std::max(0, szAvailable.cy);
 	}
 	if (childSize.cy < pControl->GetMinHeight()) {
 		childSize.cy = pControl->GetMinHeight();
@@ -66,10 +69,15 @@ UiSize64 Layout::SetFloatPos(Control* pControl, UiRect rcContainer)
 		childSize.cy = pControl->GetMaxHeight();
 	}
 
-	int childWidth = childSize.cx;
-	int childHeight = childSize.cy;
+	int32_t childWidth = childSize.cx;
+	int32_t childHeight = childSize.cy;
 	HorAlignType horAlignType = pControl->GetHorAlignType();
 	VerAlignType verAlignType = pControl->GetVerAlignType();
+
+	int32_t childLeft = 0;
+	int32_t childRight = 0;
+	int32_t childTop = 0;
+	int32_t childBottm = 0;
 
 	if (horAlignType == kHorAlignLeft) {
 		childLeft = iPosLeft;
@@ -146,13 +154,11 @@ UiSize64 Layout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 
 UiSize Layout::EstimateSizeByChild(const std::vector<Control*>& items, UiSize szAvailable)
 {
+	szAvailable.Validate();
 	UiSize maxSize;
 	UiSize itemSize;
 	for (Control* pControl : items) {
-		if (pControl == nullptr) {
-			continue;
-		}
-		if (!pControl->IsVisible() || pControl->IsFloat()) {
+		if ((pControl == nullptr) || !pControl->IsVisible() || pControl->IsFloat()) {
 			continue;
 		}
 		itemSize = pControl->EstimateSize(szAvailable);
@@ -171,8 +177,9 @@ UiSize Layout::EstimateSizeByChild(const std::vector<Control*>& items, UiSize sz
 		itemSize.cx = std::max((int)itemSize.cx, 0);
 		itemSize.cy = std::max((int)itemSize.cy, 0);
 
-		maxSize.cx = std::max(itemSize.cx + pControl->GetMargin().left + pControl->GetMargin().right, maxSize.cx);
-		maxSize.cy = std::max(itemSize.cy + pControl->GetMargin().top + pControl->GetMargin().bottom, maxSize.cy);
+		UiRect rcMargin = pControl->GetMargin();
+		maxSize.cx = std::max(itemSize.cx + rcMargin.left + rcMargin.right, maxSize.cx);
+		maxSize.cy = std::max(itemSize.cy + rcMargin.top + rcMargin.bottom, maxSize.cy);
 	}
 	maxSize.cx += m_rcPadding.left + m_rcPadding.right;
 	maxSize.cy += m_rcPadding.top + m_rcPadding.bottom;
@@ -181,6 +188,7 @@ UiSize Layout::EstimateSizeByChild(const std::vector<Control*>& items, UiSize sz
 
 void Layout::SetPadding(UiRect rcPadding, bool bNeedDpiScale /*= true*/)
 {
+	ASSERT((rcPadding.left >= 0) && (rcPadding.top >= 0) && (rcPadding.right >= 0) && (rcPadding.bottom >= 0));
 	rcPadding.left = std::max((int)rcPadding.left, 0);
 	rcPadding.right = std::max((int)rcPadding.right, 0);
 	rcPadding.top = std::max((int)rcPadding.top, 0);

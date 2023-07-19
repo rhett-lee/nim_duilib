@@ -8,7 +8,7 @@
 namespace ui 
 {
 
-/** 水平布局
+/** 水平布局: 各个子控件纵向坐标的top都相同，水平方向依次排列
 */
 class UILIB_API HLayout : public Layout
 {

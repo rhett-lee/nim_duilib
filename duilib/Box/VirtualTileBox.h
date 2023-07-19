@@ -60,7 +60,7 @@ private:
     CountChangedNotify m_CountChangedNotify;
 };
 
-class UILIB_API VirtualTileLayout : public ui::TileLayout
+class UILIB_API VirtualTileLayout : public TileLayout
 {
 public:
     VirtualTileLayout();

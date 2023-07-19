@@ -624,85 +624,87 @@ void Control::SetMargin(UiRect rcMargin, bool bNeedDpiScale)
 
 UiSize Control::EstimateSize(UiSize szAvailable)
 {
-	UiSize imageSize = GetFixedSize();
-	if ((GetFixedWidth() != DUI_LENGTH_AUTO) && (GetFixedHeight() != DUI_LENGTH_AUTO)) {
+	UiSize fixedSize = GetFixedSize();
+	if ((fixedSize.cx != DUI_LENGTH_AUTO) && (fixedSize.cy != DUI_LENGTH_AUTO)) {
 		//如果宽高都不是auto属性，则直接返回
-		return imageSize;
+		return fixedSize;
 	}
 	if (!IsReEstimateSize()) {
 		//使用缓存中的估算结果
 		return GetEstimateSize();
 	}
+	szAvailable.Validate();
 
 	//估算图片区域大小
+	UiSize imageSize;
+	std::shared_ptr<ImageInfo> imageCache;
 	Image* image = GetEstimateImage();
 	if (image != nullptr) {
 		//加载图片：需要获取图片的宽和高
 		LoadImageData(*image);
-		std::shared_ptr<ImageInfo> imageCache = image->GetImageCache();
-		if (imageCache != nullptr) {
-			ImageAttribute imageAttribute = image->GetImageAttribute();
-			UiRect rcDest;
-			if (ImageAttribute::HasValidImageRect(imageAttribute.rcDest)) {
-				//使用配置中指定的目标区域
-				rcDest = imageAttribute.rcDest;
-			}
-			UiRect rcDestCorners;
-			UiRect rcSource = imageAttribute.rcSource;
-			UiRect rcSourceCorners = imageAttribute.rcCorner;
-			ImageAttribute::ScaleImageRect(imageCache->GetWidth(), imageCache->GetHeight(),
-										   imageCache->IsBitmapSizeDpiScaled(),
-										   rcDestCorners,
-										   rcSource,
-										   rcSourceCorners);
-			if (GetFixedWidth() == DUI_LENGTH_AUTO) {
-				if (rcDest.Width() > 0) {
-					imageSize.cx = rcDest.Width();
-				}
-				else if (rcSource.Width() > 0) {
-					imageSize.cx = rcSource.Width();
-				}
-				else {
-					imageSize.cx = imageCache->GetWidth();
-				}
-			}
-			if (GetFixedHeight() == DUI_LENGTH_AUTO) {
-				if (rcDest.Height() > 0) {
-					imageSize.cy = rcDest.Height();
-				}
-				else if (rcSource.Height() > 0) {
-					imageSize.cy = rcSource.Height();
-				}
-				else {
-					imageSize.cy = imageCache->GetHeight();
-				}
-			}
+		imageCache = image->GetImageCache();		
+	}
+	if (imageCache != nullptr) {
+		ImageAttribute imageAttribute = image->GetImageAttribute();
+		UiRect rcDest;
+		if (ImageAttribute::HasValidImageRect(imageAttribute.rcDest)) {
+			//使用配置中指定的目标区域
+			rcDest = imageAttribute.rcDest;
+		}
+		UiRect rcDestCorners;
+		UiRect rcSource = imageAttribute.rcSource;
+		UiRect rcSourceCorners = imageAttribute.rcCorner;
+		ImageAttribute::ScaleImageRect(imageCache->GetWidth(), imageCache->GetHeight(),
+									   imageCache->IsBitmapSizeDpiScaled(),
+									   rcDestCorners,
+									   rcSource,
+									   rcSourceCorners);
+		if (rcDest.Width() > 0) {
+			imageSize.cx = rcDest.Width();
+		}
+		else if (rcSource.Width() > 0) {
+			imageSize.cx = rcSource.Width();
+		}
+		else {
+			imageSize.cx = imageCache->GetWidth();
+		}
+
+		if (rcDest.Height() > 0) {
+			imageSize.cy = rcDest.Height();
+		}
+		else if (rcSource.Height() > 0) {
+			imageSize.cy = rcSource.Height();
+		}
+		else {
+			imageSize.cy = imageCache->GetHeight();
 		}
 	}
+	imageCache.reset();
+
 	//估算文本区域大小
 	UiSize textSize = EstimateText(szAvailable);
 
-	//选取图片和文本区域大小的最大值
-	if ((GetFixedWidth() == DUI_LENGTH_AUTO) && (imageSize.cx < textSize.cx)) {
-		imageSize.cx = textSize.cx;
+	//选取图片和文本区域高度和宽度的最大值
+	if (fixedSize.cx == DUI_LENGTH_AUTO) {
+		fixedSize.cx = std::max(imageSize.cx, textSize.cx);
 	}
-	if ((GetFixedHeight() == DUI_LENGTH_AUTO) && (imageSize.cy < textSize.cy)) {
-		imageSize.cy = textSize.cy;
+	if (fixedSize.cy == DUI_LENGTH_AUTO) {
+		fixedSize.cy = std::max(imageSize.cy, textSize.cy);
 	}
 
 	//对估算结果进行有效性校验
 	ASSERT(DUI_LENGTH_AUTO == -2);
 	ASSERT(DUI_LENGTH_STRETCH == -1);
-	if (imageSize.cx <= DUI_LENGTH_AUTO) {
-		imageSize.cx = 0;
+	if (fixedSize.cx <= DUI_LENGTH_AUTO) {
+		fixedSize.cx = 0;
 	}
-	if (imageSize.cy <= DUI_LENGTH_AUTO) {
-		imageSize.cy = 0;
+	if (fixedSize.cy <= DUI_LENGTH_AUTO) {
+		fixedSize.cy = 0;
 	}
 	//保持结果到缓存，避免每次都重新估算
-	SetEstimateSize(imageSize);
+	SetEstimateSize(fixedSize);
 	SetReEstimateSize(false);
-	return imageSize;
+	return fixedSize;
 }
 
 Image* Control::GetEstimateImage()

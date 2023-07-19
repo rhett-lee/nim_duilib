@@ -54,6 +54,22 @@ public:
 	*/
 	constexpr int32_t Height() const { return cy; }
 
+	/** 检查宽度和高度值是否为有效值，并修正
+	*/
+	void Validate()
+	{
+		if (cx < 0) {
+			cx = 0;
+		}
+		if (cy < 0) {
+			cy = 0;
+		}
+	}
+
+	/** 高度和宽度是否为有效值
+	*/
+	bool IsValid() const { return cx >= 0 && cy >= 0; }
+
 	/** 如果cx和cy都是0，返回true
 	*/
 	bool IsEmpty() const { return cx == 0 && cy == 0; }

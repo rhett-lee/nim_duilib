@@ -99,20 +99,24 @@ public:
 	 */
 	void SetFloat(bool bFloat);
 
-	/**@brief 获取固定宽度，对应 xml 中 width 属性
+	/** 获取控件固定大小，对应 xml 中 width 属性 和 height 属性
+	*/
+	const UiSize& GetFixedSize() const { return m_cxyFixed; }
+
+	/** 获取固定宽度，对应 xml 中 width 属性
 	 */
-	int GetFixedWidth() const { return m_cxyFixed.cx; }
+	int32_t GetFixedWidth() const { return m_cxyFixed.cx; }
+
+	/** 获取固定高度，对应 xml 中 height 属性
+	 */
+	int32_t GetFixedHeight() const { return m_cxyFixed.cy; }
 
 	/**@brief 设置控件固定宽度
 	 * @param[in] cx64 要设置的宽度
 	 * @param[in] bArrange 是否重新排列，默认为 true
 	 * @param[in] bNeedDpiScale 兼容 DPI 缩放，默认为 true
 	 */
-	void SetFixedWidth(int64_t cx64, bool bArrange, bool bNeedDpiScale);
-
-	/**@brief 获取固定高度
-	 */
-	int GetFixedHeight() const { return m_cxyFixed.cy; }
+	void SetFixedWidth(int64_t cx64, bool bArrange, bool bNeedDpiScale);	
 
 	/**@brief 设置固定高度
 	 * @param[in] cy64 要设置的固定高度
@@ -120,44 +124,40 @@ public:
 	 */
 	void SetFixedHeight(int64_t cy64, bool bNeedDpiScale);
 
-	/**@brief 获取控件大小
-	*/
-	const UiSize& GetFixedSize() const { return m_cxyFixed; }
-
 	/** 获取最小宽度
 	* @return 返回最小宽度（ >= 0）
 	*/
-	int GetMinWidth() const { ASSERT(m_cxyMin.cx >= 0); return m_cxyMin.cx; }
+	int32_t GetMinWidth() const { ASSERT(m_cxyMin.cx >= 0); return m_cxyMin.cx; }
 
 	/**@brief 设置最小宽度
 	 * @param[in] cx 要设置的最小宽度（ >= 0）
 	 */
-	void SetMinWidth(int cx);
+	void SetMinWidth(int32_t cx);
 
 	/** 获取最大宽度
 	* @return 返回最大宽度（ >= 0）
 	*/
-	int GetMaxWidth() const { ASSERT(m_cxyMax.cx >=0 ); return m_cxyMax.cx; }
+	int32_t GetMaxWidth() const { ASSERT(m_cxyMax.cx >=0 ); return m_cxyMax.cx; }
 
 	/** 设置最大宽度
 	 * @param[in] cx 要设置的最大宽度（ >= 0）
 	 */
-	void SetMaxWidth(int cx);
+	void SetMaxWidth(int32_t cx);
 
 	/** 获取最小高度
 	* @return 返回最小高度（ >= 0）
 	*/
-	int GetMinHeight() const { ASSERT(m_cxyMin.cy >= 0); return m_cxyMin.cy; }
+	int32_t GetMinHeight() const { ASSERT(m_cxyMin.cy >= 0); return m_cxyMin.cy; }
 
 	/** 设置最小高度
 	 * @param[in] cy 要设置的最小高度（ >= 0）
 	 */
-	void SetMinHeight(int cy);
+	void SetMinHeight(int32_t cy);
 
 	/** 获取最大高度
 	* @return 返回最大高度（ >= 0）
 	*/
-	int GetMaxHeight() const { ASSERT(m_cxyMax.cy >= 0); return m_cxyMax.cy; }
+	int32_t GetMaxHeight() const { ASSERT(m_cxyMax.cy >= 0); return m_cxyMax.cy; }
 
 	/** 设置最大高度
 	 * @param[in] cy 要设置的最大高度（ >= 0）
@@ -166,11 +166,11 @@ public:
 
 	/**@brief 获取实际宽度
 	 */
-	int GetWidth() const { return m_uiRect.Width(); }
+	int32_t GetWidth() const { return m_uiRect.Width(); }
 
 	/**@brief 获取实际高度
 	 */
-	int GetHeight() const { return m_uiRect.Height(); }
+	int32_t GetHeight() const { return m_uiRect.Height(); }
 
 	/**@brief 获取水平对齐方式， 参考 HorAlignType 枚举
 	 */

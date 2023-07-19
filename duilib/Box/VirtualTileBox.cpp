@@ -33,7 +33,7 @@ void VirtualTileBoxElement::EmitCountChanged()
 VirtualTileLayout::VirtualTileLayout():
     m_bAutoCalcColumn(true)
 {
-    m_nColumns = -1;
+    SetColumns(-1);
 }
 
 UiSize64 VirtualTileLayout::ArrangeChild(const std::vector<ui::Control*>& /*items*/, ui::UiRect rc)
@@ -47,10 +47,12 @@ UiSize64 VirtualTileLayout::ArrangeChild(const std::vector<ui::Control*>& /*item
 
 ui::UiSize VirtualTileLayout::EstimateSizeByChild(const std::vector<ui::Control*>& /*items*/, ui::UiSize szAvailable)
 {
-    ASSERT(m_nColumns > 0);
+    int32_t nColumns = GetColumns();
+    UiSize szItem = GetItemSize();
+    ASSERT(nColumns > 0);
     ui::UiSize size = m_pOwner->Control::EstimateSize(szAvailable);
     if (size.cx == DUI_LENGTH_AUTO || size.cx == 0) {
-        size.cx = m_szItem.cx * m_nColumns + GetChildMarginX() * (m_nColumns - 1);
+        size.cx = szItem.cx * nColumns + GetChildMarginX() * (nColumns - 1);
     }
     return size;
 }
@@ -75,13 +77,15 @@ bool VirtualTileLayout::SetAttribute(const std::wstring& strName, const std::wst
 
 int64_t VirtualTileLayout::GetElementsHeight(size_t nCount)
 {
-    ASSERT(m_nColumns > 0);
-    if (m_nColumns < 1) {
-        return m_szItem.cy + GetChildMarginY();
+    int32_t nColumns = GetColumns();
+    UiSize szItem = GetItemSize();
+    ASSERT(nColumns > 0);
+    if (nColumns < 1) {
+        return szItem.cy + GetChildMarginY();
     }
-    if (nCount <= m_nColumns && nCount != Box::InvalidIndex) {
+    if (nCount <= nColumns && nCount != Box::InvalidIndex) {
         //不到1行，或者刚好1行
-        return m_szItem.cy + GetChildMarginY();
+        return szItem.cy + GetChildMarginY();
     }
     if (!Box::IsValidItemIndex(nCount)) {
         VirtualTileBox* pList = dynamic_cast<VirtualTileBox*>(m_pOwner);
@@ -92,11 +96,11 @@ int64_t VirtualTileLayout::GetElementsHeight(size_t nCount)
     }
     if (!Box::IsValidItemIndex(nCount)) {
         ASSERT(FALSE);
-        return m_szItem.cy + GetChildMarginY();
+        return szItem.cy + GetChildMarginY();
     }
 
-    int64_t rows = nCount / m_nColumns;
-    if (nCount % m_nColumns != 0) {
+    int64_t rows = nCount / nColumns;
+    if (nCount % nColumns != 0) {
         rows += 1;
     }
     int64_t iChildMargin = 0;
@@ -105,13 +109,13 @@ int64_t VirtualTileLayout::GetElementsHeight(size_t nCount)
     }
     if (nCount > 0) {
         int64_t childMarginTotal = 0;
-        if (nCount % m_nColumns == 0) {
-            childMarginTotal = ((int64_t)nCount / m_nColumns - 1) * iChildMargin;
+        if (nCount % nColumns == 0) {
+            childMarginTotal = ((int64_t)nCount / nColumns - 1) * iChildMargin;
         }
         else {
-            childMarginTotal = ((int64_t)nCount / m_nColumns) * iChildMargin;
+            childMarginTotal = ((int64_t)nCount / nColumns) * iChildMargin;
         }
-        return m_szItem.cy * (rows + 1) + childMarginTotal;
+        return szItem.cy * (rows + 1) + childMarginTotal;
     }
     return 0;
 }
@@ -121,9 +125,12 @@ void VirtualTileLayout::LazyArrangeChild()
     VirtualTileBox* pList = dynamic_cast<VirtualTileBox*>(m_pOwner);
     ASSERT(pList != nullptr);
 
+
     // 列在SetPos时已经设置好
-    ASSERT(m_nColumns > 0);
-    if (m_nColumns < 1) {
+    int32_t nColumns = GetColumns();
+    UiSize szItem = GetItemSize();
+    ASSERT(nColumns > 0);
+    if (nColumns < 1) {
         return;
     }
 
@@ -147,7 +154,7 @@ void VirtualTileLayout::LazyArrangeChild()
             continue;
         }
         // Determine size
-        ui::UiRect rcTile(ptTile.x, ptTile.y, ptTile.x + m_szItem.cx, ptTile.y + m_szItem.cy);
+        ui::UiRect rcTile(ptTile.x, ptTile.y, ptTile.x + szItem.cx, ptTile.y + szItem.cy);
         pControl->SetPos(rcTile);
 
         // 填充数据
@@ -164,9 +171,9 @@ void VirtualTileLayout::LazyArrangeChild()
             }
         }
 
-        if ((++iCount % m_nColumns) == 0) {
+        if ((++iCount % nColumns) == 0) {
             ptTile.x = iPosLeft;
-            ptTile.y += m_szItem.cy + GetChildMarginY();
+            ptTile.y += szItem.cy + GetChildMarginY();
         }
         else {
             ptTile.x += rcTile.Width() + GetChildMarginX();
@@ -184,33 +191,35 @@ size_t VirtualTileLayout::AjustMaxItem()
     if (rc.IsEmpty()) {
         return 0;
     }
-    if (m_bAutoCalcColumn || (m_nColumns <= 0)) {
+    int32_t nColumns = GetColumns();
+    UiSize szItem = GetItemSize();
+    if (m_bAutoCalcColumn || (nColumns <= 0)) {
         //计算需要几列
-        if (m_szItem.cx > 0) {
-            m_nColumns = rc.Width() / (m_szItem.cx + GetChildMarginX() / 2);
+        if (szItem.cx > 0) {
+            nColumns = rc.Width() / (szItem.cx + GetChildMarginX() / 2);
             //验证并修正
-            if (m_nColumns > 1) {
-                int32_t calcWidth = m_nColumns * m_szItem.cx + (m_nColumns - 1) * GetChildMarginX();
+            if (nColumns > 1) {
+                int32_t calcWidth = nColumns * szItem.cx + (nColumns - 1) * GetChildMarginX();
                 if (calcWidth > rc.Width()) {
-                    m_nColumns -= 1;
+                    nColumns -= 1;
                 }
             }
         }        
     }
-    if (m_nColumns <= 0) {
-        m_nColumns = 1;
+    if (nColumns <= 0) {
+        nColumns = 1;
     }
-    int32_t nRows = rc.Height() / (m_szItem.cy + GetChildMarginY() / 2);
+    int32_t nRows = rc.Height() / (szItem.cy + GetChildMarginY() / 2);
     //验证并修正
     if (nRows > 1) {
-        int32_t calcHeight = nRows * m_szItem.cy + (nRows - 1) * GetChildMarginY();
+        int32_t calcHeight = nRows * szItem.cy + (nRows - 1) * GetChildMarginY();
         if (calcHeight < rc.Height()) {
             nRows += 1;
         }
     }
     //额外增加1行，确保真实控件填充满整个可显示区域
     nRows += 1;
-    return nRows * m_nColumns;
+    return nRows * nColumns;
 }
 
 VirtualTileBox::VirtualTileBox(Layout* pLayout /*= new VirtualTileLayout*/)

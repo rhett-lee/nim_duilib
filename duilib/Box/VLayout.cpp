@@ -5,25 +5,23 @@ namespace ui
 
 VLayout::VLayout()
 {
-
 }
 
 UiSize64 VLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 {
 	UiSize szAvailable(rc.Width(), rc.Height());
-	szAvailable.cx = std::max((int)szAvailable.cx, 0);
-	szAvailable.cy = std::max((int)szAvailable.cy, 0);
+	szAvailable.Validate();
 	if (rc.Width() < 0) {
 		rc.right = rc.left;
 	}
 	if (rc.Height() < 0) {
-		rc.bottom = rc.bottom;
+		rc.bottom = rc.top;
 	}
 
 	//高度为stretch的控件数
-	int stretchCount = 0;
+	int32_t stretchCount = 0;
 	//固定高度的控件，总的高度
-	int cyFixedTotal = 0;
+	int32_t cyFixedTotal = 0;
 	//需要进行布局处理的所有控件(KEY是控件，VALUE是宽度和高度)
 	std::map<Control*, UiSize> itemsMap;
 
@@ -71,13 +69,13 @@ UiSize64 VLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 		itemsMap[pControl] = sz;
 	}
 	if (!itemsMap.empty()) {
-		cyFixedTotal += ((int)itemsMap.size() - 1) * GetChildMarginY();
+		cyFixedTotal += ((int32_t)itemsMap.size() - 1) * GetChildMarginY();
 	}
 	
 	//每个高度为stretch的控件，给与分配的实际高度（取平均值）
-	int cyStretch = 0;
+	int32_t cyStretch = 0;
 	if (stretchCount > 0) {
-		cyStretch = std::max(0, (int)(szAvailable.cy - cyFixedTotal) / stretchCount);
+		cyStretch = std::max(0, (szAvailable.cy - cyFixedTotal) / stretchCount);
 	}
 
 	//做一次预估：去除需要使用minheight/maxheight的控件数后，重新计算平均高度
@@ -105,19 +103,19 @@ UiSize64 VLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 
 	//重新计算Stretch控件的高度，最终以这次计算的为准；
 	//如果纵向总空间不足，则按原来评估的平均高度，优先保证前面的控件可以正常显示
-	if ((stretchCount > 0) && ((int)szAvailable.cy > cyFixedTotal)){
-		cyStretch = std::max(0, ((int)szAvailable.cy - cyFixedTotal) / stretchCount);
+	if ((stretchCount > 0) && (szAvailable.cy > cyFixedTotal)){
+		cyStretch = std::max(0, (szAvailable.cy - cyFixedTotal) / stretchCount);
 	}
 
 	// Position the elements
-	int deviation = szAvailable.cy - cyFixedTotal - cyStretch * stretchCount;//剩余可用高度，用于纠正偏差
+	int32_t deviation = szAvailable.cy - cyFixedTotal - cyStretch * stretchCount;//剩余可用高度，用于纠正偏差
 	if (deviation < 0) {
 		deviation = 0;
 	}
 
-	int iPosLeft = rc.left;
-	int iPosRight = rc.right;
-	int iPosY = rc.top;
+	int32_t iPosLeft = rc.left;
+	int32_t iPosRight = rc.right;
+	int32_t iPosY = rc.top;
 
 	// Place elements
 	int64_t cyNeeded = 0;//需要的总高度
@@ -152,8 +150,8 @@ UiSize64 VLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 		}
 				
 		//调整横向对齐方式，确定X轴坐标
-		int childLeft = 0;
-		int childRight = 0;
+		int32_t childLeft = 0;
+		int32_t childRight = 0;
 		HorAlignType horAlignType = pControl->GetHorAlignType();
 		if (horAlignType == kHorAlignLeft) {
 			childLeft = iPosLeft + rcMargin.left;
@@ -178,7 +176,7 @@ UiSize64 VLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 		cyNeeded += (sz.cy + rcMargin.top + rcMargin.bottom);
 	}
 	if (!itemsMap.empty()) {
-		cyNeeded += ((int)itemsMap.size() - 1) * GetChildMarginY();
+		cyNeeded += ((int64_t)itemsMap.size() - 1) * GetChildMarginY();
 	}
 
 	UiSize64 size(cxNeeded, cyNeeded);
@@ -189,7 +187,7 @@ UiSize VLayout::EstimateSizeByChild(const std::vector<Control*>& items, UiSize s
 {
 	UiSize totalSize;
 	UiSize itemSize;
-	int estimateCount = 0;
+	int32_t estimateCount = 0;
 	for(Control* pControl : items)	{
 		if ((pControl == nullptr) || !pControl->IsVisible() || pControl->IsFloat()) {
 			continue;

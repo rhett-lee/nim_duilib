@@ -10,7 +10,7 @@ namespace ui
 {
 class Box;
 
-/** 控件布局，在区域中，全部以区域左上角为基点，控件堆叠在一起
+/** 控件布局：各个子控件顶点坐标(left,top)都相同，各个控件堆叠排列（相当于都看成是Float控件）
 */
 class UILIB_API Layout
 {
@@ -20,30 +20,25 @@ public:
 	Layout& operator=(const Layout& r) = delete;
 	virtual ~Layout() = default;
 
-	/**
-	 * @brief 设置所有者
-	 * @return 无
+	/** 设置所有者
 	 */
 	void SetOwner(Box* pOwner);
 
-	/**
-	 * @brief 设置浮动状态下的坐标信息
+	/** 设置浮动状态下的坐标信息
 	 * @param[in] pControl 控件句柄
 	 * @param[in] rcContainer 要设置的位置信息
-	 * @return 返回控件最终的位置信息
+	 * @return 返回控件最终的大小信息（宽度和高度）
 	 */
 	static UiSize64 SetFloatPos(Control* pControl, UiRect rcContainer);
 
-	/**
-	 * @brief 设置布局属性
+	/** 设置布局属性
 	 * @param[in] strName 要设置的属性名
 	 * @param[in] strValue 要设置的属性值
 	 * @return true 设置成功，false 属性不存在
 	 */
 	virtual bool SetAttribute(const std::wstring& strName, const std::wstring& strValue);
 
-	/**
-	 * @brief 调整内部所有控件的位置信息
+	/** 调整内部所有控件的位置信息
 	 * @param[in] items 控件列表
 	 * @param[in] rc 当前容器位置信息
 	 * @return 返回排列后最终盒子的宽度和高度信息
@@ -54,18 +49,18 @@ public:
 	 * @brief 根据内部子控件大小调整容器自身大小
 	 * @param[in] items 控件列表
 	 * @param[in] szAvailable 子控件允许的最大宽度
-	 * @return 返回排列后最终盒子的宽度和高度信息
+	 * @return 返回排列后最终布局的大小信息（宽度和高度）
 	 */
 	virtual UiSize EstimateSizeByChild(const std::vector<Control*>& items, UiSize szAvailable);
 
-	/**
-	 * @brief 获取内边距
-	 * @return 返回内边距四边的大小
+public:
+	/** 获取内边距
+	 * @return 返回内边距四边的大小（Rect的四个参数分别代表四个边的内边距）
 	 */
 	const UiRect& GetPadding() const { return m_rcPadding; }
 
 	/**
-	 * @brief 设置内边距，相当于设置客户区
+	 * @brief 设置内边距
 	 * @param[in] rcPadding 内边距数据
 	 * @param[in] bNeedDpiScale 是否根据 DPI 自适应，默认为 true
 	 */
@@ -96,8 +91,7 @@ public:
 	 */
 	void SetChildMargin(int32_t iMargin);
 
-	/**
-	 * @brief 获取除了内边距外的可用范围
+	/** 获取除了内边距外的可用范围
 	 * @return 返回可用范围位置信息
 	 */
 	UiRect GetInternalPos() const;

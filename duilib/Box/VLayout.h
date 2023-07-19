@@ -8,7 +8,7 @@
 namespace ui 
 {
 
-/** 垂直布局
+/** 垂直布局：各个子控件横向坐标的left都相同，垂直方向依次排列
 */
 class UILIB_API VLayout : public Layout
 {

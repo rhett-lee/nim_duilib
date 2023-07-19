@@ -129,8 +129,7 @@ UiSize Box::EstimateSize(UiSize szAvailable)
 
 	szAvailable.cx -= (m_pLayout->GetPadding().left + m_pLayout->GetPadding().right);
 	szAvailable.cy -= (m_pLayout->GetPadding().top + m_pLayout->GetPadding().bottom);
-	szAvailable.cx = std::max((int)szAvailable.cx, 0);
-	szAvailable.cy = std::max((int)szAvailable.cy, 0);
+	szAvailable.Validate();
 	UiSize sizeByChild = m_pLayout->EstimateSizeByChild(m_items, szAvailable);
 	if (GetFixedWidth() == DUI_LENGTH_AUTO) {
 		fixedSize.cx = sizeByChild.cx;
@@ -142,10 +141,7 @@ UiSize Box::EstimateSize(UiSize szAvailable)
 	SetReEstimateSize(false);
 	for (auto pControl : m_items) {
 		ASSERT(pControl != nullptr);
-		if (pControl == nullptr) {
-			continue;
-		}
-		if (!pControl->IsVisible() || pControl->IsFloat()) {
+		if ((pControl == nullptr) || !pControl->IsVisible() || pControl->IsFloat()) {
 			continue;
 		}
 		if ((pControl->GetFixedWidth() == DUI_LENGTH_AUTO) || 
