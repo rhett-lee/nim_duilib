@@ -31,7 +31,7 @@ void MyGridBody::SetColCount(int count)
 		Combo* combo = new Combo;
 		combo->SetFixedWidth(col_width - HEADER_COMBO_MARGIN_LEFT * 2, true, true);
 		combo->SetFixedHeight(header_height / 2 - HEADER_COMBO_MARGIN_BOTTOM, true);
-		combo->SetMargin(ui::UiRect(margin_left + HEADER_COMBO_MARGIN_LEFT, header_height / 2, 0, 0), true);
+		combo->SetMargin(ui::UiMargin(margin_left + HEADER_COMBO_MARGIN_LEFT, header_height / 2, 0, 0), true);
 		combo->SetClass(L"combo2");
 		combo->SetAttribute(L"cursortype", L"hand");
 		combo->SetFloat(true);
@@ -67,7 +67,7 @@ GridHeaderItem* MyGridBody::AddCol(std::wstring text, int width)
 			Combo* combo = new Combo;
 			combo->SetFixedWidth(col_width - HEADER_COMBO_MARGIN_LEFT * 2, true, true);
 			combo->SetFixedHeight(GetHeaderHeight() / 2 - HEADER_COMBO_MARGIN_BOTTOM, true);
-			combo->SetMargin(ui::UiRect(margin_left + HEADER_COMBO_MARGIN_LEFT, GetHeaderHeight() / 2, 0, 0), true);
+			combo->SetMargin(ui::UiMargin(margin_left + HEADER_COMBO_MARGIN_LEFT, GetHeaderHeight() / 2, 0, 0), true);
 			combo->SetClass(L"combo2");
 			combo->SetAttribute(L"cursortype", L"hand");
 			combo->SetFloat(true);
@@ -134,7 +134,7 @@ void MyGridBody::ResetHeanderComboPos()
 				continue;
 			}
 				
-			UiRect rcMargin = pControl->GetMargin();
+			UiMargin rcMargin = pControl->GetMargin();
 			rcMargin.left = posx + HEADER_COMBO_MARGIN_LEFT;
 			rcMargin.top = GetHeaderHeight() / 2 + szOff.cy;
 			pControl->SetMargin(rcMargin, true);

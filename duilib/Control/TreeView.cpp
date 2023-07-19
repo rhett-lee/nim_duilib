@@ -83,7 +83,7 @@ bool TreeNode::AddChildNodeAt(TreeNode* pTreeNode, size_t iIndex)
 	}
 	pTreeNode->AttachEvent(kEventClick, nbase::Bind(&TreeNode::OnClickItem, this, std::placeholders::_1));
 
-	UiRect padding = GetLayout()->GetPadding();
+	UiPadding padding = GetLayout()->GetPadding();
 	size_t nodeIndex = 0;
 	if (m_iDepth != ROOT_NODE_DEPTH) {
 		nodeIndex = GetIndex() + 1;

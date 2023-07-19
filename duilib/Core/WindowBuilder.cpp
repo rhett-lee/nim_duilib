@@ -211,9 +211,9 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
 					}
 					else if ((strName == L"shadow_corner") || (strName == L"shadowcorner")) {
 						//设置窗口阴影的九宫格属性
-						UiRect rc;
-						AttributeUtil::ParseRectValue(strValue.c_str(), rc);
-						pWindow->SetShadowCorner(rc);
+						UiPadding padding;
+						AttributeUtil::ParsePaddingValue(strValue.c_str(), padding);
+						pWindow->SetShadowCorner(padding);
 					}
 					else if ((strName == L"layered_window") || (strName == L"layeredwindow")) {
 						//设置是否设置层窗口属性（层窗口还是普通窗口）

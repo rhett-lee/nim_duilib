@@ -3,12 +3,14 @@
 
 #pragma once
 
-#include "duilib/Core/Control.h"
+#include "duilib/Core/UiTypes.h"
+#include <string>
 #include <vector>
 
 namespace ui 
 {
 class Box;
+class Control;
 
 /** 控件布局：各个子控件顶点坐标(left,top)都相同，各个控件堆叠排列（相当于都看成是Float控件）
 */
@@ -57,14 +59,14 @@ public:
 	/** 获取内边距
 	 * @return 返回内边距四边的大小（Rect的四个参数分别代表四个边的内边距）
 	 */
-	const UiRect& GetPadding() const { return m_rcPadding; }
+	const UiPadding& GetPadding() const { return m_rcPadding; }
 
 	/**
 	 * @brief 设置内边距
 	 * @param[in] rcPadding 内边距数据
 	 * @param[in] bNeedDpiScale 是否根据 DPI 自适应，默认为 true
 	 */
-	void SetPadding(UiRect rcPadding, bool bNeedDpiScale);
+	void SetPadding(UiPadding rcPadding, bool bNeedDpiScale);
 
 	/** 获取子控件之间的额外边距（X轴方向）
 	 * @return 返回额外间距的数值
@@ -103,7 +105,7 @@ protected:
 
 private:
 	//内边距四边的大小
-	UiRect m_rcPadding;
+	UiPadding m_rcPadding;
 
 	//子控件之间的额外边距: X 轴方向
 	int32_t m_iChildMarginX;

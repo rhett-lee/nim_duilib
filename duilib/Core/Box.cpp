@@ -446,11 +446,8 @@ void Box::ReSetLayout(Layout* pLayout)
 UiRect Box::GetPaddingPos() const
 {
 	UiRect pos = GetPos();
-	UiRect padding = m_pLayout->GetPadding();
-	pos.left += padding.left;
-	pos.top += padding.top;
-	pos.right -= padding.right;
-	pos.bottom -= padding.bottom;
+	UiPadding padding = m_pLayout->GetPadding();
+	pos.Deflate(padding);
 	return pos;
 }
 

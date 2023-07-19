@@ -61,14 +61,14 @@ public:
     * @brief 获取文字边距
     * @return 返回文字的边距信息
     */
-    ui::UiRect GetTextPadding() const;
+    const ui::UiPadding& GetTextPadding() const;
 
     /**
     * @brief 设置文字边距信息
     * @param[in] rc 边距信息
     * @return 无
     */
-    void SetTextPadding(ui::UiRect rc);
+    void SetTextPadding(ui::UiPadding padding);
 
     /**
      * @brief 获取当前所属的 List 对象
@@ -143,15 +143,15 @@ public:
 
     /**
     * @brief 设置下拉框阴影的大小
-    * @param[in] rect 设置的下拉框阴影大小
+    * @param[in] padding 设置的下拉框阴影大小
     */
-    void SetShadowCorner(const ui::UiRect& rect, bool bNeedDpiScale = true);
+    void SetShadowCorner(ui::UiPadding padding, bool bNeedDpiScale = true);
 
     /**
     * @brief 获取下拉框阴影大小
     * @return 返回下拉框阴影的大小
     */
-    ui::UiRect GetShadowCorner() const { return m_rcShadowCorner; }
+    const ui::UiPadding& GetShadowCorner() const { return m_rcShadowCorner; }
 
     /**
     * @brief 设置下拉框阴影图片
@@ -209,8 +209,8 @@ protected:
     ui::UiSize m_szDropBox;
     std::wstring m_sDropBoxAttributes;
     bool m_bPopupTop;
-    ui::UiRect	m_rcTextPadding;
-    ui::UiRect m_rcShadowCorner;
+    ui::UiPadding	m_rcTextPadding;
+    ui::UiPadding m_rcShadowCorner;
     std::wstring m_sShadowImage;
     ui::Control* m_cArrow;
     bool m_bInit;

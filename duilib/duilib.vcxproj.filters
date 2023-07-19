@@ -587,5 +587,14 @@
     <ClInclude Include="Box\VirtualTileBox.h">
       <Filter>Box</Filter>
     </ClInclude>
+    <ClInclude Include="Core\UiMargin.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\UiPadding.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\UiTypes.h">
+      <Filter>Core</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

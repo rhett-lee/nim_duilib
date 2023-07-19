@@ -4,11 +4,7 @@
 #pragma once
 
 #include "base/callback/callback.h"
-#include "duilib/Core/UiColor.h"
-#include "duilib/Core/UiFont.h"
-#include "duilib/Core/UiRect.h"
-#include "duilib/Core/UiSize.h"
-#include "duilib/Core/UiPoint.h"
+#include "duilib/Core/UiTypes.h"
 #include <string>
 #include <memory>
 
@@ -17,6 +13,8 @@ namespace ui
 	class Box;
 	class Window;
 
+/** 控件的位置、大小、外观形状的基本封装
+*/
 class UILIB_API PlaceHolder : public virtual nbase::SupportWeakCallback
 {
 public:
@@ -190,6 +188,16 @@ public:
 	 */
 	void SetVerAlignType(VerAlignType verAlignType);
 
+	/** 获取控件的外边距
+	 */
+	const UiMargin& GetMargin() const;
+
+	/** 设置控件的外边距
+	 * @param[in] rcMargin 控件的外边距信息
+	 * @param[in] bNeedDpiScale 是否让外边距根据 DPI 适配，默认为 true，false 不适配 DPI
+	 */
+	void SetMargin(UiMargin rcMargin, bool bNeedDpiScale);
+
 	/**@brief 判断是否需要重新评估大小
 	 */
 	bool IsReEstimateSize() const { return m_bReEstimateSize; }
@@ -314,6 +322,9 @@ private:
 
 	//控件垂直对齐方式
 	VerAlignType m_verAlignType;
+
+	//控件的外边距属性（上，下，左，右边距）
+	UiMargin m_rcMargin;
 
 	//控件是否为浮动属性
 	bool m_bFloat;

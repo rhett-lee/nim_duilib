@@ -163,7 +163,7 @@ void ListBox::EnsureVisible(const UiRect& rcItem)
 	UiSize scrollOffset = GetScrollOffset();
 	rcNewItem.Offset(-scrollOffset.cx, -scrollOffset.cy);
 	UiRect rcList = GetPos();
-	UiRect rcListInset = GetLayout()->GetPadding();
+	UiPadding rcListInset = GetLayout()->GetPadding();
 
 	rcList.left += rcListInset.left;
 	rcList.top += rcListInset.top;

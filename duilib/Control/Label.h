@@ -88,17 +88,16 @@ public:
 	void SetFontId(const std::wstring& strFontId);
 
     /**
-     * @brief 获取文字边距
-     * @return 返回文字的边距信息
+     * @brief 获取文字内边距
+     * @return 返回文字的内边距信息
      */
-	UiRect GetTextPadding() const;
+	const UiPadding& GetTextPadding() const;
 
     /**
-     * @brief 设置文字边距信息
-     * @param[in] rc 边距信息
-     * @return 无
+     * @brief 设置文字内边距信息
+     * @param[in] padding 内边距信息
      */
-	void SetTextPadding(UiRect rc);
+	void SetTextPadding(UiPadding padding);
 
     /**
      * @brief 判断是否是单行模式
@@ -129,7 +128,7 @@ protected:
 	UINT	m_uTextStyle;
 	bool    m_bSingleLine;
 	bool    m_bAutoShowToolTip;
-	UiRect	m_rcTextPadding;
+	UiPadding	m_rcTextPadding;
 	std::wstring	m_sText;
 	std::wstring	m_sTextId;
 	StateColorMap	m_textColorMap;
@@ -218,10 +217,7 @@ void LabelTemplate<InheritType>::CheckShowToolTip()
     }
 
     UiRect rc = this->GetRect();
-    rc.left += m_rcTextPadding.left;
-    rc.right -= m_rcTextPadding.right;
-    rc.top += m_rcTextPadding.top;
-    rc.bottom -= m_rcTextPadding.bottom;
+    rc.Deflate(m_rcTextPadding);
 
     if (m_bSingleLine) {
         m_uTextStyle |= TEXT_SINGLELINE;
@@ -416,8 +412,8 @@ void LabelTemplate<InheritType>::SetAttribute(const std::wstring& strName, const
         SetStateTextColor(kControlStateDisabled, strValue);
     }
     else if ((strName == L"text_padding") || (strName == L"textpadding")){
-        UiRect rcTextPadding;
-        AttributeUtil::ParseRectValue(strValue.c_str(), rcTextPadding);
+        UiPadding rcTextPadding;
+        AttributeUtil::ParsePaddingValue(strValue.c_str(), rcTextPadding);
         SetTextPadding(rcTextPadding);
     }
     else {
@@ -433,10 +429,7 @@ void LabelTemplate<InheritType>::PaintText(IRender* pRender)
         return;
     }
     UiRect rc = this->GetRect();
-    rc.left += m_rcTextPadding.left;
-    rc.right -= m_rcTextPadding.right;
-    rc.top += m_rcTextPadding.top;
-    rc.bottom -= m_rcTextPadding.bottom;
+    rc.Deflate(m_rcTextPadding);
 
     auto stateType = this->GetState();
     UiColor dwClrColor = this->GetUiColor(GetPaintStateTextColor(this->GetState(), stateType));
@@ -531,22 +524,24 @@ void LabelTemplate<InheritType>::SetFontId(const std::wstring& strFontId)
 }
 
 template<typename InheritType>
-UiRect LabelTemplate<InheritType>::GetTextPadding() const
+const UiPadding& LabelTemplate<InheritType>::GetTextPadding() const
 {
     return m_rcTextPadding;
 }
 
 template<typename InheritType>
-void LabelTemplate<InheritType>::SetTextPadding(UiRect rc)
+void LabelTemplate<InheritType>::SetTextPadding(UiPadding padding)
 {
-    ASSERT((rc.left >= 0) && (rc.top >= 0) && (rc.right >= 0) && (rc.bottom >= 0));
-    if ((rc.left < 0) || (rc.top < 0) ||
-        (rc.right < 0) || (rc.bottom < 0)) {
+    ASSERT((padding.left >= 0) && (padding.top >= 0) && (padding.right >= 0) && (padding.bottom >= 0));
+    if ((padding.left < 0) || (padding.top < 0) ||
+        (padding.right < 0) || (padding.bottom < 0)) {
         return;
     }
-    GlobalManager::Instance().Dpi().ScaleRect(rc);
-    m_rcTextPadding = rc;
-    this->RelayoutOrRedraw();
+    GlobalManager::Instance().Dpi().ScalePadding(padding);
+    if (!m_rcTextPadding.Equals(padding)) {
+        m_rcTextPadding = padding;
+        this->RelayoutOrRedraw();
+    }    
 }
 
 template<typename InheritType>

@@ -786,7 +786,7 @@ void Window::SetShadowImage(const std::wstring &strImage)
 	m_shadow->SetShadowImage(strImage);
 }
 
-UiRect Window::GetShadowCorner() const
+UiPadding Window::GetShadowCorner() const
 {
 	return m_shadow->GetShadowCorner();
 }
@@ -806,9 +806,9 @@ void Window::SetUseDefaultShadowAttached(bool isDefault)
 	m_shadow->SetUseDefaultShadowAttached(isDefault);
 }
 
-void Window::SetShadowCorner(const UiRect& rect, bool bNeedDpiScale)
+void Window::SetShadowCorner(const UiPadding& padding, bool bNeedDpiScale)
 {
-	m_shadow->SetShadowCorner(rect, bNeedDpiScale);
+	m_shadow->SetShadowCorner(padding, bNeedDpiScale);
 }
 
 UiRect Window::GetPos(bool bContainShadow) const
@@ -817,11 +817,8 @@ UiRect Window::GetPos(bool bContainShadow) const
 	UiRect rcPos;
 	GetWindowRect(rcPos);
 	if (!bContainShadow) {
-		UiRect padding = m_shadow->GetShadowCorner();
-		rcPos.left += padding.left;
-		rcPos.right -= padding.right;
-		rcPos.top += padding.top;
-		rcPos.bottom -= padding.bottom;
+		UiPadding padding = m_shadow->GetShadowCorner();
+		rcPos.Deflate(padding);
 	}
 	return rcPos;
 }
@@ -835,8 +832,8 @@ void Window::SetPos(const UiRect& rc, bool bNeedDpiScale, UINT uFlags, HWND hWnd
 
 	ASSERT(::IsWindow(m_hWnd));
 	if (!bContainShadow) {
-		UiRect rcCorner = m_shadow->GetShadowCorner();
-		rcNewPos.Inflate(rcCorner.left, rcCorner.top, rcCorner.right, rcCorner.bottom);
+		UiPadding rcCorner = m_shadow->GetShadowCorner();
+		rcNewPos.Inflate(rcCorner);
 	}
 	::SetWindowPos(m_hWnd, hWndInsertAfter, rcNewPos.left, rcNewPos.top, rcNewPos.Width(), rcNewPos.Height(), uFlags);
 }
@@ -845,7 +842,7 @@ UiSize Window::GetMinInfo(bool bContainShadow) const
 {
 	UiSize xy = m_szMinWindow;
 	if (!bContainShadow) {
-		UiRect rcShadow = m_shadow->GetShadowCorner();
+		UiPadding rcShadow = m_shadow->GetShadowCorner();
 		if (xy.cx != 0) {
 			xy.cx -= rcShadow.left + rcShadow.right;
 		}
@@ -871,7 +868,7 @@ void Window::SetMinInfo(int cx, int cy, bool bContainShadow, bool bNeedDpiScale)
 		GlobalManager::Instance().Dpi().ScaleInt(cy);
 	}
 	if (!bContainShadow) {
-		UiRect rcShadow = m_shadow->GetShadowCorner();
+		UiPadding rcShadow = m_shadow->GetShadowCorner();
 		if (cx != 0) {
 			cx += rcShadow.left + rcShadow.right;
 		}
@@ -887,7 +884,7 @@ UiSize Window::GetMaxInfo(bool bContainShadow) const
 {
 	UiSize xy = m_szMaxWindow;
 	if (!bContainShadow) {
-		UiRect rcShadow = m_shadow->GetShadowCorner();
+		UiPadding rcShadow = m_shadow->GetShadowCorner();
 		if (xy.cx != 0) {
 			xy.cx -= rcShadow.left + rcShadow.right;
 		}
@@ -913,7 +910,7 @@ void Window::SetMaxInfo(int cx, int cy, bool bContainShadow, bool bNeedDpiScale)
 		GlobalManager::Instance().Dpi().ScaleInt(cy);
 	}
 	if (!bContainShadow) {
-		UiRect rcShadow = m_shadow->GetShadowCorner();
+		UiPadding rcShadow = m_shadow->GetShadowCorner();
 		if (cx != 0) {
 			cx += rcShadow.left + rcShadow.right;
 		}
@@ -929,7 +926,7 @@ UiSize Window::GetInitSize(bool bContainShadow) const
 {
 	UiSize xy = m_szInitWindowSize;
 	if (!bContainShadow) {
-		UiRect rcShadow = m_shadow->GetShadowCorner();
+		UiPadding rcShadow = m_shadow->GetShadowCorner();
 		if (xy.cx != 0) {
 			xy.cx -= rcShadow.left + rcShadow.right;
 		}
@@ -956,7 +953,7 @@ void Window::Resize(int cx, int cy, bool bContainShadow, bool bNeedDpiScale)
 	}
 
 	if (!bContainShadow) {
-		UiRect rcShadow = m_shadow->GetShadowCorner();
+		UiPadding rcShadow = m_shadow->GetShadowCorner();
 		cx += rcShadow.left + rcShadow.right;
 		cy += rcShadow.top + rcShadow.bottom;
 	}
@@ -1158,8 +1155,8 @@ LRESULT Window::OnNcHitTestMsg(UINT uMsg, WPARAM /*wParam*/, LPARAM lParam, bool
 	GetClientRect(rcClient);
 
 	//客户区域，排除掉阴影部分区域
-	UiRect rcCorner = m_shadow->GetShadowCorner();
-	rcClient.Deflate(rcCorner.left, rcCorner.top, rcCorner.right, rcCorner.bottom);
+	UiPadding rcCorner = m_shadow->GetShadowCorner();
+	rcClient.Deflate(rcCorner);
 
 	if (!::IsZoomed(GetHWND())) {
 		//非最小化状态
@@ -2293,7 +2290,7 @@ void Window::Paint()
 			//补救由于Gdi绘制造成的alpha通道为0
 			UiRect rcNewPaint = rcPaint;
 			rcNewPaint.Intersect(m_pRoot->GetPaddingPos());
-			UiRect rcRootPadding = m_pRoot->GetLayout()->GetPadding();
+			UiPadding rcRootPadding = m_pRoot->GetLayout()->GetPadding();
 
 			//考虑圆角
 			rcRootPadding.left += 1;
@@ -2313,7 +2310,7 @@ void Window::Paint()
 					                     rcAlphaFixCorner.right, rcAlphaFixCorner.bottom);
 				rcNewPaint.Intersect(rcRootPaddingPos);
 
-				UiRect rcRootPadding;
+				UiPadding rcRootPadding;
 				m_render->RestoreAlpha(rcNewPaint, rcRootPadding);
 			}
 		}

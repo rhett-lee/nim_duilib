@@ -236,7 +236,7 @@ void CMenuWnd::ResizeMenu()
 	ui::UiSize szAvailable = { rcWork.right - rcWork.left, rcWork.bottom - rcWork.top };
 	szAvailable = pRoot->EstimateSize(szAvailable);   //这里带上了阴影窗口
 	SetInitSize(szAvailable.cx, szAvailable.cy);
-	ui::UiRect rcCorner = GetShadowCorner();
+	ui::UiPadding rcCorner = GetShadowCorner();
 	ui::UiSize szInit=szAvailable;
 	szInit.cx -= rcCorner.left + rcCorner.right;
 	szInit.cy -= rcCorner.top + rcCorner.bottom; //这里去掉阴影窗口，即用户的视觉有效面积 szInit<=szAvailable
@@ -312,7 +312,7 @@ void CMenuWnd::ResizeSubMenu()
 			}				
 		}
 	}
-	UiRect rcCorner = GetShadowCorner();
+	UiPadding rcCorner = GetShadowCorner();
 	UiRect rcWindow;
 	GetWindowRect(m_pOwner->GetWindow()->GetHWND(), rcWindow);
 	//去阴影

@@ -127,25 +127,25 @@ const std::wstring& Shadow::GetShadowImage() const
 	return m_strImage;
 }
 
-void Shadow::SetShadowCorner(const UiRect& rc, bool bNeedDpiScale)
+void Shadow::SetShadowCorner(const UiPadding& padding, bool bNeedDpiScale)
 {
-	ASSERT((rc.left >= 0) && (rc.top >= 0) && (rc.right >= 0) && (rc.bottom >= 0));
-	if ((rc.left >= 0) && (rc.top >= 0) && (rc.right >= 0) && (rc.bottom >= 0)) {
-		m_rcShadowCorner = rc;
+	ASSERT((padding.left >= 0) && (padding.top >= 0) && (padding.right >= 0) && (padding.bottom >= 0));
+	if ((padding.left >= 0) && (padding.top >= 0) && (padding.right >= 0) && (padding.bottom >= 0)) {
+		m_rcShadowCorner = padding;
 		if (bNeedDpiScale) {
-			GlobalManager::Instance().Dpi().ScaleRect(m_rcShadowCorner);
+			GlobalManager::Instance().Dpi().ScalePadding(m_rcShadowCorner);
 		}
 		m_rcShadowCornerBackup = m_rcShadowCorner;
 	}	
 }
 
-UiRect Shadow::GetShadowCorner() const
+UiPadding Shadow::GetShadowCorner() const
 {
 	if (m_bShadowAttached) {
 		return m_rcShadowCorner;
 	}
 	else {
-		return UiRect(0, 0, 0, 0);
+		return UiPadding(0, 0, 0, 0);
 	}
 }
 
@@ -155,7 +155,7 @@ void Shadow::ResetDefaultShadow()
 	m_strImage = L"file='public/shadow/bk_shadow.png' corner='30,30,30,30'";
 
 	m_rcShadowCorner = { 14, 14, 14, 14 };
-	GlobalManager::Instance().Dpi().ScaleRect(m_rcShadowCorner);
+	GlobalManager::Instance().Dpi().ScalePadding(m_rcShadowCorner);
 	m_rcShadowCornerBackup = m_rcShadowCorner;
 }
 
@@ -205,7 +205,7 @@ void Shadow::MaximizedOrRestored(bool isMaximized)
 	}
 
 	if (isMaximized && m_pRoot) {
-		m_rcShadowCorner = UiRect(0, 0, 0, 0);
+		m_rcShadowCorner = UiPadding(0, 0, 0, 0);
 		m_pRoot->GetLayout()->SetPadding(m_rcShadowCorner, false);
 	}
 	else if (!isMaximized && m_pRoot) {

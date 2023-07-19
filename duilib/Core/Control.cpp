@@ -28,7 +28,6 @@ Control::Control() :
     m_bIsLoading(false),
 	m_renderOffset(),
 	m_cxyBorderRound(),
-	m_rcMargin(),
 	m_rcPaint(),
 	m_rcBorderSize(),
 	m_cursorType(kCursorArrow),
@@ -545,7 +544,7 @@ UiRect Control::GetPos(bool bContainShadow) const
 	UiRect pos = GetRect();
 	Window* pWindow = GetWindow();
 	if (pWindow && !bContainShadow) {
-		UiRect shadowLength = pWindow->GetShadowCorner();
+		UiPadding shadowLength = pWindow->GetShadowCorner();
 		pos.Offset(-shadowLength.left, -shadowLength.top);
 	}
 	return pos;
@@ -598,28 +597,6 @@ void Control::SetPos(UiRect rc)
 	}
 
 	SendEvent(kEventResize);
-}
-
-UiRect Control::GetMargin() const
-{
-	return m_rcMargin;
-}
-
-void Control::SetMargin(UiRect rcMargin, bool bNeedDpiScale)
-{
-	rcMargin.left = std::max((int)rcMargin.left, 0);
-	rcMargin.right = std::max((int)rcMargin.right, 0);
-	rcMargin.top = std::max((int)rcMargin.top, 0);
-	rcMargin.bottom = std::max((int)rcMargin.bottom, 0);
-
-	if (bNeedDpiScale) {
-		GlobalManager::Instance().Dpi().ScaleRect(rcMargin);
-	}
-
-	if (!m_rcMargin.Equals(rcMargin)) {
-		m_rcMargin = rcMargin;
-		ArrangeAncestor();
-	}
 }
 
 UiSize Control::EstimateSize(UiSize szAvailable)
@@ -957,8 +934,8 @@ void Control::SetAttribute(const std::wstring& strName, const std::wstring& strV
 		}
 	}
 	else if (strName == L"margin") {
-		UiRect rcMargin;
-		AttributeUtil::ParseRectValue(strValue.c_str(), rcMargin);
+		UiMargin rcMargin;
+		AttributeUtil::ParseMarginValue(strValue.c_str(), rcMargin);
 		SetMargin(rcMargin, true);
 	}
 	else if (strName == L"bkcolor" || strName == L"bkcolor1") {

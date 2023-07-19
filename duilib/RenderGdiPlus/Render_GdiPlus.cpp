@@ -174,7 +174,7 @@ void Render_GdiPlus::ClearAlpha(const UiRect& rcDirty, uint8_t alpha)
 	}
 }
 
-void Render_GdiPlus::RestoreAlpha(const UiRect& rcDirty, const UiRect& rcShadowPadding, uint8_t alpha)
+void Render_GdiPlus::RestoreAlpha(const UiRect& rcDirty, const UiPadding& rcShadowPadding, uint8_t alpha)
 {
 	HBITMAP hBitmap = m_hBitmap;
 	ASSERT(hBitmap != nullptr);
@@ -186,7 +186,7 @@ void Render_GdiPlus::RestoreAlpha(const UiRect& rcDirty, const UiRect& rcShadowP
 	}
 }
 
-void Render_GdiPlus::RestoreAlpha(const UiRect& rcDirty, const UiRect& rcShadowPadding /*= UiRect()*/)
+void Render_GdiPlus::RestoreAlpha(const UiRect& rcDirty, const UiPadding& rcShadowPadding /*= UiRect()*/)
 {
 	HBITMAP hBitmap = m_hBitmap;
 	ASSERT(hBitmap != nullptr);

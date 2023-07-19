@@ -50,7 +50,7 @@ void AppItemUi::FixPos(int step, int index)
 	}
 	index_ += step;
 
-	ui::UiRect marginRect = { (index_ % EACH_LINE)*APP_WIDTH, (index_ / EACH_LINE)*APP_HEIGHT,0,0 };
+	ui::UiMargin marginRect = { (index_ % EACH_LINE)*APP_WIDTH, (index_ / EACH_LINE)*APP_HEIGHT,0,0 };
 	
 	SetMargin(marginRect, true);
 }
@@ -117,7 +117,7 @@ void AppWindow::AdjustPos()
 	//移动到合适位置，并接管鼠标
 	//移植pos的位置,注意去掉阴影
 	//
-	ui::UiRect rcCorner = GetShadowCorner();
+	ui::UiPadding rcCorner = GetShadowCorner();
 	POINT ptCursor;
 	::GetCursorPos(&ptCursor);
 	//左上角的位置

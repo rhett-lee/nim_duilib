@@ -273,7 +273,7 @@ FilterCombo::FilterCombo() :
 	// reassigned by this operation - which is why it is important to reassign
 	// the items back to the righfull owner/manager when the window closes.
 	m_pLayout.reset(new FilterListBox(new ui::VLayout));
-	m_pLayout->GetLayout()->SetPadding(ui::UiRect(1, 1, 1, 1), true);
+	m_pLayout->GetLayout()->SetPadding(ui::UiPadding(1, 1, 1, 1), true);
 	m_pLayout->SetBkColor(L"bk_wnd_lightcolor");
 	m_pLayout->SetBorderColor(L"splitline_level1");
 	m_pLayout->SetBorderSize(ui::UiRect(1, 1, 1, 1));

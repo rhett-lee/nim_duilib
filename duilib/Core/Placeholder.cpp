@@ -227,6 +227,25 @@ void PlaceHolder::SetVerAlignType(VerAlignType verAlignType)
 	m_verAlignType = verAlignType;
 }
 
+
+const UiMargin& PlaceHolder::GetMargin() const
+{
+	return m_rcMargin;
+}
+
+void PlaceHolder::SetMargin(UiMargin rcMargin, bool bNeedDpiScale)
+{
+	rcMargin.Validate();
+	if (bNeedDpiScale) {
+		GlobalManager::Instance().Dpi().ScaleMargin(rcMargin);
+	}
+
+	if (!m_rcMargin.Equals(rcMargin)) {
+		m_rcMargin = rcMargin;
+		ArrangeAncestor();
+	}
+}
+
 void PlaceHolder::SetReEstimateSize(bool bReEstimateSize)
 {
 	m_bReEstimateSize = bReEstimateSize;

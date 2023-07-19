@@ -1,9 +1,7 @@
 #ifndef UI_UTILS_ATTRIBUTUTIL_H_
 #define UI_UTILS_ATTRIBUTUTIL_H_
 
-#include "duilib/Core/UiRect.h"
-#include "duilib/Core/UiSize.h"
-#include "duilib/Core/UiPoint.h"
+#include "duilib/Core/UiTypes.h"
 #include <string>
 #include <vector>
 #include <tuple>
@@ -29,6 +27,8 @@ public:
 	/** 从配置中解析一个Rect结构，输入格式如："80,50,60,70"
 	*/
 	static void ParseRectValue(const wchar_t* strValue, UiRect& rect);
+	static void ParsePaddingValue(const wchar_t* strValue, UiPadding& padding);
+	static void ParseMarginValue(const wchar_t* strValue, UiMargin& margin);
 
 	/** 解析属性列表，格式如	: font="system_bold_14" normaltextcolor="white" bkcolor="red"
 	*                 或者	: color='black' offset='1,1' blur_radius='2' spread_radius='2'

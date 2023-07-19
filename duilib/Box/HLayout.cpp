@@ -1,4 +1,6 @@
 #include "HLayout.h"
+#include "duilib/Core/Control.h"
+#include <map>
 
 namespace ui 
 {
@@ -34,7 +36,7 @@ UiSize64 HLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 		UiSize sz = pControl->EstimateSize(szAvailable);
 		ASSERT((sz.cx >= DUI_LENGTH_STRETCH) && (sz.cy >= DUI_LENGTH_STRETCH));
 
-		UiRect rcMargin = pControl->GetMargin();
+		UiMargin rcMargin = pControl->GetMargin();
 		//¼ÆËã¿í¶È
 		if( sz.cx == DUI_LENGTH_STRETCH ) {
 			stretchCount++;
@@ -127,7 +129,7 @@ UiSize64 HLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 			continue;
 		}
 
-		UiRect rcMargin = pControl->GetMargin();
+		UiMargin rcMargin = pControl->GetMargin();
 		ASSERT(itemsMap.find(pControl) != itemsMap.end());
 		UiSize sz = itemsMap[pControl];
 
@@ -189,7 +191,7 @@ UiSize HLayout::EstimateSizeByChild(const std::vector<Control*>& items, UiSize s
 		}
 
 		estimateCount++;
-		UiRect rcMargin = pControl->GetMargin();
+		UiMargin rcMargin = pControl->GetMargin();
 		itemSize = pControl->EstimateSize(szAvailable);
 		if (itemSize.cx < pControl->GetMinWidth()) {
 			itemSize.cx = pControl->GetMinWidth();
@@ -212,7 +214,7 @@ UiSize HLayout::EstimateSizeByChild(const std::vector<Control*>& items, UiSize s
 		totalSize.cx += (estimateCount - 1) * GetChildMarginX();
 	}
 
-	UiRect rcPadding = GetPadding();
+	UiPadding rcPadding = GetPadding();
 	totalSize.cx += (rcPadding.left + rcPadding.right);
 	totalSize.cy += (rcPadding.top + rcPadding.bottom);
 	return totalSize;

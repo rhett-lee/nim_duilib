@@ -477,20 +477,6 @@ public:
 	 */
 	virtual void SetPos(UiRect rc) override;
 
-	/**
-	 * @brief 获取控件的外边距
-	 * @return 返回控件的外边距
-	 */
-	virtual UiRect GetMargin() const;
-
-	/**
-	 * @brief 设置控件的外边距
-	 * @param[in] rcMargin 控件的外边距信息
-	 * @param[in] bNeedDpiScale 是否让外边距根据 DPI 适配，默认为 true，false 不适配 DPI
-	 * @return 无
-	 */
-	virtual void SetMargin(UiRect rcMargin, bool bNeedDpiScale);
-
 	/** 计算控件大小(宽和高)
 	    如果设置了图片并设置 width 或 height 任意一项为 auto，将根据图片来计算最终大小
 	 * @param[in] szAvailable 可用的大小
@@ -1054,10 +1040,6 @@ private:
 	/** 获取颜色名称对应的颜色值
 	*/
 	UiColor GetUiColorByName(const std::wstring& colorName) const;
-
-private:
-	//控件的外边距属性（上，下，左，右边距）
-	UiRect m_rcMargin;
 
 private:
 	/** 边框圆角大小(与m_rcBorderSize联合应用)或者阴影的圆角大小(与m_boxShadow联合应用)

@@ -1,6 +1,7 @@
 #include "Layout.h"
 #include "duilib/Utils/AttributeUtil.h"
 #include "duilib/Core/GlobalManager.h"
+#include "duilib/Core/Control.h"
 #include "duilib/Core/Box.h"
 
 namespace ui 
@@ -28,10 +29,10 @@ UiSize64 Layout::SetFloatPos(Control* pControl, UiRect rcContainer)
 		rcContainer.right = rcContainer.left;
 	}
 	if (rcContainer.Height() < 0) {
-		rcContainer.bottom = rcContainer.bottom;
+		rcContainer.bottom = rcContainer.top;
 	}
 
-	UiRect rcMargin = pControl->GetMargin();
+	UiMargin rcMargin = pControl->GetMargin();
 	int32_t iPosLeft = rcContainer.left + rcMargin.left;
 	int32_t iPosRight = rcContainer.right - rcMargin.right;
 	int32_t iPosTop = rcContainer.top + rcMargin.top;
@@ -115,8 +116,8 @@ bool Layout::SetAttribute(const std::wstring& strName, const std::wstring& strVa
 {
 	bool hasAttribute = true;
 	if (strName == L"padding") {
-		UiRect rcPadding;
-		AttributeUtil::ParseRectValue(strValue.c_str(), rcPadding);
+		UiPadding rcPadding;
+		AttributeUtil::ParsePaddingValue(strValue.c_str(), rcPadding);
 		SetPadding(rcPadding, true);
 	}
 	else if ((strName == L"child_margin") || (strName == L"childmargin")) {
@@ -177,7 +178,7 @@ UiSize Layout::EstimateSizeByChild(const std::vector<Control*>& items, UiSize sz
 		itemSize.cx = std::max((int)itemSize.cx, 0);
 		itemSize.cy = std::max((int)itemSize.cy, 0);
 
-		UiRect rcMargin = pControl->GetMargin();
+		UiMargin rcMargin = pControl->GetMargin();
 		maxSize.cx = std::max(itemSize.cx + rcMargin.left + rcMargin.right, maxSize.cx);
 		maxSize.cy = std::max(itemSize.cy + rcMargin.top + rcMargin.bottom, maxSize.cy);
 	}
@@ -186,16 +187,12 @@ UiSize Layout::EstimateSizeByChild(const std::vector<Control*>& items, UiSize sz
 	return maxSize;
 }
 
-void Layout::SetPadding(UiRect rcPadding, bool bNeedDpiScale /*= true*/)
+void Layout::SetPadding(UiPadding rcPadding, bool bNeedDpiScale /*= true*/)
 {
 	ASSERT((rcPadding.left >= 0) && (rcPadding.top >= 0) && (rcPadding.right >= 0) && (rcPadding.bottom >= 0));
-	rcPadding.left = std::max((int)rcPadding.left, 0);
-	rcPadding.right = std::max((int)rcPadding.right, 0);
-	rcPadding.top = std::max((int)rcPadding.top, 0);
-	rcPadding.bottom = std::max((int)rcPadding.bottom, 0);
-
+	rcPadding.Validate();
 	if (bNeedDpiScale) {
-		GlobalManager::Instance().Dpi().ScaleRect(rcPadding);
+		GlobalManager::Instance().Dpi().ScalePadding(rcPadding);
 	}
 	m_rcPadding = rcPadding;
 	ASSERT(m_pOwner != nullptr);
@@ -251,7 +248,7 @@ UiRect Layout::GetInternalPos() const
 		return UiRect();
 	}
 	UiRect internalPos = m_pOwner->GetPos();
-	internalPos.Deflate(m_rcPadding.left, m_rcPadding.top, m_rcPadding.right, m_rcPadding.bottom);
+	internalPos.Deflate(m_rcPadding);
 	return internalPos;
 }
 

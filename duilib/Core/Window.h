@@ -7,11 +7,7 @@
 #include "base/callback/callback.h"
 #include "duilib/Core/ControlFinder.h"
 #include "duilib/Core/ColorManager.h"
-#include "duilib/Core/UiColor.h"
-#include "duilib/Core/UiFont.h"
-#include "duilib/Core/UiRect.h"
-#include "duilib/Core/UiSize.h"
-#include "duilib/Core/UiPoint.h"
+#include "duilib/Core/UiTypes.h"
 
 #include <string>
 
@@ -671,13 +667,13 @@ public:
 
 	/**@brief 获取阴影的九宫格描述信息
 	 */
-	UiRect GetShadowCorner() const;
+	UiPadding GetShadowCorner() const;
 
 	/**@brief 指定阴影素材的九宫格描述
-	 * @param[in] rect 九宫格描述信息
+	 * @param[in] padding 九宫格描述信息
 	 * @param[in] bNeedDpiScale 为 false 表示不需要把 rc 根据 DPI 自动调整
 	 */
-	void SetShadowCorner(const UiRect& rect, bool bNeedDpiScale = true);
+	void SetShadowCorner(const UiPadding& padding, bool bNeedDpiScale = true);
 
 	/**@brief 设置窗口透明度
 	 * @param[in] nAlpha 透明度数值[0, 255]

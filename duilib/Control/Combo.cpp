@@ -166,7 +166,7 @@ Combo::Combo() :
 	// reassigned by this operation - which is why it is important to reassign
 	// the items back to the righfull owner/manager when the window closes.
 	m_pLayout.reset(new ListBox(new VLayout));
-	m_pLayout->GetLayout()->SetPadding(UiRect(1, 1, 1, 1), true);
+	m_pLayout->GetLayout()->SetPadding(UiPadding(1, 1, 1, 1), true);
 	m_pLayout->SetBkColor(L"bk_wnd_lightcolor");
 	m_pLayout->SetBorderColor(L"combobox_border");
 	m_pLayout->SetBorderSize(UiRect(1, 1, 1, 1));
@@ -259,8 +259,8 @@ void Combo::SetAttribute(const std::wstring& strName, const std::wstring& strVal
 		SetPopupTop(strValue == L"true");
 	}
 	else if ((strName == L"text_padding") || (strName == L"textpadding")){
-		UiRect rcTextPadding;
-		AttributeUtil::ParseRectValue(strValue.c_str(), rcTextPadding);
+		UiPadding rcTextPadding;
+		AttributeUtil::ParsePaddingValue(strValue.c_str(), rcTextPadding);
 		SetTextPadding(rcTextPadding);
 	}
 	else {
@@ -287,7 +287,7 @@ void Combo::PaintText(IRender* pRender)
 	if (pElement == nullptr) {
 		return;
 	}			
-	UiRect rcPadding = m_rcTextPadding;
+	UiPadding rcPadding = m_rcTextPadding;
 	if (GetText().empty()) {
 		return;
 	}
@@ -323,16 +323,18 @@ std::wstring Combo::GetText() const
 	return pControl ? pControl->GetText() : std::wstring();
 }
 
-UiRect Combo::GetTextPadding() const
+const UiPadding& Combo::GetTextPadding() const
 {
 	return m_rcTextPadding;
 }
 
-void Combo::SetTextPadding(UiRect rc)
+void Combo::SetTextPadding(UiPadding padding)
 {
-	GlobalManager::Instance().Dpi().ScaleRect(rc);
-	m_rcTextPadding = rc;
-	this->Invalidate();
+	GlobalManager::Instance().Dpi().ScalePadding(padding);
+	if (!m_rcTextPadding.Equals(padding)) {
+		m_rcTextPadding = padding;
+		this->Invalidate();
+	}	
 }
 
 std::wstring Combo::GetDropBoxAttributeList()

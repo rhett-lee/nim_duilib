@@ -135,8 +135,8 @@ void Slider::SetAttribute(const std::wstring& strName, const std::wstring& strVa
 		SetThumbSize(szXY);
 	}
 	else if ((strName == L"progress_bar_padding") || (strName == L"progressbarpadding")) {
-		UiRect rcPadding;
-		AttributeUtil::ParseRectValue(strValue.c_str(), rcPadding);
+		UiPadding rcPadding;
+		AttributeUtil::ParsePaddingValue(strValue.c_str(), rcPadding);
 		SetProgressBarPadding(rcPadding);
 	}
 	else {
@@ -147,30 +147,30 @@ void Slider::SetAttribute(const std::wstring& strName, const std::wstring& strVa
 void Slider::PaintBkColor(IRender* pRender)
 {
 	UiRect rc = GetRect();
-	const UiRect& padding = m_rcProgressBarPadding;
-	rc.Deflate(padding.left, padding.top, padding.right, padding.bottom);
+	const UiPadding& padding = m_rcProgressBarPadding;
+	rc.Deflate(padding);
 	SetRect(rc);
 
 	UiRect painttRect = GetPaintRect();
-	painttRect.Deflate(padding.left, padding.top, padding.right, padding.bottom);
+	painttRect.Deflate(padding);
 	SetPaintRect(painttRect);
 
 	Control::PaintBkColor(pRender);
 
 	painttRect = GetPaintRect();
-	painttRect.Inflate(padding.left, padding.top, padding.right, padding.bottom);
+	painttRect.Inflate(padding);
 	SetPaintRect(painttRect);
 
 	rc = GetRect();
-	rc.Inflate(padding.left, padding.top, padding.right, padding.bottom);
+	rc.Inflate(padding);
 	SetRect(rc);
 }
 
 void Slider::PaintStatusImage(IRender* pRender)
 {
 	UiRect rc = GetRect();
-	const UiRect& padding = m_rcProgressBarPadding;
-	rc.Deflate(padding.left, padding.top, padding.right, padding.bottom);
+	const UiPadding& padding = m_rcProgressBarPadding;
+	rc.Deflate(padding);
 	SetRect(rc);
 
 	Progress::PaintStatusImage(pRender);
@@ -257,16 +257,18 @@ void Slider::SetThumbStateImage(ControlStateType stateType, const std::wstring& 
 	Invalidate();
 }
 
-UiRect Slider::GetProgressBarPadding() const
+const UiPadding& Slider::GetProgressBarPadding() const
 {
 	return m_rcProgressBarPadding;
 }
 
-void Slider::SetProgressBarPadding(UiRect rc)
+void Slider::SetProgressBarPadding(UiPadding padding)
 {
-	GlobalManager::Instance().Dpi().ScaleRect(rc);
-	m_rcProgressBarPadding = rc;
-	RelayoutOrRedraw();
+	GlobalManager::Instance().Dpi().ScalePadding(padding);
+	if (!m_rcProgressBarPadding.Equals(padding)) {
+		m_rcProgressBarPadding = padding;
+		RelayoutOrRedraw();
+	}	
 }
 
 }

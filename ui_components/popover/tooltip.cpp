@@ -19,15 +19,15 @@ ui::UiSize TooltipBody::EstimateSize(ui::UiSize szAvailable)
   ui::UiSize maxSize = szAvailable;
   maxSize.cy = 0;
 
-  ui::UiRect marginRect = GetMargin();
+  ui::UiMargin marginRect = GetMargin();
   maxSize.cx -= marginRect.left + marginRect.right;
 
-  ui::UiRect paddingRect = GetLayout()->GetPadding();
+  ui::UiPadding paddingRect = GetLayout()->GetPadding();
   maxSize.cx -= paddingRect.left + paddingRect.right;
 
   ui::UiSize editSize{ 0,0 };
   if (m_pRichEditContent) {
-    ui::UiRect editMargin = m_pRichEditContent->GetMargin();
+    ui::UiMargin editMargin = m_pRichEditContent->GetMargin();
     editSize = m_pRichEditContent->EstimateText({ maxSize.cx - editMargin.left - editMargin.right,maxSize.cy });
 
     m_pRichEditContent->SetFixedHeight(editSize.cy, false);

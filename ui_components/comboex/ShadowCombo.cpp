@@ -66,12 +66,9 @@ void CShadowComboWnd::InitComboWnd(ShadowCombo* pOwner)
 
     cyFixed += padding; // VBox 默认的Padding 调整
     rc.bottom = rc.top + std::min(cyFixed, szDrop.cy);
-    ui::UiRect shadow_corner = m_pOwner->GetShadowCorner();
-    rc.left = rc.left - shadow_corner.left;
-    rc.right = rc.right + shadow_corner.right;
-    rc.top = rc.top - shadow_corner.top;
-    rc.bottom = rc.bottom + shadow_corner.bottom;
-
+    ui::UiPadding shadow_corner = m_pOwner->GetShadowCorner();
+    rc.Inflate(shadow_corner);
+    
     ASSERT(pOwner->GetWindow() != nullptr);
     if (pOwner->GetWindow() == nullptr) {
         return;
@@ -284,13 +281,13 @@ void ShadowCombo::SetAttribute(const std::wstring& strName, const std::wstring& 
         SetPopupTop(strValue == L"true");
     }
     else if ((strName == L"text_padding") || (strName == L"textpadding")) {
-        ui::UiRect rcTextPadding;
-        ui::AttributeUtil::ParseRectValue(strValue.c_str(), rcTextPadding);
+        ui::UiPadding rcTextPadding;
+        ui::AttributeUtil::ParsePaddingValue(strValue.c_str(), rcTextPadding);
         SetTextPadding(rcTextPadding);
     }
     else if ((strName == L"shadow_corner") || (strName == L"shadowcorner")) {
-        ui::UiRect rcShadowCorner;
-        ui::AttributeUtil::ParseRectValue(strValue.c_str(), rcShadowCorner);
+        ui::UiPadding rcShadowCorner;
+        ui::AttributeUtil::ParsePaddingValue(strValue.c_str(), rcShadowCorner);
         SetShadowCorner(rcShadowCorner);
     }
     else if ((strName == L"arrow_normal_image") || (strName == L"arrownormalimage")) {
@@ -328,7 +325,7 @@ void ShadowCombo::PaintText(ui::IRender* pRender)
     if (pElement == nullptr) {
         return;
     }
-    ui::UiRect rcPadding = m_rcTextPadding;
+    ui::UiPadding rcPadding = m_rcTextPadding;
 
     if (GetText().empty()) {
         return;
@@ -368,16 +365,18 @@ std::wstring ShadowCombo::GetText() const
     return pControl ? pControl->GetText() : std::wstring();
 }
 
-ui::UiRect ShadowCombo::GetTextPadding() const
+const ui::UiPadding& ShadowCombo::GetTextPadding() const
 {
     return m_rcTextPadding;
 }
 
-void ShadowCombo::SetTextPadding(ui::UiRect rc)
+void ShadowCombo::SetTextPadding(ui::UiPadding padding)
 {
-    ui::GlobalManager::Instance().Dpi().ScaleRect(rc);
-    m_rcTextPadding = rc;
-    this->Invalidate();
+    ui::GlobalManager::Instance().Dpi().ScalePadding(padding);
+    if (!m_rcTextPadding.Equals(padding)) {
+        m_rcTextPadding = padding;
+        this->Invalidate();
+    }    
 }
 
 std::wstring ShadowCombo::GetDropBoxAttributeList()
@@ -451,13 +450,12 @@ bool ShadowCombo::OnSelectItem(const ui::EventArgs& /*args*/)
     return true;
 }
 
-void ShadowCombo::SetShadowCorner(const ui::UiRect& rect, bool bNeedDpiScale)
+void ShadowCombo::SetShadowCorner(ui::UiPadding padding, bool bNeedDpiScale)
 {
-    ui::UiRect rc = rect;
     if (bNeedDpiScale) {
-        ui::GlobalManager::Instance().Dpi().ScaleRect(rc);
+        ui::GlobalManager::Instance().Dpi().ScalePadding(padding);
     }
-    m_rcShadowCorner = rc;
+    m_rcShadowCorner = padding;
 }
 
 void ShadowCombo::SetArrowOffset(int offset, bool bNeedDpiScale) 

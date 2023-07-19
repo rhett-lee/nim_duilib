@@ -2338,7 +2338,7 @@ UiSize RichEdit::EstimateSize(UiSize /*szAvailable*/)
 													&iWidth,
 													&iHeight) ;
 		
-		UiRect padding = GetLayout()->GetPadding();
+		UiPadding padding = GetLayout()->GetPadding();
 		if (size.cy == DUI_LENGTH_AUTO) {
 			size.cy = iHeight + padding.top + padding.bottom;
 		}

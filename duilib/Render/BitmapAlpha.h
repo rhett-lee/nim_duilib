@@ -18,8 +18,8 @@ public:
 
 public:
 	void ClearAlpha(const UiRect& rcDirty, uint8_t alpha) const;
-	void RestoreAlpha(const UiRect& rcDirty, const UiRect& rcShadowPadding, uint8_t alpha) const;
-	void RestoreAlpha(const UiRect& rcDirty, const UiRect& rcShadowPadding) const;
+	void RestoreAlpha(const UiRect& rcDirty, const UiPadding& rcShadowPadding, uint8_t alpha) const;
+	void RestoreAlpha(const UiRect& rcDirty, const UiPadding& rcShadowPadding) const;
 
 private:
 	/** Í¼ÏñÊý¾Ý

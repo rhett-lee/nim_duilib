@@ -37,8 +37,8 @@ public:
 	virtual int	GetWidth() override;
 	virtual int GetHeight() override;
 	virtual void ClearAlpha(const UiRect& rcDirty, uint8_t alpha = 0) override;
-	virtual void RestoreAlpha(const UiRect& rcDirty, const UiRect& rcShadowPadding, uint8_t alpha) override;
-	virtual void RestoreAlpha(const UiRect& rcDirty, const UiRect& rcShadowPadding = UiRect()) override;
+	virtual void RestoreAlpha(const UiRect& rcDirty, const UiPadding& rcShadowPadding, uint8_t alpha) override;
+	virtual void RestoreAlpha(const UiRect& rcDirty, const UiPadding& rcShadowPadding = UiPadding()) override;
 
 	virtual bool IsRenderTransparent() const override;
 	virtual bool SetRenderTransparent(bool bTransparent) override;

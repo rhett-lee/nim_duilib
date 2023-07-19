@@ -64,18 +64,14 @@ public:
 	 */
 	void SetThumbStateImage(ControlStateType stateType, const std::wstring& pStrImage);
 
-	/**
-	 * @brief 获取进度条内边距
-	 * @return 返回内边距信息
+	/** 获取进度条内边距
 	 */
-	UiRect GetProgressBarPadding() const;
+	const UiPadding& GetProgressBarPadding() const;
 
-	/**
-	 * @brief 设置进度条内边距
-	 * @param[in] rc 要设置的边距信息
-	 * @return 无
+	/** 设置进度条内边距
+	 * @param[in] padding 要设置的内边距信息
 	 */
-	void SetProgressBarPadding(UiRect rc);
+	void SetProgressBarPadding(UiPadding padding);
 
 	/**
 	 * @brief 监听进度条进度改变事件
@@ -88,7 +84,7 @@ protected:
 	int m_nStep;
 	UiSize m_szThumb;
 	StateImage m_thumbStateImage;
-	UiRect	m_rcProgressBarPadding;
+	UiPadding m_rcProgressBarPadding;
 	std::wstring m_sImageModify;
 };
 

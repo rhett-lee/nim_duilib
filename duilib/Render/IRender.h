@@ -657,13 +657,13 @@ public:
 	* @param [in] rcShadowPadding 阴影边距（分别对应矩形的左/右/上/下边距的Padding值）
 	* @param [in] alpha 需要恢复的Alpha值（需要与ClearAlpha时传入的alpha值相同）
 	*/
-	virtual void RestoreAlpha(const UiRect& rcDirty, const UiRect& rcShadowPadding, uint8_t alpha) = 0;
+	virtual void RestoreAlpha(const UiRect& rcDirty, const UiPadding& rcShadowPadding, uint8_t alpha) = 0;
 
 	/** 恢复矩形区域内的图像Alpha值为255
 	* @param [in] rcDirty 矩形区域
 	* @param [in] rcShadowPadding 阴影边距（分别对应矩形的左/右/上/下边距的Padding值）
 	*/
-	virtual void RestoreAlpha(const UiRect& rcDirty, const UiRect& rcShadowPadding = UiRect()) = 0;
+	virtual void RestoreAlpha(const UiRect& rcDirty, const UiPadding& rcShadowPadding = UiPadding()) = 0;
 
 #ifdef UILIB_IMPL_WINSDK
 	/** 获取DC句柄，当不使用后，需要调用ReleaseDC接口释放资源

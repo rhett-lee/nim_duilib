@@ -185,7 +185,7 @@ void Render_Skia::ClearAlpha(const UiRect& rcDirty, uint8_t alpha)
 	}
 }
 
-void Render_Skia::RestoreAlpha(const UiRect& rcDirty, const UiRect& rcShadowPadding, uint8_t alpha)
+void Render_Skia::RestoreAlpha(const UiRect& rcDirty, const UiPadding& rcShadowPadding, uint8_t alpha)
 {
 	HBITMAP hBitmap = nullptr;
 	if (m_pBitmapSkia != nullptr) {
@@ -199,7 +199,7 @@ void Render_Skia::RestoreAlpha(const UiRect& rcDirty, const UiRect& rcShadowPadd
 	}
 }
 
-void Render_Skia::RestoreAlpha(const UiRect& rcDirty, const UiRect& rcShadowPadding)
+void Render_Skia::RestoreAlpha(const UiRect& rcDirty, const UiPadding& rcShadowPadding)
 {
 	HBITMAP hBitmap = nullptr;
 	if (m_pBitmapSkia != nullptr) {

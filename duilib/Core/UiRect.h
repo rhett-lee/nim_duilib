@@ -5,11 +5,12 @@
 
 #include "duilib/Core/UiPoint.h"
 #include "duilib/Core/UiSize.h"
+#include "duilib/Core/UiPadding.h"
+#include "duilib/Core/UiMargin.h"
 #include <algorithm>
 
 namespace ui 
 {
-
 /** 矩形区域的封装
 */
 class UILIB_API UiRect
@@ -118,6 +119,28 @@ public:
 	}
 
 	/** 使矩形区域扩大
+	* @param [in] margin 外边距的四边参数
+	*/
+	void Inflate(const UiMargin& margin)
+	{
+		left -= margin.left;
+		right += margin.right;
+		top -= margin.top;
+		bottom += margin.bottom;
+	}
+
+	/** 使矩形区域扩大
+	* @param [in] padding 内边距的四边参数
+	*/
+	void Inflate(const UiPadding& padding)
+	{
+		left -= padding.left;
+		right += padding.right;
+		top -= padding.top;
+		bottom += padding.bottom;
+	}
+
+	/** 使矩形区域扩大
 	* @param nLeft left扩大值
 	* @param nTop top扩大值
 	* @param nRight right扩大值
@@ -139,6 +162,28 @@ public:
 		right -= dx;
 		top += dy;
 		bottom -= dy;
+	}
+
+	/** 使矩形区域缩小
+	* @param padding 内边距的四边参数
+	*/
+	void Deflate(const UiPadding& padding)
+	{
+		left += padding.left;
+		right -= padding.right;
+		top += padding.top;
+		bottom -= padding.bottom;
+	}
+
+	/** 使矩形区域缩小
+	* @param margin 外边距的四边参数
+	*/
+	void Deflate(const UiMargin& margin)
+	{
+		left += margin.left;
+		right -= margin.right;
+		top += margin.top;
+		bottom -= margin.bottom;
 	}
 
 	/** 使矩形区域缩小

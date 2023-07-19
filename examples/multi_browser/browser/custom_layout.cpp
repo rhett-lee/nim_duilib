@@ -20,7 +20,7 @@ UiSize CustomLayout::SetCustomPos(Control* pControl, UiRect containerRect)
 	int childRight = 0;
 	int childTop = 0;
 	int childBottm = 0;
-	UiRect rcMargin = pControl->GetMargin();
+	UiMargin rcMargin = pControl->GetMargin();
 	int iPosLeft = containerRect.left + rcMargin.left;
 	int iPosRight = containerRect.right - rcMargin.right;
 	int iPosTop = containerRect.top + rcMargin.top;

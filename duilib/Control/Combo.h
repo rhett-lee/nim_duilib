@@ -45,14 +45,14 @@ public:
 	* @brief 获取文字边距
 	* @return 返回文字的边距信息
 	*/
-	UiRect GetTextPadding() const;
+	const UiPadding& GetTextPadding() const;
 
 	/**
 	* @brief 设置文字边距信息
 	* @param[in] rc 边距信息
 	* @return 无
 	*/
-	void SetTextPadding(UiRect rc);
+	void SetTextPadding(UiPadding padding);
 
 	/**
 	 * @brief 获取当前所属的 List 对象
@@ -149,7 +149,7 @@ protected:
 	UiSize m_szDropBox;
 	std::wstring m_sDropBoxAttributes;
 	bool m_bPopupTop;
-	UiRect	m_rcTextPadding;	//add by djj
+	UiPadding m_rcTextPadding;	//add by djj
 };
 
 } // namespace ui

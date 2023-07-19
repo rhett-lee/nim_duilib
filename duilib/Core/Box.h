@@ -4,6 +4,7 @@
 #pragma once
 
 #include "duilib/Box/Layout.h"
+#include "duilib/Core/Control.h"
 
 namespace ui 
 {

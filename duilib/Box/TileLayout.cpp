@@ -29,7 +29,7 @@ void TileLayout::CalcTileWidthAndColumns(const std::vector<Control*>& items, UiS
 			if ((pChild == nullptr) || !pChild->IsVisible() || pChild->IsFloat()) {
 				continue;
 			}
-			UiRect rcMargin = pChild->GetMargin();
+			UiMargin rcMargin = pChild->GetMargin();
 			UiSize szAvailableLeft(szAvailable.cx - widthTotal, szAvailable.cy);
 			UiSize childSize = pChild->EstimateSize(szAvailable);			
 			if (childSize.cx == DUI_LENGTH_STRETCH) {
@@ -116,7 +116,7 @@ int32_t TileLayout::CalcTileHeight(const std::vector<Control*>& items,
 			continue;
 		}
 
-		UiRect rcMargin = pChild->GetMargin();
+		UiMargin rcMargin = pChild->GetMargin();
 		UiSize szAvailable(tileWidth - rcMargin.left - rcMargin.right,
 			               tileBoxHeight - rcMargin.top - rcMargin.bottom);
 		if (iIndex == 0 || (iIndex + 1) % nColumns == 0) {
@@ -190,8 +190,8 @@ UiSize64 TileLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 
 		//当前控件（瓦片）的矩形区域
 		UiRect rcTile(ptTile.x, ptTile.y, ptTile.x + cxWidth, ptTile.y + cyHeight);
-		UiRect rcMargin = pControl->GetMargin();
-		rcTile.Deflate(rcMargin.left, rcMargin.top, rcMargin.right, rcMargin.bottom);
+		UiMargin rcMargin = pControl->GetMargin();
+		rcTile.Deflate(rcMargin);
 
 		UiSize szAvailable(rcTile.Width(), rcTile.Height());
 		UiSize szTile = pControl->EstimateSize(szAvailable);
@@ -297,7 +297,7 @@ UiSize TileLayout::EstimateSizeByChild(const std::vector<Control*>& items, UiSiz
 		if (nChildHeight < 0) {
 			nChildHeight = 0;
 		}
-		UiRect rcPadding = GetPadding();
+		UiPadding rcPadding = GetPadding();
 		size.cy += nChildHeight * rows + rcPadding.top + rcPadding.bottom + childMarginTotal;
 	}
 	return size;

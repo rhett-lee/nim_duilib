@@ -3,9 +3,7 @@
 
 #pragma once
 
-#include "duilib/Core/UiSize.h"
-#include "duilib/Core/UiPoint.h"
-#include "duilib/Core/UiRect.h"
+#include "duilib/Core/UiTypes.h"
 
 namespace ui
 {
@@ -74,6 +72,8 @@ public:
 	*/
 	void ScaleRect(RECT& rect);
 	void ScaleRect(UiRect& rect);
+	void ScalePadding(UiPadding& padding);
+	void ScaleMargin(UiMargin& margin);
 
 private:
 	/** 获取某个显示器的DPI，开启DPI感知后有效

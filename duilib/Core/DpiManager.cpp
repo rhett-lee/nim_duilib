@@ -204,12 +204,34 @@ void DpiManager::ScaleRect(UiRect &rect)
 	if (!m_bAdaptDPI || m_nScaleFactor == 100) {
 		return;
 	}
-	int width = MulDiv(rect.right - rect.left, m_nScaleFactor, 100);
-	int height = MulDiv(rect.bottom - rect.top, m_nScaleFactor, 100);
+	int32_t width = MulDiv(rect.right - rect.left, m_nScaleFactor, 100);
+	int32_t height = MulDiv(rect.bottom - rect.top, m_nScaleFactor, 100);
 	rect.left = MulDiv(rect.left, m_nScaleFactor, 100);
 	rect.top = MulDiv(rect.top, m_nScaleFactor, 100);
 	rect.right = rect.left + width;
 	rect.bottom = rect.top + height;
+}
+
+void DpiManager::ScalePadding(UiPadding& padding)
+{
+	if (!m_bAdaptDPI || m_nScaleFactor == 100) {
+		return;
+	}
+	padding.left = MulDiv(padding.left, m_nScaleFactor, 100);
+	padding.top = MulDiv(padding.top, m_nScaleFactor, 100);
+	padding.right = MulDiv(padding.right, m_nScaleFactor, 100);
+	padding.bottom = MulDiv(padding.bottom, m_nScaleFactor, 100);
+}
+
+void DpiManager::ScaleMargin(UiMargin& margin)
+{
+	if (!m_bAdaptDPI || m_nScaleFactor == 100) {
+		return;
+	}
+	margin.left = MulDiv(margin.left, m_nScaleFactor, 100);
+	margin.top = MulDiv(margin.top, m_nScaleFactor, 100);
+	margin.right = MulDiv(margin.right, m_nScaleFactor, 100);
+	margin.bottom = MulDiv(margin.bottom, m_nScaleFactor, 100);
 }
 
 int32_t DpiManager::MulDiv(int32_t nNumber, int32_t nNumerator, int32_t nDenominator)

@@ -107,9 +107,9 @@ ui::VerAlignType PopoverArrow::GetVerAlignType()
     return ui::kVerAlignTop;
 }
 
-ui::UiRect PopoverArrow::GetMarginByPlacement()
+ui::UiMargin PopoverArrow::GetMarginByPlacement()
 {
-  ui::UiRect margin{ 0,0,0,0 };
+  ui::UiMargin margin{ 0,0,0,0 };
 
   // coz arrow is always point to anchor
   if (m_nPlacement & kPlaceLeftTop || m_nPlacement & kPlaceLeft || m_nPlacement & kPlaceLeftBottom) {
@@ -262,8 +262,8 @@ ui::UiSize PopoverHeader::EstimateSize(ui::UiSize szAvailable)
 
     ui::UiSize maxSize = szAvailable;
 
-    ui::UiRect marginRect = GetMargin();
-    ui::UiRect paddingRect = GetLayout()->GetPadding();
+    ui::UiMargin marginRect = GetMargin();
+    ui::UiPadding paddingRect = GetLayout()->GetPadding();
 
     maxSize.cx -= marginRect.left + marginRect.right;
     maxSize.cx -= paddingRect.left + paddingRect.right;
@@ -283,7 +283,7 @@ ui::UiSize PopoverHeader::EstimateSize(ui::UiSize szAvailable)
 
     ui::UiSize editSize{ 0,0 };
     if (m_pRichEditTitle) {
-      ui::UiRect editMargin = m_pRichEditTitle->GetMargin();
+      ui::UiMargin editMargin = m_pRichEditTitle->GetMargin();
       editSize = m_pRichEditTitle->EstimateText({ editMaxSize.cx - editMargin.left - editMargin.right,editMaxSize.cy });
 
       if (m_bUseMaxSize) {
@@ -385,15 +385,15 @@ ui::UiSize PopoverBody::EstimateSize(ui::UiSize szAvailable)
     ui::UiSize maxSize = szAvailable;
     maxSize.cy = 0;
 
-    ui::UiRect marginRect = GetMargin();
+    ui::UiMargin marginRect = GetMargin();
     maxSize.cx -= marginRect.left + marginRect.right;
 
-    ui::UiRect paddingRect = GetLayout()->GetPadding();
+    ui::UiPadding paddingRect = GetLayout()->GetPadding();
     maxSize.cx -= paddingRect.left + paddingRect.right;
 
     ui::UiSize editSize{ 0,0 };
     if (m_pRichEditContent) {
-      ui::UiRect editMargin = m_pRichEditContent->GetMargin();
+      ui::UiMargin editMargin = m_pRichEditContent->GetMargin();
       editSize = m_pRichEditContent->EstimateText({ maxSize.cx - editMargin.left - editMargin.right,maxSize.cy });
 
       m_pRichEditContent->SetFixedHeight(editSize.cy, false);
@@ -468,10 +468,10 @@ ui::UiSize PopoverFooter::EstimateSize(ui::UiSize szAvailable)
     ui::UiSize maxSize = szAvailable;
     maxSize.cy = 0;
 
-    ui::UiRect marginRect = GetMargin();
+    ui::UiMargin marginRect = GetMargin();
     maxSize.cx -= marginRect.left + marginRect.right;
 
-    ui::UiRect paddingRect = GetLayout()->GetPadding();
+    ui::UiPadding paddingRect = GetLayout()->GetPadding();
     maxSize.cx -= paddingRect.left + paddingRect.right;
 
     ui::UiSize okSize{ 0,0 };
@@ -544,8 +544,8 @@ ui::UiSize PopoverRoot::EstimateSize(ui::UiSize szAvailable)
       return GetEstimateSize();
     }
 
-    ui::UiRect paddingRect = GetLayout()->GetPadding();
-    ui::UiRect marginRect = GetMargin();
+    ui::UiPadding paddingRect = GetLayout()->GetPadding();
+    ui::UiMargin marginRect = GetMargin();
 
     ui::UiSize maxSize{ szAvailable.cx,0 };
     maxSize.cx -= paddingRect.left + paddingRect.right;
@@ -656,7 +656,7 @@ ui::UiSize Popover::EstimateSize(ui::UiSize /*szAvailable*/)
       return GetEstimateSize();
     }
 
-    ui::UiRect paddingRect = GetLayout()->GetPadding();
+    ui::UiPadding paddingRect = GetLayout()->GetPadding();
 
     ui::UiSize maxSize{ 0,0 };
     maxSize.cx = GetMaxWidth();
@@ -1024,8 +1024,9 @@ void Popover::InitializeElements()
   }
 
   if (m_pPopoverArrow) {
-    ui::UiRect rootMargin = m_pPopoverRoot->GetMargin();
-    m_pPopoverArrow->SetArrowArea(rootMargin);
+    ui::UiMargin rootMargin = m_pPopoverRoot->GetMargin();
+    ui::UiRect arrowArea(rootMargin.left, rootMargin.top, rootMargin.right, rootMargin.bottom);
+    m_pPopoverArrow->SetArrowArea(arrowArea);
     AddItem(m_pPopoverArrow);
   }
 }

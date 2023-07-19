@@ -36,6 +36,42 @@ void AttributeUtil::ParsePointValue(const wchar_t* strValue, UiPoint& pt)
 	pt.y = size.cy;
 }
 
+void AttributeUtil::ParsePaddingValue(const wchar_t* strValue, UiPadding& padding)
+{
+	padding.Clear();
+	if ((strValue == nullptr) || (*strValue == L'\0')) {
+		return;
+	}
+	wchar_t* pstr = nullptr;
+	padding.left = wcstol(strValue, &pstr, 10); ASSERT(pstr);
+	SkipSepChar(pstr);
+	padding.top = wcstol(pstr, &pstr, 10); ASSERT(pstr);
+	SkipSepChar(pstr);
+	padding.right = wcstol(pstr, &pstr, 10); ASSERT(pstr);
+	SkipSepChar(pstr);
+	padding.bottom = wcstol(pstr, &pstr, 10); ASSERT(pstr);
+	ASSERT((padding.left >= 0) && (padding.top >= 0) && (padding.right >= 0) && (padding.bottom >= 0));
+	padding.Validate();
+}
+
+void AttributeUtil::ParseMarginValue(const wchar_t* strValue, UiMargin& margin)
+{
+	margin.Clear();
+	if ((strValue == nullptr) || (*strValue == L'\0')) {
+		return;
+	}
+	wchar_t* pstr = nullptr;
+	margin.left = wcstol(strValue, &pstr, 10); ASSERT(pstr);
+	SkipSepChar(pstr);
+	margin.top = wcstol(pstr, &pstr, 10); ASSERT(pstr);
+	SkipSepChar(pstr);
+	margin.right = wcstol(pstr, &pstr, 10); ASSERT(pstr);
+	SkipSepChar(pstr);
+	margin.bottom = wcstol(pstr, &pstr, 10); ASSERT(pstr);
+	ASSERT((margin.left >= 0) && (margin.top >= 0) && (margin.right >= 0) && (margin.bottom >= 0));
+	margin.Validate();
+}
+
 void AttributeUtil::ParseRectValue(const wchar_t* strValue, UiRect& rect)
 {
 	rect.Clear();
@@ -50,6 +86,7 @@ void AttributeUtil::ParseRectValue(const wchar_t* strValue, UiRect& rect)
 	rect.right = wcstol(pstr, &pstr, 10); ASSERT(pstr);
 	SkipSepChar(pstr);
 	rect.bottom = wcstol(pstr, &pstr, 10); ASSERT(pstr);
+	ASSERT((rect.Width() >= 0) && (rect.Height() >= 0));
 }
 
 void AttributeUtil::ParseAttributeList(const std::wstring& strList,

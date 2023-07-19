@@ -152,7 +152,7 @@ private:
   ui::VerAlignType GetVerAlignType();
 
 protected:
-  ui::UiRect GetMarginByPlacement();
+  ui::UiMargin GetMarginByPlacement();
 
   virtual void CalcTrianglePoints();
   virtual void PaintBkColor(ui::IRender* pRender) override;

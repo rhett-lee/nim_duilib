@@ -46,11 +46,11 @@ public:
 	 * @param[in] rc 要设置的九宫格属性
 	 * @param[in] bNeedDpiScale 为 false 表示不需要把 rc 根据 DPI 自动调整
 	 */
-	void SetShadowCorner(const UiRect &rc, bool bNeedDpiScale = true);
+	void SetShadowCorner(const UiPadding&rc, bool bNeedDpiScale = true);
 
 	/** 获取阴影的九宫格属性
 	 */
-	UiRect GetShadowCorner() const;
+	UiPadding GetShadowCorner() const;
 
 	/** 重置为默认阴影效果
 	*/
@@ -96,8 +96,8 @@ private:
 	bool m_bUseDefaultImage;
 
 	//阴影圆角属性
-	UiRect m_rcShadowCorner;
-	UiRect m_rcShadowCornerBackup;
+	UiPadding m_rcShadowCorner;
+	UiPadding m_rcShadowCornerBackup;
 
 	//Root容器接口
 	Box* m_pRoot;
