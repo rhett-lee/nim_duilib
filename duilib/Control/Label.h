@@ -146,12 +146,12 @@ LabelTemplate<InheritType>::LabelTemplate() :
     m_textColorMap()
 {
     if (dynamic_cast<Box*>(this)) {
-        this->SetFixedWidth(DUI_LENGTH_STRETCH, false, false);
-        this->SetFixedHeight(DUI_LENGTH_STRETCH, false);
+        this->SetFixedWidth(UiFixedInt::MakeStretch(), false, false);
+        this->SetFixedHeight(UiFixedInt::MakeStretch(), false);
     }
     else {
-        this->SetFixedWidth(DUI_LENGTH_AUTO, false, false);
-        this->SetFixedHeight(DUI_LENGTH_AUTO, false);
+        this->SetFixedWidth(UiFixedInt::MakeAuto(), false, false);
+        this->SetFixedHeight(UiFixedInt::MakeAuto(), false);
     }
 
     m_textColorMap.SetStateColor(kControlStateNormal, GlobalManager::Instance().Color().GetDefaultTextColor());
@@ -225,7 +225,10 @@ void LabelTemplate<InheritType>::CheckShowToolTip()
     else {
         m_uTextStyle &= ~TEXT_SINGLELINE;
     }
-    int width = this->GetFixedWidth();
+    int width = this->GetFixedWidth().GetInt32();
+    if (this->GetFixedWidth().IsStretch()) {
+        width = 0;
+    }
     if (width < 0) {
         width = 0;
     }
@@ -294,7 +297,7 @@ bool LabelTemplate<InheritType>::HasHotState()
 }
 
 template<typename InheritType>
-UiSize LabelTemplate<InheritType>::EstimateText(UiSize /*szAvailable*/)
+UiSize LabelTemplate<InheritType>::EstimateText(UiSize szAvailable)
 {
     if (m_bSingleLine) {
         m_uTextStyle |= TEXT_SINGLELINE;
@@ -303,7 +306,11 @@ UiSize LabelTemplate<InheritType>::EstimateText(UiSize /*szAvailable*/)
         m_uTextStyle &= ~TEXT_SINGLELINE;
     }
 
-    int width = this->GetFixedWidth();
+    int width = this->GetFixedWidth().GetInt32();
+    if (this->GetFixedWidth().IsStretch()) {
+        //如果是拉伸类型，使用外部宽度
+        width = szAvailable.cx;
+    }
     if (width < 0) {
         width = 0;
     }
@@ -313,10 +320,10 @@ UiSize LabelTemplate<InheritType>::EstimateText(UiSize /*szAvailable*/)
         auto pRender = this->GetWindow()->GetRender();
         if (pRender != nullptr) {
             UiRect rect = pRender->MeasureString(textValue, m_sFontId, m_uTextStyle, width);
-            if (this->GetFixedWidth() == DUI_LENGTH_AUTO) {
+            if (this->GetFixedWidth().IsAuto()) {
                 fixedSize.cx = rect.Width() + m_rcTextPadding.left + m_rcTextPadding.right;
             }
-            if (this->GetFixedHeight() == DUI_LENGTH_AUTO) {
+            if (this->GetFixedHeight().IsAuto()) {
                 fixedSize.cy = rect.Height() + m_rcTextPadding.top + m_rcTextPadding.bottom;
             }
         }        

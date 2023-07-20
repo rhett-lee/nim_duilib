@@ -47,11 +47,10 @@ public:
 	 */
 	virtual UiSize64 ArrangeChild(const std::vector<Control*>& items, UiRect rc);
 
-	/**
-	 * @brief 根据内部子控件大小调整容器自身大小
-	 * @param[in] items 控件列表
-	 * @param[in] szAvailable 子控件允许的最大宽度
-	 * @return 返回排列后最终布局的大小信息（宽度和高度）
+	/** 根据内部子控件大小估算容器自身大小，拉伸类型的子控件被忽略，不计入大小估算
+	 * @param[in] items 子控件列表
+	 * @param[in] szAvailable 子控件允许的最大宽度和高度
+	 * @return 返回排列后最终布局的大小信息（宽度和高度），不包含拉伸类型的子控件大小
 	 */
 	virtual UiSize EstimateSizeByChild(const std::vector<Control*>& items, UiSize szAvailable);
 

@@ -46,23 +46,25 @@ UiSize64 Layout::SetFloatPos(Control* pControl, UiRect rcContainer)
 		iPosBottom = iPosTop;
 	}
 	UiSize szAvailable(iPosRight - iPosLeft, iPosBottom - iPosTop);
-	UiSize childSize = pControl->EstimateSize(szAvailable);
-	ASSERT(childSize.cx >= DUI_LENGTH_STRETCH);
-	ASSERT(childSize.cy >= DUI_LENGTH_STRETCH);
-
-	if (childSize.cx == DUI_LENGTH_STRETCH) {
-		childSize.cx = std::max(0, szAvailable.cx);
+	szAvailable.Validate();
+	UiEstSize estSize = pControl->EstimateSize(szAvailable);
+	UiSize childSize(estSize.cx.GetInt32(), estSize.cy.GetInt32());
+	if (estSize.cx.IsStretch()) {
+		childSize.cx = szAvailable.cx;		
 	}
+	if (estSize.cy.IsStretch()) {
+		childSize.cy = szAvailable.cy;		
+	}
+	childSize.cx = std::max(childSize.cx, 0);
+	childSize.cy = std::max(childSize.cy, 0);
+	
 	if (childSize.cx < pControl->GetMinWidth()) {
 		childSize.cx = pControl->GetMinWidth();
 	}
 	if (childSize.cx > pControl->GetMaxWidth()) {
 		childSize.cx = pControl->GetMaxWidth();
 	}
-
-	if (childSize.cy == DUI_LENGTH_STRETCH) {
-		childSize.cy = std::max(0, szAvailable.cy);
-	}
+	
 	if (childSize.cy < pControl->GetMinHeight()) {
 		childSize.cy = pControl->GetMinHeight();
 	}
@@ -162,7 +164,16 @@ UiSize Layout::EstimateSizeByChild(const std::vector<Control*>& items, UiSize sz
 		if ((pControl == nullptr) || !pControl->IsVisible() || pControl->IsFloat()) {
 			continue;
 		}
-		itemSize = pControl->EstimateSize(szAvailable);
+		UiEstSize estSize = pControl->EstimateSize(szAvailable);
+		itemSize = UiSize(estSize.cx.GetInt32(), estSize.cy.GetInt32());
+		if (estSize.cx.IsStretch()) {
+			//拉伸类型的子控件，不计入
+			itemSize.cx = 0;
+		}
+		if (estSize.cy.IsStretch()) {
+			//拉伸类型的子控件，不计入
+			itemSize.cy = 0;
+		}
 		if (itemSize.cx < pControl->GetMinWidth()) {
 			itemSize.cx = pControl->GetMinWidth();
 		}
@@ -175,8 +186,8 @@ UiSize Layout::EstimateSizeByChild(const std::vector<Control*>& items, UiSize sz
 		if (itemSize.cy > pControl->GetMaxHeight()) {
 			itemSize.cy = pControl->GetMaxHeight();
 		}
-		itemSize.cx = std::max((int)itemSize.cx, 0);
-		itemSize.cy = std::max((int)itemSize.cy, 0);
+		itemSize.cx = std::max(itemSize.cx, 0);
+		itemSize.cy = std::max(itemSize.cy, 0);
 
 		UiMargin rcMargin = pControl->GetMargin();
 		maxSize.cx = std::max(itemSize.cx + rcMargin.left + rcMargin.right, maxSize.cx);

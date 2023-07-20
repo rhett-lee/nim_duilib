@@ -26,23 +26,15 @@ UiSize CustomLayout::SetCustomPos(Control* pControl, UiRect containerRect)
 	int iPosTop = containerRect.top + rcMargin.top;
 	int iPosBottom = containerRect.bottom - rcMargin.bottom;
 	UiSize szAvailable(iPosRight - iPosLeft, iPosBottom - iPosTop);
-	UiSize childSize = pControl->EstimateSize(szAvailable);
-	if (pControl->GetFixedWidth() == DUI_LENGTH_AUTO && pControl->GetFixedHeight() == DUI_LENGTH_AUTO
-		&& pControl->GetMaxWidth() == DUI_LENGTH_STRETCH) {
-		int maxwidth = std::max(0, (int)szAvailable.cx);
-		if (childSize.cx > maxwidth) {
-			pControl->SetFixedWidth(maxwidth, false, true);
-			childSize = pControl->EstimateSize(szAvailable);
-			pControl->SetFixedWidth(DUI_LENGTH_AUTO, false, true);
-		}
-	}
-	if (childSize.cx == DUI_LENGTH_STRETCH) {
+	UiEstSize estSize = pControl->EstimateSize(szAvailable);
+	UiSize childSize(estSize.cx.GetInt32(), estSize.cy.GetInt32());
+	if (estSize.cx.IsStretch()) {
 		childSize.cx = std::max(0, szAvailable.cx);
 	}
 	if (childSize.cx < pControl->GetMinWidth()) childSize.cx = pControl->GetMinWidth();
 	if (pControl->GetMaxWidth() >= 0 && childSize.cx > pControl->GetMaxWidth()) childSize.cx = pControl->GetMaxWidth();
 
-	if (childSize.cy == DUI_LENGTH_STRETCH) {
+	if (estSize.cy.IsStretch()) {
 		childSize.cy = std::max(0, szAvailable.cy);
 	}
 	if (childSize.cy < pControl->GetMinHeight()) childSize.cy = pControl->GetMinHeight();

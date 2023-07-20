@@ -684,7 +684,7 @@ public:
 	virtual std::wstring GetType() const override;
 	virtual void DoInit() override;
 	virtual void SetEnabled(bool bEnable = true) override;
-	virtual UiSize EstimateSize(UiSize szAvailable) override;
+	virtual UiEstSize EstimateSize(UiSize szAvailable) override;
 	virtual UiSize EstimateText(UiSize szAvailable) override;
 	virtual void SetPos(UiRect rc) override;
 	virtual UINT GetControlFlags() const override;

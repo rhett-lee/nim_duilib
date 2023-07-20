@@ -596,5 +596,11 @@
     <ClInclude Include="Core\UiTypes.h">
       <Filter>Core</Filter>
     </ClInclude>
+    <ClInclude Include="Core\UiEstInt.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\UiFixedInt.h">
+      <Filter>Core</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

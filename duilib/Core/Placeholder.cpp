@@ -10,7 +10,6 @@ namespace ui
 PlaceHolder::PlaceHolder() :
 	m_pWindow(nullptr),
 	m_sName(),
-	m_cxyFixed(DUI_LENGTH_STRETCH, DUI_LENGTH_STRETCH),
 	m_cxyMin(0, 0),
 	m_cxyMax(INT32_MAX, INT32_MAX),
 	m_pParent(nullptr),
@@ -23,6 +22,9 @@ PlaceHolder::PlaceHolder() :
 	m_bUseCache(false),
 	m_bCacheDirty(true)
 {
+	//控件的高度和宽度值，默认设置为拉伸
+	m_cxyFixed.cx.SetStretch();
+	m_cxyFixed.cy.SetStretch();
 }
 
 PlaceHolder::~PlaceHolder()
@@ -97,16 +99,29 @@ void PlaceHolder::SetFloat(bool bFloat)
 	ArrangeAncestor();
 }
 
-void PlaceHolder::SetFixedWidth(int64_t cx64, bool bArrange, bool bNeedDpiScale)
+const UiFixedSize& PlaceHolder::GetFixedSize() const
 {
-	int32_t cx = TruncateToInt32(cx64);
-	if (cx < 0 && cx != DUI_LENGTH_STRETCH && cx != DUI_LENGTH_AUTO) {
-		ASSERT(FALSE);
+	return m_cxyFixed;
+}
+
+const UiFixedInt& PlaceHolder::GetFixedHeight() const
+{ 
+	return m_cxyFixed.cy; 
+}
+
+const UiFixedInt& PlaceHolder::GetFixedWidth() const
+{ 
+	return m_cxyFixed.cx; 
+}
+
+void PlaceHolder::SetFixedWidth(UiFixedInt cx, bool bArrange, bool bNeedDpiScale)
+{
+	ASSERT(cx.IsValid());
+	if (!cx.IsValid()) {
 		return;
 	}
-
-	if (bNeedDpiScale && cx > 0) {
-		GlobalManager::Instance().Dpi().ScaleInt(cx);
+	if (bNeedDpiScale && cx.IsInt32()) {
+		GlobalManager::Instance().Dpi().ScaleInt(cx.value);
 	}		
 
 	if (m_cxyFixed.cx != cx) {
@@ -121,22 +136,56 @@ void PlaceHolder::SetFixedWidth(int64_t cx64, bool bArrange, bool bNeedDpiScale)
 	}
 }
 
-void PlaceHolder::SetFixedHeight(int64_t cy64, bool bNeedDpiScale)
+void PlaceHolder::SetFixedWidth64(int64_t cx64)
 {
-	int32_t cy = TruncateToInt32(cy64);
-	if (cy < 0 && cy != DUI_LENGTH_STRETCH && cy != DUI_LENGTH_AUTO) {
-		ASSERT(FALSE);
+	SetFixedWidth(UiFixedInt(TruncateToInt32(cx64)), true, false);
+}
+
+void PlaceHolder::SetFixedHeight(UiFixedInt cy, bool bNeedDpiScale)
+{
+	ASSERT(cy.IsValid());
+	if (!cy.IsValid()) {
 		return;
 	}
 
-	if (bNeedDpiScale && cy > 0) {
-		GlobalManager::Instance().Dpi().ScaleInt(cy);
+	if (bNeedDpiScale && cy.IsInt32()) {
+		GlobalManager::Instance().Dpi().ScaleInt(cy.value);
 	}
 
 	if (m_cxyFixed.cy != cy) {
 		m_cxyFixed.cy = cy;
 		ArrangeAncestor();
 	}
+}
+
+void PlaceHolder::SetFixedHeight64(int64_t cy64)
+{
+	SetFixedHeight(UiFixedInt(TruncateToInt32(cy64)), true);
+}
+
+bool PlaceHolder::IsReEstimateSize() const
+{ 
+	return m_bReEstimateSize; 
+}
+
+void PlaceHolder::SetReEstimateSize(bool bReEstimateSize)
+{
+	m_bReEstimateSize = bReEstimateSize;
+}
+
+const UiEstSize& PlaceHolder::GetEstimateSize() const
+{ 
+	return m_szEstimateSize; 
+}
+
+void PlaceHolder::SetEstimateSize(const UiEstSize& szEstimateSize)
+{ 
+	m_szEstimateSize = szEstimateSize; 
+}
+
+UiEstSize PlaceHolder::EstimateSize(UiSize /*szAvailable*/)
+{
+	return MakeEstSize(m_cxyFixed);
 }
 
 void PlaceHolder::SetMinWidth(int cx)
@@ -246,14 +295,9 @@ void PlaceHolder::SetMargin(UiMargin rcMargin, bool bNeedDpiScale)
 	}
 }
 
-void PlaceHolder::SetReEstimateSize(bool bReEstimateSize)
-{
-	m_bReEstimateSize = bReEstimateSize;
-}
-
 void PlaceHolder::Arrange()
 {
-	if (GetFixedWidth() == DUI_LENGTH_AUTO || GetFixedHeight() == DUI_LENGTH_AUTO) {
+	if (GetFixedWidth().IsAuto() || GetFixedHeight().IsAuto()) {
 		ArrangeAncestor();
 	}
 	else {
@@ -274,7 +318,7 @@ void PlaceHolder::ArrangeAncestor()
 	}
 	else {
 		Control* parent = GetParent();
-		while (parent && (parent->GetFixedWidth() == DUI_LENGTH_AUTO || parent->GetFixedHeight() == DUI_LENGTH_AUTO)) {
+		while (parent && (parent->GetFixedWidth().IsAuto() || parent->GetFixedHeight().IsAuto())) {
 			parent->SetReEstimateSize(true);
 			parent = parent->GetParent();
 		}
@@ -354,7 +398,7 @@ void PlaceHolder::Invalidate()
 
 void PlaceHolder::RelayoutOrRedraw()
 {
-	if ((GetFixedWidth() == DUI_LENGTH_AUTO) || (GetFixedHeight() == DUI_LENGTH_AUTO)) {
+	if ((GetFixedWidth().IsAuto()) || (GetFixedHeight().IsAuto())) {
 		//如果当前控件的宽高有的是AUTO的，需要父控件Box进行布局重排（一般在可能引起布局变化时调用），布局重排后会进行重绘
 		ArrangeAncestor();
 	}
@@ -406,13 +450,6 @@ bool PlaceHolder::IsChild(PlaceHolder* pAncestor, PlaceHolder* pControl) const
 		pControl = pControl->GetParent();
 	}
 	return pControl != nullptr;
-}
-
-int32_t PlaceHolder::TruncateToInt32(int64_t x) const
-{
-	x = x < INT32_MAX ? x : INT32_MAX;
-	x = x > INT32_MIN ? x : INT32_MIN;
-	return static_cast<int32_t>(x);
 }
 
 }

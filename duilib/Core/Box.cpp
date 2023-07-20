@@ -115,12 +115,12 @@ void Box::SetVisible(bool bVisible)
 	}
 }
 
-UiSize Box::EstimateSize(UiSize szAvailable)
+UiEstSize Box::EstimateSize(UiSize szAvailable)
 {
-	UiSize fixedSize = GetFixedSize();
-	if ((GetFixedWidth() != DUI_LENGTH_AUTO) && (GetFixedHeight() != DUI_LENGTH_AUTO)) {
+	UiFixedSize fixedSize = GetFixedSize();
+	if (!fixedSize.cx.IsAuto() && !fixedSize.cy.IsAuto()) {
 		//如果宽高都不是auto属性，则直接返回
-		return fixedSize;
+		return MakeEstSize(fixedSize);
 	}
 	if (!IsReEstimateSize()) {
 		//使用缓存中的估算结果
@@ -131,11 +131,11 @@ UiSize Box::EstimateSize(UiSize szAvailable)
 	szAvailable.cy -= (m_pLayout->GetPadding().top + m_pLayout->GetPadding().bottom);
 	szAvailable.Validate();
 	UiSize sizeByChild = m_pLayout->EstimateSizeByChild(m_items, szAvailable);
-	if (GetFixedWidth() == DUI_LENGTH_AUTO) {
-		fixedSize.cx = sizeByChild.cx;
+	if (fixedSize.cx.IsAuto()) {
+		fixedSize.cx.SetInt32(sizeByChild.cx);
 	}
-	if (GetFixedHeight() == DUI_LENGTH_AUTO) {
-		fixedSize.cy = sizeByChild.cy;
+	if (fixedSize.cy.IsAuto()) {
+		fixedSize.cy.SetInt32(sizeByChild.cy);
 	}
 
 	SetReEstimateSize(false);
@@ -144,16 +144,17 @@ UiSize Box::EstimateSize(UiSize szAvailable)
 		if ((pControl == nullptr) || !pControl->IsVisible() || pControl->IsFloat()) {
 			continue;
 		}
-		if ((pControl->GetFixedWidth() == DUI_LENGTH_AUTO) || 
-			(pControl->GetFixedHeight() == DUI_LENGTH_AUTO)) {
+		if ((pControl->GetFixedWidth().IsAuto()) || 
+			(pControl->GetFixedHeight().IsAuto())) {
 			if (pControl->IsReEstimateSize()) {
 				SetReEstimateSize(true);
 				break;
 			}
 		}
 	}
-	SetEstimateSize(fixedSize);
-	return fixedSize;
+	UiEstSize estSize = MakeEstSize(fixedSize);
+	SetEstimateSize(estSize);
+	return estSize;
 }
 
 Control* Box::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, UiPoint scrollPos)

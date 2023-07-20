@@ -1,5 +1,6 @@
 #include "VLayout.h"
 #include "duilib/Core/Control.h"
+#include <map>
 
 namespace ui 
 {
@@ -24,7 +25,7 @@ UiSize64 VLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 	//固定高度的控件，总的高度
 	int32_t cyFixedTotal = 0;
 	//需要进行布局处理的所有控件(KEY是控件，VALUE是宽度和高度)
-	std::map<Control*, UiSize> itemsMap;
+	std::map<Control*, UiEstSize> itemsMap;
 
 	//计算每个控件的宽度和高度，并记录到Map中
 	for(auto pControl : items) {
@@ -32,12 +33,11 @@ UiSize64 VLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 			continue;
 		}
 
-		UiSize sz = pControl->EstimateSize(szAvailable);
-		ASSERT((sz.cx >= DUI_LENGTH_STRETCH) && (sz.cy >= DUI_LENGTH_STRETCH));
-
+		UiEstSize estSize = pControl->EstimateSize(szAvailable);
+		UiSize sz = UiSize(estSize.cx.GetInt32(), estSize.cy.GetInt32());
 		UiMargin rcMargin = pControl->GetMargin();
 		//计算高度
-		if( sz.cy == DUI_LENGTH_STRETCH ) {
+		if(estSize.cy.IsStretch()) {
 			stretchCount++;
 			cyFixedTotal += (rcMargin.top + rcMargin.bottom);
 		}
@@ -55,8 +55,9 @@ UiSize64 VLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 		}
 
 		//计算宽度
-		if (sz.cx == DUI_LENGTH_STRETCH) {
+		if (estSize.cx.IsStretch()) {
 			sz.cx = szAvailable.cx - rcMargin.left - rcMargin.right;
+			sz.cx = std::max(sz.cx, 0);
 		}
 		if (sz.cx < pControl->GetMinWidth()) {
 			sz.cx = pControl->GetMinWidth();
@@ -67,7 +68,11 @@ UiSize64 VLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 		if (sz.cx < 0) {
 			sz.cx = 0;
 		}
-		itemsMap[pControl] = sz;
+		if (!estSize.cy.IsStretch()) {
+			estSize.cy.SetInt32(sz.cy);
+		}
+		estSize.cx.SetInt32(sz.cx);
+		itemsMap[pControl] = estSize;
 	}
 	if (!itemsMap.empty()) {
 		cyFixedTotal += ((int32_t)itemsMap.size() - 1) * GetChildMarginY();
@@ -83,8 +88,9 @@ UiSize64 VLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 	if ((cyStretch > 0) && !itemsMap.empty()) {
 		for (auto iter = itemsMap.begin(); iter != itemsMap.end(); ++iter) {
 			Control* pControl = iter->first;
-			UiSize sz = iter->second;
-			if (sz.cy == DUI_LENGTH_STRETCH) {
+			UiEstSize estSize = iter->second;
+			UiSize sz(estSize.cx.GetInt32(), estSize.cy.GetInt32());
+			if (estSize.cy.IsStretch()) {
 				sz.cy = cyStretch;
 				if (sz.cy < pControl->GetMinHeight()) {
 					sz.cy = pControl->GetMinHeight();
@@ -94,7 +100,8 @@ UiSize64 VLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 				}
 				if (sz.cy != cyStretch) {
 					//这个控件需要使用min或者max高度，从平均值中移除，按照Fixed控件算
-					iter->second = sz;
+					estSize.cy.SetInt32(sz.cy);
+					iter->second = estSize;
 					--stretchCount;
 					cyFixedTotal += sz.cy; //Margin已经累加过，不需要重新累加
 				}
@@ -133,10 +140,11 @@ UiSize64 VLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 
 		UiMargin rcMargin = pControl->GetMargin();
 		ASSERT(itemsMap.find(pControl) != itemsMap.end());
-		UiSize sz = itemsMap[pControl];
+		UiEstSize estSize = itemsMap[pControl];
+		UiSize sz(estSize.cx.GetInt32(), estSize.cy.GetInt32());
 
 		//计算高度
-		if( sz.cy == DUI_LENGTH_STRETCH ) {
+		if(estSize.cy.IsStretch()) {
 			sz.cy = cyStretch;
 			if (sz.cy < pControl->GetMinHeight()) {
 				sz.cy = pControl->GetMinHeight();
@@ -196,7 +204,17 @@ UiSize VLayout::EstimateSizeByChild(const std::vector<Control*>& items, UiSize s
 
 		estimateCount++;
 		UiMargin rcMargin = pControl->GetMargin();
-		itemSize = pControl->EstimateSize(szAvailable);
+		UiEstSize estSize = pControl->EstimateSize(szAvailable);
+		itemSize = UiSize(estSize.cx.GetInt32(), estSize.cy.GetInt32());
+		if (estSize.cx.IsStretch()) {
+			//拉伸类型的子控件，不计入
+			itemSize.cx = 0;
+		}
+		if (estSize.cy.IsStretch()) {
+			//拉伸类型的子控件，不计入
+			itemSize.cy = 0;
+		}
+
 		if (itemSize.cx < pControl->GetMinWidth()) {
 			itemSize.cx = pControl->GetMinWidth();
 		}

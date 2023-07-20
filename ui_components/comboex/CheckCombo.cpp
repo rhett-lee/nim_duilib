@@ -46,8 +46,10 @@ namespace nim_comp
 			if (!pControl->IsVisible()) {
 				continue;
 			}
-			ui::UiSize sz = pControl->EstimateSize(szAvailable);
-			cyFixed += sz.cy;
+			ui::UiEstSize estSize = pControl->EstimateSize(szAvailable);
+			if (estSize.cy.IsInt32()) {
+				cyFixed += estSize.cy.GetInt32();
+			}			
 		}
 		cyFixed += 2; // VBox 默认的Padding 调整
 		rc.bottom = rc.top + std::min(cyFixed, szDrop.cy);
@@ -321,8 +323,8 @@ namespace nim_comp
 		m_vecDate.push_back(date);
 
 		ui::Label *item = new ui::Label;
-		item->SetFixedWidth(DUI_LENGTH_AUTO, true, true);
-		item->SetFixedHeight(22, true);
+		item->SetFixedWidth(ui::UiFixedInt::MakeAuto(), true, true);
+		item->SetFixedHeight(ui::UiFixedInt(22), true);
 		item->SetMargin({ 4, 2, 4, 2 }, true);
 		item->SetBkColor(L"bk_menuitem_selected");
 		item->SetTextPadding({ 2, 3, 2, 3 });
@@ -331,7 +333,7 @@ namespace nim_comp
 
 		m_pList->AddItem(item);
 
-		SetFixedHeight((int)m_pList->GetItemCount() * m_iOrgHeight, true);
+		SetFixedHeight(ui::UiFixedInt((int)m_pList->GetItemCount() * m_iOrgHeight), true);
 
 		return true;
 	}
@@ -359,7 +361,7 @@ namespace nim_comp
 			m_pList->RemoveItem(pRemove);
 		}
 
-		SetFixedHeight((int)m_pList->GetItemCount() * m_iOrgHeight, true);
+		SetFixedHeight(ui::UiFixedInt((int)m_pList->GetItemCount() * m_iOrgHeight), true);
 		return true;
 	}
 
@@ -367,7 +369,7 @@ namespace nim_comp
 	{
 		m_pList->RemoveAllItems();
 		m_pDropList->RemoveAllItems();
-		SetFixedHeight(m_iOrgHeight, true);
+		SetFixedHeight(ui::UiFixedInt(m_iOrgHeight), true);
 		m_vecDate.clear();
 	}
 

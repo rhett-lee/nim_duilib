@@ -31,8 +31,9 @@ void TileLayout::CalcTileWidthAndColumns(const std::vector<Control*>& items, UiS
 			}
 			UiMargin rcMargin = pChild->GetMargin();
 			UiSize szAvailableLeft(szAvailable.cx - widthTotal, szAvailable.cy);
-			UiSize childSize = pChild->EstimateSize(szAvailable);			
-			if (childSize.cx == DUI_LENGTH_STRETCH) {
+			UiEstSize estSize = pChild->EstimateSize(szAvailable);
+			UiSize childSize(estSize.cx.GetInt32(), estSize.cy.GetInt32());
+			if (estSize.cx.IsStretch()) {
 				//子控件的宽度为拉伸的情况
 				childSize.cx = 0;
 			}
@@ -128,8 +129,9 @@ int32_t TileLayout::CalcTileHeight(const std::vector<Control*>& items,
 			szAvailable.cx -= GetChildMarginX();
 		}
 
-		UiSize szTile = pChild->EstimateSize(szAvailable);
-		if (szTile.cy == DUI_LENGTH_STRETCH) {
+		UiEstSize estSize = pChild->EstimateSize(szAvailable);
+		UiSize szTile(estSize.cx.GetInt32(), estSize.cy.GetInt32());
+		if (estSize.cy.IsStretch()) {
 			szTile.cy = szAvailable.cy;
 		}
 		if (szTile.cy < pChild->GetMinHeight()) {
@@ -194,11 +196,12 @@ UiSize64 TileLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 		rcTile.Deflate(rcMargin);
 
 		UiSize szAvailable(rcTile.Width(), rcTile.Height());
-		UiSize szTile = pControl->EstimateSize(szAvailable);
-		if (szTile.cx == DUI_LENGTH_STRETCH) {
+		UiEstSize estSize = pControl->EstimateSize(szAvailable);
+		UiSize szTile(estSize.cx.GetInt32(), estSize.cy.GetInt32());
+		if (estSize.cx.IsStretch()) {
 			szTile.cx = szAvailable.cx;
 		}
-		if (szTile.cy == DUI_LENGTH_STRETCH) {
+		if (estSize.cy.IsStretch()) {
 			szTile.cy = szAvailable.cy;
 		}
 		if (szTile.cx < pControl->GetMinWidth()) {
@@ -246,12 +249,22 @@ UiSize TileLayout::EstimateSizeByChild(const std::vector<Control*>& items, UiSiz
 	UiSize size;
 	if (m_pOwner != nullptr) {
 		//父控件容器自身的大小（不含容器中的子控件）
-		size = m_pOwner->Control::EstimateSize(szAvailable);
+		UiEstSize estSize = m_pOwner->Control::EstimateSize(szAvailable);
+		size.cx = estSize.cx.GetInt32();
+		if (estSize.cx.IsStretch()) {
+			//拉伸类型不计入
+			size.cx = 0;
+		}
 		if (!items.empty()) {
 			Control* pChild = items.front();
 			if (pChild != nullptr) {
 				//第一个子控件的大小
-				UiSize childSize = pChild->EstimateSize(szAvailable);
+				estSize = pChild->EstimateSize(szAvailable);
+				UiSize childSize(estSize.cx.GetInt32(), estSize.cy.GetInt32());
+				if (estSize.cx.IsStretch()) {
+					//拉伸类型不计入
+					childSize.cx = 0;
+				}
 				//最终结果使用
 				size.cx = std::max(size.cx, childSize.cx);
 			}
@@ -260,7 +273,8 @@ UiSize TileLayout::EstimateSizeByChild(const std::vector<Control*>& items, UiSiz
 	size.cy = 0;
 
 	if (m_szItem.cx > 0) {
-		m_nColumns = m_pOwner->GetFixedWidth() / m_szItem.cx;
+		//TODO:
+		m_nColumns = m_pOwner->GetFixedWidth().GetInt32() / m_szItem.cx;
 	}
 	int32_t nColumns = m_nColumns;
 	if (nColumns < 1) {
@@ -291,7 +305,12 @@ UiSize TileLayout::EstimateSizeByChild(const std::vector<Control*>& items, UiSiz
 		int32_t nChildHeight = 0;
 		if (pChild != nullptr) {
 			//第一个子控件的大小
-			UiSize childSize = pChild->EstimateSize(szAvailable);
+			UiEstSize estSize = pChild->EstimateSize(szAvailable);
+			UiSize childSize(estSize.cx.GetInt32(), estSize.cy.GetInt32());
+			if (estSize.cy.IsStretch()) {
+				//拉伸类型不计入
+				childSize.cy = 0;
+			}			
 			nChildHeight = childSize.cy;
 		}
 		if (nChildHeight < 0) {

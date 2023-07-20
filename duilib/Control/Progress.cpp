@@ -20,7 +20,7 @@ Progress::Progress() :
    m_bReverse(false)
 {
 	m_uTextStyle = TEXT_SINGLELINE | TEXT_CENTER;
-	SetFixedHeight(12, true);
+	SetFixedHeight(UiFixedInt(12), true);
 }
 
 std::wstring Progress::GetType() const { return DUI_CTR_PROGRESS; }

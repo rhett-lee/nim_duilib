@@ -55,8 +55,10 @@ void CComboWnd::InitComboWnd(Combo* pOwner)
 		if (!pControl->IsVisible()) {
 			continue;
 		}
-        UiSize sz = pControl->EstimateSize(szAvailable);
-        cyFixed += sz.cy;
+        UiEstSize estSize = pControl->EstimateSize(szAvailable);
+		if (estSize.cy.IsInt32()) {
+			cyFixed += estSize.cy.GetInt32();
+		}
     }
 
 	int padding = 2;

@@ -35,8 +35,6 @@
 #include "duilib/duilib_config.h"
 
 #define DUI_NOSET_VALUE		-1
-#define DUI_LENGTH_STRETCH  -1
-#define DUI_LENGTH_AUTO		-2
 
 namespace ui
 {

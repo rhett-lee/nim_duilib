@@ -67,17 +67,20 @@ AnimationPlayer* AnimationManager::SetFadeAlpha(bool bFadeVisible)
 AnimationPlayer* AnimationManager::SetFadeWidth(bool bFadeWidth)
 {
 	AnimationPlayer* animationArgs = nullptr;
+	int32_t cx = 0;
 	if (bFadeWidth) {
+		UiEstSize estSize = m_pControl->EstimateSize(UiSize(999999, 999999));
+		cx = estSize.cx.GetInt32();
+		ASSERT(cx > 0);
+	}
+	if (bFadeWidth && (cx > 0)) {
 		animationArgs = new AnimationPlayer();
 		animationArgs->SetStartValue(0);
-		UiSize size(999999, 999999);
-		size = m_pControl->EstimateSize(size);
-		ASSERT(size.cy >= -2);
-		animationArgs->SetEndValue(size.cx);
+		animationArgs->SetEndValue(cx);
 		animationArgs->SetSpeedUpRatio(0.3);
 		animationArgs->SetSpeedUpfactorA(0.00084);
 		animationArgs->SetSpeedDownRatio(0.7);
-		auto playCallback = nbase::Bind(&Control::SetFixedWidth, m_pControl, std::placeholders::_1, true, false);
+		auto playCallback = nbase::Bind(&Control::SetFixedWidth64, m_pControl, std::placeholders::_1);
 		animationArgs->SetCallback(playCallback);
 		m_animationMap[kAnimationWidth].reset(animationArgs);
 	}
@@ -91,17 +94,20 @@ AnimationPlayer* AnimationManager::SetFadeWidth(bool bFadeWidth)
 AnimationPlayer* AnimationManager::SetFadeHeight(bool bFadeHeight)
 {
 	AnimationPlayer* animationArgs = nullptr;
+	int32_t cy = 0;
 	if (bFadeHeight) {
+		UiEstSize estSize = m_pControl->EstimateSize(UiSize(999999, 999999));
+		cy = estSize.cy.GetInt32();
+		ASSERT(cy > 0);
+	}
+	if (bFadeHeight && (cy > 0)) {
 		animationArgs = new AnimationPlayer();
 		animationArgs->SetStartValue(0);
-		UiSize size(999999, 999999);
-		size = m_pControl->EstimateSize(size);
-		ASSERT(size.cy > 0);
-		animationArgs->SetEndValue(size.cy);
+		animationArgs->SetEndValue(cy);
 		animationArgs->SetSpeedUpRatio(0.3);
 		animationArgs->SetSpeedUpfactorA(0.00084);
 		animationArgs->SetSpeedDownRatio(0.7);
-		auto playCallback = nbase::Bind(&Control::SetFixedHeight, m_pControl, std::placeholders::_1, false);
+		auto playCallback = nbase::Bind(&Control::SetFixedHeight64, m_pControl, std::placeholders::_1);
 		animationArgs->SetCallback(playCallback);
 		m_animationMap[kAnimationHeight].reset(animationArgs);
 	}
@@ -115,13 +121,16 @@ AnimationPlayer* AnimationManager::SetFadeHeight(bool bFadeHeight)
 AnimationPlayer* AnimationManager::SetFadeInOutX(bool bFade, bool bIsFromRight)
 {
 	AnimationPlayer* animationArgs = nullptr;
+	int32_t cx = 0;
+	if (bFade) {
+		UiEstSize estSize = m_pControl->EstimateSize(UiSize(999999, 999999));
+		cx = estSize.cx.GetInt32();
+		if (cx <= 0) {
+			cx = 100;
+		}
+	}
 	if (bFade) {
 		animationArgs = new AnimationPlayer();
-		UiSize size(999999, 999999);
-		size = m_pControl->EstimateSize(size);
-		if (size.cx <= 0) {
-			size.cx = 100;
-		}
 		animationArgs->SetEndValue(0);
 		animationArgs->SetSpeedUpRatio(0.3);
 		animationArgs->SetSpeedUpfactorA(0.006);
@@ -130,11 +139,11 @@ AnimationPlayer* AnimationManager::SetFadeInOutX(bool bFade, bool bIsFromRight)
 		animationArgs->SetCallback(playCallback);
 
 		if (bIsFromRight) {
-			animationArgs->SetStartValue(-size.cx);
+			animationArgs->SetStartValue(-cx);
 			m_animationMap[kAnimationInoutXFromRight].reset(animationArgs);
 		}
 		else {
-			animationArgs->SetStartValue(size.cx);
+			animationArgs->SetStartValue(cx);
 			m_animationMap[kAnimationInoutXFromLeft].reset(animationArgs);
 		}
 	}
@@ -153,13 +162,16 @@ AnimationPlayer* AnimationManager::SetFadeInOutX(bool bFade, bool bIsFromRight)
 AnimationPlayer* AnimationManager::SetFadeInOutY(bool bFade, bool bIsFromBottom)
 {
 	AnimationPlayer* animationArgs = nullptr;
+	int32_t cy = 0;
+	if (bFade) {
+		UiEstSize estSize = m_pControl->EstimateSize(UiSize(999999, 999999));
+		cy = estSize.cy.GetInt32();
+		if (cy <= 0) {
+			cy = 100;
+		}
+	}
 	if (bFade) {
 		animationArgs = new AnimationPlayer();
-		UiSize size(999999, 999999);
-		size = m_pControl->EstimateSize(size);
-		if (size.cy <= 0) {
-			size.cy = 100;
-		}
 		animationArgs->SetEndValue(0);
 		animationArgs->SetSpeedUpRatio(0.3);
 		animationArgs->SetSpeedUpfactorA(0.006);
@@ -168,11 +180,11 @@ AnimationPlayer* AnimationManager::SetFadeInOutY(bool bFade, bool bIsFromBottom)
 		animationArgs->SetCallback(playCallback);
 
 		if (bIsFromBottom) {
-			animationArgs->SetStartValue(-size.cy);
+			animationArgs->SetStartValue(-cy);
 			m_animationMap[kAnimationInoutYFromBottom].reset(animationArgs);
 		}
 		else {
-			animationArgs->SetStartValue(size.cy);
+			animationArgs->SetStartValue(cy);
 			m_animationMap[kAnimationInoutYFromTop].reset(animationArgs);
 		}
 	}

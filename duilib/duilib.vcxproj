@@ -439,6 +439,8 @@
     <ClInclude Include="Core\ToolTip.h" />
     <ClInclude Include="Core\UiColor.h" />
     <ClInclude Include="Core\UiColors.h" />
+    <ClInclude Include="Core\UiEstInt.h" />
+    <ClInclude Include="Core\UiFixedInt.h" />
     <ClInclude Include="Core\UiFont.h" />
     <ClInclude Include="Core\UiMargin.h" />
     <ClInclude Include="Core\UiPadding.h" />

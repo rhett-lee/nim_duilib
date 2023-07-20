@@ -55,8 +55,10 @@ void CFilterComboWnd::InitComboWnd(FilterCombo* pOwner)
 		if (!pControl->IsVisible()) {
 			continue;
 		}
-		ui::UiSize sz = pControl->EstimateSize(szAvailable);
-        cyFixed += sz.cy;
+		ui::UiEstSize estSize = pControl->EstimateSize(szAvailable);
+		if (estSize.cy.IsInt32()) {
+			cyFixed += estSize.cy.GetInt32();
+		}        
     }
     cyFixed += 2; // VBox 默认的Padding 调整
     rc.bottom = rc.top + std::min(cyFixed, szDrop.cy);
@@ -285,8 +287,8 @@ FilterCombo::FilterCombo() :
 	m_pRichEdit->AttachTextChange(nbase::Bind(&FilterCombo::OnRichEditTextChanged, this, std::placeholders::_1));
 	m_pRichEdit->AttachButtonDown(nbase::Bind(&FilterCombo::OnRichEditButtonDown, this, std::placeholders::_1));
 	m_pRichEdit->SetClass(L"simple");
-	m_pRichEdit->SetFixedWidth(DUI_LENGTH_STRETCH, true, true);
-	m_pRichEdit->SetFixedHeight(DUI_LENGTH_STRETCH, true);
+	m_pRichEdit->SetFixedWidth(ui::UiFixedInt::MakeStretch(), true, true);
+	m_pRichEdit->SetFixedHeight(ui::UiFixedInt::MakeStretch(), true);
 	m_pRichEdit->SetMargin({ 1, 1, 1, 1 }, true);
 	m_pRichEdit->SetAttribute(L"padding", L"2,3");
 	m_pRichEdit->SetFontId(L"system_14");
@@ -491,8 +493,10 @@ bool FilterCombo::OnRichEditTextChanged(const ui::EventArgs& /*args*/)
 		if (!pControl->IsVisible()) {
 			continue;
 		}
-		ui::UiSize sz = pControl->EstimateSize(szAvailable);
-		cyFixed += sz.cy;
+		ui::UiEstSize estSize = pControl->EstimateSize(szAvailable);
+		if (estSize.cy.IsInt32()) {
+			cyFixed += estSize.cy.GetInt32();
+		}	
 	}
 	cyFixed += 2; // VBox 默认的Padding 调整
 	rc.bottom = rc.top + std::min(cyFixed, szDrop.cy);

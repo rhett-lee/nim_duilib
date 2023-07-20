@@ -599,12 +599,12 @@ void Control::SetPos(UiRect rc)
 	SendEvent(kEventResize);
 }
 
-UiSize Control::EstimateSize(UiSize szAvailable)
+UiEstSize Control::EstimateSize(UiSize szAvailable)
 {
-	UiSize fixedSize = GetFixedSize();
-	if ((fixedSize.cx != DUI_LENGTH_AUTO) && (fixedSize.cy != DUI_LENGTH_AUTO)) {
+	UiFixedSize fixedSize = GetFixedSize();
+	if (!fixedSize.cx.IsAuto() && !fixedSize.cy.IsAuto()) {
 		//如果宽高都不是auto属性，则直接返回
-		return fixedSize;
+		return MakeEstSize(fixedSize);
 	}
 	if (!IsReEstimateSize()) {
 		//使用缓存中的估算结果
@@ -662,26 +662,17 @@ UiSize Control::EstimateSize(UiSize szAvailable)
 	UiSize textSize = EstimateText(szAvailable);
 
 	//选取图片和文本区域高度和宽度的最大值
-	if (fixedSize.cx == DUI_LENGTH_AUTO) {
-		fixedSize.cx = std::max(imageSize.cx, textSize.cx);
+	if (fixedSize.cx.IsAuto()) {
+		fixedSize.cx.SetInt32(std::max(imageSize.cx, textSize.cx));
 	}
-	if (fixedSize.cy == DUI_LENGTH_AUTO) {
-		fixedSize.cy = std::max(imageSize.cy, textSize.cy);
-	}
-
-	//对估算结果进行有效性校验
-	ASSERT(DUI_LENGTH_AUTO == -2);
-	ASSERT(DUI_LENGTH_STRETCH == -1);
-	if (fixedSize.cx <= DUI_LENGTH_AUTO) {
-		fixedSize.cx = 0;
-	}
-	if (fixedSize.cy <= DUI_LENGTH_AUTO) {
-		fixedSize.cy = 0;
+	if (fixedSize.cy.IsAuto()) {
+		fixedSize.cy.SetInt32(std::max(imageSize.cy, textSize.cy));
 	}
 	//保持结果到缓存，避免每次都重新估算
-	SetEstimateSize(fixedSize);
+	UiEstSize estSize = MakeEstSize(fixedSize);
+	SetEstimateSize(estSize);
 	SetReEstimateSize(false);
-	return fixedSize;
+	return estSize;
 }
 
 Image* Control::GetEstimateImage()
@@ -967,26 +958,26 @@ void Control::SetAttribute(const std::wstring& strName, const std::wstring& strV
 	}
 	else if(strName == L"width") {
 		if (strValue == L"stretch") {
-			SetFixedWidth(DUI_LENGTH_STRETCH, true, true);
+			SetFixedWidth(UiFixedInt::MakeStretch(), true, true);
 		}
 		else if (strValue == L"auto") {
-			SetFixedWidth(DUI_LENGTH_AUTO, true, true);
+			SetFixedWidth(UiFixedInt::MakeAuto(), true, true);
 		}
 		else {
 			ASSERT(_wtoi(strValue.c_str()) >= 0);
-			SetFixedWidth(_wtoi(strValue.c_str()), true, true);
+			SetFixedWidth(UiFixedInt(_wtoi(strValue.c_str())), true, true);
 		}
 	}
 	else if(strName == L"height") {
 		if (strValue == L"stretch") {
-			SetFixedHeight(DUI_LENGTH_STRETCH, true);
+			SetFixedHeight(UiFixedInt::MakeStretch(), true);
 		}
 		else if (strValue == L"auto") {
-			SetFixedHeight(DUI_LENGTH_AUTO, true);
+			SetFixedHeight(UiFixedInt::MakeAuto(), true);
 		}
 		else {
 			ASSERT(_wtoi(strValue.c_str()) >= 0);
-			SetFixedHeight(_wtoi(strValue.c_str()), true);
+			SetFixedHeight(UiFixedInt(_wtoi(strValue.c_str())), true);
 		}
 	}
 	else if(strName == L"state") {

@@ -25,7 +25,7 @@ UiSize64 HLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 	//固定宽度的控件，总的高度
 	int32_t cxFixedTotal = 0;
 	//需要进行布局处理的所有控件(KEY是控件，VALUE是宽度和高度)
-	std::map<Control*, UiSize> itemsMap;
+	std::map<Control*, UiEstSize> itemsMap;
 
 	//计算每个控件的宽度和高度，并记录到Map中
 	for(auto pControl : items) {
@@ -33,12 +33,11 @@ UiSize64 HLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 			continue;
 		}
 
-		UiSize sz = pControl->EstimateSize(szAvailable);
-		ASSERT((sz.cx >= DUI_LENGTH_STRETCH) && (sz.cy >= DUI_LENGTH_STRETCH));
-
+		UiEstSize estSize = pControl->EstimateSize(szAvailable);
+		UiSize sz = UiSize(estSize.cx.GetInt32(), estSize.cy.GetInt32());
 		UiMargin rcMargin = pControl->GetMargin();
 		//计算宽度
-		if( sz.cx == DUI_LENGTH_STRETCH ) {
+		if(estSize.cx.IsStretch()) {
 			stretchCount++;
 			cxFixedTotal += (rcMargin.left + rcMargin.right);
 		}
@@ -56,8 +55,9 @@ UiSize64 HLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 		}
 		
 		//计算高度
-		if (sz.cy == DUI_LENGTH_STRETCH) {
+		if (estSize.cy.IsStretch()) {
 			sz.cy = (szAvailable.cy - rcMargin.top - rcMargin.bottom);
+			sz.cy = std::max(sz.cy, 0);
 		}
 		if (sz.cy < pControl->GetMinHeight()) {
 			sz.cy = pControl->GetMinHeight();
@@ -68,12 +68,17 @@ UiSize64 HLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 		if (sz.cy < 0) {
 			sz.cy = 0;
 		}
-		itemsMap[pControl] = sz;
+		if (!estSize.cx.IsStretch()) {
+			estSize.cx.SetInt32(sz.cx);
+		}
+		estSize.cy.SetInt32(sz.cy);
+		itemsMap[pControl] = estSize;
 	}
 	if (!itemsMap.empty()) {
 		cxFixedTotal += ((int32_t)itemsMap.size() - 1) * GetChildMarginX();
 	}
 
+	//每个宽度为stretch的控件，给与分配的实际宽度（取平均值）
 	int32_t cxStretch = 0;
 	if (stretchCount > 0) {
 		cxStretch = std::max(0, (szAvailable.cx - cxFixedTotal) / stretchCount);
@@ -82,8 +87,9 @@ UiSize64 HLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 	if ((cxStretch > 0) && !itemsMap.empty()) {
 		for (auto iter = itemsMap.begin(); iter != itemsMap.end(); ++iter) {
 			Control* pControl = iter->first;
-			UiSize sz = iter->second;
-			if (sz.cx == DUI_LENGTH_STRETCH) {
+			UiEstSize estSize = iter->second;
+			UiSize sz(estSize.cx.GetInt32(), estSize.cy.GetInt32());
+			if (estSize.cx.IsStretch()) {
 				sz.cx = cxStretch;
 				if (sz.cx < pControl->GetMinWidth()) {
 					sz.cx = pControl->GetMinWidth();
@@ -93,7 +99,8 @@ UiSize64 HLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 				}
 				if (sz.cx != cxStretch) {
 					//这个控件需要使用min或者max宽度，从平均值中移除，按照Fixed控件算
-					iter->second = sz;
+					estSize.cx.SetInt32(sz.cx);
+					iter->second = estSize;
 					--stretchCount;
 					cxFixedTotal += sz.cx; //Margin已经累加过，不需要重新累加
 				}
@@ -131,10 +138,11 @@ UiSize64 HLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 
 		UiMargin rcMargin = pControl->GetMargin();
 		ASSERT(itemsMap.find(pControl) != itemsMap.end());
-		UiSize sz = itemsMap[pControl];
+		UiEstSize estSize = itemsMap[pControl];
+		UiSize sz(estSize.cx.GetInt32(), estSize.cy.GetInt32());
 
 		//计算宽度
-		if( sz.cx == DUI_LENGTH_STRETCH ) {
+		if(estSize.cx.IsStretch()) {
 			sz.cx = cxStretch;
 			if (sz.cx < pControl->GetMinWidth()) {
 				sz.cx = pControl->GetMinWidth();
@@ -165,10 +173,12 @@ UiSize64 HLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 			childBottm = childTop + sz.cy;
 		}
 
+		//设置控件的位置
 		UiRect rcChildPos(iPosX + rcMargin.left, childTop, iPosX + rcMargin.left + sz.cx, childBottm);
 		pControl->SetPos(rcChildPos);
 		cyNeeded = std::max(cyNeeded, (int64_t)rcChildPos.Height());
 
+		//调整当前Y轴坐标值
 		iPosX += (sz.cx + rcMargin.left + GetChildMarginX() + rcMargin.right);
 		cxNeeded += (sz.cx + rcMargin.left + rcMargin.right);
 	}
@@ -186,13 +196,23 @@ UiSize HLayout::EstimateSizeByChild(const std::vector<Control*>& items, UiSize s
 	UiSize itemSize;
 	int32_t estimateCount = 0;
 	for(Control* pControl : items)	{
-		if ((pControl == nullptr) || !pControl->IsVisible() || pControl->IsFloat()){
+		if ((pControl == nullptr) || !pControl->IsVisible() || pControl->IsFloat()) {
 			continue;
 		}
 
 		estimateCount++;
 		UiMargin rcMargin = pControl->GetMargin();
-		itemSize = pControl->EstimateSize(szAvailable);
+		UiEstSize estSize = pControl->EstimateSize(szAvailable);
+		itemSize = UiSize(estSize.cx.GetInt32(), estSize.cy.GetInt32());
+		if (estSize.cx.IsStretch()) {
+			//拉伸类型的子控件，不计入
+			itemSize.cx = 0;
+		}
+		if (estSize.cy.IsStretch()) {
+			//拉伸类型的子控件，不计入
+			itemSize.cy = 0;
+		}
+		
 		if (itemSize.cx < pControl->GetMinWidth()) {
 			itemSize.cx = pControl->GetMinWidth();
 		}

@@ -495,9 +495,10 @@ bool Window::AttachBox(Box* pRoot)
 	// Initiate all control
 	bool isInit = InitControls(m_pRoot);
 	if ( (pRoot != nullptr) && 
-		 ((pRoot->GetFixedWidth() == DUI_LENGTH_AUTO) || (pRoot->GetFixedHeight() == DUI_LENGTH_AUTO))) {
-		UiSize maxSize(99999, 99999);
-		UiSize needSize = pRoot->EstimateSize(maxSize);
+		 ((pRoot->GetFixedWidth().IsAuto()) || (pRoot->GetFixedHeight().IsAuto()))) {
+		UiSize maxSize(999999, 999999);
+		UiEstSize estSize = pRoot->EstimateSize(maxSize);
+		UiSize needSize = MakeSize(estSize);
 		if (needSize.cx < pRoot->GetMinWidth()) {
 			needSize.cx = pRoot->GetMinWidth();
 		}
@@ -2178,9 +2179,10 @@ void Window::Paint()
 		}
 	}
 
-	if (m_bIsArranged && m_pRoot->IsArranged() && (m_pRoot->GetFixedWidth() == DUI_LENGTH_AUTO || m_pRoot->GetFixedHeight() == DUI_LENGTH_AUTO)) {
-		UiSize maxSize(99999, 99999);
-		UiSize needSize = m_pRoot->EstimateSize(maxSize);
+	if (m_bIsArranged && m_pRoot->IsArranged() && (m_pRoot->GetFixedWidth().IsAuto() || m_pRoot->GetFixedHeight().IsAuto())) {
+		UiSize maxSize(999999, 999999);
+		UiEstSize estSize = m_pRoot->EstimateSize(maxSize);
+		UiSize needSize = MakeSize(estSize);
 		if (needSize.cx < m_pRoot->GetMinWidth()) {
 			needSize.cx = m_pRoot->GetMinWidth();
 		}
@@ -2255,10 +2257,14 @@ void Window::Paint()
 		}
 	}
 
-	int width = rcClient.right - rcClient.left;
-	int height = rcClient.bottom - rcClient.top;
-	if (!m_render->Resize(width, height)) {
-		ASSERT(!"m_render->Resize resize failed!");
+	if ((rcClient.Width() > 0) && (rcClient.Height() > 0)) {
+		if (!m_render->Resize(rcClient.Width(), rcClient.Height())) {
+			ASSERT(!"m_render->Resize resize failed!");
+			::EndPaint(m_hWnd, &ps);
+			return;
+		}
+	}
+	else {
 		::EndPaint(m_hWnd, &ps);
 		return;
 	}

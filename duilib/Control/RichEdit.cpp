@@ -2314,18 +2314,19 @@ void RichEdit::SetEnabled(bool bEnable /*= true*/)
 	}
 }
 
-UiSize RichEdit::EstimateSize(UiSize /*szAvailable*/)
+UiEstSize RichEdit::EstimateSize(UiSize /*szAvailable*/)
 {
-	UiSize size(GetFixedWidth(), GetFixedHeight());
-	if ((size.cx == DUI_LENGTH_AUTO) || (size.cy == DUI_LENGTH_AUTO)) {
+	UiFixedSize fixexSize = GetFixedSize();
+	UiSize size(fixexSize.cx.GetInt32(), fixexSize.cy.GetInt32());
+	if (fixexSize.cx.IsAuto() || fixexSize.cy.IsAuto()) {
 		LONG iWidth = size.cx;
 		LONG iHeight = size.cy;
-		if (size.cy == DUI_LENGTH_AUTO) {
-			ASSERT(size.cx != DUI_LENGTH_AUTO);
+		if (fixexSize.cy.IsAuto()) {
+			ASSERT(!fixexSize.cx.IsAuto());
 			iHeight = 0;
 		}
-		else if (size.cx == DUI_LENGTH_AUTO) {
-			ASSERT(size.cy != DUI_LENGTH_AUTO);
+		else if (fixexSize.cx.IsAuto()) {
+			ASSERT(!fixexSize.cy.IsAuto());
 			iWidth = 0;
 		}
 		SIZEL szExtent = {-1, -1};
@@ -2339,14 +2340,16 @@ UiSize RichEdit::EstimateSize(UiSize /*szAvailable*/)
 													&iHeight) ;
 		
 		UiPadding padding = GetLayout()->GetPadding();
-		if (size.cy == DUI_LENGTH_AUTO) {
+		if (fixexSize.cy.IsAuto()) {
 			size.cy = iHeight + padding.top + padding.bottom;
+			fixexSize.cy.SetInt32(size.cy);
 		}
-		else if (size.cx == DUI_LENGTH_AUTO) {
+		else if (fixexSize.cx.IsAuto()) {
 			size.cx = iWidth + padding.left + padding.right;
+			fixexSize.cx.SetInt32(size.cx);
 		}
 	}
-    return size;
+    return MakeEstSize(fixexSize);
 }
 
 UiSize RichEdit::EstimateText(UiSize szAvailable)
@@ -2380,16 +2383,16 @@ void RichEdit::SetPos(UiRect rc)
     bool bVScrollBarVisiable = false;
     if( m_pVScrollBar && m_pVScrollBar->IsValid() ) {
         bVScrollBarVisiable = true;
-        rc.right -= m_pVScrollBar->GetFixedWidth();
+        rc.right -= m_pVScrollBar->GetFixedWidth().GetInt32();
     }
     if( m_pHScrollBar && m_pHScrollBar->IsValid() ) {
-        rc.bottom -= m_pHScrollBar->GetFixedHeight();
+        rc.bottom -= m_pHScrollBar->GetFixedHeight().GetInt32();
     }
 
     if( m_pTwh ) {
         m_pTwh->SetClientRect(&rc);
         if( bVScrollBarVisiable && (!m_pVScrollBar->IsValid() || m_bVScrollBarFixing) ) {
-            LONG lWidth = rc.right - rc.left + m_pVScrollBar->GetFixedWidth();
+            LONG lWidth = rc.right - rc.left + m_pVScrollBar->GetFixedWidth().GetInt32();
             LONG lHeight = 0;
             SIZEL szExtent = { -1, -1 };
             m_pTwh->GetTextServices()->TxGetNaturalSize(
@@ -2417,11 +2420,11 @@ void RichEdit::SetPos(UiRect rc)
     }
 
     if( m_pVScrollBar != NULL && m_pVScrollBar->IsValid() ) {
-        UiRect rcScrollBarPos(rc.right, rc.top, rc.right + m_pVScrollBar->GetFixedWidth(), rc.bottom);
+        UiRect rcScrollBarPos(rc.right, rc.top, rc.right + m_pVScrollBar->GetFixedWidth().GetInt32(), rc.bottom);
         m_pVScrollBar->SetPos(rcScrollBarPos);
     }
     if( m_pHScrollBar != NULL && m_pHScrollBar->IsValid() ) {
-        UiRect rcScrollBarPos(rc.left, rc.bottom, rc.right, rc.bottom + m_pHScrollBar->GetFixedHeight());
+        UiRect rcScrollBarPos(rc.left, rc.bottom, rc.right, rc.bottom + m_pHScrollBar->GetFixedHeight().GetInt32());
         m_pHScrollBar->SetPos(rcScrollBarPos);
     }
 
@@ -2720,7 +2723,7 @@ void RichEdit::Paint(IRender* pRender, const UiRect& rcPaint)
 
 		pRender->ReleaseDC(hdc);
 		if( m_bVScrollBarFixing ) {
-            LONG lWidth = rc.right - rc.left + m_pVScrollBar->GetFixedWidth();
+            LONG lWidth = rc.right - rc.left + m_pVScrollBar->GetFixedWidth().GetInt32();
 			//LONG lWidth = rc.right - rc.left;
             LONG lHeight = 0;
             SIZEL szExtent = { -1, -1 };
@@ -2756,8 +2759,8 @@ void RichEdit::PaintChild(IRender* pRender, const UiRect& rcPaint)
         rc.top += GetLayout()->GetPadding().top;
         rc.right -= GetLayout()->GetPadding().right;
         rc.bottom -= GetLayout()->GetPadding().bottom;
-        if( m_pVScrollBar && m_pVScrollBar->IsValid() ) rc.right -= m_pVScrollBar->GetFixedWidth();
-        if( m_pHScrollBar && m_pHScrollBar->IsValid() ) rc.bottom -= m_pHScrollBar->GetFixedHeight();
+        if( m_pVScrollBar && m_pVScrollBar->IsValid() ) rc.right -= m_pVScrollBar->GetFixedWidth().GetInt32();
+        if( m_pHScrollBar && m_pHScrollBar->IsValid() ) rc.bottom -= m_pHScrollBar->GetFixedHeight().GetInt32();
 
         if( !UiRect::Intersect(rcTemp, rcPaint, rc) ) {
 			for( auto it = m_items.begin(); it != m_items.end(); ++it ) {

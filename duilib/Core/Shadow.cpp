@@ -176,17 +176,22 @@ Box* Shadow::AttachShadow(Box* pRoot)
 	m_pRoot = new ShadowBox();
 	m_pRoot->GetLayout()->SetPadding(m_rcShadowCorner, false);
 
-	int rootWidth = pRoot->GetFixedWidth();
-	if (rootWidth > 0) {
+	if (pRoot->GetFixedWidth().IsInt32()) {
+		int32_t rootWidth = pRoot->GetFixedWidth().GetInt32();
 		rootWidth += m_rcShadowCorner.left + m_rcShadowCorner.right;
+		m_pRoot->SetFixedWidth(UiFixedInt(rootWidth), true, false);
 	}
-	m_pRoot->SetFixedWidth(rootWidth, true, false);
-
-	int rootHeight = pRoot->GetFixedHeight();
-	if (rootHeight > 0) {
+	else {
+		m_pRoot->SetFixedWidth(pRoot->GetFixedWidth(), true, false);
+	}
+	if (pRoot->GetFixedHeight().IsInt32()) {
+		int32_t rootHeight = pRoot->GetFixedHeight().GetInt32();
 		rootHeight += m_rcShadowCorner.top + m_rcShadowCorner.bottom;
+		m_pRoot->SetFixedHeight(UiFixedInt(rootHeight), false);
 	}
-	m_pRoot->SetFixedHeight(rootHeight, false);
+	else {
+		m_pRoot->SetFixedHeight(pRoot->GetFixedHeight(), false);
+	}
 
 	if (m_bUseDefaultImage)	{
 		pRoot->SetBorderRound(Shadow::GetChildBoxBorderRound());

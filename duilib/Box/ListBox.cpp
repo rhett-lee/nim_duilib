@@ -172,7 +172,8 @@ void ListBox::EnsureVisible(const UiRect& rcItem)
 
 	ScrollBar* pHorizontalScrollBar = GetHScrollBar();
 	if (pHorizontalScrollBar && pHorizontalScrollBar->IsVisible()) {
-		rcList.bottom -= pHorizontalScrollBar->GetFixedHeight();
+		ASSERT(pHorizontalScrollBar->GetFixedHeight().GetInt32() > 0);
+		rcList.bottom -= pHorizontalScrollBar->GetFixedHeight().GetInt32();
 	}
 
 	if ((rcNewItem.left >= rcList.left) && (rcNewItem.top >= rcList.top) && 

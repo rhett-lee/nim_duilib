@@ -482,7 +482,7 @@ public:
 	 * @param[in] szAvailable 可用的大小
 	 * @return 控件估算大小
 	 */
-	virtual UiSize EstimateSize(UiSize szAvailable) override;
+	virtual UiEstSize EstimateSize(UiSize szAvailable) override;
 
 	/** 计算文本区域大小（宽和高）
 	   @param[in] szAvailable 可用的大小

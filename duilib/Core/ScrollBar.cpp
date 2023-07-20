@@ -45,8 +45,9 @@ ScrollBar::ScrollBar() :
 	m_bkStateImage->SetControl(this);
 	m_thumbStateImage->SetControl(this);
 
-	SetFixedWidth(DEFAULT_SCROLLBAR_SIZE, false, false);
-	SetFixedHeight(0, false);
+	//TODO: DPI自适应参数，需要确认一下
+	SetFixedWidth(UiFixedInt(DEFAULT_SCROLLBAR_SIZE), false, false);
+	SetFixedHeight(UiFixedInt(0), false);
 	m_ptLastMouse.x = 0;
 	m_ptLastMouse.y = 0;
 	SetFloat(true);
@@ -160,19 +161,20 @@ void ScrollBar::SetPos(UiRect rc)
 	rc = GetRect();
 
 	if (m_bHorizontal) {
-		int cx = rc.right - rc.left;
-		if (m_bShowButton1) {
-			cx -= GetFixedHeight();
+		ASSERT(GetFixedHeight().GetInt32() > 0);
+		int cx = rc.Width();
+		if (m_bShowButton1) {			
+			cx -= GetFixedHeight().GetInt32();
 		}
 		if (m_bShowButton2) {
-			cx -= GetFixedHeight();
+			cx -= GetFixedHeight().GetInt32();
 		}
-		if (cx > GetFixedHeight()) {
+		if (cx > GetFixedHeight().GetInt32()) {
 			m_rcButton1.left = rc.left;
 			m_rcButton1.top = rc.top;
 			if (m_bShowButton1) {
-				m_rcButton1.right = rc.left + GetFixedHeight();
-				m_rcButton1.bottom = rc.top + GetFixedHeight();
+				m_rcButton1.right = rc.left + GetFixedHeight().GetInt32();
+				m_rcButton1.bottom = rc.top + GetFixedHeight().GetInt32();
 			}
 			else {
 				m_rcButton1.right = m_rcButton1.left;
@@ -182,8 +184,8 @@ void ScrollBar::SetPos(UiRect rc)
 			m_rcButton2.top = rc.top;
 			m_rcButton2.right = rc.right;
 			if (m_bShowButton2) {
-				m_rcButton2.left = rc.right - GetFixedHeight();
-				m_rcButton2.bottom = rc.top + GetFixedHeight();
+				m_rcButton2.left = rc.right - GetFixedHeight().GetInt32();
+				m_rcButton2.bottom = rc.top + GetFixedHeight().GetInt32();
 			}
 			else {
 				m_rcButton2.left = m_rcButton2.right;
@@ -191,7 +193,7 @@ void ScrollBar::SetPos(UiRect rc)
 			}
 
 			m_rcThumb.top = rc.top;
-			m_rcThumb.bottom = rc.top + GetFixedHeight();
+			m_rcThumb.bottom = rc.top + GetFixedHeight().GetInt32();
 			if (m_nRange > 0) {
 				int64_t cxThumb = (int64_t)cx * (rc.right - rc.left) / (m_nRange + rc.right - rc.left);
 				if (cxThumb < m_nThumbMinLength) {
@@ -212,14 +214,14 @@ void ScrollBar::SetPos(UiRect rc)
 		}
 		else {
 			int cxButton = (rc.right - rc.left) / 2;
-			if (cxButton > GetFixedHeight()) {
-				cxButton = GetFixedHeight();
+			if (cxButton > GetFixedHeight().GetInt32()) {
+				cxButton = GetFixedHeight().GetInt32();
 			}
 			m_rcButton1.left = rc.left;
 			m_rcButton1.top = rc.top;
 			if (m_bShowButton1) {
 				m_rcButton1.right = rc.left + cxButton;
-				m_rcButton1.bottom = rc.top + GetFixedHeight();
+				m_rcButton1.bottom = rc.top + GetFixedHeight().GetInt32();
 			}
 			else {
 				m_rcButton1.right = m_rcButton1.left;
@@ -230,7 +232,7 @@ void ScrollBar::SetPos(UiRect rc)
 			m_rcButton2.right = rc.right;
 			if (m_bShowButton2) {
 				m_rcButton2.left = rc.right - cxButton;
-				m_rcButton2.bottom = rc.top + GetFixedHeight();
+				m_rcButton2.bottom = rc.top + GetFixedHeight().GetInt32();
 			}
 			else {
 				m_rcButton2.left = m_rcButton2.right;
@@ -241,19 +243,20 @@ void ScrollBar::SetPos(UiRect rc)
 		}
 	}
 	else {
-		int cy = rc.bottom - rc.top;
+		ASSERT(GetFixedWidth().GetInt32() > 0);
+		int cy = rc.Height();
 		if (m_bShowButton1) {
-			cy -= GetFixedWidth();
+			cy -= GetFixedWidth().GetInt32();
 		}
 		if (m_bShowButton2) {
-			cy -= GetFixedWidth();
+			cy -= GetFixedWidth().GetInt32();
 		}
-		if (cy > GetFixedWidth()) {
+		if (cy > GetFixedWidth().GetInt32()) {
 			m_rcButton1.left = rc.left;
 			m_rcButton1.top = rc.top;
 			if (m_bShowButton1) {
-				m_rcButton1.right = rc.left + GetFixedWidth();
-				m_rcButton1.bottom = rc.top + GetFixedWidth();
+				m_rcButton1.right = rc.left + GetFixedWidth().GetInt32();
+				m_rcButton1.bottom = rc.top + GetFixedWidth().GetInt32();
 			}
 			else {
 				m_rcButton1.right = m_rcButton1.left;
@@ -263,8 +266,8 @@ void ScrollBar::SetPos(UiRect rc)
 			m_rcButton2.left = rc.left;
 			m_rcButton2.bottom = rc.bottom;
 			if (m_bShowButton2) {
-				m_rcButton2.top = rc.bottom - GetFixedWidth();
-				m_rcButton2.right = rc.left + GetFixedWidth();
+				m_rcButton2.top = rc.bottom - GetFixedWidth().GetInt32();
+				m_rcButton2.right = rc.left + GetFixedWidth().GetInt32();
 			}
 			else {
 				m_rcButton2.top = m_rcButton2.bottom;
@@ -272,7 +275,7 @@ void ScrollBar::SetPos(UiRect rc)
 			}
 
 			m_rcThumb.left = rc.left;
-			m_rcThumb.right = rc.left + GetFixedWidth();
+			m_rcThumb.right = rc.left + GetFixedWidth().GetInt32();
 			if (m_nRange > 0) {
 				int64_t cyThumb = (int64_t)cy * (rc.bottom - rc.top) / (m_nRange + rc.bottom - rc.top);
 				if (cyThumb < m_nThumbMinLength) cyThumb = m_nThumbMinLength;
@@ -291,13 +294,13 @@ void ScrollBar::SetPos(UiRect rc)
 		}
 		else {
 			int cyButton = (rc.bottom - rc.top) / 2;
-			if (cyButton > GetFixedWidth()) {
-				cyButton = GetFixedWidth();
+			if (cyButton > GetFixedWidth().GetInt32()) {
+				cyButton = GetFixedWidth().GetInt32();
 			}
 			m_rcButton1.left = rc.left;
 			m_rcButton1.top = rc.top;
 			if (m_bShowButton1) {
-				m_rcButton1.right = rc.left + GetFixedWidth();
+				m_rcButton1.right = rc.left + GetFixedWidth().GetInt32();
 				m_rcButton1.bottom = rc.top + cyButton;
 			}
 			else {
@@ -309,7 +312,7 @@ void ScrollBar::SetPos(UiRect rc)
 			m_rcButton2.bottom = rc.bottom;
 			if (m_bShowButton2) {
 				m_rcButton2.top = rc.bottom - cyButton;
-				m_rcButton2.right = rc.left + GetFixedWidth();
+				m_rcButton2.right = rc.left + GetFixedWidth().GetInt32();
 			}
 			else {
 				m_rcButton2.top = m_rcButton2.bottom;
@@ -477,10 +480,10 @@ void ScrollBar::HandleEvent(const EventArgs& event)
 				//垂直滚动条
 				int vRange = GetRect().Height() - m_rcThumb.Height();
 				if (m_bShowButton1) {
-					vRange -= GetFixedWidth();
+					vRange -= GetFixedWidth().GetInt32();
 				}
 				if (m_bShowButton2) {
-					vRange -= GetFixedWidth();
+					vRange -= GetFixedWidth().GetInt32();
 				}
 
 				if (vRange != 0) {
@@ -491,10 +494,10 @@ void ScrollBar::HandleEvent(const EventArgs& event)
 				//水平滚动条
 				int hRange = GetRect().Width() - m_rcThumb.Width();
 				if (m_bShowButton1) {
-					hRange -= GetFixedHeight();
+					hRange -= GetFixedHeight().GetInt32();
 				}
 				if (m_bShowButton2) {
-					hRange -= GetFixedHeight();
+					hRange -= GetFixedHeight().GetInt32();
 				}
 
 				if (hRange != 0) {
@@ -653,15 +656,15 @@ void ScrollBar::SetHorizontal(bool bHorizontal)
 
 	m_bHorizontal = bHorizontal;
 	if( m_bHorizontal ) {
-		if(GetFixedHeight() == 0 ) {
-			SetFixedWidth(0, false, false);
-			SetFixedHeight(DEFAULT_SCROLLBAR_SIZE, false);
+		if(GetFixedHeight().GetInt32() == 0 ) {
+			SetFixedWidth(UiFixedInt(0), false, false);
+			SetFixedHeight(UiFixedInt(DEFAULT_SCROLLBAR_SIZE), false);
 		}
 	}
 	else {
-		if(GetFixedWidth() == 0) {
-			SetFixedWidth(DEFAULT_SCROLLBAR_SIZE, false, false);
-			SetFixedHeight(0, false);
+		if(GetFixedWidth().GetInt32() == 0) {
+			SetFixedWidth(UiFixedInt(DEFAULT_SCROLLBAR_SIZE), false, false);
+			SetFixedHeight(UiFixedInt(0), false);
 		}
 	}
 
@@ -994,10 +997,10 @@ int64_t ScrollBar::CalcFastScrollOffset(int32_t posOffset) const
 	int64_t nScrollOffset = 0;
 	int vRange = GetRect().Height() - m_rcThumb.Height();
 	if (m_bShowButton1) {
-		vRange -= GetFixedWidth();
+		vRange -= GetFixedWidth().GetInt32();
 	}
 	if (m_bShowButton2) {
-		vRange -= GetFixedWidth();
+		vRange -= GetFixedWidth().GetInt32();
 	}
 	if (vRange != 0) {
 		nScrollOffset = posOffset * m_nRange / vRange;
@@ -1098,15 +1101,15 @@ void ScrollBar::PaintRail(IRender* pRender)
 	m_sImageModify.clear();
 	if (!m_bHorizontal) {
 		m_sImageModify = StringHelper::Printf(L"destscale='false' dest='%d,%d,%d,%d'", m_rcThumb.left - GetRect().left, \
-			(m_rcThumb.top + m_rcThumb.bottom) / 2 - GetRect().top - GetFixedWidth() / 2, \
+			(m_rcThumb.top + m_rcThumb.bottom) / 2 - GetRect().top - GetFixedWidth().GetInt32() / 2, \
 			m_rcThumb.right - GetRect().left, \
-			(m_rcThumb.top + m_rcThumb.bottom) / 2 - GetRect().top + GetFixedWidth() - GetFixedWidth() / 2);
+			(m_rcThumb.top + m_rcThumb.bottom) / 2 - GetRect().top + GetFixedWidth().GetInt32() - GetFixedWidth().GetInt32() / 2);
 	}
 	else {
 		m_sImageModify = StringHelper::Printf(L"destscale='false' dest='%d,%d,%d,%d'", \
-			(m_rcThumb.left + m_rcThumb.right) / 2 - GetRect().left - GetFixedHeight() / 2, \
+			(m_rcThumb.left + m_rcThumb.right) / 2 - GetRect().left - GetFixedHeight().GetInt32() / 2, \
 			m_rcThumb.top - GetRect().top, \
-			(m_rcThumb.left + m_rcThumb.right) / 2 - GetRect().left + GetFixedHeight() - GetFixedHeight() / 2, \
+			(m_rcThumb.left + m_rcThumb.right) / 2 - GetRect().left + GetFixedHeight().GetInt32() - GetFixedHeight().GetInt32() / 2, \
 			m_rcThumb.bottom - GetRect().top);
 	}
 

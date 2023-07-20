@@ -62,7 +62,7 @@ void ControlForm::OnInitWindow()
 		ui::ListBoxElement* element = new ui::ListBoxElement;
 		element->SetText(nbase::StringPrintf(L"ui::VListBox::ListBoxElement %d", i));
 		element->SetClass(L"listitem");
-		element->SetFixedHeight(20, true);
+		element->SetFixedHeight(ui::UiFixedInt(20), true);
 		list->AddItem(element);
 	}
 
@@ -73,7 +73,7 @@ void ControlForm::OnInitWindow()
 	{
 		ui::TreeNode* node = new ui::TreeNode;
 		node->SetClass(L"listitem");
-		node->SetFixedHeight(20, true);
+		node->SetFixedHeight(ui::UiFixedInt(20), true);
 		if (parent_node)
 		{
 			node->SetText(nbase::StringPrintf(L"ui::TreeView::TreeNode %d", j));
@@ -95,7 +95,7 @@ void ControlForm::OnInitWindow()
 		{
 			ui::ListBoxElement* element = new ui::ListBoxElement;
 			element->SetClass(L"listitem");
-			element->SetFixedHeight(30, true);
+			element->SetFixedHeight(ui::UiFixedInt(30), true);
 			element->SetBkColor(L"white");
 			element->SetTextPadding({ 6,0,6,0 });
 			element->SetText(nbase::StringPrintf(L"ui::Combo::ListBoxElement %d", i));
@@ -109,8 +109,8 @@ void ControlForm::OnInitWindow()
 		for (auto i = 0; i < 7; i++)
 		{
 			ui::CheckBox* item = new ui::CheckBox;
-			item->SetFixedWidth(DUI_LENGTH_STRETCH, true, true);
-			item->SetFixedHeight(24, true);
+			item->SetFixedWidth(ui::UiFixedInt::MakeStretch(), true, true);
+			item->SetFixedHeight(ui::UiFixedInt(24), true);
 			item->SetUTF8Text(checks[i]);
 			item->SetUTF8DataID(checks[i]);
 			item->SetToolTipText(L"nim_comp::CheckCombo");
@@ -133,7 +133,7 @@ void ControlForm::OnInitWindow()
 		for (auto i = 0; i < 100; i++)
 		{
 			nim_comp::ListElementMatch* item = new nim_comp::ListElementMatch;
-			item->SetFixedHeight(20, true);
+			item->SetFixedHeight(ui::UiFixedInt(20), true);
 			//ui::GlobalManager::Instance().FillBoxWithCache(item, L"date_export/combo/date_item.xml");
 			//Label *label = new label;
 
@@ -207,7 +207,7 @@ void ControlForm::ShowPopupMenu(const ui::UiPoint& point)
     ui::CMenuElementUI* menu_item = new ui::CMenuElementUI;
     menu_item->SetText(L"Dynamically created");
     menu_item->SetClass(L"menu_element");
-    menu_item->SetFixedWidth(180, true, true);
+    menu_item->SetFixedWidth(ui::UiFixedInt(180), true, true);
     menu_item->SetFontId(L"system_14");
     menu_item->SetTextPadding({ 20, 0, 20, 0 });
     menu_fourth->AddSubMenuItemAt(menu_item, 1);//添加后，资源由菜单统一管理

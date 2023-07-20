@@ -97,31 +97,63 @@ public:
 	 */
 	void SetFloat(bool bFloat);
 
-	/** 获取控件固定大小，对应 xml 中 width 属性 和 height 属性
+public:
+	/** 获取控件设置的宽度和高度
 	*/
-	const UiSize& GetFixedSize() const { return m_cxyFixed; }
+	const UiFixedSize& GetFixedSize() const;
 
-	/** 获取固定宽度，对应 xml 中 width 属性
+	/** 获取设置的宽度，对应 xml 中 width 属性; 如果未设置，默认值是拉伸
 	 */
-	int32_t GetFixedWidth() const { return m_cxyFixed.cx; }
+	const UiFixedInt& GetFixedWidth() const;
 
-	/** 获取固定高度，对应 xml 中 height 属性
+	/** 获取固定高度，对应 xml 中 height 属性; 如果未设置，默认值是拉伸
 	 */
-	int32_t GetFixedHeight() const { return m_cxyFixed.cy; }
+	const UiFixedInt& GetFixedHeight() const;
 
-	/**@brief 设置控件固定宽度
-	 * @param[in] cx64 要设置的宽度
+	/**@brief 设置控件的宽度
+	 * @param[in] cx 要设置的宽度
 	 * @param[in] bArrange 是否重新排列，默认为 true
 	 * @param[in] bNeedDpiScale 兼容 DPI 缩放，默认为 true
 	 */
-	void SetFixedWidth(int64_t cx64, bool bArrange, bool bNeedDpiScale);	
+	void SetFixedWidth(UiFixedInt cx, bool bArrange, bool bNeedDpiScale);
 
-	/**@brief 设置固定高度
-	 * @param[in] cy64 要设置的固定高度
+	/** 设置控件的宽度，供动画使用的接口
+	*/
+	void SetFixedWidth64(int64_t cx64);
+
+	/**@brief 设置控件的高度
+	 * @param[in] cy 要设置的固定高度
 	 * @param[in] bNeedDpiScale 兼容 DPI 缩放，默认为 true
 	 */
-	void SetFixedHeight(int64_t cy64, bool bNeedDpiScale);
+	void SetFixedHeight(UiFixedInt cy, bool bNeedDpiScale);
 
+	/** 设置控件的高度，供动画使用的接口
+	*/
+	void SetFixedHeight64(int64_t cy64);
+
+public:
+	/** 判断是否需要重新评估大小
+	*/
+	bool IsReEstimateSize() const;
+
+	/** 设置是否需要重新评估大小
+	 */
+	void SetReEstimateSize(bool bReEstimateSize);
+
+	/** 获取控件的已估算大小（长度和宽度），相当于EstimateSize函数估算后的缓存值
+	*/
+	const UiEstSize& GetEstimateSize() const;
+
+	/**@brief 设置控件的已估算大小（长度和宽度），相当于EstimateSize函数估算后的缓存值
+	*/
+	void SetEstimateSize(const UiEstSize& szEstimateSize);
+
+	/**@brief 估算控件大小（基类中无具体实现, 返回设置的固定大小）
+	*  @param [in] szAvailable 可用大小
+	 */
+	virtual UiEstSize EstimateSize(UiSize szAvailable);
+
+public:
 	/** 获取最小宽度
 	* @return 返回最小宽度（ >= 0）
 	*/
@@ -198,27 +230,6 @@ public:
 	 */
 	void SetMargin(UiMargin rcMargin, bool bNeedDpiScale);
 
-	/**@brief 判断是否需要重新评估大小
-	 */
-	bool IsReEstimateSize() const { return m_bReEstimateSize; }
-
-	/**@brief 设置是否需要重新评估大小
-	 */
-	void SetReEstimateSize(bool bReEstimateSize);
-
-	/**@brief 获取控件的已估算大小（长度和宽度），相当于EstimateSize函数估算后的缓存值
-	*/
-	const UiSize& GetEstimateSize() const { return m_szEstimateSize; }
-
-	/**@brief 设置控件的已估算大小（长度和宽度），相当于EstimateSize函数估算后的缓存值
-	*/
-	void SetEstimateSize(const UiSize& szEstimateSize) { m_szEstimateSize = szEstimateSize; }
-
-	/**@brief 估算控件大小（基类中无具体实现, 返回设置的固定大小）
-	*  @param [in] szAvailable 已有大小
-	 */
-	virtual UiSize EstimateSize(UiSize /*szAvailable*/) { return m_cxyFixed; }
-
 	/**@brief 获取控件位置（子类可改变行为）
 	 * @param[in] bContainShadow 是否包含阴影位置，默认为 true
 	 */
@@ -285,10 +296,6 @@ public:
 	 */
 	bool IsChild(PlaceHolder* pAncestor, PlaceHolder* pChild) const;
 
-	/** 将64位整型值转换位32位整型值
-	*/
-	int32_t TruncateToInt32(int64_t x) const;
-
 protected:
 	/** @brief 让自己重排
 	 * @return void 无
@@ -308,8 +315,14 @@ private:
 	//控件位置与大小
 	UiRect m_uiRect;
 
-	//控件的大小
-	UiSize m_cxyFixed;
+	//外部设置的控件大小
+	UiFixedSize m_cxyFixed;
+
+	//是否需要重新评估大小
+	bool m_bReEstimateSize;
+
+	//控件的已估算大小（长度和宽度），相当于估算后的缓存值
+	UiEstSize m_szEstimateSize;
 
 	//控件大小最小值
 	UiSize m_cxyMin;
@@ -328,12 +341,6 @@ private:
 
 	//控件是否为浮动属性
 	bool m_bFloat;
-
-	//是否需要重新评估大小
-	bool m_bReEstimateSize;
-
-	//控件的已估算大小（长度和宽度），相当于估算后的缓存值
-	UiSize m_szEstimateSize;
 
 	//是否需要布局重排
 	bool m_bIsArranged;

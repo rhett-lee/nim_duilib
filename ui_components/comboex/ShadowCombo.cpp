@@ -24,7 +24,7 @@ void CShadowComboWnd::InitComboWnd(ShadowCombo* pOwner)
     ui::UiPoint scrollBoxOffset = pOwner->GetScrollOffsetInScrollBox();
     rcOwner.Offset(-scrollBoxOffset.x, -scrollBoxOffset.y);
 
-    int iItemHeight = ui::Box::IsValidItemIndex(m_iOldSel) ? pOwner->GetItemAt(m_iOldSel)->GetFixedHeight() : 0;
+    int iItemHeight = ui::Box::IsValidItemIndex(m_iOldSel) ? pOwner->GetItemAt(m_iOldSel)->GetFixedHeight().GetInt32() : 0;
     int iOffset = iItemHeight * ((int)m_iOldSel + 1);
     if (!ui::Box::IsValidItemIndex(m_iOldSel)) {
         iOffset = iItemHeight;
@@ -54,8 +54,10 @@ void CShadowComboWnd::InitComboWnd(ShadowCombo* pOwner)
         if (!pControl->IsVisible()) {
             continue;
         }
-        ui::UiSize sz = pControl->EstimateSize(szAvailable);
-        cyFixed += sz.cy;
+        ui::UiEstSize estSize = pControl->EstimateSize(szAvailable);
+        if (estSize.cy.IsInt32()) {
+            cyFixed += estSize.cy.GetInt32();
+        }        
     }
 
     int padding = 2;
@@ -186,8 +188,8 @@ ShadowCombo::ShadowCombo():
     m_cArrow = new ui::Control;
     m_cArrow->SetStateImage(ui::kControlStateNormal, L"../public/combo/arrow_normal.svg");
     m_cArrow->SetStateImage(ui::kControlStateHot, L"../public/combo/arrow_hot.svg");
-    m_cArrow->SetFixedWidth(DUI_LENGTH_AUTO, true, true);
-    m_cArrow->SetFixedHeight(DUI_LENGTH_AUTO, true);
+    m_cArrow->SetFixedWidth(ui::UiFixedInt::MakeAuto(), true, true);
+    m_cArrow->SetFixedHeight(ui::UiFixedInt::MakeAuto(), true);
 }
 
 ShadowCombo::~ShadowCombo() 
@@ -206,11 +208,11 @@ void ShadowCombo::DoInit()
         m_cArrow->SetWindow(GetWindow());
         AttachResize(ToWeakCallback([this](const ui::EventArgs& /*args*/) {
             ui::UiRect rect = GetRect();
-            ui::UiSize ArrrowSize = m_cArrow->EstimateSize(ui::UiSize(GetRect().Width(), GetRect().Height()));
-            rect.top = GetRect().top + (GetRect().Height() - ArrrowSize.cy) / 2;
-            rect.bottom = rect.top + ArrrowSize.cy;
-            rect.left = GetRect().right - ArrrowSize.cx - m_iArrowOffset;
-            rect.right = rect.left + ArrrowSize.cx;
+            ui::UiEstSize estSize = m_cArrow->EstimateSize(ui::UiSize(GetRect().Width(), GetRect().Height()));
+            rect.top = GetRect().top + (GetRect().Height() - estSize.cy.GetInt32()) / 2;
+            rect.bottom = rect.top + estSize.cy.GetInt32();
+            rect.left = GetRect().right - estSize.cx.GetInt32() - m_iArrowOffset;
+            rect.right = rect.left + estSize.cx.GetInt32();
             m_cArrow->SetPos(rect);
             return true;
             }));

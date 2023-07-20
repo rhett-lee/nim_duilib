@@ -233,11 +233,17 @@ void CMenuWnd::ResizeMenu()
 	ui::UiRect rcWork;
 	GetMonitorWorkRect(m_menuPoint, rcWork);
 
-	ui::UiSize szAvailable = { rcWork.right - rcWork.left, rcWork.bottom - rcWork.top };
-	szAvailable = pRoot->EstimateSize(szAvailable);   //这里带上了阴影窗口
+	ui::UiSize szAvailable = { rcWork.Width(), rcWork.Height()};
+	UiEstSize estSize = pRoot->EstimateSize(szAvailable);   //这里带上了阴影窗口
+	if (estSize.cx.IsInt32()) {
+		szAvailable.cx = estSize.cx.GetInt32();
+	}
+	if (estSize.cy.IsInt32()) {
+		szAvailable.cy = estSize.cy.GetInt32();
+	}	
 	SetInitSize(szAvailable.cx, szAvailable.cy);
 	ui::UiPadding rcCorner = GetShadowCorner();
-	ui::UiSize szInit=szAvailable;
+	ui::UiSize szInit = szAvailable;
 	szInit.cx -= rcCorner.left + rcCorner.right;
 	szInit.cy -= rcCorner.top + rcCorner.bottom; //这里去掉阴影窗口，即用户的视觉有效面积 szInit<=szAvailable
 	
@@ -297,16 +303,16 @@ void CMenuWnd::ResizeSubMenu()
 
 	UiRect rcWork;
 	GetMonitorWorkRect(m_menuPoint, rcWork);
-	UiSize szAvailable = { rcWork.right - rcWork.left, rcWork.bottom - rcWork.top };
+	UiSize szAvailable = { rcWork.Width(), rcWork.Height()};
 
 	const size_t itemCount = m_pLayout->GetItemCount();
 	for (size_t it = 0; it < itemCount; ++it) {
 		//取子菜单项中的最大值作为菜单项
 		CMenuElementUI* pItem = dynamic_cast<CMenuElementUI*>(m_pLayout->GetItemAt(it));
 		if (pItem != nullptr) {
-			UiSize sz = pItem->EstimateSize(szAvailable);
+			UiEstSize estSize = pItem->EstimateSize(szAvailable);
+			UiSize sz(estSize.cx.GetInt32(), estSize.cy.GetInt32());			
 			cyFixed += sz.cy;
-
 			if (cxFixed < sz.cx) {
 				cxFixed = sz.cx;
 			}				
@@ -316,12 +322,7 @@ void CMenuWnd::ResizeSubMenu()
 	UiRect rcWindow;
 	GetWindowRect(m_pOwner->GetWindow()->GetHWND(), rcWindow);
 	//去阴影
-	{
-		rcWindow.left += rcCorner.left;
-		rcWindow.right -= rcCorner.right;
-		rcWindow.top += rcCorner.top;
-		rcWindow.bottom -=  rcCorner.bottom;
-	}
+	rcWindow.Deflate(rcCorner);
 
 	MapWindowRect(m_pOwner->GetWindow()->GetHWND(), HWND_DESKTOP, rc);
 	

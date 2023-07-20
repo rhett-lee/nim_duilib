@@ -29,8 +29,8 @@ void MyGridBody::SetColCount(int count)
 			continue;
 		int col_width = GetColumnWidth(static_cast<int>(i));
 		Combo* combo = new Combo;
-		combo->SetFixedWidth(col_width - HEADER_COMBO_MARGIN_LEFT * 2, true, true);
-		combo->SetFixedHeight(header_height / 2 - HEADER_COMBO_MARGIN_BOTTOM, true);
+		combo->SetFixedWidth(ui::UiFixedInt(col_width - HEADER_COMBO_MARGIN_LEFT * 2), true, true);
+		combo->SetFixedHeight(ui::UiFixedInt(header_height / 2 - HEADER_COMBO_MARGIN_BOTTOM), true);
 		combo->SetMargin(ui::UiMargin(margin_left + HEADER_COMBO_MARGIN_LEFT, header_height / 2, 0, 0), true);
 		combo->SetClass(L"combo2");
 		combo->SetAttribute(L"cursortype", L"hand");
@@ -47,7 +47,7 @@ void MyGridBody::SetColCount(int count)
 			ListBoxElement *combo_item = new ListBoxElement;
 			combo_item->SetClass(L"listitem");
 			combo_item->SetUTF8Text("item0");
-			combo_item->SetFixedHeight(24, true);
+			combo_item->SetFixedHeight(ui::UiFixedInt(24), true);
 			combo->AddItem(combo_item);
 		}
 	}
@@ -65,8 +65,8 @@ GridHeaderItem* MyGridBody::AddCol(std::wstring text, int width)
 		{
 			int col_width = GetColumnWidth(col_index);
 			Combo* combo = new Combo;
-			combo->SetFixedWidth(col_width - HEADER_COMBO_MARGIN_LEFT * 2, true, true);
-			combo->SetFixedHeight(GetHeaderHeight() / 2 - HEADER_COMBO_MARGIN_BOTTOM, true);
+			combo->SetFixedWidth(ui::UiFixedInt(col_width - HEADER_COMBO_MARGIN_LEFT * 2), true, true);
+			combo->SetFixedHeight(ui::UiFixedInt(GetHeaderHeight() / 2 - HEADER_COMBO_MARGIN_BOTTOM), true);
 			combo->SetMargin(ui::UiMargin(margin_left + HEADER_COMBO_MARGIN_LEFT, GetHeaderHeight() / 2, 0, 0), true);
 			combo->SetClass(L"combo2");
 			combo->SetAttribute(L"cursortype", L"hand");
@@ -83,7 +83,7 @@ GridHeaderItem* MyGridBody::AddCol(std::wstring text, int width)
 				ListBoxElement *combo_item = new ListBoxElement;
 				combo_item->SetClass(L"listitem");
 				combo_item->SetUTF8Text("item0");
-				combo_item->SetFixedHeight(24, true);
+				combo_item->SetFixedHeight(ui::UiFixedInt(24), true);
 				combo->AddItem(combo_item);
 			}
 		}
@@ -138,7 +138,7 @@ void MyGridBody::ResetHeanderComboPos()
 			rcMargin.left = posx + HEADER_COMBO_MARGIN_LEFT;
 			rcMargin.top = GetHeaderHeight() / 2 + szOff.cy;
 			pControl->SetMargin(rcMargin, true);
-			pControl->SetFixedWidth(m_hLayout[i] - HEADER_COMBO_MARGIN_LEFT * 2, true, true);
+			pControl->SetFixedWidth(ui::UiFixedInt(m_hLayout[i] - HEADER_COMBO_MARGIN_LEFT * 2), true, true);
 
 			posx += m_hLayout[i];
 		}
@@ -164,14 +164,14 @@ void MyGridBody::PaintBody(IRender* pRender)
 	{
 		UiRect rcPaint = GetPos();
 		rcPaint.bottom = rcPaint.top + fixed_row_height;
-		rcPaint.right = rcPaint.left + (GetFixedWidth() - szOff.cx > grid_width ? grid_width : GetFixedWidth() - szOff.cx);
+		rcPaint.right = rcPaint.left + (GetFixedWidth().GetInt32() - szOff.cx > grid_width ? grid_width : GetFixedWidth().GetInt32() - szOff.cx);
 		pRender->FillRect(rcPaint, GlobalManager::Instance().Color().GetColor(m_strFixedBkColor), 255);
 	}
 	if (fixed_col_width > 0)
 	{
 		UiRect rcPaint = GetPos();
 		rcPaint.right = rcPaint.left + fixed_col_width;
-		rcPaint.bottom = rcPaint.top + (GetFixedHeight() - szOff.cy > grid_height ? grid_height : GetFixedHeight() - szOff.cy);
+		rcPaint.bottom = rcPaint.top + (GetFixedHeight().GetInt32() - szOff.cy > grid_height ? grid_height : GetFixedHeight().GetInt32() - szOff.cy);
 		pRender->FillRect(rcPaint, GlobalManager::Instance().Color().GetColor(m_strFixedBkColor), 255);
 	}
 

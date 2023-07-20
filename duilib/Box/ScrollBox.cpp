@@ -105,14 +105,17 @@ UiSize64 ScrollBox::CalcRequiredSize(const UiRect& rc)
 		UiRect childSize = rc;
 		if (!m_bScrollBarFloat && m_pVScrollBar && m_pVScrollBar->IsValid()) {
 			if (m_bVScrollBarLeftPos) {
-				childSize.left += m_pVScrollBar->GetFixedWidth();
+				ASSERT(m_pVScrollBar->GetFixedWidth().GetInt32() > 0);
+				childSize.left += m_pVScrollBar->GetFixedWidth().GetInt32();
 			}
 			else {
-				childSize.right -= m_pVScrollBar->GetFixedWidth();
+				ASSERT(m_pVScrollBar->GetFixedWidth().GetInt32() > 0);
+				childSize.right -= m_pVScrollBar->GetFixedWidth().GetInt32();
 			}
 		}
 		if (!m_bScrollBarFloat && m_pHScrollBar && m_pHScrollBar->IsValid()) {
-			childSize.bottom -= m_pHScrollBar->GetFixedHeight();
+			ASSERT(m_pHScrollBar->GetFixedHeight().GetInt32() > 0);
+			childSize.bottom -= m_pHScrollBar->GetFixedHeight().GetInt32();
 		}
 		requiredSize = GetLayout()->ArrangeChild(m_items, childSize);
 	}
@@ -655,7 +658,8 @@ void ScrollBox::PageUp()
 	UiSize64 sz = GetScrollPos();
 	int iOffset = GetRect().bottom - GetRect().top - GetLayout()->GetPadding().top - GetLayout()->GetPadding().bottom;
 	if (m_pHScrollBar && m_pHScrollBar->IsValid()) {
-		iOffset -= m_pHScrollBar->GetFixedHeight();
+		ASSERT(m_pHScrollBar->GetFixedHeight().GetInt32() > 0);
+		iOffset -= m_pHScrollBar->GetFixedHeight().GetInt32();
 	}
 	sz.cy -= iOffset;
 	SetScrollPos(sz);
@@ -666,7 +670,8 @@ void ScrollBox::PageDown()
 	UiSize64 sz = GetScrollPos();
 	int iOffset = GetRect().bottom - GetRect().top - GetLayout()->GetPadding().top - GetLayout()->GetPadding().bottom;
 	if ((m_pHScrollBar != nullptr) && m_pHScrollBar->IsValid()) {
-		iOffset -= m_pHScrollBar->GetFixedHeight();
+		ASSERT(m_pHScrollBar->GetFixedHeight().GetInt32() > 0);
+		iOffset -= m_pHScrollBar->GetFixedHeight().GetInt32();
 	}
 	sz.cy += iOffset;
 	SetScrollPos(sz);
@@ -828,11 +833,19 @@ void ScrollBox::ProcessVScrollBar(UiRect rc, int64_t cyRequired)
 	}
 	else {
 		if (m_bVScrollBarLeftPos) {
-			UiRect rcVerScrollBarPos(rcScrollBarPos.left, rcScrollBarPos.top, rcScrollBarPos.left + m_pVScrollBar->GetFixedWidth(), rcScrollBarPos.bottom);
+			ASSERT(m_pVScrollBar->GetFixedWidth().GetInt32() > 0);
+			UiRect rcVerScrollBarPos(rcScrollBarPos.left, 
+									 rcScrollBarPos.top, 
+									 rcScrollBarPos.left + m_pVScrollBar->GetFixedWidth().GetInt32(),
+									 rcScrollBarPos.bottom);
 			m_pVScrollBar->SetPos(rcVerScrollBarPos);
 		}
 		else {
-			UiRect rcVerScrollBarPos(rcScrollBarPos.right - m_pVScrollBar->GetFixedWidth(), rcScrollBarPos.top, rcScrollBarPos.right, rcScrollBarPos.bottom);
+			ASSERT(m_pVScrollBar->GetFixedWidth().GetInt32() > 0);
+			UiRect rcVerScrollBarPos(rcScrollBarPos.right - m_pVScrollBar->GetFixedWidth().GetInt32(),
+				                     rcScrollBarPos.top, 
+				                     rcScrollBarPos.right, 
+				                     rcScrollBarPos.bottom);
 			m_pVScrollBar->SetPos(rcVerScrollBarPos);
 		}
 
@@ -888,7 +901,11 @@ void ScrollBox::ProcessHScrollBar(UiRect rc, int64_t cxRequired)
 		SetPos(GetRect());
 	}
 	else {
-		UiRect rcVerScrollBarPos(rcScrollBarPos.left, rcScrollBarPos.bottom - m_pHScrollBar->GetFixedHeight(), rcScrollBarPos.right, rcScrollBarPos.bottom);
+		ASSERT(m_pHScrollBar->GetFixedHeight().GetInt32() > 0);
+		UiRect rcVerScrollBarPos(rcScrollBarPos.left, 
+								 rcScrollBarPos.bottom - m_pHScrollBar->GetFixedHeight().GetInt32(),
+			                     rcScrollBarPos.right, 
+			                     rcScrollBarPos.bottom);
 		m_pHScrollBar->SetPos(rcVerScrollBarPos);
 
 		if (m_pHScrollBar->GetScrollRange() != cxScroll) {

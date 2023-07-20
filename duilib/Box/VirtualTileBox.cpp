@@ -45,13 +45,20 @@ UiSize64 VirtualTileLayout::ArrangeChild(const std::vector<ui::Control*>& /*item
     return sz;
 }
 
-ui::UiSize VirtualTileLayout::EstimateSizeByChild(const std::vector<ui::Control*>& /*items*/, ui::UiSize szAvailable)
+UiSize VirtualTileLayout::EstimateSizeByChild(const std::vector<Control*>& /*items*/, ui::UiSize szAvailable)
 {
     int32_t nColumns = GetColumns();
     UiSize szItem = GetItemSize();
     ASSERT(nColumns > 0);
-    ui::UiSize size = m_pOwner->Control::EstimateSize(szAvailable);
-    if (size.cx == DUI_LENGTH_AUTO || size.cx == 0) {
+    UiEstSize estSize = m_pOwner->Control::EstimateSize(szAvailable);
+    UiSize size(estSize.cx.GetInt32(), estSize.cy.GetInt32());
+    if (estSize.cx.IsStretch()) {
+        size.cx = 0;
+    }
+    if (estSize.cy.IsStretch()) {
+        size.cy = 0;
+    }    
+    if (estSize.cx.GetInt32() == 0) {
         size.cx = szItem.cx * nColumns + GetChildMarginX() * (nColumns - 1);
     }
     return size;

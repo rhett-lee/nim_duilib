@@ -3,14 +3,14 @@
 namespace nim_comp {
 
 NotificationHeader::NotificationHeader(const std::wstring& strTitle,
-  bool bShowClose,
-  PopoverIconType nIconType) :
-  PopoverHeader(strTitle, bShowClose, nIconType)
+    bool bShowClose,
+    PopoverIconType nIconType) :
+    PopoverHeader(strTitle, bShowClose, nIconType)
 {
-  m_bUseMaxSize = true;
+    m_bUseMaxSize = true;
 
-  if (m_pRichEditTitle)
-    m_pRichEditTitle->SetClass(L"popover_label notification_label_title");
+    if (m_pRichEditTitle)
+        m_pRichEditTitle->SetClass(L"popover_label notification_label_title");
 }
 
 NotificationHeader::~NotificationHeader()
@@ -18,9 +18,9 @@ NotificationHeader::~NotificationHeader()
 }
 
 NotificationBody::NotificationBody(const std::wstring& strContent)
-  :PopoverBody(strContent)
+    :PopoverBody(strContent)
 {
-  m_bUseMaxSize = true;
+    m_bUseMaxSize = true;
 }
 
 NotificationBody::~NotificationBody()
@@ -28,27 +28,27 @@ NotificationBody::~NotificationBody()
 }
 
 Notification::Notification(ui::Control* pAnchor,
-  int nPlacement,
-  int nShowType,
-  int nDisappearType,
-  bool bRemoveOnClose,
-  int nShowTimeouts,
-  int nDisappearTimeouts,
-  PopoverHeader* header,
-  PopoverBody* body) :
-  Popover(pAnchor,
-    nPlacement,
-    nShowType,
-    nDisappearType,
-    bRemoveOnClose,
-    nShowTimeouts,
-    nDisappearTimeouts,
-    header,
-    body,
-    nullptr,
-    nullptr)
+    int nPlacement,
+    int nShowType,
+    int nDisappearType,
+    bool bRemoveOnClose,
+    int nShowTimeouts,
+    int nDisappearTimeouts,
+    PopoverHeader* header,
+    PopoverBody* body) :
+    Popover(pAnchor,
+        nPlacement,
+        nShowType,
+        nDisappearType,
+        bRemoveOnClose,
+        nShowTimeouts,
+        nDisappearTimeouts,
+        header,
+        body,
+        nullptr,
+        nullptr)
 {
-  
+
 }
 
 Notification::~Notification()
@@ -57,23 +57,20 @@ Notification::~Notification()
 
 void Notification::SetPos(ui::UiRect rc)
 {
-  auto size = EstimateSize({ 0,0 });
+    auto size = EstimateSize({ 0,0 });
 
-  if (rc.Width() < size.cx) {
-    rc.left = rc.right - size.cx;
-    rc.right = rc.left + size.cx;
-  }
+    if (rc.Width() < size.cx.GetInt32()) {
+        rc.left = rc.right - size.cx.GetInt32();
+        rc.right = rc.left + size.cx.GetInt32();
+    }
 
-  ui::VBox::SetPos(rc);
+    ui::VBox::SetPos(rc);
 }
 
 void Notification::InitializePosition()
 {
-  SetFloat(false);
-  SetHorAlignType(GetHorAlignType());
-  SetVerAlignType(GetVerAlignType());
+    SetFloat(false);
+    SetHorAlignType(GetHorAlignType());
+    SetVerAlignType(GetVerAlignType());
 }
-
-
-
 }

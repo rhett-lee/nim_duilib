@@ -37,7 +37,7 @@ public:
 	virtual void PaintChild(IRender* pRender, const UiRect& rcPaint) override;
 	virtual void SetEnabled(bool bEnabled) override;
 	virtual void SetVisible(bool bVisible) override;
-	virtual UiSize EstimateSize(UiSize szAvailable) override;
+	virtual UiEstSize EstimateSize(UiSize szAvailable) override;
 	virtual Control* FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, UiPoint scrollPos = UiPoint()) override;
 	virtual void InvokeLoadImageCache() override;
 	virtual void UnLoadImageCache() override;
