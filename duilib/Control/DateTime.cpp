@@ -223,7 +223,7 @@ DateTime::DateTime():
     //…Ë÷√ƒ¨»œ Ù–‘
     SetAttribute(L"border_size", L"1");
     SetAttribute(L"border_color", L"gray");
-    SetAttribute(L"align", L"vcenter");
+    SetAttribute(L"text_align", L"vcenter");
 }
 
 DateTime::~DateTime()

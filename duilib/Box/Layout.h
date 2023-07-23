@@ -13,6 +13,7 @@ class Box;
 class Control;
 
 /** 控件布局：各个子控件顶点坐标(left,top)都相同，各个控件堆叠排列（相当于都看成是Float控件）
+*            子控件可用指定横向对齐方式和纵向对齐方式，排列的时候会按照子控件指定的对齐方式排列
 */
 class UILIB_API Layout
 {
@@ -31,7 +32,7 @@ public:
 	 * @param[in] rcContainer 要设置的位置信息
 	 * @return 返回控件最终的大小信息（宽度和高度）
 	 */
-	static UiSize64 SetFloatPos(Control* pControl, UiRect rcContainer);
+	static UiSize64 SetFloatPos(Control* pControl, const UiRect& rcContainer);
 
 	/** 设置布局属性
 	 * @param[in] strName 要设置的属性名
@@ -42,7 +43,7 @@ public:
 
 	/** 调整内部所有控件的位置信息
 	 * @param[in] items 控件列表
-	 * @param[in] rc 当前容器位置信息
+	 * @param[in] rc 当前容器位置信息, 外部调用时，不需要扣除内边距
 	 * @return 返回排列后最终盒子的宽度和高度信息
 	 */
 	virtual UiSize64 ArrangeChild(const std::vector<Control*>& items, UiRect rc);
@@ -96,6 +97,23 @@ public:
 	 * @return 返回可用范围位置信息
 	 */
 	UiRect GetInternalPos() const;
+
+	/** 将区域去掉内边距, 并确保rc区域有效
+	*/
+	void DeflatePadding(UiRect& rc) const;
+
+protected:
+	/** 检查配置的宽和高是否正确, 如果发现错误，给予断言
+	*/
+	void CheckConfig(const std::vector<Control*>& items);
+
+	/** 按照控件指定的对齐方式，计算控件的布局位置
+	* @param [in] pControl 控件的接口
+	* @param [in] rcContainer 目标容器的矩形，包含控件的外边距
+	* @param [in] childSize 控件pControl的大小（宽和高）, 内部不会再计算控件的大小
+	* @return 返回控件的位置和大小，可用用pControl->SetPos(rect)来调整控件位置;
+	*/
+	static UiRect GetFloatPos(Control* pControl, UiRect rcContainer, UiSize childSize);
 
 protected:
 

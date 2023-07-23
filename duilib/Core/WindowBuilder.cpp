@@ -452,11 +452,14 @@ Control* WindowBuilder::ParseXmlNode(const pugi::xml_node& xmlNode, Control* pPa
 			}
 			pugi::xml_attribute countAttr = node.attribute(L"count");
 			int nCount = countAttr.as_int();
-
-			pugi::xml_attribute sourceAttr = node.attribute(L"source");
+			if (nCount <= 0) {
+				//默认值设置为1，count这个属性参数为可选
+				nCount = 1;
+			}
+			pugi::xml_attribute sourceAttr = node.attribute(L"src");
 			std::wstring sourceValue = sourceAttr.as_string();
 			if (sourceValue.empty()) {
-				sourceAttr = node.attribute(L"src");
+				sourceAttr = node.attribute(L"source");
 				sourceValue = sourceAttr.as_string();				
 			}
 			if (!sourceValue.empty()) {
@@ -473,7 +476,6 @@ Control* WindowBuilder::ParseXmlNode(const pugi::xml_node& xmlNode, Control* pPa
 					}
 				}
 			}
-			ASSERT(nCount > 0);
 			ASSERT(!sourceValue.empty());
 			if (sourceValue.empty()) {
 				continue;

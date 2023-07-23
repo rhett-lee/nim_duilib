@@ -44,13 +44,23 @@ public:
 class UILIB_API VirtualVLayout : public VLayout
 {
 protected:
-	virtual ui::UiSize64 ArrangeChild(const std::vector<ui::Control*>& items, ui::UiRect rc);
+	/** 调整内部所有控件的位置信息
+	 * @param[in] items 控件列表
+	 * @param[in] rc 当前容器位置信息, 外部调用时，不需要扣除内边距
+	 * @return 返回排列后最终盒子的宽度和高度信息
+	 */
+	virtual UiSize64 ArrangeChild(const std::vector<Control*>& items, UiRect rc) override;
 };
 
 class UILIB_API VirtualHLayout : public HLayout
 {
 protected:
-	virtual ui::UiSize64 ArrangeChild(const std::vector<ui::Control*>& items, ui::UiRect rc);
+	/** 调整内部所有控件的位置信息
+	 * @param[in] items 控件列表
+	 * @param[in] rc 当前容器位置信息, 外部调用时，不需要扣除内边距
+	 * @return 返回排列后最终盒子的宽度和高度信息
+	 */
+	virtual UiSize64 ArrangeChild(const std::vector<Control*>& items, UiRect rc) override;
 };
 
 /** 虚表实现的ListBox，垂直布局

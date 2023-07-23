@@ -38,6 +38,7 @@ VirtualTileLayout::VirtualTileLayout():
 
 UiSize64 VirtualTileLayout::ArrangeChild(const std::vector<ui::Control*>& /*items*/, ui::UiRect rc)
 {
+    DeflatePadding(rc);
     UiSize64 sz(rc.Width(), rc.Height());
     int64_t nTotalHeight = GetElementsHeight(Box::InvalidIndex);
     sz.cy = std::max(nTotalHeight, sz.cy);

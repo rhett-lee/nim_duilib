@@ -19,33 +19,16 @@ void Layout::SetOwner(Box* pOwner)
 	m_pOwner = pOwner;
 }
 
-UiSize64 Layout::SetFloatPos(Control* pControl, UiRect rcContainer)
+UiSize64 Layout::SetFloatPos(Control* pControl, const UiRect& rcContainer)
 {
 	ASSERT(pControl != nullptr);
 	if ((pControl == nullptr) || (!pControl->IsVisible())) {
 		return UiSize64();
 	}
-	if (rcContainer.Width() < 0) {
-		rcContainer.right = rcContainer.left;
-	}
-	if (rcContainer.Height() < 0) {
-		rcContainer.bottom = rcContainer.top;
-	}
-
 	UiMargin rcMargin = pControl->GetMargin();
-	int32_t iPosLeft = rcContainer.left + rcMargin.left;
-	int32_t iPosRight = rcContainer.right - rcMargin.right;
-	int32_t iPosTop = rcContainer.top + rcMargin.top;
-	int32_t iPosBottom = rcContainer.bottom - rcMargin.bottom;
-	ASSERT(iPosRight >= iPosLeft);
-	if (iPosRight < iPosLeft) {
-		iPosRight = iPosLeft;
-	}
-	ASSERT(iPosBottom >= iPosTop);
-	if (iPosBottom < iPosTop) {
-		iPosBottom = iPosTop;
-	}
-	UiSize szAvailable(iPosRight - iPosLeft, iPosBottom - iPosTop);
+	UiRect rc = rcContainer;
+	rc.Deflate(rcMargin);
+	UiSize szAvailable(rc.Width(), rc.Height());
 	szAvailable.Validate();
 	UiEstSize estSize = pControl->EstimateSize(szAvailable);
 	UiSize childSize(estSize.cx.GetInt32(), estSize.cy.GetInt32());
@@ -71,9 +54,41 @@ UiSize64 Layout::SetFloatPos(Control* pControl, UiRect rcContainer)
 	if (childSize.cy > pControl->GetMaxHeight()) {
 		childSize.cy = pControl->GetMaxHeight();
 	}
+	UiRect childPos = GetFloatPos(pControl, rcContainer, childSize);
+	pControl->SetPos(childPos);
+	//TODO: 64位兼容性检查
+	return UiSize64(childPos.Width(), childPos.Height());
+}
+
+UiRect Layout::GetFloatPos(Control* pControl, UiRect rcContainer, UiSize childSize)
+{
+	if (rcContainer.Width() < 0) {
+		rcContainer.right = rcContainer.left;
+	}
+	if (rcContainer.Height() < 0) {
+		rcContainer.bottom = rcContainer.top;
+	}
+
+	UiMargin rcMargin = pControl->GetMargin();
+	int32_t iPosLeft = rcContainer.left + rcMargin.left;
+	int32_t iPosRight = rcContainer.right - rcMargin.right;
+	int32_t iPosTop = rcContainer.top + rcMargin.top;
+	int32_t iPosBottom = rcContainer.bottom - rcMargin.bottom;
+	//如果空间不足，则宽高设置为零（如果界面可用调整大小，这个情况会频繁出现）
+	if (iPosRight < iPosLeft) {
+		iPosRight = iPosLeft;
+	}
+	if (iPosBottom < iPosTop) {
+		iPosBottom = iPosTop;
+	}
+	
+	childSize.cx = std::max(childSize.cx, 0);
+	childSize.cy = std::max(childSize.cy, 0);
 
 	int32_t childWidth = childSize.cx;
 	int32_t childHeight = childSize.cy;
+
+	//按照子控件指定的横向对齐方式和纵向对齐方式来排列控件
 	HorAlignType horAlignType = pControl->GetHorAlignType();
 	VerAlignType verAlignType = pControl->GetVerAlignType();
 
@@ -109,9 +124,7 @@ UiSize64 Layout::SetFloatPos(Control* pControl, UiRect rcContainer)
 	}
 
 	UiRect childPos(childLeft, childTop, childRight, childBottm);
-	pControl->SetPos(childPos);
-	//TODO: 64位兼容性检查
-	return UiSize64(childPos.Width(), childPos.Height());
+	return childPos;
 }
 
 bool Layout::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
@@ -143,6 +156,7 @@ bool Layout::SetAttribute(const std::wstring& strName, const std::wstring& strVa
 
 UiSize64 Layout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 {
+	DeflatePadding(rc);
 	UiSize64 size;
 	for (Control* pControl : items) {
 		if ((pControl == nullptr) || (!pControl->IsVisible())) {
@@ -157,6 +171,8 @@ UiSize64 Layout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 
 UiSize Layout::EstimateSizeByChild(const std::vector<Control*>& items, UiSize szAvailable)
 {
+	//宽度：取所有子控件宽度的最大值，加上Margin、Padding等，不含拉伸类型的子控件
+	//高度：取所有子控件高度的最大值，加上Margin、Padding等，不含拉伸类型的子控件
 	szAvailable.Validate();
 	UiSize maxSize;
 	UiSize itemSize;
@@ -170,32 +186,77 @@ UiSize Layout::EstimateSizeByChild(const std::vector<Control*>& items, UiSize sz
 			//拉伸类型的子控件，不计入
 			itemSize.cx = 0;
 		}
+		else {
+			if (itemSize.cx < pControl->GetMinWidth()) {
+				itemSize.cx = pControl->GetMinWidth();
+			}
+			if (itemSize.cx > pControl->GetMaxWidth()) {
+				itemSize.cx = pControl->GetMaxWidth();
+			}
+		}
 		if (estSize.cy.IsStretch()) {
 			//拉伸类型的子控件，不计入
 			itemSize.cy = 0;
 		}
-		if (itemSize.cx < pControl->GetMinWidth()) {
-			itemSize.cx = pControl->GetMinWidth();
+		else {
+			if (itemSize.cy < pControl->GetMinHeight()) {
+				itemSize.cy = pControl->GetMinHeight();
+			}
+			if (itemSize.cy > pControl->GetMaxHeight()) {
+				itemSize.cy = pControl->GetMaxHeight();
+			}
 		}
-		if (itemSize.cx > pControl->GetMaxWidth()) {
-			itemSize.cx = pControl->GetMaxWidth();
-		}
-		if (itemSize.cy < pControl->GetMinHeight()) {
-			itemSize.cy = pControl->GetMinHeight();
-		}
-		if (itemSize.cy > pControl->GetMaxHeight()) {
-			itemSize.cy = pControl->GetMaxHeight();
-		}
-		itemSize.cx = std::max(itemSize.cx, 0);
-		itemSize.cy = std::max(itemSize.cy, 0);
-
 		UiMargin rcMargin = pControl->GetMargin();
-		maxSize.cx = std::max(itemSize.cx + rcMargin.left + rcMargin.right, maxSize.cx);
-		maxSize.cy = std::max(itemSize.cy + rcMargin.top + rcMargin.bottom, maxSize.cy);
+		if (itemSize.cx > 0) {
+			maxSize.cx = std::max(itemSize.cx + rcMargin.left + rcMargin.right, maxSize.cx);
+		}
+		if (itemSize.cy > 0) {
+			maxSize.cy = std::max(itemSize.cy + rcMargin.top + rcMargin.bottom, maxSize.cy);
+		}
 	}
-	maxSize.cx += m_rcPadding.left + m_rcPadding.right;
-	maxSize.cy += m_rcPadding.top + m_rcPadding.bottom;
+	if (maxSize.cx > 0) {
+		maxSize.cx += m_rcPadding.left + m_rcPadding.right;
+	}
+	if (maxSize.cy > 0) {
+		maxSize.cy += m_rcPadding.top + m_rcPadding.bottom;
+	}
+	if ((maxSize.cx == 0) || (maxSize.cy == 0)){
+		CheckConfig(items);
+	}
 	return maxSize;
+}
+
+void Layout::CheckConfig(const std::vector<Control*>& items)
+{
+	//如果m_pOwner的宽高都是auto，而且子控件的宽高都是stretch，那么得到的结果是零，增加个断言
+	if (m_pOwner == nullptr) {
+		return;
+	}
+	if (!m_pOwner->GetFixedWidth().IsAuto() && !m_pOwner->GetFixedHeight().IsAuto()) {
+		return;
+	}
+
+	bool isAllWidthStretch = true;
+	bool isAllHeightStretch = true;
+	size_t childCount = 0;
+	for (Control* pControl : items) {
+		if ((pControl == nullptr) || !pControl->IsVisible() || pControl->IsFloat()) {
+			continue;
+		}
+		if (!pControl->GetFixedWidth().IsStretch()) {
+			isAllWidthStretch = false;
+		}
+		if (!pControl->GetFixedHeight().IsStretch()) {
+			isAllHeightStretch = false;
+		}
+		++childCount;
+	}
+	if ((childCount > 0) && m_pOwner->GetFixedWidth().IsAuto() && isAllWidthStretch) {
+		ASSERT(!"配置错误：当前容器的宽是auto，子控件的宽都是stretch，估算宽度为零！");
+	}
+	if ((childCount > 0) && m_pOwner->GetFixedHeight().IsAuto() && isAllHeightStretch) {
+		ASSERT(!"配置错误：当前容器的高是auto，子控件的高都是stretch，估算高度为零！");
+	}
 }
 
 void Layout::SetPadding(UiPadding rcPadding, bool bNeedDpiScale /*= true*/)
@@ -261,6 +322,17 @@ UiRect Layout::GetInternalPos() const
 	UiRect internalPos = m_pOwner->GetPos();
 	internalPos.Deflate(m_rcPadding);
 	return internalPos;
+}
+
+void Layout::DeflatePadding(UiRect& rc) const
+{
+	rc.Deflate(m_rcPadding);
+	if (rc.Width() < 0) {
+		rc.right = rc.left;
+	}
+	if (rc.Height() < 0) {
+		rc.bottom = rc.top;
+	}
 }
 
 } // namespace ui

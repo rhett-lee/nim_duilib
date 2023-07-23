@@ -2254,7 +2254,7 @@ UiColor Control::GetUiColorByName(const std::wstring& colorName) const
 	}
 	if (color.GetARGB() == 0) {
 		//优先级4：直接指定预定义的颜色别名
-		color = GlobalManager::Instance().Color().GetColor(colorName);
+		color = GlobalManager::Instance().Color().GetStandardColor(colorName);
 	}
 	ASSERT(color.GetARGB() != 0);
 	return color;

@@ -113,6 +113,7 @@ size_t TabBox::GetCurSel() const
 	
 bool TabBox::SelectItem(size_t iIndex)
 {
+	ASSERT(iIndex < m_items.size());
 	if (!Box::IsValidItemIndex(iIndex) || (iIndex >= m_items.size())) {
 		return false;
 	}

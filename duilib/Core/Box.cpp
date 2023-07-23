@@ -50,14 +50,10 @@ void Box::SetAttribute(const std::wstring& strName, const std::wstring& strValue
 
 void Box::SetPos(UiRect rc)
 {
-	UiRect rect = rc;	
-	rc.left += m_pLayout->GetPadding().left;
-	rc.top += m_pLayout->GetPadding().top;
-	rc.right -= m_pLayout->GetPadding().right;
-	rc.bottom -= m_pLayout->GetPadding().bottom;
-	m_pLayout->ArrangeChild(m_items, rc);
-
-	Control::SetPos(rect);
+	if (m_pLayout != nullptr) {
+		m_pLayout->ArrangeChild(m_items, rc);		
+	}
+	Control::SetPos(rc);
 }
 
 void Box::PaintChild(IRender* pRender, const UiRect& rcPaint)

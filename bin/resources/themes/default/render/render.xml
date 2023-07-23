@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Window size="960,660" sizebox="4,4,4,4" caption="0,0,0,36" text="渲染引擎测试程序">
+<Window size="90%,90%" sizebox="4,4,4,4" caption="0,0,0,36" text="渲染引擎测试程序">
     <!-- 整个窗口中，所有控件都放在这个VBox容器中 -->  
     <VBox bkcolor="bk_wnd_darkcolor">
         <!-- 标题栏区域 -->  
@@ -13,22 +13,34 @@
             <!-- 标题栏：中间按钮区域 -->
             <HBox margin="0,0,30,0" valign="center" width="auto" height="auto">
                 <Button class="btn_global_blue_80x30" width="48" height="32" text="页面1" margin="8,0,0,0" tooltiptext="页面1" borderround="2,2">
-                    <Event type="buttonup" receiver="main_view_tab" applyattribute="selectedid={0}" />
+                    <Event type="buttonup" receiver="main_view_tab" applyattribute="selected_id={0}" />
                 </Button>
                 <Button class="btn_global_blue_80x30" width="48" height="32" text="页面2" margin="8,0,0,0" tooltiptext="页面2">
-                    <Event type="buttonup" receiver="main_view_tab" applyattribute="selectedid={1}" />
+                    <Event type="buttonup" receiver="main_view_tab" applyattribute="selected_id={1}" />
                 </Button>
                 <Button class="btn_global_blue_80x30" width="48" height="32" text="页面3" margin="8,0,0,0" tooltiptext="页面3" borderround="2,2">
-                    <Event type="buttonup" receiver="main_view_tab" applyattribute="selectedid={2}" />
+                    <Event type="buttonup" receiver="main_view_tab" applyattribute="selected_id={2}" />
                 </Button>
                 <Button class="btn_global_blue_80x30" width="48" height="32" text="页面4" margin="8,0,0,0" tooltiptext="页面4">
-                    <Event type="buttonup" receiver="main_view_tab" applyattribute="selectedid={3}" />
+                    <Event type="buttonup" receiver="main_view_tab" applyattribute="selected_id={3}" />
                 </Button>
                 <Button class="btn_global_blue_80x30" width="48" height="32" text="页面5" margin="8,0,0,0" tooltiptext="页面5" borderround="2,2">
-                    <Event type="buttonup" receiver="main_view_tab" applyattribute="selectedid={4}" />
+                    <Event type="buttonup" receiver="main_view_tab" applyattribute="selected_id={4}" />
                 </Button>
                 <Button class="btn_global_blue_80x30" width="48" height="32" text="页面6" margin="8,0,0,0" tooltiptext="页面5">
-                    <Event type="buttonup" receiver="main_view_tab" applyattribute="selectedid={5}" />
+                    <Event type="buttonup" receiver="main_view_tab" applyattribute="selected_id={5}" />
+                </Button>
+                <Button class="btn_global_blue_80x30" width="78" height="32" text="布局Box" margin="8,0,0,0">
+                    <Event type="buttonup" receiver="main_view_tab" applyattribute="selected_id={6}" />
+                </Button>
+                <Button class="btn_global_blue_80x30" width="78" height="32" text="布局HBox" margin="8,0,0,0">
+                    <Event type="buttonup" receiver="main_view_tab" applyattribute="selected_id={7}" />
+                </Button>
+                <Button class="btn_global_blue_80x30" width="78" height="32" text="布局VBox" margin="8,0,0,0">
+                    <Event type="buttonup" receiver="main_view_tab" applyattribute="selected_id={8}" />
+                </Button>
+                <Button class="btn_global_blue_80x30" width="90" height="32" text="布局TileBox" margin="8,0,0,0">
+                    <Event type="buttonup" receiver="main_view_tab" applyattribute="selected_id={9}" />
                 </Button>
              </HBox>
             <Control />
@@ -45,7 +57,7 @@
         
         <!-- 显示区域 --> 
         <VBox>            
-            <TabBox name="main_view_tab" bkcolor="white" fadeswitch="true" selectedid="2">
+            <TabBox name="main_view_tab" bkcolor="white" fadeswitch="true" selected_id="9">
                 <VBox name="main_view_page_01">
                     <Label text="页面1：IRender接口的图片绘制相关接口测试（DrawImage，BitBlt，StretchBlt，AlphaBlend）"/>
                     <RenderTest1 />
@@ -61,120 +73,29 @@
                 <VBox name="main_view_page_04">
                     <Label text="页面4：用标准控件测试所有支持的文件格式"/>                    
                     <!-- 标准控件: 测试所有支持的文件格式 -->
-                    <HBox width="auto" height="auto">
-                        <Control width="auto" height="auto" bkimage="file='bmp_test_24.bmp' width='140'" valign="center" margin="8"/>
-                        <Control width="auto" height="auto" bkimage="file='webp_test2.webp' width='140'" valign="center" margin="8"/>
-                        <Control width="auto" height="auto" bkimage="file='jpg_test.jpg' width='140'" valign="center" margin="8"/>
-                        <Control width="auto" height="auto" bkimage="file='icon_test.ico' width='140' iconsize='256'" valign="center" margin="8"/>                    
-                    </HBox>
-                    <HBox width="auto" height="auto">
-                        <Label width="140" height="auto" text="BMP格式" align="center" margin="8"/>
-                        <Label width="140" height="auto" text="WEBP格式" align="center" margin="8"/>
-                        <Label width="140" height="auto" text="JPG格式" align="center" margin="8"/>
-                        <Label width="140" height="auto" text="ICO格式" align="center" margin="8"/>               
-                    </HBox>
-                    <HBox width="auto" height="auto">
-                        <Control width="auto" height="auto" bkimage="file='autumn.png' width='140'" valign="center" margin="8"/>
-                        <Control width="auto" height="auto" bkimage="file='svg_test.svg' width='140'" valign="center" margin="8"/>
-                        <Control width="auto" height="auto" bkimage="file='gif_test2.gif' width='140'" valign="center" margin="8"/>                        
-                    </HBox>
-                    <HBox width="auto" height="auto">
-                        <Label width="140" height="auto" text="PNG格式" align="center" margin="8"/>
-                        <Label width="140" height="auto" text="SVG格式" align="center" margin="8"/>
-                        <Label width="140" height="auto" text="GIF格式" align="center" margin="8"/>            
-                    </HBox>
-                    <HBox width="auto" height="auto">           
-                        <Control width="auto" height="auto" bkimage="file='gif_test.gif' width='150'" valign="center" margin="8"/>            
-                        <Control width="auto" height="auto" bkimage="file='apng_test.png' width='150'" valign="center" margin="8"/>
-                        <Control width="auto" height="auto" bkimage="file='apng_test2.png' width='150'" valign="center" margin="8"/>
-                        <Control width="auto" height="auto" bkimage="file='webp_test.webp' width='150'" valign="center" margin="8"/>
-                    </HBox>
-                    <HBox width="auto" height="auto">
-                        <Label width="150" height="auto" text="GIF格式动画" align="center" margin="8"/>
-                        <Label width="150" height="auto" text="APNG格式动画" align="center" margin="8"/>
-                        <Label width="150" height="auto" text="APNG格式动画" align="center" margin="8"/>
-                        <Label width="150" height="auto" text="WEBP格式动画" align="center" margin="8"/>               
-                    </HBox>
+                    <Include src="page_04.xml"/>
                 </VBox>
                 <VBox name="main_view_page_05">
                     <Label text="页面5：文字绘制测试"/>
-                    <HBox>
-                        <VBox width="300" margin="4">
-                            <HBox height="60" bkcolor="blue">
-                                <Label height="stretch" width="stretch" text="文字(横向：左对齐，纵向：上对齐)" align="left,top"/>
-                            </HBox>
-                            <HBox height="60" bkcolor="dark_gray">
-                                <Label height="stretch" width="stretch" text="文字(横向：左对齐，纵向：中对齐)" align="left,vcenter"/>
-                            </HBox>
-                            <HBox height="60" bkcolor="blue">
-                                <Label height="stretch" width="stretch" text="文字(横向：左对齐，纵向：下对齐)" align="left,bottom"/>
-                            </HBox>
-                            <HBox height="60" bkcolor="dark_gray">
-                                <Label height="stretch" width="stretch" text="文字(横向：中对齐，纵向：上对齐)" align="center,top"/>
-                            </HBox>
-                            <HBox height="60" bkcolor="blue">
-                                <Label height="stretch" width="stretch" text="文字(横向：中对齐，纵向：中对齐)" align="center,vcenter"/>
-                            </HBox>
-                            <HBox height="60" bkcolor="dark_gray">
-                                <Label height="stretch" width="stretch" text="文字(横向：中对齐，纵向：下对齐)" align="center,bottom"/>
-                            </HBox>
-                            <HBox height="60" bkcolor="blue">
-                                <Label height="stretch" width="stretch" text="文字(横向：右对齐，纵向：上对齐)" align="right,top"/>
-                            </HBox>
-                            <HBox height="60" bkcolor="dark_gray">
-                                <Label height="stretch" width="stretch" text="文字(横向：右对齐，纵向：中对齐)" align="right,vcenter"/>
-                            </HBox>
-                            <HBox height="60" bkcolor="blue">
-                                <Label height="stretch" width="stretch" text="文字(横向：右对齐，纵向：下对齐)" align="right,bottom"/>
-                            </HBox>
-                            <HBox height="60" bkcolor="dark_gray">
-                                <Label height="auto" width="auto" maxwidth="stretch" text="MeasureString结果测试1，MeasureString结果测试2，MeasureString结果测试3，" singleline="false" bkcolor="red" align="center,vcenter"/>
-                            </HBox>
-                        </VBox>
-                        <VBox width="300" margin="4">                            
-                            <HBox height="60" bkcolor="dark_gray">
-                                <Label height="stretch" width="stretch" text="超长文字绘制\n测试, 单行文本，不自动增加点点点，1234567890-。qwertyuiopasdfghjkl;lmnozxccvb.NBVCXZASDFGHJKLPOIUYTREWQ." autotooltip="true" endellipsis="false"/>
-                            </HBox>
-                            <HBox height="60" bkcolor="blue">
-                                <Label height="stretch" width="stretch" text="超长文字绘制\n测试, 单行文本，自动增加点点点，1234567890-。qwertyuiopasdfghjkl;lmnozxccvb.NBVCXZASDFGHJKLPOIUYTREWQ." autotooltip="true"/>
-                            </HBox>
-                            <HBox height="60" bkcolor="dark_gray">
-                                <Label height="stretch" width="stretch" text="超长文字绘制\n测试, 多行文本，text is 1234567890-。qwertyuiopasdfghjkl-v." autotooltip="true" singleline="false"/>
-                            </HBox>
-                            <HBox height="60" bkcolor="blue">
-                                <Label height="stretch" width="stretch" text="超长文字绘制\n测试, 多行文本，自动增加点点点，超长文本测试good bad test text is 1234567890-。qwertyuiopasdfghjkl;lmnozxccvb.NBVCXZASDFGHJKLPOIUYTREWQ. 超长文本测试，超长文本测试，超长文本测试，超长文本测试，超长文本测试，超长文本测试，超长文本测试，超长文本测试，，超长文本测试，超长文本测试，超长文本测试，超长文本测试" autotooltip="true" singleline="false"/>
-                            </HBox>
-                            <HBox height="60" bkcolor="dark_gray">
-                                <Label height="stretch" width="stretch" text="超长文字绘制\n测试, 多行文本，不自动增加点点点，1234567890NBVCXZASDFGHJKLPOIUYTREWQNBVCXZASDFGHJKLPOIUYTREWQ 超长文本测试good bad test text is -。qwertyuiopasdfghjkl;lmnozxccvb.NBVCXZASDFGHJKLPOIUYTREWQ. 超长文本测试，超长文本测试，超长文本测试，超长文本测试，超长文本测试，超长文本测试，超长文本测试，超长文本测试，，超长文本测试，超长文本测试，超长文本测试，超长文本测试" autotooltip="true" singleline="false" endellipsis="false"/>
-                            </HBox>
-                            <HBox height="60" bkcolor="blue">
-                                <Label height="stretch" width="stretch" text="C:\develop\编程开发学习\Windows内核原理与实现\编程开发\测试编程开发编程开发编程开发.txt" autotooltip="true" singleline="true" path_ellipsis="true"/>
-                            </HBox>
-                        </VBox>
-                        <VBox width="300" margin="4">                            
-                            <HBox height="60" bkcolor="dark_gray">
-                                <Label height="stretch" width="stretch" text="文本绘制-带下划线的字" font="system_underline_14"/>
-                            </HBox>
-                            <HBox height="60" bkcolor="blue">
-                                <Label height="stretch" width="stretch" text="文本绘制-粗体字" font="system_bold_14"/>
-                            </HBox>
-                            <HBox height="60" bkcolor="dark_gray">
-                                <Label height="stretch" width="stretch" text="文本绘制-删除线" font="system_strikeout_14"/>
-                            </HBox>
-                            <HBox height="60" bkcolor="blue">
-                                <Label height="stretch" width="stretch" text="文本绘制-斜体字" font="system_italic_14"/>
-                            </HBox>
-                            <HBox height="60" bkcolor="dark_gray">
-                                <Label height="stretch" width="stretch" text="文本绘制-全部风格" font="system_fullstyle_20" normaltextcolor="green"/>
-                            </HBox>
-                        </VBox>
-                    </HBox>
+                    <Include src="page_05.xml"/>
                 </VBox>
                 <VBox name="main_view_page_06">
                     <Label text="页面6：DrawBoxShadow测试"/>
                     <Control margin="50,50" width="300" height="100" borderround="12,12" boxshadow="color='red' offset='0,0' blurradius='8' spreadradius='8'"/>
                     <Control margin="50,50" width="300" height="100" borderround="0,0" bordercolor="blue" bordersize="1,1,1,1" bkcolor="green" boxshadow="color='red' offset='3,3' blurradius='2' spreadradius='2'"/>
                 </VBox>
+                <VBox name="main_view_page_07">                    
+                    <Include src="page_box.xml"/>
+               </VBox>
+               <VBox name="main_view_page_08">                    
+                    <Include src="page_hbox.xml"/>
+               </VBox>
+               <VBox name="main_view_page_09">                    
+                    <Include src="page_vbox.xml"/>
+               </VBox>
+               <VBox name="main_view_page_10">                    
+                    <Include src="page_tilebox.xml"/>
+               </VBox>
             </TabBox>
         </VBox>
     </VBox>

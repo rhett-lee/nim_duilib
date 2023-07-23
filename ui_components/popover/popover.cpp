@@ -712,11 +712,6 @@ void Popover::SetPos(ui::UiRect rc)
     }
 
     ui::Control::SetPos(rc);
-    rc.left += GetLayout()->GetPadding().left;
-    rc.top += GetLayout()->GetPadding().top;
-    rc.right -= GetLayout()->GetPadding().right;
-    rc.bottom -= GetLayout()->GetPadding().bottom;
-
     ui::UiSize64 requiredSize;
     if (m_items.size() == 0) {
         requiredSize.cx = 0;

@@ -313,7 +313,7 @@ namespace ui
 		m_pReEdit = new RichEdit;
 		m_pReEdit->SetAttribute(L"class", L"simple");
 		m_pReEdit->SetAttribute(L"bkcolor", L"white");
-		m_pReEdit->SetAttribute(L"align", L"vcenter");
+		m_pReEdit->SetAttribute(L"text_align", L"vcenter");
 		m_pReEdit->SetAttribute(L"padding", L"2,0,2,0");
 		m_pReEdit->SetVisible(false);
 		AddItem(m_pReEdit);

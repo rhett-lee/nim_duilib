@@ -2910,7 +2910,7 @@ void RichEdit::SetAttribute(const std::wstring& strName, const std::wstring& str
 			m_bNumberOnly = false;
 		}
 	}
-	else if (strName == L"align") {
+	else if ((strName == L"text_align") || (strName == L"align")) {
 		if (strValue.find(L"left") != std::wstring::npos) {
 			m_lTwhStyle &= ~(ES_CENTER | ES_RIGHT);
 			m_lTwhStyle |= ES_LEFT;

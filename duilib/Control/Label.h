@@ -334,7 +334,7 @@ UiSize LabelTemplate<InheritType>::EstimateText(UiSize szAvailable)
 template<typename InheritType>
 void LabelTemplate<InheritType>::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
-    if (strName == L"align") {
+    if ((strName == L"text_align") || (strName == L"align")){
         if (strValue.find(L"left") != std::wstring::npos) {
             m_uTextStyle &= ~(TEXT_CENTER | TEXT_RIGHT);
             m_uTextStyle |= TEXT_LEFT;

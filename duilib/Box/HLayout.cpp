@@ -11,15 +11,9 @@ HLayout::HLayout()
 
 UiSize64 HLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 {
+	DeflatePadding(rc);
 	UiSize szAvailable(rc.Width(), rc.Height());
-	szAvailable.Validate();
-	if (rc.Width() < 0) {
-		rc.right = rc.left;
-	}
-	if (rc.Height() < 0) {
-		rc.bottom = rc.top;
-	}
-
+	
 	//宽度为stretch的控件数
 	int32_t stretchCount = 0;
 	//固定宽度的控件，总的高度
@@ -192,10 +186,12 @@ UiSize64 HLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 
 UiSize HLayout::EstimateSizeByChild(const std::vector<Control*>& items, UiSize szAvailable)
 {
+	//宽度：所有子控件宽度之和，加上Margin、Padding等，不含拉伸类型的子控件
+	//高度：取所有子控件高度的最大值，加上Margin、Padding等，不含拉伸类型的子控件
 	UiSize totalSize;
 	UiSize itemSize;
 	int32_t estimateCount = 0;
-	for(Control* pControl : items)	{
+	for (Control* pControl : items)	{
 		if ((pControl == nullptr) || !pControl->IsVisible() || pControl->IsFloat()) {
 			continue;
 		}
@@ -208,35 +204,49 @@ UiSize HLayout::EstimateSizeByChild(const std::vector<Control*>& items, UiSize s
 			//拉伸类型的子控件，不计入
 			itemSize.cx = 0;
 		}
+		else {
+			if (itemSize.cx < pControl->GetMinWidth()) {
+				itemSize.cx = pControl->GetMinWidth();
+			}
+			if (itemSize.cx > pControl->GetMaxWidth()) {
+				itemSize.cx = pControl->GetMaxWidth();
+			}
+		}
 		if (estSize.cy.IsStretch()) {
 			//拉伸类型的子控件，不计入
 			itemSize.cy = 0;
 		}
-		
-		if (itemSize.cx < pControl->GetMinWidth()) {
-			itemSize.cx = pControl->GetMinWidth();
-		}
-		if (itemSize.cx > pControl->GetMaxWidth()) {
-			itemSize.cx = pControl->GetMaxWidth();
-		}
-		if (itemSize.cy < pControl->GetMinHeight()) {
-			itemSize.cy = pControl->GetMinHeight();
-		}
-		if (itemSize.cy > pControl->GetMaxHeight()) {
-			itemSize.cy = pControl->GetMaxHeight();
+		else {
+			if (itemSize.cy < pControl->GetMinHeight()) {
+				itemSize.cy = pControl->GetMinHeight();
+			}
+			if (itemSize.cy > pControl->GetMaxHeight()) {
+				itemSize.cy = pControl->GetMaxHeight();
+			}
 		}
 		
-		totalSize.cy = std::max(itemSize.cy + rcMargin.top + rcMargin.bottom, totalSize.cy);
-		totalSize.cx += (itemSize.cx + rcMargin.left + rcMargin.right);
+		if (itemSize.cy > 0) {
+			totalSize.cy = std::max(itemSize.cy + rcMargin.top + rcMargin.bottom, totalSize.cy);
+		}
+		if (itemSize.cx > 0) {
+			totalSize.cx += (itemSize.cx + rcMargin.left + rcMargin.right);
+		}		
 	}
 
-	if ((estimateCount - 1) > 0) {
+	if ((totalSize.cx > 0) && ((estimateCount - 1) > 0)) {
 		totalSize.cx += (estimateCount - 1) * GetChildMarginX();
 	}
 
 	UiPadding rcPadding = GetPadding();
-	totalSize.cx += (rcPadding.left + rcPadding.right);
-	totalSize.cy += (rcPadding.top + rcPadding.bottom);
+	if (totalSize.cx > 0) {
+		totalSize.cx += (rcPadding.left + rcPadding.right);
+	}
+	if (totalSize.cy > 0) {
+		totalSize.cy += (rcPadding.top + rcPadding.bottom);
+	}
+	if ((totalSize.cx == 0) || (totalSize.cy == 0)) {
+		CheckConfig(items);
+	}
 	return totalSize;
 }
 
