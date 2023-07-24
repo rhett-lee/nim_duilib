@@ -142,19 +142,25 @@ private:
 	* @param [out] outColumnWidths 本次布局，使用的每列宽度值
 	* @return 返回区域的宽度和高度
 	*/
-	UiSize64 ArrangeChildInternal(const std::vector<Control*>& items, 
-								  UiRect rect,
-								  bool isCalcOnly,
-		                          const std::vector<int32_t>& inColumnWidths,
-		                          std::vector<int32_t>& outColumnWidths) const;
+	UiSize64 ArrangeChildNormal(const std::vector<Control*>& items, 
+								UiRect rect,
+							    bool isCalcOnly,
+		                        const std::vector<int32_t>& inColumnWidths,
+		                        std::vector<int32_t>& outColumnWidths) const;
 
 	/** 使用自由布局排列控件(无固定列数，尽量充分利用展示空间，显示尽可能多的内容)
 	* @param [in] items 子控件列表
-	* @param [in] rc 外部可用矩形大小
+	* @param [in] rect 外部可用矩形大小
 	* @param [in] isCalcOnly 如果为true表示仅计算区域，对控件位置不做调整；如果为false，表示对控件位置做调整。
 	* @return 返回区域的宽度和高度
 	*/
-	UiSize64 ArrangeChildFreeLayout(const std::vector<Control*>& items, UiRect rc, bool isCalcOnly) const;
+	UiSize64 ArrangeChildFreeLayout(const std::vector<Control*>& items, 
+									UiRect rect, 
+									bool isCalcOnly) const;
+
+	/** 当前是否为自由布局
+	*/
+	bool IsFreeLayout() const;
 
 private:
 
