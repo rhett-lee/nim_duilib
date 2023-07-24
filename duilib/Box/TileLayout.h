@@ -54,6 +54,14 @@ public:
 	 */
 	void SetColumns(int32_t nCols);
 
+	/** 设置是否自动计算列数
+	 */
+	void SetAutoCalcColumns(bool bAutoCalcColumns);
+
+	/** 当控件内容超出边界时，按比例缩小，以使控件内容完全显示在瓦片区域内
+	*/
+	void SetScaleDown(bool bScaleDown);
+
 private:
 	/** 获取估算大小时的可用宽高
 	* @param [in] pControl 空间接口
@@ -61,29 +69,35 @@ private:
 	* @param [in] rc 瓦片控件所在容器的可用区域矩形
 	* @return 返回该空间的估算大小（宽和高）
 	*/
-	UiSize CalcEstimateSize(Control* pControl, const UiSize& szItem, UiRect rc) const;
+	static UiSize CalcEstimateSize(Control* pControl, const UiSize& szItem, UiRect rc);
 
-	/** 获取基本参数：瓦片宽高和列数
+	/** 获取基本参数：瓦片的列数
 	* @param [in] items 子控件列表
 	* @param [in] rc 瓦片控件所在容器的矩形
-	* @param [out] szItem 返回每个瓦片控件的宽度和高度，包含了外边距Margin.left + Margin.right值
+	* @param [in] itemWidth 每个瓦片控件的宽度(配置值)
+	* @param [in] childMarginX 子控件的X轴间隔
+	* @param [in] childMarginY 子控件的Y轴间隔	
 	* @param [out] columns 返回总列数
 	*/
-	void CalcTileWidthAndColumns(const std::vector<Control*>& items, UiRect rc,
-		                         UiSize& szItem, int32_t& nColumns) const;
+	static void CalcTileColumns(const std::vector<Control*>& items, const UiRect& rc,
+		                        int32_t itemWidth, int32_t childMarginX, int32_t childMarginY,
+		                        int32_t& nColumns);
 
 	/** 获取基本参数：瓦片宽度和高度的最大值, 作为拉伸类型控件的宽高值
 	* @param [in] items 子控件列表
 	* @param [in] rc 瓦片控件所在容器的矩形
+	* @param [in] childMarginX 子控件的X轴间隔
+	* @param [in] childMarginY 子控件的Y轴间隔	
 	* @param [in] columns 总列数
 	* @param [out] szMaxItem 返回瓦片控件的宽度和高度最大值，包含了外边距Margin.left + Margin.right值
 	*/
-	void CalcStretchTileSize(const std::vector<Control*>& items, UiRect rc,
-		                     int32_t nColumns, UiSize& szMaxItem) const;
+	static void CalcStretchTileSize(const std::vector<Control*>& items, UiRect rc,
+		                            int32_t childMarginX, int32_t childMarginY,
+		                            int32_t nColumns, UiSize& szMaxItem);
 
 	/** 估算浮动控件的大小
 	*/
-	UiSize64 EstimateFloatSize(Control* pControl, UiRect rc) const;
+	static UiSize64 EstimateFloatSize(Control* pControl, UiRect rc);
 
 	/** 获取基本参数：瓦片高度，布局排列过程中，在每行开始时，计算本行的高度
 	* @param [in] items 子控件列表
@@ -93,11 +107,11 @@ private:
 	* @param [in] rc 瓦片控件所在容器的矩形
 	* @return 返回高度值，包含了外边距Margin.top + Margin.bottom值
 	*/
-	int32_t CalcTileLineHeight(const std::vector<Control*>& items,
-							   const std::vector<Control*>::const_iterator iterBegin,
-							   int32_t nColumns,
-							   const UiSize& szItem,
-							   const UiRect& rc) const;
+	static int32_t CalcTileLineHeight(const std::vector<Control*>& items,
+									  const std::vector<Control*>::const_iterator iterBegin,
+								 	  int32_t nColumns,
+								      const UiSize& szItem,
+									  const UiRect& rc);
 
 	/** 计算瓦片控件的显示坐标和大小
 	* @param [in] pControl 瓦片控件的接口
@@ -106,16 +120,18 @@ private:
 	* @param [in] szStretchItem 拉伸类型的瓦片控件宽度和高度
 	* @param [in] rcContainer 外部可用矩形大小
 	* @param [in] ptTile 当前瓦片控件左上角的坐标
+	* @param [in] bScaleDown 当控件内容超出边界时，按比例缩小，以使控件内容完全显示在瓦片区域内
 	* @param [out] szTilePos 瓦片控件的显示坐标、宽度和高度
 	* @return 返回瓦片控件目标区域的大小（宽和高）
 	*/
-	UiSize CalcTilePosition(Control* pControl, 
-						    int32_t itemWidth,
-		                    int32_t itemHeight,
-						    const UiSize& szStretchItem, 
-		                    const UiRect& rcContainer,
-		                    const UiPoint& ptTile,
-		                    UiRect& szTilePos) const;
+	static UiSize CalcTilePosition(Control* pControl,
+								   int32_t itemWidth,
+								   int32_t itemHeight,
+								   const UiSize& szStretchItem, 
+								   const UiRect& rcContainer,
+								   const UiPoint& ptTile,
+		                           bool bScaleDown, 
+								   UiRect& szTilePos);
 
 
 	/** 对子控件布局的内部实现函数
@@ -140,23 +156,6 @@ private:
 	*/
 	UiSize64 ArrangeChildFreeLayout(const std::vector<Control*>& items, UiRect rc, bool isCalcOnly) const;
 
-	/** 获取基本参数：瓦片高度，布局排列过程中，在每行开始时，计算本行的高度
-	* @param [in] items 子控件列表
-	* @param [in] iterBegin 子控件开始的迭代器
-	* @param [in] nColumns 总列数
-	* @param [in] szItem 瓦片控件宽度和高度（设置值）
-	* @param [in] szStretchItem 拉伸类型瓦片控件宽度和高度（评估值）
-	* @param [in] rc 瓦片控件所在容器的矩形
-	* @param [out] nLineTileCount 返回本行可用输出的瓦片控件个数
-	* @return 返回这行的最大高度值，包含了外边距Margin.top + Margin.bottom值
-	*/
-	int32_t CalcLineHeightAndTileCount(const std::vector<Control*>& items,
-									   const std::vector<Control*>::const_iterator iterBegin, 
-									   int32_t nColumns,
-									   const UiSize& szItem,
-									   const UiSize& szStretchItem,
-									   const UiRect& rc,
-									   int32_t& nLineTileCount) const;
 private:
 
 	//显示几列数据
@@ -167,6 +166,9 @@ private:
 
 	//自动计算列数
 	bool m_bAutoCalcColumns;
+
+	//当控件内容超出边界时，按比例缩小，以使控件内容完全显示在瓦片区域内
+	bool m_bScaleDown;
 };
 
 } // namespace ui
