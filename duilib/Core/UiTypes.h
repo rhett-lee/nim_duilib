@@ -44,6 +44,24 @@ namespace ui
         UiEstInt cy;
     };
 
+    /** 估算控件大小的结果
+    */
+    class UILIB_API UiEstResult
+    {
+    public:
+        /** 是否需要重新评估大小
+        */
+        bool m_bReEstimateSize = true;
+
+        /** 本次估算时的可用矩形大小(这个参数影响会估算结果)
+        */
+        UiSize m_szAvailable;
+
+        /** 控件的已估算大小（长度和宽度），相当于估算后的缓存值
+        */
+        UiEstSize m_szEstimateSize;
+    };
+
     /** 从UiFixedInt生成UiEstInt
     */
     inline UiEstInt MakeEstInt(const UiFixedInt& fixedInt)

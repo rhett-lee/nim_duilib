@@ -16,7 +16,6 @@ PlaceHolder::PlaceHolder() :
 	m_horAlignType(kHorAlignLeft),
 	m_verAlignType(kVerAlignTop),
 	m_bFloat(false),
-	m_bReEstimateSize(true),
 	m_bVisible(true),
 	m_bIsArranged(true),
 	m_bUseCache(false),
@@ -163,24 +162,29 @@ void PlaceHolder::SetFixedHeight64(int64_t cy64)
 	SetFixedHeight(UiFixedInt(TruncateToInt32(cy64)), true);
 }
 
-bool PlaceHolder::IsReEstimateSize() const
+bool PlaceHolder::IsReEstimateSize(const UiSize& szAvailable) const
 { 
-	return m_bReEstimateSize; 
+	if (!m_estResult.m_bReEstimateSize &&
+		szAvailable.Equals(m_estResult.m_szAvailable)) {
+		return false;
+	}
+	return true;
 }
 
 void PlaceHolder::SetReEstimateSize(bool bReEstimateSize)
 {
-	m_bReEstimateSize = bReEstimateSize;
+	m_estResult.m_bReEstimateSize = bReEstimateSize;
 }
 
 const UiEstSize& PlaceHolder::GetEstimateSize() const
 { 
-	return m_szEstimateSize; 
+	return m_estResult.m_szEstimateSize;
 }
 
-void PlaceHolder::SetEstimateSize(const UiEstSize& szEstimateSize)
-{ 
-	m_szEstimateSize = szEstimateSize; 
+void PlaceHolder::SetEstimateSize(const UiEstSize& szEstimateSize, const UiSize& szAvailable)
+{
+	m_estResult.m_szAvailable = szAvailable;
+	m_estResult.m_szEstimateSize = szEstimateSize;
 }
 
 UiEstSize PlaceHolder::EstimateSize(UiSize /*szAvailable*/)
@@ -268,14 +272,29 @@ void PlaceHolder::SetMaxHeight(int cy)
 
 void PlaceHolder::SetHorAlignType(HorAlignType horAlignType)
 {
-	m_horAlignType = horAlignType;
+	if (m_horAlignType != horAlignType) {
+		m_horAlignType = horAlignType;
+		if (!m_bFloat) {
+			ArrangeAncestor();
+		}
+		else {
+			Arrange();
+		}
+	}
 }
 
 void PlaceHolder::SetVerAlignType(VerAlignType verAlignType)
 {
-	m_verAlignType = verAlignType;
+	if (m_verAlignType != verAlignType) {
+		m_verAlignType = verAlignType;
+		if (!m_bFloat) {
+			ArrangeAncestor();
+		}
+		else {
+			Arrange();
+		}
+	}	
 }
-
 
 const UiMargin& PlaceHolder::GetMargin() const
 {

@@ -606,11 +606,11 @@ UiEstSize Control::EstimateSize(UiSize szAvailable)
 		//如果宽高都不是auto属性，则直接返回
 		return MakeEstSize(fixedSize);
 	}
-	if (!IsReEstimateSize()) {
+	szAvailable.Validate();
+	if (!IsReEstimateSize(szAvailable)) {
 		//使用缓存中的估算结果
 		return GetEstimateSize();
 	}
-	szAvailable.Validate();
 
 	//估算图片区域大小
 	UiSize imageSize;
@@ -670,7 +670,7 @@ UiEstSize Control::EstimateSize(UiSize szAvailable)
 	}
 	//保持结果到缓存，避免每次都重新估算
 	UiEstSize estSize = MakeEstSize(fixedSize);
-	SetEstimateSize(estSize);
+	SetEstimateSize(estSize, szAvailable);
 	SetReEstimateSize(false);
 	return estSize;
 }

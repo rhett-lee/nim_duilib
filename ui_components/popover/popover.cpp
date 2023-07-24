@@ -255,7 +255,7 @@ std::wstring PopoverHeader::GetType() const { return L"PopoverHeader"; }
 ui::UiEstSize PopoverHeader::EstimateSize(ui::UiSize szAvailable)
 {
     if (GetFixedWidth().IsAuto() || GetFixedHeight().IsAuto()) {
-        if (!IsReEstimateSize()) {
+        if (!IsReEstimateSize(szAvailable)) {
             return GetEstimateSize();
         }
 
@@ -319,7 +319,7 @@ ui::UiEstSize PopoverHeader::EstimateSize(ui::UiSize szAvailable)
         if (m_bUseMaxSize && fixedSize.cx < maxSize.cx)
             fixedSize.cx = maxSize.cx;
 
-        SetEstimateSize(MakeEstSize(fixedSize));
+        SetEstimateSize(MakeEstSize(fixedSize), szAvailable);
         SetReEstimateSize(false);
         return MakeEstSize(fixedSize);
     }
@@ -377,7 +377,7 @@ std::wstring PopoverBody::GetType() const { return L"PopoverBody"; }
 ui::UiEstSize PopoverBody::EstimateSize(ui::UiSize szAvailable)
 {
     if (GetFixedWidth().IsAuto() || GetFixedHeight().IsAuto()) {
-        if (!IsReEstimateSize()) {
+        if (!IsReEstimateSize(szAvailable)) {
             return GetEstimateSize();
         }
 
@@ -411,7 +411,7 @@ ui::UiEstSize PopoverBody::EstimateSize(ui::UiSize szAvailable)
         if (m_bUseMaxSize && fixedSize.cx < maxSize.cx)
             fixedSize.cx = maxSize.cx;
 
-        SetEstimateSize(MakeEstSize(fixedSize));
+        SetEstimateSize(MakeEstSize(fixedSize), szAvailable);
         SetReEstimateSize(false);
         return MakeEstSize(fixedSize);
     }
@@ -460,7 +460,7 @@ std::wstring PopoverFooter::GetType() const { return L"PopoverFooter"; }
 ui::UiEstSize PopoverFooter::EstimateSize(ui::UiSize szAvailable)
 {
     if (GetFixedWidth().IsAuto() || GetFixedHeight().IsAuto()) {
-        if (!IsReEstimateSize()) {
+        if (!IsReEstimateSize(szAvailable)) {
             return GetEstimateSize();
         }
 
@@ -497,7 +497,7 @@ ui::UiEstSize PopoverFooter::EstimateSize(ui::UiSize szAvailable)
             fixedSize.cx = maxSize.cx;
 
         SetReEstimateSize(false);
-        SetEstimateSize(MakeEstSize(fixedSize));
+        SetEstimateSize(MakeEstSize(fixedSize), szAvailable);
         return MakeEstSize(fixedSize);
     }
 
@@ -540,7 +540,7 @@ void PopoverFooter::DoInit()
 ui::UiEstSize PopoverRoot::EstimateSize(ui::UiSize szAvailable)
 {
     if (GetFixedWidth().IsAuto() || GetFixedHeight().IsAuto()) {
-        if (!IsReEstimateSize()) {
+        if (!IsReEstimateSize(szAvailable)) {
             return GetEstimateSize();
         }
 
@@ -567,14 +567,14 @@ ui::UiEstSize PopoverRoot::EstimateSize(ui::UiSize szAvailable)
                 continue;
             }
             if ((*it)->GetFixedWidth().IsAuto() || (*it)->GetFixedHeight().IsAuto()) {
-                if ((*it)->IsReEstimateSize()) {
+                if ((*it)->IsReEstimateSize(szAvailable)) {
                     SetReEstimateSize(true);
                     break;
                 }
             }
         }
 
-        SetEstimateSize(MakeEstSize(fixedSize));
+        SetEstimateSize(MakeEstSize(fixedSize), szAvailable);
         return MakeEstSize(fixedSize);
     }
 
@@ -650,10 +650,10 @@ Popover::~Popover()
 
 std::wstring Popover::GetType() const { return L"Popover"; }
 
-ui::UiEstSize Popover::EstimateSize(ui::UiSize /*szAvailable*/)
+ui::UiEstSize Popover::EstimateSize(ui::UiSize szAvailable)
 {
     if (GetFixedWidth().IsAuto() || GetFixedHeight().IsAuto()) {
-        if (!IsReEstimateSize()) {
+        if (!IsReEstimateSize(szAvailable)) {
             return GetEstimateSize();
         }
 
@@ -678,14 +678,14 @@ ui::UiEstSize Popover::EstimateSize(ui::UiSize /*szAvailable*/)
                 continue;
             }
             if ((*it)->GetFixedWidth().IsAuto() || (*it)->GetFixedHeight().IsAuto()) {
-                if ((*it)->IsReEstimateSize()) {
+                if ((*it)->IsReEstimateSize(szAvailable)) {
                     SetReEstimateSize(true);
                     break;
                 }
             }
         }
 
-        SetEstimateSize(MakeEstSize(fixedSize));
+        SetEstimateSize(MakeEstSize(fixedSize), szAvailable);
         return MakeEstSize(fixedSize);
     }
 

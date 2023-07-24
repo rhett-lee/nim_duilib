@@ -118,14 +118,15 @@ UiEstSize Box::EstimateSize(UiSize szAvailable)
 		//如果宽高都不是auto属性，则直接返回
 		return MakeEstSize(fixedSize);
 	}
-	if (!IsReEstimateSize()) {
+	szAvailable.cx -= (m_pLayout->GetPadding().left + m_pLayout->GetPadding().right);
+	szAvailable.cy -= (m_pLayout->GetPadding().top + m_pLayout->GetPadding().bottom);
+	szAvailable.Validate();
+
+	if (!IsReEstimateSize(szAvailable)) {
 		//使用缓存中的估算结果
 		return GetEstimateSize();
 	}
 
-	szAvailable.cx -= (m_pLayout->GetPadding().left + m_pLayout->GetPadding().right);
-	szAvailable.cy -= (m_pLayout->GetPadding().top + m_pLayout->GetPadding().bottom);
-	szAvailable.Validate();
 	UiSize sizeByChild = m_pLayout->EstimateSizeByChild(m_items, szAvailable);
 	if (fixedSize.cx.IsAuto()) {
 		fixedSize.cx.SetInt32(sizeByChild.cx);
@@ -142,14 +143,14 @@ UiEstSize Box::EstimateSize(UiSize szAvailable)
 		}
 		if ((pControl->GetFixedWidth().IsAuto()) || 
 			(pControl->GetFixedHeight().IsAuto())) {
-			if (pControl->IsReEstimateSize()) {
+			if (pControl->IsReEstimateSize(szAvailable)) {
 				SetReEstimateSize(true);
 				break;
 			}
 		}
 	}
 	UiEstSize estSize = MakeEstSize(fixedSize);
-	SetEstimateSize(estSize);
+	SetEstimateSize(estSize, szAvailable);
 	return estSize;
 }
 

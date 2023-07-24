@@ -133,11 +133,13 @@ public:
 
 public:
 	/** 判断是否需要重新评估大小
+	* @param [in] szAvailable 估算时，区域矩形大小
 	*/
-	bool IsReEstimateSize() const;
+	bool IsReEstimateSize(const UiSize& szAvailable) const;
 
 	/** 设置是否需要重新评估大小
-	 */
+	* @param [in] bReEstimateSize 是否需要重新估算
+	*/
 	void SetReEstimateSize(bool bReEstimateSize);
 
 	/** 获取控件的已估算大小（长度和宽度），相当于EstimateSize函数估算后的缓存值
@@ -145,8 +147,10 @@ public:
 	const UiEstSize& GetEstimateSize() const;
 
 	/**@brief 设置控件的已估算大小（长度和宽度），相当于EstimateSize函数估算后的缓存值
+	*@param [in] szEstimateSize 估算的结果，作为缓存保存下来
+	*@param [in] szAvailable szAvailable 估算时，区域矩形大小
 	*/
-	void SetEstimateSize(const UiEstSize& szEstimateSize);
+	void SetEstimateSize(const UiEstSize& szEstimateSize, const UiSize& szAvailable);
 
 	/**@brief 估算控件大小（基类中无具体实现, 返回设置的固定大小）
 	*  @param [in] szAvailable 可用大小
@@ -318,11 +322,8 @@ private:
 	//外部设置的控件大小
 	UiFixedSize m_cxyFixed;
 
-	//是否需要重新评估大小
-	bool m_bReEstimateSize;
-
-	//控件的已估算大小（长度和宽度），相当于估算后的缓存值
-	UiEstSize m_szEstimateSize;
+	//估算控件大小的结果
+	UiEstResult m_estResult;
 
 	//控件大小最小值
 	UiSize m_cxyMin;
