@@ -19,26 +19,17 @@ UiSize TileLayout::CalcEstimateSize(Control* pControl, const UiSize& szItem, UiR
 	if ((pControl == nullptr) || !pControl->IsVisible()) {
 		return UiSize();
 	}
-
-	UiSize szAvailable;
+	
+	//估算的可用区域，始终使用总区域
 	UiMargin rcMargin = pControl->GetMargin();
-	int32_t width = szItem.cx;
-	if (width <= 0) {
-		width = rc.Width();
-	}
-	width = width - rcMargin.left - rcMargin.right;
-	int32_t height = szItem.cy;
-	if (height <= 0) {
-		height = rc.Height();
-	}
-	height = height - rcMargin.top - rcMargin.bottom;
-	szAvailable = UiSize(width, height);
+	int32_t width = rc.Width() - rcMargin.left - rcMargin.right;
+	int32_t height = rc.Height() - rcMargin.top - rcMargin.bottom;
+	UiSize szAvailable(width, height);
 	szAvailable.Validate();
-
 	UiEstSize estSize = pControl->EstimateSize(szAvailable);
 	UiSize childSize(estSize.cx.GetInt32(), estSize.cy.GetInt32());
 	if (estSize.cy.IsStretch()) {
-		childSize.cy = 0;
+		childSize.cy = szItem.cy;
 	}
 	if (childSize.cy < pControl->GetMinHeight()) {
 		childSize.cy = pControl->GetMinHeight();
@@ -48,7 +39,7 @@ UiSize TileLayout::CalcEstimateSize(Control* pControl, const UiSize& szItem, UiR
 	}
 
 	if (estSize.cx.IsStretch()) {
-		childSize.cx = 0;
+		childSize.cx = szItem.cx;
 	}
 	if (childSize.cx < pControl->GetMinWidth()) {
 		childSize.cx = pControl->GetMinWidth();
@@ -59,22 +50,19 @@ UiSize TileLayout::CalcEstimateSize(Control* pControl, const UiSize& szItem, UiR
 	return childSize;
 }
 
-void TileLayout::CalcTileColumns(const std::vector<Control*>& items, const UiRect& rc,
-								 int32_t itemWidth, int32_t childMarginX, int32_t childMarginY,
+void TileLayout::CalcTileColumns(const std::vector<ItemSizeInfo>& normalItems, const UiRect& rc,
+								 int32_t tileWidth, int32_t childMarginX, int32_t childMarginY,
 	                             int32_t& nColumns)
 {
 	nColumns = 0;
-	if (itemWidth <= 0) {
+	if (tileWidth <= 0) {
 		//需要先计算瓦片控件宽度，然后根据宽度计算列数
 		int32_t maxWidth = 0;
 		int64_t areaTotal = 0;
 		const int64_t maxArea = (int64_t)rc.Width() * rc.Height();
-		for (Control* pChild : items) {
-			if ((pChild == nullptr) || !pChild->IsVisible() || pChild->IsFloat()) {
-				continue;
-			}
-			UiMargin rcMargin = pChild->GetMargin();
-			UiSize childSize = CalcEstimateSize(pChild, UiSize(0, 0), rc);
+		for (const ItemSizeInfo& itemSizeInfo : normalItems) {
+			UiMargin rcMargin = itemSizeInfo.pControl->GetMargin();
+			UiSize childSize(itemSizeInfo.cx, itemSizeInfo.cy);
 			if (childSize.cx > 0) {
 				maxWidth = std::max(maxWidth, childSize.cx + rcMargin.left + rcMargin.right);
 			}
@@ -93,13 +81,13 @@ void TileLayout::CalcTileColumns(const std::vector<Control*>& items, const UiRec
 			}
 		}
 		//取可视区控件宽度最大值，作为每个Item的宽度
-		itemWidth = maxWidth;
+		tileWidth = maxWidth;
 	}
-	if (itemWidth > 0) {
+	if (tileWidth > 0) {
 		//使用设置的宽度作为瓦片控件的宽度，并通过设置的宽度，计算列数
 		int32_t totalWidth = rc.Width();
 		while (totalWidth > 0) {
-			totalWidth -= itemWidth;
+			totalWidth -= tileWidth;
 			if (nColumns != 0) {
 				totalWidth -= childMarginX;
 			}
@@ -107,57 +95,6 @@ void TileLayout::CalcTileColumns(const std::vector<Control*>& items, const UiRec
 				++nColumns;
 			}
 		}
-	}
-}
-
-void TileLayout::CalcStretchTileSize(const std::vector<Control*>& items, UiRect rc,
-	                                 int32_t childMarginX, int32_t childMarginY,
-								     int32_t nColumns, UiSize& szMaxItem)
-{
-	//ASSERT(nColumns > 0);
-	int32_t maxWidth = 0;  //最大宽度
-	int32_t maxHeight = 0; //最大高度
-	const int64_t maxArea = (int64_t)rc.Width() * rc.Height();
-	int64_t calcArea = 0;
-	for (Control* pChild : items) {
-		if ((pChild == nullptr) || !pChild->IsVisible() || pChild->IsFloat()) {
-			continue;
-		}
-		UiMargin rcMargin = pChild->GetMargin();
-		UiSize childSize = CalcEstimateSize(pChild, UiSize(0, 0), rc);
-		if (childSize.cx > 0) {
-			maxWidth = std::max(maxWidth, childSize.cx + rcMargin.left + rcMargin.right);
-		}
-		if (childSize.cy > 0) {
-			maxHeight = std::max(maxHeight, childSize.cy + rcMargin.top + rcMargin.bottom);
-		}
-
-		int32_t childWidth = childSize.cx;
-		if (childWidth > 0) {
-			childWidth += childMarginX;
-		}
-		
-		int32_t childHeight = childSize.cy;
-		if (childHeight > 0) {
-			childHeight += childMarginY;
-		}
-		calcArea += ((int64_t)childWidth * childHeight);
-		if (calcArea > maxArea) {
-			//当前显示区已满，不再测算
-			break;
-		}
-	}
-	//取宽度最大值，作为每个Item的宽度
-	szMaxItem.cx = maxWidth;
-	szMaxItem.cy = maxHeight;
-	if ((nColumns > 0) && (szMaxItem.cx == 0)) {
-		szMaxItem.cx = (rc.Width() - (nColumns - 1) * childMarginX) / nColumns;
-		if (szMaxItem.cx <= 0) {
-			szMaxItem.cx = rc.Width() / nColumns;
-		}
-	}
-	if ((szMaxItem.cx > 0) && (szMaxItem.cy == 0)) {
-		szMaxItem.cy = szMaxItem.cx;
 	}
 }
 
@@ -178,13 +115,66 @@ UiSize64 TileLayout::EstimateFloatSize(Control* pControl, UiRect rc)
 	return UiSize64(childSize.cx, childSize.cy);
 }
 
-int32_t TileLayout::CalcTileLineHeight(const std::vector<Control*>& items,
-									   const std::vector<Control*>::const_iterator iterBegin,
-									   int32_t nColumns,
+UiSize64 TileLayout::ArrangeFloatChild(const std::vector<Control*>& items,
+									   UiRect rc,
 									   const UiSize& szItem,
-									   const UiRect& rc)
+									   bool isCalcOnly,
+									   std::vector<ItemSizeInfo>& normalItems)
 {
-	ASSERT((szItem.cx > 0) && (nColumns > 0));
+	int64_t cxNeededFloat = 0;	//浮动控件需要的总宽度
+	int64_t cyNeededFloat = 0;	//浮动控件需要的总高度
+	for (Control* pControl : items) {
+		if ((pControl == nullptr) || !pControl->IsVisible()) {
+			continue;
+		}
+		if (pControl->IsFloat()) {
+			//浮动控件
+			UiSize64 floatSize;
+			if (!isCalcOnly) {
+				//设置浮动控件的位置
+				floatSize = SetFloatPos(pControl, rc);
+			}
+			else {
+				//计算Float控件的大小
+				floatSize = EstimateFloatSize(pControl, rc);
+			}
+			if (cxNeededFloat < floatSize.cx) {
+				cxNeededFloat = floatSize.cx;
+			}
+			if (cyNeededFloat < floatSize.cy) {
+				cyNeededFloat = floatSize.cy;
+			}
+		}
+		else {
+			//普通控件
+			UiSize childSize = CalcEstimateSize(pControl, szItem, rc);
+			if ((childSize.cx <= 0) || (childSize.cy <= 0)) {
+				//大小为0的，不可显示控件(可能是拉伸控件)
+				if (!isCalcOnly) {
+					UiRect rcPos(rc);
+					rcPos.right = rcPos.left;
+					rcPos.bottom = rcPos.top;
+					pControl->SetPos(rcPos);
+				}
+			}
+			else {
+				ItemSizeInfo info;
+				info.pControl = pControl;
+				info.cx = childSize.cx;
+				info.cy = childSize.cy;
+				normalItems.push_back(info);
+			}
+		}
+	}
+	return UiSize64(cxNeededFloat, cyNeededFloat);
+}
+
+int32_t TileLayout::CalcTileLineHeight(const std::vector<ItemSizeInfo>& normalItems,
+									   const std::vector<ItemSizeInfo>::const_iterator iterBegin,
+									   int32_t nColumns,
+									   const UiSize& szItem)
+{
+	ASSERT(nColumns > 0);
 	int32_t cyHeight = szItem.cy;
 	if (cyHeight > 0) {
 		//如果设置了高度，则优先使用设置的高度值
@@ -195,14 +185,10 @@ int32_t TileLayout::CalcTileLineHeight(const std::vector<Control*>& items,
 	}
 
 	int32_t iIndex = 0;
-	for (auto it = iterBegin; it != items.end(); ++it) {
-		auto pChild = *it;
-		if ((pChild == nullptr) || !pChild->IsVisible() || pChild->IsFloat()) {
-			continue;
-		}
-
-		UiMargin rcMargin = pChild->GetMargin();
-		UiSize szTile = CalcEstimateSize(pChild, szItem, rc);
+	for (auto it = iterBegin; it != normalItems.end(); ++it) {
+		const ItemSizeInfo& itemSizeInfo = *it;
+		UiMargin rcMargin = itemSizeInfo.pControl->GetMargin();
+		UiSize szTile(itemSizeInfo.cx, itemSizeInfo.cy);
 
 		//保留高度最大值
 		if (szTile.cy > 0) {
@@ -218,28 +204,17 @@ int32_t TileLayout::CalcTileLineHeight(const std::vector<Control*>& items,
 	return cyHeight;
 }
 
-UiSize TileLayout::CalcTilePosition(Control* pControl, 
-	                                int32_t itemWidth, int32_t itemHeight,
-							        const UiSize& szStretchItem, const UiRect& rcContainer,
+UiSize TileLayout::CalcTilePosition(const ItemSizeInfo& itemSizeInfo,
+	                                int32_t tileWidth, int32_t tileHeight,
 	                                const UiPoint& ptTile, bool bScaleDown, UiRect& szTilePos)
 {
 	szTilePos.Clear();
-	ASSERT(pControl != nullptr);
-	if ((pControl == nullptr) || !pControl->IsVisible() || pControl->IsFloat()) {
-		return UiSize();
-	}
 	//目标区域大小（宽和高）
-	UiSize szItem(itemWidth, itemHeight);
+	UiSize szItem(tileWidth, tileHeight);
 	szItem.Validate();
 
 	//瓦片控件大小(宽和高)
-	UiSize childSize = CalcEstimateSize(pControl, szItem, rcContainer);
-	if (childSize.cx == 0) {
-		childSize.cx = szStretchItem.cx;
-	}
-	if (childSize.cy == 0) {
-		childSize.cy = szStretchItem.cy;
-	}
+	UiSize childSize(itemSizeInfo.cx, itemSizeInfo.cy);
 	childSize.Validate();
 
 	if ((szItem.cx == 0) && (childSize.cx > 0)) {
@@ -290,7 +265,7 @@ UiSize TileLayout::CalcTilePosition(Control* pControl,
 		}
 	}
 
-	szTilePos = GetFloatPos(pControl, rcTile, childSize);
+	szTilePos = GetFloatPos(itemSizeInfo.pControl, rcTile, childSize);
 	if (szTilePos.left < ptTile.x) {
 		//如果控件较大，超过边界，则靠左对齐
 		int32_t width = szTilePos.Width();
@@ -369,13 +344,18 @@ UiSize64 TileLayout::ArrangeChildNormal(const std::vector<Control*>& items,
 	DeflatePadding(rect);           //剪去内边距，剩下的是可用区域
 	const UiRect& rc = rect;
 
+	//调整浮动控件，过滤隐藏控件、不可显示控件等
+	//拉伸类型的子控件：如果(m_szItem.cx > 0) && (m_szItem.cy > 0) 为true，则可以显示，否则会被过滤掉
+	std::vector<ItemSizeInfo> normalItems;
+	UiSize64 floatNeeded = ArrangeFloatChild(items, rc, m_szItem, isCalcOnly, normalItems); //浮动控件需要的总宽度和高度
+
 	int32_t nColumns = m_nColumns;  //列数（设置值）
 	if (m_bAutoCalcColumns) {
 		//如果自动计算列数，则重新计算列数
 		nColumns = 0;
 	}
 	if (nColumns <= 0) {
-		CalcTileColumns(items, rc, m_szItem.cx, GetChildMarginX(), GetChildMarginY(), nColumns);
+		CalcTileColumns(normalItems, rc, m_szItem.cx, GetChildMarginX(), GetChildMarginY(), nColumns);
 	}
 	if (nColumns < 1) {
 		//无法精确计算时，默认值设置为1
@@ -388,13 +368,7 @@ UiSize64 TileLayout::ArrangeChildNormal(const std::vector<Control*>& items,
 		fixedColumnWidths.clear();
 		fixedColumnWidths.resize(nColumns, m_szItem.cx);
 	}
-	
-	//计算显示区内最大的宽高, 用于作为拉伸类型的控件宽度和高度
-	UiSize szStretchItem;
-	CalcStretchTileSize(items, rc, GetChildMarginX(), GetChildMarginY(), nColumns, szStretchItem);
 
-	int64_t cxNeededFloat = 0;	//浮动控件需要的总宽度	
-	int64_t cyNeededFloat = 0;	//浮动控件需要的总高度	
 	int32_t cyLineHeight = 0;   //每行控件（瓦片）的高度（动态计算值）
 
 	std::vector<int32_t> rowHeights;   //每列的高度值，计算值
@@ -417,40 +391,14 @@ UiSize64 TileLayout::ArrangeChildNormal(const std::vector<Control*>& items,
 	}
 
 	UiPoint ptTile(xPosLeft, rc.top);	//每个控件（瓦片）的顶点坐标	
-	for( auto it = items.begin(); it != items.end(); ++it ) {
-		auto pControl = *it;
-		if ((pControl == nullptr) || !pControl->IsVisible()) {
-			continue;
-		}
-		if( pControl->IsFloat() ) {
-			//浮动控件
-			UiSize64 floatSize;
-			if (!isCalcOnly) {
-				//设置浮动控件的位置
-				floatSize = SetFloatPos(pControl, rc);
-			}
-			else {
-				//计算Float控件的大小
-				floatSize = EstimateFloatSize(pControl, rc);				
-			}
-			if (cxNeededFloat < floatSize.cx) {
-				cxNeededFloat = floatSize.cx;
-			}
-			if (cyNeededFloat < floatSize.cy) {
-				cyNeededFloat = floatSize.cy;
-			}
-			continue;
-		}
-		
+	for( auto it = normalItems.begin(); it != normalItems.end(); ++it ) {
+		const ItemSizeInfo& itemSizeInfo = *it;
+		Control* pControl = itemSizeInfo.pControl;
 		if (nRowTileCount == 0) {
 			//一行的开始，计算这一行的高度
 			nRowTileCount = nColumns;
-			cyLineHeight = CalcTileLineHeight(items, it, nColumns, m_szItem, rc);
-			if (cyLineHeight == 0) {
-				//如果本行全部都是拉伸类型的子控件，赋值
-				cyLineHeight = szStretchItem.cy;
-			}
-			ASSERT(cyLineHeight > 0);
+			cyLineHeight = CalcTileLineHeight(normalItems, it, nColumns, m_szItem);
+			ASSERT(cyLineHeight > 0);//不可能是零
 		}
 		
 		const int32_t colIndex = nColumns - nRowTileCount;//当前列下标[0, nColumns)
@@ -462,9 +410,8 @@ UiSize64 TileLayout::ArrangeChildNormal(const std::vector<Control*>& items,
 
 		//计算当前瓦片控件的位置坐标、宽度(cxWidth)和高度(cyHeight)
 		UiRect rcTilePos;
-		UiSize szTileSize = CalcTilePosition(pControl, fixedColumnWidth, cyLineHeight,
-			                                 szStretchItem, rc, ptTile, m_bScaleDown, 
-			                                 rcTilePos);
+		UiSize szTileSize = CalcTilePosition(itemSizeInfo, fixedColumnWidth, cyLineHeight,
+			                                 ptTile, m_bScaleDown, rcTilePos);
 		
 		if (!isCalcOnly) {
 			pControl->SetPos(rcTilePos);
@@ -502,6 +449,10 @@ UiSize64 TileLayout::ArrangeChildNormal(const std::vector<Control*>& items,
 				tileWidth = m_szItem.cx;
 			}
 			tileWidth += rcMargin.left + rcMargin.right;
+			//自动计算的时候列宽限制：不大于平均值
+			if (m_szItem.cx == 0) {
+				tileWidth = std::min(tileWidth, rc.Width() / nColumns);
+			}
 			columnWidths[colIndex] = std::max(tileWidth, columnWidths[colIndex]);
 		}
 	}
@@ -514,7 +465,7 @@ UiSize64 TileLayout::ArrangeChildNormal(const std::vector<Control*>& items,
 	if (columnWidths.size() > 1) {
 		cxNeeded += (columnWidths.size() - 1) * GetChildMarginX();
 	}
-	cxNeeded = std::max(cxNeeded, cxNeededFloat);
+	cxNeeded = std::max(cxNeeded, floatNeeded.cx);
 	cxNeeded += (padding.left + padding.right);
 
 	//计算所需高度
@@ -522,7 +473,7 @@ UiSize64 TileLayout::ArrangeChildNormal(const std::vector<Control*>& items,
 	if (rowHeights.size() > 1) {
 		cyNeeded += (rowHeights.size() - 1) * GetChildMarginY();
 	}
-	cyNeeded = std::max(cyNeeded, cyNeededFloat);
+	cyNeeded = std::max(cyNeeded, floatNeeded.cy);
 	cyNeeded += (padding.top + padding.bottom);	
 
 	outColumnWidths.swap(columnWidths);
@@ -536,8 +487,10 @@ UiSize64 TileLayout::ArrangeChildFreeLayout(const std::vector<Control*>& items,
 	DeflatePadding(rect); //剪去内边距，剩下的是可用区域
 	const UiRect& rc = rect;
 
-	int64_t cxNeededFloat = 0;	//浮动控件需要的总宽度	
-	int64_t cyNeededFloat = 0;	//浮动控件需要的总高度
+	//调整浮动控件，过滤隐藏控件、不可显示控件等
+	//拉伸类型的子控件：如果(m_szItem.cx > 0) && (m_szItem.cy > 0) 为true，则可以显示，否则会被过滤掉
+	std::vector<ItemSizeInfo> normalItems;
+	UiSize64 floatNeeded = ArrangeFloatChild(items, rc, m_szItem, isCalcOnly, normalItems); //浮动控件需要的总宽度和高度
 
 	int64_t cxNeeded = 0;		//非浮动控件需要的总宽度	
 	int64_t cyNeeded = 0;		//非浮动控件需要的总高度
@@ -546,39 +499,18 @@ UiSize64 TileLayout::ArrangeChildFreeLayout(const std::vector<Control*>& items,
 
 	int32_t xPosLeft = rc.left;         //控件显示内容的左侧坐标值，始终采取左对齐
 	UiPoint ptTile(xPosLeft, rc.top);	//每个控件（瓦片）的顶点坐标
-	const size_t itemCount = items.size();
+	const size_t itemCount = normalItems.size();
 	for (size_t index = 0; index < itemCount; ++index) {
-		Control* pControl = items[index];
-		if ((pControl == nullptr) || !pControl->IsVisible()) {
-			continue;
-		}
-		if (pControl->IsFloat()) {
-			//浮动控件
-			UiSize64 floatSize;
-			if (!isCalcOnly) {
-				//设置浮动控件的位置
-				floatSize = SetFloatPos(pControl, rc);
-			}
-			else {
-				//计算Float控件的大小
-				floatSize = EstimateFloatSize(pControl, rc);
-			}
-			if (cxNeededFloat < floatSize.cx) {
-				cxNeededFloat = floatSize.cx;
-			}
-			if (cyNeededFloat < floatSize.cy) {
-				cyNeededFloat = floatSize.cy;
-			}
-			continue;
-		}
+		const ItemSizeInfo& itemSizeInfo = normalItems[index];
+		Control* pControl = itemSizeInfo.pControl;
+
 		//控件的外边距
 		UiMargin rcMargin = pControl->GetMargin();
 
 		//计算当前瓦片控件的位置坐标、宽度和高度
 		UiRect rcTilePos;
-		UiSize szTileSize = CalcTilePosition(pControl, 0, 0,
-											 UiSize(), rc, ptTile, m_bScaleDown,
-											 rcTilePos);
+		UiSize szTileSize = CalcTilePosition(itemSizeInfo, 0, 0,
+											 ptTile, m_bScaleDown, rcTilePos);
 		if (rcTilePos.right >= rc.right) {
 			//右侧已经超过边界, 如果不是靠近最左侧，则先换行，再显示
 			if (rcTilePos.left > rc.left) {
@@ -588,9 +520,8 @@ UiSize64 TileLayout::ArrangeChildFreeLayout(const std::vector<Control*>& items,
 				ptTile.y += cyLineHeight + GetChildMarginY();
 				cyLineHeight = 0;
 
-				szTileSize = CalcTilePosition(pControl, 0, 0,
-											  UiSize(), rc, ptTile, m_bScaleDown,
-											  rcTilePos);				
+				szTileSize = CalcTilePosition(itemSizeInfo, 0, 0,
+											  ptTile, m_bScaleDown, rcTilePos);				
 			}
 		}
 		if (!isCalcOnly) {
@@ -618,8 +549,8 @@ UiSize64 TileLayout::ArrangeChildFreeLayout(const std::vector<Control*>& items,
 
 	//由于内边距已经剪掉，计算宽度和高度的时候，需要算上内边距
 	const UiPadding& padding = GetPadding();
-	cxNeeded = std::max(cxNeeded, cxNeededFloat);
-	cyNeeded = std::max(cyNeeded, cyNeededFloat);
+	cxNeeded = std::max(cxNeeded, floatNeeded.cx);
+	cyNeeded = std::max(cyNeeded, floatNeeded.cy);
 
 	if (isCalcOnly) {
 		//返回的宽度，最大不超过外层容器的空间，因为此返回值会成为容器最终的宽度值

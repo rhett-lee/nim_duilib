@@ -63,6 +63,15 @@ public:
 	void SetScaleDown(bool bScaleDown);
 
 private:
+	/** 未处理的子控件接口和其宽高信息
+	*/
+	struct ItemSizeInfo
+	{
+		Control* pControl = nullptr; //子控件接口
+		int32_t cx = 0;				 //子控件的宽度
+		int32_t cy = 0;			     //子控件的高度
+	};
+
 	/** 获取估算大小时的可用宽高
 	* @param [in] pControl 空间接口
 	* @param [in] szItem 每个瓦片控件的宽度和高度(设置值)
@@ -72,68 +81,64 @@ private:
 	static UiSize CalcEstimateSize(Control* pControl, const UiSize& szItem, UiRect rc);
 
 	/** 获取基本参数：瓦片的列数
-	* @param [in] items 子控件列表
+	* @param [in] normalItems 子控件列表
 	* @param [in] rc 瓦片控件所在容器的矩形
-	* @param [in] itemWidth 每个瓦片控件的宽度(配置值)
+	* @param [in] tileWidth 每个瓦片控件的宽度(配置值)
 	* @param [in] childMarginX 子控件的X轴间隔
 	* @param [in] childMarginY 子控件的Y轴间隔	
 	* @param [out] columns 返回总列数
 	*/
-	static void CalcTileColumns(const std::vector<Control*>& items, const UiRect& rc,
-		                        int32_t itemWidth, int32_t childMarginX, int32_t childMarginY,
+	static void CalcTileColumns(const std::vector<ItemSizeInfo>& normalItems, const UiRect& rc,
+		                        int32_t tileWidth, int32_t childMarginX, int32_t childMarginY,
 		                        int32_t& nColumns);
-
-	/** 获取基本参数：瓦片宽度和高度的最大值, 作为拉伸类型控件的宽高值
-	* @param [in] items 子控件列表
-	* @param [in] rc 瓦片控件所在容器的矩形
-	* @param [in] childMarginX 子控件的X轴间隔
-	* @param [in] childMarginY 子控件的Y轴间隔	
-	* @param [in] columns 总列数
-	* @param [out] szMaxItem 返回瓦片控件的宽度和高度最大值，包含了外边距Margin.left + Margin.right值
-	*/
-	static void CalcStretchTileSize(const std::vector<Control*>& items, UiRect rc,
-		                            int32_t childMarginX, int32_t childMarginY,
-		                            int32_t nColumns, UiSize& szMaxItem);
 
 	/** 估算浮动控件的大小
 	*/
 	static UiSize64 EstimateFloatSize(Control* pControl, UiRect rc);
 
-	/** 获取基本参数：瓦片高度，布局排列过程中，在每行开始时，计算本行的高度
+	/** 处理浮动子控件，并返回未处理的子控件列表
 	* @param [in] items 子控件列表
+	* @param [in] rect 外部可用矩形大小
+	* @param [in] szItem 每个瓦片控件的宽度和高度(设置值)
+	* @param [in] isCalcOnly 如果为true表示仅计算区域，对控件位置不做调整；如果为false，表示对控件位置做调整。
+	* @param [out] normalItems 返回未处理的子控件列表，及其大小信息
+	* @return 返回浮动控件所占的区域宽度和高度
+	*/
+	static UiSize64 ArrangeFloatChild(const std::vector<Control*>& items,
+							          UiRect rc,
+		                              const UiSize& szItem,
+		                              bool isCalcOnly, 
+		                              std::vector<ItemSizeInfo>& normalItems);
+
+	/** 获取基本参数：瓦片高度，布局排列过程中，在每行开始时，计算本行的高度
+	* @param [in] normalItems 子控件列表
 	* @param [in] iterBegin 子控件开始的迭代器
 	* @param [in] nColumns 总列数
 	* @param [in] szItem 瓦片控件宽度和高度（设置值）
-	* @param [in] rc 瓦片控件所在容器的矩形
 	* @return 返回高度值，包含了外边距Margin.top + Margin.bottom值
 	*/
-	static int32_t CalcTileLineHeight(const std::vector<Control*>& items,
-									  const std::vector<Control*>::const_iterator iterBegin,
+	static int32_t CalcTileLineHeight(const std::vector<ItemSizeInfo>& normalItems,
+									  const std::vector<ItemSizeInfo>::const_iterator iterBegin,
 								 	  int32_t nColumns,
-								      const UiSize& szItem,
-									  const UiRect& rc);
+								      const UiSize& szItem);
 
 	/** 计算瓦片控件的显示坐标和大小
-	* @param [in] pControl 瓦片控件的接口
-	* @param [in] itemWidth 配置的瓦片控件宽度
-	* @param [in] itemHeight 配置的瓦片控件高度（取行高）
-	* @param [in] szStretchItem 拉伸类型的瓦片控件宽度和高度
-	* @param [in] rcContainer 外部可用矩形大小
+	* @param [in] itemSizeInfo 瓦片控件的接口, 及控件的大小信息
+	* @param [in] tileWidth 配置的瓦片控件宽度
+	* @param [in] tileHeight 配置的瓦片控件高度（取行高）
 	* @param [in] ptTile 当前瓦片控件左上角的坐标
 	* @param [in] bScaleDown 当控件内容超出边界时，按比例缩小，以使控件内容完全显示在瓦片区域内
 	* @param [out] szTilePos 瓦片控件的显示坐标、宽度和高度
 	* @return 返回瓦片控件目标区域的大小（宽和高）
 	*/
-	static UiSize CalcTilePosition(Control* pControl,
-								   int32_t itemWidth,
-								   int32_t itemHeight,
-								   const UiSize& szStretchItem, 
-								   const UiRect& rcContainer,
+	static UiSize CalcTilePosition(const ItemSizeInfo& itemSizeInfo,
+								   int32_t tileWidth,
+								   int32_t tileHeight,
 								   const UiPoint& ptTile,
 		                           bool bScaleDown, 
 								   UiRect& szTilePos);
 
-
+private:
 	/** 对子控件布局的内部实现函数
 	* @param [in] items 子控件列表
 	* @param [in] rect 外部可用矩形大小
