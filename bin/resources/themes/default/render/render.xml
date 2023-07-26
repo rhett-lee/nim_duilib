@@ -45,6 +45,12 @@
                 <Button class="btn_global_blue_80x30" width="80" height="32" text="ScrollBox" margin="8,0,0,0">
                     <Event type="buttonup" receiver="main_view_tab" applyattribute="selected_id={10}" />
                 </Button>
+                <Button class="btn_global_blue_80x30" width="84" height="32" text="HScrollBox" margin="8,0,0,0">
+                    <Event type="buttonup" receiver="main_view_tab" applyattribute="selected_id={11}" />
+                </Button>
+                <Button class="btn_global_blue_80x30" width="84" height="32" text="VScrollBox" margin="8,0,0,0">
+                    <Event type="buttonup" receiver="main_view_tab" applyattribute="selected_id={12}" />
+                </Button>
              </HBox>
             <Control />
             <!-- 标题栏：右侧窗口控制区域，窗口最小化、最大化、还原、关闭按钮 -->
@@ -60,7 +66,7 @@
         
         <!-- 显示区域 --> 
         <VBox>            
-            <TabBox name="main_view_tab" bkcolor="white" fadeswitch="true" selected_id="10">
+            <TabBox name="main_view_tab" bkcolor="white" fadeswitch="true" selected_id="11">
                 <VBox name="main_view_page_01">
                     <Label text="页面1：IRender接口的图片绘制相关接口测试（DrawImage，BitBlt，StretchBlt，AlphaBlend）"/>
                     <RenderTest1 />
@@ -101,6 +107,12 @@
                 </VBox>
                 <VBox name="main_view_page_11">                    
                     <Include src="page_scroll_box.xml"/>
+                </VBox>
+                <VBox name="main_view_page_12">                    
+                    <Include src="page_hscroll_box.xml"/>
+                </VBox>
+                <VBox name="main_view_page_13">                    
+                    <Include src="page_vscroll_box.xml"/>
                 </VBox>
             </TabBox>
         </VBox>
