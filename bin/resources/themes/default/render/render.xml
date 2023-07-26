@@ -30,17 +30,20 @@
                 <Button class="btn_global_blue_80x30" width="48" height="32" text="页面6" margin="8,0,0,0" tooltiptext="页面5">
                     <Event type="buttonup" receiver="main_view_tab" applyattribute="selected_id={5}" />
                 </Button>
-                <Button class="btn_global_blue_80x30" width="78" height="32" text="布局Box" margin="8,0,0,0">
+                <Button class="btn_global_blue_80x30" width="48" height="32" text="Box" margin="8,0,0,0">
                     <Event type="buttonup" receiver="main_view_tab" applyattribute="selected_id={6}" />
                 </Button>
-                <Button class="btn_global_blue_80x30" width="78" height="32" text="布局HBox" margin="8,0,0,0">
+                <Button class="btn_global_blue_80x30" width="48" height="32" text="HBox" margin="8,0,0,0">
                     <Event type="buttonup" receiver="main_view_tab" applyattribute="selected_id={7}" />
                 </Button>
-                <Button class="btn_global_blue_80x30" width="78" height="32" text="布局VBox" margin="8,0,0,0">
+                <Button class="btn_global_blue_80x30" width="48" height="32" text="VBox" margin="8,0,0,0">
                     <Event type="buttonup" receiver="main_view_tab" applyattribute="selected_id={8}" />
                 </Button>
-                <Button class="btn_global_blue_80x30" width="90" height="32" text="布局TileBox" margin="8,0,0,0">
+                <Button class="btn_global_blue_80x30" width="60" height="32" text="TileBox" margin="8,0,0,0">
                     <Event type="buttonup" receiver="main_view_tab" applyattribute="selected_id={9}" />
+                </Button>
+                <Button class="btn_global_blue_80x30" width="80" height="32" text="ScrollBox" margin="8,0,0,0">
+                    <Event type="buttonup" receiver="main_view_tab" applyattribute="selected_id={10}" />
                 </Button>
              </HBox>
             <Control />
@@ -57,7 +60,7 @@
         
         <!-- 显示区域 --> 
         <VBox>            
-            <TabBox name="main_view_tab" bkcolor="white" fadeswitch="true" selected_id="9">
+            <TabBox name="main_view_tab" bkcolor="white" fadeswitch="true" selected_id="10">
                 <VBox name="main_view_page_01">
                     <Label text="页面1：IRender接口的图片绘制相关接口测试（DrawImage，BitBlt，StretchBlt，AlphaBlend）"/>
                     <RenderTest1 />
@@ -86,16 +89,19 @@
                 </VBox>
                 <VBox name="main_view_page_07">                    
                     <Include src="page_box.xml"/>
-               </VBox>
-               <VBox name="main_view_page_08">                    
+                </VBox>
+                <VBox name="main_view_page_08">                    
                     <Include src="page_hbox.xml"/>
-               </VBox>
-               <VBox name="main_view_page_09">                    
+                </VBox>
+                <VBox name="main_view_page_09">                    
                     <Include src="page_vbox.xml"/>
-               </VBox>
-               <VBox name="main_view_page_10">                    
+                </VBox>
+                <VBox name="main_view_page_10">                    
                     <Include src="page_tilebox.xml"/>
-               </VBox>
+                </VBox>
+                <VBox name="main_view_page_11">                    
+                    <Include src="page_scroll_box.xml"/>
+                </VBox>
             </TabBox>
         </VBox>
     </VBox>

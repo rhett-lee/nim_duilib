@@ -655,6 +655,11 @@ void TileLayout::SetAutoCalcColumns(bool bAutoCalcColumns)
 	}
 }
 
+bool TileLayout::IsAutoCalcColumns() const
+{
+	return m_bAutoCalcColumns;
+}
+
 void TileLayout::SetScaleDown(bool bScaleDown)
 {
 	if (m_bScaleDown != bScaleDown) {

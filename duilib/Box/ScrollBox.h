@@ -217,12 +217,12 @@ public:
 
 	/** 获取滚动条的外边距
 	 */
-	UiRect GetScrollBarPadding() const;
+	const UiPadding& GetScrollBarPadding() const;
 
 	/** 设置滚动条的外边距，可以让滚动条不占满容器
 	 * @param[in] rcScrollBarPadding 要设置的边距
 	 */
-	void SetScrollBarPadding(UiRect rcScrollBarPadding);
+	void SetScrollBarPadding(UiPadding rcScrollBarPadding);
 
 	/** 停止滚动条动画
 	*/
@@ -254,7 +254,7 @@ public:
 protected:
 
 	/** 计算所需的尺寸
-	 * @param[in] rc 当前位置信息
+	 * @param[in] rc 当前位置信息, 外部调用时，不需要剪去内边距
 	 * @return 返回所需尺寸大小
 	 */
 	virtual UiSize64 CalcRequiredSize(const UiRect& rc);
@@ -305,7 +305,7 @@ private:
 	bool m_bVScrollBarLeftPos;
 
 	//滚动条的外边距
-	UiRect m_rcScrollBarPadding;
+	UiPadding m_rcScrollBarPadding;
 
 	//滚动条动画效果支持
 	std::unique_ptr<AnimationPlayer> m_scrollAnimation;

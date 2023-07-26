@@ -5,35 +5,35 @@
 namespace ui {
 
 VirtualTileBoxElement::VirtualTileBoxElement():
-    m_CountChangedNotify(), 
-    m_DataChangedNotify()
+    m_pfnCountChangedNotify(),
+    m_pfnDataChangedNotify()
 {
 }
 
 void VirtualTileBoxElement::RegNotifys(const DataChangedNotify& dcNotify, const CountChangedNotify& ccNotify)
 {
-    m_DataChangedNotify = dcNotify;
-    m_CountChangedNotify = ccNotify;
+    m_pfnDataChangedNotify = dcNotify;
+    m_pfnCountChangedNotify = ccNotify;
 }
 
 void VirtualTileBoxElement::EmitDataChanged(size_t nStartIndex, size_t nEndIndex)
 {
-    if (m_DataChangedNotify) {
-        m_DataChangedNotify(nStartIndex, nEndIndex);
+    if (m_pfnDataChangedNotify) {
+        m_pfnDataChangedNotify(nStartIndex, nEndIndex);
     }
 }
 
 void VirtualTileBoxElement::EmitCountChanged()
 {
-    if (m_CountChangedNotify) {
-        m_CountChangedNotify();
+    if (m_pfnCountChangedNotify) {
+        m_pfnCountChangedNotify();
     }
 }
 
-VirtualTileLayout::VirtualTileLayout():
-    m_bAutoCalcColumn(true)
+VirtualTileLayout::VirtualTileLayout()
 {
-    SetColumns(-1);
+    SetColumns(0);
+    SetAutoCalcColumns(true);
 }
 
 UiSize64 VirtualTileLayout::ArrangeChild(const std::vector<ui::Control*>& /*items*/, ui::UiRect rc)
@@ -63,24 +63,6 @@ UiSize VirtualTileLayout::EstimateSizeByChild(const std::vector<Control*>& /*ite
         size.cx = szItem.cx * nColumns + GetChildMarginX() * (nColumns - 1);
     }
     return size;
-}
-
-bool VirtualTileLayout::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
-{
-    if (strName == L"column") {
-        int iValue = _wtoi(strValue.c_str());
-        if (iValue > 0) {
-            SetColumns(iValue);
-            m_bAutoCalcColumn = false;
-        }
-        else {
-            m_bAutoCalcColumn = true;
-        }
-        return true;
-    }
-    else {
-        return __super::SetAttribute(strName, strValue);
-    }
 }
 
 int64_t VirtualTileLayout::GetElementsHeight(size_t nCount)
@@ -201,7 +183,7 @@ size_t VirtualTileLayout::AjustMaxItem()
     }
     int32_t nColumns = GetColumns();
     UiSize szItem = GetItemSize();
-    if (m_bAutoCalcColumn || (nColumns <= 0)) {
+    if (IsAutoCalcColumns() || (nColumns <= 0)) {
         //计算需要几列
         if (szItem.cx > 0) {
             nColumns = rc.Width() / (szItem.cx + GetChildMarginX() / 2);

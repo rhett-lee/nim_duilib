@@ -46,8 +46,8 @@ void ScrollBox::SetAttribute(const std::wstring& pstrName, const std::wstring& p
 		}
 	}
 	else if ((pstrName == L"scrollbar_padding") || (pstrName == L"scrollbarpadding")) {
-		UiRect rcScrollbarPadding;
-		AttributeUtil::ParseRectValue(pstrValue.c_str(), rcScrollbarPadding);
+		UiPadding rcScrollbarPadding;
+		AttributeUtil::ParsePaddingValue(pstrValue.c_str(), rcScrollbarPadding);
 		SetScrollBarPadding(rcScrollbarPadding);
 	}
 	else if ((pstrName == L"vscroll_unit") || (pstrName == L"vscrollunit")) {
@@ -84,41 +84,57 @@ void ScrollBox::SetPos(UiRect rc)
 
 void ScrollBox::SetPosInternally(UiRect rc)
 {
-	Layout* pLayout = GetLayout();
-	ASSERT(pLayout != nullptr);
 	Control::SetPos(rc);
-	UiRect rcRaw = rc;
-	rc.left += pLayout->GetPadding().left;
-	rc.top += pLayout->GetPadding().top;
-	rc.right -= pLayout->GetPadding().right;
-	rc.bottom -= pLayout->GetPadding().bottom;
-
 	UiSize64 requiredSize = CalcRequiredSize(rc);
-	ProcessVScrollBar(rcRaw, requiredSize.cy);
-	ProcessHScrollBar(rcRaw, requiredSize.cx);
+	if((requiredSize.cx > 0) && (requiredSize.cy > 0)) {
+		//需要按照真实大小再计算一次，因为内部根据rc评估的时候，显示位置是不正确的
+		//（比如控件是center或者bottom对齐的时候，会按照rc区域定位坐标，这时是错误的）。
+		UiPadding padding = GetLayout()->GetPadding();
+		int32_t cx = TruncateToInt32(requiredSize.cx) + padding.left + padding.right;
+		if (cx < rc.Width()) {
+			cx = rc.Width();
+		}
+		int32_t cy = TruncateToInt32(requiredSize.cy) + padding.top + padding.bottom;
+		if (cy < rc.Height()) {
+			cy = rc.Height();
+		}
+		UiRect realRect(rc.left, rc.top, rc.left + cx, rc.top + cy);
+		if ((realRect.Width() != rc.Width()) || (realRect.Height() != rc.Height())) {
+			requiredSize = CalcRequiredSize(realRect);
+		}		
+	}
+	ProcessVScrollBar(rc, requiredSize.cy);
+	ProcessHScrollBar(rc, requiredSize.cx);
 }
 
 UiSize64 ScrollBox::CalcRequiredSize(const UiRect& rc)
 {
 	UiSize64 requiredSize;
-	if (!m_items.empty()) {
-		UiRect childSize = rc;
-		if (!m_bScrollBarFloat && m_pVScrollBar && m_pVScrollBar->IsValid()) {
-			if (m_bVScrollBarLeftPos) {
-				ASSERT(m_pVScrollBar->GetFixedWidth().GetInt32() > 0);
-				childSize.left += m_pVScrollBar->GetFixedWidth().GetInt32();
-			}
-			else {
-				ASSERT(m_pVScrollBar->GetFixedWidth().GetInt32() > 0);
-				childSize.right -= m_pVScrollBar->GetFixedWidth().GetInt32();
-			}
-		}
-		if (!m_bScrollBarFloat && m_pHScrollBar && m_pHScrollBar->IsValid()) {
-			ASSERT(m_pHScrollBar->GetFixedHeight().GetInt32() > 0);
-			childSize.bottom -= m_pHScrollBar->GetFixedHeight().GetInt32();
-		}
-		requiredSize = GetLayout()->ArrangeChild(m_items, childSize);
+	if (m_items.empty()) {
+		return requiredSize;
 	}
+	UiRect childSize = rc;
+	if (!m_bScrollBarFloat && m_pVScrollBar && m_pVScrollBar->IsValid()) {
+		if (m_bVScrollBarLeftPos) {
+			ASSERT(m_pVScrollBar->GetFixedWidth().GetInt32() > 0);
+			childSize.left += m_pVScrollBar->GetFixedWidth().GetInt32();
+		}
+		else {
+			ASSERT(m_pVScrollBar->GetFixedWidth().GetInt32() > 0);
+			childSize.right -= m_pVScrollBar->GetFixedWidth().GetInt32();
+		}
+	}
+	if (!m_bScrollBarFloat && m_pHScrollBar && m_pHScrollBar->IsValid()) {
+		ASSERT(m_pHScrollBar->GetFixedHeight().GetInt32() > 0);
+		childSize.bottom -= m_pHScrollBar->GetFixedHeight().GetInt32();
+	}
+	if (childSize.Width() < 0) {
+		childSize.right = childSize.left;
+	}
+	if (childSize.Height() < 0) {
+		childSize.bottom = childSize.top;
+	}
+	requiredSize = GetLayout()->ArrangeChild(m_items, childSize);
 	return requiredSize;
 }
 
@@ -273,10 +289,12 @@ void ScrollBox::PaintChild(IRender* pRender, const UiRect& rcPaint)
 		if (!pControl->IsVisible()) {
 			continue;
 		}
-		if (pControl->IsFloat()) {
+		/*if (pControl->IsFloat()) {
+		    //此处逻辑：认为浮动控件不会出现在滚动区域，但这个加上不合理，导致浮动控件无法出现在滚动区域内；
+			//所以注释掉。
 			pControl->AlphaPaint(pRender, rcPaint);	
 		}
-		else {
+		else */{
 			UiSize scrollPos = GetScrollOffset();
 			UiRect rcNewPaint = GetPaddingPos();
 			AutoClip alphaClip(pRender, rcNewPaint, IsClip());
@@ -797,22 +815,17 @@ ScrollBar* ScrollBox::GetHScrollBar() const
 void ScrollBox::ProcessVScrollBar(UiRect rc, int64_t cyRequired)
 {
 	UiRect rcScrollBarPos = rc;
-	rcScrollBarPos.left += m_rcScrollBarPadding.left;
-	rcScrollBarPos.top += m_rcScrollBarPadding.top;
-	rcScrollBarPos.right -= m_rcScrollBarPadding.right;
-	rcScrollBarPos.bottom -= m_rcScrollBarPadding.bottom;
+	rcScrollBarPos.Deflate(m_rcScrollBarPadding);
 
 	if (m_pVScrollBar == nullptr) {
 		return;
 	}
+	rc.Deflate(GetLayout()->GetPadding());
 
-	rc.left += GetLayout()->GetPadding().left;
-	rc.top += GetLayout()->GetPadding().top;
-	rc.right -= GetLayout()->GetPadding().right;
-	rc.bottom -= GetLayout()->GetPadding().bottom;
 	int32_t nHeight = rc.Height();
+	const int64_t cyScroll = std::max(cyRequired - nHeight, (int64_t)0);
 	if (cyRequired > nHeight && !m_pVScrollBar->IsValid()) {
-		m_pVScrollBar->SetScrollRange(cyRequired - nHeight);
+		m_pVScrollBar->SetScrollRange(cyScroll);
 		m_pVScrollBar->SetScrollPos(0);
 		m_bScrollProcess = true;
 		SetPos(GetRect());
@@ -824,8 +837,7 @@ void ScrollBox::ProcessVScrollBar(UiRect rc, int64_t cyRequired)
 		return;
 	}
 
-	// Scroll not needed anymore?
-	int64_t cyScroll = cyRequired - nHeight;
+	// Scroll not needed anymore?	
 	if( cyScroll <= 0 && !m_bScrollProcess) {
 		m_pVScrollBar->SetScrollPos(0);
 		m_pVScrollBar->SetScrollRange(0);
@@ -851,7 +863,7 @@ void ScrollBox::ProcessVScrollBar(UiRect rc, int64_t cyRequired)
 
 		if( m_pVScrollBar->GetScrollRange() != cyScroll ) {
 			int64_t iScrollPos = m_pVScrollBar->GetScrollPos();
-			m_pVScrollBar->SetScrollRange(::abs(cyScroll));
+			m_pVScrollBar->SetScrollRange(cyScroll);
 			if( !m_pVScrollBar->IsValid() ) {
 				m_pVScrollBar->SetScrollPos(0);
 			}
@@ -866,22 +878,16 @@ void ScrollBox::ProcessVScrollBar(UiRect rc, int64_t cyRequired)
 void ScrollBox::ProcessHScrollBar(UiRect rc, int64_t cxRequired)
 {
 	UiRect rcScrollBarPos = rc;
-	rcScrollBarPos.left += m_rcScrollBarPadding.left;
-	rcScrollBarPos.top += m_rcScrollBarPadding.top;
-	rcScrollBarPos.right -= m_rcScrollBarPadding.right;
-	rcScrollBarPos.bottom -= m_rcScrollBarPadding.bottom;
-
+	rcScrollBarPos.Deflate(m_rcScrollBarPadding);
 	if (m_pHScrollBar == nullptr) {
 		return;
 	}
+	rc.Deflate(GetLayout()->GetPadding());
 
-	rc.left += GetLayout()->GetPadding().left;
-	rc.top += GetLayout()->GetPadding().top;
-	rc.right -= GetLayout()->GetPadding().right;
-	rc.bottom -= GetLayout()->GetPadding().bottom;
 	int32_t nWidth = rc.Width();
+	const int64_t cxScroll = std::max(cxRequired - nWidth, (int64_t)0);
 	if (cxRequired > nWidth && !m_pHScrollBar->IsValid()) {
-		m_pHScrollBar->SetScrollRange(cxRequired - nWidth);
+		m_pHScrollBar->SetScrollRange(cxScroll);
 		m_pHScrollBar->SetScrollPos(0);
 		m_bScrollProcess = true;
 		SetPos(GetRect());
@@ -893,8 +899,7 @@ void ScrollBox::ProcessHScrollBar(UiRect rc, int64_t cxRequired)
 		return;
 	}
 
-	// Scroll not needed anymore?
-	int64_t cxScroll = cxRequired - nWidth;
+	// Scroll not needed anymore?	
 	if (cxScroll <= 0 && !m_bScrollProcess) {
 		m_pHScrollBar->SetScrollPos(0);
 		m_pHScrollBar->SetScrollRange(0);
@@ -910,7 +915,7 @@ void ScrollBox::ProcessHScrollBar(UiRect rc, int64_t cxRequired)
 
 		if (m_pHScrollBar->GetScrollRange() != cxScroll) {
 			int64_t iScrollPos = m_pHScrollBar->GetScrollPos();
-			m_pHScrollBar->SetScrollRange(::abs(cxScroll));
+			m_pHScrollBar->SetScrollRange(cxScroll);
 			if (!m_pHScrollBar->IsValid()) {
 				m_pHScrollBar->SetScrollPos(0);
 			}
@@ -1009,14 +1014,14 @@ void ScrollBox::SetVScrollBarLeftPos(bool bLeftPos)
 	m_bVScrollBarLeftPos = bLeftPos;
 }
 
-ui::UiRect ScrollBox::GetScrollBarPadding() const
+const UiPadding& ScrollBox::GetScrollBarPadding() const
 {
 	return m_rcScrollBarPadding;
 }
 
-void ScrollBox::SetScrollBarPadding(UiRect rcScrollBarPadding)
+void ScrollBox::SetScrollBarPadding(UiPadding rcScrollBarPadding)
 {
-	GlobalManager::Instance().Dpi().ScaleRect(rcScrollBarPadding);
+	GlobalManager::Instance().Dpi().ScalePadding(rcScrollBarPadding);
 	m_rcScrollBarPadding = rcScrollBarPadding;
 }
 

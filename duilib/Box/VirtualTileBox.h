@@ -53,11 +53,11 @@ private:
 
     /** 数据内容发生变化的响应函数
     */
-    DataChangedNotify m_DataChangedNotify;
+    DataChangedNotify m_pfnDataChangedNotify;
 
     /** 数据个数发生变化的响应函数
     */
-    CountChangedNotify m_CountChangedNotify;
+    CountChangedNotify m_pfnCountChangedNotify;
 };
 
 class UILIB_API VirtualTileLayout : public TileLayout
@@ -78,13 +78,6 @@ public:
      * @return 返回排列后最终布局的大小信息（宽度和高度），不包含拉伸类型的子控件大小
      */
     virtual UiSize EstimateSizeByChild(const std::vector<Control*>& items, UiSize szAvailable) override;
-
-    /** 设置布局属性
-     * @param[in] strName 要设置的属性名
-     * @param[in] strValue 要设置的属性值
-     * @return true 设置成功，false 属性不存在
-     */
-    virtual bool SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
     
     /** 获取数据项的高度
     *@param [in] nCount 数据项个数，如果为Box::InvalidIndex，则获取所有数据项的高度总和
@@ -99,11 +92,6 @@ public:
     /** 获取需要展示的真实数据项最大个数（即有Control对象对应的真实数据项）
     */
     virtual size_t AjustMaxItem();
-
-private:
-    /** 自动计算列数标志，如果为true则自动计算所需列数（此时不使用m_nColumns变量）
-    */
-    bool m_bAutoCalcColumn;
 };
 
 /** 虚表实现的TileBox，支持大数据量，只支持纵向滚动条

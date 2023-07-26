@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Window>
+    <Class name="page_scroll_box" text_padding="4,4,4,4" halign="center" valign="center" bkcolor="Sienna" border_size="2" border_color="Blue"/>
+    <Label text="布局ScrollBox测试"/>
+    <ScrollBox vscrollbar="true" hscrollbar="true" width="stretch" height="stretch" bkcolor="white" border_size="2" border_color="red" padding="20,20,20,20">
+        <Label class="page_scroll_box" text="1 default right,top" text_align="right,bottom" halign="right" valign="center" width="5000" height="2500"/>
+
+        <Label class="page_scroll_box" text="2 left,top" halign="left" valign="top" width="100" height="80"/>
+        <Label class="page_scroll_box" text="3 left,center" halign="left" valign="center" width="100" height="80"/>
+        <Label class="page_scroll_box" text="4 left,bottom" halign="left" valign="bottom" width="80" height="80"/>
+        <Label class="page_scroll_box" text="5 center,top" halign="center" valign="top" width="80" height="80"/>
+        <Label class="page_scroll_box" text="6 center,center" halign="center" valign="center" width="100" height="256"/>
+        <Label class="page_scroll_box" text="7 center,bottom" halign="center" valign="bottom" width="100" height="80"/>
+        <Label class="page_scroll_box" text="8 right,top" halign="right" valign="top" width="100" height="80"/>
+        <Label class="page_scroll_box" text="9 right,center" halign="right" valign="center" width="100" height="80"/>
+
+        <Label text="float 300*300 center,top" float="true" halign="center" valign="top" text_align="top" width="300" height="300" border_size="1" border_color="green" bkcolor="Olive"/>
+        <Label text="float 301*301 center,center" float="true" halign="center" valign="center" single_line="false" width="301" height="301" border_size="1" border_color="green" bkcolor="LemonChiffon"/>
+        <Label text="float 302*302 center,bottom" float="true" halign="center" valign="bottom" single_line="false" width="302" height="302" border_size="1" border_color="green" bkcolor="LemonChiffon"/>
+
+   </ScrollBox>
+</Window>

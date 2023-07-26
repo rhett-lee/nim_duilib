@@ -58,6 +58,10 @@ public:
 	 */
 	void SetAutoCalcColumns(bool bAutoCalcColumns);
 
+	/** 判断是否自动计算列数
+	 */
+	bool IsAutoCalcColumns() const;
+
 	/** 当控件内容超出边界时，按比例缩小，以使控件内容完全显示在瓦片区域内
 	*/
 	void SetScaleDown(bool bScaleDown);
