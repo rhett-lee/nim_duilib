@@ -27,26 +27,26 @@ typedef int (CALLBACK *PFNCompareFunc)(Control* pControl1, Control* pControl2, v
 class UILIB_API IListBoxOwner
 {
 public:
-	/**@brief 触发事件
+	/** 触发事件
 	*/
 	virtual void SendEvent(const EventArgs& event) = 0;
 
-	/**@brief 获取当前选择的索引，(如果无有效索引，则返回Box::InvalidIndex)
+	/** 获取当前选择的索引，(如果无有效索引，则返回Box::InvalidIndex)
 	*/
 	virtual size_t GetCurSel() const = 0;
 
-	/**@brief 选择子项
+	/** 选择子项
 	*  @param [in] iIndex 子项目的ID
 	*  @param [in] bTakeFocus 是否让子项控件成为焦点控件
-	*  @param [in] bTrigger 是否触发选择事件 
+	*  @param [in] bTrigger 是否触发选择事件, 如果为true，会触发一个kEventSelect事件
 	*/
-	virtual bool SelectItem(size_t iIndex, bool bTakeFocus = false, bool bTrigger = true) = 0;
+	virtual bool SelectItem(size_t iIndex, bool bTakeFocus, bool bTrigger) = 0;
 
-	/**@brief 确保区域可见
+	/** 确保矩形区域可见
 	*/
 	virtual void EnsureVisible(const UiRect& rcItem) = 0;
 
-	/**@brief 停止滚动条动画
+	/** 停止滚动条动画
 	*/
 	virtual void StopScroll() = 0;
 };
@@ -75,83 +75,108 @@ public:
 						   const UiPoint& mousePos = UiPoint()) override;
 	virtual void SendEvent(const EventArgs& event) override;
 
-	/**@brief 获取当前选择的索引，(如果无有效索引，则返回Box::InvalidIndex)
+public:
+	/**获取当前选择的索引，(如果无有效索引，则返回Box::InvalidIndex)
 	*/
 	virtual size_t GetCurSel() const override;
-	virtual bool SelectItem(size_t iIndex, bool bTakeFocus = false, bool bTrigger = true) override;
-	virtual void EnsureVisible(const UiRect& rcItem) override;
-	virtual void StopScroll() override;
-	
-	/**@brief 滚动到指定子项位置
-	 * @param[in] strItemName 子项名称
-	 */
-	virtual bool ScrollItemToTop(const std::wstring& strItemName);
 
-	/**@brief 获取当前位置第一个子项
+	/** 选择子项
+	*  @param [in] iIndex 子项目的ID
+	*  @param [in] bTakeFocus 是否让子项控件成为焦点控件
+	*  @param [in] bTrigger 是否触发选择事件, 如果为true，会触发一个kEventSelect事件
+	*/
+	virtual bool SelectItem(size_t iIndex, bool bTakeFocus, bool bTrigger) override;
+	
+	/** 确保矩形区域可见
+	*/
+	virtual void EnsureVisible(const UiRect& rcItem) override;
+
+	/** 停止滚动条动画
+	*/
+	virtual void StopScroll() override;
+
+public:
+	/** 滚动到指定子项位置
+	 * @param [in] itemName 子项名称(即：Control::GetName())
+	 */
+	virtual bool ScrollItemToTop(const std::wstring& itemName);
+
+	/** 获取当前矩形区域(Control::::GetPos())中的第一个子项
 	 */
 	virtual Control* GetTopItem();
 	
-	/**@brief 设置子项的位置索引
-	 * @param[in] pControl 子项指针
-	 * @param[in] iIndex 索引号
+	/** 设置子项的位置索引
+	 * @param [in] pControl 子项指针
+	 * @param [in] iIndex 索引号
 	 */
 	virtual bool SetItemIndex(Control* pControl, size_t iIndex) override;
 
-	/**@brief 追加一个子项到末尾
-	 * @param[in] pControl 子项指针
+	/** 追加一个子项到末尾
+	 * @param [in] pControl 子项指针
 	 */
 	virtual bool AddItem(Control* pControl) override;
 
-	/**@brief 在指定位置之后插入一个子项
-	 * @param[in] pControl 子项指针
+	/** 在指定位置之后插入一个子项
+	 * @param [in] pControl 子项指针
 	 * @param[in] iIndex 要插入的位置索引
 	 */
     virtual bool AddItemAt(Control* pControl, size_t  iIndex) override;
 
-	/**@brief 根据子项指针
-	 * @param[in] pControl 子项指针
+	/** 根据子项指针
+	 * @param [in] pControl 子项指针
 	 */
     virtual bool RemoveItem(Control* pControl) override;
 
-	/**@brief 根据索引移除一个子项
-	 * @param[in] iIndex 子项索引
+	/** 根据索引移除一个子项
+	 * @param [in] iIndex 子项索引
 	 */
-    virtual bool RemoveItemAt(size_t  iIndex) override;
+    virtual bool RemoveItemAt(size_t iIndex) override;
 
-	/**@brief 移除所有子项
+	/** 移除所有子项
 	 */
     virtual void RemoveAllItems() override;
 
-	/**@brief 选中上一项
+public:
+	/** 确保子项可见
+	* @param [in] iIndex 子项索引
+	*/
+	void EnsureVisible(size_t iIndex);
+
+	/** 选择子项，选中后让子项控件成为焦点控件，并触发一个kEventSelect事件
+	*  @param [in] iIndex 子项目的ID
+	*/
+	bool SelectItem(size_t iIndex);
+
+	/** 选中上一项
 	*/
 	void SelectPreviousItem();
 
-	/**@brief 选中下一项
+	/** 选中下一项
 	 */
 	void SelectNextItem();
 
-	/**@brief 排列子项
+	/** 对子项排序
 	 * @param [in] pfnCompare 自定义排序函数
 	 * @param [in] pCompareContext 传递给比较函数的用户自定义数据
 	 */
 	bool SortItems(PFNCompareFunc pfnCompare, void* pCompareContext);
 
-	/**@brief 获取是否随滚动改变选中项设置
+	/** 获取是否随滚动改变选中项设置
 	 * @return 返回 true 表示跟随滚动条改变选择项，否则为 false
 	 */
 	bool GetScrollSelect() const;
 
-	/**@brief 设置是否随滚动改变选中项设置
+	/** 设置是否随滚动改变选中项设置
 	 * @param[in] bScrollSelect 为 true 是为跟随滚动条改变选中项，false 为不跟随
 	 */
 	void SetScrollSelect(bool bScrollSelect);
 
-	/**@brief 监听选择子项的事件
+	/** 监听选择子项的事件
 	 * @param[in] callback 选择子项时的回调函数
 	 */
 	void AttachSelect(const EventCallback& callback) { AttachEvent(kEventSelect, callback); }
 
-	/**@brief 在移除一个子项后自动选择下一项
+	/** 在移除一个子项后自动选择下一项
 	 * @param[in] bSelectNextItem 为 true 时自动选择下一项，false 为不自动选择
 	 */
 	void SelectNextWhenActiveRemoved(bool bSelectNextItem);
@@ -187,12 +212,13 @@ protected:
 /////////////////////////////////////////////////////////////////////////////////////
 //
 
-/// 列表项，用于在列表中展示数据的子项
-class UILIB_API ListBoxElement: 
+/** 列表项，用于在列表中展示数据的子项
+*/
+class UILIB_API ListBoxItem: 
 	public OptionTemplate<Box>
 {
 public:
-	ListBoxElement();
+	ListBoxItem();
 
 	/// 重写父类方法，提供个性化功能，请参考父类声明
 	virtual std::wstring GetType() const override;
@@ -204,43 +230,32 @@ public:
 	 */
 	virtual bool IsSelectableType() const override;
 
-	/**
-	 * @brief 获取父容器
-	 * @return 返回父容器指针
+	/** 获取父容器
 	 */
 	IListBoxOwner* GetOwner();
 
-	/**
-	 * @brief 设置父容器
+	/** 设置父容器
 	 * @param[in] pOwner 父容器指针
-	 * @return 无
 	 */
 	void SetOwner(IListBoxOwner* pOwner);
 
 	/**
-	 * @brief 获取当前索引
-	 * @return 返回当前索引
+	 * @brief 获取当前索引号
 	 */
 	size_t GetIndex() const;
 
-	/**
-	 * @brief 设置索引
-	 * @param[in] iIndex 索引值
-	 * @return 无
+	/** 设置索引号
+	 * @param[in] iIndex 索引号
 	 */
 	void SetIndex(size_t iIndex);
 
-	/**
-	 * @brief 监听控件双击事件
+	/** 监听控件双击事件
 	 * @param[in] callback 收到双击消息时的回调函数
-	 * @return 无
 	 */
 	void AttachDoubleClick(const EventCallback& callback) { AttachEvent(kEventMouseDoubleClick, callback); }
 
-	/**
-	 * @brief 监听回车事件
+	/** 监听回车事件
 	 * @param[in] callback 收到回车时的回调函数
-	 * @return 无
 	 */
 	void AttachReturn(const EventCallback& callback) { AttachEvent(kEventReturn, callback); }
 

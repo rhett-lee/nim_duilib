@@ -322,7 +322,7 @@ void ShadowCombo::PaintText(ui::IRender* pRender)
     }
 
     Control* pControl = static_cast<Control*>((m_pLayout->GetItemAt(m_iCurSel)));
-    ui::ListBoxElement* pElement = dynamic_cast<ui::ListBoxElement*>(pControl);
+    ui::ListBoxItem* pElement = dynamic_cast<ui::ListBoxItem*>(pControl);
     ASSERT(pElement);
     if (pElement == nullptr) {
         return;
@@ -363,7 +363,7 @@ std::wstring ShadowCombo::GetText() const
     if (!ui::Box::IsValidItemIndex(m_iCurSel)) {
         return std::wstring();
     }
-    ui::ListBoxElement* pControl = static_cast<ui::ListBoxElement*>(m_pLayout->GetItemAt(m_iCurSel));
+    ui::ListBoxItem* pControl = static_cast<ui::ListBoxItem*>(m_pLayout->GetItemAt(m_iCurSel));
     return pControl ? pControl->GetText() : std::wstring();
 }
 

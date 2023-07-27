@@ -1,7 +1,7 @@
 #pragma once
 
-// 从 ui::ListBoxElement 中继承所有可用功能
-class Item : public ui::ListBoxElement
+// 从 ui::ListBoxItem 中继承所有可用功能
+class Item : public ui::ListBoxItem
 {
 public:
 	Item();

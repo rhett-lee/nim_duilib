@@ -12,7 +12,7 @@ class UILIB_API IMatch {
 	virtual bool StringMatch(const std::string& utf8str) = 0;
 };
 
-class UILIB_API ListElementMatch : public ui::ListBoxElement, public IMatch
+class UILIB_API ListElementMatch : public ui::ListBoxItem, public IMatch
 {
 public:
 	virtual bool StringMatch(const std::string& utf8str) override;

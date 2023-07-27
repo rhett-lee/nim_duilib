@@ -207,6 +207,24 @@ void ImageAttribute::ModifyAttribute(const std::wstring& strImageString)
 			//绘制时（内部使用），控制是否对dest属性进行DPI缩放
 			bDisalbeScaleDest = (value == L"false");
 		}
+		else if (name == L"padding") {
+			//在目标区域中设置内边距
+			AttributeUtil::ParsePaddingValue(value.c_str(), imageAttribute.rcPadding);
+		}
+		else if (name == L"halign") {
+			//在目标区域中设置横向对齐方式			
+			ASSERT((value == L"left") || (value == L"center") || (value == L"right"));
+			if ((value == L"left") || (value == L"center") || (value == L"right")) {
+				imageAttribute.hAlign = value;
+			}
+		}
+		else if (name == L"valign") {
+			//在目标区域中设置纵向对齐方式
+			ASSERT((value == L"top") || (value == L"center") || (value == L"bottom"));
+			if ((value == L"top") || (value == L"center") || (value == L"bottom")) {
+				imageAttribute.vAlign = value;
+			}
+		}
 		else if (name == L"fade") {
 			//图片的透明度
 			imageAttribute.bFade = (uint8_t)wcstoul(value.c_str(), nullptr, 10);
@@ -296,8 +314,8 @@ void ImageAttribute::ScaleImageRect(uint32_t imageWidth, uint32_t imageHeight, b
 		//如果是无效值，则重置为整个图片大小
 		rcSource.left = 0;
 		rcSource.top = 0;
-		rcSource.right = (int)imageWidth;
-		rcSource.bottom = (int)imageHeight;
+		rcSource.right = (int32_t)imageWidth;
+		rcSource.bottom = (int32_t)imageHeight;
 	}
 	else if (bImageDpiScaled) {
 		//如果外部设置此值，做DPI自适应处理
@@ -305,11 +323,11 @@ void ImageAttribute::ScaleImageRect(uint32_t imageWidth, uint32_t imageHeight, b
 	}
 
 	//图片源容错处理
-	if (rcSource.right > (int)imageWidth) {
-		rcSource.right = (int)imageWidth;
+	if (rcSource.right > (int32_t)imageWidth) {
+		rcSource.right = (int32_t)imageWidth;
 	}
-	if (rcSource.bottom > (int)imageHeight) {
-		rcSource.bottom = (int)imageHeight;
+	if (rcSource.bottom > (int32_t)imageHeight) {
+		rcSource.bottom = (int32_t)imageHeight;
 	}
 }
 

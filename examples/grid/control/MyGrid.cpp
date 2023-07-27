@@ -44,7 +44,7 @@ void MyGridBody::SetColCount(int count)
 
 		for (size_t i = 0; i < 3; i++)
 		{
-			ListBoxElement *combo_item = new ListBoxElement;
+			ListBoxItem *combo_item = new ListBoxItem;
 			combo_item->SetClass(L"listitem");
 			combo_item->SetUTF8Text("item0");
 			combo_item->SetFixedHeight(ui::UiFixedInt(24), true);
@@ -80,7 +80,7 @@ GridHeaderItem* MyGridBody::AddCol(std::wstring text, int width)
 
 			for (size_t i = 0; i < 3; i++)
 			{
-				ListBoxElement *combo_item = new ListBoxElement;
+				ListBoxItem *combo_item = new ListBoxItem;
 				combo_item->SetClass(L"listitem");
 				combo_item->SetUTF8Text("item0");
 				combo_item->SetFixedHeight(ui::UiFixedInt(24), true);

@@ -63,7 +63,7 @@ namespace ui
 
 	#define  DUI_CTR_TABBOX                          (L"TabBox")
 
-	#define  DUI_CTR_LISTBOX_ELEMENT				 (L"ListBoxElement")
+	#define  DUI_CTR_LISTBOX_ITEM					 (L"ListBoxItem")
 	#define  DUI_CTR_LISTBOX						 (L"ListBox")
 	#define  DUI_CTR_HLISTBOX						 (L"HListBox")
 	#define  DUI_CTR_VLISTBOX                        (L"VListBox")
@@ -233,7 +233,7 @@ namespace ui
 		kEventWindowSize,			//Window类：发送给Focus控件，当窗口大小发生变化时触发事件
 		kEventWindowClose,			//Window类，Combo控件：当窗口关闭（或者Combo的下拉框窗口关闭）时触发
 
-		kEventClick,				//Button类、ListBoxElement、Option、CheckBox等：当点击按钮（或者键盘回车）时触发
+		kEventClick,				//Button类、ListBoxItem、Option、CheckBox等：当点击按钮（或者键盘回车）时触发
 
 		kEventSelect,				//CheckBox类、Option类、ListBox类、Combo类：当变成选中状态时触发
 		kEventUnSelect,			    //CheckBox类、Option类、ListBox类、Combo类：当变成非选中状态时触发
@@ -242,7 +242,7 @@ namespace ui
 		kEventUnExpand,				//TreeNode类：当树节点收起时触发
 
 		kEventTextChange,			//RichEdit类：当文本内容发生变化时触发
-		kEventReturn,				//ListBoxElement、RichEdit类：当收到回车键时触发
+		kEventReturn,				//ListBoxItem、RichEdit类：当收到回车键时触发
 		kEventTab,					//RichEdit类：在WantTab为false时，当收到TAB键时触发
 		kEventCustomLinkClick,		//RichEdit类：当点击到自定义link的数据上时触发		
 

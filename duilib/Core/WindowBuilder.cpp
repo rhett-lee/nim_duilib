@@ -706,7 +706,7 @@ Control* WindowBuilder::CreateControlByClass(const std::wstring& strControlClass
 		{DUI_CTR_VSCROLLBOX, []() { return new VScrollBox; }},
 		{DUI_CTR_TILESCROLLBOX, []() { return new TileScrollBox; }},
 	
-		{DUI_CTR_LISTBOX_ELEMENT, []() { return new ListBoxElement; }},
+		{DUI_CTR_LISTBOX_ITEM, []() { return new ListBoxItem; }},
 		{DUI_CTR_LISTBOX, []() { return new ListBox; }},
 		{DUI_CTR_HLISTBOX, []() { return new HListBox; }},
 		{DUI_CTR_VLISTBOX, []() { return new VListBox; }},

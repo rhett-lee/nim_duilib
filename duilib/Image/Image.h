@@ -185,6 +185,15 @@ public:
 	//绘制目标区域位置和大小（相对于控件区域的位置）
 	UiRect rcDest;
 
+	//在绘制目标区域中的内边距(如果指定了rcDest值，则此选项无效)
+	UiPadding rcPadding;
+
+	//在绘制目标区域中横向对齐方式(如果指定了rcDest值，则此选项无效)
+	std::wstring hAlign;
+
+	//在绘制目标区域中纵向对齐方式(如果指定了rcDest值，则此选项无效)
+	std::wstring vAlign;
+
 	//图片源区域位置和大小
 	UiRect rcSource;
 

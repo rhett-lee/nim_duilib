@@ -88,6 +88,18 @@ public:
 		return (w <= 0 || h <= 0);
 	}
 
+	/** 检查宽度和高度值是否为有效值，并修正
+	*/
+	void Validate()
+	{
+		if (right < left) {
+			right = left;
+		}
+		if (bottom < top) {
+			bottom = top;
+		}
+	}
+
 	/** 偏移操作
 	*/
 	void Offset(int32_t cx, int32_t cy)

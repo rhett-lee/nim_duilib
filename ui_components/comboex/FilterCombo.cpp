@@ -198,7 +198,7 @@ bool FilterListBox::SelectItem(size_t iIndex, bool bTakeFocus, bool bTrigger)
 	if (Box::IsValidItemIndex(m_iCurSel)) {
 		Control* pControl = GetItemAt(m_iCurSel);
 		if (pControl != NULL) {
-			ui::ListBoxElement* pListItem = dynamic_cast<ui::ListBoxElement*>(pControl);
+			ui::ListBoxItem* pListItem = dynamic_cast<ui::ListBoxItem*>(pControl);
 			if (pListItem != NULL) {
 				pListItem->OptionTemplate<Box>::Selected(false, bTrigger);
 			}
@@ -222,7 +222,7 @@ bool FilterListBox::SelectItem(size_t iIndex, bool bTakeFocus, bool bTrigger)
 		return false;
 	}
 
-	ui::ListBoxElement* pListItem = dynamic_cast<ui::ListBoxElement*>(pControl);
+	ui::ListBoxItem* pListItem = dynamic_cast<ui::ListBoxItem*>(pControl);
 	if (pListItem == nullptr) {
 		return false;
 	}
@@ -387,7 +387,7 @@ std::wstring FilterCombo::GetText() const
 {
 #if 0
     if( m_iCurSel < 0 ) return _T("");
-	ListBoxElement* pControl = static_cast<ListBoxElement*>(m_pLayout->GetItemAt(m_iCurSel));
+	ListBoxItem* pControl = static_cast<ListBoxItem*>(m_pLayout->GetItemAt(m_iCurSel));
     return pControl->GetText();
 #else
 	if (m_pRichEdit != nullptr) {
@@ -460,7 +460,7 @@ bool FilterCombo::OnSelectItem(const ui::EventArgs& /*args*/)
 		pControl->SetState(ui::kControlStateNormal);
 	}
 	SendEvent(ui::kEventSelect, m_iCurSel, -1);
-	ui::ListBoxElement *ele = dynamic_cast<ui::ListBoxElement*>(pControl);
+	ui::ListBoxItem *ele = dynamic_cast<ui::ListBoxItem*>(pControl);
 	if (m_pRichEdit && ele)	{
 		m_pRichEdit->SetText(ele->GetText());
 	}

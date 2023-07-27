@@ -10,7 +10,7 @@ ContextMenuObserver& CMenuWnd::GetMenuObserver()
 }
 
 //二级或者多级子菜单的托管类
-class CSubMenuUI: public ui::ListBoxElement
+class CSubMenuUI: public ui::ListBoxItem
 {
 };
 
@@ -809,7 +809,7 @@ bool CMenuElementUI::MouseEnter(const ui::EventArgs& msg)
 			CMenuWnd::GetMenuObserver().RBroadcast(param);
 			//这里得把之前选中的置为未选中
 			if (GetOwner() != nullptr) {
-				GetOwner()->SelectItem(Box::InvalidIndex, false);
+				GetOwner()->SelectItem(Box::InvalidIndex, false, false);
 			}
 		}
 	}
@@ -855,7 +855,7 @@ bool CMenuElementUI::CheckSubMenuItem()
 	}
 	if (hasSubMenu) {
 		if (GetOwner() != nullptr) {
-			GetOwner()->SelectItem(GetIndex(), true);
+			GetOwner()->SelectItem(GetIndex(), true, true);
 		}
 		if (m_pSubWindow == nullptr) {
 			CreateMenuWnd();

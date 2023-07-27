@@ -59,8 +59,8 @@ void ControlForm::OnInitWindow()
 	ui::ListBox* list = static_cast<ui::ListBox*>(FindControl(L"list"));
 	for (auto i = 0; i < 30; i++)
 	{
-		ui::ListBoxElement* element = new ui::ListBoxElement;
-		element->SetText(nbase::StringPrintf(L"ui::VListBox::ListBoxElement %d", i));
+		ui::ListBoxItem* element = new ui::ListBoxItem;
+		element->SetText(nbase::StringPrintf(L"ui::VListBox::ListBoxItem %d", i));
 		element->SetClass(L"listitem");
 		element->SetFixedHeight(ui::UiFixedInt(20), true);
 		list->AddItem(element);
@@ -93,12 +93,12 @@ void ControlForm::OnInitWindow()
 	if (combo != nullptr) {
 		for (auto i = 0; i < 10; i++)
 		{
-			ui::ListBoxElement* element = new ui::ListBoxElement;
+			ui::ListBoxItem* element = new ui::ListBoxItem;
 			element->SetClass(L"listitem");
 			element->SetFixedHeight(ui::UiFixedInt(30), true);
 			element->SetBkColor(L"white");
 			element->SetTextPadding({ 6,0,6,0 });
-			element->SetText(nbase::StringPrintf(L"ui::Combo::ListBoxElement %d", i));
+			element->SetText(nbase::StringPrintf(L"ui::Combo::ListBoxItem %d", i));
 			combo->AddItem(element);
 		}
 	}

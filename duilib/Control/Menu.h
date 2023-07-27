@@ -169,7 +169,7 @@ private:
 	ui::ListBox* m_pLayout;
 };
 
-class CMenuElementUI : public ui::ListBoxElement
+class CMenuElementUI : public ui::ListBoxItem
 {
 public:
 	CMenuElementUI();

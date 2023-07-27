@@ -11,7 +11,7 @@ namespace ui
 #define ROOT_NODE_DEPTH  -1
 
 class TreeView;
-class UILIB_API TreeNode : public ListBoxElement
+class UILIB_API TreeNode : public ListBoxItem
 {
 public:
 	TreeNode();

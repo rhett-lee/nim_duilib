@@ -33,7 +33,7 @@ bool TreeNode::OnClickItem(const EventArgs& param)
 
 bool TreeNode::IsVisible() const
 {
-	if (!ListBoxElement::IsVisible()) {
+	if (!ListBoxItem::IsVisible()) {
 		return false;
 	}
 	if (m_pParentTreeNode != nullptr) {
@@ -46,7 +46,7 @@ bool TreeNode::IsVisible() const
 
 void TreeNode::SetWindow(Window* pManager, Box* pParent, bool bInit)
 {
-	ListBoxElement::SetWindow(pManager, pParent, bInit);
+	ListBoxItem::SetWindow(pManager, pParent, bInit);
 }
 
 TreeNode* TreeNode::GetParentNode()

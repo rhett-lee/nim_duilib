@@ -18,8 +18,11 @@ std::wstring ListBox::GetType() const { return DUI_CTR_LISTBOX; }
 
 void ListBox::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
-	if ((strName == L"scroll_select") || (strName == L"scrollselect")){
+	if ((strName == L"scroll_select") || (strName == L"scrollselect")) {
 		SetScrollSelect(strValue == L"true");
+	}
+	else if (strName == L"select_next_when_active_removed") {
+		SelectNextWhenActiveRemoved(strValue == L"true");
 	}
 	else {
 		ScrollBox::SetAttribute(strName, strValue);
@@ -38,23 +41,28 @@ void ListBox::HandleEvent(const EventArgs& event)
 		return;
 	}
 
+	size_t itemIndex = Box::InvalidIndex;
 	switch (event.Type) {
 	case kEventMouseButtonDown:
 	case kEventMouseButtonUp:
-		return;
+		break;
 	case kEventKeyDown:
 		switch (event.chKey) {
 		case VK_UP:
-			SelectItem(FindSelectable(!Box::IsValidItemIndex(m_iCurSel) ? 0 : m_iCurSel - 1, false), true);
+			itemIndex = FindSelectable(!Box::IsValidItemIndex(m_iCurSel) ? 0 : m_iCurSel - 1, false);
+			SelectItem(itemIndex);
 			return;
 		case VK_DOWN:
-			SelectItem(FindSelectable(!Box::IsValidItemIndex(m_iCurSel) ? 0 : m_iCurSel + 1, true), true);
+			itemIndex = FindSelectable(!Box::IsValidItemIndex(m_iCurSel) ? 0 : m_iCurSel + 1, true);
+			SelectItem(itemIndex);
 			return;
 		case VK_HOME:
-			SelectItem(FindSelectable(0, false), true);
+			itemIndex = FindSelectable(0, false);
+			SelectItem(itemIndex);
 			return;
 		case VK_END:
-			SelectItem(FindSelectable(GetItemCount() - 1, true), true);
+			itemIndex = FindSelectable(GetItemCount() - 1, true);
+			SelectItem(itemIndex);
 			return;
 		}
 		break;
@@ -63,14 +71,16 @@ void ListBox::HandleEvent(const EventArgs& event)
 		int detaValue = static_cast<int>(event.wParam);
 		if (detaValue > 0) {
 			if (m_bScrollSelect) {
-				SelectItem(FindSelectable(!Box::IsValidItemIndex(m_iCurSel) ? 0 : m_iCurSel - 1, false), true);
+				itemIndex = FindSelectable(!Box::IsValidItemIndex(m_iCurSel) ? 0 : m_iCurSel - 1, false);
+				SelectItem(itemIndex);
 				return;
 			}
 			break;
 		}
 		else {
 			if (m_bScrollSelect) {
-				SelectItem(FindSelectable(!Box::IsValidItemIndex(m_iCurSel) ? 0 : m_iCurSel + 1, true), true);
+				itemIndex = FindSelectable(!Box::IsValidItemIndex(m_iCurSel) ? 0 : m_iCurSel + 1, true);
+				SelectItem(itemIndex);
 				return;
 			}
 			break;
@@ -96,6 +106,7 @@ size_t ListBox::GetCurSel() const
 {
 	return m_iCurSel;
 }
+
 void ListBox::SelectNextWhenActiveRemoved(bool bSelectNextItem)
 {
 	m_bSelNextWhenRemoveActive = bSelectNextItem;
@@ -111,15 +122,16 @@ bool ListBox::SelectItem(size_t iIndex, bool bTakeFocus, bool bTrigger)
 			if (bTakeFocus) {
 				pControl->SetFocus();
 			}
+			Invalidate();
 		}
 		return true;
 	}
-	size_t iOldSel = m_iCurSel;
+	const size_t iOldSel = m_iCurSel;
 	// We should first unselect the currently selected item
 	if (Box::IsValidItemIndex(m_iCurSel)) {
 		Control* pControl = GetItemAt(m_iCurSel);
 		if (pControl != nullptr) {
-			ListBoxElement* pListItem = dynamic_cast<ListBoxElement*>(pControl);
+			ListBoxItem* pListItem = dynamic_cast<ListBoxItem*>(pControl);
 			if (pListItem != nullptr) {
 				pListItem->OptionTemplate<Box>::Selected(false, bTrigger);
 			}
@@ -127,6 +139,7 @@ bool ListBox::SelectItem(size_t iIndex, bool bTakeFocus, bool bTrigger)
 		m_iCurSel = Box::InvalidIndex;
 	}
 	if (!Box::IsValidItemIndex(iIndex)) {
+		Invalidate();
 		return false;
 	}
 
@@ -134,8 +147,8 @@ bool ListBox::SelectItem(size_t iIndex, bool bTakeFocus, bool bTrigger)
 	if ((pControl == nullptr) || !pControl->IsVisible() || !pControl->IsEnabled()){
 		return false;
 	}
-	ListBoxElement* pListItem = dynamic_cast<ListBoxElement*>(pControl);
-	if (pListItem == NULL) {
+	ListBoxItem* pListItem = dynamic_cast<ListBoxItem*>(pControl);
+	if (pListItem == nullptr) {
 		return false;
 	}
 	m_iCurSel = iIndex;
@@ -145,7 +158,6 @@ bool ListBox::SelectItem(size_t iIndex, bool bTakeFocus, bool bTrigger)
 	if (pControl != nullptr) {
 		UiRect rcItem = pControl->GetPos();
 		EnsureVisible(rcItem);
-
 		if (bTakeFocus) {
 			pControl->SetFocus();
 		}
@@ -154,6 +166,7 @@ bool ListBox::SelectItem(size_t iIndex, bool bTakeFocus, bool bTrigger)
 	if (bTrigger) {
 		SendEvent(kEventSelect, m_iCurSel, iOldSel);
 	}
+	Invalidate();
 	return true;
 }
 
@@ -163,12 +176,7 @@ void ListBox::EnsureVisible(const UiRect& rcItem)
 	UiSize scrollOffset = GetScrollOffset();
 	rcNewItem.Offset(-scrollOffset.cx, -scrollOffset.cy);
 	UiRect rcList = GetPos();
-	UiPadding rcListInset = GetLayout()->GetPadding();
-
-	rcList.left += rcListInset.left;
-	rcList.top += rcListInset.top;
-	rcList.right -= rcListInset.right;
-	rcList.bottom -= rcListInset.bottom;
+	rcList.Deflate(GetLayout()->GetPadding());
 
 	ScrollBar* pHorizontalScrollBar = GetHScrollBar();
 	if (pHorizontalScrollBar && pHorizontalScrollBar->IsVisible()) {
@@ -178,20 +186,25 @@ void ListBox::EnsureVisible(const UiRect& rcItem)
 
 	if ((rcNewItem.left >= rcList.left) && (rcNewItem.top >= rcList.top) && 
 		(rcNewItem.right <= rcList.right) && (rcNewItem.bottom <= rcList.bottom)) {
-		if ((GetParent() != nullptr) && dynamic_cast<ListBoxElement*>(GetParent()) != NULL) {
-			dynamic_cast<ListBoxElement*>(GetParent())->GetOwner()->EnsureVisible(rcNewItem);
+		ListBoxItem* listBoxElement = dynamic_cast<ListBoxItem*>(GetParent());
+		IListBoxOwner* lisBoxOwner = nullptr;
+		if (listBoxElement != nullptr) {
+			lisBoxOwner = listBoxElement->GetOwner();
 		}
+		if (lisBoxOwner != nullptr) {
+			lisBoxOwner->EnsureVisible(rcNewItem);
+		}		
 		return;
 	}
 
-	int dx = 0;
+	int32_t dx = 0;
 	if (rcNewItem.left < rcList.left) {
 		dx = rcNewItem.left - rcList.left;
 	}
 	if (rcNewItem.right > rcList.right) {
 		dx = rcNewItem.right - rcList.right;
 	}
-	int dy = 0;
+	int32_t dy = 0;
 	if (rcNewItem.top < rcList.top) {
 		dy = rcNewItem.top - rcList.top;
 	}
@@ -200,6 +213,7 @@ void ListBox::EnsureVisible(const UiRect& rcItem)
 	}
 	UiSize64 sz = GetScrollPos();
 	SetScrollPos(UiSize64(sz.cx + dx, sz.cy + dy));
+	Invalidate();
 }
 
 void ListBox::StopScroll()
@@ -214,11 +228,13 @@ bool ListBox::ButtonDown(const EventArgs& msg)
 	return ret;
 }
 
-bool ListBox::ScrollItemToTop(const std::wstring& strItemName)
+bool ListBox::ScrollItemToTop(const std::wstring& itemName)
 {
 	for (Control* pControl : m_items) {
-		ASSERT(pControl != nullptr);
-		if (pControl->GetName() == strItemName) {
+		if ((pControl == nullptr) || !pControl->IsVisible()) {
+			continue;
+		}
+		if (pControl->GetName() == itemName) {
 			if (GetScrollRange().cy != 0) {
 				UiSize64 scrollPos = GetScrollPos();
 				scrollPos.cy = pControl->GetPos().top - GetLayout()->GetInternalPos().top;
@@ -226,16 +242,10 @@ bool ListBox::ScrollItemToTop(const std::wstring& strItemName)
 					SetScrollPos(scrollPos);
 					return true;
 				}
-				else {
-					return false;
-				}
 			}
-			else {
-				return false;
-			}
+			break;
 		}
 	}
-
 	return false;
 }
 
@@ -261,9 +271,9 @@ bool ListBox::SetItemIndex(Control* pControl, size_t iIndex)
 		return true;
 	}
 
-	ListBoxElement* pSelectedListItem = nullptr;
+	ListBoxItem* pSelectedListItem = nullptr;
 	if (Box::IsValidItemIndex(m_iCurSel)) {
-		pSelectedListItem = dynamic_cast<ListBoxElement*>(GetItemAt(m_iCurSel));
+		pSelectedListItem = dynamic_cast<ListBoxItem*>(GetItemAt(m_iCurSel));
 	}
 	if (!ScrollBox::SetItemIndex(pControl, iIndex)) {
 		return false;
@@ -272,7 +282,7 @@ bool ListBox::SetItemIndex(Control* pControl, size_t iIndex)
 	size_t iMaxIndex = std::max(iOrginIndex, iIndex);
 	for(size_t i = iMinIndex; i < iMaxIndex + 1; ++i) {
 		Control* pItemControl = GetItemAt(i);
-		ListBoxElement* pListItem = dynamic_cast<ListBoxElement*>(pItemControl);
+		ListBoxItem* pListItem = dynamic_cast<ListBoxItem*>(pItemControl);
 		if( pListItem != NULL ) {
 			pListItem->SetIndex(i);
 		}
@@ -281,6 +291,21 @@ bool ListBox::SetItemIndex(Control* pControl, size_t iIndex)
 		m_iCurSel = pSelectedListItem->GetIndex();
 	}
 	return true;
+}
+
+void ListBox::EnsureVisible(size_t iIndex)
+{
+	Control* pControl = GetItemAt(iIndex);
+	ASSERT(pControl != nullptr);
+	if (pControl != nullptr) {
+		UiRect rcItem = pControl->GetPos();
+		EnsureVisible(rcItem);
+	}
+}
+
+bool ListBox::SelectItem(size_t iIndex)
+{
+	return SelectItem(iIndex, true, true);
 }
 
 void ListBox::SelectPreviousItem()
@@ -303,7 +328,7 @@ bool ListBox::AddItem(Control* pControl)
 	// the intended widgets. Headers are assumed to be
 	// answer the correct interface so we can add multiple list headers.
 	// The list items should know about us
-	ListBoxElement* pListItem = dynamic_cast<ListBoxElement*>(pControl);
+	ListBoxItem* pListItem = dynamic_cast<ListBoxItem*>(pControl);
 	if( pListItem != nullptr) {
 		pListItem->SetOwner(this);
 		pListItem->SetIndex(GetItemCount());
@@ -322,7 +347,7 @@ bool ListBox::AddItemAt(Control* pControl, size_t iIndex)
 	}
 
 	// The list items should know about us
-	ListBoxElement* pListItem = dynamic_cast<ListBoxElement*>(pControl);
+	ListBoxItem* pListItem = dynamic_cast<ListBoxItem*>(pControl);
 	if( pListItem != nullptr ) {
 		pListItem->SetOwner(this);
 		pListItem->SetIndex(iIndex);
@@ -331,7 +356,7 @@ bool ListBox::AddItemAt(Control* pControl, size_t iIndex)
 	const size_t itemCount = GetItemCount();
 	for(size_t i = iIndex + 1; i < itemCount; ++i) {
 		Control* p = GetItemAt(i);
-		pListItem = dynamic_cast<ListBoxElement*>(p);
+		pListItem = dynamic_cast<ListBoxItem*>(p);
 		if( pListItem != nullptr ) {
 			pListItem->SetIndex(i);
 		}
@@ -359,7 +384,7 @@ bool ListBox::RemoveItemAt(size_t iIndex)
 	const size_t itemCount = GetItemCount();
 	for(size_t i = iIndex; i < itemCount; ++i) {
 		Control* p = GetItemAt(i);
-		ListBoxElement* pListItem = dynamic_cast<ListBoxElement*>(p);
+		ListBoxItem* pListItem = dynamic_cast<ListBoxItem*>(p);
 		if (pListItem != nullptr) {
 			pListItem->SetIndex(i);
 		}
@@ -399,10 +424,10 @@ bool ListBox::SortItems(PFNCompareFunc pfnCompare, void* pCompareContext)
 	m_pCompareFunc = pfnCompare;
 	m_pCompareContext = pCompareContext;
 	qsort_s(&(*m_items.begin()), m_items.size(), sizeof(Control*), ListBox::ItemComareFunc, this);	
-	ListBoxElement* pItem = nullptr;
+	ListBoxItem* pItem = nullptr;
 	const size_t itemCount = m_items.size();
 	for (size_t i = 0; i < itemCount; ++i) {
-		pItem = dynamic_cast<ListBoxElement*>(static_cast<Control*>(m_items[i]));
+		pItem = dynamic_cast<ListBoxItem*>(static_cast<Control*>(m_items[i]));
 		if (pItem != nullptr) {
 			pItem->SetIndex(i);
 			pItem->Selected(false, false);
@@ -442,16 +467,16 @@ void ListBox::SetScrollSelect(bool bScrollSelect)
 
 /////////////////////////////////////////////////////////////////////////////////////
 
-ListBoxElement::ListBoxElement() :
+ListBoxItem::ListBoxItem() :
 	m_iIndex(Box::InvalidIndex),
 	m_pOwner(nullptr)
 {
 	m_uTextStyle = TEXT_LEFT | TEXT_VCENTER | TEXT_END_ELLIPSIS | TEXT_NOCLIP | TEXT_SINGLELINE;
 }
 
-std::wstring ListBoxElement::GetType() const {  return DUI_CTR_LISTBOX_ELEMENT; }
+std::wstring ListBoxItem::GetType() const {  return DUI_CTR_LISTBOX_ITEM; }
 
-void ListBoxElement::Selected(bool bSelected, bool trigger)
+void ListBoxItem::Selected(bool bSelected, bool trigger)
 {
 	if (!IsEnabled()) {
 		return;
@@ -461,7 +486,7 @@ void ListBoxElement::Selected(bool bSelected, bool trigger)
 	}
 }
 
-void ListBoxElement::HandleEvent(const EventArgs& event)
+void ListBoxItem::HandleEvent(const EventArgs& event)
 {
 	if (!IsMouseEnabled() && 
 		(event.Type > kEventMouseBegin) && 
@@ -471,7 +496,7 @@ void ListBoxElement::HandleEvent(const EventArgs& event)
 			m_pOwner->SendEvent(event);
 		}
 		else {
-			Box::HandleEvent(event);
+			__super::HandleEvent(event);
 		}
 		return;
 	}
@@ -496,27 +521,27 @@ void ListBoxElement::HandleEvent(const EventArgs& event)
 	//if( m_pOwner != NULL ) m_pOwner->HandleMessage(event); else Control::HandleMessage(event);
 }
 
-IListBoxOwner* ListBoxElement::GetOwner()
+IListBoxOwner* ListBoxItem::GetOwner()
 {
     return m_pOwner;
 }
 
-void ListBoxElement::SetOwner(IListBoxOwner* pOwner)
+void ListBoxItem::SetOwner(IListBoxOwner* pOwner)
 {
     m_pOwner = pOwner;
 }
 
-size_t ListBoxElement::GetIndex() const
+size_t ListBoxItem::GetIndex() const
 {
     return m_iIndex;
 }
 
-void ListBoxElement::SetIndex(size_t iIndex)
+void ListBoxItem::SetIndex(size_t iIndex)
 {
     m_iIndex = iIndex;
 }
 
-bool ListBoxElement::IsSelectableType() const
+bool ListBoxItem::IsSelectableType() const
 {
 	return true;
 }

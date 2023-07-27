@@ -281,9 +281,9 @@ void Combo::PaintText(IRender* pRender)
 	}
 	UiRect rcText = GetRect();	
 	Control* pControl = m_pLayout->GetItemAt(m_iCurSel);
-	ListBoxElement* pElement = nullptr;
+	ListBoxItem* pElement = nullptr;
 	if (pControl) {
-		pElement = dynamic_cast<ListBoxElement*>(pControl);
+		pElement = dynamic_cast<ListBoxItem*>(pControl);
 	}
 	ASSERT(pElement != nullptr);
 	if (pElement == nullptr) {
@@ -321,7 +321,7 @@ std::wstring Combo::GetText() const
 	if (!Box::IsValidItemIndex(m_iCurSel)) {
 		return std::wstring();
 	}
-	ListBoxElement* pControl = dynamic_cast<ListBoxElement*>(m_pLayout->GetItemAt(m_iCurSel));
+	ListBoxItem* pControl = dynamic_cast<ListBoxItem*>(m_pLayout->GetItemAt(m_iCurSel));
 	return pControl ? pControl->GetText() : std::wstring();
 }
 

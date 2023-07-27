@@ -327,10 +327,7 @@ void CheckBoxTemplate<InheritType>::PaintText(IRender* pRender)
         return;
     }
     UiRect rc = this->GetRect();
-    rc.left += this->m_rcTextPadding.left;
-    rc.right -= this->m_rcTextPadding.right;
-    rc.top += this->m_rcTextPadding.top;
-    rc.bottom -= this->m_rcTextPadding.bottom;
+    rc.Deflate(this->m_rcTextPadding);
 
     auto stateType = this->GetState();
     std::wstring clrColor = GetPaintSelectedStateTextColor(this->GetState(), stateType);

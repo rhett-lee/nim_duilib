@@ -49,7 +49,7 @@ namespace ui
 			m_pComboEdit->RemoveAllItems();
 			for (size_t i = 0; i < item->combo_list.size(); i++)
 			{
-				ui::ListBoxElement *combo_item = new ui::ListBoxElement;
+				ui::ListBoxItem *combo_item = new ui::ListBoxItem;
 				combo_item->SetFixedHeight(ui::UiFixedInt(20), true);
 				combo_item->SetText(item->combo_list[i]);
 				m_pComboEdit->AddItem(combo_item);

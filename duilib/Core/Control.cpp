@@ -1262,6 +1262,7 @@ bool Control::PaintImage(IRender* pRender,  Image& duiImage,
 	if (!strModify.empty()) {
 		newImageAttribute.ModifyAttribute(strModify);
 	}
+	bool hasDestAttr = false; // 外部是否设置了rcDest属性
 	UiRect rcDest = GetRect();
 	if (ImageAttribute::HasValidImageRect(newImageAttribute.rcDest)) {
 		//使用配置中指定的目标区域
@@ -1269,8 +1270,10 @@ bool Control::PaintImage(IRender* pRender,  Image& duiImage,
 			(newImageAttribute.rcDest.Height() <= rcDest.Height())) {
 			rcDest = newImageAttribute.rcDest;
 			rcDest.Offset(GetRect().left, GetRect().top);
+			hasDestAttr = true;
 		}
 	}
+
 	UiRect rcDestCorners;
 	UiRect rcSource = newImageAttribute.rcSource;
 	UiRect rcSourceCorners = newImageAttribute.rcCorner;
@@ -1280,6 +1283,55 @@ bool Control::PaintImage(IRender* pRender,  Image& duiImage,
 		                           rcSource,
 		                           rcSourceCorners);
 	
+	if (!hasDestAttr) {
+		//运用rcPadding、hAlign、vAlign 三个图片属性
+		rcDest.Deflate(newImageAttribute.rcPadding);
+		rcDest.Validate();
+		rcSource.Validate();
+		const int32_t imageWidth = rcSource.Width();
+		const int32_t imageHeight = rcSource.Height();
+
+		//应用对齐方式后，图片将不再拉伸，而是按原大小展示
+		if (!newImageAttribute.hAlign.empty()) {
+			if (newImageAttribute.hAlign == L"left") {
+				rcDest.right = rcDest.left + imageWidth;
+			}
+			else if (newImageAttribute.hAlign == L"center") {
+				rcDest.left = rcDest.CenterX() - imageWidth / 2;
+				rcDest.right = rcDest.left + imageWidth;
+			}
+			else if (newImageAttribute.hAlign == L"right") {
+				rcDest.left = rcDest.right - imageWidth;
+			}
+			else {
+				rcDest.right = rcDest.left + imageWidth;
+			}
+
+			if (newImageAttribute.vAlign.empty()) {
+				rcDest.bottom = rcDest.top + imageHeight;
+			}				
+		}
+		if (!newImageAttribute.vAlign.empty()) {
+			if (newImageAttribute.vAlign == L"top") {
+				rcDest.bottom = rcDest.top + imageHeight;
+			}
+			else if (newImageAttribute.vAlign == L"center") {
+				rcDest.top = rcDest.CenterY() - imageHeight / 2;
+				rcDest.bottom = rcDest.top + imageHeight;
+			}
+			else if (newImageAttribute.vAlign == L"right") {
+				rcDest.top = rcDest.bottom - imageHeight;
+			}
+			else {
+				rcDest.bottom = rcDest.top + imageHeight;
+			}
+
+			if (newImageAttribute.hAlign.empty()) {
+				rcDest.right = rcDest.left + imageWidth;
+			}
+		}
+	}
+
 	//图片透明度属性
 	uint8_t iFade = (nFade == DUI_NOSET_VALUE) ? newImageAttribute.bFade : static_cast<uint8_t>(nFade);
 	if (pMatrix != nullptr) {
