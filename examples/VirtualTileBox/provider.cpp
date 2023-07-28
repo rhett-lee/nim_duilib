@@ -85,12 +85,13 @@ void Provider::RemoveTask(size_t nIndex)
 
 void Provider::ChangeTaskName(size_t nIndex, const std::wstring& sName)
 {
-	if (nIndex < (int)m_vTasks.size())
-	{
+	lock_.Lock();
+	if (nIndex < m_vTasks.size()) {
 		delete m_vTasks[nIndex].sName;
 		m_vTasks[nIndex].sName = new wchar_t[sName.size() + 1];
 		wcscpy_s(m_vTasks[nIndex].sName, sName.size() + 1, sName.c_str());
 	}
+	lock_.Unlock();
 
 	// 发送数据变动通知
 	EmitDataChanged(nIndex, nIndex);

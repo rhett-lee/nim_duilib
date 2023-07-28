@@ -46,9 +46,6 @@ void MainForm::OnInitWindow()
 	// 设置提供者
 	m_DataProvider = new Provider;
 	m_pTileList->SetDataProvider(m_DataProvider);
-
-
-
 }
 
 LRESULT MainForm::OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
@@ -56,7 +53,6 @@ LRESULT MainForm::OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandle
 	PostQuitMessage(0L);
 	return __super::OnClose(uMsg, wParam, lParam, bHandled);
 }
-
 
 bool MainForm::OnClicked(const ui::EventArgs& args)
 {
@@ -72,7 +68,7 @@ bool MainForm::OnClicked(const ui::EventArgs& args)
 			m_pTileList->Refresh();
 		}
 		if (m_OptionColumnFix->IsSelected()) {
-			m_pTileList->SetAttribute(L"column", m_EditColumn->GetText());
+			m_pTileList->SetAttribute(L"columns", m_EditColumn->GetText());
 			if (m_CheckBoxItemCenter->IsSelected())
 			{
 				m_pTileList->SetAttribute(L"width", L"auto");
@@ -85,7 +81,7 @@ bool MainForm::OnClicked(const ui::EventArgs& args)
 		}
 		else {
 			m_pTileList->SetAttribute(L"width", L"stretch");
-			m_pTileList->SetAttribute(L"column", L"-1");
+			m_pTileList->SetAttribute(L"columns", L"auto");
 		}
 
 		int nTotal = _ttoi(m_EditTotal->GetText().c_str());
@@ -93,14 +89,15 @@ bool MainForm::OnClicked(const ui::EventArgs& args)
 			m_DataProvider->SetTotal(nTotal);
 		}
 	}
-	else if (sName == L"btn_update")
-	{
-		m_DataProvider->ChangeTaskName(_ttoi(m_EditUpdate->GetText().c_str())-1, 
-			m_EditTaskName->GetText());
+	else if (sName == L"btn_update") {
+		size_t nIndex = _ttoi(m_EditUpdate->GetText().c_str()) - 1;
+		ASSERT(nIndex < m_DataProvider->GetElementCount());
+		m_DataProvider->ChangeTaskName(nIndex, m_EditTaskName->GetText());
 	}
-	else if (sName == L"btn_delete")
-	{
-		m_DataProvider->RemoveTask(_ttoi(m_EditDelete->GetText().c_str()) - 1); 
+	else if (sName == L"btn_delete") {
+		size_t nIndex = _ttoi(m_EditDelete->GetText().c_str()) - 1;
+		ASSERT(nIndex < m_DataProvider->GetElementCount());
+		m_DataProvider->RemoveTask(nIndex);
 	}
 
 	return true;
