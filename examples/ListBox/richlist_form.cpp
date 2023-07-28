@@ -15,12 +15,12 @@ RichlistForm::~RichlistForm()
 
 std::wstring RichlistForm::GetSkinFolder()
 {
-	return L"richlist";
+	return L"list_box";
 }
 
 std::wstring RichlistForm::GetSkinFile()
 {
-	return L"richlist.xml";
+	return L"list_box.xml";
 }
 
 std::wstring RichlistForm::GetWindowClassName() const
@@ -35,7 +35,7 @@ void RichlistForm::OnInitWindow()
 	for (auto i = 0; i < 100; i++)
 	{
 		Item* item = new Item;
-		ui::GlobalManager::Instance().FillBoxWithCache(item, L"richlist/item.xml");
+		ui::GlobalManager::Instance().FillBoxWithCache(item, L"list_box/item.xml");
 
 		std::wstring img = L"icon.png";
 		std::wstring title = nbase::StringPrintf(L"ÏÂÔØÈÎÎñ [%02d]", i + 1);

@@ -5,21 +5,21 @@
     <VBox height="auto">
         <Label text=" HListBox测试"/>
         <HListBox class="page_list_box" vscrollbar="false" hscrollbar="true" margin="4,4,4,4" padding="4,4,4,4" width="stretch" height="50" scroll_select="false" border_size="1" border_color="red">
-            <ListBoxItem class="page_list_box_item" text="ListBox测试01" text_align="left,vcenter" halign="left" valign="center"/>
-            <ListBoxItem class="page_list_box_item" text="ListBox测试02" text_align="left,vcenter" halign="left" valign="center"/>
-            <ListBoxItem class="page_list_box_item" text="ListBox测试03" text_align="left,vcenter" halign="left" valign="center"/>
-            <ListBoxItem class="page_list_box_item" text="ListBox测试04" text_align="left,vcenter" halign="left" valign="center"/>
-            <ListBoxItem class="page_list_box_item" text="ListBox测试05" text_align="left,vcenter" halign="left" valign="center"/>
-            <ListBoxItem class="page_list_box_item" text="ListBox测试06" text_align="left,vcenter" halign="left" valign="center"/>
-            <ListBoxItem class="page_list_box_item" text="ListBox测试07" text_align="left,vcenter" halign="left" valign="center"/>
-            <ListBoxItem class="page_list_box_item" text="ListBox测试08" text_align="left,vcenter" halign="left" valign="center"/>
-            <ListBoxItem class="page_list_box_item" text="ListBox测试09" text_align="left,vcenter" halign="left" valign="center"/>
-            <ListBoxItem class="page_list_box_item" text="ListBox测试10" text_align="left,vcenter" halign="left" valign="center"/>
-            <ListBoxItem class="page_list_box_item" text="ListBox测试11" text_align="left,vcenter" halign="left" valign="center"/>
-            <ListBoxItem class="page_list_box_item" text="ListBox测试12" text_align="left,vcenter" halign="left" valign="center"/>
-            <ListBoxItem class="page_list_box_item" text="ListBox测试13" text_align="left,vcenter" halign="left" valign="center"/>
-            <ListBoxItem class="page_list_box_item" text="ListBox测试14" text_align="left,vcenter" halign="left" valign="center"/>
-            <ListBoxItem class="page_list_box_item" text="ListBox测试15" text_align="left,vcenter" halign="left" valign="center"/>
+            <ListBoxItem class="page_list_box_item" text="HListBox测试01" text_align="left,vcenter" halign="left" valign="center"/>
+            <ListBoxItem class="page_list_box_item" text="HListBox测试02" text_align="left,vcenter" halign="left" valign="center"/>
+            <ListBoxItem class="page_list_box_item" text="HListBox测试03" text_align="left,vcenter" halign="left" valign="center"/>
+            <ListBoxItem class="page_list_box_item" text="HListBox测试04" text_align="left,vcenter" halign="left" valign="center"/>
+            <ListBoxItem class="page_list_box_item" text="HListBox测试05" text_align="left,vcenter" halign="left" valign="center"/>
+            <ListBoxItem class="page_list_box_item" text="HListBox测试06" text_align="left,vcenter" halign="left" valign="center"/>
+            <ListBoxItem class="page_list_box_item" text="HListBox测试07" text_align="left,vcenter" halign="left" valign="center"/>
+            <ListBoxItem class="page_list_box_item" text="HListBox测试08" text_align="left,vcenter" halign="left" valign="center"/>
+            <ListBoxItem class="page_list_box_item" text="HListBox测试09" text_align="left,vcenter" halign="left" valign="center"/>
+            <ListBoxItem class="page_list_box_item" text="HListBox测试10" text_align="left,vcenter" halign="left" valign="center"/>
+            <ListBoxItem class="page_list_box_item" text="HListBox测试11" text_align="left,vcenter" halign="left" valign="center"/>
+            <ListBoxItem class="page_list_box_item" text="HListBox测试12" text_align="left,vcenter" halign="left" valign="center"/>
+            <ListBoxItem class="page_list_box_item" text="HListBox测试13" text_align="left,vcenter" halign="left" valign="center"/>
+            <ListBoxItem class="page_list_box_item" text="HListBox测试14" text_align="left,vcenter" halign="left" valign="center"/>
+            <ListBoxItem class="page_list_box_item" text="HListBox测试15" text_align="left,vcenter" halign="left" valign="center"/>
         </HListBox>
     </VBox>        
     <HBox width="auto">
@@ -41,37 +41,37 @@
         <VBox width="auto">
             <Label text=" VListBox测试"/>
             <VListBox class="page_list_box" margin="4,4,4,4" padding="4,4,4,4" width="auto" height="200" scroll_select="false" border_size="1" border_color="red">
-                <ListBoxItem class="page_list_box_item" text="ListBox测试01" text_align="left,vcenter" halign="left" valign="center"/>
-                <ListBoxItem class="page_list_box_item" text="ListBox测试02" text_align="left,vcenter" halign="left" valign="center"/>
-                <ListBoxItem class="page_list_box_item" text="ListBox测试03" text_align="left,vcenter" halign="left" valign="center"/>
-                <ListBoxItem class="page_list_box_item" text="ListBox测试04" text_align="left,vcenter" halign="left" valign="center"/>
-                <ListBoxItem class="page_list_box_item" text="ListBox测试05" text_align="left,vcenter" halign="left" valign="center"/>
-                <ListBoxItem class="page_list_box_item" text="ListBox测试06" text_align="left,vcenter" halign="left" valign="center"/>
-                <ListBoxItem class="page_list_box_item" text="ListBox测试07" text_align="left,vcenter" halign="left" valign="center"/>
-                <ListBoxItem class="page_list_box_item" text="ListBox测试08" text_align="left,vcenter" halign="left" valign="center"/>
-                <ListBoxItem class="page_list_box_item" text="ListBox测试09" text_align="left,vcenter" halign="left" valign="center"/>
-                <ListBoxItem class="page_list_box_item" text="ListBox测试10" text_align="left,vcenter" halign="left" valign="center"/>
+                <ListBoxItem class="page_list_box_item" text="VListBox测试01" text_align="left,vcenter" halign="left" valign="center"/>
+                <ListBoxItem class="page_list_box_item" text="VListBox测试02" text_align="left,vcenter" halign="left" valign="center"/>
+                <ListBoxItem class="page_list_box_item" text="VListBox测试03" text_align="left,vcenter" halign="left" valign="center"/>
+                <ListBoxItem class="page_list_box_item" text="VListBox测试04" text_align="left,vcenter" halign="left" valign="center"/>
+                <ListBoxItem class="page_list_box_item" text="VListBox测试05" text_align="left,vcenter" halign="left" valign="center"/>
+                <ListBoxItem class="page_list_box_item" text="VListBox测试06" text_align="left,vcenter" halign="left" valign="center"/>
+                <ListBoxItem class="page_list_box_item" text="VListBox测试07" text_align="left,vcenter" halign="left" valign="center"/>
+                <ListBoxItem class="page_list_box_item" text="VListBox测试08" text_align="left,vcenter" halign="left" valign="center"/>
+                <ListBoxItem class="page_list_box_item" text="VListBox测试09" text_align="left,vcenter" halign="left" valign="center"/>
+                <ListBoxItem class="page_list_box_item" text="VListBox测试10" text_align="left,vcenter" halign="left" valign="center"/>
             </VListBox>
         </VBox>
         <VBox width="auto">
             <Label text=" TileListBox测试"/>
             <TileListBox class="page_list_box" margin="4,4,4,4" padding="4,4,4,4" columns="2" width="280" height="200" scroll_select="false" border_size="1" border_color="red">
-                <ListBoxItem class="page_list_box_item" text="ListBox测试01" text_align="left,vcenter" halign="left" valign="center"/>
-                <ListBoxItem class="page_list_box_item" text="ListBox测试02" text_align="left,vcenter" halign="left" valign="center"/>
-                <ListBoxItem class="page_list_box_item" text="ListBox测试03" text_align="left,vcenter" halign="left" valign="center"/>
-                <ListBoxItem class="page_list_box_item" text="ListBox测试04" text_align="left,vcenter" halign="left" valign="center"/>
-                <ListBoxItem class="page_list_box_item" text="ListBox测试05" text_align="left,vcenter" halign="left" valign="center"/>
-                <ListBoxItem class="page_list_box_item" text="ListBox测试06" text_align="left,vcenter" halign="left" valign="center"/>
-                <ListBoxItem class="page_list_box_item" text="ListBox测试07" text_align="left,vcenter" halign="left" valign="center"/>
-                <ListBoxItem class="page_list_box_item" text="ListBox测试08" text_align="left,vcenter" halign="left" valign="center"/>
-                <ListBoxItem class="page_list_box_item" text="ListBox测试09" text_align="left,vcenter" halign="left" valign="center"/>
-                <ListBoxItem class="page_list_box_item" text="ListBox测试10" text_align="left,vcenter" halign="left" valign="center"/>
-                <ListBoxItem class="page_list_box_item" text="ListBox测试11" text_align="left,vcenter" halign="left" valign="center"/>
-                <ListBoxItem class="page_list_box_item" text="ListBox测试12" text_align="left,vcenter" halign="left" valign="center"/>
-                <ListBoxItem class="page_list_box_item" text="ListBox测试13" text_align="left,vcenter" halign="left" valign="center"/>
-                <ListBoxItem class="page_list_box_item" text="ListBox测试14" text_align="left,vcenter" halign="left" valign="center"/>
-                <ListBoxItem class="page_list_box_item" text="ListBox测试15" text_align="left,vcenter" halign="left" valign="center"/>
-                <ListBoxItem class="page_list_box_item" text="ListBox测试16" text_align="left,vcenter" halign="left" valign="center"/>
+                <ListBoxItem class="page_list_box_item" text="TileListBox测试01" text_align="left,vcenter" halign="left" valign="center"/>
+                <ListBoxItem class="page_list_box_item" text="TileListBox测试02" text_align="left,vcenter" halign="left" valign="center"/>
+                <ListBoxItem class="page_list_box_item" text="TileListBox测试03" text_align="left,vcenter" halign="left" valign="center"/>
+                <ListBoxItem class="page_list_box_item" text="TileListBox测试04" text_align="left,vcenter" halign="left" valign="center"/>
+                <ListBoxItem class="page_list_box_item" text="TileListBox测试05" text_align="left,vcenter" halign="left" valign="center"/>
+                <ListBoxItem class="page_list_box_item" text="TileListBox测试06" text_align="left,vcenter" halign="left" valign="center"/>
+                <ListBoxItem class="page_list_box_item" text="TileListBox测试07" text_align="left,vcenter" halign="left" valign="center"/>
+                <ListBoxItem class="page_list_box_item" text="TileListBox测试08" text_align="left,vcenter" halign="left" valign="center"/>
+                <ListBoxItem class="page_list_box_item" text="TileListBox测试09" text_align="left,vcenter" halign="left" valign="center"/>
+                <ListBoxItem class="page_list_box_item" text="TileListBox测试10" text_align="left,vcenter" halign="left" valign="center"/>
+                <ListBoxItem class="page_list_box_item" text="TileListBox测试11" text_align="left,vcenter" halign="left" valign="center"/>
+                <ListBoxItem class="page_list_box_item" text="TileListBox测试12" text_align="left,vcenter" halign="left" valign="center"/>
+                <ListBoxItem class="page_list_box_item" text="TileListBox测试13" text_align="left,vcenter" halign="left" valign="center"/>
+                <ListBoxItem class="page_list_box_item" text="TileListBox测试14" text_align="left,vcenter" halign="left" valign="center"/>
+                <ListBoxItem class="page_list_box_item" text="TileListBox测试15" text_align="left,vcenter" halign="left" valign="center"/>
+                <ListBoxItem class="page_list_box_item" text="TileListBox测试16" text_align="left,vcenter" halign="left" valign="center"/>
             </TileListBox>
         </VBox>
     </HBox>
