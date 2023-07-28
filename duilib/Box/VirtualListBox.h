@@ -121,7 +121,7 @@ public:
 	 * @param[in] iIndex 控件索引
 	 * @param[in] bToTop 是否在最上方
 	 */
-    void EnsureVisible(size_t iIndex, bool bToTop = false);
+    void EnsureVisible(size_t iIndex, bool bToTop);
 
 protected:
 	/// 重写父类接口，提供个性化功能
@@ -230,4 +230,4 @@ private:
 	ListDirection m_eDirection = ListDirection::kListVertical;
 };
 
-}
+}//namespace ui

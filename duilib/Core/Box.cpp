@@ -126,15 +126,19 @@ UiEstSize Box::EstimateSize(UiSize szAvailable)
 		//使用缓存中的估算结果
 		return GetEstimateSize();
 	}
+	//Box控件本身的大小（本身也是一个控件，可以有文字/背景图片等）
+	UiEstSize estSizeBySelf = __super::EstimateSize(szAvailable);
+	UiSize sizeBySelf;
+	if (estSizeBySelf.cx.IsInt32()) {
+		sizeBySelf.cx = estSizeBySelf.cx.GetInt32();
+	}
+	if (estSizeBySelf.cy.IsInt32()) {
+		sizeBySelf.cy = estSizeBySelf.cy.GetInt32();
+	}
 
+	//子控件的大小
 	UiSize sizeByChild = m_pLayout->EstimateSizeByChild(m_items, szAvailable);
-	if (fixedSize.cx.IsAuto()) {
-		fixedSize.cx.SetInt32(sizeByChild.cx);
-	}
-	if (fixedSize.cy.IsAuto()) {
-		fixedSize.cy.SetInt32(sizeByChild.cy);
-	}
-
+	
 	SetReEstimateSize(false);
 	for (auto pControl : m_items) {
 		ASSERT(pControl != nullptr);
@@ -149,6 +153,13 @@ UiEstSize Box::EstimateSize(UiSize szAvailable)
 			}
 		}
 	}
+	if (fixedSize.cx.IsAuto()) {
+		fixedSize.cx.SetInt32(std::max(sizeByChild.cx, sizeBySelf.cx));
+	}
+	if (fixedSize.cy.IsAuto()) {
+		fixedSize.cy.SetInt32(std::max(sizeByChild.cy, sizeBySelf.cy));
+	}
+
 	UiEstSize estSize = MakeEstSize(fixedSize);
 	SetEstimateSize(estSize, szAvailable);
 	return estSize;

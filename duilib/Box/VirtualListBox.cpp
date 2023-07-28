@@ -13,9 +13,11 @@ namespace ui
 UiSize64 VirtualVLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 {
 	UiSize64 sz(rc.Width(), 0);
-
 	VirtualListBox *pList = dynamic_cast<VirtualListBox*>(m_pOwner);
-	ASSERT(pList);
+	ASSERT(pList != nullptr);
+	if (pList == nullptr) {
+		return UiSize64();
+	}
 
 	if (pList->UseDefaultLayout()) {
 		sz = VLayout::ArrangeChild(items, rc);
@@ -30,9 +32,11 @@ UiSize64 VirtualVLayout::ArrangeChild(const std::vector<Control*>& items, UiRect
 UiSize64 VirtualHLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 {
 	UiSize64 sz(0, rc.Height());
-
 	VirtualListBox *pList = dynamic_cast<VirtualListBox*>(m_pOwner);
-	ASSERT(pList);
+	ASSERT(pList != nullptr);
+	if (pList == nullptr) {
+		return UiSize64();
+	}
 
 	if (pList->UseDefaultLayout()) {
 		sz = HLayout::ArrangeChild(items, rc);
