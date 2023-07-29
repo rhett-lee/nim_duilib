@@ -79,24 +79,24 @@ public:
      */
     virtual UiSize EstimateSizeByChild(const std::vector<Control*>& items, UiSize szAvailable) override;
     
+public:
     /** 获取数据项的高度
     * @param [in] nCount 数据项个数，如果为Box::InvalidIndex，则获取所有数据项的高度总和
     * @param [in] rc 当前容器大小信息, 外部调用时，需要先剪去内边距
     * @return 返回 nCount 个数据项的高度总和
     */
-    virtual int64_t GetElementsHeight(UiRect rc, size_t nCount);
+    int64_t GetElementsHeight(UiRect rc, size_t nCount);
 
     /** 延迟加载展示数据
     * @param [in] rc 当前容器大小信息, 外部调用时，需要先剪去内边距
     */
-    virtual void LazyArrangeChild(UiRect rc);
+    void LazyArrangeChild(UiRect rc);
 
     /** 获取需要展示的真实数据项最大个数（即有Control对象对应的真实数据项）
     * @param [in] rc 当前容器大小信息, 外部调用时，需要先剪去内边距
     */
-    virtual size_t AjustMaxItem(UiRect rc);
+    size_t AjustMaxItem(UiRect rc);
 
-public:
     /** 计算列数
     *@param [in] rcWidth 可用区域宽度
     *@return 计算得到的列数, 大于或等于1
@@ -116,24 +116,15 @@ public:
     * @brief 设置数据代理对象
     * @param[in] pProvider 开发者需要重写 VirtualListBoxElement 的接口来作为数据代理对象
     */
-    virtual void SetDataProvider(VirtualTileBoxElement* pProvider);
+    void SetDataProvider(VirtualTileBoxElement* pProvider);
 
     /** 获取数据代理对象
     */
-    virtual VirtualTileBoxElement* GetDataProvider();
+    VirtualTileBoxElement* GetDataProvider();
 
     /** 刷新列表
     */
-    virtual void Refresh();
-
-    /** 删除所有子项
-    */
-    virtual void RemoveAllItems() override;
-
-    /** 设置是否强制重新布局, 如果为true，则在刷新和滚动位置发生变化时，都会强制重新布局
-    * @param[in] bForce 设置为 true 为强制，否则为不强制
-    */
-    void SetForceArrange(bool bForce);
+    void Refresh();
 
     /** 获取当前所有可见控件的数据元素索引
     * @param[out] collection 索引列表，范围是：[0, GetElementCount())
@@ -153,11 +144,12 @@ protected:
     virtual void SetPos(UiRect rc) override;
     virtual void PaintChild(IRender* pRender, const UiRect& rcPaint) override;
 
-    /** 重新布局子项
-    * @param[in] bForce 是否强制重新布局
-    */
-    void ReArrangeChild(bool bForce);
+    //重载删除函数，禁止外部调用
+    virtual bool RemoveItem(Control* pControl) override;
+    virtual bool RemoveItemAt(size_t iIndex) override;
+    virtual void RemoveAllItems() override;
 
+protected:
     /** 键盘按下通知
     * @param[in] ch 按键
     */
@@ -169,11 +161,14 @@ protected:
     virtual void OnKeyUp(TCHAR ch);
 
 private:
-    enum class ScrollDirection
-    {
-        kScrollUp = -1,
-        kScrollDown = 1
-    };
+    /** 是否含有数据代理对象接口
+    */
+    bool HasDataProvider() const;
+
+    /** 重新布局子项
+    * @param[in] bForce 是否强制重新布局
+    */
+    void ReArrangeChild(bool bForce);
 
     /** 创建一个子项
     * @return 返回创建后的子项指针
@@ -211,10 +206,8 @@ private:
     bool IsElementDisplay(size_t iIndex);
 
     /** 判断是否要重新布局
-    * @param[out] direction 向上滚动还是向下滚动
-    * @return true 为需要重新布局，否则为 false
     */
-    bool NeedReArrange(ScrollDirection& direction);
+    bool NeedReArrange();
 
     /** 获取布局接口
     */
@@ -259,18 +252,6 @@ private:
     /** 列表真实控件数量上限(动态计算)
     */
     size_t m_nMaxItemCount;
-
-    /** 旧的滚动条位置
-    */
-    int64_t m_nOldYScrollPos;
-
-    /** 标记数据改变后，是否已经完成做一次Arrange操作
-    */
-    bool m_bArrangedOnce;
-
-    /** 强制布局标记
-    */
-    bool m_bForceArrange;
 };
 
 }

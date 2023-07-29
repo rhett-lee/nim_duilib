@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Window>
     <Class name="page_list_box" bkcolor="bk_wnd_lightcolor" vscrollbar="true"/>
-    <Class name="page_list_box_item" hotcolor="bk_listitem_hovered" pushedcolor="bk_listitem_selected" selectednormalcolor="bk_listitem_selected" fadehot="false" width="auto" height="auto" margin="4,2,4,2" textpadding="20,6,8,6" font="system_14" normaltextcolor="darkcolor" normalimage="file='../public/CheckBox/check_no.png' valign='center'" disabledimage="file='../public/CheckBox/check_no.png' valign='center' fade='80'" selectednormalimage="file='../public/CheckBox/check_yes.png' valign='center'" selecteddisabledimage="file='../public/CheckBox/check_yes.png' valign='center' fade='80'"/>
+    <Class name="page_list_box_item" hotcolor="bk_listitem_hovered" pushedcolor="bk_listitem_selected" selectednormalcolor="bk_listitem_selected" fadehot="false" width="auto" height="auto" margin="4,2,4,2" textpadding="20,6,10,6" font="system_14" normaltextcolor="darkcolor" normalimage="file='../public/CheckBox/check_no.png' valign='center'" disabledimage="file='../public/CheckBox/check_no.png' valign='center' fade='80'" selectednormalimage="file='../public/CheckBox/check_yes.png' valign='center'" selecteddisabledimage="file='../public/CheckBox/check_yes.png' valign='center' fade='80'"/>
     <VBox height="auto">
         <Label text=" HListBox测试"/>
         <HListBox class="page_list_box" vscrollbar="false" hscrollbar="true" margin="4,4,4,4" padding="4,4,4,4" width="stretch" height="50" scroll_select="false" border_size="1" border_color="red">

@@ -270,9 +270,6 @@
     <ClCompile Include="Box\ListBox.cpp">
       <Filter>Box</Filter>
     </ClCompile>
-    <ClCompile Include="Box\VirtualListBox.cpp">
-      <Filter>Box</Filter>
-    </ClCompile>
     <ClCompile Include="Box\VirtualTileBox.cpp">
       <Filter>Box</Filter>
     </ClCompile>
@@ -579,9 +576,6 @@
       <Filter>Box</Filter>
     </ClInclude>
     <ClInclude Include="Box\ListBox.h">
-      <Filter>Box</Filter>
-    </ClInclude>
-    <ClInclude Include="Box\VirtualListBox.h">
       <Filter>Box</Filter>
     </ClInclude>
     <ClInclude Include="Box\VirtualTileBox.h">

@@ -20,7 +20,6 @@
 #include "duilib/Box/TileBox.h"
 #include "duilib/Box/ScrollBox.h"
 #include "duilib/Box/ListBox.h"
-#include "duilib/Box/VirtualListBox.h"
 #include "duilib/Box/VirtualTileBox.h"
 
 #include "duilib/Utils/StringUtil.h"
@@ -712,7 +711,6 @@ Control* WindowBuilder::CreateControlByClass(const std::wstring& strControlClass
 		{DUI_CTR_VLISTBOX, []() { return new VListBox; }},
 		{DUI_CTR_TILELISTBOX, []() { return new TileListBox; }},
 
-		{DUI_CTR_VIRTUALLISTBOX, []() { return new VirtualListBox; }},
 		{DUI_CTR_VIRTUALTILEBOX, []() { return new VirtualTileBox; }},
 
 		{DUI_CTR_CONTROL, []() { return new Control; }},
