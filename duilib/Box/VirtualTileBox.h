@@ -144,7 +144,6 @@ public:
 protected:
     /// 重写父类接口，提供个性化功能
     virtual void SetScrollPos(UiSize64 szPos) override;
-    virtual void HandleEvent(const EventArgs& event) override;
     virtual void SetPos(UiRect rc) override;
     virtual void PaintChild(IRender* pRender, const UiRect& rcPaint) override;
 
@@ -152,6 +151,8 @@ protected:
     virtual bool RemoveItem(Control* pControl) override;
     virtual bool RemoveItemAt(size_t iIndex) override;
     virtual void RemoveAllItems() override;
+
+    virtual void HandleEvent(const EventArgs& event) override;
 
 protected:
     /** 键盘按下通知

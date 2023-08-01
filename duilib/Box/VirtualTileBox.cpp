@@ -182,8 +182,14 @@ void VirtualTileLayout::LazyArrangeChild(UiRect rc)
     //子项的左边起始位置 
     int32_t iPosLeft = rc.left;
 
+    //Y轴坐标的偏移，需要保持，避免滚动位置变动后，重新刷新界面出现偏差
+    int32_t yOffset = 0;
+    if (szItem.cy > 0) {
+        yOffset = pList->GetScrollPos().cy % szItem.cy;
+    }
+
     //子项的顶部起始位置
-    int32_t iPosTop = rc.top;
+    int32_t iPosTop = rc.top - yOffset;
 
     //设置虚拟偏移，否则当数据量较大时，rc这个32位的矩形的高度会越界，需要64位整型才能容纳
     pList->SetScrollVirtualOffsetY(pList->GetScrollPos().cy);
@@ -461,79 +467,6 @@ void VirtualTileBox::SetScrollPos(UiSize64 szPos)
     }
 }
 
-void VirtualTileBox::HandleEvent(const EventArgs& event)
-{
-    if (!IsMouseEnabled() && (event.Type > ui::kEventMouseBegin) && (event.Type < ui::kEventMouseEnd)) {
-        if (GetParent() != nullptr) {
-            GetParent()->SendEvent(event);
-        }
-        else {
-            __super::HandleEvent(event);
-        }
-        return;
-    }
-    if (!HasDataProvider()) {
-        return __super::HandleEvent(event);
-    }
-
-    switch (event.Type) {
-    case ui::kEventKeyDown: {
-        switch (event.chKey) {
-        case VK_UP: {
-            OnKeyDown(VK_UP);
-            return;
-        }
-        case VK_DOWN: {
-            OnKeyDown(VK_DOWN);
-            return;
-        }
-        case VK_HOME:
-            SetScrollPosY(0);
-            return;
-        case VK_END: {
-            int64_t range = GetScrollRange().cy;
-            SetScrollPosY(range);
-            return;
-        }
-        default:
-            break;
-        }
-    }
-    case ui::kEventKeyUp: {
-        switch (event.chKey) {
-        case VK_UP: {
-            OnKeyUp(VK_UP);
-            return;
-        }
-        case VK_DOWN: {
-            OnKeyUp(VK_DOWN);
-            return;
-        }
-        default:
-            break;
-        }
-    default:
-        break;
-    }
-    }
-
-    __super::HandleEvent(event);
-}
-
-void VirtualTileBox::OnKeyDown(TCHAR ch)
-{ 
-    if (ch == VK_UP) {
-        LineUp(-1, false);
-    }
-    else if (ch == VK_DOWN) {
-        LineDown(-1, false);
-    }
-}
-
-void VirtualTileBox::OnKeyUp(TCHAR /*ch*/)
-{ 
-}
-
 void VirtualTileBox::SetPos(ui::UiRect rc)
 {
     bool bChange = false;
@@ -586,19 +519,20 @@ bool VirtualTileBox::NeedReArrange()
         return false;
     }
 
-    int64_t nPos = GetScrollPos().cy;
+    int64_t nScrollPosY = GetScrollPos().cy;
     int64_t nVirtualOffsetY = GetScrollVirtualOffset().cy;
-    if (nPos >= nVirtualOffsetY) {
+
+    if (nScrollPosY >= nVirtualOffsetY) {
         //向下滚动
         ui::UiRect rcItem = m_items[nCount - 1]->GetPos();
-        if ((rcItem.bottom + nVirtualOffsetY) < (nPos + rcThis.bottom)) {
+        if ((rcItem.bottom + nVirtualOffsetY) < (nScrollPosY + rcThis.bottom)) {
             return true;
         }
     }
     else {
         //向上滚动
         ui::UiRect rcItem = m_items[0]->GetPos();
-        if ((rcItem.top + nVirtualOffsetY) > (nPos + rcThis.top)) {
+        if ((rcItem.top + nVirtualOffsetY) > (nScrollPosY + rcThis.top)) {
             return true;
         }
     }
@@ -699,6 +633,79 @@ size_t VirtualTileBox::ElementIndexToItemIndex(size_t nElementIndex)
 size_t VirtualTileBox::ItemIndexToElementIndex(size_t nItemIndex)
 {
     return GetTopElementIndex() + nItemIndex;
+}
+
+void VirtualTileBox::HandleEvent(const EventArgs& event)
+{
+    if (!IsMouseEnabled() && (event.Type > ui::kEventMouseBegin) && (event.Type < ui::kEventMouseEnd)) {
+        if (GetParent() != nullptr) {
+            GetParent()->SendEvent(event);
+        }
+        else {
+            __super::HandleEvent(event);
+        }
+        return;
+    }
+    if (!HasDataProvider()) {
+        return __super::HandleEvent(event);
+    }
+
+    switch (event.Type) {
+    case ui::kEventKeyDown: {
+        switch (event.chKey) {
+        case VK_UP: {
+            OnKeyDown(VK_UP);
+            return;
+        }
+        case VK_DOWN: {
+            OnKeyDown(VK_DOWN);
+            return;
+        }
+        case VK_HOME:
+            SetScrollPosY(0);
+            return;
+        case VK_END: {
+            int64_t range = GetScrollRange().cy;
+            SetScrollPosY(range);
+            return;
+        }
+        default:
+            break;
+        }
+    }
+    case ui::kEventKeyUp: {
+        switch (event.chKey) {
+        case VK_UP: {
+            OnKeyUp(VK_UP);
+            return;
+        }
+        case VK_DOWN: {
+            OnKeyUp(VK_DOWN);
+            return;
+        }
+        default:
+            break;
+        }
+    default:
+        break;
+    }
+    }
+
+    __super::HandleEvent(event);
+}
+
+void VirtualTileBox::OnKeyDown(TCHAR ch)
+{
+    if (ch == VK_UP) {
+        LineUp(-1, false);
+    }
+    else if (ch == VK_DOWN) {
+        LineDown(-1, false);
+    }
+}
+
+void VirtualTileBox::OnKeyUp(TCHAR /*ch*/)
+{
 }
 
 }
