@@ -684,9 +684,6 @@ public:
 	virtual std::wstring GetType() const override;
 	virtual void DoInit() override;
 	virtual void SetEnabled(bool bEnable = true) override;
-	virtual UiEstSize EstimateSize(UiSize szAvailable) override;
-	virtual UiSize EstimateText(UiSize szAvailable) override;
-	virtual void SetPos(UiRect rc) override;
 	virtual UINT GetControlFlags() const override;
 	virtual void HandleEvent(const EventArgs& event) override;
 	void OnSetCursor(const EventArgs& event);
@@ -701,6 +698,24 @@ public:
 	virtual void Paint(IRender* pRender, const UiRect& rcPaint) override;
 	virtual void PaintChild(IRender* pRender, const UiRect& rcPaint) override;
 	virtual void SetAttribute(const std::wstring& pstrName, const std::wstring& pstrValue) override;
+
+	/** 设置控件位置（子类可改变行为）
+	 * @param [in] rc 要设置的矩形区域信息，包含内边距，不包含外边距
+	 */
+	virtual void SetPos(UiRect rc) override;
+
+	/** 计算控件大小(宽和高)
+		如果设置了图片并设置 width 或 height 任意一项为 auto，将根据图片大小和文本大小来计算最终大小
+	 *  @param [in] szAvailable 可用大小，不包含外边距
+	 *  @return 控件的估算大小，包含内边距(Box)，不包含外边距
+	 */
+	virtual UiEstSize EstimateSize(UiSize szAvailable) override;
+
+	/** 计算文本区域大小（宽和高）
+	 *  @param [in] szAvailable 可用大小，不包含内边距，不包含外边距
+	 *  @return 控件的文本估算大小，包含内边距(Box)，不包含外边距
+	 */
+	virtual UiSize EstimateText(UiSize szAvailable);
 
 	/**
 	 * @brief 创建光标

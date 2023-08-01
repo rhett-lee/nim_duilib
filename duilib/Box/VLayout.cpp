@@ -1,5 +1,5 @@
 #include "VLayout.h"
-#include "duilib/Core/Control.h"
+#include "duilib/Core/Box.h"
 #include <map>
 
 namespace ui 
@@ -172,7 +172,7 @@ UiSize64 VLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 		//设置控件的位置
 		UiRect controlRect(childLeft, iPosY + rcMargin.top, childRight, iPosY + rcMargin.top + sz.cy);		
 		pControl->SetPos(controlRect);
-		cxNeeded = std::max(cxNeeded, (int64_t)controlRect.Width());
+		cxNeeded = std::max(cxNeeded, (int64_t)controlRect.Width() + rcMargin.left + rcMargin.right);
 
 		//调整当前Y轴坐标值
 		iPosY += (sz.cy + rcMargin.top + rcMargin.bottom + GetChildMarginY());
@@ -183,6 +183,13 @@ UiSize64 VLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 	}
 
 	UiSize64 size(cxNeeded, cyNeeded);
+	const UiPadding& rcPadding = GetPadding();
+	if (size.cx > 0) {
+		size.cx += (rcPadding.left + rcPadding.right);
+	}
+	if (size.cy > 0) {
+		size.cy += (rcPadding.top + rcPadding.bottom);
+	}
 	return size;
 }
 
@@ -238,8 +245,7 @@ UiSize VLayout::EstimateSizeByChild(const std::vector<Control*>& items, UiSize s
 	if ((totalSize.cy > 0) && ((estimateCount - 1) > 0)) {
 		totalSize.cy += (estimateCount - 1) * GetChildMarginY();
 	}
-
-	UiPadding rcPadding = GetPadding();
+	const UiPadding& rcPadding = GetPadding();
 	if (totalSize.cx > 0) {
 		totalSize.cx += (rcPadding.left + rcPadding.right);
 	}

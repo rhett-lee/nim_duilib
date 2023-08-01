@@ -179,7 +179,7 @@ bool MultiBrowserForm::OnProcessTabItemDrag(const ui::EventArgs& param)
 			// 把被拖拽的浏览器盒子生成一个宽度300的位图
 			IBitmap* pBitmap = nullptr;
 			if (nim_comp::CefManager::GetInstance()->IsEnableOffsetRender()) {
-				pBitmap = GenerateBoxOffsetRenderBitmap(borwser_box_tab_->GetPos(true));
+				pBitmap = GenerateBoxOffsetRenderBitmap(borwser_box_tab_->GetPos());
 			}
 			else {
 				pBitmap = GenerateBoxWindowBitmap();

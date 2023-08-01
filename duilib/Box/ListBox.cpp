@@ -237,7 +237,7 @@ bool ListBox::ScrollItemToTop(const std::wstring& itemName)
 		if (pControl->GetName() == itemName) {
 			if (GetScrollRange().cy != 0) {
 				UiSize64 scrollPos = GetScrollPos();
-				scrollPos.cy = pControl->GetPos().top - GetLayout()->GetInternalPos().top;
+				scrollPos.cy = pControl->GetPos().top - GetPosWithoutPadding().top;
 				if (scrollPos.cy >= 0) {
 					SetScrollPos(scrollPos);
 					return true;

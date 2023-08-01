@@ -9,6 +9,7 @@
 namespace ui 
 {
 /** 外边距的数据结构封装（不是矩形，没有宽高的概念）
+*   外边距：Margin是不包含控件的矩形区域内的。
 */
 class UILIB_API UiMargin
 {

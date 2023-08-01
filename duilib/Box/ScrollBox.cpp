@@ -89,12 +89,19 @@ void ScrollBox::SetPosInternally(UiRect rc)
 	if((requiredSize.cx > 0) && (requiredSize.cy > 0)) {
 		//需要按照真实大小再计算一次，因为内部根据rc评估的时候，显示位置是不正确的
 		//（比如控件是center或者bottom对齐的时候，会按照rc区域定位坐标，这时是错误的）。
-		UiPadding padding = GetLayout()->GetPadding();
-		int32_t cx = TruncateToInt32(requiredSize.cx) + padding.left + padding.right;
-		if (cx < rc.Width()) {
-			cx = rc.Width();
+		int32_t cx = TruncateToInt32(requiredSize.cx);
+		if (GetLayout()->IsTileLayout()) {
+			//Tile模式是限制宽度，但不限制高度
+			if (cx > rc.Width()) {
+				cx = rc.Width();
+			}
 		}
-		int32_t cy = TruncateToInt32(requiredSize.cy) + padding.top + padding.bottom;
+		else {
+			if (cx < rc.Width()) {
+				cx = rc.Width();
+			}
+		}		
+		int32_t cy = TruncateToInt32(requiredSize.cy);
 		if (cy < rc.Height()) {
 			cy = rc.Height();
 		}
@@ -128,12 +135,7 @@ UiSize64 ScrollBox::CalcRequiredSize(const UiRect& rc)
 		ASSERT(m_pHScrollBar->GetFixedHeight().GetInt32() > 0);
 		childSize.bottom -= m_pHScrollBar->GetFixedHeight().GetInt32();
 	}
-	if (childSize.Width() < 0) {
-		childSize.right = childSize.left;
-	}
-	if (childSize.Height() < 0) {
-		childSize.bottom = childSize.top;
-	}
+	childSize.Validate();
 	requiredSize = GetLayout()->ArrangeChild(m_items, childSize);
 	return requiredSize;
 }
@@ -296,7 +298,7 @@ void ScrollBox::PaintChild(IRender* pRender, const UiRect& rcPaint)
 		}
 		else */{
 			UiSize scrollPos = GetScrollOffset();
-			UiRect rcNewPaint = GetPaddingPos();
+			UiRect rcNewPaint = GetPosWithoutPadding();
 			AutoClip alphaClip(pRender, rcNewPaint, IsClip());
 			rcNewPaint.Offset(scrollPos.cx, scrollPos.cy);
 			rcNewPaint.Offset(GetRenderOffset().x, GetRenderOffset().y);

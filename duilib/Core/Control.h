@@ -463,30 +463,26 @@ public:
     virtual Control* FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, UiPoint scrollPos = UiPoint());
 
 	/// 位置相关
-	/**
-	 * @brief 获取控件位置
-	 * @param[in] bContainShadow 是否包含阴影，默认为 true 则包含阴影范围，否则 false 为不包含
-	 * @return 返回控件的位置信息
+	/** 获取控件位置（子类可改变行为）
+	* @return 返回控件的矩形区域，包含内边距，不包含外边距
 	 */
-	virtual	UiRect GetPos(bool bContainShadow = true) const override;
+	virtual	UiRect GetPos() const override;
 
-	/**
-	 * @brief 设置控件位置
-	 * @param[in] rc 控件位置的描述信息
-	 * @return 无
+	/** 设置控件位置（子类可改变行为）
+	 * @param [in] rc 要设置的矩形区域信息，包含内边距，不包含外边距
 	 */
 	virtual void SetPos(UiRect rc) override;
 
 	/** 计算控件大小(宽和高)
-	    如果设置了图片并设置 width 或 height 任意一项为 auto，将根据图片来计算最终大小
-	 * @param[in] szAvailable 可用的大小
-	 * @return 控件估算大小
+	    如果设置了图片并设置 width 或 height 任意一项为 auto，将根据图片大小和文本大小来计算最终大小
+	 *  @param [in] szAvailable 可用大小，不包含外边距
+	 *  @return 控件的估算大小，包含内边距(Box)，不包含外边距
 	 */
-	virtual UiEstSize EstimateSize(UiSize szAvailable) override;
+	virtual UiEstSize EstimateSize(UiSize szAvailable);
 
 	/** 计算文本区域大小（宽和高）
-	   @param[in] szAvailable 可用的大小
-	 * @return 控件估算大小
+	 *  @param [in] szAvailable 可用大小，不包含内边距，不包含外边距
+	 *  @return 控件的文本估算大小，包含内边距(Box)，不包含外边距
 	 */
 	virtual UiSize EstimateText(UiSize szAvailable);
 
@@ -1006,7 +1002,7 @@ private:
 	void PaintBorders(IRender* pRender, UiRect rcDraw, 
 		              int nBorderSize, UiColor dwBorderColor) const;
 
-	/** 绘制圆角矩形
+    /** 绘制圆角矩形
 	*/
 	void DrawRoundRect(IRender* pRender, const UiRect& rc, const UiSize& roundSize, UiColor dwBorderColor, int nBorderSize) const;
 

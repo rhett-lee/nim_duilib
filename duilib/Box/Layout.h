@@ -29,7 +29,7 @@ public:
 
 	/** 设置浮动状态下的坐标信息
 	 * @param[in] pControl 控件句柄
-	 * @param[in] rcContainer 要设置的位置信息
+	 * @param[in] rcContainer 要设置的矩形区域，包含内边距，包含外边距
 	 * @return 返回控件最终的大小信息（宽度和高度）
 	 */
 	static UiSize64 SetFloatPos(Control* pControl, const UiRect& rcContainer);
@@ -43,17 +43,25 @@ public:
 
 	/** 调整内部所有控件的位置信息
 	 * @param[in] items 控件列表
-	 * @param[in] rc 当前容器位置信息, 外部调用时，不需要扣除内边距
-	 * @return 返回排列后最终盒子的宽度和高度信息
+	 * @param[in] rc 当前容器位置信息, 包含内边距，但不包含外边距
+	 * @return 返回排列后最终盒子的宽度和高度信息，包含Owner Box的内边距，不包含外边距
 	 */
 	virtual UiSize64 ArrangeChild(const std::vector<Control*>& items, UiRect rc);
 
 	/** 根据内部子控件大小估算容器自身大小，拉伸类型的子控件被忽略，不计入大小估算
 	 * @param[in] items 子控件列表
-	 * @param[in] szAvailable 子控件允许的最大宽度和高度
-	 * @return 返回排列后最终布局的大小信息（宽度和高度），不包含拉伸类型的子控件大小
+	 * @param [in] szAvailable 可用大小，包含分配给该控件的内边距，但不包含分配给控件的外边距
+	 * @return 返回排列后最终布局的大小信息（宽度和高度）；
+	           包含items中子控件的外边距，包含items中子控件的内边距；
+			   包含Box控件本身的内边距；
+			   不包含Box控件本身的外边距；
+	           返回值中不包含拉伸类型的子控件大小。
 	 */
 	virtual UiSize EstimateSizeByChild(const std::vector<Control*>& items, UiSize szAvailable);
+
+	/** 是否是Tile布局（Tile布局是限宽度的，有些逻辑不同）
+	*/
+	virtual bool IsTileLayout() const;
 
 public:
 	/** 获取内边距
@@ -93,11 +101,6 @@ public:
 	 */
 	void SetChildMargin(int32_t iMargin);
 
-	/** 获取除了内边距外的可用范围
-	 * @return 返回可用范围位置信息
-	 */
-	UiRect GetInternalPos() const;
-
 	/** 将区域去掉内边距, 并确保rc区域有效
 	*/
 	void DeflatePadding(UiRect& rc) const;
@@ -109,9 +112,10 @@ protected:
 
 	/** 按照控件指定的对齐方式，计算控件的布局位置
 	* @param [in] pControl 控件的接口
-	* @param [in] rcContainer 目标容器的矩形，包含控件的外边距
-	* @param [in] childSize 控件pControl的大小（宽和高）, 内部不会再计算控件的大小
-	* @return 返回控件的位置和大小，可用用pControl->SetPos(rect)来调整控件位置;
+	* @param [in] rcContainer 目标容器的矩形，包含控件的外边距和内边距
+	* @param [in] childSize 控件pControl的大小（宽和高）, 包含内边距，内部不会再计算控件的大小
+	* @return 返回控件的位置和大小，不包含外边距，包含内边距
+	          这个返回值，可用pControl->SetPos(rect)来调整控件位置;
 	*/
 	static UiRect GetFloatPos(Control* pControl, UiRect rcContainer, UiSize childSize);
 
@@ -121,7 +125,7 @@ protected:
 	Box* m_pOwner;
 
 private:
-	//内边距四边的大小
+	//内边距四边的大小（上，下，左，右边距），内边距是控件矩形以内的空间，是包含在控件矩形以内的
 	UiPadding m_rcPadding;
 
 	//子控件之间的额外边距: X 轴方向

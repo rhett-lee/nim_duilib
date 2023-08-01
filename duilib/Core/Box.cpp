@@ -50,10 +50,30 @@ void Box::SetAttribute(const std::wstring& strName, const std::wstring& strValue
 
 void Box::SetPos(UiRect rc)
 {
-	if (m_pLayout != nullptr) {
-		m_pLayout->ArrangeChild(m_items, rc);		
-	}
 	Control::SetPos(rc);
+	if (m_pLayout != nullptr) {
+		m_pLayout->ArrangeChild(m_items, rc);	
+	}	
+}
+
+UiRect Box::GetPosWithoutPadding() const
+{
+	UiRect rc = GetPos();
+	if (m_pLayout) {
+		rc.Deflate(m_pLayout->GetPadding());
+	}
+	rc.Validate();
+	return rc;
+}
+
+UiRect Box::GetRectWithoutPadding() const
+{
+	UiRect rc = GetRect();
+	if (m_pLayout) {
+		rc.Deflate(m_pLayout->GetPadding());
+	}	
+	rc.Validate();
+	return rc;
 }
 
 void Box::PaintChild(IRender* pRender, const UiRect& rcPaint)
@@ -118,25 +138,26 @@ UiEstSize Box::EstimateSize(UiSize szAvailable)
 		//如果宽高都不是auto属性，则直接返回
 		return MakeEstSize(fixedSize);
 	}
-	szAvailable.cx -= (m_pLayout->GetPadding().left + m_pLayout->GetPadding().right);
-	szAvailable.cy -= (m_pLayout->GetPadding().top + m_pLayout->GetPadding().bottom);
 	szAvailable.Validate();
-
 	if (!IsReEstimateSize(szAvailable)) {
 		//使用缓存中的估算结果
 		return GetEstimateSize();
 	}
-	//Box控件本身的大小（本身也是一个控件，可以有文字/背景图片等）
-	UiEstSize estSizeBySelf = __super::EstimateSize(szAvailable);
+	//Box控件本身的大小，不包含外边距（本身也是一个控件，可以有文字/背景图片等）
+	UiPadding rcPadding = m_pLayout->GetPadding();
+	UiSize szNewAvailable = szAvailable;
+	szNewAvailable.cx -= (rcPadding.left + rcPadding.right);
+	szNewAvailable.cy -= (rcPadding.top + rcPadding.bottom);
+	UiEstSize estSizeBySelf = __super::EstimateSize(szNewAvailable);
 	UiSize sizeBySelf;
 	if (estSizeBySelf.cx.IsInt32()) {
-		sizeBySelf.cx = estSizeBySelf.cx.GetInt32();
+		sizeBySelf.cx = estSizeBySelf.cx.GetInt32() + rcPadding.left + rcPadding.right;
 	}
 	if (estSizeBySelf.cy.IsInt32()) {
-		sizeBySelf.cy = estSizeBySelf.cy.GetInt32();
+		sizeBySelf.cy = estSizeBySelf.cy.GetInt32() + rcPadding.top + rcPadding.bottom;
 	}
 
-	//子控件的大小
+	//子控件的大小，包含内边距，但不包含外边距
 	UiSize sizeByChild = m_pLayout->EstimateSizeByChild(m_items, szAvailable);
 	
 	SetReEstimateSize(false);
@@ -192,12 +213,7 @@ Control* Box::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, UiPoi
 			return pControl;
 		}
 	}
-	UiRect rc = GetRect();
-	rc.left += m_pLayout->GetPadding().left;
-	rc.top += m_pLayout->GetPadding().top;
-	rc.right -= m_pLayout->GetPadding().right;
-	rc.bottom -= m_pLayout->GetPadding().bottom;
-
+	UiRect rc = GetRectWithoutPadding();
 	if ((uFlags & UIFIND_TOP_FIRST) != 0) {
 		for (int it = (int)m_items.size() - 1; it >= 0; --it) {
 			if (m_items[it] == nullptr) {
@@ -450,14 +466,6 @@ void Box::ReSetLayout(Layout* pLayout)
 		m_pLayout.reset(pLayout);
 		m_pLayout->SetOwner(this);
 	}	
-}
-
-UiRect Box::GetPaddingPos() const
-{
-	UiRect pos = GetPos();
-	UiPadding padding = m_pLayout->GetPadding();
-	pos.Deflate(padding);
-	return pos;
 }
 
 void Box::InvokeLoadImageCache()

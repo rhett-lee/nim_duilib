@@ -2339,13 +2339,14 @@ UiEstSize RichEdit::EstimateSize(UiSize /*szAvailable*/)
 													&iWidth,
 													&iHeight) ;
 		
-		UiPadding padding = GetLayout()->GetPadding();
+		//返回大小需要包含内边距
+		UiPadding rcPadding = GetLayout()->GetPadding();
 		if (fixexSize.cy.IsAuto()) {
-			size.cy = iHeight + padding.top + padding.bottom;
+			size.cy = iHeight + (rcPadding.top + rcPadding.bottom);
 			fixexSize.cy.SetInt32(size.cy);
 		}
 		else if (fixexSize.cx.IsAuto()) {
-			size.cx = iWidth + padding.left + padding.right;
+			size.cx = iWidth + (rcPadding.left + rcPadding.right);
 			fixexSize.cx.SetInt32(size.cx);
 		}
 	}
@@ -2354,89 +2355,89 @@ UiEstSize RichEdit::EstimateSize(UiSize /*szAvailable*/)
 
 UiSize RichEdit::EstimateText(UiSize szAvailable)
 {
-  LONG iWidth = szAvailable.cx;
-  LONG iHeight = 0;
+	UiPadding rcPadding = GetLayout()->GetPadding();
+	szAvailable.cx -= (rcPadding.left + rcPadding.right);
+	szAvailable.cy -= (rcPadding.top + rcPadding.bottom);
+    szAvailable.Validate();
+    LONG iWidth = szAvailable.cx;
+	if (iWidth < 0) {
+		iWidth = 0;
+	}
+    LONG iHeight = 0;
+    SIZEL szExtent = { -1, -1 };
+    m_pTwh->GetTextServices()->TxGetNaturalSize(DVASPECT_CONTENT,
+												GetWindow()->GetPaintDC(),
+												NULL,
+												NULL,
+												TXTNS_FITTOCONTENT,
+												&szExtent,
+												&iWidth,
+												&iHeight);
 
-  SIZEL szExtent = { -1, -1 };
-  m_pTwh->GetTextServices()->TxGetNaturalSize(DVASPECT_CONTENT,
-											  GetWindow()->GetPaintDC(),
-											  NULL,
-											  NULL,
-											  TXTNS_FITTOCONTENT,
-											  &szExtent,
-											  &iWidth,
-											  &iHeight);
-  szAvailable.cx = std::max((int)iWidth, 0);
-  szAvailable.cy = std::max((int)iHeight, 0);
-  return szAvailable;
+	iWidth = std::max((int32_t)iWidth, 0);
+	iHeight = std::max((int32_t)iHeight, 0);
+	szAvailable.cx = std::max((int32_t)iWidth + rcPadding.left + rcPadding.right, 0);
+    szAvailable.cy = std::max((int32_t)iHeight + rcPadding.top + rcPadding.bottom, 0);
+    return szAvailable;
 }
 
 void RichEdit::SetPos(UiRect rc)
 {
     Control::SetPos(rc);
-    rc = GetRect();
-
-    rc.left += GetLayout()->GetPadding().left;
-    rc.top += GetLayout()->GetPadding().top;
-    rc.right -= GetLayout()->GetPadding().right;
-    rc.bottom -= GetLayout()->GetPadding().bottom;
+    rc = GetRectWithoutPadding();
     bool bVScrollBarVisiable = false;
-    if( m_pVScrollBar && m_pVScrollBar->IsValid() ) {
+    if (m_pVScrollBar && m_pVScrollBar->IsValid()) {
         bVScrollBarVisiable = true;
         rc.right -= m_pVScrollBar->GetFixedWidth().GetInt32();
     }
-    if( m_pHScrollBar && m_pHScrollBar->IsValid() ) {
+    if (m_pHScrollBar && m_pHScrollBar->IsValid()) {
         rc.bottom -= m_pHScrollBar->GetFixedHeight().GetInt32();
     }
 
-    if( m_pTwh ) {
+    if (m_pTwh) {
         m_pTwh->SetClientRect(&rc);
-        if( bVScrollBarVisiable && (!m_pVScrollBar->IsValid() || m_bVScrollBarFixing) ) {
-            LONG lWidth = rc.right - rc.left + m_pVScrollBar->GetFixedWidth().GetInt32();
+        if (bVScrollBarVisiable && (!m_pVScrollBar->IsValid() || m_bVScrollBarFixing)) {
+            LONG lWidth = rc.Width() + m_pVScrollBar->GetFixedWidth().GetInt32();
             LONG lHeight = 0;
             SIZEL szExtent = { -1, -1 };
-            m_pTwh->GetTextServices()->TxGetNaturalSize(
-                DVASPECT_CONTENT, 
-                GetWindowDC(), 
-                NULL,
-                NULL,
-                TXTNS_FITTOCONTENT,
-                &szExtent,
-                &lWidth,
-                &lHeight);
-            if( lHeight > rc.bottom - rc.top ) {
+            m_pTwh->GetTextServices()->TxGetNaturalSize(DVASPECT_CONTENT,
+														GetWindowDC(),
+														NULL,
+														NULL,
+														TXTNS_FITTOCONTENT,
+														&szExtent,
+														&lWidth,
+														&lHeight);
+            if (lHeight > rc.Height()) {
                 //m_pVScrollBar->SetFadeVisible(true);
                 m_pVScrollBar->SetScrollPos(0);
                 m_bVScrollBarFixing = true;
             }
             else {
-                if( m_bVScrollBarFixing ) {
+                if (m_bVScrollBarFixing) {
                     //m_pVScrollBar->SetFadeVisible(false);
-					m_pVScrollBar->SetScrollRange(0);
+                    m_pVScrollBar->SetScrollRange(0);
                     m_bVScrollBarFixing = false;
                 }
             }
         }
     }
 
-    if( m_pVScrollBar != NULL && m_pVScrollBar->IsValid() ) {
+    if (m_pVScrollBar != NULL && m_pVScrollBar->IsValid()) {
         UiRect rcScrollBarPos(rc.right, rc.top, rc.right + m_pVScrollBar->GetFixedWidth().GetInt32(), rc.bottom);
         m_pVScrollBar->SetPos(rcScrollBarPos);
     }
-    if( m_pHScrollBar != NULL && m_pHScrollBar->IsValid() ) {
+    if (m_pHScrollBar != NULL && m_pHScrollBar->IsValid()) {
         UiRect rcScrollBarPos(rc.left, rc.bottom, rc.right, rc.bottom + m_pHScrollBar->GetFixedHeight().GetInt32());
         m_pHScrollBar->SetPos(rcScrollBarPos);
     }
 
-	for( auto it = m_items.begin(); it != m_items.end(); ++it ) {
-		auto pControl = *it;
-		if (pControl == nullptr) {
-			continue;
-		}
-		if (!pControl->IsVisible()) {
-			continue;
-		}
-        if( pControl->IsFloat() ) {
+    for (auto it = m_items.begin(); it != m_items.end(); ++it) {
+        auto pControl = *it;
+        if ((pControl == nullptr) || !pControl->IsVisible()){
+            continue;
+        }
+        if (pControl->IsFloat()) {
             Layout::SetFloatPos(pControl, GetPos());
         }
         else {
@@ -2746,83 +2747,77 @@ void RichEdit::Paint(IRender* pRender, const UiRect& rcPaint)
 
 void RichEdit::PaintChild(IRender* pRender, const UiRect& rcPaint)
 {
-	UiRect rcTemp;
-	if (!UiRect::Intersect(rcTemp, rcPaint, GetRect())) {
-		return;
-	}
+    UiRect rcTemp;
+    if (!UiRect::Intersect(rcTemp, rcPaint, GetRect())) {
+        return;
+    }
 
-	PaintCaret(pRender, rcPaint);
+    PaintCaret(pRender, rcPaint);
 
-    if( m_items.size() > 0 ) {
-        UiRect rc = GetRect();
-        rc.left += GetLayout()->GetPadding().left;
-        rc.top += GetLayout()->GetPadding().top;
-        rc.right -= GetLayout()->GetPadding().right;
-        rc.bottom -= GetLayout()->GetPadding().bottom;
-        if( m_pVScrollBar && m_pVScrollBar->IsValid() ) rc.right -= m_pVScrollBar->GetFixedWidth().GetInt32();
-        if( m_pHScrollBar && m_pHScrollBar->IsValid() ) rc.bottom -= m_pHScrollBar->GetFixedHeight().GetInt32();
+    if (m_items.size() > 0) {
+        UiRect rc = GetRectWithoutPadding();
+        if (m_pVScrollBar && m_pVScrollBar->IsValid()) {
+            rc.right -= m_pVScrollBar->GetFixedWidth().GetInt32();
+        }
+        if (m_pHScrollBar && m_pHScrollBar->IsValid()) {
+            rc.bottom -= m_pHScrollBar->GetFixedHeight().GetInt32();
+        }
 
-        if( !UiRect::Intersect(rcTemp, rcPaint, rc) ) {
-			for( auto it = m_items.begin(); it != m_items.end(); ++it ) {
-				auto pControl = *it;
-				if (pControl == nullptr) {
-					continue;
-				}
-				if (!pControl->IsVisible()) {
-					continue;
-				}
-				UiRect controlPos = pControl->GetPos();
-				if (!UiRect::Intersect(rcTemp, rcPaint, controlPos)) {
-					continue;
-				}
-                if( pControl ->IsFloat() ) {
-					if (!UiRect::Intersect(rcTemp, GetRect(), controlPos)) {
-						continue;
-					}
+        if (!UiRect::Intersect(rcTemp, rcPaint, rc)) {
+            for (auto it = m_items.begin(); it != m_items.end(); ++it) {
+                auto pControl = *it;
+                if ((pControl == nullptr) || !pControl->IsVisible()) {
+                    continue;
+                }
+                UiRect controlPos = pControl->GetPos();
+                if (!UiRect::Intersect(rcTemp, rcPaint, controlPos)) {
+                    continue;
+                }
+                if (pControl->IsFloat()) {
+                    if (!UiRect::Intersect(rcTemp, GetRect(), controlPos)) {
+                        continue;
+                    }
                     pControl->AlphaPaint(pRender, rcPaint);
                 }
             }
         }
         else {
-			AutoClip childClip(pRender, rcTemp);
-			for( auto it = m_items.begin(); it != m_items.end(); ++it ) {
-				auto pControl = *it;
-				if (pControl == nullptr) {
-					continue;
-				}
-				if (!pControl->IsVisible()) {
-					continue;
-				}
-				UiRect controlPos = pControl->GetPos();
-				if (!UiRect::Intersect(rcTemp, rcPaint, controlPos)) {
-					continue;
-				}
-                if( pControl ->IsFloat() ) {
-					if (!UiRect::Intersect(rcTemp, GetRect(), controlPos)) {
-						continue;
-					}
+            AutoClip childClip(pRender, rcTemp);
+            for (auto it = m_items.begin(); it != m_items.end(); ++it) {
+                auto pControl = *it;
+                if ((pControl == nullptr) || !pControl->IsVisible()) {
+                    continue;
+                }
+                UiRect controlPos = pControl->GetPos();
+                if (!UiRect::Intersect(rcTemp, rcPaint, controlPos)) {
+                    continue;
+                }
+                if (pControl->IsFloat()) {
+                    if (!UiRect::Intersect(rcTemp, GetRect(), controlPos)) {
+                        continue;
+                    }
                     pControl->AlphaPaint(pRender, rcPaint);
                 }
                 else {
-					if (!UiRect::Intersect(rcTemp, rc, controlPos)) {
-						continue;
-					}
+                    if (!UiRect::Intersect(rcTemp, rc, controlPos)) {
+                        continue;
+                    }
                     pControl->AlphaPaint(pRender, rcPaint);
                 }
             }
         }
     }
 
-    if( m_pVScrollBar != NULL && m_pVScrollBar->IsVisible() ) {
-		UiRect verBarPos = m_pVScrollBar->GetPos();
-		if(UiRect::Intersect(rcTemp, rcPaint, verBarPos) ) {
+    if (m_pVScrollBar != NULL && m_pVScrollBar->IsVisible()) {
+        UiRect verBarPos = m_pVScrollBar->GetPos();
+        if (UiRect::Intersect(rcTemp, rcPaint, verBarPos)) {
             m_pVScrollBar->AlphaPaint(pRender, rcPaint);
         }
     }
 
-    if( m_pHScrollBar != NULL && m_pHScrollBar->IsVisible() ) {
-		UiRect horBarPos = m_pVScrollBar->GetPos();
-		if(UiRect::Intersect(rcTemp, rcPaint, horBarPos) ) {
+    if (m_pHScrollBar != NULL && m_pHScrollBar->IsVisible()) {
+        UiRect horBarPos = m_pVScrollBar->GetPos();
+        if (UiRect::Intersect(rcTemp, rcPaint, horBarPos)) {
             m_pHScrollBar->AlphaPaint(pRender, rcPaint);
         }
     }

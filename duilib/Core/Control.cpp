@@ -539,28 +539,16 @@ Control* Control::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, U
     return Proc(this, pData);
 }
 
-UiRect Control::GetPos(bool bContainShadow) const
+UiRect Control::GetPos() const
 {
-	UiRect pos = GetRect();
-	Window* pWindow = GetWindow();
-	if (pWindow && !bContainShadow) {
-		UiPadding shadowLength = pWindow->GetShadowCorner();
-		pos.Offset(-shadowLength.left, -shadowLength.top);
-	}
-	return pos;
+	return __super::GetPos();
 }
 
 void Control::SetPos(UiRect rc)
 {
-	if (rc.right < rc.left) {
-		rc.right = rc.left;
-	}
-	if (rc.bottom < rc.top) {
-		rc.bottom = rc.top;
-	}
-
-	if (GetRect().Equals(rc)) {
-		SetArranged(false);
+	rc.Validate();
+	SetArranged(false);
+	if (GetRect().Equals(rc)) {		
 		return;
 	}
 
@@ -573,10 +561,7 @@ void Control::SetPos(UiRect rc)
 	if (GetWindow() == nullptr) {
 		return;
 	}
-
-	SetArranged(false);
 	invalidateRc.Union(GetRect());
-
 	bool needInvalidate = true;
 	UiRect rcTemp;
 	UiRect rcParent;
@@ -624,9 +609,11 @@ UiEstSize Control::EstimateSize(UiSize szAvailable)
 	if (imageCache != nullptr) {
 		ImageAttribute imageAttribute = image->GetImageAttribute();
 		UiRect rcDest;
+		bool hasDestAttr = false;
 		if (ImageAttribute::HasValidImageRect(imageAttribute.rcDest)) {
 			//使用配置中指定的目标区域
 			rcDest = imageAttribute.rcDest;
+			hasDestAttr = true;
 		}
 		UiRect rcDestCorners;
 		UiRect rcSource = imageAttribute.rcSource;
@@ -654,6 +641,11 @@ UiEstSize Control::EstimateSize(UiSize szAvailable)
 		}
 		else {
 			imageSize.cy = imageCache->GetHeight();
+		}
+		if (!hasDestAttr) {
+			//如果没有rcDest属性，则需要增加图片的内边距
+			imageSize.cx += (imageAttribute.rcPadding.left + imageAttribute.rcPadding.right);
+			imageSize.cy += (imageAttribute.rcPadding.top + imageAttribute.rcPadding.bottom);
 		}
 	}
 	imageCache.reset();

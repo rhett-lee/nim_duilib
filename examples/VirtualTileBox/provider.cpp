@@ -30,8 +30,6 @@ void Provider::FillElement(ui::Control *control, size_t index)
 	std::wstring img = L"icon.png";
 	std::wstring title = nbase::StringPrintf(L"%s [%02d]", m_vTasks[index].sName, m_vTasks[index].nId);
 	pItem->InitSubControls(img, title, index);
-	//记录该控件绑定的index
-	control->SetUserDataID(index);
 }
 
 size_t Provider::GetElementCount()

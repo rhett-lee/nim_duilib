@@ -32,11 +32,16 @@ public:
 	virtual void SetTextId(const std::wstring& strTextId);
 	virtual void SetUTF8TextId(const std::string& strTextId);
 	virtual bool HasHotState() override;
-	virtual UiSize EstimateText(UiSize szAvailable) override;
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 	virtual void PaintText(IRender* pRender) override;
 	virtual void SetPos(UiRect rc) override;
     virtual std::wstring GetToolTipText() const override;
+
+    /** 计算文本区域大小（宽和高）
+     *  @param [in] szAvailable 可用大小，不包含内边距，不包含外边距
+     *  @return 控件的文本估算大小，包含内边距(Box)，不包含外边距
+     */
+    virtual UiSize EstimateText(UiSize szAvailable) override;
 
     /**
      * @brief 设置文本样式
@@ -121,6 +126,10 @@ public:
 
 protected:
 	void CheckShowToolTip();
+
+    /** 获取容器的内边距
+    */
+    UiPadding GetBoxPadding() const;
 
 protected:
 	std::wstring m_sFontId;
@@ -217,6 +226,8 @@ void LabelTemplate<InheritType>::CheckShowToolTip()
     }
 
     UiRect rc = this->GetRect();
+    UiPadding rcPadding = GetBoxPadding();
+    rc.Deflate(rcPadding);
     rc.Deflate(m_rcTextPadding);
 
     if (m_bSingleLine) {
@@ -311,6 +322,8 @@ UiSize LabelTemplate<InheritType>::EstimateText(UiSize szAvailable)
         //如果是拉伸类型，使用外部宽度
         width = szAvailable.cx;
     }
+    UiPadding rcPadding = GetBoxPadding();
+    width -= (rcPadding.left + rcPadding.right);
     if (width < 0) {
         width = 0;
     }
@@ -319,12 +332,14 @@ UiSize LabelTemplate<InheritType>::EstimateText(UiSize szAvailable)
     if (!textValue.empty() && (this->GetWindow() != nullptr)) {
         auto pRender = this->GetWindow()->GetRender();
         if (pRender != nullptr) {
-            UiRect rect = pRender->MeasureString(textValue, m_sFontId, m_uTextStyle, width);
+            UiRect rect = pRender->MeasureString(textValue, m_sFontId, m_uTextStyle, width);            
             if (this->GetFixedWidth().IsAuto()) {
                 fixedSize.cx = rect.Width() + m_rcTextPadding.left + m_rcTextPadding.right;
+                fixedSize.cx += (rcPadding.left + rcPadding.right);
             }
             if (this->GetFixedHeight().IsAuto()) {
                 fixedSize.cy = rect.Height() + m_rcTextPadding.top + m_rcTextPadding.bottom;
+                fixedSize.cy += (rcPadding.top + rcPadding.bottom);
             }
         }        
     }
@@ -436,6 +451,8 @@ void LabelTemplate<InheritType>::PaintText(IRender* pRender)
         return;
     }
     UiRect rc = this->GetRect();
+    UiPadding rcPadding = GetBoxPadding();
+    rc.Deflate(rcPadding);
     rc.Deflate(m_rcTextPadding);
 
     auto stateType = this->GetState();
@@ -565,6 +582,16 @@ void LabelTemplate<InheritType>::SetSingleLine(bool bSingleLine)
     }
     m_bSingleLine = bSingleLine;
     this->Invalidate();
+}
+
+template<typename InheritType>
+UiPadding LabelTemplate<InheritType>::GetBoxPadding() const
+{
+    const Box* pBox = dynamic_cast<const Box*>(this);
+    if (pBox != nullptr) {
+        return pBox->GetLayout()->GetPadding();
+    }
+    return UiPadding();
 }
 
 typedef LabelTemplate<Control> Label;

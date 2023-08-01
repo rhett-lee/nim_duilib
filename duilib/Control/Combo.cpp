@@ -33,7 +33,7 @@ void CComboWnd::InitComboWnd(Combo* pOwner)
 
     // Position the popup window in absolute space
     UiSize szDrop = m_pOwner->GetDropBoxSize();
-    UiRect rcOwner = pOwner->GetPos(true);
+    UiRect rcOwner = pOwner->GetPos();
 	UiPoint scrollBoxOffset = pOwner->GetScrollOffsetInScrollBox();
 	rcOwner.Offset(-scrollBoxOffset.x, -scrollBoxOffset.y);
 

@@ -187,11 +187,6 @@ void PlaceHolder::SetEstimateSize(const UiEstSize& szEstimateSize, const UiSize&
 	m_estResult.m_szEstimateSize = szEstimateSize;
 }
 
-UiEstSize PlaceHolder::EstimateSize(UiSize /*szAvailable*/)
-{
-	return MakeEstSize(m_cxyFixed);
-}
-
 void PlaceHolder::SetMinWidth(int cx)
 {
 	ASSERT(cx >= 0);
@@ -402,14 +397,9 @@ void PlaceHolder::Invalidate()
 	}
 
 	SetCacheDirty(true);
-	UiRect rcInvalidate = GetPos(true);	
+	UiRect rcInvalidate = GetPos();	
 	ui::UiPoint scrollBoxOffset = GetScrollOffsetInScrollBox();
 	rcInvalidate.Offset(-scrollBoxOffset.x, -scrollBoxOffset.y);
-#ifdef _DEBUG
-	//char ss[256];
-	//sprintf_s(ss, "Invalidate(%S):{%d,%d,%d,%d} \n", GetType().c_str(), rcInvalidate.left, rcInvalidate.top, rcInvalidate.Width(), rcInvalidate.Height());
-	//::OutputDebugStringA(ss);
-#endif
 	if (m_pWindow != nullptr) {
 		m_pWindow->Invalidate(rcInvalidate);
 	}

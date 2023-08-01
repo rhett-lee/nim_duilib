@@ -17,7 +17,7 @@ public:
 		if (pRender == nullptr) {
 			return;
 		}		
-		UiRect rcPos = GetPaddingPos();		
+		UiRect rcPos = GetPosWithoutPadding();
 		if (rcPaint.left >= rcPos.left && rcPaint.top >= rcPos.top && rcPaint.right <= rcPos.right && rcPaint.bottom <= rcPos.bottom) {
 			//作为阴影，中间部分是空的，不需要处理重绘, 只填充圆角空隙
 			FillRoundRect(pRender, rcPos);

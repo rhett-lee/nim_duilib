@@ -33,16 +33,36 @@ public:
 	virtual std::wstring GetType() const override;
 	virtual void SetWindow(Window* pManager, Box* pParent, bool bInit = true) override;
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
-	virtual void SetPos(UiRect rc) override;
 	virtual void PaintChild(IRender* pRender, const UiRect& rcPaint) override;
 	virtual void SetEnabled(bool bEnabled) override;
 	virtual void SetVisible(bool bVisible) override;
-	virtual UiEstSize EstimateSize(UiSize szAvailable) override;
 	virtual Control* FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, UiPoint scrollPos = UiPoint()) override;
 	virtual void InvokeLoadImageCache() override;
 	virtual void UnLoadImageCache() override;
 	virtual void ClearImageCache() override;
 	virtual UINT GetControlFlags() const override;
+
+	/** 设置控件位置（子类可改变行为）
+	 * @param [in] rc 要设置的矩形区域信息，包含内边距，不包含外边距
+	 */
+	virtual void SetPos(UiRect rc) override;
+
+	/** 获取控件实际可用矩形区域，包含内边距，不包含外边距
+	*@return 返回控件的实际可用区域，即GetPos剪去Padding后的区域
+	*/
+	virtual UiRect GetPosWithoutPadding() const;
+
+	/** 获取控件实际可用矩形区域，包含内边距，不包含外边距
+	*@return 返回控件的实际可用区域，即GetRect剪去Padding后的区域
+	*/
+	UiRect GetRectWithoutPadding() const;
+
+	/** 计算控件大小(宽和高)
+		如果设置了图片并设置 width 或 height 任意一项为 auto，将根据图片大小和文本大小来计算最终大小
+	 *  @param [in] szAvailable 可用大小，不包含外边距
+	 *  @return 控件的估算大小，包含内边距(Box)，不包含外边距
+	 */
+	virtual UiEstSize EstimateSize(UiSize szAvailable) override;
 
 public:
 	/** @name 操作子控件(item)相关的方法
@@ -177,11 +197,6 @@ public:
 	 * @return 无
 	 */
 	void ReSetLayout(Layout* pLayout);
-
-	/**
-	 * @brief 获取该控件去掉内边距后的位置大小信息
-	 */
-	UiRect GetPaddingPos() const;
 
 private:
 	/**@brief 向指定位置添加一个控件

@@ -1,5 +1,5 @@
 #include "HLayout.h"
-#include "duilib/Core/Control.h"
+#include "duilib/Core/Box.h"
 #include <map>
 
 namespace ui 
@@ -12,7 +12,7 @@ HLayout::HLayout()
 UiSize64 HLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 {
 	DeflatePadding(rc);
-	UiSize szAvailable(rc.Width(), rc.Height());
+	const UiSize szAvailable(rc.Width(), rc.Height());
 	
 	//宽度为stretch的控件数
 	int32_t stretchCount = 0;
@@ -170,7 +170,7 @@ UiSize64 HLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 		//设置控件的位置
 		UiRect rcChildPos(iPosX + rcMargin.left, childTop, iPosX + rcMargin.left + sz.cx, childBottm);
 		pControl->SetPos(rcChildPos);
-		cyNeeded = std::max(cyNeeded, (int64_t)rcChildPos.Height());
+		cyNeeded = std::max(cyNeeded, (int64_t)rcChildPos.Height() + rcMargin.top + rcMargin.bottom);
 
 		//调整当前Y轴坐标值
 		iPosX += (sz.cx + rcMargin.left + GetChildMarginX() + rcMargin.right);
@@ -181,6 +181,13 @@ UiSize64 HLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 	}
 
 	UiSize64 size(cxNeeded, cyNeeded);
+	const UiPadding& rcPadding = GetPadding();
+	if (size.cx > 0) {
+		size.cx += (rcPadding.left + rcPadding.right);
+	}
+	if (size.cy > 0) {
+		size.cy += (rcPadding.top + rcPadding.bottom);
+	}
 	return size;
 }
 
@@ -236,8 +243,7 @@ UiSize HLayout::EstimateSizeByChild(const std::vector<Control*>& items, UiSize s
 	if ((totalSize.cx > 0) && ((estimateCount - 1) > 0)) {
 		totalSize.cx += (estimateCount - 1) * GetChildMarginX();
 	}
-
-	UiPadding rcPadding = GetPadding();
+	const UiPadding& rcPadding = GetPadding();
 	if (totalSize.cx > 0) {
 		totalSize.cx += (rcPadding.left + rcPadding.right);
 	}

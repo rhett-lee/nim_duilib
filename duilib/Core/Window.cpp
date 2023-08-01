@@ -2295,7 +2295,7 @@ void Window::Paint()
 		if (m_shadow->IsShadowAttached() && m_renderOffset.x == 0 && m_renderOffset.y == 0) {
 			//补救由于Gdi绘制造成的alpha通道为0
 			UiRect rcNewPaint = rcPaint;
-			rcNewPaint.Intersect(m_pRoot->GetPaddingPos());
+			rcNewPaint.Intersect(m_pRoot->GetPosWithoutPadding());
 			UiPadding rcRootPadding = m_pRoot->GetLayout()->GetPadding();
 
 			//考虑圆角
@@ -2311,7 +2311,7 @@ void Window::Paint()
 			if (rcAlphaFixCorner.left > 0 || rcAlphaFixCorner.top > 0 || rcAlphaFixCorner.right > 0 || rcAlphaFixCorner.bottom > 0)
 			{
 				UiRect rcNewPaint = rcPaint;
-				UiRect rcRootPaddingPos = m_pRoot->GetPaddingPos();
+				UiRect rcRootPaddingPos = m_pRoot->GetPosWithoutPadding();
 				rcRootPaddingPos.Deflate(rcAlphaFixCorner.left, rcAlphaFixCorner.top, 
 					                     rcAlphaFixCorner.right, rcAlphaFixCorner.bottom);
 				rcNewPaint.Intersect(rcRootPaddingPos);

@@ -192,7 +192,7 @@ void VirtualTileLayout::LazyArrangeChild(UiRect rc)
     ui::UiPoint ptTile(iPosLeft, iPosTop);
 
     // 顶部index
-    size_t nTopIndex = pList->GetTopElementIndex(nullptr);
+    size_t nTopIndex = pList->GetTopElementIndex();
     size_t iCount = 0;
     for (auto pControl : pList->m_items) {
         if (pControl == nullptr) {
@@ -250,10 +250,11 @@ size_t VirtualTileLayout::AjustMaxItem(UiRect rc)
     return nRows * nColumns;
 }
 
+/////////////////////////////////////////////////////////////////////////////
+//
 VirtualTileBox::VirtualTileBox(Layout* pLayout /*= new VirtualTileLayout*/)
     : ListBox(pLayout)
     , m_pDataProvider(nullptr)
-    , m_nMaxItemCount(0)
 {
 }
 
@@ -273,17 +274,62 @@ VirtualTileBoxElement* VirtualTileBox::GetDataProvider()
     return m_pDataProvider;
 }
 
+bool VirtualTileBox::HasDataProvider() const
+{
+    return m_pDataProvider != nullptr;
+}
+
+Control* VirtualTileBox::CreateElement()
+{
+    ASSERT(m_pDataProvider != nullptr);
+    if (m_pDataProvider != nullptr) {
+        return m_pDataProvider->CreateElement();
+    }
+    return nullptr;
+}
+
+void VirtualTileBox::FillElement(Control* pControl, size_t iIndex)
+{
+    ASSERT(m_pDataProvider != nullptr);
+    if (m_pDataProvider != nullptr) {
+        m_pDataProvider->FillElement(pControl, iIndex);
+    }
+}
+
+size_t VirtualTileBox::GetElementCount()
+{
+    size_t elementCount = 0;
+    if (m_pDataProvider != nullptr) {
+        elementCount = m_pDataProvider->GetElementCount();
+    }
+    return elementCount;
+}
+
+void VirtualTileBox::OnModelDataChanged(size_t nStartIndex, size_t nEndIndex)
+{
+    for (size_t i = nStartIndex; i <= nEndIndex; ++i) {
+        size_t nItemIndex = ElementIndexToItemIndex(nStartIndex);
+        if (Box::IsValidItemIndex(nItemIndex) && nItemIndex < m_items.size()) {
+            FillElement(m_items[nItemIndex], i);
+        }
+    }
+}
+
+void VirtualTileBox::OnModelCountChanged()
+{
+    Refresh();
+}
+
 void VirtualTileBox::Refresh()
 {
     if (!HasDataProvider()) {
         return;
     }
     //最大子项数
-    size_t nMaxItemCount = GetTileLayout()->AjustMaxItem(GetPaddingPos());
+    size_t nMaxItemCount = GetTileLayout()->AjustMaxItem(GetPosWithoutPadding());
     if (nMaxItemCount == 0) {
         return;
     }
-    m_nMaxItemCount = nMaxItemCount;
 
     //当前数据总数
     size_t nElementCount = GetElementCount();
@@ -315,7 +361,7 @@ void VirtualTileBox::Refresh()
     if (nElementCount > 0) {
         ReArrangeChild(true);
         Arrange();
-    }    
+    }
 }
 
 void VirtualTileBox::GetDisplayCollection(std::vector<size_t>& collection)
@@ -326,7 +372,7 @@ void VirtualTileBox::GetDisplayCollection(std::vector<size_t>& collection)
     }
 
     // 获取Box的Rect
-    ui::UiRect rcThis = GetPaddingPos();
+    ui::UiRect rcThis = GetPosWithoutPadding();
 
     size_t nEleHeight = GetRealElementHeight();
     if (nEleHeight == 0) {
@@ -521,97 +567,6 @@ void VirtualTileBox::RemoveAllItems()
     return __super::RemoveAllItems();
 }
 
-bool VirtualTileBox::HasDataProvider() const
-{
-    return m_pDataProvider != nullptr;
-}
-
-void VirtualTileBox::ReArrangeChild(bool bForce)
-{
-    if (!HasDataProvider()) {
-        return;
-    }
-    if (!bForce) {
-        if (!NeedReArrange()) {
-            return;
-        }
-    }
-    LazyArrangeChild();
-}
-
-ui::Control* VirtualTileBox::CreateElement()
-{
-    ASSERT(m_pDataProvider != nullptr);
-    if (m_pDataProvider != nullptr) {
-        return m_pDataProvider->CreateElement();
-    }
-    return nullptr;
-}
-
-void VirtualTileBox::FillElement(Control* pControl, size_t iIndex)
-{
-    ASSERT(m_pDataProvider != nullptr);
-    if (m_pDataProvider != nullptr) {
-        m_pDataProvider->FillElement(pControl, iIndex);
-    }
-}
-
-size_t VirtualTileBox::GetElementCount()
-{
-    size_t elementCount = 0;
-    if (m_pDataProvider != nullptr) {
-        elementCount = m_pDataProvider->GetElementCount();
-    }
-    return elementCount;
-}
-
-int64_t VirtualTileBox::CalcElementsHeight(size_t nCount)
-{
-    return GetTileLayout()->GetElementsHeight(GetPaddingPos(), nCount);
-}
-
-size_t VirtualTileBox::GetTopElementIndex(int64_t* bottom)
-{
-    int64_t nPos = GetScrollPos().cy;
-    if (nPos < 0) {
-        nPos = 0;
-    }
-    int64_t nColumns = (int64_t)GetColumns();
-    if (nColumns < 0) {
-        nColumns = 0;
-    }
-    int64_t nHeight = GetRealElementHeight();
-    ASSERT(nHeight >= 0);
-    if (nHeight <= 0) {
-        if (bottom != nullptr) {
-            *bottom = 0;
-        }
-        return 0;
-    }
-    int64_t iIndex = (nPos / nHeight) * nColumns;
-    if (bottom != nullptr) {
-        *bottom = iIndex * nHeight;
-    }
-    return static_cast<size_t>(iIndex);
-}
-
-bool VirtualTileBox::IsElementDisplay(size_t iIndex)
-{
-    if (!Box::IsValidItemIndex(iIndex)) {
-        return false;
-    }
-
-    int64_t nPos = GetScrollPos().cy;
-    int64_t nElementPos = CalcElementsHeight(iIndex);
-    if (nElementPos >= nPos) {
-        int64_t nHeight = this->GetHeight();
-        if (nElementPos <= nPos + nHeight) {
-            return true;
-        }
-    }
-    return false;
-}
-
 bool VirtualTileBox::NeedReArrange()
 {
     if (!HasDataProvider()) {
@@ -650,6 +605,32 @@ bool VirtualTileBox::NeedReArrange()
     return false;
 }
 
+void VirtualTileBox::ReArrangeChild(bool bForce)
+{
+    if (!HasDataProvider()) {
+        return;
+    }
+    if (!bForce) {
+        if (!NeedReArrange()) {
+            return;
+        }
+    }
+    LazyArrangeChild();
+}
+
+void VirtualTileBox::LazyArrangeChild()
+{
+    if (!HasDataProvider()) {
+        return;
+    }
+    GetTileLayout()->LazyArrangeChild(GetPosWithoutPadding());
+}
+
+int64_t VirtualTileBox::CalcElementsHeight(size_t nCount)
+{
+    return GetTileLayout()->GetElementsHeight(GetPosWithoutPadding(), nCount);
+}
+
 VirtualTileLayout* VirtualTileBox::GetTileLayout()
 {
     auto* pLayout = dynamic_cast<VirtualTileLayout*>(GetLayout());
@@ -659,41 +640,54 @@ VirtualTileLayout* VirtualTileBox::GetTileLayout()
 
 int64_t VirtualTileBox::GetRealElementHeight()
 {
-    return GetTileLayout()->GetElementsHeight(GetPaddingPos(), 1);
+    return GetTileLayout()->GetElementsHeight(GetPosWithoutPadding(), 1);
 }
 
 size_t VirtualTileBox::GetColumns()
 {
-    return GetTileLayout()->CalcTileColumns(GetPaddingPos().Width());
+    return GetTileLayout()->CalcTileColumns(GetPosWithoutPadding().Width());
 }
 
-void VirtualTileBox::LazyArrangeChild()
+bool VirtualTileBox::IsElementDisplay(size_t iIndex)
 {
-    if (!HasDataProvider()) {
-        return;
+    if (!Box::IsValidItemIndex(iIndex)) {
+        return false;
     }
-    GetTileLayout()->LazyArrangeChild(GetPaddingPos());
-}
 
-void VirtualTileBox::OnModelDataChanged(size_t nStartIndex, size_t nEndIndex)
-{
-    for (size_t i = nStartIndex; i <= nEndIndex; ++i) {
-        size_t nItemIndex = ElementIndexToItemIndex(nStartIndex);
-        if (Box::IsValidItemIndex(nItemIndex) && nItemIndex < m_items.size()) {
-            FillElement(m_items[nItemIndex], i);
+    int64_t nPos = GetScrollPos().cy;
+    int64_t nElementPos = CalcElementsHeight(iIndex);
+    if (nElementPos >= nPos) {
+        int64_t nHeight = this->GetHeight();
+        if (nElementPos <= nPos + nHeight) {
+            return true;
         }
     }
+    return false;
 }
 
-void VirtualTileBox::OnModelCountChanged()
+size_t VirtualTileBox::GetTopElementIndex()
 {
-    Refresh();
+    int64_t nPos = GetScrollPos().cy;
+    if (nPos < 0) {
+        nPos = 0;
+    }
+    int64_t nColumns = (int64_t)GetColumns();
+    if (nColumns < 0) {
+        nColumns = 0;
+    }
+    int64_t nHeight = GetRealElementHeight();
+    ASSERT(nHeight >= 0);
+    if (nHeight <= 0) {
+        return 0;
+    }
+    int64_t iIndex = (nPos / nHeight) * nColumns;
+    return static_cast<size_t>(iIndex);
 }
 
 size_t VirtualTileBox::ElementIndexToItemIndex(size_t nElementIndex)
 {
     if (IsElementDisplay(nElementIndex)) {
-        size_t nTopItemIndex = GetTopElementIndex(nullptr);
+        size_t nTopItemIndex = GetTopElementIndex();
         ASSERT(nElementIndex >= nTopItemIndex);
         if (nElementIndex >= nTopItemIndex) {
             return nElementIndex - nTopItemIndex;
@@ -704,7 +698,7 @@ size_t VirtualTileBox::ElementIndexToItemIndex(size_t nElementIndex)
 
 size_t VirtualTileBox::ItemIndexToElementIndex(size_t nItemIndex)
 {
-    return GetTopElementIndex(nullptr) + nItemIndex;
+    return GetTopElementIndex() + nItemIndex;
 }
 
 }

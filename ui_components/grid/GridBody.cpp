@@ -1293,7 +1293,7 @@ namespace ui
 			}
 			else */{
 				UiSize scrollPos = m_pGrid->GetScrollOffset();
-				UiRect rcNewPaint = GetPaddingPos();
+				UiRect rcNewPaint = GetPosWithoutPadding();
 				rcNewPaint.left += GetFixedColWidth();			
 				/*rcNewPaint.top += GetFixedRowHeight();*/		//可能表头存在控件
 				if (rcNewPaint.left > rcNewPaint.right) rcNewPaint.left = rcNewPaint.right;

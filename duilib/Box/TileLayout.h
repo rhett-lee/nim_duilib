@@ -17,18 +17,26 @@ public:
 
 	/** 调整内部所有控件的位置信息
 	 * @param[in] items 控件列表
-	 * @param[in] rc 当前容器位置信息, 外部调用时，不需要扣除内边距
+	 * @param[in] rc 当前容器位置信息, 包含内边距，但不包含外边距
 	 * @return 返回排列后最终盒子的宽度和高度信息
 	 */
 	virtual UiSize64 ArrangeChild(const std::vector<Control*>& items, UiRect rc) override;
 
 	/** 根据内部子控件大小估算容器自身大小，拉伸类型的子控件被忽略，不计入大小估算
 	 * @param[in] items 子控件列表
-	 * @param[in] szAvailable 子控件允许的最大宽度和高度
-	 * @return 返回排列后最终布局的大小信息（宽度和高度），不包含拉伸类型的子控件大小
+	 * @param [in] szAvailable 可用大小，包含分配给该控件的内边距，但不包含分配给控件的外边距
+	 * @return 返回排列后最终布局的大小信息（宽度和高度）；
+			   包含items中子控件的外边距，包含items中子控件的内边距；
+			   包含Box控件本身的内边距；
+			   不包含Box控件本身的外边距；
+			   返回值中不包含拉伸类型的子控件大小。
 	 */
-	virtual UiSize EstimateSizeByChild(const std::vector<Control*>& items, UiSize szAvailable) override;
+	virtual UiSize EstimateSizeByChild(const std::vector<Control*>& items, UiSize szAvailable);
 
+	/** 是否是Tile布局（Tile布局是限宽度的，有些逻辑不同）
+	*/
+	virtual bool IsTileLayout() const override;
+	
 	/** 设置布局属性
 	 * @param[in] strName 要设置的属性名
 	 * @param[in] strValue 要设置的属性值
@@ -36,12 +44,13 @@ public:
 	 */
 	virtual bool SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 
-	/** 获取子项大小
+public:
+	/** 获取子项大小，该宽度和高度，是包含了控件的外边距和内边距的
 	 */
 	const UiSize& GetItemSize() const;
 
 	/** 设置子项大小
-	 * @param[in] szItem 子项大小数据
+	 * @param[in] szItem 子项大小数据，该宽度和高度，是包含了控件的外边距和内边距的
 	 */
 	void SetItemSize(UiSize szItem, bool bNeedDpiScale = true);
 
@@ -133,7 +142,7 @@ private:
 	* @param [in] ptTile 当前瓦片控件左上角的坐标
 	* @param [in] bScaleDown 当控件内容超出边界时，按比例缩小，以使控件内容完全显示在瓦片区域内
 	* @param [out] szTilePos 瓦片控件的显示坐标、宽度和高度
-	* @return 返回瓦片控件目标区域的大小（宽和高）
+	* @return 返回瓦片控件目标区域的大小（宽和高），宽度和高度包含了控件的外边距
 	*/
 	static UiSize CalcTilePosition(const ItemSizeInfo& itemSizeInfo,
 								   int32_t tileWidth,
@@ -145,7 +154,7 @@ private:
 private:
 	/** 对子控件布局的内部实现函数
 	* @param [in] items 子控件列表
-	* @param [in] rect 外部可用矩形大小
+	* @param [in] rect 可用矩形大小，包含分配给该控件的内边距，但不包含分配给控件的外边距
 	* @param [in] isCalcOnly 如果为true表示仅计算区域，对控件位置不做调整；如果为false，表示对控件位置做调整。
 	* @param [in] inColumnWidths 每列的宽度值，可用为空
 	* @param [out] outColumnWidths 本次布局，使用的每列宽度值
@@ -159,7 +168,7 @@ private:
 
 	/** 使用自由布局排列控件(无固定列数，尽量充分利用展示空间，显示尽可能多的内容)
 	* @param [in] items 子控件列表
-	* @param [in] rect 外部可用矩形大小
+	* @param [in] rect 可用矩形大小，包含分配给该控件的内边距，但不包含分配给控件的外边距
 	* @param [in] isCalcOnly 如果为true表示仅计算区域，对控件位置不做调整；如果为false，表示对控件位置做调整。
 	* @return 返回区域的宽度和高度
 	*/
@@ -176,7 +185,7 @@ private:
 	//显示几列数据
 	int32_t m_nColumns;
 
-	//子项大小
+	//子项大小, 该宽度和高度，是包含了控件的外边距和内边距的
 	UiSize m_szItem;
 
 	//自动计算列数

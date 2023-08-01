@@ -98,36 +98,36 @@ public:
 	void SetFloat(bool bFloat);
 
 public:
-	/** 获取控件设置的宽度和高度
+	/** 获取控件设置的宽度和高度，宽高均包含内边距，但均不包含外边距
 	*/
 	const UiFixedSize& GetFixedSize() const;
 
-	/** 获取设置的宽度，对应 xml 中 width 属性; 如果未设置，默认值是拉伸
+	/** 获取设置的宽度（包含内边距，不包含外边距），对应 xml 中 width 属性; 如果未设置，默认值是拉伸
 	 */
 	const UiFixedInt& GetFixedWidth() const;
 
-	/** 获取固定高度，对应 xml 中 height 属性; 如果未设置，默认值是拉伸
+	/** 获取固定高度（包含内边距，不包含外边距），对应 xml 中 height 属性; 如果未设置，默认值是拉伸
 	 */
 	const UiFixedInt& GetFixedHeight() const;
 
 	/**@brief 设置控件的宽度
-	 * @param[in] cx 要设置的宽度
+	 * @param[in] cx 要设置的宽度（包含内边距，不包含外边距）
 	 * @param[in] bArrange 是否重新排列，默认为 true
 	 * @param[in] bNeedDpiScale 兼容 DPI 缩放，默认为 true
 	 */
 	void SetFixedWidth(UiFixedInt cx, bool bArrange, bool bNeedDpiScale);
 
-	/** 设置控件的宽度，供动画使用的接口
+	/** 设置控件的宽度（包含内边距，不包含外边距），供动画使用的接口
 	*/
 	void SetFixedWidth64(int64_t cx64);
 
 	/**@brief 设置控件的高度
-	 * @param[in] cy 要设置的固定高度
+	 * @param[in] cy 要设置的固定高度（包含内边距，不包含外边距）
 	 * @param[in] bNeedDpiScale 兼容 DPI 缩放，默认为 true
 	 */
 	void SetFixedHeight(UiFixedInt cy, bool bNeedDpiScale);
 
-	/** 设置控件的高度，供动画使用的接口
+	/** 设置控件的高度（包含内边距，不包含外边距），供动画使用的接口
 	*/
 	void SetFixedHeight64(int64_t cy64);
 
@@ -152,57 +152,52 @@ public:
 	*/
 	void SetEstimateSize(const UiEstSize& szEstimateSize, const UiSize& szAvailable);
 
-	/**@brief 估算控件大小（基类中无具体实现, 返回设置的固定大小）
-	*  @param [in] szAvailable 可用大小
-	 */
-	virtual UiEstSize EstimateSize(UiSize szAvailable);
-
 public:
 	/** 获取最小宽度
-	* @return 返回最小宽度（ >= 0）
+	* @return 返回最小宽度（包含内边距，不包含外边距）（返回值 >= 0）
 	*/
 	int32_t GetMinWidth() const { ASSERT(m_cxyMin.cx >= 0); return m_cxyMin.cx; }
 
 	/**@brief 设置最小宽度
-	 * @param[in] cx 要设置的最小宽度（ >= 0）
+	 * @param[in] cx 要设置的最小宽度（包含内边距，不包含外边距）（值 >= 0）
 	 */
 	void SetMinWidth(int32_t cx);
 
 	/** 获取最大宽度
-	* @return 返回最大宽度（ >= 0）
+	* @return 返回最大宽度（包含内边距，不包含外边距）（返回值 >= 0）
 	*/
 	int32_t GetMaxWidth() const { ASSERT(m_cxyMax.cx >=0 ); return m_cxyMax.cx; }
 
 	/** 设置最大宽度
-	 * @param[in] cx 要设置的最大宽度（ >= 0）
+	 * @param[in] cx 要设置的最大宽度（包含内边距，不包含外边距）（值 >= 0）
 	 */
 	void SetMaxWidth(int32_t cx);
 
 	/** 获取最小高度
-	* @return 返回最小高度（ >= 0）
+	* @return 返回最小高度（包含内边距，不包含外边距）（返回值 >= 0）
 	*/
 	int32_t GetMinHeight() const { ASSERT(m_cxyMin.cy >= 0); return m_cxyMin.cy; }
 
 	/** 设置最小高度
-	 * @param[in] cy 要设置的最小高度（ >= 0）
+	 * @param[in] cy 要设置的最小高度（包含内边距，不包含外边距）（值 >= 0）
 	 */
 	void SetMinHeight(int32_t cy);
 
 	/** 获取最大高度
-	* @return 返回最大高度（ >= 0）
+	* @return 返回最大高度（包含内边距，不包含外边距）（返回值 >= 0）
 	*/
 	int32_t GetMaxHeight() const { ASSERT(m_cxyMax.cy >= 0); return m_cxyMax.cy; }
 
 	/** 设置最大高度
-	 * @param[in] cy 要设置的最大高度（ >= 0）
+	 * @param[in] cy 要设置的最大高度（包含内边距，不包含外边距）（值 >= 0）
 	 */
 	void SetMaxHeight(int cy);
 
-	/**@brief 获取实际宽度
+	/** 获取实际宽度（包括内边距，不包括外边距）
 	 */
 	int32_t GetWidth() const { return m_uiRect.Width(); }
 
-	/**@brief 获取实际高度
+	/** 获取实际高度（包括内边距，不包括外边距）
 	 */
 	int32_t GetHeight() const { return m_uiRect.Height(); }
 
@@ -230,25 +225,25 @@ public:
 
 	/** 设置控件的外边距
 	 * @param[in] rcMargin 控件的外边距信息
-	 * @param[in] bNeedDpiScale 是否让外边距根据 DPI 适配，默认为 true，false 不适配 DPI
+	 * @param[in] bNeedDpiScale 是否让外边距根据 DPI 适配，false 不适配 DPI
 	 */
 	void SetMargin(UiMargin rcMargin, bool bNeedDpiScale);
 
-	/**@brief 获取控件位置（子类可改变行为）
-	 * @param[in] bContainShadow 是否包含阴影位置，默认为 true
+	/** 获取控件位置（子类可改变行为）
+	* @return 返回控件的矩形区域，包含内边距，不包含外边距
 	 */
-	virtual	UiRect GetPos(bool /*bContainShadow*/) const { return m_uiRect; }
+	virtual	UiRect GetPos() const { return m_uiRect; }
 
-	/**@brief 设置控件位置（子类可改变行为）
-	 * @param[in] rc 要设置的位置信息
+	/** 设置控件位置（子类可改变行为）
+	 * @param [in] rc 要设置的矩形区域信息，包含内边距，不包含外边距
 	 */
 	virtual void SetPos(UiRect rc);
 
-	/**@brief 获取控件区域(单纯返回m_uiRect值)
+	/** 获取控件矩形区域(单纯返回m_uiRect值)，包含内边距，不包含外边距
 	*/
 	const UiRect& GetRect() const { return m_uiRect; }
 
-	/**@brief 设置控件区域(单纯设置m_uiRect值)
+	/**@brief 设置控件矩形区域(单纯设置m_uiRect值)，包含内边距，不包含外边距
 	*/
 	void SetRect(const UiRect& rc);
 
@@ -337,7 +332,7 @@ private:
 	//控件垂直对齐方式
 	VerAlignType m_verAlignType;
 
-	//控件的外边距属性（上，下，左，右边距）
+	//控件的外边距属性（上，下，左，右边距），外边距是m_uiRect以外的空间，不包含在m_uiRect以内
 	UiMargin m_rcMargin;
 
 	//控件是否为浮动属性

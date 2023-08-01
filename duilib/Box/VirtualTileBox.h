@@ -67,17 +67,21 @@ public:
 
     /** 调整内部所有控件的位置信息
      * @param [in] items 控件列表
-     * @param [in] rc 当前容器位置信息, 外部调用时，不需要扣除内边距
+     * @param[in] rc 当前容器位置信息, 包含内边距，但不包含外边距
      * @return 返回排列后最终盒子的宽度和高度信息
      */
     virtual UiSize64 ArrangeChild(const std::vector<Control*>& items, UiRect rc) override;
 
     /** 根据内部子控件大小估算容器自身大小，拉伸类型的子控件被忽略，不计入大小估算
-     * @param [in] items 子控件列表
-     * @param [in] szAvailable 子控件允许的最大宽度和高度
-     * @return 返回排列后最终布局的大小信息（宽度和高度），不包含拉伸类型的子控件大小
+     * @param[in] items 子控件列表
+     * @param [in] szAvailable 可用大小，包含分配给该控件的内边距，但不包含分配给控件的外边距
+     * @return 返回排列后最终布局的大小信息（宽度和高度）；
+               包含items中子控件的外边距，包含items中子控件的内边距；
+               包含Box控件本身的内边距；
+               不包含Box控件本身的外边距；
+               返回值中不包含拉伸类型的子控件大小。
      */
-    virtual UiSize EstimateSizeByChild(const std::vector<Control*>& items, UiSize szAvailable) override;
+    virtual UiSize EstimateSizeByChild(const std::vector<Control*>& items, UiSize szAvailable);
     
 public:
     /** 获取数据项的高度
@@ -165,11 +169,6 @@ private:
     */
     bool HasDataProvider() const;
 
-    /** 重新布局子项
-    * @param[in] bForce 是否强制重新布局
-    */
-    void ReArrangeChild(bool bForce);
-
     /** 创建一个子项
     * @return 返回创建后的子项指针
     */
@@ -187,27 +186,33 @@ private:
     */
     size_t GetElementCount();
 
+    /** 数据内容发生变化，在事件中需要重新加载展示数据
+    */
+    void OnModelDataChanged(size_t nStartIndex, size_t nEndIndex);
+
+    /** 数据个数发生变化，在事件中需要重新加载展示数据
+    */
+    void OnModelCountChanged();
+
+private:
+    /** 判断是否要重新布局
+    */
+    bool NeedReArrange();
+
+    /** 重新布局子项
+    * @param[in] bForce 是否强制重新布局
+    */
+    void ReArrangeChild(bool bForce);
+
+    /** 懒加载所需数据（只加载界面显示区域的那部分数据）
+    */
+    void LazyArrangeChild();
+
     /** 得到n个元素对应的高度和，
     * @param[in] nCount 要得到多少元素的高度，-1表示全部元素
     * @return 返回指定数量元素的高度和
     */
     int64_t CalcElementsHeight(size_t nCount);
-
-    /** 得到可见范围内第一个元素的前一个元素索引
-    * @param[out] bottom 返回上一个元素的 bottom 值
-    * @return 返回上一个元素的索引
-    */
-    size_t GetTopElementIndex(int64_t* bottom);
-
-    /** 判断某个元素是否在可见范围内
-    * @param[in] iIndex 元素索引
-    * @return 返回 true 表示可见，否则为不可见
-    */
-    bool IsElementDisplay(size_t iIndex);
-
-    /** 判断是否要重新布局
-    */
-    bool NeedReArrange();
 
     /** 获取布局接口
     */
@@ -221,17 +226,16 @@ private:
     */
     size_t GetColumns();
 
-    /** 懒加载所需数据（只加载界面显示区域的那部分数据）
+    /** 判断某个元素是否在可见范围内
+    * @param[in] iIndex 元素索引
+    * @return 返回 true 表示可见，否则为不可见
     */
-    void LazyArrangeChild();
+    bool IsElementDisplay(size_t iIndex);
 
-    /** 数据内容发生变化，在事件中需要重新加载展示数据
+    /** 得到可见范围内第一个元素的前一个元素索引
+    * @return 返回上一个元素的索引
     */
-    void OnModelDataChanged(size_t nStartIndex, size_t nEndIndex);
-
-    /** 数据个数发生变化，在事件中需要重新加载展示数据
-    */
-    void OnModelCountChanged();
+    size_t GetTopElementIndex();
 
     /** 将数据元素的索引号转变为展示内容的索引号
     * @param [in] nElementIndex 数据元素的索引号
@@ -248,10 +252,6 @@ private:
     /** 数据代理对象接口，提供展示数据
     */
     VirtualTileBoxElement* m_pDataProvider;
-
-    /** 列表真实控件数量上限(动态计算)
-    */
-    size_t m_nMaxItemCount;
 };
 
 }

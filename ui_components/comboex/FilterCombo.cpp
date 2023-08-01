@@ -34,7 +34,7 @@ void CFilterComboWnd::InitComboWnd(FilterCombo* pOwner)
 
     // Position the popup window in absolute space
 	ui::UiSize szDrop = m_pOwner->GetDropBoxSize();
-	ui::UiRect rcOwner = pOwner->GetPos(true);
+	ui::UiRect rcOwner = pOwner->GetPos();
 	ui::UiPoint scrollBoxOffset = pOwner->GetScrollOffsetInScrollBox();
 	rcOwner.Offset(-scrollBoxOffset.x, -scrollBoxOffset.y);
 
@@ -474,7 +474,7 @@ bool FilterCombo::OnRichEditTextChanged(const ui::EventArgs& /*args*/)
 		return false;
 	}
 	ui::UiSize szDrop = GetDropBoxSize();
-	ui::UiRect rcOwner = GetPos(true);
+	ui::UiRect rcOwner = GetPos();
 	ui::UiPoint scrollBoxOffset = GetScrollOffsetInScrollBox();
 	rcOwner.Offset(-scrollBoxOffset.x, -scrollBoxOffset.y);
 
