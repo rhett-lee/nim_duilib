@@ -270,7 +270,10 @@
     <ClCompile Include="Box\ListBox.cpp">
       <Filter>Box</Filter>
     </ClCompile>
-    <ClCompile Include="Box\VirtualTileBox.cpp">
+    <ClCompile Include="Box\VirtualTileLayout.cpp">
+      <Filter>Box</Filter>
+    </ClCompile>
+    <ClCompile Include="Box\VirtualListBox.cpp">
       <Filter>Box</Filter>
     </ClCompile>
   </ItemGroup>
@@ -578,9 +581,6 @@
     <ClInclude Include="Box\ListBox.h">
       <Filter>Box</Filter>
     </ClInclude>
-    <ClInclude Include="Box\VirtualTileBox.h">
-      <Filter>Box</Filter>
-    </ClInclude>
     <ClInclude Include="Core\UiMargin.h">
       <Filter>Core</Filter>
     </ClInclude>
@@ -595,6 +595,15 @@
     </ClInclude>
     <ClInclude Include="Core\UiFixedInt.h">
       <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Box\VirtualTileLayout.h">
+      <Filter>Box</Filter>
+    </ClInclude>
+    <ClInclude Include="Box\VirtualListBox.h">
+      <Filter>Box</Filter>
+    </ClInclude>
+    <ClInclude Include="Box\VirtualLayout.h">
+      <Filter>Box</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

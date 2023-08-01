@@ -1,6 +1,6 @@
 #pragma once
 
-// #include "VirtualTileBox.h"
+// #include "VirtualListBox.h"
 #include <map>
 
 struct DownloadTask
@@ -9,7 +9,7 @@ struct DownloadTask
 	wchar_t* sName = nullptr;
 };
 
-class Provider : public ui::VirtualTileBoxElement
+class Provider : public ui::VirtualListBoxElement
 {
 public:
 	Provider();

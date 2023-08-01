@@ -90,7 +90,7 @@
 #include "Box/TabBox.h"
 #include "Box/ScrollBox.h"
 #include "Box/ListBox.h"
-#include "Box/VirtualTileBox.h"
+#include "Box/VirtualListBox.h"
 
 #include "Control/Combo.h"
 #include "Control/TreeView.h"

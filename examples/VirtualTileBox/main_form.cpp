@@ -33,7 +33,7 @@ void MainForm::OnInitWindow()
 	m_EditColumn = dynamic_cast<ui::RichEdit*>(FindControl(L"edit_column"));
 	m_CheckBoxItemCenter = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_item_center"));
 	m_EditTotal = dynamic_cast<ui::RichEdit*>(FindControl(L"edit_total"));
-	m_pTileList = dynamic_cast<ui::VirtualTileBox*>(FindControl(L"list"));
+	m_pTileList = dynamic_cast<ui::VirtualListBox*>(FindControl(L"list"));
 	m_OptionColumnFix = dynamic_cast<ui::Option*>(FindControl(L"option_column_fix"));
 	m_EditUpdate = dynamic_cast<ui::RichEdit*>(FindControl(L"edit_update"));
 	m_EditTaskName = dynamic_cast<ui::RichEdit*>(FindControl(L"edit_task_name"));
@@ -61,11 +61,9 @@ bool MainForm::OnClicked(const ui::EventArgs& args)
 	{
 		if (!m_EditChildMarginX->GetText().empty())	{
 			m_pTileList->SetAttribute(L"child_margin_x", m_EditChildMarginX->GetText());
-			m_pTileList->Refresh();
 		}
 		if (!m_EditChildMarginY->GetText().empty()) {
 			m_pTileList->SetAttribute(L"child_margin_y", m_EditChildMarginY->GetText());
-			m_pTileList->Refresh();
 		}
 		if (m_OptionColumnFix->IsSelected()) {
 			m_pTileList->SetAttribute(L"columns", m_EditColumn->GetText());

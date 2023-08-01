@@ -69,7 +69,7 @@ namespace ui
 	#define  DUI_CTR_VLISTBOX                        (L"VListBox")
 	#define  DUI_CTR_TILELISTBOX                     (L"TileListBox")
 
-	#define  DUI_CTR_VIRTUALTILEBOX                  (L"VirtualTileBox")
+	#define  DUI_CTR_VIRTUALTILE_LISTBOX			 (L"VirtualTileListBox")
 
 	#define  DUI_CTR_TREENODE                        (L"TreeNode")
 	#define  DUI_CTR_TREEVIEW                        (L"TreeView")

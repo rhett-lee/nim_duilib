@@ -33,7 +33,7 @@ private:
 	bool OnClicked(const ui::EventArgs& args);
 
 private:
-	ui::VirtualTileBox*	m_pTileList;
+	ui::VirtualListBox*	m_pTileList;
 	Provider* m_DataProvider;
 
 private:

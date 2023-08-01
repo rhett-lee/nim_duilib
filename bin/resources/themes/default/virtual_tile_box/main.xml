@@ -2,7 +2,7 @@
 <Window size="1200,800" caption="0,0,0,35" mininfo="600,400" sizebox="4,4,4,4">
   <VBox bkcolor="bk_wnd_darkcolor">
     <HBox width="stretch" height="35" bkcolor="bk_wnd_lightcolor">
-      <Label text="VirtualTileBox数据懒加载实现（支持千万级别的数据量）" font="system_14" valign="center" margin="8"/>
+      <Label text="VirtualTileListBox数据懒加载实现（支持千万级别的数据量）" font="system_14" valign="center" margin="8"/>
       <Control />
       <Button class="btn_wnd_min" name="minbtn" margin="4,6,0,0"/>
       <Box width="21" margin="4,6,0,0">
@@ -88,8 +88,8 @@
       </VBox>
       <!--column="3" width="auto" halign="center" childmargin="10" -->
       <Box>
-          <VirtualTileBox class="list" name="list"  vscrollunit="70" itemsize="220,60" bordersize="1" bordercolor="splitline_level2" padding="1,1,1,1">
-          </VirtualTileBox>      
+          <VirtualTileListBox class="list" name="list"  vscrollunit="70" itemsize="220,60" bordersize="1" bordercolor="splitline_level2" padding="1,1,1,1">
+          </VirtualTileListBox>      
       </Box>
 
     </HBox>
