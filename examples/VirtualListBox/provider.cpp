@@ -18,7 +18,7 @@ Provider::~Provider()
 ui::Control* Provider::CreateElement()
 {
 	Item* item = new Item;
-	ui::GlobalManager::Instance().FillBoxWithCache(item, L"virtual_tile_box/item.xml");
+	ui::GlobalManager::Instance().FillBoxWithCache(item, L"virtual_list_box/item.xml");
 	return item;
 }
 

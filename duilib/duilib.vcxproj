@@ -333,8 +333,10 @@
     <ClCompile Include="Box\ScrollBox.cpp" />
     <ClCompile Include="Box\TabBox.cpp" />
     <ClCompile Include="Box\TileLayout.cpp" />
+    <ClCompile Include="Box\VirtualHLayout.cpp" />
     <ClCompile Include="Box\VirtualListBox.cpp" />
     <ClCompile Include="Box\VirtualTileLayout.cpp" />
+    <ClCompile Include="Box\VirtualVLayout.cpp" />
     <ClCompile Include="Box\VLayout.cpp" />
     <ClCompile Include="Control\CircleProgress.cpp" />
     <ClCompile Include="Control\DateTime.cpp" />
@@ -413,9 +415,11 @@
     <ClInclude Include="Box\TileBox.h" />
     <ClInclude Include="Box\TileLayout.h" />
     <ClInclude Include="Box\VBox.h" />
+    <ClInclude Include="Box\VirtualHLayout.h" />
     <ClInclude Include="Box\VirtualLayout.h" />
     <ClInclude Include="Box\VirtualListBox.h" />
     <ClInclude Include="Box\VirtualTileLayout.h" />
+    <ClInclude Include="Box\VirtualVLayout.h" />
     <ClInclude Include="Box\VLayout.h" />
     <ClInclude Include="Control\DateTime.h" />
     <ClInclude Include="Control\Menu.h" />

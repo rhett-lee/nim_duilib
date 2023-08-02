@@ -2,7 +2,7 @@
 #include "main_form.h"
 #include "provider.h"
 
-const std::wstring MainForm::kClassName = L"VirtualTileBoxDemo";
+const std::wstring MainForm::kClassName = L"VirtualListBox";
 
 
 MainForm::MainForm()
@@ -14,7 +14,7 @@ MainForm::~MainForm()
 
 std::wstring MainForm::GetSkinFolder()
 {
-	return L"virtual_tile_box";
+	return L"virtual_list_box";
 }
 
 std::wstring MainForm::GetSkinFile()
@@ -29,7 +29,6 @@ std::wstring MainForm::GetWindowClassName() const
 
 void MainForm::OnInitWindow()
 {
-
 	m_EditColumn = dynamic_cast<ui::RichEdit*>(FindControl(L"edit_column"));
 	m_CheckBoxItemCenter = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_item_center"));
 	m_EditTotal = dynamic_cast<ui::RichEdit*>(FindControl(L"edit_total"));
@@ -46,6 +45,14 @@ void MainForm::OnInitWindow()
 	// 设置提供者
 	m_DataProvider = new Provider;
 	m_pTileList->SetDataProvider(m_DataProvider);
+
+	if (dynamic_cast<ui::VirtualTileListBox*>(m_pTileList) == nullptr) {
+		//如果不是VirtualTileListBox，隐藏列的设置，不支持设置列
+		if (m_EditColumn != nullptr) {
+			m_EditColumn->SetEnabled(false);
+			m_EditColumn->SetText(L"不支持");
+		}
+	}
 }
 
 LRESULT MainForm::OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
@@ -66,20 +73,41 @@ bool MainForm::OnClicked(const ui::EventArgs& args)
 			m_pTileList->SetAttribute(L"child_margin_y", m_EditChildMarginY->GetText());
 		}
 		if (m_OptionColumnFix->IsSelected()) {
-			m_pTileList->SetAttribute(L"columns", m_EditColumn->GetText());
-			if (m_CheckBoxItemCenter->IsSelected())
-			{
-				m_pTileList->SetAttribute(L"width", L"auto");
-				m_pTileList->SetAttribute(L"halign", L"center");
+			//固定列数
+			if (dynamic_cast<ui::VirtualTileListBox*>(m_pTileList) != nullptr) {
+				m_pTileList->SetAttribute(L"columns", m_EditColumn->GetText());
+			}
+			if (dynamic_cast<ui::VirtualHListBox*>(m_pTileList) != nullptr) {
+				//水平布局
+				if (m_CheckBoxItemCenter->IsSelected()) {
+					//列表居中
+					m_pTileList->SetAttribute(L"height", L"auto");
+					m_pTileList->SetAttribute(L"valign", L"center");
+					m_pTileList->SetAttribute(L"width", L"stretch");
+				}
+				else {
+					m_pTileList->SetAttribute(L"height", L"auto");
+					m_pTileList->SetAttribute(L"width", L"stretch");
+				}
 			}
 			else {
-				m_pTileList->SetAttribute(L"width", L"stretch");
-
-			}		
+				//垂直布局
+				if (m_CheckBoxItemCenter->IsSelected()) {
+					//列表居中
+					m_pTileList->SetAttribute(L"width", L"auto");
+					m_pTileList->SetAttribute(L"halign", L"center");
+				}
+				else {
+					m_pTileList->SetAttribute(L"width", L"stretch");
+				}
+			}
 		}
 		else {
+			//自动计算列数
 			m_pTileList->SetAttribute(L"width", L"stretch");
-			m_pTileList->SetAttribute(L"columns", L"auto");
+			if (dynamic_cast<ui::VirtualTileListBox*>(m_pTileList) != nullptr) {
+				m_pTileList->SetAttribute(L"columns", L"auto");
+			}
 		}
 
 		int nTotal = _ttoi(m_EditTotal->GetText().c_str());

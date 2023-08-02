@@ -5,6 +5,8 @@
 
 #include "duilib/Box/ListBox.h"
 #include "duilib/Box/VirtualTileLayout.h"
+#include "duilib/Box/VirtualHLayout.h"
+#include "duilib/Box/VirtualVLayout.h"
 #include "base/callback/callback.h"
 #include <functional>
 
@@ -68,6 +70,8 @@ private:
 class UILIB_API VirtualListBox : public ListBox
 {
     friend class VirtualTileLayout;
+    friend class VirtualVLayout;
+    friend class VirtualHLayout;
 public:
     explicit VirtualListBox(Layout* pLayout);
 
@@ -188,7 +192,37 @@ public:
         SetVirtualLayout(pVirtualLayout);
     }
 
-    virtual std::wstring GetType() const override { return DUI_CTR_VIRTUALTILE_LISTBOX; }
+    virtual std::wstring GetType() const override { return DUI_CTR_VIRTUAL_TILELISTBOX; }
+};
+
+/** 纵向布局的虚表ListBox
+*/
+class UILIB_API VirtualVListBox : public VirtualListBox
+{
+public:
+    VirtualVListBox() :
+        VirtualListBox(new VirtualVLayout)
+    {
+        VirtualLayout* pVirtualLayout = dynamic_cast<VirtualVLayout*>(GetLayout());
+        SetVirtualLayout(pVirtualLayout);
+    }
+
+    virtual std::wstring GetType() const override { return DUI_CTR_VIRTUAL_VLISTBOX; }
+};
+
+/** 横向布局的虚表ListBox
+*/
+class UILIB_API VirtualHListBox : public VirtualListBox
+{
+public:
+    VirtualHListBox() :
+        VirtualListBox(new VirtualHLayout)
+    {
+        VirtualLayout* pVirtualLayout = dynamic_cast<VirtualHLayout*>(GetLayout());
+        SetVirtualLayout(pVirtualLayout);
+    }
+
+    virtual std::wstring GetType() const override { return DUI_CTR_VIRTUAL_HLISTBOX; }
 };
 
 }

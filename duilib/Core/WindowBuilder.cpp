@@ -711,7 +711,9 @@ Control* WindowBuilder::CreateControlByClass(const std::wstring& strControlClass
 		{DUI_CTR_VLISTBOX, []() { return new VListBox; }},
 		{DUI_CTR_TILELISTBOX, []() { return new TileListBox; }},
 
-		{DUI_CTR_VIRTUALTILE_LISTBOX, []() { return new VirtualTileListBox; }},
+		{DUI_CTR_VIRTUAL_TILELISTBOX, []() { return new VirtualTileListBox; }},
+		{DUI_CTR_VIRTUAL_VLISTBOX, []() { return new VirtualVListBox; }},
+		{DUI_CTR_VIRTUAL_HLISTBOX, []() { return new VirtualHListBox; }},
 
 		{DUI_CTR_CONTROL, []() { return new Control; }},
 		{DUI_CTR_SCROLLBAR, []() { return new ScrollBar; }},

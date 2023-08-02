@@ -276,6 +276,12 @@
     <ClCompile Include="Box\VirtualListBox.cpp">
       <Filter>Box</Filter>
     </ClCompile>
+    <ClCompile Include="Box\VirtualHLayout.cpp">
+      <Filter>Box</Filter>
+    </ClCompile>
+    <ClCompile Include="Box\VirtualVLayout.cpp">
+      <Filter>Box</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -603,6 +609,12 @@
       <Filter>Box</Filter>
     </ClInclude>
     <ClInclude Include="Box\VirtualLayout.h">
+      <Filter>Box</Filter>
+    </ClInclude>
+    <ClInclude Include="Box\VirtualHLayout.h">
+      <Filter>Box</Filter>
+    </ClInclude>
+    <ClInclude Include="Box\VirtualVLayout.h">
       <Filter>Box</Filter>
     </ClInclude>
   </ItemGroup>
