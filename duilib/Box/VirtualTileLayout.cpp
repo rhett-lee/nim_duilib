@@ -55,7 +55,7 @@ int32_t VirtualTileLayout::CalcTileColumns(int32_t rcWidth) const
 UiSize64 VirtualTileLayout::ArrangeChild(const std::vector<ui::Control*>& items, ui::UiRect rc)
 {
     VirtualListBox* pList = dynamic_cast<VirtualListBox*>(m_pOwner);
-    if ((pList != nullptr) && (!pList->HasDataProvider())) {
+    if ((pList == nullptr) || !pList->HasDataProvider()) {
         //如果未设置数据接口，则兼容基类的功能
         return __super::ArrangeChild(items, rc);
     }
@@ -70,7 +70,7 @@ UiSize64 VirtualTileLayout::ArrangeChild(const std::vector<ui::Control*>& items,
 UiSize VirtualTileLayout::EstimateSizeByChild(const std::vector<Control*>& items, ui::UiSize szAvailable)
 {
     VirtualListBox* pList = dynamic_cast<VirtualListBox*>(m_pOwner);
-    if ((pList != nullptr) && (!pList->HasDataProvider())) {
+    if ((pList == nullptr) || !pList->HasDataProvider()) {
         //如果未设置数据接口，则兼容基类的功能
         return __super::EstimateSizeByChild(items, szAvailable);
     }
@@ -168,7 +168,10 @@ void VirtualTileLayout::LazyArrangeChild(UiRect rc) const
     //Y轴坐标的偏移，需要保持，避免滚动位置变动后，重新刷新界面出现偏差
     int32_t yOffset = 0;
     if (szItem.cy > 0) {
-        yOffset = pOwnerBox->GetScrollPos().cy % szItem.cy;
+        int32_t itemHeight = szItem.cy + GetChildMarginY();
+        if (itemHeight > 0) {
+            yOffset = pOwnerBox->GetScrollPos().cy % itemHeight;
+        }
     }
 
     //子项的顶部起始位置
