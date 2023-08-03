@@ -79,10 +79,6 @@ public:
 	 */
 	virtual UiSize EstimateSizeByChild(const std::vector<Control*>& items, UiSize szAvailable);
 
-	/** 是否是Tile布局（Tile布局是限宽度的，有些逻辑不同）
-	*/
-	virtual bool IsTileLayout() const;
-
 public:
 	/** 获取内边距
 	 * @return 返回内边距四边的大小（Rect的四个参数分别代表四个边的内边距）

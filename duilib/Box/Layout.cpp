@@ -227,11 +227,6 @@ UiSize Layout::EstimateSizeByChild(const std::vector<Control*>& items, UiSize sz
 	return maxSize;
 }
 
-bool Layout::IsTileLayout() const
-{
-	return false;
-}
-
 void Layout::CheckConfig(const std::vector<Control*>& items)
 {
 	//如果m_pOwner的宽高都是auto，而且子控件的宽高都是stretch，那么得到的结果是零，增加个断言

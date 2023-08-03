@@ -36,10 +36,6 @@ public:
 			   返回值中不包含拉伸类型的子控件大小。
 	 */
 	virtual UiSize EstimateSizeByChild(const std::vector<Control*>& items, UiSize szAvailable);
-
-	/** 是否是Tile布局（Tile布局是限宽度的，有些逻辑不同）
-	*/
-	virtual bool IsTileLayout() const override;
 	
 	/** 设置布局属性
 	 * @param[in] strName 要设置的属性名

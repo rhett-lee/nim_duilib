@@ -576,11 +576,6 @@ UiSize HTileLayout::EstimateSizeByChild(const std::vector<Control*>& items, UiSi
 	return size;
 }
 
-bool HTileLayout::IsTileLayout() const
-{
-	return true;
-}
-
 bool HTileLayout::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
 	bool hasAttribute = true;
