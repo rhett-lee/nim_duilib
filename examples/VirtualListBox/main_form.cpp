@@ -46,12 +46,27 @@ void MainForm::OnInitWindow()
 	m_DataProvider = new Provider;
 	m_pTileList->SetDataProvider(m_DataProvider);
 
-	if (dynamic_cast<ui::VirtualTileListBox*>(m_pTileList) == nullptr) {
-		//如果不是VirtualTileListBox，隐藏列的设置，不支持设置列
+	ui::LayoutType layoutType = m_pTileList->GetLayout()->GetLayoutType();
+	if ((layoutType != ui::LayoutType::VirtualHTileLayout) &&
+	    (layoutType != ui::LayoutType::VirtualVTileLayout)){
+		//隐藏列的设置，其他的不支持设置列
 		if (m_EditColumn != nullptr) {
 			m_EditColumn->SetEnabled(false);
-			m_EditColumn->SetText(L"不支持");
+			m_EditColumn->SetText(L"  ");
 		}
+	}
+
+	if (layoutType == ui::LayoutType::VirtualHTileLayout) {
+		m_OptionColumnFix->SetText(L"固定行数");
+	}
+	else if (layoutType == ui::LayoutType::VirtualVTileLayout) {
+		m_OptionColumnFix->SetText(L"固定列数");
+	}
+	else if (layoutType == ui::LayoutType::VirtualHLayout) {
+		m_OptionColumnFix->SetText(L"居中设置");
+	}
+	else if (layoutType == ui::LayoutType::VirtualVLayout) {
+		m_OptionColumnFix->SetText(L"居中设置");
 	}
 }
 
@@ -73,11 +88,16 @@ bool MainForm::OnClicked(const ui::EventArgs& args)
 			m_pTileList->SetAttribute(L"child_margin_y", m_EditChildMarginY->GetText());
 		}
 		if (m_OptionColumnFix->IsSelected()) {
-			//固定列数
-			if (dynamic_cast<ui::VirtualTileListBox*>(m_pTileList) != nullptr) {
+			//固定列数/行数
+			ui::LayoutType layoutType = m_pTileList->GetLayout()->GetLayoutType();
+			if (layoutType == ui::LayoutType::VirtualVTileLayout) {
 				m_pTileList->SetAttribute(L"columns", m_EditColumn->GetText());
 			}
-			if (dynamic_cast<ui::VirtualHListBox*>(m_pTileList) != nullptr) {
+			if (layoutType == ui::LayoutType::VirtualHTileLayout) {
+				m_pTileList->SetAttribute(L"rows", m_EditColumn->GetText());
+			}
+			if ((layoutType == ui::LayoutType::VirtualHTileLayout) ||
+			    (layoutType == ui::LayoutType::VirtualHLayout)){
 				//水平布局
 				if (m_CheckBoxItemCenter->IsSelected()) {
 					//列表居中
@@ -105,8 +125,12 @@ bool MainForm::OnClicked(const ui::EventArgs& args)
 		else {
 			//自动计算列数
 			m_pTileList->SetAttribute(L"width", L"stretch");
-			if (dynamic_cast<ui::VirtualTileListBox*>(m_pTileList) != nullptr) {
+			ui::LayoutType layoutType = m_pTileList->GetLayout()->GetLayoutType();
+			if (layoutType == ui::LayoutType::VirtualVTileLayout) {
 				m_pTileList->SetAttribute(L"columns", L"auto");
+			}
+			if (layoutType == ui::LayoutType::VirtualHTileLayout) {
+				m_pTileList->SetAttribute(L"rows", L"auto");
 			}
 		}
 

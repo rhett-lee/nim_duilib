@@ -14,7 +14,7 @@ ListBox::ListBox(Layout* pLayout) :
 {
 }
 
-std::wstring ListBox::GetType() const { return DUI_CTR_LISTBOX; }
+std::wstring ListBox::GetType() const { return L"ListBox"; }
 
 void ListBox::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {

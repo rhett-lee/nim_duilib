@@ -99,31 +99,31 @@
                     <Control margin="50,50" width="300" height="100" borderround="12,12" boxshadow="color='red' offset='0,0' blurradius='8' spreadradius='8'"/>
                     <Control margin="50,50" width="300" height="100" borderround="0,0" bordercolor="blue" bordersize="1,1,1,1" bkcolor="green" boxshadow="color='red' offset='3,3' blurradius='2' spreadradius='2'"/>
                 </VBox>
-                <VBox name="main_view_page_07">                    
+                <VBox name="main_view_page_07">
                     <Include src="page_box.xml"/>
                 </VBox>
-                <VBox name="main_view_page_08">                    
+                <VBox name="main_view_page_08">
                     <Include src="page_hbox.xml"/>
                 </VBox>
-                <VBox name="main_view_page_09">                    
+                <VBox name="main_view_page_09">
                     <Include src="page_vbox.xml"/>
                 </VBox>
-                <VBox name="main_view_page_10">                    
+                <VBox name="main_view_page_10">
                     <Include src="page_tilebox.xml"/>
                 </VBox>
-                <VBox name="main_view_page_11">                    
+                <VBox name="main_view_page_11">
                     <Include src="page_scroll_box.xml"/>
                 </VBox>
-                <VBox name="main_view_page_12">                    
+                <VBox name="main_view_page_12">           
                     <Include src="page_hscroll_box.xml"/>
                 </VBox>
-                <VBox name="main_view_page_13">                    
+                <VBox name="main_view_page_13">
                     <Include src="page_vscroll_box.xml"/>
                 </VBox>
-                <VBox name="main_view_page_14">                    
+                <VBox name="main_view_page_14">
                     <Include src="page_tile_scroll_box.xml"/>
                 </VBox>
-                <VBox name="main_view_page_15">                    
+                <VBox name="main_view_page_15">
                     <Include src="page_list_box.xml"/>
                 </VBox>
             </TabBox>

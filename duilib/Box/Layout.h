@@ -12,8 +12,24 @@ namespace ui
 class Box;
 class Control;
 
-/** 控件布局：各个子控件顶点坐标(left,top)都相同，各个控件堆叠排列（相当于都看成是Float控件）
-*            子控件可用指定横向对齐方式和纵向对齐方式，排列的时候会按照子控件指定的对齐方式排列
+/** 控件的布局类型
+*/
+enum class LayoutType
+{
+	FloatLayout,		//浮动布局
+	HLayout,			//横向布局
+	VLayout,			//纵向布局
+	HTileLayout,		//横向瓦片布局
+	VTileLayout,		//纵向瓦片布局
+	VirtualHLayout,		//虚表横向布局
+	VirtualVLayout,		//虚表纵向布局
+	VirtualHTileLayout,	//虚表横向瓦片布局
+	VirtualVTileLayout	//虚表纵向瓦片布局
+};
+
+/** 控件布局(Float方式布局)：
+*    各个子控件顶点坐标(left,top)都相同，各个控件堆叠排列（相当于都看成是Float控件）
+*    子控件可用指定横向对齐方式和纵向对齐方式，排列的时候会按照子控件指定的对齐方式排列
 */
 class UILIB_API Layout
 {
@@ -22,6 +38,10 @@ public:
 	Layout(const Layout& r) = delete;
 	Layout& operator=(const Layout& r) = delete;
 	virtual ~Layout() = default;
+
+	/** 布局类型
+	*/
+	virtual LayoutType GetLayoutType() const { return LayoutType::FloatLayout; }
 
 	/** 设置所有者
 	 */

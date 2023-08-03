@@ -4,9 +4,10 @@
 #pragma once
 
 #include "duilib/Box/ListBox.h"
-#include "duilib/Box/VirtualTileLayout.h"
 #include "duilib/Box/VirtualHLayout.h"
 #include "duilib/Box/VirtualVLayout.h"
+#include "duilib/Box/VirtualHTileLayout.h"
+#include "duilib/Box/VirtualVTileLayout.h"
 #include "base/callback/callback.h"
 #include <functional>
 
@@ -69,9 +70,10 @@ private:
 */
 class UILIB_API VirtualListBox : public ListBox
 {
-    friend class VirtualTileLayout;
-    friend class VirtualVLayout;
     friend class VirtualHLayout;
+    friend class VirtualVLayout;    
+    friend class VirtualHTileLayout;
+    friend class VirtualVTileLayout;
 public:
     explicit VirtualListBox(Layout* pLayout);
 
@@ -180,19 +182,19 @@ private:
     VirtualLayout* m_pVirtualLayout;
 };
 
-/** 瓦片布局的虚表ListBox
+/** 横向布局的虚表ListBox
 */
-class UILIB_API VirtualTileListBox : public VirtualListBox
+class UILIB_API VirtualHListBox : public VirtualListBox
 {
 public:
-    VirtualTileListBox() :
-        VirtualListBox(new VirtualTileLayout)
+    VirtualHListBox() :
+        VirtualListBox(new VirtualHLayout)
     {
-        VirtualLayout* pVirtualLayout = dynamic_cast<VirtualTileLayout*>(GetLayout());
+        VirtualLayout* pVirtualLayout = dynamic_cast<VirtualHLayout*>(GetLayout());
         SetVirtualLayout(pVirtualLayout);
     }
 
-    virtual std::wstring GetType() const override { return DUI_CTR_VIRTUAL_TILELISTBOX; }
+    virtual std::wstring GetType() const override { return DUI_CTR_VIRTUAL_HLISTBOX; }
 };
 
 /** 纵向布局的虚表ListBox
@@ -210,19 +212,34 @@ public:
     virtual std::wstring GetType() const override { return DUI_CTR_VIRTUAL_VLISTBOX; }
 };
 
-/** 横向布局的虚表ListBox
+/** 瓦片布局的虚表ListBox(横向布局)
 */
-class UILIB_API VirtualHListBox : public VirtualListBox
+class UILIB_API VirtualHTileListBox : public VirtualListBox
 {
 public:
-    VirtualHListBox() :
-        VirtualListBox(new VirtualHLayout)
+    VirtualHTileListBox() :
+        VirtualListBox(new VirtualHTileLayout)
     {
-        VirtualLayout* pVirtualLayout = dynamic_cast<VirtualHLayout*>(GetLayout());
+        VirtualLayout* pVirtualLayout = dynamic_cast<VirtualHTileLayout*>(GetLayout());
         SetVirtualLayout(pVirtualLayout);
     }
 
-    virtual std::wstring GetType() const override { return DUI_CTR_VIRTUAL_HLISTBOX; }
+    virtual std::wstring GetType() const override { return DUI_CTR_VIRTUAL_HTILE_LISTBOX; }
+};
+
+/** 瓦片布局的虚表ListBox(纵向布局)
+*/
+class UILIB_API VirtualVTileListBox : public VirtualListBox
+{
+public:
+    VirtualVTileListBox() :
+        VirtualListBox(new VirtualVTileLayout)
+    {
+        VirtualLayout* pVirtualLayout = dynamic_cast<VirtualVTileLayout*>(GetLayout());
+        SetVirtualLayout(pVirtualLayout);
+    }
+
+    virtual std::wstring GetType() const override { return DUI_CTR_VIRTUAL_VTILE_LISTBOX; }
 };
 
 }

@@ -14,6 +14,10 @@ class UILIB_API VLayout : public Layout
 {
 public:
 	VLayout();
+
+	/** 布局类型
+	*/
+	virtual LayoutType GetLayoutType() const override { return LayoutType::VLayout; }
 	
 	/** 调整内部所有控件的位置信息
 	 * @param[in] items 控件列表

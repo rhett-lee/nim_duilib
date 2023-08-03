@@ -1,5 +1,5 @@
-#ifndef UI_BOX_TILELAYOUT_H_
-#define UI_BOX_TILELAYOUT_H_
+#ifndef UI_BOX_VTILE_LAYOUT_H_
+#define UI_BOX_VTILE_LAYOUT_H_
 
 #pragma once
 
@@ -10,10 +10,14 @@ namespace ui
 
 /** 瓦片布局
 */
-class UILIB_API TileLayout : public Layout
+class UILIB_API VTileLayout : public Layout
 {
 public:
-	TileLayout();
+	VTileLayout();
+
+	/** 布局类型
+	*/
+	virtual LayoutType GetLayoutType() const override { return LayoutType::VTileLayout; }
 
 	/** 调整内部所有控件的位置信息
 	 * @param[in] items 控件列表
@@ -99,7 +103,7 @@ private:
 	* @param [in] tileWidth 每个瓦片控件的宽度(配置值)
 	* @param [in] childMarginX 子控件的X轴间隔
 	* @param [in] childMarginY 子控件的Y轴间隔	
-	* @param [out] columns 返回总列数
+	* @param [out] nColumns 返回总列数
 	*/
 	static void CalcTileColumns(const std::vector<ItemSizeInfo>& normalItems, const UiRect& rc,
 		                        int32_t tileWidth, int32_t childMarginX, int32_t childMarginY,
@@ -130,10 +134,10 @@ private:
 	* @param [in] szItem 瓦片控件宽度和高度（设置值）
 	* @return 返回高度值，包含了外边距Margin.top + Margin.bottom值
 	*/
-	static int32_t CalcTileLineHeight(const std::vector<ItemSizeInfo>& normalItems,
-									  const std::vector<ItemSizeInfo>::const_iterator iterBegin,
-								 	  int32_t nColumns,
-								      const UiSize& szItem);
+	static int32_t CalcTileRowHeight(const std::vector<ItemSizeInfo>& normalItems,
+									 const std::vector<ItemSizeInfo>::const_iterator iterBegin,
+								 	 int32_t nColumns,
+								     const UiSize& szItem);
 
 	/** 计算瓦片控件的显示坐标和大小
 	* @param [in] itemSizeInfo 瓦片控件的接口, 及控件的大小信息
@@ -197,4 +201,4 @@ private:
 
 } // namespace ui
 
-#endif // UI_BOX_TILELAYOUT_H_
+#endif // UI_BOX_VTILE_LAYOUT_H_

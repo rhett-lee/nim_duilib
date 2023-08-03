@@ -4,9 +4,6 @@
 #pragma once
 
 #include "duilib/Box/ScrollBox.h"
-#include "duilib/Box/HBox.h"
-#include "duilib/Box/VBox.h"
-#include "duilib/Box/TileBox.h"
 #include "duilib/Control/Option.h"
 
 namespace ui 
@@ -60,9 +57,7 @@ public:
 class UILIB_API ListBox : public ScrollBox, public IListBoxOwner
 {
 public:
-	/** 默认为垂直布局的ListBox
-	*/
-	explicit ListBox(Layout* pLayout = new VLayout);
+	explicit ListBox(Layout* pLayout);
 	ListBox(const ListBox& r) = delete;
 	ListBox& operator=(const ListBox& r) = delete;
 
@@ -269,20 +264,7 @@ private:
 	IListBoxOwner* m_pOwner;
 };
 
-/** 瓦片布局的ListBox
-*/
-class UILIB_API TileListBox : public ListBox
-{
-public:
-	TileListBox() :
-		ListBox(new TileLayout)
-	{
-	}
-
-	virtual std::wstring GetType() const override { return DUI_CTR_TILELISTBOX; }
-};
-
-/** 水平布局的ListBox
+/** 横向布局的ListBox
 */
 class UILIB_API HListBox : public ListBox
 {
@@ -295,7 +277,7 @@ public:
 	virtual std::wstring GetType() const override { return DUI_CTR_HLISTBOX; }
 };
 
-/** 垂直布局的ListBox
+/** 纵向布局的ListBox
 */
 class UILIB_API VListBox : public ListBox
 {
@@ -306,6 +288,32 @@ public:
 	}
 
 	virtual std::wstring GetType() const override { return DUI_CTR_VLISTBOX; }
+};
+
+/** 瓦片布局的ListBox(横向布局)
+*/
+class UILIB_API HTileListBox : public ListBox
+{
+public:
+	HTileListBox() :
+		ListBox(new HTileLayout)
+	{
+	}
+
+	virtual std::wstring GetType() const override { return DUI_CTR_HTILE_LISTBOX; }
+};
+
+/** 瓦片布局的ListBox(纵向布局)
+*/
+class UILIB_API VTileListBox : public ListBox
+{
+public:
+	VTileListBox() :
+		ListBox(new VTileLayout)
+	{
+	}
+
+	virtual std::wstring GetType() const override { return DUI_CTR_VTILE_LISTBOX; }
 };
 
 } // namespace ui

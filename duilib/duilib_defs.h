@@ -54,24 +54,27 @@ namespace ui
 	#define  DUI_CTR_BOX							 (L"Box")
 	#define  DUI_CTR_HBOX							 (L"HBox")
 	#define  DUI_CTR_VBOX                            (L"VBox")
-	#define  DUI_CTR_TILEBOX						 (L"TileBox")
+	#define  DUI_CTR_VTILE_BOX					     (L"VTileBox")
+	#define  DUI_CTR_HTILE_BOX					     (L"HTileBox")
 
 	#define  DUI_CTR_SCROLLBOX						 (L"ScrollBox")
 	#define  DUI_CTR_HSCROLLBOX						 (L"HScrollBox")
 	#define  DUI_CTR_VSCROLLBOX						 (L"VScrollBox")
-	#define  DUI_CTR_TILESCROLLBOX					 (L"TileScrollBox")
-
-	#define  DUI_CTR_TABBOX                          (L"TabBox")
+	#define  DUI_CTR_HTILE_SCROLLBOX				 (L"HTileScrollBox")
+	#define  DUI_CTR_VTILE_SCROLLBOX				 (L"VTileScrollBox")
 
 	#define  DUI_CTR_LISTBOX_ITEM					 (L"ListBoxItem")
-	#define  DUI_CTR_LISTBOX						 (L"ListBox")
 	#define  DUI_CTR_HLISTBOX						 (L"HListBox")
 	#define  DUI_CTR_VLISTBOX                        (L"VListBox")
-	#define  DUI_CTR_TILELISTBOX                     (L"TileListBox")
+	#define  DUI_CTR_HTILE_LISTBOX                   (L"HTileListBox")
+	#define  DUI_CTR_VTILE_LISTBOX                   (L"VTileListBox")
 
-	#define  DUI_CTR_VIRTUAL_TILELISTBOX			 (L"VirtualTileListBox")
 	#define  DUI_CTR_VIRTUAL_VLISTBOX				 (L"VirtualVListBox")
 	#define  DUI_CTR_VIRTUAL_HLISTBOX				 (L"VirtualHListBox")
+	#define  DUI_CTR_VIRTUAL_HTILE_LISTBOX			 (L"VirtualHTileListBox")
+	#define  DUI_CTR_VIRTUAL_VTILE_LISTBOX			 (L"VirtualVTileListBox")
+
+	#define  DUI_CTR_TABBOX                          (L"TabBox")
 
 	#define  DUI_CTR_TREENODE                        (L"TreeNode")
 	#define  DUI_CTR_TREEVIEW                        (L"TreeView")

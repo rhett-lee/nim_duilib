@@ -261,16 +261,10 @@
     <ClCompile Include="Box\HLayout.cpp">
       <Filter>Box</Filter>
     </ClCompile>
-    <ClCompile Include="Box\TileLayout.cpp">
-      <Filter>Box</Filter>
-    </ClCompile>
     <ClCompile Include="Box\ScrollBox.cpp">
       <Filter>Box</Filter>
     </ClCompile>
     <ClCompile Include="Box\ListBox.cpp">
-      <Filter>Box</Filter>
-    </ClCompile>
-    <ClCompile Include="Box\VirtualTileLayout.cpp">
       <Filter>Box</Filter>
     </ClCompile>
     <ClCompile Include="Box\VirtualListBox.cpp">
@@ -280,6 +274,18 @@
       <Filter>Box</Filter>
     </ClCompile>
     <ClCompile Include="Box\VirtualVLayout.cpp">
+      <Filter>Box</Filter>
+    </ClCompile>
+    <ClCompile Include="Box\HTileLayout.cpp">
+      <Filter>Box</Filter>
+    </ClCompile>
+    <ClCompile Include="Box\VTileLayout.cpp">
+      <Filter>Box</Filter>
+    </ClCompile>
+    <ClCompile Include="Box\VirtualVTileLayout.cpp">
+      <Filter>Box</Filter>
+    </ClCompile>
+    <ClCompile Include="Box\VirtualHTileLayout.cpp">
       <Filter>Box</Filter>
     </ClCompile>
   </ItemGroup>
@@ -578,9 +584,6 @@
     <ClInclude Include="Box\HLayout.h">
       <Filter>Box</Filter>
     </ClInclude>
-    <ClInclude Include="Box\TileLayout.h">
-      <Filter>Box</Filter>
-    </ClInclude>
     <ClInclude Include="Box\ScrollBox.h">
       <Filter>Box</Filter>
     </ClInclude>
@@ -602,9 +605,6 @@
     <ClInclude Include="Core\UiFixedInt.h">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="Box\VirtualTileLayout.h">
-      <Filter>Box</Filter>
-    </ClInclude>
     <ClInclude Include="Box\VirtualListBox.h">
       <Filter>Box</Filter>
     </ClInclude>
@@ -615,6 +615,18 @@
       <Filter>Box</Filter>
     </ClInclude>
     <ClInclude Include="Box\VirtualVLayout.h">
+      <Filter>Box</Filter>
+    </ClInclude>
+    <ClInclude Include="Box\HTileLayout.h">
+      <Filter>Box</Filter>
+    </ClInclude>
+    <ClInclude Include="Box\VTileLayout.h">
+      <Filter>Box</Filter>
+    </ClInclude>
+    <ClInclude Include="Box\VirtualVTileLayout.h">
+      <Filter>Box</Filter>
+    </ClInclude>
+    <ClInclude Include="Box\VirtualHTileLayout.h">
       <Filter>Box</Filter>
     </ClInclude>
   </ItemGroup>

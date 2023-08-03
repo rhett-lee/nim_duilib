@@ -14,7 +14,7 @@
     <HBox childmargin="5" bkcolor="white" padding="5,5,5,10">
       <VBox width="300" bordersize="1" bordercolor="splitline_level2" padding="5,10,5,10" childmargin="10">
         <HBox height="30" childmargin="10">
-            <Label font="system_bold_14" text="列设置:"  width="auto" height="auto" valign="center" />
+            <Label font="system_bold_14" text="行/列设置:"  width="auto" height="auto" valign="center" />
             <Option class="circle_option_2" name="option_column_auto" group="option_group" text="自动计算" margin="0,5,0,10" selected="true"/>
             <Option class="circle_option_2" name="option_column_fix"  group="option_group" text="固定列数" margin="0,5,0,10">
                 <Event type="select" receiver="box_column_op" applyattribute="visible=&quot;true&quot;" />
@@ -88,8 +88,8 @@
       </VBox>
       <!--column="3" width="auto" halign="center" childmargin="10" -->
       <Box>
-          <VirtualTileListBox class="list" name="list" itemsize="240,60" vscrollbar="true" hscrollbar="true" bordersize="1" bordercolor="splitline_level2" padding="1,1,1,1">
-          </VirtualTileListBox>      
+          <VirtualHTileListBox class="list" name="list" itemsize="240,60" vscrollbar="true" hscrollbar="true" bordersize="1" bordercolor="splitline_level2" padding="1,1,1,1">
+          </VirtualHTileListBox>      
       </Box>
 
     </HBox>

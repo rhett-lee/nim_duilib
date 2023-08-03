@@ -3,22 +3,36 @@
 
 #pragma once
 #include "duilib/Core/Box.h"
-#include "duilib/Box/TileLayout.h"
+#include "duilib/Box/VTileLayout.h"
+#include "duilib/Box/HTileLayout.h"
 
 namespace ui
 {
 
-/** 瓦片布局的Box
+/** 瓦片布局的Box(纵向布局)
 */
-class UILIB_API TileBox : public Box
+class UILIB_API VTileBox : public Box
 {
 public:
-	TileBox() :
-		Box(new TileLayout())
+	VTileBox() :
+		Box(new VTileLayout())
 	{
 	}
 
-	virtual std::wstring GetType() const override { return DUI_CTR_TILEBOX; }
+	virtual std::wstring GetType() const override { return DUI_CTR_VTILE_BOX; }
+};
+
+/** 瓦片布局的Box(水平布局)
+*/
+class UILIB_API HTileBox : public Box
+{
+public:
+	HTileBox() :
+		Box(new HTileLayout())
+	{
+	}
+
+	virtual std::wstring GetType() const override { return DUI_CTR_HTILE_BOX; }
 };
 
 }

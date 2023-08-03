@@ -16,6 +16,10 @@ class UILIB_API VirtualHLayout : public HLayout, public VirtualLayout
 public:
     VirtualHLayout();
 
+    /** 布局类型
+    */
+    virtual LayoutType GetLayoutType() const override { return LayoutType::VirtualHLayout; }
+
     /** 调整内部所有控件的位置信息
          * @param [in] items 控件列表
          * @param[in] rc 当前容器位置信息, 包含内边距，但不包含外边距

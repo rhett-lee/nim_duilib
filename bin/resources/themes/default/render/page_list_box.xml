@@ -26,22 +26,6 @@
  
     <HBox width="auto">
 
-        <VBox width="auto">
-            <Label text=" ListBox测试"/>
-            <ListBox class="page_list_box" width="auto" height="200">
-                <ListBoxItem class="page_list_box_item" text="ListBox测试01" text_align="left,vcenter" halign="left" valign="center"/>
-                <ListBoxItem class="page_list_box_item" text="ListBox测试02" text_align="left,vcenter" halign="left" valign="center"/>
-                <ListBoxItem class="page_list_box_item" text="ListBox测试03" text_align="left,vcenter" halign="left" valign="center"/>
-                <ListBoxItem class="page_list_box_item" text="ListBox测试04" text_align="left,vcenter" halign="left" valign="center"/>
-                <ListBoxItem class="page_list_box_item" text="ListBox测试05" text_align="left,vcenter" halign="left" valign="center"/>
-                <ListBoxItem class="page_list_box_item" text="ListBox测试06" text_align="left,vcenter" halign="left" valign="center"/>
-                <ListBoxItem class="page_list_box_item" text="ListBox测试07" text_align="left,vcenter" halign="left" valign="center"/>
-                <ListBoxItem class="page_list_box_item" text="ListBox测试08" text_align="left,vcenter" halign="left" valign="center"/>
-                <ListBoxItem class="page_list_box_item" text="ListBox测试09" text_align="left,vcenter" halign="left" valign="center"/>
-                <ListBoxItem class="page_list_box_item" text="ListBox测试10" text_align="left,vcenter" halign="left" valign="center"/>
-            </ListBox>
-        </VBox>
-
         <VBox width="auto" height="220">
             <Label text=" VListBox测试"/>
             <VListBox class="page_list_box" width="auto" height="200">
@@ -61,8 +45,8 @@
         </VBox>
 
         <VBox width="auto">
-            <Label text=" TileListBox测试"/>
-            <TileListBox class="page_list_box" columns="1" width="auto" height="200">
+            <Label text=" VTileListBox测试"/>
+            <VTileListBox class="page_list_box" columns="1" width="auto" height="200">
                 <ListBoxItem class="page_list_box_item" text="VListBox测试01" text_align="left,vcenter" halign="left" valign="center"/>
                 <ListBoxItem class="page_list_box_item" text="VListBox测试02" text_align="left,vcenter" halign="left" valign="center"/>
                 <ListBoxItem class="page_list_box_item" text="VListBox测试03" text_align="left,vcenter" halign="left" valign="center"/>
@@ -79,7 +63,7 @@
                 <ListBoxItem class="page_list_box_item" text="VListBox测试14" text_align="left,vcenter" halign="left" valign="center"/>
                 <ListBoxItem class="page_list_box_item" text="VListBox测试15" text_align="left,vcenter" halign="left" valign="center"/>
                 <ListBoxItem class="page_list_box_item" text="VListBox测试16" text_align="left,vcenter" halign="left" valign="center"/>
-            </TileListBox>
+            </VTileListBox>
         </VBox>
     </HBox>
 </Window>

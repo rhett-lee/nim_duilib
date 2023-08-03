@@ -1,24 +1,24 @@
-#ifndef UI_BOX_VIRTUAL_VLAYOUT_H_
-#define UI_BOX_VIRTUAL_VLAYOUT_H_
+#ifndef UI_BOX_VIRTUAL_VTILELAYOUT_H_
+#define UI_BOX_VIRTUAL_VTILELAYOUT_H_
 
 #pragma once
 
-#include "duilib/Box/VLayout.h"
+#include "duilib/Box/VTileLayout.h"
 #include "duilib/Box/VirtualLayout.h"
 
 namespace ui 
 {
-/** 虚表实现的瓦片布局
+/** 虚表实现的瓦片布局(纵向布局)
 */
 class VirtualListBox;
-class UILIB_API VirtualVLayout : public VLayout, public VirtualLayout
+class UILIB_API VirtualVTileLayout : public VTileLayout, public VirtualLayout
 {
 public:
-    VirtualVLayout();
+    VirtualVTileLayout();
 
     /** 布局类型
     */
-    virtual LayoutType GetLayoutType() const override { return LayoutType::VirtualVLayout; }
+    virtual LayoutType GetLayoutType() const override { return LayoutType::VirtualVTileLayout; }
 
     /** 调整内部所有控件的位置信息
         * @param [in] items 控件列表
@@ -37,13 +37,6 @@ public:
                 返回值中不包含拉伸类型的子控件大小。
         */
     virtual UiSize EstimateSizeByChild(const std::vector<Control*>& items, UiSize szAvailable) override;
-
-    /** 设置布局属性
-     * @param[in] strName 要设置的属性名
-     * @param[in] strValue 要设置的属性值
-     * @return true 设置成功，false 属性不存在
-     */
-    virtual bool SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 
 public:
     /** 延迟加载展示数据
@@ -94,24 +87,17 @@ private:
     */
     int64_t GetElementsHeight(UiRect rc, size_t nCount) const;
 
+    /** 计算列数
+    *@param [in] rcWidth 可用区域宽度
+    *@return 计算得到的列数, 大于或等于1
+    */
+    int32_t CalcTileColumns(int32_t rcWidth) const;
+
 private:
     /** 获取关联的Box接口
     */
     VirtualListBox* GetOwnerBox() const;
-
-    /** 设置子项大小
-     * @param[in] szItem 子项大小数据，该宽度和高度，是包含了控件的外边距和内边距的
-     */
-    void SetItemSize(UiSize szItem, bool bNeedDpiScale = true);
-
-    /** 获取子项大小，该宽度和高度，是包含了控件的外边距和内边距的
-     */
-    const UiSize& GetItemSize() const;
-
-private:
-    //子项大小, 该宽度和高度，是包含了控件的外边距和内边距的
-    UiSize m_szItem;
 };
 } // namespace ui
 
-#endif // UI_BOX_VIRTUAL_VLAYOUT_H_
+#endif // UI_BOX_VIRTUAL_VTILELAYOUT_H_
