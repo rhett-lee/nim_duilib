@@ -545,7 +545,7 @@ void MultiBrowserForm::OnBeforeDragBoxCallback(const std::wstring &browser_id)
 			tab_item->SetFadeVisible(false);
 
 		// 找到新的被显示的浏览器盒子
-		int index = tab_item->GetIndex();
+		int index = tab_item->GetListBoxIndex();
 		if (index > 0)
 			index--;
 		else

@@ -88,7 +88,7 @@
       </VBox>
       <!--column="3" width="auto" halign="center" childmargin="10" -->
       <Box>
-          <VirtualVTileListBox class="list" name="list" itemsize="240,60" vscrollbar="true" hscrollbar="true" bordersize="1" bordercolor="splitline_level2" padding="1,1,1,1">
+          <VirtualVTileListBox class="list" name="list" multi_select="true" itemsize="240,60" vscrollbar="true" hscrollbar="true" bordersize="1" bordercolor="splitline_level2" padding="1,1,1,1">
           </VirtualVTileListBox>      
       </Box>
 

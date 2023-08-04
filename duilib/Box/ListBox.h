@@ -32,12 +32,23 @@ public:
 	*/
 	virtual size_t GetCurSel() const = 0;
 
+	/** 设置当前选择的索引
+	* @param [in] iIndex 子项目的ID
+	*/
+	virtual void SetCurSel(size_t iIndex) = 0;
+
 	/** 选择子项
 	*  @param [in] iIndex 子项目的ID
 	*  @param [in] bTakeFocus 是否让子项控件成为焦点控件
-	*  @param [in] bTrigger 是否触发选择事件, 如果为true，会触发一个kEventSelect事件
+	*  @param [in] bTriggerEvent 是否触发选择事件, 如果为true，会触发一个kEventSelect事件
 	*/
-	virtual bool SelectItem(size_t iIndex, bool bTakeFocus, bool bTrigger) = 0;
+	virtual bool SelectItem(size_t iIndex, bool bTakeFocus, bool bTriggerEvent) = 0;
+
+	/** 取消选择子项
+	*  @param [in] iIndex 子项目的ID
+	*  @param [in] bTriggerEvent 是否触发选择事件, 如果为true，会触发一个kEventUnSelect事件
+	*/
+	virtual bool UnSelectItem(size_t iIndex, bool bTriggerEvent) = 0;
 
 	/** 确保矩形区域可见
 	*/
@@ -71,16 +82,27 @@ public:
 	virtual void SendEvent(const EventArgs& event) override;
 
 public:
-	/**获取当前选择的索引，(如果无有效索引，则返回Box::InvalidIndex)
+	/** 获取当前选择的索引，(如果无有效索引，则返回Box::InvalidIndex)
 	*/
 	virtual size_t GetCurSel() const override;
 
-	/** 选择子项
-	*  @param [in] iIndex 子项目的ID
-	*  @param [in] bTakeFocus 是否让子项控件成为焦点控件
-	*  @param [in] bTrigger 是否触发选择事件, 如果为true，会触发一个kEventSelect事件
+	/** 设置当前选择的索引
+	* @param [in] iIndex 子项目的ID
 	*/
-	virtual bool SelectItem(size_t iIndex, bool bTakeFocus, bool bTrigger) override;
+	virtual void SetCurSel(size_t iIndex) override;
+
+	/** 选择子项
+	*  @param [in] iIndex 子项目的ID，范围是：[0, GetItemCount())
+	*  @param [in] bTakeFocus 是否让子项控件成为焦点控件
+	*  @param [in] bTriggerEvent 是否触发选择事件, 如果为true，会触发一个kEventSelect事件
+	*/
+	virtual bool SelectItem(size_t iIndex, bool bTakeFocus, bool bTriggerEvent) override;
+
+	/** 取消选择子项
+	*  @param [in] iIndex 子项目的ID
+	*  @param [in] bTriggerEvent 是否触发选择事件, 如果为true，会触发一个kEventUnSelect事件
+	*/
+	virtual bool UnSelectItem(size_t iIndex, bool bTriggerEvent) override;
 	
 	/** 确保矩形区域可见
 	*/
@@ -91,18 +113,9 @@ public:
 	virtual void StopScroll() override;
 
 public:
-	/** 滚动到指定子项位置
-	 * @param [in] itemName 子项名称(即：Control::GetName())
-	 */
-	virtual bool ScrollItemToTop(const std::wstring& itemName);
-
-	/** 获取当前矩形区域(Control::::GetPos())中的第一个子项
-	 */
-	virtual Control* GetTopItem();
-	
 	/** 设置子项的位置索引
 	 * @param [in] pControl 子项指针
-	 * @param [in] iIndex 索引号
+	 * @param [in] iIndex 索引号，范围是：[0, GetItemCount())
 	 */
 	virtual bool SetItemIndex(Control* pControl, size_t iIndex) override;
 
@@ -113,7 +126,7 @@ public:
 
 	/** 在指定位置之后插入一个子项
 	 * @param [in] pControl 子项指针
-	 * @param[in] iIndex 要插入的位置索引
+	 * @param[in] iIndex 要插入的位置索引，范围是：[0, GetItemCount())
 	 */
     virtual bool AddItemAt(Control* pControl, size_t  iIndex) override;
 
@@ -123,7 +136,7 @@ public:
     virtual bool RemoveItem(Control* pControl) override;
 
 	/** 根据索引移除一个子项
-	 * @param [in] iIndex 子项索引
+	 * @param [in] iIndex 子项索引，范围是：[0, GetItemCount())
 	 */
     virtual bool RemoveItemAt(size_t iIndex) override;
 
@@ -133,12 +146,13 @@ public:
 
 public:
 	/** 确保子项可见
-	* @param [in] iIndex 子项索引
+	* @param [in] iIndex 子项索引，范围是：[0, GetItemCount())
 	*/
 	void EnsureVisible(size_t iIndex);
 
 	/** 选择子项，选中后让子项控件成为焦点控件，并触发一个kEventSelect事件
-	*  @param [in] iIndex 子项目的ID
+	*   为二次封装函数，相当于：SelectItem(iIndex, true, true);
+	*  @param [in] iIndex 子项目的ID，范围是：[0, GetItemCount())
 	*/
 	bool SelectItem(size_t iIndex);
 
@@ -150,11 +164,33 @@ public:
 	 */
 	void SelectNextItem();
 
-	/** 对子项排序
-	 * @param [in] pfnCompare 自定义排序函数
-	 * @param [in] pCompareContext 传递给比较函数的用户自定义数据
+	/** 获取当前选择的子项
+	* @param [out] selectedIndexs 返回选择的子项ID，，范围是：[0, GetItemCount())
+	*/
+	void GetSelectedItems(std::vector<size_t>& selectedIndexs) const;
+
+	/** 滚动到指定子项位置
+	 * @param [in] iIndex 子项目的ID，范围是：[0, GetItemCount())
 	 */
-	bool SortItems(PFNCompareFunc pfnCompare, void* pCompareContext);
+	bool ScrollItemToTop(size_t iIndex);
+
+	/** 滚动到指定子项位置
+	 * @param [in] itemName 子项名称(即：Control::GetName())
+	 */
+	bool ScrollItemToTop(const std::wstring& itemName);
+
+	/** 获取当前矩形区域(Control::GetPos())中的第一个子项
+	 */
+	Control* GetTopItem() const;
+
+public:
+	/** 是否允许多选
+	*/
+	bool GetMultiSelect() const;
+
+	/** 设置是否允许多选
+	*/
+	void SetMultiSelect(bool bMultiSelect);
 
 	/** 获取是否随滚动改变选中项设置
 	 * @return 返回 true 表示跟随滚动条改变选择项，否则为 false
@@ -166,15 +202,32 @@ public:
 	 */
 	void SetScrollSelect(bool bScrollSelect);
 
-	/** 监听选择子项的事件
-	 * @param[in] callback 选择子项时的回调函数
-	 */
-	void AttachSelect(const EventCallback& callback) { AttachEvent(kEventSelect, callback); }
-
 	/** 在移除一个子项后自动选择下一项
 	 * @param[in] bSelectNextItem 为 true 时自动选择下一项，false 为不自动选择
 	 */
 	void SelectNextWhenActiveRemoved(bool bSelectNextItem);
+
+	/** 对子项排序
+	 * @param [in] pfnCompare 自定义排序函数
+	 * @param [in] pCompareContext 传递给比较函数的用户自定义数据
+	 */
+	bool SortItems(PFNCompareFunc pfnCompare, void* pCompareContext);
+
+	/** 监听选择子项的事件
+	* @param[in] callback 选择子项时的回调函数
+	*            参数说明:
+	                    wParam: 当前新选择的子项ID
+						lParam: 原来旧选择的子项ID，可能为无效值Box::InvalidIndex
+	*/
+	void AttachSelect(const EventCallback& callback) { AttachEvent(kEventSelect, callback); }
+
+	/** 监听选择子项的事件
+	* @param[in] callback 取消选择子项时的回调函数
+	*            参数说明:
+	                    wParam: 取消选择的子项ID
+						lParam: 无效值Box::InvalidIndex
+	*/
+	void AttachUnSelect(const EventCallback& callback) { AttachEvent(kEventUnSelect, callback); }
 
 private:
 	/**
@@ -187,15 +240,37 @@ private:
 	static int __cdecl ItemComareFunc(void* pvlocale, const void* item1, const void* item2);
 	int __cdecl ItemComareFunc(const void* item1, const void* item2);
 
+	/** 选择子项(单选)
+	*  @param [in] iIndex 子项目的ID，范围是：[0, GetItemCount())
+	*  @param [in] bTakeFocus 是否让子项控件成为焦点控件
+	*  @param [in] bTriggerEvent 是否触发选择事件, 如果为true，会触发一个kEventSelect事件
+	*/
+	bool SelectItemSingle(size_t iIndex, bool bTakeFocus, bool bTriggerEvent);
+
+	/** 选择子项(多选)
+	*  @param [in] iIndex 子项目的ID，范围是：[0, GetItemCount())
+	*  @param [in] bTakeFocus 是否让子项控件成为焦点控件
+	*  @param [in] bTriggerEvent 是否触发选择事件, 如果为true，会触发一个kEventSelect事件
+	*/
+	bool SelectItemMulti(size_t iIndex, bool bTakeFocus, bool bTriggerEvent);
+
+	/** 获取当前布局方向
+	* @return 返回true表示为横向布局，否则为纵向布局
+	*/
+	bool IsHorizontalLayout() const;
+
 protected:
 	//是否随滚动改变选中项
 	bool m_bScrollSelect;
 
-	//当前选择的子项ID
-	size_t m_iCurSel;
-
 	//在移除一个子项后自动选择下一项
 	bool m_bSelNextWhenRemoveActive;
+
+	//是否允许多选（默认为单选）
+	bool m_bMultiSelect;
+
+	//当前选择的子项ID
+	size_t m_iCurSel;
 
 	//用户自定义的排序比较函数
 	PFNCompareFunc m_pCompareFunc;
@@ -217,8 +292,12 @@ public:
 
 	/// 重写父类方法，提供个性化功能，请参考父类声明
 	virtual std::wstring GetType() const override;
-	virtual void Selected(bool bSelect, bool trigger) override;
+	virtual void Selected(bool bSelect, bool bTriggerEvent) override;
 	virtual void HandleEvent(const EventArgs& event) override;
+
+	/** 设置选择状态, 但不触发任何事件
+	*/
+	virtual void SetSelected(bool bSelected) override;
 
 	/** 判断控件类型是否为可选择的
 	 * @return 返回true
@@ -234,15 +313,23 @@ public:
 	 */
 	void SetOwner(IListBoxOwner* pOwner);
 
-	/**
-	 * @brief 获取当前索引号
+	/** 获取容器索引号，范围：[0, GetItemCount())
 	 */
-	size_t GetIndex() const;
+	size_t GetListBoxIndex() const;
 
-	/** 设置索引号
-	 * @param[in] iIndex 索引号
+	/** 设置容器子项索引号
+	 * @param[in] iIndex 索引号, 范围：[0, GetItemCount())
 	 */
-	void SetIndex(size_t iIndex);
+	void SetListBoxIndex(size_t iIndex);
+
+	/** 获取虚表数据元素索引号，用于支持虚表，范围：[0, GetElementCount())
+	 */
+	size_t GetElementIndex() const;
+
+	/** 设置虚表数据元素索引号
+	 * @param[in] iIndex 索引号, 用于支持虚表，范围：[0, GetElementCount())
+	 */
+	void SetElementIndex(size_t iIndex);
 
 	/** 监听控件双击事件
 	 * @param[in] callback 收到双击消息时的回调函数
@@ -255,9 +342,13 @@ public:
 	void AttachReturn(const EventCallback& callback) { AttachEvent(kEventReturn, callback); }
 
 private:
-	/** 在ListBox容器中的子项索引号
+	/** 在ListBox容器中的子项索引号，范围：[0, GetItemCount())
 	*/
-	size_t m_iIndex;
+	size_t m_iListBoxIndex;
+
+	/** 虚表数据元素子项索引号，用于支持虚表，范围：[0, GetElementCount())
+	*/
+	size_t m_iElementIndex;
 
 	/** 在ListBox容器接口
 	*/

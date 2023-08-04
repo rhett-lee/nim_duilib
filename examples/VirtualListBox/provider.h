@@ -5,8 +5,9 @@
 
 struct DownloadTask
 {
-	int nId;
-	wchar_t* sName = nullptr;
+	int nId; //唯一ID
+	bool bSelected = false;//选择状态
+	wchar_t* sName = nullptr;//名称
 };
 
 class Provider : public ui::VirtualListBoxElement
@@ -17,19 +18,29 @@ public:
 
 	virtual ui::Control* CreateElement() override;
 
-	/**
-	* @brief 填充指定子项
-	* @param[in] control 子项控件指针
-	* @param[in] index 索引
-	* @return 返回创建后的子项指针
+	/** 填充指定数据项
+	* @param[in] pControl 数据项控件指针
+	* @param[in] nElementIndex 数据元素的索引ID，范围：[0, GetElementCount())
 	*/
-	virtual void FillElement(ui::Control *control, size_t index) override;
+	virtual bool FillElement(ui::Control* pControl, size_t nElementIndex) override;
 
 	/**
 	* @brief 获取子项总数
 	* @return 返回子项总数
 	*/
 	virtual size_t GetElementCount() override;
+
+	/** 设置选择状态
+	* @param [in] nElementIndex 数据元素的索引ID，范围：[0, GetElementCount())
+	* @param [in] bSelected true表示选择状态，false表示非选择状态
+	*/
+	virtual void SetElementSelected(size_t nElementIndex, bool bSelected) override;
+
+	/** 获取选择状态
+	* @param [in] nElementIndex 数据元素的索引ID，范围：[0, GetElementCount())
+	* @return true表示选择状态，false表示非选择状态
+	*/
+	virtual bool IsElementSelected(size_t nElementIndex) override;
 
 public:
 	void SetTotal(int nTotal);

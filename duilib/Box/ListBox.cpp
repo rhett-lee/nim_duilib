@@ -7,10 +7,11 @@ namespace ui
 ListBox::ListBox(Layout* pLayout) : 
 	ScrollBox(pLayout),
 	m_bScrollSelect(false),
+	m_bMultiSelect(false),
+	m_bSelNextWhenRemoveActive(true),
 	m_iCurSel(Box::InvalidIndex),
 	m_pCompareFunc(nullptr),
-	m_pCompareContext(nullptr),
-	m_bSelNextWhenRemoveActive(true)
+	m_pCompareContext(nullptr)
 {
 }
 
@@ -18,7 +19,10 @@ std::wstring ListBox::GetType() const { return L"ListBox"; }
 
 void ListBox::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
-	if ((strName == L"scroll_select") || (strName == L"scrollselect")) {
+	if ((strName == L"multi_select") || (strName == L"multiselect")) {
+		SetMultiSelect(strValue == L"true");
+	}
+	else if ((strName == L"scroll_select") || (strName == L"scrollselect")) {
 		SetScrollSelect(strValue == L"true");
 	}
 	else if (strName == L"select_next_when_active_removed") {
@@ -38,6 +42,12 @@ void ListBox::HandleEvent(const EventArgs& event)
 		else {
 			ScrollBox::HandleEvent(event);
 		}
+		return;
+	}
+
+	if (m_bMultiSelect) {
+		//允许多选的情况下，不支持下面的单选逻辑
+		ScrollBox::HandleEvent(event);
 		return;
 	}
 
@@ -107,33 +117,98 @@ size_t ListBox::GetCurSel() const
 	return m_iCurSel;
 }
 
+void ListBox::SetCurSel(size_t iIndex)
+{
+	m_iCurSel = iIndex;
+}
+
 void ListBox::SelectNextWhenActiveRemoved(bool bSelectNextItem)
 {
 	m_bSelNextWhenRemoveActive = bSelectNextItem;
 }
 
-bool ListBox::SelectItem(size_t iIndex, bool bTakeFocus, bool bTrigger)
+void ListBox::GetSelectedItems(std::vector<size_t>& selectedIndexs) const
 {
-	if (iIndex == m_iCurSel) {
-		Control* pControl = GetItemAt(iIndex);
-		if (pControl != nullptr) {
-			UiRect rcItem = pControl->GetPos();
-			EnsureVisible(rcItem);
-			if (bTakeFocus) {
-				pControl->SetFocus();
+	selectedIndexs.clear();
+	const size_t itemCount = GetItemCount();
+	for (size_t iIndex = 0; iIndex < itemCount; ++iIndex) {
+		ListBoxItem* pListItem = dynamic_cast<ListBoxItem*>(m_items[iIndex]);
+		if (pListItem != nullptr) {
+			if (pListItem->IsSelected()) {
+				selectedIndexs.push_back(iIndex);
 			}
+		}
+	}
+}
+
+bool ListBox::SelectItem(size_t iIndex, bool bTakeFocus, bool bTriggerEvent)
+{
+	if (m_bMultiSelect) {
+		//多选
+		return SelectItemMulti(iIndex, bTakeFocus, bTriggerEvent);
+	}
+	else {
+		//单选
+		return SelectItemSingle(iIndex, bTakeFocus, bTriggerEvent);
+	}
+}
+
+bool ListBox::UnSelectItem(size_t iIndex, bool bTriggerEvent)
+{
+	Control* pControl = GetItemAt(iIndex);
+	if (pControl != nullptr) {
+		ListBoxItem* pListItem = dynamic_cast<ListBoxItem*>(pControl);
+		if ((pListItem != nullptr) && pListItem->IsSelected()) {
+			pListItem->OptionTemplate<Box>::Selected(false, bTriggerEvent);
+			if (bTriggerEvent) {
+				SendEvent(kEventUnSelect, iIndex, Box::InvalidIndex);
+			}
+			//仅在状态变化时重绘
 			Invalidate();
 		}
+	}
+	if (iIndex == m_iCurSel) {
+		m_iCurSel = Box::InvalidIndex;
+	}
+	return true;
+}
+
+bool ListBox::SelectItemSingle(size_t iIndex, bool bTakeFocus, bool bTriggerEvent)
+{
+	//单选
+	if (iIndex == m_iCurSel) {
+		Control* pControl = GetItemAt(iIndex);
+		if (pControl == nullptr) {
+			m_iCurSel = Box::InvalidIndex;
+			return false;
+		}		
+		//确保可见，然后返回	
+		UiRect rcItem = pControl->GetPos();
+		EnsureVisible(rcItem);
+		if (bTakeFocus) {
+			pControl->SetFocus();
+		}
+		ListBoxItem* pListItem = dynamic_cast<ListBoxItem*>(pControl);
+		if ((pListItem != nullptr) && !pListItem->IsSelected()) {
+			pListItem->OptionTemplate<Box>::Selected(true, false);
+			if (bTriggerEvent) {
+				SendEvent(kEventSelect, m_iCurSel, Box::InvalidIndex);
+			}
+		}
+		Invalidate();
 		return true;
 	}
 	const size_t iOldSel = m_iCurSel;
-	// We should first unselect the currently selected item
-	if (Box::IsValidItemIndex(m_iCurSel)) {
-		Control* pControl = GetItemAt(m_iCurSel);
+	if (Box::IsValidItemIndex(iOldSel)) {
+		//取消旧选择项的选择状态
+		Control* pControl = GetItemAt(iOldSel);
 		if (pControl != nullptr) {
 			ListBoxItem* pListItem = dynamic_cast<ListBoxItem*>(pControl);
-			if (pListItem != nullptr) {
-				pListItem->OptionTemplate<Box>::Selected(false, bTrigger);
+			if ((pListItem != nullptr) && pListItem->IsSelected()) {
+				pListItem->OptionTemplate<Box>::Selected(false, bTriggerEvent);
+				if (bTriggerEvent) {
+					SendEvent(kEventUnSelect, iOldSel, Box::InvalidIndex);
+				}
 			}
 		}
 		m_iCurSel = Box::InvalidIndex;
@@ -144,16 +219,18 @@ bool ListBox::SelectItem(size_t iIndex, bool bTakeFocus, bool bTrigger)
 	}
 
 	Control* pControl = GetItemAt(iIndex);
-	if ((pControl == nullptr) || !pControl->IsVisible() || !pControl->IsEnabled()){
+	if ((pControl == nullptr) || !pControl->IsVisible() || !pControl->IsEnabled()) {
+		Invalidate();
 		return false;
 	}
 	ListBoxItem* pListItem = dynamic_cast<ListBoxItem*>(pControl);
 	if (pListItem == nullptr) {
+		Invalidate();
 		return false;
 	}
 	m_iCurSel = iIndex;
-	pListItem->OptionTemplate<Box>::Selected(true, bTrigger);
-
+	//设置选择状态
+	pListItem->OptionTemplate<Box>::Selected(true, bTriggerEvent);
 	pControl = GetItemAt(m_iCurSel);
 	if (pControl != nullptr) {
 		UiRect rcItem = pControl->GetPos();
@@ -162,10 +239,53 @@ bool ListBox::SelectItem(size_t iIndex, bool bTakeFocus, bool bTrigger)
 			pControl->SetFocus();
 		}
 	}
-		
-	if (bTrigger) {
+
+	if (bTriggerEvent) {
 		SendEvent(kEventSelect, m_iCurSel, iOldSel);
 	}
+	Invalidate();
+	return true;
+}
+
+bool ListBox::SelectItemMulti(size_t iIndex, bool bTakeFocus, bool bTriggerEvent)
+{
+	//多选
+	size_t iOldSel = m_iCurSel;
+	m_iCurSel = Box::InvalidIndex;
+	if (!Box::IsValidItemIndex(iIndex)) {
+		Invalidate();
+		return false;
+	}
+	Control* pControl = GetItemAt(iIndex);
+	if ((pControl == nullptr) || !pControl->IsVisible() || !pControl->IsEnabled()){
+		Invalidate();
+		return false;
+	}
+	ListBoxItem* pListItem = dynamic_cast<ListBoxItem*>(pControl);
+	if (pListItem == nullptr) {
+		Invalidate();
+		return false;
+	}
+	
+	if (pListItem->IsSelected()) {
+		//多选时，再次选择时，按取消选择处理
+		pListItem->OptionTemplate<Box>::Selected(false, bTriggerEvent);
+		if (bTriggerEvent) {
+			SendEvent(kEventUnSelect, iIndex, Box::InvalidIndex);
+		}
+	}
+	else {
+		//如果原来是非选择状态，更新为选择状态
+		pListItem->OptionTemplate<Box>::Selected(true, bTriggerEvent);
+		UiRect rcItem = pControl->GetPos();
+		EnsureVisible(rcItem);
+		if (bTakeFocus) {
+			pControl->SetFocus();
+		}
+		if (bTriggerEvent) {
+			SendEvent(kEventSelect, iIndex, iOldSel);
+		}
+	}	
 	Invalidate();
 	return true;
 }
@@ -228,34 +348,85 @@ bool ListBox::ButtonDown(const EventArgs& msg)
 	return ret;
 }
 
-bool ListBox::ScrollItemToTop(const std::wstring& itemName)
+bool ListBox::IsHorizontalLayout() const
 {
-	for (Control* pControl : m_items) {
-		if ((pControl == nullptr) || !pControl->IsVisible()) {
-			continue;
-		}
-		if (pControl->GetName() == itemName) {
-			if (GetScrollRange().cy != 0) {
-				UiSize64 scrollPos = GetScrollPos();
-				scrollPos.cy = pControl->GetPos().top - GetPosWithoutPadding().top;
-				if (scrollPos.cy >= 0) {
-					SetScrollPos(scrollPos);
-					return true;
-				}
+	LayoutType type = GetLayout()->GetLayoutType();
+	bool bHorizontal = false;
+	if ((type == LayoutType::HLayout) ||
+		(type == LayoutType::HTileLayout) ||
+		(type == LayoutType::VirtualHLayout) ||
+		(type == LayoutType::VirtualHTileLayout)) {
+		bHorizontal = true;
+	}
+	return bHorizontal;
+}
+
+bool ListBox::ScrollItemToTop(size_t iIndex)
+{
+	Control* pControl = GetItemAt(iIndex);
+	if ((pControl == nullptr) || !pControl->IsVisible()) {
+		return false;
+	}
+	if (IsHorizontalLayout()) {
+		//横向布局
+		if (GetScrollRange().cx != 0) {
+			UiSize64 scrollPos = GetScrollPos();
+			scrollPos.cx = pControl->GetPos().left - GetPosWithoutPadding().left;
+			if (scrollPos.cx >= 0) {
+				SetScrollPos(scrollPos);
+				return true;
 			}
-			break;
+		}
+	}
+	else {
+		//纵向布局
+		if (GetScrollRange().cy != 0) {
+			UiSize64 scrollPos = GetScrollPos();
+			scrollPos.cy = pControl->GetPos().top - GetPosWithoutPadding().top;
+			if (scrollPos.cy >= 0) {
+				SetScrollPos(scrollPos);
+				return true;
+			}
 		}
 	}
 	return false;
 }
 
-Control* ListBox::GetTopItem()
+bool ListBox::ScrollItemToTop(const std::wstring& itemName)
 {
-	int32_t listTop = GetPos().top + GetLayout()->GetPadding().top + GetScrollOffset().cy;
-	for (Control* pControl : m_items) {
-		ASSERT(pControl != nullptr);
-		if (pControl->IsVisible() && !pControl->IsFloat() && pControl->GetPos().bottom >= listTop) {
-			return pControl;
+	const size_t itemCount = m_items.size();
+	for (size_t iIndex = 0; iIndex < itemCount; ++iIndex) {
+		Control* pControl = m_items[iIndex];
+		if ((pControl == nullptr) || !pControl->IsVisible()) {
+			continue;
+		}
+		if (pControl->GetName() == itemName) {
+			return ScrollItemToTop(iIndex);
+		}
+	}
+	return false;
+}
+
+Control* ListBox::GetTopItem() const
+{
+	if (IsHorizontalLayout()) {
+		//横向布局
+		int32_t listLeft = GetPos().left + GetLayout()->GetPadding().left + GetScrollOffset().cx;
+		for (Control* pControl : m_items) {
+			ASSERT(pControl != nullptr);
+			if (pControl->IsVisible() && !pControl->IsFloat() && pControl->GetPos().right >= listLeft) {
+				return pControl;
+			}
+		}
+	}
+	else {
+		//纵向布局
+		int32_t listTop = GetPos().top + GetLayout()->GetPadding().top + GetScrollOffset().cy;
+		for (Control* pControl : m_items) {
+			ASSERT(pControl != nullptr);
+			if (pControl->IsVisible() && !pControl->IsFloat() && pControl->GetPos().bottom >= listTop) {
+				return pControl;
+			}
 		}
 	}
 	return nullptr;
@@ -284,11 +455,11 @@ bool ListBox::SetItemIndex(Control* pControl, size_t iIndex)
 		Control* pItemControl = GetItemAt(i);
 		ListBoxItem* pListItem = dynamic_cast<ListBoxItem*>(pItemControl);
 		if( pListItem != NULL ) {
-			pListItem->SetIndex(i);
+			pListItem->SetListBoxIndex(i);
 		}
 	}
 	if (Box::IsValidItemIndex(m_iCurSel) && pSelectedListItem != nullptr) {
-		m_iCurSel = pSelectedListItem->GetIndex();
+		m_iCurSel = pSelectedListItem->GetListBoxIndex();
 	}
 	return true;
 }
@@ -331,7 +502,7 @@ bool ListBox::AddItem(Control* pControl)
 	ListBoxItem* pListItem = dynamic_cast<ListBoxItem*>(pControl);
 	if( pListItem != nullptr) {
 		pListItem->SetOwner(this);
-		pListItem->SetIndex(GetItemCount());
+		pListItem->SetListBoxIndex(GetItemCount());
 	}
 	return ScrollBox::AddItem(pControl);
 }
@@ -350,7 +521,7 @@ bool ListBox::AddItemAt(Control* pControl, size_t iIndex)
 	ListBoxItem* pListItem = dynamic_cast<ListBoxItem*>(pControl);
 	if( pListItem != nullptr ) {
 		pListItem->SetOwner(this);
-		pListItem->SetIndex(iIndex);
+		pListItem->SetListBoxIndex(iIndex);
 	}
 
 	const size_t itemCount = GetItemCount();
@@ -358,7 +529,7 @@ bool ListBox::AddItemAt(Control* pControl, size_t iIndex)
 		Control* p = GetItemAt(i);
 		pListItem = dynamic_cast<ListBoxItem*>(p);
 		if( pListItem != nullptr ) {
-			pListItem->SetIndex(i);
+			pListItem->SetListBoxIndex(i);
 		}
 	}
 	if (Box::IsValidItemIndex(m_iCurSel) && (m_iCurSel >= iIndex)) {
@@ -386,13 +557,13 @@ bool ListBox::RemoveItemAt(size_t iIndex)
 		Control* p = GetItemAt(i);
 		ListBoxItem* pListItem = dynamic_cast<ListBoxItem*>(p);
 		if (pListItem != nullptr) {
-			pListItem->SetIndex(i);
+			pListItem->SetListBoxIndex(i);
 		}
 	}
 
 	if (Box::IsValidItemIndex(m_iCurSel)) {
 		if (iIndex == m_iCurSel) {
-			if (m_bSelNextWhenRemoveActive) {
+			if (!m_bMultiSelect && m_bSelNextWhenRemoveActive) {
 				SelectItem(FindSelectable(m_iCurSel--, false));
 			}
 			else {
@@ -427,9 +598,9 @@ bool ListBox::SortItems(PFNCompareFunc pfnCompare, void* pCompareContext)
 	ListBoxItem* pItem = nullptr;
 	const size_t itemCount = m_items.size();
 	for (size_t i = 0; i < itemCount; ++i) {
-		pItem = dynamic_cast<ListBoxItem*>(static_cast<Control*>(m_items[i]));
+		pItem = dynamic_cast<ListBoxItem*>(m_items[i]);
 		if (pItem != nullptr) {
-			pItem->SetIndex(i);
+			pItem->SetListBoxIndex(i);
 			pItem->Selected(false, false);
 		}
 	}
@@ -455,6 +626,30 @@ int __cdecl ListBox::ItemComareFunc(const void *item1, const void *item2)
 	return m_pCompareFunc(pControl1, pControl2, m_pCompareContext);
 }
 
+bool ListBox::GetMultiSelect() const
+{
+	return m_bMultiSelect;
+}
+
+void ListBox::SetMultiSelect(bool bMultiSelect)
+{
+	m_bMultiSelect = bMultiSelect;
+	if (!bMultiSelect) {
+		//取消现有的多选
+		ListBoxItem* pItem = nullptr;
+		const size_t itemCount = m_items.size();
+		for (size_t i = 0; i < itemCount; ++i) {
+			pItem = dynamic_cast<ListBoxItem*>(m_items[i]);
+			if ((pItem != nullptr) && pItem->IsSelected()){
+				if (m_iCurSel != i) {
+					pItem->Selected(false, false);
+				}
+			}
+		}
+		Invalidate();
+	}
+}
+
 bool ListBox::GetScrollSelect() const
 {
 	return m_bScrollSelect;
@@ -468,7 +663,8 @@ void ListBox::SetScrollSelect(bool bScrollSelect)
 /////////////////////////////////////////////////////////////////////////////////////
 
 ListBoxItem::ListBoxItem() :
-	m_iIndex(Box::InvalidIndex),
+	m_iListBoxIndex(Box::InvalidIndex),
+	m_iElementIndex(Box::InvalidIndex),
 	m_pOwner(nullptr)
 {
 	m_uTextStyle = TEXT_LEFT | TEXT_VCENTER | TEXT_END_ELLIPSIS | TEXT_NOCLIP | TEXT_SINGLELINE;
@@ -476,13 +672,34 @@ ListBoxItem::ListBoxItem() :
 
 std::wstring ListBoxItem::GetType() const {  return DUI_CTR_LISTBOX_ITEM; }
 
-void ListBoxItem::Selected(bool bSelected, bool trigger)
+void ListBoxItem::Selected(bool bSelected, bool bTriggerEvent)
 {
 	if (!IsEnabled()) {
 		return;
 	}
-	if (bSelected && m_pOwner != nullptr) {
-		m_pOwner->SelectItem(m_iIndex, false, trigger);
+	if (m_pOwner != nullptr) {
+		if (bSelected) {
+			m_pOwner->SelectItem(m_iListBoxIndex, false, bTriggerEvent);
+		}
+		else {
+			m_pOwner->UnSelectItem(m_iListBoxIndex, bTriggerEvent);
+		}
+	}
+}
+
+void ListBoxItem::SetSelected(bool bSelected)
+{
+	__super::SetSelected(bSelected);
+	if (m_pOwner != nullptr) {
+		//同步ListBox的选择ID
+		if (bSelected) {
+			m_pOwner->SetCurSel(m_iListBoxIndex);
+		}
+		else {
+			if (m_pOwner->GetCurSel() == m_iListBoxIndex) {
+				m_pOwner->SetCurSel(Box::InvalidIndex);
+			}
+		}
 	}
 }
 
@@ -531,14 +748,24 @@ void ListBoxItem::SetOwner(IListBoxOwner* pOwner)
     m_pOwner = pOwner;
 }
 
-size_t ListBoxItem::GetIndex() const
+size_t ListBoxItem::GetListBoxIndex() const
 {
-    return m_iIndex;
+    return m_iListBoxIndex;
 }
 
-void ListBoxItem::SetIndex(size_t iIndex)
+void ListBoxItem::SetListBoxIndex(size_t iIndex)
 {
-    m_iIndex = iIndex;
+	m_iListBoxIndex = iIndex;
+}
+
+size_t ListBoxItem::GetElementIndex() const
+{
+	return m_iElementIndex;
+}
+
+void ListBoxItem::SetElementIndex(size_t iIndex)
+{
+	m_iElementIndex = iIndex;
 }
 
 bool ListBoxItem::IsSelectableType() const

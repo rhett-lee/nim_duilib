@@ -35,6 +35,7 @@ void RichlistForm::OnInitWindow()
 	for (auto i = 0; i < 100; i++)
 	{
 		Item* item = new Item;
+		item->SetWindow(this);
 		ui::GlobalManager::Instance().FillBoxWithCache(item, L"list_box/item.xml");
 
 		std::wstring img = L"icon.png";
@@ -55,8 +56,8 @@ bool RichlistForm::OnSelected(const ui::EventArgs& args)
 	int old = static_cast<int>(args.lParam);
 
 
-	auto message = nbase::StringPrintf(L"您选择了索引为 %d 的子项，上一次选择子项索引为 %d", current, old);
-	nim_comp::ShowMsgBox(GetHWND(), nim_comp::MsgboxCallback(), message, false, L"提示", false);
+	//auto message = nbase::StringPrintf(L"您选择了索引为 %d 的子项，上一次选择子项索引为 %d", current, old);
+	//nim_comp::ShowMsgBox(GetHWND(), nim_comp::MsgboxCallback(), message, false, L"提示", false);
 
 	return true;
 }

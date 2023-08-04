@@ -22,14 +22,20 @@ ui::Control* Provider::CreateElement()
 	return item;
 }
 
-void Provider::FillElement(ui::Control *control, size_t index)
+bool Provider::FillElement(ui::Control* pControl, size_t nElementIndex)
 {
-	Item* pItem = dynamic_cast<Item*>(control);
-
-	
+	nbase::NAutoLock auto_lock(&lock_);
+	Item* pItem = dynamic_cast<Item*>(pControl);
+	ASSERT(pItem != nullptr);
+	ASSERT(nElementIndex < m_vTasks.size());
+	if ((pItem == nullptr) || (nElementIndex >= m_vTasks.size())) {
+		return false;
+	}
+	const DownloadTask& task = m_vTasks[nElementIndex];
 	std::wstring img = L"icon.png";
-	std::wstring title = nbase::StringPrintf(L"%s [%02d]", m_vTasks[index].sName, m_vTasks[index].nId);
-	pItem->InitSubControls(img, title, index);
+	std::wstring title = nbase::StringPrintf(L"%s [%02d]", task.sName, task.nId);
+	pItem->InitSubControls(img, title, nElementIndex);
+	return true;
 }
 
 size_t Provider::GetElementCount()
@@ -37,6 +43,24 @@ size_t Provider::GetElementCount()
 	// 加锁
 	nbase::NAutoLock auto_lock(&lock_);
 	return m_vTasks.size();
+}
+
+void Provider::SetElementSelected(size_t nElementIndex, bool bSelected)
+{
+	nbase::NAutoLock auto_lock(&lock_);
+	if (nElementIndex < m_vTasks.size()) {
+		m_vTasks[nElementIndex].bSelected = bSelected;
+	}
+}
+
+bool Provider::IsElementSelected(size_t nElementIndex)
+{
+	nbase::NAutoLock auto_lock(&lock_);
+	bool bSelected = false;
+	if (nElementIndex < m_vTasks.size()) {
+		bSelected = m_vTasks[nElementIndex].bSelected;
+	}
+	return bSelected;
 }
 
 void Provider::SetTotal(int nTotal)
@@ -71,26 +95,34 @@ void Provider::SetTotal(int nTotal)
 void Provider::RemoveTask(size_t nIndex)
 {	
 	lock_.Lock();
+	bool bUpdated = false;
 	if (nIndex < m_vTasks.size()) {
 		auto iter = m_vTasks.begin() + nIndex;
 		m_vTasks.erase(iter);
+		bUpdated = true;
 	}
 	lock_.Unlock();
 
-	// 通知TileBox数据总数变动
-	EmitCountChanged();
+	if (bUpdated) {
+		// 通知TileBox数据总数变动
+		EmitCountChanged();
+	}	
 }
 
 void Provider::ChangeTaskName(size_t nIndex, const std::wstring& sName)
 {
 	lock_.Lock();
+	bool bUpdated = false;
 	if (nIndex < m_vTasks.size()) {
 		delete m_vTasks[nIndex].sName;
 		m_vTasks[nIndex].sName = new wchar_t[sName.size() + 1];
 		wcscpy_s(m_vTasks[nIndex].sName, sName.size() + 1, sName.c_str());
+		bUpdated = true;
 	}
 	lock_.Unlock();
 
 	// 发送数据变动通知
-	EmitDataChanged(nIndex, nIndex);
+	if (bUpdated) {
+		EmitDataChanged(nIndex, nIndex);
+	}	
 }

@@ -35,6 +35,11 @@ void Box::SetWindow(Window* pManager, Box* pParent, bool bInit)
 	Control::SetWindow(pManager, pParent, bInit);
 }
 
+void Box::SetWindow(Window* pManager)
+{
+	Control::SetWindow(pManager);
+}
+
 void Box::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
 	if (m_pLayout->SetAttribute(strName, strValue))	{

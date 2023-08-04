@@ -27,16 +27,29 @@ public:
     virtual Control* CreateElement() = 0;
 
     /** 填充指定数据项
-    * @param[in] control 数据项控件指针
-    * @param[in] index 索引
+    * @param [in] pControl 数据项控件指针
+    * @param [in] nElementIndex 数据元素的索引ID，范围：[0, GetElementCount())
     */
-    virtual void FillElement(Control* control, size_t index) = 0;
+    virtual bool FillElement(Control* pControl, size_t nElementIndex) = 0;
 
     /** 获取数据项总数
     * @return 返回数据项总数
     */
     virtual size_t GetElementCount() = 0;
 
+    /** 设置选择状态
+    * @param [in] nElementIndex 数据元素的索引ID，范围：[0, GetElementCount())
+    * @param [in] bSelected true表示选择状态，false表示非选择状态
+    */
+    virtual void SetElementSelected(size_t nElementIndex, bool bSelected) = 0;
+
+    /** 获取选择状态
+    * @param [in] nElementIndex 数据元素的索引ID，范围：[0, GetElementCount())
+    * @return true表示选择状态，false表示非选择状态
+    */
+    virtual bool IsElementSelected(size_t nElementIndex) = 0;
+
+public:
     /** 注册事件通知回调
     * @param [in] dcNotify 数据内容变化通知接口
     * @param [in] ccNotify 数据项个数变化通知接口
@@ -46,10 +59,10 @@ public:
 protected:
 
     /** 发送通知：数据内容发生变化
-    * @param [in] nStartIndex 数据的开始下标
-    * @param [in] nEndIndex 数据的结束下标
+    * @param [in] nStartElementIndex 数据的开始下标
+    * @param [in] nEndElementIndex 数据的结束下标
     */
-    void EmitDataChanged(size_t nStartIndex, size_t nEndIndex);
+    void EmitDataChanged(size_t nStartElementIndex, size_t nEndElementIndex);
 
     /** 发送通知：数据项个数发生变化
     */
@@ -140,37 +153,37 @@ private:
     */
     Control* CreateElement();
 
-    /** 填充指定子项
-    * @param[in] control 子项控件指针
-    * @param[in] index 索引
-    * @return 返回创建后的子项指针
+    /** 填充指定数据项
+    * @param[in] pControl 数据项控件指针
+    * @param[in] nElementIndex 数据元素的索引ID，范围：[0, GetElementCount())
     */
-    void FillElement(Control* pControl, size_t iIndex);
+    void FillElement(Control* pControl, size_t nElementIndex);
 
     /** 获取元素总数
     * @return 返回元素总指数
     */
     size_t GetElementCount();
 
-    /** 数据内容发生变化，在事件中需要重新加载展示数据
-    */
-    void OnModelDataChanged(size_t nStartIndex, size_t nEndIndex);
-
-    /** 数据个数发生变化，在事件中需要重新加载展示数据
-    */
-    void OnModelCountChanged();
-
     /** 重新布局子项
     * @param[in] bForce 是否强制重新布局
     */
     void ReArrangeChild(bool bForce);
 
-    /** 将数据元素的索引号转变为展示内容的索引号
-    * @param [in] nElementIndex 数据元素的索引号
-    * @return 如果nElementIndex是显示范围内的数据，返回对应的Item索引号
-    *         如果nElementIndex不是显示范围内的数据，返回Box::InvalidIndex，表示无对应的Item索引号
+    /** 数据内容发生变化，在事件中需要重新加载展示数据
     */
-    size_t ElementIndexToItemIndex(size_t nElementIndex) const;
+    void OnModelDataChanged(size_t nStartElementIndex, size_t nEndElementIndex);
+
+    /** 数据个数发生变化，在事件中需要重新加载展示数据
+    */
+    void OnModelCountChanged();
+
+    /** 选择状态变化：选择了某个子项
+    */
+    bool OnSelectedItem(const ui::EventArgs&);
+
+    /** 选择状态变化：取消选择了某个子项
+    */
+    bool OnUnSelectedItem(const ui::EventArgs&);
 
 private:
     /** 数据代理对象接口，提供展示数据

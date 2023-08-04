@@ -38,6 +38,8 @@ VirtualListBox::VirtualListBox(Layout* pLayout)
     , m_pVirtualLayout(nullptr)
 {
     ASSERT(pLayout != nullptr);
+    AttachSelect(nbase::Bind(&VirtualListBox::OnSelectedItem, this, std::placeholders::_1));
+    AttachUnSelect(nbase::Bind(&VirtualListBox::OnUnSelectedItem, this, std::placeholders::_1));
 }
 
 void VirtualListBox::SetVirtualLayout(VirtualLayout* pVirtualLayout)
@@ -76,11 +78,22 @@ Control* VirtualListBox::CreateElement()
     return nullptr;
 }
 
-void VirtualListBox::FillElement(Control* pControl, size_t iIndex)
+void VirtualListBox::FillElement(Control* pControl, size_t nElementIndex)
 {
     ASSERT(m_pDataProvider != nullptr);
     if (m_pDataProvider != nullptr) {
-        m_pDataProvider->FillElement(pControl, iIndex);
+        bool bFilled = m_pDataProvider->FillElement(pControl, nElementIndex);
+        bool bSelected = m_pDataProvider->IsElementSelected(nElementIndex);
+        ASSERT_UNUSED_VARIABLE(bFilled);
+        ListBoxItem* pListBoxItem = dynamic_cast<ListBoxItem*>(pControl);
+        ASSERT(pListBoxItem != nullptr);
+        if (pListBoxItem != nullptr) {
+            //更新元素索引号
+            pListBoxItem->SetElementIndex(nElementIndex);
+            ASSERT(GetItemIndex(pControl) == pListBoxItem->GetListBoxIndex());
+            //更新选择状态
+            pListBoxItem->SetSelected(bSelected);
+        }
     }
 }
 
@@ -94,18 +107,23 @@ size_t VirtualListBox::GetElementCount()
     return elementCount;
 }
 
-void VirtualListBox::OnModelDataChanged(size_t nStartIndex, size_t nEndIndex)
+void VirtualListBox::OnModelDataChanged(size_t nStartElementIndex, size_t nEndElementIndex)
 {
-    for (size_t i = nStartIndex; i <= nEndIndex; ++i) {
-        size_t nItemIndex = ElementIndexToItemIndex(nStartIndex);
-        if (Box::IsValidItemIndex(nItemIndex) && nItemIndex < m_items.size()) {
-            FillElement(m_items[nItemIndex], i);
+    for (Control* pControl : m_items) {
+        ListBoxItem* pListBoxItem = dynamic_cast<ListBoxItem*>(pControl);
+        if (pListBoxItem != nullptr) {
+            size_t iElementIndex = pListBoxItem->GetElementIndex();
+            if ((iElementIndex >= nStartElementIndex) &&
+                (iElementIndex <= nEndElementIndex)) {
+                FillElement(pControl, iElementIndex);
+            }
         }
     }
 }
 
 void VirtualListBox::OnModelCountChanged()
 {
+    //元素的个数发生变化（有添加或者删除）
     Refresh();
 }
 
@@ -225,23 +243,6 @@ void VirtualListBox::ReArrangeChild(bool bForce)
     m_pVirtualLayout->LazyArrangeChild(GetPosWithoutPadding());
 }
 
-size_t VirtualListBox::ElementIndexToItemIndex(size_t nElementIndex) const
-{
-    ASSERT(m_pVirtualLayout != nullptr);
-    if (m_pVirtualLayout == nullptr) {
-        return Box::InvalidIndex;
-    }
-    UiRect rc = GetPosWithoutPadding();
-    if (m_pVirtualLayout->IsElementDisplay(rc, nElementIndex)) {
-        size_t nTopItemIndex = m_pVirtualLayout->GetTopElementIndex(rc);
-        ASSERT(nElementIndex >= nTopItemIndex);
-        if (nElementIndex >= nTopItemIndex) {
-            return nElementIndex - nTopItemIndex;
-        }
-    }
-    return Box::InvalidIndex;
-}
-
 void VirtualListBox::HandleEvent(const EventArgs& event)
 {
     if (!IsMouseEnabled() && (event.Type > ui::kEventMouseBegin) && (event.Type < ui::kEventMouseEnd)) {
@@ -312,6 +313,42 @@ void VirtualListBox::OnKeyDown(TCHAR ch)
 
 void VirtualListBox::OnKeyUp(TCHAR /*ch*/)
 {
+}
+
+bool VirtualListBox::OnSelectedItem(const ui::EventArgs& args)
+{
+    size_t nItemIndex = args.wParam;
+    if (nItemIndex != Box::InvalidIndex) {
+        Control* pControl = GetItemAt(nItemIndex);
+        ListBoxItem* pListBoxItem = dynamic_cast<ListBoxItem*>(pControl);
+        if (pListBoxItem != nullptr) {
+            //更新该元素的选择状态
+            size_t iElementIndex = pListBoxItem->GetElementIndex();
+            ASSERT(m_pDataProvider != nullptr);
+            if (m_pDataProvider != nullptr) {
+                m_pDataProvider->SetElementSelected(iElementIndex, true);
+            }
+        }
+    }
+    return true;
+}
+
+bool VirtualListBox::OnUnSelectedItem(const ui::EventArgs& args)
+{
+    size_t nItemIndex = args.wParam;
+    if (nItemIndex != Box::InvalidIndex) {
+        Control* pControl = GetItemAt(nItemIndex);
+        ListBoxItem* pListBoxItem = dynamic_cast<ListBoxItem*>(pControl);
+        if (pListBoxItem != nullptr) {
+            //更新该元素的选择状态
+            size_t iElementIndex = pListBoxItem->GetElementIndex();
+            ASSERT(m_pDataProvider != nullptr);
+            if (m_pDataProvider != nullptr) {
+                m_pDataProvider->SetElementSelected(iElementIndex, false);
+            }
+        }
+    }
+    return true;
 }
 
 }

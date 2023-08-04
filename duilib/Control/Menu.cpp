@@ -855,7 +855,7 @@ bool CMenuElementUI::CheckSubMenuItem()
 	}
 	if (hasSubMenu) {
 		if (GetOwner() != nullptr) {
-			GetOwner()->SelectItem(GetIndex(), true, true);
+			GetOwner()->SelectItem(GetListBoxIndex(), true, true);
 		}
 		if (m_pSubWindow == nullptr) {
 			CreateMenuWnd();

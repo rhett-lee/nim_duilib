@@ -42,6 +42,11 @@ public:
      */
     bool IsSelected() const { return m_bSelected; }
 
+    /** 设置选择状态，但不触发事件，不更新界面
+    * @param [in] bSelected true为选择状态，false为非选择状态
+    */
+    virtual void SetSelected(bool bSelected) { m_bSelected = bSelected; }
+
     /**
      * @brief 设置控件是否选择状态
      * @param[in] bSelected 为 true 时为选择状态，false 时为取消选择状态

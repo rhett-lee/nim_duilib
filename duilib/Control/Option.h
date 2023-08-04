@@ -18,6 +18,7 @@ public:
 	/// 重写父类方法，提供个性化功能，请参考父类声明
 	virtual std::wstring GetType() const override;
 	virtual void SetWindow(Window* pManager, Box* pParent, bool bInit = true) override;
+    virtual void SetWindow(Window* pManager) override;
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 	virtual void Selected(bool bSelected, bool bTriggerEvent = false) override;
 	virtual void Activate() override;
@@ -70,6 +71,12 @@ void OptionTemplate<InheritType>::SetWindow(Window* pManager, Box* pParent, bool
 }
 
 template<typename InheritType>
+void OptionTemplate<InheritType>::SetWindow(Window* pManager)
+{
+    __super::SetWindow(pManager);
+}
+
+template<typename InheritType>
 void OptionTemplate<InheritType>::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
     if (strName == L"group") {
@@ -83,6 +90,7 @@ void OptionTemplate<InheritType>::SetAttribute(const std::wstring& strName, cons
 template<typename InheritType>
 void OptionTemplate<InheritType>::Selected(bool bSelected, bool bTriggerEvent)
 {
+    bool isChanged = this->m_bSelected != bSelected;
     this->m_bSelected = bSelected;
 
     if (this->GetWindow() != nullptr) {
@@ -100,12 +108,14 @@ void OptionTemplate<InheritType>::Selected(bool bSelected, bool bTriggerEvent)
                 }
             }
 
-            if (bTriggerEvent) {
+            if (isChanged && bTriggerEvent) {
                 this->SendEvent(kEventSelect);
             }
         }
         else {
-            this->SendEvent(kEventUnSelect);
+            if (isChanged && bTriggerEvent) {
+                this->SendEvent(kEventUnSelect);
+            }
         }
     }
 

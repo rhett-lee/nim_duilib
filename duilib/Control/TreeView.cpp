@@ -86,7 +86,7 @@ bool TreeNode::AddChildNodeAt(TreeNode* pTreeNode, size_t iIndex)
 	UiPadding padding = GetLayout()->GetPadding();
 	size_t nodeIndex = 0;
 	if (m_iDepth != ROOT_NODE_DEPTH) {
-		nodeIndex = GetIndex() + 1;
+		nodeIndex = GetListBoxIndex() + 1;
 		padding.left += m_pTreeView->GetIndent();
 	}
 	pTreeNode->GetLayout()->SetPadding(padding, true);
@@ -141,7 +141,7 @@ bool TreeNode::RemoveSelf()
 	m_aTreeNodes.clear();
 
 	if (m_iDepth != ROOT_NODE_DEPTH) {
-		return m_pTreeView->ListBox::RemoveItemAt(GetIndex());
+		return m_pTreeView->ListBox::RemoveItemAt(GetListBoxIndex());
 	}
 
 	return false;
