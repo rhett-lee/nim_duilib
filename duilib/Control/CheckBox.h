@@ -327,11 +327,13 @@ void CheckBoxTemplate<InheritType>::PaintText(IRender* pRender)
         __super::PaintText(pRender);
         return;
     }
-
-    if (this->GetText().empty()) {
+    std::wstring textValue = this->GetText();
+    if (textValue.empty() || (pRender == nullptr)) {
         return;
     }
     UiRect rc = this->GetRect();
+    UiPadding rcPadding = this->GetBoxPadding();
+    rc.Deflate(rcPadding);
     rc.Deflate(this->m_rcTextPadding);
 
     auto stateType = this->GetState();
@@ -354,14 +356,14 @@ void CheckBoxTemplate<InheritType>::PaintText(IRender* pRender)
             std::wstring clrStateColor = GetSelectedStateTextColor(kControlStateNormal);
             if (!clrStateColor.empty()) {
                 UiColor dwWinColor = this->GetUiColor(clrStateColor);
-                pRender->DrawString(rc, this->GetText(), dwWinColor, this->m_sFontId, this->m_uTextStyle);
+                pRender->DrawString(rc, textValue, dwWinColor, this->m_sFontId, this->m_uTextStyle);
             }
 
             if (this->GetHotAlpha() > 0) {
                 std::wstring textColor = GetSelectedStateTextColor(kControlStateHot);
                 if (!textColor.empty()) {
                     UiColor dwTextColor = this->GetUiColor(textColor);
-                    pRender->DrawString(rc, this->GetText(), dwTextColor, this->m_sFontId, this->m_uTextStyle, (BYTE)this->GetHotAlpha());
+                    pRender->DrawString(rc, textValue, dwTextColor, this->m_sFontId, this->m_uTextStyle, (BYTE)this->GetHotAlpha());
                 }
             }
 
@@ -369,7 +371,7 @@ void CheckBoxTemplate<InheritType>::PaintText(IRender* pRender)
         }
     }
 
-    pRender->DrawString(rc, this->GetText(), dwClrColor, this->m_sFontId, this->m_uTextStyle);
+    pRender->DrawString(rc, textValue, dwClrColor, this->m_sFontId, this->m_uTextStyle);
 }
 
 template<typename InheritType>

@@ -224,6 +224,7 @@ DateTime::DateTime():
     SetAttribute(L"border_size", L"1");
     SetAttribute(L"border_color", L"gray");
     SetAttribute(L"text_align", L"vcenter");
+    SetAttribute(L"text_padding", L"2,0,0,0");
 }
 
 DateTime::~DateTime()

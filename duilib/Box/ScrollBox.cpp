@@ -356,6 +356,17 @@ void ScrollBox::SetWindow(Window* pManager, Box* pParent, bool bInit)
 	Box::SetWindow(pManager, pParent, bInit);
 }
 
+void ScrollBox::SetWindow(Window* pManager)
+{
+	if (m_pVScrollBar != nullptr) {
+		m_pVScrollBar->SetWindow(pManager);
+	}
+	if (m_pHScrollBar != nullptr) {
+		m_pHScrollBar->SetWindow(pManager);
+	}
+	Box::SetWindow(pManager);
+}
+
 Control* ScrollBox::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, UiPoint /*scrollPos*/)
 {
 	// Check if this guy is valid

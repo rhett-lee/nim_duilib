@@ -517,11 +517,12 @@ Control* WindowBuilder::ParseXmlNode(const pugi::xml_node& xmlNode, Control* pPa
 			TreeNode* pNode = dynamic_cast<TreeNode*>(pControl);
 			ASSERT(pNode != nullptr);
 			TreeView* pTreeView = dynamic_cast<TreeView*>(pParent);
-			ASSERT(pTreeView != nullptr);
 			if (pTreeView) {
+				//一级子节点
 				pTreeView->GetRootNode()->AddChildNode(pNode);
 			}
 			else {
+				//多级子节点
 				TreeNode* pTreeNode = dynamic_cast<TreeNode*>(pParent);
 				ASSERT(pTreeNode != nullptr);
 				if (pTreeNode) {

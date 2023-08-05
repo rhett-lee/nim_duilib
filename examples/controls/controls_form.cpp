@@ -66,28 +66,6 @@ void ControlForm::OnInitWindow()
 		list->AddItem(element);
 	}
 
-	/* Initialize TreeView data */
-	ui::TreeView* tree = static_cast<ui::TreeView*>(FindControl(L"tree"));
-	ui::TreeNode* parent_node = nullptr;
-	for (auto j = 0; j < 8; j++)
-	{
-		ui::TreeNode* node = new ui::TreeNode;
-		node->SetClass(L"listitem");
-		node->SetFixedHeight(ui::UiFixedInt(20), true);
-		if (parent_node)
-		{
-			node->SetText(nbase::StringPrintf(L"ui::TreeView::TreeNode %d", j));
-			node->SetMargin({ 10, 0, 0, 0 }, true);
-			parent_node->AddChildNode(node);
-		}
-		else
-		{
-			node->SetText(nbase::StringPrintf(L"ui::TreeView Parent Node", j));
-			tree->GetRootNode()->AddChildNode(node);
-			parent_node = node;
-		}
-	}
-
 	/* Initialize ComboBox data */
 	ui::Combo* combo = static_cast<ui::Combo*>(FindControl(L"combo"));
 	if (combo != nullptr) {

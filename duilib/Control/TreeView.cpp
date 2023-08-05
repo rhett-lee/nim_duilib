@@ -25,9 +25,9 @@ bool TreeNode::OnClickItem(const EventArgs& param)
 {
     TreeNode* pItem = dynamic_cast<TreeNode*>(param.pSender);
 	ASSERT(pItem != nullptr);
-	if (pItem) {
+	if (pItem != nullptr) {
 		pItem->SetExpand(!pItem->IsExpand(), true);
-	}    
+	}
     return true;
 }
 
@@ -37,6 +37,7 @@ bool TreeNode::IsVisible() const
 		return false;
 	}
 	if (m_pParentTreeNode != nullptr) {
+		//如果父节点未展开，或者父节点不可见，则该子节点也不可见
 		if (!m_pParentTreeNode->IsExpand() || !m_pParentTreeNode->IsVisible()) {
 			return false;
 		}
@@ -47,6 +48,11 @@ bool TreeNode::IsVisible() const
 void TreeNode::SetWindow(Window* pManager, Box* pParent, bool bInit)
 {
 	ListBoxItem::SetWindow(pManager, pParent, bInit);
+}
+
+void TreeNode::SetWindow(Window* pManager)
+{
+	__super::SetWindow(pManager);
 }
 
 TreeNode* TreeNode::GetParentNode()
@@ -70,6 +76,7 @@ bool TreeNode::AddChildNodeAt(TreeNode* pTreeNode, size_t iIndex)
 	if (pTreeNode == nullptr) {
 		return false;
 	}
+	ASSERT(iIndex <= m_aTreeNodes.size());
 	if (iIndex > m_aTreeNodes.size()) {
 		return false;
 	}
@@ -101,6 +108,7 @@ bool TreeNode::AddChildNodeAt(TreeNode* pTreeNode, size_t iIndex)
 
 bool TreeNode::RemoveChildNodeAt(size_t iIndex)
 {
+	ASSERT(iIndex < m_aTreeNodes.size());
 	if (iIndex >= m_aTreeNodes.size()) {
 		return false;
 	}
@@ -118,43 +126,40 @@ bool TreeNode::RemoveChildNode(TreeNode* pTreeNode)
 	auto it = std::find(m_aTreeNodes.begin(), m_aTreeNodes.end(), pTreeNode);
 	if (it == m_aTreeNodes.end()) {
 		return false;
-	}
-		
-	int iIndex = static_cast<int>(it - m_aTreeNodes.begin());
+	}		
+	size_t iIndex = it - m_aTreeNodes.begin();
 	return RemoveChildNodeAt(iIndex);
 }
 	
 void TreeNode::RemoveAllChildNode()
 {
-	while (m_aTreeNodes.size() > 0)
-	{
+	while (m_aTreeNodes.size() > 0) {
 		RemoveChildNodeAt(0);
 	}
 }
 
 bool TreeNode::RemoveSelf()
 {
-	for( auto it = m_aTreeNodes.begin(); it != m_aTreeNodes.end(); it++ ) 
-	{
-		(*it)->RemoveSelf();
+	for(TreeNode* pTreeNode : m_aTreeNodes) {
+		if (pTreeNode != nullptr) {
+			pTreeNode->RemoveSelf();
+		}
 	}
 	m_aTreeNodes.clear();
-
 	if (m_iDepth != ROOT_NODE_DEPTH) {
 		return m_pTreeView->ListBox::RemoveItemAt(GetListBoxIndex());
 	}
-
 	return false;
 }
 
-int TreeNode::GetDescendantNodeCount()
+size_t TreeNode::GetDescendantNodeCount()
 {
-	int nodeCount = (int)GetChildNodeCount();
-	for( auto it = m_aTreeNodes.begin(); it != m_aTreeNodes.end(); it++ )
-	{
-		nodeCount += (*it)->GetDescendantNodeCount();
+	size_t nodeCount = GetChildNodeCount();
+	for (TreeNode* pTreeNode : m_aTreeNodes) {
+		if (pTreeNode != nullptr) {
+			nodeCount += pTreeNode->GetDescendantNodeCount();
+		}
 	}
-
 	return nodeCount;
 }
 
@@ -171,13 +176,13 @@ TreeNode* TreeNode::GetChildNode(size_t iIndex)
 	return m_aTreeNodes[iIndex];
 }
 	
-int TreeNode::GetChildNodeIndex(TreeNode* pTreeNode)
+size_t TreeNode::GetChildNodeIndex(TreeNode* pTreeNode)
 {
 	auto it = std::find(m_aTreeNodes.begin(), m_aTreeNodes.end(), pTreeNode);
 	if (it == m_aTreeNodes.end()) {
-		return -1;
+		return Box::InvalidIndex;
 	}
-	return static_cast<int>(it - m_aTreeNodes.begin());
+	return it - m_aTreeNodes.begin();
 }
 
 bool TreeNode::IsExpand() const
@@ -226,28 +231,36 @@ void TreeView::SetAttribute(const std::wstring& strName, const std::wstring& str
 	}
 }
 
+void TreeView::SetIndent(int32_t indent)
+{
+	ASSERT(indent >= 0);
+	if (indent >= 0) {
+		m_iIndent = indent;
+	}	
+}
+
 bool TreeView::AddItem(Control* /*pControl*/)
 {
 	ASSERT(FALSE);
-	return true;
+	return false;
 }
 
 bool TreeView::AddItemAt(Control* /*pControl*/, size_t /*iIndex*/)
 {
 	ASSERT(FALSE);
-	return true;
+	return false;
 }
 
 bool TreeView::RemoveItem(Control* /*pControl*/)
 {
 	ASSERT(FALSE);
-	return true;
+	return false;
 }
 
 bool TreeView::RemoveItemAt(size_t /*iIndex*/)
 {
 	ASSERT(FALSE);
-	return true;
+	return false;
 }
 
 void TreeView::RemoveAllItems()
@@ -259,6 +272,12 @@ void TreeView::SetWindow(Window* pManager, Box* pParent, bool bInit)
 {
 	ListBox::SetWindow(pManager, pParent, bInit);
 	m_rootNode->SetWindow(pManager, pParent, bInit);
+}
+
+void TreeView::SetWindow(Window* pManager)
+{
+	__super::SetWindow(pManager);
+	m_rootNode->SetWindow(pManager);
 }
 
 }

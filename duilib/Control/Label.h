@@ -446,12 +446,12 @@ void LabelTemplate<InheritType>::SetAttribute(const std::wstring& strName, const
 template<typename InheritType>
 void LabelTemplate<InheritType>::PaintText(IRender* pRender)
 {
-    std::wstring textValue = GetText();
+    std::wstring textValue = this->GetText();
     if (textValue.empty() || (pRender == nullptr)) {
         return;
     }
     UiRect rc = this->GetRect();
-    UiPadding rcPadding = GetBoxPadding();
+    UiPadding rcPadding = this->GetBoxPadding();
     rc.Deflate(rcPadding);
     rc.Deflate(m_rcTextPadding);
 

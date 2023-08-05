@@ -22,140 +22,121 @@ public:
 	virtual std::wstring GetType() const override;
 	virtual bool IsVisible() const override;
 	virtual void SetWindow(Window* pManager, Box* pParent, bool bInit = true) override;
+	virtual void SetWindow(Window* pManager) override;
 
-	/**
-	 * @brief 子项被点击时触发
+	/** 子项被点击时触发
 	 * @param[in] param 消息体
 	 * @return 始终返回 true
 	 */
 	virtual bool OnClickItem(const EventArgs& param);
 
-	/**
-	 * @brief 设置子项所属的属性列表容器
+	/** 设置子项所属的树容器
 	 * @param[in] pTreeView 容器指针
-	 * @return 无
 	 */
 	void SetTreeView(TreeView* pTreeView);
 
-	/**
-	 * @brief 获取父节点指针
+	/** 获取父节点指针
 	 * @return 返回父节点指针
 	 */
 	TreeNode* GetParentNode();
 
-	/**
-	 * @brief 设置父节点
+	/** 设置父节点
 	 * @param[in] pParentTreeNode 父节点指针
-	 * @return 无
 	 */
 	void SetParentNode(TreeNode* pParentTreeNode);
 
-	/**
-	 * @brief 添加子节点
+	/** 添加子节点
 	 * @param[in] pTreeNode 子节点指针
 	 * @return 成功返回 true，失败返回 false
 	 */
 	bool AddChildNode(TreeNode* pTreeNode);
 
-	/**
-	 * @brief 在指定位置添加子节点
+	/** 在指定位置添加子节点
 	 * @param[in] pTreeNode 子节点指针
 	 * @param[in] iIndex 要插入哪个位置之后
 	 * @return 成功返回 true，失败返回 false
 	 */
 	bool AddChildNodeAt(TreeNode* pTreeNode, size_t iIndex);
 
-	/**
-	 * @brief 从指定位置移除一个子节点
-	 * @param[in] index 要移除的子节点索引
+	/** 从指定位置移除一个子节点
+	 * @param[in] iIndex 要移除的子节点索引
 	 * @return 成功返回 true，失败返回 false
 	 */
-	bool RemoveChildNodeAt(size_t index);
+	bool RemoveChildNodeAt(size_t iIndex);
 
-	/**
-	 * @brief 根据子节点指针移除一个子节点
+	/** 根据子节点指针移除一个子节点
 	 * @param[in] pTreeNode 子节点指针
 	 * @return 成功返回 true，失败返回 false
 	 */
 	bool RemoveChildNode(TreeNode* pTreeNode);
 
-	/**
-	 * @brief 移除所有子节点
-	 * @return 无
+	/** 移除所有子节点
 	 */
 	void RemoveAllChildNode();
 
-	/**
-	 * @brief 递归获取所有子节点个数
+	/** 递归获取所有子节点个数
 	 * @return 返回所有子节点个数
 	 */
-	int GetDescendantNodeCount();
+	size_t GetDescendantNodeCount();
 
-	/**
-	 * @brief 获取下一级子节点个数
+	/** 获取下一级子节点个数
 	 * @return 返回子节点个数
 	 */
 	size_t GetChildNodeCount();
 
-	/**
-	 * @brief 获取一个子节点指针
+	/** 获取一个子节点指针
 	 * @param[in] iIndex 要获取的子节点索引
 	 * @return 返回子节点指针
 	 */
 	TreeNode* GetChildNode(size_t iIndex);
 
-	/**
-	 * @brief 根据子节点指针获取子节点位置索引
+	/** 根据子节点指针获取子节点位置索引
 	 * @param[in] pTreeNode 子节点指针
 	 * @return 返回位置索引
 	 */
-	int	GetChildNodeIndex(TreeNode* pTreeNode);
+	size_t GetChildNodeIndex(TreeNode* pTreeNode);
 
-	/**
-	 * @brief 判断是否展开状态
+	/** 判断是否展开状态
 	 * @return 返回 true 为展开状态，否则为 false
 	 */
 	bool IsExpand() const; 
 
-	/**
-	 * @brief 设置是否展开显示子节点
+	/** 设置是否展开显示子节点
 	 * @param[in] bExpand 为 true 时展开，为 false 是不展开
-	 * @return 无
 	 */
 	void SetExpand(bool bExpand, bool bTriggerEvent = false);
 
-	/**
-	 * @brief 获取子项层级
+	/** 获取子项层级
 	 * @return 返回当前层级
 	 */
 	int GetDepth() const;
 
-	/**
-	 * @brief 监听子项展开事件
+	/** 监听子项展开事件
 	 * @param[in] callback 子项展开时触发的回调函数
-	 * @return 无
 	 */
 	void AttachExpand(const EventCallback& callback) { AttachEvent(kEventExpand, callback); }
 
-	/**
-	 * @brief 监听子项收缩事件
+	/** 监听子项收缩事件
 	 * @param[in] callback 子项收缩时触发的回调函数
-	 * @return 无
 	 */
 	void AttachUnExpand(const EventCallback& callback) { AttachEvent(kEventUnExpand, callback); }
 
 private:
-	/**
-	 * @brief 删除自身
+	/** 删除自身
 	 * @return 成功返回 true，失败返回 false
 	 */
 	bool RemoveSelf();
 
 private:
+	//子项层级
 	int m_iDepth;
+	//是否展开显示子节点
 	bool m_bExpand;
-	TreeView *m_pTreeView;
+	//子项所属的树容器
+	TreeView* m_pTreeView;
+	//父节点
 	TreeNode *m_pParentTreeNode;
+	//子节点列表
 	std::vector<TreeNode*> m_aTreeNodes;
 };
 
@@ -168,24 +149,20 @@ public:
 	virtual std::wstring GetType() const override;
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 
-	/**
-	 * @brief 获取根节点
+	/** 获取根节点
 	 * @return 返回根节点指针
 	 */
-	TreeNode* GetRootNode()	{ return m_rootNode.get(); }
+	TreeNode* GetRootNode()	const{ return m_rootNode.get(); }
 
-	/**
-	 * @brief 获取子节点缩进值
+	/** 获取子节点缩进值
 	 * @return 返回子节点缩进值
 	 */
-	int GetIndent() { return m_iIndent;	}
+	int32_t GetIndent() const { return m_iIndent;	}
 
-	/**
-	 * @brief 设置子节点缩进值
-	 * @param[in] indent 要设置的缩进值
-	 * @return 无
+	/** 设置子节点缩进值
+	 * @param[in] indent 要设置的缩进值, 单位为像素
 	 */
-	void SetIndent(int indent) { m_iIndent = indent; }
+	void SetIndent(int32_t indent);
 
 private:
 	//以下函数故意私有化，表明禁止使用；应该使用TreeNode中的相关函数
@@ -196,9 +173,13 @@ private:
 	void RemoveAllItems() override;
 
 	virtual void SetWindow(Window* pManager, Box* pParent, bool bInit = true) override;
+	virtual void SetWindow(Window* pManager) override;
 
 private:
-	int m_iIndent;
+	//子节点的缩进值，单位为像素
+	int32_t m_iIndent;
+
+	//树的根节点
 	std::unique_ptr<TreeNode> m_rootNode;
 };
 

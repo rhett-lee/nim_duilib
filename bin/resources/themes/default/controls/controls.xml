@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Window size="800,600" caption="0,0,0,35" sizebox="2,2,2,2" mininfo="400,320" >
+<Window size="1000,760" caption="0,0,0,35" sizebox="2,2,2,2" mininfo="400,320" >
     <!-- 整个布局放在一个VBox容器中 -->
     <!-- 布局属性：margin="left,top,right,bottom"; padding="left,top,right,bottom" -->
     <VBox bkcolor="bk_wnd_darkcolor">
@@ -21,28 +21,40 @@
             <!-- 第一排 -->
             <HBox height="110" padding="0,0,0,10">
                 <!-- Buttons -->
-                <VBox>
+                <VBox width="120">
                     <Button class="btn_global_blue_80x30" text="blue" tooltiptext="ui::Buttons"/>
                     <Button class="btn_global_white_80x30" text="white"/>
                     <Button class="btn_global_red_80x30" text="red"/>
                 </VBox>
                 <!-- Checkbox -->
-                <VBox>
+                <VBox width="120">
                     <CheckBox class="checkbox_font12" text="checkbox1" margin="0,5,0,10" selected="true" tooltiptext="ui::Checkbox"/>
                     <CheckBox class="checkbox_font12" text="checkbox2" margin="0,5,0,10"/>
                     <CheckBox class="checkbox_font12" text="checkbox3" margin="0,5,0,10"/>
                 </VBox>
                 <!-- Option -->
-                <VBox>
+                <VBox width="120">
                     <Option class="circle_option_2" group="option_group" text="option1" margin="0,3,0,10" selected="true" tooltiptext="ui::Option"/>
                     <Option class="circle_option_2" group="option_group" text="option2" margin="0,3,0,10"/>
                     <Option class="circle_option_2" group="option_group" text="option3" margin="0,3,0,10"/>
                 </VBox>
                 <!-- List -->
                 <VListBox class="list" name="list" padding="5,3,5,3" tooltiptext="ui::VListBox">
+                    <ListBoxItem class="listitem" height="20" text="ui::VListBox::ListBoxItem"/>
                 </VListBox>
                 <!-- TreeView -->
-                <TreeView class="list" name="tree" padding="5,3,5,3" margin="20" tooltiptext="ui::TreeView">
+                <TreeView class="list" name="tree" padding="5,3,5,3" indent="20" tooltiptext="ui::TreeView">
+                    <TreeNode class="listitem" height="20" text="ui::TreeView Parent Node 0"/>
+                    <TreeNode class="listitem" height="20" text="ui::TreeView Parent Node 1">
+                        <TreeNode class="listitem" height="20" text="ui::TreeView::TreeNode 1-1"/>
+                        <TreeNode class="listitem" height="20" text="ui::TreeView::TreeNode 1-3"/>
+                        <TreeNode class="listitem" height="20" text="ui::TreeView::TreeNode 1-3"/>
+                    </TreeNode>
+                    <TreeNode class="listitem" height="20" text="ui::TreeView Parent Node 2">
+                        <TreeNode class="listitem" height="20" text="ui::TreeView::TreeNode 2-1"/>
+                        <TreeNode class="listitem" height="20" text="ui::TreeView::TreeNode 2-2"/>
+                        <TreeNode class="listitem" height="20" text="ui::TreeView::TreeNode 2-3"/>
+                    </TreeNode>
                 </TreeView>
             </HBox>
             <Control class="splitline_hor_level1"/>
