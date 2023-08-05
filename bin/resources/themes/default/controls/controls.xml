@@ -19,7 +19,7 @@
         <!-- 工作区域，除了标题栏外的内容都放在这个大的VBox区域 -->
         <VBox padding="10,10,10,10">
             <!-- 第一排 -->
-            <HBox height="110" padding="0,0,0,10">
+            <HBox height="160" padding="0,0,0,10">
                 <!-- Buttons -->
                 <VBox width="120">
                     <Button class="btn_global_blue_80x30" text="blue" tooltiptext="ui::Buttons"/>
@@ -48,7 +48,12 @@
                     <TreeNode class="listitem" height="20" text="ui::TreeView Parent Node 1">
                         <TreeNode class="listitem" height="20" text="ui::TreeView::TreeNode 1-1"/>
                         <TreeNode class="listitem" height="20" text="ui::TreeView::TreeNode 1-3"/>
-                        <TreeNode class="listitem" height="20" text="ui::TreeView::TreeNode 1-3"/>
+                        <TreeNode class="listitem" height="20" text="ui::TreeView::TreeNode 1-3">
+                            <TreeNode class="listitem" height="20" text="ui::TreeView::TreeNode 1-3-1"/>
+                            <TreeNode class="listitem" height="20" text="ui::TreeView::TreeNode 1-3-2">
+                                <TreeNode class="listitem" height="20" text="ui::TreeView::TreeNode 1-3-2-1"/>
+                            </TreeNode>
+                        </TreeNode>
                     </TreeNode>
                     <TreeNode class="listitem" height="20" text="ui::TreeView Parent Node 2">
                         <TreeNode class="listitem" height="20" text="ui::TreeView::TreeNode 2-1"/>

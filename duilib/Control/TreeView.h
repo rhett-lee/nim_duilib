@@ -24,11 +24,11 @@ public:
 	virtual void SetWindow(Window* pManager, Box* pParent, bool bInit = true) override;
 	virtual void SetWindow(Window* pManager) override;
 
-	/** 子项被点击时触发
-	 * @param[in] param 消息体
+	/** 子项被双击时触发
+	 * @param[in] args 消息体
 	 * @return 始终返回 true
 	 */
-	virtual bool OnClickItem(const EventArgs& param);
+	virtual bool OnDoubleClickItem(const EventArgs& args);
 
 	/** 设置子项所属的树容器
 	 * @param[in] pTreeView 容器指针
@@ -160,9 +160,10 @@ public:
 	int32_t GetIndent() const { return m_iIndent;	}
 
 	/** 设置子节点缩进值
-	 * @param[in] indent 要设置的缩进值, 单位为像素
+	 * @param [in] indent 要设置的缩进值, 单位为像素
+	 * @param [in] bNeedDpiScale 是否需要DPI缩放
 	 */
-	void SetIndent(int32_t indent);
+	void SetIndent(int32_t indent, bool bNeedDpiScale);
 
 private:
 	//以下函数故意私有化，表明禁止使用；应该使用TreeNode中的相关函数

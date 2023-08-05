@@ -21,9 +21,9 @@ void TreeNode::SetTreeView(TreeView* pTreeView)
     m_pTreeView = pTreeView;
 }
 
-bool TreeNode::OnClickItem(const EventArgs& param)
+bool TreeNode::OnDoubleClickItem(const EventArgs& args)
 {
-    TreeNode* pItem = dynamic_cast<TreeNode*>(param.pSender);
+    TreeNode* pItem = dynamic_cast<TreeNode*>(args.pSender);
 	ASSERT(pItem != nullptr);
 	if (pItem != nullptr) {
 		pItem->SetExpand(!pItem->IsExpand(), true);
@@ -88,7 +88,7 @@ bool TreeNode::AddChildNodeAt(TreeNode* pTreeNode, size_t iIndex)
 	if (GetWindow() != nullptr) {
 		GetWindow()->InitControls(pTreeNode, nullptr);
 	}
-	pTreeNode->AttachEvent(kEventClick, nbase::Bind(&TreeNode::OnClickItem, this, std::placeholders::_1));
+	pTreeNode->AttachEvent(kEventMouseDoubleClick, nbase::Bind(&TreeNode::OnDoubleClickItem, this, std::placeholders::_1));
 
 	UiPadding padding = GetLayout()->GetPadding();
 	size_t nodeIndex = 0;
@@ -96,7 +96,7 @@ bool TreeNode::AddChildNodeAt(TreeNode* pTreeNode, size_t iIndex)
 		nodeIndex = GetListBoxIndex() + 1;
 		padding.left += m_pTreeView->GetIndent();
 	}
-	pTreeNode->GetLayout()->SetPadding(padding, true);
+	pTreeNode->GetLayout()->SetPadding(padding, false);
 
 	size_t nGlobalIndex = iIndex;
 	for (size_t i = 0; i < iIndex; i++)	{
@@ -224,16 +224,19 @@ std::wstring TreeView::GetType() const { return DUI_CTR_TREEVIEW; }
 void TreeView::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
 	if( strName == L"indent" ) {
-		SetIndent(_wtoi(strValue.c_str()));
+		SetIndent(_wtoi(strValue.c_str()), true);
 	}
 	else {
 		ListBox::SetAttribute(strName, strValue);
 	}
 }
 
-void TreeView::SetIndent(int32_t indent)
+void TreeView::SetIndent(int32_t indent, bool bNeedDpiScale)
 {
 	ASSERT(indent >= 0);
+	if (bNeedDpiScale) {
+		GlobalManager::Instance().Dpi().ScaleInt(indent);
+	}
 	if (indent >= 0) {
 		m_iIndent = indent;
 	}	
