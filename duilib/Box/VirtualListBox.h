@@ -24,13 +24,13 @@ public:
     /** 创建一个数据项
     * @return 返回创建后的数据项指针
     */
-    virtual Control* CreateElement() = 0;
+    virtual ui::Control* CreateElement() = 0;
 
     /** 填充指定数据项
     * @param [in] pControl 数据项控件指针
     * @param [in] nElementIndex 数据元素的索引ID，范围：[0, GetElementCount())
     */
-    virtual bool FillElement(Control* pControl, size_t nElementIndex) = 0;
+    virtual bool FillElement(ui::Control* pControl, size_t nElementIndex) = 0;
 
     /** 获取数据项总数
     * @return 返回数据项总数

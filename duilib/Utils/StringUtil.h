@@ -62,6 +62,12 @@ public:
 	// find all tokens splitted by one of the characters in 'delimitor'
 	static std::list<std::string> Split(const std::string& input, const std::string& delimitor);
 	static std::list<std::wstring> Split(const std::wstring& input, const std::wstring& delimitor);
+
+	//比较字符串是否相等，比较时忽略大小写
+	static bool IsEqualNoCase(const std::wstring& lhs, const std::wstring& rhs);
+	static bool IsEqualNoCase(const wchar_t* lhs, const std::wstring& rhs);
+	static bool IsEqualNoCase(const std::wstring& lhs, const wchar_t* rhs);
+	static bool IsEqualNoCase(const wchar_t* lhs, const wchar_t* rhs);
 };
 
 }

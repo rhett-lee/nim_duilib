@@ -286,7 +286,12 @@ std::wstring StringHelper::JoinFilePath(const std::wstring& path1, const std::ws
 
 bool StringHelper::IsExistsPath(const std::wstring& strFilePath)
 {
-	return std::filesystem::exists(strFilePath);
+	try {
+		return std::filesystem::exists(strFilePath);
+	}
+	catch (...) {
+		return false;
+	}
 }
 
 bool StringHelper::IsRelativePath(const std::wstring& strFilePath)
@@ -547,6 +552,61 @@ std::list<std::wstring> StringHelper::Split(const std::wstring& input, const std
 
 
 	return output;
+}
+
+static bool IsEqualNoCasePrivate(const wchar_t* lhs, const wchar_t* rhs)
+{
+	if (lhs == rhs) {
+		return true;
+	}
+	for (;;) {
+		if (*lhs == *rhs) {
+			if (*lhs++ == 0) {
+				return true;
+			}
+			rhs++;
+			continue;
+		}
+		if (towupper(*lhs++) == towupper(*rhs++)) {
+			continue;
+		}
+		return false;
+	}
+}
+
+bool StringHelper::IsEqualNoCase(const std::wstring& lhs, const std::wstring& rhs)
+{
+	if (lhs.size() != rhs.size()) {
+		return false;
+	}
+	return IsEqualNoCasePrivate(lhs.c_str(), rhs.c_str());
+}
+
+bool StringHelper::IsEqualNoCase(const wchar_t* lhs, const std::wstring& rhs)
+{
+	if (lhs == nullptr) {
+		return false;
+	}
+	return IsEqualNoCasePrivate(lhs, rhs.c_str());
+}
+
+bool StringHelper::IsEqualNoCase(const std::wstring& lhs, const wchar_t* rhs)
+{
+	if (rhs == nullptr) {
+		return false;
+	}
+	return IsEqualNoCasePrivate(lhs.c_str(), rhs);
+}
+
+bool StringHelper::IsEqualNoCase(const wchar_t* lhs, const wchar_t* rhs)
+{
+	if (lhs == nullptr) {
+		return (rhs == nullptr) ? true : false;
+	}
+	else if (rhs == nullptr) {
+		return (lhs == nullptr) ? true : false;
+	}
+	return IsEqualNoCasePrivate(lhs, rhs);
 }
 
 } // namespace nbase

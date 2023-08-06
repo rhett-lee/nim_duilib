@@ -219,6 +219,10 @@ void Control::SetBorderColor(const std::wstring& strBorderColor)
 void Control::SetBorderSize(UiRect rc)
 {
 	GlobalManager::Instance().Dpi().ScaleRect(rc);
+	rc.left = std::max(rc.left, 0);
+	rc.top = std::max(rc.top, 0);
+	rc.right = std::max(rc.right, 0);
+	rc.bottom = std::max(rc.bottom, 0);
 	m_rcBorderSize = rc;
 	Invalidate();
 }
@@ -935,8 +939,9 @@ void Control::SetAttribute(const std::wstring& strName, const std::wstring& strV
 			SetBorderSize(rcBorder);
 		}
 		else {
-			UiRect rcBorder;
-			AttributeUtil::ParseRectValue(strValue.c_str(), rcBorder);
+			UiMargin rcMargin;
+			AttributeUtil::ParseMarginValue(strValue.c_str(), rcMargin);
+			UiRect rcBorder(rcMargin.left, rcMargin.top, rcMargin.right, rcMargin.bottom);
 			SetBorderSize(rcBorder);
 		}
 	}
