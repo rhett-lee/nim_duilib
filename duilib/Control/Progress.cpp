@@ -158,7 +158,7 @@ void Progress::SetAttribute(const std::wstring& srName, const std::wstring& strV
 	}
 }
 
-void Progress::PaintStatusImage(IRender* pRender)
+void Progress::PaintStateImages(IRender* pRender)
 {
 	ASSERT(pRender != nullptr);
 	if (pRender == nullptr) {

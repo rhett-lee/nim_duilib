@@ -43,13 +43,13 @@ void CircleProgress::SetAttribute(const std::wstring& srName, const std::wstring
 	}
 }
 
-void CircleProgress::PaintStatusImage(IRender* pRender)
+void CircleProgress::PaintStateImages(IRender* pRender)
 {
 	ASSERT(pRender != nullptr);
 	if (pRender == nullptr) {
 		return;
 	}
-	Progress::PaintStatusImage(pRender);
+	Progress::PaintStateImages(pRender);
 	if (!m_bCircular) {
 		return;
 	}

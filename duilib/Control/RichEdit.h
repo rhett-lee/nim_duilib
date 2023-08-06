@@ -845,7 +845,7 @@ public:
 	 * @param[in] pRender 绘制引擎
 	 * @return 无
 	 */
-	virtual void PaintStatusImage(IRender* pRender) override;
+	virtual void PaintStateImages(IRender* pRender) override;
 
 	/**
 	 * @brief 设置失去焦点后是否取消选择项

@@ -187,7 +187,7 @@ void PlaceHolder::SetEstimateSize(const UiEstSize& szEstimateSize, const UiSize&
 	m_estResult.m_szEstimateSize = szEstimateSize;
 }
 
-void PlaceHolder::SetMinWidth(int cx)
+void PlaceHolder::SetMinWidth(int32_t cx)
 {
 	ASSERT(cx >= 0);
 	if (cx < 0) {
@@ -206,7 +206,7 @@ void PlaceHolder::SetMinWidth(int cx)
 	}
 }
 
-void PlaceHolder::SetMaxWidth(int cx)
+void PlaceHolder::SetMaxWidth(int32_t cx)
 {
 	ASSERT(cx >= 0);
 	if (cx < 0) {
@@ -226,7 +226,7 @@ void PlaceHolder::SetMaxWidth(int cx)
 	}
 }
 
-void PlaceHolder::SetMinHeight(int cy)
+void PlaceHolder::SetMinHeight(int32_t cy)
 {
 	ASSERT(cy >= 0);
 	if (cy < 0) {
@@ -245,7 +245,7 @@ void PlaceHolder::SetMinHeight(int cy)
 	}
 }
 
-void PlaceHolder::SetMaxHeight(int cy)
+void PlaceHolder::SetMaxHeight(int32_t cy)
 {
 	ASSERT(cy >= 0);
 	if (cy < 0) {

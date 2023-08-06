@@ -1320,8 +1320,8 @@ namespace ui
 
 		PaintBkColor(pRender);
 		PaintBkImage(pRender);
-		PaintStatusColor(pRender);
-		PaintStatusImage(pRender);
+		PaintStateColors(pRender);
+		PaintStateImages(pRender);
 		//PaintText(pRender);
 		PaintBody(pRender);
 		PaintBorder(pRender);

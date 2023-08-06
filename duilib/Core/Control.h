@@ -25,7 +25,7 @@ namespace ui
 class UILIB_API Control : 
 	public PlaceHolder
 {
-	typedef std::map<int, CEventSource> GifEventMap;
+	typedef std::map<int32_t, CEventSource> GifEventMap;
 public:
 	Control();
 	Control(const Control& r) = delete;
@@ -173,51 +173,51 @@ public:
 	 * @brief 获取左侧边框大小
 	 * @return 左侧边框的大小  
 	 */
-	int GetLeftBorderSize() const;
+	int32_t GetLeftBorderSize() const;
 
 	/**
 	 * @brief 设置左侧边框大小
 	 * @param[in] nSize 要设置的左侧边框大小
 	 * @return 无
 	 */
-	void SetLeftBorderSize(int nSize);
+	void SetLeftBorderSize(int32_t nSize);
 
 	/**
 	 * @brief 获取顶部边框大小
 	 * @return 顶部边框大小
 	 */
-	int GetTopBorderSize() const;
+	int32_t GetTopBorderSize() const;
 
 	/**
 	 * @brief 设置顶部边框大小
 	 * @param[in] nSize 要设置的上方边框大小
 	 * @return 无
 	 */
-	void SetTopBorderSize(int nSize);
+	void SetTopBorderSize(int32_t nSize);
 
 	/**
 	 * @brief 获取右侧边框大小
 	 * @return 右侧的边框大小
 	 */
-	int GetRightBorderSize() const;
+	int32_t GetRightBorderSize() const;
 
 	/**
 	 * @brief 设置右侧边框大小
 	 * @param[in] nSize 要设置的右侧边框大小
 	 * @return 无
 	 */
-	void SetRightBorderSize(int nSize);
+	void SetRightBorderSize(int32_t nSize);
 
 	/**
 	 * @brief 获取下方边框大小
 	 * @return 下方边框大小
 	 */
-	int GetBottomBorderSize() const;
+	int32_t GetBottomBorderSize() const;
 
 	/**@brief 设置下方边框大小
 	 * @param[in] nSize 要设置的下方边框大小
 	 */
-	void SetBottomBorderSize(int nSize);
+	void SetBottomBorderSize(int32_t nSize);
 
 	/**@brief 获取边框大小
 	 * @return 四个方向的边框大小
@@ -294,13 +294,13 @@ public:
 	 * @param[in] nWidth 要设置的宽度值
 	 * @return 无
 	 */
-	virtual void SetToolTipWidth(int nWidth);
+	virtual void SetToolTipWidth(int32_t nWidth);
 
 	/**
 	 * @brief 获取鼠标悬浮到控件上提示的文本单行最大宽度
 	 * @return 当前提示文本最大宽度
 	 */
-	virtual int GetToolTipWidth(void) const;
+	virtual int32_t GetToolTipWidth(void) const;
 
     /// 菜单
 	/**
@@ -561,7 +561,7 @@ public:
 	 */
 	bool PaintImage(IRender* pRender, Image& duiImage,
 				    const std::wstring& strModify = L"",
-		            int nFade = DUI_NOSET_VALUE,
+		            int32_t nFade = DUI_NOSET_VALUE,
 		            IMatrix* pMatrix = nullptr);
 
 	/**
@@ -623,7 +623,7 @@ public:
 	 * @brief 获取控件透明度
 	 * @return 返回控件的透明度
 	 */
-	int GetAlpha() const { return m_nAlpha;	}
+	int32_t GetAlpha() const { return m_nAlpha;	}
 
 	/**
 	 * @brief 检查控件是否有透明属性
@@ -655,7 +655,7 @@ public:
 	 * @brief 获取焦点状态透明度
 	 * @return 返回控件焦点状态的透明度
 	 */
-	int GetHotAlpha() const { return m_nHotAlpha; }
+	int32_t GetHotAlpha() const { return m_nHotAlpha; }
 
 	/**
 	 * @brief 获取控件绘制偏移量
@@ -690,7 +690,7 @@ public:
 	 * @param[in] 播放完成停止在哪一帧，可设置第一帧、当前帧和最后一帧。请参考 GifStopType 枚举
 	 * @return 无
 	 */
-	void StartGifPlayForUI(GifStopType frame = kGifStopFirst,int playcount = -1);
+	void StartGifPlayForUI(GifStopType frame = kGifStopFirst,int32_t playcount = -1);
 
 	/**
 	 * @brief 停止播放 GIF
@@ -712,7 +712,7 @@ public:
     * @param[in] start_angle loading图片旋转的角度
     * @return 无
     */
-    void StartLoading(int fStartAngle = -1);
+    void StartLoading(int32_t fStartAngle = -1);
 
     /**
     * @brief 关闭loading状态
@@ -970,8 +970,8 @@ protected:
 	virtual void PaintShadow(IRender* pRender);
 	virtual void PaintBkColor(IRender* pRender);
 	virtual void PaintBkImage(IRender* pRender);
-	virtual void PaintStatusColor(IRender* pRender);
-	virtual void PaintStatusImage(IRender* pRender);
+	virtual void PaintStateColors(IRender* pRender);
+	virtual void PaintStateImages(IRender* pRender);
 	virtual void PaintText(IRender* pRender);
 	virtual void PaintBorder(IRender* pRender);
 	virtual void PaintLoading(IRender* pRender);
@@ -994,17 +994,17 @@ protected:
 	void SetPaintRect(const UiRect& rect);
 
 private:
-	void BroadcastGifEvent(int nVirtualEvent);
+	void BroadcastGifEvent(int32_t nVirtualEvent);
 	size_t GetGifFrameIndex(GifStopType frame);
 
 	/** 绘制边框：根据条件判断绘制圆角矩形边框还是普通矩形边框
 	*/
 	void PaintBorders(IRender* pRender, UiRect rcDraw, 
-		              int nBorderSize, UiColor dwBorderColor) const;
+		              int32_t nBorderSize, UiColor dwBorderColor) const;
 
     /** 绘制圆角矩形
 	*/
-	void DrawRoundRect(IRender* pRender, const UiRect& rc, const UiSize& roundSize, UiColor dwBorderColor, int nBorderSize) const;
+	void DrawRoundRect(IRender* pRender, const UiRect& rc, const UiSize& roundSize, UiColor dwBorderColor, int32_t nBorderSize) const;
 
 	/** 填充圆角矩形
 	*/
@@ -1072,7 +1072,7 @@ private:
 	GifEventMap m_OnGifEvent;
 
 	//GIF背景图片播放完成事件的ID
-	const int m_nVirtualEventGifStop = 1;	
+	const int32_t m_nVirtualEventGifStop = 1;	
 
 private:
 	/** 控件状态
@@ -1092,7 +1092,7 @@ private:
 	bool m_bIsLoading;
 
 	//加载中图片旋转的角度（0-360）
-	int m_fCurrrentAngele;
+	int32_t m_fCurrrentAngele;
 
 	//加载中状态时显示的图片
 	std::unique_ptr<Image> m_loadingImage;
@@ -1111,10 +1111,10 @@ private:
 	UiPoint m_renderOffset;
 	
 	//控件的透明度（0 - 255，0为完全透明，255为不透明）
-	int m_nAlpha;
+	int32_t m_nAlpha;
 
 	//控件为Hot状态时的透明度（0 - 255，0为完全透明，255为不透明）
-	int m_nHotAlpha;
+	int32_t m_nHotAlpha;
 
 	//是否对绘制范围做剪裁限制
 	bool m_bClip;
@@ -1130,7 +1130,7 @@ private:
 
 private:
 	//ToolTip的宽度
-	int m_nTooltipWidth;
+	int32_t m_nTooltipWidth;
 
 	//ToolTip的文本内容
 	std::wstring m_sToolTipText;

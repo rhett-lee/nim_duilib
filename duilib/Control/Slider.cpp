@@ -166,14 +166,14 @@ void Slider::PaintBkColor(IRender* pRender)
 	SetRect(rc);
 }
 
-void Slider::PaintStatusImage(IRender* pRender)
+void Slider::PaintStateImages(IRender* pRender)
 {
 	UiRect rc = GetRect();
 	const UiPadding& padding = m_rcProgressBarPadding;
 	rc.Deflate(padding);
 	SetRect(rc);
 
-	Progress::PaintStatusImage(pRender);
+	Progress::PaintStateImages(pRender);
 
 	rc = GetRect();
 	rc.Inflate(padding.left, padding.top, padding.right, padding.bottom);

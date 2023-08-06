@@ -191,7 +191,7 @@ public:
 	/** 设置最大高度
 	 * @param[in] cy 要设置的最大高度（包含内边距，不包含外边距）（值 >= 0）
 	 */
-	void SetMaxHeight(int cy);
+	void SetMaxHeight(int32_t cy);
 
 	/** 获取实际宽度（包括内边距，不包括外边距）
 	 */

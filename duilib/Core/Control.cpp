@@ -227,48 +227,48 @@ void Control::SetBorderSize(UiRect rc)
 	Invalidate();
 }
 
-int Control::GetLeftBorderSize() const
+int32_t Control::GetLeftBorderSize() const
 {
 	return m_rcBorderSize.left;
 }
 
-void Control::SetLeftBorderSize(int nSize)
+void Control::SetLeftBorderSize(int32_t nSize)
 {
 	GlobalManager::Instance().Dpi().ScaleInt(nSize);
 	m_rcBorderSize.left = nSize;
 	Invalidate();
 }
 
-int Control::GetTopBorderSize() const
+int32_t Control::GetTopBorderSize() const
 {
 	return m_rcBorderSize.top;
 }
 
-void Control::SetTopBorderSize(int nSize)
+void Control::SetTopBorderSize(int32_t nSize)
 {
 	GlobalManager::Instance().Dpi().ScaleInt(nSize);
 	m_rcBorderSize.top = nSize;
 	Invalidate();
 }
 
-int Control::GetRightBorderSize() const
+int32_t Control::GetRightBorderSize() const
 {
 	return m_rcBorderSize.right;
 }
 
-void Control::SetRightBorderSize(int nSize)
+void Control::SetRightBorderSize(int32_t nSize)
 {
 	GlobalManager::Instance().Dpi().ScaleInt(nSize);
 	m_rcBorderSize.right = nSize;
 	Invalidate();
 }
 
-int Control::GetBottomBorderSize() const
+int32_t Control::GetBottomBorderSize() const
 {
 	return m_rcBorderSize.bottom;
 }
 
-void Control::SetBottomBorderSize(int nSize)
+void Control::SetBottomBorderSize(int32_t nSize)
 {
 	GlobalManager::Instance().Dpi().ScaleInt(nSize);
 	m_rcBorderSize.bottom = nSize;
@@ -282,8 +282,8 @@ const UiSize& Control::GetBorderRound() const
 
 void Control::SetBorderRound(UiSize cxyRound)
 {
-	int cx = cxyRound.cx;
-	int cy = cxyRound.cy;
+	int32_t cx = cxyRound.cx;
+	int32_t cy = cxyRound.cy;
 	ASSERT(cx >= 0);
 	ASSERT(cy >= 0);
 	if ((cx < 0) || (cy < 0)) {
@@ -377,13 +377,13 @@ void Control::SetUTF8ToolTipTextId(const std::string& strTextId)
 	SetToolTipTextId(strOut);
 }
 
-void Control::SetToolTipWidth( int nWidth )
+void Control::SetToolTipWidth( int32_t nWidth )
 {
 	GlobalManager::Instance().Dpi().ScaleInt(nWidth);
 	m_nTooltipWidth = nWidth;
 }
 
-int Control::GetToolTipWidth(void) const
+int32_t Control::GetToolTipWidth(void) const
 {
 	return m_nTooltipWidth;
 }
@@ -931,7 +931,7 @@ void Control::SetAttribute(const std::wstring& strName, const std::wstring& strV
 	else if ((strName == L"border_size") || (strName == L"bordersize")){
 		std::wstring nValue = strValue;
 		if (nValue.find(L',') == std::wstring::npos) {
-			int nBorderSize = _wtoi(strValue.c_str());
+			int32_t nBorderSize = _wtoi(strValue.c_str());
 			if (nBorderSize < 0) {
 				nBorderSize = 0;
 			}
@@ -1220,7 +1220,7 @@ bool Control::OnApplyAttributeList(const std::wstring& strReceiver, const std::w
 }
 
 bool Control::PaintImage(IRender* pRender,  Image& duiImage,
-					    const std::wstring& strModify, int nFade, IMatrix* pMatrix)
+					    const std::wstring& strModify, int32_t nFade, IMatrix* pMatrix)
 {
 	//注解：strModify参数，目前外部传入的主要是："destscale='false' dest='%d,%d,%d,%d'"
 	//                   也有一个类传入了：L" corner='%d,%d,%d,%d'"。
@@ -1508,13 +1508,13 @@ void Control::Paint(IRender* pRender, const UiRect& rcPaint)
 	}	
 
 	//绘制其他内容
-	PaintBkColor(pRender);
-	PaintBkImage(pRender);
-	PaintStatusColor(pRender);
-	PaintStatusImage(pRender);
-	PaintText(pRender);
-	PaintBorder(pRender);
-    PaintLoading(pRender);
+	PaintBkColor(pRender);		//背景颜色
+	PaintBkImage(pRender);		//背景图片，无状态
+	PaintStateColors(pRender);	//控件指定状态的颜色：普通状态、焦点状态、按下状态、禁用状态
+	PaintStateImages(pRender);	//先绘制背景图片，然后绘制前景图片，每个图片有指定的状态：普通状态、焦点状态、按下状态、禁用状态
+	PaintText(pRender);			//绘制文本
+	PaintBorder(pRender);		//绘制边框
+    PaintLoading(pRender);		//绘制Loading图片，无状态
 }
 
 void Control::PaintShadow(IRender* pRender)
@@ -1546,7 +1546,7 @@ void Control::PaintBkColor(IRender* pRender)
 
 	UiColor dwBackColor = GetUiColor(m_strBkColor);
 	if(dwBackColor.GetARGB() != 0) {
-		int nBorderSize = 0;
+		int32_t nBorderSize = 0;
 		if ((m_rcBorderSize.left > 0) &&
 			(m_rcBorderSize.left == m_rcBorderSize.right) &&
 			(m_rcBorderSize.left == m_rcBorderSize.top) &&
@@ -1591,7 +1591,7 @@ void Control::PaintBorder(IRender* pRender)
 		(m_rcBorderSize.left == m_rcBorderSize.top) &&
 		(m_rcBorderSize.left == m_rcBorderSize.bottom)) {
 		//四个边都存在，且大小相同，则直接绘制矩形, 支持圆角矩形
-		PaintBorders(pRender, GetRect(), (int)m_rcBorderSize.left, dwBorderColor);
+		PaintBorders(pRender, GetRect(), (int32_t)m_rcBorderSize.left, dwBorderColor);
 	}
 	else {
 		//四个边分别按照设置绘制边线
@@ -1631,12 +1631,12 @@ void Control::PaintBorder(IRender* pRender)
 }
 
 void Control::PaintBorders(IRender* pRender, UiRect rcDraw,
-	                       int nBorderSize, UiColor dwBorderColor) const
+	                       int32_t nBorderSize, UiColor dwBorderColor) const
 {
 	if ((pRender == nullptr) || rcDraw.IsEmpty() || (nBorderSize < 1) || (dwBorderColor.GetARGB() == 0)) {
 		return;
 	}
-	int nDeltaValue = nBorderSize / 2;
+	int32_t nDeltaValue = nBorderSize / 2;
 	rcDraw.top += nDeltaValue;
 	rcDraw.bottom -= nDeltaValue;
 	if (nBorderSize % 2 != 0) {
@@ -1733,7 +1733,7 @@ void Control::AddRoundRectPath(IPath* path, const UiRect& rc, const UiSize& roun
 	path->Close();
 }
 
-void Control::DrawRoundRect(IRender* pRender, const UiRect& rc, const UiSize& roundSize, UiColor dwBorderColor, int nBorderSize) const
+void Control::DrawRoundRect(IRender* pRender, const UiRect& rc, const UiSize& roundSize, UiColor dwBorderColor, int32_t nBorderSize) const
 {
 	ASSERT(pRender != nullptr);
 	if (pRender == nullptr) {
@@ -1801,12 +1801,12 @@ void Control::PaintBkImage(IRender* pRender)
 	PaintImage(pRender, *m_bkImage);
 }
 
-void Control::PaintStatusColor(IRender* pRender)
+void Control::PaintStateColors(IRender* pRender)
 {
 	m_colorMap->PaintStateColor(pRender, m_rcPaint, m_controlState);
 }
 
-void Control::PaintStatusImage(IRender* pRender)
+void Control::PaintStateImages(IRender* pRender)
 {
 	m_imageMap->PaintStateImage(pRender, kStateImageBk, m_controlState);
 	m_imageMap->PaintStateImage(pRender, kStateImageFore, m_controlState);
@@ -1839,8 +1839,8 @@ void Control::PaintLoading(IRender* pRender)
 	if (pBitmap == nullptr) {
 		return;
 	}
-	int imageWidth = pBitmap->GetWidth();
-	int imageHeight = pBitmap->GetHeight();
+	int32_t imageWidth = pBitmap->GetWidth();
+	int32_t imageHeight = pBitmap->GetHeight();
 
 	//居中
 	ui::UiRect rcFill = GetRect();
@@ -1929,7 +1929,7 @@ bool Control::GifPlay()
 	if (!m_bkImage->IsPlaying()) {
 		m_bkImage->SetCurrentFrame(0);
 		m_gifWeakFlag.Cancel();
-		int timerInterval = m_bkImage->GetCurrentInterval();//播放间隔：毫秒
+		int32_t timerInterval = m_bkImage->GetCurrentInterval();//播放间隔：毫秒
 		if (timerInterval <= 0) {
 			return false;
 		}
@@ -1941,9 +1941,9 @@ bool Control::GifPlay()
 													    TimerManager::REPEAT_FOREVER);
 	}
 	else {
-		int preInterval = m_bkImage->GetCurrentInterval();
+		int32_t preInterval = m_bkImage->GetCurrentInterval();
 		m_bkImage->IncrementCurrentFrame();
-		int nowInterval = m_bkImage->GetCurrentInterval();
+		int32_t nowInterval = m_bkImage->GetCurrentInterval();
 		if (!m_bkImage->ContinuePlay()) {
 			StopGifPlayForUI(true, kGifStopLast);
 		}
@@ -1981,7 +1981,7 @@ void Control::StopGifPlay(GifStopType frame)
 	}
 }
 
-void Control::StartGifPlayForUI(GifStopType frame, int playcount)
+void Control::StartGifPlayForUI(GifStopType frame, int32_t playcount)
 {
 	LoadImageData(*m_bkImage);
 	if (!m_bkImage->GetImageCache() || !m_bkImage->GetImageCache()->IsMultiFrameImage()) {
@@ -1998,7 +1998,7 @@ void Control::StartGifPlayForUI(GifStopType frame, int playcount)
 		m_gifWeakFlag.Cancel();
 		m_bGifPlay = true;
 		m_bkImage->SetCurrentFrame(GetGifFrameIndex(frame));
-		int timerInterval = m_bkImage->GetCurrentInterval();
+		int32_t timerInterval = m_bkImage->GetCurrentInterval();
 		if (timerInterval <= 0) {
 			m_bGifPlay = false;
 			return;
@@ -2044,7 +2044,7 @@ size_t Control::GetGifFrameIndex(GifStopType frame)
 	}
 	return ret;
 }
-void Control::BroadcastGifEvent(int nVirtualEvent)
+void Control::BroadcastGifEvent(int32_t nVirtualEvent)
 {
 	auto callback = m_OnGifEvent.find(nVirtualEvent);
 	if (callback != m_OnGifEvent.end()) {
@@ -2324,7 +2324,7 @@ bool Control::CanPlaceCaptionBar() const
 	return false;
 }
 
-void Control::StartLoading(int fStartAngle) 
+void Control::StartLoading(int32_t fStartAngle) 
 {
     if (fStartAngle >= 0) {
         m_fCurrrentAngele = fStartAngle;

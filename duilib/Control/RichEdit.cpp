@@ -3157,7 +3157,7 @@ void RichEdit::SetFocusedImage( const std::wstring& strImage )
 	Invalidate();
 }
 
-void RichEdit::PaintStatusImage(IRender* pRender)
+void RichEdit::PaintStateImages(IRender* pRender)
 {
 	if( IsReadOnly() )
 		return;
@@ -3168,7 +3168,7 @@ void RichEdit::PaintStatusImage(IRender* pRender)
 		return;
 	}
 
-	__super::PaintStatusImage(pRender);
+	__super::PaintStateImages(pRender);
 	PaintPromptText(pRender);
 }
 
