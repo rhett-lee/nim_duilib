@@ -12,6 +12,7 @@
 namespace ui 
 {
 	class Control;
+	class ControlLoading;
 	class Image;
 	class IMatrix;
 	class StateColorMap;
@@ -87,26 +88,28 @@ public:
 	 */
 	void SetUTF8BkImage(const std::string& strImage);
 
-    /**
-    * @brief 获取loading状态图片位置
-    * @return loading图片位置
-    */
-    std::wstring GetLoadingImage() const;
-
-    /**
-    * @brief 设置loading图片
-    * @param[in] strImage 要设置的图片路径
-    * @return 无
+public:
+    /** 设置loading图片
+    * @param[in] strImage 要设置的图片路径及属性
     */
     void SetLoadingImage(const std::wstring& strImage);
 
-    /**
-    * @brief 设置loading背景色
+    /** 设置loading背景色
     * @param[in] strColor 背景色
-    * @return 无
     */
     void SetLoadingBkColor(const std::wstring& strColor);
 
+	/** 开启loading状态
+	* @param[in] start_angle loading图片旋转的角度
+	*/
+	void StartLoading(int32_t fStartAngle = -1);
+
+	/** 关闭loading状态
+	* @param[in] frame 播放完成停止在哪一帧，可设置第一帧、当前帧和最后一帧。请参考 GifStopType 枚举
+	*/
+	void StopLoading(GifStopType frame = kGifStopFirst);
+
+public:
 	/**
 	 * @brief 获取指定状态下的图片位置
 	 * @param[in] 要获取何种状态下的图片，参考 ControlStateType 枚举
@@ -707,31 +710,6 @@ public:
 	 */
 	void AttachGifPlayStop(const EventCallback& callback){ m_OnGifEvent[m_nVirtualEventGifStop] += callback; };
 
-    /**
-    * @brief 开启loading状态
-    * @param[in] start_angle loading图片旋转的角度
-    * @return 无
-    */
-    void StartLoading(int32_t fStartAngle = -1);
-
-    /**
-    * @brief 关闭loading状态
-    * @param[in] frame 播放完成停止在哪一帧，可设置第一帧、当前帧和最后一帧。请参考 GifStopType 枚举
-    * @return 无
-    */
-    void StopLoading(GifStopType frame = kGifStopFirst);
-
-    /**
-    * @brief 计算loading图片的旋转角度
-    * @return 无
-    */
-    void Loading();
-    /**
-    * @brief 是否正在loading
-    * @return 在loading返回true, 反之返回false
-    */
-    bool IsLoading();
-
 	/** @brief 获取动画管理器接口
 	 */
 	AnimationManager& GetAnimationManager();
@@ -1104,20 +1082,9 @@ private:
 	std::unique_ptr<StateImageMap> m_pImageMap;
 
 private:
-	//是否处于加载中的状态
-	bool m_bIsLoading;
-
-	//加载中图片旋转的角度（0-360）
-	int32_t m_fCurrrentAngele;
-
-	//加载中状态时显示的图片
-	std::unique_ptr<Image> m_pLoadingImage;
-
-	//加载中状态时的背景颜色
-	UiString m_strLoadingBkColor;
-
-	//加载中状态图片(m_pLoadingImage)的生命周期管理、取消机制
-	nbase::WeakCallbackFlag m_loadingImageFlag;
+	/** 控件"加载中"逻辑的实现接口
+	*/
+	ControlLoading* m_pLoading;
 
 private:
 	//控件动画播放管理器

@@ -288,6 +288,9 @@
     <ClCompile Include="Box\VirtualHTileLayout.cpp">
       <Filter>Box</Filter>
     </ClCompile>
+    <ClCompile Include="Core\ControlLoading.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -630,6 +633,9 @@
       <Filter>Box</Filter>
     </ClInclude>
     <ClInclude Include="Core\UiString.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ControlLoading.h">
       <Filter>Core</Filter>
     </ClInclude>
   </ItemGroup>

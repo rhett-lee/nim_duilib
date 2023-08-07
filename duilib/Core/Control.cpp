@@ -1,9 +1,10 @@
 #include "Control.h"
-#include "duilib/Image/Image.h"
+#include "duilib/Core/ControlLoading.h"
 #include "duilib/Core/Window.h"
 #include "duilib/Core/Box.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/ColorManager.h"
+#include "duilib/Image/Image.h"
 #include "duilib/Render/IRender.h"
 #include "duilib/Render/AutoClip.h"
 #include "duilib/Animation/AnimationPlayer.h"
@@ -23,7 +24,6 @@ Control::Control() :
 	m_bClip(true),
 	m_bGifPlay(true),
 	m_bAllowTabstop(true),
-    m_bIsLoading(false),
 	m_renderOffset(),
 	m_cxyBorderRound(),
 	m_rcPaint(),
@@ -33,7 +33,6 @@ Control::Control() :
 	m_nTooltipWidth(300),
 	m_nAlpha(255),
 	m_nHotAlpha(0),
-    m_fCurrrentAngele(0),
 	m_sToolTipText(),
 	m_sToolTipTextId(),
 	m_sUserDataID(),
@@ -41,30 +40,36 @@ Control::Control() :
 	m_strBorderColor(),
 	m_gifWeakFlag(),	
 	m_loadBkImageWeakFlag(),
-    m_loadingImageFlag(),
 	m_pBoxShadow(nullptr),
 	m_isBoxShadowPainted(false),
 	m_uUserDataID((size_t)-1),
 	m_pOnEvent(nullptr),
 	m_pOnXmlEvent(nullptr),
 	m_pOnBubbledEvent(nullptr),
-	m_pOnXmlBubbledEvent(nullptr)
+	m_pOnXmlBubbledEvent(nullptr),
+	m_pLoading(nullptr)
 {
 }
 
 Control::~Control()
 {
+	//派发最后一个事件
+	SendEvent(kEventLast);
+
 	//清理动画相关资源，避免定时器再产生回调，引发错误
 	if (m_animationManager != nullptr) {
 		m_animationManager->Clear(this);
 	}	
 	m_animationManager.reset();
 
-	SendEvent(kEventLast);
-
 	Window* pWindow = GetWindow();
 	if (pWindow) {
 		pWindow->ReapObjects(this);
+	}
+
+	if (m_pLoading != nullptr) {
+		delete m_pLoading;
+		m_pLoading = nullptr;
 	}
 
 	if (m_pBoxShadow != nullptr) {
@@ -90,7 +95,6 @@ Control::~Control()
 }
 
 std::wstring Control::GetType() const { return DUI_CTR_CONTROL; }
-
 
 AnimationManager& Control::GetAnimationManager()
 {
@@ -178,35 +182,43 @@ void Control::SetUTF8BkImage(const std::string& strImage)
 	SetBkImage(strOut);
 }
 
-std::wstring Control::GetLoadingImage() const 
-{
-	if (m_pLoadingImage != nullptr) {
-		return m_pLoadingImage->GetImageString();
-	}
-	return std::wstring();
-}
-
 void Control::SetLoadingImage(const std::wstring& strImage) 
 {
 	StopGifPlay();
 	if (!strImage.empty()) {
-		if (m_pLoadingImage == nullptr) {
-			m_pLoadingImage = std::make_unique<Image>();
+		if (m_pLoading == nullptr) {
+			m_pLoading = new ControlLoading(this);
 		}
 	}
-	if (m_pLoadingImage != nullptr) {
-		m_pLoadingImage->SetImageString(strImage);
-	}
-	Invalidate();
+	if (m_pLoading != nullptr) {
+		if (m_pLoading->SetLoadingImage(strImage)) {
+			Invalidate();
+		}
+	}	
 }
 
 void Control::SetLoadingBkColor(const std::wstring& strColor) 
 {
-    if (m_strLoadingBkColor == strColor) {
-        return;
-    }
-    m_strLoadingBkColor = strColor;
-    Invalidate();
+	if (m_pLoading != nullptr) {
+		if (m_pLoading->SetLoadingBkColor(strColor)) {
+			Invalidate();
+		}
+	}    
+}
+
+void Control::StartLoading(int32_t fStartAngle)
+{
+	if ((m_pLoading != nullptr) && m_pLoading->StartLoading(fStartAngle)) {
+		SetEnabled(false);
+	}
+}
+
+void Control::StopLoading(GifStopType frame)
+{
+	if (m_pLoading != nullptr) {
+		m_pLoading->StopLoading(frame);
+	}
+	SetEnabled(true);
 }
 
 bool Control::HasImageType(StateImageType stateImageType) const
@@ -1938,66 +1950,9 @@ void Control::PaintText(IRender* /*pRender*/)
 
 void Control::PaintLoading(IRender* pRender)
 {
-	ASSERT(pRender != nullptr);
-	if (pRender == nullptr) {
-		return;
+	if (m_pLoading != nullptr) {
+		m_pLoading->PaintLoading(pRender);
 	}
-    if (!m_bIsLoading || (m_pLoadingImage == nullptr) || m_pLoadingImage->GetImagePath().empty()) {
-        return;
-    }
-
-	LoadImageData(*m_pLoadingImage);
-	std::shared_ptr<ImageInfo> spImageInfo = m_pLoadingImage->GetImageCache();
-	ASSERT(spImageInfo != nullptr);
-    if (!spImageInfo) {
-        return;
-    }
-
-	IBitmap* pBitmap = spImageInfo->GetBitmap(0);
-	ASSERT(pBitmap != nullptr);
-	if (pBitmap == nullptr) {
-		return;
-	}
-	int32_t imageWidth = pBitmap->GetWidth();
-	int32_t imageHeight = pBitmap->GetHeight();
-
-	//居中
-	ui::UiRect rcFill = GetRect();
-	rcFill.left = GetRect().left + (GetRect().Width() - imageWidth) / 2;
-	rcFill.right = rcFill.left + imageWidth;
-	rcFill.top = GetRect().top + (GetRect().Height() - imageHeight) / 2;
-	rcFill.bottom = rcFill.top + imageHeight;
-
-	ui::UiRect rcDest = m_pLoadingImage->GetImageAttribute().GetDestRect();
-	if (!rcDest.IsEmpty()) {
-		rcFill = rcDest;
-		rcFill.Offset(GetRect().left, GetRect().top);
-	}
-
-    if (!m_strLoadingBkColor.empty()) {
-        pRender->FillRect(rcFill, GetUiColor(m_strLoadingBkColor.c_str()));
-    }
-
-	UiRect imageDestRect = rcFill;
-	rcFill.Offset(-GetRect().left, -GetRect().top);
-
-	//图片旋转矩阵
-	IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
-	ASSERT(pRenderFactory != nullptr);
-	if (pRenderFactory == nullptr) {
-		return;
-	}
-	std::unique_ptr<IMatrix> spMatrix(pRenderFactory->CreateMatrix());
-	if (spMatrix != nullptr){
-		spMatrix->RotateAt((float)m_fCurrrentAngele, imageDestRect.Center());
-	}
-	
-	wchar_t modify[64] = { 0 };
-	swprintf_s(modify, L"destscale='false' dest='%d,%d,%d,%d'", rcFill.left, rcFill.top, rcFill.right, rcFill.bottom);	
-	
-	//绘制时需要设置裁剪区域，避免绘制超出范围（因为旋转图片后，图片区域会超出显示区域）
-	AutoClip autoClip(pRender, imageDestRect, true);
-	PaintImage(pRender, *m_pLoadingImage, modify, -1, spMatrix.get());
 }
 
 void Control::SetAlpha(int64_t alpha)
@@ -2487,60 +2442,6 @@ bool Control::IsWantTab() const
 bool Control::CanPlaceCaptionBar() const
 {
 	return false;
-}
-
-void Control::StartLoading(int32_t fStartAngle) 
-{
-    if (fStartAngle >= 0) {
-        m_fCurrrentAngele = fStartAngle;
-    }
-    if (m_bIsLoading) {
-        return;
-    }
-
-    m_bIsLoading = true;
-    SetEnabled(false);
-	GlobalManager::Instance().Timer().AddCancelableTimer(m_loadingImageFlag.GetWeakFlag(), nbase::Bind(&Control::Loading, this),
-        50, TimerManager::REPEAT_FOREVER);
-}
-
-void Control::StopLoading(GifStopType frame) 
-{
-    if (!m_bIsLoading) {
-        return;
-    }
-
-    switch (frame) {
-    case kGifStopFirst:
-        m_fCurrrentAngele = 0;
-        break;
-    case kGifStopCurrent:
-        break;
-    case  kGifStopLast:
-        m_fCurrrentAngele = 360;
-    }
-    m_bIsLoading = false;
-    SetEnabled(true);
-
-    m_loadingImageFlag.Cancel();
-}
-
-void Control::Loading() 
-{
-    if (!m_bIsLoading) {
-        return;
-    }
-    m_fCurrrentAngele += 10;
-    if (m_fCurrrentAngele == INT32_MIN) {
-        m_fCurrrentAngele = 0;
-    }
-
-    Invalidate();
-}
-
-bool Control::IsLoading() 
-{
-    return m_bIsLoading;
 }
 
 bool Control::CheckVisibleAncestor(void) const
