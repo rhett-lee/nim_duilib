@@ -13,6 +13,7 @@ namespace ui
 {
 	class Control;
 	class ControlLoading;
+	class ControlGif;
 	class Image;
 	class IMatrix;
 	class StateColorMap;
@@ -26,7 +27,6 @@ namespace ui
 class UILIB_API Control : 
 	public PlaceHolder
 {
-	typedef std::map<int32_t, CEventSource> GifEventMap;
 public:
 	Control();
 	Control(const Control& r) = delete;
@@ -687,28 +687,22 @@ public:
 	 */
 	void SetRenderOffsetY(int64_t renderOffsetY);
 
-	/// Gif图片
-	/**
-	 * @brief 播放 GIF
-	 * @param[in] 播放完成停止在哪一帧，可设置第一帧、当前帧和最后一帧。请参考 GifStopType 枚举
-	 * @return 无
+	/// 动画图片
+	/** 播放 GIF/WebP/APNG 动画
+	 * @param [in] 播放完成停止在哪一帧，可设置第一帧、当前帧和最后一帧。请参考 GifStopType 枚举
 	 */
-	void StartGifPlayForUI(GifStopType frame = kGifStopFirst,int32_t playcount = -1);
+	bool StartGifPlay(GifStopType frame = kGifStopFirst,int32_t playcount = -1);
 
-	/**
-	 * @brief 停止播放 GIF
-	 * @param[in] transfer 是否将停止事件通知给订阅者，参考 AttachGifPlayStop 方法
-	 * @param[frame] frame 播放结束停止在哪一帧，可设置第一帧、当前帧和最后一帧。请参考 GifStopType 枚举
-	 * @return 无
+	/** 停止播放 GIF/WebP/APNG 动画
+	 * @param [in] transfer 是否将停止事件通知给订阅者，参考 AttachGifPlayStop 方法
+	 * @param [frame] frame 播放结束停止在哪一帧，可设置第一帧、当前帧和最后一帧。请参考 GifStopType 枚举
 	 */
-	void StopGifPlayForUI(bool transfer = false, GifStopType frame = kGifStopCurrent);
+	void StopGifPlay(bool transfer = false, GifStopType frame = kGifStopCurrent);
 
-	/**
-	 * @brief 监听 GIF 播放完成通知
+	/** 监听 GIF 播放完成通知
 	 * @param[in] callback 要监听 GIF 停止播放的回调函数
-	 * @return 无
 	 */
-	void AttachGifPlayStop(const EventCallback& callback){ m_OnGifEvent[m_nVirtualEventGifStop] += callback; };
+	void AttachGifPlayStop(const EventCallback& callback);
 
 	/** @brief 获取动画管理器接口
 	 */
@@ -929,10 +923,6 @@ public:
 	/** @} */
 
 protected:
-	
-	/// Gif等多帧图片，播放动画
-	bool GifPlay();
-	void StopGifPlay(GifStopType frame = kGifStopCurrent);
 
 	//处理放弃控件焦点相关逻辑
 	void EnsureNoFocus();
@@ -983,10 +973,11 @@ protected:
 	*/
 	void SetPaintRect(const UiRect& rect);
 
-private:
-	void BroadcastGifEvent(int32_t nVirtualEvent);
-	uint32_t GetGifFrameIndex(GifStopType frame);
+	/** 停止播放GIF动画
+	*/
+	void CheckStopGifPlay(GifStopType frame = kGifStopCurrent);
 
+private:
 	/** 绘制边框：根据条件判断绘制圆角矩形边框还是普通矩形边框
 	*/
 	void PaintBorders(IRender* pRender, UiRect rcDraw, 
@@ -1051,22 +1042,7 @@ private:
 	UiString m_strBkColor;
 
 	//控件的背景图片
-	std::unique_ptr<Image> m_pBkImage;
-
-	//加载中状态图片(m_pBkImage)的生命周期管理、取消机制
-	nbase::WeakCallbackFlag m_loadBkImageWeakFlag;
-
-	//是否为播放GIF的状态（当背景图片m_pBkImage是GIF文件时，触发此逻辑）
-	bool m_bGifPlay;
-
-	//GIF背景图片播放的取消机制
-	nbase::WeakCallbackFlag m_gifWeakFlag;
-
-    //GIF播放事件的回调注册管理容器(目前只有播放完成一个事件)
-	GifEventMap m_OnGifEvent;
-
-	//GIF背景图片播放完成事件的ID
-	const int32_t m_nVirtualEventGifStop = 1;	
+	std::shared_ptr<Image> m_pBkImage;
 
 private:
 	/** 控件状态
@@ -1086,6 +1062,10 @@ private:
 	*/
 	ControlLoading* m_pLoading;
 
+	/** 控件背景动态播放动画的逻辑封装（支持GIF/WebP/APNG动画）
+	*/
+	ControlGif* m_pGif;
+
 private:
 	//控件动画播放管理器
 	std::unique_ptr<AnimationManager> m_animationManager;
@@ -1094,10 +1074,10 @@ private:
 	UiPoint m_renderOffset;
 	
 	//控件的透明度（0 - 255，0为完全透明，255为不透明）
-	int32_t m_nAlpha;
+	uint8_t m_nAlpha;
 
 	//控件为Hot状态时的透明度（0 - 255，0为完全透明，255为不透明）
-	int32_t m_nHotAlpha;
+	uint8_t m_nHotAlpha;
 
 	//是否对绘制范围做剪裁限制
 	bool m_bClip;

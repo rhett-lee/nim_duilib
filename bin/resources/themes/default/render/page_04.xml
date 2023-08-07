@@ -23,10 +23,10 @@
         <Label width="140" height="auto" text="GIF格式" align="center" margin="8"/>            
     </HBox>
     <HBox width="auto" height="auto">           
-        <Control width="auto" height="auto" bkimage="file='gif_test.gif' width='150'" valign="center" margin="8"/>            
-        <Control width="auto" height="auto" bkimage="file='apng_test.png' width='150'" valign="center" margin="8"/>
-        <Control width="auto" height="auto" bkimage="file='apng_test2.png' width='150'" valign="center" margin="8"/>
-        <Control width="auto" height="auto" bkimage="file='webp_test.webp' width='150'" valign="center" margin="8"/>
+        <Control width="auto" height="auto" bkimage="file='gif_test.gif' width='150' playcount='-1'" valign="center" margin="8"/>            
+        <Control width="auto" height="auto" bkimage="file='apng_test.png' width='150' playcount='-1'" valign="center" margin="8"/>
+        <Control width="auto" height="auto" bkimage="file='apng_test2.png' width='150' playcount='-1'" valign="center" margin="8"/>
+        <Control width="auto" height="auto" bkimage="file='webp_test.webp' width='150' playcount='-1'" valign="center" margin="8"/>
     </HBox>
     <HBox width="auto" height="auto">
         <Label width="150" height="auto" text="GIF格式动画" align="center" margin="8"/>

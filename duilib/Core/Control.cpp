@@ -1,5 +1,6 @@
 #include "Control.h"
 #include "duilib/Core/ControlLoading.h"
+#include "duilib/Core/ControlGif.h"
 #include "duilib/Core/Window.h"
 #include "duilib/Core/Box.h"
 #include "duilib/Core/GlobalManager.h"
@@ -22,7 +23,6 @@ Control::Control() :
 	m_bMouseFocused(false),
 	m_bNoFocus(false),
 	m_bClip(true),
-	m_bGifPlay(true),
 	m_bAllowTabstop(true),
 	m_renderOffset(),
 	m_cxyBorderRound(),
@@ -38,8 +38,6 @@ Control::Control() :
 	m_sUserDataID(),
 	m_strBkColor(),
 	m_strBorderColor(),
-	m_gifWeakFlag(),	
-	m_loadBkImageWeakFlag(),
 	m_pBoxShadow(nullptr),
 	m_isBoxShadowPainted(false),
 	m_uUserDataID((size_t)-1),
@@ -47,7 +45,8 @@ Control::Control() :
 	m_pOnXmlEvent(nullptr),
 	m_pOnBubbledEvent(nullptr),
 	m_pOnXmlBubbledEvent(nullptr),
-	m_pLoading(nullptr)
+	m_pLoading(nullptr),
+	m_pGif(nullptr)
 {
 }
 
@@ -70,6 +69,10 @@ Control::~Control()
 	if (m_pLoading != nullptr) {
 		delete m_pLoading;
 		m_pLoading = nullptr;
+	}
+	if (m_pGif != nullptr) {
+		delete m_pGif;
+		m_pGif = nullptr;
 	}
 
 	if (m_pBoxShadow != nullptr) {
@@ -159,18 +162,14 @@ std::string Control::GetUTF8BkImage() const
 
 void Control::SetBkImage(const std::wstring& strImage)
 {
-	StopGifPlay();
+	CheckStopGifPlay();
 	if (!strImage.empty()) {
 		if (m_pBkImage == nullptr) {
-			m_pBkImage = std::make_unique<Image>();
+			m_pBkImage = std::make_shared<Image>();
 		}
 	}
 	if (m_pBkImage != nullptr) {
 		m_pBkImage->SetImageString(strImage);
-		m_bGifPlay = m_pBkImage->GetImageAttribute().nPlayCount != 0;
-	}
-	else {
-		m_bGifPlay = false;
 	}
 	RelayoutOrRedraw();
 }
@@ -184,7 +183,7 @@ void Control::SetUTF8BkImage(const std::string& strImage)
 
 void Control::SetLoadingImage(const std::wstring& strImage) 
 {
-	StopGifPlay();
+	CheckStopGifPlay();
 	if (!strImage.empty()) {
 		if (m_pLoading == nullptr) {
 			m_pLoading = new ControlLoading(this);
@@ -557,7 +556,7 @@ void Control::SetVisible(bool bVisible)
 	}
 
 	if (!IsVisible()) {
-		StopGifPlay();
+		CheckStopGifPlay();
 	}
 
 	SendEvent(kEventVisibleChange);
@@ -1352,15 +1351,25 @@ bool Control::PaintImage(IRender* pRender,  Image& duiImage,
 		return false;
 	}
 
-	bool isPlayingGif = false;
-	if ( m_bGifPlay && (m_pBkImage != nullptr) && !m_pBkImage->IsPlaying()   &&
+	bool bBkIsGif = false; //是否满足播放GIF动画的条件
+	if ((m_pBkImage != nullptr) &&
+		(m_pBkImage->GetImageAttribute().nPlayCount != 0) &&
 		(m_pBkImage->GetImageCache() != nullptr) &&
-		 m_pBkImage->GetImageCache()->IsMultiFrameImage()) {
-		isPlayingGif = GifPlay();
+		(m_pBkImage->GetImageCache()->IsMultiFrameImage())) {
+		bBkIsGif = true;
 	}
-	if (isPlayingGif) {
-		//如果正在播放背景动画，则不绘制其他图片
-		return true;
+	if (bBkIsGif && (m_pGif == nullptr)) {
+		//满足播放GIF动画的条件，需要创建GIF播放动画对象
+		m_pGif = new ControlGif(this);
+		m_pBkImage->SetPlaying(false);
+	}
+
+	if (bBkIsGif && (m_pGif != nullptr) && m_pGif->CanGifPlay()) {
+		//自动启动播放GIF动画
+		if ((m_pBkImage != nullptr) && !m_pBkImage->IsPlaying()) {
+			m_pGif->SetBkImage(m_pBkImage);
+			m_pGif->StartGifPlay(false);
+		}
 	}
 
 	IBitmap* pBitmap = duiImage.GetCurrentBitmap();
@@ -1958,15 +1967,19 @@ void Control::PaintLoading(IRender* pRender)
 void Control::SetAlpha(int64_t alpha)
 {
 	ASSERT(alpha >= 0 && alpha <= 255);
-	m_nAlpha = TruncateToInt32(alpha);
-	Invalidate();
+	if (m_nAlpha != (uint8_t)alpha) {
+		m_nAlpha = (uint8_t)alpha;
+		Invalidate();
+	}
 }
 
 void Control::SetHotAlpha(int64_t nHotAlpha)
 {
 	ASSERT(nHotAlpha >= 0 && nHotAlpha <= 255);
-	m_nHotAlpha = TruncateToInt32(nHotAlpha);
-	Invalidate();
+	if (m_nHotAlpha != (uint8_t)nHotAlpha) {
+		m_nHotAlpha = (uint8_t)nHotAlpha;
+		Invalidate();
+	}
 }
 
 void Control::SetTabStop(bool enable)
@@ -1976,170 +1989,90 @@ void Control::SetTabStop(bool enable)
 
 void Control::SetRenderOffset(UiPoint renderOffset)
 {
-	m_renderOffset = renderOffset;
-	Invalidate();
-}
-
-void Control::SetRenderOffsetX(int64_t renderOffsetX)
-{
-	m_renderOffset.x = TruncateToInt32(renderOffsetX);
-	Invalidate();
-}
-
-void Control::SetRenderOffsetY(int64_t renderOffsetY)
-{
-	m_renderOffset.y = TruncateToInt32(renderOffsetY);
-	Invalidate();
-}
-
-bool Control::GifPlay()
-{
-	if (m_pBkImage == nullptr) {
-		return false;
-	}
-	if (!m_pBkImage->GetImageCache() || 
-		!m_pBkImage->GetImageCache()->IsMultiFrameImage() || 
-		!m_pBkImage->ContinuePlay()) {
-		m_pBkImage->SetPlaying(false);
-		m_gifWeakFlag.Cancel();
-		return false;
-	}
-
-	if (!m_pBkImage->IsPlaying()) {
-		m_pBkImage->SetCurrentFrame(0);
-		m_gifWeakFlag.Cancel();
-		int32_t timerInterval = m_pBkImage->GetCurrentInterval();//播放间隔：毫秒
-		if (timerInterval <= 0) {
-			return false;
-		}
-		m_pBkImage->SetPlaying(true);
-		auto gifPlayCallback = nbase::Bind(&Control::GifPlay, this);
-		GlobalManager::Instance().Timer().AddCancelableTimer(m_gifWeakFlag.GetWeakFlag(),
-													    gifPlayCallback,
-														timerInterval, 
-													    TimerManager::REPEAT_FOREVER);
-	}
-	else {
-		int32_t preInterval = m_pBkImage->GetCurrentInterval();
-		m_pBkImage->IncrementCurrentFrame();
-		int32_t nowInterval = m_pBkImage->GetCurrentInterval();
-		if (!m_pBkImage->ContinuePlay()) {
-			StopGifPlayForUI(true, kGifStopLast);
-		}
-		else
-		{
-			if ((preInterval <= 0) || (nowInterval <= 0)) {
-				m_pBkImage->SetPlaying(false);
-				m_gifWeakFlag.Cancel();
-				return false;
-			}
-
-			if (preInterval != nowInterval) {
-				m_gifWeakFlag.Cancel();
-				m_pBkImage->SetPlaying(true);
-				auto gifPlayCallback = nbase::Bind(&Control::GifPlay, this);
-				GlobalManager::Instance().Timer().AddCancelableTimer(m_gifWeakFlag.GetWeakFlag(),
-																gifPlayCallback,
-																nowInterval, 
-															    TimerManager::REPEAT_FOREVER);
-			}
-		}			
-	}
-	Invalidate();
-	return m_pBkImage->IsPlaying();
-}
-
-void Control::StopGifPlay(GifStopType frame)
-{
-	if ((m_pBkImage == nullptr) || (m_pBkImage->GetImageCache() == nullptr) ){
-		return;
-	}
-	if (m_pBkImage->GetImageCache()->IsMultiFrameImage()) {
-		m_pBkImage->SetPlaying(false);
-		m_gifWeakFlag.Cancel();
-		uint32_t index = GetGifFrameIndex(frame);
-		m_pBkImage->SetCurrentFrame(index);
-		Invalidate();
-	}
-}
-
-void Control::StartGifPlayForUI(GifStopType frame, int32_t playcount)
-{
-	if (m_pBkImage == nullptr) {
-		return;
-	}
-	LoadImageData(*m_pBkImage);
-	if (!m_pBkImage->GetImageCache() || !m_pBkImage->GetImageCache()->IsMultiFrameImage()) {
-		m_bGifPlay = false;
-		m_pBkImage->SetPlaying(false);
-		m_gifWeakFlag.Cancel();
-		return;
-	}
-	if (playcount == 0)	{
-		StopGifPlayForUI(false);
-	}		
-	else
-	{
-		m_gifWeakFlag.Cancel();
-		m_bGifPlay = true;
-		m_pBkImage->SetCurrentFrame(GetGifFrameIndex(frame));
-		int32_t timerInterval = m_pBkImage->GetCurrentInterval();
-		if (timerInterval <= 0) {
-			m_bGifPlay = false;
-			return;
-		}
-		m_pBkImage->SetPlaying(true);
-		m_pBkImage->SetImagePlayCount(playcount);
-		m_pBkImage->ClearCycledCount();
-		auto gifPlayCallback = nbase::Bind(&Control::GifPlay, this);
-		GlobalManager::Instance().Timer().AddCancelableTimer(m_gifWeakFlag.GetWeakFlag(),
-													    gifPlayCallback,
-													    timerInterval, 
-													    TimerManager::REPEAT_FOREVER);
+	if (m_renderOffset != renderOffset) {
+		m_renderOffset = renderOffset;
 		Invalidate();
 	}	
 }
 
-void Control::StopGifPlayForUI(bool transfer, GifStopType frame)
+void Control::SetRenderOffsetX(int64_t renderOffsetX)
 {
-	m_bGifPlay = false;
-	StopGifPlay(frame);
-	if (transfer) {
-		BroadcastGifEvent(m_nVirtualEventGifStop);
+	int32_t x = TruncateToInt32(renderOffsetX);
+	if (m_renderOffset.x != x) {
+		m_renderOffset.x = x;
+		Invalidate();
 	}
 }
 
-uint32_t Control::GetGifFrameIndex(GifStopType frame)
+void Control::SetRenderOffsetY(int64_t renderOffsetY)
 {
-	if ((m_pBkImage == nullptr) || (m_pBkImage->GetImageCache() == nullptr)) {
-		return 0;
+	int32_t y = TruncateToInt32(renderOffsetY);
+	if (m_renderOffset.y != y) {
+		m_renderOffset.y = y;
+		Invalidate();
 	}
-	uint32_t ret = frame;
-	switch (frame)
-	{
-	case kGifStopCurrent:
-		ret = m_pBkImage->GetCurrentFrameIndex();
-		break;
-	case kGifStopFirst:
-		ret = 0;
-		break;
-	case kGifStopLast:
-	{
-		uint32_t nFrameCount = m_pBkImage->GetImageCache()->GetFrameCount();
-		ret = nFrameCount > 0 ? nFrameCount - 1 : 0;		
-	}
-	break;
-	}
-	return ret;
 }
-void Control::BroadcastGifEvent(int32_t nVirtualEvent)
+
+void Control::CheckStopGifPlay(GifStopType frame)
 {
-	auto callback = m_OnGifEvent.find(nVirtualEvent);
-	if (callback != m_OnGifEvent.end()) {
-		EventArgs param;
-		param.pSender = this;
-		callback->second(param);
+	if (m_pGif != nullptr) {
+		if (m_pGif->StopGifPlay(frame)) {
+			Invalidate();
+		}
 	}
+}
+
+bool Control::StartGifPlay(GifStopType frame, int32_t playcount)
+{
+	if (m_pBkImage == nullptr) {
+		return false;
+	}
+	if (playcount < 0) {
+		playcount = -1;
+	}
+	if (playcount == 0) {
+		return false;
+	}
+	LoadImageData(*m_pBkImage);
+	bool bBkIsGif = false; //是否满足播放GIF动画的条件
+	if ((m_pBkImage != nullptr) &&
+		(m_pBkImage->GetImageCache() != nullptr) &&
+		(m_pBkImage->GetImageCache()->IsMultiFrameImage())) {
+		bBkIsGif = true;
+	}
+
+	if (bBkIsGif && (m_pGif == nullptr)) {
+		//满足播放GIF动画的条件，需要创建GIF播放动画对象
+		m_pGif = new ControlGif(this);
+	}
+	bool isPlaying = false;
+	if (bBkIsGif && (m_pGif != nullptr)) {
+		m_pGif->SetBkImage(m_pBkImage);
+		if (m_pGif->StartGifPlayForUI(frame, playcount)) {
+			isPlaying = true;
+		}
+	}
+	if (isPlaying) {
+		Invalidate();
+	}
+	return isPlaying;
+}
+
+void Control::StopGifPlay(bool transfer, GifStopType frame)
+{
+	if (m_pGif != nullptr) {
+		if (m_pGif->StopGifPlayForUI(transfer, frame)) {
+			Invalidate();
+		}
+	}
+}
+
+void Control::AttachGifPlayStop(const EventCallback& callback)
+{
+	if (m_pGif == nullptr) {
+		m_pGif = new ControlGif(this);
+	}
+	m_pGif->AttachGifPlayStop(callback);
 }
 
 bool Control::LoadImageData(Image& duiImage) const
@@ -2169,9 +2102,6 @@ bool Control::LoadImageData(Image& duiImage) const
 
 void Control::InvokeLoadImageCache()
 {
-	if (m_loadBkImageWeakFlag.HasUsed()) {
-		return;
-	}
 	if (m_pBkImage == nullptr) {
 		return;
 	}
@@ -2197,7 +2127,6 @@ void Control::InvokeLoadImageCache()
 
 void Control::UnLoadImageCache()
 {
-	m_loadBkImageWeakFlag.Cancel();
 	if (m_pBkImage != nullptr) {
 		m_pBkImage->ClearImageCache();
 	}	

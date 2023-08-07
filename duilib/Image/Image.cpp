@@ -307,6 +307,9 @@ void ImageAttribute::ModifyAttribute(const std::wstring& strImageString)
 		else if (name == L"playcount") {
 			//如果是GIF、APNG、WEBP等动画图片，可以指定播放次数 -1 ：一直播放，缺省值。
 			imageAttribute.nPlayCount = wcstol(value.c_str(), nullptr, 10);
+			if (imageAttribute.nPlayCount < 0) {
+				imageAttribute.nPlayCount = -1;
+			}
 		}
 		else if (name == L"iconsize") {
 			//指定加载ICO文件的图片大小(仅当图片文件是ICO文件时有效)

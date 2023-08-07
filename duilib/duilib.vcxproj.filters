@@ -291,6 +291,9 @@
     <ClCompile Include="Core\ControlLoading.cpp">
       <Filter>Core</Filter>
     </ClCompile>
+    <ClCompile Include="Core\ControlGif.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -636,6 +639,9 @@
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="Core\ControlLoading.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ControlGif.h">
       <Filter>Core</Filter>
     </ClInclude>
   </ItemGroup>
