@@ -400,7 +400,7 @@ bool ListBox::ScrollItemToTop(const std::wstring& itemName)
 		if ((pControl == nullptr) || !pControl->IsVisible()) {
 			continue;
 		}
-		if (pControl->GetName() == itemName) {
+		if (pControl->IsNameEquals(itemName)) {
 			return ScrollItemToTop(iIndex);
 		}
 	}
@@ -667,7 +667,7 @@ ListBoxItem::ListBoxItem() :
 	m_iElementIndex(Box::InvalidIndex),
 	m_pOwner(nullptr)
 {
-	m_uTextStyle = TEXT_LEFT | TEXT_VCENTER | TEXT_END_ELLIPSIS | TEXT_NOCLIP | TEXT_SINGLELINE;
+	SetTextStyle(TEXT_LEFT | TEXT_VCENTER | TEXT_END_ELLIPSIS | TEXT_NOCLIP | TEXT_SINGLELINE, false);
 }
 
 std::wstring ListBoxItem::GetType() const {  return DUI_CTR_LISTBOX_ITEM; }

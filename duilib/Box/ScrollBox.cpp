@@ -15,12 +15,24 @@ ScrollBox::ScrollBox(Layout* pLayout) :
 	m_bScrollBarFloat(true),
 	m_bVScrollBarLeftPos(false),
 	m_bHoldEnd(false),
-	m_rcScrollBarPadding()
+	m_rcScrollBarPadding(),
+	m_pScrollAnimation(nullptr),
+	m_pRenderOffsetYAnimation(nullptr)
 {
 	m_nVScrollUnitPixels = GlobalManager::Instance().Dpi().GetScaleInt(m_nVScrollUnitPixelsDefault);
 	m_nHScrollUnitPixels = GlobalManager::Instance().Dpi().GetScaleInt(m_nHScrollUnitPixelsDefault);
-	m_scrollAnimation = std::make_unique<AnimationPlayer>();
-	m_renderOffsetYAnimation = std::make_unique<AnimationPlayer>();
+}
+
+ScrollBox::~ScrollBox()
+{
+	if (m_pScrollAnimation != nullptr) {
+		delete m_pScrollAnimation;
+		m_pScrollAnimation = nullptr;
+	}
+	if (m_pRenderOffsetYAnimation != nullptr) {
+		delete m_pRenderOffsetYAnimation;
+		m_pRenderOffsetYAnimation = nullptr;
+	}
 }
 
 std::wstring ScrollBox::GetType() const { return DUI_CTR_SCROLLBOX; }//ScrollBox
@@ -444,11 +456,15 @@ void ScrollBox::SetScrollPos(UiSize64 szPos)
 {
 	if (szPos.cy < 0) {
 		szPos.cy = 0;
-		m_scrollAnimation->Reset();
+		if (m_pScrollAnimation != nullptr) {
+			m_pScrollAnimation->Reset();
+		}		
 	}
 	else if (szPos.cy > GetScrollRange().cy) {
 		szPos.cy = GetScrollRange().cy;
-		m_scrollAnimation->Reset();
+		if (m_pScrollAnimation != nullptr) {
+			m_pScrollAnimation->Reset();
+		}
 	}
 
 	int64_t cx = 0;
@@ -547,25 +563,28 @@ void ScrollBox::LineUp(int deltaValue, bool withAnimation)
 		SetScrollPos(scrollPos);
 	}
 	else {
-		//TODO:
-		m_scrollAnimation->SetStartValue(scrollPos.cy);
-		if (m_scrollAnimation->IsPlaying()) {
-			if (m_scrollAnimation->GetEndValue() > m_scrollAnimation->GetStartValue()) {
-				m_scrollAnimation->SetEndValue(scrollPos.cy - cyLine);
+		if (m_pScrollAnimation == nullptr) {
+			m_pScrollAnimation = new AnimationPlayer;
+		}
+		AnimationPlayer* pScrollAnimation = m_pScrollAnimation;
+		pScrollAnimation->SetStartValue(scrollPos.cy);
+		if (pScrollAnimation->IsPlaying()) {
+			if (pScrollAnimation->GetEndValue() > pScrollAnimation->GetStartValue()) {
+				pScrollAnimation->SetEndValue(scrollPos.cy - cyLine);
 			}
 			else {
-				m_scrollAnimation->SetEndValue(m_scrollAnimation->GetEndValue() - cyLine);
+				pScrollAnimation->SetEndValue(pScrollAnimation->GetEndValue() - cyLine);
 			}
 		}
 		else {
-			m_scrollAnimation->SetEndValue(scrollPos.cy - cyLine);
+			pScrollAnimation->SetEndValue(scrollPos.cy - cyLine);
 		}
-		m_scrollAnimation->SetSpeedUpRatio(0);
-		m_scrollAnimation->SetSpeedDownfactorA(-0.012);
-		m_scrollAnimation->SetSpeedDownRatio(0.5);
-		m_scrollAnimation->SetTotalMillSeconds(DUI_NOSET_VALUE);
-		m_scrollAnimation->SetCallback(nbase::Bind(&ScrollBox::SetScrollPosY, this, std::placeholders::_1));
-		m_scrollAnimation->Start();
+		pScrollAnimation->SetSpeedUpRatio(0);
+		pScrollAnimation->SetSpeedDownfactorA(-0.012);
+		pScrollAnimation->SetSpeedDownRatio(0.5);
+		pScrollAnimation->SetTotalMillSeconds(DUI_NOSET_VALUE);
+		pScrollAnimation->SetCallback(nbase::Bind(&ScrollBox::SetScrollPosY, this, std::placeholders::_1));
+		pScrollAnimation->Start();
 	}
 }
 
@@ -593,24 +612,28 @@ void ScrollBox::LineDown(int deltaValue, bool withAnimation)
 		SetScrollPos(scrollPos);
 	}
 	else {
-		m_scrollAnimation->SetStartValue(scrollPos.cy);
-		if (m_scrollAnimation->IsPlaying()) {
-			if (m_scrollAnimation->GetEndValue() < m_scrollAnimation->GetStartValue()) {
-				m_scrollAnimation->SetEndValue(scrollPos.cy + cyLine);
+		if (m_pScrollAnimation == nullptr) {
+			m_pScrollAnimation = new AnimationPlayer;
+		}
+		AnimationPlayer* pScrollAnimation = m_pScrollAnimation;
+		pScrollAnimation->SetStartValue(scrollPos.cy);
+		if (pScrollAnimation->IsPlaying()) {
+			if (pScrollAnimation->GetEndValue() < pScrollAnimation->GetStartValue()) {
+				pScrollAnimation->SetEndValue(scrollPos.cy + cyLine);
 			}
 			else {
-				m_scrollAnimation->SetEndValue(m_scrollAnimation->GetEndValue() + cyLine);
+				pScrollAnimation->SetEndValue(pScrollAnimation->GetEndValue() + cyLine);
 			}
 		}
 		else {
-			m_scrollAnimation->SetEndValue(scrollPos.cy + cyLine);
+			pScrollAnimation->SetEndValue(scrollPos.cy + cyLine);
 		}
-		m_scrollAnimation->SetSpeedUpRatio(0);
-		m_scrollAnimation->SetSpeedDownfactorA(-0.012);
-		m_scrollAnimation->SetSpeedDownRatio(0.5);
-		m_scrollAnimation->SetTotalMillSeconds(DUI_NOSET_VALUE);
-		m_scrollAnimation->SetCallback(nbase::Bind(&ScrollBox::SetScrollPosY, this, std::placeholders::_1));
-		m_scrollAnimation->Start();
+		pScrollAnimation->SetSpeedUpRatio(0);
+		pScrollAnimation->SetSpeedDownfactorA(-0.012);
+		pScrollAnimation->SetSpeedDownRatio(0.5);
+		pScrollAnimation->SetTotalMillSeconds(DUI_NOSET_VALUE);
+		pScrollAnimation->SetCallback(nbase::Bind(&ScrollBox::SetScrollPosY, this, std::placeholders::_1));
+		pScrollAnimation->Start();
 	}
 }
 void ScrollBox::LineLeft(int detaValue)
@@ -729,8 +752,11 @@ void ScrollBox::EndDown(bool arrange, bool withAnimation)
 	if (arrange) {
 		SetPosInternally(GetPos());
 	}
-	
-	int64_t renderOffsetY = GetScrollRange().cy - GetScrollPos().cy + (m_renderOffsetYAnimation->GetEndValue() - GetRenderOffset().y);
+	int64_t endValue = 0;
+	if (m_pRenderOffsetYAnimation != nullptr) {
+		endValue = m_pRenderOffsetYAnimation->GetEndValue();
+	}
+	int64_t renderOffsetY = GetScrollRange().cy - GetScrollPos().cy + (endValue - GetRenderOffset().y);
 	if (withAnimation == true && IsVScrollBarValid() && renderOffsetY > 0) {
 		PlayRenderOffsetYAnimation(-renderOffsetY);
 	}
@@ -967,16 +993,20 @@ bool ScrollBox::IsHScrollBarValid() const
 
 void ScrollBox::PlayRenderOffsetYAnimation(int64_t nRenderY)
 {
-	m_renderOffsetYAnimation->SetStartValue(nRenderY);
-	m_renderOffsetYAnimation->SetEndValue(0);
-	m_renderOffsetYAnimation->SetSpeedUpRatio(0.3);
-	m_renderOffsetYAnimation->SetSpeedUpfactorA(0.003);
-	m_renderOffsetYAnimation->SetSpeedDownRatio(0.7);
-	m_renderOffsetYAnimation->SetTotalMillSeconds(DUI_NOSET_VALUE);
-	m_renderOffsetYAnimation->SetMaxTotalMillSeconds(650);
+	if (m_pRenderOffsetYAnimation == nullptr) {
+		m_pRenderOffsetYAnimation = new AnimationPlayer;
+	}
+	AnimationPlayer* pRenderOffsetYAnimation = m_pRenderOffsetYAnimation;
+	pRenderOffsetYAnimation->SetStartValue(nRenderY);
+	pRenderOffsetYAnimation->SetEndValue(0);
+	pRenderOffsetYAnimation->SetSpeedUpRatio(0.3);
+	pRenderOffsetYAnimation->SetSpeedUpfactorA(0.003);
+	pRenderOffsetYAnimation->SetSpeedDownRatio(0.7);
+	pRenderOffsetYAnimation->SetTotalMillSeconds(DUI_NOSET_VALUE);
+	pRenderOffsetYAnimation->SetMaxTotalMillSeconds(650);
 	auto playCallback = nbase::Bind(&ScrollBox::SetRenderOffsetY, this, std::placeholders::_1);
-	m_renderOffsetYAnimation->SetCallback(playCallback);
-	m_renderOffsetYAnimation->Start();
+	pRenderOffsetYAnimation->SetCallback(playCallback);
+	pRenderOffsetYAnimation->Start();
 }
 
 bool ScrollBox::IsAtEnd() const
@@ -1061,7 +1091,9 @@ void ScrollBox::ClearImageCache()
 
 void ScrollBox::StopScrollAnimation()
 {
-	m_scrollAnimation->Reset();
+	if (m_pScrollAnimation != nullptr) {
+		m_pScrollAnimation->Reset();
+	}	
 }
 
 UiSize ScrollBox::GetScrollOffset() const

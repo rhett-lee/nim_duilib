@@ -125,7 +125,7 @@ public:
 	 * @brief 获取当前设置的字体索引
 	 * @return 返回字体索引（对应 global.xml 中字体的顺序）
 	 */
-	const std::wstring& GetFontId() const;
+	std::wstring GetFontId() const;
 
 	/**
 	 * @brief 设置字体索引
@@ -983,18 +983,18 @@ protected:
 	int  m_iCaretPosY;
 	int  m_iCaretWidth;
 	int  m_iCaretHeight;
-	std::wstring m_sFontId;
+	UiString m_sFontId;
 	int  m_iLimitText;
 	LONG m_lTwhStyle;
 	VerAlignType m_textVerAlignType;
-	std::wstring m_sCurrentColor;
-	std::wstring m_sTextColor;
-	std::wstring m_sDisabledTextColor;
-	std::wstring m_sPromptColor;
-	std::wstring m_sCaretColor;
-	std::wstring m_sText;
-	std::wstring m_sPromptText;
-	std::wstring m_sPromptTextId;
+	UiString m_sCurrentColor;
+	UiString m_sTextColor;
+	UiString m_sDisabledTextColor;
+	UiString m_sPromptColor;
+	UiString m_sCaretColor;
+	UiString m_sText;
+	UiString m_sPromptText;
+	UiString m_sPromptTextId;
 	nbase::WeakCallbackFlag m_drawCaretFlag;
 	std::weak_ptr<nbase::WeakFlag> m_windowFlag; //记录所属窗体的flag
 	FunGetNaturalSize m_cbGetNaturalSize;
@@ -1003,11 +1003,11 @@ protected:
 	struct LinkInfo
 	{
 		CHARRANGE cr;
-		std::wstring info;
+		UiString info;
 	};
 	std::map<UINT, nbase::WeakCallbackFlag> m_timeFlagMap;
 	std::vector<LinkInfo> m_linkInfo;
-	Image m_sFocusedImage;
+	Image* m_pFocusedImage;
 };
 
 //判断是否是字节： 可打印字符（0x20-0x7e）

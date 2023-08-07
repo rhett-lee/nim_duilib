@@ -18,15 +18,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	UNREFERENCED_PARAMETER(hPrevInstance);
 	UNREFERENCED_PARAMETER(lpCmdLine);
 
-#ifdef _DEBUG
-	//占用：25.6MB内存
-	size_t s0 = sizeof(ui::Control); //864 字节
-	for (size_t index = 0; index < 10 * 10000; ++index) {
-		auto p = new ui::Control;
-	}
-	//占用：536.0MB内存，每个Control控件占用内存约为：5.226 KB
-#endif
-
 	// 创建主线程
 	MainThread thread;
 

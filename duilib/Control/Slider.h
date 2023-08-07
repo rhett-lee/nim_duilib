@@ -85,7 +85,7 @@ protected:
 	UiSize m_szThumb;
 	StateImage m_thumbStateImage;
 	UiPadding m_rcProgressBarPadding;
-	std::wstring m_sImageModify;
+	UiString m_sImageModify;
 };
 
 }

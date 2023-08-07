@@ -190,7 +190,7 @@ public:
 	 * @brief 获取容器布局对象指针
 	 * @return 返回容器关联的布局对象指针
 	 */
-	Layout* GetLayout() const { return m_pLayout.get(); }
+	Layout* GetLayout() const { return m_pLayout; }
 
 	/**
 	 * @brief 重新关联布局对象
@@ -225,7 +225,7 @@ private:
 	bool m_bDelayedDestroy;
 	
 	//布局管理接口
-	std::unique_ptr<Layout> m_pLayout;
+	Layout* m_pLayout;
 
 	//是否允许响应子控件的鼠标消息
 	bool m_bMouseChildEnabled;

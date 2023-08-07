@@ -38,7 +38,11 @@ public:
 
 	/**@brief 获取控件名称，对应 xml 中 name 属性
 	 */
-	const std::wstring& GetName() const { return m_sName; }
+	std::wstring GetName() const;
+
+	/** 判断控件名称是否相等
+	*/
+	bool IsNameEquals(const std::wstring& name) const;
 
 	/**@brief 获取控件名称，对应 xml 中 name 属性
 	 * @return 返回控件名称（UTF8 编码）
@@ -303,7 +307,7 @@ protected:
 
 private:
 	//控件名称，用于查找控件等操作
-	std::wstring m_sName;
+	UiString m_sName;
 
 	//关联的窗口对象
 	Window* m_pWindow;

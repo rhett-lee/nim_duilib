@@ -38,7 +38,7 @@ public:
 	/**@brief 获取背景颜色
 	 * @return 返回背景颜色的字符串，该值在 global.xml 中定义
 	 */
-	const std::wstring& GetBkColor() const { return m_strBkColor; }
+	std::wstring GetBkColor() const { return m_strBkColor.c_str(); }
 
 	/** @brief 设置背景颜色
 	 * @param[in] strColor 要设置的背景颜色值，该值必须在 global.xml 中存在
@@ -155,7 +155,7 @@ public:
 	/**@brief 获取边框颜色
 	 * @return 边框的颜色字符串，对应 global.xml 中的具体颜色值
 	 */
-	const std::wstring& GetBorderColor() const;
+	std::wstring GetBorderColor() const;
 
 	/**
 	 * @brief 设置边框颜色
@@ -734,7 +734,7 @@ public:
 
 	/** @brief 获取动画管理器接口
 	 */
-	AnimationManager& GetAnimationManager() const;
+	AnimationManager& GetAnimationManager();
 
 	/// 图片缓存
 	/**@brief 根据图片路径, 加载图片信息到缓存中。
@@ -898,35 +898,35 @@ public:
 	* @{
 	*/
 
-	/**@brief (m_OnEvent)监听指定事件
+	/**@brief (m_pOnEvent)监听指定事件
 	 * @param[in] type 事件类型，见 EventType 枚举
 	 * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
 	 */
 	void AttachEvent(EventType type, const EventCallback& callback);
 
-	/**@brief (m_OnEvent)取消监听指定事件
+	/**@brief (m_pOnEvent)取消监听指定事件
 	 * @param[in] type 事件类型，见 EventType 枚举
 	 */
 	void DetachEvent(EventType type);
 
-	/**@brief (m_OnXmlEvent)通过XML中，配置<Event标签添加的响应事件，最终由Control::OnApplyAttributeList函数响应具体操作
+	/**@brief (m_pOnXmlEvent)通过XML中，配置<Event标签添加的响应事件，最终由Control::OnApplyAttributeList函数响应具体操作
 	 * @param[in] type 事件类型，见 EventType 枚举
 	 * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
 	 */
 	void AttachXmlEvent(EventType eventType, const EventCallback& callback);
 
-	/**@brief (m_OnXmlEvent)取消监听指定事件
+	/**@brief (m_pOnXmlEvent)取消监听指定事件
 	 * @param[in] type 事件类型，见 EventType 枚举
 	 */
 	void DetachXmlEvent(EventType type);
 
-	/**@brief (m_OnBubbledEvent)绑定事件处理函数
+	/**@brief (m_pOnBubbledEvent)绑定事件处理函数
 	 * @param[in] eventType 事件类型
 	 * @param[in] callback 指定回调函数
 	 */
 	void AttachBubbledEvent(EventType eventType, const EventCallback& callback);
 
-	/**@brief (m_OnBubbledEvent)解绑事件处理函数
+	/**@brief (m_pOnBubbledEvent)解绑事件处理函数
 	 * @param[in] eventType 事件类型
 	 */
 	void DetachBubbledEvent(EventType eventType);
@@ -942,7 +942,7 @@ public:
 	 */
 	void DetachXmlBubbledEvent(EventType eventType);
 
-	/** 触发事件，向所有容器的监听者发送事件（m_OnEvent，m_OnXmlEvent，m_OnBubbledEvent， m_OnXmlBubbledEvent）
+	/** 触发事件，向所有容器的监听者发送事件（m_pOnEvent，m_pOnXmlEvent，m_pOnBubbledEvent， m_pOnXmlBubbledEvent）
 	* @param [in] msg 消息内容
 	* @return 如果所有监听者回调函数返回true，则该函数返回true；否则返回false
 	*/
@@ -977,13 +977,25 @@ protected:
 	virtual void PaintLoading(IRender* pRender);
 
 protected:
-	/** @brief 获取控件图片类型与状态图片的映射接口
+	/** 是否含有指定类型的图片
 	*/
-	StateImageMap* GetImageMap() const { return m_imageMap.get(); }
+	bool HasImageType(StateImageType stateImageType) const;
 
-	/** @brief 获取控件状态与颜色值的映射接口
+	/** 获取指定状态下的图片位置
+	 */
+	std::wstring GetStateImage(StateImageType imageType, ControlStateType stateType);
+
+	/** 设置某个状态下的图片
+	 */
+	void SetStateImage(StateImageType imageType, ControlStateType stateType, const std::wstring& strImage);
+
+	/** 绘制指定图片类型和状态的图片
 	*/
-	StateColorMap* GetColorMap() const { return m_colorMap.get(); }
+	bool PaintStateImage(IRender* pRender, StateImageType stateImageType, ControlStateType stateType, const std::wstring& sImageModify = L"");
+
+	/** 绘制指定状态的颜色
+	*/
+	void PaintStateColor(IRender* pRender, const UiRect& rcPaint, ControlStateType stateType) const;
 
 	/** @brief 获取控件的绘制区域
 	*/
@@ -995,7 +1007,7 @@ protected:
 
 private:
 	void BroadcastGifEvent(int32_t nVirtualEvent);
-	size_t GetGifFrameIndex(GifStopType frame);
+	uint32_t GetGifFrameIndex(GifStopType frame);
 
 	/** 绘制边框：根据条件判断绘制圆角矩形边框还是普通矩形边框
 	*/
@@ -1037,6 +1049,10 @@ private:
 	*/
 	UiColor GetUiColorByName(const std::wstring& colorName) const;
 
+	/** 是否含有BoxShadow
+	*/
+	bool HasBoxShadow() const;
+
 private:
 	/** 边框圆角大小(与m_rcBorderSize联合应用)或者阴影的圆角大小(与m_boxShadow联合应用)
 	    仅当 m_rcBorderSize 四个边框值都有效, 并且都相同时
@@ -1044,25 +1060,25 @@ private:
 	UiSize m_cxyBorderRound;
 
 	//控件阴影，其圆角大小通过m_cxyBorderRound变量控制
-	BoxShadow m_boxShadow;
+	BoxShadow* m_pBoxShadow;
 
 	//边框颜色
-	std::wstring m_strBorderColor;
+	UiString m_strBorderColor;
 
 	//控件四边的边框大小（可分别设置top/bottom/left/right四个边的值）
 	UiRect m_rcBorderSize;
 
 private:
 	//控件的背景颜色
-	std::wstring m_strBkColor;
+	UiString m_strBkColor;
 
 	//控件的背景图片
-	std::unique_ptr<Image> m_bkImage;
+	std::unique_ptr<Image> m_pBkImage;
 
-	//加载中状态图片(m_bkImage)的生命周期管理、取消机制
+	//加载中状态图片(m_pBkImage)的生命周期管理、取消机制
 	nbase::WeakCallbackFlag m_loadBkImageWeakFlag;
 
-	//是否为播放GIF的状态（当背景图片m_bkImage是GIF文件时，触发此逻辑）
+	//是否为播放GIF的状态（当背景图片m_pBkImage是GIF文件时，触发此逻辑）
 	bool m_bGifPlay;
 
 	//GIF背景图片播放的取消机制
@@ -1081,11 +1097,11 @@ private:
 
 	/** 状态与颜色值MAP
 	*/
-	std::unique_ptr<StateColorMap> m_colorMap;
+	std::unique_ptr<StateColorMap> m_pColorMap;
 
 	/** 控件图片类型与状态图片的MAP
 	*/
-	std::unique_ptr<StateImageMap> m_imageMap;
+	std::unique_ptr<StateImageMap> m_pImageMap;
 
 private:
 	//是否处于加载中的状态
@@ -1095,12 +1111,12 @@ private:
 	int32_t m_fCurrrentAngele;
 
 	//加载中状态时显示的图片
-	std::unique_ptr<Image> m_loadingImage;
+	std::unique_ptr<Image> m_pLoadingImage;
 
 	//加载中状态时的背景颜色
-	std::wstring m_strLoadingBkColor;
+	UiString m_strLoadingBkColor;
 
-	//加载中状态图片(m_loadingImage)的生命周期管理、取消机制
+	//加载中状态图片(m_pLoadingImage)的生命周期管理、取消机制
 	nbase::WeakCallbackFlag m_loadingImageFlag;
 
 private:
@@ -1133,31 +1149,31 @@ private:
 	int32_t m_nTooltipWidth;
 
 	//ToolTip的文本内容
-	std::wstring m_sToolTipText;
+	UiString m_sToolTipText;
 
 	//ToolTip的文本ID
-	std::wstring m_sToolTipTextId;
+	UiString m_sToolTipTextId;
 
 private:
 	
 	//用户数据ID(字符串)
-	std::wstring m_sUserDataID;
+	UiString m_sUserDataID;
 
 	//用户数据ID(整型值)
 	size_t m_uUserDataID;
 
 private:
 	//通过AttachXXX接口，添加的监听事件
-	EventMap m_OnEvent;
+	EventMap* m_pOnEvent;
 
 	//通过XML中，配置<Event标签添加的响应事件，最终由Control::OnApplyAttributeList函数响应具体操作
-	EventMap m_OnXmlEvent;
+	EventMap* m_pOnXmlEvent;
 
 	//通过AttachBubbledEvent接口添加的事件
-	EventMap m_OnBubbledEvent;
+	EventMap* m_pOnBubbledEvent;
 
 	//通过XML中，配置<BubbledEvent标签添加的响应事件，最终由Control::OnApplyAttributeList函数响应具体操作
-	EventMap m_OnXmlBubbledEvent;
+	EventMap* m_pOnXmlBubbledEvent;
 
 private:
 	//控件的Enable状态（当为false的时候，不响应鼠标、键盘等输入消息）

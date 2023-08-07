@@ -39,7 +39,7 @@ public:
 private:
 
     //所属组名称(同一个组内的控件，进行单选状态控制)
-	std::wstring m_sGroupName;
+	UiString m_sGroupName;
 };
 
 template<typename InheritType>
@@ -52,7 +52,7 @@ template<typename InheritType>
 OptionTemplate<InheritType>::~OptionTemplate()
 {
     if (!m_sGroupName.empty() && this->GetWindow()) {
-        this->GetWindow()->RemoveOptionGroup(m_sGroupName, this);
+        this->GetWindow()->RemoveOptionGroup(m_sGroupName.c_str(), this);
     }
 }
 
@@ -65,7 +65,7 @@ void OptionTemplate<InheritType>::SetWindow(Window* pManager, Box* pParent, bool
     __super::SetWindow(pManager, pParent, bInit);
     if (bInit && !m_sGroupName.empty()) {
         if (this->GetWindow()) {
-            this->GetWindow()->AddOptionGroup(m_sGroupName, this);
+            this->GetWindow()->AddOptionGroup(m_sGroupName.c_str(), this);
         }
     }
 }
@@ -90,13 +90,13 @@ void OptionTemplate<InheritType>::SetAttribute(const std::wstring& strName, cons
 template<typename InheritType>
 void OptionTemplate<InheritType>::Selected(bool bSelected, bool bTriggerEvent)
 {
-    bool isChanged = this->m_bSelected != bSelected;
-    this->m_bSelected = bSelected;
+    bool isChanged = this->IsSelected() != bSelected;
+    this->SetSelected(bSelected);
 
     if (this->GetWindow() != nullptr) {
-        if (this->m_bSelected) {
+        if (this->IsSelected()) {
             if (!m_sGroupName.empty()) {
-                std::vector<Control*>* aOptionGroup = this->GetWindow()->GetOptionGroup(m_sGroupName);
+                std::vector<Control*>* aOptionGroup = this->GetWindow()->GetOptionGroup(m_sGroupName.c_str());
                 ASSERT(aOptionGroup);
                 if (aOptionGroup) {
                     for (auto it = aOptionGroup->begin(); it != aOptionGroup->end(); ++it) {
@@ -135,7 +135,7 @@ void OptionTemplate<InheritType>::Activate()
 template<typename InheritType>
 std::wstring OptionTemplate<InheritType>::GetGroup() const
 {
-    return m_sGroupName;
+    return m_sGroupName.c_str();
 }
 
 template<typename InheritType>
@@ -146,7 +146,7 @@ void OptionTemplate<InheritType>::SetGroup(const std::wstring& strGroupName)
             return;
         }
         if (this->GetWindow()) {
-            this->GetWindow()->RemoveOptionGroup(m_sGroupName, this);
+            this->GetWindow()->RemoveOptionGroup(m_sGroupName.c_str(), this);
         }
         m_sGroupName.clear();
     }
@@ -155,15 +155,15 @@ void OptionTemplate<InheritType>::SetGroup(const std::wstring& strGroupName)
             return;
         }
         if (!m_sGroupName.empty() && this->GetWindow()) {
-            this->GetWindow()->RemoveOptionGroup(m_sGroupName, this);
+            this->GetWindow()->RemoveOptionGroup(m_sGroupName.c_str(), this);
         }
         m_sGroupName = strGroupName;
         if (this->GetWindow()) {
-            this->GetWindow()->AddOptionGroup(m_sGroupName, this);
+            this->GetWindow()->AddOptionGroup(m_sGroupName.c_str(), this);
         }
     }
 
-    Selected(this->m_bSelected, true);
+    Selected(this->IsSelected(), true);
 }
 
 typedef OptionTemplate<Control> Option;

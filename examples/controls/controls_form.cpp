@@ -94,7 +94,7 @@ void ControlForm::OnInitWindow()
 			item->SetToolTipText(L"nim_comp::CheckCombo");
 
 			item->SetTextPadding({ 20, 2, 2, 0 });
-			item->SetTextStyle(ui::TEXT_LEFT | ui::TEXT_VCENTER);
+			item->SetTextStyle(ui::TEXT_LEFT | ui::TEXT_VCENTER, false);
 			std::wstring image_normal = nbase::StringPrintf(L"file='../public/checkbox/check_no.png' dest='%d,4,%d,20'", 2, 18);
 			std::wstring image_select = nbase::StringPrintf(L"file='../public/checkbox/check_yes.png' dest='%d,4,%d,20'", 2, 18);
 

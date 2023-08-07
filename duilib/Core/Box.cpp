@@ -20,6 +20,10 @@ Box::~Box()
 {
 	m_bDelayedDestroy = false;
 	RemoveAllItems();
+	if (m_pLayout != nullptr) {
+		delete m_pLayout;
+		m_pLayout = nullptr;
+	}
 }
 
 std::wstring Box::GetType() const { return DUI_CTR_BOX; }
@@ -468,7 +472,7 @@ void Box::ReSetLayout(Layout* pLayout)
 {
 	ASSERT(pLayout != nullptr);
 	if (pLayout != nullptr) {
-		m_pLayout.reset(pLayout);
+		m_pLayout = pLayout;
 		m_pLayout->SetOwner(this);
 	}	
 }

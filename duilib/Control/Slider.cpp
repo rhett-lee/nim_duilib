@@ -11,7 +11,7 @@ Slider::Slider() :
 	m_thumbStateImage(),
 	m_rcProgressBarPadding()
 {
-	m_uTextStyle = TEXT_SINGLELINE | TEXT_CENTER;
+	SetTextStyle(TEXT_SINGLELINE | TEXT_CENTER, false);
 }
 
 std::wstring Slider::GetType() const { return DUI_CTR_SLIDER; }
@@ -188,7 +188,7 @@ void Slider::PaintStateImages(IRender* pRender)
 	if (IsMouseFocused()) {
 		m_sImageModify.clear();
 		m_sImageModify = StringHelper::Printf(L"destscale='false' dest='%d,%d,%d,%d'", rcThumb.left, rcThumb.top, rcThumb.right, rcThumb.bottom);
-		if (!PaintImage(pRender, m_thumbStateImage.GetStateImage(kControlStatePushed), m_sImageModify)) {
+		if (!PaintImage(pRender, m_thumbStateImage.GetStateImage(kControlStatePushed), m_sImageModify.c_str())) {
 
 		}
 		else return;
@@ -196,7 +196,7 @@ void Slider::PaintStateImages(IRender* pRender)
 	else if (GetState() == kControlStateHot) {
 		m_sImageModify.clear();
 		m_sImageModify = StringHelper::Printf(L"destscale='false' dest='%d,%d,%d,%d'", rcThumb.left, rcThumb.top, rcThumb.right, rcThumb.bottom);
-		if (!PaintImage(pRender, m_thumbStateImage.GetStateImage(kControlStateHot), m_sImageModify)) {
+		if (!PaintImage(pRender, m_thumbStateImage.GetStateImage(kControlStateHot), m_sImageModify.c_str())) {
 
 		}
 		else return;
@@ -204,7 +204,7 @@ void Slider::PaintStateImages(IRender* pRender)
 
 	m_sImageModify.clear();
 	m_sImageModify = StringHelper::Printf(L"destscale='false' dest='%d,%d,%d,%d'", rcThumb.left, rcThumb.top, rcThumb.right, rcThumb.bottom);
-	if (!PaintImage(pRender, m_thumbStateImage.GetStateImage(kControlStateNormal), m_sImageModify)) {
+	if (!PaintImage(pRender, m_thumbStateImage.GetStateImage(kControlStateNormal), m_sImageModify.c_str())) {
 
 	}
 	else return;

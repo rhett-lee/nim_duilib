@@ -23,6 +23,7 @@ public:
 	explicit ScrollBox(Layout* pLayout = new Layout);
 	ScrollBox(const ScrollBox& r) = delete;
 	ScrollBox& operator=(const ScrollBox& r) = delete;
+	virtual ~ScrollBox();
 
 	virtual std::wstring GetType() const override;
 	virtual void SetAttribute(const std::wstring& pstrName, const std::wstring& pstrValue) override;
@@ -311,10 +312,10 @@ private:
 	UiPadding m_rcScrollBarPadding;
 
 	//滚动条动画效果支持
-	std::unique_ptr<AnimationPlayer> m_scrollAnimation;
+	AnimationPlayer* m_pScrollAnimation;
 
 	//滚动条动画效果支持
-	std::unique_ptr<AnimationPlayer> m_renderOffsetYAnimation;
+	AnimationPlayer* m_pRenderOffsetYAnimation;
 };
 
 /** 横向布局的ScrollBox

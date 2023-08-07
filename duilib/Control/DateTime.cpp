@@ -217,9 +217,9 @@ LRESULT DateTimeWnd::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bo
 DateTime::DateTime():
     m_sysTime({0,}),
     m_bReadOnly(false),
-    m_sFormat(L"%Y-%m-%d"),
     m_pDateWindow(nullptr)
 {
+    m_sFormat = std::wstring(L"%Y-%m-%d");
     //…Ë÷√ƒ¨»œ Ù–‘
     SetAttribute(L"border_size", L"1");
     SetAttribute(L"border_color", L"gray");
@@ -335,9 +335,9 @@ void DateTime::SetAttribute(const std::wstring& strName, const std::wstring& str
     }
 }
 
-const std::wstring& DateTime::GetFormat() const
+std::wstring DateTime::GetFormat() const
 {
-    return m_sFormat;
+    return m_sFormat.c_str();
 }
 
 void DateTime::SetFormat(const std::wstring& val)

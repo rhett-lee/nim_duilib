@@ -341,7 +341,7 @@ void Combo::SetTextPadding(UiPadding padding)
 
 std::wstring Combo::GetDropBoxAttributeList()
 {
-    return m_sDropBoxAttributes;
+    return m_sDropBoxAttributes.c_str();
 }
 
 void Combo::SetDropBoxAttributeList(const std::wstring& pstrList)

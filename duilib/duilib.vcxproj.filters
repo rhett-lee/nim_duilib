@@ -629,5 +629,8 @@
     <ClInclude Include="Box\VirtualHTileLayout.h">
       <Filter>Box</Filter>
     </ClInclude>
+    <ClInclude Include="Core\UiString.h">
+      <Filter>Core</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

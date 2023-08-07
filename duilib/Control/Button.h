@@ -34,7 +34,7 @@ UINT ui::ButtonTemplate<InheritType>::GetControlFlags() const
 template<typename InheritType>
 ButtonTemplate<InheritType>::ButtonTemplate()
 {
-    this->m_uTextStyle = TEXT_VCENTER | TEXT_CENTER | TEXT_END_ELLIPSIS | TEXT_NOCLIP | TEXT_SINGLELINE;
+    this->SetTextStyle(TEXT_VCENTER | TEXT_CENTER | TEXT_END_ELLIPSIS | TEXT_NOCLIP | TEXT_SINGLELINE, false);
 }
 
 template<typename InheritType>

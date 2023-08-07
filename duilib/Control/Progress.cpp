@@ -10,17 +10,25 @@ Progress::Progress() :
 	m_nMin(0),
 	m_nValue(0),
 	m_sProgressColor(),
-	m_progressImage(),
+	m_pProgressImage(nullptr),
 	m_sProgressImageModify(),
 	m_bMarquee(false),
 	m_nMarqueeWidth(10),
 	m_nMarqueeStep(4),
 	m_nMarqueeElapsed(50), // for 1s 25fps,will use 20fps default
 	m_nMarqueePos(0),
-   m_bReverse(false)
+    m_bReverse(false)
 {
-	m_uTextStyle = TEXT_SINGLELINE | TEXT_CENTER;
+	SetTextStyle(TEXT_SINGLELINE | TEXT_CENTER, false);
 	SetFixedHeight(UiFixedInt(12), true);
+}
+
+Progress::~Progress()
+{
+	if (m_pProgressImage != nullptr) {
+		delete m_pProgressImage;
+		m_pProgressImage = nullptr;
+	}
 }
 
 std::wstring Progress::GetType() const { return DUI_CTR_PROGRESS; }
@@ -94,18 +102,24 @@ void Progress::SetStretchForeImage(bool bStretchForeImage /*= true*/)
 
 std::wstring Progress::GetProgressImage() const
 {
-	return m_progressImage.GetImageString();
+	if (m_pProgressImage != nullptr) {
+		return m_pProgressImage->GetImageString();
+	}
+	return std::wstring();
 }
 
 void Progress::SetProgressImage(const std::wstring& strImage)
 {
-	m_progressImage.SetImageString(strImage);
+	if (m_pProgressImage == nullptr) {
+		m_pProgressImage = new Image;
+	}
+	m_pProgressImage->SetImageString(strImage);
 	Invalidate();
 }
 
 std::wstring Progress::GetProgressColor() const
 {
-	return m_sProgressColor;
+	return m_sProgressColor.c_str();
 }
 
 void Progress::SetProgressColor(const std::wstring& strProgressColor)
@@ -175,7 +189,7 @@ void Progress::PaintStateImages(IRender* pRender)
 
 	UiRect rc = GetProgressPos();
 	if (!m_sProgressColor.empty()) {
-		UiColor dwProgressColor = this->GetUiColor(m_sProgressColor);
+		UiColor dwProgressColor = this->GetUiColor(m_sProgressColor.c_str());
 		if (dwProgressColor.GetARGB() != 0) {
 			UiRect rcProgressColor = GetRect();
 			if (m_bHorizontal) {
@@ -187,49 +201,54 @@ void Progress::PaintStateImages(IRender* pRender)
 			pRender->FillRect(rcProgressColor, dwProgressColor);
 		}
 	}
-
-    if (!m_progressImage.GetImageString().empty()) {
-        m_sProgressImageModify.clear();
-        if (m_bStretchForeImage) {
-            m_sProgressImageModify = StringHelper::Printf(L"destscale='false' dest='%d,%d,%d,%d'", rc.left, rc.top, rc.right, rc.bottom);
-        }
-        else {
-            ui::UiRect m_rcSrc = rc;
-            if (m_progressImage.GetImageCache()) {
-                if (m_rcSrc.right > m_progressImage.GetImageCache()->GetWidth()) {
-                    m_rcSrc.right = m_progressImage.GetImageCache()->GetWidth();
-                }
-                if (m_rcSrc.bottom > m_progressImage.GetImageCache()->GetHeight()) {
-                    m_rcSrc.bottom = m_progressImage.GetImageCache()->GetHeight();
-                }
-            }
-            m_sProgressImageModify = StringHelper::Printf(L"destscale='false' dest='%d,%d,%d,%d' source='%d,%d,%d,%d'"
-                , rc.left, rc.top, rc.right, rc.bottom
-                , m_rcSrc.left, m_rcSrc.top, m_rcSrc.right, m_rcSrc.bottom);
-        }
-
-        // 让corner的值不超过可绘制范围
-        auto& corner = m_progressImage.GetImageAttribute().rcCorner;
-        if (IsHorizontal()) {
-            if (corner.left != 0 && corner.left >= rc.right) {
-                m_sProgressImageModify += StringHelper::Printf(L" corner='%d,%d,%d,%d'",
-                    rc.right,
-                    corner.top,
-                    0,
-                    corner.bottom);
-            }
-        }
-        else {
-            if (corner.top != 0 && corner.top >= rc.bottom) {
-                m_sProgressImageModify += StringHelper::Printf(L" corner='%d,%d,%d,%d'",
-                    corner.left,
-                    corner.bottom,
-                    corner.right,
-                    0);
-            }
-        }
-		PaintImage(pRender, m_progressImage, m_sProgressImageModify);
+	if ((m_pProgressImage == nullptr) || (m_pProgressImage->GetImageString().empty())) {
+		return;
 	}
+
+    m_sProgressImageModify.clear();
+    if (m_bStretchForeImage) {
+        m_sProgressImageModify = StringHelper::Printf(L"destscale='false' dest='%d,%d,%d,%d'", rc.left, rc.top, rc.right, rc.bottom);
+    }
+    else {
+        ui::UiRect m_rcSrc = rc;
+        if (m_pProgressImage->GetImageCache()) {
+            if (m_rcSrc.right > m_pProgressImage->GetImageCache()->GetWidth()) {
+                m_rcSrc.right = m_pProgressImage->GetImageCache()->GetWidth();
+            }
+            if (m_rcSrc.bottom > m_pProgressImage->GetImageCache()->GetHeight()) {
+                m_rcSrc.bottom = m_pProgressImage->GetImageCache()->GetHeight();
+            }
+        }
+        m_sProgressImageModify = StringHelper::Printf(L"destscale='false' dest='%d,%d,%d,%d' source='%d,%d,%d,%d'"
+            , rc.left, rc.top, rc.right, rc.bottom
+            , m_rcSrc.left, m_rcSrc.top, m_rcSrc.right, m_rcSrc.bottom);
+    }
+
+    // 让corner的值不超过可绘制范围
+    const UiRect corner = m_pProgressImage->GetImageAttribute().GetCorner();
+    if (IsHorizontal()) {
+        if (corner.left != 0 && corner.left >= rc.right) {
+			std::wstring imageModify = m_sProgressImageModify.c_str();
+			imageModify += StringHelper::Printf(L" corner='%d,%d,%d,%d'",
+                rc.right,
+                corner.top,
+                0,
+                corner.bottom);
+			m_sProgressImageModify = imageModify;
+        }
+    }
+    else {
+        if (corner.top != 0 && corner.top >= rc.bottom) {
+			std::wstring imageModify = m_sProgressImageModify.c_str();
+			imageModify += StringHelper::Printf(L" corner='%d,%d,%d,%d'",
+                corner.left,
+                corner.bottom,
+                corner.right,
+                0);
+			m_sProgressImageModify = imageModify;
+        }
+    }
+	PaintImage(pRender, *m_pProgressImage, m_sProgressImageModify.c_str());
 }
 
 UiRect Progress::GetProgressPos()
@@ -264,7 +283,9 @@ UiRect Progress::GetProgressPos()
 void Progress::ClearImageCache()
 {
 	__super::ClearImageCache();
-	m_progressImage.ClearImageCache();
+	if (m_pProgressImage != nullptr) {
+		m_pProgressImage->ClearImageCache();
+	}	
 }
 
 void Progress::Play()
@@ -297,7 +318,7 @@ void Progress::PaintMarquee(IRender* pRender)
 		return;
 	}
 	if (!m_sProgressColor.empty()) {
-		UiColor dwProgressColor = GlobalManager::Instance().Color().GetColor(m_sProgressColor);
+		UiColor dwProgressColor = GlobalManager::Instance().Color().GetColor(m_sProgressColor.c_str());
 		if (dwProgressColor.GetARGB() != 0) {
 			UiRect rcProgressColor = GetRect();
 			ui::UiRect rc = GetRect();

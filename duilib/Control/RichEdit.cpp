@@ -1332,7 +1332,7 @@ RichEdit::RichEdit() :
 	m_drawCaretFlag(),
 	m_timeFlagMap(),
 	m_linkInfo(),
-	m_sFocusedImage()
+	m_pFocusedImage(nullptr)
 {
 	m_iLimitText = cInitTextMax;
 	m_sCurrentColor = GlobalManager::Instance().Color().GetDefaultTextColor();
@@ -1348,6 +1348,10 @@ RichEdit::~RichEdit()
     if( m_pTwh ) {
         m_pTwh->Release();
     }
+	if (m_pFocusedImage != nullptr) {
+		delete m_pFocusedImage;
+		m_pFocusedImage = nullptr;
+	}
 }
 
 bool RichEdit::IsWantTab() const
@@ -1429,9 +1433,9 @@ void RichEdit::SetWordWrap(bool bWordWrap)
     if( m_pTwh ) m_pTwh->SetWordWrap(bWordWrap);
 }
 
-const std::wstring& RichEdit::GetFontId() const
+std::wstring RichEdit::GetFontId() const
 {
-    return m_sFontId;
+    return m_sFontId.c_str();
 }
 
 void RichEdit::SetFontId(const std::wstring& strFontId)
@@ -1478,12 +1482,12 @@ void RichEdit::SetTextColor(UiColor color)
 
 std::wstring RichEdit::GetTextColor()
 {
-	return m_sCurrentColor;
+	return m_sCurrentColor.c_str();
 }
 
 UiColor RichEdit::GetTextColorValue()
 {
-	return this->GetUiColor(m_sCurrentColor);
+	return this->GetUiColor(m_sCurrentColor.c_str());
 }
 
 int RichEdit::GetLimitText()
@@ -2306,11 +2310,11 @@ void RichEdit::SetEnabled(bool bEnable /*= true*/)
 
 	if (bEnable) {
 		SetState(kControlStateNormal);
-		SetTextColor(m_sTextColor);
+		SetTextColor(m_sTextColor.c_str());
 	}
 	else {
 		SetState(kControlStateDisabled);
-		SetTextColor(m_sDisabledTextColor);
+		SetTextColor(m_sDisabledTextColor.c_str());
 	}
 }
 
@@ -2931,13 +2935,13 @@ void RichEdit::SetAttribute(const std::wstring& strName, const std::wstring& str
 	else if ((strName == L"normal_text_color") || (strName == L"normaltextcolor")){
 		m_sTextColor = strValue;
 		if (IsEnabled()) {
-			SetTextColor(m_sTextColor);
+			SetTextColor(m_sTextColor.c_str());
 		}
 	}
 	else if ((strName == L"disabled_text_color") || (strName == L"disabledtextcolor")){
 		m_sDisabledTextColor = strValue;
 		if (!IsEnabled()) {
-			SetTextColor(m_sDisabledTextColor);
+			SetTextColor(m_sDisabledTextColor.c_str());
 		}
 	}
 	else if ((strName == L"caret_color") || (strName == L"caretcolor")){
@@ -3020,7 +3024,7 @@ void RichEdit::SetCaretColor(const std::wstring& dwColor)
 
 std::wstring RichEdit::GetCaretColor()
 {
-	return m_sCaretColor;
+	return m_sCaretColor.c_str();
 }
 
 RECT RichEdit::GetCaretRect()
@@ -3057,7 +3061,7 @@ void RichEdit::PaintCaret(IRender* pRender, const UiRect& /*rcPaint*/)
 		UiRect rect(m_iCaretPosX, m_iCaretPosY, m_iCaretPosX, m_iCaretPosY + m_iCaretHeight);
 		UiColor dwClrColor(0xff000000);
 		if (!m_sCaretColor.empty()) {
-			dwClrColor = this->GetUiColor(m_sCaretColor);
+			dwClrColor = this->GetUiColor(m_sCaretColor.c_str());
 		}
 		pRender->DrawLine(UiPoint(rect.left, rect.top), UiPoint(rect.right, rect.bottom), dwClrColor, m_iCaretWidth);
 	}
@@ -3073,9 +3077,9 @@ void RichEdit::SetPromptMode(bool bPrompt)
 
 std::wstring RichEdit::GetPromptText() const
 {
-	std::wstring strText = m_sPromptText;
+	std::wstring strText = m_sPromptText.c_str();
 	if (strText.empty() && !m_sPromptTextId.empty()) {
-		strText = GlobalManager::Instance().Lang().GetStringViaID(m_sPromptTextId);
+		strText = GlobalManager::Instance().Lang().GetStringViaID(m_sPromptTextId.c_str());
 	}
 
 	return strText;
@@ -3141,19 +3145,25 @@ void RichEdit::PaintPromptText(IRender* pRender)
 	UiRect rc;
 	m_pTwh->GetControlRect(&rc);
 
-	UiColor dwClrColor = this->GetUiColor(m_sPromptColor);
+	UiColor dwClrColor = this->GetUiColor(m_sPromptColor.c_str());
 	UINT dwStyle = TEXT_NOCLIP;
-	pRender->DrawString(rc, strPrompt, dwClrColor, m_sFontId, dwStyle);
+	pRender->DrawString(rc, strPrompt, dwClrColor, m_sFontId.c_str(), dwStyle);
 }
 
 std::wstring RichEdit::GetFocusedImage()
 {
-	return m_sFocusedImage.GetImageString();
+	if (m_pFocusedImage != nullptr) {
+		return m_pFocusedImage->GetImageString();
+	}
+	return std::wstring();
 }
 
 void RichEdit::SetFocusedImage( const std::wstring& strImage )
 {
-	m_sFocusedImage.SetImageString(strImage);
+	if (m_pFocusedImage == nullptr) {
+		m_pFocusedImage = new Image;
+	}
+	m_pFocusedImage->SetImageString(strImage);
 	Invalidate();
 }
 
@@ -3163,7 +3173,9 @@ void RichEdit::PaintStateImages(IRender* pRender)
 		return;
 
 	if(IsFocused()) {
-		PaintImage(pRender, m_sFocusedImage);
+		if (m_pFocusedImage != nullptr) {
+			PaintImage(pRender, *m_pFocusedImage);
+		}		
 		PaintPromptText(pRender);
 		return;
 	}
@@ -3253,7 +3265,7 @@ void  RichEdit::AddLinkColorTextEx(const std::wstring& str, const std::wstring &
 	StringHelper::UnicodeToMBCS(str, text);
 	LOGFONT lf = {0,};
 	if (strFontId.empty()) {
-		GetLogFont(m_sFontId, lf);
+		GetLogFont(m_sFontId.c_str(), lf);
 	}
 	else {
 		GetLogFont(strFontId, lf);
@@ -3310,7 +3322,7 @@ bool RichEdit::HittestCustomLink(UiPoint pt, std::wstring& info)
 		for (auto it = m_linkInfo.begin(); it != m_linkInfo.end(); it++)
 		{
 			if ((*it).cr.cpMin <= nCharIndex && (*it).cr.cpMax > nCharIndex) {
-				info = (*it).info;
+				info = (*it).info.c_str();
 				bLink = true;
 				break;
 			}
@@ -3323,7 +3335,9 @@ bool RichEdit::HittestCustomLink(UiPoint pt, std::wstring& info)
 void RichEdit::ClearImageCache()
 {
 	__super::ClearImageCache();
-	m_sFocusedImage.ClearImageCache();
+	if (m_pFocusedImage != nullptr) {
+		m_pFocusedImage->ClearImageCache();
+	}	
 }
 
 //----------------下面函数用作辅助 字节数限制

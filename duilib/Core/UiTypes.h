@@ -13,6 +13,7 @@
 #include "duilib/Core/UiMargin.h"
 #include "duilib/Core/UiFixedInt.h"
 #include "duilib/Core/UiEstInt.h"
+#include "duilib/Core/UiString.h"
 
 namespace ui
 {

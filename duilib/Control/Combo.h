@@ -147,7 +147,7 @@ protected:
 	std::unique_ptr<ListBox> m_pLayout;
 	size_t m_iCurSel;
 	UiSize m_szDropBox;
-	std::wstring m_sDropBoxAttributes;
+	UiString m_sDropBoxAttributes;
 	bool m_bPopupTop;
 	UiPadding m_rcTextPadding;	//add by djj
 };

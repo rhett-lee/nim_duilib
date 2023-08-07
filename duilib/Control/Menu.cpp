@@ -55,14 +55,13 @@ CMenuWnd::CMenuWnd(HWND hParent) :
 	m_hParent(hParent),
 	m_menuPoint({ 0, 0 }),
 	m_popupPosType(MenuPopupPosType::RIGHT_TOP),
-	m_skinFolder(L"menu"),
-	m_submenuXml(L"submenu.xml"),
-	m_submenuNodeName(L"submenu"),
-	m_xml(L""),
 	m_noFocus(false),
 	m_pOwner(nullptr),
 	m_pLayout(nullptr)
 {
+	m_skinFolder = std::wstring(L"menu");
+	m_submenuXml = std::wstring(L"submenu.xml");
+	m_submenuNodeName = std::wstring(L"submenu");
 }
 
 void CMenuWnd::SetSkinFolder(const std::wstring& skinFolder)
@@ -140,12 +139,12 @@ void CMenuWnd::OnFinalMessage(HWND hWnd)
 
 std::wstring CMenuWnd::GetSkinFolder()
 {
-	return m_skinFolder;
+	return m_skinFolder.c_str();
 }
 
 std::wstring CMenuWnd::GetSkinFile() 
 {
-	return m_xml;
+	return m_xml.c_str();
 }
 
 std::wstring CMenuWnd::GetWindowClassName() const
@@ -539,7 +538,7 @@ CMenuElementUI* CMenuWnd::GetMenuItemByName(const std::wstring& name) const
 		const size_t count = m_pLayout->GetItemCount();
 		for (size_t i = 0; i < count; ++i) {
 			pElementUI = dynamic_cast<CMenuElementUI*>(m_pLayout->GetItemAt(i));
-			if ((pElementUI != nullptr) && (pElementUI->GetName() == name)) {
+			if ((pElementUI != nullptr) && (pElementUI->IsNameEquals(name))) {
 				break;
 			}
 			pElementUI = nullptr;
@@ -890,9 +889,9 @@ void CMenuElementUI::CreateMenuWnd()
 	CMenuWnd* pParentWindow = dynamic_cast<CMenuWnd*>(pWindow);
 	ASSERT(pParentWindow != nullptr);
 	if (pParentWindow != nullptr) {
-		m_pSubWindow->SetSkinFolder(pParentWindow->m_skinFolder);
-		m_pSubWindow->SetSubMenuXml(pParentWindow->m_submenuXml, pParentWindow->m_submenuNodeName);
-		m_pSubWindow->ShowMenu(pParentWindow->m_submenuXml, UiPoint(), MenuPopupPosType::RIGHT_BOTTOM, false, this);
+		m_pSubWindow->SetSkinFolder(pParentWindow->m_skinFolder.c_str());
+		m_pSubWindow->SetSubMenuXml(pParentWindow->m_submenuXml.c_str(), pParentWindow->m_submenuNodeName.c_str());
+		m_pSubWindow->ShowMenu(pParentWindow->m_submenuXml.c_str(), UiPoint(), MenuPopupPosType::RIGHT_BOTTOM, false, this);
 	}
 }
 

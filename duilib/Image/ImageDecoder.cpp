@@ -595,6 +595,7 @@ std::unique_ptr<ImageInfo> ImageDecoder::LoadImageData(std::vector<uint8_t>& fil
 	}
 
 	std::unique_ptr<ImageInfo> imageInfo(new ImageInfo);
+	std::vector<IBitmap*> frameBitmaps;
 	std::vector<int> frameIntervals;
 	uint32_t imageWidth = 0;
 	uint32_t imageHeight = 0;
@@ -617,12 +618,13 @@ std::unique_ptr<ImageInfo> ImageDecoder::LoadImageData(std::vector<uint8_t>& fil
 			return nullptr;
 		}
 		pBitmap->Init(bitmapData.m_imageWidth, bitmapData.m_imageHeight, bitmapData.bFlipHeight, bitmapData.m_bitmapData.data());
-		imageInfo->PushBackHBitmap(pBitmap);
+		frameBitmaps.push_back(pBitmap);
 	}
-	//多帧图片时，以第一帧图片作为图片的大小信息
+	imageInfo->SetFrameBitmap(frameBitmaps);
 	if (frameIntervals.size() > 1) {
 		imageInfo->SetFrameInterval(frameIntervals);
-	}	
+	}
+	//多帧图片时，以第一帧图片作为图片的大小信息
 	imageInfo->SetImageSize(imageWidth, imageHeight);
 	imageInfo->SetImageFullPath(imageFullPath);
 	imageInfo->SetPlayCount(playCount);

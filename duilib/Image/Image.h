@@ -4,6 +4,7 @@
 #pragma once
 
 #include "duilib/Render/IRender.h"
+#include "duilib/Core/UiTypes.h"
 #include <memory>
 #include <string>
 #include <map>
@@ -32,7 +33,7 @@ public:
 
 	/** 获取图片路径
 	*/
-	const std::wstring& GetImageFullPath() const;
+	std::wstring GetImageFullPath() const;
 
 	/** 设置该图片的大小是否已经做过适应DPI处理
 	*/
@@ -42,41 +43,41 @@ public:
 	*/
 	bool IsBitmapSizeDpiScaled() const { return m_bDpiScaled; }
 
-	/** 添加一个图片帧数据, 添加后该资源由该类内部托管
-	*/
-	void PushBackHBitmap(IBitmap* pBitmap);
-
-	/** 获取一个图片帧数据
-	*/
-	IBitmap* GetBitmap(size_t nIndex) const;
-
 	/** 设置图片的宽和高
 	*/
-	void SetImageSize(int nWidth, int nHeight);
+	void SetImageSize(int32_t nWidth, int32_t nHeight);
 
 	/** 获取图片宽度
 	*/
-	int GetWidth() const { return m_nWidth; }
+	int32_t GetWidth() const { return m_nWidth; }
 
 	/** 获取图片高度
 	*/
-	int GetHeight() const { return m_nHeight; }
+	int32_t GetHeight() const { return m_nHeight; }
+
+	/** 添加一个图片帧数据, 添加后该资源由该类内部托管
+	*/
+	void SetFrameBitmap(const std::vector<IBitmap*>& frameBitmaps);
+
+	/** 获取一个图片帧数据
+	*/
+	IBitmap* GetBitmap(uint32_t nIndex) const;
+
+	/** 设置图片的多帧播放事件间隔（毫秒为单位 ）
+	*/
+	void SetFrameInterval(const std::vector<int32_t>& frameIntervals);
+
+	/** 获取图片帧对应的播放时间间隔（毫秒为单位 ）
+	*/
+	int32_t GetFrameInterval(uint32_t nIndex) const;
 
 	/** 获取图片的帧数
 	*/
-	size_t GetFrameCount() const;
+	uint32_t GetFrameCount() const;
 
 	/** 是否位多帧图片(比如GIF等)
 	*/
 	bool IsMultiFrameImage() const;
-
-	/** 设置图片的多帧播放事件间隔（毫秒为单位 ）
-	*/
-	void SetFrameInterval(const std::vector<int>& frameIntervals);
-
-	/** 获取图片帧对应的播放时间间隔（毫秒为单位 ）
-	*/
-	int GetFrameInterval(size_t nIndex);
 
 	/** 设置循环播放次数(大于等于0，如果等于0，表示动画是循环播放的, APNG格式支持设置循环播放次数)
 	*/
@@ -95,33 +96,36 @@ public:
 
 	/** 获取图片的缓存KEY
 	*/
-	const std::wstring& GetCacheKey() const;
+	std::wstring GetCacheKey() const;
 
 private:
 	//图片的完整路径
-	std::wstring m_imageFullPath;
+	UiString m_imageFullPath;
 
 	//该图片的大小是否已经做过适应DPI处理
 	bool m_bDpiScaled;
 
 	//图片的宽度
-	int m_nWidth;
+	int32_t m_nWidth;
 	
 	//图片的高度
-	int m_nHeight;
+	int32_t m_nHeight;
 
 	//图片帧对应的播放时间间隔（毫秒为单位 ）
-	std::vector<int> m_frameIntervals;
+	std::vector<int32_t>* m_pFrameIntervals;
 
 	//图片帧数据
-	std::vector<IBitmap*> m_frameBitmaps;
+	IBitmap** m_pFrameBitmaps;
+
+	//图片帧数量
+	uint32_t m_nFrameCount;
 
 	//循环播放次数(大于等于0，如果等于0，表示动画是循环播放的, APNG格式支持设置循环播放次数)
 	int32_t m_nPlayCount;
 
 	/** 图片的缓存KEY, 用于图片的生命周期管理
 	*/
-	std::wstring m_cacheKey;
+	UiString m_cacheKey;
 };
 
 /** 图片属性
@@ -164,17 +168,34 @@ public:
 		                       UiRect& rcSource, UiRect& rcSourceCorners);
 
 public:
+	/** 获取rcSource
+	*/
+	UiRect GetSourceRect() const;
+
+	/** 获取rcDest
+	*/
+	UiRect GetDestRect() const;
+
+	/** rcPadding;
+	*/
+	UiPadding GetPadding() const;
+
+	/** 获取rcCorner;
+	*/
+	UiRect GetCorner() const;
+
+public:
 	//图片文件属性字符串
-	std::wstring sImageString;
+	UiString sImageString;
 
 	//图片文件文件名，含相对路径，不包含属性
-	std::wstring sImagePath;
+	UiString sImagePath;
 
 	//设置图片宽度，可以放大或缩小图像：pixels或者百分比%，比如300，或者30%
-	std::wstring srcWidth;
+	UiString srcWidth;
 
 	//设置图片高度，可以放大或缩小图像：pixels或者百分比%，比如200，或者30%
-	std::wstring srcHeight;
+	UiString srcHeight;
 
 	//加载图片时，DPI自适应属性，即按照DPI缩放图片大小
 	bool srcDpiScale;
@@ -182,26 +203,14 @@ public:
 	//加载图片时，是否设置了DPI自适应属性
 	bool bHasSrcDpiScale;
 
-	//绘制目标区域位置和大小（相对于控件区域的位置）
-	UiRect rcDest;
-
-	//在绘制目标区域中的内边距(如果指定了rcDest值，则此选项无效)
-	UiPadding rcPadding;
-
 	//在绘制目标区域中横向对齐方式(如果指定了rcDest值，则此选项无效)
-	std::wstring hAlign;
+	UiString hAlign;
 
 	//在绘制目标区域中纵向对齐方式(如果指定了rcDest值，则此选项无效)
-	std::wstring vAlign;
-
-	//图片源区域位置和大小
-	UiRect rcSource;
-
-	//圆角属性
-	UiRect rcCorner;
+	UiString vAlign;
 
 	//透明度（0 - 255）
-	BYTE bFade;
+	uint8_t bFade;
 
 	//横向平铺
 	bool bTiledX;
@@ -216,15 +225,28 @@ public:
 	bool bFullTiledY;
 
 	//平铺时的边距（仅当bTiledX为true或者bTiledY为true时有效）
-	int nTiledMargin;
+	int32_t nTiledMargin;
 
 	//如果是GIF等动画图片，可以指定播放次数 -1 ：一直播放，缺省值。
-	int nPlayCount;	
+	int32_t nPlayCount;	
 
 	//如果是ICO文件，用于指定需要加载的ICO图片的大小
 	//(ICO文件中包含很多个不同大小的图片，常见的有256，48，32，16，并且每个大小都有32位真彩、256色、16色之分）
 	//目前ICO文件在加载时，只会选择一个大小的ICO图片进行加载，加载后为单张图片
 	uint32_t iconSize;
+
+private:
+	//绘制目标区域位置和大小（相对于控件区域的位置）
+	UiRect* rcDest;
+
+	//在绘制目标区域中的内边距(如果指定了rcDest值，则此选项无效)
+	UiPadding* rcPadding;
+
+	//图片源区域位置和大小
+	UiRect* rcSource;
+
+	//圆角属性
+	UiRect* rcCorner;
 };
 
 /** 图片加载属性，用于加载一个图片
@@ -232,8 +254,8 @@ public:
 class UILIB_API ImageLoadAttribute
 {
 public:
-	ImageLoadAttribute(const std::wstring& srcWidth,
-					   const std::wstring& srcHeight,
+	ImageLoadAttribute(std::wstring srcWidth,
+					   std::wstring srcHeight,
 		               bool srcDpiScale,
 		               bool bHasSrcDpiScale,
 		               uint32_t iconSize);
@@ -244,7 +266,7 @@ public:
 
 	/** 获取图片路径（本地绝对路径或者压缩包内的相对路径）
 	*/
-	const std::wstring& GetImageFullPath() const;
+	std::wstring GetImageFullPath() const;
 
 	/** 获取加载图片的缓存KEY
 	*/
@@ -280,13 +302,13 @@ private:
 
 private:
 	//本地绝对路径或者压缩包内的相对路径，不包含属性
-	std::wstring m_srcImageFullPath;
+	UiString m_srcImageFullPath;
 
 	//设置图片宽度，可以放大或缩小图像：pixels或者百分比%，比如300，或者30%
-	std::wstring m_srcWidth;
+	UiString m_srcWidth;
 
 	//设置图片高度，可以放大或缩小图像：pixels或者百分比%，比如200，或者30%
-	std::wstring m_srcHeight;
+	UiString m_srcHeight;
 
 	//加载图片时，按照DPI缩放图片大小
 	bool m_srcDpiScale;
@@ -318,11 +340,11 @@ public:
 
 	/** 获取图片属性（含文件名，和图片设置属性等）
 	*/
-	const std::wstring& GetImageString() const;
+	std::wstring GetImageString() const;
 
 	/** 获取图片文件名（含相对路径，不含图片属性）
 	*/
-	const std::wstring& GetImagePath() const;
+	std::wstring GetImagePath() const;
 
 	/** 获取图片属性（只读）
 	*/
@@ -348,7 +370,7 @@ public:
 public:
 	/** 设置图片属性：播放次数（仅当多帧图片时）
 	*/
-	void SetImagePlayCount(int nPlayCount);
+	void SetImagePlayCount(int32_t nPlayCount);
 
 	/** 设置图片属性：透明度（仅当多帧图片时）
 	*/
@@ -368,11 +390,11 @@ public:
 
 	/** 设置当前图片帧（仅当多帧图片时）
 	*/
-	void SetCurrentFrame(size_t nCurrentFrame);
+	void SetCurrentFrame(uint32_t nCurrentFrame);
 
 	/** 获取当前图片帧索引（仅当多帧图片时）
 	*/
-	size_t GetCurrentFrameIndex() const;
+	uint32_t GetCurrentFrameIndex() const;
 
 	/** 获取当前图片帧的图片数据
 	*/
@@ -380,11 +402,11 @@ public:
 
 	/** 获取当前图片帧播放的时间间隔（单位: 毫秒，仅当多帧图片时）
 	*/
-	int GetCurrentInterval() const;
+	int32_t GetCurrentInterval() const;
 
 	/** 获取当前已循环播放的次数（仅当多帧图片时）
 	*/
-	int GetCycledCount() const;
+	int32_t GetCycledCount() const;
 
 	/** 清空当前已循环播放的次数（仅当多帧图片时）
 	*/
@@ -397,13 +419,13 @@ public:
 private:
 
 	//当前正在播放的图片帧（仅当多帧图片时）
-	size_t m_nCurrentFrame;
+	uint32_t m_nCurrentFrame;
 
 	//是否正在播放（仅当多帧图片时）
 	bool m_bPlaying;
 
 	//已播放次数（仅当多帧图片时）
-	int m_nCycledCount;
+	int32_t m_nCycledCount;
 
 	//图片属性
 	ImageAttribute m_imageAttribute;
@@ -447,7 +469,7 @@ public:
 	/** 获取图片的透明度
 	*@param [in] stateType 图片类型
 	*/
-	int GetImageFade(ControlStateType stateType) const;
+	int32_t GetImageFade(ControlStateType stateType) const;
 
 	/** 获取图片接口(可读，可写)
 	*/
@@ -574,7 +596,7 @@ private:
 	Control* m_pControl;
 
 	//状态与颜色值的映射表
-	std::map<ControlStateType, std::wstring> m_stateColorMap;
+	std::map<ControlStateType, UiString> m_stateColorMap;
 };
 
 } // namespace ui

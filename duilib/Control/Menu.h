@@ -148,16 +148,16 @@ private:
 	MenuPopupPosType m_popupPosType;
 
 	//资源加载的文件夹名称
-	std::wstring m_skinFolder;
+	UiString m_skinFolder;
 
 	//子菜单的XML模板文件名
-	std::wstring m_submenuXml;
+	UiString m_submenuXml;
 
 	//子菜单XML文件中，子菜单项插入位置的节点名称
-	std::wstring m_submenuNodeName;
+	UiString m_submenuNodeName;
 
 	//菜单资源的xml文件名
-	std::wstring m_xml;
+	UiString m_xml;
 
 	//菜单弹出时，是否为无聚焦模式
 	bool m_noFocus;

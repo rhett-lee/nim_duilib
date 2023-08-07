@@ -19,6 +19,7 @@ class UILIB_API CircleProgress : public Progress
 {
 public:
 	CircleProgress();
+	virtual ~CircleProgress();
 
 	/// 重写父类方法，提供个性化功能，请参考父类声明
 	virtual std::wstring GetType() const override;
@@ -82,7 +83,7 @@ protected:
 	UiColor m_dwBackgroundColor;
 	UiColor m_dwForegroundColor;
 	UiColor m_dwGradientColor;
-	Image m_indicatorImage;
+	Image* m_pIndicatorImage;
 };
 
 } // namespace ui

@@ -9,7 +9,6 @@ namespace ui
 
 PlaceHolder::PlaceHolder() :
 	m_pWindow(nullptr),
-	m_sName(),
 	m_cxyMin(0, 0),
 	m_cxyMax(INT32_MAX, INT32_MAX),
 	m_pParent(nullptr),
@@ -27,7 +26,7 @@ PlaceHolder::PlaceHolder() :
 }
 
 PlaceHolder::~PlaceHolder()
-{	
+{
 }
 
 std::wstring PlaceHolder::GetType() const { return L"PlaceHolder"; }
@@ -35,7 +34,7 @@ std::wstring PlaceHolder::GetType() const { return L"PlaceHolder"; }
 ui::Box* PlaceHolder::GetAncestor(const std::wstring& strName)
 {
 	Box* pAncestor = this->GetParent();
-	while ((pAncestor != nullptr) && pAncestor->GetName() != strName) {
+	while ((pAncestor != nullptr) && !pAncestor->IsNameEquals(strName)) {
 		pAncestor = pAncestor->GetParent();
 	}
 	return pAncestor;
@@ -44,8 +43,18 @@ ui::Box* PlaceHolder::GetAncestor(const std::wstring& strName)
 std::string PlaceHolder::GetUTF8Name() const
 {
 	std::string strOut;
-	StringHelper::UnicodeToMBCS(m_sName, strOut, CP_UTF8);
+	StringHelper::UnicodeToMBCS(GetName(), strOut, CP_UTF8);
 	return strOut;
+}
+
+std::wstring PlaceHolder::GetName() const
+{ 
+	return m_sName.c_str();
+}
+
+bool PlaceHolder::IsNameEquals(const std::wstring& name) const
+{
+	return wcscmp(m_sName.c_str(), name.c_str()) == 0;
 }
 
 void PlaceHolder::SetName(const std::wstring& strName)
@@ -57,7 +66,7 @@ void PlaceHolder::SetUTF8Name(const std::string& strName)
 {
 	std::wstring strOut;
 	StringHelper::MBCSToUnicode(strName, strOut, CP_UTF8);
-	m_sName = strOut;
+	SetName(strOut);
 }
 
 void PlaceHolder::SetWindow(Window* pManager, Box* pParent, bool bInit)

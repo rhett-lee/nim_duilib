@@ -20,7 +20,7 @@ public:
 public:
     /** 获取日期格式
     */
-    const std::wstring& GetFormat() const;
+    std::wstring GetFormat() const;
     
     /** 设置日期格式
     */
@@ -118,7 +118,7 @@ private:
     %z，%Z 时区名称，如果不能得到时区名称则返回空字符。
     %% 百分号
     */
-    std::wstring m_sFormat;
+    UiString m_sFormat;
 
     //设置日期控件窗口接口
     DateTimeWnd* m_pDateWindow;

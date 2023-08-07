@@ -84,7 +84,7 @@ void ControlFinder::ReapObjects(Control* pControl)
 	if (pControl == nullptr) {
 		return;
 	}
-	const std::wstring& sName = pControl->GetName();
+	const std::wstring sName = pControl->GetName();
 	if (!sName.empty()) {
 		auto it = m_mNameHash.find(sName);
 		if (it != m_mNameHash.end())
@@ -96,7 +96,7 @@ void ControlFinder::ReapObjects(Control* pControl)
 
 Control* CALLBACK ControlFinder::__FindControlFromNameHash(Control* pThis, LPVOID pData)
 {
-	const std::wstring& sName = pThis->GetName();
+	const std::wstring sName = pThis->GetName();
 	if (sName.empty()) {
 		return nullptr;
 	}
@@ -178,7 +178,7 @@ Control* CALLBACK ControlFinder::__FindControlFromName(Control* pThis, LPVOID pD
 	if ((pstrName == nullptr) || (pThis == nullptr)) {
 		return nullptr;
 	}
-	const std::wstring& sName = pThis->GetName();
+	const std::wstring sName = pThis->GetName();
 	if (sName.empty()) {
 		return nullptr;
 	}

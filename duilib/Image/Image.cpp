@@ -13,14 +13,26 @@ ImageInfo::ImageInfo():
 	m_bDpiScaled(false),
 	m_nWidth(0),
 	m_nHeight(0),
-	m_nPlayCount(-1)
+	m_nPlayCount(-1),
+	m_pFrameIntervals(nullptr),
+	m_nFrameCount(0),
+	m_pFrameBitmaps(nullptr)
 {
 }
 
 ImageInfo::~ImageInfo()
 {
-	for (IBitmap* pBitmap : m_frameBitmaps) {
-		delete pBitmap;
+	if (m_pFrameBitmaps != nullptr) {
+		for (uint32_t i = 0; i < m_nFrameCount; ++i) {
+			delete m_pFrameBitmaps[i];
+		}
+		delete m_pFrameBitmaps;
+		m_pFrameBitmaps = nullptr;
+	}
+	
+	if (m_pFrameIntervals != nullptr) {
+		delete m_pFrameIntervals;
+		m_pFrameIntervals = nullptr;
 	}
 }
 
@@ -29,34 +41,47 @@ void ImageInfo::SetImageFullPath(const std::wstring& path)
 	m_imageFullPath = path;
 }
 
-const std::wstring& ImageInfo::GetImageFullPath() const
+std::wstring ImageInfo::GetImageFullPath() const
 {
-	return m_imageFullPath;
+	return m_imageFullPath.c_str();
 }
 
-void ImageInfo::SetFrameInterval(const std::vector<int>& frameIntervals)
+void ImageInfo::SetFrameInterval(const std::vector<int32_t>& frameIntervals)
 {
-	m_frameIntervals = frameIntervals;
-}
-
-void ImageInfo::PushBackHBitmap(IBitmap* pBitmap)
-{
-	ASSERT(pBitmap != nullptr);
-	if (pBitmap != nullptr) {
-		m_frameBitmaps.push_back(pBitmap);
+	if (m_pFrameIntervals == nullptr) {
+		m_pFrameIntervals = new std::vector<int32_t>;
 	}
+	*m_pFrameIntervals = frameIntervals;
 }
 
-IBitmap* ImageInfo::GetBitmap(size_t nIndex) const
+void ImageInfo::SetFrameBitmap(const std::vector<IBitmap*>& frameBitmaps)
 {
-	ASSERT(nIndex < m_frameBitmaps.size());
-	if (nIndex < m_frameBitmaps.size()) {
-		return m_frameBitmaps[nIndex];
+	if (m_pFrameBitmaps != nullptr) {
+		for (uint32_t i = 0; i < m_nFrameCount; ++i) {
+			delete m_pFrameBitmaps[i];
+		}
+		delete m_pFrameBitmaps;
+		m_pFrameBitmaps = nullptr;
+	}
+	m_nFrameCount = (uint32_t)frameBitmaps.size();
+	if (m_nFrameCount > 0) {
+		m_pFrameBitmaps = new IBitmap*[m_nFrameCount];
+		for (uint32_t i = 0; i < m_nFrameCount; ++i) {
+			m_pFrameBitmaps[i] = frameBitmaps[i];
+		}
+	}	
+}
+
+IBitmap* ImageInfo::GetBitmap(uint32_t nIndex) const
+{
+	ASSERT((nIndex < m_nFrameCount) && (m_pFrameBitmaps != nullptr));
+	if ((nIndex < m_nFrameCount) && (m_pFrameBitmaps != nullptr)){
+		return m_pFrameBitmaps[nIndex];
 	}
 	return nullptr;
 }
 
-void ImageInfo::SetImageSize(int nWidth, int nHeight)
+void ImageInfo::SetImageSize(int32_t nWidth, int32_t nHeight)
 {
 	ASSERT(nWidth > 0);
 	ASSERT(nHeight > 0);
@@ -68,26 +93,26 @@ void ImageInfo::SetImageSize(int nWidth, int nHeight)
 	}	
 }
 
-size_t ImageInfo::GetFrameCount() const
+uint32_t ImageInfo::GetFrameCount() const
 {
-	return m_frameBitmaps.size();
+	return m_nFrameCount;
 }
 
 bool ImageInfo::IsMultiFrameImage() const
 {
-	return m_frameBitmaps.size() > 1;
+	return GetFrameCount() > 1;
 }
 
-int ImageInfo::GetFrameInterval(size_t nIndex)
+int32_t ImageInfo::GetFrameInterval(uint32_t nIndex) const
 {
-	if (nIndex >= m_frameIntervals.size()) {
+	if (m_pFrameIntervals == nullptr) {
 		return 0;
 	}
-	if (nIndex >= m_frameBitmaps.size()) {
+	const std::vector<int32_t>& frameIntervals = *m_pFrameIntervals;
+	if (nIndex >= frameIntervals.size()) {
 		return 0;
 	}
-
-	int interval = m_frameIntervals[nIndex]; 
+	int32_t interval = frameIntervals[nIndex];
 	if (interval < 30) {
 		interval = 100;
 	}
@@ -112,12 +137,16 @@ void ImageInfo::SetCacheKey(const std::wstring& cacheKey)
 	m_cacheKey = cacheKey;
 }
 
-const std::wstring& ImageInfo::GetCacheKey() const
+std::wstring ImageInfo::GetCacheKey() const
 {
-	return m_cacheKey;
+	return m_cacheKey.c_str();
 }
 
-ImageAttribute::ImageAttribute()
+ImageAttribute::ImageAttribute():
+	rcDest(nullptr),
+	rcPadding(nullptr),
+	rcSource(nullptr),
+	rcCorner(nullptr)
 {
 	Init();
 }
@@ -132,9 +161,6 @@ void ImageAttribute::Init()
 	bTiledY = false;
 	bFullTiledY = true;
 	nTiledMargin = 0;
-	rcDest.left = rcDest.top = rcDest.right = rcDest.bottom = DUI_NOSET_VALUE;
-	rcSource.left = rcSource.top = rcSource.right = rcSource.bottom = DUI_NOSET_VALUE;
-	rcCorner.left = rcCorner.top = rcCorner.right = rcCorner.bottom = 0;
 	nPlayCount = -1;
 	iconSize = 0;
 
@@ -142,6 +168,23 @@ void ImageAttribute::Init()
 	bHasSrcDpiScale = false;
 	srcWidth.clear();
 	srcHeight.clear();
+
+	if (rcDest != nullptr) {
+		delete rcDest;
+		rcDest = nullptr;
+	}
+	if (rcSource != nullptr) {
+		delete rcSource;
+		rcSource = nullptr;
+	}
+	if (rcPadding != nullptr) {
+		delete rcPadding;
+		rcPadding = nullptr;
+	}
+	if (rcCorner != nullptr) {
+		delete rcCorner;
+		rcCorner = nullptr;
+	}
 }
 
 void ImageAttribute::InitByImageString(const std::wstring& strImageString)
@@ -185,12 +228,18 @@ void ImageAttribute::ModifyAttribute(const std::wstring& strImageString)
 		}
 		else if (name == L"source") {
 			//图片源区域设置：可以用于仅包含源图片的部分图片内容（比如通过此机制，将按钮的各个状态图片整合到一张大图片上，方便管理图片资源）
-			AttributeUtil::ParseRectValue(value.c_str(), imageAttribute.rcSource);
+			if (imageAttribute.rcSource == nullptr) {
+				imageAttribute.rcSource = new UiRect;
+			}
+			AttributeUtil::ParseRectValue(value.c_str(), *imageAttribute.rcSource);
 		}
 		else if (name == L"corner") {
 			//图片的圆角属性，如果设置此属性，绘制图片的时候，采用九宫格绘制方式绘制图片：
 			//    四个角不拉伸图片，四个边部分拉伸，中间部分可以拉伸或者根据xtiled、ytiled属性来平铺绘制
-			AttributeUtil::ParseRectValue(value.c_str(), imageAttribute.rcCorner);
+			if (imageAttribute.rcCorner == nullptr) {
+				imageAttribute.rcCorner = new UiRect;
+			}
+			AttributeUtil::ParseRectValue(value.c_str(), *imageAttribute.rcCorner);
 		}
 		else if (name == L"dpiscale") {
 			//加载图片时，按照DPI缩放图片大小（会影响width属性、height属性、sources属性、corner属性）
@@ -199,7 +248,10 @@ void ImageAttribute::ModifyAttribute(const std::wstring& strImageString)
 		}
 		else if (name == L"dest") {
 			//设置目标区域，该区域是指相对于所属控件的Rect区域
-			AttributeUtil::ParseRectValue(value.c_str(), imageAttribute.rcDest);
+			if (imageAttribute.rcDest == nullptr) {
+				imageAttribute.rcDest = new UiRect;
+			}
+			AttributeUtil::ParseRectValue(value.c_str(), *imageAttribute.rcDest);
 			bHasDest = true;
 		}
 		else if (name == L"destscale") {
@@ -209,7 +261,10 @@ void ImageAttribute::ModifyAttribute(const std::wstring& strImageString)
 		}
 		else if (name == L"padding") {
 			//在目标区域中设置内边距
-			AttributeUtil::ParsePaddingValue(value.c_str(), imageAttribute.rcPadding);
+			if (imageAttribute.rcPadding == nullptr) {
+				imageAttribute.rcPadding = new UiPadding;
+			}
+			AttributeUtil::ParsePaddingValue(value.c_str(), *imageAttribute.rcPadding);
 		}
 		else if (name == L"halign") {
 			//在目标区域中设置横向对齐方式			
@@ -264,7 +319,9 @@ void ImageAttribute::ModifyAttribute(const std::wstring& strImageString)
 	if (bHasDest && !bDisalbeScaleDest) {
 		//如果没有配置"destscale" 或者 destscale="true"的情况，都需要对rcDest进行DPI自适应
 		//只有设置了destscale="false"的时候，才禁止对rcDest进行DPI自适应
-		GlobalManager::Instance().Dpi().ScaleRect(imageAttribute.rcDest);		
+		if (imageAttribute.rcDest != nullptr) {
+			GlobalManager::Instance().Dpi().ScaleRect(*imageAttribute.rcDest);
+		}		
 	}
 }
 
@@ -331,37 +388,79 @@ void ImageAttribute::ScaleImageRect(uint32_t imageWidth, uint32_t imageHeight, b
 	}
 }
 
-ImageLoadAttribute::ImageLoadAttribute(const std::wstring& srcWidth,
-									   const std::wstring& srcHeight,
+UiRect ImageAttribute::GetSourceRect() const
+{
+	UiRect rc;
+	if (rcSource != nullptr) {
+		rc = *rcSource;
+	}
+	return rc;
+}
+
+UiRect ImageAttribute::GetDestRect() const
+{
+	UiRect rc;
+	if (rcDest != nullptr) {
+		rc = *rcDest;
+	}
+	return rc;
+}
+
+UiPadding ImageAttribute::GetPadding() const
+{
+	UiPadding rc;
+	if (rcPadding != nullptr) {
+		rc = *rcPadding;
+	}
+	return rc;
+}
+
+UiRect ImageAttribute::GetCorner() const
+{
+	UiRect rc;
+	if (rcCorner != nullptr) {
+		rc = *rcCorner;
+	}
+	return rc;
+}
+
+ImageLoadAttribute::ImageLoadAttribute(std::wstring srcWidth,
+									   std::wstring srcHeight,
 	                                   bool srcDpiScale,
 									   bool bHasSrcDpiScale,
 	                                   uint32_t iconSize):
-	m_srcWidth(srcWidth),
-	m_srcHeight(srcHeight),
 	m_srcDpiScale(srcDpiScale),
 	m_bHasSrcDpiScale(bHasSrcDpiScale),
 	m_iconSize(iconSize)
 {
-	StringHelper::Trim(m_srcWidth);
-	StringHelper::Trim(m_srcHeight);
+	StringHelper::Trim(srcWidth);
+	StringHelper::Trim(srcHeight);
+	m_srcWidth = srcWidth;
+	m_srcHeight = srcHeight;	
 }
 
 void ImageLoadAttribute::SetImageFullPath(const std::wstring& imageFullPath)
 {
-	m_srcImageFullPath = StringHelper::NormalizeFilePath(imageFullPath);
-	StringHelper::Trim(m_srcImageFullPath);
+	std::wstring fullPath = StringHelper::NormalizeFilePath(imageFullPath);
+	StringHelper::Trim(fullPath);
+	m_srcImageFullPath = fullPath;	
 }
 
-const std::wstring& ImageLoadAttribute::GetImageFullPath() const
+std::wstring ImageLoadAttribute::GetImageFullPath() const
 {
 	ASSERT(!m_srcImageFullPath.empty());
-	return m_srcImageFullPath;
+	return m_srcImageFullPath.c_str();
 }
 
 std::wstring ImageLoadAttribute::GetCacheKey() const
 {
 	ASSERT(!m_srcImageFullPath.empty());
-	return m_srcImageFullPath + L"@" + m_srcWidth + L":" + m_srcHeight;
+	std::wstring fullPath = m_srcImageFullPath.c_str();
+	fullPath += L"@";
+	fullPath += m_srcWidth.c_str();
+	fullPath += L":";
+	fullPath += m_srcHeight.c_str();
+	return fullPath;
 }
 
 bool ImageLoadAttribute::NeedDpiScale() const
@@ -390,8 +489,8 @@ bool ImageLoadAttribute::CalcImageLoadSize(uint32_t& nImageWidth, uint32_t& nIma
 	if ((nImageWidth == 0) || (nImageHeight == 0)) {
 		return false;
 	}
-	uint32_t nScaledWidth = GetScacledSize(m_srcWidth, nImageWidth);
-	uint32_t nScaledHeight = GetScacledSize(m_srcHeight, nImageHeight);
+	uint32_t nScaledWidth = GetScacledSize(m_srcWidth.c_str(), nImageWidth);
+	uint32_t nScaledHeight = GetScacledSize(m_srcHeight.c_str(), nImageHeight);
 	bool isScaled = false;
 	if ((nScaledWidth > 0) && (nScaledHeight > 0)) {
 		//宽和高都有具体设置的值
@@ -454,14 +553,14 @@ void Image::SetImageString(const std::wstring& strImageString)
 	m_imageAttribute.InitByImageString(strImageString);
 }
 
-const std::wstring& Image::GetImageString() const
+std::wstring Image::GetImageString() const
 {
-	return m_imageAttribute.sImageString;
+	return m_imageAttribute.sImageString.c_str();
 }
 
-const std::wstring& Image::GetImagePath() const
+std::wstring Image::GetImagePath() const
 {
-	return m_imageAttribute.sImagePath;
+	return m_imageAttribute.sImagePath.c_str();
 }
 
 void Image::ClearImageCache()
@@ -472,7 +571,7 @@ void Image::ClearImageCache()
 	m_nCycledCount = 0;
 }
 
-void Image::SetImagePlayCount(int nPlayCount)
+void Image::SetImagePlayCount(int32_t nPlayCount)
 {
 	m_imageAttribute.nPlayCount = nPlayCount;
 }
@@ -495,7 +594,7 @@ bool Image::IncrementCurrentFrame()
 	return true;
 }
 
-void Image::SetCurrentFrame(size_t nCurrentFrame)
+void Image::SetCurrentFrame(uint32_t nCurrentFrame)
 {
 	m_nCurrentFrame = nCurrentFrame;
 }
@@ -508,7 +607,7 @@ IBitmap* Image::GetCurrentBitmap() const
 	return m_imageCache->GetBitmap(m_nCurrentFrame);
 }
 
-int Image::GetCurrentInterval() const
+int32_t Image::GetCurrentInterval() const
 {
 	if (!m_imageCache) {
 		return 0;
@@ -516,12 +615,12 @@ int Image::GetCurrentInterval() const
 	return m_imageCache->GetFrameInterval(m_nCurrentFrame);
 }
 
-size_t Image::GetCurrentFrameIndex() const
+uint32_t Image::GetCurrentFrameIndex() const
 {
 	return m_nCurrentFrame;
 }
 
-int Image::GetCycledCount() const
+int32_t Image::GetCycledCount() const
 {
 	return m_nCycledCount;
 }
@@ -551,8 +650,8 @@ const ImageAttribute& Image::GetImageAttribute() const
 
 ImageLoadAttribute Image::GetImageLoadAttribute() const
 {
-	return ImageLoadAttribute(m_imageAttribute.srcWidth, 
-						      m_imageAttribute.srcHeight,
+	return ImageLoadAttribute(m_imageAttribute.srcWidth.c_str(),
+						      m_imageAttribute.srcHeight.c_str(),
 		                      m_imageAttribute.srcDpiScale,
 							  m_imageAttribute.bHasSrcDpiScale,
 		                      m_imageAttribute.iconSize);
@@ -605,14 +704,14 @@ UiRect StateImage::GetImageSourceRect(ControlStateType stateType) const
 	UiRect rcSource;
 	auto iter = m_stateImageMap.find(stateType);
 	if (iter != m_stateImageMap.end()) {
-		rcSource = iter->second.GetImageAttribute().rcSource;
+		rcSource = iter->second.GetImageAttribute().GetSourceRect();
 	}
 	return rcSource;
 }
 
-int StateImage::GetImageFade(ControlStateType stateType) const
+int32_t StateImage::GetImageFade(ControlStateType stateType) const
 {
-	int nFade = 0xFF;
+	int32_t nFade = 0xFF;
 	auto iter = m_stateImageMap.find(stateType);
 	if (iter != m_stateImageMap.end()) {
 		nFade = iter->second.GetImageAttribute().bFade;
@@ -637,7 +736,7 @@ bool StateImage::PaintStateImage(IRender* pRender, ControlStateType stateType, c
 {
 	if (m_pControl != nullptr) {
 		bool bFadeHot = m_pControl->GetAnimationManager().GetAnimationPlayer(kAnimationHot) != nullptr;
-		int nHotAlpha = m_pControl->GetHotAlpha();
+		int32_t nHotAlpha = m_pControl->GetHotAlpha();
 		if (bFadeHot) {
 			if (stateType == kControlStateNormal || stateType == kControlStateHot) {
 				std::wstring strNormalImagePath = GetImagePath(kControlStateNormal);
@@ -648,14 +747,14 @@ bool StateImage::PaintStateImage(IRender* pRender, ControlStateType stateType, c
 					!GetImageSourceRect(kControlStateNormal).Equals(GetImageSourceRect(kControlStateHot))) {
 
 					m_pControl->PaintImage(pRender, GetStateImage(kControlStateNormal), sImageModify);
-					int nHotFade = GetImageFade(kControlStateHot);
-					nHotFade = int(nHotFade * (double)nHotAlpha / 255);
+					int32_t nHotFade = GetImageFade(kControlStateHot);
+					nHotFade = int32_t(nHotFade * (double)nHotAlpha / 255);
 					return m_pControl->PaintImage(pRender, GetStateImage(kControlStateHot), sImageModify, nHotFade);
 				}
 				else {
-					int nNormalFade = GetImageFade(kControlStateNormal);
-					int nHotFade = GetImageFade(kControlStateHot);
-					int nBlendFade = int((1 - (double)nHotAlpha / 255) * nNormalFade + (double)nHotAlpha / 255 * nHotFade);
+					int32_t nNormalFade = GetImageFade(kControlStateNormal);
+					int32_t nHotFade = GetImageFade(kControlStateHot);
+					int32_t nBlendFade = int32_t((1 - (double)nHotAlpha / 255) * nNormalFade + (double)nHotAlpha / 255 * nHotFade);
 					return m_pControl->PaintImage(pRender, GetStateImage(kControlStateHot), sImageModify, nBlendFade);
 				}
 			}
@@ -827,7 +926,7 @@ std::wstring StateColorMap::GetStateColor(ControlStateType stateType) const
 {
 	auto iter = m_stateColorMap.find(stateType);
 	if (iter != m_stateColorMap.end()) {
-		return iter->second;
+		return iter->second.c_str();
 	}
 	return std::wstring();
 }
@@ -854,7 +953,7 @@ void StateColorMap::PaintStateColor(IRender* pRender, UiRect rcPaint, ControlSta
 	}
 	if (m_pControl != nullptr) {
 		bool bFadeHot = m_pControl->GetAnimationManager().GetAnimationPlayer(kAnimationHot) != nullptr;
-		int nHotAlpha = m_pControl->GetHotAlpha();
+		int32_t nHotAlpha = m_pControl->GetHotAlpha();
 		if (bFadeHot) {
 			if ((stateType == kControlStateNormal || stateType == kControlStateHot) && HasStateColor(kControlStateHot)) {
 				std::wstring strColor = GetStateColor(kControlStateNormal);

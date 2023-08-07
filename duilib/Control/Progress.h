@@ -13,6 +13,7 @@ class UILIB_API Progress : public LabelTemplate<Control>
 {
 public:
 	Progress();
+	virtual ~Progress();
 
 	/// 重写父类方法，提供个性化功能，请参考父类声明
 	virtual std::wstring GetType() const override;
@@ -200,13 +201,13 @@ protected:
 	double m_nValue;
 
 	//进度条前景图片
-	Image m_progressImage;
+	Image* m_pProgressImage;
 
 	//进度条前景图片属性
-	std::wstring m_sProgressImageModify;
+	UiString m_sProgressImageModify;
 
 	//进度条前景颜色,不指定则使用默认颜色
-	std::wstring m_sProgressColor;
+	UiString m_sProgressColor;
 
 	//滚动效果
 	bool m_bMarquee;
