@@ -118,6 +118,14 @@ namespace ui
         return static_cast<int32_t>(x);
     }
 
+    /** 将32位无符号整型值转换位16位无符号整型值
+    */
+    inline uint16_t TruncateToUInt16(uint32_t x)
+    {
+        x = x < UINT16_MAX ? x : UINT16_MAX;
+        return static_cast<uint16_t>(x);
+    }
+
 }//namespace ui
 
 #endif // UI_CORE_UITYPES_H_

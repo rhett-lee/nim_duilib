@@ -281,9 +281,9 @@ void Layout::SetChildMargin(int32_t iMargin)
 	ASSERT(iMargin >= 0);
 	iMargin = std::max(iMargin, 0);
 	GlobalManager::Instance().Dpi().ScaleInt(iMargin);
-	bool isChanged = (m_iChildMarginX != iMargin) || (m_iChildMarginY != iMargin);
-	m_iChildMarginX = iMargin;
-	m_iChildMarginY = iMargin;
+	bool isChanged = ((int32_t)m_iChildMarginX != iMargin) || ((int32_t)m_iChildMarginY != iMargin);
+	m_iChildMarginX = TruncateToUInt16((uint32_t)iMargin);
+	m_iChildMarginY = TruncateToUInt16((uint32_t)iMargin);
 	ASSERT(m_pOwner != nullptr);
 	if (isChanged && (m_pOwner != nullptr)) {
 		m_pOwner->Arrange();
@@ -295,8 +295,8 @@ void Layout::SetChildMarginX(int32_t iMarginX)
 	ASSERT(iMarginX >= 0);
 	iMarginX = std::max(iMarginX, 0);
 	GlobalManager::Instance().Dpi().ScaleInt(iMarginX);
-	bool isChanged = (m_iChildMarginX != iMarginX);
-	m_iChildMarginX = iMarginX;
+	bool isChanged = ((int32_t)m_iChildMarginX != iMarginX);
+	m_iChildMarginX = TruncateToUInt16((uint32_t)iMarginX);
 	ASSERT(m_pOwner != nullptr);
 	if (isChanged && (m_pOwner != nullptr)) {
 		m_pOwner->Arrange();
@@ -308,8 +308,8 @@ void Layout::SetChildMarginY(int32_t iMarginY)
 	ASSERT(iMarginY >= 0);
 	iMarginY = std::max(iMarginY, 0);
 	GlobalManager::Instance().Dpi().ScaleInt(iMarginY);
-	bool isChanged = (m_iChildMarginY != iMarginY);
-	m_iChildMarginY = iMarginY;
+	bool isChanged = ((int32_t)m_iChildMarginY != iMarginY);
+	m_iChildMarginY = TruncateToUInt16((uint32_t)iMarginY);
 	ASSERT(m_pOwner != nullptr);
 	if (isChanged && (m_pOwner != nullptr)) {
 		m_pOwner->Arrange();

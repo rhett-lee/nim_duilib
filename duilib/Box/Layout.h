@@ -145,10 +145,10 @@ private:
 	UiPadding m_rcPadding;
 
 	//子控件之间的额外边距: X 轴方向
-	int32_t m_iChildMarginX;
+	uint16_t m_iChildMarginX;
 
 	//子控件之间的额外边距: Y 轴方向
-	int32_t m_iChildMarginY;
+	uint16_t m_iChildMarginY;
 };
 
 } // namespace ui
