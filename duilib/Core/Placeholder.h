@@ -160,7 +160,7 @@ public:
 	/** 获取最小宽度
 	* @return 返回最小宽度（包含内边距，不包含外边距）（返回值 >= 0）
 	*/
-	int32_t GetMinWidth() const { ASSERT(m_cxyMin.cx >= 0); return m_cxyMin.cx; }
+	int32_t GetMinWidth() const;
 
 	/**@brief 设置最小宽度
 	 * @param[in] cx 要设置的最小宽度（包含内边距，不包含外边距）（值 >= 0）
@@ -170,7 +170,7 @@ public:
 	/** 获取最大宽度
 	* @return 返回最大宽度（包含内边距，不包含外边距）（返回值 >= 0）
 	*/
-	int32_t GetMaxWidth() const { ASSERT(m_cxyMax.cx >=0 ); return m_cxyMax.cx; }
+	int32_t GetMaxWidth() const;
 
 	/** 设置最大宽度
 	 * @param[in] cx 要设置的最大宽度（包含内边距，不包含外边距）（值 >= 0）
@@ -180,7 +180,7 @@ public:
 	/** 获取最小高度
 	* @return 返回最小高度（包含内边距，不包含外边距）（返回值 >= 0）
 	*/
-	int32_t GetMinHeight() const { ASSERT(m_cxyMin.cy >= 0); return m_cxyMin.cy; }
+	int32_t GetMinHeight() const;
 
 	/** 设置最小高度
 	 * @param[in] cy 要设置的最小高度（包含内边距，不包含外边距）（值 >= 0）
@@ -190,7 +190,7 @@ public:
 	/** 获取最大高度
 	* @return 返回最大高度（包含内边距，不包含外边距）（返回值 >= 0）
 	*/
-	int32_t GetMaxHeight() const { ASSERT(m_cxyMax.cy >= 0); return m_cxyMax.cy; }
+	int32_t GetMaxHeight() const;
 
 	/** 设置最大高度
 	 * @param[in] cy 要设置的最大高度（包含内边距，不包含外边距）（值 >= 0）
@@ -207,7 +207,7 @@ public:
 
 	/**@brief 获取水平对齐方式， 参考 HorAlignType 枚举
 	 */
-	HorAlignType GetHorAlignType() const { return m_horAlignType; }
+	HorAlignType GetHorAlignType() const;
 
 	/**@brief 设置水平对齐方式
 	 * @param[in] horAlignType 要设置的对齐方式，参考 HorAlignType 枚举
@@ -216,7 +216,7 @@ public:
 
 	/**@brief 获取垂直对齐方式，参见 VerAlignType 枚举
 	 */
-	VerAlignType GetVerAlignType() const { return m_verAlignType; }
+	VerAlignType GetVerAlignType() const;
 
 	/**@brief 设置垂直对齐方式
 	 * @param[in] vorAlignType 要设置的对齐方式，参考 VerAlignType 枚举
@@ -225,7 +225,7 @@ public:
 
 	/** 获取控件的外边距
 	 */
-	const UiMargin& GetMargin() const;
+	UiMargin GetMargin() const;
 
 	/** 设置控件的外边距
 	 * @param[in] rcMargin 控件的外边距信息
@@ -330,14 +330,14 @@ private:
 	//控件大小最大值
 	UiSize m_cxyMax;
 
-	//控件水平对齐方式
-	HorAlignType m_horAlignType;
+	//控件水平对齐方式(HorAlignType)
+	int8_t m_horAlignType;
 
-	//控件垂直对齐方式
-	VerAlignType m_verAlignType;
+	//控件垂直对齐方式(VerAlignType)
+	int8_t m_verAlignType;
 
 	//控件的外边距属性（上，下，左，右边距），外边距是m_uiRect以外的空间，不包含在m_uiRect以内
-	UiMargin m_rcMargin;
+	UiMargin16 m_rcMargin;
 
 	//控件是否为浮动属性
 	bool m_bFloat;

@@ -1037,9 +1037,9 @@ private:
 	std::shared_ptr<Image> m_pBkImage;
 
 private:
-	/** 控件状态
+	/** 控件状态(ControlStateType)
 	*/
-	ControlStateType m_controlState;
+	int8_t m_controlState;
 
 	/** 状态与颜色值MAP
 	*/
@@ -1085,7 +1085,7 @@ private:
 
 private:
 	//ToolTip的宽度
-	int32_t m_nTooltipWidth;
+	uint16_t m_nTooltipWidth;
 
 	//ToolTip的文本内容
 	UiString m_sToolTipText;
@@ -1136,8 +1136,8 @@ private:
 	//是否允许TAB切换焦点
 	bool m_bAllowTabstop;
 
-	//控件的光标类型
-	CursorType m_cursorType;
+	//控件的光标类型(CursorType)
+	int8_t m_cursorType;
 };
 
 } // namespace ui

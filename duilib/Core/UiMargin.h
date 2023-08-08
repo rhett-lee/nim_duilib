@@ -82,6 +82,40 @@ public:
 	int32_t bottom;
 };
 
+/** 16位无符号的版本，用于存储，节约空间
+*/
+class UILIB_API UiMargin16
+{
+public:
+	UiMargin16()
+	{
+		left = top = right = bottom = 0;
+	}
+	UiMargin16(uint16_t nLeft, uint16_t nTop, uint16_t nRight, uint16_t nBottom)
+	{
+		left = nLeft;
+		top = nTop;
+		right = nRight;
+		bottom = nBottom;
+	}
+public:
+	/** 矩形左侧的外边距
+	*/
+	uint16_t left;
+
+	/** 矩形上面的外边距
+	*/
+	uint16_t top;
+
+	/** 矩形右侧的外边距
+	*/
+	uint16_t right;
+
+	/** 矩形下面的外边距
+	*/
+	uint16_t bottom;
+};
+
 } // namespace ui
 
 #endif // UI_CORE_UIMARGIN_H_

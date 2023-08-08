@@ -113,17 +113,39 @@ namespace ui
     */
     inline int32_t TruncateToInt32(int64_t x)
     {
+        ASSERT((x >= INT32_MIN) && (x <= INT32_MAX) );
         x = x < INT32_MAX ? x : INT32_MAX;
         x = x > INT32_MIN ? x : INT32_MIN;
         return static_cast<int32_t>(x);
     }
 
-    /** 将32位无符号整型值转换位16位无符号整型值
+    /** 将32位y有符号整型值转换位16位无符号整型值
     */
     inline uint16_t TruncateToUInt16(uint32_t x)
     {
+        ASSERT(x <= UINT16_MAX);
         x = x < UINT16_MAX ? x : UINT16_MAX;
         return static_cast<uint16_t>(x);
+    }
+
+    /** 将32位无符号整型值转换位16位无符号整型值
+    */
+    inline uint16_t TruncateToUInt16(int32_t x)
+    {
+        ASSERT((x >= 0) && (x <= UINT16_MAX));
+        x = x > 0 ? x : 0;
+        x = x < UINT16_MAX ? x : UINT16_MAX;
+        return static_cast<uint16_t>(x);
+    }
+
+    /** 将32位整型值转换位8位整型值
+    */
+    inline int8_t TruncateToInt8(int32_t x)
+    {
+        ASSERT((x >= INT8_MIN) && (x <= INT8_MAX));
+        x = x < INT8_MAX ? x : INT8_MAX;
+        x = x > INT8_MIN ? x : INT8_MIN;
+        return static_cast<int8_t>(x);
     }
 
 }//namespace ui

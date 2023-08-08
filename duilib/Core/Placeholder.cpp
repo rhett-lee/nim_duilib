@@ -196,6 +196,11 @@ void PlaceHolder::SetEstimateSize(const UiEstSize& szEstimateSize, const UiSize&
 	m_estResult.m_szEstimateSize = szEstimateSize;
 }
 
+int32_t PlaceHolder::GetMinWidth() const
+{ 
+	ASSERT(m_cxyMin.cx >= 0); return m_cxyMin.cx; 
+}
+
 void PlaceHolder::SetMinWidth(int32_t cx)
 {
 	ASSERT(cx >= 0);
@@ -213,6 +218,11 @@ void PlaceHolder::SetMinWidth(int32_t cx)
 	else {
 		Arrange();
 	}
+}
+
+int32_t PlaceHolder::GetMaxWidth() const
+{ 
+	ASSERT(m_cxyMax.cx >= 0); return m_cxyMax.cx; 
 }
 
 void PlaceHolder::SetMaxWidth(int32_t cx)
@@ -234,6 +244,10 @@ void PlaceHolder::SetMaxWidth(int32_t cx)
 		Arrange();
 	}
 }
+int32_t PlaceHolder::GetMinHeight() const
+{ 
+	ASSERT(m_cxyMin.cy >= 0); return m_cxyMin.cy; 
+}
 
 void PlaceHolder::SetMinHeight(int32_t cy)
 {
@@ -252,6 +266,11 @@ void PlaceHolder::SetMinHeight(int32_t cy)
 	else {
 		Arrange();
 	}
+}
+
+int32_t PlaceHolder::GetMaxHeight() const
+{ 
+	ASSERT(m_cxyMax.cy >= 0); return m_cxyMax.cy; 
 }
 
 void PlaceHolder::SetMaxHeight(int32_t cy)
@@ -277,7 +296,7 @@ void PlaceHolder::SetMaxHeight(int32_t cy)
 void PlaceHolder::SetHorAlignType(HorAlignType horAlignType)
 {
 	if (m_horAlignType != horAlignType) {
-		m_horAlignType = horAlignType;
+		m_horAlignType = TruncateToInt8(horAlignType);
 		if (!m_bFloat) {
 			ArrangeAncestor();
 		}
@@ -287,10 +306,15 @@ void PlaceHolder::SetHorAlignType(HorAlignType horAlignType)
 	}
 }
 
+HorAlignType PlaceHolder::GetHorAlignType() const
+{ 
+	return static_cast<HorAlignType>(m_horAlignType);
+}
+
 void PlaceHolder::SetVerAlignType(VerAlignType verAlignType)
 {
 	if (m_verAlignType != verAlignType) {
-		m_verAlignType = verAlignType;
+		m_verAlignType = TruncateToInt8(verAlignType);
 		if (!m_bFloat) {
 			ArrangeAncestor();
 		}
@@ -300,9 +324,14 @@ void PlaceHolder::SetVerAlignType(VerAlignType verAlignType)
 	}	
 }
 
-const UiMargin& PlaceHolder::GetMargin() const
+VerAlignType PlaceHolder::GetVerAlignType() const
+{ 
+	return static_cast<VerAlignType>(m_verAlignType);
+}
+
+UiMargin PlaceHolder::GetMargin() const
 {
-	return m_rcMargin;
+	return UiMargin(m_rcMargin.left, m_rcMargin.top, m_rcMargin.right, m_rcMargin.bottom);
 }
 
 void PlaceHolder::SetMargin(UiMargin rcMargin, bool bNeedDpiScale)
@@ -312,8 +341,11 @@ void PlaceHolder::SetMargin(UiMargin rcMargin, bool bNeedDpiScale)
 		GlobalManager::Instance().Dpi().ScaleMargin(rcMargin);
 	}
 
-	if (!m_rcMargin.Equals(rcMargin)) {
-		m_rcMargin = rcMargin;
+	if (!GetMargin().Equals(rcMargin)) {
+		m_rcMargin.left = TruncateToUInt16(rcMargin.left);
+		m_rcMargin.top = TruncateToUInt16(rcMargin.top);
+		m_rcMargin.right = TruncateToUInt16(rcMargin.right);
+		m_rcMargin.bottom = TruncateToUInt16(rcMargin.bottom);
 		ArrangeAncestor();
 	}
 }

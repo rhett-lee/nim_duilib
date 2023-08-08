@@ -283,7 +283,7 @@ void Control::SetForeStateImage(ControlStateType stateType, const std::wstring& 
 
 ControlStateType Control::GetState() const
 {
-	return m_controlState;
+	return static_cast<ControlStateType>(m_controlState);
 }
 
 void Control::SetState(ControlStateType controlState)
@@ -294,7 +294,7 @@ void Control::SetState(ControlStateType controlState)
 	else if (controlState == kControlStateHot) {
 		m_nHotAlpha = 255;
 	}
-	m_controlState = controlState;
+	m_controlState = TruncateToInt8(controlState);
 	Invalidate();
 }
 
@@ -415,12 +415,12 @@ void Control::SetBoxShadow(const std::wstring& strShadow)
 
 CursorType Control::GetCursorType() const
 {
-	return m_cursorType;
+	return static_cast<CursorType>(m_cursorType);
 }
 
 void Control::SetCursorType(CursorType cursorType)
 {
-	m_cursorType = cursorType;
+	m_cursorType = TruncateToInt8(cursorType);
 }
 
 std::wstring Control::GetToolTipText() const
@@ -482,7 +482,10 @@ void Control::SetUTF8ToolTipTextId(const std::string& strTextId)
 void Control::SetToolTipWidth( int32_t nWidth )
 {
 	GlobalManager::Instance().Dpi().ScaleInt(nWidth);
-	m_nTooltipWidth = nWidth;
+	if (nWidth < 0) {
+		nWidth = 0;
+	}
+	m_nTooltipWidth = TruncateToUInt16(nWidth);
 }
 
 int32_t Control::GetToolTipWidth(void) const
@@ -1940,15 +1943,15 @@ void Control::PaintStateColor(IRender* pRender, const UiRect& rcPaint, ControlSt
 void Control::PaintStateColors(IRender* pRender)
 {
 	if (m_pColorMap != nullptr) {
-		m_pColorMap->PaintStateColor(pRender, m_rcPaint, m_controlState);
+		m_pColorMap->PaintStateColor(pRender, m_rcPaint, GetState());
 	}	
 }
 
 void Control::PaintStateImages(IRender* pRender)
 {
 	if (m_pImageMap != nullptr) {
-		m_pImageMap->PaintStateImage(pRender, kStateImageBk, m_controlState);
-		m_pImageMap->PaintStateImage(pRender, kStateImageFore, m_controlState);
+		m_pImageMap->PaintStateImage(pRender, kStateImageBk, GetState());
+		m_pImageMap->PaintStateImage(pRender, kStateImageFore, GetState());
 	}	
 }
 
