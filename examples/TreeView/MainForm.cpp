@@ -14,6 +14,7 @@ MainForm::MainForm():
 MainForm::~MainForm()
 {
     for (auto p : m_folderList) {
+        ui::GlobalManager::Instance().Icon().RemoveIcon(p->hIcon);
         ::DestroyIcon(p->hIcon);
         delete p;
     }
@@ -64,6 +65,17 @@ void MainForm::InsertTreeNode(ui::TreeNode* pTreeNode,
         node->SetClass(L"listitem");
         node->SetFixedHeight(ui::UiFixedInt(20), true);
         node->SetText(displayName);
+
+        ui::UiSize iconSize = ui::GlobalManager::Instance().Icon().GetIconSize(hIcon);
+        node->SetTextPadding(ui::UiPadding(iconSize.cx + 2, 0, 0, 0));//给图标留出空间
+
+        ui::GlobalManager::Instance().Icon().AddIcon(hIcon);
+        std::wstring iconString = ui::GlobalManager::Instance().Icon().GetIconString(hIcon);
+        if (!iconString.empty()) {
+            iconString = ui::StringHelper::Printf(L"file='%s' halign='left' valign='center'", iconString.c_str());
+            node->SetBkImage(iconString);
+        }
+
         node->AttachExpand(nbase::Bind(&MainForm::OnTreeNodeExpand, this, std::placeholders::_1));
         node->AttachClick(nbase::Bind(&MainForm::OnTreeNodeClick, this, std::placeholders::_1));
 
@@ -71,6 +83,7 @@ void MainForm::InsertTreeNode(ui::TreeNode* pTreeNode,
         pFolder->path = path;
         pFolder->hIcon = hIcon;
         m_folderList.push_back(pFolder);
+        ui::GlobalManager::Instance().Icon().AddIcon(hIcon);
         node->SetUserDataID((size_t)pFolder);
 
         if (isFolder) {
@@ -264,7 +277,7 @@ void MainForm::ShowFolderContents(const std::wstring& path)
 
         SHFILEINFO shFileInfo;
         ZeroMemory(&shFileInfo, sizeof(SHFILEINFO));
-        if (::SHGetFileInfo(folderPath.c_str(), 0, &shFileInfo, sizeof(SHFILEINFO), SHGFI_ATTRIBUTES | SHGFI_ICON | SHGFI_SMALLICON)) {
+        if (::SHGetFileInfo(folderPath.c_str(), 0, &shFileInfo, sizeof(SHFILEINFO), SHGFI_ATTRIBUTES | SHGFI_ICON | SHGFI_LARGEICON)) {
             if ((shFileInfo.dwAttributes & SFGAO_FOLDER) == SFGAO_FOLDER) {
                 //目录
                 folderList.push_back({ findData.cFileName, false, shFileInfo.hIcon });

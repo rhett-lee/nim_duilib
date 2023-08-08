@@ -38,8 +38,6 @@ public:
 	virtual void SetEnabled(bool bEnabled) override;
 	virtual void SetVisible(bool bVisible) override;
 	virtual Control* FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, UiPoint scrollPos = UiPoint()) override;
-	virtual void InvokeLoadImageCache() override;
-	virtual void UnLoadImageCache() override;
 	virtual void ClearImageCache() override;
 	virtual UINT GetControlFlags() const override;
 

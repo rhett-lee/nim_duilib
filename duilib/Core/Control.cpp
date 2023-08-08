@@ -1631,9 +1631,9 @@ void Control::Paint(IRender* pRender, const UiRect& rcPaint)
 	}	
 
 	//绘制其他内容
-	PaintBkColor(pRender);		//背景颜色
+	PaintBkColor(pRender);		//背景颜色(覆盖整个矩形)
+	PaintStateColors(pRender);	//控件指定状态的颜色：普通状态、焦点状态、按下状态、禁用状态(覆盖整个矩形)
 	PaintBkImage(pRender);		//背景图片，无状态
-	PaintStateColors(pRender);	//控件指定状态的颜色：普通状态、焦点状态、按下状态、禁用状态
 	PaintStateImages(pRender);	//先绘制背景图片，然后绘制前景图片，每个图片有指定的状态：普通状态、焦点状态、按下状态、禁用状态
 	PaintText(pRender);			//绘制文本
 	PaintBorder(pRender);		//绘制边框
@@ -2077,6 +2077,10 @@ void Control::AttachGifPlayStop(const EventCallback& callback)
 
 bool Control::LoadImageData(Image& duiImage) const
 {
+	if (duiImage.GetImageCache() != nullptr) {
+		//如果图片缓存存在，则不再加载（当图片变化的时候，会清空这个缓存）
+		return true;
+	}
 	Window* pWindow = GetWindow();
 	ASSERT(pWindow != nullptr);
 	if (pWindow == nullptr) {
@@ -2087,7 +2091,18 @@ bool Control::LoadImageData(Image& duiImage) const
 	if (sImagePath.empty()) {
 		return false;
 	}
-	std::wstring imageFullPath = GlobalManager::Instance().GetResFullPath(pWindow->GetResourcePath(), sImagePath);
+	std::wstring imageFullPath;
+
+#ifdef UILIB_IMPL_WINSDK
+	if (GlobalManager::Instance().Icon().IsIconString(sImagePath)) {
+		//ICON句柄
+		imageFullPath = sImagePath;
+	}
+#endif
+
+	if(imageFullPath.empty()) {
+		imageFullPath = GlobalManager::Instance().GetResFullPath(pWindow->GetResourcePath(), sImagePath);
+	}
 	ImageLoadAttribute imageLoadAttr = duiImage.GetImageLoadAttribute();
 	imageLoadAttr.SetImageFullPath(imageFullPath);
 	std::shared_ptr<ImageInfo> imageCache = duiImage.GetImageCache();
@@ -2098,38 +2113,6 @@ bool Control::LoadImageData(Image& duiImage) const
 		duiImage.SetImageCache(imageCache);
 	}
 	return imageCache ? true : false;
-}
-
-void Control::InvokeLoadImageCache()
-{
-	if (m_pBkImage == nullptr) {
-		return;
-	}
-	std::wstring sImagePath = m_pBkImage->GetImagePath();
-	if (sImagePath.empty()) {
-		return;
-	}
-	Window* pWindow = GetWindow();
-	if (pWindow == nullptr) {
-		return;
-	}
-	std::wstring imageFullPath = GlobalManager::Instance().GetResFullPath(pWindow->GetResourcePath(), sImagePath);
-	ImageLoadAttribute imageLoadAttr = m_pBkImage->GetImageLoadAttribute();
-	imageLoadAttr.SetImageFullPath(imageFullPath);
-	if (!m_pBkImage->GetImageCache() || m_pBkImage->GetImageCache()->GetCacheKey() != imageLoadAttr.GetCacheKey()) {
-		auto shared_image = GlobalManager::Instance().Image().GetCachedImage(imageLoadAttr);
-		if (shared_image) {
-			m_pBkImage->SetImageCache(shared_image);
-			return;
-		}
-	}
-}
-
-void Control::UnLoadImageCache()
-{
-	if (m_pBkImage != nullptr) {
-		m_pBkImage->ClearImageCache();
-	}	
 }
 
 void Control::ClearImageCache()

@@ -131,11 +131,5 @@ namespace ui
 		if (m_pVScrollBar && m_pVScrollBar->IsVisible()) {
 			m_pVScrollBar->AlphaPaint(pRender, rcPaint);
 		}
-
-		static bool bFirstPaint = true;
-		if (bFirstPaint) {
-			bFirstPaint = false;
-			LoadImageCache(true);
-		}
 	}
 }

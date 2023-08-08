@@ -477,26 +477,6 @@ void Box::ReSetLayout(Layout* pLayout)
 	}	
 }
 
-void Box::InvokeLoadImageCache()
-{
-	__super::InvokeLoadImageCache();
-	for (Control* pControl : m_items) {
-		if (pControl != nullptr) {
-			pControl->InvokeLoadImageCache();
-		}		
-	}
-}
-
-void Box::UnLoadImageCache()
-{
-	__super::UnLoadImageCache();
-	for (Control* pControl : m_items) {
-		if (pControl != nullptr) {
-			pControl->UnLoadImageCache();
-		}
-	}
-}
-
 void Box::ClearImageCache()
 {
 	__super::ClearImageCache();

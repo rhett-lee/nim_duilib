@@ -263,11 +263,6 @@ protected:
 	 */
 	virtual UiSize64 CalcRequiredSize(const UiRect& rc);
 
-	/** 加载图片缓存，仅供 ScrollBox 内部使用
-	 * @param[in] bFromTopLeft 暂无意义
-	 */
-	virtual void LoadImageCache(bool bFromTopLeft);
-
 private:
 	/**@brief 设置位置大小
 	 */

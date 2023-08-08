@@ -294,6 +294,9 @@
     <ClCompile Include="Core\ControlGif.cpp">
       <Filter>Core</Filter>
     </ClCompile>
+    <ClCompile Include="Core\IconManager.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -642,6 +645,9 @@
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="Core\ControlGif.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\IconManager.h">
       <Filter>Core</Filter>
     </ClInclude>
   </ItemGroup>

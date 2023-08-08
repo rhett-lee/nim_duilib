@@ -715,14 +715,6 @@ public:
 	 */
 	bool LoadImageData(Image& duiImage) const;
 
-	/**@brief 加载图片到缓存
-	 */
-	virtual void InvokeLoadImageCache();
-
-	/**@brief 取消加载图片缓存
-	 */
-	virtual void UnLoadImageCache();
-
 	/**@brief 清理图片缓存
 	 */
 	virtual void ClearImageCache();

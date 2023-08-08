@@ -23,6 +23,13 @@ void FileInfoItem::InitSubControls(const FileInfo& fileInfo, size_t nElementInde
     }
     if (m_pTextControl != nullptr) {
         m_pTextControl->SetAutoToolTip(true);
-        m_pTextControl->SetText(fileInfo.m_fileName);
+        m_pTextControl->SetText(fileInfo.m_fileName);        
+    }
+    if (m_pIconControl != nullptr) {
+        std::wstring iconString = ui::GlobalManager::Instance().Icon().GetIconString(fileInfo.m_hIcon);
+        if (!iconString.empty()) {
+            iconString = ui::StringHelper::Printf(L"file='%s' halign='left' valign='center'", iconString.c_str());
+            m_pIconControl->SetBkImage(iconString);
+        }        
     }
 }

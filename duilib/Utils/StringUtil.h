@@ -68,6 +68,10 @@ public:
 	static bool IsEqualNoCase(const wchar_t* lhs, const std::wstring& rhs);
 	static bool IsEqualNoCase(const std::wstring& lhs, const wchar_t* rhs);
 	static bool IsEqualNoCase(const wchar_t* lhs, const wchar_t* rhs);
+
+	//将整型转换为字符串
+	static std::wstring UInt64ToString(uint64_t value);
+	static std::wstring UInt32ToString(uint32_t value);
 };
 
 }

@@ -7,6 +7,7 @@
 #include "duilib/Core/ColorManager.h"
 #include "duilib/Core/FontManager.h"
 #include "duilib/Core/ImageManager.h"
+#include "duilib/Core/IconManager.h"
 #include "duilib/Core/ZipManager.h"
 #include "duilib/Core/LangManager.h"
 #include "duilib/Core/DpiManager.h"
@@ -129,6 +130,12 @@ public:
 	/** 获取图片管理器
 	*/
 	ImageManager& Image();
+
+#ifdef UILIB_IMPL_WINSDK
+	/** 获取ICON资源管理器
+	*/
+	IconManager& Icon();
+#endif
 
 	/** 获取Zip管理器
 	*/
@@ -257,6 +264,12 @@ private:
 	/** 多语言管理器
 	*/
 	LangManager m_langManager;
+
+#ifdef UILIB_IMPL_WINSDK
+	/** ICON资源管理器
+	*/
+	IconManager m_iconManager;
+#endif
 };
 
 } // namespace ui

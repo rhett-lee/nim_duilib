@@ -307,6 +307,13 @@ ImageManager& GlobalManager::Image()
 	return m_imageManager;
 }
 
+#ifdef UILIB_IMPL_WINSDK
+IconManager& GlobalManager::Icon()
+{
+	return m_iconManager;
+}
+#endif
+
 ZipManager& GlobalManager::Zip()
 {
 	return m_zipManager;

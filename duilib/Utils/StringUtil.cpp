@@ -609,4 +609,25 @@ bool StringHelper::IsEqualNoCase(const wchar_t* lhs, const wchar_t* rhs)
 	return IsEqualNoCasePrivate(lhs, rhs);
 }
 
+std::wstring StringHelper::UInt64ToString(uint64_t value)
+{
+	wchar_t temp[32] = {0};
+	int pos = 0;
+	do {
+		temp[pos++] = (wchar_t)(L'0' + (int)(value % 10));
+		value /= 10;
+	} while (value != 0);
+
+	std::wstring str;
+	do {
+		str += temp[--pos];
+	} while (pos > 0);
+	return str;
+}
+
+std::wstring StringHelper::UInt32ToString(uint32_t value)
+{
+	return UInt64ToString(value);
+}
+
 } // namespace nbase

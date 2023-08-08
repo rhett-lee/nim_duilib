@@ -459,10 +459,12 @@ std::wstring ImageLoadAttribute::GetCacheKey() const
 {
 	ASSERT(!m_srcImageFullPath.empty());
 	std::wstring fullPath = m_srcImageFullPath.c_str();
-	fullPath += L"@";
-	fullPath += m_srcWidth.c_str();
-	fullPath += L":";
-	fullPath += m_srcHeight.c_str();
+	if (!m_srcWidth.empty() || !m_srcHeight.empty()) {
+		fullPath += L"@";
+		fullPath += m_srcWidth.c_str();
+		fullPath += L":";
+		fullPath += m_srcHeight.c_str();
+	}	
 	return fullPath;
 }
 

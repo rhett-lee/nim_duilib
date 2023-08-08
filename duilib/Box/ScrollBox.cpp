@@ -338,12 +338,6 @@ void ScrollBox::PaintChild(IRender* pRender, const UiRect& rcPaint)
 	if( (m_pVScrollBar != nullptr) && m_pVScrollBar->IsVisible()) {
 		m_pVScrollBar->AlphaPaint(pRender, rcPaint);
 	}
-	
-	static bool bFirstPaint = true;//TODO: static变量待改进
-	if (bFirstPaint) {
-		bFirstPaint = false;
-		LoadImageCache(true);
-	}
 }
 
 void ScrollBox::SetMouseEnabled(bool bEnabled)
@@ -484,45 +478,8 @@ void ScrollBox::SetScrollPos(UiSize64 szPos)
 	if (cx == 0 && cy == 0) {
 		return;
 	}
-	LoadImageCache(cy > 0);
 	Invalidate();
 	SendEvent(kEventScrollChange, (cy == 0) ? 0 : 1, (cx == 0) ? 0 : 1);
-}
-
-void ScrollBox::LoadImageCache(bool bFromTopLeft)
-{
-	UiSize scrollPos = GetScrollOffset();
-	UiRect rcImageCachePos = GetPos();
-	rcImageCachePos.Offset(scrollPos.cx, scrollPos.cy);
-	rcImageCachePos.Offset(GetRenderOffset().x, GetRenderOffset().y);
-	rcImageCachePos.Inflate(0, 730, 0, 730);//TODO: 检查代码逻辑
-
-	auto forEach = [this, scrollPos, rcImageCachePos](ui::Control* pControl) {
-		if (pControl == nullptr) {
-			return;
-		}
-		if (!pControl->IsVisible()) {
-			return;
-		}
-		if (pControl->IsFloat()) {
-			return;
-		}
-		UiRect rcTemp;
-		UiRect controlPos = pControl->GetPos();
-		if (!UiRect::Intersect(rcTemp, rcImageCachePos, controlPos)) {
-			pControl->UnLoadImageCache();
-		}
-		else {
-			pControl->InvokeLoadImageCache();
-		}
-	};
-
-	if (!bFromTopLeft) {
-		std::for_each(m_items.rbegin(), m_items.rend(), forEach);
-	}
-	else {
-		std::for_each(m_items.begin(), m_items.end(), forEach);
-	}
 }
 
 void ScrollBox::SetScrollPosY(int64_t y)

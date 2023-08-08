@@ -58,7 +58,20 @@ private:
 
 	/** 查找对应DPI下的图片，可以每个DPI设置一个图片，以提高不同DPI下的图片质量
 	*/
-	std::wstring GetDpiImageFullPath(const std::wstring& strImageFullPath, bool bIsUseZip);
+	std::wstring GetDpiImageFullPath(const std::wstring& strImageFullPath, bool bIsUseZip) const;
+
+	/** 从文件加载一个图片
+	*/
+	void LoadImageData(const ImageLoadAttribute& loadAtrribute,
+		               bool& isDpiScaledImageFile,
+		               std::unique_ptr<ImageInfo>& imageInfo) const;
+
+#ifdef UILIB_IMPL_WINSDK
+	/** 从HICON句柄加载一个图片
+	*/
+	void LoadIconData(const ImageLoadAttribute& loadAtrribute,
+		              std::unique_ptr<ImageInfo>& imageInfo) const;
+#endif
 
 private:
 	/** 设置是否默认对所有图片在加载时根据DPI进行缩放，这个是全局属性，默认为true，应用于所有图片

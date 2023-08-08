@@ -32,7 +32,7 @@ void RichlistForm::OnInitWindow()
 {
 	list_ = dynamic_cast<ui::ListBox*>(FindControl(L"list"));
 
-	for (auto i = 0; i < 100; i++)
+	for (auto i = 0; i < 1000; i++)
 	{
 		Item* item = new Item;
 		item->SetWindow(this);
