@@ -296,7 +296,7 @@ void ListBox::EnsureVisible(const UiRect& rcItem)
 	UiSize scrollOffset = GetScrollOffset();
 	rcNewItem.Offset(-scrollOffset.cx, -scrollOffset.cy);
 	UiRect rcList = GetPos();
-	rcList.Deflate(GetLayout()->GetPadding());
+	rcList.Deflate(GetPadding());
 
 	ScrollBar* pHorizontalScrollBar = GetHScrollBar();
 	if (pHorizontalScrollBar && pHorizontalScrollBar->IsVisible()) {
@@ -411,7 +411,7 @@ Control* ListBox::GetTopItem() const
 {
 	if (IsHorizontalLayout()) {
 		//横向布局
-		int32_t listLeft = GetPos().left + GetLayout()->GetPadding().left + GetScrollOffset().cx;
+		int32_t listLeft = GetPos().left + GetPadding().left + GetScrollOffset().cx;
 		for (Control* pControl : m_items) {
 			ASSERT(pControl != nullptr);
 			if (pControl->IsVisible() && !pControl->IsFloat() && pControl->GetPos().right >= listLeft) {
@@ -421,7 +421,7 @@ Control* ListBox::GetTopItem() const
 	}
 	else {
 		//纵向布局
-		int32_t listTop = GetPos().top + GetLayout()->GetPadding().top + GetScrollOffset().cy;
+		int32_t listTop = GetPos().top + GetPadding().top + GetScrollOffset().cy;
 		for (Control* pControl : m_items) {
 			ASSERT(pControl != nullptr);
 			if (pControl->IsVisible() && !pControl->IsFloat() && pControl->GetPos().bottom >= listTop) {

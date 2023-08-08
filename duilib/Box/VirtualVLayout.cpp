@@ -51,7 +51,10 @@ UiSize VirtualVLayout::EstimateSizeByChild(const std::vector<Control*>& items, u
         size.cy = szAvailable.cy;
     }
     if ((size.cx == 0) || (size.cy == 0)) {
-        UiPadding rcPadding = GetPadding();
+        UiPadding rcPadding;
+        if (m_pOwner != nullptr) {
+            rcPadding = m_pOwner->GetPadding();
+        }
         UiSize szItem = GetItemSize();
         szItem.cx += (rcPadding.left + rcPadding.right);
         szItem.cy += (rcPadding.top + rcPadding.bottom);

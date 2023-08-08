@@ -262,7 +262,7 @@ ui::UiEstSize PopoverHeader::EstimateSize(ui::UiSize szAvailable)
         ui::UiSize maxSize = szAvailable;
 
         ui::UiMargin marginRect = GetMargin();
-        ui::UiPadding paddingRect = GetLayout()->GetPadding();
+        ui::UiPadding paddingRect = GetPadding();
 
         maxSize.cx -= marginRect.left + marginRect.right;
         maxSize.cx -= paddingRect.left + paddingRect.right;
@@ -387,7 +387,7 @@ ui::UiEstSize PopoverBody::EstimateSize(ui::UiSize szAvailable)
         ui::UiMargin marginRect = GetMargin();
         maxSize.cx -= marginRect.left + marginRect.right;
 
-        ui::UiPadding paddingRect = GetLayout()->GetPadding();
+        ui::UiPadding paddingRect = GetPadding();
         maxSize.cx -= paddingRect.left + paddingRect.right;
 
         ui::UiSize editSize{ 0, 0 };
@@ -470,7 +470,7 @@ ui::UiEstSize PopoverFooter::EstimateSize(ui::UiSize szAvailable)
         ui::UiMargin marginRect = GetMargin();
         maxSize.cx -= marginRect.left + marginRect.right;
 
-        ui::UiPadding paddingRect = GetLayout()->GetPadding();
+        ui::UiPadding paddingRect = GetPadding();
         maxSize.cx -= paddingRect.left + paddingRect.right;
 
         ui::UiSize okSize{ 0, 0 };
@@ -544,7 +544,7 @@ ui::UiEstSize PopoverRoot::EstimateSize(ui::UiSize szAvailable)
             return GetEstimateSize();
         }
 
-        ui::UiPadding paddingRect = GetLayout()->GetPadding();
+        ui::UiPadding paddingRect = GetPadding();
         ui::UiMargin marginRect = GetMargin();
 
         ui::UiSize maxSize{ szAvailable.cx, 0 };
@@ -657,7 +657,7 @@ ui::UiEstSize Popover::EstimateSize(ui::UiSize szAvailable)
             return GetEstimateSize();
         }
 
-        ui::UiPadding paddingRect = GetLayout()->GetPadding();
+        ui::UiPadding paddingRect = GetPadding();
 
         ui::UiSize maxSize{ 0, 0 };
         maxSize.cx = GetMaxWidth();

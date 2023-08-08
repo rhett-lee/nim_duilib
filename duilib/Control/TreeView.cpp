@@ -90,13 +90,13 @@ bool TreeNode::AddChildNodeAt(TreeNode* pTreeNode, size_t iIndex)
 	}
 	pTreeNode->AttachEvent(kEventMouseDoubleClick, nbase::Bind(&TreeNode::OnDoubleClickItem, this, std::placeholders::_1));
 
-	UiPadding padding = GetLayout()->GetPadding();
+	UiPadding padding = GetPadding();
 	size_t nodeIndex = 0;
 	if (m_iDepth != ROOT_NODE_DEPTH) {
 		nodeIndex = GetListBoxIndex() + 1;
 		padding.left += m_pTreeView->GetIndent();
 	}
-	pTreeNode->GetLayout()->SetPadding(padding, false);
+	pTreeNode->SetPadding(padding, false);
 
 	size_t nGlobalIndex = iIndex;
 	for (size_t i = 0; i < iIndex; i++)	{

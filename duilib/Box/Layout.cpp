@@ -7,7 +7,6 @@
 namespace ui 
 {
 Layout::Layout() :
-	m_rcPadding(0, 0, 0, 0),
 	m_iChildMarginX(0),
 	m_iChildMarginY(0),
 	m_pOwner(nullptr)
@@ -125,12 +124,7 @@ UiRect Layout::GetFloatPos(Control* pControl, UiRect rcContainer, UiSize childSi
 bool Layout::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
 	bool hasAttribute = true;
-	if (strName == L"padding") {
-		UiPadding rcPadding;
-		AttributeUtil::ParsePaddingValue(strValue.c_str(), rcPadding);
-		SetPadding(rcPadding, true);
-	}
-	else if ((strName == L"child_margin") || (strName == L"childmargin")) {
+	if ((strName == L"child_margin") || (strName == L"childmargin")) {
 		int32_t iMargin = _wtoi(strValue.c_str());
 		SetChildMargin(iMargin);
 	}
@@ -160,7 +154,10 @@ UiSize64 Layout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 		size.cx = std::max(size.cx, controlSize.cx);
 		size.cy = std::max(size.cy, controlSize.cy);
 	}
-	UiPadding rcPadding = GetPadding();
+	UiPadding rcPadding;
+	if (m_pOwner != nullptr) {
+		rcPadding = m_pOwner->GetPadding();
+	}
 	if (size.cx > 0) {
 		size.cx += (rcPadding.left + rcPadding.right);
 	}
@@ -215,11 +212,15 @@ UiSize Layout::EstimateSizeByChild(const std::vector<Control*>& items, UiSize sz
 			maxSize.cy = std::max(itemSize.cy + rcMargin.top + rcMargin.bottom, maxSize.cy);
 		}
 	}
+	UiPadding rcPadding;
+	if (m_pOwner != nullptr) {
+		rcPadding = m_pOwner->GetPadding();
+	}
 	if (maxSize.cx > 0) {
-		maxSize.cx += m_rcPadding.left + m_rcPadding.right;
+		maxSize.cx += rcPadding.left + rcPadding.right;
 	}
 	if (maxSize.cy > 0) {
-		maxSize.cy += m_rcPadding.top + m_rcPadding.bottom;
+		maxSize.cy += rcPadding.top + rcPadding.bottom;
 	}
 	if ((maxSize.cx == 0) || (maxSize.cy == 0)){
 		CheckConfig(items);
@@ -257,22 +258,6 @@ void Layout::CheckConfig(const std::vector<Control*>& items)
 	}
 	if ((childCount > 0) && m_pOwner->GetFixedHeight().IsAuto() && isAllHeightStretch) {
 		ASSERT(!"配置错误：当前容器的高是auto，子控件的高都是stretch，估算高度为零！");
-	}
-}
-
-void Layout::SetPadding(UiPadding rcPadding, bool bNeedDpiScale /*= true*/)
-{
-	ASSERT((rcPadding.left >= 0) && (rcPadding.top >= 0) && (rcPadding.right >= 0) && (rcPadding.bottom >= 0));
-	rcPadding.Validate();
-	if (bNeedDpiScale) {
-		GlobalManager::Instance().Dpi().ScalePadding(rcPadding);
-	}
-	if (!m_rcPadding.Equals(rcPadding)) {
-		m_rcPadding = rcPadding;
-		ASSERT(m_pOwner != nullptr);
-		if (m_pOwner != nullptr) {
-			m_pOwner->Arrange();
-		}
 	}
 }
 
@@ -320,7 +305,7 @@ void Layout::DeflatePadding(UiRect& rc) const
 {
 	ASSERT(m_pOwner != nullptr);
 	if (m_pOwner != nullptr) {
-		rc.Deflate(m_rcPadding);
+		rc.Deflate(m_pOwner->GetPadding());
 		rc.Validate();
 	}
 }

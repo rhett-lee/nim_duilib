@@ -2344,7 +2344,7 @@ UiEstSize RichEdit::EstimateSize(UiSize /*szAvailable*/)
 													&iHeight) ;
 		
 		//返回大小需要包含内边距
-		UiPadding rcPadding = GetLayout()->GetPadding();
+		UiPadding rcPadding = GetPadding();
 		if (fixexSize.cy.IsAuto()) {
 			size.cy = iHeight + (rcPadding.top + rcPadding.bottom);
 			fixexSize.cy.SetInt32(size.cy);
@@ -2359,7 +2359,7 @@ UiEstSize RichEdit::EstimateSize(UiSize /*szAvailable*/)
 
 UiSize RichEdit::EstimateText(UiSize szAvailable)
 {
-	UiPadding rcPadding = GetLayout()->GetPadding();
+	UiPadding rcPadding = GetPadding();
 	szAvailable.cx -= (rcPadding.left + rcPadding.right);
 	szAvailable.cy -= (rcPadding.top + rcPadding.bottom);
     szAvailable.Validate();

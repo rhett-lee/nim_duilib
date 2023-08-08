@@ -2296,7 +2296,7 @@ void Window::Paint()
 			//补救由于Gdi绘制造成的alpha通道为0
 			UiRect rcNewPaint = rcPaint;
 			rcNewPaint.Intersect(m_pRoot->GetPosWithoutPadding());
-			UiPadding rcRootPadding = m_pRoot->GetLayout()->GetPadding();
+			UiPadding rcRootPadding = m_pRoot->GetPadding();
 
 			//考虑圆角
 			rcRootPadding.left += 1;

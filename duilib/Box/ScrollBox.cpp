@@ -675,8 +675,9 @@ void ScrollBox::LineRight(int detaValue)
 }
 void ScrollBox::PageUp()
 {
+	UiPadding rcPadding = GetPadding();
 	UiSize64 sz = GetScrollPos();
-	int iOffset = GetRect().bottom - GetRect().top - GetLayout()->GetPadding().top - GetLayout()->GetPadding().bottom;
+	int iOffset = GetRect().bottom - GetRect().top - rcPadding.top - rcPadding.bottom;
 	if (m_pHScrollBar && m_pHScrollBar->IsValid()) {
 		ASSERT(m_pHScrollBar->GetFixedHeight().GetInt32() > 0);
 		iOffset -= m_pHScrollBar->GetFixedHeight().GetInt32();
@@ -687,8 +688,9 @@ void ScrollBox::PageUp()
 
 void ScrollBox::PageDown()
 {
+	UiPadding rcPadding = GetPadding();
 	UiSize64 sz = GetScrollPos();
-	int iOffset = GetRect().bottom - GetRect().top - GetLayout()->GetPadding().top - GetLayout()->GetPadding().bottom;
+	int iOffset = GetRect().bottom - GetRect().top - rcPadding.top - rcPadding.bottom;
 	if ((m_pHScrollBar != nullptr) && m_pHScrollBar->IsValid()) {
 		ASSERT(m_pHScrollBar->GetFixedHeight().GetInt32() > 0);
 		iOffset -= m_pHScrollBar->GetFixedHeight().GetInt32();
@@ -725,8 +727,9 @@ void ScrollBox::EndDown(bool arrange, bool withAnimation)
 
 void ScrollBox::PageLeft()
 {
+	UiPadding rcPadding = GetPadding();
 	UiSize64 sz = GetScrollPos();
-	int iOffset = GetRect().right - GetRect().left - GetLayout()->GetPadding().left - GetLayout()->GetPadding().right;
+	int iOffset = GetRect().right - GetRect().left - rcPadding.left - rcPadding.right;
 	//if( m_pVScrollBar && m_pVScrollBar->IsValid() ) iOffset -= m_pVScrollBar->GetFixedWidth();
 	sz.cx -= iOffset;
 	SetScrollPos(sz);
@@ -734,8 +737,9 @@ void ScrollBox::PageLeft()
 
 void ScrollBox::PageRight()
 {
+	UiPadding rcPadding = GetPadding();
 	UiSize64 sz = GetScrollPos();
-	int iOffset = GetRect().right - GetRect().left - GetLayout()->GetPadding().left - GetLayout()->GetPadding().right;
+	int iOffset = GetRect().right - GetRect().left - rcPadding.left - rcPadding.right;
 	//if( m_pVScrollBar && m_pVScrollBar->IsValid() ) iOffset -= m_pVScrollBar->GetFixedWidth();
 	sz.cx += iOffset;
 	SetScrollPos(sz);
@@ -825,7 +829,7 @@ void ScrollBox::ProcessVScrollBar(UiRect rc, int64_t cyRequired)
 	if (m_pVScrollBar == nullptr) {
 		return;
 	}
-	rc.Deflate(GetLayout()->GetPadding());
+	rc.Deflate(GetPadding());
 
 	int32_t nHeight = rc.Height();
 	const int64_t cyScroll = std::max(cyRequired - nHeight, (int64_t)0);
@@ -887,7 +891,7 @@ void ScrollBox::ProcessHScrollBar(UiRect rc, int64_t cxRequired)
 	if (m_pHScrollBar == nullptr) {
 		return;
 	}
-	rc.Deflate(GetLayout()->GetPadding());
+	rc.Deflate(GetPadding());
 
 	int32_t nWidth = rc.Width();
 	const int64_t cxScroll = std::max(cxRequired - nWidth, (int64_t)0);

@@ -460,20 +460,23 @@ UiSize64 VTileLayout::ArrangeChildNormal(const std::vector<Control*>& items,
 	}
 
 	//由于内边距已经剪掉，计算宽度和高度的时候，需要算上内边距
-	const UiPadding& padding = GetPadding();
+	UiPadding rcPadding;
+	if (m_pOwner != nullptr) {
+		rcPadding = m_pOwner->GetPadding();
+	}
 	//计算所需宽度
 	int64_t cxNeeded = std::accumulate(columnWidths.begin(), columnWidths.end(), 0);
 	if (columnWidths.size() > 1) {
 		cxNeeded += (columnWidths.size() - 1) * GetChildMarginX();
 	}
-	cxNeeded += (padding.left + padding.right);
+	cxNeeded += (rcPadding.left + rcPadding.right);
 
 	//计算所需高度
 	int64_t cyNeeded = std::accumulate(rowHeights.begin(), rowHeights.end(), 0);
 	if (rowHeights.size() > 1) {
 		cyNeeded += (rowHeights.size() - 1) * GetChildMarginY();
 	}
-	cyNeeded += (padding.top + padding.bottom);
+	cyNeeded += (rcPadding.top + rcPadding.bottom);
 
 	outColumnWidths.swap(columnWidths);
 	UiSize64 size(cxNeeded, cyNeeded);
@@ -545,9 +548,12 @@ UiSize64 VTileLayout::ArrangeChildFreeLayout(const std::vector<Control*>& items,
 
 	//由于内边距已经剪掉，计算宽度和高度的时候，需要算上内边距
 	//(只需要增加右侧和底部的内边距，因为计算的时候，是按照.rigth和.bottom计算的)
-	const UiPadding& padding = GetPadding();
-	cxNeeded += padding.right;
-	cyNeeded += padding.bottom;
+	UiPadding rcPadding;
+	if (m_pOwner != nullptr) {
+		rcPadding = m_pOwner->GetPadding();
+	}
+	cxNeeded += rcPadding.right;
+	cyNeeded += rcPadding.bottom;
 
 	if (isCalcOnly) {
 		//返回的宽度，最大不超过外层容器的空间，因为此返回值会成为容器最终的宽度值

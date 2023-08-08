@@ -1041,6 +1041,11 @@ void Control::SetAttribute(const std::wstring& strName, const std::wstring& strV
 		AttributeUtil::ParseMarginValue(strValue.c_str(), rcMargin);
 		SetMargin(rcMargin, true);
 	}
+	else if (strName == L"padding") {
+		UiPadding rcPadding;
+		AttributeUtil::ParsePaddingValue(strValue.c_str(), rcPadding);
+		SetPadding(rcPadding, true);
+	}
 	else if (strName == L"bkcolor" || strName == L"bkcolor1") {
 		SetBkColor(strValue);
 	}

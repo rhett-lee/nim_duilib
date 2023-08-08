@@ -80,18 +80,6 @@ public:
 	virtual UiSize EstimateSizeByChild(const std::vector<Control*>& items, UiSize szAvailable);
 
 public:
-	/** 获取内边距
-	 * @return 返回内边距四边的大小（Rect的四个参数分别代表四个边的内边距）
-	 */
-	const UiPadding& GetPadding() const { return m_rcPadding; }
-
-	/**
-	 * @brief 设置内边距
-	 * @param[in] rcPadding 内边距数据
-	 * @param[in] bNeedDpiScale 是否根据 DPI 自适应，默认为 true
-	 */
-	void SetPadding(UiPadding rcPadding, bool bNeedDpiScale);
-
 	/** 获取子控件之间的额外边距（X轴方向）
 	 * @return 返回额外间距的数值
 	 */
@@ -141,9 +129,6 @@ protected:
 	Box* m_pOwner;
 
 private:
-	//内边距四边的大小（上，下，左，右边距），内边距是控件矩形以内的空间，是包含在控件矩形以内的
-	UiPadding m_rcPadding;
-
 	//子控件之间的额外边距: X 轴方向
 	uint16_t m_iChildMarginX;
 

@@ -18,7 +18,8 @@ PlaceHolder::PlaceHolder() :
 	m_bVisible(true),
 	m_bIsArranged(true),
 	m_bUseCache(false),
-	m_bCacheDirty(true)
+	m_bCacheDirty(true),
+	m_bEnableControlPadding(true)
 {
 	//控件的高度和宽度值，默认设置为拉伸
 	m_cxyFixed.cx.SetStretch();
@@ -336,6 +337,7 @@ UiMargin PlaceHolder::GetMargin() const
 
 void PlaceHolder::SetMargin(UiMargin rcMargin, bool bNeedDpiScale)
 {
+	ASSERT((rcMargin.left >= 0) && (rcMargin.top >= 0) && (rcMargin.right >= 0) && (rcMargin.bottom >= 0));
 	rcMargin.Validate();
 	if (bNeedDpiScale) {
 		GlobalManager::Instance().Dpi().ScaleMargin(rcMargin);
@@ -348,6 +350,37 @@ void PlaceHolder::SetMargin(UiMargin rcMargin, bool bNeedDpiScale)
 		m_rcMargin.bottom = TruncateToUInt16(rcMargin.bottom);
 		ArrangeAncestor();
 	}
+}
+
+UiPadding PlaceHolder::GetPadding() const
+{
+	return UiPadding(m_rcPadding.left, m_rcPadding.top, m_rcPadding.right, m_rcPadding.bottom);
+}
+
+void PlaceHolder::SetPadding(UiPadding rcPadding, bool bNeedDpiScale /*= true*/)
+{
+	ASSERT((rcPadding.left >= 0) && (rcPadding.top >= 0) && (rcPadding.right >= 0) && (rcPadding.bottom >= 0));
+	rcPadding.Validate();
+	if (bNeedDpiScale) {
+		GlobalManager::Instance().Dpi().ScalePadding(rcPadding);
+	}
+	if (!GetPadding().Equals(rcPadding)) {
+		m_rcPadding.left = TruncateToUInt16(rcPadding.left);
+		m_rcPadding.top = TruncateToUInt16(rcPadding.top);
+		m_rcPadding.right = TruncateToUInt16(rcPadding.right);
+		m_rcPadding.bottom = TruncateToUInt16(rcPadding.bottom);
+		ArrangeAncestor();
+	}
+}
+
+void PlaceHolder::SetEnableControlPadding(bool bEnable)
+{
+	m_bEnableControlPadding = bEnable;
+}
+
+bool PlaceHolder::IsEnableControlPadding() const
+{
+	return m_bEnableControlPadding;
 }
 
 void PlaceHolder::Arrange()

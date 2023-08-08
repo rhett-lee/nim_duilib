@@ -233,6 +233,25 @@ public:
 	 */
 	void SetMargin(UiMargin rcMargin, bool bNeedDpiScale);
 
+	/** 获取内边距
+	 * @return 返回内边距四边的大小（Rect的四个参数分别代表四个边的内边距）
+	 */
+	UiPadding GetPadding() const;
+
+	/** 设置内边距
+	 * @param[in] rcPadding 内边距数据
+	 * @param[in] bNeedDpiScale 是否根据 DPI 自适应，默认为 true
+	 */
+	void SetPadding(UiPadding rcPadding, bool bNeedDpiScale);
+
+	/** 是否允许控件自身运用内边距
+	*/
+	void SetEnableControlPadding(bool bEnable);
+
+	/** 判断控件自身是否允许运用内边距
+	*/
+	bool IsEnableControlPadding() const;
+
 	/** 获取控件位置（子类可改变行为）
 	* @return 返回控件的矩形区域，包含内边距，不包含外边距
 	 */
@@ -338,6 +357,14 @@ private:
 
 	//控件的外边距属性（上，下，左，右边距），外边距是m_uiRect以外的空间，不包含在m_uiRect以内
 	UiMargin16 m_rcMargin;
+
+	//内边距四边的大小（上，下，左，右边距），内边距是控件矩形以内的空间，是包含在控件矩形以内的
+	UiPadding16 m_rcPadding;
+
+	//是否允许控件本身设置内边距
+	//(原来的逻辑：Control自身无内边距，Box的Layout有内边距，所以Box自身的背景图片等是不应用内边距的，只有子控件应用内边距)
+	//此开关默认为true，提供关闭选项是为了兼容原来的逻辑，比如阴影的实现，就不能开启内边距，否则阴影绘制异常
+	bool m_bEnableControlPadding;
 
 	//控件是否为浮动属性
 	bool m_bFloat;

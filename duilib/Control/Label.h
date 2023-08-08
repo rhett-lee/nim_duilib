@@ -617,7 +617,7 @@ UiPadding LabelTemplate<InheritType>::GetBoxPadding() const
 {
     const Box* pBox = dynamic_cast<const Box*>(this);
     if (pBox != nullptr) {
-        return pBox->GetLayout()->GetPadding();
+        return pBox->GetPadding();
     }
     return UiPadding();
 }

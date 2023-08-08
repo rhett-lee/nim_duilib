@@ -64,7 +64,8 @@ void CComboWnd::InitComboWnd(Combo* pOwner)
 	int padding = 2;
 	auto listBox = m_pOwner->GetListBox();
 	if (listBox) {
-		padding = listBox->GetLayout()->GetPadding().top + listBox->GetLayout()->GetPadding().bottom;
+		ui::UiPadding rcPadding = listBox->GetPadding();
+		padding = rcPadding.top + rcPadding.bottom;
 	}
 
 	cyFixed += padding; // VBox 默认的Padding 调整
@@ -168,7 +169,7 @@ Combo::Combo() :
 	// reassigned by this operation - which is why it is important to reassign
 	// the items back to the righfull owner/manager when the window closes.
 	m_pLayout.reset(new ListBox(new VLayout));
-	m_pLayout->GetLayout()->SetPadding(UiPadding(1, 1, 1, 1), true);
+	m_pLayout->SetPadding(UiPadding(1, 1, 1, 1), true);
 	m_pLayout->SetBkColor(L"bk_wnd_lightcolor");
 	m_pLayout->SetBorderColor(L"combobox_border");
 	m_pLayout->SetBorderSize(UiRect(1, 1, 1, 1));

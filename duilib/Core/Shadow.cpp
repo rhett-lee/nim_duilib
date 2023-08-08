@@ -174,7 +174,7 @@ Box* Shadow::AttachShadow(Box* pRoot)
 	}
 
 	m_pRoot = new ShadowBox();
-	m_pRoot->GetLayout()->SetPadding(m_rcShadowCorner, false);
+	m_pRoot->SetPadding(m_rcShadowCorner, false);
 
 	if (pRoot->GetFixedWidth().IsInt32()) {
 		int32_t rootWidth = pRoot->GetFixedWidth().GetInt32();
@@ -211,11 +211,11 @@ void Shadow::MaximizedOrRestored(bool isMaximized)
 
 	if (isMaximized && m_pRoot) {
 		m_rcShadowCorner = UiPadding(0, 0, 0, 0);
-		m_pRoot->GetLayout()->SetPadding(m_rcShadowCorner, false);
+		m_pRoot->SetPadding(m_rcShadowCorner, false);
 	}
 	else if (!isMaximized && m_pRoot) {
 		m_rcShadowCorner = m_rcShadowCornerBackup;
-		m_pRoot->GetLayout()->SetPadding(m_rcShadowCorner, false);
+		m_pRoot->SetPadding(m_rcShadowCorner, false);
 	}
 }
 

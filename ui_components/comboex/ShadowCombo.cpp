@@ -63,7 +63,8 @@ void CShadowComboWnd::InitComboWnd(ShadowCombo* pOwner)
     int padding = 2;
     auto listBox = m_pOwner->GetListBox();
     if (listBox) {
-        padding = listBox->GetLayout()->GetPadding().top + listBox->GetLayout()->GetPadding().bottom;
+        ui::UiPadding rcPadding = listBox->GetPadding();
+        padding = rcPadding.top + rcPadding.bottom;
     }
 
     cyFixed += padding; // VBox 默认的Padding 调整
@@ -132,7 +133,7 @@ LRESULT CShadowComboWnd::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam
         if (!m_pOwner->GetShadowImage().empty()) {
             pRoot->SetBkImage(m_pOwner->GetShadowImage());
         }
-        pRoot->GetLayout()->SetPadding(m_pOwner->GetShadowCorner(), false);
+        pRoot->SetPadding(m_pOwner->GetShadowCorner(), false);
         this->AttachBox(pRoot);
         this->SetResourcePath(m_pOwner->GetWindow()->GetResourcePath());
         this->SetShadowAttached(false);
