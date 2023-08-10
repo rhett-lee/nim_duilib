@@ -1,9 +1,23 @@
 #include "MainThread.h"
 #include "MainForm.h"
 
+void WorkerThread::Init()
+{
+	nbase::ThreadManager::RegisterThread(m_threadID);
+}
+
+void WorkerThread::Cleanup()
+{
+	nbase::ThreadManager::UnregisterThread();
+}
+
 void MainThread::Init()
 {
 	nbase::ThreadManager::RegisterThread(kThreadUI);
+
+	//启动工作线程
+	m_workerThread.reset(new WorkerThread(kThreadWorker, "WorkerThread"));
+	m_workerThread->Start();
 
 	//开启DPI自适应功能
 	bool bAdaptDpi = true;
@@ -27,6 +41,10 @@ void MainThread::Init()
 void MainThread::Cleanup()
 {
 	ui::GlobalManager::Instance().Shutdown();
+	if (m_workerThread != nullptr) {
+		m_workerThread->Stop();
+		m_workerThread.reset(nullptr);
+	}
 	SetThreadWasQuitProperly(true);
 	nbase::ThreadManager::UnregisterThread();
 }

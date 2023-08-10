@@ -216,6 +216,10 @@ namespace SVGImageLoader
 		std::unique_ptr<NSVGimage, SvgDeleter> svg((NSVGimage*)svgData);
 		int width = (int)svg->width;
 		int height = (int)svg->height;
+		if (width <= 0 || height <= 0) {
+			return false;
+		}
+
 		//计算缩放后的大小
 		uint32_t nImageWidth = width;
 		uint32_t nImageHeight = height;

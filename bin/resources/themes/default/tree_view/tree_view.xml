@@ -51,7 +51,7 @@
                     <TreeView class="list" name="tree" padding="5,3,5,3" indent="20"/>
                 </HBox>
                 <HBox bkcolor="Pink" border_size="1" border_color="blue">
-                    <VirtualVTileListBox class="list" name="list" columns="auto" itemsize="240,60" multi_select="false" vscrollbar="true" hscrollbar="true" bordersize="1" bordercolor="splitline_level2" padding="1,1,1,1"/>
+                    <VirtualVTileListBox class="list" name="list" columns="auto" itemsize="200,120" multi_select="false" vscrollbar="true" hscrollbar="true" bordersize="1" bordercolor="splitline_level2" padding="1,1,1,1"/>
                 </HBox>
             </HBox>
         </VBox>

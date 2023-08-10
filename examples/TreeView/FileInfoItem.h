@@ -15,6 +15,11 @@ public:
     void InitSubControls(const FileInfo& fileInfo, size_t nElementIndex);
 
 private:
+    /** 是否为图片文件
+    */
+    bool IsImageFile(const std::wstring& filePath) const;
+
+private:
     //元素的索引号
     size_t m_nElementIndex;
 

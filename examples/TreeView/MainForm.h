@@ -9,6 +9,7 @@
 #include "duilib/duilib.h"
 
 #include "FileInfoList.h"
+#include <Shlobj.h>
 
 class MainForm : public ui::WindowImplBase
 {
@@ -39,8 +40,16 @@ public:
 	static const std::wstring kClassName;
 
 private:
-	//显示桌面节点
-	void ShowDesktopNode();
+	//目录列表数据结构
+	struct FolderStatus
+	{
+		std::wstring path;
+		bool bShow = false;
+		HICON hIcon = nullptr;
+	};
+
+	//显示虚拟目录节点（比如桌面、我的文档等）
+	void ShowVirtualDirectoryNode(int csidl, REFKNOWNFOLDERID rfid, const std::wstring& name);
 
 	//显示磁盘节点
 	void ShowAllDiskNode();
@@ -54,6 +63,12 @@ private:
 		                const std::wstring& path,
 		                bool isFolder,
 		                HICON hIcon);
+
+	//批量在树中插入一个节点
+	void InsertTreeNodes(ui::TreeNode* pTreeNode, 
+		                const std::wstring& path,
+						const std::vector<FolderStatus>& fileList,
+		                bool isFolder);
 
 	//显示指定目录的内容
 	void ShowFolderContents(const std::wstring& path);
@@ -79,12 +94,6 @@ private:
 	ui::TreeView* m_pTree;
 
 	//目录列表（左侧树显示）
-	struct FolderStatus
-	{
-		std::wstring path;
-		bool bShow = false;
-		HICON hIcon = nullptr;
-	};
 	std::vector<FolderStatus*> m_folderList;
 
 	/** 文件列表（右侧虚表显示）
@@ -93,6 +102,10 @@ private:
 
 	//文件列表的接口
 	ui::VirtualListBox* m_pListBox;
+
+	/** L"Shell32.dll" 句柄
+	*/
+	HMODULE m_hShell32Dll;
 };
 
 

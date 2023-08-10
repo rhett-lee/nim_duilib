@@ -13,6 +13,7 @@ FileInfoList::~FileInfoList()
 ui::Control* FileInfoList::CreateElement()
 {
     FileInfoItem* item = new FileInfoItem;
+    item->AttachEvent(ui::kEventMouseDoubleClick, nbase::Bind(&FileInfoList::OnDoubleClickItem, this, std::placeholders::_1));
     ui::GlobalManager::Instance().FillBoxWithCache(item, L"tree_view/list_item.xml");
     return item;
 }
@@ -27,6 +28,7 @@ bool FileInfoList::FillElement(ui::Control* pControl, size_t nElementIndex)
     }
     const FileInfo& fileInfo = m_pathList[nElementIndex];
     pItem->InitSubControls(fileInfo, nElementIndex);
+    pItem->SetUserDataID(nElementIndex);
     return true;
 }
 
@@ -71,4 +73,19 @@ void FileInfoList::ClearFileList()
         }
     }
     m_pathList.clear();
+}
+
+bool FileInfoList::OnDoubleClickItem(const ui::EventArgs& args)
+{
+    FileInfoItem* pItem = dynamic_cast<FileInfoItem*>(args.pSender);
+    if (pItem != nullptr) {
+        size_t nElementIndex = pItem->GetUserDataID();
+        if (nElementIndex < m_pathList.size()) {
+            const FileInfo& fileInfo = m_pathList[nElementIndex];
+            if (fileInfo.m_isFolder) {
+
+            }
+        }
+    }
+    return true;
 }

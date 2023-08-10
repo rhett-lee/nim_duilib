@@ -3,7 +3,7 @@
     <ListBoxItem class="listitem">
         <HBox mouse="false" padding="4,4,4,4">
             <Control name="control_img" width="auto" height="stretch" margin="4,0,4,0" mouse="false"/>
-            <Label name="control_text" width="stretch" height="stretch" mouse="false" text_align="left,vcenter"/>
+            <Label name="control_text" width="stretch" single_line="false" height="stretch" mouse="false" text_align="left,vcenter"/>
         </HBox>
     </ListBoxItem>
 </Window>

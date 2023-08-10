@@ -69,6 +69,13 @@ public:
     void ClearFileList();
 
 private:
+    /** 子项被双击时触发
+     * @param[in] args 消息体
+     * @return 始终返回 true
+     */
+    bool OnDoubleClickItem(const ui::EventArgs& args);
+
+private:
     //文件列表
     std::vector<FileInfo> m_pathList;
 };
