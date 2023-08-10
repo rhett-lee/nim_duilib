@@ -57,6 +57,12 @@ public:
 	/** 停止滚动条动画
 	*/
 	virtual void StopScroll() = 0;
+
+	/** 是否绘制选择状态下的背景色，提供虚函数作为可选项
+	   （比如ListBox/TreeView节点在多选时，由于有勾选项，并不需要绘制选择状态的背景色）
+	   @param [in] bHasStateImages 当前列表项是否有CheckBox勾选项
+	*/
+	virtual bool CanPaintSelectedColors(bool bHasStateImages) const = 0;
 };
 
 /////////////////////////////////////////////////////////////////////////////////////
@@ -111,6 +117,12 @@ public:
 	/** 停止滚动条动画
 	*/
 	virtual void StopScroll() override;
+
+	/** 是否绘制选择状态下的背景色，提供虚函数作为可选项
+	   （比如ListBox/TreeView节点在多选时，由于有勾选项，并不需要绘制选择状态的背景色）
+	   @param [in] bHasStateImages 当前列表项是否有CheckBox勾选项
+	*/
+	virtual bool CanPaintSelectedColors(bool bHasStateImages) const override;
 
 public:
 	/** 设置子项的位置索引
@@ -186,7 +198,7 @@ public:
 public:
 	/** 是否允许多选
 	*/
-	bool GetMultiSelect() const;
+	bool IsMultiSelect() const;
 
 	/** 设置是否允许多选
 	*/
@@ -269,6 +281,9 @@ protected:
 	//是否允许多选（默认为单选）
 	bool m_bMultiSelect;
 
+	//多选的时候，是否显示选择背景色: 0 - 默认规则; 1 - 显示背景色; 2: 不显示背景色
+	uint8_t m_uPaintSelectedColors;
+
 	//当前选择的子项ID
 	size_t m_iCurSel;
 
@@ -298,6 +313,11 @@ public:
 	/** 设置选择状态, 但不触发任何事件
 	*/
 	virtual void SetSelected(bool bSelected) override;
+
+	/** 是否绘制选择状态下的背景色，提供虚函数作为可选项
+	   （比如ListBox/TreeView节点在多选时，由于有勾选项，并不需要绘制选择状态的背景色）
+	*/
+	virtual bool CanPaintSelectedColors() const override;
 
 	/** 判断控件类型是否为可选择的
 	 * @return 返回true

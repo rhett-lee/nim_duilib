@@ -59,6 +59,11 @@ public:
      */
     virtual void Selected(bool bSelected, bool bTriggerEvent = false);
 
+    /** 是否绘制选择状态下的背景色，提供虚函数作为可选项
+       （比如ListBox/TreeView节点在多选时，由于有勾选项，并不需要绘制选择状态的背景色）
+    */
+    virtual bool CanPaintSelectedColors() const { return true; }
+
     /**
      * @brief 获取被选择时的图片
      * @param[in] stateType 要获取何种状态下的图片，参考 ControlStateType 枚举
@@ -313,18 +318,23 @@ void CheckBoxTemplate<InheritType>::ClearStateImages()
 template<typename InheritType>
 void CheckBoxTemplate<InheritType>::PaintStateColors(IRender* pRender)
 {
-    if (!IsSelected()) {
+    if (!IsSelected() || !CanPaintSelectedColors()) {
         __super::PaintStateColors(pRender);
         return;
     }
 
-    if (IsPaintNormalFirst() || 
-        (m_pSelectedColorMap == nullptr) || 
-        !m_pSelectedColorMap->HasStateColors()) {
-        this->PaintStateColor(pRender, this->GetPaintRect(), this->GetState());
+    if (m_pSelectedColorMap == nullptr) {
+        if (IsPaintNormalFirst()) {
+            this->PaintStateColor(pRender, this->GetPaintRect(), this->GetState());
+        }
     }
     else {
-        m_pSelectedColorMap->PaintStateColor(pRender, this->GetPaintRect(), this->GetState());
+        if (IsPaintNormalFirst() && !m_pSelectedColorMap->HasStateColors()) {
+            this->PaintStateColor(pRender, this->GetPaintRect(), this->GetState());
+        }
+        else {
+            m_pSelectedColorMap->PaintStateColor(pRender, this->GetPaintRect(), this->GetState());
+        }
     }
 }
 

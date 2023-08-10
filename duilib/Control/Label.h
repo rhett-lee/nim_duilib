@@ -467,7 +467,7 @@ void LabelTemplate<InheritType>::PaintText(IRender* pRender)
     rc.Deflate(rcPadding);
     rc.Deflate(this->GetTextPadding());
 
-    auto stateType = this->GetState();
+    ControlStateType stateType = this->GetState();
     UiColor dwClrColor = this->GetUiColor(GetPaintStateTextColor(this->GetState(), stateType));
 
     if (m_bSingleLine) {

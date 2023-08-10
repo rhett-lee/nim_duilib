@@ -4,10 +4,19 @@
 namespace ui 
 {
 
+//多选的时候，是否显示选择背景色: 0 - 默认规则; 1 - 显示背景色; 2: 不显示背景色
+enum ePaintSelectedColors
+{
+	PAINT_SELECTED_COLORS_DEFAULT = 0,
+	PAINT_SELECTED_COLORS_YES = 1,
+	PAINT_SELECTED_COLORS_NO = 2
+};
+
 ListBox::ListBox(Layout* pLayout) : 
 	ScrollBox(pLayout),
 	m_bScrollSelect(false),
 	m_bMultiSelect(false),
+	m_uPaintSelectedColors(PAINT_SELECTED_COLORS_DEFAULT),
 	m_bSelNextWhenRemoveActive(true),
 	m_iCurSel(Box::InvalidIndex),
 	m_pCompareFunc(nullptr),
@@ -19,8 +28,16 @@ std::wstring ListBox::GetType() const { return L"ListBox"; }
 
 void ListBox::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
-	if ((strName == L"multi_select") || (strName == L"multiselect")) {
+	if (strName == L"multi_select") {
 		SetMultiSelect(strValue == L"true");
+	}
+	else if (strName == L"paint_selected_colors") {
+		if (strValue == L"true") {
+			m_uPaintSelectedColors = PAINT_SELECTED_COLORS_YES;
+		}
+		else {
+			m_uPaintSelectedColors = PAINT_SELECTED_COLORS_NO;
+		}
 	}
 	else if ((strName == L"scroll_select") || (strName == L"scrollselect")) {
 		SetScrollSelect(strValue == L"true");
@@ -45,7 +62,7 @@ void ListBox::HandleEvent(const EventArgs& event)
 		return;
 	}
 
-	if (m_bMultiSelect) {
+	if (IsMultiSelect()) {
 		//允许多选的情况下，不支持下面的单选逻辑
 		ScrollBox::HandleEvent(event);
 		return;
@@ -143,7 +160,7 @@ void ListBox::GetSelectedItems(std::vector<size_t>& selectedIndexs) const
 
 bool ListBox::SelectItem(size_t iIndex, bool bTakeFocus, bool bTriggerEvent)
 {
-	if (m_bMultiSelect) {
+	if (IsMultiSelect()) {
 		//多选
 		return SelectItemMulti(iIndex, bTakeFocus, bTriggerEvent);
 	}
@@ -339,6 +356,21 @@ void ListBox::EnsureVisible(const UiRect& rcItem)
 void ListBox::StopScroll()
 {
 	StopScrollAnimation();
+}
+
+bool ListBox::CanPaintSelectedColors(bool bHasStateImages) const
+{
+	if (m_uPaintSelectedColors == PAINT_SELECTED_COLORS_YES) {
+		return true;
+	}
+	else if (m_uPaintSelectedColors == PAINT_SELECTED_COLORS_NO) {
+		return false;
+	}
+	if (bHasStateImages && IsMultiSelect()) {
+		//如果有CheckBox，多选的时候，默认不显示选择背景色
+		return false;
+	}
+	return true;
 }
 
 bool ListBox::ButtonDown(const EventArgs& msg)
@@ -563,7 +595,7 @@ bool ListBox::RemoveItemAt(size_t iIndex)
 
 	if (Box::IsValidItemIndex(m_iCurSel)) {
 		if (iIndex == m_iCurSel) {
-			if (!m_bMultiSelect && m_bSelNextWhenRemoveActive) {
+			if (!IsMultiSelect() && m_bSelNextWhenRemoveActive) {
 				SelectItem(FindSelectable(m_iCurSel--, false));
 			}
 			else {
@@ -626,7 +658,7 @@ int __cdecl ListBox::ItemComareFunc(const void *item1, const void *item2)
 	return m_pCompareFunc(pControl1, pControl2, m_pCompareContext);
 }
 
-bool ListBox::GetMultiSelect() const
+bool ListBox::IsMultiSelect() const
 {
 	return m_bMultiSelect;
 }
@@ -701,6 +733,15 @@ void ListBoxItem::SetSelected(bool bSelected)
 			}
 		}
 	}
+}
+
+bool ListBoxItem::CanPaintSelectedColors() const
+{
+	bool bHasStateImages = HasStateImages();
+	if (m_pOwner != nullptr) {
+		return m_pOwner->CanPaintSelectedColors(bHasStateImages);
+	}
+	return __super::CanPaintSelectedColors();
 }
 
 void ListBoxItem::HandleEvent(const EventArgs& event)
