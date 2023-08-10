@@ -925,6 +925,17 @@ public:
 	 */
 	virtual void ClearImageCache() override;
 
+	/** 设置文字内边距信息
+	 * @param[in] padding 内边距信息
+	 * @param[in] bNeedDpiScale 兼容 DPI 缩放，默认为 true
+	 */
+	void SetTextPadding(UiPadding padding, bool bNeedDpiScale = true);
+
+	/** 获取文字内边距
+	 * @return 返回文字的内边距信息
+	 */
+	UiPadding GetTextPadding() const;
+
 	/**
 	 * @brief 监听回车按键按下事件
 	 * @param[in] callback 回车被按下的自定义回调函数
@@ -1008,6 +1019,10 @@ protected:
 	std::map<UINT, nbase::WeakCallbackFlag> m_timeFlagMap;
 	std::vector<LinkInfo> m_linkInfo;
 	Image* m_pFocusedImage;
+
+private:
+	//文本内边距
+	UiPadding16	m_rcTextPadding;
 };
 
 //判断是否是字节： 可打印字符（0x20-0x7e）

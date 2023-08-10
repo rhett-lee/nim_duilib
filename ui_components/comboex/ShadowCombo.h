@@ -61,14 +61,13 @@ public:
     * @brief 获取文字边距
     * @return 返回文字的边距信息
     */
-    const ui::UiPadding& GetTextPadding() const;
+    ui::UiPadding GetTextPadding() const;
 
-    /**
-    * @brief 设置文字边距信息
-    * @param[in] rc 边距信息
-    * @return 无
-    */
-    void SetTextPadding(ui::UiPadding padding);
+    /** 设置文字内边距信息, 函数内部会进行DPI自适应操作
+     * @param [in] padding 矩形的四个边值分别代表对应的四个内边距值
+     * @param[in] bNeedDpiScale 兼容 DPI 缩放，默认为 true
+     */
+    void SetTextPadding(ui::UiPadding padding, bool bNeedDpiScale = true);
 
     /**
      * @brief 获取当前所属的 List 对象
@@ -209,7 +208,7 @@ protected:
     ui::UiSize m_szDropBox;
     std::wstring m_sDropBoxAttributes;
     bool m_bPopupTop;
-    ui::UiPadding	m_rcTextPadding;
+    ui::UiPadding16 m_rcTextPadding;
     ui::UiPadding m_rcShadowCorner;
     std::wstring m_sShadowImage;
     ui::Control* m_cArrow;

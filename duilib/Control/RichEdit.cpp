@@ -5,6 +5,7 @@
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Utils/Macros.h"
 #include "duilib/Utils/OnScreenKeyboardManager.h"
+#include "duilib/Utils/AttributeUtil.h"
 #include "duilib/Render/IRender.h"
 #include "duilib/Render/AutoClip.h"
 #include "duilib/Animation/AnimationManager.h"
@@ -2344,13 +2345,14 @@ UiEstSize RichEdit::EstimateSize(UiSize /*szAvailable*/)
 													&iHeight) ;
 		
 		//返回大小需要包含内边距
-		UiPadding rcPadding = GetPadding();
+		UiPadding rcPadding = GetControlPadding();
+		UiPadding rcTextPadding = GetTextPadding();
 		if (fixexSize.cy.IsAuto()) {
-			size.cy = iHeight + (rcPadding.top + rcPadding.bottom);
+			size.cy = iHeight + (rcPadding.top + rcPadding.bottom) + (rcTextPadding.top + rcTextPadding.bottom);
 			fixexSize.cy.SetInt32(size.cy);
 		}
 		else if (fixexSize.cx.IsAuto()) {
-			size.cx = iWidth + (rcPadding.left + rcPadding.right);
+			size.cx = iWidth + (rcPadding.left + rcPadding.right) + (rcTextPadding.left + rcTextPadding.right);
 			fixexSize.cx.SetInt32(size.cx);
 		}
 	}
@@ -2359,9 +2361,13 @@ UiEstSize RichEdit::EstimateSize(UiSize /*szAvailable*/)
 
 UiSize RichEdit::EstimateText(UiSize szAvailable)
 {
-	UiPadding rcPadding = GetPadding();
+	UiPadding rcPadding = GetControlPadding();
+	UiPadding rcTextPadding = GetTextPadding();
 	szAvailable.cx -= (rcPadding.left + rcPadding.right);
 	szAvailable.cy -= (rcPadding.top + rcPadding.bottom);
+	szAvailable.cx -= (rcTextPadding.left + rcTextPadding.right);
+	szAvailable.cy -= (rcTextPadding.top + rcTextPadding.bottom);
+
     szAvailable.Validate();
     LONG iWidth = szAvailable.cx;
 	if (iWidth < 0) {
@@ -2380,8 +2386,14 @@ UiSize RichEdit::EstimateText(UiSize szAvailable)
 
 	iWidth = std::max((int32_t)iWidth, 0);
 	iHeight = std::max((int32_t)iHeight, 0);
-	szAvailable.cx = std::max((int32_t)iWidth + rcPadding.left + rcPadding.right, 0);
-    szAvailable.cy = std::max((int32_t)iHeight + rcPadding.top + rcPadding.bottom, 0);
+	iWidth += (rcPadding.left + rcPadding.right);
+	iHeight += (rcPadding.top + rcPadding.bottom);
+
+	iWidth += (rcTextPadding.left + rcTextPadding.right);
+	iHeight += (rcTextPadding.top + rcTextPadding.bottom);
+
+	szAvailable.cx = std::max((int32_t)iWidth, 0);
+    szAvailable.cy = std::max((int32_t)iHeight, 0);
     return szAvailable;
 }
 
@@ -2398,8 +2410,12 @@ void RichEdit::SetPos(UiRect rc)
         rc.bottom -= m_pHScrollBar->GetFixedHeight().GetInt32();
     }
 
-    if (m_pTwh) {
-        m_pTwh->SetClientRect(&rc);
+    if (m_pTwh != nullptr) {
+		//调整编辑框的位置, 剪去文本内边距
+		UiRect textRect = rc;
+		UiPadding rcTextPadding = GetTextPadding();
+		textRect.Deflate(rcTextPadding);
+        m_pTwh->SetClientRect(&textRect);
         if (bVScrollBarVisiable && (!m_pVScrollBar->IsValid() || m_bVScrollBarFixing)) {
             LONG lWidth = rc.Width() + m_pVScrollBar->GetFixedWidth().GetInt32();
             LONG lHeight = 0;
@@ -2932,6 +2948,11 @@ void RichEdit::SetAttribute(const std::wstring& strName, const std::wstring& str
 			m_textVerAlignType = kVerAlignCenter;
 		}		
 	}
+	else if ((strName == L"text_padding") || (strName == L"textpadding")) {
+		UiPadding rcTextPadding;
+		AttributeUtil::ParsePaddingValue(strValue.c_str(), rcTextPadding);
+		SetTextPadding(rcTextPadding);
+	}
 	else if ((strName == L"normal_text_color") || (strName == L"normaltextcolor")){
 		m_sTextColor = strValue;
 		if (IsEnabled()) {
@@ -3338,6 +3359,30 @@ void RichEdit::ClearImageCache()
 	if (m_pFocusedImage != nullptr) {
 		m_pFocusedImage->ClearImageCache();
 	}	
+}
+
+void RichEdit::SetTextPadding(UiPadding padding, bool bNeedDpiScale)
+{
+	ASSERT((padding.left >= 0) && (padding.top >= 0) && (padding.right >= 0) && (padding.bottom >= 0));
+	if ((padding.left < 0) || (padding.top < 0) ||
+		(padding.right < 0) || (padding.bottom < 0)) {
+		return;
+	}
+	if (bNeedDpiScale) {
+		GlobalManager::Instance().Dpi().ScalePadding(padding);
+	}
+	if (!GetTextPadding().Equals(padding)) {
+		m_rcTextPadding.left = TruncateToUInt16(padding.left);
+		m_rcTextPadding.top = TruncateToUInt16(padding.top);
+		m_rcTextPadding.right = TruncateToUInt16(padding.right);
+		m_rcTextPadding.bottom = TruncateToUInt16(padding.bottom);
+		RelayoutOrRedraw();
+	}
+}
+
+UiPadding RichEdit::GetTextPadding() const
+{
+	return UiPadding(m_rcTextPadding.left, m_rcTextPadding.top, m_rcTextPadding.right, m_rcTextPadding.bottom);
 }
 
 //----------------下面函数用作辅助 字节数限制

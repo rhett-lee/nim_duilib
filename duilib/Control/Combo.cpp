@@ -290,7 +290,7 @@ void Combo::PaintText(IRender* pRender)
 	if (pElement == nullptr) {
 		return;
 	}			
-	UiPadding rcPadding = m_rcTextPadding;
+	UiPadding rcPadding = GetTextPadding();
 	if (GetText().empty()) {
 		return;
 	}
@@ -326,9 +326,9 @@ std::wstring Combo::GetText() const
 	return pControl ? pControl->GetText() : std::wstring();
 }
 
-const UiPadding& Combo::GetTextPadding() const
+UiPadding Combo::GetTextPadding() const
 {
-	return m_rcTextPadding;
+	return UiPadding(m_rcTextPadding.left, m_rcTextPadding.top, m_rcTextPadding.right, m_rcTextPadding.bottom);
 }
 
 void Combo::SetTextPadding(UiPadding padding, bool bNeedDpiScale)
@@ -336,10 +336,13 @@ void Combo::SetTextPadding(UiPadding padding, bool bNeedDpiScale)
 	if (bNeedDpiScale) {
 		GlobalManager::Instance().Dpi().ScalePadding(padding);
 	}
-	if (!m_rcTextPadding.Equals(padding)) {
-		m_rcTextPadding = padding;
-		this->Invalidate();
-	}	
+	if (!GetTextPadding().Equals(padding)) {
+		m_rcTextPadding.left = TruncateToUInt16(padding.left);
+		m_rcTextPadding.top = TruncateToUInt16(padding.top);
+		m_rcTextPadding.right = TruncateToUInt16(padding.right);
+		m_rcTextPadding.bottom = TruncateToUInt16(padding.bottom);
+		Invalidate();
+	}
 }
 
 std::wstring Combo::GetDropBoxAttributeList()

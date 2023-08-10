@@ -103,7 +103,7 @@ private:
 private:
     /** 文本绘制的内边距(分别对应四个边的内边距大小)
     */
-    UiPadding m_rcTextPadding;
+    UiPadding16 m_rcTextPadding;
 
     /** 绘制的文本内容
     */

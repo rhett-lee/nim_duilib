@@ -328,7 +328,7 @@ void ShadowCombo::PaintText(ui::IRender* pRender)
     if (pElement == nullptr) {
         return;
     }
-    ui::UiPadding rcPadding = m_rcTextPadding;
+    ui::UiPadding rcPadding = GetTextPadding();
 
     if (GetText().empty()) {
         return;
@@ -368,18 +368,23 @@ std::wstring ShadowCombo::GetText() const
     return pControl ? pControl->GetText() : std::wstring();
 }
 
-const ui::UiPadding& ShadowCombo::GetTextPadding() const
+ui::UiPadding ShadowCombo::GetTextPadding() const
 {
-    return m_rcTextPadding;
+    return ui::UiPadding(m_rcTextPadding.left, m_rcTextPadding.top, m_rcTextPadding.right, m_rcTextPadding.bottom);
 }
 
-void ShadowCombo::SetTextPadding(ui::UiPadding padding)
+void ShadowCombo::SetTextPadding(ui::UiPadding padding, bool bNeedDpiScale)
 {
-    ui::GlobalManager::Instance().Dpi().ScalePadding(padding);
-    if (!m_rcTextPadding.Equals(padding)) {
-        m_rcTextPadding = padding;
-        this->Invalidate();
-    }    
+    if (bNeedDpiScale) {
+        ui::GlobalManager::Instance().Dpi().ScalePadding(padding);
+    }
+    if (!GetTextPadding().Equals(padding)) {
+        m_rcTextPadding.left = ui::TruncateToUInt16(padding.left);
+        m_rcTextPadding.top = ui::TruncateToUInt16(padding.top);
+        m_rcTextPadding.right = ui::TruncateToUInt16(padding.right);
+        m_rcTextPadding.bottom = ui::TruncateToUInt16(padding.bottom);
+        Invalidate();
+    }
 }
 
 std::wstring ShadowCombo::GetDropBoxAttributeList()

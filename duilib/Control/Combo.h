@@ -45,7 +45,7 @@ public:
 	* @brief 获取文字边距
 	* @return 返回文字的边距信息
 	*/
-	const UiPadding& GetTextPadding() const;
+	UiPadding GetTextPadding() const;
 
 	/** 设置文字内边距信息, 函数内部会进行DPI自适应操作
 	 * @param [in] padding 矩形的四个边值分别代表对应的四个内边距值
@@ -148,7 +148,7 @@ protected:
 	UiSize m_szDropBox;
 	UiString m_sDropBoxAttributes;
 	bool m_bPopupTop;
-	UiPadding m_rcTextPadding;	//add by djj
+	UiPadding16 m_rcTextPadding;	//add by djj
 };
 
 } // namespace ui

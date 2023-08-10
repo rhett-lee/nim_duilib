@@ -55,7 +55,7 @@ void RichText::SetPos(UiRect rc)
 
 UiPadding RichText::GetTextPadding() const
 {
-    return m_rcTextPadding;
+    return UiPadding(m_rcTextPadding.left, m_rcTextPadding.top, m_rcTextPadding.right, m_rcTextPadding.bottom);
 }
 
 void RichText::SetTextPadding(UiPadding padding, bool bNeedDpiScale)
@@ -68,8 +68,11 @@ void RichText::SetTextPadding(UiPadding padding, bool bNeedDpiScale)
     if (bNeedDpiScale) {
         GlobalManager::Instance().Dpi().ScalePadding(padding);
     }
-    if (!m_rcTextPadding.Equals(padding)) {
-        m_rcTextPadding = padding;
+    if (!GetTextPadding().Equals(padding)) {
+        m_rcTextPadding.left = TruncateToUInt16(padding.left);
+        m_rcTextPadding.top = TruncateToUInt16(padding.top);
+        m_rcTextPadding.right = TruncateToUInt16(padding.right);
+        m_rcTextPadding.bottom = TruncateToUInt16(padding.bottom);
         RelayoutOrRedraw();
     }
 }
