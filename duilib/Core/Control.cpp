@@ -861,7 +861,16 @@ UiEstSize Control::EstimateSize(UiSize szAvailable)
 	}
 	imageCache.reset();
 
-	//估算文本区域大小
+	//图片大小，需要附加控件的内边距
+	UiPadding rcPadding = this->GetControlPadding();
+	if (imageSize.cx > 0) {
+		imageSize.cx += (rcPadding.left + rcPadding.right);
+	}
+	if (imageSize.cy > 0) {
+		imageSize.cy += (rcPadding.top + rcPadding.bottom);
+	}
+
+	//估算文本区域大小, 函数计算时，已经包含了内边距
 	UiSize textSize = EstimateText(szAvailable);
 
 	//选取图片和文本区域高度和宽度的最大值

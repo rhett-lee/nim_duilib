@@ -332,8 +332,10 @@ UiSize LabelTemplate<InheritType>::EstimateText(UiSize szAvailable)
         //如果是拉伸类型，使用外部宽度
         width = szAvailable.cx;
     }
+    UiPadding rcTextPadding = this->GetTextPadding();
     UiPadding rcPadding = this->GetControlPadding();
     width -= (rcPadding.left + rcPadding.right);
+    width -= (rcTextPadding.left + rcTextPadding.right);
     if (width < 0) {
         width = 0;
     }
@@ -342,8 +344,7 @@ UiSize LabelTemplate<InheritType>::EstimateText(UiSize szAvailable)
     if (!textValue.empty() && (this->GetWindow() != nullptr)) {
         auto pRender = this->GetWindow()->GetRender();
         if (pRender != nullptr) {
-            UiRect rect = pRender->MeasureString(textValue, GetFontId(), m_uTextStyle, width);
-            UiPadding rcTextPadding = this->GetTextPadding();
+            UiRect rect = pRender->MeasureString(textValue, GetFontId(), m_uTextStyle, width);            
             if (this->GetFixedWidth().IsAuto()) {
                 fixedSize.cx = rect.Width() + rcTextPadding.left + rcTextPadding.right;
                 fixedSize.cx += (rcPadding.left + rcPadding.right);
