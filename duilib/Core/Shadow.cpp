@@ -10,6 +10,11 @@ namespace ui
 class ShadowBox : public Box
 {
 public:
+	ShadowBox()
+	{
+		//关闭控件自身的内边距，否则阴影绘制不出来
+		SetEnableControlPadding(false);
+	}
 	virtual std::wstring GetType() const override { return L"ShadowBox"; }
 
 	virtual void Paint(IRender* pRender, const UiRect& rcPaint) override

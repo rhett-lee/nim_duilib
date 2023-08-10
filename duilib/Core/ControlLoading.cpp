@@ -106,7 +106,7 @@ void ControlLoading::PaintLoading(IRender* pRender)
 
 	//绘制时需要设置裁剪区域，避免绘制超出范围（因为旋转图片后，图片区域会超出显示区域）
 	AutoClip autoClip(pRender, imageDestRect, true);
-	pControl->PaintImage(pRender, *m_pLoadingImage, modify, -1, spMatrix.get());
+	pControl->PaintImage(pRender, m_pLoadingImage.get(), modify, -1, spMatrix.get());
 }
 
 void ControlLoading::Loading()

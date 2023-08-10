@@ -109,7 +109,33 @@ public:
 	/** 获取子项层级
 	 * @return 返回当前层级
 	 */
-	int GetDepth() const;
+	int32_t GetDepth() const;
+
+	/** 设置图片/文字元素之间的固定间隔
+	*/
+	void SetExtraPadding(int32_t extraPadding);
+
+#ifdef UILIB_IMPL_WINSDK
+
+	/** 设置背景图片(HICON句柄)
+	 * @param [in] hIcon 要设置的图标句柄，设置后，由ui::GlobalManager::Instance().Icon()管理资源的生命周期
+	               如果hIcon为nullptr, 则删除节点的图标，但不会从ui::GlobalManager::Instance().Icon()移除原来关联的图标句柄
+	 */
+	void SetBkIcon(HICON hIcon);
+
+#endif
+
+	/** 设置CheckBox关联的Class，如果不为空表示开启CheckBox功能，为空则关闭CheckBox功能
+	*   应用范围：该节点本身
+	* @param [in] checkBoxClass ui::CheckBox的Class属性，一般设置的主要属性有：
+				  normal_image：正常状态的图片，必选属性(即不打勾时的图片)
+				  selected_normal_image：选择时，正常状态的图片，必选属性(即打勾时的图片)
+	*/
+	void SetCheckBoxClass(const std::wstring& checkBoxClass);
+
+	/** 设置是否显示图标
+	*/
+	void SetEnableIcon(bool bEnable);
 
 	/** 监听子项展开事件
 	 * @param[in] callback 子项展开时触发的回调函数
@@ -127,17 +153,41 @@ private:
 	 */
 	bool RemoveSelf();
 
+	/** 根据当前的配置，调整CheckBox关联的内边距(可重入函数，多次调用无副作用)
+	*/
+	void AdjustCheckBoxPadding();
+
+	/** 根据当前的配置，调整图标关联的内边距(可重入函数，多次调用无副作用)
+	*/
+	void AdjustIconPadding();
+
 private:
 	//子项层级
-	int m_iDepth;
+	int32_t m_iDepth;
+
 	//是否展开显示子节点
 	bool m_bExpand;
+
 	//子项所属的树容器
 	TreeView* m_pTreeView;
+
 	//父节点
 	TreeNode *m_pParentTreeNode;
+
 	//子节点列表
 	std::vector<TreeNode*> m_aTreeNodes;
+
+	//图片/文字元素之间的固定间隔
+	uint8_t m_extraPadding;
+
+	//CheckBox关联的图标内边距
+	uint16_t m_checkBoxIconPadding;
+
+	//CheckBox关联的文字内边距
+	uint16_t m_checkBoxTextPadding;
+
+	//图标关联的文字内边距
+	uint16_t m_iconTextPadding;
 };
 
 class UILIB_API TreeView : public ListBox
@@ -165,6 +215,26 @@ public:
 	 */
 	void SetIndent(int32_t indent, bool bNeedDpiScale);
 
+	/** 设置CheckBox关联的Class，如果不为空表示开启CheckBox功能，为空则关闭CheckBox功能
+	*   应用范围：该树的所有节点
+	* @param [in] className ui::CheckBox的Class属性，一般设置的主要属性有：
+				  normal_image：正常状态的图片，必选属性(即不打勾时的图片)
+				  selected_normal_image：选择时，正常状态的图片，必选属性(即打勾时的图片)
+	*/
+	void SetCheckBoxClass(const std::wstring& className);
+
+	/** 获取CheckBox关联的Class
+	*/
+	std::wstring GetCheckBoxClass() const;
+
+	/** 设置是否显示图标
+	*/
+	void SetEnableIcon(bool bEnable);
+
+	/** 判断是否显示图标
+	*/
+	bool IsEnableIcon() const;
+
 private:
 	//以下函数故意私有化，表明禁止使用；应该使用TreeNode中的相关函数
 	bool AddItem(Control* pControl) override;
@@ -179,6 +249,12 @@ private:
 private:
 	//子节点的缩进值，单位为像素
 	int32_t m_iIndent;
+
+	//CheckBox的Class
+	UiString m_checkBoxClass;
+
+	//是否显示图标
+	bool m_bEnableIcon;
 
 	//树的根节点
 	std::unique_ptr<TreeNode> m_rootNode;

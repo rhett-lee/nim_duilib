@@ -151,10 +151,109 @@ ImageAttribute::ImageAttribute():
 	Init();
 }
 
+ImageAttribute::ImageAttribute(const ImageAttribute& r) :
+	rcDest(nullptr),
+	rcPadding(nullptr),
+	rcSource(nullptr),
+	rcCorner(nullptr)
+{
+	Init();
+	*this = r;
+}
+
+ImageAttribute& ImageAttribute::operator=(const ImageAttribute& r)
+{
+	if (&r == this) {
+		return *this;
+	}
+
+	sImageString = r.sImageString;
+	sImagePath = r.sImagePath;
+	srcWidth = r.srcWidth;
+	srcHeight = r.srcHeight;
+
+	srcDpiScale = r.srcDpiScale;
+	bHasSrcDpiScale = r.bHasSrcDpiScale;
+	hAlign = r.hAlign;
+	vAlign = r.vAlign;
+
+	bFade = r.bFade;
+	bTiledX = r.bTiledX;
+	bFullTiledX = r.bFullTiledX;
+	bTiledY = r.bTiledY;
+	bFullTiledY = r.bFullTiledY;
+	nTiledMargin = r.nTiledMargin;
+	nPlayCount = r.nPlayCount;
+	iconSize = r.iconSize;
+	bPaintEnabled = r.bPaintEnabled;
+
+	if (r.rcDest != nullptr) {
+		if (rcDest == nullptr) {
+			rcDest = new UiRect;
+		}
+		*rcDest = *r.rcDest;
+	}
+	else {
+		if (rcDest != nullptr) {
+			delete rcDest;
+			rcDest = nullptr;
+		}
+	}
+
+	if (r.rcPadding != nullptr) {
+		if (rcPadding == nullptr) {
+			rcPadding = new UiPadding16;
+		}
+		*rcPadding = *r.rcPadding;
+	}
+	else {
+		if (rcPadding != nullptr) {
+			delete rcPadding;
+			rcPadding = nullptr;
+		}
+	}
+
+	if (r.rcSource != nullptr) {
+		if (rcSource == nullptr) {
+			rcSource = new UiRect;
+		}
+		*rcSource = *r.rcSource;
+	}
+	else {
+		if (rcSource != nullptr) {
+			delete rcSource;
+			rcSource = nullptr;
+		}
+	}
+
+	if (r.rcCorner != nullptr) {
+		if (rcCorner == nullptr) {
+			rcCorner = new UiRect;
+		}
+		*rcCorner = *r.rcCorner;
+	}
+	else {
+		if (rcCorner != nullptr) {
+			delete rcCorner;
+			rcCorner = nullptr;
+		}
+	}
+
+	return *this;
+}
+
 void ImageAttribute::Init()
 {
 	sImageString.clear();
-	sImagePath.clear();
+	sImagePath.clear(); 
+	srcWidth.clear();
+	srcHeight.clear();
+
+	srcDpiScale = false;
+	bHasSrcDpiScale = false;
+	hAlign.clear();
+	vAlign.clear();
+
 	bFade = 0xFF;
 	bTiledX = false;
 	bFullTiledX = true;
@@ -163,12 +262,28 @@ void ImageAttribute::Init()
 	nTiledMargin = 0;
 	nPlayCount = -1;
 	iconSize = 0;
+	bPaintEnabled = true;
 
-	srcDpiScale = false;
-	bHasSrcDpiScale = false;
-	srcWidth.clear();
-	srcHeight.clear();
+	if (rcDest != nullptr) {
+		delete rcDest;
+		rcDest = nullptr;
+	}
+	if (rcSource != nullptr) {
+		delete rcSource;
+		rcSource = nullptr;
+	}
+	if (rcPadding != nullptr) {
+		delete rcPadding;
+		rcPadding = nullptr;
+	}
+	if (rcCorner != nullptr) {
+		delete rcCorner;
+		rcCorner = nullptr;
+	}
+}
 
+ImageAttribute::~ImageAttribute()
+{
 	if (rcDest != nullptr) {
 		delete rcDest;
 		rcDest = nullptr;
@@ -261,10 +376,10 @@ void ImageAttribute::ModifyAttribute(const std::wstring& strImageString)
 		}
 		else if (name == L"padding") {
 			//在目标区域中设置内边距
-			if (imageAttribute.rcPadding == nullptr) {
-				imageAttribute.rcPadding = new UiPadding;
-			}
-			AttributeUtil::ParsePaddingValue(value.c_str(), *imageAttribute.rcPadding);
+			UiPadding padding;
+			AttributeUtil::ParsePaddingValue(value.c_str(), padding);
+			GlobalManager::Instance().Dpi().ScalePadding(padding);
+			imageAttribute.SetPadding(padding);
 		}
 		else if (name == L"halign") {
 			//在目标区域中设置横向对齐方式			
@@ -413,9 +528,20 @@ UiPadding ImageAttribute::GetPadding() const
 {
 	UiPadding rc;
 	if (rcPadding != nullptr) {
-		rc = *rcPadding;
+		rc = UiPadding(rcPadding->left, rcPadding->top, rcPadding->right, rcPadding->bottom);
 	}
 	return rc;
+}
+
+void ImageAttribute::SetPadding(const UiPadding& newPadding)
+{
+	if (rcPadding == nullptr) {
+		rcPadding = new UiPadding16;
+	}
+	rcPadding->left = TruncateToUInt16(newPadding.left);
+	rcPadding->top = TruncateToUInt16(newPadding.top);
+	rcPadding->right = TruncateToUInt16(newPadding.right);
+	rcPadding->bottom = TruncateToUInt16(newPadding.bottom);
 }
 
 UiRect ImageAttribute::GetCorner() const
@@ -566,6 +692,26 @@ std::wstring Image::GetImageString() const
 std::wstring Image::GetImagePath() const
 {
 	return m_imageAttribute.sImagePath.c_str();
+}
+
+void Image::SetImagePadding(const UiPadding& newPadding)
+{
+	m_imageAttribute.SetPadding(newPadding);
+}
+
+UiPadding Image::GetImagePadding() const
+{
+	return m_imageAttribute.GetPadding();
+}
+
+bool Image::IsImagePaintEnabled() const
+{
+	return m_imageAttribute.bPaintEnabled;
+}
+
+void Image::SetImagePaintEnabled(bool bEnable)
+{
+	m_imageAttribute.bPaintEnabled = bEnable;
 }
 
 void Image::ClearImageCache()
@@ -724,6 +870,15 @@ int32_t StateImage::GetImageFade(ControlStateType stateType) const
 	return nFade;
 }
 
+Image* StateImage::GetStateImage(ControlStateType stateType)
+{ 
+	auto iter = m_stateImageMap.find(stateType);
+	if (iter != m_stateImageMap.end()) {
+		return &(iter->second);
+	}
+	return nullptr;
+}
+
 bool StateImage::HasHotImage() const
 {
 	return !GetImageString(kControlStateHot).empty();
@@ -863,7 +1018,17 @@ bool StateImageMap::HasHotImage() const
 	return false;
 }
 
-bool StateImageMap::HasImageType(StateImageType stateImageType) const
+bool StateImageMap::HasStateImages(void) const
+{
+	for (auto& it : m_stateImageMap) {
+		if (it.second.HasImage()) {
+			return true;
+		}
+	}
+	return false;
+}
+
+bool StateImageMap::HasStateImage(StateImageType stateImageType) const
 {
 	bool bHasImage = false;
 	auto iter = m_stateImageMap.find(stateImageType);
@@ -887,6 +1052,16 @@ Image* StateImageMap::GetEstimateImage(StateImageType stateImageType)
 	auto it = m_stateImageMap.find(stateImageType);
 	if (it != m_stateImageMap.end()) {
 		return it->second.GetEstimateImage();
+	}
+	return nullptr;
+}
+
+Image* StateImageMap::GetStateImage(StateImageType stateImageType, ControlStateType stateType)
+{
+	auto it = m_stateImageMap.find(stateImageType);
+	if (it != m_stateImageMap.end()) {
+		StateImage& stateImage = it->second;
+		return stateImage.GetStateImage(stateType);
 	}
 	return nullptr;
 }
@@ -941,7 +1116,7 @@ void StateColorMap::SetStateColor(ControlStateType stateType, const std::wstring
 	if (!color.empty()) {
 		m_stateColorMap[stateType] = color;
 	}
-	else {
+	else { 
 		//确保颜色值不是空字符串
 		auto iter = m_stateColorMap.find(stateType);
 		if (iter != m_stateColorMap.end()) {

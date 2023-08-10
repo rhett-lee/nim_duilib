@@ -70,6 +70,10 @@ private:
 	 */
 	bool OnTreeNodeClick(const ui::EventArgs& args);
 
+	/** 判断一个路径是否为目录
+	*/
+	bool IsDirectory(const std::wstring& filePath) const;
+
 private:
 	//树节点的接口
 	ui::TreeView* m_pTree;

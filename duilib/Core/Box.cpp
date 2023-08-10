@@ -68,9 +68,7 @@ void Box::SetPos(UiRect rc)
 UiRect Box::GetPosWithoutPadding() const
 {
 	UiRect rc = GetPos();
-	if (m_pLayout) {
-		rc.Deflate(GetPadding());
-	}
+	rc.Deflate(GetPadding());
 	rc.Validate();
 	return rc;
 }
@@ -78,9 +76,7 @@ UiRect Box::GetPosWithoutPadding() const
 UiRect Box::GetRectWithoutPadding() const
 {
 	UiRect rc = GetRect();
-	if (m_pLayout) {
-		rc.Deflate(GetPadding());
-	}	
+	rc.Deflate(GetPadding());
 	rc.Validate();
 	return rc;
 }

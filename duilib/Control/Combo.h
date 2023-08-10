@@ -47,12 +47,11 @@ public:
 	*/
 	const UiPadding& GetTextPadding() const;
 
-	/**
-	* @brief 设置文字边距信息
-	* @param[in] rc 边距信息
-	* @return 无
-	*/
-	void SetTextPadding(UiPadding padding);
+	/** 设置文字内边距信息, 函数内部会进行DPI自适应操作
+	 * @param [in] padding 矩形的四个边值分别代表对应的四个内边距值
+	 * @param[in] bNeedDpiScale 兼容 DPI 缩放，默认为 true
+	 */
+	void SetTextPadding(UiPadding padding, bool bNeedDpiScale = true);
 
 	/**
 	 * @brief 获取当前所属的 List 对象

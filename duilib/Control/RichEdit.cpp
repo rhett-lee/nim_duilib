@@ -3174,7 +3174,7 @@ void RichEdit::PaintStateImages(IRender* pRender)
 
 	if(IsFocused()) {
 		if (m_pFocusedImage != nullptr) {
-			PaintImage(pRender, *m_pFocusedImage);
+			PaintImage(pRender, m_pFocusedImage);
 		}		
 		PaintPromptText(pRender);
 		return;

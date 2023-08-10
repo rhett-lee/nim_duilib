@@ -331,9 +331,11 @@ const UiPadding& Combo::GetTextPadding() const
 	return m_rcTextPadding;
 }
 
-void Combo::SetTextPadding(UiPadding padding)
+void Combo::SetTextPadding(UiPadding padding, bool bNeedDpiScale)
 {
-	GlobalManager::Instance().Dpi().ScalePadding(padding);
+	if (bNeedDpiScale) {
+		GlobalManager::Instance().Dpi().ScalePadding(padding);
+	}
 	if (!m_rcTextPadding.Equals(padding)) {
 		m_rcTextPadding = padding;
 		this->Invalidate();

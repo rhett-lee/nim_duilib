@@ -23,6 +23,10 @@ public:
     virtual void PaintText(IRender* pRender) override;
     virtual bool HasHotState() override;
 
+    /** 关闭CheckBox功能，清除CheckBox的所有图片属性(比如树节点，CheckBox功能是可用通过开关开启或者关闭的)
+    */
+    void ClearStateImages();
+
     /**
      * @brief 选择状态下，没有设置背景色或背景图时，是否用非选择状态的对应属性来绘制
      * @return 返回 true 为选择状态，否则为 false
@@ -301,6 +305,12 @@ void CheckBoxTemplate<InheritType>::SetAttribute(const std::wstring& strName, co
 }
 
 template<typename InheritType>
+void CheckBoxTemplate<InheritType>::ClearStateImages()
+{
+    __super::ClearStateImages();
+}
+
+template<typename InheritType>
 void CheckBoxTemplate<InheritType>::PaintStateColors(IRender* pRender)
 {
     if (!IsSelected()) {
@@ -326,14 +336,14 @@ void CheckBoxTemplate<InheritType>::PaintStateImages(IRender* pRender)
         return;
     }
 
-    if (IsPaintNormalFirst() && !this->HasImageType(kStateImageSelectedBk)) {
+    if (IsPaintNormalFirst() && !this->HasStateImage(kStateImageSelectedBk)) {
         this->PaintStateImage(pRender, kStateImageBk, this->GetState());
     }
     else {
         this->PaintStateImage(pRender, kStateImageSelectedBk, this->GetState());
     }
 
-    if (IsPaintNormalFirst() && !this->HasImageType(kStateImageSelectedFore)) {
+    if (IsPaintNormalFirst() && !this->HasStateImage(kStateImageSelectedFore)) {
         this->PaintStateImage(pRender, kStateImageFore, this->GetState());
     }
     else {
@@ -353,7 +363,7 @@ void CheckBoxTemplate<InheritType>::PaintText(IRender* pRender)
         return;
     }
     UiRect rc = this->GetRect();
-    UiPadding rcPadding = this->GetBoxPadding();
+    UiPadding rcPadding = this->GetControlPadding();
     rc.Deflate(rcPadding);
     rc.Deflate(this->GetTextPadding());
 
@@ -400,7 +410,7 @@ void CheckBoxTemplate<InheritType>::PaintText(IRender* pRender)
 template<typename InheritType>
 std::wstring CheckBoxTemplate<InheritType>::GetSelectedStateImage(ControlStateType stateType)
 {
-    return this->GetImageMap()->GetImagePath(kStateImageSelectedBk, stateType);
+    return this->GetStateImage(kStateImageSelectedBk, stateType);
 }
 
 template<typename InheritType>
@@ -482,7 +492,7 @@ void CheckBoxTemplate<InheritType>::SetSelectedStateColor(ControlStateType state
 template<typename InheritType>
 std::wstring CheckBoxTemplate<InheritType>::GetSelectedForeStateImage(ControlStateType stateType)
 {
-    return this->GetImageMap()->GetImagePath(kStateImageSelectedFore, stateType);
+    return this->GetStateImage(kStateImageSelectedFore, stateType);
 }
 
 template<typename InheritType>

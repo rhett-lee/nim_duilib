@@ -102,8 +102,9 @@ public:
     /**
      * @brief 设置文字内边距信息
      * @param[in] padding 内边距信息
+     * @param[in] bNeedDpiScale 兼容 DPI 缩放，默认为 true
      */
-	void SetTextPadding(UiPadding padding);
+	void SetTextPadding(UiPadding padding, bool bNeedDpiScale = true);
 
     /**
      * @brief 判断是否是单行模式
@@ -126,11 +127,8 @@ public:
 	void SetAutoToolTip(bool bAutoShow);
 
 protected:
+    //检查是否需要自动显示ToolTip
 	void CheckShowToolTip();
-
-    /** 获取容器的内边距
-    */
-    UiPadding GetBoxPadding() const;
 
 private:
 	UiString m_sFontId;
@@ -232,7 +230,7 @@ void LabelTemplate<InheritType>::CheckShowToolTip()
     }
 
     UiRect rc = this->GetRect();
-    UiPadding rcPadding = GetBoxPadding();
+    UiPadding rcPadding = this->GetControlPadding();
     rc.Deflate(rcPadding);
     rc.Deflate(m_rcTextPadding);
 
@@ -334,7 +332,7 @@ UiSize LabelTemplate<InheritType>::EstimateText(UiSize szAvailable)
         //如果是拉伸类型，使用外部宽度
         width = szAvailable.cx;
     }
-    UiPadding rcPadding = GetBoxPadding();
+    UiPadding rcPadding = this->GetControlPadding();
     width -= (rcPadding.left + rcPadding.right);
     if (width < 0) {
         width = 0;
@@ -463,7 +461,7 @@ void LabelTemplate<InheritType>::PaintText(IRender* pRender)
         return;
     }
     UiRect rc = this->GetRect();
-    UiPadding rcPadding = this->GetBoxPadding();
+    UiPadding rcPadding = this->GetControlPadding();
     rc.Deflate(rcPadding);
     rc.Deflate(m_rcTextPadding);
 
@@ -582,14 +580,16 @@ const UiPadding& LabelTemplate<InheritType>::GetTextPadding() const
 }
 
 template<typename InheritType>
-void LabelTemplate<InheritType>::SetTextPadding(UiPadding padding)
+void LabelTemplate<InheritType>::SetTextPadding(UiPadding padding, bool bNeedDpiScale)
 {
     ASSERT((padding.left >= 0) && (padding.top >= 0) && (padding.right >= 0) && (padding.bottom >= 0));
     if ((padding.left < 0) || (padding.top < 0) ||
         (padding.right < 0) || (padding.bottom < 0)) {
         return;
     }
-    GlobalManager::Instance().Dpi().ScalePadding(padding);
+    if (bNeedDpiScale) {
+        GlobalManager::Instance().Dpi().ScalePadding(padding);
+    }    
     if (!m_rcTextPadding.Equals(padding)) {
         m_rcTextPadding = padding;
         this->RelayoutOrRedraw();
@@ -610,16 +610,6 @@ void LabelTemplate<InheritType>::SetSingleLine(bool bSingleLine)
     }
     m_bSingleLine = bSingleLine;
     this->Invalidate();
-}
-
-template<typename InheritType>
-UiPadding LabelTemplate<InheritType>::GetBoxPadding() const
-{
-    const Box* pBox = dynamic_cast<const Box*>(this);
-    if (pBox != nullptr) {
-        return pBox->GetPadding();
-    }
-    return UiPadding();
 }
 
 typedef LabelTemplate<Control> Label;

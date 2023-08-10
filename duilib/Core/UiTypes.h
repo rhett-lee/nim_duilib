@@ -148,6 +148,16 @@ namespace ui
         return static_cast<int8_t>(x);
     }
 
+    /** 将32位整型值转换位8位整型值
+    */
+    inline uint8_t TruncateToUInt8(int32_t x)
+    {
+        ASSERT((x >= 0) && (x <= UINT8_MAX));
+        x = x > 0 ? x : 0;
+        x = x < UINT8_MAX ? x : UINT8_MAX;
+        return static_cast<uint8_t>(x);
+    }
+
 }//namespace ui
 
 #endif // UI_CORE_UITYPES_H_

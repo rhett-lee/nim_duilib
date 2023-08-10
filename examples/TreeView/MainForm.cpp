@@ -44,6 +44,7 @@ void MainForm::OnInitWindow()
     if (m_pListBox != nullptr) {
         m_pListBox->SetDataProvider(&m_fileList);
     }
+    m_pTree->SetCheckBoxClass(L"tree_view_item_checkbox");
 	ShowDesktopNode();
     ShowAllDiskNode();
 }
@@ -62,29 +63,21 @@ void MainForm::InsertTreeNode(ui::TreeNode* pTreeNode,
 {
     if (m_pTree != NULL) {
         ui::TreeNode* node = new ui::TreeNode;
-        node->SetClass(L"listitem");
-        node->SetFixedHeight(ui::UiFixedInt(20), true);
+        node->SetWindow(this);
+        node->SetClass(L"tree_view_item");//在"tree_view.xml"中定义
         node->SetText(displayName);
-
-        ui::UiSize iconSize = ui::GlobalManager::Instance().Icon().GetIconSize(hIcon);
-        node->SetTextPadding(ui::UiPadding(iconSize.cx + 2, 0, 0, 0));//给图标留出空间
-
-        ui::GlobalManager::Instance().Icon().AddIcon(hIcon);
-        std::wstring iconString = ui::GlobalManager::Instance().Icon().GetIconString(hIcon);
-        if (!iconString.empty()) {
-            iconString = ui::StringHelper::Printf(L"file='%s' halign='left' valign='center'", iconString.c_str());
-            node->SetBkImage(iconString);
-        }
-
-        node->AttachExpand(nbase::Bind(&MainForm::OnTreeNodeExpand, this, std::placeholders::_1));
-        node->AttachClick(nbase::Bind(&MainForm::OnTreeNodeClick, this, std::placeholders::_1));
-
+        
         FolderStatus* pFolder = new FolderStatus;
         pFolder->path = path;
         pFolder->hIcon = hIcon;
         m_folderList.push_back(pFolder);
         ui::GlobalManager::Instance().Icon().AddIcon(hIcon);
         node->SetUserDataID((size_t)pFolder);
+
+        node->SetBkIcon(hIcon);//设置树节点的关联图标
+        node->AttachExpand(nbase::Bind(&MainForm::OnTreeNodeExpand, this, std::placeholders::_1));
+        node->AttachClick(nbase::Bind(&MainForm::OnTreeNodeClick, this, std::placeholders::_1));
+
 
         if (isFolder) {
             pFolder->bShow = false;
@@ -207,11 +200,11 @@ void MainForm::ShowSubFolders(ui::TreeNode* pTreeNode, const std::wstring& path)
         }
 
         std::wstring folderPath = ui::StringHelper::JoinFilePath(path, findData.cFileName);
-
+        
         SHFILEINFO shFileInfo;
         ZeroMemory(&shFileInfo, sizeof(SHFILEINFO));
-        if (::SHGetFileInfo(folderPath.c_str(), 0, &shFileInfo, sizeof(SHFILEINFO), SHGFI_ATTRIBUTES | SHGFI_ICON | SHGFI_SMALLICON)) {
-            if ((shFileInfo.dwAttributes & SFGAO_FOLDER) == SFGAO_FOLDER) {
+        if (::SHGetFileInfo(folderPath.c_str(), 0, &shFileInfo, sizeof(SHFILEINFO), SHGFI_ICON | SHGFI_SMALLICON)) {
+            if (IsDirectory(folderPath)) {
                 //目录
                 folderList.push_back({ findData.cFileName, false, shFileInfo.hIcon });
             }
@@ -250,6 +243,15 @@ bool MainForm::OnTreeNodeClick(const ui::EventArgs& args)
     return true;
 }
 
+bool MainForm::IsDirectory(const std::wstring& filePath) const
+{
+    DWORD dwAttr = ::GetFileAttributes(filePath.c_str());
+    if (dwAttr != INVALID_FILE_ATTRIBUTES) {
+        return dwAttr & FILE_ATTRIBUTE_DIRECTORY;
+    }
+    return false;
+}
+
 void MainForm::ShowFolderContents(const std::wstring& path)
 {
     std::wstring findPath = ui::StringHelper::JoinFilePath(path, L"*.*");
@@ -277,8 +279,8 @@ void MainForm::ShowFolderContents(const std::wstring& path)
 
         SHFILEINFO shFileInfo;
         ZeroMemory(&shFileInfo, sizeof(SHFILEINFO));
-        if (::SHGetFileInfo(folderPath.c_str(), 0, &shFileInfo, sizeof(SHFILEINFO), SHGFI_ATTRIBUTES | SHGFI_ICON | SHGFI_LARGEICON)) {
-            if ((shFileInfo.dwAttributes & SFGAO_FOLDER) == SFGAO_FOLDER) {
+        if (::SHGetFileInfo(folderPath.c_str(), 0, &shFileInfo, sizeof(SHFILEINFO), SHGFI_ICON | SHGFI_LARGEICON)) {
+            if (IsDirectory(folderPath)) {
                 //目录
                 folderList.push_back({ findData.cFileName, false, shFileInfo.hIcon });
             }

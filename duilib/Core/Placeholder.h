@@ -252,6 +252,11 @@ public:
 	*/
 	bool IsEnableControlPadding() const;
 
+	/** 获取控件自身的内边距（如果设置为禁止运用内边距，则返回空）
+	* @return 返回内边距四边的大小（Rect的四个参数分别代表四个边的内边距）
+	*/
+	UiPadding GetControlPadding() const;
+
 	/** 获取控件位置（子类可改变行为）
 	* @return 返回控件的矩形区域，包含内边距，不包含外边距
 	 */

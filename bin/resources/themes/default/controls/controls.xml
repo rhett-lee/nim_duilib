@@ -43,7 +43,7 @@
                     <ListBoxItem class="listitem" height="20" text="ui::VListBox::ListBoxItem"/>
                 </VListBox>
                 <!-- TreeView -->
-                <TreeView class="list" name="tree" padding="5,3,5,3" indent="20" tooltiptext="ui::TreeView">
+                <TreeView class="list" name="tree" padding="5,3,5,3" margin="8,0,0,0" indent="20" tooltiptext="ui::TreeView">
                     <TreeNode class="listitem" height="20" text="ui::TreeView Parent Node 0"/>
                     <TreeNode class="listitem" height="20" text="ui::TreeView Parent Node 1">
                         <TreeNode class="listitem" height="20" text="ui::TreeView::TreeNode 1-1"/>
@@ -67,8 +67,8 @@
             <HBox height="154">
                 <!-- Combo/RichEdit/FilterCombo/CheckCombo -->
                 <VBox width="300" margin="0,0,10">
-                    <Combo class="list" name="combo" height="30" margin="0,12,0" padding="6" bkimage="file='../public/combo/normal.png' corner='5,5,30,5'"/>
-                    <RichEdit class="simple input" height="30" margin="0,3" padding="6,6,6" promptmode="true" prompttext="ui::RichEdit: Single line text control" promptcolor="lightcolor"/>
+                    <Combo class="list" name="combo" height="30" margin="0,12,0" bkimage="file='../public/combo/normal.png' corner='5,5,30,5'"/>
+                    <RichEdit class="simple input" height="30" margin="0,3" text_align="vcenter" promptmode="true" prompttext="ui::RichEdit: Single line text control" promptcolor="lightcolor"/>
                     <FilterCombo name="filter_combo" height="30" margin="0,3" bordersize="1" bordercolor="splitline_level1" tooltiptext="nim_comp::FilterCombo"/>
                     <CheckCombo name="check_combo" height="30" margin="0,3" bordersize="1" bordercolor="splitline_level1" tooltiptext="nim_comp::CheckCombo"/>
                 </VBox>

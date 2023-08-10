@@ -1,4 +1,7 @@
 <Window size="80%,80%" sizebox="4,4,4,4" caption="0,0,0,36" text="TreeView控件测试程序">
+    <!-- 该窗口下的Class定义 --> 
+    <Class name="tree_view_item" height="20" hotcolor="bk_listitem_hovered" pushedcolor="bk_listitem_selected" selectednormalcolor="bk_listitem_selected" fadehot="false"/>
+    <Class name="tree_view_item_checkbox" normalimage="file='../public/CheckBox/check_no.png' padding='2,0,0,0' valign='center'" disabledimage="file='../public/CheckBox/check_no.png' padding='2,0,0,0' valign='center' fade='80'" selectednormalimage="file='../public/CheckBox/check_yes.png' padding='2,0,0,0' valign='center'" selecteddisabledimage="file='../public/CheckBox/check_yes.png' padding='2,0,0,0' valign='center' fade='80'"/>
     <!-- 整个窗口中，所有控件都放在这个VBox容器中 -->  
     <VBox bkcolor="bk_wnd_darkcolor">
         <!-- 标题栏区域 -->  
@@ -22,8 +25,26 @@
         
         <!-- 显示区域 --> 
         <VBox>            
-            <HBox height="48" bkcolor="LimeGreen" border_size="1,1,1,0" border_color="blue">
-                <Control />
+            <HBox height="36" bkcolor="gray" border_size="1,1,1,0" border_color="blue">
+                <Label text="功能控制：" valign="center" margin="12,0,10,0"/>
+                <Button class="btn_global_blue_80x30" width="auto" height="32" text="显示CheckBox" padding="18,0,18,0" margin="8,0,0,0" borderround="2,2" valign="center">
+                    <Event type="buttonup" receiver="tree" applyattribute="check_box_class={tree_view_item_checkbox}" />
+                </Button>
+                <Button class="btn_global_blue_80x30" width="auto" height="32" text="隐藏CheckBox" margin="8,0,0,0" borderround="2,2" valign="center">
+                    <Event type="buttonup" receiver="tree" applyattribute="check_box_class={}" />
+                </Button>
+                <Button class="btn_global_blue_80x30" width="auto" height="32" text="显示图标" margin="8,0,0,0" borderround="2,2" valign="center">
+                    <Event type="buttonup" receiver="tree" applyattribute="show_icon={true}" />
+                </Button>
+                <Button class="btn_global_blue_80x30" width="auto" height="32" text="隐藏图标" margin="8,0,0,0" borderround="2,2" valign="center">
+                    <Event type="buttonup" receiver="tree" applyattribute="show_icon={false}" />
+                </Button>
+                <Button class="btn_global_blue_80x30" width="auto" height="32" text="单项选择" margin="8,0,0,0" borderround="2,2" valign="center">
+                    <Event type="buttonup" receiver="tree" applyattribute="multi_select={false}" />
+                </Button>
+                <Button class="btn_global_blue_80x30" width="auto" height="32" text="多项选择" margin="8,0,0,0" borderround="2,2" valign="center">
+                    <Event type="buttonup" receiver="tree" applyattribute="multi_select={true}" />
+                </Button>
             </HBox>
             <HBox>
                 <HBox width="300" bkcolor="SeaShell" border_size="1,1,0,1" border_color="blue">

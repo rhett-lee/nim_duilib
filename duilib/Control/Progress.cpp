@@ -248,7 +248,7 @@ void Progress::PaintStateImages(IRender* pRender)
 			m_sProgressImageModify = imageModify;
         }
     }
-	PaintImage(pRender, *m_pProgressImage, m_sProgressImageModify.c_str());
+	PaintImage(pRender, m_pProgressImage, m_sProgressImageModify.c_str());
 }
 
 UiRect Progress::GetProgressPos()

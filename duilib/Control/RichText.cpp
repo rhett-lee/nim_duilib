@@ -53,21 +53,25 @@ void RichText::SetPos(UiRect rc)
     return __super::SetPos(rc);
 }
 
-const UiRect& RichText::GetTextPadding() const
+UiPadding RichText::GetTextPadding() const
 {
     return m_rcTextPadding;
 }
 
-void RichText::SetTextPadding(const UiRect& padding)
+void RichText::SetTextPadding(UiPadding padding, bool bNeedDpiScale)
 {
     ASSERT((padding.left >= 0) && (padding.top >= 0) && (padding.right >= 0) && (padding.bottom >= 0));
     if ((padding.left < 0) || (padding.top < 0) ||
         (padding.right < 0) || (padding.bottom < 0)) {
         return;
     }
-    m_rcTextPadding = padding;
-    GlobalManager::Instance().Dpi().ScaleRect(m_rcTextPadding);
-    RelayoutOrRedraw();
+    if (bNeedDpiScale) {
+        GlobalManager::Instance().Dpi().ScalePadding(padding);
+    }
+    if (!m_rcTextPadding.Equals(padding)) {
+        m_rcTextPadding = padding;
+        RelayoutOrRedraw();
+    }
 }
 
 bool RichText::SetRichText(const std::wstring& richText)

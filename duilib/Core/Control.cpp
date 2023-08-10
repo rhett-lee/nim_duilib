@@ -220,10 +220,18 @@ void Control::StopLoading(GifStopType frame)
 	SetEnabled(true);
 }
 
-bool Control::HasImageType(StateImageType stateImageType) const
+bool Control::HasStateImages(void) const
 {
 	if (m_pImageMap != nullptr) {
-		return m_pImageMap->HasImageType(stateImageType);
+		return m_pImageMap->HasStateImages();
+	}
+	return false;
+}
+
+bool Control::HasStateImage(StateImageType stateImageType) const
+{
+	if (m_pImageMap != nullptr) {
+		return m_pImageMap->HasStateImage(stateImageType);
 	}
 	return false;
 }
@@ -253,6 +261,30 @@ bool Control::PaintStateImage(IRender* pRender, StateImageType stateImageType, C
 	return false;
 }
 
+UiSize Control::GetStateImageSize(StateImageType imageType, ControlStateType stateType)
+{
+	Image* pImage = nullptr;
+	if (m_pImageMap != nullptr) {
+		pImage = m_pImageMap->GetStateImage(imageType, stateType);
+	}
+	UiSize imageSize;
+	if (pImage != nullptr) {
+		LoadImageData(*pImage);
+		std::shared_ptr<ImageInfo> imageInfo = pImage->GetImageCache();
+		if (imageInfo != nullptr) {
+			imageSize.cx = imageInfo->GetWidth();
+			imageSize.cy = imageInfo->GetHeight();
+		}
+	}
+	return imageSize;
+}
+
+void Control::ClearStateImages()
+{
+	m_pImageMap.reset();
+	RelayoutOrRedraw();
+}
+
 std::wstring Control::GetStateImage(ControlStateType stateType)
 {
 	return GetStateImage(kStateImageBk, stateType);
@@ -279,6 +311,75 @@ void Control::SetForeStateImage(ControlStateType stateType, const std::wstring& 
 	}
 	SetStateImage(kStateImageFore, stateType, strImage);
 	Invalidate();
+}
+
+UiPadding Control::GetBkImagePadding() const
+{
+	UiPadding rcPadding;
+	if (m_pBkImage != nullptr) {
+		rcPadding = m_pBkImage->GetImagePadding();
+	}
+	return rcPadding;
+}
+
+bool Control::SetBkImagePadding(UiPadding rcPadding, bool bNeedDpiScale)
+{
+	bool bSetOk = false;
+	if (m_pBkImage != nullptr) {
+		if (bNeedDpiScale) {
+			GlobalManager::Instance().Dpi().ScalePadding(rcPadding);
+		}
+		if (!m_pBkImage->GetImagePadding().Equals(rcPadding)) {
+			m_pBkImage->SetImagePadding(rcPadding);
+			bSetOk = true;
+			Invalidate();
+		}		
+	}
+	return bSetOk;
+}
+
+bool Control::IsBkImagePaintEnabled() const
+{
+	if (m_pBkImage != nullptr) {
+		return m_pBkImage->IsImagePaintEnabled();
+	}
+	return true;
+}
+
+void Control::SetBkImagePaintEnabled(bool bEnable)
+{
+	if (m_pBkImage != nullptr) {
+		bool isChange = m_pBkImage->IsImagePaintEnabled() != bEnable;		
+		if (isChange) {
+			m_pBkImage->SetImagePaintEnabled(bEnable);
+			Invalidate();
+		}
+	}
+}
+
+std::wstring Control::GetBkImagePath() const
+{
+	if (m_pBkImage != nullptr) {
+		return m_pBkImage->GetImagePath();
+	}
+	return std::wstring();
+}
+
+UiSize Control::GetBkImageSize() const
+{
+	UiSize imageSize;
+	if (m_pBkImage != nullptr) {
+		std::shared_ptr<ImageInfo> imageInfo = m_pBkImage->GetImageCache();
+		if (imageInfo == nullptr) {
+			LoadImageData(*m_pBkImage);
+			imageInfo = m_pBkImage->GetImageCache();
+		}
+		if (imageInfo != nullptr) {
+			imageSize.cx = imageInfo->GetWidth();
+			imageSize.cy = imageInfo->GetHeight();
+		}
+	}
+	return imageSize;
 }
 
 ControlStateType Control::GetState() const
@@ -1340,18 +1441,31 @@ bool Control::OnApplyAttributeList(const std::wstring& strReceiver, const std::w
 	}	
 }
 
-bool Control::PaintImage(IRender* pRender,  Image& duiImage,
+bool Control::PaintImage(IRender* pRender, Image* pImage,
 					    const std::wstring& strModify, int32_t nFade, IMatrix* pMatrix)
 {
 	//注解：strModify参数，目前外部传入的主要是："destscale='false' dest='%d,%d,%d,%d'"
 	//                   也有一个类传入了：L" corner='%d,%d,%d,%d'"。
+	if (pImage == nullptr) {
+		//这里可能为空，不需要加断言，为空直接返回
+		return false;
+	}
 	ASSERT(pRender != nullptr);
 	if (pRender == nullptr) {
 		return false;
 	}
+
+	Image& duiImage = *pImage;
+
 	if (duiImage.GetImagePath().empty()) {
 		return false;
 	}
+
+	if (!duiImage.GetImageAttribute().bPaintEnabled) {
+		//该图片禁止绘制，返回
+		return false;
+	}
+
 	LoadImageData(duiImage);
 	std::shared_ptr<ImageInfo> imageInfo = duiImage.GetImageCache();
 	ASSERT(imageInfo != nullptr);
@@ -1392,6 +1506,7 @@ bool Control::PaintImage(IRender* pRender,  Image& duiImage,
 	}
 	bool hasDestAttr = false; // 外部是否设置了rcDest属性
 	UiRect rcDest = GetRect();
+	rcDest.Deflate(GetControlPadding());//去掉内边距
 	if (ImageAttribute::HasValidImageRect(newImageAttribute.GetDestRect())) {
 		//使用配置中指定的目标区域
 		if ((newImageAttribute.GetDestRect().Width() <= rcDest.Width()) &&
@@ -1934,7 +2049,7 @@ void Control::FillRoundRect(IRender* pRender, const UiRect& rc, const UiSize& ro
 void Control::PaintBkImage(IRender* pRender)
 {
 	if (m_pBkImage != nullptr) {
-		PaintImage(pRender, *m_pBkImage);
+		PaintImage(pRender, m_pBkImage.get());
 	}	
 }
 

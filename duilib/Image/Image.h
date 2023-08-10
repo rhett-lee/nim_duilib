@@ -134,6 +134,9 @@ class UILIB_API ImageAttribute
 {
 public:
 	ImageAttribute();
+	~ImageAttribute();
+	ImageAttribute(const ImageAttribute&);
+	ImageAttribute& operator=(const ImageAttribute&);
 
 	/** 对数据成员进行初始化
 	*/
@@ -183,6 +186,10 @@ public:
 	/** 获取rcCorner;
 	*/
 	UiRect GetCorner() const;
+
+	/** 设置图片属性的内边距(内部不做DPI自适应)
+	*/
+	void SetPadding(const UiPadding& newPadding);
 
 public:
 	//图片文件属性字符串
@@ -235,12 +242,15 @@ public:
 	//目前ICO文件在加载时，只会选择一个大小的ICO图片进行加载，加载后为单张图片
 	uint32_t iconSize;
 
+	//可绘制标志：true表示允许绘制，false表示禁止绘制
+	bool bPaintEnabled;
+
 private:
 	//绘制目标区域位置和大小（相对于控件区域的位置）
 	UiRect* rcDest;
 
 	//在绘制目标区域中的内边距(如果指定了rcDest值，则此选项无效)
-	UiPadding* rcPadding;
+	UiPadding16* rcPadding;
 
 	//图片源区域位置和大小
 	UiRect* rcSource;
@@ -328,6 +338,8 @@ class UILIB_API Image
 {
 public:
 	Image();
+	Image(const Image&) = delete;
+	Image& operator=(const Image&) = delete;
 
 	/** 初始化图片属性
 	*/
@@ -345,6 +357,22 @@ public:
 	/** 获取图片文件名（含相对路径，不含图片属性）
 	*/
 	std::wstring GetImagePath() const;
+
+	/** 设置图片属性的内边距
+	*/
+	void SetImagePadding(const UiPadding& newPadding);
+
+	/** 获取图片属性的内边距
+	*/
+	UiPadding GetImagePadding() const;
+
+	/** 判断是否禁用图片绘制
+	*/
+	bool IsImagePaintEnabled() const;
+
+	/** 设置是否禁止背景图片绘制
+	*/
+	void SetImagePaintEnabled(bool bEnable);
 
 	/** 获取图片属性（只读）
 	*/
@@ -473,7 +501,7 @@ public:
 
 	/** 获取图片接口(可读，可写)
 	*/
-	Image& GetStateImage(ControlStateType stateType) { return m_stateImageMap[stateType]; }
+	Image* GetStateImage(ControlStateType stateType);
 
 public:
 	/** 是否包含Hot状态的图片
@@ -490,7 +518,7 @@ public:
 
 	/** 获取用于估算Control控件大小（宽和高）的图片接口
 	*/
-	Image* GetEstimateImage() ;
+	Image* GetEstimateImage();
 
 	/** 清空图片缓存，释放资源
 	*/
@@ -532,9 +560,13 @@ public:
 	*/
 	bool HasHotImage() const;
 
+	/** 是否状态图片
+	*/
+	bool HasStateImages(void) const;
+
 	/** 是否含有指定类型的图片
 	*/
-	bool HasImageType(StateImageType stateImageType) const;
+	bool HasStateImage(StateImageType stateImageType) const;
 
 	/** 绘制指定图片类型和状态的图片
 	*/
@@ -543,6 +575,10 @@ public:
 	/** 获取用于估算Control控件大小（宽和高）的图片接口
 	*/
 	Image* GetEstimateImage(StateImageType stateImageType);
+
+	/** 获取指定图片类型和状态的图片接口
+	*/
+	Image* GetStateImage(StateImageType stateImageType, ControlStateType stateType);
 
 	/** 清除所有图片类型的缓存，释放资源
 	*/

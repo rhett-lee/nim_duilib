@@ -69,12 +69,13 @@ public:
 public:
     /** 获取文字内边距
      */
-    const UiRect& GetTextPadding() const;
+    UiPadding GetTextPadding() const;
 
     /** 设置文字内边距信息, 函数内部会进行DPI自适应操作
      * @param [in] padding 矩形的四个边值分别代表对应的四个内边距值
+     * @param [in] bNeedDpiScale 兼容 DPI 缩放，默认为 true
      */
-    void SetTextPadding(const UiRect& padding);
+    void SetTextPadding(UiPadding padding, bool bNeedDpiScale = true);
 
     /** 设置格式的文本
     * @param [in] richText 带有格式的文本内容
@@ -102,7 +103,7 @@ private:
 private:
     /** 文本绘制的内边距(分别对应四个边的内边距大小)
     */
-    UiRect m_rcTextPadding;
+    UiPadding m_rcTextPadding;
 
     /** 绘制的文本内容
     */

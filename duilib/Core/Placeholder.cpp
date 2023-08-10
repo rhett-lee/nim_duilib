@@ -383,6 +383,16 @@ bool PlaceHolder::IsEnableControlPadding() const
 	return m_bEnableControlPadding;
 }
 
+UiPadding PlaceHolder::GetControlPadding() const
+{
+	//控件本身禁止应用内边距时，返回空
+	UiPadding rcPadding;
+	if (IsEnableControlPadding()) {		
+		rcPadding = GetPadding();
+	}
+	return rcPadding;
+}
+
 void PlaceHolder::Arrange()
 {
 	if (GetFixedWidth().IsAuto() || GetFixedHeight().IsAuto()) {

@@ -555,14 +555,14 @@ public:
 	/**
 	 * @brief 绘制图片
 	 * @param[in] pRender 绘制上下文
-	 * @param[in] duiImage 图片对象
+	 * @param[in] pImage 图片对象的接口
 	 * @param[in] isLoadingImage true表示Loading Image，绘制时会旋转该图片;false表示正常图片
 	 * @param[in] strModify 图片的附加属性
 	 * @param[in] nFade 控件的透明度，如果启用动画效果该值在绘制时是不断变化的
 	 * @param[in] pMatrix 绘制图片时使用的变换矩阵
 	 * @return 成功返回 true，失败返回 false
 	 */
-	bool PaintImage(IRender* pRender, Image& duiImage,
+	bool PaintImage(IRender* pRender, Image* pImage,
 				    const std::wstring& strModify = L"",
 		            int32_t nFade = DUI_NOSET_VALUE,
 		            IMatrix* pMatrix = nullptr);
@@ -937,9 +937,13 @@ protected:
 	virtual void PaintLoading(IRender* pRender);
 
 protected:
+	/** 是否状态图片, 只要含有任意状态图片，即返回true
+	*/
+	bool HasStateImages(void) const;
+
 	/** 是否含有指定类型的图片
 	*/
-	bool HasImageType(StateImageType stateImageType) const;
+	bool HasStateImage(StateImageType stateImageType) const;
 
 	/** 获取指定状态下的图片位置
 	 */
@@ -953,6 +957,37 @@ protected:
 	*/
 	bool PaintStateImage(IRender* pRender, StateImageType stateImageType, ControlStateType stateType, const std::wstring& sImageModify = L"");
 
+	/** 清除所有状态图片属性
+	*/
+	void ClearStateImages();
+
+	/** 获取背景图片的内边距
+	 */
+	UiPadding GetBkImagePadding() const;
+
+	/** 设置背景图片的内边距
+	 * @param[in] rcPadding 要设置的图片内边距
+	 * @param[in] bNeedDpiScale 兼容 DPI 缩放，默认为 true
+	 */
+	bool SetBkImagePadding(UiPadding rcPadding, bool bNeedDpiScale = true);
+
+	/** 判断是否禁用背景图片绘制
+	*/
+	bool IsBkImagePaintEnabled() const;
+
+	/** 设置是否禁止背景图片绘制
+	*/
+	void SetBkImagePaintEnabled(bool bEnable);
+
+	/** 获取背景图片路径（不含属性）
+	*/
+	std::wstring GetBkImagePath() const;
+
+	/** 获取背景图片大小(按需加载图片)
+	*/
+	UiSize GetBkImageSize() const;
+
+protected:
 	/** 绘制指定状态的颜色
 	*/
 	void PaintStateColor(IRender* pRender, const UiRect& rcPaint, ControlStateType stateType) const;
@@ -982,8 +1017,8 @@ private:
 	/** 填充圆角矩形
 	*/
 	void FillRoundRect(IRender* pRender, const UiRect& rc, const UiSize& roundSize, UiColor dwColor) const;
-
-	/** 填充路径, 形成圆角矩形
+  
+    /** 填充路径, 形成圆角矩形
 	*/
 	void AddRoundRectPath(IPath* path, const UiRect& rc, const UiSize& roundSize) const;
 
@@ -1003,6 +1038,10 @@ public:
 	/** 判断是否需要采用圆角矩形填充背景色
 	*/
 	bool ShouldBeRoundRectFill() const;
+
+	/** 获取指定状态下的图片大小(按需加载图片)
+	*/
+	UiSize GetStateImageSize(StateImageType imageType, ControlStateType stateType);
 
 private:
 

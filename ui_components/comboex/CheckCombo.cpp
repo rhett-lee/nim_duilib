@@ -264,7 +264,7 @@ namespace nim_comp
 		ui::UiRect rc = GetPos();
 		ui::UiPoint scrollBoxOffset = GetScrollOffsetInScrollBox();
 		rc.Offset(-scrollBoxOffset.x, -scrollBoxOffset.y);
-		rc.bottom = rc.top + m_iOrgHeight;
+	//	rc.bottom = rc.top + m_iOrgHeight;
 		return ui::UiRect(rc);
 	}
 
