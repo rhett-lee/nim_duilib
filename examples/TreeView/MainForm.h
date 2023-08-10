@@ -39,6 +39,10 @@ public:
 
 	static const std::wstring kClassName;
 
+	/** 触发树节点点击事件
+	 */
+	void CheckExpandTreeNode(ui::TreeNode* pTreeNode, const std::wstring& filePath);
+
 private:
 	//目录列表数据结构
 	struct FolderStatus
@@ -46,6 +50,7 @@ private:
 		std::wstring path;
 		bool bShow = false;
 		HICON hIcon = nullptr;
+		ui::TreeNode* pTreeNode = nullptr;
 	};
 
 	//显示虚拟目录节点（比如桌面、我的文档等）
@@ -71,7 +76,7 @@ private:
 		                bool isFolder);
 
 	//显示指定目录的内容
-	void ShowFolderContents(const std::wstring& path);
+	void ShowFolderContents(ui::TreeNode* pTreeNode, const std::wstring& path);
 
 	/** 树节点展开事件
 	 * @param[in] args 消息体

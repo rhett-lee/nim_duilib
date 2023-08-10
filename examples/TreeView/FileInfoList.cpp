@@ -1,7 +1,11 @@
 #include "FileInfoList.h"
 #include "FileInfoItem.h"
+#include "MainForm.h"
+#include "MainThread.h"
 
-FileInfoList::FileInfoList()
+FileInfoList::FileInfoList(MainForm* pMainForm):
+    m_pMainForm(pMainForm),
+    m_pTreeNode(nullptr)
 {
 }
 
@@ -47,8 +51,10 @@ bool FileInfoList::IsElementSelected(size_t nElementIndex)
     return false;
 }
 
-void FileInfoList::AddFileList(const std::vector<FileInfo>& pathList)
+void FileInfoList::SetFileList(ui::TreeNode* pTreeNode, const std::vector<FileInfo>& pathList)
 {
+    ClearFileList();
+    m_pTreeNode = pTreeNode;
     m_pathList.reserve(m_pathList.size() + pathList.size());
     for (const FileInfo& fileInfo : pathList) {
         m_pathList.emplace_back(fileInfo);
@@ -56,12 +62,6 @@ void FileInfoList::AddFileList(const std::vector<FileInfo>& pathList)
     }
     // 通知ListBox数据总数变动
     EmitCountChanged();
-}
-
-void FileInfoList::SetFileList(const std::vector<FileInfo>& pathList)
-{
-    ClearFileList();
-    AddFileList(pathList);
 }
 
 void FileInfoList::ClearFileList()
@@ -82,8 +82,9 @@ bool FileInfoList::OnDoubleClickItem(const ui::EventArgs& args)
         size_t nElementIndex = pItem->GetUserDataID();
         if (nElementIndex < m_pathList.size()) {
             const FileInfo& fileInfo = m_pathList[nElementIndex];
-            if (fileInfo.m_isFolder) {
-
+            if (fileInfo.m_isFolder && (m_pMainForm != nullptr)) {
+                //双击在一个目录上
+                m_pMainForm->CheckExpandTreeNode(m_pTreeNode, fileInfo.m_filePath);
             }
         }
     }

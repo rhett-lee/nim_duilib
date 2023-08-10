@@ -6,6 +6,7 @@
 const std::wstring MainForm::kClassName = L"MainForm";
 
 MainForm::MainForm():
+    m_fileList(this),
     m_pTree(nullptr),
     m_pListBox(nullptr),
     m_hShell32Dll(nullptr)
@@ -106,6 +107,7 @@ void MainForm::InsertTreeNode(ui::TreeNode* pTreeNode,
         FolderStatus* pFolder = new FolderStatus;
         pFolder->path = path;
         pFolder->hIcon = hIcon;
+        pFolder->pTreeNode = node;
         m_folderList.push_back(pFolder);
         ui::GlobalManager::Instance().Icon().AddIcon(hIcon);
         node->SetUserDataID((size_t)pFolder);
@@ -254,6 +256,48 @@ bool MainForm::OnTreeNodeExpand(const ui::EventArgs& args)
     return true;
 }
 
+void MainForm::CheckExpandTreeNode(ui::TreeNode* pTreeNode, const std::wstring& filePath)
+{
+    if (pTreeNode == nullptr) {
+        return;
+    }
+    FolderStatus* pFolder = (FolderStatus*)pTreeNode->GetUserDataID();
+    auto iter = std::find(m_folderList.begin(), m_folderList.end(), pFolder);
+    if (iter == m_folderList.end()) {
+        return;
+    }
+
+    if (!pFolder->bShow) {
+        //加载子目录列表
+        pFolder->bShow = true;
+        ShowSubFolders(pTreeNode, pFolder->path);
+    }
+    else {
+        //展开子目录
+        if (!pTreeNode->IsExpand()) {
+            pTreeNode->SetExpand(true, true);
+        }
+    }
+    if (filePath.empty()) {
+        return;
+    }
+    //由于ShowSubFolders是在子线程中执行的，所以这里也要先发给子线程，再转给UI线程，保证时序正确
+    nbase::ThreadManager::PostTask(kThreadWorker, ToWeakCallback([this, pTreeNode, filePath]() {
+        //这段代码在工作线程中执行，枚举目录内容完成后，然后发给UI线程添加到树节点上
+        nbase::ThreadManager::PostTask(kThreadUI, ToWeakCallback([this, pTreeNode, filePath]() {
+            //这段代码在UI线程中执行
+            for (const FolderStatus* folder : m_folderList) {
+                if (folder->path == filePath) {
+                    ui::TreeNode* pSubTreeNode = folder->pTreeNode;
+                    if (pSubTreeNode != nullptr) {
+                        pSubTreeNode->Activate();
+                    }
+                }
+            }
+        }));
+    }));
+}
+
 void MainForm::ShowSubFolders(ui::TreeNode* pTreeNode, const std::wstring& path)
 {
     nbase::ThreadManager::PostTask(kThreadWorker, ToWeakCallback([this, path, pTreeNode]() {
@@ -297,10 +341,12 @@ void MainForm::ShowSubFolders(ui::TreeNode* pTreeNode, const std::wstring& path)
         ::FindClose(hFile);
         hFile = INVALID_HANDLE_VALUE;
 
-        //发给UI线程添加到树节点上(只添加目录，不添加文件)
         nbase::ThreadManager::PostTask(kThreadUI, ToWeakCallback([this, path, pTreeNode, folderList]() {
             //这段代码在UI线程中执行
             InsertTreeNodes(pTreeNode, path, folderList, true);
+            if (!pTreeNode->IsExpand()) {
+                pTreeNode->SetExpand(true, true);
+            }
         }));
     }));
 }
@@ -314,7 +360,7 @@ bool MainForm::OnTreeNodeClick(const ui::EventArgs& args)
         auto iter = std::find(m_folderList.begin(), m_folderList.end(), pFolder);
         if (iter != m_folderList.end()) {
             //加载子目录列表到右侧区域
-            ShowFolderContents(pFolder->path);
+            ShowFolderContents(pTreeNode, pFolder->path);
         }
     }
     return true;
@@ -329,9 +375,9 @@ bool MainForm::IsDirectory(const std::wstring& filePath) const
     return false;
 }
 
-void MainForm::ShowFolderContents(const std::wstring& path)
+void MainForm::ShowFolderContents(ui::TreeNode* pTreeNode, const std::wstring& path)
 {
-    nbase::ThreadManager::PostTask(kThreadWorker, ToWeakCallback([this, path]() {
+    nbase::ThreadManager::PostTask(kThreadWorker, ToWeakCallback([this, pTreeNode, path]() {
         //这段代码在工作线程中执行，枚举目录内容完成后，然后发给UI线程添加到树节点上
         std::wstring findPath = ui::StringHelper::JoinFilePath(path, L"*.*");
         WIN32_FIND_DATA findData;
@@ -383,10 +429,10 @@ void MainForm::ShowFolderContents(const std::wstring& path)
             pathList.push_back({ folder.path, folderPath, false, folder.hIcon });
         }
 
-        //发给UI线程添加到树节点上(只添加目录，不添加文件)
-        nbase::ThreadManager::PostTask(kThreadUI, ToWeakCallback([this, path, pathList]() {
+        //发给UI线程
+        nbase::ThreadManager::PostTask(kThreadUI, ToWeakCallback([this, pTreeNode, path, pathList]() {
             //这段代码在UI线程中执行
-            m_fileList.SetFileList(pathList);
+            m_fileList.SetFileList(pTreeNode, pathList);
         }));
     }));
 }

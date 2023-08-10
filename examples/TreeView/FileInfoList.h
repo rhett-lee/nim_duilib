@@ -20,10 +20,11 @@ struct FileInfo
     HICON m_hIcon = nullptr;
 };
 
+class MainForm;
 class FileInfoList: public ui::VirtualListBoxElement
 {
 public:
-    FileInfoList();
+    explicit FileInfoList(MainForm* pMainForm);
     virtual ~FileInfoList();
 
     /** 创建一个数据项
@@ -55,14 +56,9 @@ public:
     virtual bool IsElementSelected(size_t nElementIndex) override;
 
 public:
-    
-    /** 添加文件列表到原来的列表中
-    */
-    void AddFileList(const std::vector<FileInfo>& pathList);
-
     /** 用新的文件列表，替换原来的列表
     */
-    void SetFileList(const std::vector<FileInfo>& pathList);
+    void SetFileList(ui::TreeNode* pTreeNode, const std::vector<FileInfo>& pathList);
 
     /** 清空文件列表
     */
@@ -76,6 +72,14 @@ private:
     bool OnDoubleClickItem(const ui::EventArgs& args);
 
 private:
+    /** 关联的MainForm
+    */
+    MainForm* m_pMainForm;
+
+    /** 关联的树节点
+    */
+    ui::TreeNode* m_pTreeNode;
+
     //文件列表
     std::vector<FileInfo> m_pathList;
 };
