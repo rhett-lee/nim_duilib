@@ -50,7 +50,12 @@ void MainForm::OnInitWindow()
     if (m_pListBox != nullptr) {
         m_pListBox->SetDataProvider(&m_fileList);
     }
+    //设置开启树节点的CheckBox功能
     m_pTree->SetCheckBoxClass(L"tree_view_item_checkbox");
+    //设置开启数节点的[未展开/展开]图标功能
+    m_pTree->SetExpandImageClass(L"tree_view_item_expand");
+    //设置是否支持多选
+    m_pTree->SetMultiSelect(true);
 	
     //显示虚拟路径
     ShowVirtualDirectoryNode(CSIDL_DESKTOP, FOLDERID_Desktop, L"桌面");

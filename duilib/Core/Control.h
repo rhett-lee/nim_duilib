@@ -961,6 +961,13 @@ protected:
 	*/
 	void ClearStateImages();
 
+	/** 设置状态图片的内边距left值(所有状态图片的内边距一起调整)
+	* @param [in] leftOffset 要设置的图片内边距偏移量，正数表示增加，负数表示减少
+	* @param [in] bNeedDpiScale 兼容 DPI 缩放，默认为 true
+	* @return 成功返回true，失败返回false
+	*/
+	bool AdjustStateImagesPaddingLeft(int32_t leftOffset, bool bNeedDpiScale = true);
+
 	/** 获取背景图片的内边距
 	 */
 	UiPadding GetBkImagePadding() const;

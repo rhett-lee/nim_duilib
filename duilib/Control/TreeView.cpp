@@ -10,6 +10,9 @@ TreeNode::TreeNode() :
 	m_pParentTreeNode(nullptr),
 	m_iDepth(ROOT_NODE_DEPTH),
 	m_extraPadding(3),
+	m_expandCheckBoxPadding(0),
+	m_expandIconPadding(0),
+	m_expandTextPadding(0),
 	m_checkBoxIconPadding(0),
 	m_checkBoxTextPadding(0),
 	m_iconTextPadding(0)
@@ -17,6 +20,123 @@ TreeNode::TreeNode() :
 }
 
 std::wstring TreeNode::GetType() const { return DUI_CTR_TREENODE; }
+
+void TreeNode::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
+{
+	if (strName == L"expand_normal_image") {
+		SetExpandStateImage(kControlStateNormal, strValue);
+	}
+	else if (strName == L"expand_hot_image") {
+		SetExpandStateImage(kControlStateHot, strValue);
+	}
+	else if (strName == L"expand_pushed_image") {
+		SetExpandStateImage(kControlStatePushed, strValue);
+	}
+	else if (strName == L"expand_disabled_image") {
+		SetExpandStateImage(kControlStateDisabled, strValue);
+	}
+	else if (strName == L"unexpand_normal_image") {
+		SetUnExpandStateImage(kControlStateNormal, strValue);
+	}
+	else if (strName == L"unexpand_hot_image") {
+		SetUnExpandStateImage(kControlStateHot, strValue);
+	}
+	else if (strName == L"unexpand_pushed_image") {
+		SetUnExpandStateImage(kControlStatePushed, strValue);
+	}
+	else if (strName == L"unexpand_disabled_image") {
+		SetUnExpandStateImage(kControlStateDisabled, strValue);
+	}
+	else {
+		__super::SetAttribute(strName, strValue);
+	}
+}
+
+std::wstring TreeNode::GetExpandStateImage(ControlStateType stateType)
+{
+	Image* pImage = nullptr;
+	if (m_expandImage != nullptr) {
+		pImage = m_expandImage->GetStateImage(stateType);
+	}
+	if (pImage != nullptr) {
+		return pImage->GetImageString();
+	}
+	return std::wstring();
+}
+
+void TreeNode::SetExpandStateImage(ControlStateType stateType, const std::wstring& strImage)
+{
+	if (m_expandImage == nullptr) {
+		m_expandImage.reset(new StateImage);
+		m_expandImage->SetControl(this);
+	}
+	m_expandImage->SetImageString(stateType, strImage);
+}
+
+std::wstring TreeNode::GetUnExpandStateImage(ControlStateType stateType)
+{
+	Image* pImage = nullptr;
+	if (m_unexpandImage != nullptr) {
+		pImage = m_unexpandImage->GetStateImage(stateType);
+	}
+	if (pImage != nullptr) {
+		return pImage->GetImageString();
+	}
+	return std::wstring();
+}
+
+void TreeNode::SetUnExpandStateImage(ControlStateType stateType, const std::wstring& strImage)
+{
+	if (m_unexpandImage == nullptr) {
+		m_unexpandImage.reset(new StateImage);
+		m_unexpandImage->SetControl(this);
+	}
+	m_unexpandImage->SetImageString(stateType, strImage);
+}
+
+void TreeNode::PaintStateImages(IRender* pRender)
+{
+	__super::PaintStateImages(pRender);	
+	if (IsExpand()) {
+		//绘制展开状态图标，如果没有子节点，不会只这个图标
+		if ((m_expandImage != nullptr) && !m_aTreeNodes.empty()){
+			m_expandImage->PaintStateImage(pRender, GetState());
+		}
+	}
+	else {
+		//绘制未展开状态图标
+		if (m_unexpandImage != nullptr) {
+			m_unexpandImage->PaintStateImage(pRender, GetState());
+		}
+	}
+}
+
+int32_t TreeNode::GetExpandImagePadding(void) const
+{
+	int32_t imageWidth = 0;
+	Image* pImage = nullptr;
+	if (m_unexpandImage != nullptr) {
+		pImage = m_unexpandImage->GetStateImage(kControlStateNormal);
+	}
+	if(pImage == nullptr){
+		if (m_expandImage != nullptr) {
+			pImage = m_expandImage->GetStateImage(kControlStateNormal);
+		}
+	}
+	if (pImage != nullptr) {
+		if (pImage->GetImageCache() == nullptr) {
+			LoadImageData(*pImage);
+		}
+		if (pImage->GetImageCache() != nullptr) {
+			imageWidth = pImage->GetImageCache()->GetWidth();
+		}
+	}
+	if (imageWidth > 0) {
+		const int32_t extraPadding = ui::GlobalManager::Instance().Dpi().GetScaleInt(m_extraPadding);
+		imageWidth += extraPadding;
+	}
+	return imageWidth;
+}
 
 void TreeNode::SetTreeView(TreeView* pTreeView)
 {
@@ -121,6 +241,10 @@ bool TreeNode::AddChildNodeAt(TreeNode* pTreeNode, size_t iIndex)
 		nGlobalIndex += ((TreeNode*)m_aTreeNodes[i])->GetDescendantNodeCount();
 	}
 
+	//[未展开/展开]图片标志
+	std::wstring expandImageClass = m_pTreeView->GetExpandImageClass();
+	pTreeNode->SetExpandImageClass(expandImageClass);
+
 	//CheckBox选项
 	std::wstring checkBoxClass = m_pTreeView->GetCheckBoxClass();
 	pTreeNode->SetCheckBoxClass(checkBoxClass);
@@ -183,6 +307,20 @@ void TreeNode::SetBkIcon(HICON hIcon)
 
 #endif //UILIB_IMPL_WINSDK
 
+void TreeNode::SetExpandImageClass(const std::wstring& expandClass)
+{
+	if (!expandClass.empty()) {
+		//开启展开标志功能
+		SetClass(expandClass);
+	}
+	else {
+		//关闭展开标志功能
+		m_expandImage.reset();
+		m_unexpandImage.reset();		
+	}
+	AdjustExpandImagePadding();
+}
+
 void TreeNode::SetCheckBoxClass(const std::wstring& checkBoxClass)
 {
 	if (!checkBoxClass.empty()) {
@@ -194,6 +332,63 @@ void TreeNode::SetCheckBoxClass(const std::wstring& checkBoxClass)
 		ClearStateImages();
 	}
 	AdjustCheckBoxPadding();
+}
+
+void TreeNode::AdjustExpandImagePadding()
+{
+	uint16_t expandPadding = ui::TruncateToUInt8(GetExpandImagePadding());
+	if (expandPadding != 0) {
+		//显示[展开/未展开]标志
+		if (m_expandCheckBoxPadding == 0) {
+			int32_t leftOffset = (int32_t)expandPadding;
+			if (AdjustStateImagesPaddingLeft(leftOffset, false)) {
+				m_expandCheckBoxPadding = expandPadding;
+			}
+		}
+
+		if (m_expandIconPadding == 0) {
+			//有CheckBox状态图片, 需要设置背景图片的内边距，避免两个图片重叠
+			UiPadding rcBkPadding = GetBkImagePadding();
+			rcBkPadding.left += expandPadding;
+			if (SetBkImagePadding(rcBkPadding, false)) {
+				m_expandIconPadding = expandPadding;
+			}
+		}
+
+		if (m_expandTextPadding == 0) {
+			//设置文字的内边距
+			UiPadding rcTextPadding = GetTextPadding();
+			rcTextPadding.left += expandPadding;
+			SetTextPadding(rcTextPadding, false);
+			m_expandTextPadding = expandPadding;
+		}
+	}
+	else {
+		//不显示[展开/未展开]标志
+		if (m_expandCheckBoxPadding > 0) {
+			int32_t leftOffset = -(int32_t)m_expandCheckBoxPadding;
+			AdjustStateImagesPaddingLeft(leftOffset, false);
+			m_expandCheckBoxPadding = 0;
+		}
+
+		if (m_expandIconPadding > 0) {
+			UiPadding rcBkPadding = GetBkImagePadding();
+			rcBkPadding.left -= (int32_t)m_expandIconPadding;
+			if (rcBkPadding.left >= 0) {
+				SetBkImagePadding(rcBkPadding, false);
+			}
+			m_expandIconPadding = 0;
+		}
+		if (m_expandTextPadding > 0) {
+			UiPadding rcTextPadding = GetTextPadding();
+			rcTextPadding.left -= (int32_t)m_expandTextPadding;
+			if (rcTextPadding.left >= 0) {
+				SetTextPadding(rcTextPadding, false);
+			}
+			m_expandTextPadding = 0;
+		}		
+	}
+	Invalidate();
 }
 
 void TreeNode::AdjustCheckBoxPadding()
@@ -243,6 +438,7 @@ void TreeNode::AdjustCheckBoxPadding()
 			m_checkBoxTextPadding = 0;
 		}
 	}
+	AdjustExpandImagePadding();
 }
 
 void TreeNode::AdjustIconPadding()
@@ -604,6 +800,10 @@ void TreeView::SetAttribute(const std::wstring& strName, const std::wstring& str
 		//是否显示CheckBox
 		SetCheckBoxClass(strValue);
 	}
+	else if (strName == L"expand_image_class") {
+		//是否显示[展开/未展开]图标
+		SetExpandImageClass(strValue);
+	}
 	else if (strName == L"show_icon") {
 		//是否显示图标
 		SetEnableIcon(strValue == L"true");
@@ -643,6 +843,25 @@ std::wstring TreeView::GetCheckBoxClass() const
 	return m_checkBoxClass.c_str();
 }
 
+void TreeView::SetExpandImageClass(const std::wstring& className)
+{
+	bool isChanged = m_expandImageClass != className;
+	m_expandImageClass = className;
+	if (isChanged) {
+		for (Control* pControl : m_items) {
+			TreeNode* pTreeNode = dynamic_cast<TreeNode*>(pControl);
+			if (pTreeNode != nullptr) {
+				pTreeNode->SetExpandImageClass(className);
+			}
+		}
+	}
+}
+
+std::wstring TreeView::GetExpandImageClass() const
+{
+	return m_expandImageClass.c_str();
+}
+
 void TreeView::SetEnableIcon(bool bEnable)
 {
 	bool isChanged = m_bEnableIcon != bEnable;
@@ -654,7 +873,7 @@ void TreeView::SetEnableIcon(bool bEnable)
 				pTreeNode->SetEnableIcon(bEnable);
 			}
 		}
-	}	
+	}
 }
 
 bool TreeView::IsEnableIcon() const

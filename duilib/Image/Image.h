@@ -520,6 +520,10 @@ public:
 	*/
 	Image* GetEstimateImage();
 
+	/** 获取所有图片接口
+	*/
+	void GetAllImages(std::vector<Image*>& allImages);
+
 	/** 清空图片缓存，释放资源
 	*/
 	void ClearImageCache();
@@ -579,6 +583,10 @@ public:
 	/** 获取指定图片类型和状态的图片接口
 	*/
 	Image* GetStateImage(StateImageType stateImageType, ControlStateType stateType);
+
+	/** 获取所有图片接口
+	*/
+	void GetAllImages(std::vector<Image*>& allImages);
 
 	/** 清除所有图片类型的缓存，释放资源
 	*/

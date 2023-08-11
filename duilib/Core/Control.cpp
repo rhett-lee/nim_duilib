@@ -313,6 +313,37 @@ void Control::SetForeStateImage(ControlStateType stateType, const std::wstring& 
 	Invalidate();
 }
 
+bool Control::AdjustStateImagesPaddingLeft(int32_t leftOffset, bool bNeedDpiScale)
+{
+	if (bNeedDpiScale) {
+		GlobalManager::Instance().Dpi().ScaleInt(leftOffset);
+	}
+	if (leftOffset == 0) {
+		return false;
+	}
+	std::vector<Image*> allImages;
+	if (m_pImageMap != nullptr) {
+		m_pImageMap->GetAllImages(allImages);
+	}
+	bool bSetOk = false;
+	UiPadding rcPadding;
+	for (Image* pImage : allImages) {
+		rcPadding = pImage->GetImagePadding();
+		rcPadding.left += leftOffset;
+		if (rcPadding.left < 0) {
+			rcPadding.left = 0;
+		}
+		if (!pImage->GetImagePadding().Equals(rcPadding)) {
+			pImage->SetImagePadding(rcPadding);
+			bSetOk = true;
+		}
+	}
+	if (bSetOk) {
+		Invalidate();
+	}
+	return bSetOk;
+}
+
 UiPadding Control::GetBkImagePadding() const
 {
 	UiPadding rcPadding;

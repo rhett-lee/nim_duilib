@@ -972,6 +972,13 @@ Image* StateImage::GetEstimateImage()
 	return pEstimateImage;
 }
 
+void StateImage::GetAllImages(std::vector<Image*>& allImages)
+{
+	for (auto iter = m_stateImageMap.begin(); iter != m_stateImageMap.end(); ++iter) {
+		allImages.push_back(&iter->second);
+	}
+}
+
 void StateImage::ClearImageCache()
 {	
 	for (auto iter = m_stateImageMap.begin(); iter != m_stateImageMap.end(); ++iter)	{
@@ -1065,6 +1072,13 @@ Image* StateImageMap::GetStateImage(StateImageType stateImageType, ControlStateT
 		return stateImage.GetStateImage(stateType);
 	}
 	return nullptr;
+}
+
+void StateImageMap::GetAllImages(std::vector<Image*>& allImages)
+{
+	for (auto iter = m_stateImageMap.begin(); iter != m_stateImageMap.end(); ++iter) {
+		iter->second.GetAllImages(allImages);
+	}
 }
 
 void StateImageMap::ClearImageCache()

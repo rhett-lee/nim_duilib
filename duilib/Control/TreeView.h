@@ -30,6 +30,8 @@ public:
 
 	/// 重写父类方法，提供个性化功能，请参考父类声明
 	virtual std::wstring GetType() const override;
+	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
+	virtual void PaintStateImages(IRender* pRender) override;
 	virtual bool IsVisible() const override;
 	virtual void SetWindow(Window* pManager, Box* pParent, bool bInit = true) override;
 	virtual void SetWindow(Window* pManager) override;
@@ -135,6 +137,12 @@ public:
 
 #endif
 
+	/** 设置[未展开/展开]标志图片关联的Class，如果不为空表示开启展开标志功能，为空则关闭展开标志功能
+	*   应用范围：该节点本身
+	* @param [in] expandClass 展开标志图片的Class属性
+	*/
+	void SetExpandImageClass(const std::wstring& expandClass);
+
 	/** 设置CheckBox关联的Class，如果不为空表示开启CheckBox功能，为空则关闭CheckBox功能
 	*   应用范围：该节点本身
 	* @param [in] checkBoxClass ui::CheckBox的Class属性，一般设置的主要属性有：
@@ -169,6 +177,30 @@ public:
 	*/
 	TreeNodeSelect GetChildrenSelectStatus(void) const;
 
+	/** 获取展开状态的图片
+	 * @param [in] stateType 要获取何种状态下的图片，参考 ControlStateType 枚举
+	 * @return 返回图片路径和属性
+	 */
+	std::wstring GetExpandStateImage(ControlStateType stateType);
+
+	/** 设置展开状态的图片
+	 * @param [in] stateType 要设置哪中状态下的图片
+	 * @param [in] strImage 图片路径和属性
+	 */
+	void SetExpandStateImage(ControlStateType stateType, const std::wstring& strImage);
+
+	/** 获取未展开状态的图片
+	 * @param [in] stateType 要获取何种状态下的图片，参考 ControlStateType 枚举
+	 * @return 返回图片路径和属性
+	 */
+	std::wstring GetUnExpandStateImage(ControlStateType stateType);
+
+	/** 设置未展开状态的图片
+	 * @param [in] stateType 要设置哪中状态下的图片
+	 * @param [in] strImage 图片路径和属性
+	 */
+	void SetUnExpandStateImage(ControlStateType stateType, const std::wstring& strImage);
+
 	/** 监听子项展开事件
 	 * @param[in] callback 子项展开时触发的回调函数
 	 */
@@ -185,6 +217,10 @@ private:
 	 */
 	bool RemoveSelf();
 
+	/** 根据当前的配置，调整展开标志关联的内边距(可重入函数，多次调用无副作用)
+	*/
+	void AdjustExpandImagePadding();
+
 	/** 根据当前的配置，调整CheckBox关联的内边距(可重入函数，多次调用无副作用)
 	*/
 	void AdjustCheckBoxPadding();
@@ -198,6 +234,10 @@ private:
 	 * @return 始终返回 true
 	 */
 	bool OnItemSelectedChanged(const EventArgs& args);
+
+	/** 获取展开状态图标占用的内边距宽度
+	*/
+	int32_t GetExpandImagePadding(void) const;
 	
 private:
 	//子项层级
@@ -218,14 +258,25 @@ private:
 	//图片/文字元素之间的固定间隔
 	uint8_t m_extraPadding;
 
-	//CheckBox关联的图标内边距
-	uint16_t m_checkBoxIconPadding;
+	//Expand图标关联的图标/文字内边距：3个
+	uint16_t m_expandCheckBoxPadding;
+	uint16_t m_expandIconPadding;
+	uint16_t m_expandTextPadding;
 
-	//CheckBox关联的文字内边距
+	//CheckBox关联的图标/文字内边距：2个
+	uint16_t m_checkBoxIconPadding;
 	uint16_t m_checkBoxTextPadding;
 
-	//图标关联的文字内边距
+	//图标关联的文字内边距：1个
 	uint16_t m_iconTextPadding;
+
+	/** 控件展开状态的图片类型与状态图片的MAP
+	*/
+	std::unique_ptr<StateImage> m_expandImage;
+
+	/** 控件未展开状态的图片类型与状态图片的MAP
+	*/
+	std::unique_ptr<StateImage> m_unexpandImage;
 };
 
 class UILIB_API TreeView : public ListBox
@@ -252,6 +303,16 @@ public:
 	 * @param [in] bNeedDpiScale 是否需要DPI缩放
 	 */
 	void SetIndent(int32_t indent, bool bNeedDpiScale);
+
+	/** 设置[未展开/展开]标志图片关联的Class，如果不为空表示开启展开标志功能，为空则关闭展开标志功能
+	*   应用范围：该树的所有节点
+	* @param [in] className 展开标志图片的Class属性
+	*/
+	void SetExpandImageClass(const std::wstring& className);
+
+	/** 获取[未展开/展开]标志图片关联的Class
+	*/
+	std::wstring GetExpandImageClass() const;
 
 	/** 设置CheckBox关联的Class，如果不为空表示开启CheckBox功能，为空则关闭CheckBox功能
 	*   应用范围：该树的所有节点
@@ -292,6 +353,9 @@ private:
 private:
 	//子节点的缩进值，单位为像素
 	int32_t m_iIndent;
+
+	//展开标志图片的Class
+	UiString m_expandImageClass;
 
 	//CheckBox的Class
 	UiString m_checkBoxClass;
