@@ -63,6 +63,10 @@ public:
 	   @param [in] bHasStateImages 当前列表项是否有CheckBox勾选项
 	*/
 	virtual bool CanPaintSelectedColors(bool bHasStateImages) const = 0;
+
+	/** 是否允许多选
+	*/
+	virtual bool IsMultiSelect() const = 0;
 };
 
 /////////////////////////////////////////////////////////////////////////////////////
@@ -198,7 +202,7 @@ public:
 public:
 	/** 是否允许多选
 	*/
-	bool IsMultiSelect() const;
+	virtual bool IsMultiSelect() const override;
 
 	/** 设置是否允许多选
 	*/
@@ -310,10 +314,6 @@ public:
 	virtual void Selected(bool bSelect, bool bTriggerEvent) override;
 	virtual void HandleEvent(const EventArgs& event) override;
 
-	/** 设置选择状态, 但不触发任何事件
-	*/
-	virtual void SetSelected(bool bSelected) override;
-
 	/** 是否绘制选择状态下的背景色，提供虚函数作为可选项
 	   （比如ListBox/TreeView节点在多选时，由于有勾选项，并不需要绘制选择状态的背景色）
 	*/
@@ -350,6 +350,10 @@ public:
 	 * @param[in] iIndex 索引号, 用于支持虚表，范围：[0, GetElementCount())
 	 */
 	void SetElementIndex(size_t iIndex);
+
+	/** 设置选择状态, 但不触发任何事件(适用于同步状态)
+	*/
+	void SetItemSelected(bool bSelected);
 
 	/** 监听控件双击事件
 	 * @param[in] callback 收到双击消息时的回调函数

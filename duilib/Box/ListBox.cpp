@@ -199,10 +199,10 @@ bool ListBox::SelectItemSingle(size_t iIndex, bool bTakeFocus, bool bTriggerEven
 			m_iCurSel = Box::InvalidIndex;
 			return false;
 		}		
-		//确保可见，然后返回	
-		UiRect rcItem = pControl->GetPos();
-		EnsureVisible(rcItem);
+		//确保可见，然后返回		
 		if (bTakeFocus) {
+			UiRect rcItem = pControl->GetPos();
+			EnsureVisible(rcItem);
 			pControl->SetFocus();
 		}
 		ListBoxItem* pListItem = dynamic_cast<ListBoxItem*>(pControl);
@@ -249,10 +249,10 @@ bool ListBox::SelectItemSingle(size_t iIndex, bool bTakeFocus, bool bTriggerEven
 	//设置选择状态
 	pListItem->OptionTemplate<Box>::Selected(true, bTriggerEvent);
 	pControl = GetItemAt(m_iCurSel);
-	if (pControl != nullptr) {
-		UiRect rcItem = pControl->GetPos();
-		EnsureVisible(rcItem);
+	if (pControl != nullptr) {		
 		if (bTakeFocus) {
+			UiRect rcItem = pControl->GetPos();
+			EnsureVisible(rcItem);
 			pControl->SetFocus();
 		}
 	}
@@ -293,10 +293,10 @@ bool ListBox::SelectItemMulti(size_t iIndex, bool bTakeFocus, bool bTriggerEvent
 	}
 	else {
 		//如果原来是非选择状态，更新为选择状态
-		pListItem->OptionTemplate<Box>::Selected(true, bTriggerEvent);
-		UiRect rcItem = pControl->GetPos();
-		EnsureVisible(rcItem);
+		pListItem->OptionTemplate<Box>::Selected(true, bTriggerEvent);		
 		if (bTakeFocus) {
+			UiRect rcItem = pControl->GetPos();
+			EnsureVisible(rcItem);
 			pControl->SetFocus();
 		}
 		if (bTriggerEvent) {
@@ -719,10 +719,19 @@ void ListBoxItem::Selected(bool bSelected, bool bTriggerEvent)
 	}
 }
 
-void ListBoxItem::SetSelected(bool bSelected)
+void ListBoxItem::SetItemSelected(bool bSelected)
 {
-	__super::SetSelected(bSelected);
-	if (m_pOwner != nullptr) {
+	if (__super::IsSelected() == bSelected) {
+		return;
+	}
+	if (m_pOwner == nullptr) {
+		__super::SetSelected(bSelected);
+		return;
+	}
+	if (m_pOwner->IsMultiSelect()) {
+		//多选：直接修改状态
+		__super::SetSelected(bSelected);
+		
 		//同步ListBox的选择ID
 		if (bSelected) {
 			m_pOwner->SetCurSel(m_iListBoxIndex);
@@ -732,6 +741,11 @@ void ListBoxItem::SetSelected(bool bSelected)
 				m_pOwner->SetCurSel(Box::InvalidIndex);
 			}
 		}
+	}
+	else {
+		//单选：需要调用选择函数
+		__super::SetSelected(bSelected);
+		m_pOwner->SelectItem(m_iListBoxIndex, false, false);
 	}
 }
 

@@ -92,7 +92,7 @@ void VirtualListBox::FillElement(Control* pControl, size_t nElementIndex)
             pListBoxItem->SetElementIndex(nElementIndex);
             ASSERT(GetItemIndex(pControl) == pListBoxItem->GetListBoxIndex());
             //¸üÐÂÑ¡Ôñ×´Ì¬
-            pListBoxItem->SetSelected(bSelected);
+            pListBoxItem->SetItemSelected(bSelected);
         }
     }
 }

@@ -33,6 +33,16 @@ bool TreeNode::OnDoubleClickItem(const EventArgs& args)
     return true;
 }
 
+bool TreeNode::OnItemSelectedChanged(const EventArgs& args)
+{
+	TreeNode* pItem = dynamic_cast<TreeNode*>(args.pSender);
+	ASSERT(pItem != nullptr);
+	if ((pItem != nullptr) && (m_pTreeView != nullptr)) {
+		m_pTreeView->OnItemSelectedChanged(pItem);
+	}
+	return true;
+}
+
 bool TreeNode::IsVisible() const
 {
 	if (!ListBoxItem::IsVisible()) {
@@ -95,6 +105,8 @@ bool TreeNode::AddChildNodeAt(TreeNode* pTreeNode, size_t iIndex)
 		GetWindow()->InitControls(pTreeNode, nullptr);
 	}
 	pTreeNode->AttachEvent(kEventMouseDoubleClick, nbase::Bind(&TreeNode::OnDoubleClickItem, this, std::placeholders::_1));
+	pTreeNode->AttachSelect(nbase::Bind(&TreeNode::OnItemSelectedChanged, this, std::placeholders::_1));
+	pTreeNode->AttachUnSelect(nbase::Bind(&TreeNode::OnItemSelectedChanged, this, std::placeholders::_1));
 
 	UiPadding padding = GetPadding();
 	size_t nodeIndex = 0;
@@ -277,6 +289,180 @@ void TreeNode::SetEnableIcon(bool bEnable)
 	if (IsBkImagePaintEnabled() != bEnable) {
 		SetBkImagePaintEnabled(bEnable);
 		AdjustIconPadding();
+	}
+}
+
+void TreeNode::SetChildrenSelected(bool bSelected)
+{
+	if ((m_pTreeView == nullptr) || !m_pTreeView->IsMultiSelect()) {
+		//单选: 直接返回
+		return;
+	}
+	for (TreeNode* pTreeNode : m_aTreeNodes) {
+		if (pTreeNode) {
+			pTreeNode->SetItemSelected(bSelected);
+			pTreeNode->SetChildrenSelected(bSelected);
+		}
+	}
+}
+
+void TreeNode::UpdateParentSelected(bool bUpdateSelf)
+{
+	if ((m_pTreeView != nullptr) && !m_pTreeView->IsMultiSelect()) {
+		//单选: 直接返回
+		return;
+	}
+	if (bUpdateSelf) {
+		UpdateTreeNodeSelect();
+	}
+	if (m_pParentTreeNode != nullptr) {
+		m_pParentTreeNode->UpdateParentSelected(true);
+	}
+}
+
+void TreeNode::UpdateTreeNodeSelect()
+{
+	if ((m_pTreeView != nullptr) && !m_pTreeView->IsMultiSelect()) {
+		//单选: 直接返回
+		return;
+	}
+	std::wstring text = this->GetText();
+	bool bSelected = IsSelected();
+	TreeNodeSelect nodeSelect = GetChildrenSelectStatus();//根据子节点的选择状态，修改当前节点的选择状态
+	if (nodeSelect == TreeNodeSelect::UnSelect) {
+		if (!bSelected) {
+			return;
+		}
+		else {
+			//更新为：TreeNodeSelect::UnSelect
+			SetSelected(false);
+			SetPartSelected(false);
+			Invalidate();
+		}
+	}
+	else if (nodeSelect == TreeNodeSelect::SelectAll) {
+		//更新为：TreeNodeSelect::SelectAll
+		if (bSelected) {
+			if (IsPartSelected()) {
+				SetPartSelected(false);
+				Invalidate();
+			}
+		}
+		else {			
+			SetSelected(true);
+			SetPartSelected(false);
+			Invalidate();
+		}
+	}
+	else if (nodeSelect == TreeNodeSelect::SelectPart) {
+		//更新为：TreeNodeSelect::SelectPart
+		SetSelected(true);
+		SetPartSelected(true);
+		Invalidate();
+	}
+}
+
+TreeNodeSelect TreeNode::GetSelectStatus(void) const
+{
+	if ((m_pTreeView != nullptr) && !m_pTreeView->IsMultiSelect()) {
+		//单选: 只按当前节点状态判断结果
+		return IsSelected() ? TreeNodeSelect::SelectAll : TreeNodeSelect::UnSelect;
+	}
+	//多选
+	bool bSelected = IsSelected();
+	for (TreeNode* pTreeNode : m_aTreeNodes) {
+		if (pTreeNode == nullptr) {
+			continue;
+		}
+		bool bChildSelected = pTreeNode->IsSelected();
+		if (bSelected != bChildSelected) {
+			return TreeNodeSelect::SelectPart;
+		}
+	}
+
+	for (TreeNode* pTreeNode : m_aTreeNodes) {
+		if (pTreeNode == nullptr) {
+			continue;
+		}
+		TreeNodeSelect childSelect = pTreeNode->GetSelectStatus();
+		if (bSelected) {
+			if (childSelect == TreeNodeSelect::UnSelect) {
+				return TreeNodeSelect::SelectPart;
+			}
+			else if (childSelect == TreeNodeSelect::SelectPart) {
+				return TreeNodeSelect::SelectPart;
+			}
+		}
+		else {
+			if (childSelect == TreeNodeSelect::SelectAll) {
+				return TreeNodeSelect::SelectPart;
+			}
+			else if (childSelect == TreeNodeSelect::SelectPart) {
+				return TreeNodeSelect::SelectPart;
+			}
+		}
+	}
+	return bSelected ? TreeNodeSelect::SelectAll : TreeNodeSelect::UnSelect;
+}
+
+TreeNodeSelect TreeNode::GetChildrenSelectStatus(void) const
+{
+	if ((m_pTreeView != nullptr) && !m_pTreeView->IsMultiSelect()) {
+		//单选: 只按当前节点状态判断结果
+		return IsSelected() ? TreeNodeSelect::SelectAll : TreeNodeSelect::UnSelect;
+	}
+	if (m_aTreeNodes.empty()) {
+		//没有子节点：返回当前节点的状态
+		return IsSelected() ? TreeNodeSelect::SelectAll : TreeNodeSelect::UnSelect;
+	}
+	//多选: 先扫描一级子节点
+	bool bLastSelected = false;
+	bool bSetLastSelected = false;
+	for (TreeNode* pTreeNode : m_aTreeNodes) {
+		if (pTreeNode == nullptr) {
+			continue;
+		}
+		bool bChildSelected = pTreeNode->IsSelected();
+		if (!bSetLastSelected) {
+			bLastSelected = bChildSelected;
+			bSetLastSelected = true;
+		}
+		else {
+			if (bLastSelected != bChildSelected) {
+				return TreeNodeSelect::SelectPart;
+			}
+		}		
+	}
+
+	//再扫描多级子节点
+	TreeNodeSelect lastChildSelect = TreeNodeSelect::UnSelect;
+	bool bSetLastChildrenSelect = false;
+	for (TreeNode* pTreeNode : m_aTreeNodes) {
+		if (pTreeNode == nullptr){
+			continue;
+		}
+		TreeNodeSelect childSelect = pTreeNode->GetSelectStatus();//获取包含自身/子节点的选择状态
+		if (childSelect == TreeNodeSelect::SelectPart) {
+			return TreeNodeSelect::SelectPart;
+		}
+		if (!bSetLastChildrenSelect) {
+			lastChildSelect = childSelect;
+			bSetLastChildrenSelect = true;
+		}
+		else {
+			if (childSelect != lastChildSelect) {
+				return TreeNodeSelect::SelectPart;
+			}
+		}
+	}
+
+	//如果状态都一样，返回第一个子节点的状态
+	TreeNode* pTreeNode = m_aTreeNodes.front();
+	if (pTreeNode != nullptr) {
+		return pTreeNode->IsSelected() ? TreeNodeSelect::SelectAll : TreeNodeSelect::UnSelect;
+	}
+	else {
+		return IsSelected() ? TreeNodeSelect::SelectAll : TreeNodeSelect::UnSelect;
 	}
 }
 
@@ -515,6 +701,25 @@ void TreeView::SetWindow(Window* pManager)
 {
 	__super::SetWindow(pManager);
 	m_rootNode->SetWindow(pManager);
+}
+
+void TreeView::OnItemSelectedChanged(TreeNode* pTreeNode)
+{
+	if (pTreeNode == nullptr) {
+		return;
+	}
+	if (!IsMultiSelect()) {
+		//单选：直接返回
+		return;
+	}
+
+	//多选
+	bool isSelected = pTreeNode->IsSelected();
+	//同步子节点的选择状态：跟随当前节点
+	pTreeNode->SetChildrenSelected(isSelected);
+
+	//同步父节点的选择状态
+	pTreeNode->UpdateParentSelected(false);
 }
 
 }

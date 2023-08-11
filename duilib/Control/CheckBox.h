@@ -49,7 +49,7 @@ public:
     /** 设置选择状态，但不触发事件，不更新界面
     * @param [in] bSelected true为选择状态，false为非选择状态
     */
-    virtual void SetSelected(bool bSelected) { m_bSelected = bSelected; }
+    virtual void SetSelected(bool bSelected);
 
     /**
      * @brief 设置控件是否选择状态
@@ -64,110 +64,126 @@ public:
     */
     virtual bool CanPaintSelectedColors() const { return true; }
 
-    /**
-     * @brief 获取被选择时的图片
-     * @param[in] stateType 要获取何种状态下的图片，参考 ControlStateType 枚举
-     * @return 返回图片位置
+    /** 设置部分选择标志（支持三态选择标志：全部选择/部分选择/未选择）
+    */
+    void SetPartSelected(bool bPartSelected);
+
+    /** 当前是否为部分选择
+    */
+    bool IsPartSelected() const;
+
+    /** 获取被选择时的图片
+     * @param [in] stateType 要获取何种状态下的图片，参考 ControlStateType 枚举
+     * @return 返回图片路径和属性
      */
     std::wstring GetSelectedStateImage(ControlStateType stateType);
 
-    /**
-     * @brief 设置被选择时的图片
-     * @param[in] stateType 要设置哪中状态下的图片
-     * @param[in] strImage 图片地址
-     * @return 无
+    /** 设置被选择时的图片
+     * @param [in] stateType 要设置哪中状态下的图片
+     * @param [in] strImage 图片路径和属性
      */
     void SetSelectedStateImage(ControlStateType stateType, const std::wstring& strImage);
 
-    /**
-     * @brief 获取被选择时的文本颜色
-     * @return 返回被选择时的文本颜色
+    /** 获取被选择时的前景图片
+     * @param[in] stateType 要获取何种状态下的前景图片
+     */
+    std::wstring GetSelectedForeStateImage(ControlStateType stateType);
+
+    /** 设置被选择时的前景图片
+     * @param[in] stateType 要设置何种状态下的前景图片
+     * @param[in] strImage 图片位置
+     */
+    void SetSelectedForeStateImage(ControlStateType stateType, const std::wstring& strImage);
+
+    /** 获取部分选择时的图片
+     * @param [in] stateType 要获取何种状态下的图片，参考 ControlStateType 枚举
+     * @return 返回图片路径和属性
+     */
+    std::wstring GetPartSelectedStateImage(ControlStateType stateType);
+
+    /** 设置部分选择时的图片
+     * @param [in] stateType 要设置哪中状态下的图片
+     * @param [in] strImage 图片路径和属性
+     */
+    void SetPartSelectedStateImage(ControlStateType stateType, const std::wstring& strImage);
+
+    /** 获取部分选择时的前景图片
+     * @param[in] stateType 要获取何种状态下的前景图片
+     */
+    std::wstring GetPartSelectedForeStateImage(ControlStateType stateType);
+
+    /** 设置部分选择时的前景图片
+     * @param[in] stateType 要设置何种状态下的前景图片
+     * @param[in] strImage 图片位置
+     */
+    void SetPartSelectedForeStateImage(ControlStateType stateType, const std::wstring& strImage);
+
+    /** 获取被选择时的文本颜色
      */
     std::wstring GetSelectedTextColor();
 
-    /**
-     * @brief 设置被选择时的文本颜色
+    /** 设置被选择时的文本颜色
      * @param[in] dwTextColor 要设置的颜色字符串，该颜色必须在 global.xml 中存在
-     * @return 无
      */
     void SetSelectedTextColor(const std::wstring& dwTextColor);
 
-    /**
-     * @brief 获取被选择时指定状态下的文本颜色
+    /** 获取被选择时指定状态下的文本颜色
      * @param[in] stateType 要获取何种状态下的颜色
      * @return 返回颜色字符串，该值在 global.xml 中定义
      */
     std::wstring GetSelectedStateTextColor(ControlStateType stateType);
 
-    /**
-     * @brief 设置被选择时指定状态下的文本颜色
+    /** 设置被选择时指定状态下的文本颜色
      * @param[in] stateType 要设置何种状态下的颜色
      * @param[in] stateColor 要设置的颜色
-     * @return 无
      */
     void SetSelectedStateTextColor(ControlStateType stateType, const std::wstring& dwTextColor);
 
-    /**
-     * @brief 获取被选择时指定状态下的实际被渲染文本颜色
-     * @param[in] buttonStateType 要获取何种状态下的颜色
-     * @param[out] stateType 实际被渲染的状态
+    /** 获取被选择时指定状态下的实际被渲染文本颜色
+     * @param [in] buttonStateType 要获取何种状态下的颜色
+     * @param [out] stateType 实际被渲染的状态
      * @return 返回颜色字符串，该值在 global.xml 中定义
      */
     std::wstring GetPaintSelectedStateTextColor(ControlStateType buttonStateType, ControlStateType& stateType);
 
-    /**
-     * @brief 获取被选择时的控件颜色
-     * @param[in] stateType 要获取何种状态下的颜色
+    /** 获取被选择时的控件颜色
+     * @param [in] stateType 要获取何种状态下的颜色
      * @return 返回颜色字符串，该值在 global.xml 中定义
      */
     std::wstring GetSelectStateColor(ControlStateType stateType);
 
-    /**
-     * @brief 设置被选择时的控件颜色
+    /** 设置被选择时的控件颜色
      * @param[in] stateType 要设置何种状态下的颜色
      * @param[in] stateColor 要设置的颜色
-     * @return 无
      */
     void SetSelectedStateColor(ControlStateType stateType, const std::wstring& stateColor);
 
-    /**
-     * @brief 获取被选择时的前景图片
-     * @param[in] stateType 要获取何种状态下的前景图片
-     * @return 返回图片位置
-     */
-    std::wstring GetSelectedForeStateImage(ControlStateType stateType);
-
-    /**
-     * @brief 设置被选择时的前景图片
-     * @param[in] stateType 要设置何种状态下的前景图片
-     * @param[in] pStrImage 图片位置
-     * @return 无
-     */
-    void SetSelectedForeStateImage(ControlStateType stateType, const std::wstring& pStrImage);
-
-    /**
-     * @brief 监听被选择时的事件
-     * @param[in] callback 被选择时触发的回调函数
-     * @return 无
+    /** 监听被选择时的事件
+     * @param [in] callback 被选择时触发的回调函数
      */
     void AttachSelect(const EventCallback& callback) { this->AttachEvent(kEventSelect, callback); }
 
-    /**
-     * @brief 监听取消选择时的事件
-     * @param[in] callback 取消选择时触发的回调函数
-     * @return 无
+    /** 监听取消选择时的事件
+     * @param [in] callback 取消选择时触发的回调函数
      */
     void AttachUnSelect(const EventCallback& callback) { this->AttachEvent(kEventUnSelect, callback); }
 
 private:
     //选择状态
     bool m_bSelected;
+
+    //是否为部分选择
+    bool m_bPartSelected;
+
     //是否优先绘制Normal状态
     bool m_bPaintNormalFirst;
+
     //选择状态的文本颜色
     UiString m_dwSelectedTextColor;
+
     //选择状态的文本颜色
     StateColorMap* m_pSelectedTextColorMap;
+
     //选择状态的背景颜色
     StateColorMap* m_pSelectedColorMap;
 };
@@ -175,6 +191,7 @@ private:
 template<typename InheritType>
 CheckBoxTemplate<InheritType>::CheckBoxTemplate() : 
     m_bSelected(false), 
+    m_bPartSelected(false),
     m_bPaintNormalFirst(false), 
     m_dwSelectedTextColor(), 
     m_pSelectedTextColorMap(nullptr),
@@ -208,12 +225,26 @@ void CheckBoxTemplate<InheritType>::Activate()
 }
 
 template<typename InheritType>
+void CheckBoxTemplate<InheritType>::SetSelected(bool bSelected)
+{ 
+    m_bSelected = bSelected; 
+    if (!bSelected) {
+        //非选择状态时，对部分选择标记复位
+        m_bPartSelected = false;
+    }
+}
+
+template<typename InheritType>
 void CheckBoxTemplate<InheritType>::Selected(bool bSelected, bool bTriggerEvent)
 {
     if (m_bSelected == bSelected) {
         return;
     }
     m_bSelected = bSelected;
+    if (!bSelected) {
+        //非选择状态时，对部分选择标记复位
+        m_bPartSelected = false;
+    }
 
     if (bTriggerEvent) {
         if (m_bSelected) {
@@ -224,6 +255,21 @@ void CheckBoxTemplate<InheritType>::Selected(bool bSelected, bool bTriggerEvent)
         }
     }
     this->Invalidate();
+}
+
+template<typename InheritType>
+void CheckBoxTemplate<InheritType>::SetPartSelected(bool bPartSelected)
+{ 
+    if (m_bPartSelected != bPartSelected) {
+        m_bPartSelected = bPartSelected;
+        this->Invalidate();
+    }
+}
+
+template<typename InheritType>
+bool CheckBoxTemplate<InheritType>::IsPartSelected() const
+{
+    return m_bPartSelected;
 }
 
 template<typename InheritType>
@@ -262,6 +308,42 @@ void CheckBoxTemplate<InheritType>::SetAttribute(const std::wstring& strName, co
     else if ((strName == L"selected_disabled_image") || (strName == L"selecteddisabledimage")) {
         SetSelectedStateImage(kControlStateDisabled, strValue);
     }
+    else if ((strName == L"selected_fore_normal_image") || (strName == L"selectedforenormalimage")) {
+        SetSelectedForeStateImage(kControlStateNormal, strValue);
+    }
+    else if ((strName == L"selected_fore_hot_image") || (strName == L"selectedforehotimage")) {
+        SetSelectedForeStateImage(kControlStateHot, strValue);
+    }
+    else if ((strName == L"selected_fore_pushed_image") || (strName == L"selectedforepushedimage")) {
+        SetSelectedForeStateImage(kControlStatePushed, strValue);
+    }
+    else if ((strName == L"selected_fore_disabled_image") || (strName == L"selectedforedisabledimage")) {
+        SetSelectedForeStateImage(kControlStateDisabled, strValue);
+    }
+    else if (strName == L"part_selected_normal_image") {
+        SetPartSelectedStateImage(kControlStateNormal, strValue);
+    }
+    else if (strName == L"part_selected_hot_image") {
+        SetPartSelectedStateImage(kControlStateHot, strValue);
+    }
+    else if (strName == L"part_selected_pushed_image") {
+        SetPartSelectedStateImage(kControlStatePushed, strValue);
+    }
+    else if (strName == L"part_selected_disabled_image") {
+        SetPartSelectedStateImage(kControlStateDisabled, strValue);
+    }
+    else if (strName == L"part_selected_fore_normal_image") {
+        SetPartSelectedForeStateImage(kControlStateNormal, strValue);
+    }
+    else if (strName == L"part_selected_fore_hot_image") {
+        SetPartSelectedForeStateImage(kControlStateHot, strValue);
+    }
+    else if (strName == L"part_selected_fore_pushed_image") {
+        SetPartSelectedForeStateImage(kControlStatePushed, strValue);
+    }
+    else if (strName == L"part_selected_fore_disabled_image") {
+        SetPartSelectedForeStateImage(kControlStateDisabled, strValue);
+    }
     else if ((strName == L"selected_text_color") || (strName == L"selectedtextcolor") ){
         SetSelectedTextColor(strValue);
     }
@@ -288,18 +370,6 @@ void CheckBoxTemplate<InheritType>::SetAttribute(const std::wstring& strName, co
     }
     else if ((strName == L"selected_disabled_color") || (strName == L"selecteddisabledcolor") ){
         SetSelectedStateColor(kControlStateDisabled, strValue);
-    }
-    else if ((strName == L"selected_fore_normal_image") || (strName == L"selectedforenormalimage")) {
-        SetSelectedForeStateImage(kControlStateNormal, strValue);
-    }
-    else if ((strName == L"selected_fore_hot_image") || (strName == L"selectedforehotimage") ){
-        SetSelectedForeStateImage(kControlStateHot, strValue);
-    }
-    else if ((strName == L"selected_fore_pushed_image") || (strName == L"selectedforepushedimage") ){
-        SetSelectedForeStateImage(kControlStatePushed, strValue);
-    }
-    else if ((strName == L"selected_fore_disabled_image") || (strName == L"selectedforedisabledimage") ){
-        SetSelectedForeStateImage(kControlStateDisabled, strValue);
     }
     else if ((strName == L"switch_select") || (strName == L"switchselect")) {
         Selected(!IsSelected());
@@ -342,10 +412,29 @@ template<typename InheritType>
 void CheckBoxTemplate<InheritType>::PaintStateImages(IRender* pRender)
 {
     if (!IsSelected()) {
+        //未选择状态
         __super::PaintStateImages(pRender);
         return;
     }
 
+    if (this->IsPartSelected()) {
+        //部分选择状态
+        bool bPainted = false;
+        if (this->HasStateImage(kStateImagePartSelectedBk)) {
+            this->PaintStateImage(pRender, kStateImagePartSelectedBk, this->GetState());
+            bPainted = true;
+        }
+        if (this->HasStateImage(kStateImagePartSelectedFore)) {
+            this->PaintStateImage(pRender, kStateImagePartSelectedFore, this->GetState());
+            bPainted = true;
+        }
+        if (bPainted) {
+            //如果已经绘制了部分选择状态，返回
+            return;
+        }
+    }
+
+    //全部选择状态
     if (IsPaintNormalFirst() && !this->HasStateImage(kStateImageSelectedBk)) {
         this->PaintStateImage(pRender, kStateImageBk, this->GetState());
     }
@@ -424,9 +513,48 @@ std::wstring CheckBoxTemplate<InheritType>::GetSelectedStateImage(ControlStateTy
 }
 
 template<typename InheritType>
-void CheckBoxTemplate<InheritType>::SetSelectedStateImage(ControlStateType stateType, const std::wstring& pStrImage)
+void CheckBoxTemplate<InheritType>::SetSelectedStateImage(ControlStateType stateType, const std::wstring& strImage)
 {
-    this->SetStateImage(kStateImageSelectedBk, stateType, pStrImage);
+    this->SetStateImage(kStateImageSelectedBk, stateType, strImage);
+    this->RelayoutOrRedraw();
+}
+
+template<typename InheritType>
+std::wstring CheckBoxTemplate<InheritType>::GetSelectedForeStateImage(ControlStateType stateType)
+{
+    return this->GetStateImage(kStateImageSelectedFore, stateType);
+}
+
+template<typename InheritType>
+void CheckBoxTemplate<InheritType>::SetSelectedForeStateImage(ControlStateType stateType, const std::wstring& strImage)
+{
+    this->SetStateImage(kStateImageSelectedFore, stateType, strImage);
+    this->RelayoutOrRedraw();
+}
+
+template<typename InheritType>
+std::wstring CheckBoxTemplate<InheritType>::GetPartSelectedStateImage(ControlStateType stateType)
+{
+    return this->GetStateImage(kStateImagePartSelectedBk, stateType);
+}
+
+template<typename InheritType>
+void CheckBoxTemplate<InheritType>::SetPartSelectedStateImage(ControlStateType stateType, const std::wstring& strImage)
+{
+    this->SetStateImage(kStateImagePartSelectedBk, stateType, strImage);
+    this->RelayoutOrRedraw();
+}
+
+template<typename InheritType>
+std::wstring CheckBoxTemplate<InheritType>::GetPartSelectedForeStateImage(ControlStateType stateType)
+{
+    return this->GetStateImage(kStateImagePartSelectedFore, stateType);
+}
+
+template<typename InheritType>
+void CheckBoxTemplate<InheritType>::SetPartSelectedForeStateImage(ControlStateType stateType, const std::wstring& strImage)
+{
+    this->SetStateImage(kStateImagePartSelectedFore, stateType, strImage);
     this->RelayoutOrRedraw();
 }
 
@@ -497,19 +625,6 @@ void CheckBoxTemplate<InheritType>::SetSelectedStateColor(ControlStateType state
     }
     m_pSelectedColorMap->SetStateColor(stateType, stateColor);
     this->Invalidate();
-}
-
-template<typename InheritType>
-std::wstring CheckBoxTemplate<InheritType>::GetSelectedForeStateImage(ControlStateType stateType)
-{
-    return this->GetStateImage(kStateImageSelectedFore, stateType);
-}
-
-template<typename InheritType>
-void CheckBoxTemplate<InheritType>::SetSelectedForeStateImage(ControlStateType stateType, const std::wstring& pStrImage)
-{
-    this->SetStateImage(kStateImageSelectedFore, stateType, pStrImage);
-    this->RelayoutOrRedraw();
 }
 
 typedef CheckBoxTemplate<Control> CheckBox;

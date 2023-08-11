@@ -871,12 +871,13 @@ int32_t StateImage::GetImageFade(ControlStateType stateType) const
 }
 
 Image* StateImage::GetStateImage(ControlStateType stateType)
-{ 
+{
+	Image* pImage = nullptr;
 	auto iter = m_stateImageMap.find(stateType);
 	if (iter != m_stateImageMap.end()) {
-		return &(iter->second);
+		pImage = &(iter->second);
 	}
-	return nullptr;
+	return pImage;
 }
 
 bool StateImage::HasHotImage() const

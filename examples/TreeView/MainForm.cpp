@@ -115,7 +115,7 @@ void MainForm::InsertTreeNode(ui::TreeNode* pTreeNode,
         node->SetBkIcon(hIcon);//设置树节点的关联图标
         node->AttachExpand(nbase::Bind(&MainForm::OnTreeNodeExpand, this, std::placeholders::_1));
         node->AttachClick(nbase::Bind(&MainForm::OnTreeNodeClick, this, std::placeholders::_1));
-
+        node->AttachSelect(nbase::Bind(&MainForm::OnTreeNodeSelect, this, std::placeholders::_1));
 
         if (isFolder) {
             pFolder->bShow = false;
@@ -366,6 +366,15 @@ bool MainForm::OnTreeNodeClick(const ui::EventArgs& args)
     return true;
 }
 
+bool MainForm::OnTreeNodeSelect(const ui::EventArgs& args)
+{
+    if ((m_pTree != nullptr) && m_pTree->IsMultiSelect()) {
+        //多选的时候，不响应选择事件
+        return true;
+    }
+    return OnTreeNodeClick(args);
+}
+
 bool MainForm::IsDirectory(const std::wstring& filePath) const
 {
     DWORD dwAttr = ::GetFileAttributes(filePath.c_str());
@@ -432,7 +441,18 @@ void MainForm::ShowFolderContents(ui::TreeNode* pTreeNode, const std::wstring& p
         //发给UI线程
         nbase::ThreadManager::PostTask(kThreadUI, ToWeakCallback([this, pTreeNode, path, pathList]() {
             //这段代码在UI线程中执行
-            m_fileList.SetFileList(pTreeNode, pathList);
+            if (m_pTree != nullptr) {
+                if (!m_pTree->IsMultiSelect()) {
+                    //单选，进行校验
+                    if (pTreeNode->IsSelected()) {
+                        m_fileList.SetFileList(pTreeNode, pathList);
+                    }
+                }
+                else {
+                    //多选，不校验
+                    m_fileList.SetFileList(pTreeNode, pathList);
+                }
+            }            
         }));
     }));
 }

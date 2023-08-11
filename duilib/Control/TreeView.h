@@ -4,11 +4,21 @@
 #pragma once
 
 #include "duilib/Box/ListBox.h"
+#include <map>
 
 namespace ui
 {
 
 #define ROOT_NODE_DEPTH  -1
+
+/** 节点选择状态
+*/
+enum class TreeNodeSelect
+{
+	UnSelect,	//没有选择
+	SelectAll,	//全部选择
+	SelectPart  //部分选择
+};
 
 class TreeView;
 class UILIB_API TreeNode : public ListBoxItem
@@ -137,6 +147,28 @@ public:
 	*/
 	void SetEnableIcon(bool bEnable);
 
+	/** 更改所有子节点的选择状态，但不触发选择变化事件
+	* @param [in] bSelected 选择状态
+	*/
+	void SetChildrenSelected(bool bSelected);
+
+	/** 更改所有父亲节点的选择状态，但不触发选择变化事件
+	* @param [in] bUpdateSelf 是否需要更新自己的选择状态
+	*/
+	void UpdateParentSelected(bool bUpdateSelf);
+
+	/** 更新节点的选择状态(三态选择状态)
+	*/
+	void UpdateTreeNodeSelect();
+
+	/** 获取当前节点的选择状态(自身和子节点)
+	*/
+	TreeNodeSelect GetSelectStatus(void) const;
+
+	/** 获取当前节点的子节点选择状态(不包含自身，只包含子节点)
+	*/
+	TreeNodeSelect GetChildrenSelectStatus(void) const;
+
 	/** 监听子项展开事件
 	 * @param[in] callback 子项展开时触发的回调函数
 	 */
@@ -161,6 +193,12 @@ private:
 	*/
 	void AdjustIconPadding();
 
+	/** 子项选择状态变化时触发
+	 * @param[in] args 消息体
+	 * @return 始终返回 true
+	 */
+	bool OnItemSelectedChanged(const EventArgs& args);
+	
 private:
 	//子项层级
 	int32_t m_iDepth;
@@ -234,6 +272,11 @@ public:
 	/** 判断是否显示图标
 	*/
 	bool IsEnableIcon() const;
+
+	/** 树节点选择状态变化
+	 * @param [in] pTreeNode 树节点接口
+	 */
+	void OnItemSelectedChanged(TreeNode* pTreeNode);
 
 private:
 	//以下函数故意私有化，表明禁止使用；应该使用TreeNode中的相关函数

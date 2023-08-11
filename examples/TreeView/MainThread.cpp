@@ -13,6 +13,7 @@ void WorkerThread::Cleanup()
 
 void MainThread::Init()
 {
+	::CoInitialize(NULL);
 	nbase::ThreadManager::RegisterThread(kThreadUI);
 
 	//启动工作线程
@@ -47,4 +48,5 @@ void MainThread::Cleanup()
 	}
 	SetThreadWasQuitProperly(true);
 	nbase::ThreadManager::UnregisterThread();
+	::CoUninitialize();
 }

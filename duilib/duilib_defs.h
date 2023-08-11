@@ -154,10 +154,12 @@ namespace ui
 	//控件图片类型
 	enum StateImageType
 	{
-		kStateImageBk,
-		kStateImageFore,
-		kStateImageSelectedBk,
-		kStateImageSelectedFore,
+		kStateImageBk,					//背景图片（Control在用）
+		kStateImageFore,				//前景图片（Control在用）
+		kStateImageSelectedBk,			//选择时的背景图片（CheckBox在用）
+		kStateImageSelectedFore,		//选择时的前景图片（CheckBox在用）
+		kStateImagePartSelectedBk,		//部分选择时的背景图片（CheckBox在用）
+		kStateImagePartSelectedFore,	//部分选择时的前景图片（CheckBox在用）
 	};
 
 	//控件状态

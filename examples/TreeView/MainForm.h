@@ -90,6 +90,12 @@ private:
 	 */
 	bool OnTreeNodeClick(const ui::EventArgs& args);
 
+	/** 树节点选择事件
+	 * @param[in] args 消息体
+	 * @return 始终返回 true
+	 */
+	bool OnTreeNodeSelect(const ui::EventArgs& args);
+
 	/** 判断一个路径是否为目录
 	*/
 	bool IsDirectory(const std::wstring& filePath) const;

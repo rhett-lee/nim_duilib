@@ -1,7 +1,13 @@
 <Window size="80%,80%" sizebox="4,4,4,4" caption="0,0,0,36" text="TreeView控件测试程序">
     <!-- 该窗口下的Class定义 --> 
-    <Class name="tree_view_item" height="20" hotcolor="bk_listitem_hovered" pushedcolor="bk_listitem_selected" selectednormalcolor="bk_listitem_selected" fadehot="false"/>
-    <Class name="tree_view_item_checkbox" normalimage="file='../public/CheckBox/check_no.png' padding='2,0,0,0' valign='center'" disabledimage="file='../public/CheckBox/check_no.png' padding='2,0,0,0' valign='center' fade='80'" selectednormalimage="file='../public/CheckBox/check_yes.png' padding='2,0,0,0' valign='center'" selecteddisabledimage="file='../public/CheckBox/check_yes.png' padding='2,0,0,0' valign='center' fade='80'"/>
+    <Class name="tree_view" bkcolor="bk_wnd_lightcolor" vscrollbar="true"/>
+    <Class name="tree_view_item" height="20" hot_color="bk_listitem_hovered" pushed_color="bk_listitem_selected" selected_normal_color="bk_listitem_selected" fadehot="false"/>
+    <Class name="tree_view_item_checkbox" normal_image="file='../public/CheckBox/check_no.png' padding='2,0,0,0' valign='center'" 
+                                          disabled_image="file='../public/CheckBox/check_no.png' padding='2,0,0,0' valign='center' fade='80'" 
+                                          selected_normal_image="file='../public/CheckBox/check_yes.png' padding='2,0,0,0' valign='center'" 
+                                          selected_disabled_image="file='../public/CheckBox/check_yes.png' padding='2,0,0,0' valign='center' fade='80'"
+                                          part_selected_normal_image="file='../public/CheckBox/part_check.png' padding='2,0,0,0' valign='center'" 
+                                          part_selected_disabled_image="file='../public/CheckBox/part_check.png' padding='2,0,0,0' valign='center' fade='80' "/>
     <!-- 整个窗口中，所有控件都放在这个VBox容器中 -->  
     <VBox bkcolor="bk_wnd_darkcolor">
         <!-- 标题栏区域 -->  
@@ -48,7 +54,7 @@
             </HBox>
             <HBox>
                 <HBox width="300" bkcolor="SeaShell" border_size="1,1,0,1" border_color="blue">
-                    <TreeView class="list" name="tree" padding="5,3,5,3" indent="20"/>
+                    <TreeView class="tree_view" name="tree" padding="5,3,5,3" indent="20"/>
                 </HBox>
                 <HBox bkcolor="Pink" border_size="1" border_color="blue">
                     <VirtualVTileListBox class="list" name="list" columns="auto" itemsize="200,120" multi_select="false" vscrollbar="true" hscrollbar="true" bordersize="1" bordercolor="splitline_level2" padding="1,1,1,1"/>
