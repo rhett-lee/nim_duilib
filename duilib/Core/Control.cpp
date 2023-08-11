@@ -1485,7 +1485,8 @@ bool Control::OnApplyAttributeList(const std::wstring& strReceiver, const std::w
 }
 
 bool Control::PaintImage(IRender* pRender, Image* pImage,
-					    const std::wstring& strModify, int32_t nFade, IMatrix* pMatrix)
+					    const std::wstring& strModify, int32_t nFade, 
+	                    IMatrix* pMatrix, UiRect* pDestRect)
 {
 	//注解：strModify参数，目前外部传入的主要是："destscale='false' dest='%d,%d,%d,%d'"
 	//                   也有一个类传入了：L" corner='%d,%d,%d,%d'"。
@@ -1616,6 +1617,11 @@ bool Control::PaintImage(IRender* pRender, Image* pImage,
 				rcDest.right = rcDest.left + imageWidth;
 			}
 		}
+	}
+
+	if (pDestRect) {
+		//返回绘制的目标区域
+		*pDestRect = rcDest;
 	}
 
 	//图片透明度属性

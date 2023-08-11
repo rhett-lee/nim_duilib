@@ -893,7 +893,8 @@ bool StateImage::HasImage() const
 		   !GetImageString(kControlStateDisabled).empty();
 }
 
-bool StateImage::PaintStateImage(IRender* pRender, ControlStateType stateType, const std::wstring& sImageModify)
+bool StateImage::PaintStateImage(IRender* pRender, ControlStateType stateType, 
+							     const std::wstring& sImageModify, UiRect* pDestRect)
 {
 	if (m_pControl != nullptr) {
 		bool bFadeHot = m_pControl->GetAnimationManager().GetAnimationPlayer(kAnimationHot) != nullptr;
@@ -907,7 +908,7 @@ bool StateImage::PaintStateImage(IRender* pRender, ControlStateType stateType, c
 					(strNormalImagePath != strHotImagePath) || 
 					!GetImageSourceRect(kControlStateNormal).Equals(GetImageSourceRect(kControlStateHot))) {
 
-					m_pControl->PaintImage(pRender, GetStateImage(kControlStateNormal), sImageModify);
+					m_pControl->PaintImage(pRender, GetStateImage(kControlStateNormal), sImageModify, -1, nullptr, pDestRect);
 					int32_t nHotFade = GetImageFade(kControlStateHot);
 					nHotFade = int32_t(nHotFade * (double)nHotAlpha / 255);
 					return m_pControl->PaintImage(pRender, GetStateImage(kControlStateHot), sImageModify, nHotFade);
@@ -916,7 +917,7 @@ bool StateImage::PaintStateImage(IRender* pRender, ControlStateType stateType, c
 					int32_t nNormalFade = GetImageFade(kControlStateNormal);
 					int32_t nHotFade = GetImageFade(kControlStateHot);
 					int32_t nBlendFade = int32_t((1 - (double)nHotAlpha / 255) * nNormalFade + (double)nHotAlpha / 255 * nHotFade);
-					return m_pControl->PaintImage(pRender, GetStateImage(kControlStateHot), sImageModify, nBlendFade);
+					return m_pControl->PaintImage(pRender, GetStateImage(kControlStateHot), sImageModify, nBlendFade, nullptr, pDestRect);
 				}
 			}
 		}
@@ -933,7 +934,7 @@ bool StateImage::PaintStateImage(IRender* pRender, ControlStateType stateType, c
 		stateType = kControlStateNormal;
 	}
 
-	return m_pControl->PaintImage(pRender, GetStateImage(stateType), sImageModify);
+	return m_pControl->PaintImage(pRender, GetStateImage(stateType), sImageModify, -1, nullptr, pDestRect);
 }
 
 Image* StateImage::GetEstimateImage()

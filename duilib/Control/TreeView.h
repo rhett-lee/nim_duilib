@@ -27,11 +27,13 @@ public:
 	TreeNode();
 	TreeNode(const TreeNode& r) = delete;
 	TreeNode& operator=(const TreeNode& r) = delete;
+	virtual ~TreeNode();
 
 	/// 重写父类方法，提供个性化功能，请参考父类声明
 	virtual std::wstring GetType() const override;
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 	virtual void PaintStateImages(IRender* pRender) override;
+	virtual bool ButtonDown(const EventArgs& msg) override;
 	virtual bool IsVisible() const override;
 	virtual void SetWindow(Window* pManager, Box* pParent, bool bInit = true) override;
 	virtual void SetWindow(Window* pManager) override;
@@ -270,13 +272,15 @@ private:
 	//图标关联的文字内边距：1个
 	uint16_t m_iconTextPadding;
 
-	/** 控件展开状态的图片类型与状态图片的MAP
+	/** 控件展开状态的图片类型与状态图片的MAP, 绘制的目标矩形
 	*/
 	std::unique_ptr<StateImage> m_expandImage;
+	UiRect* m_pExpandImageRect;
 
-	/** 控件未展开状态的图片类型与状态图片的MAP
+	/** 控件未展开状态的图片类型与状态图片的MAP, 绘制的目标矩形
 	*/
 	std::unique_ptr<StateImage> m_unexpandImage;
+	UiRect* m_pUnExpandImageRect;
 };
 
 class UILIB_API TreeView : public ListBox

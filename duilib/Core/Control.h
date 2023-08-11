@@ -560,12 +560,14 @@ public:
 	 * @param[in] strModify 图片的附加属性
 	 * @param[in] nFade 控件的透明度，如果启用动画效果该值在绘制时是不断变化的
 	 * @param[in] pMatrix 绘制图片时使用的变换矩阵
+	 * @param[out] pDestRect 返回图片绘制的最终目标矩形区域
 	 * @return 成功返回 true，失败返回 false
 	 */
 	bool PaintImage(IRender* pRender, Image* pImage,
 				    const std::wstring& strModify = L"",
 		            int32_t nFade = DUI_NOSET_VALUE,
-		            IMatrix* pMatrix = nullptr);
+		            IMatrix* pMatrix = nullptr,
+		            UiRect* pDestRect = nullptr);
 
 	/**
 	* @brief 获取绘制上下文对象
@@ -981,7 +983,7 @@ protected:
 	/** 判断是否禁用背景图片绘制
 	*/
 	bool IsBkImagePaintEnabled() const;
-
+ 
 	/** 设置是否禁止背景图片绘制
 	*/
 	void SetBkImagePaintEnabled(bool bEnable);

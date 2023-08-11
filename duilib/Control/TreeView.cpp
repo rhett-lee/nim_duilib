@@ -15,8 +15,22 @@ TreeNode::TreeNode() :
 	m_expandTextPadding(0),
 	m_checkBoxIconPadding(0),
 	m_checkBoxTextPadding(0),
-	m_iconTextPadding(0)
-{	
+	m_iconTextPadding(0),
+	m_pExpandImageRect(nullptr),
+	m_pUnExpandImageRect(nullptr)
+{
+}
+
+TreeNode::~TreeNode()
+{
+	if (m_pExpandImageRect != nullptr) {
+		delete m_pExpandImageRect;
+		m_pExpandImageRect = nullptr;
+	}
+	if (m_pUnExpandImageRect != nullptr) {
+		delete m_pUnExpandImageRect;
+		m_pUnExpandImageRect = nullptr;
+	}
 }
 
 std::wstring TreeNode::GetType() const { return DUI_CTR_TREENODE; }
@@ -100,15 +114,54 @@ void TreeNode::PaintStateImages(IRender* pRender)
 	if (IsExpand()) {
 		//绘制展开状态图标，如果没有子节点，不会只这个图标
 		if ((m_expandImage != nullptr) && !m_aTreeNodes.empty()){
-			m_expandImage->PaintStateImage(pRender, GetState());
+			if (m_pExpandImageRect == nullptr) {
+				m_pExpandImageRect = new UiRect;
+			}
+			m_expandImage->PaintStateImage(pRender, GetState(), L"", m_pExpandImageRect);
 		}
 	}
 	else {
 		//绘制未展开状态图标
 		if (m_unexpandImage != nullptr) {
-			m_unexpandImage->PaintStateImage(pRender, GetState());
+			if (m_pUnExpandImageRect == nullptr) {
+				m_pUnExpandImageRect = new UiRect;
+			}
+			m_unexpandImage->PaintStateImage(pRender, GetState(), L"", m_pUnExpandImageRect);
 		}
 	}
+}
+
+bool TreeNode::ButtonDown(const EventArgs& msg)
+{
+	bool bRet = __super::ButtonDown(msg);
+	if (!IsEnabled()) {
+		return bRet;
+	}
+	UiRect pos = GetPos();
+	if (!pos.ContainsPt(msg.ptMouse)) {
+		return bRet;
+	}
+	if (IsExpand()) {
+		//展开状态
+		if ((m_expandImage != nullptr) && !m_aTreeNodes.empty()) {
+			//如果点击在展开图标上，则收起
+			if ((m_pExpandImageRect != nullptr) && 
+				m_pExpandImageRect->ContainsPt(msg.ptMouse)) {
+				SetExpand(false, true);
+			}
+		}
+	}
+	else {
+		//未展开状态
+		if (m_unexpandImage != nullptr) {
+			//如果点击在展开图标上，则展开
+			if ((m_pUnExpandImageRect != nullptr) && 
+				m_pUnExpandImageRect->ContainsPt(msg.ptMouse)) {
+				SetExpand(true, true);
+			}
+		}
+	}
+	return bRet;
 }
 
 int32_t TreeNode::GetExpandImagePadding(void) const
@@ -316,7 +369,15 @@ void TreeNode::SetExpandImageClass(const std::wstring& expandClass)
 	else {
 		//关闭展开标志功能
 		m_expandImage.reset();
-		m_unexpandImage.reset();		
+		m_unexpandImage.reset();
+		if (m_pExpandImageRect != nullptr) {
+			delete m_pExpandImageRect;
+			m_pExpandImageRect = nullptr;
+		}
+		if (m_pUnExpandImageRect != nullptr) {
+			delete m_pUnExpandImageRect;
+			m_pUnExpandImageRect = nullptr;
+		}
 	}
 	AdjustExpandImagePadding();
 }
