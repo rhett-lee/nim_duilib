@@ -8,10 +8,12 @@
                                           selected_disabled_image="file='../public/CheckBox/check_yes.png' padding='2,0,0,0' valign='center' fade='80'" 
                                           part_selected_normal_image="file='../public/CheckBox/part_check.png' padding='2,0,0,0' valign='center'" 
                                           part_selected_disabled_image="file='../public/CheckBox/part_check.png' padding='2,0,0,0' valign='center' fade='80'"/>
-    <Class name="tree_view_item_expand" expand_normal_image="file='../public/tree/expanded.svg' padding='2,0,0,0' valign='center' width='16'" 
-                                        expand_disabled_image="file='../public/tree/expanded.svg' padding='2,0,0,0' valign='center'  width='16' fade='80'" 
-                                        unexpand_normal_image="file='../public/tree/unexpand.svg' padding='2,0,0,0' valign='center' width='16'" 
-                                        unexpand_disabled_image="file='../public/tree/unexpand.svg' padding='2,0,0,0' valign='center'  width='16' fade='80'"/>
+    <Class name="tree_view_item_expand" expand_normal_image="file='../public/tree/expand_normal.svg' padding='2,0,0,0' valign='center'" 
+                                        expand_hot_image="file='../public/tree/expand_hot.svg' padding='2,0,0,0' valign='center'" 
+                                        expand_disabled_image="file='../public/tree/expand_normal.svg' padding='2,0,0,0' valign='center' fade='80'" 
+                                        collapse_normal_image="file='../public/tree/collapse_normal.svg' padding='2,0,0,0' valign='center'" 
+                                        collapse_hot_image="file='../public/tree/collapse_hot.svg' padding='2,0,0,0' valign='center'" 
+                                        collapse_disabled_image="file='../public/tree/collapse_normal.svg' padding='2,0,0,0' valign='center' fade='80'"/>
     <!-- 整个窗口中，所有控件都放在这个VBox容器中 -->  
     <VBox bkcolor="bk_wnd_darkcolor">
         <!-- 标题栏区域 -->  
