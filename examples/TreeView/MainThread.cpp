@@ -3,12 +3,14 @@
 
 void WorkerThread::Init()
 {
+	::CoInitialize(NULL);
 	nbase::ThreadManager::RegisterThread(m_threadID);
 }
 
 void WorkerThread::Cleanup()
 {
 	nbase::ThreadManager::UnregisterThread();
+	::CoUninitialize();
 }
 
 void MainThread::Init()

@@ -195,13 +195,13 @@ public:
 	 * @param [in] stateType 要获取何种状态下的图片，参考 ControlStateType 枚举
 	 * @return 返回图片路径和属性
 	 */
-	std::wstring GetUnExpandStateImage(ControlStateType stateType);
+	std::wstring GetCollapseStateImage(ControlStateType stateType);
 
 	/** 设置未展开状态的图片
 	 * @param [in] stateType 要设置哪中状态下的图片
 	 * @param [in] strImage 图片路径和属性
 	 */
-	void SetUnExpandStateImage(ControlStateType stateType, const std::wstring& strImage);
+	void SetCollapseStateImage(ControlStateType stateType, const std::wstring& strImage);
 
 	/** 监听子项展开事件
 	 * @param[in] callback 子项展开时触发的回调函数
@@ -211,7 +211,7 @@ public:
 	/** 监听子项收缩事件
 	 * @param[in] callback 子项收缩时触发的回调函数
 	 */
-	void AttachUnExpand(const EventCallback& callback) { AttachEvent(kEventUnExpand, callback); }
+	void AttachCollapse(const EventCallback& callback) { AttachEvent(kEventCollapse, callback); }
 
 private:
 	/** 删除自身
@@ -279,8 +279,8 @@ private:
 
 	/** 控件未展开状态的图片类型与状态图片的MAP, 绘制的目标矩形
 	*/
-	std::unique_ptr<StateImage> m_unexpandImage;
-	UiRect* m_pUnExpandImageRect;
+	std::unique_ptr<StateImage> m_collapseImage;
+	UiRect* m_pCollapseImageRect;
 };
 
 class UILIB_API TreeView : public ListBox

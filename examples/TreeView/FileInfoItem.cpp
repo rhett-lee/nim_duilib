@@ -26,7 +26,7 @@ void FileInfoItem::InitSubControls(const FileInfo& fileInfo, size_t nElementInde
         m_pTextControl->SetText(fileInfo.m_fileName);        
     }
     if (m_pIconControl != nullptr) {
-        if (0 && !fileInfo.m_isFolder && IsImageFile(fileInfo.m_fileName)) {
+        if (!fileInfo.m_isFolder && IsImageFile(fileInfo.m_fileName)) {
             //图片文件，直接显示图片（屏蔽了，运行速度太慢，待优化）
             int32_t itemWidth = 0;// this->GetWidth();
             std::wstring imageString = fileInfo.m_filePath;
@@ -57,7 +57,10 @@ bool FileInfoItem::IsImageFile(const std::wstring& filePath) const
         fileExt = filePath.substr(pos);
     }
     fileExt = ui::StringHelper::MakeLowerString(fileExt);
-    if ((fileExt == L".svg") || 
+    if (fileExt == L".svg") {
+        return true;
+    }
+    /*if ((fileExt == L".svg") || 
         (fileExt == L".jpg") || 
         (fileExt == L".jpeg") || 
         (fileExt == L".gif") || 
@@ -66,6 +69,6 @@ bool FileInfoItem::IsImageFile(const std::wstring& filePath) const
         (fileExt == L".webp") || 
         (fileExt == L".ico")) {
         return true;
-    }
+    }*/
     return false;
 }

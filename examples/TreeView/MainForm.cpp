@@ -333,6 +333,24 @@ void MainForm::ShowSubFolders(ui::TreeNode* pTreeNode, const std::wstring& path)
             SHFILEINFO shFileInfo;
             ZeroMemory(&shFileInfo, sizeof(SHFILEINFO));
             if (::SHGetFileInfo(folderPath.c_str(), 0, &shFileInfo, sizeof(SHFILEINFO), SHGFI_ICON | SHGFI_SMALLICON)) {
+#ifdef _DEBUG
+                //发现有hIcon句柄无效的情况，原因未知，暂时过滤掉                
+                if (shFileInfo.hIcon != nullptr) {
+                    ICONINFO iconInfo = { 0, };
+                    if (!::GetIconInfo(shFileInfo.hIcon, &iconInfo)) {
+                        ::DestroyIcon(shFileInfo.hIcon);
+                        shFileInfo.hIcon = nullptr;
+                    }
+                    else {
+                        if (iconInfo.hbmColor != nullptr) {
+                            ::DeleteObject(iconInfo.hbmColor);
+                        }
+                        if (iconInfo.hbmMask != nullptr) {
+                            ::DeleteObject(iconInfo.hbmMask);
+                        }
+                    }
+                }
+#endif
                 if (IsDirectory(folderPath)) {
                     //目录
                     folderList.push_back({ findData.cFileName, false, shFileInfo.hIcon });

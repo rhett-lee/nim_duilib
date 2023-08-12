@@ -125,7 +125,7 @@ namespace ui
 	#define	EVENTSTR_MENU				(L"menu")
 
 	#define EVENTSTR_EXPAND				(L"expand")
-	#define EVENTSTR_UNEXPAND			(L"unexpand")
+	#define EVENTSTR_COLLAPSE			(L"collapse")
 
 	#define	EVENTSTR_SCROLLWHEEL		(L"scrollwheel")
 	#define EVENTSTR_SCROLLCHANGE		(L"scrollchange")
@@ -245,7 +245,7 @@ namespace ui
 		kEventUnSelect,			    //CheckBox类、Option类、ListBox类、Combo类：当变成非选中状态时触发
 
 		kEventExpand,				//TreeNode类：当树节点展开时触发
-		kEventUnExpand,				//TreeNode类：当树节点收起时触发
+		kEventCollapse,				//TreeNode类：当树节点收起时触发
 
 		kEventTextChange,			//RichEdit类：当文本内容发生变化时触发
 		kEventReturn,				//ListBoxItem、RichEdit类：当收到回车键时触发

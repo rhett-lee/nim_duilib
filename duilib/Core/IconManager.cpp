@@ -99,6 +99,10 @@ bool IconManager::LoadIconData(const std::wstring& str,
 
 	ScopedICONINFO iconInfo;
 	if (!::GetIconInfo(hIcon, &iconInfo)) {
+#ifdef _DEBUG
+		DWORD dwLastError = ::GetLastError();
+		ASSERT(!"GetIconInfo failed!");
+#endif
 		return false;
 	}
 
@@ -224,6 +228,17 @@ uint32_t IconManager::AddIcon(HICON hIcon)
 	}
 	uint32_t id = GetIconID(hIcon);
 	if (id == 0) {
+
+#ifdef _DEBUG
+		//校验句柄的有效性
+		ScopedICONINFO iconInfo;
+		if (!::GetIconInfo(hIcon, &iconInfo)) {
+			DWORD dwLastError = ::GetLastError();
+			ASSERT(!"GetIconInfo failed!");
+			return id;
+		}
+#endif
+
 		id = m_nNextID++;
 		m_iconMap[id] = hIcon;		
 	}

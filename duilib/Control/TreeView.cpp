@@ -17,7 +17,7 @@ TreeNode::TreeNode() :
 	m_checkBoxTextPadding(0),
 	m_iconTextPadding(0),
 	m_pExpandImageRect(nullptr),
-	m_pUnExpandImageRect(nullptr)
+	m_pCollapseImageRect(nullptr)
 {
 }
 
@@ -27,9 +27,9 @@ TreeNode::~TreeNode()
 		delete m_pExpandImageRect;
 		m_pExpandImageRect = nullptr;
 	}
-	if (m_pUnExpandImageRect != nullptr) {
-		delete m_pUnExpandImageRect;
-		m_pUnExpandImageRect = nullptr;
+	if (m_pCollapseImageRect != nullptr) {
+		delete m_pCollapseImageRect;
+		m_pCollapseImageRect = nullptr;
 	}
 }
 
@@ -49,17 +49,17 @@ void TreeNode::SetAttribute(const std::wstring& strName, const std::wstring& str
 	else if (strName == L"expand_disabled_image") {
 		SetExpandStateImage(kControlStateDisabled, strValue);
 	}
-	else if (strName == L"unexpand_normal_image") {
-		SetUnExpandStateImage(kControlStateNormal, strValue);
+	else if (strName == L"collapse_normal_image") {
+		SetCollapseStateImage(kControlStateNormal, strValue);
 	}
-	else if (strName == L"unexpand_hot_image") {
-		SetUnExpandStateImage(kControlStateHot, strValue);
+	else if (strName == L"collapse_hot_image") {
+		SetCollapseStateImage(kControlStateHot, strValue);
 	}
-	else if (strName == L"unexpand_pushed_image") {
-		SetUnExpandStateImage(kControlStatePushed, strValue);
+	else if (strName == L"collapse_pushed_image") {
+		SetCollapseStateImage(kControlStatePushed, strValue);
 	}
-	else if (strName == L"unexpand_disabled_image") {
-		SetUnExpandStateImage(kControlStateDisabled, strValue);
+	else if (strName == L"collapse_disabled_image") {
+		SetCollapseStateImage(kControlStateDisabled, strValue);
 	}
 	else {
 		__super::SetAttribute(strName, strValue);
@@ -87,11 +87,11 @@ void TreeNode::SetExpandStateImage(ControlStateType stateType, const std::wstrin
 	m_expandImage->SetImageString(stateType, strImage);
 }
 
-std::wstring TreeNode::GetUnExpandStateImage(ControlStateType stateType)
+std::wstring TreeNode::GetCollapseStateImage(ControlStateType stateType)
 {
 	Image* pImage = nullptr;
-	if (m_unexpandImage != nullptr) {
-		pImage = m_unexpandImage->GetStateImage(stateType);
+	if (m_collapseImage != nullptr) {
+		pImage = m_collapseImage->GetStateImage(stateType);
 	}
 	if (pImage != nullptr) {
 		return pImage->GetImageString();
@@ -99,13 +99,13 @@ std::wstring TreeNode::GetUnExpandStateImage(ControlStateType stateType)
 	return std::wstring();
 }
 
-void TreeNode::SetUnExpandStateImage(ControlStateType stateType, const std::wstring& strImage)
+void TreeNode::SetCollapseStateImage(ControlStateType stateType, const std::wstring& strImage)
 {
-	if (m_unexpandImage == nullptr) {
-		m_unexpandImage.reset(new StateImage);
-		m_unexpandImage->SetControl(this);
+	if (m_collapseImage == nullptr) {
+		m_collapseImage.reset(new StateImage);
+		m_collapseImage->SetControl(this);
 	}
-	m_unexpandImage->SetImageString(stateType, strImage);
+	m_collapseImage->SetImageString(stateType, strImage);
 }
 
 void TreeNode::PaintStateImages(IRender* pRender)
@@ -122,11 +122,11 @@ void TreeNode::PaintStateImages(IRender* pRender)
 	}
 	else {
 		//绘制未展开状态图标
-		if (m_unexpandImage != nullptr) {
-			if (m_pUnExpandImageRect == nullptr) {
-				m_pUnExpandImageRect = new UiRect;
+		if (m_collapseImage != nullptr) {
+			if (m_pCollapseImageRect == nullptr) {
+				m_pCollapseImageRect = new UiRect;
 			}
-			m_unexpandImage->PaintStateImage(pRender, GetState(), L"", m_pUnExpandImageRect);
+			m_collapseImage->PaintStateImage(pRender, GetState(), L"", m_pCollapseImageRect);
 		}
 	}
 }
@@ -155,10 +155,10 @@ bool TreeNode::ButtonDown(const EventArgs& msg)
 	}
 	else {
 		//未展开状态
-		if (m_unexpandImage != nullptr) {
+		if (m_collapseImage != nullptr) {
 			//如果点击在展开图标上，则展开
-			if ((m_pUnExpandImageRect != nullptr) && 
-				m_pUnExpandImageRect->ContainsPt(pt)) {
+			if ((m_pCollapseImageRect != nullptr) && 
+				m_pCollapseImageRect->ContainsPt(pt)) {
 				SetExpand(true, true);
 			}
 		}
@@ -170,8 +170,8 @@ int32_t TreeNode::GetExpandImagePadding(void) const
 {
 	int32_t imageWidth = 0;
 	Image* pImage = nullptr;
-	if (m_unexpandImage != nullptr) {
-		pImage = m_unexpandImage->GetStateImage(kControlStateNormal);
+	if (m_collapseImage != nullptr) {
+		pImage = m_collapseImage->GetStateImage(kControlStateNormal);
 	}
 	if(pImage == nullptr){
 		if (m_expandImage != nullptr) {
@@ -371,14 +371,14 @@ void TreeNode::SetExpandImageClass(const std::wstring& expandClass)
 	else {
 		//关闭展开标志功能
 		m_expandImage.reset();
-		m_unexpandImage.reset();
+		m_collapseImage.reset();
 		if (m_pExpandImageRect != nullptr) {
 			delete m_pExpandImageRect;
 			m_pExpandImageRect = nullptr;
 		}
-		if (m_pUnExpandImageRect != nullptr) {
-			delete m_pUnExpandImageRect;
-			m_pUnExpandImageRect = nullptr;
+		if (m_pCollapseImageRect != nullptr) {
+			delete m_pCollapseImageRect;
+			m_pCollapseImageRect = nullptr;
 		}
 	}
 	AdjustExpandImagePadding();
@@ -817,7 +817,7 @@ void TreeNode::SetExpand(bool bExpand, bool bTriggerEvent)
 	m_bExpand = bExpand;
 
 	if (bTriggerEvent) {
-		SendEvent(m_bExpand ? kEventExpand : kEventUnExpand);
+		SendEvent(m_bExpand ? kEventExpand : kEventCollapse);
 	}
 	if (m_pTreeView != nullptr) {
 		m_pTreeView->Arrange();
