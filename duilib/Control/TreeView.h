@@ -9,8 +9,6 @@
 namespace ui
 {
 
-#define ROOT_NODE_DEPTH  -1
-
 /** 节点选择状态
 */
 enum class TreeNodeSelect
@@ -121,13 +119,14 @@ public:
 	void SetExpand(bool bExpand, bool bTriggerEvent = false);
 
 	/** 获取子项层级
-	 * @return 返回当前层级
+	 * @return 返回当前层级, 根节点的层级为0，根节点是一个虚拟节点，一级节点是实节点，层级是1
+	 *         树节点的缩进是：
+	 *         int32_t indent = 0;
+	 *         if(GetDepth() > 0) {
+	 *				indent = (GetDepth() - 1) * TreeView::GetIndent();
+	 *		   }
 	 */
-	int32_t GetDepth() const;
-
-	/** 设置图片/文字元素之间的固定间隔
-	*/
-	void SetExtraPadding(int32_t extraPadding);
+	uint16_t GetDepth() const;
 
 #ifdef UILIB_IMPL_WINSDK
 
@@ -248,7 +247,7 @@ private:
 	
 private:
 	//子项层级
-	int32_t m_iDepth;
+	uint16_t m_uDepth;
 
 	//是否展开显示子节点
 	bool m_bExpand;
@@ -257,13 +256,15 @@ private:
 	TreeView* m_pTreeView;
 
 	//父节点
-	TreeNode *m_pParentTreeNode;
+	TreeNode* m_pParentTreeNode;
 
 	//子节点列表
 	std::vector<TreeNode*> m_aTreeNodes;
 
 	//图片/文字元素之间的固定间隔
-	uint8_t m_extraPadding;
+	uint16_t m_expandIndent;	//[展开/收起]按钮后面的间隔
+	uint16_t m_checkBoxIndent;	//CheckBox 后面的间隔
+	uint16_t m_iconIndent;		//icon 图标后面的间隔
 
 	//Expand图标关联的图标/文字内边距：3个
 	uint16_t m_expandCheckBoxPadding;

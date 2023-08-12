@@ -8,8 +8,7 @@ TreeNode::TreeNode() :
 	m_bExpand(true),
 	m_pTreeView(nullptr),
 	m_pParentTreeNode(nullptr),
-	m_iDepth(ROOT_NODE_DEPTH),
-	m_extraPadding(3),
+	m_uDepth(0),
 	m_expandCheckBoxPadding(0),
 	m_expandIconPadding(0),
 	m_expandTextPadding(0),
@@ -19,6 +18,9 @@ TreeNode::TreeNode() :
 	m_pExpandImageRect(nullptr),
 	m_pCollapseImageRect(nullptr)
 {
+	m_expandIndent = (uint16_t)ui::GlobalManager::Instance().Dpi().GetScaleInt(4);
+	m_checkBoxIndent = (uint16_t)ui::GlobalManager::Instance().Dpi().GetScaleInt(6);
+	m_iconIndent = (uint16_t)ui::GlobalManager::Instance().Dpi().GetScaleInt(4);
 }
 
 TreeNode::~TreeNode()
@@ -60,6 +62,18 @@ void TreeNode::SetAttribute(const std::wstring& strName, const std::wstring& str
 	}
 	else if (strName == L"collapse_disabled_image") {
 		SetCollapseStateImage(kControlStateDisabled, strValue);
+	}
+	else if (strName == L"expand_image_right_space") {
+		int32_t iValue = wcstol(strValue.c_str(), nullptr, 10);
+		m_expandIndent = (uint16_t)ui::GlobalManager::Instance().Dpi().GetScaleInt(iValue);
+	}
+	else if (strName == L"check_box_image_right_space") {
+		int32_t iValue = wcstol(strValue.c_str(), nullptr, 10);
+		m_checkBoxIndent = (uint16_t)ui::GlobalManager::Instance().Dpi().GetScaleInt(iValue);
+	}
+	else if (strName == L"icon_image_right_space") {
+		int32_t iValue = wcstol(strValue.c_str(), nullptr, 10);
+		m_iconIndent = (uint16_t)ui::GlobalManager::Instance().Dpi().GetScaleInt(iValue);
 	}
 	else {
 		__super::SetAttribute(strName, strValue);
@@ -187,8 +201,7 @@ int32_t TreeNode::GetExpandImagePadding(void) const
 		}
 	}
 	if (imageWidth > 0) {
-		const int32_t extraPadding = ui::GlobalManager::Instance().Dpi().GetScaleInt(m_extraPadding);
-		imageWidth += extraPadding;
+		imageWidth += m_expandIndent;
 	}
 	return imageWidth;
 }
@@ -275,8 +288,13 @@ bool TreeNode::AddChildNodeAt(TreeNode* pTreeNode, const size_t iIndex)
 	if (std::find(m_aTreeNodes.begin(), m_aTreeNodes.end(), pTreeNode) != m_aTreeNodes.end()) {
 		return false;
 	}
-			
-	pTreeNode->m_iDepth = m_iDepth + 1;
+	
+	ASSERT(m_uDepth <= UINT16_MAX);//最大为65535个层级
+	/*if (m_uDepth >= UINT16_MAX) {
+		return false;
+	}*/
+
+	pTreeNode->m_uDepth = m_uDepth + 1;
 	pTreeNode->SetParentNode(this);
 	pTreeNode->SetTreeView(m_pTreeView);
 	if (GetWindow() != nullptr) {
@@ -288,8 +306,8 @@ bool TreeNode::AddChildNodeAt(TreeNode* pTreeNode, const size_t iIndex)
 
 	UiPadding padding = GetPadding();
 	
-	if (m_iDepth != ROOT_NODE_DEPTH) {
-		//如果当前不是根节点，需要添加一层缩进
+	if (m_uDepth != 0) {
+		//如果当前不是根节点（根节点的m_uDepth是0），需要添加一层缩进
 		padding.left += m_pTreeView->GetIndent();
 	}
 	pTreeNode->SetPadding(padding, false);
@@ -410,7 +428,7 @@ void TreeNode::AdjustExpandImagePadding()
 {
 	uint16_t expandPadding = ui::TruncateToUInt8(GetExpandImagePadding());
 	if (expandPadding != 0) {
-		//显示[展开/未展开]标志
+		//显示[展开/收起]标志
 		if (m_expandCheckBoxPadding == 0) {
 			int32_t leftOffset = (int32_t)expandPadding;
 			if (AdjustStateImagesPaddingLeft(leftOffset, false)) {
@@ -436,7 +454,7 @@ void TreeNode::AdjustExpandImagePadding()
 		}
 	}
 	else {
-		//不显示[展开/未展开]标志
+		//不显示[展开/收起]标志
 		if (m_expandCheckBoxPadding > 0) {
 			int32_t leftOffset = -(int32_t)m_expandCheckBoxPadding;
 			AdjustStateImagesPaddingLeft(leftOffset, false);
@@ -467,11 +485,11 @@ void TreeNode::AdjustCheckBoxPadding()
 {
 	if (HasStateImage(kStateImageBk)) {
 		//显示CheckBox
-		const int32_t extraPadding = ui::GlobalManager::Instance().Dpi().GetScaleInt(m_extraPadding);
+		uint16_t extraPadding = m_checkBoxIndent;
 		UiSize imageSize = GetStateImageSize(kStateImageBk, kControlStateNormal);
 		uint16_t checkBoxPadding = TruncateToUInt16(imageSize.cx);
 		if (checkBoxPadding > 0) {
-			checkBoxPadding += (uint16_t)extraPadding;
+			checkBoxPadding += extraPadding;
 		}
 		
 		if ((checkBoxPadding > 0) && (m_checkBoxIconPadding == 0)){
@@ -523,11 +541,11 @@ void TreeNode::AdjustIconPadding()
 	if (!iconString.empty()) {
 		//显示图标
 		if (m_iconTextPadding == 0) {
-			const int32_t extraPadding = ui::GlobalManager::Instance().Dpi().GetScaleInt(m_extraPadding);
+			const uint16_t extraPadding = m_iconIndent;
 			UiSize imageSize = GetBkImageSize();
 			uint16_t iconTextPadding = TruncateToUInt16(imageSize.cx);
 			if (iconTextPadding > 0) {
-				iconTextPadding += (uint16_t)extraPadding;
+				iconTextPadding += extraPadding;
 			}
 			if (iconTextPadding > 0) {
 				//设置文字的内边距
@@ -855,14 +873,9 @@ void TreeNode::SetExpand(bool bExpand, bool bTriggerEvent)
 	}	
 }
 
-int32_t TreeNode::GetDepth() const
+uint16_t TreeNode::GetDepth() const
 {
-	return m_iDepth;
-}
-
-void TreeNode::SetExtraPadding(int32_t extraPadding)
-{
-	m_extraPadding = TruncateToUInt8(extraPadding);
+	return m_uDepth;
 }
 
 TreeView::TreeView() :
@@ -895,7 +908,7 @@ void TreeView::SetAttribute(const std::wstring& strName, const std::wstring& str
 		SetCheckBoxClass(strValue);
 	}
 	else if (strName == L"expand_image_class") {
-		//是否显示[展开/未展开]图标
+		//是否显示[展开/收起]图标
 		SetExpandImageClass(strValue);
 	}
 	else if (strName == L"show_icon") {
