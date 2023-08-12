@@ -76,7 +76,7 @@ void MainForm::OnInitWindow()
         m_pTree->InsertControlBeforeNode(pFirstDiskNode, pLineControl);
     }
 
-    ShowAllDiskNode();
+   // ShowAllDiskNode();
 }
 
 LRESULT MainForm::OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)

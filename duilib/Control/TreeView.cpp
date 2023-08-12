@@ -316,39 +316,6 @@ bool TreeNode::AddChildNodeAt(TreeNode* pTreeNode, const size_t iIndex)
 		nInsertIndex += 1;
 	}
 	ASSERT(nInsertIndex <= m_pTreeView->ListBox::GetItemCount());
-
-//#ifdef _DEBUG
-//	{
-//		//旧的算法：暂时保留一段时间，以便于对比测试
-//		size_t nodeIndex = GetListBoxIndex();//当前节点，在ListBox中的索引号
-//		if (!Box::IsValidItemIndex(nodeIndex)) {
-//			//当前是根节点，在起始位置添加元素
-//			nodeIndex = 0;
-//		}
-//		else {
-//			nodeIndex += 1;
-//		}
-//
-//		size_t nGlobalIndex = iIndex;//子节点的总个数
-//		for (size_t i = 0; i < iIndex; i++) {
-//			nGlobalIndex += ((TreeNode*)m_aTreeNodes[i])->GetDescendantNodeCount();
-//		}
-//
-//		size_t nOldInsertIndex = nodeIndex + nGlobalIndex;//在ListBox中插入的位置
-//		ASSERT(nOldInsertIndex <= m_pTreeView->ListBox::GetItemCount());
-//		ASSERT(nOldInsertIndex == nInsertIndex);
-//	}
-//#endif
-
-	////如果插入位置是普通的控件（不是树节点，则插入位置后移）
-	//const size_t itemCount = m_pTreeView->ListBox::GetItemCount();
-	//while (nInsertIndex < itemCount) {
-	//	Control* pControl = m_pTreeView->ListBox::GetItemAt(nInsertIndex);
-	//	if (dynamic_cast<TreeNode*>(pControl) == nullptr) {
-	//		++nInsertIndex;
-	//	}
-	//}
-
 	m_aTreeNodes.insert(m_aTreeNodes.begin() + iIndex, pTreeNode);
 	return m_pTreeView->ListBox::AddItemAt(pTreeNode, nInsertIndex);
 }
