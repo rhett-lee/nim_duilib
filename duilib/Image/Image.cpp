@@ -1047,11 +1047,15 @@ bool StateImageMap::HasStateImage(StateImageType stateImageType) const
 	return bHasImage;
 }
 
-bool StateImageMap::PaintStateImage(IRender* pRender, StateImageType stateImageType, ControlStateType stateType, const std::wstring& sImageModify /*= L""*/)
+bool StateImageMap::PaintStateImage(IRender* pRender, 
+								    StateImageType stateImageType, 
+								    ControlStateType stateType, 
+									const std::wstring& sImageModify,
+	                                UiRect* pDestRect)
 {
 	auto it = m_stateImageMap.find(stateImageType);
 	if (it != m_stateImageMap.end()) {
-		return it->second.PaintStateImage(pRender, stateType, sImageModify);
+		return it->second.PaintStateImage(pRender, stateType, sImageModify, pDestRect);
 	}
 	return false;
 }

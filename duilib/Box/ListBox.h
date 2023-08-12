@@ -275,7 +275,7 @@ private:
 	*/
 	bool IsHorizontalLayout() const;
 
-protected:
+private:
 	//是否随滚动改变选中项
 	bool m_bScrollSelect;
 

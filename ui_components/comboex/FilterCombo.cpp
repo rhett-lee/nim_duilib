@@ -190,24 +190,24 @@ bool ListElementMatch::StringMatch(const std::string& utf8str)
 
 bool FilterListBox::SelectItem(size_t iIndex, bool bTakeFocus, bool bTrigger)
 {
-	if (iIndex == m_iCurSel) {
+	if (iIndex == GetCurSel()) {
 		return true;
 	}
-	size_t iOldSel = m_iCurSel;
+	size_t iOldSel = GetCurSel();
 	// We should first unselect the currently selected item
-	if (Box::IsValidItemIndex(m_iCurSel)) {
-		Control* pControl = GetItemAt(m_iCurSel);
+	if (Box::IsValidItemIndex(GetCurSel())) {
+		Control* pControl = GetItemAt(GetCurSel());
 		if (pControl != NULL) {
 			ui::ListBoxItem* pListItem = dynamic_cast<ui::ListBoxItem*>(pControl);
 			if (pListItem != NULL) {
 				pListItem->OptionTemplate<Box>::Selected(false, bTrigger);
 			}
 		}
-		m_iCurSel = Box::InvalidIndex;
+		SetCurSel(Box::InvalidIndex);
 	}
 	if (!Box::IsValidItemIndex(iIndex)) {
 		if (bTrigger) {
-			SendEvent(ui::kEventSelect, m_iCurSel, iOldSel);
+			SendEvent(ui::kEventSelect, GetCurSel(), iOldSel);
 		}
 		return false;
 	}
@@ -226,10 +226,10 @@ bool FilterListBox::SelectItem(size_t iIndex, bool bTakeFocus, bool bTrigger)
 	if (pListItem == nullptr) {
 		return false;
 	}
-	m_iCurSel = iIndex;
+	SetCurSel(iIndex);
 	pListItem->OptionTemplate<Box>::Selected(true, bTrigger);
 
-	Control* pSelItemControl = GetItemAt(m_iCurSel);
+	Control* pSelItemControl = GetItemAt(GetCurSel());
 	if (pSelItemControl) {
 		ui::UiRect rcItem = pSelItemControl->GetPos();
 		EnsureVisible(rcItem);
@@ -237,7 +237,7 @@ bool FilterListBox::SelectItem(size_t iIndex, bool bTakeFocus, bool bTrigger)
 
 	if (bTakeFocus) pControl->SetFocus();
 	if (bTrigger) {
-		SendEvent(ui::kEventSelect, m_iCurSel, iOldSel);
+		SendEvent(ui::kEventSelect, GetCurSel(), iOldSel);
 	}
 	return true;
 }

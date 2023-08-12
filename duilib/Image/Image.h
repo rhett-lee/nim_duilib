@@ -579,9 +579,19 @@ public:
 	*/
 	bool HasStateImage(StateImageType stateImageType) const;
 
-	/** 绘制指定图片类型和状态的图片
+	/** 绘制指定类型、指定状态的图片
+	* @param [in] pRender 绘制接口
+	* @param [in] stateImageType 图片类型
+	* @param [in] stateType 控件状态，用于选择绘制哪个图片
+	* @param [in] sImageModify 图片的附加属性
+	* @param [out] pDestRect 返回图片绘制的最终目标矩形区域
+	* @return 绘制成功返回true, 否则返回false
 	*/
-	bool PaintStateImage(IRender* pRender, StateImageType stateImageType, ControlStateType stateType, const std::wstring& sImageModify = L"");
+	bool PaintStateImage(IRender* pRender, 
+						 StateImageType stateImageType, 
+					     ControlStateType stateType, 
+		                 const std::wstring& sImageModify = L"",
+		                 UiRect* pDestRect = nullptr);
 	
 	/** 获取用于估算Control控件大小（宽和高）的图片接口
 	*/

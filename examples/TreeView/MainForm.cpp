@@ -52,7 +52,7 @@ void MainForm::OnInitWindow()
     }
     //设置开启树节点的CheckBox功能
     m_pTree->SetCheckBoxClass(L"tree_view_item_checkbox");
-    //设置开启数节点的[未展开/展开]图标功能
+    //设置开启数节点的[展开/收起]图标功能
     m_pTree->SetExpandImageClass(L"tree_view_item_expand");
     //设置是否支持多选
     m_pTree->SetMultiSelect(true);
@@ -63,7 +63,7 @@ void MainForm::OnInitWindow()
     ShowVirtualDirectoryNode(CSIDL_MYPICTURES, FOLDERID_Pictures, L"图片");
     ShowVirtualDirectoryNode(CSIDL_MYMUSIC, FOLDERID_Music, L"音乐");
     ShowVirtualDirectoryNode(CSIDL_MYVIDEO, FOLDERID_Videos, L"视频");
-    ShowVirtualDirectoryNode(-1, FOLDERID_Downloads, L"下载");
+    ShowVirtualDirectoryNode(-1, FOLDERID_Downloads, L"下载"); 
 
     //显示磁盘
     ShowAllDiskNode();
@@ -103,40 +103,42 @@ void MainForm::InsertTreeNode(ui::TreeNode* pTreeNode,
                               bool isFolder,
                               HICON hIcon)
 {
-    if (m_pTree != NULL) {
-        ui::TreeNode* node = new ui::TreeNode;
-        node->SetWindow(this);
-        node->SetClass(L"tree_view_item");//在"tree_view.xml"中定义
-        node->SetText(displayName);
+    if (m_pTree == nullptr) {
+        return;
+    }
+
+    ui::TreeNode* node = new ui::TreeNode;
+    node->SetWindow(this);
+    node->SetClass(L"tree_view_item");//在"tree_view.xml"中定义
+    node->SetText(displayName);
         
-        FolderStatus* pFolder = new FolderStatus;
-        pFolder->path = path;
-        pFolder->hIcon = hIcon;
-        pFolder->pTreeNode = node;
-        m_folderList.push_back(pFolder);
-        ui::GlobalManager::Instance().Icon().AddIcon(hIcon);
-        node->SetUserDataID((size_t)pFolder);
+    FolderStatus* pFolder = new FolderStatus;
+    pFolder->path = path;
+    pFolder->hIcon = hIcon;
+    pFolder->pTreeNode = node;
+    m_folderList.push_back(pFolder);
+    ui::GlobalManager::Instance().Icon().AddIcon(hIcon);
+    node->SetUserDataID((size_t)pFolder);
 
-        node->SetBkIcon(hIcon);//设置树节点的关联图标
-        node->AttachExpand(nbase::Bind(&MainForm::OnTreeNodeExpand, this, std::placeholders::_1));
-        node->AttachClick(nbase::Bind(&MainForm::OnTreeNodeClick, this, std::placeholders::_1));
-        node->AttachSelect(nbase::Bind(&MainForm::OnTreeNodeSelect, this, std::placeholders::_1));
+    node->SetBkIcon(hIcon);//设置树节点的关联图标
+    node->AttachExpand(nbase::Bind(&MainForm::OnTreeNodeExpand, this, std::placeholders::_1));
+    node->AttachClick(nbase::Bind(&MainForm::OnTreeNodeClick, this, std::placeholders::_1));
+    node->AttachSelect(nbase::Bind(&MainForm::OnTreeNodeSelect, this, std::placeholders::_1));
 
-        if (isFolder) {
-            pFolder->bShow = false;
-            node->SetExpand(false, false);
-        }
-        else {
-            pFolder->bShow = true;
-            node->SetExpand(true, false);
-        }
+    if (isFolder) {
+        pFolder->bShow = false;
+        node->SetExpand(false, false);
+    }
+    else {
+        pFolder->bShow = true;
+        node->SetExpand(true, false);
+    }
 
-        if (pTreeNode == nullptr) {
-            pTreeNode = m_pTree->GetRootNode();
-        }
-        if (pTreeNode != nullptr) {
-            pTreeNode->AddChildNode(node);
-        }
+    if (pTreeNode == nullptr) {
+        pTreeNode = m_pTree->GetRootNode();
+    }
+    if (pTreeNode != nullptr) {
+        pTreeNode->AddChildNode(node);
     }
 }
 

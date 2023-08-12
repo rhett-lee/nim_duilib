@@ -253,10 +253,13 @@ void Control::SetStateImage(StateImageType imageType, ControlStateType stateType
 	m_pImageMap->SetImageString(imageType, stateType, strImage);
 }
 
-bool Control::PaintStateImage(IRender* pRender, StateImageType stateImageType, ControlStateType stateType, const std::wstring& sImageModify)
+bool Control::PaintStateImage(IRender* pRender, StateImageType stateImageType, 
+							  ControlStateType stateType, 
+						      const std::wstring& sImageModify,
+	                          UiRect* pDestRect)
 {
 	if (m_pImageMap != nullptr) {
-		return m_pImageMap->PaintStateImage(pRender, stateImageType, stateType, sImageModify);
+		return m_pImageMap->PaintStateImage(pRender, stateImageType, stateType, sImageModify, pDestRect);
 	}
 	return false;
 }
@@ -1129,7 +1132,7 @@ bool Control::ButtonUp(const EventArgs& msg)
 			player->Stop();
 
 		Invalidate();
-		if( IsPointInWithScrollOffset(UiPoint(msg.ptMouse)) ) {
+		if( IsPointInWithScrollOffset(msg.ptMouse) ) {
 			m_controlState = kControlStateHot;
 			m_nHotAlpha = 255;
 			Activate();
