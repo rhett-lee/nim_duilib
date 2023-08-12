@@ -138,7 +138,9 @@ bool TreeNode::ButtonDown(const EventArgs& msg)
 		return bRet;
 	}
 	UiRect pos = GetPos();
-	if (!pos.ContainsPt(msg.ptMouse)) {
+	UiPoint pt(msg.ptMouse);
+	pt.Offset(GetScrollOffsetInScrollBox());
+	if (!pos.ContainsPt(pt)) {
 		return bRet;
 	}
 	if (IsExpand()) {
@@ -146,7 +148,7 @@ bool TreeNode::ButtonDown(const EventArgs& msg)
 		if ((m_expandImage != nullptr) && !m_aTreeNodes.empty()) {
 			//如果点击在展开图标上，则收起
 			if ((m_pExpandImageRect != nullptr) && 
-				m_pExpandImageRect->ContainsPt(msg.ptMouse)) {
+				m_pExpandImageRect->ContainsPt(pt)) {
 				SetExpand(false, true);
 			}
 		}
@@ -156,7 +158,7 @@ bool TreeNode::ButtonDown(const EventArgs& msg)
 		if (m_unexpandImage != nullptr) {
 			//如果点击在展开图标上，则展开
 			if ((m_pUnExpandImageRect != nullptr) && 
-				m_pUnExpandImageRect->ContainsPt(msg.ptMouse)) {
+				m_pUnExpandImageRect->ContainsPt(pt)) {
 				SetExpand(true, true);
 			}
 		}
