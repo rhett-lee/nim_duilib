@@ -257,7 +257,7 @@ bool TreeNode::AddChildNode(TreeNode* pTreeNode)
 	return AddChildNodeAt(pTreeNode, GetChildNodeCount());
 }
 
-bool TreeNode::AddChildNodeAt(TreeNode* pTreeNode, size_t iIndex)
+bool TreeNode::AddChildNodeAt(TreeNode* pTreeNode, const size_t iIndex)
 {
 	ASSERT(pTreeNode != nullptr);
 	if (pTreeNode == nullptr) {
@@ -271,8 +271,11 @@ bool TreeNode::AddChildNodeAt(TreeNode* pTreeNode, size_t iIndex)
 	if (iIndex > m_aTreeNodes.size()) {
 		return false;
 	}
-	m_aTreeNodes.insert(m_aTreeNodes.begin() + iIndex, pTreeNode);
-		
+	ASSERT(std::find(m_aTreeNodes.begin(), m_aTreeNodes.end(), pTreeNode) == m_aTreeNodes.end());
+	if (std::find(m_aTreeNodes.begin(), m_aTreeNodes.end(), pTreeNode) != m_aTreeNodes.end()) {
+		return false;
+	}
+			
 	pTreeNode->m_iDepth = m_iDepth + 1;
 	pTreeNode->SetParentNode(this);
 	pTreeNode->SetTreeView(m_pTreeView);
@@ -284,17 +287,12 @@ bool TreeNode::AddChildNodeAt(TreeNode* pTreeNode, size_t iIndex)
 	pTreeNode->AttachUnSelect(nbase::Bind(&TreeNode::OnItemSelectedChanged, this, std::placeholders::_1));
 
 	UiPadding padding = GetPadding();
-	size_t nodeIndex = 0;
+	
 	if (m_iDepth != ROOT_NODE_DEPTH) {
-		nodeIndex = GetListBoxIndex() + 1;
+		//如果当前不是根节点，需要添加一层缩进
 		padding.left += m_pTreeView->GetIndent();
 	}
 	pTreeNode->SetPadding(padding, false);
-
-	size_t nGlobalIndex = iIndex;
-	for (size_t i = 0; i < iIndex; i++)	{
-		nGlobalIndex += ((TreeNode*)m_aTreeNodes[i])->GetDescendantNodeCount();
-	}
 
 	//[未展开/展开]图片标志
 	std::wstring expandImageClass = m_pTreeView->GetExpandImageClass();
@@ -308,7 +306,51 @@ bool TreeNode::AddChildNodeAt(TreeNode* pTreeNode, size_t iIndex)
 	pTreeNode->SetEnableIcon(m_pTreeView->IsEnableIcon());
 
 	//添加到ListBox容器中
-	return m_pTreeView->ListBox::AddItemAt(pTreeNode, nodeIndex + nGlobalIndex);
+	size_t nInsertIndex = GetDescendantNodeMaxListBoxIndex();
+	if (!Box::IsValidItemIndex(nInsertIndex)) {
+		//第一个节点
+		nInsertIndex = 0;
+	}
+	else {
+		//不是第一个节点时，插入位置需要放在所有子孙节点的后面
+		nInsertIndex += 1;
+	}
+	ASSERT(nInsertIndex <= m_pTreeView->ListBox::GetItemCount());
+
+//#ifdef _DEBUG
+//	{
+//		//旧的算法：暂时保留一段时间，以便于对比测试
+//		size_t nodeIndex = GetListBoxIndex();//当前节点，在ListBox中的索引号
+//		if (!Box::IsValidItemIndex(nodeIndex)) {
+//			//当前是根节点，在起始位置添加元素
+//			nodeIndex = 0;
+//		}
+//		else {
+//			nodeIndex += 1;
+//		}
+//
+//		size_t nGlobalIndex = iIndex;//子节点的总个数
+//		for (size_t i = 0; i < iIndex; i++) {
+//			nGlobalIndex += ((TreeNode*)m_aTreeNodes[i])->GetDescendantNodeCount();
+//		}
+//
+//		size_t nOldInsertIndex = nodeIndex + nGlobalIndex;//在ListBox中插入的位置
+//		ASSERT(nOldInsertIndex <= m_pTreeView->ListBox::GetItemCount());
+//		ASSERT(nOldInsertIndex == nInsertIndex);
+//	}
+//#endif
+
+	////如果插入位置是普通的控件（不是树节点，则插入位置后移）
+	//const size_t itemCount = m_pTreeView->ListBox::GetItemCount();
+	//while (nInsertIndex < itemCount) {
+	//	Control* pControl = m_pTreeView->ListBox::GetItemAt(nInsertIndex);
+	//	if (dynamic_cast<TreeNode*>(pControl) == nullptr) {
+	//		++nInsertIndex;
+	//	}
+	//}
+
+	m_aTreeNodes.insert(m_aTreeNodes.begin() + iIndex, pTreeNode);
+	return m_pTreeView->ListBox::AddItemAt(pTreeNode, nInsertIndex);
 }
 
 #ifdef UILIB_IMPL_WINSDK
@@ -734,7 +776,7 @@ bool TreeNode::RemoveChildNodeAt(size_t iIndex)
 
 	TreeNode* pTreeNode = ((TreeNode*)m_aTreeNodes[iIndex]);
 	m_aTreeNodes.erase(m_aTreeNodes.begin() + iIndex);
-	if (pTreeNode) {
+	if (pTreeNode != nullptr) {
 		return pTreeNode->RemoveSelf();
 	}
 	return false;
@@ -765,10 +807,15 @@ bool TreeNode::RemoveSelf()
 		}
 	}
 	m_aTreeNodes.clear();
-	if (m_iDepth != ROOT_NODE_DEPTH) {
-		return m_pTreeView->ListBox::RemoveItemAt(GetListBoxIndex());
+
+	//从ListBox中移除元素
+	bool bRemoved = false;
+	size_t nListBoxIndex = GetListBoxIndex();
+	if (Box::IsValidItemIndex(nListBoxIndex)) {
+		ASSERT(m_pTreeView->ListBox::GetItemAt(nListBoxIndex) == this);
+		m_pTreeView->ListBox::RemoveItemAt(nListBoxIndex);
 	}
-	return false;
+	return bRemoved;
 }
 
 size_t TreeNode::GetDescendantNodeCount()
@@ -785,6 +832,23 @@ size_t TreeNode::GetDescendantNodeCount()
 size_t TreeNode::GetChildNodeCount()
 {
 	return m_aTreeNodes.size();
+}
+
+size_t TreeNode::GetDescendantNodeMaxListBoxIndex() const
+{
+	size_t maxListBoxIndex = GetListBoxIndex();
+	if (!Box::IsValidItemIndex(maxListBoxIndex)) {
+		if (m_aTreeNodes.empty()) {
+			return maxListBoxIndex;
+		}
+		maxListBoxIndex = 0;
+	}
+	for (TreeNode* pTreeNode : m_aTreeNodes) {
+		if (pTreeNode != nullptr) {
+			maxListBoxIndex = std::max(pTreeNode->GetDescendantNodeMaxListBoxIndex(), maxListBoxIndex);
+		}
+	}
+	return maxListBoxIndex;
 }
 	
 TreeNode* TreeNode::GetChildNode(size_t iIndex)
@@ -942,6 +1006,37 @@ void TreeView::SetEnableIcon(bool bEnable)
 bool TreeView::IsEnableIcon() const
 {
 	return m_bEnableIcon;
+}
+
+bool TreeView::InsertControlBeforeNode(TreeNode* pTreeNode, Control* pControl)
+{
+	if ((pTreeNode == nullptr) || (pControl == nullptr)) {
+		return false;
+	}
+	bool bAdded = false;
+	if (dynamic_cast<TreeNode*>(pControl) != nullptr) {
+		//不允许通过该接口添加树节点
+		return false;
+	}
+	size_t iIndex = pTreeNode->GetListBoxIndex();
+	if (Box::IsValidItemIndex(iIndex)) {
+		bAdded = ListBox::AddItemAt(pControl, iIndex);
+	}
+	return bAdded;
+}
+
+bool TreeView::RemoveControl(Control* pControl)
+{
+	if (pControl == nullptr) {
+		return false;
+	}
+	bool bRemoved = false;
+	if (dynamic_cast<TreeNode*>(pControl) != nullptr) {
+		//不允许通过该接口移除树节点
+		return false;
+	}
+	bRemoved = ListBox::RemoveItem(pControl);
+	return bRemoved;
 }
 
 bool TreeView::AddItem(Control* /*pControl*/)

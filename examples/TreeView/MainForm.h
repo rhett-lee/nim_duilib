@@ -56,18 +56,18 @@ private:
 	//显示虚拟目录节点（比如桌面、我的文档等）
 	void ShowVirtualDirectoryNode(int csidl, REFKNOWNFOLDERID rfid, const std::wstring& name);
 
-	//显示磁盘节点
-	void ShowAllDiskNode();
+	//显示磁盘节点, 返回第一个新节点接口
+	ui::TreeNode* ShowAllDiskNode();
 
 	//显示指定目录的子目录
 	void ShowSubFolders(ui::TreeNode* pTreeNode, const std::wstring& path);
 
-	//在树中插入一个节点
-	void InsertTreeNode(ui::TreeNode* pTreeNode, 
-		                const std::wstring& displayName,
-		                const std::wstring& path,
-		                bool isFolder,
-		                HICON hIcon);
+	//在树中添加一个节点, 返回新添加的节点接口
+	ui::TreeNode* InsertTreeNode(ui::TreeNode* pTreeNode,
+		                         const std::wstring& displayName,
+								 const std::wstring& path,
+								 bool isFolder,
+								 HICON hIcon);
 
 	//批量在树中插入一个节点
 	void InsertTreeNodes(ui::TreeNode* pTreeNode, 

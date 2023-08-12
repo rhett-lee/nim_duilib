@@ -70,7 +70,7 @@ public:
 	 * @param[in] iIndex 要插入哪个位置之后
 	 * @return 成功返回 true，失败返回 false
 	 */
-	bool AddChildNodeAt(TreeNode* pTreeNode, size_t iIndex);
+	bool AddChildNodeAt(TreeNode* pTreeNode, const size_t iIndex);
 
 	/** 从指定位置移除一个子节点
 	 * @param[in] iIndex 要移除的子节点索引
@@ -240,6 +240,11 @@ private:
 	/** 获取展开状态图标占用的内边距宽度
 	*/
 	int32_t GetExpandImagePadding(void) const;
+
+	/** 获取包含自己、自己的子孙节点中，ListBox索引号最大值，用于计算新添加节点的插入位置
+	*   如果没有有效元素，则返回 Box::InvalidIndex
+	*/
+	size_t GetDescendantNodeMaxListBoxIndex() const;
 	
 private:
 	//子项层级
@@ -342,6 +347,17 @@ public:
 	 * @param [in] pTreeNode 树节点接口
 	 */
 	void OnItemSelectedChanged(TreeNode* pTreeNode);
+
+	/** 在某个树节点前添加普通控件，以实现一些效果，比如不同类型节点间的分隔符等
+	* @param [in] pTreeNode 树的节点接口，不允许为空
+	* @param [in] pControl 需要添加的普通控件接口，不允许为空
+	*/
+	bool InsertControlBeforeNode(TreeNode* pTreeNode, Control* pControl);
+
+	/** 删除树节点中的普通控件
+	* @param [in] pControl 需要删除的普通控件接口，不允许为空
+	*/
+	bool RemoveControl(Control* pControl);
 
 private:
 	//以下函数故意私有化，表明禁止使用；应该使用TreeNode中的相关函数

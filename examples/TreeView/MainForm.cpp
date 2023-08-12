@@ -66,6 +66,16 @@ void MainForm::OnInitWindow()
     ShowVirtualDirectoryNode(-1, FOLDERID_Downloads, L"下载"); 
 
     //显示磁盘
+    ui::TreeNode* pFirstDiskNode = ShowAllDiskNode();
+
+    //在磁盘前面，放一个横线分隔符
+    if (pFirstDiskNode != nullptr) {
+        ui::Control* pLineControl = new ui::Control;
+        pLineControl->SetClass(L"splitline_hor_level1");
+        pLineControl->SetMargin(ui::UiMargin(12, 8, 12, 8), true);
+        m_pTree->InsertControlBeforeNode(pFirstDiskNode, pLineControl);
+    }
+
     ShowAllDiskNode();
 }
 
@@ -97,14 +107,14 @@ void MainForm::InsertTreeNodes(ui::TreeNode* pTreeNode,
     }
 }
 
-void MainForm::InsertTreeNode(ui::TreeNode* pTreeNode, 
-                              const std::wstring& displayName,
-                              const std::wstring& path,
-                              bool isFolder,
-                              HICON hIcon)
+ui::TreeNode* MainForm::InsertTreeNode(ui::TreeNode* pTreeNode,
+                                       const std::wstring& displayName,
+                                       const std::wstring& path,
+                                       bool isFolder,
+                                       HICON hIcon)
 {
     if (m_pTree == nullptr) {
-        return;
+        return nullptr;
     }
 
     ui::TreeNode* node = new ui::TreeNode;
@@ -140,6 +150,7 @@ void MainForm::InsertTreeNode(ui::TreeNode* pTreeNode,
     if (pTreeNode != nullptr) {
         pTreeNode->AddChildNode(node);
     }
+    return node;
 }
 
 void MainForm::ShowVirtualDirectoryNode(int csidl, REFKNOWNFOLDERID rfid, const std::wstring& name)
@@ -213,8 +224,9 @@ void MainForm::ShowVirtualDirectoryNode(int csidl, REFKNOWNFOLDERID rfid, const 
     }
 }
 
-void MainForm::ShowAllDiskNode()
+ui::TreeNode* MainForm::ShowAllDiskNode()
 {
+    ui::TreeNode* pFirstNode = nullptr;
     std::vector<std::wstring> driveList;
     DiskUtils::GetLogicalDriveList(driveList);
     for (auto iter = driveList.begin(); iter != driveList.end(); ++iter) {
@@ -240,9 +252,13 @@ void MainForm::ShowAllDiskNode()
         SHFILEINFO shFileInfo;
         ZeroMemory(&shFileInfo, sizeof(SHFILEINFO));
         if (::SHGetFileInfo(driverName.c_str(), 0, &shFileInfo, sizeof(SHFILEINFO), SHGFI_ICON | SHGFI_SMALLICON | SHGFI_DISPLAYNAME)) {      
-            InsertTreeNode(nullptr, shFileInfo.szDisplayName, driverName, true, shFileInfo.hIcon);
+            ui::TreeNode* pNewNode = InsertTreeNode(nullptr, shFileInfo.szDisplayName, driverName, true, shFileInfo.hIcon);
+            if (pFirstNode == nullptr) {
+                pFirstNode = pNewNode;
+            }
         }
     }
+    return pFirstNode;
 }
 
 bool MainForm::OnTreeNodeExpand(const ui::EventArgs& args)
