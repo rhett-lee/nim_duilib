@@ -81,7 +81,6 @@ LRESULT ShadowWndBase::FilterMessage(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/
 			break;
 		case WM_CLOSE:
 			ShowWindow(false, false);
-			CloseWnd(0);
 			break;
 		case WM_SHOWWINDOW:
 			ShowWindow(wParam == 0 ? false : true, false);

@@ -81,11 +81,17 @@ LRESULT TimerManager::WndProcThunk(HWND hwnd, UINT message, WPARAM wparam, LPARA
 		size_t msgCount = 0;
 		MSG msg;
 		while (::PeekMessage(&msg, hwnd, WM_USER_DEFINED_TIMER, WM_USER_DEFINED_TIMER, PM_REMOVE)) {
+			if (msg.message == WM_QUIT) {
+				//检测到退出消息，重新放到消息队列中，避免进程退不出
+				::PostQuitMessage(static_cast<int>(msg.wParam));
+				return ::DefWindowProcW(hwnd, message, wparam, lparam);
+			}
+			ASSERT(msg.message == WM_USER_DEFINED_TIMER);
 			++msgCount;
 		}
 #ifdef _DEBUG
 		if (msgCount > 0) {
-			char str[256];
+			char str[256] = { 0 };
 			sprintf_s(str, "TimerManager::WndProcThunk eat msgs: %d\n", (int)msgCount);
 			::OutputDebugStringA(str);
 		}
