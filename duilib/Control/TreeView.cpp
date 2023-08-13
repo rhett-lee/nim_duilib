@@ -469,6 +469,10 @@ void TreeNode::AdjustExpandImagePadding()
 				m_expandCheckBoxPadding = expandPadding;
 			}
 		}
+		else if (!HasStateImage(kStateImageBk)) {
+			//CheckBox图标已经隐藏
+			m_expandCheckBoxPadding = 0;
+		}
 
 		if (m_expandIconPadding == 0) {
 			//有CheckBox状态图片, 需要设置背景图片的内边距，避免两个图片重叠
