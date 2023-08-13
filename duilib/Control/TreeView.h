@@ -9,13 +9,13 @@
 namespace ui
 {
 
-/** 节点选择状态
+/** 节点勾选状态
 */
-enum class TreeNodeSelect
+enum class TreeNodeCheck
 {
-	UnSelect,	//没有选择
-	SelectAll,	//全部选择
-	SelectPart  //部分选择
+	UnCheck,	 //没有打勾
+	CheckedAll,	 //全部打勾
+	CheckedPart  //部分打勾
 };
 
 class TreeView;
@@ -35,6 +35,7 @@ public:
 	virtual bool IsVisible() const override;
 	virtual void SetWindow(Window* pManager, Box* pParent, bool bInit = true) override;
 	virtual void SetWindow(Window* pManager) override;
+	virtual bool SupportCheckedMode() const override;
 
 	/** 子项被双击时触发
 	 * @param[in] args 消息体
@@ -156,27 +157,28 @@ public:
 	*/
 	void SetEnableIcon(bool bEnable);
 
-	/** 更改所有子节点的选择状态，但不触发选择变化事件
-	* @param [in] bSelected 选择状态
+	/** 更改所有子节点的勾选状态，但不触发选择变化事件
+	* @param [in] bChecked 勾选状态（打勾或者不打勾）
 	*/
-	void SetChildrenSelected(bool bSelected);
+	void SetChildrenCheckStatus(bool bChecked);
 
-	/** 更改所有父亲节点的选择状态，但不触发选择变化事件
+	/** 更新自己和所有父亲节点的勾选状态（打勾或者不打勾），但不触发选择变化事件
+	*   当节点的勾选状态发生变化/子节点的添加/删除时，需要调用此函数更新节点的勾选状态
 	* @param [in] bUpdateSelf 是否需要更新自己的选择状态
 	*/
-	void UpdateParentSelected(bool bUpdateSelf);
+	void UpdateParentCheckStatus(bool bUpdateSelf);
 
-	/** 更新节点的选择状态(三态选择状态)
+	/** 更新当前节点的勾选状态(三态选择状态)
 	*/
-	void UpdateTreeNodeSelect();
+	void UpdateSelfCheckStatus();
 
-	/** 获取当前节点的选择状态(自身和子节点)
+	/** 获取当前节点的勾选状态(自身和子节点)
 	*/
-	TreeNodeSelect GetSelectStatus(void) const;
+	TreeNodeCheck GetCheckStatus(void) const;
 
-	/** 获取当前节点的子节点选择状态(不包含自身，只包含子节点)
+	/** 获取当前节点的子节点勾选状态(不包含自身，只包含子节点)
 	*/
-	TreeNodeSelect GetChildrenSelectStatus(void) const;
+	TreeNodeCheck GetChildrenCheckStatus(void) const;
 
 	/** 获取展开状态的图片
 	 * @param [in] stateType 要获取何种状态下的图片，参考 ControlStateType 枚举
@@ -218,6 +220,13 @@ private:
 	 */
 	bool RemoveSelf();
 
+	/** 从指定位置移除一个子节点
+	 * @param [in] iIndex 要移除的子节点索引
+	 * @param [in] bUpdateCheckStatus 是否更新勾选状态
+	 * @return 成功返回 true，失败返回 false
+	 */
+	bool RemoveChildNodeAt(size_t iIndex, bool bUpdateCheckStatus);
+
 	/** 根据当前的配置，调整展开标志关联的内边距(可重入函数，多次调用无副作用)
 	*/
 	void AdjustExpandImagePadding();
@@ -230,11 +239,11 @@ private:
 	*/
 	void AdjustIconPadding();
 
-	/** 子项选择状态变化时触发
+	/** 子项勾选状态变化时触发
 	 * @param[in] args 消息体
 	 * @return 始终返回 true
 	 */
-	bool OnItemSelectedChanged(const EventArgs& args);
+	bool OnNodeCheckStatusChanged(const EventArgs& args);
 
 	/** 获取展开状态图标占用的内边距宽度
 	*/
@@ -344,10 +353,10 @@ public:
 	*/
 	bool IsEnableIcon() const;
 
-	/** 树节点选择状态变化
+	/** 树节点勾选状态变化
 	 * @param [in] pTreeNode 树节点接口
 	 */
-	void OnItemSelectedChanged(TreeNode* pTreeNode);
+	void OnNodeCheckStatusChanged(TreeNode* pTreeNode);
 
 	/** 在某个树节点前添加普通控件，以实现一些效果，比如不同类型节点间的分隔符等
 	* @param [in] pTreeNode 树的节点接口，不允许为空

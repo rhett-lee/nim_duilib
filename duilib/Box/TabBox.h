@@ -65,11 +65,11 @@ public:
 	 */
 	bool IsFadeSwitch() const { return m_bFadeSwith; }
 	
-	/** @brief 监听选择事件
+	/** @brief 监听Tab页面选择事件
 	  * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
 	  * @return 无
 	  */
-	void AttachSelect(const EventCallback& callback) { AttachEvent(kEventSelect, callback); }
+	void AttachTabSelect(const EventCallback& callback) { AttachEvent(kEventTabSelect, callback); }
 
 protected:
 	/**

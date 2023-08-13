@@ -122,6 +122,12 @@ namespace ui
 
 	#define EVENTSTR_SELECT				(L"select")
 	#define EVENTSTR_UNSELECT			(L"unselect")
+
+	#define EVENTSTR_CHECKED			(L"checked")
+	#define EVENTSTR_UNCHECK			(L"uncheck")
+	
+	#define EVENTSTR_TAB_SELECT			(L"tab_select")
+
 	#define	EVENTSTR_MENU				(L"menu")
 
 	#define EVENTSTR_EXPAND				(L"expand")
@@ -243,6 +249,11 @@ namespace ui
 
 		kEventSelect,				//CheckBox类、Option类、ListBox类、Combo类：当变成选中状态时触发
 		kEventUnSelect,			    //CheckBox类、Option类、ListBox类、Combo类：当变成非选中状态时触发
+
+		kEventChecked,				//CheckBox类：当变成Checked状态时触发
+		kEventUnCheck,			    //CheckBox类：当变成UnCheck状态时触发
+
+		kEventTabSelect,			//TabBox类，选中TAB页面
 
 		kEventExpand,				//TreeNode类：当树节点展开时触发
 		kEventCollapse,				//TreeNode类：当树节点收起时触发

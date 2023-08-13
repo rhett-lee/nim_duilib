@@ -12,6 +12,8 @@ class UILIB_API CheckBoxTemplate : public ButtonTemplate<InheritType>
 {
 public:
     CheckBoxTemplate();
+    CheckBoxTemplate(const CheckBoxTemplate& r) = delete;
+    CheckBoxTemplate& operator=(const CheckBoxTemplate& r) = delete;
     virtual ~CheckBoxTemplate();
 
     /// 重写父类方法，提供个性化功能，请参考父类声明
@@ -51,26 +53,11 @@ public:
     */
     virtual void SetSelected(bool bSelected);
 
-    /**
-     * @brief 设置控件是否选择状态
-     * @param[in] bSelected 为 true 时为选择状态，false 时为取消选择状态
-     * @param[in] bTriggerEvent 是否发送状态改变事件，true 为发送，否则为 false。默认为 false
-     * @return 无
+    /** 设置控件是否选择状态
+     * @param [in] bSelected 为 true 时为选择状态，false 时为取消选择状态
+     * @param [in] bTriggerEvent 是否发送状态改变事件，true 为发送，否则为 false。默认为 false
      */
     virtual void Selected(bool bSelected, bool bTriggerEvent = false);
-
-    /** 是否绘制选择状态下的背景色，提供虚函数作为可选项
-       （比如ListBox/TreeView节点在多选时，由于有勾选项，并不需要绘制选择状态的背景色）
-    */
-    virtual bool CanPaintSelectedColors() const { return true; }
-
-    /** 设置部分选择标志（支持三态选择标志：全部选择/部分选择/未选择）
-    */
-    void SetPartSelected(bool bPartSelected);
-
-    /** 当前是否为部分选择
-    */
-    bool IsPartSelected() const;
 
     /** 获取被选择时的图片
      * @param [in] stateType 要获取何种状态下的图片，参考 ControlStateType 枚举
@@ -94,29 +81,6 @@ public:
      * @param[in] strImage 图片位置
      */
     void SetSelectedForeStateImage(ControlStateType stateType, const std::wstring& strImage);
-
-    /** 获取部分选择时的图片
-     * @param [in] stateType 要获取何种状态下的图片，参考 ControlStateType 枚举
-     * @return 返回图片路径和属性
-     */
-    std::wstring GetPartSelectedStateImage(ControlStateType stateType);
-
-    /** 设置部分选择时的图片
-     * @param [in] stateType 要设置哪中状态下的图片
-     * @param [in] strImage 图片路径和属性
-     */
-    void SetPartSelectedStateImage(ControlStateType stateType, const std::wstring& strImage);
-
-    /** 获取部分选择时的前景图片
-     * @param[in] stateType 要获取何种状态下的前景图片
-     */
-    std::wstring GetPartSelectedForeStateImage(ControlStateType stateType);
-
-    /** 设置部分选择时的前景图片
-     * @param[in] stateType 要设置何种状态下的前景图片
-     * @param[in] strImage 图片位置
-     */
-    void SetPartSelectedForeStateImage(ControlStateType stateType, const std::wstring& strImage);
 
     /** 获取被选择时的文本颜色
      */
@@ -168,12 +132,78 @@ public:
      */
     void AttachUnSelect(const EventCallback& callback) { this->AttachEvent(kEventUnSelect, callback); }
 
+public: //（三态选择[全部选择、部分选择、未选择]/勾选模式两种功能的函数）
+
+    /** 鼠标按键弹起事件，用于判断是否点击在CheckBox图片上
+    */
+    virtual bool ButtonUp(const EventArgs& msg) override;
+
+    /** 是否绘制选择状态下的背景色，提供虚函数作为可选项
+   （比如ListBox/TreeView节点在多选时，由于有勾选项，并不需要绘制选择状态的背景色）
+    */
+    virtual bool CanPaintSelectedColors() const { return true; }
+
+    /** 是否支持勾选模式（目前是TreeView在使用这个模式）
+        勾选模式是指：
+        （1）只有点击在CheckBox图片上的时候，勾选框图片才是选择状态（非勾选模式下，是点击在控件矩形内就选择）
+        （2）勾选状态和选择状态分离，是两个不同的状态
+    */
+    virtual bool SupportCheckedMode() const { return false; }
+
+    /** 是否处于勾选状态, 仅当 SupportCheckedMode() 函数为true的时候，有意义
+    */
+    bool IsChecked() const { return m_bChecked; }
+
+    /** 设置Check状态
+    * @param [in] bChecked 是否设置为Check状态
+    * @param [in] bTriggerEvent 是否发送状态改变事件，true 为发送，否则为 false。默认为 false
+    */
+    void SetChecked(bool bChecked, bool bTriggerEvent = false);
+
+    /** 设置部分选择标志（支持三态选择标志：全部选择/部分选择/未选择）
+    */
+    void SetPartSelected(bool bPartSelected);
+
+    /** 当前是否为部分选择
+    */
+    bool IsPartSelected() const;
+
+    /** 获取部分选择时的图片
+     * @param [in] stateType 要获取何种状态下的图片，参考 ControlStateType 枚举
+     * @return 返回图片路径和属性
+     */
+    std::wstring GetPartSelectedStateImage(ControlStateType stateType);
+
+    /** 设置部分选择时的图片
+     * @param [in] stateType 要设置哪中状态下的图片
+     * @param [in] strImage 图片路径和属性
+     */
+    void SetPartSelectedStateImage(ControlStateType stateType, const std::wstring& strImage);
+
+    /** 获取部分选择时的前景图片
+     * @param[in] stateType 要获取何种状态下的前景图片
+     */
+    std::wstring GetPartSelectedForeStateImage(ControlStateType stateType);
+
+    /** 设置部分选择时的前景图片
+     * @param[in] stateType 要设置何种状态下的前景图片
+     * @param[in] strImage 图片位置
+     */
+    void SetPartSelectedForeStateImage(ControlStateType stateType, const std::wstring& strImage);
+
+    /** 监听被勾选时的事件（仅当 SupportCheckedMode() 函数为true的时候，会有这个事件）
+     * @param [in] callback 被选择时触发的回调函数
+     */
+    void AttachChecked(const EventCallback& callback) { this->AttachEvent(kEventChecked, callback); }
+
+    /** 监听取消勾选时的事件（仅当 SupportCheckedMode() 函数为true的时候，会有这个事件）
+     * @param [in] callback 取消选择时触发的回调函数
+     */
+    void AttachUnCheck(const EventCallback& callback) { this->AttachEvent(kEventUnCheck, callback); }
+
 private:
     //选择状态
     bool m_bSelected;
-
-    //是否为部分选择
-    bool m_bPartSelected;
 
     //是否优先绘制Normal状态
     bool m_bPaintNormalFirst;
@@ -186,16 +216,29 @@ private:
 
     //选择状态的背景颜色
     StateColorMap* m_pSelectedColorMap;
+
+private: //（三态选择[全部选择、部分选择、未选择]/勾选模式两种功能的变量）
+
+    //是否为部分选择（只影响选择状态下绘制哪个图片，对业务无影响）
+    bool m_bPartSelected;
+
+    //是否已经处于Check状态（仅当 SupportCheckedMode() 函数为true的时候，有意义）
+    bool m_bChecked;
+
+    //CheckBox图标所在的矩形（仅当 SupportCheckedMode() 函数为true的时候，有意义）
+    UiRect* m_pCheckBoxImageRect;
 };
 
 template<typename InheritType>
 CheckBoxTemplate<InheritType>::CheckBoxTemplate() : 
     m_bSelected(false), 
-    m_bPartSelected(false),
     m_bPaintNormalFirst(false), 
     m_dwSelectedTextColor(), 
     m_pSelectedTextColorMap(nullptr),
-    m_pSelectedColorMap(nullptr)
+    m_pSelectedColorMap(nullptr),
+    m_bPartSelected(false),
+    m_bChecked(false),
+    m_pCheckBoxImageRect(nullptr)
 {
 }
 
@@ -210,10 +253,54 @@ CheckBoxTemplate<InheritType>::~CheckBoxTemplate()
         delete m_pSelectedColorMap;
         m_pSelectedColorMap = nullptr;
     }
+    if (m_pCheckBoxImageRect != nullptr) {
+        delete m_pCheckBoxImageRect;
+        m_pCheckBoxImageRect = nullptr;
+    }
 }
 
 template<typename InheritType>
 inline std::wstring CheckBoxTemplate<InheritType>::GetType() const { return DUI_CTR_CHECKBOX; }
+
+template<typename InheritType>
+bool CheckBoxTemplate<InheritType>::ButtonUp(const EventArgs& msg)
+{
+    bool bRet = __super::ButtonUp(msg);
+    bool bCheckedMode = SupportCheckedMode();
+    if (bCheckedMode && (m_pCheckBoxImageRect != nullptr)) {
+        if (!this->IsEnabled()) {
+            return bRet;
+        }
+        UiRect pos = this->GetPos();
+        UiPoint pt(msg.ptMouse);
+        pt.Offset(this->GetScrollOffsetInScrollBox());
+        if (!pos.ContainsPt(pt) || !m_pCheckBoxImageRect->ContainsPt(pt)) {
+            return bRet;
+        }
+
+        //确认点击在CheckBox图标上面，改变勾选状态(开关属性)
+        SetChecked(!IsChecked(), true);
+    }
+    return bRet;
+}
+
+template<typename InheritType>
+void CheckBoxTemplate<InheritType>::SetChecked(bool bChecked, bool bTriggerEvent)
+{
+    if (m_bChecked == bChecked) {
+        return;
+    }
+    m_bChecked = bChecked;
+    if (bTriggerEvent) {
+        if (bChecked) {
+            this->SendEvent(kEventChecked);
+        }
+        else {
+            this->SendEvent(kEventUnCheck);
+        }
+    }
+    this->Invalidate();
+}
 
 template<typename InheritType>
 void CheckBoxTemplate<InheritType>::Activate()
@@ -247,7 +334,7 @@ void CheckBoxTemplate<InheritType>::Selected(bool bSelected, bool bTriggerEvent)
     }
 
     if (bTriggerEvent) {
-        if (m_bSelected) {
+        if (bSelected) {
             this->SendEvent(kEventSelect);
         }
         else {
@@ -382,6 +469,10 @@ void CheckBoxTemplate<InheritType>::SetAttribute(const std::wstring& strName, co
 template<typename InheritType>
 void CheckBoxTemplate<InheritType>::ClearStateImages()
 {
+    if (m_pCheckBoxImageRect != nullptr) {
+        delete m_pCheckBoxImageRect;
+        m_pCheckBoxImageRect = nullptr;
+    }
     __super::ClearStateImages();
 }
 
@@ -411,9 +502,29 @@ void CheckBoxTemplate<InheritType>::PaintStateColors(IRender* pRender)
 template<typename InheritType>
 void CheckBoxTemplate<InheritType>::PaintStateImages(IRender* pRender)
 {
-    if (!IsSelected()) {
+    bool bCheckedMode = SupportCheckedMode();
+    if (bCheckedMode && (m_pCheckBoxImageRect == nullptr)) {
+        m_pCheckBoxImageRect = new UiRect;
+    }
+
+    bool isSelectNone = false;
+    if (bCheckedMode) {
+        //如果SupportCheckedMode()为true，则按IsChecked()判断是否显示选择状态的图片
+        if (!IsChecked()) {
+            isSelectNone = true;
+        }
+    }
+    else {
+        //如果SupportCheckedMode()为false，则按IsSelected()判断是否显示选择状态的图片
+        if (!IsSelected()) {
+            isSelectNone = true;
+        }
+    }
+
+    if (isSelectNone) {
         //未选择状态
-        __super::PaintStateImages(pRender);
+        this->PaintStateImage(pRender, kStateImageBk, this->GetState(), L"", m_pCheckBoxImageRect);
+        this->PaintStateImage(pRender, kStateImageFore, this->GetState(), L"", m_pCheckBoxImageRect);
         return;
     }
 
@@ -421,11 +532,11 @@ void CheckBoxTemplate<InheritType>::PaintStateImages(IRender* pRender)
         //部分选择状态
         bool bPainted = false;
         if (this->HasStateImage(kStateImagePartSelectedBk)) {
-            this->PaintStateImage(pRender, kStateImagePartSelectedBk, this->GetState());
+            this->PaintStateImage(pRender, kStateImagePartSelectedBk, this->GetState(), L"", m_pCheckBoxImageRect);
             bPainted = true;
         }
         if (this->HasStateImage(kStateImagePartSelectedFore)) {
-            this->PaintStateImage(pRender, kStateImagePartSelectedFore, this->GetState());
+            this->PaintStateImage(pRender, kStateImagePartSelectedFore, this->GetState(), L"", m_pCheckBoxImageRect);
             bPainted = true;
         }
         if (bPainted) {
@@ -436,17 +547,17 @@ void CheckBoxTemplate<InheritType>::PaintStateImages(IRender* pRender)
 
     //全部选择状态
     if (IsPaintNormalFirst() && !this->HasStateImage(kStateImageSelectedBk)) {
-        this->PaintStateImage(pRender, kStateImageBk, this->GetState());
+        this->PaintStateImage(pRender, kStateImageBk, this->GetState(), L"", m_pCheckBoxImageRect);
     }
     else {
-        this->PaintStateImage(pRender, kStateImageSelectedBk, this->GetState());
+        this->PaintStateImage(pRender, kStateImageSelectedBk, this->GetState(), L"", m_pCheckBoxImageRect);
     }
 
     if (IsPaintNormalFirst() && !this->HasStateImage(kStateImageSelectedFore)) {
-        this->PaintStateImage(pRender, kStateImageFore, this->GetState());
+        this->PaintStateImage(pRender, kStateImageFore, this->GetState(), L"", m_pCheckBoxImageRect);
     }
     else {
-        this->PaintStateImage(pRender, kStateImageSelectedFore, this->GetState());
+        this->PaintStateImage(pRender, kStateImageSelectedFore, this->GetState(), L"", m_pCheckBoxImageRect);
     }
 }
 

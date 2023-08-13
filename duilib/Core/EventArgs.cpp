@@ -62,6 +62,15 @@ EventType StringToEnum(const std::wstring& messageType)
 	else if (messageType == EVENTSTR_UNSELECT) {
 		return kEventUnSelect;
 	}
+	else if (messageType == EVENTSTR_CHECKED) {
+		return kEventChecked;
+	}
+	else if (messageType == EVENTSTR_UNCHECK) {
+		return kEventUnCheck;
+	}
+	else if (messageType == EVENTSTR_TAB_SELECT) {
+		return kEventTabSelect;
+	}
 	else if (messageType == EVENTSTR_MENU) {
 		return kEventMouseMenu;
 	}
