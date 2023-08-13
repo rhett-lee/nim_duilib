@@ -1,21 +1,6 @@
 <Window size="80%,80%" sizebox="4,4,4,4" caption="0,0,0,36" text="TreeView控件测试程序">
     <!-- 该窗口下的Class定义 --> 
-    <Class name="tree_view" bkcolor="bk_wnd_lightcolor" vscrollbar="true"/>
-    <Class name="tree_view_item" height="20" hot_color="bk_listitem_hovered" pushed_color="bk_listitem_selected" selected_normal_color="bk_listitem_selected" icon_image_right_space="4" fadehot="false"/>
-    <Class name="tree_view_item_checkbox" normal_image="file='../public/CheckBox/check_no.png' padding='2,0,0,0' valign='center'" 
-                                          disabled_image="file='../public/CheckBox/check_no.png' padding='2,0,0,0' valign='center' fade='80'" 
-                                          selected_normal_image="file='../public/CheckBox/check_yes.png' padding='2,0,0,0' valign='center'" 
-                                          selected_disabled_image="file='../public/CheckBox/check_yes.png' padding='2,0,0,0' valign='center' fade='80'" 
-                                          part_selected_normal_image="file='../public/CheckBox/part_check.png' padding='2,0,0,0' valign='center'" 
-                                          part_selected_disabled_image="file='../public/CheckBox/part_check.png' padding='2,0,0,0' valign='center' fade='80'"
-                                          check_box_image_right_space="6"/>
-    <Class name="tree_view_item_expand" expand_normal_image="file='../public/tree/expand_normal.svg' padding='2,0,0,0' valign='center'" 
-                                        expand_hot_image="file='../public/tree/expand_hot.svg' padding='2,0,0,0' valign='center'" 
-                                        expand_disabled_image="file='../public/tree/expand_normal.svg' padding='2,0,0,0' valign='center' fade='80'" 
-                                        collapse_normal_image="file='../public/tree/collapse_normal.svg' padding='2,0,0,0' valign='center'" 
-                                        collapse_hot_image="file='../public/tree/collapse_hot.svg' padding='2,0,0,0' valign='center'" 
-                                        collapse_disabled_image="file='../public/tree/collapse_normal.svg' padding='2,0,0,0' valign='center' fade='80'"
-                                        icon_image_right_space="4"/>
+    
     <!-- 整个窗口中，所有控件都放在这个VBox容器中 -->  
     <VBox bkcolor="bk_wnd_darkcolor">
         <!-- 标题栏区域 -->  

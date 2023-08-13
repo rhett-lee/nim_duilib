@@ -18,7 +18,7 @@ ui::Control* FileInfoList::CreateElement()
 {
     FileInfoItem* item = new FileInfoItem;
     item->AttachEvent(ui::kEventMouseDoubleClick, nbase::Bind(&FileInfoList::OnDoubleClickItem, this, std::placeholders::_1));
-    ui::GlobalManager::Instance().FillBoxWithCache(item, L"tree_view/list_item.xml");
+    ui::GlobalManager::Instance().FillBoxWithCache(item, L"tree_view/tree_node.xml");
     return item;
 }
 

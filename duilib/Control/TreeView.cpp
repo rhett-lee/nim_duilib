@@ -1041,7 +1041,6 @@ bool TreeView::IsMultiCheckMode() const
 
 bool TreeView::CanPaintSelectedColors(bool bHasStateImages) const
 {
-	return true;
 	if (bHasStateImages && IsMultiCheckMode()) {
 		//如果有CheckBox，Check模式的时候，默认不显示选择背景色
 		return false;

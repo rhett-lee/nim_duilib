@@ -21,6 +21,7 @@ enum class TreeNodeCheck
 class TreeView;
 class UILIB_API TreeNode : public ListBoxItem
 {
+	friend class TreeView;
 public:
 	TreeNode();
 	TreeNode(const TreeNode& r) = delete;
@@ -30,19 +31,17 @@ public:
 	/// 重写父类方法，提供个性化功能，请参考父类声明
 	virtual std::wstring GetType() const override;
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
-	virtual void PaintStateImages(IRender* pRender) override;
-	virtual bool ButtonDown(const EventArgs& msg) override;
 	virtual bool IsVisible() const override;
 	virtual void SetWindow(Window* pManager, Box* pParent, bool bInit = true) override;
 	virtual void SetWindow(Window* pManager) override;
 	virtual bool SupportCheckedMode() const override;
 
-	/** 子项被双击时触发
-	 * @param[in] args 消息体
-	 * @return 始终返回 true
-	 */
+private:
+	virtual void PaintStateImages(IRender* pRender) override;
+	virtual bool ButtonDown(const EventArgs& msg) override;
 	virtual bool OnDoubleClickItem(const EventArgs& args);
 
+public:
 	/** 设置子项所属的树容器
 	 * @param[in] pTreeView 容器指针
 	 */
@@ -139,6 +138,21 @@ public:
 
 #endif
 
+	/** 设置是否显示图标
+	*/
+	void SetEnableIcon(bool bEnable);
+
+	/** 监听子项展开事件
+	 * @param[in] callback 子项展开时触发的回调函数
+	 */
+	void AttachExpand(const EventCallback& callback) { AttachEvent(kEventExpand, callback); }
+
+	/** 监听子项收缩事件
+	 * @param[in] callback 子项收缩时触发的回调函数
+	 */
+	void AttachCollapse(const EventCallback& callback) { AttachEvent(kEventCollapse, callback); }
+
+private:
 	/** 设置[未展开/展开]标志图片关联的Class，如果不为空表示开启展开标志功能，为空则关闭展开标志功能
 	*   应用范围：该节点本身
 	* @param [in] expandClass 展开标志图片的Class属性
@@ -152,10 +166,6 @@ public:
 				  selected_normal_image：选择时，正常状态的图片，必选属性(即打勾时的图片)
 	*/
 	bool SetCheckBoxClass(const std::wstring& checkBoxClass);
-
-	/** 设置是否显示图标
-	*/
-	void SetEnableIcon(bool bEnable);
 
 	/** 更改所有子节点的勾选状态，但不触发选择变化事件
 	* @param [in] bChecked 勾选状态（打勾或者不打勾）
@@ -203,16 +213,6 @@ public:
 	 * @param [in] strImage 图片路径和属性
 	 */
 	void SetCollapseStateImage(ControlStateType stateType, const std::wstring& strImage);
-
-	/** 监听子项展开事件
-	 * @param[in] callback 子项展开时触发的回调函数
-	 */
-	void AttachExpand(const EventCallback& callback) { AttachEvent(kEventExpand, callback); }
-
-	/** 监听子项收缩事件
-	 * @param[in] callback 子项收缩时触发的回调函数
-	 */
-	void AttachCollapse(const EventCallback& callback) { AttachEvent(kEventCollapse, callback); }
 
 private:
 	/** 删除自身
@@ -300,6 +300,7 @@ private:
 
 class UILIB_API TreeView : public ListBox
 {
+	friend class TreeNode;
 public:
 	TreeView(void);
 
@@ -353,11 +354,6 @@ public:
 	*/
 	bool IsEnableIcon() const;
 
-	/** 树节点勾选状态变化
-	 * @param [in] pTreeNode 树节点接口
-	 */
-	void OnNodeCheckStatusChanged(TreeNode* pTreeNode);
-
 	/** 在某个树节点前添加普通控件，以实现一些效果，比如不同类型节点间的分隔符等
 	* @param [in] pTreeNode 树的节点接口，不允许为空
 	* @param [in] pControl 需要添加的普通控件接口，不允许为空
@@ -383,6 +379,12 @@ public:
 	        使用的是Check逻辑（即IsChecked()相关逻辑），Check逻辑是可以多勾选的。
 	*/
 	bool IsMultiCheckMode() const;
+
+private:
+	/** 树节点勾选状态变化
+	 * @param [in] pTreeNode 树节点接口
+	 */
+	void OnNodeCheckStatusChanged(TreeNode* pTreeNode);
 
 	/** 是否绘制选择状态下的背景色，提供虚函数作为可选项
 	   （比如ListBox/TreeView节点在多选时，由于有勾选项，并不需要绘制选择状态的背景色）
