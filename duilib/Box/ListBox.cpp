@@ -667,19 +667,52 @@ void ListBox::SetMultiSelect(bool bMultiSelect)
 {
 	m_bMultiSelect = bMultiSelect;
 	if (!bMultiSelect) {
-		//取消现有的多选
-		ListBoxItem* pItem = nullptr;
-		const size_t itemCount = m_items.size();
-		for (size_t i = 0; i < itemCount; ++i) {
-			pItem = dynamic_cast<ListBoxItem*>(m_items[i]);
-			if ((pItem != nullptr) && pItem->IsSelected()){
-				if (m_iCurSel != i) {
-					pItem->Selected(false, false);
-				}
+		//只要bMultiSelect为false，就执行取消现有多选的逻辑
+		//此处不能判断与原值是否变化来决定是否执行下面的代码，否则可能会影响子类（TreeView的逻辑）
+		if (OnSwitchToSingleSelect()) {
+			Invalidate();
+		}
+	}
+}
+
+bool ListBox::OnSwitchToSingleSelect()
+{
+	bool bChanged = false;
+	ListBoxItem* pItem = nullptr;
+	const size_t itemCount = m_items.size();
+	for (size_t i = 0; i < itemCount; ++i) {
+		pItem = dynamic_cast<ListBoxItem*>(m_items[i]);
+		if ((pItem != nullptr) && pItem->IsSelected()) {
+			if (m_iCurSel != i) {
+				pItem->SetSelected(false);
+				pItem->Invalidate();
+				bChanged = true;
 			}
 		}
-		Invalidate();
 	}
+	if (UpdateCurSelItemSelectStatus()) {
+		bChanged = true;
+	}
+	return bChanged;
+}
+
+bool ListBox::UpdateCurSelItemSelectStatus()
+{
+	//同步当前选择项的状态
+	bool bChanged = false;
+	size_t curSelIndex = GetCurSel();
+	if (Box::IsValidItemIndex(curSelIndex)) {
+		bool bSelectItem = false;
+		ListBoxItem* pItem = dynamic_cast<ListBoxItem*>(GetItemAt(curSelIndex));
+		if (pItem != nullptr) {
+			bSelectItem = pItem->IsSelected();
+		}
+		if (!bSelectItem) {
+			SetCurSel(Box::InvalidIndex);
+			bChanged = true;
+		}
+	}
+	return bChanged;
 }
 
 bool ListBox::GetScrollSelect() const

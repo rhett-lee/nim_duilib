@@ -266,7 +266,7 @@ bool TreeNode::SupportCheckedMode() const
 		return __super::SupportCheckedMode();
 	}
 	//多选的时候，支持; 单选的时候，不支持
-	return m_pTreeView->IsMultiSelect();
+	return m_pTreeView->IsMultiCheckMode();
 }
 
 TreeNode* TreeNode::GetParentNode()
@@ -445,17 +445,23 @@ void TreeNode::SetExpandImageClass(const std::wstring& expandClass)
 	AdjustExpandImagePadding();
 }
 
-void TreeNode::SetCheckBoxClass(const std::wstring& checkBoxClass)
+bool TreeNode::SetCheckBoxClass(const std::wstring& checkBoxClass)
 {
+	bool bSetOk = true;
 	if (!checkBoxClass.empty()) {
 		//开启CheckBox功能
 		SetClass(checkBoxClass);
+		if (!HasStateImage(kStateImageBk) && !HasStateImage(kStateImageSelectedBk)) {
+			ASSERT(!"TreeNode::SetCheckBoxClass failed!");
+			bSetOk = false;
+		}
 	}
 	else {
 		//关闭CheckBox功能
 		ClearStateImages();
 	}
 	AdjustCheckBoxPadding();
+	return bSetOk;
 }
 
 void TreeNode::AdjustExpandImagePadding()
@@ -934,6 +940,7 @@ TreeView::TreeView() :
 	m_rootNode(),
 	m_bEnableIcon(true)
 {
+	m_bMultiCheckMode = __super::IsMultiSelect();
 	m_rootNode.reset(new TreeNode());
 	m_rootNode->SetTreeView(this);
 	//缩进默认设置为20个像素
@@ -951,7 +958,7 @@ void TreeView::SetAttribute(const std::wstring& strName, const std::wstring& str
 	}
 	else if (strName == L"multi_select") {
 		//多选，默认是单选，在基类实现
-		ListBox::SetAttribute(strName, strValue);
+		SetMultiSelect(strValue == L"true");
 	}
 	else if (strName == L"check_box_class") {
 		//是否显示CheckBox
@@ -970,6 +977,210 @@ void TreeView::SetAttribute(const std::wstring& strName, const std::wstring& str
 	}
 }
 
+bool TreeView::IsMultiSelect() const
+{
+	if (!m_checkBoxClass.empty()) {
+		//如果显示CheckBox，以Check模式为准, 对于树的选择状态，按单选处理
+		if (IsMultiCheckMode()) {
+			return false;
+		}		
+	}
+	return __super::IsMultiSelect();
+}
+
+void TreeView::SetMultiSelect(bool bMultiSelect)
+{
+	bool bSelectChanged = (bMultiSelect != __super::IsMultiSelect()) ||
+						  (m_bMultiCheckMode != bMultiSelect);
+	if (!bSelectChanged) {
+		return;
+	}
+	bool bOldCheckMode = IsMultiCheckMode();
+	m_bMultiCheckMode = bMultiSelect;
+	__super::SetMultiSelect(bMultiSelect);
+
+	bool isChanged = false;
+	if (IsMultiCheckMode()) {
+		//切换到：Check模式（即CheckBox显示的情况）
+		if (OnCheckBoxShown()) {
+			isChanged = true;
+		}
+	}
+	else if (IsMultiSelect()) {
+		//切换到多选模式（即CheckBox被隐藏的情况）
+		if (OnCheckBoxHided()) {
+			isChanged = true;
+		}
+	}
+	else {
+		//切换到单选模式
+		if (bOldCheckMode) {
+			//从Check模式切换到单选：需要先同步当前选择项，避免出现切换后选择项不一致问题（没有勾选的，变成了当前选择项）
+			if (UpdateCurSelItemCheckStatus()) {
+				isChanged = true;
+			}
+		}
+		//切换为单选模式：确保ListBox里面的数据是单选的
+		if (OnSwitchToSingleSelect()) {
+			isChanged = true;
+		}
+	}
+	if (isChanged) {
+		Invalidate();
+	}
+}
+
+bool TreeView::IsMultiCheckMode() const
+{
+	if (!m_checkBoxClass.empty()) {
+		ASSERT(m_bMultiCheckMode == __super::IsMultiSelect());
+		return m_bMultiCheckMode;
+	}
+	return false;
+}
+
+bool TreeView::CanPaintSelectedColors(bool bHasStateImages) const
+{
+	return true;
+	if (bHasStateImages && IsMultiCheckMode()) {
+		//如果有CheckBox，Check模式的时候，默认不显示选择背景色
+		return false;
+	}
+	return __super::CanPaintSelectedColors(bHasStateImages);
+}
+
+bool TreeView::OnSwitchToSingleSelect()
+{
+	ASSERT(!IsMultiSelect());
+	bool bChanged = __super::OnSwitchToSingleSelect();
+	if (IsMultiCheckMode()) {
+		return bChanged;
+	}
+	//已经切换为单选
+	TreeNode* pItem = nullptr;
+	const size_t itemCount = m_items.size();
+	for (size_t i = 0; i < itemCount; ++i) {
+		pItem = dynamic_cast<TreeNode*>(m_items[i]);
+		if ((pItem != nullptr) && pItem->IsChecked()) {
+			if (GetCurSel() != i) {
+				//改为单选后，如果不是当前选择项，Checked标志全部改为false
+				pItem->SetChecked(false, false);
+				pItem->Invalidate();
+				bChanged = true;
+			}
+		}
+	}
+	return bChanged;
+}
+
+bool TreeView::UpdateCurSelItemCheckStatus()
+{
+	//以Check勾选项为准，设置当前选择项
+	bool bChanged = false;
+	size_t curSelIndex = GetCurSel();
+	if (Box::IsValidItemIndex(curSelIndex)) {
+		TreeNode* pItem = dynamic_cast<TreeNode*>(GetItemAt(curSelIndex));
+		if (pItem != nullptr) {
+			if (!pItem->IsChecked()) {
+				SetCurSel(Box::InvalidIndex);
+				pItem->SetSelected(false);
+				pItem->Invalidate();
+				bChanged = true;
+			}
+			else {
+				pItem->SetSelected(true);
+				pItem->Invalidate();
+			}
+		}
+	}
+	return bChanged;
+}
+
+bool TreeView::OnCheckBoxHided()
+{
+	ASSERT(IsMultiSelect() && !IsMultiCheckMode());
+	//同步方向: Check -> Select
+	if (m_items.empty()) {
+		return false;
+	}
+	bool isChaned = false;
+	TreeNode* pItem = nullptr;
+	const size_t itemCount = m_items.size();
+	for (size_t i = 0; i < itemCount; ++i) {
+		pItem = dynamic_cast<TreeNode*>(m_items[i]);
+		if (pItem == nullptr) {
+			continue;
+		}
+		//同步Check和Select标志
+		if (pItem->IsSelected() != pItem->IsChecked()) {
+			pItem->SetSelected(pItem->IsChecked());
+			pItem->Invalidate();
+			isChaned = true;
+		}
+		if (pItem->IsChecked()) {
+			//Check全部改为false
+			pItem->SetChecked(false);
+			pItem->Invalidate();
+			isChaned = true;
+		}		
+	}
+	//同步当前选择项
+	if (UpdateCurSelItemSelectStatus()) {
+		isChaned = true;
+	}
+	return isChaned;
+}
+
+bool TreeView::OnCheckBoxShown()
+{
+	ASSERT(IsMultiCheckMode());
+	//同步方向: Select -> Check
+	if (m_items.empty()) {
+		return false;
+	}
+	bool isChanged = false;
+	const size_t curSelIndex = GetCurSel();
+	TreeNode* pItem = nullptr;
+	const size_t itemCount = m_items.size();
+	for (size_t i = 0; i < itemCount; ++i) {
+		pItem = dynamic_cast<TreeNode*>(m_items[i]);
+		if (pItem == nullptr) {
+			continue;
+		}
+		//同步Select和Check标志
+		if (pItem->IsChecked() != pItem->IsSelected()) {
+			pItem->SetChecked(pItem->IsSelected());
+			pItem->Invalidate();
+			isChanged = true;
+		}
+		if (curSelIndex != i) {
+			//把选择项的状态去掉，因为Check模式下，ListBox的行为是单选行为
+			if (pItem->IsSelected()) {
+				pItem->SetSelected(false);
+				pItem->Invalidate();
+				isChanged = true;
+			}
+		}
+	}
+	//同步当前选择项	
+	if (Box::IsValidItemIndex(curSelIndex)) {
+		bool bSelectItem = false;
+		pItem = dynamic_cast<TreeNode*>(GetItemAt(curSelIndex));
+		if (pItem != nullptr) {
+			bSelectItem = pItem->IsSelected();
+		}
+		if (!bSelectItem) {
+			SetCurSel(Box::InvalidIndex);
+			isChanged = true;
+		}
+		else if(pItem->IsChecked()){
+			//同步勾选状态
+			pItem->UpdateParentCheckStatus(true);
+		}
+	}
+	return isChanged;
+}
+
 void TreeView::SetIndent(int32_t indent, bool bNeedDpiScale)
 {
 	ASSERT(indent >= 0);
@@ -983,15 +1194,73 @@ void TreeView::SetIndent(int32_t indent, bool bNeedDpiScale)
 
 void TreeView::SetCheckBoxClass(const std::wstring& className)
 {
-	bool isChanged = m_checkBoxClass != className;
+	if (m_checkBoxClass == className) {
+		return;
+	}
+	std::wstring oldCheckBoxClass = m_checkBoxClass.c_str();
 	m_checkBoxClass = className;
-	if (isChanged) {
-		for (Control* pControl : m_items) {
-			TreeNode* pTreeNode = dynamic_cast<TreeNode*>(pControl);
-			if (pTreeNode != nullptr) {
-				pTreeNode->SetCheckBoxClass(className);
+	bool bSetOk = true;
+	bool hasSetOk = false;
+	for (Control* pControl : m_items) {
+		TreeNode* pTreeNode = dynamic_cast<TreeNode*>(pControl);
+		if (pTreeNode != nullptr) {
+			if (!pTreeNode->SetCheckBoxClass(className)) {
+				bSetOk = false;
+			}
+			else {
+				hasSetOk = true;
 			}
 		}
+	}
+
+	if (!bSetOk && !hasSetOk) {
+		//无效的设置
+		ASSERT(!"TreeView::SetCheckBoxClass failed!");
+		m_checkBoxClass.clear();
+		if (oldCheckBoxClass == m_checkBoxClass) {
+			return;
+		}
+	}
+
+	bool isChanged = false;
+	if (m_checkBoxClass.empty()) {
+		//从显示CheckBox到隐藏CheckBox：有两种模式需要处理（多选模式、单选模式）
+		//需要先同步当前选择项，避免出现切换后选择项不一致问题（没有勾选的，变成了当前选择项）
+		if (UpdateCurSelItemCheckStatus()) {
+			isChanged = true;
+		}
+		if (IsMultiSelect()) {
+			//切换为多选模式
+			if (OnCheckBoxHided()) {
+				isChanged = true;
+			}
+		}
+		else {
+			//切换为单选模式：确保ListBox里面的数据是单选的
+			if (OnSwitchToSingleSelect()) {
+				isChanged = true;
+			}
+		}
+	}
+	else {
+		//从隐藏CheckBox切换为显示CheckBox：有两种模式需要处理（Check模式、单选模式）
+		if (IsMultiCheckMode()) {
+			//Check模式（即CheckBox显示的情况）
+			isChanged = OnCheckBoxShown();
+		}
+		else if(!IsMultiSelect()) {
+			//单选模式：确保ListBox里面的数据是单选的
+			if (OnSwitchToSingleSelect()) {
+				isChanged = true;
+			}
+		}
+		else {
+			//不存在这个情况
+			ASSERT(!"ERROR!");
+		}
+	}
+	if (isChanged) {
+		Invalidate();
 	}
 }
 

@@ -151,7 +151,7 @@ public:
 				  normal_image：正常状态的图片，必选属性(即不打勾时的图片)
 				  selected_normal_image：选择时，正常状态的图片，必选属性(即打勾时的图片)
 	*/
-	void SetCheckBoxClass(const std::wstring& checkBoxClass);
+	bool SetCheckBoxClass(const std::wstring& checkBoxClass);
 
 	/** 设置是否显示图标
 	*/
@@ -369,6 +369,27 @@ public:
 	*/
 	bool RemoveControl(Control* pControl);
 
+	/** 是否允许多选
+	*/
+	virtual bool IsMultiSelect() const override;
+
+	/** 设置是否允许多选
+	*/
+	virtual void SetMultiSelect(bool bMultiSelect) override;
+
+	/** 是否为多选的勾选模式，在这个函数为true的模式下，业务逻辑说明：
+	*   (1) 对于树本身的ListBox：表现为单选逻辑；
+	*   (2) 对于树节点上的CheckBox：选择逻辑（即IsSelected()相关逻辑）未使用；
+	        使用的是Check逻辑（即IsChecked()相关逻辑），Check逻辑是可以多勾选的。
+	*/
+	bool IsMultiCheckMode() const;
+
+	/** 是否绘制选择状态下的背景色，提供虚函数作为可选项
+	   （比如ListBox/TreeView节点在多选时，由于有勾选项，并不需要绘制选择状态的背景色）
+	   @param [in] bHasStateImages 当前列表项是否有CheckBox勾选项
+	*/
+	virtual bool CanPaintSelectedColors(bool bHasStateImages) const override;
+
 private:
 	//以下函数故意私有化，表明禁止使用；应该使用TreeNode中的相关函数
 	bool AddItem(Control* pControl) override;
@@ -379,6 +400,30 @@ private:
 
 	virtual void SetWindow(Window* pManager, Box* pParent, bool bInit = true) override;
 	virtual void SetWindow(Window* pManager) override;
+
+	/** 当从多选切换为单选模式的时候，需要确保列表中只有一个选择项
+	* @return 如果有变化返回true，否则返回false
+	*/
+	virtual bool OnSwitchToSingleSelect() override;
+
+	/** 同步当前选择项的勾选状态
+	* @return 如果有变化返回true，否则返回false
+	*/
+	bool UpdateCurSelItemCheckStatus();
+
+	/** 当CheckBox从显示切换到隐藏后，同步Check与Select
+	    （1）将Checked的，改为Selected；
+		（2）将所有Checked标志改为false
+	   @return 返回true表示需要重绘，否则不需要重绘
+	*/
+	bool OnCheckBoxHided();
+
+	/** 当CheckBox从隐藏切换到显示后，同步Select与Check
+		（1）将Selected的，改为Checked；
+		（2）Selected状态不改变
+	  @return 返回true表示需要重绘，否则不需要重绘
+	*/
+	bool OnCheckBoxShown();
 
 private:
 	//子节点的缩进值，单位为像素
@@ -395,6 +440,9 @@ private:
 
 	//树的根节点
 	std::unique_ptr<TreeNode> m_rootNode;
+
+	//是否允许多选(勾选模式)
+	bool m_bMultiCheckMode;
 };
 
 }

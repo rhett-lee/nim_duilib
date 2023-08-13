@@ -206,7 +206,7 @@ public:
 
 	/** 设置是否允许多选
 	*/
-	void SetMultiSelect(bool bMultiSelect);
+	virtual void SetMultiSelect(bool bMultiSelect);
 
 	/** 获取是否随滚动改变选中项设置
 	 * @return 返回 true 表示跟随滚动条改变选择项，否则为 false
@@ -244,6 +244,17 @@ public:
 						lParam: 无效值Box::InvalidIndex
 	*/
 	void AttachUnSelect(const EventCallback& callback) { AttachEvent(kEventUnSelect, callback); }
+
+protected:
+	/** 当从多选切换为单选模式的时候，需要确保列表中只有一个选择项
+	* @return 如果有变化返回true，否则返回false
+	*/
+	virtual bool OnSwitchToSingleSelect();
+
+	/** 同步当前选择项的选择状态
+	* @return 如果有变化返回true，否则返回false
+	*/
+	bool UpdateCurSelItemSelectStatus();
 
 private:
 	/**
