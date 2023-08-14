@@ -1281,14 +1281,14 @@ void Control::SetAttribute(const std::wstring& strName, const std::wstring& strV
 	}
 	else if(strName == L"height") {
 		if (strValue == L"stretch") {
-			SetFixedHeight(UiFixedInt::MakeStretch(), true);
+			SetFixedHeight(UiFixedInt::MakeStretch(), true, true);
 		}
 		else if (strValue == L"auto") {
-			SetFixedHeight(UiFixedInt::MakeAuto(), true);
+			SetFixedHeight(UiFixedInt::MakeAuto(), true, true);
 		}
 		else {
 			ASSERT(_wtoi(strValue.c_str()) >= 0);
-			SetFixedHeight(UiFixedInt(_wtoi(strValue.c_str())), true);
+			SetFixedHeight(UiFixedInt(_wtoi(strValue.c_str())), true, true);
 		}
 	}
 	else if(strName == L"state") {

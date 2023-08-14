@@ -62,7 +62,7 @@ void ControlForm::OnInitWindow()
 		ui::ListBoxItem* element = new ui::ListBoxItem;
 		element->SetText(nbase::StringPrintf(L"ui::VListBox::ListBoxItem %d", i));
 		element->SetClass(L"listitem");
-		element->SetFixedHeight(ui::UiFixedInt(20), true);
+		element->SetFixedHeight(ui::UiFixedInt(20), true, true);
 		list->AddItem(element);
 	}
 
@@ -73,7 +73,7 @@ void ControlForm::OnInitWindow()
 		{
 			ui::ListBoxItem* element = new ui::ListBoxItem;
 			element->SetClass(L"listitem");
-			element->SetFixedHeight(ui::UiFixedInt(30), true);
+			element->SetFixedHeight(ui::UiFixedInt(30), true, true);
 			element->SetBkColor(L"white");
 			element->SetTextPadding({ 6,0,6,0 });
 			element->SetText(nbase::StringPrintf(L"ui::Combo::ListBoxItem %d", i));
@@ -88,7 +88,7 @@ void ControlForm::OnInitWindow()
 		{
 			ui::CheckBox* item = new ui::CheckBox;
 			item->SetFixedWidth(ui::UiFixedInt::MakeStretch(), true, true);
-			item->SetFixedHeight(ui::UiFixedInt(24), true);
+			item->SetFixedHeight(ui::UiFixedInt(24), true, true);
 			item->SetUTF8Text(checks[i]);
 			item->SetUTF8DataID(checks[i]);
 			item->SetToolTipText(L"nim_comp::CheckCombo");
@@ -111,7 +111,7 @@ void ControlForm::OnInitWindow()
 		for (auto i = 0; i < 100; i++)
 		{
 			nim_comp::ListElementMatch* item = new nim_comp::ListElementMatch;
-			item->SetFixedHeight(ui::UiFixedInt(20), true);
+			item->SetFixedHeight(ui::UiFixedInt(20), true, true);
 			//ui::GlobalManager::Instance().FillBoxWithCache(item, L"date_export/combo/date_item.xml");
 			//Label *label = new label;
 

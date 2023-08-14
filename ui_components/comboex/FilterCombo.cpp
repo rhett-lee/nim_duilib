@@ -288,7 +288,7 @@ FilterCombo::FilterCombo() :
 	m_pRichEdit->AttachButtonDown(nbase::Bind(&FilterCombo::OnRichEditButtonDown, this, std::placeholders::_1));
 	m_pRichEdit->SetClass(L"simple");
 	m_pRichEdit->SetFixedWidth(ui::UiFixedInt::MakeStretch(), true, true);
-	m_pRichEdit->SetFixedHeight(ui::UiFixedInt::MakeStretch(), true);
+	m_pRichEdit->SetFixedHeight(ui::UiFixedInt::MakeStretch(), true, true);
 	m_pRichEdit->SetMargin({ 1, 1, 1, 1 }, true);
 	m_pRichEdit->SetAttribute(L"padding", L"2,3");
 	m_pRichEdit->SetFontId(L"system_14");

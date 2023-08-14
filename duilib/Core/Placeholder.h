@@ -127,9 +127,10 @@ public:
 
 	/**@brief 设置控件的高度
 	 * @param[in] cy 要设置的固定高度（包含内边距，不包含外边距）
+	 * @param[in] bArrange 是否重新排列，默认为 true
 	 * @param[in] bNeedDpiScale 兼容 DPI 缩放，默认为 true
 	 */
-	void SetFixedHeight(UiFixedInt cy, bool bNeedDpiScale);
+	void SetFixedHeight(UiFixedInt cy, bool bArrange, bool bNeedDpiScale);
 
 	/** 设置控件的高度（包含内边距，不包含外边距），供动画使用的接口
 	*/

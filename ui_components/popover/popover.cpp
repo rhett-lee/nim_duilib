@@ -47,7 +47,7 @@ void PopoverArrow::DoInit()
 
     SetBkColor(L"white");
     SetFixedWidth(ui::UiFixedInt(kWidth), true, true);
-    SetFixedHeight(ui::UiFixedInt(kHeight), true);
+    SetFixedHeight(ui::UiFixedInt(kHeight), true, true);
 
     SetFloat(true);
 
@@ -206,7 +206,7 @@ PopoverHeader::PopoverHeader(
     m_pButtonClose(nullptr)
 {
     SetFixedWidth(ui::UiFixedInt::MakeAuto(), true, true);
-    SetFixedHeight(ui::UiFixedInt::MakeAuto(), true);
+    SetFixedHeight(ui::UiFixedInt::MakeAuto(), true, true);
     GetLayout()->SetChildMargin(12);
 
     if (m_nIconType != kIconNone) {
@@ -228,7 +228,7 @@ PopoverHeader::PopoverHeader(
         m_pRichEditTitle->SetName(L"edit_title");
         m_pRichEditTitle->SetClass(L"popover_label popover_label_title");
         m_pRichEditTitle->SetFixedWidth(ui::UiFixedInt::MakeAuto(), true, true);
-        m_pRichEditTitle->SetFixedHeight(ui::UiFixedInt::MakeAuto(), true);
+        m_pRichEditTitle->SetFixedHeight(ui::UiFixedInt::MakeAuto(), true, true);
         m_pRichEditTitle->SetText(m_strTitle);
 
         AddItem(m_pRichEditTitle);
@@ -287,14 +287,14 @@ ui::UiEstSize PopoverHeader::EstimateSize(ui::UiSize szAvailable)
 
             if (m_bUseMaxSize) {
                 m_pRichEditTitle->SetFixedWidth(ui::UiFixedInt(editMaxSize.cx - editMargin.left - editMargin.right), true, false);
-                m_pRichEditTitle->SetFixedHeight(ui::UiFixedInt(editSize.cy), false);
+                m_pRichEditTitle->SetFixedHeight(ui::UiFixedInt(editSize.cy), true, false);
 
                 editSize.cx = editMaxSize.cx - editMargin.left - editMargin.right;
                 editSize.cy += editMargin.top + editMargin.bottom;
             }
             else {
                 m_pRichEditTitle->SetFixedWidth(ui::UiFixedInt(editSize.cx), true, false);
-                m_pRichEditTitle->SetFixedHeight(ui::UiFixedInt(editSize.cy), false);
+                m_pRichEditTitle->SetFixedHeight(ui::UiFixedInt(editSize.cy), true, false);
 
                 editSize.cx += editMargin.left + editMargin.right;
                 editSize.cy += editMargin.top + editMargin.bottom;
@@ -350,14 +350,14 @@ PopoverBody::PopoverBody(const std::wstring& content, const std::wstring& colorI
     m_pRichEditContent(nullptr)
 {
     SetFixedWidth(ui::UiFixedInt::MakeAuto(), true, true);
-    SetFixedHeight(ui::UiFixedInt::MakeAuto(), true);
+    SetFixedHeight(ui::UiFixedInt::MakeAuto(), true, true);
 
     if (content.length()) {
         m_pRichEditContent = new ui::RichEdit();
         m_pRichEditContent->SetName(L"edit_content");
         m_pRichEditContent->SetClass(L"popover_label popover_label_content");
         m_pRichEditContent->SetFixedWidth(ui::UiFixedInt::MakeAuto(), true, true);
-        m_pRichEditContent->SetFixedHeight(ui::UiFixedInt::MakeAuto(), true);
+        m_pRichEditContent->SetFixedHeight(ui::UiFixedInt::MakeAuto(), true, true);
         m_pRichEditContent->SetText(content);
 
         AddItem(m_pRichEditContent);
@@ -395,7 +395,7 @@ ui::UiEstSize PopoverBody::EstimateSize(ui::UiSize szAvailable)
             ui::UiMargin editMargin = m_pRichEditContent->GetMargin();
             editSize = m_pRichEditContent->EstimateText({ maxSize.cx - editMargin.left - editMargin.right,maxSize.cy });
 
-            m_pRichEditContent->SetFixedHeight(ui::UiFixedInt(editSize.cy), false);
+            m_pRichEditContent->SetFixedHeight(ui::UiFixedInt(editSize.cy), true, false);
             m_pRichEditContent->SetFixedWidth(ui::UiFixedInt(editSize.cx), true, false);
 
             editSize.cx += editMargin.left + editMargin.right;
@@ -446,7 +446,7 @@ PopoverFooter::PopoverFooter(const std::wstring& strOk,
     m_strCancel(strCancel)
 {
     SetFixedWidth(ui::UiFixedInt::MakeAuto(), true, true);
-    SetFixedHeight(ui::UiFixedInt::MakeAuto(), true);
+    SetFixedHeight(ui::UiFixedInt::MakeAuto(), true, true);
     GetLayout()->SetChildMargin(12);
 }
 
@@ -618,7 +618,7 @@ Popover::Popover(ui::Control* pAnchor,
 
     // set width height 
     SetFixedWidth(ui::UiFixedInt::MakeAuto(), true, true);
-    SetFixedHeight(ui::UiFixedInt::MakeAuto(), true);
+    SetFixedHeight(ui::UiFixedInt::MakeAuto(), true, true);
 
     // show shadow
     SetClass(L"popover_shadow");
@@ -1258,7 +1258,7 @@ PopoverLayer::PopoverLayer() :
     SetFloat(true);
     SetShowMask(m_bShowMask);
     SetFixedWidth(ui::UiFixedInt::MakeStretch(), true, true);
-    SetFixedHeight(ui::UiFixedInt::MakeStretch(), true);
+    SetFixedHeight(ui::UiFixedInt::MakeStretch(), true, true);
 
     // DO NOT DELAY DESTROY
     SetDelayedDestroy(false);

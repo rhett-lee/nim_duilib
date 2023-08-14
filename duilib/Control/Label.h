@@ -155,11 +155,11 @@ LabelTemplate<InheritType>::LabelTemplate() :
 {
     if (dynamic_cast<Box*>(this)) {
         this->SetFixedWidth(UiFixedInt::MakeStretch(), false, false);
-        this->SetFixedHeight(UiFixedInt::MakeStretch(), false);
+        this->SetFixedHeight(UiFixedInt::MakeStretch(), false, false);
     }
     else {
         this->SetFixedWidth(UiFixedInt::MakeAuto(), false, false);
-        this->SetFixedHeight(UiFixedInt::MakeAuto(), false);
+        this->SetFixedHeight(UiFixedInt::MakeAuto(), false, false);
     }
 }
 

@@ -438,7 +438,7 @@ public:
         ui::UiRect rc = m_pAnchor->GetPos();
 
         SetFixedWidth(ui::UiFixedInt(rc.Width()), true, true);
-        SetFixedHeight(ui::UiFixedInt(rc.Height()), true);
+        SetFixedHeight(ui::UiFixedInt(rc.Height()), true, true);
 
         SetPos(rc);
 
@@ -449,7 +449,7 @@ public:
         rc = m_pAnchor->GetPos();
 
         SetFixedWidth(ui::UiFixedInt(rc.Width()), true, true);
-        SetFixedHeight(ui::UiFixedInt(rc.Height()), true);
+        SetFixedHeight(ui::UiFixedInt(rc.Height()), true, true);
 
         ui::Control::SetPos(rc);
 

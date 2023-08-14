@@ -115,6 +115,6 @@ void Toast::SetContent(const std::wstring &str)
 	int width = content_->GetFixedWidth().GetInt32();
 
 	ui::UiSize sz = content_->GetNaturalSize(width, 0);
-	content_->SetFixedHeight(ui::UiFixedInt(sz.cy), true);
+	content_->SetFixedHeight(ui::UiFixedInt(sz.cy), true, true);
 }
 }

@@ -190,7 +190,7 @@ ShadowCombo::ShadowCombo():
     m_cArrow->SetStateImage(ui::kControlStateNormal, L"../public/combo/arrow_normal.svg");
     m_cArrow->SetStateImage(ui::kControlStateHot, L"../public/combo/arrow_hot.svg");
     m_cArrow->SetFixedWidth(ui::UiFixedInt::MakeAuto(), true, true);
-    m_cArrow->SetFixedHeight(ui::UiFixedInt::MakeAuto(), true);
+    m_cArrow->SetFixedHeight(ui::UiFixedInt::MakeAuto(), true, true);
 }
 
 ShadowCombo::~ShadowCombo() 

@@ -192,10 +192,10 @@ Box* Shadow::AttachShadow(Box* pRoot)
 	if (pRoot->GetFixedHeight().IsInt32()) {
 		int32_t rootHeight = pRoot->GetFixedHeight().GetInt32();
 		rootHeight += m_rcShadowCorner.top + m_rcShadowCorner.bottom;
-		m_pRoot->SetFixedHeight(UiFixedInt(rootHeight), false);
+		m_pRoot->SetFixedHeight(UiFixedInt(rootHeight), true, false);
 	}
 	else {
-		m_pRoot->SetFixedHeight(pRoot->GetFixedHeight(), false);
+		m_pRoot->SetFixedHeight(pRoot->GetFixedHeight(), true, false);
 	}
 
 	if (m_bUseDefaultImage)	{

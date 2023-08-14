@@ -47,7 +47,7 @@ ScrollBar::ScrollBar() :
 
 	//TODO: DPI自适应参数，需要确认一下
 	SetFixedWidth(UiFixedInt(DEFAULT_SCROLLBAR_SIZE), false, false);
-	SetFixedHeight(UiFixedInt(0), false);
+	SetFixedHeight(UiFixedInt(0), true, false);
 	m_ptLastMouse.x = 0;
 	m_ptLastMouse.y = 0;
 	SetFloat(true);
@@ -658,13 +658,13 @@ void ScrollBar::SetHorizontal(bool bHorizontal)
 	if( m_bHorizontal ) {
 		if(GetFixedHeight().GetInt32() == 0 ) {
 			SetFixedWidth(UiFixedInt(0), false, false);
-			SetFixedHeight(UiFixedInt(DEFAULT_SCROLLBAR_SIZE), false);
+			SetFixedHeight(UiFixedInt(DEFAULT_SCROLLBAR_SIZE), true, false);
 		}
 	}
 	else {
 		if(GetFixedWidth().GetInt32() == 0) {
 			SetFixedWidth(UiFixedInt(DEFAULT_SCROLLBAR_SIZE), false, false);
-			SetFixedHeight(UiFixedInt(0), false);
+			SetFixedHeight(UiFixedInt(0), true, false);
 		}
 	}
 

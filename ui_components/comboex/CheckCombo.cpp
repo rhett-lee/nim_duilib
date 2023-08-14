@@ -324,7 +324,7 @@ namespace nim_comp
 
 		ui::Label *item = new ui::Label;
 		item->SetFixedWidth(ui::UiFixedInt::MakeAuto(), true, true);
-		item->SetFixedHeight(ui::UiFixedInt(22), true);
+		item->SetFixedHeight(ui::UiFixedInt(22), true, true);
 		item->SetMargin({ 4, 2, 4, 2 }, true);
 		item->SetBkColor(L"bk_menuitem_selected");
 		item->SetTextPadding({ 2, 3, 2, 3 });
@@ -333,7 +333,7 @@ namespace nim_comp
 
 		m_pList->AddItem(item);
 
-		SetFixedHeight(ui::UiFixedInt((int)m_pList->GetItemCount() * m_iOrgHeight), true);
+		SetFixedHeight(ui::UiFixedInt((int)m_pList->GetItemCount() * m_iOrgHeight), true, true);
 
 		return true;
 	}
@@ -361,7 +361,7 @@ namespace nim_comp
 			m_pList->RemoveItem(pRemove);
 		}
 
-		SetFixedHeight(ui::UiFixedInt((int)m_pList->GetItemCount() * m_iOrgHeight), true);
+		SetFixedHeight(ui::UiFixedInt((int)m_pList->GetItemCount() * m_iOrgHeight), true, true);
 		return true;
 	}
 
@@ -369,7 +369,7 @@ namespace nim_comp
 	{
 		m_pList->RemoveAllItems();
 		m_pDropList->RemoveAllItems();
-		SetFixedHeight(ui::UiFixedInt(m_iOrgHeight), true);
+		SetFixedHeight(ui::UiFixedInt(m_iOrgHeight), true, true);
 		m_vecDate.clear();
 	}
 

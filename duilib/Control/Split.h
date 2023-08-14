@@ -287,7 +287,7 @@ void SplitTemplate<InheritType>::AdjustControlPos(bool bHLayout, const int32_t n
         pFirst->SetFixedWidth(UiFixedInt(nNewValue), true, false);
     }
     else {
-        pFirst->SetFixedHeight(UiFixedInt(nNewValue), false);
+        pFirst->SetFixedHeight(UiFixedInt(nNewValue), true, false);
     }
 }
 

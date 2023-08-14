@@ -32,7 +32,7 @@ namespace ui
 		{
 			m_pReEdit->SetVisible(true);
 			m_pReEdit->SetFixedWidth(ui::UiFixedInt(m_hLayout[col_index] - 1), true, true);
-			m_pReEdit->SetFixedHeight(ui::UiFixedInt(m_vLayout[row_index] - 1), true);
+			m_pReEdit->SetFixedHeight(ui::UiFixedInt(m_vLayout[row_index] - 1), true, true);
 			m_pReEdit->SetMargin({ posx, posy, 0, 0 }, true);
 			m_pReEdit->SetText(item->text);
 			m_pReEdit->SetFocus();
@@ -43,14 +43,14 @@ namespace ui
 		{
 			m_pComboEdit->SetVisible(true);
 			m_pComboEdit->SetFixedWidth(ui::UiFixedInt(m_hLayout[col_index] - 1), true, true);
-			m_pComboEdit->SetFixedHeight(ui::UiFixedInt(m_vLayout[row_index] - 1), true);
+			m_pComboEdit->SetFixedHeight(ui::UiFixedInt(m_vLayout[row_index] - 1), true, true);
 			m_pComboEdit->SetMargin({ posx, posy, 0, 0 }, true);
 
 			m_pComboEdit->RemoveAllItems();
 			for (size_t i = 0; i < item->combo_list.size(); i++)
 			{
 				ui::ListBoxItem *combo_item = new ui::ListBoxItem;
-				combo_item->SetFixedHeight(ui::UiFixedInt(20), true);
+				combo_item->SetFixedHeight(ui::UiFixedInt(20), true, true);
 				combo_item->SetText(item->combo_list[i]);
 				m_pComboEdit->AddItem(combo_item);
 				if (item->text == item->combo_list[i])
@@ -305,7 +305,7 @@ namespace ui
 	GridBody::GridBody(Grid *pGrid) : m_selRange(this), m_pGrid(pGrid){
 		m_vLayout.push_back(m_defaultRowHeight);		//insert header hegith
 		m_vecRow.push_back(new GridRow());
-		SetFixedHeight(ui::UiFixedInt(m_defaultRowHeight), true);
+		SetFixedHeight(ui::UiFixedInt(m_defaultRowHeight), true, true);
 		AddCol(L"ÐÐºÅ", 30);
 		SetFixedColCount(1);
 		SetFixedRowCount(1);
@@ -460,7 +460,7 @@ namespace ui
 			}
 			
 			ASSERT(m_vecRow.size() == m_vLayout.size());
-			SetFixedHeight(ui::UiFixedInt(_SumIntList(m_vLayout)), true);
+			SetFixedHeight(ui::UiFixedInt(_SumIntList(m_vLayout)), true, true);
 
 			m_selRange.Clear();
 			Invalidate();
@@ -498,7 +498,7 @@ namespace ui
 			m_vecRow.erase(m_vecRow.begin() + count, m_vecRow.end());
 			m_vLayout.erase(m_vLayout.begin() + count, m_vLayout.end());
 
-			SetFixedHeight(ui::UiFixedInt(_SumIntList(m_vLayout)), true);
+			SetFixedHeight(ui::UiFixedInt(_SumIntList(m_vLayout)), true, true);
 			Invalidate();
 		}
 #ifdef _DEBUG
@@ -577,7 +577,7 @@ namespace ui
 			if (m_vLayout[row_index] != height)
 			{
 				m_vLayout[row_index] = height;
-				SetFixedHeight(ui::UiFixedInt(_SumIntList(m_vLayout)), true);
+				SetFixedHeight(ui::UiFixedInt(_SumIntList(m_vLayout)), true, true);
 				/*OnRowHeightChanged(row_index, height);*/
 				Invalidate();
 			}
@@ -598,7 +598,7 @@ namespace ui
 		if (m_vLayout.size() > 0 && m_vLayout[0] != height)
 		{
 			m_vLayout[0] = height;
-			SetFixedHeight(ui::UiFixedInt(_SumIntList(m_vLayout)), true);
+			SetFixedHeight(ui::UiFixedInt(_SumIntList(m_vLayout)), true, true);
 			Invalidate();
 		}
 	}
@@ -740,9 +740,9 @@ namespace ui
 		ASSERT(m_vecRow.size() == m_vLayout.size());
 		int fixHeight = GetFixedHeight().GetInt32();
 		if (fixHeight >= 0)
-			SetFixedHeight(ui::UiFixedInt(fixHeight + m_defaultRowHeight), true);
+			SetFixedHeight(ui::UiFixedInt(fixHeight + m_defaultRowHeight), true, true);
 		else
-			SetFixedHeight(ui::UiFixedInt(_SumIntList(m_vLayout)), true);
+			SetFixedHeight(ui::UiFixedInt(_SumIntList(m_vLayout)), true, true);
 
 		/*m_selRange.Clear();*/
 		Invalidate();
@@ -807,7 +807,7 @@ namespace ui
 			if (m_nFixedRow > (size_t)row_index)
 				m_nFixedRow--;
 
-			SetFixedHeight(ui::UiFixedInt(_SumIntList(m_vLayout)), true);
+			SetFixedHeight(ui::UiFixedInt(_SumIntList(m_vLayout)), true, true);
 			Invalidate();
 			ret = true;
 		}

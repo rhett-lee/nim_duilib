@@ -30,7 +30,7 @@ ui::UiEstSize TooltipBody::EstimateSize(ui::UiSize szAvailable)
         ui::UiMargin editMargin = m_pRichEditContent->GetMargin();
         editSize = m_pRichEditContent->EstimateText({ maxSize.cx - editMargin.left - editMargin.right,maxSize.cy });
 
-        m_pRichEditContent->SetFixedHeight(ui::UiFixedInt(editSize.cy), false);
+        m_pRichEditContent->SetFixedHeight(ui::UiFixedInt(editSize.cy), true, false);
         m_pRichEditContent->SetFixedWidth(ui::UiFixedInt(editSize.cx), true, false);
 
         editSize.cx += editMargin.left + editMargin.right;

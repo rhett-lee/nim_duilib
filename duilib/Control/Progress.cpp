@@ -20,7 +20,7 @@ Progress::Progress() :
     m_bReverse(false)
 {
 	SetTextStyle(TEXT_SINGLELINE | TEXT_CENTER, false);
-	SetFixedHeight(UiFixedInt(12), true);
+	SetFixedHeight(UiFixedInt(12), true, true);
 }
 
 Progress::~Progress()
