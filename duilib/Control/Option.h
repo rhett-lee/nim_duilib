@@ -59,6 +59,9 @@ OptionTemplate<InheritType>::~OptionTemplate()
 template<typename InheritType>
 inline std::wstring OptionTemplate<InheritType>::GetType() const { return DUI_CTR_OPTION; }
 
+template<>
+inline std::wstring OptionTemplate<Box>::GetType() const { return DUI_CTR_OPTIONBOX; }
+
 template<typename InheritType>
 void OptionTemplate<InheritType>::SetWindow(Window* pManager, Box* pParent, bool bInit)
 {

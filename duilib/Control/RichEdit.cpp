@@ -2550,11 +2550,11 @@ void RichEdit::HandleEvent(const EventArgs& event)
 		OnMouseMessage(WM_LBUTTONDBLCLK, event);
 		return;
 	}
-	if (event.Type == kEventMouseRightButtonDown) {
+	if (event.Type == kEventMouseRButtonDown) {
 		OnMouseMessage(WM_RBUTTONDOWN, event);
 		return;
 	}
-	if (event.Type == kEventMouseRightButtonUp) {
+	if (event.Type == kEventMouseRButtonUp) {
 		OnMouseMessage(WM_RBUTTONUP, event);
 		return;
 	}

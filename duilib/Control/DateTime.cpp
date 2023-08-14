@@ -391,7 +391,7 @@ void DateTime::HandleEvent(const EventArgs& event)
     }
     if ((event.Type == kEventMouseButtonDown) || 
         (event.Type == kEventMouseDoubleClick) ||
-        (event.Type == kEventMouseRightButtonDown)) {
+        (event.Type == kEventMouseRButtonDown)) {
         if (IsEnabled()) {
             if (GetWindow() != nullptr) {
                 GetWindow()->ReleaseCapture();

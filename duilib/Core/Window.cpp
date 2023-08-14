@@ -1428,7 +1428,7 @@ LRESULT Window::OnRButtonDownMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& 
 	ASSERT_UNUSED_VARIABLE(uMsg == WM_RBUTTONDOWN);
 	bHandled = false;
 	UiPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
-	OnButtonDown(kEventMouseRightButtonDown, wParam, lParam, pt);
+	OnButtonDown(kEventMouseRButtonDown, wParam, lParam, pt);
 	return 0;
 }
 
@@ -1446,7 +1446,7 @@ LRESULT Window::OnRButtonDoubleClickMsg(UINT uMsg, WPARAM wParam, LPARAM lParam,
 	ASSERT_UNUSED_VARIABLE(uMsg == WM_LBUTTONDBLCLK);
 	bHandled = false;
 	UiPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
-	OnButtonDown(kEventMouseRightDoubleClick, wParam, lParam, pt);
+	OnButtonDown(kEventMouseRDoubleClick, wParam, lParam, pt);
 	return 0;
 }
 
@@ -1464,7 +1464,7 @@ LRESULT Window::OnRButtonUpMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bH
 	ASSERT_UNUSED_VARIABLE(uMsg == WM_RBUTTONUP);
 	bHandled = false;
 	UiPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
-	OnButtonUp(kEventMouseRightButtonUp, wParam, lParam, pt);
+	OnButtonUp(kEventMouseRButtonUp, wParam, lParam, pt);
 	return 0;
 }
 
@@ -1497,7 +1497,7 @@ LRESULT Window::OnContextMenuMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& 
 
 void Window::OnButtonDown(EventType eventType, WPARAM wParam, LPARAM lParam, const UiPoint& pt)
 {
-	ASSERT(eventType == kEventMouseButtonDown || eventType == kEventMouseRightButtonDown || eventType == kEventMouseDoubleClick);
+	ASSERT(eventType == kEventMouseButtonDown || eventType == kEventMouseRButtonDown || eventType == kEventMouseDoubleClick);
 	CheckSetFocusWindow();
 	m_ptLastMousePos = pt;
 	Control* pControl = FindControl(pt);
@@ -1511,7 +1511,7 @@ void Window::OnButtonDown(EventType eventType, WPARAM wParam, LPARAM lParam, con
 
 void Window::OnButtonUp(EventType eventType, WPARAM wParam, LPARAM lParam, const UiPoint& pt)
 {
-	ASSERT(eventType == kEventMouseButtonUp || eventType == kEventMouseRightButtonUp);
+	ASSERT(eventType == kEventMouseButtonUp || eventType == kEventMouseRButtonUp);
 	m_ptLastMousePos = pt;
 	ReleaseCapture();
 	if (m_pEventClick != nullptr) {

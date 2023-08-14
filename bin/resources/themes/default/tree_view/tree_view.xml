@@ -24,7 +24,7 @@
         
         <!-- 显示区域 --> 
         <VBox>            
-            <HBox height="36" bkcolor="gray" border_size="1,1,1,0" border_color="blue">
+            <HBox minheight="18" bkcolor="gray" height="auto">
                 <Label text="功能控制：" valign="center" margin="12,0,10,0"/>
                 <Option class="btn_global_blue_80x30" group="expand" selected="true" width="auto" height="32" text="显示展开标志" padding="18,0,18,0" margin="8,0,0,0" borderround="2,2" valign="center">
                     <Event type="buttonup" receiver="tree" applyattribute="expand_image_class={tree_view_item_expand}" />
@@ -51,11 +51,15 @@
                     <Event type="buttonup" receiver="tree" applyattribute="multi_select={false}" />
                 </Option>
             </HBox>
-            <HBox>
-                <HBox width="300" bkcolor="SeaShell" border_size="1,1,0,1" border_color="blue">
+            <!-- 横向分割条，用于调整上下区域大小 -->
+            <Split bkcolor="splitline_level1" height="2"/>
+            <HBox minheight="60">
+                <HBox width="300" minwidth="60" bkcolor="SeaShell" border_size="1,1,0,1" border_color="blue">
                     <TreeView class="tree_view" name="tree" padding="5,3,5,3" indent="20"/>
                 </HBox>
-                <HBox bkcolor="Pink" border_size="1" border_color="blue">
+                <!-- 纵向分割条，用于调整左右区域大小 -->
+                <Split bkcolor="splitline_level1" width="2"/>
+                <HBox bkcolor="Pink" border_size="1" border_color="blue" minwidth="60">
                     <VirtualVTileListBox class="list" name="list" columns="auto" itemsize="200,120" multi_select="false" vscrollbar="true" hscrollbar="true" bordersize="1" bordercolor="splitline_level2" padding="1,1,1,1"/>
                 </HBox>
             </HBox>

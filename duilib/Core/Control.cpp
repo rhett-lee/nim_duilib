@@ -1013,6 +1013,14 @@ void Control::HandleEvent(const EventArgs& msg)
 			::SetCursor(::LoadCursor(NULL, IDC_IBEAM));
 			return;
 		}
+		else if (m_cursorType == kCursorSizeWE) {
+			::SetCursor(::LoadCursor(NULL, IDC_SIZEWE));
+			return;
+		}
+		else if (m_cursorType == kCursorSizeNS) {
+			::SetCursor(::LoadCursor(NULL, IDC_SIZENS));
+			return;
+		}
 		else {
 			ASSERT(FALSE);
 		}
@@ -1051,6 +1059,18 @@ void Control::HandleEvent(const EventArgs& msg)
 	}
 	else if (msg.Type == kEventMouseButtonUp) {
 		ButtonUp(msg);
+		return;
+	}
+	else if (msg.Type == kEventMouseRButtonDown) {
+		RButtonDown(msg);
+		return;
+	}
+	else if (msg.Type == kEventMouseRButtonUp) {
+		RButtonUp(msg);
+		return;
+	}
+	else if (msg.Type == kEventMouseMove) {
+		MouseMove(msg);
 		return;
 	}
 
@@ -1145,6 +1165,32 @@ bool Control::ButtonUp(const EventArgs& msg)
 	}
 
 	return ret;
+}
+
+bool Control::RButtonDown(const EventArgs& /*msg*/)
+{
+	bool ret = false;
+	if (IsEnabled()) {
+		SetMouseFocused(true);
+		ret = true;
+	}
+	return ret;
+}
+
+bool Control::RButtonUp(const EventArgs& /*msg*/)
+{
+	bool ret = false;
+	if (IsMouseFocused()) {
+		SetMouseFocused(false);
+		SendEvent(kEventRClick);
+		ret = true;
+	}
+	return ret;
+}
+
+bool Control::MouseMove(const EventArgs& /*msg*/)
+{
+	return true;
 }
 
 void Control::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
@@ -1271,6 +1317,12 @@ void Control::SetAttribute(const std::wstring& strName, const std::wstring& strV
 		}
 		else if (strValue == L"ibeam") {
 			SetCursorType(kCursorHandIbeam);
+		}
+		else if (strValue == L"sizewe") {
+			SetCursorType(kCursorSizeWE);
+		}
+		else if (strValue == L"sizens") {
+			SetCursorType(kCursorSizeNS);
 		}
 		else {
 			ASSERT(FALSE);

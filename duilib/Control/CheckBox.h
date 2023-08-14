@@ -262,6 +262,9 @@ CheckBoxTemplate<InheritType>::~CheckBoxTemplate()
 template<typename InheritType>
 inline std::wstring CheckBoxTemplate<InheritType>::GetType() const { return DUI_CTR_CHECKBOX; }
 
+template<>
+inline std::wstring CheckBoxTemplate<Box>::GetType() const { return DUI_CTR_CHECKBOXBOX; }
+
 template<typename InheritType>
 bool CheckBoxTemplate<InheritType>::ButtonUp(const EventArgs& msg)
 {

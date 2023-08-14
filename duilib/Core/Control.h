@@ -806,6 +806,13 @@ public:
 	void AttachClick(const EventCallback& callback) { AttachEvent(kEventClick, callback); }
 
 	/**
+	* @brief 绑定鼠标右键点击处理函数
+	* @param[in] callback 要绑定的回调函数
+	* @return 无
+	*/
+	void AttachRClick(const EventCallback& callback) { AttachEvent(kEventRClick, callback); }
+
+	/**
 	* @brief 监听控件关闭前最后一条消息
 	* @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
 	* @return 无
@@ -921,12 +928,15 @@ protected:
 	//处理放弃控件焦点相关逻辑
 	void EnsureNoFocus();
 	
-	/// 消息处理的保护成员函数，不允许外部直接调用
+	///消息处理的保护成员函数，不允许外部直接调用
 	virtual void HandleEvent(const EventArgs& msg);
 	virtual bool MouseEnter(const EventArgs& msg);
 	virtual bool MouseLeave(const EventArgs& msg);
 	virtual bool ButtonDown(const EventArgs& msg);
 	virtual bool ButtonUp(const EventArgs& msg);
+	virtual bool RButtonDown(const EventArgs& msg);
+	virtual bool RButtonUp(const EventArgs& msg);
+	virtual bool MouseMove(const EventArgs& msg);
 
 	/// 绘制相关保护成员函数，不允许外部直接调用
 	virtual void PaintShadow(IRender* pRender);

@@ -650,5 +650,8 @@
     <ClInclude Include="Core\IconManager.h">
       <Filter>Core</Filter>
     </ClInclude>
+    <ClInclude Include="Control\Split.h">
+      <Filter>Control</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

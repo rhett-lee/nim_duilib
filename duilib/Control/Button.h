@@ -26,6 +26,12 @@ public:
 };
 
 template<typename InheritType>
+inline std::wstring ButtonTemplate<InheritType>::GetType() const { return DUI_CTR_BUTTON; }
+
+template<>
+inline std::wstring ButtonTemplate<Box>::GetType() const { return DUI_CTR_BUTTONBOX; }
+
+template<typename InheritType>
 UINT ui::ButtonTemplate<InheritType>::GetControlFlags() const
 {
     return this->IsKeyboardEnabled() && this->IsEnabled() && this->IsAllowTabStop() ? UIFLAG_TABSTOP : UIFLAG_DEFAULT;
@@ -62,9 +68,6 @@ void ButtonTemplate<InheritType>::HandleEvent(const EventArgs& event)
     }
     __super::HandleEvent(event);
 }
-
-template<typename InheritType>
-inline std::wstring ButtonTemplate<InheritType>::GetType() const { return DUI_CTR_BUTTON; }
 
 template<typename InheritType>
 void ButtonTemplate<InheritType>::Activate()

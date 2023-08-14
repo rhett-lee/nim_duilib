@@ -99,6 +99,7 @@
 #include "Control/Button.h"
 #include "Control/CheckBox.h"
 #include "Control/Option.h"
+#include "Control/Split.h"
 
 #include "Control/Progress.h"
 #include "Control/CircleProgress.h"

@@ -433,6 +433,7 @@
     <ClInclude Include="Control\observer_impl_base.hpp" />
     <ClInclude Include="Control\RichText.h" />
     <ClInclude Include="Control\CircleProgress.h" />
+    <ClInclude Include="Control\Split.h" />
     <ClInclude Include="Core\Box.h" />
     <ClInclude Include="Core\BoxShadow.h" />
     <ClInclude Include="Core\ColorManager.h" />

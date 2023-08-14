@@ -45,11 +45,13 @@ namespace ui
 	#define  DUI_CTR_BUTTON                          (L"Button")
 	#define  DUI_CTR_OPTION                          (L"Option")
 	#define  DUI_CTR_CHECKBOX                        (L"CheckBox")
+	#define  DUI_CTR_SPLIT							 (L"Split")
 
 	#define  DUI_CTR_LABELBOX                        (L"LabelBox")
 	#define  DUI_CTR_BUTTONBOX                       (L"ButtonBox")
 	#define  DUI_CTR_OPTIONBOX                       (L"OptionBox")
 	#define  DUI_CTR_CHECKBOXBOX                     (L"CheckBoxBox")
+	#define  DUI_CTR_SPLITBOX					     (L"SplitBox")
 
 	#define  DUI_CTR_BOX							 (L"Box")
 	#define  DUI_CTR_HBOX							 (L"HBox")
@@ -204,7 +206,9 @@ namespace ui
 	{
 		kCursorArrow,		// 箭头
 		kCursorHand,		// 手型
-		kCursorHandIbeam	// “I”形状
+		kCursorHandIbeam,	// “I”形状
+		kCursorSizeWE,		// 左右拖动
+		kCursorSizeNS		// 上下拖动
 	};
 
 	//定义所有消息类型
@@ -229,9 +233,9 @@ namespace ui
 		kEventMouseButtonDown,		//Window类：当收到WM_LBUTTONDOWN消息时触发，发送给鼠标左键按下时对应的控件
 		kEventMouseButtonUp,		//Window类：当收到WM_LBUTTONUP消息时触发，发送给鼠标左键按下时对应的控件
 		kEventMouseDoubleClick,		//Window类：当收到WM_LBUTTONDBLCLK消息时触发，发送给当前鼠标所在位置对应的控件		
-		kEventMouseRightButtonDown,	//Window类：当收到WM_RBUTTONDOWN消息时触发，发送给鼠标右键按下时对应的控件
-		kEventMouseRightButtonUp,	//Window类：当收到WM_RBUTTONUP消息时触发，发送给鼠标右键按下时对应的控件
-		kEventMouseRightDoubleClick,//Window类：当收到WM_RBUTTONDBLCLK消息时触发，发送给当前鼠标所在位置对应的控件	
+		kEventMouseRButtonDown,		//Window类：当收到WM_RBUTTONDOWN消息时触发，发送给鼠标右键按下时对应的控件
+		kEventMouseRButtonUp,		//Window类：当收到WM_RBUTTONUP消息时触发，发送给鼠标右键按下时对应的控件
+		kEventMouseRDoubleClick,	//Window类：当收到WM_RBUTTONDBLCLK消息时触发，发送给当前鼠标所在位置对应的控件	
 		kEventMouseMenu,			//Window类：当收到WM_CONTEXTMENU消息时触发，发送给所有注册回调函数的控件
 		kEventMouseEnd,
 
@@ -246,6 +250,7 @@ namespace ui
 		kEventWindowClose,			//Window类，Combo控件：当窗口关闭（或者Combo的下拉框窗口关闭）时触发
 
 		kEventClick,				//Button类、ListBoxItem、Option、CheckBox等：当点击按钮（或者键盘回车）时触发
+		kEventRClick,				//Control类：当鼠标右键弹起时触发
 
 		kEventSelect,				//CheckBox类、Option类、ListBox类、Combo类：当变成选中状态时触发
 		kEventUnSelect,			    //CheckBox类、Option类、ListBox类、Combo类：当变成非选中状态时触发

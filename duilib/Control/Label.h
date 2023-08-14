@@ -175,6 +175,9 @@ LabelTemplate<InheritType>::~LabelTemplate()
 template<typename InheritType>
 inline std::wstring LabelTemplate<InheritType>::GetType() const { return DUI_CTR_LABEL; }
 
+template<>
+inline std::wstring LabelTemplate<Box>::GetType() const { return DUI_CTR_LABELBOX; }
+
 template<typename InheritType>
 std::wstring LabelTemplate<InheritType>::GetText() const
 {
