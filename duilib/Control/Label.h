@@ -424,6 +424,9 @@ void LabelTemplate<InheritType>::SetAttribute(const std::wstring& strName, const
     else if ((strName == L"single_line") || (strName == L"singleline") ){
         SetSingleLine(strValue == L"true");
     }
+    else if ((strName == L"multi_line") || (strName == L"multiline")) {
+        SetSingleLine(strValue != L"true");
+    }
     else if (strName == L"text") {
         SetText(strValue);
     }

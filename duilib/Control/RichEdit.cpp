@@ -2887,6 +2887,14 @@ void RichEdit::SetAttribute(const std::wstring& strName, const std::wstring& str
 			m_lTwhStyle &= ~ES_AUTOHSCROLL;
 		}
 	}
+	else if ((strName == L"single_line") || (strName == L"singleline")) {
+		if (strValue == L"true") {
+			m_lTwhStyle &= ~ES_MULTILINE;
+		}
+		else if (strValue == L"false") {
+			m_lTwhStyle |= ES_MULTILINE;
+		}
+	}
 	else if ((strName == L"multi_line") || (strName == L"multiline")) {
 		if (strValue == L"false") {
 			m_lTwhStyle &= ~ES_MULTILINE;
@@ -2966,20 +2974,28 @@ void RichEdit::SetAttribute(const std::wstring& strName, const std::wstring& str
 		}
 	}
 	else if ((strName == L"caret_color") || (strName == L"caretcolor")){
+		//设置光标的颜色
 		SetCaretColor(strValue);
 	}
 	else if ((strName == L"prompt_mode") || (strName == L"promptmode")){
+		//提示模式
 		if (strValue == L"true") {
 			m_bAllowPrompt = true;
 		}
+		else {
+			m_bAllowPrompt = false;
+		}
 	}
 	else if ((strName == L"prompt_color") || (strName == L"promptcolor")){
+		//提示文字的颜色
 		m_sPromptColor = strValue;
 	}
 	else if ((strName == L"prompt_text") || (strName == L"prompttext")) {
+		//提示文字
 		SetPromptText(strValue);
 	}
 	else if ((strName == L"prompt_textid") || (strName == L"prompttextid")){
+		//提示文字ID
 		SetPromptTextId(strValue);
 	}
 	else if ((strName == L"focused_image") || (strName == L"focusedimage")){
@@ -3007,6 +3023,7 @@ void RichEdit::SetAttribute(const std::wstring& strName, const std::wstring& str
 		SetRich(strValue == L"true");
 	}
 	else if ((strName == L"max_char") || (strName == L"maxchar")){
+		//限制最多字符数（默认为32KB）
 		SetLimitText(_wtoi(strValue.c_str()));
 	}
 	else {
