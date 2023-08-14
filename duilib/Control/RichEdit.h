@@ -5,19 +5,15 @@
 
 #include "duilib/Box/ScrollBox.h"
 #include "duilib/Image/Image.h"
-#include <Imm.h>
-#include <richedit.h>
-#include <RichOle.h>
-#include <textserv.h>
+#include <Richedit.h>
 
 namespace ui 
 {
 
-class CTxtWinHost;
+class RichEditHost;
 class UILIB_API RichEdit : public ScrollBox
 {
 public:
-	friend class CTxtWinHost;
 	typedef std::function<bool(LONG, LONG, UiSize&)> FunGetNaturalSize;
 public:
 	RichEdit();
@@ -592,11 +588,11 @@ public:
 	bool SetDropAcceptFile(bool bAccept);
 	virtual void OnTxNotify(DWORD iNotify, void *pv);
     virtual bool OnTxTextChanged();
-	ITextHost* GetTextHost();
-	ITextServices* GetTextServices();
+	//ITextHost* GetTextHost();
+	//ITextServices* GetTextServices();
 	HWND GetWindowHandle();
 	HDC GetWindowDC();
-	BOOL SetOleCallback(IRichEditOleCallback* pCallback);
+	//BOOL SetOleCallback(IRichEditOleCallback* pCallback);
 	UiSize GetNaturalSize(LONG width, LONG height);
 	void SetImmStatus(BOOL bOpen);
 	void SetTimer(UINT idTimer, UINT uTimeout);
@@ -971,8 +967,24 @@ public:
 	 */
 	void AttachGetNaturalSize(const FunGetNaturalSize& callback) { m_cbGetNaturalSize = callback; };
 
+private:
+	//判断是否是字节： 可打印字符（0x20-0x7e）
+	static bool IsAsciiChar(const wchar_t ch);
+
+	//获取字符串的字节数
+	static int GetAsciiCharNumber(const std::wstring& str);
+
+	//删除字符串中超过limit字节个数之后的字符
+	static void LimitAsciiNumber(std::wstring& src, int limit);
+
+	//获取粘贴板字符串
+	static void GetClipboardText(std::wstring& out);
+
+	//设置粘贴板字符串
+	static void SetClipBoardText(const std::wstring& str);
+
 protected:
-    CTxtWinHost* m_pTwh;
+	RichEditHost* m_pTwh;
     bool m_bVScrollBarFixing;
     bool m_bWantTab;
     bool m_bNeedReturnMsg;
@@ -1024,17 +1036,6 @@ private:
 	//文本内边距
 	UiPadding16	m_rcTextPadding;
 };
-
-//判断是否是字节： 可打印字符（0x20-0x7e）
-bool IsAsciiChar(const wchar_t ch);
-//获取字符串的字节数
-int  GetAsciiCharNumber(const std::wstring &str);
-//删除字符串中超过limit字节个数之后的字符
-void LimitAsciiNumber(std::wstring &src, int limit);
-//获取粘贴板字符串
-void GetClipboardText(std::wstring &out);
-//设置粘贴板字符串
-void SetClipBoardText(const std::wstring &str);
 
 } // namespace ui
 

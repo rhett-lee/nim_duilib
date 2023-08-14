@@ -297,6 +297,9 @@
     <ClCompile Include="Core\IconManager.cpp">
       <Filter>Core</Filter>
     </ClCompile>
+    <ClCompile Include="Control\RichEditHost.cpp">
+      <Filter>Control</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -651,6 +654,9 @@
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="Control\Split.h">
+      <Filter>Control</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\RichEditHost.h">
       <Filter>Control</Filter>
     </ClInclude>
   </ItemGroup>

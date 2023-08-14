@@ -343,6 +343,7 @@
     <ClCompile Include="Control\CircleProgress.cpp" />
     <ClCompile Include="Control\DateTime.cpp" />
     <ClCompile Include="Control\Menu.cpp" />
+    <ClCompile Include="Control\RichEditHost.cpp" />
     <ClCompile Include="Control\RichText.cpp" />
     <ClCompile Include="Core\Box.cpp" />
     <ClCompile Include="Core\BoxShadow.cpp" />
@@ -431,6 +432,7 @@
     <ClInclude Include="Control\DateTime.h" />
     <ClInclude Include="Control\Menu.h" />
     <ClInclude Include="Control\observer_impl_base.hpp" />
+    <ClInclude Include="Control\RichEditHost.h" />
     <ClInclude Include="Control\RichText.h" />
     <ClInclude Include="Control\CircleProgress.h" />
     <ClInclude Include="Control\Split.h" />
