@@ -218,12 +218,14 @@ namespace ui
 		kEventFirst,				//第一个消息（暂时没用到）
 		kEventAll,					//代表所有消息
 
+		//键盘消息
 		kEventKeyBegin,
 		kEventKeyDown,				//Window类：当收到WM_KEYDOWN消息时触发，发送给Focus控件
 		kEventKeyUp,				//Window类：当收到WM_KEYUP消息时触发，发送给WM_KEYDOWN事件中的那个Focus控件
 		kEventChar,					//Window类：当收到WM_CHAR消息时触发，发送给WM_KEYDOWN事件中的那个Focus控件
 		kEventKeyEnd,
 
+		//鼠标消息
 		kEventMouseBegin,		
 		kEventMouseEnter,			//Window类：当收到WM_MOUSEMOVE消息时触发，发送给MouseMove时，鼠标进入的那个控件，表明鼠标进入到这个控件内
 		kEventMouseLeave,			//Window类：当收到WM_MOUSEMOVE消息时触发，发送给MouseMove时，鼠标进入的那个控件，表明鼠标已经离开这个控件
@@ -239,6 +241,7 @@ namespace ui
 		kEventMouseMenu,			//Window类：当收到WM_CONTEXTMENU消息时触发，发送给所有注册回调函数的控件
 		kEventMouseEnd,
 
+		//焦点/光标/输入法相关消息
 		kEventSetFocus,				//Window类：发送给Focus控件，当控件获得焦点时触发事件（控件焦点不是窗口焦点，两者完全不同）
 		kEventKillFocus,			//Window类：发送给Focus控件，当控件失去焦点时触发事件（控件焦点不是窗口焦点，两者完全不同）		
 		kEventSetCursor,			//Window类：发送给当前鼠标所在控件，设置光标
@@ -249,17 +252,22 @@ namespace ui
 		kEventWindowSize,			//Window类：发送给Focus控件，当窗口大小发生变化时触发事件
 		kEventWindowClose,			//Window类，Combo控件：当窗口关闭（或者Combo的下拉框窗口关闭）时触发
 
+		//左键点击/右键点击事件
 		kEventClick,				//Button类、ListBoxItem、Option、CheckBox等：当点击按钮（或者键盘回车）时触发
 		kEventRClick,				//Control类：当鼠标右键弹起时触发
 
+		//选择/取消选择
 		kEventSelect,				//CheckBox类、Option类、ListBox类、Combo类：当变成选中状态时触发
 		kEventUnSelect,			    //CheckBox类、Option类、ListBox类、Combo类：当变成非选中状态时触发
 
+		//勾选/取消勾选
 		kEventChecked,				//CheckBox类：当变成Checked状态时触发
 		kEventUnCheck,			    //CheckBox类：当变成UnCheck状态时触发
 
+		//TAB页面选择
 		kEventTabSelect,			//TabBox类，选中TAB页面
 
+		//树节点展开/收起
 		kEventExpand,				//TreeNode类：当树节点展开时触发
 		kEventCollapse,				//TreeNode类：当树节点收起时触发
 

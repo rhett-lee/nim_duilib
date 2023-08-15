@@ -126,7 +126,7 @@ protected:
     virtual bool RemoveItemAt(size_t iIndex) override;
     virtual void RemoveAllItems() override;
 
-    virtual void HandleEvent(const EventArgs& event) override;
+    virtual void HandleEvent(const EventArgs& msg) override;
 
 protected:
     /** 键盘按下通知

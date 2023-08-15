@@ -243,24 +243,25 @@ void VirtualListBox::ReArrangeChild(bool bForce)
     m_pVirtualLayout->LazyArrangeChild(GetPosWithoutPadding());
 }
 
-void VirtualListBox::HandleEvent(const EventArgs& event)
+void VirtualListBox::HandleEvent(const EventArgs& msg)
 {
-    if (!IsMouseEnabled() && (event.Type > ui::kEventMouseBegin) && (event.Type < ui::kEventMouseEnd)) {
-        if (GetParent() != nullptr) {
-            GetParent()->SendEvent(event);
+    if (IsDisabledEvents(msg)) {
+        //如果是鼠标键盘消息，并且控件是Disabled的，转发给上层控件
+        Box* pParent = GetParent();
+        if (pParent != nullptr) {
+            pParent->SendEvent(msg);
         }
         else {
-            __super::HandleEvent(event);
+            __super::HandleEvent(msg);
         }
-        return;
     }
     if (!HasDataProvider()) {
-        return __super::HandleEvent(event);
+        return __super::HandleEvent(msg);
     }
 
-    switch (event.Type) {
+    switch (msg.Type) {
     case ui::kEventKeyDown: {
-        switch (event.chKey) {
+        switch (msg.chKey) {
         case VK_UP: {
             OnKeyDown(VK_UP);
             return;
@@ -281,7 +282,7 @@ void VirtualListBox::HandleEvent(const EventArgs& event)
         }
     }
     case ui::kEventKeyUp: {
-        switch (event.chKey) {
+        switch (msg.chKey) {
         case VK_UP: {
             OnKeyUp(VK_UP);
             return;
@@ -298,7 +299,7 @@ void VirtualListBox::HandleEvent(const EventArgs& event)
     }
     }
 
-    __super::HandleEvent(event);
+    __super::HandleEvent(msg);
 }
 
 void VirtualListBox::OnKeyDown(TCHAR ch)

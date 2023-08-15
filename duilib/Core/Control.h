@@ -923,20 +923,49 @@ public:
 
 	/** @} */
 
-protected:
+protected: 
 
 	//处理放弃控件焦点相关逻辑
 	void EnsureNoFocus();
-	
-	///消息处理的保护成员函数，不允许外部直接调用
+
+	/** 判断消息是否为应过滤掉的消息, 辅助函数
+	*   如果当前控件是 !IsEnabled() || !IsMouseEnabled() || !IsKeyboardEnabled() 状态，
+	    并且消息是鼠标、键盘消息，返回true，否则返回false
+	*/
+	bool IsDisabledEvents(const EventArgs& msg) const;
+
+	//消息处理的保护成员函数，不允许外部直接调用
+
+	/** 消息处理函数
+	* @param [in] msg 消息内容
+	*/
 	virtual void HandleEvent(const EventArgs& msg);
+
+	//鼠标消息（返回true：表示消息已处理；返回false：则表示消息未处理，需转发给父控件）
 	virtual bool MouseEnter(const EventArgs& msg);
 	virtual bool MouseLeave(const EventArgs& msg);
 	virtual bool ButtonDown(const EventArgs& msg);
 	virtual bool ButtonUp(const EventArgs& msg);
+	virtual bool ButtonDoubleClick(const EventArgs& msg);
 	virtual bool RButtonDown(const EventArgs& msg);
 	virtual bool RButtonUp(const EventArgs& msg);
+	virtual bool RButtonDoubleClick(const EventArgs& msg);
 	virtual bool MouseMove(const EventArgs& msg);
+	virtual bool MouseHover(const EventArgs& msg);
+	virtual bool MouseWheel(const EventArgs& msg);
+	virtual bool MouseMenu(const EventArgs& msg);
+
+	//键盘消息（返回true：表示消息已处理；返回false：则表示消息未处理，需转发给父控件）
+	virtual bool OnChar(const EventArgs& msg);
+	virtual bool OnKeyDown(const EventArgs& msg);
+	virtual bool OnKeyUp(const EventArgs& msg);
+
+	//光标与焦点相关消息（返回true：表示消息已处理；返回false：则表示消息未处理，需转发给父控件）
+	virtual bool OnSetCursor(const EventArgs& msg);
+	virtual bool OnSetFocus(const EventArgs& msg);
+	virtual bool OnKillFocus(const EventArgs& msg);
+	virtual bool OnImeStartComposition(const EventArgs& msg);
+	virtual bool OnImeEndComposition(const EventArgs& msg);
 
 	/// 绘制相关保护成员函数，不允许外部直接调用
 	virtual void PaintShadow(IRender* pRender);

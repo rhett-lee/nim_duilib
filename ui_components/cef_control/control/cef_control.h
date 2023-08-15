@@ -20,7 +20,7 @@ public:
 	/// 重写父类接口，提供个性化功能
 	virtual void Init() override;
 	virtual void SetPos(ui::UiRect rc) override;
-	virtual void HandleEvent(const ui::EventArgs& event) override;
+	virtual void HandleEvent(const ui::EventArgs& msg) override;
 	virtual void SetVisible(bool bVisible) override;
 	virtual void Paint(ui::IRender* pRender, const ui::UiRect& rcPaint) override;
 	virtual void SetWindow(ui::Window* pManager, ui::Box* pParent, bool bInit) override;

@@ -17,7 +17,7 @@ public:
 	/// 重写父类方法，提供个性化功能，请参考父类声明
 	virtual std::wstring GetType() const override;
 	virtual UiRect GetProgressPos() override;
-	virtual void HandleEvent(const EventArgs& event) override;
+	virtual void HandleEvent(const EventArgs& msg) override;
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 	virtual void PaintStateImages(IRender* pRender) override;
 	virtual void PaintBkColor(IRender* pRender) override;

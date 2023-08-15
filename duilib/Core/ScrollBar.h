@@ -35,7 +35,7 @@ public:
 	virtual bool MouseLeave(const EventArgs& msg) override;
 
 	virtual void SetPos(UiRect rc) override;
-	virtual void HandleEvent(const EventArgs& event) override;
+	virtual void HandleEvent(const EventArgs& msg) override;
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 	virtual void Paint(IRender* pRender, const UiRect& rcPaint) override;
 	virtual void ClearImageCache() override;

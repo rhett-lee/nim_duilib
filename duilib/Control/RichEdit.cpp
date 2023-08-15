@@ -341,18 +341,7 @@ int RichEdit::SetSel(long nStartChar, long nEndChar)
 
 void RichEdit::ReplaceSel(const std::wstring& lpszNewText, bool bCanUndo)
 {
-#ifdef _UNICODE		
     TxSendMessage(EM_REPLACESEL, (WPARAM) bCanUndo, (LPARAM)lpszNewText.c_str(), 0); 
-#else
-	std::wstring strOut;
-	StringHelper::MBCSToUnicode(lpszNewText, strOut, CP_ACP);
-	TxSendMessage(EM_REPLACESEL, (WPARAM) bCanUndo, (LPARAM)strOut.c_str(), 0); 
-#endif
-}
-
-void RichEdit::ReplaceSelW(LPCWSTR lpszNewText, bool bCanUndo)
-{
-    TxSendMessage(EM_REPLACESEL, (WPARAM) bCanUndo, (LPARAM)lpszNewText, 0); 
 }
 
 std::wstring RichEdit::GetSelText() const
@@ -1191,61 +1180,45 @@ UINT RichEdit::GetControlFlags() const
 	return IsEnabled() && IsAllowTabStop() ? UIFLAG_TABSTOP : UIFLAG_DEFAULT;
 }
 
-void RichEdit::HandleEvent(const EventArgs& event)
+void RichEdit::HandleEvent(const EventArgs& msg)
 {
-	if ((!IsMouseEnabled() && event.Type > kEventMouseBegin && event.Type < kEventMouseEnd) ||
-		(!IsEnabled()&&!IsReadOnly())){
-		if (GetParent() != nullptr) {
-			GetParent()->SendEvent(event);
+	if (IsDisabledEvents(msg)) {
+		//如果是鼠标键盘消息，并且控件是Disabled的，转发给上层控件
+		Box* pParent = GetParent();
+		if (pParent != nullptr) {
+			pParent->SendEvent(msg);
 		}
 		else {
-			Control::HandleEvent(event);
+			__super::HandleEvent(msg);
 		}
+	}
+	if (msg.Type == kEventMouseMove) {
+		OnMouseMessage(WM_MOUSEMOVE, msg);
 		return;
 	}
-
-	if (event.Type == kEventSetCursor)
-	{
-		OnSetCursor(event);
-		return;
-	}
-
-	if (event.Type == kEventChar) {
-		OnChar(event);
-		return;
-	}
-	if (event.Type == kEventKeyDown) {
-		OnKeyDown(event);
-		return;
-	}
-
-	if (event.Type == kEventMouseMove) {
-		OnMouseMessage(WM_MOUSEMOVE, event);
-		return;
-	}
-	if (event.Type == kEventMouseWheel) {
+	if (msg.Type == kEventMouseWheel) {
 		if (::GetAsyncKeyState(VK_CONTROL) < 0)
 			return;
 		
-		ScrollBox::HandleEvent(event);
+		ScrollBox::HandleEvent(msg);
 		//OnMouseMessage(WM_MOUSEWHEEL, event);
 		return;
 	}
 
-	if (event.Type == kEventMouseButtonDown) {
+	if (msg.Type == kEventMouseButtonDown) {
 		if (m_linkInfo.size() > 0)	{
 			std::wstring strLink;
-			if (HittestCustomLink(UiPoint(event.ptMouse), strLink))
+			if (HittestCustomLink(UiPoint(msg.ptMouse), strLink))
 			{
 				//::SetCursor(::LoadCursor(NULL, MAKEINTRESOURCE(IDC_HAND)));
 				SendEvent(kEventCustomLinkClick);
 				return;
 			}
 		}
-		OnMouseMessage(WM_LBUTTONDOWN, event);
+		OnMouseMessage(WM_LBUTTONDOWN, msg);
 		return;
 	}
-	if (event.Type == kEventMouseButtonUp) {
+	if (msg.Type == kEventMouseButtonUp) {
 		if (IsEnabled() && !m_bSelAllEver) {
 			m_bSelAllEver = true;
 
@@ -1258,76 +1231,58 @@ void RichEdit::HandleEvent(const EventArgs& event)
 			}
 		}
 
-		OnMouseMessage(WM_LBUTTONUP, event);
+		OnMouseMessage(WM_LBUTTONUP, msg);
 		return;
 	}
-	if (event.Type == kEventMouseDoubleClick) {
+	if (msg.Type == kEventMouseDoubleClick) {
 		if (m_bReadOnly) {
 			SetSelAll();
 			return;
 		}
 
-		OnMouseMessage(WM_LBUTTONDBLCLK, event);
+		OnMouseMessage(WM_LBUTTONDBLCLK, msg);
 		return;
 	}
-	if (event.Type == kEventMouseRButtonDown) {
-		OnMouseMessage(WM_RBUTTONDOWN, event);
+	if (msg.Type == kEventMouseRButtonDown) {
+		OnMouseMessage(WM_RBUTTONDOWN, msg);
 		return;
 	}
-	if (event.Type == kEventMouseRButtonUp) {
-		OnMouseMessage(WM_RBUTTONUP, event);
+	if (msg.Type == kEventMouseRButtonUp) {
+		OnMouseMessage(WM_RBUTTONUP, msg);
 		return;
 	}
-
-	if (event.Type == kEventImeStartComposition) {
-		OnImeStartComposition(event);
-		return;
-	}
-	if (event.Type == kEventImeEndComposition) {
-		OnImeEndComposition(event);
-		return;
-	}
-
-	if (event.Type == kEventSetFocus) {
-		OnSetFocus(event);
-		SetImmStatus(TRUE);
-	}
-	if (event.Type == kEventKillFocus) {
-		OnKillFocus(event);
-		OnScreenKeyboardManager::GetInstance()->ShowOSK(false);
-		SetImmStatus(FALSE);
-	}
-
-	ScrollBox::HandleEvent(event);
+	ScrollBox::HandleEvent(msg);
 }
 
-void RichEdit::OnSetCursor(const EventArgs& event)
+bool RichEdit::OnSetCursor(const EventArgs& msg)
 {
 	std::wstring strLink;
-	if (HittestCustomLink(UiPoint(event.ptMouse), strLink))
+	if (HittestCustomLink(UiPoint(msg.ptMouse), strLink))
 	{
 		::SetCursor(::LoadCursor(NULL, IDC_HAND));
-		return;
 	}
-	if (m_pTwh && !IsReadOnly() && m_pTwh->DoSetCursor(NULL, &event.ptMouse)) {
-		return;
+	if (m_pTwh && !IsReadOnly() && m_pTwh->DoSetCursor(NULL, &msg.ptMouse)) {
+		return true;
 	}
 	else {
 		::SetCursor(::LoadCursor(NULL, IsReadOnly() ? IDC_ARROW : IDC_IBEAM));
 	}
+	return true;
 }
 
-void RichEdit::OnSetFocus(const EventArgs& /*event*/)
+bool RichEdit::OnSetFocus(const EventArgs& /*msg*/)
 {
 	if (m_pTwh) {
 		m_pTwh->OnTxInPlaceActivate(NULL);
 		m_pTwh->GetTextServices()->TxSendMessage(WM_SETFOCUS, 0, 0, 0);
 		ShowCaret(true);
 	}
+	SetImmStatus(TRUE);
 	Invalidate();
+	return true;
 }
 
-void RichEdit::OnKillFocus(const EventArgs& /*event*/)
+bool RichEdit::OnKillFocus(const EventArgs& /*msg*/)
 {
 	if (m_pTwh) {
 		m_pTwh->OnTxInPlaceActivate(NULL);
@@ -1343,35 +1298,39 @@ void RichEdit::OnKillFocus(const EventArgs& /*event*/)
 		SetSelNone();
 	}
 
+	OnScreenKeyboardManager::GetInstance()->ShowOSK(false);
+	SetImmStatus(FALSE);
 	Invalidate();
+	return true;
 }
 
-void RichEdit::OnChar(const EventArgs& event)
+bool RichEdit::OnChar(const EventArgs& msg)
 {
 	//TAB
 	if (::GetKeyState(VK_TAB) < 0 && !m_bWantTab) {
 		SendEvent(kEventTab);
-		return;
+		return true;
 	}
 	//Number
 	if (m_bNumberOnly) {
-		if (event.wParam < '0' || event.wParam > '9')
-			return;
+		if (msg.wParam < '0' || msg.wParam > '9')
+			return true;
 	}
 
-	TxSendMessage(WM_CHAR, event.wParam, event.lParam, NULL);
+	TxSendMessage(WM_CHAR, msg.wParam, msg.lParam, NULL);
+	return true;
 }
 
-void RichEdit::OnKeyDown(const EventArgs& event)
+bool RichEdit::OnKeyDown(const EventArgs& msg)
 {
-	if (event.wParam == VK_RETURN && ::GetAsyncKeyState(VK_SHIFT) >= 0)	{
+	if (msg.wParam == VK_RETURN && ::GetAsyncKeyState(VK_SHIFT) >= 0)	{
 		if (m_bNeedReturnMsg && ((m_bReturnMsgWantCtrl && ::GetAsyncKeyState(VK_CONTROL) < 0) ||
 			(!m_bReturnMsgWantCtrl && ::GetAsyncKeyState(VK_CONTROL) >= 0))) {
 			SendEvent(kEventReturn);
-			return;
+			return true;
 		}
 	}
-	else if (m_bNumberOnly && event.wParam == 'V' && ::GetKeyState(VK_CONTROL) < 0) {
+	else if (m_bNumberOnly && msg.wParam == 'V' && ::GetKeyState(VK_CONTROL) < 0) {
 		std::wstring strClipText;
 		GetClipboardText(strClipText);
 		if (!strClipText.empty()) {
@@ -1383,25 +1342,26 @@ void RichEdit::OnKeyDown(const EventArgs& event)
 				}
 			}
 			if (strNum.empty())
-				return;
+				return true;
 
 			SetClipBoardText(strNum); //修改剪切板内容为纯数字
 			nbase::ThreadManager::PostTask([strClipText]() { SetClipBoardText(strClipText); }); //粘贴完后又把剪切板内容改回来
 		}
 	}
 
-	TxSendMessage(WM_KEYDOWN, event.wParam, event.lParam, NULL);
+	TxSendMessage(WM_KEYDOWN, msg.wParam, msg.lParam, NULL);
+	return true;
 }
 
-void RichEdit::OnImeStartComposition(const EventArgs& /*event*/)
+bool RichEdit::OnImeStartComposition(const EventArgs& /*msg*/)
 {
 	HWND hWnd = GetWindowHandle();
 	if (hWnd == NULL)
-		return;
+		return true;
 
 	HIMC hImc = ::ImmGetContext(hWnd);
 	if (hImc == NULL)
-		return;
+		return true;
 
 	COMPOSITIONFORM	cfs;
 	UiPoint ptScrollOffset = GetScrollOffsetInScrollBox();
@@ -1417,18 +1377,20 @@ void RichEdit::OnImeStartComposition(const EventArgs& /*event*/)
 	::ImmSetCompositionWindow(hImc, &cfs);
 	::ImmReleaseContext(hWnd, hImc);
 	m_bIsComposition = true;
+	return true;
 }
 
-void RichEdit::OnImeEndComposition(const EventArgs& /*event*/)
+bool RichEdit::OnImeEndComposition(const EventArgs& /*msg*/)
 {
 	m_bIsComposition = false;
+	return true;
 }
 
-void RichEdit::OnMouseMessage(UINT uMsg, const EventArgs& event)
+void RichEdit::OnMouseMessage(UINT uMsg, const EventArgs& msg)
 {
-	UiPoint pt(GET_X_LPARAM(event.lParam), GET_Y_LPARAM(event.lParam));
+	UiPoint pt(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
 	pt.Offset(GetScrollOffsetInScrollBox());
-	TxSendMessage(uMsg, event.wParam, MAKELPARAM(pt.x, pt.y), NULL);
+	TxSendMessage(uMsg, msg.wParam, MAKELPARAM(pt.x, pt.y), NULL);
 }
 
 void RichEdit::Paint(IRender* pRender, const UiRect& rcPaint)

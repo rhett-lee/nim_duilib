@@ -184,7 +184,7 @@ namespace ui
 		*/
 		const GridSelRange& GetSelRange() const;
 	protected:
-		virtual void HandleEvent(const EventArgs& event) override;
+		virtual void HandleEvent(const EventArgs& msg) override;
 		virtual bool ButtonDown(const EventArgs& msg) override;
 		virtual bool ButtonUp(const EventArgs& msg) override;
 		virtual bool OnMouseDoubleClick(const EventArgs& msg);		//not override

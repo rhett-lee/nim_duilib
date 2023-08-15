@@ -50,31 +50,31 @@ void ListBox::SetAttribute(const std::wstring& strName, const std::wstring& strV
 	}
 }
 
-void ListBox::HandleEvent(const EventArgs& event)
+void ListBox::HandleEvent(const EventArgs& msg)
 {
-	if (!IsMouseEnabled() && (event.Type > kEventMouseBegin) && (event.Type < kEventMouseEnd)) {
-		if (GetParent() != nullptr) {
-			GetParent()->SendEvent(event);
+	if (IsDisabledEvents(msg)) {
+		//如果是鼠标键盘消息，并且控件是Disabled的，转发给上层控件
+		Box* pParent = GetParent();
+		if (pParent != nullptr) {
+			pParent->SendEvent(msg);
 		}
 		else {
-			ScrollBox::HandleEvent(event);
+			__super::HandleEvent(msg);
 		}
-		return;
 	}
-
 	if (IsMultiSelect()) {
 		//允许多选的情况下，不支持下面的单选逻辑
-		ScrollBox::HandleEvent(event);
+		ScrollBox::HandleEvent(msg);
 		return;
 	}
 
 	size_t itemIndex = Box::InvalidIndex;
-	switch (event.Type) {
+	switch (msg.Type) {
 	case kEventMouseButtonDown:
 	case kEventMouseButtonUp:
 		break;
 	case kEventKeyDown:
-		switch (event.chKey) {
+		switch (msg.chKey) {
 		case VK_UP:
 			itemIndex = FindSelectable(!Box::IsValidItemIndex(m_iCurSel) ? 0 : m_iCurSel - 1, false);
 			SelectItem(itemIndex);
@@ -95,7 +95,7 @@ void ListBox::HandleEvent(const EventArgs& event)
 		break;
 	case kEventMouseWheel:
 	{
-		int detaValue = static_cast<int>(event.wParam);
+		int detaValue = static_cast<int>(msg.wParam);
 		if (detaValue > 0) {
 			if (m_bScrollSelect) {
 				itemIndex = FindSelectable(!Box::IsValidItemIndex(m_iCurSel) ? 0 : m_iCurSel - 1, false);
@@ -116,7 +116,7 @@ void ListBox::HandleEvent(const EventArgs& event)
 	break;
 	}
 
-	ScrollBox::HandleEvent(event);
+	ScrollBox::HandleEvent(msg);
 }
 
 void ListBox::SendEvent(EventType eventType, WPARAM wParam, LPARAM lParam, TCHAR tChar, const UiPoint& mousePos)
@@ -791,34 +791,31 @@ bool ListBoxItem::CanPaintSelectedColors() const
 	return __super::CanPaintSelectedColors();
 }
 
-void ListBoxItem::HandleEvent(const EventArgs& event)
+void ListBoxItem::HandleEvent(const EventArgs& msg)
 {
-	if (!IsMouseEnabled() && 
-		(event.Type > kEventMouseBegin) && 
-		(event.Type < kEventMouseEnd)) {
-		//当前控件禁止接收鼠标消息时，将鼠标相关消息转发给上层处理
+	if (IsDisabledEvents(msg)) {
+		//如果是鼠标键盘消息，并且控件是Disabled的，转发给Owner控件
 		if (m_pOwner != nullptr) {
-			m_pOwner->SendEvent(event);
+			m_pOwner->SendEvent(msg);
 		}
 		else {
-			__super::HandleEvent(event);
+			__super::HandleEvent(msg);
 		}
-		return;
 	}
-	else if (event.Type == kEventMouseDoubleClick) {
+	if (msg.Type == kEventMouseDoubleClick) {
 		if (!IsActivatable()) {
 			return;
 		}
 	}
-	else if (event.Type == kEventKeyDown && IsEnabled()) {
-		if (event.chKey == VK_RETURN) {
+	else if (msg.Type == kEventKeyDown && IsEnabled()) {
+		if (msg.chKey == VK_RETURN) {
 			if (IsActivatable()) {
 				SendEvent(kEventReturn);
 			}
 			return;
 		}
 	}
-	__super::HandleEvent(event);
+	__super::HandleEvent(msg);
 
 	// An important twist: The list-item will send the event not to its immediate
 	// parent but to the "attached" list. A list may actually embed several components

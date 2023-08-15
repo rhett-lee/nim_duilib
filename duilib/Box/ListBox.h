@@ -85,7 +85,7 @@ public:
 	/// 重写父类方法，提供个性化功能，请参考父类声明
 	virtual std::wstring GetType() const override;
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
-	virtual void HandleEvent(const EventArgs& event) override;
+	virtual void HandleEvent(const EventArgs& msg) override;
 	virtual bool ButtonDown(const EventArgs& msg) override;
 	virtual void SendEvent(EventType eventType, WPARAM wParam = 0, LPARAM lParam = 0, TCHAR tChar = 0,
 						   const UiPoint& mousePos = UiPoint()) override;
@@ -323,7 +323,7 @@ public:
 	/// 重写父类方法，提供个性化功能，请参考父类声明
 	virtual std::wstring GetType() const override;
 	virtual void Selected(bool bSelect, bool bTriggerEvent) override;
-	virtual void HandleEvent(const EventArgs& event) override;
+	virtual void HandleEvent(const EventArgs& msg) override;	
 
 	/** 是否绘制选择状态下的背景色，提供虚函数作为可选项
 	   （比如ListBox/TreeView节点在多选时，由于有勾选项，并不需要绘制选择状态的背景色）

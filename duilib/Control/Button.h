@@ -16,7 +16,7 @@ public:
     /// 重写父类方法，提供个性化功能，请参考父类声明
     virtual std::wstring GetType() const override;
     virtual void Activate() override;
-    virtual void HandleEvent(const EventArgs& event) override;
+    virtual void HandleEvent(const EventArgs& msg) override;
     virtual UINT GetControlFlags() const override;
 
     /** 该控件是否可以放置在标题栏上（以用于处理NC消息响应）
@@ -44,29 +44,18 @@ ButtonTemplate<InheritType>::ButtonTemplate()
 }
 
 template<typename InheritType>
-void ButtonTemplate<InheritType>::HandleEvent(const EventArgs& event)
+void ButtonTemplate<InheritType>::HandleEvent(const EventArgs& msg)
 {
-    if (!this->IsMouseEnabled() && 
-        (event.Type > kEventMouseBegin) && 
-        (event.Type < kEventMouseEnd)) {
-        //当前控件禁止接收鼠标消息时，将鼠标相关消息转发给上层处理
-        if (this->GetParent() != nullptr) {
-            this->GetParent()->SendEvent(event);
-        }
-        else {
-            __super::HandleEvent(event);
-        }
-        return;
-    }
-    if (event.Type == kEventKeyDown) {
-        if (this->IsKeyboardEnabled()) {
-            if (event.chKey == VK_SPACE || event.chKey == VK_RETURN) {
+    if (msg.Type == kEventKeyDown) {
+        if (this->IsEnabled() && this->IsKeyboardEnabled()) {
+            //按下回车键或者空格键的时候，触发按钮响应动作
+            if (msg.chKey == VK_SPACE || msg.chKey == VK_RETURN) {
                 Activate();
                 return;
             }
         }
     }
-    __super::HandleEvent(event);
+    __super::HandleEvent(msg);
 }
 
 template<typename InheritType>

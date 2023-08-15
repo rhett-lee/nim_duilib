@@ -28,7 +28,7 @@ public:
 	virtual std::wstring GetType() const override;
 	virtual void SetAttribute(const std::wstring& pstrName, const std::wstring& pstrValue) override;
 	virtual void SetPos(UiRect rc) override;
-	virtual void HandleEvent(const EventArgs& event) override;
+	virtual void HandleEvent(const EventArgs& msg) override;
 	virtual bool MouseEnter(const EventArgs& msg) override;
 	virtual bool MouseLeave(const EventArgs& msg) override;
 	virtual void PaintChild(IRender* pRender, const UiRect& rcPaint) override;

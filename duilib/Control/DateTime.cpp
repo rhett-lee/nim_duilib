@@ -350,35 +350,33 @@ void DateTime::SetFormat(const std::wstring& val)
     Invalidate();
 }
 
-void DateTime::HandleEvent(const EventArgs& event)
+void DateTime::HandleEvent(const EventArgs& msg)
 {
-    if (!IsMouseEnabled() && 
-        (event.Type > kEventMouseBegin) && 
-        (event.Type < kEventMouseEnd)) {
-        if (GetParent() != nullptr) {
-            GetParent()->SendEvent(event);
+    if (IsDisabledEvents(msg)) {
+        //如果是鼠标键盘消息，并且控件是Disabled的，转发给上层控件
+        Box* pParent = GetParent();
+        if (pParent != nullptr) {
+            pParent->SendEvent(msg);
         }
         else {
-            __super::HandleEvent(event);
+            __super::HandleEvent(msg);
         }
-        return;
     }
-
-    if ((event.Type == kEventSetCursor) && IsEnabled()) {
+    if ((msg.Type == kEventSetCursor)) {
         ::SetCursor(::LoadCursor(NULL, IDC_IBEAM));
         return;
     }
-    if (event.Type == kEventWindowSize) {
+    if (msg.Type == kEventWindowSize) {
         if (m_pDateWindow != nullptr) {
             return;
         }
     }
-    if (event.Type == kEventScrollChange) {
+    if (msg.Type == kEventScrollChange) {
         if (m_pDateWindow != nullptr) {
             return;
         }
     }
-    if (event.Type == kEventSetFocus && IsEnabled()) {
+    if (msg.Type == kEventSetFocus) {
         if (m_pDateWindow != nullptr) {
             return;
         }
@@ -386,42 +384,39 @@ void DateTime::HandleEvent(const EventArgs& event)
         m_pDateWindow->Init(this);
         m_pDateWindow->ShowWindow();
     }
-    if (event.Type == kEventKillFocus && IsEnabled()) {
+    if (msg.Type == kEventKillFocus) {
         Invalidate();
     }
-    if ((event.Type == kEventMouseButtonDown) || 
-        (event.Type == kEventMouseDoubleClick) ||
-        (event.Type == kEventMouseRButtonDown)) {
-        if (IsEnabled()) {
-            if (GetWindow() != nullptr) {
-                GetWindow()->ReleaseCapture();
-            }            
-            if (IsFocused() && (m_pDateWindow == nullptr)) {
-                m_pDateWindow = new DateTimeWnd();
-            }
-            if (m_pDateWindow != nullptr) {
-                m_pDateWindow->Init(this);
-                m_pDateWindow->ShowWindow();
-            }
+    if ((msg.Type == kEventMouseButtonDown) ||
+        (msg.Type == kEventMouseDoubleClick) ||
+        (msg.Type == kEventMouseRButtonDown)) {
+        if (GetWindow() != nullptr) {
+            GetWindow()->ReleaseCapture();
+        }            
+        if (IsFocused() && (m_pDateWindow == nullptr)) {
+            m_pDateWindow = new DateTimeWnd();
         }
+        if (m_pDateWindow != nullptr) {
+            m_pDateWindow->Init(this);
+            m_pDateWindow->ShowWindow();
+        }
+    }
+    if (msg.Type == kEventMouseMove) {
         return;
     }
-    if (event.Type == kEventMouseMove) {
+    if (msg.Type == kEventMouseButtonUp) {
         return;
     }
-    if (event.Type == kEventMouseButtonUp) {
+    if (msg.Type == kEventMouseMenu) {
         return;
     }
-    if (event.Type == kEventMouseMenu) {
+    if (msg.Type == kEventMouseEnter) {
         return;
     }
-    if (event.Type == kEventMouseEnter) {
+    if (msg.Type == kEventMouseLeave) {
         return;
     }
-    if (event.Type == kEventMouseLeave) {
-        return;
-    }
-    __super::HandleEvent(event);
+    __super::HandleEvent(msg);
 }
 
 }//namespace ui

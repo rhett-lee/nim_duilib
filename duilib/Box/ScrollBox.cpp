@@ -161,22 +161,21 @@ UiSize64 ScrollBox::CalcRequiredSize(const UiRect& rc)
 	return requiredSize;
 }
 
-void ScrollBox::HandleEvent(const EventArgs& event)
+void ScrollBox::HandleEvent(const EventArgs& msg)
 {
-	if( (!IsMouseEnabled() && (event.Type > kEventMouseBegin) && (event.Type < kEventMouseEnd)) || 
-		(event.Type == kEventLast)) {
-		if (GetParent() != nullptr) {
-			GetParent()->SendEvent(event);
+	if (IsDisabledEvents(msg)) {
+		//如果是鼠标键盘消息，并且控件是Disabled的，转发给上层控件
+		Box* pParent = GetParent();
+		if (pParent != nullptr) {
+			pParent->SendEvent(msg);
 		}
 		else {
-			Box::HandleEvent(event);
+			__super::HandleEvent(msg);
 		}
-		return;
 	}
-		
 	if( (m_pVScrollBar != nullptr) && m_pVScrollBar->IsValid() && m_pVScrollBar->IsEnabled() ) {
-		if( event.Type == kEventKeyDown ) {
-			switch( event.chKey ) {
+		if(msg.Type == kEventKeyDown ) {
+			switch(msg.chKey ) {
 			case VK_DOWN:
 				LineDown();
 				return;
@@ -197,9 +196,9 @@ void ScrollBox::HandleEvent(const EventArgs& event)
 				return;
 			}
 		}
-		else if( event.Type == kEventMouseWheel ) {
-			int deltaValue = static_cast<int>(event.wParam);
-			if (event.lParam != 0) {
+		else if(msg.Type == kEventMouseWheel ) {
+			int deltaValue = static_cast<int>(msg.wParam);
+			if (msg.lParam != 0) {
 				//正常逻辑滚动
 				if (deltaValue > 0) {
 					LineUp(abs(deltaValue));
@@ -221,8 +220,8 @@ void ScrollBox::HandleEvent(const EventArgs& event)
 		}		
 	}
 	else if( (m_pHScrollBar != nullptr) && m_pHScrollBar->IsValid() && m_pHScrollBar->IsEnabled() ) {
-		if( event.Type == kEventKeyDown ) {
-			switch( event.chKey ) {
+		if(msg.Type == kEventKeyDown ) {
+			switch(msg.chKey ) {
 			case VK_DOWN:
 				LineRight();
 				return;
@@ -243,8 +242,8 @@ void ScrollBox::HandleEvent(const EventArgs& event)
 				return;
 			}
 		}
-		else if( event.Type == kEventMouseWheel )	{
-			int deltaValue = static_cast<int>(event.wParam);
+		else if(msg.Type == kEventMouseWheel )	{
+			int deltaValue = static_cast<int>(msg.wParam);
 			if (deltaValue > 0 ) {
 				LineLeft();
 				return;
@@ -256,7 +255,7 @@ void ScrollBox::HandleEvent(const EventArgs& event)
 		}
 	}
 		
-	Box::HandleEvent(event);
+	Box::HandleEvent(msg);
 }
 
 bool ScrollBox::MouseEnter(const EventArgs& msg)

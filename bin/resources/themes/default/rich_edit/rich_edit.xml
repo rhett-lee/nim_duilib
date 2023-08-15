@@ -63,7 +63,7 @@
                     <Control class="splitline_hor_level1"/>
                     <HBox height="64">
                         <Label text="RichEdit,input:  " valign="center"/>
-                        <RichEdit class="input" text="RichEdit: input" valign="center" text_padding="4,4,0,0"/>
+                        <RichEdit class="input" enabled="false" text="RichEdit: input" valign="center" text_padding="4,4,0,0"/>
                     </HBox>
                 </VBox>
                 <!-- 纵向分割条，用于调整左右区域大小 -->

@@ -795,7 +795,7 @@ bool CMenuElementUI::MouseEnter(const ui::EventArgs& msg)
 	Window* pWindow = GetWindow();
 	ASSERT(pWindow != nullptr);
 	if (pWindow == nullptr) {
-		return false;
+		return __super::MouseEnter(msg);
 	}
 	std::weak_ptr<nbase::WeakFlag> weakFlag = pWindow->GetWeakFlag();
 	bool ret = __super::MouseEnter(msg);

@@ -34,7 +34,6 @@ EXTERN_C const IID IID_ITextHost = { /* c5bdd8d0-d26e-11ce-a89e-00aa006cadc5 */
 	{0xa8, 0x9e, 0x00, 0xaa, 0x00, 0x6c, 0xad, 0xc5}
 };
 
-
 RichEditHost::RichEditHost() :
 	m_re(nullptr),
 	cRefs(0),

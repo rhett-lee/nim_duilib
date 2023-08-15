@@ -923,37 +923,36 @@ namespace ui
 		return m_selRange;
 	}
 
-	void GridBody::HandleEvent(const EventArgs& event)
+	void GridBody::HandleEvent(const EventArgs& msg)
 	{
-		if (!IsMouseEnabled() && 
-			(event.Type > kEventMouseBegin) && 
-			(event.Type < kEventMouseEnd)) {
-			if (GetParent() != nullptr) {
-				GetParent()->SendEvent(event);
+		if (IsDisabledEvents(msg)) {
+			//如果是鼠标键盘消息，并且控件是Disabled的，转发给上层控件
+			Box* pParent = GetParent();
+			if (pParent != nullptr) {
+				pParent->SendEvent(msg);
 			}
 			else {
-				Box::HandleEvent(event);
+				__super::HandleEvent(msg);
 			}
-			return;
 		}
 		bool bHandle = false;
-		if (event.Type == kEventMouseDoubleClick)
+		if (msg.Type == kEventMouseDoubleClick)
 		{
-			OnMouseDoubleClick(event);
+			OnMouseDoubleClick(msg);
 			bHandle = true;
 		}
-		else if (event.Type == kEventMouseMove)
+		else if (msg.Type == kEventMouseMove)
 		{
-			OnMouseMove(event);
+			OnMouseMove(msg);
 			bHandle = true;
 		}
-		else if (event.Type == kEventKeyDown)
+		else if (msg.Type == kEventKeyDown)
 		{
-			OnKeyDown(event);
+			OnKeyDown(msg);
 			bHandle = true;
 		}
 		if (!bHandle)
-			__super::HandleEvent(event);
+			__super::HandleEvent(msg);
 	}
 
 	bool GridBody::ButtonDown(const EventArgs& msg)

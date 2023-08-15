@@ -983,57 +983,56 @@ void Control::SendEvent(const EventArgs& msg)
 	}
 }
 
+bool Control::IsDisabledEvents(const EventArgs& msg) const
+{
+	if ((msg.Type > kEventMouseBegin) && (msg.Type < kEventMouseEnd)) {
+		//当前控件禁止接收鼠标消息时，将鼠标相关消息转发给上层处理
+		if (!IsEnabled() || !IsMouseEnabled()) {
+			return true;
+		}
+	}
+	else if ((msg.Type > kEventKeyBegin) && (msg.Type < kEventKeyEnd)) {
+		//当前控件禁止接收键盘消息时，将键盘相关消息转发给上层处理
+		if (!IsEnabled() || !IsKeyboardEnabled()) {
+			return true;
+		}
+	}
+	return false;
+}
+
 void Control::HandleEvent(const EventArgs& msg)
 {
-	if( !IsMouseEnabled() && 
-		(msg.Type > kEventMouseBegin) && 
-		(msg.Type < kEventMouseEnd)) {
-		//当前控件禁止接收鼠标消息时，将鼠标相关消息转发给上层处理
+	if (IsDisabledEvents(msg)) {
+		//如果是鼠标键盘消息，并且控件是Disabled的，转发给上层控件
 		Box* pParent = GetParent();
 		if (pParent != nullptr) {
 			pParent->SendEvent(msg);
 		}
-		return;
 	}
-	else if( msg.Type == kEventSetCursor ) {
-		if (m_cursorType == kCursorHand) {
-			if (IsEnabled()) {
-				::SetCursor(::LoadCursor(NULL, IDC_HAND));
-			}
-			else {
-				::SetCursor(::LoadCursor(NULL, IDC_ARROW));
-			}
+	if( msg.Type == kEventSetCursor ) {
+		if (OnSetCursor(msg)) {
 			return;
-		}
-		else if (m_cursorType == kCursorArrow){
-			::SetCursor(::LoadCursor(NULL, IDC_ARROW));
+		}		
+	}
+	else if (msg.Type == kEventSetFocus) {
+		if (OnSetFocus(msg)) {
 			return;
-		}
-		else if (m_cursorType == kCursorHandIbeam){
-			::SetCursor(::LoadCursor(NULL, IDC_IBEAM));
-			return;
-		}
-		else if (m_cursorType == kCursorSizeWE) {
-			::SetCursor(::LoadCursor(NULL, IDC_SIZEWE));
-			return;
-		}
-		else if (m_cursorType == kCursorSizeNS) {
-			::SetCursor(::LoadCursor(NULL, IDC_SIZENS));
-			return;
-		}
-		else {
-			ASSERT(FALSE);
 		}
 	}
-	else if (msg.Type == kEventSetFocus && m_controlState == kControlStateNormal) {
-		SetState(kControlStateHot);
-		Invalidate();
-		return;
+	else if (msg.Type == kEventKillFocus) {
+		if (OnKillFocus(msg)) {
+			return;
+		}
 	}
-	else if (msg.Type == kEventKillFocus && m_controlState == kControlStateHot) {
-		SetState(kControlStateNormal);
-		Invalidate();
-		return;
+	else if (msg.Type == kEventImeStartComposition) {
+		if (OnImeStartComposition(msg)) {
+			return;
+		}
+	}
+	else if (msg.Type == kEventImeEndComposition) {
+		if (OnImeEndComposition(msg)) {
+			return;
+		}
 	}
 	else if( msg.Type == kEventMouseEnter ) {
 		if (GetWindow()) {
@@ -1041,8 +1040,9 @@ void Control::HandleEvent(const EventArgs& msg)
 				return;
 			}
 		}
-		if (!MouseEnter(msg))
+		if (MouseEnter(msg)) {
 			return;
+		}
 	}
 	else if( msg.Type == kEventMouseLeave ) {
 		if (GetWindow()) {
@@ -1050,28 +1050,74 @@ void Control::HandleEvent(const EventArgs& msg)
 				return;
 			}
 		}
-		if (!MouseLeave(msg))
+		if (MouseLeave(msg)) {
 			return;
+		}
 	}
 	else if (msg.Type == kEventMouseButtonDown) {
-		ButtonDown(msg);
-		return;
+		if (ButtonDown(msg)) {
+			return;
+		}
 	}
 	else if (msg.Type == kEventMouseButtonUp) {
-		ButtonUp(msg);
-		return;
+		if (ButtonUp(msg)) {
+			return;
+		}		
+	}
+	else if (msg.Type == kEventMouseDoubleClick) {
+		if (ButtonDoubleClick(msg)) {
+			return;
+		}
 	}
 	else if (msg.Type == kEventMouseRButtonDown) {
-		RButtonDown(msg);
-		return;
+		if (RButtonDown(msg)) {
+			return;
+		}
 	}
 	else if (msg.Type == kEventMouseRButtonUp) {
-		RButtonUp(msg);
-		return;
+		if (RButtonUp(msg)) {
+			return;
+		}
+	}
+	else if (msg.Type == kEventMouseRDoubleClick) {
+		if (RButtonDoubleClick(msg)) {
+			return;
+		}
 	}
 	else if (msg.Type == kEventMouseMove) {
-		MouseMove(msg);
-		return;
+		if (MouseMove(msg)) {
+			return;
+		}		
+	}
+	else if (msg.Type == kEventMouseHover) {
+		if (MouseHover(msg)) {
+			return;
+		}
+	}
+	else if (msg.Type == kEventMouseWheel) {
+		if (MouseWheel(msg)) {
+			return;
+		}
+	}
+	else if (msg.Type == kEventMouseMenu) {
+		if (MouseMenu(msg)) {
+			return;
+		}		
+	}
+	else if (msg.Type == kEventChar) {
+		if (OnChar(msg)) {
+			return;
+		}
+	}
+	else if (msg.Type == kEventKeyDown) {
+		if (OnKeyDown(msg)) {
+			return;
+		}
+	}
+	else if (msg.Type == kEventKeyUp) {
+		if (OnKeyUp(msg)) {
+			return;
+		}
 	}
 
 	if (GetParent() != nullptr) {
@@ -1100,14 +1146,14 @@ bool Control::MouseEnter(const EventArgs& /*msg*/)
 				GetAnimationManager().MouseEnter();
 				Invalidate();
 			}
-			return true;
+			return false;
 		}
 		else {
-			return false;
+			return true;
 		}
 	}
 
-	return true;
+	return false;
 }
 
 bool Control::MouseLeave(const EventArgs& /*msg*/)
@@ -1119,32 +1165,28 @@ bool Control::MouseLeave(const EventArgs& /*msg*/)
 				GetAnimationManager().MouseLeave();
 				Invalidate();
 			}
-			return true;
+			return false;
 		}
 		else {
-			return false;
+			return true;
 		}
 	}
 
-	return true;
+	return false;
 }
 
 bool Control::ButtonDown(const EventArgs& /*msg*/)
 {
-	bool ret = false;
 	if( IsEnabled() ) {
 		m_controlState = kControlStatePushed;
 		SetMouseFocused(true);
 		Invalidate();
-		ret = true;
 	}
-
-	return ret;
+	return true;
 }
 
 bool Control::ButtonUp(const EventArgs& msg)
 {
-	bool ret = false;
 	if( IsMouseFocused() ) {
 		SetMouseFocused(false);
 		auto player = GetAnimationManager().GetAnimationPlayer(kAnimationHot);
@@ -1156,39 +1198,130 @@ bool Control::ButtonUp(const EventArgs& msg)
 			m_controlState = kControlStateHot;
 			m_nHotAlpha = 255;
 			Activate();
-			ret = true;
 		}
 		else {
 			m_controlState = kControlStateNormal;
 			m_nHotAlpha = 0;
 		}
 	}
+	return true;
+}
 
-	return ret;
+bool Control::ButtonDoubleClick(const EventArgs& /*msg*/)
+{
+	return true;
 }
 
 bool Control::RButtonDown(const EventArgs& /*msg*/)
 {
-	bool ret = false;
 	if (IsEnabled()) {
 		SetMouseFocused(true);
-		ret = true;
 	}
-	return ret;
+	return true;
 }
 
 bool Control::RButtonUp(const EventArgs& /*msg*/)
 {
-	bool ret = false;
 	if (IsMouseFocused()) {
 		SetMouseFocused(false);
 		SendEvent(kEventRClick);
-		ret = true;
 	}
-	return ret;
+	return true;
+}
+
+bool Control::RButtonDoubleClick(const EventArgs& /*msg*/)
+{
+	return true;
 }
 
 bool Control::MouseMove(const EventArgs& /*msg*/)
+{
+	return true;
+}
+
+bool Control::MouseHover(const EventArgs& /*msg*/)
+{
+	return true;
+}
+
+bool Control::MouseWheel(const EventArgs& /*msg*/)
+{
+	return true;
+}
+
+bool Control::MouseMenu(const EventArgs& /*msg*/)
+{
+	//按Shif + F10，由系统产生上下文菜单, 默认不处理，交由父控件处理
+	return false;
+}
+
+bool Control::OnChar(const EventArgs& /*msg*/)
+{
+	return true;
+}
+
+bool Control::OnKeyDown(const EventArgs& /*msg*/)
+{
+	return true;
+}
+
+bool Control::OnKeyUp(const EventArgs& /*msg*/)
+{
+	return true;
+}
+
+bool Control::OnSetCursor(const EventArgs& /*msg*/)
+{
+	if (m_cursorType == kCursorHand) {
+		if (IsEnabled()) {
+			::SetCursor(::LoadCursor(NULL, IDC_HAND));
+		}
+		else {
+			::SetCursor(::LoadCursor(NULL, IDC_ARROW));
+		}
+	}
+	else if (m_cursorType == kCursorArrow) {
+		::SetCursor(::LoadCursor(NULL, IDC_ARROW));
+	}
+	else if (m_cursorType == kCursorHandIbeam) {
+		::SetCursor(::LoadCursor(NULL, IDC_IBEAM));
+	}
+	else if (m_cursorType == kCursorSizeWE) {
+		::SetCursor(::LoadCursor(NULL, IDC_SIZEWE));
+	}
+	else if (m_cursorType == kCursorSizeNS) {
+		::SetCursor(::LoadCursor(NULL, IDC_SIZENS));
+	}
+	else {
+		return false;
+	}
+	return true;
+}
+
+bool Control::OnSetFocus(const EventArgs& /*msg*/)
+{
+	if (m_controlState == kControlStateNormal) {
+		SetState(kControlStateHot);
+		Invalidate();
+	}
+	return true;
+}
+
+bool Control::OnKillFocus(const EventArgs& /*msg*/)
+{
+	if (m_controlState == kControlStateHot) {
+		SetState(kControlStateNormal);
+		Invalidate();
+	}
+	return true;
+}
+
+bool Control::OnImeStartComposition(const EventArgs& /*msg*/)
+{
+	return true;
+}
+
+bool Control::OnImeEndComposition(const EventArgs& /*msg*/)
 {
 	return true;
 }
@@ -1391,10 +1524,10 @@ void Control::SetAttribute(const std::wstring& strName, const std::wstring& strV
 	else if (strName == L"enabled") {
 		SetEnabled(strValue == L"true");
 	}
-	else if (strName == L"mouse") {
+	else if ((strName == L"mouse_enabled") || (strName == L"mouse")) {
 		SetMouseEnabled(strValue == L"true");
 	}
-	else if (strName == L"keyboard") {
+	else if ((strName == L"keyboard_enabled") || (strName == L"keyboard")) {
 		SetKeyboardEnabled(strValue == L"true");
 	}
 	else if (strName == L"visible") {

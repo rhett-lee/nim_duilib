@@ -5,6 +5,7 @@
 #include "ui_components/public_define.h"
 #include "duilib/Render/IRender.h"
 #include "duilib/Core/GlobalManager.h"
+#include "duilib/Core/Box.h"
 
 #include "base/thread/thread_manager.h"
 
@@ -86,27 +87,34 @@ void CefControl::SetPos(ui::UiRect rc)
 	}
 }
 
-void CefControl::HandleEvent(const ui::EventArgs& event)
+void CefControl::HandleEvent(const ui::EventArgs& msg)
 {
-	if (browser_handler_.get() && browser_handler_->GetBrowser().get() == NULL)
-		return __super::HandleEvent(event);
+	if (IsDisabledEvents(msg)) {
+		//如果是鼠标键盘消息，并且控件是Disabled的，转发给上层控件
+		ui::Box* pParent = GetParent();
+		if (pParent != nullptr) {
+			pParent->SendEvent(msg);
+		}
+		else {
+			__super::HandleEvent(msg);
+		}
+	}
+	if (browser_handler_.get() && browser_handler_->GetBrowser().get() == NULL) {
+		return __super::HandleEvent(msg);
+	}
 
-	else if (event.Type == ui::kEventSetFocus)
-	{
-		if (browser_handler_->GetBrowserHost().get())
-		{
+	else if (msg.Type == ui::kEventSetFocus) {
+		if (browser_handler_->GetBrowserHost().get()) {
 			browser_handler_->GetBrowserHost()->SendFocusEvent(true);
 		}
 	}
-	else if (event.Type == ui::kEventKillFocus)
-	{
-		if (browser_handler_->GetBrowserHost().get())
-		{
+	else if (msg.Type == ui::kEventKillFocus) {
+		if (browser_handler_->GetBrowserHost().get()) {
 			browser_handler_->GetBrowserHost()->SendFocusEvent(false);
 		}
 	}
 
-	__super::HandleEvent(event);
+	__super::HandleEvent(msg);
 }
 
 void CefControl::SetVisible(bool bVisible)

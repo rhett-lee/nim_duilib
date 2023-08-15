@@ -324,29 +324,26 @@ void ScrollBar::SetPos(UiRect rc)
 	}
 }
 
-void ScrollBar::HandleEvent(const EventArgs& event)
+void ScrollBar::HandleEvent(const EventArgs& msg)
 {
-	if (!IsMouseEnabled() && 
-		(event.Type > kEventMouseBegin) && 
-		(event.Type < kEventMouseEnd)) {
-		//当前控件禁止接收鼠标消息时，将鼠标相关消息转发给上层处理
+	if (IsDisabledEvents(msg)) {
+		//如果是鼠标键盘消息，并且控件是Disabled的，转发给Owner控件
 		if (m_pOwner != nullptr) {
-			m_pOwner->SendEvent(event);
+			m_pOwner->SendEvent(msg);
 		}
-		return;
+		else {
+			__super::HandleEvent(msg);
+		}
 	}
-	else if ((event.Type == kEventMouseButtonDown) || (event.Type == kEventMouseDoubleClick)) {
-		if (!IsEnabled()) {
-			return;
-		}
 
+	if ((msg.Type == kEventMouseButtonDown) || (msg.Type == kEventMouseDoubleClick)) {
 		m_nLastScrollOffset = 0;
 		m_nScrollRepeatDelay = 0;
 
 		auto callback = nbase::Bind(&ScrollBar::ScrollTimeHandle, this);
 		GlobalManager::Instance().Timer().AddCancelableTimer(m_weakFlagOwner.GetWeakFlag(), callback, 50, TimerManager::REPEAT_FOREVER);
 
-		if (m_rcButton1.ContainsPt(event.ptMouse)) {
+		if (m_rcButton1.ContainsPt(msg.ptMouse)) {
 			//鼠标位置：[上按钮](垂直滚动条) 或者 [左按钮](水平滚动条)
 			m_uButton1State = kControlStatePushed;
 			if (!m_bHorizontal) {
@@ -368,7 +365,7 @@ void ScrollBar::HandleEvent(const EventArgs& event)
 				}
 			}
 		}
-		else if (m_rcButton2.ContainsPt(event.ptMouse)) {
+		else if (m_rcButton2.ContainsPt(msg.ptMouse)) {
 			//鼠标位置：[下按钮](垂直滚动条) 或者 [右按钮](水平滚动条)
 			m_uButton2State = kControlStatePushed;
 			if (!m_bHorizontal) {
@@ -390,18 +387,18 @@ void ScrollBar::HandleEvent(const EventArgs& event)
 				}
 			}
 		}
-		else if (m_rcThumb.ContainsPt(event.ptMouse)) {
+		else if (m_rcThumb.ContainsPt(msg.ptMouse)) {
 			//鼠标位置：在滚动条的滑动块按钮上
 			m_uThumbState = kControlStatePushed;
 			SetMouseFocused(true);
-			m_ptLastMouse = event.ptMouse;
+			m_ptLastMouse = msg.ptMouse;
 			m_nLastScrollPos = m_nScrollPos;
 		}
 		else {
 			//鼠标位置：滚动条非按钮区域
 			if (!m_bHorizontal) {
 				//垂直滚动条
-				if (event.ptMouse.y < m_rcThumb.top) {
+				if (msg.ptMouse.y < m_rcThumb.top) {
 					if (m_pOwner != nullptr) {
 						m_pOwner->PageUp();
 					}
@@ -409,7 +406,7 @@ void ScrollBar::HandleEvent(const EventArgs& event)
 						SetScrollPos(m_nScrollPos + GetRect().top - GetRect().bottom);
 					}
 				}
-				else if (event.ptMouse.y > m_rcThumb.bottom){
+				else if (msg.ptMouse.y > m_rcThumb.bottom){
 					if (m_pOwner != nullptr) {
 						m_pOwner->PageDown();
 					}
@@ -420,7 +417,7 @@ void ScrollBar::HandleEvent(const EventArgs& event)
 			}
 			else {
 				//水平滚动条
-				if (event.ptMouse.x < m_rcThumb.left) {
+				if (msg.ptMouse.x < m_rcThumb.left) {
 					if (m_pOwner != nullptr) {
 						m_pOwner->PageLeft();
 					}
@@ -428,7 +425,7 @@ void ScrollBar::HandleEvent(const EventArgs& event)
 						SetScrollPos(m_nScrollPos + GetRect().left - GetRect().right);
 					}
 				}
-				else if (event.ptMouse.x > m_rcThumb.right){
+				else if (msg.ptMouse.x > m_rcThumb.right){
 					if (m_pOwner != nullptr) {
 						m_pOwner->PageRight();
 					}
@@ -439,17 +436,17 @@ void ScrollBar::HandleEvent(const EventArgs& event)
 			}
 		}
 
-		ButtonDown(event);
+		ButtonDown(msg);
 		return;
 	}
-	else if ((event.Type == kEventMouseButtonUp) || (event.Type == kEventWindowKillFocus) ){
+	else if ((msg.Type == kEventMouseButtonUp) || (msg.Type == kEventWindowKillFocus) ){
 		m_nScrollRepeatDelay = 0;
 		m_nLastScrollOffset = 0;
 
 		m_weakFlagOwner.Cancel();
 
 		if (IsMouseFocused()) {
-			if (GetRect().ContainsPt(event.ptMouse)) {
+			if (GetRect().ContainsPt(msg.ptMouse)) {
 				m_uThumbState = kControlStateHot;
 			}
 			else {
@@ -465,16 +462,16 @@ void ScrollBar::HandleEvent(const EventArgs& event)
 			Invalidate();
 		}
 
-		ButtonUp(event);
+		ButtonUp(msg);
 		return;
 	}
-	else if (event.Type == kEventMouseEnter) {
-		MouseEnter(event);
+	else if (msg.Type == kEventMouseEnter) {
+		MouseEnter(msg);
 	}
-	else if (event.Type == kEventMouseLeave) {
-		MouseLeave(event);
+	else if (msg.Type == kEventMouseLeave) {
+		MouseLeave(msg);
 	}
-	else if (event.Type == kEventMouseMove) {
+	else if (msg.Type == kEventMouseMove) {
 		if (IsMouseFocused()) {
 			if (!m_bHorizontal) {
 				//垂直滚动条
@@ -487,7 +484,7 @@ void ScrollBar::HandleEvent(const EventArgs& event)
 				}
 
 				if (vRange != 0) {
-					m_nLastScrollOffset = (event.ptMouse.y - m_ptLastMouse.y) * m_nRange / vRange;
+					m_nLastScrollOffset = (msg.ptMouse.y - m_ptLastMouse.y) * m_nRange / vRange;
 				}
 			}
 			else {
@@ -501,14 +498,14 @@ void ScrollBar::HandleEvent(const EventArgs& event)
 				}
 
 				if (hRange != 0) {
-					m_nLastScrollOffset = (event.ptMouse.x - m_ptLastMouse.x) * m_nRange / hRange;
+					m_nLastScrollOffset = (msg.ptMouse.x - m_ptLastMouse.x) * m_nRange / hRange;
 				}
 			}
 		}
 
 		return;
 	}
-	else if (event.Type == kEventSetCursor) {
+	else if (msg.Type == kEventSetCursor) {
 		if (GetCursorType() == kCursorHand) {
 			::SetCursor(::LoadCursor(NULL, IDC_HAND));
 			return;
@@ -523,7 +520,7 @@ void ScrollBar::HandleEvent(const EventArgs& event)
 	}
 
 	if (m_pOwner != nullptr) {
-		m_pOwner->SendEvent(event);
+		m_pOwner->SendEvent(msg);
 	}
 }
 
