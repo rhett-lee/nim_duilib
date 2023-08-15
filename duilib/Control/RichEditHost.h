@@ -24,10 +24,10 @@ public:
 public:
 
     BOOL Init(RichEdit* re, const CREATESTRUCT* pcs);
-    ITextServices* GetTextServices(void) { return pserv; }
+    ITextServices* GetTextServices(void) { return m_pTextServices; }
     void SetClientRect(UiRect* prc);
-    UiRect* GetClientRect() { return &rcClient; }
-    BOOL GetWordWrap(void) { return fWordWrap; }
+    UiRect* GetClientRect() { return &m_rcClient; }
+    BOOL GetWordWrap(void) { return m_fWordWrap; }
     void SetWordWrap(BOOL bWordWrap);
     BOOL GetReadOnly();
     void SetReadOnly(BOOL fReadOnly);
@@ -51,11 +51,11 @@ public:
     BOOL SetSaveSelection(BOOL fSaveSelection);
     HRESULT OnTxInPlaceDeactivate();
     HRESULT OnTxInPlaceActivate(LPCRECT prcClient);
-    BOOL GetActiveState(void) { return fInplaceActive; }
+    BOOL GetActiveState(void) { return m_fInplaceActive; }
     BOOL DoSetCursor(const UiRect* prc, const UiPoint* pt);
     void SetTransparent(BOOL fTransparent);
     void GetControlRect(UiRect* prc);
-    LONG SetAccelPos(LONG laccelpos);
+    LONG SetAccelPos(LONG lAcceleratorPos);
     WCHAR SetPasswordChar(WCHAR chPasswordChar);
     void SetDisabled(BOOL fOn);
     LONG SetSelBarWidth(LONG lSelBarWidth);
@@ -135,36 +135,36 @@ public:
     virtual HRESULT TxNotify(DWORD iNotify, void* pv) override;
     virtual HIMC TxImmGetContext(void) override;
     virtual void TxImmReleaseContext(HIMC himc) override;
-    virtual HRESULT TxGetSelectionBarWidth(LONG* lSelBarWidth) override;
+    virtual HRESULT TxGetSelectionBarWidth(LONG* plSelBarWidth) override;
 
 private:
-    RichEdit* m_re;
-    ULONG cRefs;					// Reference Count
-    ITextServices* pserv;		    // pointer to Text Services object
+    RichEdit* m_pRichEdit;
+    ULONG m_cRefs;					// Reference Count
+    ITextServices* m_pTextServices;		    // pointer to Text Services object
 
-    DWORD dwStyle;				// style bits
+    DWORD m_dwStyle;				// style bits
 
-    unsigned	fEnableAutoWordSel : 1;	// enable Word style auto word selection?
-    unsigned	fWordWrap : 1;	// Whether control should word wrap
-    unsigned	fAllowBeep : 1;	// Whether beep is allowed
-    unsigned	fRich : 1;	// Whether control is rich text
-    unsigned	fSaveSelection : 1;	// Whether to save the selection when inactive
-    unsigned	fInplaceActive : 1; // Whether control is inplace active
-    unsigned	fTransparent : 1; // Whether control is transparent
-    unsigned	fTimer : 1;	// A timer is set
-    unsigned    fCaptured : 1;
+    unsigned	m_fEnableAutoWordSel : 1;	// enable Word style auto word selection?
+    unsigned	m_fWordWrap : 1;	// Whether control should word wrap
+    unsigned	m_fAllowBeep : 1;	// Whether beep is allowed
+    unsigned	m_fRich : 1;	// Whether control is rich text
+    unsigned	m_fSaveSelection : 1;	// Whether to save the selection when inactive
+    unsigned	m_fInplaceActive : 1; // Whether control is inplace active
+    unsigned	m_fTransparent : 1; // Whether control is transparent
+    unsigned	m_fTimer : 1;	// A timer is set
+    unsigned    m_fCaptured : 1;
 
-    LONG		lSelBarWidth;			// Width of the selection bar
-    LONG  		cchTextMost;			// maximum text size
-    DWORD		dwEventMask;			// HandleMessage mask to pass on to parent window
-    LONG		icf;
-    LONG		ipf;
-    UiRect		rcClient;				// Client Rect for this control
-    SIZEL		sizelExtent;			// Extent array
-    CHARFORMAT2W cf;					// Default character format
-    PARAFORMAT2	pf;					    // Default paragraph format
-    LONG		laccelpos;				// Accelerator position
-    WCHAR		chPasswordChar;		    // Password character
+    LONG		m_lSelBarWidth;			// Width of the selection bar
+    LONG  		m_cchTextMost;			// maximum text size
+    DWORD		m_dwEventMask;			// HandleMessage mask to pass on to parent window
+    LONG		m_icf;
+    LONG		m_ipf;
+    UiRect		m_rcClient;				// Client Rect for this control
+    SIZEL		m_sizelExtent;			// Extent array
+    CHARFORMAT2W m_cf;					// Default character format
+    PARAFORMAT2	m_pf;					    // Default paragraph format
+    LONG		m_lAcceleratorPos;				// Accelerator position
+    WCHAR		m_chPasswordChar;		    // Password character
 };
 
 

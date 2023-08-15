@@ -6,7 +6,7 @@
 namespace ui
 {
 
-/** 文本最大字符个数
+/** 文本最大字符个??
 */
 // These constants are for backward compatibility. They are the 
 // sizes used for initialization and reset in RichEdit 1.0
@@ -35,38 +35,38 @@ EXTERN_C const IID IID_ITextHost = { /* c5bdd8d0-d26e-11ce-a89e-00aa006cadc5 */
 };
 
 RichEditHost::RichEditHost() :
-	m_re(nullptr),
-	cRefs(0),
-	pserv(nullptr),
-	dwStyle(0),
-	fEnableAutoWordSel(0),
-	fWordWrap(0),
-	fAllowBeep(0),
-	fRich(0),
-	fSaveSelection(0),
-	fInplaceActive(0),
-	fTransparent(0),
-	fTimer(0),
-	fCaptured(0),
-	lSelBarWidth(0),
-	cchTextMost(cInitTextMax),
-	dwEventMask(0),
-	icf(0),
-	ipf(0),
-	rcClient(),
-	sizelExtent({ 0 }),
-	cf({ 0 }),
-	pf({ 0 }),
-	laccelpos(-1),
-	chPasswordChar(0)
+	m_pRichEdit(nullptr),
+	m_cRefs(0),
+	m_pTextServices(nullptr),
+	m_dwStyle(0),
+	m_fEnableAutoWordSel(0),
+	m_fWordWrap(0),
+	m_fAllowBeep(0),
+	m_fRich(0),
+	m_fSaveSelection(0),
+	m_fInplaceActive(0),
+	m_fTransparent(0),
+	m_fTimer(0),
+	m_fCaptured(0),
+	m_lSelBarWidth(0),
+	m_cchTextMost(cInitTextMax),
+	m_dwEventMask(0),
+	m_icf(0),
+	m_ipf(0),
+	m_rcClient(),
+	m_sizelExtent({ 0 }),
+	m_cf({ 0 }),
+	m_pf({ 0 }),
+	m_lAcceleratorPos(-1),
+	m_chPasswordChar(0)
 {
 }
 
 RichEditHost::~RichEditHost()
 {
-	if (pserv) {
-		pserv->OnTxInPlaceDeactivate();
-		pserv->Release();
+	if (m_pTextServices) {
+		m_pTextServices->OnTxInPlaceDeactivate();
+		m_pTextServices->Release();
 	}
 }
 
@@ -103,36 +103,36 @@ ITextHost* RichEditHost::GetTextHost()
 
 ITextServices* RichEditHost::GetTextServices2()
 {
-	if (NULL == pserv)
+	if (NULL == m_pTextServices)
 		return NULL;
-	pserv->AddRef();
-	return pserv;
+	m_pTextServices->AddRef();
+	return m_pTextServices;
 }
 
 BOOL RichEditHost::SetOleCallback(IRichEditOleCallback* pCallback)
 {
-	if (NULL == pserv)
+	if (NULL == m_pTextServices)
 		return FALSE;
 	LRESULT lRes = 0;
-	pserv->TxSendMessage(EM_SETOLECALLBACK, 0, (LPARAM)pCallback, &lRes);
+	m_pTextServices->TxSendMessage(EM_SETOLECALLBACK, 0, (LPARAM)pCallback, &lRes);
 	return (BOOL)lRes;
 }
 
 BOOL RichEditHost::CanPaste(UINT nFormat)
 {
-	if (NULL == pserv)
+	if (NULL == m_pTextServices)
 		return FALSE;
 	LRESULT lRes = 0;
-	pserv->TxSendMessage(EM_CANPASTE, nFormat, 0L, &lRes);
+	m_pTextServices->TxSendMessage(EM_CANPASTE, nFormat, 0L, &lRes);
 	return (BOOL)lRes;
 }
 
 void RichEditHost::PasteSpecial(UINT uClipFormat, DWORD dwAspect, HMETAFILE hMF)
 {
-	if (NULL == pserv)
+	if (NULL == m_pTextServices)
 		return;
 	REPASTESPECIAL reps = { dwAspect, (DWORD_PTR)hMF };
-	pserv->TxSendMessage(EM_PASTESPECIAL, uClipFormat, (LPARAM)&reps, NULL);
+	m_pTextServices->TxSendMessage(EM_PASTESPECIAL, uClipFormat, (LPARAM)&reps, NULL);
 }
 
 UiRect RichEditHost::MakeUiRect(const RECT& rc)
@@ -150,50 +150,50 @@ BOOL RichEditHost::Init(RichEdit* re, const CREATESTRUCT* pcs)
 	IUnknown* pUnk = nullptr;
 	HRESULT hr = E_FAIL;
 	std::wstring edit_dll(L"msftedit.dll");
-	m_re = re;
+	m_pRichEdit = re;
 	// Initialize Reference count
-	cRefs = 1;
+	m_cRefs = 1;
 
 	// Create and cache CHARFORMAT for this control
-	if (FAILED(InitDefaultCharFormat(re, &cf)))
+	if (FAILED(InitDefaultCharFormat(re, &m_cf)))
 	{
 		return FALSE;
 	}
 
 	// Create and cache PARAFORMAT for this control
-	if (FAILED(InitDefaultParaFormat(re, &pf)))
+	if (FAILED(InitDefaultParaFormat(re, &m_pf)))
 	{
 		return FALSE;
 	}
 
 	// edit controls created without a window are multiline by default
 	// so that paragraph formats can be
-	dwStyle = ES_MULTILINE;
+	m_dwStyle = ES_MULTILINE;
 
 	// edit controls are rich by default
-	fRich = re->IsRich();
+	m_fRich = re->IsRich();
 
-	cchTextMost = re->GetLimitText();
+	m_cchTextMost = re->GetLimitText();
 
 	if (pcs)
 	{
-		dwStyle = pcs->style;
+		m_dwStyle = pcs->style;
 
-		if (!(dwStyle & (ES_AUTOHSCROLL | WS_HSCROLL)))
+		if (!(m_dwStyle & (ES_AUTOHSCROLL | WS_HSCROLL)))
 		{
-			fWordWrap = TRUE;
+			m_fWordWrap = TRUE;
 		}
 	}
 
-	if (!(dwStyle & ES_LEFT))
+	if (!(m_dwStyle & ES_LEFT))
 	{
-		if (dwStyle & ES_CENTER)
-			pf.wAlignment = PFA_CENTER;
-		else if (dwStyle & ES_RIGHT)
-			pf.wAlignment = PFA_RIGHT;
+		if (m_dwStyle & ES_CENTER)
+			m_pf.wAlignment = PFA_CENTER;
+		else if (m_dwStyle & ES_RIGHT)
+			m_pf.wAlignment = PFA_RIGHT;
 	}
 
-	fInplaceActive = TRUE;
+	m_fInplaceActive = TRUE;
 
 	// Create Text Services component
 	//if(FAILED(CreateTextServices(NULL, this, &pUnk)))
@@ -221,7 +221,7 @@ BOOL RichEditHost::Init(RichEdit* re, const CREATESTRUCT* pcs)
 
 	if (pUnk != nullptr)
 	{
-		hr = pUnk->QueryInterface(IID_ITextServices, (void**)&pserv);
+		hr = pUnk->QueryInterface(IID_ITextServices, (void**)&m_pTextServices);
 
 		// Whether the previous call succeeded or failed we are done
 		// with the private interface.
@@ -235,9 +235,9 @@ BOOL RichEditHost::Init(RichEdit* re, const CREATESTRUCT* pcs)
 
 
 	// Set window text
-	if (pserv && pcs && pcs->lpszName)
+	if (m_pTextServices && pcs && pcs->lpszName)
 	{
-		if (SUCCEEDED(pserv->TxSetText((TCHAR*)pcs->lpszName)))
+		if (SUCCEEDED(m_pTextServices->TxSetText((TCHAR*)pcs->lpszName)))
 		{
 			return TRUE;
 		}
@@ -351,12 +351,12 @@ HRESULT RichEditHost::QueryInterface(REFIID riid, void** ppvObject)
 
 ULONG RichEditHost::AddRef(void)
 {
-	return ++cRefs;
+	return ++m_cRefs;
 }
 
 ULONG RichEditHost::Release(void)
 {
-	ULONG c_Refs = --cRefs;
+	ULONG c_Refs = --m_cRefs;
 
 	if (c_Refs == 0)
 	{
@@ -382,7 +382,7 @@ void RichEditHost::TxImmReleaseContext(HIMC /*himc*/)
 
 HDC RichEditHost::TxGetDC()
 {
-	return m_re->GetWindowDC();
+	return m_pRichEdit->GetWindowDC();
 }
 
 int RichEditHost::TxReleaseDC(HDC /*hdc*/)
@@ -393,8 +393,8 @@ int RichEditHost::TxReleaseDC(HDC /*hdc*/)
 BOOL RichEditHost::TxShowScrollBar(INT /*fnBar*/, BOOL /*fShow*/)
 {
 	ASSERT(FALSE); //暂时注释掉，不知道这代码有啥用   by panqinke 2014.5.6
-	//ScrollBar* pVerticalScrollBar = m_re->GetVScrollBar();
-	//ScrollBar* pHorizontalScrollBar = m_re->GetHScrollBar();
+	//ScrollBar* pVerticalScrollBar = m_pRichEdit->GetVScrollBar();
+	//ScrollBar* pHorizontalScrollBar = m_pRichEdit->GetHScrollBar();
 	//if( fnBar == SB_VERT && pVerticalScrollBar ) {
 	//    pVerticalScrollBar->SetFadeVisible(fShow == TRUE);
 	//}
@@ -412,58 +412,58 @@ BOOL RichEditHost::TxEnableScrollBar(INT fuSBFlags, INT fuArrowflags)
 {
 	if (fuSBFlags == SB_VERT) {
 		if (fuArrowflags == ESB_DISABLE_BOTH) {
-			m_re->GetVScrollBar()->SetScrollRange(0);
+			m_pRichEdit->GetVScrollBar()->SetScrollRange(0);
 		}
 	}
 	else if (fuSBFlags == SB_HORZ) {
 		if (fuArrowflags == ESB_DISABLE_BOTH) {
-			m_re->GetHScrollBar()->SetScrollRange(0);
+			m_pRichEdit->GetHScrollBar()->SetScrollRange(0);
 		}
 	}
 	else if (fuSBFlags == SB_BOTH) {
 		if (fuArrowflags == ESB_DISABLE_BOTH) {
-			m_re->GetVScrollBar()->SetScrollRange(0);
+			m_pRichEdit->GetVScrollBar()->SetScrollRange(0);
 		}
 		if (fuArrowflags == ESB_DISABLE_BOTH) {
-			m_re->GetHScrollBar()->SetScrollRange(0);
+			m_pRichEdit->GetHScrollBar()->SetScrollRange(0);
 		}
 	}
 
-	m_re->SetPos(m_re->GetPos());
+	m_pRichEdit->SetPos(m_pRichEdit->GetPos());
 
 	return TRUE;
 }
 
 BOOL RichEditHost::TxSetScrollRange(INT fnBar, LONG nMinPos, INT nMaxPos, BOOL /*fRedraw*/)
 {
-	ScrollBar* pVerticalScrollBar = m_re->GetVScrollBar();
-	ScrollBar* pHorizontalScrollBar = m_re->GetHScrollBar();
+	ScrollBar* pVerticalScrollBar = m_pRichEdit->GetVScrollBar();
+	ScrollBar* pHorizontalScrollBar = m_pRichEdit->GetHScrollBar();
 	bool bArrange = false;
 	if (fnBar == SB_VERT && pVerticalScrollBar) {
-		if (nMaxPos - nMinPos - rcClient.bottom + rcClient.top <= 0) {
+		if (nMaxPos - nMinPos - m_rcClient.bottom + m_rcClient.top <= 0) {
 			pVerticalScrollBar->SetScrollRange(0);
 		}
 		else {
 			if (!pVerticalScrollBar->IsValid()) {
 				bArrange = true;
 			}
-			pVerticalScrollBar->SetScrollRange(nMaxPos - nMinPos - rcClient.bottom + rcClient.top);
+			pVerticalScrollBar->SetScrollRange(nMaxPos - nMinPos - m_rcClient.bottom + m_rcClient.top);
 		}
 	}
 	else if (fnBar == SB_HORZ && pHorizontalScrollBar) {
-		if (nMaxPos - nMinPos - rcClient.right + rcClient.left <= 0) {
+		if (nMaxPos - nMinPos - m_rcClient.right + m_rcClient.left <= 0) {
 			pHorizontalScrollBar->SetScrollRange(0);
 		}
 		else {
 			if (!pHorizontalScrollBar->IsValid()) {
 				bArrange = true;
 			}
-			pHorizontalScrollBar->SetScrollRange(nMaxPos - nMinPos - rcClient.right + rcClient.left);
+			pHorizontalScrollBar->SetScrollRange(nMaxPos - nMinPos - m_rcClient.right + m_rcClient.left);
 		}
 	}
 
 	if (bArrange) {
-		m_re->SetPos(m_re->GetPos());
+		m_pRichEdit->SetPos(m_pRichEdit->GetPos());
 	}
 
 	return TRUE;
@@ -471,8 +471,8 @@ BOOL RichEditHost::TxSetScrollRange(INT fnBar, LONG nMinPos, INT nMaxPos, BOOL /
 
 BOOL RichEditHost::TxSetScrollPos(INT fnBar, INT nPos, BOOL /*fRedraw*/)
 {
-	ScrollBar* pVerticalScrollBar = m_re->GetVScrollBar();
-	ScrollBar* pHorizontalScrollBar = m_re->GetHScrollBar();
+	ScrollBar* pVerticalScrollBar = m_pRichEdit->GetVScrollBar();
+	ScrollBar* pHorizontalScrollBar = m_pRichEdit->GetHScrollBar();
 	if (fnBar == SB_VERT && pVerticalScrollBar) {
 		pVerticalScrollBar->SetScrollPos(nPos);
 	}
@@ -484,19 +484,19 @@ BOOL RichEditHost::TxSetScrollPos(INT fnBar, INT nPos, BOOL /*fRedraw*/)
 
 void RichEditHost::TxInvalidateRect(LPCRECT prc, BOOL /*fMode*/)
 {
-	if (!m_re->GetWindow())
+	if (!m_pRichEdit->GetWindow())
 		return;
 
-	UiPoint scrollOffset = m_re->GetScrollOffsetInScrollBox();
+	UiPoint scrollOffset = m_pRichEdit->GetScrollOffsetInScrollBox();
 	if (prc == NULL) {
-		UiRect newRcClient = rcClient;
+		UiRect newRcClient = m_rcClient;
 		newRcClient.Offset(-scrollOffset.x, -scrollOffset.y);
-		m_re->GetWindow()->Invalidate(newRcClient);
+		m_pRichEdit->GetWindow()->Invalidate(newRcClient);
 		return;
 	}
 	UiRect rc = MakeUiRect(*prc);
 	rc.Offset(-scrollOffset.x, -scrollOffset.y);
-	m_re->GetWindow()->Invalidate(rc);
+	m_pRichEdit->GetWindow()->Invalidate(rc);
 }
 
 void RichEditHost::TxViewChange(BOOL /*fUpdate*/)
@@ -506,30 +506,30 @@ void RichEditHost::TxViewChange(BOOL /*fUpdate*/)
 
 BOOL RichEditHost::TxCreateCaret(HBITMAP /*hbmp*/, INT xWidth, INT yHeight)
 {
-	return m_re->CreateCaret(xWidth, yHeight);
+	return m_pRichEdit->CreateCaret(xWidth, yHeight);
 }
 
 BOOL RichEditHost::TxShowCaret(BOOL /*fShow*/)
 {
-	return true; // m_re->ShowCaret(fShow);
+	return true; // m_pRichEdit->ShowCaret(fShow);
 }
 
 BOOL RichEditHost::TxSetCaretPos(INT x, INT y)
 {
-	return m_re->SetCaretPos(x, y);
+	return m_pRichEdit->SetCaretPos(x, y);
 }
 
 BOOL RichEditHost::TxSetTimer(UINT idTimer, UINT uTimeout)
 {
-	fTimer = TRUE;
-	m_re->SetTimer(idTimer, uTimeout);
+	m_fTimer = TRUE;
+	m_pRichEdit->SetTimer(idTimer, uTimeout);
 	return TRUE;
 }
 
 void RichEditHost::TxKillTimer(UINT idTimer)
 {
-	m_re->KillTimer(idTimer);
-	fTimer = FALSE;
+	m_pRichEdit->KillTimer(idTimer);
+	m_fTimer = FALSE;
 }
 
 void RichEditHost::TxScrollWindowEx(INT /*dx*/, INT /*dy*/, LPCRECT /*lprcScroll*/, LPCRECT /*lprcClip*/, HRGN /*hrgnUpdate*/, LPRECT /*lprcUpdate*/, UINT /*fuScroll*/)
@@ -539,17 +539,17 @@ void RichEditHost::TxScrollWindowEx(INT /*dx*/, INT /*dy*/, LPCRECT /*lprcScroll
 
 void RichEditHost::TxSetCapture(BOOL fCapture)
 {
-	if (!m_re->GetWindow())
+	if (!m_pRichEdit->GetWindow())
 		return;
 
-	if (fCapture) m_re->GetWindow()->SetCapture();
-	else m_re->GetWindow()->ReleaseCapture();
-	fCaptured = fCapture;
+	if (fCapture) m_pRichEdit->GetWindow()->SetCapture();
+	else m_pRichEdit->GetWindow()->ReleaseCapture();
+	m_fCaptured = fCapture;
 }
 
 void RichEditHost::TxSetFocus()
 {
-	m_re->SetFocus();
+	m_pRichEdit->SetFocus();
 }
 
 void RichEditHost::TxSetCursor(HCURSOR hcur, BOOL /*fText*/)
@@ -559,12 +559,12 @@ void RichEditHost::TxSetCursor(HCURSOR hcur, BOOL /*fText*/)
 
 BOOL RichEditHost::TxScreenToClient(LPPOINT lppt)
 {
-	return ::ScreenToClient(m_re->GetWindowHandle(), lppt);
+	return ::ScreenToClient(m_pRichEdit->GetWindowHandle(), lppt);
 }
 
 BOOL RichEditHost::TxClientToScreen(LPPOINT lppt)
 {
-	return ::ClientToScreen(m_re->GetWindowHandle(), lppt);
+	return ::ClientToScreen(m_pRichEdit->GetWindowHandle(), lppt);
 }
 
 HRESULT RichEditHost::TxActivate(LONG*/*plOldState*/)
@@ -581,7 +581,7 @@ HRESULT RichEditHost::TxGetClientRect(LPRECT prc)
 {
 	ASSERT(prc != nullptr);
 	if (prc) {
-		UiRect rcTemp = rcClient;
+		UiRect rcTemp = m_rcClient;
 		GetControlRect(&rcTemp);
 		*prc = { rcTemp.left, rcTemp.top, rcTemp.right, rcTemp.bottom };
 	}
@@ -601,7 +601,7 @@ HRESULT RichEditHost::TxGetCharFormat(const CHARFORMATW** ppCF)
 {
 	ASSERT(ppCF != nullptr);
 	if (ppCF) {
-		*ppCF = &cf;
+		*ppCF = &m_cf;
 	}
 	return NOERROR;
 }
@@ -610,7 +610,7 @@ HRESULT RichEditHost::TxGetParaFormat(const PARAFORMAT** ppPF)
 {
 	ASSERT(ppPF != nullptr);
 	if (ppPF) {
-		*ppPF = &pf;
+		*ppPF = &m_pf;
 	}
 	return NOERROR;
 }
@@ -624,7 +624,7 @@ HRESULT RichEditHost::TxGetBackStyle(TXTBACKSTYLE* pstyle)
 {
 	ASSERT(pstyle != nullptr);
 	if (pstyle) {
-		*pstyle = !fTransparent ? TXTBACK_OPAQUE : TXTBACK_TRANSPARENT;
+		*pstyle = !m_fTransparent ? TXTBACK_OPAQUE : TXTBACK_TRANSPARENT;
 	}
 	return NOERROR;
 }
@@ -633,7 +633,7 @@ HRESULT RichEditHost::TxGetMaxLength(DWORD* pLength)
 {
 	ASSERT(pLength != nullptr);
 	if (pLength) {
-		*pLength = cchTextMost;
+		*pLength = m_cchTextMost;
 	}
 	return NOERROR;
 }
@@ -642,7 +642,7 @@ HRESULT RichEditHost::TxGetScrollBars(DWORD* pdwScrollBar)
 {
 	ASSERT(pdwScrollBar != nullptr);
 	if (pdwScrollBar) {
-		*pdwScrollBar = dwStyle & (WS_VSCROLL | WS_HSCROLL | ES_AUTOVSCROLL |
+		*pdwScrollBar = m_dwStyle & (WS_VSCROLL | WS_HSCROLL | ES_AUTOVSCROLL |
 			ES_AUTOHSCROLL | ES_DISABLENOSCROLL);
 	}
 	return NOERROR;
@@ -655,9 +655,9 @@ HRESULT RichEditHost::TxGetPasswordChar(TCHAR* pch)
 		return NOERROR;
 	}
 #ifdef _UNICODE
-	* pch = chPasswordChar;
+	* pch = m_chPasswordChar;
 #else
-	::WideCharToMultiByte(CP_ACP, 0, &chPasswordChar, 1, pch, 1, NULL, NULL);
+	::WideCharToMultiByte(CP_ACP, 0, &m_chPasswordChar, 1, pch, 1, NULL, NULL);
 #endif
 	return NOERROR;
 }
@@ -666,7 +666,7 @@ HRESULT RichEditHost::TxGetAcceleratorPos(LONG* pcp)
 {
 	ASSERT(pcp != nullptr);
 	if (pcp != nullptr) {
-		*pcp = laccelpos;
+		*pcp = m_lAcceleratorPos;
 	}
 	return S_OK;
 }
@@ -689,47 +689,47 @@ HRESULT RichEditHost::TxGetPropertyBits(DWORD dwMask, DWORD* pdwBits)
 	}
 	DWORD dwProperties = 0;
 
-	if (fRich)
+	if (m_fRich)
 	{
 		dwProperties = TXTBIT_RICHTEXT;
 	}
 
-	if (dwStyle & ES_MULTILINE)
+	if (m_dwStyle & ES_MULTILINE)
 	{
 		dwProperties |= TXTBIT_MULTILINE;
 	}
 
-	if (dwStyle & ES_READONLY)
+	if (m_dwStyle & ES_READONLY)
 	{
 		dwProperties |= TXTBIT_READONLY;
 	}
 
-	if (dwStyle & ES_PASSWORD)
+	if (m_dwStyle & ES_PASSWORD)
 	{
 		dwProperties |= TXTBIT_USEPASSWORD;
 	}
 
-	if (!(dwStyle & ES_NOHIDESEL))
+	if (!(m_dwStyle & ES_NOHIDESEL))
 	{
 		dwProperties |= TXTBIT_HIDESELECTION;
 	}
 
-	if (fEnableAutoWordSel)
+	if (m_fEnableAutoWordSel)
 	{
 		dwProperties |= TXTBIT_AUTOWORDSEL;
 	}
 
-	if (fWordWrap)
+	if (m_fWordWrap)
 	{
 		dwProperties |= TXTBIT_WORDWRAP;
 	}
 
-	if (fAllowBeep)
+	if (m_fAllowBeep)
 	{
 		dwProperties |= TXTBIT_ALLOWBEEP;
 	}
 
-	if (fSaveSelection)
+	if (m_fSaveSelection)
 	{
 		dwProperties |= TXTBIT_SAVESELECTION;
 	}
@@ -749,7 +749,7 @@ HRESULT RichEditHost::TxNotify(DWORD iNotify, void* pv)
 		rc.right = rc.left + preqsz->rc.right;
 		SetClientRect(&rc);
 	}
-	m_re->OnTxNotify(iNotify, pv);
+	m_pRichEdit->OnTxNotify(iNotify, pv);
 	return S_OK;
 }
 
@@ -757,7 +757,7 @@ HRESULT RichEditHost::TxGetExtent(LPSIZEL lpExtent)
 {
 	ASSERT(lpExtent != nullptr);
 	if (lpExtent) {
-		*lpExtent = sizelExtent;
+		*lpExtent = m_sizelExtent;
 	}
 	return S_OK;
 }
@@ -766,56 +766,56 @@ HRESULT	RichEditHost::TxGetSelectionBarWidth(LONG* plSelBarWidth)
 {
 	ASSERT(plSelBarWidth != nullptr);
 	if (plSelBarWidth) {
-		*plSelBarWidth = lSelBarWidth;
+		*plSelBarWidth = m_lSelBarWidth;
 	}
 	return S_OK;
 }
 
 void RichEditHost::SetWordWrap(BOOL bWordWrap)
 {
-	fWordWrap = bWordWrap;
-	if (pserv) {
-		pserv->OnTxPropertyBitsChange(TXTBIT_WORDWRAP, bWordWrap ? TXTBIT_WORDWRAP : 0);
+	m_fWordWrap = bWordWrap;
+	if (m_pTextServices) {
+		m_pTextServices->OnTxPropertyBitsChange(TXTBIT_WORDWRAP, bWordWrap ? TXTBIT_WORDWRAP : 0);
 	}
 }
 
 BOOL RichEditHost::GetReadOnly()
 {
-	return (dwStyle & ES_READONLY) != 0;
+	return (m_dwStyle & ES_READONLY) != 0;
 }
 
 void RichEditHost::SetReadOnly(BOOL fReadOnly)
 {
 	if (fReadOnly)
 	{
-		dwStyle |= ES_READONLY;
+		m_dwStyle |= ES_READONLY;
 	}
 	else
 	{
-		dwStyle &= ~ES_READONLY;
+		m_dwStyle &= ~ES_READONLY;
 	}
 
-	pserv->OnTxPropertyBitsChange(TXTBIT_READONLY,
+	m_pTextServices->OnTxPropertyBitsChange(TXTBIT_READONLY,
 		fReadOnly ? TXTBIT_READONLY : 0);
 }
 
 BOOL RichEditHost::IsPassword()
 {
-	return (dwStyle & ES_PASSWORD) != 0;
+	return (m_dwStyle & ES_PASSWORD) != 0;
 }
 
 void RichEditHost::SetPassword(BOOL bPassword)
 {
 	if (bPassword)
 	{
-		dwStyle |= ES_PASSWORD;
+		m_dwStyle |= ES_PASSWORD;
 	}
 	else
 	{
-		dwStyle &= ~ES_PASSWORD;
+		m_dwStyle &= ~ES_PASSWORD;
 	}
 
-	pserv->OnTxPropertyBitsChange(TXTBIT_USEPASSWORD,
+	m_pTextServices->OnTxPropertyBitsChange(TXTBIT_USEPASSWORD,
 		bPassword ? TXTBIT_USEPASSWORD : 0);
 }
 
@@ -827,152 +827,152 @@ void RichEditHost::SetFontId(const std::wstring& fontId)
 	}
 	LOGFONT lf = { 0, };
 	GetLogFont(fontId, lf);
-	LONG yPixPerInch = ::GetDeviceCaps(m_re->GetWindowDC(), LOGPIXELSY);
+	LONG yPixPerInch = ::GetDeviceCaps(m_pRichEdit->GetWindowDC(), LOGPIXELSY);
 	if (yPixPerInch == 0)
 		yPixPerInch = 96;
-	cf.yHeight = -lf.lfHeight * LY_PER_INCH / yPixPerInch;
+	m_cf.yHeight = -lf.lfHeight * LY_PER_INCH / yPixPerInch;
 	if (lf.lfWeight >= FW_BOLD)
-		cf.dwEffects |= CFE_BOLD;
+		m_cf.dwEffects |= CFE_BOLD;
 	if (lf.lfItalic)
-		cf.dwEffects |= CFE_ITALIC;
+		m_cf.dwEffects |= CFE_ITALIC;
 	if (lf.lfUnderline)
-		cf.dwEffects |= CFE_UNDERLINE;
+		m_cf.dwEffects |= CFE_UNDERLINE;
 	if (lf.lfStrikeOut)
-		cf.dwEffects |= CFE_STRIKEOUT;
-	cf.bCharSet = lf.lfCharSet;
-	cf.bPitchAndFamily = lf.lfPitchAndFamily;
+		m_cf.dwEffects |= CFE_STRIKEOUT;
+	m_cf.bCharSet = lf.lfCharSet;
+	m_cf.bPitchAndFamily = lf.lfPitchAndFamily;
 #ifdef _UNICODE
-	wcscpy_s(cf.szFaceName, lf.lfFaceName);
+	wcscpy_s(m_cf.szFaceName, lf.lfFaceName);
 #else
 	//need to thunk pcf->szFaceName to a standard char string.in this case it's easy because our thunk is also our copy
-	MultiByteToWideChar(CP_ACP, 0, lf.lfFaceName, LF_FACESIZE, cf.szFaceName, LF_FACESIZE);
+	MultiByteToWideChar(CP_ACP, 0, lf.lfFaceName, LF_FACESIZE, m_cf.szFaceName, LF_FACESIZE);
 #endif
 
-	pserv->OnTxPropertyBitsChange(TXTBIT_CHARFORMATCHANGE,
+	m_pTextServices->OnTxPropertyBitsChange(TXTBIT_CHARFORMATCHANGE,
 		TXTBIT_CHARFORMATCHANGE);
 }
 
 void RichEditHost::SetColor(DWORD dwColor)
 {
-	cf.crTextColor = RGB(GetBValue(dwColor), GetGValue(dwColor), GetRValue(dwColor));
-	pserv->OnTxPropertyBitsChange(TXTBIT_CHARFORMATCHANGE,
+	m_cf.crTextColor = RGB(GetBValue(dwColor), GetGValue(dwColor), GetRValue(dwColor));
+	m_pTextServices->OnTxPropertyBitsChange(TXTBIT_CHARFORMATCHANGE,
 		TXTBIT_CHARFORMATCHANGE);
 }
 
 SIZEL* RichEditHost::GetExtent()
 {
-	return &sizelExtent;
+	return &m_sizelExtent;
 }
 
 void RichEditHost::SetExtent(SIZEL* psizelExtent)
 {
 	if (psizelExtent) {
-		sizelExtent = *psizelExtent;
-		if (pserv) {
-			pserv->OnTxPropertyBitsChange(TXTBIT_EXTENTCHANGE, TXTBIT_EXTENTCHANGE);
+		m_sizelExtent = *psizelExtent;
+		if (m_pTextServices) {
+			m_pTextServices->OnTxPropertyBitsChange(TXTBIT_EXTENTCHANGE, TXTBIT_EXTENTCHANGE);
 		}
 	}
 }
 
 void RichEditHost::LimitText(LONG nChars)
 {
-	cchTextMost = nChars;
-	if (cchTextMost <= 0) cchTextMost = cInitTextMax;
-	pserv->OnTxPropertyBitsChange(TXTBIT_MAXLENGTHCHANGE, TXTBIT_MAXLENGTHCHANGE);
+	m_cchTextMost = nChars;
+	if (m_cchTextMost <= 0) m_cchTextMost = cInitTextMax;
+	m_pTextServices->OnTxPropertyBitsChange(TXTBIT_MAXLENGTHCHANGE, TXTBIT_MAXLENGTHCHANGE);
 }
 
 BOOL RichEditHost::IsCaptured()
 {
-	return fCaptured;
+	return m_fCaptured;
 }
 
 BOOL RichEditHost::GetAllowBeep()
 {
-	return fAllowBeep;
+	return m_fAllowBeep;
 }
 
 void RichEditHost::SetAllowBeep(BOOL bAllowBeep)
 {
-	fAllowBeep = bAllowBeep;
+	m_fAllowBeep = bAllowBeep;
 
-	pserv->OnTxPropertyBitsChange(TXTBIT_ALLOWBEEP,
+	m_pTextServices->OnTxPropertyBitsChange(TXTBIT_ALLOWBEEP,
 		bAllowBeep ? TXTBIT_ALLOWBEEP : 0);
 }
 
 WORD RichEditHost::GetDefaultAlign()
 {
-	return pf.wAlignment;
+	return m_pf.wAlignment;
 }
 
 void RichEditHost::SetDefaultAlign(WORD wNewAlign)
 {
-	pf.wAlignment = wNewAlign;
+	m_pf.wAlignment = wNewAlign;
 
 	// Notify control of property change
-	pserv->OnTxPropertyBitsChange(TXTBIT_PARAFORMATCHANGE, 0);
+	m_pTextServices->OnTxPropertyBitsChange(TXTBIT_PARAFORMATCHANGE, 0);
 }
 
 BOOL RichEditHost::GetRichTextFlag()
 {
-	return fRich;
+	return m_fRich;
 }
 
 void RichEditHost::SetRichTextFlag(BOOL fNew)
 {
-	fRich = fNew;
+	m_fRich = fNew;
 
-	pserv->OnTxPropertyBitsChange(TXTBIT_RICHTEXT,
+	m_pTextServices->OnTxPropertyBitsChange(TXTBIT_RICHTEXT,
 		fNew ? TXTBIT_RICHTEXT : 0);
 }
 
 LONG RichEditHost::GetDefaultLeftIndent()
 {
-	return pf.dxOffset;
+	return m_pf.dxOffset;
 }
 
 void RichEditHost::SetDefaultLeftIndent(LONG lNewIndent)
 {
-	pf.dxOffset = lNewIndent;
+	m_pf.dxOffset = lNewIndent;
 
-	pserv->OnTxPropertyBitsChange(TXTBIT_PARAFORMATCHANGE, 0);
+	m_pTextServices->OnTxPropertyBitsChange(TXTBIT_PARAFORMATCHANGE, 0);
 }
 
 void RichEditHost::SetClientRect(UiRect* prc)
 {
-	rcClient = *prc;
+	m_rcClient = *prc;
 
-	LONG xPerInch = ::GetDeviceCaps(m_re->GetWindowDC(), LOGPIXELSX);
-	LONG yPerInch = ::GetDeviceCaps(m_re->GetWindowDC(), LOGPIXELSY);
+	LONG xPerInch = ::GetDeviceCaps(m_pRichEdit->GetWindowDC(), LOGPIXELSX);
+	LONG yPerInch = ::GetDeviceCaps(m_pRichEdit->GetWindowDC(), LOGPIXELSY);
 	if (xPerInch == 0)
 		xPerInch = 96;
 	if (yPerInch == 0)
 		yPerInch = 96;
-	sizelExtent.cx = DXtoHimetricX(rcClient.right - rcClient.left, xPerInch);
-	sizelExtent.cy = DYtoHimetricY(rcClient.bottom - rcClient.top, yPerInch);
+	m_sizelExtent.cx = DXtoHimetricX(m_rcClient.right - m_rcClient.left, xPerInch);
+	m_sizelExtent.cy = DYtoHimetricY(m_rcClient.bottom - m_rcClient.top, yPerInch);
 
-	pserv->OnTxPropertyBitsChange(TXTBIT_VIEWINSETCHANGE, TXTBIT_VIEWINSETCHANGE);
+	m_pTextServices->OnTxPropertyBitsChange(TXTBIT_VIEWINSETCHANGE, TXTBIT_VIEWINSETCHANGE);
 }
 
-BOOL RichEditHost::SetSaveSelection(BOOL f_SaveSelection)
+BOOL RichEditHost::SetSaveSelection(BOOL fSaveSelection)
 {
-	BOOL fResult = f_SaveSelection;
+	BOOL fResult = fSaveSelection;
 
-	fSaveSelection = f_SaveSelection;
+	m_fSaveSelection = fSaveSelection;
 
 	// notify text services of property change
-	pserv->OnTxPropertyBitsChange(TXTBIT_SAVESELECTION,
-		fSaveSelection ? TXTBIT_SAVESELECTION : 0);
+	m_pTextServices->OnTxPropertyBitsChange(TXTBIT_SAVESELECTION,
+		m_fSaveSelection ? TXTBIT_SAVESELECTION : 0);
 
 	return fResult;
 }
 
 HRESULT	RichEditHost::OnTxInPlaceDeactivate()
 {
-	HRESULT hr = pserv->OnTxInPlaceDeactivate();
+	HRESULT hr = m_pTextServices->OnTxInPlaceDeactivate();
 
 	if (SUCCEEDED(hr))
 	{
-		fInplaceActive = FALSE;
+		m_fInplaceActive = FALSE;
 	}
 
 	return hr;
@@ -980,13 +980,13 @@ HRESULT	RichEditHost::OnTxInPlaceDeactivate()
 
 HRESULT	RichEditHost::OnTxInPlaceActivate(LPCRECT prcClient)
 {
-	fInplaceActive = TRUE;
+	m_fInplaceActive = TRUE;
 
-	HRESULT hr = pserv->OnTxInPlaceActivate(prcClient);
+	HRESULT hr = m_pTextServices->OnTxInPlaceActivate(prcClient);
 
 	if (FAILED(hr))
 	{
-		fInplaceActive = FALSE;
+		m_fInplaceActive = FALSE;
 	}
 
 	return hr;
@@ -999,21 +999,21 @@ BOOL RichEditHost::DoSetCursor(const UiRect* prc, const UiPoint* pt)
 		return FALSE;
 	}
 
-	UiRect rc = (prc != NULL) ? *prc : rcClient;
+	UiRect rc = (prc != NULL) ? *prc : m_rcClient;
 
 	// Is this in our rectangle?
 	UiPoint newPt(pt->x, pt->y);
-	newPt.Offset(m_re->GetScrollOffsetInScrollBox());
+	newPt.Offset(m_pRichEdit->GetScrollOffsetInScrollBox());
 	if (rc.ContainsPt(newPt))
 	{
 		RECT* pRect = nullptr;
-		const UiRect* prcClient = (!fInplaceActive || prc) ? &rc : nullptr;
+		const UiRect* prcClient = (!m_fInplaceActive || prc) ? &rc : nullptr;
 		RECT rect = { 0, };
 		if (prcClient != nullptr) {
 			rect = { prcClient->left, prcClient->top, prcClient->right, prcClient->bottom };
 			pRect = &rect;
 		}
-		pserv->OnTxSetCursor(DVASPECT_CONTENT, -1, NULL, NULL, m_re->GetWindowDC(),
+		m_pTextServices->OnTxSetCursor(DVASPECT_CONTENT, -1, NULL, NULL, m_pRichEdit->GetWindowDC(),
 			NULL, pRect, newPt.x, newPt.y);
 
 		return TRUE;
@@ -1028,15 +1028,15 @@ void RichEditHost::GetControlRect(UiRect* prc)
 	if (prc == nullptr) {
 		return;
 	}
-	UiRect rc = rcClient;
-	VerAlignType alignType = m_re->GetTextVerAlignType();
+	UiRect rc = m_rcClient;
+	VerAlignType alignType = m_pRichEdit->GetTextVerAlignType();
 	if (alignType != kVerAlignTop) {
 		LONG iWidth = rc.right - rc.left;
 		LONG iHeight = 0;
 		SIZEL szExtent = { -1, -1 };
 		GetTextServices()->TxGetNaturalSize(
 			DVASPECT_CONTENT,
-			m_re->GetWindowDC(),
+			m_pRichEdit->GetWindowDC(),
 			NULL,
 			NULL,
 			TXTNS_FITTOCONTENT,
@@ -1057,86 +1057,86 @@ void RichEditHost::GetControlRect(UiRect* prc)
 	prc->bottom = rc.bottom;
 }
 
-void RichEditHost::SetTransparent(BOOL f_Transparent)
+void RichEditHost::SetTransparent(BOOL fTransparent)
 {
-	fTransparent = f_Transparent;
+	m_fTransparent = fTransparent;
 
 	// notify text services of property change
-	pserv->OnTxPropertyBitsChange(TXTBIT_BACKSTYLECHANGE, 0);
+	m_pTextServices->OnTxPropertyBitsChange(TXTBIT_BACKSTYLECHANGE, 0);
 }
 
-LONG RichEditHost::SetAccelPos(LONG l_accelpos)
+LONG RichEditHost::SetAccelPos(LONG lAcceleratorPos)
 {
-	LONG laccelposOld = l_accelpos;
+	LONG laccelposOld = lAcceleratorPos;
 
-	laccelpos = l_accelpos;
+	m_lAcceleratorPos = lAcceleratorPos;
 
 	// notify text services of property change
-	pserv->OnTxPropertyBitsChange(TXTBIT_SHOWACCELERATOR, 0);
+	m_pTextServices->OnTxPropertyBitsChange(TXTBIT_SHOWACCELERATOR, 0);
 
 	return laccelposOld;
 }
 
-WCHAR RichEditHost::SetPasswordChar(WCHAR ch_PasswordChar)
+WCHAR RichEditHost::SetPasswordChar(WCHAR chPasswordChar)
 {
-	WCHAR chOldPasswordChar = chPasswordChar;
+	WCHAR chOldPasswordChar = m_chPasswordChar;
 
-	chPasswordChar = ch_PasswordChar;
+	m_chPasswordChar = chPasswordChar;
 
 	// notify text services of property change
-	pserv->OnTxPropertyBitsChange(TXTBIT_USEPASSWORD,
-		(chPasswordChar != 0) ? TXTBIT_USEPASSWORD : 0);
+	m_pTextServices->OnTxPropertyBitsChange(TXTBIT_USEPASSWORD,
+		(m_chPasswordChar != 0) ? TXTBIT_USEPASSWORD : 0);
 
 	return chOldPasswordChar;
 }
 
 void RichEditHost::SetDisabled(BOOL fOn)
 {
-	cf.dwMask |= CFM_COLOR | CFM_DISABLED;
-	cf.dwEffects |= CFE_AUTOCOLOR | CFE_DISABLED;
+	m_cf.dwMask |= CFM_COLOR | CFM_DISABLED;
+	m_cf.dwEffects |= CFE_AUTOCOLOR | CFE_DISABLED;
 
 	if (!fOn)
 	{
-		cf.dwEffects &= ~CFE_DISABLED;
+		m_cf.dwEffects &= ~CFE_DISABLED;
 	}
 
-	pserv->OnTxPropertyBitsChange(TXTBIT_CHARFORMATCHANGE,
+	m_pTextServices->OnTxPropertyBitsChange(TXTBIT_CHARFORMATCHANGE,
 		TXTBIT_CHARFORMATCHANGE);
 }
 
-LONG RichEditHost::SetSelBarWidth(LONG l_SelBarWidth)
+LONG RichEditHost::SetSelBarWidth(LONG lSelBarWidth)
 {
-	LONG lOldSelBarWidth = lSelBarWidth;
+	LONG lOldSelBarWidth = m_lSelBarWidth;
 
-	lSelBarWidth = l_SelBarWidth;
+	m_lSelBarWidth = lSelBarWidth;
 
-	if (lSelBarWidth)
+	if (m_lSelBarWidth)
 	{
-		dwStyle |= ES_SELECTIONBAR;
+		m_dwStyle |= ES_SELECTIONBAR;
 	}
 	else
 	{
-		dwStyle &= (~ES_SELECTIONBAR);
+		m_dwStyle &= (~ES_SELECTIONBAR);
 	}
 
-	pserv->OnTxPropertyBitsChange(TXTBIT_SELBARCHANGE, TXTBIT_SELBARCHANGE);
+	m_pTextServices->OnTxPropertyBitsChange(TXTBIT_SELBARCHANGE, TXTBIT_SELBARCHANGE);
 
 	return lOldSelBarWidth;
 }
 
 BOOL RichEditHost::GetTimerState()
 {
-	return fTimer;
+	return m_fTimer;
 }
 
 void RichEditHost::SetCharFormat(const CHARFORMAT2W& c)
 {
-	cf = c;
+	m_cf = c;
 }
 
 void RichEditHost::SetParaFormat(const PARAFORMAT2& p)
 {
-	pf = p;
+	m_pf = p;
 }
 
 // Convert Pixels on the X axis to Himetric
