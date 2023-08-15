@@ -253,7 +253,7 @@ public:
 	 */
     bool SetZoomOff();
 
-	/** 获取是否开启了自动 URL 检测
+	/** 获取是否开启了自动 URL 检测(从RichEditHost读取)
 	 * @return 返回 true 表示开启了自动检测，否则为 false
 	 */
     bool GetAutoURLDetect() const;
@@ -737,7 +737,7 @@ public:
 	/** 监听自定义链接被点击事件
 	 * @param[in] callback 自定义链接被点击后的自定义回调函数
 	 */
-	void AttachCustomLinkClk(const EventCallback& callback)	{ AttachEvent(kEventCustomLinkClick, callback); }
+	void AttachCustomLinkClick(const EventCallback& callback)	{ AttachEvent(kEventCustomLinkClick, callback); }
 
 	/** 监听大小变化事件
 	 * @param[in] callback 大小被改变后的自定义回调函数
@@ -854,6 +854,9 @@ protected:
 	std::map<UINT, nbase::WeakCallbackFlag> m_timeFlagMap;
 	std::vector<LinkInfo> m_linkInfo;
 	Image* m_pFocusedImage;
+
+	//是否为自动检测URL
+	bool m_bAutoDetect;
 
 private:
 	//文本内边距

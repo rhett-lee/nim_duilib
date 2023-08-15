@@ -53,7 +53,8 @@ RichEdit::RichEdit() :
 	m_drawCaretFlag(),
 	m_timeFlagMap(),
 	m_linkInfo(),
-	m_pFocusedImage(nullptr)
+	m_pFocusedImage(nullptr),
+	m_bAutoDetect(false)
 {
 	m_iLimitText = RichEditHost::GetDefaultMaxText();
 	m_sCurrentColor = GlobalManager::Instance().Color().GetDefaultTextColor();
@@ -346,16 +347,19 @@ void RichEdit::ReplaceSel(const std::wstring& lpszNewText, bool bCanUndo)
 
 std::wstring RichEdit::GetSelText() const
 {
-    if( !m_pTwh ) return std::wstring();
-    CHARRANGE cr;
-    cr.cpMin = cr.cpMax = 0;
+	if (m_pTwh == nullptr) {
+		return std::wstring();
+	}
+	CHARRANGE cr = { 0, };
     TxSendMessage(EM_EXGETSEL, 0, (LPARAM)&cr, 0);
-    LPWSTR lpText = NULL;
-    lpText = new WCHAR[cr.cpMax - cr.cpMin + 1];
-    ::ZeroMemory(lpText, (cr.cpMax - cr.cpMin + 1) * sizeof(WCHAR));
+	const int32_t nLen = cr.cpMax - cr.cpMin + 1;
+	if (nLen < 1) {
+		return std::wstring();
+	}
+    LPWSTR lpText = new WCHAR[nLen];
+    ::ZeroMemory(lpText, nLen * sizeof(WCHAR));
     TxSendMessage(EM_GETSELTEXT, 0, (LPARAM)lpText, 0);
-    std::wstring sText;
-    sText = (LPCWSTR)lpText;
+    std::wstring sText = lpText;
     delete[] lpText;
     return sText;
 }
@@ -409,8 +413,15 @@ bool RichEdit::GetAutoURLDetect() const
 
 bool RichEdit::SetAutoURLDetect(bool bAutoDetect)
 {
+	m_bAutoDetect = bAutoDetect;
+	if (m_pTwh == nullptr) {
+		return true;
+	}
+	if (bAutoDetect) {
+		ASSERT(GetEventMask() & ENM_LINK);
+	}
     LRESULT lResult;
-    TxSendMessage(EM_AUTOURLDETECT, bAutoDetect, 0, &lResult);
+    TxSendMessage(EM_AUTOURLDETECT, AURL_ENABLEURL, 0, &lResult);
     return (BOOL)lResult == FALSE;
 }
 
@@ -728,13 +739,15 @@ void RichEdit::OnTxNotify(DWORD iNotify, void *pv)
 			NMHDR* hdr = (NMHDR*) pv;
 			ENLINK* link = (ENLINK*)hdr;
 
-			if(link->msg == WM_LBUTTONUP) {
-				this->SetSel(link->chrg);
-				std::wstring url = GetSelText();	
-				wprintf_s(L"[Link]%s\n", url.c_str());
-
-				HWND hwnd = this->GetWindowHandle();
-				SendMessage(hwnd, WM_NOTIFY, EN_LINK, (LPARAM)&url);
+			if((link != nullptr) && (link->msg == WM_LBUTTONUP)) {
+				CHARRANGE oldSel = {0, 0};
+				GetSel(oldSel);
+				SetSel(link->chrg);
+				std::wstring url = GetSelText();
+				SetSel(oldSel);
+				if (!url.empty()) {
+					this->SendEvent(kEventCustomLinkClick, (WPARAM)url.c_str());
+				}
 			}
 		}
 		break;
@@ -987,7 +1000,7 @@ void RichEdit::DoInit()
 	if (m_bInited)
 		return;
 
-	CREATESTRUCT cs;
+	CREATESTRUCT cs = {0, };
 	cs.style = m_lTwhStyle;
 	cs.x = 0;
 	cs.y = 0;
@@ -995,11 +1008,12 @@ void RichEdit::DoInit()
 	cs.cx = 0;
 	cs.lpszName = m_sText.c_str();
 	RichEditHost::CreateHost(this, &cs, &m_pTwh);
-	if (m_pTwh) {
+	ASSERT(m_pTwh != nullptr);
+	if (m_pTwh != nullptr) {
 		m_pTwh->SetTransparent(TRUE);
 		LRESULT lResult;
 		m_pTwh->GetTextServices()->TxSendMessage(EM_SETLANGOPTIONS, 0, 0, &lResult);
-		m_pTwh->GetTextServices()->TxSendMessage(EM_SETEVENTMASK, 0, ENM_CHANGE, &lResult);
+		m_pTwh->GetTextServices()->TxSendMessage(EM_SETEVENTMASK, 0, ENM_CHANGE | ENM_LINK, &lResult);
 		m_pTwh->OnTxInPlaceActivate(NULL);
 		if (m_pHScrollBar) {
 			m_pHScrollBar->SetScrollRange(0);
@@ -1007,8 +1021,12 @@ void RichEdit::DoInit()
 		if (m_pVScrollBar) {
 			m_pVScrollBar->SetScrollRange(0);
 		}
-	}
 
+		//设置自动检测URL
+		if (m_bAutoDetect) {
+			SetAutoURLDetect(true);
+		}
+	}
 	m_bInited = true;
 }
 
@@ -1207,11 +1225,9 @@ void RichEdit::HandleEvent(const EventArgs& msg)
 
 	if (msg.Type == kEventMouseButtonDown) {
 		if (m_linkInfo.size() > 0)	{
-			std::wstring strLink;
-			if (HittestCustomLink(UiPoint(msg.ptMouse), strLink))
-			{
-				//::SetCursor(::LoadCursor(NULL, MAKEINTRESOURCE(IDC_HAND)));
-				SendEvent(kEventCustomLinkClick);
+			std::wstring url;
+			if (HittestCustomLink(UiPoint(msg.ptMouse), url)) {
+				SendEvent(kEventCustomLinkClick, (WPARAM)url.c_str());
 				return;
 			}
 		}
@@ -1257,17 +1273,17 @@ void RichEdit::HandleEvent(const EventArgs& msg)
 bool RichEdit::OnSetCursor(const EventArgs& msg)
 {
 	std::wstring strLink;
-	if (HittestCustomLink(UiPoint(msg.ptMouse), strLink))
-	{
+	if (HittestCustomLink(UiPoint(msg.ptMouse), strLink)) {
 		::SetCursor(::LoadCursor(NULL, IDC_HAND));
+		return true;
 	}
 	if (m_pTwh && !IsReadOnly() && m_pTwh->DoSetCursor(NULL, &msg.ptMouse)) {
 		return true;
 	}
 	else {
 		::SetCursor(::LoadCursor(NULL, IsReadOnly() ? IDC_ARROW : IDC_IBEAM));
+		return true;
 	}
-	return true;
 }
 
 bool RichEdit::OnSetFocus(const EventArgs& /*msg*/)
@@ -1702,7 +1718,12 @@ void RichEdit::SetAttribute(const std::wstring& strName, const std::wstring& str
 		SetReturnMsgWantCtrl(strValue == L"true");
 	}
 	else if (strName == L"rich") {
+		//是否为富文本属性
 		SetRich(strValue == L"true");
+	}
+	else if (strName == L"auto_detect_url") {
+		//是否自动检测URL，如果是URL则显示为超链接
+		SetAutoURLDetect(strValue == L"true");
 	}
 	else if ((strName == L"max_char") || (strName == L"maxchar")){
 		//限制最多字符数（默认为32KB）
