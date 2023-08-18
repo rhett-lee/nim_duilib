@@ -90,6 +90,7 @@ void CefNativeControl::HandleEvent(const ui::EventArgs& msg)
 		else {
 			__super::HandleEvent(msg);
 		}
+		return;
 	}
 	if (browser_handler_.get() && browser_handler_->GetBrowser().get() == NULL) {
 		return __super::HandleEvent(msg);

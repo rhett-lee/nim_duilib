@@ -43,6 +43,7 @@ void Slider::HandleEvent(const EventArgs& msg)
 		else {
 			__super::HandleEvent(msg);
 		}
+		return;
 	}
 	if (msg.Type == kEventMouseButtonDown || msg.Type == kEventMouseDoubleClick) {
 		UiPoint newPtMouse(msg.ptMouse);

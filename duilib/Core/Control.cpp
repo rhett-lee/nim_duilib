@@ -433,6 +433,11 @@ void Control::SetState(ControlStateType controlState)
 	Invalidate();
 }
 
+bool Control::IsHotState() const
+{
+	return (m_controlState == kControlStateHot) ? true : false;
+}
+
 std::wstring Control::GetBorderColor() const
 {
     return m_strBorderColor.c_str();
@@ -790,11 +795,10 @@ UiRect Control::GetPos() const
 
 void Control::SetPos(UiRect rc)
 {
+	//有很多类似的代码：SetPos(GetPos()), 代表设置位置，并重新绘制
 	rc.Validate();
 	SetArranged(false);
-	if (GetRect().Equals(rc)) {		
-		return;
-	}
+	bool isPosChanged = !GetRect().Equals(rc);
 
 	UiRect invalidateRc = GetRect();
 	if (invalidateRc.IsEmpty()) {
@@ -825,7 +829,9 @@ void Control::SetPos(UiRect rc)
 		GetWindow()->Invalidate(invalidateRc);
 	}
 
-	SendEvent(kEventResize);
+	if (isPosChanged) {
+		SendEvent(kEventResize);
+	}	
 }
 
 UiEstSize Control::EstimateSize(UiSize szAvailable)
@@ -997,6 +1003,10 @@ bool Control::IsDisabledEvents(const EventArgs& msg) const
 			return true;
 		}
 	}
+	else if (msg.Type == kEventLast) {
+		//转发给上层控件
+		return true;
+	}
 	return false;
 }
 
@@ -1008,6 +1018,7 @@ void Control::HandleEvent(const EventArgs& msg)
 		if (pParent != nullptr) {
 			pParent->SendEvent(msg);
 		}
+		return;
 	}
 	if( msg.Type == kEventSetCursor ) {
 		if (OnSetCursor(msg)) {
@@ -1246,28 +1257,32 @@ bool Control::MouseHover(const EventArgs& /*msg*/)
 
 bool Control::MouseWheel(const EventArgs& /*msg*/)
 {
-	return true;
+	//默认不处理，交由父控件处理
+	return false;
 }
 
 bool Control::MouseMenu(const EventArgs& /*msg*/)
 {
-	//按Shif + F10，由系统产生上下文菜单, 默认不处理，交由父控件处理
+	//按Shif + F10由系统产生上下文菜单, 或者点击右键触发菜单：默认不处理，交由父控件处理
 	return false;
 }
 
 bool Control::OnChar(const EventArgs& /*msg*/)
 {
-	return true;
+	//默认不处理，交由父控件处理
+	return false;
 }
 
 bool Control::OnKeyDown(const EventArgs& /*msg*/)
 {
-	return true;
+	//默认不处理，交由父控件处理
+	return false;
 }
 
 bool Control::OnKeyUp(const EventArgs& /*msg*/)
 {
-	return true;
+	//默认不处理，交由父控件处理
+	return false;
 }
 
 bool Control::OnSetCursor(const EventArgs& /*msg*/)

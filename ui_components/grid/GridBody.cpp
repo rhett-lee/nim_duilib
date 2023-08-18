@@ -934,6 +934,7 @@ namespace ui
 			else {
 				__super::HandleEvent(msg);
 			}
+			return;
 		}
 		bool bHandle = false;
 		if (msg.Type == kEventMouseDoubleClick)

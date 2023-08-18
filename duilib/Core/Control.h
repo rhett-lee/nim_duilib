@@ -150,6 +150,10 @@ public:
 	 */
 	void SetState(ControlStateType controlState);
 
+	/** 当前是否为Hot状态(这个状态下，业务逻辑较多)
+	*/
+	bool IsHotState() const;
+
 	/** 获取用于估算控件大小（宽和高）图片接口
 	 */
 	virtual Image* GetEstimateImage();

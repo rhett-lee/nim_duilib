@@ -799,7 +799,7 @@ bool CMenuElementUI::MouseEnter(const ui::EventArgs& msg)
 	}
 	std::weak_ptr<nbase::WeakFlag> weakFlag = pWindow->GetWeakFlag();
 	bool ret = __super::MouseEnter(msg);
-	if (ret && !weakFlag.expired()) {
+	if (IsHotState() && !weakFlag.expired()) {
 		//这里处理下如果有子菜单则显示子菜单
 		if (!CheckSubMenuItem()) {
 			ContextMenuParam param;

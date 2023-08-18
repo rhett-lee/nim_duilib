@@ -61,18 +61,16 @@ void ListBox::HandleEvent(const EventArgs& msg)
 		else {
 			__super::HandleEvent(msg);
 		}
+		return;
 	}
 	if (IsMultiSelect()) {
 		//允许多选的情况下，不支持下面的单选逻辑
-		ScrollBox::HandleEvent(msg);
+		__super::HandleEvent(msg);
 		return;
 	}
 
 	size_t itemIndex = Box::InvalidIndex;
 	switch (msg.Type) {
-	case kEventMouseButtonDown:
-	case kEventMouseButtonUp:
-		break;
 	case kEventKeyDown:
 		switch (msg.chKey) {
 		case VK_UP:
@@ -801,6 +799,7 @@ void ListBoxItem::HandleEvent(const EventArgs& msg)
 		else {
 			__super::HandleEvent(msg);
 		}
+		return;
 	}
 	if (msg.Type == kEventMouseDoubleClick) {
 		if (!IsActivatable()) {

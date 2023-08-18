@@ -254,6 +254,7 @@ void VirtualListBox::HandleEvent(const EventArgs& msg)
         else {
             __super::HandleEvent(msg);
         }
+        return;
     }
     if (!HasDataProvider()) {
         return __super::HandleEvent(msg);

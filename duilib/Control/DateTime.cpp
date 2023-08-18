@@ -361,6 +361,7 @@ void DateTime::HandleEvent(const EventArgs& msg)
         else {
             __super::HandleEvent(msg);
         }
+        return;
     }
     if ((msg.Type == kEventSetCursor)) {
         ::SetCursor(::LoadCursor(NULL, IDC_IBEAM));

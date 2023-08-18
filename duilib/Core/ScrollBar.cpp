@@ -134,24 +134,22 @@ bool ScrollBar::HasHotState()
 bool ScrollBar::MouseEnter(const EventArgs& msg)
 {
 	bool ret = __super::MouseEnter(msg);
-	if (ret) {
+	if (IsHotState()) {
 		m_uButton1State = kControlStateHot;
 		m_uButton2State = kControlStateHot;
 		m_uThumbState = kControlStateHot;
 	}
-
 	return ret;
 }
 
 bool ScrollBar::MouseLeave(const EventArgs& msg)
 {
 	bool ret = __super::MouseLeave(msg);
-	if (ret) {
+	if (!IsHotState()) {
 		m_uButton1State = kControlStateNormal;
 		m_uButton2State = kControlStateNormal;
 		m_uThumbState = kControlStateNormal;
 	}
-
 	return ret;
 }
 
@@ -334,6 +332,7 @@ void ScrollBar::HandleEvent(const EventArgs& msg)
 		else {
 			__super::HandleEvent(msg);
 		}
+		return;
 	}
 
 	if ((msg.Type == kEventMouseButtonDown) || (msg.Type == kEventMouseDoubleClick)) {
