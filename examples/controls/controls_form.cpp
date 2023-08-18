@@ -57,13 +57,15 @@ void ControlForm::OnInitWindow()
 
 	/* Initialize ListBox data */
 	ui::ListBox* list = static_cast<ui::ListBox*>(FindControl(L"list"));
-	for (auto i = 0; i < 30; i++)
-	{
-		ui::ListBoxItem* element = new ui::ListBoxItem;
-		element->SetText(nbase::StringPrintf(L"ui::VListBox::ListBoxItem %d", i));
-		element->SetClass(L"listitem");
-		element->SetFixedHeight(ui::UiFixedInt(20), true, true);
-		list->AddItem(element);
+	if (list != nullptr) {
+		for (auto i = 0; i < 30; i++)
+		{
+			ui::ListBoxItem* element = new ui::ListBoxItem;
+			element->SetText(nbase::StringPrintf(L"ui::VListBox::ListBoxItem %d", i));
+			element->SetClass(L"listitem");
+			element->SetFixedHeight(ui::UiFixedInt(20), true, true);
+			list->AddItem(element);
+		}
 	}
 
 	/* Initialize ComboBox data */
@@ -290,7 +292,7 @@ void ControlForm::OnResourceFileLoaded(const std::wstring& xml)
 	}
 
 	//Æô¶¯¼ÓÔØ¶¯»­
-	control_edit->StartLoading();
+	//control_edit->StartLoading();
 	//control_edit->StartGifPlayForUI();
 
 	// Show about form

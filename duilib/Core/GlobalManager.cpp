@@ -6,6 +6,10 @@
 #include "duilib/Core/Control.h"
 #include "duilib/Core/Box.h"
 
+#ifdef UILIB_IMPL_WINSDK
+	#include "duilib/Control/RichEditCtrl.h"
+#endif
+
 //渲染引擎的选择(目前仅支持在编译期间选择)
 #include "duilib/Render/RenderConfig.h"
 #if (duilib_kRenderType == duilib_kRenderType_Skia)
@@ -54,11 +58,20 @@ GlobalManager::GlobalManager():
 	m_dwUiThreadId(0),
 	m_pfnCreateControlCallback(nullptr)
 {
+#ifdef UILIB_IMPL_WINSDK
+	m_hRichEditModule = nullptr;
+#endif
 }
 
 GlobalManager::~GlobalManager()
 {
 	Shutdown();
+#ifdef UILIB_IMPL_WINSDK
+	if (m_hRichEditModule != nullptr) {
+		::FreeLibrary(m_hRichEditModule);
+		m_hRichEditModule = nullptr;
+	}
+#endif
 }
 
 GlobalManager& GlobalManager::Instance()
@@ -312,6 +325,15 @@ IconManager& GlobalManager::Icon()
 {
 	return m_iconManager;
 }
+
+HMODULE GlobalManager::GetRichEditModule()
+{
+	if (m_hRichEditModule == nullptr) {
+		m_hRichEditModule = ::LoadLibraryW(RichEditCtrl::GetLibraryName());
+	}
+	return m_hRichEditModule;
+}
+
 #endif
 
 ZipManager& GlobalManager::Zip()

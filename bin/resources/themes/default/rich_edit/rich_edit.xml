@@ -43,8 +43,12 @@
                         <RichEdit class="simple" text="RichEdit: simple" valign="center" text_align="vcenter" bkcolor="white" margin="4,6,4,4"/>
                     </HBox>
                     <HBox height="36">
+                        <Label text="RichEdit,readonly:  " valign="center"/>
+                        <RichEdit class="simple" text="RichEdit: readonly" readonly="true" valign="center" text_align="vcenter" bkcolor="white" margin="4,6,4,4"/>
+                    </HBox>
+                    <HBox height="36">
                         <Label text="RichEdit,password:  " valign="center"/>
-                        <RichEdit class="simple" text="RichEdit: simple" password="true" valign="center" text_align="vcenter" bkcolor="white" margin="4,6,4,4"/>
+                        <RichEdit class="simple" text="This is password!" password="true" password_char="#" flash_password_char="true" show_password="false" valign="center" text_align="vcenter" bkcolor="white" margin="4,6,4,4"/>
                     </HBox>
                     <HBox height="36">
                         <Label text="RichEdit,number:  " valign="center"/>
@@ -58,11 +62,11 @@
                     <Control class="splitline_hor_level1"/>
                     <HBox height="64">
                         <Label text="RichEdit,edit:  " valign="center"/>
-                        <RichEdit class="edit" text="RichEdit: edit" valign="center" text_padding="4,4,0,0" margin="4,6,4,4"/>
+                        <RichEdit class="edit" text="RichEdit: edit" text_align="right,bottom" multi_line="true" valign="center" text_padding="4,4,4,4" margin="4,6,4,4"/>
                     </HBox>
                     <Control class="splitline_hor_level1"/>
                     <HBox height="64">
-                        <Label text="RichEdit,input:  " valign="center"/>
+                        <Label text="RichEdit,input: disabled " valign="center"/>
                         <RichEdit class="input" enabled="false" text="RichEdit: input" valign="center" text_padding="4,4,0,0"/>
                     </HBox>
                     <HBox height="36">

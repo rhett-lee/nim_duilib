@@ -432,6 +432,7 @@
     <ClInclude Include="Control\DateTime.h" />
     <ClInclude Include="Control\Menu.h" />
     <ClInclude Include="Control\observer_impl_base.hpp" />
+    <ClInclude Include="Control\RichEditCtrl.h" />
     <ClInclude Include="Control\RichEditHost.h" />
     <ClInclude Include="Control\RichText.h" />
     <ClInclude Include="Control\CircleProgress.h" />

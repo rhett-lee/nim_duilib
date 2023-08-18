@@ -16,75 +16,87 @@ class RichEdit;
 class UILIB_API RichEditHost : public ITextHost
 {
 public:
-	RichEditHost();
+	/** 构造函数，构造后引用计数为1，外部可以通过AddRef和Release控制对象的生命周期
+	*/
+	explicit RichEditHost(RichEdit* pRichEdit);
 	RichEditHost(const RichEditHost& r) = delete;
 	RichEditHost& operator=(const RichEditHost& r) = delete;
+
+private:
 	virtual ~RichEditHost();
 
 public:
+	/** 获取ITextServices接口
+	*/
+	ITextServices* GetTextServices(void) const;
 
-    BOOL Init(RichEdit* re, const CREATESTRUCT* pcs);
-    ITextServices* GetTextServices(void) { return m_pTextServices; }
-    void SetClientRect(UiRect* prc);
-    UiRect* GetClientRect() { return &m_rcClient; }
-    BOOL GetWordWrap(void) { return m_fWordWrap; }
-    void SetWordWrap(BOOL bWordWrap);
-    BOOL GetReadOnly();
-    void SetReadOnly(BOOL fReadOnly);
-    BOOL IsPassword();
-    void SetPassword(BOOL bPassword);
+	/** 释放资源
+	*/
+	void Clear();
+
+    void SetClientRect(const UiRect& rc);
+	void GetControlRect(UiRect* prc);
+
+	//是否自动换行（仅在单行文本模式下有效，多行文本模式时无效）
+    void SetWordWrap(bool bWordWrap);
+	bool IsWordWrap() const;
+
+	//是否自动选择单词
+	void SetEnableAutoWordSel(bool bEnableAutoWordSel);
+
+	//是否只读
+    void SetReadOnly(bool fReadOnly);
+	bool IsReadOnly() const;
+
+	//设置密码字符，必须为有效的字符，不可以是'\0'
+	void SetPasswordChar(WCHAR chPasswordChar);
+    void SetPassword(bool bPassword);
+	bool IsPassword() const;
+	void SetShowPassword(bool bShow); //设置是否显示密码
+	bool IsShowPassword() const;//是否显示密码
+	void SetFlashPasswordChar(bool bFlash);
+	bool IsFlashPasswordChar() const;
+
+	//是否只允许输入数字字符
+	bool IsNumberOnly() const;
+	void SetNumberOnly(bool bNumberOnly);
+
+	//是否支持多行
+	bool IsMultiLine() const;
+	void SetMultiLine(bool bMultiLine);
+
+	//文本横向和纵向对齐方式
+	void SetHAlignType(HorAlignType alignType);
+	void SetVAlignType(VerAlignType alignType);
+
+	//横向和纵向滚动条设置
+	void SetVScrollBar(bool bEnable);
+	void SetAutoVScrollBar(bool bEnable);
+	void SetHScrollBar(bool bEnable);	
+	void SetAutoHScrollBar(bool bEnable);
+
     void SetFontId(const std::wstring& fontId);
     void SetColor(DWORD dwColor);
-    SIZEL* GetExtent();
-    void SetExtent(SIZEL* psizelExtent);
-    void LimitText(LONG nChars);
-    BOOL IsCaptured();
-
-    BOOL GetAllowBeep();
-    void SetAllowBeep(BOOL bAllowBeep);
-    WORD GetDefaultAlign();
-    void SetDefaultAlign(WORD wNewAlign);
-    BOOL GetRichTextFlag();
-    void SetRichTextFlag(BOOL fNew);
-    LONG GetDefaultLeftIndent();
-    void SetDefaultLeftIndent(LONG lNewIndent);
-    BOOL SetSaveSelection(BOOL fSaveSelection);
-    HRESULT OnTxInPlaceDeactivate();
-    HRESULT OnTxInPlaceActivate(LPCRECT prcClient);
-    BOOL GetActiveState(void) { return m_fInplaceActive; }
-    BOOL DoSetCursor(const UiRect* prc, const UiPoint* pt);
-    void SetTransparent(BOOL fTransparent);
-    void GetControlRect(UiRect* prc);
-    LONG SetAccelPos(LONG lAcceleratorPos);
-    WCHAR SetPasswordChar(WCHAR chPasswordChar);
-    void SetDisabled(BOOL fOn);
-    LONG SetSelBarWidth(LONG lSelBarWidth);
-    BOOL GetTimerState();
+    void SetExtent(SIZEL sizelExtent);
+    void SetAllowBeep(bool bAllowBeep);
+	bool IsAllowBeep() const;
+	bool IsRichText() const;
+    void SetRichText(bool fNew);
+    bool SetSaveSelection(bool fSaveSelection);
+    bool SetCursor(const UiRect* prc, const UiPoint* pt);
+    void SetTransparent(bool fTransparent);    
+    void SetDisabled(bool fOn);
+    void SetSelBarWidth(LONG lSelBarWidth);
 
     void SetCharFormat(const CHARFORMAT2W& c);
     void SetParaFormat(const PARAFORMAT2& p);
 
-	ITextHost* GetTextHost();
-    ITextServices* GetTextServices2();
-    BOOL SetOleCallback(IRichEditOleCallback* pCallback);
-    BOOL CanPaste(UINT nFormat = 0);
-    void PasteSpecial(UINT uClipFormat, DWORD dwAspect = 0, HMETAFILE hMF = 0);
-    UiRect MakeUiRect(const RECT& rc);
+	HRESULT OnTxInPlaceDeactivate();
+	HRESULT OnTxInPlaceActivate(LPCRECT prcClient);
 
 public:
 
-    static HRESULT CreateHost(RichEdit* re, const CREATESTRUCT* pcs, RichEditHost** pptec);
-    static HRESULT InitDefaultCharFormat(RichEdit* re, CHARFORMAT2W* pcf);
-    static HRESULT InitDefaultParaFormat(RichEdit* re, PARAFORMAT2* ppf);
     static void GetLogFont(const std::wstring& fontId, LOGFONT& lf);
-    // Convert Pixels on the X axis to Himetric
-    static LONG DXtoHimetricX(LONG dx, LONG xPerInch);
-    // Convert Pixels on the Y axis to Himetric
-    static LONG DYtoHimetricY(LONG dy, LONG yPerInch);
-
-    /** 获取默认的最大字符个数
-    */
-    static int32_t GetDefaultMaxText();
 
 public:
     // -----------------------------
@@ -97,74 +109,179 @@ public:
     // -----------------------------
     //	ITextHost interface
     // -----------------------------
-    virtual HDC TxGetDC() override;
-    virtual INT TxReleaseDC(HDC hdc) override;
-    virtual BOOL TxShowScrollBar(INT fnBar, BOOL fShow) override;
-    virtual BOOL TxEnableScrollBar(INT fuSBFlags, INT fuArrowflags) override;
-    virtual BOOL TxSetScrollRange(INT fnBar, LONG nMinPos, INT nMaxPos, BOOL fRedraw) override;
-    virtual BOOL TxSetScrollPos(INT fnBar, INT nPos, BOOL fRedraw) override;
-    virtual void TxInvalidateRect(LPCRECT prc, BOOL fMode) override;
-    virtual void TxViewChange(BOOL fUpdate) override;
-    virtual BOOL TxCreateCaret(HBITMAP hbmp, INT xWidth, INT yHeight) override;
-    virtual BOOL TxShowCaret(BOOL fShow) override;
-    virtual BOOL TxSetCaretPos(INT x, INT y) override;
-    virtual BOOL TxSetTimer(UINT idTimer, UINT uTimeout) override;
-    virtual void TxKillTimer(UINT idTimer) override;
-    virtual void TxScrollWindowEx(INT dx, INT dy, LPCRECT lprcScroll, LPCRECT lprcClip, HRGN hrgnUpdate, LPRECT lprcUpdate, UINT fuScroll) override;
-    virtual void TxSetCapture(BOOL fCapture) override;
-    virtual void TxSetFocus() override;
-    virtual void TxSetCursor(HCURSOR hcur, BOOL fText) override;
-    virtual BOOL TxScreenToClient(LPPOINT lppt) override;
-    virtual BOOL TxClientToScreen(LPPOINT lppt) override;
-    virtual HRESULT TxActivate(LONG* plOldState) override;
-    virtual HRESULT TxDeactivate(LONG lNewState) override;
-    virtual HRESULT TxGetClientRect(LPRECT prc) override;
-    virtual HRESULT TxGetViewInset(LPRECT prc) override;
-    virtual HRESULT TxGetCharFormat(const CHARFORMATW** ppCF) override;
-    virtual HRESULT TxGetParaFormat(const PARAFORMAT** ppPF) override;
-    virtual COLORREF TxGetSysColor(int nIndex) override;
-    virtual HRESULT TxGetBackStyle(TXTBACKSTYLE* pstyle) override;
-    virtual HRESULT TxGetMaxLength(DWORD* plength) override;
-    virtual HRESULT TxGetScrollBars(DWORD* pdwScrollBar) override;
-    virtual HRESULT TxGetPasswordChar(TCHAR* pch) override;
-    virtual HRESULT TxGetAcceleratorPos(LONG* pcp) override;
-    virtual HRESULT TxGetExtent(LPSIZEL lpExtent) override;
-    virtual HRESULT OnTxCharFormatChange(const CHARFORMATW* pcf) override;
-    virtual HRESULT OnTxParaFormatChange(const PARAFORMAT* ppf) override;
-    virtual HRESULT TxGetPropertyBits(DWORD dwMask, DWORD* pdwBits) override;
-    virtual HRESULT TxNotify(DWORD iNotify, void* pv) override;
-    virtual HIMC TxImmGetContext(void) override;
-    virtual void TxImmReleaseContext(HIMC himc) override;
-    virtual HRESULT TxGetSelectionBarWidth(LONG* plSelBarWidth) override;
+	//@cmember Get the DC for the host
+	virtual HDC TxGetDC() override;
+
+	//@cmember Release the DC gotten from the host
+	virtual INT TxReleaseDC(HDC hdc) override;
+
+	//@cmember Show the scroll bar
+	virtual BOOL TxShowScrollBar(INT fnBar, BOOL fShow) override;
+
+	//@cmember Enable the scroll bar
+	virtual BOOL TxEnableScrollBar(INT fuSBFlags, INT fuArrowflags) override;
+
+	//@cmember Set the scroll range
+	virtual BOOL TxSetScrollRange( INT fnBar,
+								   LONG nMinPos,
+								   INT nMaxPos,
+								   BOOL fRedraw) override;
+
+	//@cmember Set the scroll position
+	virtual BOOL TxSetScrollPos(INT fnBar, INT nPos, BOOL fRedraw) override;
+
+	//@cmember InvalidateRect
+	virtual void TxInvalidateRect(LPCRECT prc, BOOL fMode) override;
+
+	//@cmember Send a WM_PAINT to the window
+	virtual void TxViewChange(BOOL fUpdate) override;
+
+	//@cmember Create the caret
+	virtual BOOL TxCreateCaret(HBITMAP hbmp, INT xWidth, INT yHeight) override;
+
+	//@cmember Show the caret
+	virtual BOOL TxShowCaret(BOOL fShow) override;
+
+	//@cmember Set the caret position
+	virtual BOOL TxSetCaretPos(INT x, INT y) override;
+
+	//@cmember Create a timer with the specified timeout
+	virtual BOOL TxSetTimer(UINT idTimer, UINT uTimeout) override;
+
+	//@cmember Destroy a timer
+	virtual void TxKillTimer(UINT idTimer) override;
+
+	//@cmember Scroll the content of the specified window's client area
+	virtual void TxScrollWindowEx( INT dx,
+								   INT dy,
+								   LPCRECT lprcScroll,
+								   LPCRECT lprcClip,
+								   HRGN hrgnUpdate,
+								   LPRECT lprcUpdate,
+								   UINT fuScroll) override;
+
+	//@cmember Get mouse capture
+	virtual void TxSetCapture(BOOL fCapture) override;
+
+	//@cmember Set the focus to the text window
+	virtual void TxSetFocus() override;
+
+	//@cmember Establish a new cursor shape
+	virtual void TxSetCursor(HCURSOR hcur, BOOL fText) override;
+
+	//@cmember Converts screen coordinates of a specified point to the client coordinates 
+	virtual BOOL TxScreenToClient(LPPOINT lppt) override;
+
+	//@cmember Converts the client coordinates of a specified point to screen coordinates
+	virtual BOOL TxClientToScreen(LPPOINT lppt) override;
+
+	//@cmember Request host to activate text services
+	virtual HRESULT TxActivate(LONG* plOldState) override;
+
+	//@cmember Request host to deactivate text services
+	virtual HRESULT TxDeactivate(LONG lNewState) override;
+
+	//@cmember Retrieves the coordinates of a window's client area
+	virtual HRESULT TxGetClientRect(LPRECT prc) override;
+
+	//@cmember Get the view rectangle relative to the inset
+	virtual HRESULT TxGetViewInset(LPRECT prc) override;
+
+	//@cmember Get the default character format for the text
+	virtual HRESULT TxGetCharFormat(const CHARFORMATW** ppCF) override;
+
+	//@cmember Get the default paragraph format for the text
+	virtual HRESULT TxGetParaFormat(const PARAFORMAT** ppPF) override;
+
+	//@cmember Get the background color for the window
+	virtual COLORREF TxGetSysColor(int nIndex) override;
+
+	//@cmember Get the background (either opaque or transparent)
+	virtual HRESULT TxGetBackStyle(TXTBACKSTYLE* pstyle) override;
+
+	//@cmember Get the maximum length for the text
+	virtual HRESULT TxGetMaxLength(DWORD* plength) override;
+
+	//@cmember Get the bits representing requested scroll bars for the window
+	virtual HRESULT TxGetScrollBars(DWORD* pdwScrollBar) override;
+
+	//@cmember Get the character to display for password input
+	virtual HRESULT TxGetPasswordChar(_Out_ TCHAR* pch) override;
+
+	//@cmember Get the accelerator character
+	virtual HRESULT TxGetAcceleratorPos(LONG* pcp) override;
+
+	//@cmember Get the native size
+	virtual HRESULT TxGetExtent(LPSIZEL lpExtent) override;
+
+	//@cmember Notify host that default character format has changed
+	virtual HRESULT OnTxCharFormatChange(const CHARFORMATW* pCF) override;
+
+	//@cmember Notify host that default paragraph format has changed
+	virtual HRESULT OnTxParaFormatChange(const PARAFORMAT* pPF) override;
+
+	//@cmember Bulk access to bit properties
+	virtual HRESULT TxGetPropertyBits(DWORD dwMask, DWORD* pdwBits) override;
+
+	//@cmember Notify host of events
+	virtual HRESULT TxNotify(DWORD iNotify, void* pv) override;
+
+	// East Asia Methods for getting the Input Context
+	virtual HIMC TxImmGetContext() override;
+	virtual void TxImmReleaseContext(HIMC himc) override;
+
+	//@cmember Returns HIMETRIC size of the control bar.
+	virtual HRESULT TxGetSelectionBarWidth(LONG* lSelBarWidth) override;
 
 private:
+	/** 通知OnTxPropertyBitsChange接口
+	*/
+	void OnTxPropertyBitsChange(DWORD dwMask, DWORD dwBits);
+
+	//构造后的初始化
+	void Init();
+
+	//初始化字体信息
+	void InitCharFormat(const LOGFONT& lf);
+
+	//转换矩形格式
+	UiRect MakeUiRect(const RECT& rc);
+
+	// Convert Pixels on the X axis to Himetric
+	LONG DXtoHimetricX(LONG dx, LONG xPerInch);
+
+	// Convert Pixels on the Y axis to Himetric
+	LONG DYtoHimetricY(LONG dy, LONG yPerInch);
+
+private:
+	//引用计数
+	ULONG m_cRefs;
+
+	//RichEdit控件的UI层接口
     RichEdit* m_pRichEdit;
-    ULONG m_cRefs;					// Reference Count
-    ITextServices* m_pTextServices;		    // pointer to Text Services object
 
-    DWORD m_dwStyle;				// style bits
+	// pointer to Text Services object
+	ITextServices* m_pTextServices;
 
-    unsigned	m_fEnableAutoWordSel : 1;	// enable Word style auto word selection?
-    unsigned	m_fWordWrap : 1;	// Whether control should word wrap
-    unsigned	m_fAllowBeep : 1;	// Whether beep is allowed
-    unsigned	m_fRich : 1;	// Whether control is rich text
-    unsigned	m_fSaveSelection : 1;	// Whether to save the selection when inactive
-    unsigned	m_fInplaceActive : 1; // Whether control is inplace active
-    unsigned	m_fTransparent : 1; // Whether control is transparent
-    unsigned	m_fTimer : 1;	// A timer is set
-    unsigned    m_fCaptured : 1;
+	//TODO: 变化的时候，如何通知Host接口重新取
+    uint16_t m_dwStyle;			// style bits
+    bool m_fEnableAutoWordSel;	// enable Word style auto word selection?
+    bool m_fWordWrap;			// Whether control should word wrap
+	bool m_fAllowBeep;			// Whether beep is allowed
+    bool m_fRichText;			// Whether control is rich text
+    bool m_fSaveSelection;		// Whether to save the selection when inactive
+    bool m_fInplaceActive;		// Whether control is inplace active
+    bool m_fTransparent;		// Whether control is transparent
 
-    LONG		m_lSelBarWidth;			// Width of the selection bar
-    LONG  		m_cchTextMost;			// maximum text size
-    DWORD		m_dwEventMask;			// HandleMessage mask to pass on to parent window
-    LONG		m_icf;
-    LONG		m_ipf;
-    UiRect		m_rcClient;				// Client Rect for this control
-    SIZEL		m_sizelExtent;			// Extent array
-    CHARFORMAT2W m_cf;					// Default character format
-    PARAFORMAT2	m_pf;					    // Default paragraph format
-    LONG		m_lAcceleratorPos;				// Accelerator position
-    WCHAR		m_chPasswordChar;		    // Password character
+    LONG m_lSelBarWidth;		// Width of the selection bar
+    UiRect m_rcClient;			// Client Rect for this control
+    SIZEL m_sizelExtent;		// Extent array
+	
+    CHARFORMAT2W m_charFormat;  //文字的字体
+    PARAFORMAT2	m_paraFormat;	//段落格式
+    WCHAR m_chPasswordChar;		// Password character
+	bool m_bShowPassword;       //是否显示密码
+	bool m_bFlashPasswordChar;  //短暂的显示密码字符，然后再隐藏
 };
 
 

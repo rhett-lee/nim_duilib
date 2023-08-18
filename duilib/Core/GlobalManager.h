@@ -135,6 +135,11 @@ public:
 	/** 获取ICON资源管理器
 	*/
 	IconManager& Icon();
+
+	/** RichEdit依赖的DLL, 加载并返回句柄
+	*/
+	HMODULE GetRichEditModule();
+
 #endif
 
 	/** 获取Zip管理器
@@ -269,6 +274,10 @@ private:
 	/** ICON资源管理器
 	*/
 	IconManager m_iconManager;
+
+	/** RichEdit依赖的DLL, 加载并返回句柄
+	*/
+	HMODULE m_hRichEditModule;
 #endif
 };
 

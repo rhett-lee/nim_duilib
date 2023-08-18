@@ -659,5 +659,8 @@
     <ClInclude Include="Control\RichEditHost.h">
       <Filter>Control</Filter>
     </ClInclude>
+    <ClInclude Include="Control\RichEditCtrl.h">
+      <Filter>Control</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

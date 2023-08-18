@@ -5,7 +5,7 @@
 
 #include "duilib/Box/ScrollBox.h"
 #include "duilib/Image/Image.h"
-#include <Richedit.h>
+#include "duilib/Control/RichEditCtrl.h"
 
 namespace ui 
 {
@@ -55,12 +55,12 @@ public:
 	/** 是否是富文本状态
 	 * @return 返回 true 为是，否则为 false
 	 */
-    bool IsRich();
+    bool IsRichText();
 
 	/** 设置控件为富文本编辑状态
 	 * @param[in] bRich 设置 true 为富文本状态，false 为普通状态
 	 */
-    void SetRich(bool bRich = true);
+    void SetRichText(bool bRich = true);
 
 	/** 是否是只读状态
 	 * @return 返回 true 为只读状态，否则为 false
@@ -82,6 +82,34 @@ public:
 	 */
 	void SetPassword(bool bPassword);
 
+	/** 设置是否显示密码
+	*/
+	void SetShowPassword(bool bShow);
+
+	/** 是否显示密码
+	*/
+	bool IsShowPassword() const;
+
+	/** 设置密码字符
+	*/
+	void SetPasswordChar(wchar_t ch);
+
+	/** 设置是否对输入的字符短暂显示再隐藏（仅当IsShowPassword()为true，即密码模式的时候有效）
+	*/
+	void SetFlashPasswordChar(bool bFlash);
+
+	/** 获取是否对输入的字符短暂显示再隐藏
+	*/
+	bool GetFlashPasswordChar() const;
+
+	/** 是否只允许输入数字
+	*/
+	bool IsNumberOnly() const;
+
+	/** 设置是否只允许输入数字
+	*/
+	void SetNumberOnly(bool bNumberOnly);
+
 	/** 获取超出矩形区域的文本显示方式
 	 * @return 返回 true 时并且在多行模式下内容被换行显示，false 则表示截断显示
 	 */
@@ -91,6 +119,14 @@ public:
 	 * @param[in] bWordWrap 为 true 时并且在多行模式下内容被换行显示，false 则表示截断显示
 	 */
     void SetWordWrap(bool bWordWrap = true);
+
+	/** 是否为多行文本
+	*/
+	bool GetMultiLine() const ;
+
+	/** 设置是否为多行文本
+	*/
+	void SetMultiLine(bool bMultiLine);
 
 	/** 获取当前设置的字体索引
 	 * @return 返回字体索引（对应 global.xml 中字体的顺序）
@@ -102,26 +138,10 @@ public:
 	 */
 	void SetFontId(const std::wstring& strFontId);
 
-	/** 获取窗口样式
-	 * @return 返回窗口样式
-	 */
-    LONG GetWinStyle();
-
-	/** 设置窗口样式
-	 * @param[in] lStyle 要设置的窗口样式
-	 */
-    void SetWinStyle(LONG lStyle);
-
-	/** 获取内容垂直对其方式
-	 * @return 返回内容垂直对其方式（顶端对齐、居中、底端对齐）
-	 */
-	VerAlignType GetTextVerAlignType();
-
 	/** 设置文本颜色
 	 * @param[in] dwTextColor 要设置的文本颜色，该颜色必须在 global.xml 中存在
 	 */
 	virtual void SetTextColor(const std::wstring& dwTextColor);
-	void SetTextColor(UiColor color);
 
 	/** 获取文本颜色
 	 * @return 返回当前文本颜色
@@ -132,18 +152,25 @@ public:
 	/** 获取限制字符数量
 	 * @return 返回限制字符数量
 	 */
-    int GetLimitText();
+    int32_t GetLimitText() const;
 
 	/** 设置限制字符数量
-	 * @param[in] iChars 要限制的字符数量
+	 * @param [in] iChars 要限制的字符数量
 	 */
-    void SetLimitText(int iChars);
+    void SetLimitText(int32_t iChars);
 
-	/** 获取内容的长度
-	 * @param[in] dwFlags 指定用以确定文本长度的方式，参考 https://docs.microsoft.com/en-us/windows/desktop/controls/em-gettextlengthex
+	/** 是否允许发出Beep声音
+	*/
+	bool GetAllowBeep() const;
+
+	/** 设置是否允许发出Beep声音
+	*/
+	void SetAllowBeep(bool bAllowBeep);
+
+	/** 获取内容的长度(Unicode编码，字符个数)
 	 * @return 返回内容长度
 	 */
-    long GetTextLength(DWORD dwFlags = GTL_DEFAULT) const;
+    int32_t GetTextLength() const;
 
 	/** 获取控件中的文本
 	 * @return 返回控件中的文本内容
@@ -178,7 +205,7 @@ public:
 	/** 设置修改标志
 	 * @param[in] bModified 设置为 true 表示文本已经被修改，false 为未修改，默认为 true
 	 */
-    void SetModify(bool bModified = true) const;
+    void SetModify(bool bModified = true);
 
 	/** 获取所选文本的起始位置和结束位置
 	 * @param[out] cr 返回起始位置和结束位置
@@ -414,16 +441,9 @@ public:
 
 	/** 滚动文本
 	 * @param[in] nLines 指定垂直滚动方向
-	 * @param[in] nChars 指定水平滚动方向
 	 * @return 成功返回 true，失败返回 false
 	 */
-    bool LineScroll(int nLines, int nChars = 0);
-
-	/** 获取指定位置字符的客户区坐标
-	 * @param[in] lChar 字符索引位置
-	 * @return 返回客户区坐标
-	 */
-	UiPoint GetCharPos(long lChar) const;
+    bool LineScroll(int nLines);
 
 	/** 获取指定字符所在行数
 	 * @param[in] nIndex 字符的索引位置
@@ -435,7 +455,7 @@ public:
 	 * @param[in] nChar 字符索引位置
 	 * @return 返回客户区坐标
 	 */
-    UiPoint PosFromChar(UINT nChar) const;
+    UiPoint PosFromChar(long nChar) const;
 
 	/** 根据坐标返回指定字符索引
 	 * @param[in] pt 坐标信息
@@ -458,14 +478,14 @@ public:
 	 * @param[in] es 包含自定义回调的结构体
 	 * @return 返回读入数据流的数据大小
 	 */
-    long StreamIn(int nFormat, EDITSTREAM &es);
+    long StreamIn(UINT nFormat, EDITSTREAM &es);
 
 	/** 指定一个回调用于控制输出内容
 	 * @param[in] nFormat 指定数据格式的替换选项，见：https://docs.microsoft.com/en-us/windows/desktop/controls/em-streamin
 	 * @param[in] es 包含自定义回调的结构体
 	 * @return 返回写入数据流的数据大小
 	 */
-    long StreamOut(int nFormat, EDITSTREAM &es);
+    long StreamOut(UINT nFormat, EDITSTREAM &es);
 
 	/** 设置滚动条位置
 	 * @param[in] szPos 要设置的滚动条位置信息
@@ -749,18 +769,8 @@ public:
 	virtual void HandleEvent(const EventArgs& msg) override;
 
 public:
-	// 注意：TxSendMessage和SendMessage是有区别的，TxSendMessage没有multibyte和unicode自动转换的功能，
-	// 而richedit2.0内部是以unicode实现的，在multibyte程序中，必须自己处理unicode到multibyte的转换	
-	virtual HRESULT TxSendMessage(UINT msg, WPARAM wparam, LPARAM lparam, LRESULT* plresult) const;
-	virtual void OnTxNotify(DWORD iNotify, void* pv);
-	virtual bool OnTxTextChanged();
 
-	IDropTarget* GetTxDropTarget();
-	bool SetDropAcceptFile(bool bAccept);
-
-	//ITextHost* GetTextHost();
-	//ITextServices* GetTextServices();
-	//BOOL SetOleCallback(IRichEditOleCallback* pCallback);
+	void OnTxNotify(DWORD iNotify, void* pv);
 
 	HWND GetWindowHandle();
 	HDC GetWindowDC();
@@ -807,42 +817,48 @@ private:
 	static void SetClipBoardText(const std::wstring& str);
 
 protected:
-	RichEditHost* m_pTwh;
-    bool m_bVScrollBarFixing;
-    bool m_bWantTab;
-    bool m_bNeedReturnMsg;
-    bool m_bReturnMsgWantCtrl;
-    bool m_bRich;
-    bool m_bReadOnly;
-	bool m_bPassword;
-    bool m_bWordWrap;
-	bool m_bNumberOnly;
+	//RichEdit控制辅助工具类
+	RichEditCtrl m_richCtrl;
+
+	//RichEdit Host类
+	RichEditHost* m_pRichHost;
+
+	//是否已经初始化
 	bool m_bInited;
-	bool m_bAllowPrompt;
-	bool m_bSelAllEver;			//只在第一次时全选
-	bool m_bNoSelOnKillFocus;	//针对 m_bEnabled && m_bReadOnly
-	bool m_bSelAllOnFocus;		//针对 m_bEnabled && !m_bReadOnly
-	bool m_bNoCaretReadonly;
-	bool m_bIsCaretVisiable;
-	bool m_bIsComposition;
-	int	 m_iCaretPosX;
-	int  m_iCaretPosY;
-	int  m_iCaretWidth;
-	int  m_iCaretHeight;
-	UiString m_sFontId;
-	int  m_iLimitText;
-	LONG m_lTwhStyle;
-	VerAlignType m_textVerAlignType;
-	UiString m_sCurrentColor;
-	UiString m_sTextColor;
-	UiString m_sDisabledTextColor;
-	UiString m_sPromptColor;
-	UiString m_sCaretColor;
-	UiString m_sText;
-	UiString m_sPromptText;
-	UiString m_sPromptTextId;
-	nbase::WeakCallbackFlag m_drawCaretFlag;
+
+    bool m_bVScrollBarFixing; //滚动条修正标志
+    bool m_bWantTab;		  //是否接收TAB键，如果为true的时候，TAB键会当作文本输入，否则过滤掉TAB键
+    bool m_bNeedReturnMsg;    //是否接收回车键，如果为true的时候，回车键会当作文本输入，否则过滤掉回车键
+    bool m_bReturnMsgWantCtrl;//是否接收Ctrl + 回车键，如果为true的时候，回车键会当作文本输入，否则过滤掉回车键
+	 
+	bool m_bSelAllEver;			//只在获取焦点后的第一次鼠标弹起全选
+
+	bool m_bNoSelOnKillFocus;	//失去焦点的时候，取消文本选择（针对 m_bEnabled && IsReadOnly()）
+	bool m_bSelAllOnFocus;		//获取焦点的时候，全选文本（针对 m_bEnabled && !IsReadOnly()）
+
+	bool m_bIsComposition;   //输入法合成窗口是否可见
+	bool m_bNoCaretReadonly; //只读模式下，不显示光标
+	bool m_bIsCaretVisiable; //光标是否可见
+	int	 m_iCaretPosX;		 //光标X坐标
+	int  m_iCaretPosY;		 //光标Y坐标
+	int  m_iCaretWidth;		 //光标宽度
+	int  m_iCaretHeight;	 //光标高度
+	UiString m_sCaretColor;  //光标颜色
+	UiString m_sFontId;		 //字体ID
+	
+	UiString m_sCurrentColor;		 //当前文本颜色（即RichEdit目前的文本颜色）
+	UiString m_sTextColor;			 //正常文本颜色
+	UiString m_sDisabledTextColor;	 //Disabled状态的文本颜色
+	
+	bool m_bAllowPrompt;			 //是否支持提示文字
+	UiString m_sPromptColor;		 //提示文字颜色
+	UiString m_sPromptText;			 //提示文本内容（只有编辑框为空的时候显示）
+	UiString m_sPromptTextId;		 //提示文字ID
+	nbase::WeakCallbackFlag m_drawCaretFlag;	 //绘制光标的定时器生命周期
 	std::weak_ptr<nbase::WeakFlag> m_windowFlag; //记录所属窗体的flag
+	
+	/** 大小被改变后的自定义回调函数
+	*/
 	FunGetNaturalSize m_cbGetNaturalSize;
 
 protected:
@@ -853,12 +869,12 @@ protected:
 	};
 	std::map<UINT, nbase::WeakCallbackFlag> m_timeFlagMap;
 	std::vector<LinkInfo> m_linkInfo;
-	Image* m_pFocusedImage;
-
-	//是否为自动检测URL
-	bool m_bAutoDetect;
 
 private:
+	/** 获取焦点时，显示的图片
+	*/
+	Image* m_pFocusedImage;
+
 	//文本内边距
 	UiPadding16	m_rcTextPadding;
 };
