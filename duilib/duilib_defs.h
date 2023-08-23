@@ -59,6 +59,10 @@ namespace ui
 	#define  DUI_CTR_VTILE_BOX					     (L"VTileBox")
 	#define  DUI_CTR_HTILE_BOX					     (L"HTileBox")
 
+	#define  DUI_CTR_GROUP_BOX                       (L"GroupBox")
+	#define  DUI_CTR_GROUP_HBOX                      (L"GroupHBox")
+	#define  DUI_CTR_GROUP_VBOX                      (L"GroupVBox")
+
 	#define  DUI_CTR_SCROLLBOX						 (L"ScrollBox")
 	#define  DUI_CTR_HSCROLLBOX						 (L"HScrollBox")
 	#define  DUI_CTR_VSCROLLBOX						 (L"VScrollBox")

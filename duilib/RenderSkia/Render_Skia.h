@@ -49,8 +49,8 @@ public:
 
 	virtual void SaveClip(int& nState) override;
 	virtual void RestoreClip(int nState) override;
-	virtual void SetClip(const UiRect& rc) override;
-	virtual void SetRoundClip(const UiRect& rc, int width, int height) override;
+	virtual void SetClip(const UiRect& rc, bool bIntersect = true) override;
+	virtual void SetRoundClip(const UiRect& rc, int width, int height, bool bIntersect = true) override;
 	virtual void ClearClip() override;
 
 	virtual bool BitBlt(int x, int y, int cx, int cy, IBitmap* pSrcBitmap, int xSrc, int ySrc, RopMode rop) override;

@@ -14,6 +14,7 @@
 #include "duilib/Control/RichText.h"
 #include "duilib/Control/DateTime.h"
 #include "duilib/Control/Split.h"
+#include "duilib/Control/GroupBox.h"
 
 #include "duilib/Box/HBox.h"
 #include "duilib/Box/VBox.h"
@@ -740,7 +741,10 @@ Control* WindowBuilder::CreateControlByClass(const std::wstring& strControlClass
 		{DUI_CTR_RICHEDIT, []() { return new RichEdit; }},
 		{DUI_CTR_DATETIME, []() { return new DateTime; }},
 		{DUI_CTR_SPLIT, []() { return new Split; }},
-		{DUI_CTR_SPLITBOX, []() { return new SplitBox; }}
+		{DUI_CTR_SPLITBOX, []() { return new SplitBox; }},
+		{DUI_CTR_GROUP_BOX, []() { return new GroupBox; }},
+		{DUI_CTR_GROUP_HBOX, []() { return new GroupHBox; }},
+		{DUI_CTR_GROUP_VBOX, []() { return new GroupVBox; }},
 	};
 	Control* pControl = nullptr;
 	auto iter = createControlMap.find(strControlClass);

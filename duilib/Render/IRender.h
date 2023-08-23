@@ -428,16 +428,18 @@ public:
 	virtual void RestoreClip(int nState) = 0;
 
 	/** 设置矩形剪辑区域，并保存当前设备上下文的状态
-	* @param [in] rc剪辑区域
+	* @param [in] rc剪辑区域，与当前剪辑区取交集作为新的剪辑区域
+	* @param [in] bIntersect ClipOp操作标志，true表示kIntersect操作，false表示kDifference操作
 	*/
-	virtual void SetClip(const UiRect& rc) = 0;
+	virtual void SetClip(const UiRect& rc, bool bIntersect = true) = 0;
 
 	/** 设置圆角矩形剪辑区域，并保存当前设备上下文的状态
-	* @param [in] rcItem 剪辑区域
+	* @param [in] rcItem 剪辑区域，与当前剪辑区取交集作为新的剪辑区域
 	* @param [in] width 圆角的宽度
 	* @param [in] height 圆角的的度
+	* @param [in] bIntersect ClipOp操作标志，true表示kIntersect操作，false表示kDifference操作
 	*/
-	virtual void SetRoundClip(const UiRect& rcItem, int width, int height) = 0;
+	virtual void SetRoundClip(const UiRect& rcItem, int width, int height, bool bIntersect = true) = 0;
 
 	/** 清除矩形剪辑区域，并恢复设备上下文到最近一次保存的状态
 	*/

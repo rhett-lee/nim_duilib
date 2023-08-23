@@ -662,5 +662,8 @@
     <ClInclude Include="Control\RichEditCtrl.h">
       <Filter>Control</Filter>
     </ClInclude>
+    <ClInclude Include="Control\GroupBox.h">
+      <Filter>Control</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

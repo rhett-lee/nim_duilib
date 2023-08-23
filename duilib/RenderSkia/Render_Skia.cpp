@@ -268,7 +268,7 @@ void Render_Skia::RestoreClip(int nState)
 	}
 }
 
-void Render_Skia::SetClip(const UiRect& rc)
+void Render_Skia::SetClip(const UiRect& rc, bool bIntersect)
 {
 	SkIRect rcSkI = { rc.left, rc.top, rc.right, rc.bottom };
 	SkRect rcSk = SkRect::Make(rcSkI);
@@ -276,11 +276,16 @@ void Render_Skia::SetClip(const UiRect& rc)
 	ASSERT(m_pSkCanvas != nullptr);
 	if (m_pSkCanvas != nullptr) {
 		m_pSkCanvas->save();
-		m_pSkCanvas->clipRect(rcSk, true);
+		if (bIntersect) {
+			m_pSkCanvas->clipRect(rcSk, SkClipOp::kIntersect, true);
+		}
+		else {
+			m_pSkCanvas->clipRect(rcSk, SkClipOp::kDifference, true);
+		}
 	}
 }
 
-void Render_Skia::SetRoundClip(const UiRect& rc, int width, int height)
+void Render_Skia::SetRoundClip(const UiRect& rc, int width, int height, bool bIntersect)
 {
 	SkIRect rcSkI = { rc.left, rc.top, rc.right, rc.bottom };
 	SkRect rcSk = SkRect::Make(rcSkI);
@@ -295,7 +300,12 @@ void Render_Skia::SetRoundClip(const UiRect& rc, int width, int height)
 	ASSERT(m_pSkCanvas != nullptr);
 	if (m_pSkCanvas != nullptr) {
 		m_pSkCanvas->save();
-		m_pSkCanvas->clipRegion(rgn);
+		if (bIntersect) {
+			m_pSkCanvas->clipRegion(rgn, SkClipOp::kIntersect);
+		}
+		else {
+			m_pSkCanvas->clipRegion(rgn, SkClipOp::kDifference);
+		}
 	}
 }
 

@@ -256,7 +256,7 @@ void Render_GdiPlus::RestoreClip(int nState)
 	}
 }
 
-void Render_GdiPlus::SetClip(const UiRect& rc)
+void Render_GdiPlus::SetClip(const UiRect& rc, bool bIntersect)
 {
 	HDC hDC = m_hDC;
 	UiRect rcItem = rc;
@@ -271,11 +271,11 @@ void Render_GdiPlus::SetClip(const UiRect& rc)
 	itemRect.bottom = rcItem.bottom;
 	HRGN hRgn = ::CreateRectRgnIndirect(&itemRect);
 	::SaveDC(hDC);
-	::ExtSelectClipRgn(hDC, hRgn, RGN_AND);
+	::ExtSelectClipRgn(hDC, hRgn, bIntersect ? RGN_AND : RGN_DIFF);
 	::DeleteObject(hRgn);
 }
 
-void Render_GdiPlus::SetRoundClip(const UiRect& rc, int width, int height)
+void Render_GdiPlus::SetRoundClip(const UiRect& rc, int width, int height, bool bIntersect)
 {
 	HDC hDC = m_hDC;
 	UiRect rcItem = rc;
@@ -286,7 +286,7 @@ void Render_GdiPlus::SetRoundClip(const UiRect& rc, int width, int height)
 
 	HRGN hRgn = ::CreateRoundRectRgn(rcItem.left, rcItem.top, rcItem.right + 1, rcItem.bottom + 1, width, height);
 	::SaveDC(hDC);
-	::ExtSelectClipRgn(hDC, hRgn, RGN_AND);
+	::ExtSelectClipRgn(hDC, hRgn, bIntersect ? RGN_AND : RGN_DIFF);
 	::DeleteObject(hRgn);
 }
 

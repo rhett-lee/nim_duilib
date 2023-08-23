@@ -226,15 +226,12 @@ public:
 	 */
 	void SetBottomBorderSize(int32_t nSize);
 
-	/**@brief 获取边框大小
-	 * @return 四个方向的边框大小
+	/** 获取圆角大小
 	 */
 	const UiSize& GetBorderRound() const;
 
-	/**
-	 * @brief 设置边框大小
-	 * @param[in] cxyRound 一个 UiSize 结构表示了四个方向边框的大小
-	 * @return 无
+	/** 设置边框大小
+	 * @param[in] cxyRound 一个 UiSize 结构表示圆角大小
 	 */
 	void SetBorderRound(UiSize cxyRound);
 

@@ -430,6 +430,7 @@
     <ClInclude Include="Box\VLayout.h" />
     <ClInclude Include="Box\VTileLayout.h" />
     <ClInclude Include="Control\DateTime.h" />
+    <ClInclude Include="Control\GroupBox.h" />
     <ClInclude Include="Control\Menu.h" />
     <ClInclude Include="Control\observer_impl_base.hpp" />
     <ClInclude Include="Control\RichEditCtrl.h" />
