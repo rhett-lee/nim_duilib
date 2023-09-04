@@ -261,6 +261,14 @@ public:
 	 */
     WORD GetSelectionType() const;
 
+	/** 查找文本
+	*/
+	LONG FindRichText(DWORD dwFlags, FINDTEXT& ft) const;
+
+	/** 查找文本
+	*/
+	LONG FindRichText(DWORD dwFlags, FINDTEXTEX& ft) const;
+
 	/** 获取当前缩放比
 	 * @param[out] nNum 缩放比率分子
 	 * @param[out] nDen 缩放比率分母
@@ -684,6 +692,14 @@ public:
 	 */
 	void SetNoCaretReadonly();
 
+	/** 设置是否保存所选内容的边界
+	 */
+	void SetSaveSelection(bool fSaveSelection);
+
+	/** 设置是否隐藏选择项
+	 */
+	void SetHideSelection(bool fHideSelection);
+
 	/** 添加带颜色的文本
 	 * @param[in] str 文本内容
 	 * @param[in] color 颜色值，该值必须在 global.xml 中存在
@@ -778,6 +794,10 @@ public:
 	void SetImmStatus(BOOL bOpen);
 	void SetTimer(UINT idTimer, UINT uTimeout);
 	void KillTimer(UINT idTimer);
+
+	//客户端坐标和屏幕坐标之间的相互转换
+	void ScreenToClient(UiPoint& pt);
+	void ClientToScreen(UiPoint& pt);
 
 protected:
 

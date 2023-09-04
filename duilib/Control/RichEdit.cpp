@@ -420,6 +420,16 @@ WORD RichEdit::GetSelectionType() const
 	return m_richCtrl.GetSelectionType();
 }
 
+LONG RichEdit::FindRichText(DWORD dwFlags, FINDTEXT& ft) const
+{
+	return m_richCtrl.FindText(dwFlags, ft);
+}
+
+LONG RichEdit::FindRichText(DWORD dwFlags, FINDTEXTEX& ft) const
+{
+	return m_richCtrl.FindText(dwFlags, ft);
+}
+
 bool RichEdit::GetAutoURLDetect() const
 {
 	return m_richCtrl.GetAutoURLDetect();
@@ -799,6 +809,26 @@ void RichEdit::KillTimer(UINT idTimer)
 	if (timeFlag != m_timeFlagMap.end()) {
 		timeFlag->second.Cancel();
 		m_timeFlagMap.erase(timeFlag);
+	}
+}
+
+void RichEdit::ScreenToClient(UiPoint& pt)
+{
+	if (m_pRichHost != nullptr) {
+		POINT point = {pt.x, pt.y};
+		m_pRichHost->TxScreenToClient(&point);
+		pt.x = point.x;
+		pt.y = point.y;
+	}
+}
+
+void RichEdit::ClientToScreen(UiPoint& pt)
+{
+	if (m_pRichHost != nullptr) {
+		POINT point = { pt.x, pt.y };
+		m_pRichHost->TxClientToScreen(&point);
+		pt.x = point.x;
+		pt.y = point.y;
 	}
 }
 
@@ -1207,7 +1237,7 @@ bool RichEdit::OnSetCursor(const EventArgs& msg)
 		::SetCursor(::LoadCursor(NULL, IDC_HAND));
 		return true;
 	}
-	if (m_pRichHost && !IsReadOnly() && m_pRichHost->SetCursor(nullptr, &msg.ptMouse)) {
+	if (m_pRichHost && m_pRichHost->SetCursor(nullptr, &msg.ptMouse)) {
 		return true;
 	}
 	else {
@@ -1480,7 +1510,7 @@ void RichEdit::PaintChild(IRender* pRender, const UiRect& rcPaint)
     }
 
     if ((pHScrollBar != nullptr) && pHScrollBar->IsVisible()) {
-        UiRect horBarPos = pVScrollBar->GetPos();
+        UiRect horBarPos = pHScrollBar->GetPos();
         if (UiRect::Intersect(rcTemp, rcPaint, horBarPos)) {
             pHScrollBar->AlphaPaint(pRender, rcPaint);
         }
@@ -1490,6 +1520,7 @@ void RichEdit::PaintChild(IRender* pRender, const UiRect& rcPaint)
 void RichEdit::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
 	if (strName == L"vscrollbar") {
+		//纵向滚动条
 		if (strValue == L"true") {
 			EnableScrollBar(true, GetHScrollBar() != NULL);
 			if (m_pRichHost != nullptr) {
@@ -1503,12 +1534,8 @@ void RichEdit::SetAttribute(const std::wstring& strName, const std::wstring& str
 			}			
 		}
 	}
-	else if ((strName == L"auto_vscroll") || (strName == L"autovscroll")){
-		if (m_pRichHost != nullptr) {
-			m_pRichHost->SetAutoVScrollBar(strValue == L"true");
-		}
-	}
 	else if (strName == L"hscrollbar") {
+		//横向滚动条
 		if (strValue == L"true") {
 			EnableScrollBar(GetVScrollBar() != NULL, true);
 			if (m_pRichHost != nullptr) {
@@ -1522,9 +1549,17 @@ void RichEdit::SetAttribute(const std::wstring& strName, const std::wstring& str
 			}			
 		}
 	}
-	else if ((strName == L"auto_hscroll") || (strName == L"autohscroll")){
+	else if ((strName == L"auto_vscroll") || (strName == L"autovscroll")) {
+		//当用户在最后一行按 ENTER 时，自动将文本向上滚动一页。
 		if (m_pRichHost != nullptr) {
-			m_pRichHost->SetAutoHScrollBar(strValue == L"true");
+			m_pRichHost->SetAutoVScroll(strValue == L"true");
+		}
+	}
+	else if ((strName == L"auto_hscroll") || (strName == L"autohscroll")){
+		//当用户在行尾键入一个字符时，自动将文本向右滚动 10 个字符。
+		//当用户按 Enter 时，控件会将所有文本滚动回零位置。
+		if (m_pRichHost != nullptr) {
+			m_pRichHost->SetAutoHScroll(strValue == L"true");
 		}
 	}
 	else if ((strName == L"single_line") || (strName == L"singleline")) {
@@ -1667,6 +1702,15 @@ void RichEdit::SetAttribute(const std::wstring& strName, const std::wstring& str
 	else if (strName == L"no_caret_readonly") {
 		//只读模式，不显示光标
 		SetNoCaretReadonly();
+	}
+	else if (strName == L"save_selection") {
+		//如果 为 TRUE，则当控件处于非活动状态时，应保存所选内容的边界。
+		//如果 为 FALSE，则当控件再次处于活动状态时，可以选择边界重置为 start = 0，length = 0。
+		SetSaveSelection(strValue == L"true");
+	}
+	else if (strName == L"hide_selection") {
+		//是否隐藏选项项
+		SetHideSelection(strValue == L"true");
 	}
 	else {
 		Box::SetAttribute(strName, strValue);
@@ -1878,6 +1922,20 @@ void RichEdit::SetSelAllOnFocus(bool bSelAll)
 void RichEdit::SetNoCaretReadonly()
 {
 	m_bNoCaretReadonly = true;
+}
+
+void RichEdit::SetSaveSelection(bool fSaveSelection)
+{
+	if (m_pRichHost != nullptr) {
+		m_pRichHost->SetSaveSelection(fSaveSelection);
+	}
+}
+
+void RichEdit::SetHideSelection(bool fHideSelection)
+{
+	if (m_pRichHost != nullptr) {
+		m_pRichHost->SetHideSelection(fHideSelection);
+	}
 }
 
 void RichEdit::AddColorText(const std::wstring &str, const std::wstring &color)

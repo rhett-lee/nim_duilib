@@ -154,10 +154,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="FindForm.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="MainForm.h" />
     <ClInclude Include="MainThread.h" />
+    <ClInclude Include="ReplaceForm.h" />
     <ClInclude Include="Resource.h" />
+    <ClInclude Include="RichEditFindReplace.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
@@ -168,9 +171,12 @@
     <Image Include="small.ico" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="FindForm.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MainForm.cpp" />
     <ClCompile Include="MainThread.cpp" />
+    <ClCompile Include="ReplaceForm.cpp" />
+    <ClCompile Include="RichEditFindReplace.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\base\base.vcxproj">

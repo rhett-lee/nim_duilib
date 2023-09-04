@@ -71,9 +71,14 @@ public:
 
 	//横向和纵向滚动条设置
 	void SetVScrollBar(bool bEnable);
-	void SetAutoVScrollBar(bool bEnable);
 	void SetHScrollBar(bool bEnable);	
-	void SetAutoHScrollBar(bool bEnable);
+
+	//当用户在最后一行按 ENTER 时，自动将文本向上滚动一页。
+	void SetAutoVScroll(bool bEnable);
+
+	//当用户在行尾键入一个字符时，自动将文本向右滚动 10 个字符。
+	//当用户按 Enter 时，控件会将所有文本滚动回零位置。
+	void SetAutoHScroll(bool bEnable);
 
     void SetFontId(const std::wstring& fontId);
     void SetColor(DWORD dwColor);
@@ -83,6 +88,7 @@ public:
 	bool IsRichText() const;
     void SetRichText(bool fNew);
     bool SetSaveSelection(bool fSaveSelection);
+	void SetHideSelection(bool fHideSelection);
     bool SetCursor(const UiRect* prc, const UiPoint* pt);
     void SetTransparent(bool fTransparent);    
     void SetDisabled(bool fOn);

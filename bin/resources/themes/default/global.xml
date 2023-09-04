@@ -172,7 +172,7 @@
     <Class name="splitline_hor_level2" bkcolor="splitline_level2" height="1"/>
     <Class name="splitline_ver_level1" bkcolor="splitline_level1" width="1"/>
     <!--富文本控件通用样式-->
-    <Class name="simple" multiline="false" autohscroll="true" wantreturnmsg="true" wanttab="false" rich="false" normaltextcolor="darkcolor" disabledtextcolor="textdefaultdisablecolor"/>
+    <Class name="simple" multiline="false" autohscroll="true" wantreturnmsg="true" wanttab="false" rich="false" normaltextcolor="darkcolor" disabled_text_color="disabled_font_color"/>
     <Class name="prompt" promptmode="true" promptcolor="light_gray"/>
     <Class name="edit" hotimage="file='../public/edit/edit1.png' corner='10,10,10,10'" focusedimage="file='../public/edit/edit2.png' corner='10,10,10,10'"/>
     <Class name="input" normalimage="file='../public/edit/edit0.png' corner='10,10,10,10'" hotimage="file='../public/edit/edit0.png' corner='10,10,10,10'" focusedimage="file='../public/edit/edit0.png' corner='10,10,10,10'" disabledimage="file='../public/edit/edit0.png' corner='10,10,10,10' fade='80'"/>

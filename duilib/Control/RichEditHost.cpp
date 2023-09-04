@@ -526,7 +526,21 @@ HRESULT RichEditHost::TxGetScrollBars(DWORD* pdwScrollBar)
 {
 	ASSERT(pdwScrollBar != nullptr);
 	if (pdwScrollBar != nullptr) {
-		*pdwScrollBar = m_dwStyle & (UI_WS_VSCROLL | UI_WS_HSCROLL | UI_ES_AUTOVSCROLL | UI_ES_AUTOHSCROLL | UI_ES_DISABLENOSCROLL);
+		if (m_dwStyle & UI_WS_VSCROLL) {
+			*pdwScrollBar |= WS_VSCROLL;
+		}
+		if (m_dwStyle & UI_WS_HSCROLL) {
+			*pdwScrollBar |= WS_HSCROLL;
+		}
+		if (m_dwStyle & UI_ES_AUTOVSCROLL) {
+			*pdwScrollBar |= ES_AUTOVSCROLL;
+		}
+		if (m_dwStyle & UI_ES_AUTOHSCROLL) {
+			*pdwScrollBar |= ES_AUTOHSCROLL;
+		}
+		if (m_dwStyle & UI_ES_DISABLENOSCROLL) {
+			*pdwScrollBar |= ES_DISABLENOSCROLL;
+		}
 	}
 	return NOERROR;
 }
@@ -866,8 +880,9 @@ void RichEditHost::SetVScrollBar(bool bEnable)
 	}
 }
 
-void RichEditHost::SetAutoVScrollBar(bool bEnable)
+void RichEditHost::SetAutoVScroll(bool bEnable)
 {
+	//当用户在最后一行按 ENTER 时，自动将文本向上滚动一页。
 	if (bEnable) {
 		m_dwStyle |= UI_ES_AUTOVSCROLL;
 	}
@@ -889,8 +904,9 @@ void RichEditHost::SetHScrollBar(bool bEnable)
 	}
 }
 
-void RichEditHost::SetAutoHScrollBar(bool bEnable)
+void RichEditHost::SetAutoHScroll(bool bEnable)
 {
+	//当用户在行尾键入一个字符时，自动将文本向右滚动 10 个字符。 当用户按 Enter 时，控件会将所有文本滚动回零位置。
 	if (bEnable) {
 		m_dwStyle |= UI_ES_AUTOHSCROLL;
 	}
@@ -1032,6 +1048,17 @@ bool RichEditHost::SetSaveSelection(bool fSaveSelection)
 	return fResult;
 }
 
+void RichEditHost::SetHideSelection(bool fHideSelection)
+{
+	if (!fHideSelection) {
+		m_dwStyle |= UI_ES_NOHIDESEL;
+	}
+	else {
+		m_dwStyle &= ~UI_ES_NOHIDESEL;
+	}
+	OnTxPropertyBitsChange(TXTBIT_HIDESELECTION, fHideSelection ? TXTBIT_HIDESELECTION : 0);
+}
+
 HRESULT	RichEditHost::OnTxInPlaceDeactivate()
 {
 	HRESULT hr = S_OK;
@@ -1079,9 +1106,9 @@ bool RichEditHost::SetCursor(const UiRect* prc, const UiPoint* pt)
 		}
 		if (m_pTextServices != nullptr) {
 			m_pTextServices->OnTxSetCursor(DVASPECT_CONTENT, -1, NULL, NULL, m_pRichEdit->GetWindowDC(),
-				NULL, pRect, newPt.x, newPt.y);
+										   NULL, pRect, newPt.x, newPt.y);
+			return true;
 		}
-		return true;
 	}
 	return false;
 }
