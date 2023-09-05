@@ -178,7 +178,7 @@ namespace ui
 	enum ControlStateType
 	{
 		kControlStateNormal,	// ÆÕÍ¨×´Ì¬
-		kControlStateHot,		// ½¹µã×´Ì¬
+		kControlStateHot,		// ÐüÍ£×´Ì¬
 		kControlStatePushed,	// °´ÏÂ×´Ì¬
 		kControlStateDisabled	// ½ûÓÃ×´Ì¬
 	};

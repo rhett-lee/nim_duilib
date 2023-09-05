@@ -37,7 +37,6 @@ Control::Control() :
 	m_sToolTipTextId(),
 	m_sUserDataID(),
 	m_strBkColor(),
-	m_strBorderColor(),
 	m_pBoxShadow(nullptr),
 	m_isBoxShadowPainted(false),
 	m_uUserDataID((size_t)-1),
@@ -438,18 +437,46 @@ bool Control::IsHotState() const
 	return (m_controlState == kControlStateHot) ? true : false;
 }
 
-std::wstring Control::GetBorderColor() const
+std::wstring Control::GetBorderColor(ControlStateType stateType) const
 {
-    return m_strBorderColor.c_str();
+	std::wstring borderColor;
+	if (m_pBorderColorMap != nullptr) {
+		borderColor = m_pBorderColorMap->GetStateColor(stateType);
+	}
+	return borderColor;
 }
 
 void Control::SetBorderColor(const std::wstring& strBorderColor)
 {
-	if (m_strBorderColor == strBorderColor) {
-		return;
+	SetBorderColor(kControlStateNormal, strBorderColor);
+	SetBorderColor(kControlStateHot, strBorderColor);
+	SetBorderColor(kControlStatePushed, strBorderColor);
+	SetBorderColor(kControlStateDisabled, strBorderColor);
+}
+
+void Control::SetBorderColor(ControlStateType stateType, const std::wstring& strBorderColor)
+{
+	if (m_pBorderColorMap == nullptr) {
+		m_pBorderColorMap = std::make_unique<StateColorMap>();
+		m_pBorderColorMap->SetControl(this);
 	}
-    m_strBorderColor = strBorderColor;
-    Invalidate();
+	if (GetBorderColor(stateType) != strBorderColor) {
+		m_pBorderColorMap->SetStateColor(stateType, strBorderColor);
+		Invalidate();
+	}
+}
+
+void Control::SetFocusBorderColor(const std::wstring& strBorderColor)
+{
+	if (m_focusBorderColor != strBorderColor) {
+		m_focusBorderColor = strBorderColor;
+		Invalidate();
+	}
+}
+
+std::wstring Control::GetFocusBorderColor() const
+{
+	return m_focusBorderColor.c_str();
 }
 
 void Control::SetBorderSize(UiRect rc)
@@ -1497,6 +1524,21 @@ void Control::SetAttribute(const std::wstring& strName, const std::wstring& strV
 	else if ((strName == L"border_color") || (strName == L"bordercolor")) {
 		SetBorderColor(strValue);
 	}
+	else if (strName == L"normal_border_color") {
+		SetBorderColor(kControlStateNormal, strValue);
+	}
+	else if (strName == L"hot_border_color") {
+		SetBorderColor(kControlStateHot, strValue);
+	}
+	else if (strName == L"pushed_border_color") {
+		SetBorderColor(kControlStatePushed, strValue);
+	}
+	else if (strName == L"disabled_border_color") {
+		SetBorderColor(kControlStateDisabled, strValue);
+	}
+	else if (strName == L"focus_border_color") {
+		SetFocusBorderColor(strValue);
+	}
 	else if ((strName == L"left_border_size") || (strName == L"leftbordersize")) {
 		SetLeftBorderSize(_wtoi(strValue.c_str()));
 	}
@@ -2081,9 +2123,21 @@ void Control::PaintBorder(IRender* pRender)
 	if (pRender == nullptr) {
 		return;
 	}
-	UiColor dwBorderColor((UiColor::ARGB)0);
-	if (!m_strBorderColor.empty()) {
-		dwBorderColor = GetUiColor(m_strBorderColor.c_str());
+	UiColor dwBorderColor;
+	std::wstring borderColor;
+	if (IsFocused()) {
+		if (IsHotState()) {
+			borderColor = GetBorderColor(GetState());
+		}
+		if (borderColor.empty()) {
+			borderColor = GetFocusBorderColor();
+		}
+	}
+	if (borderColor.empty()) {
+		borderColor = GetBorderColor(GetState());
+	}
+	if (!borderColor.empty()) {
+		dwBorderColor = GetUiColor(borderColor.c_str());
 	}
 	if (dwBorderColor.GetARGB() == 0) {
 		return;

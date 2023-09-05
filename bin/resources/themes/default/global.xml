@@ -116,10 +116,12 @@
     <!--下拉框-->
     <Class name="combo" value="normalimage=&quot;file='../public/combo/combo24.png' corner='3,3,24,3' textpadding='3,3,24,3'&quot; hotimage=&quot;file='../public/combo/combo24_hover.png' corner='3,3,24,3' textpadding='3,3,24,3'&quot; "/>
     <Class name="combo2" value="normalimage=&quot;file='../public/combo/combo24_.png' corner='2,2,18,2' textpadding='2,2,18,2'&quot; hotimage=&quot;file='../public/combo/combo24_hover_.png' corner='2,2,18,2' textpadding='2,2,18,2'&quot; "/>
-    <!--按钮-->
+    <!--按钮：图片按钮-->
     <Class name="btn_global_blue_80x30" font="system_bold_14" normaltextcolor="white" normalimage="file='../public/button/btn_global_blue_80x30_normal.png'" hotimage="file='../public/button/btn_global_blue_80x30_hovered.png'" pushedimage="file='../public/button/btn_global_blue_80x30_pushed.png'" disabledimage="file='../public/button/btn_global_blue_80x30_normal.png' fade='80'"/>
     <Class name="btn_global_white_80x30" font="system_bold_14" normaltextcolor="dark_gray" normalimage="file='../public/button/btn_global_white_80x30_normal.png'" hotimage="file='../public/button/btn_global_white_80x30_hovered.png'" pushedimage="file='../public/button/btn_global_white_80x30_pushed.png'" disabledimage="file='../public/button/btn_global_white_80x30_normal.png' fade='128'"/>
     <Class name="btn_global_red_80x30" font="system_bold_14" normaltextcolor="white" normalimage="file='../public/button/btn_global_red_80x30_normal.png'" hotimage="file='../public/button/btn_global_red_80x30_hovered.png'" pushedimage="file='../public/button/btn_global_red_80x30_pushed.png'" disabledimage="file='../public/button/btn_global_red_80x30_normal.png' fade='80'"/>
+    <!--按钮：纯色按钮-->
+    <Class name="btn_global_color_gray" font="system_14" normal_text_color="black" disabled_text_color="gray" text_align="hcenter,vcenter" normal_color="#FFD7DCE0" hot_color="#FFFAFCFF" pushed_color="#FFB0B4B8"/>
     <!--窗口右上角按钮 灰色版 -->
     <Class name="btn_wnd_min" width="auto" height="auto" forenormalimage="file='../public/button/btn_wnd_gray_min.png' dest='4,4,16,16'" normalimage="" hotimage="../public/button/btn_wnd_gray_min_hovered.png" pushedimage="../public/button/btn_wnd_gray_min_pushed.png"/>
     <Class name="btn_wnd_close" width="20" height="20" normalimage="file='../public/button/btn_wnd_gray_close.png' dest='4,4,16,16'" hotimage="../public/button/btn_wnd_white_close_hovered.png" pushedimage="../public/button/btn_wnd_white_close_pushed.png" fadehot="false"/>

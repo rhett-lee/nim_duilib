@@ -48,14 +48,14 @@ public:
 	void SetBkColor(const std::wstring& strColor);
 
 	/**
-	 * @brief 获取某个状态下的字体颜色
+	 * @brief 获取某个状态下的控件颜色
 	 * @param[in] stateType 要获取何种状态下的颜色值，参考 ControlStateType 枚举
 	 * @return 指定状态下设定的颜色字符串，对应 global.xml 中指定色值
 	 */
 	std::wstring GetStateColor(ControlStateType stateType) const;
 
 	/**
-	 * @brief 设置某个状态下的字体颜色
+	 * @brief 设置某个状态下的控件颜色
 	 * @param[in] stateType 要设置何种状态下的颜色值，参考 ControlStateType 枚举
 	 * @param[in] strColor 要设置的颜色值，该值必须在 global.xml 中存在
 	 * @return 无
@@ -159,17 +159,30 @@ public:
 	virtual Image* GetEstimateImage();
 
 	/// 边框相关
-	/**@brief 获取边框颜色
+	/** 获取指定状态下的边框颜色
+	 * @param [in] stateType 控件状态
 	 * @return 边框的颜色字符串，对应 global.xml 中的具体颜色值
 	 */
-	std::wstring GetBorderColor() const;
+	std::wstring GetBorderColor(ControlStateType stateType) const;
 
-	/**
-	 * @brief 设置边框颜色
-	 * @param[in] strBorderColor 设置边框的颜色字符串值，该值必须在 global.xml 中存在
-	 * @return 无
+	/** 设置边框颜色，应用于所有状态
+	 * @param [in] strBorderColor 设置边框的颜色字符串值，该值必须在 global.xml 中存在
 	 */
 	void SetBorderColor(const std::wstring& strBorderColor);
+
+	/** 设置指定状态下的边框颜色
+	 * @param [in] stateType 控件状态
+	 * @param [in] strBorderColor 设置边框的颜色字符串值，该值必须在 global.xml 中存在
+	 */
+	void SetBorderColor(ControlStateType stateType, const std::wstring& strBorderColor);
+
+	/** 设置焦点状态下的边框颜色
+	*/
+	void SetFocusBorderColor(const std::wstring& strBorderColor);
+
+	/** 获取焦点状态下的边框颜色
+	*/
+	std::wstring GetFocusBorderColor() const;
 
 	/** @brief 设置边框的大小(left、top、right、bottom分别对应左边框大小，上边框大小，右边框大小、下边框大小)
 	 * @param[in] rc 一个 `UiRect` 结构的边框大小集合
@@ -1121,8 +1134,13 @@ private:
 	//控件阴影，其圆角大小通过m_cxyBorderRound变量控制
 	BoxShadow* m_pBoxShadow;
 
-	//边框颜色
-	UiString m_strBorderColor;
+	/** 焦点状态下的边框颜色
+	*/
+	UiString m_focusBorderColor;
+
+	/** 边框颜色, 每个状态可以指定不同的边框颜色
+	*/
+	std::unique_ptr<StateColorMap> m_pBorderColorMap;
 
 	//控件四边的边框大小（可分别设置top/bottom/left/right四个边的值）
 	UiRect m_rcBorderSize;
@@ -1139,7 +1157,7 @@ private:
 	*/
 	int8_t m_controlState;
 
-	/** 状态与颜色值MAP
+	/** 状态与颜色值MAP，每个状态可以指定不同的颜色
 	*/
 	std::unique_ptr<StateColorMap> m_pColorMap;
 
