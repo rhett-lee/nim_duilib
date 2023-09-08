@@ -7,6 +7,7 @@
 
 #include "duilib/Control/TreeView.h"
 #include "duilib/Control/Combo.h"
+#include "duilib/Control/FilterCombo.h"
 #include "duilib/Control/Slider.h"
 #include "duilib/Control/Progress.h"
 #include "duilib/Control/CircleProgress.h"
@@ -734,6 +735,7 @@ Control* WindowBuilder::CreateControlByClass(const std::wstring& strControlClass
 		{DUI_CTR_TREEVIEW, []() { return new TreeView; }},
 		{DUI_CTR_TREENODE, []() { return new TreeNode; }},
 		{DUI_CTR_COMBO, []() { return new Combo; }},
+		{DUI_CTR_FILTER_COMBO, []() { return new FilterCombo; }},
 		{DUI_CTR_SLIDER, []() { return new Slider; }},
 		{DUI_CTR_PROGRESS, []() { return new Progress; }},
 		{DUI_CTR_CIRCLEPROGRESS, []() { return new CircleProgress; }},

@@ -23,7 +23,13 @@ public:
 	virtual std::wstring GetType() const override;
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 	virtual bool CanPlaceCaptionBar() const override;
+
+protected:
 	virtual void DoInit() override;
+
+	/** 是否完成初始化
+	*/
+	bool IsInited() const;
 
 public:
 	/** Combo类型
@@ -128,13 +134,13 @@ public:
 	* @param [in] itemText 子项的文本内容
 	* @return 返回新添加的子项索引号
 	*/
-	size_t AddItemText(const std::wstring& itemText);
+	size_t AddTextItem(const std::wstring& itemText);
 
 	/** 在指定索引号位置, 插入一个子项字符串, 返回新添加的子项索引号
 	* @param [in] iIndex 子项索引号
 	* @param [in] itemText 子项的文本内容
 	*/
-	size_t InsertItemText(size_t iIndex, const std::wstring& itemText);
+	size_t InsertTextItem(size_t iIndex, const std::wstring& itemText);
 
 	/** 删除一个子项
 	* @param [in] iIndex 子项索引号
@@ -177,60 +183,75 @@ public:
 	 */
 	void AttachWindowClose(const EventCallback& callback) { AttachEvent(kEventWindowClose, callback); }
 
-private:
+protected:
+	/** 显示下拉列表
+	* @param [in] bActivated true表示激活并设置焦点，false表示不激活窗口
+	*/
+	virtual void ShowComboList(bool bActivated = true);
+
+	/** 关闭下拉列表
+	*/
+	virtual void HideComboList();
+
+	/** 更新下拉列表
+	*/
+	virtual void UpdateComboList();
+
 	/** 默认的子项被选择处理函数
 	 * @param[in] args 参数列表
 	 * @return 始终返回 true
 	 */
-	bool OnSelectItem(const EventArgs& args);
+	virtual bool OnSelectItem(const EventArgs& args);
 
 	/** 下拉框窗口关闭
 	* @param [in] bCanceled true表示取消，否则表示正常关闭
 	*/
-	void OnComboWndClosed(bool bCanceled);
+	virtual void OnComboWndClosed(bool bCanceled);
 
 	/** 鼠标按下按钮
 	 * @param[in] args 参数列表
 	 * @return 始终返回 true
 	 */
-	bool OnButtonDown(const EventArgs& args);
+	virtual bool OnButtonDown(const EventArgs& args);
 
 	/** 点击按钮
 	 * @param[in] args 参数列表
 	 * @return 始终返回 true
 	 */
-	bool OnButtonClicked(const EventArgs& args);
+	virtual bool OnButtonClicked(const EventArgs& args);
 
 	/** 鼠标在Edit上面按下按钮
 	 * @param[in] args 参数列表
 	 * @return 始终返回 true
 	 */
-	bool OnEditButtonDown(const EventArgs& args);
+	virtual bool OnEditButtonDown(const EventArgs& args);
 
 	/** 鼠标在Edit上面弹起按钮
 	 * @param[in] args 参数列表
 	 * @return 始终返回 true
 	 */
-	bool OnEditButtonUp(const EventArgs& args);
+	virtual bool OnEditButtonUp(const EventArgs& args);
 
 	/** 在Edit上按键
 	 * @param[in] args 参数列表
 	 * @return 始终返回 true
 	 */
-	bool OnEditKeyDown(const EventArgs& args);
+	virtual bool OnEditKeyDown(const EventArgs& args);
 
+	/** 选择项变化，同步Edit控件的文本
+	*/
+	virtual void OnSelectedItemChanged();
+
+private:
 	/** 解析属性列表
 	*/
 	void ParseAttributeList(const std::wstring& strList,
-		                    std::vector<std::pair<std::wstring, std::wstring>>& attributeList) const;
+							std::vector<std::pair<std::wstring, std::wstring>>& attributeList) const;
 
 	/** 设置控件的属性列表
 	*/
 	void SetAttributeList(Control* pControl, const std::wstring& classValue);
 
-	/** 选择项变化，同步Edit控件的文本
-	*/
-	void OnSelectedItemChanged();
 
 	/** 创建一个新的树节点
 	*/

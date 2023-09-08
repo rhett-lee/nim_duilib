@@ -2,7 +2,6 @@
 #include "controls_form.h"
 #include "about_form.h"
 #include "ui_components/comboex/CheckCombo.h"
-#include "ui_components/comboex/FilterCombo.h"
 #include "duilib/Utils/StringUtil.h"
 
 #include <fstream>
@@ -40,10 +39,6 @@ ui::Control* ControlForm::CreateControl(const std::wstring& pstrClass)
 	{
 		control = new nim_comp::CheckCombo;
 	}
-	else if (pstrClass == L"FilterCombo")
-	{
-		control = new nim_comp::FilterCombo;
-	}
 	return control;
 }
 
@@ -77,7 +72,7 @@ void ControlForm::OnInitWindow()
 			ui::TreeNode* node = new ui::TreeNode;
 			node->SetWindow(this);
 			node->SetClass(L"tree_node");
-			node->SetText(nbase::StringPrintf(L"ui::Combo::ListBoxItem %d", i));
+			node->SetText(nbase::StringPrintf(L"ui::Combo::TreeNode %d", i));
 			pTreeNode->AddChildNode(node);
 		}
 	}
@@ -91,10 +86,10 @@ void ControlForm::OnInitWindow()
 //	combo->SetItemText(2, L"2");
 //	ASSERT(combo->GetItemText(2) == L"2");
 //
-//	size_t nIndex = combo->AddItemText(L"Last");
+//	size_t nIndex = combo->AddTextItem(L"Last");
 //	ASSERT(combo->GetItemText(nIndex) == L"Last");
 //
-//	nIndex = combo->InsertItemText(nIndex, L"Last2");
+//	nIndex = combo->InsertTextItem(nIndex, L"Last2");
 //	ASSERT(combo->GetItemText(nIndex) == L"Last2");
 //
 //	ASSERT(combo->DeleteItem(nIndex));
@@ -103,6 +98,13 @@ void ControlForm::OnInitWindow()
 //	combo->SetText(L"Test");
 //	ASSERT(combo->GetText() == L"Test");
 //#endif
+
+	ui::FilterCombo* filterCombo = static_cast<ui::FilterCombo*>(FindControl(L"filter_combo"));
+	if (filterCombo != nullptr) {
+		for (auto i = 0; i < 100; i++) {
+			filterCombo->AddTextItem(nbase::StringPrintf(L"Item %d", i));
+		}
+	}
 
 	std::string checks[7] = { "nim_comp::CheckCombo", "check1", "check2", "check3", "check4", "check5", "check6" };
 	nim_comp::CheckCombo* check_combo = static_cast<nim_comp::CheckCombo*>(FindControl(L"check_combo"));
@@ -125,25 +127,6 @@ void ControlForm::OnInitWindow()
 			item->SetSelectedStateImage(ui::kControlStateNormal, image_select);
 
 			check_combo->AddItem(item);
-		}
-	}
-
-	nim_comp::FilterCombo* filter_combo = static_cast<nim_comp::FilterCombo*>(FindControl(L"filter_combo"));
-	if (filter_combo != nullptr) {
-		char buf[16] = {};
-		for (auto i = 0; i < 100; i++)
-		{
-			nim_comp::ListElementMatch* item = new nim_comp::ListElementMatch;
-			item->SetFixedHeight(ui::UiFixedInt(20), true, true);
-			//ui::GlobalManager::Instance().FillBoxWithCache(item, L"date_export/combo/date_item.xml");
-			//Label *label = new label;
-
-			std::string str = "nim_comp::FilterCombo item";
-			_itoa_s(i, buf, 10);
-			str += buf;
-			item->SetText(nbase::UTF8ToUTF16(str));
-			item->SetUTF8DataID(str);
-			filter_combo->AddItem(item);
 		}
 	}
 

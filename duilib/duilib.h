@@ -93,6 +93,7 @@
 #include "Box/VirtualListBox.h"
 
 #include "Control/Combo.h"
+#include "Control/FilterCombo.h"
 #include "Control/TreeView.h"
 
 #include "Control/Label.h"

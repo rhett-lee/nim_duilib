@@ -946,6 +946,12 @@ TreeView::TreeView() :
 	SetIndent(20, true);
 }
 
+TreeView::~TreeView()
+{
+	m_rootNode->RemoveSelf();
+	m_rootNode.reset();
+}
+
 std::wstring TreeView::GetType() const { return DUI_CTR_TREEVIEW; }
 
 void TreeView::SetAttribute(const std::wstring& strName, const std::wstring& strValue)

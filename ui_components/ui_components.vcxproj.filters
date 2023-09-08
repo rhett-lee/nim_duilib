@@ -159,9 +159,6 @@
     <ClInclude Include="grid\GridBody.h">
       <Filter>grid</Filter>
     </ClInclude>
-    <ClInclude Include="comboex\FilterCombo.h">
-      <Filter>comboex</Filter>
-    </ClInclude>
     <ClInclude Include="popover\popover.h">
       <Filter>popover</Filter>
     </ClInclude>
@@ -173,9 +170,6 @@
     </ClInclude>
     <ClInclude Include="popover\tooltip.h">
       <Filter>popover</Filter>
-    </ClInclude>
-    <ClInclude Include="comboex\ShadowCombo.h">
-      <Filter>comboex</Filter>
     </ClInclude>
     <ClInclude Include="mini_blink_control\web_view_base.h">
       <Filter>mini_blink_control</Filter>
@@ -272,9 +266,6 @@
     <ClCompile Include="grid\GridBody.cpp">
       <Filter>grid</Filter>
     </ClCompile>
-    <ClCompile Include="comboex\FilterCombo.cpp">
-      <Filter>comboex</Filter>
-    </ClCompile>
     <ClCompile Include="popover\popover.cpp">
       <Filter>popover</Filter>
     </ClCompile>
@@ -286,9 +277,6 @@
     </ClCompile>
     <ClCompile Include="popover\tooltip.cpp">
       <Filter>popover</Filter>
-    </ClCompile>
-    <ClCompile Include="comboex\ShadowCombo.cpp">
-      <Filter>comboex</Filter>
     </ClCompile>
     <ClCompile Include="mini_blink_control\web_view_base.cpp">
       <Filter>mini_blink_control</Filter>

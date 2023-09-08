@@ -12,7 +12,8 @@ namespace ui
 class CComboWnd: public Window
 {
 public:
-    void InitComboWnd(Combo* pOwner);
+    void InitComboWnd(Combo* pOwner, bool bActivated);
+	void UpdateComboWnd();
     virtual std::wstring GetWindowClassName() const override;
 	virtual void OnFinalMessage(HWND hWnd) override;
 	virtual LRESULT OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
@@ -34,7 +35,7 @@ private:
 	bool m_bIsClosed = false;
 };
 
-void CComboWnd::InitComboWnd(Combo* pOwner)
+void CComboWnd::InitComboWnd(Combo* pOwner, bool bActivated)
 {
 	ASSERT(pOwner != nullptr);
 	if (pOwner == nullptr) {
@@ -42,56 +43,70 @@ void CComboWnd::InitComboWnd(Combo* pOwner)
 	}
     m_pOwner = pOwner;
     m_iOldSel = m_pOwner->GetCurSel();
+	m_bIsClosed = false;
+    CreateWnd(pOwner->GetWindow()->GetHWND(), L"", WS_POPUP, WS_EX_TOOLWINDOW);
+	UpdateComboWnd();
+	if (bActivated) {
+		// HACK: Don't deselect the parent's caption
+		HWND hWndParent = GetHWND();
+		while (::GetParent(hWndParent) != NULL) {
+			hWndParent = ::GetParent(hWndParent);
+		}
+		::ShowWindow(GetHWND(), SW_SHOW);
+		::SendMessage(hWndParent, WM_NCACTIVATE, TRUE, 0L);
+		pOwner->GetTreeView()->SetFocus();
+		pOwner->SetState(kControlStateHot);
+	}
+	else {
+		::ShowWindow(GetHWND(), SW_SHOWNOACTIVATE);
+	}
+}
 
-    // Position the popup window in absolute space
-    UiSize szDrop = m_pOwner->GetDropBoxSize();
-    UiRect rcOwner = pOwner->GetPos();
+void CComboWnd::UpdateComboWnd()
+{
+	Combo* pOwner = m_pOwner;
+	if (pOwner == nullptr) {
+		return;
+	}
+	// Position the popup window in absolute space
+	UiSize szDrop = pOwner->GetDropBoxSize();
+	UiRect rcOwner = pOwner->GetPos();
 	UiPoint scrollBoxOffset = pOwner->GetScrollOffsetInScrollBox();
 	rcOwner.Offset(-scrollBoxOffset.x, -scrollBoxOffset.y);
 
-    UiRect rc = rcOwner;
-    rc.top = rc.bottom + 1;		    // 父窗口left、bottom位置作为弹出窗口起点
-    rc.bottom = rc.top + szDrop.cy;	// 计算弹出窗口高度
+	UiRect rc = rcOwner;
+	rc.top = rc.bottom + 1;		    // 父窗口left、bottom位置作为弹出窗口起点
+	rc.bottom = rc.top + szDrop.cy;	// 计算弹出窗口高度
 	if (szDrop.cx > 0) {
 		rc.right = rc.left + szDrop.cx;	// 计算弹出窗口宽度
 	}
 
-    UiSize szAvailable(rc.Width(), rc.Height());
+	UiSize szAvailable(rc.Width(), rc.Height());
 	UiFixedInt oldFixedHeight = pOwner->GetTreeView()->GetFixedHeight();
 	pOwner->GetTreeView()->SetFixedHeight(UiFixedInt::MakeAuto(), false, false);
 	UiEstSize estSize = pOwner->GetTreeView()->EstimateSize(szAvailable);
 	pOwner->GetTreeView()->SetFixedHeight(oldFixedHeight, false, false);
-    int32_t cyFixed = estSize.cy.GetInt32();
+	int32_t cyFixed = estSize.cy.GetInt32();
 	if (cyFixed == 0) {
 		cyFixed = szDrop.cy;
 	}
 	rc.bottom = rc.top + std::min(cyFixed, szDrop.cy);
 
-    MapWindowRect(pOwner->GetWindow()->GetHWND(), HWND_DESKTOP, rc);
+	MapWindowRect(pOwner->GetWindow()->GetHWND(), HWND_DESKTOP, rc);
 
 	UiRect rcWork;
 	GetMonitorWorkRect(rcWork);
-	if( rc.bottom > rcWork.bottom || m_pOwner->IsPopupTop()) {
-        rc.left = rcOwner.left;
-        rc.right = rcOwner.right;
+	if (rc.bottom > rcWork.bottom || m_pOwner->IsPopupTop()) {
+		rc.left = rcOwner.left;
+		rc.right = rcOwner.right;
 		if (szDrop.cx > 0) {
 			rc.right = rc.left + szDrop.cx;
 		}
-        rc.top = rcOwner.top - std::min(cyFixed, szDrop.cy);
-        rc.bottom = rcOwner.top;
-        MapWindowRect(pOwner->GetWindow()->GetHWND(), HWND_DESKTOP, rc);
-    }   
-	m_bIsClosed = false;
-    CreateWnd(pOwner->GetWindow()->GetHWND(), L"", WS_POPUP, WS_EX_TOOLWINDOW, rc);
-
-    // HACK: Don't deselect the parent's caption
-    HWND hWndParent = GetHWND();
-	while (::GetParent(hWndParent) != NULL) {
-		hWndParent = ::GetParent(hWndParent);
+		rc.top = rcOwner.top - std::min(cyFixed, szDrop.cy);
+		rc.bottom = rcOwner.top;
+		MapWindowRect(pOwner->GetWindow()->GetHWND(), HWND_DESKTOP, rc);
 	}
-    ::ShowWindow(GetHWND(), SW_SHOW);
-    ::SendMessage(hWndParent, WM_NCACTIVATE, TRUE, 0L);
-	pOwner->GetTreeView()->SetFocus();
+	::SetWindowPos(GetHWND(), NULL, rc.left, rc.top, rc.Width(), rc.Height(), SWP_NOZORDER | SWP_NOACTIVATE);
 }
 
 std::wstring CComboWnd::GetWindowClassName() const
@@ -101,10 +116,15 @@ std::wstring CComboWnd::GetWindowClassName() const
 
 void CComboWnd::OnFinalMessage(HWND hWnd)
 {
-	if (m_pOwner) {
-		m_pOwner->m_pWindow = nullptr;
-		m_pOwner->SetState(kControlStateNormal);
-		m_pOwner->Invalidate();
+	if (m_pOwner != nullptr) {
+		if (m_pOwner->GetTreeView()->GetWindow() == this) {
+			m_pOwner->GetTreeView()->SetWindow(nullptr, nullptr, false);
+		}
+		if (m_pOwner->m_pWindow == this) {			
+			m_pOwner->m_pWindow = nullptr;
+			m_pOwner->SetState(kControlStateNormal);
+			m_pOwner->Invalidate();
+		}		
 	}
 	__super::OnFinalMessage(hWnd);
     delete this;
@@ -295,6 +315,9 @@ void Combo::SetButtonControlClass(const std::wstring& classValue)
 void Combo::ParseAttributeList(const std::wstring& strList,
 							   std::vector<std::pair<std::wstring, std::wstring>>& attributeList) const
 {
+	if (strList.empty()) {
+		return;
+	}
 	std::wstring strValue = strList;
 	//这个是手工写入的属性，以花括号{}代替双引号，编写的时候就不需要转义字符了；
 	StringHelper::ReplaceAll(L"{", L"\"", strValue);
@@ -317,7 +340,7 @@ void Combo::SetAttributeList(Control* pControl, const std::wstring& classValue)
 			pControl->SetAttribute(attribute.first, attribute.second);
 		}
 	}
-	else {
+	else if(!classValue.empty()) {
 		//按Class名称设置
 		pControl->SetClass(classValue);
 	}
@@ -357,6 +380,11 @@ void Combo::DoInit()
 		m_pEditControl->AttachEvent(kEventKeyDown, nbase::Bind(&Combo::OnEditKeyDown, this, std::placeholders::_1));
 	}
 	SetComboType(GetComboType());
+}
+
+bool Combo::IsInited() const
+{
+	return m_bInited;
 }
 
 TreeView* Combo::GetTreeView()
@@ -496,12 +524,12 @@ bool Combo::SetItemText(size_t iIndex, const std::wstring& itemText)
 	return false;
 }
 
-size_t Combo::AddItemText(const std::wstring& itemText)
+size_t Combo::AddTextItem(const std::wstring& itemText)
 {
-	return InsertItemText(GetCount(), itemText);
+	return InsertTextItem(GetCount(), itemText);
 }
 
-size_t Combo::InsertItemText(size_t iIndex, const std::wstring& itemText)
+size_t Combo::InsertTextItem(size_t iIndex, const std::wstring& itemText)
 {
 	ASSERT(iIndex <= GetCount());
 	if (iIndex > GetCount()) {
@@ -617,11 +645,7 @@ bool Combo::OnButtonClicked(const EventArgs& /*args*/)
 		//如果鼠标按下的时候，正在显示列表，那么点击后不显示下拉列表
 		return true;
 	}
-	//显示下拉列表
-	if (m_pWindow == nullptr) {
-		m_pWindow = new CComboWnd();
-		m_pWindow->InitComboWnd(this);
-	}
+	ShowComboList();
 	return true;
 }
 
@@ -641,10 +665,7 @@ bool Combo::OnEditButtonUp(const EventArgs& /*args*/)
 			return true;
 		}
 		//显示下拉列表
-		if (m_pWindow == nullptr) {
-			m_pWindow = new CComboWnd();
-			m_pWindow->InitComboWnd(this);
-		}
+		ShowComboList();
 	}
 	return true;
 }
@@ -653,10 +674,7 @@ bool Combo::OnEditKeyDown(const EventArgs& args)
 {
 	if (args.wParam == VK_DOWN) {
 		//按向下箭头的时候，显示下拉列表
-		if (m_pWindow == nullptr) {
-			m_pWindow = new CComboWnd();
-			m_pWindow->InitComboWnd(this);
-		}
+		ShowComboList();
 	}
 	return true;
 }
@@ -664,7 +682,33 @@ bool Combo::OnEditKeyDown(const EventArgs& args)
 void Combo::OnSelectedItemChanged()
 {
 	if (m_pEditControl != nullptr) {
-		m_pEditControl->SetText(GetItemText(GetCurSel()));
+		size_t nSelIndex = GetCurSel();
+		if (Box::IsValidItemIndex(nSelIndex)) {
+			m_pEditControl->SetText(GetItemText(nSelIndex));
+		}		
+	}
+}
+
+void Combo::ShowComboList(bool bActivated)
+{
+	//显示下拉列表
+	if ((m_pWindow == nullptr) || m_pWindow->IsClosingWnd()) {
+		m_pWindow = new CComboWnd();
+		m_pWindow->InitComboWnd(this, bActivated);
+	}
+}
+
+void Combo::HideComboList()
+{
+	if(m_pWindow != nullptr) {
+		m_pWindow->CloseWnd();
+	}
+}
+
+void Combo::UpdateComboList()
+{
+	if (m_pWindow != nullptr) {
+		m_pWindow->UpdateComboWnd();
 	}
 }
 

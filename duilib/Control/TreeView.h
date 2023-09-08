@@ -302,7 +302,8 @@ class UILIB_API TreeView : public ListBox
 {
 	friend class TreeNode;
 public:
-	TreeView(void);
+	TreeView();
+	virtual ~TreeView();
 
 	/// 重写父类方法，提供个性化功能，请参考父类声明
 	virtual std::wstring GetType() const override;

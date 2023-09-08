@@ -203,8 +203,6 @@
     <ClInclude Include="cef_control\handler\drag\util_win.h" />
     <ClInclude Include="cef_control\util\auto_unregister.h" />
     <ClInclude Include="comboex\CheckCombo.h" />
-    <ClInclude Include="comboex\FilterCombo.h" />
-    <ClInclude Include="comboex\ShadowCombo.h" />
     <ClInclude Include="grid\Grid.h" />
     <ClInclude Include="grid\GridBase.h" />
     <ClInclude Include="grid\GridBody.h" />
@@ -259,8 +257,6 @@
     <ClCompile Include="cef_control\manager\cef_manager.cpp" />
     <ClCompile Include="cef_control\util\memory_dc.cpp" />
     <ClCompile Include="comboex\CheckCombo.cpp" />
-    <ClCompile Include="comboex\FilterCombo.cpp" />
-    <ClCompile Include="comboex\ShadowCombo.cpp" />
     <ClCompile Include="grid\Grid.cpp" />
     <ClCompile Include="grid\GridBase.cpp" />
     <ClCompile Include="grid\GridBody.cpp" />
