@@ -131,6 +131,10 @@ void ScrollBox::SetPosInternally(UiRect rc)
 			requiredSize = CalcRequiredSize(realRect);
 		}		
 	}
+	//requiredSize需要剪去内边距，与ProcessVScrollBar/ProcessHScrollBar的逻辑保持一致
+	UiPadding rcPadding = GetPadding();
+	requiredSize.cy -= (rcPadding.top + rcPadding.bottom);
+	requiredSize.cx -= (rcPadding.left + rcPadding.right);
 	ProcessVScrollBar(rc, requiredSize.cy);
 	ProcessHScrollBar(rc, requiredSize.cx);
 }

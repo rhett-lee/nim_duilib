@@ -51,9 +51,9 @@ void MainForm::OnInitWindow()
         m_pListBox->SetDataProvider(&m_fileList);
     }
     //设置开启树节点的CheckBox功能
-    m_pTree->SetCheckBoxClass(L"tree_view_item_checkbox");
+    m_pTree->SetCheckBoxClass(L"tree_node_checkbox");
     //设置开启数节点的[展开/收起]图标功能
-    m_pTree->SetExpandImageClass(L"tree_view_item_expand");
+    m_pTree->SetExpandImageClass(L"tree_node_expand");
     //设置是否支持多选
     m_pTree->SetMultiSelect(true);
 	
@@ -119,7 +119,7 @@ ui::TreeNode* MainForm::InsertTreeNode(ui::TreeNode* pTreeNode,
 
     ui::TreeNode* node = new ui::TreeNode;
     node->SetWindow(this);
-    node->SetClass(L"tree_view_item");//在"tree_view.xml"中定义
+    node->SetClass(L"tree_node");//在"global.xml"中定义
     node->SetText(displayName);
         
     FolderStatus* pFolder = new FolderStatus;

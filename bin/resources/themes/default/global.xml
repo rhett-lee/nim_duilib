@@ -114,8 +114,12 @@
     <Class name="checkbox_font14" height="20" textpadding="20,0,0,0" font="system_14" normaltextcolor="darkcolor" normalimage="file='../public/CheckBox/check_no.png' dest='0,2,16,18'" disabledimage="file='../public/CheckBox/check_no.png' dest='0,2,16,18' fade='80'" selectednormalimage="file='../public/CheckBox/check_yes.png' dest='0,2,16,18'" selecteddisabledimage="file='../public/CheckBox/check_yes.png' dest='0,2,16,18' fade='80'"/>
     <Class name="checkbox_green" normalimage="file='../public/CheckBox/check_green_no.png'" disabledimage="file='../public/CheckBox/check_green_no.png' fade='80'" selectednormalimage="file='../public/CheckBox/check_green_yes.png'" selecteddisabledimage="file='../public/CheckBox/check_green_yes.png' fade='80'"/>
     <!--下拉框-->
-    <Class name="combo" value="normalimage=&quot;file='../public/combo/combo24.png' corner='3,3,24,3' textpadding='3,3,24,3'&quot; hotimage=&quot;file='../public/combo/combo24_hover.png' corner='3,3,24,3' textpadding='3,3,24,3'&quot; "/>
-    <Class name="combo2" value="normalimage=&quot;file='../public/combo/combo24_.png' corner='2,2,18,2' textpadding='2,2,18,2'&quot; hotimage=&quot;file='../public/combo/combo24_hover_.png' corner='2,2,18,2' textpadding='2,2,18,2'&quot; "/>
+    <Class name="combo" bkcolor="white" padding="1,1,1,1" border_size="1" border_color="light_gray" hot_border_color="blue" 
+                        combo_tree_view_class="padding='1,1,1,1' border_size='1,1,1,1' bkcolor='white' border_color='gray' indent='20' class='tree_view'"
+                        combo_tree_node_class="tree_node" 
+                        combo_icon_class="bkimage='logo_18x18.png' width='auto' height='auto' valign='center' margin='2,0,2,0'" 
+                        combo_edit_class="bkcolor='white' text_align='vcenter' single_line='true' word_wrap='false'"
+                        combo_button_class="height={stretch} width={auto} margin={1,0,0,0} padding={1,0,0,0} border_size={1,0,0,0} hot_border_color={blue} pushed_border_color={blue} valign={center} hot_color={#FFE5F3FF} pushed_color={#FFCCE8FF} normal_image={file='../public/combo/arrow_normal.svg' valign='center'} hot_image={file='../public/combo/arrow_hot.svg' valign='center'}"/>
     <!--按钮：图片按钮-->
     <Class name="btn_global_blue_80x30" font="system_bold_14" normaltextcolor="white" normalimage="file='../public/button/btn_global_blue_80x30_normal.png'" hotimage="file='../public/button/btn_global_blue_80x30_hovered.png'" pushedimage="file='../public/button/btn_global_blue_80x30_pushed.png'" disabledimage="file='../public/button/btn_global_blue_80x30_normal.png' fade='80'"/>
     <Class name="btn_global_white_80x30" font="system_bold_14" normaltextcolor="dark_gray" normalimage="file='../public/button/btn_global_white_80x30_normal.png'" hotimage="file='../public/button/btn_global_white_80x30_hovered.png'" pushedimage="file='../public/button/btn_global_white_80x30_pushed.png'" disabledimage="file='../public/button/btn_global_white_80x30_normal.png' fade='128'"/>
@@ -144,21 +148,21 @@
     <Class name="list_topitem" normalcolor="bk_topitem_normal" hotcolor="bk_topitem_hovered" pushedcolor="bk_topitem_selected" selectednormalcolor="bk_topitem_selected" fadehot="false"/>
     <!--TreeView通用样式-->
     <Class name="tree_view" bkcolor="bk_wnd_lightcolor" vscrollbar="true"/>
-    <Class name="tree_view_item" height="20" hot_color="bk_listitem_hovered" pushed_color="bk_listitem_selected" selected_normal_color="bk_listitem_selected" icon_image_right_space="4" fadehot="false"/>
-    <Class name="tree_view_item_checkbox" normal_image="file='../public/CheckBox/check_no.png' padding='2,0,0,0' valign='center'" 
-                                          disabled_image="file='../public/CheckBox/check_no.png' padding='2,0,0,0' valign='center' fade='80'" 
-                                          selected_normal_image="file='../public/CheckBox/check_yes.png' padding='2,0,0,0' valign='center'" 
-                                          selected_disabled_image="file='../public/CheckBox/check_yes.png' padding='2,0,0,0' valign='center' fade='80'" 
-                                          part_selected_normal_image="file='../public/CheckBox/part_check.png' padding='2,0,0,0' valign='center'" 
-                                          part_selected_disabled_image="file='../public/CheckBox/part_check.png' padding='2,0,0,0' valign='center' fade='80'"
-                                          check_box_image_right_space="6"/>
-    <Class name="tree_view_item_expand" expand_normal_image="file='../public/tree/expand_normal.svg' padding='2,0,0,0' valign='center'" 
-                                        expand_hot_image="file='../public/tree/expand_hot.svg' padding='2,0,0,0' valign='center'" 
-                                        expand_disabled_image="file='../public/tree/expand_normal.svg' padding='2,0,0,0' valign='center' fade='80'" 
-                                        collapse_normal_image="file='../public/tree/collapse_normal.svg' padding='2,0,0,0' valign='center'" 
-                                        collapse_hot_image="file='../public/tree/collapse_hot.svg' padding='2,0,0,0' valign='center'" 
-                                        collapse_disabled_image="file='../public/tree/collapse_normal.svg' padding='2,0,0,0' valign='center' fade='80'"
-                                        icon_image_right_space="4"/>
+    <Class name="tree_node" height="20" hot_color="bk_listitem_hovered" pushed_color="bk_listitem_selected" selected_normal_color="bk_listitem_selected" icon_image_right_space="4" fadehot="false"/>
+    <Class name="tree_node_checkbox" normal_image="file='../public/CheckBox/check_no.png' padding='2,0,0,0' valign='center'" 
+                                     disabled_image="file='../public/CheckBox/check_no.png' padding='2,0,0,0' valign='center' fade='80'" 
+                                     selected_normal_image="file='../public/CheckBox/check_yes.png' padding='2,0,0,0' valign='center'" 
+                                     selected_disabled_image="file='../public/CheckBox/check_yes.png' padding='2,0,0,0' valign='center' fade='80'" 
+                                     part_selected_normal_image="file='../public/CheckBox/part_check.png' padding='2,0,0,0' valign='center'" 
+                                     part_selected_disabled_image="file='../public/CheckBox/part_check.png' padding='2,0,0,0' valign='center' fade='80'"
+                                     check_box_image_right_space="6"/>
+    <Class name="tree_node_expand" expand_normal_image="file='../public/tree/expand_normal.svg' padding='2,0,0,0' valign='center'" 
+                                   expand_hot_image="file='../public/tree/expand_hot.svg' padding='2,0,0,0' valign='center'" 
+                                   expand_disabled_image="file='../public/tree/expand_normal.svg' padding='2,0,0,0' valign='center' fade='80'" 
+                                   collapse_normal_image="file='../public/tree/collapse_normal.svg' padding='2,0,0,0' valign='center'" 
+                                   collapse_hot_image="file='../public/tree/collapse_hot.svg' padding='2,0,0,0' valign='center'" 
+                                   collapse_disabled_image="file='../public/tree/collapse_normal.svg' padding='2,0,0,0' valign='center' fade='80'"
+                                   icon_image_right_space="4"/>
     <!--进度条通用样式, 注意进度条的值使用`_value`属性-->
     <Class name="progress_blue" valign="center" _value="0" bkimage="../public/progress/progress_blue_bg.png" height="3" width="stretch" hor="true" max="100" min="0" progressimage="../public/progress/progress_blue_fg.png"/>
     <Class name="slider_green" width="stretch" height="14" margin="4,0,0,0" valign="center" thumbsize="14,14" min="0" max="255" progressbarpadding="0,6,0,6" bkimage="file='../public/slider/slider_hor_bk.png' dest='0,6,1000,8'" progresscolor="bk_progress_progress" thumbnormalimage="../public/slider/slider_thumb.png"/>

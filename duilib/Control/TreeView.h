@@ -57,7 +57,7 @@ public:
 	 */
 	void SetParentNode(TreeNode* pParentTreeNode);
 
-	/** 添加子节点
+	/** 在最后面添加一个新的子节点
 	 * @param[in] pTreeNode 子节点指针
 	 * @return 成功返回 true，失败返回 false
 	 */
@@ -307,6 +307,8 @@ public:
 	/// 重写父类方法，提供个性化功能，请参考父类声明
 	virtual std::wstring GetType() const override;
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
+	virtual void SetWindow(Window* pManager, Box* pParent, bool bInit = true) override;
+	virtual void SetWindow(Window* pManager) override;
 
 	/** 获取根节点
 	 * @return 返回根节点指针
@@ -399,9 +401,6 @@ private:
 	bool RemoveItem(Control* pControl) override;
 	bool RemoveItemAt(size_t iIndex) override;
 	void RemoveAllItems() override;
-
-	virtual void SetWindow(Window* pManager, Box* pParent, bool bInit = true) override;
-	virtual void SetWindow(Window* pManager) override;
 
 	/** 当从多选切换为单选模式的时候，需要确保列表中只有一个选择项
 	* @return 如果有变化返回true，否则返回false

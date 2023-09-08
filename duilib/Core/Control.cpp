@@ -1172,6 +1172,9 @@ bool Control::HasHotState()
 	if (!bState && (m_pImageMap != nullptr)) {
 		bState = m_pImageMap->HasHotImage();
 	}
+	if (!bState && (m_pBorderColorMap != nullptr)) {
+		bState = m_pBorderColorMap->HasHotColor();
+	}
 	return bState;
 }
 

@@ -54,7 +54,7 @@ namespace ui
 				combo_item->SetText(item->combo_list[i]);
 				m_pComboEdit->AddItem(combo_item);
 				if (item->text == item->combo_list[i])
-					m_pComboEdit->SelectItem(static_cast<int>(i));
+					m_pComboEdit->SetCurSel(static_cast<int>(i));
 			}
 			m_pComboEditGridItem = item;
 		}

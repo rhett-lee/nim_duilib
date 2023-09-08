@@ -803,19 +803,18 @@ bool TreeNode::RemoveChildNodeAt(size_t iIndex, bool bUpdateCheckStatus)
 		return false;
 	}
 
+	bool bRemoved = false;
 	TreeNode* pTreeNode = ((TreeNode*)m_aTreeNodes[iIndex]);
 	m_aTreeNodes.erase(m_aTreeNodes.begin() + iIndex);
 	if (pTreeNode != nullptr) {
-		return pTreeNode->RemoveSelf();
+		bRemoved = pTreeNode->RemoveSelf();
 	}
 	if (bUpdateCheckStatus && SupportCheckedMode()) {
-		//新添加的节点状态，跟随父节点
-		pTreeNode->SetChecked(IsChecked());
 		//更新节点的勾选状态
 		UpdateSelfCheckStatus();
 		UpdateParentCheckStatus(false);
 	}
-	return false;
+	return bRemoved;
 }
 
 bool TreeNode::RemoveChildNodeAt(size_t iIndex)
@@ -854,7 +853,7 @@ bool TreeNode::RemoveSelf()
 	size_t nListBoxIndex = GetListBoxIndex();
 	if (Box::IsValidItemIndex(nListBoxIndex)) {
 		ASSERT(m_pTreeView->ListBox::GetItemAt(nListBoxIndex) == this);
-		m_pTreeView->ListBox::RemoveItemAt(nListBoxIndex);
+		bRemoved = m_pTreeView->ListBox::RemoveItemAt(nListBoxIndex);
 	}
 	return bRemoved;
 }

@@ -68,20 +68,41 @@ void ControlForm::OnInitWindow()
 		}
 	}
 
-	/* Initialize ComboBox data */
+	//初始化Combo的数据
 	ui::Combo* combo = static_cast<ui::Combo*>(FindControl(L"combo"));
 	if (combo != nullptr) {
-		for (auto i = 0; i < 10; i++)
-		{
-			ui::ListBoxItem* element = new ui::ListBoxItem;
-			element->SetClass(L"listitem");
-			element->SetFixedHeight(ui::UiFixedInt(30), true, true);
-			element->SetBkColor(L"white");
-			element->SetTextPadding({ 6,0,6,0 });
-			element->SetText(nbase::StringPrintf(L"ui::Combo::ListBoxItem %d", i));
-			combo->AddItem(element);
+		ui::TreeView* pTreeView = combo->GetTreeView();
+		ui::TreeNode* pTreeNode = pTreeView->GetRootNode();
+		for (auto i = 0; i < 10; i++) {
+			ui::TreeNode* node = new ui::TreeNode;
+			node->SetWindow(this);
+			node->SetClass(L"tree_node");
+			node->SetText(nbase::StringPrintf(L"ui::Combo::ListBoxItem %d", i));
+			pTreeNode->AddChildNode(node);
 		}
 	}
+//#ifdef _DEBUG
+//	ASSERT(combo->GetCount() == 10);
+//	ASSERT(combo->GetCurSel() == -1);
+//	combo->SetCurSel(1);
+//	ASSERT(combo->GetCurSel() == 1);
+//	combo->SetItemData(1, 0xFF1234);
+//	ASSERT(combo->GetItemData(1) == 0xFF1234);
+//	combo->SetItemText(2, L"2");
+//	ASSERT(combo->GetItemText(2) == L"2");
+//
+//	size_t nIndex = combo->AddItemText(L"Last");
+//	ASSERT(combo->GetItemText(nIndex) == L"Last");
+//
+//	nIndex = combo->InsertItemText(nIndex, L"Last2");
+//	ASSERT(combo->GetItemText(nIndex) == L"Last2");
+//
+//	ASSERT(combo->DeleteItem(nIndex));
+//
+//	ASSERT(combo->GetItemText(combo->GetCurSel()) == combo->GetText());
+//	combo->SetText(L"Test");
+//	ASSERT(combo->GetText() == L"Test");
+//#endif
 
 	std::string checks[7] = { "nim_comp::CheckCombo", "check1", "check2", "check3", "check4", "check5", "check6" };
 	nim_comp::CheckCombo* check_combo = static_cast<nim_comp::CheckCombo*>(FindControl(L"check_combo"));
