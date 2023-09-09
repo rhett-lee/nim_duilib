@@ -67,64 +67,54 @@ public:
 	/** @name 操作子控件(item)相关的方法
 	* @{
 	*/
-	/**@brief 获取子控件数量
+	/** 获取子控件数量
 	 */
 	virtual size_t GetItemCount() const;
 
-	/**
-	 * @brief 根据索引查找指定控件
+	/** 根据索引查找指定控件
 	 * @param[in] iIndex 控件索引
-	 * @return 返回控件指针
 	 */
 	virtual Control* GetItemAt(size_t iIndex) const;
 
-	/**
-	 * @brief 根据控件指针获取索引
+	/** 根据控件指针获取索引
 	 * @param[in] pControl 控件指针
 	 * @return 返回 pControl 所指向的控件索引, 如果没找到，则返回 Box::InvalidIndex
 	 */
 	virtual size_t GetItemIndex(Control* pControl) const;
 
-	/**
-	 * @brief 设置控件索引（内部会重新排列控件位置）
+	/** 设置控件索引（内部会重新排列控件位置）
 	 * @param[in] pControl 控件指针
 	 * @param[in] iIndex 要设置的索引值
 	 * @return 返回 true 设置成功，false 设置失败
 	 */
 	virtual bool SetItemIndex(Control* pControl, size_t iIndex);
 
-	/**
-	 * @brief 添加一个控件到容器中
+	/** 添加一个控件到容器中
 	 * @param[in] pControl 控件指针
 	 * @return 返回 true 添加成功，false 为添加失败
 	 */
 	virtual bool AddItem(Control* pControl);
 
-	/**
-	 * @brief 向指定位置添加一个控件
+	/** 向指定位置添加一个控件
 	 * @param[in] pControl 控件指针
 	 * @param[in] iIndex 在该索引之后插入控件
 	 * @return 返回 true 为添加成功，false 为添加失败
 	 */
 	virtual bool AddItemAt(Control* pControl, size_t iIndex);
 
-	/**
-	 * @brief 根据控件指针从容器中移除一个控件
+	/** 根据控件指针从容器中移除一个控件
 	 * @param[in] pControl 控件的指针
 	 * @return 返回 true 为移除成功，false 为移除失败（控件可能不存在）
 	 */
 	virtual bool RemoveItem(Control* pControl);
 
-	/**
-	 * @brief 根据控件索引从容器中移除一个控件
+	/** 根据控件索引从容器中移除一个控件
 	 * @param[in] iIndex 要移除的控件索引
 	 * @return 返回 true 为移除成功，false 为移除失败（索引值太小或超出了子控件总数）
 	 */
 	virtual bool RemoveItemAt(size_t iIndex);
 
-	/**
-	 * @brief 移除所有子控件
-	 * @return 无
+	/** 移除所有子控件
 	 */
 	virtual void RemoveAllItems();
 

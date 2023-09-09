@@ -43,9 +43,6 @@
     <Filter Include="cef_control\manager">
       <UniqueIdentifier>{f2d952a7-0fa0-4aa2-b596-1e5294c94c0b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="comboex">
-      <UniqueIdentifier>{e6931a54-16d5-4058-8ddd-b2a25d5f8028}</UniqueIdentifier>
-    </Filter>
     <Filter Include="cef_control\handler\drag">
       <UniqueIdentifier>{7747b13a-cc8c-4e86-b230-3528a4bb5752}</UniqueIdentifier>
     </Filter>
@@ -134,9 +131,6 @@
     </ClInclude>
     <ClInclude Include="public_define.h">
       <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="comboex\CheckCombo.h">
-      <Filter>comboex</Filter>
     </ClInclude>
     <ClInclude Include="cef_control\handler\drag\util_win.h">
       <Filter>cef_control\handler\drag</Filter>
@@ -244,9 +238,6 @@
     </ClCompile>
     <ClCompile Include="cef_control\util\memory_dc.cpp">
       <Filter>cef_control\util</Filter>
-    </ClCompile>
-    <ClCompile Include="comboex\CheckCombo.cpp">
-      <Filter>comboex</Filter>
     </ClCompile>
     <ClCompile Include="cef_control\handler\drag\bytes_write_handler.cc">
       <Filter>cef_control\handler\drag</Filter>

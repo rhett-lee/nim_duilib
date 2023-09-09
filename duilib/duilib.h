@@ -94,6 +94,7 @@
 
 #include "Control/Combo.h"
 #include "Control/FilterCombo.h"
+#include "Control/CheckCombo.h"
 #include "Control/TreeView.h"
 
 #include "Control/Label.h"

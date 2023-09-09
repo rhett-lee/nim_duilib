@@ -88,6 +88,7 @@ namespace ui
 	#define  DUI_CTR_RICHEDIT                        (L"RichEdit")
 	#define  DUI_CTR_COMBO                           (L"Combo")
 	#define  DUI_CTR_FILTER_COMBO                    (L"FilterCombo")
+	#define  DUI_CTR_CHECK_COMBO                     (L"CheckCombo")
 	#define  DUI_CTR_SLIDER                          (L"Slider")
 	#define  DUI_CTR_PROGRESS                        (L"Progress")
 	#define  DUI_CTR_CIRCLEPROGRESS                  (L"CircleProgress")

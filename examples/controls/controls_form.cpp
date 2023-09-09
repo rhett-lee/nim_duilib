@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "controls_form.h"
 #include "about_form.h"
-#include "ui_components/comboex/CheckCombo.h"
 #include "duilib/Utils/StringUtil.h"
 
 #include <fstream>
@@ -30,16 +29,6 @@ std::wstring ControlForm::GetSkinFile()
 std::wstring ControlForm::GetWindowClassName() const
 {
 	return kClassName;
-}
-
-ui::Control* ControlForm::CreateControl(const std::wstring& pstrClass)
-{
-	ui::Control* control = nullptr;
-	if (pstrClass == L"CheckCombo")
-	{
-		control = new nim_comp::CheckCombo;
-	}
-	return control;
 }
 
 void ControlForm::OnInitWindow()
@@ -102,32 +91,19 @@ void ControlForm::OnInitWindow()
 	ui::FilterCombo* filterCombo = static_cast<ui::FilterCombo*>(FindControl(L"filter_combo"));
 	if (filterCombo != nullptr) {
 		for (auto i = 0; i < 100; i++) {
-			filterCombo->AddTextItem(nbase::StringPrintf(L"Item %d", i));
+			filterCombo->AddTextItem(nbase::StringPrintf(L"Item %d FilterCombo", i));
 		}
 	}
 
-	std::string checks[7] = { "nim_comp::CheckCombo", "check1", "check2", "check3", "check4", "check5", "check6" };
-	nim_comp::CheckCombo* check_combo = static_cast<nim_comp::CheckCombo*>(FindControl(L"check_combo"));
+	ui::CheckCombo* check_combo = static_cast<ui::CheckCombo*>(FindControl(L"check_combo"));
 	if (check_combo != nullptr) {
-		for (auto i = 0; i < 7; i++)
-		{
-			ui::CheckBox* item = new ui::CheckBox;
-			item->SetFixedWidth(ui::UiFixedInt::MakeStretch(), true, true);
-			item->SetFixedHeight(ui::UiFixedInt(24), true, true);
-			item->SetUTF8Text(checks[i]);
-			item->SetUTF8DataID(checks[i]);
-			item->SetToolTipText(L"nim_comp::CheckCombo");
-
-			item->SetTextPadding({ 20, 2, 2, 0 });
-			item->SetTextStyle(ui::TEXT_LEFT | ui::TEXT_VCENTER, false);
-			std::wstring image_normal = nbase::StringPrintf(L"file='../public/checkbox/check_no.png' dest='%d,4,%d,20'", 2, 18);
-			std::wstring image_select = nbase::StringPrintf(L"file='../public/checkbox/check_yes.png' dest='%d,4,%d,20'", 2, 18);
-
-			item->SetStateImage(ui::kControlStateNormal, image_normal);
-			item->SetSelectedStateImage(ui::kControlStateNormal, image_select);
-
-			check_combo->AddItem(item);
-		}
+		check_combo->AddTextItem(L"星期一");
+		check_combo->AddTextItem(L"星期二");
+		check_combo->AddTextItem(L"星期三");
+		check_combo->AddTextItem(L"星期四");
+		check_combo->AddTextItem(L"星期五");
+		check_combo->AddTextItem(L"星期六");
+		check_combo->AddTextItem(L"星期日");
 	}
 
 	/* Load xml file content in global misc thread, and post update RichEdit task to UI thread */

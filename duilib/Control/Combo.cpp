@@ -47,7 +47,6 @@ void CComboWnd::InitComboWnd(Combo* pOwner, bool bActivated)
     CreateWnd(pOwner->GetWindow()->GetHWND(), L"", WS_POPUP, WS_EX_TOOLWINDOW);
 	UpdateComboWnd();
 	if (bActivated) {
-		// HACK: Don't deselect the parent's caption
 		HWND hWndParent = GetHWND();
 		while (::GetParent(hWndParent) != NULL) {
 			hWndParent = ::GetParent(hWndParent);
@@ -124,7 +123,7 @@ void CComboWnd::OnFinalMessage(HWND hWnd)
 			m_pOwner->m_pWindow = nullptr;
 			m_pOwner->SetState(kControlStateNormal);
 			m_pOwner->Invalidate();
-		}		
+		}
 	}
 	__super::OnFinalMessage(hWnd);
     delete this;
