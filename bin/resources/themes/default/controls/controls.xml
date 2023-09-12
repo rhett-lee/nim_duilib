@@ -68,7 +68,7 @@
             <HBox height="220">
                 <!-- Combo/RichEdit/FilterCombo/CheckCombo -->
                 <VBox width="300" margin="0,0,10">
-                    <Combo class="combo" name="combo" combo_type="drop_down" dropbox_size="0,150" height="30" margin="0,12,0,0" tooltiptext="ui::Combo"/>
+                    <Combo class="combo" name="combo" combo_type="drop_list" dropbox_size="0,150" height="30" margin="0,12,0,0" tooltiptext="ui::Combo"/>
                     <FilterCombo class="filter_combo" name="filter_combo" dropbox_size="0,150" height="30" margin="0,12,0,0" tooltiptext="ui::FilterCombo"/>
                     <RichEdit class="simple input" height="30" margin="0,3" font="system_14" text_align="vcenter" text_padding="8,4,8,4" promptmode="true" prompttext="ui::RichEdit: Single line text control" promptcolor="lightcolor"/>
                     <CheckCombo class="check_combo" name="check_combo" height="30" margin="0,3" tooltiptext="nim_comp::CheckCombo"/>

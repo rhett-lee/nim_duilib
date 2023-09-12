@@ -755,6 +755,10 @@ public:
 	 */
 	UiPadding GetTextPadding() const;
 
+	/** 设置是否使用Control的光标
+	*/
+	void SetUseControlCursor(bool bUseControlCursor);
+
 	/** 监听回车按键按下事件
 	 * @param[in] callback 回车被按下的自定义回调函数
 	 */
@@ -895,8 +899,13 @@ private:
 	*/
 	Image* m_pFocusedImage;
 
-	//文本内边距
+	/** 文本内边距
+	*/
 	UiPadding16	m_rcTextPadding;
+
+	/** 是否使用Control设置的光标
+	*/
+	bool m_bUseControlCursor;
 };
 
 } // namespace ui

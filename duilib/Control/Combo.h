@@ -23,6 +23,7 @@ public:
 	virtual std::wstring GetType() const override;
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 	virtual bool CanPlaceCaptionBar() const override;
+	virtual std::wstring GetBorderColor(ControlStateType stateType) const override;
 
 protected:
 	virtual void DoInit() override;
@@ -147,6 +148,13 @@ public:
 	*/
 	bool DeleteItem(size_t iIndex);
 
+	/** 选择匹配的文本项目
+	* @param [in] itemText 子项的文本内容
+	* @return 返回该选中项的索引号，如果未能选中，则返回Box::InvalidIndex
+	*/
+	size_t SelectTextItem(const std::wstring& itemText);
+
+public:
 	/** 获取当前编辑框内的文本
 	 */
 	std::wstring GetText() const;
@@ -185,9 +193,8 @@ public:
 
 protected:
 	/** 显示下拉列表
-	* @param [in] bActivated true表示激活并设置焦点，false表示不激活窗口
 	*/
-	virtual void ShowComboList(bool bActivated = true);
+	virtual void ShowComboList();
 
 	/** 关闭下拉列表
 	*/
@@ -205,8 +212,9 @@ protected:
 
 	/** 下拉框窗口关闭
 	* @param [in] bCanceled true表示取消，否则表示正常关闭
+	* @param [in] oldEditText 下拉框显示时，编辑框的文本内容
 	*/
-	virtual void OnComboWndClosed(bool bCanceled);
+	virtual void OnComboWndClosed(bool bCanceled, const std::wstring& oldEditText);
 
 	/** 鼠标按下按钮
 	 * @param[in] args 参数列表
@@ -238,9 +246,33 @@ protected:
 	 */
 	virtual bool OnEditKeyDown(const EventArgs& args);
 
+	/** Edit控件失去焦点
+	* @param[in] args 参数列表
+	* @return 始终返回 true
+	*/
+	virtual bool OnEditKillFocus(const EventArgs& args);
+
+	/** 窗口失去焦点
+	* @param[in] args 参数列表
+	* @return 始终返回 true
+	*/
+	virtual bool OnWindowKillFocus(const EventArgs& args);
+
+	/** 窗口移动
+	* @param[in] args 参数列表
+	* @return 始终返回 true
+	*/
+	virtual bool OnWindowMove(const EventArgs& args);
+
 	/** 选择项变化，同步Edit控件的文本
 	*/
 	virtual void OnSelectedItemChanged();
+
+	/** Edit的文本内容发生变化
+	 * @param[in] args 参数列表
+	 * @return 始终返回 true
+	 */
+	virtual bool OnEditTextChanged(const ui::EventArgs& args);
 
 private:
 	/** 解析属性列表
@@ -252,6 +284,9 @@ private:
 	*/
 	void SetAttributeList(Control* pControl, const std::wstring& classValue);
 
+	/** 移除控件
+	*/
+	void RemoveControl(Control* pControl);
 
 	/** 创建一个新的树节点
 	*/

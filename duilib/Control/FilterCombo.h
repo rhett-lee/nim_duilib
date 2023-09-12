@@ -24,11 +24,6 @@ protected:
 	virtual void DoInit() override;
 	
 protected:
-	/** 显示下拉列表
-	* @param [in] bActivated true表示激活并设置焦点，false表示不激活窗口
-	*/
-	virtual void ShowComboList(bool bActivated = true);
-
 	/** 鼠标在Edit上面按下按钮
 	 * @param[in] args 参数列表
 	 * @return 始终返回 true
@@ -46,18 +41,6 @@ protected:
 	 * @return 始终返回 true
 	 */
 	virtual bool OnEditTextChanged(const ui::EventArgs& args);
-
-	/** Edit控件获取焦点
-	* @param[in] args 参数列表
-	 * @return 始终返回 true
-	*/
-	virtual bool OnEditSetFocus(const EventArgs& args);
-
-	/** Edit控件失去焦点
-	* @param[in] args 参数列表
-	 * @return 始终返回 true
-	*/
-	virtual bool OnEditKillFocus(const EventArgs& args);
 
 private:
 

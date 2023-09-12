@@ -26,26 +26,13 @@ void FilterCombo::SetAttribute(const std::wstring& strName, const std::wstring& 
 
 void FilterCombo::DoInit()
 {
-    bool bInited = IsInited();
     __super::DoInit();
     SetComboType(kCombo_DropDown);
-    if (!bInited) {
-        RichEdit* pRichEdit = GetEditControl();
-        if (pRichEdit != nullptr) {
-            pRichEdit->AttachSetFocus(nbase::Bind(&FilterCombo::OnEditSetFocus, this, std::placeholders::_1));
-            pRichEdit->AttachKillFocus(nbase::Bind(&FilterCombo::OnEditKillFocus, this, std::placeholders::_1));
-            pRichEdit->AttachTextChange(nbase::Bind(&FilterCombo::OnEditTextChanged, this, std::placeholders::_1));
-        }
-    }
-}
-
-void FilterCombo::ShowComboList(bool /*bActivated*/)
-{
-    __super::ShowComboList(false);
 }
 
 bool FilterCombo::OnEditButtonDown(const EventArgs& /*args*/)
 {
+    ShowComboList();
     return true;
 }
 
@@ -59,19 +46,8 @@ bool FilterCombo::OnEditTextChanged(const ui::EventArgs& /*args*/)
     std::wstring editText = GetText();
     //转换成小写，比较的时候，不区分大小写
     editText = StringHelper::MakeLowerString(editText);
+    ShowComboList();
     FilterComboList(editText);
-    return true;
-}
-
-bool FilterCombo::OnEditSetFocus(const EventArgs& /*args*/)
-{
-    ShowComboList(false);
-    return true;
-}
-
-bool FilterCombo::OnEditKillFocus(const EventArgs& /*args*/)
-{
-    HideComboList();
     return true;
 }
 

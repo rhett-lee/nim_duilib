@@ -45,7 +45,8 @@ RichEdit::RichEdit() :
 	m_drawCaretFlag(),
 	m_timeFlagMap(),
 	m_linkInfo(),
-	m_pFocusedImage(nullptr)
+	m_pFocusedImage(nullptr),
+	m_bUseControlCursor(false)
 {
 	m_sCurrentColor = GlobalManager::Instance().Color().GetDefaultTextColor();
 	m_sTextColor = m_sCurrentColor;
@@ -1232,6 +1233,11 @@ void RichEdit::HandleEvent(const EventArgs& msg)
 
 bool RichEdit::OnSetCursor(const EventArgs& msg)
 {
+	if (m_bUseControlCursor) {
+		//使用Control设置的光标
+		return __super::OnSetCursor(msg);
+	}
+
 	std::wstring strLink;
 	if (HittestCustomLink(UiPoint(msg.ptMouse), strLink)) {
 		::SetCursor(::LoadCursor(NULL, IDC_HAND));
@@ -2099,6 +2105,11 @@ void RichEdit::SetTextPadding(UiPadding padding, bool bNeedDpiScale)
 UiPadding RichEdit::GetTextPadding() const
 {
 	return UiPadding(m_rcTextPadding.left, m_rcTextPadding.top, m_rcTextPadding.right, m_rcTextPadding.bottom);
+}
+
+void RichEdit::SetUseControlCursor(bool bUseControlCursor)
+{
+	m_bUseControlCursor = bUseControlCursor;
 }
 
 //----------------下面函数用作辅助 字节数限制

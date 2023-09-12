@@ -47,7 +47,7 @@
                 <GroupVBox margin="6,6,6,6" text="基本功能" height="auto" corner_size="4,4">
                     <HBox height="36" margin="8,16,8,0">
                         <Label text="单行编辑:  " valign="center"/>
-                        <RichEdit class="simple" text="RichEdit: simple" valign="center" text_align="vcenter" text_padding="2,0,0,0" bkcolor="white" border_size="1" border_color="light_gray" hot_border_color="blue" focus_border_color="lightblue" margin="4,6,4,4"/>
+                        <RichEdit class="simple simple_border" text="RichEdit: simple" valign="center" text_align="vcenter" text_padding="2,0,0,0" bkcolor="white" margin="4,6,4,4"/>
                     </HBox>
                     <HBox height="44" margin="8,0,8,0">
                         <Label text="单行编辑:  " valign="center"/>
@@ -55,7 +55,7 @@
                     </HBox>
                     <HBox height="36" margin="8,0,8,0">
                         <Label text="提示模式:  " valign="center"/>
-                        <RichEdit class="prompt simple" prompttext="在这里可以输入文字" valign="center" text_align="vcenter" bkcolor="white" border_size="0,0,0,1" border_color="light_gray" hot_border_color="blue" focus_border_color="lightblue" margin="4,6,4,4"/>
+                        <RichEdit class="prompt simple simple_border_bottom" prompttext="在这里可以输入文字" valign="center" text_align="vcenter" bkcolor="white" margin="4,6,4,4"/>
                     </HBox>
                     <HBox height="36" margin="8,0,8,0">
                         <Label text="数字模式:  " valign="center"/>
@@ -114,32 +114,32 @@
                 <VBox bkcolor="bk_wnd_darkcolor" height="auto" minheight="40" >
                     <HBox height="auto" margin="0,2,2,0">
                         <Label text="文件：" valign="center" margin="8,0,8,0"/>
-                        <Button class="btn_global_white_80x30" name="open_file" width="100" height="32" text="打开(Ctrl+O)" borderround="2,2" valign="center" margin="4,0,4,0"/>
-                        <Button class="btn_global_white_80x30" name="save_file" width="100" height="32" text="保存(Ctrl+S)" borderround="2,2" valign="center" margin="4,0,4,0"/>
-                        <Button class="btn_global_white_80x30" name="save_as_file" width="160" height="32" text="另存为(Ctrl+Shift+S)" borderround="2,2" valign="center" margin="4,0,4,0"/>
+                        <Button class="btn_global_white_80x30" name="open_file" width="100" height="28" text="打开(Ctrl+O)" borderround="2,2" valign="center" margin="4,0,4,0"/>
+                        <Button class="btn_global_white_80x30" name="save_file" width="100" height="28" text="保存(Ctrl+S)" borderround="2,2" valign="center" margin="4,0,4,0"/>
+                        <Button class="btn_global_white_80x30" name="save_as_file" width="160" height="28" text="另存为(Ctrl+Shift+S)" borderround="2,2" valign="center" margin="4,0,4,0"/>
                     </HBox>
                     <HBox height="auto" margin="0,2,2,0">
                         <Label text="编辑：" valign="center" margin="8,0,8,0"/>
-                        <Button class="btn_global_white_80x30" name="btn_copy" width="100" height="32" text="复制(Ctrl+C)" borderround="2,2" valign="center" margin="4,0,4,0"/>
-                        <Button class="btn_global_white_80x30" name="btn_cut" width="100" height="32" text="剪切(Ctrl+X)" borderround="2,2" valign="center" margin="4,0,4,0"/>
-                        <Button class="btn_global_white_80x30" name="btn_paste" width="100" height="32" text="粘贴(Ctrl+V)" borderround="2,2" valign="center" margin="4,0,4,0"/>
-                        <Button class="btn_global_white_80x30" name="btn_delete" width="100" height="32" text="删除(Del)" borderround="2,2" valign="center" margin="4,0,4,0"/>
-                        <Button class="btn_global_white_80x30" name="btn_sel_all" width="100" height="32" text="全选(Ctrl+A)" borderround="2,2" valign="center" margin="4,0,8,0"/>
-                        <Button class="btn_global_white_80x30" name="btn_sel_none" width="100" height="32" text="取消选择" borderround="2,2" valign="center" margin="4,0,8,0"/>
-                        <Button class="btn_global_white_80x30" name="btn_undo" width="100" height="32" text="撤销(Ctrl+Z)" borderround="2,2" valign="center" margin="4,0,4,0"/>
-                        <Button class="btn_global_white_80x30" name="btn_redo" width="100" height="32" text="恢复(Ctrl+Y)" borderround="2,2" valign="center" margin="4,0,4,0"/>
+                        <Button class="btn_global_white_80x30" name="btn_copy" width="100" height="28" text="复制(Ctrl+C)" borderround="2,2" valign="center" margin="4,0,4,0"/>
+                        <Button class="btn_global_white_80x30" name="btn_cut" width="100" height="28" text="剪切(Ctrl+X)" borderround="2,2" valign="center" margin="4,0,4,0"/>
+                        <Button class="btn_global_white_80x30" name="btn_paste" width="100" height="28" text="粘贴(Ctrl+V)" borderround="2,2" valign="center" margin="4,0,4,0"/>
+                        <Button class="btn_global_white_80x30" name="btn_delete" width="100" height="28" text="删除(Del)" borderround="2,2" valign="center" margin="4,0,4,0"/>
+                        <Button class="btn_global_white_80x30" name="btn_sel_all" width="100" height="28" text="全选(Ctrl+A)" borderround="2,2" valign="center" margin="4,0,8,0"/>
+                        <Button class="btn_global_white_80x30" name="btn_sel_none" width="100" height="28" text="取消选择" borderround="2,2" valign="center" margin="4,0,8,0"/>
+                        <Button class="btn_global_white_80x30" name="btn_undo" width="100" height="28" text="撤销(Ctrl+Z)" borderround="2,2" valign="center" margin="4,0,4,0"/>
+                        <Button class="btn_global_white_80x30" name="btn_redo" width="100" height="28" text="恢复(Ctrl+Y)" borderround="2,2" valign="center" margin="4,0,4,0"/>
                     </HBox>
                     <HBox height="auto" margin="0,2,2,0">
                         <Label text="查找：" valign="center" margin="8,0,8,0"/>
-                        <Button class="btn_global_white_80x30" name="btn_find_text" width="100" height="32" text="查找(Ctrl+F)" borderround="2,2" valign="center" margin="4,0,4,0"/>
-                        <Button class="btn_global_white_80x30" name="btn_find_next" width="100" height="32" text="查找下一个(F3)" borderround="2,2" valign="center" margin="4,0,4,0"/>
-                        <Button class="btn_global_white_80x30" name="btn_replace_text" width="100" height="32" text="替换(Ctrl+H)" borderround="2,2" valign="center" margin="4,0,4,0"/>
+                        <Button class="btn_global_white_80x30" name="btn_find_text" width="100" height="28" text="查找(Ctrl+F)" borderround="2,2" valign="center" margin="4,0,4,0"/>
+                        <Button class="btn_global_white_80x30" name="btn_find_next" width="100" height="28" text="查找下一个(F3)" borderround="2,2" valign="center" margin="4,0,4,0"/>
+                        <Button class="btn_global_white_80x30" name="btn_replace_text" width="100" height="28" text="替换(Ctrl+H)" borderround="2,2" valign="center" margin="4,0,4,0"/>
                    </HBox>
                    <HBox height="auto" margin="0,2,2,0">
-                        <Label text="设置：" valign="center" margin="8,0,8,0"/>
-                        <Button class="btn_global_white_80x30" width="100" height="32" text="0" borderround="2,2" valign="center" margin="4,0,4,0"/>
-                        <Button class="btn_global_white_80x30" width="100" height="32" text="0" borderround="2,2" valign="center" margin="4,0,4,0"/>
-                        <Button class="btn_global_white_80x30" width="100" height="32" text="0" borderround="2,2" valign="center" margin="4,0,4,0"/>
+                        <Label text="字体：" valign="center" margin="8,0,8,0"/>
+                        <Button class="btn_global_white_80x30" name="set_font" width="100" height="28" text="设置字体" borderround="2,2" valign="center" margin="4,0,4,2"/>
+                        <Combo class="combo" name="combo_font_name" combo_icon_class="" combo_type="drop_down" dropbox_size="0,300" height="28" width="240" tooltiptext="选择字体"/>
+                        <Combo class="combo" name="combo_font_size" combo_icon_class="" combo_type="drop_down" dropbox_size="0,300" height="28" width="80" margin="2,0,0,0" tooltiptext="选择字体"/>
                    </HBox>
                 </VBox>
                 <!-- 横向分割条，用于调整上下区域大小 -->

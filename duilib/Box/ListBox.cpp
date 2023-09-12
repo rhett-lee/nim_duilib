@@ -199,10 +199,9 @@ bool ListBox::SelectItemSingle(size_t iIndex, bool bTakeFocus, bool bTriggerEven
 		}		
 		//确保可见，然后返回		
 		if (bTakeFocus) {
-			UiRect rcItem = pControl->GetPos();
-			EnsureVisible(rcItem);
 			pControl->SetFocus();
 		}
+		EnsureVisible(pControl->GetPos());
 		ListBoxItem* pListItem = dynamic_cast<ListBoxItem*>(pControl);
 		if ((pListItem != nullptr) && !pListItem->IsSelected()) {
 			pListItem->OptionTemplate<Box>::Selected(true, false);
@@ -249,10 +248,9 @@ bool ListBox::SelectItemSingle(size_t iIndex, bool bTakeFocus, bool bTriggerEven
 	pControl = GetItemAt(m_iCurSel);
 	if (pControl != nullptr) {		
 		if (bTakeFocus) {
-			UiRect rcItem = pControl->GetPos();
-			EnsureVisible(rcItem);
 			pControl->SetFocus();
 		}
+		EnsureVisible(pControl->GetPos());
 	}
 
 	if (bTriggerEvent) {
@@ -292,11 +290,10 @@ bool ListBox::SelectItemMulti(size_t iIndex, bool bTakeFocus, bool bTriggerEvent
 	else {
 		//如果原来是非选择状态，更新为选择状态
 		pListItem->OptionTemplate<Box>::Selected(true, bTriggerEvent);		
-		if (bTakeFocus) {
-			UiRect rcItem = pControl->GetPos();
-			EnsureVisible(rcItem);
+		if (bTakeFocus) {			
 			pControl->SetFocus();
 		}
+		EnsureVisible(pControl->GetPos());
 		if (bTriggerEvent) {
 			SendEvent(kEventSelect, iIndex, iOldSel);
 		}
@@ -306,6 +303,11 @@ bool ListBox::SelectItemMulti(size_t iIndex, bool bTakeFocus, bool bTriggerEvent
 }
 
 void ListBox::EnsureVisible(const UiRect& rcItem)
+{
+	EnsureVisible(rcItem, false);
+}
+
+void ListBox::EnsureVisible(const UiRect& rcItem, bool bAtCenter)
 {
 	UiRect rcNewItem = rcItem;
 	UiSize scrollOffset = GetScrollOffset();
@@ -333,18 +335,38 @@ void ListBox::EnsureVisible(const UiRect& rcItem)
 	}
 
 	int32_t dx = 0;
-	if (rcNewItem.left < rcList.left) {
-		dx = rcNewItem.left - rcList.left;
+	if (bAtCenter) {
+		if (rcNewItem.left < rcList.CenterX()) {
+			dx = rcNewItem.left - rcList.CenterX();
+		}
+		if (rcNewItem.right > rcList.CenterX()) {
+			dx = rcNewItem.right - rcList.CenterX();
+		}
 	}
-	if (rcNewItem.right > rcList.right) {
-		dx = rcNewItem.right - rcList.right;
+	else {
+		if (rcNewItem.left < rcList.left) {
+			dx = rcNewItem.left - rcList.left;
+		}
+		if (rcNewItem.right > rcList.right) {
+			dx = rcNewItem.right - rcList.right;
+		}
 	}
 	int32_t dy = 0;
-	if (rcNewItem.top < rcList.top) {
-		dy = rcNewItem.top - rcList.top;
+	if (bAtCenter) {
+		if (rcNewItem.top < rcList.CenterY()) {
+			dy = rcNewItem.top - rcList.CenterY();
+		}
+		if (rcNewItem.bottom > rcList.CenterY()) {
+			dy = rcNewItem.bottom - rcList.CenterY();
+		}
 	}
-	if (rcNewItem.bottom > rcList.bottom) {
-		dy = rcNewItem.bottom - rcList.bottom;
+	else {
+		if (rcNewItem.top < rcList.top) {
+			dy = rcNewItem.top - rcList.top;
+		}
+		if (rcNewItem.bottom > rcList.bottom) {
+			dy = rcNewItem.bottom - rcList.bottom;
+		}
 	}
 	UiSize64 sz = GetScrollPos();
 	SetScrollPos(UiSize64(sz.cx + dx, sz.cy + dy));
@@ -500,7 +522,17 @@ void ListBox::EnsureVisible(size_t iIndex)
 	ASSERT(pControl != nullptr);
 	if (pControl != nullptr) {
 		UiRect rcItem = pControl->GetPos();
-		EnsureVisible(rcItem);
+		EnsureVisible(rcItem, false);
+	}
+}
+
+void ListBox::EnsureVisible(size_t iIndex, bool bAtCenter)
+{
+	Control* pControl = GetItemAt(iIndex);
+	ASSERT(pControl != nullptr);
+	if (pControl != nullptr) {
+		UiRect rcItem = pControl->GetPos();
+		EnsureVisible(rcItem, bAtCenter);
 	}
 }
 

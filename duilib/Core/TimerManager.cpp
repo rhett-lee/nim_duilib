@@ -89,13 +89,13 @@ LRESULT TimerManager::WndProcThunk(HWND hwnd, UINT message, WPARAM wparam, LPARA
 			ASSERT(msg.message == WM_USER_DEFINED_TIMER);
 			++msgCount;
 		}
-#ifdef _DEBUG
-		if (msgCount > 0) {
-			char str[256] = { 0 };
-			sprintf_s(str, "TimerManager::WndProcThunk eat msgs: %d\n", (int)msgCount);
-			::OutputDebugStringA(str);
-		}
-#endif
+//#ifdef _DEBUG
+//		if (msgCount > 0) {
+//			char str[256] = { 0 };
+//			sprintf_s(str, "TimerManager::WndProcThunk eat msgs: %d\n", (int)msgCount);
+//			::OutputDebugStringA(str);
+//		}
+//#endif
 		GlobalManager::Instance().Timer().Poll();
 		return 1;
 	}

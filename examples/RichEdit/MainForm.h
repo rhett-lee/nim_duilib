@@ -77,6 +77,41 @@ private:
 	void OnFindNext();
 	void OnReplaceText();
 
+private://设置字体相关
+	struct FontInfo
+	{
+		LOGFONT lf;
+		DWORD fontType;
+	};
+
+	struct FontSizeInfo
+	{
+		std::wstring fontSizeName;
+		float fFontSize;	//单位：像素，未做DPI自适应
+		int32_t fontSize;   //单位：像素，已做DPI自适应
+	};
+
+	//获取字体结构
+	bool GetRichEditLogFont(LOGFONT& lf) const;
+
+	//初始化字体信息
+	void InitCharFormat(const LOGFONT& lf, CHARFORMAT2& charFormat) const;
+
+	//调用系统默认对话框，设置字体
+	void OnSetFont();
+
+	//获取系统字体列表
+	void GetSystemFontList(std::vector<FontInfo>& fontList) const;
+
+	//获取字体大小映射表
+	void GetFontSizeList(std::vector<FontSizeInfo>& fontSizeList) const;
+
+	//更新字体按钮的状态
+	void UpdateFontStatus();
+
+	//枚举字体回调函数
+	static int CALLBACK EnumFontFamExProc(const LOGFONT* lpelfe, const TEXTMETRIC* lpntme, DWORD fontType, LPARAM lParam);
+
 private:
 
 	//RichEdit控件接口
@@ -96,6 +131,13 @@ private:
 
 	//查找替换实现
 	RichEditFindReplace m_findReplace;
+
+private:
+	//字体名称列表
+	std::vector<FontInfo> m_fontList;
+
+	//字体大小列表
+	std::vector<FontSizeInfo> m_fontSizeList;
 };
 
 

@@ -55,7 +55,13 @@ struct EventArgs
     LPARAM lParam;
 };
 
-EventType StringToEnum(const std::wstring& messageType);
+/** 将字符串转换为事件类型
+*/
+EventType StringToEventType(const std::wstring& messageType);
+
+/** 将事件类型转换为字符串
+*/
+std::wstring EventTypeToString(EventType eventType);
 
 }// namespace ui
 

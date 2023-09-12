@@ -1159,7 +1159,7 @@ void RichEditHost::InitCharFormat(const LOGFONT& lf)
 	//字体字号需要转换, 否则字体大小显示异常
 	bool bGetDC = false;
 	HDC hDC = nullptr;
-	if (hDC != nullptr) {
+	if (m_pRichEdit != nullptr) {
 		hDC = m_pRichEdit->GetWindowDC();
 	}
 	if (hDC == nullptr) {
@@ -1182,14 +1182,26 @@ void RichEditHost::InitCharFormat(const LOGFONT& lf)
 	if (lf.lfWeight >= FW_BOLD) {
 		m_charFormat.dwEffects |= CFE_BOLD;
 	}
+	else {
+		m_charFormat.dwEffects &= ~CFE_BOLD;
+	}
 	if (lf.lfItalic) {
 		m_charFormat.dwEffects |= CFE_ITALIC;
+	}
+	else {
+		m_charFormat.dwEffects &= ~CFE_ITALIC;
 	}
 	if (lf.lfUnderline) {
 		m_charFormat.dwEffects |= CFE_UNDERLINE;
 	}
+	else {
+		m_charFormat.dwEffects &= ~CFE_UNDERLINE;
+	}
 	if (lf.lfStrikeOut) {
 		m_charFormat.dwEffects |= CFE_STRIKEOUT;
+	}
+	else {
+		m_charFormat.dwEffects &= ~CFE_STRIKEOUT;
 	}
 	m_charFormat.bCharSet = lf.lfCharSet;
 	m_charFormat.bPitchAndFamily = lf.lfPitchAndFamily;

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Global>
-    <!--所有字体-->
-    <Font id="system_12" name="system" size="12" default="true"/>
-    <Font id="system_14" name="system" size="14"/>
+    <!--所有字体：默认为五号字-->
+    <Font id="system_12" name="system" size="12"/>
+    <Font id="system_14" name="system" size="14" default="true"/>
     <Font id="system_16" name="system" size="16"/>
     <Font id="system_18" name="system" size="18"/>
     <Font id="system_20" name="system" size="20"/>
@@ -118,13 +118,13 @@
                         combo_tree_view_class="padding='1,1,1,1' border_size='1,1,1,1' bkcolor='white' border_color='gray' indent='20' class='tree_view'"
                         combo_tree_node_class="tree_node" 
                         combo_icon_class="bkimage='logo_18x18.png' width='auto' height='auto' valign='center' margin='2,0,2,0'" 
-                        combo_edit_class="bkcolor='white' text_align='vcenter' text_padding='0,0,2,0' single_line='true' word_wrap='false' auto_hscroll='true'"
+                        combo_edit_class="bkcolor='white' text_align='vcenter' text_padding='2,0,2,0' single_line='true' word_wrap='false' auto_hscroll='true'"
                         combo_button_class="height={stretch} width={auto} margin={1,0,0,0} padding={1,0,0,0} border_size={1,0,0,0} hot_border_color={blue} pushed_border_color={blue} valign={center} hot_color={#FFE5F3FF} pushed_color={#FFCCE8FF} normal_image={file='../public/combo/arrow_normal.svg' valign='center'} hot_image={file='../public/combo/arrow_hot.svg' valign='center'}"/>
     <Class name="filter_combo" bkcolor="white" padding="1,1,1,1" border_size="1" border_color="light_gray" hot_border_color="blue" 
                                combo_tree_view_class="padding='1,1,1,1' border_size='1,1,1,1' bkcolor='white' border_color='gray' indent='20' class='tree_view'"
                                combo_tree_node_class="tree_node" 
                                combo_icon_class="bkimage='logo_18x18.png' width='auto' height='auto' valign='center' margin='2,0,2,0'" 
-                               combo_edit_class="bkcolor='white' text_align='vcenter' text_padding='0,0,2,0' single_line='true' word_wrap='false' auto_hscroll='true'"/>
+                               combo_edit_class="bkcolor='white' text_align='vcenter' text_padding='2,0,2,0' single_line='true' word_wrap='false' auto_hscroll='true'"/>
     <Class name="check_combo" bordersize="1" bordercolor="splitline_level1" 
                               dropbox="padding='1,1,1,1' bkcolor='bk_wnd_lightcolor' border_color='splitline_level1' border_size='1,1,1,1' vscrollbar='true'"
                               dropbox_item_class="width={stretch} height={24} text_padding={20,2,2,0} text_align={left,vcenter} normal_image={file='../public/checkbox/check_no.png' dest='2,4,18,20'} selected_normal_image={file='../public/checkbox/check_yes.png' dest='2,4,18,20'}" 
@@ -187,10 +187,12 @@
     <Class name="splitline_hor_level2" bkcolor="splitline_level2" height="1"/>
     <Class name="splitline_ver_level1" bkcolor="splitline_level1" width="1"/>
     <!--富文本控件通用样式-->
-    <Class name="simple" multiline="false" autohscroll="true" wantreturnmsg="true" wanttab="false" rich="false" normaltextcolor="darkcolor" disabled_text_color="disabled_font_color"/>
-    <Class name="prompt" promptmode="true" promptcolor="light_gray"/>
-    <Class name="edit" hotimage="file='../public/edit/edit1.png' corner='10,10,10,10'" focusedimage="file='../public/edit/edit2.png' corner='10,10,10,10'"/>
-    <Class name="input" normalimage="file='../public/edit/edit0.png' corner='10,10,10,10'" hotimage="file='../public/edit/edit0.png' corner='10,10,10,10'" focusedimage="file='../public/edit/edit0.png' corner='10,10,10,10'" disabledimage="file='../public/edit/edit0.png' corner='10,10,10,10' fade='80'"/>
+    <Class name="simple" multi_line="false" auto_hscroll="true" want_return_msg="true" want_tab="false" rich_text="false" normal_text_color="darkcolor" disabled_text_color="disabled_font_color"/>
+    <Class name="simple_border" border_size="1" border_color="light_gray" hot_border_color="blue" focus_border_color="CornflowerBlue"/>
+    <Class name="simple_border_bottom" border_size="0,0,0,1" border_color="light_gray" hot_border_color="blue" focus_border_color="CornflowerBlue"/>
+    <Class name="prompt" prompt_mode="true" prompt_color="light_gray"/>
+    <Class name="edit" hot_image="file='../public/edit/edit1.png' corner='10,10,10,10'" focused_image="file='../public/edit/edit2.png' corner='10,10,10,10'"/>
+    <Class name="input" normal_image="file='../public/edit/edit0.png' corner='10,10,10,10'" hot_image="file='../public/edit/edit0.png' corner='10,10,10,10'" focused_image="file='../public/edit/edit0.png' corner='10,10,10,10'" disabled_image="file='../public/edit/edit0.png' corner='10,10,10,10' fade='80'"/>
     <!--气泡框通用样式-->
     <TextColor name="popover_color_0" value="#FFECF1F8"/>
     <TextColor name="popover_color_1" value="#FFF2F7FF"/>

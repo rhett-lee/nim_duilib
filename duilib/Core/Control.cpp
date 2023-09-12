@@ -1010,6 +1010,13 @@ void Control::SendEvent(EventType eventType,
 
 void Control::SendEvent(const EventArgs& msg)
 {
+//#ifdef _DEBUG
+//	std::wstring eventType = EventTypeToString(msg.Type);
+//	std::wstring type = GetType();
+//	wchar_t buf[256] = {};
+//	swprintf_s(buf, L"Control::SendEvent: type=%s, eventType=%s\r\n", type.c_str(), eventType.c_str());
+//	::OutputDebugStringW(buf);	
+//#endif
 	bool bRet = FireAllEvents(msg);	
     if(bRet) {
 		HandleEvent(msg);

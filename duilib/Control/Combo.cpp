@@ -18,11 +18,14 @@ public:
 	virtual void OnFinalMessage(HWND hWnd) override;
 	virtual LRESULT OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
 
-private:
 	/** 关闭下拉框
-	* @param [in] bCanceled true表示取消，否则表示正常关闭
+	* @param [in] bCanceled true表示取消，否则表示正常关闭	
 	*/
 	void CloseComboWnd(bool bCanceled);
+
+	/** 当前是否为焦点窗口
+	*/
+	bool IsFocusWindow() const;
 
 private:
 	//关联的Combo接口
@@ -30,6 +33,9 @@ private:
 
 	//原来的选择项索引
     size_t m_iOldSel = Box::InvalidIndex;
+
+	//原来Edit控件的文本内容
+	UiString m_editText;
 
 	//是否已经关闭
 	bool m_bIsClosed = false;
@@ -43,6 +49,7 @@ void CComboWnd::InitComboWnd(Combo* pOwner, bool bActivated)
 	}
     m_pOwner = pOwner;
     m_iOldSel = m_pOwner->GetCurSel();
+	m_editText = m_pOwner->GetText();
 	m_bIsClosed = false;
     CreateWnd(pOwner->GetWindow()->GetHWND(), L"", WS_POPUP, WS_EX_TOOLWINDOW);
 	UpdateComboWnd();
@@ -58,6 +65,12 @@ void CComboWnd::InitComboWnd(Combo* pOwner, bool bActivated)
 	}
 	else {
 		::ShowWindow(GetHWND(), SW_SHOWNOACTIVATE);
+	}
+	if (Box::IsValidItemIndex(m_iOldSel)) {
+		//展开的时候，确保选择可见
+		::UpdateWindow(GetHWND());
+		UiRect rc = pOwner->GetTreeView()->GetPos();
+		pOwner->GetTreeView()->EnsureVisible(m_iOldSel, true);
 	}
 }
 
@@ -141,13 +154,17 @@ void CComboWnd::CloseComboWnd(bool bCanceled)
 		pRootBox->RemoveAllItems();
 	}
 	CloseWnd();
-
 	if (m_pOwner != nullptr) {
 		if (bCanceled) {
 			m_pOwner->GetTreeView()->SelectItem(m_iOldSel, false, false);
 		}
-		m_pOwner->OnComboWndClosed(bCanceled);
+		m_pOwner->OnComboWndClosed(bCanceled, m_editText.c_str());
 	}
+}
+
+bool CComboWnd::IsFocusWindow() const
+{
+	return ::GetFocus() == GetHWND();
 }
 
 LRESULT CComboWnd::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
@@ -289,26 +306,53 @@ void Combo::SetComboTreeNodeClass(const std::wstring& classValue)
 
 void Combo::SetIconControlClass(const std::wstring& classValue)
 {
-	if (m_pIconControl == nullptr) {
-		m_pIconControl = new Control;
+	if (classValue.empty()) {
+		RemoveControl(m_pIconControl);
+		if (m_pIconControl != nullptr) {
+			delete m_pIconControl;
+			m_pIconControl = nullptr;
+		}
 	}
-	SetAttributeList(m_pIconControl, classValue);
+	else {
+		if (m_pIconControl == nullptr) {
+			m_pIconControl = new Control;
+		}
+		SetAttributeList(m_pIconControl, classValue);
+	}
 }
 
 void Combo::SetEditControlClass(const std::wstring& classValue)
 {
-	if (m_pEditControl == nullptr) {
-		m_pEditControl = new RichEdit;
+	if (classValue.empty()) {
+		RemoveControl(m_pEditControl);
+		if (m_pEditControl != nullptr) {
+			delete m_pEditControl;
+			m_pEditControl = nullptr;
+		}
 	}
-	SetAttributeList(m_pEditControl, classValue);
+	else {
+		if (m_pEditControl == nullptr) {
+			m_pEditControl = new RichEdit;
+		}
+		SetAttributeList(m_pEditControl, classValue);
+	}	
 }
 
 void Combo::SetButtonControlClass(const std::wstring& classValue)
 {
-	if (m_pButtonControl == nullptr) {
-		m_pButtonControl = new Button;
+	if (classValue.empty()) {
+		RemoveControl(m_pButtonControl);
+		if (m_pButtonControl != nullptr) {
+			delete m_pButtonControl;
+			m_pButtonControl = nullptr;
+		}
 	}
-	SetAttributeList(m_pButtonControl, classValue);
+	else {
+		if (m_pButtonControl == nullptr) {
+			m_pButtonControl = new Button;
+		}
+		SetAttributeList(m_pButtonControl, classValue);
+	}
 }
 
 void Combo::ParseAttributeList(const std::wstring& strList,
@@ -345,9 +389,39 @@ void Combo::SetAttributeList(Control* pControl, const std::wstring& classValue)
 	}
 }
 
+void Combo::RemoveControl(Control* pControl)
+{
+	if (IsInited() && (GetItemCount() > 0)) {
+		HBox* pBox = dynamic_cast<HBox*>(GetItemAt(0));
+		if (pBox != nullptr) {
+			pBox->RemoveItem(pControl);
+		}
+	}
+}
+
 bool Combo::CanPlaceCaptionBar() const
 {
 	return true;
+}
+
+std::wstring Combo::GetBorderColor(ControlStateType stateType) const
+{
+	if (m_pIconControl != nullptr) {
+		if (m_pIconControl->IsFocused() || m_pIconControl->IsMouseFocused()) {
+			return __super::GetBorderColor(kControlStateHot);
+		}
+	}
+	if (m_pEditControl != nullptr) {
+		if (m_pEditControl->IsFocused() || m_pEditControl->IsMouseFocused()) {
+			return __super::GetBorderColor(kControlStateHot);
+		}
+	}
+	if (m_pButtonControl != nullptr) {
+		if (m_pButtonControl->IsFocused() || m_pButtonControl->IsMouseFocused()) {
+			return __super::GetBorderColor(kControlStateHot);
+		}
+	}
+	return __super::GetBorderColor(stateType);
 }
 
 void Combo::DoInit()
@@ -360,7 +434,7 @@ void Combo::DoInit()
 
 	HBox* pBox = new HBox;
 	AddItem(pBox);
-	if (m_pIconControl != nullptr) {
+	if (m_pIconControl != nullptr) {		
 		pBox->AddItem(m_pIconControl);
 	}
 	if (m_pEditControl != nullptr) {
@@ -369,15 +443,26 @@ void Combo::DoInit()
 	if (m_pButtonControl != nullptr) {
 		pBox->AddItem(m_pButtonControl);
 	}
+
+	if (m_pIconControl != nullptr) {
+		m_pIconControl->SetNoFocus();
+	}
 	if (m_pButtonControl != nullptr) {
+		m_pButtonControl->SetNoFocus();
 		m_pButtonControl->AttachButtonDown(nbase::Bind(&Combo::OnButtonDown, this, std::placeholders::_1));
 		m_pButtonControl->AttachClick(nbase::Bind(&Combo::OnButtonClicked, this, std::placeholders::_1));
 	}
 	if (m_pEditControl != nullptr) {
+		m_pEditControl->SetNeedReturnMsg(true);
 		m_pEditControl->AttachButtonDown(nbase::Bind(&Combo::OnEditButtonDown, this, std::placeholders::_1));
 		m_pEditControl->AttachButtonUp(nbase::Bind(&Combo::OnEditButtonUp, this, std::placeholders::_1));
 		m_pEditControl->AttachEvent(kEventKeyDown, nbase::Bind(&Combo::OnEditKeyDown, this, std::placeholders::_1));
+		m_pEditControl->AttachKillFocus(nbase::Bind(&Combo::OnEditKillFocus, this, std::placeholders::_1));
+		m_pEditControl->AttachEvent(kEventWindowKillFocus, nbase::Bind(&Combo::OnWindowKillFocus, this, std::placeholders::_1));
+		m_pEditControl->AttachEvent(kEventWindowMove, nbase::Bind(&Combo::OnWindowMove, this, std::placeholders::_1));
+		m_pEditControl->AttachTextChange(nbase::Bind(&Combo::OnEditTextChanged, this, std::placeholders::_1));
 	}
+	SetNoFocus();
 	SetComboType(GetComboType());
 }
 
@@ -414,12 +499,15 @@ void Combo::SetComboType(ComboType comboType)
 			//设置为只读，不显示光标
 			m_pEditControl->SetReadOnly(true);
 			m_pEditControl->SetNoCaretReadonly();
+			m_pEditControl->SetCursorType(kCursorArrow);
+			m_pEditControl->SetUseControlCursor(true);
 		}
 	}
 	else if (comboType == kCombo_DropDown) {
 		m_comboType = kCombo_DropDown;
 		if (m_pEditControl != nullptr) {
 			m_pEditControl->SetReadOnly(false);
+			m_pEditControl->SetUseControlCursor(false);
 		}
 	}
 }
@@ -581,6 +669,29 @@ bool Combo::DeleteItem(size_t iIndex)
 	return bRemoved;
 }
 
+size_t Combo::SelectTextItem(const std::wstring& itemText)
+{
+	size_t nSelIndex = Box::InvalidIndex;
+	size_t itemCount = m_treeView.GetItemCount();
+	for (size_t nIndex = 0; nIndex < itemCount; ++nIndex) {
+		Control* pControl = m_treeView.GetItemAt(nIndex);
+		if (pControl != nullptr) {
+			TreeNode* pTreeNode = dynamic_cast<TreeNode*>(pControl);
+			ASSERT(pTreeNode != nullptr);
+			if (pTreeNode != nullptr) {
+				if (pTreeNode->GetText() == itemText) {
+					nSelIndex = nIndex;
+					break;
+				}
+			}
+		}
+	}
+	if (Box::IsValidItemIndex(nSelIndex)) {
+		m_treeView.SelectItem(nSelIndex, false, true);
+	}
+	return nSelIndex;
+}
+
 TreeNode* Combo::CreateTreeNode(const std::wstring& itemText)
 {
 	TreeNode* pNewNode = new TreeNode;
@@ -618,7 +729,7 @@ bool Combo::OnSelectItem(const EventArgs& /*args*/)
 	return true;
 }
 
-void Combo::OnComboWndClosed(bool bCanceled)
+void Combo::OnComboWndClosed(bool bCanceled, const std::wstring& oldEditText)
 {
 	if (bCanceled) {
 		size_t iOldSel = m_iCurSel;
@@ -627,24 +738,32 @@ void Combo::OnComboWndClosed(bool bCanceled)
 			SendEvent(kEventSelect, m_iCurSel, iOldSel);
 			Invalidate();
 		}
-	}
-	OnSelectedItemChanged();
+		SetText(oldEditText);
+	}	
 	SendEvent(kEventWindowClose);
 }
 
 bool Combo::OnButtonDown(const EventArgs& /*args*/)
 {
 	m_bDropListShown = (m_pWindow != nullptr) ? true : false;
+	if (m_pWindow != nullptr) {
+		//如果下拉框是显示状态，则再次点击的时候，关闭
+		HideComboList();
+	}
 	return true;
 }
 
 bool Combo::OnButtonClicked(const EventArgs& /*args*/)
 {
-	if (m_bDropListShown) {
-		//如果鼠标按下的时候，正在显示列表，那么点击后不显示下拉列表
-		return true;
+	//如果鼠标按下的时候，正在显示列表，那么点击后不显示下拉列表
+	if (!m_bDropListShown) {		
+		ShowComboList();
 	}
-	ShowComboList();
+	if (m_comboType == kCombo_DropDown) {
+		if (m_pEditControl != nullptr) {
+			m_pEditControl->SetFocus();
+		}
+	}
 	return true;
 }
 
@@ -671,10 +790,100 @@ bool Combo::OnEditButtonUp(const EventArgs& /*args*/)
 
 bool Combo::OnEditKeyDown(const EventArgs& args)
 {
-	if (args.wParam == VK_DOWN) {
-		//按向下箭头的时候，显示下拉列表
-		ShowComboList();
+	if (m_comboType == kCombo_DropList) {
+		return true;
 	}
+	if (args.wParam == VK_DOWN) {
+		if ((m_pWindow == nullptr) || m_pWindow->IsClosingWnd()) {
+			//按向下箭头的时候: 如果下拉列表未显示，则显示下拉列表
+			ShowComboList();
+		}
+		else {
+			//按向下箭头的时候: 如果已经显示，则进行选择切换
+			const size_t itemCount = GetCount();
+			const size_t nCurSel = m_treeView.GetCurSel();
+			if (!Box::IsValidItemIndex(nCurSel)) {
+				//如果未选择，则开始选择第一项
+				if (itemCount > 0) {
+					m_treeView.SelectItem(0, false, true);
+				}
+			}
+			else {				
+				if ((itemCount > 0) && (nCurSel < itemCount)) {
+					if (nCurSel == (itemCount - 1)) {
+						//如果已经是最后一项，则取消选择
+						m_treeView.SelectItem(Box::InvalidIndex, false, true);
+					}
+					else {
+						//如果不是最后一项，则选择下一项
+						m_treeView.SelectItem(nCurSel + 1, false, true);
+					}
+				}
+			}
+		}
+	}
+	else if (args.wParam == VK_UP) {
+		//按向上箭头
+		if ((m_pWindow != nullptr) && !m_pWindow->IsClosingWnd()) {
+			const size_t itemCount = GetCount();
+			const size_t nCurSel = m_treeView.GetCurSel();
+			if (Box::IsValidItemIndex(nCurSel)) {
+				if (nCurSel == 0) {
+					//已经是第一项，取消选择
+					m_treeView.SelectItem(Box::InvalidIndex, false, true);
+				}
+				else {
+					//不是第一项，选择前面一项
+					m_treeView.SelectItem(nCurSel - 1, false, true);
+				}
+			}
+			else {
+				//如果未选择，则选择最后一项
+				m_treeView.SelectItem(itemCount - 1, false, true);
+			}
+		}
+	}
+	else if (args.wParam == VK_ESCAPE) {
+		//按住ESC键，取消
+		if (m_pWindow != nullptr) {
+			m_pWindow->CloseComboWnd(true);
+		}
+	}
+	else if (args.wParam == VK_RETURN) {
+		//按回车键，关闭窗口，正常关闭
+		if (m_pWindow != nullptr) {
+			m_pWindow->CloseComboWnd(false);
+		}
+	}
+	return true;
+}
+
+bool Combo::OnEditKillFocus(const EventArgs& /*args*/)
+{
+	if (m_pWindow != nullptr) {
+		if (m_pWindow->IsFocusWindow()) {
+			return true;
+		}
+	}
+	HideComboList();
+	Invalidate();
+	return true;
+}
+
+bool Combo::OnWindowKillFocus(const EventArgs& /*args*/)
+{
+	if (m_pWindow != nullptr) {
+		if (m_pWindow->IsFocusWindow()) {
+			return true;
+		}
+	}
+	HideComboList();
+	return true;
+}
+
+bool Combo::OnWindowMove(const EventArgs& /*args*/)
+{
+	UpdateComboList();
 	return true;
 }
 
@@ -688,19 +897,50 @@ void Combo::OnSelectedItemChanged()
 	}
 }
 
-void Combo::ShowComboList(bool bActivated)
+bool Combo::OnEditTextChanged(const ui::EventArgs& /*args*/)
+{
+	if ((m_pWindow != nullptr) && !m_pWindow->IsClosingWnd()) {
+		std::wstring editText = GetText();
+		//转换成小写，比较的时候，不区分大小写
+		editText = StringHelper::MakeLowerString(editText);
+		size_t itemCount = m_treeView.GetItemCount();
+		for (size_t iIndex = 0; iIndex < itemCount; ++iIndex) {
+			Control* pControl = m_treeView.GetItemAt(iIndex);
+			if (pControl != nullptr) {
+				TreeNode* pTreeNode = dynamic_cast<TreeNode*>(pControl);
+				ASSERT(pTreeNode != nullptr);
+				if (pTreeNode != nullptr) {
+					pTreeNode->SetExpand(true, false);
+					std::wstring nodeText = StringHelper::MakeLowerString(pTreeNode->GetText());
+					if (nodeText.find(editText) != std::wstring::npos) {
+						m_treeView.EnsureVisible(iIndex, true);
+						break;
+					}
+				}
+			}
+		}
+	}
+	return true;
+}
+
+void Combo::ShowComboList()
 {
 	//显示下拉列表
 	if ((m_pWindow == nullptr) || m_pWindow->IsClosingWnd()) {
 		m_pWindow = new CComboWnd();
-		m_pWindow->InitComboWnd(this, bActivated);
+		if (m_comboType == kCombo_DropList) {
+			m_pWindow->InitComboWnd(this, true);
+		}
+		else {
+			m_pWindow->InitComboWnd(this, false);
+		}		
 	}
 }
 
 void Combo::HideComboList()
 {
 	if(m_pWindow != nullptr) {
-		m_pWindow->CloseWnd();
+		m_pWindow->CloseComboWnd(false);
 	}
 }
 

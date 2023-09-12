@@ -163,7 +163,7 @@ public:
 	 * @param [in] stateType 控件状态
 	 * @return 边框的颜色字符串，对应 global.xml 中的具体颜色值
 	 */
-	std::wstring GetBorderColor(ControlStateType stateType) const;
+	virtual std::wstring GetBorderColor(ControlStateType stateType) const;
 
 	/** 设置边框颜色，应用于所有状态
 	 * @param [in] strBorderColor 设置边框的颜色字符串值，该值必须在 global.xml 中存在

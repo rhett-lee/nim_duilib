@@ -10,12 +10,12 @@
         <VBox>
             <HBox height="auto">
                 <Label text="查找内容：" height="28" text_align="vcenter" margin="8,8,0,0"/>
-                <RichEdit class="simple prompt" name="btn_find_text" width="stretch" height="28" prompttext="查找" text_padding="2,0,0,0" text_align="vcenter" bkcolor="white" margin="2,8,4,0"/>
+                <RichEdit class="simple prompt simple_border" name="btn_find_text" width="stretch" height="28" prompttext="查找" text_padding="2,0,0,0" text_align="vcenter" bkcolor="white" margin="2,8,4,0"/>
                 <Button class="btn_global_white_80x30" name="btn_find_next" text="查找下一个" width="80" height="28" margin="4,8,8,0"/>
             </HBox>
             <HBox height="auto">
                 <Label text="　替换为：" height="28" text_align="vcenter" margin="8,8,0,0"/>
-                <RichEdit class="simple prompt" name="btn_replace_text" width="stretch" height="28" prompttext="替换" text_padding="2,0,0,0" text_align="vcenter" bkcolor="white" margin="2,8,4,0"/>
+                <RichEdit class="simple prompt simple_border" name="btn_replace_text" width="stretch" height="28" prompttext="替换" text_padding="2,0,0,0" text_align="vcenter" bkcolor="white" margin="2,8,4,0"/>
                 <Button class="btn_global_white_80x30" name="btn_replace" text="替换" width="80" height="28" margin="4,8,4,0"/>
                 <Button class="btn_global_white_80x30" name="btn_replace_all" text="全部替换" width="80" height="28" margin="4,8,8,0"/>
             </HBox>

@@ -166,6 +166,12 @@ public:
 	*/
 	void EnsureVisible(size_t iIndex);
 
+	/** 确保子项可见
+	* @param [in] iIndex 子项索引，范围是：[0, GetItemCount())
+	* @param [in] bAtCenter 确保该子项显示在可见区域的中间
+	*/
+	void EnsureVisible(size_t iIndex, bool bAtCenter);
+
 	/** 选择子项，选中后让子项控件成为焦点控件，并触发一个kEventSelect事件
 	*   为二次封装函数，相当于：SelectItem(iIndex, true, true);
 	*  @param [in] iIndex 子项目的ID，范围是：[0, GetItemCount())
@@ -255,6 +261,10 @@ protected:
 	* @return 如果有变化返回true，否则返回false
 	*/
 	bool UpdateCurSelItemSelectStatus();
+
+	/** 确保矩形区域可见
+	*/
+	void EnsureVisible(const UiRect& rcItem, bool bAtCenter);
 
 private:
 	/**

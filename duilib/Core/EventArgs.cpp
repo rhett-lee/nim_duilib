@@ -3,7 +3,7 @@
 namespace ui
 {
 
-EventType StringToEnum(const std::wstring& messageType)
+EventType StringToEventType(const std::wstring& messageType)
 {
 	if (messageType == EVENTSTR_ALL) {
 		return kEventAll;
@@ -102,6 +102,113 @@ EventType StringToEnum(const std::wstring& messageType)
 		ASSERT(FALSE);
 		return kEventNone;
 	}
+}
+
+std::wstring EventTypeToString(EventType eventType)
+{
+	switch (eventType) {
+	case kEventNone:
+		return L"kEventNone";
+	case kEventFirst:
+		return L"kEventFirst";
+	case kEventAll:
+		return L"kEventAll";
+	case kEventKeyBegin:
+		return L"kEventKeyBegin";
+	case kEventKeyDown:
+		return L"kEventKeyDown";
+	case kEventKeyUp:
+		return L"kEventKeyUp";
+	case kEventChar:
+		return L"kEventChar";
+	case kEventKeyEnd:
+		return L"kEventKeyEnd";
+	case kEventMouseBegin:
+		return L"kEventMouseBegin";
+	case kEventMouseEnter:
+		return L"kEventMouseEnter";
+	case kEventMouseLeave:
+		return L"kEventMouseLeave";
+	case kEventMouseMove:
+		return L"kEventMouseMove";
+	case kEventMouseHover:
+		return L"kEventMouseHover";
+	case kEventMouseWheel:
+		return L"kEventMouseWheel";
+	case kEventMouseButtonDown:
+		return L"kEventMouseButtonDown";
+	case kEventMouseButtonUp:
+		return L"kEventMouseButtonUp";
+	case kEventMouseDoubleClick:
+		return L"kEventMouseDoubleClick";
+	case kEventMouseRButtonDown:
+		return L"kEventMouseRButtonDown";
+	case kEventMouseRButtonUp:
+		return L"kEventMouseRButtonUp";
+	case kEventMouseRDoubleClick:
+		return L"kEventMouseRDoubleClick";
+	case kEventMouseMenu:
+		return L"kEventMouseMenu";
+	case kEventMouseEnd:
+		return L"kEventMouseEnd";
+	case kEventSetFocus:
+		return L"kEventSetFocus";
+	case kEventKillFocus:
+		return L"kEventKillFocus";
+	case kEventSetCursor:
+		return L"kEventSetCursor";
+	case kEventImeStartComposition:
+		return L"kEventImeStartComposition";
+	case kEventImeEndComposition:
+		return L"kEventImeEndComposition";
+	case kEventWindowKillFocus:
+		return L"kEventWindowKillFocus";
+	case kEventWindowSize:
+		return L"kEventWindowSize";
+	case kEventWindowMove:
+		return L"kEventWindowMove";
+	case kEventWindowClose:
+		return L"kEventWindowClose";
+	case kEventClick:
+		return L"kEventClick";
+	case kEventRClick:
+		return L"kEventRClick";
+	case kEventSelect:
+		return L"kEventSelect";
+	case kEventUnSelect:
+		return L"kEventUnSelect";
+	case kEventChecked:
+		return L"kEventChecked";
+	case kEventUnCheck:
+		return L"kEventUnCheck";
+	case kEventTabSelect:
+		return L"kEventTabSelect";
+	case kEventExpand:
+		return L"kEventExpand";
+	case kEventCollapse:
+		return L"kEventCollapse";
+	case kEventTextChange:
+		return L"kEventTextChange";
+	case kEventReturn:
+		return L"kEventReturn";
+	case kEventTab:
+		return L"kEventTab";
+	case kEventCustomLinkClick:
+		return L"kEventCustomLinkClick";
+	case kEventScrollChange:
+		return L"kEventScrollChange";
+	case kEventValueChange:
+		return L"kEventValueChange";
+	case kEventResize:
+		return L"kEventResize";
+	case kEventVisibleChange:
+		return L"kEventVisibleChange";
+	case kEventLast:
+		return L"kEventLast";
+	default:
+		break;
+	}
+	return std::wstring();
 }
 
 }

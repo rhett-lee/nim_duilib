@@ -254,8 +254,9 @@ namespace ui
 		kEventImeStartComposition,	//Window类：发送给Focus控件，当收到系统WM_IME_STARTCOMPOSITION消息时触发
 		kEventImeEndComposition,	//Window类：发送给Focus控件，当收到系统WM_IME_ENDCOMPOSITION消息时触发
 
-		kEventWindowKillFocus,		//Window类：发送给鼠标左键、右键按下时记录的控件，当窗口失去焦点时触发事件（主要用于恢复一些内部状态）
+		kEventWindowKillFocus,		//Window类：发送给鼠标左键、右键按下时记录的控件、焦点控件，当窗口失去焦点时触发事件（主要用于恢复一些内部状态）
 		kEventWindowSize,			//Window类：发送给Focus控件，当窗口大小发生变化时触发事件
+		kEventWindowMove,			//Window类：发送给Focus控件，当窗口大小发生变化时触发事件
 		kEventWindowClose,			//Window类，Combo控件：当窗口关闭（或者Combo的下拉框窗口关闭）时触发
 
 		//左键点击/右键点击事件

@@ -1050,6 +1050,7 @@ LRESULT Window::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHa
 		case WM_GETMINMAXINFO:		lResult = OnGetMinMaxInfoMsg(uMsg, wParam, lParam, bHandled); break;
 		case WM_WINDOWPOSCHANGING:	lResult = OnWindowPosChangingMsg(uMsg, wParam, lParam, bHandled); break;
 		case WM_SIZE:				lResult = OnSizeMsg(uMsg, wParam, lParam, bHandled); break;
+		case WM_MOVE:				lResult = OnMoveMsg(uMsg, wParam, lParam, bHandled); break;
 		case WM_ERASEBKGND:			lResult = OnEraseBkGndMsg(uMsg, wParam, lParam, bHandled); break;
 		case WM_PAINT:				lResult = OnPaintMsg(uMsg, wParam, lParam, bHandled); break;
 
@@ -1342,6 +1343,16 @@ LRESULT Window::OnSizeMsg(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/, bool& bHa
 	return 0;
 }
 
+LRESULT Window::OnMoveMsg(UINT uMsg, WPARAM /*wParam*/, LPARAM /*lParam*/, bool& bHandled)
+{
+	ASSERT_UNUSED_VARIABLE(uMsg == WM_MOVE);
+	bHandled = false;
+	if (m_pFocus != nullptr) {
+		m_pFocus->SendEvent(kEventWindowMove);
+	}
+	return 0;
+}
+
 LRESULT Window::OnEraseBkGndMsg(UINT uMsg, WPARAM /*wParam*/, LPARAM /*lParam*/, bool& bHandled)
 {
 	ASSERT_UNUSED_VARIABLE(uMsg == WM_ERASEBKGND);
@@ -1624,6 +1635,10 @@ LRESULT Window::OnKillFocusMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bH
 	Control* pControl = m_pEventClick;
 	m_pEventClick = nullptr;
 	ReleaseCapture();
+	if (pControl != nullptr) {
+		pControl->SendEvent(kEventWindowKillFocus, wParam, lParam, 0, UiPoint());
+	}
+	pControl = m_pFocus;
 	if (pControl != nullptr) {
 		pControl->SendEvent(kEventWindowKillFocus, wParam, lParam, 0, UiPoint());
 	}

@@ -26,6 +26,15 @@ public:
 	FontManager& operator = (const FontManager&) = delete;
 
 public:
+	/** 字体中英文名称转换(Skia只支持字体英文名称，不支持中文名称)
+	*/
+	static std::wstring GetFontEnglishName(const std::wstring& fontName);
+
+	/** 字体的中英文名称转换(选择字体时，只能使用中文名称)
+	*/
+	static std::wstring GetFontSystemName(const std::wstring& fontName);
+
+public:
 	/** 添加一个字体信息
 	 * @param[in] strFontId 指定字体的ID标记
 	 * @param[in] fontInfo 字体属性信息
