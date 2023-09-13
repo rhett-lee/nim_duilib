@@ -204,10 +204,10 @@ bool ListBox::SelectItemSingle(size_t iIndex, bool bTakeFocus, bool bTriggerEven
 		EnsureVisible(pControl->GetPos());
 		ListBoxItem* pListItem = dynamic_cast<ListBoxItem*>(pControl);
 		if ((pListItem != nullptr) && !pListItem->IsSelected()) {
-			pListItem->OptionTemplate<Box>::Selected(true, false);
-			if (bTriggerEvent) {
-				SendEvent(kEventSelect, m_iCurSel, Box::InvalidIndex);
-			}
+			pListItem->OptionTemplate<Box>::Selected(true, false);			
+		}
+		if (bTriggerEvent) {
+			SendEvent(kEventSelect, m_iCurSel, m_iCurSel);
 		}
 		Invalidate();
 		return true;

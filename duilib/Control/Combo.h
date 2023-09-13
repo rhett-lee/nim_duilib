@@ -212,9 +212,12 @@ protected:
 
 	/** 下拉框窗口关闭
 	* @param [in] bCanceled true表示取消，否则表示正常关闭
+	* @param [in] needUpdateSelItem true表示需要更新选择项，否则不需要更新选择项
 	* @param [in] oldEditText 下拉框显示时，编辑框的文本内容
 	*/
-	virtual void OnComboWndClosed(bool bCanceled, const std::wstring& oldEditText);
+	virtual void OnComboWndClosed(bool bCanceled, 
+		                          bool needUpdateSelItem,
+								  const std::wstring& oldEditText);
 
 	/** 鼠标按下按钮
 	 * @param[in] args 参数列表

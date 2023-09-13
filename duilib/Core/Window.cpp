@@ -1863,6 +1863,11 @@ Control* Window::GetFocus() const
 	return m_pFocus;
 }
 
+Control* Window::GetEventClick() const
+{
+	return m_pEventClick;
+}
+
 void Window::SetFocus(Control* pControl)
 {
 	// Paint manager window has focus?

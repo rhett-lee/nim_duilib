@@ -595,6 +595,10 @@ public:
 	 */
 	Control* GetFocus() const;
 
+	/** 获取当前鼠标事件的控件
+	*/
+	Control* GetEventClick() const;
+
 	/**@brief 设置焦点到指定控件上(设置窗口为焦点窗口，并设置该控件为焦点控件)
 	 * @param[in] pControl 控件指针
 	 */

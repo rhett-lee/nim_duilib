@@ -19,9 +19,10 @@ public:
 	virtual LRESULT OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
 
 	/** 关闭下拉框
-	* @param [in] bCanceled true表示取消，否则表示正常关闭	
+	* @param [in] bCanceled true表示取消，否则表示正常关闭
+	* @param [in] needUpdateSelItem true表示需要更新选择项，否则不需要更新选择项
 	*/
-	void CloseComboWnd(bool bCanceled);
+	void CloseComboWnd(bool bCanceled, bool needUpdateSelItem);
 
 	/** 当前是否为焦点窗口
 	*/
@@ -142,7 +143,7 @@ void CComboWnd::OnFinalMessage(HWND hWnd)
     delete this;
 }
 
-void CComboWnd::CloseComboWnd(bool bCanceled)
+void CComboWnd::CloseComboWnd(bool bCanceled, bool needUpdateSelItem)
 {
 	if (m_bIsClosed) {
 		return;
@@ -158,7 +159,7 @@ void CComboWnd::CloseComboWnd(bool bCanceled)
 		if (bCanceled) {
 			m_pOwner->GetTreeView()->SelectItem(m_iOldSel, false, false);
 		}
-		m_pOwner->OnComboWndClosed(bCanceled, m_editText.c_str());
+		m_pOwner->OnComboWndClosed(bCanceled, needUpdateSelItem, m_editText.c_str());
 	}
 }
 
@@ -198,20 +199,16 @@ LRESULT CComboWnd::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool
 	if (uMsg == WM_KILLFOCUS) {
 		//失去焦点，关闭窗口，正常关闭
 		if (GetHWND() != (HWND)wParam) {
-			CloseComboWnd(false);
+			CloseComboWnd(false, false);
 		}
 	}
 	else if (uMsg == WM_KEYDOWN && wParam == VK_ESCAPE) {
 		//按住ESC键，取消
-		CloseComboWnd(true);
+		CloseComboWnd(true, false);
 	}
 	else if (uMsg == WM_KEYDOWN && wParam == VK_RETURN) {
 		//按回车键，关闭窗口，正常关闭
-		CloseComboWnd(false);
-	}
-	else if (uMsg == WM_LBUTTONUP) {
-		//鼠标左键单击，关闭窗口，正常关闭
-		CloseComboWnd(false);
+		CloseComboWnd(false, true);
 	}
 	return lResult;
 }
@@ -718,7 +715,7 @@ void Combo::SetText(const std::wstring& text)
 }
 
 bool Combo::OnSelectItem(const EventArgs& /*args*/)
-{       
+{
 	size_t iOldSel = m_iCurSel;
 	m_iCurSel = m_treeView.GetCurSel();
 	OnSelectedItemChanged();
@@ -726,20 +723,32 @@ bool Combo::OnSelectItem(const EventArgs& /*args*/)
 		SendEvent(kEventSelect, m_iCurSel, iOldSel);
 		Invalidate();
 	}
+	if (Box::IsValidItemIndex(m_iCurSel) && (m_pWindow != nullptr) && !m_pWindow->IsClosingWnd()) {
+		const Control* pControl = m_treeView.GetItemAt(m_iCurSel);
+		if ((pControl != nullptr) && (m_pWindow->GetEventClick() == pControl)) {
+			//如果是鼠标点击触发选择，那么关闭下拉列表
+			if (m_pWindow != nullptr) {
+				m_pWindow->CloseComboWnd(false, false);
+			}
+		}
+	}
 	return true;
 }
 
-void Combo::OnComboWndClosed(bool bCanceled, const std::wstring& oldEditText)
+void Combo::OnComboWndClosed(bool bCanceled, bool needUpdateSelItem, const std::wstring& oldEditText)
 {
 	if (bCanceled) {
 		size_t iOldSel = m_iCurSel;
-		m_iCurSel = m_treeView.GetCurSel();		
+		m_iCurSel = m_treeView.GetCurSel();
 		if (m_iCurSel != iOldSel) {
 			SendEvent(kEventSelect, m_iCurSel, iOldSel);
 			Invalidate();
 		}
 		SetText(oldEditText);
-	}	
+	}
+	if (needUpdateSelItem) {
+		OnSelectedItemChanged();
+	}
 	SendEvent(kEventWindowClose);
 }
 
@@ -846,13 +855,13 @@ bool Combo::OnEditKeyDown(const EventArgs& args)
 	else if (args.wParam == VK_ESCAPE) {
 		//按住ESC键，取消
 		if (m_pWindow != nullptr) {
-			m_pWindow->CloseComboWnd(true);
+			m_pWindow->CloseComboWnd(true, false);
 		}
 	}
 	else if (args.wParam == VK_RETURN) {
 		//按回车键，关闭窗口，正常关闭
 		if (m_pWindow != nullptr) {
-			m_pWindow->CloseComboWnd(false);
+			m_pWindow->CloseComboWnd(false, false);
 		}
 	}
 	return true;
@@ -940,7 +949,7 @@ void Combo::ShowComboList()
 void Combo::HideComboList()
 {
 	if(m_pWindow != nullptr) {
-		m_pWindow->CloseComboWnd(false);
+		m_pWindow->CloseComboWnd(false, false);
 	}
 }
 
