@@ -150,9 +150,10 @@ public:
 
 	/** 选择匹配的文本项目
 	* @param [in] itemText 子项的文本内容
+	* @param [in] bTriggerEvent bTriggerEvent 是否触发选择事件, 如果为true，会触发一个kEventSelect事件
 	* @return 返回该选中项的索引号，如果未能选中，则返回Box::InvalidIndex
 	*/
-	size_t SelectTextItem(const std::wstring& itemText);
+	size_t SelectTextItem(const std::wstring& itemText, bool bTriggerEvent = true);
 
 public:
 	/** 获取当前编辑框内的文本

@@ -8,6 +8,10 @@
 
 const std::wstring MainForm::kClassName = L"MainForm";
 
+#ifndef LY_PER_INCH
+	#define LY_PER_INCH 1440
+#endif
+
 MainForm::MainForm():
 	m_pRichEdit(nullptr),
 	m_pFindForm(nullptr),
@@ -234,7 +238,13 @@ void MainForm::OnInitWindow()
 			}
 		}
 		pFontNameCombo->AttachSelect([this, pFontNameCombo](const ui::EventArgs& args) {
-			//pFontNameCombo->GetCurSel
+			std::wstring fontName = pFontNameCombo->GetText();
+			SetFontName(fontName);
+			return true;
+			});
+		pFontNameCombo->AttachWindowClose([this, pFontNameCombo](const ui::EventArgs& args) {
+			std::wstring fontName = pFontNameCombo->GetText();
+			SetFontName(fontName);
 			return true;
 			});
 	}
@@ -248,6 +258,85 @@ void MainForm::OnInitWindow()
 				pFontSizeCombo->SetItemData(nItemIndex, nIndex);
 			}
 		}
+		pFontSizeCombo->AttachSelect([this, pFontSizeCombo](const ui::EventArgs& args) {
+			std::wstring fontName = pFontSizeCombo->GetText();
+			SetFontSize(fontName);
+			return true;
+			});
+		pFontSizeCombo->AttachWindowClose([this, pFontSizeCombo](const ui::EventArgs& args) {
+			std::wstring fontName = pFontSizeCombo->GetText();
+			SetFontSize(fontName);
+			return true;
+			});
+	}
+
+	//更新是否粗体
+	ui::CheckBox* pCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(L"btn_font_bold"));
+	if (pCheckBox != nullptr) {
+		pCheckBox->AttachSelect([this, pCheckBox](const ui::EventArgs& args) {
+			SetFontBold(pCheckBox->IsSelected());
+			return true;
+			});
+		pCheckBox->AttachUnSelect([this, pCheckBox](const ui::EventArgs& args) {
+			SetFontBold(pCheckBox->IsSelected());
+			return true;
+			});
+	}
+
+	//更新是否斜体
+	pCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(L"btn_font_italic"));
+	if (pCheckBox != nullptr) {
+		pCheckBox->AttachSelect([this, pCheckBox](const ui::EventArgs& args) {
+			SetFontItalic(pCheckBox->IsSelected());
+			return true;
+			});
+		pCheckBox->AttachUnSelect([this, pCheckBox](const ui::EventArgs& args) {
+			SetFontItalic(pCheckBox->IsSelected());
+			return true;
+			});
+	}
+
+	//更新是否下划线
+	pCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(L"btn_font_underline"));
+	if (pCheckBox != nullptr) {
+		pCheckBox->AttachSelect([this, pCheckBox](const ui::EventArgs& args) {
+			SetFontUnderline(pCheckBox->IsSelected());
+			return true;
+			});
+		pCheckBox->AttachUnSelect([this, pCheckBox](const ui::EventArgs& args) {
+			SetFontUnderline(pCheckBox->IsSelected());
+			return true;
+			});
+	}
+
+	//更新是否删除线
+	pCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(L"btn_font_strikeout"));
+	if (pCheckBox != nullptr) {
+		pCheckBox->AttachSelect([this, pCheckBox](const ui::EventArgs& args) {
+			SetFontStrikeOut(pCheckBox->IsSelected());
+			return true;
+			});
+		pCheckBox->AttachUnSelect([this, pCheckBox](const ui::EventArgs& args) {
+			SetFontStrikeOut(pCheckBox->IsSelected());
+			return true;
+			});
+	}
+
+	//增加字体大小
+	ui::Button* pFontButton = dynamic_cast<ui::Button*>(FindControl(L"btn_font_size_increase"));
+	if (pFontButton != nullptr) {
+		pFontButton->AttachClick([this](const ui::EventArgs& args) {
+			AdjustFontSize(true);
+			return true;
+			});
+	}
+	//减小字体大小
+	pFontButton = dynamic_cast<ui::Button*>(FindControl(L"btn_font_size_decrease"));
+	if (pFontButton != nullptr) {
+		pFontButton->AttachClick([this](const ui::EventArgs& args) {
+			AdjustFontSize(false);
+			return true;
+			});
 	}
 
 	//更新字体按钮的状态
@@ -266,10 +355,46 @@ void MainForm::UpdateFontStatus()
 	LOGFONT logFont = {};
 	GetRichEditLogFont(logFont);
 
+	//更新字体名称
 	ui::Combo* pFontNameCombo = dynamic_cast<ui::Combo*>(FindControl(L"combo_font_name"));
 	if (pFontNameCombo != nullptr) {
 		pFontNameCombo->SelectTextItem(logFont.lfFaceName);
 	}
+
+	//更新字体大小
+	UpdateFontSizeStatus();
+
+	//更新是否粗体
+	ui::CheckBox* pCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(L"btn_font_bold"));
+	if (pCheckBox != nullptr) {
+		pCheckBox->SetSelected(logFont.lfWeight >= FW_BOLD);
+	}
+
+	//更新是否斜体
+	pCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(L"btn_font_italic"));
+	if (pCheckBox != nullptr) {
+		pCheckBox->SetSelected(logFont.lfItalic != FALSE);
+	}
+
+	//更新是否下划线
+	pCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(L"btn_font_underline"));
+	if (pCheckBox != nullptr) {
+		pCheckBox->SetSelected(logFont.lfUnderline != FALSE);
+	}
+
+	//更新是否删除线
+	pCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(L"btn_font_strikeout"));
+	if (pCheckBox != nullptr) {
+		pCheckBox->SetSelected(logFont.lfStrikeOut != FALSE);
+	}
+
+}
+
+void MainForm::UpdateFontSizeStatus()
+{
+	LOGFONT logFont = {};
+	GetRichEditLogFont(logFont);
+
 	ui::Combo* pFontSizeCombo = dynamic_cast<ui::Combo*>(FindControl(L"combo_font_size"));
 	if (pFontSizeCombo != nullptr) {
 		int32_t fHeight = -logFont.lfHeight;
@@ -303,11 +428,206 @@ void MainForm::UpdateFontStatus()
 					if (pFontSizeCombo->SelectTextItem(fontSize.fontSizeName) != ui::Box::InvalidIndex) {
 						bSelected = true;
 						break;
-					}					
+					}
 				}
 			}
 		}
 	}
+}
+
+void MainForm::SetFontName(const std::wstring& fontName)
+{
+	if (m_pRichEdit == nullptr) {
+		return;
+	}
+	for (const FontInfo& fontInfo : m_fontList) {
+		if (fontName == fontInfo.lf.lfFaceName) {
+			CHARFORMAT2 charFormat = {};
+			charFormat.cbSize = sizeof(CHARFORMAT2);
+			m_pRichEdit->GetDefaultCharFormat(charFormat);
+			if (fontName != charFormat.szFaceName) {
+				wcscpy_s(charFormat.szFaceName, fontName.c_str());
+				charFormat.dwMask |= CFM_FACE;
+				m_pRichEdit->SetDefaultCharFormat(charFormat);
+			}		
+			break;
+		}
+	}
+}
+
+int32_t MainForm::ConvertToFontHeight(int32_t fontSize) const
+{
+	if (m_pRichEdit == nullptr) {
+		return fontSize;
+	}
+	bool bGetDC = false;
+	HDC hDC = nullptr;
+	if (m_pRichEdit != nullptr) {
+		hDC = m_pRichEdit->GetWindowDC();
+	}
+	if (hDC == nullptr) {
+		hDC = ::GetDC(nullptr);
+		bGetDC = true;
+	}
+	LONG yPixPerInch = ::GetDeviceCaps(hDC, LOGPIXELSY);
+	if (bGetDC && (hDC != nullptr)) {
+		::ReleaseDC(nullptr, hDC);
+		hDC = nullptr;
+	}
+	if (yPixPerInch == 0) {
+		yPixPerInch = 96;
+	}
+	int32_t lfHeight = fontSize * LY_PER_INCH / yPixPerInch;
+	return lfHeight;
+}
+
+void MainForm::SetFontSize(const std::wstring& fontSize)
+{
+	if (m_pRichEdit == nullptr) {
+		return;
+	}
+	for (const FontSizeInfo& fontSizeInfo : m_fontSizeList) {
+		if (fontSize == fontSizeInfo.fontSizeName) {
+			CHARFORMAT2 charFormat = {};
+			charFormat.cbSize = sizeof(CHARFORMAT2);
+			m_pRichEdit->GetDefaultCharFormat(charFormat);
+			LONG lfHeight = ConvertToFontHeight(fontSizeInfo.fontSize);
+			charFormat.cbSize = sizeof(CHARFORMAT2);
+			charFormat.dwMask |= CFM_SIZE;
+			if (charFormat.yHeight != lfHeight) {
+				charFormat.yHeight = lfHeight;
+				m_pRichEdit->SetDefaultCharFormat(charFormat);
+			}
+			break;
+		}
+	}
+}
+
+void MainForm::AdjustFontSize(bool bIncreaseFontSize)
+{
+	if (m_pRichEdit == nullptr) {
+		return;
+	}
+	std::map<int32_t, int32_t> fontSizeMap;
+	for (const FontSizeInfo& fontSizeInfo : m_fontSizeList) {
+		fontSizeMap[fontSizeInfo.fontSize] = fontSizeInfo.fontSize;
+	}
+	std::vector<int32_t> fontSizeList;
+	for (auto fontSize : fontSizeMap) {
+		fontSizeList.push_back(fontSize.first);
+	}
+	
+	CHARFORMAT2 charFormat = {};
+	charFormat.cbSize = sizeof(CHARFORMAT2);
+	m_pRichEdit->GetDefaultCharFormat(charFormat);
+	const size_t fontCount = fontSizeList.size();
+	for (size_t index = 0; index < fontCount; ++index) {
+		LONG lfHeight = ConvertToFontHeight(fontSizeList[index]);
+		if (lfHeight == charFormat.yHeight) {
+			//匹配到当前字体大小
+			if (bIncreaseFontSize) {
+				//增加字体
+				if (index < (fontCount - 1)) {
+					int32_t newFontSize = fontSizeList[index + 1];
+					lfHeight = ConvertToFontHeight(newFontSize);
+					charFormat.cbSize = sizeof(CHARFORMAT2);
+					charFormat.dwMask |= CFM_SIZE;
+					if (charFormat.yHeight != lfHeight) {
+						charFormat.yHeight = lfHeight;
+						m_pRichEdit->SetDefaultCharFormat(charFormat);
+						UpdateFontSizeStatus();
+					}
+				}
+			}
+			else {
+				//减小字体
+				if (index > 0) {
+					int32_t newFontSize = fontSizeList[index - 1];
+					lfHeight = ConvertToFontHeight(newFontSize);
+					charFormat.cbSize = sizeof(CHARFORMAT2);
+					charFormat.dwMask |= CFM_SIZE;
+					if (charFormat.yHeight != lfHeight) {
+						charFormat.yHeight = lfHeight;
+						m_pRichEdit->SetDefaultCharFormat(charFormat);
+						UpdateFontSizeStatus();
+					}
+				}
+			}
+			break;
+		}
+	}
+}
+
+void MainForm::SetFontBold(bool bBold)
+{
+	if (m_pRichEdit == nullptr) {
+		return;
+	}
+	CHARFORMAT2 charFormat = {};
+	charFormat.cbSize = sizeof(CHARFORMAT2);
+	m_pRichEdit->GetDefaultCharFormat(charFormat);
+	charFormat.dwMask |= CFM_BOLD;
+	if (bBold) {
+		charFormat.dwEffects |= CFE_BOLD;
+	}
+	else {
+		charFormat.dwEffects &= ~CFE_BOLD;
+	}	
+	m_pRichEdit->SetDefaultCharFormat(charFormat);
+}
+
+void MainForm::SetFontItalic(bool bItalic)
+{
+	if (m_pRichEdit == nullptr) {
+		return;
+	}
+	CHARFORMAT2 charFormat = {};
+	charFormat.cbSize = sizeof(CHARFORMAT2);
+	m_pRichEdit->GetDefaultCharFormat(charFormat);
+	charFormat.dwMask |= CFM_ITALIC;
+	if (bItalic) {
+		charFormat.dwEffects |= CFE_ITALIC;
+	}
+	else {
+		charFormat.dwEffects &= ~CFE_ITALIC;
+	}
+	m_pRichEdit->SetDefaultCharFormat(charFormat);
+}
+
+void MainForm::SetFontUnderline(bool bUnderline)
+{
+	if (m_pRichEdit == nullptr) {
+		return;
+	}
+	CHARFORMAT2 charFormat = {};
+	charFormat.cbSize = sizeof(CHARFORMAT2);
+	m_pRichEdit->GetDefaultCharFormat(charFormat);
+	charFormat.dwMask |= CFM_UNDERLINE;
+	if (bUnderline) {
+		charFormat.dwEffects |= CFE_UNDERLINE;
+	}
+	else {
+		charFormat.dwEffects &= ~CFE_UNDERLINE;
+	}
+	m_pRichEdit->SetDefaultCharFormat(charFormat);
+}
+
+void MainForm::SetFontStrikeOut(bool bStrikeOut)
+{
+	if (m_pRichEdit == nullptr) {
+		return;
+	}
+	CHARFORMAT2 charFormat = {};
+	charFormat.cbSize = sizeof(CHARFORMAT2);
+	m_pRichEdit->GetDefaultCharFormat(charFormat);
+	charFormat.dwMask |= CFM_STRIKEOUT;
+	if (bStrikeOut) {
+		charFormat.dwEffects |= CFE_STRIKEOUT;
+	}
+	else {
+		charFormat.dwEffects &= ~CFE_STRIKEOUT;
+	}
+	m_pRichEdit->SetDefaultCharFormat(charFormat);
 }
 
 LRESULT MainForm::OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
@@ -699,10 +1019,6 @@ void MainForm::GetFontSizeList(std::vector<FontSizeInfo>& fontSizeList) const
 	}
 }
 
-#ifndef LY_PER_INCH
-	#define LY_PER_INCH 1440
-#endif
-
 bool MainForm::GetRichEditLogFont(LOGFONT& lf) const
 {
 	ui::RichEdit* pRichEdit = GetRichEdit();
@@ -755,24 +1071,7 @@ bool MainForm::GetRichEditLogFont(LOGFONT& lf) const
 void MainForm::InitCharFormat(const LOGFONT& lf, CHARFORMAT2& charFormat) const
 {
 	//字体字号需要转换, 否则字体大小显示异常
-	bool bGetDC = false;
-	HDC hDC = nullptr;
-	if (m_pRichEdit != nullptr) {
-		hDC = m_pRichEdit->GetWindowDC();
-	}
-	if (hDC == nullptr) {
-		hDC = ::GetDC(nullptr);
-		bGetDC = true;
-	}
-	LONG yPixPerInch = ::GetDeviceCaps(hDC, LOGPIXELSY);
-	if (bGetDC && (hDC != nullptr)) {
-		::ReleaseDC(nullptr, hDC);
-		hDC = nullptr;
-	}
-	if (yPixPerInch == 0) {
-		yPixPerInch = 96;
-	}
-	LONG lfHeight = lf.lfHeight * LY_PER_INCH / yPixPerInch;
+	LONG lfHeight = ConvertToFontHeight(lf.lfHeight);
 
 	charFormat.cbSize = sizeof(CHARFORMAT2W);
 	charFormat.dwMask = CFM_SIZE | CFM_OFFSET | CFM_FACE | CFM_CHARSET | CFM_BOLD | CFM_ITALIC | CFM_UNDERLINE | CFM_STRIKEOUT;
@@ -860,6 +1159,9 @@ void MainForm::OnSetFont()
 		std::wstring textColorString = ui::StringHelper::Printf(L"#%02X%02X%02X%02X", textColor.GetA(), textColor.GetR(), textColor.GetG(), textColor.GetB());
 		pRichEdit->SetTextColor(textColorString);
 	}
+
+	//更新字体按钮的状态
+	UpdateFontStatus();
 }
 
 int MainForm::EnumFontFamExProc(const LOGFONT* lpelfe, const TEXTMETRIC* /*lpntme*/, DWORD fontType, LPARAM lParam)

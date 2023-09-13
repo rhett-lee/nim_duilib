@@ -24,6 +24,7 @@ public:
     virtual void PaintStateImages(IRender* pRender) override;
     virtual void PaintText(IRender* pRender) override;
     virtual bool HasHotState() override;
+    virtual std::wstring GetBorderColor(ControlStateType stateType) const override;
 
     /** 关闭CheckBox功能，清除CheckBox的所有图片属性(比如树节点，CheckBox功能是可用通过开关开启或者关闭的)
     */
@@ -375,6 +376,18 @@ bool CheckBoxTemplate<InheritType>::HasHotState()
         return true;
     }
     return false;
+}
+
+template<typename InheritType>
+std::wstring CheckBoxTemplate<InheritType>::GetBorderColor(ControlStateType stateType) const
+{
+    if (this->IsSelected()) {
+        std::wstring borderColor = __super::GetBorderColor(kControlStatePushed);
+        if (!borderColor.empty()) {
+            return borderColor;
+        }
+    }
+    return __super::GetBorderColor(stateType);
 }
 
 template<typename InheritType>

@@ -228,6 +228,7 @@ Combo::Combo() :
 {
 	//需要调用设置函数，内部有DPI自适应的逻辑调整大小
 	SetDropBoxSize({ 0, 150 }, true);
+	m_treeView.SelectNextWhenActiveRemoved(false);
     m_treeView.AttachSelect(nbase::Bind(&Combo::OnSelectItem, this, std::placeholders::_1));
 }
 
@@ -403,22 +404,26 @@ bool Combo::CanPlaceCaptionBar() const
 
 std::wstring Combo::GetBorderColor(ControlStateType stateType) const
 {
+	std::wstring borderColor;
 	if (m_pIconControl != nullptr) {
 		if (m_pIconControl->IsFocused() || m_pIconControl->IsMouseFocused()) {
-			return __super::GetBorderColor(kControlStateHot);
+			borderColor = __super::GetBorderColor(kControlStateHot);
 		}
 	}
 	if (m_pEditControl != nullptr) {
 		if (m_pEditControl->IsFocused() || m_pEditControl->IsMouseFocused()) {
-			return __super::GetBorderColor(kControlStateHot);
+			borderColor = __super::GetBorderColor(kControlStateHot);
 		}
 	}
 	if (m_pButtonControl != nullptr) {
 		if (m_pButtonControl->IsFocused() || m_pButtonControl->IsMouseFocused()) {
-			return __super::GetBorderColor(kControlStateHot);
+			borderColor = __super::GetBorderColor(kControlStateHot);
 		}
 	}
-	return __super::GetBorderColor(stateType);
+	if (borderColor.empty()) {
+		borderColor = __super::GetBorderColor(stateType);
+	}
+	return borderColor;
 }
 
 void Combo::DoInit()
@@ -666,7 +671,7 @@ bool Combo::DeleteItem(size_t iIndex)
 	return bRemoved;
 }
 
-size_t Combo::SelectTextItem(const std::wstring& itemText)
+size_t Combo::SelectTextItem(const std::wstring& itemText, bool bTriggerEvent)
 {
 	size_t nSelIndex = Box::InvalidIndex;
 	size_t itemCount = m_treeView.GetItemCount();
@@ -684,7 +689,7 @@ size_t Combo::SelectTextItem(const std::wstring& itemText)
 		}
 	}
 	if (Box::IsValidItemIndex(nSelIndex)) {
-		m_treeView.SelectItem(nSelIndex, false, true);
+		m_treeView.SelectItem(nSelIndex, false, bTriggerEvent);
 	}
 	return nSelIndex;
 }

@@ -109,8 +109,35 @@ private://设置字体相关
 	//更新字体按钮的状态
 	void UpdateFontStatus();
 
+	//更新字体大小的状态
+	void UpdateFontSizeStatus();
+
+	//设置字体名称
+	void SetFontName(const std::wstring& fontName);
+
+	//设置字体大小
+	void SetFontSize(const std::wstring& fontSize);
+
+	//调整字体大小: bIncreaseFontSize 为true表示增加字体大小，为false表示减小字体大小
+	void AdjustFontSize(bool bIncreaseFontSize);
+
+	//设置字体样式（粗体）
+	void SetFontBold(bool bBold);
+
+	//设置字体样式（斜体）
+	void SetFontItalic(bool bItalic);
+
+	//设置字体样式（下划线）
+	void SetFontUnderline(bool bUnderline);
+
+	//设置字体样式（删除线）
+	void SetFontStrikeOut(bool bStrikeOut);
+
 	//枚举字体回调函数
 	static int CALLBACK EnumFontFamExProc(const LOGFONT* lpelfe, const TEXTMETRIC* lpntme, DWORD fontType, LPARAM lParam);
+
+	//将字体大小转换成Rich Edit控件的字体高度
+	int32_t ConvertToFontHeight(int32_t fontSize) const;
 
 private:
 

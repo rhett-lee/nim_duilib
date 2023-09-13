@@ -76,6 +76,10 @@ private:
     */
     bool IsXmlFileExists(const std::wstring& xml) const;
 
+    /** 解析字体节点
+    */
+    void ParseFontXmlNode(const pugi::xml_node& xmlNode) const;
+
 private:
     
     /** 当前解析的XML文档对象

@@ -257,54 +257,8 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
 						GlobalManager::Instance().Font().AddFontFile(strFontFile, strFontName);
 					}
 				}
-				else if( strClass == L"Font") {					
-					std::wstring strFontId;
-					std::wstring strFontName;
-					int size = 12;
-					bool bold = false;
-					bool underline = false;
-					bool strikeout = false;
-					bool italic = false;
-					bool isDefault = false;
-					for (pugi::xml_attribute attr : node.attributes()) {
-						strName = attr.name();
-						strValue = attr.value();
-						if (strName == L"id")
-						{
-							strFontId = strValue;
-						}
-						else if( strName == L"name") {
-							strFontName = strValue;
-						}
-						else if( strName == L"size") {
-							size = wcstol(strValue.c_str(), nullptr, 10);
-						}
-						else if( strName == L"bold") {
-							bold = (strValue == L"true");
-						}
-						else if( strName == L"underline") {
-							underline = (strValue == L"true");
-						}
-						else if (strName == L"strikeout") {
-							strikeout = (strValue == L"true");
-						}
-						else if( strName == L"italic") {
-							italic = (strValue == L"true");
-						}
-						else if( strName == L"default") {
-							isDefault = (strValue == L"true");
-						}
-					}
-					if (!strFontName.empty() && !strFontId.empty()) {
-						UiFont fontInfo;
-						fontInfo.m_fontName = strFontName;
-						fontInfo.m_fontSize = GlobalManager::Instance().Dpi().GetScaleInt(size);
-						fontInfo.m_bBold = bold;
-						fontInfo.m_bItalic = italic;
-						fontInfo.m_bUnderline = underline;
-						fontInfo.m_bStrikeOut = strikeout;
-						GlobalManager::Instance().Font().AddFont(strFontId, fontInfo, isDefault);
-					}
+				else if( strClass == L"Font") {
+					ParseFontXmlNode(node);
 				}
 				else if( strClass == L"Class" ) {
 					std::wstring strClassName;
@@ -353,20 +307,20 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
 				}
 			}
 		}
-		else if ( strClass == L"Window" )
+		else if (strClass == L"Window")
 		{
 			for (pugi::xml_node node : root.children()) {
 				strClass = node.name();
-				if( strClass == L"Class" ) {					
+				if (strClass == L"Class") {
 					std::wstring strClassName;
 					std::wstring strAttribute;
 					for (pugi::xml_attribute attr : node.attributes()) {
 						strName = attr.name();
 						strValue = attr.value();
-						if( strName == L"name" ) {
+						if (strName == L"name") {
 							strClassName = strValue;
 						}
-						else if( strName == L"value" ) {
+						else if (strName == L"value") {
 							strAttribute.append(strValue);
 						}
 						else if (strName == L"_value") {
@@ -377,8 +331,8 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
 								strName.c_str(), strValue.c_str()));
 						}
 					}
-					if( !strClassName.empty() ) {
-						ASSERT(GlobalManager::Instance().GetClassAttributes(strClassName).empty() );	//窗口中的Class不能与全局的重名
+					if (!strClassName.empty()) {
+						ASSERT(GlobalManager::Instance().GetClassAttributes(strClassName).empty());	//窗口中的Class不能与全局的重名
 						StringHelper::TrimLeft(strAttribute);
 						pWindow->AddClass(strClassName, strAttribute);
 					}
@@ -400,6 +354,10 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
 						pWindow->AddTextColor(strColorName, strColor);
 					}
 				}
+				else if (strClass == L"Font") {
+					//Window节点下，允许定义字体
+					ParseFontXmlNode(node);
+				}
 			}
 		}
 	}
@@ -407,7 +365,7 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
 	for (pugi::xml_node node : root.children()) {
 		std::wstring strClass = node.name();
 		if (strClass == L"Image" || strClass == L"FontResource" || strClass == L"Font"
-			|| strClass == L"Class" || strClass == L"TextColor" ) {
+			|| strClass == L"Class" || strClass == L"TextColor") {
 
 		}
 		else {
@@ -417,7 +375,7 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
 			else {
 				ParseXmlNode(node, pUserDefinedBox, pWindow);
 				int i = 0;
-				for (pugi::xml_attribute attr : node.attributes()) {					
+				for (pugi::xml_attribute attr : node.attributes()) {
 					if (wcscmp(attr.name(), L"class") == 0) {
 						//class必须是第一个属性
 						ASSERT(i == 0);
@@ -431,6 +389,60 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
 	}
 
 	return nullptr;
+}
+
+void WindowBuilder::ParseFontXmlNode(const pugi::xml_node& xmlNode) const
+{
+	std::wstring strName;
+	std::wstring strValue;
+
+	std::wstring strFontId;
+	std::wstring strFontName;
+	int size = 12;
+	bool bold = false;
+	bool underline = false;
+	bool strikeout = false;
+	bool italic = false;
+	bool isDefault = false;
+	for (pugi::xml_attribute attr : xmlNode.attributes()) {
+		strName = attr.name();
+		strValue = attr.value();
+		if (strName == L"id")
+		{
+			strFontId = strValue;
+		}
+		else if (strName == L"name") {
+			strFontName = strValue;
+		}
+		else if (strName == L"size") {
+			size = wcstol(strValue.c_str(), nullptr, 10);
+		}
+		else if (strName == L"bold") {
+			bold = (strValue == L"true");
+		}
+		else if (strName == L"underline") {
+			underline = (strValue == L"true");
+		}
+		else if (strName == L"strikeout") {
+			strikeout = (strValue == L"true");
+		}
+		else if (strName == L"italic") {
+			italic = (strValue == L"true");
+		}
+		else if (strName == L"default") {
+			isDefault = (strValue == L"true");
+		}
+	}
+	if (!strFontName.empty() && !strFontId.empty()) {
+		UiFont fontInfo;
+		fontInfo.m_fontName = strFontName;
+		fontInfo.m_fontSize = GlobalManager::Instance().Dpi().GetScaleInt(size);
+		fontInfo.m_bBold = bold;
+		fontInfo.m_bItalic = italic;
+		fontInfo.m_bUnderline = underline;
+		fontInfo.m_bStrikeOut = strikeout;
+		GlobalManager::Instance().Font().AddFont(strFontId, fontInfo, isDefault);
+	}
 }
 
 Control* WindowBuilder::ParseXmlNode(const pugi::xml_node& xmlNode, Control* pParent, Window* pWindow)
