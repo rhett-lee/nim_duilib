@@ -1295,6 +1295,7 @@ bool Control::MouseHover(const EventArgs& /*msg*/)
 bool Control::MouseWheel(const EventArgs& /*msg*/)
 {
 	//默认不处理，交由父控件处理
+	//int deltaValue = GET_WHEEL_DELTA_WPARAM(msg.wParam);
 	return false;
 }
 

@@ -924,13 +924,17 @@ void RichEditHost::SetFontId(const std::wstring& fontId)
 	OnTxPropertyBitsChange(TXTBIT_CHARFORMATCHANGE, TXTBIT_CHARFORMATCHANGE);
 }
 
-void RichEditHost::SetColor(DWORD dwColor)
+void RichEditHost::SetTextColor(COLORREF dwColor)
 {
-	COLORREF newColor = RGB(GetBValue(dwColor), GetGValue(dwColor), GetRValue(dwColor));
-	if (newColor != m_charFormat.crTextColor) {
-		m_charFormat.crTextColor = newColor;
+	if (dwColor != m_charFormat.crTextColor) {
+		m_charFormat.crTextColor = dwColor;
 		OnTxPropertyBitsChange(TXTBIT_CHARFORMATCHANGE, TXTBIT_CHARFORMATCHANGE);
 	}
+}
+
+COLORREF RichEditHost::GetTextColor() const
+{
+	return m_charFormat.crTextColor;
 }
 
 void RichEditHost::SetExtent(SIZEL sizelExtent)

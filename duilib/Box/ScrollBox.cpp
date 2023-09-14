@@ -202,7 +202,7 @@ void ScrollBox::HandleEvent(const EventArgs& msg)
 			}
 		}
 		else if(msg.Type == kEventMouseWheel ) {
-			int deltaValue = static_cast<int>(msg.wParam);
+			int deltaValue = GET_WHEEL_DELTA_WPARAM(msg.wParam);
 			if (msg.lParam != 0) {
 				//Õý³£Âß¼­¹ö¶¯
 				if (deltaValue > 0) {
@@ -248,7 +248,7 @@ void ScrollBox::HandleEvent(const EventArgs& msg)
 			}
 		}
 		else if(msg.Type == kEventMouseWheel )	{
-			int deltaValue = static_cast<int>(msg.wParam);
+			int deltaValue = GET_WHEEL_DELTA_WPARAM(msg.wParam);
 			if (deltaValue > 0 ) {
 				LineLeft();
 				return;

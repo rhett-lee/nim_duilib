@@ -140,6 +140,10 @@ private://设置字体相关
 	int32_t ConvertToFontHeight(int32_t fontSize) const;
 
 private:
+	//更新缩放比例
+	void UpdateZoomValue();
+
+private:
 
 	//RichEdit控件接口
 	ui::RichEdit* m_pRichEdit;

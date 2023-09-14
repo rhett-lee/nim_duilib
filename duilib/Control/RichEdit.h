@@ -269,7 +269,7 @@ public:
 	*/
 	LONG FindRichText(DWORD dwFlags, FINDTEXTEX& ft) const;
 
-	/** 获取当前缩放比
+	/** 获取当前缩放比， 按缩放比例分子/分母显示的缩放：1/64 < (wParam / lParam) < 64
 	 * @param[out] nNum 缩放比率分子
 	 * @param[out] nDen 缩放比率分母
 	 * @return 如果处理了消息则返回 TRUE
@@ -277,8 +277,8 @@ public:
     bool GetZoom(int& nNum, int& nDen) const;
 
 	/** 设置缩放比
-	 * @param[in] nNum 缩放比率分子
-	 * @param[in] nDen 缩放比率分母
+	 * @param[in] nNum 缩放比率分子，取值范围：[0, 64]
+	 * @param[in] nDen 缩放比率分母，取值范围：[0, 64]
 	 * @return 成功返回 true，失败返回 false
 	 */
     bool SetZoom(int nNum, int nDen);
@@ -768,6 +768,11 @@ public:
 	 * @param[in] callback TAB 被按下的自定义回调函数
 	 */
 	void AttachTab(const EventCallback& callback) { AttachEvent(kEventTab, callback); }
+
+	/* 监听缩放比例变化事件
+	 * @param[in] callback 文本被修改后的自定义回调函数
+	 */
+	void AttachZoom(const EventCallback& callback) { AttachEvent(kEventZoom, callback); }
 
 	/* 监听文本被修改事件
 	 * @param[in] callback 文本被修改后的自定义回调函数

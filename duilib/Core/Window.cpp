@@ -1556,8 +1556,7 @@ void Window::OnMouseWheel(WPARAM wParam, LPARAM lParam, const UiPoint& pt)
 	m_ptLastMousePos = pt;
 	Control* pControl = FindControl(pt);
 	if (pControl != nullptr) {
-		int zDelta = GET_WHEEL_DELTA_WPARAM(wParam);
-		pControl->SendEvent(kEventMouseWheel, (WPARAM)zDelta, lParam, 0, pt);
+		pControl->SendEvent(kEventMouseWheel, wParam, lParam, 0, pt);
 	}
 }
 

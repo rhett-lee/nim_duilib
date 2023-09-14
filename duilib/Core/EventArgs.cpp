@@ -187,6 +187,8 @@ std::wstring EventTypeToString(EventType eventType)
 		return L"kEventExpand";
 	case kEventCollapse:
 		return L"kEventCollapse";
+	case kEventZoom:
+		return L"kEventZoom";
 	case kEventTextChange:
 		return L"kEventTextChange";
 	case kEventReturn:

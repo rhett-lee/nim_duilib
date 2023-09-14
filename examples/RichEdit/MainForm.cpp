@@ -339,8 +339,168 @@ void MainForm::OnInitWindow()
 			});
 	}
 
+	//缩放比例
+	struct ZoomInfo
+	{
+		int32_t nNum;
+		int32_t nDen;
+
+		bool operator < (const ZoomInfo& r)
+		{
+			if ((nDen == 0) || (r.nDen == 0)) {
+				return false;
+			}
+			return (1.0f * nNum / nDen) < (1.0f * r.nNum / r.nDen);
+		}
+	};
+	std::vector<ZoomInfo> zoomInfoList;
+	for (int32_t nDen = 64; nDen >= 1; --nDen) {
+		for (int32_t nNum = 1; nNum <= 64; ++nNum) {
+			zoomInfoList.push_back({ nNum , nDen });
+		}
+	}
+	zoomInfoList.pop_back();//不包括64/1
+	zoomInfoList.erase(zoomInfoList.begin()); //不包括1/64
+	std::sort(zoomInfoList.begin(), zoomInfoList.end());//排序：升序
+
+	UpdateZoomValue();
+	if (m_pRichEdit != nullptr) {
+		m_pRichEdit->AttachZoom([this](const ui::EventArgs& args) {
+			UpdateZoomValue();
+			return true;
+			});
+	}
+	ui::Button* pZoomButtom = dynamic_cast<ui::Button*>(FindControl(L"btn_zoom_in"));
+	if (pZoomButtom != nullptr) {
+		pZoomButtom->AttachClick([this, zoomInfoList](const ui::EventArgs& args) {
+			if (m_pRichEdit != nullptr) {
+				//放大：每次放大10%
+				int32_t nNum = 0;
+				int32_t nDen = 0;
+				m_pRichEdit->GetZoom(nNum, nDen);
+				if ((nNum > 0) && (nDen > 0)) {
+					float zoomValue = nNum * 100.0f / nDen;
+					zoomValue *= 1.10f;
+					bool bFound = false;
+					for (const ZoomInfo& zoomInfo : zoomInfoList) {
+						if ((zoomInfo.nNum * 100.0f / zoomInfo.nDen) >= zoomValue){
+							m_pRichEdit->SetZoom(zoomInfo.nNum, zoomInfo.nDen);
+							bFound = true;
+							break;
+						}
+					}
+					if (!bFound) {
+						ZoomInfo zoomInfo = zoomInfoList.back();
+						m_pRichEdit->SetZoom(zoomInfo.nNum, zoomInfo.nDen);
+					}
+				}
+				else {
+					//100%
+					m_pRichEdit->SetZoom(11, 10);
+				}
+				UpdateZoomValue();
+			}
+			return true;
+			});
+	}
+	pZoomButtom = dynamic_cast<ui::Button*>(FindControl(L"btn_zoom_out"));
+	if (pZoomButtom != nullptr) {
+		pZoomButtom->AttachClick([this, zoomInfoList](const ui::EventArgs& args) {
+			if (m_pRichEdit != nullptr) {
+				//缩小：每次缩小10%
+				int32_t nNum = 0;
+				int32_t nDen = 0;
+				m_pRichEdit->GetZoom(nNum, nDen);
+				if ((nNum > 0) && (nDen > 0)) {
+					float zoomValue = nNum * 100.0f / nDen;
+					zoomValue *= 0.90f;
+					bool bFound = false;
+					int32_t zoomCount = (int32_t)zoomInfoList.size();
+					for (int32_t index = zoomCount - 1; index >= 0; --index) {
+						const ZoomInfo& zoomInfo = zoomInfoList[index];
+						if ((zoomInfo.nNum * 100.0f / zoomInfo.nDen) <= zoomValue) {
+							m_pRichEdit->SetZoom(zoomInfo.nNum, zoomInfo.nDen);
+							bFound = true;
+							break;
+						}
+					}
+					if (!bFound) {
+						ZoomInfo zoomInfo = zoomInfoList.front();
+						m_pRichEdit->SetZoom(zoomInfo.nNum, zoomInfo.nDen);
+					}
+				}
+				else {
+					//90%
+					m_pRichEdit->SetZoom(9, 10);
+				}
+				UpdateZoomValue();
+			}
+			return true;
+			});
+	}
+	pZoomButtom = dynamic_cast<ui::Button*>(FindControl(L"btn_zoom_off"));
+	if (pZoomButtom != nullptr) {
+		pZoomButtom->AttachClick([this](const ui::EventArgs& args) {
+			if (m_pRichEdit != nullptr) {
+				//恢复
+				m_pRichEdit->SetZoomOff();
+				UpdateZoomValue();
+			}
+			return true;
+			});
+	}
+
+	//是否自动换行
+	pCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(L"btn_word_wrap"));
+	if ((pCheckBox != nullptr) && (m_pRichEdit != nullptr)) {
+		pCheckBox->SetSelected(m_pRichEdit->GetWordWrap());
+		pCheckBox->AttachSelect([this](const ui::EventArgs& args) {
+			if (m_pRichEdit != nullptr) {
+				m_pRichEdit->SetWordWrap(true);
+				m_pRichEdit->SetAttribute(L"hscrollbar", L"false");
+			}
+			return true;
+			});
+		pCheckBox->AttachUnSelect([this](const ui::EventArgs& args) {
+			if (m_pRichEdit != nullptr) {
+				m_pRichEdit->SetWordWrap(false);
+				m_pRichEdit->SetAttribute(L"hscrollbar", L"true");
+			}
+			return true;
+			});
+	}
+
+	//是否支持富文本格式
+	pCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(L"btn_rich_text"));
+	if ((pCheckBox != nullptr) && (m_pRichEdit != nullptr)) {
+		pCheckBox->SetSelected(m_pRichEdit->IsRichText());
+		pCheckBox->AttachSelect([this](const ui::EventArgs& args) {
+			if (m_pRichEdit != nullptr) {
+				m_pRichEdit->SetRichText(true);
+			}
+			return true;
+			});
+		pCheckBox->AttachUnSelect([this](const ui::EventArgs& args) {
+			if (m_pRichEdit != nullptr) {
+				m_pRichEdit->SetRichText(false);
+			}
+			return true;
+			});
+	}
+
 	//更新字体按钮的状态
 	UpdateFontStatus();
+
+	//超链接
+	if (m_pRichEdit != nullptr) {
+		m_pRichEdit->AttachCustomLinkClick([this](const ui::EventArgs& args) {
+			const wchar_t* url = (const wchar_t*)args.wParam;
+			if (url != nullptr) {
+				::MessageBox(GetHWND(), url, L"RichEdit点击超链接", MB_OK);
+			}
+			return true;
+			});
+	}	
 }
 
 void MainForm::UpdateFontStatus()
@@ -387,7 +547,6 @@ void MainForm::UpdateFontStatus()
 	if (pCheckBox != nullptr) {
 		pCheckBox->SetSelected(logFont.lfStrikeOut != FALSE);
 	}
-
 }
 
 void MainForm::UpdateFontSizeStatus()
@@ -1181,5 +1340,29 @@ int MainForm::EnumFontFamExProc(const LOGFONT* lpelfe, const TEXTMETRIC* /*lpntm
 	}
 	else {
 		return 0;
+	}
+}
+
+void MainForm::UpdateZoomValue()
+{
+	ui::RichEdit* pRichEdit = GetRichEdit();
+	if (pRichEdit == nullptr) {
+		return;
+	}
+
+	ui::Label* pZoomLabel = dynamic_cast<ui::Label*>(FindControl(L"lavel_zoom_value"));
+	if (pZoomLabel != nullptr) {
+		int32_t nNum = 0;
+		int32_t nDen = 0;
+		int32_t zoomValue = 100;
+		pRichEdit->GetZoom(nNum, nDen);
+		if ((nNum <= 0) || (nDen <= 0)) {
+			zoomValue = 1000;
+		}
+		else {
+			zoomValue = nNum * 1000 / nDen;
+		}
+		std::wstring strZoom = ui::StringHelper::Printf(L"%.01f%%", zoomValue / 10.0);
+		pZoomLabel->SetText(strZoom);
 	}
 }

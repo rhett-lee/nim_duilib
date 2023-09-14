@@ -80,8 +80,13 @@ public:
 	//当用户按 Enter 时，控件会将所有文本滚动回零位置。
 	void SetAutoHScroll(bool bEnable);
 
+	// 设置字体
     void SetFontId(const std::wstring& fontId);
-    void SetColor(DWORD dwColor);
+	//设置文本颜色
+    void SetTextColor(COLORREF dwColor);
+	//获取文本颜色
+	COLORREF GetTextColor() const;
+
     void SetExtent(SIZEL sizelExtent);
     void SetAllowBeep(bool bAllowBeep);
 	bool IsAllowBeep() const;
@@ -269,7 +274,6 @@ private:
 	// pointer to Text Services object
 	ITextServices* m_pTextServices;
 
-	//TODO: 变化的时候，如何通知Host接口重新取
     uint16_t m_dwStyle;			// style bits
     bool m_fEnableAutoWordSel;	// enable Word style auto word selection?
     bool m_fWordWrap;			// Whether control should word wrap
@@ -283,7 +287,7 @@ private:
     UiRect m_rcClient;			// Client Rect for this control
     SIZEL m_sizelExtent;		// Extent array
 	
-    CHARFORMAT2W m_charFormat;  //文字的字体
+    CHARFORMAT2 m_charFormat;  //文字的字体
     PARAFORMAT2	m_paraFormat;	//段落格式
     WCHAR m_chPasswordChar;		// Password character
 	bool m_bShowPassword;       //是否显示密码

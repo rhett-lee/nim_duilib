@@ -254,12 +254,10 @@ void RichEdit::SetFontId(const std::wstring& strFontId)
 
 void RichEdit::SetTextColor(const std::wstring& dwTextColor)
 {
-	if (m_sCurrentColor != dwTextColor) {
-		m_sCurrentColor = dwTextColor;
-		UiColor dwTextColor2 = GetUiColor(dwTextColor);
-		if (m_pRichHost) {
-			m_pRichHost->SetColor(dwTextColor2.GetARGB());
-		}
+	m_sCurrentColor = dwTextColor;
+	UiColor dwTextColor2 = GetUiColor(dwTextColor);
+	if (m_pRichHost) {
+		m_pRichHost->SetTextColor(dwTextColor2.ToCOLORREF());
 	}
 }
 
@@ -684,6 +682,18 @@ void RichEdit::OnTxNotify(DWORD iNotify, void *pv)
 				GetSel(oldSel);
 				SetSel(link->chrg);
 				std::wstring url = GetSelText();
+				const std::wstring prefix = L"HYPERLINK ";
+				size_t pos = url.find(prefix);
+				if (pos == 0) {
+					url = url.substr(prefix.size());
+					if (!url.empty() && url.front() == L'\"') {
+						url.erase(url.begin());
+						pos = url.find(L'\"');
+						if (pos != std::wstring::npos) {
+							url = url.substr(0, pos);
+						}
+					}
+				}
 				SetSel(oldSel);
 				if (!url.empty()) {
 					this->SendEvent(kEventCustomLinkClick, (WPARAM)url.c_str());
@@ -1175,11 +1185,18 @@ void RichEdit::HandleEvent(const EventArgs& msg)
 		return;
 	}
 	if (msg.Type == kEventMouseWheel) {
-		if (::GetAsyncKeyState(VK_CONTROL) < 0) {
-			return;
-		}		
-		ScrollBox::HandleEvent(msg);
-		//OnMouseMessage(WM_MOUSEWHEEL, event);
+		uint16_t fwKeys = GET_KEYSTATE_WPARAM(msg.wParam);
+		if (fwKeys & MK_CONTROL) {
+			//Ctrl + 滚轮：缩放功能
+			OnMouseMessage(WM_MOUSEWHEEL, msg);
+			int32_t nNum = 0;
+			int32_t nDen = 0;
+			m_richCtrl.GetZoom(nNum, nDen);
+			SendEvent(kEventZoom, (WPARAM)nNum, (LPARAM)nDen);
+		}
+		else {
+			ScrollBox::HandleEvent(msg);
+		}
 		return;
 	}
 
@@ -1718,6 +1735,15 @@ void RichEdit::SetAttribute(const std::wstring& strName, const std::wstring& str
 		//是否隐藏选项项
 		SetHideSelection(strValue == L"true");
 	}
+	else if (strName == L"zoom") {
+		//缩放比例
+		UiSize zoomValue;
+		AttributeUtil::ParseSizeValue(strValue.c_str(), zoomValue);
+		if ((zoomValue.cx >= 0) && (zoomValue.cx <= 64) &&
+			(zoomValue.cy >= 0) && (zoomValue.cy <= 64) ) {
+			m_richCtrl.SetZoom(zoomValue.cx, zoomValue.cy);
+		}
+	}
 	else {
 		Box::SetAttribute(strName, strValue);
 	}
@@ -1996,7 +2022,7 @@ void RichEdit::AddLinkColorText(const std::wstring &str, const std::wstring &col
 	GetDefaultCharFormat(cf);
 	SetSelectionCharFormat(cf);
 }
-void  RichEdit::AddLinkColorTextEx(const std::wstring& str, const std::wstring &color, const std::wstring &linkInfo, const std::wstring& strFontId)
+void RichEdit::AddLinkColorTextEx(const std::wstring& str, const std::wstring &color, const std::wstring &linkInfo, const std::wstring& strFontId)
 {
 	if (!IsRichText() || str.empty() || color.empty()) {
 		ASSERT(FALSE);
