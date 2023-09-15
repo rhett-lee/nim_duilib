@@ -150,6 +150,7 @@
                         <CheckBox class="checkbox_font_class" name="btn_font_strikeout" width="28" height="26" text="abc" font="system_strikeout_14" valign="center" margin="1,1,1,3" tooltiptext="删除线：在文本上画一条线"/>
                         <Button class="btn_font_class" name="btn_font_size_increase" width="32" height="26" text="A+" font="btn_font_bold_14" valign="center" margin="1,1,1,3" tooltiptext="增加字体的大小"/>
                         <Button class="btn_font_class" name="btn_font_size_decrease" width="32" height="26" text="A-" font="btn_font_bold_14" valign="center" margin="1,1,1,3" tooltiptext="减小字体的大小"/>
+                        <Label text="(富文本模式为设置当前选择文本的格式)" font="system_12" valign="center" margin="2,0,2,0" tooltiptext="富文本模式为设置当前选择文本的格式;纯文本模式为设置所有文本的格式。"/>
                    </HBox>
                    <HBox height="auto" margin="0,2,2,0">
                         <Label text="缩放：" valign="center" margin="8,0,8,0"/>
@@ -163,13 +164,13 @@
                    <HBox height="auto" margin="0,2,2,2">
                         <Label text="其他：" valign="center" margin="8,0,8,0"/>
                         <CheckBox class="checkbox_font14" name="btn_word_wrap" text="自动换行" margin="4,0,0,0" selected="true" tooltiptext="是否自动换行"/>
-                        <CheckBox class="checkbox_font14" name="btn_rich_text" text="富文本格式" margin="12,0,0,0" selected="true" tooltiptext="是否支持富文本格式"/>
+                        <CheckBox class="checkbox_font14" name="btn_rich_text" text="富文本模式" margin="12,0,0,0" selected="true" tooltiptext="是否支持富文本格式"/>
                    </HBox>
                 </VBox>
                 <!-- 横向分割条，用于调整上下区域大小 -->
                 <Split bkcolor="splitline_level1" height="2"/>
                 <HBox bkcolor="Pink" border_size="1" border_color="blue" minwidth="60">
-                    <RichEdit name="rich_edit" zoom="0,0" multi_line="true" rich_text="true" save_selection="true" hide_selection="false" word_wrap="true" vscrollbar="true" auto_vscroll="true" bkcolor="white"/>
+                    <RichEdit name="rich_edit" zoom="0,0" multi_line="true" rich_text="false" save_selection="true" hide_selection="false" word_wrap="true" vscrollbar="true" auto_vscroll="true" bkcolor="white"/>
                 </HBox>
             </VBox>
         </HBox>

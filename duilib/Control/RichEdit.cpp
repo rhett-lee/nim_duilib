@@ -37,7 +37,6 @@ RichEdit::RichEdit() :
 	m_iCaretWidth(0),
 	m_iCaretHeight(0),
 	m_sFontId(),
-	m_sCurrentColor(),
 	m_sTextColor(),
 	m_sDisabledTextColor(),
 	m_sPromptColor(),
@@ -48,10 +47,6 @@ RichEdit::RichEdit() :
 	m_pFocusedImage(nullptr),
 	m_bUseControlCursor(false)
 {
-	m_sCurrentColor = GlobalManager::Instance().Color().GetDefaultTextColor();
-	m_sTextColor = m_sCurrentColor;
-	m_sDisabledTextColor = m_sCurrentColor;
-
 	//这个标记必须为false，否则绘制有问题
 	SetUseCache(false);
 
@@ -118,11 +113,30 @@ bool RichEdit::IsRichText()
 	return bRich;
 }
 
-void RichEdit::SetRichText(bool bRich)
+void RichEdit::SetRichText(bool bRichText)
 {
-	if (m_pRichHost != nullptr) {
-		m_pRichHost->SetRichText(bRich);
+	ASSERT(m_pRichHost != nullptr);
+	if (m_pRichHost == nullptr) {
+		return;
 	}
+	if (m_pRichHost->IsRichText() == bRichText) {
+		return;
+	}
+	//切换文本模式的时候，RichEdit的文本内容必须为空
+	std::wstring text = GetText();
+	if (!text.empty()) {		
+		SetText(L"");
+	}
+	m_pRichHost->SetRichText(bRichText);
+	if (!text.empty()) {
+		SetText(text);
+		SetSel(0, 0);
+	}
+#ifdef _DEBUG
+	TEXTMODE textMode = bRichText ? TM_RICHTEXT : TM_PLAINTEXT;
+	TEXTMODE newTextMode = m_richCtrl.GetTextMode();
+	ASSERT((uint32_t)textMode & (uint32_t)newTextMode);
+#endif
 }
 
 bool RichEdit::IsReadOnly()
@@ -254,21 +268,44 @@ void RichEdit::SetFontId(const std::wstring& strFontId)
 
 void RichEdit::SetTextColor(const std::wstring& dwTextColor)
 {
-	m_sCurrentColor = dwTextColor;
-	UiColor dwTextColor2 = GetUiColor(dwTextColor);
-	if (m_pRichHost) {
-		m_pRichHost->SetTextColor(dwTextColor2.ToCOLORREF());
+	m_sTextColor = dwTextColor;
+	if (IsEnabled()) {
+		UiColor dwTextColor2 = GetUiColor(dwTextColor);
+		if (m_pRichHost != nullptr) {
+			m_pRichHost->SetTextColor(dwTextColor2.ToCOLORREF());
+		}
 	}
 }
 
-std::wstring RichEdit::GetTextColor()
+std::wstring RichEdit::GetTextColor() const
 {
-	return m_sCurrentColor.c_str();
+	if (!m_sTextColor.empty()) {
+		return m_sTextColor.c_str();
+	}
+	else {
+		return GlobalManager::Instance().Color().GetDefaultTextColor();
+	}
 }
 
-UiColor RichEdit::GetTextColorValue()
+void RichEdit::SetDisabledTextColor(const std::wstring& dwTextColor)
 {
-	return GetUiColor(m_sCurrentColor.c_str());
+	m_sDisabledTextColor = dwTextColor;
+	if (!IsEnabled()) {
+		UiColor dwTextColor2 = GetUiColor(dwTextColor);
+		if (m_pRichHost != nullptr) {
+			m_pRichHost->SetTextColor(dwTextColor2.ToCOLORREF());
+		}
+	}
+}
+
+std::wstring RichEdit::GetDisabledTextColor() const
+{
+	if (!m_sDisabledTextColor.empty()) {
+		return m_sDisabledTextColor.c_str();
+	}
+	else {
+		return GlobalManager::Instance().Color().GetDefaultDisabledTextColor();
+	}
 }
 
 int32_t RichEdit::GetLimitText() const
@@ -501,7 +538,17 @@ DWORD RichEdit::GetDefaultCharFormat(CHARFORMAT2 &cf) const
 
 bool RichEdit::SetDefaultCharFormat(CHARFORMAT2& cf)
 {
+	ASSERT(IsEnabled());
+	if (!IsEnabled()) {
+		return false;
+	}
 	if (m_richCtrl.SetDefaultCharFormat(cf)) {
+		if (cf.dwMask & CFM_COLOR) {
+			//同步文本颜色
+			UiColor textColor;
+			textColor.SetFromCOLORREF(cf.crTextColor);
+			m_sTextColor = ui::StringHelper::Printf(L"#%02X%02X%02X%02X", textColor.GetA(), textColor.GetR(), textColor.GetG(), textColor.GetB());
+		}
 		if (m_pRichHost != nullptr) {
 			CHARFORMAT2 newCf;
 			GetDefaultCharFormat(newCf);
@@ -524,15 +571,7 @@ bool RichEdit::SetSelectionCharFormat(CHARFORMAT2& cf)
 
 bool RichEdit::SetWordCharFormat(CHARFORMAT2 &cf)
 {
-	if (m_richCtrl.SetCharFormat(cf, SCF_SELECTION | SCF_WORD)) {
-		if (m_pRichHost != nullptr) {
-			CHARFORMAT2 newCf;
-			GetDefaultCharFormat(newCf);
-			m_pRichHost->SetCharFormat(newCf);
-		}
-		return true;
-	}
-	return false;
+	return m_richCtrl.SetWordCharFormat(cf);
 }
 
 DWORD RichEdit::GetParaFormat(PARAFORMAT2& pf) const
@@ -705,12 +744,15 @@ void RichEdit::OnTxNotify(DWORD iNotify, void *pv)
 		//文本内容变化，发送事件
 		SendEvent(kEventTextChange); 
 		break;
+	case EN_SELCHANGE:
+		//选择变化
+		SendEvent(kEventSelChange);
+		break;
 	case EN_DROPFILES:   
 	case EN_MSGFILTER:   
 	case EN_OLEOPFAILED:    
 	case EN_PROTECTED:
-	case EN_SAVECLIPBOARD:   
-	case EN_SELCHANGE:   
+	case EN_SAVECLIPBOARD: 	
 	case EN_STOPNOUNDO:   
 	case EN_OBJECTPOSITIONS:   
 	case EN_DRAGDROPDONE:   
@@ -964,6 +1006,18 @@ void RichEdit::DoInit()
 	if (m_pRichHost != nullptr) {
 		m_pRichHost->SetFontId(fontId);
 	}
+	if (IsEnabled()) {
+		UiColor dwTextColor = GetUiColor(GetTextColor());
+		if (m_pRichHost != nullptr) {
+			m_pRichHost->SetTextColor(dwTextColor.ToCOLORREF());
+		}
+	}
+	else {
+		UiColor dwTextColor = GetUiColor(GetDisabledTextColor());
+		if (m_pRichHost != nullptr) {
+			m_pRichHost->SetTextColor(dwTextColor.ToCOLORREF());
+		}
+	}
 
 	ASSERT(m_pRichHost != nullptr);
 	ScrollBar* pHScrollBar = GetHScrollBar();
@@ -978,18 +1032,20 @@ void RichEdit::DoInit()
 
 void RichEdit::SetEnabled(bool bEnable /*= true*/)
 {
-	if (IsEnabled() == bEnable) {
-		return;
-	}
 	__super::SetEnabled(bEnable);
-
-	if (bEnable) {
+	if (IsEnabled()) {
 		SetState(kControlStateNormal);
-		SetTextColor(m_sTextColor.c_str());
+		UiColor dwTextColor = GetUiColor(GetTextColor());
+		if (m_pRichHost != nullptr) {
+			m_pRichHost->SetTextColor(dwTextColor.ToCOLORREF());
+		}
 	}
 	else {
 		SetState(kControlStateDisabled);
-		SetTextColor(m_sDisabledTextColor.c_str());
+		UiColor dwTextColor = GetUiColor(GetDisabledTextColor());
+		if (m_pRichHost != nullptr) {
+			m_pRichHost->SetTextColor(dwTextColor.ToCOLORREF());
+		}
 	}
 }
 
@@ -1243,6 +1299,10 @@ void RichEdit::HandleEvent(const EventArgs& msg)
 	}
 	if (msg.Type == kEventMouseRButtonUp) {
 		OnMouseMessage(WM_RBUTTONUP, msg);
+		return;
+	}
+	else if (msg.Type == kEventKeyDown) {
+		OnKeyDown(msg);
 		return;
 	}
 	ScrollBox::HandleEvent(msg);
@@ -1650,16 +1710,10 @@ void RichEdit::SetAttribute(const std::wstring& strName, const std::wstring& str
 		SetTextPadding(rcTextPadding);
 	}
 	else if ((strName == L"normal_text_color") || (strName == L"normaltextcolor")){
-		m_sTextColor = strValue;
-		if (IsEnabled()) {
-			SetTextColor(m_sTextColor.c_str());
-		}
+		SetTextColor(strValue);
 	}
 	else if ((strName == L"disabled_text_color") || (strName == L"disabledtextcolor")){
-		m_sDisabledTextColor = strValue;
-		if (!IsEnabled()) {
-			SetTextColor(m_sDisabledTextColor.c_str());
-		}
+		SetDisabledTextColor(strValue);
 	}
 	else if ((strName == L"caret_color") || (strName == L"caretcolor")){
 		//设置光标的颜色
@@ -2234,6 +2288,18 @@ void RichEdit::SetClipBoardText(const std::wstring &str)
 
 	::SetClipboardData(CF_UNICODETEXT, hMem); //把内存中的数据放到剪切板上
 	::CloseClipboard(); //关闭剪切板	
+}
+
+void RichEdit::AttachSelChange(const EventCallback& callback)
+{ 
+	AttachEvent(kEventSelChange, callback); 
+	uint32_t oldEventMask = m_richCtrl.GetEventMask();
+	if (!(oldEventMask & ENM_SELCHANGE)) {
+		m_richCtrl.SetEventMask(oldEventMask | ENM_SELCHANGE);
+		ASSERT(m_richCtrl.GetEventMask() & ENM_SELCHANGE);
+		ASSERT(m_richCtrl.GetEventMask() & ENM_CHANGE);
+		ASSERT(m_richCtrl.GetEventMask() & ENM_LINK);
+	}	
 }
 
 } // namespace ui

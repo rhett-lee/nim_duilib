@@ -500,7 +500,16 @@ void MainForm::OnInitWindow()
 			}
 			return true;
 			});
-	}	
+	}
+	//RichEdit文本选择变化
+	if (m_pRichEdit != nullptr) {
+		m_pRichEdit->AttachSelChange([this](const ui::EventArgs& args) {
+			if ((m_pRichEdit != nullptr) && m_pRichEdit->IsRichText()) {
+				UpdateFontStatus();
+			}
+			return true;
+			});
+	}
 }
 
 void MainForm::UpdateFontStatus()
@@ -509,9 +518,6 @@ void MainForm::UpdateFontStatus()
 	if (pRichEdit == nullptr) {
 		return;
 	}
-	//文本颜色
-	ui::UiColor textColor = pRichEdit->GetTextColorValue();
-
 	LOGFONT logFont = {};
 	GetRichEditLogFont(logFont);
 
@@ -602,12 +608,11 @@ void MainForm::SetFontName(const std::wstring& fontName)
 	for (const FontInfo& fontInfo : m_fontList) {
 		if (fontName == fontInfo.lf.lfFaceName) {
 			CHARFORMAT2 charFormat = {};
-			charFormat.cbSize = sizeof(CHARFORMAT2);
-			m_pRichEdit->GetDefaultCharFormat(charFormat);
+			GetCharFormat(charFormat);
 			if (fontName != charFormat.szFaceName) {
 				wcscpy_s(charFormat.szFaceName, fontName.c_str());
-				charFormat.dwMask |= CFM_FACE;
-				m_pRichEdit->SetDefaultCharFormat(charFormat);
+				charFormat.dwMask = CFM_FACE;
+				SetCharFormat(charFormat);
 			}		
 			break;
 		}
@@ -648,14 +653,13 @@ void MainForm::SetFontSize(const std::wstring& fontSize)
 	for (const FontSizeInfo& fontSizeInfo : m_fontSizeList) {
 		if (fontSize == fontSizeInfo.fontSizeName) {
 			CHARFORMAT2 charFormat = {};
-			charFormat.cbSize = sizeof(CHARFORMAT2);
-			m_pRichEdit->GetDefaultCharFormat(charFormat);
+			GetCharFormat(charFormat);
 			LONG lfHeight = ConvertToFontHeight(fontSizeInfo.fontSize);
 			charFormat.cbSize = sizeof(CHARFORMAT2);
-			charFormat.dwMask |= CFM_SIZE;
+			charFormat.dwMask = CFM_SIZE;
 			if (charFormat.yHeight != lfHeight) {
 				charFormat.yHeight = lfHeight;
-				m_pRichEdit->SetDefaultCharFormat(charFormat);
+				SetCharFormat(charFormat);
 			}
 			break;
 		}
@@ -678,7 +682,7 @@ void MainForm::AdjustFontSize(bool bIncreaseFontSize)
 	
 	CHARFORMAT2 charFormat = {};
 	charFormat.cbSize = sizeof(CHARFORMAT2);
-	m_pRichEdit->GetDefaultCharFormat(charFormat);
+	GetCharFormat(charFormat);
 	const size_t fontCount = fontSizeList.size();
 	for (size_t index = 0; index < fontCount; ++index) {
 		LONG lfHeight = ConvertToFontHeight(fontSizeList[index]);
@@ -690,10 +694,10 @@ void MainForm::AdjustFontSize(bool bIncreaseFontSize)
 					int32_t newFontSize = fontSizeList[index + 1];
 					lfHeight = ConvertToFontHeight(newFontSize);
 					charFormat.cbSize = sizeof(CHARFORMAT2);
-					charFormat.dwMask |= CFM_SIZE;
+					charFormat.dwMask = CFM_SIZE;
 					if (charFormat.yHeight != lfHeight) {
 						charFormat.yHeight = lfHeight;
-						m_pRichEdit->SetDefaultCharFormat(charFormat);
+						SetCharFormat(charFormat);
 						UpdateFontSizeStatus();
 					}
 				}
@@ -704,10 +708,10 @@ void MainForm::AdjustFontSize(bool bIncreaseFontSize)
 					int32_t newFontSize = fontSizeList[index - 1];
 					lfHeight = ConvertToFontHeight(newFontSize);
 					charFormat.cbSize = sizeof(CHARFORMAT2);
-					charFormat.dwMask |= CFM_SIZE;
+					charFormat.dwMask = CFM_SIZE;
 					if (charFormat.yHeight != lfHeight) {
 						charFormat.yHeight = lfHeight;
-						m_pRichEdit->SetDefaultCharFormat(charFormat);
+						SetCharFormat(charFormat);
 						UpdateFontSizeStatus();
 					}
 				}
@@ -723,16 +727,15 @@ void MainForm::SetFontBold(bool bBold)
 		return;
 	}
 	CHARFORMAT2 charFormat = {};
-	charFormat.cbSize = sizeof(CHARFORMAT2);
-	m_pRichEdit->GetDefaultCharFormat(charFormat);
-	charFormat.dwMask |= CFM_BOLD;
+	GetCharFormat(charFormat);
+	charFormat.dwMask = CFM_BOLD;
 	if (bBold) {
 		charFormat.dwEffects |= CFE_BOLD;
 	}
 	else {
 		charFormat.dwEffects &= ~CFE_BOLD;
 	}	
-	m_pRichEdit->SetDefaultCharFormat(charFormat);
+	SetCharFormat(charFormat);
 }
 
 void MainForm::SetFontItalic(bool bItalic)
@@ -741,16 +744,15 @@ void MainForm::SetFontItalic(bool bItalic)
 		return;
 	}
 	CHARFORMAT2 charFormat = {};
-	charFormat.cbSize = sizeof(CHARFORMAT2);
-	m_pRichEdit->GetDefaultCharFormat(charFormat);
-	charFormat.dwMask |= CFM_ITALIC;
+	GetCharFormat(charFormat);
+	charFormat.dwMask = CFM_ITALIC;
 	if (bItalic) {
 		charFormat.dwEffects |= CFE_ITALIC;
 	}
 	else {
 		charFormat.dwEffects &= ~CFE_ITALIC;
 	}
-	m_pRichEdit->SetDefaultCharFormat(charFormat);
+	SetCharFormat(charFormat);
 }
 
 void MainForm::SetFontUnderline(bool bUnderline)
@@ -759,16 +761,15 @@ void MainForm::SetFontUnderline(bool bUnderline)
 		return;
 	}
 	CHARFORMAT2 charFormat = {};
-	charFormat.cbSize = sizeof(CHARFORMAT2);
-	m_pRichEdit->GetDefaultCharFormat(charFormat);
-	charFormat.dwMask |= CFM_UNDERLINE;
+	GetCharFormat(charFormat);
+	charFormat.dwMask = CFM_UNDERLINE;
 	if (bUnderline) {
 		charFormat.dwEffects |= CFE_UNDERLINE;
 	}
 	else {
 		charFormat.dwEffects &= ~CFE_UNDERLINE;
 	}
-	m_pRichEdit->SetDefaultCharFormat(charFormat);
+	SetCharFormat(charFormat);
 }
 
 void MainForm::SetFontStrikeOut(bool bStrikeOut)
@@ -777,16 +778,15 @@ void MainForm::SetFontStrikeOut(bool bStrikeOut)
 		return;
 	}
 	CHARFORMAT2 charFormat = {};
-	charFormat.cbSize = sizeof(CHARFORMAT2);
-	m_pRichEdit->GetDefaultCharFormat(charFormat);
-	charFormat.dwMask |= CFM_STRIKEOUT;
+	GetCharFormat(charFormat);
+	charFormat.dwMask = CFM_STRIKEOUT;
 	if (bStrikeOut) {
 		charFormat.dwEffects |= CFE_STRIKEOUT;
 	}
 	else {
 		charFormat.dwEffects &= ~CFE_STRIKEOUT;
 	}
-	m_pRichEdit->SetDefaultCharFormat(charFormat);
+	SetCharFormat(charFormat);
 }
 
 LRESULT MainForm::OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
@@ -1186,7 +1186,7 @@ bool MainForm::GetRichEditLogFont(LOGFONT& lf) const
 	}
 
 	CHARFORMAT2 cf = {};
-	pRichEdit->GetDefaultCharFormat(cf);
+	GetCharFormat(cf);
 
 	if (cf.dwMask & CFM_SIZE) {
 		lf.lfHeight = -MulDiv(cf.yHeight, ::GetDeviceCaps(pRichEdit->GetWindowDC(), LOGPIXELSY), LY_PER_INCH);
@@ -1271,7 +1271,7 @@ void MainForm::OnSetFont()
 		return;
 	}
 	//文本颜色
-	ui::UiColor textColor = pRichEdit->GetTextColorValue();
+	ui::UiColor textColor = pRichEdit->GetUiColor(pRichEdit->GetTextColor());
 
 	LOGFONT logFont = {};
 	GetRichEditLogFont(logFont);
@@ -1308,15 +1308,14 @@ void MainForm::OnSetFont()
 
 		//设置RichEdit字体
 		CHARFORMAT2 charFormat = {};
-		charFormat.cbSize = sizeof(CHARFORMAT2);
-		pRichEdit->GetDefaultCharFormat(charFormat);
+		GetCharFormat(charFormat);
 		InitCharFormat(lf, charFormat);
-		pRichEdit->SetDefaultCharFormat(charFormat);
 
 		//设置字体颜色
-		textColor.SetFromCOLORREF(cf.rgbColors);
-		std::wstring textColorString = ui::StringHelper::Printf(L"#%02X%02X%02X%02X", textColor.GetA(), textColor.GetR(), textColor.GetG(), textColor.GetB());
-		pRichEdit->SetTextColor(textColorString);
+		charFormat.dwMask |= CFM_COLOR;
+		charFormat.crTextColor = cf.rgbColors;
+
+		SetCharFormat(charFormat);
 	}
 
 	//更新字体按钮的状态
@@ -1364,5 +1363,35 @@ void MainForm::UpdateZoomValue()
 		}
 		std::wstring strZoom = ui::StringHelper::Printf(L"%.01f%%", zoomValue / 10.0);
 		pZoomLabel->SetText(strZoom);
+	}
+}
+
+void MainForm::GetCharFormat(CHARFORMAT2& charFormat) const
+{
+	charFormat = {};
+	charFormat.cbSize = sizeof(CHARFORMAT2);
+	ui::RichEdit* pRichEdit = GetRichEdit();
+	ASSERT(pRichEdit != nullptr);
+	if (pRichEdit != nullptr) {
+		if (pRichEdit->IsRichText()) {
+			pRichEdit->GetSelectionCharFormat(charFormat);
+		}
+		else {
+			pRichEdit->GetDefaultCharFormat(charFormat);
+		}
+	}
+}
+
+void MainForm::SetCharFormat(CHARFORMAT2& charFormat)
+{
+	ui::RichEdit* pRichEdit = GetRichEdit();
+	ASSERT(pRichEdit != nullptr);
+	if (pRichEdit != nullptr) {
+		if (pRichEdit->IsRichText()) {
+			pRichEdit->SetSelectionCharFormat(charFormat);
+		}
+		else {
+			pRichEdit->SetDefaultCharFormat(charFormat);
+		}
 	}
 }

@@ -52,15 +52,16 @@ public:
 	 */
     void SetReturnMsgWantCtrl(bool bReturnMsgWantCtrl = true);
 
-	/** 是否是富文本状态
-	 * @return 返回 true 为是，否则为 false
+	/** 是否是富文本模式
+	 * @return 返回 true 为富文本模式：支持丰富的文本格式，支持RTF格式
+	           返回 false 为纯文本模式：纯文本控件中的文本只能有一种格式
 	 */
     bool IsRichText();
 
-	/** 设置控件为富文本编辑状态
-	 * @param[in] bRich 设置 true 为富文本状态，false 为普通状态
+	/** 设置控件为富文本模式
+	 * @param[in] bRichText 设置 true 为富文本模式，false 为纯文本模式
 	 */
-    void SetRichText(bool bRich = true);
+    void SetRichText(bool bRichText = true);
 
 	/** 是否是只读状态
 	 * @return 返回 true 为只读状态，否则为 false
@@ -138,16 +139,23 @@ public:
 	 */
 	void SetFontId(const std::wstring& strFontId);
 
-	/** 设置文本颜色
-	 * @param[in] dwTextColor 要设置的文本颜色，该颜色必须在 global.xml 中存在
+	/** 设置正常文本颜色
+	 * @param[in] dwTextColor 要设置的文本颜色，该颜色可在 global.xml 中存在
 	 */
-	virtual void SetTextColor(const std::wstring& dwTextColor);
+	void SetTextColor(const std::wstring& dwTextColor);
 
-	/** 获取文本颜色
-	 * @return 返回当前文本颜色
+	/** 获取正常文本颜色
 	 */
-	std::wstring GetTextColor();
-	UiColor GetTextColorValue();
+	std::wstring GetTextColor() const;
+
+	/** 设置Disabled状态的文本颜色
+	 * @param[in] dwTextColor 要设置的文本颜色，该颜色可在 global.xml 中存在
+	 */
+	void SetDisabledTextColor(const std::wstring& dwTextColor);
+
+	/** 获取Disabled状态的文本颜色
+	 */
+	std::wstring GetDisabledTextColor() const;
 
 	/** 获取限制字符数量
 	 * @return 返回限制字符数量
@@ -779,6 +787,11 @@ public:
 	 */
 	void AttachTextChange(const EventCallback& callback) { AttachEvent(kEventTextChange, callback); }
 
+	/* 监听文本选择变化事件
+	 * @param[in] callback 文本选择变化后的自定义回调函数
+	 */
+	void AttachSelChange(const EventCallback& callback);
+
 	/** 监听自定义链接被点击事件
 	 * @param[in] callback 自定义链接被点击后的自定义回调函数
 	 */
@@ -873,16 +886,7 @@ protected:
 	int  m_iCaretWidth;		 //光标宽度
 	int  m_iCaretHeight;	 //光标高度
 	UiString m_sCaretColor;  //光标颜色
-	UiString m_sFontId;		 //字体ID
 	
-	UiString m_sCurrentColor;		 //当前文本颜色（即RichEdit目前的文本颜色）
-	UiString m_sTextColor;			 //正常文本颜色
-	UiString m_sDisabledTextColor;	 //Disabled状态的文本颜色
-	
-	bool m_bAllowPrompt;			 //是否支持提示文字
-	UiString m_sPromptColor;		 //提示文字颜色
-	UiString m_sPromptText;			 //提示文本内容（只有编辑框为空的时候显示）
-	UiString m_sPromptTextId;		 //提示文字ID
 	nbase::WeakCallbackFlag m_drawCaretFlag;	 //绘制光标的定时器生命周期
 	std::weak_ptr<nbase::WeakFlag> m_windowFlag; //记录所属窗体的flag
 	
@@ -898,6 +902,16 @@ protected:
 	};
 	std::map<UINT, nbase::WeakCallbackFlag> m_timeFlagMap;
 	std::vector<LinkInfo> m_linkInfo;
+
+private:
+	UiString m_sFontId;				 //字体ID
+	UiString m_sTextColor;			 //正常文本颜色
+	UiString m_sDisabledTextColor;	 //Disabled状态的文本颜色
+
+	bool m_bAllowPrompt;			 //是否支持提示文字
+	UiString m_sPromptColor;		 //提示文字颜色
+	UiString m_sPromptText;			 //提示文本内容（只有编辑框为空的时候显示）
+	UiString m_sPromptTextId;		 //提示文字ID
 
 private:
 	/** 获取焦点时，显示的图片

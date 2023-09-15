@@ -139,6 +139,14 @@ private://设置字体相关
 	//将字体大小转换成Rich Edit控件的字体高度
 	int32_t ConvertToFontHeight(int32_t fontSize) const;
 
+	/** 获取RichEdit控件的字符格式
+	*/
+	void GetCharFormat(CHARFORMAT2& charFormat) const;
+
+	/** 设置RichEdit控件的字符格式
+	*/
+	void SetCharFormat(CHARFORMAT2& charFormat);
+
 private:
 	//更新缩放比例
 	void UpdateZoomValue();

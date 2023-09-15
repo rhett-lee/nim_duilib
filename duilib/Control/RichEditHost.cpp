@@ -88,9 +88,18 @@ void RichEditHost::Init()
 
 	//设置字体颜色
 	if (pRichEdit != nullptr) {
-		UiColor dwColor = pRichEdit->GetTextColorValue();
-		m_charFormat.dwMask |= CFM_COLOR;
-		m_charFormat.crTextColor = dwColor.ToCOLORREF();
+		std::wstring textColor;
+		if (pRichEdit->IsEnabled()) {
+			textColor = pRichEdit->GetTextColor();
+		}
+		else {
+			textColor = pRichEdit->GetDisabledTextColor();
+		}
+		if (!textColor.empty()) {
+			UiColor dwColor = pRichEdit->GetUiColor(textColor);
+			m_charFormat.dwMask |= CFM_COLOR;
+			m_charFormat.crTextColor = dwColor.ToCOLORREF();
+		}
 	}
 
 	//初始化默认段落格式
@@ -104,16 +113,22 @@ void RichEditHost::Init()
 	IUnknown* pUnk = nullptr;
 	HRESULT hr = E_FAIL;
 
-	//默认为多行文本
-	m_dwStyle = UI_ES_MULTILINE;
+	//默认为单行文本
+	m_dwStyle = 0;
+
+	//默认开启：当用户在最后一行按 ENTER 时，自动将文本向上滚动一页。
+	m_dwStyle |= UI_ES_AUTOVSCROLL;
+
+	//默认开启：当用户在行尾键入一个字符时，自动将文本向右滚动 10 个字符。
+	m_dwStyle |= UI_ES_AUTOHSCROLL;
+
 	//自动选择单词
 	m_fEnableAutoWordSel = true;
 	//自动换行
 	m_fWordWrap = true;
+	//默认为纯文本模式
+	m_fRichText = false;
 
-	if (pRichEdit != nullptr) {
-		m_fRichText = pRichEdit->IsRichText();
-	}
 	m_fInplaceActive = true;
 
 	PCreateTextServices pfnTextServicesProc = nullptr;
@@ -601,7 +616,7 @@ HRESULT RichEditHost::TxGetPropertyBits(DWORD dwMask, DWORD* pdwBits)
 
 	if (m_fRichText) {
 		//RichText
-		dwProperties = TXTBIT_RICHTEXT;
+		dwProperties |= TXTBIT_RICHTEXT;
 	}
 
 	if (m_dwStyle & UI_ES_MULTILINE) {
@@ -1180,6 +1195,7 @@ void RichEditHost::InitCharFormat(const LOGFONT& lf)
 	}
 	LONG lfHeight = lf.lfHeight * LY_PER_INCH / yPixPerInch;
 
+	m_charFormat = {0, };
 	m_charFormat.cbSize = sizeof(CHARFORMAT2W);
 	m_charFormat.dwMask = CFM_SIZE | CFM_OFFSET | CFM_FACE | CFM_CHARSET | CFM_BOLD | CFM_ITALIC | CFM_UNDERLINE | CFM_STRIKEOUT;
 	m_charFormat.yHeight = -lfHeight;
