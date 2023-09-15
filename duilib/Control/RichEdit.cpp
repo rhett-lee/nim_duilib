@@ -12,6 +12,7 @@
 #include "duilib/Render/AutoClip.h"
 #include "duilib/Animation/AnimationManager.h"
 #include "duilib/Animation/AnimationPlayer.h"
+#include "duilib/Control/Menu.h"
 #include "base/win32/path_util.h"
 #include "base/thread/thread_manager.h"
 
@@ -46,7 +47,8 @@ RichEdit::RichEdit() :
 	m_linkInfo(),
 	m_pFocusedImage(nullptr),
 	m_bUseControlCursor(false),
-	m_bEnableWheelZoom(false)
+	m_bEnableWheelZoom(false),
+	m_bEnableDefaultContextMenu(false)
 {
 	//这个标记必须为false，否则绘制有问题
 	SetUseCache(false);
@@ -271,6 +273,10 @@ void RichEdit::SetAttribute(const std::wstring& strName, const std::wstring& str
 	else if (strName == L"wheel_zoom") {
 		//设置是否允许Ctrl + 滚轮来调整缩放比例
 		SetEnableWheelZoom(strValue == L"true");
+	}
+	else if (strName == L"default_context_menu") {
+		//指定右键菜单的开关
+		SetEnableDefaultContextMenu(strValue == L"true");
 	}
 	else {
 		Box::SetAttribute(strName, strValue);
@@ -800,9 +806,19 @@ bool RichEdit::SetParaFormat(PARAFORMAT2 &pf)
 	return false;
 }
 
+bool RichEdit::CanRedo() const
+{
+	return m_richCtrl.CanRedo();
+}
+
 bool RichEdit::Redo()
 {
 	return m_richCtrl.Redo();
+}
+
+bool RichEdit::CanUndo() const
+{
+	return m_richCtrl.CanUndo();
 }
 
 bool RichEdit::Undo()
@@ -2315,6 +2331,162 @@ void RichEdit::SetEnableWheelZoom(bool bEnable)
 bool RichEdit::IsEnableWheelZoom(void) const
 {
 	return m_bEnableWheelZoom;
+}
+
+void RichEdit::SetEnableDefaultContextMenu(bool bEnable)
+{
+	if (m_bEnableDefaultContextMenu != bEnable) {
+		m_bEnableDefaultContextMenu = bEnable;
+		if (bEnable) {
+			AttachMenu([this](const ui::EventArgs& args) {
+				if (args.Type == ui::kEventMouseMenu) {
+					ui::UiPoint pt = args.ptMouse;
+					if ((pt.x != -1) && (pt.y != -1)) {
+						//鼠标右键点击产生的上下文菜单						
+						ShowPopupMenu(pt);
+					}
+					else {
+						//按Shift + F10，由系统产生上下文菜单
+						pt = { 100, 100 };
+						ShowPopupMenu(pt);
+					}
+				}
+				return true;
+				});
+		}
+		else {
+			DetachEvent(kEventMouseMenu);
+		}
+	}
+}
+
+bool RichEdit::IsEnableDefaultContextMenu() const
+{
+	return m_bEnableDefaultContextMenu;
+}
+
+void RichEdit::ShowPopupMenu(const ui::UiPoint& point)
+{
+	RichEdit* pRichEdit = this;
+	if ((pRichEdit == nullptr) || !pRichEdit->IsEnabled() || pRichEdit->IsPassword()) {
+		return;
+	}
+
+	//如果没有选中文本，则将光标切换到当前点击的位置
+	long nStartChar = 0; 
+	long nEndChar = 0;
+	pRichEdit->GetSel(nStartChar, nEndChar);
+	if (nStartChar == nEndChar) {
+		int32_t pos = pRichEdit->m_richCtrl.CharFromPos(POINT(point.x, point.y));
+		if (pos > 0) {
+			pRichEdit->SetSel(pos, pos);
+			pRichEdit->GetSel(nStartChar, nEndChar);
+		}
+	}
+	
+	std::wstring skinFolder = L"public/menu/";
+	HWND hParent = nullptr;
+	Window* pWindow = GetWindow();
+	if (pWindow != nullptr) {
+		hParent = pWindow->GetHWND();
+	}	
+	CMenuWnd* menu = new CMenuWnd(hParent);//需要设置父窗口，否在菜单弹出的时候，程序状态栏编程非激活状态
+	menu->SetSkinFolder(skinFolder);
+	std::wstring xml(L"rich_edit_menu.xml");
+
+	//菜单弹出位置的坐标应为屏幕坐标
+	UiPoint pt = point;
+	ClientToScreen(pt);
+	menu->ShowMenu(xml, pt);
+
+	ui::CMenuElementUI* menu_item = nullptr;
+	//更新命令状态，并添加菜单命令响应
+	bool hasSelText = nEndChar > nStartChar ? true : false;
+	menu_item = dynamic_cast<ui::CMenuElementUI*>(menu->FindControl(L"edit_menu_copy"));
+	if (menu_item != nullptr) {
+		if (!hasSelText) {
+			menu_item->SetEnabled(false);
+		}
+		menu_item->AttachClick([pRichEdit](const ui::EventArgs& args) {
+			pRichEdit->Copy();
+			return true;
+			});
+	}
+	menu_item = dynamic_cast<ui::CMenuElementUI*>(menu->FindControl(L"edit_menu_cut"));
+	if (menu_item != nullptr) {
+		if (!hasSelText) {
+			menu_item->SetEnabled(false);
+		}
+		else if (pRichEdit->IsReadOnly()) {
+			menu_item->SetEnabled(false);
+		}
+		menu_item->AttachClick([pRichEdit](const ui::EventArgs& args) {
+			pRichEdit->Cut();
+			return true;
+			});
+	}
+	menu_item = dynamic_cast<ui::CMenuElementUI*>(menu->FindControl(L"edit_menu_paste"));
+	if (menu_item != nullptr) {
+		if (!pRichEdit->CanPaste()) {
+			menu_item->SetEnabled(false);
+		}
+		else if (pRichEdit->IsReadOnly()) {
+			menu_item->SetEnabled(false);
+		}
+		menu_item->AttachClick([pRichEdit](const ui::EventArgs& args) {
+			pRichEdit->Paste();
+			return true;
+			});
+	}
+	menu_item = dynamic_cast<ui::CMenuElementUI*>(menu->FindControl(L"edit_menu_del"));
+	if (menu_item != nullptr) {
+		if (!hasSelText) {
+			menu_item->SetEnabled(false);
+		}
+		else if (pRichEdit->IsReadOnly()) {
+			menu_item->SetEnabled(false);
+		}
+		menu_item->AttachClick([pRichEdit](const ui::EventArgs& args) {
+			pRichEdit->Clear();
+			return true;
+			});
+	}
+	menu_item = dynamic_cast<ui::CMenuElementUI*>(menu->FindControl(L"edit_menu_sel_all"));
+	if (menu_item != nullptr) {
+		if ((nStartChar == 0) && (nEndChar == pRichEdit->GetTextLength())) {
+			menu_item->SetEnabled(false);
+		}
+		menu_item->AttachClick([pRichEdit](const ui::EventArgs& args) {
+			pRichEdit->SetSelAll();
+			return true;
+			});
+	}
+	menu_item = dynamic_cast<ui::CMenuElementUI*>(menu->FindControl(L"edit_menu_undo"));
+	if (menu_item != nullptr) {
+		if (!pRichEdit->CanUndo()) {
+			menu_item->SetEnabled(false);
+		}
+		else if (pRichEdit->IsReadOnly()) {
+			menu_item->SetEnabled(false);
+		}
+		menu_item->AttachClick([pRichEdit](const ui::EventArgs& args) {
+			pRichEdit->Undo();
+			return true;
+			});
+	}
+	menu_item = dynamic_cast<ui::CMenuElementUI*>(menu->FindControl(L"edit_menu_redo"));
+	if (menu_item != nullptr) {
+		if (!pRichEdit->CanRedo()) {
+			menu_item->SetEnabled(false);
+		}
+		else if (pRichEdit->IsReadOnly()) {
+			menu_item->SetEnabled(false);
+		}
+		menu_item->AttachClick([pRichEdit](const ui::EventArgs& args) {
+			pRichEdit->Redo();
+			return true;
+			});
+	}
 }
 
 } // namespace ui

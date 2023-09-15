@@ -392,10 +392,18 @@ public:
 	 */
     bool SetParaFormat(PARAFORMAT2 &pf);
 
-	/** 恢复操作
+	/** 是否可以Redo
+	*/
+	bool CanRedo() const;
+
+	/** 重做操作
 	 * @return 成功返回 true，失败返回 false
 	 */
     bool Redo();
+
+	/** 是否可撤销
+	*/
+	bool CanUndo() const;
 
 	/** 撤销操作
 	 * @return 成功返回 true，失败返回 false
@@ -775,6 +783,14 @@ public:
 	*/
 	bool IsEnableWheelZoom(void) const;
 
+	/** 是否允许使用默认的右键菜单
+	*/
+	void SetEnableDefaultContextMenu(bool bEnable);
+
+	/** 是否允许使用默认的右键菜单
+	*/
+	bool IsEnableDefaultContextMenu() const;
+
 	/** 监听回车按键按下事件
 	 * @param[in] callback 回车被按下的自定义回调函数
 	 */
@@ -849,6 +865,11 @@ protected:
 
 	virtual void Paint(IRender* pRender, const UiRect& rcPaint) override;
 	virtual void PaintChild(IRender* pRender, const UiRect& rcPaint) override;
+
+	/** 显示RichEdit上的菜单
+	* @param [in] point 客户区的坐标
+	*/
+	void ShowPopupMenu(const ui::UiPoint& point);
 
 private:
 	//判断是否是字节： 可打印字符（0x20-0x7e）
@@ -937,6 +958,10 @@ private:
 	/** 是否允许通过Ctrl + 滚轮来调整缩放比例
 	*/
 	bool m_bEnableWheelZoom;
+
+	/** 是否允许使用默认的右键菜单
+	*/
+	bool m_bEnableDefaultContextMenu;
 };
 
 } // namespace ui

@@ -125,7 +125,7 @@ void RichEditHost::Init()
 	//自动选择单词
 	m_fEnableAutoWordSel = true;
 	//自动换行
-	m_fWordWrap = true;
+	m_fWordWrap = false;
 	//默认为纯文本模式
 	m_fRichText = false;
 

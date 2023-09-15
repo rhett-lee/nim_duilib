@@ -51,7 +51,7 @@
                 <GroupVBox margin="6,6,6,6" text="基本功能" height="auto" corner_size="4,4">
                     <HBox height="36" margin="8,16,8,0">
                         <Label text="单行编辑:  " valign="center"/>
-                        <RichEdit class="simple simple_border" text="RichEdit: simple" valign="center" text_align="vcenter" text_padding="2,0,0,0" bkcolor="white" margin="4,6,4,4"/>
+                        <RichEdit class="simple simple_border" text="RichEdit: simple" default_context_menu="true" valign="center" text_align="vcenter" text_padding="2,0,0,0" bkcolor="white" margin="4,6,4,4"/>
                     </HBox>
                     <HBox height="44" margin="8,0,8,0">
                         <Label text="单行编辑:  " valign="center"/>
@@ -170,7 +170,7 @@
                 <!-- 横向分割条，用于调整上下区域大小 -->
                 <Split bkcolor="splitline_level1" height="2"/>
                 <HBox bkcolor="Pink" border_size="1" border_color="blue" minwidth="60">
-                    <RichEdit name="rich_edit" zoom="0,0" wheel_zoom="true" multi_line="true" rich_text="false" save_selection="true" hide_selection="false" word_wrap="true" vscrollbar="true" auto_vscroll="true" bkcolor="white"/>
+                    <RichEdit name="rich_edit" zoom="0,0" wheel_zoom="true" multi_line="true" word_wrap="true" rich_text="false" default_context_menu="true" save_selection="true" hide_selection="false" word_wrap="true" vscrollbar="true" auto_vscroll="true" bkcolor="white"/>
                 </HBox>
             </VBox>
         </HBox>
