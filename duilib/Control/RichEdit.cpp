@@ -45,7 +45,8 @@ RichEdit::RichEdit() :
 	m_timeFlagMap(),
 	m_linkInfo(),
 	m_pFocusedImage(nullptr),
-	m_bUseControlCursor(false)
+	m_bUseControlCursor(false),
+	m_bEnableWheelZoom(false)
 {
 	//这个标记必须为false，否则绘制有问题
 	SetUseCache(false);
@@ -66,6 +67,213 @@ RichEdit::~RichEdit()
 	if (m_pFocusedImage != nullptr) {
 		delete m_pFocusedImage;
 		m_pFocusedImage = nullptr;
+	}
+}
+
+void RichEdit::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
+{
+	if (strName == L"vscrollbar") {
+		//纵向滚动条
+		if (strValue == L"true") {
+			EnableScrollBar(true, GetHScrollBar() != NULL);
+			if (m_pRichHost != nullptr) {
+				m_pRichHost->SetVScrollBar(true);
+			}
+		}
+		else {
+			EnableScrollBar(false, GetHScrollBar() != NULL);
+			if (m_pRichHost != nullptr) {
+				m_pRichHost->SetVScrollBar(false);
+			}
+		}
+	}
+	else if (strName == L"hscrollbar") {
+		//横向滚动条
+		if (strValue == L"true") {
+			EnableScrollBar(GetVScrollBar() != NULL, true);
+			if (m_pRichHost != nullptr) {
+				m_pRichHost->SetHScrollBar(true);
+			}
+		}
+		else {
+			EnableScrollBar(GetVScrollBar() != NULL, false);
+			if (m_pRichHost != nullptr) {
+				m_pRichHost->SetHScrollBar(false);
+			}
+		}
+	}
+	else if ((strName == L"auto_vscroll") || (strName == L"autovscroll")) {
+		//当用户在最后一行按 ENTER 时，自动将文本向上滚动一页。
+		if (m_pRichHost != nullptr) {
+			m_pRichHost->SetAutoVScroll(strValue == L"true");
+		}
+	}
+	else if ((strName == L"auto_hscroll") || (strName == L"autohscroll")) {
+		//当用户在行尾键入一个字符时，自动将文本向右滚动 10 个字符。
+		//当用户按 Enter 时，控件会将所有文本滚动回零位置。
+		if (m_pRichHost != nullptr) {
+			m_pRichHost->SetAutoHScroll(strValue == L"true");
+		}
+	}
+	else if ((strName == L"single_line") || (strName == L"singleline")) {
+		SetMultiLine(strValue != L"true");
+	}
+	else if ((strName == L"multi_line") || (strName == L"multiline")) {
+		SetMultiLine(strValue == L"true");
+	}
+	else if (strName == L"readonly") {
+		SetReadOnly(strValue == L"true");
+	}
+	else if (strName == L"password") {
+		SetPassword(strValue == L"true");
+	}
+	else if (strName == L"show_password") {
+		SetShowPassword(strValue == L"true");
+	}
+	else if (strName == L"password_char") {
+		if (!strValue.empty()) {
+			SetPasswordChar(strValue.front());
+		}
+	}
+	else if (strName == L"flash_password_char") {
+		SetFlashPasswordChar(strValue == L"true");
+	}
+	else if (strName == L"number") {
+		SetNumberOnly(strValue == L"true");
+	}
+	else if (strName == L"text_align") {
+		if (strValue.find(L"left") != std::wstring::npos) {
+			if (m_pRichHost != nullptr) {
+				m_pRichHost->SetHAlignType(kHorAlignLeft);
+			}
+		}
+		if (strValue.find(L"right") != std::wstring::npos) {
+			if (m_pRichHost != nullptr) {
+				m_pRichHost->SetHAlignType(kHorAlignRight);
+			}
+		}
+		if (strValue.find(L"hcenter") != std::wstring::npos) {
+			if (m_pRichHost != nullptr) {
+				m_pRichHost->SetHAlignType(kHorAlignCenter);
+			}
+		}
+
+		if (strValue.find(L"top") != std::wstring::npos) {
+			if (m_pRichHost != nullptr) {
+				m_pRichHost->SetVAlignType(kVerAlignTop);
+			}
+		}
+		if (strValue.find(L"bottom") != std::wstring::npos) {
+			if (m_pRichHost != nullptr) {
+				m_pRichHost->SetVAlignType(kVerAlignBottom);
+			}
+		}
+		if (strValue.find(L"vcenter") != std::wstring::npos) {
+			if (m_pRichHost != nullptr) {
+				m_pRichHost->SetVAlignType(kVerAlignCenter);
+			}
+		}
+	}
+	else if ((strName == L"text_padding") || (strName == L"textpadding")) {
+		UiPadding rcTextPadding;
+		AttributeUtil::ParsePaddingValue(strValue.c_str(), rcTextPadding);
+		SetTextPadding(rcTextPadding);
+	}
+	else if ((strName == L"normal_text_color") || (strName == L"normaltextcolor")) {
+		SetTextColor(strValue);
+	}
+	else if ((strName == L"disabled_text_color") || (strName == L"disabledtextcolor")) {
+		SetDisabledTextColor(strValue);
+	}
+	else if ((strName == L"caret_color") || (strName == L"caretcolor")) {
+		//设置光标的颜色
+		SetCaretColor(strValue);
+	}
+	else if ((strName == L"prompt_mode") || (strName == L"promptmode")) {
+		//提示模式
+		m_bAllowPrompt = (strValue == L"true") ? true : false;
+	}
+	else if ((strName == L"prompt_color") || (strName == L"promptcolor")) {
+		//提示文字的颜色
+		m_sPromptColor = strValue;
+	}
+	else if ((strName == L"prompt_text") || (strName == L"prompttext")) {
+		//提示文字
+		SetPromptText(strValue);
+	}
+	else if ((strName == L"prompt_textid") || (strName == L"prompttextid")) {
+		//提示文字ID
+		SetPromptTextId(strValue);
+	}
+	else if ((strName == L"focused_image") || (strName == L"focusedimage")) {
+		SetFocusedImage(strValue);
+	}
+	else if (strName == L"font") {
+		SetFontId(strValue);
+	}
+	else if (strName == L"text") {
+		SetText(strValue);
+	}
+	else if ((strName == L"textid") || (strName == L"textid")) {
+		SetTextId(strValue);
+	}
+	else if ((strName == L"want_tab") || (strName == L"wanttab")) {
+		SetWantTab(strValue == L"true");
+	}
+	else if ((strName == L"want_return_msg") || (strName == L"wantreturnmsg")) {
+		SetNeedReturnMsg(strValue == L"true");
+	}
+	else if ((strName == L"return_msg_want_ctrl") || (strName == L"returnmsgwantctrl")) {
+		SetReturnMsgWantCtrl(strValue == L"true");
+	}
+	else if ((strName == L"rich_text") || (strName == L"rich")) {
+		//是否为富文本属性
+		SetRichText(strValue == L"true");
+	}
+	else if (strName == L"auto_detect_url") {
+		//是否自动检测URL，如果是URL则显示为超链接
+		SetAutoURLDetect(strValue == L"true");
+	}
+	else if ((strName == L"max_char") || (strName == L"maxchar")) {
+		//限制最多字符数（默认为32KB）
+		SetLimitText(_wtoi(strValue.c_str()));
+	}
+	else if (strName == L"allow_beep") {
+		//是否允许发出Beep声音
+		SetAllowBeep(strValue == L"true");
+	}
+	else if (strName == L"word_wrap") {
+		//是否自动换行
+		SetWordWrap(strValue == L"true");
+	}
+	else if (strName == L"no_caret_readonly") {
+		//只读模式，不显示光标
+		SetNoCaretReadonly();
+	}
+	else if (strName == L"save_selection") {
+		//如果 为 TRUE，则当控件处于非活动状态时，应保存所选内容的边界。
+		//如果 为 FALSE，则当控件再次处于活动状态时，可以选择边界重置为 start = 0，length = 0。
+		SetSaveSelection(strValue == L"true");
+	}
+	else if (strName == L"hide_selection") {
+		//是否隐藏选项项
+		SetHideSelection(strValue == L"true");
+	}
+	else if (strName == L"zoom") {
+		//缩放比例
+		UiSize zoomValue;
+		AttributeUtil::ParseSizeValue(strValue.c_str(), zoomValue);
+		if ((zoomValue.cx >= 0) && (zoomValue.cx <= 64) &&
+			(zoomValue.cy >= 0) && (zoomValue.cy <= 64)) {
+			m_richCtrl.SetZoom(zoomValue.cx, zoomValue.cy);
+		}
+	}
+	else if (strName == L"wheel_zoom") {
+		//设置是否允许Ctrl + 滚轮来调整缩放比例
+		SetEnableWheelZoom(strValue == L"true");
+	}
+	else {
+		Box::SetAttribute(strName, strValue);
 	}
 }
 
@@ -1242,7 +1450,7 @@ void RichEdit::HandleEvent(const EventArgs& msg)
 	}
 	if (msg.Type == kEventMouseWheel) {
 		uint16_t fwKeys = GET_KEYSTATE_WPARAM(msg.wParam);
-		if (fwKeys & MK_CONTROL) {
+		if ((fwKeys & MK_CONTROL) && IsEnableWheelZoom()) {
 			//Ctrl + 滚轮：缩放功能
 			OnMouseMessage(WM_MOUSEWHEEL, msg);
 			int32_t nNum = 0;
@@ -1598,209 +1806,6 @@ void RichEdit::PaintChild(IRender* pRender, const UiRect& rcPaint)
             pHScrollBar->AlphaPaint(pRender, rcPaint);
         }
     }
-}
-
-void RichEdit::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
-{
-	if (strName == L"vscrollbar") {
-		//纵向滚动条
-		if (strValue == L"true") {
-			EnableScrollBar(true, GetHScrollBar() != NULL);
-			if (m_pRichHost != nullptr) {
-				m_pRichHost->SetVScrollBar(true);
-			}			
-		}
-		else {
-			EnableScrollBar(false, GetHScrollBar() != NULL);
-			if (m_pRichHost != nullptr) {
-				m_pRichHost->SetVScrollBar(false);
-			}			
-		}
-	}
-	else if (strName == L"hscrollbar") {
-		//横向滚动条
-		if (strValue == L"true") {
-			EnableScrollBar(GetVScrollBar() != NULL, true);
-			if (m_pRichHost != nullptr) {
-				m_pRichHost->SetHScrollBar(true);
-			}			
-		}
-		else {
-			EnableScrollBar(GetVScrollBar() != NULL, false);
-			if (m_pRichHost != nullptr) {
-				m_pRichHost->SetHScrollBar(false);
-			}			
-		}
-	}
-	else if ((strName == L"auto_vscroll") || (strName == L"autovscroll")) {
-		//当用户在最后一行按 ENTER 时，自动将文本向上滚动一页。
-		if (m_pRichHost != nullptr) {
-			m_pRichHost->SetAutoVScroll(strValue == L"true");
-		}
-	}
-	else if ((strName == L"auto_hscroll") || (strName == L"autohscroll")){
-		//当用户在行尾键入一个字符时，自动将文本向右滚动 10 个字符。
-		//当用户按 Enter 时，控件会将所有文本滚动回零位置。
-		if (m_pRichHost != nullptr) {
-			m_pRichHost->SetAutoHScroll(strValue == L"true");
-		}
-	}
-	else if ((strName == L"single_line") || (strName == L"singleline")) {
-		SetMultiLine(strValue != L"true");
-	}
-	else if ((strName == L"multi_line") || (strName == L"multiline")) {
-		SetMultiLine(strValue == L"true");
-	}
-	else if (strName == L"readonly") {
-		SetReadOnly(strValue == L"true");
-	}
-	else if (strName == L"password") {
-		SetPassword(strValue == L"true");
-	}
-	else if (strName == L"show_password") {
-		SetShowPassword(strValue == L"true");
-	}
-	else if (strName == L"password_char") {
-		if (!strValue.empty()) {
-			SetPasswordChar(strValue.front());
-		}
-	}
-	else if (strName == L"flash_password_char") {
-		SetFlashPasswordChar(strValue == L"true");
-	}
-	else if (strName == L"number") {
-		SetNumberOnly(strValue == L"true");
-	}
-	else if (strName == L"text_align") {
-		if (strValue.find(L"left") != std::wstring::npos) {
-			if (m_pRichHost != nullptr) {
-				m_pRichHost->SetHAlignType(kHorAlignLeft);
-			}
-		}		
-		if (strValue.find(L"right") != std::wstring::npos) {			
-			if (m_pRichHost != nullptr) {
-				m_pRichHost->SetHAlignType(kHorAlignRight);
-			}
-		}
-		if (strValue.find(L"hcenter") != std::wstring::npos) {
-			if (m_pRichHost != nullptr) {
-				m_pRichHost->SetHAlignType(kHorAlignCenter);
-			}
-		}
-
-		if (strValue.find(L"top") != std::wstring::npos) {
-			if (m_pRichHost != nullptr) {
-				m_pRichHost->SetVAlignType(kVerAlignTop);
-			}
-		}
-		if (strValue.find(L"bottom") != std::wstring::npos) {
-			if (m_pRichHost != nullptr) {
-				m_pRichHost->SetVAlignType(kVerAlignBottom);
-			}
-		}
-		if (strValue.find(L"vcenter") != std::wstring::npos) {
-			if (m_pRichHost != nullptr) {
-				m_pRichHost->SetVAlignType(kVerAlignCenter);
-			}
-		}
-	}
-	else if ((strName == L"text_padding") || (strName == L"textpadding")) {
-		UiPadding rcTextPadding;
-		AttributeUtil::ParsePaddingValue(strValue.c_str(), rcTextPadding);
-		SetTextPadding(rcTextPadding);
-	}
-	else if ((strName == L"normal_text_color") || (strName == L"normaltextcolor")){
-		SetTextColor(strValue);
-	}
-	else if ((strName == L"disabled_text_color") || (strName == L"disabledtextcolor")){
-		SetDisabledTextColor(strValue);
-	}
-	else if ((strName == L"caret_color") || (strName == L"caretcolor")){
-		//设置光标的颜色
-		SetCaretColor(strValue);
-	}
-	else if ((strName == L"prompt_mode") || (strName == L"promptmode")){
-		//提示模式
-		m_bAllowPrompt = (strValue == L"true") ? true : false;
-	}
-	else if ((strName == L"prompt_color") || (strName == L"promptcolor")){
-		//提示文字的颜色
-		m_sPromptColor = strValue;
-	}
-	else if ((strName == L"prompt_text") || (strName == L"prompttext")) {
-		//提示文字
-		SetPromptText(strValue);
-	}
-	else if ((strName == L"prompt_textid") || (strName == L"prompttextid")){
-		//提示文字ID
-		SetPromptTextId(strValue);
-	}
-	else if ((strName == L"focused_image") || (strName == L"focusedimage")){
-		SetFocusedImage(strValue);
-	}
-	else if (strName == L"font") {
-		SetFontId(strValue);
-	}
-	else if (strName == L"text") {
-		SetText(strValue);
-	}
-	else if ((strName == L"textid") || (strName == L"textid")){
-		SetTextId(strValue);
-	}
-	else if ((strName == L"want_tab") || (strName == L"wanttab")){
-		SetWantTab(strValue == L"true");
-	}
-	else if ((strName == L"want_return_msg") || (strName == L"wantreturnmsg")){
-		SetNeedReturnMsg(strValue == L"true");
-	}
-	else if ((strName == L"return_msg_want_ctrl") || (strName == L"returnmsgwantctrl")){
-		SetReturnMsgWantCtrl(strValue == L"true");
-	}
-	else if ((strName == L"rich_text") || (strName == L"rich")) {
-		//是否为富文本属性
-		SetRichText(strValue == L"true");
-	}
-	else if (strName == L"auto_detect_url") {
-		//是否自动检测URL，如果是URL则显示为超链接
-		SetAutoURLDetect(strValue == L"true");
-	}
-	else if ((strName == L"max_char") || (strName == L"maxchar")){
-		//限制最多字符数（默认为32KB）
-		SetLimitText(_wtoi(strValue.c_str()));
-	}
-	else if (strName == L"allow_beep") {
-		//是否允许发出Beep声音
-		SetAllowBeep(strValue == L"true");
-	}
-	else if (strName == L"word_wrap") {
-		//是否自动换行
-		SetWordWrap(strValue == L"true");
-	}
-	else if (strName == L"no_caret_readonly") {
-		//只读模式，不显示光标
-		SetNoCaretReadonly();
-	}
-	else if (strName == L"save_selection") {
-		//如果 为 TRUE，则当控件处于非活动状态时，应保存所选内容的边界。
-		//如果 为 FALSE，则当控件再次处于活动状态时，可以选择边界重置为 start = 0，length = 0。
-		SetSaveSelection(strValue == L"true");
-	}
-	else if (strName == L"hide_selection") {
-		//是否隐藏选项项
-		SetHideSelection(strValue == L"true");
-	}
-	else if (strName == L"zoom") {
-		//缩放比例
-		UiSize zoomValue;
-		AttributeUtil::ParseSizeValue(strValue.c_str(), zoomValue);
-		if ((zoomValue.cx >= 0) && (zoomValue.cx <= 64) &&
-			(zoomValue.cy >= 0) && (zoomValue.cy <= 64) ) {
-			m_richCtrl.SetZoom(zoomValue.cx, zoomValue.cy);
-		}
-	}
-	else {
-		Box::SetAttribute(strName, strValue);
-	}
 }
 
 BOOL RichEdit::CreateCaret(INT xWidth, INT yHeight)
@@ -2300,6 +2305,16 @@ void RichEdit::AttachSelChange(const EventCallback& callback)
 		ASSERT(m_richCtrl.GetEventMask() & ENM_CHANGE);
 		ASSERT(m_richCtrl.GetEventMask() & ENM_LINK);
 	}	
+}
+
+void RichEdit::SetEnableWheelZoom(bool bEnable)
+{
+	m_bEnableWheelZoom = bEnable;
+}
+
+bool RichEdit::IsEnableWheelZoom(void) const
+{
+	return m_bEnableWheelZoom;
 }
 
 } // namespace ui

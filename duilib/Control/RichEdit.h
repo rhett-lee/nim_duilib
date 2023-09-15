@@ -767,6 +767,14 @@ public:
 	*/
 	void SetUseControlCursor(bool bUseControlCursor);
 
+	/** 设置是否允许通过Ctrl + 滚轮来调整缩放比例
+	*/
+	void SetEnableWheelZoom(bool bEnable);
+
+	/** 获取是否允许通过Ctrl + 滚轮来调整缩放比例
+	*/
+	bool IsEnableWheelZoom(void) const;
+
 	/** 监听回车按键按下事件
 	 * @param[in] callback 回车被按下的自定义回调函数
 	 */
@@ -925,6 +933,10 @@ private:
 	/** 是否使用Control设置的光标
 	*/
 	bool m_bUseControlCursor;
+
+	/** 是否允许通过Ctrl + 滚轮来调整缩放比例
+	*/
+	bool m_bEnableWheelZoom;
 };
 
 } // namespace ui

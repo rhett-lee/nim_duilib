@@ -131,7 +131,7 @@
                         <Button class="btn_global_white_80x30" name="btn_sel_all" width="100" height="28" text="全选(Ctrl+A)" borderround="2,2" valign="center" margin="4,0,8,0"/>
                         <Button class="btn_global_white_80x30" name="btn_sel_none" width="100" height="28" text="取消选择" borderround="2,2" valign="center" margin="4,0,8,0"/>
                         <Button class="btn_global_white_80x30" name="btn_undo" width="100" height="28" text="撤销(Ctrl+Z)" borderround="2,2" valign="center" margin="4,0,4,0"/>
-                        <Button class="btn_global_white_80x30" name="btn_redo" width="100" height="28" text="恢复(Ctrl+Y)" borderround="2,2" valign="center" margin="4,0,4,0"/>
+                        <Button class="btn_global_white_80x30" name="btn_redo" width="100" height="28" text="重做(Ctrl+Y)" borderround="2,2" valign="center" margin="4,0,4,0"/>
                     </HBox>
                     <HBox height="auto" margin="0,2,2,0">
                         <Label text="查找：" valign="center" margin="8,0,8,0"/>
@@ -170,7 +170,7 @@
                 <!-- 横向分割条，用于调整上下区域大小 -->
                 <Split bkcolor="splitline_level1" height="2"/>
                 <HBox bkcolor="Pink" border_size="1" border_color="blue" minwidth="60">
-                    <RichEdit name="rich_edit" zoom="0,0" multi_line="true" rich_text="false" save_selection="true" hide_selection="false" word_wrap="true" vscrollbar="true" auto_vscroll="true" bkcolor="white"/>
+                    <RichEdit name="rich_edit" zoom="0,0" wheel_zoom="true" multi_line="true" rich_text="false" save_selection="true" hide_selection="false" word_wrap="true" vscrollbar="true" auto_vscroll="true" bkcolor="white"/>
                 </HBox>
             </VBox>
         </HBox>
