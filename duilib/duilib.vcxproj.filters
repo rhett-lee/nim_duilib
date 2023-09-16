@@ -306,6 +306,12 @@
     <ClCompile Include="Control\CheckCombo.cpp">
       <Filter>Control</Filter>
     </ClCompile>
+    <ClCompile Include="Core\WindowDropTarget.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\ControlDropTarget.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -676,6 +682,12 @@
     </ClInclude>
     <ClInclude Include="Control\CheckCombo.h">
       <Filter>Control</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\WindowDropTarget.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ControlDropTarget.h">
+      <Filter>Core</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

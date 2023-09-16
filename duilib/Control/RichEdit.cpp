@@ -3,6 +3,8 @@
 #include "RichEditCtrl.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/Window.h"
+#include "duilib/Core/WindowDropTarget.h"
+#include "duilib/Core/ControlDropTarget.h"
 #include "duilib/Core/ScrollBar.h"
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Utils/Macros.h"
@@ -17,6 +19,127 @@
 #include "base/thread/thread_manager.h"
 
 namespace ui {
+
+/** 拖放操作接口的实现（仅是拖入操作）
+*/
+class RichEditDropTarget : public ControlDropTarget
+{
+public:
+	RichEditDropTarget(RichEdit* pRichEdit, ITextServices* pTextServices):
+		m_pRichEdit(pRichEdit),
+		m_pTextServices(pTextServices)
+	{
+	}
+
+	//IDropTarget::DragEnter
+	virtual int32_t DragEnter(void* pDataObj, uint32_t grfKeyState, const UiPoint& pt, uint32_t* pdwEffect) override
+	{
+		HRESULT hr = S_FALSE;
+		if (m_pTextServices == nullptr) {
+			return hr;
+		}
+		IDropTarget* pDropTarget = nullptr;
+		HRESULT txResult = m_pTextServices->TxGetDropTarget(&pDropTarget);
+		if (SUCCEEDED(txResult) && (pDropTarget != nullptr)) {
+			DWORD dwEffect = DROPEFFECT_NONE;
+			if (pdwEffect != nullptr) {
+				dwEffect = *pdwEffect;
+			}
+			hr = pDropTarget->DragEnter((IDataObject*)pDataObj, grfKeyState, POINTL(pt.x, pt.y), &dwEffect);
+			if (pdwEffect != nullptr) {
+				*pdwEffect = dwEffect;
+			}
+			pDropTarget->Release();
+		}
+		return hr;
+	}
+
+	//IDropTarget::DragOver
+	virtual int32_t DragOver(uint32_t grfKeyState, const UiPoint& pt, uint32_t* pdwEffect) override
+	{
+		HRESULT hr = S_FALSE;
+		if (m_pTextServices == nullptr) {
+			return hr;
+		}
+		IDropTarget* pDropTarget = nullptr;
+		HRESULT txResult = m_pTextServices->TxGetDropTarget(&pDropTarget);
+		if (SUCCEEDED(txResult) && (pDropTarget != nullptr)) {
+			//设置当前RichEdit控件的光标到鼠标所在位置，方便查看拖放目标位置
+			if (m_pRichEdit != nullptr) {
+				UiPoint clientPt = pt;
+				m_pRichEdit->ScreenToClient(clientPt);
+				if (m_pRichEdit->GetPos().ContainsPt(clientPt)) {					
+					int32_t pos = m_pRichEdit->CharFromPos(clientPt);
+					if (pos >= 0) {
+						UiPoint charPt = m_pRichEdit->PosFromChar(pos);
+						m_pRichEdit->SetCaretPos(charPt.x, charPt.y);
+						m_pRichEdit->ShowCaret(true);
+					}
+				}
+			}
+
+			//转接给文字服务
+			DWORD dwEffect = DROPEFFECT_NONE;
+			if (pdwEffect != nullptr) {
+				dwEffect = *pdwEffect;
+			}
+			hr = pDropTarget->DragOver(grfKeyState, POINTL(pt.x, pt.y), &dwEffect);
+			if (pdwEffect != nullptr) {
+				*pdwEffect = dwEffect;
+			}
+			pDropTarget->Release();
+		}
+		return hr;
+	}
+
+	//IDropTarget::DragLeave
+	virtual int32_t DragLeave(void) override
+	{
+		HRESULT hr = S_FALSE;
+		if (m_pTextServices == nullptr) {
+			return hr;
+		}
+		IDropTarget* pDropTarget = nullptr;
+		HRESULT txResult = m_pTextServices->TxGetDropTarget(&pDropTarget);
+		if (SUCCEEDED(txResult) && (pDropTarget != nullptr)) {
+			hr = pDropTarget->DragLeave();
+			pDropTarget->Release();
+		}
+		return hr;
+	}
+
+	//IDropTarget::Drop
+	virtual int32_t Drop(void* pDataObj, uint32_t grfKeyState, const UiPoint& pt, uint32_t* pdwEffect) override
+	{
+		HRESULT hr = S_FALSE;
+		if (m_pTextServices == nullptr) {
+			return hr;
+		}
+		IDropTarget* pDropTarget = nullptr;
+		HRESULT txResult = m_pTextServices->TxGetDropTarget(&pDropTarget);
+		if (SUCCEEDED(txResult) && (pDropTarget != nullptr)) {
+			DWORD dwEffect = DROPEFFECT_NONE;
+			if (pdwEffect != nullptr) {
+				dwEffect = *pdwEffect;
+			}
+			hr = pDropTarget->Drop((IDataObject*)pDataObj, grfKeyState, POINTL(pt.x, pt.y), &dwEffect);
+			if (pdwEffect != nullptr) {
+				*pdwEffect = dwEffect;
+			}
+			pDropTarget->Release();
+		}
+		return hr;
+	}
+
+private:
+	/** RichEdit接口
+	*/
+	RichEdit* m_pRichEdit;
+
+	/** 文字服务接口
+	*/
+	ITextServices* m_pTextServices;
+};
 
 RichEdit::RichEdit() : 
 	ScrollBox(new Layout),
@@ -48,7 +171,8 @@ RichEdit::RichEdit() :
 	m_pFocusedImage(nullptr),
 	m_bUseControlCursor(false),
 	m_bEnableWheelZoom(false),
-	m_bEnableDefaultContextMenu(false)
+	m_bEnableDefaultContextMenu(false),
+	m_pControlDropTarget(nullptr)
 {
 	//这个标记必须为false，否则绘制有问题
 	SetUseCache(false);
@@ -61,6 +185,11 @@ RichEdit::RichEdit() :
 
 RichEdit::~RichEdit()
 {
+	if (m_pControlDropTarget != nullptr) {
+		UnregisterDragDrop();
+		delete m_pControlDropTarget;
+		m_pControlDropTarget = nullptr;
+	}
     if( m_pRichHost != nullptr) {
 		m_richCtrl.SetTextServices(nullptr);
         m_pRichHost->Release();
@@ -278,8 +407,34 @@ void RichEdit::SetAttribute(const std::wstring& strName, const std::wstring& str
 		//指定右键菜单的开关
 		SetEnableDefaultContextMenu(strValue == L"true");
 	}
+	else if (strName == L"enable_drag_drop") {
+		//是否允许拖放操作
+		SetEnableDragDrop(strValue == L"true");
+	}
 	else {
 		Box::SetAttribute(strName, strValue);
+	}
+}
+
+void RichEdit::SetWindow(Window* pManager, Box* pParent, bool bInit)
+{
+	if (IsEnableDragDrop() && (pManager != GetWindow())) {
+		UnregisterDragDrop();
+	}
+	__super::SetWindow(pManager, pParent, bInit);
+	if (IsEnableDragDrop()) {
+		RegisterDragDrop();
+	}
+}
+
+void RichEdit::SetWindow(Window* pManager)
+{
+	if (IsEnableDragDrop() && (pManager != GetWindow())) {
+		UnregisterDragDrop();
+	}
+	__super::SetWindow(pManager);
+	if (IsEnableDragDrop()) {
+		RegisterDragDrop();
 	}
 }
 
@@ -340,11 +495,12 @@ void RichEdit::SetRichText(bool bRichText)
 	std::wstring text = GetText();
 	if (!text.empty()) {		
 		SetText(L"");
+		m_richCtrl.EmptyUndoBuffer();
 	}
 	m_pRichHost->SetRichText(bRichText);
 	if (!text.empty()) {
 		SetText(text);
-		SetSel(0, 0);
+		SetSel(0, 0);		
 	}
 #ifdef _DEBUG
 	TEXTMODE textMode = bRichText ? TM_RICHTEXT : TM_PLAINTEXT;
@@ -366,6 +522,10 @@ void RichEdit::SetReadOnly(bool bReadOnly)
 	if (m_pRichHost != nullptr) {
 		m_pRichHost->SetReadOnly(bReadOnly);
 	}
+	if (bReadOnly) {
+		//只读模式关闭拖放功能
+		SetEnableDragDrop(false);
+	}
 }
 
 bool RichEdit::IsPassword()
@@ -376,10 +536,14 @@ bool RichEdit::IsPassword()
 	return false;
 }
 
-void RichEdit::SetPassword(bool bPassword )
+void RichEdit::SetPassword(bool bPassword)
 {
 	if (m_pRichHost != nullptr) {
 		m_pRichHost->SetPassword(bPassword);
+	}
+	if (bPassword) {
+		//密码模式关闭拖放功能
+		SetEnableDragDrop(false);
 	}
 }
 
@@ -1089,24 +1253,34 @@ void RichEdit::KillTimer(UINT idTimer)
 	}
 }
 
-void RichEdit::ScreenToClient(UiPoint& pt)
+bool RichEdit::ScreenToClient(UiPoint& pt)
 {
+	bool bRet = false;
 	if (m_pRichHost != nullptr) {
 		POINT point = {pt.x, pt.y};
-		m_pRichHost->TxScreenToClient(&point);
+		bRet = m_pRichHost->TxScreenToClient(&point);
 		pt.x = point.x;
 		pt.y = point.y;
 	}
+	if (!bRet) {
+		bRet = __super::ScreenToClient(pt);
+	}
+	return bRet;
 }
 
-void RichEdit::ClientToScreen(UiPoint& pt)
+bool RichEdit::ClientToScreen(UiPoint& pt)
 {
+	bool bRet = false;
 	if (m_pRichHost != nullptr) {
 		POINT point = { pt.x, pt.y };
-		m_pRichHost->TxClientToScreen(&point);
+		bRet = m_pRichHost->TxClientToScreen(&point);
 		pt.x = point.x;
 		pt.y = point.y;
 	}
+	if (!bRet) {
+		bRet = __super::ClientToScreen(pt);
+	}
+	return bRet;
 }
 
 // 多行非rich格式的richedit有一个滚动条bug，在最后一行是空行时，LineDown和SetScrollPos无法滚动到最后
@@ -1270,6 +1444,8 @@ void RichEdit::SetEnabled(bool bEnable /*= true*/)
 		if (m_pRichHost != nullptr) {
 			m_pRichHost->SetTextColor(dwTextColor.ToCOLORREF());
 		}
+		//不可用的状态关闭拖放功能
+		SetEnableDragDrop(false);
 	}
 }
 
@@ -2407,7 +2583,7 @@ void RichEdit::ShowPopupMenu(const ui::UiPoint& point)
 		if (!hasSelText) {
 			menu_item->SetEnabled(false);
 		}
-		menu_item->AttachClick([pRichEdit](const ui::EventArgs& args) {
+		menu_item->AttachClick([pRichEdit](const ui::EventArgs& /*args*/) {
 			pRichEdit->Copy();
 			return true;
 			});
@@ -2420,7 +2596,7 @@ void RichEdit::ShowPopupMenu(const ui::UiPoint& point)
 		else if (pRichEdit->IsReadOnly()) {
 			menu_item->SetEnabled(false);
 		}
-		menu_item->AttachClick([pRichEdit](const ui::EventArgs& args) {
+		menu_item->AttachClick([pRichEdit](const ui::EventArgs& /*args*/) {
 			pRichEdit->Cut();
 			return true;
 			});
@@ -2433,7 +2609,7 @@ void RichEdit::ShowPopupMenu(const ui::UiPoint& point)
 		else if (pRichEdit->IsReadOnly()) {
 			menu_item->SetEnabled(false);
 		}
-		menu_item->AttachClick([pRichEdit](const ui::EventArgs& args) {
+		menu_item->AttachClick([pRichEdit](const ui::EventArgs& /*args*/) {
 			pRichEdit->Paste();
 			return true;
 			});
@@ -2446,7 +2622,7 @@ void RichEdit::ShowPopupMenu(const ui::UiPoint& point)
 		else if (pRichEdit->IsReadOnly()) {
 			menu_item->SetEnabled(false);
 		}
-		menu_item->AttachClick([pRichEdit](const ui::EventArgs& args) {
+		menu_item->AttachClick([pRichEdit](const ui::EventArgs& /*args*/) {
 			pRichEdit->Clear();
 			return true;
 			});
@@ -2456,7 +2632,7 @@ void RichEdit::ShowPopupMenu(const ui::UiPoint& point)
 		if ((nStartChar == 0) && (nEndChar == pRichEdit->GetTextLength())) {
 			menu_item->SetEnabled(false);
 		}
-		menu_item->AttachClick([pRichEdit](const ui::EventArgs& args) {
+		menu_item->AttachClick([pRichEdit](const ui::EventArgs& /*args*/) {
 			pRichEdit->SetSelAll();
 			return true;
 			});
@@ -2469,7 +2645,7 @@ void RichEdit::ShowPopupMenu(const ui::UiPoint& point)
 		else if (pRichEdit->IsReadOnly()) {
 			menu_item->SetEnabled(false);
 		}
-		menu_item->AttachClick([pRichEdit](const ui::EventArgs& args) {
+		menu_item->AttachClick([pRichEdit](const ui::EventArgs& /*args*/) {
 			pRichEdit->Undo();
 			return true;
 			});
@@ -2482,10 +2658,61 @@ void RichEdit::ShowPopupMenu(const ui::UiPoint& point)
 		else if (pRichEdit->IsReadOnly()) {
 			menu_item->SetEnabled(false);
 		}
-		menu_item->AttachClick([pRichEdit](const ui::EventArgs& args) {
+		menu_item->AttachClick([pRichEdit](const ui::EventArgs& /*args*/) {
 			pRichEdit->Redo();
 			return true;
 			});
+	}
+}
+
+void RichEdit::SetEnableDragDrop(bool bEnable)
+{
+	if (m_pRichHost == nullptr) {
+		return;
+	}
+	if (bEnable) {
+		//只读模式、密码模式、不可用模式，关闭拖放功能
+		if (IsReadOnly() || IsPassword() || !IsEnabled()) {
+			bEnable = false;
+		}
+	}
+	if (bEnable) {
+		m_pControlDropTarget = new RichEditDropTarget(this, m_pRichHost->GetTextServices());
+		m_pControlDropTarget->SetControl(this);
+		RegisterDragDrop();
+	}
+	else {
+		UnregisterDragDrop();
+		if (m_pControlDropTarget != nullptr) {
+			delete m_pControlDropTarget;
+			m_pControlDropTarget = nullptr;
+		}
+	}
+}
+
+bool RichEdit::IsEnableDragDrop() const
+{
+	return m_pControlDropTarget != nullptr;
+}
+
+void RichEdit::RegisterDragDrop()
+{
+	ASSERT(m_pControlDropTarget != nullptr);
+	if (m_pControlDropTarget != nullptr) {
+		Window* pWindow = GetWindow();
+		if (pWindow != nullptr) {
+			pWindow->RegisterDragDrop(m_pControlDropTarget);
+		}
+	}
+}
+
+void RichEdit::UnregisterDragDrop()
+{
+	if (m_pControlDropTarget != nullptr) {
+		Window* pWindow = GetWindow();
+		if (pWindow != nullptr) {
+			pWindow->UnregisterDragDrop(m_pControlDropTarget);
+		}
 	}
 }
 

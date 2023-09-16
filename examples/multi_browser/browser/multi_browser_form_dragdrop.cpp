@@ -29,7 +29,7 @@ bool MultiBrowserForm::InitDragDrop()
 		return false;
 	}
 
-	if (FAILED(RegisterDragDrop(this->GetHWND(), this)))
+	if (FAILED(::RegisterDragDrop(this->GetHWND(), this)))
 	{
 		return false;
 	}

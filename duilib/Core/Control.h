@@ -735,6 +735,15 @@ public:
 	 */
 	virtual void ClearImageCache();
 
+	/** 屏幕坐标转换为客户区坐标
+	*/
+	virtual bool ScreenToClient(UiPoint& pt);
+
+	/** 客户区坐标转换为屏幕坐标
+	*/
+	virtual bool ClientToScreen(UiPoint& pt);
+
+public:
 	/**
 	 * @brief 监听控件所有事件
 	 * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明

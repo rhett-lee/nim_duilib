@@ -11,6 +11,7 @@ namespace ui
 {
 
 class RichEditHost;
+class ControlDropTarget;
 class UILIB_API RichEdit : public ScrollBox
 {
 public:
@@ -568,13 +569,19 @@ public:
 	*/
 	virtual std::wstring GetType() const override;
 	
-	/** 设置Enable状态
-	*/
+	/** 设置控件可用状态
+	 * @param[in] bEnable 为 true 时控件可用，为 false 时控件为禁用状态则不可用
+	 */
 	virtual void SetEnabled(bool bEnable = true) override;
 	
 	/** 设置属性
 	*/
 	virtual void SetAttribute(const std::wstring& pstrName, const std::wstring& pstrValue) override;
+
+	/** 设置关联窗口
+	*/
+	virtual void SetWindow(Window* pManager, Box* pParent, bool bInit) override;
+	virtual void SetWindow(Window* pManager) override;
 
 	/** 设置控件位置（子类可改变行为）
 	 * @param [in] rc 要设置的矩形区域信息，包含内边距，不包含外边距
@@ -791,6 +798,14 @@ public:
 	*/
 	bool IsEnableDefaultContextMenu() const;
 
+	/** 设置是否允许拖放功能
+	*/
+	void SetEnableDragDrop(bool bEnable);
+
+	/** 判断是否已经允许拖放功能
+	*/
+	bool IsEnableDragDrop() const;
+
 	/** 监听回车按键按下事件
 	 * @param[in] callback 回车被按下的自定义回调函数
 	 */
@@ -841,9 +856,13 @@ public:
 	void SetTimer(UINT idTimer, UINT uTimeout);
 	void KillTimer(UINT idTimer);
 
-	//客户端坐标和屏幕坐标之间的相互转换
-	void ScreenToClient(UiPoint& pt);
-	void ClientToScreen(UiPoint& pt);
+	/** 屏幕坐标转换为客户区坐标
+	*/
+	virtual bool ScreenToClient(UiPoint& pt) override;
+
+	/** 客户区坐标转换为屏幕坐标
+	*/
+	virtual bool ClientToScreen(UiPoint& pt) override;
 
 protected:
 
@@ -870,6 +889,14 @@ protected:
 	* @param [in] point 客户区的坐标
 	*/
 	void ShowPopupMenu(const ui::UiPoint& point);
+
+	/** 注册拖放接口与窗口的关联关系
+	*/
+	void RegisterDragDrop();
+
+	/** 注销拖放接口与窗口的关联关系
+	*/
+	void UnregisterDragDrop();
 
 private:
 	//判断是否是字节： 可打印字符（0x20-0x7e）
@@ -962,6 +989,10 @@ private:
 	/** 是否允许使用默认的右键菜单
 	*/
 	bool m_bEnableDefaultContextMenu;
+
+	/** 拖放功能的实现接口, 如果不为空表示功能已经开启
+	*/
+	ControlDropTarget* m_pControlDropTarget;
 };
 
 } // namespace ui

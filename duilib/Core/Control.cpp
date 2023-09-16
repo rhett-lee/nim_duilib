@@ -2828,4 +2828,36 @@ void Control::EnsureNoFocus()
 	}
 }
 
+bool Control::ScreenToClient(UiPoint& pt)
+{
+	Window* pWindow = GetWindow();
+	if (pWindow != nullptr) {
+		return false;
+	}
+	if (!::IsWindow(pWindow->GetHWND())) {
+		return false;
+	}
+	POINT point = {pt.x, pt.y};
+	bool bRet = ::ScreenToClient(pWindow->GetHWND(), &point);
+	pt.x = point.x;
+	pt.y = point.y;
+	return bRet;
+}
+
+bool Control::ClientToScreen(UiPoint& pt)
+{
+	Window* pWindow = GetWindow();
+	if (pWindow != nullptr) {
+		return false;
+	}
+	if (!::IsWindow(pWindow->GetHWND())) {
+		return false;
+	}
+	POINT point = { pt.x, pt.y };
+	bool bRet = ::ClientToScreen(pWindow->GetHWND(), &point);
+	pt.x = point.x;
+	pt.y = point.y;
+	return bRet;
+}
+
 } // namespace ui

@@ -351,6 +351,7 @@
     <ClCompile Include="Core\BoxShadow.cpp" />
     <ClCompile Include="Core\ColorManager.cpp" />
     <ClCompile Include="Core\Control.cpp" />
+    <ClCompile Include="Core\ControlDropTarget.cpp" />
     <ClCompile Include="Core\ControlFinder.cpp" />
     <ClCompile Include="Core\ControlGif.cpp" />
     <ClCompile Include="Core\ControlLoading.cpp" />
@@ -369,6 +370,7 @@
     <ClCompile Include="Core\UiColors.cpp" />
     <ClCompile Include="Core\Window.cpp" />
     <ClCompile Include="Core\WindowBuilder.cpp" />
+    <ClCompile Include="Core\WindowDropTarget.cpp" />
     <ClCompile Include="Core\ZipManager.cpp" />
     <ClCompile Include="duilib.cpp" />
     <ClCompile Include="Image\Image.cpp" />
@@ -446,6 +448,7 @@
     <ClInclude Include="Core\BoxShadow.h" />
     <ClInclude Include="Core\ColorManager.h" />
     <ClInclude Include="Core\Control.h" />
+    <ClInclude Include="Core\ControlDropTarget.h" />
     <ClInclude Include="Core\ControlFinder.h" />
     <ClInclude Include="Core\ControlGif.h" />
     <ClInclude Include="Core\ControlLoading.h" />
@@ -476,6 +479,7 @@
     <ClInclude Include="Core\UiTypes.h" />
     <ClInclude Include="Core\Window.h" />
     <ClInclude Include="Core\WindowBuilder.h" />
+    <ClInclude Include="Core\WindowDropTarget.h" />
     <ClInclude Include="Core\ZipManager.h" />
     <ClInclude Include="duilib.h" />
     <ClInclude Include="duilib_config.h" />

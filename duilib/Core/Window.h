@@ -19,6 +19,8 @@ class Control;
 class IRender;
 class Shadow;
 class ToolTip;
+class WindowDropTarget;
+class ControlDropTarget;
 
 /** @brief 窗口消息过滤接口，用于截获窗口过程的消息，优先于Window类进行消息处理
 */
@@ -51,6 +53,8 @@ class UILIB_API Window : public virtual nbase::SupportWeakCallback
 {
 public:
     Window();
+	Window(const Window& r) = delete;
+	Window& operator=(const Window& r) = delete;
 	virtual ~Window();
 
 public:
@@ -869,6 +873,14 @@ public:
 	*/
 	bool GetMonitorRect(HWND hWnd, UiRect& rcMonitor, UiRect& rcWork) const;
 
+	/** 注册一个拖放接口
+	*/
+	bool RegisterDragDrop(ControlDropTarget* pDropTarget);
+
+	/** 注销一个拖放接口
+	*/
+	bool UnregisterDragDrop(ControlDropTarget* pDropTarget);
+
 private:
 	/** 检查并确保当前窗口为焦点窗口
 	*/
@@ -1002,6 +1014,10 @@ private:
 	/** 窗口关联的容器，根节点
 	*/
 	Box* m_pRoot;
+
+	/** 窗口的拖放操作管理接口
+	*/
+	WindowDropTarget* m_pWindowDropTarget;
 };
 
 } // namespace ui

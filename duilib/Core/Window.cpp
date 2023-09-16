@@ -4,6 +4,7 @@
 #include "duilib/Core/Shadow.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/ToolTip.h"
+#include "duilib/Core/WindowDropTarget.h"
 #include "duilib/Render/IRender.h"
 #include "duilib/Render/AutoClip.h"
 #include "duilib/Animation/AnimationManager.h"
@@ -47,7 +48,8 @@ Window::Window() :
 	m_mOptionGroup(),
 	m_defaultAttrHash(),
 	m_strResourcePath(),
-	m_closeFlag()
+	m_closeFlag(),
+	m_pWindowDropTarget(nullptr)
 {
 	m_toolTip = std::make_unique<ToolTip>();
 	m_shadow = std::make_unique<Shadow>();
@@ -70,6 +72,12 @@ Window::~Window()
 	RemoveAllOptionGroups();
 
 	m_toolTip.reset();
+
+	if (m_pWindowDropTarget != nullptr) {
+		delete m_pWindowDropTarget;
+		m_pWindowDropTarget = nullptr;
+	}
+
 	if (m_hDcPaint != nullptr) {
 		::ReleaseDC(m_hWnd, m_hDcPaint);
 		m_hDcPaint = nullptr;
@@ -368,6 +376,13 @@ void Window::OnFinalMessage(HWND hWnd)
 
 	UnregisterTouchWindowWrapper(hWnd);
 	SendNotify(kEventWindowClose);
+
+	//注销拖放操作
+	if (m_pWindowDropTarget != nullptr) {
+		m_pWindowDropTarget->Clear();
+		delete m_pWindowDropTarget;
+		m_pWindowDropTarget = nullptr;
+	}
 
 	//回收控件
 	ReapObjects(GetRoot());
@@ -2484,6 +2499,23 @@ Control* Window::FindSubControlByPoint(Control* pParent, const UiPoint& pt) cons
 Control* Window::FindSubControlByName(Control* pParent, const std::wstring& strName) const
 {
 	return m_controlFinder.FindSubControlByName(pParent, strName);
+}
+
+bool Window::RegisterDragDrop(ControlDropTarget* pDropTarget)
+{
+	if (m_pWindowDropTarget == nullptr) {
+		m_pWindowDropTarget = new WindowDropTarget;
+		m_pWindowDropTarget->SetWindow(this);
+	}
+	return m_pWindowDropTarget->RegisterDragDrop(pDropTarget);
+}
+
+bool Window::UnregisterDragDrop(ControlDropTarget* pDropTarget)
+{
+	if (m_pWindowDropTarget == nullptr) {
+		return false;
+	}
+	return m_pWindowDropTarget->UnregisterDragDrop(pDropTarget);
 }
 
 } // namespace ui

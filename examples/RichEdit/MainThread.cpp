@@ -3,19 +3,19 @@
 
 void WorkerThread::Init()
 {
-	::CoInitialize(NULL);
+	::OleInitialize(NULL);
 	nbase::ThreadManager::RegisterThread(m_threadID);
 }
 
 void WorkerThread::Cleanup()
 {
 	nbase::ThreadManager::UnregisterThread();
-	::CoUninitialize();
+	::OleUninitialize();
 }
 
 void MainThread::Init()
 {
-	::CoInitialize(NULL);
+	::OleInitialize(NULL);
 	nbase::ThreadManager::RegisterThread(kThreadUI);
 
 	//启动工作线程
@@ -50,5 +50,5 @@ void MainThread::Cleanup()
 	}
 	SetThreadWasQuitProperly(true);
 	nbase::ThreadManager::UnregisterThread();
-	::CoUninitialize();
+	::OleUninitialize();
 }

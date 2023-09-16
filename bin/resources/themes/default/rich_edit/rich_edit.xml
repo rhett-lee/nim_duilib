@@ -170,7 +170,7 @@
                 <!-- 横向分割条，用于调整上下区域大小 -->
                 <Split bkcolor="splitline_level1" height="2"/>
                 <HBox bkcolor="Pink" border_size="1" border_color="blue" minwidth="60">
-                    <RichEdit name="rich_edit" zoom="0,0" wheel_zoom="true" multi_line="true" word_wrap="true" rich_text="false" default_context_menu="true" save_selection="true" hide_selection="false" word_wrap="true" vscrollbar="true" auto_vscroll="true" bkcolor="white"/>
+                    <RichEdit name="rich_edit" enable_drag_drop="true" zoom="0,0" wheel_zoom="true" multi_line="true" word_wrap="true" rich_text="false" default_context_menu="true" save_selection="true" hide_selection="false" word_wrap="true" vscrollbar="true" auto_vscroll="true" bkcolor="white"/>
                 </HBox>
             </VBox>
         </HBox>
