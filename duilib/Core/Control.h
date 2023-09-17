@@ -744,111 +744,87 @@ public:
 	virtual bool ClientToScreen(UiPoint& pt);
 
 public:
-	/**
-	 * @brief 监听控件所有事件
+	/** 监听控件所有事件
 	 * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
-	 * @return 无
 	 */
 	void AttachAllEvents(const EventCallback& callback)	{ AttachEvent(kEventAll, callback); }
 
-	/**
-	 * @brief 监听鼠标进入事件
+	/** 监听鼠标进入事件
 	 * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
-	 * @return 无
 	 */
 	void AttachMouseEnter(const EventCallback& callback) { AttachEvent(kEventMouseEnter, callback); }
 
-	/**
-	 * @brief 监听鼠标离开事件
+	/** 监听鼠标离开事件
 	 * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
-	 * @return 无
 	 */
 	void AttachMouseLeave(const EventCallback& callback) { AttachEvent(kEventMouseLeave, callback); }
 
-	/**
-	 * @brief 监听鼠标悬浮事件
+	/** 监听鼠标悬浮事件
 	 * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
-	 * @return 无
 	 */
 	void AttachMouseHover(const EventCallback& callback) { AttachEvent(kEventMouseHover, callback); }
 
-	/**
-	 * @brief 监听鼠标按下事件
+	/** 监听鼠标按下事件
 	 * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
-	 * @return 无
 	 */
 	void AttachButtonDown(const EventCallback& callback) { AttachEvent(kEventMouseButtonDown, callback); }
 
-	/**
-	 * @brief 监听鼠标弹起事件
+	/** 监听鼠标弹起事件
 	 * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
-	 * @return 无
 	 */
 	void AttachButtonUp(const EventCallback& callback) { AttachEvent(kEventMouseButtonUp, callback); }
 
-	/**
-	 * @brief 监听获得焦点事件
+	/** 监听获得焦点事件
 	 * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
-	 * @return 无
 	 */
 	void AttachSetFocus(const EventCallback& callback) { AttachEvent(kEventSetFocus, callback); }
 
-	/**
-	 * @brief 监听失去焦点事件
+	/** 监听失去焦点事件
 	 * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
-	 * @return 无
 	 */
 	void AttachKillFocus(const EventCallback& callback) { AttachEvent(kEventKillFocus, callback); }
 
-	/**
-	 * @brief 监听右键菜单事件
+	/** 监听右键菜单事件
 	 * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
-	 * @return 无
 	 */
 	void AttachMenu(const EventCallback& callback) { AttachEvent(kEventMouseMenu, callback); }
 
-	/**
-	 * @brief 监听控件大小改变事件
+	/** 监听控件大小改变事件
 	 * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
-	 * @return 无
 	 */
 	void AttachResize(const EventCallback& callback) { AttachEvent(kEventResize, callback); }
 
-	/**
-	 * @brief 监听双击事件
+	/** 监听双击事件
 	 * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
-	 * @return 无
 	 */
 	void AttachDoubleClick(const EventCallback& callback) { AttachEvent(kEventMouseDoubleClick, callback); }
 
-	/**
-	* @brief 绑定鼠标点击处理函数
+	/** 绑定鼠标点击处理函数
 	* @param[in] callback 要绑定的回调函数
-	* @return 无
 	*/
 	void AttachClick(const EventCallback& callback) { AttachEvent(kEventClick, callback); }
 
-	/**
-	* @brief 绑定鼠标右键点击处理函数
+	/** 绑定鼠标右键点击处理函数
 	* @param[in] callback 要绑定的回调函数
-	* @return 无
 	*/
 	void AttachRClick(const EventCallback& callback) { AttachEvent(kEventRClick, callback); }
 
-	/**
-	* @brief 监听控件关闭前最后一条消息
+	/** 监听控件显示或隐藏事件
 	* @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
-	* @return 无
-	*/
-	void AttachLastEvent(const EventCallback& callback) { AttachEvent(kEventLast, callback); }
-
-	/**
-	* @brief 监听控件显示或隐藏事件
-	* @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
-	* @return 无
 	*/
 	void AttachVisibleChange(const EventCallback& callback) { AttachEvent(kEventVisibleChange, callback); }
 
+	/** 监听控件状态变化事件
+	* @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
+	*/
+	void AttachStateChange(const EventCallback& callback) { AttachEvent(kEventStateChange, callback); }
+
+	/** 监听控件关闭前最后一条消息
+	* @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
+	*/
+	void AttachLastEvent(const EventCallback& callback) { AttachEvent(kEventLast, callback); }
+
+public:
 	/** 判断颜色定义是否有效
 	* @param [in] colorName 颜色的名称，有效的颜色名称可以是以下定义（按获取优先级顺序）：
 	*           (1) 优先级1：以'#'字符开头，直接指定颜色值，举例：#FFFFFFFF       
@@ -1133,6 +1109,11 @@ private:
 	/** 是否含有BoxShadow
 	*/
 	bool HasBoxShadow() const;
+
+	/** 设置控件状态的值，并触发状态变化事件
+	 * @param[in] controlState 要设置的控件状态，请参考 `ControlStateType` 枚举
+	 */
+	void PrivateSetState(ControlStateType controlState);
 
 private:
 	/** 边框圆角大小(与m_rcBorderSize联合应用)或者阴影的圆角大小(与m_boxShadow联合应用)

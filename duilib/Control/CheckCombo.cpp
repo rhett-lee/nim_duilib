@@ -64,13 +64,15 @@ void CCheckComboWnd::UpdateComboWnd()
 	if (szDrop.cx > 0) {
 		rc.right = rc.left + szDrop.cx;	// 计算弹出窗口宽度
 	}
-
-	UiSize szAvailable(rc.Width(), rc.Height());
-	UiFixedInt oldFixedHeight = pOwner->GetListBox()->GetFixedHeight();
-	pOwner->GetListBox()->SetFixedHeight(UiFixedInt::MakeAuto(), false, false);
-	UiEstSize estSize = pOwner->GetListBox()->EstimateSize(szAvailable);
-	pOwner->GetListBox()->SetFixedHeight(oldFixedHeight, false, false);
-	int32_t cyFixed = estSize.cy.GetInt32();
+	int32_t cyFixed = 0;
+	if (pOwner->GetListBox()->GetItemCount() > 0) {
+		UiSize szAvailable(rc.Width(), rc.Height());
+		UiFixedInt oldFixedHeight = pOwner->GetListBox()->GetFixedHeight();
+		pOwner->GetListBox()->SetFixedHeight(UiFixedInt::MakeAuto(), false, false);
+		UiEstSize estSize = pOwner->GetListBox()->EstimateSize(szAvailable);
+		pOwner->GetListBox()->SetFixedHeight(oldFixedHeight, false, false);
+		cyFixed = estSize.cy.GetInt32();
+	}
 	if (cyFixed == 0) {
 		cyFixed = szDrop.cy;
 	}

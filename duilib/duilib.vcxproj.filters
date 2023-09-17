@@ -312,6 +312,9 @@
     <ClCompile Include="Core\ControlDropTarget.cpp">
       <Filter>Core</Filter>
     </ClCompile>
+    <ClCompile Include="Control\ComboButton.cpp">
+      <Filter>Control</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -688,6 +691,9 @@
     </ClInclude>
     <ClInclude Include="Core\ControlDropTarget.h">
       <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\ComboButton.h">
+      <Filter>Control</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

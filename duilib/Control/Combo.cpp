@@ -94,12 +94,15 @@ void CComboWnd::UpdateComboWnd()
 		rc.right = rc.left + szDrop.cx;	// 计算弹出窗口宽度
 	}
 
-	UiSize szAvailable(rc.Width(), rc.Height());
-	UiFixedInt oldFixedHeight = pOwner->GetTreeView()->GetFixedHeight();
-	pOwner->GetTreeView()->SetFixedHeight(UiFixedInt::MakeAuto(), false, false);
-	UiEstSize estSize = pOwner->GetTreeView()->EstimateSize(szAvailable);
-	pOwner->GetTreeView()->SetFixedHeight(oldFixedHeight, false, false);
-	int32_t cyFixed = estSize.cy.GetInt32();
+	int32_t cyFixed = 0;
+	if (pOwner->GetTreeView()->GetItemCount() > 0) {
+		UiSize szAvailable(rc.Width(), rc.Height());
+		UiFixedInt oldFixedHeight = pOwner->GetTreeView()->GetFixedHeight();
+		pOwner->GetTreeView()->SetFixedHeight(UiFixedInt::MakeAuto(), false, false);
+		UiEstSize estSize = pOwner->GetTreeView()->EstimateSize(szAvailable);
+		pOwner->GetTreeView()->SetFixedHeight(oldFixedHeight, false, false);
+		cyFixed = estSize.cy.GetInt32();
+	}
 	if (cyFixed == 0) {
 		cyFixed = szDrop.cy;
 	}
@@ -410,15 +413,18 @@ std::wstring Combo::GetBorderColor(ControlStateType stateType) const
 			borderColor = __super::GetBorderColor(kControlStateHot);
 		}
 	}
-	if (m_pEditControl != nullptr) {
+	if (borderColor.empty() && (m_pEditControl != nullptr)) {
 		if (m_pEditControl->IsFocused() || m_pEditControl->IsMouseFocused()) {
 			borderColor = __super::GetBorderColor(kControlStateHot);
 		}
 	}
-	if (m_pButtonControl != nullptr) {
+	if (borderColor.empty() && (m_pButtonControl != nullptr)) {
 		if (m_pButtonControl->IsFocused() || m_pButtonControl->IsMouseFocused()) {
 			borderColor = __super::GetBorderColor(kControlStateHot);
 		}
+	}
+	if (borderColor.empty() && (m_pWindow != nullptr) && !m_pWindow->IsClosingWnd()) {
+		borderColor = __super::GetBorderColor(kControlStateHot);
 	}
 	if (borderColor.empty()) {
 		borderColor = __super::GetBorderColor(stateType);
@@ -755,6 +761,7 @@ void Combo::OnComboWndClosed(bool bCanceled, bool needUpdateSelItem, const std::
 		OnSelectedItemChanged();
 	}
 	SendEvent(kEventWindowClose);
+	Invalidate();
 }
 
 bool Combo::OnButtonDown(const EventArgs& /*args*/)

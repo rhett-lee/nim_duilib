@@ -87,6 +87,7 @@ namespace ui
 
 	#define  DUI_CTR_RICHEDIT                        (L"RichEdit")
 	#define  DUI_CTR_COMBO                           (L"Combo")
+	#define  DUI_CTR_COMBO_BUTTON                    (L"ComboButton")
 	#define  DUI_CTR_FILTER_COMBO                    (L"FilterCombo")
 	#define  DUI_CTR_CHECK_COMBO                     (L"CheckCombo")
 	#define  DUI_CTR_SLIDER                          (L"Slider")
@@ -289,6 +290,7 @@ namespace ui
 		kEventValueChange,			//DateTime、Slider类：当值发生变化时触发
 		kEventResize,				//Control类：当控件的大小和位置发生变化时触发
 		kEventVisibleChange,		//Control类：当控件的Visible属性发生变化时触发
+		kEventStateChange,			//Control类：当控件的State属性发生变化时触发, WPARAM是新状态，LPARAM是旧状态
 
 		kEventLast					//Control类：该控件的最后一个消息，当这个控件对象销毁时触发
 	};

@@ -428,13 +428,22 @@ void Control::SetState(ControlStateType controlState)
 	else if (controlState == kControlStateHot) {
 		m_nHotAlpha = 255;
 	}
-	m_controlState = TruncateToInt8(controlState);
+	PrivateSetState(controlState);
 	Invalidate();
+}
+
+void Control::PrivateSetState(ControlStateType controlState)
+{
+	if (m_controlState != controlState) {
+		ControlStateType oldState = GetState();
+		m_controlState = TruncateToInt8(controlState);
+		SendEvent(kEventStateChange, controlState, oldState);
+	}
 }
 
 bool Control::IsHotState() const
 {
-	return (m_controlState == kControlStateHot) ? true : false;
+	return (GetState() == kControlStateHot) ? true : false;
 }
 
 std::wstring Control::GetBorderColor(ControlStateType stateType) const
@@ -740,11 +749,11 @@ void Control::SetEnabled(bool bEnabled)
 
     m_bEnabled = bEnabled;
 	if (m_bEnabled) {
-		m_controlState = kControlStateNormal;
+		PrivateSetState(kControlStateNormal);
 		m_nHotAlpha = 0;
 	}
 	else {
-		m_controlState = kControlStateDisabled;
+		PrivateSetState(kControlStateDisabled);
 	}
     Invalidate();
 }
@@ -1188,8 +1197,8 @@ bool Control::HasHotState()
 bool Control::MouseEnter(const EventArgs& /*msg*/)
 {
 	if( IsEnabled() ) {
-		if (m_controlState == kControlStateNormal) {
-			m_controlState = kControlStateHot;
+		if (GetState() == kControlStateNormal) {
+			PrivateSetState(kControlStateHot);
 			if (HasHotState()) {
 				GetAnimationManager().MouseEnter();
 				Invalidate();
@@ -1207,8 +1216,8 @@ bool Control::MouseEnter(const EventArgs& /*msg*/)
 bool Control::MouseLeave(const EventArgs& /*msg*/)
 {
 	if( IsEnabled() ) {
-		if (m_controlState == kControlStateHot) {
-			m_controlState = kControlStateNormal;
+		if (GetState() == kControlStateHot) {
+			PrivateSetState(kControlStateNormal);
 			if (HasHotState()) {
 				GetAnimationManager().MouseLeave();
 				Invalidate();
@@ -1226,7 +1235,7 @@ bool Control::MouseLeave(const EventArgs& /*msg*/)
 bool Control::ButtonDown(const EventArgs& /*msg*/)
 {
 	if( IsEnabled() ) {
-		m_controlState = kControlStatePushed;
+		PrivateSetState(kControlStatePushed);
 		SetMouseFocused(true);
 		Invalidate();
 	}
@@ -1243,12 +1252,12 @@ bool Control::ButtonUp(const EventArgs& msg)
 
 		Invalidate();
 		if( IsPointInWithScrollOffset(msg.ptMouse) ) {
-			m_controlState = kControlStateHot;
+			PrivateSetState(kControlStateHot);
 			m_nHotAlpha = 255;
 			Activate();
 		}
 		else {
-			m_controlState = kControlStateNormal;
+			PrivateSetState(kControlStateNormal);
 			m_nHotAlpha = 0;
 		}
 	}
@@ -1353,7 +1362,7 @@ bool Control::OnSetCursor(const EventArgs& /*msg*/)
 
 bool Control::OnSetFocus(const EventArgs& /*msg*/)
 {
-	if (m_controlState == kControlStateNormal) {
+	if (GetState() == kControlStateNormal) {
 		SetState(kControlStateHot);
 		Invalidate();
 	}
@@ -1362,7 +1371,7 @@ bool Control::OnSetFocus(const EventArgs& /*msg*/)
 
 bool Control::OnKillFocus(const EventArgs& /*msg*/)
 {
-	if (m_controlState == kControlStateHot) {
+	if (GetState() == kControlStateHot) {
 		SetState(kControlStateNormal);
 		Invalidate();
 	}

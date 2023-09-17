@@ -342,6 +342,7 @@
     <ClCompile Include="Box\VTileLayout.cpp" />
     <ClCompile Include="Control\CheckCombo.cpp" />
     <ClCompile Include="Control\CircleProgress.cpp" />
+    <ClCompile Include="Control\ComboButton.cpp" />
     <ClCompile Include="Control\DateTime.cpp" />
     <ClCompile Include="Control\FilterCombo.cpp" />
     <ClCompile Include="Control\Menu.cpp" />
@@ -434,6 +435,7 @@
     <ClInclude Include="Box\VLayout.h" />
     <ClInclude Include="Box\VTileLayout.h" />
     <ClInclude Include="Control\CheckCombo.h" />
+    <ClInclude Include="Control\ComboButton.h" />
     <ClInclude Include="Control\DateTime.h" />
     <ClInclude Include="Control\FilterCombo.h" />
     <ClInclude Include="Control\GroupBox.h" />

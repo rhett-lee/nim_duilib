@@ -129,6 +129,13 @@
                               dropbox="padding='1,1,1,1' bkcolor='bk_wnd_lightcolor' border_color='splitline_level1' border_size='1,1,1,1' vscrollbar='true'"
                               dropbox_item_class="width={stretch} height={24} text_padding={20,2,2,0} text_align={left,vcenter} normal_image={file='../public/checkbox/check_no.png' dest='2,4,18,20'} selected_normal_image={file='../public/checkbox/check_yes.png' dest='2,4,18,20'}" 
                               selected_item_class="width={auto} height={22} margin={4,2,4,2} bkcolor={bk_menuitem_selected} text_padding={2,3,2,3}"/>
+    <Class name="combo_button" padding="1,1,1,1" border_size="1" hot_border_color="blue" hot_color="#FFE5F3FF" pushed_color="#FFCCE8FF"
+                               combo_box_class="padding='1,1,1,1' border_size='1,1,1,1' bkcolor='white' border_color='gray'" 
+                               left_button_class="height={stretch} width={stretch} padding={0,0,1,0} border_size={0,0,1,0} hot_border_color={blue} pushed_border_color={blue} valign={center} hot_color={#FFE5F3FF} pushed_color={#FFCCE8FF} " 
+                               left_button_top_label_class="width={stretch} height={20} margin={1,0,1,0} font={system_bold_14} text_align={bottom,hcenter}" 
+                               left_button_bottom_label_class="width={stretch} height={stretch} margin={6,0,6,1} bkcolor={black}" 
+                               right_button_class="height={stretch} width={auto} padding={1,0,0,0} border_size={1,0,0,0} hot_border_color={blue} pushed_border_color={blue} valign={center} hot_color={#FFE5F3FF} pushed_color={#FFCCE8FF} normal_image={file='../public/combo/arrow_normal.svg' valign='center'} hot_image={file='../public/combo/arrow_hot.svg' valign='center'}"/>
+
     <!--按钮：图片按钮-->
     <Class name="btn_global_blue_80x30" font="system_bold_14" normaltextcolor="white" normalimage="file='../public/button/btn_global_blue_80x30_normal.png'" hotimage="file='../public/button/btn_global_blue_80x30_hovered.png'" pushedimage="file='../public/button/btn_global_blue_80x30_pushed.png'" disabledimage="file='../public/button/btn_global_blue_80x30_normal.png' fade='80'"/>
     <Class name="btn_global_white_80x30" font="system_bold_14" normaltextcolor="dark_gray" normalimage="file='../public/button/btn_global_white_80x30_normal.png'" hotimage="file='../public/button/btn_global_white_80x30_hovered.png'" pushedimage="file='../public/button/btn_global_white_80x30_pushed.png'" disabledimage="file='../public/button/btn_global_white_80x30_normal.png' fade='128'"/>
