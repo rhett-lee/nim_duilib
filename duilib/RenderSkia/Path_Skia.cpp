@@ -1,6 +1,7 @@
 #include "Path_Skia.h"
 
 #include "include/core/SkPath.h"
+#include "duilib/RenderSkia/Matrix_Skia.h"
 
 namespace ui {
 
@@ -158,6 +159,16 @@ void Path_Skia::AddPolygon(const UiPoint* points, int count)
 	}
 	m_skPath->addPoly(skPts, count, false);
 	delete[] skPts;
+}
+
+void Path_Skia::Transform(IMatrix* pMatrix)
+{
+	if (pMatrix != nullptr) {
+		Matrix_Skia* pSkMatrix = dynamic_cast<Matrix_Skia*>(pMatrix);
+		if (pSkMatrix != nullptr) {
+			m_skPath->transform(*pSkMatrix->GetMatrix());
+		}
+	}
 }
 
 ui::UiRect Path_Skia::GetBounds(const IPen* pen)

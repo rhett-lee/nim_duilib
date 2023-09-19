@@ -1,5 +1,6 @@
 #include "Path_Gdiplus.h"
 #include "duilib/RenderGdiPlus/Pen_Gdiplus.h"
+#include "duilib/RenderGdiPlus/Matrix_Gdiplus.h"
 #include "duilib/RenderGdiPlus/GdiPlusDefs.h"
 
 namespace ui {
@@ -109,6 +110,16 @@ void Path_Gdiplus::AddPolygon(const UiPoint* points, int count)
 	}
 	if(!p.empty()){
 	    path_->AddPolygon(&p[0], static_cast<INT>(p.size()));
+	}
+}
+
+void Path_Gdiplus::Transform(IMatrix* pMatrix)
+{
+	if (pMatrix != nullptr) {
+		Matrix_Gdiplus* pGdiplusMatrix = dynamic_cast<Matrix_Gdiplus*>(pMatrix);
+		if (pGdiplusMatrix != nullptr) {
+			path_->Transform(pGdiplusMatrix->GetMatrix());
+		}
 	}
 }
 

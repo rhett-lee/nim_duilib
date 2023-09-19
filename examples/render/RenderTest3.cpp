@@ -50,6 +50,40 @@ void RenderTest3::Paint(IRender* pRender, const UiRect& rcPaint)
     textRect.bottom = textRect.top + nTextLineHeight;
     pRender->DrawString(textRect, L"DrawLine", UiColor(UiColors::Blue), L"system_14", TEXT_CENTER);
 
+    //画一个正六边形
+    UiRect hexagonRect = rect;
+    hexagonRect.Offset(UiPoint(rect.Width() + 10, 0));
+    DrawRegularHexagon3(pRender, hexagonRect.Center(), rect.Width() / 2, UiColor(UiColors::White), 2, UiColor(UiColors::Olive));
+
+    //画一个正六边形
+    hexagonRect.Offset(UiPoint(rect.Width() + 10, 0));
+    DrawRegularHexagon(pRender, hexagonRect.Center(), rect.Width() / 2, UiColor(UiColors::White), 2, UiColor(UiColors::SandyBrown));
+
+    //用正六边形拼接一个复杂图形
+    hexagonRect.Offset(UiPoint(rect.Width() + 10, 0));
+    const int32_t radius = 16; //半径
+    const float distance = radius * std::cos(30 / 57.2957795f); // 中心点到边的垂直距离
+    for (int32_t y = 0; y < 13; ++y) { //共计13行
+        int32_t count = 0;
+        if (y < 7) {
+            count = 7 + y;
+        }
+        else {
+            count = 7 + (13 - y - 1);
+        }
+        for (int32_t x = 0; x < count; ++x) {
+            UiPoint centerPt(hexagonRect.left + 200, hexagonRect.top + 100);
+            if (y < 7) {
+                centerPt.x += static_cast<int32_t>(distance * 2 * x - distance * y + 0.5f);
+            }
+            else {
+                centerPt.x += static_cast<int32_t>(distance * 2 * x - distance * (13 - y - 1) + 0.5f);
+            }
+            centerPt.y += static_cast<int32_t>(radius * 1.5f * y + 0.5f);
+            DrawRegularHexagon(pRender, centerPt, radius, UiColor(UiColors::SeaShell), 2, UiColor(UiColors::SeaGreen));
+        }
+    }
+
     //换行
     currentBottom = textRect.bottom;//记录当前的bottom值
     rect = GetRect();
@@ -233,6 +267,106 @@ void RenderTest3::PaintChild(IRender* pRender, const UiRect& rcPaint)
 int RenderTest3::DpiScaledInt(int iValue)
 {
     return GlobalManager::Instance().Dpi().GetScaleInt(iValue);
+}
+
+bool RenderTest3::DrawRegularHexagon(IRender* pRender, const UiPoint& centerPt, int32_t radius,
+                                     const UiColor& penColor, int32_t penWidth, const UiColor& brushColor)
+{
+    ASSERT(pRender != nullptr);
+    if (pRender == nullptr) {
+        return false;
+    }
+    IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
+    ASSERT(pRenderFactory != nullptr);
+    if (pRenderFactory == nullptr) {
+        return false;
+    }
+    ASSERT(radius > 0); //多边形的半径
+    if (radius <= 0) {
+        return false;
+    }
+
+    const int32_t count = 6; //多边形的边数
+    //正多边形上任意一个顶点的坐标为： x = r * cos(θ) y = r * sin(θ) 
+    std::vector<UiPoint> polygonPoints;
+    for (int32_t i = 0; i < count; ++i) {
+        int32_t degree = i * 60 + 30;// +30是为了使顶点在中心点的最上方
+        float radian = degree / 57.2957795f;
+        int32_t x = static_cast<int32_t>(radius * std::cos(radian) + 0.5f);
+        int32_t y = static_cast<int32_t>(radius * std::sin(radian) + 0.5f);
+        polygonPoints.push_back(UiPoint(centerPt.x + x, centerPt.y + y));
+    }
+
+    std::unique_ptr<IPath> path(pRenderFactory->CreatePath());
+    path->AddPolygon(polygonPoints.data(), (int32_t)polygonPoints.size());
+
+    bool bRet = false;
+    if (brushColor.GetARGB() != 0) {
+        std::unique_ptr<IBrush> brush(pRenderFactory->CreateBrush(brushColor));
+        pRender->FillPath(path.get(), brush.get());
+        bRet = true;
+    }
+    if ((penColor.GetARGB() != 0) && (penWidth > 0)) {
+        std::unique_ptr<IPen> pen(pRenderFactory->CreatePen(penColor, penWidth));
+        pRender->DrawPath(path.get(), pen.get());
+        bRet = true;
+    }
+    return bRet;
+}
+
+bool RenderTest3::DrawRegularHexagon3(IRender* pRender, const UiPoint& centerPt, int32_t radius,
+                                      const UiColor& penColor, int32_t penWidth, const UiColor& brushColor)
+{
+    ASSERT(pRender != nullptr);
+    if (pRender == nullptr) {
+        return false;
+    }
+    IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
+    ASSERT(pRenderFactory != nullptr);
+    if (pRenderFactory == nullptr) {
+        return false;
+    }
+
+    bool bRet = false;
+    const int count = 6;
+    UiPoint oldWindowOrg = pRender->SetWindowOrg(UiPoint(centerPt.x, centerPt.y));
+
+    //开始绘制多边形，并为每个区块上色
+    for (int i = 0; i < count; ++i)
+    {
+        //设中心点到边的垂线与半径的夹角为degree=(360/count)/2即：
+        float degree = 180.0f / count;
+
+        float radian = degree / 57.2957795f;
+        int32_t width = static_cast<int32_t>(radius * std::sin(radian));
+        int32_t height = static_cast<int32_t>(radius * std::cos(radian));
+
+        std::unique_ptr<IPath> path(pRenderFactory->CreatePath());
+
+        //绘制该三角区块
+        path->AddLine(0, 0, -width, -height);
+        path->AddLine(-width, -height, width, -height);
+        path->AddLine(width, -height, 0, 0);
+
+        std::unique_ptr<IMatrix> spMatrix(pRenderFactory->CreateMatrix());
+        if (spMatrix != nullptr) {
+            float angle = 2 * degree * i;
+            spMatrix->RotateAt(angle, UiPoint(0, 0));
+            path->Transform(spMatrix.get());
+        }        
+        if (brushColor.GetARGB() != 0) {
+            std::unique_ptr<IBrush> brush(pRenderFactory->CreateBrush(brushColor));
+            pRender->FillPath(path.get(), brush.get());
+            bRet = true;
+        }
+        if ((penColor.GetARGB() != 0) && (penWidth > 0)) {
+            std::unique_ptr<IPen> pen(pRenderFactory->CreatePen(penColor, penWidth));
+            pRender->DrawPath(path.get(), pen.get());
+            bRet = true;
+        }
+    }
+    pRender->SetWindowOrg(oldWindowOrg);
+    return bRet;
 }
 
 } //end of namespace ui

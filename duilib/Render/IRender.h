@@ -190,6 +190,7 @@ public:
 	virtual UiColor GetColor() const = 0;
 };
 
+class IMatrix;
 class UILIB_API IPath : public virtual nbase::SupportWeakCallback
 {
 public:	
@@ -290,6 +291,11 @@ public:
 	* @param [in] count 数组中的元素数
 	*/
 	virtual void AddPolygon(const UiPoint* points, int count) = 0;
+
+	/** 对路径进行矩阵变换，可以进行旋转等操作
+	* @param [in] pMatrix 矩阵接口
+	*/
+	virtual void Transform(IMatrix* pMatrix) = 0;
 
 	/** 获取此路径的边界矩形
 	* @param [in] pen 关联的Pen对象，可以为nullptr
