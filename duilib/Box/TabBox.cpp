@@ -190,10 +190,6 @@ bool TabBox::SelectItem(size_t iIndex)
 			}
 		}
 	}		
-
-	if( GetWindow() != nullptr ) {
-		GetWindow()->SetNextTabControl();
-	}
 	SendEvent(kEventTabSelect, m_iCurSel, iOldSel);
 	return true;
 }

@@ -434,10 +434,11 @@ void Control::SetState(ControlStateType controlState)
 
 void Control::PrivateSetState(ControlStateType controlState)
 {
-	if (m_controlState != controlState) {
+	if (GetState() != controlState) {
 		ControlStateType oldState = GetState();
 		m_controlState = TruncateToInt8(controlState);
 		SendEvent(kEventStateChange, controlState, oldState);
+		Invalidate();
 	}
 }
 
