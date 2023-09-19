@@ -695,5 +695,8 @@
     <ClInclude Include="Control\ComboButton.h">
       <Filter>Control</Filter>
     </ClInclude>
+    <ClInclude Include="Core\UiPointF.h">
+      <Filter>Core</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

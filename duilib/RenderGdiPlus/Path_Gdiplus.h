@@ -35,6 +35,7 @@ public:
 	virtual void AddEllipse(const UiRect& rect) override;
 	virtual void AddArc(const UiRect& rect, float startAngle, float sweepAngle) override;
 	virtual void AddPolygon(const UiPoint* points, int count) override;
+	virtual void AddPolygon(const UiPointF* points, int count) override;
 	virtual void Transform(IMatrix* pMatrix) override;
 
 	virtual UiRect GetBounds(const IPen* pen) override;

@@ -161,6 +161,22 @@ void Path_Skia::AddPolygon(const UiPoint* points, int count)
 	delete[] skPts;
 }
 
+void Path_Skia::AddPolygon(const UiPointF* points, int count)
+{
+	SkASSERT(points != nullptr);
+	SkASSERT(count >= 1);
+	if ((count < 1) || (points == nullptr)) {
+		return;
+	}
+	SkPoint* skPts = new SkPoint[count];
+	for (int i = 0; i < count; ++i) {
+		skPts[i].fX = points[i].x;
+		skPts[i].fY = points[i].y;
+	}
+	m_skPath->addPoly(skPts, count, false);
+	delete[] skPts;
+}
+
 void Path_Skia::Transform(IMatrix* pMatrix)
 {
 	if (pMatrix != nullptr) {

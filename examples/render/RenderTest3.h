@@ -40,6 +40,10 @@ private:
 	*/
 	int DpiScaledInt(int iValue);
 
+	/** 在一个矩形内绘制正六边形拼接的颜色地图, 尽量充满整个矩形
+	*/
+	void DrawColorMap(IRender* pRender, const UiRect& rect);
+
 	/** 绘制一个正六边形(采用多边形顶点的方式进行路径填充)
 	* @param [in] pRender 渲染接口
 	* @param [in] centerPt 正六边形的中心点坐标
@@ -48,7 +52,7 @@ private:
 	* @param [in] penWidth 画笔的宽度，如果为0，则不绘制边框
 	* @param [in] brushColor 画刷的颜色，如果为0，则填充颜色
 	*/
-	bool DrawRegularHexagon(IRender* pRender, const UiPoint& centerPt, int32_t radius, 
+	bool DrawRegularHexagon(IRender* pRender, const UiPointF& centerPt, int32_t radius, 
 						    const UiColor& penColor, int32_t penWidth, const UiColor& brushColor);
 
 	/** 绘制一个正六边形(采用三角形旋转的方式绘制)

@@ -4,11 +4,7 @@
 #pragma once
 
 #include "base/callback/callback.h"
-#include "duilib/Core/UiColor.h"
-#include "duilib/Core/UiFont.h"
-#include "duilib/Core/UiRect.h"
-#include "duilib/Core/UiSize.h"
-#include "duilib/Core/UiPoint.h"
+#include "duilib/Core/UiTypes.h"
 
 namespace ui 
 {
@@ -291,6 +287,7 @@ public:
 	* @param [in] count 数组中的元素数
 	*/
 	virtual void AddPolygon(const UiPoint* points, int count) = 0;
+	virtual void AddPolygon(const UiPointF* points, int count) = 0;
 
 	/** 对路径进行矩阵变换，可以进行旋转等操作
 	* @param [in] pMatrix 矩阵接口

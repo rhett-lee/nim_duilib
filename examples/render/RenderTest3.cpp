@@ -57,32 +57,12 @@ void RenderTest3::Paint(IRender* pRender, const UiRect& rcPaint)
 
     //画一个正六边形
     hexagonRect.Offset(UiPoint(rect.Width() + 10, 0));
-    DrawRegularHexagon(pRender, hexagonRect.Center(), rect.Width() / 2, UiColor(UiColors::White), 2, UiColor(UiColors::SandyBrown));
+    UiPointF centerF((float)hexagonRect.CenterX(), (float)hexagonRect.CenterY());
+    DrawRegularHexagon(pRender, centerF, rect.Width() / 2, UiColor(UiColors::White), 2, UiColor(UiColors::SandyBrown));
 
     //用正六边形拼接一个复杂图形
     hexagonRect.Offset(UiPoint(rect.Width() + 10, 0));
-    const int32_t radius = 16; //半径
-    const float distance = radius * std::cos(30 / 57.2957795f); // 中心点到边的垂直距离
-    for (int32_t y = 0; y < 13; ++y) { //共计13行
-        int32_t count = 0;
-        if (y < 7) {
-            count = 7 + y;
-        }
-        else {
-            count = 7 + (13 - y - 1);
-        }
-        for (int32_t x = 0; x < count; ++x) {
-            UiPoint centerPt(hexagonRect.left + 200, hexagonRect.top + 100);
-            if (y < 7) {
-                centerPt.x += static_cast<int32_t>(distance * 2 * x - distance * y + 0.5f);
-            }
-            else {
-                centerPt.x += static_cast<int32_t>(distance * 2 * x - distance * (13 - y - 1) + 0.5f);
-            }
-            centerPt.y += static_cast<int32_t>(radius * 1.5f * y + 0.5f);
-            DrawRegularHexagon(pRender, centerPt, radius, UiColor(UiColors::SeaShell), 2, UiColor(UiColors::SeaGreen));
-        }
-    }
+    DrawColorMap(pRender, hexagonRect);
 
     //换行
     currentBottom = textRect.bottom;//记录当前的bottom值
@@ -269,7 +249,38 @@ int RenderTest3::DpiScaledInt(int iValue)
     return GlobalManager::Instance().Dpi().GetScaleInt(iValue);
 }
 
-bool RenderTest3::DrawRegularHexagon(IRender* pRender, const UiPoint& centerPt, int32_t radius,
+void RenderTest3::DrawColorMap(IRender* pRender, const UiRect& rect)
+{
+    int32_t radius = static_cast<int32_t>(rect.Width() / 13 / 2 / std::cos(30 / 57.2957795f)); //半径
+    const float distance = radius * std::cos(30 / 57.2957795f); //中心点到边的垂直距离
+
+    UiPointF firstCenterPt = UiPointF((float)rect.CenterX(), (float)rect.CenterY()); //矩形中心点坐标
+    firstCenterPt.x = firstCenterPt.x - distance * 2 * 6 * std::sin(30 / 57.2957795f); //第一个六边形中心点X坐标
+    firstCenterPt.y = firstCenterPt.y - distance * 2 * 6 * std::cos(30 / 57.2957795f); //第一个六边形中心点Y坐标
+
+    for (int32_t y = 0; y < 13; ++y) { //共计13行
+        int32_t count = 0;
+        if (y < 7) {
+            count = 7 + y;
+        }
+        else {
+            count = 7 + (13 - y - 1);
+        }
+        for (int32_t x = 0; x < count; ++x) {
+            UiPointF centerPt = firstCenterPt;
+            if (y < 7) {
+                centerPt.x += distance * 2 * x - distance * y;
+            }
+            else {
+                centerPt.x += distance * 2 * x - distance * (13 - y - 1);
+            }
+            centerPt.y += radius * 1.5f * y;
+            DrawRegularHexagon(pRender, centerPt, radius, UiColor(UiColors::Blue), 1, UiColor(UiColors::Salmon));
+        }
+    }
+}
+
+bool RenderTest3::DrawRegularHexagon(IRender* pRender, const UiPointF& centerPt, int32_t radius,
                                      const UiColor& penColor, int32_t penWidth, const UiColor& brushColor)
 {
     ASSERT(pRender != nullptr);
@@ -288,17 +299,18 @@ bool RenderTest3::DrawRegularHexagon(IRender* pRender, const UiPoint& centerPt, 
 
     const int32_t count = 6; //多边形的边数
     //正多边形上任意一个顶点的坐标为： x = r * cos(θ) y = r * sin(θ) 
-    std::vector<UiPoint> polygonPoints;
+    std::vector<UiPointF> polygonPoints;
     for (int32_t i = 0; i < count; ++i) {
         int32_t degree = i * 60 + 30;// +30是为了使顶点在中心点的最上方
         float radian = degree / 57.2957795f;
-        int32_t x = static_cast<int32_t>(radius * std::cos(radian) + 0.5f);
-        int32_t y = static_cast<int32_t>(radius * std::sin(radian) + 0.5f);
-        polygonPoints.push_back(UiPoint(centerPt.x + x, centerPt.y + y));
+        float x = radius * std::cos(radian) + 0.5f;
+        float y = radius * std::sin(radian) + 0.5f;
+        polygonPoints.push_back(UiPointF(centerPt.x + x, centerPt.y + y));
     }
 
     std::unique_ptr<IPath> path(pRenderFactory->CreatePath());
     path->AddPolygon(polygonPoints.data(), (int32_t)polygonPoints.size());
+    path->Close();
 
     bool bRet = false;
     if (brushColor.GetARGB() != 0) {

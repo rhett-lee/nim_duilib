@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Window size="75%,90%" mininfo="80,50" caption="0,0,0,35" shadowattached="true" layered_window="true" alpha="255" sizebox="4,4,4,4">
+  
+  <TextColor name="color_picker_bkcolor" value="#FFF0F0F0"/>
+  <TextColor name="color_picker_box_bkcolor" value="#FFF9F9F9"/>
+  <Class name="color_picker_tab_option" width="48" height="32" font="system_14" normal_text_color="black" text_align="hcenter,vcenter" normal_color="#FFE6E6E6" hot_color="#FFE3E3E3" selected_normal_color="color_picker_box_bkcolor"/>
+  
+  
   <VBox bkcolor="bk_wnd_darkcolor" bordersize="1" bordercolor="lightcolor" visible="true">
     <HBox width="stretch" height="35" bkcolor="bk_wnd_lightcolor" margin="1,1,1,0">
       <Control />
@@ -10,29 +16,51 @@
       </Box>
       <Button class="btn_wnd_close" name="closebtn" margin="4,6,8,0"/>
     </HBox>
-    <Box>
-      <VBox margin="0,0,0,0" valign="center" halign="center" width="auto" height="auto">
-        <Label name="tooltip" text="一个简单窗口，带有标题栏和常规按钮。"/>
-        <RichText>
-            RichText文本内容1
-            <b>
-                粗体
-                <bgcolor color="#000000">
-                    <u>
-                        <a href="www.baidu.com">这里是超级链接：点击访问百度首页</a>
-                    </u>
-                </bgcolor>
-                <font color="#FF0000">红色加粗</font>
-            </b>
-            <font face="宋体" size="12">
-                宋体12号字演示1
-                <font face="楷体" size="18">
-                    楷体效果演示：18号字
-                </font>
-                宋体12号字演示2
-            </font>
-        </RichText>
-      </VBox>
+    
+    <Box bkcolor="color_picker_bkcolor" width="540" height="450">
+        <VBox>
+            <HBox height="32">
+                 <Option class="color_picker_tab_option" name="常用" group="color_picker_option_group" text="常用">
+                    <Event type="select" receiver="color_picker_tab" applyattribute="selected_id={0}" />
+                 </Option>
+                 <Option class="color_picker_tab_option" name="标准" group="color_picker_option_group" text="标准" selected="true">
+                    <Event type="select" receiver="color_picker_tab" applyattribute="selected_id={1}" />
+                 </Option>
+                 <Option class="color_picker_tab_option" name="自定义" group="color_picker_option_group" text="自定义">
+                    <Event type="select" receiver="color_picker_tab" applyattribute="selected_id={2}" />
+                 </Option>
+            </HBox>
+            <HBox>
+                <VBox>
+                    <TabBox name="color_picker_tab" bkcolor="color_picker_box_bkcolor" fadeswitch="false" margin="1,1,1,1" selected_id="1">
+                        <VBox name="color_picker_tab_page_1">
+                            <Label text="常用"/>
+                            <VirtualVTileListBox name="color_picker_tab_item_regular" width="auto" item_size="36,18" columns="10" child_margin="2" halign="center" valign="center"/>
+                        </VBox>
+                        <VBox name="color_picker_tab_page_2">
+                            <Label text="标准"/>
+                            <ColorPickerStatard/>
+                        </VBox>
+                        <VBox name="color_picker_tab_page_3">
+                            <Label text="自定义"/>
+                        </VBox>
+                    </TabBox>
+                </VBox>
+                <VBox width="120">
+                    <VBox>
+                        <Button class="btn_global_color_gray" width="80" height="30" text="确定" halign="center" margin="2,6,2,2"/>
+                        <Button class="btn_global_color_gray" width="80" height="30" text="取消" halign="center" margin="2,2,2,2"/>
+                        <CheckBox class="btn_global_color_gray" width="80" height="30" text="选择" halign="center" margin="2,2,2,2" selected_normal_color="LightGray" bkimage="file='../public/color/dropper.png' halign='left' valign='center' width='20' height='20' padding='4,0,0,0'"/>
+                    </VBox>
+                    <VBox>
+                        <Label text="新建" width="120" text_align="hcenter"/>
+                        <Control height="48" bkcolor="red"/>
+                        <Control height="48" bkcolor="blue"/>
+                        <Label text="当前" width="120" text_align="hcenter"/>
+                    </VBox>
+                </VBox>
+            </HBox>
+        </VBox>
     </Box>
   </VBox>
 </Window>

@@ -113,6 +113,22 @@ void Path_Gdiplus::AddPolygon(const UiPoint* points, int count)
 	}
 }
 
+void Path_Gdiplus::AddPolygon(const UiPointF* points, int count)
+{
+	ASSERT(points != nullptr);
+	if (points == nullptr) {
+		return;
+	}
+	std::vector<Gdiplus::PointF> p;
+	for (int i = 0; i < count; i++)
+	{
+		p.emplace_back(points[i].x, points[i].y);
+	}
+	if (!p.empty()) {
+		path_->AddPolygon(&p[0], static_cast<INT>(p.size()));
+	}
+}
+
 void Path_Gdiplus::Transform(IMatrix* pMatrix)
 {
 	if (pMatrix != nullptr) {

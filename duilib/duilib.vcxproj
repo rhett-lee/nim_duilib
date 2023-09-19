@@ -474,6 +474,7 @@
     <ClInclude Include="Core\UiMargin.h" />
     <ClInclude Include="Core\UiPadding.h" />
     <ClInclude Include="Core\UiPoint.h" />
+    <ClInclude Include="Core\UiPointF.h" />
     <ClInclude Include="Core\UiRect.h" />
     <ClInclude Include="Core\UiSize.h" />
     <ClInclude Include="Core\UiSize64.h" />
