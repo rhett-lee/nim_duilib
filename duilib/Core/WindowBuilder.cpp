@@ -270,15 +270,9 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
 						if( strName == L"name" ) {
 							strClassName = strValue;
 						}
-						else if( strName == L"value" ) {
-							strAttribute.append(strValue);
-						}
-						else if (strName == L"_value") {
-							strAttribute.append(StringHelper::Printf(L" value=\"%s\"",strValue.c_str()));
-						}
 						else {
 							strAttribute.append(StringHelper::Printf(L" %s=\"%s\"",
-								strName.c_str(), strValue.c_str()));
+												strName.c_str(), strValue.c_str()));
 						}
 					}
 					if( !strClassName.empty() ) {
@@ -321,15 +315,9 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
 						if (strName == L"name") {
 							strClassName = strValue;
 						}
-						else if (strName == L"value") {
-							strAttribute.append(strValue);
-						}
-						else if (strName == L"_value") {
-							strAttribute.append(StringHelper::Printf(L" value=\"%s\"", strValue.c_str()));
-						}
 						else {
 							strAttribute.append(StringHelper::Printf(L" %s=\"%s\"",
-								strName.c_str(), strValue.c_str()));
+												strName.c_str(), strValue.c_str()));
 						}
 					}
 					if (!strClassName.empty()) {
@@ -531,21 +519,32 @@ Control* WindowBuilder::ParseXmlNode(const pugi::xml_node& xmlNode, Control* pPa
 
 		// TreeView相关必须先添加后解析
 		if (strClass == DUI_CTR_TREENODE) {
+			bool bAdded = false;
 			TreeNode* pNode = dynamic_cast<TreeNode*>(pControl);
 			ASSERT(pNode != nullptr);
 			TreeView* pTreeView = dynamic_cast<TreeView*>(pParent);
-			if (pTreeView) {
+			if (pTreeView != nullptr) {
 				//一级子节点
 				pTreeView->GetRootNode()->AddChildNode(pNode);
+				bAdded = true;
 			}
 			else {
 				//多级子节点
 				TreeNode* pTreeNode = dynamic_cast<TreeNode*>(pParent);
-				ASSERT(pTreeNode != nullptr);
-				if (pTreeNode) {
+				if (pTreeNode != nullptr) {
 					pTreeNode->AddChildNode(pNode);
+					bAdded = true;
 				}
 			}
+			if (!bAdded) {
+				//尝试Combo控件
+				Combo* pCombo = dynamic_cast<Combo*>(pParent);
+				if (pCombo != nullptr) {
+					pCombo->GetTreeView()->GetRootNode()->AddChildNode(pNode);
+					bAdded = true;
+				}
+			}
+			ASSERT(bAdded);
 		}
 
 		pControl->SetWindow(pWindow);

@@ -881,6 +881,10 @@ public:
 	*/
 	bool UnregisterDragDrop(ControlDropTarget* pDropTarget);
 
+	/** 更新ToolTip信息（此时ToolTip的信息已经发生变化）
+	*/
+	void UpdateToolTip();
+
 private:
 	/** 检查并确保当前窗口为焦点窗口
 	*/

@@ -1420,6 +1420,13 @@ LRESULT Window::OnMouseLeaveMsg(UINT uMsg, WPARAM /*wParam*/, LPARAM /*lParam*/,
 	return 0;
 }
 
+void Window::UpdateToolTip()
+{
+	//隐藏现有的，等待重新显示即会更新
+	m_toolTip->HideToolTip();
+	m_toolTip->ClearMouseTracking();
+}
+
 LRESULT Window::OnMouseMoveMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
 	ASSERT_UNUSED_VARIABLE(uMsg == WM_MOUSEMOVE);

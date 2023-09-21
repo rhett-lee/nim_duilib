@@ -168,6 +168,15 @@ public:
 	 */
     void SetLimitText(int32_t iChars);
 
+	/** 获取允许输入哪些字符
+	*/
+	std::wstring GetLimitChars() const;
+
+	/** 设置允许输入哪些字符，比如颜色值可以设置：limit_chars="#0123456789ABCDEFabcdef"
+	* @param [in] limitChars 允许输入的字符列表
+	*/
+	void SetLimitChars(const std::wstring& limitChars);
+
 	/** 是否允许发出Beep声音
 	*/
 	bool GetAllowBeep() const;
@@ -898,6 +907,15 @@ protected:
 	*/
 	void UnregisterDragDrop();
 
+	/** 判断一个字符，是否在限制字符列表中
+	*/
+	bool IsInLimitChars(wchar_t charValue) const;
+
+	/** 判断是否可以进行粘贴操作(判断是否有字符限制、数字限制)
+	* @return 如果返回true, 表示不可用进行粘贴操作
+	*/
+	bool IsPasteLimited() const;
+
 private:
 	//判断是否是字节： 可打印字符（0x20-0x7e）
 	static bool IsAsciiChar(const wchar_t ch);
@@ -993,6 +1011,10 @@ private:
 	/** 拖放功能的实现接口, 如果不为空表示功能已经开启
 	*/
 	ControlDropTarget* m_pControlDropTarget;
+
+	/** 允许输入的字符列表
+	*/
+	UiString m_limitChars;
 };
 
 } // namespace ui

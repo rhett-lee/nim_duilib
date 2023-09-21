@@ -209,6 +209,8 @@ std::wstring EventTypeToString(EventType eventType)
 		return L"kEventVisibleChange";
 	case kEventStateChange:
 		return L"kEventStateChange";
+	case kEventSelectColor:
+		return L"kEventSelectColor";
 	case kEventLast:
 		return L"kEventLast";
 	default:

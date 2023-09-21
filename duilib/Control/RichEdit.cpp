@@ -365,9 +365,13 @@ void RichEdit::SetAttribute(const std::wstring& strName, const std::wstring& str
 		//是否自动检测URL，如果是URL则显示为超链接
 		SetAutoURLDetect(strValue == L"true");
 	}
-	else if ((strName == L"max_char") || (strName == L"maxchar")) {
-		//限制最多字符数（默认为32KB）
+	else if ((strName == L"limit_text") || (strName == L"max_char") || (strName == L"maxchar")) {
+		//限制最多字符数
 		SetLimitText(_wtoi(strValue.c_str()));
+	}
+	else if (strName == L"limit_chars") {
+		//限制允许输入哪些字符
+		SetLimitChars(strValue);
 	}
 	else if (strName == L"allow_beep") {
 		//是否允许发出Beep声音
@@ -699,6 +703,16 @@ void RichEdit::SetLimitText(int32_t iChars)
 	m_richCtrl.SetLimitText(iChars);
 }
 
+std::wstring RichEdit::GetLimitChars() const
+{
+	return m_limitChars.c_str();
+}
+
+void RichEdit::SetLimitChars(const std::wstring& limitChars)
+{
+	m_limitChars = limitChars;
+}
+
 bool RichEdit::GetAllowBeep() const
 {
 	if (m_pRichHost != nullptr) {
@@ -1007,16 +1021,27 @@ void RichEdit::Cut()
 
 void RichEdit::Paste()
 {
+	if (IsPasteLimited()) {
+		return;
+	}
 	m_richCtrl.Paste();
 }
 
 BOOL RichEdit::CanPaste(UINT nFormat/* = 0*/)
 {
+	if (nFormat == 0) {
+		if (IsPasteLimited()) {
+			return false;
+		}
+	}
 	return m_richCtrl.CanPaste(nFormat);
 }
 
 void RichEdit::PasteSpecial(UINT uClipFormat, DWORD dwAspect/* = 0*/, HMETAFILE hMF/* = 0*/)
 {
+	if (IsPasteLimited()) {
+		return;
+	}
 	return m_richCtrl.PasteSpecial(uClipFormat, dwAspect, hMF);
 }
 
@@ -1777,8 +1802,72 @@ bool RichEdit::OnChar(const EventArgs& msg)
 		}
 	}
 
+	//限制允许输入的字符
+	if (!m_limitChars.empty()) {
+		if (!IsInLimitChars((wchar_t)msg.wParam)) {
+			//字符不在列表里面，禁止输入
+			return true;
+		}
+	}
+
 	m_richCtrl.TxSendMessage(WM_CHAR, msg.wParam, msg.lParam);
 	return true;
+}
+
+bool RichEdit::IsInLimitChars(wchar_t charValue) const
+{
+	const wchar_t* ch = m_limitChars.c_str();
+	if ((ch == nullptr) || (*ch == L'\0')) {
+		return true;
+	}
+	bool bInLimitChars = false;
+	while (*ch != L'\0') {
+		if (*ch == charValue) {
+			bInLimitChars = true;
+			break;
+		}
+		++ch;
+	}
+	return bInLimitChars;
+}
+
+bool RichEdit::IsPasteLimited() const
+{
+	if (!m_limitChars.empty()) {
+		//有设置限制字符
+		std::wstring strClipText;
+		GetClipboardText(strClipText);
+		if (!strClipText.empty()) {
+			size_t count = strClipText.size();
+			for (size_t index = 0; index < count; ++index) {
+				if (strClipText[index] == L'\0') {
+					break;
+				}
+				if (!IsInLimitChars(strClipText[index])) {
+					//有字符不在列表里面，禁止粘贴
+					return true;
+				}
+			}
+		}
+	}
+	else if (IsNumberOnly()) {
+		//数字模式
+		std::wstring strClipText;
+		GetClipboardText(strClipText);
+		if (!strClipText.empty()) {
+			size_t count = strClipText.size();
+			for (size_t index = 0; index < count; ++index) {
+				if (strClipText[index] == L'\0') {
+					break;
+				}
+				if ((strClipText[index] > L'9') || (strClipText[index] < L'0')) {
+					//有不是数字的字符，禁止粘贴
+					return true;
+				}
+			}
+		}
+	}
+	return false;
 }
 
 bool RichEdit::OnKeyDown(const EventArgs& msg)
@@ -1790,22 +1879,9 @@ bool RichEdit::OnKeyDown(const EventArgs& msg)
 			return true;
 		}
 	}
-	else if (IsNumberOnly() && msg.wParam == 'V' && ::GetKeyState(VK_CONTROL) < 0) {
-		std::wstring strClipText;
-		GetClipboardText(strClipText);
-		if (!strClipText.empty()) {
-			std::wstring strNum;
-			for (auto it = strClipText.begin(); it != strClipText.end(); it++) {
-				if ((*it) <= L'9' && (*it) >= L'0') {
-					strNum.push_back((*it));
-				}
-			}
-			if (strNum.empty()) {
-				return true;
-			}
-
-			SetClipBoardText(strNum); //修改剪切板内容为纯数字
-			nbase::ThreadManager::PostTask([strClipText]() { SetClipBoardText(strClipText); }); //粘贴完后又把剪切板内容改回来
+	else if ((msg.wParam == 'V') && (::GetKeyState(VK_CONTROL) < 0)) {
+		if (IsPasteLimited()) {
+			return true;
 		}
 	}
 

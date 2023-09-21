@@ -100,6 +100,27 @@ public:
         return RGB(GetRed(), GetGreen(), GetBlue());
     }
 
+    /** 判断是否与另外一个点相同
+    */
+    bool Equals(const UiColor& dst) const
+    {
+        return Argb == dst.Argb;
+    }
+
+    /** 判断两个值是否相等
+    */
+    friend bool operator == (const UiColor& a, const UiColor& b)
+    {
+        return a.Equals(b);
+    }
+
+    /** 判断两个值是否不相等
+    */
+    friend bool operator != (const UiColor& a, const UiColor& b)
+    {
+        return !a.Equals(b);
+    }
+
     // Shift count and bit mask for A, R, G, B components
     enum
     {

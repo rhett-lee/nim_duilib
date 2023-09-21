@@ -41,11 +41,15 @@ public:
 	 */
 	std::wstring GetBkColor() const { return m_strBkColor.c_str(); }
 
-	/** @brief 设置背景颜色
-	 * @param[in] strColor 要设置的背景颜色值，该值必须在 global.xml 中存在
-	 * @return 无
+	/** 设置背景颜色
+	 * @param [in] strColor 要设置的背景颜色值，该值必须在 global.xml 中存在
 	 */
 	void SetBkColor(const std::wstring& strColor);
+
+	/** 设置背景颜色
+	 * @param [in] color 要设置的背景颜色值
+	 */
+	void SetBkColor(const UiColor& color);
 
 	/**
 	 * @brief 获取某个状态下的控件颜色
@@ -959,7 +963,7 @@ protected:
 	virtual bool OnKeyDown(const EventArgs& msg);
 	virtual bool OnKeyUp(const EventArgs& msg);
 
-	//光标与焦点相关消息（返回true：表示消息已处理；返回false：则表示消息未处理，需转发给父控件）
+    //光标与焦点相关消息（返回true：表示消息已处理；返回false：则表示消息未处理，需转发给父控件）
 	virtual bool OnSetCursor(const EventArgs& msg);
 	virtual bool OnSetFocus(const EventArgs& msg);
 	virtual bool OnKillFocus(const EventArgs& msg);

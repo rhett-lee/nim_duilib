@@ -291,6 +291,7 @@ namespace ui
 		kEventResize,				//Control类：当控件的大小和位置发生变化时触发
 		kEventVisibleChange,		//Control类：当控件的Visible属性发生变化时触发
 		kEventStateChange,			//Control类：当控件的State属性发生变化时触发, WPARAM是新状态，LPARAM是旧状态
+		kEventSelectColor,			//ColorPicker类：当选择了新颜色时触发, WPARAM是新的颜色值，LPARAM是旧的颜色值
 
 		kEventLast					//Control类：该控件的最后一个消息，当这个控件对象销毁时触发
 	};

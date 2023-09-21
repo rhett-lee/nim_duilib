@@ -142,7 +142,7 @@ namespace UiColors
         SlateBlue = 0xFF6A5ACD,     //石板蓝色
         SlateGray = 0xFF708090,     //石板灰色
         Snow = 0xFFFFFAFA,          //雪白色
-        SpringGreen = 0xFF00FF7F,   //春绿色色
+        SpringGreen = 0xFF00FF7F,   //春绿色
         SteelBlue = 0xFF4682B4,     //钢青色
         Tan = 0xFFD2B48C,           //棕褐色
         Teal = 0xFF008080,          //青色

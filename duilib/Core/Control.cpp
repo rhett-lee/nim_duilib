@@ -117,6 +117,12 @@ void Control::SetBkColor(const std::wstring& strColor)
 	Invalidate();
 }
 
+void Control::SetBkColor(const UiColor& color)
+{
+	std::wstring strColor = StringHelper::Printf(L"#%02X%02X%02X%02X", color.GetA(), color.GetR(), color.GetG(), color.GetB());
+	SetBkColor(strColor);
+}
+
 std::wstring Control::GetStateColor(ControlStateType stateType) const
 {
 	if (m_pColorMap != nullptr) {
@@ -618,11 +624,20 @@ std::string Control::GetUTF8ToolTipText() const
 
 void Control::SetToolTipText(const std::wstring& strText)
 {
-	std::wstring strTemp(strText);
-	StringHelper::ReplaceAll(L"<n>",L"\r\n", strTemp);
-	m_sToolTipText = strTemp;
+	if (strText != m_sToolTipText) {
+		std::wstring strTemp(strText);
+		StringHelper::ReplaceAll(L"<n>", L"\r\n", strTemp);
+		m_sToolTipText = strTemp;
+		Invalidate();
 
-	Invalidate();
+		if (GetWindow() != nullptr) {
+			Control* pHover = GetWindow()->GetHoverControl();
+			if (pHover == this) {
+				//更新ToolTip的显示
+				GetWindow()->UpdateToolTip();
+			}
+		}		
+	}	
 }
 
 void Control::SetUTF8ToolTipText(const std::string& strText)
@@ -1598,6 +1613,9 @@ void Control::SetAttribute(const std::wstring& strName, const std::wstring& strV
 	}
 	else if (strName == L"dataid") {
 		SetDataID(strValue);
+	}
+	else if (strName == L"user_dataid") {
+		SetUserDataID(_wtoi(strValue.c_str()));
 	}
 	else if (strName == L"enabled") {
 		SetEnabled(strValue == L"true");
