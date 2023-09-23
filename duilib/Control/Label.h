@@ -333,7 +333,7 @@ UiSize LabelTemplate<InheritType>::EstimateText(UiSize szAvailable)
     int width = this->GetFixedWidth().GetInt32();
     if (this->GetFixedWidth().IsStretch()) {
         //如果是拉伸类型，使用外部宽度
-        width = szAvailable.cx;
+        width = CalcStretchValue(this->GetFixedWidth(), szAvailable.cx);
     }
     UiPadding rcTextPadding = this->GetTextPadding();
     UiPadding rcPadding = this->GetControlPadding();

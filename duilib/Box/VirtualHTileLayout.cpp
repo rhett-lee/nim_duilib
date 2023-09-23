@@ -87,10 +87,10 @@ UiSize VirtualHTileLayout::EstimateSizeByChild(const std::vector<Control*>& item
     }
     UiSize size(estSize.cx.GetInt32(), estSize.cy.GetInt32());
     if (estSize.cx.IsStretch()) {
-        size.cx = szAvailable.cx;
+        size.cx = CalcStretchValue(estSize.cx, szAvailable.cx);
     }
     if (estSize.cy.IsStretch()) {
-        size.cy = szAvailable.cy;
+        size.cy = CalcStretchValue(estSize.cy, szAvailable.cy);
     }
     if (size.cy == 0) {
         size.cy = szItem.cy * nRows + GetChildMarginY() * (nRows - 1);

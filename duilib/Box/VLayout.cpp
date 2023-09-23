@@ -12,7 +12,7 @@ VLayout::VLayout()
 UiSize64 VLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 {
 	DeflatePadding(rc);
-	UiSize szAvailable(rc.Width(), rc.Height());
+	const UiSize szAvailable(rc.Width(), rc.Height());
 
 	//高度为stretch的控件数
 	int32_t stretchCount = 0;
@@ -50,7 +50,7 @@ UiSize64 VLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 
 		//计算宽度
 		if (estSize.cx.IsStretch()) {
-			sz.cx = szAvailable.cx - rcMargin.left - rcMargin.right;
+			sz.cx = CalcStretchValue(estSize.cx, szAvailable.cx) - rcMargin.left - rcMargin.right;
 			sz.cx = std::max(sz.cx, 0);
 		}
 		if (sz.cx < pControl->GetMinWidth()) {
@@ -65,26 +65,37 @@ UiSize64 VLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 		if (!estSize.cy.IsStretch()) {
 			estSize.cy.SetInt32(sz.cy);
 		}
-		estSize.cx.SetInt32(sz.cx);
+		estSize.cx.SetInt32(sz.cx);//cx是已经计算好的确定数值，不再有拉伸和自动类型值
 		itemsMap[pControl] = estSize;
 	}
 	if (!itemsMap.empty()) {
 		cyFixedTotal += ((int32_t)itemsMap.size() - 1) * GetChildMarginY();
 	}
 	
-	//每个高度为stretch的控件，给与分配的实际高度（取平均值）
-	int32_t cyStretch = 0;
-	if (stretchCount > 0) {
-		cyStretch = std::max(0, (szAvailable.cy - cyFixedTotal) / stretchCount);
+	float fStretchValue = 0;	//每个拉伸控件，按设置为100%时，应该分配的高度值
+	float fTotalStretch = 0;	//按设置为100%时为一个控件单位，总共有多少个控件单位
+	if (stretchCount > 0) {		
+		for (auto iter : itemsMap) {
+			const UiEstSize& itemEstSize = iter.second;
+			if (itemEstSize.cy.IsStretch()) {
+				fTotalStretch += itemEstSize.cy.GetStretchPercentValue() / 100.0f;
+			}
+		}
+		ASSERT(fTotalStretch > 0);
+		if (fTotalStretch > 0) {
+			fStretchValue = std::max(0, (szAvailable.cy - cyFixedTotal)) / fTotalStretch;
+		}
 	}
 
 	//做一次预估：去除需要使用minheight/maxheight的控件数后，重新计算平均高度
-	if ((cyStretch > 0) && !itemsMap.empty()) {
+	bool bStretchCountChanged = false;
+	if ((fStretchValue > 0) && !itemsMap.empty()) {
 		for (auto iter = itemsMap.begin(); iter != itemsMap.end(); ++iter) {
 			Control* pControl = iter->first;
 			UiEstSize estSize = iter->second;
 			UiSize sz(estSize.cx.GetInt32(), estSize.cy.GetInt32());
 			if (estSize.cy.IsStretch()) {
+				int32_t cyStretch = static_cast<int32_t>(fStretchValue * estSize.cy.GetStretchPercentValue() / 100.0f);
 				sz.cy = cyStretch;
 				if (sz.cy < pControl->GetMinHeight()) {
 					sz.cy = pControl->GetMinHeight();
@@ -98,6 +109,7 @@ UiSize64 VLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 					iter->second = estSize;
 					--stretchCount;
 					cyFixedTotal += sz.cy; //Margin已经累加过，不需要重新累加
+					bStretchCountChanged = true;
 				}
 			}
 		}
@@ -105,14 +117,18 @@ UiSize64 VLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 
 	//重新计算Stretch控件的高度，最终以这次计算的为准；
 	//如果纵向总空间不足，则按原来评估的平均高度，优先保证前面的控件可以正常显示
-	if ((stretchCount > 0) && (szAvailable.cy > cyFixedTotal)){
-		cyStretch = std::max(0, (szAvailable.cy - cyFixedTotal) / stretchCount);
-	}
-
-	// Position the elements
-	int32_t deviation = szAvailable.cy - cyFixedTotal - cyStretch * stretchCount;//剩余可用高度，用于纠正偏差
-	if (deviation < 0) {
-		deviation = 0;
+	if (bStretchCountChanged && (stretchCount > 0) && (szAvailable.cy > cyFixedTotal)) {
+		fTotalStretch = 0;
+		for (auto iter : itemsMap) {
+			const UiEstSize& itemEstSize = iter.second;
+			if (itemEstSize.cy.IsStretch()) {
+				fTotalStretch += itemEstSize.cy.GetStretchPercentValue() / 100.0f;
+			}
+		}
+		ASSERT(fTotalStretch > 0);
+		if (fTotalStretch > 0) {
+			fStretchValue = std::max(0, (szAvailable.cy - cyFixedTotal)) / fTotalStretch;
+		}
 	}
 
 	int32_t iPosLeft = rc.left;
@@ -122,6 +138,7 @@ UiSize64 VLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 	// Place elements
 	int64_t cyNeeded = 0;//需要的总高度
 	int64_t cxNeeded = 0;//需要的总宽度（取各个子控件的宽度最大值）
+	int32_t assignedStretch = 0; //已经分配的拉伸空间大小
 
 	for(auto pControl : items) {
 		if ((pControl == nullptr) || !pControl->IsVisible()) {
@@ -139,6 +156,7 @@ UiSize64 VLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 
 		//计算高度
 		if(estSize.cy.IsStretch()) {
+			int32_t cyStretch = static_cast<int32_t>(fStretchValue * estSize.cy.GetStretchPercentValue() / 100.0f);
 			sz.cy = cyStretch;
 			if (sz.cy < pControl->GetMinHeight()) {
 				sz.cy = pControl->GetMinHeight();
@@ -146,9 +164,14 @@ UiSize64 VLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 			if (sz.cy > pControl->GetMaxHeight()) {
 				sz.cy = pControl->GetMaxHeight();
 			}
-			if ((sz.cy <= cyStretch) && (deviation > 0)) {
-				sz.cy += 1;
-				deviation--;
+			assignedStretch += sz.cy;
+			--stretchCount;
+			if (stretchCount == 0) {
+				//在最后一个拉伸控件上，修正计算偏差
+				int32_t deviation = szAvailable.cy - cyFixedTotal - assignedStretch;
+				if (deviation > 0) {
+					sz.cy += deviation;
+				}
 			}
 		}
 				

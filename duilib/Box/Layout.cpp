@@ -32,10 +32,10 @@ UiSize64 Layout::SetFloatPos(Control* pControl, const UiRect& rcContainer)
 	UiEstSize estSize = pControl->EstimateSize(szAvailable);
 	UiSize childSize(estSize.cx.GetInt32(), estSize.cy.GetInt32());
 	if (estSize.cx.IsStretch()) {
-		childSize.cx = szAvailable.cx;
+		childSize.cx = CalcStretchValue(estSize.cx, szAvailable.cx);
 	}
 	if (estSize.cy.IsStretch()) {
-		childSize.cy = szAvailable.cy;		
+		childSize.cy = CalcStretchValue(estSize.cy, szAvailable.cy);
 	}
 	childSize.cx = std::max(childSize.cx, 0);
 	childSize.cy = std::max(childSize.cy, 0);

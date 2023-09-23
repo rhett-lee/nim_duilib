@@ -70,7 +70,7 @@ namespace ui
     {
         UiEstInt estInt;
         if (fixedInt.IsStretch()) {
-            estInt.SetStretch();
+            estInt.SetStretch(fixedInt.GetStretchPercentValue());
         }
         else if (fixedInt.IsInt32()) {
             estInt.SetInt32(fixedInt.GetInt32());
@@ -79,6 +79,44 @@ namespace ui
             estInt.SetInt32(0);
         }
         return estInt;
+    }
+
+    /** 计算拉伸类型的长度值
+    */
+    inline int32_t CalcStretchValue(const UiEstInt& estInt, int32_t nAvailable)
+    {
+        if (estInt.IsStretch()) {
+            int32_t nStretchValue = estInt.GetStretchPercentValue(); //代表百分比值，取值范围为：(0, 100]
+            if ((nStretchValue > 0) && (nStretchValue < 100)) {
+                //返回按百分比计算的值, 四舍五入
+                return static_cast<int32_t>(nAvailable * nStretchValue / 100.0f + 0.5f);
+            }
+            else {
+                //返回原值
+                return nAvailable;
+            }
+        }
+        //其他情况，返回原值(容错)
+        return nAvailable;
+    }
+
+    /** 计算拉伸类型的长度值
+    */
+    inline int32_t CalcStretchValue(const UiFixedInt& fixedInt, int32_t nAvailable)
+    {
+        if (fixedInt.IsStretch()) {
+            int32_t nStretchValue = fixedInt.GetStretchPercentValue(); //代表百分比值，取值范围为：(0, 100]
+            if ((nStretchValue > 0) && (nStretchValue < 100)) {
+                //返回按百分比计算的值, 四舍五入
+                return static_cast<int32_t>(nAvailable * nStretchValue / 100.0f + 0.5f);
+            }
+            else {
+                //返回原值
+                return nAvailable;
+            }
+        }
+        //其他情况，返回原值(容错)
+        return nAvailable;
     }
 
     /** 从UiFixedSize生成UiEstSize

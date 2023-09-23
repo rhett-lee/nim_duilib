@@ -50,7 +50,7 @@ UiSize64 HLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 		
 		//计算高度
 		if (estSize.cy.IsStretch()) {
-			sz.cy = (szAvailable.cy - rcMargin.top - rcMargin.bottom);
+			sz.cy = (CalcStretchValue(estSize.cy, szAvailable.cy) - rcMargin.top - rcMargin.bottom);
 			sz.cy = std::max(sz.cy, 0);
 		}
 		if (sz.cy < pControl->GetMinHeight()) {
@@ -65,25 +65,37 @@ UiSize64 HLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 		if (!estSize.cx.IsStretch()) {
 			estSize.cx.SetInt32(sz.cx);
 		}
-		estSize.cy.SetInt32(sz.cy);
+		estSize.cy.SetInt32(sz.cy);//cy是已经计算好的确定数值，不再有拉伸和自动类型值
 		itemsMap[pControl] = estSize;
 	}
 	if (!itemsMap.empty()) {
 		cxFixedTotal += ((int32_t)itemsMap.size() - 1) * GetChildMarginX();
 	}
 
-	//每个宽度为stretch的控件，给与分配的实际宽度（取平均值）
-	int32_t cxStretch = 0;
+	float fStretchValue = 0;	//每个拉伸控件，按设置为100%时，应该分配的高度值
+	float fTotalStretch = 0;	//按设置为100%时为一个控件单位，总共有多少个控件单位
 	if (stretchCount > 0) {
-		cxStretch = std::max(0, (szAvailable.cx - cxFixedTotal) / stretchCount);
+		for (auto iter : itemsMap) {
+			const UiEstSize& itemEstSize = iter.second;
+			if (itemEstSize.cx.IsStretch()) {
+				fTotalStretch += itemEstSize.cx.GetStretchPercentValue() / 100.0f;
+			}
+		}
+		ASSERT(fTotalStretch > 0);
+		if (fTotalStretch > 0) {
+			fStretchValue = std::max(0, (szAvailable.cx - cxFixedTotal)) / fTotalStretch;
+		}
 	}
+
 	//做一次预估：去除需要使用minwidth/maxwidth的控件数后，重新计算平均高度
-	if ((cxStretch > 0) && !itemsMap.empty()) {
+	bool bStretchCountChanged = false;
+	if ((fStretchValue > 0) && !itemsMap.empty()) {
 		for (auto iter = itemsMap.begin(); iter != itemsMap.end(); ++iter) {
 			Control* pControl = iter->first;
 			UiEstSize estSize = iter->second;
 			UiSize sz(estSize.cx.GetInt32(), estSize.cy.GetInt32());
 			if (estSize.cx.IsStretch()) {
+				int32_t cxStretch = static_cast<int32_t>(fStretchValue * estSize.cx.GetStretchPercentValue() / 100.0f);
 				sz.cx = cxStretch;
 				if (sz.cx < pControl->GetMinWidth()) {
 					sz.cx = pControl->GetMinWidth();
@@ -97,20 +109,25 @@ UiSize64 HLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 					iter->second = estSize;
 					--stretchCount;
 					cxFixedTotal += sz.cx; //Margin已经累加过，不需要重新累加
+					bStretchCountChanged = true;
 				}
 			}
 		}
 	}
 	//重新计算Stretch控件的宽度，最终以这次计算的为准；
 	//如果横向总空间不足，则按原来评估的平均高度，优先保证前面的控件可以正常显示
-	if ((stretchCount > 0) && (szAvailable.cx > cxFixedTotal)) {
-		cxStretch = std::max(0, (szAvailable.cx - cxFixedTotal) / stretchCount);
-	}
-
-	// Position the elements
-	int32_t deviation = szAvailable.cx - cxFixedTotal - cxStretch * stretchCount;//剩余可用宽度，用于纠正偏差
-	if (deviation < 0) {
-		deviation = 0;
+	if (bStretchCountChanged && (stretchCount > 0) && (szAvailable.cx > cxFixedTotal)) {
+		fTotalStretch = 0;
+		for (auto iter : itemsMap) {
+			const UiEstSize& itemEstSize = iter.second;
+			if (itemEstSize.cx.IsStretch()) {
+				fTotalStretch += itemEstSize.cx.GetStretchPercentValue() / 100.0f;
+			}
+		}
+		ASSERT(fTotalStretch > 0);
+		if (fTotalStretch > 0) {
+			fStretchValue = std::max(0, (szAvailable.cx - cxFixedTotal)) / fTotalStretch;
+		}
 	}
 
 	int32_t iPosTop = rc.top;
@@ -120,6 +137,7 @@ UiSize64 HLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 	// Place elements
 	int64_t cyNeeded = 0;//需要的总高度（取各个子控件的高度最大值）
 	int64_t cxNeeded = 0;//需要的总宽度
+	int32_t assignedStretch = 0; //已经分配的拉伸空间大小
 
 	for(auto pControl : items) {
 		if ((pControl == nullptr) || !pControl->IsVisible()) {
@@ -137,6 +155,7 @@ UiSize64 HLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 
 		//计算宽度
 		if(estSize.cx.IsStretch()) {
+			int32_t cxStretch = static_cast<int32_t>(fStretchValue * estSize.cx.GetStretchPercentValue() / 100.0f);
 			sz.cx = cxStretch;
 			if (sz.cx < pControl->GetMinWidth()) {
 				sz.cx = pControl->GetMinWidth();
@@ -144,9 +163,14 @@ UiSize64 HLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 			if (sz.cx > pControl->GetMaxWidth()) {
 				sz.cx = pControl->GetMaxWidth();
 			}
-			if ((sz.cx <= cxStretch) && (deviation > 0)) {
-				sz.cx += 1;
-				deviation--;
+			assignedStretch += sz.cx;
+			--stretchCount;
+			if (stretchCount == 0) {
+				//在最后一个拉伸控件上，修正计算偏差
+				int32_t deviation = szAvailable.cx - cxFixedTotal - assignedStretch;
+				if (deviation > 0) {
+					sz.cx += deviation;
+				}
 			}
 		}
 

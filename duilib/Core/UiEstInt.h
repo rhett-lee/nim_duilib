@@ -24,7 +24,9 @@ public:
     //数值类型
     Type type;
 
-    //具体数值, 仅当 m_type 为 Int32 时有效
+    //具体数值:
+    // 当 type 为 Int32 时, 代表为固定数值
+    // 当 type 为 Stretch, 取值范围是 (0,100]，代表由父容器按所占百分比分配
     int32_t value;
 
 public:
@@ -34,6 +36,15 @@ public:
     {
         UiEstInt estInt;
         estInt.SetStretch();
+        return estInt;
+    }
+
+    /** 构造一个拉伸类型的值, 并指定值
+    */
+    static UiEstInt MakeStretch(int32_t iValue)
+    {
+        UiEstInt estInt;
+        estInt.SetStretch(iValue);
         return estInt;
     }
 
@@ -72,19 +83,51 @@ public:
     {
         ASSERT(iValue >= 0);
         type = Type::Int32;
-        value = iValue;        
+        value = iValue >= 0 ? iValue : 0;
     }
 
     /** 获取32位整型值
     */
-    int32_t GetInt32() const { return value >= 0 ? value : 0; }
+    int32_t GetInt32() const
+    {
+        if (type != Type::Int32) {
+            return 0;
+        }
+        return value >= 0 ? value : 0;
+    }
+
+    /** 获取拉伸类型值，有效值(0, 100], 代表百分之几
+    */
+    int32_t GetStretchPercentValue() const
+    {
+        if (type != Type::Stretch) {
+            return 0;
+        }
+        if ((value > 0) && (value <= 100)) {
+            return value;
+        }
+        return 100;
+    }
 
     /** 赋值为拉伸类型
     */
     void SetStretch() 
     { 
         type = Type::Stretch; 
-        value = 0;
+        value = 100;
+    }
+
+    /** 赋值为拉伸类型，并指定值
+    */
+    void SetStretch(int32_t iValue)
+    {
+        type = Type::Stretch;
+        if ((iValue > 0) && (iValue <= 100)) {
+            value = iValue;
+        }
+        else {
+            value = 100;
+        }
     }
 
     /** 判断是否与另外一个Size相同
@@ -92,7 +135,7 @@ public:
     bool Equals(const UiEstInt& dst) const
     {
         if (IsStretch() && dst.IsStretch()) {
-            return true;
+            return value == dst.value;
         }
         else if (IsInt32() && dst.IsInt32()) {
             return value == dst.value;

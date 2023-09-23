@@ -1480,26 +1480,58 @@ void Control::SetAttribute(const std::wstring& strName, const std::wstring& strV
 	}
 	else if(strName == L"width") {
 		if (strValue == L"stretch") {
+			//宽度为拉伸：由父容器负责分配宽度
 			SetFixedWidth(UiFixedInt::MakeStretch(), true, true);
 		}
 		else if (strValue == L"auto") {
+			//宽度为自动：根据控件的文本、图片等自动计算宽度
 			SetFixedWidth(UiFixedInt::MakeAuto(), true, true);
 		}
+		else if (!strValue.empty()) {
+			if (strValue.back() == L'%') {
+				//宽度为拉伸：由父容器负责按百分比分配宽度，比如 width="30%"，代表该控件的宽度期望值为父控件宽度的30%
+				int32_t iValue = _wtoi(strValue.c_str());
+				if ((iValue <= 0) || (iValue > 100)) {
+					iValue = 100;
+				}
+				SetFixedWidth(UiFixedInt::MakeStretch(iValue), true, false);
+			}
+			else {
+				//宽度为固定值
+				ASSERT(_wtoi(strValue.c_str()) >= 0);
+				SetFixedWidth(UiFixedInt(_wtoi(strValue.c_str())), true, true);
+			}
+		}
 		else {
-			ASSERT(_wtoi(strValue.c_str()) >= 0);
-			SetFixedWidth(UiFixedInt(_wtoi(strValue.c_str())), true, true);
+			SetFixedWidth(UiFixedInt(0), true, true);
 		}
 	}
 	else if(strName == L"height") {
 		if (strValue == L"stretch") {
+			//高度为拉伸：由父容器负责分配高度
 			SetFixedHeight(UiFixedInt::MakeStretch(), true, true);
 		}
 		else if (strValue == L"auto") {
+			//高度为自动：根据控件的文本、图片等自动计算高度
 			SetFixedHeight(UiFixedInt::MakeAuto(), true, true);
 		}
+		else if (!strValue.empty()) {
+			if (strValue.back() == L'%') {
+				//高度为拉伸：由父容器负责按百分比分配高度，比如 height="30%"，代表该控件的高度期望值为父控件高度的30%
+				int32_t iValue = _wtoi(strValue.c_str());
+				if ((iValue <= 0) || (iValue > 100)) {
+					iValue = 100;
+				}
+				SetFixedHeight(UiFixedInt::MakeStretch(iValue), true, false);
+			}
+			else {
+				//高度为固定值
+				ASSERT(_wtoi(strValue.c_str()) >= 0);
+				SetFixedHeight(UiFixedInt(_wtoi(strValue.c_str())), true, true);
+			}
+		}
 		else {
-			ASSERT(_wtoi(strValue.c_str()) >= 0);
-			SetFixedHeight(UiFixedInt(_wtoi(strValue.c_str())), true, true);
+			SetFixedHeight(UiFixedInt(0), true, true);
 		}
 	}
 	else if(strName == L"state") {
