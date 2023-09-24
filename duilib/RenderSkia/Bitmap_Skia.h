@@ -27,8 +27,10 @@ public:
 	@param [in] flipHeight 是否翻转位图，如果为true，创建位图的时候，以左上角为圆点，图像方向是从上到下的；
 						   如果为false，则以左下角为圆点，图像方向是从下到上。
 	@param [in] pPixelBits 位图数据, 如果为nullptr表示窗口空位图，如果不为nullptr，其数据长度为：nWidth*4*nHeight
+	@param [in] alphaType 位图的Alpha类型，只有Skia引擎需要此参数
 	*/
-	virtual bool Init(uint32_t nWidth, uint32_t nHeight, bool flipHeight, const void* pPixelBits) override;
+	virtual bool Init(uint32_t nWidth, uint32_t nHeight, bool flipHeight,
+		         const void* pPixelBits, BitmapAlphaType alphaType = kPremul_SkAlphaType) override;
 
 	/** 获取图片宽度
 	*/

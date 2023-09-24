@@ -79,6 +79,9 @@ public:
 	virtual void DrawRoundRect(const UiRect& rc, const UiSize& roundSize, UiColor penColor, int nWidth) override;
 	virtual void FillRoundRect(const UiRect& rc, const UiSize& roundSize, UiColor dwColor, uint8_t uFade = 255) override;
 
+	virtual void DrawCircle(const UiPoint& centerPt, int32_t radius, UiColor penColor, int nWidth) override;
+	virtual void FillCircle(const UiPoint& centerPt, int32_t radius, UiColor dwColor, uint8_t uFade = 255) override;
+
 	virtual void DrawArc(const UiRect& rc, float startAngle, float sweepAngle, bool useCenter, 
 						 const IPen* pen, 
 		                 UiColor* gradientColor = nullptr, const UiRect* gradientRect = nullptr) override;

@@ -32,7 +32,7 @@ Bitmap_Skia::Bitmap_Skia(HBITMAP hBitmap, bool flipHeight):
         UpdateAlphaFlag((const uint8_t*)bm.bmBits);
 
         m_pSkBitmap->reset();
-        m_pSkBitmap->setInfo(SkImageInfo::Make(m_nWidth, m_nHeight, kN32_SkColorType, kPremul_SkAlphaType));
+        m_pSkBitmap->setInfo(SkImageInfo::Make(m_nWidth, m_nHeight, kN32_SkColorType, static_cast<SkAlphaType>(kPremul_SkAlphaType)));
         m_pSkBitmap->setPixels(bm.bmBits);
     }
 }
@@ -58,7 +58,8 @@ Bitmap_Skia::~Bitmap_Skia()
     }
 }
 
-bool Bitmap_Skia::Init(uint32_t nWidth, uint32_t nHeight, bool flipHeight, const void* pPixelBits)
+bool Bitmap_Skia::Init(uint32_t nWidth, uint32_t nHeight, bool flipHeight, 
+                       const void* pPixelBits, BitmapAlphaType alphaType)
 {
     ASSERT((nWidth > 0) && (nHeight > 0));
     if ((nWidth == 0) || (nHeight == 0)) {
@@ -100,7 +101,7 @@ bool Bitmap_Skia::Init(uint32_t nWidth, uint32_t nHeight, bool flipHeight, const
     UpdateAlphaFlag((const uint8_t*)pBits);
     
     m_pSkBitmap->reset();
-    m_pSkBitmap->setInfo(SkImageInfo::Make(m_nWidth, m_nHeight, kN32_SkColorType, kPremul_SkAlphaType));
+    m_pSkBitmap->setInfo(SkImageInfo::Make(m_nWidth, m_nHeight, kN32_SkColorType, static_cast<SkAlphaType>(alphaType)));
     m_pSkBitmap->setPixels(pBits);   
     return true;
 }

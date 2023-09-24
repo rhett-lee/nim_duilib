@@ -862,6 +862,16 @@ void Render_GdiPlus::FillRoundRect(const UiRect& rc, const UiSize& roundSize, Ui
 	graphics.FillPath(&brush, &pPath);
 }
 
+void Render_GdiPlus::DrawCircle(const UiPoint& /*centerPt*/, int32_t /*radius*/, UiColor /*penColor*/, int /*nWidth*/)
+{
+	ASSERT(!"No Impl!");
+}
+
+void Render_GdiPlus::FillCircle(const UiPoint& /*centerPt*/, int32_t /*radius*/, UiColor /*dwColor*/, uint8_t /*uFade*/)
+{
+	ASSERT(!"No Impl!");
+}
+
 void Render_GdiPlus::DrawArc(const UiRect& rc, float startAngle, float sweepAngle, bool /*useCenter*/, 
 							 const IPen* pen,
 	                         UiColor* gradientColor, const UiRect* gradientRect)

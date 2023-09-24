@@ -134,6 +134,32 @@ void RenderTest3::Paint(IRender* pRender, const UiRect& rcPaint)
     textRect.bottom = textRect.top + nTextLineHeight;
     pRender->DrawString(textRect, L"FillRoundRect Alpha", UiColor(UiColors::Blue), L"system_14", TEXT_CENTER);
 
+    //画圆形/填充圆形
+    rect.left = rect.right + marginLeft;
+    rect.right = rect.left + nSize;
+    int32_t radius = std::min(rect.Width(), rect.Height()) / 2;//圆的半径
+    pRender->DrawCircle(rect.Center(), radius, UiColor(UiColors::Blue), 2);
+    textRect = rect;
+    textRect.top = rect.bottom;
+    textRect.bottom = textRect.top + nTextLineHeight;
+    pRender->DrawString(textRect, L"DrawCircle", UiColor(UiColors::Blue), L"system_14", TEXT_CENTER);
+
+    rect.left = rect.right + marginLeft;
+    rect.right = rect.left + nSize;
+    pRender->FillCircle(rect.Center(), radius, UiColor(UiColors::CadetBlue), 255);
+    textRect = rect;
+    textRect.top = rect.bottom;
+    textRect.bottom = textRect.top + nTextLineHeight;
+    pRender->DrawString(textRect, L"FillCircle", UiColor(UiColors::Blue), L"system_14", TEXT_CENTER);
+
+    rect.left = rect.right + marginLeft;
+    rect.right = rect.left + nSize;
+    pRender->FillCircle(rect.Center(), radius, UiColor(UiColors::CadetBlue), 96);
+    textRect = rect;
+    textRect.top = rect.bottom;
+    textRect.bottom = textRect.top + nTextLineHeight;
+    pRender->DrawString(textRect, L"FillCircle Alpha", UiColor(UiColors::Blue), L"system_14", TEXT_CENTER);
+    
     //换行
     currentBottom = textRect.bottom;//记录当前的bottom值
     rect = GetRect();

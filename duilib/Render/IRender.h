@@ -42,6 +42,16 @@ public:
 	virtual bool IsStrikeOut() const = 0;
 };
 
+/** Skia引擎需要传入Alpha类型
+*/
+enum UILIB_API BitmapAlphaType: int
+{
+	kUnknown_SkAlphaType,	//!< uninitialized
+	kOpaque_SkAlphaType,	//!< pixel is opaque
+	kPremul_SkAlphaType,	//!< pixel components are premultiplied by alpha
+	kUnpremul_SkAlphaType	//!< pixel components are independent of alpha
+};
+
 class UILIB_API IBitmap : public virtual nbase::SupportWeakCallback
 {
 public:
@@ -51,8 +61,10 @@ public:
 	@param [in] flipHeight 是否翻转位图，如果为true，创建位图的时候，以左上角为圆点，图像方向是从上到下的；
 	                       如果为false，则以左下角为圆点，图像方向是从下到上。
 	@param [in] pPixelBits 位图数据, 如果为nullptr表示窗口空位图，如果不为nullptr，其数据长度为：nWidth*4*nHeight
+	@param [in] alphaType 位图的Alpha类型，只有Skia引擎需要此参数
 	*/
-	virtual bool Init(uint32_t nWidth, uint32_t nHeight, bool flipHeight, const void* pPixelBits) = 0;
+	virtual bool Init(uint32_t nWidth, uint32_t nHeight, bool flipHeight, 
+					  const void* pPixelBits, BitmapAlphaType alphaType = kPremul_SkAlphaType) = 0;
 
 	/** 获取图片宽度
 	*/
@@ -588,6 +600,22 @@ public:
 	virtual void DrawArc(const UiRect& rc, float startAngle, float sweepAngle, bool useCenter, 
 						 const IPen* pen, 
 		                 UiColor* gradientColor = nullptr, const UiRect* gradientRect = nullptr) = 0;
+
+	/** 绘制圆形
+	* @param [in] centerPt 圆心坐标点
+	* @param [in] radius 圆的半径
+	* @param [in] penColor 画笔的颜色值
+	* @param [in] nWidth 画笔的宽度
+	*/
+	virtual void DrawCircle(const UiPoint& centerPt, int32_t radius, UiColor penColor, int nWidth) = 0;
+
+	/** 填充圆形
+	* @param [in] centerPt 圆心坐标点
+	* @param [in] radius 圆的半径
+	* @param [in] dwColor 颜色值
+	* @param [in] uFade 透明度（0 - 255）
+	*/
+	virtual void FillCircle(const UiPoint& centerPt, int32_t radius, UiColor dwColor, uint8_t uFade = 255) = 0;
 
 	/** 绘制路径
 	* @param [in] path 路径的接口

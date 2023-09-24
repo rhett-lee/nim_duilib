@@ -48,7 +48,8 @@ Bitmap_GDI::~Bitmap_GDI()
     }
 }
 
-bool Bitmap_GDI::Init(uint32_t nWidth, uint32_t nHeight, bool flipHeight, const void* pPixelBits)
+bool Bitmap_GDI::Init(uint32_t nWidth, uint32_t nHeight, bool flipHeight, 
+                      const void* pPixelBits, BitmapAlphaType /*alphaType*/)
 {
     ASSERT((nWidth > 0) && (nHeight > 0));
     if ((nWidth == 0) || (nHeight == 0)) {
