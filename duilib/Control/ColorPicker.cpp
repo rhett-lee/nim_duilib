@@ -194,6 +194,30 @@ void ColorPicker::OnSelectColor(const UiColor& newColor)
 	}
 }
 
+void ColorPicker::SetSelectedColor(const UiColor& color)
+{
+	if (m_pNewColor != nullptr) {
+		m_pNewColor->SetBkColor(color);
+		m_pNewColor->SetToolTipText(m_pNewColor->GetBkColor());
+	}
+	if (m_pOldColor != nullptr) {
+		m_pOldColor->SetBkColor(color);
+		m_pOldColor->SetToolTipText(m_pOldColor->GetBkColor());
+	}
+	if (m_pCustomPicker != nullptr) {
+		m_pCustomPicker->SelectColor(color);
+	}
+	if (m_pRegularPicker != nullptr) {
+		m_pRegularPicker->SelectColor(color);
+	}
+	if (m_pStatardPicker != nullptr) {
+		m_pStatardPicker->SelectColor(color);
+	}
+	if (m_pStatardGrayPicker != nullptr) {
+		m_pStatardGrayPicker->SelectColor(color);
+	}
+}
+
 UiColor ColorPicker::GetSelectedColor() const
 {
 	return m_selectedColor;

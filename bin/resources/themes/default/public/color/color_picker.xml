@@ -5,8 +5,7 @@
   <TextColor name="color_picker_box_bkcolor" value="#FFF9F9F9"/>
   <Class name="color_picker_tab_option" width="48" height="32" font="system_14" normal_text_color="black" text_align="hcenter,vcenter" normal_color="#FFE6E6E6" hot_color="#FFE3E3E3" selected_normal_color="color_picker_box_bkcolor"/>
   <Class name="color_picker_color_edit" text_padding="4,0,4,0" width="32" margin="2,0,0,0" default_context_menu="true" readonly="true" no_caret_readonly="true" valign="center" text_align="vcenter" bkcolor="white" border_size="1" border_color="light_gray"/>
-  <Class name="color_picker_slider_horizontal" horizontal="true" width="stretch" height="14" margin="4,0,4,0" bkcolor="lightgray" value="0" valign="center" thumbsize="14,14" min="0" max="255" progress_bar_padding="0,2,0,2" thumb_normal_image="../public/slider/slider_thumb.png"/>
-  <Class name="color_picker_slider_vertical" horizontal="false" width="14" height="stretch" margin="0,2,4,2" bkcolor="lightgray" value="0" halign="center" thumbsize="14,14" min="0" max="255" progress_bar_padding="2,0,2,0" thumb_normal_image="../public/slider/slider_thumb.png" />
+  <Class name="color_picker_slider_horizontal" horizontal="true" width="stretch" height="22" margin="4,0,4,0" bkcolor="white" value="0" valign="center" thumbsize="20,20" min="0" max="255" progress_bar_padding="0,2,0,2" thumb_normal_image="file='../public/color/slider_thumb.svg' valign='center'"/>
     
   <VBox bkcolor="bk_wnd_darkcolor" bordersize="1" bordercolor="lightcolor" visible="true">
     <HBox width="stretch" height="35" bkcolor="bk_wnd_lightcolor">
@@ -131,8 +130,12 @@
                     </VBox>
                     <VBox margin="2,6,2,2">                        
                         <Label text="所选颜色" width="120" height="28" text_align="hcenter"/>
-                        <Control height="50%" name="color_picker_new_color" bkcolor="red"/>
-                        <Control height="50%" name="color_picker_old_color" bkcolor="blue"/>
+                        <Box height="50%" bkcolor="white">
+                            <Control name="color_picker_new_color"/>
+                        </Box>
+                        <Box height="50%" bkcolor="white">
+                            <Control name="color_picker_old_color"/>
+                        </Box>
                         <Label text="当前颜色" width="120" height="28" text_align="hcenter"/>
                     </VBox>
                 </VBox>

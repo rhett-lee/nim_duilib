@@ -2797,14 +2797,20 @@ bool Control::FireAllEvents(const EventArgs& msg)
 
 bool Control::HasUiColor(const std::wstring& colorName) const
 {
+	if (colorName.empty()) {
+		return false;
+	}
 	UiColor color = GetUiColorByName(colorName);
 	return color.GetARGB() != 0;
 }
 
 UiColor Control::GetUiColor(const std::wstring& colorName) const
 {
+	if (colorName.empty()) {
+		return UiColor();
+	}
 	UiColor color = GetUiColorByName(colorName);
-	ASSERT(color.GetARGB() != 0);
+	ASSERT(!color.IsEmpty());
 	return color;
 }
 

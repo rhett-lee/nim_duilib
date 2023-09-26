@@ -234,6 +234,9 @@ void Bitmap_Skia::UpdateAlphaFlag(const uint8_t* pPixelBits)
                 break;
             }
         }
+        if (m_bAlphaBitmap) {
+            break;
+        }
     }
 }
 

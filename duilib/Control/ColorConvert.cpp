@@ -522,4 +522,80 @@ void ColorConvert::HSV_VAL(uint32_t* buffer, int samples, double hue, double sat
     }
 }
 
+void ColorConvert::HSL_HUE(uint32_t* buffer, int samples, double sat, double lightness)
+{
+    if ((buffer == nullptr) || (samples < 1)) {
+        return;
+    }
+    uint8_t red = 0;
+    uint8_t green = 0;
+    uint8_t blue = 0;
+
+    double hue_step = 359.9 / samples;
+    double hue = 0;
+
+    while (samples--) {
+        // set current pixel (in DIB bitmap format is BGR, not RGB!)
+        if (samples == 0) {
+            //最后一个，赋值为359.9
+            hue = 359.9;
+        }
+        HSL2RGB(hue, sat, lightness, red, green, blue);
+        *buffer++ = RGB(blue, green, red);
+
+        hue += hue_step;
+    }
+}
+
+void ColorConvert::HSL_SAT(uint32_t* buffer, int samples, double hue, double lightness)
+{
+    if ((buffer == nullptr) || (samples < 1)) {
+        return;
+    }
+    uint8_t red = 0;
+    uint8_t green = 0;
+    uint8_t blue = 0;
+
+    double sat_step = 1.0 / samples;
+    double sat = 0;
+
+    while (samples--) {
+        // set current pixel (in DIB bitmap format is BGR, not RGB!)
+        if (samples == 0) {
+            //最后一个，赋值为1.0
+            sat = 1.0;
+        }
+        HSL2RGB(hue, sat, lightness, red, green, blue);
+        *buffer++ = RGB(blue, green, red);
+
+        sat += sat_step;
+    }
+}
+
+void ColorConvert::HSL_LIG(uint32_t* buffer, int samples, double hue, double sat)
+{
+    if ((buffer == nullptr) || (samples < 1)) {
+        return;
+    }
+    uint8_t red = 0;
+    uint8_t green = 0;
+    uint8_t blue = 0;
+
+    double lightness_step = 1.0 / samples;
+    double lightness = 0;
+
+    while (samples--) {
+        // set current pixel (in DIB bitmap format is BGR, not RGB!)
+
+        if (samples == 0) {
+            //最后一个，赋值为1.0
+            lightness = 1.0;
+        }
+        HSL2RGB(hue, sat, lightness, red, green, blue);
+        *buffer++ = RGB(blue, green, red);
+
+        lightness += lightness_step;
+    }
+}
+
 } //namespace ui

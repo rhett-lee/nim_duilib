@@ -158,15 +158,18 @@ void ControlForm::OnInitWindow()
 	//显示拾色器
 	ui::Button* pShowColorPicker = dynamic_cast<ui::Button*>(FindControl(L"show_color_picker"));
 	if (pShowColorPicker != nullptr) {
-		pShowColorPicker->AttachClick([this](const ui::EventArgs& args) {
-			ui::ColorPicker* pColorPicker = new ui::ColorPicker;
+		pShowColorPicker->AttachClick([this](const ui::EventArgs& args) {			
+			ui::ColorPicker* pColorPicker = new ui::ColorPicker;			
 			pColorPicker->CreateWnd(GetHWND(), ui::ColorPicker::kClassName.c_str(), UI_WNDSTYLE_FRAME, WS_EX_LAYERED);
 			pColorPicker->CenterWindow();
 			pColorPicker->ShowModalFake(this->GetHWND());
 
-			ui::RichEdit* pEdit = dynamic_cast<ui::RichEdit*>(FindControl(L"edit"));			
+			ui::RichEdit* pEdit = dynamic_cast<ui::RichEdit*>(FindControl(L"edit"));
 			if (pEdit != nullptr) {
 				std::wstring oldTextColor = pEdit->GetTextColor();
+				if (!oldTextColor.empty() && (pColorPicker != nullptr)) {
+					pColorPicker->SetSelectedColor(pEdit->GetUiColor(oldTextColor));
+				}
 				//如果在界面选择颜色，则临时更新RichEdit控件文本的颜色
 				pColorPicker->AttachSelectColor([this, pEdit](const ui::EventArgs& args) {
 					ui::UiColor newColor = ui::UiColor((uint32_t)args.wParam);
@@ -177,7 +180,7 @@ void ControlForm::OnInitWindow()
 				//窗口关闭事件
 				pColorPicker->AttachWindowClose([this, pColorPicker, pEdit, oldTextColor](const ui::EventArgs& args) {
 					ui::UiColor newColor = pColorPicker->GetSelectedColor();
-					if (!newColor.IsEmpty()) {
+					if ((args.wParam == 0) && !newColor.IsEmpty()) {
 						//如果是"确认"，则设置RichEdit控件的文本颜色
 						pEdit->SetTextColor(pEdit->GetColorString(newColor));
 					}

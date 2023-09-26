@@ -35,6 +35,10 @@ public:
 	static const std::wstring kClassName;
 
 public:
+	/** 设置所选颜色
+	*/
+	void SetSelectedColor(const UiColor& color);
+
 	/** 获取窗口关闭时最终选择的颜色
 	*/
 	UiColor GetSelectedColor() const;

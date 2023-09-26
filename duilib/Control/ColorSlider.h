@@ -30,7 +30,7 @@ enum class ColorAdjustMode
 	kMode_HSV_V,  //HSV模式，调整V
 	kMode_HSL_H,  //HSL模式，调整H
 	kMode_HSL_S,  //HSL模式，调整S
-	kMode_HSL_V   //HSL模式，调整L
+	kMode_HSL_L   //HSL模式，调整L
 };
 
 /** HSV颜色

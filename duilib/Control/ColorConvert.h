@@ -48,6 +48,15 @@ public:
 
     // hsv value.
     static void HSV_VAL(uint32_t* buffer, int samples, double hue, double sat);
+
+    // hsl from hue.
+    static void HSL_HUE(uint32_t* buffer, int samples, double sat, double lightness);
+
+    // hsl from sat.
+    static void HSL_SAT(uint32_t* buffer, int samples, double hue, double lightness);
+
+    // hsl lightness.
+    static void HSL_LIG(uint32_t* buffer, int samples, double hue, double sat);
 };
 
 } //namespace ui

@@ -8,7 +8,8 @@ namespace ui
 ColorPickerCustom::ColorPickerCustom() :
 	m_bInited(false),
 	m_pRegularPicker(nullptr),
-	m_pSpectrumControl(nullptr)
+	m_pSpectrumControl(nullptr),
+	m_pNewColorEdit(nullptr)
 {
 }
 
@@ -16,6 +17,10 @@ std::wstring ColorPickerCustom::GetType() const { return DUI_CTR_COLOR_PICKER_CU
 
 void ColorPickerCustom::SelectColor(const UiColor& color)
 {
+	if (!m_bInited) {
+		m_oldColor = color;
+		return;
+	}
 	OnColorChanged(color.GetARGB(), 0, ChangeReason::ColorUpdate);
 }
 
@@ -34,8 +39,7 @@ void ColorPickerCustom::InitPicker()
 	if (pWindow == nullptr) {
 		return;
 	}
-	m_bInited = true;
-		
+			
 	m_pRegularPicker = dynamic_cast<ColorPickerRegular*>(pWindow->FindControl(L"color_picker_custom_regular"));
 	if (m_pRegularPicker != nullptr) {
 		m_pRegularPicker->AttachSelectColor([this](const ui::EventArgs& args) {
@@ -101,6 +105,11 @@ void ColorPickerCustom::InitPicker()
 	InitHSL(m_hslH, 359, ChangeReason::ColorHSL_H);
 	InitHSL(m_hslS, 100, ChangeReason::ColorHSL_S);
 	InitHSL(m_hslL, 100, ChangeReason::ColorHSL_L);
+
+	m_bInited = true;
+	if (!m_oldColor.IsEmpty()) {
+		OnColorChanged(m_oldColor.GetARGB(), 0, ChangeReason::ColorUpdate);
+	}
 }
 
 void ColorPickerCustom::OnColorChanged(WPARAM wParam, LPARAM lParam, ChangeReason reason)
@@ -261,6 +270,22 @@ void ColorPickerCustom::UpdateRGB(const ColorUI& colorUI, const UiColor& color, 
 	}
 	if (colorUI.m_pColorSlider != nullptr) {
 		colorUI.m_pColorSlider->SetValue(colorValue);
+		if (flag == 0) {
+			//A
+			colorUI.m_pColorSlider->SetColorInfo(color, ColorAdjustMode::kMode_ARGB_A);
+		}
+		else if (flag == 1) {
+			//R
+			colorUI.m_pColorSlider->SetColorInfo(color, ColorAdjustMode::kMode_ARGB_R);
+		}
+		else if (flag == 2) {
+			//G
+			colorUI.m_pColorSlider->SetColorInfo(color, ColorAdjustMode::kMode_ARGB_G);
+		}
+		else {
+			//B
+			colorUI.m_pColorSlider->SetColorInfo(color, ColorAdjustMode::kMode_ARGB_B);
+		}
 	}
 }
 
@@ -272,12 +297,27 @@ void ColorPickerCustom::UpdateHSV(const ColorUI& colorUIH, const ColorUI& colorU
 	double hue = 0;
 	double sat = 0;
 	double value = 0;
-	ColorConvert::RGB2HSV(red, green, blue, &hue, &sat, &value);
+	if (ColorConvert::RGB2HSV(red, green, blue, &hue, &sat, &value) != 0) {
+		return;
+	}
 
 	bool needUpdate = true;
 	if ((reason == ChangeReason::ColorHSV_H) ||
 		(reason == ChangeReason::ColorHSV_S) ||
 		(reason == ChangeReason::ColorHSV_V)) {
+		//从控件获取颜色值
+		if (colorUIH.m_pColorSlider != nullptr) {
+			hue = colorUIH.m_pColorSlider->GetValue();
+			if (hue >= 360.0) {
+				hue = 359.9;
+			}
+		}
+		if (colorUIS.m_pColorSlider != nullptr) {
+			sat = colorUIS.m_pColorSlider->GetValue() / 100.0;
+		}
+		if (colorUIV.m_pColorSlider != nullptr) {
+			value = colorUIV.m_pColorSlider->GetValue() / 100.0;
+		}
 		needUpdate = false;
 	}
 	if (needUpdate) {
@@ -309,6 +349,21 @@ void ColorPickerCustom::UpdateHSV(const ColorUI& colorUIH, const ColorUI& colorU
 			colorUIV.m_pColorSlider->SetValue((int32_t)(value * 100));
 		}
 	}
+
+	//更新背景颜色
+	ColorHSV colorHSV;
+	colorHSV.H = static_cast<uint16_t>(hue);
+	colorHSV.S = static_cast<uint8_t>(sat * 100);
+	colorHSV.V = static_cast<uint8_t>(value * 100);
+	if (colorUIH.m_pColorSlider != nullptr) {
+		colorUIH.m_pColorSlider->SetColorInfo(colorHSV, ColorAdjustMode::kMode_HSV_H);
+	}
+	if (colorUIS.m_pColorSlider != nullptr) {
+		colorUIS.m_pColorSlider->SetColorInfo(colorHSV, ColorAdjustMode::kMode_HSV_S);
+	}
+	if (colorUIV.m_pColorSlider != nullptr) {
+		colorUIV.m_pColorSlider->SetColorInfo(colorHSV, ColorAdjustMode::kMode_HSV_V);
+	}
 }
 
 void ColorPickerCustom::UpdateHSL(const ColorUI& colorUIH, const ColorUI& colorUIS, const ColorUI& colorUIL, const UiColor& color, ChangeReason reason)
@@ -319,12 +374,27 @@ void ColorPickerCustom::UpdateHSL(const ColorUI& colorUIH, const ColorUI& colorU
 	double hue = 0;
 	double sat = 0;
 	double lightness = 0;
-	ColorConvert::RGB2HSL(red, green, blue, &hue, &sat, &lightness);
+	if (ColorConvert::RGB2HSL(red, green, blue, &hue, &sat, &lightness) != 0) {
+		return;
+	}
 
 	bool needUpdate = true;
 	if ((reason == ChangeReason::ColorHSL_H) ||
 		(reason == ChangeReason::ColorHSL_S) ||
 		(reason == ChangeReason::ColorHSL_L)) {
+		//从控件获取颜色值
+		if (colorUIH.m_pColorSlider != nullptr) {
+			hue = colorUIH.m_pColorSlider->GetValue();
+			if (hue >= 360.0) {
+				hue = 359.9;
+			}
+		}
+		if (colorUIS.m_pColorSlider != nullptr) {
+			sat = colorUIS.m_pColorSlider->GetValue() / 100.0;
+		}
+		if (colorUIL.m_pColorSlider != nullptr) {
+			lightness = colorUIL.m_pColorSlider->GetValue() / 100.0;
+		}
 		needUpdate = false;
 	}
 
@@ -356,6 +426,21 @@ void ColorPickerCustom::UpdateHSL(const ColorUI& colorUIH, const ColorUI& colorU
 		if (colorUIL.m_pColorSlider != nullptr) {
 			colorUIL.m_pColorSlider->SetValue((int32_t)(lightness * 100));
 		}
+	}
+
+	//更新背景颜色
+	ColorHSL colorHSL;
+	colorHSL.H = static_cast<uint16_t>(hue);
+	colorHSL.S = static_cast<uint8_t>(sat * 100);
+	colorHSL.L = static_cast<uint8_t>(lightness * 100);
+	if (colorUIH.m_pColorSlider != nullptr) {
+		colorUIH.m_pColorSlider->SetColorInfo(colorHSL, ColorAdjustMode::kMode_HSL_H);
+	}
+	if (colorUIS.m_pColorSlider != nullptr) {
+		colorUIS.m_pColorSlider->SetColorInfo(colorHSL, ColorAdjustMode::kMode_HSL_S);
+	}
+	if (colorUIL.m_pColorSlider != nullptr) {
+		colorUIL.m_pColorSlider->SetColorInfo(colorHSL, ColorAdjustMode::kMode_HSL_L);
 	}
 }
 
