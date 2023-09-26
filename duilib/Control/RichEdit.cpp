@@ -270,7 +270,7 @@ void RichEdit::SetAttribute(const std::wstring& strName, const std::wstring& str
 	else if (strName == L"flash_password_char") {
 		SetFlashPasswordChar(strValue == L"true");
 	}
-	else if (strName == L"number") {
+	else if ((strName == L"number_only") || (strName == L"number")) {
 		SetNumberOnly(strValue == L"true");
 	}
 	else if (strName == L"text_align") {

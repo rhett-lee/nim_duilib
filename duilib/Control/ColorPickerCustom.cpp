@@ -63,7 +63,7 @@ void ColorPickerCustom::InitPicker()
 		m_pNewColorEdit->AttachTextChange([this](const ui::EventArgs& /*args*/) {
 			//转发该事件给上层
 			std::wstring colorText = m_pNewColorEdit->GetText();
-			if ((colorText.size() == 9) && (colorText.front() == L'#')) {
+			if (IsValidColorString(colorText)) {
 				UiColor newColor = m_pNewColorEdit->GetUiColor(colorText);
 				if ((newColor.GetARGB() != 0) && (newColor != m_oldColor)) {
 					OnColorChanged(newColor.GetARGB(), m_oldColor.GetARGB(), ChangeReason::NewColorEdit);
@@ -110,6 +110,23 @@ void ColorPickerCustom::InitPicker()
 	if (!m_oldColor.IsEmpty()) {
 		OnColorChanged(m_oldColor.GetARGB(), 0, ChangeReason::ColorUpdate);
 	}
+}
+
+bool ColorPickerCustom::IsValidColorString(const std::wstring& colorText) const
+{
+	if ((colorText.size() == 9) && (colorText.front() == L'#')) {
+		for (size_t i = 1; i < colorText.size(); ++i) {
+			wchar_t ch = colorText.at(i);
+			bool isValid = (((ch >= L'0') && (ch <= L'9')) ||
+						    ((ch >= L'a') && (ch <= L'f')) ||
+							((ch >= L'A') && (ch <= L'F')));
+			if (!isValid) {
+				return false;
+			}
+		}
+		return true;
+	}
+	return false;
 }
 
 void ColorPickerCustom::OnColorChanged(WPARAM wParam, LPARAM lParam, ChangeReason reason)
@@ -170,25 +187,46 @@ void ColorPickerCustom::InitRGB(const ColorUI& colorUI, ChangeReason reason)
 {
 	ASSERT(colorUI.m_pColorEdit != nullptr);
 	ASSERT(colorUI.m_pColorSlider != nullptr);
+	RichEdit* pRichEdit = colorUI.m_pColorEdit;
+	ColorSlider* pColorSlider = colorUI.m_pColorSlider;
 	if (colorUI.m_pColorEdit != nullptr) {
 		colorUI.m_pColorEdit->SetTextNoEvent(L"");
+		colorUI.m_pColorEdit->AttachTextChange([this, pRichEdit, pColorSlider, reason](const ui::EventArgs& /*args*/) {
+				if (pRichEdit != nullptr) {
+					std::wstring text = pRichEdit->GetText();
+					int32_t nValue = _wtoi(text.c_str());
+					if (nValue < 0) {
+						nValue = 0;
+						pRichEdit->SetTextNoEvent(L"0");
+					}
+					else if (nValue > 255) {
+						nValue = 255;
+						pRichEdit->SetTextNoEvent(L"255");
+					}
+					if (pColorSlider != nullptr) {
+						pColorSlider->SetValue(nValue);
+					}
+				}
+				//输入框文本变化，触发RGB颜色变化事件
+				OnRGBChanged(reason);
+				return true;
+			});
 	}
 	if (colorUI.m_pColorSlider != nullptr) {
-		RichEdit* pRichEdit = colorUI.m_pColorEdit;
 		colorUI.m_pColorSlider->SetMinValue(0);
 		colorUI.m_pColorSlider->SetMaxValue(255);
 		colorUI.m_pColorSlider->SetValue(0);
 		colorUI.m_pColorSlider->AttachValueChange([this, pRichEdit, reason](const ui::EventArgs& args) {
-			int32_t value = (int32_t)args.wParam;
-			if (pRichEdit != nullptr) {
-				std::wstring text = StringHelper::Printf(L"%d", value);
-				if (pRichEdit->GetText() != text) {
-					pRichEdit->SetTextNoEvent(text);
+				int32_t value = (int32_t)args.wParam;
+				if (pRichEdit != nullptr) {
+					std::wstring text = StringHelper::Printf(L"%d", value);
+					if (pRichEdit->GetText() != text) {
+						pRichEdit->SetTextNoEvent(text);
+					}
 				}
-			}
-			//触发RGB颜色变化事件
-			OnRGBChanged(reason);
-			return true;
+				//Slider变化，触发RGB颜色变化事件
+				OnRGBChanged(reason);
+				return true;
 			});
 	}
 }
@@ -197,11 +235,42 @@ void ColorPickerCustom::InitHSV(const ColorUI& colorUI, int32_t maxValue, Change
 {
 	ASSERT(colorUI.m_pColorEdit != nullptr);
 	ASSERT(colorUI.m_pColorSlider != nullptr);
+	RichEdit* pRichEdit = colorUI.m_pColorEdit;
+	ColorSlider* pColorSlider = colorUI.m_pColorSlider;
 	if (colorUI.m_pColorEdit != nullptr) {
 		colorUI.m_pColorEdit->SetTextNoEvent(L"");
+		colorUI.m_pColorEdit->AttachTextChange([this, pRichEdit, pColorSlider, reason](const ui::EventArgs& /*args*/) {
+				if (pRichEdit != nullptr) {
+					std::wstring text = pRichEdit->GetText();
+					int32_t nValue = _wtoi(text.c_str());
+					if (nValue < 0) {
+						nValue = 0;
+						pRichEdit->SetTextNoEvent(L"0");
+					}
+					else {
+						if (reason == ChangeReason::ColorHSV_H) {
+							if (nValue > 359) {
+								nValue = 359;
+								pRichEdit->SetTextNoEvent(L"359");
+							}
+						}
+						else {
+							if (nValue > 100) {
+								nValue = 100;
+								pRichEdit->SetTextNoEvent(L"100");
+							}
+						}
+					}
+					if (pColorSlider != nullptr) {
+						pColorSlider->SetValue(nValue);
+					}
+				}
+				//输入框文本变化，触发RGB颜色变化事件
+				OnRGBChanged(reason);
+				return true;
+			});
 	}
 	if (colorUI.m_pColorSlider != nullptr) {
-		RichEdit* pRichEdit = colorUI.m_pColorEdit;
 		colorUI.m_pColorSlider->SetMinValue(0);
 		colorUI.m_pColorSlider->SetMaxValue(maxValue);
 		colorUI.m_pColorSlider->SetValue(0);
@@ -224,11 +293,42 @@ void ColorPickerCustom::InitHSL(const ColorUI& colorUI, int32_t maxValue, Change
 {
 	ASSERT(colorUI.m_pColorEdit != nullptr);
 	ASSERT(colorUI.m_pColorSlider != nullptr);
+	RichEdit* pRichEdit = colorUI.m_pColorEdit;
+	ColorSlider* pColorSlider = colorUI.m_pColorSlider;
 	if (colorUI.m_pColorEdit != nullptr) {
 		colorUI.m_pColorEdit->SetTextNoEvent(L"");
+		colorUI.m_pColorEdit->AttachTextChange([this, pRichEdit, pColorSlider, reason](const ui::EventArgs& /*args*/) {
+				if (pRichEdit != nullptr) {
+					std::wstring text = pRichEdit->GetText();
+					int32_t nValue = _wtoi(text.c_str());
+					if (nValue < 0) {
+						nValue = 0;
+						pRichEdit->SetTextNoEvent(L"0");
+					}
+					else {
+						if (reason == ChangeReason::ColorHSL_H) {
+							if (nValue > 359) {
+								nValue = 359;
+								pRichEdit->SetTextNoEvent(L"359");
+							}
+						}
+						else {
+							if (nValue > 100) {
+								nValue = 100;
+								pRichEdit->SetTextNoEvent(L"100");
+							}
+						}
+					}
+					if (pColorSlider != nullptr) {
+						pColorSlider->SetValue(nValue);
+					}
+				}
+				//输入框文本变化，触发RGB颜色变化事件
+				OnRGBChanged(reason);
+				return true;
+			});
 	}
 	if (colorUI.m_pColorSlider != nullptr) {
-		RichEdit* pRichEdit = colorUI.m_pColorEdit;
 		colorUI.m_pColorSlider->SetMinValue(0);
 		colorUI.m_pColorSlider->SetMaxValue(maxValue);
 		colorUI.m_pColorSlider->SetValue(0);

@@ -70,6 +70,10 @@ private:
 	*/
 	void OnColorChanged(WPARAM wParam, LPARAM lParam, ChangeReason reason);
 
+	/** 判断输入是否为合法的颜色字符串，格式如"#FF123456"
+	*/
+	bool IsValidColorString(const std::wstring& colorText) const;
+
 private:
 	/** 一个颜色通道的界面控件
 	*/
