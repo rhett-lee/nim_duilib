@@ -19,6 +19,13 @@
 #include "duilib/Control/Split.h"
 #include "duilib/Control/GroupBox.h"
 
+#include "duilib/Control/ColorControl.h"
+#include "duilib/Control/ColorSlider.h"
+#include "duilib/Control/ColorPickerRegular.h"
+#include "duilib/Control/ColorPickerStatard.h"
+#include "duilib/Control/ColorPickerStatardGray.h"
+#include "duilib/Control/ColorPickerCustom.h"
+
 #include "duilib/Box/HBox.h"
 #include "duilib/Box/VBox.h"
 #include "duilib/Box/TabBox.h"
@@ -757,6 +764,12 @@ Control* WindowBuilder::CreateControlByClass(const std::wstring& strControlClass
 		{DUI_CTR_RICHTEXT, []() { return new RichText; }},
 		{DUI_CTR_RICHEDIT, []() { return new RichEdit; }},
 		{DUI_CTR_DATETIME, []() { return new DateTime; }},
+		{DUI_CTR_COLOR_CONTROL, []() { return new ColorControl; }},
+		{DUI_CTR_COLOR_SLIDER, []() { return new ColorSlider; }},
+		{DUI_CTR_COLOR_PICKER_REGULAR, []() { return new ColorPickerRegular; }},
+		{DUI_CTR_COLOR_PICKER_STANDARD, []() { return new ColorPickerStatard; }},
+		{DUI_CTR_COLOR_PICKER_STANDARD_GRAY, []() { return new ColorPickerStatardGray; }},
+		{DUI_CTR_COLOR_PICKER_CUSTOM, []() { return new ColorPickerCustom; }},
 		{DUI_CTR_SPLIT, []() { return new Split; }},
 		{DUI_CTR_SPLITBOX, []() { return new SplitBox; }},
 		{DUI_CTR_GROUP_BOX, []() { return new GroupBox; }},

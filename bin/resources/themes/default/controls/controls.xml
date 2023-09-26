@@ -19,13 +19,14 @@
         <!-- 工作区域，除了标题栏外的内容都放在这个大的VBox区域 -->
         <VBox padding="10,10,10,10">
             <!-- 第一排 -->
-            <HBox height="160" padding="0,0,0,10">
+            <HBox height="170" padding="0,0,0,10">
                 <!-- Buttons -->
                 <VBox width="120">
                     <Button class="btn_global_blue_80x30" text="blue" tooltiptext="ui::Buttons"/>
                     <Button class="btn_global_white_80x30" text="white"/>
                     <Button class="btn_global_red_80x30" text="red"/>
                     <Button class="btn_global_color_gray" text="纯色按钮" width="80" height="30" border_round="3,3" margin="0,2,0,0"/>
+                    <Button class="btn_global_color_gray" name="show_color_picker" text="拾色器" width="80" height="30" border_round="3,3" margin="0,2,0,0"/>
                 </VBox>
                 <!-- Checkbox -->
                 <VBox width="120">
@@ -108,7 +109,7 @@
             <!-- RichEdit -->
             <RichEdit class="prompt" name="edit" bkcolor="bk_wnd_lightcolor" width="stretch" height="stretch"
                         multiline="true" vscrollbar="true" hscrollbar="true" autovscroll="true"
-                        normaltextcolor="darkcolor" wantreturnmsg="true" rich="true" loadingimage="file='autumn.png'" loadingbkcolor="blue"/>
+                        normaltextcolor="darkcolor" wantreturnmsg="true" rich="false" loadingimage="file='autumn.png'" loadingbkcolor="blue"/>
         </VBox>
     </VBox>
 </Window>

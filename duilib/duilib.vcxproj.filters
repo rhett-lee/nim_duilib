@@ -315,6 +315,30 @@
     <ClCompile Include="Control\ComboButton.cpp">
       <Filter>Control</Filter>
     </ClCompile>
+    <ClCompile Include="Control\ColorControl.cpp">
+      <Filter>Control</Filter>
+    </ClCompile>
+    <ClCompile Include="Control\ColorConvert.cpp">
+      <Filter>Control</Filter>
+    </ClCompile>
+    <ClCompile Include="Control\ColorSlider.cpp">
+      <Filter>Control</Filter>
+    </ClCompile>
+    <ClCompile Include="Control\ColorPickerRegular.cpp">
+      <Filter>Control</Filter>
+    </ClCompile>
+    <ClCompile Include="Control\ColorPickerStatard.cpp">
+      <Filter>Control</Filter>
+    </ClCompile>
+    <ClCompile Include="Control\ColorPickerStatardGray.cpp">
+      <Filter>Control</Filter>
+    </ClCompile>
+    <ClCompile Include="Control\ColorPickerCustom.cpp">
+      <Filter>Control</Filter>
+    </ClCompile>
+    <ClCompile Include="Control\ColorPicker.cpp">
+      <Filter>Control</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -697,6 +721,30 @@
     </ClInclude>
     <ClInclude Include="Core\UiPointF.h">
       <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\ColorControl.h">
+      <Filter>Control</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\ColorConvert.h">
+      <Filter>Control</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\ColorSlider.h">
+      <Filter>Control</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\ColorPickerRegular.h">
+      <Filter>Control</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\ColorPickerStatard.h">
+      <Filter>Control</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\ColorPickerStatardGray.h">
+      <Filter>Control</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\ColorPickerCustom.h">
+      <Filter>Control</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\ColorPicker.h">
+      <Filter>Control</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

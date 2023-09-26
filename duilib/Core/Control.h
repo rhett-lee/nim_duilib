@@ -38,11 +38,6 @@ public:
 	virtual std::wstring GetType() const override;
 
     /// 图形相关
-	
-	/** 获取颜色值对应的字符串, 返回该颜色对应的字符串，比如"#FF123456"
-	*/
-	std::wstring GetColorString(const UiColor& color) const;
-
 	/**@brief 获取背景颜色
 	 * @return 返回背景颜色的字符串，该值在 global.xml 中定义
 	 */
@@ -855,6 +850,12 @@ public:
 	*/
     UiColor GetUiColor(const std::wstring& colorName) const;
 
+	/** 获取颜色值对应的字符串, 返回该颜色对应的字符串
+	* @param [in] color 颜色值
+	* @return 返回颜色值对应的字符串，比如"#FF123456"
+	*/
+	std::wstring GetColorString(const UiColor& color) const;
+
 	/** 判断控件类型是否为可选择的
 	 * @return 默认返回false
 	 */
@@ -965,7 +966,7 @@ protected:
 	virtual bool MouseWheel(const EventArgs& msg);
 	virtual bool MouseMenu(const EventArgs& msg);
 
-	//键盘消息（返回true：表示消息已处理；返回false：则表示消息未处理，需转发给父控件）
+    //键盘消息（返回true：表示消息已处理；返回false：则表示消息未处理，需转发给父控件）
 	virtual bool OnChar(const EventArgs& msg);
 	virtual bool OnKeyDown(const EventArgs& msg);
 	virtual bool OnKeyUp(const EventArgs& msg);

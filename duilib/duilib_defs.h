@@ -101,6 +101,14 @@ namespace ui
 
 	#define  DUI_CTR_DATETIME                        (L"DateTime")
 
+	//颜色相关的部分控件
+	#define  DUI_CTR_COLOR_CONTROL					 (L"ColorControl")
+	#define  DUI_CTR_COLOR_SLIDER					 (L"ColorSlider")
+	#define  DUI_CTR_COLOR_PICKER_REGULAR			 (L"ColorPickerRegular")
+	#define  DUI_CTR_COLOR_PICKER_STANDARD			 (L"ColorPickerStatard")
+	#define  DUI_CTR_COLOR_PICKER_STANDARD_GRAY		 (L"ColorPickerStatardGray")
+	#define  DUI_CTR_COLOR_PICKER_CUSTOM			 (L"ColorPickerCustom")
+
 	// 窗口标题栏按钮：最大化、最小化、关闭、还原窗口的名字，代码中写死的
 	#define DUI_CTR_BUTTON_CLOSE					 (L"closebtn")
 	#define DUI_CTR_BUTTON_MIN						 (L"minbtn")
@@ -273,7 +281,7 @@ namespace ui
 		kEventUnCheck,			    //CheckBox类：当变成UnCheck状态时触发
 
 		//TAB页面选择
-		kEventTabSelect,			//TabBox类，选中TAB页面
+		kEventTabSelect,			//TabBox类，选中TAB页面, WPARAM是新页面ID，LPARAM是旧页面ID
 
 		//树节点展开/收起
 		kEventExpand,				//TreeNode类：当树节点展开时触发
@@ -287,7 +295,7 @@ namespace ui
 		kEventCustomLinkClick,		//RichEdit类：当点击到自定义link的数据上时触发, 可以通过WPARAM获取点击的URL，类型为const wchar_t*
 
 		kEventScrollChange,			//ScrollBox类：当滚动条位置发生变化时触发
-		kEventValueChange,			//DateTime、Slider类：当值发生变化时触发
+		kEventValueChange,			//DateTime、Slider类：当值发生变化时触发, Slider类：WPARAM是新值，LPARAM是旧值
 		kEventResize,				//Control类：当控件的大小和位置发生变化时触发
 		kEventVisibleChange,		//Control类：当控件的Visible属性发生变化时触发
 		kEventStateChange,			//Control类：当控件的State属性发生变化时触发, WPARAM是新状态，LPARAM是旧状态

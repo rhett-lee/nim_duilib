@@ -111,3 +111,11 @@
 #include "Control/RichEdit.h"
 #include "Control/Menu.h"
 #include "duilib/Control/DateTime.h"
+
+#include "duilib/Control/ColorPicker.h"
+#include "duilib/Control/ColorControl.h"
+#include "duilib/Control/ColorSlider.h"
+#include "duilib/Control/ColorPickerRegular.h"
+#include "duilib/Control/ColorPickerStatard.h"
+#include "duilib/Control/ColorPickerStatardGray.h"
+#include "duilib/Control/ColorPickerCustom.h"

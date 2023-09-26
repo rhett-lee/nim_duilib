@@ -107,11 +107,6 @@ AnimationManager& Control::GetAnimationManager()
 	return *m_animationManager;
 }
 
-std::wstring Control::GetColorString(const UiColor& color) const
-{
-	return StringHelper::Printf(L"#%02X%02X%02X%02X", color.GetA(), color.GetR(), color.GetG(), color.GetB());
-}
-
 void Control::SetBkColor(const std::wstring& strColor)
 {
 	ASSERT(strColor.empty() || HasUiColor(strColor));
@@ -2840,6 +2835,16 @@ UiColor Control::GetUiColorByName(const std::wstring& colorName) const
 	}
 	ASSERT(color.GetARGB() != 0);
 	return color;
+}
+
+std::wstring Control::GetColorString(const UiColor& color) const
+{
+	if (color.IsEmpty()) {
+		return std::wstring();
+	}
+	else {
+		return StringHelper::Printf(L"#%02X%02X%02X%02X", color.GetA(), color.GetR(), color.GetG(), color.GetB());
+	}
 }
 
 bool Control::HasBoxShadow() const
