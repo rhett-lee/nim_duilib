@@ -942,6 +942,7 @@ void RichEditHost::SetFontId(const std::wstring& fontId)
 void RichEditHost::SetTextColor(COLORREF dwColor)
 {
 	if (dwColor != m_charFormat.crTextColor) {
+		m_charFormat.dwMask |= CFM_COLOR;
 		m_charFormat.crTextColor = dwColor;
 		OnTxPropertyBitsChange(TXTBIT_CHARFORMATCHANGE, TXTBIT_CHARFORMATCHANGE);
 	}

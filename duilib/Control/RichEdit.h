@@ -200,10 +200,15 @@ public:
 	 */
 	virtual std::string GetUTF8Text() const;
 
-	/** 设置控件的文本
-	 * @param[in] strText 要设置的文本内容
+	/** 设置控件的文本, 会触发文本变化事件
+	 * @param [in] strText 要设置的文本内容
 	 */
     void SetText(const std::wstring& strText);
+
+	/** 设置控件的文本，不触发文本变化事件
+	 * @param [in] strText 要设置的文本内容
+	 */
+	void SetTextNoEvent(const std::wstring& strText);
 
 	/** 设置控件的文本对应 ID
 	 * @param[in] strTextId 要设置的 ID，该 ID 必须在加载的语言文件中存在
@@ -1015,6 +1020,10 @@ private:
 	/** 允许输入的字符列表
 	*/
 	UiString m_limitChars;
+
+	/** 是否禁止触发文本变化事件
+	*/
+	bool m_bDisableTextChangeEvent;
 };
 
 } // namespace ui

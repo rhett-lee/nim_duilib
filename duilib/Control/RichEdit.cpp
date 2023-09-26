@@ -172,7 +172,8 @@ RichEdit::RichEdit() :
 	m_bUseControlCursor(false),
 	m_bEnableWheelZoom(false),
 	m_bEnableDefaultContextMenu(false),
-	m_pControlDropTarget(nullptr)
+	m_pControlDropTarget(nullptr),
+	m_bDisableTextChangeEvent(false)
 {
 	//这个标记必须为false，否则绘制有问题
 	SetUseCache(false);
@@ -758,9 +759,19 @@ std::string RichEdit::GetUTF8Text() const
 
 void RichEdit::SetText(const std::wstring& strText)
 {
+	m_bDisableTextChangeEvent = false;
 	SetSel(0, -1);
 	ReplaceSel(strText, FALSE);
 	m_linkInfo.clear();
+}
+
+void RichEdit::SetTextNoEvent(const std::wstring& strText)
+{
+	m_bDisableTextChangeEvent = true;
+	SetSel(0, -1);
+	ReplaceSel(strText, FALSE);
+	m_linkInfo.clear();
+	m_bDisableTextChangeEvent = false;
 }
 
 void RichEdit::SetTextId(const std::wstring& strTextId)
@@ -1155,7 +1166,9 @@ void RichEdit::OnTxNotify(DWORD iNotify, void *pv)
 		break;
 	case EN_CHANGE:
 		//文本内容变化，发送事件
-		SendEvent(kEventTextChange); 
+		if(!m_bDisableTextChangeEvent) {
+			SendEvent(kEventTextChange);
+		}		
 		break;
 	case EN_SELCHANGE:
 		//选择变化
