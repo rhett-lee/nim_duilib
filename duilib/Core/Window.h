@@ -91,16 +91,22 @@ public:
 	void Unsubclass();
 
 	/**@brief 关闭窗口, 异步关闭，当函数返回后，IsClosing() 状态为true
-	 * @param[in] 关闭消息
+	 * @param [in] nRet 关闭消息, 含义如下：
+	               0 - 表示 "确认" 关闭本窗口
+				   1 - 表示点击窗口的 "关闭" 按钮关闭本窗口(默认值)
+				   2 - 表示 "取消" 关闭本窗口
 	 */
-	virtual void CloseWnd(UINT nRet = IDOK);
+	virtual void CloseWnd(UINT nRet = 1);
 
 	/**@brief 是否将要关闭
 	 */
 	bool IsClosingWnd() const { return m_bCloseing; };
 
 	/**@brief 监听窗口关闭事件
-	 * @param[in] callback 指定关闭后的回调函数
+	 * @param[in] callback 指定关闭后的回调函数，参数的wParam代表窗口关闭的触发情况：
+	 *                     0 - 表示 "确认" 关闭本窗口
+						   1 - 表示点击窗口的 "关闭" 按钮关闭本窗口(默认值)
+				           2 - 表示 "取消" 关闭本窗口
 	 */
 	void AttachWindowClose(const EventCallback& callback);
 

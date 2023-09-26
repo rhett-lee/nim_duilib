@@ -107,6 +107,11 @@ AnimationManager& Control::GetAnimationManager()
 	return *m_animationManager;
 }
 
+std::wstring Control::GetColorString(const UiColor& color) const
+{
+	return StringHelper::Printf(L"#%02X%02X%02X%02X", color.GetA(), color.GetR(), color.GetG(), color.GetB());
+}
+
 void Control::SetBkColor(const std::wstring& strColor)
 {
 	ASSERT(strColor.empty() || HasUiColor(strColor));
@@ -119,8 +124,12 @@ void Control::SetBkColor(const std::wstring& strColor)
 
 void Control::SetBkColor(const UiColor& color)
 {
-	std::wstring strColor = StringHelper::Printf(L"#%02X%02X%02X%02X", color.GetA(), color.GetR(), color.GetG(), color.GetB());
-	SetBkColor(strColor);
+	if (color.IsEmpty()) {
+		SetBkColor(L"");
+	}
+	else {
+		SetBkColor(GetColorString(color));
+	}	
 }
 
 std::wstring Control::GetStateColor(ControlStateType stateType) const

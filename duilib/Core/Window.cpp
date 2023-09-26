@@ -1389,6 +1389,10 @@ LRESULT Window::OnMouseHoverMsg(UINT uMsg, WPARAM /*wParam*/, LPARAM lParam, boo
 	ASSERT_UNUSED_VARIABLE(uMsg == WM_MOUSEHOVER);
 	bHandled = false;
 	m_toolTip->SetMouseTracking(m_hWnd, false);
+	if (IsCaptured()) {
+		//如果处于Capture状态，不显示ToolTip
+		return 0;
+	}
 
 	UiPoint trackPos = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
 	Control* pHover = FindControl(trackPos);

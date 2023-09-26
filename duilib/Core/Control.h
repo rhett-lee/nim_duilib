@@ -33,9 +33,16 @@ public:
 	Control& operator=(const Control& r) = delete;
     virtual ~Control();
 
+    /** 获取控件类型
+	*/
 	virtual std::wstring GetType() const override;
 
     /// 图形相关
+	
+	/** 获取颜色值对应的字符串, 返回该颜色对应的字符串，比如"#FF123456"
+	*/
+	std::wstring GetColorString(const UiColor& color) const;
+
 	/**@brief 获取背景颜色
 	 * @return 返回背景颜色的字符串，该值在 global.xml 中定义
 	 */

@@ -9,17 +9,19 @@ Bitmap_Skia::Bitmap_Skia():
     m_nWidth(0),
     m_nHeight(0),
     m_bFlipHeight(true),
-    m_bAlphaBitmap(false)
+    m_bAlphaBitmap(false),
+    m_alphaType(kUnknown_SkAlphaType)
 {
     m_pSkBitmap = std::make_unique<SkBitmap>();
 }
 
 Bitmap_Skia::Bitmap_Skia(HBITMAP hBitmap, bool flipHeight):
     m_hBitmap(hBitmap),
+    m_nWidth(0),
+    m_nHeight(0),
     m_bFlipHeight(flipHeight),
     m_bAlphaBitmap(false),
-    m_nWidth(0),
-    m_nHeight(0)
+    m_alphaType(kPremul_SkAlphaType)
 {
     ASSERT(flipHeight && "flipHeight value should be true!");
     m_pSkBitmap = std::make_unique<SkBitmap>();
@@ -98,6 +100,7 @@ bool Bitmap_Skia::Init(uint32_t nWidth, uint32_t nHeight, bool flipHeight,
     m_nWidth = nWidth;
     m_nHeight = nHeight;
     m_bFlipHeight = flipHeight;
+    m_alphaType = alphaType;
     UpdateAlphaFlag((const uint8_t*)pBits);
     
     m_pSkBitmap->reset();
@@ -217,6 +220,10 @@ void Bitmap_Skia::UpdateAlphaFlag(const uint8_t* pPixelBits)
 {
     m_bAlphaBitmap = false;
     if (pPixelBits == nullptr) {
+        return;
+    }
+    if (m_alphaType == kOpaque_SkAlphaType) {
+        //指定为不透明图片，不需要更新AlphaBitmap标志
         return;
     }
     for (uint32_t i = 0; i < m_nHeight; ++i) {

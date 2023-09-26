@@ -108,6 +108,10 @@ private:
 	*/
 	bool m_bAlphaBitmap;
 
+	/** 位图的Alpha类型
+	*/
+	BitmapAlphaType m_alphaType;
+
 	/** Skia 位图
 	*/
 	std::unique_ptr<SkBitmap> m_pSkBitmap;

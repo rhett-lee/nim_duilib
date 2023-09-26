@@ -55,49 +55,84 @@ void Slider::HandleEvent(const EventArgs& msg)
 		return;
 	}
 	if (msg.Type == kEventMouseButtonUp) {
+		double oldValue = GetValue();
 		if(IsMouseFocused()) {
 			SetMouseFocused(false);
 		}
-		if (m_bHorizontal) {
-			if (msg.ptMouse.x >= GetRect().right - m_szThumb.cx / 2) m_nValue = m_nMax;
-			else if (msg.ptMouse.x <= GetRect().left + m_szThumb.cx / 2) m_nValue = m_nMin;
-			else m_nValue = m_nMin + double((m_nMax - m_nMin) * (msg.ptMouse.x - GetRect().left - m_szThumb.cx / 2)) / (GetRect().right - GetRect().left - m_szThumb.cx);
+		const int32_t nMin = GetMinValue();
+		const int32_t nMax = GetMaxValue();
+		if (m_bHorizontal) {			
+			if (msg.ptMouse.x >= GetRect().right - m_szThumb.cx / 2) {
+				SetValue(nMax);
+			}
+			else if (msg.ptMouse.x <= GetRect().left + m_szThumb.cx / 2) {
+				SetValue(nMin);
+			}
+			else {
+				double newValue = nMin + double((nMax - nMin) * (msg.ptMouse.x - GetRect().left - m_szThumb.cx / 2)) / (GetRect().right - GetRect().left - m_szThumb.cx);
+				SetValue(newValue);
+			}
 		}
 		else {
-			if (msg.ptMouse.y >= GetRect().bottom - m_szThumb.cy / 2) m_nValue = m_nMin;
-			else if (msg.ptMouse.y <= GetRect().top + m_szThumb.cy / 2) m_nValue = m_nMax;
-			else m_nValue = m_nMin + double((m_nMax - m_nMin) * (GetRect().bottom - msg.ptMouse.y - m_szThumb.cy / 2)) / (GetRect().bottom - GetRect().top - m_szThumb.cy);
+			if (msg.ptMouse.y >= GetRect().bottom - m_szThumb.cy / 2) {
+				SetValue(nMax);
+			}
+			else if (msg.ptMouse.y <= GetRect().top + m_szThumb.cy / 2) {
+				SetValue(nMin);
+			}
+			else {
+				double newValue = nMin + double((nMax - nMin) * (GetRect().bottom - msg.ptMouse.y - m_szThumb.cy / 2)) / (GetRect().bottom - GetRect().top - m_szThumb.cy);
+				SetValue(newValue);
+			}
 		}
-		SendEvent(kEventValueChange);
+		SendEvent(kEventValueChange, (WPARAM)GetValue(), (LPARAM)oldValue);
 		Invalidate();
 		return;
 	}
 	if (msg.Type == kEventMouseWheel) {
+		double oldValue = GetValue();
 		int detaValue = GET_WHEEL_DELTA_WPARAM(msg.wParam);
 		if (detaValue > 0) {
 			SetValue(GetValue() + GetChangeStep());
-			SendEvent(kEventValueChange);
+			SendEvent(kEventValueChange, (WPARAM)GetValue(), (LPARAM)oldValue);
 			return;
 		}
 		else {
 			SetValue(GetValue() - GetChangeStep());
-			SendEvent(kEventValueChange);
+			SendEvent(kEventValueChange, (WPARAM)GetValue(), (LPARAM)oldValue);
 			return;
 		}
 	}
 	if (msg.Type == kEventMouseMove) {
+		const int32_t nMin = GetMinValue();
+		const int32_t nMax = GetMaxValue();
 		if (IsMouseFocused()) {
+			double oldValue = GetValue();
 			if (m_bHorizontal) {
-				if (msg.ptMouse.x >= GetRect().right - m_szThumb.cx / 2) m_nValue = m_nMax;
-				else if (msg.ptMouse.x <= GetRect().left + m_szThumb.cx / 2) m_nValue = m_nMin;
-				else m_nValue = m_nMin + double((m_nMax - m_nMin) * (msg.ptMouse.x - GetRect().left - m_szThumb.cx / 2)) / (GetRect().right - GetRect().left - m_szThumb.cx);
+				if (msg.ptMouse.x >= GetRect().right - m_szThumb.cx / 2) {
+					SetValue(nMax);
+				}
+				else if (msg.ptMouse.x <= GetRect().left + m_szThumb.cx / 2) {
+					SetValue(nMin);
+				}
+				else {
+					double newValue = nMin + double((nMax - nMin) * (msg.ptMouse.x - GetRect().left - m_szThumb.cx / 2)) / (GetRect().right - GetRect().left - m_szThumb.cx);
+					SetValue(newValue);
+				}
 			}
 			else {
-				if (msg.ptMouse.y >= GetRect().bottom - m_szThumb.cy / 2) m_nValue = m_nMin;
-				else if (msg.ptMouse.y <= GetRect().top + m_szThumb.cy / 2) m_nValue = m_nMax;
-				else m_nValue = m_nMin + double((m_nMax - m_nMin) * (GetRect().bottom - msg.ptMouse.y - m_szThumb.cy / 2)) / (GetRect().bottom - GetRect().top - m_szThumb.cy);
+				if (msg.ptMouse.y >= GetRect().bottom - m_szThumb.cy / 2) {
+					SetValue(nMax);
+				}
+				else if (msg.ptMouse.y <= GetRect().top + m_szThumb.cy / 2) {
+					SetValue(nMin);
+				}
+				else {
+					double newValue = nMin + double((nMax - nMin) * (GetRect().bottom - msg.ptMouse.y - m_szThumb.cy / 2)) / (GetRect().bottom - GetRect().top - m_szThumb.cy);
+					SetValue(newValue);
+				}
 			}
-			SendEvent(kEventValueChange);
+			SendEvent(kEventValueChange, (WPARAM)GetValue(), (LPARAM)oldValue);
 			Invalidate();
 		}
 		return;

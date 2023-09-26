@@ -76,6 +76,9 @@ double Progress::GetValue() const
 
 void Progress::SetValue(double nValue)
 {
+	if (nValue == m_nValue) {
+		return;
+	}
 	m_nValue = nValue;
 	if (m_nValue > m_nMax) {
 		m_nValue = m_nMax;
