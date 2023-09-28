@@ -1552,7 +1552,7 @@ void Window::OnButtonUp(EventType eventType, WPARAM wParam, LPARAM lParam, const
 	m_ptLastMousePos = pt;
 	ReleaseCapture();
 	if (m_pEventClick != nullptr) {
-		m_pEventClick->SendEvent(kEventMouseButtonUp, wParam, lParam, 0, pt);
+		m_pEventClick->SendEvent(eventType, wParam, lParam, 0, pt);
 		m_pEventClick = nullptr;
 	}
 }
