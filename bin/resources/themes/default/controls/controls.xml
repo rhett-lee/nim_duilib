@@ -4,17 +4,17 @@
     <!-- 布局属性：margin="left,top,right,bottom"; padding="left,top,right,bottom" -->
     <VBox bkcolor="bk_wnd_darkcolor">
         <!-- 标题栏区域 -->
-        <HBox width="stretch" height="35" bkcolor="bk_wnd_lightcolor">
+        <HBox width="stretch" height="36" bkcolor="bk_wnd_lightcolor">
             <Control width="auto" height="auto" bkimage="logo_18x18.png" valign="center" margin="8"/>
             <Label text="Controls" valign="center" margin="8"/>
             <Control />
-            <Button class="btn_wnd_settings" name="settings" margin="4,6,0,0"/>
-            <Button class="btn_wnd_min" name="minbtn" margin="4,6,0,0"/>
-            <Box width="21" margin="4,6,0,0">
-                <Button class="btn_wnd_max" name="maxbtn"/>
-                <Button class="btn_wnd_restore" name="restorebtn" visible="false"/>
+            <Button class="btn_wnd_settings_11" height="32" width="40" name="settings" margin="0,2,0,2" tooltip_text="设置"/>            
+            <Button class="btn_wnd_min_11" height="32" width="40" name="minbtn" margin="0,2,0,2" tooltip_text="最小化"/>
+            <Box height="stretch" width="40" margin="0,2,0,2">
+                <Button class="btn_wnd_max_11" height="32" width="stretch" name="maxbtn" tooltip_text="最大化"/>
+                <Button class="btn_wnd_restore_11" height="32" width="stretch" name="restorebtn" visible="false" tooltip_text="还原"/>
             </Box>
-            <Button class="btn_wnd_close" name="closebtn" margin="4,6,8,0"/>
+            <Button class="btn_wnd_close_11" height="stretch" width="40" name="closebtn" margin="0,0,0,2" tooltip_text="关闭"/>
         </HBox>
         <!-- 工作区域，除了标题栏外的内容都放在这个大的VBox区域 -->
         <VBox padding="10,10,10,10">

@@ -12,13 +12,13 @@
             </HBox>
             <Control />
             <!-- 标题栏：右侧窗口控制区域，窗口最小化、最大化、还原、关闭按钮 -->
-            <HBox margin="0,0,0,0" valign="center" width="auto" height="auto">
-                <Button class="btn_wnd_min" name="minbtn" margin="4,0,0,0" tooltiptext="最小化" />
-                <Box width="22" margin="4,0,0,0">
-                    <Button class="btn_wnd_max" name="maxbtn" tooltiptext="最大化"/>
-                    <Button class="btn_wnd_restore" name="restorebtn" tooltiptext="还原" visible="false"/>
+            <HBox margin="0,0,0,0" valign="center" width="auto" height="36">
+                <Button class="btn_wnd_min_11" height="32" width="40" name="minbtn" margin="0,2,0,2" tooltip_text="最小化"/>
+                <Box height="stretch" width="40" margin="0,2,0,2">
+                    <Button class="btn_wnd_max_11" height="32" width="stretch" name="maxbtn" tooltip_text="最大化"/>
+                    <Button class="btn_wnd_restore_11" height="32" width="stretch" name="restorebtn" visible="false" tooltip_text="还原"/>
                 </Box>
-                <Button class="btn_wnd_close" name="closebtn" margin="4,0,8,0" tooltiptext="关闭" />
+                <Button class="btn_wnd_close_11" height="stretch" width="40" name="closebtn" margin="0,0,0,2" tooltip_text="关闭"/>
             </HBox>
         </HBox> <!-- 标题栏区域结束 --> 
         

@@ -28,7 +28,7 @@ void FileInfoItem::InitSubControls(const FileInfo& fileInfo, size_t nElementInde
     if (m_pIconControl != nullptr) {
         if (!fileInfo.m_isFolder && IsImageFile(fileInfo.m_fileName)) {
             //图片文件，直接显示图片（屏蔽了，运行速度太慢，待优化）
-            int32_t itemWidth = 0;// this->GetWidth();
+            int32_t itemWidth = 64;// this->GetWidth();
             std::wstring imageString = fileInfo.m_filePath;
             if (itemWidth > 0) {
                 imageString = ui::StringHelper::Printf(L"file='%s' halign='center' valign='center' width='%d'", imageString.c_str(), itemWidth);

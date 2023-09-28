@@ -1204,6 +1204,8 @@ static void nsvg__rasterizeSortedEdges(NSVGrasterizer *r, float tx, float ty, fl
 
 static void nsvg__unpremultiplyAlpha(unsigned char* image, int w, int h, int stride)
 {
+	//如果执行以下代码，一些图形最终会有白边现象，暂时注释掉，影响未知。
+	return;
 	int x,y;
 
     // 由redrain修复Bug： nanosvg已经对数据做了预乘，这里对RGBA数据做反预乘。但是最终解析时需要预乘数据，所以屏蔽掉反预乘处理

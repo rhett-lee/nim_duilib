@@ -142,17 +142,28 @@
     <Class name="btn_global_red_80x30" font="system_bold_14" normaltextcolor="white" normalimage="file='../public/button/btn_global_red_80x30_normal.png'" hotimage="file='../public/button/btn_global_red_80x30_hovered.png'" pushedimage="file='../public/button/btn_global_red_80x30_pushed.png'" disabledimage="file='../public/button/btn_global_red_80x30_normal.png' fade='80'"/>
     <!--按钮：纯色按钮-->
     <Class name="btn_global_color_gray" font="system_14" normal_text_color="black" disabled_text_color="gray" text_align="hcenter,vcenter" normal_color="#FFD7DCE0" hot_color="#FFFAFCFF" pushed_color="#FFB0B4B8"/>
+    
+        <!--窗口右上角按钮 灰色版 -->
+    <Class name="btn_wnd_min_11" normal_image="file='../public/button/window-minimize.svg' width='24' height='24' valign='center' halign='center'" hot_color="AliceBlue" pushed_color="Lavender"/>
+    <Class name="btn_wnd_close_11" normal_image="file='../public/button/window-close.svg' width='24' height='24' valign='center' halign='center'" hot_color="red" pushed_color="OrangeRed"/>
+    <Class name="btn_wnd_max_11" normal_image="file='../public/button/window-maximize.svg' width='24' height='24' valign='center' halign='center'" hot_color="AliceBlue" pushed_color="Lavender"/>
+    <Class name="btn_wnd_restore_11" normal_image="file='../public/button/window-restore.svg' width='24' height='24' valign='center' halign='center'" hot_color="AliceBlue" pushed_color="Lavender"/>
+    <Class name="btn_wnd_fullscreen_11" normal_image="file='../public/button/window-fullscreen.svg' width='24' height='24' valign='center' halign='center' padding='0,4,0,0'" hot_color="AliceBlue" pushed_color="Lavender"/>
+    <Class name="btn_wnd_settings_11" normal_image="file='../public/button/btn_setting.svg' width='24' height='24' valign='center' halign='center'" hot_color="AliceBlue" pushed_color="Lavender"/>
+
     <!--窗口右上角按钮 灰色版 -->
     <Class name="btn_wnd_min" width="auto" height="auto" forenormalimage="file='../public/button/btn_wnd_gray_min.png' dest='4,4,16,16'" normalimage="" hotimage="../public/button/btn_wnd_gray_min_hovered.png" pushedimage="../public/button/btn_wnd_gray_min_pushed.png"/>
     <Class name="btn_wnd_close" width="20" height="20" normalimage="file='../public/button/btn_wnd_gray_close.png' dest='4,4,16,16'" hotimage="../public/button/btn_wnd_white_close_hovered.png" pushedimage="../public/button/btn_wnd_white_close_pushed.png" fadehot="false"/>
     <Class name="btn_wnd_max" width="auto" height="auto" forenormalimage="file='../public/button/btn_wnd_gray_max.png' dest='4,4,16,16'" normalimage="" hotimage="../public/button/btn_wnd_gray_max_hovered.png" pushedimage="../public/button/btn_wnd_gray_max_pushed.png"/>
     <Class name="btn_wnd_restore" width="auto" height="auto" forenormalimage="file='../public/button/btn_wnd_gray_restore.png' dest='4,4,16,16'" normalimage="" hotimage="../public/button/btn_wnd_gray_restore_hovered.png" pushedimage="../public/button/btn_wnd_gray_restore_pushed.png"/>
     <Class name="btn_wnd_settings" width="auto" height="auto" forenormalimage="file='../public/button/btn_wnd_settings.png' source='1,1,21,21'" hotimage="../public/button/btn_wnd_bk_hovered.png" pushedimage="../public/button/btn_wnd_bk_pushed.png"/>
+    
     <!--窗口右上角按钮 白色版 -->
     <Class name="btn_wnd_white_min" width="auto" height="auto" forenormalimage="file='../public/button/btn_wnd_white_min.png'" normalimage="" hotimage="../public/button/btn_wnd_white_min_hovered.png" pushedimage="../public/button/btn_wnd_white_min_pushed.png"/>
     <Class name="btn_wnd_white_close" width="auto" height="auto" forenormalimage="file='../public/button/btn_wnd_white_close.png'" normalimage="" hotimage="../public/button/btn_wnd_white_close_hovered.png" pushedimage="../public/button/btn_wnd_white_close_pushed.png"/>
     <Class name="btn_wnd_white_max" width="auto" height="auto" forenormalimage="file='../public/button/btn_wnd_white_max.png' dest='4,4,16,16'" normalimage="" hotimage="../public/button/btn_wnd_white_max_hovered.png" pushedimage="../public/button/btn_wnd_white_max_pushed.png"/>
     <Class name="btn_wnd_white_menu" width="auto" height="auto" forenormalimage="file='../public/button/btn_wnd_white_menu.png' dest='4,5,16,15'" normalimage="" hotimage="../public/button/btn_wnd_white_menu_hovered.png" pushedimage="../public/button/btn_wnd_white_menu_pushed.png"/>
+    
     <!--删除按钮通用样式-->
     <Class name="btn_delete" normalimage="file='../public/button/funcicon.png' source='0,0,26,26'" hotimage="file='../public/button/funcicon.png' source='31,0,57,26'" pushedimage="file='../public/button/funcicon.png' source='62,0,88,26'" disabledimage="file='../public/button/funcicon.png' source='93,0,119,26'"/>
     <Class name="btn_recycle" width="auto" height="auto" normalimage="file='../public/button/btn_recycle_normal.png'" hotimage="file='../public/button/btn_recycle_hovered.png'" pushedimage="file='../public/button/btn_recycle_pushed.png'" disabledimage="file='../public/button/btn_recycle_normal.png' fade='80'"/>

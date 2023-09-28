@@ -210,8 +210,12 @@ HBITMAP Bitmap_Skia::CreateBitmap(int32_t nWidth, int32_t nHeight, bool flipHeig
     bmi.bmiHeader.biCompression = BI_RGB;
     bmi.bmiHeader.biSizeImage = nWidth * nHeight * sizeof(DWORD);
 
+    HBITMAP hBitmap = nullptr;
     HDC hdc = ::GetDC(NULL);
-    HBITMAP hBitmap = ::CreateDIBSection(hdc, &bmi, DIB_RGB_COLORS, pBits, NULL, 0);
+    ASSERT(hdc != nullptr);
+    if (hdc != nullptr) {
+        hBitmap = ::CreateDIBSection(hdc, &bmi, DIB_RGB_COLORS, pBits, NULL, 0);
+    }
     ::ReleaseDC(NULL, hdc);
     return hBitmap;
 }

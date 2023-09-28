@@ -234,7 +234,7 @@ uint32_t IconManager::AddIcon(HICON hIcon)
 		ScopedICONINFO iconInfo;
 		if (!::GetIconInfo(hIcon, &iconInfo)) {
 			DWORD dwLastError = ::GetLastError();
-			ASSERT(!"GetIconInfo failed!");
+			//ASSERT(!"GetIconInfo failed!");
 			return id;
 		}
 #endif
