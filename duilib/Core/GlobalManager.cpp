@@ -418,6 +418,7 @@ void GlobalManager::FillBoxWithCache(Box* pUserDefinedBox, const std::wstring& s
 	else {
 		box = it->second->Create(callback, pUserDefinedBox->GetWindow(), nullptr, pUserDefinedBox);
 	}
+	ASSERT(pUserDefinedBox == box);
 	ASSERT_UNUSED_VARIABLE(box != nullptr);
 }
 

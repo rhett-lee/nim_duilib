@@ -96,7 +96,7 @@ public:
 	/** 监听子项按钮点击事件（左侧的按钮被点击）
 	 * @param[in] callback 触发的回调函数
 	 */
-	void AttachkEventClick(const EventCallback& callback) { AttachEvent(kEventClick, callback);}
+	void AttachClick(const EventCallback& callback) { AttachEvent(kEventClick, callback);}
 
 	/** 监听下拉窗关闭事件
 	 * @param[in] callback 下拉窗关闭后触发的回调函数，WPARAM 为1表示取消，为0表示正常关闭

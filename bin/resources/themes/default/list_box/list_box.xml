@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Window size="400,600" caption="0,0,0,35">
+<Window size="400,600" caption="0,0,0,36">
     <Class name="list_box_test" bkcolor="bk_wnd_lightcolor" vscrollbar="true" multi_select="true"/>
     <VBox bkcolor="bk_wnd_darkcolor">
         <HBox width="stretch" height="36" bkcolor="bk_wnd_lightcolor">

@@ -58,5 +58,9 @@ private:
 	 * 动态更新进度条接口
 	 */
 	void OnProgressValueChagned(float value);
+
+	/** 显示拾色器窗口
+	*/
+	void ShowColorPicker();
 };
 

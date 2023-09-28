@@ -339,6 +339,29 @@ void MainForm::OnInitWindow()
 			});
 	}
 
+	//设置颜色
+	InitColorCombo();
+	ui::ComboButton* pColorComboBtn = dynamic_cast<ui::ComboButton*>(FindControl(L"color_combo_button"));
+	if (pColorComboBtn != nullptr) {
+		std::wstring textColor;
+		if (m_pRichEdit != nullptr) {
+			textColor = m_pRichEdit->GetTextColor();
+		}
+		//设置选择后的颜色
+		ui::Label* pLeftColorLabel = pColorComboBtn->GetLabelBottom();
+		if (pLeftColorLabel != nullptr) {
+			pLeftColorLabel->SetBkColor(textColor);
+		}
+
+		//左侧按钮点击事件
+		pColorComboBtn->AttachClick([this, pLeftColorLabel](const ui::EventArgs& args) {
+			if (pLeftColorLabel != nullptr) {
+				SetTextColor(pLeftColorLabel->GetBkColor());
+			}
+			return true;
+			});
+	}
+
 	//缩放比例
 	struct ZoomInfo
 	{
@@ -506,6 +529,99 @@ void MainForm::OnInitWindow()
 		m_pRichEdit->AttachSelChange([this](const ui::EventArgs& args) {
 			if ((m_pRichEdit != nullptr) && m_pRichEdit->IsRichText()) {
 				UpdateFontStatus();
+			}
+			return true;
+			});
+	}
+}
+
+void MainForm::InitColorCombo()
+{
+	ui::ComboButton* pColorComboBtn = dynamic_cast<ui::ComboButton*>(FindControl(L"color_combo_button"));
+	if (pColorComboBtn == nullptr) {
+		return;
+	}
+	ui::UiSize boxSize = pColorComboBtn->GetDropBoxSize();
+	ui::Box* pComboBox = pColorComboBtn->GetComboBox();
+	if (pComboBox == nullptr) {
+		return;
+	}
+	pComboBox->SetWindow(this);
+	ui::GlobalManager::Instance().FillBoxWithCache(pComboBox, L"rich_edit/color_combox.xml");
+	pComboBox->SetFixedHeight(ui::UiFixedInt(boxSize.cy), false, false);
+	pComboBox->SetFixedWidth(ui::UiFixedInt(boxSize.cx), false, false);
+
+	if (pComboBox->GetItemAt(0) != nullptr) {
+		pComboBox->GetItemAt(0)->SetFixedHeight(ui::UiFixedInt(boxSize.cy), false, false);
+		pComboBox->GetItemAt(0)->SetFixedWidth(ui::UiFixedInt(boxSize.cx), false, false);
+	}
+
+	ui::ColorPickerRegular* pColorPicker = dynamic_cast<ui::ColorPickerRegular*>(pComboBox->FindSubControl(L"color_combo_picker"));
+	if (pColorPicker != nullptr) {
+		//响应选择颜色事件
+		pColorPicker->AttachSelectColor([this, pColorComboBtn](const ui::EventArgs& args) {
+			ui::UiColor newColor((uint32_t)args.wParam);
+			//设置选择后的颜色
+			ui::Label* pLeftColorLabel = pColorComboBtn->GetLabelBottom();
+			if (pLeftColorLabel != nullptr) {
+				pLeftColorLabel->SetBkColor(newColor);
+				SetTextColor(pLeftColorLabel->GetBkColor());
+			}
+			return true;
+			});
+	}
+
+	ui::Button* pMoreColorButton = dynamic_cast<ui::Button*>(pComboBox->FindSubControl(L"color_combo_picker_more"));
+	if (pMoreColorButton != nullptr) {
+		pMoreColorButton->AttachClick([this](const ui::EventArgs& args) {
+			ShowColorPicker();
+			return true;
+			});
+	}
+}
+
+void MainForm::ShowColorPicker()
+{
+	ui::ComboButton* pColorComboBtn = dynamic_cast<ui::ComboButton*>(FindControl(L"color_combo_button"));
+	if (pColorComboBtn == nullptr) {
+		return;
+	}
+	ui::Label* pLeftColorLabel = pColorComboBtn->GetLabelBottom();
+	if (pLeftColorLabel == nullptr) {
+		return;
+	}
+	std::wstring oldTextColor = pLeftColorLabel->GetBkColor();
+
+	ui::ColorPicker* pColorPicker = new ui::ColorPicker;
+	pColorPicker->CreateWnd(GetHWND(), ui::ColorPicker::kClassName.c_str(), UI_WNDSTYLE_FRAME, WS_EX_LAYERED);
+	pColorPicker->CenterWindow();
+	pColorPicker->ShowModalFake(this->GetHWND());
+
+	ui::RichEdit* pEdit = m_pRichEdit;
+	if (pEdit != nullptr) {
+		if (!oldTextColor.empty() && (pColorPicker != nullptr)) {
+			pColorPicker->SetSelectedColor(pEdit->GetUiColor(oldTextColor));
+		}
+		//如果在界面选择颜色，则临时更新RichEdit控件文本的颜色
+		pColorPicker->AttachSelectColor([this, pEdit, pLeftColorLabel](const ui::EventArgs& args) {
+			ui::UiColor newColor = ui::UiColor((uint32_t)args.wParam);
+			pLeftColorLabel->SetBkColor(newColor);
+			SetTextColor(pEdit->GetColorString(newColor));
+			return true;
+			});
+
+		//窗口关闭事件
+		pColorPicker->AttachWindowClose([this, pColorPicker, pEdit, oldTextColor, pLeftColorLabel](const ui::EventArgs& args) {
+			ui::UiColor newColor = pColorPicker->GetSelectedColor();
+			if ((args.wParam == 0) && !newColor.IsEmpty()) {
+				//如果是"确认"，则设置RichEdit控件的文本颜色
+				pLeftColorLabel->SetBkColor(newColor);
+				SetTextColor(pEdit->GetColorString(newColor));
+			}
+			else {
+				//如果是"取消"或者关闭窗口，则恢复原来的颜色
+				pLeftColorLabel->SetBkColor(newColor);
+				SetTextColor(oldTextColor);
 			}
 			return true;
 			});
@@ -786,6 +902,19 @@ void MainForm::SetFontStrikeOut(bool bStrikeOut)
 	else {
 		charFormat.dwEffects &= ~CFE_STRIKEOUT;
 	}
+	SetCharFormat(charFormat);
+}
+
+void MainForm::SetTextColor(const std::wstring& newColor)
+{
+	if (m_pRichEdit == nullptr) {
+		return;
+	}
+	ui::UiColor dwColor = m_pRichEdit->GetUiColor(newColor);
+	CHARFORMAT2 charFormat = {};
+	GetCharFormat(charFormat);
+	charFormat.dwMask = CFM_COLOR;
+	charFormat.crTextColor = dwColor.ToCOLORREF();
 	SetCharFormat(charFormat);
 }
 
@@ -1316,6 +1445,16 @@ void MainForm::OnSetFont()
 		charFormat.crTextColor = cf.rgbColors;
 
 		SetCharFormat(charFormat);
+
+		//更新颜色
+		ui::ComboButton* pColorComboBtn = dynamic_cast<ui::ComboButton*>(FindControl(L"color_combo_button"));
+		if (pColorComboBtn != nullptr) {
+			if (pColorComboBtn->GetLabelBottom() != nullptr) {
+				ui::UiColor textColor;
+				textColor.SetFromCOLORREF(charFormat.crTextColor);
+				pColorComboBtn->GetLabelBottom()->SetBkColor(textColor);
+			}
+		}
 	}
 
 	//更新字体按钮的状态

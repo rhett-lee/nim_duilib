@@ -133,7 +133,7 @@
                                combo_box_class="padding='1,1,1,1' border_size='1,1,1,1' bkcolor='white' border_color='gray'" 
                                left_button_class="height={stretch} width={stretch} padding={0,0,1,0} border_size={0,0,1,0} hot_border_color={blue} pushed_border_color={blue} valign={center} hot_color={#FFE5F3FF} pushed_color={#FFCCE8FF} " 
                                left_button_top_label_class="width={stretch} height={20} margin={1,0,1,0} font={system_bold_14} text_align={bottom,hcenter}" 
-                               left_button_bottom_label_class="width={stretch} height={stretch} margin={6,0,6,1} bkcolor={black}" 
+                               left_button_bottom_label_class="width={stretch} height={stretch} margin={6,0,6,2} bkcolor={black}" 
                                right_button_class="height={stretch} width={auto} padding={1,0,0,0} border_size={1,0,0,0} hot_border_color={blue} pushed_border_color={blue} valign={center} hot_color={#FFE5F3FF} pushed_color={#FFCCE8FF} normal_image={file='../public/combo/arrow_normal.svg' valign='center'} hot_image={file='../public/combo/arrow_hot.svg' valign='center'}"/>
 
     <!--按钮：图片按钮-->

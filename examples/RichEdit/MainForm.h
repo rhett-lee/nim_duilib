@@ -133,6 +133,10 @@ private://设置字体相关
 	//设置字体样式（删除线）
 	void SetFontStrikeOut(bool bStrikeOut);
 
+	/** 设置文本颜色
+	*/
+	void SetTextColor(const std::wstring& newColor);
+
 	//枚举字体回调函数
 	static int CALLBACK EnumFontFamExProc(const LOGFONT* lpelfe, const TEXTMETRIC* lpntme, DWORD fontType, LPARAM lParam);
 
@@ -150,6 +154,12 @@ private://设置字体相关
 private:
 	//更新缩放比例
 	void UpdateZoomValue();
+
+	//初始化设置颜色的Combo按钮
+	void InitColorCombo();
+
+	//显示拾色器窗口
+	void ShowColorPicker();
 
 private:
 
