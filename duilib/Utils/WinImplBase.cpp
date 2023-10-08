@@ -116,6 +116,11 @@ LRESULT WindowImplBase::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
         ASSERT(pControl->GetType() == DUI_CTR_BUTTON);
         pControl->AttachClick(nbase::Bind(&WindowImplBase::OnButtonClick, this, std::placeholders::_1));
     }
+    pControl = (Control*)FindControl(DUI_CTR_BUTTON_FULLSCREEN);
+    if (pControl) {
+        ASSERT(pControl->GetType() == DUI_CTR_BUTTON);
+        pControl->AttachClick(nbase::Bind(&WindowImplBase::OnButtonClick, this, std::placeholders::_1));
+    }
 
     OnInitWindow();
     return 0;
@@ -140,14 +145,16 @@ LRESULT WindowImplBase::OnNcLButtonDbClick(UINT /*uMsg*/, WPARAM /*wParam*/, LPA
     }
 
     if (!::IsZoomed(GetHWND())) {
-        SendMessage(WM_SYSCOMMAND, SC_MAXIMIZE, 0);
+        //最大化
+        Maximized();
         if (pBtnMax && pBtnRestore) {
             pBtnMax->SetVisible(false);
             pBtnRestore->SetVisible(true);
         }
     }
     else {
-        SendMessage(WM_SYSCOMMAND, SC_RESTORE, 0);
+        //还原
+        Restore();
         if (pBtnMax && pBtnRestore) {
             pBtnMax->SetVisible(true);
             pBtnRestore->SetVisible(false);
@@ -161,7 +168,8 @@ LRESULT WindowImplBase::OnSysCommand(UINT uMsg, WPARAM wParam, LPARAM lParam, bo
 {
     bHandled = true;
     if (wParam == SC_CLOSE) {
-        SendMessage(WM_CLOSE);
+        //立即关闭窗口
+        Close();
         return 0;
     }
     //首先调用默认的窗口函数，使得命令生效
@@ -210,7 +218,7 @@ bool WindowImplBase::OnButtonClick(const EventArgs& msg)
     }
     else if (sCtrlName == DUI_CTR_BUTTON_MIN) {
         //最小化按钮
-        SendMessage(WM_SYSCOMMAND, SC_MINIMIZE, 0);
+        Minimized();
     }
     else if (sCtrlName == DUI_CTR_BUTTON_MAX) {
         //最大化按钮
@@ -220,7 +228,7 @@ bool WindowImplBase::OnButtonClick(const EventArgs& msg)
             pMaxButton->SetFadeVisible(false);
             pRestoreButton->SetFadeVisible(true);
         }
-        SendMessage(WM_SYSCOMMAND, SC_MAXIMIZE, 0);
+        Maximized();
     }
     else if (sCtrlName == DUI_CTR_BUTTON_RESTORE) {
         //还原按钮
@@ -230,10 +238,42 @@ bool WindowImplBase::OnButtonClick(const EventArgs& msg)
             pMaxButton->SetFadeVisible(true);
             pRestoreButton->SetFadeVisible(false);
         }
-        SendMessage(WM_SYSCOMMAND, SC_RESTORE, 0);
+        Restore();
+    }
+    else if (sCtrlName == DUI_CTR_BUTTON_FULLSCREEN) {
+        //全屏按钮
+        EnterFullScreen();
     }
 
     return true;
+}
+
+void WindowImplBase::OnWindowEnterFullScreen()
+{
+    Control* pCaptionBar = FindControl(DUI_CTR_CAPTION_BAR);
+    if (pCaptionBar != nullptr) {
+        pCaptionBar->SetVisible(false);
+    }
+}
+
+void WindowImplBase::OnWindowExitFullScreen()
+{
+    Control* pCaptionBar = FindControl(DUI_CTR_CAPTION_BAR);
+    if (pCaptionBar != nullptr) {
+        pCaptionBar->SetVisible(true);
+        Control* pMaxButton = (Control*)FindControl(DUI_CTR_BUTTON_MAX);
+        Control* pRestoreButton = (Control*)FindControl(DUI_CTR_BUTTON_RESTORE);
+        if (pMaxButton && pRestoreButton) {
+            if (IsWindowMaximized()) {
+                pMaxButton->SetFadeVisible(false);
+                pRestoreButton->SetFadeVisible(true);
+            }
+            else {
+                pMaxButton->SetFadeVisible(true);
+                pRestoreButton->SetFadeVisible(false);
+            }
+        }
+    }
 }
 
 LRESULT WindowImplBase::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, bool& bHandled)

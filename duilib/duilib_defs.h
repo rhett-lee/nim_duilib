@@ -109,11 +109,13 @@ namespace ui
 	#define  DUI_CTR_COLOR_PICKER_STANDARD_GRAY		 (L"ColorPickerStatardGray")
 	#define  DUI_CTR_COLOR_PICKER_CUSTOM			 (L"ColorPickerCustom")
 
-	// 窗口标题栏按钮：最大化、最小化、关闭、还原窗口的名字，代码中写死的
+	// 窗口标题栏按钮：最大化、最小化、关闭、还原、全屏窗口的名字，代码中写死的
+	#define DUI_CTR_CAPTION_BAR						 (L"window_caption_bar")
 	#define DUI_CTR_BUTTON_CLOSE					 (L"closebtn")
 	#define DUI_CTR_BUTTON_MIN						 (L"minbtn")
 	#define DUI_CTR_BUTTON_MAX						 (L"maxbtn")
 	#define DUI_CTR_BUTTON_RESTORE					 (L"restorebtn")
+	#define DUI_CTR_BUTTON_FULLSCREEN				 (L"fullscreenbtn")
 
 	//EventType事件类型对应的字符串定义
 	#define	EVENTSTR_ALL				(L"all")

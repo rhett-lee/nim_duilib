@@ -100,13 +100,13 @@ public:
 
     /** 是否将要关闭
     */
-    bool IsClosingWnd() const { return m_bCloseing; };
+    bool IsClosingWnd() const { return m_bCloseing; }
 
     /** 监听窗口关闭事件
     * @param [in] callback 指定关闭后的回调函数，参数的wParam代表窗口关闭的触发情况：
-    *                     0 - 表示 "确认" 关闭本窗口
-                        1 - 表示点击窗口的 "关闭" 按钮关闭本窗口(默认值)
-                        2 - 表示 "取消" 关闭本窗口
+                          0 - 表示 "确认" 关闭本窗口
+                          1 - 表示点击窗口的 "关闭" 按钮关闭本窗口(默认值)
+                          2 - 表示 "取消" 关闭本窗口
     */
     void AttachWindowClose(const EventCallback& callback);
 
@@ -134,39 +134,12 @@ protected:
     /** 窗口接收到 WM_CREATE 消息时会被调用
     * @param [in] hWnd 窗口句柄
     */
-    void InitWnd(HWND hWnd);
+    virtual void InitWnd(HWND hWnd);
 
     /** 在窗口收到 WM_NCDESTROY 消息时会被调用
     * @param [in] hWnd 窗口句柄
     */
     virtual void OnFinalMessage(HWND hWnd);
-
-private:
-    /** 注册窗口类
-    */
-    bool RegisterWindowClass();
-
-    /** 注册控件窗口类（与窗口的过程函数不同）
-    */
-    bool RegisterSuperClass();
-
-    /** 窗口过程函数(当GetSuperClassName()函数返回不为空串时使用)
-    * @param [in] hWnd 窗口句柄
-    * @param [in] uMsg 消息体
-    * @param [in] wParam 消息附加参数
-    * @param [in] lParam 消息附加参数
-    * @return 返回消息处理结果
-    */
-    static LRESULT CALLBACK __WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-
-    /** 窗口过程函数(当GetSuperClassName()函数返回空串时使用)
-    * @param [in] hWnd 窗口句柄
-    * @param [in] uMsg 消息体
-    * @param [in] wParam 消息附加参数
-    * @param [in] lParam 消息附加参数
-    * @return 返回消息处理结果
-    */
-    static LRESULT CALLBACK __ControlProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
     /** @} */
 
@@ -182,9 +155,9 @@ public:
     virtual void ShowWindow(bool bShow = true, bool bTakeFocus = true);
 
     /** 显示模态对话框
-    * @param [in] parent_hwnd 父窗口句柄
+    * @param [in] hParentWnd 父窗口句柄
     */
-    void ShowModalFake(HWND parent_hwnd);
+    void ShowModalFake(HWND hParentWnd);
 
     /** 是否是模态显示
     */
@@ -209,10 +182,59 @@ public:
     */
     void ActiveWindow();
 
+    /** 窗口最大化
+    */
+    bool Maximized();
+
+    /** 还原窗口，退出最大化
+    */
+    bool Restore();
+
+    /** 窗口最小化
+    */
+    bool Minimized();
+
+    /** 使窗口进入全屏状态
+    */
+    bool EnterFullScreen();
+
+    /** 使窗口退出全屏状态 (默认按ESC键时，退出全屏)
+    */
+    bool ExitFullScreen();
+
+    /** 设置窗口为前端窗口
+    */
+    bool SetForeground();
+
+    /** 使窗口成为焦点窗口
+    */
+    bool SetFocused();
+
+    /** 关闭窗口, 同步关闭
+    */
+    void Close();
+
+    /** 当前窗口是否为输入焦点窗口
+    */
+    bool IsWindowFocused() const;
+
+    /** 当前窗口是否为前端窗口
+    */
+    bool IsWindowForeground() const;
+
     /** 窗口是否为最大化状态
     */
     bool IsWindowMaximized() const;
 
+    /** 窗口是否为最小化状态
+    */
+    bool IsWindowMinimized() const;
+
+    /** 窗口是否为全屏状态
+    */
+    bool IsWindowFullScreen() const;
+
+public:
     /** 获取窗口位置信息
      * @param [in] bContainShadow 是否包含阴影，true 为包含，默认为 false 不包含
      */
@@ -526,6 +548,14 @@ protected:
 
     /** @}*/
 
+    /** 进入全屏状态
+    */
+    virtual void OnWindowEnterFullScreen() {}
+
+    /** 退出全屏状态
+    */
+    virtual void OnWindowExitFullScreen() {}
+
 private:
     /** @name 私有窗口消息处理相关
     * @{
@@ -752,27 +782,6 @@ public:
 
     /** @} */
 
-private:
-    /**@name 动画效果相关接口
-    * @{
-    */
-    /** 设置绘制偏移
-    * @param [in] renderOffset 偏移值
-    */
-    void SetRenderOffset(UiPoint renderOffset);
-
-    /** 设置绘制偏移 x 坐标
-    * @param [in] renderOffsetX 坐标值
-    */
-    void SetRenderOffsetX(int renderOffsetX);
-
-    /** 设置绘制偏移 y 坐标
-    * @param [in] renderOffsetY 坐标值
-    */
-    void SetRenderOffsetY(int renderOffsetY);
-
-    /** @} */
-
 public:
 
     /**@name 控件查找相关接口
@@ -893,9 +902,56 @@ public:
     void UpdateToolTip();
 
 private:
+    /**@name 动画效果相关接口
+    * @{
+    */
+    /** 设置绘制偏移
+    * @param [in] renderOffset 偏移值
+    */
+    void SetRenderOffset(UiPoint renderOffset);
+
+    /** 设置绘制偏移 x 坐标
+    * @param [in] renderOffsetX 坐标值
+    */
+    void SetRenderOffsetX(int renderOffsetX);
+
+    /** 设置绘制偏移 y 坐标
+    * @param [in] renderOffsetY 坐标值
+    */
+    void SetRenderOffsetY(int renderOffsetY);
+
+    /** @} */
+
+private:
     /** 检查并确保当前窗口为焦点窗口
     */
     void CheckSetFocusWindow();
+
+    /** 注册窗口类
+    */
+    bool RegisterWindowClass();
+
+    /** 注册控件窗口类（与窗口的过程函数不同）
+    */
+    bool RegisterSuperClass();
+
+    /** 窗口过程函数(当GetSuperClassName()函数返回不为空串时使用)
+    * @param [in] hWnd 窗口句柄
+    * @param [in] uMsg 消息体
+    * @param [in] wParam 消息附加参数
+    * @param [in] lParam 消息附加参数
+    * @return 返回消息处理结果
+    */
+    static LRESULT CALLBACK __WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+
+    /** 窗口过程函数(当GetSuperClassName()函数返回空串时使用)
+    * @param [in] hWnd 窗口句柄
+    * @param [in] uMsg 消息体
+    * @param [in] wParam 消息附加参数
+    * @param [in] lParam 消息附加参数
+    * @return 返回消息处理结果
+    */
+    static LRESULT CALLBACK __ControlProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 private:
     //窗口句柄
@@ -1012,10 +1068,28 @@ private:
     std::unique_ptr<Shadow> m_shadow;
 
     //当前窗口是否显示为模态对话框
-    bool m_bFakeModal = false;
+    bool m_bFakeModal;
 
     //窗口已经延迟关闭：add by djj 20200428 调用Close时会延迟Post WM_CLOSE, 这个期间需要有一个标识此种'待关闭状态'
-    bool m_bCloseing = false;
+    bool m_bCloseing;
+
+private:
+    /**@name 全屏相关状态
+    * @{
+
+    /** 窗口是否为全屏状态
+    */
+    bool m_bFullScreen;
+
+    /** 全屏前的窗口风格
+    */
+    DWORD m_dwLastStyle;
+
+    /** 全屏前的窗口位置/窗口大小等信息
+    */
+    WINDOWPLACEMENT m_rcLastWindowPlacement;
+
+    /** @} */
 
 private:
     /** 控件查找辅助类

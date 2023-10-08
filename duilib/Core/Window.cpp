@@ -49,8 +49,13 @@ Window::Window() :
     m_defaultAttrHash(),
     m_strResourcePath(),
     m_closeFlag(),
-    m_pWindowDropTarget(nullptr)
+    m_pWindowDropTarget(nullptr),
+    m_bFakeModal(false),
+    m_bCloseing(false),
+    m_bFullScreen(false),
+    m_dwLastStyle(0)
 {
+    m_rcLastWindowPlacement = {sizeof(WINDOWPLACEMENT), };
     m_toolTip = std::make_unique<ToolTip>();
     m_shadow = std::make_unique<Shadow>();
 }
@@ -219,21 +224,22 @@ HWND Window::CreateWnd(HWND hwndParent, const wchar_t* windowName, uint32_t dwSt
 
 void Window::CloseWnd(UINT nRet)
 {
-    if (m_bFakeModal)
-    {
-        auto parent_hwnd = GetWindowOwner();
-        ASSERT(::IsWindow(parent_hwnd));
-        ::EnableWindow(parent_hwnd, TRUE);
-        ::SetFocus(parent_hwnd);
-        m_bFakeModal = false;
-    }
     ASSERT(::IsWindow(m_hWnd));
     if (!::IsWindow(m_hWnd)) {
         return;
     }
-
-    PostMessage(WM_CLOSE, (WPARAM)nRet, 0L);
     m_bCloseing = true;
+    PostMessage(WM_CLOSE, (WPARAM)nRet, 0L);    
+}
+
+void Window::Close()
+{
+    ASSERT(::IsWindow(m_hWnd));
+    if (!::IsWindow(m_hWnd)) {
+        return;
+    }
+    m_bCloseing = true;
+    SendMessage(WM_CLOSE, 0L, 0L);
 }
 
 void Window::ShowWindow(bool bShow /*= true*/, bool bTakeFocus /*= false*/)
@@ -242,14 +248,14 @@ void Window::ShowWindow(bool bShow /*= true*/, bool bTakeFocus /*= false*/)
     ::ShowWindow(m_hWnd, bShow ? (bTakeFocus ? SW_SHOWNORMAL : SW_SHOWNOACTIVATE) : SW_HIDE);
 }
 
-void Window::ShowModalFake(HWND parent_hwnd)
+void Window::ShowModalFake(HWND hParentWnd)
 {
     ASSERT(::IsWindow(m_hWnd));
-    ASSERT(::IsWindow(parent_hwnd));
-    auto p_hwnd = GetWindowOwner();
-    ASSERT(::IsWindow(p_hwnd));
-    ASSERT_UNUSED_VARIABLE(p_hwnd == parent_hwnd);
-    ::EnableWindow(parent_hwnd, FALSE);
+    ASSERT(::IsWindow(hParentWnd));
+    auto hOwnerWnd = GetWindowOwner();
+    ASSERT(::IsWindow(hOwnerWnd));
+    ASSERT_UNUSED_VARIABLE(hOwnerWnd == hParentWnd);
+    ::EnableWindow(hParentWnd, FALSE);
     ShowWindow();
     m_bFakeModal = true;
 }
@@ -324,7 +330,7 @@ void Window::BringToTop()
 void Window::ActiveWindow()
 {
     ASSERT(::IsWindow(m_hWnd));
-    if (::IsIconic(m_hWnd)) {
+    if (IsWindowMinimized()) {
         ::ShowWindow(m_hWnd, SW_RESTORE);
     }
     else {
@@ -335,9 +341,124 @@ void Window::ActiveWindow()
     }
 }
 
+bool Window::Maximized()
+{
+    ASSERT(::IsWindow(m_hWnd));
+    ::SendMessage(m_hWnd, WM_SYSCOMMAND, SC_MAXIMIZE, 0);
+    return true;
+}
+
+bool Window::Restore()
+{
+    ASSERT(::IsWindow(m_hWnd));
+    ::SendMessage(m_hWnd, WM_SYSCOMMAND, SC_RESTORE, 0);
+    return true;
+}
+
+bool Window::Minimized()
+{
+    ASSERT(::IsWindow(m_hWnd));
+    ::SendMessage(m_hWnd, WM_SYSCOMMAND, SC_MINIMIZE, 0);
+    return true;
+}
+
+bool Window::EnterFullScreen()
+{
+    ASSERT(::IsWindow(m_hWnd));
+    if (!::IsWindow(m_hWnd)) {
+        return false;
+    }
+    if (IsWindowMinimized()) {
+        //最小化的时候，不允许激活全屏
+        return false;
+    }
+    if (m_bFullScreen) {
+        return true;
+    }
+    //保存窗口风格
+    m_dwLastStyle = ::GetWindowLong(m_hWnd, GWL_STYLE);
+
+    //保存窗口大小位置信息
+    m_rcLastWindowPlacement.length = sizeof(WINDOWPLACEMENT);
+    ::GetWindowPlacement(m_hWnd, &m_rcLastWindowPlacement);
+
+    int32_t xScreen = GetSystemMetrics(SM_XVIRTUALSCREEN);
+    int32_t yScreen = GetSystemMetrics(SM_YVIRTUALSCREEN);
+    int32_t cxScreen = GetSystemMetrics(SM_CXVIRTUALSCREEN);
+    int32_t cyScreen = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+
+    // 去掉标题栏、边框
+    DWORD dwFullScreenStyle = (m_dwLastStyle | WS_VISIBLE | WS_POPUP | WS_MAXIMIZE) & ~WS_CAPTION & ~WS_BORDER & ~WS_THICKFRAME & ~WS_DLGFRAME;
+    ::SetWindowLongPtr(m_hWnd, GWL_STYLE, dwFullScreenStyle);
+    ::SetWindowPos(m_hWnd, NULL, xScreen, yScreen, cxScreen, cyScreen, SWP_FRAMECHANGED); // 设置位置和大小
+
+    m_bFullScreen = true;
+    OnWindowEnterFullScreen();
+    return true;
+}
+
+bool Window::ExitFullScreen()
+{
+    ASSERT(::IsWindow(m_hWnd));
+    if (!::IsWindow(m_hWnd)) {
+        return false;
+    }
+    if (!m_bFullScreen) {
+        return false;
+    }
+    m_bFullScreen = false;
+
+    //恢复窗口风格
+    ::SetWindowLong(m_hWnd, GWL_STYLE, m_dwLastStyle);
+
+    //恢复窗口位置/大小信息
+    ::SetWindowPlacement(m_hWnd, &m_rcLastWindowPlacement);
+
+    OnWindowExitFullScreen();
+    return true;
+}
+
+bool Window::SetForeground()
+{
+    ASSERT(::IsWindow(m_hWnd));
+    if (::GetForegroundWindow() != m_hWnd) {
+        ::SetForegroundWindow(m_hWnd);
+    }
+    return ::GetForegroundWindow() == m_hWnd;
+}
+
+bool Window::SetFocused()
+{
+    ASSERT(::IsWindow(m_hWnd));
+    if (::GetFocus() != m_hWnd) {
+        ::SetFocus(m_hWnd);
+    }
+    return ::GetFocus() == m_hWnd;
+}
+
+bool Window::IsWindowFocused() const
+{
+    return ::IsWindow(m_hWnd) && (m_hWnd == ::GetFocus());
+}
+
+bool Window::IsWindowForeground() const
+{
+    return ::IsWindow(m_hWnd) && (m_hWnd == ::GetForegroundWindow());
+}
+
 bool Window::IsWindowMaximized() const
 {
     return ::IsWindow(m_hWnd) && ::IsZoomed(m_hWnd);
+}
+
+bool Window::IsWindowMinimized() const
+{
+    return ::IsWindow(m_hWnd) && ::IsIconic(m_hWnd);
+}
+
+bool Window::IsWindowFullScreen() const
+{
+    return m_bFullScreen;
 }
 
 void Window::SetIcon(UINT nRes)
@@ -1128,6 +1249,14 @@ LRESULT Window::OnCloseMsg(UINT uMsg, WPARAM /*wParam*/, LPARAM /*lParam*/, bool
 {
     ASSERT_UNUSED_VARIABLE(uMsg == WM_CLOSE);
     bHandled = false;
+    if (m_bFakeModal) {
+        HWND hOwnerWnd = GetWindowOwner();
+        ASSERT(::IsWindow(hOwnerWnd));
+        ::EnableWindow(hOwnerWnd, TRUE);
+        ::SetFocus(hOwnerWnd);
+        m_bFakeModal = false;
+    }
+
     ClearStatus();
     if (::GetFocus() == m_hWnd) {
         HWND hwndParent = GetWindowOwner();
@@ -1142,7 +1271,7 @@ LRESULT Window::OnNcActivateMsg(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/, boo
 {
     ASSERT_UNUSED_VARIABLE(uMsg == WM_NCACTIVATE);
     LRESULT lResult = 0;
-    if (::IsIconic(GetHWND())) {
+    if (IsWindowMinimized()) {
         bHandled = false;
     }
     else {
@@ -1177,8 +1306,8 @@ LRESULT Window::OnNcHitTestMsg(UINT uMsg, WPARAM /*wParam*/, LPARAM lParam, bool
     UiPadding rcCorner = m_shadow->GetShadowCorner();
     rcClient.Deflate(rcCorner);
 
-    if (!::IsZoomed(GetHWND())) {
-        //非最小化状态
+    if (!IsWindowMaximized()) {
+        //非最大化状态
         UiRect rcSizeBox = GetSizeBox();
         if (pt.y < rcClient.top + rcSizeBox.top) {
             if (pt.y >= rcClient.top) {
@@ -1292,7 +1421,8 @@ LRESULT Window::OnWindowPosChangingMsg(UINT uMsg, WPARAM /*wParam*/, LPARAM lPar
 {
     ASSERT_UNUSED_VARIABLE(uMsg == WM_WINDOWPOSCHANGING);
     bHandled = false;
-    if (IsZoomed(m_hWnd)) {
+    if (IsWindowMaximized()) {
+        //最大化状态
         LPWINDOWPOS lpPos = (LPWINDOWPOS)lParam;
         if (lpPos->flags & SWP_FRAMECHANGED) // 第一次最大化，而不是最大化之后所触发的WINDOWPOSCHANGE
         {
@@ -1329,7 +1459,7 @@ LRESULT Window::OnSizeMsg(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/, bool& bHa
     ASSERT_UNUSED_VARIABLE(uMsg == WM_SIZE);
     bHandled = false;
     UiSize szRoundCorner = GetRoundCorner();
-    bool isIconic = ::IsIconic(GetHWND());
+    bool isIconic = IsWindowMinimized();
     if (!isIconic && (wParam != SIZE_MAXIMIZED) && (szRoundCorner.cx > 0 && szRoundCorner.cy > 0)) {
         //最大化、最小化时，均不设置圆角RGN，只有普通状态下设置
         UiRect rcWnd;
@@ -1686,6 +1816,12 @@ LRESULT Window::OnKeyDownMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHan
 {
     ASSERT_UNUSED_VARIABLE(uMsg == WM_KEYDOWN);
     bHandled = false;
+    if (IsWindowFullScreen() && (wParam == VK_ESCAPE)) {
+        //按ESC键时，退出全屏
+        ExitFullScreen();
+        return 0;
+    }
+
     if (m_pFocus == nullptr) {
         return 0;
     }
@@ -2210,7 +2346,7 @@ void Window::Paint()
 {
     GlobalManager::Instance().AssertUIThread();
 
-    if (::IsIconic(m_hWnd) || (m_pRoot == nullptr)) {
+    if (IsWindowMinimized() || (m_pRoot == nullptr)) {
         PAINTSTRUCT ps = { 0 };
         ::BeginPaint(m_hWnd, &ps);
         ::EndPaint(m_hWnd, &ps);

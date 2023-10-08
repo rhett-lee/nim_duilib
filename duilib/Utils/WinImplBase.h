@@ -241,6 +241,15 @@ protected:
     */
     virtual LRESULT OnKeyUp(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
 
+protected:
+    /** 进入全屏状态
+    */
+    virtual void OnWindowEnterFullScreen() override;
+
+    /** 退出全屏状态
+    */
+    virtual void OnWindowExitFullScreen() override;
+
 private:
     /** 窗口功能按钮被点击时调用
     * @param [in] param 携带的参数
