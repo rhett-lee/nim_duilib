@@ -345,6 +345,7 @@ bool Window::Maximized()
 {
     ASSERT(::IsWindow(m_hWnd));
     ::SendMessage(m_hWnd, WM_SYSCOMMAND, SC_MAXIMIZE, 0);
+    OnWindowMaximized();
     return true;
 }
 
@@ -352,6 +353,7 @@ bool Window::Restore()
 {
     ASSERT(::IsWindow(m_hWnd));
     ::SendMessage(m_hWnd, WM_SYSCOMMAND, SC_RESTORE, 0);
+    OnWindowRestored();
     return true;
 }
 
@@ -359,6 +361,7 @@ bool Window::Minimized()
 {
     ASSERT(::IsWindow(m_hWnd));
     ::SendMessage(m_hWnd, WM_SYSCOMMAND, SC_MINIMIZE, 0);
+    OnWindowMinimized();
     return true;
 }
 
@@ -415,6 +418,10 @@ bool Window::ExitFullScreen()
     ::SetWindowPlacement(m_hWnd, &m_rcLastWindowPlacement);
 
     OnWindowExitFullScreen();
+
+    if (IsWindowMaximized()) {
+        Restore();
+    }
     return true;
 }
 

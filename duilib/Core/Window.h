@@ -556,6 +556,18 @@ protected:
     */
     virtual void OnWindowExitFullScreen() {}
 
+    /** 进入最大化状态
+    */
+    virtual void OnWindowMaximized() {}
+
+    /** 从最大化还原
+    */
+    virtual void OnWindowRestored() {}
+
+    /** 进入最小化状态
+    */
+    virtual void OnWindowMinimized() {}
+
 private:
     /** @name 私有窗口消息处理相关
     * @{
@@ -944,7 +956,7 @@ private:
     */
     static LRESULT CALLBACK __WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-    /** 窗口过程函数(当GetSuperClassName()函数返回空串时使用)
+    /** 窗口过程函数(当GetSuperClassName()函数返回空串时使用) 
     * @param [in] hWnd 窗口句柄
     * @param [in] uMsg 消息体
     * @param [in] wParam 消息附加参数

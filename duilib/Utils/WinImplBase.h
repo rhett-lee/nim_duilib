@@ -250,12 +250,28 @@ protected:
     */
     virtual void OnWindowExitFullScreen() override;
 
+    /** 进入最大化状态
+    */
+    virtual void OnWindowMaximized() override;
+
+    /** 从最大化还原
+    */
+    virtual void OnWindowRestored() override;
+
+    /** 进入最小化状态
+    */
+    virtual void OnWindowMinimized() override;
+
 private:
     /** 窗口功能按钮被点击时调用
     * @param [in] param 携带的参数
     * @return 始终返回 true
     */
     bool OnButtonClick(const EventArgs& param);
+
+    /** 处理最大化/还原按钮的状态
+    */
+    void ProcessMaxRestoreStatus();
 };
 }
 

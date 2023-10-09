@@ -135,32 +135,14 @@ void WindowImplBase::OnFinalMessage(HWND hWnd)
 LRESULT WindowImplBase::OnNcLButtonDbClick(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, bool& bHandled)
 {
     bHandled = true;
-    Control* pBtnMax = FindControl(DUI_CTR_BUTTON_MAX);
-    if (pBtnMax != nullptr) {
-        ASSERT(pBtnMax->GetType() == DUI_CTR_BUTTON);
-    }
-    Control* pBtnRestore = FindControl(DUI_CTR_BUTTON_RESTORE);
-    if (pBtnRestore != nullptr) {
-        ASSERT(pBtnRestore->GetType() == DUI_CTR_BUTTON);
-    }
-
-    if (!::IsZoomed(GetHWND())) {
+    if (!IsWindowMaximized()) {
         //最大化
         Maximized();
-        if (pBtnMax && pBtnRestore) {
-            pBtnMax->SetVisible(false);
-            pBtnRestore->SetVisible(true);
-        }
     }
     else {
         //还原
         Restore();
-        if (pBtnMax && pBtnRestore) {
-            pBtnMax->SetVisible(true);
-            pBtnRestore->SetVisible(false);
-        }
     }
-
     return 0;
 }
 
@@ -178,27 +160,7 @@ LRESULT WindowImplBase::OnSysCommand(UINT uMsg, WPARAM wParam, LPARAM lParam, bo
     if (::IsZoomed(GetHWND()) != bZoomed) {
         if (wParam == 0xF012) {
             //修复窗口最大化和还原按钮的状态（当在最大化时，向下拖动标题栏，窗口会改变为非最大化状态）
-            Control* pBtnMax = FindControl(DUI_CTR_BUTTON_MAX);
-            if (pBtnMax != nullptr) {
-                ASSERT(pBtnMax->GetType() == DUI_CTR_BUTTON);
-            }
-            Control* pBtnRestore = FindControl(DUI_CTR_BUTTON_RESTORE);
-            if (pBtnRestore != nullptr) {
-                ASSERT(pBtnRestore->GetType() == DUI_CTR_BUTTON);
-            }
-
-            if (pBtnMax && pBtnRestore) {
-                if (!::IsZoomed(GetHWND())) {
-                    //非最大化
-                    pBtnMax->SetVisible(true);
-                    pBtnRestore->SetVisible(false);
-                }
-                else {
-                    //最大化
-                    pBtnMax->SetVisible(false);
-                    pBtnRestore->SetVisible(true);
-                }
-            }
+            ProcessMaxRestoreStatus();
         }
     }
 
@@ -221,23 +183,11 @@ bool WindowImplBase::OnButtonClick(const EventArgs& msg)
         Minimized();
     }
     else if (sCtrlName == DUI_CTR_BUTTON_MAX) {
-        //最大化按钮
-        Control* pMaxButton = (Control*)FindControl(DUI_CTR_BUTTON_MAX);
-        Control* pRestoreButton = (Control*)FindControl(DUI_CTR_BUTTON_RESTORE);
-        if (pMaxButton && pRestoreButton) {
-            pMaxButton->SetFadeVisible(false);
-            pRestoreButton->SetFadeVisible(true);
-        }
+        //最大化按钮        
         Maximized();
     }
     else if (sCtrlName == DUI_CTR_BUTTON_RESTORE) {
-        //还原按钮
-        Control* pMaxButton = (Control*)FindControl(DUI_CTR_BUTTON_MAX);
-        Control* pRestoreButton = (Control*)FindControl(DUI_CTR_BUTTON_RESTORE);
-        if (pMaxButton && pRestoreButton) {
-            pMaxButton->SetFadeVisible(true);
-            pRestoreButton->SetFadeVisible(false);
-        }
+        //还原按钮        
         Restore();
     }
     else if (sCtrlName == DUI_CTR_BUTTON_FULLSCREEN) {
@@ -261,18 +211,34 @@ void WindowImplBase::OnWindowExitFullScreen()
     Control* pCaptionBar = FindControl(DUI_CTR_CAPTION_BAR);
     if (pCaptionBar != nullptr) {
         pCaptionBar->SetVisible(true);
-        Control* pMaxButton = (Control*)FindControl(DUI_CTR_BUTTON_MAX);
-        Control* pRestoreButton = (Control*)FindControl(DUI_CTR_BUTTON_RESTORE);
-        if (pMaxButton && pRestoreButton) {
-            if (IsWindowMaximized()) {
-                pMaxButton->SetFadeVisible(false);
-                pRestoreButton->SetFadeVisible(true);
-            }
-            else {
-                pMaxButton->SetFadeVisible(true);
-                pRestoreButton->SetFadeVisible(false);
-            }
-        }
+    }
+    ProcessMaxRestoreStatus();
+}
+
+void WindowImplBase::OnWindowMaximized()
+{
+    ProcessMaxRestoreStatus();
+}
+
+void WindowImplBase::OnWindowRestored()
+{
+    ProcessMaxRestoreStatus();
+}
+
+void WindowImplBase::OnWindowMinimized()
+{
+}
+
+void WindowImplBase::ProcessMaxRestoreStatus()
+{
+    Control* pMaxButton = (Control*)FindControl(DUI_CTR_BUTTON_MAX);
+    Control* pRestoreButton = (Control*)FindControl(DUI_CTR_BUTTON_RESTORE);
+    bool bWindowMax = IsWindowMaximized();
+    if (pMaxButton != nullptr) {
+        pMaxButton->SetFadeVisible(bWindowMax ? false : true);
+    }
+    if (pRestoreButton != nullptr) {
+        pRestoreButton->SetFadeVisible(bWindowMax ? true : false);
     }
 }
 
