@@ -4,6 +4,7 @@
 #pragma once
 
 #include "duilib/Utils/WinImplBase.h"
+#include "duilib/Control/Label.h"
 
 namespace ui
 {
@@ -73,14 +74,18 @@ private:
 	*/
 	void OnSelectColor(const UiColor& newColor);
 
+	/** 屏幕取色
+	*/
+	void OnPickColorFromScreen();
+
 private:
 	/** 新选择的颜色控件接口
 	*/
-	Control* m_pNewColor;
+	Label* m_pNewColor;
 
 	/** 原来的颜色控件接口
 	*/
-	Control* m_pOldColor;
+	Label* m_pOldColor;
 
 	/** 常用颜色控件接口
 	*/
