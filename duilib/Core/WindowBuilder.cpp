@@ -643,26 +643,24 @@ bool WindowBuilder::ParseRichTextXmlNode(const pugi::xml_node& xmlNode, Control*
 		return false;
 	}
 
+	std::wstring nodeName;
 	for (pugi::xml_node node : xmlNode.children()) {
 		RichTextSlice textSlice;
 		textSlice.m_nodeName = node.name();
-		const std::wstring& nodeName = textSlice.m_nodeName;
+		nodeName = textSlice.m_nodeName.c_str();
 
 		bool bParseChildren = true;
 		if (nodeName.empty()) {
 			std::wstring nodeValue = node.value();
 			if (!nodeValue.empty()) {
-				textSlice.m_text = nodeValue;
-				StringHelper::Trim(textSlice.m_text);
+				textSlice.m_text = StringHelper::Trim(nodeValue);
 			}
 			//无节点名称，只读取文本内容, 不需要递归遍历子节点
 			bParseChildren = false;
 		}		
 		else if (nodeName == L"a") {			
-			textSlice.m_text = node.first_child().value();
-			textSlice.m_linkUrl = node.attribute(L"href").as_string();
-			StringHelper::Trim(textSlice.m_text);
-			StringHelper::Trim(textSlice.m_linkUrl);
+			textSlice.m_text = StringHelper::Trim(node.first_child().value());
+			textSlice.m_linkUrl = StringHelper::Trim(node.attribute(L"href").as_string());
 			//超级链接节点, 不需要递归遍历子节点
 			bParseChildren = false;
 		}
@@ -684,14 +682,20 @@ bool WindowBuilder::ParseRichTextXmlNode(const pugi::xml_node& xmlNode, Control*
 		}
 		else if (nodeName == L"bgcolor") {
 			//背景颜色
-			textSlice.m_bgColor = node.attribute(L"color").as_string();
-			StringHelper::Trim(textSlice.m_bgColor);
+			textSlice.m_bgColor = StringHelper::Trim(node.attribute(L"color").as_string());
 		}
 		else if (nodeName == L"font") {
 			//字体设置：文本颜色
 			textSlice.m_textColor = node.attribute(L"color").as_string();
 			textSlice.m_fontInfo.m_fontName = node.attribute(L"face").as_string();
 			textSlice.m_fontInfo.m_fontSize = node.attribute(L"size").as_int();
+			//字号进行DPI自适应
+			GlobalManager::Instance().Dpi().ScaleInt(textSlice.m_fontInfo.m_fontSize);
+		}
+		else if (nodeName == L"br") {
+			textSlice.m_text = L"\n";
+			//换行节点, 不需要递归遍历子节点
+			bParseChildren = false;
 		}
 		else {
 			//遇到不认识的节点，忽略

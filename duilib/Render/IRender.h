@@ -387,6 +387,40 @@ enum class RenderType
 	kRenderType_GdiPlus = 1
 };
 
+/** 格式文本数据
+*/
+class RichTextData
+{
+public:
+	/** 文字内容
+	*/
+	UiString m_text;
+
+	/** 超链接的URL
+	*/
+	UiString m_linkUrl;
+
+	/** 文字颜色
+	*/
+	UiColor m_textColor;
+
+	/** 背景颜色
+	*/
+	UiColor m_bgColor;
+
+	/** 字体信息
+	*/
+	UiFont m_fontInfo;
+
+	/** 行间距
+	*/
+	float m_fRowSpacingMul = 1.0f;
+
+	/** 对象绘制区域(输出参数)
+	*/
+	std::vector<UiRect> m_textRects;
+};
+
 class UILIB_API IRender : public virtual nbase::SupportWeakCallback
 {
 public:
@@ -654,6 +688,19 @@ public:
 		                    const std::wstring& strFontId, 
 		                    uint32_t uFormat,
 		                    uint8_t uFade = 255) = 0;
+
+	/** 绘制格式文本
+	* @param [in] 矩形区域
+	* @param [in,out] richTextData 格式化文字内容，返回文字绘制的区域
+	* @param [in] uFormat 文字的格式，参见 enum DrawStringFormat 类型定义
+	* @param [in] bMeasureOnly 如果为true，仅评估绘制文字所需区域，不执行文字绘制
+	* @param [in] uFade 透明度（0 - 255）
+	*/
+	virtual void DrawRichText(const UiRect& rc,
+		                      std::vector<RichTextData>& richTextData,
+		                      uint32_t uFormat = 0,
+		                      bool bMeasureOnly = false,
+		                      uint8_t uFade = 255) = 0;
 
 	/** 在指定矩形周围绘制阴影（高斯模糊, 只支持外部阴影，不支持内部阴影）
 	* @param [in] rc 矩形区域

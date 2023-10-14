@@ -950,16 +950,16 @@ size_t SkTextBox::breakText(const void* text, size_t byteLength, SkTextEncoding 
     SkScalar totalWidth = 0;
     for (size_t i = 0; i < glyphWidths.size(); ++i) {        
         if ((totalWidth + glyphWidths[i]) > maxWidth) {
-            if (measuredWidth != nullptr) {
-                *measuredWidth = totalWidth;
-            }
             for (size_t index = 0; index < i; ++index) {
                 //¼ÆËã×Ö·û¸öÊý
                 breakByteLength += (glyphChars[index] * charBytes);
             }
             break;
         }
-        totalWidth += glyphWidths[i];
+        totalWidth += glyphWidths[i];        
+    }
+    if (measuredWidth != nullptr) {
+        *measuredWidth = totalWidth;
     }
     SkASSERT(breakByteLength <= byteLength);
     if (breakByteLength > byteLength) {

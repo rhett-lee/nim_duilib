@@ -98,6 +98,12 @@ public:
 		                    UiColor dwTextColor, const std::wstring& strFontId, 
 							uint32_t uFormat, uint8_t uFade = 255) override;
 
+	virtual void DrawRichText(const UiRect& rc,
+							  std::vector<RichTextData>& richTextData,
+							  uint32_t uFormat = 0,
+							  bool bMeasureOnly = false,
+							  uint8_t uFade = 255) override;
+
 	void DrawBoxShadow(const UiRect& rc, const UiSize& roundSize, const UiPoint& cpOffset, int nBlurRadius, int nSpreadRadius, UiColor dwColor) override;
 
 #ifdef UILIB_IMPL_WINSDK
@@ -123,6 +129,11 @@ private:
 	/** 根据Pen接口，初始化Paint对象
 	*/
 	void SetPaintByPen(SkPaint& skPaint, const IPen* pen);
+
+	/** 按设置的属性，绘制文字
+	*/
+	void DrawTextString(const UiRect& rc, const std::wstring& strText, uint32_t uFormat,
+					    const SkPaint& skPaint, IFont* pFont) const;
 
 private:
 

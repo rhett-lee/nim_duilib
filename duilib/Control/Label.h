@@ -330,10 +330,13 @@ UiSize LabelTemplate<InheritType>::EstimateText(UiSize szAvailable)
         m_uTextStyle &= ~TEXT_SINGLELINE;
     }
 
-    int width = this->GetFixedWidth().GetInt32();
+    int32_t width = szAvailable.cx;
     if (this->GetFixedWidth().IsStretch()) {
         //如果是拉伸类型，使用外部宽度
         width = CalcStretchValue(this->GetFixedWidth(), szAvailable.cx);
+    }
+    else if (this->GetFixedWidth().IsInt32()) {
+        width = this->GetFixedWidth().GetInt32();
     }
     UiPadding rcTextPadding = this->GetTextPadding();
     UiPadding rcPadding = this->GetControlPadding();

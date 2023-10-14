@@ -1040,6 +1040,15 @@ UiRect Render_GdiPlus::MeasureString(const std::wstring& strText, const std::wst
 	return rc;
 }
 
+void Render_GdiPlus::DrawRichText(const UiRect& /*rc*/,
+								  std::vector<RichTextData>& /*richTextData*/,
+								  uint32_t /*uFormat*/,
+								  bool /*bMeasureOnly*/,
+								  uint8_t /*uFade*/)
+{
+	ASSERT(!"No Impl!");
+}
+
 void Render_GdiPlus::DrawBoxShadow(const UiRect& rc, 
 								   const UiSize& roundSize, 
 						     	   const UiPoint& cpOffset, 

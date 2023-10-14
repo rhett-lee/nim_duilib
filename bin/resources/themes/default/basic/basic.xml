@@ -16,13 +16,13 @@
     
     <!-- 工作区域，除了标题栏外的内容都放在这个大的Box区域 -->
     <Box>
-      <VBox margin="0,0,0,0" valign="center" halign="center" width="auto" height="auto">
+      <VBox margin="0,0,0,0" valign="center" halign="center">
         <Label name="tooltip" text="一个简单窗口，带有标题栏和常规按钮。"/>
-        <RichText>
-            RichText文本内容1
+        <RichText bkcolor="green" width="600" row_spacing_mul="1.5" width="50%" height="auto">
+            RichText文本<br/>内容1
             <b>
                 粗体
-                <bgcolor color="#000000">
+                <bgcolor color="#FFFFFF">
                     <u>
                         <a href="www.baidu.com">这里是超级链接：点击访问百度首页</a>
                     </u>
@@ -36,6 +36,18 @@
                 </font>
                 宋体12号字演示2
             </font>
+            <font face="宋体" size="8">
+                宋体8号字演示
+            </font>  
+            <i>斜体号字演示</i> 
+            <b>粗体号字演示</b> 
+            <s>删除字演示</s> 
+            <u>下划线字演示</u> 
+            <font face="微软雅黑" size="14">
+                微软雅黑14号字演示
+            </font>  
+            <bgcolor color="#802378">背景颜色演示</bgcolor>                
+            RichText文本内容2RichText文本内容3RichText文本内容4RichText文本内容5RichText文本内容6RichText文本内容7RichText文本内容8RichText文本内容9RichText文本内容10
         </RichText>
       </VBox>
     </Box>

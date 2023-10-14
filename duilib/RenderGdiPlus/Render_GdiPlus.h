@@ -91,6 +91,13 @@ public:
 		                    UiColor dwTextColor, const std::wstring& strFontId, 
 							uint32_t uFormat, uint8_t uFade = 255) override;
 
+
+	virtual void DrawRichText(const UiRect& rc,
+		                      std::vector<RichTextData>& richTextData,
+		                      uint32_t uFormat = 0,
+		                      bool bMeasureOnly = false,
+		                      uint8_t uFade = 255) override;
+
 	//这个函数Gdiplus版本的实现不太对，推荐使用Skia版本的。
 	void DrawBoxShadow(const UiRect& rc, const UiSize& roundSize, const UiPoint& cpOffset, int nBlurRadius, int nSpreadRadius, UiColor dwColor) override;
 

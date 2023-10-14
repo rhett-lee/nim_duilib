@@ -4,15 +4,15 @@
 #include "duilib/Core/WindowBuilder.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Utils/StringUtil.h"
-#include "duilib/Render/IRender.h"
+#include "duilib/Utils/AttributeUtil.h"
+#include "duilib/Core/Window.h"
 
 namespace ui 
 {
-RichTextSlice::RichTextSlice()
-{
-}
 
-RichText::RichText()
+RichText::RichText() :
+    m_uTextStyle(TEXT_LEFT | TEXT_VCENTER),
+    m_fRowSpacingMul(1.0f)
 {
 }
 
@@ -24,13 +24,117 @@ std::wstring RichText::GetType() const { return DUI_CTR_RICHTEXT; }
 
 UiSize RichText::EstimateText(UiSize szAvailable)
 {
-    return {600, 100};
-    //return __super::EstimateText(szAvailable);
+    UiSize fixedSize;
+    IRender* pRender = nullptr;
+    if (GetWindow() != nullptr) {
+        pRender = GetWindow()->GetRender();
+    }
+    if (pRender == nullptr) {
+        return fixedSize;
+    }
+
+    int32_t nWidth = szAvailable.cx;
+    if (GetFixedWidth().IsStretch()) {
+        //如果是拉伸类型，使用外部宽度
+        nWidth = CalcStretchValue(GetFixedWidth(), szAvailable.cx);
+    }
+    else if (GetFixedWidth().IsInt32()) {
+        nWidth = GetFixedWidth().GetInt32();
+    }
+
+    //最大高度，不限制
+    int32_t nHeight = INT_MAX;
+    
+    UiRect rc;
+    rc.left = 0;
+    rc.right = rc.left + nWidth;
+    rc.top = 0;
+    rc.bottom = rc.top + nHeight;
+    rc.Deflate(GetControlPadding());
+    rc.Deflate(GetTextPadding());
+
+    if (rc.IsEmpty()) {
+        return fixedSize;
+    }
+
+    if (m_textData.empty()) {
+        ParseText(m_textData);
+    }
+    if (!m_textData.empty()) {
+        pRender->DrawRichText(rc, m_textData, m_uTextStyle, true, (uint8_t)GetAlpha());
+    }
+
+    UiRect rect;
+    for (const RichTextData& textData : m_textData) {
+        for (const UiRect& textRect : textData.m_textRects) {
+            if (rect.IsZero()) {
+                rect = textRect;
+            }
+            else {
+                rect.Union(textRect);
+            }
+        }
+    }
+
+    UiPadding rcTextPadding = GetTextPadding();
+    UiPadding rcPadding = GetControlPadding();
+    if (GetFixedWidth().IsAuto()) {
+        fixedSize.cx = rect.Width() + rcTextPadding.left + rcTextPadding.right;
+        fixedSize.cx += (rcPadding.left + rcPadding.right);
+    }
+    if (GetFixedHeight().IsAuto()) {
+        fixedSize.cy = rect.Height() + rcTextPadding.top + rcTextPadding.bottom;
+        fixedSize.cy += (rcPadding.top + rcPadding.bottom);
+    }
+    return fixedSize;
 }
 
 void RichText::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
-    __super::SetAttribute(strName, strValue);
+    if (strName == L"text_align") {
+        if (strValue.find(L"left") != std::wstring::npos) {
+            m_uTextStyle &= ~(TEXT_CENTER | TEXT_RIGHT);
+            m_uTextStyle |= TEXT_LEFT;
+        }
+        if (strValue.find(L"hcenter") != std::wstring::npos) {
+            m_uTextStyle &= ~(TEXT_LEFT | TEXT_RIGHT);
+            m_uTextStyle |= TEXT_CENTER;
+        }
+        if (strValue.find(L"right") != std::wstring::npos) {
+            m_uTextStyle &= ~(TEXT_LEFT | TEXT_CENTER);
+            m_uTextStyle |= TEXT_RIGHT;
+        }
+        if (strValue.find(L"top") != std::wstring::npos) {
+            m_uTextStyle &= ~(TEXT_BOTTOM | TEXT_VCENTER);
+            m_uTextStyle |= TEXT_TOP;
+        }
+        if (strValue.find(L"vcenter") != std::wstring::npos) {
+            m_uTextStyle &= ~(TEXT_TOP | TEXT_BOTTOM);
+            m_uTextStyle |= TEXT_VCENTER;
+        }
+        if (strValue.find(L"bottom") != std::wstring::npos) {
+            m_uTextStyle &= ~(TEXT_TOP | TEXT_VCENTER);
+            m_uTextStyle |= TEXT_BOTTOM;
+        }
+        m_textData.clear();
+    }    
+    else if (strName == L"font") {
+        SetFontId(strValue);
+    }
+    else if (strName == L"text_color") {
+        SetTextColor(strValue);
+    }    
+    else if ((strName == L"text_padding") || (strName == L"textpadding")) {
+        UiPadding rcTextPadding;
+        AttributeUtil::ParsePaddingValue(strValue.c_str(), rcTextPadding);
+        SetTextPadding(rcTextPadding);
+    }
+    else if (strName == L"row_spacing_mul") {
+        SetRowSpacingMul(wcstof(strValue.c_str(), nullptr));
+    }
+    else {
+        __super::SetAttribute(strName, strValue);
+    }
 }
 
 void RichText::PaintText(IRender* pRender)
@@ -39,18 +143,106 @@ void RichText::PaintText(IRender* pRender)
         return;
     }
     UiRect rc = GetRect();
-    rc.left += m_rcTextPadding.left;
-    rc.right -= m_rcTextPadding.right;
-    rc.top += m_rcTextPadding.top;
-    rc.bottom -= m_rcTextPadding.bottom;
+    rc.Deflate(GetTextPadding());
 
-    UiColor dwTextColor = UiColor(UiColors::Blue);
-    pRender->DrawString(rc, L"RichText::PaintText：功能暂未实现。", dwTextColor, L"", 0);
+    if (m_textData.empty()) {
+        ParseText(m_textData);
+    }
+    if (!m_textData.empty()) {
+        pRender->DrawRichText(rc, m_textData, m_uTextStyle, false, (uint8_t)GetAlpha());
+    }
 }
 
-void RichText::SetPos(UiRect rc)
+bool RichText::ParseText(std::vector<RichTextData>& outTextData) const
 {
-    return __super::SetPos(rc);
+    //默认字体
+    std::wstring sFontId = GetFontId();
+    IFont* pFont = GlobalManager::Instance().Font().GetIFont(sFontId);
+    ASSERT(pFont != nullptr);
+    if (pFont == nullptr) {
+        return false;
+    }
+
+    RichTextData parentTextData;
+    //默认文本颜色
+    parentTextData.m_textColor = GetUiColor(GetTextColor());
+    if (parentTextData.m_textColor.IsEmpty()) {
+        parentTextData.m_textColor = UiColor(UiColors::Black);
+    }
+    parentTextData.m_fontInfo.m_fontName = pFont->FontName();
+    parentTextData.m_fontInfo.m_fontSize = pFont->FontSize();
+    parentTextData.m_fontInfo.m_bBold = pFont->IsBold();
+    parentTextData.m_fontInfo.m_bUnderline = pFont->IsUnderline();
+    parentTextData.m_fontInfo.m_bItalic = pFont->IsItalic();
+    parentTextData.m_fontInfo.m_bStrikeOut = pFont->IsStrikeOut();
+    parentTextData.m_fRowSpacingMul = m_fRowSpacingMul;
+
+    std::vector<RichTextData> textData;
+
+    for (const RichTextSlice& textSlice : m_textSlice) {
+        if (!ParseTextSlice(textSlice, parentTextData, textData)) {
+            return false;
+        }
+    }
+    outTextData.swap(textData);
+    return true;
+}
+
+bool RichText::ParseTextSlice(const RichTextSlice& textSlice, 
+                              const RichTextData& parentTextData, 
+                              std::vector<RichTextData>& textData) const
+{
+    //当前节点
+    RichTextData currentTextData;
+    currentTextData.m_fRowSpacingMul = m_fRowSpacingMul;
+    currentTextData.m_text = textSlice.m_text;
+    currentTextData.m_linkUrl = textSlice.m_linkUrl;
+    if (!textSlice.m_textColor.empty()) {
+        currentTextData.m_textColor = GetUiColor(textSlice.m_textColor.c_str());
+    }
+    if (textSlice.m_textColor.empty()) {
+        currentTextData.m_textColor = parentTextData.m_textColor;
+    }
+
+    if (!textSlice.m_bgColor.empty()) {
+        currentTextData.m_bgColor = GetUiColor(textSlice.m_bgColor.c_str());
+    }
+    else {
+        currentTextData.m_bgColor = parentTextData.m_bgColor;
+    }
+
+    currentTextData.m_fontInfo = parentTextData.m_fontInfo;
+    if (!textSlice.m_fontInfo.m_fontName.empty()) {
+        currentTextData.m_fontInfo.m_fontName = textSlice.m_fontInfo.m_fontName;
+    }
+    if (textSlice.m_fontInfo.m_fontSize > 0) {
+        currentTextData.m_fontInfo.m_fontSize = textSlice.m_fontInfo.m_fontSize;
+    }
+    if (textSlice.m_fontInfo.m_bBold) {
+        currentTextData.m_fontInfo.m_bBold = textSlice.m_fontInfo.m_bBold;
+    }
+    if (textSlice.m_fontInfo.m_bUnderline) {
+        currentTextData.m_fontInfo.m_bUnderline = textSlice.m_fontInfo.m_bUnderline;
+    }
+    if (textSlice.m_fontInfo.m_bItalic) {
+        currentTextData.m_fontInfo.m_bItalic = textSlice.m_fontInfo.m_bItalic;
+    }
+    if (textSlice.m_fontInfo.m_bStrikeOut) {
+        currentTextData.m_fontInfo.m_bStrikeOut = textSlice.m_fontInfo.m_bStrikeOut;
+    }
+    if (!currentTextData.m_text.empty() || !currentTextData.m_linkUrl.empty()) {
+        textData.push_back(currentTextData);
+    }
+        
+    if (!textSlice.m_childs.empty()) {
+        //子节点
+        for (const RichTextSlice& childSlice : textSlice.m_childs) {
+            if (!ParseTextSlice(childSlice, currentTextData, textData)) {
+                return false;
+            }
+        }
+    }
+    return true;
 }
 
 UiPadding RichText::GetTextPadding() const
@@ -87,14 +279,61 @@ bool RichText::SetRichText(const std::wstring& richText)
     return bResult;
 }
 
+std::wstring RichText::GetFontId() const
+{
+    return m_sFontId.c_str();
+}
+
+void RichText::SetFontId(const std::wstring& strFontId)
+{
+    if (m_sFontId != strFontId) {
+        m_sFontId = strFontId;
+        m_textData.clear();
+        Invalidate();
+    }
+}
+
+std::wstring RichText::GetTextColor() const
+{
+    return m_sTextColor.c_str();
+}
+
+void RichText::SetTextColor(const std::wstring& sTextColor)
+{
+    if (m_sTextColor != sTextColor) {
+        m_sTextColor = sTextColor;
+        m_textData.clear();
+        Invalidate();
+    }
+}
+
+float RichText::GetRowSpacingMul() const
+{
+    return m_fRowSpacingMul;
+}
+
+void RichText::SetRowSpacingMul(float fRowSpacingMul)
+{
+    if (m_fRowSpacingMul != fRowSpacingMul) {
+        m_fRowSpacingMul = fRowSpacingMul;
+        if (m_fRowSpacingMul <= 0.01f) {
+            m_fRowSpacingMul = 1.0f;
+        }
+        m_textData.clear();
+        Invalidate();
+    }
+}
+
 void RichText::AppendTextSlice(const RichTextSlice&& textSlice)
 {
     m_textSlice.emplace_back(textSlice);
+    m_textData.clear();
 }
 
 void RichText::AppendTextSlice(const RichTextSlice& textSlice)
 {
     m_textSlice.emplace_back(textSlice);
+    m_textData.clear();
 }
 
 std::wstring RichText::ToString() const
@@ -112,13 +351,23 @@ std::wstring RichText::ToString() const
 
 std::wstring RichText::ToString(const RichTextSlice& textSlice, const std::wstring& indent) const
 {
+    // 支持的标签列表(兼容HTML的标签):
+    // 
+    // 超级链接：    <a href="URL">文本</a>
+    // 粗体字:      <b> </b>
+    // 斜体字:      <i> </i>
+    // 删除字:      <s> </s> 或 <del> </del> 或者 <strike> </strike>
+    // 下划线字:    <u> </u>
+    // 设置背景色:  <bgcolor color="#000000"> </bgcolor>
+    // 设置字体:    <font face="宋体" size="12" color="#000000">
+    // 换行标签：   <br/>
     const std::wstring indentValue = L"    ";
     const std::wstring lineBreak = L"\r\n";
     std::wstring richText;
     if (textSlice.m_nodeName.empty()) {
         if (!textSlice.m_text.empty()) {
             richText += indent;
-            richText += textSlice.m_text;
+            richText += textSlice.m_text.c_str();
             richText += lineBreak;
         }
         //没有节点名称的情况下，就没有属性和子节点，直接返回
@@ -129,18 +378,18 @@ std::wstring RichText::ToString(const RichTextSlice& textSlice, const std::wstri
     std::wstring attrList;    
     if (!textSlice.m_linkUrl.empty()) {
         attrList += L"href=\"";
-        std::wstring url = textSlice.m_linkUrl;
-        attrList += textSlice.m_linkUrl;
+        std::wstring url = textSlice.m_linkUrl.c_str();
+        attrList += textSlice.m_linkUrl.c_str();
         attrList += L"\"";
     }
     if (!textSlice.m_bgColor.empty()) {
         attrList += L"color=\"";
-        attrList += textSlice.m_bgColor;
+        attrList += textSlice.m_bgColor.c_str();
         attrList += L"\"";
     }
     if (!textSlice.m_textColor.empty()) {
         attrList += L"color=\"";
-        attrList += textSlice.m_textColor;
+        attrList += textSlice.m_textColor.c_str();
         attrList += L"\"";
     }
     if (!textSlice.m_fontInfo.m_fontName.empty()) {
@@ -158,7 +407,7 @@ std::wstring RichText::ToString(const RichTextSlice& textSlice, const std::wstri
         //有子节点：节点开始
         richText += indent;
         richText += L"<";
-        richText += textSlice.m_nodeName;
+        richText += textSlice.m_nodeName.c_str();
         if (!attrList.empty()) {
             richText += L" ";
             richText += attrList;
@@ -174,7 +423,7 @@ std::wstring RichText::ToString(const RichTextSlice& textSlice, const std::wstri
         //节点结束
         richText += indent;
         richText += L"</";
-        richText += textSlice.m_nodeName;
+        richText += textSlice.m_nodeName.c_str();
         richText += L">";
         richText += lineBreak;
     }
@@ -182,7 +431,7 @@ std::wstring RichText::ToString(const RichTextSlice& textSlice, const std::wstri
         //超级链接节点：需要特殊处理
         richText += indent;
         richText += L"<";
-        richText += textSlice.m_nodeName;
+        richText += textSlice.m_nodeName.c_str();
         if (!attrList.empty()) {
             richText += L" ";
             richText += attrList;
@@ -190,11 +439,11 @@ std::wstring RichText::ToString(const RichTextSlice& textSlice, const std::wstri
         richText += L">";
 
         //添加超链接的文本
-        richText += textSlice.m_text;
+        richText += textSlice.m_text.c_str();
 
         //节点结束
         richText += L"</";
-        richText += textSlice.m_nodeName;
+        richText += textSlice.m_nodeName.c_str();
         richText += L">";
         richText += lineBreak;
     }
@@ -202,7 +451,7 @@ std::wstring RichText::ToString(const RichTextSlice& textSlice, const std::wstri
         //没有子节点：放一行中表示
         richText += indent;
         richText += L"<";
-        richText += textSlice.m_nodeName;
+        richText += textSlice.m_nodeName.c_str();
         richText += L" ";
         if (!attrList.empty()) {            
             richText += attrList;

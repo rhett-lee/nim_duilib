@@ -63,9 +63,9 @@ UiColor ColorManager::ConvertToUiColor(const std::wstring& strColor)
 		}
 	}
 
-	//具体颜色值，格式如：#FFFFFFFF
-	ASSERT(strColor.size() == 9);
-	if (strColor.size() != 9) {
+	//具体颜色值，格式如：#FFFFFFFF 或者 #FFFFFF
+	ASSERT((strColor.size() == 9) || (strColor.size() == 7));
+	if ((strColor.size() != 9) && (strColor.size() != 7)) {
 		return color;
 	}
 	ASSERT(strColor.at(0) == L'#');
@@ -83,6 +83,10 @@ UiColor ColorManager::ConvertToUiColor(const std::wstring& strColor)
 		}
 	}
 	std::wstring colorValue = strColor.substr(1);
+	if (colorValue.size() == 6) {
+		//如果是#FFFFFF格式，自动补上Alpha值
+		colorValue = L"FF" + colorValue;
+	}
 	UiColor::ARGB argb = wcstoul(colorValue.c_str(), nullptr, 16);
 	return UiColor(argb);
 }
