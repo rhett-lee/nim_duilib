@@ -396,10 +396,6 @@ public:
 	*/
 	UiString m_text;
 
-	/** 超链接的URL
-	*/
-	UiString m_linkUrl;
-
 	/** 文字颜色
 	*/
 	UiColor m_textColor;

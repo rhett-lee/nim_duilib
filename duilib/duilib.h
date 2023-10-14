@@ -109,6 +109,7 @@
 #include "Control/Slider.h"
 
 #include "Control/RichEdit.h"
+#include "Control/RichText.h"
 #include "Control/Menu.h"
 #include "duilib/Control/DateTime.h"
 

@@ -42,7 +42,6 @@ void ToolTip::ShowToolTip(HWND hParentWnd,
 						  const UiRect& rect,
 						  uint32_t maxWidth,
 						  const UiPoint& trackPos,
-						  bool bHoverChanged,
 						  const std::wstring& text)
 {
 	if (text.empty()) {
@@ -54,7 +53,7 @@ void ToolTip::ShowToolTip(HWND hParentWnd,
 		newText = newText.substr(0, TOOLTIP_MAX_LEN);
 	}
 
-	if (bHoverChanged && (m_hwndTooltip != nullptr) && IsWindowVisible(m_hwndTooltip)) {
+	if ((m_hwndTooltip != nullptr) && IsWindowVisible(m_hwndTooltip)) {
 		TOOLINFO toolTip = { 0 };
 		toolTip.cbSize = sizeof(TOOLINFO);
 		toolTip.hwnd = hParentWnd;

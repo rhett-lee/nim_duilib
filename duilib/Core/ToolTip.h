@@ -29,7 +29,6 @@ public:
 	* @param [in] rect Tooltip显示区域
 	* @param [in] maxWidth Tooltip显示最大宽度
 	* @param [in] trackPos 跟踪的位置
-	* @param [in] bHoverChanged Hover控件是否发生变化
     * @param [in] text Tooltip显示内容
 	*/
 	void ShowToolTip(HWND hParentWnd, 
@@ -37,7 +36,6 @@ public:
 					 const UiRect& rect, 
 					 uint32_t maxWidth,
 					 const UiPoint& trackPos,
-		             bool bHoverChanged,
 					 const std::wstring& text);
 
 	/**@brief 隐藏ToolTip信息

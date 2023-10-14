@@ -1539,18 +1539,19 @@ LRESULT Window::OnMouseHoverMsg(UINT uMsg, WPARAM /*wParam*/, LPARAM lParam, boo
         return 0;
     }
 
-    //检查按需显示ToolTip信息	
-    UiRect rect = pHover->GetPos();
-    uint32_t maxWidth = pHover->GetToolTipWidth();
-    HMODULE hModule = GetResModuleHandle();
-    std::wstring toolTipText = pHover->GetToolTipText();
-    bool bHoverChanged = (m_pEventHover != pHover);
-    m_toolTip->ShowToolTip(m_hWnd, hModule, rect, maxWidth, trackPos, bHoverChanged, toolTipText);
-
-    if (m_pEventHover != nullptr) {
-        m_pEventHover->SendEvent(kEventMouseHover, 0, 0, 0, trackPos);
+    Control* pOldHover = GetHoverControl();
+    if (pHover != nullptr) {
+        pHover->SendEvent(kEventMouseHover, 0, 0, 0, trackPos);
     }
 
+    if (pOldHover == GetHoverControl()) {
+        //检查按需显示ToolTip信息	
+        UiRect rect = pHover->GetPos();
+        uint32_t maxWidth = pHover->GetToolTipWidth();
+        HMODULE hModule = GetResModuleHandle();
+        std::wstring toolTipText = pHover->GetToolTipText();
+        m_toolTip->ShowToolTip(m_hWnd, hModule, rect, maxWidth, trackPos, toolTipText);
+    }
     return 0;
 }
 

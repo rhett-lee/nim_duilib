@@ -42,7 +42,7 @@ void MainForm::OnInitWindow()
 {
 	ui::RichEdit* pRichEdit = dynamic_cast<ui::RichEdit*>(FindControl(L"test_url"));
 	if (pRichEdit != nullptr) {
-		pRichEdit->AttachCustomLinkClick([this, pRichEdit](const ui::EventArgs& args) {
+		pRichEdit->AttachLinkClick([this, pRichEdit](const ui::EventArgs& args) {
 				//点击了超级链接
 				if (args.pSender == pRichEdit) {
 					const wchar_t* pUrl = (const wchar_t*)args.wParam;
@@ -516,7 +516,7 @@ void MainForm::OnInitWindow()
 
 	//超链接
 	if (m_pRichEdit != nullptr) {
-		m_pRichEdit->AttachCustomLinkClick([this](const ui::EventArgs& args) {
+		m_pRichEdit->AttachLinkClick([this](const ui::EventArgs& args) {
 			const wchar_t* url = (const wchar_t*)args.wParam;
 			if (url != nullptr) {
 				::MessageBox(GetHWND(), url, L"RichEdit点击超链接", MB_OK);

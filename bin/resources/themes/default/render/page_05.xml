@@ -70,5 +70,39 @@
                 <Label height="stretch" width="stretch" text="文本绘制-全部风格" font="system_fullstyle_20" normaltextcolor="green"/>
             </HBox>
         </VBox>
+        <VBox width="300" margin="4">                            
+            <RichText bkcolor="green" row_spacing_mul="1.5" width="100%" height="auto">
+                RichText文本<br/>内容1
+                <b>
+                    粗体
+                    <bgcolor color="#FFFFFF">
+                        <u>
+                            <a href="www.baidu.com">这里是超级链接：点击访问百度首页</a>
+                        </u>
+                    </bgcolor>
+                    <font color="#FF0000">红色加粗</font>
+                </b>
+                <font face="宋体" size="12">
+                    宋体12号字演示1
+                    <font face="楷体" size="18">
+                        楷体效果演示：18号字
+                    </font>
+                    宋体12号字演示2
+                </font>
+                <a href="www.sohu.com">这里是超级链接：点击访问搜狐首页</a>
+                <font face="宋体" size="8">
+                    宋体8号字演示
+                </font>  
+                <i>斜体号字演示</i> 
+                <b>粗体号字演示</b> 
+                <s>删除字演示</s> 
+                <u>下划线字演示</u> 
+                <font face="微软雅黑" size="14">
+                    微软雅黑14号字演示
+                </font>  
+                <bgcolor color="#802378">背景颜色演示</bgcolor>                
+                RichText文本内容2RichText文本内容3RichText文本内容4RichText文本内容5RichText文本内容6RichText文本内容7RichText文本内容8RichText文本内容9RichText文本内容10
+            </RichText>
+        </VBox>
     </HBox>
 </Window>

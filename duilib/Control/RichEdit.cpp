@@ -1159,7 +1159,7 @@ void RichEdit::OnTxNotify(DWORD iNotify, void *pv)
 				}
 				SetSel(oldSel);
 				if (!url.empty()) {
-					this->SendEvent(kEventCustomLinkClick, (WPARAM)url.c_str());
+					this->SendEvent(kEventLinkClick, (WPARAM)url.c_str());
 				}
 			}
 		}
@@ -1698,7 +1698,7 @@ void RichEdit::HandleEvent(const EventArgs& msg)
 		if (m_linkInfo.size() > 0)	{
 			std::wstring url;
 			if (HittestCustomLink(UiPoint(msg.ptMouse), url)) {
-				SendEvent(kEventCustomLinkClick, (WPARAM)url.c_str());
+				SendEvent(kEventLinkClick, (WPARAM)url.c_str());
 				return;
 			}
 		}

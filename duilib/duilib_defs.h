@@ -294,7 +294,7 @@ namespace ui
 		kEventSelChange,			//RichEdit类：当文本选择内容发生变化时触发
 		kEventReturn,				//ListBoxItem、RichEdit类：当收到回车键时触发
 		kEventTab,					//RichEdit类：在WantTab为false时，当收到TAB键时触发
-		kEventCustomLinkClick,		//RichEdit类：当点击到自定义link的数据上时触发, 可以通过WPARAM获取点击的URL，类型为const wchar_t*
+		kEventLinkClick,		    //RichEdit类、RichText类：当点击到超级链接的数据上时触发, 可以通过WPARAM获取点击的URL，类型为const wchar_t*
 
 		kEventScrollChange,			//ScrollBox类：当滚动条位置发生变化时触发
 		kEventValueChange,			//DateTime、Slider类：当值发生变化时触发, Slider类：WPARAM是新值，LPARAM是旧值

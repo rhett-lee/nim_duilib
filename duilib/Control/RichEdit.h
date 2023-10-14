@@ -845,10 +845,10 @@ public:
 	 */
 	void AttachSelChange(const EventCallback& callback);
 
-	/** 监听自定义链接被点击事件
-	 * @param[in] callback 自定义链接被点击后的自定义回调函数
+	/** 监听超级链接被点击事件
+	 * @param[in] callback 超级链接被点击后的回调函数
 	 */
-	void AttachCustomLinkClick(const EventCallback& callback)	{ AttachEvent(kEventCustomLinkClick, callback); }
+	void AttachLinkClick(const EventCallback& callback)	{ AttachEvent(kEventLinkClick, callback); }
 
 	/** 监听大小变化事件
 	 * @param[in] callback 大小被改变后的自定义回调函数

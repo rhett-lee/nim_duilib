@@ -61,7 +61,15 @@ UiSize RichText::EstimateText(UiSize szAvailable)
         ParseText(m_textData);
     }
     if (!m_textData.empty()) {
-        pRender->DrawRichText(rc, m_textData, m_uTextStyle, true, (uint8_t)GetAlpha());
+        std::vector<RichTextData> richTextData;
+        richTextData.reserve(m_textData.size());
+        for (const RichTextData& textData : m_textData) {
+            richTextData.push_back(textData);
+        }
+        pRender->DrawRichText(rc, richTextData, m_uTextStyle, true, (uint8_t)GetAlpha());
+        for (size_t index = 0; index < richTextData.size(); ++index) {
+            m_textData[index].m_textRects = richTextData[index].m_textRects;
+        }
     }
 
     UiRect rect;
@@ -149,11 +157,33 @@ void RichText::PaintText(IRender* pRender)
         ParseText(m_textData);
     }
     if (!m_textData.empty()) {
-        pRender->DrawRichText(rc, m_textData, m_uTextStyle, false, (uint8_t)GetAlpha());
+        std::vector<RichTextData> richTextData;
+        richTextData.reserve(m_textData.size());
+        for (const RichTextDataEx& textDataEx : m_textData) {
+            if (!textDataEx.m_linkUrl.empty() && (textDataEx.m_bMouseDown || textDataEx.m_bMouseHover)) {
+                //对于超级链接，设置默认文本格式
+                RichTextData textData = textDataEx;
+                textData.m_fontInfo.m_bUnderline = true;
+                if (textDataEx.m_bMouseDown) {
+                    textData.m_textColor = UiColor(UiColors::Red); //红色字体
+                }
+                else {
+                    textData.m_textColor = UiColor(UiColors::Blue); //蓝色字体
+                }
+                richTextData.push_back(textData);
+            }
+            else {
+                richTextData.push_back(textDataEx);
+            }
+        }
+        pRender->DrawRichText(rc, richTextData, m_uTextStyle, false, (uint8_t)GetAlpha());
+        for (size_t index = 0; index < richTextData.size(); ++index) {
+            m_textData[index].m_textRects = richTextData[index].m_textRects;
+        }
     }
 }
 
-bool RichText::ParseText(std::vector<RichTextData>& outTextData) const
+bool RichText::ParseText(std::vector<RichTextDataEx>& outTextData) const
 {
     //默认字体
     std::wstring sFontId = GetFontId();
@@ -163,7 +193,7 @@ bool RichText::ParseText(std::vector<RichTextData>& outTextData) const
         return false;
     }
 
-    RichTextData parentTextData;
+    RichTextDataEx parentTextData;
     //默认文本颜色
     parentTextData.m_textColor = GetUiColor(GetTextColor());
     if (parentTextData.m_textColor.IsEmpty()) {
@@ -177,7 +207,7 @@ bool RichText::ParseText(std::vector<RichTextData>& outTextData) const
     parentTextData.m_fontInfo.m_bStrikeOut = pFont->IsStrikeOut();
     parentTextData.m_fRowSpacingMul = m_fRowSpacingMul;
 
-    std::vector<RichTextData> textData;
+    std::vector<RichTextDataEx> textData;
 
     for (const RichTextSlice& textSlice : m_textSlice) {
         if (!ParseTextSlice(textSlice, parentTextData, textData)) {
@@ -189,11 +219,11 @@ bool RichText::ParseText(std::vector<RichTextData>& outTextData) const
 }
 
 bool RichText::ParseTextSlice(const RichTextSlice& textSlice, 
-                              const RichTextData& parentTextData, 
-                              std::vector<RichTextData>& textData) const
+                              const RichTextDataEx& parentTextData, 
+                              std::vector<RichTextDataEx>& textData) const
 {
     //当前节点
-    RichTextData currentTextData;
+    RichTextDataEx currentTextData;
     currentTextData.m_fRowSpacingMul = m_fRowSpacingMul;
     currentTextData.m_text = textSlice.m_text;
     currentTextData.m_linkUrl = textSlice.m_linkUrl;
@@ -460,6 +490,150 @@ std::wstring RichText::ToString(const RichTextSlice& textSlice, const std::wstri
         richText += lineBreak;
     }
     return richText;
+}
+
+bool RichText::ButtonDown(const EventArgs& msg)
+{
+    bool bRet = __super::ButtonDown(msg);
+    for (size_t index = 0; index < m_textData.size(); ++index) {
+        RichTextDataEx& textData = m_textData[index];
+        textData.m_bMouseDown = false;
+        if (textData.m_linkUrl.empty()) {
+            continue;
+        }        
+        for (const UiRect& textRect : textData.m_textRects) {
+            if (textRect.ContainsPt(msg.ptMouse)) {
+                //在超级链接上
+                textData.m_bMouseDown = true;
+                Invalidate();
+            }
+        }
+    }
+    return bRet;
+}
+
+bool RichText::ButtonUp(const EventArgs& msg)
+{
+    bool bRet = __super::ButtonUp(msg);
+    for (size_t index = 0; index < m_textData.size(); ++index) {
+        RichTextDataEx& textData = m_textData[index];
+        if (textData.m_linkUrl.empty()) {
+            continue;
+        }
+        for (const UiRect& textRect : textData.m_textRects) {
+            if (textRect.ContainsPt(msg.ptMouse)) {
+                //在超级链接上, 并且与按下鼠标时的相同，则触发点击事件
+                if (textData.m_bMouseDown) {
+                    textData.m_bMouseDown = false;
+                    Invalidate();
+                    std::wstring url = textData.m_linkUrl.c_str();
+                    SendEvent(kEventLinkClick, (WPARAM)url.c_str());
+                    return bRet;
+                }                
+            }
+        }
+    }
+    bool bInvalidate = false;
+    for (RichTextDataEx& textData : m_textData) {
+        if (textData.m_linkUrl.empty()) {
+            continue;
+        }
+        if (textData.m_bMouseDown) {
+            textData.m_bMouseDown = false;
+            bInvalidate = true;
+        }
+    }
+    if (bInvalidate) {
+        Invalidate();
+    }
+    return bRet;
+}
+
+bool RichText::MouseMove(const EventArgs& msg)
+{
+    bool bRet = __super::MouseMove(msg);
+    bool bOnLinkUrl = false;
+    for (RichTextDataEx& textData : m_textData) {
+        textData.m_bMouseHover = false;
+        if (textData.m_linkUrl.empty()) {
+            continue;
+        }
+        for (const UiRect& textRect : textData.m_textRects) {
+            if (textRect.ContainsPt(msg.ptMouse)) {
+                //在超级链接上
+                textData.m_bMouseHover = true;
+                Invalidate();
+                if (textData.m_linkUrl == GetToolTipText()) {
+                    bOnLinkUrl = true;
+                }
+            }
+        }
+    }
+    if (!bOnLinkUrl) {
+        SetToolTipText(L"");
+    }
+    return bRet;
+}
+
+bool RichText::MouseHover(const EventArgs& msg)
+{
+    bool bRet = __super::MouseHover(msg);
+    bool hasHover = false;
+    for (RichTextDataEx& textData : m_textData) {
+        if (textData.m_linkUrl.empty()) {
+            continue;
+        }
+        for (const UiRect& textRect : textData.m_textRects) {
+            if (textRect.ContainsPt(msg.ptMouse)) {
+                //超级链接, 显示ToolTip
+                SetToolTipText(textData.m_linkUrl.c_str());
+                hasHover = true;
+            }
+        }        
+    }
+    if (!hasHover) {
+        SetToolTipText(L"");
+    }
+    return bRet;
+}
+
+bool RichText::MouseLeave(const EventArgs& msg)
+{
+    bool bInvalidate = false;
+    for (RichTextDataEx& textData : m_textData) {
+        if (textData.m_linkUrl.empty()) {
+            continue;
+        }
+        if (textData.m_bMouseHover) {
+            textData.m_bMouseHover = false;
+            bInvalidate = true;
+        }
+        if (textData.m_bMouseDown) {
+            textData.m_bMouseDown = false;
+            bInvalidate = true;
+        }
+    }
+    if (bInvalidate) {
+        Invalidate();
+    }
+    return __super::MouseLeave(msg);
+}
+
+bool RichText::OnSetCursor(const EventArgs& msg)
+{
+    for (const RichTextDataEx& textData : m_textData) {
+        if (textData.m_linkUrl.empty()) {
+            continue;
+        }
+        for (const UiRect& textRect : textData.m_textRects) {
+            if (textRect.ContainsPt(msg.ptMouse)) {
+                //超级链接，光标变成手型
+                ::SetCursor(::LoadCursor(NULL, IDC_HAND));
+                return true;
+            }
+        }
+    }
+    return __super::OnSetCursor(msg);
 }
 
 } // namespace ui

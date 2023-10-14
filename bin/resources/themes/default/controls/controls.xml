@@ -76,7 +76,7 @@
                 </VBox>
                 
                 <!-- Progress/Slider/DateTime -->
-                <VBox height="156">
+                <VBox height="200">
                     <HBox margin="0,10" height="32">
                         <Control width="auto" height="auto" bkimage="../public/animation/ani_loading.gif" valign="center"/>
                         <Progress class="progress_blue" name="progress" value="0" margin="10" tooltiptext="ui::Progress"/>
@@ -94,6 +94,11 @@
                         <Label text="自定义日期格式" margin="0,0,0,8" valign="center" />
                         <DateTime width="140" height="24" format="%Y/%m/%d %H:%M" />
                     </HBox>
+                    <RichText name="rich_text_demo" row_spacing_mul="1.2" height="auto">
+                        <a href="www.baidu.com">点击访问百度首页</a>
+                        <br/>
+                        <a href="www.sohu.com">点击访问搜狐首页</a>
+                    </RichText>
                 </VBox>
                 
                 <!-- CircleProgress -->

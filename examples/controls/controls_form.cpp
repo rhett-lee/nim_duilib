@@ -163,6 +163,18 @@ void ControlForm::OnInitWindow()
 			return true;
 		});
 	}
+
+	//RichText显示超级链接
+	ui::RichText* pRichText = dynamic_cast<ui::RichText*>(FindControl(L"rich_text_demo"));
+	if (pRichText != nullptr) {
+		pRichText->AttachLinkClick([this](const ui::EventArgs& args) {
+			const wchar_t* url = (const wchar_t*)args.wParam;
+			if (url != nullptr) {
+				::MessageBox(GetHWND(), url, L"RichText点击超链接", MB_OK);
+			}
+			return true;
+			});
+	}
 }
 
 void ControlForm::ShowColorPicker()

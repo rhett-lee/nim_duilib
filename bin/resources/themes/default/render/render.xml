@@ -24,10 +24,10 @@
                 <Button class="btn_global_blue_80x30" width="40" height="32" text="页面4" margin="8,0,0,0" tooltiptext="页面4">
                     <Event type="buttonup" receiver="main_view_tab" applyattribute="selected_id={3}" />
                 </Button>
-                <Button class="btn_global_blue_80x30" width="40" height="32" text="页面5" margin="8,0,0,0" tooltiptext="页面5" borderround="2,2">
+                <Button class="btn_global_blue_80x30" width="40" height="32" text="文字" margin="8,0,0,0" tooltiptext="文字绘制" borderround="2,2">
                     <Event type="buttonup" receiver="main_view_tab" applyattribute="selected_id={4}" />
                 </Button>
-                <Button class="btn_global_blue_80x30" width="40" height="32" text="页面6" margin="8,0,0,0" tooltiptext="页面5">
+                <Button class="btn_global_blue_80x30" width="40" height="32" text="页面6" margin="8,0,0,0" tooltiptext="页面6">
                     <Event type="buttonup" receiver="main_view_tab" applyattribute="selected_id={5}" />
                 </Button>
                 <Button class="btn_global_blue_80x30" width="32" height="32" text="Box" margin="8,0,0,0">

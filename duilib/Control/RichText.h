@@ -8,6 +8,8 @@
 
 namespace ui 
 {
+/** XML解析后的格式化文本片段
+*/
 class RichTextSlice
 {
 public:   
@@ -41,6 +43,27 @@ public:
     std::vector<RichTextSlice> m_childs;
 };
 
+/** 格式化文本，解析后的结构
+*/
+class RichTextDataEx:
+    public RichTextData
+{
+public:
+    /** 超链接的URL
+    */
+    UiString m_linkUrl;
+
+    /** 鼠标是否按下
+    */
+    bool m_bMouseDown = false;
+
+    /** 是否处于鼠标悬停状态
+    */
+    bool m_bMouseHover = false;
+};
+
+/** 格式化文本（类HTML格式）
+*/
 class UILIB_API RichText : public Control
 {
 public:
@@ -116,10 +139,15 @@ public:
     */
     std::wstring ToString() const;
 
+    /** 监听超级链接被点击事件
+     * @param[in] callback 超级链接被点击后的回调函数
+     */
+    void AttachLinkClick(const EventCallback& callback) { AttachEvent(kEventLinkClick, callback); }
+
 private:
     /** 解析格式化文本, 生成解析后的数据结构
     */
-    bool ParseText(std::vector<RichTextData>& outTextData) const;
+    bool ParseText(std::vector<RichTextDataEx>& outTextData) const;
 
     /** 文本片段解析为绘制结构
     * @param [in] textSlice 文本片段
@@ -127,12 +155,21 @@ private:
     * @param [out] textData 解析后的文本结构
     */
     bool ParseTextSlice(const RichTextSlice& textSlice, 
-                        const RichTextData& parentTextData,
-                        std::vector<RichTextData>& textData) const;
+                        const RichTextDataEx& parentTextData,
+                        std::vector<RichTextDataEx>& textData) const;
 
     /** 输出带格式化文本
     */
     std::wstring ToString(const RichTextSlice& textSlice, const std::wstring& indent) const;
+
+private:
+    //鼠标消息（返回true：表示消息已处理；返回false：则表示消息未处理，需转发给父控件）
+    virtual bool ButtonDown(const EventArgs& msg) override;
+    virtual bool ButtonUp(const EventArgs& msg) override;
+    virtual bool MouseMove(const EventArgs& msg) override;
+    virtual bool MouseHover(const EventArgs& msg) override;
+    virtual bool MouseLeave(const EventArgs& msg) override;
+    virtual bool OnSetCursor(const EventArgs& msg) override;
 
 private:
     /** 文本绘制的内边距(分别对应四个边的内边距大小)
@@ -161,7 +198,7 @@ private:
 
     /** 绘制的文本内容（解析后）
     */
-    std::vector<RichTextData> m_textData;
+    std::vector<RichTextDataEx> m_textData;
 };
 
 } // namespace ui

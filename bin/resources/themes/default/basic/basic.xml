@@ -1,55 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Window size="75%,90%" mininfo="80,50" caption="0,0,0,36" shadowattached="true" layered_window="true" alpha="255" sizebox="4,4,4,4">
-  <VBox bkcolor="bk_wnd_darkcolor" visible="true">
-    
-    <!-- 标题栏区域 -->
-    <HBox name="window_caption_bar" width="stretch" height="36" bkcolor="bk_wnd_lightcolor">
-      <Control />
-      <Button class="btn_wnd_fullscreen_11" height="32" width="40" name="fullscreenbtn" margin="0,2,0,2" tooltip_text="全屏，按ESC键可退出全屏"/>
-      <Button class="btn_wnd_min_11" height="32" width="40" name="minbtn" margin="0,2,0,2" tooltip_text="最小化"/>
-        <Box height="stretch" width="40" margin="0,2,0,2">
-            <Button class="btn_wnd_max_11" height="32" width="stretch" name="maxbtn" tooltip_text="最大化"/>
-            <Button class="btn_wnd_restore_11" height="32" width="stretch" name="restorebtn" visible="false" tooltip_text="还原"/>
+    <VBox bkcolor="bk_wnd_darkcolor" visible="true">    
+        <!-- 标题栏区域 -->
+        <HBox name="window_caption_bar" width="stretch" height="36" bkcolor="bk_wnd_lightcolor">
+            <Control />
+            <Button class="btn_wnd_fullscreen_11" height="32" width="40" name="fullscreenbtn" margin="0,2,0,2" tooltip_text="全屏，按ESC键可退出全屏"/>
+            <Button class="btn_wnd_min_11" height="32" width="40" name="minbtn" margin="0,2,0,2" tooltip_text="最小化"/>
+            <Box height="stretch" width="40" margin="0,2,0,2">
+                <Button class="btn_wnd_max_11" height="32" width="stretch" name="maxbtn" tooltip_text="最大化"/>
+                <Button class="btn_wnd_restore_11" height="32" width="stretch" name="restorebtn" visible="false" tooltip_text="还原"/>
+            </Box>
+            <Button class="btn_wnd_close_11" height="stretch" width="40" name="closebtn" margin="0,0,0,2" tooltip_text="关闭"/>
+        </HBox>
+        
+        <!-- 工作区域，除了标题栏外的内容都放在这个大的Box区域 -->
+        <Box>
+            <VBox margin="0,0,0,0" valign="center" halign="center">
+                <Label name="tooltip" text="一个简单窗口，带有标题栏和常规按钮。" height="100%" width="100%" text_align="hcenter,vcenter"/>        
+            </VBox>
         </Box>
-        <Button class="btn_wnd_close_11" height="stretch" width="40" name="closebtn" margin="0,0,0,2" tooltip_text="关闭"/>
-    </HBox>
-    
-    <!-- 工作区域，除了标题栏外的内容都放在这个大的Box区域 -->
-    <Box>
-      <VBox margin="0,0,0,0" valign="center" halign="center">
-        <Label name="tooltip" text="一个简单窗口，带有标题栏和常规按钮。"/>
-        <RichText bkcolor="green" width="600" row_spacing_mul="1.5" width="50%" height="auto">
-            RichText文本<br/>内容1
-            <b>
-                粗体
-                <bgcolor color="#FFFFFF">
-                    <u>
-                        <a href="www.baidu.com">这里是超级链接：点击访问百度首页</a>
-                    </u>
-                </bgcolor>
-                <font color="#FF0000">红色加粗</font>
-            </b>
-            <font face="宋体" size="12">
-                宋体12号字演示1
-                <font face="楷体" size="18">
-                    楷体效果演示：18号字
-                </font>
-                宋体12号字演示2
-            </font>
-            <font face="宋体" size="8">
-                宋体8号字演示
-            </font>  
-            <i>斜体号字演示</i> 
-            <b>粗体号字演示</b> 
-            <s>删除字演示</s> 
-            <u>下划线字演示</u> 
-            <font face="微软雅黑" size="14">
-                微软雅黑14号字演示
-            </font>  
-            <bgcolor color="#802378">背景颜色演示</bgcolor>                
-            RichText文本内容2RichText文本内容3RichText文本内容4RichText文本内容5RichText文本内容6RichText文本内容7RichText文本内容8RichText文本内容9RichText文本内容10
-        </RichText>
-      </VBox>
-    </Box>
-  </VBox>
+    </VBox>
 </Window>
