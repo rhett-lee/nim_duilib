@@ -506,11 +506,11 @@ void ScrollBar::HandleEvent(const EventArgs& msg)
 	}
 	else if (msg.Type == kEventSetCursor) {
 		if (GetCursorType() == kCursorHand) {
-			::SetCursor(::LoadCursor(NULL, IDC_HAND));
+			SetCursor(kCursorHand);
 			return;
 		}
 		else if (GetCursorType() == kCursorArrow){
-			::SetCursor(::LoadCursor(NULL, IDC_ARROW));
+			SetCursor(kCursorArrow);
 			return;
 		}
 		else {

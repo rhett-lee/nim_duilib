@@ -628,7 +628,7 @@ bool RichText::OnSetCursor(const EventArgs& msg)
         for (const UiRect& textRect : textData.m_textRects) {
             if (textRect.ContainsPt(msg.ptMouse)) {
                 //超级链接，光标变成手型
-                ::SetCursor(::LoadCursor(NULL, IDC_HAND));
+                SetCursor(kCursorHand);
                 return true;
             }
         }

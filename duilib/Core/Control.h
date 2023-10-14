@@ -1112,6 +1112,11 @@ public:
 	*/
 	UiSize GetStateImageSize(StateImageType imageType, ControlStateType stateType);
 
+	/** 设置光标
+	* @param [in] cursorType 光标类型
+	*/
+	void SetCursor(CursorType cursorType);
+
 private:
 
 	/** 获取颜色名称对应的颜色值

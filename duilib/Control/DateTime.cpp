@@ -364,7 +364,7 @@ void DateTime::HandleEvent(const EventArgs& msg)
         return;
     }
     if ((msg.Type == kEventSetCursor)) {
-        ::SetCursor(::LoadCursor(NULL, IDC_IBEAM));
+        SetCursor(kCursorHandIbeam);
         return;
     }
     if (msg.Type == kEventWindowSize) {

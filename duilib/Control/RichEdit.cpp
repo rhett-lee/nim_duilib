@@ -1755,14 +1755,14 @@ bool RichEdit::OnSetCursor(const EventArgs& msg)
 
 	std::wstring strLink;
 	if (HittestCustomLink(UiPoint(msg.ptMouse), strLink)) {
-		::SetCursor(::LoadCursor(NULL, IDC_HAND));
+		SetCursor(kCursorHand);
 		return true;
 	}
 	if (m_pRichHost && m_pRichHost->SetCursor(nullptr, &msg.ptMouse)) {
 		return true;
 	}
 	else {
-		::SetCursor(::LoadCursor(NULL, IsReadOnly() ? IDC_ARROW : IDC_IBEAM));
+		SetCursor(IsReadOnly() ? kCursorArrow : kCursorHandIbeam);
 		return true;
 	}
 }

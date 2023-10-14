@@ -1356,28 +1356,51 @@ bool Control::OnSetCursor(const EventArgs& /*msg*/)
 {
 	if (m_cursorType == kCursorHand) {
 		if (IsEnabled()) {
-			::SetCursor(::LoadCursor(NULL, IDC_HAND));
+			SetCursor(kCursorHand);
 		}
 		else {
-			::SetCursor(::LoadCursor(NULL, IDC_ARROW));
+			SetCursor(kCursorArrow);
 		}
 	}
 	else if (m_cursorType == kCursorArrow) {
-		::SetCursor(::LoadCursor(NULL, IDC_ARROW));
+		SetCursor(kCursorArrow);
 	}
 	else if (m_cursorType == kCursorHandIbeam) {
-		::SetCursor(::LoadCursor(NULL, IDC_IBEAM));
+		SetCursor(kCursorHandIbeam);
 	}
 	else if (m_cursorType == kCursorSizeWE) {
-		::SetCursor(::LoadCursor(NULL, IDC_SIZEWE));
+		SetCursor(kCursorSizeWE);
 	}
 	else if (m_cursorType == kCursorSizeNS) {
-		::SetCursor(::LoadCursor(NULL, IDC_SIZENS));
+		SetCursor(kCursorSizeNS);
 	}
 	else {
 		return false;
 	}
 	return true;
+}
+
+void Control::SetCursor(CursorType cursorType)
+{
+	switch (cursorType) {
+	case kCursorArrow:
+		::SetCursor(::LoadCursor(NULL, IDC_ARROW));
+		break;
+	case kCursorHand:
+		::SetCursor(::LoadCursor(NULL, IDC_HAND));
+		break;
+	case kCursorHandIbeam:
+		::SetCursor(::LoadCursor(NULL, IDC_IBEAM));
+		break;
+	case kCursorSizeWE:
+		::SetCursor(::LoadCursor(NULL, IDC_SIZEWE));
+		break;
+	case kCursorSizeNS:
+		::SetCursor(::LoadCursor(NULL, IDC_SIZENS));
+		break;
+	default:
+		break;
+	}
 }
 
 bool Control::OnSetFocus(const EventArgs& /*msg*/)
