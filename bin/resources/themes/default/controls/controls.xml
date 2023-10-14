@@ -76,7 +76,7 @@
                 </VBox>
                 
                 <!-- Progress/Slider/DateTime -->
-                <VBox height="200">
+                <VBox height="220">
                     <HBox margin="0,10" height="32">
                         <Control width="auto" height="auto" bkimage="../public/animation/ani_loading.gif" valign="center"/>
                         <Progress class="progress_blue" name="progress" value="0" margin="10" tooltiptext="ui::Progress"/>
@@ -94,11 +94,35 @@
                         <Label text="自定义日期格式" margin="0,0,0,8" valign="center" />
                         <DateTime width="140" height="24" format="%Y/%m/%d %H:%M" />
                     </HBox>
-                    <RichText name="rich_text_demo" row_spacing_mul="1.2" height="auto">
-                        <a href="www.baidu.com">点击访问百度首页</a>
-                        <br/>
-                        <a href="www.sohu.com">点击访问搜狐首页</a>
-                    </RichText>
+                    <HBox childmargin="10">
+                        <HBox childmargin="10">
+                            <Label text="RichText:" valign="center" />
+                            <RichText name="rich_text_demo" row_spacing_mul="1.2" height="auto">
+                                <a href="www.baidu.com">点击访问百度首页</a>
+                                <br/>
+                                <a href="www.sohu.com">点击访问搜狐首页</a>
+                            </RichText>
+                        </HBox>
+                        <HBox childmargin="10">
+                            <Label text="Line:" valign="center" />
+                            <VBox>
+                                <Line vertical="false" line_color="blue" dash_style="solid" line_width="2"/>
+                                <Line vertical="false" line_color="red" dash_style="dash" line_width="2"/>
+                                <Line vertical="false" line_color="green" dash_style="dot" line_width="2"/>
+                                <Line vertical="false" line_color="black" dash_style="dash_dot" line_width="2"/>
+                                <Line vertical="false" line_color="orange" dash_style="dash_dot_dot" line_width="2"/>
+                            </VBox>
+                            <VBox>
+                                <HBox margin="0,4,0,4">
+                                    <Line vertical="true" line_color="blue" dash_style="solid" line_width="1"/>
+                                    <Line vertical="true" line_color="red" dash_style="dash" line_width="1"/>
+                                    <Line vertical="true" line_color="green" dash_style="dot" line_width="1"/>
+                                    <Line vertical="true" line_color="black" dash_style="dash_dot" line_width="1"/>
+                                    <Line vertical="true" line_color="orange" dash_style="dash_dot_dot" line_width="1"/>
+                                </HBox>
+                            </VBox>
+                        </HBox>
+                    </HBox>
                 </VBox>
                 
                 <!-- CircleProgress -->

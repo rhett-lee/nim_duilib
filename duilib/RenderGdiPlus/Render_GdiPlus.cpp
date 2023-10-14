@@ -802,6 +802,17 @@ void Render_GdiPlus::DrawLine(const UiPoint& pt1, const UiPoint& pt2, UiColor pe
 	graphics.DrawLine(&pen, Gdiplus::Point(pt1.x, pt1.y), Gdiplus::Point(pt2.x, pt2.y));
 }
 
+void Render_GdiPlus::DrawLine(const UiPoint& pt1, const UiPoint& pt2, IPen* pen)
+{
+	ASSERT(pen != nullptr);
+	if (pen == nullptr) {
+		return;
+	}
+	ASSERT((GetWidth() > 0) && (GetHeight() > 0));
+	Gdiplus::Graphics graphics(m_hDC);
+	graphics.DrawLine(((Pen_GdiPlus*)pen)->GetPen(), Gdiplus::Point(pt1.x, pt1.y), Gdiplus::Point(pt2.x, pt2.y));
+}
+
 void Render_GdiPlus::DrawRect(const UiRect& rc, UiColor penColor, int nWidth)
 {
 	ASSERT((GetWidth() > 0) && (GetHeight() > 0));

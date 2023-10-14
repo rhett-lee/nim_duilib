@@ -867,6 +867,30 @@ void Render_Skia::DrawLine(const UiPoint& pt1, const UiPoint& pt2, UiColor penCo
 	}
 }
 
+void Render_Skia::DrawLine(const UiPoint& pt1, const UiPoint& pt2, IPen* pen)
+{
+	ASSERT(pen != nullptr);
+	if (pen == nullptr) {
+		return;
+	}
+	ASSERT((GetWidth() > 0) && (GetHeight() > 0));
+	SkPaint skPaint = *m_pSkPaint;
+	SetPaintByPen(skPaint, pen);
+
+	SkPoint skPt1;
+	skPt1.iset(pt1.x, pt1.y);
+	skPt1.offset(m_pSkPointOrg->fX, m_pSkPointOrg->fY);
+
+	SkPoint skPt2;
+	skPt2.iset(pt2.x, pt2.y);
+	skPt2.offset(m_pSkPointOrg->fX, m_pSkPointOrg->fY);
+
+	ASSERT(m_pSkCanvas != nullptr);
+	if (m_pSkCanvas != nullptr) {
+		m_pSkCanvas->drawLine(skPt1, skPt2, skPaint);
+	}
+}
+
 void Render_Skia::DrawRect(const UiRect& rc, UiColor penColor, int nWidth)
 {
 	ASSERT((GetWidth() > 0) && (GetHeight() > 0));
@@ -1025,6 +1049,8 @@ void Render_Skia::SetPaintByPen(SkPaint& skPaint, const IPen* pen)
 
 	sk_sp<SkPathEffect> skPathEffect;
 	IPen::DashStyle dashStyle = pen->GetDashStyle();
+	//Ïß¿íµÄ±¶Êý
+	int32_t nRatio = pen->GetWidth() / GlobalManager::Instance().Dpi().GetScaleInt(1);
 	switch (dashStyle) {
 	case IPen::kDashStyleSolid:
 	{
@@ -1034,25 +1060,32 @@ void Render_Skia::SetPaintByPen(SkPaint& skPaint, const IPen* pen)
 	}
 	case IPen::kDashStyleDash:
 	{
-		SkScalar intervals[] = { 5.0f,5.0f };
+		int32_t nValue = GlobalManager::Instance().Dpi().GetScaleInt(5) * nRatio;
+		SkScalar intervals[] = { nValue * 1.0f, nValue * 1.0f };
 		skPathEffect = SkDashPathEffect::Make(intervals, 2, 0.0f);
 		break;
 	}
 	case IPen::kDashStyleDot:
 	{
-		SkScalar intervals[] = { 1.0f,4.0f };
+		int32_t nValue1 = GlobalManager::Instance().Dpi().GetScaleInt(1) * nRatio;
+		int32_t nValue4 = GlobalManager::Instance().Dpi().GetScaleInt(4) * nRatio;
+		SkScalar intervals[] = { nValue1 * 1.0f, nValue4 * 1.0f };
 		skPathEffect = SkDashPathEffect::Make(intervals, 2, 0.0f);
 		break;
 	}
 	case IPen::kDashStyleDashDot:
 	{
-		SkScalar intervals[] = { 4.0f,1.0f,1.0f,1.0f };
+		int32_t nValue1 = GlobalManager::Instance().Dpi().GetScaleInt(1) * nRatio;
+		int32_t nValue4 = GlobalManager::Instance().Dpi().GetScaleInt(4) * nRatio;
+		SkScalar intervals[] = { nValue4 * 1.0f, nValue1 * 1.0f, nValue1 * 1.0f, nValue1 * 1.0f };
 		skPathEffect = SkDashPathEffect::Make(intervals, 4, 0.0f);
 		break;
 	}
 	case IPen::kDashStyleDashDotDot:
 	{
-		SkScalar intervals[] = { 4.0f,1.0f,1.0f,1.0f,1.0f,1.0f };
+		int32_t nValue1 = GlobalManager::Instance().Dpi().GetScaleInt(1) * nRatio;
+		int32_t nValue4 = GlobalManager::Instance().Dpi().GetScaleInt(4) * nRatio;
+		SkScalar intervals[] = { nValue4 * 1.0f, nValue1 * 1.0f, nValue1 * 1.0f, nValue1 * 1.0f, nValue1 * 1.0f, nValue1 * 1.0f };
 		skPathEffect = SkDashPathEffect::Make(intervals, 6, 0.0f);
 		break;
 	}

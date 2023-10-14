@@ -339,6 +339,9 @@
     <ClCompile Include="Control\ColorPicker.cpp">
       <Filter>Control</Filter>
     </ClCompile>
+    <ClCompile Include="Control\Line.cpp">
+      <Filter>Control</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -744,6 +747,9 @@
       <Filter>Control</Filter>
     </ClInclude>
     <ClInclude Include="Control\ColorPicker.h">
+      <Filter>Control</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\Line.h">
       <Filter>Control</Filter>
     </ClInclude>
   </ItemGroup>

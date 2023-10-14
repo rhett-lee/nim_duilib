@@ -588,6 +588,13 @@ public:
 	*/
 	virtual void DrawLine(const UiPoint& pt1, const UiPoint& pt2, UiColor penColor, int nWidth) = 0;
 
+	/** 绘制直线，支持各种线形
+	* @param [in] pt1 起始点坐标
+	* @param [in] pt2 终止点坐标
+	* @param [in] pen 画笔的接口
+	*/
+	virtual void DrawLine(const UiPoint& pt1, const UiPoint& pt2, IPen* pen) = 0;
+
 	/** 绘制矩形
 	* @param [in] rc 矩形区域
 	* @param [in] penColor 画笔的颜色值

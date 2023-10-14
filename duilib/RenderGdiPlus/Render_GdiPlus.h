@@ -65,6 +65,7 @@ public:
 						       uint8_t uFade = 255, IMatrix* pMatrix = nullptr);
 
 	virtual void DrawLine(const UiPoint& pt1, const UiPoint& pt2, UiColor penColor, int nWidth) override;
+	virtual void DrawLine(const UiPoint& pt1, const UiPoint& pt2, IPen* pen) override;
 
 	virtual void DrawRect(const UiRect& rc, UiColor penColor, int nWidth) override;
 	virtual void FillRect(const UiRect& rc, UiColor dwColor, uint8_t uFade = 255) override;

@@ -151,6 +151,7 @@ void RichText::PaintText(IRender* pRender)
         return;
     }
     UiRect rc = GetRect();
+    rc.Deflate(GetControlPadding());
     rc.Deflate(GetTextPadding());
 
     if (m_textData.empty()) {
