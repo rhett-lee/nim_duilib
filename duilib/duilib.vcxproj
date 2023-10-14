@@ -353,6 +353,7 @@
     <ClCompile Include="Control\ComboButton.cpp" />
     <ClCompile Include="Control\DateTime.cpp" />
     <ClCompile Include="Control\FilterCombo.cpp" />
+    <ClCompile Include="Control\IPAddress.cpp" />
     <ClCompile Include="Control\Line.cpp" />
     <ClCompile Include="Control\Menu.cpp" />
     <ClCompile Include="Control\RichEditHost.cpp" />
@@ -456,6 +457,7 @@
     <ClInclude Include="Control\DateTime.h" />
     <ClInclude Include="Control\FilterCombo.h" />
     <ClInclude Include="Control\GroupBox.h" />
+    <ClInclude Include="Control\IPAddress.h" />
     <ClInclude Include="Control\Line.h" />
     <ClInclude Include="Control\Menu.h" />
     <ClInclude Include="Control\observer_impl_base.hpp" />

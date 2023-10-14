@@ -86,14 +86,25 @@
                         <Slider class="slider_green" value="70" margin="10" tooltiptext="ui::Slider"/>
                     </HBox>
                     <!-- DateTime -->
-                    <HBox childmargin="10">
-                        <Label text="默认的日期格式" margin="0,0,0,8" valign="center" hottextcolor="red" pushedtextcolor="blue"/>
-                        <DateTime width="140" height="24" />
+                    <HBox>
+                        <VBox>
+                            <HBox childmargin="10">
+                                <Label text="默认的日期格式" height="24" text_align="vcenter" hottextcolor="red" pushedtextcolor="blue"/>
+                                <DateTime width="100%" height="24" />
+                            </HBox>
+                            <HBox childmargin="10">
+                                <Label text="自定义日期格式" height="24" text_align="vcenter" />
+                                <DateTime width="100%" height="24" format="%Y/%m/%d %H:%M" />
+                            </HBox>
+                        </VBox>
+                        <VBox margin="10,0,0,0">
+                            <HBox childmargin="10">
+                                <Label text="IP地址" height="28" text_align="vcenter"/>
+                                <IPAddress class="ip_address" ip="192.168.0.1"/>
+                            </HBox>
+                        </VBox> 
                     </HBox>
-                    <HBox childmargin="10">
-                        <Label text="自定义日期格式" margin="0,0,0,8" valign="center" />
-                        <DateTime width="140" height="24" format="%Y/%m/%d %H:%M" />
-                    </HBox>
+                    <!-- RichText / Line -->
                     <HBox childmargin="10">
                         <HBox childmargin="10">
                             <Label text="RichText:" valign="center" />

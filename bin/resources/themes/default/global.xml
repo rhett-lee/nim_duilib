@@ -211,6 +211,10 @@
     <Class name="prompt" prompt_mode="true" prompt_color="light_gray"/>
     <Class name="edit" hot_image="file='../public/edit/edit1.png' corner='10,10,10,10'" focused_image="file='../public/edit/edit2.png' corner='10,10,10,10'"/>
     <Class name="input" normal_image="file='../public/edit/edit0.png' corner='10,10,10,10'" hot_image="file='../public/edit/edit0.png' corner='10,10,10,10'" focused_image="file='../public/edit/edit0.png' corner='10,10,10,10'" disabled_image="file='../public/edit/edit0.png' corner='10,10,10,10' fade='80'"/>
+    
+    <!--IP地址控件控件通用样式-->
+    <Class name="ip_address" width="140" height="28" bkcolor="white" border_size="1" border_color="light_gray"/>
+        
     <!--气泡框通用样式-->
     <TextColor name="popover_color_0" value="#FFECF1F8"/>
     <TextColor name="popover_color_1" value="#FFF2F7FF"/>
