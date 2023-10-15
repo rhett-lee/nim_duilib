@@ -95,6 +95,19 @@
                     </HBox>
                 </GroupVBox>
                 
+                <GroupVBox margin="6,6,6,6" text="常用功能" height="auto" corner_size="4,4">
+                    <HBox height="36" margin="8,16,8,0">
+                        <Label text="Spin功能:  " valign="center"/>
+                        <RichEdit class="simple simple_border rich_edit_spin" min_number="-64" max_number="64" limit_text="3" margin="4,6,4,4"/>
+                        <Label text="(数字范围: -64 - 64)" valign="center"/>
+                    </HBox>
+                    <HBox height="36" margin="8,0,8,8">
+                        <Label text="Spin功能:  " valign="center"/>
+                        <RichEdit class="simple simple_border rich_edit_spin" min_number="-64" max_number="64" limit_text="3" margin="4,6,4,4"/>
+                        <Label text="(数字范围: -64 - 64)" valign="center"/>
+                    </HBox>
+                </GroupVBox>
+                
                 <GroupVBox margin="6,6,6,6" text="滚动条相关" height="auto" corner_size="4,4">
                     <HBox height="48" margin="8,16,8,0">
                         <Label text="横向滚动条:  " valign="center"/>

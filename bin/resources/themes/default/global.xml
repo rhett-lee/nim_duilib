@@ -143,7 +143,7 @@
     <!--按钮：纯色按钮-->
     <Class name="btn_global_color_gray" font="system_14" normal_text_color="black" disabled_text_color="gray" text_align="hcenter,vcenter" normal_color="#FFD7DCE0" hot_color="#FFFAFCFF" pushed_color="#FFB0B4B8"/>
     
-        <!--窗口右上角按钮 灰色版 -->
+    <!--窗口右上角按钮 灰色版 -->
     <Class name="btn_wnd_min_11" normal_image="file='../public/button/window-minimize.svg' width='24' height='24' valign='center' halign='center'" hot_color="AliceBlue" pushed_color="Lavender"/>
     <Class name="btn_wnd_close_11" normal_image="file='../public/button/window-close.svg' width='24' height='24' valign='center' halign='center'" hot_color="red" pushed_color="OrangeRed"/>
     <Class name="btn_wnd_max_11" normal_image="file='../public/button/window-maximize.svg' width='24' height='24' valign='center' halign='center'" hot_color="AliceBlue" pushed_color="Lavender"/>
@@ -204,13 +204,20 @@
     <Class name="splitline_hor_level1" bkcolor="splitline_level1" height="1"/>
     <Class name="splitline_hor_level2" bkcolor="splitline_level2" height="1"/>
     <Class name="splitline_ver_level1" bkcolor="splitline_level1" width="1"/>
-    <!--富文本控件通用样式-->
+    
+    <!--RichEdit富文本控件通用样式-->
     <Class name="simple" multi_line="false" auto_hscroll="true" want_return_msg="true" want_tab="false" rich_text="false" normal_text_color="darkcolor" disabled_text_color="disabled_font_color"/>
-    <Class name="simple_border" border_size="1" border_color="light_gray" hot_border_color="blue" focus_border_color="CornflowerBlue"/>
-    <Class name="simple_border_bottom" border_size="0,0,0,1" border_color="light_gray" hot_border_color="blue" focus_border_color="CornflowerBlue"/>
+    <Class name="simple_border" padding="1,1,1,1" border_size="1" border_color="light_gray" hot_border_color="blue" focus_border_color="CornflowerBlue"/>
+    <Class name="simple_border_bottom" padding="0,0,0,1" border_size="0,0,0,1" border_color="light_gray" hot_border_color="blue" focus_border_color="CornflowerBlue"/>
     <Class name="prompt" prompt_mode="true" prompt_color="light_gray"/>
     <Class name="edit" hot_image="file='../public/edit/edit1.png' corner='10,10,10,10'" focused_image="file='../public/edit/edit2.png' corner='10,10,10,10'"/>
     <Class name="input" normal_image="file='../public/edit/edit0.png' corner='10,10,10,10'" hot_image="file='../public/edit/edit0.png' corner='10,10,10,10'" focused_image="file='../public/edit/edit0.png' corner='10,10,10,10'" disabled_image="file='../public/edit/edit0.png' corner='10,10,10,10' fade='80'"/>
+    
+    <!--RichEdit上的Spin按钮样式-->
+    <Class name="rich_edit_spin" spin_class="rich_edit_spin_box,rich_edit_spin_btn_up,rich_edit_spin_btn_down" bkcolor="white" number_only="true" height="28" width="64" text_padding="0, 0, 18, 0" text_align="vcenter,hcenter"/>
+    <Class name="rich_edit_spin_box" width="18" halign="right"/>
+    <Class name="rich_edit_spin_btn_up" height="50%" width="100%" padding="1,0,0,0" border_size="1,0,0,0" border_color="light_gray" normal_image="file='../public/button/arrow-up.svg' width='10' height='10' valign='center' halign='center'" normal_color="bk_wnd_darkcolor" hot_color="#FFE5F3FF" pushed_color="#FFCCE8FF"/>
+    <Class name="rich_edit_spin_btn_down" height="50%" width="100%" padding="1,1,0,0" border_size="1,1,0,0" border_color="light_gray" normal_image="file='../public/button/arrow-down.svg' width='10' height='10' valign='center' halign='center'" normal_color="bk_wnd_darkcolor" hot_color="#FFE5F3FF" pushed_color="#FFCCE8FF"/>
     
     <!--IP地址控件控件通用样式-->
     <Class name="ip_address" width="140" height="28" bkcolor="white" border_size="1" border_color="light_gray"/>

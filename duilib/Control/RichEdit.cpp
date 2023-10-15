@@ -15,6 +15,9 @@
 #include "duilib/Animation/AnimationManager.h"
 #include "duilib/Animation/AnimationPlayer.h"
 #include "duilib/Control/Menu.h"
+#include "duilib/Box/VBox.h"
+#include "duilib/Control/Button.h"
+
 #include "base/win32/path_util.h"
 #include "base/thread/thread_manager.h"
 
@@ -173,7 +176,10 @@ RichEdit::RichEdit() :
 	m_bEnableWheelZoom(false),
 	m_bEnableDefaultContextMenu(false),
 	m_pControlDropTarget(nullptr),
-	m_bDisableTextChangeEvent(false)
+	m_bDisableTextChangeEvent(false),
+	m_maxNumber(0),
+	m_minNumber(0),
+	m_bSpinInited(false)
 {
 	//这个标记必须为false，否则绘制有问题
 	SetUseCache(false);
@@ -272,6 +278,12 @@ void RichEdit::SetAttribute(const std::wstring& strName, const std::wstring& str
 	}
 	else if ((strName == L"number_only") || (strName == L"number")) {
 		SetNumberOnly(strValue == L"true");
+	}
+	else if (strName == L"max_number") {
+		SetMaxNumber(_wtoi(strValue.c_str()));
+	}
+	else if (strName == L"min_number") {
+		SetMinNumber(_wtoi(strValue.c_str()));
 	}
 	else if (strName == L"text_align") {
 		if (strValue.find(L"left") != std::wstring::npos) {
@@ -415,6 +427,9 @@ void RichEdit::SetAttribute(const std::wstring& strName, const std::wstring& str
 	else if (strName == L"enable_drag_drop") {
 		//是否允许拖放操作
 		SetEnableDragDrop(strValue == L"true");
+	}
+	else if (strName == L"spin_class") {
+		SetSpinClass(strValue);
 	}
 	else {
 		Box::SetAttribute(strName, strValue);
@@ -602,6 +617,25 @@ void RichEdit::SetNumberOnly(bool bNumberOnly)
 	if (m_pRichHost != nullptr) {
 		m_pRichHost->SetNumberOnly(bNumberOnly);
 	}
+}
+
+void RichEdit::SetMaxNumber(int32_t maxNumber)
+{
+	m_maxNumber = maxNumber;
+}
+
+int32_t RichEdit::GetMaxNumber() const
+{
+	return m_maxNumber;
+}
+void RichEdit::SetMinNumber(int32_t minNumber)
+{
+	m_minNumber = minNumber;
+}
+
+int32_t RichEdit::GetMinNumber() const
+{
+	return m_minNumber;
 }
 
 bool RichEdit::GetWordWrap()
@@ -1166,9 +1200,7 @@ void RichEdit::OnTxNotify(DWORD iNotify, void *pv)
 		break;
 	case EN_CHANGE:
 		//文本内容变化，发送事件
-		if(!m_bDisableTextChangeEvent) {
-			SendEvent(kEventTextChange);
-		}		
+		OnTextChanged();			
 		break;
 	case EN_SELCHANGE:
 		//选择变化
@@ -1642,18 +1674,14 @@ void RichEdit::SetPos(UiRect rc)
         pHScrollBar->SetPos(rcScrollBarPos);
     }
 
-    for (auto it = m_items.begin(); it != m_items.end(); ++it) {
-        auto pControl = *it;
-        if ((pControl == nullptr) || !pControl->IsVisible()){
-            continue;
-        }
-        if (pControl->IsFloat()) {
-            Layout::SetFloatPos(pControl, GetPos());
-        }
-        else {
-            pControl->SetPos(rc); // 所有非float子控件放大到整个客户区
-        }
-    }
+	//排列子控件
+	ArrangeChild(m_items);
+}
+
+void RichEdit::ArrangeChild(const std::vector<Control*>& items) const
+{
+	//使用默认布局的排布方式
+	GetLayout()->ArrangeChild(items, GetPos());
 }
 
 UINT RichEdit::GetControlFlags() const
@@ -1811,7 +1839,19 @@ bool RichEdit::OnChar(const EventArgs& msg)
 	//Number
 	if (IsNumberOnly()) {
 		if (msg.wParam < '0' || msg.wParam > '9') {
-			return true;
+			if (msg.wParam == L'-') {
+				if (GetTextLength() > 0) {
+					//不是第一个字符，禁止输入负号
+					return true;
+				}
+				else if (GetMinNumber() >= 0) {
+					//最小数字是0或者正数，禁止输入符号
+					return true;
+				}
+			}
+			else {
+				return true;
+			}
 		}
 	}
 
@@ -1872,6 +1912,12 @@ bool RichEdit::IsPasteLimited() const
 			for (size_t index = 0; index < count; ++index) {
 				if (strClipText[index] == L'\0') {
 					break;
+				}
+				if (strClipText[index] == L'-') {
+					if ((index == 0) && (strClipText.size() > 1)) {
+						//允许第一个字符是负号
+						continue;
+					}
 				}
 				if ((strClipText[index] > L'9') || (strClipText[index] < L'0')) {
 					//有不是数字的字符，禁止粘贴
@@ -2803,6 +2849,169 @@ void RichEdit::UnregisterDragDrop()
 			pWindow->UnregisterDragDrop(m_pControlDropTarget);
 		}
 	}
+}
+
+void RichEdit::OnTextChanged()
+{
+	if (IsNumberOnly() && GetMinNumber() != GetMaxNumber()) {
+		//数字模式，检查文本对应的数字是否在范围内
+		std::wstring text = GetText();
+		if (!text.empty()) {
+			int64_t n = wcstoull(text.c_str(), nullptr, 10);
+			if (n < GetMinNumber()) {
+				//超过最小数字，进行修正
+				int32_t newValue = GetMinNumber();
+				SetTextNoEvent(StringHelper::Printf(L"%d", newValue));
+				if (!m_bDisableTextChangeEvent) {
+					SendEvent(kEventTextChange);
+				}
+				return;
+			}
+			else if (n > GetMaxNumber()) {
+				//超过最大数字，进行修正
+				int32_t newValue = GetMaxNumber();
+				SetTextNoEvent(StringHelper::Printf(L"%d", newValue));
+				if (!m_bDisableTextChangeEvent) {
+					SendEvent(kEventTextChange);
+				}
+				return;
+			}
+		}
+	}
+	if (!m_bDisableTextChangeEvent) {
+		SendEvent(kEventTextChange);
+	}
+}
+
+void RichEdit::SetSpinClass(const std::wstring& spinClass)
+{
+	std::wstring spinBoxClass;
+	std::wstring spinBtnUpClass;
+	std::wstring spinBtnDownClass;
+	std::list<std::wstring> classNames = StringHelper::Split(spinClass, L",");
+	if (classNames.size() == 3) {
+		auto iter = classNames.begin();
+		spinBoxClass = *iter++;
+		spinBtnUpClass = *iter++;
+		spinBtnDownClass = *iter++;
+	}
+	if (!spinBoxClass.empty() && !spinBtnUpClass.empty() && !spinBtnDownClass.empty()) {
+		ASSERT(!m_bSpinInited);
+		if (m_bSpinInited) {
+			return;
+		}
+		m_bSpinInited = true;
+		Box* pBox = new VBox;
+		pBox->SetClass(spinBoxClass);
+		AddItem(pBox);
+
+		Button* pUpButton = new Button;
+		pUpButton->SetClass(spinBtnUpClass);
+		pBox->AddItem(pUpButton);
+
+		Button* pDownButton = new Button;
+		pDownButton->SetClass(spinBtnDownClass);
+		pBox->AddItem(pDownButton);
+
+		//挂载事件处理
+		pUpButton->AttachClick([this](const EventArgs& /*args*/){
+			AdjustTextNumber(1);
+			return true;
+			});
+
+		pUpButton->AttachButtonDown([this](const EventArgs& /*args*/) {
+			StartAutoAdjustTextNumberTimer(1);
+			return true;
+			});
+		pUpButton->AttachButtonUp([this](const EventArgs& /*args*/) {
+			StopAutoAdjustTextNumber();
+			return true;
+			});
+		pUpButton->AttachMouseLeave([this](const EventArgs& /*args*/) {
+			StopAutoAdjustTextNumber();
+			return true;
+			});
+
+		pDownButton->AttachClick([this](const EventArgs& /*args*/) {
+			StopAutoAdjustTextNumber();
+			AdjustTextNumber(-1);
+			return true;
+			});
+		pDownButton->AttachButtonDown([this](const EventArgs& /*args*/) {
+			StartAutoAdjustTextNumberTimer(-1);
+			return true;
+			});
+		pDownButton->AttachButtonUp([this](const EventArgs& /*args*/) {
+			StopAutoAdjustTextNumber();
+			return true;
+			});
+		pDownButton->AttachMouseLeave([this](const EventArgs& /*args*/) {
+			StopAutoAdjustTextNumber();
+			return true;
+			});
+	}
+}
+
+int64_t RichEdit::GetTextNumber() const
+{
+	std::wstring text = GetText();
+	if (text.empty()) {
+		return 0;
+	}
+	int64_t n = wcstoull(text.c_str(), nullptr, 10);
+	return n;
+}
+
+void RichEdit::SetTextNumber(int64_t nValue)
+{
+	SetText(StringHelper::Printf(L"%I64d", nValue));
+}
+
+void RichEdit::AdjustTextNumber(int32_t nDelta)
+{
+	ASSERT(IsNumberOnly());
+	if (IsNumberOnly()) {
+		const int64_t nOldValue = GetTextNumber();
+		int64_t nNewValue = nOldValue + nDelta;
+		if (GetMinNumber() != GetMaxNumber()) {
+			if (nNewValue > GetMaxNumber()) {
+				//超过最大数字，进行修正
+				nNewValue = GetMaxNumber();
+			}
+			else if (nNewValue < GetMinNumber()) {
+				//小于最小数字，进行修正
+				nNewValue = GetMinNumber();
+			}
+		}
+		if (nNewValue != nOldValue) {
+			SetTextNumber(nNewValue);
+		}
+	}
+}
+
+void RichEdit::StartAutoAdjustTextNumberTimer(int32_t nDelta)
+{
+	if (nDelta != 0) {
+		//启动定时器
+		m_flagAdjustTextNumber.Cancel();
+		std::function<void()> closure = nbase::Bind(&RichEdit::StartAutoAdjustTextNumber, this, nDelta);
+		GlobalManager::Instance().Timer().AddCancelableTimer(m_flagAdjustTextNumber.GetWeakFlag(), closure, 1000, 1);
+	}
+}
+
+void RichEdit::StartAutoAdjustTextNumber(int32_t nDelta)
+{
+	if (nDelta != 0) {
+		//启动定时器
+		m_flagAdjustTextNumber.Cancel();
+		std::function<void()> closure = nbase::Bind(&RichEdit::AdjustTextNumber, this, nDelta);
+		GlobalManager::Instance().Timer().AddCancelableTimer(m_flagAdjustTextNumber.GetWeakFlag(), closure, 120, TimerManager::REPEAT_FOREVER);
+	}
+}
+
+void RichEdit::StopAutoAdjustTextNumber()
+{
+	m_flagAdjustTextNumber.Cancel();
 }
 
 } // namespace ui

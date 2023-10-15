@@ -102,6 +102,10 @@
                                 <Label text="IP地址" height="28" text_align="vcenter"/>
                                 <IPAddress class="ip_address" ip="192.168.0.1"/>
                             </HBox>
+                            <HBox childmargin="10">
+                                <Label text="RichEditSpin" height="28" text_align="vcenter"/>
+                                <RichEdit class="simple simple_border rich_edit_spin" min_number="-64" max_number="64" limit_text="3" />
+                            </HBox>
                         </VBox> 
                     </HBox>
                     <!-- RichText / Line -->

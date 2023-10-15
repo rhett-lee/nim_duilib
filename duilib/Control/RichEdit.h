@@ -112,6 +112,22 @@ public:
 	*/
 	void SetNumberOnly(bool bNumberOnly);
 
+	/** 设置允许的最大数字(仅当IsNumberOnly()为true的时候有效)
+	*/
+	void SetMaxNumber(int32_t maxNumber);
+
+	/** 获取允许的最大数字
+	*/
+	int32_t GetMaxNumber() const;
+
+	/** 设置允许的最小数字(仅当IsNumberOnly()为true的时候有效)
+	*/
+	void SetMinNumber(int32_t minNumber);
+
+	/** 获取允许的最小数字
+	*/
+	int32_t GetMinNumber() const;
+
 	/** 获取超出矩形区域的文本显示方式
 	 * @return 返回 true 时并且在多行模式下内容被换行显示，false 则表示截断显示
 	 */
@@ -899,6 +915,12 @@ protected:
 	virtual void Paint(IRender* pRender, const UiRect& rcPaint) override;
 	virtual void PaintChild(IRender* pRender, const UiRect& rcPaint) override;
 
+	/** 调整内部所有子控件的位置信息
+	 * @param[in] items 控件列表
+	 */
+	virtual void ArrangeChild(const std::vector<Control*>& items) const;
+
+private:
 	/** 显示RichEdit上的菜单
 	* @param [in] point 客户区的坐标
 	*/
@@ -920,6 +942,39 @@ protected:
 	* @return 如果返回true, 表示不可用进行粘贴操作
 	*/
 	bool IsPasteLimited() const;
+
+private:
+	/** 触发文本变化事件
+	*/
+	void OnTextChanged();
+
+	/** 设置Spin功能的Class名称
+	*/
+	void SetSpinClass(const std::wstring& spinClass);
+
+	/** 获取文本内容，并转换为数字
+	*/
+	int64_t GetTextNumber() const;
+
+	/** 将数字转换为文本，设置文本内容
+	*/
+	void SetTextNumber(int64_t nValue);
+
+	/** 调整文本数字值
+	*/
+	void AdjustTextNumber(int32_t nDelta);
+
+	/** 开始启动调整文本数字值的定时器
+	*/
+	void StartAutoAdjustTextNumberTimer(int32_t nDelta);
+
+	/** 开始自动调整文本数字值
+	*/
+	void StartAutoAdjustTextNumber(int32_t nDelta);
+
+	/** 结束自动调整文本数字值
+	*/
+	void StopAutoAdjustTextNumber();
 
 private:
 	//判断是否是字节： 可打印字符（0x20-0x7e）
@@ -958,16 +1013,6 @@ protected:
 	bool m_bSelAllOnFocus;		//获取焦点的时候，全选文本（针对 m_bEnabled && !IsReadOnly()）
 
 	bool m_bIsComposition;   //输入法合成窗口是否可见
-	bool m_bNoCaretReadonly; //只读模式下，不显示光标
-	bool m_bIsCaretVisiable; //光标是否可见
-	int	 m_iCaretPosX;		 //光标X坐标
-	int  m_iCaretPosY;		 //光标Y坐标
-	int  m_iCaretWidth;		 //光标宽度
-	int  m_iCaretHeight;	 //光标高度
-	UiString m_sCaretColor;  //光标颜色
-	
-	nbase::WeakCallbackFlag m_drawCaretFlag;	 //绘制光标的定时器生命周期
-	std::weak_ptr<nbase::WeakFlag> m_windowFlag; //记录所属窗体的flag
 	
 	/** 大小被改变后的自定义回调函数
 	*/
@@ -981,6 +1026,17 @@ protected:
 	};
 	std::map<UINT, nbase::WeakCallbackFlag> m_timeFlagMap;
 	std::vector<LinkInfo> m_linkInfo;
+
+private:
+	bool m_bNoCaretReadonly;	 //只读模式下，不显示光标
+	bool m_bIsCaretVisiable;	 //光标是否可见
+	int32_t	 m_iCaretPosX;		 //光标X坐标
+	int32_t  m_iCaretPosY;		 //光标Y坐标
+	int32_t  m_iCaretWidth;		 //光标宽度
+	int32_t  m_iCaretHeight;	 //光标高度
+	UiString m_sCaretColor;		 //光标颜色
+
+	nbase::WeakCallbackFlag m_drawCaretFlag; //绘制光标的定时器生命周期
 
 private:
 	UiString m_sFontId;				 //字体ID
@@ -1024,6 +1080,22 @@ private:
 	/** 是否禁止触发文本变化事件
 	*/
 	bool m_bDisableTextChangeEvent;
+
+	/** 设置允许的最大数字(仅当IsNumberOnly()为true的时候有效)
+	*/
+	int32_t m_maxNumber;
+
+	/** 设置允许的最小数字(仅当IsNumberOnly()为true的时候有效)
+	*/
+	int32_t m_minNumber;
+
+	/** Spin功能是否已经初始化
+	*/
+	bool m_bSpinInited;
+
+	/** 自动调整文本数字值的定时器生命周期管理
+	*/
+	nbase::WeakCallbackFlag m_flagAdjustTextNumber;
 };
 
 } // namespace ui
