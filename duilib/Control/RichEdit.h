@@ -977,6 +977,11 @@ private:
 	void StopAutoAdjustTextNumber();
 
 private:
+	/** 设置清除按钮功能的Class名称
+	*/
+	void SetClearBtnClass(const std::wstring& btnClass);
+
+private:
 	//判断是否是字节： 可打印字符（0x20-0x7e）
 	static bool IsAsciiChar(const wchar_t ch);
 
@@ -1096,6 +1101,10 @@ private:
 	/** 自动调整文本数字值的定时器生命周期管理
 	*/
 	nbase::WeakCallbackFlag m_flagAdjustTextNumber;
+
+	/** 清除功能的按钮
+	*/
+	Control* m_pClearButton;
 };
 
 } // namespace ui

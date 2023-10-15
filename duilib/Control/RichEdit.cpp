@@ -179,7 +179,8 @@ RichEdit::RichEdit() :
 	m_bDisableTextChangeEvent(false),
 	m_maxNumber(0),
 	m_minNumber(0),
-	m_bSpinInited(false)
+	m_bSpinInited(false),
+	m_pClearButton(nullptr)
 {
 	//这个标记必须为false，否则绘制有问题
 	SetUseCache(false);
@@ -430,6 +431,9 @@ void RichEdit::SetAttribute(const std::wstring& strName, const std::wstring& str
 	}
 	else if (strName == L"spin_class") {
 		SetSpinClass(strValue);
+	}
+	else if (strName == L"clear_btn_class") {
+		SetClearBtnClass(strValue);
 	}
 	else {
 		Box::SetAttribute(strName, strValue);
@@ -1803,6 +1807,10 @@ bool RichEdit::OnSetFocus(const EventArgs& /*msg*/)
 		ShowCaret(true);
 	}
 	SetImmStatus(TRUE);
+
+	if ((m_pClearButton != nullptr) && !IsReadOnly()){
+		m_pClearButton->SetFadeVisible(true);
+	}
 	Invalidate();
 	return true;
 }
@@ -1825,7 +1833,11 @@ bool RichEdit::OnKillFocus(const EventArgs& /*msg*/)
 
 	OnScreenKeyboardManager::GetInstance()->ShowOSK(false);
 	SetImmStatus(FALSE);
-	Invalidate();
+
+	if (m_pClearButton != nullptr) {
+		m_pClearButton->SetFadeVisible(false);
+	}
+	Invalidate();	
 	return true;
 }
 
@@ -3012,6 +3024,28 @@ void RichEdit::StartAutoAdjustTextNumber(int32_t nDelta)
 void RichEdit::StopAutoAdjustTextNumber()
 {
 	m_flagAdjustTextNumber.Cancel();
+}
+
+void RichEdit::SetClearBtnClass(const std::wstring& btnClass)
+{
+	if (!btnClass.empty()) {
+		ASSERT(m_pClearButton == nullptr);
+		if (m_pClearButton != nullptr) {
+			return;
+		}
+		Button* pClearButton = new Button;
+		pClearButton->SetClass(btnClass);
+		pClearButton->SetNoFocus();
+		pClearButton->SetVisible(false);
+		AddItem(pClearButton);
+		m_pClearButton = pClearButton;
+
+		//响应按钮点击事件
+		pClearButton->AttachClick([this](const EventArgs& /*args*/) {
+			SetText(L"");
+			return true;
+			});
+	}
 }
 
 } // namespace ui

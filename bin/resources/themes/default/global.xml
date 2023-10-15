@@ -219,6 +219,10 @@
     <Class name="rich_edit_spin_btn_up" height="50%" width="100%" padding="1,0,0,0" border_size="1,0,0,0" border_color="light_gray" normal_image="file='../public/button/arrow-up.svg' width='10' height='10' valign='center' halign='center'" normal_color="bk_wnd_darkcolor" hot_color="#FFE5F3FF" pushed_color="#FFCCE8FF"/>
     <Class name="rich_edit_spin_btn_down" height="50%" width="100%" padding="1,1,0,0" border_size="1,1,0,0" border_color="light_gray" normal_image="file='../public/button/arrow-down.svg' width='10' height='10' valign='center' halign='center'" normal_color="bk_wnd_darkcolor" hot_color="#FFE5F3FF" pushed_color="#FFCCE8FF"/>
     
+    <!--RichEdit上的清除按钮样式-->
+    <Class name="rich_edit_clear_btn" clear_btn_class="rich_edit_clear_btn_class" text_align="vcenter"/>
+    <Class name="rich_edit_clear_btn_class" height="22" width="24" border_round="4,4" margin="0,0,2,0" halign="right" valign="center" normal_image="file='../public/button/window-close.svg' width='18' height='18' valign='center' halign='center'" normal_color="bk_wnd_darkcolor" hot_color="#FFE5F3FF" pushed_color="#FFCCE8FF"/>
+    
     <!--IP地址控件控件通用样式-->
     <Class name="ip_address" width="140" height="28" bkcolor="white" border_size="1" border_color="light_gray"/>
         
