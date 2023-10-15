@@ -180,7 +180,8 @@ RichEdit::RichEdit() :
 	m_maxNumber(0),
 	m_minNumber(0),
 	m_bSpinInited(false),
-	m_pClearButton(nullptr)
+	m_pClearButton(nullptr),
+	m_pShowPasswordButton(nullptr)
 {
 	//这个标记必须为false，否则绘制有问题
 	SetUseCache(false);
@@ -434,6 +435,9 @@ void RichEdit::SetAttribute(const std::wstring& strName, const std::wstring& str
 	}
 	else if (strName == L"clear_btn_class") {
 		SetClearBtnClass(strValue);
+	}
+	else if (strName == L"show_passowrd_btn_class") {
+		SetShowPasswordBtnClass(strValue);
 	}
 	else {
 		Box::SetAttribute(strName, strValue);
@@ -1811,6 +1815,9 @@ bool RichEdit::OnSetFocus(const EventArgs& /*msg*/)
 	if ((m_pClearButton != nullptr) && !IsReadOnly()){
 		m_pClearButton->SetFadeVisible(true);
 	}
+	if ((m_pShowPasswordButton != nullptr) && IsPassword() && !IsShowPassword()) {
+		m_pShowPasswordButton->SetFadeVisible(true);
+	}
 	Invalidate();
 	return true;
 }
@@ -1837,7 +1844,10 @@ bool RichEdit::OnKillFocus(const EventArgs& /*msg*/)
 	if (m_pClearButton != nullptr) {
 		m_pClearButton->SetFadeVisible(false);
 	}
-	Invalidate();	
+	if (m_pShowPasswordButton != nullptr) {
+		m_pShowPasswordButton->SetFadeVisible(false);
+	}
+	Invalidate();
 	return true;
 }
 
@@ -3043,6 +3053,40 @@ void RichEdit::SetClearBtnClass(const std::wstring& btnClass)
 		//响应按钮点击事件
 		pClearButton->AttachClick([this](const EventArgs& /*args*/) {
 			SetText(L"");
+			return true;
+			});
+	}
+}
+
+void RichEdit::SetShowPasswordBtnClass(const std::wstring& btnClass)
+{
+	if (!btnClass.empty()) {
+		ASSERT(m_pShowPasswordButton == nullptr);
+		if (m_pShowPasswordButton != nullptr) {
+			return;
+		}
+		Button* pButton = new Button;
+		pButton->SetClass(btnClass);
+		pButton->SetNoFocus();
+		pButton->SetVisible(false);
+		AddItem(pButton);
+		m_pShowPasswordButton = pButton;
+
+		//响应按钮点击事件
+		pButton->AttachClick([this](const EventArgs& /*args*/) {
+			SetShowPassword(false);
+			return true;
+			});
+		pButton->AttachButtonDown([this](const EventArgs& /*args*/) {
+			SetShowPassword(true);
+			return true;
+			});
+		pButton->AttachButtonUp([this](const EventArgs& /*args*/) {
+			SetShowPassword(false);
+			return true;
+			});
+		pButton->AttachMouseLeave([this](const EventArgs& /*args*/) {
+			SetShowPassword(false);
 			return true;
 			});
 	}

@@ -102,8 +102,12 @@
                         <Label text="(数字范围: -64 - 64)" valign="center"/>
                     </HBox>
                     <HBox height="36" margin="8,0,8,8">
-                        <Label text="清除功能:  " valign="center"/>
+                        <Label text="清除文本:  " valign="center"/>
                         <RichEdit class="simple simple_border rich_edit_clear_btn" margin="4,6,4,4"/>
+                    </HBox>
+                    <HBox height="36" margin="8,0,8,8">
+                        <Label text="显示密码:  " valign="center"/>
+                        <RichEdit class="simple simple_border rich_edit_show_password_btn" margin="4,6,4,4"/>
                     </HBox>
                 </GroupVBox>
                 

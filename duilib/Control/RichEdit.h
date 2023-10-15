@@ -981,6 +981,10 @@ private:
 	*/
 	void SetClearBtnClass(const std::wstring& btnClass);
 
+	/** 设置显示密码按钮功能的Class名称
+	*/
+	void SetShowPasswordBtnClass(const std::wstring& btnClass);
+
 private:
 	//判断是否是字节： 可打印字符（0x20-0x7e）
 	static bool IsAsciiChar(const wchar_t ch);
@@ -1098,13 +1102,17 @@ private:
 	*/
 	bool m_bSpinInited;
 
-	/** 自动调整文本数字值的定时器生命周期管理
+    /** 自动调整文本数字值的定时器生命周期管理
 	*/
 	nbase::WeakCallbackFlag m_flagAdjustTextNumber;
 
-	/** 清除功能的按钮
+	/** 清除功能的按钮(仅当非只读模式有效)
 	*/
 	Control* m_pClearButton;
+
+	/** 显示/隐藏密码按钮(仅当密码模式有效)
+	*/
+	Control* m_pShowPasswordButton;
 };
 
 } // namespace ui

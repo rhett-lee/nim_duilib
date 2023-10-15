@@ -784,7 +784,7 @@ void RichEditHost::SetShowPassword(bool bShow)
 {
 	if (m_bShowPassword != bShow) {
 		m_bShowPassword = bShow;
-		OnTxPropertyBitsChange(TXTBIT_SHOWPASSWORD, TXTBIT_SHOWPASSWORD);
+		OnTxPropertyBitsChange(TXTBIT_SHOWPASSWORD, bShow ? TXTBIT_SHOWPASSWORD : 0);
 	}	
 }
 
@@ -797,7 +797,7 @@ void RichEditHost::SetFlashPasswordChar(bool bFlash)
 {
 	if (m_bFlashPasswordChar != bFlash) {
 		m_bFlashPasswordChar = bFlash;
-		OnTxPropertyBitsChange(TXTBIT_FLASHLASTPASSWORDCHAR, TXTBIT_FLASHLASTPASSWORDCHAR);
+		OnTxPropertyBitsChange(TXTBIT_FLASHLASTPASSWORDCHAR, bFlash ? TXTBIT_FLASHLASTPASSWORDCHAR : 0);
 	}
 }
 
@@ -834,7 +834,7 @@ void RichEditHost::SetMultiLine(bool bMultiLine)
 	else {
 		m_dwStyle &= ~UI_ES_MULTILINE;
 	}
-	OnTxPropertyBitsChange(TXTBIT_MULTILINE, TXTBIT_MULTILINE);
+	OnTxPropertyBitsChange(TXTBIT_MULTILINE, bMultiLine ? TXTBIT_MULTILINE : 0);
 }
 
 void RichEditHost::SetHAlignType(HorAlignType alignType)
