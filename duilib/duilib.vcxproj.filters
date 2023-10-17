@@ -345,6 +345,9 @@
     <ClCompile Include="Control\IPAddress.cpp">
       <Filter>Control</Filter>
     </ClCompile>
+    <ClCompile Include="Control\HotKey.cpp">
+      <Filter>Control</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -756,6 +759,9 @@
       <Filter>Control</Filter>
     </ClInclude>
     <ClInclude Include="Control\IPAddress.h">
+      <Filter>Control</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\HotKey.h">
       <Filter>Control</Filter>
     </ClInclude>
   </ItemGroup>

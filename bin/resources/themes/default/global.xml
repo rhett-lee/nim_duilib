@@ -229,6 +229,9 @@
     
     <!--IP地址控件控件通用样式-->
     <Class name="ip_address" width="140" height="28" bkcolor="white" border_size="1" border_color="light_gray"/>
+    
+    <!--HotKey控件控件通用样式-->
+    <Class name="hot_key" width="216" height="28" bkcolor="white" border_size="1" border_color="light_gray"/>
         
     <!--气泡框通用样式-->
     <TextColor name="popover_color_0" value="#FFECF1F8"/>

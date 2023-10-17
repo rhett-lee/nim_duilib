@@ -603,9 +603,13 @@ private:
     LRESULT OnCharMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
     LRESULT OnKeyDownMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
     LRESULT OnKeyUpMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
+    LRESULT OnSysKeyDownMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
+    LRESULT OnSysKeyUpMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
     LRESULT OnSetCusorMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
     LRESULT OnNotifyMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
     LRESULT OnCommandMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
+    LRESULT OnSysCommandMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
+    LRESULT OnHotKeyMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
     LRESULT OnCtlColorMsgs(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
 
     LRESULT OnTouchMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
@@ -913,6 +917,39 @@ public:
     */
     void UpdateToolTip();
 
+public:
+    /** 设置系统激活窗口热键，注册后按此热键，系统可以自动激活本窗口
+    * @param [in] wVirtualKeyCode 虚拟键盘码，比如：VK_DOWN等，可参考：https://learn.microsoft.com/zh-cn/windows/win32/inputdev/virtual-key-codes
+    *             如果wVirtualKeyCode为0，表示取消管理窗口激活热键
+    * @param [in] wModifiers 热键组合键标志位，参见HotKeyModifiers枚举类型的值
+    * @return 返回值说明：
+       -1: 函数不成功;热键无效。
+        0: 函数不成功;窗口无效。
+        1: 函数成功，并且没有其他窗口具有相同的热键。
+        2: 函数成功，但另一个窗口已具有相同的热键。
+    */
+    int32_t SetWindowHotKey(uint8_t wVirtualKeyCode, uint8_t wModifiers);
+
+    /** 获取系统激活窗口热键
+    * @param [out] wVirtualKeyCode 虚拟键盘码，比如：VK_DOWN等
+    * @param [out] wModifiers 热键组合键标志位，参见HotKeyModifiers枚举类型的值
+    * @return 如果返回false表示没有注册窗口激活热键，否则表示有注册窗口激活热键
+    */
+    bool GetWindowHotKey(uint8_t& wVirtualKeyCode, uint8_t& wModifiers) const;
+
+    /** 注册系统全局热键，注册成功后，按此热键后，该窗口会收到WM_HOTKEY消息
+    * @param [in] wVirtualKeyCode 虚拟键盘码，比如：VK_DOWN等
+    * @param [in] wModifiers 热键组合键标志位，参见HotKeyModifiers枚举类型的值
+    * @param [in] id 命令ID，应用程序必须在0x0000到0xBFFF的范围内指定 ID 值。 
+                  为了避免与其他共享 DLL 定义的热键标识符冲突，DLL 应使用 GlobalAddAtom 函数获取热键标识符。
+    */
+    bool RegisterHotKey(uint8_t wVirtualKeyCode, uint8_t wModifiers, int32_t id);
+
+    /** 注销系统全局热键
+    * @param [in] id 命令ID，即注册时使用的命令ID 
+    */
+    bool UnregisterHotKey(int32_t id);
+
 private:
     /**@name 动画效果相关接口
     * @{
@@ -1043,8 +1080,8 @@ private:
     Control* m_pEventClick;
 
     /** 键盘按下的控件
-    *   在 WM_KEYDOWN 赋值
-    *   在 WM_KEYUP 清空
+    *   在 WM_KEYDOWN / WM_SYSKEYDOWN 赋值
+    *   在 WM_KEYUP / WM_SYSKEYUP清空
     */
     Control* m_pEventKey;
 
@@ -1115,6 +1152,10 @@ private:
     /** 窗口的拖放操作管理接口
     */
     WindowDropTarget* m_pWindowDropTarget;
+
+    /** 系统全局热键的ID
+    */
+    std::vector<int32_t> m_hotKeyIds;
 };
 
 } // namespace ui

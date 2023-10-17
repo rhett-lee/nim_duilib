@@ -27,6 +27,7 @@
 #include "duilib/Control/ColorPickerCustom.h"
 #include "duilib/Control/Line.h"
 #include "duilib/Control/IPAddress.h"
+#include "duilib/Control/HotKey.h"
 
 #include "duilib/Box/HBox.h"
 #include "duilib/Box/VBox.h"
@@ -778,6 +779,7 @@ Control* WindowBuilder::CreateControlByClass(const std::wstring& strControlClass
 		{DUI_CTR_COLOR_PICKER_CUSTOM, []() { return new ColorPickerCustom; }},
 		{DUI_CTR_LINE, []() { return new Line; }},
 		{DUI_CTR_IPADDRESS, []() { return new IPAddress; }},
+		{DUI_CTR_HOTKEY, []() { return new HotKey; }},
 		{DUI_CTR_SPLIT, []() { return new Split; }},
 		{DUI_CTR_SPLITBOX, []() { return new SplitBox; }},
 		{DUI_CTR_GROUP_BOX, []() { return new GroupBox; }},

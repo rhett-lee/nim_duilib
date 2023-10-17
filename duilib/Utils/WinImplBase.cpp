@@ -55,6 +55,9 @@ LRESULT WindowImplBase::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam,
     case WM_CHAR:			lRes = OnChar(uMsg, wParam, lParam, bHandled); break;
     case WM_KEYDOWN:		lRes = OnKeyDown(uMsg, wParam, lParam, bHandled); break;
     case WM_KEYUP:			lRes = OnKeyUp(uMsg, wParam, lParam, bHandled); break;
+    case WM_SYSKEYDOWN:		lRes = OnSysKeyDown(uMsg, wParam, lParam, bHandled); break;
+    case WM_SYSKEYUP:		lRes = OnSysKeyUp(uMsg, wParam, lParam, bHandled); break;
+    case WM_HOTKEY:		    lRes = OnHotKey(uMsg, wParam, lParam, bHandled); break;
     default:
         bHandled = false;
         break;
@@ -322,6 +325,27 @@ LRESULT WindowImplBase::OnKeyDown(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 
 LRESULT WindowImplBase::OnKeyUp(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, bool& bHandled)
 {
+    bHandled = false;
+    return 0;
+}
+
+LRESULT WindowImplBase::OnSysKeyDown(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, bool& bHandled)
+{
+    bHandled = false;
+    return 0;
+}
+
+LRESULT WindowImplBase::OnSysKeyUp(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, bool& bHandled)
+{
+    bHandled = false;
+    return 0;
+}
+
+LRESULT WindowImplBase::OnHotKey(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+{
+    ASSERT_UNUSED_VARIABLE(uMsg == WM_HOTKEY);
+    UNUSED_VARIABLE(wParam);
+    UNUSED_VARIABLE(lParam);
     bHandled = false;
     return 0;
 }

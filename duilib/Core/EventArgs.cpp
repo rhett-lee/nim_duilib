@@ -119,6 +119,10 @@ std::wstring EventTypeToString(EventType eventType)
 		return L"kEventKeyDown";
 	case kEventKeyUp:
 		return L"kEventKeyUp";
+	case kEventSysKeyDown:
+		return L"kEventSysKeyDown";
+	case kEventSysKeyUp:
+		return L"kEventSysKeyUp";
 	case kEventChar:
 		return L"kEventChar";
 	case kEventKeyEnd:

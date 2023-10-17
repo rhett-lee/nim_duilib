@@ -970,6 +970,8 @@ protected:
 	virtual bool OnChar(const EventArgs& msg);
 	virtual bool OnKeyDown(const EventArgs& msg);
 	virtual bool OnKeyUp(const EventArgs& msg);
+	virtual bool OnSysKeyDown(const EventArgs& msg);
+	virtual bool OnSysKeyUp(const EventArgs& msg);
 
     //光标与焦点相关消息（返回true：表示消息已处理；返回false：则表示消息未处理，需转发给父控件）
 	virtual bool OnSetCursor(const EventArgs& msg);

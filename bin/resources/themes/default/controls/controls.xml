@@ -75,47 +75,67 @@
                     <CheckCombo class="check_combo" name="check_combo" height="30" margin="0,3" tooltiptext="nim_comp::CheckCombo"/>
                 </VBox>
                 
-                <!-- Progress/Slider/DateTime -->
-                <VBox height="220">
-                    <HBox margin="0,10" height="32">
-                        <Control width="auto" height="auto" bkimage="../public/animation/ani_loading.gif" valign="center"/>
-                        <Progress class="progress_blue" name="progress" value="0" margin="10" tooltiptext="ui::Progress"/>
-                    </HBox>
-                    <HBox margin="0,0,0,10" height="32">
-                        <Control width="auto" height="auto" bkimage="set_speaker.png" valign="center"/>
-                        <Slider class="slider_green" value="70" margin="10" tooltiptext="ui::Slider"/>
-                    </HBox>
-                    <!-- DateTime -->
+                <!-- 一些基本控件 -->
+                <VBox height="240">
                     <HBox>
+                        <!-- Progress/Slider -->
                         <VBox>
-                            <HBox childmargin="10">
-                                <Label text="默认的日期格式" height="24" text_align="vcenter" hottextcolor="red" pushedtextcolor="blue"/>
+                            <HBox margin="0,10" height="32">
+                                <Control width="auto" height="auto" bkimage="../public/animation/ani_loading.gif" valign="center"/>
+                                <Progress class="progress_blue" name="progress" value="0" margin="10" tooltiptext="ui::Progress"/>
+                            </HBox>
+                            <HBox margin="0,0,0,10" height="32">
+                                <Control width="auto" height="auto" bkimage="set_speaker.png" valign="center"/>
+                                <Slider class="slider_green" value="70" margin="10" tooltiptext="ui::Slider"/>
+                            </HBox>
+                        </VBox>
+                        <!-- CircleProgress -->
+                        <VBox width="90" margin="10,0">
+                            <CircleProgress name="circleprogress" circular="true" height="80" width="80"
+                            circlewidth="10" bgcolor="gray" fgcolor="green" gradientcolor="red" clockwise="true"  min="0" max="100" value="75" margin="10"
+                            textpadding="10,32,10,10" normaltextcolor="darkcolor" indicator="file='logo_18x18.png' width='70%'" tooltiptext="ui::CircleProgress"/>
+                        </VBox>
+                        <!-- DateTime -->
+                        <VBox margin="4,8,0,0">
+                            <HBox childmargin="4" width="240">
+                                <Label text="默认的格式" height="24" text_align="vcenter" hottextcolor="red" pushedtextcolor="blue"/>
                                 <DateTime width="100%" height="24" />
                             </HBox>
-                            <HBox childmargin="10">
-                                <Label text="自定义日期格式" height="24" text_align="vcenter" />
+                            <HBox childmargin="4" width="240">
+                                <Label text="自定义格式" height="24" text_align="vcenter" />
                                 <DateTime width="100%" height="24" format="%Y/%m/%d %H:%M" />
                             </HBox>
                         </VBox>
+                    </HBox>
+                    <!-- IPAddress / RichEdit With Spin -->
+                    <HBox>                        
                         <VBox margin="10,0,0,0">
                             <HBox childmargin="10">
                                 <Label text="IP地址" height="28" text_align="vcenter"/>
                                 <IPAddress class="ip_address" ip="192.168.0.1"/>
                             </HBox>
                             <HBox childmargin="10">
-                                <Label text="RichEditSpin" height="28" text_align="vcenter"/>
-                                <RichEdit class="simple simple_border rich_edit_spin" min_number="-64" max_number="64" limit_text="3" />
+                                <Label text="RichEdit Spin" height="28" text_align="vcenter"/>
+                                <RichEdit class="simple simple_border rich_edit_spin" min_number="-64" max_number="64" limit_text="3" text="0"/>
                             </HBox>
-                        </VBox> 
+                        </VBox>
+                        <VBox margin="10,0,0,0">
+                            <HBox childmargin="10">
+                                <HotKey class="hot_key" name="set_hot_key" default_text="无"/>
+                                <Button class="btn_global_color_gray" name="btn_set_hot_key" text="设置窗口热键" width="100%" height="28" border_round="3,3" text_align="vcenter"/>
+                            </HBox>
+                            <HBox childmargin="10">
+                                <HotKey class="hot_key" name="set_system_hot_key" default_text="无"/>
+                                <Button class="btn_global_color_gray" name="btn_set_system_hot_key" text="设置系统热键" width="100%" height="28" border_round="3,3" text_align="vcenter"/>
+                            </HBox>
+                        </VBox>
                     </HBox>
                     <!-- RichText / Line -->
                     <HBox childmargin="10">
                         <HBox childmargin="10">
-                            <Label text="RichText:" valign="center" />
-                            <RichText name="rich_text_demo" row_spacing_mul="1.2" height="auto">
-                                <a href="www.baidu.com">点击访问百度首页</a>
-                                <br/>
-                                <a href="www.sohu.com">点击访问搜狐首页</a>
+                            <RichText name="rich_text_demo" row_spacing_mul="1.2">
+                                RichText超级链接:　<a href="www.baidu.com">点击访问百度首页</a><br/>                                
+                                RichText超级链接:　<a href="www.sohu.com">点击访问搜狐首页</a>
                             </RichText>
                         </HBox>
                         <HBox childmargin="10">
@@ -138,13 +158,6 @@
                             </VBox>
                         </HBox>
                     </HBox>
-                </VBox>
-                
-                <!-- CircleProgress -->
-                <VBox width="160" margin="10,0">
-                    <CircleProgress name="circleprogress" circular="true" height="80" width="80"
-                    circlewidth="10" bgcolor="gray" fgcolor="green" gradientcolor="red" clockwise="true"  min="0" max="100" value="75" margin="10"
-                    textpadding="10,32,10,10" normaltextcolor="darkcolor" indicator="file='logo_18x18.png' width='70%'" tooltiptext="ui::CircleProgress"/>
                 </VBox>
             </HBox>
             

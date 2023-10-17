@@ -7,6 +7,9 @@
 
 const std::wstring ControlForm::kClassName = L"Controls";
 
+//系统全局热键的ID
+#define SYSTEM_HOTKEY_ID 111
+
 ControlForm::ControlForm()
 {
 }
@@ -174,6 +177,62 @@ void ControlForm::OnInitWindow()
 			}
 			return true;
 			});
+	}
+
+	//快捷键设置
+	ui::HotKey* pHotKey = dynamic_cast<ui::HotKey*>(FindControl(L"set_hot_key"));
+	ui::Button* pHotKeyButton = dynamic_cast<ui::Button*>(FindControl(L"btn_set_hot_key"));
+	if (pHotKey && pHotKeyButton) {
+		pHotKeyButton->AttachClick([this, pHotKey](const ui::EventArgs& args) {
+			uint8_t wVirtualKeyCode = 0;
+			uint8_t wModifiers = 0;
+			pHotKey->GetHotKey(wVirtualKeyCode, wModifiers);
+			if (wVirtualKeyCode != 0) {
+				//设置为激活窗口的热键
+				int32_t nRet = SetWindowHotKey(wVirtualKeyCode, wModifiers);
+				ASSERT(nRet == 1);
+			}
+
+			//if (1) {
+			//	//测试代码
+			//	std::wstring hotKeyName = pHotKey->GetHotKeyName();
+			//	uint8_t wVirtualKeyCode = 0;
+			//	uint8_t wModifiers = 0;
+			//	pHotKey->GetHotKey(wVirtualKeyCode, wModifiers);
+			//	ASSERT(pHotKey->GetHotKey() == MAKEWORD(wVirtualKeyCode, wModifiers));
+
+			//	const uint8_t wModifiers2 = ui::kHotKey_Shift | ui::kHotKey_Contrl | ui::kHotKey_Alt | ui::kHotKey_Ext;
+			//	const uint8_t wVirtualKeyCode2 = VK_HOME;
+
+			//	pHotKey->SetHotKey(wVirtualKeyCode2, wModifiers2);
+			//	pHotKey->GetHotKey(wVirtualKeyCode, wModifiers);
+			//	ASSERT(wModifiers2 == wModifiers);
+			//	ASSERT(wVirtualKeyCode2 == wVirtualKeyCode);
+
+			//	ASSERT(pHotKey->GetHotKey() == MAKEWORD(wVirtualKeyCode, wModifiers));
+
+			//	pHotKey->SetHotKey(MAKEWORD(wVirtualKeyCode2, wModifiers2));
+			//	ASSERT(pHotKey->GetHotKey() == MAKEWORD(wVirtualKeyCode2, wModifiers2));
+			//}
+
+			return true;
+			});
+	}
+
+	pHotKey = dynamic_cast<ui::HotKey*>(FindControl(L"set_system_hot_key"));
+	pHotKeyButton = dynamic_cast<ui::Button*>(FindControl(L"btn_set_system_hot_key"));
+	if (pHotKey && pHotKeyButton) {
+		pHotKeyButton->AttachClick([this, pHotKey](const ui::EventArgs& args) {
+			uint8_t wVirtualKeyCode = 0;
+			uint8_t wModifiers = 0;
+			pHotKey->GetHotKey(wVirtualKeyCode, wModifiers);
+			if (wVirtualKeyCode != 0) {
+				//设置为系统全局的热键
+				bool nRet = RegisterHotKey(wVirtualKeyCode, wModifiers, SYSTEM_HOTKEY_ID);
+				ASSERT(nRet);
+			}
+			return true;
+		});
 	}
 }
 
@@ -370,4 +429,15 @@ void ControlForm::OnProgressValueChagned(float value)
 			control_edit->StopLoading();
 		}
 	}
+}
+
+LRESULT ControlForm::OnHotKey(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+{
+	LRESULT lResult = __super::OnHotKey(uMsg, wParam, lParam, bHandled);
+	bHandled = true;
+	if (wParam == SYSTEM_HOTKEY_ID) {
+		SetForeground();
+		::MessageBox(GetHWND(), L"接收到系统热键命令", L"ControlForm::OnHotKey", MB_OK);
+	}
+	return lResult;
 }

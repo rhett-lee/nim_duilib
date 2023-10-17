@@ -111,6 +111,7 @@ namespace ui
 
 	#define  DUI_CTR_LINE							 (L"Line")
 	#define  DUI_CTR_IPADDRESS						 (L"IPAddress")
+	#define  DUI_CTR_HOTKEY							 (L"HotKey")
 
 	// 窗口标题栏按钮：最大化、最小化、关闭、还原、全屏窗口的名字，代码中写死的
 	#define DUI_CTR_CAPTION_BAR						 (L"window_caption_bar")
@@ -242,6 +243,8 @@ namespace ui
 		kEventKeyBegin,
 		kEventKeyDown,				//Window类：当收到WM_KEYDOWN消息时触发，发送给Focus控件
 		kEventKeyUp,				//Window类：当收到WM_KEYUP消息时触发，发送给WM_KEYDOWN事件中的那个Focus控件
+		kEventSysKeyDown,			//Window类：当收到WM_SYSKEYDOWN消息时触发，发送给Focus控件
+		kEventSysKeyUp,				//Window类：当收到WM_SYSKEYUP消息时触发，发送给WM_KEYDOWN事件中的那个Focus控件
 		kEventChar,					//Window类：当收到WM_CHAR消息时触发，发送给WM_KEYDOWN事件中的那个Focus控件
 		kEventKeyEnd,
 
@@ -307,6 +310,16 @@ namespace ui
 		kEventSelectColor,			//ColorPicker类：当选择了新颜色时触发, WPARAM是新的颜色值，LPARAM是旧的颜色值
 
 		kEventLast					//Control类：该控件的最后一个消息，当这个控件对象销毁时触发
+	};
+
+	/** 热键组合键标志位
+	*/
+	enum HotKeyModifiers
+	{
+		kHotKey_Shift = 0x01,	//Shift键
+		kHotKey_Contrl = 0x02,	//Contrl键
+		kHotKey_Alt = 0x04,		//Alt键
+		kHotKey_Ext = 0x08		//扩展键
 	};
 
 }// namespace ui

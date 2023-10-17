@@ -62,5 +62,15 @@ private:
 	/** 显示拾色器窗口
 	*/
 	void ShowColorPicker();
+
+private:
+	/** 接收键盘按键按下消息(WM_HOTKEY)时被调用
+	* @param [in] uMsg 消息内容
+	* @param [in] wParam 消息附加参数
+	* @param [in] lParam 消息附加参数
+	* @param [out] bHandled 返回 false 则继续派发该消息，否则不再派发该消息
+	* @return 返回消息处理结果
+	*/
+	virtual LRESULT OnHotKey(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
 };
 

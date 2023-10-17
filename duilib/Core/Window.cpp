@@ -13,6 +13,7 @@
 #include "duilib/Utils/ApiWrapper.h"
 #include "duilib/Utils/PerformanceUtil.h"
 
+#include <VersionHelpers.h>
 #include <Olectl.h>
 
 namespace ui
@@ -501,6 +502,11 @@ void Window::OnFinalMessage(HWND hWnd)
     ASSERT(m_hWnd == hWnd);
     //取消异步关闭窗口回调，避免访问非法资源
     m_closeFlag.Cancel();
+
+    std::vector<int32_t> hotKeyIds = m_hotKeyIds;
+    for (int32_t id : hotKeyIds) {
+        UnregisterHotKey(id);
+    }
 
     UnregisterTouchWindowWrapper(hWnd);
     SendNotify(kEventWindowClose);
@@ -1217,6 +1223,8 @@ LRESULT Window::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHa
     case WM_CHAR:				lResult = OnCharMsg(uMsg, wParam, lParam, bHandled); break;
     case WM_KEYDOWN:			lResult = OnKeyDownMsg(uMsg, wParam, lParam, bHandled); break;
     case WM_KEYUP:				lResult = OnKeyUpMsg(uMsg, wParam, lParam, bHandled); break;
+    case WM_SYSKEYDOWN:			lResult = OnSysKeyDownMsg(uMsg, wParam, lParam, bHandled); break;
+    case WM_SYSKEYUP:			lResult = OnSysKeyUpMsg(uMsg, wParam, lParam, bHandled); break;
 
     case WM_IME_STARTCOMPOSITION: lResult = OnIMEStartCompositionMsg(uMsg, wParam, lParam, bHandled); break;
     case WM_IME_ENDCOMPOSITION:	  lResult = OnIMEEndCompositionMsg(uMsg, wParam, lParam, bHandled); break;
@@ -1224,6 +1232,8 @@ LRESULT Window::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHa
     case WM_SETCURSOR:			lResult = OnSetCusorMsg(uMsg, wParam, lParam, bHandled); break;
     case WM_NOTIFY:				lResult = OnNotifyMsg(uMsg, wParam, lParam, bHandled); break;
     case WM_COMMAND:			lResult = OnCommandMsg(uMsg, wParam, lParam, bHandled); break;
+    case WM_SYSCOMMAND:			lResult = OnSysCommandMsg(uMsg, wParam, lParam, bHandled); break;
+    case WM_HOTKEY:			    lResult = OnHotKeyMsg(uMsg, wParam, lParam, bHandled); break;
     case WM_CTLCOLOREDIT:
     case WM_CTLCOLORSTATIC:
         lResult = OnCtlColorMsgs(uMsg, wParam, lParam, bHandled);
@@ -1862,6 +1872,28 @@ LRESULT Window::OnKeyUpMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandl
     return 0;
 }
 
+LRESULT Window::OnSysKeyDownMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+{
+    ASSERT_UNUSED_VARIABLE(uMsg == WM_SYSKEYDOWN);
+    bHandled = false;
+    m_pEventKey = m_pFocus;
+    if (m_pEventKey != nullptr) {
+        m_pEventKey->SendEvent(kEventSysKeyDown, wParam, lParam, static_cast<TCHAR>(wParam));
+    }
+    return 0;
+}
+
+LRESULT Window::OnSysKeyUpMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+{
+    ASSERT_UNUSED_VARIABLE(uMsg == WM_SYSKEYUP);
+    bHandled = false;
+    if (m_pEventKey != nullptr) {
+        m_pEventKey->SendEvent(kEventSysKeyUp, wParam, lParam, static_cast<TCHAR>(wParam));
+        m_pEventKey = nullptr;
+    }
+    return 0;
+}
+
 LRESULT Window::OnSetCusorMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
     ASSERT_UNUSED_VARIABLE(uMsg == WM_SETCURSOR);
@@ -1908,6 +1940,24 @@ LRESULT Window::OnCommandMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHan
     HWND hWndChild = (HWND)lParam;
     bHandled = true;
     return ::SendMessage(hWndChild, OCM__BASE + uMsg, wParam, lParam);
+}
+
+LRESULT Window::OnSysCommandMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+{
+    ASSERT_UNUSED_VARIABLE(uMsg == WM_SYSCOMMAND);
+    UNUSED_VARIABLE(wParam);
+    UNUSED_VARIABLE(lParam);
+    bHandled = false;
+    return 0;
+}
+
+LRESULT Window::OnHotKeyMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+{
+    ASSERT_UNUSED_VARIABLE(uMsg == WM_HOTKEY);
+    UNUSED_VARIABLE(wParam);
+    UNUSED_VARIABLE(lParam);
+    bHandled = false;
+    return 0;
 }
 
 LRESULT Window::OnCtlColorMsgs(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
@@ -2673,6 +2723,63 @@ bool Window::UnregisterDragDrop(ControlDropTarget* pDropTarget)
         return false;
     }
     return m_pWindowDropTarget->UnregisterDragDrop(pDropTarget);
+}
+
+int32_t Window::SetWindowHotKey(uint8_t wVirtualKeyCode, uint8_t wModifiers)
+{
+    ASSERT(::IsWindow(GetHWND()));
+    return (int32_t)::SendMessage(GetHWND(), WM_SETHOTKEY, MAKEWORD(wVirtualKeyCode, wModifiers), 0);
+}
+
+bool Window::GetWindowHotKey(uint8_t& wVirtualKeyCode, uint8_t& wModifiers) const
+{
+    ASSERT(::IsWindow(GetHWND()));
+    DWORD dw = (DWORD)::SendMessage(GetHWND(), HKM_GETHOTKEY, 0, 0L);
+    wVirtualKeyCode = LOBYTE(LOWORD(dw));
+    wModifiers = HIBYTE(LOWORD(dw));
+    return dw != 0;
+}
+
+bool Window::RegisterHotKey(uint8_t wVirtualKeyCode, uint8_t wModifiers, int32_t id)
+{
+    ASSERT(::IsWindow(GetHWND()));
+    if (wVirtualKeyCode != 0) {
+        UINT fsModifiers = 0;
+        if (wModifiers & HOTKEYF_ALT)     fsModifiers |= MOD_ALT;
+        if (wModifiers & HOTKEYF_CONTROL) fsModifiers |= MOD_CONTROL;
+        if (wModifiers & HOTKEYF_SHIFT)   fsModifiers |= MOD_SHIFT;
+        if (wModifiers & HOTKEYF_EXT)     fsModifiers |= MOD_WIN;
+
+#ifndef MOD_NOREPEAT
+        if (::IsWindows7OrGreater()) {
+            fsModifiers |= 0x4000;
+        }
+#else
+        fsModifiers |= MOD_NOREPEAT;
+#endif
+
+        LRESULT lResult = ::RegisterHotKey(this->GetHWND(), id, fsModifiers, wVirtualKeyCode);
+        ASSERT(lResult != 0);
+        if (lResult != 0) {
+            auto iter = std::find(m_hotKeyIds.begin(), m_hotKeyIds.end(), id);
+            if (iter != m_hotKeyIds.end()) {
+                m_hotKeyIds.erase(iter);
+            }
+            m_hotKeyIds.push_back(id);
+            return true;
+        }
+    }
+    return false;
+}
+
+bool Window::UnregisterHotKey(int32_t id)
+{
+    ASSERT(::IsWindow(GetHWND()));
+    auto iter = std::find(m_hotKeyIds.begin(), m_hotKeyIds.end(), id);
+    if (iter != m_hotKeyIds.end()) {
+        m_hotKeyIds.erase(iter);
+    }
+    return ::UnregisterHotKey(GetHWND(), id);
 }
 
 } // namespace ui

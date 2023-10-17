@@ -1193,6 +1193,16 @@ void Control::HandleEvent(const EventArgs& msg)
 			return;
 		}
 	}
+	else if (msg.Type == kEventSysKeyDown) {
+		if (OnSysKeyDown(msg)) {
+			return;
+		}
+	}
+	else if (msg.Type == kEventSysKeyUp) {
+		if (OnSysKeyUp(msg)) {
+			return;
+		}
+	}
 
 	if (GetParent() != nullptr) {
 		GetParent()->SendEvent(msg);
@@ -1347,6 +1357,18 @@ bool Control::OnKeyDown(const EventArgs& /*msg*/)
 }
 
 bool Control::OnKeyUp(const EventArgs& /*msg*/)
+{
+	//默认不处理，交由父控件处理
+	return false;
+}
+
+bool Control::OnSysKeyDown(const EventArgs& /*msg*/)
+{
+	//默认不处理，交由父控件处理
+	return false;
+}
+
+bool Control::OnSysKeyUp(const EventArgs& /*msg*/)
 {
 	//默认不处理，交由父控件处理
 	return false;
