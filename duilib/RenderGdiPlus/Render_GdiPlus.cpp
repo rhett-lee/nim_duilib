@@ -850,7 +850,7 @@ void Render_GdiPlus::FillRoundRect(const UiRect& rc, const UiSize& roundSize, Ui
 
 	UiColor::ARGB dwNewColor = dwColor.GetARGB();
 	if (uFade < 255) {
-		//在原来颜色值的透明度基础上，在做一次透明度计算（uFade是在原来基础上在设置透明度）
+        //在原来颜色值的透明度基础上，在做一次透明度计算（uFade是在原来基础上在设置透明度）
 		int alpha = dwColor.GetARGB() >> 24;
 		dwNewColor = dwColor.GetARGB() & 0xffffff;
 		alpha = static_cast<int>(static_cast<double>(alpha) * static_cast<double>(uFade) / 255.0);

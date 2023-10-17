@@ -12,7 +12,8 @@ namespace ui
 
 RichText::RichText() :
     m_uTextStyle(TEXT_LEFT | TEXT_VCENTER),
-    m_fRowSpacingMul(1.0f)
+    m_fRowSpacingMul(1.0f),
+    m_bLinkUnderlineFont(true)
 {
 }
 
@@ -140,6 +141,22 @@ void RichText::SetAttribute(const std::wstring& strName, const std::wstring& str
     else if (strName == L"row_spacing_mul") {
         SetRowSpacingMul(wcstof(strValue.c_str(), nullptr));
     }
+    else if (strName == L"default_link_font_color") {
+        //超级链接：常规文本颜色值
+        m_linkNormalTextColor = strValue;
+    }
+    else if (strName == L"hover_link_font_color") {
+        //超级链接：Hover状态文本颜色值
+        m_linkHoverTextColor = strValue;
+    }
+    else if (strName == L"mouse_down_link_font_color") {
+        //超级链接：鼠标按下状态文本颜色值
+        m_linkMouseDownTextColor = strValue;
+    }
+    else if (strName == L"link_font_underline") {
+        //超级链接：是否使用带下划线的字体
+        m_bLinkUnderlineFont = (strValue == L"true");
+    }
     else {
         __super::SetAttribute(strName, strValue);
     }
@@ -158,18 +175,42 @@ void RichText::PaintText(IRender* pRender)
         ParseText(m_textData);
     }
     if (!m_textData.empty()) {
+        UiColor normalLinkTextColor;
+        if (!m_linkNormalTextColor.empty()) {
+            normalLinkTextColor = GetUiColor(m_linkNormalTextColor.c_str());
+        }
+        UiColor mouseDownLinkTextColor;
+        if (!m_linkMouseDownTextColor.empty()) {
+            mouseDownLinkTextColor = GetUiColor(m_linkMouseDownTextColor.c_str());
+        }
+        UiColor linkHoverTextColor;
+        if (!m_linkHoverTextColor.empty()) {
+            linkHoverTextColor = GetUiColor(m_linkHoverTextColor.c_str());
+        }
+
         std::vector<RichTextData> richTextData;
         richTextData.reserve(m_textData.size());
         for (const RichTextDataEx& textDataEx : m_textData) {
-            if (!textDataEx.m_linkUrl.empty() && (textDataEx.m_bMouseDown || textDataEx.m_bMouseHover)) {
+            if (!textDataEx.m_linkUrl.empty()) {
                 //对于超级链接，设置默认文本格式
                 RichTextData textData = textDataEx;
-                textData.m_fontInfo.m_bUnderline = true;
-                if (textDataEx.m_bMouseDown) {
-                    textData.m_textColor = UiColor(UiColors::Red); //红色字体
+                if (textDataEx.m_bMouseDown || textDataEx.m_bMouseHover) {
+                    textData.m_fontInfo.m_bUnderline = m_bLinkUnderlineFont;//是否显示下划线字体
                 }
-                else {
-                    textData.m_textColor = UiColor(UiColors::Blue); //蓝色字体
+                if (!m_linkNormalTextColor.empty()) {                    
+                    if (!normalLinkTextColor.IsEmpty()) {
+                        textData.m_textColor = normalLinkTextColor;//标准状态的字体颜色
+                    }
+                }
+                if (textDataEx.m_bMouseDown && !m_linkMouseDownTextColor.empty()) {                    
+                    if (!mouseDownLinkTextColor.IsEmpty()) {
+                        textData.m_textColor = mouseDownLinkTextColor;//鼠标按下时的字体颜色
+                    }
+                }
+                else if (textDataEx.m_bMouseHover && !m_linkHoverTextColor.empty()) {                    
+                    if (!linkHoverTextColor.IsEmpty()) {
+                        textData.m_textColor = linkHoverTextColor;//鼠标Hover时的字体颜色
+                    }
                 }
                 richTextData.push_back(textData);
             }

@@ -44,11 +44,18 @@
     <Font id="arial_bold_18" name="arial" size="18" bold="true"/>
     <Font id="arial_bold_20" name="arial" size="20" bold="true"/>
     <Font id="arial_bold_22" name="arial" size="22" bold="true"/>
-    <!-- 设置默认颜色值 -->
+    
+    <!-- 默认文本颜色值：常规状态 -->
     <TextColor name="default_font_color" value="#ff333333"/>
+    <!-- 默认文本颜色值：禁止状态 -->
     <TextColor name="disabled_font_color" value="#ffa1aebc"/>
+    
+    <!-- 超级链接：常规文本颜色值 -->
     <TextColor name="default_link_font_color" value="#FF0000FF"/>
+    <!-- 超级链接：Hover状态文本颜色值 -->
     <TextColor name="hover_link_font_color" value="#FFD3215F"/>
+    <!-- 超级链接：鼠标按下状态文本颜色值 -->
+    <TextColor name="mouse_down_link_font_color" value="#FFFF0000"/>
     
     <!--一些常规固定颜色-->
     <TextColor name="white" value="#ffffffff"/>
@@ -62,6 +69,7 @@
     <TextColor name="light_green" value="#ff21c7a6"/>
     <TextColor name="blue" value="#ff006DD9"/>
     <TextColor name="red" value="#ffC63535"/>
+    
     <!--窗口常用背景色-->
     <TextColor name="bk_main_wnd_title" value="#ff238efa"/>
     <TextColor name="bk_main_wnd_search" value="#ff1e7ad7"/>
@@ -226,6 +234,9 @@
     <!--RichEdit上的显示密码按钮样式-->
     <Class name="rich_edit_show_password_btn" password="true" show_password="false" show_passowrd_btn_class="rich_edit_show_password_btn_class" text_align="vcenter"/>
     <Class name="rich_edit_show_password_btn_class" height="22" width="24" border_round="4,4" margin="0,0,2,0" halign="right" valign="center" normal_image="file='../public/button/icon_visibility.svg' width='14' height='14' valign='center' halign='center'" normal_color="bk_wnd_darkcolor" hot_color="#FFE5F3FF" pushed_color="#FFCCE8FF"/>    
+    
+    <!--RichText 的基本属性-->
+    <Class name="rich_text" text_color="default_font_color" default_link_font_color="default_link_font_color" hover_link_font_color="hover_link_font_color" mouse_down_link_font_color="mouse_down_link_font_color" link_font_underline="true"/>
     
     <!--IP地址控件控件通用样式-->
     <Class name="ip_address" width="140" height="28" bkcolor="white" border_size="1" border_color="light_gray"/>

@@ -71,7 +71,7 @@
             </HBox>
         </VBox>
         <VBox width="300" margin="4">                            
-            <RichText bkcolor="green" row_spacing_mul="1.5" width="100%" height="auto">
+            <RichText class="rich_text" bkcolor="green" row_spacing_mul="1.5" width="100%" height="auto">
                 RichText文本<br/>内容1
                 <b>
                     粗体

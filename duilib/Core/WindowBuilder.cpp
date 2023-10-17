@@ -302,12 +302,6 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
 						else if (colorName == L"disabled_font_color") {
 							colorManager.SetDefaultDisabledTextColor(colorName);
 						}
-						else if (colorName == L"default_link_font_color") {
-							colorManager.SetDefaultLinkFontColor(colorName);
-						}
-						else if (colorName == L"hover_link_font_color") {
-							colorManager.SetDefaultLinkHoverFontColor(colorName);
-						}
 					}
 				}
 			}

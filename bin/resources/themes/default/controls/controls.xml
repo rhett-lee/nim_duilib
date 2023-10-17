@@ -133,9 +133,9 @@
                     <!-- RichText / Line -->
                     <HBox childmargin="10">
                         <HBox childmargin="10">
-                            <RichText name="rich_text_demo" row_spacing_mul="1.2">
-                                RichText超级链接:　<a href="www.baidu.com">点击访问百度首页</a><br/>                                
-                                RichText超级链接:　<a href="www.sohu.com">点击访问搜狐首页</a>
+                            <RichText class="rich_text" name="rich_text_demo" row_spacing_mul="1.2">
+                                RichText:　<a href="www.baidu.com">点击访问百度首页</a><br/>                                
+                                RichText:　<a href="www.sohu.com">点击访问搜狐首页</a>
                             </RichText>
                         </HBox>
                         <HBox childmargin="10">

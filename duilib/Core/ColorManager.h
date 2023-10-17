@@ -107,22 +107,6 @@ public:
 	 */
 	void SetDefaultTextColor(const std::wstring& strColor);
 
-	/** 获取默认链接字体颜色
-	 */
-    const std::wstring& GetDefaultLinkFontColor();
-
-	/** 设置默认链接字体颜色
-	 */
-	void SetDefaultLinkFontColor(const std::wstring& strColor);
-
-	/** 获取焦点链接的默认字体颜色
-	 */
-    const std::wstring& GetDefaultLinkHoverFontColor();
-
-	/** 设置焦点链接的默认字体颜色
-	 */
-	void SetDefaultLinkHoverFontColor(const std::wstring& strColor);
-
 private:
     /** 颜色名称与颜色值的映射关系
     */
@@ -139,14 +123,6 @@ private:
     /** 默认正常状态的字体颜色
     */
     std::wstring m_defaultTextColor;
-
-    /** 默认链接字体颜色
-    */
-    std::wstring m_defaultLinkFontColor;
-
-    /** 焦点链接的默认字体颜色
-    */
-    std::wstring m_defaultLinkHoverFontColor;
 };
 
 } // namespace ui

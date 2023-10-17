@@ -199,6 +199,22 @@ private:
     /** 绘制的文本内容（解析后）
     */
     std::vector<RichTextDataEx> m_textData;
+
+    /** 超级链接的文本：常规文本颜色
+    */
+    UiString m_linkNormalTextColor;
+
+    /** 超级链接的文本：Hover文本颜色
+    */
+    UiString m_linkHoverTextColor;
+
+    /** 超级链接的文本：鼠标按下文本颜色
+    */
+    UiString m_linkMouseDownTextColor;
+
+    /** 是否显示下划线字体风格
+    */
+    bool m_bLinkUnderlineFont;
 };
 
 } // namespace ui

@@ -117,8 +117,6 @@ void ColorManager::RemoveAllColors()
 	m_colorMap.RemoveAllColors();
 	m_defaultDisabledTextColor.clear();
 	m_defaultTextColor.clear();
-	m_defaultLinkFontColor.clear();
-	m_defaultLinkHoverFontColor.clear();
 }
 
 void ColorManager::Clear()
@@ -145,26 +143,6 @@ const std::wstring& ColorManager::GetDefaultTextColor()
 void ColorManager::SetDefaultTextColor(const std::wstring& strColor)
 {
 	m_defaultTextColor = strColor;
-}
-
-const std::wstring& ColorManager::GetDefaultLinkFontColor()
-{
-	return m_defaultLinkFontColor;
-}
-
-void ColorManager::SetDefaultLinkFontColor(const std::wstring& strColor)
-{
-	m_defaultLinkFontColor = strColor;
-}
-
-const std::wstring& ColorManager::GetDefaultLinkHoverFontColor()
-{
-	return m_defaultLinkHoverFontColor;
-}
-
-void ColorManager::SetDefaultLinkHoverFontColor(const std::wstring& strColor)
-{
-	m_defaultLinkHoverFontColor = strColor;
 }
 
 } // namespace ui
