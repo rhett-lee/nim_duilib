@@ -179,7 +179,27 @@ void ControlForm::OnInitWindow()
 			});
 	}
 
-	//快捷键设置
+	//HyperLink控件
+	ui::HyperLink* pHyperLink = dynamic_cast<ui::HyperLink*>(FindControl(L"hyper_link1"));
+	if (pHyperLink != nullptr) {
+		pHyperLink->AttachLinkClick([this](const ui::EventArgs& args) {
+			const wchar_t* url = (const wchar_t*)args.wParam;
+			if (url != nullptr) {
+				::MessageBox(GetHWND(), url, L"HyperLink点击超链接", MB_OK);
+			}
+			return true;
+			});
+	}
+
+	pHyperLink = dynamic_cast<ui::HyperLink*>(FindControl(L"hyper_link2"));
+	if (pHyperLink != nullptr) {
+		pHyperLink->AttachLinkClick([this](const ui::EventArgs& /*args*/) {
+			::MessageBox(GetHWND(), L"文字按钮事件响应", L"HyperLink点击", MB_OK);
+			return true;
+			});
+	}
+
+	//热键设置
 	ui::HotKey* pHotKey = dynamic_cast<ui::HotKey*>(FindControl(L"set_hot_key"));
 	ui::Button* pHotKeyButton = dynamic_cast<ui::Button*>(FindControl(L"btn_set_hot_key"));
 	if (pHotKey && pHotKeyButton) {

@@ -115,6 +115,7 @@
 #include "Control/Line.h"
 #include "Control/IPAddress.h"
 #include "Control/HotKey.h"
+#include "Control/HyperLink.h"
 
 #include "Control/ColorPicker.h"
 #include "Control/ColorControl.h"

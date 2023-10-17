@@ -459,6 +459,7 @@
     <ClInclude Include="Control\FilterCombo.h" />
     <ClInclude Include="Control\GroupBox.h" />
     <ClInclude Include="Control\HotKey.h" />
+    <ClInclude Include="Control\HyperLink.h" />
     <ClInclude Include="Control\IPAddress.h" />
     <ClInclude Include="Control\Line.h" />
     <ClInclude Include="Control\Menu.h" />

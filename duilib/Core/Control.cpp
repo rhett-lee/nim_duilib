@@ -1600,7 +1600,7 @@ void Control::SetAttribute(const std::wstring& strName, const std::wstring& strV
 			ASSERT(FALSE);
 		}
 	}
-	else if (strName == L"cursortype") {
+	else if ((strName == L"cursor_type") || (strName == L"cursortype")) {
 		if (strValue == L"arrow") {
 			SetCursorType(kCursorArrow);
 		}

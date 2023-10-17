@@ -243,6 +243,9 @@
     
     <!--HotKey控件控件通用样式-->
     <Class name="hot_key" width="216" height="28" bkcolor="white" border_size="1" border_color="light_gray"/>
+    
+    <!--HyperLink控件控件通用样式-->
+    <Class name="hyper_link" cursor_type="hand" font="system_underline_14" normal_text_color="default_link_font_color" hot_text_color="hover_link_font_color" pushed_text_color="mouse_down_link_font_color"/>
         
     <!--气泡框通用样式-->
     <TextColor name="popover_color_0" value="#FFECF1F8"/>

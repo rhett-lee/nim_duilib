@@ -42,6 +42,7 @@ namespace ui
 	#define  DUI_CTR_CONTROL                         (L"Control")
 	#define  DUI_CTR_LABEL                           (L"Label")
 	#define  DUI_CTR_RICHTEXT                        (L"RichText")
+	#define  DUI_CTR_HYPER_LINK                      (L"HyperLink")
 	#define  DUI_CTR_BUTTON                          (L"Button")
 	#define  DUI_CTR_OPTION                          (L"Option")
 	#define  DUI_CTR_CHECKBOX                        (L"CheckBox")

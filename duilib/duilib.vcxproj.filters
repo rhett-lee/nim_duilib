@@ -764,5 +764,8 @@
     <ClInclude Include="Control\HotKey.h">
       <Filter>Control</Filter>
     </ClInclude>
+    <ClInclude Include="Control\HyperLink.h">
+      <Filter>Control</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
