@@ -197,6 +197,9 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
 						AttributeUtil::ParseRectValue(strValue.c_str(), rcCaption);
 						pWindow->SetCaptionRect(rcCaption);
 					}
+					else if (strName == L"use_system_caption") {
+						pWindow->SetUseSystemCaption(strValue == L"true");
+					}
 					else if( strName == L"text" ) {
 						pWindow->SetText(strValue);
 					}

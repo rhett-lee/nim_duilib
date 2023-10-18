@@ -24,9 +24,10 @@ Control* WindowImplBase::CreateControl(const std::wstring& /*strClass*/)
 
 UINT WindowImplBase::GetStyle() const
 {
-    //从原来窗口样式中，移除 WS_CAPTION 属性
     ASSERT(::IsWindow(GetHWND()));
     UINT styleValue = (UINT)::GetWindowLong(GetHWND(), GWL_STYLE);
+
+    //使用自绘的标题栏：从原来窗口样式中，移除 WS_CAPTION 属性
     styleValue &= ~WS_CAPTION;
     return styleValue;
 }
@@ -38,9 +39,8 @@ LRESULT WindowImplBase::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam,
     switch (uMsg)
     {
     case WM_CREATE:			lRes = OnCreate(uMsg, wParam, lParam, bHandled); break;
-    case WM_NCLBUTTONDBLCLK:lRes = OnNcLButtonDbClick(uMsg, wParam, lParam, bHandled); break;
     case WM_SYSCOMMAND:		lRes = OnSysCommand(uMsg, wParam, lParam, bHandled); break;
-        //以下消息，无具体实现
+    //以下消息，无具体实现
     case WM_CLOSE:			lRes = OnClose(uMsg, wParam, lParam, bHandled); break;
     case WM_DESTROY:		lRes = OnDestroy(uMsg, wParam, lParam, bHandled); break;
     case WM_MOUSEMOVE:		lRes = OnMouseMove(uMsg, wParam, lParam, bHandled); break;
@@ -90,39 +90,49 @@ LRESULT WindowImplBase::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
     if (pRoot == nullptr) {
         return -1;
     }
+
+    if (IsUseSystemCaption()) {
+        //关闭阴影
+        SetShadowAttached(false);
+    }
+
     //关联窗口附加阴影
     pRoot = AttachShadow(pRoot);
 
     //关联Root对象
     AttachBox(pRoot);
 
-    Control* pControl = (Control*)FindControl(DUI_CTR_BUTTON_CLOSE);
-    if (pControl) {
-        ASSERT(pControl->GetType() == DUI_CTR_BUTTON);
-        pControl->AttachClick(nbase::Bind(&WindowImplBase::OnButtonClick, this, std::placeholders::_1));
-    }
+    //更新自绘制标题栏状态
+    OnUseSystemCaptionBarChanged();
+    if (!IsUseSystemCaption()) {
+        Control* pControl = (Control*)FindControl(DUI_CTR_BUTTON_CLOSE);
+        if (pControl) {
+            ASSERT(pControl->GetType() == DUI_CTR_BUTTON);
+            pControl->AttachClick(nbase::Bind(&WindowImplBase::OnButtonClick, this, std::placeholders::_1));
+        }
 
-    pControl = (Control*)FindControl(DUI_CTR_BUTTON_MIN);
-    if (pControl) {
-        ASSERT(pControl->GetType() == DUI_CTR_BUTTON);
-        pControl->AttachClick(nbase::Bind(&WindowImplBase::OnButtonClick, this, std::placeholders::_1));
-    }
+        pControl = (Control*)FindControl(DUI_CTR_BUTTON_MIN);
+        if (pControl) {
+            ASSERT(pControl->GetType() == DUI_CTR_BUTTON);
+            pControl->AttachClick(nbase::Bind(&WindowImplBase::OnButtonClick, this, std::placeholders::_1));
+        }
 
-    pControl = (Control*)FindControl(DUI_CTR_BUTTON_MAX);
-    if (pControl) {
-        ASSERT(pControl->GetType() == DUI_CTR_BUTTON);
-        pControl->AttachClick(nbase::Bind(&WindowImplBase::OnButtonClick, this, std::placeholders::_1));
-    }
+        pControl = (Control*)FindControl(DUI_CTR_BUTTON_MAX);
+        if (pControl) {
+            ASSERT(pControl->GetType() == DUI_CTR_BUTTON);
+            pControl->AttachClick(nbase::Bind(&WindowImplBase::OnButtonClick, this, std::placeholders::_1));
+        }
 
-    pControl = (Control*)FindControl(DUI_CTR_BUTTON_RESTORE);
-    if (pControl) {
-        ASSERT(pControl->GetType() == DUI_CTR_BUTTON);
-        pControl->AttachClick(nbase::Bind(&WindowImplBase::OnButtonClick, this, std::placeholders::_1));
-    }
-    pControl = (Control*)FindControl(DUI_CTR_BUTTON_FULLSCREEN);
-    if (pControl) {
-        ASSERT(pControl->GetType() == DUI_CTR_BUTTON);
-        pControl->AttachClick(nbase::Bind(&WindowImplBase::OnButtonClick, this, std::placeholders::_1));
+        pControl = (Control*)FindControl(DUI_CTR_BUTTON_RESTORE);
+        if (pControl) {
+            ASSERT(pControl->GetType() == DUI_CTR_BUTTON);
+            pControl->AttachClick(nbase::Bind(&WindowImplBase::OnButtonClick, this, std::placeholders::_1));
+        }
+        pControl = (Control*)FindControl(DUI_CTR_BUTTON_FULLSCREEN);
+        if (pControl) {
+            ASSERT(pControl->GetType() == DUI_CTR_BUTTON);
+            pControl->AttachClick(nbase::Bind(&WindowImplBase::OnButtonClick, this, std::placeholders::_1));
+        }
     }
 
     OnInitWindow();
@@ -133,20 +143,6 @@ void WindowImplBase::OnFinalMessage(HWND hWnd)
 {
     __super::OnFinalMessage(hWnd);
     delete this;
-}
-
-LRESULT WindowImplBase::OnNcLButtonDbClick(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, bool& bHandled)
-{
-    bHandled = true;
-    if (!IsWindowMaximized()) {
-        //最大化
-        Maximized();
-    }
-    else {
-        //还原
-        Restore();
-    }
-    return 0;
 }
 
 LRESULT WindowImplBase::OnSysCommand(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
@@ -172,6 +168,9 @@ LRESULT WindowImplBase::OnSysCommand(UINT uMsg, WPARAM wParam, LPARAM lParam, bo
 
 bool WindowImplBase::OnButtonClick(const EventArgs& msg)
 {
+    if (IsUseSystemCaption()) {
+        return true;
+    }
     ASSERT(msg.pSender != nullptr);
     if (msg.pSender == nullptr) {
         return false;
@@ -203,19 +202,23 @@ bool WindowImplBase::OnButtonClick(const EventArgs& msg)
 
 void WindowImplBase::OnWindowEnterFullScreen()
 {
-    Control* pCaptionBar = FindControl(DUI_CTR_CAPTION_BAR);
-    if (pCaptionBar != nullptr) {
-        pCaptionBar->SetVisible(false);
+    if (!IsUseSystemCaption()) {
+        Control* pCaptionBar = FindControl(DUI_CTR_CAPTION_BAR);
+        if (pCaptionBar != nullptr) {
+            pCaptionBar->SetVisible(false);
+        }
     }
 }
 
 void WindowImplBase::OnWindowExitFullScreen()
 {
-    Control* pCaptionBar = FindControl(DUI_CTR_CAPTION_BAR);
-    if (pCaptionBar != nullptr) {
-        pCaptionBar->SetVisible(true);
+    if (!IsUseSystemCaption()) {
+        Control* pCaptionBar = FindControl(DUI_CTR_CAPTION_BAR);
+        if (pCaptionBar != nullptr) {
+            pCaptionBar->SetVisible(true);
+        }
+        ProcessMaxRestoreStatus();
     }
-    ProcessMaxRestoreStatus();
 }
 
 void WindowImplBase::OnWindowMaximized()
@@ -232,8 +235,26 @@ void WindowImplBase::OnWindowMinimized()
 {
 }
 
+void WindowImplBase::OnUseSystemCaptionBarChanged()
+{
+    __super::OnUseSystemCaptionBarChanged();
+    if (GetRoot() == nullptr) {
+        return;
+    }
+    Control* pCaptionBar = FindControl(DUI_CTR_CAPTION_BAR);
+    if (pCaptionBar != nullptr) {
+        pCaptionBar->SetVisible(!IsUseSystemCaption());
+        if (!IsUseSystemCaption()) {
+            ProcessMaxRestoreStatus();
+        }
+    }
+}
+
 void WindowImplBase::ProcessMaxRestoreStatus()
 {
+    if (IsUseSystemCaption()) {
+        return;
+    }
     Control* pMaxButton = (Control*)FindControl(DUI_CTR_BUTTON_MAX);
     Control* pRestoreButton = (Control*)FindControl(DUI_CTR_BUTTON_RESTORE);
     bool bWindowMax = IsWindowMaximized();

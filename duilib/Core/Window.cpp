@@ -39,6 +39,7 @@ Window::Window() :
     m_rcAlphaFix(0, 0, 0, 0),
     m_szRoundCorner(),
     m_rcCaption(),
+    m_bUseSystemCaption(false),
     m_bFirstLayout(true),
     m_bIsArranged(false),
     m_bMouseCapture(false),
@@ -850,6 +851,36 @@ void Window::SetCaptionRect(const UiRect& rcCaption, bool bNeedDpiScale)
     }
 }
 
+void Window::SetUseSystemCaption(bool bUseSystemCaption)
+{
+    m_bUseSystemCaption = bUseSystemCaption;
+    OnUseSystemCaptionBarChanged();
+}
+
+bool Window::IsUseSystemCaption() const
+{
+    return m_bUseSystemCaption;
+}
+
+void Window::OnUseSystemCaptionBarChanged()
+{
+    if (IsUseSystemCaption()) {
+        //使用系统默认标题栏, 需要增加标题栏风格
+        if (::IsWindow(GetHWND())) {            
+            UINT oldStyleValue = (UINT)::GetWindowLong(GetHWND(), GWL_STYLE);
+            UINT newStyleValue = oldStyleValue | WS_CAPTION;
+            if (newStyleValue != oldStyleValue) {
+                ::SetWindowLong(GetHWND(), GWL_STYLE, newStyleValue);
+            }            
+        }
+        //关闭层窗口
+        SetLayeredWindow(false);
+
+        //关闭阴影
+        SetShadowAttached(false);
+    }
+}
+
 const UiSize& Window::GetRoundCorner() const
 {
     return m_szRoundCorner;
@@ -1194,10 +1225,12 @@ LRESULT Window::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHa
     }
     break;
 
-    case WM_CLOSE:				lResult = OnCloseMsg(uMsg, wParam, lParam, bHandled); break;
     case WM_NCACTIVATE:			lResult = OnNcActivateMsg(uMsg, wParam, lParam, bHandled); break;
     case WM_NCCALCSIZE:			lResult = OnNcCalcSizeMsg(uMsg, wParam, lParam, bHandled); break;
     case WM_NCHITTEST:			lResult = OnNcHitTestMsg(uMsg, wParam, lParam, bHandled); break;
+    case WM_NCLBUTTONDBLCLK:	lResult = OnNcLButtonDbClickMsg(uMsg, wParam, lParam, bHandled); break;
+
+    case WM_CLOSE:				lResult = OnCloseMsg(uMsg, wParam, lParam, bHandled); break;
     case WM_GETMINMAXINFO:		lResult = OnGetMinMaxInfoMsg(uMsg, wParam, lParam, bHandled); break;
     case WM_WINDOWPOSCHANGING:	lResult = OnWindowPosChangingMsg(uMsg, wParam, lParam, bHandled); break;
     case WM_SIZE:				lResult = OnSizeMsg(uMsg, wParam, lParam, bHandled); break;
@@ -1262,31 +1295,14 @@ LRESULT Window::CallDefaultWindowProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
     return ::CallWindowProc(m_OldWndProc, m_hWnd, uMsg, wParam, lParam);
 }
 
-LRESULT Window::OnCloseMsg(UINT uMsg, WPARAM /*wParam*/, LPARAM /*lParam*/, bool& bHandled)
-{
-    ASSERT_UNUSED_VARIABLE(uMsg == WM_CLOSE);
-    bHandled = false;
-    if (m_bFakeModal) {
-        HWND hOwnerWnd = GetWindowOwner();
-        ASSERT(::IsWindow(hOwnerWnd));
-        ::EnableWindow(hOwnerWnd, TRUE);
-        ::SetFocus(hOwnerWnd);
-        m_bFakeModal = false;
-    }
-
-    ClearStatus();
-    if (::GetFocus() == m_hWnd) {
-        HWND hwndParent = GetWindowOwner();
-        if (hwndParent != nullptr) {
-            ::SetFocus(hwndParent);
-        }
-    }
-    return 0;
-}
-
 LRESULT Window::OnNcActivateMsg(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/, bool& bHandled)
 {
     ASSERT_UNUSED_VARIABLE(uMsg == WM_NCACTIVATE);
+    if (IsUseSystemCaption()) {
+        bHandled = false;
+        return 0;
+    }
+
     LRESULT lResult = 0;
     if (IsWindowMinimized()) {
         bHandled = false;
@@ -1302,6 +1318,11 @@ LRESULT Window::OnNcActivateMsg(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/, boo
 LRESULT Window::OnNcCalcSizeMsg(UINT uMsg, WPARAM /*wParam*/, LPARAM /*lParam*/, bool& bHandled)
 {
     ASSERT_UNUSED_VARIABLE(uMsg == WM_NCCALCSIZE);
+    if (IsUseSystemCaption()) {
+        bHandled = false;
+        return 0;
+    }
+
     //截获，让系统不处理此消息
     bHandled = true;
     return 0;
@@ -1310,6 +1331,11 @@ LRESULT Window::OnNcCalcSizeMsg(UINT uMsg, WPARAM /*wParam*/, LPARAM /*lParam*/,
 LRESULT Window::OnNcHitTestMsg(UINT uMsg, WPARAM /*wParam*/, LPARAM lParam, bool& bHandled)
 {
     ASSERT_UNUSED_VARIABLE(uMsg == WM_NCHITTEST);
+    if (IsUseSystemCaption()) {
+        bHandled = false;
+        return 0;
+    }
+
     bHandled = true;
     UiPoint pt;
     pt.x = GET_X_LPARAM(lParam);
@@ -1392,6 +1418,48 @@ LRESULT Window::OnNcHitTestMsg(UINT uMsg, WPARAM /*wParam*/, LPARAM lParam, bool
     }
     //其他，在工作区中
     return HTCLIENT;
+}
+
+LRESULT Window::OnNcLButtonDbClickMsg(UINT uMsg, WPARAM /*wParam*/, LPARAM /*lParam*/, bool& bHandled)
+{
+    ASSERT_UNUSED_VARIABLE(uMsg == WM_NCLBUTTONDBLCLK);
+    if (IsUseSystemCaption()) {
+        bHandled = false;
+        return 0;
+    }
+
+    bHandled = true;
+    if (!IsWindowMaximized()) {
+        //最大化
+        Maximized();
+    }
+    else {
+        //还原
+        Restore();
+    }
+    return 0;
+}
+
+LRESULT Window::OnCloseMsg(UINT uMsg, WPARAM /*wParam*/, LPARAM /*lParam*/, bool& bHandled)
+{
+    ASSERT_UNUSED_VARIABLE(uMsg == WM_CLOSE);
+    bHandled = false;
+    if (m_bFakeModal) {
+        HWND hOwnerWnd = GetWindowOwner();
+        ASSERT(::IsWindow(hOwnerWnd));
+        ::EnableWindow(hOwnerWnd, TRUE);
+        ::SetFocus(hOwnerWnd);
+        m_bFakeModal = false;
+    }
+
+    ClearStatus();
+    if (::GetFocus() == m_hWnd) {
+        HWND hwndParent = GetWindowOwner();
+        if (hwndParent != nullptr) {
+            ::SetFocus(hwndParent);
+        }
+    }
+    return 0;
 }
 
 LRESULT Window::OnGetMinMaxInfoMsg(UINT uMsg, WPARAM /*wParam*/, LPARAM lParam, bool& bHandled)

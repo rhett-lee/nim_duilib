@@ -96,15 +96,6 @@ protected:
     */
     virtual void OnFinalMessage(HWND hWnd) override;
 
-    /** 当接收到标题栏区域双击消息（WM_NCLBUTTONDBLCLK）时被调用
-    * @param [in] uMsg 消息内容
-    * @param [in] wParam 消息附加参数
-    * @param [in] lParam 消息附加参数
-    * @param[out] bHandled 返回 false 则继续派发该消息，否则不再派发该消息
-    * @return 返回消息处理结果
-    */
-    virtual LRESULT OnNcLButtonDbClick(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
-
     /** 接收窗口控制命令消息时（WM_SYSCOMMAND）被调用
     *  @param [in] uMsg 消息内容
     *  @param [in] wParam 消息附加参数
@@ -288,6 +279,10 @@ protected:
     /** 进入最小化状态
     */
     virtual void OnWindowMinimized() override;
+
+    /** 切换系统标题栏与自绘标题栏
+    */
+    virtual void OnUseSystemCaptionBarChanged() override;
 
 private:
     /** 窗口功能按钮被点击时调用

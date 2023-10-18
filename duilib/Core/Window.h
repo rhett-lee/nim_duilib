@@ -297,6 +297,14 @@ public:
     */
     void SetCaptionRect(const UiRect& rcCaption, bool bNeedDpiScale = true);
 
+    /** 设置是否使用系统标题栏
+    */
+    void SetUseSystemCaption(bool bUseSystemCaption);
+
+    /** 获取是否使用系统标题栏
+    */
+    bool IsUseSystemCaption() const;
+
     /** 获取窗口圆角大小，对应 XML 中 roundcorner 属性
     */
     const UiSize& GetRoundCorner() const;
@@ -568,15 +576,21 @@ protected:
     */
     virtual void OnWindowMinimized() {}
 
+    /** 切换系统标题栏与自绘标题栏
+    */
+    virtual void OnUseSystemCaptionBarChanged();
+
 private:
     /** @name 私有窗口消息处理相关
     * @{
     */
-    //部分消息处理函数，以实现基本功能
-    LRESULT OnCloseMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
+    //部分消息处理函数，以实现基本功能    
     LRESULT OnNcActivateMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
     LRESULT OnNcCalcSizeMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
     LRESULT OnNcHitTestMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
+    LRESULT OnNcLButtonDbClickMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
+
+    LRESULT OnCloseMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
     LRESULT OnGetMinMaxInfoMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
     LRESULT OnWindowPosChangingMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
     LRESULT OnSizeMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
@@ -615,6 +629,7 @@ private:
     LRESULT OnTouchMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
     LRESULT OnPointerMsgs(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
 
+private:
     //鼠标等按下消息处理函数
     void OnButtonDown(EventType eventType, WPARAM wParam, LPARAM lParam, const UiPoint& pt);
 
@@ -922,7 +937,7 @@ public:
     * @param [in] wVirtualKeyCode 虚拟键盘码，比如：VK_DOWN等，可参考：https://learn.microsoft.com/zh-cn/windows/win32/inputdev/virtual-key-codes
     *             如果wVirtualKeyCode为0，表示取消管理窗口激活热键
     * @param [in] wModifiers 热键组合键标志位，参见HotKeyModifiers枚举类型的值
-    * @return 返回值说明：
+    * @return 返回值说明:
        -1: 函数不成功;热键无效。
         0: 函数不成功;窗口无效。
         1: 函数成功，并且没有其他窗口具有相同的热键。
@@ -1045,6 +1060,9 @@ private:
 
     //布局是否需要初始化
     bool m_bFirstLayout;
+
+    //是否使用系统的标题栏
+    bool m_bUseSystemCaption;
 
 private:
     //绘制DC
