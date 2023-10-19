@@ -75,6 +75,7 @@ namespace ui
 	#define  DUI_CTR_VLISTBOX                        (L"VListBox")
 	#define  DUI_CTR_HTILE_LISTBOX                   (L"HTileListBox")
 	#define  DUI_CTR_VTILE_LISTBOX                   (L"VTileListBox")
+	#define  DUI_CTR_LISTCTRL						 (L"ListCtrl")
 
 	#define  DUI_CTR_VIRTUAL_VLISTBOX				 (L"VirtualVListBox")
 	#define  DUI_CTR_VIRTUAL_HLISTBOX				 (L"VirtualHListBox")
@@ -112,7 +113,7 @@ namespace ui
 
 	#define  DUI_CTR_LINE							 (L"Line")
 	#define  DUI_CTR_IPADDRESS						 (L"IPAddress")
-	#define  DUI_CTR_HOTKEY							 (L"HotKey")
+	#define  DUI_CTR_HOTKEY							 (L"HotKey")	
 
 	// 窗口标题栏按钮：最大化、最小化、关闭、还原、全屏窗口的名字，代码中写死的
 	#define DUI_CTR_CAPTION_BAR						 (L"window_caption_bar")

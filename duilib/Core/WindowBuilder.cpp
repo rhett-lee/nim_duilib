@@ -29,6 +29,7 @@
 #include "duilib/Control/IPAddress.h"
 #include "duilib/Control/HotKey.h"
 #include "duilib/Control/HyperLink.h"
+#include "duilib/Control/ListCtrl.h"
 
 #include "duilib/Box/HBox.h"
 #include "duilib/Box/VBox.h"
@@ -741,6 +742,7 @@ Control* WindowBuilder::CreateControlByClass(const std::wstring& strControlClass
 		{DUI_CTR_VLISTBOX, []() { return new VListBox; }},
 		{DUI_CTR_HTILE_LISTBOX, []() { return new HTileListBox; }},
 		{DUI_CTR_VTILE_LISTBOX, []() { return new VTileListBox; }},
+		{DUI_CTR_LISTCTRL, []() { return new ListCtrl; }},
 
 		{DUI_CTR_VIRTUAL_HTILE_LISTBOX, []() { return new VirtualHTileListBox; }},
 		{DUI_CTR_VIRTUAL_VTILE_LISTBOX, []() { return new VirtualVTileListBox; }},
