@@ -30,6 +30,11 @@ public:
     */
     void StopSplitDrag();
 
+    /** 监听拖动的事件
+     * @param [in] callback 被选择时触发的回调函数
+     */
+    void AttachSplitDraged(const EventCallback& callback) { this->AttachEvent(kEventSplitDraged, callback); }
+
 protected:
     virtual bool MouseEnter(const EventArgs& msg) override;
     virtual bool ButtonDown(const EventArgs& msg) override;
@@ -316,11 +321,19 @@ bool SplitTemplate<InheritType>::MouseMove(const EventArgs& msg)
     }
 
     //对于拉伸类型的控件，不调整，交给父容器自动调整（如果两个控件都是拉伸类型的，分割条就无法工作了）
+    Control* pControl1 = nullptr;
+    Control* pControl2 = nullptr;
     if (!m_nLeftUpFixedValue.IsStretch()) {
+        pControl1 = m_pLeftTop;
         AdjustControlPos(m_bHLayout, nTotal, nOffset, m_pLeftTop, m_nLeftUpFixedValue, m_pRightBottom);
     }
     if (!m_nRightBottomFixedValue.IsStretch()) {
+        pControl2 = m_pRightBottom;
         AdjustControlPos(m_bHLayout, nTotal, -nOffset, m_pRightBottom, m_nRightBottomFixedValue, m_pLeftTop);
+    }
+
+    if ((pControl1 != nullptr) || (pControl2 != nullptr)) {
+        this->SendEvent(kEventSplitDraged, (WPARAM)pControl1, (LPARAM)pControl2);
     }
 
     return bRet;

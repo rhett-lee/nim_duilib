@@ -794,12 +794,20 @@ void Render_GdiPlus::FillRect(const UiRect& rc, UiColor dwColor, uint8_t uFade)
 	graphics.FillRectangle(&brush, rcFill);
 }
 
-void Render_GdiPlus::DrawLine(const UiPoint& pt1, const UiPoint& pt2, UiColor penColor, int nWidth)
+void Render_GdiPlus::DrawLine(const UiPoint& pt1, const UiPoint& pt2, UiColor penColor, int32_t nWidth)
 {
 	ASSERT((GetWidth() > 0) && (GetHeight() > 0));
 	Gdiplus::Graphics graphics(m_hDC);
 	Gdiplus::Pen pen(Gdiplus::Color(penColor.GetARGB()), (Gdiplus::REAL)nWidth);
 	graphics.DrawLine(&pen, Gdiplus::Point(pt1.x, pt1.y), Gdiplus::Point(pt2.x, pt2.y));
+}
+
+void Render_GdiPlus::DrawLine(const UiPointF& pt1, const UiPointF& pt2, UiColor penColor, float fWidth)
+{
+	ASSERT((GetWidth() > 0) && (GetHeight() > 0));
+	Gdiplus::Graphics graphics(m_hDC);
+	Gdiplus::Pen pen(Gdiplus::Color(penColor.GetARGB()), (Gdiplus::REAL)fWidth);
+	graphics.DrawLine(&pen, Gdiplus::PointF(pt1.x, pt1.y), Gdiplus::PointF(pt2.x, pt2.y));
 }
 
 void Render_GdiPlus::DrawLine(const UiPoint& pt1, const UiPoint& pt2, IPen* pen)
@@ -813,7 +821,7 @@ void Render_GdiPlus::DrawLine(const UiPoint& pt1, const UiPoint& pt2, IPen* pen)
 	graphics.DrawLine(((Pen_GdiPlus*)pen)->GetPen(), Gdiplus::Point(pt1.x, pt1.y), Gdiplus::Point(pt2.x, pt2.y));
 }
 
-void Render_GdiPlus::DrawRect(const UiRect& rc, UiColor penColor, int nWidth)
+void Render_GdiPlus::DrawRect(const UiRect& rc, UiColor penColor, int32_t nWidth, bool /*bLineInRect*/)
 {
 	ASSERT((GetWidth() > 0) && (GetHeight() > 0));
 	Gdiplus::Graphics graphics(m_hDC);

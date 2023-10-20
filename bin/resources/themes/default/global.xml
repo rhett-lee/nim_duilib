@@ -238,15 +238,20 @@
     <!--RichText 的基本属性-->
     <Class name="rich_text" text_color="default_font_color" default_link_font_color="default_link_font_color" hover_link_font_color="hover_link_font_color" mouse_down_link_font_color="mouse_down_link_font_color" link_font_underline="true"/>
     
-    <!--IP地址控件控件通用样式-->
+    <!--IP地址控件通用样式-->
     <Class name="ip_address" width="140" height="28" bkcolor="white" border_size="1" border_color="light_gray"/>
     
-    <!--HotKey控件控件通用样式-->
+    <!--HotKey控件通用样式-->
     <Class name="hot_key" width="216" height="28" bkcolor="white" border_size="1" border_color="light_gray"/>
     
-    <!--HyperLink控件控件通用样式-->
+    <!--HyperLink控件通用样式-->
     <Class name="hyper_link" cursor_type="hand" font="system_underline_14" normal_text_color="default_link_font_color" hot_text_color="hover_link_font_color" pushed_text_color="mouse_down_link_font_color"/>
-        
+    
+    <!--ListCtrl控件列表项通用样式-->
+    <Class name="list_ctrl_item" hot_color="#FFE5F3FF" pushed_color="#FFD9EEFF" selected_normal_color="#FFCCE8FF"/>
+    
+    
+    
     <!--气泡框通用样式-->
     <TextColor name="popover_color_0" value="#FFECF1F8"/>
     <TextColor name="popover_color_1" value="#FFF2F7FF"/>

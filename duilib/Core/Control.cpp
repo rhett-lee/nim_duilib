@@ -499,15 +499,19 @@ std::wstring Control::GetFocusBorderColor() const
 	return m_focusBorderColor.c_str();
 }
 
-void Control::SetBorderSize(UiRect rc)
+void Control::SetBorderSize(UiRect rc, bool bNeedDpiScale)
 {
-	GlobalManager::Instance().Dpi().ScaleRect(rc);
+	if (bNeedDpiScale) {
+		GlobalManager::Instance().Dpi().ScaleRect(rc);
+	}
 	rc.left = std::max(rc.left, 0);
 	rc.top = std::max(rc.top, 0);
 	rc.right = std::max(rc.right, 0);
 	rc.bottom = std::max(rc.bottom, 0);
-	m_rcBorderSize = rc;
-	Invalidate();
+	if (m_rcBorderSize != rc) {
+		m_rcBorderSize = rc;
+		Invalidate();
+	}	
 }
 
 int32_t Control::GetLeftBorderSize() const
@@ -515,11 +519,15 @@ int32_t Control::GetLeftBorderSize() const
 	return m_rcBorderSize.left;
 }
 
-void Control::SetLeftBorderSize(int32_t nSize)
+void Control::SetLeftBorderSize(int32_t nSize, bool bNeedDpiScale)
 {
-	GlobalManager::Instance().Dpi().ScaleInt(nSize);
-	m_rcBorderSize.left = nSize;
-	Invalidate();
+	if (bNeedDpiScale) {
+		GlobalManager::Instance().Dpi().ScaleInt(nSize);
+	}
+	if (m_rcBorderSize.left != nSize) {
+		m_rcBorderSize.left = nSize;
+		Invalidate();
+	}	
 }
 
 int32_t Control::GetTopBorderSize() const
@@ -527,11 +535,15 @@ int32_t Control::GetTopBorderSize() const
 	return m_rcBorderSize.top;
 }
 
-void Control::SetTopBorderSize(int32_t nSize)
+void Control::SetTopBorderSize(int32_t nSize, bool bNeedDpiScale)
 {
-	GlobalManager::Instance().Dpi().ScaleInt(nSize);
-	m_rcBorderSize.top = nSize;
-	Invalidate();
+	if (bNeedDpiScale) {
+		GlobalManager::Instance().Dpi().ScaleInt(nSize);
+	}
+	if (m_rcBorderSize.top != nSize) {
+		m_rcBorderSize.top = nSize;
+		Invalidate();
+	}	
 }
 
 int32_t Control::GetRightBorderSize() const
@@ -539,11 +551,15 @@ int32_t Control::GetRightBorderSize() const
 	return m_rcBorderSize.right;
 }
 
-void Control::SetRightBorderSize(int32_t nSize)
+void Control::SetRightBorderSize(int32_t nSize, bool bNeedDpiScale)
 {
-	GlobalManager::Instance().Dpi().ScaleInt(nSize);
-	m_rcBorderSize.right = nSize;
-	Invalidate();
+	if (bNeedDpiScale) {
+		GlobalManager::Instance().Dpi().ScaleInt(nSize);
+	}
+	if (m_rcBorderSize.right != nSize) {
+		m_rcBorderSize.right = nSize;
+		Invalidate();
+	}	
 }
 
 int32_t Control::GetBottomBorderSize() const
@@ -551,11 +567,15 @@ int32_t Control::GetBottomBorderSize() const
 	return m_rcBorderSize.bottom;
 }
 
-void Control::SetBottomBorderSize(int32_t nSize)
+void Control::SetBottomBorderSize(int32_t nSize, bool bNeedDpiScale)
 {
-	GlobalManager::Instance().Dpi().ScaleInt(nSize);
-	m_rcBorderSize.bottom = nSize;
-	Invalidate();
+	if (bNeedDpiScale) {
+		GlobalManager::Instance().Dpi().ScaleInt(nSize);
+	}
+	if (m_rcBorderSize.bottom != nSize) {
+		m_rcBorderSize.bottom = nSize;
+		Invalidate();
+	}	
 }
 
 const UiSize& Control::GetBorderRound() const
@@ -2262,46 +2282,64 @@ void Control::PaintBorder(IRender* pRender)
 	if (dwBorderColor.GetARGB() == 0) {
 		return;
 	}
+	bool bPainted = false;
 	if ((m_rcBorderSize.left > 0) &&
 		(m_rcBorderSize.left == m_rcBorderSize.right) &&
 		(m_rcBorderSize.left == m_rcBorderSize.top) &&
 		(m_rcBorderSize.left == m_rcBorderSize.bottom)) {
 		//四个边都存在，且大小相同，则直接绘制矩形, 支持圆角矩形
-		PaintBorders(pRender, GetRect(), (int32_t)m_rcBorderSize.left, dwBorderColor);
+		if (ShouldBeRoundRectBorders()) {
+			//仅圆角矩形，使用这个函数绘制边线
+			PaintBorders(pRender, GetRect(), (int32_t)m_rcBorderSize.left, dwBorderColor);
+			bPainted = true;
+		}
 	}
-	else {
-		//四个边分别按照设置绘制边线
+
+	if(!bPainted) {
+		//非圆角矩形，四个边分别按照设置绘制边线
 		if (m_rcBorderSize.left > 0) {
+			//左边线
 			UiRect rcBorder = GetRect();
-			rcBorder.right = rcBorder.left = GetRect().left + m_rcBorderSize.left / 2;
 			if (m_rcBorderSize.left == 1) {
 				rcBorder.bottom -= 1;
 			}
-			pRender->DrawLine(UiPoint(rcBorder.left, rcBorder.top), UiPoint(rcBorder.right, rcBorder.bottom), dwBorderColor, m_rcBorderSize.left);
+			float fWidth = (float)m_rcBorderSize.left;
+			UiPointF pt1((float)rcBorder.left + fWidth / 2, (float)rcBorder.top);
+			UiPointF pt2((float)rcBorder.left + fWidth / 2, (float)rcBorder.bottom);
+			pRender->DrawLine(pt1, pt2, dwBorderColor, fWidth);
 		}
 		if (m_rcBorderSize.top > 0) {
+			//上边线
 			UiRect rcBorder = GetRect();
-			rcBorder.bottom = rcBorder.top = GetRect().top + m_rcBorderSize.top / 2;
 			if (m_rcBorderSize.top == 1) {
 				rcBorder.right -= 1;
 			}
-			pRender->DrawLine(UiPoint(rcBorder.left, rcBorder.top), UiPoint(rcBorder.right, rcBorder.bottom), dwBorderColor, m_rcBorderSize.top);
+			float fWidth = (float)m_rcBorderSize.top;
+			UiPointF pt1((float)rcBorder.left, (float)rcBorder.top + fWidth / 2);
+			UiPointF pt2((float)rcBorder.right, (float)rcBorder.top + fWidth / 2);
+			pRender->DrawLine(pt1, pt2, dwBorderColor, fWidth);
 		}
 		if (m_rcBorderSize.right > 0) {
+			//右边线
 			UiRect rcBorder = GetRect();
-			rcBorder.left = rcBorder.right = GetRect().right - (m_rcBorderSize.right + 1) / 2;
 			if (m_rcBorderSize.right == 1) {
 				rcBorder.bottom -= 1;
 			}
-			pRender->DrawLine(UiPoint(rcBorder.left, rcBorder.top), UiPoint(rcBorder.right, rcBorder.bottom), dwBorderColor, m_rcBorderSize.right);
+			float fWidth = (float)m_rcBorderSize.right;
+			UiPointF pt1((float)rcBorder.right - fWidth / 2, (float)rcBorder.top);
+			UiPointF pt2((float)rcBorder.right - fWidth / 2, (float)rcBorder.bottom);
+			pRender->DrawLine(pt1, pt2, dwBorderColor, fWidth);
 		}
 		if (m_rcBorderSize.bottom > 0) {
+			//下边线
 			UiRect rcBorder = GetRect();
-			rcBorder.top = rcBorder.bottom = GetRect().bottom - (m_rcBorderSize.bottom + 1) / 2;
 			if (m_rcBorderSize.bottom == 1) {
 				rcBorder.right -= 1;
 			}
-			pRender->DrawLine(UiPoint(rcBorder.left, rcBorder.top), UiPoint(rcBorder.right, rcBorder.bottom), dwBorderColor, m_rcBorderSize.bottom);
+			float fWidth = (float)m_rcBorderSize.bottom;
+			UiPointF pt1((float)rcBorder.left, (float)rcBorder.bottom - fWidth / 2);
+			UiPointF pt2((float)rcBorder.right, (float)rcBorder.bottom - fWidth / 2);			
+			pRender->DrawLine(pt1, pt2, dwBorderColor, fWidth);
 		}
 	}
 }
@@ -2327,7 +2365,7 @@ void Control::PaintBorders(IRender* pRender, UiRect rcDraw,
 		DrawRoundRect(pRender, rcDraw, m_cxyBorderRound, dwBorderColor, nBorderSize);
 	}
 	else {
-		pRender->DrawRect(rcDraw, dwBorderColor, nBorderSize);
+		pRender->DrawRect(rcDraw, dwBorderColor, nBorderSize, true);
 	}
 }
 

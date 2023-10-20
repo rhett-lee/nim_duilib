@@ -190,74 +190,66 @@ public:
 	*/
 	std::wstring GetFocusBorderColor() const;
 
-	/** @brief 设置边框的大小(left、top、right、bottom分别对应左边框大小，上边框大小，右边框大小、下边框大小)
-	 * @param[in] rc 一个 `UiRect` 结构的边框大小集合
+	/** 设置边框的大小(left、top、right、bottom分别对应左边框大小，上边框大小，右边框大小、下边框大小)
+	 * @param [in] rc 一个 `UiRect` 结构的边框大小集合
+	 * @param [in] bNeedDpiScale 是否需要做DPI自适应
 	 */
-	void SetBorderSize(UiRect rc);
+	void SetBorderSize(UiRect rc, bool bNeedDpiScale = true);
 
-	/**
-	 * @brief 获取左侧边框大小
+	/** 获取左侧边框大小
 	 * @return 左侧边框的大小  
 	 */
 	int32_t GetLeftBorderSize() const;
 
-	/**
-	 * @brief 设置左侧边框大小
-	 * @param[in] nSize 要设置的左侧边框大小
-	 * @return 无
+	/** 设置左侧边框大小
+	 * @param [in] nSize 要设置的左侧边框大小
+	 * @param [in] bNeedDpiScale 是否需要做DPI自适应
 	 */
-	void SetLeftBorderSize(int32_t nSize);
+	void SetLeftBorderSize(int32_t nSize, bool bNeedDpiScale = true);
 
-	/**
-	 * @brief 获取顶部边框大小
-	 * @return 顶部边框大小
+	/** 获取顶部边框大小
 	 */
 	int32_t GetTopBorderSize() const;
 
-	/**
-	 * @brief 设置顶部边框大小
-	 * @param[in] nSize 要设置的上方边框大小
-	 * @return 无
+	/** 设置顶部边框大小
+	 * @param [in] nSize 要设置的上方边框大小
+	 * @param [in] bNeedDpiScale 是否需要做DPI自适应
 	 */
-	void SetTopBorderSize(int32_t nSize);
+	void SetTopBorderSize(int32_t nSize, bool bNeedDpiScale = true);
 
-	/**
-	 * @brief 获取右侧边框大小
+	/** 获取右侧边框大小
 	 * @return 右侧的边框大小
 	 */
 	int32_t GetRightBorderSize() const;
 
-	/**
-	 * @brief 设置右侧边框大小
-	 * @param[in] nSize 要设置的右侧边框大小
-	 * @return 无
+	/** 设置右侧边框大小
+	 * @param [in] nSize 要设置的右侧边框大小
+	 * @param [in] bNeedDpiScale 是否需要做DPI自适应
 	 */
-	void SetRightBorderSize(int32_t nSize);
+	void SetRightBorderSize(int32_t nSize, bool bNeedDpiScale = true);
 
-	/**
-	 * @brief 获取下方边框大小
+	/** 获取下方边框大小
 	 * @return 下方边框大小
 	 */
 	int32_t GetBottomBorderSize() const;
 
-	/**@brief 设置下方边框大小
-	 * @param[in] nSize 要设置的下方边框大小
+	/** 设置下方边框大小
+	 * @param [in] nSize 要设置的下方边框大小
+	 * @param [in] bNeedDpiScale 是否需要做DPI自适应
 	 */
-	void SetBottomBorderSize(int32_t nSize);
+	void SetBottomBorderSize(int32_t nSize, bool bNeedDpiScale = true);
 
 	/** 获取圆角大小
 	 */
 	const UiSize& GetBorderRound() const;
 
 	/** 设置边框大小
-	 * @param[in] cxyRound 一个 UiSize 结构表示圆角大小
+	 * @param [in] cxyRound 一个 UiSize 结构表示圆角大小
 	 */
 	void SetBorderRound(UiSize cxyRound);
 
-	/**
-	 * @brief 设置边框阴影
+	/** 设置边框阴影
 	 * @param[in] 要设置的阴影属性
-	 * @return 无
 	 */
 	void SetBoxShadow(const std::wstring& strShadow);
 

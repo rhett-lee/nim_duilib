@@ -845,7 +845,7 @@ void Render_Skia::FillRect(const UiRect& rc, UiColor dwColor, uint8_t uFade)
 	}
 }
 
-void Render_Skia::DrawLine(const UiPoint& pt1, const UiPoint& pt2, UiColor penColor, int nWidth)
+void Render_Skia::DrawLine(const UiPoint& pt1, const UiPoint& pt2, UiColor penColor, int32_t nWidth)
 {
 	ASSERT((GetWidth() > 0) && (GetHeight() > 0));
 	SkPaint skPaint = *m_pSkPaint;
@@ -859,6 +859,26 @@ void Render_Skia::DrawLine(const UiPoint& pt1, const UiPoint& pt2, UiColor penCo
 
 	SkPoint skPt2;
 	skPt2.iset(pt2.x, pt2.y);
+	skPt2.offset(m_pSkPointOrg->fX, m_pSkPointOrg->fY);
+
+	ASSERT(m_pSkCanvas != nullptr);
+	if (m_pSkCanvas != nullptr) {
+		m_pSkCanvas->drawLine(skPt1, skPt2, skPaint);
+	}
+}
+
+void Render_Skia::DrawLine(const UiPointF& pt1, const UiPointF& pt2, UiColor penColor, float fWidth)
+{
+	ASSERT((GetWidth() > 0) && (GetHeight() > 0));
+	SkPaint skPaint = *m_pSkPaint;
+	skPaint.setARGB(penColor.GetA(), penColor.GetR(), penColor.GetG(), penColor.GetB());
+	skPaint.setStyle(SkPaint::kStroke_Style);
+	skPaint.setStrokeWidth(SkScalar(fWidth));
+
+	SkPoint skPt1 = SkPoint::Make(pt1.x, pt1.y);
+	skPt1.offset(m_pSkPointOrg->fX, m_pSkPointOrg->fY);
+
+	SkPoint skPt2 = SkPoint::Make(pt2.x, pt2.y);
 	skPt2.offset(m_pSkPointOrg->fX, m_pSkPointOrg->fY);
 
 	ASSERT(m_pSkCanvas != nullptr);
@@ -891,7 +911,7 @@ void Render_Skia::DrawLine(const UiPoint& pt1, const UiPoint& pt2, IPen* pen)
 	}
 }
 
-void Render_Skia::DrawRect(const UiRect& rc, UiColor penColor, int nWidth)
+void Render_Skia::DrawRect(const UiRect& rc, UiColor penColor, int32_t nWidth, bool bLineInRect)
 {
 	ASSERT((GetWidth() > 0) && (GetHeight() > 0));
 	SkPaint skPaint = *m_pSkPaint;
@@ -901,6 +921,14 @@ void Render_Skia::DrawRect(const UiRect& rc, UiColor penColor, int nWidth)
 
 	SkIRect rcSkDestI = { rc.left, rc.top, rc.right, rc.bottom };
 	SkRect rcSkDest = SkRect::Make(rcSkDestI);
+	if (bLineInRect) {
+		//确保画的线，都在矩形范围内
+		SkScalar fHalfStrokeWidth = skPaint.getStrokeWidth() / 2;
+		rcSkDest.fLeft += fHalfStrokeWidth;
+		rcSkDest.fRight -= fHalfStrokeWidth;
+		rcSkDest.fTop += fHalfStrokeWidth;
+		rcSkDest.fBottom -= fHalfStrokeWidth;		
+	}
 	rcSkDest.offset(*m_pSkPointOrg);
 
 	ASSERT(m_pSkCanvas != nullptr);

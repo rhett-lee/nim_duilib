@@ -71,10 +71,11 @@ public:
 						       const UiRect& rcDest, const UiRect& rcSource,
 						       uint8_t uFade = 255, IMatrix* pMatrix = nullptr);
 
-	virtual void DrawLine(const UiPoint& pt1, const UiPoint& pt2, UiColor penColor, int nWidth) override;
+	virtual void DrawLine(const UiPoint& pt1, const UiPoint& pt2, UiColor penColor, int32_t nWidth) override;
+	virtual void DrawLine(const UiPointF& pt1, const UiPointF& pt2, UiColor penColor, float fWidth) override;
 	virtual void DrawLine(const UiPoint& pt1, const UiPoint& pt2, IPen* pen) override;
 
-	virtual void DrawRect(const UiRect& rc, UiColor penColor, int nWidth) override;
+	virtual void DrawRect(const UiRect& rc, UiColor penColor, int32_t nWidth, bool bLineInRect) override;
 	virtual void FillRect(const UiRect& rc, UiColor dwColor, uint8_t uFade = 255) override;
 
 	virtual void DrawRoundRect(const UiRect& rc, const UiSize& roundSize, UiColor penColor, int nWidth) override;

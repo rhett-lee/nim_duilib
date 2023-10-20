@@ -311,6 +311,8 @@ namespace ui
 		kEventStateChange,			//Control类：当控件的State属性发生变化时触发, WPARAM是新状态，LPARAM是旧状态
 		kEventSelectColor,			//ColorPicker类：当选择了新颜色时触发, WPARAM是新的颜色值，LPARAM是旧的颜色值
 
+		kEventSplitDraged,			//Split类：通过拖动操作调整了控件的大小，WPARAM是第一个控件接口，LPARAM是第二个控件接口
+
 		kEventLast					//Control类：该控件的最后一个消息，当这个控件对象销毁时触发
 	};
 

@@ -46,12 +46,12 @@ public:
 	 */
 	virtual void SetPos(UiRect rc) override;
 
-	/** 获取控件实际可用矩形区域，包含内边距，不包含外边距
+	/** 获取控件实际可用矩形区域
 	*@return 返回控件的实际可用区域，即GetPos剪去Padding后的区域
 	*/
 	virtual UiRect GetPosWithoutPadding() const;
 
-	/** 获取控件实际可用矩形区域，包含内边距，不包含外边距
+	/** 获取控件实际可用矩形区域
 	*@return 返回控件的实际可用区域，即GetRect剪去Padding后的区域
 	*/
 	UiRect GetRectWithoutPadding() const;

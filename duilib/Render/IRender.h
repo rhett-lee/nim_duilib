@@ -586,7 +586,15 @@ public:
 	* @param [in] penColor 画笔的颜色值
 	* @param [in] nWidth 画笔的宽度
 	*/
-	virtual void DrawLine(const UiPoint& pt1, const UiPoint& pt2, UiColor penColor, int nWidth) = 0;
+	virtual void DrawLine(const UiPoint& pt1, const UiPoint& pt2, UiColor penColor, int32_t nWidth) = 0;
+
+	/** 绘制直线
+	* @param [in] pt1 起始点坐标
+	* @param [in] pt2 终止点坐标
+	* @param [in] penColor 画笔的颜色值
+	* @param [in] nWidth 画笔的宽度
+	*/
+	virtual void DrawLine(const UiPointF& pt1, const UiPointF& pt2, UiColor penColor, float fWidth) = 0;
 
 	/** 绘制直线，支持各种线形
 	* @param [in] pt1 起始点坐标
@@ -599,8 +607,9 @@ public:
 	* @param [in] rc 矩形区域
 	* @param [in] penColor 画笔的颜色值
 	* @param [in] nWidth 画笔的宽度
+	* @param [in] bLineInRect 如果为true，表示确保画出的线条严格限制在rc矩形内部，否则线的中心点是与rc边线对齐的，线条会有部分超出rc矩形范围
 	*/
-	virtual void DrawRect(const UiRect& rc, UiColor penColor, int nWidth) = 0;
+	virtual void DrawRect(const UiRect& rc, UiColor penColor, int32_t nWidth, bool bLineInRect = false) = 0;
 
 	/** 用颜色填充矩形
 	* @param [in] rc 目标矩形区域
