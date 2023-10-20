@@ -773,5 +773,8 @@
     <ClInclude Include="Control\ListCtrl.h">
       <Filter>Control</Filter>
     </ClInclude>
+    <ClInclude Include="Box\ListBoxItem.h">
+      <Filter>Box</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

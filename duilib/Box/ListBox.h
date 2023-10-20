@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "duilib/Box/ListBoxItem.h"
 #include "duilib/Box/ScrollBox.h"
 #include "duilib/Control/Option.h"
 
@@ -321,84 +322,6 @@ private:
 
 /////////////////////////////////////////////////////////////////////////////////////
 //
-
-/** 列表项，用于在列表中展示数据的子项
-*/
-class UILIB_API ListBoxItem: 
-	public OptionTemplate<Box>
-{
-public:
-	ListBoxItem();
-
-	/// 重写父类方法，提供个性化功能，请参考父类声明
-	virtual std::wstring GetType() const override;
-	virtual void Selected(bool bSelect, bool bTriggerEvent) override;
-	virtual void HandleEvent(const EventArgs& msg) override;	
-
-	/** 是否绘制选择状态下的背景色，提供虚函数作为可选项
-	   （比如ListBox/TreeView节点在多选时，由于有勾选项，并不需要绘制选择状态的背景色）
-	*/
-	virtual bool CanPaintSelectedColors() const override;
-
-	/** 判断控件类型是否为可选择的
-	 * @return 返回true
-	 */
-	virtual bool IsSelectableType() const override;
-
-	/** 获取父容器
-	 */
-	IListBoxOwner* GetOwner();
-
-	/** 设置父容器
-	 * @param[in] pOwner 父容器指针
-	 */
-	void SetOwner(IListBoxOwner* pOwner);
-
-	/** 获取容器索引号，范围：[0, GetItemCount())
-	 */
-	size_t GetListBoxIndex() const;
-
-	/** 设置容器子项索引号
-	 * @param[in] iIndex 索引号, 范围：[0, GetItemCount())
-	 */
-	void SetListBoxIndex(size_t iIndex);
-
-	/** 获取虚表数据元素索引号，用于支持虚表，范围：[0, GetElementCount())
-	 */
-	size_t GetElementIndex() const;
-
-	/** 设置虚表数据元素索引号
-	 * @param[in] iIndex 索引号, 用于支持虚表，范围：[0, GetElementCount())
-	 */
-	void SetElementIndex(size_t iIndex);
-
-	/** 设置选择状态, 但不触发任何事件(适用于同步状态)
-	*/
-	void SetItemSelected(bool bSelected);
-
-	/** 监听控件双击事件
-	 * @param[in] callback 收到双击消息时的回调函数
-	 */
-	void AttachDoubleClick(const EventCallback& callback) { AttachEvent(kEventMouseDoubleClick, callback); }
-
-	/** 监听回车事件
-	 * @param[in] callback 收到回车时的回调函数
-	 */
-	void AttachReturn(const EventCallback& callback) { AttachEvent(kEventReturn, callback); }
-
-private:
-	/** 在ListBox容器中的子项索引号，范围：[0, GetItemCount())
-	*/
-	size_t m_iListBoxIndex;
-
-	/** 虚表数据元素子项索引号，用于支持虚表，范围：[0, GetElementCount())
-	*/
-	size_t m_iElementIndex;
-
-	/** 在ListBox容器接口
-	*/
-	IListBoxOwner* m_pOwner;
-};
 
 /** 横向布局的ListBox
 */

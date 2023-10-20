@@ -3,11 +3,10 @@
 
 #pragma once
 
-#include "duilib/Box/VBox.h"
-#include "duilib/Box/HBox.h"
 #include "duilib/Box/VirtualListBox.h"
 #include "duilib/Control/Label.h"
 #include "duilib/Control/Split.h"
+#include "duilib/Box/ListBoxItem.h"
 
 namespace ui
 {
@@ -21,12 +20,8 @@ public:
     */
     ListCtrlColumn():
         m_width(0),
-        m_widthMin(0),
-        m_widthMax(0),
         m_bSortable(false),
-        m_bResizeable(false),
-        m_bAutoWidth(0),
-        m_nSortIconSpace(0)
+        m_bResizeable(false)
     {
 
     }
@@ -47,14 +42,6 @@ public:
     */
     int32_t m_width;
 
-    /** 最小宽度
-    */
-    int32_t m_widthMin;
-
-    /** 最大宽度
-    */
-    int32_t m_widthMax;
-
     /** 是否允许排序
     */
     bool m_bSortable;
@@ -62,22 +49,6 @@ public:
     /** 是否允许改变列宽
     */
     bool m_bResizeable;
-
-    /** 是否列宽自适应
-    */
-    bool m_bAutoWidth;
-
-    /** 绘制文字内边距
-    */
-    UiPadding m_textPadding;
-
-    /** 文字对齐方式
-    */
-    UiString m_textAligh;
-
-    /** 排序图标与文字间距
-    */
-    int32_t m_nSortIconSpace;
 };
 
 /** ListCtrl子项控件
@@ -114,6 +85,11 @@ protected:
 	*/
 	virtual void DoInit() override;
 
+public:
+    /** 在指定位置添加一列
+    */
+    void InsertColumn(int32_t nCol, const ListCtrlColumn& column);
+
 private:
     /** 调整列的宽度
     */
@@ -137,9 +113,18 @@ private:
 	std::unique_ptr<ListCtrlItemProvider> m_spItemProvider;
 };
 
+/** ListCtrl的表头控件的显示项
+*/
+class ListCtrlHeaderItem:
+    public Label
+{
+public:
+
+};
+
 /** ListCtrl的表头控件
 */
-class ListCtrlHeader : public ListBoxItem
+class ListCtrlHeader : public ListBoxItemH
 {
 public:
     ListCtrlHeader() :
@@ -192,78 +177,72 @@ public:
     void OnColumnsChanged()
     {
         //基本结构：
-        //  <HBox>
-        //      <Label/>
-        //      <Split/>
-        //  </HBox>
-        HBox* pHeaderHBox = nullptr;
-        if (GetItemCount() > 0) {
-            pHeaderHBox = dynamic_cast<HBox*>(GetItemAt(0));
-            ASSERT(pHeaderHBox != nullptr);
-            if (pHeaderHBox == nullptr) {
-                return;
-            }
-        }
-        if (pHeaderHBox == nullptr) {
-            pHeaderHBox = new HBox;
-            AddItem(pHeaderHBox);
-        }
+        //  <ListCtrlHeader>
+        //      <ListCtrlHeaderItem/>
+        //      <SplitBox> <Control/> </SplitBox>
+        //      ..
+        //      <ListCtrlHeaderItem/>
+        //  </ListCtrlHeader>
         for (size_t index = 0; index < m_listColumns.size(); ++index) {
             const ListCtrlColumn& column = m_listColumns[index];
-            Label* pLabel = nullptr;
-            SplitBox* pSplit = nullptr;
-            if (index < (pHeaderHBox->GetItemCount() / 2)) {
-                pLabel = dynamic_cast<Label*>(pHeaderHBox->GetItemAt(index * 2));
-                pSplit = dynamic_cast<SplitBox*>(pHeaderHBox->GetItemAt(index * 2 + 1));
-                ASSERT((pLabel != nullptr) && (pSplit != nullptr));
-                if ((pLabel == nullptr) || (pSplit == nullptr)) {
+            ListCtrlHeaderItem* pHeaderItem = nullptr;
+            SplitBox* pHeaderSplit = nullptr;
+            if (index < (GetItemCount() / 2)) {
+                pHeaderItem = dynamic_cast<ListCtrlHeaderItem*>(GetItemAt(index * 2));
+                pHeaderSplit = dynamic_cast<SplitBox*>(GetItemAt(index * 2 + 1));
+                ASSERT((pHeaderItem != nullptr) && (pHeaderSplit != nullptr));
+                if ((pHeaderItem == nullptr) || (pHeaderSplit == nullptr)) {
                     return;
                 }
             }
             else {
-                pLabel = new Label;
-                pSplit = new SplitBox;
-                pHeaderHBox->AddItem(pLabel);
-                pHeaderHBox->AddItem(pSplit);
+                pHeaderItem = new ListCtrlHeaderItem;
+                AddItem(pHeaderItem);
 
-                Control* pSplitCtrl = new Control;
-                pSplitCtrl->SetAttribute(L"width", L"1");
-                pSplitCtrl->SetAttribute(L"height", L"100%");
-                pSplitCtrl->SetAttribute(L"margin", L"2,4,0,2");
-                pSplitCtrl->SetBkColor(L"splitline_level1");
-                pSplitCtrl->SetMouseEnabled(false);
-                pSplitCtrl->SetMouseFocused(false);
-                pSplitCtrl->SetNoFocus();
-                pSplit->AddItem(pSplitCtrl);
+                if (index != (m_listColumns.size() - 1)) {
+                    pHeaderSplit = new SplitBox;
+                    AddItem(pHeaderSplit);
+
+                    Control* pSplitCtrl = new Control;
+                    pSplitCtrl->SetAttribute(L"width", L"1");
+                    pSplitCtrl->SetAttribute(L"height", L"100%");
+                    pSplitCtrl->SetAttribute(L"margin", L"2,4,0,2");
+                    pSplitCtrl->SetBkColor(L"splitline_level1");
+                    pSplitCtrl->SetMouseEnabled(false);
+                    pSplitCtrl->SetMouseFocused(false);
+                    pSplitCtrl->SetNoFocus();
+                    pHeaderSplit->AddItem(pSplitCtrl);
+                }
             }
 
-            const int32_t nSplitWidth = m_nSplitWidth;
-            pSplit->SetFixedWidth(UiFixedInt(nSplitWidth), true, false);
-            pSplit->SetAttribute(L"height", L"32");
-            pSplit->SetBkColor(L"Yellow");
-
+            int32_t nSplitWidth = m_nSplitWidth;
+            if (pHeaderSplit == nullptr) {
+                nSplitWidth = 0;
+            }
             int32_t width = column.m_width - nSplitWidth;
             if (width < 0) {
                 width = 0;
             }
-            pLabel->SetText(column.m_text.c_str());
-            pLabel->SetBkColor(L"Yellow");
-            pLabel->SetFixedWidth(UiFixedInt(width), true, false);
-            pLabel->SetAttribute(L"height", L"32");
-            pLabel->SetAttribute(L"text_align", L"vcenter,hcenter");
-
-            /*pLabel->SetAttribute(L"padding", L"1,1,1,1");
-            pLabel->SetAttribute(L"border_size", L"1");
-            pLabel->SetAttribute(L"border_color", L"blue");*/
+            pHeaderItem->SetText(column.m_text.c_str());
+            pHeaderItem->SetBkColor(L"Yellow");
+            pHeaderItem->SetFixedWidth(UiFixedInt(width), true, false);
+            pHeaderItem->SetAttribute(L"height", L"32");
+            pHeaderItem->SetAttribute(L"text_align", L"vcenter,hcenter");
 
             //保存列序号
-            pLabel->SetUserDataID(index);
+            pHeaderItem->SetUserDataID(index);
 
-            //挂载拖动响应事件
-            pSplit->AttachSplitDraged([this](const EventArgs& args) {
-                OnSplitDraged((Control*)args.wParam, (Control*)args.lParam);
-                return true;
-                });
+            if (pHeaderSplit != nullptr) {
+                pHeaderSplit->SetFixedWidth(UiFixedInt(nSplitWidth), true, false);
+                pHeaderSplit->SetAttribute(L"height", L"32");
+                pHeaderSplit->SetBkColor(L"Yellow");
+
+                //挂载拖动响应事件
+                pHeaderSplit->AttachSplitDraged([this](const EventArgs& args) {
+                    OnSplitDraged((Control*)args.wParam, (Control*)args.lParam);
+                    return true;
+                    });
+            }
         }
     }
 
@@ -276,19 +255,23 @@ public:
         if (pLeftControl != nullptr) {
             nColumn1 = pLeftControl->GetUserDataID();
             if (nColumn1 < m_listColumns.size()) {
-                ListCtrlColumn& column = m_listColumns[nColumn1];
-                const int32_t nSplitWidth = m_nSplitWidth;
+                ListCtrlColumn& column = m_listColumns[nColumn1];                
                 column.m_width = pLeftControl->GetFixedWidth().GetInt32();
-                column.m_width += nSplitWidth;
+                if (nColumn1 != (m_listColumns.size() - 1)) {
+                    const int32_t nSplitWidth = m_nSplitWidth;
+                    column.m_width += nSplitWidth;
+                }
             }
         }
         if (pRightControl != nullptr) {
             nColumn2 = pRightControl->GetUserDataID();
-            if (nColumn2 < m_listColumns.size()) {
-                const int32_t nSplitWidth = m_nSplitWidth;
+            if (nColumn2 < m_listColumns.size()) {                
                 ListCtrlColumn& column = m_listColumns[nColumn2];
                 column.m_width = pRightControl->GetFixedWidth().GetInt32();
-                column.m_width += nSplitWidth;
+                if (nColumn2 != (m_listColumns.size() - 1)) {
+                    const int32_t nSplitWidth = m_nSplitWidth;
+                    column.m_width += nSplitWidth;
+                }                
             }
         }
 

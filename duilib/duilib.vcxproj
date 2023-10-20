@@ -434,6 +434,7 @@
     <ClInclude Include="Box\HTileLayout.h" />
     <ClInclude Include="Box\Layout.h" />
     <ClInclude Include="Box\ListBox.h" />
+    <ClInclude Include="Box\ListBoxItem.h" />
     <ClInclude Include="Box\ScrollBox.h" />
     <ClInclude Include="Box\TabBox.h" />
     <ClInclude Include="Box\TileBox.h" />

@@ -85,7 +85,7 @@ void VirtualListBox::FillElement(Control* pControl, size_t nElementIndex)
         bool bFilled = m_pDataProvider->FillElement(pControl, nElementIndex);
         bool bSelected = m_pDataProvider->IsElementSelected(nElementIndex);
         ASSERT_UNUSED_VARIABLE(bFilled);
-        ListBoxItem* pListBoxItem = dynamic_cast<ListBoxItem*>(pControl);
+        IListBoxItem* pListBoxItem = dynamic_cast<IListBoxItem*>(pControl);
         ASSERT(pListBoxItem != nullptr);
         if (pListBoxItem != nullptr) {
             //更新元素索引号
@@ -110,7 +110,7 @@ size_t VirtualListBox::GetElementCount()
 void VirtualListBox::OnModelDataChanged(size_t nStartElementIndex, size_t nEndElementIndex)
 {
     for (Control* pControl : m_items) {
-        ListBoxItem* pListBoxItem = dynamic_cast<ListBoxItem*>(pControl);
+        IListBoxItem* pListBoxItem = dynamic_cast<IListBoxItem*>(pControl);
         if (pListBoxItem != nullptr) {
             size_t iElementIndex = pListBoxItem->GetElementIndex();
             if ((iElementIndex >= nStartElementIndex) &&
@@ -322,7 +322,7 @@ bool VirtualListBox::OnSelectedItem(const ui::EventArgs& args)
     size_t nItemIndex = args.wParam;
     if (nItemIndex != Box::InvalidIndex) {
         Control* pControl = GetItemAt(nItemIndex);
-        ListBoxItem* pListBoxItem = dynamic_cast<ListBoxItem*>(pControl);
+        IListBoxItem* pListBoxItem = dynamic_cast<IListBoxItem*>(pControl);
         if (pListBoxItem != nullptr) {
             //更新该元素的选择状态
             size_t iElementIndex = pListBoxItem->GetElementIndex();
@@ -340,7 +340,7 @@ bool VirtualListBox::OnUnSelectedItem(const ui::EventArgs& args)
     size_t nItemIndex = args.wParam;
     if (nItemIndex != Box::InvalidIndex) {
         Control* pControl = GetItemAt(nItemIndex);
-        ListBoxItem* pListBoxItem = dynamic_cast<ListBoxItem*>(pControl);
+        IListBoxItem* pListBoxItem = dynamic_cast<IListBoxItem*>(pControl);
         if (pListBoxItem != nullptr) {
             //更新该元素的选择状态
             size_t iElementIndex = pListBoxItem->GetElementIndex();
