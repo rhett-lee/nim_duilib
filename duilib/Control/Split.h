@@ -198,15 +198,11 @@ bool SplitTemplate<InheritType>::ButtonDown(const EventArgs& msg)
             m_ptStart = msg.ptMouse;
             m_nLeftUpFixedValue = m_pLeftTop->GetFixedHeight();
             if (!m_nLeftUpFixedValue.IsStretch()) {
-                if (m_nLeftUpFixedValue.IsAuto()) {
-                    m_nLeftUpFixedValue.SetInt32(m_pLeftTop->GetHeight());
-                }
+                m_nLeftUpFixedValue.SetInt32(m_pLeftTop->GetHeight());
             }
             m_nRightBottomFixedValue = m_pRightBottom->GetFixedHeight();
             if (!m_nRightBottomFixedValue.IsStretch()) {
-                if (m_nRightBottomFixedValue.IsAuto()) {
-                    m_nRightBottomFixedValue.SetInt32(m_pRightBottom->GetHeight());
-                }
+                m_nRightBottomFixedValue.SetInt32(m_pRightBottom->GetHeight());
             }
         }
         else if (IsHLayout(pParent)) {
@@ -216,15 +212,11 @@ bool SplitTemplate<InheritType>::ButtonDown(const EventArgs& msg)
             m_ptStart = msg.ptMouse;
             m_nLeftUpFixedValue = m_pLeftTop->GetFixedWidth();
             if (!m_nLeftUpFixedValue.IsStretch()) {
-                if (m_nLeftUpFixedValue.IsAuto()) {
-                    m_nLeftUpFixedValue.SetInt32(m_pLeftTop->GetWidth());
-                }
+                m_nLeftUpFixedValue.SetInt32(m_pLeftTop->GetWidth());
             }
             m_nRightBottomFixedValue = m_pRightBottom->GetFixedWidth();
             if (!m_nRightBottomFixedValue.IsStretch()) {
-                if (m_nRightBottomFixedValue.IsAuto()) {
-                    m_nRightBottomFixedValue.SetInt32(m_pRightBottom->GetWidth());
-                }
+                m_nRightBottomFixedValue.SetInt32(m_pRightBottom->GetWidth());
             }
         }
     }
@@ -310,6 +302,25 @@ bool SplitTemplate<InheritType>::MouseMove(const EventArgs& msg)
     }
     else {
         nOffset = msg.ptMouse.y - m_ptStart.y;
+    }
+
+    //拖动时，不能超过总的宽度值或者总的高度值
+    if (nOffset > 0) {
+        if (!m_nRightBottomFixedValue.IsStretch()) {
+            if (nOffset > m_nRightBottomFixedValue.GetInt32()) {
+                return bRet;
+            }
+        }
+    }
+    else if(nOffset < 0){
+        if (!m_nLeftUpFixedValue.IsStretch()) {
+            if (-nOffset > m_nLeftUpFixedValue.GetInt32()) {
+                return bRet;
+            }
+        }
+    }
+    else {
+        return bRet;
     }
     
     int32_t nTotal = 0; //总的宽度值或者总的高度值
