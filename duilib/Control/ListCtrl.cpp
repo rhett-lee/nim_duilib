@@ -4,6 +4,422 @@
 
 namespace ui
 {
+////////////////////////////////////////////////////////
+//ListCtrlHeaderItem
+
+ListCtrlHeaderItem::ListCtrlHeaderItem() :
+    m_pSortedDownImage(nullptr),
+    m_pSortedUpImage(nullptr),
+    m_sortMode(SortMode::kDown),
+    m_pSplitBox(nullptr),
+    m_bColumnResizeable(true),
+    m_nColumnWidth(0)
+{
+}
+
+ListCtrlHeaderItem::~ListCtrlHeaderItem()
+{
+    if (m_pSortedDownImage != nullptr) {
+        delete m_pSortedDownImage;
+        m_pSortedDownImage = nullptr;
+    }
+    if (m_pSortedUpImage != nullptr) {
+        delete m_pSortedUpImage;
+        m_pSortedUpImage = nullptr;
+    }
+}
+ 
+std::wstring ListCtrlHeaderItem::GetType() const { return L"ListCtrlHeaderItem"; }
+
+void ListCtrlHeaderItem::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
+{
+    if (strName == L"sorted_up_image") {
+        SetSortedUpImage(strValue);
+    }
+    else if (strName == L"sorted_down_image") {
+        SetSortedDownImage(strValue);
+    }
+    else {
+        __super::SetAttribute(strName, strValue);
+    }
+}
+
+void ListCtrlHeaderItem::PaintText(IRender* pRender)
+{
+    __super::PaintText(pRender);
+    if (pRender == nullptr) {
+        return;
+    }
+
+    Image* pImage = nullptr;
+    if (m_sortMode == SortMode::kUp) {
+        //升序
+        pImage = m_pSortedUpImage;
+    }
+    else if (m_sortMode == SortMode::kDown) {
+        //降序
+        pImage = m_pSortedDownImage;
+    }
+    if (pImage == nullptr) {
+        return;
+    }
+
+    int32_t nIconTextSpacing = GlobalManager::Instance().Dpi().GetScaleInt(6);
+    UiRect rc = GetRect();
+    UiPadding rcPadding = GetControlPadding();
+    rc.Deflate(rcPadding);
+    rc.Deflate(GetTextPadding());
+    uint32_t textStyle = GetTextStyle();
+    std::wstring textValue = GetText();
+    UiRect textRect = pRender->MeasureString(textValue, GetFontId(), textStyle);
+    if (textStyle & TEXT_CENTER) {
+        rc.left = rc.CenterX() + textRect.Width() / 2;
+        rc.left += nIconTextSpacing;
+    }
+    else if (textStyle & TEXT_RIGHT) {
+        rc.left = rc.right - textRect.Width() - nIconTextSpacing;
+        if (pImage != nullptr) {
+            if (pImage->GetImageCache() == nullptr) {
+                LoadImageData(*pImage);
+            }
+            if (pImage->GetImageCache() != nullptr) {
+                rc.left -= pImage->GetImageCache()->GetWidth();
+            }
+        }
+    }
+    else {
+        rc.left += textRect.Width();
+        rc.left += nIconTextSpacing;
+    }
+    rc.Validate();
+
+    //绘制排序图标
+    PaintImage(pRender, pImage, L"", -1, nullptr, &rc, nullptr);
+}
+
+void ListCtrlHeaderItem::Activate()
+{
+    if (!this->IsActivatable()) {
+        return;
+    }
+    if (m_sortMode == SortMode::kUp) {
+        m_sortMode = SortMode::kDown;
+        Invalidate();
+    }
+    else if (m_sortMode == SortMode::kDown) {
+        m_sortMode = SortMode::kUp;
+        Invalidate();
+    }
+    __super::Activate();
+}
+
+void ListCtrlHeaderItem::SetSortMode(SortMode sortMode)
+{
+    if (m_sortMode != sortMode) {
+        m_sortMode = sortMode;
+        Invalidate();
+    }
+}
+
+ListCtrlHeaderItem::SortMode ListCtrlHeaderItem::GetSortMode() const
+{
+    return m_sortMode;
+}
+
+void ListCtrlHeaderItem::SetSortedDownImage(const std::wstring& sImageString)
+{
+    if (m_pSortedDownImage == nullptr) {
+        m_pSortedDownImage = new Image;
+    }
+    m_pSortedDownImage->SetImageString(sImageString);
+    Invalidate();
+}
+
+void ListCtrlHeaderItem::SetSortedUpImage(const std::wstring& sImageString)
+{
+    if (m_pSortedUpImage == nullptr) {
+        m_pSortedUpImage = new Image;
+    }
+    m_pSortedUpImage->SetImageString(sImageString);
+    Invalidate();
+}
+
+size_t ListCtrlHeaderItem::GetColomnId() const
+{
+    return (size_t)this;
+}
+
+void ListCtrlHeaderItem::SetSplitBox(SplitBox* pSplitBox)
+{
+    m_pSplitBox = pSplitBox;
+    if (pSplitBox != nullptr) {
+        ASSERT(pSplitBox->GetFixedWidth().IsInt32());
+        pSplitBox->SetEnabled(IsColumnResizeable() ? true : false);
+    }
+    if (GetColumnWidth() > 0) {
+        CheckColumnWidth();
+    }
+}
+
+SplitBox* ListCtrlHeaderItem::GetSplitBox() const
+{
+    return m_pSplitBox;
+}
+
+void ListCtrlHeaderItem::SetColumnResizeable(bool bResizeable)
+{
+    m_bColumnResizeable = bResizeable;
+    if (m_pSplitBox != nullptr) {
+        m_pSplitBox->SetEnabled(IsColumnResizeable() ? true : false);
+    }
+}
+
+bool ListCtrlHeaderItem::IsColumnResizeable() const
+{
+    return m_bColumnResizeable;
+}
+
+void ListCtrlHeaderItem::SetColumnWidth(int32_t nWidth, bool bNeedDpiScale)
+{
+    if (nWidth < 0) {
+        nWidth = 0;
+    }
+    if (bNeedDpiScale) {
+        GlobalManager::Instance().Dpi().ScaleInt(nWidth);
+    }
+    m_nColumnWidth = nWidth;
+    CheckColumnWidth();
+}
+
+int32_t ListCtrlHeaderItem::GetColumnWidth() const
+{
+    return m_nColumnWidth;
+}
+
+void ListCtrlHeaderItem::CheckColumnWidth()
+{
+    int32_t nSplitWidth = 0;
+    if (m_pSplitBox != nullptr) {
+        ASSERT(m_pSplitBox->GetFixedWidth().IsInt32());
+        nSplitWidth = m_pSplitBox->GetFixedWidth().GetInt32();
+    }
+    int32_t nWidth = GetFixedWidth().GetInt32();
+    if ((nWidth + nSplitWidth) != GetColumnWidth()) {
+        nWidth = GetColumnWidth() - nSplitWidth;
+        if (nWidth < 0) {
+            nWidth = 0;
+        }
+        SetFixedWidth(UiFixedInt(nWidth), true, false);
+    }
+}
+
+////////////////////////////////////////////////////////////////
+/** ListCtrl的表头控件
+*/
+ListCtrlHeader::ListCtrlHeader() :
+    m_pListCtrl(nullptr)
+{
+}
+
+std::wstring ListCtrlHeader::GetType() const { return L"ListCtrlHeader"; }
+
+ListCtrlHeaderItem* ListCtrlHeader::InsertColumn(int32_t nCol, int32_t nColumnWidth, 
+                                                 const std::wstring& text,
+                                                 bool bSortable, bool bResizeable, 
+                                                 bool bNeedDpiScale)
+{
+    if (bNeedDpiScale) {
+        GlobalManager::Instance().Dpi().ScaleInt(nColumnWidth);
+    }
+    if (nColumnWidth < 0) {
+        nColumnWidth = 0;
+    }
+
+    ListCtrlHeaderItem* pHeaderItem = new ListCtrlHeaderItem;
+    SplitBox* pHeaderSplit = new SplitBox;
+    size_t nColumnCount = GetColumnCount();
+    if ((size_t)nCol >= nColumnCount) {
+        //放在最后
+        AddItem(pHeaderItem);
+        AddItem(pHeaderSplit);
+    }
+    else {
+        //插入在中间位置        
+        AddItemAt(pHeaderSplit, nCol);
+        AddItemAt(pHeaderItem, nCol);
+    }
+
+    SetBkColor(L"SeaShell");
+
+    //设置属性
+    int32_t nSplitWidth = ui::GlobalManager::Instance().Dpi().GetScaleInt(3);
+    pHeaderSplit->SetFixedWidth(UiFixedInt(nSplitWidth), true, false);
+    pHeaderSplit->SetAttribute(L"height", L"32");
+
+    Control* pSplitCtrl = new Control;
+    pSplitCtrl->SetAttribute(L"width", L"1");
+    pSplitCtrl->SetAttribute(L"height", L"100%");
+    pSplitCtrl->SetAttribute(L"margin", L"2,4,0,2");
+    pSplitCtrl->SetBkColor(L"splitline_level1");
+    pSplitCtrl->SetMouseEnabled(false);
+    pSplitCtrl->SetMouseFocused(false);
+    pSplitCtrl->SetNoFocus();
+    pHeaderSplit->AddItem(pSplitCtrl);
+
+    pHeaderItem->SetText(text);
+    //pHeaderItem->SetBkColor(L"SeaShell");    
+    //pHeaderItem->SetMinWidth(width, false);
+    //pHeaderItem->SetMaxWidth(width, false);
+    pHeaderItem->SetAttribute(L"height", L"32");
+    pHeaderItem->SetAttribute(L"text_align", L"vcenter,hcenter");
+    pHeaderItem->SetAttribute(L"sorted_up_image", L"file='../public/listctrl/arrow-sorted-up.svg' width='10' height='10' valign='center' halign='left'");
+    pHeaderItem->SetAttribute(L"sorted_down_image", L"file='../public/listctrl/arrow-sorted-down.svg' width='10' height='10' valign='center' halign='left'");
+    pHeaderItem->SetClass(L"list_ctrl_header");
+
+    //保存关联的Split控件接口
+    pHeaderItem->SetSplitBox(pHeaderSplit);
+    pHeaderItem->SetColumnWidth(nColumnWidth, false);
+
+    if (bSortable) {
+        pHeaderItem->SetSortMode(ListCtrlHeaderItem::SortMode::kUp);
+    }
+    else {
+        pHeaderItem->SetSortMode(ListCtrlHeaderItem::SortMode::kNone);
+    }
+    pHeaderItem->SetColumnResizeable(bResizeable);
+
+    //挂载排序事件
+    pHeaderItem->AttachClick([this, pHeaderItem](const EventArgs& /*args*/) {
+        OnHeaderColumnSorted(pHeaderItem);
+        return true;
+        });
+
+        //挂载拖动响应事件
+    pHeaderSplit->AttachSplitDraged([this](const EventArgs& args) {
+        OnHeaderColumnResized((Control*)args.wParam, (Control*)args.lParam);
+        return true;
+        });
+
+    return pHeaderItem;
+}
+
+size_t ListCtrlHeader::GetColumnCount() const
+{
+    size_t nItemCount = GetItemCount();
+    if (nItemCount == 0) {
+        return 0;
+    }
+    ASSERT((nItemCount % 2) == 0);
+    if ((nItemCount % 2) != 0) {
+        return 0;
+    }
+    const size_t nColumnCount = nItemCount / 2;
+#ifdef _DEBUG
+    //校验结构是否符合预期    
+    for (size_t index = 0; index < nColumnCount; ++index) {
+        ASSERT(dynamic_cast<ListCtrlHeaderItem*>(GetItemAt(index * 2)) != nullptr);
+        ASSERT(dynamic_cast<SplitBox*>(GetItemAt(index * 2 + 1)) != nullptr);
+    }
+#endif // _DEBUG  
+    
+    return nColumnCount;
+}
+
+int32_t ListCtrlHeader::GetColumnWidth(size_t columnIndex) const
+{
+    int32_t nColumnWidth = 0;
+    size_t nColumnCount = GetColumnCount();
+    ASSERT(columnIndex < nColumnCount);
+    if (columnIndex >= nColumnCount) {
+        return nColumnWidth;
+    }
+    ListCtrlHeaderItem* pHeaderItem = dynamic_cast<ListCtrlHeaderItem*>(GetItemAt(columnIndex * 2));
+    ASSERT(pHeaderItem != nullptr);
+    if (pHeaderItem != nullptr) {
+        nColumnWidth = pHeaderItem->GetColumnWidth();
+    }
+    return nColumnWidth;
+}
+
+bool ListCtrlHeader::GetColumnInfo(size_t columnId, size_t& columnIndex, int32_t& nColumnWidth) const
+{
+    bool bRet = false;
+    columnIndex = Box::InvalidIndex;
+    nColumnWidth = -1;
+    size_t nColumnCount = GetColumnCount();
+    for (size_t index = 0; index < nColumnCount; ++index) {
+        ListCtrlHeaderItem* pHeaderItem = dynamic_cast<ListCtrlHeaderItem*>(GetItemAt(index * 2));
+        ASSERT(pHeaderItem != nullptr);
+        if (pHeaderItem != nullptr) {
+            if (pHeaderItem->GetColomnId() == columnId) {
+                nColumnWidth = pHeaderItem->GetColumnWidth();
+                columnIndex = index;
+                bRet = true;
+                break;
+            }            
+        }
+    }
+    return bRet;
+}
+
+void ListCtrlHeader::SetListCtrl(ListCtrl* pListCtrl)
+{
+    m_pListCtrl = pListCtrl;
+}
+
+void ListCtrlHeader::OnHeaderColumnResized(Control* pLeftHeaderItem, Control* pRightHeaderItem)
+{
+    size_t nColumnId1 = Box::InvalidIndex;
+    size_t nColumnId2 = Box::InvalidIndex;
+    ListCtrlHeaderItem* pHeaderItem = dynamic_cast<ListCtrlHeaderItem*>(pLeftHeaderItem);
+    if (pHeaderItem != nullptr) {
+        int32_t nSplitWidth = 0;
+        if (pHeaderItem->GetSplitBox() != nullptr) {
+            nSplitWidth = pHeaderItem->GetSplitBox()->GetFixedWidth().GetInt32();
+        }
+        int32_t nItemWidth = pHeaderItem->GetFixedWidth().GetInt32();
+        int32_t nColumnWidth = nItemWidth + nSplitWidth;
+        pHeaderItem->SetColumnWidth(nColumnWidth, false);
+        nColumnId1 = pHeaderItem->GetColomnId();
+    }
+
+    pHeaderItem = dynamic_cast<ListCtrlHeaderItem*>(pRightHeaderItem);
+    if (pHeaderItem != nullptr) {
+        int32_t nSplitWidth = 0;
+        if (pHeaderItem->GetSplitBox() != nullptr) {
+            nSplitWidth = pHeaderItem->GetSplitBox()->GetFixedWidth().GetInt32();
+        }
+        int32_t nItemWidth = pHeaderItem->GetFixedWidth().GetInt32();
+        int32_t nColumnWidth = nItemWidth + nSplitWidth;
+        pHeaderItem->SetColumnWidth(nColumnWidth, false);
+        nColumnId2 = pHeaderItem->GetColomnId();
+    }
+
+    if ((nColumnId1 != Box::InvalidIndex) || (nColumnId2 != Box::InvalidIndex)) {
+        if (m_pListCtrl != nullptr) {
+            m_pListCtrl->OnColumnWidthChanged(nColumnId1, nColumnId2);
+        }
+    }
+}
+
+void ListCtrlHeader::OnHeaderColumnSorted(ListCtrlHeaderItem* pHeaderItem)
+{
+    if (pHeaderItem == nullptr) {
+        return;
+    }
+    size_t nColumnId = pHeaderItem->GetColomnId();
+    ListCtrlHeaderItem::SortMode sortMode = pHeaderItem->GetSortMode();
+    ASSERT(sortMode != ListCtrlHeaderItem::SortMode::kNone);
+    if (sortMode == ListCtrlHeaderItem::SortMode::kNone) {
+        return;
+    }
+    if (m_pListCtrl != nullptr) {
+        bool bSortedUp = (sortMode == ListCtrlHeaderItem::SortMode::kUp) ? true : false;
+        m_pListCtrl->OnColumnSorted(nColumnId, bSortedUp);
+    }
+}
+
+/////////////////////////////////////////////////////////////////
 /** 列表项的数据管理器
 */
 class ListCtrlItemProvider : public ui::VirtualListBoxElement
@@ -80,10 +496,7 @@ public:
                     pItemHBox->AddItem(pLabel);
                 }
 
-
-                ListCtrlColumn column;
-                m_pListCtrlHeader->GetColumn(nColumn, column);
-                int32_t width = column.m_width;
+                int32_t width = m_pListCtrlHeader->GetColumnWidth(nColumn);
 
                 pLabel->SetFixedWidth(UiFixedInt(width), true, false);
                 pLabel->SetAttribute(L"height", L"100%");
@@ -171,9 +584,6 @@ public:
     }
 
 private:
-
-
-
     /** 列表项数据
     */
     std::vector<int> m_listItems;
@@ -238,10 +648,6 @@ ListCtrl::ListCtrl():
 
 ListCtrl::~ListCtrl()
 {
-    /*if (m_pListCtrlHeader != nullptr) {
-        delete m_pListCtrlHeader;
-        m_pListCtrlHeader = nullptr;
-    }*/
 }
 
 std::wstring ListCtrl::GetType() const { return DUI_CTR_LISTCTRL; }
@@ -256,6 +662,18 @@ void ListCtrl::SetAttribute(const std::wstring& strName, const std::wstring& str
     }
 }
 
+ListCtrlHeaderItem* ListCtrl::InsertColumn(int32_t nCol, int32_t nColumnWidth, const std::wstring& text,
+                                           bool bSortable, bool bResizeable, bool bNeedDpiScale)
+{
+    ASSERT(m_pListCtrlHeader != nullptr);
+    if (m_pListCtrlHeader == nullptr) {
+        return nullptr;
+    }
+    else {
+        return m_pListCtrlHeader->InsertColumn(nCol, nColumnWidth, text, bSortable, bResizeable, bNeedDpiScale);
+    }
+}
+
 void ListCtrl::DoInit()
 {
     if (m_bInited) {
@@ -265,22 +683,22 @@ void ListCtrl::DoInit()
 
     //初始化Header
     ASSERT(m_pListCtrlHeader == nullptr);
-    m_pListCtrlHeader = new ListCtrlHeader;
+    if(m_pListCtrlHeader == nullptr) {
+        m_pListCtrlHeader = new ListCtrlHeader;
+    }    
     m_pListCtrlHeader->SetListCtrl(this);
 
 
     int32_t width = ui::GlobalManager::Instance().Dpi().GetScaleInt(200);
-    m_pListCtrlHeader->AddColumn(ListCtrlColumn(L"1111", width));
-    m_pListCtrlHeader->AddColumn(ListCtrlColumn(L"2222", width));
-    m_pListCtrlHeader->AddColumn(ListCtrlColumn(L"3333", width));
-    m_pListCtrlHeader->AddColumn(ListCtrlColumn(L"4444", width));
-    m_pListCtrlHeader->AddColumn(ListCtrlColumn(L"5555", width));
+    m_pListCtrlHeader->InsertColumn(-1, width, L"1111", true, true, false);
+    m_pListCtrlHeader->InsertColumn(-1, width, L"2222", true, true, false);
+    m_pListCtrlHeader->InsertColumn(-1, width, L"3333", true, true, false);
+    m_pListCtrlHeader->InsertColumn(-1, width, L"4444", true, true, false);
+    m_pListCtrlHeader->InsertColumn(-1, width, L"5555", true, true, false);
 
     /*m_pListCtrlHeader->SetAttribute(L"padding", L"1,1,1,1");
     m_pListCtrlHeader->SetAttribute(L"border_size", L"1");
     m_pListCtrlHeader->SetAttribute(L"border_color", L"red");*/
-
-    //m_pListCtrlHeader->OnColumnsChanged();
 
     //初始化Body
     ASSERT(m_pListCtrlData == nullptr);
@@ -294,36 +712,36 @@ void ListCtrl::DoInit()
     m_pListCtrlData->SetDataProvider(m_spItemProvider.get());
 
     //TODO
-    m_pListCtrlHeader->SetBkColor(L"blue");
+    m_pListCtrlHeader->SetBkColor(L"white");
     m_pListCtrlHeader->SetAttribute(L"width", L"1000");
     //
     m_spItemProvider->SetListCtrlHeader(m_pListCtrlHeader);
     m_pListCtrlData->SetListCtrlHeader(m_pListCtrlHeader);
 
-    m_pListCtrlHeader->OnColumnsChanged();
     m_pListCtrlData->AddItem(m_pListCtrlHeader);
     AddItem(m_pListCtrlData);
 }
 
-void ListCtrl::OnColumnWidthChanged(size_t nColumn1, size_t nColumn2)
+ListCtrlHeader* ListCtrl::GetListCtrlHeader() const
+{
+    return m_pListCtrlHeader;
+}
+
+void ListCtrl::OnColumnWidthChanged(size_t nColumnId1, size_t nColumnId2)
 {
     if ((m_pListCtrlData == nullptr) || (m_pListCtrlHeader == nullptr)){
         return;
     }
 
+    size_t nColumn1 = Box::InvalidIndex;
+    size_t nColumn2 = Box::InvalidIndex;
     int32_t nColumnWidth1 = -1;
     int32_t nColumnWidth2 = -1;
-    if (nColumn1 < m_pListCtrlHeader->GetColumnCount()) {
-        ListCtrlColumn column;
-        if (m_pListCtrlHeader->GetColumn(nColumn1, column)) {
-            nColumnWidth1 = column.m_width;
-        }
+    if (!m_pListCtrlHeader->GetColumnInfo(nColumnId1, nColumn1, nColumnWidth1)) {
+        nColumnWidth1 = -1;
     }
-    if (nColumn2 < m_pListCtrlHeader->GetColumnCount()) {
-        ListCtrlColumn column;
-        if (m_pListCtrlHeader->GetColumn(nColumn2, column)) {
-            nColumnWidth2 = column.m_width;
-        }
+    if (!m_pListCtrlHeader->GetColumnInfo(nColumnId2, nColumn2, nColumnWidth2)) {
+        nColumnWidth2 = -1;
     }
 
     if ((nColumnWidth1 < 0) && (nColumnWidth2 < 0)) {
@@ -361,6 +779,11 @@ void ListCtrl::OnColumnWidthChanged(size_t nColumn1, size_t nColumn2)
             }
         }
     }
+}
+
+void ListCtrl::OnColumnSorted(size_t nColumnId, bool bSortedUp)
+{
+
 }
 
 }//namespace ui

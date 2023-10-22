@@ -1259,7 +1259,6 @@ bool Control::MouseEnter(const EventArgs& /*msg*/)
 			return true;
 		}
 	}
-
 	return false;
 }
 
@@ -1871,7 +1870,7 @@ bool Control::OnApplyAttributeList(const std::wstring& strReceiver, const std::w
 
 bool Control::PaintImage(IRender* pRender, Image* pImage,
 					    const std::wstring& strModify, int32_t nFade, 
-	                    IMatrix* pMatrix, UiRect* pDestRect)
+	                    IMatrix* pMatrix, UiRect* pInRect, UiRect* pPaintedRect)
 {
 	//注解：strModify参数，目前外部传入的主要是："destscale='false' dest='%d,%d,%d,%d'"
 	//                   也有一个类传入了：L" corner='%d,%d,%d,%d'"。
@@ -1936,6 +1935,10 @@ bool Control::PaintImage(IRender* pRender, Image* pImage,
 	bool hasDestAttr = false; // 外部是否设置了rcDest属性
 	UiRect rcDest = GetRect();
 	rcDest.Deflate(GetControlPadding());//去掉内边距
+	if (pInRect != nullptr) {
+		//使用外部传入的矩形区域绘制图片
+		rcDest = *pInRect;
+	}
 	if (ImageAttribute::HasValidImageRect(newImageAttribute.GetDestRect())) {
 		//使用配置中指定的目标区域
 		if ((newImageAttribute.GetDestRect().Width() <= rcDest.Width()) &&
@@ -2004,9 +2007,9 @@ bool Control::PaintImage(IRender* pRender, Image* pImage,
 		}
 	}
 
-	if (pDestRect) {
+	if (pPaintedRect) {
 		//返回绘制的目标区域
-		*pDestRect = rcDest;
+		*pPaintedRect = rcDest;
 	}
 
 	//图片透明度属性
@@ -2242,7 +2245,7 @@ void Control::PaintBkColor(IRender* pRender)
 
 		//背景填充矩形范围
 		UiRect fillRect = GetRect();
-		if (nBorderSize > 0) {
+		if (nBorderSize > 0) { 
 			//如果存在边线，则填充的时候，不填充边线所在位置，避免出现背景色的锯齿现象
 			UiRect borderRect(nBorderSize, nBorderSize, nBorderSize, nBorderSize);
 			fillRect.Deflate(borderRect.left, borderRect.top, borderRect.right, borderRect.bottom);

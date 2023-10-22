@@ -566,20 +566,22 @@ public:
 	/// 绘制操作
 	/**
 	 * @brief 绘制图片
-	 * @param[in] pRender 绘制上下文
-	 * @param[in] pImage 图片对象的接口
-	 * @param[in] isLoadingImage true表示Loading Image，绘制时会旋转该图片;false表示正常图片
-	 * @param[in] strModify 图片的附加属性
-	 * @param[in] nFade 控件的透明度，如果启用动画效果该值在绘制时是不断变化的
-	 * @param[in] pMatrix 绘制图片时使用的变换矩阵
-	 * @param[out] pDestRect 返回图片绘制的最终目标矩形区域
+	 * @param [in] pRender 绘制上下文
+	 * @param [in] pImage 图片对象的接口
+	 * @param [in] isLoadingImage true表示Loading Image，绘制时会旋转该图片;false表示正常图片
+	 * @param [in] strModify 图片的附加属性
+	 * @param [in] nFade 控件的透明度，如果启用动画效果该值在绘制时是不断变化的
+	 * @param [in] pMatrix 绘制图片时使用的变换矩阵
+	 * @param [in] pInRect 外部传入的图片绘制的目标区域，如果为nullptr，则内部使用GetRect()返回的区域
+	 * @param [out] pPaintedRect 返回图片绘制的最终目标矩形区域
 	 * @return 成功返回 true，失败返回 false
 	 */
 	bool PaintImage(IRender* pRender, Image* pImage,
 				    const std::wstring& strModify = L"",
 		            int32_t nFade = DUI_NOSET_VALUE,
 		            IMatrix* pMatrix = nullptr,
-		            UiRect* pDestRect = nullptr);
+		            UiRect* pInRect = nullptr,
+		            UiRect* pPaintedRect = nullptr);
 
 	/**
 	* @brief 获取绘制上下文对象

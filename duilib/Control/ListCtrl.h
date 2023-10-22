@@ -7,60 +7,15 @@
 #include "duilib/Control/Label.h"
 #include "duilib/Control/Split.h"
 #include "duilib/Box/ListBoxItem.h"
+#include "duilib/Image/Image.h"
 
 namespace ui
 {
 
-/** 列表的列属性
-*/
-class ListCtrlColumn
-{
-public:
-    /** 构造函数
-    */
-    ListCtrlColumn():
-        m_width(0),
-        m_bSortable(false),
-        m_bResizeable(false)
-    {
-
-    }
-
-    /** 构造函数
-    */
-    ListCtrlColumn(const std::wstring& text, int32_t width):
-        ListCtrlColumn()
-    {
-        m_text = text;
-        m_width = width;
-    }
-    /** 文字
-    */
-    UiString m_text;
-
-    /** 宽度
-    */
-    int32_t m_width;
-
-    /** 是否允许排序
-    */
-    bool m_bSortable;
-
-    /** 是否允许改变列宽
-    */
-    bool m_bResizeable;
-};
-
-/** ListCtrl子项控件
-*/
-class ListCtrlItem: public ListBoxItem
-{
-public:
-	/** 获取控件类型
-	*/
-	virtual std::wstring GetType() const override { return L"ListCtrlItem"; }
-
-};
+//列表数据项UI显示相关类
+class ListCtrlItem;
+class ListCtrlHeader;
+class ListCtrlHeaderItem;
 
 //列表数据管理类
 class ListCtrlData;
@@ -80,20 +35,41 @@ public:
 	virtual std::wstring GetType() const override;
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 
-protected:
-	/** 控件初始化
-	*/
-	virtual void DoInit() override;
-
 public:
     /** 在指定位置添加一列
+    * @param [in] nCol 在第几列以后插入该列，如果是-1，表示在最后追加一列
+    * @param [in] nColumnWidth 列宽
+    * @param [in] text 表头的文本
+    * @param [in] bSortable 是否允许排序
+    * @param [in] bResizeable 是否允许通过拖动调整列宽
+    * @param [in] bNeedDpiScale 是否对列宽nColumnWidth值做DPI自适应
+    * @return 返回这一列的表头控件接口
     */
-    void InsertColumn(int32_t nCol, const ListCtrlColumn& column);
+    ListCtrlHeaderItem* InsertColumn(int32_t nCol, int32_t nColumnWidth, const std::wstring& text,
+                                     bool bSortable = false, bool bResizeable = false, 
+                                     bool bNeedDpiScale = true);
 
-private:
-    /** 调整列的宽度
+    /** 获取表头控件接口, 在控件初始化以后才有值
     */
-    void OnColumnWidthChanged(size_t nColumn1, size_t nColumn2);
+    ListCtrlHeader* GetListCtrlHeader() const;
+
+protected:
+    /** 控件初始化
+    */
+    virtual void DoInit() override;
+
+protected:
+    /** 调整列的宽度（拖动列宽调整，每次调整两个列的宽度）
+    * @param [in] nColumnId1 第一列的ID
+    * @param [in] nColumnId2 第二列的ID
+    */
+    void OnColumnWidthChanged(size_t nColumnId1, size_t nColumnId2);
+
+    /** 对列排序
+    * @param [in] nColumnId 列的ID
+    * @param [in] bSortedUp 如果为true表示升序，如果为false表示降序
+    */
+    void OnColumnSorted(size_t nColumnId, bool bSortedUp);
 
 private:
 	/** 初始化标志
@@ -113,187 +89,201 @@ private:
 	std::unique_ptr<ListCtrlItemProvider> m_spItemProvider;
 };
 
+/** ListCtrl子项控件
+*/
+class ListCtrlItem : public ListBoxItem
+{
+public:
+    /** 获取控件类型
+    */
+    virtual std::wstring GetType() const override { return L"ListCtrlItem"; }
+
+};
+
 /** ListCtrl的表头控件的显示项
 */
 class ListCtrlHeaderItem:
-    public Label
+    public Button
 {
 public:
+    ListCtrlHeaderItem();
+    virtual ~ListCtrlHeaderItem();
 
+    /** 获取控件类型
+    */
+    virtual std::wstring GetType() const override;
+
+    /** 设置属性
+    */
+    virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
+
+    /** 绘制文字
+    */
+    virtual void PaintText(IRender* pRender) override;
+
+    /** 按钮点击事件
+    */
+    virtual void Activate() override;
+
+public:
+    /** 排序方式
+    */
+    enum class SortMode
+    {
+        kNone, //不支持排序
+        kUp,   //升序
+        kDown  //降序
+    };
+
+    /** 设置排序方式
+    */
+    void SetSortMode(SortMode sortMode);
+
+    /** 获取排序方式
+    */
+    SortMode GetSortMode() const;
+
+    /** 设置排序图标：降序
+    */
+    void SetSortedDownImage(const std::wstring& sImageString);
+
+    /** 设置排序图标：升序
+    */
+    void SetSortedUpImage(const std::wstring& sImageString);
+
+    /** 获取唯一ID
+    */
+    size_t GetColomnId() const;
+
+    /** 设置关联的Split控件接口
+    */
+    void SetSplitBox(SplitBox* pSplitBox);
+
+    /** 获取关联的Split控件接口
+    */
+    SplitBox* GetSplitBox() const;
+
+    /** 设置是否允许调整列宽
+    */
+    void SetColumnResizeable(bool bResizeable);
+
+    /** 获取是否允许调整列宽
+    */
+    bool IsColumnResizeable() const;
+
+    /** 设置列宽
+    * @param [in] nWidth 列宽值
+    * @param [in] bNeedDpiScale 是否需要对列宽值进行DPI自适应
+    */
+    void SetColumnWidth(int32_t nWidth, bool bNeedDpiScale);
+
+    /** 获取列宽值
+    */
+    int32_t GetColumnWidth() const;
+
+private:
+    /** 同步列宽与UI控件宽度
+    */
+    void CheckColumnWidth();
+
+private:
+    /** 排序图标：降序
+    */
+    Image* m_pSortedDownImage;
+
+    /** 排序图标：升序
+    */
+    Image* m_pSortedUpImage;
+
+    /** 关联的Split控件接口
+    */
+    SplitBox* m_pSplitBox;
+
+    /** 排序方式
+    */
+    SortMode m_sortMode;
+
+    /** 列宽
+    */
+    int32_t m_nColumnWidth;
+
+    /** 是否允许改变列宽
+    */
+    bool m_bColumnResizeable;
 };
 
 /** ListCtrl的表头控件
 */
 class ListCtrlHeader : public ListBoxItemH
 {
+    friend class ListCtrlHeaderItem;
 public:
-    ListCtrlHeader() :
-        m_pListCtrl(nullptr)
-    {
-        m_nSplitWidth = ui::GlobalManager::Instance().Dpi().GetScaleInt(3);
-    }
+    ListCtrlHeader();
 
     /** 获取控件类型
     */
-    virtual std::wstring GetType() const override { return L"ListCtrlHeader"; }
+    virtual std::wstring GetType() const override;
 
 public:
-    /** 添加1列
+    /** 在指定位置添加一列
+    *  表头控件的基本结构如下：
+    *   <ListCtrlHeader>
+    *       <ListCtrlHeaderItem/>
+    *       <SplitBox> <Control/> </SplitBox>
+    *       ..
+    *       <ListCtrlHeaderItem/>
+    *       <SplitBox> <Control/> </SplitBox>
+    *   </ListCtrlHeader>
+    * @param [in] nCol 在第几列以后插入该列，如果是-1，表示在最后追加一列
+    * @param [in] nColumnWidth 列宽
+    * @param [in] text 表头的文本
+    * @param [in] bSortable 是否允许排序
+    * @param [in] bResizeable 是否允许通过拖动调整列宽
+    * @param [in] bNeedDpiScale 是否对列宽nColumnWidth值做DPI自适应
+    * @return 返回这一列的表头控件接口
     */
-    void AddColumn(const ListCtrlColumn& column)
-    {
-        m_listColumns.push_back(column);
-    }
+    ListCtrlHeaderItem* InsertColumn(int32_t nCol, int32_t nColumnWidth, const std::wstring& text,
+                                     bool bSortable = false, bool bResizeable = false, 
+                                     bool bNeedDpiScale = true);
 
     /** 获取列的个数
     */
-    size_t GetColumnCount() const
-    {
-        return m_listColumns.size();
-    }
+    size_t GetColumnCount() const;
 
-    /** 获取列数据
+    /** 获取列宽度
+    * @param [in] columnIndex 列索引序号：[0, GetColumnCount())
     */
-    bool GetColumn(size_t index, ListCtrlColumn& column) const
-    {
-        if (index < m_listColumns.size()) {
-            column = m_listColumns[index];
-            return true;
-        }
-        return false;
-    }
+    int32_t GetColumnWidth(size_t columnIndex) const;
+
+    /** 获取列宽度和列索引序号
+    * @param [in] columnId 列的ID值，通过ListCtrlHeaderItem::GetColomnId()函数获取
+    * @param [out] columnIndex 列的序号：[0, GetColumnCount())，代表第几列
+    * @param [out] nColumnWidth 列的宽度值
+    */
+    bool GetColumnInfo(size_t columnId, size_t& columnIndex, int32_t& nColumnWidth) const;
 
 public:
 
     /** 设置关联的ListCtrl接口
     */
-    void SetListCtrl(ListCtrl* pListCtrl)
-    {
-        m_pListCtrl = pListCtrl;
-    }
-
-    /** 同步列数据对应的控件
-    */
-    void OnColumnsChanged()
-    {
-        //基本结构：
-        //  <ListCtrlHeader>
-        //      <ListCtrlHeaderItem/>
-        //      <SplitBox> <Control/> </SplitBox>
-        //      ..
-        //      <ListCtrlHeaderItem/>
-        //  </ListCtrlHeader>
-        for (size_t index = 0; index < m_listColumns.size(); ++index) {
-            const ListCtrlColumn& column = m_listColumns[index];
-            ListCtrlHeaderItem* pHeaderItem = nullptr;
-            SplitBox* pHeaderSplit = nullptr;
-            if (index < (GetItemCount() / 2)) {
-                pHeaderItem = dynamic_cast<ListCtrlHeaderItem*>(GetItemAt(index * 2));
-                pHeaderSplit = dynamic_cast<SplitBox*>(GetItemAt(index * 2 + 1));
-                ASSERT((pHeaderItem != nullptr) && (pHeaderSplit != nullptr));
-                if ((pHeaderItem == nullptr) || (pHeaderSplit == nullptr)) {
-                    return;
-                }
-            }
-            else {
-                pHeaderItem = new ListCtrlHeaderItem;
-                AddItem(pHeaderItem);
-
-                if (index != (m_listColumns.size() - 1)) {
-                    pHeaderSplit = new SplitBox;
-                    AddItem(pHeaderSplit);
-
-                    Control* pSplitCtrl = new Control;
-                    pSplitCtrl->SetAttribute(L"width", L"1");
-                    pSplitCtrl->SetAttribute(L"height", L"100%");
-                    pSplitCtrl->SetAttribute(L"margin", L"2,4,0,2");
-                    pSplitCtrl->SetBkColor(L"splitline_level1");
-                    pSplitCtrl->SetMouseEnabled(false);
-                    pSplitCtrl->SetMouseFocused(false);
-                    pSplitCtrl->SetNoFocus();
-                    pHeaderSplit->AddItem(pSplitCtrl);
-                }
-            }
-
-            int32_t nSplitWidth = m_nSplitWidth;
-            if (pHeaderSplit == nullptr) {
-                nSplitWidth = 0;
-            }
-            int32_t width = column.m_width - nSplitWidth;
-            if (width < 0) {
-                width = 0;
-            }
-            pHeaderItem->SetText(column.m_text.c_str());
-            pHeaderItem->SetBkColor(L"Yellow");
-            pHeaderItem->SetFixedWidth(UiFixedInt(width), true, false);
-            pHeaderItem->SetAttribute(L"height", L"32");
-            pHeaderItem->SetAttribute(L"text_align", L"vcenter,hcenter");
-
-            //保存列序号
-            pHeaderItem->SetUserDataID(index);
-
-            if (pHeaderSplit != nullptr) {
-                pHeaderSplit->SetFixedWidth(UiFixedInt(nSplitWidth), true, false);
-                pHeaderSplit->SetAttribute(L"height", L"32");
-                pHeaderSplit->SetBkColor(L"Yellow");
-
-                //挂载拖动响应事件
-                pHeaderSplit->AttachSplitDraged([this](const EventArgs& args) {
-                    OnSplitDraged((Control*)args.wParam, (Control*)args.lParam);
-                    return true;
-                    });
-            }
-        }
-    }
-
-    /** 拖动响应事件
-    */
-    void OnSplitDraged(const Control* pLeftControl, const Control* pRightControl)
-    {
-        size_t nColumn1 = Box::InvalidIndex;
-        size_t nColumn2 = Box::InvalidIndex;
-        if (pLeftControl != nullptr) {
-            nColumn1 = pLeftControl->GetUserDataID();
-            if (nColumn1 < m_listColumns.size()) {
-                ListCtrlColumn& column = m_listColumns[nColumn1];                
-                column.m_width = pLeftControl->GetFixedWidth().GetInt32();
-                if (nColumn1 != (m_listColumns.size() - 1)) {
-                    const int32_t nSplitWidth = m_nSplitWidth;
-                    column.m_width += nSplitWidth;
-                }
-            }
-        }
-        if (pRightControl != nullptr) {
-            nColumn2 = pRightControl->GetUserDataID();
-            if (nColumn2 < m_listColumns.size()) {                
-                ListCtrlColumn& column = m_listColumns[nColumn2];
-                column.m_width = pRightControl->GetFixedWidth().GetInt32();
-                if (nColumn2 != (m_listColumns.size() - 1)) {
-                    const int32_t nSplitWidth = m_nSplitWidth;
-                    column.m_width += nSplitWidth;
-                }                
-            }
-        }
-
-        if ((nColumn1 != Box::InvalidIndex) || (nColumn2 != Box::InvalidIndex)){
-            if (m_pListCtrl != nullptr) {
-                m_pListCtrl->OnColumnWidthChanged(nColumn1, nColumn2);
-            }
-        }
-    }
+    void SetListCtrl(ListCtrl* pListCtrl);
 
 protected:
-    /** 列数据
+    /** 拖动列表头改变列宽的事件响应函数
+    * @param [in] pLeftHeaderItem 左侧的列表头控件接口
+    * @param [in] pRightHeaderItem 右侧的列表头控件接口
     */
-    std::vector<ListCtrlColumn> m_listColumns;
+    void OnHeaderColumnResized(Control* pLeftHeaderItem, Control* pRightHeaderItem);
 
+    /** 点击列表头触发排序的事件响应函数
+    * @param [in] pHeaderItem 列表头控件接口
+    */
+    void OnHeaderColumnSorted(ListCtrlHeaderItem* pHeaderItem);
+
+private:
     /** 关联的ListCtrl接口
     */
     ListCtrl* m_pListCtrl;
-
-    /** 分割条的宽度
-    */
-    int32_t m_nSplitWidth;
 };
 
 }//namespace ui

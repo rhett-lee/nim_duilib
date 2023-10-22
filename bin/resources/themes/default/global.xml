@@ -249,7 +249,7 @@
     
     <!--ListCtrl控件列表项通用样式-->
     <Class name="list_ctrl_item" hot_color="#FFE5F3FF" pushed_color="#FFD9EEFF" selected_normal_color="#FFCCE8FF"/>
-    
+    <Class name="list_ctrl_header" hot_color="#FFE5F3FF" pushed_color="#FFD9EEFF"/>
     
     
     <!--气泡框通用样式-->

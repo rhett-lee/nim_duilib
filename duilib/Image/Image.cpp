@@ -908,7 +908,7 @@ bool StateImage::PaintStateImage(IRender* pRender, ControlStateType stateType,
 					(strNormalImagePath != strHotImagePath) || 
 					!GetImageSourceRect(kControlStateNormal).Equals(GetImageSourceRect(kControlStateHot))) {
 
-					m_pControl->PaintImage(pRender, GetStateImage(kControlStateNormal), sImageModify, -1, nullptr, pDestRect);
+					m_pControl->PaintImage(pRender, GetStateImage(kControlStateNormal), sImageModify, -1, nullptr, nullptr, pDestRect);
 					int32_t nHotFade = GetImageFade(kControlStateHot);
 					nHotFade = int32_t(nHotFade * (double)nHotAlpha / 255);
 					return m_pControl->PaintImage(pRender, GetStateImage(kControlStateHot), sImageModify, nHotFade);
@@ -917,7 +917,7 @@ bool StateImage::PaintStateImage(IRender* pRender, ControlStateType stateType,
 					int32_t nNormalFade = GetImageFade(kControlStateNormal);
 					int32_t nHotFade = GetImageFade(kControlStateHot);
 					int32_t nBlendFade = int32_t((1 - (double)nHotAlpha / 255) * nNormalFade + (double)nHotAlpha / 255 * nHotFade);
-					return m_pControl->PaintImage(pRender, GetStateImage(kControlStateHot), sImageModify, nBlendFade, nullptr, pDestRect);
+					return m_pControl->PaintImage(pRender, GetStateImage(kControlStateHot), sImageModify, nBlendFade, nullptr, nullptr, pDestRect);
 				}
 			}
 		}
@@ -934,7 +934,7 @@ bool StateImage::PaintStateImage(IRender* pRender, ControlStateType stateType,
 		stateType = kControlStateNormal;
 	}
 
-	return m_pControl->PaintImage(pRender, GetStateImage(stateType), sImageModify, -1, nullptr, pDestRect);
+	return m_pControl->PaintImage(pRender, GetStateImage(stateType), sImageModify, -1, nullptr, nullptr, pDestRect);
 }
 
 Image* StateImage::GetEstimateImage()
