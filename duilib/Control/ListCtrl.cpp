@@ -15,6 +15,7 @@ ListCtrlHeaderItem::ListCtrlHeaderItem() :
     m_bColumnResizeable(true),
     m_nColumnWidth(0)
 {
+    m_nIconSpacing = GlobalManager::Instance().Dpi().GetScaleInt(6);
 }
 
 ListCtrlHeaderItem::~ListCtrlHeaderItem()
@@ -38,6 +39,9 @@ void ListCtrlHeaderItem::SetAttribute(const std::wstring& strName, const std::ws
     }
     else if (strName == L"sorted_down_image") {
         SetSortedDownImage(strValue);
+    }
+    else if (strName == L"icon_spacing") {
+        SetIconSpacing(_wtoi(strValue.c_str()), true);
     }
     else {
         __super::SetAttribute(strName, strValue);
@@ -63,8 +67,8 @@ void ListCtrlHeaderItem::PaintText(IRender* pRender)
     if (pImage == nullptr) {
         return;
     }
-
-    int32_t nIconTextSpacing = GlobalManager::Instance().Dpi().GetScaleInt(6);
+    
+    int32_t nIconTextSpacing = m_nIconSpacing;
     UiRect rc = GetRect();
     UiPadding rcPadding = GetControlPadding();
     rc.Deflate(rcPadding);
@@ -213,6 +217,22 @@ void ListCtrlHeaderItem::CheckColumnWidth()
     }
 }
 
+void ListCtrlHeaderItem::SetIconSpacing(int32_t nIconSpacing, bool bNeedDpiScale)
+{
+    if (bNeedDpiScale) {
+        GlobalManager::Instance().Dpi().ScaleInt(nIconSpacing);
+    }
+    m_nIconSpacing = nIconSpacing;
+    if (m_nIconSpacing < 0) {
+        m_nIconSpacing = 0;
+    }
+}
+
+int32_t ListCtrlHeaderItem::GetIconSpacing() const
+{
+    return m_nIconSpacing;
+}
+
 ////////////////////////////////////////////////////////////////
 /** ListCtrl的表头控件
 */
@@ -228,6 +248,10 @@ ListCtrlHeaderItem* ListCtrlHeader::InsertColumn(int32_t nCol, int32_t nColumnWi
                                                  bool bSortable, bool bResizeable, 
                                                  bool bNeedDpiScale)
 {
+    ASSERT(m_pListCtrl != nullptr);
+    if (m_pListCtrl == nullptr) {
+        return nullptr;
+    }
     if (bNeedDpiScale) {
         GlobalManager::Instance().Dpi().ScaleInt(nColumnWidth);
     }
@@ -249,32 +273,24 @@ ListCtrlHeaderItem* ListCtrlHeader::InsertColumn(int32_t nCol, int32_t nColumnWi
         AddItemAt(pHeaderItem, nCol);
     }
 
-    SetBkColor(L"SeaShell");
-
     //设置属性
-    int32_t nSplitWidth = ui::GlobalManager::Instance().Dpi().GetScaleInt(3);
-    pHeaderSplit->SetFixedWidth(UiFixedInt(nSplitWidth), true, false);
-    pHeaderSplit->SetAttribute(L"height", L"32");
+    if (!m_pListCtrl->GetListCtrlHeaderSplitBoxClass().empty()) {
+        pHeaderSplit->SetClass(m_pListCtrl->GetListCtrlHeaderSplitBoxClass());
+    }
 
     Control* pSplitCtrl = new Control;
-    pSplitCtrl->SetAttribute(L"width", L"1");
-    pSplitCtrl->SetAttribute(L"height", L"100%");
-    pSplitCtrl->SetAttribute(L"margin", L"2,4,0,2");
-    pSplitCtrl->SetBkColor(L"splitline_level1");
     pSplitCtrl->SetMouseEnabled(false);
     pSplitCtrl->SetMouseFocused(false);
     pSplitCtrl->SetNoFocus();
+    if (!m_pListCtrl->GetListCtrlHeaderSplitControlClass().empty()) {
+        pSplitCtrl->SetClass(m_pListCtrl->GetListCtrlHeaderSplitControlClass());
+    }
     pHeaderSplit->AddItem(pSplitCtrl);
 
+    if (!m_pListCtrl->GetListCtrlHeaderItemClass().empty()) {
+        pHeaderItem->SetClass(m_pListCtrl->GetListCtrlHeaderItemClass());
+    }
     pHeaderItem->SetText(text);
-    //pHeaderItem->SetBkColor(L"SeaShell");    
-    //pHeaderItem->SetMinWidth(width, false);
-    //pHeaderItem->SetMaxWidth(width, false);
-    pHeaderItem->SetAttribute(L"height", L"32");
-    pHeaderItem->SetAttribute(L"text_align", L"vcenter,hcenter");
-    pHeaderItem->SetAttribute(L"sorted_up_image", L"file='../public/listctrl/arrow-sorted-up.svg' width='10' height='10' valign='center' halign='left'");
-    pHeaderItem->SetAttribute(L"sorted_down_image", L"file='../public/listctrl/arrow-sorted-down.svg' width='10' height='10' valign='center' halign='left'");
-    pHeaderItem->SetClass(L"list_ctrl_header");
 
     //保存关联的Split控件接口
     pHeaderItem->SetSplitBox(pHeaderSplit);
@@ -341,6 +357,36 @@ int32_t ListCtrlHeader::GetColumnWidth(size_t columnIndex) const
     return nColumnWidth;
 }
 
+ListCtrlHeaderItem* ListCtrlHeader::GetColumnItem(size_t columnIndex) const
+{
+    int32_t nColumnWidth = 0;
+    size_t nColumnCount = GetColumnCount();
+    ASSERT(columnIndex < nColumnCount);
+    if (columnIndex >= nColumnCount) {
+        return nullptr;
+    }
+    ListCtrlHeaderItem* pHeaderItem = dynamic_cast<ListCtrlHeaderItem*>(GetItemAt(columnIndex * 2));
+    ASSERT(pHeaderItem != nullptr);
+    return pHeaderItem;
+}
+
+ListCtrlHeaderItem* ListCtrlHeader::GetColumnItemById(size_t columnId) const
+{
+    ListCtrlHeaderItem* pFoundHeaderItem = nullptr;
+    size_t nColumnCount = GetColumnCount();
+    for (size_t index = 0; index < nColumnCount; ++index) {
+        ListCtrlHeaderItem* pHeaderItem = dynamic_cast<ListCtrlHeaderItem*>(GetItemAt(index * 2));
+        ASSERT(pHeaderItem != nullptr);
+        if (pHeaderItem != nullptr) {
+            if (pHeaderItem->GetColomnId() == columnId) {
+                pFoundHeaderItem = pHeaderItem;
+                break;
+            }
+        }
+    }
+    return pFoundHeaderItem;
+}
+
 bool ListCtrlHeader::GetColumnInfo(size_t columnId, size_t& columnIndex, int32_t& nColumnWidth) const
 {
     bool bRet = false;
@@ -356,7 +402,7 @@ bool ListCtrlHeader::GetColumnInfo(size_t columnId, size_t& columnIndex, int32_t
                 columnIndex = index;
                 bRet = true;
                 break;
-            }            
+            }
         }
     }
     return bRet;
@@ -654,12 +700,104 @@ std::wstring ListCtrl::GetType() const { return DUI_CTR_LISTCTRL; }
 
 void ListCtrl::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
-    if (strName == L"") {
-        
+    if (strName == L"list_ctrl_header_class") {
+        SetListCtrlHeaderClass(strValue);
+    }
+    else if (strName == L"list_ctrl_header_item_class") {
+        SetListCtrlHeaderItemClass(strValue);
+    }
+    else if (strName == L"list_ctrl_header_split_box_class") {
+        SetListCtrlHeaderSplitBoxClass(strValue);
+    }
+    else if (strName == L"list_ctrl_header_split_control_class") {
+        SetListCtrlHeaderSplitControlClass(strValue);
     }
     else {
         __super::SetAttribute(strName, strValue);
     }
+}
+
+void ListCtrl::SetListCtrlHeaderClass(const std::wstring& className)
+{
+    m_headerClass = className;
+    if (m_pListCtrlHeader != nullptr) {
+        m_pListCtrlHeader->SetClass(className);
+    }
+}
+
+void ListCtrl::SetListCtrlHeaderItemClass(const std::wstring& className)
+{
+    m_headerItemClass = className;
+}
+
+std::wstring ListCtrl::GetListCtrlHeaderItemClass() const
+{
+    return m_headerItemClass.c_str();
+}
+
+void ListCtrl::SetListCtrlHeaderSplitBoxClass(const std::wstring& className)
+{
+    m_headerSplitBoxClass = className;
+}
+
+std::wstring ListCtrl::GetListCtrlHeaderSplitBoxClass() const
+{
+    return m_headerSplitBoxClass.c_str();
+}
+
+void ListCtrl::SetListCtrlHeaderSplitControlClass(const std::wstring& className)
+{
+    m_headerSplitControlClass = className;
+}
+
+std::wstring ListCtrl::GetListCtrlHeaderSplitControlClass() const
+{
+    return m_headerSplitControlClass.c_str();
+}
+
+void ListCtrl::DoInit()
+{
+    if (m_bInited) {
+        return;
+    }
+    m_bInited = true;
+
+    //初始化Header
+    ASSERT(m_pListCtrlHeader == nullptr);
+    if (m_pListCtrlHeader == nullptr) {
+        m_pListCtrlHeader = new ListCtrlHeader;
+    }
+    m_pListCtrlHeader->SetListCtrl(this);
+
+    if (!m_headerClass.empty()) {
+        m_pListCtrlHeader->SetClass(m_headerClass.c_str());
+    }
+
+    //初始化Body
+    ASSERT(m_pListCtrlData == nullptr);
+    m_pListCtrlData = new ListCtrlData;
+    m_pListCtrlData->SetBkColor(L"white");
+    m_pListCtrlData->SetAttribute(L"item_size", L"1200,32");
+    m_pListCtrlData->SetAttribute(L"columns", L"1");
+    m_pListCtrlData->SetAttribute(L"vscrollbar", L"true");
+    m_pListCtrlData->SetAttribute(L"hscrollbar", L"true");
+    m_pListCtrlData->SetAttribute(L"width", L"1200");
+    m_pListCtrlData->SetDataProvider(m_spItemProvider.get());
+
+    m_spItemProvider->SetListCtrlHeader(m_pListCtrlHeader);
+    m_pListCtrlData->SetListCtrlHeader(m_pListCtrlHeader);
+
+    m_pListCtrlData->AddItem(m_pListCtrlHeader);
+    AddItem(m_pListCtrlData);
+
+    //TEST
+    int32_t width = ui::GlobalManager::Instance().Dpi().GetScaleInt(200);
+    m_pListCtrlHeader->InsertColumn(-1, width, L"1111", true, true, false);
+    m_pListCtrlHeader->InsertColumn(-1, width, L"2222", true, true, false);
+    m_pListCtrlHeader->InsertColumn(-1, width, L"3333", true, true, false);
+    m_pListCtrlHeader->InsertColumn(-1, width, L"4444", true, true, false);
+    m_pListCtrlHeader->InsertColumn(-1, width, L"5555", true, true, false);
+    //TESTs
 }
 
 ListCtrlHeaderItem* ListCtrl::InsertColumn(int32_t nCol, int32_t nColumnWidth, const std::wstring& text,
@@ -674,52 +812,48 @@ ListCtrlHeaderItem* ListCtrl::InsertColumn(int32_t nCol, int32_t nColumnWidth, c
     }
 }
 
-void ListCtrl::DoInit()
+size_t ListCtrl::GetColumnCount() const
 {
-    if (m_bInited) {
-        return;
+    ASSERT(m_pListCtrlHeader != nullptr);
+    if (m_pListCtrlHeader == nullptr) {
+        return 0;
     }
-    m_bInited = true;
+    else {
+        return m_pListCtrlHeader->GetColumnCount();
+    }
+}
 
-    //初始化Header
-    ASSERT(m_pListCtrlHeader == nullptr);
-    if(m_pListCtrlHeader == nullptr) {
-        m_pListCtrlHeader = new ListCtrlHeader;
-    }    
-    m_pListCtrlHeader->SetListCtrl(this);
+int32_t ListCtrl::GetColumnWidth(size_t columnIndex) const
+{
+    ASSERT(m_pListCtrlHeader != nullptr);
+    if (m_pListCtrlHeader == nullptr) {
+        return 0;
+    }
+    else {
+        return m_pListCtrlHeader->GetColumnWidth(columnIndex);
+    }
+}
 
+ListCtrlHeaderItem* ListCtrl::GetColumnItem(size_t columnIndex) const
+{
+    ASSERT(m_pListCtrlHeader != nullptr);
+    if (m_pListCtrlHeader == nullptr) {
+        return nullptr;
+    }
+    else {
+        return m_pListCtrlHeader->GetColumnItem(columnIndex);
+    }
+}
 
-    int32_t width = ui::GlobalManager::Instance().Dpi().GetScaleInt(200);
-    m_pListCtrlHeader->InsertColumn(-1, width, L"1111", true, true, false);
-    m_pListCtrlHeader->InsertColumn(-1, width, L"2222", true, true, false);
-    m_pListCtrlHeader->InsertColumn(-1, width, L"3333", true, true, false);
-    m_pListCtrlHeader->InsertColumn(-1, width, L"4444", true, true, false);
-    m_pListCtrlHeader->InsertColumn(-1, width, L"5555", true, true, false);
-
-    /*m_pListCtrlHeader->SetAttribute(L"padding", L"1,1,1,1");
-    m_pListCtrlHeader->SetAttribute(L"border_size", L"1");
-    m_pListCtrlHeader->SetAttribute(L"border_color", L"red");*/
-
-    //初始化Body
-    ASSERT(m_pListCtrlData == nullptr);
-    m_pListCtrlData = new ListCtrlData;
-    m_pListCtrlData->SetBkColor(L"white");
-    m_pListCtrlData->SetAttribute(L"item_size", L"1200,32");
-    m_pListCtrlData->SetAttribute(L"columns", L"1");
-    m_pListCtrlData->SetAttribute(L"vscrollbar", L"true");
-    m_pListCtrlData->SetAttribute(L"hscrollbar", L"true");
-    m_pListCtrlData->SetAttribute(L"width", L"1200");
-    m_pListCtrlData->SetDataProvider(m_spItemProvider.get());
-
-    //TODO
-    m_pListCtrlHeader->SetBkColor(L"white");
-    m_pListCtrlHeader->SetAttribute(L"width", L"1000");
-    //
-    m_spItemProvider->SetListCtrlHeader(m_pListCtrlHeader);
-    m_pListCtrlData->SetListCtrlHeader(m_pListCtrlHeader);
-
-    m_pListCtrlData->AddItem(m_pListCtrlHeader);
-    AddItem(m_pListCtrlData);
+ListCtrlHeaderItem* ListCtrl::GetColumnItemById(size_t columnId) const
+{
+    ASSERT(m_pListCtrlHeader != nullptr);
+    if (m_pListCtrlHeader == nullptr) {
+        return nullptr;
+    }
+    else {
+        return m_pListCtrlHeader->GetColumnItemById(columnId);
+    }
 }
 
 ListCtrlHeader* ListCtrl::GetListCtrlHeader() const

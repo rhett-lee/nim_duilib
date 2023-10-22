@@ -49,14 +49,55 @@ public:
                                      bool bSortable = false, bool bResizeable = false, 
                                      bool bNeedDpiScale = true);
 
+    /** 获取列的个数
+    */
+    size_t GetColumnCount() const;
+
+    /** 获取列宽度
+    * @param [in] columnIndex 列索引序号：[0, GetColumnCount())
+    */
+    int32_t GetColumnWidth(size_t columnIndex) const;
+
+    /** 获取列表头的控件接口
+    * @param [in] columnIndex 列索引序号：[0, GetColumnCount())
+    */
+    ListCtrlHeaderItem* GetColumnItem(size_t columnIndex) const;
+
+    /** 获取列表头的控件接口
+    * @param [in] columnId 列的ID值，通过ListCtrlHeaderItem::GetColomnId()函数获取
+    */
+    ListCtrlHeaderItem* GetColumnItemById(size_t columnId) const;
+
     /** 获取表头控件接口, 在控件初始化以后才有值
     */
     ListCtrlHeader* GetListCtrlHeader() const;
+
+public:
+
 
 protected:
     /** 控件初始化
     */
     virtual void DoInit() override;
+
+    /** 设置ListCtrlHeader的属性Class
+    */
+    void SetListCtrlHeaderClass(const std::wstring& className);
+
+    /** ListCtrlHeaderItem的属性Class
+    */
+    void SetListCtrlHeaderItemClass(const std::wstring& className);
+    std::wstring GetListCtrlHeaderItemClass() const;
+
+    /** ListCtrlHeader/SplitBox的属性Class
+    */
+    void SetListCtrlHeaderSplitBoxClass(const std::wstring& className);
+    std::wstring GetListCtrlHeaderSplitBoxClass() const;
+
+    /** ListCtrlHeader/SplitBox/Control的属性Class
+    */
+    void SetListCtrlHeaderSplitControlClass(const std::wstring& className);
+    std::wstring GetListCtrlHeaderSplitControlClass() const;
 
 protected:
     /** 调整列的宽度（拖动列宽调整，每次调整两个列的宽度）
@@ -87,6 +128,22 @@ private:
 	/** 列表数据管理
 	*/
 	std::unique_ptr<ListCtrlItemProvider> m_spItemProvider;
+
+    /** ListCtrlHeader的属性Class
+    */
+    UiString m_headerClass;
+
+    /** ListCtrlHeaderItem的属性Class
+    */
+    UiString m_headerItemClass;
+
+    /** ListCtrlHeader/SplitBox的属性Class
+    */
+    UiString m_headerSplitBoxClass;
+
+    /** ListCtrlHeader/SplitBox/Control的属性Class
+    */
+    UiString m_headerSplitControlClass;
 };
 
 /** ListCtrl子项控件
@@ -181,6 +238,14 @@ public:
     */
     int32_t GetColumnWidth() const;
 
+    /** 设置文字与图标之间的间隔（像素）
+    */
+    void SetIconSpacing(int32_t nIconSpacing, bool bNeedDpiScale);
+
+    /** 获取文字与图标之间的间隔（像素）
+    */
+    int32_t GetIconSpacing() const;
+
 private:
     /** 同步列宽与UI控件宽度
     */
@@ -210,6 +275,10 @@ private:
     /** 是否允许改变列宽
     */
     bool m_bColumnResizeable;
+
+    /** 文字与图标之间的间隔
+    */
+    int32_t m_nIconSpacing;
 };
 
 /** ListCtrl的表头控件
@@ -254,6 +323,16 @@ public:
     * @param [in] columnIndex 列索引序号：[0, GetColumnCount())
     */
     int32_t GetColumnWidth(size_t columnIndex) const;
+
+    /** 获取列表头的控件接口
+    * @param [in] columnIndex 列索引序号：[0, GetColumnCount())
+    */
+    ListCtrlHeaderItem* GetColumnItem(size_t columnIndex) const;
+
+    /** 获取列表头的控件接口
+    * @param [in] columnId 列的ID值，通过ListCtrlHeaderItem::GetColomnId()函数获取
+    */
+    ListCtrlHeaderItem* GetColumnItemById(size_t columnId) const;
 
     /** 获取列宽度和列索引序号
     * @param [in] columnId 列的ID值，通过ListCtrlHeaderItem::GetColomnId()函数获取
