@@ -1875,15 +1875,15 @@ LRESULT Window::OnKillFocusMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bH
 {
     ASSERT_UNUSED_VARIABLE(uMsg == WM_KILLFOCUS);
     bHandled = false;
-    Control* pControl = m_pEventClick;
+    Control* pEventClick = m_pEventClick;
     m_pEventClick = nullptr;
     ReleaseCapture();
-    if (pControl != nullptr) {
-        pControl->SendEvent(kEventWindowKillFocus, wParam, lParam, 0, UiPoint());
+    if (pEventClick != nullptr) {
+        pEventClick->SendEvent(kEventWindowKillFocus, wParam, lParam, 0, UiPoint());
     }
-    pControl = m_pFocus;
-    if (pControl != nullptr) {
-        pControl->SendEvent(kEventWindowKillFocus, wParam, lParam, 0, UiPoint());
+    Control* pFocus = m_pFocus;
+    if ((pFocus != nullptr) && (pFocus != pEventClick)){
+        pFocus->SendEvent(kEventWindowKillFocus, wParam, lParam, 0, UiPoint());
     }
     return 0;
 }

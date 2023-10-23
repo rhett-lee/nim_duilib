@@ -16,7 +16,7 @@
         <!-- 工作区域，除了标题栏外的内容都放在这个大的Box区域 -->
         <Box>
             <VBox margin="0,0,0,0" valign="center" halign="center">
-                <ListCtrl bkcolor="YellowGreen" 
+                <ListCtrl bkcolor="YellowGreen" enable_header_drag_order="true" 
                           list_ctrl_header_class="list_ctrl_header" 
                           list_ctrl_header_item_class="list_ctrl_header_item"
                           list_ctrl_header_split_box_class="list_ctrl_header_split_box"

@@ -1118,6 +1118,11 @@ void Control::HandleEvent(const EventArgs& msg)
 			return;
 		}
 	}
+	else if (msg.Type == kEventWindowKillFocus) {
+		if (OnWindowKillFocus(msg)) {
+			return;
+		}
+	}
 	else if (msg.Type == kEventImeStartComposition) {
 		if (OnImeStartComposition(msg)) {
 			return;
@@ -1462,14 +1467,22 @@ bool Control::OnKillFocus(const EventArgs& /*msg*/)
 	return true;
 }
 
+bool Control::OnWindowKillFocus(const EventArgs& /*msg*/)
+{
+	//默认不处理，交由父控件处理
+	return false;
+}
+
 bool Control::OnImeStartComposition(const EventArgs& /*msg*/)
 {
-	return true;
+	//默认不处理，交由父控件处理
+	return false;
 }
 
 bool Control::OnImeEndComposition(const EventArgs& /*msg*/)
 {
-	return true;
+	//默认不处理，交由父控件处理
+	return false;
 }
 
 void Control::SetAttribute(const std::wstring& strName, const std::wstring& strValue)

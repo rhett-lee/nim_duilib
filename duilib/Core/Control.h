@@ -970,7 +970,8 @@ protected:
     //光标与焦点相关消息（返回true：表示消息已处理；返回false：则表示消息未处理，需转发给父控件）
 	virtual bool OnSetCursor(const EventArgs& msg);
 	virtual bool OnSetFocus(const EventArgs& msg);
-	virtual bool OnKillFocus(const EventArgs& msg);
+	virtual bool OnKillFocus(const EventArgs& msg); //控件失去焦点
+	virtual bool OnWindowKillFocus(const EventArgs& msg);//控件所属的窗口失去焦点
 	virtual bool OnImeStartComposition(const EventArgs& msg);
 	virtual bool OnImeEndComposition(const EventArgs& msg);
 

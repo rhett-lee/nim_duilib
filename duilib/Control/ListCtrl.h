@@ -72,6 +72,14 @@ public:
     */
     ListCtrlHeader* GetListCtrlHeader() const;
 
+    /** 设置是否支持列表头拖动改变列的顺序
+    */
+    void SetEnableHeaderDragOrder(bool bEnable);
+
+    /** 是否支持列表头拖动改变列的顺序
+    */
+    bool IsEnableHeaderDragOrder() const;
+
 public:
 
 
@@ -112,6 +120,10 @@ protected:
     */
     void OnColumnSorted(size_t nColumnId, bool bSortedUp);
 
+    /** 通过拖动列表头，调整了列的顺序
+    */
+    void OnHeaderColumnOrderChanged();
+
 private:
 	/** 初始化标志
 	*/
@@ -144,6 +156,10 @@ private:
     /** ListCtrlHeader/SplitBox/Control的属性Class
     */
     UiString m_headerSplitControlClass;
+
+    /** 是否支持拖动改变列的顺序
+    */
+    bool m_bEnableHeaderDragOrder;
 };
 
 /** ListCtrl子项控件
@@ -251,6 +267,25 @@ private:
     */
     void CheckColumnWidth();
 
+protected:
+    /** @name 拖动相关的成员函数
+    * @{ */
+
+    virtual bool ButtonDown(const EventArgs& msg) override;
+    virtual bool ButtonUp(const EventArgs& msg) override;
+    virtual bool MouseMove(const EventArgs& msg) override;
+    virtual bool OnWindowKillFocus(const EventArgs& msg) override;//控件所属的窗口失去焦点
+
+    /** 根据鼠标位置调整各个控件的位置(拖动操作的一部分)
+    */
+    void AdjustHeaderItemPos(const UiPoint& mousePt);
+
+    /** 清除拖动状态
+    */
+    void ClearDragStatus();
+
+    /** @} */
+
 private:
     /** 排序图标：降序
     */
@@ -279,6 +314,43 @@ private:
     /** 文字与图标之间的间隔
     */
     int32_t m_nIconSpacing;
+
+private:
+    /** @name 拖动相关的成员变量
+    * @{ */
+
+    /** 是否鼠标左键按下
+    */
+    bool m_bMouseDown;
+
+    /** 是否处于拖拽操作中
+    */
+    bool m_bInDragging;
+
+    /** 原来的透明度
+    */
+    uint8_t m_nOldAlpha;
+
+    /** 鼠标按下时的鼠标位置
+    */
+    UiPoint m_ptMouseDown;
+
+    /** 鼠标按下时的控件矩形区域
+    */
+    UiRect m_rcMouseDown;
+
+    struct ItemStatus
+    {
+        Control* m_pItem = nullptr;
+        UiRect m_rcPos;
+        size_t m_index = Box::InvalidIndex;
+    };
+
+    /** 鼠标按下时，父容器中，每个控件的位置
+    */
+    std::vector<ItemStatus> m_rcItemList;
+
+    /** @} */
 };
 
 /** ListCtrl的表头控件
@@ -348,6 +420,10 @@ public:
     void SetListCtrl(ListCtrl* pListCtrl);
 
 protected:
+    /** 是否支持列表头拖动改变列的顺序
+    */
+    bool IsEnableHeaderDragOrder() const;
+
     /** 拖动列表头改变列宽的事件响应函数
     * @param [in] pLeftHeaderItem 左侧的列表头控件接口
     * @param [in] pRightHeaderItem 右侧的列表头控件接口
@@ -358,6 +434,10 @@ protected:
     * @param [in] pHeaderItem 列表头控件接口
     */
     void OnHeaderColumnSorted(ListCtrlHeaderItem* pHeaderItem);
+
+    /** 通过拖动列表头，调整了列的顺序
+    */
+    void OnHeaderColumnOrderChanged();
 
 private:
     /** 关联的ListCtrl接口
