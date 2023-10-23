@@ -521,7 +521,7 @@ ListCtrlHeader::ListCtrlHeader() :
 
 std::wstring ListCtrlHeader::GetType() const { return L"ListCtrlHeader"; }
 
-ListCtrlHeaderItem* ListCtrlHeader::InsertColumn(int32_t nCol, int32_t nColumnWidth, 
+ListCtrlHeaderItem* ListCtrlHeader::InsertColumn(int32_t columnIndex, int32_t nColumnWidth,
                                                  const std::wstring& text,
                                                  bool bSortable, bool bResizeable, 
                                                  bool bNeedDpiScale)
@@ -540,15 +540,15 @@ ListCtrlHeaderItem* ListCtrlHeader::InsertColumn(int32_t nCol, int32_t nColumnWi
     ListCtrlHeaderItem* pHeaderItem = new ListCtrlHeaderItem;
     SplitBox* pHeaderSplit = new SplitBox;
     size_t nColumnCount = GetColumnCount();
-    if ((size_t)nCol >= nColumnCount) {
+    if ((size_t)columnIndex >= nColumnCount) {
         //放在最后
         AddItem(pHeaderItem);
         AddItem(pHeaderSplit);
     }
     else {
         //插入在中间位置        
-        AddItemAt(pHeaderSplit, nCol);
-        AddItemAt(pHeaderItem, nCol);
+        AddItemAt(pHeaderSplit, columnIndex);
+        AddItemAt(pHeaderItem, columnIndex);
     }
 
     //设置属性
@@ -635,7 +635,7 @@ int32_t ListCtrlHeader::GetColumnWidth(size_t columnIndex) const
     return nColumnWidth;
 }
 
-ListCtrlHeaderItem* ListCtrlHeader::GetColumnItem(size_t columnIndex) const
+ListCtrlHeaderItem* ListCtrlHeader::GetColumn(size_t columnIndex) const
 {
     int32_t nColumnWidth = 0;
     size_t nColumnCount = GetColumnCount();
@@ -648,7 +648,7 @@ ListCtrlHeaderItem* ListCtrlHeader::GetColumnItem(size_t columnIndex) const
     return pHeaderItem;
 }
 
-ListCtrlHeaderItem* ListCtrlHeader::GetColumnItemById(size_t columnId) const
+ListCtrlHeaderItem* ListCtrlHeader::GetColumnById(size_t columnId) const
 {
     ListCtrlHeaderItem* pFoundHeaderItem = nullptr;
     size_t nColumnCount = GetColumnCount();
@@ -682,6 +682,38 @@ bool ListCtrlHeader::GetColumnInfo(size_t columnId, size_t& columnIndex, int32_t
                 break;
             }
         }
+    }
+    return bRet;
+}
+
+size_t ListCtrlHeader::GetColumnIndex(size_t columnId) const
+{
+    size_t columnIndex = Box::InvalidIndex;
+    int32_t nColumnWidth = -1;
+    GetColumnInfo(columnId, columnIndex, nColumnWidth);
+    return columnIndex;
+}
+
+bool ListCtrlHeader::DeleteColumn(size_t columnIndex)
+{
+    bool bRet = false;
+    size_t columnId = Box::InvalidIndex;
+    size_t nColumnCount = GetColumnCount();
+    if (columnIndex < nColumnCount) {
+        ListCtrlHeaderItem* pHeaderItem = dynamic_cast<ListCtrlHeaderItem*>(GetItemAt(columnIndex * 2));
+        ASSERT(pHeaderItem != nullptr);
+        if (pHeaderItem != nullptr) {
+            columnId = pHeaderItem->GetColomnId();
+            if (pHeaderItem->GetSplitBox() != nullptr) {
+                ASSERT(dynamic_cast<SplitBox*>(GetItemAt(columnIndex * 2 + 1)) == pHeaderItem->GetSplitBox());
+                RemoveItem(pHeaderItem->GetSplitBox());
+            }
+            RemoveItem(pHeaderItem);
+            bRet = true;
+        }
+    }
+    if (bRet && (m_pListCtrl != nullptr)) {
+        m_pListCtrl->OnHeaderColumnDeleted(columnId);
     }
     return bRet;
 }
@@ -1100,7 +1132,7 @@ void ListCtrl::DoInit()
     //TESTs
 }
 
-ListCtrlHeaderItem* ListCtrl::InsertColumn(int32_t nCol, int32_t nColumnWidth, const std::wstring& text,
+ListCtrlHeaderItem* ListCtrl::InsertColumn(int32_t columnIndex, int32_t nColumnWidth, const std::wstring& text,
                                            bool bSortable, bool bResizeable, bool bNeedDpiScale)
 {
     ASSERT(m_pListCtrlHeader != nullptr);
@@ -1108,7 +1140,7 @@ ListCtrlHeaderItem* ListCtrl::InsertColumn(int32_t nCol, int32_t nColumnWidth, c
         return nullptr;
     }
     else {
-        return m_pListCtrlHeader->InsertColumn(nCol, nColumnWidth, text, bSortable, bResizeable, bNeedDpiScale);
+        return m_pListCtrlHeader->InsertColumn(columnIndex, nColumnWidth, text, bSortable, bResizeable, bNeedDpiScale);
     }
 }
 
@@ -1134,25 +1166,47 @@ int32_t ListCtrl::GetColumnWidth(size_t columnIndex) const
     }
 }
 
-ListCtrlHeaderItem* ListCtrl::GetColumnItem(size_t columnIndex) const
+ListCtrlHeaderItem* ListCtrl::GetColumn(size_t columnIndex) const
 {
     ASSERT(m_pListCtrlHeader != nullptr);
     if (m_pListCtrlHeader == nullptr) {
         return nullptr;
     }
     else {
-        return m_pListCtrlHeader->GetColumnItem(columnIndex);
+        return m_pListCtrlHeader->GetColumn(columnIndex);
     }
 }
 
-ListCtrlHeaderItem* ListCtrl::GetColumnItemById(size_t columnId) const
+ListCtrlHeaderItem* ListCtrl::GetColumnById(size_t columnId) const
 {
     ASSERT(m_pListCtrlHeader != nullptr);
     if (m_pListCtrlHeader == nullptr) {
         return nullptr;
     }
     else {
-        return m_pListCtrlHeader->GetColumnItemById(columnId);
+        return m_pListCtrlHeader->GetColumnById(columnId);
+    }
+}
+
+size_t ListCtrl::GetColumnIndex(size_t columnId) const
+{
+    ASSERT(m_pListCtrlHeader != nullptr);
+    if (m_pListCtrlHeader == nullptr) {
+        return Box::InvalidIndex;
+    }
+    else {
+        return m_pListCtrlHeader->GetColumnIndex(columnId);
+    }
+}
+
+bool ListCtrl::DeleteColumn(size_t columnIndex)
+{
+    ASSERT(m_pListCtrlHeader != nullptr);
+    if (m_pListCtrlHeader == nullptr) {
+        return false;
+    }
+    else {
+        return m_pListCtrlHeader->DeleteColumn(columnIndex);
     }
 }
 
@@ -1231,6 +1285,11 @@ void ListCtrl::OnColumnSorted(size_t nColumnId, bool bSortedUp)
 }
 
 void ListCtrl::OnHeaderColumnOrderChanged()
+{
+
+}
+
+void ListCtrl::OnHeaderColumnDeleted(size_t nColumnId)
 {
 
 }
