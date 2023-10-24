@@ -55,10 +55,11 @@ private:
     * @param [in] pFirst 第一个控件接口，该函数会调整该接口对应控件的宽度或者高度
     * @param [in] nFirstFixedInt 第一个控件的原始宽度或者高度值（在鼠标按下时记录）
     * @param [in] pSecond 第二个控件接口，读取其最小值，避免调整第一个控件时未给留下足够最小空间
+    * @return 返回第一个控件的宽度或者高度
     */
-    void AdjustControlPos(bool bHLayout, const int32_t nTotal, const int32_t nOffset,
-                          Control* pFirst, const UiFixedInt& nFirstFixedInt,
-                          const Control* pSecond) const;
+    int32_t CalculateControlPos(bool bHLayout, const int32_t nTotal, const int32_t nOffset,
+                                Control* pFirst, const UiFixedInt& nFirstFixedInt,
+                                const Control* pSecond) const;
 
 private:
     //左侧（左右拖动）或者上侧（上下拖动）的控件接口
@@ -236,9 +237,9 @@ bool SplitTemplate<InheritType>::ButtonUp(const EventArgs& msg)
 }
 
 template<typename InheritType>
-void SplitTemplate<InheritType>::AdjustControlPos(bool bHLayout, const int32_t nTotal, const int32_t nOffset,
-                                                  Control* pFirst, const UiFixedInt& nFirstFixedInt,
-                                                  const Control* pSecond) const
+int32_t SplitTemplate<InheritType>::CalculateControlPos(bool bHLayout, const int32_t nTotal, const int32_t nOffset,
+                                                        Control* pFirst, const UiFixedInt& nFirstFixedInt,
+                                                        const Control* pSecond) const
 {
     int32_t nNewValue = nFirstFixedInt.GetInt32() + nOffset; //新值，可以是正数，也可以是负数
     if (nNewValue < 0) {
@@ -280,12 +281,7 @@ void SplitTemplate<InheritType>::AdjustControlPos(bool bHLayout, const int32_t n
     if (nNewValue > nMax) {
         nNewValue = nMax;
     }
-    if (bHLayout) {
-        pFirst->SetFixedWidth(UiFixedInt(nNewValue), true, false);
-    }
-    else {
-        pFirst->SetFixedHeight(UiFixedInt(nNewValue), true, false);
-    }
+    return nNewValue;    
 }
 
 template<typename InheritType>
@@ -324,29 +320,58 @@ bool SplitTemplate<InheritType>::MouseMove(const EventArgs& msg)
     }
     
     int32_t nTotal = 0; //总的宽度值或者总的高度值
-    if (m_bHLayout) {
-        nTotal = m_pLeftTop->GetWidth() + m_pRightBottom->GetWidth();
+    if (m_nLeftUpFixedValue.IsInt32() && m_nRightBottomFixedValue.IsInt32()) {
+        nTotal = m_nLeftUpFixedValue.GetInt32() + m_nRightBottomFixedValue.GetInt32();
     }
     else {
-        nTotal = m_pLeftTop->GetHeight() + m_pRightBottom->GetHeight();
+        if (m_bHLayout) {
+            nTotal = m_pLeftTop->GetWidth() + m_pRightBottom->GetWidth();
+        }
+        else {
+            nTotal = m_pLeftTop->GetHeight() + m_pRightBottom->GetHeight();
+        }
     }
 
     //对于拉伸类型的控件，不调整，交给父容器自动调整（如果两个控件都是拉伸类型的，分割条就无法工作了）
     Control* pControl1 = nullptr;
     Control* pControl2 = nullptr;
+    int32_t nNewValue1 = 0;
+    int32_t nNewValue2 = 0;
     if (!m_nLeftUpFixedValue.IsStretch()) {
         pControl1 = m_pLeftTop;
-        AdjustControlPos(m_bHLayout, nTotal, nOffset, m_pLeftTop, m_nLeftUpFixedValue, m_pRightBottom);
+        nNewValue1 = CalculateControlPos(m_bHLayout, nTotal, nOffset, m_pLeftTop, m_nLeftUpFixedValue, m_pRightBottom);
     }
     if (!m_nRightBottomFixedValue.IsStretch()) {
         pControl2 = m_pRightBottom;
-        AdjustControlPos(m_bHLayout, nTotal, -nOffset, m_pRightBottom, m_nRightBottomFixedValue, m_pLeftTop);
+        nNewValue2 = CalculateControlPos(m_bHLayout, nTotal, -nOffset, m_pRightBottom, m_nRightBottomFixedValue, m_pLeftTop);
+    }
+    if ((nNewValue1 + nNewValue2) != nTotal) {
+        //超过限制，不调整
+        return bRet;
+    }
+    bool bAdjusted = false;
+    if ((pControl1 != nullptr) && (nNewValue1 >= 0)) {
+        bAdjusted = true;
+        if (m_bHLayout) {
+            pControl1->SetFixedWidth(UiFixedInt(nNewValue1), true, false);
+        }
+        else {
+            pControl1->SetFixedHeight(UiFixedInt(nNewValue1), true, false);
+        }
+    }
+    if ((pControl2 != nullptr) && (nNewValue2 >= 0)) {
+        bAdjusted = true;
+        if (m_bHLayout) {
+            pControl2->SetFixedWidth(UiFixedInt(nNewValue2), true, false);
+        }
+        else {
+            pControl2->SetFixedHeight(UiFixedInt(nNewValue2), true, false);
+        }
     }
 
-    if ((pControl1 != nullptr) || (pControl2 != nullptr)) {
+    if (bAdjusted && (pControl1 != nullptr) || (pControl2 != nullptr)) {
         this->SendEvent(kEventSplitDraged, (WPARAM)pControl1, (LPARAM)pControl2);
     }
-
     return bRet;
 }
 
