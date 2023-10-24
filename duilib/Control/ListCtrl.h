@@ -4,7 +4,8 @@
 #pragma once
 
 #include "duilib/Box/VirtualListBox.h"
-#include "duilib/Control/Label.h"
+#include "duilib/Control/Button.h"
+#include "duilib/Control/CheckBox.h"
 #include "duilib/Control/Split.h"
 #include "duilib/Box/ListBoxItem.h"
 #include "duilib/Image/Image.h"
@@ -20,6 +21,22 @@ class ListCtrlHeaderItem;
 //列表数据管理类
 class ListCtrlData;
 class ListCtrlItemProvider;
+
+/** 列的基本信息, 用于添加列
+*/
+struct ListCtrlColumn
+{
+    std::wstring text;              //表头的文本
+    int32_t nColumnWidth = 100;     //列宽，如果bNeedDpiScale为true，这执行DPI自适应处理
+    int32_t nColumnWidthMin = 0;    //列宽最小值，0表示用默认设置，如果bNeedDpiScale为true，这执行DPI自适应处理
+    int32_t nColumnWidthMax = 0;    //列宽最大值，0表示用默认设置，如果bNeedDpiScale为true，这执行DPI自适应处理
+    int32_t nTextFormat = -1;       //文本对齐方式等属性, 该属性仅应用于Header, 取值可参考：IRender.h中的DrawStringFormat，如果为-1，表示按默认配置的对齐方式
+    bool bSortable = true;          //是否支持排序
+    bool bResizeable = true;        //是否支持通过拖动调整列宽
+    bool bShowCheckBox = true;      //是否显示CheckBox（支持在表头和数据列显示CheckBox）
+    int32_t nCheckBoxWidth = 24;    //CheckBox控件所占的宽度，仅当bShowCheckBox为true时有效, 如果bNeedDpiScale为true，这执行DPI自适应处理
+    bool bNeedDpiScale = true;      //是否对数值做DPI自适应
+};
 
 /** ListCtrl控件
 */
@@ -38,16 +55,10 @@ public:
 public:
     /** 在指定位置添加一列
     * @param [in] columnIndex 在第几列以后插入该列，如果是-1，表示在最后追加一列
-    * @param [in] nColumnWidth 列宽
-    * @param [in] text 表头的文本
-    * @param [in] bSortable 是否允许排序
-    * @param [in] bResizeable 是否允许通过拖动调整列宽
-    * @param [in] bNeedDpiScale 是否对列宽nColumnWidth值做DPI自适应
+    * @param [in] columnInfo 列的基本属性
     * @return 返回这一列的表头控件接口
     */
-    ListCtrlHeaderItem* InsertColumn(int32_t columnIndex, int32_t nColumnWidth, const std::wstring& text,
-                                     bool bSortable = false, bool bResizeable = false, 
-                                     bool bNeedDpiScale = true);
+    ListCtrlHeaderItem* InsertColumn(int32_t columnIndex, const ListCtrlColumn& columnInfo);
 
     /** 获取列的个数
     */
@@ -101,22 +112,27 @@ protected:
 
     /** 设置ListCtrlHeader的属性Class
     */
-    void SetListCtrlHeaderClass(const std::wstring& className);
+    void SetHeaderClass(const std::wstring& className);
 
     /** ListCtrlHeaderItem的属性Class
     */
-    void SetListCtrlHeaderItemClass(const std::wstring& className);
-    std::wstring GetListCtrlHeaderItemClass() const;
+    void SetHeaderItemClass(const std::wstring& className);
+    std::wstring GetHeaderItemClass() const;
 
     /** ListCtrlHeader/SplitBox的属性Class
     */
-    void SetListCtrlHeaderSplitBoxClass(const std::wstring& className);
-    std::wstring GetListCtrlHeaderSplitBoxClass() const;
+    void SetHeaderSplitBoxClass(const std::wstring& className);
+    std::wstring GetHeaderSplitBoxClass() const;
 
     /** ListCtrlHeader/SplitBox/Control的属性Class
     */
-    void SetListCtrlHeaderSplitControlClass(const std::wstring& className);
-    std::wstring GetListCtrlHeaderSplitControlClass() const;
+    void SetHeaderSplitControlClass(const std::wstring& className);
+    std::wstring GetHeaderSplitControlClass() const;
+
+    /** CheckBox的Class属性(应用于Header和ListCtrl数据)
+    */
+    void SetCheckBoxClass(const std::wstring& className);
+    std::wstring GetCheckBoxClass() const;
 
 protected:
     /** 调整列的宽度（拖动列宽调整，每次调整两个列的宽度）
@@ -139,6 +155,12 @@ protected:
     * @param [in] nColumnId 列的ID
     */
     void OnHeaderColumnDeleted(size_t nColumnId);
+
+    /** 表头的CheckBox勾选操作
+    * @param [in] nColumnId 列的ID
+    * @param [in] bSelected true表示勾选（Selected状态），false表示取消勾选（UnSelected状态）
+    */
+    void OnHeaderColumnSelectStateChanged(size_t nColumnId, bool bSelected);
 
 private:
 	/** 初始化标志
@@ -173,6 +195,10 @@ private:
     */
     UiString m_headerSplitControlClass;
 
+    /** CheckBox的Class
+    */
+    UiString m_checkBoxClass;
+
     /** 是否支持拖动改变列的顺序
     */
     bool m_bEnableHeaderDragOrder;
@@ -192,7 +218,7 @@ public:
 /** ListCtrl的表头控件的显示项
 */
 class ListCtrlHeaderItem:
-    public Button
+    public ButtonBox
 {
 public:
     ListCtrlHeaderItem();
@@ -277,6 +303,15 @@ public:
     /** 获取文字与图标之间的间隔（像素）
     */
     int32_t GetIconSpacing() const;
+
+    /** 设置是否显示CheckBox
+    * @param [in] bVisible true表示显示，false表示隐藏
+    */
+    bool SetCheckBoxVisible(bool bVisible);
+
+    /** 判断当前CheckBox是否处于显示状态
+    */
+    bool IsCheckBoxVisible() const;
 
 private:
     /** 同步列宽与UI控件宽度
@@ -384,24 +419,20 @@ public:
 public:
     /** 在指定位置添加一列
     *  表头控件的基本结构如下：
+    * 
     *   <ListCtrlHeader>
-    *       <ListCtrlHeaderItem/>
+    *       <ListCtrlHeaderItem> CheckBox[可选] </ListCtrlHeaderItem>
     *       <SplitBox> <Control/> </SplitBox>
     *       ..
-    *       <ListCtrlHeaderItem/>
+    *       <ListCtrlHeaderItem> CheckBox[可选] </ListCtrlHeaderItem>
     *       <SplitBox> <Control/> </SplitBox>
     *   </ListCtrlHeader>
+    * 
     * @param [in] columnIndex 在第几列以后插入该列，如果是-1，表示在最后追加一列
-    * @param [in] nColumnWidth 列宽
-    * @param [in] text 表头的文本
-    * @param [in] bSortable 是否允许排序
-    * @param [in] bResizeable 是否允许通过拖动调整列宽
-    * @param [in] bNeedDpiScale 是否对列宽nColumnWidth值做DPI自适应
+    * @param [in] columnInfo 列的基本属性
     * @return 返回这一列的表头控件接口
     */
-    ListCtrlHeaderItem* InsertColumn(int32_t columnIndex, int32_t nColumnWidth, const std::wstring& text,
-                                     bool bSortable = false, bool bResizeable = false, 
-                                     bool bNeedDpiScale = true);
+    ListCtrlHeaderItem* InsertColumn(int32_t columnIndex, const ListCtrlColumn& columnInfo);
 
     /** 获取列的个数
     */
@@ -465,6 +496,12 @@ protected:
     /** 通过拖动列表头，调整了列的顺序
     */
     void OnHeaderColumnOrderChanged();
+
+    /** CheckBox的勾选项操作
+    * @param [in] pHeaderItem 列表头控件接口
+    * @param [in] bSelected true表示勾选（Selected状态），false表示取消勾选（UnSelected状态）
+    */
+    void OnHeaderColumnSelectStateChanged(ListCtrlHeaderItem* pHeaderItem, bool bSelected);
 
 private:
     /** 关联的ListCtrl接口

@@ -249,13 +249,21 @@
     
     <!--ListCtrl控件列表项通用样式-->
     <Class name="list_ctrl_header" bkcolor="white" width="100%"/>
-    <Class name="list_ctrl_header_item" height="100%" text_align="vcenter,hcenter" icon_spacing="6"
-           hot_color="#FFE5F3FF" pushed_color="#FFD9EEFF" 
+    <Class name="list_ctrl_header_item" height="100%" text_align="vcenter,hcenter" hot_color="#FFE5F3FF" pushed_color="#FFD9EEFF"            
+           icon_spacing="6"
            sorted_up_image="file='../public/listctrl/arrow-sorted-up.svg' width='10' height='10' valign='center' halign='left'" 
            sorted_down_image="file='../public/listctrl/arrow-sorted-down.svg' width='10' height='10' valign='center' halign='left'"/>
     <Class name="list_ctrl_header_split_box" width="3" height="100%" />
     <Class name="list_ctrl_header_split_control" width="1" height="100%" margin="2,4,0,2" bkcolor="splitline_level1"/>
+    <Class name="list_ctrl_checkbox" valign="center" halign="left" margin="4,0,0,0"
+                                     normal_image="file='../public/CheckBox/check_no.png' padding='2,0,0,0' valign='center'" 
+                                     disabled_image="file='../public/CheckBox/check_no.png' padding='2,0,0,0' valign='center' fade='80'" 
+                                     selected_normal_image="file='../public/CheckBox/check_yes.png' padding='2,0,0,0' valign='center'" 
+                                     selected_disabled_image="file='../public/CheckBox/check_yes.png' padding='2,0,0,0' valign='center' fade='80'" 
+                                     part_selected_normal_image="file='../public/CheckBox/part_check.png' padding='2,0,0,0' valign='center'" 
+                                     part_selected_disabled_image="file='../public/CheckBox/part_check.png' padding='2,0,0,0' valign='center' fade='80'"/>    
     <Class name="list_ctrl_item" hot_color="#FFE5F3FF" pushed_color="#FFD9EEFF" selected_normal_color="#FFCCE8FF"/>
+    
     
     <!--气泡框通用样式-->
     <TextColor name="popover_color_0" value="#FFECF1F8"/>

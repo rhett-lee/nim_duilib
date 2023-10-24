@@ -17,10 +17,11 @@
         <Box>
             <VBox margin="0,0,0,0" valign="center" halign="center">
                 <ListCtrl bkcolor="YellowGreen" enable_header_drag_order="true" 
-                          list_ctrl_header_class="list_ctrl_header" 
-                          list_ctrl_header_item_class="list_ctrl_header_item"
-                          list_ctrl_header_split_box_class="list_ctrl_header_split_box"
-                          list_ctrl_header_split_control_class="list_ctrl_header_split_control"/>
+                          header_class="list_ctrl_header" 
+                          header_item_class="list_ctrl_header_item"
+                          header_split_box_class="list_ctrl_header_split_box"
+                          header_split_control_class="list_ctrl_header_split_control"
+                          check_box_class="list_ctrl_checkbox"/>
             </VBox>
         </Box>
     </VBox>
