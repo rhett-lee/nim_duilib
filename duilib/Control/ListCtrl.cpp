@@ -670,11 +670,11 @@ ListCtrlHeaderItem* ListCtrlHeader::InsertColumn(int32_t columnIndex, const List
 
         //挂载CheckBox的事件处理
         pCheckBox->AttachSelect([this, pHeaderItem](const EventArgs& /*args*/) {
-            OnHeaderColumnSelectStateChanged(pHeaderItem, true);
+            OnHeaderColumnCheckStateChanged(pHeaderItem, true);
             return true;
             });
         pCheckBox->AttachUnSelect([this, pHeaderItem](const EventArgs& /*args*/) {
-            OnHeaderColumnSelectStateChanged(pHeaderItem, false);
+            OnHeaderColumnCheckStateChanged(pHeaderItem, false);
             return true;
             });
     }
@@ -887,210 +887,211 @@ void ListCtrlHeader::OnHeaderColumnOrderChanged()
     }
 }
 
-void ListCtrlHeader::OnHeaderColumnSelectStateChanged(ListCtrlHeaderItem* pHeaderItem, bool bSelected)
+void ListCtrlHeader::OnHeaderColumnCheckStateChanged(ListCtrlHeaderItem* pHeaderItem, bool bChecked)
 {
     if (pHeaderItem == nullptr) {
         return;
     }
     size_t nColumnId = pHeaderItem->GetColomnId();
     if (m_pListCtrl != nullptr) {
-        m_pListCtrl->OnHeaderColumnSelectStateChanged(nColumnId, bSelected);
+        m_pListCtrl->OnHeaderColumnCheckStateChanged(nColumnId, bChecked);
     }
 }
 
 /////////////////////////////////////////////////////////////////
 /** 列表项的数据管理器
 */
-class ListCtrlItemProvider : public ui::VirtualListBoxElement
+class ListCtrlData : public ui::VirtualListBoxElement
 {
 public:
-    ListCtrlItemProvider():
-        m_pListCtrlHeader(nullptr)
-    {
-        for (int i = 0; i < 10; ++i) {
-            m_listItems.push_back(2);
-        }
-    }
+    ListCtrlData();
 
     /** 创建一个数据项
     * @return 返回创建后的数据项指针
     */
-    virtual Control* CreateElement() override
-    {
-        ListCtrlItem* pItem = new ListCtrlItem;
-        pItem->SetClass(L"list_ctrl_item");
-        return pItem;
-    }
+    virtual Control* CreateElement() override;
 
     /** 填充指定数据项
     * @param [in] pControl 数据项控件指针
     * @param [in] nElementIndex 数据元素的索引ID，范围：[0, GetElementCount())
     */
-    virtual bool FillElement(ui::Control* pControl, size_t nElementIndex) override
-    {
-        if (nElementIndex == 0) {
-            return true;
-        }
-        bool bFirstLine = (nElementIndex == 1);
-        //return true;
-        ListCtrlItem* pItem = dynamic_cast<ListCtrlItem*>(pControl);
-        if (pItem == nullptr) {
-            return false;
-        }
-        //pItem->SetAttribute(L"border_size", L"1");
-        //pItem->SetAttribute(L"border_color", L"orange");
-
-        //基本结构：
-        //  <HBox>
-        //      <Label/>
-        //      ...
-        //  </HBox>
-
-        HBox* pItemHBox = nullptr;
-        if (pItem->GetItemCount() > 0) {
-            pItemHBox = dynamic_cast<HBox*>(pItem->GetItemAt(0));
-            ASSERT(pItemHBox != nullptr);
-            if (pItemHBox == nullptr) {
-                return false;
-            }
-        }
-        if (pItemHBox == nullptr) {
-            pItemHBox = new HBox;
-            pItem->AddItem(pItemHBox);
-        }
-
-        if (m_pListCtrlHeader != nullptr) {
-            size_t columnCount = m_pListCtrlHeader->GetColumnCount();
-            for (size_t nColumn = 0; nColumn < columnCount; ++nColumn) {
-                Label* pLabel = nullptr;
-                if (nColumn < pItemHBox->GetItemCount()) {
-                    pLabel = dynamic_cast<Label*>(pItemHBox->GetItemAt(nColumn));
-                    ASSERT(pLabel != nullptr);
-                    if (pLabel == nullptr) {
-                        return false;
-                    }
-                }
-                else {
-                    pLabel = new Label;
-                    pItemHBox->AddItem(pLabel);
-                }
-
-                int32_t width = m_pListCtrlHeader->GetColumnWidth(nColumn);
-
-                pLabel->SetFixedWidth(UiFixedInt(width), true, false);
-                pLabel->SetAttribute(L"height", L"100%");
-                pLabel->SetAttribute(L"text_align", L"vcenter,hcenter");
-                pLabel->SetBkColor((nElementIndex % 2) ? L"#10FF22FF" : L"#1022FFFF");
-                pLabel->SetText(StringHelper::Printf((L"%d,%d"), (int32_t)nElementIndex, (int32_t)nColumn));
-
-                //绘制边线
-                bool bShowColumnLine = true; //是否显示纵向的边线
-                bool bShowRowLine = true;    //是否显示横向的边线
-                int32_t mColumnLineWidth = GlobalManager::Instance().Dpi().GetScaleInt(1);//纵向边线宽度
-                int32_t mRowLineWidth = GlobalManager::Instance().Dpi().GetScaleInt(1);   //横向边线宽度
-                if (!bShowColumnLine) {
-                    mColumnLineWidth = 0;
-                }
-                if (!bShowRowLine) {
-                    mRowLineWidth = 0;
-                }
-                if (bFirstLine) {
-                    //第一行
-                    if (nColumn == 0) {
-                        //第一列
-                        UiRect rc(mColumnLineWidth, mRowLineWidth, mColumnLineWidth, mRowLineWidth);
-                        pLabel->SetBorderSize(rc, false);
-                    }
-                    else {
-                        //非第一列
-                        UiRect rc(0, mRowLineWidth, mColumnLineWidth, mRowLineWidth);
-                        pLabel->SetBorderSize(rc, false);
-                    }
-                }
-                else {
-                    //非第一行
-                    if (nColumn == 0) {
-                        //第一列
-                        UiRect rc(mColumnLineWidth, 0, mColumnLineWidth, mRowLineWidth);
-                        pLabel->SetBorderSize(rc, false);
-                    }
-                    else {
-                        //非第一列
-                        UiRect rc(0, 0, mColumnLineWidth, mRowLineWidth);
-                        pLabel->SetBorderSize(rc, false);
-                    }
-                }
-                pLabel->SetAttribute(L"border_color", L"orange");
-            }
-        }
-
-        return true;
-    }
+    virtual bool FillElement(ui::Control* pControl, size_t nElementIndex) override;
 
     /** 获取数据项总数
     * @return 返回数据项总数
     */
-    virtual size_t GetElementCount() override
-    {
-        return m_listItems.size();
-    }
+    virtual size_t GetElementCount() override;
 
     /** 设置选择状态
     * @param [in] nElementIndex 数据元素的索引ID，范围：[0, GetElementCount())
     * @param [in] bSelected true表示选择状态，false表示非选择状态
     */
-    virtual void SetElementSelected(size_t nElementIndex, bool bSelected) override
-    {
-
-    }
+    virtual void SetElementSelected(size_t nElementIndex, bool bSelected) override;
 
     /** 获取选择状态
     * @param [in] nElementIndex 数据元素的索引ID，范围：[0, GetElementCount())
     * @return true表示选择状态，false表示非选择状态
     */
-    virtual bool IsElementSelected(size_t nElementIndex) override
-    {
-        return false;
-    }
+    virtual bool IsElementSelected(size_t nElementIndex) override;
 
 public:
-
     /** 设置表头接口
     */
-    void SetListCtrlHeader(ListCtrlHeader* pListCtrlHeader)
-    {
-        m_pListCtrlHeader = pListCtrlHeader;
-    }
-
-private:
-    /** 列表项数据
-    */
-    std::vector<int> m_listItems;
+    void SetListCtrl(ListCtrl* pListCtrl);
 
 private:
     /** 表头控件
     */
-    ListCtrlHeader* m_pListCtrlHeader;
+    ListCtrl* m_pListCtrl;
 };
+
+ListCtrlData::ListCtrlData() :
+    m_pListCtrl(nullptr)
+{
+}
+
+Control* ListCtrlData::CreateElement()
+{
+    ListCtrlItem* pItem = new ListCtrlItem;
+    pItem->SetClass(L"list_ctrl_item");
+    return pItem;
+}
+
+bool ListCtrlData::FillElement(ui::Control* pControl, size_t nElementIndex)
+{
+    ListCtrlHeader* pHeaderCtrl = nullptr;
+    if (m_pListCtrl != nullptr) {
+        pHeaderCtrl = m_pListCtrl->GetListCtrlHeader();
+    }
+    ASSERT(pHeaderCtrl != nullptr);
+    if (pHeaderCtrl == nullptr) {
+        return false;
+    }
+    if (nElementIndex == 0) {
+        return true;
+    }
+    bool bFirstLine = (nElementIndex == 1);
+    //return true;
+    ListCtrlItem* pItem = dynamic_cast<ListCtrlItem*>(pControl);
+    if (pItem == nullptr) {
+        return false;
+    }
+    //pItem->SetAttribute(L"border_size", L"1");
+    //pItem->SetAttribute(L"border_color", L"orange");
+
+    //基本结构：
+    //  <HBox>
+    //      <Label/>
+    //      ...
+    //  </HBox>
+
+    HBox* pItemHBox = nullptr;
+    if (pItem->GetItemCount() > 0) {
+        pItemHBox = dynamic_cast<HBox*>(pItem->GetItemAt(0));
+        ASSERT(pItemHBox != nullptr);
+        if (pItemHBox == nullptr) {
+            return false;
+        }
+    }
+    if (pItemHBox == nullptr) {
+        pItemHBox = new HBox;
+        pItem->AddItem(pItemHBox);
+    }
+
+    size_t columnCount = pHeaderCtrl->GetColumnCount();
+    for (size_t nColumn = 0; nColumn < columnCount; ++nColumn) {
+        Label* pLabel = nullptr;
+        if (nColumn < pItemHBox->GetItemCount()) {
+            pLabel = dynamic_cast<Label*>(pItemHBox->GetItemAt(nColumn));
+            ASSERT(pLabel != nullptr);
+            if (pLabel == nullptr) {
+                return false;
+            }
+        }
+        else {
+            pLabel = new Label;
+            pItemHBox->AddItem(pLabel);
+        }
+
+        int32_t width = pHeaderCtrl->GetColumnWidth(nColumn);
+
+        pLabel->SetFixedWidth(UiFixedInt(width), true, false);
+        pLabel->SetAttribute(L"height", L"100%");
+        pLabel->SetAttribute(L"text_align", L"vcenter,hcenter");
+        pLabel->SetBkColor((nElementIndex % 2) ? L"#10FF22FF" : L"#1022FFFF");
+        pLabel->SetText(StringHelper::Printf((L"%d,%d"), (int32_t)nElementIndex, (int32_t)nColumn));
+
+        //绘制边线
+        bool bShowColumnLine = true; //是否显示纵向的边线
+        bool bShowRowLine = true;    //是否显示横向的边线
+        int32_t mColumnLineWidth = GlobalManager::Instance().Dpi().GetScaleInt(1);//纵向边线宽度
+        int32_t mRowLineWidth = GlobalManager::Instance().Dpi().GetScaleInt(1);   //横向边线宽度
+        if (!bShowColumnLine) {
+            mColumnLineWidth = 0;
+        }
+        if (!bShowRowLine) {
+            mRowLineWidth = 0;
+        }
+        if (bFirstLine) {
+            //第一行
+            if (nColumn == 0) {
+                //第一列
+                UiRect rc(mColumnLineWidth, mRowLineWidth, mColumnLineWidth, mRowLineWidth);
+                pLabel->SetBorderSize(rc, false);
+            }
+            else {
+                //非第一列
+                UiRect rc(0, mRowLineWidth, mColumnLineWidth, mRowLineWidth);
+                pLabel->SetBorderSize(rc, false);
+            }
+        }
+        else {
+            //非第一行
+            if (nColumn == 0) {
+                //第一列
+                UiRect rc(mColumnLineWidth, 0, mColumnLineWidth, mRowLineWidth);
+                pLabel->SetBorderSize(rc, false);
+            }
+            else {
+                //非第一列
+                UiRect rc(0, 0, mColumnLineWidth, mRowLineWidth);
+                pLabel->SetBorderSize(rc, false);
+            }
+        }
+        pLabel->SetAttribute(L"border_color", L"orange");
+    }
+
+    return true;
+}
+
+size_t ListCtrlData::GetElementCount()
+{
+    return 20;
+}
+
+void ListCtrlData::SetElementSelected(size_t nElementIndex, bool bSelected)
+{
+
+}
+
+bool ListCtrlData::IsElementSelected(size_t nElementIndex)
+{
+    return false;
+}
+
+void ListCtrlData::SetListCtrl(ListCtrl* pListCtrl)
+{
+    m_pListCtrl = pListCtrl;
+}
 
 /** 列表数据显示控件
 */
-class ListCtrlData : public VirtualListBox
+class ListCtrlDataView : public VirtualListBox
 {
     friend class ListCtrlDataLayout;
 public:
-    ListCtrlData();
-    virtual ~ListCtrlData();
-
-public:
-    /** 设置表头接口
-    */
-    void SetListCtrlHeader(ListCtrlHeader* pListCtrlHeader);
-
-private:
-    /** 表头控件
-    */
-    ListCtrlHeader* m_pListCtrlHeader;
+    ListCtrlDataView();
+    virtual ~ListCtrlDataView();
 };
 
 /** 列表数据显示控件的布局管理接口
@@ -1102,32 +1103,30 @@ public:
 
 /** 列表数据显示控件
 */
-ListCtrlData::ListCtrlData() :
-    VirtualListBox(new ListCtrlDataLayout),
-    m_pListCtrlHeader(nullptr)
+ListCtrlDataView::ListCtrlDataView() :
+    VirtualListBox(new ListCtrlDataLayout)
 {
     VirtualLayout* pVirtualLayout = dynamic_cast<VirtualLayout*>(GetLayout());
     SetVirtualLayout(pVirtualLayout);
 }
 
-ListCtrlData::~ListCtrlData() {}
-
-void ListCtrlData::SetListCtrlHeader(ListCtrlHeader* pListCtrlHeader)
-{
-    m_pListCtrlHeader = pListCtrlHeader;
-}
+ListCtrlDataView::~ListCtrlDataView() {}
 
 ListCtrl::ListCtrl():
     m_bInited(false),
-    m_pListCtrlHeader(nullptr),
-    m_pListCtrlData(nullptr),
+    m_pHeaderCtrl(nullptr),
+    m_pDataView(nullptr),
     m_bEnableHeaderDragOrder(true)
 {
-    m_spItemProvider = std::make_unique<ListCtrlItemProvider>();
+    m_pListData = new ListCtrlData;
 }
 
 ListCtrl::~ListCtrl()
 {
+    if (m_pListData != nullptr) {
+        delete m_pListData;
+        m_pListData = nullptr;
+    }
 }
 
 std::wstring ListCtrl::GetType() const { return DUI_CTR_LISTCTRL; }
@@ -1160,8 +1159,8 @@ void ListCtrl::SetAttribute(const std::wstring& strName, const std::wstring& str
 void ListCtrl::SetHeaderClass(const std::wstring& className)
 {
     m_headerClass = className;
-    if (m_pListCtrlHeader != nullptr) {
-        m_pListCtrlHeader->SetClass(className);
+    if (m_pHeaderCtrl != nullptr) {
+        m_pHeaderCtrl->SetClass(className);
     }
 }
 
@@ -1213,32 +1212,31 @@ void ListCtrl::DoInit()
     m_bInited = true;
 
     //初始化Header
-    ASSERT(m_pListCtrlHeader == nullptr);
-    if (m_pListCtrlHeader == nullptr) {
-        m_pListCtrlHeader = new ListCtrlHeader;
+    ASSERT(m_pHeaderCtrl == nullptr);
+    if (m_pHeaderCtrl == nullptr) {
+        m_pHeaderCtrl = new ListCtrlHeader;
     }
-    m_pListCtrlHeader->SetListCtrl(this);
+    m_pHeaderCtrl->SetListCtrl(this);
 
     if (!m_headerClass.empty()) {
-        m_pListCtrlHeader->SetClass(m_headerClass.c_str());
+        m_pHeaderCtrl->SetClass(m_headerClass.c_str());
     }
 
     //初始化Body
-    ASSERT(m_pListCtrlData == nullptr);
-    m_pListCtrlData = new ListCtrlData;
-    m_pListCtrlData->SetBkColor(L"white");
-    m_pListCtrlData->SetAttribute(L"item_size", L"1200,32");
-    m_pListCtrlData->SetAttribute(L"columns", L"1");
-    m_pListCtrlData->SetAttribute(L"vscrollbar", L"true");
-    m_pListCtrlData->SetAttribute(L"hscrollbar", L"true");
-    m_pListCtrlData->SetAttribute(L"width", L"1200");
-    m_pListCtrlData->SetDataProvider(m_spItemProvider.get());
+    ASSERT(m_pDataView == nullptr);
+    m_pDataView = new ListCtrlDataView;
+    m_pDataView->SetBkColor(L"white");
+    m_pDataView->SetAttribute(L"item_size", L"1200,32");
+    m_pDataView->SetAttribute(L"columns", L"1");
+    m_pDataView->SetAttribute(L"vscrollbar", L"true");
+    m_pDataView->SetAttribute(L"hscrollbar", L"true");
+    m_pDataView->SetAttribute(L"width", L"1200");
+    m_pDataView->SetDataProvider(m_pListData);
 
-    m_spItemProvider->SetListCtrlHeader(m_pListCtrlHeader);
-    m_pListCtrlData->SetListCtrlHeader(m_pListCtrlHeader);
+    m_pListData->SetListCtrl(this);
 
-    m_pListCtrlData->AddItem(m_pListCtrlHeader);
-    AddItem(m_pListCtrlData);
+    m_pDataView->AddItem(m_pHeaderCtrl);
+    AddItem(m_pDataView);
 
     //TEST
     ListCtrlColumn columnInfo;
@@ -1246,18 +1244,18 @@ void ListCtrl::DoInit()
     //columnInfo.nColumnWidthMax = 300;
     columnInfo.nColumnWidth = 200;
     columnInfo.text = L"1111";
-    m_pListCtrlHeader->InsertColumn(-1, columnInfo);
+    m_pHeaderCtrl->InsertColumn(-1, columnInfo);
     columnInfo.text = L"2222";
-    m_pListCtrlHeader->InsertColumn(-1, columnInfo);
+    m_pHeaderCtrl->InsertColumn(-1, columnInfo);
     columnInfo.text = L"3333";
     columnInfo.nTextFormat = TEXT_LEFT | TEXT_VCENTER;
-    m_pListCtrlHeader->InsertColumn(-1, columnInfo);
+    m_pHeaderCtrl->InsertColumn(-1, columnInfo);
     columnInfo.text = L"4444";
     columnInfo.nTextFormat = TEXT_CENTER | TEXT_VCENTER;
-    m_pListCtrlHeader->InsertColumn(-1, columnInfo);
+    m_pHeaderCtrl->InsertColumn(-1, columnInfo);
     columnInfo.text = L"5555";
     columnInfo.nTextFormat = TEXT_RIGHT | TEXT_VCENTER;
-    ListCtrlHeaderItem* pHeaderItem = m_pListCtrlHeader->InsertColumn(-1, columnInfo);
+    ListCtrlHeaderItem* pHeaderItem = m_pHeaderCtrl->InsertColumn(-1, columnInfo);
     if (pHeaderItem != nullptr) {
         pHeaderItem->SetCheckBoxVisible(false);
     }
@@ -1266,84 +1264,84 @@ void ListCtrl::DoInit()
 
 ListCtrlHeaderItem* ListCtrl::InsertColumn(int32_t columnIndex, const ListCtrlColumn& columnInfo)
 {
-    ASSERT(m_pListCtrlHeader != nullptr);
-    if (m_pListCtrlHeader == nullptr) {
+    ASSERT(m_pHeaderCtrl != nullptr);
+    if (m_pHeaderCtrl == nullptr) {
         return nullptr;
     }
     else {
-        return m_pListCtrlHeader->InsertColumn(columnIndex, columnInfo);
+        return m_pHeaderCtrl->InsertColumn(columnIndex, columnInfo);
     }
 }
 
 size_t ListCtrl::GetColumnCount() const
 {
-    ASSERT(m_pListCtrlHeader != nullptr);
-    if (m_pListCtrlHeader == nullptr) {
+    ASSERT(m_pHeaderCtrl != nullptr);
+    if (m_pHeaderCtrl == nullptr) {
         return 0;
     }
     else {
-        return m_pListCtrlHeader->GetColumnCount();
+        return m_pHeaderCtrl->GetColumnCount();
     }
 }
 
 int32_t ListCtrl::GetColumnWidth(size_t columnIndex) const
 {
-    ASSERT(m_pListCtrlHeader != nullptr);
-    if (m_pListCtrlHeader == nullptr) {
+    ASSERT(m_pHeaderCtrl != nullptr);
+    if (m_pHeaderCtrl == nullptr) {
         return 0;
     }
     else {
-        return m_pListCtrlHeader->GetColumnWidth(columnIndex);
+        return m_pHeaderCtrl->GetColumnWidth(columnIndex);
     }
 }
 
 ListCtrlHeaderItem* ListCtrl::GetColumn(size_t columnIndex) const
 {
-    ASSERT(m_pListCtrlHeader != nullptr);
-    if (m_pListCtrlHeader == nullptr) {
+    ASSERT(m_pHeaderCtrl != nullptr);
+    if (m_pHeaderCtrl == nullptr) {
         return nullptr;
     }
     else {
-        return m_pListCtrlHeader->GetColumn(columnIndex);
+        return m_pHeaderCtrl->GetColumn(columnIndex);
     }
 }
 
 ListCtrlHeaderItem* ListCtrl::GetColumnById(size_t columnId) const
 {
-    ASSERT(m_pListCtrlHeader != nullptr);
-    if (m_pListCtrlHeader == nullptr) {
+    ASSERT(m_pHeaderCtrl != nullptr);
+    if (m_pHeaderCtrl == nullptr) {
         return nullptr;
     }
     else {
-        return m_pListCtrlHeader->GetColumnById(columnId);
+        return m_pHeaderCtrl->GetColumnById(columnId);
     }
 }
 
 size_t ListCtrl::GetColumnIndex(size_t columnId) const
 {
-    ASSERT(m_pListCtrlHeader != nullptr);
-    if (m_pListCtrlHeader == nullptr) {
+    ASSERT(m_pHeaderCtrl != nullptr);
+    if (m_pHeaderCtrl == nullptr) {
         return Box::InvalidIndex;
     }
     else {
-        return m_pListCtrlHeader->GetColumnIndex(columnId);
+        return m_pHeaderCtrl->GetColumnIndex(columnId);
     }
 }
 
 bool ListCtrl::DeleteColumn(size_t columnIndex)
 {
-    ASSERT(m_pListCtrlHeader != nullptr);
-    if (m_pListCtrlHeader == nullptr) {
+    ASSERT(m_pHeaderCtrl != nullptr);
+    if (m_pHeaderCtrl == nullptr) {
         return false;
     }
     else {
-        return m_pListCtrlHeader->DeleteColumn(columnIndex);
+        return m_pHeaderCtrl->DeleteColumn(columnIndex);
     }
 }
 
 ListCtrlHeader* ListCtrl::GetListCtrlHeader() const
 {
-    return m_pListCtrlHeader;
+    return m_pHeaderCtrl;
 }
 
 void ListCtrl::SetEnableHeaderDragOrder(bool bEnable)
@@ -1358,7 +1356,7 @@ bool ListCtrl::IsEnableHeaderDragOrder() const
 
 void ListCtrl::OnColumnWidthChanged(size_t nColumnId1, size_t nColumnId2)
 {
-    if ((m_pListCtrlData == nullptr) || (m_pListCtrlHeader == nullptr)){
+    if ((m_pDataView == nullptr) || (m_pHeaderCtrl == nullptr)){
         return;
     }
 
@@ -1366,10 +1364,10 @@ void ListCtrl::OnColumnWidthChanged(size_t nColumnId1, size_t nColumnId2)
     size_t nColumn2 = Box::InvalidIndex;
     int32_t nColumnWidth1 = -1;
     int32_t nColumnWidth2 = -1;
-    if (!m_pListCtrlHeader->GetColumnInfo(nColumnId1, nColumn1, nColumnWidth1)) {
+    if (!m_pHeaderCtrl->GetColumnInfo(nColumnId1, nColumn1, nColumnWidth1)) {
         nColumnWidth1 = -1;
     }
-    if (!m_pListCtrlHeader->GetColumnInfo(nColumnId2, nColumn2, nColumnWidth2)) {
+    if (!m_pHeaderCtrl->GetColumnInfo(nColumnId2, nColumn2, nColumnWidth2)) {
         nColumnWidth2 = -1;
     }
 
@@ -1377,9 +1375,9 @@ void ListCtrl::OnColumnWidthChanged(size_t nColumnId1, size_t nColumnId2)
         return;
     }
 
-    size_t itemCount = m_pListCtrlData->GetItemCount();
+    size_t itemCount = m_pDataView->GetItemCount();
     for (size_t index = 1; index < itemCount; ++index) {
-        ListCtrlItem* pItem = dynamic_cast<ListCtrlItem*>(m_pListCtrlData->GetItemAt(index));
+        ListCtrlItem* pItem = dynamic_cast<ListCtrlItem*>(m_pDataView->GetItemAt(index));
         if (pItem == nullptr) {
             continue;
         }
@@ -1427,10 +1425,80 @@ void ListCtrl::OnHeaderColumnDeleted(size_t nColumnId)
 
 }
 
-void ListCtrl::OnHeaderColumnSelectStateChanged(size_t nColumnId, bool /*bSelected*/)
+void ListCtrl::OnHeaderColumnCheckStateChanged(size_t nColumnId, bool /*bChecked*/)
 {
     size_t columnIndex = GetColumnIndex(nColumnId);
 
+}
+
+size_t ListCtrl::GetDataItemCount() const
+{
+    return 0;
+}
+
+bool ListCtrl::SetDataItemCount(size_t itemCount)
+{
+    return false;
+}
+
+size_t ListCtrl::AddDataItem(const ListCtrlDataItem& dataItem)
+{
+    return false;
+}
+
+bool ListCtrl::InsertDataItem(size_t itemIndex, const ListCtrlDataItem& dataItem)
+{
+    return false;
+}
+
+bool ListCtrl::SetDataItem(size_t itemIndex, const ListCtrlDataItem& dataItem)
+{
+    return false;
+}
+
+bool ListCtrl::DeleteDataItem(size_t itemIndex)
+{
+    return false;
+}
+
+bool ListCtrl::SetDataItemData(size_t itemIndex, size_t itemData)
+{
+    return false;
+}
+
+size_t ListCtrl::GetDataItemData(size_t itemIndex) const
+{
+    return 0;
+}
+
+bool ListCtrl::SetDataItemText(size_t itemIndex, size_t columnIndex, const std::wstring& text)
+{
+    return false;
+}
+
+std::wstring ListCtrl::GetDataItemText(size_t itemIndex, size_t columnIndex) const
+{
+    return std::wstring();
+}
+
+bool ListCtrl::SetDataItemTextColor(size_t itemIndex, size_t columnIndex, const UiColor& textColor)
+{
+    return false;
+}
+
+bool ListCtrl::GetDataItemTextColor(size_t itemIndex, size_t columnIndex, UiColor& textColor) const
+{
+    return false;
+}
+
+bool ListCtrl::SetDataItemBkColor(size_t itemIndex, size_t columnIndex, const UiColor& textColor)
+{
+    return false;
+}
+
+bool ListCtrl::GetDataItemBkColor(size_t itemIndex, size_t columnIndex, UiColor& textColor) const
+{
+    return false;
 }
 
 }//namespace ui

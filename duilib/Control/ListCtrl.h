@@ -18,23 +18,43 @@ class ListCtrlItem;
 class ListCtrlHeader;
 class ListCtrlHeaderItem;
 
-//列表数据管理类
+/** 列表数据显示UI控件
+*/
+class ListCtrlDataView;
+
+/** 列表数据关联容器
+*/
 class ListCtrlData;
-class ListCtrlItemProvider;
 
 /** 列的基本信息, 用于添加列
 */
 struct ListCtrlColumn
 {
     std::wstring text;              //表头的文本
-    int32_t nColumnWidth = 100;     //列宽，如果bNeedDpiScale为true，这执行DPI自适应处理
-    int32_t nColumnWidthMin = 0;    //列宽最小值，0表示用默认设置，如果bNeedDpiScale为true，这执行DPI自适应处理
-    int32_t nColumnWidthMax = 0;    //列宽最大值，0表示用默认设置，如果bNeedDpiScale为true，这执行DPI自适应处理
+    int32_t nColumnWidth = 100;     //列宽，如果bNeedDpiScale为true，则执行DPI自适应处理
+    int32_t nColumnWidthMin = 0;    //列宽最小值，0表示用默认设置，如果bNeedDpiScale为true，则执行DPI自适应处理
+    int32_t nColumnWidthMax = 0;    //列宽最大值，0表示用默认设置，如果bNeedDpiScale为true，则执行DPI自适应处理
     int32_t nTextFormat = -1;       //文本对齐方式等属性, 该属性仅应用于Header, 取值可参考：IRender.h中的DrawStringFormat，如果为-1，表示按默认配置的对齐方式
     bool bSortable = true;          //是否支持排序
     bool bResizeable = true;        //是否支持通过拖动调整列宽
     bool bShowCheckBox = true;      //是否显示CheckBox（支持在表头和数据列显示CheckBox）
-    int32_t nCheckBoxWidth = 24;    //CheckBox控件所占的宽度，仅当bShowCheckBox为true时有效, 如果bNeedDpiScale为true，这执行DPI自适应处理
+    int32_t nCheckBoxWidth = 24;    //CheckBox控件所占的宽度，用于设置文本偏移量，避免显示重叠，仅当bShowCheckBox为true时有效, 如果bNeedDpiScale为true，则执行DPI自适应处理
+    bool bNeedDpiScale = true;      //是否对数值做DPI自适应
+};
+
+/** 列表数据项的基本信息
+*/
+struct ListCtrlDataItem
+{
+    std::wstring text;              //文本内容
+    int32_t nTextFormat = -1;       //文本对齐方式等属性, 该属性仅应用于Header, 取值可参考：IRender.h中的DrawStringFormat，如果为-1，表示按默认配置的对齐方式
+    int32_t nTextLeftPadding = 0;   //文本的左侧Padding数值，如果bNeedDpiScale为true，则执行DPI自适应处理
+    size_t nColumnIndex = 0;        //第几列，有效范围：[0, GetColumnCount())
+    int32_t nImageIndex = -1;       //图标资源索引号，在图片列表里面的下标值，如果为-1表示不显示图标
+    UiColor textColor;              //文本颜色
+    UiColor bkColor;                //背景颜色
+    bool bShowCheckBox = true;      //是否显示CheckBox
+    int32_t nCheckBoxWidth = 24;    //CheckBox控件所占的宽度，仅当bShowCheckBox为true时有效, 如果bNeedDpiScale为true，则执行DPI自适应处理
     bool bNeedDpiScale = true;      //是否对数值做DPI自适应
 };
 
@@ -103,6 +123,92 @@ public:
     bool IsEnableHeaderDragOrder() const;
 
 public:
+    /** 获取数据项总个数
+    */
+    size_t GetDataItemCount() const;
+
+    /** 设置数据项总个数
+    * @param [in] itemCount 数据项的总数，具体每个数据项的数据，通过回调的方式进行填充（内部为虚表实现）
+    */
+    bool SetDataItemCount(size_t itemCount);
+
+    /** 在最后添加一个数据项
+    * @param [in] dataItem 数据项的内容
+    * @return 成功返回数据项的行索引号(rowIndex)，失败则返回Box::InvalidIndex
+    */
+    size_t AddDataItem(const ListCtrlDataItem& dataItem);
+
+    /** 在指定行位置添加一个数据项
+    * @param [in] itemIndex 数据项的索引号
+    * @param [in] dataItem 数据项的内容
+    */
+    bool InsertDataItem(size_t itemIndex, const ListCtrlDataItem& dataItem);
+
+    /** 设置指定行的数据项
+    * @param [in] itemIndex 数据项的索引号
+    * @param [in] dataItem 数据项的内容
+    */
+    bool SetDataItem(size_t itemIndex, const ListCtrlDataItem& dataItem);
+
+    /** 删除指定行的数据项
+    * @param [in] itemIndex 数据项的索引号
+    */
+    bool DeleteDataItem(size_t itemIndex);
+
+    /** 设置数据项的自定义数据
+    * @param [in] itemIndex 数据项的索引号
+    * @param [in] itemData 数据项关联的自定义数据
+    */
+    bool SetDataItemData(size_t itemIndex, size_t itemData);
+
+    /** 获取数据项的自定义数据
+    * @param [in] itemIndex 数据项的索引号
+    * @return 返回数据项关联的自定义数据
+    */
+    size_t GetDataItemData(size_t itemIndex) const;
+
+    /** 设置指定数据项的文本
+    * @param [in] itemIndex 数据项的索引号
+    * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
+    * @param [in] text 需要设置的文本内容
+    */
+    bool SetDataItemText(size_t itemIndex, size_t columnIndex, const std::wstring& text);
+
+    /** 获取指定数据项的文本
+    * @param [in] itemIndex 数据项的索引号
+    * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
+    * @return 数据项关联的文本内容
+    */
+    std::wstring GetDataItemText(size_t itemIndex, size_t columnIndex) const;
+
+    /** 设置指定数据项的文本颜色
+    * @param [in] itemIndex 数据项的索引号
+    * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
+    * @param [in] textColor 需要设置的文本颜色
+    */
+    bool SetDataItemTextColor(size_t itemIndex, size_t columnIndex, const UiColor& textColor);
+
+    /** 获取指定数据项的文本颜色
+    * @param [in] itemIndex 数据项的索引号
+    * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
+    * @param [out] textColor 数据项关联的文本颜色
+    */
+    bool GetDataItemTextColor(size_t itemIndex, size_t columnIndex, UiColor& textColor) const;
+
+    /** 设置指定数据项的背景颜色
+    * @param [in] itemIndex 数据项的索引号
+    * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
+    * @param [in] textColor 需要设置的文本颜色
+    */
+    bool SetDataItemBkColor(size_t itemIndex, size_t columnIndex, const UiColor& textColor);
+
+    /** 获取指定数据项的背景颜色
+    * @param [in] itemIndex 数据项的索引号
+    * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
+    * @param [out] textColor 数据项关联的文本颜色
+    */
+    bool GetDataItemBkColor(size_t itemIndex, size_t columnIndex, UiColor& textColor) const;
+
 
 
 protected:
@@ -158,9 +264,9 @@ protected:
 
     /** 表头的CheckBox勾选操作
     * @param [in] nColumnId 列的ID
-    * @param [in] bSelected true表示勾选（Selected状态），false表示取消勾选（UnSelected状态）
+    * @param [in] bChecked true表示勾选（Checked状态），false表示取消勾选（UnChecked状态）
     */
-    void OnHeaderColumnSelectStateChanged(size_t nColumnId, bool bSelected);
+    void OnHeaderColumnCheckStateChanged(size_t nColumnId, bool bChecked);
 
 private:
 	/** 初始化标志
@@ -169,15 +275,15 @@ private:
 
 	/** 表头控件
 	*/
-	ListCtrlHeader* m_pListCtrlHeader;
+	ListCtrlHeader* m_pHeaderCtrl;
 
 	/** 列表数据展示
 	*/
-	ListCtrlData* m_pListCtrlData;
+    ListCtrlDataView* m_pDataView;
 
 	/** 列表数据管理
 	*/
-	std::unique_ptr<ListCtrlItemProvider> m_spItemProvider;
+    ListCtrlData* m_pListData;
 
     /** ListCtrlHeader的属性Class
     */
@@ -499,9 +605,9 @@ protected:
 
     /** CheckBox的勾选项操作
     * @param [in] pHeaderItem 列表头控件接口
-    * @param [in] bSelected true表示勾选（Selected状态），false表示取消勾选（UnSelected状态）
+    * @param [in] bChecked true表示勾选（Checked状态），false表示取消勾选（UnChecked状态）
     */
-    void OnHeaderColumnSelectStateChanged(ListCtrlHeaderItem* pHeaderItem, bool bSelected);
+    void OnHeaderColumnCheckStateChanged(ListCtrlHeaderItem* pHeaderItem, bool bChecked);
 
 private:
     /** 关联的ListCtrl接口
