@@ -44,6 +44,10 @@ public:
      */
     virtual UiSize EstimateText(UiSize szAvailable) override;
 
+    /** 恢复默认的文本样式
+    */
+    void SetDefaultTextStyle(bool bRedraw);
+
     /**
      * @brief 设置文本样式
      * @param[in] uStyle 要设置的样式
@@ -514,9 +518,21 @@ template<typename InheritType>
 void LabelTemplate<InheritType>::SetTextStyle(UINT uStyle, bool bRedraw)
 {
     m_uTextStyle = uStyle;
+    if (m_uTextStyle & TEXT_SINGLELINE) {
+        m_bSingleLine = true;
+    }
+    else {
+        m_bSingleLine = false;
+    }
     if (bRedraw) {
         this->Invalidate();
     }    
+}
+
+template<typename InheritType>
+void LabelTemplate<InheritType>::SetDefaultTextStyle(bool bRedraw)
+{
+    SetTextStyle(TEXT_LEFT | TEXT_VCENTER | TEXT_END_ELLIPSIS | TEXT_NOCLIP | TEXT_SINGLELINE, bRedraw);
 }
 
 template<typename InheritType>

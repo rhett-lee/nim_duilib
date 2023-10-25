@@ -214,6 +214,7 @@ void VirtualVTileLayout::LazyArrangeChild(UiRect rc) const
             ptTile.x += rcTile.Width() + GetChildMarginX();
         }
     }
+    pOwnerBox->OnArrangeChild();
 }
 
 size_t VirtualVTileLayout::AjustMaxItem(UiRect rc) const

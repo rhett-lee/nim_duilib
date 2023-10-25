@@ -198,6 +198,7 @@ void VirtualHLayout::LazyArrangeChild(UiRect rc) const
         ptTile.y = iPosTop;
         ptTile.x += szItem.cx + GetChildMarginX();
     }
+    pOwnerBox->OnArrangeChild();
 }
 
 size_t VirtualHLayout::AjustMaxItem(UiRect rc) const

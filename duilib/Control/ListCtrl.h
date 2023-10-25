@@ -46,10 +46,10 @@ struct ListCtrlColumn
 */
 struct ListCtrlDataItem
 {
+    size_t nColumnIndex = 0;        //【必填】第几列，有效范围：[0, GetColumnCount())
     std::wstring text;              //文本内容
     int32_t nTextFormat = -1;       //文本对齐方式等属性, 该属性仅应用于Header, 取值可参考：IRender.h中的DrawStringFormat，如果为-1，表示按默认配置的对齐方式
-    int32_t nTextLeftPadding = 0;   //文本的左侧Padding数值，如果bNeedDpiScale为true，则执行DPI自适应处理
-    size_t nColumnIndex = 0;        //第几列，有效范围：[0, GetColumnCount())
+    int32_t nTextLeftPadding = 0;   //文本的左侧Padding数值，如果bNeedDpiScale为true，则执行DPI自适应处理   
     int32_t nImageIndex = -1;       //图标资源索引号，在图片列表里面的下标值，如果为-1表示不显示图标
     UiColor textColor;              //文本颜色
     UiColor bkColor;                //背景颜色
@@ -63,6 +63,8 @@ struct ListCtrlDataItem
 class ListCtrl: public VBox
 {
     friend class ListCtrlHeader;
+    friend class ListCtrlData;
+    friend class ListCtrlDataView;
 public:
 	ListCtrl();
 	virtual ~ListCtrl();
@@ -198,18 +200,16 @@ public:
     /** 设置指定数据项的背景颜色
     * @param [in] itemIndex 数据项的索引号
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
-    * @param [in] textColor 需要设置的文本颜色
+    * @param [in] bkColor 需要设置的背景颜色
     */
-    bool SetDataItemBkColor(size_t itemIndex, size_t columnIndex, const UiColor& textColor);
+    bool SetDataItemBkColor(size_t itemIndex, size_t columnIndex, const UiColor& bkColor);
 
     /** 获取指定数据项的背景颜色
     * @param [in] itemIndex 数据项的索引号
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
-    * @param [out] textColor 数据项关联的文本颜色
+    * @param [out] bkColor 数据项关联的背景颜色
     */
-    bool GetDataItemBkColor(size_t itemIndex, size_t columnIndex, UiColor& textColor) const;
-
-
+    bool GetDataItemBkColor(size_t itemIndex, size_t columnIndex, UiColor& bkColor) const;
 
 protected:
     /** 控件初始化
@@ -240,7 +240,22 @@ protected:
     void SetCheckBoxClass(const std::wstring& className);
     std::wstring GetCheckBoxClass() const;
 
+    /** ListCtrlItem的Class属性
+    */
+    void SetDataItemClass(const std::wstring& className);
+    std::wstring GetDataItemClass() const;
+
 protected:
+    /** 增加一列
+    * @param [in] nColumnId 列的ID
+    */
+    void OnHeaderColumnAdded(size_t nColumnId);
+
+    /** 删除一列
+    * @param [in] nColumnId 列的ID
+    */
+    void OnHeaderColumnRemoved(size_t nColumnId);
+
     /** 调整列的宽度（拖动列宽调整，每次调整两个列的宽度）
     * @param [in] nColumnId1 第一列的ID
     * @param [in] nColumnId2 第二列的ID
@@ -257,16 +272,15 @@ protected:
     */
     void OnHeaderColumnOrderChanged();
 
-    /** 删除一列
-    * @param [in] nColumnId 列的ID
-    */
-    void OnHeaderColumnDeleted(size_t nColumnId);
-
     /** 表头的CheckBox勾选操作
     * @param [in] nColumnId 列的ID
     * @param [in] bChecked true表示勾选（Checked状态），false表示取消勾选（UnChecked状态）
     */
     void OnHeaderColumnCheckStateChanged(size_t nColumnId, bool bChecked);
+
+    /** 同步UI的Check状态
+    */
+    void UpdateControlCheckStatus(size_t nColumnId);
 
 private:
 	/** 初始化标志
@@ -308,11 +322,15 @@ private:
     /** 是否支持拖动改变列的顺序
     */
     bool m_bEnableHeaderDragOrder;
+
+    /** ListCtrlItem的Class属性
+    */
+    UiString m_dataItemClass;
 };
 
 /** ListCtrl子项控件
 */
-class ListCtrlItem : public ListBoxItem
+class ListCtrlItem : public ListBoxItemH
 {
 public:
     /** 获取控件类型
@@ -410,14 +428,26 @@ public:
     */
     int32_t GetIconSpacing() const;
 
+public:
     /** 设置是否显示CheckBox
     * @param [in] bVisible true表示显示，false表示隐藏
     */
     bool SetCheckBoxVisible(bool bVisible);
 
     /** 判断当前CheckBox是否处于显示状态
+    @return 返回true表示CheckBox存在，并且可见； 如果不含CheckBox，返回false
     */
     bool IsCheckBoxVisible() const;
+
+    /** 是否有CheckBox
+    */
+    bool HasCheckBox() const;
+
+    /** 设置CheckBox的勾选状态
+    * @param [in] bSelected true表示勾选，false表示不勾选
+    * @param [in] 如果bSelected和bPartSelect同时为true，表示部分选择
+    */
+    bool SetCheckBoxSelect(bool bSelected, bool bPartSelect);
 
 private:
     /** 同步列宽与UI控件宽度
@@ -571,6 +601,12 @@ public:
     * @return 列的序号：[0, GetColumnCount())，代表第几列
     */
     size_t GetColumnIndex(size_t columnId) const;
+
+    /** 获取列的索引序号
+    * @param [in] columnIndex 列索引序号：[0, GetColumnCount())
+    * @return 列的ID，如果匹配不到，则返回Box::InvalidIndex
+    */
+    size_t GetColumnId(size_t columnIndex) const;
 
     /** 删除一列
     * @param [in] columnIndex 列索引序号：[0, GetColumnCount())

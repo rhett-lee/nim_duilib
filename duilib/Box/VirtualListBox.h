@@ -143,6 +143,14 @@ protected:
     */
     void SetVirtualLayout(VirtualLayout* pVirtualLayout);
 
+    /** 执行了刷新操作, 界面的UI控件个数可能会发生变化
+    */
+    virtual void OnRefresh() {};
+
+    /** 执行了重排操作，界面的UI控件进行了重新数据填充（通过FillElement函数）
+    */
+    virtual void OnArrangeChild() {};
+
 private:
     /** 是否含有数据代理对象接口
     */

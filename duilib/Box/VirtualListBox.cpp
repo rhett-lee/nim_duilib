@@ -169,6 +169,7 @@ void VirtualListBox::Refresh()
         ReArrangeChild(true);
         Arrange();
     }
+    OnRefresh();
 }
 
 void VirtualListBox::GetDisplayElements(std::vector<size_t>& collection)

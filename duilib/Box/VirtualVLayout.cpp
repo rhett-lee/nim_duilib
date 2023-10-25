@@ -200,6 +200,7 @@ void VirtualVLayout::LazyArrangeChild(UiRect rc) const
         ptTile.x = iPosLeft;
         ptTile.y += szItem.cy + GetChildMarginY();
     }
+    pOwnerBox->OnArrangeChild();
 }
 
 size_t VirtualVLayout::AjustMaxItem(UiRect rc) const

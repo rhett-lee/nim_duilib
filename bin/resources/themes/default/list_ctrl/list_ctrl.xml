@@ -21,7 +21,8 @@
                           header_item_class="list_ctrl_header_item"
                           header_split_box_class="list_ctrl_header_split_box"
                           header_split_control_class="list_ctrl_header_split_control"
-                          check_box_class="list_ctrl_checkbox"/>
+                          check_box_class="list_ctrl_checkbox"
+                          data_item_class="list_ctrl_item"/>
             </VBox>
         </Box>
     </VBox>
