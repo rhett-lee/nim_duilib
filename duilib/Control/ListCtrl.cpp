@@ -2098,7 +2098,8 @@ ListCtrl::ListCtrl():
     m_bInited(false),
     m_pHeaderCtrl(nullptr),
     m_pDataView(nullptr),
-    m_bEnableHeaderDragOrder(true)
+    m_bEnableHeaderDragOrder(true),
+    m_bCanUpdateHeaderCheckStatus(true)
 {
     m_pListData = new ListCtrlData;
 }
@@ -2235,30 +2236,24 @@ void ListCtrl::DoInit()
     AddItem(m_pDataView);
 
     //TEST
-    ListCtrlColumn columnInfo;
-    //columnInfo.nColumnWidthMin = 100;
-    //columnInfo.nColumnWidthMax = 300;
-    columnInfo.nColumnWidth = 200;
-    columnInfo.text = L"1111";
-    m_pHeaderCtrl->InsertColumn(-1, columnInfo);
-    columnInfo.text = L"2222";
-    m_pHeaderCtrl->InsertColumn(-1, columnInfo);
-    columnInfo.text = L"3333";
-    columnInfo.nTextFormat = TEXT_LEFT | TEXT_VCENTER;
-    m_pHeaderCtrl->InsertColumn(-1, columnInfo);
-    columnInfo.text = L"4444";
-    columnInfo.nTextFormat = TEXT_CENTER | TEXT_VCENTER;
-    m_pHeaderCtrl->InsertColumn(-1, columnInfo);
-    columnInfo.text = L"5555";
-    columnInfo.nTextFormat = TEXT_RIGHT | TEXT_VCENTER;
-    ListCtrlHeaderItem* pHeaderItem = m_pHeaderCtrl->InsertColumn(-1, columnInfo);
-    if (pHeaderItem != nullptr) {
-        pHeaderItem->SetCheckBoxVisible(false);
+    const size_t columnCount = 5;
+    const size_t rowCount = 20;
+    //添加列
+    for (size_t i = 0; i < columnCount; ++i) {
+        ListCtrlColumn columnInfo;
+        columnInfo.nColumnWidth = 200;
+        //columnInfo.nTextFormat = TEXT_LEFT | TEXT_VCENTER;
+        columnInfo.text = StringHelper::Printf(L"第 %d 列", i);
+        m_pHeaderCtrl->InsertColumn(-1, columnInfo);
+    }
+    //填充数据
+    SetDataItemCount(rowCount);
+    for (size_t itemIndex = 0; itemIndex < rowCount; ++itemIndex) {
+        for (size_t columnIndex = 0; columnIndex < columnCount; ++columnIndex) {
+            SetDataItem(itemIndex, { columnIndex, StringHelper::Printf(L"第 %d 行/第 %d 列", itemIndex, columnIndex), });
+        }
     }
     //TESTs
-
-    this->AddDataItem({ 0, L"Row 1", });
-    this->AddDataItem({ 0, L"Row 2", });
 }
 
 ListCtrlHeaderItem* ListCtrl::InsertColumn(int32_t columnIndex, const ListCtrlColumn& columnInfo)
@@ -2410,7 +2405,6 @@ void ListCtrl::OnHeaderColumnRemoved(size_t nColumnId)
 
 void ListCtrl::OnColumnSorted(size_t /*nColumnId*/, bool /*bSortedUp*/)
 {
-
     ASSERT(m_pDataView != nullptr);
     if (m_pDataView != nullptr) {
         m_pDataView->Refresh();
@@ -2426,16 +2420,22 @@ void ListCtrl::OnHeaderColumnOrderChanged()
 }
 
 void ListCtrl::OnHeaderColumnCheckStateChanged(size_t nColumnId, bool bChecked)
-{    
+{
+    m_bCanUpdateHeaderCheckStatus = false;
     m_pListData->SetColumnCheck(nColumnId, bChecked);
     ASSERT(m_pDataView != nullptr);
     if (m_pDataView != nullptr) {
         m_pDataView->Refresh();
     }
+    m_bCanUpdateHeaderCheckStatus = true;
 }
 
 void ListCtrl::UpdateControlCheckStatus(size_t nColumnId)
 {
+    if (!m_bCanUpdateHeaderCheckStatus) {
+        //避免不必要的更新
+        return;
+    }
     ASSERT(m_pHeaderCtrl != nullptr);
     if (m_pHeaderCtrl == nullptr) {
         return;
@@ -2484,22 +2484,24 @@ void ListCtrl::UpdateControlCheckStatus(size_t nColumnId)
             }
         }
 
-        bool bHasChecked = false;
-        bool bHasUnChecked = false;
-        for (bool bChecked : checkList) {
-            if (bChecked) {
-                bHasChecked = true;
+        if (!checkList.empty()) {
+            bool bHasChecked = false;
+            bool bHasUnChecked = false;
+            for (bool bChecked : checkList) {
+                if (bChecked) {
+                    bHasChecked = true;
+                }
+                else {
+                    bHasUnChecked = true;
+                }
             }
-            else {
-                bHasUnChecked = true;
-            }
-        }
 
-        bool bSelected = bHasChecked;
-        bool bPartSelect = bSelected && bHasUnChecked;
-        ListCtrlHeaderItem* pHeaderItem = m_pHeaderCtrl->GetColumn(columnIndex);
-        if ((pHeaderItem != nullptr) && (pHeaderItem->IsCheckBoxVisible())) {
-            pHeaderItem->SetCheckBoxSelect(bSelected, bPartSelect);
+            bool bSelected = bHasChecked;
+            bool bPartSelect = bSelected && bHasUnChecked;
+            ListCtrlHeaderItem* pHeaderItem = m_pHeaderCtrl->GetColumn(columnIndex);
+            if ((pHeaderItem != nullptr) && (pHeaderItem->IsCheckBoxVisible())) {
+                pHeaderItem->SetCheckBoxSelect(bSelected, bPartSelect);
+            }
         }
     }
 }

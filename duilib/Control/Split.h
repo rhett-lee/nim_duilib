@@ -304,14 +304,14 @@ bool SplitTemplate<InheritType>::MouseMove(const EventArgs& msg)
     if (nOffset > 0) {
         if (!m_nRightBottomFixedValue.IsStretch()) {
             if (nOffset > m_nRightBottomFixedValue.GetInt32()) {
-                return bRet;
+                nOffset = m_nRightBottomFixedValue.GetInt32();
             }
         }
     }
     else if(nOffset < 0){
         if (!m_nLeftUpFixedValue.IsStretch()) {
             if (-nOffset > m_nLeftUpFixedValue.GetInt32()) {
-                return bRet;
+                nOffset = -m_nLeftUpFixedValue.GetInt32();
             }
         }
     }

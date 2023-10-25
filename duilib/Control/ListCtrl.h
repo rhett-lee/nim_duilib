@@ -326,6 +326,10 @@ private:
     /** ListCtrlItem的Class属性
     */
     UiString m_dataItemClass;
+
+    /** 当前是否可以更新Header的Check状态
+    */
+    bool m_bCanUpdateHeaderCheckStatus;
 };
 
 /** ListCtrl子项控件
