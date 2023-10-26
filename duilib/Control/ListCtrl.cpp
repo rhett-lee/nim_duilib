@@ -993,14 +993,18 @@ public:
     void SetListCtrl(ListCtrl* pListCtrl);
 
     /** 增加一列
+    * @param [in] columnId 列的ID
     */
     bool AddColumn(size_t columnId);
 
     /** 删除一列
+    * @param [in] columnId 列的ID
     */
     bool RemoveColumn(size_t columnId);
 
     /** 设置一列的勾选状态（Checked或者UnChecked）
+    * @param [in] columnId 列的ID
+    * @param [in] bChecked true表示选择，false表示取消选择
     */
     bool SetColumnCheck(size_t columnId, bool bChecked);
 
@@ -1090,6 +1094,12 @@ public:
     */
     bool GetDataItemBkColor(size_t itemIndex, size_t columnIndex, UiColor& bkColor) const;
 
+    /** 对数据排序
+    * @param [in] columnId 列的ID
+    * @param [in] bSortedUp true表示升序，false表示降序
+    */
+    bool SortColumnData(size_t nColumnId, bool bSortedUp);
+
 private:
     /** UI元素索引号和数据索引号的相互转换
     */
@@ -1152,6 +1162,26 @@ private:
     /** 同步UI的Check状态
     */
     void UpdateControlCheckStatus(size_t nColumnId);
+
+private:
+    /** 排序数据
+    */
+    struct StorageData
+    {
+        size_t index; //原来的数据索引号
+        std::shared_ptr<Storage> pStorage;
+    };
+
+    /** 对数据排序
+    * @param [in] dataList 待排序的数据
+    * @param [in] bSortedUp true表示升序，false表示降序
+    */
+    bool SortStorageData(std::vector<StorageData>& dataList, bool bSortedUp);
+
+    /** 默认的排序函数，按升序规则
+    * @return 如果a < b 返回true，否则返回false
+    */
+    static bool SortStorageFunction(const StorageData& a, const StorageData& b);
 
 private:
     /** 表头控件
@@ -2025,6 +2055,69 @@ bool ListCtrlData::GetDataItemBkColor(size_t itemIndex, size_t columnIndex, UiCo
     return true;
 }
 
+bool ListCtrlData::SortColumnData(size_t nColumnId, bool bSortedUp)
+{
+    StorageMap::iterator iter = m_dataMap.find(nColumnId);
+    if (iter == m_dataMap.end()) {
+        return false;
+    }
+    StoragePtrList sortStorageList = iter->second;
+    if (sortStorageList.empty()) {
+        return false;
+    }
+    std::vector<StorageData> sortedDataList;
+    const size_t dataCount = sortStorageList.size();
+    for (size_t index = 0; index < dataCount; ++index) {
+        sortedDataList.push_back({index, sortStorageList[index] });
+    }    
+    SortStorageData(sortedDataList, bSortedUp);
+
+    //对原数据进行顺序调整
+    const size_t sortedDataCount = sortedDataList.size();
+    StoragePtrList orgStorageList; //副本数据
+    for (iter = m_dataMap.begin(); iter != m_dataMap.end(); ++iter) {
+        orgStorageList = iter->second; 
+        StoragePtrList& storageList = iter->second;   //修改目标
+        ASSERT(storageList.size() == sortedDataList.size());
+        if (storageList.size() != sortedDataList.size()) {
+            return false;
+        }
+        for (size_t index = 0; index < sortedDataCount; ++index) {
+            const StorageData& sortedData = sortedDataList[index];
+            storageList[index] = orgStorageList[sortedData.index]; //赋值原数据
+        }
+    }
+    return true;
+}
+
+bool ListCtrlData::SortStorageData(std::vector<StorageData>& dataList, bool bSortedUp)
+{
+    if (dataList.empty()) {
+        return false;
+    }
+    //排序：升序
+    std::sort(dataList.begin(), dataList.end(), SortStorageFunction);
+    if (!bSortedUp) {
+        //降序
+        std::reverse(dataList.begin(), dataList.end());
+    }
+    return true;
+}
+
+bool ListCtrlData::SortStorageFunction(const StorageData& a, const StorageData& b)
+{
+    //实现(a < b)的比较逻辑
+    if (b.pStorage == nullptr) {
+        return false;
+    }
+    if (a.pStorage == nullptr) {
+        return true;
+    }
+    const Storage& storageA = *a.pStorage;
+    const Storage& storageB = *b.pStorage;
+    return std::wstring(storageA.text.c_str()) < std::wstring(storageB.text.c_str());
+}
+
 /** 列表数据显示控件
 */
 class ListCtrlDataView : public VirtualListBox
@@ -2307,7 +2400,7 @@ void ListCtrl::DoInit()
     SetDataItemCount(rowCount);
     for (size_t itemIndex = 0; itemIndex < rowCount; ++itemIndex) {
         for (size_t columnIndex = 0; columnIndex < columnCount; ++columnIndex) {
-            SetDataItem(itemIndex, { columnIndex, StringHelper::Printf(L"第 %d 行/第 %d 列", itemIndex, columnIndex), });
+            SetDataItem(itemIndex, { columnIndex, StringHelper::Printf(L"第 %02d 行/第 %02d 列", itemIndex, columnIndex), });
         }
     }
     //TESTs
@@ -2460,8 +2553,11 @@ void ListCtrl::OnHeaderColumnRemoved(size_t nColumnId)
     m_pListData->RemoveColumn(nColumnId);
 }
 
-void ListCtrl::OnColumnSorted(size_t /*nColumnId*/, bool /*bSortedUp*/)
+void ListCtrl::OnColumnSorted(size_t nColumnId, bool bSortedUp)
 {
+    //对数据排序，然后刷新界面显示
+    m_pListData->SortColumnData(nColumnId, bSortedUp);
+
     ASSERT(m_pDataView != nullptr);
     if (m_pDataView != nullptr) {
         m_pDataView->Refresh();
