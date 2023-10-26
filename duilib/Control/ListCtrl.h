@@ -13,20 +13,27 @@
 namespace ui
 {
 
-//列表数据项UI显示相关类
-class ListCtrlItem;
+/** 列表数据项的表头UI控件
+*/
 class ListCtrlHeader;
+
+/** 列表数据项的表头列数据项UI控件（列）
+*/
 class ListCtrlHeaderItem;
 
 /** 列表数据显示UI控件
 */
 class ListCtrlDataView;
 
-/** 列表数据关联容器
+/** 列表数据项UI控件（行）
 */
-class ListCtrlData;
+class ListCtrlItem;
 
-/** 列的基本信息, 用于添加列
+/** 列表数据管理容器
+*/
+class ListCtrlDataProvider;
+
+/** 列的基本信息（用于添加列）
 */
 struct ListCtrlColumn
 {
@@ -42,7 +49,7 @@ struct ListCtrlColumn
     bool bNeedDpiScale = true;      //是否对数值做DPI自适应
 };
 
-/** 列表数据项的基本信息
+/** 列表数据项的基本信息（用于添加数据）
 */
 struct ListCtrlDataItem
 {
@@ -62,7 +69,7 @@ struct ListCtrlDataItem
 class ListCtrl: public VBox
 {
     friend class ListCtrlHeader;
-    friend class ListCtrlData;
+    friend class ListCtrlDataProvider;
     friend class ListCtrlDataView;
 public:
 	ListCtrl();
@@ -320,7 +327,7 @@ private:
 
 	/** 列表数据管理
 	*/
-    ListCtrlData* m_pListData;
+    ListCtrlDataProvider* m_pDataProvider;
 
     /** ListCtrlHeader的属性Class
     */
