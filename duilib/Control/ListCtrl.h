@@ -80,6 +80,24 @@ struct ListCtrlData
     size_t nItemData = 0;           //用户自定义数据
 };
 
+/** 比较数据的附加信息
+*/
+struct ListCtrlCompareParam
+{
+    size_t nColumnIndex; //数据关联第几列，有效范围：[0, GetColumnCount())
+    size_t nColumnId;    //数据关联列的ID
+    void* pUserData;     //用户自定义数据，设置比较函数的时候一同传入
+};
+
+/** 存储数据的比较函数的原型, 实现升序的比较(a < b)
+* @param [in] a 第一个比较数据
+* @param [in] b 第二个比较数据
+* @param [in] param 数据关联的参数
+* @return 如果 (a < b)，返回true，否则返回false
+*/
+typedef std::function<bool(const ListCtrlData& a, const ListCtrlData& b, const ListCtrlCompareParam& param)> 
+        ListCtrlDataCompareFunc;
+
 /** ListCtrl控件
 */
 class ListCtrl: public VBox
@@ -128,6 +146,11 @@ public:
     * @return 列的序号：[0, GetColumnCount())，代表第几列
     */
     size_t GetColumnIndex(size_t columnId) const;
+
+    /** 获取列的ID
+    * @param [in] columnIndex 列索引序号：[0, GetColumnCount())
+    */
+    size_t GetColumnId(size_t columnIndex) const;
 
     /** 删除一列
     * @param [in] columnIndex 列索引序号：[0, GetColumnCount())
@@ -232,6 +255,22 @@ public:
     * @param [out] bkColor 数据项关联的背景颜色
     */
     bool GetDataItemBkColor(size_t itemIndex, size_t columnIndex, UiColor& bkColor) const;
+
+    /** 对数据排序
+    * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
+    * @param [in] bSortedUp true表示升序，false表示降序
+    * @param [in] pfnCompareFunc 自定义的比较函数，如果为nullptr, 则使用默认的比较函数
+    * @param [in] pUserData 用户自定义数据，调用比较函数的时候，通过参数传回给比较函数
+    */
+    bool SortDataItems(size_t columnIndex, bool bSortedUp, 
+                       ListCtrlDataCompareFunc pfnCompareFunc = nullptr,
+                       void* pUserData = nullptr);
+
+    /** 设置外部自定义的排序函数, 替换默认的排序函数
+    * @param [in] pfnCompareFunc 数据比较函数
+    * @param [in] pUserData 用户自定义数据，调用比较函数的时候，通过参数传回给比较函数
+    */
+    void SetSortCompareFunction(ListCtrlDataCompareFunc pfnCompareFunc, void* pUserData);
 
 protected:
     /** 控件初始化

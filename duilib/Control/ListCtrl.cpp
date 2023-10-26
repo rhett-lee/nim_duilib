@@ -1127,8 +1127,17 @@ public:
     /** 对数据排序
     * @param [in] columnId 列的ID
     * @param [in] bSortedUp true表示升序，false表示降序
+    * @param [in] pfnCompareFunc 数据比较函数
+    * @param [in] pUserData 用户自定义数据，调用比较函数的时候，通过参数传回给比较函数
     */
-    bool SortColumnData(size_t nColumnId, bool bSortedUp);
+    bool SortDataItems(size_t nColumnId, bool bSortedUp, 
+                       ListCtrlDataCompareFunc pfnCompareFunc, void* pUserData);
+
+    /** 设置外部自定义的排序函数, 替换默认的排序函数
+    * @param [in] pfnCompareFunc 数据比较函数
+    * @param [in] pUserData 用户自定义数据，调用比较函数的时候，通过参数传回给比较函数
+    */
+    void SetSortCompareFunction(ListCtrlDataCompareFunc pfnCompareFunc, void* pUserData);
 
 private:
     /** UI元素索引号和数据索引号的相互转换
@@ -1198,20 +1207,28 @@ private:
     */
     struct StorageData
     {
-        size_t index; //原来的数据索引号
+        size_t index;       //原来的数据索引号
         StoragePtr pStorage;
     };
 
     /** 对数据排序
     * @param [in] dataList 待排序的数据
+    * @param [in] nColumnId 列的ID
     * @param [in] bSortedUp true表示升序，false表示降序
+    * @param [in] pfnCompareFunc 数据比较函数
+    * @param [in] pUserData 用户自定义数据，调用比较函数的时候，通过参数传回给比较函数
     */
-    bool SortStorageData(std::vector<StorageData>& dataList, bool bSortedUp);
+    bool SortStorageData(std::vector<StorageData>& dataList, 
+                         size_t nColumnId, bool bSortedUp, 
+                         ListCtrlDataCompareFunc pfnCompareFunc,
+                         void* pUserData);
 
-    /** 默认的排序函数，按升序规则
-    * @return 如果a < b 返回true，否则返回false
+    /** 默认的数据比较函数
+    * @param [in] a 第一个比较数据
+    * @param [in] b 第二个比较数据
+    * @return 如果 (a < b)，返回true，否则返回false
     */
-    static bool SortStorageFunction(const StorageData& a, const StorageData& b);
+    bool SortDataCompareFunc(const ListCtrlData& a, const ListCtrlData& b) const;
 
 private:
     /** 表头控件
@@ -1221,10 +1238,20 @@ private:
     /** 数据，按列保存，每个列一个数组
     */
     StorageMap m_dataMap;
+
+    /** 外部设置的排序函数
+    */
+    ListCtrlDataCompareFunc m_pfnCompareFunc;
+
+    /** 外部设置的排序函数附加数据
+    */
+    void* m_pUserData;
 };
 
 ListCtrlDataProvider::ListCtrlDataProvider() :
-    m_pListCtrl(nullptr)
+    m_pListCtrl(nullptr),
+    m_pfnCompareFunc(nullptr),
+    m_pUserData(nullptr)
 {
 }
 
@@ -2082,9 +2109,11 @@ bool ListCtrlDataProvider::GetDataItemBkColor(size_t itemIndex, size_t columnInd
     return true;
 }
 
-bool ListCtrlDataProvider::SortColumnData(size_t nColumnId, bool bSortedUp)
+bool ListCtrlDataProvider::SortDataItems(size_t nColumnId, bool bSortedUp, 
+                                         ListCtrlDataCompareFunc pfnCompareFunc, void* pUserData)
 {
     StorageMap::iterator iter = m_dataMap.find(nColumnId);
+    ASSERT(iter != m_dataMap.end());
     if (iter == m_dataMap.end()) {
         return false;
     }
@@ -2097,7 +2126,7 @@ bool ListCtrlDataProvider::SortColumnData(size_t nColumnId, bool bSortedUp)
     for (size_t index = 0; index < dataCount; ++index) {
         sortedDataList.push_back({index, sortStorageList[index] });
     }    
-    SortStorageData(sortedDataList, bSortedUp);
+    SortStorageData(sortedDataList, nColumnId, bSortedUp, pfnCompareFunc, pUserData);
 
     //对原数据进行顺序调整
     const size_t sortedDataCount = sortedDataList.size();
@@ -2117,13 +2146,58 @@ bool ListCtrlDataProvider::SortColumnData(size_t nColumnId, bool bSortedUp)
     return true;
 }
 
-bool ListCtrlDataProvider::SortStorageData(std::vector<StorageData>& dataList, bool bSortedUp)
+bool ListCtrlDataProvider::SortStorageData(std::vector<StorageData>& dataList,                                            
+                                           size_t nColumnId, bool bSortedUp,
+                                           ListCtrlDataCompareFunc pfnCompareFunc,
+                                           void* pUserData)
 {
     if (dataList.empty()) {
         return false;
     }
-    //排序：升序
-    std::sort(dataList.begin(), dataList.end(), SortStorageFunction);
+
+    if (pfnCompareFunc == nullptr) {
+        //如果无有效参数，则使用外部设置的排序函数
+        pfnCompareFunc = m_pfnCompareFunc;
+        pUserData = m_pUserData;
+    }
+
+    if (pfnCompareFunc != nullptr) {
+        //使用自定义的比较函数排序
+        ListCtrlCompareParam param;
+        param.nColumnId = nColumnId;
+        param.nColumnIndex = Box::InvalidIndex;
+        param.pUserData = pUserData;
+        if (m_pListCtrl != nullptr) {
+            param.nColumnIndex = m_pListCtrl->GetColumnIndex(nColumnId);
+        }
+        std::sort(dataList.begin(), dataList.end(), [this, pfnCompareFunc, &param](const StorageData& a, const StorageData& b) {
+                //实现(a < b)的比较逻辑
+                if (b.pStorage == nullptr) {
+                    return false;
+                }
+                if (a.pStorage == nullptr) {
+                    return true;
+                }
+                const Storage& storageA = *a.pStorage;
+                const Storage& storageB = *b.pStorage;
+                return pfnCompareFunc(storageA, storageB, param);
+            });
+    }
+    else {
+        //排序：升序，使用默认的排序函数
+        std::sort(dataList.begin(), dataList.end(), [this](const StorageData& a, const StorageData& b) {
+                //实现(a < b)的比较逻辑
+                if (b.pStorage == nullptr) {
+                    return false;
+                }
+                if (a.pStorage == nullptr) {
+                    return true;
+                }
+                const Storage& storageA = *a.pStorage;
+                const Storage& storageB = *b.pStorage;
+                return SortDataCompareFunc(storageA, storageB);
+            });
+    }
     if (!bSortedUp) {
         //降序
         std::reverse(dataList.begin(), dataList.end());
@@ -2131,18 +2205,16 @@ bool ListCtrlDataProvider::SortStorageData(std::vector<StorageData>& dataList, b
     return true;
 }
 
-bool ListCtrlDataProvider::SortStorageFunction(const StorageData& a, const StorageData& b)
+bool ListCtrlDataProvider::SortDataCompareFunc(const ListCtrlData& a, const ListCtrlData& b) const
 {
-    //实现(a < b)的比较逻辑
-    if (b.pStorage == nullptr) {
-        return false;
-    }
-    if (a.pStorage == nullptr) {
-        return true;
-    }
-    const Storage& storageA = *a.pStorage;
-    const Storage& storageB = *b.pStorage;
-    return std::wstring(storageA.text.c_str()) < std::wstring(storageB.text.c_str());
+    //默认按字符串比较, 区分大小写
+    return ::wcscmp(a.text.c_str(), b.text.c_str()) < 0;
+}
+
+void ListCtrlDataProvider::SetSortCompareFunction(ListCtrlDataCompareFunc pfnCompareFunc, void* pUserData)
+{
+    m_pfnCompareFunc = pfnCompareFunc;
+    m_pUserData = pUserData;
 }
 
 /** 列表数据显示控件
@@ -2430,6 +2502,8 @@ void ListCtrl::DoInit()
             SetDataItem(itemIndex, { columnIndex, StringHelper::Printf(L"第 %02d 行/第 %02d 列", itemIndex, columnIndex), });
         }
     }
+    //排序，默认为升序
+    SortDataItems(0, true);
     //TESTs
 }
 
@@ -2497,6 +2571,15 @@ size_t ListCtrl::GetColumnIndex(size_t columnId) const
     else {
         return m_pHeaderCtrl->GetColumnIndex(columnId);
     }
+}
+
+size_t ListCtrl::GetColumnId(size_t columnIndex) const
+{
+    ListCtrlHeaderItem* pHeaderItem = GetColumn(columnIndex);
+    if (pHeaderItem != nullptr) {
+        return pHeaderItem->GetColomnId();
+    }
+    return Box::InvalidIndex;
 }
 
 bool ListCtrl::DeleteColumn(size_t columnIndex)
@@ -2583,7 +2666,7 @@ void ListCtrl::OnHeaderColumnRemoved(size_t nColumnId)
 void ListCtrl::OnColumnSorted(size_t nColumnId, bool bSortedUp)
 {
     //对数据排序，然后刷新界面显示
-    m_pDataProvider->SortColumnData(nColumnId, bSortedUp);
+    m_pDataProvider->SortDataItems(nColumnId, bSortedUp, nullptr, nullptr);
 
     ASSERT(m_pDataView != nullptr);
     if (m_pDataView != nullptr) {
@@ -2754,6 +2837,23 @@ bool ListCtrl::SetDataItemBkColor(size_t itemIndex, size_t columnIndex, const Ui
 bool ListCtrl::GetDataItemBkColor(size_t itemIndex, size_t columnIndex, UiColor& bkColor) const
 {
     return m_pDataProvider->GetDataItemBkColor(itemIndex, columnIndex, bkColor);
+}
+
+bool ListCtrl::SortDataItems(size_t columnIndex, bool bSortedUp, 
+                             ListCtrlDataCompareFunc pfnCompareFunc,
+                             void* pUserData)
+{
+    size_t nColumnId = GetColumnId(columnIndex);
+    ASSERT(nColumnId != Box::InvalidIndex);
+    if (nColumnId == Box::InvalidIndex) {
+        return false;
+    }
+    return m_pDataProvider->SortDataItems(nColumnId, bSortedUp, pfnCompareFunc, pUserData);
+}
+
+void ListCtrl::SetSortCompareFunction(ListCtrlDataCompareFunc pfnCompareFunc, void* pUserData)
+{
+    m_pDataProvider->SetSortCompareFunction(pfnCompareFunc, pUserData);
 }
 
 }//namespace ui
