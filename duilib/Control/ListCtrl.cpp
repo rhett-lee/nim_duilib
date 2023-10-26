@@ -891,7 +891,7 @@ void ListCtrlHeader::OnHeaderColumnResized(Control* pLeftHeaderItem, Control* pR
         int32_t nColumnWidth = nItemWidth + nSplitWidth;
         pHeaderItem->SetColumnWidth(nColumnWidth, false);
         nColumnId2 = pHeaderItem->GetColomnId();
-    }
+    } 
 
     if ((nColumnId1 != Box::InvalidIndex) || (nColumnId2 != Box::InvalidIndex)) {
         if (m_pListCtrl != nullptr) {
@@ -941,21 +941,12 @@ void ListCtrlHeader::OnHeaderColumnCheckStateChanged(ListCtrlHeaderItem* pHeader
 class ListCtrlDataProvider : public ui::VirtualListBoxElement
 {
 public:
-    /** 存储的数据结构
-    */
-    struct Storage
-    {
-        UiString text;                  //文本内容
-        uint16_t nTextFormat = 0;       //文本对齐方式等属性, 该属性仅应用于Header, 取值可参考：IRender.h中的DrawStringFormat，如果为-1，表示按默认配置的对齐方式
-        int32_t nImageIndex = -1;       //图标资源索引号，在图片列表里面的下标值，如果为-1表示不显示图标
-        UiColor textColor;              //文本颜色
-        UiColor bkColor;                //背景颜色
-        bool bShowCheckBox = true;      //是否显示CheckBox
-        uint8_t nCheckBoxWidth = 0;     //CheckBox控件所占的宽度，仅当bShowCheckBox为true时有效
-        bool bSelected = false;         //是否处于选择状态（ListBoxItem按整行选中）
-        bool bChecked = false;          //是否处于勾选状态（CheckBox勾选状态）
-        size_t nItemData = 0;           //用户自定义数据
-    };
+    //用于存储的数据结构
+    typedef ListCtrlData Storage;
+    typedef std::shared_ptr<Storage> StoragePtr;
+    typedef std::vector<StoragePtr> StoragePtrList;
+    typedef std::unordered_map<size_t, StoragePtrList> StorageMap;
+
 public:
     ListCtrlDataProvider();
 
@@ -1134,14 +1125,14 @@ private:
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
     * @return 如果失败则返回nullptr
     */
-    std::shared_ptr<Storage> GetDataItemStorage(size_t itemIndex, size_t columnIndex) const;
+    StoragePtr GetDataItemStorage(size_t itemIndex, size_t columnIndex) const;
 
     /** 获取指定数据项的数据, 写入
     * @param [in] itemIndex 数据项的索引号
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
     * @return 如果失败则返回nullptr
     */
-    std::shared_ptr<Storage> GetDataItemStorageForWrite(size_t itemIndex, size_t columnIndex);
+    StoragePtr GetDataItemStorageForWrite(size_t itemIndex, size_t columnIndex);
 
     /** 获取各个列的数据，用于UI展示
     * @param [in] nDataItemIndex 数据Item的下标，代表行
@@ -1150,7 +1141,7 @@ private:
     */
     bool GetDataItemStorageList(size_t nDataItemIndex,
                                 std::vector<size_t>& columnIdList,
-                                std::vector<std::shared_ptr<Storage>>& storageList) const;
+                                StoragePtrList& storageList) const;
 
     /** 某个数据项的Check勾选状态变化    
     * @param [in] itemIndex 数据Item的下标，代表行
@@ -1169,7 +1160,7 @@ private:
     struct StorageData
     {
         size_t index; //原来的数据索引号
-        std::shared_ptr<Storage> pStorage;
+        StoragePtr pStorage;
     };
 
     /** 对数据排序
@@ -1190,9 +1181,6 @@ private:
 
     /** 数据，按列保存，每个列一个数组
     */
-    typedef std::shared_ptr<Storage> StoragePtr;
-    typedef std::vector<StoragePtr> StoragePtrList;
-    typedef std::unordered_map<size_t, std::vector<std::shared_ptr<Storage>>> StorageMap;
     StorageMap m_dataMap;
 };
 
@@ -1268,7 +1256,7 @@ bool ListCtrlDataProvider::FillElement(ui::Control* pControl, size_t nElementInd
         columnIdList.push_back(data.nColumnId);
     }
     size_t nDataItemIndex = ElementIndexToDataItemIndex(nElementIndex);
-    std::vector<std::shared_ptr<Storage>> storageList;
+    StoragePtrList storageList;
     if (!GetDataItemStorageList(nDataItemIndex, columnIdList, storageList)) {
         return false;
     }
@@ -1603,7 +1591,7 @@ bool ListCtrlDataProvider::AddColumn(size_t columnId)
     if ((columnId == Box::InvalidIndex) || (columnId == 0)) {
         return false;
     }
-    std::vector<std::shared_ptr<Storage>>& storageList = m_dataMap[columnId];
+    StoragePtrList& storageList = m_dataMap[columnId];
     auto iter = m_dataMap.find(0);
     if (iter != m_dataMap.end()) {
         //保持数据行数相同
@@ -1655,7 +1643,7 @@ bool ListCtrlDataProvider::SetColumnCheck(size_t columnId, bool bChecked)
     return true;
 }
 
-std::shared_ptr<ListCtrlDataProvider::Storage> ListCtrlDataProvider::GetDataItemStorage(
+ListCtrlDataProvider::StoragePtr ListCtrlDataProvider::GetDataItemStorage(
     size_t itemIndex, size_t columnIndex) const
 {
     ASSERT(IsValidDataItemIndex(itemIndex));
@@ -1683,7 +1671,7 @@ std::shared_ptr<ListCtrlDataProvider::Storage> ListCtrlDataProvider::GetDataItem
     return pStorage;
 }
 
-std::shared_ptr<ListCtrlDataProvider::Storage> ListCtrlDataProvider::GetDataItemStorageForWrite(
+ListCtrlDataProvider::StoragePtr ListCtrlDataProvider::GetDataItemStorageForWrite(
     size_t itemIndex, size_t columnIndex)
 {
     ASSERT(IsValidDataItemIndex(itemIndex));
@@ -1717,7 +1705,7 @@ std::shared_ptr<ListCtrlDataProvider::Storage> ListCtrlDataProvider::GetDataItem
 }
 
 bool ListCtrlDataProvider::GetDataItemStorageList(size_t nDataItemIndex, std::vector<size_t>& columnIdList,
-                                          std::vector<std::shared_ptr<Storage>>& storageList) const
+                                                  StoragePtrList& storageList) const
 {
     storageList.clear();
     ASSERT(nDataItemIndex != Box::InvalidIndex);
@@ -1728,7 +1716,7 @@ bool ListCtrlDataProvider::GetDataItemStorageList(size_t nDataItemIndex, std::ve
         auto iter = m_dataMap.find(nColumnId);
         StoragePtr pStorage;
         if (iter != m_dataMap.end()) {
-            const std::vector<std::shared_ptr<Storage>>& dataList = iter->second;
+            const StoragePtrList& dataList = iter->second;
             if (nDataItemIndex < dataList.size()) {
                 pStorage = dataList.at(nDataItemIndex);
             }
@@ -1743,7 +1731,7 @@ void ListCtrlDataProvider::OnDataItemChecked(size_t itemIndex, size_t nColumnId,
     auto iter = m_dataMap.find(nColumnId);
     StoragePtr pStorage;
     if (iter != m_dataMap.end()) {
-        const std::vector<std::shared_ptr<Storage>>& dataList = iter->second;
+        const StoragePtrList& dataList = iter->second;
         if (itemIndex < dataList.size()) {
             pStorage = dataList.at(itemIndex);
         }

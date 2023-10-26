@@ -64,6 +64,22 @@ struct ListCtrlDataItem
     bool bNeedDpiScale = true;      //是否对数值做DPI自适应
 };
 
+/** 用于存储的数据结构
+*/
+struct ListCtrlData
+{
+    UiString text;                  //文本内容
+    uint16_t nTextFormat = 0;       //文本对齐方式等属性, 该属性仅应用于Header, 取值可参考：IRender.h中的DrawStringFormat，如果为-1，表示按默认配置的对齐方式
+    int32_t nImageIndex = -1;       //图标资源索引号，在图片列表里面的下标值，如果为-1表示不显示图标
+    UiColor textColor;              //文本颜色
+    UiColor bkColor;                //背景颜色
+    bool bShowCheckBox = true;      //是否显示CheckBox
+    uint8_t nCheckBoxWidth = 0;     //CheckBox控件所占的宽度，仅当bShowCheckBox为true时有效
+    bool bSelected = false;         //是否处于选择状态（ListBoxItem按整行选中）
+    bool bChecked = false;          //是否处于勾选状态（CheckBox勾选状态）
+    size_t nItemData = 0;           //用户自定义数据
+};
+
 /** ListCtrl控件
 */
 class ListCtrl: public VBox
