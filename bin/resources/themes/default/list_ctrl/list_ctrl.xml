@@ -22,7 +22,11 @@
                           header_split_box_class="list_ctrl_header_split_box"
                           header_split_control_class="list_ctrl_header_split_control"
                           check_box_class="list_ctrl_checkbox"
-                          data_item_class="list_ctrl_item"/>
+                          data_item_class="list_ctrl_item"
+                          data_item_label_class="list_ctrl_item_label"
+                          data_view_class="list_ctrl_data_view"
+                          row_grid_line_width="1"
+                          column_grid_line_width="1"/>
             </VBox>
         </Box>
     </VBox>

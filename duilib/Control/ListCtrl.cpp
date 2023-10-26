@@ -881,7 +881,6 @@ void ListCtrlHeader::OnHeaderColumnResized(Control* pLeftHeaderItem, Control* pR
         pHeaderItem->SetColumnWidth(nColumnWidth, false);
         nColumnId1 = pHeaderItem->GetColomnId();
     }
-
     pHeaderItem = dynamic_cast<ListCtrlHeaderItem*>(pRightHeaderItem);
     if (pHeaderItem != nullptr) {
         int32_t nSplitWidth = 0;
@@ -948,7 +947,6 @@ public:
     {
         UiString text;                  //文本内容
         uint16_t nTextFormat = 0;       //文本对齐方式等属性, 该属性仅应用于Header, 取值可参考：IRender.h中的DrawStringFormat，如果为-1，表示按默认配置的对齐方式
-        uint8_t nTextLeftPadding = 0;   //文本的左侧Padding数值
         int32_t nImageIndex = -1;       //图标资源索引号，在图片列表里面的下标值，如果为-1表示不显示图标
         UiColor textColor;              //文本颜色
         UiColor bkColor;                //背景颜色
@@ -1263,6 +1261,16 @@ bool ListCtrlData::FillElement(ui::Control* pControl, size_t nElementIndex)
         }
     }
 
+    //默认属性
+    std::wstring defaultLabelBoxClass;
+    if (m_pListCtrl != nullptr) {
+        defaultLabelBoxClass = m_pListCtrl->GetDataItemLabelClass();
+    }
+    LabelBox defaultLabelBox;
+    if (!defaultLabelBoxClass.empty()) {
+        defaultLabelBox.SetClass(defaultLabelBoxClass);
+    }
+
     bool bFirstLine = (nElementIndex == 1);//第一个数据行
     for (size_t nColumn = 0; nColumn < showColumnCount; ++nColumn) {
         const ElementData& elementData = elementDataList[nColumn];
@@ -1276,7 +1284,11 @@ bool ListCtrlData::FillElement(ui::Control* pControl, size_t nElementIndex)
         }
         else {
             pLabelBox = new LabelBox;
-            pItem->AddItem(pLabelBox);
+            pItem->AddItem(pLabelBox);            
+            if (!defaultLabelBoxClass.empty()) {
+                pLabelBox->SetClass(defaultLabelBoxClass);
+            }
+            pLabelBox->SetMouseEnabled(false);
         }
 
         //填充数据，设置属性        
@@ -1288,20 +1300,20 @@ bool ListCtrlData::FillElement(ui::Control* pControl, size_t nElementIndex)
                 pLabelBox->SetTextStyle(pStorage->nTextFormat, false);
             }
             else {
-                pLabelBox->SetDefaultTextStyle(false);
+                pLabelBox->SetTextStyle(defaultLabelBox.GetTextStyle(), false);
             }
-            pLabelBox->SetTextPadding(UiPadding(pStorage->nTextLeftPadding, 0, 0, 0), false);
+            pLabelBox->SetTextPadding(defaultLabelBox.GetTextPadding(), false);
             if (!pStorage->textColor.IsEmpty()) {
                 pLabelBox->SetStateTextColor(kControlStateNormal, pLabelBox->GetColorString(pStorage->textColor));
             }
             else {
-                pLabelBox->SetStateTextColor(kControlStateNormal, GlobalManager::Instance().Color().GetDefaultTextColor());
+                pLabelBox->SetStateTextColor(kControlStateNormal, defaultLabelBox.GetStateTextColor(kControlStateNormal));
             }
             if (!pStorage->bkColor.IsEmpty()) {
                 pLabelBox->SetBkColor(pStorage->bkColor);
             }
             else {
-                pLabelBox->SetBkColor(L"");
+                pLabelBox->SetBkColor(defaultLabelBox.GetBkColor());
             }
             if (pStorage->bShowCheckBox) {
                 //添加CheckBox
@@ -1349,11 +1361,11 @@ bool ListCtrlData::FillElement(ui::Control* pControl, size_t nElementIndex)
             }
         }
         else {
-            pLabelBox->SetDefaultTextStyle(false);
-            pLabelBox->SetText(L"");
-            pLabelBox->SetTextPadding(UiPadding(0, 0, 0, 0), false);
-            pLabelBox->SetStateTextColor(kControlStateNormal, GlobalManager::Instance().Color().GetDefaultTextColor());
-            pLabelBox->SetBkColor(L"");
+            pLabelBox->SetTextStyle(defaultLabelBox.GetTextStyle(), false);
+            pLabelBox->SetText(defaultLabelBox.GetText());
+            pLabelBox->SetTextPadding(defaultLabelBox.GetTextPadding(), false);
+            pLabelBox->SetStateTextColor(kControlStateNormal, defaultLabelBox.GetStateTextColor(kControlStateNormal));
+            pLabelBox->SetBkColor(defaultLabelBox.GetBkColor());
             if (pLabelBox->GetItemCount() > 0) {
                 CheckBox* pCheckBox = dynamic_cast<CheckBox*>(pLabelBox->GetItemAt(0));
                 if (pCheckBox != nullptr) {
@@ -1363,15 +1375,11 @@ bool ListCtrlData::FillElement(ui::Control* pControl, size_t nElementIndex)
         }
 
         //绘制边线
-        bool bShowColumnLine = true; //是否显示纵向的边线
-        bool bShowRowLine = true;    //是否显示横向的边线
-        int32_t mColumnLineWidth = GlobalManager::Instance().Dpi().GetScaleInt(1);//纵向边线宽度
+        int32_t mColumnLineWidth = GlobalManager::Instance().Dpi().GetScaleInt(1);//纵向边线宽度        
         int32_t mRowLineWidth = GlobalManager::Instance().Dpi().GetScaleInt(1);   //横向边线宽度
-        if (!bShowColumnLine) {
-            mColumnLineWidth = 0;
-        }
-        if (!bShowRowLine) {
-            mRowLineWidth = 0;
+        if (m_pListCtrl != nullptr) {
+            mColumnLineWidth = m_pListCtrl->GetColumnGridLineWidth();
+            mRowLineWidth = m_pListCtrl->GetRowGridLineWidth();
         }
         if (bFirstLine) {
             //第一行
@@ -1399,9 +1407,7 @@ bool ListCtrlData::FillElement(ui::Control* pControl, size_t nElementIndex)
                 pLabelBox->SetBorderSize(rc, false);
             }
         }
-        pLabelBox->SetAttribute(L"border_color", L"orange");
     }
-
     return true;
 }
 
@@ -1487,11 +1493,6 @@ void ListCtrlData::DataItemToStorage(Storage& storage, const ListCtrlDataItem& i
     if (item.bNeedDpiScale) {
         GlobalManager::Instance().Dpi().ScaleInt(nCheckBoxWidth);
     }
-    int32_t nTextLeftPadding = item.nTextLeftPadding;
-    if (item.bNeedDpiScale) {
-        GlobalManager::Instance().Dpi().ScaleInt(nTextLeftPadding);
-    }
-    storage.nTextLeftPadding = TruncateToUInt8(nTextLeftPadding);
     storage.nImageIndex = item.nImageIndex;
     storage.textColor = item.textColor;
     storage.bkColor = item.bkColor;
@@ -1652,11 +1653,6 @@ std::shared_ptr<ListCtrlData::Storage> ListCtrlData::GetDataItemStorage(
     return pStorage;
 }
 
-/** 获取指定数据项的数据, 写入
-* @param [in] itemIndex 数据项的索引号
-* @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
-* @return 如果失败则返回nullptr
-*/
 std::shared_ptr<ListCtrlData::Storage> ListCtrlData::GetDataItemStorageForWrite(
     size_t itemIndex, size_t columnIndex)
 {
@@ -2102,6 +2098,8 @@ ListCtrl::ListCtrl():
     m_bCanUpdateHeaderCheckStatus(true)
 {
     m_pListData = new ListCtrlData;
+    m_nRowGridLineWidth = ui::GlobalManager::Instance().Dpi().GetScaleInt(1);
+    m_nColumnGridLineWidth = ui::GlobalManager::Instance().Dpi().GetScaleInt(1);
 }
 
 ListCtrl::~ListCtrl()
@@ -2136,6 +2134,18 @@ void ListCtrl::SetAttribute(const std::wstring& strName, const std::wstring& str
     }
     else if (strName == L"data_item_class") {
         SetDataItemClass(strValue);
+    }
+    else if (strName == L"data_item_label_class") {
+        SetDataItemLabelClass(strValue);
+    }
+    else if (strName == L"row_grid_line_width") {
+        SetRowGridLineWidth(_wtoi(strValue.c_str()), true);
+    }
+    else if (strName == L"column_grid_line_width") {
+        SetColumnGridLineWidth(_wtoi(strValue.c_str()), true);
+    }
+    else if (strName == L"data_view_class") {
+        SetDataViewClass(strValue);
     }
     else {
         __super::SetAttribute(strName, strValue);
@@ -2190,6 +2200,16 @@ std::wstring ListCtrl::GetCheckBoxClass() const
     return m_checkBoxClass.c_str();
 }
 
+void ListCtrl::SetDataViewClass(const std::wstring& className)
+{
+    m_dataViewClass = className;
+}
+
+std::wstring ListCtrl::GetDataViewClass() const
+{
+    return m_dataViewClass.c_str();
+}
+
 void ListCtrl::SetDataItemClass(const std::wstring& className)
 {
     m_dataItemClass = className;
@@ -2198,6 +2218,48 @@ void ListCtrl::SetDataItemClass(const std::wstring& className)
 std::wstring ListCtrl::GetDataItemClass() const
 {
     return m_dataItemClass.c_str();
+}
+
+void ListCtrl::SetDataItemLabelClass(const std::wstring& className)
+{
+    m_dataItemLabelClass = className;
+}
+
+std::wstring ListCtrl::GetDataItemLabelClass() const
+{
+    return m_dataItemLabelClass.c_str();
+}
+
+void ListCtrl::SetRowGridLineWidth(int32_t nLineWidth, bool bNeedDpiScale)
+{
+    if (bNeedDpiScale) {
+        GlobalManager::Instance().Dpi().ScaleInt(nLineWidth);
+    }
+    if (nLineWidth < 0) {
+        nLineWidth = 0;
+    }
+    m_nRowGridLineWidth = nLineWidth;
+}
+
+int32_t ListCtrl::GetRowGridLineWidth() const
+{
+    return m_nRowGridLineWidth;
+}
+
+void ListCtrl::SetColumnGridLineWidth(int32_t nLineWidth, bool bNeedDpiScale)
+{
+    if (bNeedDpiScale) {
+        GlobalManager::Instance().Dpi().ScaleInt(nLineWidth);
+    }
+    if (nLineWidth < 0) {
+        nLineWidth = 0;
+    }
+    m_nColumnGridLineWidth = nLineWidth;
+}
+
+int32_t ListCtrl::GetColumnGridLineWidth() const
+{
+    return m_nColumnGridLineWidth;
 }
 
 void ListCtrl::DoInit()
@@ -2217,21 +2279,16 @@ void ListCtrl::DoInit()
     if (!m_headerClass.empty()) {
         m_pHeaderCtrl->SetClass(m_headerClass.c_str());
     }
+    m_pListData->SetListCtrl(this);
 
     //初始化Body
     ASSERT(m_pDataView == nullptr);
     m_pDataView = new ListCtrlDataView;
     m_pDataView->SetListCtrl(this);
-    m_pDataView->SetBkColor(L"white");
-    m_pDataView->SetAttribute(L"item_size", L"1200,32");
-    m_pDataView->SetAttribute(L"columns", L"1");
-    m_pDataView->SetAttribute(L"vscrollbar", L"true");
-    m_pDataView->SetAttribute(L"hscrollbar", L"true");
-    m_pDataView->SetAttribute(L"width", L"1200");
     m_pDataView->SetDataProvider(m_pListData);
-
-    m_pListData->SetListCtrl(this);
-
+    if (!m_dataViewClass.empty()) {
+        m_pDataView->SetClass(m_dataViewClass.c_str());
+    }
     m_pDataView->AddItem(m_pHeaderCtrl);
     AddItem(m_pDataView);
 

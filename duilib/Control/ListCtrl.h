@@ -49,7 +49,6 @@ struct ListCtrlDataItem
     size_t nColumnIndex = 0;        //【必填】第几列，有效范围：[0, GetColumnCount())
     std::wstring text;              //文本内容
     int32_t nTextFormat = -1;       //文本对齐方式等属性, 该属性仅应用于Header, 取值可参考：IRender.h中的DrawStringFormat，如果为-1，表示按默认配置的对齐方式
-    int32_t nTextLeftPadding = 0;   //文本的左侧Padding数值，如果bNeedDpiScale为true，则执行DPI自适应处理   
     int32_t nImageIndex = -1;       //图标资源索引号，在图片列表里面的下标值，如果为-1表示不显示图标
     UiColor textColor;              //文本颜色
     UiColor bkColor;                //背景颜色
@@ -240,10 +239,34 @@ protected:
     void SetCheckBoxClass(const std::wstring& className);
     std::wstring GetCheckBoxClass() const;
 
+    /** 数据视图中的ListBox的Class属性
+    */
+    void SetDataViewClass(const std::wstring& className);
+    std::wstring GetDataViewClass() const;
+
     /** ListCtrlItem的Class属性
     */
     void SetDataItemClass(const std::wstring& className);
     std::wstring GetDataItemClass() const;
+
+    /** ListCtrlItem/LabelBox的Class属性
+    */
+    void SetDataItemLabelClass(const std::wstring& className);
+    std::wstring GetDataItemLabelClass() const;
+
+    /** 横向网格线的宽度
+    * @param [in] nLineWidth 网格线的宽度，如果为0表示不显示横向网格线
+    * @param [in] bNeedDpiScale 如果为true表示需要对宽度进行DPI自适应
+    */
+    void SetRowGridLineWidth(int32_t nLineWidth, bool bNeedDpiScale);
+    int32_t GetRowGridLineWidth() const;
+
+    /** 纵向网格线的宽度
+    * @param [in] nLineWidth 网格线的宽度，如果为0表示不显示纵向网格线
+    * @param [in] bNeedDpiScale 如果为true表示需要对宽度进行DPI自适应
+    */
+    void SetColumnGridLineWidth(int32_t nLineWidth, bool bNeedDpiScale);
+    int32_t GetColumnGridLineWidth() const;
 
 protected:
     /** 增加一列
@@ -327,9 +350,25 @@ private:
     */
     UiString m_dataItemClass;
 
+    /** ListCtrlItem/LabelBox的Class属性
+    */
+    UiString m_dataItemLabelClass;
+
     /** 当前是否可以更新Header的Check状态
     */
     bool m_bCanUpdateHeaderCheckStatus;
+
+    /** 横向网格线的宽度
+    */
+    int32_t m_nRowGridLineWidth;
+
+    /** 纵向网格线的宽度
+    */
+    int32_t m_nColumnGridLineWidth;
+
+    /** ListBox的Class属性
+    */
+    UiString m_dataViewClass;
 };
 
 /** ListCtrl子项控件
