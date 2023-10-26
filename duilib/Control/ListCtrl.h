@@ -494,6 +494,14 @@ public:
     */
     int32_t GetIconSpacing() const;
 
+    /** 设置图标显示在文字上方，居中显示
+    */
+    void SetShowIconAtTop(bool bShowIconAtTop);
+
+    /** 获取图标是否显示在文字上方
+    */
+    bool IsShowIconAtTop() const;
+
 public:
     /** 设置是否显示CheckBox
     * @param [in] bVisible true表示显示，false表示隐藏
@@ -564,9 +572,13 @@ private:
     */
     bool m_bColumnResizeable;
 
-    /** 文字与图标之间的间隔
+    /** 文字与图标之间的间隔(图标显示在文字的右侧或者左侧时)
     */
     int32_t m_nIconSpacing;
+
+    /** 图标显示在文字上方，居中显示
+    */
+    bool m_bShowIconAtTop;
 
 private:
     /** @name 拖动相关的成员变量

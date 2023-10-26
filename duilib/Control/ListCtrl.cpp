@@ -17,7 +17,8 @@ ListCtrlHeaderItem::ListCtrlHeaderItem() :
     m_nColumnWidth(0),
     m_bMouseDown(false),
     m_bInDragging(false),
-    m_nOldAlpha(255)
+    m_nOldAlpha(255),
+    m_bShowIconAtTop(true)
 {
     m_nIconSpacing = GlobalManager::Instance().Dpi().GetScaleInt(6);
 }
@@ -47,6 +48,9 @@ void ListCtrlHeaderItem::SetAttribute(const std::wstring& strName, const std::ws
     else if (strName == L"icon_spacing") {
         SetIconSpacing(_wtoi(strValue.c_str()), true);
     }
+    else if (strName == L"show_icon_at_top") {
+        SetShowIconAtTop(strValue == L"true");
+    }
     else {
         __super::SetAttribute(strName, strValue);
     }
@@ -72,32 +76,57 @@ void ListCtrlHeaderItem::PaintText(IRender* pRender)
         return;
     }
     
-    int32_t nIconTextSpacing = m_nIconSpacing;
+    //确定排序图标的位置
     UiRect rc = GetRect();
     UiPadding rcPadding = GetControlPadding();
     rc.Deflate(rcPadding);
-    rc.Deflate(GetTextPadding());
-    uint32_t textStyle = GetTextStyle();
-    std::wstring textValue = GetText();
-    UiRect textRect = pRender->MeasureString(textValue, GetFontId(), textStyle);
-    if (textStyle & TEXT_CENTER) {
-        rc.left = rc.CenterX() + textRect.Width() / 2;
-        rc.left += nIconTextSpacing;
-    }
-    else if (textStyle & TEXT_RIGHT) {
-        rc.left = rc.right - textRect.Width() - nIconTextSpacing;
+    if (IsShowIconAtTop()) {
+        //图标显示在文字的上方，居中显示
+        int32_t nImageWidth = 0;
+        int32_t nImageHeight = 0;
         if (pImage != nullptr) {
             if (pImage->GetImageCache() == nullptr) {
                 LoadImageData(*pImage);
             }
             if (pImage->GetImageCache() != nullptr) {
-                rc.left -= pImage->GetImageCache()->GetWidth();
+                nImageWidth = pImage->GetImageCache()->GetWidth();
+                nImageHeight = pImage->GetImageCache()->GetHeight();
             }
+        }
+        if (nImageWidth > 0) {
+            rc.left = rc.CenterX() - nImageWidth / 2;
+            rc.right = rc.left + nImageWidth;
+        }
+        if (nImageHeight > 0) {
+            rc.bottom = rc.top + nImageHeight;
         }
     }
     else {
-        rc.left += textRect.Width();
-        rc.left += nIconTextSpacing;
+        //图标显示在文字的后面（文字左对齐，居中对齐），或者前面（文字靠右对齐）
+        rc.Deflate(GetTextPadding());
+        int32_t nIconTextSpacing = GetIconSpacing();
+        uint32_t textStyle = GetTextStyle();
+        std::wstring textValue = GetText();
+        UiRect textRect = pRender->MeasureString(textValue, GetFontId(), textStyle);
+        if (textStyle & TEXT_CENTER) {
+            rc.left = rc.CenterX() + textRect.Width() / 2;
+            rc.left += nIconTextSpacing;
+        }
+        else if (textStyle & TEXT_RIGHT) {
+            rc.left = rc.right - textRect.Width() - nIconTextSpacing;
+            if (pImage != nullptr) {
+                if (pImage->GetImageCache() == nullptr) {
+                    LoadImageData(*pImage);
+                }
+                if (pImage->GetImageCache() != nullptr) {
+                    rc.left -= pImage->GetImageCache()->GetWidth();
+                }
+            }
+        }
+        else {
+            rc.left += textRect.Width();
+            rc.left += nIconTextSpacing;
+        }
     }
     rc.Validate();
 
@@ -235,6 +264,16 @@ void ListCtrlHeaderItem::SetIconSpacing(int32_t nIconSpacing, bool bNeedDpiScale
 int32_t ListCtrlHeaderItem::GetIconSpacing() const
 {
     return m_nIconSpacing;
+}
+
+void ListCtrlHeaderItem::SetShowIconAtTop(bool bShowIconAtTop)
+{
+    m_bShowIconAtTop = bShowIconAtTop;
+}
+
+bool ListCtrlHeaderItem::IsShowIconAtTop() const
+{
+    return m_bShowIconAtTop;
 }
 
 bool ListCtrlHeaderItem::SetCheckBoxVisible(bool bVisible)

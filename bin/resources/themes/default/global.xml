@@ -250,9 +250,9 @@
     <!--ListCtrl控件列表项通用样式-->
     <Class name="list_ctrl_header" bkcolor="white" width="100%"/>
     <Class name="list_ctrl_header_item" height="100%" text_align="vcenter,hcenter" hot_color="#FFE5F3FF" pushed_color="#FFD9EEFF"            
-           icon_spacing="6"
-           sorted_up_image="file='../public/listctrl/arrow-sorted-up.svg' width='10' height='10' valign='center' halign='left'" 
-           sorted_down_image="file='../public/listctrl/arrow-sorted-down.svg' width='10' height='10' valign='center' halign='left'"/>
+                                        show_icon_at_top="true" icon_spacing="6"
+                                        sorted_up_image="file='../public/listctrl/arrow-sorted-up.svg' width='10' height='10' valign='center' halign='left'" 
+                                        sorted_down_image="file='../public/listctrl/arrow-sorted-down.svg' width='10' height='10' valign='center' halign='left'"/>
     <Class name="list_ctrl_header_split_box" width="3" height="100%" />
     <Class name="list_ctrl_header_split_control" width="1" height="100%" margin="2,4,0,2" bkcolor="splitline_level1"/>
     <Class name="list_ctrl_checkbox" valign="center" halign="left" margin="4,0,0,0"
