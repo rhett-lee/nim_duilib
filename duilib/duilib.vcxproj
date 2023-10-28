@@ -357,6 +357,10 @@
     <ClCompile Include="Control\IPAddress.cpp" />
     <ClCompile Include="Control\Line.cpp" />
     <ClCompile Include="Control\ListCtrl.cpp" />
+    <ClCompile Include="Control\ListCtrlDataProvider.cpp" />
+    <ClCompile Include="Control\ListCtrlDataView.cpp" />
+    <ClCompile Include="Control\ListCtrlHeader.cpp" />
+    <ClCompile Include="Control\ListCtrlHeaderItem.cpp" />
     <ClCompile Include="Control\Menu.cpp" />
     <ClCompile Include="Control\RichEditHost.cpp" />
     <ClCompile Include="Control\RichText.cpp" />
@@ -465,6 +469,10 @@
     <ClInclude Include="Control\IPAddress.h" />
     <ClInclude Include="Control\Line.h" />
     <ClInclude Include="Control\ListCtrl.h" />
+    <ClInclude Include="Control\ListCtrlDataProvider.h" />
+    <ClInclude Include="Control\ListCtrlDataView.h" />
+    <ClInclude Include="Control\ListCtrlHeader.h" />
+    <ClInclude Include="Control\ListCtrlHeaderItem.h" />
     <ClInclude Include="Control\Menu.h" />
     <ClInclude Include="Control\observer_impl_base.hpp" />
     <ClInclude Include="Control\RichEditCtrl.h" />
