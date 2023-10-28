@@ -206,8 +206,8 @@ UiSize64 HLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 
 	UiSize64 size(cxNeeded, cyNeeded);
 	UiPadding rcPadding;
-	if (m_pOwner != nullptr) {
-		rcPadding = m_pOwner->GetPadding();
+	if (GetOwner() != nullptr) {
+		rcPadding = GetOwner()->GetPadding();
 	}
 	if (size.cx > 0) {
 		size.cx += (rcPadding.left + rcPadding.right);
@@ -271,8 +271,8 @@ UiSize HLayout::EstimateSizeByChild(const std::vector<Control*>& items, UiSize s
 		totalSize.cx += (estimateCount - 1) * GetChildMarginX();
 	}
 	UiPadding rcPadding;
-	if (m_pOwner != nullptr) {
-		rcPadding = m_pOwner->GetPadding();
+	if (GetOwner() != nullptr) {
+		rcPadding = GetOwner()->GetPadding();
 	}
 	if (totalSize.cx > 0) {
 		totalSize.cx += (rcPadding.left + rcPadding.right);

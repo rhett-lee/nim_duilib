@@ -43,9 +43,13 @@ public:
 	*/
 	virtual LayoutType GetLayoutType() const { return LayoutType::FloatLayout; }
 
-	/** 设置所有者
+	/** 设置所有者容器接口
 	 */
 	void SetOwner(Box* pOwner);
+
+	/** 获取所有者容器接口
+	*/
+	Box* GetOwner() const { return m_pOwner; }
 
 	/** 设置浮动状态下的坐标信息
 	 * @param[in] pControl 控件句柄
@@ -123,12 +127,10 @@ protected:
 	*/
 	static UiRect GetFloatPos(Control* pControl, UiRect rcContainer, UiSize childSize);
 
-protected:
-
+private:
 	//所属Box对象
 	Box* m_pOwner;
 
-private:
 	//子控件之间的额外边距: X 轴方向
 	uint16_t m_iChildMarginX;
 

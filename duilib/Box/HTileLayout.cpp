@@ -461,8 +461,8 @@ UiSize64 HTileLayout::ArrangeChildNormal(const std::vector<Control*>& items,
 
 	//由于内边距已经剪掉，计算宽度和高度的时候，需要算上内边距
 	UiPadding rcPadding;
-	if (m_pOwner != nullptr) {
-		rcPadding = m_pOwner->GetPadding();
+	if (GetOwner() != nullptr) {
+		rcPadding = GetOwner()->GetPadding();
 	}
 	//计算所需宽度
 	int64_t cxNeeded = std::accumulate(columnWidths.begin(), columnWidths.end(), 0);
@@ -549,8 +549,8 @@ UiSize64 HTileLayout::ArrangeChildFreeLayout(const std::vector<Control*>& items,
 	//由于内边距已经剪掉，计算宽度和高度的时候，需要算上内边距
 	//(只需要增加右侧和底部的内边距，因为计算的时候，是按照.rigth和.bottom计算的)
 	UiPadding rcPadding;
-	if (m_pOwner != nullptr) {
-		rcPadding = m_pOwner->GetPadding();
+	if (GetOwner() != nullptr) {
+		rcPadding = GetOwner()->GetPadding();
 	}
 	cxNeeded += rcPadding.right;
 	cyNeeded += rcPadding.bottom;
@@ -624,7 +624,9 @@ void HTileLayout::SetItemSize(UiSize szItem, bool bNeedDpiScale)
 
 	if( (m_szItem.cx != szItem.cx) || (m_szItem.cy != szItem.cy) ) {
 		m_szItem = szItem;
-		m_pOwner->Arrange();
+		if (GetOwner() != nullptr) {
+			GetOwner()->Arrange();
+		}		
 	}
 }
 
@@ -638,8 +640,8 @@ void HTileLayout::SetRows(int32_t nRows)
 	nRows = std::max(nRows, 0);
 	if (m_nRows != nRows) {
 		m_nRows = nRows;
-		if (m_pOwner != nullptr) {
-			m_pOwner->Arrange();
+		if (GetOwner() != nullptr) {
+			GetOwner()->Arrange();
 		}
 	}	
 }
@@ -648,8 +650,8 @@ void HTileLayout::SetAutoCalcRows(bool bAutoCalcRows)
 {
 	if (m_bAutoCalcRows != bAutoCalcRows) {
 		m_bAutoCalcRows = bAutoCalcRows;
-		if (m_pOwner != nullptr) {
-			m_pOwner->Arrange();
+		if (GetOwner() != nullptr) {
+			GetOwner()->Arrange();
 		}
 	}
 }
@@ -663,8 +665,8 @@ void HTileLayout::SetScaleDown(bool bScaleDown)
 {
 	if (m_bScaleDown != bScaleDown) {
 		m_bScaleDown = bScaleDown;
-		if (m_pOwner != nullptr) {
-			m_pOwner->Arrange();
+		if (GetOwner() != nullptr) {
+			GetOwner()->Arrange();
 		}
 	}
 }

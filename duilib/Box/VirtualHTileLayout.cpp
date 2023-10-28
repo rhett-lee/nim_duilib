@@ -12,7 +12,7 @@ VirtualHTileLayout::VirtualHTileLayout()
 
 VirtualListBox* VirtualHTileLayout::GetOwnerBox() const
 {
-    VirtualListBox* pList = dynamic_cast<VirtualListBox*>(m_pOwner);
+    VirtualListBox* pList = dynamic_cast<VirtualListBox*>(GetOwner());
     ASSERT(pList != nullptr);
     return pList;
 }
@@ -54,7 +54,7 @@ int32_t VirtualHTileLayout::CalcTileRows(int32_t rcHeight) const
 
 UiSize64 VirtualHTileLayout::ArrangeChild(const std::vector<ui::Control*>& items, ui::UiRect rc)
 {
-    VirtualListBox* pList = dynamic_cast<VirtualListBox*>(m_pOwner);
+    VirtualListBox* pList = dynamic_cast<VirtualListBox*>(GetOwner());
     if ((pList == nullptr) || !pList->HasDataProvider()) {
         //如果未设置数据接口，则兼容基类的功能
         return __super::ArrangeChild(items, rc);
@@ -69,7 +69,7 @@ UiSize64 VirtualHTileLayout::ArrangeChild(const std::vector<ui::Control*>& items
 
 UiSize VirtualHTileLayout::EstimateSizeByChild(const std::vector<Control*>& items, ui::UiSize szAvailable)
 {
-    VirtualListBox* pList = dynamic_cast<VirtualListBox*>(m_pOwner);
+    VirtualListBox* pList = dynamic_cast<VirtualListBox*>(GetOwner());
     if ((pList == nullptr) || !pList->HasDataProvider()) {
         //如果未设置数据接口，则兼容基类的功能
         return __super::EstimateSizeByChild(items, szAvailable);
@@ -82,8 +82,8 @@ UiSize VirtualHTileLayout::EstimateSizeByChild(const std::vector<Control*>& item
     szAvailable.Validate();
     int32_t nRows = CalcTileRows(szAvailable.cy);
     UiEstSize estSize;
-    if (m_pOwner != nullptr) {
-        estSize = m_pOwner->Control::EstimateSize(szAvailable);
+    if (GetOwner() != nullptr) {
+        estSize = GetOwner()->Control::EstimateSize(szAvailable);
     }
     UiSize size(estSize.cx.GetInt32(), estSize.cy.GetInt32());
     if (estSize.cx.IsStretch()) {
@@ -112,7 +112,7 @@ int64_t VirtualHTileLayout::GetElementsWidth(UiRect rc, size_t nCount) const
         return szItem.cx + GetChildMarginX();
     }
     if (!Box::IsValidItemIndex(nCount)) {
-        VirtualListBox* pList = dynamic_cast<VirtualListBox*>(m_pOwner);
+        VirtualListBox* pList = dynamic_cast<VirtualListBox*>(GetOwner());
         ASSERT(pList != nullptr);
         if (pList != nullptr) {
             nCount = pList->GetElementCount();

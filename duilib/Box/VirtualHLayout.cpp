@@ -9,14 +9,14 @@ VirtualHLayout::VirtualHLayout()
 
 VirtualListBox* VirtualHLayout::GetOwnerBox() const
 {
-    VirtualListBox* pList = dynamic_cast<VirtualListBox*>(m_pOwner);
+    VirtualListBox* pList = dynamic_cast<VirtualListBox*>(GetOwner());
     ASSERT(pList != nullptr);
     return pList;
 }
 
 UiSize64 VirtualHLayout::ArrangeChild(const std::vector<ui::Control*>& items, ui::UiRect rc)
 {
-    VirtualListBox* pList = dynamic_cast<VirtualListBox*>(m_pOwner);
+    VirtualListBox* pList = dynamic_cast<VirtualListBox*>(GetOwner());
     if ((pList == nullptr) || !pList->HasDataProvider()) {
         //如果未设置数据接口，则兼容基类的功能
         return __super::ArrangeChild(items, rc);
@@ -31,15 +31,15 @@ UiSize64 VirtualHLayout::ArrangeChild(const std::vector<ui::Control*>& items, ui
 
 UiSize VirtualHLayout::EstimateSizeByChild(const std::vector<Control*>& items, ui::UiSize szAvailable)
 {
-    VirtualListBox* pList = dynamic_cast<VirtualListBox*>(m_pOwner);
+    VirtualListBox* pList = dynamic_cast<VirtualListBox*>(GetOwner());
     if ((pList == nullptr) || !pList->HasDataProvider()) {
         //如果未设置数据接口，则兼容基类的功能
         return __super::EstimateSizeByChild(items, szAvailable);
     }
     szAvailable.Validate();
     UiEstSize estSize;
-    if (m_pOwner != nullptr) {
-        estSize = m_pOwner->Control::EstimateSize(szAvailable);
+    if (GetOwner() != nullptr) {
+        estSize = GetOwner()->Control::EstimateSize(szAvailable);
     }
     UiSize size(estSize.cx.GetInt32(), estSize.cy.GetInt32());
     if (estSize.cx.IsStretch()) {
@@ -50,8 +50,8 @@ UiSize VirtualHLayout::EstimateSizeByChild(const std::vector<Control*>& items, u
     }
     if ((size.cx == 0) || (size.cy == 0)) {
         UiPadding rcPadding;
-        if (m_pOwner != nullptr) {
-            rcPadding = m_pOwner->GetPadding();
+        if (GetOwner() != nullptr) {
+            rcPadding = GetOwner()->GetPadding();
         }
         UiSize szItem = GetItemSize();
         szItem.cx += (rcPadding.left + rcPadding.right);
@@ -92,8 +92,8 @@ void VirtualHLayout::SetItemSize(UiSize szItem, bool bNeedDpiScale)
     ASSERT((szItem.cx > 0) && (szItem.cy > 0));
     if ((m_szItem.cx != szItem.cx) || (m_szItem.cy != szItem.cy)) {
         m_szItem = szItem;
-        if (m_pOwner != nullptr) {
-            m_pOwner->Arrange();
+        if (GetOwner() != nullptr) {
+            GetOwner()->Arrange();
         }
     }
 }
