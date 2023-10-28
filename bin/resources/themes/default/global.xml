@@ -248,7 +248,7 @@
     <Class name="hyper_link" cursor_type="hand" font="system_underline_14" normal_text_color="default_link_font_color" hot_text_color="hover_link_font_color" pushed_text_color="mouse_down_link_font_color"/>
     
     <!--ListCtrl控件列表项通用样式-->
-    <Class name="list_ctrl_header" bkcolor="white" width="100%"/>
+    <Class name="list_ctrl_header" bkcolor="Cornsilk" width="100%"/>
     <Class name="list_ctrl_header_item" height="100%" text_align="vcenter,hcenter" hot_color="#FFE5F3FF" pushed_color="#FFD9EEFF"            
                                         show_icon_at_top="true" icon_spacing="6"
                                         sorted_up_image="file='../public/listctrl/arrow-sorted-up.svg' width='10' height='10' valign='center' halign='left'" 

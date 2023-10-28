@@ -35,7 +35,32 @@ public:
     */
     size_t GetTopElementIndex() const;
 
+    /** 设置当前显示的数据项列表，顺序是从上到下
+    * @param [in] itemIndexList 当前显示的数据项索引号列表
+    */
+    void SetDisplayDataItems(const std::vector<size_t>& itemIndexList);
+
+    /** 获取当前显示的数据项列表，顺序是从上到下
+    * @param [in] itemIndexList 当前显示的数据项索引号列表
+    */
+    void GetDisplayDataItems(std::vector<size_t>& itemIndexList) const;
+
+    /** 判断一个数据项是否可见
+    * @param [in] itemIndex 数据项的索引号
+    */
+    bool IsDataItemDisplay(size_t itemIndex) const;
+
+    /** 确保数据索引项可见
+    * @param [in] itemIndex 数据项的索引号
+    * @param [in] bToTop 是否确保在最上方
+    */
+    bool EnsureDataItemVisible(size_t itemIndex, bool bToTop);
+
 protected:
+    /** 绘制子控件
+    */
+    virtual void PaintChild(IRender* pRender, const UiRect& rcPaint) override;
+
     /** 执行了刷新操作, 界面的UI控件个数可能会发生变化
     */
     virtual void OnRefresh() override;
@@ -43,6 +68,10 @@ protected:
     /** 执行了重排操作，界面的UI控件进行了重新数据填充（通过FillElement函数）
     */
     virtual void OnArrangeChild() override;
+
+    /** 查找子控件
+    */
+    virtual Control* FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, UiPoint scrollPos = UiPoint()) override;
 
 private:
     /** ListCtrl 控件接口
@@ -52,6 +81,10 @@ private:
     /** 顶部元素的索引号(用于画网格线)
     */
     size_t m_nTopElementIndex;
+
+    /** 当前可见的元素列表
+    */
+    std::vector<size_t> m_diplayItemIndexList;
 };
 
 /** 列表数据显示控件的布局管理接口
@@ -95,7 +128,7 @@ public:
     virtual size_t GetTopElementIndex(UiRect rc) const override;
 
     /** 判断某个元素是否在可见范围内
-    * @param[in] iIndex 元素索引
+    * @param[in] iIndex 元素索引，范围是：[0, GetElementCount())
     * @param [in] rc 当前显示区域的矩形，不包含内边距
     * @return 返回 true 表示可见，否则为不可见
     */
@@ -123,25 +156,22 @@ private:
     */
     ListCtrlDataView* GetOwnerBox() const;
 
-    /** 获取数据项的高度
+    /** 获取数据项的高度, 高度不包含表头
     * @param [in] nCount 数据项个数，如果为Box::InvalidIndex，则获取所有数据项的高度总和
-    * @param [in] rc 当前容器大小信息, 外部调用时，需要先剪去内边距
-    * @return 返回 nCount 个数据项的高度总和
+    * @return 返回 nCount 个数据项的高度总和, 不包含表头的高度
     */
-    int64_t GetElementsHeight(UiRect rc, size_t nCount) const;
+    int64_t GetElementsHeight(size_t nCount) const;
 
     /** 获取数据项的高度和宽度
-    * @param [in] rc 当前容器大小信息, 外部调用时，需要先剪去内边距
+    * @param [in] rcWidth 当前容器的宽度, 外部调用时，需要先剪去内边距
     * @param [in] nElementIndex 数据元素的索引号
     * @return 返回数据元素的高度和宽度
     */
-    UiSize GetElementSize(UiRect rc, size_t nElementIndex) const;
+    UiSize GetElementSize(int32_t rcWidth, size_t nElementIndex) const;
 
     /** 计算列数
-    *@param [in] rcWidth 可用区域宽度
-    *@return 计算得到的列数, 大于或等于1
     */
-    int32_t CalcTileColumns(int32_t rcWidth) const;
+    int32_t CalcTileColumns() const;
 
     /** 获取行宽
     */

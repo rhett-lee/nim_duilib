@@ -350,7 +350,14 @@ void ListBox::EnsureVisible(const UiRect& rcItem, bool bAtCenter)
 		if (rcNewItem.right > rcList.right) {
 			dx = rcNewItem.right - rcList.right;
 		}
-	}
+		UiRect rcNewList = rcList;
+		rcNewList.top = rcNewItem.top;
+		rcNewList.bottom = rcNewItem.bottom;
+		if (rcNewItem.ContainsRect(rcNewList)) {
+			//子项的区域，已经在可见区域，不调整，避免鼠标点击后左右晃动
+			dx = 0;
+		}
+	}	
 	int32_t dy = 0;
 	if (bAtCenter) {
 		if (rcNewItem.top < rcList.CenterY()) {
@@ -367,10 +374,19 @@ void ListBox::EnsureVisible(const UiRect& rcItem, bool bAtCenter)
 		if (rcNewItem.bottom > rcList.bottom) {
 			dy = rcNewItem.bottom - rcList.bottom;
 		}
+		UiRect rcNewList = rcList;
+		rcNewList.left = rcNewItem.left;
+		rcNewList.right = rcNewItem.right;
+		if (rcNewItem.ContainsRect(rcNewList)) {
+			//子项的区域，已经在可见区域，不调整，避免鼠标点击后上下晃动
+			dy = 0;
+		}
 	}
-	UiSize64 sz = GetScrollPos();
-	SetScrollPos(UiSize64(sz.cx + dx, sz.cy + dy));
-	Invalidate();
+	if ((dx > 0) || (dy > 0)) {
+		UiSize64 sz = GetScrollPos();
+		SetScrollPos(UiSize64(sz.cx + dx, sz.cy + dy));
+		Invalidate();
+	}
 }
 
 void ListBox::StopScroll()

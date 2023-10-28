@@ -168,19 +168,19 @@ public:
     size_t AddDataItem(const ListCtrlDataItem& dataItem);
 
     /** 在指定行位置添加一个数据项
-    * @param [in] itemIndex 数据项的索引号
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] dataItem 数据项的内容
     */
     bool InsertDataItem(size_t itemIndex, const ListCtrlDataItem& dataItem);
 
     /** 设置指定行的数据项
-    * @param [in] itemIndex 数据项的索引号
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] dataItem 数据项的内容
     */
     bool SetDataItem(size_t itemIndex, const ListCtrlDataItem& dataItem);
 
     /** 删除指定行的数据项
-    * @param [in] itemIndex 数据项的索引号
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     */
     bool DeleteDataItem(size_t itemIndex);
 
@@ -189,54 +189,54 @@ public:
     bool DeleteAllDataItems();
 
     /** 设置数据项的自定义数据
-    * @param [in] itemIndex 数据项的索引号
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] itemData 数据项关联的自定义数据
     */
     bool SetDataItemData(size_t itemIndex, size_t itemData);
 
     /** 获取数据项的自定义数据
-    * @param [in] itemIndex 数据项的索引号
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @return 返回数据项关联的自定义数据
     */
     size_t GetDataItemData(size_t itemIndex) const;
 
     /** 设置指定数据项的文本
-    * @param [in] itemIndex 数据项的索引号
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
     * @param [in] text 需要设置的文本内容
     */
     bool SetDataItemText(size_t itemIndex, size_t columnIndex, const std::wstring& text);
 
     /** 获取指定数据项的文本
-    * @param [in] itemIndex 数据项的索引号
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
     * @return 数据项关联的文本内容
     */
     std::wstring GetDataItemText(size_t itemIndex, size_t columnIndex) const;
 
     /** 设置指定数据项的文本颜色
-    * @param [in] itemIndex 数据项的索引号
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
     * @param [in] textColor 需要设置的文本颜色
     */
     bool SetDataItemTextColor(size_t itemIndex, size_t columnIndex, const UiColor& textColor);
 
     /** 获取指定数据项的文本颜色
-    * @param [in] itemIndex 数据项的索引号
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
     * @param [out] textColor 数据项关联的文本颜色
     */
     bool GetDataItemTextColor(size_t itemIndex, size_t columnIndex, UiColor& textColor) const;
 
     /** 设置指定数据项的背景颜色
-    * @param [in] itemIndex 数据项的索引号
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
     * @param [in] bkColor 需要设置的背景颜色
     */
     bool SetDataItemBkColor(size_t itemIndex, size_t columnIndex, const UiColor& bkColor);
 
     /** 获取指定数据项的背景颜色
-    * @param [in] itemIndex 数据项的索引号
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
     * @param [out] bkColor 数据项关联的背景颜色
     */
@@ -257,6 +257,28 @@ public:
     * @param [in] pUserData 用户自定义数据，调用比较函数的时候，通过参数传回给比较函数
     */
     void SetSortCompareFunction(ListCtrlDataCompareFunc pfnCompareFunc, void* pUserData);
+
+public:
+    /** 获取当前显示的数据项列表，顺序是从上到下
+    * @param [in] itemIndexList 当前显示的数据项索引号列表, 每一元素的的有效范围：[0, GetDataItemCount())
+    */
+    void GetDisplayDataItems(std::vector<size_t>& itemIndexList) const;
+
+    /** 得到可见范围内第一个数据项的索引号
+    * @return 返回数据项的索引号， 有效范围：[0, GetDataItemCount())
+    */
+    size_t GetTopDataItem() const;
+
+    /** 判断一个数据项是否可见
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    */
+    bool IsDataItemDisplay(size_t itemIndex) const;
+
+    /** 确保数据索引项可见
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @param [in] bToTop 是否确保在最上方
+    */
+    bool EnsureDataItemVisible(size_t itemIndex, bool bToTop);
 
 protected:
     /** 控件初始化

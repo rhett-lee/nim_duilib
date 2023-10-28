@@ -151,10 +151,13 @@ void VirtualListBox::Refresh()
     }
     
     if (nItemCount > nNewItemCount) {
-        //如果现有子项总数大于新计算的子项数，移除比数据总数多出的子项
+        //如果现有子项总数大于新计算的子项数，移除比数据总数多出的子项（从后面删除）
         size_t n = nItemCount - nNewItemCount;
         for (size_t i = 0; i < n; ++i) {
-            this->RemoveItemAt(0);
+            size_t itemCount = GetItemCount();
+            if (itemCount > 0) {
+                RemoveItemAt(itemCount - 1);
+            }            
         }
     }
     else if (nItemCount < nNewItemCount) {
@@ -162,7 +165,7 @@ void VirtualListBox::Refresh()
         size_t n = nNewItemCount - nItemCount;
         for (size_t i = 0; i < n; ++i) {
             Control* pControl = CreateElement();
-            this->AddItem(pControl);
+            AddItem(pControl);
         }
     }
     if (nElementCount > 0) {

@@ -1,6 +1,5 @@
 #include "ListCtrlDataProvider.h"
 #include "duilib/Control/ListCtrl.h"
-#include "duilib/Control/ListCtrlDataView.h"
 #include "duilib/Core/GlobalManager.h"
 #include <unordered_map>
 
@@ -105,10 +104,7 @@ bool ListCtrlDataProvider::FillElement(ui::Control* pControl, size_t nElementInd
     if (!defaultLabelBoxClass.empty()) {
         defaultLabelBox.SetClass(defaultLabelBoxClass);
     }
-    bool bFirstLine = false;//第一个数据行
-    if (m_pListCtrl->m_pDataView != nullptr) {
-        bFirstLine = m_pListCtrl->m_pDataView->GetTopElementIndex() == nElementIndex;
-    }    
+    bool bFirstLine = (m_pListCtrl->GetTopDataItem() == nElementIndex);//是否为第一个数据行    
     for (size_t nColumn = 0; nColumn < showColumnCount; ++nColumn) {
         const ElementData& elementData = elementDataList[nColumn];
         LabelBox* pLabelBox = nullptr;

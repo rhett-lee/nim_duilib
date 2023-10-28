@@ -240,7 +240,7 @@ void ListCtrl::DoInit()
     SetDataItemCount(rowCount);
     for (size_t itemIndex = 0; itemIndex < rowCount; ++itemIndex) {
         for (size_t columnIndex = 0; columnIndex < columnCount; ++columnIndex) {
-            SetDataItem(itemIndex, { columnIndex, StringHelper::Printf(L"第 %02d 行/第 %02d 列", itemIndex, columnIndex), });
+            SetDataItem(itemIndex, { columnIndex, StringHelper::Printf(L"第 %03d 行/第 %02d 列", itemIndex, columnIndex), });
         }
     }
     //排序，默认为升序
@@ -398,8 +398,9 @@ int32_t ListCtrl::GetHeaderHeight() const
 
 void ListCtrl::SetDataItemHeight(int32_t nItemHeight, bool bNeedDpiScale)
 {
-    if (nItemHeight < 0) {
-        nItemHeight = 0;
+    ASSERT(nItemHeight > 0);
+    if (nItemHeight <= 0) {
+        return;
     }
     if (bNeedDpiScale) {
         GlobalManager::Instance().Dpi().ScaleInt(nItemHeight);
@@ -663,6 +664,41 @@ bool ListCtrl::SortDataItems(size_t columnIndex, bool bSortedUp,
 void ListCtrl::SetSortCompareFunction(ListCtrlDataCompareFunc pfnCompareFunc, void* pUserData)
 {
     m_pDataProvider->SetSortCompareFunction(pfnCompareFunc, pUserData);
+}
+
+void ListCtrl::GetDisplayDataItems(std::vector<size_t>& itemIndexList) const
+{
+    itemIndexList.clear();
+    if (m_pDataView != nullptr) {
+        m_pDataView->GetDisplayDataItems(itemIndexList);
+    }
+}
+
+size_t ListCtrl::GetTopDataItem() const
+{
+    size_t nTopItemIndex = Box::InvalidIndex;
+    if (m_pDataView != nullptr) {
+        nTopItemIndex = m_pDataView->GetTopElementIndex();
+    }
+    return nTopItemIndex;
+}
+
+bool ListCtrl::IsDataItemDisplay(size_t itemIndex) const
+{
+    bool bItemVisible = false;
+    if (m_pDataView != nullptr) {
+        bItemVisible = m_pDataView->IsDataItemDisplay(itemIndex);
+    }
+    return bItemVisible;
+}
+
+bool ListCtrl::EnsureDataItemVisible(size_t itemIndex, bool bToTop)
+{
+    bool bRet = false;
+    if (m_pDataView != nullptr) {
+        bRet = m_pDataView->EnsureDataItemVisible(itemIndex, bToTop);
+    }
+    return bRet;
 }
 
 }//namespace ui
