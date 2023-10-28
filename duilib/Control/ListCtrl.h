@@ -21,13 +21,13 @@ class ListCtrlHeader;
 */
 class ListCtrlHeaderItem;
 
-/** 列表数据显示UI控件
-*/
-class ListCtrlDataView;
-
 /** 列表数据项UI控件（行）
 */
 class ListCtrlItem;
+
+/** 列表数据显示UI控件
+*/
+class ListCtrlDataView;
 
 /** 列表数据管理容器
 */
@@ -78,6 +78,21 @@ struct ListCtrlData
     bool bSelected = false;         //是否处于选择状态（ListBoxItem按整行选中）
     bool bChecked = false;          //是否处于勾选状态（CheckBox勾选状态）
     size_t nItemData = 0;           //用户自定义数据
+
+    //TODO: 待实现功能列表
+    //bool bVisible;                  //是否可见
+    //bool bAlwaysAtTop;              //置顶显示
+    //int32_t nBkImageIndex = -1;     //背景图片资源索引号
+    //Header是可以隐藏的，可以通过配置或者接口改变这个行为
+    //Item的文本可以编辑
+    //选择：单选，多选，整行选中，提供接口
+    //CheckBox: 提供接口
+    //滚动条：水平滚动条，垂直滚动条
+    //事件响应：点击，右键等
+    //设置行高（最好支持每行的行高不同，Header的行高单独设置）
+    //多视图的支持：Report，Icon等，类似与Windows资源管理器
+    //数据类型的支持：比如整型，日期型，下拉表，字符串类型等
+    //关联图片列表，图片列表需要单独实现
 };
 
 /** 比较数据的附加信息
@@ -169,7 +184,33 @@ public:
     */
     bool IsEnableHeaderDragOrder() const;
 
+    /** 设置是否显示表头控件
+    */
+    void SetHeaderVisible(bool bVisible);
+
+    /** 当前是否显示表头控件
+    */
+    bool IsHeaderVisible() const;
+
+    /** 设置表头控件的高度
+    * @param[in] bNeedDpiScale 如果为true表示需要对宽度进行DPI自适应
+    */
+    void SetHeaderHeight(int32_t nHeaderHeight, bool bNeedDpiScale);
+
+    /** 获取表头控件的高度
+    */
+    int32_t GetHeaderHeight() const;
+
 public:
+    /** 设置数据项的高度
+    * @param[in] bNeedDpiScale 如果为true表示需要对宽度进行DPI自适应
+    */
+    void SetDataItemHeight(int32_t nItemHeight, bool bNeedDpiScale);
+
+    /** 获取数据项的高度
+    */
+    int32_t GetDataItemHeight() const;
+
     /** 获取数据项总个数
     */
     size_t GetDataItemCount() const;
@@ -201,6 +242,10 @@ public:
     * @param [in] itemIndex 数据项的索引号
     */
     bool DeleteDataItem(size_t itemIndex);
+
+    /** 删除所有行的数据项
+    */
+    bool DeleteAllDataItems();
 
     /** 设置数据项的自定义数据
     * @param [in] itemIndex 数据项的索引号
@@ -431,6 +476,18 @@ private:
     /** ListBox的Class属性
     */
     UiString m_dataViewClass;
+
+    /** 表头的高度
+    */
+    int32_t m_nHeaderHeight;
+
+    /** 是否显示表头控件
+    */
+    bool m_bShowHeaderCtrl;
+
+    /** 数据项的高度
+    */
+    int32_t m_nItemHeight;
 };
 
 /** ListCtrl子项控件

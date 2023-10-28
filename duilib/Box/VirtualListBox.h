@@ -100,6 +100,10 @@ public:
     */
     VirtualListBoxElement* GetDataProvider();
 
+    /** 是否含有数据代理对象接口
+    */
+    bool HasDataProvider() const;
+
     /** 刷新列表
     */
     void Refresh();
@@ -151,11 +155,7 @@ protected:
     */
     virtual void OnArrangeChild() {};
 
-private:
-    /** 是否含有数据代理对象接口
-    */
-    bool HasDataProvider() const;
-
+protected:
     /** 创建一个子项
     * @return 返回创建后的子项指针
     */

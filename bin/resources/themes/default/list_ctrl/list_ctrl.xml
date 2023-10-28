@@ -21,10 +21,13 @@
                           header_item_class="list_ctrl_header_item"
                           header_split_box_class="list_ctrl_header_split_box"
                           header_split_control_class="list_ctrl_header_split_control"
+                          header_height="32"
+                          show_header="true"
                           check_box_class="list_ctrl_checkbox"
                           data_item_class="list_ctrl_item"
                           data_item_label_class="list_ctrl_item_label"
-                          data_view_class="list_ctrl_data_view"
+                          data_view_class="list_ctrl_data_view"                         
+                          data_item_height="32"
                           row_grid_line_width="1"
                           column_grid_line_width="1"/>
             </VBox>
