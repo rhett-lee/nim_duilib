@@ -14,15 +14,79 @@
         </HBox>
         
         <!-- 工作区域，除了标题栏外的内容都放在这个大的Box区域 -->
-        <Box>
+        <VBox>
+            <HBox minheight="18" bkcolor="bk_wnd_darkcolor" height="auto" margin="4,0,0,0">
+                <Label text="表头控制：" valign="center" margin="2,0,2,0"/>
+                <Option class="circle_option_3" group="show" selected="false" width="64" height="32" text="隐藏" padding="2,2,2,2" borderround="2,2" valign="center">
+                    <Event type="buttonup" receiver="list_ctrl" applyattribute="show_header={false}" />
+                </Option>
+                <Option class="circle_option_3" group="show" selected="true" width="64" height="32" text="显示" padding="2,2,2,2" borderround="2,2" valign="center">
+                    <Event type="buttonup" receiver="list_ctrl" applyattribute="show_header={true}" />
+                </Option>
+                <Line vertical="true" margin="0,8,4,8" width="2"/>
+                <Label text="拖动表头：" valign="center" margin="2,0,2,0"/>
+                <Option class="circle_option_3" group="drag_order" selected="false" width="64" height="32" text="禁止" padding="2,2,2,2" borderround="2,2" valign="center">
+                    <Event type="buttonup" receiver="list_ctrl" applyattribute="enable_header_drag_order={false}" />
+                </Option>
+                <Option class="circle_option_3" group="drag_order" selected="true" width="64" height="32" text="允许" padding="2,2,2,2" borderround="2,2" valign="center">
+                    <Event type="buttonup" receiver="list_ctrl" applyattribute="enable_header_drag_order={true}" />
+                </Option>
+                <Line vertical="true" margin="0,8,4,8" width="2"/>
+                <Label text="表头高度：" valign="center" margin="2,0,2,0"/>
+                <RichEdit class="simple simple_border rich_edit_spin" name="header_height_edit" min_number="0" max_number="512" limit_text="3" text="0" margin="0,2,0,0"/>
+            </HBox>
+            
+            <HBox minheight="18" bkcolor="bk_wnd_darkcolor" height="auto" margin="4,0,0,0">
+                <Label text="列的控制：" valign="center" margin="2,0,2,0"/>
+                
+                <Combo class="combo" name="column_combo" combo_type="drop_list" dropbox_size="0,300" combo_icon_class="" height="26" width="132" margin="0,0,0,1" valign="center"/>
+                
+                <Line vertical="true" margin="8,8,4,8" width="2"/>
+                <CheckBox class="checkbox_font14" name="checkbox_column_show" text="显示该列" margin="4,0,0,0" valign="center"/>
+                <CheckBox class="checkbox_font14" name="checkbox_column_width" text="支持调整列宽" margin="4,0,0,0" valign="center"/>
+                <CheckBox class="checkbox_font14" name="checkbox_column_sort" text="支持排序" margin="4,0,0,0" valign="center"/>
+                <CheckBox class="checkbox_font14" name="checkbox_column_icon_at_top" text="排序图标显示在上方" margin="4,0,0,0" valign="center"/>
+                <CheckBox class="checkbox_font14" name="checkbox_column_show_header_checkbox" text="在表头显示CheckBox" margin="4,0,0,0" valign="center"/>
+                <Label text="文本对齐：" valign="center" margin="6,0,2,0"/>
+                <Option class="circle_option_3" name="header_text_align_left" group="header_text_align" selected="false" width="64" height="32" text="靠左" padding="2,2,2,2" borderround="2,2" valign="center"/>
+                <Option class="circle_option_3" name="header_text_align_center" group="header_text_align" selected="true" width="64" height="32" text="居中" padding="2,2,2,2" borderround="2,2" valign="center"/>
+                <Option class="circle_option_3" name="header_text_align_right" group="header_text_align" selected="false" width="64" height="32" text="靠右" padding="2,2,2,2" borderround="2,2" valign="center"/>
+                  
+            </HBox>
+                        
+            <HBox minheight="18" bkcolor="bk_wnd_darkcolor" height="auto" margin="4,0,0,0">
+                <Label text="表格属性：" valign="center" margin="2,0,2,0"/>
+                <Label text="横向网格：" valign="center" margin="2,0,2,0"/>
+                <Option class="circle_option_3" group="grid_line_row" selected="false" width="64" height="32" text="隐藏" padding="2,2,2,2" borderround="2,2" valign="center">
+                    <Event type="buttonup" receiver="list_ctrl" applyattribute="row_grid_line_width={0}" />
+                </Option>
+                <Option class="circle_option_3" group="grid_line_row" selected="true" width="64" height="32" text="显示" padding="2,2,2,2" borderround="2,2" valign="center">
+                    <Event type="buttonup" receiver="list_ctrl" applyattribute="row_grid_line_width={1}" />
+                </Option>
+                <Line vertical="true" margin="0,8,4,8" width="2"/>
+                <Label text="纵向网格：" valign="center" margin="2,0,2,0"/>
+                <Option class="circle_option_3" group="grid_line_column" selected="false" width="64" height="32" text="隐藏" padding="2,2,2,2" borderround="2,2" valign="center">
+                    <Event type="buttonup" receiver="list_ctrl" applyattribute="column_grid_line_width={0}" />
+                </Option>
+                <Option class="circle_option_3" group="grid_line_column" selected="true" width="64" height="32" text="显示" padding="2,2,2,2" borderround="2,2" valign="center">
+                    <Event type="buttonup" receiver="list_ctrl" applyattribute="column_grid_line_width={1}" />
+                </Option>
+                <Line vertical="true" margin="0,8,4,8" width="2"/>
+                <Label text="每行高度：" valign="center" margin="2,0,2,0"/>
+                <RichEdit class="simple simple_border rich_edit_spin" name="list_item_height_edit" min_number="0" max_number="512" limit_text="3" text="0" margin="0,2,0,0"/>
+            </HBox>
+            
+            <!-- 横向分割条，用于调整上下区域大小 -->
+            <Split bkcolor="splitline_level1" height="2"/>
             <VBox margin="0,0,0,0" valign="center" halign="center">
-                <ListCtrl bkcolor="YellowGreen" enable_header_drag_order="true" 
+                <ListCtrl name="list_ctrl" bkcolor="YellowGreen"
                           header_class="list_ctrl_header" 
                           header_item_class="list_ctrl_header_item"
                           header_split_box_class="list_ctrl_header_split_box"
                           header_split_control_class="list_ctrl_header_split_control"
                           header_height="32"
                           show_header="true"
+                          enable_header_drag_order="true" 
                           check_box_class="list_ctrl_checkbox"
                           data_item_class="list_ctrl_item"
                           data_item_label_class="list_ctrl_item_label"
@@ -31,6 +95,6 @@
                           row_grid_line_width="1"
                           column_grid_line_width="1"/>
             </VBox>
-        </Box>
+        </VBox>
     </VBox>
 </Window>

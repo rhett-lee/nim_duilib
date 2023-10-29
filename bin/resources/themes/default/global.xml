@@ -116,7 +116,8 @@
     <!--单选框-->
     <Class name="option" selectednormalimage="../public/option/selected.png" selectedhotimage="../public/option/selectedhover.png" selectedpushedimage="../public/option/selectedhover.png"/>
     <Class name="circle_option" normalimage="../public/option/circle_unselected.png" disabledimage="../public/option/circle_unselected_disabled.png"/>
-    <Class name="circle_option_2" height="18" textpadding="25,0,0,0" font="system_12" normaltextcolor="darkcolor" normalimage="file='../public/option/circle_unselected.png' dest='0,0,18,18'" selectednormalimage="file='../public/option/circle_selected.png' dest='0,0,18,18'"/>
+    <Class name="circle_option_2" height="18" textpadding="20,0,0,0" font="system_14" normal_image="file='../public/option/circle_unselected.png' valign='center'" selected_normal_image="file='../public/option/circle_selected.png' valign='center'"/>
+    <Class name="circle_option_3" height="18" textpadding="20,0,0,0" font="system_14" normal_image="file='../public/option/radio-unchecked.svg' valign='center'" selected_normal_image="file='../public/option/radio-checked.svg' valign='center'"/>
     <!--复选框-->
     <Class name="checkbox_font12" height="16" textpadding="20,0,0,0" font="system_12" normaltextcolor="darkcolor" normalimage="file='../public/CheckBox/check_no.png' dest='0,0,16,16'" disabledimage="file='../public/CheckBox/check_no.png' dest='0,0,16,16' fade='80'" selectednormalimage="file='../public/CheckBox/check_yes.png' dest='0,0,16,16'" selecteddisabledimage="file='../public/CheckBox/check_yes.png' dest='0,0,16,16' fade='80'"/>
     <Class name="checkbox_font14" height="20" textpadding="20,0,0,0" font="system_14" normaltextcolor="darkcolor" normalimage="file='../public/CheckBox/check_no.png' dest='0,2,16,18'" disabledimage="file='../public/CheckBox/check_no.png' dest='0,2,16,18' fade='80'" selectednormalimage="file='../public/CheckBox/check_yes.png' dest='0,2,16,18'" selecteddisabledimage="file='../public/CheckBox/check_yes.png' dest='0,2,16,18' fade='80'"/>
@@ -125,13 +126,13 @@
     <Class name="combo" bkcolor="white" padding="1,1,1,1" border_size="1" border_color="light_gray" hot_border_color="blue" 
                         combo_tree_view_class="padding='1,1,1,1' border_size='1,1,1,1' bkcolor='white' border_color='gray' indent='20' class='tree_view'"
                         combo_tree_node_class="tree_node" 
-                        combo_icon_class="bkimage='logo_18x18.png' width='auto' height='auto' valign='center' margin='2,0,2,0'" 
+                        combo_icon_class="bkimage='../public/caption/logo_18x18.png' width='auto' height='auto' valign='center' margin='2,0,2,0'" 
                         combo_edit_class="bkcolor='white' text_align='vcenter' text_padding='2,0,2,0' single_line='true' word_wrap='false' auto_hscroll='true'"
                         combo_button_class="height={stretch} width={auto} margin={1,0,0,0} padding={1,0,0,0} border_size={1,0,0,0} hot_border_color={blue} pushed_border_color={blue} valign={center} hot_color={#FFE5F3FF} pushed_color={#FFCCE8FF} normal_image={file='../public/combo/arrow_normal.svg' valign='center'} hot_image={file='../public/combo/arrow_hot.svg' valign='center'}"/>
     <Class name="filter_combo" bkcolor="white" padding="1,1,1,1" border_size="1" border_color="light_gray" hot_border_color="blue" 
                                combo_tree_view_class="padding='1,1,1,1' border_size='1,1,1,1' bkcolor='white' border_color='gray' indent='20' class='tree_view'"
                                combo_tree_node_class="tree_node" 
-                               combo_icon_class="bkimage='logo_18x18.png' width='auto' height='auto' valign='center' margin='2,0,2,0'" 
+                               combo_icon_class="bkimage='../public/caption/logo_18x18.png' width='auto' height='auto' valign='center' margin='2,0,2,0'" 
                                combo_edit_class="bkcolor='white' text_align='vcenter' text_padding='2,0,2,0' single_line='true' word_wrap='false' auto_hscroll='true'"/>
     <Class name="check_combo" bordersize="1" bordercolor="splitline_level1" 
                               dropbox="padding='1,1,1,1' bkcolor='bk_wnd_lightcolor' border_color='splitline_level1' border_size='1,1,1,1' vscrollbar='true'"

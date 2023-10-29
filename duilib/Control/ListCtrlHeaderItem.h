@@ -47,8 +47,10 @@ public:
     };
 
     /** 设置排序方式
+    * @param [in] sortMode 排序方式
+    * @param [in] bTriggerEvent true表示触发排序变化事件，对数据重新排序，否则不触发事件
     */
-    void SetSortMode(SortMode sortMode);
+    void SetSortMode(SortMode sortMode, bool bTriggerEvent = false);
 
     /** 获取排序方式
     */
@@ -108,6 +110,14 @@ public:
     */
     bool IsShowIconAtTop() const;
 
+    /** 设置文本水平对齐方式
+    */
+    void SetTextHorAlign(HorAlignType alignType);
+
+    /** 获取文本水平对齐方式
+    */
+    HorAlignType GetTextHorAlign() const;
+
 public:
     /** 设置是否显示CheckBox
     * @param [in] bVisible true表示显示，false表示隐藏
@@ -128,6 +138,15 @@ public:
     * @param [in] 如果bSelected和bPartSelect同时为true，表示部分选择
     */
     bool SetCheckBoxSelect(bool bSelected, bool bPartSelect);
+
+    /** 显示/隐藏该列
+    */
+    void SetColumnVisible(bool bColumnVisible);
+
+    /** 判断该列是否显示
+    * @return 返回true表示该列显示，否则表示该列隐藏
+    */
+    bool IsColumnVisible() const;
 
 private:
     /** 同步列宽与UI控件宽度
@@ -152,6 +171,11 @@ protected:
     void ClearDragStatus();
 
     /** @} */
+
+protected:
+    //禁止外部调用调整可见性的函数，避免数据不同步
+    virtual void SetFadeVisible(bool bVisible) override;
+    virtual void SetVisible(bool bVisible) override;
 
 private:
     /** 排序图标：降序
@@ -185,6 +209,10 @@ private:
     /** 图标显示在文字上方，居中显示
     */
     bool m_bShowIconAtTop;
+
+    /** 显示/隐藏该列
+    */
+    bool m_bColumnVisible;
 
 private:
     /** @name 拖动相关的成员变量

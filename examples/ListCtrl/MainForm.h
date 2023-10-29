@@ -35,6 +35,15 @@ public:
 	/** 窗口类名
 	*/
 	static const std::wstring kClassName;
+
+private:
+	/** 填充数据
+	*/
+	void InsertItemData(int32_t nRows, int32_t nColumns);
+
+	/** 控制该列
+	*/
+	void OnColumnChanged(size_t nColumnId);
 };
 
 

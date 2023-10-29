@@ -156,7 +156,7 @@ public:
     */
     size_t GetDataItemCount() const;
 
-    /** 设置数据项总个数
+    /** 设置数据项总个数(对应行数)
     * @param [in] itemCount 数据项的总数，具体每个数据项的数据，通过回调的方式进行填充（内部为虚表实现）
     */
     bool SetDataItemCount(size_t itemCount);
@@ -370,6 +370,10 @@ protected:
     * @param [in] bChecked true表示勾选（Checked状态），false表示取消勾选（UnChecked状态）
     */
     void OnHeaderColumnCheckStateChanged(size_t nColumnId, bool bChecked);
+
+    /** 表头列的显示属性发生变化
+    */
+    void OnHeaderColumnVisibleChanged();
 
     /** 同步UI的Check状态
     */

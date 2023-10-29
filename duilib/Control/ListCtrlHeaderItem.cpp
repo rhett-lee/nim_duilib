@@ -15,7 +15,8 @@ ListCtrlHeaderItem::ListCtrlHeaderItem() :
     m_bMouseDown(false),
     m_bInDragging(false),
     m_nOldAlpha(255),
-    m_bShowIconAtTop(true)
+    m_bShowIconAtTop(true),
+    m_bColumnVisible(true)
 {
     m_nIconSpacing = GlobalManager::Instance().Dpi().GetScaleInt(6);
 }
@@ -140,22 +141,50 @@ void ListCtrlHeaderItem::Activate()
     if (!this->IsActivatable()) {
         return;
     }
+    bool bSortChanged = false;
     if (m_sortMode == SortMode::kUp) {
         m_sortMode = SortMode::kDown;
+        bSortChanged = true;
         Invalidate();
     }
     else if (m_sortMode == SortMode::kDown) {
         m_sortMode = SortMode::kUp;
-        Invalidate();
+        bSortChanged = true;
+        Invalidate();        
+    }
+
+    if (bSortChanged) {
+        ListCtrlHeader* pHeader = dynamic_cast<ListCtrlHeader*>(GetParent());
+        ASSERT(pHeader != nullptr);
+        if (pHeader != nullptr) {
+            pHeader->OnHeaderColumnSorted(this);
+        }
     }
     __super::Activate();
 }
 
-void ListCtrlHeaderItem::SetSortMode(SortMode sortMode)
+void ListCtrlHeaderItem::SetFadeVisible(bool bVisible)
+{
+    __super::SetFadeVisible(bVisible);
+}
+
+void ListCtrlHeaderItem::SetVisible(bool bVisible)
+{
+    __super::SetVisible(bVisible);
+}
+
+void ListCtrlHeaderItem::SetSortMode(SortMode sortMode, bool bTriggerEvent)
 {
     if (m_sortMode != sortMode) {
         m_sortMode = sortMode;
         Invalidate();
+        if (bTriggerEvent && (m_sortMode != SortMode::kNone)) {
+            ListCtrlHeader* pHeader = dynamic_cast<ListCtrlHeader*>(GetParent());
+            ASSERT(pHeader != nullptr);
+            if (pHeader != nullptr) {
+                pHeader->OnHeaderColumnSorted(this);
+            }
+        } 
     }
 }
 
@@ -260,6 +289,7 @@ void ListCtrlHeaderItem::SetIconSpacing(int32_t nIconSpacing, bool bNeedDpiScale
     if (m_nIconSpacing < 0) {
         m_nIconSpacing = 0;
     }
+    Invalidate();
 }
 
 int32_t ListCtrlHeaderItem::GetIconSpacing() const
@@ -270,11 +300,48 @@ int32_t ListCtrlHeaderItem::GetIconSpacing() const
 void ListCtrlHeaderItem::SetShowIconAtTop(bool bShowIconAtTop)
 {
     m_bShowIconAtTop = bShowIconAtTop;
+    Invalidate();
 }
 
 bool ListCtrlHeaderItem::IsShowIconAtTop() const
 {
     return m_bShowIconAtTop;
+}
+
+void ListCtrlHeaderItem::SetTextHorAlign(HorAlignType alignType)
+{
+    uint32_t textStyle = GetTextStyle();
+    if (alignType == HorAlignType::kHorAlignCenter) {
+        //文本：居中对齐
+        textStyle &= ~(TEXT_LEFT | TEXT_RIGHT);
+        textStyle |= TEXT_CENTER;
+    }
+    else if (alignType == HorAlignType::kHorAlignRight) {
+        //文本：右对齐
+        textStyle &= ~(TEXT_LEFT | TEXT_CENTER);
+        textStyle |= TEXT_RIGHT;
+    }
+    else {
+        //文本：左对齐
+        textStyle &= ~(TEXT_CENTER | TEXT_RIGHT);
+        textStyle |= TEXT_LEFT;
+    }
+    SetTextStyle(textStyle, true);
+}
+
+HorAlignType ListCtrlHeaderItem::GetTextHorAlign() const
+{
+    HorAlignType alignType = HorAlignType::kHorAlignLeft;//文本：左对齐
+    uint32_t textStyle = GetTextStyle();
+    if (textStyle & TEXT_CENTER) {
+        //文本：居中对齐
+        alignType = HorAlignType::kHorAlignCenter;
+    }
+    else if (textStyle & TEXT_RIGHT) {
+        //文本：右对齐
+        alignType = HorAlignType::kHorAlignRight;
+    }
+    return alignType;
 }
 
 bool ListCtrlHeaderItem::SetCheckBoxVisible(bool bVisible)
@@ -327,6 +394,26 @@ bool ListCtrlHeaderItem::SetCheckBoxSelect(bool bSelected, bool bPartSelect)
     return false;
 }
 
+void ListCtrlHeaderItem::SetColumnVisible(bool bColumnVisible)
+{
+    m_bColumnVisible = bColumnVisible;
+    SetVisible(bColumnVisible);
+    if (m_pSplitBox != nullptr) {
+        m_pSplitBox->SetVisible(bColumnVisible);
+    }
+    ListCtrlHeader* pHeader = dynamic_cast<ListCtrlHeader*>(GetParent());
+    ASSERT(pHeader != nullptr);
+    if (pHeader != nullptr) {
+        pHeader->OnHeaderColumnVisibleChanged();
+    }
+}
+
+bool ListCtrlHeaderItem::IsColumnVisible() const
+{
+    //有别与IsVisible(), 当表头隐藏的时候，IsVisible()也会返回false
+    return m_bColumnVisible;
+}
+
 bool ListCtrlHeaderItem::ButtonDown(const EventArgs& msg)
 {
     bool bRet = __super::ButtonDown(msg);
@@ -339,8 +426,11 @@ bool ListCtrlHeaderItem::ButtonDown(const EventArgs& msg)
         //不支持拖动调整顺序
         return bRet;
     }
+    UiPoint pt(msg.ptMouse);
+    pt.Offset(GetScrollOffsetInScrollBox());
+
     m_bMouseDown = true;
-    m_ptMouseDown = msg.ptMouse;
+    m_ptMouseDown = pt;
     m_rcMouseDown = GetRect();
     
     m_rcItemList.clear();
@@ -369,15 +459,18 @@ bool ListCtrlHeaderItem::ButtonUp(const EventArgs& msg)
         return bRet;
     }
 
+    UiPoint pt(msg.ptMouse);
+    pt.Offset(GetScrollOffsetInScrollBox());
+
     bool bOrderChanged = false;
     const size_t itemCount = pParentBox->GetItemCount();
     size_t nMouseItemIndex = Box::InvalidIndex;
     size_t nCurrentItemIndex = Box::InvalidIndex;
     for (const ItemStatus& itemStatus : m_rcItemList) {
-        if (itemStatus.m_rcPos.ContainsPt(msg.ptMouse)) {
+        if (itemStatus.m_rcPos.ContainsPt(pt)) {
             nMouseItemIndex = itemStatus.m_index;
         }
-        if ((itemStatus.m_pItem == this) && !itemStatus.m_rcPos.ContainsPt(msg.ptMouse)){
+        if ((itemStatus.m_pItem == this) && !itemStatus.m_rcPos.ContainsPt(pt)){
             nCurrentItemIndex = itemStatus.m_index;
         }
     }
@@ -449,7 +542,8 @@ bool ListCtrlHeaderItem::MouseMove(const EventArgs& msg)
     if (pParent == nullptr) {
         return bRet;
     }
-    UiPoint pt = msg.ptMouse;
+    UiPoint pt(msg.ptMouse);
+    pt.Offset(GetScrollOffsetInScrollBox());
     int32_t xOffset = pt.x - m_ptMouseDown.x;
     if (std::abs(xOffset) < GlobalManager::Instance().Dpi().GetScaleInt(2)) {
         return bRet;

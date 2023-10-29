@@ -177,8 +177,8 @@ RichEdit::RichEdit() :
 	m_bEnableDefaultContextMenu(false),
 	m_pControlDropTarget(nullptr),
 	m_bDisableTextChangeEvent(false),
-	m_maxNumber(0),
-	m_minNumber(0),
+	m_maxNumber(INT_MAX),
+	m_minNumber(INT_MIN),
 	m_bSpinInited(false),
 	m_pClearButton(nullptr),
 	m_pShowPasswordButton(nullptr)
@@ -636,6 +636,7 @@ int32_t RichEdit::GetMaxNumber() const
 {
 	return m_maxNumber;
 }
+
 void RichEdit::SetMinNumber(int32_t minNumber)
 {
 	m_minNumber = minNumber;
@@ -2875,7 +2876,7 @@ void RichEdit::UnregisterDragDrop()
 
 void RichEdit::OnTextChanged()
 {
-	if (IsNumberOnly() && GetMinNumber() != GetMaxNumber()) {
+	if (IsNumberOnly() && ((GetMinNumber() != INT_MIN) || (GetMaxNumber() != INT_MAX))) {
 		//数字模式，检查文本对应的数字是否在范围内
 		std::wstring text = GetText();
 		if (!text.empty()) {
@@ -2995,7 +2996,7 @@ void RichEdit::AdjustTextNumber(int32_t nDelta)
 	if (IsNumberOnly()) {
 		const int64_t nOldValue = GetTextNumber();
 		int64_t nNewValue = nOldValue + nDelta;
-		if (GetMinNumber() != GetMaxNumber()) {
+		if (((GetMinNumber() != INT_MIN) || (GetMaxNumber() != INT_MAX))) {
 			if (nNewValue > GetMaxNumber()) {
 				//超过最大数字，进行修正
 				nNewValue = GetMaxNumber();

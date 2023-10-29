@@ -116,6 +116,10 @@ protected:
     */
     void OnHeaderColumnCheckStateChanged(ListCtrlHeaderItem* pHeaderItem, bool bChecked);
 
+    /** 表头列的显示属性发生变化
+    */
+    void OnHeaderColumnVisibleChanged();
+
 private:
     /** 关联的ListCtrl接口
     */

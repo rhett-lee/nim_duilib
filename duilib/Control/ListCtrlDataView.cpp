@@ -38,7 +38,7 @@ int32_t ListCtrlDataView::GetListCtrlWidth() const
     size_t nColumnCount = pHeaderCtrl->GetColumnCount();
     for (size_t index = 0; index < nColumnCount; ++index) {
         ListCtrlHeaderItem* pHeaderItem = pHeaderCtrl->GetColumn(index);
-        if ((pHeaderItem != nullptr) && pHeaderItem->IsVisible()) {
+        if ((pHeaderItem != nullptr) && pHeaderItem->IsColumnVisible()) {
             nToltalWidth += pHeaderItem->GetColumnWidth();
         }
     }

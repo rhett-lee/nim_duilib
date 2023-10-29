@@ -166,6 +166,9 @@ void ListCtrl::SetRowGridLineWidth(int32_t nLineWidth, bool bNeedDpiScale)
         nLineWidth = 0;
     }
     m_nRowGridLineWidth = nLineWidth;
+    if (m_pDataView != nullptr) {
+        m_pDataView->Refresh();
+    }
 }
 
 int32_t ListCtrl::GetRowGridLineWidth() const
@@ -182,6 +185,9 @@ void ListCtrl::SetColumnGridLineWidth(int32_t nLineWidth, bool bNeedDpiScale)
         nLineWidth = 0;
     }
     m_nColumnGridLineWidth = nLineWidth;
+    if (m_pDataView != nullptr) {
+        m_pDataView->Refresh();
+    }
 }
 
 int32_t ListCtrl::GetColumnGridLineWidth() const
@@ -224,28 +230,6 @@ void ListCtrl::DoInit()
 
     // Header添加到数据视图中管理，作为第一个元素，在Layout的实现中控制显示属性
     m_pDataView->AddItem(m_pHeaderCtrl);
-
-    //TEST
-    const size_t columnCount = 10;
-    const size_t rowCount = 200;
-    //添加列
-    for (size_t i = 0; i < columnCount; ++i) {
-        ListCtrlColumn columnInfo;
-        columnInfo.nColumnWidth = 200;
-        //columnInfo.nTextFormat = TEXT_LEFT | TEXT_VCENTER;
-        columnInfo.text = StringHelper::Printf(L"第 %d 列", i);
-        m_pHeaderCtrl->InsertColumn(-1, columnInfo);
-    }
-    //填充数据
-    SetDataItemCount(rowCount);
-    for (size_t itemIndex = 0; itemIndex < rowCount; ++itemIndex) {
-        for (size_t columnIndex = 0; columnIndex < columnCount; ++columnIndex) {
-            SetDataItem(itemIndex, { columnIndex, StringHelper::Printf(L"第 %03d 行/第 %02d 列", itemIndex, columnIndex), });
-        }
-    }
-    //排序，默认为升序
-    SortDataItems(0, true);
-    //TESTs
 }
 
 ListCtrlHeaderItem* ListCtrl::InsertColumn(int32_t columnIndex, const ListCtrlColumn& columnInfo)
@@ -355,6 +339,9 @@ void ListCtrl::SetHeaderVisible(bool bVisible)
     if (m_pHeaderCtrl != nullptr) {
         m_pHeaderCtrl->SetVisible(bVisible);
     }
+    if (m_pDataView != nullptr) {
+        m_pDataView->Refresh();
+    }
 }
 
 bool ListCtrl::IsHeaderVisible() const
@@ -382,6 +369,9 @@ void ListCtrl::SetHeaderHeight(int32_t nHeaderHeight, bool bNeedDpiScale)
         m_pHeaderCtrl->SetFixedHeight(UiFixedInt(nHeaderHeight), true, false);
     }
     m_nHeaderHeight = nHeaderHeight;
+    if (m_pDataView != nullptr) {
+        m_pDataView->Refresh();
+    }
 }
 
 int32_t ListCtrl::GetHeaderHeight() const
@@ -406,6 +396,9 @@ void ListCtrl::SetDataItemHeight(int32_t nItemHeight, bool bNeedDpiScale)
         GlobalManager::Instance().Dpi().ScaleInt(nItemHeight);
     }
     m_nItemHeight = nItemHeight;
+    if (m_pDataView != nullptr) {
+        m_pDataView->Refresh();
+    }
 }
 
 int32_t ListCtrl::GetDataItemHeight() const
@@ -496,6 +489,14 @@ void ListCtrl::OnHeaderColumnCheckStateChanged(size_t nColumnId, bool bChecked)
         m_pDataView->Refresh();
     }
     m_bCanUpdateHeaderCheckStatus = true;
+}
+
+void ListCtrl::OnHeaderColumnVisibleChanged()
+{
+    ASSERT(m_pDataView != nullptr);
+    if (m_pDataView != nullptr) {
+        m_pDataView->Refresh();
+    }
 }
 
 void ListCtrl::UpdateControlCheckStatus(size_t nColumnId)

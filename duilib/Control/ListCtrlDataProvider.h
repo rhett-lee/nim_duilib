@@ -26,11 +26,9 @@ struct ListCtrlData
     //bool bVisible;                  //是否可见
     //bool bAlwaysAtTop;              //置顶显示
     //int32_t nBkImageIndex = -1;     //背景图片资源索引号
-    //Header是可以隐藏的，可以通过配置或者接口改变这个行为
     //Item的文本可以编辑
     //选择：单选，多选，整行选中，提供接口
     //CheckBox: 提供接口
-    //滚动条：水平滚动条，垂直滚动条
     //事件响应：点击，右键等
     //设置行高（最好支持每行的行高不同，Header的行高单独设置）
     //多视图的支持：Report，Icon等，类似与Windows资源管理器
@@ -218,7 +216,7 @@ public:
     * @param [in] pUserData 用户自定义数据，调用比较函数的时候，通过参数传回给比较函数
     */
     bool SortDataItems(size_t nColumnId, bool bSortedUp,
-        ListCtrlDataCompareFunc pfnCompareFunc, void* pUserData);
+                       ListCtrlDataCompareFunc pfnCompareFunc, void* pUserData);
 
     /** 设置外部自定义的排序函数, 替换默认的排序函数
     * @param [in] pfnCompareFunc 数据比较函数
@@ -270,8 +268,8 @@ private:
     * @param [out] storageList 返回数据列表
     */
     bool GetDataItemStorageList(size_t nDataItemIndex,
-        std::vector<size_t>& columnIdList,
-        StoragePtrList& storageList) const;
+                                std::vector<size_t>& columnIdList,
+                                StoragePtrList& storageList) const;
 
     /** 某个数据项的Check勾选状态变化
     * @param [in] itemIndex 数据Item的下标，代表行
@@ -301,9 +299,9 @@ private:
     * @param [in] pUserData 用户自定义数据，调用比较函数的时候，通过参数传回给比较函数
     */
     bool SortStorageData(std::vector<StorageData>& dataList,
-        size_t nColumnId, bool bSortedUp,
-        ListCtrlDataCompareFunc pfnCompareFunc,
-        void* pUserData);
+                         size_t nColumnId, bool bSortedUp,
+                         ListCtrlDataCompareFunc pfnCompareFunc,
+                         void* pUserData);
 
     /** 默认的数据比较函数
     * @param [in] a 第一个比较数据

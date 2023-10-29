@@ -34,5 +34,265 @@ LRESULT MainForm::OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandle
 
 void MainForm::OnInitWindow()
 {
+	ui::ListCtrl* pListCtrl = dynamic_cast<ui::ListCtrl*>(FindControl(L"list_ctrl"));
+	ASSERT(pListCtrl != nullptr);
+	if (pListCtrl == nullptr) {
+		return;
+	}
+	//填充数据
+	InsertItemData(200, 10);
 
+	//表头高度控制
+	ui::RichEdit* pHeaderHeightEdit = dynamic_cast<ui::RichEdit*>(FindControl(L"header_height_edit"));
+	if (pHeaderHeightEdit != nullptr) {
+		pHeaderHeightEdit->SetText(ui::StringHelper::Printf(L"%d", pListCtrl->GetHeaderHeight()));
+		pHeaderHeightEdit->AttachTextChange([this, pHeaderHeightEdit, pListCtrl](const ui::EventArgs&) {
+			int32_t height = _wtoi(pHeaderHeightEdit->GetText().c_str());
+			if (height >= 0) {
+				pListCtrl->SetHeaderHeight(height, false);
+			}
+			return true;
+			});
+	}
+
+	//表格每行高度控制
+	ui::RichEdit* pItemHeightEdit = dynamic_cast<ui::RichEdit*>(FindControl(L"list_item_height_edit"));
+	if (pItemHeightEdit != nullptr) {
+		pItemHeightEdit->SetText(ui::StringHelper::Printf(L"%d", pListCtrl->GetDataItemHeight()));
+		pItemHeightEdit->AttachTextChange([this, pItemHeightEdit, pListCtrl](const ui::EventArgs&) {
+			int32_t height = _wtoi(pItemHeightEdit->GetText().c_str());
+			if (height >= 0) {
+				pListCtrl->SetDataItemHeight(height, false);
+			}
+			return true;
+			});
+	}
+
+	//列控制
+	ui::Combo* pColumnCombo = dynamic_cast<ui::Combo*>(FindControl(L"column_combo"));
+	if (pColumnCombo != nullptr) {
+		//填充列数据
+		size_t nColumnCount = pListCtrl->GetColumnCount();
+		for (size_t i = 0; i < nColumnCount; ++i) {
+			ui::ListCtrlHeaderItem* pHeaderItem = pListCtrl->GetColumn(i);
+			ASSERT(pHeaderItem != nullptr);
+			if (pHeaderItem != nullptr) {
+				size_t nItem = pColumnCombo->AddTextItem(pHeaderItem->GetText());
+				ASSERT(nItem != ui::Box::InvalidIndex);
+				//保持列的ID
+				pColumnCombo->SetItemData(nItem, pHeaderItem->GetColomnId());
+			}
+		}
+		//挂载事件
+		pColumnCombo->AttachSelect([this, pColumnCombo](const ui::EventArgs& args) {
+			size_t nCurSel = args.wParam;
+			size_t nColumnId = pColumnCombo->GetItemData(nCurSel);
+			OnColumnChanged(nColumnId);
+			return true;
+			});
+
+		pColumnCombo->SetCurSel(0);
+		OnColumnChanged(pColumnCombo->GetItemData(0));
+	}
+
+	ui::CheckBox* pColumnShow = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_show"));
+	ui::CheckBox* pColumnWidth = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_width"));
+	ui::CheckBox* pColumnSort = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_sort"));
+	ui::CheckBox* pColumnIcon = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_icon_at_top"));
+	ui::CheckBox* pColumnHeaderCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_show_header_checkbox"));
+
+	ui::Option* pColumnHeaderTextAlignLeft = dynamic_cast<ui::Option*>(FindControl(L"header_text_align_left"));
+	ui::Option* pColumnHeaderTextAlignCenter = dynamic_cast<ui::Option*>(FindControl(L"header_text_align_center"));
+	ui::Option* pColumnHeaderTextAlignRight = dynamic_cast<ui::Option*>(FindControl(L"header_text_align_right"));
+
+	//实现显示该列
+	auto OnColumnShowHide = [this, pColumnCombo, pListCtrl](bool bColumnVisible) {
+			size_t nColumnId = pColumnCombo->GetItemData(pColumnCombo->GetCurSel());
+			ui::ListCtrlHeaderItem* pHeaderItem = pListCtrl->GetColumnById(nColumnId);
+			ASSERT(pHeaderItem != nullptr);
+			if (pHeaderItem != nullptr) {
+				pHeaderItem->SetColumnVisible(bColumnVisible);
+			}
+		};
+	pColumnShow->AttachSelect([this, OnColumnShowHide](const ui::EventArgs&) {
+		OnColumnShowHide(true);
+		return true;
+		});
+	pColumnShow->AttachUnSelect([this, OnColumnShowHide](const ui::EventArgs&) {
+		OnColumnShowHide(false);
+		return true;
+		});
+
+	//是否支持列宽调整
+	auto OnColumnResizeable = [this, pColumnCombo, pListCtrl](bool bResizeable) {
+			size_t nColumnId = pColumnCombo->GetItemData(pColumnCombo->GetCurSel());
+			ui::ListCtrlHeaderItem* pHeaderItem = pListCtrl->GetColumnById(nColumnId);
+			ASSERT(pHeaderItem != nullptr);
+			if (pHeaderItem != nullptr) {
+				pHeaderItem->SetColumnResizeable(bResizeable);
+			}
+		};
+	pColumnWidth->AttachSelect([this, OnColumnResizeable](const ui::EventArgs&) {
+		OnColumnResizeable(true);
+		return true;
+		});
+	pColumnWidth->AttachUnSelect([this, OnColumnResizeable](const ui::EventArgs& args) {
+		OnColumnResizeable(false);
+		return true;
+		});
+
+	//是否支持排序
+	auto OnColumnSort = [this, pColumnCombo, pListCtrl](bool bSort) {
+			size_t nColumnId = pColumnCombo->GetItemData(pColumnCombo->GetCurSel());
+			ui::ListCtrlHeaderItem* pHeaderItem = pListCtrl->GetColumnById(nColumnId);
+			ASSERT(pHeaderItem != nullptr);
+			if (pHeaderItem != nullptr) {
+				if (bSort) {
+					pHeaderItem->SetSortMode(ui::ListCtrlHeaderItem::SortMode::kUp, true);
+				}
+				else {
+					pHeaderItem->SetSortMode(ui::ListCtrlHeaderItem::SortMode::kNone);
+				}				
+			}
+		};
+	pColumnSort->AttachSelect([this, OnColumnSort](const ui::EventArgs&) {
+		OnColumnSort(true);
+		return true;
+		});
+	pColumnSort->AttachUnSelect([this, OnColumnSort](const ui::EventArgs& args) {
+		OnColumnSort(false);
+		return true;
+		});
+
+	//是否图标显示在上方
+	auto OnColumnShowIconOnTop = [this, pColumnCombo, pListCtrl](bool bShowIconAtTop) {
+			size_t nColumnId = pColumnCombo->GetItemData(pColumnCombo->GetCurSel());
+			ui::ListCtrlHeaderItem* pHeaderItem = pListCtrl->GetColumnById(nColumnId);
+			ASSERT(pHeaderItem != nullptr);
+			if (pHeaderItem != nullptr) {
+				pHeaderItem->SetShowIconAtTop(bShowIconAtTop);
+			}
+		};
+	pColumnIcon->AttachSelect([this, OnColumnShowIconOnTop](const ui::EventArgs&) {
+		OnColumnShowIconOnTop(true);
+		return true;
+		});
+	pColumnIcon->AttachUnSelect([this, OnColumnShowIconOnTop](const ui::EventArgs& args) {
+		OnColumnShowIconOnTop(false);
+		return true;
+		});
+
+	//表头是否显示CheckBox
+	auto OnSetCheckBoxVisible = [this, pColumnCombo, pListCtrl](bool bCheckBoxVisible) {
+		size_t nColumnId = pColumnCombo->GetItemData(pColumnCombo->GetCurSel());
+		ui::ListCtrlHeaderItem* pHeaderItem = pListCtrl->GetColumnById(nColumnId);
+		ASSERT(pHeaderItem != nullptr);
+		if (pHeaderItem != nullptr) {
+			pHeaderItem->SetCheckBoxVisible(bCheckBoxVisible);
+		}
+	};
+	pColumnHeaderCheckBox->AttachSelect([this, OnSetCheckBoxVisible](const ui::EventArgs&) {
+		OnSetCheckBoxVisible(true);
+		return true;
+		});
+	pColumnHeaderCheckBox->AttachUnSelect([this, OnSetCheckBoxVisible](const ui::EventArgs& args) {
+		OnSetCheckBoxVisible(false);
+		return true;
+		});
+
+	auto OnHeaderTextAlign = [this, pColumnCombo, pListCtrl](ui::HorAlignType alignType) {
+			size_t nColumnId = pColumnCombo->GetItemData(pColumnCombo->GetCurSel());
+			ui::ListCtrlHeaderItem* pHeaderItem = pListCtrl->GetColumnById(nColumnId);
+			ASSERT(pHeaderItem != nullptr);
+			if (pHeaderItem != nullptr) {
+				pHeaderItem->SetTextHorAlign(alignType);
+			}
+		};
+	pColumnHeaderTextAlignLeft->AttachSelect([this, OnHeaderTextAlign](const ui::EventArgs&) {
+		OnHeaderTextAlign(ui::HorAlignType::kHorAlignLeft);
+		return true;
+		});
+	pColumnHeaderTextAlignCenter->AttachSelect([this, OnHeaderTextAlign](const ui::EventArgs&) {
+		OnHeaderTextAlign(ui::HorAlignType::kHorAlignCenter);
+		return true;
+		});
+	pColumnHeaderTextAlignRight->AttachSelect([this, OnHeaderTextAlign](const ui::EventArgs&) {
+		OnHeaderTextAlign(ui::HorAlignType::kHorAlignRight);
+		return true;
+		});
+}
+
+void MainForm::InsertItemData(int32_t nRows, int32_t nColumns)
+{
+	ui::ListCtrl* pListCtrl = dynamic_cast<ui::ListCtrl*>(FindControl(L"list_ctrl"));
+	ASSERT(pListCtrl != nullptr);
+	if (pListCtrl == nullptr) {
+		return;
+	}
+	const size_t columnCount = nColumns;
+	const size_t rowCount = nRows;
+	//添加列
+	for (size_t i = 0; i < columnCount; ++i) {
+		ui::ListCtrlColumn columnInfo;
+		columnInfo.nColumnWidth = 200;
+		//columnInfo.nTextFormat = TEXT_LEFT | TEXT_VCENTER;
+		columnInfo.text = ui::StringHelper::Printf(L"第 %d 列", i);
+		pListCtrl->InsertColumn(-1, columnInfo);
+	}
+	//填充数据
+	pListCtrl->SetDataItemCount(rowCount);
+	for (size_t itemIndex = 0; itemIndex < rowCount; ++itemIndex) {
+		for (size_t columnIndex = 0; columnIndex < columnCount; ++columnIndex) {
+			pListCtrl->SetDataItem(itemIndex, { columnIndex, ui::StringHelper::Printf(L"第 %03d 行/第 %02d 列", itemIndex, columnIndex), });
+		}
+	}
+	//排序，默认为升序
+	pListCtrl->SortDataItems(0, true);
+}
+
+void MainForm::OnColumnChanged(size_t nColumnId)
+{
+	ui::ListCtrl* pListCtrl = dynamic_cast<ui::ListCtrl*>(FindControl(L"list_ctrl"));
+	ASSERT(pListCtrl != nullptr);
+	if (pListCtrl == nullptr) {
+		return;
+	}
+
+	ui::ListCtrlHeaderItem* pHeaderItem = pListCtrl->GetColumnById(nColumnId);
+	ASSERT(pHeaderItem != nullptr);
+	if (pHeaderItem == nullptr) {
+		return;
+	}
+
+
+	ui::CheckBox* pColumnShow = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_show"));
+	ui::CheckBox* pColumnWidth = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_width"));
+	ui::CheckBox* pColumnSort = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_sort"));
+	ui::CheckBox* pColumnIcon = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_icon_at_top"));
+	ui::CheckBox* pColumnHeaderCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_show_header_checkbox"));
+
+	ui::Option* pColumnHeaderTextAlignLeft = dynamic_cast<ui::Option*>(FindControl(L"header_text_align_left"));
+	ui::Option* pColumnHeaderTextAlignCenter = dynamic_cast<ui::Option*>(FindControl(L"header_text_align_center"));
+	ui::Option* pColumnHeaderTextAlignRight = dynamic_cast<ui::Option*>(FindControl(L"header_text_align_right"));
+
+	ASSERT(pHeaderItem->IsColumnVisible() == pHeaderItem->IsVisible());
+	pColumnShow->Selected(pHeaderItem->IsColumnVisible(), false);
+	pColumnWidth->Selected(pHeaderItem->IsColumnResizeable(), false);
+
+	ui::ListCtrlHeaderItem::SortMode sortMode = pHeaderItem->GetSortMode();
+	pColumnSort->Selected(sortMode != ui::ListCtrlHeaderItem::SortMode::kNone, false);
+
+	pColumnIcon->Selected(pHeaderItem->IsShowIconAtTop(), false);
+	pColumnHeaderCheckBox->Selected(pHeaderItem->IsCheckBoxVisible(), false);
+
+	ui::HorAlignType hAlignType = pHeaderItem->GetTextHorAlign();
+	if (hAlignType == ui::HorAlignType::kHorAlignCenter) {
+		pColumnHeaderTextAlignCenter->Selected(true, false);
+	}
+	else if (hAlignType == ui::HorAlignType::kHorAlignRight) {
+		pColumnHeaderTextAlignRight->Selected(true, false);
+	}
+	else {
+		pColumnHeaderTextAlignLeft->Selected(true, false);
+	}
 }

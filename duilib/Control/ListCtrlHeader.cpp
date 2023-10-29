@@ -146,13 +146,7 @@ ListCtrlHeaderItem* ListCtrlHeader::InsertColumn(int32_t columnIndex, const List
             });
     }
 
-    //挂载排序事件
-    pHeaderItem->AttachClick([this, pHeaderItem](const EventArgs& /*args*/) {
-        OnHeaderColumnSorted(pHeaderItem);
-        return true;
-        });
-
-        //挂载拖动响应事件
+    //挂载拖动响应事件
     pHeaderSplit->AttachSplitDraged([this](const EventArgs& args) {
         OnHeaderColumnResized((Control*)args.wParam, (Control*)args.lParam);
         return true;
@@ -371,6 +365,13 @@ void ListCtrlHeader::OnHeaderColumnCheckStateChanged(ListCtrlHeaderItem* pHeader
     size_t nColumnId = pHeaderItem->GetColomnId();
     if (m_pListCtrl != nullptr) {
         m_pListCtrl->OnHeaderColumnCheckStateChanged(nColumnId, bChecked);
+    }
+}
+
+void ListCtrlHeader::OnHeaderColumnVisibleChanged()
+{
+    if (m_pListCtrl != nullptr) {
+        m_pListCtrl->OnHeaderColumnVisibleChanged();
     }
 }
 

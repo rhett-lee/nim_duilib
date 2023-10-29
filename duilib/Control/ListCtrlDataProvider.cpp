@@ -59,7 +59,7 @@ bool ListCtrlDataProvider::FillElement(ui::Control* pControl, size_t nElementInd
     const size_t nColumnCount = pHeaderCtrl->GetColumnCount();
     for (size_t nColumnIndex = 0; nColumnIndex < nColumnCount; ++nColumnIndex) {
         ListCtrlHeaderItem* pHeaderItem = pHeaderCtrl->GetColumn(nColumnIndex);
-        if ((pHeaderItem == nullptr) || !pHeaderItem->IsVisible()){
+        if ((pHeaderItem == nullptr) || !pHeaderItem->IsColumnVisible()){
             continue;
         }
         int32_t nColumnWidth = pHeaderCtrl->GetColumnWidth(nColumnIndex);
@@ -92,7 +92,7 @@ bool ListCtrlDataProvider::FillElement(ui::Control* pControl, size_t nElementInd
     const size_t showColumnCount = elementDataList.size(); //显示的列数
     while (pItem->GetItemCount() > showColumnCount) {
         //移除多余的列
-        if (pItem->RemoveItemAt(pItem->GetItemCount() - 1)) {
+        if (!pItem->RemoveItemAt(pItem->GetItemCount() - 1)) {
             ASSERT(!"RemoveItemAt failed!");
             return false;
         }
@@ -251,6 +251,10 @@ size_t ListCtrlDataProvider::GetElementCount()
 
 void ListCtrlDataProvider::SetElementSelected(size_t nElementIndex, bool bSelected)
 {
+    if (nElementIndex == Box::InvalidIndex) {
+        //如果选中的是Header，忽略
+        return;
+    }
     StoragePtrList& storageList = m_dataMap[0];
     ASSERT(nElementIndex < storageList.size());
     if (nElementIndex < storageList.size()) {
@@ -268,6 +272,10 @@ void ListCtrlDataProvider::SetElementSelected(size_t nElementIndex, bool bSelect
 
 bool ListCtrlDataProvider::IsElementSelected(size_t nElementIndex)
 {
+    if (nElementIndex == Box::InvalidIndex) {
+        //如果选中的是Header，忽略
+        return false;
+    }
     bool bSelected = false;
     const StoragePtrList& storageList = m_dataMap[0];
     ASSERT(nElementIndex < storageList.size());
