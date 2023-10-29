@@ -283,11 +283,41 @@ UiSize64 ListCtrlDataLayout::ArrangeChild(const std::vector<ui::Control*>& /*ite
         return UiSize64();
     }
     DeflatePadding(rc);
-    int64_t nTotalHeight = GetElementsHeight(Box::InvalidIndex) + GetHeaderHeight();
+    const int32_t nHeaderHeight = GetHeaderHeight();
+    int64_t nTotalHeight = GetElementsHeight(Box::InvalidIndex) + nHeaderHeight;
     UiSize64 sz(rc.Width(), rc.Height());
     sz.cy = std::max(nTotalHeight, sz.cy);
     sz.cx = std::max(GetItemWidth(), rc.Width()); //允许出现横向滚动条
     LazyArrangeChild(rc);
+
+#ifdef _DEBUG
+    //TEST 以下为测试代码
+    {
+        size_t s0 = pOwnerListBox->GetTopElementIndex();
+        size_t s1 = GetTopElementIndex(pOwnerListBox->GetRect());
+        ASSERT(s0 == s1);
+
+        std::vector<size_t> itemIndexList;
+        pOwnerListBox->GetDisplayDataItems(itemIndexList);
+
+        std::vector<size_t> collection;
+        GetDisplayElements(pOwnerListBox->GetRect(), collection);
+
+        std::vector<size_t> displayItemIndexList;
+        for (size_t i = 0; i < 200; ++i) {
+            if (IsElementDisplay(pOwnerListBox->GetRect(), i)) {
+                displayItemIndexList.push_back(i);
+            }
+        }
+        //if (!itemIndexList.empty()) {
+        //    ASSERT(itemIndexList == collection);
+        //    ASSERT(itemIndexList == displayItemIndexList);
+        //}
+        //EnsureVisible(pOwnerListBox->GetRect(), 50, false);
+    }
+    //TEST
+#endif
+
     return sz;
 }
 
@@ -465,10 +495,6 @@ size_t ListCtrlDataLayout::GetTopElementIndex(UiRect /*rc*/) const
         return 0;
     }
     int64_t nScrollPosY = pOwnerBox->GetScrollPos().cy;
-    nScrollPosY -= GetHeaderHeight(); //减去表头的高度
-    if (nScrollPosY < 0) {
-        nScrollPosY = 0;
-    }
     
     int64_t nColumns = (int64_t)CalcTileColumns();
     if (nColumns < 0) {
@@ -541,11 +567,6 @@ void ListCtrlDataLayout::GetDisplayElements(UiRect rc, std::vector<size_t>& coll
 
     int32_t nHeaderHeight = GetHeaderHeight();
     int64_t nScrollPosY = pOwnerBox->GetScrollPos().cy;
-    nScrollPosY -= nHeaderHeight; //减去表头的高度
-    if (nScrollPosY < 0) {
-        nScrollPosY = 0;
-    }
-
     rc.top += nHeaderHeight;
     rc.Validate();
 
@@ -581,26 +602,15 @@ void ListCtrlDataLayout::EnsureVisible(UiRect rc, size_t iIndex, bool bToTop) co
     if (pVScrollBar == nullptr) {
         return;
     }
-    
-    int32_t nHeaderHeight = GetHeaderHeight();
-    int64_t nScrollPosY = pOwnerBox->GetScrollPos().cy;
-    nScrollPosY -= nHeaderHeight; //减去表头的高度
-    if (nScrollPosY < 0) {
-        nScrollPosY = 0;
-    }
-
-    const int64_t elementHeight = GetElementsHeight(1);
-    if (elementHeight == 0) {
+    const int64_t nElementHeight = GetElementsHeight(1);
+    if (nElementHeight == 0) {
         return;
-    }
-    int32_t nColumns = CalcTileColumns();
-    int64_t nTopIndex = 0;
-    if (elementHeight > 0) {
-        nTopIndex = (nScrollPosY / elementHeight) * nColumns;
     }
     int64_t nNewPos = 0;
     if (bToTop) {
-        nNewPos = GetElementsHeight(iIndex + 1);
+        if (iIndex > 0) {
+            nNewPos = GetElementsHeight(iIndex);
+        }
     }
     else {
         std::vector<size_t> itemIndexList;
@@ -609,9 +619,11 @@ void ListCtrlDataLayout::EnsureVisible(UiRect rc, size_t iIndex, bool bToTop) co
         if (bDisplay) {
             return;
         }
-        nNewPos = GetElementsHeight(iIndex + 1);
+        if (iIndex > 0) {
+            nNewPos = GetElementsHeight(iIndex);
+        }
         if (itemIndexList.size() >= 2) {
-            nNewPos -= (itemIndexList.size() - 2) * elementHeight;
+            nNewPos -= (itemIndexList.size() - 2) * nElementHeight;
         }
     }
     if (nNewPos < 0) {
@@ -634,6 +646,9 @@ ListCtrlDataView* ListCtrlDataLayout::GetOwnerBox() const
 
 int64_t ListCtrlDataLayout::GetElementsHeight(size_t nCount) const
 {
+    if (nCount == 0) {
+        return 0;
+    }
     ListCtrlDataView* pOwnerBox = GetOwnerBox();
     if (pOwnerBox == nullptr) {
         return 0;
