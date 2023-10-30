@@ -139,6 +139,12 @@ public:
     */
     bool SetCheckBoxSelect(bool bSelected, bool bPartSelect);
 
+    /** 获取CheckBox的勾选状态
+    * @param [out] bSelected true表示勾选，false表示不勾选
+    * @param [out] 如果bSelected和bPartSelect同时为true，表示部分选择
+    */
+    bool GetCheckBoxSelect(bool& bSelected, bool& bPartSelect) const;
+
     /** 显示/隐藏该列
     */
     void SetColumnVisible(bool bColumnVisible);

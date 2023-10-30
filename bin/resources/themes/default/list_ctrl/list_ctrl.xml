@@ -47,11 +47,11 @@
                 <CheckBox class="checkbox_font14" name="checkbox_column_sort" text="支持排序" margin="4,0,0,0" valign="center"/>
                 <CheckBox class="checkbox_font14" name="checkbox_column_icon_at_top" text="排序图标显示在上方" margin="4,0,0,0" valign="center"/>
                 <CheckBox class="checkbox_font14" name="checkbox_column_show_header_checkbox" text="在表头显示CheckBox" margin="4,0,0,0" valign="center"/>
+                <Line vertical="true" margin="8,8,4,8" width="2"/>
                 <Label text="文本对齐：" valign="center" margin="6,0,2,0"/>
                 <Option class="circle_option_3" name="header_text_align_left" group="header_text_align" selected="false" width="64" height="32" text="靠左" padding="2,2,2,2" borderround="2,2" valign="center"/>
                 <Option class="circle_option_3" name="header_text_align_center" group="header_text_align" selected="true" width="64" height="32" text="居中" padding="2,2,2,2" borderround="2,2" valign="center"/>
                 <Option class="circle_option_3" name="header_text_align_right" group="header_text_align" selected="false" width="64" height="32" text="靠右" padding="2,2,2,2" borderround="2,2" valign="center"/>
-                  
             </HBox>
                         
             <HBox minheight="18" bkcolor="bk_wnd_darkcolor" height="auto" margin="4,0,0,0">
@@ -74,6 +74,7 @@
                 <Line vertical="true" margin="0,8,4,8" width="2"/>
                 <Label text="每行高度：" valign="center" margin="2,0,2,0"/>
                 <RichEdit class="simple simple_border rich_edit_spin" name="list_item_height_edit" min_number="0" max_number="512" limit_text="3" text="0" margin="0,2,0,0"/>
+                <CheckBox class="checkbox_font14" name="checkbox_show_row_checkbox" text="在表格显示CheckBox" margin="4,0,0,0" valign="center"/>
             </HBox>
             
             <!-- 横向分割条，用于调整上下区域大小 -->

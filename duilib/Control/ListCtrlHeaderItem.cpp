@@ -394,6 +394,23 @@ bool ListCtrlHeaderItem::SetCheckBoxSelect(bool bSelected, bool bPartSelect)
     return false;
 }
 
+bool ListCtrlHeaderItem::GetCheckBoxSelect(bool& bSelected, bool& bPartSelect) const
+{
+    bSelected = false;
+    bPartSelect = false;
+    if (GetItemCount() > 0) {
+        CheckBox* pCheckBox = dynamic_cast<CheckBox*>(GetItemAt(0));
+        if (pCheckBox != nullptr) {
+            bSelected = pCheckBox->IsSelected();
+            if (bSelected) {
+                bPartSelect = pCheckBox->IsPartSelected();
+            }
+            return true;
+        }
+    }
+    return false;
+}
+
 void ListCtrlHeaderItem::SetColumnVisible(bool bColumnVisible)
 {
     m_bColumnVisible = bColumnVisible;

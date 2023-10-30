@@ -777,8 +777,10 @@ bool ListCtrlDataProvider::SetDataItemText(size_t itemIndex, size_t columnIndex,
         //索引号无效
         return false;
     }
-    pStorage->text = text;
-    EmitDataChanged(itemIndex, itemIndex);
+    if (pStorage->text != text) {
+        pStorage->text = text;
+        EmitDataChanged(itemIndex, itemIndex);
+    }    
     return true;
 }
 
@@ -801,8 +803,10 @@ bool ListCtrlDataProvider::SetDataItemTextColor(size_t itemIndex, size_t columnI
         //索引号无效
         return false;
     }
-    pStorage->textColor = textColor;
-    EmitDataChanged(itemIndex, itemIndex);
+    if (pStorage->textColor != textColor) {
+        pStorage->textColor = textColor;
+        EmitDataChanged(itemIndex, itemIndex);
+    }    
     return true;
 }
 
@@ -826,8 +830,10 @@ bool ListCtrlDataProvider::SetDataItemBkColor(size_t itemIndex, size_t columnInd
         //索引号无效
         return false;
     }
-    pStorage->bkColor = bkColor;
-    EmitDataChanged(itemIndex, itemIndex);
+    if (pStorage->bkColor != bkColor) {
+        pStorage->bkColor = bkColor;
+        EmitDataChanged(itemIndex, itemIndex);
+    }    
     return true;
 }
 
@@ -841,6 +847,68 @@ bool ListCtrlDataProvider::GetDataItemBkColor(size_t itemIndex, size_t columnInd
     }
     bkColor = pStorage->bkColor;
     return true;
+}
+
+bool ListCtrlDataProvider::IsShowCheckBox(size_t itemIndex, size_t columnIndex) const
+{
+    StoragePtr pStorage = GetDataItemStorage(itemIndex, columnIndex);
+    ASSERT(pStorage != nullptr);
+    if (pStorage == nullptr) {
+        //索引号无效
+        return false;
+    }
+    return pStorage->bShowCheckBox;
+}
+
+bool ListCtrlDataProvider::SetShowCheckBox(size_t itemIndex, size_t columnIndex, bool bShowCheckBox)
+{
+    StoragePtr pStorage = GetDataItemStorage(itemIndex, columnIndex);
+    ASSERT(pStorage != nullptr);
+    if (pStorage == nullptr) {
+        //索引号无效
+        return false;
+    }
+    if (pStorage->bShowCheckBox != bShowCheckBox) {
+        pStorage->bShowCheckBox = bShowCheckBox;
+        EmitDataChanged(itemIndex, itemIndex);
+    }    
+    return true;
+}
+
+bool ListCtrlDataProvider::SetCheckBoxSelect(size_t itemIndex, size_t columnIndex, bool bSelected)
+{
+    StoragePtr pStorage = GetDataItemStorage(itemIndex, columnIndex);
+    ASSERT(pStorage != nullptr);
+    if (pStorage == nullptr) {
+        //索引号无效
+        return false;
+    }
+    ASSERT(pStorage->bShowCheckBox);
+    if (pStorage->bShowCheckBox) {
+        if (pStorage->bChecked != bSelected) {
+            pStorage->bChecked = bSelected;
+            EmitDataChanged(itemIndex, itemIndex);
+        }        
+        return true;
+    }
+    return false;
+}
+
+bool ListCtrlDataProvider::GetCheckBoxSelect(size_t itemIndex, size_t columnIndex, bool& bSelected) const
+{
+    bSelected = false;
+    StoragePtr pStorage = GetDataItemStorage(itemIndex, columnIndex);
+    ASSERT(pStorage != nullptr);
+    if (pStorage == nullptr) {
+        //索引号无效
+        return false;
+    }
+    ASSERT(pStorage->bShowCheckBox);
+    if (pStorage->bShowCheckBox) {
+        bSelected = pStorage->bChecked;
+        return true;
+    }
+    return false;
 }
 
 bool ListCtrlDataProvider::SortDataItems(size_t nColumnId, bool bSortedUp, 

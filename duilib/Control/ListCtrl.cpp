@@ -650,6 +650,26 @@ bool ListCtrl::GetDataItemBkColor(size_t itemIndex, size_t columnIndex, UiColor&
     return m_pDataProvider->GetDataItemBkColor(itemIndex, columnIndex, bkColor);
 }
 
+bool ListCtrl::IsShowCheckBox(size_t itemIndex, size_t columnIndex) const
+{
+    return m_pDataProvider->IsShowCheckBox(itemIndex, columnIndex);
+}
+
+bool ListCtrl::SetShowCheckBox(size_t itemIndex, size_t columnIndex, bool bShowCheckBox)
+{
+    return m_pDataProvider->SetShowCheckBox(itemIndex, columnIndex, bShowCheckBox);
+}
+
+bool ListCtrl::SetCheckBoxSelect(size_t itemIndex, size_t columnIndex, bool bSelected)
+{
+    return m_pDataProvider->SetCheckBoxSelect(itemIndex, columnIndex, bSelected);
+}
+
+bool ListCtrl::GetCheckBoxSelect(size_t itemIndex, size_t columnIndex, bool& bSelected) const
+{
+    return m_pDataProvider->GetCheckBoxSelect(itemIndex, columnIndex, bSelected);
+}
+
 bool ListCtrl::SortDataItems(size_t columnIndex, bool bSortedUp, 
                              ListCtrlDataCompareFunc pfnCompareFunc,
                              void* pUserData)

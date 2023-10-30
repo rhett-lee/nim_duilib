@@ -220,6 +220,28 @@ void MainForm::OnInitWindow()
 		OnHeaderTextAlign(ui::HorAlignType::kHorAlignRight);
 		return true;
 		});
+
+	auto OnShowCheckBox = [this, pListCtrl](bool bShowCheckBox) {
+			size_t nItemCount = pListCtrl->GetDataItemCount();
+			size_t nColumnCount = pListCtrl->GetColumnCount();
+			for (size_t nItemIndex = 0; nItemIndex < nItemCount; ++nItemIndex) {
+				for (size_t nColumnIndex = 0; nColumnIndex < nColumnCount; ++nColumnIndex) {
+					pListCtrl->SetShowCheckBox(nItemIndex, nColumnIndex, bShowCheckBox);
+				}
+			}
+		};
+	ui::CheckBox* pShowCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_show_row_checkbox"));
+	if (pShowCheckBox != nullptr) {
+		pShowCheckBox->Selected(true, false);
+		pShowCheckBox->AttachSelect([this, OnShowCheckBox](const ui::EventArgs&) {
+			OnShowCheckBox(true);
+			return true;
+			});
+		pShowCheckBox->AttachUnSelect([this, OnShowCheckBox](const ui::EventArgs&) {
+			OnShowCheckBox(false);
+			return true;
+			});
+	}
 }
 
 void MainForm::InsertItemData(int32_t nRows, int32_t nColumns)

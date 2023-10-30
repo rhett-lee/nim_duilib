@@ -242,6 +242,33 @@ public:
     */
     bool GetDataItemBkColor(size_t itemIndex, size_t columnIndex, UiColor& bkColor) const;
 
+    /** 是否显示CheckBox
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
+    */
+    bool IsShowCheckBox(size_t itemIndex, size_t columnIndex) const;
+
+    /** 设置是否显示CheckBox
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
+    * @param [in] bShowCheckBox true表示显示，false表示不显示
+    */
+    bool SetShowCheckBox(size_t itemIndex, size_t columnIndex, bool bShowCheckBox);
+
+    /** 设置CheckBox的勾选状态
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
+    * @param [in] bSelected true表示勾选，false表示不勾选
+    */
+    bool SetCheckBoxSelect(size_t itemIndex, size_t columnIndex, bool bSelected);
+
+    /** 获取CheckBox的勾选状态
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
+    * @param [out] bSelected true表示勾选，false表示不勾选
+    */
+    bool GetCheckBoxSelect(size_t itemIndex, size_t columnIndex, bool& bSelected) const;
+
     /** 对数据排序
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
     * @param [in] bSortedUp true表示升序，false表示降序

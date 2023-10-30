@@ -28,12 +28,13 @@ struct ListCtrlData
     //int32_t nBkImageIndex = -1;     //背景图片资源索引号
     //Item的文本可以编辑
     //选择：单选，多选，整行选中，提供接口
-    //CheckBox: 提供接口
     //事件响应：点击，右键等
     //设置行高（最好支持每行的行高不同，Header的行高单独设置）
     //多视图的支持：Report，Icon等，类似与Windows资源管理器
     //数据类型的支持：比如整型，日期型，下拉表，字符串类型等
     //关联图片列表，图片列表需要单独实现
+    //表格Margin的支持
+
 };
 
 /** 比较数据的附加信息
@@ -208,6 +209,33 @@ public:
     * @param [out] bkColor 数据项关联的背景颜色
     */
     bool GetDataItemBkColor(size_t itemIndex, size_t columnIndex, UiColor& bkColor) const;
+
+    /** 是否显示CheckBox
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
+    */
+    bool IsShowCheckBox(size_t itemIndex, size_t columnIndex) const;
+
+    /** 设置是否显示CheckBox
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
+    * @param [in] bShowCheckBox true表示显示，false表示不显示
+    */
+    bool SetShowCheckBox(size_t itemIndex, size_t columnIndex, bool bShowCheckBox);
+
+    /** 设置CheckBox的勾选状态
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
+    * @param [in] bSelected true表示勾选，false表示不勾选
+    */
+    bool SetCheckBoxSelect(size_t itemIndex, size_t columnIndex, bool bSelected);
+
+    /** 获取CheckBox的勾选状态
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
+    * @param [out] bSelected true表示勾选，false表示不勾选
+    */
+    bool GetCheckBoxSelect(size_t itemIndex, size_t columnIndex, bool& bSelected) const;
 
     /** 对数据排序
     * @param [in] columnId 列的ID
