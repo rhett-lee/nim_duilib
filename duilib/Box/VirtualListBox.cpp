@@ -48,6 +48,11 @@ void VirtualListBox::SetVirtualLayout(VirtualLayout* pVirtualLayout)
     m_pVirtualLayout = pVirtualLayout;
 }
 
+VirtualLayout* VirtualListBox::GetVirtualLayout() const
+{
+    return m_pVirtualLayout;
+}
+
 void VirtualListBox::SetDataProvider(VirtualListBoxElement* pProvider)
 {
     m_pDataProvider = pProvider;
@@ -59,7 +64,7 @@ void VirtualListBox::SetDataProvider(VirtualListBoxElement* pProvider)
     }
 }
 
-VirtualListBoxElement* VirtualListBox::GetDataProvider()
+VirtualListBoxElement* VirtualListBox::GetDataProvider() const
 {
     return m_pDataProvider;
 }

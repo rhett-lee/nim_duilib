@@ -9,6 +9,10 @@ ListCtrlHeader::ListCtrlHeader() :
 {
 }
 
+ListCtrlHeader::~ListCtrlHeader()
+{
+}
+
 std::wstring ListCtrlHeader::GetType() const { return L"ListCtrlHeader"; }
 
 ListCtrlHeaderItem* ListCtrlHeader::InsertColumn(int32_t columnIndex, const ListCtrlColumn& columnInfo)

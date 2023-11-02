@@ -28,7 +28,7 @@ public:
     /** 获取数据项总数
     * @return 返回数据项总数
     */
-    virtual size_t GetElementCount() override;
+    virtual size_t GetElementCount() const override;
 
     /** 设置选择状态
     * @param [in] nElementIndex 数据元素的索引ID，范围：[0, GetElementCount())
@@ -40,7 +40,7 @@ public:
     * @param [in] nElementIndex 数据元素的索引ID，范围：[0, GetElementCount())
     * @return true表示选择状态，false表示非选择状态
     */
-    virtual bool IsElementSelected(size_t nElementIndex) override;
+    virtual bool IsElementSelected(size_t nElementIndex) const override;
 
     /** 选择一个颜色
     */
@@ -255,7 +255,7 @@ bool ColorPickerRegularProvider::FillElement(ui::Control* pControl, size_t nElem
     return false;
 }
 
-size_t ColorPickerRegularProvider::GetElementCount()
+size_t ColorPickerRegularProvider::GetElementCount() const
 {
     return m_colors.size();
 }
@@ -268,7 +268,7 @@ void ColorPickerRegularProvider::SetElementSelected(size_t nElementIndex, bool b
     }
 }
 
-bool ColorPickerRegularProvider::IsElementSelected(size_t nElementIndex)
+bool ColorPickerRegularProvider::IsElementSelected(size_t nElementIndex) const
 {
     if (nElementIndex < m_colors.size()) {
         const RegularColor& regularColor = m_colors[nElementIndex];

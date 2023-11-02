@@ -11,7 +11,8 @@ ListCtrl::ListCtrl():
     m_pDataView(nullptr),
     m_bEnableHeaderDragOrder(true),
     m_bCanUpdateHeaderCheckStatus(true),
-    m_bShowHeaderCtrl(true)
+    m_bShowHeaderCtrl(true),
+    m_bEnableRefresh(true)
 {
     m_pDataProvider = new ListCtrlDataProvider;
     m_nRowGridLineWidth = GlobalManager::Instance().Dpi().GetScaleInt(1);
@@ -166,9 +167,7 @@ void ListCtrl::SetRowGridLineWidth(int32_t nLineWidth, bool bNeedDpiScale)
         nLineWidth = 0;
     }
     m_nRowGridLineWidth = nLineWidth;
-    if (m_pDataView != nullptr) {
-        m_pDataView->Refresh();
-    }
+    Refresh();
 }
 
 int32_t ListCtrl::GetRowGridLineWidth() const
@@ -185,9 +184,7 @@ void ListCtrl::SetColumnGridLineWidth(int32_t nLineWidth, bool bNeedDpiScale)
         nLineWidth = 0;
     }
     m_nColumnGridLineWidth = nLineWidth;
-    if (m_pDataView != nullptr) {
-        m_pDataView->Refresh();
-    }
+    Refresh();
 }
 
 int32_t ListCtrl::GetColumnGridLineWidth() const
@@ -339,9 +336,7 @@ void ListCtrl::SetHeaderVisible(bool bVisible)
     if (m_pHeaderCtrl != nullptr) {
         m_pHeaderCtrl->SetVisible(bVisible);
     }
-    if (m_pDataView != nullptr) {
-        m_pDataView->Refresh();
-    }
+    Refresh();
 }
 
 bool ListCtrl::IsHeaderVisible() const
@@ -369,9 +364,7 @@ void ListCtrl::SetHeaderHeight(int32_t nHeaderHeight, bool bNeedDpiScale)
         m_pHeaderCtrl->SetFixedHeight(UiFixedInt(nHeaderHeight), true, false);
     }
     m_nHeaderHeight = nHeaderHeight;
-    if (m_pDataView != nullptr) {
-        m_pDataView->Refresh();
-    }
+    Refresh();
 }
 
 int32_t ListCtrl::GetHeaderHeight() const
@@ -396,9 +389,7 @@ void ListCtrl::SetDataItemHeight(int32_t nItemHeight, bool bNeedDpiScale)
         GlobalManager::Instance().Dpi().ScaleInt(nItemHeight);
     }
     m_nItemHeight = nItemHeight;
-    if (m_pDataView != nullptr) {
-        m_pDataView->Refresh();
-    }
+    Refresh();
 }
 
 int32_t ListCtrl::GetDataItemHeight() const
@@ -465,38 +456,25 @@ void ListCtrl::OnColumnSorted(size_t nColumnId, bool bSortedUp)
 {
     //对数据排序，然后刷新界面显示
     m_pDataProvider->SortDataItems(nColumnId, bSortedUp, nullptr, nullptr);
-
-    ASSERT(m_pDataView != nullptr);
-    if (m_pDataView != nullptr) {
-        m_pDataView->Refresh();
-    }
+    Refresh();
 }
 
 void ListCtrl::OnHeaderColumnOrderChanged()
 {
-    ASSERT(m_pDataView != nullptr);
-    if (m_pDataView != nullptr) {
-        m_pDataView->Refresh();
-    }
+    Refresh();
 }
 
 void ListCtrl::OnHeaderColumnCheckStateChanged(size_t nColumnId, bool bChecked)
 {
     m_bCanUpdateHeaderCheckStatus = false;
     m_pDataProvider->SetColumnCheck(nColumnId, bChecked);
-    ASSERT(m_pDataView != nullptr);
-    if (m_pDataView != nullptr) {
-        m_pDataView->Refresh();
-    }
+    Refresh();
     m_bCanUpdateHeaderCheckStatus = true;
 }
 
 void ListCtrl::OnHeaderColumnVisibleChanged()
 {
-    ASSERT(m_pDataView != nullptr);
-    if (m_pDataView != nullptr) {
-        m_pDataView->Refresh();
-    }
+    Refresh();
 }
 
 void ListCtrl::UpdateControlCheckStatus(size_t nColumnId)
@@ -600,6 +578,11 @@ bool ListCtrl::SetDataItem(size_t itemIndex, const ListCtrlDataItem& dataItem)
     return m_pDataProvider->SetDataItem(itemIndex, dataItem);
 }
 
+bool ListCtrl::GetDataItem(size_t itemIndex, size_t columnIndex, ListCtrlDataItem& dataItem) const
+{
+    return m_pDataProvider->GetDataItem(itemIndex, columnIndex, dataItem);
+}
+
 bool ListCtrl::DeleteDataItem(size_t itemIndex)
 {
     return m_pDataProvider->DeleteDataItem(itemIndex);
@@ -610,9 +593,84 @@ bool ListCtrl::DeleteAllDataItems()
     return m_pDataProvider->DeleteAllDataItems();
 }
 
+bool ListCtrl::SetDataItemRowData(size_t itemIndex, const ListCtrlRowData& itemData)
+{
+    bool bChanged = false;
+    bool bRet = m_pDataProvider->SetDataItemRowData(itemIndex, itemData, bChanged);
+    if (bChanged) {
+        Refresh();
+    }
+    return bRet;
+}
+
+bool ListCtrl::GetDataItemRowData(size_t itemIndex, ListCtrlRowData& itemData) const
+{
+    return m_pDataProvider->GetDataItemRowData(itemIndex, itemData);
+}
+
 bool ListCtrl::SetDataItemData(size_t itemIndex, size_t itemData)
 {
     return m_pDataProvider->SetDataItemData(itemIndex, itemData);
+}
+
+bool ListCtrl::SetDataItemVisible(size_t itemIndex, bool bVisible)
+{
+    bool bChanged = false;
+    bool bRet = m_pDataProvider->SetDataItemVisible(itemIndex, bVisible, bChanged);
+    if (bChanged) {
+        Refresh();
+    }
+    return bRet;
+}
+
+bool ListCtrl::IsDataItemVisible(size_t itemIndex) const
+{
+    return m_pDataProvider->IsDataItemVisible(itemIndex);
+}
+
+bool ListCtrl::SetDataItemSelected(size_t itemIndex, bool bSelected)
+{
+    bool bChanged = false;
+    bool bRet = m_pDataProvider->SetDataItemSelected(itemIndex, bSelected, bChanged);
+    if (bChanged) {
+        Refresh();
+    }
+    return bRet;
+}
+
+bool ListCtrl::IsDataItemSelected(size_t itemIndex) const
+{
+    return m_pDataProvider->IsDataItemSelected(itemIndex);
+}
+
+bool ListCtrl::SetDataItemAlwaysAtTop(size_t itemIndex, int8_t nAlwaysAtTop)
+{
+    bool bChanged = false;
+    bool bRet = m_pDataProvider->SetDataItemAlwaysAtTop(itemIndex, nAlwaysAtTop, bChanged);
+    if (bChanged) {
+        Refresh();
+    }
+    return bRet;
+}
+
+int8_t ListCtrl::GetDataItemAlwaysAtTop(size_t itemIndex) const
+{
+    return m_pDataProvider->GetDataItemAlwaysAtTop(itemIndex);
+}
+
+bool ListCtrl::SetDataItemHeight(size_t itemIndex, int32_t nItemHeight, bool bNeedDpiScale)
+{
+    bool bChanged = false;
+    bool bRet = m_pDataProvider->SetDataItemHeight(itemIndex, nItemHeight, bNeedDpiScale, bChanged);
+    if (bChanged) {
+        Refresh();
+    }
+    return bRet;
+}
+
+int32_t ListCtrl::GetDataItemHeight(size_t itemIndex) const
+{
+    return m_pDataProvider->GetDataItemHeight(itemIndex);
 }
 
 size_t ListCtrl::GetDataItemData(size_t itemIndex) const
@@ -635,9 +693,11 @@ bool ListCtrl::SetDataItemTextColor(size_t itemIndex, size_t columnIndex, const 
     return m_pDataProvider->SetDataItemTextColor(itemIndex, columnIndex, textColor);
 }
 
-bool ListCtrl::GetDataItemTextColor(size_t itemIndex, size_t columnIndex, UiColor& textColor) const
+UiColor ListCtrl::GetDataItemTextColor(size_t itemIndex, size_t columnIndex) const
 {
-    return m_pDataProvider->GetDataItemTextColor(itemIndex, columnIndex, textColor);
+    UiColor textColor;
+    m_pDataProvider->GetDataItemTextColor(itemIndex, columnIndex, textColor);
+    return textColor;
 }
 
 bool ListCtrl::SetDataItemBkColor(size_t itemIndex, size_t columnIndex, const UiColor& bkColor)
@@ -645,9 +705,11 @@ bool ListCtrl::SetDataItemBkColor(size_t itemIndex, size_t columnIndex, const Ui
     return m_pDataProvider->SetDataItemBkColor(itemIndex, columnIndex, bkColor);
 }
 
-bool ListCtrl::GetDataItemBkColor(size_t itemIndex, size_t columnIndex, UiColor& bkColor) const
+UiColor ListCtrl::GetDataItemBkColor(size_t itemIndex, size_t columnIndex) const
 {
-    return m_pDataProvider->GetDataItemBkColor(itemIndex, columnIndex, bkColor);
+    UiColor bkColor;
+    m_pDataProvider->GetDataItemBkColor(itemIndex, columnIndex, bkColor);
+    return bkColor;
 }
 
 bool ListCtrl::IsShowCheckBox(size_t itemIndex, size_t columnIndex) const
@@ -665,9 +727,11 @@ bool ListCtrl::SetCheckBoxSelect(size_t itemIndex, size_t columnIndex, bool bSel
     return m_pDataProvider->SetCheckBoxSelect(itemIndex, columnIndex, bSelected);
 }
 
-bool ListCtrl::GetCheckBoxSelect(size_t itemIndex, size_t columnIndex, bool& bSelected) const
+bool ListCtrl::IsCheckBoxSelect(size_t itemIndex, size_t columnIndex) const
 {
-    return m_pDataProvider->GetCheckBoxSelect(itemIndex, columnIndex, bSelected);
+    bool bSelected = false;
+    m_pDataProvider->GetCheckBoxSelect(itemIndex, columnIndex, bSelected);
+    return bSelected;
 }
 
 bool ListCtrl::SortDataItems(size_t columnIndex, bool bSortedUp, 
@@ -720,6 +784,27 @@ bool ListCtrl::EnsureDataItemVisible(size_t itemIndex, bool bToTop)
         bRet = m_pDataView->EnsureDataItemVisible(itemIndex, bToTop);
     }
     return bRet;
+}
+
+void ListCtrl::Refresh()
+{
+    if (m_bEnableRefresh) {
+        if (m_pDataView != nullptr) {
+            m_pDataView->Refresh();
+        }
+    }    
+}
+
+bool ListCtrl::SetEnableRefresh(bool bEnable)
+{
+    bool bOldEnable = m_bEnableRefresh;
+    m_bEnableRefresh = bEnable;
+    return bOldEnable;
+}
+
+bool ListCtrl::IsEnableRefresh() const
+{
+    return m_bEnableRefresh;
 }
 
 }//namespace ui

@@ -36,7 +36,7 @@ bool FileInfoList::FillElement(ui::Control* pControl, size_t nElementIndex)
     return true;
 }
 
-size_t FileInfoList::GetElementCount()
+size_t FileInfoList::GetElementCount() const
 {
     return m_pathList.size();
 }
@@ -46,7 +46,7 @@ void FileInfoList::SetElementSelected(size_t nElementIndex, bool bSelected)
 
 }
 
-bool FileInfoList::IsElementSelected(size_t nElementIndex)
+bool FileInfoList::IsElementSelected(size_t nElementIndex) const
 {
     return false;
 }

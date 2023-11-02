@@ -41,7 +41,7 @@ public:
     /** 获取数据项总数
     * @return 返回数据项总数
     */
-    virtual size_t GetElementCount() override;
+    virtual size_t GetElementCount() const override;
 
     /** 设置选择状态
     * @param [in] nElementIndex 数据元素的索引ID，范围：[0, GetElementCount())
@@ -53,7 +53,7 @@ public:
     * @param [in] nElementIndex 数据元素的索引ID，范围：[0, GetElementCount())
     * @return true表示选择状态，false表示非选择状态
     */
-    virtual bool IsElementSelected(size_t nElementIndex) override;
+    virtual bool IsElementSelected(size_t nElementIndex) const override;
 
 public:
     /** 用新的文件列表，替换原来的列表

@@ -23,6 +23,10 @@ public:
     */
     void SetListCtrl(ListCtrl* pListCtrl);
 
+    /** 刷新列表
+    */
+    virtual void Refresh() override;
+
     /** 获取列表控件的宽度（Header的各个列总宽度之和）
     */
     int32_t GetListCtrlWidth() const;
@@ -56,6 +60,62 @@ public:
     */
     bool EnsureDataItemVisible(size_t itemIndex, bool bToTop);
 
+public:
+    /** 得到可见范围内第一个元素的索引
+    * @param [in] nScrollPosY 当前Y滚动条的位置
+    * @return 返回元素的索引
+    */
+    size_t GetTopDataItemIndex(int64_t nScrollPosY) const;
+
+    /** 获取指定元素的高度（行高）
+    * @param [in] itemIndex 数据项的索引号
+    */
+    int32_t GetDataItemHeight(size_t itemIndex) const;
+
+    struct ShowItemInfo
+    {
+        size_t nItemIndex;      //元素索引
+        int32_t nItemHeight;    //元素的高度
+    };
+
+    /** 获取需要展示的数据：置顶的优先，并且按顺序
+    @param [in] nScrollPosY 当前Y滚动条的位置
+    @param [in] maxCount 最多取多少条记录(包含置顶和非置顶的)
+    @param [out] itemIndexList 返回需要展示的元素序号(非置顶的)
+    @param [out] atTopItemIndexList 返回需要展示的元素序号(置顶的)
+    */
+    void GetDataItemsToShow(int64_t nScrollPosY, size_t maxCount, 
+                            std::vector<ShowItemInfo>& itemIndexList,
+                            std::vector<ShowItemInfo>& atTopItemIndexList) const;
+
+    /** 获取指定高度的区域，最多可以展示多少条数据
+    @param [in] nScrollPosY 当前Y滚动条的位置
+    @param [in] nRectHeight 区域高度
+    @param [out] pItemIndexList 返回可以显示的元素序号
+    @return 返回可以展示的数据条数
+    */
+    int32_t GetMaxDataItemsToShow(int64_t nScrollPosY, int32_t nRectHeight, 
+                                  std::vector<size_t>* pItemIndexList = nullptr) const;
+
+    /** 获取指定元素的显示位置总高度值
+    * @param [in] itemIndex 数据项的索引号
+    * @return 显示位置总高度值，不包含该元素自身
+    */
+    int64_t GetDataItemTotalHeights(size_t itemIndex) const;
+
+public:
+    /** 是否为标准模式（行高都为默认行高，无隐藏行，无置顶行）
+    */
+    bool IsNormalMode() const;
+
+    /** 设置置顶的UI控件索引号
+    */
+    void SetAtTopControlIndex(const std::vector<size_t>& atTopControlList);
+
+    /** 调整UI控件个数，以确保足够显示出应显示的数据
+    */
+    void AjustItemCount();
+
 protected:
     /** 绘制子控件
     */
@@ -74,6 +134,13 @@ protected:
     virtual Control* FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, UiPoint scrollPos = UiPoint()) override;
 
 private:
+    /** 将header和置顶项放在最后
+    * @param [in,out] items 需要移动的控件列表
+    * @param [out] atTopItems 返回置顶的控件列表
+    */
+    void MoveTopItemsToLast(std::vector<Control*>& items, std::vector<Control*>& atTopItems) const;
+
+private:
     /** ListCtrl 控件接口
     */
     ListCtrl* m_pListCtrl;
@@ -85,6 +152,10 @@ private:
     /** 当前可见的元素列表
     */
     std::vector<size_t> m_diplayItemIndexList;
+
+    /** 置顶的UI控件索引号
+    */
+    std::vector<size_t> m_atTopControlList;
 };
 
 /** 列表数据显示控件的布局管理接口
@@ -92,6 +163,12 @@ private:
 class ListCtrlDataLayout : public Layout, public VirtualLayout
 {
 public:
+    ListCtrlDataLayout();
+
+    /** 布局类型
+    */
+    virtual LayoutType GetLayoutType() const { return LayoutType::ListCtrlReportLayout; }
+
     /** 调整内部所有控件的位置信息
         * @param [in] items 控件列表
         * @param[in] rc 当前容器位置信息, 包含内边距，但不包含外边距
@@ -112,8 +189,8 @@ public:
 
 public:
     /** 延迟加载展示数据
-        * @param [in] rc 当前容器大小信息, 外部调用时，需要先剪去内边距
-        */
+    * @param [in] rc 当前容器大小信息, 外部调用时，需要先剪去内边距
+    */
     virtual void LazyArrangeChild(UiRect rc) const override;
 
     /** 获取需要展示的真实数据项最大个数（即有Control对象对应的真实数据项）
@@ -151,10 +228,15 @@ public:
     */
     virtual void EnsureVisible(UiRect rc, size_t iIndex, bool bToTop) const override;
 
+public:
+    /** 设置关联的Box接口
+    */
+    void SetDataView(ListCtrlDataView* pDataView);
+
 private:
     /** 获取关联的Box接口
     */
-    ListCtrlDataView* GetOwnerBox() const;
+    ListCtrlDataView* GetDataView() const { return m_pDataView; }
 
     /** 获取数据项的高度, 高度不包含表头
     * @param [in] nCount 数据项个数，如果为Box::InvalidIndex，则获取所有数据项的高度总和
@@ -169,10 +251,6 @@ private:
     */
     UiSize GetElementSize(int32_t rcWidth, size_t nElementIndex) const;
 
-    /** 计算列数
-    */
-    int32_t CalcTileColumns() const;
-
     /** 获取行宽
     */
     int32_t GetItemWidth() const;
@@ -184,6 +262,24 @@ private:
     /** 获取表头控件的高度
     */
     int32_t GetHeaderHeight() const;
+
+    /** 延迟加载展示数据(常规模式，行高相同、无隐藏项、无置顶项)
+    * @param [in] rc 当前容器大小信息, 外部调用时，需要先剪去内边距
+    */
+    void LazyArrangeChildNormal(UiRect rc) const;
+
+private:
+    /** 关联的ListBox接口
+    */
+    ListCtrlDataView* m_pDataView;
+
+    /** 底部预留的空间，确保滚动到最底部的时候，最后一条数据容易看完整
+    */
+    int32_t m_nReserveHeight;
+
+    /** 是否设置了底部预留空间
+    */
+    bool m_bReserveSet;
 };
 
 }//namespace ui

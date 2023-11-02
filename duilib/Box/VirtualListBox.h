@@ -35,7 +35,7 @@ public:
     /** 获取数据项总数
     * @return 返回数据项总数
     */
-    virtual size_t GetElementCount() = 0;
+    virtual size_t GetElementCount() const = 0;
 
     /** 设置选择状态
     * @param [in] nElementIndex 数据元素的索引ID，范围：[0, GetElementCount())
@@ -47,7 +47,7 @@ public:
     * @param [in] nElementIndex 数据元素的索引ID，范围：[0, GetElementCount())
     * @return true表示选择状态，false表示非选择状态
     */
-    virtual bool IsElementSelected(size_t nElementIndex) = 0;
+    virtual bool IsElementSelected(size_t nElementIndex) const = 0;
 
 public:
     /** 注册事件通知回调
@@ -98,7 +98,7 @@ public:
 
     /** 获取数据代理对象
     */
-    VirtualListBoxElement* GetDataProvider();
+    VirtualListBoxElement* GetDataProvider() const;
 
     /** 是否含有数据代理对象接口
     */
@@ -106,7 +106,7 @@ public:
 
     /** 刷新列表
     */
-    void Refresh();
+    virtual void Refresh();
 
     /** 获取当前所有可见控件的数据元素索引
     * @param[out] collection 索引列表，范围是：[0, GetElementCount())
@@ -146,6 +146,10 @@ protected:
     /** 设置虚表布局接口
     */
     void SetVirtualLayout(VirtualLayout* pVirtualLayout);
+
+    /** 获取虚表布局接口
+    */
+    VirtualLayout* GetVirtualLayout() const;
 
     /** 执行了刷新操作, 界面的UI控件个数可能会发生变化
     */

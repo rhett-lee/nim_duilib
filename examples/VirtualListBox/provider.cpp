@@ -38,7 +38,7 @@ bool Provider::FillElement(ui::Control* pControl, size_t nElementIndex)
 	return true;
 }
 
-size_t Provider::GetElementCount()
+size_t Provider::GetElementCount() const
 {
 	// ¼ÓËø
 	nbase::NAutoLock auto_lock(&lock_);
@@ -53,7 +53,7 @@ void Provider::SetElementSelected(size_t nElementIndex, bool bSelected)
 	}
 }
 
-bool Provider::IsElementSelected(size_t nElementIndex)
+bool Provider::IsElementSelected(size_t nElementIndex) const
 {
 	nbase::NAutoLock auto_lock(&lock_);
 	bool bSelected = false;

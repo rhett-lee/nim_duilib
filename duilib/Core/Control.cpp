@@ -1821,6 +1821,9 @@ void Control::SetAttribute(const std::wstring& strName, const std::wstring& strV
 
 void Control::SetClass(const std::wstring& strClass)
 {
+	if (strClass.empty()) {
+		return;
+	}
 	std::list<std::wstring> splitList = StringHelper::Split(strClass, L" ");
 	for (auto it = splitList.begin(); it != splitList.end(); it++) {
 		std::wstring pDefaultAttributes = GlobalManager::Instance().GetClassAttributes((*it));

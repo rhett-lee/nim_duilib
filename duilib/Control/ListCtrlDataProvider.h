@@ -7,7 +7,7 @@
 
 namespace ui
 {
-/** 用于存储的数据结构
+/** 用于存储的数据结构(每<行,列>1条数据)
 */
 struct ListCtrlData
 {
@@ -17,24 +17,28 @@ struct ListCtrlData
     UiColor textColor;              //文本颜色
     UiColor bkColor;                //背景颜色
     bool bShowCheckBox = true;      //是否显示CheckBox
-    uint8_t nCheckBoxWidth = 0;     //CheckBox控件所占的宽度，仅当bShowCheckBox为true时有效
-    bool bSelected = false;         //是否处于选择状态（ListBoxItem按整行选中）
+    uint8_t nCheckBoxWidth = 0;     //CheckBox控件所占的宽度，仅当bShowCheckBox为true时有效    
     bool bChecked = false;          //是否处于勾选状态（CheckBox勾选状态）
-    size_t nItemData = 0;           //用户自定义数据
 
     //TODO: 待实现功能列表
-    //bool bVisible;                  //是否可见
-    //bool bAlwaysAtTop;              //置顶显示
     //int32_t nBkImageIndex = -1;     //背景图片资源索引号
     //Item的文本可以编辑
     //选择：单选，多选，整行选中，提供接口
     //事件响应：点击，右键等
-    //设置行高（最好支持每行的行高不同，Header的行高单独设置）
     //多视图的支持：Report，Icon等，类似与Windows资源管理器
     //数据类型的支持：比如整型，日期型，下拉表，字符串类型等
     //关联图片列表，图片列表需要单独实现
-    //表格Margin的支持
+};
 
+/** 行的属性数据结构(每行1条数据)
+*/
+struct ListCtrlRowData
+{
+    bool bVisible = true;           //是否可见
+    bool bSelected = false;         //是否处于选择状态
+    int8_t nAlwaysAtTop = -1;       //是否置顶显示, -1表示不置顶, 0 或者 正数表示置顶，数值越大优先级越高，优先显示在最上面
+    int16_t nItemHeight = -1;       //行的高度, -1表示使用ListCtrl设置的默认行高，为DPI自适应处理后的值
+    size_t nItemData = 0;           //用户自定义数据
 };
 
 /** 比较数据的附加信息
@@ -67,6 +71,7 @@ public:
     typedef std::shared_ptr<Storage> StoragePtr;
     typedef std::vector<StoragePtr> StoragePtrList;
     typedef std::unordered_map<size_t, StoragePtrList> StorageMap;
+    typedef std::vector<ListCtrlRowData> RowDataList;
 
 public:
     ListCtrlDataProvider();
@@ -85,7 +90,7 @@ public:
     /** 获取数据项总数
     * @return 返回数据项总数
     */
-    virtual size_t GetElementCount() override;
+    virtual size_t GetElementCount() const override;
 
     /** 设置选择状态
     * @param [in] nElementIndex 数据元素的索引ID，范围：[0, GetElementCount())
@@ -97,7 +102,7 @@ public:
     * @param [in] nElementIndex 数据元素的索引ID，范围：[0, GetElementCount())
     * @return true表示选择状态，false表示非选择状态
     */
-    virtual bool IsElementSelected(size_t nElementIndex) override;
+    virtual bool IsElementSelected(size_t nElementIndex) const override;
 
 public:
     /** 设置表头接口
@@ -141,11 +146,18 @@ public:
     */
     bool InsertDataItem(size_t itemIndex, const ListCtrlDataItem& dataItem);
 
-    /** 设置指定行的数据项
-    * @param [in] itemIndex 数据项的索引号
-    * @param [in] dataItem 数据项的内容
+    /** 设置指定<行,列>的数据项
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @param [in] dataItem 指定数据项的内容，列序号在dataItem.nColumnIndex中指定
     */
     bool SetDataItem(size_t itemIndex, const ListCtrlDataItem& dataItem);
+
+    /** 获取指定<行,列>的数据项
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
+    * @param [out] dataItem 指定数据项的内容
+    */
+    bool GetDataItem(size_t itemIndex, size_t columnIndex, ListCtrlDataItem& dataItem) const;
 
     /** 删除指定行的数据项
     * @param [in] itemIndex 数据项的索引号
@@ -155,6 +167,72 @@ public:
     /** 删除所有行的数据项
     */
     bool DeleteAllDataItems();
+
+    /** 设置数据项的行属性数据
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @param [in] itemData 关联的数据
+    * @param [out] bChanged 返回数据是否变化
+    */
+    bool SetDataItemRowData(size_t itemIndex, const ListCtrlRowData& itemData, bool& bChanged);
+
+    /** 获取数据项的行属性数据
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @param [in] itemData 关联的数据
+    */
+    bool GetDataItemRowData(size_t itemIndex, ListCtrlRowData& itemData) const;
+
+    /** 设置数据项的可见性
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @param [in] bVisible 是否可见
+    * @param [out] bChanged 返回数据是否变化
+    */
+    bool SetDataItemVisible(size_t itemIndex, bool bVisible, bool& bChanged);
+
+    /** 获取数据项的可见性
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @return 返回数据项关联的可见性
+    */
+    bool IsDataItemVisible(size_t itemIndex) const;
+
+    /** 设置数据项的选择属性
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @param [in] bSelected 是否选择状态
+    * @param [out] bChanged 返回数据是否变化
+    */
+    bool SetDataItemSelected(size_t itemIndex, bool bSelected, bool& bChanged);
+
+    /** 获取数据项的选择属性
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @return 返回数据项关联的选择状态
+    */
+    bool IsDataItemSelected(size_t itemIndex) const;
+
+    /** 设置数据项的置顶状态
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @param [in] nAlwaysAtTop 置顶状态，-1表示不置顶, 0 或者 正数表示置顶，数值越大优先级越高，优先显示在最上面
+    * @param [out] bChanged 返回数据是否变化
+    */
+    bool SetDataItemAlwaysAtTop(size_t itemIndex, int8_t nAlwaysAtTop, bool& bChanged);
+
+    /** 获取数据项的置顶状态
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @return 返回数据项关联的置顶状态，-1表示不置顶, 0 或者 正数表示置顶，数值越大优先级越高，优先显示在最上面
+    */
+    int8_t GetDataItemAlwaysAtTop(size_t itemIndex) const;
+
+    /** 设置数据项的行高
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @param [in] nItemHeight 行高, -1表示使用ListCtrl设置的默认行高，其他值表示本行的设置行高
+    * @param [in] bNeedDpiScale 如果为true表示需要对宽度进行DPI自适应
+    * @param [out] bChanged 返回数据是否变化
+    */
+    bool SetDataItemHeight(size_t itemIndex, int32_t nItemHeight, bool bNeedDpiScale, bool& bChanged);
+
+    /** 获取数据项的行高
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @return 返回数据项关联的行高, -1表示使用ListCtrl设置的默认行高，其他值表示本行的设置行高
+    */
+    int32_t GetDataItemHeight(size_t itemIndex) const;
 
     /** 设置数据项的自定义数据
     * @param [in] itemIndex 数据项的索引号
@@ -255,7 +333,11 @@ public:
 private:
     /** 数据转换为存储数据结构
     */
-    void DataItemToStorage(Storage& storage, const ListCtrlDataItem& item) const;
+    void DataItemToStorage(const ListCtrlDataItem& item, Storage& storage) const;
+
+    /** 存储数据转换为结构数据
+    */
+    void StorageToDataItem(const Storage& storage, ListCtrlDataItem& item) const;
 
     /** 根据列序号查找列ID
     * @return 返回列ID，如果匹配不到，则返回Box::InvalidIndex
@@ -310,6 +392,15 @@ private:
     */
     void UpdateControlCheckStatus(size_t nColumnId);
 
+public:
+    /** 获取行属性数据
+    */
+    const RowDataList& GetItemDataList() const;
+
+    /** 是否为标准模式（行高都为默认行高，无隐藏行，无置顶行）
+    */
+    bool IsNormalMode() const;
+
 private:
     /** 排序数据
     */
@@ -338,6 +429,10 @@ private:
     */
     bool SortDataCompareFunc(const ListCtrlData& a, const ListCtrlData& b) const;
 
+    /** 更新个性化数据（隐藏行、行高、置顶等）
+    */
+    void UpdateNormalMode();
+
 private:
     /** 表头控件
     */
@@ -347,6 +442,10 @@ private:
     */
     StorageMap m_dataMap;
 
+    /** 行的属性数据
+    */
+    RowDataList m_rowDataList;
+
     /** 外部设置的排序函数
     */
     ListCtrlDataCompareFunc m_pfnCompareFunc;
@@ -354,6 +453,18 @@ private:
     /** 外部设置的排序函数附加数据
     */
     void* m_pUserData;
+
+    /** 隐藏行的个数
+    */
+    int32_t m_hideRowCount;
+
+    /** 非默认行高行的个数
+    */
+    int32_t m_heightRowCount;
+
+    /** 置顶行的个数
+    */
+    int32_t m_atTopRowCount;
 };
 
 }//namespace ui

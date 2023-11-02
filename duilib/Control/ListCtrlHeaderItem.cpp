@@ -383,11 +383,17 @@ bool ListCtrlHeaderItem::SetCheckBoxSelect(bool bSelected, bool bPartSelect)
     if (GetItemCount() > 0) {
         CheckBox* pCheckBox = dynamic_cast<CheckBox*>(GetItemAt(0));
         if (pCheckBox != nullptr) {
+            bool bChanged = pCheckBox->IsSelected() != bSelected;
             pCheckBox->SetSelected(bSelected);
             if (bSelected) {
-                pCheckBox->SetPartSelected(bPartSelect);
+                if (pCheckBox->IsPartSelected() != bPartSelect) {
+                    pCheckBox->SetPartSelected(bPartSelect);
+                    bChanged = true;
+                }                
             }
-            pCheckBox->Invalidate();
+            if (bChanged) {
+                pCheckBox->Invalidate();
+            }            
             return true;
         }
     }

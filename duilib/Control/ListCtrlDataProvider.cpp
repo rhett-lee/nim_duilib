@@ -8,7 +8,10 @@ namespace ui
 ListCtrlDataProvider::ListCtrlDataProvider() :
     m_pListCtrl(nullptr),
     m_pfnCompareFunc(nullptr),
-    m_pUserData(nullptr)
+    m_pUserData(nullptr),
+    m_hideRowCount(0),
+    m_heightRowCount(0),
+    m_atTopRowCount(0)
 {
 }
 
@@ -18,13 +21,8 @@ Control* ListCtrlDataProvider::CreateElement()
     if (m_pListCtrl == nullptr) {
         return nullptr;
     }
-    std::wstring dataItemClass = m_pListCtrl->GetDataItemClass();
-    ASSERT(!dataItemClass.empty());
-    if (dataItemClass.empty()) {
-        return nullptr;
-    }
     ListCtrlItem* pItem = new ListCtrlItem;
-    pItem->SetClass(dataItemClass);
+    pItem->SetClass(m_pListCtrl->GetDataItemClass());
     return pItem;
 }
 
@@ -244,7 +242,7 @@ bool ListCtrlDataProvider::FillElement(ui::Control* pControl, size_t nElementInd
     return true;
 }
 
-size_t ListCtrlDataProvider::GetElementCount()
+size_t ListCtrlDataProvider::GetElementCount() const
 {
     return GetDataItemCount();
 }
@@ -255,35 +253,24 @@ void ListCtrlDataProvider::SetElementSelected(size_t nElementIndex, bool bSelect
         //如果选中的是Header，忽略
         return;
     }
-    StoragePtrList& storageList = m_dataMap[0];
-    ASSERT(nElementIndex < storageList.size());
-    if (nElementIndex < storageList.size()) {
-        StoragePtr pStorage = storageList.at(nElementIndex);
-        if (pStorage != nullptr) {
-            pStorage->bSelected = bSelected;
-        }
-        else {
-            pStorage = std::make_shared<Storage>();
-            pStorage->bSelected = bSelected;
-            storageList[nElementIndex] = pStorage;
-        }
+    ASSERT(nElementIndex < m_rowDataList.size());
+    if (nElementIndex < m_rowDataList.size()) {
+        ListCtrlRowData& rowData = m_rowDataList[nElementIndex];
+        rowData.bSelected = bSelected;
     }
 }
 
-bool ListCtrlDataProvider::IsElementSelected(size_t nElementIndex)
+bool ListCtrlDataProvider::IsElementSelected(size_t nElementIndex) const
 {
     if (nElementIndex == Box::InvalidIndex) {
         //如果选中的是Header，忽略
         return false;
     }
     bool bSelected = false;
-    const StoragePtrList& storageList = m_dataMap[0];
-    ASSERT(nElementIndex < storageList.size());
-    if (nElementIndex < storageList.size()) {
-        const StoragePtr pStorage = storageList.at(nElementIndex);
-        if (pStorage != nullptr) {
-            bSelected = pStorage->bSelected;
-        }        
+    ASSERT(nElementIndex < m_rowDataList.size());
+    if (nElementIndex < m_rowDataList.size()) {
+        const ListCtrlRowData& rowData = m_rowDataList[nElementIndex];
+        bSelected = rowData.bSelected;
     }
     return bSelected;
 }
@@ -293,7 +280,7 @@ void ListCtrlDataProvider::SetListCtrl(ListCtrl* pListCtrl)
     m_pListCtrl = pListCtrl;
 }
 
-void ListCtrlDataProvider::DataItemToStorage(Storage& storage, const ListCtrlDataItem& item) const
+void ListCtrlDataProvider::DataItemToStorage(const ListCtrlDataItem& item, Storage& storage) const
 {
     storage.text = item.text;
     if (item.nTextFormat >= 0) {
@@ -311,10 +298,23 @@ void ListCtrlDataProvider::DataItemToStorage(Storage& storage, const ListCtrlDat
     storage.bkColor = item.bkColor;
     storage.bShowCheckBox = item.bShowCheckBox;
     storage.nCheckBoxWidth = TruncateToUInt8(nCheckBoxWidth);
+}
 
-    storage.bSelected = false;
-    storage.bChecked = false;
-    storage.nItemData = 0;
+void ListCtrlDataProvider::StorageToDataItem(const Storage& storage, ListCtrlDataItem& item) const
+{
+    item.text = storage.text.c_str();
+    if (storage.nTextFormat == 0) {
+        item.nTextFormat = -1;
+    }
+    else {
+        item.nTextFormat = storage.nTextFormat;
+    }
+    item.bNeedDpiScale = false;
+    item.nCheckBoxWidth = storage.nCheckBoxWidth;    
+    item.nImageIndex = storage.nImageIndex;
+    item.textColor = storage.textColor;
+    item.bkColor = storage.bkColor;
+    item.bShowCheckBox = storage.bShowCheckBox;
 }
 
 size_t ListCtrlDataProvider::GetColumnId(size_t nColumnIndex) const
@@ -323,11 +323,11 @@ size_t ListCtrlDataProvider::GetColumnId(size_t nColumnIndex) const
     if (m_pListCtrl != nullptr) {
         pHeaderCtrl = m_pListCtrl->GetListCtrlHeader();
     }
+    size_t columnId = Box::InvalidIndex;
     ASSERT(pHeaderCtrl != nullptr);
-    if (pHeaderCtrl == nullptr) {
-        return Box::InvalidIndex;
-    }
-    size_t columnId = pHeaderCtrl->GetColumnId(nColumnIndex);
+    if (pHeaderCtrl != nullptr) {
+        columnId = pHeaderCtrl->GetColumnId(nColumnIndex);
+    }     
     return columnId;
 }
 
@@ -337,47 +337,22 @@ size_t ListCtrlDataProvider::GetColumnIndex(size_t nColumnId) const
     if (m_pListCtrl != nullptr) {
         pHeaderCtrl = m_pListCtrl->GetListCtrlHeader();
     }
+    size_t columnIndex = Box::InvalidIndex;
     ASSERT(pHeaderCtrl != nullptr);
-    if (pHeaderCtrl == nullptr) {
-        return Box::InvalidIndex;
+    if (pHeaderCtrl != nullptr) {
+        columnIndex = pHeaderCtrl->GetColumnIndex(nColumnId);
     }
-    size_t columnIndex = pHeaderCtrl->GetColumnIndex(nColumnId);
     return columnIndex;
 }
 
 bool ListCtrlDataProvider::IsValidDataItemIndex(size_t itemIndex) const
 {
-    if (itemIndex == Box::InvalidIndex) {
-        return false;
-    }
-    if (m_dataMap.empty()) {
-        return false;
-    }
-    bool bValidItemIndex = true;
-    for (auto iter = m_dataMap.begin(); iter != m_dataMap.end(); ++iter) {
-        const StoragePtrList& storageList = iter->second;
-        if (itemIndex >= storageList.size()) {
-            bValidItemIndex = false;
-            break;
-        }
-    }
-    return bValidItemIndex;
+    return itemIndex < m_rowDataList.size();
 }
 
 bool ListCtrlDataProvider::IsValidDataColumnId(size_t nColumnId) const
 {
-    bool bValidColumnId = false;
-    if (nColumnId == Box::InvalidIndex) {
-        return false;
-    }
-    for (auto iter = m_dataMap.begin(); iter != m_dataMap.end(); ++iter) {
-        size_t id = iter->first;
-        if (id == nColumnId) {
-            bValidColumnId = true;
-            break;
-        }
-    }
-    return bValidColumnId;
+    return m_dataMap.find(nColumnId) != m_dataMap.end();
 }
 
 bool ListCtrlDataProvider::AddColumn(size_t columnId)
@@ -387,32 +362,23 @@ bool ListCtrlDataProvider::AddColumn(size_t columnId)
         return false;
     }
     StoragePtrList& storageList = m_dataMap[columnId];
-    auto iter = m_dataMap.find(0);
-    if (iter != m_dataMap.end()) {
-        //保持数据行数相同
-        storageList.resize(iter->second.size());
-    }
-    else {
-        m_dataMap[0].resize(storageList.size());
-    }
+    //列的长度与行保持一致
+    storageList.resize(m_rowDataList.size());
     EmitCountChanged();
     return true;
 }
 
 bool ListCtrlDataProvider::RemoveColumn(size_t columnId)
 {
-    ASSERT((columnId != Box::InvalidIndex) && (columnId != 0));
-    if ((columnId == Box::InvalidIndex) || (columnId == 0)) {
-        return false;
-    }
     auto iter = m_dataMap.find(columnId);
     if (iter != m_dataMap.end()) {
         m_dataMap.erase(iter);
-        if (m_dataMap.size() == 1) {
-            iter = m_dataMap.find(0);
-            if (iter != m_dataMap.end()) {
-                m_dataMap.erase(iter);
-            }
+        if (m_dataMap.empty()) {
+            //如果所有列都删除了，行也清空为0
+            m_rowDataList.clear();
+            m_hideRowCount = 0;
+            m_heightRowCount = 0;
+            m_atTopRowCount = 0;
         }
         EmitCountChanged();
         return true;
@@ -422,20 +388,21 @@ bool ListCtrlDataProvider::RemoveColumn(size_t columnId)
 
 bool ListCtrlDataProvider::SetColumnCheck(size_t columnId, bool bChecked)
 {
-    ASSERT((columnId != Box::InvalidIndex) && (columnId != 0));
-    if ((columnId == Box::InvalidIndex) || (columnId == 0)) {
-        return false;
-    }
+    bool bRet = false;
     auto iter = m_dataMap.find(columnId);
+    ASSERT(iter != m_dataMap.end());
     if (iter != m_dataMap.end()) {
         StoragePtrList& storageList = iter->second;
-        for (StoragePtr pStorage : storageList) {
-            if (pStorage != nullptr) {
-                pStorage->bChecked = bChecked;
+        const size_t nCount = storageList.size();
+        for (size_t index = 0; index < nCount; ++index) {
+            if (storageList[index] == nullptr) {
+                storageList[index] = std::make_shared<Storage>();
             }
+            storageList[index]->bChecked = bChecked;
         }
+        bRet = true;
     }
-    return true;
+    return bRet;
 }
 
 ListCtrlDataProvider::StoragePtr ListCtrlDataProvider::GetDataItemStorage(
@@ -446,21 +413,16 @@ ListCtrlDataProvider::StoragePtr ListCtrlDataProvider::GetDataItemStorage(
         //索引号无效
         return nullptr;
     }
-    size_t columnId = GetColumnId(columnIndex);
-    ASSERT(IsValidDataColumnId(columnId));
-    if (!IsValidDataColumnId(columnId)) {
-        return nullptr;
-    }
     StoragePtr pStorage;
-    for (auto iter = m_dataMap.begin(); iter != m_dataMap.end(); ++iter) {
-        size_t id = iter->first;
-        if (id == columnId) {
-            const StoragePtrList& storageList = iter->second;
-            if (itemIndex < storageList.size()) {
-                //关联列：获取数据
-                pStorage = storageList.at(itemIndex);
-            }
-            break;
+    size_t columnId = GetColumnId(columnIndex);
+    auto iter = m_dataMap.find(columnId);
+    ASSERT(iter != m_dataMap.end());
+    if (iter != m_dataMap.end()) {
+        const StoragePtrList& storageList = iter->second;
+        ASSERT(itemIndex < storageList.size());
+        if (itemIndex < storageList.size()) {
+            //关联列：获取数据
+            pStorage = storageList[itemIndex];
         }
     }
     return pStorage;
@@ -474,26 +436,20 @@ ListCtrlDataProvider::StoragePtr ListCtrlDataProvider::GetDataItemStorageForWrit
         //索引号无效
         return nullptr;
     }
-    size_t columnId = GetColumnId(columnIndex);
-    ASSERT(IsValidDataColumnId(columnId));
-    if (!IsValidDataColumnId(columnId)) {
-        return nullptr;
-    }
-
     StoragePtr pStorage;
-    for (auto iter = m_dataMap.begin(); iter != m_dataMap.end(); ++iter) {
-        size_t id = iter->first;
-        if (id == columnId) {
-            StoragePtrList& storageList = iter->second;
-            if (itemIndex < storageList.size()) {
-                //关联列：获取可更新数据
-                pStorage = storageList.at(itemIndex);
-                if (pStorage == nullptr) {
-                    pStorage = std::make_shared<Storage>();
-                    storageList[itemIndex] = pStorage;
-                }
+    size_t columnId = GetColumnId(columnIndex);
+    auto iter = m_dataMap.find(columnId);
+    ASSERT(iter != m_dataMap.end());
+    if (iter != m_dataMap.end()) {
+        StoragePtrList& storageList = iter->second;
+        ASSERT(itemIndex < storageList.size());
+        if (itemIndex < storageList.size()) {
+            //关联列：获取数据
+            pStorage = storageList[itemIndex];
+            if (pStorage == nullptr) {
+                pStorage = std::make_shared<Storage>();
+                storageList[itemIndex] = pStorage;
             }
-            break;
         }
     }
     return pStorage;
@@ -508,8 +464,8 @@ bool ListCtrlDataProvider::GetDataItemStorageList(size_t nDataItemIndex, std::ve
         return false;
     }
     for (size_t nColumnId : columnIdList) {
-        auto iter = m_dataMap.find(nColumnId);
         StoragePtr pStorage;
+        auto iter = m_dataMap.find(nColumnId);        
         if (iter != m_dataMap.end()) {
             const StoragePtrList& dataList = iter->second;
             if (nDataItemIndex < dataList.size()) {
@@ -523,12 +479,17 @@ bool ListCtrlDataProvider::GetDataItemStorageList(size_t nDataItemIndex, std::ve
 
 void ListCtrlDataProvider::OnDataItemChecked(size_t itemIndex, size_t nColumnId, bool bChecked)
 {
-    auto iter = m_dataMap.find(nColumnId);
     StoragePtr pStorage;
+    auto iter = m_dataMap.find(nColumnId);    
     if (iter != m_dataMap.end()) {
-        const StoragePtrList& dataList = iter->second;
+        StoragePtrList& dataList = iter->second;
+        ASSERT(itemIndex < dataList.size());
         if (itemIndex < dataList.size()) {
             pStorage = dataList.at(itemIndex);
+            if (pStorage == nullptr) {
+                pStorage = std::make_shared<Storage>();
+                dataList[itemIndex] = pStorage;
+            }
         }
     }
     if (pStorage != nullptr) {
@@ -547,19 +508,26 @@ void ListCtrlDataProvider::UpdateControlCheckStatus(size_t nColumnId)
     }
 }
 
+const ListCtrlDataProvider::RowDataList& ListCtrlDataProvider::GetItemDataList() const
+{
+    return m_rowDataList;
+}
+
+bool ListCtrlDataProvider::IsNormalMode() const
+{
+    ASSERT((m_hideRowCount >= 0) && (m_heightRowCount >= 0) && (m_atTopRowCount >= 0));
+    return (m_hideRowCount == 0) && (m_heightRowCount == 0) && (m_atTopRowCount == 0);
+}
+
 size_t ListCtrlDataProvider::GetDataItemCount() const
 {
-    size_t nDataCount = 0;
-    if (!m_dataMap.empty()) {        
-        auto iter = m_dataMap.begin();
-        for (; iter != m_dataMap.end(); ++iter) {
-            if (!iter->second.empty()) {
-                ASSERT((nDataCount == 0) || (nDataCount == iter->second.size()));
-                nDataCount = std::max(nDataCount, iter->second.size());
-            }
-        }
+#ifdef _DEBUG
+    auto iter = m_dataMap.begin();
+    for (; iter != m_dataMap.end(); ++iter) {
+        ASSERT(iter->second.size() == m_rowDataList.size());
     }
-    return nDataCount;
+#endif
+    return m_rowDataList.size();
 }
 
 bool ListCtrlDataProvider::SetDataItemCount(size_t itemCount)
@@ -568,18 +536,41 @@ bool ListCtrlDataProvider::SetDataItemCount(size_t itemCount)
     if (itemCount == Box::InvalidIndex) {
         return false;
     }
-    if (m_dataMap.empty()) {
-        m_dataMap[0].resize(itemCount);
+    if (itemCount == m_rowDataList.size()) {
+        //没有变化
+        return true;
     }
-    else {
-        m_dataMap[0].resize(itemCount);
-        auto iter = m_dataMap.begin();
-        for (; iter != m_dataMap.end(); ++iter) {
-            iter->second.resize(itemCount);
+    size_t nOldCount = m_rowDataList.size();
+    m_rowDataList.resize(itemCount);    
+    for (auto iter = m_dataMap.begin(); iter != m_dataMap.end(); ++iter) {
+        iter->second.resize(itemCount);
+    }
+    if (itemCount < nOldCount) {
+        //行数变少了
+        if ((m_hideRowCount != 0) || (m_heightRowCount != 0) || (m_atTopRowCount != 0)) {
+            UpdateNormalMode();
         }
     }
     EmitCountChanged();
     return true;
+}
+
+void ListCtrlDataProvider::UpdateNormalMode()
+{
+    m_hideRowCount = 0;
+    m_heightRowCount = 0;
+    m_atTopRowCount = 0;
+    for (const ListCtrlRowData& data : m_rowDataList) {
+        if (!data.bVisible) {
+            m_hideRowCount += 1;
+        }
+        if (data.nItemHeight >= 0) {
+            m_heightRowCount += 1;
+        }
+        if (data.nAlwaysAtTop >= 0) {
+            m_atTopRowCount += 1;
+        }
+    }
 }
 
 size_t ListCtrlDataProvider::AddDataItem(const ListCtrlDataItem& dataItem)
@@ -589,29 +580,27 @@ size_t ListCtrlDataProvider::AddDataItem(const ListCtrlDataItem& dataItem)
     if (!IsValidDataColumnId(columnId)) {
         return Box::InvalidIndex;
     }
-    ASSERT(!m_dataMap.empty());
-    ASSERT(m_dataMap.find(0) != m_dataMap.end());
-    ASSERT(m_dataMap.find(columnId) != m_dataMap.end());
 
     Storage storage;
-    DataItemToStorage(storage, dataItem);
+    DataItemToStorage(dataItem, storage);
 
     size_t nDataItemIndex = Box::InvalidIndex;
     for (auto iter = m_dataMap.begin(); iter != m_dataMap.end(); ++iter) {
         size_t id = iter->first;
         StoragePtrList& storageList = iter->second;
-        if ((id == 0) || (id == columnId)) {
+        if (id == columnId) {
             //关联列：保存数据
             storageList.push_back(std::make_shared<Storage>(storage));
-            if (id == columnId) {
-                nDataItemIndex = storageList.size();
-            }
+            nDataItemIndex = storageList.size() - 1;
         }
         else {
             //其他列：插入空数据
             storageList.push_back(nullptr);
         }
     }
+
+    //行数据，插入1条数据
+    m_rowDataList.push_back(ListCtrlRowData());
 
     EmitCountChanged();
     return nDataItemIndex;
@@ -631,12 +620,12 @@ bool ListCtrlDataProvider::InsertDataItem(size_t itemIndex, const ListCtrlDataIt
     }
 
     Storage storage;
-    DataItemToStorage(storage, dataItem);
+    DataItemToStorage(dataItem, storage);
 
     for (auto iter = m_dataMap.begin(); iter != m_dataMap.end(); ++iter) {
         size_t id = iter->first;
         StoragePtrList& storageList = iter->second;
-        if ((id == 0) || (id == columnId)) {
+        if (id == columnId) {
             //关联列：保存数据
             storageList.insert(storageList.begin() + itemIndex, std::make_shared<Storage>(storage));
         }
@@ -646,32 +635,28 @@ bool ListCtrlDataProvider::InsertDataItem(size_t itemIndex, const ListCtrlDataIt
         }
     }
 
+    //行数据，插入1条数据
+    ASSERT(itemIndex < m_rowDataList.size());
+    m_rowDataList.insert(m_rowDataList.begin() + itemIndex, ListCtrlRowData());
+
     EmitCountChanged();
     return true;
 }
 
 bool ListCtrlDataProvider::SetDataItem(size_t itemIndex, const ListCtrlDataItem& dataItem)
 {
-    size_t columnId = GetColumnId(dataItem.nColumnIndex);
-    ASSERT(IsValidDataColumnId(columnId));
-    if (!IsValidDataColumnId(columnId)) {
-        return false;
-    }
-
-    ASSERT(IsValidDataItemIndex(itemIndex));
-    if (!IsValidDataItemIndex(itemIndex)) {
-        //索引号无效
-        return false;
-    }
-
     Storage storage;
-    DataItemToStorage(storage, dataItem);
+    DataItemToStorage(dataItem, storage);
 
-    for (auto iter = m_dataMap.begin(); iter != m_dataMap.end(); ++iter) {
-        size_t id = iter->first;        
-        if (id == columnId) {
-            StoragePtrList& storageList = iter->second;
-            //关联列：更新数据
+    bool bRet = false;
+    size_t columnId = GetColumnId(dataItem.nColumnIndex);
+    auto iter = m_dataMap.find(columnId);
+    ASSERT(iter != m_dataMap.end());
+    if (iter != m_dataMap.end()) {
+        //关联列：更新数据
+        StoragePtrList& storageList = iter->second;
+        ASSERT(itemIndex < storageList.size());
+        if (itemIndex < storageList.size()) {
             StoragePtr pStorage = storageList[itemIndex];
             if (pStorage == nullptr) {
                 storageList[itemIndex] = std::make_shared<Storage>(storage);
@@ -679,35 +664,72 @@ bool ListCtrlDataProvider::SetDataItem(size_t itemIndex, const ListCtrlDataItem&
             else {
                 *pStorage = storage;
             }
-            break;
+            bRet = true;
         }
     }
 
-    EmitDataChanged(itemIndex, itemIndex);
-    return true;
+    if (bRet) {
+        EmitDataChanged(itemIndex, itemIndex);
+    }    
+    return bRet;
+}
+
+bool ListCtrlDataProvider::GetDataItem(size_t itemIndex, size_t columnIndex, ListCtrlDataItem& dataItem) const
+{
+    dataItem = ListCtrlDataItem();
+    dataItem.nColumnIndex = columnIndex;
+
+    bool bRet = false;
+    size_t columnId = GetColumnId(columnIndex);
+    auto iter = m_dataMap.find(columnId);
+    ASSERT(iter != m_dataMap.end());
+    if (iter != m_dataMap.end()) {
+        const StoragePtrList& storageList = iter->second;
+        ASSERT(itemIndex < storageList.size());
+        if (itemIndex < storageList.size()) {
+            StoragePtr pStorage = storageList[itemIndex];
+            if (pStorage != nullptr) {
+                StorageToDataItem(*pStorage, dataItem);
+            }
+            bRet = true;
+        }
+    }
+    return bRet;
 }
 
 bool ListCtrlDataProvider::DeleteDataItem(size_t itemIndex)
 {
-    ASSERT(IsValidDataItemIndex(itemIndex));
     if (!IsValidDataItemIndex(itemIndex)) {
         //索引号无效
         return false;
     }
 
-    bool bDeleted = false;
     for (auto iter = m_dataMap.begin(); iter != m_dataMap.end(); ++iter) {
         StoragePtrList& storageList = iter->second;
         if (itemIndex < storageList.size()) {
             storageList.erase(storageList.begin() + itemIndex);
-            bDeleted = true;
         }
     }
 
-    if (bDeleted) {
-        EmitCountChanged();
-    }    
-    return bDeleted;
+    //删除一行
+    if (itemIndex < m_rowDataList.size()) {
+        ListCtrlRowData oldData = m_rowDataList[itemIndex];
+        m_rowDataList.erase(m_rowDataList.begin() + itemIndex);
+        if (!oldData.bVisible) {
+            m_hideRowCount -= 1;
+            ASSERT(m_hideRowCount >= 0);
+        }
+        if (oldData.nItemHeight >= 0) {
+            m_heightRowCount -= 1;
+            ASSERT(m_heightRowCount >= 0);
+        }
+        if (oldData.nAlwaysAtTop >= 0) {
+            m_atTopRowCount -= 1;
+            ASSERT(m_atTopRowCount >= 0);
+        }
+    }
+    EmitCountChanged();
+    return true;
 }
 
 bool ListCtrlDataProvider::DeleteAllDataItems()
@@ -721,50 +743,259 @@ bool ListCtrlDataProvider::DeleteAllDataItems()
         StoragePtrList emptyList;
         storageList.swap(emptyList);
     }
+    //清空行数据
+    if (!m_rowDataList.empty()) {
+        bDeleted = true;
+    }
+    m_rowDataList.clear();
+    m_hideRowCount = 0;
+    m_heightRowCount = 0;
+    m_atTopRowCount = 0;
+
     if (bDeleted) {
         EmitCountChanged();
     }
     return bDeleted;
 }
 
+bool ListCtrlDataProvider::SetDataItemRowData(size_t itemIndex, const ListCtrlRowData& itemData, bool& bChanged)
+{
+    bChanged = false;
+    bool bRet = false;
+    ASSERT(itemIndex < m_rowDataList.size());
+    if (itemIndex < m_rowDataList.size()) {
+        const ListCtrlRowData oldItemData = m_rowDataList[itemIndex];
+        m_rowDataList[itemIndex] = itemData;
+        if (m_pListCtrl != nullptr) {
+            if (m_pListCtrl->GetDataItemHeight() == m_rowDataList[itemIndex].nItemHeight) {
+                //如果等于默认高度，则设置为标志值
+                m_rowDataList[itemIndex].nItemHeight = -1;
+            }
+        }
+        const ListCtrlRowData& newItemData = m_rowDataList[itemIndex];
+        if (newItemData.bSelected != oldItemData.bSelected) {
+            bChanged = true;
+        }
+        else if (newItemData.bVisible != oldItemData.bVisible) {
+            bChanged = true;
+        }
+        else if (newItemData.nAlwaysAtTop != oldItemData.nAlwaysAtTop) {
+            bChanged = true;
+        }
+        else if (newItemData.nItemHeight != oldItemData.nItemHeight) {
+            bChanged = true;
+        }
+        else if (newItemData.nItemData != oldItemData.nItemData) {
+            bChanged = true;
+        }
+
+        //更新计数
+        if (!oldItemData.bVisible && newItemData.bVisible) {
+            m_hideRowCount -= 1;            
+        }
+        else if (oldItemData.bVisible && !newItemData.bVisible) {
+            m_hideRowCount += 1;
+        }
+        ASSERT(m_hideRowCount >= 0);
+
+        if ((oldItemData.nItemHeight >= 0) && (newItemData.nItemHeight < 0)) {
+            m_heightRowCount -= 1;
+        }
+        else if ((oldItemData.nItemHeight < 0) && (newItemData.nItemHeight >= 0)) {
+            m_heightRowCount += 1;
+        }
+        ASSERT(m_heightRowCount >= 0);
+
+        if ((oldItemData.nAlwaysAtTop >= 0) && (newItemData.nAlwaysAtTop < 0)) {
+            m_atTopRowCount -= 1;
+        }
+        else if ((oldItemData.nAlwaysAtTop < 0) && (newItemData.nAlwaysAtTop >= 0)) {
+            m_atTopRowCount += 1;
+        }
+        ASSERT(m_atTopRowCount >= 0);
+        bRet = true;
+    }
+    return bRet;
+}
+
+bool ListCtrlDataProvider::GetDataItemRowData(size_t itemIndex, ListCtrlRowData& itemData) const
+{
+    bool bRet = false;
+    itemData = ListCtrlRowData();
+    ASSERT(itemIndex < m_rowDataList.size());
+    if (itemIndex < m_rowDataList.size()) {
+        itemData = m_rowDataList[itemIndex];
+        bRet = true;
+    }
+    return bRet;
+}
+
+bool ListCtrlDataProvider::SetDataItemVisible(size_t itemIndex, bool bVisible, bool& bChanged)
+{
+    bChanged = false;
+    bool bRet = false;
+    ASSERT(itemIndex < m_rowDataList.size());
+    if (itemIndex < m_rowDataList.size()) {        
+        ListCtrlRowData& rowData = m_rowDataList[itemIndex];
+        bool bOldVisible = rowData.bVisible;
+        bChanged = rowData.bVisible != bVisible;
+        rowData.bVisible = bVisible;
+
+        if (!bOldVisible && bVisible) {
+            m_hideRowCount -= 1;
+        }
+        else if (bOldVisible && !bVisible) {
+            m_hideRowCount += 1;
+        }
+        ASSERT(m_hideRowCount >= 0);
+        bRet = true;
+    } 
+
+    //不刷新，由外部判断是否需要刷新
+    return bRet;
+}
+
+bool ListCtrlDataProvider::IsDataItemVisible(size_t itemIndex) const
+{
+    bool bValue = false;
+    ASSERT(itemIndex < m_rowDataList.size());
+    if (itemIndex < m_rowDataList.size()) {
+        const ListCtrlRowData& rowData = m_rowDataList[itemIndex];
+        bValue = rowData.bVisible;
+    }
+    return bValue;
+}
+
+bool ListCtrlDataProvider::SetDataItemSelected(size_t itemIndex, bool bSelected, bool& bChanged)
+{
+    bChanged = false;
+    bool bRet = false;
+    ASSERT(itemIndex < m_rowDataList.size());
+    if (itemIndex < m_rowDataList.size()) {
+        ListCtrlRowData& rowData = m_rowDataList[itemIndex];
+        bChanged = rowData.bSelected != bSelected;
+        rowData.bSelected = bSelected;
+        bRet = true;
+    }
+    //不刷新，由外部判断是否需要刷新
+    return bRet;
+}
+
+bool ListCtrlDataProvider::IsDataItemSelected(size_t itemIndex) const
+{
+    bool bValue = false;
+    ASSERT(itemIndex < m_rowDataList.size());
+    if (itemIndex < m_rowDataList.size()) {
+        const ListCtrlRowData& rowData = m_rowDataList[itemIndex];
+        bValue = rowData.bSelected;
+    }
+    return bValue;
+}
+
+bool ListCtrlDataProvider::SetDataItemAlwaysAtTop(size_t itemIndex, int8_t nAlwaysAtTop, bool& bChanged)
+{
+    bChanged = false;
+    bool bRet = false;
+    ASSERT(itemIndex < m_rowDataList.size());
+    if (itemIndex < m_rowDataList.size()) {
+        ListCtrlRowData& rowData = m_rowDataList[itemIndex];
+        int8_t nOldAlwaysAtTop = rowData.nAlwaysAtTop;
+        bChanged = rowData.nAlwaysAtTop != nAlwaysAtTop;
+        rowData.nAlwaysAtTop = nAlwaysAtTop;
+        if ((nOldAlwaysAtTop >= 0) && (nAlwaysAtTop < 0)) {
+            m_atTopRowCount -= 1;
+        }
+        else if ((nOldAlwaysAtTop < 0) && (nAlwaysAtTop >= 0)) {
+            m_atTopRowCount += 1;
+        }
+        ASSERT(m_atTopRowCount >= 0);
+        bRet = true;
+    }
+    //不刷新，由外部判断是否需要刷新
+    return bRet;
+}
+
+int8_t ListCtrlDataProvider::GetDataItemAlwaysAtTop(size_t itemIndex) const
+{
+    int8_t nValue = -1;
+    ASSERT(itemIndex < m_rowDataList.size());
+    if (itemIndex < m_rowDataList.size()) {
+        const ListCtrlRowData& rowData = m_rowDataList[itemIndex];
+        nValue = rowData.nAlwaysAtTop;
+    }
+    return nValue;
+}
+
+bool ListCtrlDataProvider::SetDataItemHeight(size_t itemIndex, int32_t nItemHeight, bool bNeedDpiScale, bool& bChanged)
+{
+    bChanged = false;
+    if (nItemHeight < 0) {
+        nItemHeight = -1;
+    }
+    if (bNeedDpiScale && (nItemHeight > 0)) {
+        GlobalManager::Instance().Dpi().ScaleInt(nItemHeight);
+    }
+    if (m_pListCtrl != nullptr) {
+        if (m_pListCtrl->GetDataItemHeight() == nItemHeight) {
+            //如果等于默认高度，则设置为标志值
+            nItemHeight = -1;
+        }
+    }
+    bool bRet = false;
+    ASSERT(itemIndex < m_rowDataList.size());
+    if (itemIndex < m_rowDataList.size()) {
+        ListCtrlRowData& rowData = m_rowDataList[itemIndex];
+        int16_t nOldItemHeight = rowData.nItemHeight;
+        bChanged = rowData.nItemHeight != nItemHeight;
+        ASSERT(nItemHeight <= INT16_MAX);
+        rowData.nItemHeight = (int16_t)nItemHeight;
+        if ((nOldItemHeight >= 0) && (nItemHeight < 0)) {
+            m_heightRowCount -= 1;
+        }
+        else if ((nOldItemHeight < 0) && (nItemHeight >= 0)) {
+            m_heightRowCount += 1;
+        }
+        ASSERT(m_heightRowCount >= 0);
+        bRet = true;
+    }
+    //不刷新，由外部判断是否需要刷新
+    return bRet;
+}
+
+int32_t ListCtrlDataProvider::GetDataItemHeight(size_t itemIndex) const
+{
+    int32_t nValue = 0;
+    ASSERT(itemIndex < m_rowDataList.size());
+    if (itemIndex < m_rowDataList.size()) {
+        const ListCtrlRowData& rowData = m_rowDataList[itemIndex];
+        nValue = rowData.nItemHeight;
+        if ((nValue < 0) && (m_pListCtrl != nullptr)) {
+            //取默认高度
+            nValue = m_pListCtrl->GetDataItemHeight();
+        }
+    }
+    return nValue;
+}
+
 bool ListCtrlDataProvider::SetDataItemData(size_t itemIndex, size_t itemData)
 {
-    ASSERT(IsValidDataItemIndex(itemIndex));
-    if (!IsValidDataItemIndex(itemIndex)) {
-        //索引号无效
-        return false;
+    bool bRet = false;
+    ASSERT(itemIndex < m_rowDataList.size());
+    if (itemIndex < m_rowDataList.size()) {
+        ListCtrlRowData& rowData = m_rowDataList[itemIndex];
+        rowData.nItemData = itemData;
+        bRet = true;
     }
-
-    StoragePtrList& storageList = m_dataMap[0];
-    if (itemIndex < storageList.size()) {
-        StoragePtr pStorage = storageList[itemIndex];
-        if (pStorage == nullptr) {
-            pStorage = std::make_shared<Storage>();
-            storageList[itemIndex] = pStorage;
-        }
-        pStorage->nItemData = itemData;
-        return true;
-    }
-    return false;
+    return bRet;
 }
 
 size_t ListCtrlDataProvider::GetDataItemData(size_t itemIndex) const
 {
-    ASSERT(IsValidDataItemIndex(itemIndex));
-    if (!IsValidDataItemIndex(itemIndex)) {
-        //索引号无效
-        return 0;
-    }
     size_t nItemData = 0;
-    auto iter = m_dataMap.find(0);
-    if (iter != m_dataMap.end()) {
-        const StoragePtrList& storageList = iter->second;
-        if (itemIndex < storageList.size()) {
-            StoragePtr pStorage = storageList[itemIndex];
-            if (pStorage != nullptr) {
-                nItemData = pStorage->nItemData;
-            }
-        }
+    ASSERT(itemIndex < m_rowDataList.size());
+    if (itemIndex < m_rowDataList.size()) {
+        const ListCtrlRowData& rowData = m_rowDataList[itemIndex];
+        nItemData = rowData.nItemData;
     }
     return nItemData;
 }
@@ -812,6 +1043,7 @@ bool ListCtrlDataProvider::SetDataItemTextColor(size_t itemIndex, size_t columnI
 
 bool ListCtrlDataProvider::GetDataItemTextColor(size_t itemIndex, size_t columnIndex, UiColor& textColor) const
 {
+    textColor = UiColor();
     StoragePtr pStorage = GetDataItemStorage(itemIndex, columnIndex);
     ASSERT(pStorage != nullptr);
     if (pStorage == nullptr) {
@@ -839,6 +1071,7 @@ bool ListCtrlDataProvider::SetDataItemBkColor(size_t itemIndex, size_t columnInd
 
 bool ListCtrlDataProvider::GetDataItemBkColor(size_t itemIndex, size_t columnIndex, UiColor& bkColor) const
 {
+    bkColor = UiColor();
     StoragePtr pStorage = GetDataItemStorage(itemIndex, columnIndex);
     ASSERT(pStorage != nullptr);
     if (pStorage == nullptr) {
@@ -862,7 +1095,7 @@ bool ListCtrlDataProvider::IsShowCheckBox(size_t itemIndex, size_t columnIndex) 
 
 bool ListCtrlDataProvider::SetShowCheckBox(size_t itemIndex, size_t columnIndex, bool bShowCheckBox)
 {
-    StoragePtr pStorage = GetDataItemStorage(itemIndex, columnIndex);
+    StoragePtr pStorage = GetDataItemStorageForWrite(itemIndex, columnIndex);
     ASSERT(pStorage != nullptr);
     if (pStorage == nullptr) {
         //索引号无效
@@ -877,7 +1110,7 @@ bool ListCtrlDataProvider::SetShowCheckBox(size_t itemIndex, size_t columnIndex,
 
 bool ListCtrlDataProvider::SetCheckBoxSelect(size_t itemIndex, size_t columnIndex, bool bSelected)
 {
-    StoragePtr pStorage = GetDataItemStorage(itemIndex, columnIndex);
+    StoragePtr pStorage = GetDataItemStorageForWrite(itemIndex, columnIndex);
     ASSERT(pStorage != nullptr);
     if (pStorage == nullptr) {
         //索引号无效
@@ -944,6 +1177,14 @@ bool ListCtrlDataProvider::SortDataItems(size_t nColumnId, bool bSortedUp,
             const StorageData& sortedData = sortedDataList[index];
             storageList[index] = orgStorageList[sortedData.index]; //赋值原数据
         }
+    }
+
+    //对行数据进行排序
+    ASSERT(sortedDataCount == m_rowDataList.size());
+    RowDataList rowDataList = m_rowDataList;
+    for (size_t index = 0; index < sortedDataCount; ++index) {
+        const StorageData& sortedData = sortedDataList[index];
+        m_rowDataList[index] = rowDataList[sortedData.index]; //赋值原数据
     }
     return true;
 }

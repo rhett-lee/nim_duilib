@@ -98,12 +98,16 @@ void ScrollBox::SetPosInternally(UiRect rc)
 {
 	Control::SetPos(rc);
 	UiSize64 requiredSize = CalcRequiredSize(rc);
-	if((requiredSize.cx > 0) && (requiredSize.cy > 0)) {
+	LayoutType layoutType = LayoutType::FloatLayout;
+	if (GetLayout() != nullptr) {
+		layoutType = GetLayout()->GetLayoutType();
+	}
+	if ((layoutType != LayoutType::ListCtrlReportLayout) && 
+		(requiredSize.cx > 0) && (requiredSize.cy > 0)) {
 		//需要按照真实大小再计算一次，因为内部根据rc评估的时候，显示位置是不正确的
-		//（比如控件是center或者bottom对齐的时候，会按照rc区域定位坐标，这时是错误的）。
-		LayoutType type = GetLayout()->GetLayoutType();
+		//（比如控件是center或者bottom对齐的时候，会按照rc区域定位坐标，这时是错误的）。		
 		int32_t cx = TruncateToInt32(requiredSize.cx);
-		if (type == LayoutType::VTileLayout) {
+		if (layoutType == LayoutType::VTileLayout) {
 			//VTile模式是限制宽度，但不限制高度
 			if (cx > rc.Width()) {
 				cx = rc.Width();
@@ -115,7 +119,7 @@ void ScrollBox::SetPosInternally(UiRect rc)
 			}
 		}		
 		int32_t cy = TruncateToInt32(requiredSize.cy);
-		if (type == LayoutType::HTileLayout) {
+		if (layoutType == LayoutType::HTileLayout) {
 			//HTile模式是限制高度，但不限制宽度
 			if (cy > rc.Height()) {
 				cy = rc.Height();

@@ -263,6 +263,7 @@ void MainForm::InsertItemData(int32_t nRows, int32_t nColumns)
 	}
 	//填充数据
 	pListCtrl->SetDataItemCount(rowCount);
+	ASSERT(pListCtrl->GetDataItemCount() == rowCount);
 	for (size_t itemIndex = 0; itemIndex < rowCount; ++itemIndex) {
 		for (size_t columnIndex = 0; columnIndex < columnCount; ++columnIndex) {
 			pListCtrl->SetDataItem(itemIndex, { columnIndex, ui::StringHelper::Printf(L"第 %03d 行/第 %02d 列", itemIndex, columnIndex), });
@@ -270,6 +271,121 @@ void MainForm::InsertItemData(int32_t nRows, int32_t nColumns)
 	}
 	//排序，默认为升序
 	pListCtrl->SortDataItems(0, true);
+
+	//设置特殊属性
+	pListCtrl->SetDataItemAlwaysAtTop(100, 0);
+	pListCtrl->SetDataItemAlwaysAtTop(101, 1);
+
+	pListCtrl->SetDataItemVisible(103, false);
+	pListCtrl->SetDataItemHeight(104, 100, true);
+	pListCtrl->SetDataItemHeight(198, 200, true);
+
+	pListCtrl->SetDataItemBkColor(100, 0, ui::UiColor(ui::UiColors::MistyRose));
+	pListCtrl->SetDataItemBkColor(101, 0, ui::UiColor(ui::UiColors::MistyRose));
+	pListCtrl->SetDataItemBkColor(102, 0, ui::UiColor(ui::UiColors::MistyRose));
+	pListCtrl->SetDataItemBkColor(103, 0, ui::UiColor(ui::UiColors::MistyRose));
+	pListCtrl->SetDataItemBkColor(104, 0, ui::UiColor(ui::UiColors::MistyRose));
+
+#ifdef _DEBUG
+	if (1) {
+		//基本功能测试
+		const std::wstring text = L"1";
+		ui::ListCtrlDataItem dataItem;
+		dataItem.nColumnIndex = 0;
+		dataItem.text = text;
+		size_t nDataItemIndex = pListCtrl->AddDataItem(dataItem);		
+		ASSERT(pListCtrl->GetDataItemText(nDataItemIndex, 0) == text);
+
+		ui::ListCtrlRowData itemData;
+		itemData.nItemHeight = 63;
+		pListCtrl->SetDataItemRowData(nDataItemIndex, itemData);
+		itemData.nItemHeight = 0;
+		pListCtrl->GetDataItemRowData(nDataItemIndex, itemData);
+		ASSERT(itemData.nItemHeight == 63);
+
+		ASSERT(pListCtrl->IsDataItemVisible(nDataItemIndex) == true);
+		pListCtrl->SetDataItemVisible(nDataItemIndex, false);
+		ASSERT(pListCtrl->IsDataItemVisible(nDataItemIndex) == false);
+		pListCtrl->SetDataItemVisible(nDataItemIndex, true);
+
+		ASSERT(pListCtrl->IsDataItemSelected(nDataItemIndex) == false);
+		pListCtrl->SetDataItemSelected(nDataItemIndex, true);
+		ASSERT(pListCtrl->IsDataItemSelected(nDataItemIndex) == true);
+		pListCtrl->SetDataItemSelected(nDataItemIndex, false);
+
+		ASSERT(pListCtrl->GetDataItemAlwaysAtTop(nDataItemIndex) == -1);
+		pListCtrl->SetDataItemAlwaysAtTop(nDataItemIndex, 1);
+		ASSERT(pListCtrl->GetDataItemAlwaysAtTop(nDataItemIndex) == 1);
+		pListCtrl->SetDataItemAlwaysAtTop(nDataItemIndex, -1);
+
+		int32_t nOldHeight = pListCtrl->GetDataItemHeight(nDataItemIndex);
+		pListCtrl->SetDataItemHeight(nDataItemIndex, nOldHeight + 21, false);
+		ASSERT(pListCtrl->GetDataItemHeight(nDataItemIndex) == nOldHeight + 21);
+		pListCtrl->SetDataItemHeight(nDataItemIndex, nOldHeight, false);
+
+		ASSERT(pListCtrl->GetDataItemData(nDataItemIndex) == 0);
+		pListCtrl->SetDataItemData(nDataItemIndex, 1);
+		ASSERT(pListCtrl->GetDataItemData(nDataItemIndex) == 1);
+		pListCtrl->SetDataItemData(nDataItemIndex,0);
+
+		dataItem.bNeedDpiScale = false;
+		dataItem.nColumnIndex = 1;
+		dataItem.text = L"3";
+		dataItem.textColor = ui::UiColor(ui::UiColors::Crimson);
+		dataItem.bkColor = ui::UiColor(ui::UiColors::BlanchedAlmond);
+		dataItem.bShowCheckBox = false;
+		dataItem.nCheckBoxWidth = 40;
+		dataItem.nImageIndex = 123;
+		dataItem.nTextFormat = ui::TEXT_CENTER | ui::TEXT_VCENTER;
+		pListCtrl->SetDataItem(nDataItemIndex, dataItem);
+
+		ui::ListCtrlDataItem dataItem2;
+		pListCtrl->GetDataItem(nDataItemIndex, dataItem.nColumnIndex, dataItem2);
+		ASSERT(dataItem2.bNeedDpiScale == false);
+		ASSERT(dataItem.nColumnIndex == dataItem2.nColumnIndex);
+		ASSERT(dataItem.text == std::wstring(dataItem2.text));
+		ASSERT(dataItem.textColor == dataItem2.textColor);
+		ASSERT(dataItem.bkColor == dataItem2.bkColor);
+		ASSERT(dataItem.bShowCheckBox == dataItem2.bShowCheckBox);
+		ASSERT(dataItem.nCheckBoxWidth == dataItem2.nCheckBoxWidth);
+		ASSERT(dataItem.nImageIndex == dataItem2.nImageIndex);
+		ASSERT(dataItem.nTextFormat == dataItem2.nTextFormat);
+
+		ASSERT(pListCtrl->GetDataItemText(nDataItemIndex, dataItem.nColumnIndex) == L"3");
+
+		dataItem.text = L"2";
+		dataItem.nColumnIndex = 2;		
+		pListCtrl->SetDataItemText(nDataItemIndex, dataItem.nColumnIndex, dataItem.text);
+		ASSERT(pListCtrl->GetDataItemText(nDataItemIndex, dataItem.nColumnIndex) == dataItem.text);
+
+		dataItem.bkColor = ui::UiColor(ui::UiColors::Aqua);
+		dataItem.nColumnIndex = 2;
+		pListCtrl->SetDataItemBkColor(nDataItemIndex, dataItem.nColumnIndex, dataItem.bkColor);
+		ASSERT(pListCtrl->GetDataItemBkColor(nDataItemIndex, dataItem.nColumnIndex) == dataItem.bkColor);
+
+		dataItem.textColor = ui::UiColor(ui::UiColors::Coral);
+		dataItem.nColumnIndex = 2;
+		pListCtrl->SetDataItemTextColor(nDataItemIndex, dataItem.nColumnIndex, dataItem.textColor);
+		ASSERT(pListCtrl->GetDataItemTextColor(nDataItemIndex, dataItem.nColumnIndex) == dataItem.textColor);
+
+		pListCtrl->SetShowCheckBox(nDataItemIndex, dataItem.nColumnIndex, false);
+		ASSERT(pListCtrl->IsShowCheckBox(nDataItemIndex, dataItem.nColumnIndex) == false);
+		pListCtrl->SetShowCheckBox(nDataItemIndex, dataItem.nColumnIndex, true);
+		ASSERT(pListCtrl->IsShowCheckBox(nDataItemIndex, dataItem.nColumnIndex) == true);
+
+		pListCtrl->SetCheckBoxSelect(nDataItemIndex, dataItem.nColumnIndex, false);
+		ASSERT(pListCtrl->IsCheckBoxSelect(nDataItemIndex, dataItem.nColumnIndex) == false);
+		pListCtrl->SetCheckBoxSelect(nDataItemIndex, dataItem.nColumnIndex, true);
+		ASSERT(pListCtrl->IsCheckBoxSelect(nDataItemIndex, dataItem.nColumnIndex) == true);
+
+		dataItem.text = L"3";
+		dataItem.nColumnIndex = 1;
+		pListCtrl->InsertDataItem(nDataItemIndex, dataItem);
+		ASSERT(pListCtrl->GetDataItemText(nDataItemIndex, dataItem.nColumnIndex) == L"3");
+		//pListCtrl->DeleteDataItem(nDataItemIndex);
+		//pListCtrl->DeleteAllDataItems();
+	}
+#endif
 }
 
 void MainForm::OnColumnChanged(size_t nColumnId)

@@ -143,15 +143,6 @@ public:
     int32_t GetHeaderHeight() const;
 
 public:
-    /** 设置数据项的高度
-    * @param[in] bNeedDpiScale 如果为true表示需要对宽度进行DPI自适应
-    */
-    void SetDataItemHeight(int32_t nItemHeight, bool bNeedDpiScale);
-
-    /** 获取数据项的高度
-    */
-    int32_t GetDataItemHeight() const;
-
     /** 获取数据项总个数
     */
     size_t GetDataItemCount() const;
@@ -161,32 +152,98 @@ public:
     */
     bool SetDataItemCount(size_t itemCount);
 
-    /** 在最后添加一个数据项
+    /** 在最后添加一个数据项(行数+1)
     * @param [in] dataItem 数据项的内容
-    * @return 成功返回数据项的行索引号(rowIndex)，失败则返回Box::InvalidIndex
+    * @return 成功数据项的索引号，有效范围：[0, GetDataItemCount()); 失败则返回Box::InvalidIndex
     */
     size_t AddDataItem(const ListCtrlDataItem& dataItem);
 
-    /** 在指定行位置添加一个数据项
+    /** 在指定行位置添加一个数据项(行数+1)
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] dataItem 数据项的内容
     */
     bool InsertDataItem(size_t itemIndex, const ListCtrlDataItem& dataItem);
 
-    /** 设置指定行的数据项
-    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
-    * @param [in] dataItem 数据项的内容
-    */
-    bool SetDataItem(size_t itemIndex, const ListCtrlDataItem& dataItem);
-
-    /** 删除指定行的数据项
+    /** 删除指定行的数据项(行数-1)
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     */
     bool DeleteDataItem(size_t itemIndex);
 
-    /** 删除所有行的数据项
+    /** 删除所有行的数据项(行数为0)
     */
     bool DeleteAllDataItems();
+
+    /** 设置数据项的默认高度(行高)
+    * @param [in] nItemHeight 高度值
+    * @param [in] bNeedDpiScale 如果为true表示需要对宽度进行DPI自适应
+    */
+    void SetDataItemHeight(int32_t nItemHeight, bool bNeedDpiScale);
+
+    /** 获取数据项的默认高度(行高)
+    */
+    int32_t GetDataItemHeight() const;
+
+public:
+    /** 设置数据项的行属性数据
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @param [in] itemData 关联的数据
+    */
+    bool SetDataItemRowData(size_t itemIndex, const ListCtrlRowData& itemData);
+
+    /** 获取数据项的行属性数据
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @param [in] itemData 关联的数据
+    */
+    bool GetDataItemRowData(size_t itemIndex, ListCtrlRowData& itemData) const;
+
+    /** 设置数据项的可见性
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @param [in] bVisible 是否可见
+    */
+    bool SetDataItemVisible(size_t itemIndex, bool bVisible);
+
+    /** 获取数据项的可见性
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @return 返回数据项关联的可见性
+    */
+    bool IsDataItemVisible(size_t itemIndex) const;
+
+    /** 设置数据项的选择属性
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @param [in] bSelected 是否选择状态
+    */
+    bool SetDataItemSelected(size_t itemIndex, bool bSelected);
+
+    /** 获取数据项的选择属性
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @return 返回数据项关联的选择状态
+    */
+    bool IsDataItemSelected(size_t itemIndex) const;
+
+    /** 设置数据项的置顶状态
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @param [in] nAlwaysAtTop 置顶状态，-1表示不置顶, 0 或者 正数表示置顶，数值越大优先级越高，优先显示在最上面
+    */
+    bool SetDataItemAlwaysAtTop(size_t itemIndex, int8_t nAlwaysAtTop);
+
+    /** 获取数据项的置顶状态
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @return 返回数据项关联的置顶状态，-1表示不置顶, 0 或者 正数表示置顶，数值越大优先级越高，优先显示在最上面
+    */
+    int8_t GetDataItemAlwaysAtTop(size_t itemIndex) const;
+
+    /** 设置数据项的行高
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @param [in] nItemHeight 行高, -1表示使用ListCtrl设置的默认行高，其他值表示本行的设置行高
+    * @param [in] bNeedDpiScale 如果为true表示需要对宽度进行DPI自适应
+    */
+    bool SetDataItemHeight(size_t itemIndex, int32_t nItemHeight, bool bNeedDpiScale);
+
+    /** 获取数据项的行高
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @return 返回数据项关联的行高, -1表示使用ListCtrl设置的默认行高，其他值表示本行的设置行高
+    */
+    int32_t GetDataItemHeight(size_t itemIndex) const;
 
     /** 设置数据项的自定义数据
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
@@ -199,6 +256,20 @@ public:
     * @return 返回数据项关联的自定义数据
     */
     size_t GetDataItemData(size_t itemIndex) const;
+
+public:
+    /** 设置指定<行,列>的数据项
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @param [in] dataItem 指定数据项的内容，列序号在dataItem.nColumnIndex中指定
+    */
+    bool SetDataItem(size_t itemIndex, const ListCtrlDataItem& dataItem);
+
+    /** 获取指定<行,列>的数据项
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
+    * @param [out] dataItem 指定数据项的内容
+    */
+    bool GetDataItem(size_t itemIndex, size_t columnIndex, ListCtrlDataItem& dataItem) const;
 
     /** 设置指定数据项的文本
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
@@ -224,9 +295,8 @@ public:
     /** 获取指定数据项的文本颜色
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
-    * @param [out] textColor 数据项关联的文本颜色
     */
-    bool GetDataItemTextColor(size_t itemIndex, size_t columnIndex, UiColor& textColor) const;
+    UiColor GetDataItemTextColor(size_t itemIndex, size_t columnIndex) const;
 
     /** 设置指定数据项的背景颜色
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
@@ -238,9 +308,8 @@ public:
     /** 获取指定数据项的背景颜色
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
-    * @param [out] bkColor 数据项关联的背景颜色
     */
-    bool GetDataItemBkColor(size_t itemIndex, size_t columnIndex, UiColor& bkColor) const;
+    UiColor GetDataItemBkColor(size_t itemIndex, size_t columnIndex) const;
 
     /** 是否显示CheckBox
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
@@ -265,10 +334,10 @@ public:
     /** 获取CheckBox的勾选状态
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
-    * @param [out] bSelected true表示勾选，false表示不勾选
     */
-    bool GetCheckBoxSelect(size_t itemIndex, size_t columnIndex, bool& bSelected) const;
+    bool IsCheckBoxSelect(size_t itemIndex, size_t columnIndex) const;
 
+public:
     /** 对数据排序
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
     * @param [in] bSortedUp true表示升序，false表示降序
@@ -306,6 +375,20 @@ public:
     * @param [in] bToTop 是否确保在最上方
     */
     bool EnsureDataItemVisible(size_t itemIndex, bool bToTop);
+
+    /** 刷新界面，保持数据与显示同步
+    */
+    void Refresh();
+
+    /** 是否允许刷新界面
+    * @param [in] bEnable 如果为true，允许通过Refresh()函数刷新界面; 如果为false，则允许通过Refresh()函数刷新界面
+    * @return 返回旧的IsEnableRefresh()状态
+    */
+    bool SetEnableRefresh(bool bEnable);
+
+    /** 判断是否允许刷新界面
+    */
+    bool IsEnableRefresh() const;
 
 protected:
     /** 控件初始化
@@ -482,6 +565,10 @@ private:
     /** 数据项的高度
     */
     int32_t m_nItemHeight;
+
+    /** 是否允许刷新界面
+    */
+    bool m_bEnableRefresh;
 };
 
 /** ListCtrl子项控件
@@ -493,6 +580,13 @@ public:
     */
     virtual std::wstring GetType() const override { return L"ListCtrlItem"; }
 
+    /** 设置控件是否可见
+     * @param[in] @param[in] bVisible 为 true 时控件可见，为 false 时控件被隐藏
+     */
+    virtual void SetVisible(bool bVisible) override
+    {
+        __super::SetVisible(bVisible);
+    }
 };
 
 }//namespace ui
