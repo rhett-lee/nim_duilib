@@ -12,7 +12,8 @@ ListCtrl::ListCtrl():
     m_bEnableHeaderDragOrder(true),
     m_bCanUpdateHeaderCheckStatus(true),
     m_bShowHeaderCtrl(true),
-    m_bEnableRefresh(true)
+    m_bEnableRefresh(true),
+    m_bMultiSelect(false)
 {
     m_pDataProvider = new ListCtrlDataProvider;
     m_nRowGridLineWidth = GlobalManager::Instance().Dpi().GetScaleInt(1);
@@ -74,6 +75,9 @@ void ListCtrl::SetAttribute(const std::wstring& strName, const std::wstring& str
     }
     else if (strName == L"show_header") {
         SetHeaderVisible(strValue == L"true");
+    }
+    else if (strName == L"multi_select") {
+        SetMultiSelect(strValue == L"true");
     }
     else {
         __super::SetAttribute(strName, strValue);
@@ -223,6 +227,9 @@ void ListCtrl::DoInit()
     if (!m_dataViewClass.empty()) {
         m_pDataView->SetClass(m_dataViewClass.c_str());
     }
+    //同步单选和多选的状态
+    m_pDataView->SetMultiSelect(IsMultiSelect());
+
     AddItem(m_pDataView);
 
     // Header添加到数据视图中管理，作为第一个元素，在Layout的实现中控制显示属性
@@ -749,6 +756,31 @@ bool ListCtrl::SortDataItems(size_t columnIndex, bool bSortedUp,
 void ListCtrl::SetSortCompareFunction(ListCtrlDataCompareFunc pfnCompareFunc, void* pUserData)
 {
     m_pDataProvider->SetSortCompareFunction(pfnCompareFunc, pUserData);
+}
+
+bool ListCtrl::IsMultiSelect() const
+{
+    return m_bMultiSelect;
+}
+
+void ListCtrl::SetMultiSelect(bool bMultiSelect)
+{
+    m_bMultiSelect = bMultiSelect;
+    size_t nCurSelItemIndex = Box::InvalidIndex;
+    if (m_pDataView != nullptr) {
+        m_pDataView->SetMultiSelect(bMultiSelect);
+        size_t nCurSel = m_pDataView->GetCurSel();
+        if (nCurSel < m_pDataView->GetItemCount()) {
+            ListCtrlItem* pItem = dynamic_cast<ListCtrlItem*>(m_pDataView->GetItemAt(nCurSel));
+            if (pItem != nullptr) {
+                nCurSelItemIndex = pItem->GetElementIndex();
+            }
+        }
+    }
+    //同步存储状态
+    if (m_pDataProvider->OnMultiSelect(bMultiSelect, nCurSelItemIndex)) {
+        Refresh();
+    }
 }
 
 void ListCtrl::GetDisplayDataItems(std::vector<size_t>& itemIndexList) const

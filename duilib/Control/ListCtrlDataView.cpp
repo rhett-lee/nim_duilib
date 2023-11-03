@@ -739,6 +739,9 @@ UiSize64 ListCtrlDataLayout::ArrangeChild(const std::vector<ui::Control*>& /*ite
     if (nTotalHeight > rc.Height()) {
         //需要出现滚动条，底部预留空间
         sz.cy += m_nReserveHeight;
+        if (pDataView->GetHScrollBar() != nullptr) {
+            sz.cy += pDataView->GetHScrollBar()->GetHeight();
+        }
         m_bReserveSet = true;
     }
     sz.cx = std::max(GetItemWidth(), rc.Width()); //允许出现横向滚动条
@@ -901,6 +904,9 @@ void ListCtrlDataLayout::LazyArrangeChild(UiRect rc) const
                 int32_t rcHeights = rc.Height();
                 if (m_bReserveSet && (rcHeights > m_nReserveHeight)) {
                     rcHeights -= m_nReserveHeight;
+                    if (pDataView->GetHScrollBar() != nullptr) {
+                        rcHeights -= pDataView->GetHScrollBar()->GetHeight();
+                    }                    
                 }
                 for (const auto& info : atTopItemIndexList) {
                     rcHeights -= info.nItemHeight;

@@ -231,7 +231,7 @@ Combo::Combo() :
 {
 	//需要调用设置函数，内部有DPI自适应的逻辑调整大小
 	SetDropBoxSize({ 0, 150 }, true);
-	m_treeView.SelectNextWhenActiveRemoved(false);
+	m_treeView.SetSelectNextWhenActiveRemoved(false);
     m_treeView.AttachSelect(nbase::Bind(&Combo::OnSelectItem, this, std::placeholders::_1));
 }
 

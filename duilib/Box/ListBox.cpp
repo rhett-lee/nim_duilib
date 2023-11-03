@@ -43,7 +43,7 @@ void ListBox::SetAttribute(const std::wstring& strName, const std::wstring& strV
 		SetScrollSelect(strValue == L"true");
 	}
 	else if (strName == L"select_next_when_active_removed") {
-		SelectNextWhenActiveRemoved(strValue == L"true");
+		SetSelectNextWhenActiveRemoved(strValue == L"true");
 	}
 	else {
 		ScrollBox::SetAttribute(strName, strValue);
@@ -137,7 +137,7 @@ void ListBox::SetCurSel(size_t iIndex)
 	m_iCurSel = iIndex;
 }
 
-void ListBox::SelectNextWhenActiveRemoved(bool bSelectNextItem)
+void ListBox::SetSelectNextWhenActiveRemoved(bool bSelectNextItem)
 {
 	m_bSelNextWhenRemoveActive = bSelectNextItem;
 }
@@ -262,7 +262,7 @@ bool ListBox::SelectItemSingle(size_t iIndex, bool bTakeFocus, bool bTriggerEven
 
 bool ListBox::SelectItemMulti(size_t iIndex, bool bTakeFocus, bool bTriggerEvent)
 {
-	//多选
+	//多选: m_iCurSel 始终执行最后一个选中项
 	size_t iOldSel = m_iCurSel;
 	m_iCurSel = Box::InvalidIndex;
 	if (!Box::IsValidItemIndex(iIndex)) {
@@ -289,6 +289,7 @@ bool ListBox::SelectItemMulti(size_t iIndex, bool bTakeFocus, bool bTriggerEvent
 	}
 	else {
 		//如果原来是非选择状态，更新为选择状态
+		m_iCurSel = iIndex;
 		pListItem->OptionSelected(true, bTriggerEvent);		
 		if (bTakeFocus) {			
 			pControl->SetFocus();
@@ -721,11 +722,28 @@ void ListBox::SetMultiSelect(bool bMultiSelect)
 	}
 }
 
+void ListBox::EnsureSingleSelection()
+{
+	if (!IsMultiSelect()) {
+		OnSwitchToSingleSelect();
+	}	
+}
+
 bool ListBox::OnSwitchToSingleSelect()
 {
 	bool bChanged = false;
 	IListBoxItem* pItem = nullptr;
 	const size_t itemCount = m_items.size();
+	if (m_iCurSel > itemCount) {
+		//如果单选状态不同步，使用第一个选择的作为最终单选的选择项
+		for (size_t i = 0; i < itemCount; ++i) {
+			pItem = dynamic_cast<IListBoxItem*>(m_items[i]);
+			if ((pItem != nullptr) && pItem->IsSelected()) {
+				m_iCurSel = i;
+				break;
+			}
+		}
+	}
 	for (size_t i = 0; i < itemCount; ++i) {
 		pItem = dynamic_cast<IListBoxItem*>(m_items[i]);
 		if ((pItem != nullptr) && pItem->IsSelected()) {

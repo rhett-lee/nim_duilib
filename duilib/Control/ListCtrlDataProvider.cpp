@@ -1000,6 +1000,26 @@ size_t ListCtrlDataProvider::GetDataItemData(size_t itemIndex) const
     return nItemData;
 }
 
+bool ListCtrlDataProvider::OnMultiSelect(bool bMultiSelect, size_t nCurSelItemIndex)
+{
+    bool bChanged = false;
+    if (bMultiSelect) {
+        return bChanged;
+    }
+    //变为单选，需要确保只有一个选择项
+    const size_t nItemCount = m_rowDataList.size();
+    for (size_t itemIndex = 0; itemIndex < nItemCount; ++itemIndex) {
+        ListCtrlRowData& rowData = m_rowDataList[itemIndex];
+        if (rowData.bSelected) {
+            if (nCurSelItemIndex != itemIndex) {
+                rowData.bSelected = false;
+                bChanged = true;
+            }
+        }
+    }
+    return bChanged;
+}
+
 bool ListCtrlDataProvider::SetDataItemText(size_t itemIndex, size_t columnIndex, const std::wstring& text)
 {
     StoragePtr pStorage = GetDataItemStorageForWrite(itemIndex, columnIndex);

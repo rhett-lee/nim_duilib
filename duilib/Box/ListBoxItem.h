@@ -221,24 +221,26 @@ void ListBoxItemTemplate<InheritType>::SetItemSelected(bool bSelected)
 		OptionTemplate<InheritType>::SetSelected(bSelected);
 		return;
 	}
-	if (m_pOwner->IsMultiSelect()) {
-		//多选：直接修改状态
-		OptionTemplate<InheritType>::SetSelected(bSelected);
 
-		//同步ListBox的选择ID
-		if (bSelected) {
-			m_pOwner->SetCurSel(m_iListBoxIndex);
-		}
-		else {
-			if (m_pOwner->GetCurSel() == m_iListBoxIndex) {
-				m_pOwner->SetCurSel(Box::InvalidIndex);
-			}
-		}
+	//直接修改状态
+	OptionTemplate<InheritType>::SetSelected(bSelected);
+
+	//同步ListBox的选择ID
+	bool bChanged = false;
+	if (bSelected) {
+		m_pOwner->SetCurSel(m_iListBoxIndex);
+		bChanged = true;
 	}
 	else {
-		//单选：需要调用选择函数
-		OptionTemplate<InheritType>::SetSelected(bSelected);
-		m_pOwner->SelectItem(m_iListBoxIndex, false, false);
+		if (m_pOwner->GetCurSel() == m_iListBoxIndex) {
+			m_pOwner->SetCurSel(Box::InvalidIndex);
+			bChanged = true;
+		}
+	}
+
+	if (bChanged && !m_pOwner->IsMultiSelect()) {
+		//单选：需要调用选择函数, 保证只有一个选中项
+		m_pOwner->EnsureSingleSelection();
 	}
 }
 

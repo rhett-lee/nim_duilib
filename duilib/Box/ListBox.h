@@ -68,6 +68,10 @@ public:
 	/** 是否允许多选
 	*/
 	virtual bool IsMultiSelect() const = 0;
+
+	/** 选择子项后的事件，单选时用于保证只有一个选中项
+	*/
+	virtual void EnsureSingleSelection() = 0;
 };
 
 /////////////////////////////////////////////////////////////////////////////////////
@@ -215,6 +219,10 @@ public:
 	*/
 	virtual void SetMultiSelect(bool bMultiSelect);
 
+	/** 选择子项后的事件，单选时用于保证只有一个选中项
+	*/
+	virtual void EnsureSingleSelection() override;
+
 	/** 获取是否随滚动改变选中项设置
 	 * @return 返回 true 表示跟随滚动条改变选择项，否则为 false
 	 */
@@ -225,10 +233,10 @@ public:
 	 */
 	void SetScrollSelect(bool bScrollSelect);
 
-	/** 在移除一个子项后自动选择下一项
+	/** 在移除一个子项后, 如果被移除项是选择项，则自动选择下一项
 	 * @param[in] bSelectNextItem 为 true 时自动选择下一项，false 为不自动选择
 	 */
-	void SelectNextWhenActiveRemoved(bool bSelectNextItem);
+	void SetSelectNextWhenActiveRemoved(bool bSelectNextItem);
 
 	/** 对子项排序
 	 * @param [in] pfnCompare 自定义排序函数
@@ -310,7 +318,7 @@ private:
 	//多选的时候，是否显示选择背景色: 0 - 默认规则; 1 - 显示背景色; 2: 不显示背景色
 	uint8_t m_uPaintSelectedColors;
 
-	//当前选择的子项ID
+	//当前选择的子项ID, 如果是多选，指向最后一个选择项
 	size_t m_iCurSel;
 
 	//用户自定义的排序比较函数

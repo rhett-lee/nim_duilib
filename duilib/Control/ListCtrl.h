@@ -355,6 +355,15 @@ public:
     void SetSortCompareFunction(ListCtrlDataCompareFunc pfnCompareFunc, void* pUserData);
 
 public:
+    /** 是否支持多选
+    */
+    bool IsMultiSelect() const;
+
+    /** 设置是否支持多选
+    */
+    void SetMultiSelect(bool bMultiSelect);
+
+public:
     /** 获取当前显示的数据项列表，顺序是从上到下
     * @param [in] itemIndexList 当前显示的数据项索引号列表, 每一元素的的有效范围：[0, GetDataItemCount())
     */
@@ -569,6 +578,10 @@ private:
     /** 是否允许刷新界面
     */
     bool m_bEnableRefresh;
+
+    /** 是否支持多选(默认是单选)
+    */
+    bool m_bMultiSelect;
 };
 
 /** ListCtrl子项控件
