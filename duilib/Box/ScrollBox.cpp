@@ -13,7 +13,7 @@ ScrollBox::ScrollBox(Layout* pLayout) :
 	m_pHScrollBar(),
 	m_bScrollProcess(false),
 	m_bScrollBarFloat(true),
-	m_bVScrollBarLeftPos(false),
+	m_bVScrollBarAtLeft(false),
 	m_bHoldEnd(false),
 	m_rcScrollBarPadding(),
 	m_pScrollAnimation(nullptr),
@@ -72,7 +72,7 @@ void ScrollBox::SetAttribute(const std::wstring& pstrName, const std::wstring& p
 		SetScrollBarFloat(pstrValue == L"true");
 	}
 	else if ((pstrName == L"vscrollbar_left") || (pstrName == L"vscrollbarleft")) {
-		SetVScrollBarLeftPos(pstrValue == L"true");
+		SetVScrollBarAtLeft(pstrValue == L"true");
 	}
 	else if ((pstrName == L"hold_end") || (pstrName == L"holdend")) {
 		SetHoldEnd(pstrValue == L"true");
@@ -151,7 +151,7 @@ UiSize64 ScrollBox::CalcRequiredSize(const UiRect& rc)
 	}
 	UiRect childSize = rc;
 	if (!m_bScrollBarFloat && m_pVScrollBar && m_pVScrollBar->IsValid()) {
-		if (m_bVScrollBarLeftPos) {
+		if (m_bVScrollBarAtLeft) {
 			ASSERT(m_pVScrollBar->GetFixedWidth().GetInt32() > 0);
 			childSize.left += m_pVScrollBar->GetFixedWidth().GetInt32();
 		}
@@ -860,7 +860,7 @@ void ScrollBox::ProcessVScrollBar(UiRect rc, int64_t cyRequired)
 		SetPos(GetRect());
 	}
 	else {
-		if (m_bVScrollBarLeftPos) {
+		if (m_bVScrollBarAtLeft) {
 			ASSERT(m_pVScrollBar->GetFixedWidth().GetInt32() > 0);
 			UiRect rcVerScrollBarPos(rcScrollBarPos.left, 
 									 rcScrollBarPos.top, 
@@ -1024,14 +1024,14 @@ void ScrollBox::SetScrollBarFloat(bool bScrollBarFloat)
 	m_bScrollBarFloat = bScrollBarFloat;
 }
 
-bool ScrollBox::GetVScrollBarLeftPos() const
+bool ScrollBox::IsVScrollBarAtLeft() const
 {
-	return m_bVScrollBarLeftPos;
+	return m_bVScrollBarAtLeft;
 }
 
-void ScrollBox::SetVScrollBarLeftPos(bool bLeftPos)
+void ScrollBox::SetVScrollBarAtLeft(bool bAtLeft)
 {
-	m_bVScrollBarLeftPos = bLeftPos;
+	m_bVScrollBarAtLeft = bAtLeft;
 }
 
 const UiPadding& ScrollBox::GetScrollBarPadding() const

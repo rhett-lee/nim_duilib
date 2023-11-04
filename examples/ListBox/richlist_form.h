@@ -32,6 +32,6 @@ private:
 	bool OnSelected(const ui::EventArgs& args);
 
 private:
-	ui::ListBox*	list_;
+	ui::ListBox* m_pListBox;
 };
 

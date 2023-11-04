@@ -71,7 +71,7 @@ void CComboWnd::InitComboWnd(Combo* pOwner, bool bActivated)
 		//展开的时候，确保选择可见
 		::UpdateWindow(GetHWND());
 		UiRect rc = pOwner->GetTreeView()->GetPos();
-		pOwner->GetTreeView()->EnsureVisible(m_iOldSel, true);
+		pOwner->GetTreeView()->EnsureVisible(m_iOldSel, ListBoxVerVisible::kVisibleAtCenter);
 	}
 }
 
@@ -934,7 +934,7 @@ bool Combo::OnEditTextChanged(const ui::EventArgs& /*args*/)
 					pTreeNode->SetExpand(true, false);
 					std::wstring nodeText = StringHelper::MakeLowerString(pTreeNode->GetText());
 					if (nodeText.find(editText) != std::wstring::npos) {
-						m_treeView.EnsureVisible(iIndex, true);
+						m_treeView.EnsureVisible(iIndex, ListBoxVerVisible::kVisibleAtCenter);
 						break;
 					}
 				}

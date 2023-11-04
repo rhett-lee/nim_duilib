@@ -212,12 +212,12 @@ public:
 	/** 获取容器的滚动条是否在左侧显示
 	 * @return 返回 true 表示在左侧，false 为右侧
 	 */
-	bool GetVScrollBarLeftPos() const;
+	bool IsVScrollBarAtLeft() const;
 
 	/** 设置容器的滚动条是否在左侧显示
-	* @param[in] bLeftPos true 表示在左侧，false 为右侧
+	* @param[in] bAtLeft true 表示在左侧，false 为右侧
 	*/
-	void SetVScrollBarLeftPos(bool bLeftPos);
+	void SetVScrollBarAtLeft(bool bAtLeft);
 
 	/** 获取滚动条的外边距
 	 */
@@ -301,7 +301,7 @@ private:
 	bool m_bScrollBarFloat;
 
 	//容器的滚动条是否在左侧显示
-	bool m_bVScrollBarLeftPos;
+	bool m_bVScrollBarAtLeft;
 
 	//滚动条的外边距
 	UiPadding m_rcScrollBarPadding;

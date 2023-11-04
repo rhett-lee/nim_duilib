@@ -12,12 +12,12 @@ enum ePaintSelectedColors
 	PAINT_SELECTED_COLORS_NO = 2
 };
 
-ListBox::ListBox(Layout* pLayout) : 
+ListBox::ListBox(Layout* pLayout) :
 	ScrollBox(pLayout),
 	m_bScrollSelect(false),
 	m_bMultiSelect(false),
 	m_uPaintSelectedColors(PAINT_SELECTED_COLORS_DEFAULT),
-	m_bSelNextWhenRemoveActive(true),
+	m_bSelectNextWhenActiveRemoved(false),
 	m_iCurSel(Box::InvalidIndex),
 	m_pCompareFunc(nullptr),
 	m_pCompareContext(nullptr)
@@ -69,43 +69,49 @@ void ListBox::HandleEvent(const EventArgs& msg)
 		return;
 	}
 
-	size_t itemIndex = Box::InvalidIndex;
+	if (GetItemCount() == 0) {
+		__super::HandleEvent(msg);
+		return;
+	}
+
 	switch (msg.Type) {
 	case kEventKeyDown:
 		switch (msg.chKey) {
 		case VK_UP:
-			itemIndex = FindSelectable(!Box::IsValidItemIndex(m_iCurSel) ? 0 : m_iCurSel - 1, false);
-			SelectItem(itemIndex);
+		case VK_LEFT:
+			SelectItemPrevious(true, true);
 			return;
 		case VK_DOWN:
-			itemIndex = FindSelectable(!Box::IsValidItemIndex(m_iCurSel) ? 0 : m_iCurSel + 1, true);
-			SelectItem(itemIndex);
+		case VK_RIGHT:
+			SelectItemNext(true, true);
+			return;
+		case VK_PRIOR:
+			SelectItemPage(true, true, false, 0);
+			return;
+		case VK_NEXT:
+			SelectItemPage(true, true, true, 0);
 			return;
 		case VK_HOME:
-			itemIndex = FindSelectable(0, false);
-			SelectItem(itemIndex);
+			SelectItemHome(true, true);
 			return;
 		case VK_END:
-			itemIndex = FindSelectable(GetItemCount() - 1, true);
-			SelectItem(itemIndex);
+			SelectItemEnd(true, true);			
 			return;
 		}
 		break;
 	case kEventMouseWheel:
 	{
-		int detaValue = GET_WHEEL_DELTA_WPARAM(msg.wParam);
+		int32_t detaValue = GET_WHEEL_DELTA_WPARAM(msg.wParam);
 		if (detaValue > 0) {
 			if (m_bScrollSelect) {
-				itemIndex = FindSelectable(!Box::IsValidItemIndex(m_iCurSel) ? 0 : m_iCurSel - 1, false);
-				SelectItem(itemIndex);
+				SelectItemPage(true, true, false, detaValue);
 				return;
 			}
 			break;
 		}
-		else {
+		else if(detaValue < 0) {
 			if (m_bScrollSelect) {
-				itemIndex = FindSelectable(!Box::IsValidItemIndex(m_iCurSel) ? 0 : m_iCurSel + 1, true);
-				SelectItem(itemIndex);
+				SelectItemPage(true, true, true, detaValue);
 				return;
 			}
 			break;
@@ -115,6 +121,193 @@ void ListBox::HandleEvent(const EventArgs& msg)
 	}
 
 	ScrollBox::HandleEvent(msg);
+}
+
+bool ListBox::SelectItem(size_t iIndex)
+{
+	return SelectItem(iIndex, true, true);
+}
+
+size_t ListBox::SelectItemPrevious(bool bTakeFocus, bool bTriggerEvent)
+{
+	size_t itemIndex = Box::InvalidIndex;
+	const size_t itemCount = GetItemCount();
+	if (itemCount == 0) {
+		return itemIndex;
+	}
+	size_t iIndex = 0;
+	if (m_iCurSel < itemCount) {
+		iIndex = m_iCurSel;
+	}
+	if (iIndex > 0) {
+		iIndex = iIndex - 1;
+	}
+	itemIndex = FindSelectable(iIndex, false);
+	if (Box::IsValidItemIndex(itemIndex)) {
+		if (!SelectItem(itemIndex, bTakeFocus, bTriggerEvent)) {
+			itemIndex = Box::InvalidIndex;
+		}
+	}
+	if (itemIndex < itemCount) {
+		EnsureVisible(itemIndex);
+	}
+	else if (m_iCurSel < itemCount) {
+		EnsureVisible(m_iCurSel);
+	}
+	return itemIndex;
+}
+
+size_t ListBox::SelectItemNext(bool bTakeFocus, bool bTriggerEvent)
+{
+	size_t itemIndex = Box::InvalidIndex;
+	const size_t itemCount = GetItemCount();
+	if (itemCount == 0) {
+		return itemIndex;
+	}
+	size_t iIndex = 0;
+	if (m_iCurSel < itemCount) {
+		iIndex = m_iCurSel;
+	}
+	iIndex = iIndex + 1;
+	if (iIndex >= itemCount) {
+		iIndex = itemCount - 1;
+	}
+
+	itemIndex = FindSelectable(iIndex, true);
+	if (Box::IsValidItemIndex(itemIndex)) {
+		if (!SelectItem(itemIndex, bTakeFocus, bTriggerEvent)) {
+			itemIndex = Box::InvalidIndex;
+		}
+	}
+	if (itemIndex < itemCount) {
+		EnsureVisible(itemIndex);
+	}
+	else if (m_iCurSel < itemCount) {
+		EnsureVisible(m_iCurSel);
+	}
+	return itemIndex;
+}
+
+size_t ListBox::SelectItemPageUp(bool bTakeFocus, bool bTriggerEvent)
+{
+	return SelectItemPage(bTakeFocus, bTriggerEvent, false, 0);
+}
+
+size_t ListBox::SelectItemPageDown(bool bTakeFocus, bool bTriggerEvent)
+{
+	return SelectItemPage(bTakeFocus, bTriggerEvent, true, 0);
+}
+
+size_t ListBox::SelectItemHome(bool bTakeFocus, bool bTriggerEvent)
+{
+	if (GetItemCount() == 0) {
+		return Box::InvalidIndex;
+	}
+	size_t itemIndex = FindSelectable(0, false);
+	if (Box::IsValidItemIndex(itemIndex)) {
+		SelectItem(itemIndex, bTakeFocus, bTriggerEvent);
+		EnsureVisible(itemIndex);
+	}
+	return itemIndex;
+}
+
+size_t ListBox::SelectItemEnd(bool bTakeFocus, bool bTriggerEvent)
+{
+	if (GetItemCount() == 0) {
+		return Box::InvalidIndex;
+	}
+	size_t itemIndex = FindSelectable(GetItemCount() - 1, true);
+	if (Box::IsValidItemIndex(itemIndex)) {
+		SelectItem(itemIndex, bTakeFocus, bTriggerEvent);
+		EnsureVisible(itemIndex);
+	}
+	return itemIndex;
+}
+
+size_t ListBox::SelectItemPage(bool bTakeFocus, bool bTriggerEvent, bool bForward, int32_t nDetaValue)
+{
+	//Page Up / Page Down 键的翻页逻辑
+	size_t itemIndex = Box::InvalidIndex;
+	const size_t itemCount = GetItemCount();
+	if (itemCount == 0) {
+		return itemIndex;
+	}
+
+	bool bHasVScrollBar = false;
+	ScrollBar* pVScrollBar = GetVScrollBar();
+	if (pVScrollBar && pVScrollBar->IsValid()) {
+		bHasVScrollBar = true;
+	}
+
+	bool bHasHScrollBar = false;
+	ScrollBar* pHScrollBar = GetHScrollBar();
+	if (pHScrollBar && pHScrollBar->IsValid()) {
+		bHasHScrollBar = true;
+	}
+	
+	size_t iIndex = 0;
+	if (m_iCurSel < itemCount) {
+		iIndex = m_iCurSel;
+	}
+
+	bool bIsHorizontal = (bHasHScrollBar && !bHasVScrollBar) ? true : false;
+	if (nDetaValue == 0) {
+		//计算nDetaValue值
+		nDetaValue = bIsHorizontal ? GetRect().Width() : GetRect().Height();
+	}
+	if (nDetaValue == 0) {
+		if (m_iCurSel < itemCount) {
+			EnsureVisible(m_iCurSel);
+		}
+		return itemIndex;
+	}
+	size_t nCountPerPage = 1;
+	Control* pControl = GetItemAt(iIndex);
+	if (pControl != nullptr) {
+		UiRect rect = pControl->GetRect();
+		if (bIsHorizontal) {
+			//只有横向滚动条，按横向处理
+			if (rect.Width() > 0) {
+				nCountPerPage = std::abs(nDetaValue) / rect.Width() - 1;
+			}
+		}
+		else {
+			//其他情况，按纵向滚动处理
+			if (rect.Height() > 0) {
+				nCountPerPage = std::abs(nDetaValue) / rect.Height() - 1;
+			}
+		}
+	}
+	if (nCountPerPage < 1) {
+		nCountPerPage = 1;
+	}
+	
+	iIndex = 0;
+	if (!bForward) {
+		//Page Up
+		if (Box::IsValidItemIndex(m_iCurSel) && (m_iCurSel > nCountPerPage)) {
+			iIndex = m_iCurSel - nCountPerPage;
+		}
+	}
+	else {
+		//Page Down
+		if (Box::IsValidItemIndex(m_iCurSel)) {
+			iIndex = m_iCurSel + nCountPerPage;
+		}
+		if (iIndex > GetItemCount()) {
+			iIndex = GetItemCount() - 1;
+		}
+	}
+
+	itemIndex = FindSelectable(iIndex, bForward);
+	if (itemIndex < itemCount) {
+		SelectItem(itemIndex, bTakeFocus, bTriggerEvent);
+		EnsureVisible(itemIndex);
+	}
+	else if (m_iCurSel < itemCount) {
+		EnsureVisible(m_iCurSel);
+	}
+	return itemIndex;
 }
 
 void ListBox::SendEvent(EventType eventType, WPARAM wParam, LPARAM lParam, TCHAR tChar, const UiPoint& mousePos)
@@ -134,12 +327,33 @@ size_t ListBox::GetCurSel() const
 
 void ListBox::SetCurSel(size_t iIndex)
 {
+	if (Box::IsValidItemIndex(iIndex)) {
+		ASSERT(iIndex < GetItemCount());
+		if (iIndex > GetItemCount()) {
+			return;
+		}
+	}	
 	m_iCurSel = iIndex;
+}
+
+bool ListBox::IsScrollSelect() const
+{
+	return m_bScrollSelect;
+}
+
+void ListBox::SetScrollSelect(bool bScrollSelect)
+{
+	m_bScrollSelect = bScrollSelect;
+}
+
+bool ListBox::IsSelectNextWhenActiveRemoved() const
+{
+	return m_bSelectNextWhenActiveRemoved;
 }
 
 void ListBox::SetSelectNextWhenActiveRemoved(bool bSelectNextItem)
 {
-	m_bSelNextWhenRemoveActive = bSelectNextItem;
+	m_bSelectNextWhenActiveRemoved = bSelectNextItem;
 }
 
 void ListBox::GetSelectedItems(std::vector<size_t>& selectedIndexs) const
@@ -147,13 +361,22 @@ void ListBox::GetSelectedItems(std::vector<size_t>& selectedIndexs) const
 	selectedIndexs.clear();
 	const size_t itemCount = GetItemCount();
 	for (size_t iIndex = 0; iIndex < itemCount; ++iIndex) {
-		IListBoxItem* pListItem = dynamic_cast<IListBoxItem*>(m_items[iIndex]);
+		Control* pControl = m_items[iIndex];
+		if ((pControl == nullptr) || !pControl->IsVisible() || !pControl->IsEnabled()) {
+			continue;
+		}
+		IListBoxItem* pListItem = dynamic_cast<IListBoxItem*>(pControl);
 		if (pListItem != nullptr) {
 			if (pListItem->IsSelected()) {
 				selectedIndexs.push_back(iIndex);
 			}
 		}
 	}
+}
+
+size_t ListBox::FindSelectable(size_t iIndex, bool bForward) const
+{
+	return __super::FindSelectable(iIndex, bForward);
 }
 
 bool ListBox::SelectItem(size_t iIndex, bool bTakeFocus, bool bTriggerEvent)
@@ -201,7 +424,6 @@ bool ListBox::SelectItemSingle(size_t iIndex, bool bTakeFocus, bool bTriggerEven
 		if (bTakeFocus) {
 			pControl->SetFocus();
 		}
-		EnsureVisible(pControl->GetPos());
 		IListBoxItem* pListItem = dynamic_cast<IListBoxItem*>(pControl);
 		if ((pListItem != nullptr) && !pListItem->IsSelected()) {
 			pListItem->OptionSelected(true, false);			
@@ -250,7 +472,6 @@ bool ListBox::SelectItemSingle(size_t iIndex, bool bTakeFocus, bool bTriggerEven
 		if (bTakeFocus) {
 			pControl->SetFocus();
 		}
-		EnsureVisible(pControl->GetPos());
 	}
 
 	if (bTriggerEvent) {
@@ -294,7 +515,6 @@ bool ListBox::SelectItemMulti(size_t iIndex, bool bTakeFocus, bool bTriggerEvent
 		if (bTakeFocus) {			
 			pControl->SetFocus();
 		}
-		EnsureVisible(pControl->GetPos());
 		if (bTriggerEvent) {
 			SendEvent(kEventSelect, iIndex, iOldSel);
 		}
@@ -303,12 +523,9 @@ bool ListBox::SelectItemMulti(size_t iIndex, bool bTakeFocus, bool bTriggerEvent
 	return true;
 }
 
-void ListBox::EnsureVisible(const UiRect& rcItem)
-{
-	EnsureVisible(rcItem, false);
-}
-
-void ListBox::EnsureVisible(const UiRect& rcItem, bool bAtCenter)
+void ListBox::EnsureVisible(const UiRect& rcItem,
+							ListBoxVerVisible vVisibleType,
+							ListBoxHorVisible hVisibleType)
 {
 	UiRect rcNewItem = rcItem;
 	UiSize scrollOffset = GetScrollOffset();
@@ -316,10 +533,22 @@ void ListBox::EnsureVisible(const UiRect& rcItem, bool bAtCenter)
 	UiRect rcList = GetPos();
 	rcList.Deflate(GetPadding());
 
-	ScrollBar* pHorizontalScrollBar = GetHScrollBar();
-	if (pHorizontalScrollBar && pHorizontalScrollBar->IsVisible()) {
-		ASSERT(pHorizontalScrollBar->GetFixedHeight().GetInt32() > 0);
-		rcList.bottom -= pHorizontalScrollBar->GetFixedHeight().GetInt32();
+	ScrollBar* pVScrollBar = GetVScrollBar();
+	if (pVScrollBar && pVScrollBar->IsValid()) {
+		if (IsVScrollBarAtLeft()) {
+			ASSERT(pVScrollBar->GetFixedWidth().GetInt32() > 0);
+			rcList.left += pVScrollBar->GetFixedWidth().GetInt32();
+		}
+		else {
+			ASSERT(m_pVScrollBar->GetFixedWidth().GetInt32() > 0);
+			rcList.right -= pVScrollBar->GetFixedWidth().GetInt32();
+		}
+	}
+
+	ScrollBar* pHScrollBar = GetHScrollBar();
+	if (pHScrollBar && pHScrollBar->IsValid()) {
+		ASSERT(pHScrollBar->GetFixedHeight().GetInt32() > 0);
+		rcList.bottom -= pHScrollBar->GetFixedHeight().GetInt32();
 	}
 
 	if ((rcNewItem.left >= rcList.left) && (rcNewItem.top >= rcList.top) && 
@@ -330,19 +559,28 @@ void ListBox::EnsureVisible(const UiRect& rcItem, bool bAtCenter)
 			lisBoxOwner = listBoxElement->GetOwner();
 		}
 		if (lisBoxOwner != nullptr) {
-			lisBoxOwner->EnsureVisible(rcNewItem);
+			lisBoxOwner->EnsureVisible(rcNewItem, vVisibleType, hVisibleType);
 		}		
 		return;
 	}
-
+	//水平滚动条
 	int32_t dx = 0;
-	if (bAtCenter) {
+	if (hVisibleType == ListBoxHorVisible::kVisibleAtCenter) {
+		//居中显示
 		if (rcNewItem.left < rcList.CenterX()) {
 			dx = rcNewItem.left - rcList.CenterX();
 		}
 		if (rcNewItem.right > rcList.CenterX()) {
 			dx = rcNewItem.right - rcList.CenterX();
 		}
+	}
+	else if (hVisibleType == ListBoxHorVisible::kVisibleAtLeft) {
+		//靠左显示
+		dx = rcNewItem.left - rcList.left;
+	}
+	else if (hVisibleType == ListBoxHorVisible::kVisibleAtRight) {
+		//靠右显示
+		dx = rcNewItem.right - rcList.right;
 	}
 	else {
 		if (rcNewItem.left < rcList.left) {
@@ -358,9 +596,11 @@ void ListBox::EnsureVisible(const UiRect& rcItem, bool bAtCenter)
 			//子项的区域，已经在可见区域，不调整，避免鼠标点击后左右晃动
 			dx = 0;
 		}
-	}	
+	}
+	//垂直滚动条
 	int32_t dy = 0;
-	if (bAtCenter) {
+	if (vVisibleType == ListBoxVerVisible::kVisibleAtCenter) {
+		//居中显示
 		if (rcNewItem.top < rcList.CenterY()) {
 			dy = rcNewItem.top - rcList.CenterY();
 		}
@@ -368,7 +608,16 @@ void ListBox::EnsureVisible(const UiRect& rcItem, bool bAtCenter)
 			dy = rcNewItem.bottom - rcList.CenterY();
 		}
 	}
+	else if (vVisibleType == ListBoxVerVisible::kVisibleAtTop) {
+		//顶部对齐
+		dy = rcNewItem.top - rcList.top;
+	}
+	else if (vVisibleType == ListBoxVerVisible::kVisibleAtBottom) {
+		//底部对齐
+		dy = rcNewItem.bottom - rcList.bottom;
+	}
 	else {
+		//只要可见即可
 		if (rcNewItem.top < rcList.top) {
 			dy = rcNewItem.top - rcList.top;
 		}
@@ -383,7 +632,7 @@ void ListBox::EnsureVisible(const UiRect& rcItem, bool bAtCenter)
 			dy = 0;
 		}
 	}
-	if ((dx > 0) || (dy > 0)) {
+	if ((dx != 0) || (dy != 0)) {
 		UiSize64 sz = GetScrollPos();
 		SetScrollPos(UiSize64(sz.cx + dx, sz.cy + dy));
 		Invalidate();
@@ -533,42 +782,13 @@ bool ListBox::SetItemIndex(Control* pControl, size_t iIndex)
 	return true;
 }
 
-void ListBox::EnsureVisible(size_t iIndex)
+void ListBox::EnsureVisible(size_t iIndex, ListBoxVerVisible vVisibleType, ListBoxHorVisible hVisibleType)
 {
 	Control* pControl = GetItemAt(iIndex);
 	ASSERT(pControl != nullptr);
 	if (pControl != nullptr) {
 		UiRect rcItem = pControl->GetPos();
-		EnsureVisible(rcItem, false);
-	}
-}
-
-void ListBox::EnsureVisible(size_t iIndex, bool bAtCenter)
-{
-	Control* pControl = GetItemAt(iIndex);
-	ASSERT(pControl != nullptr);
-	if (pControl != nullptr) {
-		UiRect rcItem = pControl->GetPos();
-		EnsureVisible(rcItem, bAtCenter);
-	}
-}
-
-bool ListBox::SelectItem(size_t iIndex)
-{
-	return SelectItem(iIndex, true, true);
-}
-
-void ListBox::SelectPreviousItem()
-{
-	if (Box::IsValidItemIndex(m_iCurSel) && (m_iCurSel > 0)) {
-		SelectItem(m_iCurSel - 1);
-	}
-}
-
-void ListBox::SelectNextItem()
-{
-	if (m_iCurSel < GetItemCount() - 1) {
-		SelectItem(m_iCurSel + 1);
+		EnsureVisible(rcItem, vVisibleType, hVisibleType);
 	}
 }
 
@@ -642,7 +862,7 @@ bool ListBox::RemoveItemAt(size_t iIndex)
 
 	if (Box::IsValidItemIndex(m_iCurSel)) {
 		if (iIndex == m_iCurSel) {
-			if (!IsMultiSelect() && m_bSelNextWhenRemoveActive) {
+			if (!IsMultiSelect() && m_bSelectNextWhenActiveRemoved) {
 				SelectItem(FindSelectable(m_iCurSel--, false));
 			}
 			else {
@@ -777,16 +997,6 @@ bool ListBox::UpdateCurSelItemSelectStatus()
 		}
 	}
 	return bChanged;
-}
-
-bool ListBox::GetScrollSelect() const
-{
-	return m_bScrollSelect;
-}
-
-void ListBox::SetScrollSelect(bool bScrollSelect)
-{
-	m_bScrollSelect = bScrollSelect;
 }
 
 } // namespace ui

@@ -112,7 +112,7 @@ void CMenuWnd::DetachOwner()
 {
 	if (m_pOwner != nullptr) {
 		if (m_pLayout != nullptr) {
-			m_pLayout->SelectItem(Box::InvalidIndex);
+			m_pLayout->SelectItem(Box::InvalidIndex, false, false);
 		}
 
 		//将在OnInitWindow中，添加到Layout上的节点，接触关联关系

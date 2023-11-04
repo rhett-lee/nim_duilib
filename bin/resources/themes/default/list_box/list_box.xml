@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Window size="400,600" caption="0,0,0,36">
-    <Class name="list_box_test" bkcolor="bk_wnd_lightcolor" vscrollbar="true" multi_select="true"/>
     <VBox bkcolor="bk_wnd_darkcolor">
         <HBox width="stretch" height="36" bkcolor="bk_wnd_lightcolor">
             <Label text="VListBox自定义列表示例" font="system_14" valign="center" margin="8"/>
@@ -13,7 +12,7 @@
             <Button class="btn_wnd_close_11" height="stretch" width="40" name="closebtn" margin="0,0,0,2" tooltip_text="关闭"/>
         </HBox>
         <Box>
-            <VListBox class="list_box_test" name="list"/>
+            <VListBox bkcolor="bk_wnd_lightcolor" vscrollbar="true" multi_select="true" scroll_select="false" name="list"/>
         </Box>
     </VBox>
 </Window>

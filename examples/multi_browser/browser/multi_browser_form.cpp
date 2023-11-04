@@ -115,7 +115,7 @@ LRESULT MultiBrowserForm::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lPara
 		{
 			int next = (int)tab_list_->GetCurSel();
 			next = (next + 1) % GetBoxCount();
-			tab_list_->SelectItem(next);
+			tab_list_->SelectItem(next, true, true);
 			return 0;
 		}
 		// ´¦ÀíESC¿ì½İ¼ü

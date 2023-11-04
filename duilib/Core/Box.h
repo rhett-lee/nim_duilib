@@ -121,8 +121,7 @@ public:
 	/** @} */
 
 public:
-	/**
-	 * @brief 查找下一个可选控件的索引（面向 list、combo）
+	/** 查找下一个可选控件的索引（面向 list、combo）
 	 * @param[in] iIndex 指定要起始查找的索引
 	 * @param[in] bForward true 为递增查找， false 为递减查找
 	 * @return 下一个可选控件的索引，返回 Box::InvalidIndex 为没有可选控件
