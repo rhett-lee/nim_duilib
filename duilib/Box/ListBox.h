@@ -319,6 +319,20 @@ protected:
 	*/
 	bool UpdateCurSelItemSelectStatus();
 
+	/** 即将查找指定的元素（为虚表提供加载数据的机会）
+	* @param [in] nCurSel 当前选择的显示控件索引号
+	* @param [in] bForward true表示向前查找，false表示向后查找
+	* @param [in] nCount 查找的控件的间隔个数
+	* @param [in] bHome 跳转到首页
+	* @param [in] bEnd  跳转到尾页
+	* @param [out] nDestItemIndex 返回加载后的目标控件索引号，有效范围: [0, GetItemCount())
+	* @return 返回true表示有数据加载行为，false表示无任何动作
+	*/
+	virtual bool OnFindSelectable(size_t nCurSel, 
+								  bool bForward, size_t nCount,
+								  bool bHome, bool bEnd,
+		                          size_t& nDestItemIndex);
+
 private:
 	/**
 	 * @brief 默认的子项对比方法
@@ -352,12 +366,24 @@ private:
 
 	/** 按分页的方式选择子项
 	*/
-	size_t SelectItemPage(bool bTakeFocus, bool bTriggerEvent, bool bForward, int32_t nDetaValue);
+	size_t SelectItemPage(bool bTakeFocus, bool bTriggerEvent, bool bForward, int32_t nDeltaValue);
+
+	/** 按跳跃nCount个子项的方式选择子项
+	*/
+	size_t SelectItemCountN(bool bTakeFocus, bool bTriggerEvent, bool bForward, size_t nCount);
 
 	/** 获取当前布局方向
 	* @return 返回true表示为横向布局，否则为纵向布局
 	*/
 	bool IsHorizontalLayout() const;
+
+	/** 判断当前布局是否为横向滚动条
+	*/
+	bool IsHorizontalScrollBar() const;
+
+	/** 计算本页里面显示几个子项
+	*/
+	size_t GetDisplayItemCount(bool bIsHorizontal, size_t& nColumns, size_t& nRows) const;
 
 private:
 	//是否随滚动改变选中项

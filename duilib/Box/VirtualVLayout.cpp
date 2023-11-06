@@ -257,7 +257,7 @@ bool VirtualVLayout::IsElementDisplay(UiRect rc, size_t iIndex) const
 
     int64_t nPos = pOwnerBox->GetScrollPos().cy;
     int64_t nElementPos = GetElementsHeight(rc, iIndex);
-    if (nElementPos >= nPos) {
+    if (nElementPos > nPos) {
         int64_t nHeight = pOwnerBox->GetHeight();
         if (nElementPos <= nPos + nHeight) {
             return true;
@@ -358,7 +358,7 @@ void VirtualVLayout::EnsureVisible(UiRect rc, size_t iIndex, bool bToTop) const
     }
     int64_t nPos = pOwnerBox->GetScrollPos().cy;
     int64_t elementHeight = GetElementsHeight(rc, 1);
-    if (elementHeight == 0) {
+    if (elementHeight <= 0) {
         return;
     }
     int64_t nTopIndex = 0;
@@ -367,10 +367,9 @@ void VirtualVLayout::EnsureVisible(UiRect rc, size_t iIndex, bool bToTop) const
     }
     int64_t nNewPos = 0;
 
-    if (bToTop)
-    {
+    if (bToTop) {
         nNewPos = GetElementsHeight(rc, iIndex);
-        if (nNewPos > elementHeight) {
+        if (nNewPos >= elementHeight) {
             nNewPos -= elementHeight;
         }
     }
@@ -386,8 +385,8 @@ void VirtualVLayout::EnsureVisible(UiRect rc, size_t iIndex, bool bToTop) const
         }
         else {
             // ÏòÉÏ
-            nNewPos = GetElementsHeight(rc, iIndex);
-            if (nNewPos > elementHeight) {
+            nNewPos = GetElementsHeight(rc, iIndex + 1);
+            if (nNewPos >= elementHeight) {
                 nNewPos -= elementHeight;
             }
         }

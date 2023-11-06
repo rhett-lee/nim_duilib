@@ -54,20 +54,20 @@ public:
 	 */
 	void SetItemSize(UiSize szItem, bool bNeedDpiScale = true);
 
-	/** 获取列数量
+	/** 获取行数量
 	 */
 	int32_t GetRows() const;
 
-	/** 设置显示几列数据
-	 * @param[in] nRows 要设置显示几列的数值
+	/** 设置显示几行数据
+	 * @param[in] nRows 要设置显示几行的数值
 	 */
 	void SetRows(int32_t nRows);
 
-	/** 设置是否自动计算列??
+	/** 设置是否自动计算行
 	 */
 	void SetAutoCalcRows(bool bAutoCalcRows);
 
-	/** 判断是否自动计算列数
+	/** 判断是否自动计算行数
 	 */
 	bool IsAutoCalcRows() const;
 

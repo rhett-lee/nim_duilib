@@ -104,20 +104,38 @@ public:
     */
     bool HasDataProvider() const;
 
+public:
+    /** 获取数据元素总数
+    * @return 返回数据元素总个数
+    */
+    size_t GetElementCount() const;
+
+    /** 获取当前所有可见控件的数据元素索引
+    * @param [out] collection 索引列表，有效范围：[0, GetElementCount())
+    */
+    void GetDisplayElements(std::vector<size_t>& collection) const;
+
+    /** 获取一个元素对应显示控件的索引号
+    * @param [in] nElementIndex 元素索引号，有效范围：[0, GetElementCount())
+    * @return 返回该元素对应UI控件的索引号，有效范围：[0, GetItemCount())
+    */
+    size_t GetDisplayItemIndex(size_t nElementIndex) const;
+
+    /** 获取一个显示控件关联的元素索引号
+    * @param [in] nItemIndex UI控件的索引号，有效范围：[0, GetItemCount())
+    * @return 该UI控件关联的数据元素索引号，有效范围：[0, GetElementCount())
+    */
+    size_t GetDisplayItemElementIndex(size_t nItemIndex) const;
+
+    /** 让控件在可见范围内
+    * @param [in] nElementIndex 元素索引号，有效范围：[0, GetElementCount())
+    * @param [in] bToTop 是否在最上方
+    */
+    void EnsureVisible(size_t nElementIndex, bool bToTop);
+
     /** 刷新列表
     */
     virtual void Refresh();
-
-    /** 获取当前所有可见控件的数据元素索引
-    * @param[out] collection 索引列表，范围是：[0, GetElementCount())
-    */
-    void GetDisplayElements(std::vector<size_t>& collection);
-
-    /** 让控件在可见范围内
-    * @param[in] iIndex 元素索引号，范围是：[0, GetElementCount())
-    * @param[in] bToTop 是否在最上方
-    */
-    void EnsureVisible(size_t iIndex, bool bToTop);
 
 protected:
     /// 重写父类接口，提供个性化功能
@@ -130,18 +148,21 @@ protected:
     virtual bool RemoveItemAt(size_t iIndex) override;
     virtual void RemoveAllItems() override;
 
-    virtual void HandleEvent(const EventArgs& msg) override;
+    /** 即将查找指定的元素（为虚表提供加载数据的机会）
+	* @param [in] nCurSel 当前选择的显示控件索引号
+	* @param [in] bForward true表示向前查找，false表示向后查找
+	* @param [in] nCount 查找的控件的间隔个数
+	* @param [in] bHome 跳转到首页
+	* @param [in] bEnd  跳转到尾页
+	* @param [out] nDestItemIndex 返回加载后的目标控件索引号，有效范围: [0, GetItemCount())
+	* @return 返回true表示有数据加载行为，false表示无任何动作
+	*/
+	virtual bool OnFindSelectable(size_t nCurSel, 
+								  bool bForward, size_t nCount,
+								  bool bHome, bool bEnd,
+		                          size_t& nDestItemIndex) override;
 
 protected:
-    /** 键盘按下通知
-    * @param[in] ch 按键
-    */
-    virtual void OnKeyDown(TCHAR ch);
-
-    /** 键盘弹起通知
-    * @param[in] ch 按键
-    */
-    virtual void OnKeyUp(TCHAR ch);
 
     /** 设置虚表布局接口
     */
@@ -171,11 +192,6 @@ protected:
     */
     void FillElement(Control* pControl, size_t nElementIndex);
 
-    /** 获取元素总数
-    * @return 返回元素总指数
-    */
-    size_t GetElementCount();
-
     /** 重新布局子项
     * @param[in] bForce 是否强制重新布局
     */
@@ -196,6 +212,10 @@ protected:
     /** 选择状态变化：取消选择了某个子项
     */
     bool OnUnSelectedItem(const ui::EventArgs&);
+
+    /** 更新存储数据的选择状态
+    */
+    void OnSetElementSelected(size_t nItemIndex, bool bSelected);
 
 private:
     /** 数据代理对象接口，提供展示数据

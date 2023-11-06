@@ -63,14 +63,32 @@ void ListBox::HandleEvent(const EventArgs& msg)
 		}
 		return;
 	}
-	if (IsMultiSelect()) {
-		//允许多选的情况下，不支持下面的单选逻辑
-		__super::HandleEvent(msg);
-		return;
-	}
-
-	if (GetItemCount() == 0) {
-		__super::HandleEvent(msg);
+	if (IsMultiSelect() || (GetItemCount() == 0) || (GetCurSel() >= GetItemCount())) {
+		//在无数据、支持多选、无选中项的情况下，不支持下面的单选逻辑
+		bool bHandled = false;
+		if (msg.Type == kEventKeyDown) {
+			if (msg.chKey == VK_HOME) {
+				if (IsHorizontalScrollBar()) {
+					HomeLeft();
+				}
+				else {
+					HomeUp();
+				}
+				bHandled = true;
+			}
+			else if (msg.chKey == VK_END) {
+				if (IsHorizontalScrollBar()) {
+					EndRight();
+				}
+				else {
+					EndDown(false, false);
+				}
+				bHandled = true;
+			}
+		}
+		if (!bHandled) {
+			__super::HandleEvent(msg);			
+		}
 		return;
 	}
 
@@ -78,12 +96,56 @@ void ListBox::HandleEvent(const EventArgs& msg)
 	case kEventKeyDown:
 		switch (msg.chKey) {
 		case VK_UP:
-		case VK_LEFT:
-			SelectItemPrevious(true, true);
+			if (IsHorizontalScrollBar()) {
+				//横向滚动条，向上1条
+				SelectItemPrevious(true, true);
+			}
+			else {
+				//不是横向滚动条，向上1行
+				size_t nColumns = 0;
+				size_t nRows = 0;
+				GetDisplayItemCount(false, nColumns, nRows);
+				SelectItemCountN(true, true, false, nColumns);
+			}
 			return;
 		case VK_DOWN:
+			if (IsHorizontalScrollBar()) {
+				//横向滚动条，向下1条
+				SelectItemNext(true, true);
+			}
+			else {
+				//不是横向滚动条，向下1行
+				size_t nColumns = 0;
+				size_t nRows = 0;
+				GetDisplayItemCount(false, nColumns, nRows);
+				SelectItemCountN(true, true, true, nColumns);
+			}
+			return;
+		case VK_LEFT:
+			if (IsHorizontalScrollBar()) {
+				//横向滚动条，向上1列
+				size_t nColumns = 0;
+				size_t nRows = 0;
+				GetDisplayItemCount(false, nColumns, nRows);
+				SelectItemCountN(true, true, false, nRows);
+			}
+			else {
+				//不是横向滚动条，向上1条
+				SelectItemPrevious(true, true);
+			}
+			return;
 		case VK_RIGHT:
-			SelectItemNext(true, true);
+			if (IsHorizontalScrollBar()) {
+				//横向滚动条，向下1行
+				size_t nColumns = 0;
+				size_t nRows = 0;
+				GetDisplayItemCount(false, nColumns, nRows);
+				SelectItemCountN(true, true, true, nRows);
+			}
+			else {
+				//不是横向滚动条，向下1条
+				SelectItemNext(true, true);
+			}
 			return;
 		case VK_PRIOR:
 			SelectItemPage(true, true, false, 0);
@@ -101,17 +163,17 @@ void ListBox::HandleEvent(const EventArgs& msg)
 		break;
 	case kEventMouseWheel:
 	{
-		int32_t detaValue = GET_WHEEL_DELTA_WPARAM(msg.wParam);
-		if (detaValue > 0) {
+		int32_t deltaValue = GET_WHEEL_DELTA_WPARAM(msg.wParam);
+		if (deltaValue > 0) {
 			if (m_bScrollSelect) {
-				SelectItemPage(true, true, false, detaValue);
+				SelectItemPage(true, true, false, deltaValue);
 				return;
 			}
 			break;
 		}
-		else if(detaValue < 0) {
+		else if(deltaValue < 0) {
 			if (m_bScrollSelect) {
-				SelectItemPage(true, true, true, detaValue);
+				SelectItemPage(true, true, true, deltaValue);
 				return;
 			}
 			break;
@@ -130,62 +192,12 @@ bool ListBox::SelectItem(size_t iIndex)
 
 size_t ListBox::SelectItemPrevious(bool bTakeFocus, bool bTriggerEvent)
 {
-	size_t itemIndex = Box::InvalidIndex;
-	const size_t itemCount = GetItemCount();
-	if (itemCount == 0) {
-		return itemIndex;
-	}
-	size_t iIndex = 0;
-	if (m_iCurSel < itemCount) {
-		iIndex = m_iCurSel;
-	}
-	if (iIndex > 0) {
-		iIndex = iIndex - 1;
-	}
-	itemIndex = FindSelectable(iIndex, false);
-	if (Box::IsValidItemIndex(itemIndex)) {
-		if (!SelectItem(itemIndex, bTakeFocus, bTriggerEvent)) {
-			itemIndex = Box::InvalidIndex;
-		}
-	}
-	if (itemIndex < itemCount) {
-		EnsureVisible(itemIndex);
-	}
-	else if (m_iCurSel < itemCount) {
-		EnsureVisible(m_iCurSel);
-	}
-	return itemIndex;
+	return SelectItemCountN(bTakeFocus, bTriggerEvent, false, 1);
 }
 
 size_t ListBox::SelectItemNext(bool bTakeFocus, bool bTriggerEvent)
 {
-	size_t itemIndex = Box::InvalidIndex;
-	const size_t itemCount = GetItemCount();
-	if (itemCount == 0) {
-		return itemIndex;
-	}
-	size_t iIndex = 0;
-	if (m_iCurSel < itemCount) {
-		iIndex = m_iCurSel;
-	}
-	iIndex = iIndex + 1;
-	if (iIndex >= itemCount) {
-		iIndex = itemCount - 1;
-	}
-
-	itemIndex = FindSelectable(iIndex, true);
-	if (Box::IsValidItemIndex(itemIndex)) {
-		if (!SelectItem(itemIndex, bTakeFocus, bTriggerEvent)) {
-			itemIndex = Box::InvalidIndex;
-		}
-	}
-	if (itemIndex < itemCount) {
-		EnsureVisible(itemIndex);
-	}
-	else if (m_iCurSel < itemCount) {
-		EnsureVisible(m_iCurSel);
-	}
-	return itemIndex;
+	return SelectItemCountN(bTakeFocus, bTriggerEvent, true, 1);
 }
 
 size_t ListBox::SelectItemPageUp(bool bTakeFocus, bool bTriggerEvent)
@@ -203,8 +215,13 @@ size_t ListBox::SelectItemHome(bool bTakeFocus, bool bTriggerEvent)
 	if (GetItemCount() == 0) {
 		return Box::InvalidIndex;
 	}
-	size_t itemIndex = FindSelectable(0, false);
-	if (Box::IsValidItemIndex(itemIndex)) {
+	size_t iIndex = 0;
+	size_t nDestItemIndex = Box::InvalidIndex;
+	if (OnFindSelectable(m_iCurSel, false, 1, true, false, nDestItemIndex)) {
+		iIndex = nDestItemIndex;
+	}
+	size_t itemIndex = FindSelectable(iIndex, true);
+	if (Box::IsValidItemIndex(itemIndex)) {		
 		SelectItem(itemIndex, bTakeFocus, bTriggerEvent);
 		EnsureVisible(itemIndex);
 	}
@@ -216,7 +233,12 @@ size_t ListBox::SelectItemEnd(bool bTakeFocus, bool bTriggerEvent)
 	if (GetItemCount() == 0) {
 		return Box::InvalidIndex;
 	}
-	size_t itemIndex = FindSelectable(GetItemCount() - 1, true);
+	size_t iIndex = GetItemCount() - 1;
+	size_t nDestItemIndex = Box::InvalidIndex;
+	if (OnFindSelectable(m_iCurSel, true, 1, false, true, nDestItemIndex)) {
+		iIndex = nDestItemIndex;
+	}
+	size_t itemIndex = FindSelectable(iIndex, false);
 	if (Box::IsValidItemIndex(itemIndex)) {
 		SelectItem(itemIndex, bTakeFocus, bTriggerEvent);
 		EnsureVisible(itemIndex);
@@ -224,7 +246,7 @@ size_t ListBox::SelectItemEnd(bool bTakeFocus, bool bTriggerEvent)
 	return itemIndex;
 }
 
-size_t ListBox::SelectItemPage(bool bTakeFocus, bool bTriggerEvent, bool bForward, int32_t nDetaValue)
+size_t ListBox::SelectItemPage(bool bTakeFocus, bool bTriggerEvent, bool bForward, int32_t nDeltaValue)
 {
 	//Page Up / Page Down 键的翻页逻辑
 	size_t itemIndex = Box::InvalidIndex;
@@ -233,81 +255,154 @@ size_t ListBox::SelectItemPage(bool bTakeFocus, bool bTriggerEvent, bool bForwar
 		return itemIndex;
 	}
 
-	bool bHasVScrollBar = false;
-	ScrollBar* pVScrollBar = GetVScrollBar();
-	if (pVScrollBar && pVScrollBar->IsValid()) {
-		bHasVScrollBar = true;
+	bool bIsHorizontal = IsHorizontalScrollBar(); //是否为横向滚动条
+	if (nDeltaValue == 0) {
+		//计算nDeltaValue值
+		nDeltaValue = bIsHorizontal ? GetRect().Width() : GetRect().Height();
 	}
-
-	bool bHasHScrollBar = false;
-	ScrollBar* pHScrollBar = GetHScrollBar();
-	if (pHScrollBar && pHScrollBar->IsValid()) {
-		bHasHScrollBar = true;
-	}
-	
-	size_t iIndex = 0;
-	if (m_iCurSel < itemCount) {
-		iIndex = m_iCurSel;
-	}
-
-	bool bIsHorizontal = (bHasHScrollBar && !bHasVScrollBar) ? true : false;
-	if (nDetaValue == 0) {
-		//计算nDetaValue值
-		nDetaValue = bIsHorizontal ? GetRect().Width() : GetRect().Height();
-	}
-	if (nDetaValue == 0) {
+	if (nDeltaValue == 0) {
 		if (m_iCurSel < itemCount) {
 			EnsureVisible(m_iCurSel);
 		}
 		return itemIndex;
 	}
 	size_t nCountPerPage = 1;
-	Control* pControl = GetItemAt(iIndex);
-	if (pControl != nullptr) {
-		UiRect rect = pControl->GetRect();
-		if (bIsHorizontal) {
-			//只有横向滚动条，按横向处理
-			if (rect.Width() > 0) {
-				nCountPerPage = std::abs(nDetaValue) / rect.Width() - 1;
-			}
-		}
-		else {
-			//其他情况，按纵向滚动处理
-			if (rect.Height() > 0) {
-				nCountPerPage = std::abs(nDetaValue) / rect.Height() - 1;
-			}
+	size_t nColumns = 0;
+	size_t nRows = 0;
+	size_t nTotalDisplayCount = GetDisplayItemCount(bIsHorizontal, nColumns, nRows);
+	if ((nColumns > 0) && (nRows > 0)){
+		nTotalDisplayCount = nColumns * nRows;
+	}
+	if (nTotalDisplayCount < 1) {
+		nTotalDisplayCount = 1;
+	}
+	if (bIsHorizontal) {
+		//只有横向滚动条，按横向处理
+		nCountPerPage = nTotalDisplayCount * std::abs(nDeltaValue) / GetRect().Width();
+		if (nCountPerPage > nRows) {
+			nCountPerPage -= nRows; //减掉1行
+		}		
+	}
+	else {
+		//其他情况，按纵向滚动处理
+		nCountPerPage = nTotalDisplayCount * std::abs(nDeltaValue) / GetRect().Height();
+		if (nCountPerPage > nColumns) {
+			nCountPerPage -= nColumns; //减掉1列
 		}
 	}
 	if (nCountPerPage < 1) {
 		nCountPerPage = 1;
 	}
-	
-	iIndex = 0;
+	return SelectItemCountN(bTakeFocus, bTriggerEvent, bForward, nCountPerPage);
+}
+
+size_t ListBox::SelectItemCountN(bool bTakeFocus, bool bTriggerEvent, bool bForward, size_t nCount)
+{
+	if (m_iCurSel >= GetItemCount()) {
+		//当前无有效的选择项，无法操作
+		return Box::InvalidIndex;
+	}
+	if ((nCount == 0) || (nCount == Box::InvalidIndex)){
+		nCount = 1;
+	}
+	bool bExceedFirst = false; //已经到达第1条
+	size_t iIndex = Box::InvalidIndex;
 	if (!bForward) {
 		//Page Up
-		if (Box::IsValidItemIndex(m_iCurSel) && (m_iCurSel > nCountPerPage)) {
-			iIndex = m_iCurSel - nCountPerPage;
+		if (m_iCurSel > nCount) {
+			iIndex = m_iCurSel - nCount;
+		}
+		else {
+			bExceedFirst = true;
 		}
 	}
 	else {
 		//Page Down
-		if (Box::IsValidItemIndex(m_iCurSel)) {
-			iIndex = m_iCurSel + nCountPerPage;
+		iIndex = m_iCurSel + nCount;
+	}
+	Control* pControl = GetItemAt(iIndex);
+	if ((pControl != nullptr) && pControl->IsVisible()) {
+		//目标子项存在，直接返回
+		size_t itemIndex = FindSelectable(iIndex, bForward);
+		if (itemIndex < GetItemCount()) {
+			SelectItem(itemIndex, bTakeFocus, bTriggerEvent);
+			EnsureVisible(itemIndex);
 		}
-		if (iIndex > GetItemCount()) {
-			iIndex = GetItemCount() - 1;
-		}
+		return itemIndex;
 	}
 
-	itemIndex = FindSelectable(iIndex, bForward);
-	if (itemIndex < itemCount) {
+	//可能需要预加载数据，如果有预加载行为，m_iCurSel的值可能发生变化
+	size_t nDestItemIndex = Box::InvalidIndex;
+	if (OnFindSelectable(m_iCurSel, bForward, nCount, false, false, nDestItemIndex)) {
+		iIndex = nDestItemIndex;
+		ASSERT(iIndex < GetItemCount());
+		if (iIndex >= GetItemCount()) {
+			return Box::InvalidIndex;
+		}
+	}
+	else {
+		if (bExceedFirst) {
+			iIndex = 0;
+		}
+	}
+	const size_t itemCount = GetItemCount();
+	if (iIndex >= itemCount) {
+		iIndex = itemCount - 1;
+	}	
+	size_t itemIndex = FindSelectable(iIndex, bForward);
+	if (itemIndex < itemCount) {		
 		SelectItem(itemIndex, bTakeFocus, bTriggerEvent);
 		EnsureVisible(itemIndex);
 	}
-	else if (m_iCurSel < itemCount) {
-		EnsureVisible(m_iCurSel);
-	}
 	return itemIndex;
+}
+
+size_t ListBox::GetDisplayItemCount(bool bIsHorizontal, size_t& nColumns, size_t& nRows) const
+{
+	std::map<int32_t, int32_t> rows;
+	std::map<int32_t, int32_t> columns;
+	size_t nCount = 0;
+	UiRect boxRect = GetRect();
+	const size_t nItemCount = GetItemCount();
+	for (size_t nItemIndex = 0; nItemIndex < nItemCount; ++nItemIndex) {
+		Control* pControl = GetItemAt(nItemIndex);
+		if ((pControl == nullptr) || !pControl->IsVisible() || pControl->IsFloat()){
+			continue;
+		}
+
+		bool bDisplayItem = false;
+		const UiRect& rc = pControl->GetRect();
+		if (bIsHorizontal) {
+			if ((rc.left >= boxRect.left) && 
+				(rc.right <= boxRect.right)) {
+				if ((rc.top >= boxRect.top) && (rc.top < boxRect.bottom)) {
+					bDisplayItem = true;
+				}
+				else if ((rc.bottom >= boxRect.top) && (rc.top < boxRect.bottom)) {
+					bDisplayItem = true;
+				}
+			}
+		}
+		else {
+			if ((rc.top >= boxRect.top) &&
+				(rc.bottom <= boxRect.bottom)) {
+				if ((rc.left >= boxRect.left) && (rc.left < boxRect.right)) {
+					bDisplayItem = true;
+				}
+				else if ((rc.right >= boxRect.left) && (rc.right < boxRect.right)) {
+					bDisplayItem = true;
+				}
+			}
+		}
+		if (bDisplayItem) {
+			rows[pControl->GetRect().top] = 0;
+			columns[pControl->GetRect().left] = 0;
+			++nCount;
+		}
+	}
+	nColumns = columns.size();
+	nRows = rows.size();
+	return nCount;
 }
 
 void ListBox::SendEvent(EventType eventType, WPARAM wParam, LPARAM lParam, TCHAR tChar, const UiPoint& mousePos)
@@ -377,6 +472,14 @@ void ListBox::GetSelectedItems(std::vector<size_t>& selectedIndexs) const
 size_t ListBox::FindSelectable(size_t iIndex, bool bForward) const
 {
 	return __super::FindSelectable(iIndex, bForward);
+}
+
+bool ListBox::OnFindSelectable(size_t /*nCurSel*/,
+							   bool /*bForward*/, size_t /*nCount*/,
+							   bool /*bHome*/, bool /*bEnd*/,
+							   size_t& /*nDestItemIndex*/)
+{
+	return false;
 }
 
 bool ListBox::SelectItem(size_t iIndex, bool bTakeFocus, bool bTriggerEvent)
@@ -679,6 +782,35 @@ bool ListBox::IsHorizontalLayout() const
 	return bHorizontal;
 }
 
+bool ListBox::IsHorizontalScrollBar() const
+{
+	bool bHasVScrollBar = false;
+	ScrollBar* pVScrollBar = GetVScrollBar();
+	if (pVScrollBar && pVScrollBar->IsValid()) {
+		bHasVScrollBar = true;
+	}
+
+	bool bHasHScrollBar = false;
+	ScrollBar* pHScrollBar = GetHScrollBar();
+	if (pHScrollBar && pHScrollBar->IsValid()) {
+		bHasHScrollBar = true;
+	}
+
+	bool bIsHorizontal = (bHasHScrollBar && !bHasVScrollBar) ? true : false;
+	LayoutType type = GetLayout()->GetLayoutType();
+	if ((type == LayoutType::HLayout) ||
+		(type == LayoutType::HTileLayout) ||
+		(type == LayoutType::VirtualHLayout) ||
+		(type == LayoutType::VirtualHTileLayout)) {
+		//确定是横向布局
+		bIsHorizontal = true;
+	}
+	else if (type == LayoutType::ListCtrlReportLayout) {
+		bIsHorizontal = false;
+	}
+	return bIsHorizontal;
+}
+
 bool ListBox::ScrollItemToTop(size_t iIndex)
 {
 	Control* pControl = GetItemAt(iIndex);
@@ -954,7 +1086,7 @@ bool ListBox::OnSwitchToSingleSelect()
 	bool bChanged = false;
 	IListBoxItem* pItem = nullptr;
 	const size_t itemCount = m_items.size();
-	if (m_iCurSel > itemCount) {
+	if (m_iCurSel > itemCount) { 
 		//如果单选状态不同步，使用第一个选择的作为最终单选的选择项
 		for (size_t i = 0; i < itemCount; ++i) {
 			pItem = dynamic_cast<IListBoxItem*>(m_items[i]);

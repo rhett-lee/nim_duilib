@@ -77,7 +77,7 @@ void Provider::SetTotal(int nTotal)
 	m_vTasks.clear();
 	std::wstring name = L"ÈÎÎñÃû³Æ";
 	m_vTasks.reserve(nTotal);
-	for (auto i=1; i <= nTotal; i++)
+	for (auto i=0; i < nTotal; i++)
 	{
 		DownloadTask task;
 		task.nId = i;

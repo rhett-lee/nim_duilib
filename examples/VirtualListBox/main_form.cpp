@@ -149,6 +149,6 @@ bool MainForm::OnClicked(const ui::EventArgs& args)
 		ASSERT(nIndex < m_DataProvider->GetElementCount());
 		m_DataProvider->RemoveTask(nIndex);
 	}
-
+	m_pTileList->SetFocus();
 	return true;
 }

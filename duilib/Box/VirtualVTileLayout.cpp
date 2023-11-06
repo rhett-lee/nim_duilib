@@ -139,7 +139,7 @@ int64_t VirtualVTileLayout::GetElementsHeight(UiRect rc, size_t nCount) const
         else {
             childMarginTotal = ((int64_t)nCount / nColumns) * iChildMargin;
         }
-        return szItem.cy * (rows + 1) + childMarginTotal;
+        return szItem.cy * rows + childMarginTotal;
     }
     return 0;
 }
@@ -277,7 +277,7 @@ bool VirtualVTileLayout::IsElementDisplay(UiRect rc, size_t iIndex) const
 
     int64_t nPos = pOwnerBox->GetScrollPos().cy;
     int64_t nElementPos = GetElementsHeight(rc, iIndex);
-    if (nElementPos >= nPos) {
+    if (nElementPos > nPos) {
         int64_t nHeight = pOwnerBox->GetHeight();
         if (nElementPos <= nPos + nHeight) {
             return true;
@@ -379,7 +379,7 @@ void VirtualVTileLayout::EnsureVisible(UiRect rc, size_t iIndex, bool bToTop) co
     }
     int64_t nPos = pOwnerBox->GetScrollPos().cy;
     int64_t elementHeight = GetElementsHeight(rc, 1);
-    if (elementHeight == 0) {
+    if (elementHeight <= 0) {
         return;
     }
     int32_t nColumns = CalcTileColumns(rc.Width());
@@ -389,10 +389,9 @@ void VirtualVTileLayout::EnsureVisible(UiRect rc, size_t iIndex, bool bToTop) co
     }
     int64_t nNewPos = 0;
 
-    if (bToTop)
-    {
+    if (bToTop) {
         nNewPos = GetElementsHeight(rc, iIndex);
-        if (nNewPos > elementHeight) {
+        if (nNewPos >= elementHeight) {
             nNewPos -= elementHeight;
         }
     }
@@ -408,8 +407,8 @@ void VirtualVTileLayout::EnsureVisible(UiRect rc, size_t iIndex, bool bToTop) co
         }
         else {
             // ÏòÉÏ
-            nNewPos = GetElementsHeight(rc, iIndex);
-            if (nNewPos > elementHeight) {
+            nNewPos = GetElementsHeight(rc, iIndex + 1);
+            if (nNewPos >= elementHeight) {
                 nNewPos -= elementHeight;
             }
         }
