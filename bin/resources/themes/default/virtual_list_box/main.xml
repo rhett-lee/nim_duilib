@@ -91,8 +91,7 @@
       </VBox>
       <!--column="3" width="auto" halign="center" childmargin="10" -->
       <Box>
-          <VirtualVTileListBox class="list" name="list" multi_select="false" scroll_select="true" itemsize="240,64" vscrollbar="true" hscrollbar="true" bordersize="1" bordercolor="splitline_level2" padding="1,1,1,1">
-          </VirtualVTileListBox>      
+          <VirtualVTileListBox class="list" name="list" multi_select="false" scroll_select="false" itemsize="240,64" vscrollbar="true" hscrollbar="true" bordersize="1" bordercolor="splitline_level2" padding="1,1,1,1"/>     
       </Box>
 
     </HBox>

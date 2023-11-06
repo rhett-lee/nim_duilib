@@ -291,22 +291,7 @@ bool VirtualVLayout::NeedReArrange() const
 
     int64_t nScrollPosY = pOwnerBox->GetScrollPos().cy;
     int64_t nVirtualOffsetY = pOwnerBox->GetScrollVirtualOffset().cy;
-
-    if (nScrollPosY >= nVirtualOffsetY) {
-        //向下滚动
-        ui::UiRect rcItem = pOwnerBox->GetItemAt(nCount - 1)->GetPos();
-        if ((rcItem.bottom + nVirtualOffsetY) < (nScrollPosY + rcThis.bottom)) {
-            return true;
-        }
-    }
-    else {
-        //向上滚动
-        ui::UiRect rcItem = pOwnerBox->GetItemAt(0)->GetPos();
-        if ((rcItem.top + nVirtualOffsetY) > (nScrollPosY + rcThis.top)) {
-            return true;
-        }
-    }
-    return false;
+    return nVirtualOffsetY != nScrollPosY;
 }
 
 void VirtualVLayout::GetDisplayElements(UiRect rc, std::vector<size_t>& collection) const

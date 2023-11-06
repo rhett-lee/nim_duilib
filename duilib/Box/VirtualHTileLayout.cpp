@@ -311,22 +311,7 @@ bool VirtualHTileLayout::NeedReArrange() const
 
     int64_t nScrollPosX = pOwnerBox->GetScrollPos().cx;
     int64_t nVirtualOffsetX = pOwnerBox->GetScrollVirtualOffset().cx;
-
-    if (nScrollPosX >= nVirtualOffsetX) {
-        //向右滚动
-        ui::UiRect rcItem = pOwnerBox->GetItemAt(nCount - 1)->GetPos();
-        if ((rcItem.right + nVirtualOffsetX) < (nScrollPosX + rcThis.right)) {
-            return true;
-        }
-    }
-    else {
-        //向左滚动
-        ui::UiRect rcItem = pOwnerBox->GetItemAt(0)->GetPos();
-        if ((rcItem.left + nVirtualOffsetX) > (nScrollPosX + rcThis.left)) {
-            return true;
-        }
-    }
-    return false;
+    return nVirtualOffsetX != nScrollPosX;
 }
 
 void VirtualHTileLayout::GetDisplayElements(UiRect rc, std::vector<size_t>& collection) const

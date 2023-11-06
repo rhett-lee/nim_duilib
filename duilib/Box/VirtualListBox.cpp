@@ -302,6 +302,7 @@ void VirtualListBox::ReArrangeChild(bool bForce)
         }
     }
     m_pVirtualLayout->LazyArrangeChild(GetPosWithoutPadding());
+    ASSERT(!m_pVirtualLayout->NeedReArrange());
 }
 
 bool VirtualListBox::OnFindSelectable(size_t nCurSel, 

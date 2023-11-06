@@ -222,8 +222,14 @@ size_t ListBox::SelectItemHome(bool bTakeFocus, bool bTriggerEvent)
 	}
 	size_t itemIndex = FindSelectable(iIndex, true);
 	if (Box::IsValidItemIndex(itemIndex)) {		
-		SelectItem(itemIndex, bTakeFocus, bTriggerEvent);
+		SelectItem(itemIndex, false, bTriggerEvent);
 		EnsureVisible(itemIndex);
+		if (bTakeFocus) {
+			Control* pControl = GetItemAt(itemIndex);
+			if ((pControl != nullptr) && pControl->IsVisible()) {
+				pControl->SetFocus();
+			}
+		}
 	}
 	return itemIndex;
 }
@@ -240,8 +246,14 @@ size_t ListBox::SelectItemEnd(bool bTakeFocus, bool bTriggerEvent)
 	}
 	size_t itemIndex = FindSelectable(iIndex, false);
 	if (Box::IsValidItemIndex(itemIndex)) {
-		SelectItem(itemIndex, bTakeFocus, bTriggerEvent);
+		SelectItem(itemIndex, false, bTriggerEvent);
 		EnsureVisible(itemIndex);
+		if (bTakeFocus) {
+			Control* pControl = GetItemAt(itemIndex);
+			if ((pControl != nullptr) && pControl->IsVisible()) {
+				pControl->SetFocus();
+			}
+		}
 	}
 	return itemIndex;
 }
@@ -325,8 +337,14 @@ size_t ListBox::SelectItemCountN(bool bTakeFocus, bool bTriggerEvent, bool bForw
 		//目标子项存在，直接返回
 		size_t itemIndex = FindSelectable(iIndex, bForward);
 		if (itemIndex < GetItemCount()) {
-			SelectItem(itemIndex, bTakeFocus, bTriggerEvent);
+			SelectItem(itemIndex, false, bTriggerEvent);
 			EnsureVisible(itemIndex);
+			if (bTakeFocus) {
+				Control* pSelectedControl = GetItemAt(itemIndex);
+				if ((pSelectedControl != nullptr) && pSelectedControl->IsVisible()) {
+					pSelectedControl->SetFocus();
+				}
+			}
 		}
 		return itemIndex;
 	}
@@ -351,8 +369,14 @@ size_t ListBox::SelectItemCountN(bool bTakeFocus, bool bTriggerEvent, bool bForw
 	}	
 	size_t itemIndex = FindSelectable(iIndex, bForward);
 	if (itemIndex < itemCount) {		
-		SelectItem(itemIndex, bTakeFocus, bTriggerEvent);
+		SelectItem(itemIndex, false, bTriggerEvent);
 		EnsureVisible(itemIndex);
+		if (bTakeFocus) {
+			Control* pSelectedControl = GetItemAt(itemIndex);
+			if ((pSelectedControl != nullptr) && pSelectedControl->IsVisible()) {
+				pSelectedControl->SetFocus();
+			}
+		}
 	}
 	return itemIndex;
 }
