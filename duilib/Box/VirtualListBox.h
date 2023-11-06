@@ -110,6 +110,23 @@ public:
     */
     size_t GetElementCount() const;
 
+    /** 获取当前选择的数据元素索引号(仅单选时有效)
+    @return 返回选择的数据元素索引号，范围：[0, GetElementCount())
+    */
+    size_t GetCurSelElement() const;
+
+    /** 设置选择状态
+    * @param [in] nElementIndex 数据元素的索引ID，范围：[0, GetElementCount())
+    * @param [in] bSelected true表示选择状态，false表示非选择状态
+    */
+    void SetElementSelected(size_t nElementIndex, bool bSelected);
+
+    /** 获取选择状态
+    * @param [in] nElementIndex 数据元素的索引ID，范围：[0, GetElementCount())
+    * @return true表示选择状态，false表示非选择状态
+    */
+    bool IsElementSelected(size_t nElementIndex) const;
+
     /** 获取当前所有可见控件的数据元素索引
     * @param [out] collection 索引列表，有效范围：[0, GetElementCount())
     */
@@ -132,6 +149,12 @@ public:
     * @param [in] bToTop 是否在最上方
     */
     void EnsureVisible(size_t nElementIndex, bool bToTop);
+
+    /** 刷新指定范围的数据，保持数据与界面显示同步，数据范围: [nStartElementIndex, nEndElementIndex]
+    * @param [in] nStartElementIndex 数据的开始下标
+    * @param [in] nEndElementIndex 数据的结束下标
+    */
+    void RefreshElements(size_t nStartElementIndex, size_t nEndElementIndex);
 
     /** 刷新列表
     */

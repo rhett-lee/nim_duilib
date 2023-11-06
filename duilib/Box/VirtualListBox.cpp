@@ -116,6 +116,33 @@ size_t VirtualListBox::GetElementCount() const
     return elementCount;
 }
 
+void VirtualListBox::SetElementSelected(size_t nElementIndex, bool bSelected)
+{
+    ASSERT(m_pDataProvider != nullptr);
+    if (m_pDataProvider != nullptr) {
+        bool bChanged = m_pDataProvider->IsElementSelected(nElementIndex) != bSelected;
+        m_pDataProvider->SetElementSelected(nElementIndex, bSelected);
+        if (bChanged) {
+            RefreshElements(nElementIndex, nElementIndex);
+        }
+    }
+}
+
+bool VirtualListBox::IsElementSelected(size_t nElementIndex) const
+{
+    bool bSelected = false;
+    ASSERT(m_pDataProvider != nullptr);
+    if (m_pDataProvider != nullptr) {
+        bSelected = m_pDataProvider->IsElementSelected(nElementIndex);
+    }
+    return bSelected;
+}
+
+void VirtualListBox::RefreshElements(size_t nStartElementIndex, size_t nEndElementIndex)
+{
+    OnModelDataChanged(nStartElementIndex, nEndElementIndex);
+}
+
 void VirtualListBox::OnModelDataChanged(size_t nStartElementIndex, size_t nEndElementIndex)
 {
     for (Control* pControl : m_items) {
@@ -237,6 +264,16 @@ size_t VirtualListBox::GetDisplayItemElementIndex(size_t nItemIndex) const
         if (pListBoxItem != nullptr) {
             nElementIndex = pListBoxItem->GetElementIndex();
         }        
+    }
+    return nElementIndex;
+}
+
+size_t VirtualListBox::GetCurSelElement() const
+{
+    size_t nElementIndex = Box::InvalidIndex;
+    size_t nCurSel = GetCurSel();
+    if (nCurSel < GetItemCount()) {
+        nElementIndex = GetDisplayItemElementIndex(nCurSel);
     }
     return nElementIndex;
 }
