@@ -179,12 +179,13 @@ public:
 							     ListBoxVerVisible vVisibleType = ListBoxVerVisible::kVisible,
 							     ListBoxHorVisible hVisibleType = ListBoxHorVisible::kVisible) override;
 
-protected:
+public:
     /// 重写父类接口，提供个性化功能
     virtual void SetScrollPos(UiSize64 szPos) override;
     virtual void SetPos(UiRect rc) override;
     virtual void PaintChild(IRender* pRender, const UiRect& rcPaint) override;
 
+protected:
     //重载删除函数，禁止外部调用
     virtual bool RemoveItem(Control* pControl) override;
     virtual bool RemoveItemAt(size_t iIndex) override;
@@ -203,6 +204,17 @@ protected:
 								  bool bForward, size_t nCount,
 								  bool bHome, bool bEnd,
 		                          size_t& nDestItemIndex) override;
+
+    /** 判断一个数据元素是否为可选择项
+	* @param [in] nElementIndex 元素索引号，有效范围：[0, GetElementCount())
+	*/
+    virtual bool IsSelectableElement(size_t nElementIndex) const;
+
+    /** 获取下一个可选择的数据元素
+    * @param [in] nElementIndex 元素索引号，有效范围：[0, GetElementCount())
+    * @param [in] bForward true表示向前查找，false表示向后查找
+    */
+    virtual size_t FindSelectableElement(size_t nElementIndex, bool bForward) const;
 
 protected:
 

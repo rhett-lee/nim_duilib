@@ -83,25 +83,30 @@ public:
     @param [in] maxCount 最多取多少条记录(包含置顶和非置顶的)
     @param [out] itemIndexList 返回需要展示的元素序号(非置顶的)
     @param [out] atTopItemIndexList 返回需要展示的元素序号(置顶的)
+    @param [out] nPrevItemHeights 第一条可见元素之前所有元素的总高度（不含置顶元素）
     */
     void GetDataItemsToShow(int64_t nScrollPosY, size_t maxCount, 
                             std::vector<ShowItemInfo>& itemIndexList,
-                            std::vector<ShowItemInfo>& atTopItemIndexList) const;
+                            std::vector<ShowItemInfo>& atTopItemIndexList,
+                            int64_t& nPrevItemHeights) const;
 
     /** 获取指定高度的区域，最多可以展示多少条数据
     @param [in] nScrollPosY 当前Y滚动条的位置
     @param [in] nRectHeight 区域高度
     @param [out] pItemIndexList 返回可以显示的元素序号
+    @param [out] pAtTopItemIndexList 置顶项的元素序号
     @return 返回可以展示的数据条数
     */
     int32_t GetMaxDataItemsToShow(int64_t nScrollPosY, int32_t nRectHeight, 
-                                  std::vector<size_t>* pItemIndexList = nullptr) const;
+                                  std::vector<size_t>* pItemIndexList = nullptr,
+                                  std::vector<size_t>* pAtTopItemIndexList = nullptr) const;
 
     /** 获取指定元素的显示位置总高度值
     * @param [in] itemIndex 数据项的索引号
+    * @parma [in] bIncludeAtTops 是否包含置顶元素的高度值
     * @return 显示位置总高度值，不包含该元素自身
     */
-    int64_t GetDataItemTotalHeights(size_t itemIndex) const;
+    int64_t GetDataItemTotalHeights(size_t itemIndex, bool bIncludeAtTops) const;
 
 public:
     /** 是否为标准模式（行高都为默认行高，无隐藏行，无置顶行）
@@ -132,6 +137,25 @@ protected:
     /** 查找子控件
     */
     virtual Control* FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, UiPoint scrollPos = UiPoint()) override;
+
+    /** 计算本页里面显示几个子项
+    * @param [in] bIsHorizontal 当前布局是否为水平布局
+    * @param [out] nColumns 返回列数
+    * @param [out] nRows 返回行数
+    * @return 返回可视区域显示的记录数
+    */
+    virtual size_t GetDisplayItemCount(bool bIsHorizontal, size_t& nColumns, size_t& nRows) const override;
+
+    /** 判断一个数据元素是否为可选择项
+    * @param [in] nElementIndex 元素索引号，有效范围：[0, GetElementCount())
+    */
+    virtual bool IsSelectableElement(size_t nElementIndex) const override;
+
+    /** 获取下一个可选择的数据元素
+    * @param [in] nElementIndex 元素索引号，有效范围：[0, GetElementCount())
+    * @param [in] bForward true表示向前查找，false表示向后查找
+    */
+    virtual size_t FindSelectableElement(size_t nElementIndex, bool bForward) const override;
 
 private:
     /** 将header和置顶项放在最后
@@ -240,9 +264,10 @@ private:
 
     /** 获取数据项的高度, 高度不包含表头
     * @param [in] nCount 数据项个数，如果为Box::InvalidIndex，则获取所有数据项的高度总和
+    * * @parma [in] bIncludeAtTops 是否包含置顶元素的高度值
     * @return 返回 nCount 个数据项的高度总和, 不包含表头的高度
     */
-    int64_t GetElementsHeight(size_t nCount) const;
+    int64_t GetElementsHeight(size_t nCount, bool bIncludeAtTops) const;
 
     /** 获取数据项的高度和宽度
     * @param [in] rcWidth 当前容器的宽度, 外部调用时，需要先剪去内边距
@@ -267,6 +292,13 @@ private:
     * @param [in] rc 当前容器大小信息, 外部调用时，需要先剪去内边距
     */
     void LazyArrangeChildNormal(UiRect rc) const;
+
+    /** 获取当前所有可见控件的数据元素索引
+    * @param [in] rc 当前显示区域的矩形，不包含内边距
+    * @param[out] collection 索引列表，范围是：[0, GetElementCount())
+    */
+    void GetDisplayElements(UiRect rc, std::vector<size_t>& collection, 
+                            std::vector<size_t>* pAtTopItemIndexList) const;
 
 private:
     /** 关联的ListBox接口

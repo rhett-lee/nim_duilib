@@ -334,7 +334,7 @@ protected:
 								  bool bHome, bool bEnd,
 		                          size_t& nDestItemIndex);
 
-private:
+protected:
 	/**
 	 * @brief 默认的子项对比方法
 	 * @param[in] pvlocale 保存 List 指针
@@ -389,9 +389,18 @@ private:
 	*/
 	size_t SelectEnsureVisible(size_t itemIndex, bool bTakeFocus);
 
-	/** 计算本页里面显示几个子项
+	/** 判断一个子项是否为可选择项
+	* @param [in] itemIndex 子项目的ID，范围是：[0, GetItemCount())
 	*/
-	size_t GetDisplayItemCount(bool bIsHorizontal, size_t& nColumns, size_t& nRows) const;
+	bool IsSelectableItem(size_t itemIndex) const;
+
+	/** 计算本页里面显示几个子项
+	* @param [in] bIsHorizontal 当前布局是否为水平布局
+	* @param [out] nColumns 返回列数
+	* @param [out] nRows 返回行数
+	* @return 返回可视区域显示的记录数
+	*/
+	virtual size_t GetDisplayItemCount(bool bIsHorizontal, size_t& nColumns, size_t& nRows) const;
 
 private:
 	//是否随滚动改变选中项

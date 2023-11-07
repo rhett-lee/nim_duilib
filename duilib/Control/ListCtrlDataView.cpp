@@ -220,8 +220,10 @@ int32_t ListCtrlDataView::GetDataItemHeight(size_t itemIndex) const
 
 void ListCtrlDataView::GetDataItemsToShow(int64_t nScrollPosY, size_t maxCount, 
                                           std::vector<ShowItemInfo>& itemIndexList,
-                                          std::vector<ShowItemInfo>& atTopItemIndexList) const
+                                          std::vector<ShowItemInfo>& atTopItemIndexList,
+                                          int64_t& nPrevItemHeights) const
 {
+    nPrevItemHeights = 0;
     itemIndexList.clear();
     atTopItemIndexList.clear();
     ASSERT(m_pListCtrl != nullptr);
@@ -277,6 +279,7 @@ void ListCtrlDataView::GetDataItemsToShow(int64_t nScrollPosY, size_t maxCount,
             //如果每行高度都相同，相当于 nScrollPosY / ItemHeight
             if (totalItemHeight > nScrollPosY) {
                 nTopDataItemIndex = index;
+                nPrevItemHeights = totalItemHeight - nItemHeight;
             }
         }
 
@@ -309,7 +312,9 @@ void ListCtrlDataView::GetDataItemsToShow(int64_t nScrollPosY, size_t maxCount,
     ASSERT((itemIndexList.size() + atTopItemIndexList.size()) <= maxCount);
 }
 
-int32_t ListCtrlDataView::GetMaxDataItemsToShow(int64_t nScrollPosY, int32_t nRectHeight, std::vector<size_t>* pItemIndexList) const
+int32_t ListCtrlDataView::GetMaxDataItemsToShow(int64_t nScrollPosY, int32_t nRectHeight, 
+                          std::vector<size_t>* pItemIndexList,
+                          std::vector<size_t>* pAtTopItemIndexList) const
 {
     if (pItemIndexList) {
         pItemIndexList->clear();
@@ -381,10 +386,12 @@ int32_t ListCtrlDataView::GetMaxDataItemsToShow(int64_t nScrollPosY, int32_t nRe
                 return a.nAlwaysAtTop > b.nAlwaysAtTop;
             });
     }
+    std::vector<size_t> atTopIndexList;
     std::vector<size_t> tempItemIndexList;
     tempItemIndexList.swap(itemIndexList);
     for (const AlwaysAtTopData& item : alwaysAtTopItemList) {
         itemIndexList.push_back(item.index);
+        atTopIndexList.push_back(item.index);
     }
     for (size_t index : tempItemIndexList) {
         itemIndexList.push_back(index);
@@ -406,6 +413,12 @@ int32_t ListCtrlDataView::GetMaxDataItemsToShow(int64_t nScrollPosY, int32_t nRe
             if (pItemIndexList) {
                 pItemIndexList->push_back(index);
             }
+            if (pAtTopItemIndexList != nullptr) {
+                if (std::find(atTopIndexList.begin(),
+                              atTopIndexList.end(), index) != atTopIndexList.end()) {
+                    pAtTopItemIndexList->push_back(index);
+                }
+            }
             ++nShowItemCount;
         }
         else {
@@ -416,7 +429,7 @@ int32_t ListCtrlDataView::GetMaxDataItemsToShow(int64_t nScrollPosY, int32_t nRe
     return nShowItemCount;
 }
 
-int64_t ListCtrlDataView::GetDataItemTotalHeights(size_t itemIndex) const
+int64_t ListCtrlDataView::GetDataItemTotalHeights(size_t itemIndex, bool bIncludeAtTops) const
 {
     ASSERT(m_pListCtrl != nullptr);
     if (m_pListCtrl == nullptr) {
@@ -442,11 +455,17 @@ int64_t ListCtrlDataView::GetDataItemTotalHeights(size_t itemIndex) const
 
         if (rowData.nAlwaysAtTop >= 0) {
             //置顶的元素，需要统计在内
-            totalItemHeight += nItemHeight;
+            if (bIncludeAtTops) {
+                totalItemHeight += nItemHeight;
+            }            
         }
         else if (index < itemIndex) {
             //符合要求的元素
             totalItemHeight += nItemHeight;
+        }
+        else if (!bIncludeAtTops) {
+            //已经完成
+            break;
         }
     }
     return totalItemHeight;
@@ -699,6 +718,81 @@ Control* ListCtrlDataView::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT 
     return pResult;
 }
 
+size_t ListCtrlDataView::GetDisplayItemCount(bool /*bIsHorizontal*/, size_t& nColumns, size_t& nRows) const
+{
+    nColumns = 1;
+    size_t nDiplayItemCount = m_diplayItemIndexList.size();
+    size_t nAtTopItemCount = m_atTopControlList.size();
+    nRows = nDiplayItemCount;
+    if (nRows > nAtTopItemCount) {
+        nRows -= nAtTopItemCount;//减去置顶项
+    }
+    if (nRows > 1) {
+        if ((m_pListCtrl != nullptr) && (m_pListCtrl->GetHeaderHeight() > 0)) {
+            nRows -= 1;//减去Header
+        }
+    }
+    return nRows * nColumns;
+}
+
+bool ListCtrlDataView::IsSelectableElement(size_t nElementIndex) const
+{
+    bool bSelectable = true;
+    ListCtrlDataProvider* pDataProvider = dynamic_cast<ListCtrlDataProvider*>(GetDataProvider());
+    ASSERT(pDataProvider != nullptr);
+    if (pDataProvider != nullptr) {
+        const ListCtrlDataProvider::RowDataList& itemDataList = pDataProvider->GetItemDataList();
+        if (nElementIndex < itemDataList.size()) {
+            const ListCtrlRowData& rowData = itemDataList[nElementIndex];
+            bSelectable = rowData.bVisible && (rowData.nAlwaysAtTop < 0);
+        }
+    }
+    return bSelectable;
+}
+
+size_t ListCtrlDataView::FindSelectableElement(size_t nElementIndex, bool bForward) const
+{
+    ListCtrlDataProvider* pDataProvider = dynamic_cast<ListCtrlDataProvider*>(GetDataProvider());
+    ASSERT(pDataProvider != nullptr);
+    if (pDataProvider == nullptr) {
+        return nElementIndex;
+    }
+    const ListCtrlDataProvider::RowDataList& itemDataList = pDataProvider->GetItemDataList();
+    const size_t nElementCount = itemDataList.size();
+    if ((nElementCount == 0) || (nElementIndex >= nElementCount)) {
+        return nElementIndex;
+    }
+    bool bSelectable = itemDataList[nElementIndex].nAlwaysAtTop < 0;
+    if (!itemDataList[nElementIndex].bVisible) {
+        bSelectable = false;
+    }
+    if (!bSelectable) {
+        size_t nStartIndex = nElementIndex;
+        nElementIndex = Box::InvalidIndex;
+        if (bForward) {
+            //向前查找下一个不是置顶的
+            for (size_t i = nStartIndex + 1; i < nElementCount; ++i) {
+                const ListCtrlRowData& rowData = itemDataList[i];
+                if (rowData.bVisible && (rowData.nAlwaysAtTop < 0)) {
+                    nElementIndex = i;
+                    break;
+                }
+            }
+        }
+        else {
+            //向后查找下一个不是置顶的
+            for (int32_t i = (int32_t)nStartIndex - 1; i >= 0; --i) {
+                const ListCtrlRowData& rowData = itemDataList[i];
+                if (rowData.bVisible && (rowData.nAlwaysAtTop < 0)) {
+                    nElementIndex = i;
+                    break;
+                }
+            }
+        }        
+    }
+    return nElementIndex;
+}
+
 void ListCtrlDataView::OnRefresh()
 {
 }
@@ -732,7 +826,7 @@ UiSize64 ListCtrlDataLayout::ArrangeChild(const std::vector<ui::Control*>& /*ite
     }
     DeflatePadding(rc);
     const int32_t nHeaderHeight = GetHeaderHeight();
-    int64_t nTotalHeight = GetElementsHeight(Box::InvalidIndex) + nHeaderHeight;
+    int64_t nTotalHeight = GetElementsHeight(Box::InvalidIndex, true) + nHeaderHeight;
     UiSize64 sz(rc.Width(), rc.Height());
     sz.cy = std::max(nTotalHeight, sz.cy);
     m_bReserveSet = false;
@@ -746,35 +840,6 @@ UiSize64 ListCtrlDataLayout::ArrangeChild(const std::vector<ui::Control*>& /*ite
     }
     sz.cx = std::max(GetItemWidth(), rc.Width()); //允许出现横向滚动条
     LazyArrangeChild(rc);
-
-//#ifdef _DEBUG
-//    //TEST 以下为测试代码
-//    {
-//        size_t s0 = pOwnerListBox->GetTopElementIndex();
-//        size_t s1 = GetTopElementIndex(pOwnerListBox->GetRect());
-//        ASSERT(s0 == s1);
-//
-//        std::vector<size_t> itemIndexList;
-//        pOwnerListBox->GetDisplayDataItems(itemIndexList);
-//
-//        std::vector<size_t> collection;
-//        GetDisplayElements(pOwnerListBox->GetRect(), collection);
-//
-//        std::vector<size_t> displayItemIndexList;
-//        for (size_t i = 0; i < 200; ++i) {
-//            if (IsElementDisplay(pOwnerListBox->GetRect(), i)) {
-//                displayItemIndexList.push_back(i);
-//            }
-//        }
-//        //if (!itemIndexList.empty()) {
-//        //    ASSERT(itemIndexList == collection);
-//        //    ASSERT(itemIndexList == displayItemIndexList);
-//        //}
-//        //EnsureVisible(pOwnerListBox->GetRect(), 50, false);
-//    }
-//    //TEST
-//#endif
-
     return sz;
 }
 
@@ -867,7 +932,9 @@ void ListCtrlDataLayout::LazyArrangeChild(UiRect rc) const
     //取出需要显示的数据元素序号列表
     std::vector<ListCtrlDataView::ShowItemInfo> showItemIndexList;
     std::vector<ListCtrlDataView::ShowItemInfo> atTopItemIndexList;
-    pDataView->GetDataItemsToShow(nScrollPosY, nItemCount - 1, showItemIndexList, atTopItemIndexList);
+    int64_t nPrevItemHeights = 0;
+    pDataView->GetDataItemsToShow(nScrollPosY, nItemCount - 1, 
+                                  showItemIndexList, atTopItemIndexList, nPrevItemHeights);
     if (showItemIndexList.empty() && atTopItemIndexList.empty()) {
         //没有需要显示的数据
         pDataView->OnArrangeChild();
@@ -885,14 +952,14 @@ void ListCtrlDataLayout::LazyArrangeChild(UiRect rc) const
     pDataView->SetTopElementIndex(nTopElementIndex); 
 
     //设置虚拟偏移，否则当数据量较大时，rc这个32位的矩形的高度会越界，需要64位整型才能容纳
-    pDataView->SetScrollVirtualOffsetY(nScrollPosY); 
+    pDataView->SetScrollVirtualOffsetY(nScrollPosY);
 
     //第一条数据Y轴坐标的偏移，需要保持，避免滚动位置变动后，重新刷新界面出现偏差，导致最后一条数据显示不完整
     int32_t yOffset = 0;
     if ((nScrollPosY > 0) && !showItemIndexList.empty()) {
         int32_t nFirstHeight = showItemIndexList.front().nItemHeight;
-        if (nFirstHeight > 0) {
-            yOffset = nScrollPosY % nFirstHeight;
+        if (nFirstHeight > 0) {            
+            yOffset = std::abs(nScrollPosY - nPrevItemHeights) % nFirstHeight;
         }
     }
     if ((nScrollPosY > 0) && (nScrollPosY == pDataView->GetScrollRange().cy)) {
@@ -1002,6 +1069,12 @@ void ListCtrlDataLayout::LazyArrangeChild(UiRect rc) const
             //TODO: 优化代码，避免每次刷新都Fill
             pDataView->FillElement(pControl, nElementIndex);
             diplayItemIndexList.push_back(nElementIndex);
+
+            ListCtrlItem* pListCtrlItem = dynamic_cast<ListCtrlItem*>(pControl);
+            if (pListCtrlItem != nullptr) {
+                //置顶项不允许选择
+                pListCtrlItem->SetSelectableType(bAlwaysAtTop ? false : true);
+            }
             if (bAlwaysAtTop) {
                 //记录置顶项
                 atTopUiItemIndexList.push_back(index);
@@ -1199,6 +1272,12 @@ bool ListCtrlDataLayout::IsElementDisplay(UiRect rc, size_t iIndex) const
 
 void ListCtrlDataLayout::GetDisplayElements(UiRect rc, std::vector<size_t>& collection) const
 {
+    GetDisplayElements(rc, collection, nullptr);
+}
+
+void ListCtrlDataLayout::GetDisplayElements(UiRect rc, std::vector<size_t>& collection,
+                                            std::vector<size_t>* pAtTopItemIndexList) const
+{
     collection.clear();
     ListCtrlDataView* pDataView = GetDataView();
     if ((pDataView == nullptr) || !pDataView->HasDataProvider()) {
@@ -1211,7 +1290,8 @@ void ListCtrlDataLayout::GetDisplayElements(UiRect rc, std::vector<size_t>& coll
     int64_t nScrollPosY = pDataView->GetScrollPos().cy;
     if (!pDataView->IsNormalMode()) {
         //非标准模式
-        pDataView->GetMaxDataItemsToShow(nScrollPosY, rc.Height(), &collection);
+        pDataView->GetMaxDataItemsToShow(nScrollPosY, rc.Height(), 
+                                         &collection, pAtTopItemIndexList);
         return;
     }
 
@@ -1280,43 +1360,85 @@ void ListCtrlDataLayout::EnsureVisible(UiRect rc, size_t iIndex, bool bToTop) co
     if (pVScrollBar == nullptr) {
         return;
     }
-    int32_t nItemHeight = GetItemHeight();
-    ASSERT(nItemHeight >= 0);
-    if (nItemHeight <= 0) {
-        return;
-    }
-    int64_t nNewPos = 0;
-    if (bToTop) {
-        if (iIndex > 0) {
-            nNewPos = GetElementsHeight(iIndex);
-        }
-    }
-    else {
+    if (!bToTop) {
+        std::vector<size_t> atTopItemIndexList;
         std::vector<size_t> itemIndexList;
-        GetDisplayElements(rc, itemIndexList);
+        GetDisplayElements(rc, itemIndexList, &atTopItemIndexList);
         bool bDisplay = std::find(itemIndexList.begin(), itemIndexList.end(), iIndex) != itemIndexList.end();
-        if (bDisplay) {
+        bool bFirst = false;
+        bool bLast = false;
+        if (!itemIndexList.empty()) {
+            for (size_t i = 0; i < itemIndexList.size(); ++i) {
+                if (std::find(atTopItemIndexList.begin(), 
+                              atTopItemIndexList.end(), 
+                              itemIndexList[i]) == atTopItemIndexList.end()) {
+                    //第一个不置顶的索引
+                    bFirst = itemIndexList[i] == iIndex;
+                    break;
+                }
+            }            
+            bLast = itemIndexList[itemIndexList.size() - 1] == iIndex;
+        }
+        if (bDisplay && !bLast && !bFirst) {
+            //已经是显示状态
             return;
         }
-        if (iIndex > 0) {
-            nNewPos = GetElementsHeight(iIndex);
-        }
-        if (itemIndexList.size() >= 2) {
-            nNewPos -= (itemIndexList.size() - 2) * nItemHeight;
+    }
+    UiSize szElementSize = GetElementSize(0, iIndex); //目标元素的大小
+    int64_t nNewTopPos = 0;     //顶部对齐时的位置
+    int64_t nNewBottomPos = 0;  //底部对齐时的位置
+    if (iIndex > 0) {
+        nNewTopPos = GetElementsHeight(iIndex, false);
+        if (!bToTop) {
+            //底部对齐
+            nNewBottomPos = GetElementsHeight(iIndex, false);
+            int64_t nNewPosWithTop = GetElementsHeight(iIndex, true);
+            int64_t nTopHeights = GetHeaderHeight();
+            if (nNewPosWithTop > nNewBottomPos) {
+                nTopHeights += (nNewPosWithTop - nNewBottomPos);
+            }
+            //扣除置顶项的高度、Header的高度和自身高度
+            nNewBottomPos -= rc.Height();
+            nNewBottomPos += nTopHeights;
+            nNewBottomPos += szElementSize.cy;
         }
     }
-    if (nNewPos < 0) {
-        nNewPos = 0;
-    }    
-    if (nNewPos > pVScrollBar->GetScrollRange()) {
-        nNewPos = pVScrollBar->GetScrollRange();
+
+    if (nNewTopPos < 0) {
+        nNewTopPos = 0;
+    }
+    if (nNewTopPos > pVScrollBar->GetScrollRange()) {
+        nNewTopPos = pVScrollBar->GetScrollRange();
+    }
+    if (nNewBottomPos < 0) {
+        nNewBottomPos = 0;
+    }
+    if (nNewBottomPos > pVScrollBar->GetScrollRange()) {
+        nNewBottomPos = pVScrollBar->GetScrollRange();
     }
     ui::UiSize64 sz = pDataView->GetScrollPos();
+    int64_t nNewPos = sz.cy;
+    if (bToTop) {
+        //顶部对齐
+        nNewPos = nNewTopPos;
+    }
+    else {
+        //未指定对齐，智能判断
+        int64_t diff = sz.cy - nNewBottomPos;
+        if (diff < 0) {
+            //向上滚动：底部对齐
+            nNewPos = nNewBottomPos;
+        }
+        else {
+            //向下滚动：顶部对齐
+            nNewPos = nNewTopPos;
+        }
+    }
     sz.cy = nNewPos;
     pDataView->SetScrollPos(sz);
 }
 
-int64_t ListCtrlDataLayout::GetElementsHeight(size_t nCount) const
+int64_t ListCtrlDataLayout::GetElementsHeight(size_t nCount, bool bIncludeAtTops) const
 {
     ListCtrlDataView* pDataView = GetDataView();
     if ((pDataView == nullptr) || !pDataView->HasDataProvider()) {
@@ -1332,7 +1454,7 @@ int64_t ListCtrlDataLayout::GetElementsHeight(size_t nCount) const
     int64_t nTotalHeight = 0;
     if (!pDataView->IsNormalMode()) {
         //非标准模式
-        nTotalHeight = pDataView->GetDataItemTotalHeights(nCount);
+        nTotalHeight = pDataView->GetDataItemTotalHeights(nCount, bIncludeAtTops);
     }
     else {
         int32_t nItemHeight = GetItemHeight();

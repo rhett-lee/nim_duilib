@@ -424,6 +424,18 @@ bool VirtualListBox::OnFindSelectable(size_t nCurSel,
             }
         }
     }
+    if (nElementIndex >= GetElementCount()) {
+        //无法确定当前选择的元素索引号
+        return false;
+    }
+    if (!IsSelectableElement(nElementIndex)) {
+        nElementIndex = FindSelectableElement(nElementIndex, bForward);
+        if (nElementIndex >= GetElementCount()) {
+            //无法确定当前选择的元素索引号
+            return false;
+        }
+    }
+
     bool bLoaded = false;
     if (GetDisplayItemElementIndex(nIndex) != nElementIndex) {
         //加载这个元素, 使其处于可显示状态
@@ -446,6 +458,16 @@ bool VirtualListBox::OnFindSelectable(size_t nCurSel,
         }
     }
     return bLoaded;
+}
+
+bool VirtualListBox::IsSelectableElement(size_t /*nElementIndex*/) const
+{
+    return true;
+}
+
+size_t VirtualListBox::FindSelectableElement(size_t nElementIndex, bool /*bForward*/) const
+{
+    return nElementIndex;
 }
 
 bool VirtualListBox::OnSelectedItem(const ui::EventArgs& args)

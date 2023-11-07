@@ -302,6 +302,10 @@ size_t ListBox::SelectItemCountN(bool bTakeFocus, bool bTriggerEvent, bool bForw
 		//当前无有效的选择项，无法操作
 		return Box::InvalidIndex;
 	}
+	if (!IsSelectableItem(m_iCurSel)) {
+		//如果当前选中项为不可选择项，无法操作
+		return Box::InvalidIndex;
+	}
 	if ((nCount == 0) || (nCount == Box::InvalidIndex)){
 		nCount = 1;
 	}
@@ -320,10 +324,9 @@ size_t ListBox::SelectItemCountN(bool bTakeFocus, bool bTriggerEvent, bool bForw
 		//Page Down
 		iIndex = m_iCurSel + nCount;
 	}
-	Control* pControl = GetItemAt(iIndex);
-	if ((pControl != nullptr) && pControl->IsVisible()) {
+	if (IsSelectableItem(iIndex)) {
 		//目标子项存在，直接返回
-		size_t itemIndex = FindSelectable(iIndex, bForward);
+		size_t itemIndex = iIndex;
 		if (itemIndex < GetItemCount()) {
 			SelectItem(itemIndex, false, bTriggerEvent);
 			itemIndex = SelectEnsureVisible(itemIndex, bTakeFocus);
@@ -370,6 +373,19 @@ size_t ListBox::SelectEnsureVisible(size_t itemIndex, bool bTakeFocus)
 		ASSERT(GetWindow()->GetFocus() == pSelectedControl);
 	}
 	return itemIndex;
+}
+
+bool ListBox::IsSelectableItem(size_t itemIndex) const
+{
+	bool bSelectable = false;
+	Control* pControl = GetItemAt(itemIndex);
+	if ((pControl != nullptr) &&
+		pControl->IsSelectableType() &&
+		pControl->IsVisible() &&
+		pControl->IsEnabled()) {
+		bSelectable = true;
+	}
+	return bSelectable;
 }
 
 size_t ListBox::GetDisplayItemCount(bool bIsHorizontal, size_t& nColumns, size_t& nRows) const

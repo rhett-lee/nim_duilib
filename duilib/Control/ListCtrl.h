@@ -589,6 +589,10 @@ private:
 class ListCtrlItem : public ListBoxItemH
 {
 public:
+    ListCtrlItem() : m_bSelectable(true)
+    {
+    }
+
     /** 获取控件类型
     */
     virtual std::wstring GetType() const override { return L"ListCtrlItem"; }
@@ -600,6 +604,26 @@ public:
     {
         __super::SetVisible(bVisible);
     }
+
+    /** 判断控件类型是否为可选择的
+     * @return 默认返回false
+     */
+    virtual bool IsSelectableType() const override
+    {
+        return m_bSelectable;
+    }
+
+    /** 设置是否可以选择
+    */
+    void SetSelectableType(bool bSelectable)
+    { 
+        m_bSelectable = bSelectable; 
+    }
+
+private:
+    /** 是否可以选择（影响方向键切换选择项）
+    */
+    bool m_bSelectable;
 };
 
 }//namespace ui

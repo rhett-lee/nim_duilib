@@ -24,6 +24,11 @@ public:
     */
     virtual std::wstring GetType() const override;
 
+    /** 判断控件类型是否为可选择的
+     * @return 默认返回false
+     */
+    virtual bool IsSelectableType() const override;
+
 public:
     /** 在指定位置添加一列
     *  表头控件的基本结构如下：

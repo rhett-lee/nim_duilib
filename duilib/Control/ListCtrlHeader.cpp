@@ -15,6 +15,11 @@ ListCtrlHeader::~ListCtrlHeader()
 
 std::wstring ListCtrlHeader::GetType() const { return L"ListCtrlHeader"; }
 
+bool ListCtrlHeader::IsSelectableType() const
+{
+    return false;
+}
+
 ListCtrlHeaderItem* ListCtrlHeader::InsertColumn(int32_t columnIndex, const ListCtrlColumn& columnInfo)
 {
     int32_t nColumnWidth = columnInfo.nColumnWidth;
