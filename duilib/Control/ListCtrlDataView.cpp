@@ -63,8 +63,8 @@ void ListCtrlDataView::AjustItemCount()
         return;
     }
 
-    //当前数据总数
-    size_t nElementCount = GetElementCount();
+    //当前数据总数: 数据总数 + Header控件
+    size_t nElementCount = GetElementCount() + 1;
 
     //当前子项数
     size_t nItemCount = GetItemCount();
