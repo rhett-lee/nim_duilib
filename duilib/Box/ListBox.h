@@ -234,10 +234,11 @@ public:
 	* @param [in] iIndex 子项索引，范围是：[0, GetItemCount())
 	* @param [in] vVisibleType 垂直方向可见的附加标志
 	* @param [in] hVisibleType 水平方向可见的附加标志
+	* @return 如果是虚表实现，返回该元素对应的新的控件索引号，范围是：[0, GetItemCount())
 	*/
-	virtual void EnsureVisible(size_t iIndex,
-							   ListBoxVerVisible vVisibleType = ListBoxVerVisible::kVisible,
-							   ListBoxHorVisible hVisibleType = ListBoxHorVisible::kVisible);
+	virtual size_t EnsureVisible(size_t iIndex,
+							     ListBoxVerVisible vVisibleType = ListBoxVerVisible::kVisible,
+							     ListBoxHorVisible hVisibleType = ListBoxHorVisible::kVisible);
 
 	/** 滚动到指定子项位置
 	 * @param [in] iIndex 子项目的ID，范围是：[0, GetItemCount())
@@ -380,6 +381,13 @@ private:
 	/** 判断当前布局是否为横向滚动条
 	*/
 	bool IsHorizontalScrollBar() const;
+
+	/** 确保选择项可见
+	* @param [in] itemIndex 子项目的ID，范围是：[0, GetItemCount())
+	* @param [in] bTakeFocus 是否让子项控件成为焦点控件
+	* return 返回新的控件索引号(虚表的情况下空间索引号可能会发生变化)，范围是：[0, GetItemCount())
+	*/
+	size_t SelectEnsureVisible(size_t itemIndex, bool bTakeFocus);
 
 	/** 计算本页里面显示几个子项
 	*/

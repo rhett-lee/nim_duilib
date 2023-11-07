@@ -263,7 +263,7 @@ size_t VirtualListBox::GetDisplayItemElementIndex(size_t nItemIndex) const
         IListBoxItem* pListBoxItem = dynamic_cast<IListBoxItem*>(pControl);
         if (pListBoxItem != nullptr) {
             nElementIndex = pListBoxItem->GetElementIndex();
-        }        
+        }
     }
     return nElementIndex;
 }
@@ -284,6 +284,28 @@ void VirtualListBox::EnsureVisible(size_t nElementIndex, bool bToTop)
     if (m_pVirtualLayout != nullptr) {
         m_pVirtualLayout->EnsureVisible(GetPosWithoutPadding(), nElementIndex, bToTop);
     }
+}
+
+void VirtualListBox::EnsureVisible(const UiRect& rcItem,
+                                   ListBoxVerVisible vVisibleType,
+                                   ListBoxHorVisible hVisibleType)
+{
+    __super::EnsureVisible(rcItem, vVisibleType, hVisibleType);
+}
+
+size_t VirtualListBox::EnsureVisible(size_t iIndex, ListBoxVerVisible vVisibleType, ListBoxHorVisible hVisibleType)
+{
+    size_t nNewIndex = iIndex;
+    size_t nElementIndex = GetDisplayItemElementIndex(iIndex);
+    if (nElementIndex >= GetElementCount()) {
+        nNewIndex = __super::EnsureVisible(iIndex, vVisibleType, hVisibleType);
+    }
+    else {
+        EnsureVisible(nElementIndex, false);
+        nNewIndex = GetDisplayItemIndex(nElementIndex);
+    }
+    ASSERT(nNewIndex < GetItemCount());
+    return nNewIndex;
 }
 
 void VirtualListBox::SetScrollPos(UiSize64 szPos)

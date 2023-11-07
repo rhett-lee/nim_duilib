@@ -160,6 +160,25 @@ public:
     */
     virtual void Refresh();
 
+    /** 确保矩形区域可见
+	* @param [in] rcItem 可见区域的矩形范围
+	* @param [in] vVisibleType 垂直方向可见的附加标志
+	* @param [in] hVisibleType 水平方向可见的附加标志
+	*/
+	virtual void EnsureVisible(const UiRect& rcItem,
+							   ListBoxVerVisible vVisibleType,
+							   ListBoxHorVisible hVisibleType) override;
+
+    /** 确保子项可见
+	* @param [in] iIndex 子项索引，范围是：[0, GetItemCount())
+	* @param [in] vVisibleType 垂直方向可见的附加标志
+	* @param [in] hVisibleType 水平方向可见的附加标志
+	* @return 如果是虚表实现，返回该元素对应的新的控件索引号，范围是：[0, GetItemCount())
+	*/
+	virtual size_t EnsureVisible(size_t iIndex,
+							     ListBoxVerVisible vVisibleType = ListBoxVerVisible::kVisible,
+							     ListBoxHorVisible hVisibleType = ListBoxHorVisible::kVisible) override;
+
 protected:
     /// 重写父类接口，提供个性化功能
     virtual void SetScrollPos(UiSize64 szPos) override;

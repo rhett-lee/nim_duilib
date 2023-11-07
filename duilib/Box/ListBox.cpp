@@ -157,7 +157,7 @@ void ListBox::HandleEvent(const EventArgs& msg)
 			SelectItemHome(true, true);
 			return;
 		case VK_END:
-			SelectItemEnd(true, true);			
+			SelectItemEnd(true, true);
 			return;
 		}
 		break;
@@ -223,13 +223,7 @@ size_t ListBox::SelectItemHome(bool bTakeFocus, bool bTriggerEvent)
 	size_t itemIndex = FindSelectable(iIndex, true);
 	if (Box::IsValidItemIndex(itemIndex)) {		
 		SelectItem(itemIndex, false, bTriggerEvent);
-		EnsureVisible(itemIndex);
-		if (bTakeFocus) {
-			Control* pControl = GetItemAt(itemIndex);
-			if ((pControl != nullptr) && pControl->IsVisible()) {
-				pControl->SetFocus();
-			}
-		}
+		itemIndex = SelectEnsureVisible(itemIndex, bTakeFocus);
 	}
 	return itemIndex;
 }
@@ -247,13 +241,7 @@ size_t ListBox::SelectItemEnd(bool bTakeFocus, bool bTriggerEvent)
 	size_t itemIndex = FindSelectable(iIndex, false);
 	if (Box::IsValidItemIndex(itemIndex)) {
 		SelectItem(itemIndex, false, bTriggerEvent);
-		EnsureVisible(itemIndex);
-		if (bTakeFocus) {
-			Control* pControl = GetItemAt(itemIndex);
-			if ((pControl != nullptr) && pControl->IsVisible()) {
-				pControl->SetFocus();
-			}
-		}
+		itemIndex = SelectEnsureVisible(itemIndex, bTakeFocus);
 	}
 	return itemIndex;
 }
@@ -338,13 +326,7 @@ size_t ListBox::SelectItemCountN(bool bTakeFocus, bool bTriggerEvent, bool bForw
 		size_t itemIndex = FindSelectable(iIndex, bForward);
 		if (itemIndex < GetItemCount()) {
 			SelectItem(itemIndex, false, bTriggerEvent);
-			EnsureVisible(itemIndex);
-			if (bTakeFocus) {
-				Control* pSelectedControl = GetItemAt(itemIndex);
-				if ((pSelectedControl != nullptr) && pSelectedControl->IsVisible()) {
-					pSelectedControl->SetFocus();
-				}
-			}
+			itemIndex = SelectEnsureVisible(itemIndex, bTakeFocus);
 		}
 		return itemIndex;
 	}
@@ -370,13 +352,22 @@ size_t ListBox::SelectItemCountN(bool bTakeFocus, bool bTriggerEvent, bool bForw
 	size_t itemIndex = FindSelectable(iIndex, bForward);
 	if (itemIndex < itemCount) {		
 		SelectItem(itemIndex, false, bTriggerEvent);
-		EnsureVisible(itemIndex);
-		if (bTakeFocus) {
-			Control* pSelectedControl = GetItemAt(itemIndex);
-			if ((pSelectedControl != nullptr) && pSelectedControl->IsVisible()) {
-				pSelectedControl->SetFocus();
-			}
+		itemIndex = SelectEnsureVisible(itemIndex, bTakeFocus);
+	}
+	return itemIndex;
+}
+
+size_t ListBox::SelectEnsureVisible(size_t itemIndex, bool bTakeFocus)
+{
+	itemIndex = EnsureVisible(itemIndex);
+	if (bTakeFocus) {
+		Control* pSelectedControl = GetItemAt(itemIndex);
+		if ((pSelectedControl != nullptr) && pSelectedControl->IsVisible()) {
+			pSelectedControl->SetFocus();
 		}
+		ASSERT(pSelectedControl != nullptr);
+		ASSERT(pSelectedControl->IsVisible());
+		ASSERT(GetWindow()->GetFocus() == pSelectedControl);
 	}
 	return itemIndex;
 }
@@ -938,14 +929,16 @@ bool ListBox::SetItemIndex(Control* pControl, size_t iIndex)
 	return true;
 }
 
-void ListBox::EnsureVisible(size_t iIndex, ListBoxVerVisible vVisibleType, ListBoxHorVisible hVisibleType)
+size_t ListBox::EnsureVisible(size_t iIndex, ListBoxVerVisible vVisibleType, ListBoxHorVisible hVisibleType)
 {
 	Control* pControl = GetItemAt(iIndex);
 	ASSERT(pControl != nullptr);
 	if (pControl != nullptr) {
 		UiRect rcItem = pControl->GetPos();
 		EnsureVisible(rcItem, vVisibleType, hVisibleType);
+		ASSERT(GetItemAt(iIndex) == pControl);
 	}
+	return iIndex;
 }
 
 bool ListBox::AddItem(Control* pControl)

@@ -277,8 +277,8 @@ void MainForm::InsertItemData(int32_t nRows, int32_t nColumns)
 	pListCtrl->SetDataItemAlwaysAtTop(101, 1);
 
 	pListCtrl->SetDataItemVisible(103, false);
-	pListCtrl->SetDataItemHeight(104, 100, true);
-	pListCtrl->SetDataItemHeight(198, 200, true);
+	pListCtrl->SetDataItemHeight(14, 100, true);
+	pListCtrl->SetDataItemHeight(28, 200, true);
 
 	pListCtrl->SetDataItemBkColor(100, 0, ui::UiColor(ui::UiColors::MistyRose));
 	pListCtrl->SetDataItemBkColor(101, 0, ui::UiColor(ui::UiColors::MistyRose));

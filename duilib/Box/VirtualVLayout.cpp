@@ -255,11 +255,12 @@ bool VirtualVLayout::IsElementDisplay(UiRect rc, size_t iIndex) const
         return false;
     }
 
-    int64_t nPos = pOwnerBox->GetScrollPos().cy;
-    int64_t nElementPos = GetElementsHeight(rc, iIndex);
-    if (nElementPos > nPos) {
-        int64_t nHeight = pOwnerBox->GetHeight();
-        if (nElementPos <= nPos + nHeight) {
+    int64_t nScrollPos = pOwnerBox->GetScrollPos().cy;
+    int64_t nElementPos = GetElementsHeight(rc, iIndex + 1);
+    int64_t nElementHeight = GetElementsHeight(rc, 1);
+    if ((nElementPos - nElementHeight) > nScrollPos) { //矩形的top位置
+        int64_t nBoxHeight = pOwnerBox->GetHeight();
+        if (nElementPos <= (nScrollPos + nBoxHeight)) {//矩形的bottom位置
             return true;
         }
     }

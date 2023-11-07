@@ -275,11 +275,12 @@ bool VirtualHTileLayout::IsElementDisplay(UiRect rc, size_t iIndex) const
         return false;
     }
 
-    int64_t nPos = pOwnerBox->GetScrollPos().cx;
-    int64_t nElementPos = GetElementsWidth(rc, iIndex);
-    if (nElementPos > nPos) {
-        int64_t nWidth = pOwnerBox->GetWidth();
-        if (nElementPos <= nPos + nWidth) {
+    int64_t nScrollPos = pOwnerBox->GetScrollPos().cx;
+    int64_t nElementPos = GetElementsWidth(rc, iIndex + 1);
+    int64_t nElementWidth = GetElementsWidth(rc, 1);
+    if ((nElementPos - nElementWidth) > nScrollPos) { //矩形的left位置
+        int64_t nBoxWidth = pOwnerBox->GetWidth();
+        if (nElementPos <= (nScrollPos + nBoxWidth)) {//矩形的right位置
             return true;
         }
     }
