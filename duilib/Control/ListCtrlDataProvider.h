@@ -119,6 +119,11 @@ public:
     */
     bool RemoveColumn(size_t columnId);
 
+    /** 获取某列的宽度最大值
+    * @return 返回该列宽度的最大值，返回的是DPI自适应后的值； 如果失败返回-1
+    */
+    int32_t GetColumnWidthAuto(size_t columnId) const;
+
     /** 设置一列的勾选状态（Checked或者UnChecked）
     * @param [in] columnId 列的ID
     * @param [in] bChecked true表示选择，false表示取消选择

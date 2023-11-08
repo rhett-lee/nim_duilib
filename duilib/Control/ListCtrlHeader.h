@@ -56,6 +56,13 @@ public:
     */
     int32_t GetColumnWidth(size_t columnIndex) const;
 
+    /** 调整列的宽度(根据该列内容的实际宽度自适应)
+    * @param [in] columnIndex 列索引序号：[0, GetColumnCount())
+    * @param [in] nWidth 列宽值
+    * @param [in] bNeedDpiScale 是否需要对列宽值进行DPI自适应
+    */
+    bool SetColumnWidth(size_t columnIndex, int32_t nWidth, bool bNeedDpiScale);
+
     /** 获取列表头的控件接口
     * @param [in] columnIndex 列索引序号：[0, GetColumnCount())
     */
@@ -96,6 +103,12 @@ public:
     */
     void SetListCtrl(ListCtrl* pListCtrl);
 
+public:
+    /** 列表头鼠标右键点击处理函数
+    * @param[in] callback 要绑定的回调函数
+    */
+    void AttachRClick(const EventCallback& callback) { AttachEvent(kEventRClick, callback); }
+
 protected:
     /** 是否支持列表头拖动改变列的顺序
     */
@@ -125,6 +138,11 @@ protected:
     /** 表头列的显示属性发生变化
     */
     void OnHeaderColumnVisibleChanged();
+
+    /** 列表头列的分割条双击事件
+    * @param [in] pHeaderItem 列表头控件接口
+    */
+    void OnHeaderColumnSplitDoubleClick(ListCtrlHeaderItem* pHeaderItem);
 
 private:
     /** 关联的ListCtrl接口

@@ -13,7 +13,8 @@ ListCtrl::ListCtrl():
     m_bCanUpdateHeaderCheckStatus(true),
     m_bShowHeaderCtrl(true),
     m_bEnableRefresh(true),
-    m_bMultiSelect(false)
+    m_bMultiSelect(true),
+    m_bEnableColumnWidthAuto(true)
 {
     m_pDataProvider = new ListCtrlDataProvider;
     m_nRowGridLineWidth = GlobalManager::Instance().Dpi().GetScaleInt(1);
@@ -78,6 +79,9 @@ void ListCtrl::SetAttribute(const std::wstring& strName, const std::wstring& str
     }
     else if (strName == L"multi_select") {
         SetMultiSelect(strValue == L"true");
+    }
+    else if (strName == L"enable_column_width_auto") {
+        SetEnableColumnWidthAuto(strValue == L"true");
     }
     else {
         __super::SetAttribute(strName, strValue);
@@ -196,6 +200,16 @@ int32_t ListCtrl::GetColumnGridLineWidth() const
     return m_nColumnGridLineWidth;
 }
 
+void ListCtrl::SetEnableColumnWidthAuto(bool bEnable)
+{
+    m_bEnableColumnWidthAuto = bEnable;
+}
+
+bool ListCtrl::IsEnableColumnWidthAuto() const
+{
+    return m_bEnableColumnWidthAuto;
+}
+
 void ListCtrl::DoInit()
 {
     if (m_bInited) {
@@ -267,6 +281,34 @@ int32_t ListCtrl::GetColumnWidth(size_t columnIndex) const
     else {
         return m_pHeaderCtrl->GetColumnWidth(columnIndex);
     }
+}
+
+bool ListCtrl::SetColumnWidth(size_t columnIndex, int32_t nWidth, bool bNeedDpiScale)
+{
+    bool bRet = false;
+    ASSERT(m_pHeaderCtrl != nullptr);
+    if (m_pHeaderCtrl != nullptr) {
+        bRet = m_pHeaderCtrl->SetColumnWidth(columnIndex, nWidth, bNeedDpiScale);
+    }
+    if(bRet) {
+        OnColumnWidthChanged(GetColumnId(columnIndex), Box::InvalidIndex);
+    }
+    return true;
+}
+
+bool ListCtrl::SetColumnWidthAuto(size_t columnIndex)
+{
+    bool bRet = false;
+    size_t nColumnId = GetColumnId(columnIndex);
+    if (nColumnId == Box::InvalidIndex) {
+        return bRet;
+    }
+    //计算该列的宽度
+    int32_t nMaxWidth = m_pDataProvider->GetColumnWidthAuto(nColumnId);
+    if (nMaxWidth > 0) {
+        bRet = SetColumnWidth(columnIndex, nMaxWidth, false);
+    }
+    return bRet;
 }
 
 ListCtrlHeaderItem* ListCtrl::GetColumn(size_t columnIndex) const
@@ -483,6 +525,22 @@ void ListCtrl::OnHeaderColumnCheckStateChanged(size_t nColumnId, bool bChecked)
 void ListCtrl::OnHeaderColumnVisibleChanged()
 {
     Refresh();
+}
+
+void ListCtrl::OnHeaderColumnSplitDoubleClick(ListCtrlHeaderItem* pHeaderItem)
+{
+    if (!IsEnableColumnWidthAuto()) {
+        //功能关闭
+        return;
+    }
+    //自动调整该列的宽度
+    if (pHeaderItem != nullptr) {
+        size_t nColumnId = pHeaderItem->GetColomnId();
+        size_t nColumIndex = GetColumnIndex(nColumnId);
+        if (nColumIndex < GetColumnCount()) {
+            SetColumnWidthAuto(nColumIndex);
+        }
+    }
 }
 
 void ListCtrl::UpdateControlCheckStatus(size_t nColumnId)

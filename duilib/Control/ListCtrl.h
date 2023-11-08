@@ -87,6 +87,18 @@ public:
     */
     int32_t GetColumnWidth(size_t columnIndex) const;
 
+    /** 调整列的宽度(根据该列内容的实际宽度自适应)
+    * @param [in] columnIndex 列索引序号：[0, GetColumnCount())
+    * @param [in] nWidth 列宽值
+    * @param [in] bNeedDpiScale 是否需要对列宽值进行DPI自适应
+    */
+    bool SetColumnWidth(size_t columnIndex, int32_t nWidth, bool bNeedDpiScale);
+
+    /** 自动调整列的宽度(根据该列内容的实际宽度自适应)
+    * @param [in] columnIndex 列索引序号：[0, GetColumnCount())
+    */
+    bool SetColumnWidthAuto(size_t columnIndex);
+
     /** 获取列表头的控件接口
     * @param [in] columnIndex 列索引序号：[0, GetColumnCount())
     */
@@ -457,6 +469,11 @@ protected:
     void SetColumnGridLineWidth(int32_t nLineWidth, bool bNeedDpiScale);
     int32_t GetColumnGridLineWidth() const;
 
+    /** 是否支持双击Header的分割条自动调整列宽
+    */
+    void SetEnableColumnWidthAuto(bool bEnable);
+    bool IsEnableColumnWidthAuto() const;
+
 protected:
     /** 增加一列
     * @param [in] nColumnId 列的ID
@@ -493,6 +510,11 @@ protected:
     /** 表头列的显示属性发生变化
     */
     void OnHeaderColumnVisibleChanged();
+
+    /** 列表头列的分割条双击事件
+    * @param [in] pHeaderItem 列表头控件接口
+    */
+    void OnHeaderColumnSplitDoubleClick(ListCtrlHeaderItem* pHeaderItem);
 
     /** 同步UI的Check状态
     */
@@ -582,6 +604,10 @@ private:
     /** 是否支持多选(默认是单选)
     */
     bool m_bMultiSelect;
+
+    /** 是否支持双击Header的分割条自动调整列宽
+    */
+    bool m_bEnableColumnWidthAuto;
 };
 
 /** ListCtrl子项控件

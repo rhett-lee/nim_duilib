@@ -99,9 +99,9 @@ bool ListCtrlDataProvider::FillElement(ui::Control* pControl, size_t nElementInd
     //默认属性
     std::wstring defaultLabelBoxClass = m_pListCtrl->GetDataItemLabelClass();
     LabelBox defaultLabelBox;
-    if (!defaultLabelBoxClass.empty()) {
-        defaultLabelBox.SetClass(defaultLabelBoxClass);
-    }
+    defaultLabelBox.SetWindow(m_pListCtrl->GetWindow());
+    defaultLabelBox.SetClass(defaultLabelBoxClass);
+
     bool bFirstLine = (m_pListCtrl->GetTopDataItem() == nElementIndex);//是否为第一个数据行    
     for (size_t nColumn = 0; nColumn < showColumnCount; ++nColumn) {
         const ElementData& elementData = elementDataList[nColumn];
@@ -384,6 +384,70 @@ bool ListCtrlDataProvider::RemoveColumn(size_t columnId)
         return true;
     }
     return false;
+}
+
+int32_t ListCtrlDataProvider::GetColumnWidthAuto(size_t columnId) const
+{
+    int32_t nMaxWidth = -1;
+    if (m_pListCtrl == nullptr) {
+        return nMaxWidth;
+    }
+    auto iter = m_dataMap.find(columnId);
+    if (iter != m_dataMap.end()) {
+        const StoragePtrList& storageList = iter->second;
+        const size_t nCount = storageList.size();
+        ASSERT(m_rowDataList.size() == nCount);
+        if (m_rowDataList.size() != nCount) {
+            return nMaxWidth;
+        }
+
+        //默认属性
+        std::wstring defaultLabelBoxClass = m_pListCtrl->GetDataItemLabelClass();
+        LabelBox defaultLabelBox;
+        defaultLabelBox.SetWindow(m_pListCtrl->GetWindow());
+        defaultLabelBox.SetClass(defaultLabelBoxClass);
+
+        LabelBox labelBox;
+        labelBox.SetWindow(m_pListCtrl->GetWindow());
+        labelBox.SetClass(defaultLabelBoxClass);
+
+        for (size_t index = 0; index < nCount; ++index) {
+            const StoragePtr& pStorage = storageList[index];
+            if (pStorage == nullptr) {
+                continue;
+            }
+
+            labelBox.SetText(pStorage->text.c_str());
+            if (pStorage->nTextFormat != 0) {
+                labelBox.SetTextStyle(pStorage->nTextFormat, false);
+            }
+            else {
+                labelBox.SetTextStyle(defaultLabelBox.GetTextStyle(), false);
+            }
+            labelBox.SetTextPadding(defaultLabelBox.GetTextPadding(), false);
+            if (pStorage->bShowCheckBox) {
+                UiPadding textPadding = labelBox.GetTextPadding();
+                int32_t nCheckBoxWidth = pStorage->nCheckBoxWidth;
+                if (textPadding.left < nCheckBoxWidth) {
+                    textPadding.left = nCheckBoxWidth;
+                    labelBox.SetTextPadding(textPadding, false);
+                }
+            }
+            labelBox.SetFixedWidth(UiFixedInt::MakeAuto(), false, false);
+            labelBox.SetFixedHeight(UiFixedInt::MakeAuto(), false, false);
+            labelBox.SetReEstimateSize(true);
+            UiEstSize sz = labelBox.EstimateSize(UiSize(0, 0));
+            nMaxWidth = std::max(nMaxWidth, sz.cx.GetInt32());
+        }
+    }
+    if (nMaxWidth <= 0) {
+        nMaxWidth = -1;
+    }
+    else {
+        //增加一点余量
+        nMaxWidth += GlobalManager::Instance().Dpi().GetScaleInt(4);
+    }
+    return nMaxWidth;
 }
 
 bool ListCtrlDataProvider::SetColumnCheck(size_t columnId, bool bChecked)

@@ -161,6 +161,26 @@ ListCtrlHeaderItem* ListCtrlHeader::InsertColumn(int32_t columnIndex, const List
         return true;
         });
 
+    //挂载右键点击事件，进行转接
+    pHeaderItem->AttachRClick([this](const EventArgs& args) {
+        EventArgs msg(args);
+        msg.pSender = this;
+        SendEvent(msg);
+        return true;
+        });
+    pHeaderSplit->AttachRClick([this](const EventArgs& args) {
+        EventArgs msg(args);
+        msg.pSender = this;
+        SendEvent(msg);
+        return true;
+        });
+
+    //挂载鼠标双击事件
+    pHeaderSplit->AttachDoubleClick([this, pHeaderItem](const EventArgs& /*args*/) {
+        OnHeaderColumnSplitDoubleClick(pHeaderItem);
+        return true;
+        });
+
     m_pListCtrl->OnHeaderColumnAdded(pHeaderItem->GetColomnId());
     return pHeaderItem;
 }
@@ -201,6 +221,18 @@ int32_t ListCtrlHeader::GetColumnWidth(size_t columnIndex) const
         nColumnWidth = pHeaderItem->GetColumnWidth();
     }
     return nColumnWidth;
+}
+
+bool ListCtrlHeader::SetColumnWidth(size_t columnIndex, int32_t nWidth, bool bNeedDpiScale)
+{
+    bool bRet = false;
+    ListCtrlHeaderItem* pHeaderItem = GetColumn(columnIndex);
+    ASSERT(pHeaderItem != nullptr);
+    if (pHeaderItem != nullptr) {
+        pHeaderItem->SetColumnWidth(nWidth, bNeedDpiScale);
+        bRet = true;
+    }
+    return bRet;
 }
 
 ListCtrlHeaderItem* ListCtrlHeader::GetColumn(size_t columnIndex) const
@@ -381,6 +413,13 @@ void ListCtrlHeader::OnHeaderColumnVisibleChanged()
 {
     if (m_pListCtrl != nullptr) {
         m_pListCtrl->OnHeaderColumnVisibleChanged();
+    }
+}
+
+void ListCtrlHeader::OnHeaderColumnSplitDoubleClick(ListCtrlHeaderItem* pHeaderItem)
+{
+    if (m_pListCtrl != nullptr) {
+        m_pListCtrl->OnHeaderColumnSplitDoubleClick(pHeaderItem);
     }
 }
 

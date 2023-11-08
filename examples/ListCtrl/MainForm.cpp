@@ -242,6 +242,15 @@ void MainForm::OnInitWindow()
 			return true;
 			});
 	}
+
+	//在列表头点击右键
+	ui::ListCtrlHeader* pHeaderCtrl = pListCtrl->GetListCtrlHeader();
+	if (pHeaderCtrl != nullptr) {
+		pHeaderCtrl->AttachRClick([this](const ui::EventArgs&) {
+			::MessageBox(nullptr, L"ListCtrlHeader RClick!", L"", MB_OK);
+			return true;
+			});
+	}
 }
 
 void MainForm::InsertItemData(int32_t nRows, int32_t nColumns)
