@@ -607,18 +607,16 @@ void ListCtrlDataView::PaintChild(IRender* pRender, const UiRect& rcPaint)
 
 Control* ListCtrlDataView::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, UiPoint scrollPos)
 {
-    //重新：Box::FindControl 函数，让Header优先被查找到，只处理含有UIFIND_TOP_FIRST标志的情况
-    Control* pFoundControl = __super::FindControl(Proc, pData, uFlags, scrollPos);
+    //重写：ScrollBox::FindControl 函数，让Header优先被查找到，只处理含有UIFIND_TOP_FIRST标志的情况
     if ((uFlags & UIFIND_TOP_FIRST) == 0) {
-        return pFoundControl;
+        return __super::FindControl(Proc, pData, uFlags, scrollPos);
     }
-    else {
-        if (dynamic_cast<ScrollBar*>(pFoundControl) != nullptr) {
-            //如果在滚动条上面，直接返回
-            return pFoundControl;
-        }
-    }
-   
+
+    std::vector<Control*> newItems = m_items;
+    //Header和置顶的元素，移动到最后
+    std::vector<Control*> atTopItems;
+    MoveTopItemsToLast(newItems, atTopItems);
+
     // Check if this guy is valid
     if ((uFlags & UIFIND_VISIBLE) != 0 && !IsVisible()) {
         return nullptr;
@@ -626,96 +624,46 @@ Control* ListCtrlDataView::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT 
     if ((uFlags & UIFIND_ENABLED) != 0 && !IsEnabled()) {
         return nullptr;
     }
+    ScrollBar* pVScrollBar = GetVScrollBar();
+    ScrollBar* pHScrollBar = GetHScrollBar();
     if ((uFlags & UIFIND_HITTEST) != 0) {
         ASSERT(pData != nullptr);
+        if (pData == nullptr) {
+            return nullptr;
+        }
         UiPoint pt(*(static_cast<UiPoint*>(pData)));
-        if ((pData != nullptr) && !GetRect().ContainsPt(pt)) {
+        if (!GetRect().ContainsPt(pt)) {
             return nullptr;
         }
         if (!IsMouseChildEnabled()) {
-            Control* pResult = Control::FindControl(Proc, pData, uFlags);
+            Control* pResult = nullptr;            
+            if (pVScrollBar != nullptr) {
+                pResult = pVScrollBar->FindControl(Proc, pData, uFlags);
+            }            
+            if ((pResult == nullptr) && (pHScrollBar != nullptr)) {
+                pResult = pHScrollBar->FindControl(Proc, pData, uFlags);
+            }
+            if (pResult == nullptr) {
+                pResult = Control::FindControl(Proc, pData, uFlags);
+            }
             return pResult;
         }
     }
 
-    if ((uFlags & UIFIND_ME_FIRST) != 0) {
-        Control* pControl = Control::FindControl(Proc, pData, uFlags);
-        if (pControl != nullptr) {
-            return pControl;
-        }
+    Control* pResult = nullptr;
+    if (pVScrollBar != nullptr) {
+        pResult = pVScrollBar->FindControl(Proc, pData, uFlags);
     }
-    const std::vector<Control*>& items = m_items;
-    UiRect rc = GetRectWithoutPadding();
-    if ((uFlags & UIFIND_TOP_FIRST) != 0) {
-        std::vector<Control*> newItems = m_items;
-        //Header和置顶的元素，移动到最后
-        std::vector<Control*> atTopItems;
-        MoveTopItemsToLast(newItems, atTopItems);
-        for (int it = (int)newItems.size() - 1; it >= 0; --it) {
-            if (newItems[it] == nullptr) {
-                continue;
-            }
-            Control* pControl = nullptr;
-            if ((uFlags & UIFIND_HITTEST) != 0) {
-                ASSERT(pData != nullptr);
-                if (pData != nullptr) {
-                    UiPoint newPoint(*(static_cast<UiPoint*>(pData)));
-                    newPoint.Offset(scrollPos);
-                    pControl = newItems[it]->FindControl(Proc, &newPoint, uFlags);
-                }
-            }
-            else {
-                pControl = newItems[it]->FindControl(Proc, pData, uFlags);
-            }
-            if (pControl != nullptr) {
-                if ((uFlags & UIFIND_HITTEST) != 0 &&
-                    !pControl->IsFloat() &&
-                    (pData != nullptr) &&
-                    !rc.ContainsPt(*(static_cast<UiPoint*>(pData)))) {
-                    continue;
-                }
-                else {
-                    return pControl;
-                }
-            }
-        }
+    if ((pResult == nullptr) && (pHScrollBar != nullptr)) {
+        pResult = pHScrollBar->FindControl(Proc, pData, uFlags);
     }
-    else {
-        for (Control* pItemControl : items) {
-            if (pItemControl == nullptr) {
-                continue;
-            }
-            Control* pControl = nullptr;
-            if ((uFlags & UIFIND_HITTEST) != 0) {
-                ASSERT(pData != nullptr);
-                if (pData != nullptr) {
-                    UiPoint newPoint(*(static_cast<UiPoint*>(pData)));
-                    newPoint.Offset(scrollPos);
-                    pControl = pItemControl->FindControl(Proc, &newPoint, uFlags);
-                }
-            }
-            else {
-                pControl = pItemControl->FindControl(Proc, pData, uFlags);
-            }
-            if (pControl != nullptr) {
-                if ((uFlags & UIFIND_HITTEST) != 0 &&
-                    !pControl->IsFloat() &&
-                    (pData != nullptr) &&
-                    !rc.ContainsPt(*(static_cast<UiPoint*>(pData)))) {
-                    continue;
-                }
-                else {
-                    return pControl;
-                }
-            }
-        }
+    if (pResult != nullptr) {
+        return pResult;
     }
 
-    Control* pResult = nullptr;
-    if ((uFlags & UIFIND_ME_FIRST) == 0) {
-        pResult = Control::FindControl(Proc, pData, uFlags);
-    }
-    return pResult;
+    UiSize ptScrollPos = GetScrollOffset();
+    UiPoint ptNewScrollPos(ptScrollPos.cx, ptScrollPos.cy);
+    return FindControlInItems(newItems, Proc, pData, uFlags, ptNewScrollPos);
 }
 
 size_t ListCtrlDataView::GetDisplayItemCount(bool /*bIsHorizontal*/, size_t& nColumns, size_t& nRows) const

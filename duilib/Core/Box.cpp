@@ -193,35 +193,43 @@ UiEstSize Box::EstimateSize(UiSize szAvailable)
 
 Control* Box::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, UiPoint scrollPos)
 {
+	return FindControlInItems(m_items, Proc, pData, uFlags, scrollPos);
+}
+
+Control* Box::FindControlInItems(const std::vector<Control*>& items,
+								 FINDCONTROLPROC Proc, LPVOID pData,
+								 UINT uFlags, UiPoint scrollPos)
+{
+	Box* pBox = this;
 	// Check if this guy is valid
-	if ((uFlags & UIFIND_VISIBLE) != 0 && !IsVisible()) {
+	if ((uFlags & UIFIND_VISIBLE) != 0 && !pBox->IsVisible()) {
 		return nullptr;
 	}
-	if ((uFlags & UIFIND_ENABLED) != 0 && !IsEnabled()) {
+	if ((uFlags & UIFIND_ENABLED) != 0 && !pBox->IsEnabled()) {
 		return nullptr;
 	}
 	if ((uFlags & UIFIND_HITTEST) != 0) {
 		ASSERT(pData != nullptr);
 		UiPoint pt(*(static_cast<UiPoint*>(pData)));
-		if ((pData != nullptr) && !GetRect().ContainsPt(pt)) {
+		if ((pData != nullptr) && !pBox->GetRect().ContainsPt(pt)) {
 			return nullptr;
 		}
-		if (!m_bMouseChildEnabled) {
-			Control* pResult = Control::FindControl(Proc, pData, uFlags);
+		if (!pBox->IsMouseChildEnabled()) {
+			Control* pResult = pBox->Control::FindControl(Proc, pData, uFlags);
 			return pResult;
 		}
 	}
 
 	if ((uFlags & UIFIND_ME_FIRST) != 0) {
-		Control* pControl = Control::FindControl(Proc, pData, uFlags);
+		Control* pControl = pBox->Control::FindControl(Proc, pData, uFlags);
 		if (pControl != nullptr) {
 			return pControl;
 		}
 	}
-	UiRect rc = GetRectWithoutPadding();
+	UiRect rc = pBox->GetRectWithoutPadding();
 	if ((uFlags & UIFIND_TOP_FIRST) != 0) {
-		for (int it = (int)m_items.size() - 1; it >= 0; --it) {
-			if (m_items[it] == nullptr) {
+		for (int it = (int)items.size() - 1; it >= 0; --it) {
+			if (items[it] == nullptr) {
 				continue;
 			}
 			Control* pControl = nullptr;
@@ -230,11 +238,11 @@ Control* Box::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, UiPoi
 				if (pData != nullptr) {
 					UiPoint newPoint(*(static_cast<UiPoint*>(pData)));
 					newPoint.Offset(scrollPos);
-					pControl = m_items[it]->FindControl(Proc, &newPoint, uFlags);
+					pControl = items[it]->FindControl(Proc, &newPoint, uFlags);
 				}				
 			}
 			else {
-				pControl = m_items[it]->FindControl(Proc, pData, uFlags);
+				pControl = items[it]->FindControl(Proc, pData, uFlags);
 			}
 			if (pControl != nullptr) {
 				if ((uFlags & UIFIND_HITTEST) != 0 &&
@@ -250,7 +258,7 @@ Control* Box::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, UiPoi
 		}
 	}
 	else {
-		for (Control* pItemControl : m_items) {
+		for (Control* pItemControl : items) {
 			if (pItemControl == nullptr) {
 				continue;
 			}
@@ -282,7 +290,7 @@ Control* Box::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, UiPoi
 
 	Control* pResult = nullptr;
 	if ((uFlags & UIFIND_ME_FIRST) == 0) {
-		pResult = Control::FindControl(Proc, pData, uFlags);
+		pResult = pBox->Control::FindControl(Proc, pData, uFlags);
 	}
 	return pResult;
 }

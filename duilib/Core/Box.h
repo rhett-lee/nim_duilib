@@ -186,6 +186,14 @@ public:
 	 */
 	void ReSetLayout(Layout* pLayout);
 
+protected:
+
+	/** 查找控件, 子控件列表由外部传入
+	*/
+	Control* FindControlInItems(const std::vector<Control*>& items, 
+								FINDCONTROLPROC Proc, LPVOID pData, 
+							    UINT uFlags, UiPoint scrollPos);
+
 private:
 	/**@brief 向指定位置添加一个控件
 	 * @param[in] pControl 控件指针
