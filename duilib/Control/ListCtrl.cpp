@@ -447,6 +447,7 @@ void ListCtrl::OnColumnWidthChanged(size_t nColumnId1, size_t nColumnId2)
             }
         }
     }
+    Arrange();
 }
 
 void ListCtrl::OnHeaderColumnAdded(size_t nColumnId)

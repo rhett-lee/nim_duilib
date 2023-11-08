@@ -1698,7 +1698,7 @@ LRESULT Window::OnLButtonDoubleClickMsg(UINT uMsg, WPARAM wParam, LPARAM lParam,
 
 LRESULT Window::OnRButtonDoubleClickMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
-    ASSERT_UNUSED_VARIABLE(uMsg == WM_LBUTTONDBLCLK);
+    ASSERT_UNUSED_VARIABLE(uMsg == WM_RBUTTONDBLCLK);
     bHandled = false;
     UiPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
     OnButtonDown(kEventMouseRDoubleClick, wParam, lParam, pt);
@@ -1752,7 +1752,10 @@ LRESULT Window::OnContextMenuMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& 
 
 void Window::OnButtonDown(EventType eventType, WPARAM wParam, LPARAM lParam, const UiPoint& pt)
 {
-    ASSERT(eventType == kEventMouseButtonDown || eventType == kEventMouseRButtonDown || eventType == kEventMouseDoubleClick);
+    ASSERT(eventType == kEventMouseButtonDown || 
+           eventType == kEventMouseRButtonDown || 
+           eventType == kEventMouseDoubleClick ||
+           eventType == kEventMouseRDoubleClick);
     CheckSetFocusWindow();
     m_ptLastMousePos = pt;
     Control* pControl = FindControl(pt);

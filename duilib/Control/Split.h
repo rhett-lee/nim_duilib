@@ -21,6 +21,7 @@ public:
     SplitTemplate();
 
     virtual std::wstring GetType() const override;
+    virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
  
     /** 是否可以拖动
     */
@@ -29,6 +30,14 @@ public:
     /** 停止拖动
     */
     void StopSplitDrag();
+
+    /** 设置当只有一个控件的时候，是否允许调整其宽度
+    */
+    void SetEnableSplitSingle(bool bEnableSplitSingle);
+
+    /** 获取当只有一个控件的时候，是否允许调整其宽度
+    */
+    bool IsEnableSplitSingle() const;
 
     /** 监听拖动的事件
      * @param [in] callback 被选择时触发的回调函数
@@ -61,6 +70,10 @@ private:
                                 Control* pFirst, const UiFixedInt& nFirstFixedInt,
                                 const Control* pSecond) const;
 
+    /** 仅调整一个控件的大小
+    */
+    void OnMouseMoveSingle(const EventArgs& msg);
+
 private:
     //左侧（左右拖动）或者上侧（上下拖动）的控件接口
     Control* m_pLeftTop;
@@ -79,13 +92,18 @@ private:
 
     //布局方向: true表示横向布局，false表示纵向布局
     bool m_bHLayout;
+
+    /** 当只有一个控件的时候，是否允许调整其宽度
+    */
+    bool m_bEnableSplitSingle;
 };
 
 template<typename InheritType>
 SplitTemplate<InheritType>::SplitTemplate():
     m_pLeftTop(nullptr),
     m_pRightBottom(nullptr),
-    m_bHLayout(true)
+    m_bHLayout(true),
+    m_bEnableSplitSingle(false)
 {
     this->SetMouseEnabled(true);
 }
@@ -97,9 +115,39 @@ template<>
 inline std::wstring SplitTemplate<Box>::GetType() const { return DUI_CTR_SPLITBOX; }
 
 template<typename InheritType>
+void SplitTemplate<InheritType>::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
+{
+    if (strName == L"enable_split_single") {
+        SetEnableSplitSingle(strValue == L"true");
+    }
+    else {
+        __super::SetAttribute(strName, strValue);
+    }
+}
+
+template<typename InheritType>
+void SplitTemplate<InheritType>::SetEnableSplitSingle(bool bEnableSplitSingle)
+{
+    m_bEnableSplitSingle = bEnableSplitSingle;
+}
+
+template<typename InheritType>
+bool SplitTemplate<InheritType>::IsEnableSplitSingle() const
+{
+    return m_bEnableSplitSingle;
+}
+
+template<typename InheritType>
 bool SplitTemplate<InheritType>::IsSplitDragValid() 
 {
-    return (m_pLeftTop != nullptr) && (m_pRightBottom != nullptr);
+    bool bDragValid = false;
+    if (IsEnableSplitSingle()) {
+        bDragValid = (m_pLeftTop != nullptr) || (m_pRightBottom != nullptr);
+    }
+    else {
+        bDragValid = (m_pLeftTop != nullptr) && (m_pRightBottom != nullptr);
+    }
+    return bDragValid;
 }
 
 template<typename InheritType>
@@ -191,19 +239,34 @@ bool SplitTemplate<InheritType>::ButtonDown(const EventArgs& msg)
             pPrev = pControl;
         }
     }
-    if (pPrev && pNext && pThis) {
+    bool bDragValid = false;
+    if (IsEnableSplitSingle()) {
+        bDragValid = (pPrev != nullptr) || (pNext != nullptr);
+    }
+    else {
+        bDragValid = (pPrev != nullptr) && (pNext != nullptr);
+    }
+    if (bDragValid && (pThis != nullptr)) {
         if (IsVLayout(pParent)) {
             m_bHLayout = false;
             m_pLeftTop = pPrev;
             m_pRightBottom = pNext;
             m_ptStart = msg.ptMouse;
-            m_nLeftUpFixedValue = m_pLeftTop->GetFixedHeight();
-            if (!m_nLeftUpFixedValue.IsStretch()) {
-                m_nLeftUpFixedValue.SetInt32(m_pLeftTop->GetHeight());
+
+            m_nLeftUpFixedValue = UiFixedInt(0);
+            if (m_pLeftTop != nullptr) {
+                m_nLeftUpFixedValue = m_pLeftTop->GetFixedHeight();
+                if (!m_nLeftUpFixedValue.IsStretch()) {
+                    m_nLeftUpFixedValue.SetInt32(m_pLeftTop->GetHeight());
+                }
             }
-            m_nRightBottomFixedValue = m_pRightBottom->GetFixedHeight();
-            if (!m_nRightBottomFixedValue.IsStretch()) {
-                m_nRightBottomFixedValue.SetInt32(m_pRightBottom->GetHeight());
+
+            m_nRightBottomFixedValue = UiFixedInt(0);
+            if (m_pRightBottom != nullptr) {
+                m_nRightBottomFixedValue = m_pRightBottom->GetFixedHeight();
+                if (!m_nRightBottomFixedValue.IsStretch()) {
+                    m_nRightBottomFixedValue.SetInt32(m_pRightBottom->GetHeight());
+                }
             }
         }
         else if (IsHLayout(pParent)) {
@@ -211,13 +274,21 @@ bool SplitTemplate<InheritType>::ButtonDown(const EventArgs& msg)
             m_pLeftTop = pPrev;
             m_pRightBottom = pNext;
             m_ptStart = msg.ptMouse;
-            m_nLeftUpFixedValue = m_pLeftTop->GetFixedWidth();
-            if (!m_nLeftUpFixedValue.IsStretch()) {
-                m_nLeftUpFixedValue.SetInt32(m_pLeftTop->GetWidth());
+
+            m_nLeftUpFixedValue = UiFixedInt(0);
+            if (m_pLeftTop != nullptr) {
+                m_nLeftUpFixedValue = m_pLeftTop->GetFixedWidth();
+                if (!m_nLeftUpFixedValue.IsStretch()) {
+                    m_nLeftUpFixedValue.SetInt32(m_pLeftTop->GetWidth());
+                }
             }
-            m_nRightBottomFixedValue = m_pRightBottom->GetFixedWidth();
-            if (!m_nRightBottomFixedValue.IsStretch()) {
-                m_nRightBottomFixedValue.SetInt32(m_pRightBottom->GetWidth());
+            
+            m_nRightBottomFixedValue = UiFixedInt(0);
+            if (m_pRightBottom != nullptr) {
+                m_nRightBottomFixedValue = m_pRightBottom->GetFixedWidth();
+                if (!m_nRightBottomFixedValue.IsStretch()) {
+                    m_nRightBottomFixedValue.SetInt32(m_pRightBottom->GetWidth());
+                }
             }
         }
     }
@@ -289,6 +360,12 @@ bool SplitTemplate<InheritType>::MouseMove(const EventArgs& msg)
 {
     bool bRet = __super::MouseMove(msg);
     if (!IsSplitDragValid()) {
+        return bRet;
+    }
+
+    if ((m_pLeftTop == nullptr) || (m_pRightBottom == nullptr)) {
+        //只有一个控件需要调整大小
+        OnMouseMoveSingle(msg);
         return bRet;
     }
     
@@ -373,6 +450,109 @@ bool SplitTemplate<InheritType>::MouseMove(const EventArgs& msg)
         this->SendEvent(kEventSplitDraged, (WPARAM)pControl1, (LPARAM)pControl2);
     }
     return bRet;
+}
+
+template<typename InheritType>
+void SplitTemplate<InheritType>::OnMouseMoveSingle(const EventArgs& msg)
+{
+    if ((m_pLeftTop == nullptr) && (m_pRightBottom == nullptr)) {
+        return;
+    }
+    if ((m_pLeftTop != nullptr) && (m_pRightBottom != nullptr)) {
+        return;
+    }
+    if ((m_pRightBottom != nullptr) && m_nRightBottomFixedValue.IsStretch()) {
+        //控件为拉伸类型，不调整
+        return;
+    }
+    if ((m_pLeftTop != nullptr) && m_nLeftUpFixedValue.IsStretch()) {
+        //控件为拉伸类型，不调整
+        return;
+    }
+
+    int32_t nOffset = 0; //拖动的范围（宽度或者高度的偏移量, 可以是正数，也可以是负数）
+    if (m_bHLayout) {
+        nOffset = msg.ptMouse.x - m_ptStart.x;
+    }
+    else {
+        nOffset = msg.ptMouse.y - m_ptStart.y;
+    }
+
+    //拖动时，不能超过总的宽度值或者总的高度值
+    if (nOffset > 0) {
+        if ((m_pRightBottom != nullptr) && !m_nRightBottomFixedValue.IsStretch()) {
+            if (nOffset > m_nRightBottomFixedValue.GetInt32()) {
+                nOffset = m_nRightBottomFixedValue.GetInt32();
+            }
+        }
+    }
+    else if (nOffset < 0) {
+        if ((m_pLeftTop != nullptr) && !m_nLeftUpFixedValue.IsStretch()) {
+            if (-nOffset > m_nLeftUpFixedValue.GetInt32()) {
+                nOffset = -m_nLeftUpFixedValue.GetInt32();
+            }
+        }
+    }
+    else {
+        return;
+    }
+
+    UiFixedInt nFixedInt;
+    Control* pControl = nullptr;
+    if (m_pLeftTop != nullptr) {
+        pControl = m_pLeftTop;
+        nFixedInt = m_nLeftUpFixedValue;
+    }
+    else if (m_pRightBottom != nullptr) {
+        pControl = m_pRightBottom;
+        nFixedInt = m_nRightBottomFixedValue;
+    }
+    else {
+        return;
+    }
+
+    int32_t nNewValue = nFixedInt.GetInt32() + nOffset; //新值，可以是正数，也可以是负数
+    if (nNewValue < 0) {
+        nNewValue = 0;
+    }
+    int32_t nMin = 0; //最小值
+    bool bHLayout = m_bHLayout;
+    if (bHLayout) {
+        nMin = pControl->GetMinWidth();
+    }
+    else {
+        nMin = pControl->GetMinHeight();
+    }
+    //控制不小于最小值
+    if (nNewValue < nMin) {
+        nNewValue = nMin;
+    }
+
+    int32_t nMax = 0; //最大值, 并且按照另一侧的最小值设置，留出最小空间
+    if (bHLayout) {
+        nMax = pControl->GetMaxWidth();
+    }
+    else {
+        nMax = pControl->GetMaxHeight();
+    }
+    //控制不大于最大值
+    if (nNewValue > nMax) {
+        nNewValue = nMax;
+    }
+
+    bool bAdjusted = false;
+    if ((pControl != nullptr) && (nNewValue >= 0)) {
+        bAdjusted = true;
+        if (bHLayout) {
+            pControl->SetFixedWidth(UiFixedInt(nNewValue), true, false);
+        }
+        else {
+            pControl->SetFixedHeight(UiFixedInt(nNewValue), true, false);
+        }
+    }
+    if (bAdjusted && (pControl != nullptr)) {
+        this->SendEvent(kEventSplitDraged, (WPARAM)pControl, (LPARAM)nullptr);
+    }
 }
 
 typedef SplitTemplate<Control> Split;

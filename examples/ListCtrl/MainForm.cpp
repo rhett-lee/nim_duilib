@@ -40,7 +40,7 @@ void MainForm::OnInitWindow()
 		return;
 	}
 	//填充数据
-	InsertItemData(200, 10);
+	InsertItemData(10, 4);
 
 	//表头高度控制
 	ui::RichEdit* pHeaderHeightEdit = dynamic_cast<ui::RichEdit*>(FindControl(L"header_height_edit"));
@@ -273,18 +273,20 @@ void MainForm::InsertItemData(int32_t nRows, int32_t nColumns)
 	pListCtrl->SortDataItems(0, true);
 
 	//设置特殊属性
-	pListCtrl->SetDataItemAlwaysAtTop(100, 0);
-	pListCtrl->SetDataItemAlwaysAtTop(101, 1);
+	if (nRows > 100) {
+		pListCtrl->SetDataItemAlwaysAtTop(100, 0);
+		pListCtrl->SetDataItemAlwaysAtTop(101, 1);
 
-	pListCtrl->SetDataItemVisible(103, false);
-	pListCtrl->SetDataItemHeight(1, 100, true);
-	pListCtrl->SetDataItemHeight(2, 200, true);
+		pListCtrl->SetDataItemVisible(103, false);
+		pListCtrl->SetDataItemHeight(1, 100, true);
+		pListCtrl->SetDataItemHeight(2, 200, true);
 
-	pListCtrl->SetDataItemBkColor(100, 0, ui::UiColor(ui::UiColors::MistyRose));
-	pListCtrl->SetDataItemBkColor(101, 0, ui::UiColor(ui::UiColors::MistyRose));
-	pListCtrl->SetDataItemBkColor(102, 0, ui::UiColor(ui::UiColors::MistyRose));
-	pListCtrl->SetDataItemBkColor(103, 0, ui::UiColor(ui::UiColors::MistyRose));
-	pListCtrl->SetDataItemBkColor(104, 0, ui::UiColor(ui::UiColors::MistyRose));
+		pListCtrl->SetDataItemBkColor(100, 0, ui::UiColor(ui::UiColors::MistyRose));
+		pListCtrl->SetDataItemBkColor(101, 0, ui::UiColor(ui::UiColors::MistyRose));
+		pListCtrl->SetDataItemBkColor(102, 0, ui::UiColor(ui::UiColors::MistyRose));
+		pListCtrl->SetDataItemBkColor(103, 0, ui::UiColor(ui::UiColors::MistyRose));
+		pListCtrl->SetDataItemBkColor(104, 0, ui::UiColor(ui::UiColors::MistyRose));
+	}	
 
 #ifdef _DEBUG
 	if (1) {
@@ -293,7 +295,7 @@ void MainForm::InsertItemData(int32_t nRows, int32_t nColumns)
 		ui::ListCtrlDataItem dataItem;
 		dataItem.nColumnIndex = 0;
 		dataItem.text = text;
-		size_t nDataItemIndex = pListCtrl->AddDataItem(dataItem);		
+		const size_t nDataItemIndex = pListCtrl->AddDataItem(dataItem);		
 		ASSERT(pListCtrl->GetDataItemText(nDataItemIndex, 0) == text);
 
 		ui::ListCtrlRowData itemData;
