@@ -42,6 +42,20 @@ public:
 	*/
 	virtual bool IsElementSelected(size_t nElementIndex) const override;
 
+	/** 获取选择的元素列表
+	* @param [in] selectedIndexs 返回当前选择的元素列表，有效范围：[0, GetElementCount())
+	*/
+	virtual void GetSelectedElements(std::vector<size_t>& selectedIndexs) const override;
+
+	/** 是否支持多选
+	*/
+	virtual bool IsMultiSelect() const override;
+
+	/** 设置是否支持多选，由界面层调用，保持与界面控件一致
+	* @return bMultiSelect true表示支持多选，false表示不支持多选
+	*/
+	virtual void SetMultiSelect(bool bMultiSelect) override;
+
 public:
 	void SetTotal(int nTotal);
 	void RemoveTask(size_t nIndex);
@@ -50,6 +64,7 @@ public:
 private:
 	int m_nTotal;
 	std::vector<DownloadTask> m_vTasks;
+	bool m_bMultiSelect; //是否支持多选
 	mutable nbase::NLock  lock_;
 };
 

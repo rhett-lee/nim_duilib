@@ -41,6 +41,10 @@ private:
 	*/
 	void InsertItemData(int32_t nRows, int32_t nColumns);
 
+	/** 执行一些功能测试
+	*/
+	void RunListCtrlTest();
+
 	/** 控制该列
 	*/
 	void OnColumnChanged(size_t nColumnId);

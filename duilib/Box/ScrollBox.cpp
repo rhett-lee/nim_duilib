@@ -505,6 +505,11 @@ void ScrollBox::SetScrollPosX(int64_t x)
 
 void ScrollBox::LineUp(int deltaValue, bool withAnimation)
 {
+	UiSize64 scrollPos = GetScrollPos();
+	if (scrollPos.cy <= 0) {
+		return;
+	}
+
 	int cyLine = GetVerScrollUnitPixels();
 	if (cyLine == 0) {
 		cyLine = GlobalManager::Instance().Dpi().GetScaleInt(m_nVScrollUnitPixelsDefault);
@@ -513,15 +518,9 @@ void ScrollBox::LineUp(int deltaValue, bool withAnimation)
 		cyLine = std::min(cyLine, deltaValue);
 	}
 
-	UiSize64 scrollPos = GetScrollPos();
-	if (scrollPos.cy <= 0) {
-		return;
-	}
-
 	if (!withAnimation) {
 		scrollPos.cy -= cyLine;
-		if (scrollPos.cy < 0)
-		{
+		if (scrollPos.cy < 0) {
 			scrollPos.cy = 0;
 		}
 		SetScrollPos(scrollPos);
@@ -532,17 +531,22 @@ void ScrollBox::LineUp(int deltaValue, bool withAnimation)
 		}
 		AnimationPlayer* pScrollAnimation = m_pScrollAnimation;
 		pScrollAnimation->SetStartValue(scrollPos.cy);
+		int64_t nEndValue = 0;
 		if (pScrollAnimation->IsPlaying()) {
 			if (pScrollAnimation->GetEndValue() > pScrollAnimation->GetStartValue()) {
-				pScrollAnimation->SetEndValue(scrollPos.cy - cyLine);
+				nEndValue = scrollPos.cy - cyLine;
 			}
 			else {
-				pScrollAnimation->SetEndValue(pScrollAnimation->GetEndValue() - cyLine);
+				nEndValue = pScrollAnimation->GetEndValue() - cyLine;
 			}
 		}
 		else {
-			pScrollAnimation->SetEndValue(scrollPos.cy - cyLine);
+			nEndValue = scrollPos.cy - cyLine;
 		}
+		if (nEndValue < 0) {
+			nEndValue = 0;
+		}
+		pScrollAnimation->SetEndValue(nEndValue);
 		pScrollAnimation->SetSpeedUpRatio(0);
 		pScrollAnimation->SetSpeedDownfactorA(-0.012);
 		pScrollAnimation->SetSpeedDownRatio(0.5);
@@ -554,6 +558,11 @@ void ScrollBox::LineUp(int deltaValue, bool withAnimation)
 
 void ScrollBox::LineDown(int deltaValue, bool withAnimation)
 {
+	UiSize64 scrollPos = GetScrollPos();
+	if (scrollPos.cy >= GetScrollRange().cy) {
+		return;
+	}
+
 	int cyLine = GetVerScrollUnitPixels();
 	if (cyLine == 0) {
 		cyLine = GlobalManager::Instance().Dpi().GetScaleInt(m_nVScrollUnitPixelsDefault);
@@ -562,15 +571,9 @@ void ScrollBox::LineDown(int deltaValue, bool withAnimation)
 		cyLine = std::min(cyLine, deltaValue);
 	}
 
-	UiSize64 scrollPos = GetScrollPos();
-	if (scrollPos.cy >= GetScrollRange().cy) {
-		return;
-	}
-
 	if (!withAnimation) {
 		scrollPos.cy += cyLine;
-		if (scrollPos.cy < 0)
-		{
+		if (scrollPos.cy < 0) {
 			scrollPos.cy = 0;
 		}
 		SetScrollPos(scrollPos);
@@ -581,17 +584,22 @@ void ScrollBox::LineDown(int deltaValue, bool withAnimation)
 		}
 		AnimationPlayer* pScrollAnimation = m_pScrollAnimation;
 		pScrollAnimation->SetStartValue(scrollPos.cy);
+		int64_t nEndValue = 0;
 		if (pScrollAnimation->IsPlaying()) {
 			if (pScrollAnimation->GetEndValue() < pScrollAnimation->GetStartValue()) {
-				pScrollAnimation->SetEndValue(scrollPos.cy + cyLine);
+				nEndValue = scrollPos.cy + cyLine;
 			}
 			else {
-				pScrollAnimation->SetEndValue(pScrollAnimation->GetEndValue() + cyLine);
+				nEndValue = pScrollAnimation->GetEndValue() + cyLine;
 			}
 		}
 		else {
-			pScrollAnimation->SetEndValue(scrollPos.cy + cyLine);
+			nEndValue = scrollPos.cy + cyLine;
 		}
+		if (nEndValue > GetScrollRange().cy) {
+			nEndValue = GetScrollRange().cy;
+		}
+		pScrollAnimation->SetEndValue(nEndValue);
 		pScrollAnimation->SetSpeedUpRatio(0);
 		pScrollAnimation->SetSpeedDownfactorA(-0.012);
 		pScrollAnimation->SetSpeedDownRatio(0.5);
@@ -602,6 +610,11 @@ void ScrollBox::LineDown(int deltaValue, bool withAnimation)
 }
 void ScrollBox::LineLeft(int detaValue)
 {
+	UiSize64 scrollPos = GetScrollPos();
+	if (scrollPos.cx <= 0) {
+		return;
+	}
+
     int cxLine = GetHorScrollUnitPixels();
     if (cxLine == 0) {
         cxLine = GlobalManager::Instance().Dpi().GetScaleInt(m_nHScrollUnitPixelsDefault);
@@ -609,14 +622,8 @@ void ScrollBox::LineLeft(int detaValue)
     if (detaValue != DUI_NOSET_VALUE) {
         cxLine = std::min(cxLine, detaValue);
     }
-
-    UiSize64 scrollPos = GetScrollPos();
-    if (scrollPos.cx <= 0) {
-        return;
-    }
     scrollPos.cx -= cxLine;
-    if (scrollPos.cx < 0)
-    {
+    if (scrollPos.cx < 0) {
         scrollPos.cx = 0;
     }
     SetScrollPos(scrollPos);
@@ -643,6 +650,11 @@ void ScrollBox::LineLeft(int detaValue)
 
 void ScrollBox::LineRight(int detaValue)
 {
+	UiSize64 scrollPos = GetScrollPos();
+	if (scrollPos.cx >= GetScrollRange().cx) {
+		return;
+	}
+
     int cxLine = GetHorScrollUnitPixels();
     if (cxLine == 0) {
         cxLine = GlobalManager::Instance().Dpi().GetScaleInt(m_nHScrollUnitPixelsDefault);
@@ -651,13 +663,8 @@ void ScrollBox::LineRight(int detaValue)
         cxLine = std::min(cxLine, detaValue);
     }
 
-    UiSize64 scrollPos = GetScrollPos();
-    if (scrollPos.cx >= GetScrollRange().cx) {
-        return;
-    }
     scrollPos.cx += cxLine;
-    if (scrollPos.cx > GetScrollRange().cx)
-    {
+    if (scrollPos.cx > GetScrollRange().cx) {
         scrollPos.cx = GetScrollRange().cx;
     }
     SetScrollPos(scrollPos);

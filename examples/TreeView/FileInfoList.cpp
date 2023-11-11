@@ -51,6 +51,19 @@ bool FileInfoList::IsElementSelected(size_t nElementIndex) const
     return false;
 }
 
+void FileInfoList::GetSelectedElements(std::vector<size_t>& selectedIndexs) const
+{
+}
+
+bool FileInfoList::IsMultiSelect() const
+{
+    return false;
+}
+
+void FileInfoList::SetMultiSelect(bool /*bMultiSelect*/)
+{
+}
+
 void FileInfoList::SetFileList(ui::TreeNode* pTreeNode, const std::vector<FileInfo>& pathList)
 {
     ClearFileList();

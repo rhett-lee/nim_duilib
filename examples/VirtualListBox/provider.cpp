@@ -5,10 +5,10 @@
 
 int g_index = 1;
 
-Provider::Provider()
-:m_nTotal(0)
+Provider::Provider():
+	m_nTotal(0),
+	m_bMultiSelect(true)
 {
-
 }
 
 
@@ -48,8 +48,16 @@ size_t Provider::GetElementCount() const
 void Provider::SetElementSelected(size_t nElementIndex, bool bSelected)
 {
 	nbase::NAutoLock auto_lock(&lock_);
-	if (nElementIndex < m_vTasks.size()) {
+	const size_t nCount = m_vTasks.size();
+	if (nElementIndex < nCount) {
 		m_vTasks[nElementIndex].bSelected = bSelected;
+		if (bSelected && !m_bMultiSelect) {
+			for (size_t index = 0; index < nCount; ++index) {
+				if ((index != nElementIndex) && m_vTasks[index].bSelected) {
+					m_vTasks[index].bSelected = false;
+				}
+			}
+		}
 	}
 }
 
@@ -61,6 +69,28 @@ bool Provider::IsElementSelected(size_t nElementIndex) const
 		bSelected = m_vTasks[nElementIndex].bSelected;
 	}
 	return bSelected;
+}
+
+void Provider::GetSelectedElements(std::vector<size_t>& selectedIndexs) const
+{
+	selectedIndexs.clear();
+	nbase::NAutoLock auto_lock(&lock_);
+	size_t nCount = m_vTasks.size();
+	for (size_t nElementIndex = 0; nElementIndex < nCount; ++nElementIndex) {
+		if (m_vTasks[nElementIndex].bSelected) {
+			selectedIndexs.push_back(nElementIndex);
+		}
+	}
+}
+
+bool Provider::IsMultiSelect() const
+{
+	return m_bMultiSelect;
+}
+
+void Provider::SetMultiSelect(bool bMultiSelect)
+{
+	m_bMultiSelect = bMultiSelect;
 }
 
 void Provider::SetTotal(int nTotal)

@@ -361,6 +361,7 @@
     <ClCompile Include="Control\ListCtrlDataView.cpp" />
     <ClCompile Include="Control\ListCtrlHeader.cpp" />
     <ClCompile Include="Control\ListCtrlHeaderItem.cpp" />
+    <ClCompile Include="Control\ListCtrlItem.cpp" />
     <ClCompile Include="Control\Menu.cpp" />
     <ClCompile Include="Control\RichEditHost.cpp" />
     <ClCompile Include="Control\RichText.cpp" />
@@ -473,6 +474,7 @@
     <ClInclude Include="Control\ListCtrlDataView.h" />
     <ClInclude Include="Control\ListCtrlHeader.h" />
     <ClInclude Include="Control\ListCtrlHeaderItem.h" />
+    <ClInclude Include="Control\ListCtrlItem.h" />
     <ClInclude Include="Control\Menu.h" />
     <ClInclude Include="Control\observer_impl_base.hpp" />
     <ClInclude Include="Control\RichEditCtrl.h" />

@@ -237,17 +237,18 @@ void ListCtrl::DoInit()
     ASSERT(m_pDataView == nullptr);
     m_pDataView = new ListCtrlDataView;
     m_pDataView->SetListCtrl(this);
-    m_pDataView->SetDataProvider(m_pDataProvider);
     if (!m_dataViewClass.empty()) {
         m_pDataView->SetClass(m_dataViewClass.c_str());
     }
-    //同步单选和多选的状态
-    m_pDataView->SetMultiSelect(IsMultiSelect());
 
     AddItem(m_pDataView);
 
     // Header添加到数据视图中管理，作为第一个元素，在Layout的实现中控制显示属性
     m_pDataView->AddItem(m_pHeaderCtrl);
+
+    //同步单选和多选的状态
+    m_pDataView->SetMultiSelect(IsMultiSelect());
+    m_pDataView->SetDataProvider(m_pDataProvider);
 }
 
 ListCtrlHeaderItem* ListCtrl::InsertColumn(int32_t columnIndex, const ListCtrlColumn& columnInfo)
@@ -825,21 +826,42 @@ bool ListCtrl::IsMultiSelect() const
 void ListCtrl::SetMultiSelect(bool bMultiSelect)
 {
     m_bMultiSelect = bMultiSelect;
-    size_t nCurSelItemIndex = Box::InvalidIndex;
     if (m_pDataView != nullptr) {
         m_pDataView->SetMultiSelect(bMultiSelect);
-        size_t nCurSel = m_pDataView->GetCurSel();
-        if (nCurSel < m_pDataView->GetItemCount()) {
-            ListCtrlItem* pItem = dynamic_cast<ListCtrlItem*>(m_pDataView->GetItemAt(nCurSel));
-            if (pItem != nullptr) {
-                nCurSelItemIndex = pItem->GetElementIndex();
-            }
-        }
     }
-    //同步存储状态
-    if (m_pDataProvider->OnMultiSelect(bMultiSelect, nCurSelItemIndex)) {
-        Refresh();
+}
+
+void ListCtrl::SetSelectedDataItems(const std::vector<size_t>& selectedIndexs, bool bClearOthers)
+{
+    ASSERT(m_pDataView != nullptr);
+    if (m_pDataView != nullptr) {
+        m_pDataView->SetSelectedElements(selectedIndexs, bClearOthers);
     }
+}
+
+void ListCtrl::GetSelectedDataItems(std::vector<size_t>& itemIndexs) const
+{
+    ASSERT(m_pDataView != nullptr);
+    if (m_pDataView != nullptr) {
+        m_pDataView->GetSelectedElements(itemIndexs);
+    }
+}
+
+void ListCtrl::SetSelectAll()
+{
+    ASSERT(m_pDataView != nullptr);
+    if (m_pDataView != nullptr) {
+        m_pDataView->SetSelectAll();
+    }
+}
+
+void ListCtrl::SetSelectNone()
+{
+    ASSERT(m_pDataView != nullptr);
+    if (m_pDataView != nullptr) {
+        m_pDataView->SetSelectNone();
+    }
+
 }
 
 void ListCtrl::GetDisplayDataItems(std::vector<size_t>& itemIndexList) const

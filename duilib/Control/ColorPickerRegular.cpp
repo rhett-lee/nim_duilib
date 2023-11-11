@@ -42,6 +42,20 @@ public:
     */
     virtual bool IsElementSelected(size_t nElementIndex) const override;
 
+    /** 获取选择的元素列表
+    * @param [in] selectedIndexs 返回当前选择的元素列表，有效范围：[0, GetElementCount())
+    */
+    virtual void GetSelectedElements(std::vector<size_t>& selectedIndexs) const override;
+
+    /** 是否支持多选
+    */
+    virtual bool IsMultiSelect() const override;
+
+    /** 设置是否支持多选，由界面层调用，保持与界面控件一致
+    * @return bMultiSelect true表示支持多选，false表示不支持多选
+    */
+    virtual void SetMultiSelect(bool bMultiSelect) override;
+
     /** 选择一个颜色
     */
     size_t SelectColor(const UiColor& color);
@@ -275,6 +289,27 @@ bool ColorPickerRegularProvider::IsElementSelected(size_t nElementIndex) const
         return regularColor.m_bSelected;
     }
     return false;
+}
+
+void ColorPickerRegularProvider::GetSelectedElements(std::vector<size_t>& selectedIndexs) const
+{
+    selectedIndexs.clear();
+    size_t nCount = m_colors.size();
+    for (size_t nElementIndex = 0; nElementIndex < nCount; ++nElementIndex) {
+        const RegularColor& regularColor = m_colors[nElementIndex];
+        if (regularColor.m_bSelected) {
+            selectedIndexs.push_back(nElementIndex);
+        }
+    }
+}
+
+bool ColorPickerRegularProvider::IsMultiSelect() const
+{
+    return false;
+}
+
+void ColorPickerRegularProvider::SetMultiSelect(bool /*bMultiSelect*/)
+{
 }
 
 size_t ColorPickerRegularProvider::SelectColor(const UiColor& color)

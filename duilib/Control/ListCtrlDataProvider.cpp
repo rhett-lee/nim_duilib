@@ -11,7 +11,9 @@ ListCtrlDataProvider::ListCtrlDataProvider() :
     m_pUserData(nullptr),
     m_hideRowCount(0),
     m_heightRowCount(0),
-    m_atTopRowCount(0)
+    m_atTopRowCount(0),
+    m_bMultiSelect(true),
+    m_nSelectedIndex(Box::InvalidIndex)
 {
 }
 
@@ -256,8 +258,18 @@ void ListCtrlDataProvider::SetElementSelected(size_t nElementIndex, bool bSelect
     ASSERT(nElementIndex < m_rowDataList.size());
     if (nElementIndex < m_rowDataList.size()) {
         ListCtrlRowData& rowData = m_rowDataList[nElementIndex];
-        rowData.bSelected = bSelected;
+        rowData.bSelected = bSelected;//多选或者单选的情况下，都更新
     }
+
+    if (!m_bMultiSelect) {
+        //单选的情况
+        if (bSelected) {
+            m_nSelectedIndex = nElementIndex;
+        }
+        else if (m_nSelectedIndex == nElementIndex) {
+            m_nSelectedIndex = Box::InvalidIndex;
+        }
+    }    
 }
 
 bool ListCtrlDataProvider::IsElementSelected(size_t nElementIndex) const
@@ -267,12 +279,61 @@ bool ListCtrlDataProvider::IsElementSelected(size_t nElementIndex) const
         return false;
     }
     bool bSelected = false;
-    ASSERT(nElementIndex < m_rowDataList.size());
-    if (nElementIndex < m_rowDataList.size()) {
-        const ListCtrlRowData& rowData = m_rowDataList[nElementIndex];
-        bSelected = rowData.bSelected;
+    if (m_bMultiSelect) {
+        //多选
+        ASSERT(nElementIndex < m_rowDataList.size());
+        if (nElementIndex < m_rowDataList.size()) {
+            const ListCtrlRowData& rowData = m_rowDataList[nElementIndex];
+            bSelected = rowData.bSelected;
+        }
+    }
+    else {
+        //单选
+        bSelected = (m_nSelectedIndex == nElementIndex);
     }
     return bSelected;
+}
+
+void ListCtrlDataProvider::GetSelectedElements(std::vector<size_t>& selectedIndexs) const
+{
+    selectedIndexs.clear();
+    if (m_bMultiSelect) {
+        size_t nCount = m_rowDataList.size();
+        for (size_t nElementIndex = 0; nElementIndex < nCount; ++nElementIndex) {
+            const ListCtrlRowData& rowData = m_rowDataList[nElementIndex];
+            if (rowData.bSelected) {
+                selectedIndexs.push_back(nElementIndex);
+            }
+        }
+    }
+    else {
+        if (m_nSelectedIndex < m_rowDataList.size()) {
+            selectedIndexs.push_back(m_nSelectedIndex);
+        }
+    }
+}
+
+bool ListCtrlDataProvider::IsMultiSelect() const
+{
+    return m_bMultiSelect;
+}
+
+void ListCtrlDataProvider::SetMultiSelect(bool bMultiSelect)
+{
+    bool bChanged = m_bMultiSelect != bMultiSelect;
+    m_bMultiSelect = bMultiSelect;
+    if (bChanged && bMultiSelect) {
+        //从单选变多选，需要清空选项，只保留一个单选项
+        const size_t nItemCount = m_rowDataList.size();
+        for (size_t itemIndex = 0; itemIndex < nItemCount; ++itemIndex) {
+            ListCtrlRowData& rowData = m_rowDataList[itemIndex];
+            if (rowData.bSelected) {
+                if (m_nSelectedIndex != itemIndex) {
+                    rowData.bSelected = false;
+                }
+            }
+        }
+    }    
 }
 
 void ListCtrlDataProvider::SetListCtrl(ListCtrl* pListCtrl)
@@ -376,6 +437,7 @@ bool ListCtrlDataProvider::RemoveColumn(size_t columnId)
         if (m_dataMap.empty()) {
             //如果所有列都删除了，行也清空为0
             m_rowDataList.clear();
+            m_nSelectedIndex = Box::InvalidIndex;
             m_hideRowCount = 0;
             m_heightRowCount = 0;
             m_atTopRowCount = 0;
@@ -605,7 +667,10 @@ bool ListCtrlDataProvider::SetDataItemCount(size_t itemCount)
         return true;
     }
     size_t nOldCount = m_rowDataList.size();
-    m_rowDataList.resize(itemCount);    
+    m_rowDataList.resize(itemCount); 
+    if (m_nSelectedIndex >= m_rowDataList.size()) {
+        m_nSelectedIndex = Box::InvalidIndex;
+    }
     for (auto iter = m_dataMap.begin(); iter != m_dataMap.end(); ++iter) {
         iter->second.resize(itemCount);
     }
@@ -701,6 +766,9 @@ bool ListCtrlDataProvider::InsertDataItem(size_t itemIndex, const ListCtrlDataIt
 
     //行数据，插入1条数据
     ASSERT(itemIndex < m_rowDataList.size());
+    if ((m_nSelectedIndex < m_rowDataList.size()) && (itemIndex <= m_nSelectedIndex)) {
+        ++m_nSelectedIndex;
+    }
     m_rowDataList.insert(m_rowDataList.begin() + itemIndex, ListCtrlRowData());
 
     EmitCountChanged();
@@ -778,6 +846,14 @@ bool ListCtrlDataProvider::DeleteDataItem(size_t itemIndex)
     //删除一行
     if (itemIndex < m_rowDataList.size()) {
         ListCtrlRowData oldData = m_rowDataList[itemIndex];
+        if (m_nSelectedIndex < m_rowDataList.size()) {
+            if (m_nSelectedIndex == itemIndex) {
+                m_nSelectedIndex = Box::InvalidIndex;
+            }
+            else if (m_nSelectedIndex > itemIndex) {
+                m_nSelectedIndex -= 1;
+            }
+        }
         m_rowDataList.erase(m_rowDataList.begin() + itemIndex);
         if (!oldData.bVisible) {
             m_hideRowCount -= 1;
@@ -812,6 +888,7 @@ bool ListCtrlDataProvider::DeleteAllDataItems()
         bDeleted = true;
     }
     m_rowDataList.clear();
+    m_nSelectedIndex = Box::InvalidIndex;
     m_hideRowCount = 0;
     m_heightRowCount = 0;
     m_atTopRowCount = 0;
@@ -933,27 +1010,18 @@ bool ListCtrlDataProvider::IsDataItemVisible(size_t itemIndex) const
 bool ListCtrlDataProvider::SetDataItemSelected(size_t itemIndex, bool bSelected, bool& bChanged)
 {
     bChanged = false;
-    bool bRet = false;
-    ASSERT(itemIndex < m_rowDataList.size());
-    if (itemIndex < m_rowDataList.size()) {
-        ListCtrlRowData& rowData = m_rowDataList[itemIndex];
-        bChanged = rowData.bSelected != bSelected;
-        rowData.bSelected = bSelected;
-        bRet = true;
+    if (itemIndex >= m_rowDataList.size()) {
+        return false;
     }
+    bChanged = IsDataItemSelected(itemIndex);
+    SetElementSelected(itemIndex, bSelected);
     //不刷新，由外部判断是否需要刷新
-    return bRet;
+    return true;
 }
 
 bool ListCtrlDataProvider::IsDataItemSelected(size_t itemIndex) const
 {
-    bool bValue = false;
-    ASSERT(itemIndex < m_rowDataList.size());
-    if (itemIndex < m_rowDataList.size()) {
-        const ListCtrlRowData& rowData = m_rowDataList[itemIndex];
-        bValue = rowData.bSelected;
-    }
-    return bValue;
+    return IsElementSelected(itemIndex);
 }
 
 bool ListCtrlDataProvider::SetDataItemAlwaysAtTop(size_t itemIndex, int8_t nAlwaysAtTop, bool& bChanged)
@@ -1062,26 +1130,6 @@ size_t ListCtrlDataProvider::GetDataItemData(size_t itemIndex) const
         nItemData = rowData.nItemData;
     }
     return nItemData;
-}
-
-bool ListCtrlDataProvider::OnMultiSelect(bool bMultiSelect, size_t nCurSelItemIndex)
-{
-    bool bChanged = false;
-    if (bMultiSelect) {
-        return bChanged;
-    }
-    //变为单选，需要确保只有一个选择项
-    const size_t nItemCount = m_rowDataList.size();
-    for (size_t itemIndex = 0; itemIndex < nItemCount; ++itemIndex) {
-        ListCtrlRowData& rowData = m_rowDataList[itemIndex];
-        if (rowData.bSelected) {
-            if (nCurSelItemIndex != itemIndex) {
-                rowData.bSelected = false;
-                bChanged = true;
-            }
-        }
-    }
-    return bChanged;
 }
 
 bool ListCtrlDataProvider::SetDataItemText(size_t itemIndex, size_t columnIndex, const std::wstring& text)
@@ -1264,11 +1312,16 @@ bool ListCtrlDataProvider::SortDataItems(size_t nColumnId, bool bSortedUp,
     }
 
     //对行数据进行排序
+    bool bFoundSelectedIndex = false;
     ASSERT(sortedDataCount == m_rowDataList.size());
     RowDataList rowDataList = m_rowDataList;
     for (size_t index = 0; index < sortedDataCount; ++index) {
         const StorageData& sortedData = sortedDataList[index];
         m_rowDataList[index] = rowDataList[sortedData.index]; //赋值原数据
+        if (!bFoundSelectedIndex && (m_nSelectedIndex == sortedData.index)) {
+            m_nSelectedIndex = index;
+            bFoundSelectedIndex = true;
+        }
     }
     return true;
 }

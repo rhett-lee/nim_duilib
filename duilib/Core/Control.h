@@ -764,15 +764,30 @@ public:
 	 */
 	void AttachMouseHover(const EventCallback& callback) { AttachEvent(kEventMouseHover, callback); }
 
-	/** 监听鼠标按下事件
+	/** 监听鼠标移动事件
+	 * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
+	 */
+	void AttachMouseMove(const EventCallback& callback) { AttachEvent(kEventMouseMove, callback); }
+
+	/** 监听鼠标按下事件(左键)
 	 * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
 	 */
 	void AttachButtonDown(const EventCallback& callback) { AttachEvent(kEventMouseButtonDown, callback); }
 
-	/** 监听鼠标弹起事件
+	/** 监听鼠标弹起事件(左键)
 	 * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
 	 */
 	void AttachButtonUp(const EventCallback& callback) { AttachEvent(kEventMouseButtonUp, callback); }
+
+	/** 监听鼠标按下事件(右键)
+	 * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
+	 */
+	void AttachRButtonDown(const EventCallback& callback) { AttachEvent(kEventMouseRButtonDown, callback); }
+
+	/** 监听鼠标弹起事件(右键)
+	 * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
+	 */
+	void AttachRButtonUp(const EventCallback& callback) { AttachEvent(kEventMouseRButtonUp, callback); }
 
 	/** 监听获得焦点事件
 	 * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
@@ -783,6 +798,11 @@ public:
 	 * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
 	 */
 	void AttachKillFocus(const EventCallback& callback) { AttachEvent(kEventKillFocus, callback); }
+
+	/** 监听窗口失去焦点事件
+	 * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
+	 */
+	void AttachWindowKillFocus(const EventCallback& callback) { AttachEvent(kEventWindowKillFocus, callback); }
 
 	/** 监听右键菜单事件
 	 * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
@@ -928,9 +948,9 @@ public:
 
 	/** @} */
 
-protected: 
+protected:
 
-	//处理放弃控件焦点相关逻辑
+	//处理放弃控件焦点相关逻辑 
 	void EnsureNoFocus();
 
 	/** 判断消息是否为应过滤掉的消息, 辅助函数

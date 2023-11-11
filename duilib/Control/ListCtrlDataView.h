@@ -19,6 +19,18 @@ public:
     ListCtrlDataView();
     virtual ~ListCtrlDataView();
 
+    virtual std::wstring GetType() const override { return L"ListCtrlDataView"; }
+    virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue);
+
+    /** 选择子项
+	*  @param [in] iIndex 子项目的ID
+	*  @param [in] bTakeFocus 是否让子项控件成为焦点控件
+	*  @param [in] bTriggerEvent 是否触发选择事件, 如果为true，会触发一个kEventSelect事件
+	*  @param [in] vkFlag 按键标志, 取值范围参见 enum VKFlag 的定义
+	*/
+	virtual bool SelectItem(size_t iIndex, bool bTakeFocus, 
+							bool bTriggerEvent, uint64_t vkFlag) override;
+
     /** 设置ListCtrl控件接口
     */
     void SetListCtrl(ListCtrl* pListCtrl);
@@ -157,7 +169,35 @@ protected:
     */
     virtual size_t FindSelectableElement(size_t nElementIndex, bool bForward) const override;
 
+protected:
+    //鼠标消息（返回true：表示消息已处理；返回false：则表示消息未处理，需转发给父控件）
+    virtual bool ButtonDown(const EventArgs& msg) override;
+    virtual bool ButtonUp(const EventArgs& msg) override;
+    virtual bool RButtonDown(const EventArgs& msg) override;
+    virtual bool RButtonUp(const EventArgs& msg) override;
+    virtual bool MouseMove(const EventArgs& msg) override;
+    virtual bool OnWindowKillFocus(const EventArgs& msg) override;//控件所属的窗口失去焦点
+
 private:
+    void OnButtonDown(const UiPoint& ptMouse, Control* pSender);
+    void OnButtonUp(const UiPoint& ptMouse, Control* pSender);
+    void OnRButtonDown(const UiPoint& ptMouse, Control* pSender);
+    void OnRButtonUp(const UiPoint& ptMouse, Control* pSender);
+    void OnMouseMove(const UiPoint& ptMouse, Control* pSender);
+    void OnWindowKillFocus();
+
+    /** 检查是否需要滚动视图
+    */
+    void OnCheckScrollView();
+
+    /** 执行了鼠标框选操作
+    */
+    void OnFrameSelection(int64_t top, int64_t bottom);
+
+    /** 设置普通列表项（非Header、非置顶）的top坐标
+    */
+    void SetNormalItemTop(int32_t nNormalItemTop);
+
     /** 将header和置顶项放在最后
     * @param [in,out] items 需要移动的控件列表
     * @param [out] atTopItems 返回置顶的控件列表
@@ -180,6 +220,48 @@ private:
     /** 置顶的UI控件索引号
     */
     std::vector<size_t> m_atTopControlList;
+
+private:
+    /** 普通列表项（非Header、非置顶）的top坐标
+    */
+    int32_t m_nNormalItemTop;
+
+    /** 是否鼠标左键按下
+    */
+    bool m_bMouseDown;
+
+    /** 是否鼠标右键按下
+    */
+    bool m_bRMouseDown;
+
+    /** 是否处于鼠标滑动操作中
+    */
+    bool m_bInMouseMove;
+
+    /** 鼠标按下时的鼠标位置
+    */
+    UiSize64 m_ptMouseDown;
+
+    /** 鼠标滑动时的鼠标位置
+    */
+    UiSize64 m_ptMouseMove;
+
+    /** 鼠标按下时的控件接口
+    */
+    Control* m_pMouseSender;
+
+    /** 鼠标框选功能的设置
+    */
+    bool m_bEnableFrameSelection; //是否支持鼠标框选功能
+    UiString m_frameSelectionColor; //框选填充颜色
+    uint8_t m_frameSelectionAlpha;  //框选填充颜色的Alpha值
+    UiString m_frameSelectionBorderColor; //框选边框颜色
+    uint8_t m_frameSelectionBorderSize; //框选边框大小
+
+private:
+    /** 没按Shift键时的最后一次选中项，有效范围：[0, GetElementCount())
+    */
+    size_t m_nLastNoShiftIndex;
 };
 
 /** 列表数据显示控件的布局管理接口

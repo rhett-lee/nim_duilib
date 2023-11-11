@@ -513,7 +513,7 @@ bool ListBox::OnFindSelectable(size_t /*nCurSel*/,
 	return false;
 }
 
-bool ListBox::SelectItem(size_t iIndex, bool bTakeFocus, bool bTriggerEvent)
+bool ListBox::SelectItem(size_t iIndex, bool bTakeFocus, bool bTriggerEvent, uint64_t /*vkFlag*/)
 {
 	if (IsMultiSelect()) {
 		//多选
@@ -545,6 +545,10 @@ bool ListBox::UnSelectItem(size_t iIndex, bool bTriggerEvent)
 	return true;
 }
 
+void ListBox::OnItemSelectedChanged(size_t /*iIndex*/, IListBoxItem* /*pListBoxItem*/)
+{
+}
+
 bool ListBox::SelectItemSingle(size_t iIndex, bool bTakeFocus, bool bTriggerEvent)
 {
 	//单选
@@ -558,11 +562,13 @@ bool ListBox::SelectItemSingle(size_t iIndex, bool bTakeFocus, bool bTriggerEven
 		if (bTakeFocus) {
 			pControl->SetFocus();
 		}
+		bool bChanged = false;
 		IListBoxItem* pListItem = dynamic_cast<IListBoxItem*>(pControl);
 		if ((pListItem != nullptr) && !pListItem->IsSelected()) {
-			pListItem->OptionSelected(true, false);			
+			bChanged = true;
+			pListItem->OptionSelected(true, bTriggerEvent);
 		}
-		if (bTriggerEvent) {
+		if (bChanged && bTriggerEvent) {
 			SendEvent(kEventSelect, m_iCurSel, m_iCurSel);
 		}
 		Invalidate();
@@ -1065,7 +1071,8 @@ bool ListBox::SortItems(PFNCompareFunc pfnCompare, void* pCompareContext)
 		pItem = dynamic_cast<IListBoxItem*>(m_items[i]);
 		if (pItem != nullptr) {
 			pItem->SetListBoxIndex(i);
-			pItem->Selected(false, false);
+			//取消界面上所有的选择项
+			pItem->OptionSelected(false, false);
 		}
 	}
 	SelectItem(Box::InvalidIndex);
@@ -1133,8 +1140,7 @@ bool ListBox::OnSwitchToSingleSelect()
 		pItem = dynamic_cast<IListBoxItem*>(m_items[i]);
 		if ((pItem != nullptr) && pItem->IsSelected()) {
 			if (m_iCurSel != i) {
-				pItem->SetSelected(false);
-				pItem->Invalidate();
+				pItem->OptionSelected(false, false); //不触发Select事件
 				bChanged = true;
 			}
 		}

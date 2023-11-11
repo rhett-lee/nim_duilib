@@ -9,7 +9,14 @@ namespace ui
 ListCtrlDataView::ListCtrlDataView() :
     VirtualListBox(new ListCtrlDataLayout),
     m_pListCtrl(nullptr),
-    m_nTopElementIndex(0)
+    m_nTopElementIndex(0),
+    m_bMouseDown(false),
+    m_bRMouseDown(false),
+    m_bInMouseMove(false),
+    m_pMouseSender(nullptr),
+    m_nNormalItemTop(-1),
+    m_bEnableFrameSelection(true),
+    m_nLastNoShiftIndex(0)
 {
     VirtualLayout* pVirtualLayout = dynamic_cast<VirtualLayout*>(GetLayout());
     SetVirtualLayout(pVirtualLayout);
@@ -19,10 +26,107 @@ ListCtrlDataView::ListCtrlDataView() :
     if (pDataLayout != nullptr) {
         pDataLayout->SetDataView(this);
     }
+    m_frameSelectionBorderSize = (uint8_t)GlobalManager::Instance().Dpi().GetScaleInt(1);
+    m_frameSelectionAlpha = 128;
 }
 
 ListCtrlDataView::~ListCtrlDataView() 
 {
+}
+
+void ListCtrlDataView::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
+{
+    if (strName == L"enable_frame_selection") {
+        m_bEnableFrameSelection = (strValue == L"true");
+    }
+    else if (strName == L"frame_selection_color") {
+        m_frameSelectionColor = strValue;
+    }
+    else if (strName == L"frame_selection_alpha") {
+        m_frameSelectionAlpha = (uint8_t)_wtoi(strValue.c_str());
+    }
+    else if (strName == L"frame_selection_border") {
+        m_frameSelectionBorderSize = (uint8_t)_wtoi(strValue.c_str());
+    }
+    else if (strName == L"frame_selection_border_color") {
+        m_frameSelectionBorderColor = strValue;
+    }
+    else {
+        __super::SetAttribute(strName, strValue);
+    }
+}
+
+bool ListCtrlDataView::SelectItem(size_t iIndex, bool bTakeFocus, bool bTriggerEvent, uint64_t vkFlag)
+{
+    bool bRet = false;
+    if (IsMultiSelect()) {
+        //多选模式
+        bool bRbuttonDown = vkFlag & kVkRButton;
+        bool bShift = vkFlag & kVkShift;
+        bool bControl = vkFlag & kVkControl;
+        if (bShift && bControl) {
+            //同时按下Shift和Ctrl键，忽略
+            bShift = false;
+            bControl = false;
+        }
+        if (bRbuttonDown || (!bShift && !bControl)) {
+            //按右键 或者 没有按下Control键也没有按Shift键：按单选逻辑实现，只保留一个选项
+            std::vector<size_t> refreshDataIndexs;
+            size_t nElementIndex = GetDisplayItemElementIndex(iIndex);
+            m_nLastNoShiftIndex = nElementIndex;
+            if (nElementIndex == Box::InvalidIndex) {
+                SetSelectNone(refreshDataIndexs);
+            }
+            else {
+                std::vector<size_t> excludeIndexs;
+                excludeIndexs.push_back(nElementIndex);
+                SetSelectNoneExclude(excludeIndexs, refreshDataIndexs);
+            }
+            SetCurSel(iIndex);
+            bRet = SelectItemSingle(iIndex, bTakeFocus, bTriggerEvent);
+            RefreshElements(refreshDataIndexs);
+            ASSERT(IsElementSelected(nElementIndex));
+            ASSERT(nElementIndex == GetDisplayItemElementIndex(iIndex));
+        }
+        else {            
+            if (bShift) {
+                //按左键: 同时按下了Shift键
+                size_t nIndexStart = m_nLastNoShiftIndex;
+                if (nIndexStart >= GetElementCount()) {
+                    nIndexStart = 0;
+                }
+                size_t nElementIndex = GetDisplayItemElementIndex(iIndex);
+                if (nElementIndex < GetElementCount()) {
+                    std::vector<size_t> selectedIndexs;
+                    size_t iStart = std::min(nIndexStart, nElementIndex);
+                    size_t iEnd = std::max(nIndexStart, nElementIndex);
+                    for (size_t i = iStart; i <= iEnd; ++i) {
+                        selectedIndexs.push_back(i);
+                    }
+                    std::vector<size_t> refreshDataIndexs;
+                    SetSelectedElements(selectedIndexs, true, refreshDataIndexs);
+                    SetCurSel(iIndex);
+                    bRet = SelectItemSingle(iIndex, bTakeFocus, bTriggerEvent);
+                    RefreshElements(refreshDataIndexs);
+                    ASSERT(IsElementSelected(nElementIndex));
+                    ASSERT(nElementIndex == GetDisplayItemElementIndex(iIndex));
+                }
+                else {
+                    //未知情况，正常无法走到这里
+                    bRet = SelectItemMulti(iIndex, bTakeFocus, bTriggerEvent);
+                }
+            }
+            else {
+                //按左键: 同时按下了Control键，保持多选
+                bRet = SelectItemMulti(iIndex, bTakeFocus, bTriggerEvent);
+            }
+        }
+    }
+    else {
+        //单选
+        bRet = SelectItemSingle(iIndex, bTakeFocus, bTriggerEvent);
+    }
+    return bRet;
 }
 
 void ListCtrlDataView::SetListCtrl(ListCtrl* pListCtrl)
@@ -91,7 +195,36 @@ void ListCtrlDataView::AjustItemCount()
         size_t n = nNewItemCount - nItemCount;
         for (size_t i = 0; i < n; ++i) {
             Control* pControl = CreateElement();
-            AddItem(pControl);
+            ASSERT(pControl != nullptr);
+            if (pControl != nullptr) {
+                AddItem(pControl);
+
+                //挂载鼠标事件
+                pControl->AttachButtonDown([this](const EventArgs& args) {
+                    OnButtonDown(args.ptMouse, args.pSender);
+                    return true;
+                    });
+                pControl->AttachButtonUp([this](const EventArgs& args) {
+                    OnButtonUp(args.ptMouse, args.pSender);
+                    return true;
+                    });
+                pControl->AttachRButtonDown([this](const EventArgs& args) {
+                    OnRButtonDown(args.ptMouse, args.pSender);
+                    return true;
+                    });
+                pControl->AttachRButtonUp([this](const EventArgs& args) {
+                    OnButtonUp(args.ptMouse, args.pSender);
+                    return true;
+                    });
+                pControl->AttachMouseMove([this](const EventArgs& args) {
+                    OnMouseMove(args.ptMouse, args.pSender);
+                    return true;
+                    });
+                pControl->AttachWindowKillFocus([this](const EventArgs&) {
+                    OnWindowKillFocus();
+                    return true;
+                    });
+            }
         }
     }
 }
@@ -603,6 +736,33 @@ void ListCtrlDataView::PaintChild(IRender* pRender, const UiRect& rcPaint)
     if ((pVScrollBar != nullptr) && pVScrollBar->IsVisible()) {
         pVScrollBar->AlphaPaint(pRender, rcPaint);
     }
+
+    //鼠标框选功能的框选框绘制
+    if (m_bInMouseMove && (pRender != nullptr)) {
+        UiSize64 scrollPos = GetScrollPos();
+        int64_t left = std::min(m_ptMouseDown.cx, m_ptMouseMove.cx) - scrollPos.cx;
+        int64_t right = std::max(m_ptMouseDown.cx, m_ptMouseMove.cx) - scrollPos.cx;
+        int64_t top = std::min(m_ptMouseDown.cy, m_ptMouseMove.cy) - scrollPos.cy;
+        int64_t bottom = std::max(m_ptMouseDown.cy, m_ptMouseMove.cy) - scrollPos.cy;
+        if (m_nNormalItemTop > 0) {
+            if (top < m_nNormalItemTop) {
+                top = m_nNormalItemTop - GlobalManager::Instance().Dpi().GetScaleInt(4);
+            }
+            if (bottom < m_nNormalItemTop) {
+                bottom = m_nNormalItemTop;
+            }
+        }
+
+        UiRect rect(TruncateToInt32(left), TruncateToInt32(top), 
+                    TruncateToInt32(right), TruncateToInt32(bottom));
+
+        if ((m_frameSelectionBorderSize > 0) && !m_frameSelectionBorderColor.empty()) {
+            pRender->DrawRect(rect, GetUiColor(m_frameSelectionBorderColor.c_str()), m_frameSelectionBorderSize);
+        }
+        if (!m_frameSelectionColor.empty()) {
+            pRender->FillRect(rect, GetUiColor(m_frameSelectionColor.c_str()), m_frameSelectionAlpha);
+        }
+    }
 }
 
 Control* ListCtrlDataView::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, UiPoint scrollPos)
@@ -752,6 +912,185 @@ void ListCtrlDataView::OnArrangeChild()
     }
 }
 
+bool ListCtrlDataView::ButtonDown(const EventArgs& msg)
+{
+    bool bRet = __super::ButtonDown(msg);
+    OnButtonDown(msg.ptMouse, msg.pSender);
+    return bRet;
+}
+
+bool ListCtrlDataView::ButtonUp(const EventArgs& msg)
+{
+    bool bRet = __super::ButtonUp(msg);
+    OnButtonUp(msg.ptMouse, msg.pSender);
+    return bRet;
+}
+
+bool ListCtrlDataView::RButtonDown(const EventArgs& msg)
+{
+    bool bRet = __super::RButtonDown(msg);
+    OnRButtonDown(msg.ptMouse, msg.pSender);
+    return bRet;
+}
+
+bool ListCtrlDataView::RButtonUp(const EventArgs& msg)
+{
+    bool bRet = __super::RButtonUp(msg);
+    OnRButtonUp(msg.ptMouse, msg.pSender);
+    return bRet;
+}
+
+bool ListCtrlDataView::MouseMove(const EventArgs& msg)
+{
+    bool bRet = __super::MouseMove(msg);
+    OnMouseMove(msg.ptMouse, msg.pSender);
+    return bRet;
+}
+
+bool ListCtrlDataView::OnWindowKillFocus(const EventArgs& msg)
+{
+    bool bRet = __super::OnWindowKillFocus(msg);
+    OnWindowKillFocus();
+    return bRet;
+}
+
+void ListCtrlDataView::OnButtonDown(const UiPoint& ptMouse, Control* pSender)
+{
+    if (m_bInMouseMove) {
+        m_bInMouseMove = false;
+        Invalidate();
+    }
+    m_bMouseDown = true;
+    m_pMouseSender = pSender;
+    UiSize64 scrollPos = GetScrollPos();
+    m_ptMouseDown.cx = ptMouse.x + scrollPos.cx;
+    m_ptMouseDown.cy = ptMouse.y + scrollPos.cy;
+}
+
+void ListCtrlDataView::OnButtonUp(const UiPoint& /*ptMouse*/, Control* /*pSender*/)
+{
+    if (m_bInMouseMove) {
+        m_bInMouseMove = false;
+        Invalidate();
+    }
+    m_bMouseDown = false;
+    m_pMouseSender = nullptr;
+}
+
+void ListCtrlDataView::OnRButtonDown(const UiPoint& ptMouse, Control* pSender)
+{
+    if (m_bInMouseMove) {
+        m_bInMouseMove = false;
+        Invalidate();
+    }
+    m_bRMouseDown = true;
+    m_pMouseSender = pSender;
+    UiSize64 scrollPos = GetScrollPos();
+    m_ptMouseDown.cx = ptMouse.x + scrollPos.cx;
+    m_ptMouseDown.cy = ptMouse.y + scrollPos.cy;
+}
+
+void ListCtrlDataView::OnRButtonUp(const UiPoint& /*ptMouse*/, Control* /*pSender*/)
+{
+    if (m_bInMouseMove) {
+        m_bInMouseMove = false;
+        Invalidate();
+    }
+    m_bRMouseDown = false;
+    m_pMouseSender = nullptr;
+}
+
+void ListCtrlDataView::OnMouseMove(const UiPoint& ptMouse, Control* pSender)
+{
+    if (!m_bEnableFrameSelection || !IsMultiSelect()) {
+        //功能关闭 或者 单选模式
+        return;
+    }
+    if ((m_bMouseDown || m_bRMouseDown) &&
+        (pSender != nullptr) &&
+        (m_pMouseSender == pSender) && pSender->IsMouseFocused()) {
+        UiSize64 scrollPos = GetScrollPos();
+        m_ptMouseMove.cx = ptMouse.x + scrollPos.cx;
+        m_ptMouseMove.cy = ptMouse.y + scrollPos.cy;
+        //按需滚动视图，并更新鼠标在滚动后的位置
+        OnCheckScrollView();
+        m_bInMouseMove = true;
+
+        int64_t top = std::min(m_ptMouseDown.cy, m_ptMouseMove.cy);
+        int64_t bottom = std::max(m_ptMouseDown.cy, m_ptMouseMove.cy);
+        OnFrameSelection(top, bottom);
+        Invalidate();
+    }
+    else if (m_bInMouseMove) {
+        m_bInMouseMove = false;
+        Invalidate();
+    }
+}
+
+void ListCtrlDataView::OnWindowKillFocus()
+{
+    if (m_bInMouseMove) {
+        Invalidate();
+    }
+    m_bMouseDown = false;
+    m_bRMouseDown = false;
+    m_bInMouseMove = false;
+    m_pMouseSender = nullptr;
+}
+
+void ListCtrlDataView::OnCheckScrollView()
+{
+    UiSize64 scrollPos = GetScrollPos();
+    UiSize64 pt = m_ptMouseMove;
+    pt.cx -= scrollPos.cx;
+    pt.cy -= scrollPos.cy;
+    UiSize64 ptMouseMove = pt; //记录原值
+
+    UiRect viewRect = GetRect();
+    if (m_nNormalItemTop > 0) {
+        viewRect.top = m_nNormalItemTop;
+        ASSERT(viewRect.top <= viewRect.bottom);
+    }
+
+    if (pt.cx <= viewRect.left) {
+        //向左滚动视图
+        LineLeft();
+    }
+    else if (pt.cx >= viewRect.right) {
+        //向右滚动视图
+        LineRight();
+    }
+
+    if (pt.cy <= viewRect.top) {
+        //向上滚动视图
+        LineUp(-1, false);
+    }
+    else if (pt.cy >= viewRect.bottom) {
+        //向下滚动视图
+        LineDown(-1, false);
+    }
+
+    UiSize64 scrollPosNew = GetScrollPos();
+    if (scrollPos != scrollPosNew) {
+        //更新鼠标位置
+        m_ptMouseMove.cx = ptMouseMove.cx + scrollPosNew.cx;
+        m_ptMouseMove.cy = ptMouseMove.cy + scrollPosNew.cy;
+    }
+}
+
+void ListCtrlDataView::OnFrameSelection(int64_t top, int64_t bottom)
+{
+    
+}
+
+void ListCtrlDataView::SetNormalItemTop(int32_t nNormalItemTop)
+{
+    m_nNormalItemTop = nNormalItemTop;
+}
+
+////////////////////////////////////////////////////////////////////////
+/// ListCtrlDataLayout 的实现
+
 ListCtrlDataLayout::ListCtrlDataLayout():
     m_pDataView(nullptr),
     m_bReserveSet(false)
@@ -833,6 +1172,7 @@ void ListCtrlDataLayout::LazyArrangeChild(UiRect rc) const
     pDataView->SetAtTopControlIndex(std::vector<size_t>());
     pDataView->SetTopElementIndex(Box::InvalidIndex);
     pDataView->SetDisplayDataItems(std::vector<size_t>());
+    pDataView->SetNormalItemTop(-1);
 
     if (pDataView->IsNormalMode()) {
         //常规模式
@@ -863,6 +1203,8 @@ void ListCtrlDataLayout::LazyArrangeChild(UiRect rc) const
             rc.top += nHeaderHeight;
         }
     }
+
+    int32_t nNormalItemTop = rc.top; //普通列表项（非Header、非置顶）的top坐标
 
     //记录可见的元素索引号列表
     std::vector<size_t> diplayItemIndexList;
@@ -1026,6 +1368,8 @@ void ListCtrlDataLayout::LazyArrangeChild(UiRect rc) const
             if (bAlwaysAtTop) {
                 //记录置顶项
                 atTopUiItemIndexList.push_back(index);
+                //记录置顶项的底部坐标
+                nNormalItemTop = pControl->GetRect().bottom;
             }
         }
         else {
@@ -1042,6 +1386,7 @@ void ListCtrlDataLayout::LazyArrangeChild(UiRect rc) const
     pDataView->SetAtTopControlIndex(atTopUiItemIndexList);
     pDataView->SetDisplayDataItems(diplayItemIndexList);
     pDataView->OnArrangeChild();
+    pDataView->SetNormalItemTop(nNormalItemTop);
 }
 
 void ListCtrlDataLayout::LazyArrangeChildNormal(UiRect rc) const
@@ -1067,6 +1412,8 @@ void ListCtrlDataLayout::LazyArrangeChildNormal(UiRect rc) const
                 ui::UiRect rcTile(rc.left, rc.top, rc.left + nHeaderWidth, rc.top + nHeaderHeight);
                 pHeaderCtrl->SetPos(rcTile);
                 rc.top += nHeaderHeight;
+                //记录表头的bottom值
+                pDataView->SetNormalItemTop(rc.top);
             }
         }
     }

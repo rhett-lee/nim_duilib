@@ -326,6 +326,18 @@ namespace ui
 		kHotKey_Ext = 0x08		//扩展键
 	};
 
+	/** 鼠标操作的标志
+	*/
+#ifdef UILIB_IMPL_WINSDK
+	enum VKFlag
+	{
+		kVkControl = MK_CONTROL,	//按下了 CTRL 键
+		kVkShift   = MK_SHIFT,		//按下了 SHIFT 键
+		kVkLButton = MK_LBUTTON,	//按下了鼠标左键
+		kVkRButton = MK_RBUTTON		//按下了鼠标右键
+	};
+#endif
+
 }// namespace ui
 
 #endif //DUILIB_DEFS_H_

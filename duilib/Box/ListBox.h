@@ -62,14 +62,22 @@ public:
 	*  @param [in] iIndex 子项目的ID
 	*  @param [in] bTakeFocus 是否让子项控件成为焦点控件
 	*  @param [in] bTriggerEvent 是否触发选择事件, 如果为true，会触发一个kEventSelect事件
+	*  @param [in] vkFlag 按键标志, 取值范围参见 enum VKFlag 的定义
 	*/
-	virtual bool SelectItem(size_t iIndex, bool bTakeFocus, bool bTriggerEvent) = 0;
+	virtual bool SelectItem(size_t iIndex, bool bTakeFocus, 
+							bool bTriggerEvent, uint64_t vkFlag = 0) = 0;
 
 	/** 取消选择子项
 	*  @param [in] iIndex 子项目的ID
 	*  @param [in] bTriggerEvent 是否触发选择事件, 如果为true，会触发一个kEventUnSelect事件
 	*/
 	virtual bool UnSelectItem(size_t iIndex, bool bTriggerEvent) = 0;
+
+	/** 子项的选择状态变化事件，用于状态同步
+	* @param [in] iIndex 子项目的ID，范围是：[0, GetItemCount())
+	* @param [in] pListBoxItem 关联的列表项接口
+	*/
+	virtual void OnItemSelectedChanged(size_t iIndex, IListBoxItem* pListBoxItem) = 0;
 
 	/** 确保矩形区域可见
 	* @param [in] rcItem 可见区域的矩形范围
@@ -131,7 +139,8 @@ public:
 	*/
 	virtual bool IsMultiSelect() const override;
 
-	/** 设置是否支持多选
+	/** 设置是否支持多选，由界面层调用，保持与界面控件一致
+	* @return bMultiSelect true表示支持多选，false表示不支持多选
 	*/
 	virtual void SetMultiSelect(bool bMultiSelect);
 
@@ -178,11 +187,13 @@ public:
 	virtual void GetSelectedItems(std::vector<size_t>& selectedIndexs) const;
 
 	/** 选择子项
-	*  @param [in] iIndex 子项目的ID，范围是：[0, GetItemCount())
+	*  @param [in] iIndex 子项目的ID
 	*  @param [in] bTakeFocus 是否让子项控件成为焦点控件
 	*  @param [in] bTriggerEvent 是否触发选择事件, 如果为true，会触发一个kEventSelect事件
+	*  @param [in] vkFlag 按键标志, 取值范围参见 enum VKFlag 的定义
 	*/
-	virtual bool SelectItem(size_t iIndex, bool bTakeFocus, bool bTriggerEvent) override;
+	virtual bool SelectItem(size_t iIndex, bool bTakeFocus, 
+							bool bTriggerEvent, uint64_t vkFlag = 0) override;
 
 	/** 取消选择子项
 	*  @param [in] iIndex 子项目的ID
@@ -291,7 +302,7 @@ public:
 	 * @param [in] pfnCompare 自定义排序函数
 	 * @param [in] pCompareContext 传递给比较函数的用户自定义数据
 	 */
-	bool SortItems(PFNCompareFunc pfnCompare, void* pCompareContext);
+	virtual bool SortItems(PFNCompareFunc pfnCompare, void* pCompareContext);
 
 	/** 监听选择子项的事件
 	* @param[in] callback 选择子项时的回调函数
@@ -333,6 +344,12 @@ protected:
 								  bool bForward, size_t nCount,
 								  bool bHome, bool bEnd,
 		                          size_t& nDestItemIndex);
+
+	/** 子项的选择状态变化事件，用于状态同步
+	* @param [in] iIndex 子项目的ID，范围是：[0, GetItemCount())
+	* @param [in] pListBoxItem 关联的列表项接口
+	*/
+	virtual void OnItemSelectedChanged(size_t iIndex, IListBoxItem* pListBoxItem) override;
 
 protected:
 	/**

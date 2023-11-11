@@ -104,6 +104,20 @@ public:
     */
     virtual bool IsElementSelected(size_t nElementIndex) const override;
 
+    /** 获取选择的元素列表
+    * @param [in] selectedIndexs 返回当前选择的元素列表，有效范围：[0, GetElementCount())
+    */
+    virtual void GetSelectedElements(std::vector<size_t>& selectedIndexs) const override;
+
+    /** 是否支持多选
+    */
+    virtual bool IsMultiSelect() const override;
+
+    /** 设置是否支持多选，由界面层调用，保持与界面控件一致
+    * @return bMultiSelect true表示支持多选，false表示不支持多选
+    */
+    virtual void SetMultiSelect(bool bMultiSelect) override;
+
 public:
     /** 设置表头接口
     */
@@ -335,14 +349,6 @@ public:
     */
     void SetSortCompareFunction(ListCtrlDataCompareFunc pfnCompareFunc, void* pUserData);
 
-public:
-    /** 是否支持多选模式发生变化，同步数据的选择状态
-    * @param [in] bMultiSelect true表示支持多选，false表示不支持多选
-    * @param [in] nCurSelItemIndex 当前选择的元素索引号
-    * @return 如果有状态改变返回true，否则返回false
-    */
-    bool OnMultiSelect(bool bMultiSelect, size_t nCurSelItemIndex);
-
 private:
     /** 数据转换为存储数据结构
     */
@@ -478,6 +484,14 @@ private:
     /** 置顶行的个数
     */
     int32_t m_atTopRowCount;
+
+    /** 是否支持多选
+    */
+    bool m_bMultiSelect;
+
+    /** 单选的时候，选择的元素索引号
+    */
+    size_t m_nSelectedIndex;
 };
 
 }//namespace ui

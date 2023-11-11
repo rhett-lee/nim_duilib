@@ -202,6 +202,15 @@ public: //（三态选择[全部选择、部分选择、未选择]/勾选模式两种功能的函数）
      */
     void AttachUnCheck(const EventCallback& callback) { this->AttachEvent(kEventUnCheck, callback); }
 
+protected:
+    /** 内部设置选择状态
+    */
+    void PrivateSetSelected(bool bSelected);
+
+    /** 选择状态变化事件
+    */
+    virtual void OnPrivateSetSelected() {}
+
 private:
     //选择状态
     bool m_bSelected;
@@ -316,13 +325,23 @@ void CheckBoxTemplate<InheritType>::Activate()
 }
 
 template<typename InheritType>
-void CheckBoxTemplate<InheritType>::SetSelected(bool bSelected)
-{ 
-    m_bSelected = bSelected; 
+void CheckBoxTemplate<InheritType>::PrivateSetSelected(bool bSelected)
+{
+    bool bChanged = m_bSelected != bSelected;
+    m_bSelected = bSelected;
     if (!bSelected) {
         //非选择状态时，对部分选择标记复位
         m_bPartSelected = false;
     }
+    if (bChanged) {
+        OnPrivateSetSelected();
+    }
+}
+
+template<typename InheritType>
+void CheckBoxTemplate<InheritType>::SetSelected(bool bSelected)
+{ 
+    PrivateSetSelected(bSelected);
 }
 
 template<typename InheritType>
@@ -331,12 +350,7 @@ void CheckBoxTemplate<InheritType>::Selected(bool bSelected, bool bTriggerEvent)
     if (m_bSelected == bSelected) {
         return;
     }
-    m_bSelected = bSelected;
-    if (!bSelected) {
-        //非选择状态时，对部分选择标记复位
-        m_bPartSelected = false;
-    }
-
+    PrivateSetSelected(bSelected);
     if (bTriggerEvent) {
         if (bSelected) {
             this->SendEvent(kEventSelect);

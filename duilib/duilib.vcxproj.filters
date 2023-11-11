@@ -363,6 +363,9 @@
     <ClCompile Include="Control\ListCtrlDataProvider.cpp">
       <Filter>Control</Filter>
     </ClCompile>
+    <ClCompile Include="Control\ListCtrlItem.cpp">
+      <Filter>Control</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -798,6 +801,9 @@
       <Filter>Control</Filter>
     </ClInclude>
     <ClInclude Include="Control\ListCtrlDataProvider.h">
+      <Filter>Control</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\ListCtrlItem.h">
       <Filter>Control</Filter>
     </ClInclude>
   </ItemGroup>

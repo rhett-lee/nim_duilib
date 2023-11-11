@@ -18,22 +18,15 @@ class UILIB_API IListBoxItem
 public:
 	virtual ~IListBoxItem() = default;
 
-	/** 设置控件是否选择状态
-	 * @param [in] bSelected 为 true 时为选择状态，false 时为取消选择状态
-	 * @param [in] bTriggerEvent 是否发送状态改变事件，true 为发送，否则为 false。默认为 false
-	 */
-	virtual void Selected(bool bSelect, bool bTriggerEvent) = 0;
-
-	/** 调用Option类的选择函数
+	/** 调用Option类的选择函数, 只更新界面的选择状态
 	* @param [in] bSelected 为 true 时为选择状态，false 时为取消选择状态
-	 * @param [in] bTriggerEvent 是否发送状态改变事件，true 为发送，否则为 false。默认为 false
+	 * @param [in] bTriggerEvent 是否发送状态改变事件，true 为发送，否则为 false。
 	*/
 	virtual void OptionSelected(bool bSelect, bool bTriggerEvent) = 0;
 
-	/** 设置选择状态，但不触发事件，不更新界面
-	* @param [in] bSelected true为选择状态，false为非选择状态
+	/** 设置选择状态, 处理存储状态同步，但不触发任何事件(适用于同步状态)
 	*/
-	virtual void SetSelected(bool bSelected) = 0;
+	virtual void SetItemSelected(bool bSelected) = 0;
 
 	/** 判断当前是否是选择状态
 	 * @return 返回 true 为选择状态，否则为 false
@@ -66,14 +59,6 @@ public:
 	 * @param[in] iIndex 索引号, 用于支持虚表，范围：[0, GetElementCount())
 	 */
 	virtual void SetElementIndex(size_t iIndex) = 0;
-
-	/** 设置选择状态, 但不触发任何事件(适用于同步状态)
-	*/
-	virtual void SetItemSelected(bool bSelected) = 0;
-
-	/** 重绘
-	*/
-	virtual void Invalidate() = 0;
 };
 
 /** 列表项的数据子项，用于在列表中展示数据的子项
@@ -102,29 +87,24 @@ public:
 
 	/** 设置控件是否选择状态
 	 * @param [in] bSelected 为 true 时为选择状态，false 时为取消选择状态
-	 * @param [in] bTriggerEvent 是否发送状态改变事件，true 为发送，否则为 false。默认为 false
+	 * @param [in] bTriggerEvent 是否发送状态改变事件，true 为发送，否则为 false。
 	 */
 	virtual void Selected(bool bSelect, bool bTriggerEvent) override;
 
-	/** 调用Option类的选择函数
+	/** 调用Option类的选择函数, 只更新界面的选择状态
 	* @param [in] bSelected 为 true 时为选择状态，false 时为取消选择状态
-	 * @param [in] bTriggerEvent 是否发送状态改变事件，true 为发送，否则为 false。默认为 false
+	 * @param [in] bTriggerEvent 是否发送状态改变事件，true 为发送，否则为 false。
 	*/
 	virtual void OptionSelected(bool bSelect, bool bTriggerEvent) override;
 
-	/** 设置选择状态，但不触发事件，不更新界面
-	* @param [in] bSelected true为选择状态，false为非选择状态
+	/** 设置选择状态, 处理存储状态同步，但不触发任何事件(适用于同步状态)
 	*/
-	virtual void SetSelected(bool bSelected) override;
+	virtual void SetItemSelected(bool bSelected) override;
 
 	/** 判断当前是否是选择状态
 	 * @return 返回 true 为选择状态，否则为 false
 	 */
 	virtual bool IsSelected() const override;
-
-	/** 重绘
-	*/
-	virtual void Invalidate() override;
 
 	/** 获取父容器
 	 */
@@ -153,10 +133,6 @@ public:
 	 */
 	virtual void SetElementIndex(size_t iIndex) override;
 
-	/** 设置选择状态, 但不触发任何事件(适用于同步状态)
-	*/
-	virtual void SetItemSelected(bool bSelected) override;
-
 	/** 监听控件双击事件
 	 * @param[in] callback 收到双击消息时的回调函数
 	 */
@@ -166,6 +142,11 @@ public:
 	 * @param[in] callback 收到回车时的回调函数
 	 */
 	void AttachReturn(const EventCallback& callback) { this->AttachEvent(kEventReturn, callback); }
+
+protected:
+	/** 选择状态变化事件
+	*/
+	virtual void OnPrivateSetSelected() override;
 
 private:
 	/** 在ListBox容器中的子项索引号，范围：[0, GetItemCount())
@@ -194,22 +175,6 @@ ListBoxItemTemplate<InheritType>::ListBoxItemTemplate():
 
 template<typename InheritType>
 std::wstring ListBoxItemTemplate<InheritType>::GetType() const { return DUI_CTR_LISTBOX_ITEM; }
-
-template<typename InheritType>
-void ListBoxItemTemplate<InheritType>::Selected(bool bSelected, bool bTriggerEvent)
-{
-	if (!this->IsEnabled()) {
-		return;
-	}
-	if (m_pOwner != nullptr) {
-		if (bSelected) {
-			m_pOwner->SelectItem(m_iListBoxIndex, false, bTriggerEvent);
-		}
-		else {
-			m_pOwner->UnSelectItem(m_iListBoxIndex, bTriggerEvent);
-		}
-	}
-}
 
 template<typename InheritType>
 void ListBoxItemTemplate<InheritType>::SetItemSelected(bool bSelected)
@@ -241,6 +206,43 @@ void ListBoxItemTemplate<InheritType>::SetItemSelected(bool bSelected)
 	if (bChanged && !m_pOwner->IsMultiSelect()) {
 		//单选：需要调用选择函数, 保证只有一个选中项
 		m_pOwner->EnsureSingleSelection();
+	}
+}
+
+template<typename InheritType>
+void ListBoxItemTemplate<InheritType>::OptionSelected(bool bSelect, bool bTriggerEvent)
+{
+	return OptionTemplate<InheritType>::Selected(bSelect, bTriggerEvent);
+}
+
+template<typename InheritType>
+void ListBoxItemTemplate<InheritType>::Selected(bool bSelected, bool bTriggerEvent)
+{
+	//界面点击等操作触发选择操作
+	if (!this->IsEnabled()) {
+		return;
+	}
+	if (m_pOwner != nullptr) {
+		if (bSelected) {
+			m_pOwner->SelectItem(m_iListBoxIndex, false, bTriggerEvent);
+		}
+		else {
+			m_pOwner->UnSelectItem(m_iListBoxIndex, bTriggerEvent);
+		}
+	}
+}
+
+template<typename InheritType>
+bool ListBoxItemTemplate<InheritType>::IsSelected() const
+{
+	return OptionTemplate<InheritType>::IsSelected();
+}
+
+template<typename InheritType>
+void ListBoxItemTemplate<InheritType>::OnPrivateSetSelected()
+{
+	if (m_pOwner != nullptr) {
+		m_pOwner->OnItemSelectedChanged(m_iListBoxIndex, this);
 	}
 }
 
@@ -286,30 +288,6 @@ void ListBoxItemTemplate<InheritType>::HandleEvent(const EventArgs& msg)
 	// parent but to the "attached" list. A list may actually embed several components
 	// in its path to the item, but key-presses etc. needs to go to the actual list.
 	//if( m_pOwner != NULL ) m_pOwner->HandleMessage(event); else Control::HandleMessage(event);
-}
-
-template<typename InheritType>
-void ListBoxItemTemplate<InheritType>::OptionSelected(bool bSelect, bool bTriggerEvent)
-{
-	return OptionTemplate<InheritType>::Selected(bSelect, bTriggerEvent);
-}
-
-template<typename InheritType>
-void ListBoxItemTemplate<InheritType>::SetSelected(bool bSelected)
-{
-	OptionTemplate<InheritType>::SetSelected(bSelected);
-}
-
-template<typename InheritType>
-bool ListBoxItemTemplate<InheritType>::IsSelected() const
-{
-	return OptionTemplate<InheritType>::IsSelected();
-}
-
-template<typename InheritType>
-void ListBoxItemTemplate<InheritType>::Invalidate()
-{
-	OptionTemplate<InheritType>::Invalidate();
 }
 
 template<typename InheritType>

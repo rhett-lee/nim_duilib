@@ -1,6 +1,7 @@
 #include "VirtualListBox.h"
 #include "duilib/Core/ScrollBar.h"
 #include <algorithm>
+#include <set>
 
 namespace ui {
 
@@ -36,10 +37,9 @@ VirtualListBox::VirtualListBox(Layout* pLayout)
     : ListBox(pLayout)
     , m_pDataProvider(nullptr)
     , m_pVirtualLayout(nullptr)
+    , m_bEnableUpdateProvider(true)
 {
     ASSERT(pLayout != nullptr);
-    AttachSelect(nbase::Bind(&VirtualListBox::OnSelectedItem, this, std::placeholders::_1));
-    AttachUnSelect(nbase::Bind(&VirtualListBox::OnUnSelectedItem, this, std::placeholders::_1));
 }
 
 void VirtualListBox::SetVirtualLayout(VirtualLayout* pVirtualLayout)
@@ -61,6 +61,9 @@ void VirtualListBox::SetDataProvider(VirtualListBoxElement* pProvider)
     }
     m_pDataProvider = pProvider;
     if (pProvider != nullptr) {
+        //同步单选还是多选
+        pProvider->SetMultiSelect(IsMultiSelect());
+
         //注册模型数据变动通知回调
         pProvider->RegNotifys(
             nbase::Bind(&VirtualListBox::OnModelDataChanged, this, std::placeholders::_1, std::placeholders::_2),
@@ -76,6 +79,42 @@ VirtualListBoxElement* VirtualListBox::GetDataProvider() const
 bool VirtualListBox::HasDataProvider() const
 {
     return (m_pDataProvider != nullptr) && (m_pVirtualLayout != nullptr);
+}
+
+bool VirtualListBox::IsMultiSelect() const
+{
+    return __super::IsMultiSelect();
+}
+
+void VirtualListBox::SetMultiSelect(bool bMultiSelect)
+{
+    bool bOldValue = m_bEnableUpdateProvider;
+    m_bEnableUpdateProvider = false;
+    bool bChanged = __super::IsMultiSelect() != bMultiSelect;
+    __super::SetMultiSelect(bMultiSelect);
+    if (m_pDataProvider != nullptr) {
+        if (!bChanged) {
+            bChanged = m_pDataProvider->IsMultiSelect() != bMultiSelect;
+        }
+        m_pDataProvider->SetMultiSelect(bMultiSelect);
+        if (!bMultiSelect) {
+            //切换为单选时，同步单选项
+            size_t nCurSel = GetCurSel();
+            if (nCurSel < GetItemCount()) {
+                size_t nCurSelItemIndex = GetDisplayItemElementIndex(nCurSel);
+                if (nCurSelItemIndex != Box::InvalidIndex) {
+                    if (!bChanged) {
+                        bChanged = !m_pDataProvider->IsElementSelected(nCurSelItemIndex);
+                    }
+                    m_pDataProvider->SetElementSelected(nCurSelItemIndex, true);
+                }
+            }
+        }
+    }
+    if (bChanged) {
+        Refresh();
+    }
+    m_bEnableUpdateProvider = bOldValue;
 }
 
 Control* VirtualListBox::CreateElement()
@@ -101,8 +140,28 @@ void VirtualListBox::FillElement(Control* pControl, size_t nElementIndex)
             pListBoxItem->SetElementIndex(nElementIndex);
             ASSERT(GetItemIndex(pControl) == pListBoxItem->GetListBoxIndex());
             //更新选择状态
+            bool bOldValue = m_bEnableUpdateProvider;
+            m_bEnableUpdateProvider = false;
             pListBoxItem->SetItemSelected(bSelected);
+            m_bEnableUpdateProvider = bOldValue;
         }
+    }
+}
+
+void VirtualListBox::OnItemSelectedChanged(size_t /*iIndex*/, IListBoxItem* pListBoxItem)
+{
+    if (!m_bEnableUpdateProvider) {
+        return;
+    }
+    ASSERT(pListBoxItem != nullptr);
+    if ((pListBoxItem == nullptr) || (m_pDataProvider == nullptr)) {
+        return;
+    }
+    //更新该元素的选择状态
+    bool bSelected = pListBoxItem->IsSelected();
+    size_t nElementIndex = pListBoxItem->GetElementIndex();
+    if (nElementIndex != Box::InvalidIndex) {
+        m_pDataProvider->SetElementSelected(nElementIndex, bSelected);
     }
 }
 
@@ -128,6 +187,43 @@ void VirtualListBox::SetElementSelected(size_t nElementIndex, bool bSelected)
     }
 }
 
+void VirtualListBox::SetSelectedElements(const std::vector<size_t>& selectedIndexs, bool bClearOthers)
+{
+    std::vector<size_t> refreshIndexs;
+    SetSelectedElements(selectedIndexs, bClearOthers, refreshIndexs);
+    if (!refreshIndexs.empty()) {
+        RefreshElements(refreshIndexs);
+    }
+}
+
+void VirtualListBox::SetSelectedElements(const std::vector<size_t>& selectedIndexs,
+                                         bool bClearOthers,
+                                         std::vector<size_t>& refreshIndexs)
+{
+    refreshIndexs.clear();
+    ASSERT(m_pDataProvider != nullptr);
+    if (m_pDataProvider == nullptr) {
+        return;
+    }
+    if (!m_pDataProvider->IsMultiSelect()) {
+        return;
+    }
+    std::vector<size_t> oldSelectedIndexs;
+    if (bClearOthers) {        
+        m_pDataProvider->GetSelectedElements(oldSelectedIndexs);
+        if (!oldSelectedIndexs.empty()) {
+            for (size_t nElementIndex : oldSelectedIndexs) {
+                m_pDataProvider->SetElementSelected(nElementIndex, false);
+            }
+        }
+    }
+    for (size_t nElementIndex : selectedIndexs) {
+        m_pDataProvider->SetElementSelected(nElementIndex, true);
+        oldSelectedIndexs.push_back(nElementIndex);
+    }
+    refreshIndexs.swap(oldSelectedIndexs);
+}
+
 bool VirtualListBox::IsElementSelected(size_t nElementIndex) const
 {
     bool bSelected = false;
@@ -138,9 +234,105 @@ bool VirtualListBox::IsElementSelected(size_t nElementIndex) const
     return bSelected;
 }
 
+void VirtualListBox::GetSelectedElements(std::vector<size_t>& selectedIndexs) const
+{
+    selectedIndexs.clear();
+    ASSERT(m_pDataProvider != nullptr);
+    if (m_pDataProvider != nullptr) {
+        m_pDataProvider->GetSelectedElements(selectedIndexs);
+    }
+}
+
+void VirtualListBox::SetSelectAll()
+{
+    ASSERT(m_pDataProvider != nullptr);
+    if (m_pDataProvider == nullptr) {
+        return;
+    }
+    if (!m_pDataProvider->IsMultiSelect()) {
+        return;
+    }
+    std::vector<size_t> selectedIndexs;
+    size_t nCount = m_pDataProvider->GetElementCount();
+    for (size_t nElementIndex = 0; nElementIndex < nCount; ++nElementIndex) {
+        if (!m_pDataProvider->IsElementSelected(nElementIndex)) {
+            m_pDataProvider->SetElementSelected(nElementIndex, true);
+            selectedIndexs.push_back(nElementIndex);
+        }
+    }
+    if (!selectedIndexs.empty()) {
+        RefreshElements(selectedIndexs);
+    }
+}
+
+void VirtualListBox::SetSelectNone()
+{
+    std::vector<size_t> refreshIndexs;
+    SetSelectNone(refreshIndexs);
+    if (!refreshIndexs.empty()) {
+        RefreshElements(refreshIndexs);
+    }
+}
+
+void VirtualListBox::SetSelectNone(std::vector<size_t>& refreshIndexs)
+{
+    SetSelectNoneExclude(std::vector<size_t>(), refreshIndexs);
+}
+
+void VirtualListBox::SetSelectNoneExclude(const std::vector<size_t>& excludeIndexs,
+                                          std::vector<size_t>& refreshIndexs)
+{
+    refreshIndexs.clear();
+    ASSERT(m_pDataProvider != nullptr);
+    if (m_pDataProvider == nullptr) {
+        return;
+    }
+    std::vector<size_t> selectedIndexs;
+    m_pDataProvider->GetSelectedElements(selectedIndexs);
+    if (!selectedIndexs.empty()) {
+        std::set<size_t> indexSet;
+        for (size_t nElementIndex : excludeIndexs) {
+            indexSet.insert(nElementIndex);
+        }
+        for (size_t nElementIndex : selectedIndexs) {
+            if (!indexSet.empty()) {
+                if (indexSet.find(nElementIndex) != indexSet.end()) {
+                    //排除
+                    continue;
+                }
+            }
+            m_pDataProvider->SetElementSelected(nElementIndex, false);
+        }
+        refreshIndexs.swap(selectedIndexs);
+    }
+}
+
 void VirtualListBox::RefreshElements(size_t nStartElementIndex, size_t nEndElementIndex)
 {
     OnModelDataChanged(nStartElementIndex, nEndElementIndex);
+}
+
+void VirtualListBox::RefreshElements(const std::vector<size_t>& elementIndexs)
+{
+    if (elementIndexs.empty()) {
+        return;
+    }
+    std::set<size_t> indexSet;
+    for (size_t nElementIndex : elementIndexs) {
+        indexSet.insert(nElementIndex);
+    }
+    for (Control* pControl : m_items) {
+        IListBoxItem* pListBoxItem = dynamic_cast<IListBoxItem*>(pControl);
+        if (pListBoxItem == nullptr) {
+            continue;
+        }
+        size_t nElementIndex = pListBoxItem->GetElementIndex();
+        if (nElementIndex != Box::InvalidIndex) {
+            if (indexSet.find(nElementIndex) != indexSet.end()) {
+                FillElement(pControl, nElementIndex);
+            }
+        }
+    }
 }
 
 void VirtualListBox::OnModelDataChanged(size_t nStartElementIndex, size_t nEndElementIndex)
@@ -148,10 +340,10 @@ void VirtualListBox::OnModelDataChanged(size_t nStartElementIndex, size_t nEndEl
     for (Control* pControl : m_items) {
         IListBoxItem* pListBoxItem = dynamic_cast<IListBoxItem*>(pControl);
         if (pListBoxItem != nullptr) {
-            size_t iElementIndex = pListBoxItem->GetElementIndex();
-            if ((iElementIndex >= nStartElementIndex) &&
-                (iElementIndex <= nEndElementIndex)) {
-                FillElement(pControl, iElementIndex);
+            size_t nElementIndex = pListBoxItem->GetElementIndex();
+            if ((nElementIndex >= nStartElementIndex) &&
+                (nElementIndex <= nEndElementIndex)) {
+                FillElement(pControl, nElementIndex);
             }
         }
     }
@@ -470,32 +662,11 @@ size_t VirtualListBox::FindSelectableElement(size_t nElementIndex, bool /*bForwa
     return nElementIndex;
 }
 
-bool VirtualListBox::OnSelectedItem(const ui::EventArgs& args)
+bool VirtualListBox::SortItems(PFNCompareFunc /*pfnCompare*/, void* /*pCompareContext*/)
 {
-    OnSetElementSelected(args.wParam, true);
-    return true;
-}
-
-bool VirtualListBox::OnUnSelectedItem(const ui::EventArgs& args)
-{
-    OnSetElementSelected(args.wParam, false);
-    return true;
-}
-
-void VirtualListBox::OnSetElementSelected(size_t nItemIndex, bool bSelected)
-{
-    if (nItemIndex != Box::InvalidIndex) {
-        Control* pControl = GetItemAt(nItemIndex);
-        IListBoxItem* pListBoxItem = dynamic_cast<IListBoxItem*>(pControl);
-        if (pListBoxItem != nullptr) {
-            //更新该元素的选择状态
-            size_t iElementIndex = pListBoxItem->GetElementIndex();
-            ASSERT(m_pDataProvider != nullptr);
-            if (m_pDataProvider != nullptr) {
-                m_pDataProvider->SetElementSelected(iElementIndex, bSelected);
-            }
-        }
-    }
+    //不支持外部排序
+    ASSERT(!"SortItems no impl!");
+    return false;
 }
 
 }

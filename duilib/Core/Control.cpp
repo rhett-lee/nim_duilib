@@ -1331,11 +1331,13 @@ bool Control::RButtonDown(const EventArgs& /*msg*/)
 	return true;
 }
 
-bool Control::RButtonUp(const EventArgs& /*msg*/)
+bool Control::RButtonUp(const EventArgs& msg)
 {
 	if (IsMouseFocused()) {
 		SetMouseFocused(false);
-		SendEvent(kEventRClick);
+		if (IsPointInWithScrollOffset(msg.ptMouse)) {
+			SendEvent(kEventRClick);
+		}
 	}
 	return true;
 }

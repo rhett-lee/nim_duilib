@@ -49,6 +49,20 @@ public:
     */
     virtual bool IsElementSelected(size_t nElementIndex) const = 0;
 
+    /** 获取选择的元素列表
+    * @param [in] selectedIndexs 返回当前选择的元素列表，有效范围：[0, GetElementCount())
+    */
+    virtual void GetSelectedElements(std::vector<size_t>& selectedIndexs) const = 0;
+
+    /** 是否支持多选
+    */
+    virtual bool IsMultiSelect() const = 0;
+
+    /** 设置是否支持多选，由界面层调用，保持与界面控件一致
+    * @return bMultiSelect true表示支持多选，false表示不支持多选
+    */
+    virtual void SetMultiSelect(bool bMultiSelect) = 0;
+
 public:
     /** 注册事件通知回调
     * @param [in] dcNotify 数据内容变化通知接口
@@ -104,6 +118,15 @@ public:
     */
     bool HasDataProvider() const;
 
+    /** 是否支持多选
+    */
+    virtual bool IsMultiSelect() const override;
+
+    /** 设置是否支持多选，由界面层调用，保持与界面控件一致
+    * @return bMultiSelect true表示支持多选，false表示不支持多选
+    */
+    virtual void SetMultiSelect(bool bMultiSelect) override;
+
 public:
     /** 获取数据元素总数
     * @return 返回数据元素总个数
@@ -115,17 +138,57 @@ public:
     */
     size_t GetCurSelElement() const;
 
-    /** 设置选择状态
+    /** 设置选择状态, 同时按需更新界面显示
     * @param [in] nElementIndex 数据元素的索引ID，范围：[0, GetElementCount())
     * @param [in] bSelected true表示选择状态，false表示非选择状态
     */
     void SetElementSelected(size_t nElementIndex, bool bSelected);
+
+    /** 批量设置选择元素, 同时按需更新界面显示
+    * @param [in] selectedIndexs 需要设置选择的元素列表，有效范围：[0, GetElementCount())
+    * @param [in] bClearOthers 如果为true，表示对其他已选择的进行清除选择，只保留本次设置的为选择项
+    */
+    void SetSelectedElements(const std::vector<size_t>& selectedIndexs, bool bClearOthers);
+
+    /** 批量设置选择元素, 不更新界面显示
+    * @param [in] selectedIndexs 需要设置选择的元素列表，有效范围：[0, GetElementCount())
+    * @param [in] bClearOthers 如果为true，表示对其他已选择的进行清除选择，只保留本次设置的为选择项
+    * @param [out] refreshIndexs 返回需要刷新显示的元素索引号
+    */
+    void SetSelectedElements(const std::vector<size_t>& selectedIndexs, 
+                             bool bClearOthers,
+                             std::vector<size_t>& refreshIndexs);
 
     /** 获取选择状态
     * @param [in] nElementIndex 数据元素的索引ID，范围：[0, GetElementCount())
     * @return true表示选择状态，false表示非选择状态
     */
     bool IsElementSelected(size_t nElementIndex) const;
+
+    /** 获取选择的元素列表
+    * @param [in] selectedIndexs 返回当前选择的元素列表，有效范围：[0, GetElementCount())
+    */
+    void GetSelectedElements(std::vector<size_t>& selectedIndexs) const;
+
+    /** 选择全部, 同时按需更新界面显示
+    */
+    void SetSelectAll();
+
+    /** 取消所有选择, 同时按需更新界面显示
+    */
+    void SetSelectNone();
+
+    /** 取消所有选择, 不更新界面显示，可以由外部刷新界面显示
+    * @param [out] refreshIndexs 返回需要刷新显示的元素索引号
+    */
+    void SetSelectNone(std::vector<size_t>& refreshIndexs);
+
+    /** 取消所有选择(但排除部分元素), 不更新界面显示，可以由外部刷新界面显示
+    * @param [in] excludeIndexs 需要排除的元素索引号，这部分元素的选择状态保持原状
+    * @param [out] refreshIndexs 返回需要刷新显示的元素索引号
+    */
+    void SetSelectNoneExclude(const std::vector<size_t>& excludeIndexs, 
+                              std::vector<size_t>& refreshIndexs);
 
     /** 获取当前所有可见控件的数据元素索引
     * @param [out] collection 索引列表，有效范围：[0, GetElementCount())
@@ -155,6 +218,11 @@ public:
     * @param [in] nEndElementIndex 数据的结束下标
     */
     void RefreshElements(size_t nStartElementIndex, size_t nEndElementIndex);
+
+    /** 刷新指定的数据，保持数据与界面显示同步
+    * @param [elementIndexs] 列表中为元素索引号，有效范围：[0, GetElementCount())
+    */
+    void RefreshElements(const std::vector<size_t>& elementIndexs);
 
     /** 刷新列表
     */
@@ -216,6 +284,18 @@ protected:
     */
     virtual size_t FindSelectableElement(size_t nElementIndex, bool bForward) const;
 
+    /** 对子项排序
+     * @param [in] pfnCompare 自定义排序函数
+     * @param [in] pCompareContext 传递给比较函数的用户自定义数据
+     */
+    virtual bool SortItems(PFNCompareFunc pfnCompare, void* pCompareContext) override;
+
+    /** 子项的选择状态变化事件，用于状态同步
+    * @param [in] iIndex 子项目的ID，范围是：[0, GetItemCount())
+    * @param [in] pListBoxItem 关联的列表项接口
+    */
+    virtual void OnItemSelectedChanged(size_t iIndex, IListBoxItem* pListBoxItem) override;
+
 protected:
 
     /** 设置虚表布局接口
@@ -259,18 +339,6 @@ protected:
     */
     void OnModelCountChanged();
 
-    /** 选择状态变化：选择了某个子项
-    */
-    bool OnSelectedItem(const ui::EventArgs&);
-
-    /** 选择状态变化：取消选择了某个子项
-    */
-    bool OnUnSelectedItem(const ui::EventArgs&);
-
-    /** 更新存储数据的选择状态
-    */
-    void OnSetElementSelected(size_t nItemIndex, bool bSelected);
-
 private:
     /** 数据代理对象接口，提供展示数据
     */
@@ -279,6 +347,10 @@ private:
     /** 虚表布局接口
     */
     VirtualLayout* m_pVirtualLayout;
+
+    /** 是否允许从界面状态同步到存储状态
+    */
+    bool m_bEnableUpdateProvider;
 };
 
 /** 横向布局的虚表ListBox

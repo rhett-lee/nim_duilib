@@ -5,16 +5,12 @@
 
 #include "duilib/Control/ListCtrlHeader.h"
 #include "duilib/Control/ListCtrlHeaderItem.h"
+#include "duilib/Control/ListCtrlItem.h"
 #include "duilib/Control/ListCtrlDataProvider.h"
 #include "duilib/Box/ListBoxItem.h"
 
 namespace ui
 {
-
-/** 列表数据项UI控件（行）
-*/
-class ListCtrlItem;
-
 /** 列表数据显示UI控件
 */
 class ListCtrlDataView;
@@ -375,6 +371,25 @@ public:
     */
     void SetMultiSelect(bool bMultiSelect);
 
+    /** 批量设置选择数据项
+    * @param [in] selectedIndexs 需要设置选择的数据项索引号，有效范围：[0, GetDataItemCount())
+    * @param [in] bClearOthers 如果为true，表示对其他已选择的进行清除选择，只保留本次设置的为选择项
+    */
+    void SetSelectedDataItems(const std::vector<size_t>& selectedIndexs, bool bClearOthers);
+
+    /** 获取选择的元素列表
+    * @param [in] itemIndexs 返回当前选择的数据项索引号，有效范围：[0, GetDataItemCount())
+    */
+    void GetSelectedDataItems(std::vector<size_t>& itemIndexs) const;
+
+    /** 选择全部
+    */
+    void SetSelectAll();
+
+    /** 取消所有选择
+    */
+    void SetSelectNone();
+
 public:
     /** 获取当前显示的数据项列表，顺序是从上到下
     * @param [in] itemIndexList 当前显示的数据项索引号列表, 每一元素的的有效范围：[0, GetDataItemCount())
@@ -608,48 +623,6 @@ private:
     /** 是否支持双击Header的分割条自动调整列宽
     */
     bool m_bEnableColumnWidthAuto;
-};
-
-/** ListCtrl子项控件
-*/
-class ListCtrlItem : public ListBoxItemH
-{
-public:
-    ListCtrlItem() : m_bSelectable(true)
-    {
-    }
-
-    /** 获取控件类型
-    */
-    virtual std::wstring GetType() const override { return L"ListCtrlItem"; }
-
-    /** 设置控件是否可见
-     * @param[in] @param[in] bVisible 为 true 时控件可见，为 false 时控件被隐藏
-     */
-    virtual void SetVisible(bool bVisible) override
-    {
-        __super::SetVisible(bVisible);
-    }
-
-    /** 判断控件类型是否为可选择的
-     * @return 默认返回false
-     */
-    virtual bool IsSelectableType() const override
-    {
-        return m_bSelectable;
-    }
-
-    /** 设置是否可以选择
-    */
-    void SetSelectableType(bool bSelectable)
-    { 
-        m_bSelectable = bSelectable; 
-    }
-
-private:
-    /** 是否可以选择（影响方向键切换选择项）
-    */
-    bool m_bSelectable;
 };
 
 }//namespace ui
