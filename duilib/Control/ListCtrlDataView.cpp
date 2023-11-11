@@ -446,8 +446,8 @@ void ListCtrlDataView::GetDataItemsToShow(int64_t nScrollPosY, size_t maxCount,
 }
 
 int32_t ListCtrlDataView::GetMaxDataItemsToShow(int64_t nScrollPosY, int32_t nRectHeight, 
-                          std::vector<size_t>* pItemIndexList,
-                          std::vector<size_t>* pAtTopItemIndexList) const
+                                                std::vector<size_t>* pItemIndexList,
+                                                std::vector<size_t>* pAtTopItemIndexList) const
 {
     if (pItemIndexList) {
         pItemIndexList->clear();
@@ -1013,13 +1013,8 @@ void ListCtrlDataView::OnMouseMove(const UiPoint& ptMouse, Control* pSender)
         m_ptMouseMove.cx = ptMouse.x + scrollPos.cx;
         m_ptMouseMove.cy = ptMouse.y + scrollPos.cy;
         //按需滚动视图，并更新鼠标在滚动后的位置
-        OnCheckScrollView();
         m_bInMouseMove = true;
-
-        int64_t top = std::min(m_ptMouseDown.cy, m_ptMouseMove.cy);
-        int64_t bottom = std::max(m_ptMouseDown.cy, m_ptMouseMove.cy);
-        OnFrameSelection(top, bottom);
-        Invalidate();
+        OnCheckScrollView();
     }
     else if (m_bInMouseMove) {
         m_bInMouseMove = false;
@@ -1040,47 +1035,160 @@ void ListCtrlDataView::OnWindowKillFocus()
 
 void ListCtrlDataView::OnCheckScrollView()
 {
-    UiSize64 scrollPos = GetScrollPos();
+    if (!m_bInMouseMove) {
+        //取消定时器
+        m_scrollViewFlag.Cancel();
+        return;
+    }
+    bool bScrollView = false;
+    const UiSize64 scrollPos = GetScrollPos();
     UiSize64 pt = m_ptMouseMove;
     pt.cx -= scrollPos.cx;
     pt.cy -= scrollPos.cy;
-    UiSize64 ptMouseMove = pt; //记录原值
+    const UiSize64 ptMouseMove = pt; //记录原值
 
-    UiRect viewRect = GetRect();
-    if (m_nNormalItemTop > 0) {
-        viewRect.top = m_nNormalItemTop;
-        ASSERT(viewRect.top <= viewRect.bottom);
+    if (m_bInMouseMove) {
+        UiRect viewRect = GetRect();
+        if (m_nNormalItemTop > 0) {
+            viewRect.top = m_nNormalItemTop;
+            ASSERT(viewRect.top <= viewRect.bottom);
+        }
+
+        if (pt.cx <= viewRect.left) {
+            //向左滚动视图
+            LineLeft();
+            bScrollView = true;
+        }
+        else if (pt.cx >= viewRect.right) {
+            //向右滚动视图
+            LineRight();
+            bScrollView = true;
+        }
+
+        int32_t deltaValue = DUI_NOSET_VALUE;
+        if (m_pListCtrl != nullptr) {
+            deltaValue = m_pListCtrl->GetDataItemHeight() * 2;            
+        }
+        if (deltaValue > 0) {
+            deltaValue = std::max(GetRect().Height() / 3, deltaValue);
+        }
+        if (pt.cy <= viewRect.top) {
+            //向上滚动视图
+            LineUp(deltaValue, false);
+            bScrollView = true;
+        }
+        else if (pt.cy >= viewRect.bottom) {
+            //向下滚动视图
+            LineDown(deltaValue, false);
+            bScrollView = true;
+        }
     }
 
-    if (pt.cx <= viewRect.left) {
-        //向左滚动视图
-        LineLeft();
+    if (bScrollView) {
+        UiSize64 scrollPosNew = GetScrollPos();
+        if (scrollPos != scrollPosNew) {
+            //更新鼠标位置
+            m_ptMouseMove.cx = ptMouseMove.cx + scrollPosNew.cx;
+            m_ptMouseMove.cy = ptMouseMove.cy + scrollPosNew.cy;
+        }
+
+        //启动定时器
+        m_scrollViewFlag.Cancel();
+        GlobalManager::Instance().Timer().AddCancelableTimer(m_scrollViewFlag.GetWeakFlag(),
+                                                            nbase::Bind(&ListCtrlDataView::OnCheckScrollView, this),
+                                                            50, 1); //只执行一次
     }
-    else if (pt.cx >= viewRect.right) {
-        //向右滚动视图
-        LineRight();
+    else {
+        //取消定时器
+        m_scrollViewFlag.Cancel();
     }
 
-    if (pt.cy <= viewRect.top) {
-        //向上滚动视图
-        LineUp(-1, false);
-    }
-    else if (pt.cy >= viewRect.bottom) {
-        //向下滚动视图
-        LineDown(-1, false);
-    }
-
-    UiSize64 scrollPosNew = GetScrollPos();
-    if (scrollPos != scrollPosNew) {
-        //更新鼠标位置
-        m_ptMouseMove.cx = ptMouseMove.cx + scrollPosNew.cx;
-        m_ptMouseMove.cy = ptMouseMove.cy + scrollPosNew.cy;
-    }
+    //执行框选操作
+    int64_t top = std::min(m_ptMouseDown.cy, m_ptMouseMove.cy);
+    int64_t bottom = std::max(m_ptMouseDown.cy, m_ptMouseMove.cy);
+    int32_t offsetTop = GetRect().top;//当前控件左上角的top坐标
+    top -= offsetTop;
+    bottom -= offsetTop;
+    OnFrameSelection(top, bottom);
+    Invalidate();
 }
 
 void ListCtrlDataView::OnFrameSelection(int64_t top, int64_t bottom)
 {
-    
+    ASSERT(top <= bottom);
+    if (top > bottom) {
+        return;
+    }
+    ASSERT(m_pListCtrl != nullptr);
+    if (m_pListCtrl == nullptr) {
+        return;
+    }
+    ListCtrlDataProvider* pDataProvider = dynamic_cast<ListCtrlDataProvider*>(GetDataProvider());
+    ASSERT(pDataProvider != nullptr);
+    if (pDataProvider == nullptr) {
+        return;
+    }
+    const ListCtrlDataProvider::RowDataList& itemDataList = pDataProvider->GetItemDataList();
+    const size_t dataItemCount = itemDataList.size();
+    if (dataItemCount == 0) {
+        return;
+    }
+
+    const int32_t nDefaultItemHeight = m_pListCtrl->GetDataItemHeight(); //默认行高
+    int32_t nTopItemHeights = m_pListCtrl->GetHeaderHeight(); //Header与置顶元素所占有的高度
+
+    std::vector<size_t> itemIndexList;
+
+    int64_t totalItemHeight = 0;
+    int32_t nItemHeight = 0;    
+    for (size_t index = 0; index < dataItemCount; ++index) {
+        const ListCtrlRowData& rowData = itemDataList[index];
+        nItemHeight = (rowData.nItemHeight < 0) ? nDefaultItemHeight : rowData.nItemHeight;
+        if (!rowData.bVisible || (nItemHeight == 0)) {
+            //不可见的，跳过
+            continue;
+        }
+
+        if (rowData.nAlwaysAtTop >= 0) {
+            //置顶的元素
+            nTopItemHeights += nItemHeight;
+            continue;
+        }
+    }
+
+    top -= nTopItemHeights;
+    bottom -= nTopItemHeights;
+    if (top < 0) {
+        top = 0;
+    }
+    if (bottom < 0) {
+        bottom = 0;
+    }
+    for (size_t index = 0; index < dataItemCount; ++index) {
+        const ListCtrlRowData& rowData = itemDataList[index];
+        nItemHeight = (rowData.nItemHeight < 0) ? nDefaultItemHeight : rowData.nItemHeight;
+        if (!rowData.bVisible || (nItemHeight == 0)) {
+            //不可见的，跳过
+            continue;
+        }
+
+        if (rowData.nAlwaysAtTop >= 0) {
+            //置顶的元素，排除掉
+            continue;
+        }
+        totalItemHeight += nItemHeight;
+        if (totalItemHeight > top) {
+            //开始
+            itemIndexList.push_back(index);
+        }
+        if (totalItemHeight > bottom) {
+            //结束
+            break;
+        }
+    }
+
+    //选择框选的数据
+    SetSelectedElements(itemIndexList, true);
 }
 
 void ListCtrlDataView::SetNormalItemTop(int32_t nNormalItemTop)

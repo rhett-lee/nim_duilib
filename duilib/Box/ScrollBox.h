@@ -72,23 +72,23 @@ public:
 	 * @param[in] deltaValue 滚动距离，默认为 DUI_NOSET_VALUE
  	 * @param[in] withAnimation 是否附带动画效果，默认为 true
 	 */
-	virtual void LineUp(int detaValue = DUI_NOSET_VALUE, bool withAnimation = true);
+	virtual void LineUp(int deltaValue = DUI_NOSET_VALUE, bool withAnimation = true);
 	
 	/** 向下滚动滚动条
 	 * @param[in] deltaValue 滚动距离，默认为 DUI_NOSET_VALUE
  	 * @param[in] withAnimation 是否附带动画效果，默认为 true
 	 */
-	virtual void LineDown(int detaValue = DUI_NOSET_VALUE, bool withAnimation = true);
+	virtual void LineDown(int deltaValue = DUI_NOSET_VALUE, bool withAnimation = true);
 	
 	/** 向左滚动滚动条
 	 * @param[in] deltaValue 滚动距离，默认为 DUI_NOSET_VALUE
 	 */
-    virtual void LineLeft(int detaValue = DUI_NOSET_VALUE);
+    virtual void LineLeft(int deltaValue = DUI_NOSET_VALUE);
 	
 	/** 向右滚动滚动条
 	 * @param[in] deltaValue 滚动距离，默认为 DUI_NOSET_VALUE
 	 */
-    virtual void LineRight(int detaValue = DUI_NOSET_VALUE);
+    virtual void LineRight(int deltaValue = DUI_NOSET_VALUE);
 	
 	/** 向上滚动一个页面大小的距离
 	 */

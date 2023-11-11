@@ -509,13 +509,16 @@ void ScrollBox::LineUp(int deltaValue, bool withAnimation)
 	if (scrollPos.cy <= 0) {
 		return;
 	}
+	if (deltaValue <= 0) {
+		deltaValue = DUI_NOSET_VALUE;
+	}
 
 	int cyLine = GetVerScrollUnitPixels();
 	if (cyLine == 0) {
 		cyLine = GlobalManager::Instance().Dpi().GetScaleInt(m_nVScrollUnitPixelsDefault);
 	}
 	if (deltaValue != DUI_NOSET_VALUE) {
-		cyLine = std::min(cyLine, deltaValue);
+		cyLine = deltaValue;
 	}
 
 	if (!withAnimation) {
@@ -562,13 +565,16 @@ void ScrollBox::LineDown(int deltaValue, bool withAnimation)
 	if (scrollPos.cy >= GetScrollRange().cy) {
 		return;
 	}
+	if (deltaValue <= 0) {
+		deltaValue = DUI_NOSET_VALUE;
+	}
 
 	int cyLine = GetVerScrollUnitPixels();
 	if (cyLine == 0) {
 		cyLine = GlobalManager::Instance().Dpi().GetScaleInt(m_nVScrollUnitPixelsDefault);
 	}
 	if (deltaValue != DUI_NOSET_VALUE) {
-		cyLine = std::min(cyLine, deltaValue);
+		cyLine = deltaValue;
 	}
 
 	if (!withAnimation) {
@@ -608,19 +614,22 @@ void ScrollBox::LineDown(int deltaValue, bool withAnimation)
 		pScrollAnimation->Start();
 	}
 }
-void ScrollBox::LineLeft(int detaValue)
+void ScrollBox::LineLeft(int deltaValue)
 {
 	UiSize64 scrollPos = GetScrollPos();
 	if (scrollPos.cx <= 0) {
 		return;
+	}
+	if (deltaValue <= 0) {
+		deltaValue = DUI_NOSET_VALUE;
 	}
 
     int cxLine = GetHorScrollUnitPixels();
     if (cxLine == 0) {
         cxLine = GlobalManager::Instance().Dpi().GetScaleInt(m_nHScrollUnitPixelsDefault);
     }
-    if (detaValue != DUI_NOSET_VALUE) {
-        cxLine = std::min(cxLine, detaValue);
+    if (deltaValue != DUI_NOSET_VALUE) {
+        cxLine = deltaValue;
     }
     scrollPos.cx -= cxLine;
     if (scrollPos.cx < 0) {
@@ -648,19 +657,22 @@ void ScrollBox::LineLeft(int detaValue)
 
 }
 
-void ScrollBox::LineRight(int detaValue)
+void ScrollBox::LineRight(int deltaValue)
 {
 	UiSize64 scrollPos = GetScrollPos();
 	if (scrollPos.cx >= GetScrollRange().cx) {
 		return;
+	}
+	if (deltaValue <= 0) {
+		deltaValue = DUI_NOSET_VALUE;
 	}
 
     int cxLine = GetHorScrollUnitPixels();
     if (cxLine == 0) {
         cxLine = GlobalManager::Instance().Dpi().GetScaleInt(m_nHScrollUnitPixelsDefault);
     }
-    if (detaValue != DUI_NOSET_VALUE) {
-        cxLine = std::min(cxLine, detaValue);
+    if (deltaValue != DUI_NOSET_VALUE) {
+        cxLine = deltaValue;
     }
 
     scrollPos.cx += cxLine;

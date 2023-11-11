@@ -250,6 +250,10 @@ private:
     */
     Control* m_pMouseSender;
 
+    /** 定时器滚动视图时的取消机制
+    */
+    nbase::WeakCallbackFlag m_scrollViewFlag;
+
     /** 鼠标框选功能的设置
     */
     bool m_bEnableFrameSelection; //是否支持鼠标框选功能
