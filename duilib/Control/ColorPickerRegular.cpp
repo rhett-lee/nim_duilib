@@ -131,7 +131,9 @@ void ColorPickerRegular::SelectColor(const UiColor& color)
                 pListItem->SetSelected(false);
             }
         }
-        SetCurSel(nCurSel);
+        if (nCurSel < GetItemCount()) {
+            SetCurSel(nCurSel);
+        }        
     }
     Refresh();
     Invalidate();

@@ -267,7 +267,7 @@
                                       enable_frame_selection="true" 
                                       frame_selection_color="#FFAACCEE" frame_selection_alpha="128" 
                                       frame_selection_border="1" frame_selection_border_color="#FF0078D7"/>
-    <Class name="list_ctrl_item" hot_color="#FFE5F3FF" pushed_color="#FFD9EEFF" selected_normal_color="#FFCCE8FF"/>
+    <Class name="list_ctrl_item" hot_color="Wheat" pushed_color="#FFD9EEFF" selected_normal_color="#FFCCE8FF"/>
     <Class name="list_ctrl_item_label" border_color="red"/>
     
     <!--气泡框通用样式-->

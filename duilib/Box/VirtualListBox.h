@@ -261,17 +261,13 @@ protected:
 
     /** 即将查找指定的元素（为虚表提供加载数据的机会）
 	* @param [in] nCurSel 当前选择的显示控件索引号
-	* @param [in] bForward true表示向前查找，false表示向后查找
-	* @param [in] nCount 查找的控件的间隔个数
-	* @param [in] bHome 跳转到首页
-	* @param [in] bEnd  跳转到尾页
+	* @param [in] mode  查找的模式
+	* @param [in] nCount 查找的控件的第几个数据
 	* @param [out] nDestItemIndex 返回加载后的目标控件索引号，有效范围: [0, GetItemCount())
 	* @return 返回true表示有数据加载行为，false表示无任何动作
 	*/
-	virtual bool OnFindSelectable(size_t nCurSel, 
-								  bool bForward, size_t nCount,
-								  bool bHome, bool bEnd,
-		                          size_t& nDestItemIndex) override;
+	virtual bool OnFindSelectable(size_t nCurSel, SelectableMode mode, 
+								  size_t nCount, size_t& nDestItemIndex) override;
 
     /** 判断一个数据元素是否为可选择项
 	* @param [in] nElementIndex 元素索引号，有效范围：[0, GetElementCount())

@@ -63,8 +63,29 @@ void ListBox::HandleEvent(const EventArgs& msg)
 		}
 		return;
 	}
-	if (IsMultiSelect() || (GetItemCount() == 0) || (GetCurSel() >= GetItemCount())) {
-		//在无数据、支持多选、无选中项的情况下，不支持下面的单选逻辑
+	bool bArrowKeyDown = (msg.Type == kEventKeyDown) &&
+						 ((msg.chKey == VK_UP)    || (msg.chKey == VK_DOWN) ||
+					      (msg.chKey == VK_LEFT)  || (msg.chKey == VK_RIGHT) ||
+						  (msg.chKey == VK_PRIOR) || (msg.chKey == VK_NEXT) ||
+						  (msg.chKey == VK_HOME)  || (msg.chKey == VK_END));
+	bool bMouseWheel = (msg.Type == kEventMouseWheel) && !m_bScrollSelect;
+	if (!bArrowKeyDown && !bMouseWheel){
+		//只关心 kEventKeyDown 和 kEventMouseWheel(且开启ScrollSelect选项)消息
+		return __super::HandleEvent(msg);
+	}
+
+	bool bHasSelectItem = GetCurSel() < GetItemCount(); //是否有单选的选择项
+	if ((msg.Type == kEventKeyDown) && !IsMultiSelect() && 
+		(GetItemCount() > 0) && !bHasSelectItem) {
+		//当前界面中无选中项，需要查询子类（虚表实现）中是否有选中项
+		size_t nDestItemIndex = Box::InvalidIndex;
+		if (OnFindSelectable(GetCurSel(), SelectableMode::kSelect, 1, nDestItemIndex)) {
+			bHasSelectItem = true;
+			ASSERT(GetCurSel() == nDestItemIndex);
+		}
+	}
+	if (IsMultiSelect() || (GetItemCount() == 0) || !bHasSelectItem) {
+		//在无数据、支持多选、无选中项的情况下，不支持单选快捷键逻辑，但支持HOME和END键的响应(滚动)
 		bool bHandled = false;
 		if (msg.Type == kEventKeyDown) {
 			if (msg.chKey == VK_HOME) {
@@ -87,13 +108,12 @@ void ListBox::HandleEvent(const EventArgs& msg)
 			}
 		}
 		if (!bHandled) {
-			__super::HandleEvent(msg);			
+			__super::HandleEvent(msg);
 		}
 		return;
 	}
 
-	switch (msg.Type) {
-	case kEventKeyDown:
+	if (msg.Type == kEventKeyDown) {
 		switch (msg.chKey) {
 		case VK_UP:
 			if (IsHorizontalScrollBar()) {
@@ -159,30 +179,19 @@ void ListBox::HandleEvent(const EventArgs& msg)
 		case VK_END:
 			SelectItemEnd(true, true);
 			return;
+		default:
+			break;
 		}
-		break;
-	case kEventMouseWheel:
-	{
+	}
+	else if((msg.Type == kEventMouseWheel) && m_bScrollSelect) {
 		int32_t deltaValue = GET_WHEEL_DELTA_WPARAM(msg.wParam);
-		if (deltaValue > 0) {
-			if (m_bScrollSelect) {
-				SelectItemPage(true, true, false, deltaValue);
-				return;
-			}
-			break;
-		}
-		else if(deltaValue < 0) {
-			if (m_bScrollSelect) {
-				SelectItemPage(true, true, true, deltaValue);
-				return;
-			}
-			break;
+		if (deltaValue != 0) {
+			bool bForward = deltaValue > 0 ? false : true;
+			SelectItemPage(true, true, bForward, std::abs(deltaValue));
+			return;
 		}
 	}
-	break;
-	}
-
-	ScrollBox::HandleEvent(msg);
+	__super::HandleEvent(msg);
 }
 
 bool ListBox::SelectItem(size_t iIndex)
@@ -217,7 +226,7 @@ size_t ListBox::SelectItemHome(bool bTakeFocus, bool bTriggerEvent)
 	}
 	size_t iIndex = 0;
 	size_t nDestItemIndex = Box::InvalidIndex;
-	if (OnFindSelectable(m_iCurSel, false, 1, true, false, nDestItemIndex)) {
+	if (OnFindSelectable(m_iCurSel, SelectableMode::kHome, 1, nDestItemIndex)) {
 		iIndex = nDestItemIndex;
 	}
 	size_t itemIndex = FindSelectable(iIndex, true);
@@ -235,7 +244,7 @@ size_t ListBox::SelectItemEnd(bool bTakeFocus, bool bTriggerEvent)
 	}
 	size_t iIndex = GetItemCount() - 1;
 	size_t nDestItemIndex = Box::InvalidIndex;
-	if (OnFindSelectable(m_iCurSel, true, 1, false, true, nDestItemIndex)) {
+	if (OnFindSelectable(m_iCurSel, SelectableMode::kEnd, 1, nDestItemIndex)) {
 		iIndex = nDestItemIndex;
 	}
 	size_t itemIndex = FindSelectable(iIndex, false);
@@ -336,7 +345,8 @@ size_t ListBox::SelectItemCountN(bool bTakeFocus, bool bTriggerEvent, bool bForw
 
 	//可能需要预加载数据，如果有预加载行为，m_iCurSel的值可能发生变化
 	size_t nDestItemIndex = Box::InvalidIndex;
-	if (OnFindSelectable(m_iCurSel, bForward, nCount, false, false, nDestItemIndex)) {
+	SelectableMode mode = bForward ? SelectableMode::kForward : SelectableMode::kBackward;
+	if (OnFindSelectable(m_iCurSel, mode, nCount, nDestItemIndex)) {
 		iIndex = nDestItemIndex;
 		ASSERT(iIndex < GetItemCount());
 		if (iIndex >= GetItemCount()) {
@@ -505,10 +515,8 @@ size_t ListBox::FindSelectable(size_t iIndex, bool bForward) const
 	return __super::FindSelectable(iIndex, bForward);
 }
 
-bool ListBox::OnFindSelectable(size_t /*nCurSel*/,
-							   bool /*bForward*/, size_t /*nCount*/,
-							   bool /*bHome*/, bool /*bEnd*/,
-							   size_t& /*nDestItemIndex*/)
+bool ListBox::OnFindSelectable(size_t /*nCurSel*/, SelectableMode /*mode*/,
+							   size_t /*nCount*/, size_t& /*nDestItemIndex*/)
 {
 	return false;
 }

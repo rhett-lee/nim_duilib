@@ -12,6 +12,7 @@ namespace ui
 /** 列表数据显示和布局功能
 */
 class ListCtrl;
+struct ListCtrlRowData;
 class ListCtrlDataView : public VirtualListBox
 {
     friend class ListCtrlDataLayout;
@@ -21,6 +22,7 @@ public:
 
     virtual std::wstring GetType() const override { return L"ListCtrlDataView"; }
     virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue);
+    virtual void HandleEvent(const EventArgs& msg) override;
 
     /** 选择子项
 	*  @param [in] iIndex 子项目的ID
@@ -169,6 +171,10 @@ protected:
     */
     virtual size_t FindSelectableElement(size_t nElementIndex, bool bForward) const override;
 
+    /** 控件初始化
+    */
+    virtual void DoInit() override;
+
 protected:
     //鼠标消息（返回true：表示消息已处理；返回false：则表示消息未处理，需转发给父控件）
     virtual bool ButtonDown(const EventArgs& msg) override;
@@ -203,6 +209,10 @@ private:
     * @param [out] atTopItems 返回置顶的控件列表
     */
     void MoveTopItemsToLast(std::vector<Control*>& items, std::vector<Control*>& atTopItems) const;
+
+    /** 判断一个行数据是否可选择
+    */
+    bool IsSelectableRowData(const ListCtrlRowData& rowData) const;
 
 private:
     /** ListCtrl 控件接口

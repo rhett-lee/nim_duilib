@@ -208,20 +208,35 @@ void VirtualListBox::SetSelectedElements(const std::vector<size_t>& selectedInde
     if (!m_pDataProvider->IsMultiSelect()) {
         return;
     }
+    std::set<size_t> selectSet;
+    for (auto index : selectedIndexs) {
+        selectSet.insert(index);
+    }
+    std::set<size_t> refreshSet;
     std::vector<size_t> oldSelectedIndexs;
     if (bClearOthers) {        
         m_pDataProvider->GetSelectedElements(oldSelectedIndexs);
         if (!oldSelectedIndexs.empty()) {
             for (size_t nElementIndex : oldSelectedIndexs) {
+                if (selectSet.find(nElementIndex) != selectSet.end()) {
+                    //过滤掉即将选择的
+                    continue;
+                }
                 m_pDataProvider->SetElementSelected(nElementIndex, false);
+                refreshSet.insert(nElementIndex);
             }
         }
     }
     for (size_t nElementIndex : selectedIndexs) {
+        if (m_pDataProvider->IsElementSelected(nElementIndex)) {
+            continue;
+        }
         m_pDataProvider->SetElementSelected(nElementIndex, true);
-        oldSelectedIndexs.push_back(nElementIndex);
+        refreshSet.insert(nElementIndex);
     }
-    refreshIndexs.swap(oldSelectedIndexs);
+    for (auto index : refreshSet) {
+        refreshIndexs.push_back(index);
+    }
 }
 
 bool VirtualListBox::IsElementSelected(size_t nElementIndex) const
@@ -556,10 +571,8 @@ void VirtualListBox::ReArrangeChild(bool bForce)
     ASSERT(!m_pVirtualLayout->NeedReArrange());
 }
 
-bool VirtualListBox::OnFindSelectable(size_t nCurSel, 
-								      bool bForward, size_t nCount,
-								      bool bHome, bool bEnd,
-                                      size_t& nDestItemIndex)
+bool VirtualListBox::OnFindSelectable(size_t nCurSel, SelectableMode mode,
+                                      size_t nCount, size_t& nDestItemIndex)
 {
     nDestItemIndex = Box::InvalidIndex;
     const size_t nElementCount = GetElementCount();
@@ -569,19 +582,47 @@ bool VirtualListBox::OnFindSelectable(size_t nCurSel,
     }
     size_t nElementIndex = Box::InvalidIndex;
     size_t nIndex = nCurSel;
-    if (bHome) {
+    bool bForward = (mode == SelectableMode::kForward) ||
+                    (mode == SelectableMode::kHome);
+    if (mode == SelectableMode::kSelect) {
+        //定位到当前选择的数据
+        bool bRet = false;
+        std::vector<size_t> selectedIndexs;
+        GetSelectedElements(selectedIndexs);
+        for (size_t index = 0; index < selectedIndexs.size(); ++index) {
+            nElementIndex = selectedIndexs[index];
+            if (!IsSelectableElement(nElementIndex)) {
+                continue;
+            }
+            EnsureVisible(nElementIndex, false);
+            size_t nSelItemIndex = GetDisplayItemIndex(nElementIndex);
+            ASSERT(nSelItemIndex < GetItemCount());            
+            if (nSelItemIndex < GetItemCount()) {
+                SetCurSel(nSelItemIndex);
+                nDestItemIndex = nSelItemIndex;
+                bRet = true;
+                break;
+            }
+        }
+        return bRet;
+    }
+    else if (mode == SelectableMode::kHome) {
+        //定位到第一条数据
         nElementIndex = 0;
         nIndex = 0;
     }
-    else if (bEnd) {
+    else if (mode == SelectableMode::kEnd) {
+        //定位到最后一条数据
         nElementIndex = nElementCount - 1;        
         if (itemCount > 0) {
             nIndex = itemCount - 1;
         }
     }
-    else {
+    else if ((mode == SelectableMode::kForward) || 
+             (mode == SelectableMode::kBackward)) {
+        //向前或者向后定位到第nCount条数据
         if ((nCount == 0) || (nCount == Box::InvalidIndex)) {
-            return false;
+            nCount = 1;
         }
         nElementIndex = GetDisplayItemElementIndex(nCurSel);
         if (nElementIndex >= GetElementCount()) {
@@ -615,6 +656,11 @@ bool VirtualListBox::OnFindSelectable(size_t nCurSel,
                 nIndex = nCurSel - nCount;
             }
         }
+    }
+    else {
+        //不存在
+        ASSERT(FALSE);
+        return false;
     }
     if (nElementIndex >= GetElementCount()) {
         //无法确定当前选择的元素索引号

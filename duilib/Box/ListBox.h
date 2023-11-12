@@ -331,19 +331,25 @@ protected:
 	*/
 	bool UpdateCurSelItemSelectStatus();
 
+	/** 查找的模式
+	*/
+	enum class SelectableMode
+	{
+		kForward,	//从当前元素nCurSel向前查找第nCount个数据
+		kBackward,	//从当前元素nCurSel向后查找第nCount个数据
+		kSelect,	//定位到当前所选择的数据（虚表模式下，选择的数据可能不在显示区域）
+		kHome,		//定位到第一条数据
+		kEnd		//定位到最后一条数据
+	};
 	/** 即将查找指定的元素（为虚表提供加载数据的机会）
 	* @param [in] nCurSel 当前选择的显示控件索引号
-	* @param [in] bForward true表示向前查找，false表示向后查找
-	* @param [in] nCount 查找的控件的间隔个数
-	* @param [in] bHome 跳转到首页
-	* @param [in] bEnd  跳转到尾页
+	* @param [in] mode  查找的模式
+	* @param [in] nCount 查找的控件的第几个数据
 	* @param [out] nDestItemIndex 返回加载后的目标控件索引号，有效范围: [0, GetItemCount())
 	* @return 返回true表示有数据加载行为，false表示无任何动作
 	*/
-	virtual bool OnFindSelectable(size_t nCurSel, 
-								  bool bForward, size_t nCount,
-								  bool bHome, bool bEnd,
-		                          size_t& nDestItemIndex);
+	virtual bool OnFindSelectable(size_t nCurSel, SelectableMode mode, 
+								  size_t nCount, size_t& nDestItemIndex);
 
 	/** 子项的选择状态变化事件，用于状态同步
 	* @param [in] iIndex 子项目的ID，范围是：[0, GetItemCount())

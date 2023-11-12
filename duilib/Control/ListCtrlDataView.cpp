@@ -56,11 +56,234 @@ void ListCtrlDataView::SetAttribute(const std::wstring& strName, const std::wstr
     }
 }
 
+void ListCtrlDataView::DoInit()
+{
+    //禁止随鼠标滚轮的滚动改变选中项
+    SetScrollSelect(false);
+}
+
+void ListCtrlDataView::HandleEvent(const EventArgs& msg)
+{
+    if (IsDisabledEvents(msg)) {
+        //如果是鼠标键盘消息，并且控件是Disabled的，转发给上层控件
+        Box* pParent = GetParent();
+        if (pParent != nullptr) {
+            pParent->SendEvent(msg);
+        }
+        else {
+            __super::HandleEvent(msg);
+        }
+        return;
+    }
+    bool bArrowKeyDown = (msg.Type == kEventKeyDown) &&
+                         ((msg.chKey == VK_UP)    || (msg.chKey == VK_DOWN) ||
+                          (msg.chKey == VK_PRIOR) || (msg.chKey == VK_NEXT) ||
+                          (msg.chKey == VK_HOME)  || (msg.chKey == VK_END));
+    const size_t nElementCount = GetElementCount();
+    if (!bArrowKeyDown || !IsMultiSelect() || (nElementCount == 0)) {
+        //在非键盘按下消息、无数据、不支持多选的情况下，走默认处理流程
+        __super::HandleEvent(msg);
+        return;
+    }
+#ifdef UILIB_IMPL_WINSDK
+    bool bShiftDown = ::GetAsyncKeyState(VK_SHIFT) < 0;
+    bool bControlDown = ::GetAsyncKeyState(VK_CONTROL) < 0;
+    bool bAltDown = ::GetAsyncKeyState(VK_MENU) < 0;
+#else
+    bool bShiftDown = false;
+    bool bControlDown = false;
+    bool bAltDown = false;
+#endif
+
+    if (bAltDown || bControlDown) {
+        //如果按住Ctrl键 或者 Alt键走默认流程
+        return __super::HandleEvent(msg);
+    }
+
+    // 以下流程处理方向键操作
+    // 处理多选情况下的方向键操作，基本与单选流程相似，多选的情况下GetCurSel()值不一定正确，需要校准
+    size_t nCurSel = GetCurSel();
+    if (nCurSel < GetItemCount()) {
+        //判断其是否可以选择：置顶项是不可选择的，应加以过滤
+        Control* pControl = GetItemAt(nCurSel);
+        if ((pControl == nullptr) || !pControl->IsVisible() || !pControl->IsSelectableType()) {
+            nCurSel = Box::InvalidIndex;
+        }
+    }
+    if (nCurSel >= GetItemCount()) {
+        //查找当前视图内第一个可选择的项目，作为起始点
+        size_t nCount = GetItemCount();
+        for (size_t index = 0; index < nCount; ++index) {
+            Control* pControl = GetItemAt(index);
+            if ((pControl == nullptr) || !pControl->IsVisible() || !pControl->IsSelectableType()) {
+                continue;
+            }
+            IListBoxItem* pItem = dynamic_cast<IListBoxItem*>(pControl);
+            if ((pItem != nullptr) && pItem->IsSelected()) {
+                nCurSel = index;
+                break;
+            }
+        }
+    }
+    if (nCurSel >= GetItemCount()) {
+        //尝试查找未在当前视图显示的已选择元素
+        size_t nDestItemIndex = Box::InvalidIndex;
+        if (OnFindSelectable(GetCurSel(), SelectableMode::kSelect, 1, nDestItemIndex)) {
+            nCurSel = GetCurSel();
+            ASSERT(nCurSel == nDestItemIndex);
+        }
+    }
+    if (nCurSel >= GetItemCount()) {
+        //全部尝试未成功后，以当前视图内的第一个元素为起始点
+        size_t nCount = GetItemCount();
+        for (size_t index = 0; index < nCount; ++index) {
+            Control* pControl = GetItemAt(index);
+            if ((pControl == nullptr) || !pControl->IsVisible()) {
+                continue;
+            }
+            IListBoxItem* pItem = dynamic_cast<IListBoxItem*>(pControl);
+            if ((pItem != nullptr) && 
+                (pItem->GetElementIndex() < nElementCount) &&
+                pControl->IsSelectableType()) {
+                nCurSel = index;
+                SetCurSel(nCurSel);
+                break;
+            }
+        }
+    }
+
+    size_t nIndexCurSel = Box::InvalidIndex;
+    if (nCurSel < GetItemCount()) {
+        nIndexCurSel = GetDisplayItemElementIndex(nCurSel);
+    }
+    const bool bForward = (msg.chKey == VK_DOWN) || (msg.chKey == VK_NEXT) || (msg.chKey == VK_HOME);
+    if (nIndexCurSel < nElementCount) {
+        //匹配可选择项
+        nIndexCurSel = FindSelectableElement(nIndexCurSel, bForward);
+    }
+    if (nIndexCurSel >= nElementCount) {
+        //没有有效的数据选择项
+        __super::HandleEvent(msg);
+        return;
+    }
+
+    size_t nIndexEnd = Box::InvalidIndex;
+    //实现Shift键 + 方向键的选择逻辑
+    switch (msg.chKey) {
+    case VK_UP:
+        //纵向滚动条，向上1行
+        if (nIndexCurSel > 0) {
+            nIndexEnd = nIndexCurSel - 1;
+        }
+        else {
+            nIndexEnd = 0;
+        }
+        break;
+    case VK_DOWN:
+        //不纵向滚动条，向下1行
+        nIndexEnd = nIndexCurSel + 1;
+        if (nIndexEnd >= nElementCount) {
+            nIndexEnd = nElementCount - 1;
+        }
+        break;
+    case VK_PRIOR:
+        {
+            size_t nColumns = 0;
+            size_t nRows = 0;
+            GetDisplayItemCount(false, nColumns, nRows);
+            if (nRows > 2) {
+                nRows -= 1;
+            }
+            if (nIndexCurSel > nRows) {
+                nIndexEnd = nIndexCurSel - nRows;
+            }
+            else {
+                nIndexEnd = 0;
+            }
+        }
+        break;
+    case VK_NEXT:
+        {
+            size_t nColumns = 0;
+            size_t nRows = 0;
+            GetDisplayItemCount(false, nColumns, nRows);
+            if (nRows > 2) {
+                nRows -= 1;
+            }
+            nIndexEnd = nIndexCurSel + nRows;
+            if (nIndexEnd >= nElementCount) {
+                nIndexEnd = nElementCount - 1;
+            }
+        }
+        break;
+    case VK_HOME:
+        nIndexEnd = 0;
+        break;
+    case VK_END:
+        nIndexEnd = nElementCount - 1;
+        break;
+    default:
+        break;
+    }
+
+    //匹配可选择项
+    nIndexEnd = FindSelectableElement(nIndexEnd, bForward);
+    if (nIndexEnd < nElementCount) {
+        std::vector<size_t> selectedIndexs; //需要选择的列表
+        if (bShiftDown) {
+            //按住Shift键：选择范围内的所有数据
+            size_t nLastNoShiftIndex = m_nLastNoShiftIndex;//起始的元素索引号
+            if (nLastNoShiftIndex >= nElementCount) {
+                nLastNoShiftIndex = 0;
+            }
+            size_t nStartElementIndex = std::min(nLastNoShiftIndex, nIndexEnd);
+            size_t nEndElementIndex = std::max(nLastNoShiftIndex, nIndexEnd);
+            for (size_t i = nStartElementIndex; i <= nEndElementIndex; ++i) {
+                if (IsSelectableElement(i)) {
+                    selectedIndexs.push_back(i);
+                }
+            }
+        }
+        else {
+            //没有按住Shift键：只选择最后一个数据
+            selectedIndexs.push_back(nIndexEnd);
+        }
+        
+        //选择这个范围内的所有元素
+        std::vector<size_t> refreshIndexs;
+        SetSelectedElements(selectedIndexs, true, refreshIndexs);
+        RefreshElements(refreshIndexs);
+        EnsureVisible(nIndexEnd, false);
+        nCurSel = GetDisplayItemIndex(nIndexEnd);
+        ASSERT(nCurSel < GetItemCount());
+        if (nCurSel < GetItemCount()) {
+            SetCurSel(nCurSel);
+            SelectItemSingle(nCurSel, true, true);
+            ASSERT(GetItemAt(nCurSel)->IsFocused());
+            ASSERT(IsElementSelected(nIndexEnd));
+#ifdef _DEBUG
+            std::vector<size_t> selected;
+            GetSelectedItems(selected);
+            ASSERT(std::find(selected.begin(), selected.end(), nCurSel) != selected.end());
+#endif
+        }
+        return;
+    }
+    __super::HandleEvent(msg);
+}
+
 bool ListCtrlDataView::SelectItem(size_t iIndex, bool bTakeFocus, bool bTriggerEvent, uint64_t vkFlag)
 {
     bool bRet = false;
     if (IsMultiSelect()) {
         //多选模式
+        const size_t nCurElementIndex = GetDisplayItemElementIndex(iIndex);
+        if ((nCurElementIndex >= GetElementCount()) || !IsSelectableElement(nCurElementIndex)){
+            //无有效选择，或者选择在置顶的数据项，按多选处理
+            bRet = SelectItemMulti(iIndex, bTakeFocus, bTriggerEvent);
+            return bRet;
+        }
+
         bool bRbuttonDown = vkFlag & kVkRButton;
         bool bShift = vkFlag & kVkShift;
         bool bControl = vkFlag & kVkControl;
@@ -70,23 +293,31 @@ bool ListCtrlDataView::SelectItem(size_t iIndex, bool bTakeFocus, bool bTriggerE
             bControl = false;
         }
         if (bRbuttonDown || (!bShift && !bControl)) {
-            //按右键 或者 没有按下Control键也没有按Shift键：按单选逻辑实现，只保留一个选项
-            std::vector<size_t> refreshDataIndexs;
+            //按右键的时候：如果当前项没选择，按单选逻辑实现，只保留一个选项；
+            //            如果已经选择，则保持原选择，所有项选择状态不变（以提供右键菜单，对所选项操作的机会）
+            //在没有按下Control键也没有按Shift键：按单选逻辑实现，只保留一个选项            
             size_t nElementIndex = GetDisplayItemElementIndex(iIndex);
-            m_nLastNoShiftIndex = nElementIndex;
-            if (nElementIndex == Box::InvalidIndex) {
-                SetSelectNone(refreshDataIndexs);
+            if (bRbuttonDown && IsElementSelected(nElementIndex)) {
+                bRet = true;
             }
             else {
-                std::vector<size_t> excludeIndexs;
-                excludeIndexs.push_back(nElementIndex);
-                SetSelectNoneExclude(excludeIndexs, refreshDataIndexs);
+                std::vector<size_t> refreshDataIndexs;
+                m_nLastNoShiftIndex = nElementIndex;
+                if (nElementIndex == Box::InvalidIndex) {
+                    SetSelectNone(refreshDataIndexs);
+                }
+                else {
+                    std::vector<size_t> excludeIndexs;
+                    excludeIndexs.push_back(nElementIndex);
+                    SetSelectNoneExclude(excludeIndexs, refreshDataIndexs);
+                }
+                SetCurSel(iIndex);
+                bRet = SelectItemSingle(iIndex, bTakeFocus, bTriggerEvent);
+                RefreshElements(refreshDataIndexs);
+                ASSERT(IsElementSelected(nElementIndex));
+                ASSERT(nElementIndex == GetDisplayItemElementIndex(iIndex));
+                bRet = true;
             }
-            SetCurSel(iIndex);
-            bRet = SelectItemSingle(iIndex, bTakeFocus, bTriggerEvent);
-            RefreshElements(refreshDataIndexs);
-            ASSERT(IsElementSelected(nElementIndex));
-            ASSERT(nElementIndex == GetDisplayItemElementIndex(iIndex));
         }
         else {            
             if (bShift) {
@@ -101,7 +332,9 @@ bool ListCtrlDataView::SelectItem(size_t iIndex, bool bTakeFocus, bool bTriggerE
                     size_t iStart = std::min(nIndexStart, nElementIndex);
                     size_t iEnd = std::max(nIndexStart, nElementIndex);
                     for (size_t i = iStart; i <= iEnd; ++i) {
-                        selectedIndexs.push_back(i);
+                        if (IsSelectableElement(i)) {
+                            selectedIndexs.push_back(i);
+                        }                        
                     }
                     std::vector<size_t> refreshDataIndexs;
                     SetSelectedElements(selectedIndexs, true, refreshDataIndexs);
@@ -110,6 +343,7 @@ bool ListCtrlDataView::SelectItem(size_t iIndex, bool bTakeFocus, bool bTriggerE
                     RefreshElements(refreshDataIndexs);
                     ASSERT(IsElementSelected(nElementIndex));
                     ASSERT(nElementIndex == GetDisplayItemElementIndex(iIndex));
+                    bRet = true;
                 }
                 else {
                     //未知情况，正常无法走到这里
@@ -119,6 +353,9 @@ bool ListCtrlDataView::SelectItem(size_t iIndex, bool bTakeFocus, bool bTriggerE
             else {
                 //按左键: 同时按下了Control键，保持多选
                 bRet = SelectItemMulti(iIndex, bTakeFocus, bTriggerEvent);
+                if (bRet) {
+                    m_nLastNoShiftIndex = GetDisplayItemElementIndex(iIndex);
+                }                
             }
         }
     }
@@ -843,6 +1080,12 @@ size_t ListCtrlDataView::GetDisplayItemCount(bool /*bIsHorizontal*/, size_t& nCo
     return nRows * nColumns;
 }
 
+bool ListCtrlDataView::IsSelectableRowData(const ListCtrlRowData& rowData) const
+{
+    //可见，并且不置顶显示
+    return rowData.bVisible && (rowData.nAlwaysAtTop < 0);
+}
+
 bool ListCtrlDataView::IsSelectableElement(size_t nElementIndex) const
 {
     bool bSelectable = true;
@@ -852,7 +1095,7 @@ bool ListCtrlDataView::IsSelectableElement(size_t nElementIndex) const
         const ListCtrlDataProvider::RowDataList& itemDataList = pDataProvider->GetItemDataList();
         if (nElementIndex < itemDataList.size()) {
             const ListCtrlRowData& rowData = itemDataList[nElementIndex];
-            bSelectable = rowData.bVisible && (rowData.nAlwaysAtTop < 0);
+            bSelectable = IsSelectableRowData(rowData);
         }
     }
     return bSelectable;
@@ -868,20 +1111,15 @@ size_t ListCtrlDataView::FindSelectableElement(size_t nElementIndex, bool bForwa
     const ListCtrlDataProvider::RowDataList& itemDataList = pDataProvider->GetItemDataList();
     const size_t nElementCount = itemDataList.size();
     if ((nElementCount == 0) || (nElementIndex >= nElementCount)) {
-        return nElementIndex;
+        return Box::InvalidIndex;
     }
-    bool bSelectable = itemDataList[nElementIndex].nAlwaysAtTop < 0;
-    if (!itemDataList[nElementIndex].bVisible) {
-        bSelectable = false;
-    }
-    if (!bSelectable) {
+    if (!IsSelectableRowData(itemDataList[nElementIndex])) {
         size_t nStartIndex = nElementIndex;
         nElementIndex = Box::InvalidIndex;
         if (bForward) {
             //向前查找下一个不是置顶的
             for (size_t i = nStartIndex + 1; i < nElementCount; ++i) {
-                const ListCtrlRowData& rowData = itemDataList[i];
-                if (rowData.bVisible && (rowData.nAlwaysAtTop < 0)) {
+                if (IsSelectableRowData(itemDataList[i])) {
                     nElementIndex = i;
                     break;
                 }
@@ -890,8 +1128,7 @@ size_t ListCtrlDataView::FindSelectableElement(size_t nElementIndex, bool bForwa
         else {
             //向后查找下一个不是置顶的
             for (int32_t i = (int32_t)nStartIndex - 1; i >= 0; --i) {
-                const ListCtrlRowData& rowData = itemDataList[i];
-                if (rowData.bVisible && (rowData.nAlwaysAtTop < 0)) {
+                if (IsSelectableRowData(itemDataList[i])) {
                     nElementIndex = i;
                     break;
                 }
