@@ -1005,30 +1005,36 @@ void ListCtrlDataView::PaintChild(IRender* pRender, const UiRect& rcPaint)
     }
 
     //鼠标框选功能的框选框绘制
-    if (m_bInMouseMove && (pRender != nullptr)) {
-        UiSize64 scrollPos = GetScrollPos();
-        int64_t left = std::min(m_ptMouseDown.cx, m_ptMouseMove.cx) - scrollPos.cx;
-        int64_t right = std::max(m_ptMouseDown.cx, m_ptMouseMove.cx) - scrollPos.cx;
-        int64_t top = std::min(m_ptMouseDown.cy, m_ptMouseMove.cy) - scrollPos.cy;
-        int64_t bottom = std::max(m_ptMouseDown.cy, m_ptMouseMove.cy) - scrollPos.cy;
-        if (m_nNormalItemTop > 0) {
-            if (top < m_nNormalItemTop) {
-                top = m_nNormalItemTop - GlobalManager::Instance().Dpi().GetScaleInt(4);
-            }
-            if (bottom < m_nNormalItemTop) {
-                bottom = m_nNormalItemTop;
-            }
-        }
+    PaintFrameSelection(pRender);
+}
 
-        UiRect rect(TruncateToInt32(left), TruncateToInt32(top), 
-                    TruncateToInt32(right), TruncateToInt32(bottom));
+void ListCtrlDataView::PaintFrameSelection(IRender* pRender)
+{
+    if (!m_bInMouseMove || (pRender == nullptr)) {
+        return;
+    }
+    UiSize64 scrollPos = GetScrollPos();
+    int64_t left = std::min(m_ptMouseDown.cx, m_ptMouseMove.cx) - scrollPos.cx;
+    int64_t right = std::max(m_ptMouseDown.cx, m_ptMouseMove.cx) - scrollPos.cx;
+    int64_t top = std::min(m_ptMouseDown.cy, m_ptMouseMove.cy) - scrollPos.cy;
+    int64_t bottom = std::max(m_ptMouseDown.cy, m_ptMouseMove.cy) - scrollPos.cy;
+    if (m_nNormalItemTop > 0) {
+        if (top < m_nNormalItemTop) {
+            top = m_nNormalItemTop - GlobalManager::Instance().Dpi().GetScaleInt(4);
+        }
+        if (bottom < m_nNormalItemTop) {
+            bottom = m_nNormalItemTop;
+        }
+    }
 
-        if ((m_frameSelectionBorderSize > 0) && !m_frameSelectionBorderColor.empty()) {
-            pRender->DrawRect(rect, GetUiColor(m_frameSelectionBorderColor.c_str()), m_frameSelectionBorderSize);
-        }
-        if (!m_frameSelectionColor.empty()) {
-            pRender->FillRect(rect, GetUiColor(m_frameSelectionColor.c_str()), m_frameSelectionAlpha);
-        }
+    UiRect rect(TruncateToInt32(left), TruncateToInt32(top),
+                TruncateToInt32(right), TruncateToInt32(bottom));
+
+    if ((m_frameSelectionBorderSize > 0) && !m_frameSelectionBorderColor.empty()) {
+        pRender->DrawRect(rect, GetUiColor(m_frameSelectionBorderColor.c_str()), m_frameSelectionBorderSize);
+    }
+    if (!m_frameSelectionColor.empty()) {
+        pRender->FillRect(rect, GetUiColor(m_frameSelectionColor.c_str()), m_frameSelectionAlpha);
     }
 }
 
@@ -1237,12 +1243,12 @@ void ListCtrlDataView::OnButtonDown(const UiPoint& ptMouse, Control* pSender)
 
 void ListCtrlDataView::OnButtonUp(const UiPoint& /*ptMouse*/, Control* pSender)
 {
+    if (m_bMouseDownInView && !m_bInMouseMove && (pSender == this)) {
+        OnListCtrlClickedBlank();
+    }
     if (m_bInMouseMove) {
         m_bInMouseMove = false;
         Invalidate();
-    }
-    if (m_bMouseDownInView && (pSender == this)) {
-        OnListCtrlClickedBlank();
     }
     m_bMouseDownInView = false;
     m_bMouseDown = false;
@@ -1265,12 +1271,12 @@ void ListCtrlDataView::OnRButtonDown(const UiPoint& ptMouse, Control* pSender)
 
 void ListCtrlDataView::OnRButtonUp(const UiPoint& /*ptMouse*/, Control* pSender)
 {
+    if (m_bMouseDownInView && !m_bInMouseMove && (pSender == this)) {
+        OnListCtrlClickedBlank();
+    }
     if (m_bInMouseMove) {
         m_bInMouseMove = false;
         Invalidate();
-    }
-    if (m_bMouseDownInView && (pSender == this)) {
-        OnListCtrlClickedBlank();
     }
     m_bMouseDownInView = false;
     m_bRMouseDown = false;
@@ -1381,18 +1387,25 @@ void ListCtrlDataView::OnCheckScrollView()
         m_scrollViewFlag.Cancel();
     }
 
-    //执行框选操作
+    int64_t cx = std::min(m_ptMouseDown.cx, m_ptMouseMove.cx) - GetRect().left;
+    //鼠标的框选，在显示内容范围内，执行框选操作
+    bool bInListItem = cx <= GetListCtrlWidth();
     int64_t top = std::min(m_ptMouseDown.cy, m_ptMouseMove.cy);
     int64_t bottom = std::max(m_ptMouseDown.cy, m_ptMouseMove.cy);
     int32_t offsetTop = GetRect().top;//当前控件左上角的top坐标
     top -= offsetTop;
     bottom -= offsetTop;
-    OnFrameSelection(top, bottom);
+    OnFrameSelection(top, bottom, bInListItem);
     Invalidate();
 }
 
-void ListCtrlDataView::OnFrameSelection(int64_t top, int64_t bottom)
+void ListCtrlDataView::OnFrameSelection(int64_t top, int64_t bottom, bool bInListItem)
 {
+    if (!bInListItem) {
+        //在空白处，不做框选处理，只是取消所有选择项
+        SetSelectNone();
+        return;
+    }
     ASSERT(top <= bottom);
     if (top > bottom) {
         return;
@@ -1675,7 +1688,7 @@ void ListCtrlDataLayout::LazyArrangeChild(UiRect rc) const
 
     struct ShowItemIndex
     {
-        size_t nElementIndex;   //元素索引
+        size_t nElementIndex;   //元素索引 
         int32_t nItemHeight;    //元素的高度
         bool bAtTop;            //是否置顶
         int32_t yOffset;        //Y轴偏移量

@@ -192,13 +192,20 @@ private:
     void OnMouseMove(const UiPoint& ptMouse, Control* pSender);
     void OnWindowKillFocus();
 
+    /** 绘制鼠标框选的边框和填充颜色
+    */
+    void PaintFrameSelection(IRender* pRender);
+
     /** 检查是否需要滚动视图
     */
     void OnCheckScrollView();
 
     /** 执行了鼠标框选操作
+    * @param [in] top 框选的Y坐标top值
+    * @param [in] bottom 框选的Y坐标bottom值
+    * @param [in] bInListItem true表示框选范围在列表项的内容中，false表示只在空白处
     */
-    void OnFrameSelection(int64_t top, int64_t bottom);
+    void OnFrameSelection(int64_t top, int64_t bottom, bool bInListItem);
 
     /** 设置普通列表项（非Header、非置顶）的top坐标
     */
