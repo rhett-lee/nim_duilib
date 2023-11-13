@@ -192,6 +192,10 @@ private:
     void OnMouseMove(const UiPoint& ptMouse, Control* pSender);
     void OnWindowKillFocus();
 
+    /** 绘制网格线
+    */
+    void PaintGridLines(IRender* pRender);
+
     /** 绘制鼠标框选的边框和填充颜色
     */
     void PaintFrameSelection(IRender* pRender);

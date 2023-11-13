@@ -39,14 +39,19 @@ bool ListCtrlDataProvider::FillElement(ui::Control* pControl, size_t nElementInd
     if (pHeaderCtrl == nullptr) {
         return false;
     }
+    
     ListCtrlItem* pItem = dynamic_cast<ListCtrlItem*>(pControl);
     ASSERT(pItem != nullptr);
     if (pItem == nullptr) {
         return false;
     }
-    // 基本结构: <ListCtrlItem> <LabelBox/> ... <LabelBox/>  </ListCtrlItem>
+    //Header控件的内边距, 需要同步给每个列表项控件，保持对齐一致
+    pItem->SetPadding(pHeaderCtrl->GetPadding(), false);
+
+    // 基本结构: <ListCtrlItem> <ListCtrlSubItem/> ... <ListCtrlSubItem/>  </ListCtrlItem>
     // 附加说明: 1. ListCtrlItem 是 HBox的子类;   
-    //          2. 每一列，放置一个LabelBox控件
+    //          2. 每一列，放置一个ListCtrlSubItem控件
+    //          3. ListCtrlSubItem 是LabelBox的子类
 
     //获取需要显示的各个列的属性
     struct ElementData
@@ -54,7 +59,7 @@ bool ListCtrlDataProvider::FillElement(ui::Control* pControl, size_t nElementInd
         size_t nColumnId = Box::InvalidIndex;
         int32_t nColumnWidth = 0;
         StoragePtr pStorage;
-    };
+    };    
     std::vector<ElementData> elementDataList;
     const size_t nColumnCount = pHeaderCtrl->GetColumnCount();
     for (size_t nColumnIndex = 0; nColumnIndex < nColumnCount; ++nColumnIndex) {
@@ -99,75 +104,74 @@ bool ListCtrlDataProvider::FillElement(ui::Control* pControl, size_t nElementInd
     }
 
     //默认属性
-    std::wstring defaultLabelBoxClass = m_pListCtrl->GetDataItemLabelClass();
-    LabelBox defaultLabelBox;
-    defaultLabelBox.SetWindow(m_pListCtrl->GetWindow());
-    defaultLabelBox.SetClass(defaultLabelBoxClass);
-
-    bool bFirstLine = (m_pListCtrl->GetTopDataItem() == nElementIndex);//是否为第一个数据行    
+    std::wstring defaultSubItemClass = m_pListCtrl->GetDataSubItemClass();
+    ListCtrlSubItem defaultSubItem;
+    defaultSubItem.SetWindow(m_pListCtrl->GetWindow());
+    defaultSubItem.SetClass(defaultSubItemClass);
+   
     for (size_t nColumn = 0; nColumn < showColumnCount; ++nColumn) {
         const ElementData& elementData = elementDataList[nColumn];
-        LabelBox* pLabelBox = nullptr;
+        ListCtrlSubItem* pSubItem = nullptr;
         if (nColumn < pItem->GetItemCount()) {
-            pLabelBox = dynamic_cast<LabelBox*>(pItem->GetItemAt(nColumn));
-            ASSERT(pLabelBox != nullptr);
-            if (pLabelBox == nullptr) {
+            pSubItem = dynamic_cast<ListCtrlSubItem*>(pItem->GetItemAt(nColumn));
+            ASSERT(pSubItem != nullptr);
+            if (pSubItem == nullptr) {
                 return false;
             }
         }
         else {
-            pLabelBox = new LabelBox;
-            pItem->AddItem(pLabelBox);            
-            if (!defaultLabelBoxClass.empty()) {
-                pLabelBox->SetClass(defaultLabelBoxClass);
+            pSubItem = new ListCtrlSubItem;
+            pItem->AddItem(pSubItem);
+            if (!defaultSubItemClass.empty()) {
+                pSubItem->SetClass(defaultSubItemClass);
             }
-            pLabelBox->SetMouseEnabled(false);
+            pSubItem->SetMouseEnabled(false);
         }
 
         //填充数据，设置属性        
-        pLabelBox->SetFixedWidth(UiFixedInt(elementData.nColumnWidth), true, false);
+        pSubItem->SetFixedWidth(UiFixedInt(elementData.nColumnWidth), true, false);
         const StoragePtr& pStorage = elementData.pStorage;
         if (pStorage != nullptr) {
-            pLabelBox->SetText(pStorage->text.c_str());
+            pSubItem->SetText(pStorage->text.c_str());
             if (pStorage->nTextFormat != 0) {
-                pLabelBox->SetTextStyle(pStorage->nTextFormat, false);
+                pSubItem->SetTextStyle(pStorage->nTextFormat, false);
             }
             else {
-                pLabelBox->SetTextStyle(defaultLabelBox.GetTextStyle(), false);
+                pSubItem->SetTextStyle(defaultSubItem.GetTextStyle(), false);
             }
-            pLabelBox->SetTextPadding(defaultLabelBox.GetTextPadding(), false);
+            pSubItem->SetTextPadding(defaultSubItem.GetTextPadding(), false);
             if (!pStorage->textColor.IsEmpty()) {
-                pLabelBox->SetStateTextColor(kControlStateNormal, pLabelBox->GetColorString(pStorage->textColor));
+                pSubItem->SetStateTextColor(kControlStateNormal, pSubItem->GetColorString(pStorage->textColor));
             }
             else {
-                pLabelBox->SetStateTextColor(kControlStateNormal, defaultLabelBox.GetStateTextColor(kControlStateNormal));
+                pSubItem->SetStateTextColor(kControlStateNormal, defaultSubItem.GetStateTextColor(kControlStateNormal));
             }
             if (!pStorage->bkColor.IsEmpty()) {
-                pLabelBox->SetBkColor(pStorage->bkColor);
+                pSubItem->SetBkColor(pStorage->bkColor);
             }
             else {
-                pLabelBox->SetBkColor(defaultLabelBox.GetBkColor());
+                pSubItem->SetBkColor(defaultSubItem.GetBkColor());
             }
             if (pStorage->bShowCheckBox) {
                 //添加CheckBox
                 CheckBox* pCheckBox = nullptr;
-                if (pLabelBox->GetItemCount() > 0) {
-                    pCheckBox = dynamic_cast<CheckBox*>(pLabelBox->GetItemAt(0));
+                if (pSubItem->GetItemCount() > 0) {
+                    pCheckBox = dynamic_cast<CheckBox*>(pSubItem->GetItemAt(0));
                 }
                 if (pCheckBox == nullptr) {
                     pCheckBox = new CheckBox;
                     std::wstring checkBoxClass = m_pListCtrl->GetCheckBoxClass();
                     ASSERT(!checkBoxClass.empty());
-                    pLabelBox->AddItem(pCheckBox);
+                    pSubItem->AddItem(pCheckBox);
                     if (!checkBoxClass.empty()) {
                         pCheckBox->SetClass(checkBoxClass);
                     }
                 }
-                UiPadding textPadding = pLabelBox->GetTextPadding();
+                UiPadding textPadding = pSubItem->GetTextPadding();
                 int32_t nCheckBoxWidth = pStorage->nCheckBoxWidth;
                 if (textPadding.left < nCheckBoxWidth) {
                     textPadding.left = nCheckBoxWidth;
-                    pLabelBox->SetTextPadding(textPadding, false);
+                    pSubItem->SetTextPadding(textPadding, false);
                 }
 
                 //挂载CheckBox的事件处理
@@ -185,59 +189,25 @@ bool ListCtrlDataProvider::FillElement(ui::Control* pControl, size_t nElementInd
                     });
             }
             else {
-                if (pLabelBox->GetItemCount() > 0) {
-                    CheckBox* pCheckBox = dynamic_cast<CheckBox*>(pLabelBox->GetItemAt(0));
+                if (pSubItem->GetItemCount() > 0) {
+                    CheckBox* pCheckBox = dynamic_cast<CheckBox*>(pSubItem->GetItemAt(0));
                     if (pCheckBox != nullptr) {
-                        pLabelBox->RemoveItemAt(0);
+                        pSubItem->RemoveItemAt(0);
                     }
                 }
             }
         }
         else {
-            pLabelBox->SetTextStyle(defaultLabelBox.GetTextStyle(), false);
-            pLabelBox->SetText(defaultLabelBox.GetText());
-            pLabelBox->SetTextPadding(defaultLabelBox.GetTextPadding(), false);
-            pLabelBox->SetStateTextColor(kControlStateNormal, defaultLabelBox.GetStateTextColor(kControlStateNormal));
-            pLabelBox->SetBkColor(defaultLabelBox.GetBkColor());
-            if (pLabelBox->GetItemCount() > 0) {
-                CheckBox* pCheckBox = dynamic_cast<CheckBox*>(pLabelBox->GetItemAt(0));
+            pSubItem->SetTextStyle(defaultSubItem.GetTextStyle(), false);
+            pSubItem->SetText(defaultSubItem.GetText());
+            pSubItem->SetTextPadding(defaultSubItem.GetTextPadding(), false);
+            pSubItem->SetStateTextColor(kControlStateNormal, defaultSubItem.GetStateTextColor(kControlStateNormal));
+            pSubItem->SetBkColor(defaultSubItem.GetBkColor());
+            if (pSubItem->GetItemCount() > 0) {
+                CheckBox* pCheckBox = dynamic_cast<CheckBox*>(pSubItem->GetItemAt(0));
                 if (pCheckBox != nullptr) {
-                    pLabelBox->RemoveItemAt(0);
+                    pSubItem->RemoveItemAt(0);
                 }
-            }
-        }
-
-        //绘制边线
-        int32_t mColumnLineWidth = GlobalManager::Instance().Dpi().GetScaleInt(1);//纵向边线宽度        
-        int32_t mRowLineWidth = GlobalManager::Instance().Dpi().GetScaleInt(1);   //横向边线宽度
-        if (m_pListCtrl != nullptr) {
-            mColumnLineWidth = m_pListCtrl->GetColumnGridLineWidth();
-            mRowLineWidth = m_pListCtrl->GetRowGridLineWidth();
-        }
-        if (bFirstLine) {
-            //第一行
-            if (nColumn == 0) {
-                //第一列
-                UiRect rc(mColumnLineWidth, mRowLineWidth, mColumnLineWidth, mRowLineWidth);
-                pLabelBox->SetBorderSize(rc, false);
-            }
-            else {
-                //非第一列
-                UiRect rc(0, mRowLineWidth, mColumnLineWidth, mRowLineWidth);
-                pLabelBox->SetBorderSize(rc, false);
-            }
-        }
-        else {
-            //非第一行
-            if (nColumn == 0) {
-                //第一列
-                UiRect rc(mColumnLineWidth, 0, mColumnLineWidth, mRowLineWidth);
-                pLabelBox->SetBorderSize(rc, false);
-            }
-            else {
-                //非第一列
-                UiRect rc(0, 0, mColumnLineWidth, mRowLineWidth);
-                pLabelBox->SetBorderSize(rc, false);
             }
         }
     }
@@ -464,14 +434,14 @@ int32_t ListCtrlDataProvider::GetColumnWidthAuto(size_t columnId) const
         }
 
         //默认属性
-        std::wstring defaultLabelBoxClass = m_pListCtrl->GetDataItemLabelClass();
-        LabelBox defaultLabelBox;
-        defaultLabelBox.SetWindow(m_pListCtrl->GetWindow());
-        defaultLabelBox.SetClass(defaultLabelBoxClass);
+        std::wstring defaultSubItemClass = m_pListCtrl->GetDataSubItemClass();
+        ListCtrlSubItem defaultSubItem;
+        defaultSubItem.SetWindow(m_pListCtrl->GetWindow());
+        defaultSubItem.SetClass(defaultSubItemClass);
 
-        LabelBox labelBox;
-        labelBox.SetWindow(m_pListCtrl->GetWindow());
-        labelBox.SetClass(defaultLabelBoxClass);
+        ListCtrlSubItem subItem;
+        subItem.SetWindow(m_pListCtrl->GetWindow());
+        subItem.SetClass(defaultSubItemClass);
 
         for (size_t index = 0; index < nCount; ++index) {
             const StoragePtr& pStorage = storageList[index];
@@ -479,26 +449,26 @@ int32_t ListCtrlDataProvider::GetColumnWidthAuto(size_t columnId) const
                 continue;
             }
 
-            labelBox.SetText(pStorage->text.c_str());
+            subItem.SetText(pStorage->text.c_str());
             if (pStorage->nTextFormat != 0) {
-                labelBox.SetTextStyle(pStorage->nTextFormat, false);
+                subItem.SetTextStyle(pStorage->nTextFormat, false);
             }
             else {
-                labelBox.SetTextStyle(defaultLabelBox.GetTextStyle(), false);
+                subItem.SetTextStyle(defaultSubItem.GetTextStyle(), false);
             }
-            labelBox.SetTextPadding(defaultLabelBox.GetTextPadding(), false);
+            subItem.SetTextPadding(defaultSubItem.GetTextPadding(), false);
             if (pStorage->bShowCheckBox) {
-                UiPadding textPadding = labelBox.GetTextPadding();
+                UiPadding textPadding = subItem.GetTextPadding();
                 int32_t nCheckBoxWidth = pStorage->nCheckBoxWidth;
                 if (textPadding.left < nCheckBoxWidth) {
                     textPadding.left = nCheckBoxWidth;
-                    labelBox.SetTextPadding(textPadding, false);
+                    subItem.SetTextPadding(textPadding, false);
                 }
             }
-            labelBox.SetFixedWidth(UiFixedInt::MakeAuto(), false, false);
-            labelBox.SetFixedHeight(UiFixedInt::MakeAuto(), false, false);
-            labelBox.SetReEstimateSize(true);
-            UiEstSize sz = labelBox.EstimateSize(UiSize(0, 0));
+            subItem.SetFixedWidth(UiFixedInt::MakeAuto(), false, false);
+            subItem.SetFixedHeight(UiFixedInt::MakeAuto(), false, false);
+            subItem.SetReEstimateSize(true);
+            UiEstSize sz = subItem.EstimateSize(UiSize(0, 0));
             nMaxWidth = std::max(nMaxWidth, sz.cx.GetInt32());
         }
     }

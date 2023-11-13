@@ -4,10 +4,15 @@
 #pragma once
 
 #include "duilib/Box/ListBox.h"
+#include "duilib/Control/Label.h"
 
 namespace ui
 {
 /** ListCtrl列表数据项UI控件（行）
+*    基本结构: <ListCtrlItem> <ListCtrlSubItem/> ... <ListCtrlSubItem/>  </ListCtrlItem>
+     附加说明: 1. ListCtrlItem 是HBox的子类;   
+              2. 每一列，放置一个ListCtrlSubItem控件
+              3. ListCtrlSubItem 是LabelBox的子类
 */
 class ListCtrlItem : public ListBoxItemH
 {
@@ -53,6 +58,14 @@ private:
     /** 是否可以选择（影响方向键切换选择项）
     */
     bool m_bSelectable;
+};
+
+/** 列表项的子项
+*/
+class ListCtrlSubItem : public LabelBox
+{
+public:
+
 };
 
 }//namespace ui

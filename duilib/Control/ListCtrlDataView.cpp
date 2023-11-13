@@ -19,11 +19,13 @@ ListCtrlDataView::ListCtrlDataView() :
     m_nLastNoShiftIndex(0),
     m_bMouseDownInView(false)
 {
-    VirtualLayout* pVirtualLayout = dynamic_cast<VirtualLayout*>(GetLayout());
-    SetVirtualLayout(pVirtualLayout);
-
     ListCtrlDataLayout* pDataLayout = dynamic_cast<ListCtrlDataLayout*>(GetLayout());
     ASSERT(pDataLayout != nullptr);
+
+    VirtualLayout* pVirtualLayout = pDataLayout;
+    ASSERT(pVirtualLayout != nullptr);
+    SetVirtualLayout(pVirtualLayout);
+    
     if (pDataLayout != nullptr) {
         pDataLayout->SetDataView(this);
     }
@@ -548,7 +550,7 @@ bool ListCtrlDataView::EnsureDataItemVisible(size_t itemIndex, bool bToTop)
     if (!Box::IsValidItemIndex(itemIndex) || (itemIndex >= GetElementCount())) {
         return false;
     }
-    VirtualLayout* pVirtualLayout = dynamic_cast<VirtualLayout*>(GetLayout());
+    VirtualLayout* pVirtualLayout = GetVirtualLayout();
     if (pVirtualLayout != nullptr) {
         pVirtualLayout->EnsureVisible(GetRect(), itemIndex, bToTop);
         return true;
@@ -960,6 +962,8 @@ void ListCtrlDataView::PaintChild(IRender* pRender, const UiRect& rcPaint)
             rcTopControls.Union(pTopControl->GetRect());
         }
     }
+
+    //绘制列表项子控件
     for (Control* pControl : items) {
         if (pControl == nullptr) {
             continue;
@@ -994,6 +998,11 @@ void ListCtrlDataView::PaintChild(IRender* pRender, const UiRect& rcPaint)
             pRender->ClearClip();
         }
     }
+
+    //网格线的绘制
+    PaintGridLines(pRender);
+
+    //绘制滚动条
     ScrollBar* pVScrollBar = GetVScrollBar();
     ScrollBar* pHScrollBar = GetHScrollBar();
     if ((pHScrollBar != nullptr) && pHScrollBar->IsVisible()) {
@@ -1006,6 +1015,87 @@ void ListCtrlDataView::PaintChild(IRender* pRender, const UiRect& rcPaint)
 
     //鼠标框选功能的框选框绘制
     PaintFrameSelection(pRender);
+}
+
+void ListCtrlDataView::PaintGridLines(IRender* pRender)
+{
+    int32_t nColumnLineWidth = GlobalManager::Instance().Dpi().GetScaleInt(1);//纵向边线宽度        
+    int32_t nRowLineWidth = GlobalManager::Instance().Dpi().GetScaleInt(1);   //横向边线宽度
+    UiColor columnLineColor;
+    UiColor rowLineColor;
+    if (m_pListCtrl != nullptr) {
+        nColumnLineWidth = m_pListCtrl->GetColumnGridLineWidth();
+        nRowLineWidth = m_pListCtrl->GetRowGridLineWidth();
+        std::wstring color = m_pListCtrl->GetColumnGridLineColor();
+        if (!color.empty()) {
+            columnLineColor = m_pListCtrl->GetUiColor(color);
+        }
+        color = m_pListCtrl->GetRowGridLineColor();
+        if (!color.empty()) {
+            rowLineColor = m_pListCtrl->GetUiColor(color);
+        }
+    }
+    if ((nColumnLineWidth > 0) && !columnLineColor.IsEmpty()) {
+        //绘制纵向网格线        
+        UiRect viewRect = GetRect();
+        int32_t yTop = viewRect.top;
+        std::vector<int32_t> xPosList;
+        const size_t itemCount = GetItemCount();
+        for (size_t index = 0; index < itemCount; ++index) {
+            if (index == 0) {
+                ListCtrlHeader* pHeader = dynamic_cast<ListCtrlHeader*>(GetItemAt(index));
+                if (pHeader != nullptr) {
+                    if (pHeader->IsVisible() && (pHeader->GetHeight() > 0)) {
+                        yTop = pHeader->GetRect().bottom;//从Header的低端开始画线
+                    }
+                    continue;
+                }
+            }
+            ListCtrlItem* pItem = dynamic_cast<ListCtrlItem*>(GetItemAt(index));
+            if ((pItem == nullptr) || !pItem->IsVisible() || (pItem->GetWidth() <= 0)) {
+                continue;
+            }
+            size_t nSubItemCount = pItem->GetItemCount();
+            for (size_t nSubItem = 0; nSubItem < nSubItemCount; ++nSubItem) {
+                ListCtrlSubItem* pSubItem = dynamic_cast<ListCtrlSubItem*>(pItem->GetItemAt(nSubItem));
+                if ((pSubItem == nullptr) || !pSubItem->IsVisible() || (pSubItem->GetWidth() <= 0)) {
+                    continue;
+                }
+                xPosList.push_back(pSubItem->GetRect().right);
+            }
+            break;
+        }
+
+        for (int32_t xPos : xPosList) {
+            //横坐标位置放在每个子项控件的右侧部            
+            UiPoint pt1(xPos, yTop);
+            UiPoint pt2(xPos, viewRect.bottom);
+            pRender->DrawLine(pt1, pt2, columnLineColor, nColumnLineWidth);
+        }
+    }
+    if ((nRowLineWidth > 0) && !rowLineColor.IsEmpty()) {
+        //绘制横向网格线
+        UiRect viewRect = GetRect();
+        const size_t itemCount = GetItemCount();
+        for (size_t index = 0; index < itemCount; ++index) {
+            ListCtrlItem* pItem = dynamic_cast<ListCtrlItem*>(GetItemAt(index));
+            if ((pItem == nullptr) || !pItem->IsVisible() || (pItem->GetHeight() <= 0)) {
+                continue;
+            }
+            //纵坐标位置放在每个子项控件的底部（Header控件的底部不画线）
+            int32_t yPos = pItem->GetRect().bottom;
+            int32_t nChildMarginY = 0;
+            Layout* pLayout = GetLayout();
+            if (pLayout != nullptr) {
+                nChildMarginY = pLayout->GetChildMarginY();
+            }
+            yPos += nChildMarginY / 2;
+
+            UiPoint pt1(viewRect.left, yPos);
+            UiPoint pt2(viewRect.right, yPos);
+            pRender->DrawLine(pt1, pt2, rowLineColor, nRowLineWidth);
+        }
+    }
 }
 
 void ListCtrlDataView::PaintFrameSelection(IRender* pRender)

@@ -40,7 +40,7 @@ void MainForm::OnInitWindow()
 		return;
 	}
 	//填充数据
-	InsertItemData(200, 3);
+	InsertItemData(200, 4);
 
 	//表头高度控制
 	ui::RichEdit* pHeaderHeightEdit = dynamic_cast<ui::RichEdit*>(FindControl(L"header_height_edit"));

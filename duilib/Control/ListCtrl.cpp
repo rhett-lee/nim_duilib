@@ -56,14 +56,20 @@ void ListCtrl::SetAttribute(const std::wstring& strName, const std::wstring& str
     else if (strName == L"data_item_class") {
         SetDataItemClass(strValue);
     }
-    else if (strName == L"data_item_label_class") {
-        SetDataItemLabelClass(strValue);
+    else if (strName == L"data_sub_item_class") {
+        SetDataSubItemClass(strValue);
     }
     else if (strName == L"row_grid_line_width") {
         SetRowGridLineWidth(_wtoi(strValue.c_str()), true);
     }
+    else if (strName == L"row_grid_line_color") {
+        SetRowGridLineColor(strValue);
+    }
     else if (strName == L"column_grid_line_width") {
         SetColumnGridLineWidth(_wtoi(strValue.c_str()), true);
+    }
+    else if (strName == L"column_grid_line_color") {
+        SetColumnGridLineColor(strValue);
     }
     else if (strName == L"data_view_class") {
         SetDataViewClass(strValue);
@@ -156,14 +162,14 @@ std::wstring ListCtrl::GetDataItemClass() const
     return m_dataItemClass.c_str();
 }
 
-void ListCtrl::SetDataItemLabelClass(const std::wstring& className)
+void ListCtrl::SetDataSubItemClass(const std::wstring& className)
 {
-    m_dataItemLabelClass = className;
+    m_dataSubItemClass = className;
 }
 
-std::wstring ListCtrl::GetDataItemLabelClass() const
+std::wstring ListCtrl::GetDataSubItemClass() const
 {
-    return m_dataItemLabelClass.c_str();
+    return m_dataSubItemClass.c_str();
 }
 
 void ListCtrl::SetRowGridLineWidth(int32_t nLineWidth, bool bNeedDpiScale)
@@ -174,13 +180,32 @@ void ListCtrl::SetRowGridLineWidth(int32_t nLineWidth, bool bNeedDpiScale)
     if (nLineWidth < 0) {
         nLineWidth = 0;
     }
-    m_nRowGridLineWidth = nLineWidth;
-    Refresh();
+    if (m_nRowGridLineWidth != nLineWidth) {
+        m_nRowGridLineWidth = nLineWidth;
+        if (m_pDataView != nullptr) {
+            m_pDataView->Invalidate();
+        }
+    }
 }
 
 int32_t ListCtrl::GetRowGridLineWidth() const
 {
     return m_nRowGridLineWidth;
+}
+
+void ListCtrl::SetRowGridLineColor(const std::wstring& color)
+{
+    if (m_rowGridLineColor != color) {
+        m_rowGridLineColor = color;
+        if (m_pDataView != nullptr) {
+            m_pDataView->Invalidate();
+        }
+    }
+}
+
+std::wstring ListCtrl::GetRowGridLineColor() const
+{
+    return m_rowGridLineColor.c_str();
 }
 
 void ListCtrl::SetColumnGridLineWidth(int32_t nLineWidth, bool bNeedDpiScale)
@@ -191,13 +216,32 @@ void ListCtrl::SetColumnGridLineWidth(int32_t nLineWidth, bool bNeedDpiScale)
     if (nLineWidth < 0) {
         nLineWidth = 0;
     }
-    m_nColumnGridLineWidth = nLineWidth;
-    Refresh();
+    if (m_nColumnGridLineWidth != nLineWidth) {
+        m_nColumnGridLineWidth = nLineWidth;
+        if (m_pDataView != nullptr) {
+            m_pDataView->Invalidate();
+        }
+    }    
 }
 
 int32_t ListCtrl::GetColumnGridLineWidth() const
 {
     return m_nColumnGridLineWidth;
+}
+
+void ListCtrl::SetColumnGridLineColor(const std::wstring& color)
+{
+    if (m_columnGridLineColor != color) {
+        m_columnGridLineColor = color;
+        if (m_pDataView != nullptr) {
+            m_pDataView->Invalidate();
+        }
+    }
+}
+
+std::wstring ListCtrl::GetColumnGridLineColor() const
+{
+    return m_columnGridLineColor.c_str();
 }
 
 void ListCtrl::SetEnableColumnWidthAuto(bool bEnable)
@@ -477,15 +521,15 @@ void ListCtrl::OnColumnWidthChanged(size_t nColumnId1, size_t nColumnId2)
         size_t columnCount = pItem->GetItemCount();
         for (size_t nColumn = 0; nColumn < columnCount; ++nColumn) {
             if ((nColumn == nColumn1) && (nColumnWidth1 >= 0)) {
-                LabelBox* pLabelBox = dynamic_cast<LabelBox*>(pItem->GetItemAt(nColumn));
-                if (pLabelBox != nullptr) {
-                    pLabelBox->SetFixedWidth(UiFixedInt(nColumnWidth1), true, false);
+                ListCtrlSubItem* pSubItem = dynamic_cast<ListCtrlSubItem*>(pItem->GetItemAt(nColumn));
+                if (pSubItem != nullptr) {
+                    pSubItem->SetFixedWidth(UiFixedInt(nColumnWidth1), true, false);
                 }
             }
             if ((nColumn == nColumn2) && (nColumnWidth2 >= 0)) {
-                LabelBox* pLabelBox = dynamic_cast<LabelBox*>(pItem->GetItemAt(nColumn));
-                if (pLabelBox != nullptr) {
-                    pLabelBox->SetFixedWidth(UiFixedInt(nColumnWidth2), true, false);
+                ListCtrlSubItem* pSubItem = dynamic_cast<ListCtrlSubItem*>(pItem->GetItemAt(nColumn));
+                if (pSubItem != nullptr) {
+                    pSubItem->SetFixedWidth(UiFixedInt(nColumnWidth2), true, false);
                 }
             }
         }
@@ -584,13 +628,13 @@ void ListCtrl::UpdateControlCheckStatus(size_t nColumnId)
             ListCtrlItem* pItem = dynamic_cast<ListCtrlItem*>(m_pDataView->GetItemAt(itemIndex));
             if ((pItem != nullptr) && pItem->IsVisible()) {
                 const size_t columnCount = pItem->GetItemCount();
-                LabelBox* pLabelBox = nullptr;
+                ListCtrlSubItem* pSubItem = nullptr;
                 if (columnIndex < columnCount) {
-                    pLabelBox = dynamic_cast<LabelBox*>(pItem->GetItemAt(columnIndex));
+                    pSubItem = dynamic_cast<ListCtrlSubItem*>(pItem->GetItemAt(columnIndex));
                 }
                 CheckBox* pCheckBox = nullptr;
-                if (pLabelBox != nullptr) {
-                    pCheckBox = dynamic_cast<CheckBox*>(pLabelBox->GetItemAt(0));
+                if (pSubItem != nullptr) {
+                    pCheckBox = dynamic_cast<CheckBox*>(pSubItem->GetItemAt(0));
                 }
                 if (pCheckBox != nullptr) {
                     checkList.push_back(pCheckBox->IsSelected());

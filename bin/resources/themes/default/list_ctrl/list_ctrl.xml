@@ -94,11 +94,13 @@
                           enable_header_drag_order="true" 
                           check_box_class="list_ctrl_checkbox"
                           data_item_class="list_ctrl_item"
-                          data_item_label_class="list_ctrl_item_label"
+                          data_sub_item_class="list_ctrl_sub_item"
                           data_view_class="list_ctrl_data_view"                         
                           data_item_height="46"
                           row_grid_line_width="1"
-                          column_grid_line_width="1"
+                          row_grid_line_color="lightgray"
+                          column_grid_line_width="1"                          
+                          column_grid_line_color="lightgray"
                           multi_select="true"/>
             </VBox>
         </VBox>

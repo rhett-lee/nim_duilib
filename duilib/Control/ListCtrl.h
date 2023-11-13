@@ -465,10 +465,10 @@ protected:
     void SetDataItemClass(const std::wstring& className);
     std::wstring GetDataItemClass() const;
 
-    /** ListCtrlItem/LabelBox的Class属性
+    /** ListCtrlItem/ListCtrlSubItem的Class属性
     */
-    void SetDataItemLabelClass(const std::wstring& className);
-    std::wstring GetDataItemLabelClass() const;
+    void SetDataSubItemClass(const std::wstring& className);
+    std::wstring GetDataSubItemClass() const;
 
     /** 横向网格线的宽度
     * @param [in] nLineWidth 网格线的宽度，如果为0表示不显示横向网格线
@@ -477,12 +477,24 @@ protected:
     void SetRowGridLineWidth(int32_t nLineWidth, bool bNeedDpiScale);
     int32_t GetRowGridLineWidth() const;
 
+    /** 横向网格线的颜色
+    * @param [in] color 横向网格线的颜色
+    */
+    void SetRowGridLineColor(const std::wstring& color);
+    std::wstring GetRowGridLineColor() const;
+
     /** 纵向网格线的宽度
     * @param [in] nLineWidth 网格线的宽度，如果为0表示不显示纵向网格线
     * @param [in] bNeedDpiScale 如果为true表示需要对宽度进行DPI自适应
     */
     void SetColumnGridLineWidth(int32_t nLineWidth, bool bNeedDpiScale);
     int32_t GetColumnGridLineWidth() const;
+
+    /** 纵向网格线的颜色
+    * @param [in] color 纵向网格线的颜色
+    */
+    void SetColumnGridLineColor(const std::wstring& color);
+    std::wstring GetColumnGridLineColor() const;
 
     /** 是否支持双击Header的分割条自动调整列宽
     */
@@ -580,9 +592,9 @@ private:
     */
     UiString m_dataItemClass;
 
-    /** ListCtrlItem/LabelBox的Class属性
+    /** ListCtrlItem/ListCtrlSubItem的Class属性
     */
-    UiString m_dataItemLabelClass;
+    UiString m_dataSubItemClass;
 
     /** 当前是否可以更新Header的Check状态
     */
@@ -592,9 +604,17 @@ private:
     */
     int32_t m_nRowGridLineWidth;
 
+    /** 横向网格线的颜色
+    */
+    UiString m_rowGridLineColor;
+
     /** 纵向网格线的宽度
     */
     int32_t m_nColumnGridLineWidth;
+
+    /** 纵向网格线的颜色
+    */
+    UiString m_columnGridLineColor;
 
     /** ListBox的Class属性
     */
