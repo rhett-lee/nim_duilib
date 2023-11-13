@@ -357,6 +357,16 @@ protected:
 	*/
 	virtual void OnItemSelectedChanged(size_t iIndex, IListBoxItem* pListBoxItem) override;
 
+	/** 响应KeyDown消息
+	* @return 返回true表示成功处理，返回false表示未处理此消息
+	*/
+	bool OnListBoxKeyDown(const EventArgs& msg);
+
+	/** 响应MouseWheel消息
+	@return 返回true表示成功处理，返回false表示未处理此消息
+	*/
+	bool OnListBoxMouseWheel(const EventArgs& msg);
+
 protected:
 	/**
 	 * @brief 默认的子项对比方法

@@ -214,6 +214,11 @@ private:
     */
     bool IsSelectableRowData(const ListCtrlRowData& rowData) const;
 
+    /** 响应KeyDown消息
+    * @return 返回true表示成功处理，返回false表示未处理此消息
+    */
+    bool OnListCtrlKeyDown(const EventArgs& msg);
+
 private:
     /** ListCtrl 控件接口
     */

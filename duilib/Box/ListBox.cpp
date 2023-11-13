@@ -63,20 +63,33 @@ void ListBox::HandleEvent(const EventArgs& msg)
 		}
 		return;
 	}
+	bool bHandled = false;
+	if (msg.Type == kEventKeyDown) {
+		bHandled = OnListBoxKeyDown(msg);
+	}
+	else if (msg.Type == kEventMouseWheel) {
+		bHandled = OnListBoxMouseWheel(msg);
+	}	
+	if(!bHandled) {
+		__super::HandleEvent(msg);
+	}
+}
+
+bool ListBox::OnListBoxKeyDown(const EventArgs& msg)
+{
+	ASSERT(msg.Type == kEventKeyDown);
+	bool bHandled = false;
 	bool bArrowKeyDown = (msg.Type == kEventKeyDown) &&
-						 ((msg.chKey == VK_UP)    || (msg.chKey == VK_DOWN) ||
-					      (msg.chKey == VK_LEFT)  || (msg.chKey == VK_RIGHT) ||
+						  ((msg.chKey == VK_UP) || (msg.chKey == VK_DOWN) ||
+						  (msg.chKey == VK_LEFT) || (msg.chKey == VK_RIGHT) ||
 						  (msg.chKey == VK_PRIOR) || (msg.chKey == VK_NEXT) ||
-						  (msg.chKey == VK_HOME)  || (msg.chKey == VK_END));
-	bool bMouseWheel = (msg.Type == kEventMouseWheel) && !m_bScrollSelect;
-	if (!bArrowKeyDown && !bMouseWheel){
-		//只关心 kEventKeyDown 和 kEventMouseWheel(且开启ScrollSelect选项)消息
-		return __super::HandleEvent(msg);
+						  (msg.chKey == VK_HOME) || (msg.chKey == VK_END));
+	if (!bArrowKeyDown) {
+		return bHandled;
 	}
 
 	bool bHasSelectItem = GetCurSel() < GetItemCount(); //是否有单选的选择项
-	if ((msg.Type == kEventKeyDown) && !IsMultiSelect() && 
-		(GetItemCount() > 0) && !bHasSelectItem) {
+	if (!IsMultiSelect() && (GetItemCount() > 0) && !bHasSelectItem) {
 		//当前界面中无选中项，需要查询子类（虚表实现）中是否有选中项
 		size_t nDestItemIndex = Box::InvalidIndex;
 		if (OnFindSelectable(GetCurSel(), SelectableMode::kSelect, 1, nDestItemIndex)) {
@@ -86,112 +99,114 @@ void ListBox::HandleEvent(const EventArgs& msg)
 	}
 	if (IsMultiSelect() || (GetItemCount() == 0) || !bHasSelectItem) {
 		//在无数据、支持多选、无选中项的情况下，不支持单选快捷键逻辑，但支持HOME和END键的响应(滚动)
-		bool bHandled = false;
-		if (msg.Type == kEventKeyDown) {
-			if (msg.chKey == VK_HOME) {
-				if (IsHorizontalScrollBar()) {
-					HomeLeft();
-				}
-				else {
-					HomeUp();
-				}
-				bHandled = true;
+		if (msg.chKey == VK_HOME) {
+			if (IsHorizontalScrollBar()) {
+				HomeLeft();
 			}
-			else if (msg.chKey == VK_END) {
-				if (IsHorizontalScrollBar()) {
-					EndRight();
-				}
-				else {
-					EndDown(false, false);
-				}
-				bHandled = true;
+			else {
+				HomeUp();
 			}
+			bHandled = true;
 		}
-		if (!bHandled) {
-			__super::HandleEvent(msg);
+		else if (msg.chKey == VK_END) {
+			if (IsHorizontalScrollBar()) {
+				EndRight();
+			}
+			else {
+				EndDown(false, false);
+			}
+			bHandled = true;
 		}
-		return;
+		return bHandled;
 	}
 
-	if (msg.Type == kEventKeyDown) {
-		switch (msg.chKey) {
-		case VK_UP:
-			if (IsHorizontalScrollBar()) {
-				//横向滚动条，向上1条
-				SelectItemPrevious(true, true);
-			}
-			else {
-				//不是横向滚动条，向上1行
-				size_t nColumns = 0;
-				size_t nRows = 0;
-				GetDisplayItemCount(false, nColumns, nRows);
-				SelectItemCountN(true, true, false, nColumns);
-			}
-			return;
-		case VK_DOWN:
-			if (IsHorizontalScrollBar()) {
-				//横向滚动条，向下1条
-				SelectItemNext(true, true);
-			}
-			else {
-				//不是横向滚动条，向下1行
-				size_t nColumns = 0;
-				size_t nRows = 0;
-				GetDisplayItemCount(false, nColumns, nRows);
-				SelectItemCountN(true, true, true, nColumns);
-			}
-			return;
-		case VK_LEFT:
-			if (IsHorizontalScrollBar()) {
-				//横向滚动条，向上1列
-				size_t nColumns = 0;
-				size_t nRows = 0;
-				GetDisplayItemCount(false, nColumns, nRows);
-				SelectItemCountN(true, true, false, nRows);
-			}
-			else {
-				//不是横向滚动条，向上1条
-				SelectItemPrevious(true, true);
-			}
-			return;
-		case VK_RIGHT:
-			if (IsHorizontalScrollBar()) {
-				//横向滚动条，向下1行
-				size_t nColumns = 0;
-				size_t nRows = 0;
-				GetDisplayItemCount(false, nColumns, nRows);
-				SelectItemCountN(true, true, true, nRows);
-			}
-			else {
-				//不是横向滚动条，向下1条
-				SelectItemNext(true, true);
-			}
-			return;
-		case VK_PRIOR:
-			SelectItemPage(true, true, false, 0);
-			return;
-		case VK_NEXT:
-			SelectItemPage(true, true, true, 0);
-			return;
-		case VK_HOME:
-			SelectItemHome(true, true);
-			return;
-		case VK_END:
-			SelectItemEnd(true, true);
-			return;
-		default:
-			break;
+	//单选、有数据、有选中项的情况
+	bHandled = true;
+	switch (msg.chKey) {
+	case VK_UP:
+		if (IsHorizontalScrollBar()) {
+			//横向滚动条，向上1条
+			SelectItemPrevious(true, true);
 		}
+		else {
+			//不是横向滚动条，向上1行
+			size_t nColumns = 0;
+			size_t nRows = 0;
+			GetDisplayItemCount(false, nColumns, nRows);
+			SelectItemCountN(true, true, false, nColumns);
+		}		
+		break;
+	case VK_DOWN:
+		if (IsHorizontalScrollBar()) {
+			//横向滚动条，向下1条
+			SelectItemNext(true, true);
+		}
+		else {
+			//不是横向滚动条，向下1行
+			size_t nColumns = 0;
+			size_t nRows = 0;
+			GetDisplayItemCount(false, nColumns, nRows);
+			SelectItemCountN(true, true, true, nColumns);
+		}
+		break;
+	case VK_LEFT:
+		if (IsHorizontalScrollBar()) {
+			//横向滚动条，向上1列
+			size_t nColumns = 0;
+			size_t nRows = 0;
+			GetDisplayItemCount(false, nColumns, nRows);
+			SelectItemCountN(true, true, false, nRows);
+		}
+		else {
+			//不是横向滚动条，向上1条
+			SelectItemPrevious(true, true);
+		}
+		break;
+	case VK_RIGHT:
+		if (IsHorizontalScrollBar()) {
+			//横向滚动条，向下1行
+			size_t nColumns = 0;
+			size_t nRows = 0;
+			GetDisplayItemCount(false, nColumns, nRows);
+			SelectItemCountN(true, true, true, nRows);
+		}
+		else {
+			//不是横向滚动条，向下1条
+			SelectItemNext(true, true);
+		}
+		break;
+	case VK_PRIOR:
+		SelectItemPage(true, true, false, 0);
+		break;
+	case VK_NEXT:
+		SelectItemPage(true, true, true, 0);
+		break;
+	case VK_HOME:
+		SelectItemHome(true, true);
+		break;
+	case VK_END:
+		SelectItemEnd(true, true);
+		break;
+	default:
+		bHandled = false;
+		break;
 	}
-	else if((msg.Type == kEventMouseWheel) && m_bScrollSelect) {
+	return bHandled;
+}
+
+bool ListBox::OnListBoxMouseWheel(const EventArgs& msg)
+{
+	ASSERT(msg.Type == kEventMouseWheel);
+	bool bHandled = false;
+	if (m_bScrollSelect && (msg.Type == kEventMouseWheel)) {
 		int32_t deltaValue = GET_WHEEL_DELTA_WPARAM(msg.wParam);
 		if (deltaValue != 0) {
 			bool bForward = deltaValue > 0 ? false : true;
 			SelectItemPage(true, true, bForward, std::abs(deltaValue));
-			return;
+			bHandled = true;
 		}
 	}
-	__super::HandleEvent(msg);
+	return bHandled;
 }
 
 bool ListBox::SelectItem(size_t iIndex)
