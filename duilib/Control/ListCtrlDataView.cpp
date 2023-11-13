@@ -88,13 +88,22 @@ bool ListCtrlDataView::OnListCtrlKeyDown(const EventArgs& msg)
 {
     ASSERT(msg.Type == kEventKeyDown);
     bool bHandled = false;
+    bool bCtrlADown = (msg.Type == kEventKeyDown) && ((msg.chKey == L'A') || (msg.chKey == L'a'));
+    if (bCtrlADown) {
+        //Ctrl + A 全选操作
+        bHandled = true;
+        SetSelectAll();
+        return bHandled;
+    }
+
+    //方向键操作
     bool bArrowKeyDown = (msg.Type == kEventKeyDown) &&
                           ((msg.chKey == VK_UP) || (msg.chKey == VK_DOWN) ||
-                          (msg.chKey == VK_PRIOR) || (msg.chKey == VK_NEXT) ||
-                          (msg.chKey == VK_HOME) || (msg.chKey == VK_END));
+                           (msg.chKey == VK_PRIOR) || (msg.chKey == VK_NEXT) ||
+                           (msg.chKey == VK_HOME) || (msg.chKey == VK_END));
     const size_t nElementCount = GetElementCount();
     if (!bArrowKeyDown || !IsMultiSelect() || (nElementCount == 0)) {
-        //在非键盘按下消息、无数据、不支持多选的情况下，走默认处理流程
+        //在方向键按下消息、无数据、不支持多选的情况下，走默认处理流程
         return bHandled;
     }
 

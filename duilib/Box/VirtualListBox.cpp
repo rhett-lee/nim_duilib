@@ -270,7 +270,8 @@ void VirtualListBox::SetSelectAll()
     std::vector<size_t> selectedIndexs;
     size_t nCount = m_pDataProvider->GetElementCount();
     for (size_t nElementIndex = 0; nElementIndex < nCount; ++nElementIndex) {
-        if (!m_pDataProvider->IsElementSelected(nElementIndex)) {
+        if (IsSelectableElement(nElementIndex) && 
+            !m_pDataProvider->IsElementSelected(nElementIndex)) {
             m_pDataProvider->SetElementSelected(nElementIndex, true);
             selectedIndexs.push_back(nElementIndex);
         }
