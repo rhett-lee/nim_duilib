@@ -40,7 +40,7 @@ void MainForm::OnInitWindow()
 		return;
 	}
 	//填充数据
-	InsertItemData(200, 8);
+	InsertItemData(200, 3);
 
 	//表头高度控制
 	ui::RichEdit* pHeaderHeightEdit = dynamic_cast<ui::RichEdit*>(FindControl(L"header_height_edit"));
@@ -312,6 +312,7 @@ void MainForm::RunListCtrlTest()
 	if (nRows <= 100) {
 		return;
 	}
+
 #ifdef _DEBUG
 
 	//基本功能测试
@@ -457,6 +458,11 @@ void MainForm::RunListCtrlTest()
 	pListCtrl->SetSelectNone();
 	pListCtrl->GetSelectedDataItems(selectedIndexs);
 	ASSERT(selectedIndexs.empty());
+
+	for (size_t i = 0; i < nTotalRows; ++i) {
+		pListCtrl->SetDataItemVisible(i, true);
+		pListCtrl->SetDataItemAlwaysAtTop(i, -1);
+	}
 
 	pListCtrl->SetSelectAll();
 	pListCtrl->GetSelectedDataItems(selectedIndexs);

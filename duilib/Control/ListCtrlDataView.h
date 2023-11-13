@@ -219,6 +219,10 @@ private:
     */
     bool OnListCtrlKeyDown(const EventArgs& msg);
 
+    /** 在视图空白处点击了鼠标左键/右键
+    */
+    void OnListCtrlClickedBlank();
+
 private:
     /** ListCtrl 控件接口
     */
@@ -240,6 +244,10 @@ private:
     /** 普通列表项（非Header、非置顶）的top坐标
     */
     int32_t m_nNormalItemTop;
+
+    /** 是否鼠标在视图中按下左键或者右键
+    */
+    bool m_bMouseDownInView;
 
     /** 是否鼠标左键按下
     */

@@ -16,7 +16,8 @@ ListCtrlDataView::ListCtrlDataView() :
     m_pMouseSender(nullptr),
     m_nNormalItemTop(-1),
     m_bEnableFrameSelection(true),
-    m_nLastNoShiftIndex(0)
+    m_nLastNoShiftIndex(0),
+    m_bMouseDownInView(false)
 {
     VirtualLayout* pVirtualLayout = dynamic_cast<VirtualLayout*>(GetLayout());
     SetVirtualLayout(pVirtualLayout);
@@ -293,6 +294,12 @@ bool ListCtrlDataView::OnListCtrlKeyDown(const EventArgs& msg)
 #endif
     }
     return bHandled;
+}
+
+void ListCtrlDataView::OnListCtrlClickedBlank()
+{
+    //在空白处点击鼠标左键或者右键，取消全部选择
+    SetSelectNone();
 }
 
 bool ListCtrlDataView::SelectItem(size_t iIndex, bool bTakeFocus, bool bTriggerEvent, uint64_t vkFlag)
@@ -1220,6 +1227,7 @@ void ListCtrlDataView::OnButtonDown(const UiPoint& ptMouse, Control* pSender)
         m_bInMouseMove = false;
         Invalidate();
     }
+    m_bMouseDownInView = (pSender == this) ? true : false;
     m_bMouseDown = true;
     m_pMouseSender = pSender;
     UiSize64 scrollPos = GetScrollPos();
@@ -1227,12 +1235,16 @@ void ListCtrlDataView::OnButtonDown(const UiPoint& ptMouse, Control* pSender)
     m_ptMouseDown.cy = ptMouse.y + scrollPos.cy;
 }
 
-void ListCtrlDataView::OnButtonUp(const UiPoint& /*ptMouse*/, Control* /*pSender*/)
+void ListCtrlDataView::OnButtonUp(const UiPoint& /*ptMouse*/, Control* pSender)
 {
     if (m_bInMouseMove) {
         m_bInMouseMove = false;
         Invalidate();
     }
+    if (m_bMouseDownInView && (pSender == this)) {
+        OnListCtrlClickedBlank();
+    }
+    m_bMouseDownInView = false;
     m_bMouseDown = false;
     m_pMouseSender = nullptr;
 }
@@ -1243,6 +1255,7 @@ void ListCtrlDataView::OnRButtonDown(const UiPoint& ptMouse, Control* pSender)
         m_bInMouseMove = false;
         Invalidate();
     }
+    m_bMouseDownInView = (pSender == this) ? true : false;
     m_bRMouseDown = true;
     m_pMouseSender = pSender;
     UiSize64 scrollPos = GetScrollPos();
@@ -1250,12 +1263,16 @@ void ListCtrlDataView::OnRButtonDown(const UiPoint& ptMouse, Control* pSender)
     m_ptMouseDown.cy = ptMouse.y + scrollPos.cy;
 }
 
-void ListCtrlDataView::OnRButtonUp(const UiPoint& /*ptMouse*/, Control* /*pSender*/)
+void ListCtrlDataView::OnRButtonUp(const UiPoint& /*ptMouse*/, Control* pSender)
 {
     if (m_bInMouseMove) {
         m_bInMouseMove = false;
         Invalidate();
     }
+    if (m_bMouseDownInView && (pSender == this)) {
+        OnListCtrlClickedBlank();
+    }
+    m_bMouseDownInView = false;
     m_bRMouseDown = false;
     m_pMouseSender = nullptr;
 }
@@ -1287,6 +1304,7 @@ void ListCtrlDataView::OnWindowKillFocus()
     if (m_bInMouseMove) {
         Invalidate();
     }
+    m_bMouseDownInView = false;
     m_bMouseDown = false;
     m_bRMouseDown = false;
     m_bInMouseMove = false;
@@ -1671,7 +1689,7 @@ void ListCtrlDataLayout::LazyArrangeChild(UiRect rc) const
         yOffset = 0;    //只有第一个元素设置偏移
     }
     //元素的宽度：所有元素宽度都相同
-    const int32_t cx = std::max(GetItemWidth(), rc.Width());
+    const int32_t cx = GetItemWidth(); 
     ASSERT(cx > 0);
 
     //控件的左上角坐标值
@@ -1787,7 +1805,7 @@ void ListCtrlDataLayout::LazyArrangeChildNormal(UiRect rc) const
     }
 
     //元素的宽度：所有元素宽度都相同
-    const int32_t cx = std::max(GetItemWidth(), rc.Width());
+    const int32_t cx = GetItemWidth();
     ASSERT(cx > 0);
 
     //元素的高度：所有元素高度都相同
