@@ -46,8 +46,13 @@ bool ListCtrlDataProvider::FillElement(ui::Control* pControl, size_t nElementInd
     if (pItem == nullptr) {
         return false;
     }
-    //Header控件的内边距, 需要同步给每个列表项控件，保持对齐一致
-    pItem->SetPadding(pHeaderCtrl->GetPadding(), false);
+    //Header控件的内边距, 需要同步给每个列表项控件，保持左侧对齐一致
+    const UiPadding rcHeaderPadding = pHeaderCtrl->GetPadding();
+    UiPadding rcPadding = pItem->GetPadding();
+    if (rcHeaderPadding.left != rcPadding.left) {
+        rcPadding.left = rcHeaderPadding.left;
+        pItem->SetPadding(rcPadding, false);
+    }    
 
     // 基本结构: <ListCtrlItem> <ListCtrlSubItem/> ... <ListCtrlSubItem/>  </ListCtrlItem>
     // 附加说明: 1. ListCtrlItem 是 HBox的子类;   

@@ -1678,7 +1678,7 @@ void ListCtrlDataLayout::LazyArrangeChild(UiRect rc) const
     }
 
     //第一个元素是表头控件，设置其位置大小
-    Control* pHeaderCtrl = pDataView->GetItemAt(0);
+    ListCtrlHeader* pHeaderCtrl = dynamic_cast<ListCtrlHeader*>(pDataView->GetItemAt(0));
     if ((pHeaderCtrl != nullptr) && pHeaderCtrl->IsVisible()) {
         int32_t nHeaderHeight = pHeaderCtrl->GetFixedHeight().GetInt32();
         if (nHeaderHeight > 0) {

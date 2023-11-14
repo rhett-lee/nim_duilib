@@ -15,6 +15,7 @@ namespace ui
               3. ListCtrlSubItem 是LabelBox的子类
 */
 class ListCtrl;
+class ListCtrlSubItem;
 class ListCtrlItem : public ListBoxItemH
 {
 public:
@@ -48,6 +49,15 @@ public:
     /** 获取关联的ListCtrl接口
     */
     ListCtrl* GetListCtrl() const;
+
+    /** 获取子控件的个数
+    */
+    size_t GetSubItemCount() const;
+
+    /** 获取第columnIndex个子控件
+    * @param [in] columnIndex 列索引序号：[0, GetSubItemCount())
+    */
+    ListCtrlSubItem* GetSubItem(size_t columnIndex) const;
 
 protected:
     virtual void Activate();

@@ -250,10 +250,14 @@ public:
 	void SetPadding(UiPadding rcPadding, bool bNeedDpiScale);
 
 	/** 是否允许控件自身运用内边距
+	* @param [in] bEnable true表示控件本身也运用内边距（Box和Control）；
+						  false表示控件本身不运用内边距，内边距仅用于布局子控件（Box的情况）
 	*/
 	void SetEnableControlPadding(bool bEnable);
 
 	/** 判断控件自身是否允许运用内边距
+	* @return true表示控件本身也运用内边距（Box和Control）；
+		      false表示控件本身不运用内边距，内边距仅用于布局子控件（Box的情况）
 	*/
 	bool IsEnableControlPadding() const;
 

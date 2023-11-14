@@ -391,6 +391,19 @@ public:
     */
     bool IsEnableRefresh() const;
 
+    /** 获取第一个数据项的界面控件接口
+    * @return 返回界面控件接口
+              注意事项：界面刷新后，界面控件与数据元素之间的关系会动态变化
+    */
+    ListCtrlItem* GetFirstDisplayItem() const;
+
+    /** 获取下一个数据项的界面控件接口
+    * @param [in] pItem 当前界面控件接口
+    * @return 返回当前界面控件的下一个界面控件接口，如果当前已经是最后一个，返回nullptr
+    *         注意事项：界面刷新后，界面控件与数据元素之间的关系会动态变化
+    */
+    ListCtrlItem* GetNextDisplayItem(ListCtrlItem* pItem) const;
+
 protected:
     /** 控件初始化
     */

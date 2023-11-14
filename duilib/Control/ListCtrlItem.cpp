@@ -1,4 +1,5 @@
 #include "ListCtrlItem.h"
+#include "ListCtrlSubItem.h"
 
 namespace ui
 {
@@ -33,6 +34,19 @@ ListCtrl* ListCtrlItem::GetListCtrl() const
 {
     ASSERT(m_pListCtrl != nullptr);
     return m_pListCtrl;
+}
+
+size_t ListCtrlItem::GetSubItemCount() const
+{
+    return GetItemCount();
+}
+
+ListCtrlSubItem* ListCtrlItem::GetSubItem(size_t columnIndex) const
+{
+    ASSERT(columnIndex < GetSubItemCount());
+    ListCtrlSubItem* pSubItem = dynamic_cast<ListCtrlSubItem*>(GetItemAt(columnIndex));
+    ASSERT(pSubItem != nullptr);
+    return pSubItem;
 }
 
 void ListCtrlItem::Selected(bool bSelect, bool bTriggerEvent)

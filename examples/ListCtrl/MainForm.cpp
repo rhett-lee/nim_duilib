@@ -100,6 +100,7 @@ void MainForm::OnInitWindow()
 	ui::CheckBox* pColumnSort = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_sort"));
 	ui::CheckBox* pColumnIcon = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_icon_at_top"));
 	ui::CheckBox* pColumnHeaderCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_show_header_checkbox"));
+	ui::CheckBox* pColumnShowCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_show_checkbox"));
 
 	ui::Option* pColumnHeaderTextAlignLeft = dynamic_cast<ui::Option*>(FindControl(L"header_text_align_left"));
 	ui::Option* pColumnHeaderTextAlignCenter = dynamic_cast<ui::Option*>(FindControl(L"header_text_align_center"));
@@ -182,7 +183,7 @@ void MainForm::OnInitWindow()
 		return true;
 		});
 
-	//表头是否显示CheckBox
+	//列级CheckBox：表头是否显示CheckBox
 	auto OnSetCheckBoxVisible = [this, pColumnCombo, pListCtrl](bool bCheckBoxVisible) {
 		size_t nColumnId = pColumnCombo->GetItemData(pColumnCombo->GetCurSel());
 		ui::ListCtrlHeaderItem* pHeaderItem = pListCtrl->GetColumnById(nColumnId);
@@ -199,6 +200,33 @@ void MainForm::OnInitWindow()
 		OnSetCheckBoxVisible(false);
 		return true;
 		});
+
+	//列级CheckBox：在每列显示CheckBox
+	auto OnShowCheckBox = [this, pColumnCombo, pListCtrl](bool bShowCheckBox) {
+		size_t nColumnId = pColumnCombo->GetItemData(pColumnCombo->GetCurSel());
+		size_t nColumnIndex = pListCtrl->GetColumnIndex(nColumnId);
+		size_t nItemCount = pListCtrl->GetDataItemCount();
+		for (size_t nItemIndex = 0; nItemIndex < nItemCount; ++nItemIndex) {
+			pListCtrl->SetShowCheckBox(nItemIndex, nColumnIndex, bShowCheckBox);
+		}
+		};	
+	if (pColumnShowCheckBox != nullptr) {
+		bool bCheckBoxVisible = false;
+		ui::ListCtrlHeaderItem* pHeaderItem = pListCtrl->GetColumn(0);
+		ASSERT(pHeaderItem != nullptr);
+		if (pHeaderItem != nullptr) {
+			bCheckBoxVisible = pHeaderItem->IsCheckBoxVisible();
+		}
+		pColumnShowCheckBox->Selected(bCheckBoxVisible, false);
+		pColumnShowCheckBox->AttachSelect([this, OnShowCheckBox](const ui::EventArgs&) {
+			OnShowCheckBox(true);
+			return true;
+			});
+		pColumnShowCheckBox->AttachUnSelect([this, OnShowCheckBox](const ui::EventArgs&) {
+			OnShowCheckBox(false);
+			return true;
+			});
+	}
 
 	auto OnHeaderTextAlign = [this, pColumnCombo, pListCtrl](ui::HorAlignType alignType) {
 			size_t nColumnId = pColumnCombo->GetItemData(pColumnCombo->GetCurSel());
@@ -221,34 +249,6 @@ void MainForm::OnInitWindow()
 		return true;
 		});
 
-	auto OnShowCheckBox = [this, pListCtrl](bool bShowCheckBox) {
-			size_t nItemCount = pListCtrl->GetDataItemCount();
-			size_t nColumnCount = pListCtrl->GetColumnCount();
-			for (size_t nItemIndex = 0; nItemIndex < nItemCount; ++nItemIndex) {
-				for (size_t nColumnIndex = 0; nColumnIndex < nColumnCount; ++nColumnIndex) {
-					pListCtrl->SetShowCheckBox(nItemIndex, nColumnIndex, bShowCheckBox);
-				}
-			}
-		};
-	ui::CheckBox* pShowCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_show_row_checkbox"));
-	if (pShowCheckBox != nullptr) {
-		bool bCheckBoxVisible = false;
-		ui::ListCtrlHeaderItem* pHeaderItem = pListCtrl->GetColumn(0);
-		ASSERT(pHeaderItem != nullptr);
-		if (pHeaderItem != nullptr) {
-			bCheckBoxVisible = pHeaderItem->IsCheckBoxVisible();
-		}
-		pShowCheckBox->Selected(bCheckBoxVisible, false);
-		pShowCheckBox->AttachSelect([this, OnShowCheckBox](const ui::EventArgs&) {
-			OnShowCheckBox(true);
-			return true;
-			});
-		pShowCheckBox->AttachUnSelect([this, OnShowCheckBox](const ui::EventArgs&) {
-			OnShowCheckBox(false);
-			return true;
-			});
-	}
-
 	//是否支持多选
 	ui::CheckBox* pMultiSelect = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_multi_select"));
 	if (pMultiSelect != nullptr) {
@@ -263,6 +263,64 @@ void MainForm::OnInitWindow()
 			}			
 			return true;
 			});
+	}
+}
+
+void MainForm::OnColumnChanged(size_t nColumnId)
+{
+	ui::ListCtrl* pListCtrl = dynamic_cast<ui::ListCtrl*>(FindControl(L"list_ctrl"));
+	ASSERT(pListCtrl != nullptr);
+	if (pListCtrl == nullptr) {
+		return;
+	}
+
+	ui::ListCtrlHeaderItem* pHeaderItem = pListCtrl->GetColumnById(nColumnId);
+	ASSERT(pHeaderItem != nullptr);
+	if (pHeaderItem == nullptr) {
+		return;
+	}
+
+
+	ui::CheckBox* pColumnShow = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_show"));
+	ui::CheckBox* pColumnWidth = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_width"));
+	ui::CheckBox* pColumnSort = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_sort"));
+	ui::CheckBox* pColumnIcon = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_icon_at_top"));
+	ui::CheckBox* pColumnHeaderCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_show_header_checkbox"));
+	ui::CheckBox* pColumnShowCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_show_checkbox"));
+
+	ui::Option* pColumnHeaderTextAlignLeft = dynamic_cast<ui::Option*>(FindControl(L"header_text_align_left"));
+	ui::Option* pColumnHeaderTextAlignCenter = dynamic_cast<ui::Option*>(FindControl(L"header_text_align_center"));
+	ui::Option* pColumnHeaderTextAlignRight = dynamic_cast<ui::Option*>(FindControl(L"header_text_align_right"));
+
+	ASSERT(pHeaderItem->IsColumnVisible() == pHeaderItem->IsVisible());
+	pColumnShow->Selected(pHeaderItem->IsColumnVisible(), false);
+	pColumnWidth->Selected(pHeaderItem->IsColumnResizeable(), false);
+
+	ui::ListCtrlHeaderItem::SortMode sortMode = pHeaderItem->GetSortMode();
+	pColumnSort->Selected(sortMode != ui::ListCtrlHeaderItem::SortMode::kNone, false);
+
+	pColumnIcon->Selected(pHeaderItem->IsShowIconAtTop(), false);
+	pColumnHeaderCheckBox->Selected(pHeaderItem->IsCheckBoxVisible(), false);
+
+	bool bColumnDataHasCheckBox = false;
+	ui::ListCtrlItem* pItem = pListCtrl->GetFirstDisplayItem();
+	if (pItem != nullptr) {
+		ui::ListCtrlSubItem* pSubItem = pItem->GetSubItem(pListCtrl->GetColumnIndex(nColumnId));
+		if (pSubItem != nullptr) {
+			bColumnDataHasCheckBox = pSubItem->IsCheckBoxVisible();
+		}
+	}
+	pColumnShowCheckBox->Selected(bColumnDataHasCheckBox, false);
+
+	ui::HorAlignType hAlignType = pHeaderItem->GetTextHorAlign();
+	if (hAlignType == ui::HorAlignType::kHorAlignCenter) {
+		pColumnHeaderTextAlignCenter->Selected(true, false);
+	}
+	else if (hAlignType == ui::HorAlignType::kHorAlignRight) {
+		pColumnHeaderTextAlignRight->Selected(true, false);
+	}
+	else {
+		pColumnHeaderTextAlignLeft->Selected(true, false);
 	}
 }
 
@@ -598,49 +656,3 @@ void MainForm::RunListCtrlTest()
 #endif
 }
 
-void MainForm::OnColumnChanged(size_t nColumnId)
-{
-	ui::ListCtrl* pListCtrl = dynamic_cast<ui::ListCtrl*>(FindControl(L"list_ctrl"));
-	ASSERT(pListCtrl != nullptr);
-	if (pListCtrl == nullptr) {
-		return;
-	}
-
-	ui::ListCtrlHeaderItem* pHeaderItem = pListCtrl->GetColumnById(nColumnId);
-	ASSERT(pHeaderItem != nullptr);
-	if (pHeaderItem == nullptr) {
-		return;
-	}
-
-
-	ui::CheckBox* pColumnShow = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_show"));
-	ui::CheckBox* pColumnWidth = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_width"));
-	ui::CheckBox* pColumnSort = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_sort"));
-	ui::CheckBox* pColumnIcon = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_icon_at_top"));
-	ui::CheckBox* pColumnHeaderCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_show_header_checkbox"));
-
-	ui::Option* pColumnHeaderTextAlignLeft = dynamic_cast<ui::Option*>(FindControl(L"header_text_align_left"));
-	ui::Option* pColumnHeaderTextAlignCenter = dynamic_cast<ui::Option*>(FindControl(L"header_text_align_center"));
-	ui::Option* pColumnHeaderTextAlignRight = dynamic_cast<ui::Option*>(FindControl(L"header_text_align_right"));
-
-	ASSERT(pHeaderItem->IsColumnVisible() == pHeaderItem->IsVisible());
-	pColumnShow->Selected(pHeaderItem->IsColumnVisible(), false);
-	pColumnWidth->Selected(pHeaderItem->IsColumnResizeable(), false);
-
-	ui::ListCtrlHeaderItem::SortMode sortMode = pHeaderItem->GetSortMode();
-	pColumnSort->Selected(sortMode != ui::ListCtrlHeaderItem::SortMode::kNone, false);
-
-	pColumnIcon->Selected(pHeaderItem->IsShowIconAtTop(), false);
-	pColumnHeaderCheckBox->Selected(pHeaderItem->IsCheckBoxVisible(), false);
-
-	ui::HorAlignType hAlignType = pHeaderItem->GetTextHorAlign();
-	if (hAlignType == ui::HorAlignType::kHorAlignCenter) {
-		pColumnHeaderTextAlignCenter->Selected(true, false);
-	}
-	else if (hAlignType == ui::HorAlignType::kHorAlignRight) {
-		pColumnHeaderTextAlignRight->Selected(true, false);
-	}
-	else {
-		pColumnHeaderTextAlignLeft->Selected(true, false);
-	}
-}

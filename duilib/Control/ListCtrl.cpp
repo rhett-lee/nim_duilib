@@ -491,6 +491,47 @@ int32_t ListCtrl::GetDataItemHeight() const
     return m_nItemHeight;
 }
 
+ListCtrlItem* ListCtrl::GetFirstDisplayItem() const
+{
+    ListCtrlItem* pItem = nullptr;
+    ASSERT(m_pDataView != nullptr);
+    if (m_pDataView != nullptr) {
+        size_t itemCount = m_pDataView->GetItemCount();
+        for (size_t index = 0; index < itemCount; ++index) {
+            pItem = dynamic_cast<ListCtrlItem*>(m_pDataView->GetItemAt(index));
+            if ((pItem != nullptr) && pItem->IsVisible()) {
+                break;
+            }
+        }
+    }
+    return pItem;
+}
+
+ListCtrlItem* ListCtrl::GetNextDisplayItem(ListCtrlItem* pItem) const
+{
+    ListCtrlItem* pNextItem = nullptr;
+    if (pItem == nullptr) {
+        pNextItem = GetFirstDisplayItem();
+    }
+    else {
+        ASSERT(m_pDataView != nullptr);
+        if (m_pDataView != nullptr) {
+            size_t itemCount = m_pDataView->GetItemCount();
+            size_t nStartIndex = m_pDataView->GetItemIndex(pItem);
+            if ((itemCount > 0) && (nStartIndex < (itemCount - 1))) {
+                for (size_t index = nStartIndex + 1; index < itemCount; ++index) {
+                    ListCtrlItem* pCheckItem = dynamic_cast<ListCtrlItem*>(m_pDataView->GetItemAt(index));
+                    if ((pCheckItem != nullptr) && pCheckItem->IsVisible()) {
+                        pNextItem = pCheckItem;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    return pNextItem;
+}
+
 void ListCtrl::OnColumnWidthChanged(size_t nColumnId1, size_t nColumnId2)
 {
     if ((m_pDataView == nullptr) || (m_pHeaderCtrl == nullptr)){
