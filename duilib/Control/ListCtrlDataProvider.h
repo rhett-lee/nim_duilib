@@ -16,8 +16,7 @@ struct ListCtrlData
     int32_t nImageIndex = -1;       //图标资源索引号，在图片列表里面的下标值，如果为-1表示不显示图标
     UiColor textColor;              //文本颜色
     UiColor bkColor;                //背景颜色
-    bool bShowCheckBox = true;      //是否显示CheckBox
-    uint8_t nCheckBoxWidth = 0;     //CheckBox控件所占的宽度，仅当bShowCheckBox为true时有效    
+    bool bShowCheckBox = true;      //是否显示CheckBox  
     bool bChecked = false;          //是否处于勾选状态（CheckBox勾选状态）
 
     //TODO: 待实现功能列表

@@ -634,7 +634,7 @@ void ListCtrl::UpdateControlCheckStatus(size_t nColumnId)
                 }
                 CheckBox* pCheckBox = nullptr;
                 if (pSubItem != nullptr) {
-                    pCheckBox = dynamic_cast<CheckBox*>(pSubItem->GetItemAt(0));
+                    pCheckBox = pSubItem->GetCheckBox();
                 }
                 if (pCheckBox != nullptr) {
                     checkList.push_back(pCheckBox->IsSelected());

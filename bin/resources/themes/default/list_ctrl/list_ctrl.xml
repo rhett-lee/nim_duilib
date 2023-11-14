@@ -75,7 +75,7 @@
                 <Label text="每行高度：" valign="center" margin="2,0,2,0"/>
                 <RichEdit class="simple simple_border rich_edit_spin" name="list_item_height_edit" min_number="0" max_number="512" limit_text="3" text="0" margin="0,2,0,0"/>
                 <CheckBox class="checkbox_font14" name="checkbox_show_row_checkbox" text="在表格显示CheckBox" margin="4,0,0,0" valign="center"/>
-                <CheckBox class="checkbox_font14" text="支持多选" margin="4,0,0,0" valign="center">
+                <CheckBox class="checkbox_font14" name="checkbox_multi_select" text="支持多选" margin="4,0,0,0" valign="center">
                     <Event type="select" receiver="list_ctrl" applyattribute="multi_select={true}" />
                     <Event type="unselect" receiver="list_ctrl" applyattribute="multi_select={false}" />
                 </CheckBox>

@@ -16,7 +16,8 @@ ListCtrlHeaderItem::ListCtrlHeaderItem() :
     m_bInDragging(false),
     m_nOldAlpha(255),
     m_bShowIconAtTop(true),
-    m_bColumnVisible(true)
+    m_bColumnVisible(true),
+    m_pHeaderCtrl(nullptr)
 {
     m_nIconSpacing = GlobalManager::Instance().Dpi().GetScaleInt(6);
 }
@@ -154,8 +155,7 @@ void ListCtrlHeaderItem::Activate()
     }
 
     if (bSortChanged) {
-        ListCtrlHeader* pHeader = dynamic_cast<ListCtrlHeader*>(GetParent());
-        ASSERT(pHeader != nullptr);
+        ListCtrlHeader* pHeader = GetHeaderCtrl();
         if (pHeader != nullptr) {
             pHeader->OnHeaderColumnSorted(this);
         }
@@ -179,8 +179,7 @@ void ListCtrlHeaderItem::SetSortMode(SortMode sortMode, bool bTriggerEvent)
         m_sortMode = sortMode;
         Invalidate();
         if (bTriggerEvent && (m_sortMode != SortMode::kNone)) {
-            ListCtrlHeader* pHeader = dynamic_cast<ListCtrlHeader*>(GetParent());
-            ASSERT(pHeader != nullptr);
+            ListCtrlHeader* pHeader = GetHeaderCtrl();
             if (pHeader != nullptr) {
                 pHeader->OnHeaderColumnSorted(this);
             }
@@ -346,14 +345,71 @@ HorAlignType ListCtrlHeaderItem::GetTextHorAlign() const
 
 bool ListCtrlHeaderItem::SetCheckBoxVisible(bool bVisible)
 {
-    if (GetItemCount() > 0) {
-        CheckBox* pCheckBox = dynamic_cast<CheckBox*>(GetItemAt(0));
+    bool bRet = false;
+    if (bVisible) {
+        ListCtrlHeader* pHeader = GetHeaderCtrl();
+        if (pHeader == nullptr) {
+            return false;
+        }
+        ListCtrl* pListCtrl = pHeader->GetListCtrl();
+        ListCtrlCheckBox* pCheckBox = nullptr;
+        if (GetItemCount() > 0) {
+            pCheckBox = dynamic_cast<ListCtrlCheckBox*>(GetItemAt(0));
+        }
+        if (pCheckBox == nullptr) {
+            pCheckBox = new ListCtrlCheckBox; 
+            AddItem(pCheckBox);
+            std::wstring checkBoxClass;
+            if (pListCtrl != nullptr) {
+                checkBoxClass = pListCtrl->GetCheckBoxClass();
+            }
+            ASSERT(!checkBoxClass.empty());
+            pCheckBox->SetClass(checkBoxClass);
+        }
+
+        //设置内边距，避免与文字重叠
+        UiPadding textPadding = GetTextPadding();
+        int32_t nCheckBoxWidth = pCheckBox->GetCheckBoxWidth();
+        if ((nCheckBoxWidth > 0) && (textPadding.left < nCheckBoxWidth)) {
+            textPadding.left = nCheckBoxWidth;
+            SetTextPadding(textPadding, false);
+        }
+        pCheckBox->SetVisible(true);
+
+        //挂载CheckBox的事件处理
+        pCheckBox->DetachEvent(kEventSelect);
+        pCheckBox->DetachEvent(kEventUnSelect);
+        //同步数据
+        if (pListCtrl != nullptr) {
+            pListCtrl->UpdateControlCheckStatus(GetColomnId());
+        }
+        pCheckBox = dynamic_cast<ListCtrlCheckBox*>(GetItemAt(0));
         if (pCheckBox != nullptr) {
-            pCheckBox->SetVisible(bVisible);
-            return true;
+            pCheckBox->AttachSelect([this, pHeader](const EventArgs& /*args*/) {
+                pHeader->OnHeaderColumnCheckStateChanged(this, true);
+                return true;
+                });
+            pCheckBox->AttachUnSelect([this, pHeader](const EventArgs& /*args*/) {
+                pHeader->OnHeaderColumnCheckStateChanged(this, false);
+                return true;
+                });
+        }        
+        bRet = true;
+    }
+    else if(GetItemCount() > 0) {
+        ListCtrlCheckBox* pCheckBox = dynamic_cast<ListCtrlCheckBox*>(GetItemAt(0));
+        if (pCheckBox != nullptr) {
+            UiPadding textPadding = GetTextPadding();
+            int32_t nCheckBoxWidth = pCheckBox->GetCheckBoxWidth();
+            if ((nCheckBoxWidth > 0) && (textPadding.left >= nCheckBoxWidth)) {
+                textPadding.left -= nCheckBoxWidth;
+                SetTextPadding(textPadding, false);
+            }
+            RemoveItemAt(0);
+            bRet = true;
         }
     }
-    return false;
+    return bRet;
 }
 
 bool ListCtrlHeaderItem::IsCheckBoxVisible() const
@@ -362,17 +418,6 @@ bool ListCtrlHeaderItem::IsCheckBoxVisible() const
         CheckBox* pCheckBox = dynamic_cast<CheckBox*>(GetItemAt(0));
         if (pCheckBox != nullptr) {
             return pCheckBox->IsVisible();
-        }
-    }
-    return false;
-}
-
-bool ListCtrlHeaderItem::HasCheckBox() const
-{
-    if (GetItemCount() > 0) {
-        CheckBox* pCheckBox = dynamic_cast<CheckBox*>(GetItemAt(0));
-        if (pCheckBox != nullptr) {
-            return true;
         }
     }
     return false;
@@ -424,8 +469,7 @@ void ListCtrlHeaderItem::SetColumnVisible(bool bColumnVisible)
     if (m_pSplitBox != nullptr) {
         m_pSplitBox->SetVisible(bColumnVisible);
     }
-    ListCtrlHeader* pHeader = dynamic_cast<ListCtrlHeader*>(GetParent());
-    ASSERT(pHeader != nullptr);
+    ListCtrlHeader* pHeader = GetHeaderCtrl();
     if (pHeader != nullptr) {
         pHeader->OnHeaderColumnVisibleChanged();
     }
@@ -437,15 +481,25 @@ bool ListCtrlHeaderItem::IsColumnVisible() const
     return m_bColumnVisible;
 }
 
+void ListCtrlHeaderItem::SetHeaderCtrl(ListCtrlHeader* pHeaderCtrl)
+{
+    m_pHeaderCtrl = pHeaderCtrl;
+}
+
+ListCtrlHeader* ListCtrlHeaderItem::GetHeaderCtrl() const
+{
+    ASSERT(m_pHeaderCtrl != nullptr);
+    return m_pHeaderCtrl;
+}
+
 bool ListCtrlHeaderItem::ButtonDown(const EventArgs& msg)
 {
     bool bRet = __super::ButtonDown(msg);
-    ListCtrlHeader* pParentBox = dynamic_cast<ListCtrlHeader*>(GetParent());
-    ASSERT(pParentBox != nullptr);
-    if (pParentBox == nullptr) {
+    ListCtrlHeader* pHeader = GetHeaderCtrl();
+    if (pHeader == nullptr) {
         return bRet;
     }
-    if (!pParentBox->IsEnableHeaderDragOrder()) {
+    if (!pHeader->IsEnableHeaderDragOrder()) {
         //不支持拖动调整顺序
         return bRet;
     }
@@ -457,11 +511,11 @@ bool ListCtrlHeaderItem::ButtonDown(const EventArgs& msg)
     m_rcMouseDown = GetRect();
     
     m_rcItemList.clear();
-    size_t nItemCount = pParentBox->GetItemCount();
+    size_t nItemCount = pHeader->GetItemCount();
     for (size_t index = 0; index < nItemCount; ++index) {
         ItemStatus itemStatus;
         itemStatus.m_index = index;
-        itemStatus.m_pItem = pParentBox->GetItemAt(index);
+        itemStatus.m_pItem = pHeader->GetItemAt(index);
         if (itemStatus.m_pItem != nullptr) {
             itemStatus.m_rcPos = itemStatus.m_pItem->GetRect();
             m_rcItemList.push_back(itemStatus);
@@ -476,8 +530,8 @@ bool ListCtrlHeaderItem::ButtonDown(const EventArgs& msg)
 bool ListCtrlHeaderItem::ButtonUp(const EventArgs& msg)
 {
     bool bRet = __super::ButtonUp(msg);
-    Box* pParentBox = dynamic_cast<Box*>(GetParent());
-    if (pParentBox == nullptr) {
+    ListCtrlHeader* pHeader = GetHeaderCtrl();
+    if (pHeader == nullptr) {
         ClearDragStatus();
         return bRet;
     }
@@ -486,7 +540,7 @@ bool ListCtrlHeaderItem::ButtonUp(const EventArgs& msg)
     pt.Offset(GetScrollOffsetInScrollBox());
 
     bool bOrderChanged = false;
-    const size_t itemCount = pParentBox->GetItemCount();
+    const size_t itemCount = pHeader->GetItemCount();
     size_t nMouseItemIndex = Box::InvalidIndex;
     size_t nCurrentItemIndex = Box::InvalidIndex;
     for (const ItemStatus& itemStatus : m_rcItemList) {
@@ -504,13 +558,13 @@ bool ListCtrlHeaderItem::ButtonUp(const EventArgs& msg)
         //交换控件的位置
         if (nMouseItemIndex < nCurrentItemIndex) {
             //向左侧交换
-            pParentBox->SetItemIndex(this, nMouseItemIndex);
+            pHeader->SetItemIndex(this, nMouseItemIndex);
             if (m_pSplitBox != nullptr) {
-                size_t nNewIndex = pParentBox->GetItemIndex(this);
+                size_t nNewIndex = pHeader->GetItemIndex(this);
                 ASSERT(nNewIndex < itemCount);
                 ASSERT((nNewIndex + 1) < itemCount);
                 if ((nNewIndex + 1) < itemCount) {
-                    pParentBox->SetItemIndex(m_pSplitBox, nNewIndex + 1);
+                    pHeader->SetItemIndex(m_pSplitBox, nNewIndex + 1);
                 }
             }
         }
@@ -519,35 +573,33 @@ bool ListCtrlHeaderItem::ButtonUp(const EventArgs& msg)
             nMouseItemIndex += 1;
             ASSERT(nMouseItemIndex < itemCount);
             if (nMouseItemIndex < itemCount) {
-                pParentBox->SetItemIndex(this, nMouseItemIndex);
+                pHeader->SetItemIndex(this, nMouseItemIndex);
                 if (m_pSplitBox != nullptr) {
-                    size_t nNewIndex = pParentBox->GetItemIndex(this);
+                    size_t nNewIndex = pHeader->GetItemIndex(this);
                     ASSERT(nNewIndex < itemCount);
-                    pParentBox->SetItemIndex(m_pSplitBox, nNewIndex);
+                    pHeader->SetItemIndex(m_pSplitBox, nNewIndex);
                 }
             }
         }
         bOrderChanged = true;
-        ASSERT(pParentBox->GetItemIndex(this) == (pParentBox->GetItemIndex(m_pSplitBox) - 1));
+        ASSERT(pHeader->GetItemIndex(this) == (pHeader->GetItemIndex(m_pSplitBox) - 1));
 
         //交换后，对所有的项进行校验
         for (size_t index = 0; index < itemCount; index += 2) {
-            ASSERT(dynamic_cast<ListCtrlHeaderItem*>(pParentBox->GetItemAt(index)) != nullptr);
+            ASSERT(dynamic_cast<ListCtrlHeaderItem*>(pHeader->GetItemAt(index)) != nullptr);
             ASSERT((index + 1) < itemCount);
             if ((index + 1) >= itemCount) {
                 break;
             }
-            ASSERT(dynamic_cast<SplitBox*>(pParentBox->GetItemAt(index + 1)) != nullptr);
-            ASSERT(dynamic_cast<SplitBox*>(pParentBox->GetItemAt(index + 1)) == 
-                   dynamic_cast<ListCtrlHeaderItem*>(pParentBox->GetItemAt(index))->m_pSplitBox);
+            ASSERT(dynamic_cast<SplitBox*>(pHeader->GetItemAt(index + 1)) != nullptr);
+            ASSERT(dynamic_cast<SplitBox*>(pHeader->GetItemAt(index + 1)) ==
+                   dynamic_cast<ListCtrlHeaderItem*>(pHeader->GetItemAt(index))->m_pSplitBox);
         }
     }
     ClearDragStatus();
 
     if (bOrderChanged) {
         //触发列交换事件
-        ListCtrlHeader* pHeader = dynamic_cast<ListCtrlHeader*>(GetParent());
-        ASSERT(pHeader != nullptr);
         if (pHeader != nullptr) {
             pHeader->OnHeaderColumnOrderChanged();
         }
@@ -561,8 +613,8 @@ bool ListCtrlHeaderItem::MouseMove(const EventArgs& msg)
     if (!m_bMouseDown) {
         return bRet;
     }
-    Control* pParent = GetParent();
-    if (pParent == nullptr) {
+    ListCtrlHeader* pHeader = GetHeaderCtrl();
+    if (pHeader == nullptr) {
         return bRet;
     }
     UiPoint pt(msg.ptMouse);
@@ -572,7 +624,7 @@ bool ListCtrlHeaderItem::MouseMove(const EventArgs& msg)
         return bRet;
     }
 
-    UiRect boxRect = pParent->GetRect();
+    UiRect boxRect = pHeader->GetRect();
     if ((pt.x >= boxRect.left) && (pt.x < boxRect.right)) {
         UiRect rect = m_rcMouseDown;
         rect.left += xOffset;
@@ -715,9 +767,10 @@ void ListCtrlHeaderItem::ClearDragStatus()
     m_bMouseDown = false;
     if (!m_rcItemList.empty()) {
         m_rcItemList.clear();
-        if (GetParent() != nullptr) {
-            GetParent()->Invalidate();
-            GetParent()->SetPos(GetParent()->GetPos());
+        ListCtrlHeader* pHeader = GetHeaderCtrl();
+        if (pHeader != nullptr) {
+            pHeader->Invalidate();
+            pHeader->SetPos(pHeader->GetPos());
         }
     }
 }

@@ -14,6 +14,7 @@ namespace ui
               2. 每一列，放置一个ListCtrlSubItem控件
               3. ListCtrlSubItem 是LabelBox的子类
 */
+class ListCtrl;
 class ListCtrlItem : public ListBoxItemH
 {
 public:
@@ -35,9 +36,18 @@ public:
      */
     virtual void Selected(bool bSelect, bool bTriggerEvent) override;
 
-    /** 设置是否可以选择
+    /** 设置是否可以选择(置顶数据不可选择，其他数据可选择)
     */
     void SetSelectableType(bool bSelectable);
+
+public:
+    /** 设置关联的ListCtrl接口
+    */
+    void SetListCtrl(ListCtrl* pListCtrl);
+
+    /** 获取关联的ListCtrl接口
+    */
+    ListCtrl* GetListCtrl() const;
 
 protected:
     virtual void Activate();
@@ -58,14 +68,10 @@ private:
     /** 是否可以选择（影响方向键切换选择项）
     */
     bool m_bSelectable;
-};
 
-/** 列表项的子项
-*/
-class ListCtrlSubItem : public LabelBox
-{
-public:
-
+    /** 关联的ListCtrl接口
+    */
+    ListCtrl* m_pListCtrl;
 };
 
 }//namespace ui

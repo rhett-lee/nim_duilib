@@ -35,6 +35,7 @@ ListCtrlHeaderItem* ListCtrlHeader::InsertColumn(int32_t columnIndex, const List
     }
 
     ListCtrlHeaderItem* pHeaderItem = new ListCtrlHeaderItem;
+    pHeaderItem->SetHeaderCtrl(this);
     SplitBox* pHeaderSplit = new SplitBox;
     size_t nColumnCount = GetColumnCount();
     if ((size_t)columnIndex >= nColumnCount) {
@@ -126,34 +127,7 @@ ListCtrlHeaderItem* ListCtrlHeader::InsertColumn(int32_t columnIndex, const List
     }
 
     //CheckBox属性
-    if (columnInfo.bShowCheckBox) {
-        std::wstring checkBoxClass = m_pListCtrl->GetCheckBoxClass();
-        ASSERT(!checkBoxClass.empty());
-        CheckBox* pCheckBox = new CheckBox;
-        pHeaderItem->AddItem(pCheckBox);
-        if (!checkBoxClass.empty()) {
-            pCheckBox->SetClass(checkBoxClass);
-        }
-        UiPadding textPadding = pHeaderItem->GetTextPadding();
-        int32_t nCheckBoxWidth = columnInfo.nCheckBoxWidth;
-        if (columnInfo.bNeedDpiScale) {
-            GlobalManager::Instance().Dpi().ScaleInt(nCheckBoxWidth);
-        }
-        if (textPadding.left < nCheckBoxWidth) {
-            textPadding.left = nCheckBoxWidth;
-            pHeaderItem->SetTextPadding(textPadding, false);
-        }
-
-        //挂载CheckBox的事件处理
-        pCheckBox->AttachSelect([this, pHeaderItem](const EventArgs& /*args*/) {
-            OnHeaderColumnCheckStateChanged(pHeaderItem, true);
-            return true;
-            });
-        pCheckBox->AttachUnSelect([this, pHeaderItem](const EventArgs& /*args*/) {
-            OnHeaderColumnCheckStateChanged(pHeaderItem, false);
-            return true;
-            });
-    }
+    pHeaderItem->SetCheckBoxVisible(columnInfo.bShowCheckBox);
 
     //挂载拖动响应事件
     pHeaderSplit->AttachSplitDraged([this](const EventArgs& args) {
@@ -330,6 +304,12 @@ bool ListCtrlHeader::DeleteColumn(size_t columnIndex)
 void ListCtrlHeader::SetListCtrl(ListCtrl* pListCtrl)
 {
     m_pListCtrl = pListCtrl;
+}
+
+ListCtrl* ListCtrlHeader::GetListCtrl() const
+{
+    ASSERT(m_pListCtrl != nullptr);
+    return m_pListCtrl;
 }
 
 bool ListCtrlHeader::IsEnableHeaderDragOrder() const

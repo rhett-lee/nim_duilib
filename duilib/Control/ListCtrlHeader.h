@@ -103,6 +103,10 @@ public:
     */
     void SetListCtrl(ListCtrl* pListCtrl);
 
+    /** 获取关联的ListCtrl接口
+    */
+    ListCtrl* GetListCtrl() const;
+
 public:
     /** 列表头鼠标右键点击处理函数
     * @param[in] callback 要绑定的回调函数

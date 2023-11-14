@@ -13,6 +13,7 @@ namespace ui
 
 /** ListCtrl的表头控件的显示项
 */
+class ListCtrlHeader;
 class ListCtrlHeaderItem:
     public ButtonBox
 {
@@ -129,10 +130,6 @@ public:
     */
     bool IsCheckBoxVisible() const;
 
-    /** 是否有CheckBox
-    */
-    bool HasCheckBox() const;
-
     /** 设置CheckBox的勾选状态
     * @param [in] bSelected true表示勾选，false表示不勾选
     * @param [in] 如果bSelected和bPartSelect同时为true，表示部分选择
@@ -153,6 +150,14 @@ public:
     * @return 返回true表示该列显示，否则表示该列隐藏
     */
     bool IsColumnVisible() const;
+
+    /** 设置关联的Header接口
+    */
+    void SetHeaderCtrl(ListCtrlHeader* pHeaderCtrl);
+
+    /** 获取关联的Header接口
+    */
+    ListCtrlHeader* GetHeaderCtrl() const;
 
 private:
     /** 同步列宽与UI控件宽度
@@ -219,6 +224,10 @@ private:
     /** 显示/隐藏该列
     */
     bool m_bColumnVisible;
+
+    /** 关联的Header接口
+    */
+    ListCtrlHeader* m_pHeaderCtrl;
 
 private:
     /** @name 拖动相关的成员变量

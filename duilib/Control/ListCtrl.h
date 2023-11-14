@@ -3,60 +3,25 @@
 
 #pragma once
 
+#include "duilib/Control/ListCtrlDefs.h"
 #include "duilib/Control/ListCtrlHeader.h"
 #include "duilib/Control/ListCtrlHeaderItem.h"
 #include "duilib/Control/ListCtrlItem.h"
+#include "duilib/Control/ListCtrlSubItem.h"
 #include "duilib/Control/ListCtrlDataProvider.h"
 #include "duilib/Box/ListBoxItem.h"
 
 namespace ui
 {
-/** 列表数据显示UI控件
-*/
-class ListCtrlDataView;
-
-/** 列表数据管理容器
-*/
-class ListCtrlDataProvider;
-
-/** 列的基本信息（用于添加列）
-*/
-struct ListCtrlColumn
-{
-    std::wstring text;              //表头的文本
-    int32_t nColumnWidth = 100;     //列宽，如果bNeedDpiScale为true，则执行DPI自适应处理
-    int32_t nColumnWidthMin = 0;    //列宽最小值，0表示用默认设置，如果bNeedDpiScale为true，则执行DPI自适应处理
-    int32_t nColumnWidthMax = 0;    //列宽最大值，0表示用默认设置，如果bNeedDpiScale为true，则执行DPI自适应处理
-    int32_t nTextFormat = -1;       //文本对齐方式等属性, 该属性仅应用于Header, 取值可参考：IRender.h中的DrawStringFormat，如果为-1，表示按默认配置的对齐方式
-    bool bSortable = true;          //是否支持排序
-    bool bResizeable = true;        //是否支持通过拖动调整列宽
-    bool bShowCheckBox = true;      //是否显示CheckBox（支持在表头和数据列显示CheckBox）
-    int32_t nCheckBoxWidth = 24;    //CheckBox控件所占的宽度，用于设置文本偏移量，避免显示重叠，仅当bShowCheckBox为true时有效, 如果bNeedDpiScale为true，则执行DPI自适应处理
-    bool bNeedDpiScale = true;      //是否对数值做DPI自适应
-};
-
-/** 列表数据项的基本信息（用于添加数据）
-*/
-struct ListCtrlDataItem
-{
-    size_t nColumnIndex = 0;        //【必填】第几列，有效范围：[0, GetColumnCount())
-    std::wstring text;              //文本内容
-    int32_t nTextFormat = -1;       //文本对齐方式等属性, 该属性仅应用于Header, 取值可参考：IRender.h中的DrawStringFormat，如果为-1，表示按默认配置的对齐方式
-    int32_t nImageIndex = -1;       //图标资源索引号，在图片列表里面的下标值，如果为-1表示不显示图标
-    UiColor textColor;              //文本颜色
-    UiColor bkColor;                //背景颜色
-    bool bShowCheckBox = true;      //是否显示CheckBox
-    int32_t nCheckBoxWidth = 24;    //CheckBox控件所占的宽度，仅当bShowCheckBox为true时有效, 如果bNeedDpiScale为true，则执行DPI自适应处理
-    bool bNeedDpiScale = true;      //是否对数值做DPI自适应
-};
-
 /** ListCtrl控件
 */
 class ListCtrl: public VBox
 {
     friend class ListCtrlHeader;
-    friend class ListCtrlDataProvider;
-    friend class ListCtrlDataView;
+    friend class ListCtrlHeaderItem;
+    friend class ListCtrlDataProvider; //列表数据管理容器
+    friend class ListCtrlDataView;     //列表数据显示UI控件
+    friend class ListCtrlSubItem;
 public:
 	ListCtrl();
 	virtual ~ListCtrl();

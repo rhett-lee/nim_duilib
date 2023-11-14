@@ -3,7 +3,8 @@
 namespace ui
 {
 ListCtrlItem::ListCtrlItem():
-    m_bSelectable(true)
+    m_bSelectable(true),
+    m_pListCtrl(nullptr)
 {
 }
 
@@ -21,6 +22,17 @@ bool ListCtrlItem::IsSelectableType() const
 void ListCtrlItem::SetSelectableType(bool bSelectable)
 {
     m_bSelectable = bSelectable;
+}
+
+void ListCtrlItem::SetListCtrl(ListCtrl* pListCtrl)
+{
+    m_pListCtrl = pListCtrl;
+}
+
+ListCtrl* ListCtrlItem::GetListCtrl() const
+{
+    ASSERT(m_pListCtrl != nullptr);
+    return m_pListCtrl;
 }
 
 void ListCtrlItem::Selected(bool bSelect, bool bTriggerEvent)

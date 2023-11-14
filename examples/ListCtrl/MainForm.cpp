@@ -232,7 +232,13 @@ void MainForm::OnInitWindow()
 		};
 	ui::CheckBox* pShowCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_show_row_checkbox"));
 	if (pShowCheckBox != nullptr) {
-		pShowCheckBox->Selected(true, false);
+		bool bCheckBoxVisible = false;
+		ui::ListCtrlHeaderItem* pHeaderItem = pListCtrl->GetColumn(0);
+		ASSERT(pHeaderItem != nullptr);
+		if (pHeaderItem != nullptr) {
+			bCheckBoxVisible = pHeaderItem->IsCheckBoxVisible();
+		}
+		pShowCheckBox->Selected(bCheckBoxVisible, false);
 		pShowCheckBox->AttachSelect([this, OnShowCheckBox](const ui::EventArgs&) {
 			OnShowCheckBox(true);
 			return true;
@@ -243,6 +249,11 @@ void MainForm::OnInitWindow()
 			});
 	}
 
+	//是否支持多选
+	ui::CheckBox* pMultiSelect = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_multi_select"));
+	if (pMultiSelect != nullptr) {
+		pMultiSelect->Selected(pListCtrl->IsMultiSelect(), false);
+	}
 	//在列表头点击右键
 	ui::ListCtrlHeader* pHeaderCtrl = pListCtrl->GetListCtrlHeader();
 	if (pHeaderCtrl != nullptr) {
@@ -264,12 +275,14 @@ void MainForm::InsertItemData(int32_t nRows, int32_t nColumns)
 	}
 	const size_t columnCount = nColumns;
 	const size_t rowCount = nRows;
+	bool bShowCheckBox = false; //是否显示CheckBox
 	//添加列
 	for (size_t i = 0; i < columnCount; ++i) {
 		ui::ListCtrlColumn columnInfo;
 		columnInfo.nColumnWidth = 200;
 		//columnInfo.nTextFormat = TEXT_LEFT | TEXT_VCENTER;
 		columnInfo.text = ui::StringHelper::Printf(L"第 %d 列", i);
+		columnInfo.bShowCheckBox = bShowCheckBox;
 		pListCtrl->InsertColumn(-1, columnInfo);
 	}
 	//填充数据
@@ -277,7 +290,11 @@ void MainForm::InsertItemData(int32_t nRows, int32_t nColumns)
 	ASSERT(pListCtrl->GetDataItemCount() == rowCount);
 	for (size_t itemIndex = 0; itemIndex < rowCount; ++itemIndex) {
 		for (size_t columnIndex = 0; columnIndex < columnCount; ++columnIndex) {
-			pListCtrl->SetDataItem(itemIndex, { columnIndex, ui::StringHelper::Printf(L"第 %03d 行/第 %02d 列", itemIndex, columnIndex), });
+			ui::ListCtrlDataItem dataItem;
+			dataItem.nColumnIndex = columnIndex;
+			dataItem.text = ui::StringHelper::Printf(L"第 %03d 行/第 %02d 列", itemIndex, columnIndex);
+			dataItem.bShowCheckBox = bShowCheckBox;
+			pListCtrl->SetDataItem(itemIndex, dataItem);
 		}
 	}
 	//排序，默认为升序
@@ -355,26 +372,22 @@ void MainForm::RunListCtrlTest()
 	ASSERT(pListCtrl->GetDataItemData(nDataItemIndex) == 1);
 	pListCtrl->SetDataItemData(nDataItemIndex, 0);
 
-	dataItem.bNeedDpiScale = false;
 	dataItem.nColumnIndex = 1;
 	dataItem.text = L"3";
 	dataItem.textColor = ui::UiColor(ui::UiColors::Crimson);
 	dataItem.bkColor = ui::UiColor(ui::UiColors::BlanchedAlmond);
 	dataItem.bShowCheckBox = false;
-	dataItem.nCheckBoxWidth = 40;
 	dataItem.nImageIndex = 123;
 	dataItem.nTextFormat = ui::TEXT_CENTER | ui::TEXT_VCENTER;
 	pListCtrl->SetDataItem(nDataItemIndex, dataItem);
 
 	ui::ListCtrlDataItem dataItem2;
 	pListCtrl->GetDataItem(nDataItemIndex, dataItem.nColumnIndex, dataItem2);
-	ASSERT(dataItem2.bNeedDpiScale == false);
 	ASSERT(dataItem.nColumnIndex == dataItem2.nColumnIndex);
 	ASSERT(dataItem.text == std::wstring(dataItem2.text));
 	ASSERT(dataItem.textColor == dataItem2.textColor);
 	ASSERT(dataItem.bkColor == dataItem2.bkColor);
 	ASSERT(dataItem.bShowCheckBox == dataItem2.bShowCheckBox);
-	ASSERT(dataItem.nCheckBoxWidth == dataItem2.nCheckBoxWidth);
 	ASSERT(dataItem.nImageIndex == dataItem2.nImageIndex);
 	ASSERT(dataItem.nTextFormat == dataItem2.nTextFormat);
 

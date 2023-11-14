@@ -24,6 +24,7 @@ Control* ListCtrlDataProvider::CreateElement()
         return nullptr;
     }
     ListCtrlItem* pItem = new ListCtrlItem;
+    pItem->SetListCtrl(m_pListCtrl);
     pItem->SetClass(m_pListCtrl->GetDataItemClass());
     return pItem;
 }
@@ -121,6 +122,7 @@ bool ListCtrlDataProvider::FillElement(ui::Control* pControl, size_t nElementInd
         }
         else {
             pSubItem = new ListCtrlSubItem;
+            pSubItem->SetListCtrlItem(pItem);
             pItem->AddItem(pSubItem);
             if (!defaultSubItemClass.empty()) {
                 pSubItem->SetClass(defaultSubItemClass);
@@ -154,47 +156,28 @@ bool ListCtrlDataProvider::FillElement(ui::Control* pControl, size_t nElementInd
             }
             if (pStorage->bShowCheckBox) {
                 //添加CheckBox
-                CheckBox* pCheckBox = nullptr;
-                if (pSubItem->GetItemCount() > 0) {
-                    pCheckBox = dynamic_cast<CheckBox*>(pSubItem->GetItemAt(0));
-                }
-                if (pCheckBox == nullptr) {
-                    pCheckBox = new CheckBox;
-                    std::wstring checkBoxClass = m_pListCtrl->GetCheckBoxClass();
-                    ASSERT(!checkBoxClass.empty());
-                    pSubItem->AddItem(pCheckBox);
-                    if (!checkBoxClass.empty()) {
-                        pCheckBox->SetClass(checkBoxClass);
-                    }
-                }
-                UiPadding textPadding = pSubItem->GetTextPadding();
-                int32_t nCheckBoxWidth = pStorage->nCheckBoxWidth;
-                if (textPadding.left < nCheckBoxWidth) {
-                    textPadding.left = nCheckBoxWidth;
-                    pSubItem->SetTextPadding(textPadding, false);
-                }
+                pSubItem->SetCheckBoxVisible(true);
+                CheckBox* pCheckBox = pSubItem->GetCheckBox();
+                ASSERT(pCheckBox != nullptr);
 
                 //挂载CheckBox的事件处理
-                pCheckBox->DetachEvent(kEventSelect);
-                pCheckBox->DetachEvent(kEventUnSelect);
-                pCheckBox->SetSelected(pStorage->bChecked);
-                size_t nColumnId = elementData.nColumnId;
-                pCheckBox->AttachSelect([this, nColumnId, nElementIndex](const EventArgs& /*args*/) {
-                    OnDataItemChecked(nElementIndex, nColumnId, true);
-                    return true;
-                    });
-                pCheckBox->AttachUnSelect([this, nColumnId, nElementIndex](const EventArgs& /*args*/) {
-                    OnDataItemChecked(nElementIndex, nColumnId, false);
-                    return true;
-                    });
+                if (pCheckBox != nullptr) {
+                    pCheckBox->DetachEvent(kEventSelect);
+                    pCheckBox->DetachEvent(kEventUnSelect);
+                    pCheckBox->SetSelected(pStorage->bChecked);
+                    size_t nColumnId = elementData.nColumnId;
+                    pCheckBox->AttachSelect([this, nColumnId, nElementIndex](const EventArgs& /*args*/) {
+                        OnDataItemChecked(nElementIndex, nColumnId, true);
+                        return true;
+                        });
+                    pCheckBox->AttachUnSelect([this, nColumnId, nElementIndex](const EventArgs& /*args*/) {
+                        OnDataItemChecked(nElementIndex, nColumnId, false);
+                        return true;
+                        });
+                }
             }
             else {
-                if (pSubItem->GetItemCount() > 0) {
-                    CheckBox* pCheckBox = dynamic_cast<CheckBox*>(pSubItem->GetItemAt(0));
-                    if (pCheckBox != nullptr) {
-                        pSubItem->RemoveItemAt(0);
-                    }
-                }
+                pSubItem->SetCheckBoxVisible(false);
             }
         }
         else {
@@ -203,12 +186,7 @@ bool ListCtrlDataProvider::FillElement(ui::Control* pControl, size_t nElementInd
             pSubItem->SetTextPadding(defaultSubItem.GetTextPadding(), false);
             pSubItem->SetStateTextColor(kControlStateNormal, defaultSubItem.GetStateTextColor(kControlStateNormal));
             pSubItem->SetBkColor(defaultSubItem.GetBkColor());
-            if (pSubItem->GetItemCount() > 0) {
-                CheckBox* pCheckBox = dynamic_cast<CheckBox*>(pSubItem->GetItemAt(0));
-                if (pCheckBox != nullptr) {
-                    pSubItem->RemoveItemAt(0);
-                }
-            }
+            pSubItem->SetCheckBoxVisible(false);
         }
     }
     return true;
@@ -320,15 +298,10 @@ void ListCtrlDataProvider::DataItemToStorage(const ListCtrlDataItem& item, Stora
     else {
         storage.nTextFormat = 0;
     }
-    int32_t nCheckBoxWidth = item.nCheckBoxWidth;
-    if (item.bNeedDpiScale) {
-        GlobalManager::Instance().Dpi().ScaleInt(nCheckBoxWidth);
-    }
     storage.nImageIndex = item.nImageIndex;
     storage.textColor = item.textColor;
     storage.bkColor = item.bkColor;
     storage.bShowCheckBox = item.bShowCheckBox;
-    storage.nCheckBoxWidth = TruncateToUInt8(nCheckBoxWidth);
 }
 
 void ListCtrlDataProvider::StorageToDataItem(const Storage& storage, ListCtrlDataItem& item) const
@@ -340,8 +313,6 @@ void ListCtrlDataProvider::StorageToDataItem(const Storage& storage, ListCtrlDat
     else {
         item.nTextFormat = storage.nTextFormat;
     }
-    item.bNeedDpiScale = false;
-    item.nCheckBoxWidth = storage.nCheckBoxWidth;    
     item.nImageIndex = storage.nImageIndex;
     item.textColor = storage.textColor;
     item.bkColor = storage.bkColor;
@@ -457,14 +428,7 @@ int32_t ListCtrlDataProvider::GetColumnWidthAuto(size_t columnId) const
                 subItem.SetTextStyle(defaultSubItem.GetTextStyle(), false);
             }
             subItem.SetTextPadding(defaultSubItem.GetTextPadding(), false);
-            if (pStorage->bShowCheckBox) {
-                UiPadding textPadding = subItem.GetTextPadding();
-                int32_t nCheckBoxWidth = pStorage->nCheckBoxWidth;
-                if (textPadding.left < nCheckBoxWidth) {
-                    textPadding.left = nCheckBoxWidth;
-                    subItem.SetTextPadding(textPadding, false);
-                }
-            }
+            subItem.SetCheckBoxVisible(pStorage->bShowCheckBox);
             subItem.SetFixedWidth(UiFixedInt::MakeAuto(), false, false);
             subItem.SetFixedHeight(UiFixedInt::MakeAuto(), false, false);
             subItem.SetReEstimateSize(true);
