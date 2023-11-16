@@ -117,11 +117,11 @@ bool ListCtrlSubItem::GetCheckBoxSelect(bool& bSelected, bool& bPartSelect) cons
     return false;
 }
 
-CheckBox* ListCtrlSubItem::GetCheckBox() const
+ListCtrlCheckBox* ListCtrlSubItem::GetCheckBox() const
 {
-    CheckBox* pCheckBox = nullptr;
+    ListCtrlCheckBox* pCheckBox = nullptr;
     if (GetItemCount() > 0) {
-        pCheckBox = dynamic_cast<CheckBox*>(GetItemAt(0));
+        pCheckBox = dynamic_cast<ListCtrlCheckBox*>(GetItemAt(0));
     }
     return pCheckBox;
 }

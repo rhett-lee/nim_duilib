@@ -1,11 +1,13 @@
 #include "ListCtrlItem.h"
-#include "ListCtrlSubItem.h"
+#include "duilib/Control/ListCtrlSubItem.h"
+#include "duilib/Control/ListCtrl.h"
 
 namespace ui
 {
 ListCtrlItem::ListCtrlItem():
     m_bSelectable(true),
-    m_pListCtrl(nullptr)
+    m_pListCtrl(nullptr),
+    m_nCheckBoxPadding(0)
 {
 }
 
@@ -84,7 +86,13 @@ bool ListCtrlItem::ButtonDown(const EventArgs& msg)
 
 bool ListCtrlItem::ButtonUp(const EventArgs& msg)
 {
-    return __super::ButtonUp(msg);
+    if ((m_pListCtrl != nullptr) && m_pListCtrl->IsAutoCheckSelect()) {
+        //跳过CheckBox的处理函数，避免功能冲突
+        return HBox::ButtonUp(msg);
+    }
+    else {
+        return __super::ButtonUp(msg);
+    }
 }
 
 bool ListCtrlItem::ButtonDoubleClick(const EventArgs& msg)
@@ -126,6 +134,62 @@ void ListCtrlItem::SelectItem(uint64_t vkFlag)
         size_t nListBoxIndex = GetListBoxIndex();
         pOwner->SelectItem(nListBoxIndex, true, true, vkFlag);
     }
+}
+
+bool ListCtrlItem::SupportCheckedMode() const
+{
+    return true;
+}
+
+bool ListCtrlItem::SetShowCheckBox(bool bShow)
+{
+    bool bRet = false;
+    if (bShow) {
+        if (IsShowCheckBox()) {
+            return true;
+        }
+        ListCtrl* pListCtrl = GetListCtrl();
+        if (pListCtrl != nullptr) {
+            std::wstring checkBoxClass = pListCtrl->GetCheckBoxClass();
+            if (!checkBoxClass.empty()) {
+                SetClass(checkBoxClass);
+                bRet = IsShowCheckBox();
+                if (bRet) {
+                    //设置左侧的Padding值，避免CheckBox和文字重叠
+                    int32_t nWidth = pListCtrl->GetCheckBoxPadding();
+                    if (nWidth > 0) {
+                        UiPadding rcPadding = GetPadding();
+                        if (rcPadding.left < nWidth) {
+                            rcPadding.left = nWidth;
+                            SetPadding(rcPadding, false);
+                            m_nCheckBoxPadding = nWidth;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    else {
+        //清除CheckBox图片资源，就不显示了
+        ClearStateImages();
+        ASSERT(!IsShowCheckBox());
+        if (m_nCheckBoxPadding > 0) {
+            UiPadding rcPadding = GetPadding();
+            if (rcPadding.left >= m_nCheckBoxPadding) {
+                rcPadding.left -= m_nCheckBoxPadding;
+                SetPadding(rcPadding, false);
+            }
+            m_nCheckBoxPadding = 0;
+        }
+        bRet = true;
+    }
+    return bRet;
+}
+
+bool ListCtrlItem::IsShowCheckBox() const
+{
+    //如果有CheckBox图片资源，则认为显示了CheckBox
+    return !GetStateImage(kControlStateNormal).empty() && !GetSelectedStateImage(kControlStateNormal).empty();
 }
 
 }//namespace ui

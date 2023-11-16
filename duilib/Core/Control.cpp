@@ -245,7 +245,7 @@ bool Control::HasStateImage(StateImageType stateImageType) const
 	return false;
 }
 
-std::wstring Control::GetStateImage(StateImageType imageType, ControlStateType stateType)
+std::wstring Control::GetStateImage(StateImageType imageType, ControlStateType stateType) const
 {
 	if (m_pImageMap != nullptr) {
 		return m_pImageMap->GetImageString(imageType, stateType);
@@ -297,7 +297,7 @@ void Control::ClearStateImages()
 	RelayoutOrRedraw();
 }
 
-std::wstring Control::GetStateImage(ControlStateType stateType)
+std::wstring Control::GetStateImage(ControlStateType stateType) const
 {
 	return GetStateImage(kStateImageBk, stateType);
 }
@@ -311,7 +311,7 @@ void Control::SetStateImage(ControlStateType stateType, const std::wstring& strI
 	RelayoutOrRedraw();
 }
 
-std::wstring Control::GetForeStateImage(ControlStateType stateType)
+std::wstring Control::GetForeStateImage(ControlStateType stateType) const
 {
 	return GetStateImage(kStateImageFore, stateType);
 }

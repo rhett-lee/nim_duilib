@@ -97,6 +97,24 @@ public:
     */
     bool DeleteColumn(size_t columnIndex);
 
+    /** 设置是否在Header显示CheckBox
+    * @param [in] bShow true表示在表头显示CheckBox，false表示不显示
+    */
+    bool SetShowCheckBox(bool bShow);
+
+    /** 判断是否显示了CheckBox
+    */
+    bool IsShowCheckBox() const;
+
+    /** 禁止/允许CheckBox勾选项变化事件
+    * @return 返回原来的状态，用于还原
+    */
+    bool SetEnableCheckChangeEvent(bool bEnable);
+
+    /** 设置左侧的Padding值，用于与数据行对齐显示
+    */
+    void SetPaddingLeftValue(int32_t nPaddingLeft);
+
 public:
 
     /** 设置关联的ListCtrl接口
@@ -148,10 +166,33 @@ protected:
     */
     void OnHeaderColumnSplitDoubleClick(ListCtrlHeaderItem* pHeaderItem);
 
+    /** 是否支持勾选模式（目前是TreeView/ListCtrl在使用这个模式）
+        勾选模式是指：
+        （1）只有点击在CheckBox图片上的时候，勾选框图片才是选择状态（非勾选模式下，是点击在控件矩形内就选择）
+        （2）勾选状态和选择状态分离，是两个不同的状态
+    */
+    virtual bool SupportCheckedMode() const override;
+
+    /** 勾选状态变化事件(m_bChecked变量发生变化)
+    */
+    virtual void OnPrivateSetChecked() override;
+
 private:
     /** 关联的ListCtrl接口
     */
     ListCtrl* m_pListCtrl;
+
+    /** 设置的CheckBox宽度值
+    */
+    int32_t m_nCheckBoxPadding;
+
+    /** 左侧的Padding值，用于与数据行对齐显示
+    */
+    int32_t m_nPaddingLeftValue;
+
+    /** 是否允许CheckBox勾选项变化事件
+    */
+    bool m_bEnableCheckChangeEvent;
 };
 
 }//namespace ui

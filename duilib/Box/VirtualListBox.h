@@ -302,13 +302,18 @@ protected:
     */
     VirtualLayout* GetVirtualLayout() const;
 
-    /** 执行了刷新操作, 界面的UI控件个数可能会发生变化
+    /** 执行了界面刷新操作, 界面的UI控件个数可能会发生变化
     */
-    virtual void OnRefresh() {};
+    virtual void OnRefresh() {}
 
     /** 执行了重排操作，界面的UI控件进行了重新数据填充（通过FillElement函数）
     */
-    virtual void OnArrangeChild() {};
+    virtual void OnArrangeChild() {}
+
+    /** 执行了界面刷新操作, 刷新了部分元素的数据（通过FillElement函数）
+    * @param [in] refreshIndexs 
+    */
+    virtual void OnRefreshElements(const std::vector<size_t>& /*refreshIndexs*/) {}
 
 protected:
     /** 创建一个子项
@@ -334,6 +339,10 @@ protected:
     /** 数据个数发生变化，在事件中需要重新加载展示数据
     */
     void OnModelCountChanged();
+
+    /** 是否允许从界面状态同步到存储状态
+    */
+    bool IsEnableUpdateProvider() const;
 
 private:
     /** 数据代理对象接口，提供展示数据

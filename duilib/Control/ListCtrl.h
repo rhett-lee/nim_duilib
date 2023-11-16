@@ -21,6 +21,7 @@ class ListCtrl: public VBox
     friend class ListCtrlHeaderItem;
     friend class ListCtrlDataProvider; //列表数据管理容器
     friend class ListCtrlDataView;     //列表数据显示UI控件
+    friend class ListCtrlItem;
     friend class ListCtrlSubItem;
 public:
 	ListCtrl();
@@ -88,7 +89,7 @@ public:
 
     /** 获取表头控件接口, 在控件初始化以后才有值
     */
-    ListCtrlHeader* GetListCtrlHeader() const;
+    ListCtrlHeader* GetHeaderCtrl() const;
 
     /** 设置是否支持列表头拖动改变列的顺序
     */
@@ -271,6 +272,20 @@ public:
     */
     UiColor GetDataItemTextColor(size_t itemIndex, size_t columnIndex) const;
 
+    /** 设置指定数据项的文本属性（文本对齐方式等）
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
+    * @param [in] nTextFormat 需要设置的文本属性
+    */
+    bool SetDataItemTextFormat(size_t itemIndex, size_t columnIndex, int32_t nTextFormat);
+
+    /** 获取指定数据项的文本属性（文本对齐方式等）
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
+    * @return 数据项关联的文本属性
+    */
+    int32_t GetDataItemTextFormat(size_t itemIndex, size_t columnIndex) const;
+
     /** 设置指定数据项的背景颜色
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
@@ -404,6 +419,103 @@ public:
     */
     ListCtrlItem* GetNextDisplayItem(ListCtrlItem* pItem) const;
 
+public:
+    /** @name CheckBox（行级）关联函数
+    * @{ */
+
+    /** 设置是否自动勾选选择的数据项(作用于Header与每行)
+    */
+    void SetAutoCheckSelect(bool bAutoCheckSelect);
+
+    /** 获取是否自动勾选选择的数据项
+    */
+    bool IsAutoCheckSelect() const;
+
+    /** 设置CheckBox的宽度，避免与文字重叠
+    * @param [in] nWidth 宽度值
+    * @param [in] bNeedDpiScale 如果为true表示需要对宽度进行DPI自适应
+    */
+    void SetCheckBoxPadding(int32_t nWidth, bool bNeedDpiScale);
+
+    /** 获取CheckBox的宽度值，用于设置Padding（left），避免与文字重叠
+    */
+    int32_t GetCheckBoxPadding() const;
+
+    /** 设置是否在表头最左侧显示CheckBox
+    * @param [in] bShow true表示显示CheckBox，false表示不显示
+    */
+    bool SetHeaderShowCheckBox(bool bShow);
+
+    /** 判断是否在每行行首显示CheckBox
+    */
+    bool IsHeaderShowCheckBox() const;
+
+    /** 设置是否在每行行首显示CheckBox
+    * @param [in] bShow true表示显示CheckBox，false表示不显示
+    */
+    void SetDataItemShowCheckBox(bool bShow);
+
+    /** 判断是否在每行行首显示CheckBox
+    */
+    bool IsDataItemShowCheckBox() const;
+
+    /** 设置数据项的勾选属性
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @param [in] bCheck 是否勾选状态
+    */
+    bool SetDataItemCheck(size_t itemIndex, bool bCheck);
+
+    /** 获取数据项的勾选属性
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @return 返回数据项关联的勾选状态
+    */
+    bool IsDataItemCheck(size_t itemIndex) const;
+
+    /** 批量设置勾选数据项（行首的CheckBox打勾的数据）
+    * @param [in] itemIndexs 需要设置勾选的数据项索引号，有效范围：[0, GetDataItemCount())
+    * @param [in] bClearOthers 如果为true，表示对其他已选择的进行清除选择，只保留本次设置的为选择项
+    */
+    void SetCheckedDataItems(const std::vector<size_t>& itemIndexs, bool bClearOthers);
+
+    /** 获取勾选的元素列表（行首的CheckBox打勾的数据）
+    * @param [in] itemIndexs 返回当前勾选的数据项索引号，有效范围：[0, GetDataItemCount())
+    */
+    void GetCheckedDataItems(std::vector<size_t>& itemIndexs) const;
+
+    /** @} */
+
+public:
+    /** 横向网格线的宽度
+    * @param [in] nLineWidth 网格线的宽度，如果为0表示不显示横向网格线
+    * @param [in] bNeedDpiScale 如果为true表示需要对宽度进行DPI自适应
+    */
+    void SetRowGridLineWidth(int32_t nLineWidth, bool bNeedDpiScale);
+    int32_t GetRowGridLineWidth() const;
+
+    /** 横向网格线的颜色
+    * @param [in] color 横向网格线的颜色
+    */
+    void SetRowGridLineColor(const std::wstring& color);
+    std::wstring GetRowGridLineColor() const;
+
+    /** 纵向网格线的宽度
+    * @param [in] nLineWidth 网格线的宽度，如果为0表示不显示纵向网格线
+    * @param [in] bNeedDpiScale 如果为true表示需要对宽度进行DPI自适应
+    */
+    void SetColumnGridLineWidth(int32_t nLineWidth, bool bNeedDpiScale);
+    int32_t GetColumnGridLineWidth() const;
+
+    /** 纵向网格线的颜色
+    * @param [in] color 纵向网格线的颜色
+    */
+    void SetColumnGridLineColor(const std::wstring& color);
+    std::wstring GetColumnGridLineColor() const;
+
+    /** 是否支持双击Header的分割条自动调整列宽
+    */
+    void SetEnableColumnWidthAuto(bool bEnable);
+    bool IsEnableColumnWidthAuto() const;
+
 protected:
     /** 控件初始化
     */
@@ -448,37 +560,6 @@ protected:
     void SetDataSubItemClass(const std::wstring& className);
     std::wstring GetDataSubItemClass() const;
 
-    /** 横向网格线的宽度
-    * @param [in] nLineWidth 网格线的宽度，如果为0表示不显示横向网格线
-    * @param [in] bNeedDpiScale 如果为true表示需要对宽度进行DPI自适应
-    */
-    void SetRowGridLineWidth(int32_t nLineWidth, bool bNeedDpiScale);
-    int32_t GetRowGridLineWidth() const;
-
-    /** 横向网格线的颜色
-    * @param [in] color 横向网格线的颜色
-    */
-    void SetRowGridLineColor(const std::wstring& color);
-    std::wstring GetRowGridLineColor() const;
-
-    /** 纵向网格线的宽度
-    * @param [in] nLineWidth 网格线的宽度，如果为0表示不显示纵向网格线
-    * @param [in] bNeedDpiScale 如果为true表示需要对宽度进行DPI自适应
-    */
-    void SetColumnGridLineWidth(int32_t nLineWidth, bool bNeedDpiScale);
-    int32_t GetColumnGridLineWidth() const;
-
-    /** 纵向网格线的颜色
-    * @param [in] color 纵向网格线的颜色
-    */
-    void SetColumnGridLineColor(const std::wstring& color);
-    std::wstring GetColumnGridLineColor() const;
-
-    /** 是否支持双击Header的分割条自动调整列宽
-    */
-    void SetEnableColumnWidthAuto(bool bEnable);
-    bool IsEnableColumnWidthAuto() const;
-
 protected:
     /** 增加一列
     * @param [in] nColumnId 列的ID
@@ -506,11 +587,16 @@ protected:
     */
     void OnHeaderColumnOrderChanged();
 
-    /** 表头的CheckBox勾选操作
+    /** 表头的CheckBox勾选操作(列级)
     * @param [in] nColumnId 列的ID
     * @param [in] bChecked true表示勾选（Checked状态），false表示取消勾选（UnChecked状态）
     */
     void OnHeaderColumnCheckStateChanged(size_t nColumnId, bool bChecked);
+
+    /** 表头的CheckBox勾选操作(行级)
+    * @param [in] bChecked true表示勾选（Checked状态），false表示取消勾选（UnChecked状态）
+    */
+    void OnHeaderCheckStateChanged(bool bChecked);
 
     /** 表头列的显示属性发生变化
     */
@@ -521,9 +607,14 @@ protected:
     */
     void OnHeaderColumnSplitDoubleClick(ListCtrlHeaderItem* pHeaderItem);
 
-    /** 同步UI的Check状态
+    /** 同步UI的Check状态(列级别的CheckBox)
+    * @param [in] nColumnId 列ID
     */
-    void UpdateControlCheckStatus(size_t nColumnId);
+    void UpdateDataItemColumnCheckStatus(size_t nColumnId);
+
+    /** 同步UI的Check状态(行级别的CheckBox)
+    */
+    void UpdateDataItemCheckStatus();
 
 private:
 	/** 初始化标志
@@ -574,7 +665,11 @@ private:
     */
     UiString m_dataSubItemClass;
 
-    /** 当前是否可以更新Header的Check状态
+    /** 当前是否可以更新Header的每列Check状态(列级别的CheckBox)
+    */
+    bool m_bCanUpdateHeaderColumnCheckStatus;
+
+    /** 当前是否可以更新Header的每行Check状态(行级别的CheckBox)
     */
     bool m_bCanUpdateHeaderCheckStatus;
 
@@ -621,6 +716,22 @@ private:
     /** 是否支持双击Header的分割条自动调整列宽
     */
     bool m_bEnableColumnWidthAuto;
+
+    /** 是否自动勾选选择的数据项（与Windows下ListCtrl的LVS_EX_AUTOCHECKSELECT属性相似）
+    */
+    bool m_bAutoCheckSelect;
+
+    /** CheckBox（每行，含Header）的宽度，避免与文字重叠
+    */
+    int32_t m_nCheckBoxPadding;
+
+    /** 是否显示Header的CheckBox（行级）
+    */
+    bool m_bHeaderShowCheckBox;
+
+    /** 是否显示数据项的CheckBox（行级）
+    */
+    bool m_bDataItemShowCheckBox;
 };
 
 }//namespace ui

@@ -79,6 +79,12 @@ public:
 	*/
 	virtual void OnItemSelectedChanged(size_t iIndex, IListBoxItem* pListBoxItem) = 0;
 
+	/** 子项的勾选状态变化事件，用于状态同步
+	* @param [in] iIndex 子项目的ID，范围是：[0, GetItemCount())
+	* @param [in] pListBoxItem 关联的列表项接口
+	*/
+	virtual void OnItemCheckedChanged(size_t iIndex, IListBoxItem* pListBoxItem) = 0;
+
 	/** 确保矩形区域可见
 	* @param [in] rcItem 可见区域的矩形范围
 	* @param [in] vVisibleType 垂直方向可见的附加标志
@@ -356,6 +362,12 @@ protected:
 	* @param [in] pListBoxItem 关联的列表项接口
 	*/
 	virtual void OnItemSelectedChanged(size_t iIndex, IListBoxItem* pListBoxItem) override;
+
+	/** 子项的勾选状态变化事件，用于状态同步
+	* @param [in] iIndex 子项目的ID，范围是：[0, GetItemCount())
+	* @param [in] pListBoxItem 关联的列表项接口
+	*/
+	virtual void OnItemCheckedChanged(size_t iIndex, IListBoxItem* pListBoxItem) override;
 
 	/** 响应KeyDown消息
 	* @return 返回true表示成功处理，返回false表示未处理此消息

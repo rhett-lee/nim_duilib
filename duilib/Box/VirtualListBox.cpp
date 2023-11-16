@@ -128,24 +128,34 @@ Control* VirtualListBox::CreateElement()
 
 void VirtualListBox::FillElement(Control* pControl, size_t nElementIndex)
 {
-    ASSERT(m_pDataProvider != nullptr);
-    if (m_pDataProvider != nullptr) {
-        bool bFilled = m_pDataProvider->FillElement(pControl, nElementIndex);
-        bool bSelected = m_pDataProvider->IsElementSelected(nElementIndex);
-        ASSERT_UNUSED_VARIABLE(bFilled);
-        IListBoxItem* pListBoxItem = dynamic_cast<IListBoxItem*>(pControl);
-        ASSERT(pListBoxItem != nullptr);
-        if (pListBoxItem != nullptr) {
-            //更新元素索引号
-            pListBoxItem->SetElementIndex(nElementIndex);
-            ASSERT(GetItemIndex(pControl) == pListBoxItem->GetListBoxIndex());
-            //更新选择状态
-            bool bOldValue = m_bEnableUpdateProvider;
-            m_bEnableUpdateProvider = false;
-            pListBoxItem->SetItemSelected(bSelected);
-            m_bEnableUpdateProvider = bOldValue;
-        }
+    ASSERT(pControl != nullptr);
+    if (pControl == nullptr) {
+        return;
     }
+    IListBoxItem* pListBoxItem = dynamic_cast<IListBoxItem*>(pControl);
+    ASSERT(pListBoxItem != nullptr);
+    if (pListBoxItem == nullptr) {
+        return;
+    }
+    ASSERT(m_pDataProvider != nullptr);
+    if (m_pDataProvider == nullptr) {
+        return;
+    }
+    bool bOldValue = m_bEnableUpdateProvider;
+    m_bEnableUpdateProvider = false;
+
+    bool bSelected = m_pDataProvider->IsElementSelected(nElementIndex);
+    //先更新选择状态，再填充数据，从而避免与Check状态冲突
+    pListBoxItem->SetItemSelected(bSelected);
+    bool bFilled = m_pDataProvider->FillElement(pControl, nElementIndex);    
+    ASSERT_UNUSED_VARIABLE(bFilled);
+
+    //更新元素索引号
+    pListBoxItem->SetElementIndex(nElementIndex);
+    ASSERT(GetItemIndex(pControl) == pListBoxItem->GetListBoxIndex());
+    ASSERT(pListBoxItem->IsSelected() == bSelected);
+
+    m_bEnableUpdateProvider = bOldValue;
 }
 
 void VirtualListBox::OnItemSelectedChanged(size_t /*iIndex*/, IListBoxItem* pListBoxItem)
@@ -337,7 +347,11 @@ void VirtualListBox::RefreshElements(const std::vector<size_t>& elementIndexs)
     for (size_t nElementIndex : elementIndexs) {
         indexSet.insert(nElementIndex);
     }
+    std::vector<size_t> refreshIndexs;
     for (Control* pControl : m_items) {
+        if ((pControl == nullptr) || !pControl->IsVisible()) {
+            continue;
+        }
         IListBoxItem* pListBoxItem = dynamic_cast<IListBoxItem*>(pControl);
         if (pListBoxItem == nullptr) {
             continue;
@@ -345,30 +359,45 @@ void VirtualListBox::RefreshElements(const std::vector<size_t>& elementIndexs)
         size_t nElementIndex = pListBoxItem->GetElementIndex();
         if (nElementIndex != Box::InvalidIndex) {
             if (indexSet.find(nElementIndex) != indexSet.end()) {
+                refreshIndexs.push_back(nElementIndex);
                 FillElement(pControl, nElementIndex);
+                pControl->Invalidate();
             }
         }
     }
+    OnRefreshElements(refreshIndexs);
 }
 
 void VirtualListBox::OnModelDataChanged(size_t nStartElementIndex, size_t nEndElementIndex)
 {
+    std::vector<size_t> refreshIndexs;
     for (Control* pControl : m_items) {
+        if ((pControl == nullptr) || !pControl->IsVisible()) {
+            continue;
+        }
         IListBoxItem* pListBoxItem = dynamic_cast<IListBoxItem*>(pControl);
         if (pListBoxItem != nullptr) {
             size_t nElementIndex = pListBoxItem->GetElementIndex();
             if ((nElementIndex >= nStartElementIndex) &&
                 (nElementIndex <= nEndElementIndex)) {
+                refreshIndexs.push_back(nElementIndex);
                 FillElement(pControl, nElementIndex);
+                pControl->Invalidate();
             }
         }
     }
+    OnRefreshElements(refreshIndexs);
 }
 
 void VirtualListBox::OnModelCountChanged()
 {
     //元素的个数发生变化（有添加或者删除）
     Refresh();
+}
+
+bool VirtualListBox::IsEnableUpdateProvider() const
+{
+    return m_bEnableUpdateProvider;
 }
 
 void VirtualListBox::Refresh()

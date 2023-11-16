@@ -256,15 +256,15 @@
                                         sorted_down_image="file='../public/listctrl/arrow-sorted-down.svg' width='10' height='10' valign='center' halign='left'"/>
     <Class name="list_ctrl_header_split_box" width="3" height="100%" enable_split_single="true"/>
     <Class name="list_ctrl_header_split_control" width="1" height="100%" margin="2,4,0,2" bkcolor="splitline_level1"/>
-    <Class name="list_ctrl_checkbox" valign="center" halign="left" margin="4,0,0,0"
+    <Class name="list_ctrl_checkbox" valign="center" halign="left"
                                      normal_image="file='../public/CheckBox/check_no.png' padding='2,0,0,0' valign='center'" 
                                      disabled_image="file='../public/CheckBox/check_no.png' padding='2,0,0,0' valign='center' fade='80'" 
                                      selected_normal_image="file='../public/CheckBox/check_yes.png' padding='2,0,0,0' valign='center'" 
                                      selected_disabled_image="file='../public/CheckBox/check_yes.png' padding='2,0,0,0' valign='center' fade='80'" 
                                      part_selected_normal_image="file='../public/CheckBox/part_check.png' padding='2,0,0,0' valign='center'" 
-                                     part_selected_disabled_image="file='../public/CheckBox/part_check.png' padding='2,0,0,0' valign='center' fade='80'"/>    
-    <Class name="list_ctrl_data_view" bkcolor="white" vscrollbar="true" hscrollbar="true" width="100%"
-                                      child_margin_y="0"
+                                     part_selected_disabled_image="file='../public/CheckBox/part_check.png' padding='2,0,0,0' valign='center' fade='80'"/>
+    <Class name="list_ctrl_data_view" bkcolor="white" vscrollbar="true" hscrollbar="true" width="100%" padding="0,0,0,0"
+                                      child_margin_y="0" paint_selected_colors="true"
                                       enable_frame_selection="true" 
                                       frame_selection_color="#FFAACCEE" frame_selection_alpha="128" 
                                       frame_selection_border="1" frame_selection_border_color="#FF0078D7"/>

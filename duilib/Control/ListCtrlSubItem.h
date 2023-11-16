@@ -11,6 +11,7 @@ namespace ui
 /** 列表项的子项
 */
 class ListCtrlItem;
+class ListCtrlCheckBox;
 class ListCtrlSubItem : public LabelBox
 {
 public:
@@ -48,7 +49,7 @@ public:
 
     /** 获取CheckBox接口
     */
-    CheckBox* GetCheckBox() const;
+    ListCtrlCheckBox* GetCheckBox() const;
 
 private:
     /** 关联的Item接口

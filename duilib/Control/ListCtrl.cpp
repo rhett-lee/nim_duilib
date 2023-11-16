@@ -10,11 +10,16 @@ ListCtrl::ListCtrl():
     m_pHeaderCtrl(nullptr),
     m_pDataView(nullptr),
     m_bEnableHeaderDragOrder(true),
+    m_bCanUpdateHeaderColumnCheckStatus(true),
     m_bCanUpdateHeaderCheckStatus(true),
     m_bShowHeaderCtrl(true),
     m_bEnableRefresh(true),
     m_bMultiSelect(true),
-    m_bEnableColumnWidthAuto(true)
+    m_bEnableColumnWidthAuto(true),
+    m_bAutoCheckSelect(false),
+    m_nCheckBoxPadding(0),
+    m_bHeaderShowCheckBox(false),
+    m_bDataItemShowCheckBox(false)
 {
     m_pDataProvider = new ListCtrlDataProvider;
     m_nRowGridLineWidth = GlobalManager::Instance().Dpi().GetScaleInt(1);
@@ -88,6 +93,18 @@ void ListCtrl::SetAttribute(const std::wstring& strName, const std::wstring& str
     }
     else if (strName == L"enable_column_width_auto") {
         SetEnableColumnWidthAuto(strValue == L"true");
+    }
+    else if (strName == L"auto_check_select") {
+        SetAutoCheckSelect(strValue == L"true");
+    }
+    else if (strName == L"checkbox_padding") {
+        SetCheckBoxPadding(_wtoi(strValue.c_str()), true);
+    }
+    else if (strName == L"show_header_checkbox") {
+        SetHeaderShowCheckBox(strValue == L"true");
+    }
+    else if (strName == L"show_data_item_checkbox") {
+        SetDataItemShowCheckBox(strValue == L"true");
     }
     else {
         __super::SetAttribute(strName, strValue);
@@ -271,6 +288,8 @@ void ListCtrl::DoInit()
     if (!m_headerClass.empty()) {
         m_pHeaderCtrl->SetClass(m_headerClass.c_str());
     }
+    m_pHeaderCtrl->SetAutoCheckSelect(false);
+    m_pHeaderCtrl->SetShowCheckBox(m_bHeaderShowCheckBox); //是否显示CheckBox
     m_pHeaderCtrl->SetFixedHeight(UiFixedInt(m_nHeaderHeight), true, false);
     if (!m_bShowHeaderCtrl) {
         SetHeaderVisible(false);
@@ -409,7 +428,7 @@ bool ListCtrl::DeleteColumn(size_t columnIndex)
     }
 }
 
-ListCtrlHeader* ListCtrl::GetListCtrlHeader() const
+ListCtrlHeader* ListCtrl::GetHeaderCtrl() const
 {
     return m_pHeaderCtrl;
 }
@@ -602,9 +621,18 @@ void ListCtrl::OnHeaderColumnOrderChanged()
 
 void ListCtrl::OnHeaderColumnCheckStateChanged(size_t nColumnId, bool bChecked)
 {
-    m_bCanUpdateHeaderCheckStatus = false;
+    m_bCanUpdateHeaderColumnCheckStatus = false;
     m_pDataProvider->SetColumnCheck(nColumnId, bChecked);
     Refresh();
+    m_bCanUpdateHeaderColumnCheckStatus = true;
+}
+
+void ListCtrl::OnHeaderCheckStateChanged(bool bChecked)
+{
+    m_bCanUpdateHeaderCheckStatus = false;
+    if (m_pDataProvider->SetAllDataItemsCheck(bChecked)) {
+        Refresh();
+    }    
     m_bCanUpdateHeaderCheckStatus = true;
 }
 
@@ -629,9 +657,9 @@ void ListCtrl::OnHeaderColumnSplitDoubleClick(ListCtrlHeaderItem* pHeaderItem)
     }
 }
 
-void ListCtrl::UpdateControlCheckStatus(size_t nColumnId)
+void ListCtrl::UpdateDataItemColumnCheckStatus(size_t nColumnId)
 {
-    if (!m_bCanUpdateHeaderCheckStatus) {
+    if (!m_bCanUpdateHeaderColumnCheckStatus) {
         //避免不必要的更新
         return;
     }
@@ -702,6 +730,59 @@ void ListCtrl::UpdateControlCheckStatus(size_t nColumnId)
                 pHeaderItem->SetCheckBoxSelect(bSelected, bPartSelect);
             }
         }
+    }
+}
+
+void ListCtrl::UpdateDataItemCheckStatus()
+{
+    if (!m_bCanUpdateHeaderCheckStatus) {
+        return;
+    }
+    if (!IsDataItemShowCheckBox()) {
+        //不显示CheckBox，忽略
+        return;
+    }
+
+    ASSERT(m_pHeaderCtrl != nullptr);
+    if (m_pHeaderCtrl == nullptr) {
+        return;
+    }
+    ASSERT(m_pDataView != nullptr);
+    if (m_pDataView == nullptr) {
+        return;
+    }
+    std::vector<bool> checkList;
+    const size_t itemCount = m_pDataView->GetItemCount();
+    for (size_t itemIndex = 1; itemIndex < itemCount; ++itemIndex) {
+        ListCtrlItem* pItem = dynamic_cast<ListCtrlItem*>(m_pDataView->GetItemAt(itemIndex));
+        if ((pItem != nullptr) && pItem->IsVisible()) {
+            checkList.push_back(pItem->IsChecked());
+        }
+    }
+
+    if (!checkList.empty()) {
+        bool bHasChecked = false;
+        bool bHasUnChecked = false;
+        for (bool bChecked : checkList) {
+            if (bChecked) {
+                bHasChecked = true;
+            }
+            else {
+                bHasUnChecked = true;
+            }
+        }
+
+        bool bChecked = bHasChecked;
+        bool bPartSelect = bChecked && bHasUnChecked;
+        bool bOldValue = m_pHeaderCtrl->SetEnableCheckChangeEvent(false);
+        m_pHeaderCtrl->SetChecked(bChecked, false);
+        m_pHeaderCtrl->SetPartSelected(bPartSelect);
+        m_pHeaderCtrl->SetEnableCheckChangeEvent(bOldValue);
+    }
+    else {
+        bool bOldValue = m_pHeaderCtrl->SetEnableCheckChangeEvent(false);
+        m_pHeaderCtrl->SetChecked(false, false);
+        m_pHeaderCtrl->SetEnableCheckChangeEvent(bOldValue);
     }
 }
 
@@ -852,6 +933,16 @@ UiColor ListCtrl::GetDataItemTextColor(size_t itemIndex, size_t columnIndex) con
     return textColor;
 }
 
+bool ListCtrl::SetDataItemTextFormat(size_t itemIndex, size_t columnIndex, int32_t nTextFormat)
+{
+    return m_pDataProvider->SetDataItemTextFormat(itemIndex, columnIndex, nTextFormat);
+}
+
+int32_t ListCtrl::GetDataItemTextFormat(size_t itemIndex, size_t columnIndex) const
+{
+    return m_pDataProvider->GetDataItemTextFormat(itemIndex, columnIndex);
+}
+
 bool ListCtrl::SetDataItemBkColor(size_t itemIndex, size_t columnIndex, const UiColor& bkColor)
 {
     return m_pDataProvider->SetDataItemBkColor(itemIndex, columnIndex, bkColor);
@@ -932,6 +1023,20 @@ void ListCtrl::GetSelectedDataItems(std::vector<size_t>& itemIndexs) const
     }
 }
 
+void ListCtrl::SetCheckedDataItems(const std::vector<size_t>& itemIndexs, bool bClearOthers)
+{
+    std::vector<size_t> refreshIndexs;
+    m_pDataProvider->SetCheckedDataItems(itemIndexs, bClearOthers, refreshIndexs);
+    if (!refreshIndexs.empty() && (m_pDataView != nullptr)) {
+        m_pDataView->RefreshElements(refreshIndexs);
+    }
+}
+
+void ListCtrl::GetCheckedDataItems(std::vector<size_t>& itemIndexs) const
+{
+    m_pDataProvider->GetCheckedDataItems(itemIndexs);
+}
+
 void ListCtrl::SetSelectAll()
 {
     ASSERT(m_pDataView != nullptr);
@@ -1003,6 +1108,91 @@ bool ListCtrl::SetEnableRefresh(bool bEnable)
 bool ListCtrl::IsEnableRefresh() const
 {
     return m_bEnableRefresh;
+}
+
+void ListCtrl::SetAutoCheckSelect(bool bAutoCheckSelect)
+{
+    m_bAutoCheckSelect = bAutoCheckSelect;
+}
+
+bool ListCtrl::IsAutoCheckSelect() const
+{
+    return m_bAutoCheckSelect;
+}
+
+void ListCtrl::SetCheckBoxPadding(int32_t nWidth, bool bNeedDpiScale)
+{
+    if (bNeedDpiScale) {
+        GlobalManager::Instance().Dpi().ScaleInt(nWidth);
+    }
+    if (nWidth < 0) {
+        nWidth = 0;
+    }
+    m_nCheckBoxPadding = nWidth;
+}
+
+int32_t ListCtrl::GetCheckBoxPadding() const
+{
+    return m_nCheckBoxPadding;
+}
+
+bool ListCtrl::SetHeaderShowCheckBox(bool bShow)
+{
+    m_bHeaderShowCheckBox = bShow;
+    bool bRet = false;
+    if (m_bInited) {
+        ListCtrlHeader* pHeaderCtrl = GetHeaderCtrl();
+        ASSERT(pHeaderCtrl != nullptr);
+        if (pHeaderCtrl != nullptr) {
+            bRet = pHeaderCtrl->SetShowCheckBox(bShow);
+        }
+    }
+    else {
+        bRet = true;
+    }
+    return bRet;
+}
+
+bool ListCtrl::IsHeaderShowCheckBox() const
+{
+    bool bRet = false;
+    if (m_bInited) {
+        ListCtrlHeader* pHeaderCtrl = GetHeaderCtrl();
+        ASSERT(pHeaderCtrl != nullptr);
+        if (pHeaderCtrl != nullptr) {
+            bRet = pHeaderCtrl->IsShowCheckBox();
+        }
+    }
+    else {
+        bRet = m_bHeaderShowCheckBox;
+    }
+    return bRet;
+}
+
+void ListCtrl::SetDataItemShowCheckBox(bool bShow)
+{
+    if (m_bDataItemShowCheckBox != bShow) {
+        m_bDataItemShowCheckBox = bShow;
+        if (m_bInited) {
+            Refresh();
+        }
+    }
+}
+
+bool ListCtrl::IsDataItemShowCheckBox() const
+{
+    return m_bDataItemShowCheckBox;
+}
+
+bool ListCtrl::SetDataItemCheck(size_t itemIndex, bool bCheck)
+{
+    bool bChanged = false;
+    return m_pDataProvider->SetDataItemChecked(itemIndex, bCheck, bChanged);
+}
+
+bool ListCtrl::IsDataItemCheck(size_t itemIndex) const
+{
+    return m_pDataProvider->IsDataItemChecked(itemIndex);
 }
 
 }//namespace ui

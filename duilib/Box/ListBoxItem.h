@@ -144,9 +144,13 @@ public:
 	void AttachReturn(const EventCallback& callback) { this->AttachEvent(kEventReturn, callback); }
 
 protected:
-	/** 选择状态变化事件
+	/** 选择状态变化事件(m_bSelected变量发生变化)
 	*/
 	virtual void OnPrivateSetSelected() override;
+
+	/** 勾选状态变化事件(m_bChecked变量发生变化)
+	*/
+	virtual void OnPrivateSetChecked() override;
 
 private:
 	/** 在ListBox容器中的子项索引号，范围：[0, GetItemCount())
@@ -182,13 +186,11 @@ void ListBoxItemTemplate<InheritType>::SetItemSelected(bool bSelected)
 	if (OptionTemplate<InheritType>::IsSelected() == bSelected) {
 		return;
 	}
+	//直接修改内部状态
+	OptionTemplate<InheritType>::SetSelected(bSelected);
 	if (m_pOwner == nullptr) {
-		OptionTemplate<InheritType>::SetSelected(bSelected);
 		return;
 	}
-
-	//直接修改状态
-	OptionTemplate<InheritType>::SetSelected(bSelected);
 
 	//同步ListBox的选择ID
 	bool bChanged = false;
@@ -243,6 +245,14 @@ void ListBoxItemTemplate<InheritType>::OnPrivateSetSelected()
 {
 	if (m_pOwner != nullptr) {
 		m_pOwner->OnItemSelectedChanged(m_iListBoxIndex, this);
+	}
+}
+
+template<typename InheritType>
+void ListBoxItemTemplate<InheritType>::OnPrivateSetChecked()
+{
+	if (m_pOwner != nullptr) {
+		m_pOwner->OnItemCheckedChanged(m_iListBoxIndex, this);
 	}
 }
 

@@ -4,60 +4,10 @@
 #pragma once
 
 #include "duilib/Box/VirtualListBox.h"
+#include "duilib/Control/ListCtrlDefs.h"
 
 namespace ui
 {
-/** 用于存储的数据结构(每<行,列>1条数据)
-*/
-struct ListCtrlData
-{
-    UiString text;                  //文本内容
-    uint16_t nTextFormat = 0;       //文本对齐方式等属性, 该属性仅应用于Header, 取值可参考：IRender.h中的DrawStringFormat，如果为-1，表示按默认配置的对齐方式
-    int32_t nImageIndex = -1;       //图标资源索引号，在图片列表里面的下标值，如果为-1表示不显示图标
-    UiColor textColor;              //文本颜色
-    UiColor bkColor;                //背景颜色
-    bool bShowCheckBox = true;      //是否显示CheckBox  
-    bool bChecked = false;          //是否处于勾选状态（CheckBox勾选状态）
-
-    //TODO: 待实现功能列表
-    //int32_t nBkImageIndex = -1;     //背景图片资源索引号
-    //Item的文本可以编辑
-            //选择：单选，多选  提供接口
-    //事件响应：点击，右键等
-    //多视图的支持：Report，Icon等，类似与Windows资源管理器
-    //数据类型的支持：比如整型，日期型，下拉表，字符串类型等
-    //关联图片列表，图片列表需要单独实现
-};
-
-/** 行的属性数据结构(每行1条数据)
-*/
-struct ListCtrlRowData
-{
-    bool bVisible = true;           //是否可见
-    bool bSelected = false;         //是否处于选择状态
-    int8_t nAlwaysAtTop = -1;       //是否置顶显示, -1表示不置顶, 0 或者 正数表示置顶，数值越大优先级越高，优先显示在最上面
-    int16_t nItemHeight = -1;       //行的高度, -1表示使用ListCtrl设置的默认行高，为DPI自适应处理后的值
-    size_t nItemData = 0;           //用户自定义数据
-};
-
-/** 比较数据的附加信息
-*/
-struct ListCtrlCompareParam
-{
-    size_t nColumnIndex; //数据关联第几列，有效范围：[0, GetColumnCount())
-    size_t nColumnId;    //数据关联列的ID
-    void* pUserData;     //用户自定义数据，设置比较函数的时候一同传入
-};
-
-/** 存储数据的比较函数的原型, 实现升序的比较(a < b)
-* @param [in] a 第一个比较数据
-* @param [in] b 第二个比较数据
-* @param [in] param 数据关联的参数
-* @return 如果 (a < b)，返回true，否则返回false
-*/
-typedef std::function<bool(const ListCtrlData& a, const ListCtrlData& b, const ListCtrlCompareParam& param)>
-    ListCtrlDataCompareFunc;
-
 /** 列表项的数据管理器
 */
 class ListCtrl;
@@ -225,6 +175,38 @@ public:
     */
     bool IsDataItemSelected(size_t itemIndex) const;
 
+    /** 设置数据项的勾选属性（每行前面的CheckBox）
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @param [in] bChecked 是否勾选状态
+    * @param [out] bChanged 返回数据是否变化
+    */
+    bool SetDataItemChecked(size_t itemIndex, bool bChecked, bool& bChanged);
+
+    /** 获取数据项的选择属性（每行前面的CheckBox）
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @return 返回数据项关联的勾选状态
+    */
+    bool IsDataItemChecked(size_t itemIndex) const;
+
+    /** 设置所有行的勾选状态（Checked或者UnChecked）
+    * @param [in] bChecked true表示选择，false表示取消选择
+    */
+    bool SetAllDataItemsCheck(bool bChecked);
+
+    /** 批量设置勾选数据项（行首的CheckBox打勾的数据）
+    * @param [in] itemIndexs 需要设置勾选的数据项索引号，有效范围：[0, GetDataItemCount())
+    * @param [in] bClearOthers 如果为true，表示对其他已选择的进行清除选择，只保留本次设置的为选择项
+    * @param [out] refreshIndexs 返回需要刷新显示的元素索引号
+    */
+    void SetCheckedDataItems(const std::vector<size_t>& itemIndexs,
+                             bool bClearOthers,
+                             std::vector<size_t>& refreshIndexs);
+
+    /** 获取勾选的元素列表（行首的CheckBox打勾的数据）
+    * @param [in] itemIndexs 返回当前勾选的数据项索引号，有效范围：[0, GetDataItemCount())
+    */
+    void GetCheckedDataItems(std::vector<size_t>& itemIndexs) const;
+
     /** 设置数据项的置顶状态
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] nAlwaysAtTop 置顶状态，-1表示不置顶, 0 或者 正数表示置顶，数值越大优先级越高，优先显示在最上面
@@ -264,6 +246,7 @@ public:
     */
     size_t GetDataItemData(size_t itemIndex) const;
 
+public:
     /** 设置指定数据项的文本
     * @param [in] itemIndex 数据项的索引号
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
@@ -291,6 +274,20 @@ public:
     * @param [out] textColor 数据项关联的文本颜色
     */
     bool GetDataItemTextColor(size_t itemIndex, size_t columnIndex, UiColor& textColor) const;
+
+    /** 设置指定数据项的文本属性（文本对齐方式等）
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
+    * @param [in] nTextFormat 需要设置的文本属性
+    */
+    bool SetDataItemTextFormat(size_t itemIndex, size_t columnIndex, int32_t nTextFormat);
+
+    /** 获取指定数据项的文本属性（文本对齐方式等）
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
+    * @return 数据项关联的文本属性
+    */
+    int32_t GetDataItemTextFormat(size_t itemIndex, size_t columnIndex) const;
 
     /** 设置指定数据项的背景颜色
     * @param [in] itemIndex 数据项的索引号
@@ -369,6 +366,7 @@ private:
     size_t GetColumnIndex(size_t nColumnId) const;
 
     /** 判断一个数据项索引是否有效
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     */
     bool IsValidDataItemIndex(size_t itemIndex) const;
 
@@ -377,38 +375,39 @@ private:
     bool IsValidDataColumnId(size_t nColumnId) const;
 
     /** 获取指定数据项的数据, 读取
-    * @param [in] itemIndex 数据项的索引号
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
     * @return 如果失败则返回nullptr
     */
     StoragePtr GetDataItemStorage(size_t itemIndex, size_t columnIndex) const;
 
     /** 获取指定数据项的数据, 写入
-    * @param [in] itemIndex 数据项的索引号
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
     * @return 如果失败则返回nullptr
     */
     StoragePtr GetDataItemStorageForWrite(size_t itemIndex, size_t columnIndex);
 
     /** 获取各个列的数据，用于UI展示
-    * @param [in] nDataItemIndex 数据Item的下标，代表行
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] columnIdList 列ID列表
     * @param [out] storageList 返回数据列表
     */
-    bool GetDataItemStorageList(size_t nDataItemIndex,
+    bool GetDataItemStorageList(size_t itemIndex,
                                 std::vector<size_t>& columnIdList,
                                 StoragePtrList& storageList) const;
 
-    /** 某个数据项的Check勾选状态变化
-    * @param [in] itemIndex 数据Item的下标，代表行
+    /** 某个数据项的Check勾选状态变化(列级)
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] nColumnId 列ID
     * @param [in] bChecked 是否勾选
     */
-    void OnDataItemChecked(size_t itemIndex, size_t nColumnId, bool bChecked);
+    void OnDataItemColumnChecked(size_t itemIndex, size_t nColumnId, bool bChecked);
 
-    /** 同步UI的Check状态
+    /** 同步UI的Check状态(列级别的CheckBox)
+    * @param [in] nColumnId 列ID
     */
-    void UpdateControlCheckStatus(size_t nColumnId);
+    void UpdateDataItemColumnCheckStatus(size_t nColumnId);
 
 public:
     /** 获取行属性数据
@@ -491,6 +490,10 @@ private:
     /** 单选的时候，选择的元素索引号
     */
     size_t m_nSelectedIndex;
+
+    /** 当前默认的文本属性
+    */
+    int32_t m_nDefaultTextStyle;
 };
 
 }//namespace ui

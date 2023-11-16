@@ -381,7 +381,7 @@ bool ListCtrlHeaderItem::SetCheckBoxVisible(bool bVisible)
         pCheckBox->DetachEvent(kEventUnSelect);
         //同步数据
         if (pListCtrl != nullptr) {
-            pListCtrl->UpdateControlCheckStatus(GetColomnId());
+            pListCtrl->UpdateDataItemColumnCheckStatus(GetColomnId());
         }
         pCheckBox = dynamic_cast<ListCtrlCheckBox*>(GetItemAt(0));
         if (pCheckBox != nullptr) {

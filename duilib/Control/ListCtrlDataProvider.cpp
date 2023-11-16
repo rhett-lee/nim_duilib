@@ -2,6 +2,7 @@
 #include "duilib/Control/ListCtrl.h"
 #include "duilib/Core/GlobalManager.h"
 #include <unordered_map>
+#include <set>
 
 namespace ui
 {
@@ -13,7 +14,8 @@ ListCtrlDataProvider::ListCtrlDataProvider() :
     m_heightRowCount(0),
     m_atTopRowCount(0),
     m_bMultiSelect(true),
-    m_nSelectedIndex(Box::InvalidIndex)
+    m_nSelectedIndex(Box::InvalidIndex),
+    m_nDefaultTextStyle(0)
 {
 }
 
@@ -26,6 +28,7 @@ Control* ListCtrlDataProvider::CreateElement()
     ListCtrlItem* pItem = new ListCtrlItem;
     pItem->SetListCtrl(m_pListCtrl);
     pItem->SetClass(m_pListCtrl->GetDataItemClass());
+    pItem->SetAutoCheckSelect(m_pListCtrl->IsAutoCheckSelect());
     return pItem;
 }
 
@@ -35,7 +38,7 @@ bool ListCtrlDataProvider::FillElement(ui::Control* pControl, size_t nElementInd
     if (m_pListCtrl == nullptr) {
         return false;
     }
-    ListCtrlHeader* pHeaderCtrl = m_pListCtrl->GetListCtrlHeader();
+    ListCtrlHeader* pHeaderCtrl = m_pListCtrl->GetHeaderCtrl();
     ASSERT(pHeaderCtrl != nullptr);
     if (pHeaderCtrl == nullptr) {
         return false;
@@ -46,13 +49,33 @@ bool ListCtrlDataProvider::FillElement(ui::Control* pControl, size_t nElementInd
     if (pItem == nullptr) {
         return false;
     }
+
+    //数据项是否显示CheckBox
+    bool bItemChecked = false;
+    bool bShowCheckBox = m_pListCtrl->IsDataItemShowCheckBox();
+    pItem->SetShowCheckBox(bShowCheckBox);
+    pItem->SetEnableControlPadding(false);
+    if (bShowCheckBox) {        
+        int32_t nWidth = m_pListCtrl->GetCheckBoxPadding();
+        pHeaderCtrl->SetPaddingLeftValue(nWidth);
+        
+        const RowDataList& rowDataList = m_rowDataList;
+        if (nElementIndex < rowDataList.size()) {
+            bItemChecked = rowDataList[nElementIndex].bChecked;
+        }
+        pItem->SetChecked(bItemChecked, false);
+    }
+    else {
+        pHeaderCtrl->SetPaddingLeftValue(0);
+    }
+
     //Header控件的内边距, 需要同步给每个列表项控件，保持左侧对齐一致
     const UiPadding rcHeaderPadding = pHeaderCtrl->GetPadding();
     UiPadding rcPadding = pItem->GetPadding();
     if (rcHeaderPadding.left != rcPadding.left) {
         rcPadding.left = rcHeaderPadding.left;
         pItem->SetPadding(rcPadding, false);
-    }    
+    }
 
     // 基本结构: <ListCtrlItem> <ListCtrlSubItem/> ... <ListCtrlSubItem/>  </ListCtrlItem>
     // 附加说明: 1. ListCtrlItem 是 HBox的子类;   
@@ -114,6 +137,7 @@ bool ListCtrlDataProvider::FillElement(ui::Control* pControl, size_t nElementInd
     ListCtrlSubItem defaultSubItem;
     defaultSubItem.SetWindow(m_pListCtrl->GetWindow());
     defaultSubItem.SetClass(defaultSubItemClass);
+    m_nDefaultTextStyle = defaultSubItem.GetTextStyle();
    
     for (size_t nColumn = 0; nColumn < showColumnCount; ++nColumn) {
         const ElementData& elementData = elementDataList[nColumn];
@@ -172,11 +196,11 @@ bool ListCtrlDataProvider::FillElement(ui::Control* pControl, size_t nElementInd
                     pCheckBox->SetSelected(pStorage->bChecked);
                     size_t nColumnId = elementData.nColumnId;
                     pCheckBox->AttachSelect([this, nColumnId, nElementIndex](const EventArgs& /*args*/) {
-                        OnDataItemChecked(nElementIndex, nColumnId, true);
+                        OnDataItemColumnChecked(nElementIndex, nColumnId, true);
                         return true;
                         });
                     pCheckBox->AttachUnSelect([this, nColumnId, nElementIndex](const EventArgs& /*args*/) {
-                        OnDataItemChecked(nElementIndex, nColumnId, false);
+                        OnDataItemColumnChecked(nElementIndex, nColumnId, false);
                         return true;
                         });
                 }
@@ -211,7 +235,14 @@ void ListCtrlDataProvider::SetElementSelected(size_t nElementIndex, bool bSelect
     ASSERT(nElementIndex < m_rowDataList.size());
     if (nElementIndex < m_rowDataList.size()) {
         ListCtrlRowData& rowData = m_rowDataList[nElementIndex];
-        rowData.bSelected = bSelected;//多选或者单选的情况下，都更新
+        if (rowData.bSelected != bSelected) {
+            rowData.bSelected = bSelected;//多选或者单选的情况下，都更新
+        }
+        if ((m_pListCtrl != nullptr) && 
+            m_pListCtrl->IsAutoCheckSelect() && 
+            (rowData.bChecked != rowData.bSelected)) {
+            rowData.bChecked = rowData.bSelected;
+        }
     }
 
     if (!m_bMultiSelect) {
@@ -275,6 +306,10 @@ void ListCtrlDataProvider::SetMultiSelect(bool bMultiSelect)
 {
     bool bChanged = m_bMultiSelect != bMultiSelect;
     m_bMultiSelect = bMultiSelect;
+    bool bAutoCheckSelect = false;
+    if (m_pListCtrl != nullptr) {
+        bAutoCheckSelect = m_pListCtrl->IsAutoCheckSelect();
+    }
     if (bChanged && bMultiSelect) {
         //从单选变多选，需要清空选项，只保留一个单选项
         const size_t nItemCount = m_rowDataList.size();
@@ -284,6 +319,9 @@ void ListCtrlDataProvider::SetMultiSelect(bool bMultiSelect)
                 if (m_nSelectedIndex != itemIndex) {
                     rowData.bSelected = false;
                 }
+            }
+            if (bAutoCheckSelect && (rowData.bChecked != rowData.bSelected)) {
+                rowData.bChecked = rowData.bSelected;
             }
         }
     }    
@@ -328,7 +366,7 @@ size_t ListCtrlDataProvider::GetColumnId(size_t nColumnIndex) const
 {
     ListCtrlHeader* pHeaderCtrl = nullptr;
     if (m_pListCtrl != nullptr) {
-        pHeaderCtrl = m_pListCtrl->GetListCtrlHeader();
+        pHeaderCtrl = m_pListCtrl->GetHeaderCtrl();
     }
     size_t columnId = Box::InvalidIndex;
     ASSERT(pHeaderCtrl != nullptr);
@@ -342,7 +380,7 @@ size_t ListCtrlDataProvider::GetColumnIndex(size_t nColumnId) const
 {
     ListCtrlHeader* pHeaderCtrl = nullptr;
     if (m_pListCtrl != nullptr) {
-        pHeaderCtrl = m_pListCtrl->GetListCtrlHeader();
+        pHeaderCtrl = m_pListCtrl->GetHeaderCtrl();
     }
     size_t columnIndex = Box::InvalidIndex;
     ASSERT(pHeaderCtrl != nullptr);
@@ -520,12 +558,12 @@ ListCtrlDataProvider::StoragePtr ListCtrlDataProvider::GetDataItemStorageForWrit
     return pStorage;
 }
 
-bool ListCtrlDataProvider::GetDataItemStorageList(size_t nDataItemIndex, std::vector<size_t>& columnIdList,
+bool ListCtrlDataProvider::GetDataItemStorageList(size_t itemIndex, std::vector<size_t>& columnIdList,
                                                   StoragePtrList& storageList) const
 {
     storageList.clear();
-    ASSERT(nDataItemIndex != Box::InvalidIndex);
-    if (nDataItemIndex == Box::InvalidIndex) {
+    ASSERT(itemIndex != Box::InvalidIndex);
+    if (itemIndex == Box::InvalidIndex) {
         return false;
     }
     for (size_t nColumnId : columnIdList) {
@@ -533,8 +571,8 @@ bool ListCtrlDataProvider::GetDataItemStorageList(size_t nDataItemIndex, std::ve
         auto iter = m_dataMap.find(nColumnId);        
         if (iter != m_dataMap.end()) {
             const StoragePtrList& dataList = iter->second;
-            if (nDataItemIndex < dataList.size()) {
-                pStorage = dataList.at(nDataItemIndex);
+            if (itemIndex < dataList.size()) {
+                pStorage = dataList.at(itemIndex);
             }
         }
         storageList.push_back(pStorage);
@@ -542,7 +580,7 @@ bool ListCtrlDataProvider::GetDataItemStorageList(size_t nDataItemIndex, std::ve
     return storageList.size() == columnIdList.size();
 }
 
-void ListCtrlDataProvider::OnDataItemChecked(size_t itemIndex, size_t nColumnId, bool bChecked)
+void ListCtrlDataProvider::OnDataItemColumnChecked(size_t itemIndex, size_t nColumnId, bool bChecked)
 {
     StoragePtr pStorage;
     auto iter = m_dataMap.find(nColumnId);    
@@ -562,14 +600,14 @@ void ListCtrlDataProvider::OnDataItemChecked(size_t itemIndex, size_t nColumnId,
         pStorage->bChecked = bChecked;
     }
 
-    //更新header的勾选状态（三态），仅仅同步UI的状态
-    UpdateControlCheckStatus(nColumnId);
+    //更新header对应列的勾选状态（三态），仅仅同步UI的状态
+    UpdateDataItemColumnCheckStatus(nColumnId);
 }
 
-void ListCtrlDataProvider::UpdateControlCheckStatus(size_t nColumnId)
+void ListCtrlDataProvider::UpdateDataItemColumnCheckStatus(size_t nColumnId)
 {
     if (m_pListCtrl != nullptr) {
-        m_pListCtrl->UpdateControlCheckStatus(nColumnId);
+        m_pListCtrl->UpdateDataItemColumnCheckStatus(nColumnId);
     }
 }
 
@@ -856,6 +894,9 @@ bool ListCtrlDataProvider::SetDataItemRowData(size_t itemIndex, const ListCtrlRo
         if (newItemData.bSelected != oldItemData.bSelected) {
             bChanged = true;
         }
+        else if (newItemData.bChecked != oldItemData.bChecked) {
+            bChanged = true;
+        }
         else if (newItemData.bVisible != oldItemData.bVisible) {
             bChanged = true;
         }
@@ -961,6 +1002,101 @@ bool ListCtrlDataProvider::SetDataItemSelected(size_t itemIndex, bool bSelected,
 bool ListCtrlDataProvider::IsDataItemSelected(size_t itemIndex) const
 {
     return IsElementSelected(itemIndex);
+}
+
+bool ListCtrlDataProvider::SetDataItemChecked(size_t itemIndex, bool bChecked, bool& bChanged)
+{
+    bChanged = false;
+    bool bRet = false;
+    ASSERT(itemIndex < m_rowDataList.size());
+    if (itemIndex < m_rowDataList.size()) {
+        ListCtrlRowData& rowData = m_rowDataList[itemIndex];
+        if (rowData.bChecked != bChecked) {
+            bChanged = true;
+            rowData.bChecked = bChecked;
+        }        
+        bRet = true;
+    }
+    //不刷新，由外部判断是否需要刷新
+    return bRet;
+}
+
+bool ListCtrlDataProvider::IsDataItemChecked(size_t itemIndex) const
+{
+    bool bChecked = false;
+    ASSERT(itemIndex < m_rowDataList.size());
+    if (itemIndex < m_rowDataList.size()) {
+        const ListCtrlRowData& rowData = m_rowDataList[itemIndex];
+        bChecked = rowData.bChecked;
+    }
+    return bChecked;
+}
+
+bool ListCtrlDataProvider::SetAllDataItemsCheck(bool bChecked)
+{
+    bool bChanged = false;
+    size_t nCount = m_rowDataList.size();
+    for (size_t itemIndex = 0; itemIndex < nCount; ++itemIndex) {
+        ListCtrlRowData& rowData = m_rowDataList[itemIndex];
+        if (rowData.bChecked != bChecked) {
+            rowData.bChecked = bChecked;
+            bChanged = true;
+        }
+    }
+    return bChanged;
+}
+
+void ListCtrlDataProvider::SetCheckedDataItems(const std::vector<size_t>& itemIndexs,
+                                               bool bClearOthers,
+                                               std::vector<size_t>& refreshIndexs)
+{
+    refreshIndexs.clear();
+    const size_t nCount = m_rowDataList.size();
+    if (!bClearOthers) {
+        for (size_t itemIndex : itemIndexs) {
+            if (itemIndex < nCount) {
+                ListCtrlRowData& rowData = m_rowDataList[itemIndex];
+                if (!rowData.bChecked) {
+                    rowData.bChecked = true;
+                    refreshIndexs.push_back(itemIndex);
+                }
+            }
+        }
+    }
+    else {
+        std::set<size_t> indexSet;
+        for (size_t itemIndex : itemIndexs) {
+            if (itemIndex < nCount) {
+                indexSet.insert(itemIndex);
+            }
+        }
+
+        for (size_t itemIndex = 0; itemIndex < nCount; ++itemIndex) {
+            ListCtrlRowData& rowData = m_rowDataList[itemIndex];
+            if (indexSet.find(itemIndex) != indexSet.end()) {
+                if (!rowData.bChecked) {
+                    rowData.bChecked = true;
+                    refreshIndexs.push_back(itemIndex);
+                }
+            }
+            else if (rowData.bChecked) {
+                rowData.bChecked = false;
+                refreshIndexs.push_back(itemIndex);
+            }
+        }
+    }
+}
+
+void ListCtrlDataProvider::GetCheckedDataItems(std::vector<size_t>& itemIndexs) const
+{
+    itemIndexs.clear();
+    const size_t nCount = m_rowDataList.size();
+    for (size_t itemIndex = 0; itemIndex < nCount; ++itemIndex) {
+        const ListCtrlRowData& rowData = m_rowDataList[itemIndex];
+        if (rowData.bChecked) {
+            itemIndexs.push_back(itemIndex);
+        }
+    }
 }
 
 bool ListCtrlDataProvider::SetDataItemAlwaysAtTop(size_t itemIndex, int8_t nAlwaysAtTop, bool& bChanged)
@@ -1123,6 +1259,69 @@ bool ListCtrlDataProvider::GetDataItemTextColor(size_t itemIndex, size_t columnI
     }
     textColor = pStorage->textColor;
     return true;
+}
+
+bool ListCtrlDataProvider::SetDataItemTextFormat(size_t itemIndex, size_t columnIndex, int32_t nTextFormat)
+{
+    StoragePtr pStorage = GetDataItemStorageForWrite(itemIndex, columnIndex);
+    ASSERT(pStorage != nullptr);
+    if (pStorage == nullptr) {
+        //索引号无效
+        return false;
+    }
+    int32_t nValidTextFormat = 0;
+    if (nTextFormat & TEXT_SINGLELINE) {
+        nValidTextFormat |= TEXT_SINGLELINE;
+    }
+
+    if (nTextFormat & TEXT_CENTER) {
+        nValidTextFormat |= TEXT_CENTER;
+    }
+    else if (nTextFormat & TEXT_RIGHT) {
+        nValidTextFormat |= TEXT_RIGHT;
+    }
+    else{
+        nValidTextFormat |= TEXT_LEFT;
+    }
+
+    if (nTextFormat & TEXT_VCENTER) {
+        nValidTextFormat |= TEXT_VCENTER;
+    }
+    else if (nTextFormat & TEXT_BOTTOM) {
+        nValidTextFormat |= TEXT_BOTTOM;
+    }
+    else {
+        nValidTextFormat |= TEXT_TOP;
+    }
+    if (nTextFormat & TEXT_END_ELLIPSIS) {
+        nValidTextFormat |= TEXT_END_ELLIPSIS;
+    }
+    if (nTextFormat & TEXT_PATH_ELLIPSIS) {
+        nValidTextFormat |= TEXT_PATH_ELLIPSIS;
+    }
+    if (nTextFormat & TEXT_NOCLIP) {
+        nValidTextFormat |= TEXT_NOCLIP;
+    }
+
+    if (pStorage->nTextFormat != nValidTextFormat) {
+        pStorage->nTextFormat = ui::TruncateToUInt16(nValidTextFormat);
+        EmitDataChanged(itemIndex, itemIndex);
+    }
+    return true;
+}
+
+int32_t ListCtrlDataProvider::GetDataItemTextFormat(size_t itemIndex, size_t columnIndex) const
+{
+    int32_t nTextFormat = 0;
+    StoragePtr pStorage = GetDataItemStorage(itemIndex, columnIndex);
+    ASSERT(pStorage != nullptr);
+    if (pStorage != nullptr) {
+        nTextFormat = pStorage->nTextFormat;
+        if (nTextFormat <= 0) {
+            nTextFormat = m_nDefaultTextStyle;
+        }
+    }    
+    return nTextFormat;
 }
 
 bool ListCtrlDataProvider::SetDataItemBkColor(size_t itemIndex, size_t columnIndex, const UiColor& bkColor)

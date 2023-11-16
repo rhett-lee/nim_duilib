@@ -59,6 +59,15 @@ public:
     */
     ListCtrlSubItem* GetSubItem(size_t columnIndex) const;
 
+    /** 设置是否在行首显示CheckBox
+    * @param [in] bShow true表示在行首显示CheckBox，false表示不显示
+    */
+    bool SetShowCheckBox(bool bShow);
+
+    /** 判断是否行首显示了CheckBox
+    */
+    bool IsShowCheckBox() const;
+
 protected:
     virtual void Activate();
     virtual bool ButtonDown(const EventArgs& msg) override;
@@ -67,6 +76,13 @@ protected:
     virtual bool RButtonDown(const EventArgs& msg) override;
     virtual bool RButtonUp(const EventArgs& msg) override;
     virtual bool RButtonDoubleClick(const EventArgs& msg) override;
+
+    /** 是否支持勾选模式（目前是TreeView/ListCtrl在使用这个模式）
+        勾选模式是指：
+        （1）只有点击在CheckBox图片上的时候，勾选框图片才是选择状态（非勾选模式下，是点击在控件矩形内就选择）
+        （2）勾选状态和选择状态分离，是两个不同的状态
+    */
+    virtual bool SupportCheckedMode() const override;
 
 protected:
     /** 执行选择功能
@@ -82,6 +98,10 @@ private:
     /** 关联的ListCtrl接口
     */
     ListCtrl* m_pListCtrl;
+
+    /** 设置的CheckBox宽度值
+    */
+    int32_t m_nCheckBoxPadding;
 };
 
 }//namespace ui

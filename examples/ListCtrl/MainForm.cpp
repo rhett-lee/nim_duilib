@@ -40,7 +40,7 @@ void MainForm::OnInitWindow()
 		return;
 	}
 	//填充数据
-	InsertItemData(200, 4);
+	InsertItemData(200, 9);
 
 	//表头高度控制
 	ui::RichEdit* pHeaderHeightEdit = dynamic_cast<ui::RichEdit*>(FindControl(L"header_height_edit"));
@@ -105,6 +105,13 @@ void MainForm::OnInitWindow()
 	ui::Option* pColumnHeaderTextAlignLeft = dynamic_cast<ui::Option*>(FindControl(L"header_text_align_left"));
 	ui::Option* pColumnHeaderTextAlignCenter = dynamic_cast<ui::Option*>(FindControl(L"header_text_align_center"));
 	ui::Option* pColumnHeaderTextAlignRight = dynamic_cast<ui::Option*>(FindControl(L"header_text_align_right"));
+
+	ui::Option* pColumnTextAlignLeft = dynamic_cast<ui::Option*>(FindControl(L"column_text_align_left"));
+	ui::Option* pColumnTextAlignCenter = dynamic_cast<ui::Option*>(FindControl(L"column_text_align_center"));
+	ui::Option* pColumnTextAlignRight = dynamic_cast<ui::Option*>(FindControl(L"column_text_align_right"));
+
+	ui::CheckBox* pHeaderCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_show_header_checkbox"));
+	ui::CheckBox* pShowCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_show_checkbox"));
 
 	//实现显示该列
 	auto OnColumnShowHide = [this, pColumnCombo, pListCtrl](bool bColumnVisible) {
@@ -249,13 +256,49 @@ void MainForm::OnInitWindow()
 		return true;
 		});
 
+	auto OnColumnTextAlign = [this, pColumnCombo, pListCtrl](int32_t nTextFormat) {
+		size_t nColumnId = pColumnCombo->GetItemData(pColumnCombo->GetCurSel());
+		size_t nColumnIndex = pListCtrl->GetColumnIndex(nColumnId);
+		if (nColumnIndex != ui::Box::InvalidIndex) {
+			size_t nCount = pListCtrl->GetDataItemCount();
+			for (size_t index = 0; index < nCount; ++index) {
+				int32_t nNewTextFormat = pListCtrl->GetDataItemTextFormat(index, nColumnIndex);
+				if (nTextFormat & ui::TEXT_CENTER) {
+					nNewTextFormat &= ~(ui::TEXT_RIGHT | ui::TEXT_LEFT);
+					nNewTextFormat |= ui::TEXT_CENTER;
+				}
+				else if (nTextFormat & ui::TEXT_RIGHT) {
+					nNewTextFormat &= ~(ui::TEXT_CENTER | ui::TEXT_LEFT);
+					nNewTextFormat |= ui::TEXT_RIGHT;
+				}
+				else {
+					nNewTextFormat &= ~(ui::TEXT_CENTER | ui::TEXT_RIGHT);
+					nNewTextFormat |= ui::TEXT_LEFT;
+				}
+				pListCtrl->SetDataItemTextFormat(index, nColumnIndex, nNewTextFormat);
+			}
+		}
+		};
+	pColumnTextAlignLeft->AttachSelect([this, OnColumnTextAlign](const ui::EventArgs&) {
+		OnColumnTextAlign(ui::TEXT_LEFT);
+		return true;
+		});
+	pColumnTextAlignCenter->AttachSelect([this, OnColumnTextAlign](const ui::EventArgs&) {
+		OnColumnTextAlign(ui::TEXT_CENTER);
+		return true;
+		});
+	pColumnTextAlignRight->AttachSelect([this, OnColumnTextAlign](const ui::EventArgs&) {
+		OnColumnTextAlign(ui::TEXT_RIGHT);
+		return true;
+		});
+
 	//是否支持多选
 	ui::CheckBox* pMultiSelect = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_multi_select"));
 	if (pMultiSelect != nullptr) {
 		pMultiSelect->Selected(pListCtrl->IsMultiSelect(), false);
 	}
 	//在列表头点击右键
-	ui::ListCtrlHeader* pHeaderCtrl = pListCtrl->GetListCtrlHeader();
+	ui::ListCtrlHeader* pHeaderCtrl = pListCtrl->GetHeaderCtrl();
 	if (pHeaderCtrl != nullptr) {
 		pHeaderCtrl->AttachRClick([this](const ui::EventArgs&) {
 			if (::MessageBox(nullptr, L"ListCtrlHeader RClick! 是否执行功能测试？", L"", MB_YESNO) == IDYES) {
@@ -264,6 +307,33 @@ void MainForm::OnInitWindow()
 			return true;
 			});
 	}
+
+	//控制表头或者行首是否显示CheckBox
+	if ((pHeaderCtrl != nullptr) && pHeaderCtrl->IsVisible() && pHeaderCtrl->IsShowCheckBox()) {
+		pHeaderCheckBox->Selected(true, false);
+	}
+	else {
+		pHeaderCheckBox->Selected(false, false);
+	}
+	pHeaderCheckBox->AttachSelect([this, pListCtrl](const ui::EventArgs&) {
+		pListCtrl->SetHeaderShowCheckBox(true);
+		return true;
+		});
+	pHeaderCheckBox->AttachUnSelect([this, pListCtrl](const ui::EventArgs&) {
+		pListCtrl->SetHeaderShowCheckBox(false);
+		return true;
+		});
+
+	pShowCheckBox->Selected(pListCtrl->IsDataItemShowCheckBox());
+	pShowCheckBox->AttachSelect([this, pListCtrl](const ui::EventArgs&) {
+		pListCtrl->SetDataItemShowCheckBox(true);
+		return true;
+		});
+	pShowCheckBox->AttachUnSelect([this, pListCtrl](const ui::EventArgs&) {
+		pListCtrl->SetDataItemShowCheckBox(false);
+		return true;
+		});
+
 }
 
 void MainForm::OnColumnChanged(size_t nColumnId)
@@ -291,6 +361,10 @@ void MainForm::OnColumnChanged(size_t nColumnId)
 	ui::Option* pColumnHeaderTextAlignLeft = dynamic_cast<ui::Option*>(FindControl(L"header_text_align_left"));
 	ui::Option* pColumnHeaderTextAlignCenter = dynamic_cast<ui::Option*>(FindControl(L"header_text_align_center"));
 	ui::Option* pColumnHeaderTextAlignRight = dynamic_cast<ui::Option*>(FindControl(L"header_text_align_right"));
+
+	ui::Option* pColumnTextAlignLeft = dynamic_cast<ui::Option*>(FindControl(L"column_text_align_left"));
+	ui::Option* pColumnTextAlignCenter = dynamic_cast<ui::Option*>(FindControl(L"column_text_align_center"));
+	ui::Option* pColumnTextAlignRight = dynamic_cast<ui::Option*>(FindControl(L"column_text_align_right"));
 
 	ASSERT(pHeaderItem->IsColumnVisible() == pHeaderItem->IsVisible());
 	pColumnShow->Selected(pHeaderItem->IsColumnVisible(), false);
@@ -321,6 +395,17 @@ void MainForm::OnColumnChanged(size_t nColumnId)
 	}
 	else {
 		pColumnHeaderTextAlignLeft->Selected(true, false);
+	}
+
+	int32_t nTextFormat = pListCtrl->GetDataItemTextFormat(0, pListCtrl->GetColumnIndex(nColumnId));
+	if (nTextFormat & ui::TEXT_CENTER) {
+		pColumnTextAlignCenter->Selected(true, false);
+	}
+	else if (nTextFormat & ui::TEXT_RIGHT) {
+		pColumnTextAlignRight->Selected(true, false);
+	}
+	else {
+		pColumnTextAlignLeft->Selected(true, false);
 	}
 }
 

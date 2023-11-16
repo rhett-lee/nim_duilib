@@ -505,7 +505,7 @@ int32_t ListCtrlDataView::GetListCtrlWidth() const
     if (m_pListCtrl == nullptr) {
         return nToltalWidth;
     }
-    ListCtrlHeader* pHeaderCtrl = m_pListCtrl->GetListCtrlHeader();
+    ListCtrlHeader* pHeaderCtrl = m_pListCtrl->GetHeaderCtrl();
     if (pHeaderCtrl == nullptr) {
         return nToltalWidth;
     }
@@ -516,6 +516,7 @@ int32_t ListCtrlDataView::GetListCtrlWidth() const
             nToltalWidth += pHeaderItem->GetColumnWidth();
         }
     }
+    nToltalWidth += pHeaderCtrl->GetPadding().left;
     return nToltalWidth;
 }
 
@@ -1271,7 +1272,20 @@ void ListCtrlDataView::OnRefresh()
 void ListCtrlDataView::OnArrangeChild()
 {
     if (m_pListCtrl != nullptr) {
-        m_pListCtrl->UpdateControlCheckStatus(Box::InvalidIndex);
+        m_pListCtrl->UpdateDataItemColumnCheckStatus(Box::InvalidIndex);
+    }
+    if (m_pListCtrl != nullptr) {
+        m_pListCtrl->UpdateDataItemCheckStatus();
+    }
+}
+
+void ListCtrlDataView::OnRefreshElements(const std::vector<size_t>& /*refreshIndexs*/)
+{
+    if (m_pListCtrl != nullptr) {
+        m_pListCtrl->UpdateDataItemColumnCheckStatus(Box::InvalidIndex);
+    }
+    if (m_pListCtrl != nullptr) {
+        m_pListCtrl->UpdateDataItemCheckStatus();
     }
 }
 
@@ -1575,6 +1589,69 @@ void ListCtrlDataView::OnFrameSelection(int64_t top, int64_t bottom, bool bInLis
 void ListCtrlDataView::SetNormalItemTop(int32_t nNormalItemTop)
 {
     m_nNormalItemTop = nNormalItemTop;
+}
+
+void ListCtrlDataView::OnItemSelectedChanged(size_t iIndex, IListBoxItem* pListBoxItem)
+{
+    if (!IsEnableUpdateProvider()) {
+        return;
+    }
+    ASSERT(pListBoxItem != nullptr);
+    if (pListBoxItem == nullptr) {
+        return;
+    }
+    __super::OnItemSelectedChanged(iIndex, pListBoxItem);
+    //更新该元素的选择状态
+    bool bCheckChanged = false;
+    bool bSelected = pListBoxItem->IsSelected();
+    size_t nElementIndex = pListBoxItem->GetElementIndex();
+    if (nElementIndex != Box::InvalidIndex) {
+        if ((m_pListCtrl != nullptr) && m_pListCtrl->IsAutoCheckSelect()) {
+            //Select 和 Check 状态同步
+            ListCtrlDataProvider* pDataProvider = dynamic_cast<ListCtrlDataProvider*>(GetDataProvider());
+            ASSERT(pDataProvider != nullptr);
+            if (pDataProvider != nullptr) {
+                pDataProvider->SetDataItemChecked(nElementIndex, bSelected, bCheckChanged);
+            }
+        }
+    }
+    if (bCheckChanged) {
+        //更新表头的勾选项状态
+        if (m_pListCtrl != nullptr) {
+            m_pListCtrl->UpdateDataItemCheckStatus();
+        }
+    }
+}
+
+void ListCtrlDataView::OnItemCheckedChanged(size_t /*iIndex*/, IListBoxItem* pListBoxItem)
+{
+    if (!IsEnableUpdateProvider()) {
+        return;
+    }
+    ASSERT(pListBoxItem != nullptr);
+    if (pListBoxItem == nullptr) {
+        return;
+    }
+    ListCtrlItem* pItem = dynamic_cast<ListCtrlItem*>(pListBoxItem);
+    if (pItem == nullptr) {
+        return;
+    }
+
+    ListCtrlDataProvider* pDataProvider = dynamic_cast<ListCtrlDataProvider*>(GetDataProvider());
+    ASSERT(pDataProvider != nullptr);
+    if (pDataProvider == nullptr) {
+        return;
+    }
+    size_t nElementIndex = pListBoxItem->GetElementIndex();
+    bool bCheckChanged = false;
+    bool bChecked = pItem->IsChecked();
+    pDataProvider->SetDataItemChecked(nElementIndex, bChecked, bCheckChanged);
+    if (bCheckChanged) {
+        //更新表头的勾选项状态
+        if (m_pListCtrl != nullptr) {
+            m_pListCtrl->UpdateDataItemCheckStatus();
+        }
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////

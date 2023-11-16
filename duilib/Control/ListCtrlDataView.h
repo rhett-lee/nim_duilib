@@ -148,6 +148,11 @@ protected:
     */
     virtual void OnArrangeChild() override;
 
+    /** 执行了界面刷新操作, 刷新了部分元素的数据（通过FillElement函数）
+    * @param [in] refreshIndexs
+    */
+    virtual void OnRefreshElements(const std::vector<size_t>& refreshIndexs) override;
+
     /** 查找子控件
     */
     virtual Control* FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, UiPoint scrollPos = UiPoint()) override;
@@ -174,6 +179,18 @@ protected:
     /** 控件初始化
     */
     virtual void DoInit() override;
+
+    /** 子项的选择状态变化事件，用于状态同步
+    * @param [in] iIndex 子项目的ID，范围是：[0, GetItemCount())
+    * @param [in] pListBoxItem 关联的列表项接口
+    */
+    virtual void OnItemSelectedChanged(size_t iIndex, IListBoxItem* pListBoxItem) override;
+
+    /** 子项的勾选状态变化事件，用于状态同步
+    * @param [in] iIndex 子项目的ID，范围是：[0, GetItemCount())
+    * @param [in] pListBoxItem 关联的列表项接口
+    */
+    virtual void OnItemCheckedChanged(size_t iIndex, IListBoxItem* pListBoxItem) override;
 
 protected:
     //鼠标消息（返回true：表示消息已处理；返回false：则表示消息未处理，需转发给父控件）

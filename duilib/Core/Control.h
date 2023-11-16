@@ -121,7 +121,7 @@ public:
 	 * @param[in] 要获取何种状态下的图片，参考 ControlStateType 枚举
 	 * @return 指定状态下的图片位置
 	 */
-	std::wstring GetStateImage(ControlStateType stateType);
+	std::wstring GetStateImage(ControlStateType stateType) const;
 
 	/**
 	 * @brief 设置某个状态下的图片
@@ -136,7 +136,7 @@ public:
 	 * @param[in] 要获取何种状态下的图片，参考 `ControlStateType` 枚举
 	 * @return 指定状态下前景图片位置
 	 */
-	std::wstring GetForeStateImage(ControlStateType stateType);
+	std::wstring GetForeStateImage(ControlStateType stateType) const;
 
 	/**
 	 * @brief 设置某个状态下前景图片
@@ -1016,7 +1016,7 @@ protected:
 
 	/** 获取指定状态下的图片位置
 	 */
-	std::wstring GetStateImage(StateImageType imageType, ControlStateType stateType);
+	std::wstring GetStateImage(StateImageType imageType, ControlStateType stateType) const;
 
 	/** 设置某个状态下的图片
 	 */
