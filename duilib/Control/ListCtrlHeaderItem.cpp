@@ -381,7 +381,7 @@ bool ListCtrlHeaderItem::SetCheckBoxVisible(bool bVisible)
         pCheckBox->DetachEvent(kEventUnSelect);
         //同步数据
         if (pListCtrl != nullptr) {
-            pListCtrl->UpdateDataItemColumnCheckStatus(GetColomnId());
+            pListCtrl->UpdateHeaderColumnCheckBox(GetColomnId());
         }
         pCheckBox = dynamic_cast<ListCtrlCheckBox*>(GetItemAt(0));
         if (pCheckBox != nullptr) {
@@ -423,18 +423,18 @@ bool ListCtrlHeaderItem::IsCheckBoxVisible() const
     return false;
 }
 
-bool ListCtrlHeaderItem::SetCheckBoxSelect(bool bSelected, bool bPartSelect)
+bool ListCtrlHeaderItem::SetCheckBoxCheck(bool bChecked, bool bPartChecked)
 {
     if (GetItemCount() > 0) {
         CheckBox* pCheckBox = dynamic_cast<CheckBox*>(GetItemAt(0));
         if (pCheckBox != nullptr) {
-            bool bChanged = pCheckBox->IsSelected() != bSelected;
-            pCheckBox->SetSelected(bSelected);
-            if (bSelected) {
-                if (pCheckBox->IsPartSelected() != bPartSelect) {
-                    pCheckBox->SetPartSelected(bPartSelect);
+            bool bChanged = pCheckBox->IsSelected() != bChecked;
+            pCheckBox->SetSelected(bChecked);
+            if (bChecked) {
+                if (pCheckBox->IsPartSelected() != bPartChecked) {
+                    pCheckBox->SetPartSelected(bPartChecked);
                     bChanged = true;
-                }                
+                }
             }
             if (bChanged) {
                 pCheckBox->Invalidate();
@@ -445,16 +445,16 @@ bool ListCtrlHeaderItem::SetCheckBoxSelect(bool bSelected, bool bPartSelect)
     return false;
 }
 
-bool ListCtrlHeaderItem::GetCheckBoxSelect(bool& bSelected, bool& bPartSelect) const
+bool ListCtrlHeaderItem::GetCheckBoxCheck(bool& bChecked, bool& bPartChecked) const
 {
-    bSelected = false;
-    bPartSelect = false;
+    bChecked = false;
+    bPartChecked = false;
     if (GetItemCount() > 0) {
         CheckBox* pCheckBox = dynamic_cast<CheckBox*>(GetItemAt(0));
         if (pCheckBox != nullptr) {
-            bSelected = pCheckBox->IsSelected();
-            if (bSelected) {
-                bPartSelect = pCheckBox->IsPartSelected();
+            bChecked = pCheckBox->IsSelected();
+            if (bChecked) {
+                bPartChecked = pCheckBox->IsPartSelected();
             }
             return true;
         }

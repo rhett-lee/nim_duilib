@@ -315,15 +315,15 @@ public:
     /** 设置CheckBox的勾选状态
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
-    * @param [in] bSelected true表示勾选，false表示不勾选
+    * @param [in] bChecked true表示勾选，false表示不勾选
     */
-    bool SetCheckBoxSelect(size_t itemIndex, size_t columnIndex, bool bSelected);
+    bool SetCheckBoxCheck(size_t itemIndex, size_t columnIndex, bool bChecked);
 
     /** 获取CheckBox的勾选状态
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
     */
-    bool IsCheckBoxSelect(size_t itemIndex, size_t columnIndex) const;
+    bool IsCheckBoxChecked(size_t itemIndex, size_t columnIndex) const;
 
 public:
     /** 对数据排序
@@ -608,13 +608,13 @@ protected:
     void OnHeaderColumnSplitDoubleClick(ListCtrlHeaderItem* pHeaderItem);
 
     /** 同步UI的Check状态(列级别的CheckBox)
-    * @param [in] nColumnId 列ID
+    * @param [in] nColumnId 列ID, 如果为Box::InvalidIndex表示更新所有列
     */
-    void UpdateDataItemColumnCheckStatus(size_t nColumnId);
+    void UpdateHeaderColumnCheckBox(size_t nColumnId);
 
     /** 同步UI的Check状态(行级别的CheckBox)
     */
-    void UpdateDataItemCheckStatus();
+    void UpdateHeaderCheckBox();
 
 private:
 	/** 初始化标志
@@ -664,14 +664,6 @@ private:
     /** ListCtrlItem/ListCtrlSubItem的Class属性
     */
     UiString m_dataSubItemClass;
-
-    /** 当前是否可以更新Header的每列Check状态(列级别的CheckBox)
-    */
-    bool m_bCanUpdateHeaderColumnCheckStatus;
-
-    /** 当前是否可以更新Header的每行Check状态(行级别的CheckBox)
-    */
-    bool m_bCanUpdateHeaderCheckStatus;
 
     /** 横向网格线的宽度
     */

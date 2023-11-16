@@ -175,6 +175,12 @@ public:
     */
     bool IsDataItemSelected(size_t itemIndex) const;
 
+    /** 获取选择状态(bSelect)
+    * @param [out] bSelected 是否选择
+    * @param [out] bPartSelected 是否部分选择
+    */
+    void GetDataItemsSelectStatus(bool& bSelected, bool& bPartSelected) const;
+
     /** 设置数据项的勾选属性（每行前面的CheckBox）
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] bChecked 是否勾选状态
@@ -206,6 +212,12 @@ public:
     * @param [in] itemIndexs 返回当前勾选的数据项索引号，有效范围：[0, GetDataItemCount())
     */
     void GetCheckedDataItems(std::vector<size_t>& itemIndexs) const;
+
+    /** 获取勾选状态(bChecked)
+    * @param [out] bChecked 是否勾选
+    * @param [out] bPartChecked 是否部分勾选
+    */
+    void GetDataItemsCheckStatus(bool& bChecked, bool& bPartChecked) const;
 
     /** 设置数据项的置顶状态
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
@@ -321,14 +333,21 @@ public:
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
     * @param [in] bSelected true表示勾选，false表示不勾选
     */
-    bool SetCheckBoxSelect(size_t itemIndex, size_t columnIndex, bool bSelected);
+    bool SetCheckBoxCheck(size_t itemIndex, size_t columnIndex, bool bSelected);
 
     /** 获取CheckBox的勾选状态
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
     * @param [out] bSelected true表示勾选，false表示不勾选
     */
-    bool GetCheckBoxSelect(size_t itemIndex, size_t columnIndex, bool& bSelected) const;
+    bool GetCheckBoxCheck(size_t itemIndex, size_t columnIndex, bool& bSelected) const;
+
+    /** 获取选择状态(bSelect)
+    * @param [in] columnId 列的ID
+    * @param [out] bChecked 是否选择
+    * @param [out] bPartChecked 是否部分选择
+    */
+    void GetCheckBoxCheckStatus(size_t columnId, bool& bChecked, bool& bPartChecked) const;
 
     /** 对数据排序
     * @param [in] columnId 列的ID
@@ -407,7 +426,7 @@ private:
     /** 同步UI的Check状态(列级别的CheckBox)
     * @param [in] nColumnId 列ID
     */
-    void UpdateDataItemColumnCheckStatus(size_t nColumnId);
+    void UpdateHeaderColumnCheckBox(size_t nColumnId);
 
 public:
     /** 获取行属性数据

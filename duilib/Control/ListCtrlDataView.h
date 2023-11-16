@@ -140,19 +140,6 @@ protected:
     */
     virtual void PaintChild(IRender* pRender, const UiRect& rcPaint) override;
 
-    /** 执行了刷新操作, 界面的UI控件个数可能会发生变化
-    */
-    virtual void OnRefresh() override;
-
-    /** 执行了重排操作，界面的UI控件进行了重新数据填充（通过FillElement函数）
-    */
-    virtual void OnArrangeChild() override;
-
-    /** 执行了界面刷新操作, 刷新了部分元素的数据（通过FillElement函数）
-    * @param [in] refreshIndexs
-    */
-    virtual void OnRefreshElements(const std::vector<size_t>& refreshIndexs) override;
-
     /** 查找子控件
     */
     virtual Control* FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, UiPoint scrollPos = UiPoint()) override;
@@ -191,6 +178,10 @@ protected:
     * @param [in] pListBoxItem 关联的列表项接口
     */
     virtual void OnItemCheckedChanged(size_t iIndex, IListBoxItem* pListBoxItem) override;
+
+    /** 选择状态发生变化
+    */
+    void OnSelectStatusChanged();
 
 protected:
     //鼠标消息（返回true：表示消息已处理；返回false：则表示消息未处理，需转发给父控件）

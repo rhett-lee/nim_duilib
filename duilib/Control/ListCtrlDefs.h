@@ -22,7 +22,7 @@ struct ListCtrlColumn
     bool bNeedDpiScale = true;      //是否对数值做DPI自适应
 };
 
-/** 列表数据项的基本信息（用于添加数据）
+/** 列表数据项的基本信息（列数据，用于添加数据）
 */
 struct ListCtrlDataItem
 {
@@ -33,21 +33,10 @@ struct ListCtrlDataItem
     UiColor textColor;              //文本颜色
     UiColor bkColor;                //背景颜色
     bool bShowCheckBox = true;      //是否显示CheckBox
+    bool bChecked = false;          //是否处于勾选状态（CheckBox勾选状态）
 };
 
-/** 行的属性数据结构(每行1条数据)
-*/
-struct ListCtrlRowData
-{
-    bool bVisible = true;           //是否可见
-    bool bSelected = false;         //是否处于选择状态（是指本行是否被选中）
-    bool bChecked = false;          //是否处于勾选状态（是指本行前面的CheckBox是否被打勾）
-    int8_t nAlwaysAtTop = -1;       //是否置顶显示, -1表示不置顶, 0 或者 正数表示置顶，数值越大优先级越高，优先显示在最上面
-    int16_t nItemHeight = -1;       //行的高度, -1表示使用ListCtrl设置的默认行高，为DPI自适应处理后的值
-    size_t nItemData = 0;           //用户自定义数据
-};
-
-/** 用于存储的数据结构(每<行,列>1条数据)
+/** 用于内部存储的数据结构(列数据，每<行,列>1条数据)
 */
 struct ListCtrlData
 {
@@ -86,6 +75,18 @@ struct ListCtrlCompareParam
 */
 typedef std::function<bool(const ListCtrlData& a, const ListCtrlData& b, const ListCtrlCompareParam& param)>
 ListCtrlDataCompareFunc;
+
+/** 行的属性数据结构(行数据，每行1条数据)
+*/
+struct ListCtrlRowData
+{
+    bool bVisible = true;           //是否可见
+    bool bSelected = false;         //是否处于选择状态（是指本行是否被选中）
+    bool bChecked = false;          //是否处于勾选状态（是指本行前面的CheckBox是否被打勾）
+    int8_t nAlwaysAtTop = -1;       //是否置顶显示, -1表示不置顶, 0 或者 正数表示置顶，数值越大优先级越高，优先显示在最上面
+    int16_t nItemHeight = -1;       //行的高度, -1表示使用ListCtrl设置的默认行高，为DPI自适应处理后的值
+    size_t nItemData = 0;           //用户自定义数据
+};
 
 
 /** 列表中使用的CheckBox

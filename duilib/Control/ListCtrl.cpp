@@ -10,8 +10,6 @@ ListCtrl::ListCtrl():
     m_pHeaderCtrl(nullptr),
     m_pDataView(nullptr),
     m_bEnableHeaderDragOrder(true),
-    m_bCanUpdateHeaderColumnCheckStatus(true),
-    m_bCanUpdateHeaderCheckStatus(true),
     m_bShowHeaderCtrl(true),
     m_bEnableRefresh(true),
     m_bMultiSelect(true),
@@ -621,19 +619,17 @@ void ListCtrl::OnHeaderColumnOrderChanged()
 
 void ListCtrl::OnHeaderColumnCheckStateChanged(size_t nColumnId, bool bChecked)
 {
-    m_bCanUpdateHeaderColumnCheckStatus = false;
+    //界面状态变化，同步到底层存储
     m_pDataProvider->SetColumnCheck(nColumnId, bChecked);
     Refresh();
-    m_bCanUpdateHeaderColumnCheckStatus = true;
 }
 
 void ListCtrl::OnHeaderCheckStateChanged(bool bChecked)
 {
-    m_bCanUpdateHeaderCheckStatus = false;
+    //界面状态变化，同步到底层存储
     if (m_pDataProvider->SetAllDataItemsCheck(bChecked)) {
         Refresh();
     }    
-    m_bCanUpdateHeaderCheckStatus = true;
 }
 
 void ListCtrl::OnHeaderColumnVisibleChanged()
@@ -657,27 +653,19 @@ void ListCtrl::OnHeaderColumnSplitDoubleClick(ListCtrlHeaderItem* pHeaderItem)
     }
 }
 
-void ListCtrl::UpdateDataItemColumnCheckStatus(size_t nColumnId)
+void ListCtrl::UpdateHeaderColumnCheckBox(size_t nColumnId)
 {
-    if (!m_bCanUpdateHeaderColumnCheckStatus) {
-        //避免不必要的更新
-        return;
-    }
     ASSERT(m_pHeaderCtrl != nullptr);
     if (m_pHeaderCtrl == nullptr) {
         return;
     }
-    ASSERT(m_pDataView != nullptr);
-    if (m_pDataView == nullptr) {
-        return;
-    }
-    std::vector<size_t> columnIndexList;
+    std::vector<size_t> columnIdList;
     if (nColumnId == Box::InvalidIndex) {
         const size_t columnCount = GetColumnCount();
         for (size_t columnIndex = 0; columnIndex < columnCount; ++columnIndex) {
             ListCtrlHeaderItem* pHeaderItem = m_pHeaderCtrl->GetColumn(columnIndex);
             if ((pHeaderItem != nullptr) && (pHeaderItem->IsCheckBoxVisible())) {
-                columnIndexList.push_back(columnIndex);
+                columnIdList.push_back(pHeaderItem->GetColomnId());
             }
         }
     }
@@ -686,58 +674,23 @@ void ListCtrl::UpdateDataItemColumnCheckStatus(size_t nColumnId)
         if (columnIndex != Box::InvalidIndex) {
             ListCtrlHeaderItem* pHeaderItem = m_pHeaderCtrl->GetColumn(columnIndex);
             if ((pHeaderItem != nullptr) && (pHeaderItem->IsCheckBoxVisible())){
-                columnIndexList.push_back(columnIndex);
+                columnIdList.push_back(nColumnId);
             }
         }
     }
-    for (size_t columnIndex : columnIndexList) {        
-        std::vector<bool> checkList;
-        const size_t itemCount = m_pDataView->GetItemCount();
-        for (size_t itemIndex = 1; itemIndex < itemCount; ++itemIndex) {
-            ListCtrlItem* pItem = dynamic_cast<ListCtrlItem*>(m_pDataView->GetItemAt(itemIndex));
-            if ((pItem != nullptr) && pItem->IsVisible()) {
-                const size_t columnCount = pItem->GetItemCount();
-                ListCtrlSubItem* pSubItem = nullptr;
-                if (columnIndex < columnCount) {
-                    pSubItem = dynamic_cast<ListCtrlSubItem*>(pItem->GetItemAt(columnIndex));
-                }
-                CheckBox* pCheckBox = nullptr;
-                if (pSubItem != nullptr) {
-                    pCheckBox = pSubItem->GetCheckBox();
-                }
-                if (pCheckBox != nullptr) {
-                    checkList.push_back(pCheckBox->IsSelected());
-                }
-            }
-        }
-
-        if (!checkList.empty()) {
-            bool bHasChecked = false;
-            bool bHasUnChecked = false;
-            for (bool bChecked : checkList) {
-                if (bChecked) {
-                    bHasChecked = true;
-                }
-                else {
-                    bHasUnChecked = true;
-                }
-            }
-
-            bool bSelected = bHasChecked;
-            bool bPartSelect = bSelected && bHasUnChecked;
-            ListCtrlHeaderItem* pHeaderItem = m_pHeaderCtrl->GetColumn(columnIndex);
-            if ((pHeaderItem != nullptr) && (pHeaderItem->IsCheckBoxVisible())) {
-                pHeaderItem->SetCheckBoxSelect(bSelected, bPartSelect);
-            }
+    for (size_t columnId : columnIdList) {
+        bool bChecked = false;
+        bool bPartChecked = false;
+        m_pDataProvider->GetCheckBoxCheckStatus(columnId, bChecked, bPartChecked);
+        ListCtrlHeaderItem* pHeaderItem = m_pHeaderCtrl->GetColumnById(columnId);
+        if ((pHeaderItem != nullptr) && (pHeaderItem->IsCheckBoxVisible())) {
+            pHeaderItem->SetCheckBoxCheck(bChecked, bPartChecked);
         }
     }
 }
 
-void ListCtrl::UpdateDataItemCheckStatus()
+void ListCtrl::UpdateHeaderCheckBox()
 {
-    if (!m_bCanUpdateHeaderCheckStatus) {
-        return;
-    }
     if (!IsDataItemShowCheckBox()) {
         //不显示CheckBox，忽略
         return;
@@ -747,41 +700,14 @@ void ListCtrl::UpdateDataItemCheckStatus()
     if (m_pHeaderCtrl == nullptr) {
         return;
     }
-    ASSERT(m_pDataView != nullptr);
-    if (m_pDataView == nullptr) {
-        return;
-    }
-    std::vector<bool> checkList;
-    const size_t itemCount = m_pDataView->GetItemCount();
-    for (size_t itemIndex = 1; itemIndex < itemCount; ++itemIndex) {
-        ListCtrlItem* pItem = dynamic_cast<ListCtrlItem*>(m_pDataView->GetItemAt(itemIndex));
-        if ((pItem != nullptr) && pItem->IsVisible()) {
-            checkList.push_back(pItem->IsChecked());
-        }
-    }
-
-    if (!checkList.empty()) {
-        bool bHasChecked = false;
-        bool bHasUnChecked = false;
-        for (bool bChecked : checkList) {
-            if (bChecked) {
-                bHasChecked = true;
-            }
-            else {
-                bHasUnChecked = true;
-            }
-        }
-
-        bool bChecked = bHasChecked;
-        bool bPartSelect = bChecked && bHasUnChecked;
+    bool bChecked = false;
+    bool bPartChecked = false;
+    m_pDataProvider->GetDataItemsCheckStatus(bChecked, bPartChecked);
+    if ((m_pHeaderCtrl->IsChecked() != bChecked) || 
+        (m_pHeaderCtrl->IsPartSelected() != bPartChecked)) {
         bool bOldValue = m_pHeaderCtrl->SetEnableCheckChangeEvent(false);
         m_pHeaderCtrl->SetChecked(bChecked, false);
-        m_pHeaderCtrl->SetPartSelected(bPartSelect);
-        m_pHeaderCtrl->SetEnableCheckChangeEvent(bOldValue);
-    }
-    else {
-        bool bOldValue = m_pHeaderCtrl->SetEnableCheckChangeEvent(false);
-        m_pHeaderCtrl->SetChecked(false, false);
+        m_pHeaderCtrl->SetPartSelected(bPartChecked);
         m_pHeaderCtrl->SetEnableCheckChangeEvent(bOldValue);
     }
 }
@@ -793,22 +719,46 @@ size_t ListCtrl::GetDataItemCount() const
 
 bool ListCtrl::SetDataItemCount(size_t itemCount)
 {
-    return m_pDataProvider->SetDataItemCount(itemCount);
+    bool bRet = m_pDataProvider->SetDataItemCount(itemCount);
+    if (bRet) {
+        UpdateHeaderColumnCheckBox(Box::InvalidIndex);
+        UpdateHeaderCheckBox();
+    }
+    return bRet;
 }
 
 size_t ListCtrl::AddDataItem(const ListCtrlDataItem& dataItem)
 {
-    return m_pDataProvider->AddDataItem(dataItem);
+    bool bRet = m_pDataProvider->AddDataItem(dataItem);
+    if (bRet) {
+        UpdateHeaderColumnCheckBox(Box::InvalidIndex);
+        UpdateHeaderCheckBox();
+    }
+    return bRet;
 }
 
 bool ListCtrl::InsertDataItem(size_t itemIndex, const ListCtrlDataItem& dataItem)
 {
-    return m_pDataProvider->InsertDataItem(itemIndex, dataItem);
+    bool bRet = m_pDataProvider->InsertDataItem(itemIndex, dataItem);
+    if (bRet) {
+        UpdateHeaderColumnCheckBox(Box::InvalidIndex);
+        UpdateHeaderCheckBox();
+    }
+    return bRet;
 }
 
 bool ListCtrl::SetDataItem(size_t itemIndex, const ListCtrlDataItem& dataItem)
 {
-    return m_pDataProvider->SetDataItem(itemIndex, dataItem);
+    bool bCheckChanged = false;
+    ListCtrlDataItem oldDataItem;
+    if (GetDataItem(itemIndex, dataItem.nColumnIndex, oldDataItem)) {
+        bCheckChanged = oldDataItem.bChecked != dataItem.bChecked;
+    }
+    bool bRet = m_pDataProvider->SetDataItem(itemIndex, dataItem);
+    if (bCheckChanged) {
+        UpdateHeaderColumnCheckBox(GetColumnId(itemIndex));
+    }    
+    return bRet;
 }
 
 bool ListCtrl::GetDataItem(size_t itemIndex, size_t columnIndex, ListCtrlDataItem& dataItem) const
@@ -818,20 +768,34 @@ bool ListCtrl::GetDataItem(size_t itemIndex, size_t columnIndex, ListCtrlDataIte
 
 bool ListCtrl::DeleteDataItem(size_t itemIndex)
 {
-    return m_pDataProvider->DeleteDataItem(itemIndex);
+    bool bRet = m_pDataProvider->DeleteDataItem(itemIndex);
+    if (bRet) {
+        UpdateHeaderColumnCheckBox(Box::InvalidIndex);
+        UpdateHeaderCheckBox();
+    }
+    return bRet;
 }
 
 bool ListCtrl::DeleteAllDataItems()
 {
-    return m_pDataProvider->DeleteAllDataItems();
+    bool bRet = m_pDataProvider->DeleteAllDataItems();
+    if (bRet) {
+        UpdateHeaderColumnCheckBox(Box::InvalidIndex);
+        UpdateHeaderCheckBox();
+    }
+    return bRet;
 }
 
 bool ListCtrl::SetDataItemRowData(size_t itemIndex, const ListCtrlRowData& itemData)
 {
     bool bChanged = false;
+    ListCtrlRowData oldItemData;
     bool bRet = m_pDataProvider->SetDataItemRowData(itemIndex, itemData, bChanged);
     if (bChanged) {
         Refresh();
+        if (oldItemData.bChecked != itemData.bChecked) {
+            UpdateHeaderCheckBox();
+        }
     }
     return bRet;
 }
@@ -852,6 +816,8 @@ bool ListCtrl::SetDataItemVisible(size_t itemIndex, bool bVisible)
     bool bRet = m_pDataProvider->SetDataItemVisible(itemIndex, bVisible, bChanged);
     if (bChanged) {
         Refresh();
+        UpdateHeaderColumnCheckBox(Box::InvalidIndex);
+        UpdateHeaderCheckBox();
     }
     return bRet;
 }
@@ -864,9 +830,13 @@ bool ListCtrl::IsDataItemVisible(size_t itemIndex) const
 bool ListCtrl::SetDataItemSelected(size_t itemIndex, bool bSelected)
 {
     bool bChanged = false;
+    bool bOldChecked = m_pDataProvider->IsDataItemChecked(itemIndex);
     bool bRet = m_pDataProvider->SetDataItemSelected(itemIndex, bSelected, bChanged);
     if (bChanged) {
         Refresh();
+        if (m_pDataProvider->IsDataItemChecked(itemIndex) != bOldChecked) {
+            UpdateHeaderCheckBox();
+        }
     }
     return bRet;
 }
@@ -965,16 +935,16 @@ bool ListCtrl::SetShowCheckBox(size_t itemIndex, size_t columnIndex, bool bShowC
     return m_pDataProvider->SetShowCheckBox(itemIndex, columnIndex, bShowCheckBox);
 }
 
-bool ListCtrl::SetCheckBoxSelect(size_t itemIndex, size_t columnIndex, bool bSelected)
+bool ListCtrl::SetCheckBoxCheck(size_t itemIndex, size_t columnIndex, bool bChecked)
 {
-    return m_pDataProvider->SetCheckBoxSelect(itemIndex, columnIndex, bSelected);
+    return m_pDataProvider->SetCheckBoxCheck(itemIndex, columnIndex, bChecked);
 }
 
-bool ListCtrl::IsCheckBoxSelect(size_t itemIndex, size_t columnIndex) const
+bool ListCtrl::IsCheckBoxChecked(size_t itemIndex, size_t columnIndex) const
 {
-    bool bSelected = false;
-    m_pDataProvider->GetCheckBoxSelect(itemIndex, columnIndex, bSelected);
-    return bSelected;
+    bool bChecked = false;
+    m_pDataProvider->GetCheckBoxCheck(itemIndex, columnIndex, bChecked);
+    return bChecked;
 }
 
 bool ListCtrl::SortDataItems(size_t columnIndex, bool bSortedUp, 
@@ -1005,13 +975,19 @@ void ListCtrl::SetMultiSelect(bool bMultiSelect)
     if (m_pDataView != nullptr) {
         m_pDataView->SetMultiSelect(bMultiSelect);
     }
+    UpdateHeaderCheckBox();
 }
 
 void ListCtrl::SetSelectedDataItems(const std::vector<size_t>& selectedIndexs, bool bClearOthers)
 {
     ASSERT(m_pDataView != nullptr);
     if (m_pDataView != nullptr) {
-        m_pDataView->SetSelectedElements(selectedIndexs, bClearOthers);
+        std::vector<size_t> refreshIndexs;
+        m_pDataView->SetSelectedElements(selectedIndexs, bClearOthers, refreshIndexs);
+        if (!refreshIndexs.empty()) {
+            m_pDataView->RefreshElements(refreshIndexs);
+            UpdateHeaderCheckBox();
+        }
     }
 }
 
@@ -1030,6 +1006,9 @@ void ListCtrl::SetCheckedDataItems(const std::vector<size_t>& itemIndexs, bool b
     if (!refreshIndexs.empty() && (m_pDataView != nullptr)) {
         m_pDataView->RefreshElements(refreshIndexs);
     }
+    if (!refreshIndexs.empty()) {
+        UpdateHeaderCheckBox();
+    }
 }
 
 void ListCtrl::GetCheckedDataItems(std::vector<size_t>& itemIndexs) const
@@ -1042,6 +1021,9 @@ void ListCtrl::SetSelectAll()
     ASSERT(m_pDataView != nullptr);
     if (m_pDataView != nullptr) {
         m_pDataView->SetSelectAll();
+        if (IsAutoCheckSelect()) {
+            UpdateHeaderCheckBox();
+        }
     }
 }
 
@@ -1050,8 +1032,10 @@ void ListCtrl::SetSelectNone()
     ASSERT(m_pDataView != nullptr);
     if (m_pDataView != nullptr) {
         m_pDataView->SetSelectNone();
+        if (IsAutoCheckSelect()) {
+            UpdateHeaderCheckBox();
+        }        
     }
-
 }
 
 void ListCtrl::GetDisplayDataItems(std::vector<size_t>& itemIndexList) const
@@ -1187,7 +1171,11 @@ bool ListCtrl::IsDataItemShowCheckBox() const
 bool ListCtrl::SetDataItemCheck(size_t itemIndex, bool bCheck)
 {
     bool bChanged = false;
-    return m_pDataProvider->SetDataItemChecked(itemIndex, bCheck, bChanged);
+    bool bRet = m_pDataProvider->SetDataItemChecked(itemIndex, bCheck, bChanged);
+    if (bChanged) {
+        UpdateHeaderCheckBox();
+    }
+    return bRet;
 }
 
 bool ListCtrl::IsDataItemCheck(size_t itemIndex) const

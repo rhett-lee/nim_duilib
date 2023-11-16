@@ -345,6 +345,7 @@ void ListCtrlDataProvider::DataItemToStorage(const ListCtrlDataItem& item, Stora
     storage.textColor = item.textColor;
     storage.bkColor = item.bkColor;
     storage.bShowCheckBox = item.bShowCheckBox;
+    storage.bChecked = item.bChecked;
 }
 
 void ListCtrlDataProvider::StorageToDataItem(const Storage& storage, ListCtrlDataItem& item) const
@@ -360,6 +361,7 @@ void ListCtrlDataProvider::StorageToDataItem(const Storage& storage, ListCtrlDat
     item.textColor = storage.textColor;
     item.bkColor = storage.bkColor;
     item.bShowCheckBox = storage.bShowCheckBox;
+    item.bChecked = storage.bChecked;
 }
 
 size_t ListCtrlDataProvider::GetColumnId(size_t nColumnIndex) const
@@ -601,13 +603,13 @@ void ListCtrlDataProvider::OnDataItemColumnChecked(size_t itemIndex, size_t nCol
     }
 
     //更新header对应列的勾选状态（三态），仅仅同步UI的状态
-    UpdateDataItemColumnCheckStatus(nColumnId);
+    UpdateHeaderColumnCheckBox(nColumnId);
 }
 
-void ListCtrlDataProvider::UpdateDataItemColumnCheckStatus(size_t nColumnId)
+void ListCtrlDataProvider::UpdateHeaderColumnCheckBox(size_t nColumnId)
 {
     if (m_pListCtrl != nullptr) {
-        m_pListCtrl->UpdateDataItemColumnCheckStatus(nColumnId);
+        m_pListCtrl->UpdateHeaderColumnCheckBox(nColumnId);
     }
 }
 
@@ -1099,6 +1101,138 @@ void ListCtrlDataProvider::GetCheckedDataItems(std::vector<size_t>& itemIndexs) 
     }
 }
 
+void ListCtrlDataProvider::GetDataItemsCheckStatus(bool& bChecked, bool& bPartChecked) const
+{
+    bChecked = false;
+    bPartChecked = false;
+    size_t nCheckCount = 0;
+    size_t nUnCheckCount = 0;
+    const size_t nCount = m_rowDataList.size();
+    if (nCount == 0) {
+        return;
+    }
+    for (size_t itemIndex = 0; itemIndex < nCount; ++itemIndex) {
+        const ListCtrlRowData& rowData = m_rowDataList[itemIndex];
+        if (!rowData.bVisible) {
+            continue;
+        }
+        if (rowData.bChecked) {
+            nCheckCount++;
+        }
+        else {
+            nUnCheckCount++;
+        }
+        if ((nCheckCount > 0) && (nUnCheckCount > 0)){
+            //确认是部分选择
+            bChecked = true;
+            bPartChecked = true;
+            return;
+        }
+    }
+    if ((nCheckCount > 0) && (nUnCheckCount == 0)) {
+        bChecked = true;
+    }
+    else if ((nCheckCount == 0) && (nUnCheckCount > 0)) {
+        bChecked = false;
+    }
+    else {
+        ASSERT(FALSE);
+    }
+}
+
+void ListCtrlDataProvider::GetDataItemsSelectStatus(bool& bSelected, bool& bPartSelected) const
+{
+    bSelected = false;
+    bPartSelected = false;
+    size_t nSelectCount = 0;
+    size_t nUnSelectCount = 0;
+    const size_t nCount = m_rowDataList.size();
+    if (nCount == 0) {
+        return;
+    }
+    for (size_t itemIndex = 0; itemIndex < nCount; ++itemIndex) {
+        const ListCtrlRowData& rowData = m_rowDataList[itemIndex];
+        if (!rowData.bVisible) {
+            continue;
+        }
+        if (rowData.bSelected) {
+            nSelectCount++;
+        }
+        else {
+            nUnSelectCount++;
+        }
+        if ((nSelectCount > 0) && (nUnSelectCount > 0)) {
+            //确认是部分选择
+            bSelected = true;
+            bPartSelected = true;
+            return;
+        }
+    }
+    if ((nSelectCount > 0) && (nUnSelectCount == 0)) {
+        bSelected = true;
+    }
+    else if ((nSelectCount == 0) && (nUnSelectCount > 0)) {
+        bSelected = false;
+    }
+    else {
+        ASSERT(FALSE);
+    }
+}
+
+void ListCtrlDataProvider::GetCheckBoxCheckStatus(size_t columnId, bool& bChecked, bool& bPartChecked) const
+{
+    bChecked = false;
+    bPartChecked = false;
+    auto iter = m_dataMap.find(columnId);
+    ASSERT(iter != m_dataMap.end());
+    if (iter == m_dataMap.end()) {
+        return;
+    }
+    const StoragePtrList& sortStorageList = iter->second;
+    size_t nCheckCount = 0;
+    size_t nUnCheckCount = 0;
+    const size_t nCount = sortStorageList.size();
+    if (nCount == 0) {
+        return;
+    }
+    ASSERT(nCount == m_rowDataList.size());
+    if (nCount != m_rowDataList.size()) {
+        return;
+    }
+
+    for (size_t itemIndex = 0; itemIndex < nCount; ++itemIndex) {
+        const ListCtrlRowData& rowData = m_rowDataList[itemIndex];
+        if (!rowData.bVisible) {
+            continue;
+        }
+        const StoragePtr& pStorage = sortStorageList[itemIndex];
+        if (pStorage == nullptr) {
+            continue;
+        }
+        if (!pStorage->bShowCheckBox) {
+            continue;
+        }
+        if (pStorage->bChecked) {
+            nCheckCount++;
+        }
+        else {
+            nUnCheckCount++;
+        }
+        if ((nCheckCount > 0) && (nUnCheckCount > 0)) {
+            //确认是部分选择
+            bChecked = true;
+            bPartChecked = true;
+            return;
+        }
+    }
+    if ((nCheckCount > 0) && (nUnCheckCount == 0)) {
+        bChecked = true;
+    }
+    else if ((nCheckCount == 0) && (nUnCheckCount > 0)) {
+        bChecked = false;
+    }
+}
+
 bool ListCtrlDataProvider::SetDataItemAlwaysAtTop(size_t itemIndex, int8_t nAlwaysAtTop, bool& bChanged)
 {
     bChanged = false;
@@ -1378,7 +1512,7 @@ bool ListCtrlDataProvider::SetShowCheckBox(size_t itemIndex, size_t columnIndex,
     return true;
 }
 
-bool ListCtrlDataProvider::SetCheckBoxSelect(size_t itemIndex, size_t columnIndex, bool bSelected)
+bool ListCtrlDataProvider::SetCheckBoxCheck(size_t itemIndex, size_t columnIndex, bool bChecked)
 {
     StoragePtr pStorage = GetDataItemStorageForWrite(itemIndex, columnIndex);
     ASSERT(pStorage != nullptr);
@@ -1388,8 +1522,8 @@ bool ListCtrlDataProvider::SetCheckBoxSelect(size_t itemIndex, size_t columnInde
     }
     ASSERT(pStorage->bShowCheckBox);
     if (pStorage->bShowCheckBox) {
-        if (pStorage->bChecked != bSelected) {
-            pStorage->bChecked = bSelected;
+        if (pStorage->bChecked != bChecked) {
+            pStorage->bChecked = bChecked;
             EmitDataChanged(itemIndex, itemIndex);
         }        
         return true;
@@ -1397,9 +1531,9 @@ bool ListCtrlDataProvider::SetCheckBoxSelect(size_t itemIndex, size_t columnInde
     return false;
 }
 
-bool ListCtrlDataProvider::GetCheckBoxSelect(size_t itemIndex, size_t columnIndex, bool& bSelected) const
+bool ListCtrlDataProvider::GetCheckBoxCheck(size_t itemIndex, size_t columnIndex, bool& bChecked) const
 {
-    bSelected = false;
+    bChecked = false;
     StoragePtr pStorage = GetDataItemStorage(itemIndex, columnIndex);
     ASSERT(pStorage != nullptr);
     if (pStorage == nullptr) {
@@ -1408,7 +1542,7 @@ bool ListCtrlDataProvider::GetCheckBoxSelect(size_t itemIndex, size_t columnInde
     }
     ASSERT(pStorage->bShowCheckBox);
     if (pStorage->bShowCheckBox) {
-        bSelected = pStorage->bChecked;
+        bChecked = pStorage->bChecked;
         return true;
     }
     return false;

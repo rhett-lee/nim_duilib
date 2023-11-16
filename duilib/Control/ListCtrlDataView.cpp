@@ -96,6 +96,7 @@ bool ListCtrlDataView::OnListCtrlKeyDown(const EventArgs& msg)
         //Ctrl + A 全选操作
         bHandled = true;
         SetSelectAll();
+        OnSelectStatusChanged();
         return bHandled;
     }
 
@@ -295,6 +296,7 @@ bool ListCtrlDataView::OnListCtrlKeyDown(const EventArgs& msg)
         ASSERT(std::find(selected.begin(), selected.end(), nCurSel) != selected.end());
 #endif
     }
+    OnSelectStatusChanged();
     return bHandled;
 }
 
@@ -302,10 +304,12 @@ void ListCtrlDataView::OnListCtrlClickedBlank()
 {
     //在空白处点击鼠标左键或者右键，取消全部选择
     SetSelectNone();
+    OnSelectStatusChanged();
 }
 
 bool ListCtrlDataView::SelectItem(size_t iIndex, bool bTakeFocus, bool bTriggerEvent, uint64_t vkFlag)
 {
+    bool bSelectStatusChanged = false;
     bool bRet = false;
     if (IsMultiSelect()) {
         //多选模式
@@ -348,6 +352,7 @@ bool ListCtrlDataView::SelectItem(size_t iIndex, bool bTakeFocus, bool bTriggerE
                 RefreshElements(refreshDataIndexs);
                 ASSERT(IsElementSelected(nElementIndex));
                 ASSERT(nElementIndex == GetDisplayItemElementIndex(iIndex));
+                bSelectStatusChanged = true;
                 bRet = true;
             }
         }
@@ -375,6 +380,7 @@ bool ListCtrlDataView::SelectItem(size_t iIndex, bool bTakeFocus, bool bTriggerE
                     RefreshElements(refreshDataIndexs);
                     ASSERT(IsElementSelected(nElementIndex));
                     ASSERT(nElementIndex == GetDisplayItemElementIndex(iIndex));
+                    bSelectStatusChanged = true;
                     bRet = true;
                 }
                 else {
@@ -394,6 +400,9 @@ bool ListCtrlDataView::SelectItem(size_t iIndex, bool bTakeFocus, bool bTriggerE
     else {
         //单选
         bRet = SelectItemSingle(iIndex, bTakeFocus, bTriggerEvent);
+    }
+    if (bSelectStatusChanged) {
+        OnSelectStatusChanged();
     }
     return bRet;
 }
@@ -1265,30 +1274,6 @@ size_t ListCtrlDataView::FindSelectableElement(size_t nElementIndex, bool bForwa
     return nElementIndex;
 }
 
-void ListCtrlDataView::OnRefresh()
-{
-}
-
-void ListCtrlDataView::OnArrangeChild()
-{
-    if (m_pListCtrl != nullptr) {
-        m_pListCtrl->UpdateDataItemColumnCheckStatus(Box::InvalidIndex);
-    }
-    if (m_pListCtrl != nullptr) {
-        m_pListCtrl->UpdateDataItemCheckStatus();
-    }
-}
-
-void ListCtrlDataView::OnRefreshElements(const std::vector<size_t>& /*refreshIndexs*/)
-{
-    if (m_pListCtrl != nullptr) {
-        m_pListCtrl->UpdateDataItemColumnCheckStatus(Box::InvalidIndex);
-    }
-    if (m_pListCtrl != nullptr) {
-        m_pListCtrl->UpdateDataItemCheckStatus();
-    }
-}
-
 bool ListCtrlDataView::ButtonDown(const EventArgs& msg)
 {
     bool bRet = __super::ButtonDown(msg);
@@ -1508,6 +1493,7 @@ void ListCtrlDataView::OnFrameSelection(int64_t top, int64_t bottom, bool bInLis
     if (!bInListItem) {
         //在空白处，不做框选处理，只是取消所有选择项
         SetSelectNone();
+        OnSelectStatusChanged();
         return;
     }
     ASSERT(top <= bottom);
@@ -1584,6 +1570,7 @@ void ListCtrlDataView::OnFrameSelection(int64_t top, int64_t bottom, bool bInLis
 
     //选择框选的数据
     SetSelectedElements(itemIndexList, true);
+    OnSelectStatusChanged();
 }
 
 void ListCtrlDataView::SetNormalItemTop(int32_t nNormalItemTop)
@@ -1596,31 +1583,8 @@ void ListCtrlDataView::OnItemSelectedChanged(size_t iIndex, IListBoxItem* pListB
     if (!IsEnableUpdateProvider()) {
         return;
     }
-    ASSERT(pListBoxItem != nullptr);
-    if (pListBoxItem == nullptr) {
-        return;
-    }
     __super::OnItemSelectedChanged(iIndex, pListBoxItem);
-    //更新该元素的选择状态
-    bool bCheckChanged = false;
-    bool bSelected = pListBoxItem->IsSelected();
-    size_t nElementIndex = pListBoxItem->GetElementIndex();
-    if (nElementIndex != Box::InvalidIndex) {
-        if ((m_pListCtrl != nullptr) && m_pListCtrl->IsAutoCheckSelect()) {
-            //Select 和 Check 状态同步
-            ListCtrlDataProvider* pDataProvider = dynamic_cast<ListCtrlDataProvider*>(GetDataProvider());
-            ASSERT(pDataProvider != nullptr);
-            if (pDataProvider != nullptr) {
-                pDataProvider->SetDataItemChecked(nElementIndex, bSelected, bCheckChanged);
-            }
-        }
-    }
-    if (bCheckChanged) {
-        //更新表头的勾选项状态
-        if (m_pListCtrl != nullptr) {
-            m_pListCtrl->UpdateDataItemCheckStatus();
-        }
-    }
+    OnSelectStatusChanged();
 }
 
 void ListCtrlDataView::OnItemCheckedChanged(size_t /*iIndex*/, IListBoxItem* pListBoxItem)
@@ -1649,8 +1613,16 @@ void ListCtrlDataView::OnItemCheckedChanged(size_t /*iIndex*/, IListBoxItem* pLi
     if (bCheckChanged) {
         //更新表头的勾选项状态
         if (m_pListCtrl != nullptr) {
-            m_pListCtrl->UpdateDataItemCheckStatus();
+            m_pListCtrl->UpdateHeaderCheckBox();
         }
+    }
+}
+
+void ListCtrlDataView::OnSelectStatusChanged()
+{
+    if ((m_pListCtrl != nullptr) && m_pListCtrl->IsAutoCheckSelect()) {
+        //更新表头的勾选项状态
+        m_pListCtrl->UpdateHeaderCheckBox();
     }
 }
 

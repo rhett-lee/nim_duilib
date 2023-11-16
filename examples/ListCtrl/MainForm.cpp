@@ -40,7 +40,7 @@ void MainForm::OnInitWindow()
 		return;
 	}
 	//填充数据
-	InsertItemData(200, 9);
+	InsertItemData(10, 9);
 
 	//表头高度控制
 	ui::RichEdit* pHeaderHeightEdit = dynamic_cast<ui::RichEdit*>(FindControl(L"header_height_edit"));
@@ -556,10 +556,10 @@ void MainForm::RunListCtrlTest()
 	pListCtrl->SetShowCheckBox(nDataItemIndex, dataItem.nColumnIndex, true);
 	ASSERT(pListCtrl->IsShowCheckBox(nDataItemIndex, dataItem.nColumnIndex) == true);
 
-	pListCtrl->SetCheckBoxSelect(nDataItemIndex, dataItem.nColumnIndex, false);
-	ASSERT(pListCtrl->IsCheckBoxSelect(nDataItemIndex, dataItem.nColumnIndex) == false);
-	pListCtrl->SetCheckBoxSelect(nDataItemIndex, dataItem.nColumnIndex, true);
-	ASSERT(pListCtrl->IsCheckBoxSelect(nDataItemIndex, dataItem.nColumnIndex) == true);
+	pListCtrl->SetCheckBoxCheck(nDataItemIndex, dataItem.nColumnIndex, false);
+	ASSERT(pListCtrl->IsCheckBoxChecked(nDataItemIndex, dataItem.nColumnIndex) == false);
+	pListCtrl->SetCheckBoxCheck(nDataItemIndex, dataItem.nColumnIndex, true);
+	ASSERT(pListCtrl->IsCheckBoxChecked(nDataItemIndex, dataItem.nColumnIndex) == true);
 
 	dataItem.text = L"3";
 	dataItem.nColumnIndex = 1;

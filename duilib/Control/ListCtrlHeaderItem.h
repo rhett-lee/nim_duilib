@@ -131,16 +131,16 @@ public:
     bool IsCheckBoxVisible() const;
 
     /** 设置CheckBox的勾选状态
-    * @param [in] bSelected true表示勾选，false表示不勾选
-    * @param [in] 如果bSelected和bPartSelect同时为true，表示部分选择
+    * @param [in] bChecked true表示勾选，false表示不勾选
+    * @param [in] 如果bChecked和bPartChecked同时为true，表示部分选择
     */
-    bool SetCheckBoxSelect(bool bSelected, bool bPartSelect);
+    bool SetCheckBoxCheck(bool bChecked, bool bPartChecked);
 
     /** 获取CheckBox的勾选状态
-    * @param [out] bSelected true表示勾选，false表示不勾选
+    * @param [out] bChecked true表示勾选，false表示不勾选
     * @param [out] 如果bSelected和bPartSelect同时为true，表示部分选择
     */
-    bool GetCheckBoxSelect(bool& bSelected, bool& bPartSelect) const;
+    bool GetCheckBoxCheck(bool& bChecked, bool& bPartChecked) const;
 
     /** 显示/隐藏该列
     */
