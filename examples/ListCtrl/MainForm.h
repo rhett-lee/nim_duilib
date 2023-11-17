@@ -39,7 +39,7 @@ public:
 private:
 	/** 填充数据
 	*/
-	void InsertItemData(int32_t nRows, int32_t nColumns);
+	void InsertItemData(int32_t nRows, int32_t nColumns, int32_t nImageId);
 
 	/** 执行一些功能测试
 	*/

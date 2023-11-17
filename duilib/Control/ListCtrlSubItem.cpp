@@ -4,8 +4,22 @@
 namespace ui
 {
 ListCtrlSubItem::ListCtrlSubItem():
-    m_pItem(nullptr)
+    m_pItem(nullptr),
+    m_imageId(-1)
 {
+    m_nIconSpacing = GlobalManager::Instance().Dpi().GetScaleInt(2);
+}
+
+std::wstring ListCtrlSubItem::GetType() const { return L"ListCtrlSubItem"; }
+
+void ListCtrlSubItem::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
+{
+    if (strName == L"icon_spacing") {
+        SetIconSpacing(_wtoi(strValue.c_str()), true);
+    }
+    else {
+        __super::SetAttribute(strName, strValue);
+    }
 }
 
 void ListCtrlSubItem::SetListCtrlItem(ListCtrlItem* pItem)
@@ -124,6 +138,90 @@ ListCtrlCheckBox* ListCtrlSubItem::GetCheckBox() const
         pCheckBox = dynamic_cast<ListCtrlCheckBox*>(GetItemAt(0));
     }
     return pCheckBox;
+}
+
+void ListCtrlSubItem::SetImageId(int32_t imageId)
+{
+    if (m_imageId != imageId) {
+        m_imageId = imageId;
+        Invalidate();
+    }
+}
+
+int32_t ListCtrlSubItem::GetImageId() const
+{
+    return m_imageId;
+}
+
+void ListCtrlSubItem::SetIconSpacing(int32_t nIconSpacing, bool bNeedDpiScale)
+{
+    if (bNeedDpiScale) {
+        GlobalManager::Instance().Dpi().ScaleInt(nIconSpacing);
+    }
+    if (m_nIconSpacing != nIconSpacing) {
+        m_nIconSpacing = nIconSpacing;
+        if (m_nIconSpacing < 0) {
+            m_nIconSpacing = 0;
+        }
+        Invalidate();
+    }
+}
+
+int32_t ListCtrlSubItem::GetIconSpacing() const
+{
+    return m_nIconSpacing;
+}
+
+void ListCtrlSubItem::PaintText(IRender* pRender)
+{
+    //需要绘制的内容包括：图标、文字
+    if (pRender == nullptr) {
+        return;
+    }
+    //文本前的图标
+    ImagePtr pItemImage;
+    if ((m_imageId >= 0) && (m_pItem != nullptr)) {
+        ListCtrl* pListCtrl = m_pItem->GetListCtrl();
+        if (pListCtrl != nullptr) {
+            pItemImage = pListCtrl->GetImageList().GetImageData(m_imageId);
+            ASSERT(pItemImage != nullptr);
+        }
+    }
+    if ((pItemImage != nullptr) && (pItemImage->GetImageCache() == nullptr)) {
+        LoadImageData(*pItemImage);
+        if (pItemImage->GetImageCache() == nullptr) {
+            pItemImage = nullptr;
+        }
+        else {
+            if ((pItemImage->GetImageCache()->GetWidth() <= 0) ||
+                (pItemImage->GetImageCache()->GetHeight() <= 0)) {
+                pItemImage = nullptr;
+            }
+        }
+    }
+
+    if (pItemImage == nullptr) {
+        __super::PaintText(pRender);
+        return;
+    }
+
+    int32_t nIconTextSpacing = GetIconSpacing();
+    //图标靠左侧，文字按原来的方式绘制
+    UiRect rc = GetRect();
+    rc.Deflate(GetControlPadding());
+    if (pItemImage != nullptr) {
+        PaintImage(pRender, pItemImage.get(), L"", -1, nullptr, &rc, nullptr);
+        rc.left += pItemImage->GetImageCache()->GetWidth();
+        rc.left += nIconTextSpacing;
+    }
+
+    UiRect textRect = GetRect();
+    textRect.Deflate(GetControlPadding());
+    textRect.Deflate(GetTextPadding());
+    if (pItemImage != nullptr) {
+        textRect.left = std::max(textRect.left, rc.left);
+    }
+    DoPaintText(textRect, pRender);
 }
 
 }//namespace ui

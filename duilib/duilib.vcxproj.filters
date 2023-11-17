@@ -369,6 +369,9 @@
     <ClCompile Include="Control\ListCtrlSubItem.cpp">
       <Filter>Control</Filter>
     </ClCompile>
+    <ClCompile Include="Core\ImageList.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -814,6 +817,9 @@
     </ClInclude>
     <ClInclude Include="Control\ListCtrlDefs.h">
       <Filter>Control</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ImageList.h">
+      <Filter>Core</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -16,6 +16,7 @@ struct ListCtrlColumn
     int32_t nColumnWidthMin = 0;    //列宽最小值，0表示用默认设置，如果bNeedDpiScale为true，则执行DPI自适应处理
     int32_t nColumnWidthMax = 0;    //列宽最大值，0表示用默认设置，如果bNeedDpiScale为true，则执行DPI自适应处理
     int32_t nTextFormat = -1;       //文本对齐方式等属性, 该属性仅应用于Header, 取值可参考：IRender.h中的DrawStringFormat，如果为-1，表示按默认配置的对齐方式
+    int32_t nImageId = -1;          //图标资源Id，如果为-1表示不显示图标，图标显示在文本前面
     bool bSortable = true;          //是否支持排序
     bool bResizeable = true;        //是否支持通过拖动调整列宽
     bool bShowCheckBox = true;      //是否显示CheckBox（支持在表头和数据列显示CheckBox）
@@ -29,7 +30,7 @@ struct ListCtrlDataItem
     size_t nColumnIndex = 0;        //【必填】第几列，有效范围：[0, GetColumnCount())
     std::wstring text;              //文本内容
     int32_t nTextFormat = -1;       //文本对齐方式等属性, 该属性仅应用于Header, 取值可参考：IRender.h中的DrawStringFormat，如果为-1，表示按默认配置的对齐方式
-    int32_t nImageIndex = -1;       //图标资源索引号，在图片列表里面的下标值，如果为-1表示不显示图标
+    int32_t nImageId = -1;          //图标资源Id，如果为-1表示不显示图标
     UiColor textColor;              //文本颜色
     UiColor bkColor;                //背景颜色
     bool bShowCheckBox = true;      //是否显示CheckBox
@@ -42,7 +43,7 @@ struct ListCtrlData
 {
     UiString text;                  //文本内容
     uint16_t nTextFormat = 0;       //文本对齐方式等属性, 该属性仅应用于Header, 取值可参考：IRender.h中的DrawStringFormat，如果为-1，表示按默认配置的对齐方式
-    int32_t nImageIndex = -1;       //图标资源索引号，在图片列表里面的下标值，如果为-1表示不显示图标
+    int32_t nImageId = -1;          //图标资源Id，如果为-1表示不显示图标
     UiColor textColor;              //文本颜色
     UiColor bkColor;                //背景颜色
     bool bShowCheckBox = true;      //是否显示CheckBox  
@@ -51,7 +52,6 @@ struct ListCtrlData
     //TODO: 待实现功能列表
     //int32_t nBkImageIndex = -1;     //背景图片资源索引号
     //Item的文本可以编辑
-            //选择：单选，多选  提供接口
     //事件响应：点击，右键等
     //多视图的支持：Report，Icon等，类似与Windows资源管理器
     //数据类型的支持：比如整型，日期型，下拉表，字符串类型等

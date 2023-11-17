@@ -354,6 +354,10 @@ public:
 	*/
 	std::wstring GetImageString() const;
 
+	/** 判断图片属性是否相等
+	*/
+	bool EqualToImageString(const std::wstring& imageString) const;
+
 	/** 获取图片文件名（含相对路径，不含图片属性）
 	*/
 	std::wstring GetImagePath() const;

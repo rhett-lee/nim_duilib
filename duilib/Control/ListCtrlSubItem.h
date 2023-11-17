@@ -17,6 +17,15 @@ class ListCtrlSubItem : public LabelBox
 public:
     ListCtrlSubItem();
 
+    /** 获取控件类型
+    */
+    virtual std::wstring GetType() const override;
+
+    /** 设置属性
+    */
+    virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
+
+public:
     /** 设置关联的Item接口
     */
     void SetListCtrlItem(ListCtrlItem* pItem);
@@ -51,10 +60,39 @@ public:
     */
     ListCtrlCheckBox* GetCheckBox() const;
 
+    /** 设置关联图标Id, 如果为-1表示不显示图标，图标显示在文本前面
+    */
+    void SetImageId(int32_t imageId);
+
+    /** 获取关联图标Id
+    */
+    int32_t GetImageId() const;
+
+    /** 设置文字与图标之间的间隔（像素）
+    */
+    void SetIconSpacing(int32_t nIconSpacing, bool bNeedDpiScale);
+
+    /** 获取文字与图标之间的间隔（像素）
+    */
+    int32_t GetIconSpacing() const;
+
+protected:
+    /** 绘制文字
+    */
+    virtual void PaintText(IRender* pRender) override;
+
 private:
     /** 关联的Item接口
     */
     ListCtrlItem* m_pItem;
+
+    /** 关联图标Id, 如果为-1表示不显示图标，图标显示在文本前面
+    */
+    int32_t m_imageId;
+
+    /** 文字与图标之间的间隔
+    */
+    int32_t m_nIconSpacing;
 };
 
 }//namespace ui

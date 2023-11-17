@@ -208,6 +208,7 @@ bool ListCtrlDataProvider::FillElement(ui::Control* pControl, size_t nElementInd
             else {
                 pSubItem->SetCheckBoxVisible(false);
             }
+            pSubItem->SetImageId(pStorage->nImageId);
         }
         else {
             pSubItem->SetTextStyle(defaultSubItem.GetTextStyle(), false);
@@ -216,6 +217,7 @@ bool ListCtrlDataProvider::FillElement(ui::Control* pControl, size_t nElementInd
             pSubItem->SetStateTextColor(kControlStateNormal, defaultSubItem.GetStateTextColor(kControlStateNormal));
             pSubItem->SetBkColor(defaultSubItem.GetBkColor());
             pSubItem->SetCheckBoxVisible(false);
+            pSubItem->SetImageId(-1);
         }
     }
     return true;
@@ -341,7 +343,7 @@ void ListCtrlDataProvider::DataItemToStorage(const ListCtrlDataItem& item, Stora
     else {
         storage.nTextFormat = 0;
     }
-    storage.nImageIndex = item.nImageIndex;
+    storage.nImageId = item.nImageId;
     storage.textColor = item.textColor;
     storage.bkColor = item.bkColor;
     storage.bShowCheckBox = item.bShowCheckBox;
@@ -357,7 +359,7 @@ void ListCtrlDataProvider::StorageToDataItem(const Storage& storage, ListCtrlDat
     else {
         item.nTextFormat = storage.nTextFormat;
     }
-    item.nImageIndex = storage.nImageIndex;
+    item.nImageId = storage.nImageId;
     item.textColor = storage.textColor;
     item.bkColor = storage.bkColor;
     item.bShowCheckBox = storage.bShowCheckBox;

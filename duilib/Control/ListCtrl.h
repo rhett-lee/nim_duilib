@@ -9,7 +9,7 @@
 #include "duilib/Control/ListCtrlItem.h"
 #include "duilib/Control/ListCtrlSubItem.h"
 #include "duilib/Control/ListCtrlDataProvider.h"
-#include "duilib/Box/ListBoxItem.h"
+#include "duilib/Core/ImageList.h"
 
 namespace ui
 {
@@ -516,6 +516,12 @@ public:
     void SetEnableColumnWidthAuto(bool bEnable);
     bool IsEnableColumnWidthAuto() const;
 
+    /** 获取图片列表，可以添加图片资源，用于在列表中显示图标资源
+    */
+    ImageList& GetImageList();
+    const ImageList& GetImageList() const;
+
+
 protected:
     /** 控件初始化
     */
@@ -724,6 +730,10 @@ private:
     /** 是否显示数据项的CheckBox（行级）
     */
     bool m_bDataItemShowCheckBox;
+
+    /** 图片列表
+    */
+    ImageList m_imageList;
 };
 
 }//namespace ui

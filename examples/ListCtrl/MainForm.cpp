@@ -39,8 +39,12 @@ void MainForm::OnInitWindow()
 	if (pListCtrl == nullptr) {
 		return;
 	}
+	//添加图片资源
+	ui::ImageList& imageList = pListCtrl->GetImageList();
+	uint32_t imageId = imageList.AddImageString(L"file='1.svg' width='18' height='18' valign='center'");
+
 	//填充数据
-	InsertItemData(10, 9);
+	InsertItemData(10, 9, (int32_t)imageId);
 
 	//表头高度控制
 	ui::RichEdit* pHeaderHeightEdit = dynamic_cast<ui::RichEdit*>(FindControl(L"header_height_edit"));
@@ -409,7 +413,7 @@ void MainForm::OnColumnChanged(size_t nColumnId)
 	}
 }
 
-void MainForm::InsertItemData(int32_t nRows, int32_t nColumns)
+void MainForm::InsertItemData(int32_t nRows, int32_t nColumns, int32_t nImageId)
 {
 	ui::ListCtrl* pListCtrl = dynamic_cast<ui::ListCtrl*>(FindControl(L"list_ctrl"));
 	ASSERT(pListCtrl != nullptr);
@@ -426,6 +430,7 @@ void MainForm::InsertItemData(int32_t nRows, int32_t nColumns)
 		//columnInfo.nTextFormat = TEXT_LEFT | TEXT_VCENTER;
 		columnInfo.text = ui::StringHelper::Printf(L"第 %d 列", i);
 		columnInfo.bShowCheckBox = bShowCheckBox;
+		columnInfo.nImageId = nImageId;
 		pListCtrl->InsertColumn(-1, columnInfo);
 	}
 	//填充数据
@@ -437,6 +442,7 @@ void MainForm::InsertItemData(int32_t nRows, int32_t nColumns)
 			dataItem.nColumnIndex = columnIndex;
 			dataItem.text = ui::StringHelper::Printf(L"第 %03d 行/第 %02d 列", itemIndex, columnIndex);
 			dataItem.bShowCheckBox = bShowCheckBox;
+			dataItem.nImageId = nImageId;
 			pListCtrl->SetDataItem(itemIndex, dataItem);
 		}
 	}
@@ -520,7 +526,7 @@ void MainForm::RunListCtrlTest()
 	dataItem.textColor = ui::UiColor(ui::UiColors::Crimson);
 	dataItem.bkColor = ui::UiColor(ui::UiColors::BlanchedAlmond);
 	dataItem.bShowCheckBox = false;
-	dataItem.nImageIndex = 123;
+	dataItem.nImageId = 123;
 	dataItem.nTextFormat = ui::TEXT_CENTER | ui::TEXT_VCENTER;
 	pListCtrl->SetDataItem(nDataItemIndex, dataItem);
 
@@ -531,7 +537,7 @@ void MainForm::RunListCtrlTest()
 	ASSERT(dataItem.textColor == dataItem2.textColor);
 	ASSERT(dataItem.bkColor == dataItem2.bkColor);
 	ASSERT(dataItem.bShowCheckBox == dataItem2.bShowCheckBox);
-	ASSERT(dataItem.nImageIndex == dataItem2.nImageIndex);
+	ASSERT(dataItem.nImageId == dataItem2.nImageId);
 	ASSERT(dataItem.nTextFormat == dataItem2.nTextFormat);
 
 	ASSERT(pListCtrl->GetDataItemText(nDataItemIndex, dataItem.nColumnIndex) == L"3");
@@ -737,7 +743,7 @@ void MainForm::RunListCtrlTest()
 
 	pListCtrl->DeleteAllDataItems();
 
-	InsertItemData((int32_t)nRows, (int32_t)nColumns);
+	InsertItemData((int32_t)nRows, (int32_t)nColumns, -1);
 #endif
 }
 

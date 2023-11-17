@@ -119,6 +119,14 @@ public:
     */
     HorAlignType GetTextHorAlign() const;
 
+    /** 设置关联图标Id, 如果为-1表示不显示图标，图标显示在文本前面
+    */
+    void SetImageId(int32_t imageId);
+
+    /** 获取关联图标Id
+    */
+    int32_t GetImageId() const;
+
 public:
     /** 设置是否显示CheckBox
     * @param [in] bVisible true表示显示，false表示隐藏
@@ -224,6 +232,10 @@ private:
     /** 显示/隐藏该列
     */
     bool m_bColumnVisible;
+
+    /** 关联图标Id, 如果为-1表示不显示图标，图标显示在文本前面
+    */
+    int32_t m_imageId;
 
     /** 关联的Header接口
     */

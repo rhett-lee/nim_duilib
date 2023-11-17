@@ -1183,5 +1183,15 @@ bool ListCtrl::IsDataItemCheck(size_t itemIndex) const
     return m_pDataProvider->IsDataItemChecked(itemIndex);
 }
 
+ImageList& ListCtrl::GetImageList()
+{
+    return m_imageList;
+}
+
+const ImageList& ListCtrl::GetImageList() const
+{
+    return m_imageList;
+}
+
 }//namespace ui
 

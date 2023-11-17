@@ -689,6 +689,11 @@ std::wstring Image::GetImageString() const
 	return m_imageAttribute.sImageString.c_str();
 }
 
+bool Image::EqualToImageString(const std::wstring& imageString) const
+{
+	return m_imageAttribute.sImageString == imageString;
+}
+
 std::wstring Image::GetImagePath() const
 {
 	return m_imageAttribute.sImagePath.c_str();

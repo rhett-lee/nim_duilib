@@ -129,6 +129,9 @@ ListCtrlHeaderItem* ListCtrlHeader::InsertColumn(int32_t columnIndex, const List
         pHeaderItem->SetTextStyle(textStyle, true);
     }
 
+    //关联图标
+    pHeaderItem->SetImageId(columnInfo.nImageId);
+
     //CheckBox属性
     pHeaderItem->SetCheckBoxVisible(columnInfo.bShowCheckBox);
 

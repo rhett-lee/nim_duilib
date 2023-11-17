@@ -379,6 +379,7 @@
     <ClCompile Include="Core\FontManager.cpp" />
     <ClCompile Include="Core\GlobalManager.cpp" />
     <ClCompile Include="Core\IconManager.cpp" />
+    <ClCompile Include="Core\ImageList.cpp" />
     <ClCompile Include="Core\ImageManager.cpp" />
     <ClCompile Include="Core\LangManager.cpp" />
     <ClCompile Include="Core\Placeholder.cpp" />
@@ -498,6 +499,7 @@
     <ClInclude Include="Core\FontManager.h" />
     <ClInclude Include="Core\GlobalManager.h" />
     <ClInclude Include="Core\IconManager.h" />
+    <ClInclude Include="Core\ImageList.h" />
     <ClInclude Include="Core\ImageManager.h" />
     <ClInclude Include="Core\LangManager.h" />
     <ClInclude Include="Core\Placeholder.h" />

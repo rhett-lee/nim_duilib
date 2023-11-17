@@ -131,8 +131,15 @@ public:
 	void SetAutoToolTip(bool bAutoShow);
 
 protected:
-    //检查是否需要自动显示ToolTip
+    /** 检查是否需要自动显示ToolTip
+    */
 	void CheckShowToolTip();
+
+    /** 绘制文字的实现函数
+    * @param [in] rc 实际绘制区域，不包含内边距（需由调用方剪去内边距）
+    * @param [in] pRender 渲染接口
+    */
+    void DoPaintText(const UiRect& rc, IRender* pRender);
 
 private:
 	UiString m_sFontId;
@@ -471,14 +478,19 @@ void LabelTemplate<InheritType>::SetAttribute(const std::wstring& strName, const
 template<typename InheritType>
 void LabelTemplate<InheritType>::PaintText(IRender* pRender)
 {
+    UiRect rc = this->GetRect();
+    rc.Deflate(this->GetControlPadding());
+    rc.Deflate(this->GetTextPadding());
+    DoPaintText(rc, pRender);
+}
+
+template<typename InheritType>
+void LabelTemplate<InheritType>::DoPaintText(const UiRect & rc, IRender * pRender)
+{
     std::wstring textValue = this->GetText();
     if (textValue.empty() || (pRender == nullptr)) {
         return;
     }
-    UiRect rc = this->GetRect();
-    UiPadding rcPadding = this->GetControlPadding();
-    rc.Deflate(rcPadding);
-    rc.Deflate(this->GetTextPadding());
 
     ControlStateType stateType = this->GetState();
     UiColor dwClrColor = this->GetUiColor(GetPaintStateTextColor(this->GetState(), stateType));

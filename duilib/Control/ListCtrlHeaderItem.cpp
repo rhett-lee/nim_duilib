@@ -17,6 +17,7 @@ ListCtrlHeaderItem::ListCtrlHeaderItem() :
     m_nOldAlpha(255),
     m_bShowIconAtTop(true),
     m_bColumnVisible(true),
+    m_imageId(-1),
     m_pHeaderCtrl(nullptr)
 {
     m_nIconSpacing = GlobalManager::Instance().Dpi().GetScaleInt(6);
@@ -57,80 +58,185 @@ void ListCtrlHeaderItem::SetAttribute(const std::wstring& strName, const std::ws
 
 void ListCtrlHeaderItem::PaintText(IRender* pRender)
 {
-    __super::PaintText(pRender);
+    //需要绘制的内容包括：图标、文字、排序图标
     if (pRender == nullptr) {
         return;
     }
+    //文本前的图标
+    ImagePtr pItemImage;
+    if ((m_imageId >= 0) && (m_pHeaderCtrl != nullptr)) {
+        ListCtrl* pListCtrl = m_pHeaderCtrl->GetListCtrl();
+        if (pListCtrl != nullptr) {
+            pItemImage = pListCtrl->GetImageList().GetImageData(m_imageId);
+            ASSERT(pItemImage != nullptr);
+        }
+    }
+    if ((pItemImage != nullptr) && (pItemImage->GetImageCache() == nullptr)) {
+        LoadImageData(*pItemImage);
+        if (pItemImage->GetImageCache() == nullptr) {
+            pItemImage = nullptr;
+        }
+        else {
+            if ((pItemImage->GetImageCache()->GetWidth() <= 0) ||
+                (pItemImage->GetImageCache()->GetHeight() <= 0)) {
+                pItemImage = nullptr;
+            }
+        }
+    }
 
-    Image* pImage = nullptr;
+    //排序图标
+    Image* pSortImage = nullptr;
     if (m_sortMode == SortMode::kUp) {
         //升序
-        pImage = m_pSortedUpImage;
+        pSortImage = m_pSortedUpImage;
     }
     else if (m_sortMode == SortMode::kDown) {
         //降序
-        pImage = m_pSortedDownImage;
+        pSortImage = m_pSortedDownImage;
     }
-    if (pImage == nullptr) {
+    if ((pSortImage != nullptr) && (pSortImage->GetImageCache() == nullptr)) {
+        LoadImageData(*pSortImage);
+        if (pSortImage->GetImageCache() == nullptr) {
+            pSortImage = nullptr;
+        }
+        else {
+            if ((pSortImage->GetImageCache()->GetWidth() <= 0) ||
+                (pSortImage->GetImageCache()->GetHeight() <= 0)) {
+                pSortImage = nullptr;
+            }
+        }
+    }
+
+    if ((pSortImage != nullptr) && IsShowIconAtTop()) {
+        //图标显示在文字的上方，居中显示
+        UiRect rc = GetRect();
+        rc.Deflate(GetControlPadding());
+        int32_t nImageWidth = pSortImage->GetImageCache()->GetWidth();
+        int32_t nImageHeight = pSortImage->GetImageCache()->GetHeight();
+        rc.left = rc.CenterX() - nImageWidth / 2;
+        rc.right = rc.left + nImageWidth;
+        rc.bottom = rc.top + nImageHeight;
+
+        //绘制排序图标
+        PaintImage(pRender, pSortImage, L"", -1, nullptr, &rc, nullptr);
+        pSortImage = nullptr;
+    }
+
+    if ((pSortImage == nullptr) && (pItemImage == nullptr)) {
+        __super::PaintText(pRender);
         return;
     }
     
-    //确定排序图标的位置
-    UiRect rc = GetRect();
-    UiPadding rcPadding = GetControlPadding();
-    rc.Deflate(rcPadding);
-    if (IsShowIconAtTop()) {
-        //图标显示在文字的上方，居中显示
-        int32_t nImageWidth = 0;
-        int32_t nImageHeight = 0;
-        if (pImage != nullptr) {
-            if (pImage->GetImageCache() == nullptr) {
-                LoadImageData(*pImage);
-            }
-            if (pImage->GetImageCache() != nullptr) {
-                nImageWidth = pImage->GetImageCache()->GetWidth();
-                nImageHeight = pImage->GetImageCache()->GetHeight();
-            }
+    int32_t nItemImageWidth = 0;
+    if (pItemImage != nullptr) {
+        nItemImageWidth = pItemImage->GetImageCache()->GetWidth();
+    }
+    int32_t nSortImageWidth = 0;
+    if (pSortImage != nullptr) {
+        nSortImageWidth = pSortImage->GetImageCache()->GetWidth();
+    }
+
+    int32_t nIconTextSpacing = GetIconSpacing();
+    uint32_t textStyle = GetTextStyle();
+    UiRect measureRect = pRender->MeasureString(GetText(), GetFontId(), textStyle);
+    UiRect rcItemRect = GetRect();
+    rcItemRect.Deflate(GetControlPadding());    
+    if ((nSortImageWidth + nItemImageWidth + measureRect.Width()) > rcItemRect.Width()) {
+        //横向的空间不足，按左对齐绘制
+        nIconTextSpacing = 0;
+        textStyle = TEXT_LEFT;
+    }
+    
+    if (textStyle & TEXT_CENTER) {
+        //居中对齐
+        UiRect textRect = GetRect();
+        textRect.Deflate(GetControlPadding());
+        textRect.Deflate(GetTextPadding());
+
+        UiRect rc = GetRect();
+        rc.Deflate(GetControlPadding());
+
+        if (pItemImage != nullptr) {
+            UiRect itemRect = rc;
+            itemRect.left = textRect.CenterX() - measureRect.Width() / 2;
+            itemRect.left -= nIconTextSpacing;
+            itemRect.left -= nItemImageWidth;
+            itemRect.left = std::max(itemRect.left, rc.left);
+            itemRect.Validate();
+            PaintImage(pRender, pItemImage.get(), L"", -1, nullptr, &itemRect, nullptr);
         }
-        if (nImageWidth > 0) {
-            rc.left = rc.CenterX() - nImageWidth / 2;
-            rc.right = rc.left + nImageWidth;
+        if (pSortImage != nullptr) {
+            UiRect sortRect = rc;
+            sortRect.left = textRect.CenterX() + measureRect.Width() / 2;
+            sortRect.left += nIconTextSpacing;
+            sortRect.right = sortRect.left + nSortImageWidth;
+            sortRect.Validate();
+            PaintImage(pRender, pSortImage, L"", -1, nullptr, &sortRect, nullptr);
         }
-        if (nImageHeight > 0) {
-            rc.bottom = rc.top + nImageHeight;
+
+        DoPaintText(textRect, pRender);
+    }
+    else if (textStyle & TEXT_RIGHT) {
+        //靠右对齐
+        UiRect rc = GetRect();
+        rc.Deflate(GetControlPadding());
+        if (pSortImage != nullptr) {
+            UiRect sortRect = rc;
+            sortRect.left = sortRect.right - nSortImageWidth;
+            sortRect.Validate();
+            PaintImage(pRender, pSortImage, L"", -1, nullptr, &sortRect, nullptr);
+            rc.right = sortRect.left;
+            rc.right -= nIconTextSpacing;
+            rc.Validate();
+        }
+
+        UiRect textRect = GetRect();
+        textRect.Deflate(GetControlPadding());
+        textRect.Deflate(GetTextPadding());
+        textRect.right = std::min(rc.right, textRect.right);
+        if (textRect.Width() > measureRect.Width()) {
+            textRect.left = textRect.right - measureRect.Width();
+        }
+        DoPaintText(textRect, pRender);
+
+        if (pItemImage != nullptr) {
+            rc.right = textRect.left;
+            rc.right -= nIconTextSpacing;
+            rc.Validate();
+
+            if (rc.Width() > nItemImageWidth) {
+                rc.left = rc.right - nItemImageWidth;
+                rc.Validate();
+            }
+            PaintImage(pRender, pItemImage.get(), L"", -1, nullptr, &rc, nullptr);
         }
     }
     else {
-        //图标显示在文字的后面（文字左对齐，居中对齐），或者前面（文字靠右对齐）
-        rc.Deflate(GetTextPadding());
-        int32_t nIconTextSpacing = GetIconSpacing();
-        uint32_t textStyle = GetTextStyle();
-        std::wstring textValue = GetText();
-        UiRect textRect = pRender->MeasureString(textValue, GetFontId(), textStyle);
-        if (textStyle & TEXT_CENTER) {
-            rc.left = rc.CenterX() + textRect.Width() / 2;
+        //靠左对齐：图标、文字、排序图标依次绘制
+        UiRect rc = GetRect();
+        rc.Deflate(GetControlPadding());
+        if (pItemImage != nullptr) {
+            PaintImage(pRender, pItemImage.get(), L"", -1, nullptr, &rc, nullptr);
+            rc.left += pItemImage->GetImageCache()->GetWidth();
             rc.left += nIconTextSpacing;
         }
-        else if (textStyle & TEXT_RIGHT) {
-            rc.left = rc.right - textRect.Width() - nIconTextSpacing;
-            if (pImage != nullptr) {
-                if (pImage->GetImageCache() == nullptr) {
-                    LoadImageData(*pImage);
-                }
-                if (pImage->GetImageCache() != nullptr) {
-                    rc.left -= pImage->GetImageCache()->GetWidth();
-                }
-            }
+
+        UiRect textRect = GetRect();
+        textRect.Deflate(GetControlPadding());
+        textRect.Deflate(GetTextPadding());
+        if (pItemImage != nullptr) {
+            textRect.left = std::max(textRect.left, rc.left);
         }
-        else {
-            rc.left += textRect.Width();
-            rc.left += nIconTextSpacing;
+        DoPaintText(textRect, pRender);
+
+        rc.left = textRect.left;
+        rc.left += measureRect.Width();
+        rc.left += nIconTextSpacing;
+
+        if (pSortImage != nullptr) {
+            PaintImage(pRender, pSortImage, L"", -1, nullptr, &rc, nullptr);
         }
     }
-    rc.Validate();
-
-    //绘制排序图标
-    PaintImage(pRender, pImage, L"", -1, nullptr, &rc, nullptr);
 }
 
 void ListCtrlHeaderItem::Activate()
@@ -284,11 +390,13 @@ void ListCtrlHeaderItem::SetIconSpacing(int32_t nIconSpacing, bool bNeedDpiScale
     if (bNeedDpiScale) {
         GlobalManager::Instance().Dpi().ScaleInt(nIconSpacing);
     }
-    m_nIconSpacing = nIconSpacing;
-    if (m_nIconSpacing < 0) {
-        m_nIconSpacing = 0;
-    }
-    Invalidate();
+    if (m_nIconSpacing != nIconSpacing) {
+        m_nIconSpacing = nIconSpacing;
+        if (m_nIconSpacing < 0) {
+            m_nIconSpacing = 0;
+        }
+        Invalidate();
+    }    
 }
 
 int32_t ListCtrlHeaderItem::GetIconSpacing() const
@@ -298,8 +406,10 @@ int32_t ListCtrlHeaderItem::GetIconSpacing() const
 
 void ListCtrlHeaderItem::SetShowIconAtTop(bool bShowIconAtTop)
 {
-    m_bShowIconAtTop = bShowIconAtTop;
-    Invalidate();
+    if (m_bShowIconAtTop != bShowIconAtTop) {
+        m_bShowIconAtTop = bShowIconAtTop;
+        Invalidate();
+    }    
 }
 
 bool ListCtrlHeaderItem::IsShowIconAtTop() const
@@ -341,6 +451,19 @@ HorAlignType ListCtrlHeaderItem::GetTextHorAlign() const
         alignType = HorAlignType::kHorAlignRight;
     }
     return alignType;
+}
+
+void ListCtrlHeaderItem::SetImageId(int32_t imageId)
+{
+    if (m_imageId != imageId) {
+        m_imageId = imageId;
+        Invalidate();
+    }    
+}
+
+int32_t ListCtrlHeaderItem::GetImageId() const
+{
+    return m_imageId;
 }
 
 bool ListCtrlHeaderItem::SetCheckBoxVisible(bool bVisible)
