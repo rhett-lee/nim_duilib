@@ -1071,7 +1071,10 @@ void ListCtrlDataView::PaintGridLines(IRender* pRender)
                 if ((pSubItem == nullptr) || !pSubItem->IsVisible() || (pSubItem->GetWidth() <= 0)) {
                     continue;
                 }
-                xPosList.push_back(pSubItem->GetRect().right);
+                UiPoint scrollBoxOffset = pSubItem->GetScrollOffsetInScrollBox();
+                UiRect subItemRect = pSubItem->GetRect();
+                subItemRect.Offset(-scrollBoxOffset.x, -scrollBoxOffset.y);
+                xPosList.push_back(subItemRect.right);
             }
             break;
         }
