@@ -103,6 +103,7 @@ void MainForm::OnInitWindow()
 	ui::CheckBox* pColumnWidth = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_width"));
 	ui::CheckBox* pColumnSort = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_sort"));
 	ui::CheckBox* pColumnIcon = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_icon_at_top"));
+	ui::CheckBox* pColumnDragOrder = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_drag_order"));
 	ui::CheckBox* pColumnHeaderCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_show_header_checkbox"));
 	ui::CheckBox* pColumnShowCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_show_checkbox"));
 
@@ -191,6 +192,25 @@ void MainForm::OnInitWindow()
 		});
 	pColumnIcon->AttachUnSelect([this, OnColumnShowIconOnTop](const ui::EventArgs& args) {
 		OnColumnShowIconOnTop(false);
+		return true;
+		});
+
+
+	//是否可拖动调整顺序
+	auto OnColumnDragOrder = [this, pColumnCombo, pListCtrl](bool bEnableDragOrder) {
+		size_t nColumnId = pColumnCombo->GetItemData(pColumnCombo->GetCurSel());
+		ui::ListCtrlHeaderItem* pHeaderItem = pListCtrl->GetColumnById(nColumnId);
+		ASSERT(pHeaderItem != nullptr);
+		if (pHeaderItem != nullptr) {
+			pHeaderItem->SetEnableDragOrder(bEnableDragOrder);
+		}
+		};
+	pColumnDragOrder->AttachSelect([this, OnColumnDragOrder](const ui::EventArgs&) {
+		OnColumnDragOrder(true);
+		return true;
+		});
+	pColumnDragOrder->AttachUnSelect([this, OnColumnDragOrder](const ui::EventArgs& args) {
+		OnColumnDragOrder(false);
 		return true;
 		});
 
@@ -359,6 +379,7 @@ void MainForm::OnColumnChanged(size_t nColumnId)
 	ui::CheckBox* pColumnWidth = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_width"));
 	ui::CheckBox* pColumnSort = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_sort"));
 	ui::CheckBox* pColumnIcon = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_icon_at_top"));
+	ui::CheckBox* pColumnDragOrder = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_drag_order"));
 	ui::CheckBox* pColumnHeaderCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_show_header_checkbox"));
 	ui::CheckBox* pColumnShowCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_show_checkbox"));
 
@@ -378,6 +399,7 @@ void MainForm::OnColumnChanged(size_t nColumnId)
 	pColumnSort->Selected(sortMode != ui::ListCtrlHeaderItem::SortMode::kNone, false);
 
 	pColumnIcon->Selected(pHeaderItem->IsShowIconAtTop(), false);
+	pColumnDragOrder->Selected(pHeaderItem->IsEnableDragOrder(), false);
 	pColumnHeaderCheckBox->Selected(pHeaderItem->IsCheckBoxVisible(), false);
 
 	bool bColumnDataHasCheckBox = false;

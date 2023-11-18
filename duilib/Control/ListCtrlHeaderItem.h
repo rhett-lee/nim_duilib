@@ -127,6 +127,14 @@ public:
     */
     int32_t GetImageId() const;
 
+    /** 设置该列是否支持列表头拖动改变列的顺序
+    */
+    void SetEnableDragOrder(bool bEnable);
+
+    /** 该列是否支持列表头拖动改变列的顺序
+    */
+    bool IsEnableDragOrder() const;
+
 public:
     /** 设置是否显示CheckBox
     * @param [in] bVisible true表示显示，false表示隐藏
@@ -244,6 +252,10 @@ private:
 private:
     /** @name 拖动相关的成员变量
     * @{ */
+    
+    /** 是否支持拖动改变列的顺序
+    */
+    bool bEnableDragOrder;
 
     /** 是否鼠标左键按下
     */

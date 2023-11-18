@@ -18,7 +18,8 @@ ListCtrlHeaderItem::ListCtrlHeaderItem() :
     m_bShowIconAtTop(true),
     m_bColumnVisible(true),
     m_imageId(-1),
-    m_pHeaderCtrl(nullptr)
+    m_pHeaderCtrl(nullptr),
+    bEnableDragOrder(true)
 {
     m_nIconSpacing = GlobalManager::Instance().Dpi().GetScaleInt(6);
 }
@@ -466,6 +467,16 @@ int32_t ListCtrlHeaderItem::GetImageId() const
     return m_imageId;
 }
 
+void ListCtrlHeaderItem::SetEnableDragOrder(bool bEnable)
+{
+    bEnableDragOrder = bEnable;
+}
+
+bool ListCtrlHeaderItem::IsEnableDragOrder() const
+{
+    return bEnableDragOrder;
+}
+
 bool ListCtrlHeaderItem::SetCheckBoxVisible(bool bVisible)
 {
     bool bRet = false;
@@ -626,6 +637,10 @@ bool ListCtrlHeaderItem::ButtonDown(const EventArgs& msg)
         //不支持拖动调整顺序
         return bRet;
     }
+    if (!IsEnableDragOrder()) {
+        //当前列为固定列，不允许调整顺序
+        return bRet;
+    }
     UiPoint pt(msg.ptMouse);
     pt.Offset(GetScrollOffsetInScrollBox());
 
@@ -669,6 +684,11 @@ bool ListCtrlHeaderItem::ButtonUp(const EventArgs& msg)
     for (const ItemStatus& itemStatus : m_rcItemList) {
         if (itemStatus.m_rcPos.ContainsPt(pt)) {
             nMouseItemIndex = itemStatus.m_index;
+            ListCtrlHeaderItem* pHeaderItem = dynamic_cast<ListCtrlHeaderItem*>(itemStatus.m_pItem);
+            if ((pHeaderItem != nullptr) && !pHeaderItem->IsEnableDragOrder()) {
+                //当前列为固定列，不允许调整顺序
+                nMouseItemIndex = Box::InvalidIndex;
+            }
         }
         if ((itemStatus.m_pItem == this) && !itemStatus.m_rcPos.ContainsPt(pt)){
             nCurrentItemIndex = itemStatus.m_index;
@@ -792,8 +812,13 @@ void ListCtrlHeaderItem::AdjustHeaderItemPos(const UiPoint& mousePt)
         (nMouseDownItemIndex == Box::InvalidIndex)) {
         return;
     }
-    if (dynamic_cast<ListCtrlHeaderItem*>(pMouseItem) == nullptr) {
+    ListCtrlHeaderItem* pHeaderItem = dynamic_cast<ListCtrlHeaderItem*>(pMouseItem);
+    if (pHeaderItem == nullptr) {
         //鼠标不在表头控件上
+        return;
+    }
+    if (!pHeaderItem->IsEnableDragOrder()) {
+        //当前列为固定列，不允许调整顺序
         return;
     }
 
