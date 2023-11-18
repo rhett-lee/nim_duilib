@@ -116,7 +116,7 @@
                           column_grid_line_width="1"                          
                           column_grid_line_color="lightgray"
                           multi_select="true"
-                          auto_check_select="true" checkbox_padding="24" show_header_checkbox="true" show_data_item_checkbox="true"/>
+                          auto_check_select="true" show_header_checkbox="true" show_data_item_checkbox="true"/>
             </VBox>
         </VBox>
     </VBox>

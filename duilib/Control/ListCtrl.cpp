@@ -15,7 +15,6 @@ ListCtrl::ListCtrl():
     m_bMultiSelect(true),
     m_bEnableColumnWidthAuto(true),
     m_bAutoCheckSelect(false),
-    m_nCheckBoxPadding(0),
     m_bHeaderShowCheckBox(false),
     m_bDataItemShowCheckBox(false)
 {
@@ -94,9 +93,6 @@ void ListCtrl::SetAttribute(const std::wstring& strName, const std::wstring& str
     }
     else if (strName == L"auto_check_select") {
         SetAutoCheckSelect(strValue == L"true");
-    }
-    else if (strName == L"checkbox_padding") {
-        SetCheckBoxPadding(_wtoi(strValue.c_str()), true);
     }
     else if (strName == L"show_header_checkbox") {
         SetHeaderShowCheckBox(strValue == L"true");
@@ -846,6 +842,21 @@ bool ListCtrl::IsDataItemSelected(size_t itemIndex) const
     return m_pDataProvider->IsDataItemSelected(itemIndex);
 }
 
+bool ListCtrl::SetDataItemImageId(size_t itemIndex, int32_t imageId)
+{
+    bool bChanged = false;
+    bool bRet = m_pDataProvider->SetDataItemImageId(itemIndex, imageId, bChanged);
+    if (bChanged) {
+        Refresh();
+    }
+    return bRet;
+}
+
+int32_t ListCtrl::GetDataItemImageId(size_t itemIndex) const
+{
+    return m_pDataProvider->GetDataItemImageId(itemIndex);
+}
+
 bool ListCtrl::SetDataItemAlwaysAtTop(size_t itemIndex, int8_t nAlwaysAtTop)
 {
     bool bChanged = false;
@@ -945,6 +956,16 @@ bool ListCtrl::IsCheckBoxChecked(size_t itemIndex, size_t columnIndex) const
     bool bChecked = false;
     m_pDataProvider->GetCheckBoxCheck(itemIndex, columnIndex, bChecked);
     return bChecked;
+}
+
+bool ListCtrl::SetDataItemImageId(size_t itemIndex, size_t columnIndex, int32_t imageId)
+{
+    return m_pDataProvider->SetDataItemImageId(itemIndex, columnIndex, imageId);
+}
+
+int32_t ListCtrl::GetDataItemImageId(size_t itemIndex, size_t columnIndex) const
+{
+    return m_pDataProvider->GetDataItemImageId(itemIndex, columnIndex);
 }
 
 bool ListCtrl::SortDataItems(size_t columnIndex, bool bSortedUp, 
@@ -1102,22 +1123,6 @@ void ListCtrl::SetAutoCheckSelect(bool bAutoCheckSelect)
 bool ListCtrl::IsAutoCheckSelect() const
 {
     return m_bAutoCheckSelect;
-}
-
-void ListCtrl::SetCheckBoxPadding(int32_t nWidth, bool bNeedDpiScale)
-{
-    if (bNeedDpiScale) {
-        GlobalManager::Instance().Dpi().ScaleInt(nWidth);
-    }
-    if (nWidth < 0) {
-        nWidth = 0;
-    }
-    m_nCheckBoxPadding = nWidth;
-}
-
-int32_t ListCtrl::GetCheckBoxPadding() const
-{
-    return m_nCheckBoxPadding;
 }
 
 bool ListCtrl::SetHeaderShowCheckBox(bool bShow)

@@ -175,6 +175,18 @@ public:
     */
     bool IsDataItemSelected(size_t itemIndex) const;
 
+    /** 设置行首的图标
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @param [in] imageId 图标资源Id，如果为-1表示行首不显示图标, 该ID由ImageList生成
+    * @param [out] bChanged 返回数据是否变化
+    */
+    bool SetDataItemImageId(size_t itemIndex, int32_t imageId, bool& bChanged);
+
+    /** 获取行首的图标
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    */
+    int32_t GetDataItemImageId(size_t itemIndex) const;
+
     /** 获取选择状态(bSelect)
     * @param [out] bSelected 是否选择
     * @param [out] bPartSelected 是否部分选择
@@ -348,6 +360,19 @@ public:
     * @param [out] bPartChecked 是否部分选择
     */
     void GetCheckBoxCheckStatus(size_t columnId, bool& bChecked, bool& bPartChecked) const;
+
+    /** 设置该列的图标
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
+    * @param [in] imageId 图标资源Id，如果为-1表示行首不显示图标, 该ID由ImageList生成
+    */
+    bool SetDataItemImageId(size_t itemIndex, size_t columnIndex, int32_t imageId);
+
+    /** 获取该列的图标
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
+    */
+    int32_t GetDataItemImageId(size_t itemIndex, size_t columnIndex) const;
 
     /** 对数据排序
     * @param [in] columnId 列的ID

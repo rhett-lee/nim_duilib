@@ -567,6 +567,12 @@ void MainForm::RunListCtrlTest()
 	pListCtrl->SetCheckBoxCheck(nDataItemIndex, dataItem.nColumnIndex, true);
 	ASSERT(pListCtrl->IsCheckBoxChecked(nDataItemIndex, dataItem.nColumnIndex) == true);
 
+	pListCtrl->SetDataItemImageId(nDataItemIndex, 666);
+	ASSERT(pListCtrl->GetDataItemImageId(nDataItemIndex) == 666);
+
+	pListCtrl->SetDataItemImageId(nDataItemIndex, dataItem.nColumnIndex, 667);
+	ASSERT(pListCtrl->GetDataItemImageId(nDataItemIndex, dataItem.nColumnIndex) == 667);
+
 	dataItem.text = L"3";
 	dataItem.nColumnIndex = 1;
 	pListCtrl->InsertDataItem(nDataItemIndex, dataItem);

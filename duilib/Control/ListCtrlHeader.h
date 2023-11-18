@@ -24,6 +24,10 @@ public:
     */
     virtual std::wstring GetType() const override;
 
+    /** 设置属性
+    */
+    virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
+
     /** 判断控件类型是否为可选择的
      * @return 默认返回false
      */
@@ -115,6 +119,14 @@ public:
     */
     void SetPaddingLeftValue(int32_t nPaddingLeft);
 
+    /** 设置文字与图标之间的间隔（像素）
+    */
+    void SetIconSpacing(int32_t nIconSpacing, bool bNeedDpiScale);
+
+    /** 获取文字与图标之间的间隔（像素）
+    */
+    int32_t GetIconSpacing() const;
+
 public:
 
     /** 设置关联的ListCtrl接口
@@ -177,6 +189,14 @@ protected:
     */
     virtual void OnPrivateSetChecked() override;
 
+    /** 获取CheckBox的图片宽度
+    */
+    int32_t GetCheckBoxImageWidth();
+
+    /** 更新Padding，确保文字与图标不重叠
+    */
+    void UpdatePaddingLeft();
+
 private:
     /** 关联的ListCtrl接口
     */
@@ -193,6 +213,10 @@ private:
     /** 是否允许CheckBox勾选项变化事件
     */
     bool m_bEnableCheckChangeEvent;
+
+    /** 文字与图标之间的间隔(图标显示在文字的右侧或者左侧时)
+    */
+    int32_t m_nIconSpacing;
 };
 
 }//namespace ui

@@ -7,8 +7,10 @@ namespace ui
 ListCtrlItem::ListCtrlItem():
     m_bSelectable(true),
     m_pListCtrl(nullptr),
-    m_nCheckBoxPadding(0)
+    m_imageId(-1),
+    m_nCheckBoxWidth(0)
 {
+    m_nIconSpacing = GlobalManager::Instance().Dpi().GetScaleInt(2);
 }
 
 ListCtrlItem::~ListCtrlItem()
@@ -16,6 +18,16 @@ ListCtrlItem::~ListCtrlItem()
 }
 
 std::wstring ListCtrlItem::GetType() const { return L"ListCtrlItem"; }
+
+void ListCtrlItem::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
+{
+    if (strName == L"icon_spacing") {
+        SetIconSpacing(_wtoi(strValue.c_str()), true);
+    }
+    else {
+        __super::SetAttribute(strName, strValue);
+    }
+}
 
 bool ListCtrlItem::IsSelectableType() const
 {
@@ -154,18 +166,6 @@ bool ListCtrlItem::SetShowCheckBox(bool bShow)
             if (!checkBoxClass.empty()) {
                 SetClass(checkBoxClass);
                 bRet = IsShowCheckBox();
-                if (bRet) {
-                    //设置左侧的Padding值，避免CheckBox和文字重叠
-                    int32_t nWidth = pListCtrl->GetCheckBoxPadding();
-                    if (nWidth > 0) {
-                        UiPadding rcPadding = GetPadding();
-                        if (rcPadding.left < nWidth) {
-                            rcPadding.left = nWidth;
-                            SetPadding(rcPadding, false);
-                            m_nCheckBoxPadding = nWidth;
-                        }
-                    }
-                }
             }
         }
     }
@@ -173,14 +173,6 @@ bool ListCtrlItem::SetShowCheckBox(bool bShow)
         //清除CheckBox图片资源，就不显示了
         ClearStateImages();
         ASSERT(!IsShowCheckBox());
-        if (m_nCheckBoxPadding > 0) {
-            UiPadding rcPadding = GetPadding();
-            if (rcPadding.left >= m_nCheckBoxPadding) {
-                rcPadding.left -= m_nCheckBoxPadding;
-                SetPadding(rcPadding, false);
-            }
-            m_nCheckBoxPadding = 0;
-        }
         bRet = true;
     }
     return bRet;
@@ -190,6 +182,108 @@ bool ListCtrlItem::IsShowCheckBox() const
 {
     //如果有CheckBox图片资源，则认为显示了CheckBox
     return !GetStateImage(kControlStateNormal).empty() && !GetSelectedStateImage(kControlStateNormal).empty();
+}
+
+int32_t ListCtrlItem::GetCheckBoxImageWidth()
+{
+    if (GetWindow() == nullptr) {
+        return 0;
+    }
+    UiSize sz = GetStateImageSize(kStateImageBk, kControlStateNormal);
+    return sz.cx;
+}
+
+void ListCtrlItem::SetImageId(int32_t imageId)
+{
+    if (m_imageId != imageId) {
+        m_imageId = imageId;
+        Invalidate();
+    }
+}
+
+int32_t ListCtrlItem::GetImageId() const
+{
+    return m_imageId;
+}
+
+void ListCtrlItem::Paint(IRender* pRender, const UiRect& rcPaint)
+{
+    __super::Paint(pRender, rcPaint);
+    if (pRender == nullptr) {
+        return;
+    }
+    ImagePtr pItemImage = LoadItemImage();
+    if (pItemImage != nullptr) {
+        UiRect rc = GetRect();
+        rc.Deflate(GetControlPadding());
+        int32_t nPaddingLeft = 0;
+        if (IsShowCheckBox()) {
+            nPaddingLeft += GetCheckBoxImageWidth();
+            nPaddingLeft += m_nIconSpacing;
+        }
+        rc.left += nPaddingLeft;
+        rc.Validate();
+        PaintImage(pRender, pItemImage.get(), L"", -1, nullptr, &rc, nullptr);
+    }
+}
+
+ImagePtr ListCtrlItem::LoadItemImage() const
+{
+    ImagePtr pItemImage;
+    if (m_imageId >= 0) {
+        ListCtrl* pListCtrl = GetListCtrl();
+        if (pListCtrl != nullptr) {
+            pItemImage = pListCtrl->GetImageList().GetImageData(m_imageId);
+            ASSERT(pItemImage != nullptr);
+        }
+    }
+    if ((pItemImage != nullptr) && (pItemImage->GetImageCache() == nullptr)) {
+        LoadImageData(*pItemImage);
+        if (pItemImage->GetImageCache() == nullptr) {
+            pItemImage = nullptr;
+        }
+        else {
+            if ((pItemImage->GetImageCache()->GetWidth() <= 0) ||
+                (pItemImage->GetImageCache()->GetHeight() <= 0)) {
+                pItemImage = nullptr;
+            }
+        }
+    }
+    return pItemImage;
+}
+
+void ListCtrlItem::SetIconSpacing(int32_t nIconSpacing, bool bNeedDpiScale)
+{
+    if (bNeedDpiScale) {
+        GlobalManager::Instance().Dpi().ScaleInt(nIconSpacing);
+    }
+    if (m_nIconSpacing != nIconSpacing) {
+        m_nIconSpacing = nIconSpacing;
+        if (m_nIconSpacing < 0) {
+            m_nIconSpacing = 0;
+        }
+        Invalidate();
+    }
+}
+
+int32_t ListCtrlItem::GetIconSpacing() const
+{
+    return m_nIconSpacing;
+}
+
+int32_t ListCtrlItem::GetItemPaddingLeft()
+{
+    int32_t nPaddingLeft = 0;
+    if (IsShowCheckBox()) {
+        nPaddingLeft += GetCheckBoxImageWidth();
+        nPaddingLeft += m_nIconSpacing;
+    }
+    ImagePtr pItemImage = LoadItemImage();
+    if (pItemImage != nullptr) {
+        nPaddingLeft += pItemImage->GetImageCache()->GetWidth();
+        nPaddingLeft += m_nIconSpacing;
+    }
+    return nPaddingLeft;
 }
 
 }//namespace ui

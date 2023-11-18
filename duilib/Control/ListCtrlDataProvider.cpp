@@ -50,24 +50,27 @@ bool ListCtrlDataProvider::FillElement(ui::Control* pControl, size_t nElementInd
         return false;
     }
 
-    //数据项是否显示CheckBox
-    bool bItemChecked = false;
+    //数据项是否显示CheckBox    
     bool bShowCheckBox = m_pListCtrl->IsDataItemShowCheckBox();
     pItem->SetShowCheckBox(bShowCheckBox);
     pItem->SetEnableControlPadding(false);
-    if (bShowCheckBox) {        
-        int32_t nWidth = m_pListCtrl->GetCheckBoxPadding();
-        pHeaderCtrl->SetPaddingLeftValue(nWidth);
-        
-        const RowDataList& rowDataList = m_rowDataList;
-        if (nElementIndex < rowDataList.size()) {
-            bItemChecked = rowDataList[nElementIndex].bChecked;
-        }
-        pItem->SetChecked(bItemChecked, false);
+
+    bool bItemChecked = false;
+    int32_t nImageId = -1;
+    const RowDataList& rowDataList = m_rowDataList;
+    if (nElementIndex < rowDataList.size()) {
+        bItemChecked = rowDataList[nElementIndex].bChecked;
+        nImageId = rowDataList[nElementIndex].nImageId;        
     }
-    else {
-        pHeaderCtrl->SetPaddingLeftValue(0);
+    if (!bShowCheckBox) {
+        bItemChecked = false;
     }
+    pItem->SetChecked(bItemChecked, false);
+    pItem->SetImageId(nImageId);
+
+    //设置左侧内边距，避免CheckBox显示与文字显示重叠
+    int32_t nPaddingLeft = pItem->GetItemPaddingLeft();
+    pHeaderCtrl->SetPaddingLeftValue(nPaddingLeft);
 
     //Header控件的内边距, 需要同步给每个列表项控件，保持左侧对齐一致
     const UiPadding rcHeaderPadding = pHeaderCtrl->GetPadding();
@@ -1235,6 +1238,37 @@ void ListCtrlDataProvider::GetCheckBoxCheckStatus(size_t columnId, bool& bChecke
     }
 }
 
+bool ListCtrlDataProvider::SetDataItemImageId(size_t itemIndex, int32_t imageId, bool& bChanged)
+{
+    bChanged = false;
+    bool bRet = false;
+    if (imageId < -1) {
+        imageId = -1;
+    }
+    ASSERT(itemIndex < m_rowDataList.size());
+    if (itemIndex < m_rowDataList.size()) {
+        ListCtrlRowData& rowData = m_rowDataList[itemIndex];
+        if (rowData.nImageId != imageId) {
+            rowData.nImageId = imageId;
+            bChanged = true;
+        }
+        bRet = true;
+    }
+    //不刷新，由外部判断是否需要刷新
+    return bRet;
+}
+
+int32_t ListCtrlDataProvider::GetDataItemImageId(size_t itemIndex) const
+{
+    int32_t imageId = -1;
+    ASSERT(itemIndex < m_rowDataList.size());
+    if (itemIndex < m_rowDataList.size()) {
+        const ListCtrlRowData& rowData = m_rowDataList[itemIndex];
+        imageId = rowData.nImageId;
+    }
+    return imageId;
+}
+
 bool ListCtrlDataProvider::SetDataItemAlwaysAtTop(size_t itemIndex, int8_t nAlwaysAtTop, bool& bChanged)
 {
     bChanged = false;
@@ -1548,6 +1582,35 @@ bool ListCtrlDataProvider::GetCheckBoxCheck(size_t itemIndex, size_t columnIndex
         return true;
     }
     return false;
+}
+
+bool ListCtrlDataProvider::SetDataItemImageId(size_t itemIndex, size_t columnIndex, int32_t imageId)
+{
+    StoragePtr pStorage = GetDataItemStorageForWrite(itemIndex, columnIndex);
+    ASSERT(pStorage != nullptr);
+    if (pStorage == nullptr) {
+        //索引号无效
+        return false;
+    }
+    if (imageId < -1) {
+        imageId = -1;
+    }
+    if (pStorage->nImageId != imageId) {
+        pStorage->nImageId = imageId;
+        EmitDataChanged(itemIndex, itemIndex);
+    }
+    return true;
+}
+
+int32_t ListCtrlDataProvider::GetDataItemImageId(size_t itemIndex, size_t columnIndex) const
+{
+    int32_t nImageId = -1;
+    StoragePtr pStorage = GetDataItemStorage(itemIndex, columnIndex);
+    ASSERT(pStorage != nullptr);
+    if (pStorage != nullptr) {
+        nImageId = pStorage->nImageId;
+    }
+    return nImageId;
 }
 
 bool ListCtrlDataProvider::SortDataItems(size_t nColumnId, bool bSortedUp, 

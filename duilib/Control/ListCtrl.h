@@ -33,16 +33,16 @@ public:
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 
 public:
+    /** 获取列的个数
+    */
+    size_t GetColumnCount() const;
+
     /** 在指定位置添加一列
     * @param [in] columnIndex 在第几列以后插入该列，如果是-1，表示在最后追加一列
     * @param [in] columnInfo 列的基本属性
     * @return 返回这一列的表头控件接口
     */
     ListCtrlHeaderItem* InsertColumn(int32_t columnIndex, const ListCtrlColumn& columnInfo);
-
-    /** 获取列的个数
-    */
-    size_t GetColumnCount() const;
 
     /** 获取列宽度
     * @param [in] columnIndex 列索引序号：[0, GetColumnCount())
@@ -194,6 +194,17 @@ public:
     */
     bool IsDataItemSelected(size_t itemIndex) const;
 
+    /** 设置行首的图标
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @param [in] imageId 图标资源Id，如果为-1表示行首不显示图标, 该ID由ImageList生成
+    */
+    bool SetDataItemImageId(size_t itemIndex, int32_t imageId);
+
+    /** 获取行首的图标
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    */
+    int32_t GetDataItemImageId(size_t itemIndex) const;
+
     /** 设置数据项的置顶状态
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] nAlwaysAtTop 置顶状态，-1表示不置顶, 0 或者 正数表示置顶，数值越大优先级越高，优先显示在最上面
@@ -325,6 +336,19 @@ public:
     */
     bool IsCheckBoxChecked(size_t itemIndex, size_t columnIndex) const;
 
+    /** 设置该列的图标
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
+    * @param [in] imageId 图标资源Id，如果为-1表示行首不显示图标, 该ID由ImageList生成
+    */
+    bool SetDataItemImageId(size_t itemIndex, size_t columnIndex, int32_t imageId);
+
+    /** 获取该列的图标
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
+    */
+    int32_t GetDataItemImageId(size_t itemIndex, size_t columnIndex) const;
+
 public:
     /** 对数据排序
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
@@ -430,16 +454,6 @@ public:
     /** 获取是否自动勾选选择的数据项
     */
     bool IsAutoCheckSelect() const;
-
-    /** 设置CheckBox的宽度，避免与文字重叠
-    * @param [in] nWidth 宽度值
-    * @param [in] bNeedDpiScale 如果为true表示需要对宽度进行DPI自适应
-    */
-    void SetCheckBoxPadding(int32_t nWidth, bool bNeedDpiScale);
-
-    /** 获取CheckBox的宽度值，用于设置Padding（left），避免与文字重叠
-    */
-    int32_t GetCheckBoxPadding() const;
 
     /** 设置是否在表头最左侧显示CheckBox
     * @param [in] bShow true表示显示CheckBox，false表示不显示
@@ -718,10 +732,6 @@ private:
     /** 是否自动勾选选择的数据项（与Windows下ListCtrl的LVS_EX_AUTOCHECKSELECT属性相似）
     */
     bool m_bAutoCheckSelect;
-
-    /** CheckBox（每行，含Header）的宽度，避免与文字重叠
-    */
-    int32_t m_nCheckBoxPadding;
 
     /** 是否显示Header的CheckBox（行级）
     */

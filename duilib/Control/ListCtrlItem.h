@@ -5,6 +5,7 @@
 
 #include "duilib/Box/ListBox.h"
 #include "duilib/Control/Label.h"
+#include "duilib/Core/ImageList.h"
 
 namespace ui
 {
@@ -18,6 +19,7 @@ class ListCtrl;
 class ListCtrlSubItem;
 class ListCtrlItem : public ListBoxItemH
 {
+    friend class ListCtrlDataProvider;//开放部分protect接口
 public:
     ListCtrlItem();
     virtual ~ListCtrlItem();
@@ -25,6 +27,10 @@ public:
     /** 获取控件类型
     */
     virtual std::wstring GetType() const override;
+
+    /** 设置属性
+    */
+    virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 
     /** 判断控件类型是否为可选择的
      * @return 默认返回false
@@ -68,6 +74,35 @@ public:
     */
     bool IsShowCheckBox() const;
 
+    /** 设置关联图标Id, 如果为-1表示不显示图标，图标显示在文本前面
+    */
+    void SetImageId(int32_t imageId);
+
+    /** 获取关联图标Id
+    */
+    int32_t GetImageId() const;
+
+    /** 设置图标之间的间隔（像素）
+    */
+    void SetIconSpacing(int32_t nIconSpacing, bool bNeedDpiScale);
+
+    /** 获取图标之间的间隔（像素）
+    */
+    int32_t GetIconSpacing() const;
+
+protected:
+    /** 获取关联图标/CheckBox等所占的宽度(左侧)
+    */
+    int32_t GetItemPaddingLeft();
+
+    /** 加载图标资源
+    */
+    ImagePtr LoadItemImage() const;
+
+    /** 获取CheckBox的图片宽度
+    */
+    int32_t GetCheckBoxImageWidth();
+
 protected:
     virtual void Activate();
     virtual bool ButtonDown(const EventArgs& msg) override;
@@ -84,6 +119,10 @@ protected:
     */
     virtual bool SupportCheckedMode() const override;
 
+    /** 绘制函数
+    */
+    virtual void Paint(IRender* pRender, const UiRect& rcPaint) override;
+
 protected:
     /** 执行选择功能
     * @param [in] vkFlag 按键标志, 取值范围参见 enum VKFlag 的定义
@@ -99,9 +138,17 @@ private:
     */
     ListCtrl* m_pListCtrl;
 
-    /** 设置的CheckBox宽度值
+    /** 关联图标Id, 如果为-1表示不显示图标，图标显示在文本前面
     */
-    int32_t m_nCheckBoxPadding;
+    int32_t m_imageId;
+
+    /** CheckBox所占宽度
+    */
+    int32_t m_nCheckBoxWidth;
+
+    /** 图标之间的间隔
+    */
+    int32_t m_nIconSpacing;
 };
 
 }//namespace ui

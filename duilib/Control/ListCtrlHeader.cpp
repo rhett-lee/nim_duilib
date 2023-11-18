@@ -10,6 +10,7 @@ ListCtrlHeader::ListCtrlHeader() :
     m_nPaddingLeftValue(0),
     m_bEnableCheckChangeEvent(true)
 {
+    m_nIconSpacing = GlobalManager::Instance().Dpi().GetScaleInt(4);
 }
 
 ListCtrlHeader::~ListCtrlHeader()
@@ -17,6 +18,35 @@ ListCtrlHeader::~ListCtrlHeader()
 }
 
 std::wstring ListCtrlHeader::GetType() const { return L"ListCtrlHeader"; }
+
+void ListCtrlHeader::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
+{
+    if (strName == L"icon_spacing") {
+        SetIconSpacing(_wtoi(strValue.c_str()), true);
+    }
+    else {
+        __super::SetAttribute(strName, strValue);
+    }
+}
+
+void ListCtrlHeader::SetIconSpacing(int32_t nIconSpacing, bool bNeedDpiScale)
+{
+    if (bNeedDpiScale) {
+        GlobalManager::Instance().Dpi().ScaleInt(nIconSpacing);
+    }
+    if (m_nIconSpacing != nIconSpacing) {
+        m_nIconSpacing = nIconSpacing;
+        if (m_nIconSpacing < 0) {
+            m_nIconSpacing = 0;
+        }
+        Invalidate();
+    }
+}
+
+int32_t ListCtrlHeader::GetIconSpacing() const
+{
+    return m_nIconSpacing;
+}
 
 bool ListCtrlHeader::IsSelectableType() const
 {
@@ -427,32 +457,18 @@ void ListCtrlHeader::OnPrivateSetChecked()
 
 bool ListCtrlHeader::SetShowCheckBox(bool bShow)
 {
+    bool bOldShow = IsShowCheckBox();
+    if (bOldShow == bShow) {
+        return true;
+    }
     bool bRet = false;
     if (bShow) {
-        if (IsShowCheckBox()) {
-            return true;
-        }
         ListCtrl* pListCtrl = GetListCtrl();
         if (pListCtrl != nullptr) {
             std::wstring checkBoxClass = pListCtrl->GetCheckBoxClass();
             if (!checkBoxClass.empty()) {
                 SetClass(checkBoxClass);
                 bRet = IsShowCheckBox();
-                if (bRet) {
-                    //设置左侧的Padding值，避免CheckBox和文字重叠
-                    int32_t nWidth = pListCtrl->GetCheckBoxPadding();
-                    if (nWidth > 0) {
-                        nWidth = std::max(nWidth, m_nPaddingLeftValue);
-                        UiPadding rcPadding = GetPadding();
-                        if (rcPadding.left < nWidth) {
-                            rcPadding.left = nWidth;
-                            SetPadding(rcPadding, false);
-                            //禁止自身的Padding，使得Padding只运用于子控件，不需要恢复
-                            SetEnableControlPadding(false); 
-                            m_nCheckBoxPadding = nWidth;
-                        }
-                    }
-                }
             }
         }
     }
@@ -460,20 +476,40 @@ bool ListCtrlHeader::SetShowCheckBox(bool bShow)
         //清除CheckBox图片资源，就不显示了
         ClearStateImages();
         ASSERT(!IsShowCheckBox());
-        if (m_nCheckBoxPadding > 0) {
-            UiPadding rcPadding = GetPadding();
-            if (rcPadding.left >= m_nCheckBoxPadding) {
-                rcPadding.left -= m_nCheckBoxPadding;
-                if (rcPadding.left < m_nPaddingLeftValue) {
-                    rcPadding.left = m_nPaddingLeftValue;
-                }
-                SetPadding(rcPadding, false); 
-            }
-            m_nCheckBoxPadding = 0;
-        }
         bRet = true;
     }
+    if (IsShowCheckBox() != bOldShow) {
+        UpdatePaddingLeft();
+    }    
     return bRet;
+}
+
+
+void ListCtrlHeader::SetPaddingLeftValue(int32_t nPaddingLeft)
+{
+    if (nPaddingLeft < 0) {
+        nPaddingLeft = 0;
+    }
+    if (m_nPaddingLeftValue != nPaddingLeft) {
+        m_nPaddingLeftValue = nPaddingLeft;
+        UpdatePaddingLeft();
+    }    
+}
+
+void ListCtrlHeader::UpdatePaddingLeft()
+{
+    UiPadding rcPadding = GetPadding();
+    UiPadding rcOldPadding = rcPadding;
+    int32_t nCheckBoxWidth = GetCheckBoxImageWidth();
+    if (nCheckBoxWidth > 0) {
+        nCheckBoxWidth += m_nIconSpacing;
+    }
+    rcPadding.left = std::max(nCheckBoxWidth, m_nPaddingLeftValue);
+    if (rcPadding.left != rcOldPadding.left) {
+        SetPadding(rcPadding, false);
+        //禁止自身的Padding，使得Padding只运用于子控件，不需要恢复
+        SetEnableControlPadding(false);
+    }
 }
 
 bool ListCtrlHeader::IsShowCheckBox() const
@@ -482,40 +518,20 @@ bool ListCtrlHeader::IsShowCheckBox() const
     return !GetStateImage(kControlStateNormal).empty() && !GetSelectedStateImage(kControlStateNormal).empty();
 }
 
+int32_t ListCtrlHeader::GetCheckBoxImageWidth()
+{
+    if (GetWindow() == nullptr) {
+        return 0;
+    }
+    UiSize sz = GetStateImageSize(kStateImageBk, kControlStateNormal);
+    return sz.cx;
+}
+
 bool ListCtrlHeader::SetEnableCheckChangeEvent(bool bEnable)
 {
     bool bOldValue = m_bEnableCheckChangeEvent;
     m_bEnableCheckChangeEvent = bEnable;
     return bOldValue;
-}
-
-void ListCtrlHeader::SetPaddingLeftValue(int32_t nPaddingLeft)
-{
-    UiPadding rcPadding = GetPadding();
-    UiPadding rcOldPadding = rcPadding;
-    if (m_nPaddingLeftValue > 0) {        
-        if (rcPadding.left >= m_nPaddingLeftValue) {
-            rcPadding.left -= m_nPaddingLeftValue;
-            if (rcPadding.left < m_nCheckBoxPadding) {
-                rcPadding.left = m_nCheckBoxPadding;
-            }            
-        }
-    }
-    m_nPaddingLeftValue = nPaddingLeft;
-    if (m_nPaddingLeftValue > 0) {
-        int32_t nWidth = std::max(m_nCheckBoxPadding, m_nPaddingLeftValue);
-        if (rcPadding.left < nWidth) {
-            rcPadding.left = nWidth;
-        }
-    }
-    if (rcPadding.left < 0) {
-        rcPadding.left = 0;
-    }
-    if (rcPadding.left != rcOldPadding.left) {
-        SetPadding(rcPadding, false);
-        //禁止自身的Padding，使得Padding只运用于子控件，不需要恢复
-        SetEnableControlPadding(false);
-    }
 }
 
 }//namespace ui
