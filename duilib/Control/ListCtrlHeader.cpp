@@ -172,15 +172,17 @@ ListCtrlHeaderItem* ListCtrlHeader::InsertColumn(int32_t columnIndex, const List
         });
 
     //挂载右键点击事件，进行转接
-    pHeaderItem->AttachRClick([this](const EventArgs& args) {
+    pHeaderItem->AttachRClick([this, pHeaderItem](const EventArgs& args) {
         EventArgs msg(args);
         msg.pSender = this;
+        msg.wParam = (WPARAM)pHeaderItem;
         SendEvent(msg);
         return true;
         });
-    pHeaderSplit->AttachRClick([this](const EventArgs& args) {
+    pHeaderSplit->AttachRClick([this, pHeaderItem](const EventArgs& args) {
         EventArgs msg(args);
         msg.pSender = this;
+        msg.wParam = (WPARAM)pHeaderItem;
         SendEvent(msg);
         return true;
         });

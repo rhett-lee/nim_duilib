@@ -139,7 +139,10 @@ public:
 
 public:
     /** 列表头鼠标右键点击处理函数
-    * @param[in] callback 要绑定的回调函数
+    * @param[in] callback 要绑定的回调函数, 
+    *   参数说明：wParam如果不为0，其值是：ListCtrlHeaderItem*
+    *           可以通过 ListCtrlHeaderItem* pHeaderItem = (ListCtrlHeaderItem*)wParam; 获取到点击在哪列了
+    *           如果wParam如果为0，说明是点击到了ListCtrlHeader自身空白处，没有点击到任何列
     */
     void AttachRClick(const EventCallback& callback) { AttachEvent(kEventRClick, callback); }
 

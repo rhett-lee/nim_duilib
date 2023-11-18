@@ -668,6 +668,11 @@ bool ListCtrlHeaderItem::ButtonDown(const EventArgs& msg)
 bool ListCtrlHeaderItem::ButtonUp(const EventArgs& msg)
 {
     bool bRet = __super::ButtonUp(msg);
+    if (!m_bInDragging) {
+        //没有处于拖动改变列顺序的状态
+        ClearDragStatus();
+        return bRet;
+    }
     ListCtrlHeader* pHeader = GetHeaderCtrl();
     if (pHeader == nullptr) {
         ClearDragStatus();
