@@ -306,6 +306,54 @@ void ListCtrl::DoInit()
     //同步单选和多选的状态
     m_pDataView->SetMultiSelect(IsMultiSelect());
     m_pDataView->SetDataProvider(m_pDataProvider);
+
+    //事件转接函数
+    auto OnDataViewEvent = [this](const EventArgs & args) {
+        size_t nItemIndex = args.wParam;
+        Control* pControl = m_pDataView->GetItemAt(nItemIndex);
+        ListCtrlItem* pItem = nullptr;
+        if (pControl != nullptr) {
+            pItem = dynamic_cast<ListCtrlItem*>(pControl);
+        }
+        if (pItem != nullptr) {
+            EventArgs msg = args;
+            msg.wParam = (WPARAM)pItem;
+            msg.lParam = pItem->GetElementIndex();
+            msg.pSender = this;
+            SendEvent(msg);
+        }
+        else if (args.Type == kEventSelChange) {
+            EventArgs msg = args;
+            msg.pSender = this;
+            SendEvent(msg);
+        }
+    };
+
+    //挂载事件，转接给外层
+    m_pDataView->AttachSelect([this, OnDataViewEvent](const EventArgs& args) {
+        OnDataViewEvent(args);
+        return true;
+        });
+    m_pDataView->AttachSelChange([this, OnDataViewEvent](const EventArgs& args) {
+        OnDataViewEvent(args);
+        return true;
+        });
+    m_pDataView->AttachDoubleClick([this, OnDataViewEvent](const EventArgs& args) {
+        OnDataViewEvent(args);
+        return true;
+        });
+    m_pDataView->AttachClick([this, OnDataViewEvent](const EventArgs& args) {
+        OnDataViewEvent(args);
+        return true;
+        });
+    m_pDataView->AttachRClick([this, OnDataViewEvent](const EventArgs& args) {
+        OnDataViewEvent(args);
+        return true;
+        });
+    m_pDataView->AttachReturn([this, OnDataViewEvent](const EventArgs& args) {
+        OnDataViewEvent(args);
+        return true;
+        });
 }
 
 ListCtrlHeaderItem* ListCtrl::InsertColumn(int32_t columnIndex, const ListCtrlColumn& columnInfo)

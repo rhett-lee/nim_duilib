@@ -44,7 +44,7 @@ void MainForm::OnInitWindow()
 	uint32_t imageId = imageList.AddImageString(L"file='1.svg' width='18' height='18' valign='center'");
 
 	//填充数据
-	InsertItemData(10, 9, (int32_t)imageId);
+	InsertItemData(200, 9, (int32_t)imageId);
 
 	//表头高度控制
 	ui::RichEdit* pHeaderHeightEdit = dynamic_cast<ui::RichEdit*>(FindControl(L"header_height_edit"));
@@ -358,6 +358,67 @@ void MainForm::OnInitWindow()
 		return true;
 		});
 
+	//事件挂载，测试事件接口
+	auto OnListCtrlEvent = [this, pListCtrl](const ui::EventArgs& args) {
+			ASSERT(pListCtrl == args.pSender);
+			ui::ListCtrlItem* pItem = (ui::ListCtrlItem*)args.wParam;
+			size_t itemIndex = args.lParam;
+			ui::UiPoint mousePt = args.ptMouse;
+			std::wstring text;
+			if (pItem != nullptr) {
+				size_t columnIndex = pItem->GetSubItemIndex(mousePt);
+				if (columnIndex != ui::Box::InvalidIndex) {
+					text = pListCtrl->GetDataItemText(itemIndex, columnIndex);
+				}				
+			}
+
+			if (args.Type == ui::kEventSelect) {
+				std::wstring sInfo = ui::StringHelper::Printf(L"kEventSelect，数据索引号：%d", (int32_t)itemIndex);
+				//::MessageBox(nullptr, sInfo.c_str(), L"", MB_OK);
+			}
+			else if (args.Type == ui::kEventSelChange) {
+				//::MessageBox(nullptr, L"kEventSelChange", L"", MB_OK);
+			}
+			else if(args.Type == ui::kEventMouseDoubleClick) {				
+				//::MessageBox(nullptr, L"kEventMouseDoubleClick", text.c_str(), MB_OK);
+			}
+			else if (args.Type == ui::kEventClick) {
+				//::MessageBox(nullptr, L"kEventClick", text.c_str(), MB_OK);
+			}
+			else if (args.Type == ui::kEventRClick) {
+				//::MessageBox(nullptr, L"kEventRClick", text.c_str(), MB_OK);
+			}
+			else if (args.Type == ui::kEventReturn) {
+				std::wstring sInfo = ui::StringHelper::Printf(L"kEventReturn，数据索引号：%d", (int32_t)itemIndex);
+				//::MessageBox(nullptr, sInfo.c_str(), L"", MB_OK);
+			}
+		};
+
+	//挂载事件，转接给外层
+	pListCtrl->AttachSelect([this, OnListCtrlEvent](const ui::EventArgs& args) {
+		OnListCtrlEvent(args);
+		return true;
+		});
+	pListCtrl->AttachSelChange([this, OnListCtrlEvent](const ui::EventArgs& args) {
+		OnListCtrlEvent(args);
+		return true;
+		});
+	pListCtrl->AttachDoubleClick([this, OnListCtrlEvent](const ui::EventArgs& args) {
+		OnListCtrlEvent(args);
+		return true;
+		});
+	pListCtrl->AttachClick([this, OnListCtrlEvent](const ui::EventArgs& args) {
+		OnListCtrlEvent(args);
+		return true;
+		});
+	pListCtrl->AttachRClick([this, OnListCtrlEvent](const ui::EventArgs& args) {
+		OnListCtrlEvent(args);
+		return true;
+		});
+	pListCtrl->AttachReturn([this, OnListCtrlEvent](const ui::EventArgs& args) {
+		OnListCtrlEvent(args);
+		return true;
+		});
 }
 
 void MainForm::OnColumnChanged(size_t nColumnId)

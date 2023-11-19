@@ -147,8 +147,9 @@ public:
     /** 批量设置选择元素, 同时按需更新界面显示
     * @param [in] selectedIndexs 需要设置选择的元素列表，有效范围：[0, GetElementCount())
     * @param [in] bClearOthers 如果为true，表示对其他已选择的进行清除选择，只保留本次设置的为选择项
+    * @return 如果有数据变化返回true，否则返回false
     */
-    void SetSelectedElements(const std::vector<size_t>& selectedIndexs, bool bClearOthers);
+    bool SetSelectedElements(const std::vector<size_t>& selectedIndexs, bool bClearOthers);
 
     /** 批量设置选择元素, 不更新界面显示
     * @param [in] selectedIndexs 需要设置选择的元素列表，有效范围：[0, GetElementCount())
@@ -171,12 +172,14 @@ public:
     void GetSelectedElements(std::vector<size_t>& selectedIndexs) const;
 
     /** 选择全部, 同时按需更新界面显示
+    * @return 如果有数据变化返回true，否则返回false
     */
-    void SetSelectAll();
+    bool SetSelectAll();
 
     /** 取消所有选择, 同时按需更新界面显示
+    * @return 如果有数据变化返回true，否则返回false
     */
-    void SetSelectNone();
+    bool SetSelectNone();
 
     /** 取消所有选择, 不更新界面显示，可以由外部刷新界面显示
     * @param [out] refreshIndexs 返回需要刷新显示的元素索引号
@@ -248,10 +251,55 @@ public:
 							     ListBoxHorVisible hVisibleType = ListBoxHorVisible::kVisible) override;
 
 public:
+    /** 监听选择子项的事件
+    * @param[in] callback 选择子项时的回调函数
+    * 参数说明:
+    *   wParam: 当前新选择的子项ID，有效范围：[0, GetItemCount())
+    *	lParam: 原来旧选择的子项ID，有效范围：[0, GetItemCount())，可能为无效值Box::InvalidIndex
+    *   可以通过 GetDisplayItemElementIndex 函数得到关联的数据元素索引号
+    */
+    void AttachSelect(const EventCallback& callback) { AttachEvent(kEventSelect, callback); }
+
+    /** 监听双击事件
+     * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
+     *  参数说明:
+     *    wParam: 双击的子项ID，有效范围：[0, GetItemCount())，如果值Box::InvalidIndex，表示未双击任何子项
+     *    lParam: 关联的子项ID对应的数据元素索引号，有效范围：[0, GetElementCount())，如果值Box::InvalidIndex，表示无关联的数据元素
+     */
+    void AttachDoubleClick(const EventCallback& callback) { AttachEvent(kEventMouseDoubleClick, callback); }
+
+    /** 绑定鼠标点击处理函数
+    * @param[in] callback 要绑定的回调函数
+    *  参数说明:
+    *    wParam: 点击的子项ID，有效范围：[0, GetItemCount())，如果值Box::InvalidIndex，表示未双击任何子项
+    *    lParam: 关联的子项ID对应的数据元素索引号，有效范围：[0, GetElementCount())，如果值Box::InvalidIndex，表示无关联的数据元素
+    */
+    void AttachClick(const EventCallback& callback) { AttachEvent(kEventClick, callback); }
+
+    /** 绑定鼠标右键点击处理函数
+    * @param[in] callback 要绑定的回调函数
+    *  参数说明:
+    *    wParam: 点击的子项ID，有效范围：[0, GetItemCount())，如果值Box::InvalidIndex，表示未双击任何子项
+    *    lParam: 关联的子项ID对应的数据元素索引号，有效范围：[0, GetElementCount())，如果值Box::InvalidIndex，表示无关联的数据元素
+    */
+    void AttachRClick(const EventCallback& callback) { AttachEvent(kEventRClick, callback); }
+
+    /** 监听回车事件
+     * @param[in] callback 收到回车时的回调函数
+     *  参数说明:
+     *    wParam: 关联的子项ID，有效范围：[0, GetItemCount())，如果值Box::InvalidIndex，表示未双击任何子项
+     *    lParam: 关联的子项ID对应的数据元素索引号，有效范围：[0, GetElementCount())，如果值Box::InvalidIndex，表示无关联的数据元素
+     */
+    void AttachReturn(const EventCallback& callback) { this->AttachEvent(kEventReturn, callback); }
+
+public:
     /// 重写父类接口，提供个性化功能
     virtual void SetScrollPos(UiSize64 szPos) override;
     virtual void SetPos(UiRect rc) override;
     virtual void PaintChild(IRender* pRender, const UiRect& rcPaint) override;
+    virtual void SendEvent(EventType eventType, WPARAM wParam = 0, LPARAM lParam = 0, TCHAR tChar = 0,
+                           const UiPoint& mousePos = UiPoint()) override;
+    virtual void SendEvent(const EventArgs& event) override;
 
 protected:
     //重载删除函数，禁止外部调用
@@ -302,18 +350,18 @@ protected:
     */
     VirtualLayout* GetVirtualLayout() const;
 
+public:
+    struct RefreshData
+    {
+        size_t nItemIndex;      //界面控件的索引号
+        Control* pControl;      //界面控件的接口
+        size_t nElementIndex;   //数据元素的索引号
+    };
+    typedef std::vector<RefreshData> RefreshDataList;
+
     /** 执行了界面刷新操作, 界面的UI控件个数可能会发生变化
     */
-    virtual void OnRefresh() {}
-
-    /** 执行了重排操作，界面的UI控件进行了重新数据填充（通过FillElement函数）
-    */
-    virtual void OnArrangeChild() {}
-
-    /** 执行了界面刷新操作, 刷新了部分元素的数据（通过FillElement函数）
-    * @param [in] refreshIndexs 
-    */
-    virtual void OnRefreshElements(const std::vector<size_t>& /*refreshIndexs*/) {}
+    virtual void OnRefreshElements(const RefreshDataList& /*refreshDataList*/) {}
 
 protected:
     /** 创建一个子项
@@ -343,6 +391,12 @@ protected:
     /** 是否允许从界面状态同步到存储状态
     */
     bool IsEnableUpdateProvider() const;
+
+    /** 发送事件的函数
+    * @param [in] args 事件内容
+    * @param [in] bFromItem true表示来自子控件，false表示来自自身
+    */
+    void VSendEvent(const EventArgs& args, bool bFromItem);
 
 private:
     /** 数据代理对象接口，提供展示数据

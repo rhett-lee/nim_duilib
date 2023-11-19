@@ -1301,9 +1301,9 @@ bool Control::ButtonUp(const EventArgs& msg)
 	if( IsMouseFocused() ) {
 		SetMouseFocused(false);
 		auto player = GetAnimationManager().GetAnimationPlayer(kAnimationHot);
-		if (player)
+		if (player != nullptr) {
 			player->Stop();
-
+		}
 		Invalidate();
 		if( IsPointInWithScrollOffset(msg.ptMouse) ) {
 			PrivateSetState(kControlStateHot);
@@ -1463,6 +1463,16 @@ bool Control::OnSetFocus(const EventArgs& /*msg*/)
 bool Control::OnKillFocus(const EventArgs& /*msg*/)
 {
 	if (GetState() == kControlStateHot) {
+		SetState(kControlStateNormal);
+		Invalidate();
+	}
+	else if (GetState() == kControlStatePushed) {
+		//失去焦点时，修复控件状态（如果鼠标按下时，窗口失去焦点，鼠标弹起事件这个控件就收不到了）
+		SetMouseFocused(false);
+		auto player = GetAnimationManager().GetAnimationPlayer(kAnimationHot);
+		if (player != nullptr) {
+			player->Stop();
+		}
 		SetState(kControlStateNormal);
 		Invalidate();
 	}

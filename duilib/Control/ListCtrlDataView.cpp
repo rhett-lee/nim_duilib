@@ -95,8 +95,11 @@ bool ListCtrlDataView::OnListCtrlKeyDown(const EventArgs& msg)
     if (bCtrlADown) {
         //Ctrl + A 全选操作
         bHandled = true;
-        SetSelectAll();
-        OnSelectStatusChanged();
+        bool bRet = SetSelectAll();
+        if (bRet) {
+            OnSelectStatusChanged();
+            SendEvent(kEventSelChange);
+        }        
         return bHandled;
     }
 
@@ -285,9 +288,11 @@ bool ListCtrlDataView::OnListCtrlKeyDown(const EventArgs& msg)
     EnsureVisible(nIndexEnd, false);
     nCurSel = GetDisplayItemIndex(nIndexEnd);
     ASSERT(nCurSel < GetItemCount());
+    bool bTriggerEvent = false;
     if (nCurSel < GetItemCount()) {
         SetCurSel(nCurSel);
-        SelectItemSingle(nCurSel, true, true);
+        SelectItemSingle(nCurSel, true, false);
+        bTriggerEvent = true;       
         ASSERT(GetItemAt(nCurSel)->IsFocused());
         ASSERT(IsElementSelected(nIndexEnd));
 #ifdef _DEBUG
@@ -297,18 +302,23 @@ bool ListCtrlDataView::OnListCtrlKeyDown(const EventArgs& msg)
 #endif
     }
     OnSelectStatusChanged();
+    if (bTriggerEvent) {
+        SendEvent(kEventSelect, nCurSel, Box::InvalidIndex);
+    }
     return bHandled;
 }
 
-void ListCtrlDataView::OnListCtrlClickedBlank()
+bool ListCtrlDataView::OnListCtrlClickedBlank()
 {
     //在空白处点击鼠标左键或者右键，取消全部选择
-    SetSelectNone();
+    bool bRet = SetSelectNone();
     OnSelectStatusChanged();
+    return bRet;
 }
 
 bool ListCtrlDataView::SelectItem(size_t iIndex, bool bTakeFocus, bool bTriggerEvent, uint64_t vkFlag)
 {
+    //事件触发，需要放在函数返回之前，不能放在代码中间
     bool bSelectStatusChanged = false;
     bool bRet = false;
     if (IsMultiSelect()) {
@@ -348,7 +358,7 @@ bool ListCtrlDataView::SelectItem(size_t iIndex, bool bTakeFocus, bool bTriggerE
                     SetSelectNoneExclude(excludeIndexs, refreshDataIndexs);
                 }
                 SetCurSel(iIndex);
-                bRet = SelectItemSingle(iIndex, bTakeFocus, bTriggerEvent);
+                bRet = SelectItemSingle(iIndex, bTakeFocus, false);
                 RefreshElements(refreshDataIndexs);
                 ASSERT(IsElementSelected(nElementIndex));
                 ASSERT(nElementIndex == GetDisplayItemElementIndex(iIndex));
@@ -376,7 +386,7 @@ bool ListCtrlDataView::SelectItem(size_t iIndex, bool bTakeFocus, bool bTriggerE
                     std::vector<size_t> refreshDataIndexs;
                     SetSelectedElements(selectedIndexs, true, refreshDataIndexs);
                     SetCurSel(iIndex);
-                    bRet = SelectItemSingle(iIndex, bTakeFocus, bTriggerEvent);
+                    bRet = SelectItemSingle(iIndex, bTakeFocus, false);
                     RefreshElements(refreshDataIndexs);
                     ASSERT(IsElementSelected(nElementIndex));
                     ASSERT(nElementIndex == GetDisplayItemElementIndex(iIndex));
@@ -385,12 +395,12 @@ bool ListCtrlDataView::SelectItem(size_t iIndex, bool bTakeFocus, bool bTriggerE
                 }
                 else {
                     //未知情况，正常无法走到这里
-                    bRet = SelectItemMulti(iIndex, bTakeFocus, bTriggerEvent);
+                    bRet = SelectItemMulti(iIndex, bTakeFocus, false);
                 }
             }
             else {
                 //按左键: 同时按下了Control键，保持多选
-                bRet = SelectItemMulti(iIndex, bTakeFocus, bTriggerEvent);
+                bRet = SelectItemMulti(iIndex, bTakeFocus, false);
                 if (bRet) {
                     m_nLastNoShiftIndex = GetDisplayItemElementIndex(iIndex);
                 }                
@@ -399,10 +409,13 @@ bool ListCtrlDataView::SelectItem(size_t iIndex, bool bTakeFocus, bool bTriggerE
     }
     else {
         //单选
-        bRet = SelectItemSingle(iIndex, bTakeFocus, bTriggerEvent);
+        bRet = SelectItemSingle(iIndex, bTakeFocus, false);
     }
     if (bSelectStatusChanged) {
         OnSelectStatusChanged();
+    }
+    if (bTriggerEvent && bRet) {
+        SendEvent(kEventSelect, iIndex, Box::InvalidIndex);
     }
     return bRet;
 }
@@ -429,7 +442,6 @@ void ListCtrlDataView::Refresh()
         ReArrangeChild(true);
         Arrange();
     }
-    OnRefresh();
 }
 
 void ListCtrlDataView::AjustItemCount()
@@ -1335,8 +1347,9 @@ void ListCtrlDataView::OnButtonDown(const UiPoint& ptMouse, Control* pSender)
 
 void ListCtrlDataView::OnButtonUp(const UiPoint& /*ptMouse*/, Control* pSender)
 {
+    bool bClickedBlank = false;
     if (m_bMouseDownInView && !m_bInMouseMove && (pSender == this)) {
-        OnListCtrlClickedBlank();
+        bClickedBlank = true;        
     }
     if (m_bInMouseMove) {
         m_bInMouseMove = false;
@@ -1345,6 +1358,11 @@ void ListCtrlDataView::OnButtonUp(const UiPoint& /*ptMouse*/, Control* pSender)
     m_bMouseDownInView = false;
     m_bMouseDown = false;
     m_pMouseSender = nullptr;
+    if (bClickedBlank) {
+        if (OnListCtrlClickedBlank()) {
+            SendEvent(kEventSelChange);
+        }
+    }
 }
 
 void ListCtrlDataView::OnRButtonDown(const UiPoint& ptMouse, Control* pSender)
@@ -1363,8 +1381,9 @@ void ListCtrlDataView::OnRButtonDown(const UiPoint& ptMouse, Control* pSender)
 
 void ListCtrlDataView::OnRButtonUp(const UiPoint& /*ptMouse*/, Control* pSender)
 {
+    bool bClickedBlank = false;
     if (m_bMouseDownInView && !m_bInMouseMove && (pSender == this)) {
-        OnListCtrlClickedBlank();
+        bClickedBlank = true;        
     }
     if (m_bInMouseMove) {
         m_bInMouseMove = false;
@@ -1373,6 +1392,11 @@ void ListCtrlDataView::OnRButtonUp(const UiPoint& /*ptMouse*/, Control* pSender)
     m_bMouseDownInView = false;
     m_bRMouseDown = false;
     m_pMouseSender = nullptr;
+    if (bClickedBlank) {
+        if (OnListCtrlClickedBlank()) {
+            SendEvent(kEventSelChange);
+        }
+    }
 }
 
 void ListCtrlDataView::OnMouseMove(const UiPoint& ptMouse, Control* pSender)
@@ -1487,35 +1511,40 @@ void ListCtrlDataView::OnCheckScrollView()
     int32_t offsetTop = GetRect().top;//当前控件左上角的top坐标
     top -= offsetTop;
     bottom -= offsetTop;
-    OnFrameSelection(top, bottom, bInListItem);
+    bool bRet = OnFrameSelection(top, bottom, bInListItem);
     Invalidate();
+    if (bRet) {
+        SendEvent(kEventSelChange);
+    }
 }
 
-void ListCtrlDataView::OnFrameSelection(int64_t top, int64_t bottom, bool bInListItem)
+bool ListCtrlDataView::OnFrameSelection(int64_t top, int64_t bottom, bool bInListItem)
 {
     if (!bInListItem) {
         //在空白处，不做框选处理，只是取消所有选择项
-        SetSelectNone();
-        OnSelectStatusChanged();
-        return;
+        bool bRet = SetSelectNone();
+        if (bRet) {
+            OnSelectStatusChanged();
+        }        
+        return bRet;
     }
     ASSERT(top <= bottom);
     if (top > bottom) {
-        return;
+        return false;
     }
     ASSERT(m_pListCtrl != nullptr);
     if (m_pListCtrl == nullptr) {
-        return;
+        return false;
     }
     ListCtrlDataProvider* pDataProvider = dynamic_cast<ListCtrlDataProvider*>(GetDataProvider());
     ASSERT(pDataProvider != nullptr);
     if (pDataProvider == nullptr) {
-        return;
+        return false;
     }
     const ListCtrlDataProvider::RowDataList& itemDataList = pDataProvider->GetItemDataList();
     const size_t dataItemCount = itemDataList.size();
     if (dataItemCount == 0) {
-        return;
+        return false;
     }
 
     const int32_t nDefaultItemHeight = m_pListCtrl->GetDataItemHeight(); //默认行高
@@ -1572,8 +1601,11 @@ void ListCtrlDataView::OnFrameSelection(int64_t top, int64_t bottom, bool bInLis
     }
 
     //选择框选的数据
-    SetSelectedElements(itemIndexList, true);
-    OnSelectStatusChanged();
+    bool bRet = SetSelectedElements(itemIndexList, true);
+    if (bRet) {
+        OnSelectStatusChanged();
+    }    
+    return bRet;
 }
 
 void ListCtrlDataView::SetNormalItemTop(int32_t nNormalItemTop)
@@ -1626,6 +1658,19 @@ void ListCtrlDataView::OnSelectStatusChanged()
     if ((m_pListCtrl != nullptr) && m_pListCtrl->IsAutoCheckSelect()) {
         //更新表头的勾选项状态
         m_pListCtrl->UpdateHeaderCheckBox();
+    }
+}
+
+void ListCtrlDataView::SendEvent(EventType eventType, WPARAM wParam, LPARAM lParam, TCHAR tChar, const UiPoint& mousePos)
+{
+    __super::SendEvent(eventType, wParam, lParam, tChar, mousePos);
+}
+
+void ListCtrlDataView::SendEvent(const EventArgs& event)
+{
+    __super::SendEvent(event);
+    if ((event.Type == kEventSelect) || (event.Type == kEventUnSelect)) {
+        SendEvent(kEventSelChange);
     }
 }
 
@@ -1725,7 +1770,6 @@ void ListCtrlDataLayout::LazyArrangeChild(UiRect rc) const
     ASSERT(nItemCount > 0);
     if (nItemCount <= 1) {
         //第一个元素是表头        
-        pDataView->OnArrangeChild();
         return;
     }
 
@@ -1768,7 +1812,6 @@ void ListCtrlDataLayout::LazyArrangeChild(UiRect rc) const
                                   showItemIndexList, atTopItemIndexList, nPrevItemHeights);
     if (showItemIndexList.empty() && atTopItemIndexList.empty()) {
         //没有需要显示的数据
-        pDataView->OnArrangeChild();
         return;
     }
 
@@ -1850,6 +1893,9 @@ void ListCtrlDataLayout::LazyArrangeChild(UiRect rc) const
     //控件的左上角坐标值
     ui::UiPoint ptTile(rc.left, rc.top);
 
+    VirtualListBox::RefreshDataList refreshDataList;
+    VirtualListBox::RefreshData refreshData;
+
     UiSize szItem;
     size_t iCount = 0;
     std::vector<size_t> atTopUiItemIndexList;
@@ -1901,6 +1947,11 @@ void ListCtrlDataLayout::LazyArrangeChild(UiRect rc) const
             pDataView->FillElement(pControl, nElementIndex);
             diplayItemIndexList.push_back(nElementIndex);
 
+            refreshData.nItemIndex = index;
+            refreshData.pControl = pControl;
+            refreshData.nElementIndex = nElementIndex;
+            refreshDataList.push_back(refreshData);
+
             ListCtrlItem* pListCtrlItem = dynamic_cast<ListCtrlItem*>(pControl);
             if (pListCtrlItem != nullptr) {
                 //置顶项不允许选择
@@ -1925,9 +1976,12 @@ void ListCtrlDataLayout::LazyArrangeChild(UiRect rc) const
     }
 
     pDataView->SetAtTopControlIndex(atTopUiItemIndexList);
-    pDataView->SetDisplayDataItems(diplayItemIndexList);
-    pDataView->OnArrangeChild();
+    pDataView->SetDisplayDataItems(diplayItemIndexList);    
     pDataView->SetNormalItemTop(nNormalItemTop);
+
+    if (!refreshDataList.empty()) {
+        pDataView->OnRefreshElements(refreshDataList);
+    }
 }
 
 void ListCtrlDataLayout::LazyArrangeChildNormal(UiRect rc) const
@@ -1989,6 +2043,9 @@ void ListCtrlDataLayout::LazyArrangeChildNormal(UiRect rc) const
     //控件的左上角坐标值
     ui::UiPoint ptTile(rc.left, rc.top - yOffset);
 
+    VirtualListBox::RefreshDataList refreshDataList;
+    VirtualListBox::RefreshData refreshData;
+
     size_t iCount = 0;
     //第一个元素是表头控件，跳过填充数据，所以从1开始
     for (size_t index = 1; index < nItemCount; ++index) {
@@ -2010,6 +2067,11 @@ void ListCtrlDataLayout::LazyArrangeChildNormal(UiRect rc) const
             }
             pDataView->FillElement(pControl, nElementIndex);
             diplayItemIndexList.push_back(nElementIndex);
+
+            refreshData.nItemIndex = index;
+            refreshData.pControl = pControl;
+            refreshData.nElementIndex = nElementIndex;
+            refreshDataList.push_back(refreshData);
         }
         else {
             if (pControl->IsVisible()) {
@@ -2021,7 +2083,9 @@ void ListCtrlDataLayout::LazyArrangeChildNormal(UiRect rc) const
         ++iCount;
     }
     pDataView->SetDisplayDataItems(diplayItemIndexList);
-    pDataView->OnArrangeChild();
+    if (!refreshDataList.empty()) {
+        pDataView->OnRefreshElements(refreshDataList);
+    }
 }
 
 size_t ListCtrlDataLayout::AjustMaxItem(UiRect rc) const

@@ -133,6 +133,17 @@ public:
 	 */
 	virtual void SetElementIndex(size_t iIndex) override;
 
+public:
+	/** 绑定鼠标点击处理函数
+	* @param[in] callback 要绑定的回调函数
+	*/
+	void AttachClick(const EventCallback& callback) { this->AttachEvent(kEventClick, callback); }
+
+	/** 绑定鼠标右键点击处理函数
+	* @param[in] callback 要绑定的回调函数
+	*/
+	void AttachRClick(const EventCallback& callback) { this->AttachEvent(kEventRClick, callback); }
+
 	/** 监听控件双击事件
 	 * @param[in] callback 收到双击消息时的回调函数
 	 */

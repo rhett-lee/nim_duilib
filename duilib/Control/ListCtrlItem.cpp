@@ -63,6 +63,42 @@ ListCtrlSubItem* ListCtrlItem::GetSubItem(size_t columnIndex) const
     return pSubItem;
 }
 
+ListCtrlSubItem* ListCtrlItem::GetSubItem(const UiPoint& ptMouse) const
+{
+    UiPoint pt(ptMouse);
+    pt.Offset(GetScrollOffsetInScrollBox());
+    ListCtrlSubItem* pFoundSubItem = nullptr;
+    size_t nItemCount = GetItemCount();
+    for (size_t index = 0; index < nItemCount; ++index) {
+        ListCtrlSubItem* pSubItem = dynamic_cast<ListCtrlSubItem*>(GetItemAt(index));
+        if (pSubItem != nullptr) {
+            if (pSubItem->GetRect().ContainsPt(pt)) {
+                pFoundSubItem = pSubItem;
+                break;
+            }
+        }
+    }
+    return pFoundSubItem;
+}
+
+size_t ListCtrlItem::GetSubItemIndex(const UiPoint& ptMouse) const
+{
+    UiPoint pt(ptMouse);
+    pt.Offset(GetScrollOffsetInScrollBox());
+    size_t nSubItemIndex = Box::InvalidIndex;
+    size_t nItemCount = GetItemCount();
+    for (size_t index = 0; index < nItemCount; ++index) {
+        ListCtrlSubItem* pSubItem = dynamic_cast<ListCtrlSubItem*>(GetItemAt(index));
+        if (pSubItem != nullptr) {
+            if (pSubItem->GetRect().ContainsPt(pt)) {
+                nSubItemIndex = index;
+                break;
+            }
+        }
+    }
+    return nSubItemIndex;
+}
+
 void ListCtrlItem::Selected(bool bSelect, bool bTriggerEvent)
 {
     if (__super::IsSelected() != bSelect) {

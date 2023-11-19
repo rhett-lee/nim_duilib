@@ -299,8 +299,8 @@ namespace ui
 
 		kEventZoom,					//RichEdit类：当缩放比例发生变化时，按缩放比例分子/分母显示的缩放：1/64 < (wParam / lParam) < 64
 		kEventTextChange,			//RichEdit类：当文本内容发生变化时触发
-		kEventSelChange,			//RichEdit类：当文本选择内容发生变化时触发
-		kEventReturn,				//ListBoxItem、RichEdit类：当收到回车键时触发
+		kEventSelChange,			//ListCtrl类：选择项发生变化，RichEdit类：当文本选择内容发生变化时触发
+		kEventReturn,				//ListCtrl、VirtualListBox、ListBoxItem、RichEdit类：当收到回车键时触发
 		kEventTab,					//RichEdit类：在WantTab为false时，当收到TAB键时触发
 		kEventLinkClick,		    //RichEdit类、RichText类：当点击到超级链接的数据上时触发, 可以通过WPARAM获取点击的URL，类型为const wchar_t*
 

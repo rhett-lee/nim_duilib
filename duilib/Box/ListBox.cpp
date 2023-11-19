@@ -246,8 +246,11 @@ size_t ListBox::SelectItemHome(bool bTakeFocus, bool bTriggerEvent)
 	}
 	size_t itemIndex = FindSelectable(iIndex, true);
 	if (Box::IsValidItemIndex(itemIndex)) {		
-		SelectItem(itemIndex, false, bTriggerEvent);
+		SelectItem(itemIndex, false, false);
 		itemIndex = SelectEnsureVisible(itemIndex, bTakeFocus);
+		if (bTriggerEvent) {
+			SendEvent(kEventSelect, itemIndex, Box::InvalidIndex);
+		}
 	}
 	return itemIndex;
 }
@@ -264,8 +267,11 @@ size_t ListBox::SelectItemEnd(bool bTakeFocus, bool bTriggerEvent)
 	}
 	size_t itemIndex = FindSelectable(iIndex, false);
 	if (Box::IsValidItemIndex(itemIndex)) {
-		SelectItem(itemIndex, false, bTriggerEvent);
+		SelectItem(itemIndex, false, false);
 		itemIndex = SelectEnsureVisible(itemIndex, bTakeFocus);
+		if (bTriggerEvent) {
+			SendEvent(kEventSelect, itemIndex, Box::InvalidIndex);
+		}
 	}
 	return itemIndex;
 }
@@ -352,8 +358,11 @@ size_t ListBox::SelectItemCountN(bool bTakeFocus, bool bTriggerEvent, bool bForw
 		//目标子项存在，直接返回
 		size_t itemIndex = iIndex;
 		if (itemIndex < GetItemCount()) {
-			SelectItem(itemIndex, false, bTriggerEvent);
+			SelectItem(itemIndex, false, false);
 			itemIndex = SelectEnsureVisible(itemIndex, bTakeFocus);
+			if (bTriggerEvent) {
+				SendEvent(kEventSelect, itemIndex, Box::InvalidIndex);
+			}
 		}
 		return itemIndex;
 	}
@@ -379,8 +388,11 @@ size_t ListBox::SelectItemCountN(bool bTakeFocus, bool bTriggerEvent, bool bForw
 	}	
 	size_t itemIndex = FindSelectable(iIndex, bForward);
 	if (itemIndex < itemCount) {		
-		SelectItem(itemIndex, false, bTriggerEvent);
+		SelectItem(itemIndex, false, false);
 		itemIndex = SelectEnsureVisible(itemIndex, bTakeFocus);
+		if (bTriggerEvent) {
+			SendEvent(kEventSelect, itemIndex, Box::InvalidIndex);
+		}
 	}
 	return itemIndex;
 }
@@ -463,7 +475,7 @@ size_t ListBox::GetDisplayItemCount(bool bIsHorizontal, size_t& nColumns, size_t
 
 void ListBox::SendEvent(EventType eventType, WPARAM wParam, LPARAM lParam, TCHAR tChar, const UiPoint& mousePos)
 {
-	return ScrollBox::SendEvent(eventType, wParam, lParam, tChar, mousePos);
+	ScrollBox::SendEvent(eventType, wParam, lParam, tChar, mousePos);
 }
 
 void ListBox::SendEvent(const EventArgs& event)
@@ -550,20 +562,23 @@ bool ListBox::SelectItem(size_t iIndex, bool bTakeFocus, bool bTriggerEvent, uin
 
 bool ListBox::UnSelectItem(size_t iIndex, bool bTriggerEvent)
 {
+	bool bHasEvent = false;
 	Control* pControl = GetItemAt(iIndex);
 	if (pControl != nullptr) {
 		IListBoxItem* pListItem = dynamic_cast<IListBoxItem*>(pControl);
 		if ((pListItem != nullptr) && pListItem->IsSelected()) {
 			pListItem->OptionSelected(false, bTriggerEvent);
-			if (bTriggerEvent) {
-				SendEvent(kEventUnSelect, iIndex, Box::InvalidIndex);
-			}
+			bHasEvent = true;			
 			//仅在状态变化时重绘
 			Invalidate();
 		}
 	}
 	if (iIndex == m_iCurSel) {
 		m_iCurSel = Box::InvalidIndex;
+	}
+	if (bTriggerEvent && bHasEvent) {
+		//事件触发，需要放在函数返回之前，不能放在代码中间
+		SendEvent(kEventUnSelect, iIndex, Box::InvalidIndex);
 	}
 	return true;
 }
@@ -595,12 +610,13 @@ bool ListBox::SelectItemSingle(size_t iIndex, bool bTakeFocus, bool bTriggerEven
 			bChanged = true;
 			pListItem->OptionSelected(true, bTriggerEvent);
 		}
-		if (bChanged && bTriggerEvent) {
-			SendEvent(kEventSelect, m_iCurSel, m_iCurSel);
-		}
 		Invalidate();
+		if (bChanged && bTriggerEvent) {
+			SendEvent(kEventSelect, m_iCurSel, Box::InvalidIndex);
+		}
 		return true;
 	}
+	bool hasUnSelectEvent = false;
 	const size_t iOldSel = m_iCurSel;
 	if (Box::IsValidItemIndex(iOldSel)) {
 		//取消旧选择项的选择状态
@@ -609,26 +625,33 @@ bool ListBox::SelectItemSingle(size_t iIndex, bool bTakeFocus, bool bTriggerEven
 			IListBoxItem* pListItem = dynamic_cast<IListBoxItem*>(pControl);
 			if ((pListItem != nullptr) && pListItem->IsSelected()) {
 				pListItem->OptionSelected(false, bTriggerEvent);
-				if (bTriggerEvent) {
-					SendEvent(kEventUnSelect, iOldSel, Box::InvalidIndex);
-				}
+				hasUnSelectEvent = true;				
 			}
 		}
 		m_iCurSel = Box::InvalidIndex;
 	}
 	if (!Box::IsValidItemIndex(iIndex)) {
 		Invalidate();
+		if (hasUnSelectEvent && bTriggerEvent) {
+			SendEvent(kEventUnSelect, iOldSel, Box::InvalidIndex);
+		}
 		return false;
 	}
 
 	Control* pControl = GetItemAt(iIndex);
 	if ((pControl == nullptr) || !pControl->IsVisible() || !pControl->IsEnabled()) {
 		Invalidate();
+		if (hasUnSelectEvent && bTriggerEvent) {
+			SendEvent(kEventUnSelect, iOldSel, Box::InvalidIndex);
+		}
 		return false;
 	}
 	IListBoxItem* pListItem = dynamic_cast<IListBoxItem*>(pControl);
 	if (pListItem == nullptr) {
 		Invalidate();
+		if (hasUnSelectEvent && bTriggerEvent) {
+			SendEvent(kEventUnSelect, iOldSel, Box::InvalidIndex);
+		}
 		return false;
 	}
 	m_iCurSel = iIndex;
@@ -641,10 +664,13 @@ bool ListBox::SelectItemSingle(size_t iIndex, bool bTakeFocus, bool bTriggerEven
 		}
 	}
 
+	Invalidate();
+	if (hasUnSelectEvent && bTriggerEvent) {
+		SendEvent(kEventUnSelect, iOldSel, Box::InvalidIndex);
+	}
 	if (bTriggerEvent) {
 		SendEvent(kEventSelect, m_iCurSel, iOldSel);
-	}
-	Invalidate();
+	}	
 	return true;
 }
 
@@ -671,6 +697,7 @@ bool ListBox::SelectItemMulti(size_t iIndex, bool bTakeFocus, bool bTriggerEvent
 	if (pListItem->IsSelected()) {
 		//多选时，再次选择时，按取消选择处理
 		pListItem->OptionSelected(false, bTriggerEvent);
+		Invalidate();
 		if (bTriggerEvent) {
 			SendEvent(kEventUnSelect, iIndex, Box::InvalidIndex);
 		}
@@ -682,11 +709,11 @@ bool ListBox::SelectItemMulti(size_t iIndex, bool bTakeFocus, bool bTriggerEvent
 		if (bTakeFocus) {			
 			pControl->SetFocus();
 		}
+		Invalidate();
 		if (bTriggerEvent) {
 			SendEvent(kEventSelect, iIndex, iOldSel);
 		}
 	}	
-	Invalidate();
 	return true;
 }
 

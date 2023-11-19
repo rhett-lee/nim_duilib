@@ -119,11 +119,31 @@ void VirtualListBox::SetMultiSelect(bool bMultiSelect)
 
 Control* VirtualListBox::CreateElement()
 {
+    Control* pControl = nullptr;
     ASSERT(m_pDataProvider != nullptr);
     if (m_pDataProvider != nullptr) {
-        return m_pDataProvider->CreateElement();
+        pControl = m_pDataProvider->CreateElement();
     }
-    return nullptr;
+    if (pControl != nullptr) {
+        //挂载鼠标事件，转接给List Box本身
+        pControl->AttachDoubleClick([this](const EventArgs& args) {
+            VSendEvent(args, true);
+            return true;
+            });
+        pControl->AttachClick([this](const EventArgs& args) {
+            VSendEvent(args, true);
+            return true;
+            });
+        pControl->AttachRClick([this](const EventArgs& args) {
+            VSendEvent(args, true);
+            return true;
+            });
+        pControl->AttachEvent(kEventReturn, [this](const EventArgs& args) {
+            VSendEvent(args, true);
+            return true;
+            });
+    }
+    return pControl;
 }
 
 void VirtualListBox::FillElement(Control* pControl, size_t nElementIndex)
@@ -197,13 +217,14 @@ void VirtualListBox::SetElementSelected(size_t nElementIndex, bool bSelected)
     }
 }
 
-void VirtualListBox::SetSelectedElements(const std::vector<size_t>& selectedIndexs, bool bClearOthers)
+bool VirtualListBox::SetSelectedElements(const std::vector<size_t>& selectedIndexs, bool bClearOthers)
 {
     std::vector<size_t> refreshIndexs;
     SetSelectedElements(selectedIndexs, bClearOthers, refreshIndexs);
     if (!refreshIndexs.empty()) {
         RefreshElements(refreshIndexs);
     }
+    return !refreshIndexs.empty();
 }
 
 void VirtualListBox::SetSelectedElements(const std::vector<size_t>& selectedIndexs,
@@ -268,14 +289,14 @@ void VirtualListBox::GetSelectedElements(std::vector<size_t>& selectedIndexs) co
     }
 }
 
-void VirtualListBox::SetSelectAll()
+bool VirtualListBox::SetSelectAll()
 {
     ASSERT(m_pDataProvider != nullptr);
     if (m_pDataProvider == nullptr) {
-        return;
+        return false;
     }
     if (!m_pDataProvider->IsMultiSelect()) {
-        return;
+        return false;
     }
     std::vector<size_t> selectedIndexs;
     size_t nCount = m_pDataProvider->GetElementCount();
@@ -289,15 +310,17 @@ void VirtualListBox::SetSelectAll()
     if (!selectedIndexs.empty()) {
         RefreshElements(selectedIndexs);
     }
+    return !selectedIndexs.empty();
 }
 
-void VirtualListBox::SetSelectNone()
+bool VirtualListBox::SetSelectNone()
 {
     std::vector<size_t> refreshIndexs;
     SetSelectNone(refreshIndexs);
     if (!refreshIndexs.empty()) {
         RefreshElements(refreshIndexs);
     }
+    return !refreshIndexs.empty();
 }
 
 void VirtualListBox::SetSelectNone(std::vector<size_t>& refreshIndexs)
@@ -347,8 +370,11 @@ void VirtualListBox::RefreshElements(const std::vector<size_t>& elementIndexs)
     for (size_t nElementIndex : elementIndexs) {
         indexSet.insert(nElementIndex);
     }
-    std::vector<size_t> refreshIndexs;
-    for (Control* pControl : m_items) {
+    VirtualListBox::RefreshDataList refreshDataList;
+    VirtualListBox::RefreshData refreshData;
+    size_t nItemCount = m_items.size();
+    for (size_t nItemIndex = 0; nItemIndex < nItemCount; ++nItemIndex) {
+        Control* pControl = m_items[nItemIndex];
         if ((pControl == nullptr) || !pControl->IsVisible()) {
             continue;
         }
@@ -358,20 +384,29 @@ void VirtualListBox::RefreshElements(const std::vector<size_t>& elementIndexs)
         }
         size_t nElementIndex = pListBoxItem->GetElementIndex();
         if (nElementIndex != Box::InvalidIndex) {
-            if (indexSet.find(nElementIndex) != indexSet.end()) {
-                refreshIndexs.push_back(nElementIndex);
+            if (indexSet.find(nElementIndex) != indexSet.end()) {                
                 FillElement(pControl, nElementIndex);
                 pControl->Invalidate();
+
+                refreshData.nItemIndex = nItemIndex;
+                refreshData.pControl = pControl;
+                refreshData.nElementIndex = nElementIndex;
+                refreshDataList.push_back(refreshData);
             }
         }
     }
-    OnRefreshElements(refreshIndexs);
+    if (!refreshDataList.empty()) {
+        OnRefreshElements(refreshDataList);
+    }
 }
 
 void VirtualListBox::OnModelDataChanged(size_t nStartElementIndex, size_t nEndElementIndex)
 {
-    std::vector<size_t> refreshIndexs;
-    for (Control* pControl : m_items) {
+    VirtualListBox::RefreshDataList refreshDataList;
+    VirtualListBox::RefreshData refreshData;
+    size_t nItemCount = m_items.size();
+    for (size_t nItemIndex = 0; nItemIndex < nItemCount; ++nItemIndex) {
+        Control* pControl = m_items[nItemIndex];
         if ((pControl == nullptr) || !pControl->IsVisible()) {
             continue;
         }
@@ -380,13 +415,19 @@ void VirtualListBox::OnModelDataChanged(size_t nStartElementIndex, size_t nEndEl
             size_t nElementIndex = pListBoxItem->GetElementIndex();
             if ((nElementIndex >= nStartElementIndex) &&
                 (nElementIndex <= nEndElementIndex)) {
-                refreshIndexs.push_back(nElementIndex);
                 FillElement(pControl, nElementIndex);
                 pControl->Invalidate();
+
+                refreshData.nItemIndex = nItemIndex;
+                refreshData.pControl = pControl;
+                refreshData.nElementIndex = nElementIndex;
+                refreshDataList.push_back(refreshData);
             }
         }
     }
-    OnRefreshElements(refreshIndexs);
+    if (!refreshDataList.empty()) {
+        OnRefreshElements(refreshDataList);
+    }
 }
 
 void VirtualListBox::OnModelCountChanged()
@@ -445,7 +486,6 @@ void VirtualListBox::Refresh()
         ReArrangeChild(true);
         Arrange();
     }
-    OnRefresh();
 }
 
 void VirtualListBox::GetDisplayElements(std::vector<size_t>& collection) const
@@ -570,6 +610,52 @@ void VirtualListBox::PaintChild(IRender* pRender, const UiRect& rcPaint)
 {
     ReArrangeChild(false);
     __super::PaintChild(pRender, rcPaint);
+}
+
+void VirtualListBox::SendEvent(EventType eventType, WPARAM wParam, LPARAM lParam, TCHAR tChar, const UiPoint& mousePos)
+{
+    __super::SendEvent(eventType, wParam, lParam, tChar, mousePos);
+}
+
+void VirtualListBox::SendEvent(const EventArgs& event)
+{
+    VSendEvent(event, false);
+}
+
+void VirtualListBox::VSendEvent(const EventArgs& args, bool bFromItem)
+{
+    if (bFromItem) {
+        EventArgs msg = args;
+        msg.pSender = this;
+        size_t nItemIndex = GetItemIndex(args.pSender);
+        if (nItemIndex < GetItemCount()) {
+            msg.wParam = nItemIndex;
+            msg.lParam = GetDisplayItemElementIndex(nItemIndex);
+        }
+        else {
+            msg.wParam = Box::InvalidIndex;
+            msg.lParam = Box::InvalidIndex;
+        }        
+        __super::SendEvent(msg);
+    }
+    else if ((args.Type == kEventMouseDoubleClick) ||
+             (args.Type == kEventClick) ||
+             (args.Type == kEventRClick)) {
+        if (args.pSender == this) {
+            ASSERT(args.wParam == 0);
+            ASSERT(args.lParam == 0);
+            EventArgs msg = args;
+            msg.wParam = Box::InvalidIndex;
+            msg.lParam = Box::InvalidIndex;
+            __super::SendEvent(args);
+        }
+        else {
+            __super::SendEvent(args);
+        }
+    }
+    else {
+        __super::SendEvent(args);
+    }
 }
 
 bool VirtualListBox::RemoveItem(Control* pControl)

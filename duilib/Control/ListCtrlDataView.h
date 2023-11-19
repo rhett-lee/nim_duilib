@@ -135,6 +135,17 @@ public:
     */
     void AjustItemCount();
 
+    /** 监听选择项发生变化的事件
+     * @param[in] callback 选择子项时的回调函数
+     */
+    void AttachSelChange(const EventCallback& callback) { AttachEvent(kEventSelChange, callback); }
+
+    /** 发送事件的函数
+    */
+    virtual void SendEvent(EventType eventType, WPARAM wParam = 0, LPARAM lParam = 0, TCHAR tChar = 0,
+                           const UiPoint& mousePos = UiPoint()) override;
+    virtual void SendEvent(const EventArgs& event) override;
+
 protected:
     /** 绘制子控件
     */
@@ -216,8 +227,9 @@ private:
     * @param [in] top 框选的Y坐标top值
     * @param [in] bottom 框选的Y坐标bottom值
     * @param [in] bInListItem true表示框选范围在列表项的内容中，false表示只在空白处
+    * @return 如果有选择变化返回true，否则返回false
     */
-    void OnFrameSelection(int64_t top, int64_t bottom, bool bInListItem);
+    bool OnFrameSelection(int64_t top, int64_t bottom, bool bInListItem);
 
     /** 设置普通列表项（非Header、非置顶）的top坐标
     */
@@ -240,7 +252,7 @@ private:
 
     /** 在视图空白处点击了鼠标左键/右键
     */
-    void OnListCtrlClickedBlank();
+    bool OnListCtrlClickedBlank();
 
 private:
     /** ListCtrl 控件接口

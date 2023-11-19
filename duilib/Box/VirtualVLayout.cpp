@@ -170,10 +170,14 @@ void VirtualVLayout::LazyArrangeChild(UiRect rc) const
     //控件的左上角坐标值
     ui::UiPoint ptTile(iPosLeft, iPosTop);
 
+    VirtualListBox::RefreshDataList refreshDataList;
+    VirtualListBox::RefreshData refreshData;
     // 顶部index
     size_t nTopIndex = GetTopElementIndex(rc);
     size_t iCount = 0;
-    for (auto pControl : pOwnerBox->m_items) {
+    size_t nItemCount = pOwnerBox->m_items.size();
+    for (size_t nItemIndex = 0; nItemIndex < nItemCount; ++nItemIndex) {
+        Control* pControl = pOwnerBox->m_items[nItemIndex];
         if (pControl == nullptr) {
             continue;
         }
@@ -188,6 +192,10 @@ void VirtualVLayout::LazyArrangeChild(UiRect rc) const
                 pControl->SetVisible(true);
             }
             pOwnerBox->FillElement(pControl, nElementIndex);
+            refreshData.nItemIndex = nItemIndex;
+            refreshData.pControl = pControl;
+            refreshData.nElementIndex = nElementIndex;
+            refreshDataList.push_back(refreshData);
         }
         else {
             if (pControl->IsVisible()) {
@@ -200,7 +208,9 @@ void VirtualVLayout::LazyArrangeChild(UiRect rc) const
         ptTile.x = iPosLeft;
         ptTile.y += szItem.cy + GetChildMarginY();
     }
-    pOwnerBox->OnArrangeChild();
+    if (!refreshDataList.empty()) {
+        pOwnerBox->OnRefreshElements(refreshDataList);
+    }
 }
 
 size_t VirtualVLayout::AjustMaxItem(UiRect rc) const

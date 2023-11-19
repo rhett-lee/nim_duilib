@@ -65,6 +65,16 @@ public:
     */
     ListCtrlSubItem* GetSubItem(size_t columnIndex) const;
 
+    /** 获取鼠标所在位置的子控件
+    * @param [in] ptMouse 鼠标所在的位置，屏幕坐标点
+    */
+    ListCtrlSubItem* GetSubItem(const UiPoint& ptMouse) const;
+
+    /** 获取鼠标所在位置的子控件的列索引序号(哪一列)
+    * @param [in] ptMouse 鼠标所在的位置，屏幕坐标点
+    */
+    size_t GetSubItemIndex(const UiPoint& ptMouse) const;
+
     /** 设置是否在行首显示CheckBox
     * @param [in] bShow true表示在行首显示CheckBox，false表示不显示
     */

@@ -535,6 +535,51 @@ public:
     ImageList& GetImageList();
     const ImageList& GetImageList() const;
 
+public:
+    /** 监听选择子项的事件
+     * @param[in] callback 选择子项时的回调函数
+     * 参数说明:
+     *   wParam: 选择子项的界面控件接口指针，类型为：ListCtrlItem*
+     *	 lParam: 选择的数据项索引号，有效范围：[0, GetDataItemCount())
+     */
+    void AttachSelect(const EventCallback& callback) { AttachEvent(kEventSelect, callback); }
+
+    /** 监听选择项发生变化的事件
+     * @param[in] callback 选择子项时的回调函数
+     */
+    void AttachSelChange(const EventCallback& callback) { AttachEvent(kEventSelChange, callback); }
+
+    /** 监听双击事件
+     * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
+     * 参数说明:
+     *   wParam: 点击的子项的界面控件接口指针，类型为：ListCtrlItem*，如果未点击子项，则为0
+     *	 lParam: 关联的数据项索引号，有效范围：[0, GetDataItemCount()), 仅当wParam不为0时有效
+     */
+    void AttachDoubleClick(const EventCallback& callback) { AttachEvent(kEventMouseDoubleClick, callback); }
+
+    /** 绑定鼠标点击处理函数
+     * @param[in] callback 要绑定的回调函数
+     * 参数说明:
+     *   wParam: 点击的子项的界面控件接口指针，类型为：ListCtrlItem*，如果未点击子项，则为0
+     *	 lParam: 关联的数据项索引号，有效范围：[0, GetDataItemCount()), 仅当wParam不为0时有效
+     */
+    void AttachClick(const EventCallback& callback) { AttachEvent(kEventClick, callback); }
+
+    /** 绑定鼠标右键点击处理函数
+     * @param[in] callback 要绑定的回调函数
+     *  参数说明:
+     *   wParam: 点击的子项的界面控件接口指针，类型为：ListCtrlItem*，如果未点击子项，则为0
+     *	 lParam: 关联的数据项索引号，有效范围：[0, GetDataItemCount()), 仅当wParam不为0时有效
+     */
+    void AttachRClick(const EventCallback& callback) { AttachEvent(kEventRClick, callback); }
+
+    /** 监听回车事件
+     * @param[in] callback 收到回车时的回调函数
+      * 参数说明:
+     *   wParam: 关联的子项的界面控件接口指针，类型为：ListCtrlItem*，如果未点击子项，则为0
+     *	 lParam: 关联的数据项索引号，有效范围：[0, GetDataItemCount())
+     */
+    void AttachReturn(const EventCallback& callback) { this->AttachEvent(kEventReturn, callback); }
 
 protected:
     /** 控件初始化
