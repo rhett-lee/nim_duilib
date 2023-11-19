@@ -11,16 +11,16 @@ namespace ui
 /** 列表项的数据管理器
 */
 class ListCtrl;
-struct ListCtrlDataItem;
+struct ListCtrlSubItemData;
 class ListCtrlDataProvider : public ui::VirtualListBoxElement
 {
 public:
     //用于存储的数据结构
-    typedef ListCtrlData Storage;
+    typedef ListCtrlSubItemData2 Storage;
     typedef std::shared_ptr<Storage> StoragePtr;
     typedef std::vector<StoragePtr> StoragePtrList;
     typedef std::unordered_map<size_t, StoragePtrList> StorageMap;
-    typedef std::vector<ListCtrlRowData> RowDataList;
+    typedef std::vector<ListCtrlItemData> RowDataList;
 
 public:
     ListCtrlDataProvider();
@@ -104,28 +104,28 @@ public:
 
     /** 在最后添加一个数据项
     * @param [in] dataItem 数据项的内容
-    * @return 成功返回数据项的行索引号(rowIndex)，失败则返回Box::InvalidIndex
+    * @return 成功返回数据项的行索引号，失败则返回Box::InvalidIndex
     */
-    size_t AddDataItem(const ListCtrlDataItem& dataItem);
+    size_t AddDataItem(const ListCtrlSubItemData& dataItem);
 
     /** 在指定行位置添加一个数据项
     * @param [in] itemIndex 数据项的索引号
     * @param [in] dataItem 数据项的内容
     */
-    bool InsertDataItem(size_t itemIndex, const ListCtrlDataItem& dataItem);
+    bool InsertDataItem(size_t itemIndex, const ListCtrlSubItemData& dataItem);
 
     /** 设置指定<行,列>的数据项
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] dataItem 指定数据项的内容，列序号在dataItem.nColumnIndex中指定
     */
-    bool SetDataItem(size_t itemIndex, const ListCtrlDataItem& dataItem);
+    bool SetDataItem(size_t itemIndex, const ListCtrlSubItemData& dataItem);
 
     /** 获取指定<行,列>的数据项
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
     * @param [out] dataItem 指定数据项的内容
     */
-    bool GetDataItem(size_t itemIndex, size_t columnIndex, ListCtrlDataItem& dataItem) const;
+    bool GetDataItem(size_t itemIndex, size_t columnIndex, ListCtrlSubItemData& dataItem) const;
 
     /** 删除指定行的数据项
     * @param [in] itemIndex 数据项的索引号
@@ -141,13 +141,13 @@ public:
     * @param [in] itemData 关联的数据
     * @param [out] bChanged 返回数据是否变化
     */
-    bool SetDataItemRowData(size_t itemIndex, const ListCtrlRowData& itemData, bool& bChanged);
+    bool SetDataItemData(size_t itemIndex, const ListCtrlItemData& itemData, bool& bChanged);
 
     /** 获取数据项的行属性数据
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] itemData 关联的数据
     */
-    bool GetDataItemRowData(size_t itemIndex, ListCtrlRowData& itemData) const;
+    bool GetDataItemData(size_t itemIndex, ListCtrlItemData& itemData) const;
 
     /** 设置数据项的可见性
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
@@ -260,15 +260,15 @@ public:
 
     /** 设置数据项的自定义数据
     * @param [in] itemIndex 数据项的索引号
-    * @param [in] itemData 数据项关联的自定义数据
+    * @param [in] userData 数据项关联的自定义数据
     */
-    bool SetDataItemData(size_t itemIndex, size_t itemData);
+    bool SetDataItemUserData(size_t itemIndex, size_t userData);
 
     /** 获取数据项的自定义数据
     * @param [in] itemIndex 数据项的索引号
     * @return 返回数据项关联的自定义数据
     */
-    size_t GetDataItemData(size_t itemIndex) const;
+    size_t GetDataItemUserData(size_t itemIndex) const;
 
 public:
     /** 设置指定数据项的文本
@@ -392,11 +392,11 @@ public:
 private:
     /** 数据转换为存储数据结构
     */
-    void DataItemToStorage(const ListCtrlDataItem& item, Storage& storage) const;
+    void DataItemToStorage(const ListCtrlSubItemData& item, Storage& storage) const;
 
     /** 存储数据转换为结构数据
     */
-    void StorageToDataItem(const Storage& storage, ListCtrlDataItem& item) const;
+    void StorageToDataItem(const Storage& storage, ListCtrlSubItemData& item) const;
 
     /** 根据列序号查找列ID
     * @return 返回列ID，如果匹配不到，则返回Box::InvalidIndex
@@ -488,7 +488,7 @@ private:
     * @param [in] b 第二个比较数据
     * @return 如果 (a < b)，返回true，否则返回false
     */
-    bool SortDataCompareFunc(const ListCtrlData& a, const ListCtrlData& b) const;
+    bool SortDataCompareFunc(const ListCtrlSubItemData2& a, const ListCtrlSubItemData2& b) const;
 
     /** 更新个性化数据（隐藏行、行高、置顶等）
     */

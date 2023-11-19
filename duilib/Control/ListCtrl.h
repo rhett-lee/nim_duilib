@@ -130,13 +130,13 @@ public:
     * @param [in] dataItem 数据项的内容
     * @return 成功数据项的索引号，有效范围：[0, GetDataItemCount()); 失败则返回Box::InvalidIndex
     */
-    size_t AddDataItem(const ListCtrlDataItem& dataItem);
+    size_t AddDataItem(const ListCtrlSubItemData& dataItem);
 
     /** 在指定行位置添加一个数据项(行数+1)
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] dataItem 数据项的内容
     */
-    bool InsertDataItem(size_t itemIndex, const ListCtrlDataItem& dataItem);
+    bool InsertDataItem(size_t itemIndex, const ListCtrlSubItemData& dataItem);
 
     /** 删除指定行的数据项(行数-1)
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
@@ -162,13 +162,13 @@ public:
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] itemData 关联的数据
     */
-    bool SetDataItemRowData(size_t itemIndex, const ListCtrlRowData& itemData);
+    bool SetDataItemData(size_t itemIndex, const ListCtrlItemData& itemData);
 
     /** 获取数据项的行属性数据
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] itemData 关联的数据
     */
-    bool GetDataItemRowData(size_t itemIndex, ListCtrlRowData& itemData) const;
+    bool GetDataItemData(size_t itemIndex, ListCtrlItemData& itemData) const;
 
     /** 设置数据项的可见性
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
@@ -232,29 +232,29 @@ public:
 
     /** 设置数据项的自定义数据
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
-    * @param [in] itemData 数据项关联的自定义数据
+    * @param [in] userData 数据项关联的自定义数据
     */
-    bool SetDataItemData(size_t itemIndex, size_t itemData);
+    bool SetDataItemUserData(size_t itemIndex, size_t userData);
 
     /** 获取数据项的自定义数据
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @return 返回数据项关联的自定义数据
     */
-    size_t GetDataItemData(size_t itemIndex) const;
+    size_t GetDataItemUserData(size_t itemIndex) const;
 
 public:
     /** 设置指定<行,列>的数据项
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] dataItem 指定数据项的内容，列序号在dataItem.nColumnIndex中指定
     */
-    bool SetDataItem(size_t itemIndex, const ListCtrlDataItem& dataItem);
+    bool SetDataItem(size_t itemIndex, const ListCtrlSubItemData& dataItem);
 
     /** 获取指定<行,列>的数据项
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
     * @param [out] dataItem 指定数据项的内容
     */
-    bool GetDataItem(size_t itemIndex, size_t columnIndex, ListCtrlDataItem& dataItem) const;
+    bool GetDataItem(size_t itemIndex, size_t columnIndex, ListCtrlSubItemData& dataItem) const;
 
     /** 设置指定数据项的文本
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())

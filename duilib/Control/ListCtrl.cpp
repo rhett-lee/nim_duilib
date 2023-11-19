@@ -771,17 +771,15 @@ bool ListCtrl::SetDataItemCount(size_t itemCount)
     return bRet;
 }
 
-size_t ListCtrl::AddDataItem(const ListCtrlDataItem& dataItem)
+size_t ListCtrl::AddDataItem(const ListCtrlSubItemData& dataItem)
 {
-    bool bRet = m_pDataProvider->AddDataItem(dataItem);
-    if (bRet) {
-        UpdateHeaderColumnCheckBox(Box::InvalidIndex);
-        UpdateHeaderCheckBox();
-    }
-    return bRet;
+    size_t nItemIndex = m_pDataProvider->AddDataItem(dataItem);
+    UpdateHeaderColumnCheckBox(Box::InvalidIndex);
+    UpdateHeaderCheckBox();
+    return nItemIndex;
 }
 
-bool ListCtrl::InsertDataItem(size_t itemIndex, const ListCtrlDataItem& dataItem)
+bool ListCtrl::InsertDataItem(size_t itemIndex, const ListCtrlSubItemData& dataItem)
 {
     bool bRet = m_pDataProvider->InsertDataItem(itemIndex, dataItem);
     if (bRet) {
@@ -791,10 +789,10 @@ bool ListCtrl::InsertDataItem(size_t itemIndex, const ListCtrlDataItem& dataItem
     return bRet;
 }
 
-bool ListCtrl::SetDataItem(size_t itemIndex, const ListCtrlDataItem& dataItem)
+bool ListCtrl::SetDataItem(size_t itemIndex, const ListCtrlSubItemData& dataItem)
 {
     bool bCheckChanged = false;
-    ListCtrlDataItem oldDataItem;
+    ListCtrlSubItemData oldDataItem;
     if (GetDataItem(itemIndex, dataItem.nColumnIndex, oldDataItem)) {
         bCheckChanged = oldDataItem.bChecked != dataItem.bChecked;
     }
@@ -805,7 +803,7 @@ bool ListCtrl::SetDataItem(size_t itemIndex, const ListCtrlDataItem& dataItem)
     return bRet;
 }
 
-bool ListCtrl::GetDataItem(size_t itemIndex, size_t columnIndex, ListCtrlDataItem& dataItem) const
+bool ListCtrl::GetDataItem(size_t itemIndex, size_t columnIndex, ListCtrlSubItemData& dataItem) const
 {
     return m_pDataProvider->GetDataItem(itemIndex, columnIndex, dataItem);
 }
@@ -830,11 +828,11 @@ bool ListCtrl::DeleteAllDataItems()
     return bRet;
 }
 
-bool ListCtrl::SetDataItemRowData(size_t itemIndex, const ListCtrlRowData& itemData)
+bool ListCtrl::SetDataItemData(size_t itemIndex, const ListCtrlItemData& itemData)
 {
     bool bChanged = false;
-    ListCtrlRowData oldItemData;
-    bool bRet = m_pDataProvider->SetDataItemRowData(itemIndex, itemData, bChanged);
+    ListCtrlItemData oldItemData;
+    bool bRet = m_pDataProvider->SetDataItemData(itemIndex, itemData, bChanged);
     if (bChanged) {
         Refresh();
         if (oldItemData.bChecked != itemData.bChecked) {
@@ -844,14 +842,19 @@ bool ListCtrl::SetDataItemRowData(size_t itemIndex, const ListCtrlRowData& itemD
     return bRet;
 }
 
-bool ListCtrl::GetDataItemRowData(size_t itemIndex, ListCtrlRowData& itemData) const
+bool ListCtrl::GetDataItemData(size_t itemIndex, ListCtrlItemData& itemData) const
 {
-    return m_pDataProvider->GetDataItemRowData(itemIndex, itemData);
+    return m_pDataProvider->GetDataItemData(itemIndex, itemData);
 }
 
-bool ListCtrl::SetDataItemData(size_t itemIndex, size_t itemData)
+bool ListCtrl::SetDataItemUserData(size_t itemIndex, size_t userData)
 {
-    return m_pDataProvider->SetDataItemData(itemIndex, itemData);
+    return m_pDataProvider->SetDataItemUserData(itemIndex, userData);
+}
+
+size_t ListCtrl::GetDataItemUserData(size_t itemIndex) const
+{
+    return m_pDataProvider->GetDataItemUserData(itemIndex);
 }
 
 bool ListCtrl::SetDataItemVisible(size_t itemIndex, bool bVisible)
@@ -933,11 +936,6 @@ bool ListCtrl::SetDataItemHeight(size_t itemIndex, int32_t nItemHeight, bool bNe
 int32_t ListCtrl::GetDataItemHeight(size_t itemIndex) const
 {
     return m_pDataProvider->GetDataItemHeight(itemIndex);
-}
-
-size_t ListCtrl::GetDataItemData(size_t itemIndex) const
-{
-    return m_pDataProvider->GetDataItemData(itemIndex);
 }
 
 bool ListCtrl::SetDataItemText(size_t itemIndex, size_t columnIndex, const std::wstring& text)

@@ -521,12 +521,12 @@ void MainForm::InsertItemData(int32_t nRows, int32_t nColumns, int32_t nImageId)
 	ASSERT(pListCtrl->GetDataItemCount() == rowCount);
 	for (size_t itemIndex = 0; itemIndex < rowCount; ++itemIndex) {
 		for (size_t columnIndex = 0; columnIndex < columnCount; ++columnIndex) {
-			ui::ListCtrlDataItem dataItem;
-			dataItem.nColumnIndex = columnIndex;
-			dataItem.text = ui::StringHelper::Printf(L"第 %03d 行/第 %02d 列", itemIndex, columnIndex);
-			dataItem.bShowCheckBox = bShowCheckBox;
-			dataItem.nImageId = nImageId;
-			pListCtrl->SetDataItem(itemIndex, dataItem);
+			ui::ListCtrlSubItemData subItemData;
+			subItemData.nColumnIndex = columnIndex;
+			subItemData.text = ui::StringHelper::Printf(L"第 %03d 行/第 %02d 列", itemIndex, columnIndex);
+			subItemData.bShowCheckBox = bShowCheckBox;
+			subItemData.nImageId = nImageId;
+			pListCtrl->SetDataItem(itemIndex, subItemData);
 		}
 	}
 	//排序，默认为升序
@@ -566,17 +566,17 @@ void MainForm::RunListCtrlTest()
 
 	//基本功能测试
 	const std::wstring text = L"1";
-	ui::ListCtrlDataItem dataItem;
-	dataItem.nColumnIndex = 0;
-	dataItem.text = text;
-	const size_t nDataItemIndex = pListCtrl->AddDataItem(dataItem);
+	ui::ListCtrlSubItemData subItemData;
+	subItemData.nColumnIndex = 0;
+	subItemData.text = text;
+	const size_t nDataItemIndex = pListCtrl->AddDataItem(subItemData);
 	ASSERT(pListCtrl->GetDataItemText(nDataItemIndex, 0) == text);
 
-	ui::ListCtrlRowData itemData;
+	ui::ListCtrlItemData itemData;
 	itemData.nItemHeight = 63;
-	pListCtrl->SetDataItemRowData(nDataItemIndex, itemData);
+	pListCtrl->SetDataItemData(nDataItemIndex, itemData);
 	itemData.nItemHeight = 0;
-	pListCtrl->GetDataItemRowData(nDataItemIndex, itemData);
+	pListCtrl->GetDataItemData(nDataItemIndex, itemData);
 	ASSERT(itemData.nItemHeight == 63);
 
 	ASSERT(pListCtrl->IsDataItemVisible(nDataItemIndex) == true);
@@ -599,67 +599,67 @@ void MainForm::RunListCtrlTest()
 	ASSERT(pListCtrl->GetDataItemHeight(nDataItemIndex) == nOldHeight + 21);
 	pListCtrl->SetDataItemHeight(nDataItemIndex, nOldHeight, false);
 
-	ASSERT(pListCtrl->GetDataItemData(nDataItemIndex) == 0);
-	pListCtrl->SetDataItemData(nDataItemIndex, 1);
-	ASSERT(pListCtrl->GetDataItemData(nDataItemIndex) == 1);
-	pListCtrl->SetDataItemData(nDataItemIndex, 0);
+	ASSERT(pListCtrl->GetDataItemUserData(nDataItemIndex) == 0);
+	pListCtrl->SetDataItemUserData(nDataItemIndex, 1);
+	ASSERT(pListCtrl->GetDataItemUserData(nDataItemIndex) == 1);
+	pListCtrl->SetDataItemUserData(nDataItemIndex, 0);
 
-	dataItem.nColumnIndex = 1;
-	dataItem.text = L"3";
-	dataItem.textColor = ui::UiColor(ui::UiColors::Crimson);
-	dataItem.bkColor = ui::UiColor(ui::UiColors::BlanchedAlmond);
-	dataItem.bShowCheckBox = false;
-	dataItem.nImageId = 123;
-	dataItem.nTextFormat = ui::TEXT_CENTER | ui::TEXT_VCENTER;
-	pListCtrl->SetDataItem(nDataItemIndex, dataItem);
+	subItemData.nColumnIndex = 1;
+	subItemData.text = L"3";
+	subItemData.textColor = ui::UiColor(ui::UiColors::Crimson);
+	subItemData.bkColor = ui::UiColor(ui::UiColors::BlanchedAlmond);
+	subItemData.bShowCheckBox = false;
+	subItemData.nImageId = 123;
+	subItemData.nTextFormat = ui::TEXT_CENTER | ui::TEXT_VCENTER;
+	pListCtrl->SetDataItem(nDataItemIndex, subItemData);
 
-	ui::ListCtrlDataItem dataItem2;
-	pListCtrl->GetDataItem(nDataItemIndex, dataItem.nColumnIndex, dataItem2);
-	ASSERT(dataItem.nColumnIndex == dataItem2.nColumnIndex);
-	ASSERT(dataItem.text == std::wstring(dataItem2.text));
-	ASSERT(dataItem.textColor == dataItem2.textColor);
-	ASSERT(dataItem.bkColor == dataItem2.bkColor);
-	ASSERT(dataItem.bShowCheckBox == dataItem2.bShowCheckBox);
-	ASSERT(dataItem.nImageId == dataItem2.nImageId);
-	ASSERT(dataItem.nTextFormat == dataItem2.nTextFormat);
+	ui::ListCtrlSubItemData dataItem2;
+	pListCtrl->GetDataItem(nDataItemIndex, subItemData.nColumnIndex, dataItem2);
+	ASSERT(subItemData.nColumnIndex == dataItem2.nColumnIndex);
+	ASSERT(subItemData.text == std::wstring(dataItem2.text));
+	ASSERT(subItemData.textColor == dataItem2.textColor);
+	ASSERT(subItemData.bkColor == dataItem2.bkColor);
+	ASSERT(subItemData.bShowCheckBox == dataItem2.bShowCheckBox);
+	ASSERT(subItemData.nImageId == dataItem2.nImageId);
+	ASSERT(subItemData.nTextFormat == dataItem2.nTextFormat);
 
-	ASSERT(pListCtrl->GetDataItemText(nDataItemIndex, dataItem.nColumnIndex) == L"3");
+	ASSERT(pListCtrl->GetDataItemText(nDataItemIndex, subItemData.nColumnIndex) == L"3");
 
-	dataItem.text = L"2";
-	dataItem.nColumnIndex = 2;
-	pListCtrl->SetDataItemText(nDataItemIndex, dataItem.nColumnIndex, dataItem.text);
-	ASSERT(pListCtrl->GetDataItemText(nDataItemIndex, dataItem.nColumnIndex) == dataItem.text);
+	subItemData.text = L"2";
+	subItemData.nColumnIndex = 2;
+	pListCtrl->SetDataItemText(nDataItemIndex, subItemData.nColumnIndex, subItemData.text);
+	ASSERT(pListCtrl->GetDataItemText(nDataItemIndex, subItemData.nColumnIndex) == subItemData.text);
 
-	dataItem.bkColor = ui::UiColor(ui::UiColors::Aqua);
-	dataItem.nColumnIndex = 2;
-	pListCtrl->SetDataItemBkColor(nDataItemIndex, dataItem.nColumnIndex, dataItem.bkColor);
-	ASSERT(pListCtrl->GetDataItemBkColor(nDataItemIndex, dataItem.nColumnIndex) == dataItem.bkColor);
+	subItemData.bkColor = ui::UiColor(ui::UiColors::Aqua);
+	subItemData.nColumnIndex = 2;
+	pListCtrl->SetDataItemBkColor(nDataItemIndex, subItemData.nColumnIndex, subItemData.bkColor);
+	ASSERT(pListCtrl->GetDataItemBkColor(nDataItemIndex, subItemData.nColumnIndex) == subItemData.bkColor);
 
-	dataItem.textColor = ui::UiColor(ui::UiColors::Coral);
-	dataItem.nColumnIndex = 2;
-	pListCtrl->SetDataItemTextColor(nDataItemIndex, dataItem.nColumnIndex, dataItem.textColor);
-	ASSERT(pListCtrl->GetDataItemTextColor(nDataItemIndex, dataItem.nColumnIndex) == dataItem.textColor);
+	subItemData.textColor = ui::UiColor(ui::UiColors::Coral);
+	subItemData.nColumnIndex = 2;
+	pListCtrl->SetDataItemTextColor(nDataItemIndex, subItemData.nColumnIndex, subItemData.textColor);
+	ASSERT(pListCtrl->GetDataItemTextColor(nDataItemIndex, subItemData.nColumnIndex) == subItemData.textColor);
 
-	pListCtrl->SetShowCheckBox(nDataItemIndex, dataItem.nColumnIndex, false);
-	ASSERT(pListCtrl->IsShowCheckBox(nDataItemIndex, dataItem.nColumnIndex) == false);
-	pListCtrl->SetShowCheckBox(nDataItemIndex, dataItem.nColumnIndex, true);
-	ASSERT(pListCtrl->IsShowCheckBox(nDataItemIndex, dataItem.nColumnIndex) == true);
+	pListCtrl->SetShowCheckBox(nDataItemIndex, subItemData.nColumnIndex, false);
+	ASSERT(pListCtrl->IsShowCheckBox(nDataItemIndex, subItemData.nColumnIndex) == false);
+	pListCtrl->SetShowCheckBox(nDataItemIndex, subItemData.nColumnIndex, true);
+	ASSERT(pListCtrl->IsShowCheckBox(nDataItemIndex, subItemData.nColumnIndex) == true);
 
-	pListCtrl->SetCheckBoxCheck(nDataItemIndex, dataItem.nColumnIndex, false);
-	ASSERT(pListCtrl->IsCheckBoxChecked(nDataItemIndex, dataItem.nColumnIndex) == false);
-	pListCtrl->SetCheckBoxCheck(nDataItemIndex, dataItem.nColumnIndex, true);
-	ASSERT(pListCtrl->IsCheckBoxChecked(nDataItemIndex, dataItem.nColumnIndex) == true);
+	pListCtrl->SetCheckBoxCheck(nDataItemIndex, subItemData.nColumnIndex, false);
+	ASSERT(pListCtrl->IsCheckBoxChecked(nDataItemIndex, subItemData.nColumnIndex) == false);
+	pListCtrl->SetCheckBoxCheck(nDataItemIndex, subItemData.nColumnIndex, true);
+	ASSERT(pListCtrl->IsCheckBoxChecked(nDataItemIndex, subItemData.nColumnIndex) == true);
 
 	pListCtrl->SetDataItemImageId(nDataItemIndex, 666);
 	ASSERT(pListCtrl->GetDataItemImageId(nDataItemIndex) == 666);
 
-	pListCtrl->SetDataItemImageId(nDataItemIndex, dataItem.nColumnIndex, 667);
-	ASSERT(pListCtrl->GetDataItemImageId(nDataItemIndex, dataItem.nColumnIndex) == 667);
+	pListCtrl->SetDataItemImageId(nDataItemIndex, subItemData.nColumnIndex, 667);
+	ASSERT(pListCtrl->GetDataItemImageId(nDataItemIndex, subItemData.nColumnIndex) == 667);
 
-	dataItem.text = L"3";
-	dataItem.nColumnIndex = 1;
-	pListCtrl->InsertDataItem(nDataItemIndex, dataItem);
-	ASSERT(pListCtrl->GetDataItemText(nDataItemIndex, dataItem.nColumnIndex) == L"3");
+	subItemData.text = L"3";
+	subItemData.nColumnIndex = 1;
+	pListCtrl->InsertDataItem(nDataItemIndex, subItemData);
+	ASSERT(pListCtrl->GetDataItemText(nDataItemIndex, subItemData.nColumnIndex) == L"3");
 	//pListCtrl->DeleteDataItem(nDataItemIndex);
 	//pListCtrl->DeleteAllDataItems();
 
@@ -752,7 +752,7 @@ void MainForm::RunListCtrlTest()
 	pListCtrl->SetDataItemSelected(60, true);
 	ASSERT(pListCtrl->IsDataItemSelected(60));
 
-	ui::ListCtrlDataItem dataItem3;
+	ui::ListCtrlSubItemData dataItem3;
 	dataItem3.nColumnIndex = 0;
 	dataItem3.text = L"Test";
 	size_t nDataItemIndex3 = pListCtrl->AddDataItem(dataItem3);

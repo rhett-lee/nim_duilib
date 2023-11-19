@@ -600,7 +600,7 @@ size_t ListCtrlDataView::GetTopDataItemIndex(int64_t nScrollPosY) const
     int32_t nItemHeight = 0;
     const size_t dataItemCount = itemDataList.size();
     for (size_t index = 0; index < dataItemCount; ++index) {
-        const ListCtrlRowData& rowData = itemDataList[index];
+        const ListCtrlItemData& rowData = itemDataList[index];
         nItemHeight = rowData.nItemHeight;
         if (nItemHeight < 0) {
             //取默认行高
@@ -683,7 +683,7 @@ void ListCtrlDataView::GetDataItemsToShow(int64_t nScrollPosY, size_t maxCount,
     int32_t nItemHeight = 0;
     const size_t dataItemCount = itemDataList.size();
     for (size_t index = 0; index < dataItemCount; ++index) {
-        const ListCtrlRowData& rowData = itemDataList[index];
+        const ListCtrlItemData& rowData = itemDataList[index];
         nItemHeight = (rowData.nItemHeight < 0) ? nDefaultItemHeight : rowData.nItemHeight;
         if (!rowData.bVisible || (nItemHeight == 0)) {
             //不可见的，跳过
@@ -776,7 +776,7 @@ int32_t ListCtrlDataView::GetMaxDataItemsToShow(int64_t nScrollPosY, int32_t nRe
     int32_t nItemHeight = 0;
     const size_t dataItemCount = itemDataList.size();
     for (size_t index = 0; index < dataItemCount; ++index) {
-        const ListCtrlRowData& rowData = itemDataList[index];
+        const ListCtrlItemData& rowData = itemDataList[index];
         nItemHeight = (rowData.nItemHeight < 0) ? nDefaultItemHeight : rowData.nItemHeight;
         if (!rowData.bVisible || (nItemHeight == 0)) {
             //不可见的，跳过
@@ -826,7 +826,7 @@ int32_t ListCtrlDataView::GetMaxDataItemsToShow(int64_t nScrollPosY, int32_t nRe
         if (index >= dataItemCount) {
             continue;
         }
-        const ListCtrlRowData& rowData = itemDataList[index];
+        const ListCtrlItemData& rowData = itemDataList[index];
         nItemHeight = rowData.nItemHeight;
         if (nItemHeight < 0) {
             //取默认行高
@@ -870,7 +870,7 @@ int64_t ListCtrlDataView::GetDataItemTotalHeights(size_t itemIndex, bool bInclud
     int32_t nItemHeight = 0;
     const size_t dataItemCount = itemDataList.size();
     for (size_t index = 0; index < dataItemCount; ++index) {
-        const ListCtrlRowData& rowData = itemDataList[index];
+        const ListCtrlItemData& rowData = itemDataList[index];
         nItemHeight = (rowData.nItemHeight < 0) ? nDefaultItemHeight : rowData.nItemHeight;
         if (!rowData.bVisible || (nItemHeight == 0)) {
             //不可见的，跳过
@@ -1231,7 +1231,7 @@ size_t ListCtrlDataView::GetDisplayItemCount(bool /*bIsHorizontal*/, size_t& nCo
     return nRows * nColumns;
 }
 
-bool ListCtrlDataView::IsSelectableRowData(const ListCtrlRowData& rowData) const
+bool ListCtrlDataView::IsSelectableRowData(const ListCtrlItemData& rowData) const
 {
     //可见，并且不置顶显示
     return rowData.bVisible && (rowData.nAlwaysAtTop < 0);
@@ -1245,7 +1245,7 @@ bool ListCtrlDataView::IsSelectableElement(size_t nElementIndex) const
     if (pDataProvider != nullptr) {
         const ListCtrlDataProvider::RowDataList& itemDataList = pDataProvider->GetItemDataList();
         if (nElementIndex < itemDataList.size()) {
-            const ListCtrlRowData& rowData = itemDataList[nElementIndex];
+            const ListCtrlItemData& rowData = itemDataList[nElementIndex];
             bSelectable = IsSelectableRowData(rowData);
         }
     }
@@ -1555,7 +1555,7 @@ bool ListCtrlDataView::OnFrameSelection(int64_t top, int64_t bottom, bool bInLis
     int64_t totalItemHeight = 0;
     int32_t nItemHeight = 0;    
     for (size_t index = 0; index < dataItemCount; ++index) {
-        const ListCtrlRowData& rowData = itemDataList[index];
+        const ListCtrlItemData& rowData = itemDataList[index];
         nItemHeight = (rowData.nItemHeight < 0) ? nDefaultItemHeight : rowData.nItemHeight;
         if (!rowData.bVisible || (nItemHeight == 0)) {
             //不可见的，跳过
@@ -1578,7 +1578,7 @@ bool ListCtrlDataView::OnFrameSelection(int64_t top, int64_t bottom, bool bInLis
         bottom = 0;
     }
     for (size_t index = 0; index < dataItemCount; ++index) {
-        const ListCtrlRowData& rowData = itemDataList[index];
+        const ListCtrlItemData& rowData = itemDataList[index];
         nItemHeight = (rowData.nItemHeight < 0) ? nDefaultItemHeight : rowData.nItemHeight;
         if (!rowData.bVisible || (nItemHeight == 0)) {
             //不可见的，跳过

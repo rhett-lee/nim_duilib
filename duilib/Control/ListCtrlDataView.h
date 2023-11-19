@@ -12,7 +12,7 @@ namespace ui
 /** 列表数据显示和布局功能
 */
 class ListCtrl;
-struct ListCtrlRowData;
+struct ListCtrlItemData;
 class ListCtrlDataView : public VirtualListBox
 {
     friend class ListCtrlDataLayout;
@@ -243,7 +243,7 @@ private:
 
     /** 判断一个行数据是否可选择
     */
-    bool IsSelectableRowData(const ListCtrlRowData& rowData) const;
+    bool IsSelectableRowData(const ListCtrlItemData& rowData) const;
 
     /** 响应KeyDown消息
     * @return 返回true表示成功处理，返回false表示未处理此消息

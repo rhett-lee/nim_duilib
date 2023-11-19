@@ -7,6 +7,7 @@
 
 namespace ui
 {
+
 /** 列的基本信息（用于添加列）
 */
 struct ListCtrlColumn
@@ -23,9 +24,22 @@ struct ListCtrlColumn
     bool bNeedDpiScale = true;      //是否对数值做DPI自适应
 };
 
+/** 行的属性数据结构(行数据，每行1条数据)
+*/
+struct ListCtrlItemData
+{
+    bool bVisible = true;           //是否可见
+    bool bSelected = false;         //是否处于选择状态（是指本行是否被选中）
+    bool bChecked = false;          //是否处于勾选状态（是指本行前面的CheckBox是否被打勾）
+    int32_t nImageId = -1;          //图标资源Id，如果为-1表示行首不显示图标
+    int8_t nAlwaysAtTop = -1;       //是否置顶显示, -1表示不置顶, 0 或者 正数表示置顶，数值越大优先级越高，优先显示在最上面
+    int16_t nItemHeight = -1;       //行的高度, -1表示使用ListCtrl设置的默认行高，为DPI自适应处理后的值
+    size_t nUserData = 0;           //用户自定义数据
+};
+
 /** 列表数据项的基本信息（列数据，用于添加数据）
 */
-struct ListCtrlDataItem
+struct ListCtrlSubItemData
 {
     size_t nColumnIndex = 0;        //【必填】第几列，有效范围：[0, GetColumnCount())
     std::wstring text;              //文本内容
@@ -37,9 +51,9 @@ struct ListCtrlDataItem
     bool bChecked = false;          //是否处于勾选状态（CheckBox勾选状态）
 };
 
-/** 用于内部存储的数据结构(列数据，每<行,列>1条数据)
+/** 列表数据项用于内部存储的数据结构(列数据，每<行,列>1条数据)
 */
-struct ListCtrlData
+struct ListCtrlSubItemData2
 {
     UiString text;                  //文本内容
     uint16_t nTextFormat = 0;       //文本对齐方式等属性, 该属性仅应用于Header, 取值可参考：IRender.h中的DrawStringFormat，如果为-1，表示按默认配置的对齐方式
@@ -51,7 +65,6 @@ struct ListCtrlData
 
     //TODO: 待实现功能列表
     //Item的文本可以编辑
-    //事件响应：点击，右键等
     //多视图的支持：Report，Icon等，类似与Windows资源管理器
     //数据类型的支持：比如整型，日期型，下拉表，字符串类型等
 };
@@ -71,22 +84,9 @@ struct ListCtrlCompareParam
 * @param [in] param 数据关联的参数
 * @return 如果 (a < b)，返回true，否则返回false
 */
-typedef std::function<bool(const ListCtrlData& a, const ListCtrlData& b, const ListCtrlCompareParam& param)>
-ListCtrlDataCompareFunc;
-
-/** 行的属性数据结构(行数据，每行1条数据)
-*/
-struct ListCtrlRowData
-{
-    bool bVisible = true;           //是否可见
-    bool bSelected = false;         //是否处于选择状态（是指本行是否被选中）
-    bool bChecked = false;          //是否处于勾选状态（是指本行前面的CheckBox是否被打勾）
-    int32_t nImageId = -1;          //图标资源Id，如果为-1表示行首不显示图标
-    int8_t nAlwaysAtTop = -1;       //是否置顶显示, -1表示不置顶, 0 或者 正数表示置顶，数值越大优先级越高，优先显示在最上面
-    int16_t nItemHeight = -1;       //行的高度, -1表示使用ListCtrl设置的默认行高，为DPI自适应处理后的值
-    size_t nItemData = 0;           //用户自定义数据
-};
-
+typedef std::function<bool(const ListCtrlSubItemData2& a, 
+                           const ListCtrlSubItemData2& b, 
+                           const ListCtrlCompareParam& param)> ListCtrlDataCompareFunc;
 
 /** 列表中使用的CheckBox
 */
