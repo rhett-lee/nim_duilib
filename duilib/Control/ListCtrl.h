@@ -126,17 +126,17 @@ public:
     */
     bool SetDataItemCount(size_t itemCount);
 
-    /** 在最后添加一个数据项(行数+1)
+    /** 在最后添加一个数据项(行数+1), 数据关联到第一列（列序号为0）
     * @param [in] dataItem 数据项的内容
     * @return 成功数据项的索引号，有效范围：[0, GetDataItemCount()); 失败则返回Box::InvalidIndex
     */
-        size_t AddDataItem(const ListCtrlSubItemData& dataItem);
+    size_t AddDataItem(const ListCtrlSubItemData& dataItem);
 
     /** 在指定行位置添加一个数据项(行数+1)
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] dataItem 数据项的内容
     */
-        bool InsertDataItem(size_t itemIndex, const ListCtrlSubItemData& dataItem);
+    bool InsertDataItem(size_t itemIndex, const ListCtrlSubItemData& dataItem);
 
     /** 删除指定行的数据项(行数-1)
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())

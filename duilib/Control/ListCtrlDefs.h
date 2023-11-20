@@ -41,7 +41,6 @@ struct ListCtrlItemData
 */
 struct ListCtrlSubItemData
 {
-    size_t nColumnIndex = 0;        //【必填】第几列，有效范围：[0, GetColumnCount())
     std::wstring text;              //文本内容
     int32_t nTextFormat = -1;       //文本对齐方式等属性, 该属性仅应用于Header, 取值可参考：IRender.h中的DrawStringFormat，如果为-1，表示按默认配置的对齐方式
     int32_t nImageId = -1;          //图标资源Id，如果为-1表示不显示图标

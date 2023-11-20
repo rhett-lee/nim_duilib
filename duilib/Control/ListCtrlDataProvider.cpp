@@ -369,34 +369,6 @@ void ListCtrlDataProvider::StorageToSubItem(const Storage& storage, ListCtrlSubI
     item.bChecked = storage.bChecked;
 }
 
-size_t ListCtrlDataProvider::GetColumnId(size_t nColumnIndex) const
-{
-    ListCtrlHeader* pHeaderCtrl = nullptr;
-    if (m_pListCtrl != nullptr) {
-        pHeaderCtrl = m_pListCtrl->GetHeaderCtrl();
-    }
-    size_t columnId = Box::InvalidIndex;
-    ASSERT(pHeaderCtrl != nullptr);
-    if (pHeaderCtrl != nullptr) {
-        columnId = pHeaderCtrl->GetColumnId(nColumnIndex);
-    }     
-    return columnId;
-}
-
-size_t ListCtrlDataProvider::GetColumnIndex(size_t nColumnId) const
-{
-    ListCtrlHeader* pHeaderCtrl = nullptr;
-    if (m_pListCtrl != nullptr) {
-        pHeaderCtrl = m_pListCtrl->GetHeaderCtrl();
-    }
-    size_t columnIndex = Box::InvalidIndex;
-    ASSERT(pHeaderCtrl != nullptr);
-    if (pHeaderCtrl != nullptr) {
-        columnIndex = pHeaderCtrl->GetColumnIndex(nColumnId);
-    }
-    return columnIndex;
-}
-
 bool ListCtrlDataProvider::IsValidDataItemIndex(size_t itemIndex) const
 {
     return itemIndex < m_rowDataList.size();
@@ -516,16 +488,10 @@ bool ListCtrlDataProvider::SetColumnCheck(size_t columnId, bool bChecked)
 }
 
 ListCtrlDataProvider::StoragePtr ListCtrlDataProvider::GetSubItemStorage(
-    size_t itemIndex, size_t columnIndex) const
+    size_t itemIndex, size_t nColumnId) const
 {
-    ASSERT(IsValidDataItemIndex(itemIndex));
-    if (!IsValidDataItemIndex(itemIndex)) {
-        //索引号无效
-        return nullptr;
-    }
     StoragePtr pStorage;
-    size_t columnId = GetColumnId(columnIndex);
-    auto iter = m_dataMap.find(columnId);
+    auto iter = m_dataMap.find(nColumnId);
     ASSERT(iter != m_dataMap.end());
     if (iter != m_dataMap.end()) {
         const StoragePtrList& storageList = iter->second;
@@ -539,16 +505,10 @@ ListCtrlDataProvider::StoragePtr ListCtrlDataProvider::GetSubItemStorage(
 }
 
 ListCtrlDataProvider::StoragePtr ListCtrlDataProvider::GetSubItemStorageForWrite(
-    size_t itemIndex, size_t columnIndex)
+    size_t itemIndex, size_t nColumnId)
 {
-    ASSERT(IsValidDataItemIndex(itemIndex));
-    if (!IsValidDataItemIndex(itemIndex)) {
-        //索引号无效
-        return nullptr;
-    }
     StoragePtr pStorage;
-    size_t columnId = GetColumnId(columnIndex);
-    auto iter = m_dataMap.find(columnId);
+    auto iter = m_dataMap.find(nColumnId);
     ASSERT(iter != m_dataMap.end());
     if (iter != m_dataMap.end()) {
         StoragePtrList& storageList = iter->second;
@@ -686,9 +646,8 @@ void ListCtrlDataProvider::UpdateNormalMode()
     }
 }
 
-size_t ListCtrlDataProvider::AddDataItem(const ListCtrlSubItemData& dataItem)
+size_t ListCtrlDataProvider::AddDataItem(size_t columnId, const ListCtrlSubItemData& dataItem)
 {
-    size_t columnId = GetColumnId(dataItem.nColumnIndex);
     ASSERT(IsValidDataColumnId(columnId));
     if (!IsValidDataColumnId(columnId)) {
         return Box::InvalidIndex;
@@ -719,17 +678,15 @@ size_t ListCtrlDataProvider::AddDataItem(const ListCtrlSubItemData& dataItem)
     return nDataItemIndex;
 }
 
-bool ListCtrlDataProvider::InsertDataItem(size_t itemIndex, const ListCtrlSubItemData& dataItem)
+bool ListCtrlDataProvider::InsertDataItem(size_t itemIndex, size_t columnId, const ListCtrlSubItemData& dataItem)
 {
-    size_t columnId = GetColumnId(dataItem.nColumnIndex);
     ASSERT(IsValidDataColumnId(columnId));
     if (!IsValidDataColumnId(columnId)) {
         return false;
     }
-
     if (!IsValidDataItemIndex(itemIndex)) {
         //如果索引号无效，则按追加的方式添加数据
-        return (AddDataItem(dataItem) != Box::InvalidIndex);
+        return (AddDataItem(columnId, dataItem) != Box::InvalidIndex);
     }
 
     Storage storage;
@@ -1324,7 +1281,7 @@ size_t ListCtrlDataProvider::GetDataItemUserData(size_t itemIndex) const
 }
 
 
-bool ListCtrlDataProvider::SetSubItemData(size_t itemIndex, size_t columnIndex,
+bool ListCtrlDataProvider::SetSubItemData(size_t itemIndex, size_t columnId,
     const ListCtrlSubItemData& subItemData, bool& bCheckChanged)
 {
     bCheckChanged = false;
@@ -1332,7 +1289,6 @@ bool ListCtrlDataProvider::SetSubItemData(size_t itemIndex, size_t columnIndex,
     SubItemToStorage(subItemData, storage);
 
     bool bRet = false;
-    size_t columnId = GetColumnId(columnIndex);
     auto iter = m_dataMap.find(columnId);
     ASSERT(iter != m_dataMap.end());
     if (iter != m_dataMap.end()) {
@@ -1363,13 +1319,11 @@ bool ListCtrlDataProvider::SetSubItemData(size_t itemIndex, size_t columnIndex,
     return bRet;
 }
 
-bool ListCtrlDataProvider::GetSubItemData(size_t itemIndex, size_t columnIndex, ListCtrlSubItemData& subItemData) const
+bool ListCtrlDataProvider::GetSubItemData(size_t itemIndex, size_t columnId, ListCtrlSubItemData& subItemData) const
 {
     subItemData = ListCtrlSubItemData();
-    subItemData.nColumnIndex = columnIndex;
 
     bool bRet = false;
-    size_t columnId = GetColumnId(columnIndex);
     auto iter = m_dataMap.find(columnId);
     ASSERT(iter != m_dataMap.end());
     if (iter != m_dataMap.end()) {
@@ -1386,9 +1340,9 @@ bool ListCtrlDataProvider::GetSubItemData(size_t itemIndex, size_t columnIndex, 
     return bRet;
 }
 
-bool ListCtrlDataProvider::SetSubItemText(size_t itemIndex, size_t columnIndex, const std::wstring& text)
+bool ListCtrlDataProvider::SetSubItemText(size_t itemIndex, size_t columnId, const std::wstring& text)
 {
-    StoragePtr pStorage = GetSubItemStorageForWrite(itemIndex, columnIndex);
+    StoragePtr pStorage = GetSubItemStorageForWrite(itemIndex, columnId);
     ASSERT(pStorage != nullptr);
     if (pStorage == nullptr) {
         //索引号无效
@@ -1401,9 +1355,9 @@ bool ListCtrlDataProvider::SetSubItemText(size_t itemIndex, size_t columnIndex, 
     return true;
 }
 
-std::wstring ListCtrlDataProvider::GetSubItemText(size_t itemIndex, size_t columnIndex) const
+std::wstring ListCtrlDataProvider::GetSubItemText(size_t itemIndex, size_t columnId) const
 {
-    StoragePtr pStorage = GetSubItemStorage(itemIndex, columnIndex);
+    StoragePtr pStorage = GetSubItemStorage(itemIndex, columnId);
     ASSERT(pStorage != nullptr);
     if (pStorage == nullptr) {
         //索引号无效
@@ -1412,9 +1366,9 @@ std::wstring ListCtrlDataProvider::GetSubItemText(size_t itemIndex, size_t colum
     return pStorage->text.c_str();
 }
 
-bool ListCtrlDataProvider::SetSubItemTextColor(size_t itemIndex, size_t columnIndex, const UiColor& textColor)
+bool ListCtrlDataProvider::SetSubItemTextColor(size_t itemIndex, size_t columnId, const UiColor& textColor)
 {
-    StoragePtr pStorage = GetSubItemStorageForWrite(itemIndex, columnIndex);
+    StoragePtr pStorage = GetSubItemStorageForWrite(itemIndex, columnId);
     ASSERT(pStorage != nullptr);
     if (pStorage == nullptr) {
         //索引号无效
@@ -1427,10 +1381,10 @@ bool ListCtrlDataProvider::SetSubItemTextColor(size_t itemIndex, size_t columnIn
     return true;
 }
 
-bool ListCtrlDataProvider::GetSubItemTextColor(size_t itemIndex, size_t columnIndex, UiColor& textColor) const
+bool ListCtrlDataProvider::GetSubItemTextColor(size_t itemIndex, size_t columnId, UiColor& textColor) const
 {
     textColor = UiColor();
-    StoragePtr pStorage = GetSubItemStorage(itemIndex, columnIndex);
+    StoragePtr pStorage = GetSubItemStorage(itemIndex, columnId);
     ASSERT(pStorage != nullptr);
     if (pStorage == nullptr) {
         //索引号无效
@@ -1440,9 +1394,9 @@ bool ListCtrlDataProvider::GetSubItemTextColor(size_t itemIndex, size_t columnIn
     return true;
 }
 
-bool ListCtrlDataProvider::SetSubItemTextFormat(size_t itemIndex, size_t columnIndex, int32_t nTextFormat)
+bool ListCtrlDataProvider::SetSubItemTextFormat(size_t itemIndex, size_t columnId, int32_t nTextFormat)
 {
-    StoragePtr pStorage = GetSubItemStorageForWrite(itemIndex, columnIndex);
+    StoragePtr pStorage = GetSubItemStorageForWrite(itemIndex, columnId);
     ASSERT(pStorage != nullptr);
     if (pStorage == nullptr) {
         //索引号无效
@@ -1489,10 +1443,10 @@ bool ListCtrlDataProvider::SetSubItemTextFormat(size_t itemIndex, size_t columnI
     return true;
 }
 
-int32_t ListCtrlDataProvider::GetSubItemTextFormat(size_t itemIndex, size_t columnIndex) const
+int32_t ListCtrlDataProvider::GetSubItemTextFormat(size_t itemIndex, size_t columnId) const
 {
     int32_t nTextFormat = 0;
-    StoragePtr pStorage = GetSubItemStorage(itemIndex, columnIndex);
+    StoragePtr pStorage = GetSubItemStorage(itemIndex, columnId);
     ASSERT(pStorage != nullptr);
     if (pStorage != nullptr) {
         nTextFormat = pStorage->nTextFormat;
@@ -1503,9 +1457,9 @@ int32_t ListCtrlDataProvider::GetSubItemTextFormat(size_t itemIndex, size_t colu
     return nTextFormat;
 }
 
-bool ListCtrlDataProvider::SetSubItemBkColor(size_t itemIndex, size_t columnIndex, const UiColor& bkColor)
+bool ListCtrlDataProvider::SetSubItemBkColor(size_t itemIndex, size_t columnId, const UiColor& bkColor)
 {
-    StoragePtr pStorage = GetSubItemStorageForWrite(itemIndex, columnIndex);
+    StoragePtr pStorage = GetSubItemStorageForWrite(itemIndex, columnId);
     ASSERT(pStorage != nullptr);
     if (pStorage == nullptr) {
         //索引号无效
@@ -1518,10 +1472,10 @@ bool ListCtrlDataProvider::SetSubItemBkColor(size_t itemIndex, size_t columnInde
     return true;
 }
 
-bool ListCtrlDataProvider::GetSubItemBkColor(size_t itemIndex, size_t columnIndex, UiColor& bkColor) const
+bool ListCtrlDataProvider::GetSubItemBkColor(size_t itemIndex, size_t columnId, UiColor& bkColor) const
 {
     bkColor = UiColor();
-    StoragePtr pStorage = GetSubItemStorage(itemIndex, columnIndex);
+    StoragePtr pStorage = GetSubItemStorage(itemIndex, columnId);
     ASSERT(pStorage != nullptr);
     if (pStorage == nullptr) {
         //索引号无效
@@ -1531,9 +1485,9 @@ bool ListCtrlDataProvider::GetSubItemBkColor(size_t itemIndex, size_t columnInde
     return true;
 }
 
-bool ListCtrlDataProvider::IsSubItemShowCheckBox(size_t itemIndex, size_t columnIndex) const
+bool ListCtrlDataProvider::IsSubItemShowCheckBox(size_t itemIndex, size_t columnId) const
 {
-    StoragePtr pStorage = GetSubItemStorage(itemIndex, columnIndex);
+    StoragePtr pStorage = GetSubItemStorage(itemIndex, columnId);
     ASSERT(pStorage != nullptr);
     if (pStorage == nullptr) {
         //索引号无效
@@ -1542,9 +1496,9 @@ bool ListCtrlDataProvider::IsSubItemShowCheckBox(size_t itemIndex, size_t column
     return pStorage->bShowCheckBox;
 }
 
-bool ListCtrlDataProvider::SetSubItemShowCheckBox(size_t itemIndex, size_t columnIndex, bool bShowCheckBox)
+bool ListCtrlDataProvider::SetSubItemShowCheckBox(size_t itemIndex, size_t columnId, bool bShowCheckBox)
 {
-    StoragePtr pStorage = GetSubItemStorageForWrite(itemIndex, columnIndex);
+    StoragePtr pStorage = GetSubItemStorageForWrite(itemIndex, columnId);
     ASSERT(pStorage != nullptr);
     if (pStorage == nullptr) {
         //索引号无效
@@ -1557,9 +1511,9 @@ bool ListCtrlDataProvider::SetSubItemShowCheckBox(size_t itemIndex, size_t colum
     return true;
 }
 
-bool ListCtrlDataProvider::SetSubItemCheck(size_t itemIndex, size_t columnIndex, bool bChecked)
+bool ListCtrlDataProvider::SetSubItemCheck(size_t itemIndex, size_t columnId, bool bChecked)
 {
-    StoragePtr pStorage = GetSubItemStorageForWrite(itemIndex, columnIndex);
+    StoragePtr pStorage = GetSubItemStorageForWrite(itemIndex, columnId);
     ASSERT(pStorage != nullptr);
     if (pStorage == nullptr) {
         //索引号无效
@@ -1576,10 +1530,10 @@ bool ListCtrlDataProvider::SetSubItemCheck(size_t itemIndex, size_t columnIndex,
     return false;
 }
 
-bool ListCtrlDataProvider::GetSubItemCheck(size_t itemIndex, size_t columnIndex, bool& bChecked) const
+bool ListCtrlDataProvider::GetSubItemCheck(size_t itemIndex, size_t columnId, bool& bChecked) const
 {
     bChecked = false;
-    StoragePtr pStorage = GetSubItemStorage(itemIndex, columnIndex);
+    StoragePtr pStorage = GetSubItemStorage(itemIndex, columnId);
     ASSERT(pStorage != nullptr);
     if (pStorage == nullptr) {
         //索引号无效
@@ -1593,9 +1547,9 @@ bool ListCtrlDataProvider::GetSubItemCheck(size_t itemIndex, size_t columnIndex,
     return false;
 }
 
-bool ListCtrlDataProvider::SetSubItemImageId(size_t itemIndex, size_t columnIndex, int32_t imageId)
+bool ListCtrlDataProvider::SetSubItemImageId(size_t itemIndex, size_t columnId, int32_t imageId)
 {
-    StoragePtr pStorage = GetSubItemStorageForWrite(itemIndex, columnIndex);
+    StoragePtr pStorage = GetSubItemStorageForWrite(itemIndex, columnId);
     ASSERT(pStorage != nullptr);
     if (pStorage == nullptr) {
         //索引号无效
@@ -1611,10 +1565,10 @@ bool ListCtrlDataProvider::SetSubItemImageId(size_t itemIndex, size_t columnInde
     return true;
 }
 
-int32_t ListCtrlDataProvider::GetSubItemImageId(size_t itemIndex, size_t columnIndex) const
+int32_t ListCtrlDataProvider::GetSubItemImageId(size_t itemIndex, size_t columnId) const
 {
     int32_t nImageId = -1;
-    StoragePtr pStorage = GetSubItemStorage(itemIndex, columnIndex);
+    StoragePtr pStorage = GetSubItemStorage(itemIndex, columnId);
     ASSERT(pStorage != nullptr);
     if (pStorage != nullptr) {
         nImageId = pStorage->nImageId;
