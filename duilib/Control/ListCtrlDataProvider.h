@@ -114,19 +114,6 @@ public:
     */
     bool InsertDataItem(size_t itemIndex, const ListCtrlSubItemData& dataItem);
 
-    /** 设置指定<行,列>的数据项
-    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
-    * @param [in] dataItem 指定数据项的内容，列序号在dataItem.nColumnIndex中指定
-    */
-    bool SetDataItem(size_t itemIndex, const ListCtrlSubItemData& dataItem);
-
-    /** 获取指定<行,列>的数据项
-    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
-    * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
-    * @param [out] dataItem 指定数据项的内容
-    */
-    bool GetDataItem(size_t itemIndex, size_t columnIndex, ListCtrlSubItemData& dataItem) const;
-
     /** 删除指定行的数据项
     * @param [in] itemIndex 数据项的索引号
     */
@@ -271,108 +258,124 @@ public:
     size_t GetDataItemUserData(size_t itemIndex) const;
 
 public:
+    /** 设置指定<行,列>的数据项
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
+    * @param [in] subItemData 指定数据项的内容，列序号在dataItem.nColumnIndex中指定
+    * @param [out] bCheckChanged bChecked状态是否变化
+    */
+    bool SetSubItemData(size_t itemIndex, size_t columnIndex,
+                        const ListCtrlSubItemData& subItemData, bool& bCheckChanged);
+
+    /** 获取指定<行,列>的数据项
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
+    * @param [out] subItemData 指定数据项的内容
+    */
+    bool GetSubItemData(size_t itemIndex, size_t columnIndex, ListCtrlSubItemData& subItemData) const;
+
     /** 设置指定数据项的文本
     * @param [in] itemIndex 数据项的索引号
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
     * @param [in] text 需要设置的文本内容
     */
-    bool SetDataItemText(size_t itemIndex, size_t columnIndex, const std::wstring& text);
+    bool SetSubItemText(size_t itemIndex, size_t columnIndex, const std::wstring& text);
 
     /** 获取指定数据项的文本
     * @param [in] itemIndex 数据项的索引号
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
     * @return 数据项关联的文本内容
     */
-    std::wstring GetDataItemText(size_t itemIndex, size_t columnIndex) const;
+    std::wstring GetSubItemText(size_t itemIndex, size_t columnIndex) const;
 
     /** 设置指定数据项的文本颜色
     * @param [in] itemIndex 数据项的索引号
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
     * @param [in] textColor 需要设置的文本颜色
     */
-    bool SetDataItemTextColor(size_t itemIndex, size_t columnIndex, const UiColor& textColor);
+    bool SetSubItemTextColor(size_t itemIndex, size_t columnIndex, const UiColor& textColor);
 
     /** 获取指定数据项的文本颜色
     * @param [in] itemIndex 数据项的索引号
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
     * @param [out] textColor 数据项关联的文本颜色
     */
-    bool GetDataItemTextColor(size_t itemIndex, size_t columnIndex, UiColor& textColor) const;
+    bool GetSubItemTextColor(size_t itemIndex, size_t columnIndex, UiColor& textColor) const;
 
     /** 设置指定数据项的文本属性（文本对齐方式等）
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
     * @param [in] nTextFormat 需要设置的文本属性
     */
-    bool SetDataItemTextFormat(size_t itemIndex, size_t columnIndex, int32_t nTextFormat);
+    bool SetSubItemTextFormat(size_t itemIndex, size_t columnIndex, int32_t nTextFormat);
 
     /** 获取指定数据项的文本属性（文本对齐方式等）
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
     * @return 数据项关联的文本属性
     */
-    int32_t GetDataItemTextFormat(size_t itemIndex, size_t columnIndex) const;
+    int32_t GetSubItemTextFormat(size_t itemIndex, size_t columnIndex) const;
 
     /** 设置指定数据项的背景颜色
     * @param [in] itemIndex 数据项的索引号
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
     * @param [in] bkColor 需要设置的背景颜色
     */
-    bool SetDataItemBkColor(size_t itemIndex, size_t columnIndex, const UiColor& bkColor);
+    bool SetSubItemBkColor(size_t itemIndex, size_t columnIndex, const UiColor& bkColor);
 
     /** 获取指定数据项的背景颜色
     * @param [in] itemIndex 数据项的索引号
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
     * @param [out] bkColor 数据项关联的背景颜色
     */
-    bool GetDataItemBkColor(size_t itemIndex, size_t columnIndex, UiColor& bkColor) const;
+    bool GetSubItemBkColor(size_t itemIndex, size_t columnIndex, UiColor& bkColor) const;
 
     /** 是否显示CheckBox
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
     */
-    bool IsShowCheckBox(size_t itemIndex, size_t columnIndex) const;
+    bool IsSubItemShowCheckBox(size_t itemIndex, size_t columnIndex) const;
 
     /** 设置是否显示CheckBox
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
     * @param [in] bShowCheckBox true表示显示，false表示不显示
     */
-    bool SetShowCheckBox(size_t itemIndex, size_t columnIndex, bool bShowCheckBox);
+    bool SetSubItemShowCheckBox(size_t itemIndex, size_t columnIndex, bool bShowCheckBox);
 
     /** 设置CheckBox的勾选状态
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
-    * @param [in] bSelected true表示勾选，false表示不勾选
+    * @param [in] bChecked true表示勾选，false表示不勾选
     */
-    bool SetCheckBoxCheck(size_t itemIndex, size_t columnIndex, bool bSelected);
+    bool SetSubItemCheck(size_t itemIndex, size_t columnIndex, bool bChecked);
 
     /** 获取CheckBox的勾选状态
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
-    * @param [out] bSelected true表示勾选，false表示不勾选
+    * @param [out] bChecked true表示勾选，false表示不勾选
     */
-    bool GetCheckBoxCheck(size_t itemIndex, size_t columnIndex, bool& bSelected) const;
+    bool GetSubItemCheck(size_t itemIndex, size_t columnIndex, bool& bChecked) const;
 
-    /** 获取选择状态(bSelect)
+    /** 获取某一列的勾选状态(bChecked)
     * @param [in] columnId 列的ID
     * @param [out] bChecked 是否选择
     * @param [out] bPartChecked 是否部分选择
     */
-    void GetCheckBoxCheckStatus(size_t columnId, bool& bChecked, bool& bPartChecked) const;
+    void GetColumnCheckStatus(size_t columnId, bool& bChecked, bool& bPartChecked) const;
 
     /** 设置该列的图标
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
     * @param [in] imageId 图标资源Id，如果为-1表示行首不显示图标, 该ID由ImageList生成
     */
-    bool SetDataItemImageId(size_t itemIndex, size_t columnIndex, int32_t imageId);
+    bool SetSubItemImageId(size_t itemIndex, size_t columnIndex, int32_t imageId);
 
     /** 获取该列的图标
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
     */
-    int32_t GetDataItemImageId(size_t itemIndex, size_t columnIndex) const;
+    int32_t GetSubItemImageId(size_t itemIndex, size_t columnIndex) const;
 
     /** 对数据排序
     * @param [in] columnId 列的ID
@@ -392,11 +395,11 @@ public:
 private:
     /** 数据转换为存储数据结构
     */
-    void DataItemToStorage(const ListCtrlSubItemData& item, Storage& storage) const;
+    void SubItemToStorage(const ListCtrlSubItemData& item, Storage& storage) const;
 
     /** 存储数据转换为结构数据
     */
-    void StorageToDataItem(const Storage& storage, ListCtrlSubItemData& item) const;
+    void StorageToSubItem(const Storage& storage, ListCtrlSubItemData& item) const;
 
     /** 根据列序号查找列ID
     * @return 返回列ID，如果匹配不到，则返回Box::InvalidIndex
@@ -423,30 +426,30 @@ private:
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
     * @return 如果失败则返回nullptr
     */
-    StoragePtr GetDataItemStorage(size_t itemIndex, size_t columnIndex) const;
+    StoragePtr GetSubItemStorage(size_t itemIndex, size_t columnIndex) const;
 
     /** 获取指定数据项的数据, 写入
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
     * @return 如果失败则返回nullptr
     */
-    StoragePtr GetDataItemStorageForWrite(size_t itemIndex, size_t columnIndex);
+    StoragePtr GetSubItemStorageForWrite(size_t itemIndex, size_t columnIndex);
 
     /** 获取各个列的数据，用于UI展示
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] columnIdList 列ID列表
     * @param [out] storageList 返回数据列表
     */
-    bool GetDataItemStorageList(size_t itemIndex,
-                                std::vector<size_t>& columnIdList,
-                                StoragePtrList& storageList) const;
+    bool GetSubItemStorageList(size_t itemIndex,
+                               std::vector<size_t>& columnIdList,
+                               StoragePtrList& storageList) const;
 
     /** 某个数据项的Check勾选状态变化(列级)
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] nColumnId 列ID
     * @param [in] bChecked 是否勾选
     */
-    void OnDataItemColumnChecked(size_t itemIndex, size_t nColumnId, bool bChecked);
+    void OnSubItemColumnChecked(size_t itemIndex, size_t nColumnId, bool bChecked);
 
     /** 同步UI的Check状态(列级别的CheckBox)
     * @param [in] nColumnId 列ID
