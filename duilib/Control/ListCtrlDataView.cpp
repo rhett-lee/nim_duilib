@@ -590,12 +590,12 @@ size_t ListCtrlDataView::GetTopDataItemIndex(int64_t nScrollPosY) const
     if (nScrollPosY <= 0) {
         return itemIndex;
     }
-    ListCtrlDataProvider* pDataProvider = dynamic_cast<ListCtrlDataProvider*>(GetDataProvider());
+    ListCtrlData* pDataProvider = dynamic_cast<ListCtrlData*>(GetDataProvider());
     ASSERT(pDataProvider != nullptr);
     if (pDataProvider == nullptr) {
         return itemIndex;
     }
-    const ListCtrlDataProvider::RowDataList& itemDataList = pDataProvider->GetItemDataList();
+    const ListCtrlData::RowDataList& itemDataList = pDataProvider->GetItemDataList();
     int64_t totalItemHeight = 0;
     int32_t nItemHeight = 0;
     const size_t dataItemCount = itemDataList.size();
@@ -627,12 +627,12 @@ int32_t ListCtrlDataView::GetDataItemHeight(size_t itemIndex) const
         return 0;
     }
     nItemHeight = m_pListCtrl->GetDataItemHeight();
-    ListCtrlDataProvider* pDataProvider = dynamic_cast<ListCtrlDataProvider*>(GetDataProvider());
+    ListCtrlData* pDataProvider = dynamic_cast<ListCtrlData*>(GetDataProvider());
     ASSERT(pDataProvider != nullptr);
     if (pDataProvider == nullptr) {
         return 0;
     }
-    const ListCtrlDataProvider::RowDataList& itemDataList = pDataProvider->GetItemDataList();
+    const ListCtrlData::RowDataList& itemDataList = pDataProvider->GetItemDataList();
     ASSERT(itemIndex < itemDataList.size());
     if (itemIndex < itemDataList.size()) {
         if (itemDataList[itemIndex].nItemHeight >= 0) {
@@ -662,7 +662,7 @@ void ListCtrlDataView::GetDataItemsToShow(int64_t nScrollPosY, size_t maxCount,
     if (maxCount == 0) {
         return;
     }
-    ListCtrlDataProvider* pDataProvider = dynamic_cast<ListCtrlDataProvider*>(GetDataProvider());
+    ListCtrlData* pDataProvider = dynamic_cast<ListCtrlData*>(GetDataProvider());
     ASSERT(pDataProvider != nullptr);
     if (pDataProvider == nullptr) {
         return;
@@ -678,7 +678,7 @@ void ListCtrlDataView::GetDataItemsToShow(int64_t nScrollPosY, size_t maxCount,
     };
     std::vector<AlwaysAtTopData> alwaysAtTopItemList;
     
-    const ListCtrlDataProvider::RowDataList& itemDataList = pDataProvider->GetItemDataList();
+    const ListCtrlData::RowDataList& itemDataList = pDataProvider->GetItemDataList();
     int64_t totalItemHeight = 0;
     int32_t nItemHeight = 0;
     const size_t dataItemCount = itemDataList.size();
@@ -755,7 +755,7 @@ int32_t ListCtrlDataView::GetMaxDataItemsToShow(int64_t nScrollPosY, int32_t nRe
     if (nRectHeight <= 0) {
         return 0;
     }
-    ListCtrlDataProvider* pDataProvider = dynamic_cast<ListCtrlDataProvider*>(GetDataProvider());
+    ListCtrlData* pDataProvider = dynamic_cast<ListCtrlData*>(GetDataProvider());
     ASSERT(pDataProvider != nullptr);
     if (pDataProvider == nullptr) {
         return 0;
@@ -771,7 +771,7 @@ int32_t ListCtrlDataView::GetMaxDataItemsToShow(int64_t nScrollPosY, int32_t nRe
     std::vector<AlwaysAtTopData> alwaysAtTopItemList;
     std::vector<size_t> itemIndexList;
 
-    const ListCtrlDataProvider::RowDataList& itemDataList = pDataProvider->GetItemDataList();
+    const ListCtrlData::RowDataList& itemDataList = pDataProvider->GetItemDataList();
     int64_t totalItemHeight = 0;
     int32_t nItemHeight = 0;
     const size_t dataItemCount = itemDataList.size();
@@ -859,13 +859,13 @@ int64_t ListCtrlDataView::GetDataItemTotalHeights(size_t itemIndex, bool bInclud
     if (m_pListCtrl == nullptr) {
         return 0;
     }
-    ListCtrlDataProvider* pDataProvider = dynamic_cast<ListCtrlDataProvider*>(GetDataProvider());
+    ListCtrlData* pDataProvider = dynamic_cast<ListCtrlData*>(GetDataProvider());
     ASSERT(pDataProvider != nullptr);
     if (pDataProvider == nullptr) {
         return 0;
     }
     const int32_t nDefaultItemHeight = m_pListCtrl->GetDataItemHeight(); //Ä¬ÈÏÐÐ¸ß
-    const ListCtrlDataProvider::RowDataList& itemDataList = pDataProvider->GetItemDataList();
+    const ListCtrlData::RowDataList& itemDataList = pDataProvider->GetItemDataList();
     int64_t totalItemHeight = 0;
     int32_t nItemHeight = 0;
     const size_t dataItemCount = itemDataList.size();
@@ -898,7 +898,7 @@ int64_t ListCtrlDataView::GetDataItemTotalHeights(size_t itemIndex, bool bInclud
 bool ListCtrlDataView::IsNormalMode() const
 {
     bool bNormalMode = true;
-    ListCtrlDataProvider* pDataProvider = dynamic_cast<ListCtrlDataProvider*>(GetDataProvider());
+    ListCtrlData* pDataProvider = dynamic_cast<ListCtrlData*>(GetDataProvider());
     if (pDataProvider != nullptr) {
         bNormalMode = pDataProvider->IsNormalMode();
     }
@@ -1240,10 +1240,10 @@ bool ListCtrlDataView::IsSelectableRowData(const ListCtrlItemData& rowData) cons
 bool ListCtrlDataView::IsSelectableElement(size_t nElementIndex) const
 {
     bool bSelectable = true;
-    ListCtrlDataProvider* pDataProvider = dynamic_cast<ListCtrlDataProvider*>(GetDataProvider());
+    ListCtrlData* pDataProvider = dynamic_cast<ListCtrlData*>(GetDataProvider());
     ASSERT(pDataProvider != nullptr);
     if (pDataProvider != nullptr) {
-        const ListCtrlDataProvider::RowDataList& itemDataList = pDataProvider->GetItemDataList();
+        const ListCtrlData::RowDataList& itemDataList = pDataProvider->GetItemDataList();
         if (nElementIndex < itemDataList.size()) {
             const ListCtrlItemData& rowData = itemDataList[nElementIndex];
             bSelectable = IsSelectableRowData(rowData);
@@ -1254,12 +1254,12 @@ bool ListCtrlDataView::IsSelectableElement(size_t nElementIndex) const
 
 size_t ListCtrlDataView::FindSelectableElement(size_t nElementIndex, bool bForward) const
 {
-    ListCtrlDataProvider* pDataProvider = dynamic_cast<ListCtrlDataProvider*>(GetDataProvider());
+    ListCtrlData* pDataProvider = dynamic_cast<ListCtrlData*>(GetDataProvider());
     ASSERT(pDataProvider != nullptr);
     if (pDataProvider == nullptr) {
         return nElementIndex;
     }
-    const ListCtrlDataProvider::RowDataList& itemDataList = pDataProvider->GetItemDataList();
+    const ListCtrlData::RowDataList& itemDataList = pDataProvider->GetItemDataList();
     const size_t nElementCount = itemDataList.size();
     if ((nElementCount == 0) || (nElementIndex >= nElementCount)) {
         return Box::InvalidIndex;
@@ -1536,12 +1536,12 @@ bool ListCtrlDataView::OnFrameSelection(int64_t top, int64_t bottom, bool bInLis
     if (m_pListCtrl == nullptr) {
         return false;
     }
-    ListCtrlDataProvider* pDataProvider = dynamic_cast<ListCtrlDataProvider*>(GetDataProvider());
+    ListCtrlData* pDataProvider = dynamic_cast<ListCtrlData*>(GetDataProvider());
     ASSERT(pDataProvider != nullptr);
     if (pDataProvider == nullptr) {
         return false;
     }
-    const ListCtrlDataProvider::RowDataList& itemDataList = pDataProvider->GetItemDataList();
+    const ListCtrlData::RowDataList& itemDataList = pDataProvider->GetItemDataList();
     const size_t dataItemCount = itemDataList.size();
     if (dataItemCount == 0) {
         return false;
@@ -1636,7 +1636,7 @@ void ListCtrlDataView::OnItemCheckedChanged(size_t /*iIndex*/, IListBoxItem* pLi
         return;
     }
 
-    ListCtrlDataProvider* pDataProvider = dynamic_cast<ListCtrlDataProvider*>(GetDataProvider());
+    ListCtrlData* pDataProvider = dynamic_cast<ListCtrlData*>(GetDataProvider());
     ASSERT(pDataProvider != nullptr);
     if (pDataProvider == nullptr) {
         return;

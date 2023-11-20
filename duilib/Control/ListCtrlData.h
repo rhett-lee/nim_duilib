@@ -12,7 +12,7 @@ namespace ui
 */
 class ListCtrl;
 struct ListCtrlSubItemData;
-class ListCtrlDataProvider : public ui::VirtualListBoxElement
+class ListCtrlData : public ui::VirtualListBoxElement
 {
 public:
     //用于存储的数据结构
@@ -23,7 +23,7 @@ public:
     typedef std::vector<ListCtrlItemData> RowDataList;
 
 public:
-    ListCtrlDataProvider();
+    ListCtrlData();
 
     /** 创建一个数据项
     * @return 返回创建后的数据项指针

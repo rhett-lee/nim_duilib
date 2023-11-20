@@ -8,7 +8,7 @@
 #include "duilib/Control/ListCtrlHeaderItem.h"
 #include "duilib/Control/ListCtrlItem.h"
 #include "duilib/Control/ListCtrlSubItem.h"
-#include "duilib/Control/ListCtrlDataProvider.h"
+#include "duilib/Control/ListCtrlData.h"
 #include "duilib/Core/ImageList.h"
 
 namespace ui
@@ -19,7 +19,7 @@ class ListCtrl: public VBox
 {
     friend class ListCtrlHeader;
     friend class ListCtrlHeaderItem;
-    friend class ListCtrlDataProvider; //列表数据管理容器
+    friend class ListCtrlData; //列表数据管理容器
     friend class ListCtrlDataView;     //列表数据显示UI控件
     friend class ListCtrlItem;
     friend class ListCtrlSubItem;
@@ -697,7 +697,7 @@ private:
 
 	/** 列表数据管理
 	*/
-    ListCtrlDataProvider* m_pDataProvider;
+    ListCtrlData* m_pData;
 
     /** ListCtrlHeader的属性Class
     */

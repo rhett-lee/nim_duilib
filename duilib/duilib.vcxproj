@@ -357,7 +357,7 @@
     <ClCompile Include="Control\IPAddress.cpp" />
     <ClCompile Include="Control\Line.cpp" />
     <ClCompile Include="Control\ListCtrl.cpp" />
-    <ClCompile Include="Control\ListCtrlDataProvider.cpp" />
+    <ClCompile Include="Control\ListCtrlData.cpp" />
     <ClCompile Include="Control\ListCtrlDataView.cpp" />
     <ClCompile Include="Control\ListCtrlHeader.cpp" />
     <ClCompile Include="Control\ListCtrlHeaderItem.cpp" />
@@ -472,7 +472,7 @@
     <ClInclude Include="Control\IPAddress.h" />
     <ClInclude Include="Control\Line.h" />
     <ClInclude Include="Control\ListCtrl.h" />
-    <ClInclude Include="Control\ListCtrlDataProvider.h" />
+    <ClInclude Include="Control\ListCtrlData.h" />
     <ClInclude Include="Control\ListCtrlDataView.h" />
     <ClInclude Include="Control\ListCtrlDefs.h" />
     <ClInclude Include="Control\ListCtrlHeader.h" />
