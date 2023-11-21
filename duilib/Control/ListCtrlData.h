@@ -68,10 +68,27 @@ public:
     virtual void SetMultiSelect(bool bMultiSelect) override;
 
 public:
-    /** 设置表头接口
+    /** 设置视图接口
     */
-    void SetListCtrl(ListCtrl* pListCtrl);
+    void SetListView(IListCtrlView* pListView);
 
+    /** 设置是否自动勾选选择的数据项(作用于Header与每行)
+    */
+    void SetAutoCheckSelect(bool bAutoCheckSelect);
+
+    /** 获取是否自动勾选选择的数据项
+    */
+    bool IsAutoCheckSelect() const;
+
+    /** 设置默认的文本属性
+    */
+    void SetDefaultTextStyle(int32_t nTextStyle);
+
+    /** 设置默认的行高
+    */
+    void SetDefaultItemHeight(int32_t nItemHeight);
+
+public:
     /** 增加一列
     * @param [in] columnId 列的ID
     */
@@ -85,7 +102,7 @@ public:
     /** 获取某列的宽度最大值
     * @return 返回该列宽度的最大值，返回的是DPI自适应后的值； 如果失败返回-1
     */
-    int32_t GetColumnWidthAuto(size_t columnId) const;
+    int32_t GetMaxColumnWidth(size_t columnId) const;
 
     /** 设置一列的勾选状态（Checked或者UnChecked）
     * @param [in] columnId 列的ID
@@ -349,8 +366,9 @@ public:
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] columnId 列的ID
     * @param [in] bChecked true表示勾选，false表示不勾选
+    * @param [in] bRefresh true表示刷新该元素的界面显示，false表示不需要刷新界面
     */
-    bool SetSubItemCheck(size_t itemIndex, size_t columnId, bool bChecked);
+    bool SetSubItemCheck(size_t itemIndex, size_t columnId, bool bChecked, bool bRefresh);
 
     /** 获取CheckBox的勾选状态
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
@@ -381,11 +399,12 @@ public:
 
     /** 对数据排序
     * @param [in] columnId 列的ID
+    * @param [in] nColumnIndex 列的序号
     * @param [in] bSortedUp true表示升序，false表示降序
     * @param [in] pfnCompareFunc 数据比较函数
     * @param [in] pUserData 用户自定义数据，调用比较函数的时候，通过参数传回给比较函数
     */
-    bool SortDataItems(size_t nColumnId, bool bSortedUp,
+    bool SortDataItems(size_t nColumnId, size_t nColumnIndex, bool bSortedUp,
                        ListCtrlDataCompareFunc pfnCompareFunc, void* pUserData);
 
     /** 设置外部自定义的排序函数, 替换默认的排序函数
@@ -428,24 +447,9 @@ private:
 
     /** 获取各个列的数据，用于UI展示
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
-    * @param [in] columnIdList 列ID列表
-    * @param [out] storageList 返回数据列表
+    * @param [out] subItemList 返回改行所有列的数据列表
     */
-    bool GetSubItemStorageList(size_t itemIndex,
-                               std::vector<size_t>& columnIdList,
-                               StoragePtrList& storageList) const;
-
-    /** 某个数据项的Check勾选状态变化(列级)
-    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
-    * @param [in] nColumnId 列ID
-    * @param [in] bChecked 是否勾选
-    */
-    void OnSubItemColumnChecked(size_t itemIndex, size_t nColumnId, bool bChecked);
-
-    /** 同步UI的Check状态(列级别的CheckBox)
-    * @param [in] nColumnId 列ID
-    */
-    void UpdateHeaderColumnCheckBox(size_t nColumnId);
+    bool GetSubItemStorageList(size_t itemIndex, std::vector<ListCtrlSubItemData2Pair>& subItemList) const;
 
 public:
     /** 获取行属性数据
@@ -468,12 +472,13 @@ private:
     /** 对数据排序
     * @param [in] dataList 待排序的数据
     * @param [in] nColumnId 列的ID
+    * @param [in] nColumnIndex 列的序号
     * @param [in] bSortedUp true表示升序，false表示降序
     * @param [in] pfnCompareFunc 数据比较函数
     * @param [in] pUserData 用户自定义数据，调用比较函数的时候，通过参数传回给比较函数
     */
     bool SortStorageData(std::vector<StorageData>& dataList,
-                         size_t nColumnId, bool bSortedUp,
+                         size_t nColumnId, size_t nColumnIndex, bool bSortedUp,
                          ListCtrlDataCompareFunc pfnCompareFunc,
                          void* pUserData);
 
@@ -489,9 +494,13 @@ private:
     void UpdateNormalMode();
 
 private:
-    /** 表头控件
+    /** 视图控件接口
     */
-    ListCtrl* m_pListCtrl;
+    IListCtrlView* m_pListView;
+
+    /** 是否自动勾选选择的数据项
+    */
+    bool m_bAutoCheckSelect;
 
     /** 数据，按列保存，每个列一个数组
     */
@@ -532,6 +541,10 @@ private:
     /** 当前默认的文本属性
     */
     int32_t m_nDefaultTextStyle;
+
+    /** 当前默认的行高
+    */
+    int32_t m_nDefaultItemHeight;
 };
 
 }//namespace ui

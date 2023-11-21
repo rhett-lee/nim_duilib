@@ -1214,6 +1214,277 @@ Control* ListCtrlDataView::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT 
     return FindControlInItems(newItems, Proc, pData, uFlags, ptNewScrollPos);
 }
 
+Control* ListCtrlDataView::CreateDataItem()
+{
+    ASSERT(m_pListCtrl != nullptr);
+    if (m_pListCtrl == nullptr) {
+        return nullptr;
+    }
+    ListCtrlItem* pItem = new ListCtrlItem;
+    pItem->SetListCtrl(m_pListCtrl);
+    pItem->SetClass(m_pListCtrl->GetDataItemClass());
+    pItem->SetAutoCheckSelect(m_pListCtrl->IsAutoCheckSelect());
+    return pItem;
+}
+
+bool ListCtrlDataView::FillDataItem(Control* pControl,
+                                    size_t nElementIndex,
+                                    const ListCtrlItemData& itemData,
+                                    const std::vector<ListCtrlSubItemData2Pair>& subItemList)
+{
+    ASSERT(m_pListCtrl != nullptr);
+    if (m_pListCtrl == nullptr) {
+        return false;
+    }
+    ListCtrlHeader* pHeaderCtrl = m_pListCtrl->GetHeaderCtrl();
+    ASSERT(pHeaderCtrl != nullptr);
+    if (pHeaderCtrl == nullptr) {
+        return false;
+    }
+
+    ListCtrlItem* pItem = dynamic_cast<ListCtrlItem*>(pControl);
+    ASSERT(pItem != nullptr);
+    if (pItem == nullptr) {
+        return false;
+    }
+
+    //数据项是否显示CheckBox    
+    bool bShowCheckBox = m_pListCtrl->IsDataItemShowCheckBox();
+    pItem->SetShowCheckBox(bShowCheckBox);
+    pItem->SetEnableControlPadding(false);
+
+    ASSERT(itemData.bVisible);
+    bool bItemChecked = itemData.bChecked;
+    int32_t nImageId = itemData.nImageId;
+    if (!bShowCheckBox) {
+        bItemChecked = false;
+    }
+    pItem->SetChecked(bItemChecked, false);
+    pItem->SetImageId(nImageId);
+
+    //设置左侧内边距，避免CheckBox显示与文字显示重叠
+    int32_t nPaddingLeft = pItem->GetItemPaddingLeft();
+    pHeaderCtrl->SetPaddingLeftValue(nPaddingLeft);
+
+    //Header控件的内边距, 需要同步给每个列表项控件，保持左侧对齐一致
+    const UiPadding rcHeaderPadding = pHeaderCtrl->GetPadding();
+    UiPadding rcPadding = pItem->GetPadding();
+    if (rcHeaderPadding.left != rcPadding.left) {
+        rcPadding.left = rcHeaderPadding.left;
+        pItem->SetPadding(rcPadding, false);
+    }
+
+    // 基本结构: <ListCtrlItem> <ListCtrlSubItem/> ... <ListCtrlSubItem/>  </ListCtrlItem>
+    // 附加说明: 1. ListCtrlItem 是 HBox的子类;   
+    //          2. 每一列，放置一个ListCtrlSubItem控件
+    //          3. ListCtrlSubItem 是LabelBox的子类
+
+    std::map<size_t, ListCtrlSubItemData2Ptr> subItemDataMap;
+    for (const ListCtrlSubItemData2Pair& dataPair : subItemList) {
+        subItemDataMap[dataPair.nColumnId] = dataPair.pSubItemData;
+    }
+
+    //获取需要显示的各个列的属性
+    struct ElementData
+    {
+        size_t nColumnId = Box::InvalidIndex;
+        int32_t nColumnWidth = 0;
+        ListCtrlSubItemData2Ptr pStorage;
+    };
+    std::vector<ElementData> elementDataList;
+    const size_t nColumnCount = pHeaderCtrl->GetColumnCount();
+    for (size_t nColumnIndex = 0; nColumnIndex < nColumnCount; ++nColumnIndex) {
+        ListCtrlHeaderItem* pHeaderItem = pHeaderCtrl->GetColumn(nColumnIndex);
+        if ((pHeaderItem == nullptr) || !pHeaderItem->IsColumnVisible()) {
+            continue;
+        }
+        int32_t nColumnWidth = pHeaderCtrl->GetColumnWidth(nColumnIndex);
+        if (nColumnWidth < 0) {
+            nColumnWidth = 0;
+        }
+        ElementData data;
+        data.nColumnId = pHeaderCtrl->GetColumnId(nColumnIndex);
+        data.nColumnWidth = nColumnWidth;
+        data.pStorage = subItemDataMap[data.nColumnId];
+        elementDataList.push_back(data);
+    }
+    
+    ASSERT(!elementDataList.empty());
+    if (elementDataList.empty()) {
+        return false;
+    }
+
+    const size_t showColumnCount = elementDataList.size(); //显示的列数
+    while (pItem->GetItemCount() > showColumnCount) {
+        //移除多余的列
+        if (!pItem->RemoveItemAt(pItem->GetItemCount() - 1)) {
+            ASSERT(!"RemoveItemAt failed!");
+            return false;
+        }
+    }
+
+    //默认属性
+    std::wstring defaultSubItemClass = m_pListCtrl->GetDataSubItemClass();
+    ListCtrlSubItem defaultSubItem;
+    defaultSubItem.SetWindow(m_pListCtrl->GetWindow());
+    defaultSubItem.SetClass(defaultSubItemClass);
+
+    for (size_t nColumn = 0; nColumn < showColumnCount; ++nColumn) {
+        const ElementData& elementData = elementDataList[nColumn];
+        ListCtrlSubItem* pSubItem = nullptr;
+        if (nColumn < pItem->GetItemCount()) {
+            pSubItem = dynamic_cast<ListCtrlSubItem*>(pItem->GetItemAt(nColumn));
+            ASSERT(pSubItem != nullptr);
+            if (pSubItem == nullptr) {
+                return false;
+            }
+        }
+        else {
+            pSubItem = new ListCtrlSubItem;
+            pSubItem->SetListCtrlItem(pItem);
+            pItem->AddItem(pSubItem);
+            if (!defaultSubItemClass.empty()) {
+                pSubItem->SetClass(defaultSubItemClass);
+            }
+            pSubItem->SetMouseEnabled(false);
+        }
+
+        //填充数据，设置属性        
+        pSubItem->SetFixedWidth(UiFixedInt(elementData.nColumnWidth), true, false);
+        const ListCtrlSubItemData2Ptr& pStorage = elementData.pStorage;
+        if (pStorage != nullptr) {
+            pSubItem->SetText(pStorage->text.c_str());
+            if (pStorage->nTextFormat != 0) {
+                pSubItem->SetTextStyle(pStorage->nTextFormat, false);
+            }
+            else {
+                pSubItem->SetTextStyle(defaultSubItem.GetTextStyle(), false);
+            }
+            pSubItem->SetTextPadding(defaultSubItem.GetTextPadding(), false);
+            if (!pStorage->textColor.IsEmpty()) {
+                pSubItem->SetStateTextColor(kControlStateNormal, pSubItem->GetColorString(pStorage->textColor));
+            }
+            else {
+                pSubItem->SetStateTextColor(kControlStateNormal, defaultSubItem.GetStateTextColor(kControlStateNormal));
+            }
+            if (!pStorage->bkColor.IsEmpty()) {
+                pSubItem->SetBkColor(pStorage->bkColor);
+            }
+            else {
+                pSubItem->SetBkColor(defaultSubItem.GetBkColor());
+            }
+            if (pStorage->bShowCheckBox) {
+                //添加CheckBox
+                pSubItem->SetCheckBoxVisible(true);
+                CheckBox* pCheckBox = pSubItem->GetCheckBox();
+                ASSERT(pCheckBox != nullptr);
+
+                //挂载CheckBox的事件处理
+                if (pCheckBox != nullptr) {
+                    pCheckBox->DetachEvent(kEventSelect);
+                    pCheckBox->DetachEvent(kEventUnSelect);
+                    pCheckBox->SetSelected(pStorage->bChecked);
+                    size_t nColumnId = elementData.nColumnId;
+                    pCheckBox->AttachSelect([this, nColumnId, nElementIndex](const EventArgs& /*args*/) {
+                        OnSubItemColumnChecked(nElementIndex, nColumnId, true);
+                        return true;
+                        });
+                    pCheckBox->AttachUnSelect([this, nColumnId, nElementIndex](const EventArgs& /*args*/) {
+                        OnSubItemColumnChecked(nElementIndex, nColumnId, false);
+                        return true;
+                        });
+                }
+            }
+            else {
+                pSubItem->SetCheckBoxVisible(false);
+            }
+            pSubItem->SetImageId(pStorage->nImageId);
+        }
+        else {
+            pSubItem->SetTextStyle(defaultSubItem.GetTextStyle(), false);
+            pSubItem->SetText(defaultSubItem.GetText());
+            pSubItem->SetTextPadding(defaultSubItem.GetTextPadding(), false);
+            pSubItem->SetStateTextColor(kControlStateNormal, defaultSubItem.GetStateTextColor(kControlStateNormal));
+            pSubItem->SetBkColor(defaultSubItem.GetBkColor());
+            pSubItem->SetCheckBoxVisible(false);
+            pSubItem->SetImageId(-1);
+        }
+    }
+    return true;
+}
+
+int32_t ListCtrlDataView::GetMaxDataItemWidth(const std::vector<ListCtrlSubItemData2Ptr>& subItemList)
+{
+    int32_t nMaxWidth = -1;
+    if (m_pListCtrl == nullptr) {
+        return nMaxWidth;
+    }
+
+    //默认属性
+    ListCtrlItem defaultItem;
+    defaultItem.SetListCtrl(m_pListCtrl);
+    defaultItem.SetWindow(m_pListCtrl->GetWindow());
+    defaultItem.SetClass(m_pListCtrl->GetDataItemClass());
+
+    std::wstring defaultSubItemClass = m_pListCtrl->GetDataSubItemClass();
+    ListCtrlSubItem defaultSubItem;
+    defaultSubItem.SetWindow(m_pListCtrl->GetWindow());
+    defaultSubItem.SetClass(defaultSubItemClass);
+    defaultSubItem.SetListCtrlItem(&defaultItem);
+
+    ListCtrlSubItem subItem;
+    subItem.SetWindow(m_pListCtrl->GetWindow());
+    subItem.SetClass(defaultSubItemClass);
+    subItem.SetListCtrlItem(&defaultItem);
+
+    for (const ListCtrlSubItemData2Ptr& pStorage : subItemList) {
+        if (pStorage == nullptr) {
+            continue;
+        }
+        if (pStorage->text.empty()) {
+            continue;
+        }
+
+        subItem.SetText(pStorage->text.c_str());
+        if (pStorage->nTextFormat != 0) {
+            subItem.SetTextStyle(pStorage->nTextFormat, false);
+        }
+        else {
+            subItem.SetTextStyle(defaultSubItem.GetTextStyle(), false);
+        }
+        subItem.SetTextPadding(defaultSubItem.GetTextPadding(), false);
+        subItem.SetCheckBoxVisible(pStorage->bShowCheckBox);
+        subItem.SetImageId(pStorage->nImageId);
+        subItem.SetFixedWidth(UiFixedInt::MakeAuto(), false, false);
+        subItem.SetFixedHeight(UiFixedInt::MakeAuto(), false, false);
+        subItem.SetReEstimateSize(true);
+        UiEstSize sz = subItem.EstimateSize(UiSize(0, 0));
+        nMaxWidth = std::max(nMaxWidth, sz.cx.GetInt32());
+    }
+
+    if (nMaxWidth <= 0) {
+        nMaxWidth = -1;
+    }
+    else {
+        //增加一点余量
+        nMaxWidth += GlobalManager::Instance().Dpi().GetScaleInt(4);
+    }
+    return nMaxWidth;
+}
+
+void ListCtrlDataView::OnSubItemColumnChecked(size_t nElementIndex, size_t nColumnId, bool bChecked)
+{
+    ListCtrlData* pDataProvider = dynamic_cast<ListCtrlData*>(GetDataProvider());
+    ASSERT(pDataProvider != nullptr);
+    if (pDataProvider != nullptr) {
+        pDataProvider->SetSubItemCheck(nElementIndex, nColumnId, bChecked, false);
+        //更新表头对应列的勾选项状态
+        if (m_pListCtrl != nullptr) {
+            m_pListCtrl->UpdateHeaderColumnCheckBox(nColumnId);
+        }
+    }
+}
+
 size_t ListCtrlDataView::GetDisplayItemCount(bool /*bIsHorizontal*/, size_t& nColumns, size_t& nRows) const
 {
     nColumns = 1;

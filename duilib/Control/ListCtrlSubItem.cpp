@@ -172,13 +172,8 @@ int32_t ListCtrlSubItem::GetIconSpacing() const
     return m_nIconSpacing;
 }
 
-void ListCtrlSubItem::PaintText(IRender* pRender)
+ImagePtr ListCtrlSubItem::LoadItemImage() const
 {
-    //需要绘制的内容包括：图标、文字
-    if (pRender == nullptr) {
-        return;
-    }
-    //文本前的图标
     ImagePtr pItemImage;
     if ((m_imageId >= 0) && (m_pItem != nullptr)) {
         ListCtrl* pListCtrl = m_pItem->GetListCtrl();
@@ -199,29 +194,92 @@ void ListCtrlSubItem::PaintText(IRender* pRender)
             }
         }
     }
+    return pItemImage;
+}
 
+void ListCtrlSubItem::PaintText(IRender* pRender)
+{
+    //需要绘制的内容包括：图标、文字
+    if (pRender == nullptr) {
+        return;
+    }
+    //文本前的图标
+    ImagePtr pItemImage = LoadItemImage();
     if (pItemImage == nullptr) {
         __super::PaintText(pRender);
         return;
     }
 
     int32_t nIconTextSpacing = GetIconSpacing();
+
+    //CheckBox的宽度，需要留出来
+    int32_t nCheckBoxWidth = 0;
+    ListCtrlCheckBox* pCheckBox = GetCheckBox();
+    if ((pCheckBox != nullptr) && pCheckBox->IsVisible()) {
+        UiSize sz = pCheckBox->GetStateImageSize(kStateImageBk, kControlStateNormal);
+        nCheckBoxWidth += sz.cx;
+        nCheckBoxWidth += nIconTextSpacing;
+    }
+
     //图标靠左侧，文字按原来的方式绘制
     UiRect rc = GetRect();
     rc.Deflate(GetControlPadding());
-    if (pItemImage != nullptr) {
-        PaintImage(pRender, pItemImage.get(), L"", -1, nullptr, &rc, nullptr);
-        rc.left += pItemImage->GetImageCache()->GetWidth();
-        rc.left += nIconTextSpacing;
-    }
+    rc.left += nCheckBoxWidth;
+    rc.Validate();
+
+    PaintImage(pRender, pItemImage.get(), L"", -1, nullptr, &rc, nullptr);
+    rc.left += pItemImage->GetImageCache()->GetWidth();
+    rc.left += nIconTextSpacing;
 
     UiRect textRect = GetRect();
     textRect.Deflate(GetControlPadding());
     textRect.Deflate(GetTextPadding());
-    if (pItemImage != nullptr) {
-        textRect.left = std::max(textRect.left, rc.left);
-    }
+    textRect.left = std::max(textRect.left, rc.left);
+
     DoPaintText(textRect, pRender);
+}
+
+UiSize ListCtrlSubItem::EstimateText(UiSize szAvailable)
+{
+    UiSize sz = __super::EstimateText(szAvailable);
+
+    int32_t nIconTextSpacing = GetIconSpacing();
+
+    //CheckBox的宽度，需要留出来
+    int32_t nCheckBoxWidth = 0;
+    ListCtrlCheckBox* pCheckBox = GetCheckBox();
+    if ((pCheckBox != nullptr) && pCheckBox->IsVisible()) {
+        UiSize imageSize = pCheckBox->GetStateImageSize(kStateImageBk, kControlStateNormal);
+        nCheckBoxWidth += imageSize.cx;
+        nCheckBoxWidth += nIconTextSpacing;
+    }
+
+    const UiPadding rcPadding = GetControlPadding();
+    const UiPadding rcTextPadding = GetTextPadding();
+
+    //图标靠左侧，文字按原来的方式绘制
+    UiRect rc = GetRect();
+    rc.Deflate(rcPadding);
+    rc.left += nCheckBoxWidth;
+    rc.Validate();
+
+    ImagePtr pItemImage = LoadItemImage();
+    if (pItemImage != nullptr) {
+        rc.left += pItemImage->GetImageCache()->GetWidth();
+        rc.left += nIconTextSpacing;
+    }   
+
+    UiRect textRect = GetRect();
+    textRect.Deflate(rcPadding);
+    textRect.Deflate(rcTextPadding);
+    textRect.left = std::max(textRect.left, rc.left);
+
+    int32_t nPaddingLeft = rcPadding.left + rcTextPadding.left;
+    if (textRect.left > nPaddingLeft) {
+        sz.cx -= nPaddingLeft;
+        sz.cx += textRect.left;
+    }    
+    return sz;
 }
 
 }//namespace ui

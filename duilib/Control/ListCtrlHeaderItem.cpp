@@ -138,25 +138,44 @@ void ListCtrlHeaderItem::PaintText(IRender* pRender)
     }
 
     int32_t nIconTextSpacing = GetIconSpacing();
+    //CheckBox的宽度，需要留出来
+    int32_t nCheckBoxWidth = 0;
+    ListCtrlCheckBox* pCheckBox = nullptr;
+    if (GetItemCount() > 0) {
+        pCheckBox = dynamic_cast<ListCtrlCheckBox*>(GetItemAt(0));
+    }
+    if ((pCheckBox != nullptr) && pCheckBox->IsVisible()) {
+        UiSize sz = pCheckBox->GetStateImageSize(kStateImageBk, kControlStateNormal);
+        nCheckBoxWidth += sz.cx;
+        nCheckBoxWidth += nIconTextSpacing;
+    }
+
     uint32_t textStyle = GetTextStyle();
     UiRect measureRect = pRender->MeasureString(GetText(), GetFontId(), textStyle);
     UiRect rcItemRect = GetRect();
-    rcItemRect.Deflate(GetControlPadding());    
+    rcItemRect.Deflate(GetControlPadding());
+    if (nCheckBoxWidth > 0) {
+        rcItemRect.left += nCheckBoxWidth;
+        rcItemRect.Validate();
+    }
+    
     if ((nSortImageWidth + nItemImageWidth + measureRect.Width()) > rcItemRect.Width()) {
         //横向的空间不足，按左对齐绘制
         nIconTextSpacing = 0;
         textStyle = TEXT_LEFT;
     }
     
+    UiRect rc = GetRect();
+    rc.Deflate(GetControlPadding());
+    if (nCheckBoxWidth > 0) {
+        rc.left += nCheckBoxWidth;
+        rc.Validate();
+    }
     if (textStyle & TEXT_CENTER) {
         //居中对齐
         UiRect textRect = GetRect();
         textRect.Deflate(GetControlPadding());
         textRect.Deflate(GetTextPadding());
-
-        UiRect rc = GetRect();
-        rc.Deflate(GetControlPadding());
-
         if (pItemImage != nullptr) {
             UiRect itemRect = rc;
             itemRect.left = textRect.CenterX() - measureRect.Width() / 2;
@@ -179,8 +198,6 @@ void ListCtrlHeaderItem::PaintText(IRender* pRender)
     }
     else if (textStyle & TEXT_RIGHT) {
         //靠右对齐
-        UiRect rc = GetRect();
-        rc.Deflate(GetControlPadding());
         if (pSortImage != nullptr) {
             UiRect sortRect = rc;
             sortRect.left = sortRect.right - nSortImageWidth;
@@ -214,8 +231,6 @@ void ListCtrlHeaderItem::PaintText(IRender* pRender)
     }
     else {
         //靠左对齐：图标、文字、排序图标依次绘制
-        UiRect rc = GetRect();
-        rc.Deflate(GetControlPadding());
         if (pItemImage != nullptr) {
             PaintImage(pRender, pItemImage.get(), L"", -1, nullptr, &rc, nullptr);
             rc.left += pItemImage->GetImageCache()->GetWidth();

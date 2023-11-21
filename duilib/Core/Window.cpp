@@ -470,6 +470,15 @@ bool Window::IsWindowFullScreen() const
     return m_bFullScreen;
 }
 
+bool Window::UpdateWindow() const
+{
+    bool bRet = false;
+    if ((m_hWnd != nullptr) && ::IsWindow(m_hWnd)) {
+        bRet = ::UpdateWindow(m_hWnd) != FALSE;
+    }
+    return bRet;
+}
+
 void Window::SetIcon(UINT nRes)
 {
     ASSERT(::IsWindow(m_hWnd));

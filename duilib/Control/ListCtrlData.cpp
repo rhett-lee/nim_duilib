@@ -7,7 +7,7 @@
 namespace ui
 {
 ListCtrlData::ListCtrlData() :
-    m_pListCtrl(nullptr),
+    m_pListView(nullptr),
     m_pfnCompareFunc(nullptr),
     m_pUserData(nullptr),
     m_hideRowCount(0),
@@ -15,215 +15,65 @@ ListCtrlData::ListCtrlData() :
     m_atTopRowCount(0),
     m_bMultiSelect(true),
     m_nSelectedIndex(Box::InvalidIndex),
-    m_nDefaultTextStyle(0)
+    m_nDefaultTextStyle(0),
+    m_nDefaultItemHeight(-1),
+    m_bAutoCheckSelect(false)
 {
 }
 
 Control* ListCtrlData::CreateElement()
 {
-    ASSERT(m_pListCtrl != nullptr);
-    if (m_pListCtrl == nullptr) {
-        return nullptr;
+    Control* pItem = nullptr;
+    ASSERT(m_pListView != nullptr);
+    if (m_pListView != nullptr) {
+        pItem = m_pListView->CreateDataItem();
     }
-    ListCtrlItem* pItem = new ListCtrlItem;
-    pItem->SetListCtrl(m_pListCtrl);
-    pItem->SetClass(m_pListCtrl->GetDataItemClass());
-    pItem->SetAutoCheckSelect(m_pListCtrl->IsAutoCheckSelect());
     return pItem;
 }
 
-bool ListCtrlData::FillElement(ui::Control* pControl, size_t nElementIndex)
+bool ListCtrlData::FillElement(Control* pControl, size_t nElementIndex)
 {
-    ASSERT(m_pListCtrl != nullptr);
-    if (m_pListCtrl == nullptr) {
+    ASSERT(pControl != nullptr);
+    ASSERT(nElementIndex < m_rowDataList.size());
+    if ((nElementIndex >= m_rowDataList.size()) || (pControl == nullptr)) {
         return false;
     }
-    ListCtrlHeader* pHeaderCtrl = m_pListCtrl->GetHeaderCtrl();
-    ASSERT(pHeaderCtrl != nullptr);
-    if (pHeaderCtrl == nullptr) {
-        return false;
-    }
-    
-    ListCtrlItem* pItem = dynamic_cast<ListCtrlItem*>(pControl);
-    ASSERT(pItem != nullptr);
-    if (pItem == nullptr) {
+    const ListCtrlItemData& itemData = m_rowDataList[nElementIndex];
+    std::vector<ListCtrlSubItemData2Pair> subItemList;
+    if (!GetSubItemStorageList(nElementIndex, subItemList)) {
         return false;
     }
 
-    //数据项是否显示CheckBox    
-    bool bShowCheckBox = m_pListCtrl->IsDataItemShowCheckBox();
-    pItem->SetShowCheckBox(bShowCheckBox);
-    pItem->SetEnableControlPadding(false);
+    bool bRet = false;
+    ASSERT(m_pListView != nullptr);
+    if (m_pListView != nullptr) {
+        bRet = m_pListView->FillDataItem(pControl, nElementIndex, itemData, subItemList);
+    }
+    return bRet;
+}
 
-    bool bItemChecked = false;
-    int32_t nImageId = -1;
-    const RowDataList& rowDataList = m_rowDataList;
-    if (nElementIndex < rowDataList.size()) {
-        bItemChecked = rowDataList[nElementIndex].bChecked;
-        nImageId = rowDataList[nElementIndex].nImageId;        
-    }
-    if (!bShowCheckBox) {
-        bItemChecked = false;
-    }
-    pItem->SetChecked(bItemChecked, false);
-    pItem->SetImageId(nImageId);
-
-    //设置左侧内边距，避免CheckBox显示与文字显示重叠
-    int32_t nPaddingLeft = pItem->GetItemPaddingLeft();
-    pHeaderCtrl->SetPaddingLeftValue(nPaddingLeft);
-
-    //Header控件的内边距, 需要同步给每个列表项控件，保持左侧对齐一致
-    const UiPadding rcHeaderPadding = pHeaderCtrl->GetPadding();
-    UiPadding rcPadding = pItem->GetPadding();
-    if (rcHeaderPadding.left != rcPadding.left) {
-        rcPadding.left = rcHeaderPadding.left;
-        pItem->SetPadding(rcPadding, false);
-    }
-
-    // 基本结构: <ListCtrlItem> <ListCtrlSubItem/> ... <ListCtrlSubItem/>  </ListCtrlItem>
-    // 附加说明: 1. ListCtrlItem 是 HBox的子类;   
-    //          2. 每一列，放置一个ListCtrlSubItem控件
-    //          3. ListCtrlSubItem 是LabelBox的子类
-
-    //获取需要显示的各个列的属性
-    struct ElementData
-    {
-        size_t nColumnId = Box::InvalidIndex;
-        int32_t nColumnWidth = 0;
-        StoragePtr pStorage;
-    };    
-    std::vector<ElementData> elementDataList;
-    const size_t nColumnCount = pHeaderCtrl->GetColumnCount();
-    for (size_t nColumnIndex = 0; nColumnIndex < nColumnCount; ++nColumnIndex) {
-        ListCtrlHeaderItem* pHeaderItem = pHeaderCtrl->GetColumn(nColumnIndex);
-        if ((pHeaderItem == nullptr) || !pHeaderItem->IsColumnVisible()){
-            continue;
-        }
-        int32_t nColumnWidth = pHeaderCtrl->GetColumnWidth(nColumnIndex);
-        if (nColumnWidth < 0) {
-            nColumnWidth = 0;
-        }
-        ElementData data;
-        data.nColumnId = pHeaderCtrl->GetColumnId(nColumnIndex);
-        data.nColumnWidth = nColumnWidth;
-        elementDataList.push_back(data);
-    }
-    std::vector<size_t> columnIdList;
-    for (auto data : elementDataList) {
-        columnIdList.push_back(data.nColumnId);
-    }
-    StoragePtrList storageList;
-    if (!GetSubItemStorageList(nElementIndex, columnIdList, storageList)) {
-        return false;
-    }
-    ASSERT(storageList.size() == elementDataList.size());
-    for (size_t index = 0; index < storageList.size(); ++index) {
-        elementDataList[index].pStorage = storageList[index];
-    }
-    storageList.clear();
-    ASSERT(!elementDataList.empty());
-    if (elementDataList.empty()) {
-        return false;
-    }
-
-    const size_t showColumnCount = elementDataList.size(); //显示的列数
-    while (pItem->GetItemCount() > showColumnCount) {
-        //移除多余的列
-        if (!pItem->RemoveItemAt(pItem->GetItemCount() - 1)) {
-            ASSERT(!"RemoveItemAt failed!");
-            return false;
+int32_t ListCtrlData::GetMaxColumnWidth(size_t columnId) const
+{
+    int32_t nMaxWidth = -1;
+    std::vector<ListCtrlSubItemData2Ptr> subItemList;
+    auto iter = m_dataMap.find(columnId);
+    ASSERT(iter != m_dataMap.end());
+    if (iter != m_dataMap.end()) {
+        const StoragePtrList& storageList = iter->second;
+        const size_t nCount = storageList.size();
+        for (size_t index = 0; index < nCount; ++index) {
+            if (storageList[index] != nullptr) {
+                subItemList.push_back(storageList[index]);
+            }
         }
     }
-
-    //默认属性
-    std::wstring defaultSubItemClass = m_pListCtrl->GetDataSubItemClass();
-    ListCtrlSubItem defaultSubItem;
-    defaultSubItem.SetWindow(m_pListCtrl->GetWindow());
-    defaultSubItem.SetClass(defaultSubItemClass);
-    m_nDefaultTextStyle = defaultSubItem.GetTextStyle();
-   
-    for (size_t nColumn = 0; nColumn < showColumnCount; ++nColumn) {
-        const ElementData& elementData = elementDataList[nColumn];
-        ListCtrlSubItem* pSubItem = nullptr;
-        if (nColumn < pItem->GetItemCount()) {
-            pSubItem = dynamic_cast<ListCtrlSubItem*>(pItem->GetItemAt(nColumn));
-            ASSERT(pSubItem != nullptr);
-            if (pSubItem == nullptr) {
-                return false;
-            }
+    if (!subItemList.empty()) {
+        ASSERT(m_pListView != nullptr);
+        if (m_pListView != nullptr) {
+            nMaxWidth = m_pListView->GetMaxDataItemWidth(subItemList);
         }
-        else {
-            pSubItem = new ListCtrlSubItem;
-            pSubItem->SetListCtrlItem(pItem);
-            pItem->AddItem(pSubItem);
-            if (!defaultSubItemClass.empty()) {
-                pSubItem->SetClass(defaultSubItemClass);
-            }
-            pSubItem->SetMouseEnabled(false);
-        }
-
-        //填充数据，设置属性        
-        pSubItem->SetFixedWidth(UiFixedInt(elementData.nColumnWidth), true, false);
-        const StoragePtr& pStorage = elementData.pStorage;
-        if (pStorage != nullptr) {
-            pSubItem->SetText(pStorage->text.c_str());
-            if (pStorage->nTextFormat != 0) {
-                pSubItem->SetTextStyle(pStorage->nTextFormat, false);
-            }
-            else {
-                pSubItem->SetTextStyle(defaultSubItem.GetTextStyle(), false);
-            }
-            pSubItem->SetTextPadding(defaultSubItem.GetTextPadding(), false);
-            if (!pStorage->textColor.IsEmpty()) {
-                pSubItem->SetStateTextColor(kControlStateNormal, pSubItem->GetColorString(pStorage->textColor));
-            }
-            else {
-                pSubItem->SetStateTextColor(kControlStateNormal, defaultSubItem.GetStateTextColor(kControlStateNormal));
-            }
-            if (!pStorage->bkColor.IsEmpty()) {
-                pSubItem->SetBkColor(pStorage->bkColor);
-            }
-            else {
-                pSubItem->SetBkColor(defaultSubItem.GetBkColor());
-            }
-            if (pStorage->bShowCheckBox) {
-                //添加CheckBox
-                pSubItem->SetCheckBoxVisible(true);
-                CheckBox* pCheckBox = pSubItem->GetCheckBox();
-                ASSERT(pCheckBox != nullptr);
-
-                //挂载CheckBox的事件处理
-                if (pCheckBox != nullptr) {
-                    pCheckBox->DetachEvent(kEventSelect);
-                    pCheckBox->DetachEvent(kEventUnSelect);
-                    pCheckBox->SetSelected(pStorage->bChecked);
-                    size_t nColumnId = elementData.nColumnId;
-                    pCheckBox->AttachSelect([this, nColumnId, nElementIndex](const EventArgs& /*args*/) {
-                        OnSubItemColumnChecked(nElementIndex, nColumnId, true);
-                        return true;
-                        });
-                    pCheckBox->AttachUnSelect([this, nColumnId, nElementIndex](const EventArgs& /*args*/) {
-                        OnSubItemColumnChecked(nElementIndex, nColumnId, false);
-                        return true;
-                        });
-                }
-            }
-            else {
-                pSubItem->SetCheckBoxVisible(false);
-            }
-            pSubItem->SetImageId(pStorage->nImageId);
-        }
-        else {
-            pSubItem->SetTextStyle(defaultSubItem.GetTextStyle(), false);
-            pSubItem->SetText(defaultSubItem.GetText());
-            pSubItem->SetTextPadding(defaultSubItem.GetTextPadding(), false);
-            pSubItem->SetStateTextColor(kControlStateNormal, defaultSubItem.GetStateTextColor(kControlStateNormal));
-            pSubItem->SetBkColor(defaultSubItem.GetBkColor());
-            pSubItem->SetCheckBoxVisible(false);
-            pSubItem->SetImageId(-1);
-        }
-    }
-    return true;
+    }    
+    return nMaxWidth;
 }
 
 size_t ListCtrlData::GetElementCount() const
@@ -243,9 +93,7 @@ void ListCtrlData::SetElementSelected(size_t nElementIndex, bool bSelected)
         if (rowData.bSelected != bSelected) {
             rowData.bSelected = bSelected;//多选或者单选的情况下，都更新
         }
-        if ((m_pListCtrl != nullptr) && 
-            m_pListCtrl->IsAutoCheckSelect() && 
-            (rowData.bChecked != rowData.bSelected)) {
+        if (IsAutoCheckSelect() && (rowData.bChecked != rowData.bSelected)) {
             rowData.bChecked = rowData.bSelected;
         }
     }
@@ -311,10 +159,6 @@ void ListCtrlData::SetMultiSelect(bool bMultiSelect)
 {
     bool bChanged = m_bMultiSelect != bMultiSelect;
     m_bMultiSelect = bMultiSelect;
-    bool bAutoCheckSelect = false;
-    if (m_pListCtrl != nullptr) {
-        bAutoCheckSelect = m_pListCtrl->IsAutoCheckSelect();
-    }
     if (bChanged && bMultiSelect) {
         //从单选变多选，需要清空选项，只保留一个单选项
         const size_t nItemCount = m_rowDataList.size();
@@ -325,16 +169,36 @@ void ListCtrlData::SetMultiSelect(bool bMultiSelect)
                     rowData.bSelected = false;
                 }
             }
-            if (bAutoCheckSelect && (rowData.bChecked != rowData.bSelected)) {
+            if (IsAutoCheckSelect() && (rowData.bChecked != rowData.bSelected)) {
                 rowData.bChecked = rowData.bSelected;
             }
         }
     }    
 }
 
-void ListCtrlData::SetListCtrl(ListCtrl* pListCtrl)
+void ListCtrlData::SetListView(IListCtrlView* pListView)
 {
-    m_pListCtrl = pListCtrl;
+    m_pListView = pListView;
+}
+
+void ListCtrlData::SetAutoCheckSelect(bool bAutoCheckSelect)
+{
+    m_bAutoCheckSelect = bAutoCheckSelect;
+}
+
+bool ListCtrlData::IsAutoCheckSelect() const
+{
+    return m_bAutoCheckSelect;
+}
+
+void ListCtrlData::SetDefaultTextStyle(int32_t nTextStyle)
+{
+    m_nDefaultTextStyle = nTextStyle;
+}
+
+void ListCtrlData::SetDefaultItemHeight(int32_t nItemHeight)
+{
+    m_nDefaultItemHeight = nItemHeight;
 }
 
 void ListCtrlData::SubItemToStorage(const ListCtrlSubItemData& item, Storage& storage) const
@@ -411,63 +275,6 @@ bool ListCtrlData::RemoveColumn(size_t columnId)
     return false;
 }
 
-int32_t ListCtrlData::GetColumnWidthAuto(size_t columnId) const
-{
-    int32_t nMaxWidth = -1;
-    if (m_pListCtrl == nullptr) {
-        return nMaxWidth;
-    }
-    auto iter = m_dataMap.find(columnId);
-    if (iter != m_dataMap.end()) {
-        const StoragePtrList& storageList = iter->second;
-        const size_t nCount = storageList.size();
-        ASSERT(m_rowDataList.size() == nCount);
-        if (m_rowDataList.size() != nCount) {
-            return nMaxWidth;
-        }
-
-        //默认属性
-        std::wstring defaultSubItemClass = m_pListCtrl->GetDataSubItemClass();
-        ListCtrlSubItem defaultSubItem;
-        defaultSubItem.SetWindow(m_pListCtrl->GetWindow());
-        defaultSubItem.SetClass(defaultSubItemClass);
-
-        ListCtrlSubItem subItem;
-        subItem.SetWindow(m_pListCtrl->GetWindow());
-        subItem.SetClass(defaultSubItemClass);
-
-        for (size_t index = 0; index < nCount; ++index) {
-            const StoragePtr& pStorage = storageList[index];
-            if (pStorage == nullptr) {
-                continue;
-            }
-
-            subItem.SetText(pStorage->text.c_str());
-            if (pStorage->nTextFormat != 0) {
-                subItem.SetTextStyle(pStorage->nTextFormat, false);
-            }
-            else {
-                subItem.SetTextStyle(defaultSubItem.GetTextStyle(), false);
-            }
-            subItem.SetTextPadding(defaultSubItem.GetTextPadding(), false);
-            subItem.SetCheckBoxVisible(pStorage->bShowCheckBox);
-            subItem.SetFixedWidth(UiFixedInt::MakeAuto(), false, false);
-            subItem.SetFixedHeight(UiFixedInt::MakeAuto(), false, false);
-            subItem.SetReEstimateSize(true);
-            UiEstSize sz = subItem.EstimateSize(UiSize(0, 0));
-            nMaxWidth = std::max(nMaxWidth, sz.cx.GetInt32());
-        }
-    }
-    if (nMaxWidth <= 0) {
-        nMaxWidth = -1;
-    }
-    else {
-        //增加一点余量
-        nMaxWidth += GlobalManager::Instance().Dpi().GetScaleInt(4);
-    }
-    return nMaxWidth;
-}
-
 bool ListCtrlData::SetColumnCheck(size_t columnId, bool bChecked)
 {
     bool bRet = false;
@@ -525,57 +332,27 @@ ListCtrlData::StoragePtr ListCtrlData::GetSubItemStorageForWrite(
     return pStorage;
 }
 
-bool ListCtrlData::GetSubItemStorageList(size_t itemIndex, std::vector<size_t>& columnIdList,
-                                                 StoragePtrList& storageList) const
+bool ListCtrlData::GetSubItemStorageList(size_t itemIndex, std::vector<ListCtrlSubItemData2Pair>& subItemList) const
 {
-    storageList.clear();
-    ASSERT(itemIndex != Box::InvalidIndex);
-    if (itemIndex == Box::InvalidIndex) {
+    subItemList.clear();
+    ASSERT(itemIndex < m_rowDataList.size());
+    if (itemIndex >= m_rowDataList.size()) {
         return false;
     }
-    for (size_t nColumnId : columnIdList) {
-        StoragePtr pStorage;
-        auto iter = m_dataMap.find(nColumnId);        
-        if (iter != m_dataMap.end()) {
-            const StoragePtrList& dataList = iter->second;
-            if (itemIndex < dataList.size()) {
-                pStorage = dataList.at(itemIndex);
-            }
-        }
-        storageList.push_back(pStorage);
-    }
-    return storageList.size() == columnIdList.size();
-}
-
-void ListCtrlData::OnSubItemColumnChecked(size_t itemIndex, size_t nColumnId, bool bChecked)
-{
-    StoragePtr pStorage;
-    auto iter = m_dataMap.find(nColumnId);    
-    if (iter != m_dataMap.end()) {
-        StoragePtrList& dataList = iter->second;
+    ListCtrlSubItemData2Pair dataPair;
+    for (auto iter = m_dataMap.begin(); iter != m_dataMap.end(); ++iter) {
+        dataPair.nColumnId = iter->first;        
+        const StoragePtrList& dataList = iter->second;
         ASSERT(itemIndex < dataList.size());
         if (itemIndex < dataList.size()) {
-            pStorage = dataList.at(itemIndex);
-            if (pStorage == nullptr) {
-                pStorage = std::make_shared<Storage>();
-                dataList[itemIndex] = pStorage;
-            }
+            dataPair.pSubItemData = dataList.at(itemIndex);
         }
+        else {
+            dataPair.pSubItemData = nullptr;
+        }
+        subItemList.push_back(dataPair);
     }
-    if (pStorage != nullptr) {
-        //更新存储状态
-        pStorage->bChecked = bChecked;
-    }
-
-    //更新header对应列的勾选状态（三态），仅仅同步UI的状态
-    UpdateHeaderColumnCheckBox(nColumnId);
-}
-
-void ListCtrlData::UpdateHeaderColumnCheckBox(size_t nColumnId)
-{
-    if (m_pListCtrl != nullptr) {
-        m_pListCtrl->UpdateHeaderColumnCheckBox(nColumnId);
-    }
+    return true;
 }
 
 const ListCtrlData::RowDataList& ListCtrlData::GetItemDataList() const
@@ -794,11 +571,9 @@ bool ListCtrlData::SetDataItemData(size_t itemIndex, const ListCtrlItemData& ite
     if (itemIndex < m_rowDataList.size()) {
         const ListCtrlItemData oldItemData = m_rowDataList[itemIndex];
         m_rowDataList[itemIndex] = itemData;
-        if (m_pListCtrl != nullptr) {
-            if (m_pListCtrl->GetDataItemHeight() == m_rowDataList[itemIndex].nItemHeight) {
-                //如果等于默认高度，则设置为标志值
-                m_rowDataList[itemIndex].nItemHeight = -1;
-            }
+        if (m_nDefaultItemHeight == m_rowDataList[itemIndex].nItemHeight) {
+            //如果等于默认高度，则设置为标志值
+            m_rowDataList[itemIndex].nItemHeight = -1;
         }
         const ListCtrlItemData& newItemData = m_rowDataList[itemIndex];
         if (newItemData.bSelected != oldItemData.bSelected) {
@@ -1092,7 +867,6 @@ void ListCtrlData::GetColumnCheckStatus(size_t columnId, bool& bChecked, bool& b
     bChecked = false;
     bPartChecked = false;
     auto iter = m_dataMap.find(columnId);
-    ASSERT(iter != m_dataMap.end());
     if (iter == m_dataMap.end()) {
         return;
     }
@@ -1215,12 +989,11 @@ bool ListCtrlData::SetDataItemHeight(size_t itemIndex, int32_t nItemHeight, bool
     if (bNeedDpiScale && (nItemHeight > 0)) {
         GlobalManager::Instance().Dpi().ScaleInt(nItemHeight);
     }
-    if (m_pListCtrl != nullptr) {
-        if (m_pListCtrl->GetDataItemHeight() == nItemHeight) {
-            //如果等于默认高度，则设置为标志值
-            nItemHeight = -1;
-        }
+    if (m_nDefaultItemHeight == nItemHeight) {
+        //如果等于默认高度，则设置为标志值
+        nItemHeight = -1;
     }
+
     bool bRet = false;
     ASSERT(itemIndex < m_rowDataList.size());
     if (itemIndex < m_rowDataList.size()) {
@@ -1249,9 +1022,9 @@ int32_t ListCtrlData::GetDataItemHeight(size_t itemIndex) const
     if (itemIndex < m_rowDataList.size()) {
         const ListCtrlItemData& rowData = m_rowDataList[itemIndex];
         nValue = rowData.nItemHeight;
-        if ((nValue < 0) && (m_pListCtrl != nullptr)) {
-            //取默认高度
-            nValue = m_pListCtrl->GetDataItemHeight();
+        if ((nValue < 0) && (m_nDefaultItemHeight > 0)) {
+            //取默认高度            
+            nValue = m_nDefaultItemHeight;
         }
     }
     return nValue;
@@ -1511,7 +1284,7 @@ bool ListCtrlData::SetSubItemShowCheckBox(size_t itemIndex, size_t columnId, boo
     return true;
 }
 
-bool ListCtrlData::SetSubItemCheck(size_t itemIndex, size_t columnId, bool bChecked)
+bool ListCtrlData::SetSubItemCheck(size_t itemIndex, size_t columnId, bool bChecked, bool bRefresh)
 {
     StoragePtr pStorage = GetSubItemStorageForWrite(itemIndex, columnId);
     ASSERT(pStorage != nullptr);
@@ -1523,7 +1296,9 @@ bool ListCtrlData::SetSubItemCheck(size_t itemIndex, size_t columnId, bool bChec
     if (pStorage->bShowCheckBox) {
         if (pStorage->bChecked != bChecked) {
             pStorage->bChecked = bChecked;
-            EmitDataChanged(itemIndex, itemIndex);
+            if (bRefresh) {
+                EmitDataChanged(itemIndex, itemIndex);
+            }            
         }        
         return true;
     }
@@ -1576,8 +1351,8 @@ int32_t ListCtrlData::GetSubItemImageId(size_t itemIndex, size_t columnId) const
     return nImageId;
 }
 
-bool ListCtrlData::SortDataItems(size_t nColumnId, bool bSortedUp, 
-                                         ListCtrlDataCompareFunc pfnCompareFunc, void* pUserData)
+bool ListCtrlData::SortDataItems(size_t nColumnId, size_t nColumnIndex, bool bSortedUp,
+                                 ListCtrlDataCompareFunc pfnCompareFunc, void* pUserData)
 {
     StorageMap::iterator iter = m_dataMap.find(nColumnId);
     ASSERT(iter != m_dataMap.end());
@@ -1593,7 +1368,7 @@ bool ListCtrlData::SortDataItems(size_t nColumnId, bool bSortedUp,
     for (size_t index = 0; index < dataCount; ++index) {
         sortedDataList.push_back({index, sortStorageList[index] });
     }    
-    SortStorageData(sortedDataList, nColumnId, bSortedUp, pfnCompareFunc, pUserData);
+    SortStorageData(sortedDataList, nColumnId, nColumnIndex, bSortedUp, pfnCompareFunc, pUserData);
 
     //对原数据进行顺序调整
     const size_t sortedDataCount = sortedDataList.size();
@@ -1627,9 +1402,8 @@ bool ListCtrlData::SortDataItems(size_t nColumnId, bool bSortedUp,
 }
 
 bool ListCtrlData::SortStorageData(std::vector<StorageData>& dataList,                                            
-                                           size_t nColumnId, bool bSortedUp,
-                                           ListCtrlDataCompareFunc pfnCompareFunc,
-                                           void* pUserData)
+                                   size_t nColumnId, size_t nColumnIndex, bool bSortedUp,
+                                   ListCtrlDataCompareFunc pfnCompareFunc, void* pUserData)
 {
     if (dataList.empty()) {
         return false;
@@ -1645,11 +1419,8 @@ bool ListCtrlData::SortStorageData(std::vector<StorageData>& dataList,
         //使用自定义的比较函数排序
         ListCtrlCompareParam param;
         param.nColumnId = nColumnId;
-        param.nColumnIndex = Box::InvalidIndex;
+        param.nColumnIndex = nColumnIndex;
         param.pUserData = pUserData;
-        if (m_pListCtrl != nullptr) {
-            param.nColumnIndex = m_pListCtrl->GetColumnIndex(nColumnId);
-        }
         std::sort(dataList.begin(), dataList.end(), [this, pfnCompareFunc, &param](const StorageData& a, const StorageData& b) {
                 //实现(a < b)的比较逻辑
                 if (b.pStorage == nullptr) {

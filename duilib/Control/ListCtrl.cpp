@@ -23,6 +23,8 @@ ListCtrl::ListCtrl():
     m_nColumnGridLineWidth = GlobalManager::Instance().Dpi().GetScaleInt(1);
     m_nItemHeight = GlobalManager::Instance().Dpi().GetScaleInt(32);
     m_nHeaderHeight = m_nItemHeight;
+
+    m_pData->SetAutoCheckSelect(IsAutoCheckSelect());
 }
 
 ListCtrl::~ListCtrl()
@@ -176,6 +178,12 @@ std::wstring ListCtrl::GetDataItemClass() const
 void ListCtrl::SetDataSubItemClass(const std::wstring& className)
 {
     m_dataSubItemClass = className;
+    if (m_bInited && !className.empty()) {
+        ListCtrlSubItem defaultSubItem;
+        defaultSubItem.SetWindow(GetWindow());
+        defaultSubItem.SetClass(className);
+        m_pData->SetDefaultTextStyle(defaultSubItem.GetTextStyle());
+    }
 }
 
 std::wstring ListCtrl::GetDataSubItemClass() const
@@ -288,8 +296,7 @@ void ListCtrl::DoInit()
     if (!m_bShowHeaderCtrl) {
         SetHeaderVisible(false);
     }
-    m_pData->SetListCtrl(this);
-
+    
     //初始化Body
     ASSERT(m_pDataView == nullptr);
     m_pDataView = new ListCtrlDataView;
@@ -306,6 +313,13 @@ void ListCtrl::DoInit()
     //同步单选和多选的状态
     m_pDataView->SetMultiSelect(IsMultiSelect());
     m_pDataView->SetDataProvider(m_pData);
+
+    //更新默认的文本属性
+    SetDataSubItemClass(GetDataSubItemClass());
+
+    m_pData->SetListView(m_pDataView);
+    //更新默认的行高
+    m_pData->SetDefaultItemHeight(GetDataItemHeight());
 
     //事件转接函数
     auto OnDataViewEvent = [this](const EventArgs & args) {
@@ -410,7 +424,7 @@ bool ListCtrl::SetColumnWidthAuto(size_t columnIndex)
         return bRet;
     }
     //计算该列的宽度
-    int32_t nMaxWidth = m_pData->GetColumnWidthAuto(nColumnId);
+    int32_t nMaxWidth = m_pData->GetMaxColumnWidth(nColumnId);
     if (nMaxWidth > 0) {
         bRet = SetColumnWidth(columnIndex, nMaxWidth, false);
     }
@@ -543,8 +557,12 @@ void ListCtrl::SetDataItemHeight(int32_t nItemHeight, bool bNeedDpiScale)
     if (bNeedDpiScale) {
         GlobalManager::Instance().Dpi().ScaleInt(nItemHeight);
     }
-    m_nItemHeight = nItemHeight;
-    Refresh();
+    if (m_nItemHeight != nItemHeight) {
+        m_nItemHeight = nItemHeight;
+        //更新默认的行高
+        m_pData->SetDefaultItemHeight(nItemHeight);
+        Refresh();
+    }
 }
 
 int32_t ListCtrl::GetDataItemHeight() const
@@ -652,7 +670,7 @@ void ListCtrl::OnHeaderColumnRemoved(size_t nColumnId)
 void ListCtrl::OnColumnSorted(size_t nColumnId, bool bSortedUp)
 {
     //对数据排序，然后刷新界面显示
-    m_pData->SortDataItems(nColumnId, bSortedUp, nullptr, nullptr);
+    m_pData->SortDataItems(nColumnId, GetColumnIndex(nColumnId), bSortedUp, nullptr, nullptr);
     Refresh();
 }
 
@@ -1002,7 +1020,7 @@ bool ListCtrl::SetSubItemShowCheckBox(size_t itemIndex, size_t columnIndex, bool
 
 bool ListCtrl::SetSubItemCheck(size_t itemIndex, size_t columnIndex, bool bChecked)
 {
-    return m_pData->SetSubItemCheck(itemIndex, GetColumnId(columnIndex), bChecked);
+    return m_pData->SetSubItemCheck(itemIndex, GetColumnId(columnIndex), bChecked, true);
 }
 
 bool ListCtrl::IsSubItemChecked(size_t itemIndex, size_t columnIndex) const
@@ -1031,7 +1049,7 @@ bool ListCtrl::SortDataItems(size_t columnIndex, bool bSortedUp,
     if (nColumnId == Box::InvalidIndex) {
         return false;
     }
-    return m_pData->SortDataItems(nColumnId, bSortedUp, pfnCompareFunc, pUserData);
+    return m_pData->SortDataItems(nColumnId, columnIndex, bSortedUp, pfnCompareFunc, pUserData);
 }
 
 void ListCtrl::SetSortCompareFunction(ListCtrlDataCompareFunc pfnCompareFunc, void* pUserData)
@@ -1172,6 +1190,7 @@ bool ListCtrl::IsEnableRefresh() const
 void ListCtrl::SetAutoCheckSelect(bool bAutoCheckSelect)
 {
     m_bAutoCheckSelect = bAutoCheckSelect;
+    m_pData->SetAutoCheckSelect(bAutoCheckSelect);
 }
 
 bool ListCtrl::IsAutoCheckSelect() const

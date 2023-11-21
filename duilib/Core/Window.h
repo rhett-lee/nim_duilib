@@ -234,6 +234,10 @@ public:
     */
     bool IsWindowFullScreen() const;
 
+    /** 更新窗口，执行重绘 
+    */
+    bool UpdateWindow() const;
+
 public:
     /** 获取窗口位置信息
      * @param [in] bContainShadow 是否包含阴影，true 为包含，默认为 false 不包含

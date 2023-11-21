@@ -107,6 +107,9 @@ void MainForm::OnInitWindow()
 	ui::CheckBox* pColumnHeaderCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_show_header_checkbox"));
 	ui::CheckBox* pColumnShowCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_show_checkbox"));
 
+	ui::CheckBox* pColumnHeaderIcon = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_show_header_icon"));
+	ui::CheckBox* pColumnShowIcon = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_show_icon"));
+
 	ui::Option* pColumnHeaderTextAlignLeft = dynamic_cast<ui::Option*>(FindControl(L"header_text_align_left"));
 	ui::Option* pColumnHeaderTextAlignCenter = dynamic_cast<ui::Option*>(FindControl(L"header_text_align_center"));
 	ui::Option* pColumnHeaderTextAlignRight = dynamic_cast<ui::Option*>(FindControl(L"header_text_align_right"));
@@ -117,6 +120,8 @@ void MainForm::OnInitWindow()
 
 	ui::CheckBox* pHeaderCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_show_header_checkbox"));
 	ui::CheckBox* pShowCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_show_checkbox"));
+
+	ui::CheckBox* pShowIcon= dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_show_icon"));
 
 	//实现显示该列
 	auto OnColumnShowHide = [this, pColumnCombo, pListCtrl](bool bColumnVisible) {
@@ -234,12 +239,12 @@ void MainForm::OnInitWindow()
 
 	//列级CheckBox：在每列显示CheckBox
 	auto OnShowCheckBox = [this, pColumnCombo, pListCtrl](bool bShowCheckBox) {
-		size_t nColumnId = pColumnCombo->GetItemData(pColumnCombo->GetCurSel());
-		size_t nColumnIndex = pListCtrl->GetColumnIndex(nColumnId);
-		size_t nItemCount = pListCtrl->GetDataItemCount();
-		for (size_t nItemIndex = 0; nItemIndex < nItemCount; ++nItemIndex) {
-			pListCtrl->SetSubItemShowCheckBox(nItemIndex, nColumnIndex, bShowCheckBox);
-		}
+			size_t nColumnId = pColumnCombo->GetItemData(pColumnCombo->GetCurSel());
+			size_t nColumnIndex = pListCtrl->GetColumnIndex(nColumnId);
+			size_t nItemCount = pListCtrl->GetDataItemCount();
+			for (size_t nItemIndex = 0; nItemIndex < nItemCount; ++nItemIndex) {
+				pListCtrl->SetSubItemShowCheckBox(nItemIndex, nColumnIndex, bShowCheckBox);
+			}
 		};	
 	if (pColumnShowCheckBox != nullptr) {
 		bool bCheckBoxVisible = false;
@@ -255,6 +260,43 @@ void MainForm::OnInitWindow()
 			});
 		pColumnShowCheckBox->AttachUnSelect([this, OnShowCheckBox](const ui::EventArgs&) {
 			OnShowCheckBox(false);
+			return true;
+			});
+	}
+
+	if (pColumnHeaderIcon != nullptr) {
+		auto OnSetHeaderShowIcon = [this, pColumnCombo, pListCtrl](bool bShow) {
+				size_t nColumnId = pColumnCombo->GetItemData(pColumnCombo->GetCurSel());
+				ui::ListCtrlHeaderItem* pHeaderItem = pListCtrl->GetColumnById(nColumnId);
+				ASSERT(pHeaderItem != nullptr);
+				if (pHeaderItem != nullptr) {
+					pHeaderItem->SetImageId(bShow ? 0 : -1);
+				}
+			};
+		pColumnHeaderIcon->AttachSelect([this, OnSetHeaderShowIcon](const ui::EventArgs&) {
+			OnSetHeaderShowIcon(true);
+			return true;
+			});
+		pColumnHeaderIcon->AttachUnSelect([this, OnSetHeaderShowIcon](const ui::EventArgs&) {
+			OnSetHeaderShowIcon(false);
+			return true;
+			});
+	}
+	if (pColumnShowIcon != nullptr) {
+		auto OnShowColumnIcon = [this, pColumnCombo, pListCtrl](bool bShow) {
+				size_t nColumnId = pColumnCombo->GetItemData(pColumnCombo->GetCurSel());
+				size_t nColumnIndex = pListCtrl->GetColumnIndex(nColumnId);
+				size_t nItemCount = pListCtrl->GetDataItemCount();
+				for (size_t nItemIndex = 0; nItemIndex < nItemCount; ++nItemIndex) {
+					pListCtrl->SetSubItemImageId(nItemIndex, nColumnIndex, bShow ? 0 : -1);
+				}
+			};
+		pColumnShowIcon->AttachSelect([this, OnShowColumnIcon](const ui::EventArgs&) {
+			OnShowColumnIcon(true);
+			return true;
+			});
+		pColumnShowIcon->AttachUnSelect([this, OnShowColumnIcon](const ui::EventArgs&) {
+			OnShowColumnIcon(false);
 			return true;
 			});
 	}
@@ -358,6 +400,27 @@ void MainForm::OnInitWindow()
 		return true;
 		});
 
+	if (pShowIcon != nullptr) {
+		pShowIcon->Selected(pListCtrl->GetDataItemImageId(0) >= 0, false);
+		auto OnShowDataItemIcon = [this, pListCtrl](bool bShow) {
+				size_t nItemCount = pListCtrl->GetDataItemCount();
+				pListCtrl->SetEnableRefresh(false);
+				for (size_t nItemIndex = 0; nItemIndex < nItemCount; ++nItemIndex) {
+					pListCtrl->SetDataItemImageId(nItemIndex, bShow ? 0 : -1);
+				}
+				pListCtrl->SetEnableRefresh(true);
+				pListCtrl->Refresh();
+			};
+		pShowIcon->AttachSelect([this, OnShowDataItemIcon](const ui::EventArgs&) {
+			OnShowDataItemIcon(true);
+			return true;
+			});
+		pShowIcon->AttachUnSelect([this, OnShowDataItemIcon](const ui::EventArgs&) {
+			OnShowDataItemIcon(false);
+			return true;
+			});
+	}
+
 	//事件挂载，测试事件接口
 	auto OnListCtrlEvent = [this, pListCtrl](const ui::EventArgs& args) {
 			ASSERT(pListCtrl == args.pSender);
@@ -444,6 +507,9 @@ void MainForm::OnColumnChanged(size_t nColumnId)
 	ui::CheckBox* pColumnHeaderCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_show_header_checkbox"));
 	ui::CheckBox* pColumnShowCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_show_checkbox"));
 
+	ui::CheckBox* pColumnHeaderIcon = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_show_header_icon"));
+	ui::CheckBox* pColumnShowIcon = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_show_icon"));
+
 	ui::Option* pColumnHeaderTextAlignLeft = dynamic_cast<ui::Option*>(FindControl(L"header_text_align_left"));
 	ui::Option* pColumnHeaderTextAlignCenter = dynamic_cast<ui::Option*>(FindControl(L"header_text_align_center"));
 	ui::Option* pColumnHeaderTextAlignRight = dynamic_cast<ui::Option*>(FindControl(L"header_text_align_right"));
@@ -462,16 +528,24 @@ void MainForm::OnColumnChanged(size_t nColumnId)
 	pColumnIcon->Selected(pHeaderItem->IsShowIconAtTop(), false);
 	pColumnDragOrder->Selected(pHeaderItem->IsEnableDragOrder(), false);
 	pColumnHeaderCheckBox->Selected(pHeaderItem->IsCheckBoxVisible(), false);
+	pColumnHeaderIcon->SetSelected(pHeaderItem->GetImageId() >= 0);
 
 	bool bColumnDataHasCheckBox = false;
+	bool bColumnDataHasIcon = false;
 	ui::ListCtrlItem* pItem = pListCtrl->GetFirstDisplayItem();
 	if (pItem != nullptr) {
 		ui::ListCtrlSubItem* pSubItem = pItem->GetSubItem(pListCtrl->GetColumnIndex(nColumnId));
 		if (pSubItem != nullptr) {
 			bColumnDataHasCheckBox = pSubItem->IsCheckBoxVisible();
+			bColumnDataHasIcon = pSubItem->GetImageId() >= 0;
 		}
 	}
+	else {
+		bColumnDataHasCheckBox = pListCtrl->IsSubItemShowCheckBox(0, 0);
+		bColumnDataHasIcon = pListCtrl->GetSubItemImageId(0, 0) >= 0;
+	}
 	pColumnShowCheckBox->Selected(bColumnDataHasCheckBox, false);
+	pColumnShowIcon->Selected(bColumnDataHasIcon, false);
 
 	ui::HorAlignType hAlignType = pHeaderItem->GetTextHorAlign();
 	if (hAlignType == ui::HorAlignType::kHorAlignCenter) {
@@ -505,7 +579,7 @@ void MainForm::InsertItemData(int32_t nRows, int32_t nColumns, int32_t nImageId)
 	}
 	const size_t columnCount = nColumns;
 	const size_t rowCount = nRows;
-	bool bShowCheckBox = false; //是否显示CheckBox
+	bool bShowCheckBox = true; //是否显示CheckBox
 	//添加列
 	for (size_t i = 0; i < columnCount; ++i) {
 		ui::ListCtrlColumn columnInfo;
@@ -546,6 +620,8 @@ void MainForm::InsertItemData(int32_t nRows, int32_t nColumns, int32_t nImageId)
 		pListCtrl->SetSubItemBkColor(103, 0, ui::UiColor(ui::UiColors::MistyRose));
 		pListCtrl->SetSubItemBkColor(104, 0, ui::UiColor(ui::UiColors::MistyRose));
 	}
+	//重绘
+	UpdateWindow();
 }
 
 void MainForm::RunListCtrlTest()

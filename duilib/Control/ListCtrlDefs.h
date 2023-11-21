@@ -68,6 +68,15 @@ struct ListCtrlSubItemData2
     //数据类型的支持：比如整型，日期型，下拉表，字符串类型等
 };
 
+//列数据的智能指针
+typedef std::shared_ptr<ListCtrlSubItemData2> ListCtrlSubItemData2Ptr;
+
+struct ListCtrlSubItemData2Pair
+{
+    size_t nColumnId; //列的ID
+    ListCtrlSubItemData2Ptr pSubItemData; //列的数据
+};
+
 /** 比较数据的附加信息
 */
 struct ListCtrlCompareParam
@@ -86,6 +95,35 @@ struct ListCtrlCompareParam
 typedef std::function<bool(const ListCtrlSubItemData2& a, 
                            const ListCtrlSubItemData2& b, 
                            const ListCtrlCompareParam& param)> ListCtrlDataCompareFunc;
+
+/** 视图填充数据到UI控件的相关接口
+*/
+class IListCtrlView
+{
+public:
+    /** 创建一个数据项
+    * @return 返回创建后的数据项指针
+    */
+    virtual Control* CreateDataItem() = 0;
+
+    /** 填充指定数据项
+    * @param [in] pControl 数据项控件指针
+    * @param [in] nElementIndex 数据元素的索引ID，范围：[0, GetElementCount())
+    * @param [in] itemData 数据项（代表行的属性）
+    * @param [in] subItemList 数据子项（代表每一列的数据, 第1个是列的ID，第2个是列的数据）
+    */
+    virtual bool FillDataItem(ui::Control* pControl,
+                              size_t nElementIndex,
+                              const ListCtrlItemData& itemData,
+                              const std::vector<ListCtrlSubItemData2Pair>& subItemList) = 0;
+
+
+    /** 获取某列的宽度最大值
+    * @param [in] subItemList 数据子项（代表每一列的数据）
+    * @return 返回该列宽度的最大值，返回的是DPI自适应后的值； 如果失败返回-1
+    */
+    virtual int32_t GetMaxDataItemWidth(const std::vector<ListCtrlSubItemData2Ptr>& subItemList) = 0;
+};
 
 /** 列表中使用的CheckBox
 */

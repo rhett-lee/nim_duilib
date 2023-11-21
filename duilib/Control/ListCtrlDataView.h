@@ -4,6 +4,7 @@
 #pragma once
 
 #include "duilib/Box/VirtualListBox.h"
+#include "duilib/Control/ListCtrlDefs.h"
 
 namespace ui
 {
@@ -13,7 +14,7 @@ namespace ui
 */
 class ListCtrl;
 struct ListCtrlItemData;
-class ListCtrlDataView : public VirtualListBox
+class ListCtrlDataView : public VirtualListBox, public IListCtrlView
 {
     friend class ListCtrlDataLayout;
 public:
@@ -155,6 +156,29 @@ protected:
     */
     virtual Control* FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, UiPoint scrollPos = UiPoint()) override;
 
+    /** 创建一个数据项
+    * @return 返回创建后的数据项指针
+    */
+    virtual Control* CreateDataItem() override;
+
+    /** 填充指定数据项
+    * @param [in] pControl 数据项控件指针
+    * @param [in] nElementIndex 数据元素的索引ID，范围：[0, GetElementCount())
+    * @param [in] itemData 数据项（代表行的属性）
+    * @param [in] subItemList 数据子项（代表每一列的数据, 第1个是列的ID，第2个是列的数据）
+    */
+    virtual bool FillDataItem(Control* pControl,
+                              size_t nElementIndex,
+                              const ListCtrlItemData& itemData,
+                              const std::vector<ListCtrlSubItemData2Pair>& subItemList) override;
+
+
+    /** 获取某列的宽度最大值
+    * @param [in] subItemList 数据子项（代表每一列的数据）
+    * @return 返回该列宽度的最大值，返回的是DPI自适应后的值； 如果失败返回-1
+    */
+    virtual int32_t GetMaxDataItemWidth(const std::vector<ListCtrlSubItemData2Ptr>& subItemList) override;
+
     /** 计算本页里面显示几个子项
     * @param [in] bIsHorizontal 当前布局是否为水平布局
     * @param [out] nColumns 返回列数
@@ -193,6 +217,13 @@ protected:
     /** 选择状态发生变化
     */
     void OnSelectStatusChanged();
+
+    /** 某个数据项的Check勾选状态变化(列级)
+    * @param [in] nElementIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @param [in] nColumnId 列ID
+    * @param [in] bChecked 是否勾选
+    */
+    void OnSubItemColumnChecked(size_t nElementIndex, size_t nColumnId, bool bChecked);
 
 protected:
     //鼠标消息（返回true：表示消息已处理；返回false：则表示消息未处理，需转发给父控件）

@@ -5,6 +5,7 @@
 
 #include "duilib/Box/ListBox.h"
 #include "duilib/Control/Label.h"
+#include "duilib/Core/ImageList.h"
 
 namespace ui
 {
@@ -80,6 +81,16 @@ protected:
     /** 绘制文字
     */
     virtual void PaintText(IRender* pRender) override;
+
+    /** 计算文本区域大小（宽和高）
+     *  @param [in] szAvailable 可用大小，不包含内边距，不包含外边距
+     *  @return 控件的文本估算大小，包含内边距(Box)，不包含外边距
+     */
+    virtual UiSize EstimateText(UiSize szAvailable) override;
+
+    /** 加载图标资源
+    */
+    ImagePtr LoadItemImage() const;
 
 private:
     /** 关联的Item接口

@@ -19,7 +19,7 @@ class ListCtrl;
 class ListCtrlSubItem;
 class ListCtrlItem : public ListBoxItemH
 {
-    friend class ListCtrlData;//开放部分protect接口
+    friend class ListCtrlDataView;//开放部分protect接口
 public:
     ListCtrlItem();
     virtual ~ListCtrlItem();

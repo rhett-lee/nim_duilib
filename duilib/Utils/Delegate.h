@@ -25,8 +25,11 @@ public:
 
 	bool operator() (const ui::EventArgs& param) const
 	{
-		for (auto it = this->begin(); it != this->end(); it++) {
-			if(!(*it)(param)) return false;
+		for (size_t index = 0; index < this->size(); ++index) {
+			const EventCallback& callback = this->at(index);
+			if (!callback(param)) {
+				return false;
+			}
 		}
 		return true;
 	}
