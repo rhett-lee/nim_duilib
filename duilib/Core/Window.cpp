@@ -1185,6 +1185,7 @@ bool Window::RemoveMessageFilter(IUIMessageFilter* pFilter)
 
 LRESULT Window::WindowMessageProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+    HWND hWnd = m_hWnd;
     //第一优先级：将消息发给过滤器进行过滤
     for (auto filter : m_aMessageFilters) {
         bool bHandled = false;
@@ -1205,7 +1206,7 @@ LRESULT Window::WindowMessageProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
 
     //第四优先级：系统默认的窗口函数
-    if (!bHandled) {
+    if (!bHandled && ::IsWindow(hWnd)) {
         lResult = CallDefaultWindowProc(uMsg, wParam, lParam);
     }
     return lResult;

@@ -164,7 +164,10 @@ public:
             return m_nCheckBoxWidth;
         }
         //如果没设置，查询图片的大小，并记住
-        UiEstSize sz = EstimateSize(UiSize(0, 0));
+        UiEstSize sz;
+        if (GetWindow() != nullptr) {
+            sz = EstimateSize(UiSize(0, 0));
+        }
         int32_t nWidth = sz.cx.GetInt32();
         if (nWidth > 0) {
             UiMargin rcMargin = GetMargin();

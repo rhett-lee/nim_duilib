@@ -434,7 +434,7 @@ void ListCtrlReportView::Refresh()
         //刷新功能已经禁止
         return;
     }
-    if (!HasDataProvider()) {
+    if ((GetWindow() == nullptr) || !HasDataProvider()) {
         return;
     }
     //调整UI控件的个数，以满足显示使用
