@@ -9,6 +9,7 @@ namespace ui
 ListCtrlReportView::ListCtrlReportView() :
     VirtualListBox(new ListCtrlReportLayout),
     m_pListCtrl(nullptr),
+    m_pData(nullptr),
     m_nTopElementIndex(0),
     m_bMouseDown(false),
     m_bRMouseDown(false),
@@ -428,6 +429,12 @@ void ListCtrlReportView::SetListCtrl(ListCtrl* pListCtrl)
     m_pListCtrl = pListCtrl;
 }
 
+void ListCtrlReportView::SetDataProvider(VirtualListBoxElement* pProvider)
+{
+    __super::SetDataProvider(pProvider);
+    m_pData = dynamic_cast<ListCtrlData*>(GetDataProvider());
+}
+
 void ListCtrlReportView::Refresh()
 {
     if ((m_pListCtrl != nullptr) && !m_pListCtrl->IsEnableRefresh()) {
@@ -593,7 +600,7 @@ size_t ListCtrlReportView::GetTopDataItemIndex(int64_t nScrollPosY) const
     if (nScrollPosY <= 0) {
         return itemIndex;
     }
-    ListCtrlData* pDataProvider = dynamic_cast<ListCtrlData*>(GetDataProvider());
+    ListCtrlData* pDataProvider = m_pData;
     ASSERT(pDataProvider != nullptr);
     if (pDataProvider == nullptr) {
         return itemIndex;
@@ -630,7 +637,7 @@ int32_t ListCtrlReportView::GetDataItemHeight(size_t itemIndex) const
         return 0;
     }
     nItemHeight = m_pListCtrl->GetDataItemHeight();
-    ListCtrlData* pDataProvider = dynamic_cast<ListCtrlData*>(GetDataProvider());
+    ListCtrlData* pDataProvider = m_pData;
     ASSERT(pDataProvider != nullptr);
     if (pDataProvider == nullptr) {
         return 0;
@@ -665,7 +672,7 @@ void ListCtrlReportView::GetDataItemsToShow(int64_t nScrollPosY, size_t maxCount
     if (maxCount == 0) {
         return;
     }
-    ListCtrlData* pDataProvider = dynamic_cast<ListCtrlData*>(GetDataProvider());
+    ListCtrlData* pDataProvider = m_pData;
     ASSERT(pDataProvider != nullptr);
     if (pDataProvider == nullptr) {
         return;
@@ -758,7 +765,7 @@ int32_t ListCtrlReportView::GetMaxDataItemsToShow(int64_t nScrollPosY, int32_t n
     if (nRectHeight <= 0) {
         return 0;
     }
-    ListCtrlData* pDataProvider = dynamic_cast<ListCtrlData*>(GetDataProvider());
+    ListCtrlData* pDataProvider = m_pData;
     ASSERT(pDataProvider != nullptr);
     if (pDataProvider == nullptr) {
         return 0;
@@ -862,7 +869,7 @@ int64_t ListCtrlReportView::GetDataItemTotalHeights(size_t itemIndex, bool bIncl
     if (m_pListCtrl == nullptr) {
         return 0;
     }
-    ListCtrlData* pDataProvider = dynamic_cast<ListCtrlData*>(GetDataProvider());
+    ListCtrlData* pDataProvider = m_pData;
     ASSERT(pDataProvider != nullptr);
     if (pDataProvider == nullptr) {
         return 0;
@@ -901,7 +908,7 @@ int64_t ListCtrlReportView::GetDataItemTotalHeights(size_t itemIndex, bool bIncl
 bool ListCtrlReportView::IsNormalMode() const
 {
     bool bNormalMode = true;
-    ListCtrlData* pDataProvider = dynamic_cast<ListCtrlData*>(GetDataProvider());
+    ListCtrlData* pDataProvider = m_pData;
     if (pDataProvider != nullptr) {
         bNormalMode = pDataProvider->IsNormalMode();
     }
@@ -1502,7 +1509,7 @@ void ListCtrlReportView::AdjustSubItemWidth(const std::map<size_t, int32_t>& sub
 
 void ListCtrlReportView::OnSubItemColumnChecked(size_t nElementIndex, size_t nColumnId, bool bChecked)
 {
-    ListCtrlData* pDataProvider = dynamic_cast<ListCtrlData*>(GetDataProvider());
+    ListCtrlData* pDataProvider = m_pData;
     ASSERT(pDataProvider != nullptr);
     if (pDataProvider != nullptr) {
         pDataProvider->SetSubItemCheck(nElementIndex, nColumnId, bChecked, false);
@@ -1533,7 +1540,7 @@ size_t ListCtrlReportView::GetDisplayItemCount(bool /*bIsHorizontal*/, size_t& n
 bool ListCtrlReportView::IsSelectableElement(size_t nElementIndex) const
 {
     bool bSelectable = true;
-    ListCtrlData* pDataProvider = dynamic_cast<ListCtrlData*>(GetDataProvider());
+    ListCtrlData* pDataProvider = m_pData;
     ASSERT(pDataProvider != nullptr);
     if (pDataProvider != nullptr) {
         bSelectable = pDataProvider->IsSelectableElement(nElementIndex);
@@ -1543,7 +1550,7 @@ bool ListCtrlReportView::IsSelectableElement(size_t nElementIndex) const
 
 size_t ListCtrlReportView::FindSelectableElement(size_t nElementIndex, bool bForward) const
 {
-    ListCtrlData* pDataProvider = dynamic_cast<ListCtrlData*>(GetDataProvider());
+    ListCtrlData* pDataProvider = m_pData;
     ASSERT(pDataProvider != nullptr);
     if (pDataProvider == nullptr) {
         return nElementIndex;
@@ -1824,7 +1831,7 @@ bool ListCtrlReportView::OnFrameSelection(int64_t top, int64_t bottom, bool bInL
     if (m_pListCtrl == nullptr) {
         return false;
     }
-    ListCtrlData* pDataProvider = dynamic_cast<ListCtrlData*>(GetDataProvider());
+    ListCtrlData* pDataProvider = m_pData;
     ASSERT(pDataProvider != nullptr);
     if (pDataProvider == nullptr) {
         return false;
@@ -1924,7 +1931,7 @@ void ListCtrlReportView::OnItemCheckedChanged(size_t /*iIndex*/, IListBoxItem* p
         return;
     }
 
-    ListCtrlData* pDataProvider = dynamic_cast<ListCtrlData*>(GetDataProvider());
+    ListCtrlData* pDataProvider = m_pData;
     ASSERT(pDataProvider != nullptr);
     if (pDataProvider == nullptr) {
         return;

@@ -104,11 +104,10 @@ class UILIB_API VirtualListBox : public ListBox
 public:
     explicit VirtualListBox(Layout* pLayout);
 
-    /**
-    * @brief 设置数据代理对象
+    /** 设置数据代理对象
     * @param[in] pProvider 开发者需要重写 VirtualListBoxElement 的接口来作为数据代理对象
     */
-    void SetDataProvider(VirtualListBoxElement* pProvider);
+    virtual void SetDataProvider(VirtualListBoxElement* pProvider);
 
     /** 获取数据代理对象
     */

@@ -13,6 +13,7 @@ namespace ui
 /** 列表数据显示和布局功能(Report类型)
 */
 class ListCtrl;
+class ListCtrlData;
 struct ListCtrlItemData;
 class ListCtrlReportView : public VirtualListBox, public IListCtrlView
 {
@@ -37,6 +38,11 @@ public:
     /** 设置ListCtrl控件接口
     */
     void SetListCtrl(ListCtrl* pListCtrl);
+
+    /** 设置数据代理对象
+    * @param[in] pProvider 数据代理对象
+    */
+    virtual void SetDataProvider(VirtualListBoxElement* pProvider) override;
 
     /** 刷新列表
     */
@@ -316,6 +322,10 @@ private:
     /** ListCtrl 控件接口
     */
     ListCtrl* m_pListCtrl;
+
+    /** 数据接口
+    */
+    ListCtrlData* m_pData;
 
     /** 顶部元素的索引号(用于画网格线)
     */
