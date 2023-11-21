@@ -1,5 +1,5 @@
-#ifndef UI_CONTROL_LIST_CTRL_DATA_VIEW_H_
-#define UI_CONTROL_LIST_CTRL_DATA_VIEW_H_
+#ifndef UI_CONTROL_LIST_CTRL_REPORT_VIEW_H_
+#define UI_CONTROL_LIST_CTRL_REPORT_VIEW_H_
 
 #pragma once
 
@@ -8,20 +8,20 @@
 
 namespace ui
 {
-//包含类：ListCtrlDataView / ListCtrlDataLayout
+//包含类：ListCtrlReportView / ListCtrlReportLayout
 
-/** 列表数据显示和布局功能
+/** 列表数据显示和布局功能(Report类型)
 */
 class ListCtrl;
 struct ListCtrlItemData;
-class ListCtrlDataView : public VirtualListBox, public IListCtrlView
+class ListCtrlReportView : public VirtualListBox, public IListCtrlView
 {
-    friend class ListCtrlDataLayout;
+    friend class ListCtrlReportLayout;
 public:
-    ListCtrlDataView();
-    virtual ~ListCtrlDataView();
+    ListCtrlReportView();
+    virtual ~ListCtrlReportView();
 
-    virtual std::wstring GetType() const override { return L"ListCtrlDataView"; }
+    virtual std::wstring GetType() const override { return L"ListCtrlReportView"; }
     virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue);
     virtual void HandleEvent(const EventArgs& msg) override;
 
@@ -399,10 +399,10 @@ private:
 
 /** 列表数据显示控件的布局管理接口
 */
-class ListCtrlDataLayout : public Layout, public VirtualLayout
+class ListCtrlReportLayout : public Layout, public VirtualLayout
 {
 public:
-    ListCtrlDataLayout();
+    ListCtrlReportLayout();
 
     /** 布局类型
     */
@@ -470,12 +470,12 @@ public:
 public:
     /** 设置关联的Box接口
     */
-    void SetDataView(ListCtrlDataView* pDataView);
+    void SetDataView(ListCtrlReportView* pDataView);
 
 private:
     /** 获取关联的Box接口
     */
-    ListCtrlDataView* GetDataView() const { return m_pDataView; }
+    ListCtrlReportView* GetDataView() const { return m_pDataView; }
 
     /** 获取数据项的高度, 高度不包含表头
     * @param [in] nCount 数据项个数，如果为Box::InvalidIndex，则获取所有数据项的高度总和
@@ -518,7 +518,7 @@ private:
 private:
     /** 关联的ListBox接口
     */
-    ListCtrlDataView* m_pDataView;
+    ListCtrlReportView* m_pDataView;
 
     /** 底部预留的空间，确保滚动到最底部的时候，最后一条数据容易看完整
     */
@@ -531,4 +531,4 @@ private:
 
 }//namespace ui
 
-#endif //UI_CONTROL_LIST_CTRL_DATA_VIEW_H_
+#endif //UI_CONTROL_LIST_CTRL_REPORT_VIEW_H_

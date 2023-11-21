@@ -17,10 +17,10 @@ namespace ui
 */
 class ListCtrl: public VBox
 {
+    friend class ListCtrlData;          //列表数据管理容器
+    friend class ListCtrlReportView;    //列表数据显示UI控件
     friend class ListCtrlHeader;
     friend class ListCtrlHeaderItem;
-    friend class ListCtrlData; //列表数据管理容器
-    friend class ListCtrlDataView;     //列表数据显示UI控件
     friend class ListCtrlItem;
     friend class ListCtrlSubItem;
 public:
@@ -421,6 +421,11 @@ public:
     */
     void Refresh();
 
+    /** 刷新指定数据项
+    * @param [in] dataItemIndexs 需要刷新的数据项索引号, 有效范围：[0, GetDataItemCount())
+    */
+    void RefreshDataItems(std::vector<size_t> dataItemIndexs);
+
     /** 是否允许刷新界面
     * @param [in] bEnable 如果为true，允许通过Refresh()函数刷新界面; 如果为false，则允许通过Refresh()函数刷新界面
     * @return 返回旧的IsEnableRefresh()状态
@@ -693,7 +698,7 @@ private:
 
 	/** 列表数据展示
 	*/
-    ListCtrlDataView* m_pDataView;
+    ListCtrlReportView* m_pReportView;
 
 	/** 列表数据管理
 	*/

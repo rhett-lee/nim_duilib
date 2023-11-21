@@ -358,10 +358,10 @@
     <ClCompile Include="Control\Line.cpp" />
     <ClCompile Include="Control\ListCtrl.cpp" />
     <ClCompile Include="Control\ListCtrlData.cpp" />
-    <ClCompile Include="Control\ListCtrlDataView.cpp" />
     <ClCompile Include="Control\ListCtrlHeader.cpp" />
     <ClCompile Include="Control\ListCtrlHeaderItem.cpp" />
     <ClCompile Include="Control\ListCtrlItem.cpp" />
+    <ClCompile Include="Control\ListCtrlReportView.cpp" />
     <ClCompile Include="Control\ListCtrlSubItem.cpp" />
     <ClCompile Include="Control\Menu.cpp" />
     <ClCompile Include="Control\RichEditHost.cpp" />
@@ -473,11 +473,11 @@
     <ClInclude Include="Control\Line.h" />
     <ClInclude Include="Control\ListCtrl.h" />
     <ClInclude Include="Control\ListCtrlData.h" />
-    <ClInclude Include="Control\ListCtrlDataView.h" />
     <ClInclude Include="Control\ListCtrlDefs.h" />
     <ClInclude Include="Control\ListCtrlHeader.h" />
     <ClInclude Include="Control\ListCtrlHeaderItem.h" />
     <ClInclude Include="Control\ListCtrlItem.h" />
+    <ClInclude Include="Control\ListCtrlReportView.h" />
     <ClInclude Include="Control\ListCtrlSubItem.h" />
     <ClInclude Include="Control\Menu.h" />
     <ClInclude Include="Control\observer_impl_base.hpp" />

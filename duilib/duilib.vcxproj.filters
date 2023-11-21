@@ -357,9 +357,6 @@
     <ClCompile Include="Control\ListCtrlHeaderItem.cpp">
       <Filter>Control</Filter>
     </ClCompile>
-    <ClCompile Include="Control\ListCtrlDataView.cpp">
-      <Filter>Control</Filter>
-    </ClCompile>
     <ClCompile Include="Control\ListCtrlItem.cpp">
       <Filter>Control</Filter>
     </ClCompile>
@@ -370,6 +367,9 @@
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="Control\ListCtrlData.cpp">
+      <Filter>Control</Filter>
+    </ClCompile>
+    <ClCompile Include="Control\ListCtrlReportView.cpp">
       <Filter>Control</Filter>
     </ClCompile>
   </ItemGroup>
@@ -803,9 +803,6 @@
     <ClInclude Include="Control\ListCtrlHeaderItem.h">
       <Filter>Control</Filter>
     </ClInclude>
-    <ClInclude Include="Control\ListCtrlDataView.h">
-      <Filter>Control</Filter>
-    </ClInclude>
     <ClInclude Include="Control\ListCtrlItem.h">
       <Filter>Control</Filter>
     </ClInclude>
@@ -819,6 +816,9 @@
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="Control\ListCtrlData.h">
+      <Filter>Control</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\ListCtrlReportView.h">
       <Filter>Control</Filter>
     </ClInclude>
   </ItemGroup>

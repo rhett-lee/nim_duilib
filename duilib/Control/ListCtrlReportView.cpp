@@ -1,13 +1,13 @@
-#include "ListCtrlDataView.h" 
+#include "ListCtrlReportView.h" 
 #include "ListCtrl.h"
 #include "duilib/Render/AutoClip.h"
 
-//包含类：ListCtrlDataView / ListCtrlDataLayout
+//包含类：ListCtrlReportView / ListCtrlReportLayout
 
 namespace ui
 {
-ListCtrlDataView::ListCtrlDataView() :
-    VirtualListBox(new ListCtrlDataLayout),
+ListCtrlReportView::ListCtrlReportView() :
+    VirtualListBox(new ListCtrlReportLayout),
     m_pListCtrl(nullptr),
     m_nTopElementIndex(0),
     m_bMouseDown(false),
@@ -19,7 +19,7 @@ ListCtrlDataView::ListCtrlDataView() :
     m_nLastNoShiftIndex(0),
     m_bMouseDownInView(false)
 {
-    ListCtrlDataLayout* pDataLayout = dynamic_cast<ListCtrlDataLayout*>(GetLayout());
+    ListCtrlReportLayout* pDataLayout = dynamic_cast<ListCtrlReportLayout*>(GetLayout());
     ASSERT(pDataLayout != nullptr);
 
     VirtualLayout* pVirtualLayout = pDataLayout;
@@ -36,11 +36,11 @@ ListCtrlDataView::ListCtrlDataView() :
     m_nColumnGridLineWidth = GlobalManager::Instance().Dpi().GetScaleInt(1);
 }
 
-ListCtrlDataView::~ListCtrlDataView() 
+ListCtrlReportView::~ListCtrlReportView() 
 {
 }
 
-void ListCtrlDataView::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
+void ListCtrlReportView::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
     if (strName == L"enable_frame_selection") {
         m_bEnableFrameSelection = (strValue == L"true");
@@ -62,13 +62,13 @@ void ListCtrlDataView::SetAttribute(const std::wstring& strName, const std::wstr
     }
 }
 
-void ListCtrlDataView::DoInit()
+void ListCtrlReportView::DoInit()
 {
     //禁止随鼠标滚轮的滚动改变选中项
     SetScrollSelect(false);
 }
 
-void ListCtrlDataView::HandleEvent(const EventArgs& msg)
+void ListCtrlReportView::HandleEvent(const EventArgs& msg)
 {
     if (IsDisabledEvents(msg)) {
         //如果是鼠标键盘消息，并且控件是Disabled的，转发给上层控件
@@ -90,7 +90,7 @@ void ListCtrlDataView::HandleEvent(const EventArgs& msg)
     }
 }
 
-bool ListCtrlDataView::OnListCtrlKeyDown(const EventArgs& msg)
+bool ListCtrlReportView::OnListCtrlKeyDown(const EventArgs& msg)
 {
     ASSERT(msg.Type == kEventKeyDown);
     bool bHandled = false;
@@ -311,7 +311,7 @@ bool ListCtrlDataView::OnListCtrlKeyDown(const EventArgs& msg)
     return bHandled;
 }
 
-bool ListCtrlDataView::OnListCtrlClickedBlank()
+bool ListCtrlReportView::OnListCtrlClickedBlank()
 {
     //在空白处点击鼠标左键或者右键，取消全部选择
     bool bRet = SetSelectNone();
@@ -319,7 +319,7 @@ bool ListCtrlDataView::OnListCtrlClickedBlank()
     return bRet;
 }
 
-bool ListCtrlDataView::SelectItem(size_t iIndex, bool bTakeFocus, bool bTriggerEvent, uint64_t vkFlag)
+bool ListCtrlReportView::SelectItem(size_t iIndex, bool bTakeFocus, bool bTriggerEvent, uint64_t vkFlag)
 {
     //事件触发，需要放在函数返回之前，不能放在代码中间
     bool bSelectStatusChanged = false;
@@ -423,12 +423,12 @@ bool ListCtrlDataView::SelectItem(size_t iIndex, bool bTakeFocus, bool bTriggerE
     return bRet;
 }
 
-void ListCtrlDataView::SetListCtrl(ListCtrl* pListCtrl)
+void ListCtrlReportView::SetListCtrl(ListCtrl* pListCtrl)
 {
     m_pListCtrl = pListCtrl;
 }
 
-void ListCtrlDataView::Refresh()
+void ListCtrlReportView::Refresh()
 {
     if ((m_pListCtrl != nullptr) && !m_pListCtrl->IsEnableRefresh()) {
         //刷新功能已经禁止
@@ -447,7 +447,7 @@ void ListCtrlDataView::Refresh()
     }
 }
 
-void ListCtrlDataView::AjustItemCount()
+void ListCtrlReportView::AjustItemCount()
 {
     VirtualLayout* pVirtualLayout = GetVirtualLayout();
     if (pVirtualLayout == nullptr) {
@@ -522,7 +522,7 @@ void ListCtrlDataView::AjustItemCount()
     }
 }
 
-int32_t ListCtrlDataView::GetListCtrlWidth() const
+int32_t ListCtrlReportView::GetListCtrlWidth() const
 {
     int32_t nToltalWidth = 0;
     ASSERT(m_pListCtrl != nullptr);
@@ -544,33 +544,33 @@ int32_t ListCtrlDataView::GetListCtrlWidth() const
     return nToltalWidth;
 }
 
-void ListCtrlDataView::SetTopElementIndex(size_t nTopElementIndex)
+void ListCtrlReportView::SetTopElementIndex(size_t nTopElementIndex)
 {
     m_nTopElementIndex = nTopElementIndex;
 }
 
-size_t ListCtrlDataView::GetTopElementIndex() const
+size_t ListCtrlReportView::GetTopElementIndex() const
 {
     return m_nTopElementIndex;
 }
 
-void ListCtrlDataView::SetDisplayDataItems(const std::vector<size_t>& itemIndexList)
+void ListCtrlReportView::SetDisplayDataItems(const std::vector<size_t>& itemIndexList)
 {
     m_diplayItemIndexList = itemIndexList;
 }
 
-void ListCtrlDataView::GetDisplayDataItems(std::vector<size_t>& itemIndexList) const
+void ListCtrlReportView::GetDisplayDataItems(std::vector<size_t>& itemIndexList) const
 {
     itemIndexList = m_diplayItemIndexList;
 }
 
-bool ListCtrlDataView::IsDataItemDisplay(size_t itemIndex) const
+bool ListCtrlReportView::IsDataItemDisplay(size_t itemIndex) const
 {
     auto iter = std::find(m_diplayItemIndexList.begin(), m_diplayItemIndexList.end(), itemIndex);
     return iter != m_diplayItemIndexList.end();
 }
 
-bool ListCtrlDataView::EnsureDataItemVisible(size_t itemIndex, bool bToTop)
+bool ListCtrlReportView::EnsureDataItemVisible(size_t itemIndex, bool bToTop)
 {
     if (!Box::IsValidItemIndex(itemIndex) || (itemIndex >= GetElementCount())) {
         return false;
@@ -583,7 +583,7 @@ bool ListCtrlDataView::EnsureDataItemVisible(size_t itemIndex, bool bToTop)
     return false;
 }
 
-size_t ListCtrlDataView::GetTopDataItemIndex(int64_t nScrollPosY) const
+size_t ListCtrlReportView::GetTopDataItemIndex(int64_t nScrollPosY) const
 {
     ASSERT(m_pListCtrl != nullptr);
     if (m_pListCtrl == nullptr) {
@@ -622,7 +622,7 @@ size_t ListCtrlDataView::GetTopDataItemIndex(int64_t nScrollPosY) const
     return itemIndex;
 }
 
-int32_t ListCtrlDataView::GetDataItemHeight(size_t itemIndex) const
+int32_t ListCtrlReportView::GetDataItemHeight(size_t itemIndex) const
 {
     int32_t nItemHeight = 0;
     ASSERT(m_pListCtrl != nullptr);
@@ -645,7 +645,7 @@ int32_t ListCtrlDataView::GetDataItemHeight(size_t itemIndex) const
     return nItemHeight;
 }
 
-void ListCtrlDataView::GetDataItemsToShow(int64_t nScrollPosY, size_t maxCount, 
+void ListCtrlReportView::GetDataItemsToShow(int64_t nScrollPosY, size_t maxCount, 
                                           std::vector<ShowItemInfo>& itemIndexList,
                                           std::vector<ShowItemInfo>& atTopItemIndexList,
                                           int64_t& nPrevItemHeights) const
@@ -739,7 +739,7 @@ void ListCtrlDataView::GetDataItemsToShow(int64_t nScrollPosY, size_t maxCount,
     ASSERT((itemIndexList.size() + atTopItemIndexList.size()) <= maxCount);
 }
 
-int32_t ListCtrlDataView::GetMaxDataItemsToShow(int64_t nScrollPosY, int32_t nRectHeight, 
+int32_t ListCtrlReportView::GetMaxDataItemsToShow(int64_t nScrollPosY, int32_t nRectHeight, 
                                                 std::vector<size_t>* pItemIndexList,
                                                 std::vector<size_t>* pAtTopItemIndexList) const
 {
@@ -856,7 +856,7 @@ int32_t ListCtrlDataView::GetMaxDataItemsToShow(int64_t nScrollPosY, int32_t nRe
     return nShowItemCount;
 }
 
-int64_t ListCtrlDataView::GetDataItemTotalHeights(size_t itemIndex, bool bIncludeAtTops) const
+int64_t ListCtrlReportView::GetDataItemTotalHeights(size_t itemIndex, bool bIncludeAtTops) const
 {
     ASSERT(m_pListCtrl != nullptr);
     if (m_pListCtrl == nullptr) {
@@ -898,7 +898,7 @@ int64_t ListCtrlDataView::GetDataItemTotalHeights(size_t itemIndex, bool bInclud
     return totalItemHeight;
 }
 
-bool ListCtrlDataView::IsNormalMode() const
+bool ListCtrlReportView::IsNormalMode() const
 {
     bool bNormalMode = true;
     ListCtrlData* pDataProvider = dynamic_cast<ListCtrlData*>(GetDataProvider());
@@ -908,12 +908,12 @@ bool ListCtrlDataView::IsNormalMode() const
     return bNormalMode;
 }
 
-void ListCtrlDataView::SetAtTopControlIndex(const std::vector<size_t>& atTopControlList)
+void ListCtrlReportView::SetAtTopControlIndex(const std::vector<size_t>& atTopControlList)
 {
     m_atTopControlList = atTopControlList;
 }
 
-void ListCtrlDataView::MoveTopItemsToLast(std::vector<Control*>& items, std::vector<Control*>& atTopItems) const
+void ListCtrlReportView::MoveTopItemsToLast(std::vector<Control*>& items, std::vector<Control*>& atTopItems) const
 {
     atTopItems.clear();
     if (items.empty()) {
@@ -946,7 +946,7 @@ void ListCtrlDataView::MoveTopItemsToLast(std::vector<Control*>& items, std::vec
     ASSERT(items.size() == m_items.size());
 }
 
-void ListCtrlDataView::PaintChild(IRender* pRender, const UiRect& rcPaint)
+void ListCtrlReportView::PaintChild(IRender* pRender, const UiRect& rcPaint)
 {
     //重写VirtualListBox::PaintChild / ScrollBox::PaintChild函数，确保Header正常绘制
     ASSERT(pRender != nullptr);
@@ -1042,7 +1042,7 @@ void ListCtrlDataView::PaintChild(IRender* pRender, const UiRect& rcPaint)
     PaintFrameSelection(pRender);
 }
 
-void ListCtrlDataView::PaintGridLines(IRender* pRender)
+void ListCtrlReportView::PaintGridLines(IRender* pRender)
 {
     int32_t nColumnLineWidth = GetColumnGridLineWidth();//纵向边线宽度        
     int32_t nRowLineWidth = GetRowGridLineWidth();   //横向边线宽度
@@ -1123,7 +1123,7 @@ void ListCtrlDataView::PaintGridLines(IRender* pRender)
     }
 }
 
-void ListCtrlDataView::PaintFrameSelection(IRender* pRender)
+void ListCtrlReportView::PaintFrameSelection(IRender* pRender)
 {
     if (!m_bInMouseMove || (pRender == nullptr)) {
         return;
@@ -1153,7 +1153,7 @@ void ListCtrlDataView::PaintFrameSelection(IRender* pRender)
     }
 }
 
-Control* ListCtrlDataView::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, UiPoint scrollPos)
+Control* ListCtrlReportView::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, UiPoint scrollPos)
 {
     //重写：ScrollBox::FindControl 函数，让Header优先被查找到，只处理含有UIFIND_TOP_FIRST标志的情况
     if ((uFlags & UIFIND_TOP_FIRST) == 0) {
@@ -1214,7 +1214,7 @@ Control* ListCtrlDataView::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT 
     return FindControlInItems(newItems, Proc, pData, uFlags, ptNewScrollPos);
 }
 
-Control* ListCtrlDataView::CreateDataItem()
+Control* ListCtrlReportView::CreateDataItem()
 {
     ASSERT(m_pListCtrl != nullptr);
     if (m_pListCtrl == nullptr) {
@@ -1227,7 +1227,7 @@ Control* ListCtrlDataView::CreateDataItem()
     return pItem;
 }
 
-bool ListCtrlDataView::FillDataItem(Control* pControl,
+bool ListCtrlReportView::FillDataItem(Control* pControl,
                                     size_t nElementIndex,
                                     const ListCtrlItemData& itemData,
                                     const std::vector<ListCtrlSubItemData2Pair>& subItemList)
@@ -1413,7 +1413,7 @@ bool ListCtrlDataView::FillDataItem(Control* pControl,
     return true;
 }
 
-int32_t ListCtrlDataView::GetMaxDataItemWidth(const std::vector<ListCtrlSubItemData2Ptr>& subItemList)
+int32_t ListCtrlReportView::GetMaxDataItemWidth(const std::vector<ListCtrlSubItemData2Ptr>& subItemList)
 {
     int32_t nMaxWidth = -1;
     if (m_pListCtrl == nullptr) {
@@ -1472,7 +1472,7 @@ int32_t ListCtrlDataView::GetMaxDataItemWidth(const std::vector<ListCtrlSubItemD
     return nMaxWidth;
 }
 
-void ListCtrlDataView::AdjustSubItemWidth(const std::map<size_t, int32_t>& subItemWidths)
+void ListCtrlReportView::AdjustSubItemWidth(const std::map<size_t, int32_t>& subItemWidths)
 {
     if (subItemWidths.empty()) {
         return;
@@ -1500,7 +1500,7 @@ void ListCtrlDataView::AdjustSubItemWidth(const std::map<size_t, int32_t>& subIt
     }
 }
 
-void ListCtrlDataView::OnSubItemColumnChecked(size_t nElementIndex, size_t nColumnId, bool bChecked)
+void ListCtrlReportView::OnSubItemColumnChecked(size_t nElementIndex, size_t nColumnId, bool bChecked)
 {
     ListCtrlData* pDataProvider = dynamic_cast<ListCtrlData*>(GetDataProvider());
     ASSERT(pDataProvider != nullptr);
@@ -1513,7 +1513,7 @@ void ListCtrlDataView::OnSubItemColumnChecked(size_t nElementIndex, size_t nColu
     }
 }
 
-size_t ListCtrlDataView::GetDisplayItemCount(bool /*bIsHorizontal*/, size_t& nColumns, size_t& nRows) const
+size_t ListCtrlReportView::GetDisplayItemCount(bool /*bIsHorizontal*/, size_t& nColumns, size_t& nRows) const
 {
     nColumns = 1;
     size_t nDiplayItemCount = m_diplayItemIndexList.size();
@@ -1530,7 +1530,7 @@ size_t ListCtrlDataView::GetDisplayItemCount(bool /*bIsHorizontal*/, size_t& nCo
     return nRows * nColumns;
 }
 
-bool ListCtrlDataView::IsSelectableElement(size_t nElementIndex) const
+bool ListCtrlReportView::IsSelectableElement(size_t nElementIndex) const
 {
     bool bSelectable = true;
     ListCtrlData* pDataProvider = dynamic_cast<ListCtrlData*>(GetDataProvider());
@@ -1541,7 +1541,7 @@ bool ListCtrlDataView::IsSelectableElement(size_t nElementIndex) const
     return bSelectable;
 }
 
-size_t ListCtrlDataView::FindSelectableElement(size_t nElementIndex, bool bForward) const
+size_t ListCtrlReportView::FindSelectableElement(size_t nElementIndex, bool bForward) const
 {
     ListCtrlData* pDataProvider = dynamic_cast<ListCtrlData*>(GetDataProvider());
     ASSERT(pDataProvider != nullptr);
@@ -1577,49 +1577,49 @@ size_t ListCtrlDataView::FindSelectableElement(size_t nElementIndex, bool bForwa
     return nElementIndex;
 }
 
-bool ListCtrlDataView::ButtonDown(const EventArgs& msg)
+bool ListCtrlReportView::ButtonDown(const EventArgs& msg)
 {
     bool bRet = __super::ButtonDown(msg);
     OnButtonDown(msg.ptMouse, msg.pSender);
     return bRet;
 }
 
-bool ListCtrlDataView::ButtonUp(const EventArgs& msg)
+bool ListCtrlReportView::ButtonUp(const EventArgs& msg)
 {
     bool bRet = __super::ButtonUp(msg);
     OnButtonUp(msg.ptMouse, msg.pSender);
     return bRet;
 }
 
-bool ListCtrlDataView::RButtonDown(const EventArgs& msg)
+bool ListCtrlReportView::RButtonDown(const EventArgs& msg)
 {
     bool bRet = __super::RButtonDown(msg);
     OnRButtonDown(msg.ptMouse, msg.pSender);
     return bRet;
 }
 
-bool ListCtrlDataView::RButtonUp(const EventArgs& msg)
+bool ListCtrlReportView::RButtonUp(const EventArgs& msg)
 {
     bool bRet = __super::RButtonUp(msg);
     OnRButtonUp(msg.ptMouse, msg.pSender);
     return bRet;
 }
 
-bool ListCtrlDataView::MouseMove(const EventArgs& msg)
+bool ListCtrlReportView::MouseMove(const EventArgs& msg)
 {
     bool bRet = __super::MouseMove(msg);
     OnMouseMove(msg.ptMouse, msg.pSender);
     return bRet;
 }
 
-bool ListCtrlDataView::OnWindowKillFocus(const EventArgs& msg)
+bool ListCtrlReportView::OnWindowKillFocus(const EventArgs& msg)
 {
     bool bRet = __super::OnWindowKillFocus(msg);
     OnWindowKillFocus();
     return bRet;
 }
 
-void ListCtrlDataView::OnButtonDown(const UiPoint& ptMouse, Control* pSender)
+void ListCtrlReportView::OnButtonDown(const UiPoint& ptMouse, Control* pSender)
 {
     if (m_bInMouseMove) {
         m_bInMouseMove = false;
@@ -1633,7 +1633,7 @@ void ListCtrlDataView::OnButtonDown(const UiPoint& ptMouse, Control* pSender)
     m_ptMouseDown.cy = ptMouse.y + scrollPos.cy;
 }
 
-void ListCtrlDataView::OnButtonUp(const UiPoint& /*ptMouse*/, Control* pSender)
+void ListCtrlReportView::OnButtonUp(const UiPoint& /*ptMouse*/, Control* pSender)
 {
     bool bClickedBlank = false;
     if (m_bMouseDownInView && !m_bInMouseMove && (pSender == this)) {
@@ -1653,7 +1653,7 @@ void ListCtrlDataView::OnButtonUp(const UiPoint& /*ptMouse*/, Control* pSender)
     }
 }
 
-void ListCtrlDataView::OnRButtonDown(const UiPoint& ptMouse, Control* pSender)
+void ListCtrlReportView::OnRButtonDown(const UiPoint& ptMouse, Control* pSender)
 {
     if (m_bInMouseMove) {
         m_bInMouseMove = false;
@@ -1667,7 +1667,7 @@ void ListCtrlDataView::OnRButtonDown(const UiPoint& ptMouse, Control* pSender)
     m_ptMouseDown.cy = ptMouse.y + scrollPos.cy;
 }
 
-void ListCtrlDataView::OnRButtonUp(const UiPoint& /*ptMouse*/, Control* pSender)
+void ListCtrlReportView::OnRButtonUp(const UiPoint& /*ptMouse*/, Control* pSender)
 {
     bool bClickedBlank = false;
     if (m_bMouseDownInView && !m_bInMouseMove && (pSender == this)) {
@@ -1687,7 +1687,7 @@ void ListCtrlDataView::OnRButtonUp(const UiPoint& /*ptMouse*/, Control* pSender)
     }
 }
 
-void ListCtrlDataView::OnMouseMove(const UiPoint& ptMouse, Control* pSender)
+void ListCtrlReportView::OnMouseMove(const UiPoint& ptMouse, Control* pSender)
 {
     if (!m_bEnableFrameSelection || !IsMultiSelect()) {
         //功能关闭 或者 单选模式
@@ -1709,7 +1709,7 @@ void ListCtrlDataView::OnMouseMove(const UiPoint& ptMouse, Control* pSender)
     }
 }
 
-void ListCtrlDataView::OnWindowKillFocus()
+void ListCtrlReportView::OnWindowKillFocus()
 {
     if (m_bInMouseMove) {
         Invalidate();
@@ -1721,7 +1721,7 @@ void ListCtrlDataView::OnWindowKillFocus()
     m_pMouseSender = nullptr;
 }
 
-void ListCtrlDataView::OnCheckScrollView()
+void ListCtrlReportView::OnCheckScrollView()
 {
     if (!m_bInMouseMove) {
         //取消定时器
@@ -1783,7 +1783,7 @@ void ListCtrlDataView::OnCheckScrollView()
         //启动定时器
         m_scrollViewFlag.Cancel();
         GlobalManager::Instance().Timer().AddCancelableTimer(m_scrollViewFlag.GetWeakFlag(),
-                                                            nbase::Bind(&ListCtrlDataView::OnCheckScrollView, this),
+                                                            nbase::Bind(&ListCtrlReportView::OnCheckScrollView, this),
                                                             50, 1); //只执行一次
     }
     else {
@@ -1806,7 +1806,7 @@ void ListCtrlDataView::OnCheckScrollView()
     }
 }
 
-bool ListCtrlDataView::OnFrameSelection(int64_t top, int64_t bottom, bool bInListItem)
+bool ListCtrlReportView::OnFrameSelection(int64_t top, int64_t bottom, bool bInListItem)
 {
     if (!bInListItem) {
         //在空白处，不做框选处理，只是取消所有选择项
@@ -1896,12 +1896,12 @@ bool ListCtrlDataView::OnFrameSelection(int64_t top, int64_t bottom, bool bInLis
     return bRet;
 }
 
-void ListCtrlDataView::SetNormalItemTop(int32_t nNormalItemTop)
+void ListCtrlReportView::SetNormalItemTop(int32_t nNormalItemTop)
 {
     m_nNormalItemTop = nNormalItemTop;
 }
 
-void ListCtrlDataView::OnItemSelectedChanged(size_t iIndex, IListBoxItem* pListBoxItem)
+void ListCtrlReportView::OnItemSelectedChanged(size_t iIndex, IListBoxItem* pListBoxItem)
 {
     if (!IsEnableUpdateProvider()) {
         return;
@@ -1910,7 +1910,7 @@ void ListCtrlDataView::OnItemSelectedChanged(size_t iIndex, IListBoxItem* pListB
     OnSelectStatusChanged();
 }
 
-void ListCtrlDataView::OnItemCheckedChanged(size_t /*iIndex*/, IListBoxItem* pListBoxItem)
+void ListCtrlReportView::OnItemCheckedChanged(size_t /*iIndex*/, IListBoxItem* pListBoxItem)
 {
     if (!IsEnableUpdateProvider()) {
         return;
@@ -1941,7 +1941,7 @@ void ListCtrlDataView::OnItemCheckedChanged(size_t /*iIndex*/, IListBoxItem* pLi
     }
 }
 
-void ListCtrlDataView::OnSelectStatusChanged()
+void ListCtrlReportView::OnSelectStatusChanged()
 {
     if ((m_pListCtrl != nullptr) && m_pListCtrl->IsAutoCheckSelect()) {
         //更新表头的勾选项状态
@@ -1949,12 +1949,12 @@ void ListCtrlDataView::OnSelectStatusChanged()
     }
 }
 
-void ListCtrlDataView::SendEvent(EventType eventType, WPARAM wParam, LPARAM lParam, TCHAR tChar, const UiPoint& mousePos)
+void ListCtrlReportView::SendEvent(EventType eventType, WPARAM wParam, LPARAM lParam, TCHAR tChar, const UiPoint& mousePos)
 {
     __super::SendEvent(eventType, wParam, lParam, tChar, mousePos);
 }
 
-void ListCtrlDataView::SendEvent(const EventArgs& event)
+void ListCtrlReportView::SendEvent(const EventArgs& event)
 {
     __super::SendEvent(event);
     if ((event.Type == kEventSelect) || (event.Type == kEventUnSelect)) {
@@ -1962,7 +1962,7 @@ void ListCtrlDataView::SendEvent(const EventArgs& event)
     }
 }
 
-void ListCtrlDataView::SetRowGridLineWidth(int32_t nLineWidth, bool bNeedDpiScale)
+void ListCtrlReportView::SetRowGridLineWidth(int32_t nLineWidth, bool bNeedDpiScale)
 {
     if (bNeedDpiScale) {
         GlobalManager::Instance().Dpi().ScaleInt(nLineWidth);
@@ -1976,12 +1976,12 @@ void ListCtrlDataView::SetRowGridLineWidth(int32_t nLineWidth, bool bNeedDpiScal
     }
 }
 
-int32_t ListCtrlDataView::GetRowGridLineWidth() const
+int32_t ListCtrlReportView::GetRowGridLineWidth() const
 {
     return m_nRowGridLineWidth;
 }
 
-void ListCtrlDataView::SetRowGridLineColor(const std::wstring& color)
+void ListCtrlReportView::SetRowGridLineColor(const std::wstring& color)
 {
     if (m_rowGridLineColor != color) {
         m_rowGridLineColor = color;
@@ -1989,12 +1989,12 @@ void ListCtrlDataView::SetRowGridLineColor(const std::wstring& color)
     }
 }
 
-std::wstring ListCtrlDataView::GetRowGridLineColor() const
+std::wstring ListCtrlReportView::GetRowGridLineColor() const
 {
     return m_rowGridLineColor.c_str();
 }
 
-void ListCtrlDataView::SetColumnGridLineWidth(int32_t nLineWidth, bool bNeedDpiScale)
+void ListCtrlReportView::SetColumnGridLineWidth(int32_t nLineWidth, bool bNeedDpiScale)
 {
     if (bNeedDpiScale) {
         GlobalManager::Instance().Dpi().ScaleInt(nLineWidth);
@@ -2008,12 +2008,12 @@ void ListCtrlDataView::SetColumnGridLineWidth(int32_t nLineWidth, bool bNeedDpiS
     }
 }
 
-int32_t ListCtrlDataView::GetColumnGridLineWidth() const
+int32_t ListCtrlReportView::GetColumnGridLineWidth() const
 {
     return m_nColumnGridLineWidth;
 }
 
-void ListCtrlDataView::SetColumnGridLineColor(const std::wstring& color)
+void ListCtrlReportView::SetColumnGridLineColor(const std::wstring& color)
 {
     if (m_columnGridLineColor != color) {
         m_columnGridLineColor = color;
@@ -2021,30 +2021,30 @@ void ListCtrlDataView::SetColumnGridLineColor(const std::wstring& color)
     }
 }
 
-std::wstring ListCtrlDataView::GetColumnGridLineColor() const
+std::wstring ListCtrlReportView::GetColumnGridLineColor() const
 {
     return m_columnGridLineColor.c_str();
 }
 
 ////////////////////////////////////////////////////////////////////////
-/// ListCtrlDataLayout 的实现
+/// ListCtrlReportLayout 的实现
 
-ListCtrlDataLayout::ListCtrlDataLayout():
+ListCtrlReportLayout::ListCtrlReportLayout():
     m_pDataView(nullptr),
     m_bReserveSet(false)
 {
     m_nReserveHeight = GlobalManager::Instance().Dpi().GetScaleInt(8);
 }
 
-void ListCtrlDataLayout::SetDataView(ListCtrlDataView* pDataView)
+void ListCtrlReportLayout::SetDataView(ListCtrlReportView* pDataView)
 {
     ASSERT(pDataView != nullptr);
     m_pDataView = pDataView;
 }
 
-UiSize64 ListCtrlDataLayout::ArrangeChild(const std::vector<ui::Control*>& /*items*/, ui::UiRect rc)
+UiSize64 ListCtrlReportLayout::ArrangeChild(const std::vector<ui::Control*>& /*items*/, ui::UiRect rc)
 {
-    ListCtrlDataView* pDataView = GetDataView();
+    ListCtrlReportView* pDataView = GetDataView();
     if ((pDataView == nullptr) || !pDataView->HasDataProvider()) {
         ASSERT(FALSE);
         return UiSize64();
@@ -2068,9 +2068,9 @@ UiSize64 ListCtrlDataLayout::ArrangeChild(const std::vector<ui::Control*>& /*ite
     return sz;
 }
 
-UiSize ListCtrlDataLayout::EstimateSizeByChild(const std::vector<Control*>& /*items*/, ui::UiSize szAvailable)
+UiSize ListCtrlReportLayout::EstimateSizeByChild(const std::vector<Control*>& /*items*/, ui::UiSize szAvailable)
 {
-    ListCtrlDataView* pDataView = GetDataView();
+    ListCtrlReportView* pDataView = GetDataView();
     if ((pDataView == nullptr) || !pDataView->HasDataProvider()) {
         ASSERT(FALSE);
         return UiSize();
@@ -2097,9 +2097,9 @@ UiSize ListCtrlDataLayout::EstimateSizeByChild(const std::vector<Control*>& /*it
     return size;
 }
 
-void ListCtrlDataLayout::LazyArrangeChild(UiRect rc) const
+void ListCtrlReportLayout::LazyArrangeChild(UiRect rc) const
 {
-    ListCtrlDataView* pDataView = GetDataView();
+    ListCtrlReportView* pDataView = GetDataView();
     if ((pDataView == nullptr) || !pDataView->HasDataProvider()) {
         ASSERT(FALSE);
         return;
@@ -2157,8 +2157,8 @@ void ListCtrlDataLayout::LazyArrangeChild(UiRect rc) const
     }
 
     //取出需要显示的数据元素序号列表
-    std::vector<ListCtrlDataView::ShowItemInfo> showItemIndexList;
-    std::vector<ListCtrlDataView::ShowItemInfo> atTopItemIndexList;
+    std::vector<ListCtrlReportView::ShowItemInfo> showItemIndexList;
+    std::vector<ListCtrlReportView::ShowItemInfo> atTopItemIndexList;
     int64_t nPrevItemHeights = 0;
     pDataView->GetDataItemsToShow(nScrollPosY, nItemCount - 1, 
                                   showItemIndexList, atTopItemIndexList, nPrevItemHeights);
@@ -2336,9 +2336,9 @@ void ListCtrlDataLayout::LazyArrangeChild(UiRect rc) const
     }
 }
 
-void ListCtrlDataLayout::LazyArrangeChildNormal(UiRect rc) const
+void ListCtrlReportLayout::LazyArrangeChildNormal(UiRect rc) const
 {    
-    ListCtrlDataView* pDataView = GetDataView();
+    ListCtrlReportView* pDataView = GetDataView();
     if ((pDataView == nullptr) || !pDataView->HasDataProvider()) {
         ASSERT(FALSE);
         return;
@@ -2440,9 +2440,9 @@ void ListCtrlDataLayout::LazyArrangeChildNormal(UiRect rc) const
     }
 }
 
-size_t ListCtrlDataLayout::AjustMaxItem(UiRect rc) const
+size_t ListCtrlReportLayout::AjustMaxItem(UiRect rc) const
 {
-    ListCtrlDataView* pDataView = GetDataView();
+    ListCtrlReportView* pDataView = GetDataView();
     if ((pDataView == nullptr) || !pDataView->HasDataProvider()) {
         ASSERT(FALSE);
         return 1;
@@ -2489,10 +2489,10 @@ size_t ListCtrlDataLayout::AjustMaxItem(UiRect rc) const
     return nRows;
 }
 
-size_t ListCtrlDataLayout::GetTopElementIndex(UiRect /*rc*/) const
+size_t ListCtrlReportLayout::GetTopElementIndex(UiRect /*rc*/) const
 {
     size_t nTopElementIndex = 0;
-    ListCtrlDataView* pDataView = GetDataView();
+    ListCtrlReportView* pDataView = GetDataView();
     if ((pDataView == nullptr) || !pDataView->HasDataProvider()) {
         ASSERT(FALSE);
         return nTopElementIndex;
@@ -2512,7 +2512,7 @@ size_t ListCtrlDataLayout::GetTopElementIndex(UiRect /*rc*/) const
     return nTopElementIndex;
 }
 
-bool ListCtrlDataLayout::IsElementDisplay(UiRect rc, size_t iIndex) const
+bool ListCtrlReportLayout::IsElementDisplay(UiRect rc, size_t iIndex) const
 {
     if (!Box::IsValidItemIndex(iIndex)) {
         return false;
@@ -2522,16 +2522,16 @@ bool ListCtrlDataLayout::IsElementDisplay(UiRect rc, size_t iIndex) const
     return std::find(itemIndexList.begin(), itemIndexList.end(), iIndex) != itemIndexList.end();
 }
 
-void ListCtrlDataLayout::GetDisplayElements(UiRect rc, std::vector<size_t>& collection) const
+void ListCtrlReportLayout::GetDisplayElements(UiRect rc, std::vector<size_t>& collection) const
 {
     GetDisplayElements(rc, collection, nullptr);
 }
 
-void ListCtrlDataLayout::GetDisplayElements(UiRect rc, std::vector<size_t>& collection,
+void ListCtrlReportLayout::GetDisplayElements(UiRect rc, std::vector<size_t>& collection,
                                             std::vector<size_t>* pAtTopItemIndexList) const
 {
     collection.clear();
-    ListCtrlDataView* pDataView = GetDataView();
+    ListCtrlReportView* pDataView = GetDataView();
     if ((pDataView == nullptr) || !pDataView->HasDataProvider()) {
         ASSERT(FALSE);
         return;
@@ -2571,9 +2571,9 @@ void ListCtrlDataLayout::GetDisplayElements(UiRect rc, std::vector<size_t>& coll
     }
 }
 
-bool ListCtrlDataLayout::NeedReArrange() const
+bool ListCtrlReportLayout::NeedReArrange() const
 {
-    ListCtrlDataView* pDataView = GetDataView();
+    ListCtrlReportView* pDataView = GetDataView();
     if ((pDataView == nullptr) || !pDataView->HasDataProvider()) {
         ASSERT(FALSE);
         return false;
@@ -2598,9 +2598,9 @@ bool ListCtrlDataLayout::NeedReArrange() const
     return (nScrollPosY != nVirtualOffsetY);
 }
 
-void ListCtrlDataLayout::EnsureVisible(UiRect rc, size_t iIndex, bool bToTop) const
+void ListCtrlReportLayout::EnsureVisible(UiRect rc, size_t iIndex, bool bToTop) const
 {
-    ListCtrlDataView* pDataView = GetDataView();
+    ListCtrlReportView* pDataView = GetDataView();
     if ((pDataView == nullptr) || !pDataView->HasDataProvider()) {
         ASSERT(FALSE);
         return;
@@ -2690,9 +2690,9 @@ void ListCtrlDataLayout::EnsureVisible(UiRect rc, size_t iIndex, bool bToTop) co
     pDataView->SetScrollPos(sz);
 }
 
-int64_t ListCtrlDataLayout::GetElementsHeight(size_t nCount, bool bIncludeAtTops) const
+int64_t ListCtrlReportLayout::GetElementsHeight(size_t nCount, bool bIncludeAtTops) const
 {
-    ListCtrlDataView* pDataView = GetDataView();
+    ListCtrlReportView* pDataView = GetDataView();
     if ((pDataView == nullptr) || !pDataView->HasDataProvider()) {
         ASSERT(FALSE);
         return 0;
@@ -2730,9 +2730,9 @@ int64_t ListCtrlDataLayout::GetElementsHeight(size_t nCount, bool bIncludeAtTops
     return nTotalHeight;
 }
 
-UiSize ListCtrlDataLayout::GetElementSize(int32_t rcWidth, size_t nElementIndex) const
+UiSize ListCtrlReportLayout::GetElementSize(int32_t rcWidth, size_t nElementIndex) const
 {
-    ListCtrlDataView* pDataView = GetDataView();
+    ListCtrlReportView* pDataView = GetDataView();
     if ((pDataView == nullptr) || !pDataView->HasDataProvider()) {
         ASSERT(FALSE);
         return UiSize();
@@ -2750,32 +2750,32 @@ UiSize ListCtrlDataLayout::GetElementSize(int32_t rcWidth, size_t nElementIndex)
     return szElementSize;
 }
 
-int32_t ListCtrlDataLayout::GetItemWidth() const
+int32_t ListCtrlReportLayout::GetItemWidth() const
 {
     //宽度与表头的宽度相同
     int32_t nItemWidth = 0;
-    ListCtrlDataView* pDataView = GetDataView();
+    ListCtrlReportView* pDataView = GetDataView();
     if (pDataView != nullptr) {
         nItemWidth = pDataView->GetListCtrlWidth();
     }
     return nItemWidth;
 }
 
-int32_t ListCtrlDataLayout::GetItemHeight() const
+int32_t ListCtrlReportLayout::GetItemHeight() const
 {
     //所有行的高度相同，并且从配置读取
     int32_t nItemHeight = 0;
-    ListCtrlDataView* pDataView = GetDataView();
+    ListCtrlReportView* pDataView = GetDataView();
     if ((pDataView != nullptr) && (pDataView->m_pListCtrl != nullptr)) {
         nItemHeight = pDataView->m_pListCtrl->GetDataItemHeight();
     }
     return nItemHeight;
 }
 
-int32_t ListCtrlDataLayout::GetHeaderHeight() const
+int32_t ListCtrlReportLayout::GetHeaderHeight() const
 {
     int32_t nHeaderHeight = 0;
-    ListCtrlDataView* pDataView = GetDataView();
+    ListCtrlReportView* pDataView = GetDataView();
     if (pDataView != nullptr) {
         Control* pHeaderCtrl = nullptr;
         size_t nItemCount = pDataView->GetItemCount();
