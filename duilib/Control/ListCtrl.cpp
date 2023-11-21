@@ -682,16 +682,13 @@ void ListCtrl::OnHeaderColumnOrderChanged()
 void ListCtrl::OnHeaderColumnCheckStateChanged(size_t nColumnId, bool bChecked)
 {
     //界面状态变化，同步到底层存储
-    m_pData->SetColumnCheck(nColumnId, bChecked);
-    Refresh();
+    m_pData->SetColumnCheck(nColumnId, bChecked, true);
 }
 
 void ListCtrl::OnHeaderCheckStateChanged(bool bChecked)
 {
     //界面状态变化，同步到底层存储
-    if (m_pData->SetAllDataItemsCheck(bChecked)) {
-        Refresh();
-    }    
+    m_pData->SetAllDataItemsCheck(bChecked);
 }
 
 void ListCtrl::OnHeaderColumnVisibleChanged()
@@ -857,13 +854,10 @@ bool ListCtrl::DeleteAllDataItems()
 bool ListCtrl::SetDataItemData(size_t itemIndex, const ListCtrlItemData& itemData)
 {
     bool bChanged = false;
-    ListCtrlItemData oldItemData;
-    bool bRet = m_pData->SetDataItemData(itemIndex, itemData, bChanged);
-    if (bChanged) {
-        Refresh();
-        if (oldItemData.bChecked != itemData.bChecked) {
-            UpdateHeaderCheckBox();
-        }
+    bool bCheckChanged = false;
+    bool bRet = m_pData->SetDataItemData(itemIndex, itemData, bChanged, bCheckChanged);
+    if (bRet && bCheckChanged) {
+        UpdateHeaderCheckBox();
     }
     return bRet;
 }
@@ -888,7 +882,6 @@ bool ListCtrl::SetDataItemVisible(size_t itemIndex, bool bVisible)
     bool bChanged = false;
     bool bRet = m_pData->SetDataItemVisible(itemIndex, bVisible, bChanged);
     if (bChanged) {
-        Refresh();
         UpdateHeaderColumnCheckBox(Box::InvalidIndex);
         UpdateHeaderCheckBox();
     }
@@ -906,7 +899,6 @@ bool ListCtrl::SetDataItemSelected(size_t itemIndex, bool bSelected)
     bool bOldChecked = m_pData->IsDataItemChecked(itemIndex);
     bool bRet = m_pData->SetDataItemSelected(itemIndex, bSelected, bChanged);
     if (bChanged) {
-        Refresh();
         if (m_pData->IsDataItemChecked(itemIndex) != bOldChecked) {
             UpdateHeaderCheckBox();
         }

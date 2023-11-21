@@ -275,7 +275,7 @@ bool ListCtrlData::RemoveColumn(size_t columnId)
     return false;
 }
 
-bool ListCtrlData::SetColumnCheck(size_t columnId, bool bChecked)
+bool ListCtrlData::SetColumnCheck(size_t columnId, bool bChecked, bool bRefresh)
 {
     bool bRet = false;
     auto iter = m_dataMap.find(columnId);
@@ -290,6 +290,9 @@ bool ListCtrlData::SetColumnCheck(size_t columnId, bool bChecked)
             storageList[index]->bChecked = bChecked;
         }
         bRet = true;
+    }
+    if (bRefresh && bRet) {
+        EmitCountChanged();
     }
     return bRet;
 }
@@ -563,9 +566,13 @@ bool ListCtrlData::DeleteAllDataItems()
     return bDeleted;
 }
 
-bool ListCtrlData::SetDataItemData(size_t itemIndex, const ListCtrlItemData& itemData, bool& bChanged)
+bool ListCtrlData::SetDataItemData(size_t itemIndex, const ListCtrlItemData& itemData,
+                                   bool& bChanged, bool& bCheckChanged)
 {
     bChanged = false;
+    bCheckChanged = false;
+    bool bCountChanged = false;
+    bool bItemChanged = false;
     bool bRet = false;
     ASSERT(itemIndex < m_rowDataList.size());
     if (itemIndex < m_rowDataList.size()) {
@@ -578,18 +585,24 @@ bool ListCtrlData::SetDataItemData(size_t itemIndex, const ListCtrlItemData& ite
         const ListCtrlItemData& newItemData = m_rowDataList[itemIndex];
         if (newItemData.bSelected != oldItemData.bSelected) {
             bChanged = true;
+            bItemChanged = true;
         }
         else if (newItemData.bChecked != oldItemData.bChecked) {
+            bCheckChanged = true;
             bChanged = true;
+            bItemChanged = true;
         }
         else if (newItemData.bVisible != oldItemData.bVisible) {
             bChanged = true;
+            bCountChanged = true;
         }
         else if (newItemData.nAlwaysAtTop != oldItemData.nAlwaysAtTop) {
             bChanged = true;
+            bCountChanged = true;
         }
         else if (newItemData.nItemHeight != oldItemData.nItemHeight) {
             bChanged = true;
+            bCountChanged = true;
         }
         else if (newItemData.nUserData != oldItemData.nUserData) {
             bChanged = true;
@@ -620,6 +633,12 @@ bool ListCtrlData::SetDataItemData(size_t itemIndex, const ListCtrlItemData& ite
         }
         ASSERT(m_atTopRowCount >= 0);
         bRet = true;
+    }
+    if (bCountChanged) {
+        EmitCountChanged();
+    }
+    else if (bItemChanged) {
+        EmitDataChanged(itemIndex, itemIndex);
     }
     return bRet;
 }
@@ -655,9 +674,10 @@ bool ListCtrlData::SetDataItemVisible(size_t itemIndex, bool bVisible, bool& bCh
         }
         ASSERT(m_hideRowCount >= 0);
         bRet = true;
-    } 
-
-    //不刷新，由外部判断是否需要刷新
+    }
+    if (bChanged) {
+        EmitCountChanged();
+    }
     return bRet;
 }
 
@@ -678,9 +698,11 @@ bool ListCtrlData::SetDataItemSelected(size_t itemIndex, bool bSelected, bool& b
     if (itemIndex >= m_rowDataList.size()) {
         return false;
     }
-    bChanged = IsDataItemSelected(itemIndex);
+    bChanged = IsDataItemSelected(itemIndex) != bSelected;
     SetElementSelected(itemIndex, bSelected);
-    //不刷新，由外部判断是否需要刷新
+    if (bChanged) {
+        EmitDataChanged(itemIndex, itemIndex);
+    }
     return true;
 }
 
@@ -727,6 +749,9 @@ bool ListCtrlData::SetAllDataItemsCheck(bool bChecked)
             rowData.bChecked = bChecked;
             bChanged = true;
         }
+    }
+    if (bChanged) {
+        EmitCountChanged();
     }
     return bChanged;
 }
@@ -1055,7 +1080,7 @@ size_t ListCtrlData::GetDataItemUserData(size_t itemIndex) const
 
 
 bool ListCtrlData::SetSubItemData(size_t itemIndex, size_t columnId,
-    const ListCtrlSubItemData& subItemData, bool& bCheckChanged)
+                                  const ListCtrlSubItemData& subItemData, bool& bCheckChanged)
 {
     bCheckChanged = false;
     Storage storage;
@@ -1398,6 +1423,8 @@ bool ListCtrlData::SortDataItems(size_t nColumnId, size_t nColumnIndex, bool bSo
             bFoundSelectedIndex = true;
         }
     }
+
+    EmitCountChanged();
     return true;
 }
 
