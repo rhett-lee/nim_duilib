@@ -19,12 +19,13 @@ ListCtrl::ListCtrl():
     m_bDataItemShowCheckBox(false)
 {
     m_pData = new ListCtrlData;
-    m_nRowGridLineWidth = GlobalManager::Instance().Dpi().GetScaleInt(1);
-    m_nColumnGridLineWidth = GlobalManager::Instance().Dpi().GetScaleInt(1);
     m_nItemHeight = GlobalManager::Instance().Dpi().GetScaleInt(32);
     m_nHeaderHeight = m_nItemHeight;
 
     m_pData->SetAutoCheckSelect(IsAutoCheckSelect());
+
+    m_pDataView = new ListCtrlDataView;
+    m_pDataView->SetListCtrl(this);
 }
 
 ListCtrl::~ListCtrl()
@@ -32,6 +33,10 @@ ListCtrl::~ListCtrl()
     if (m_pData != nullptr) {
         delete m_pData;
         m_pData = nullptr;
+    }
+    if (!m_bInited && (m_pDataView != nullptr)) {
+        delete m_pDataView;
+        m_pDataView = nullptr;
     }
 }
 
@@ -110,7 +115,7 @@ void ListCtrl::SetAttribute(const std::wstring& strName, const std::wstring& str
 void ListCtrl::SetHeaderClass(const std::wstring& className)
 {
     m_headerClass = className;
-    if (m_pHeaderCtrl != nullptr) {
+    if (m_bInited && (m_pHeaderCtrl != nullptr)) {
         m_pHeaderCtrl->SetClass(className);
     }
 }
@@ -158,6 +163,9 @@ std::wstring ListCtrl::GetCheckBoxClass() const
 void ListCtrl::SetDataViewClass(const std::wstring& className)
 {
     m_dataViewClass = className;
+    if (m_bInited && (m_pDataView != nullptr)) {
+        m_pDataView->SetClass(className);
+    }
 }
 
 std::wstring ListCtrl::GetDataViewClass() const
@@ -193,74 +201,42 @@ std::wstring ListCtrl::GetDataSubItemClass() const
 
 void ListCtrl::SetRowGridLineWidth(int32_t nLineWidth, bool bNeedDpiScale)
 {
-    if (bNeedDpiScale) {
-        GlobalManager::Instance().Dpi().ScaleInt(nLineWidth);
-    }
-    if (nLineWidth < 0) {
-        nLineWidth = 0;
-    }
-    if (m_nRowGridLineWidth != nLineWidth) {
-        m_nRowGridLineWidth = nLineWidth;
-        if (m_pDataView != nullptr) {
-            m_pDataView->Invalidate();
-        }
-    }
+    m_pDataView->SetRowGridLineWidth(nLineWidth, bNeedDpiScale);
 }
 
 int32_t ListCtrl::GetRowGridLineWidth() const
 {
-    return m_nRowGridLineWidth;
+    return m_pDataView->GetRowGridLineWidth();
 }
 
 void ListCtrl::SetRowGridLineColor(const std::wstring& color)
 {
-    if (m_rowGridLineColor != color) {
-        m_rowGridLineColor = color;
-        if (m_pDataView != nullptr) {
-            m_pDataView->Invalidate();
-        }
-    }
+    m_pDataView->SetRowGridLineColor(color);
 }
 
 std::wstring ListCtrl::GetRowGridLineColor() const
 {
-    return m_rowGridLineColor.c_str();
+    return m_pDataView->GetRowGridLineColor();
 }
 
 void ListCtrl::SetColumnGridLineWidth(int32_t nLineWidth, bool bNeedDpiScale)
 {
-    if (bNeedDpiScale) {
-        GlobalManager::Instance().Dpi().ScaleInt(nLineWidth);
-    }
-    if (nLineWidth < 0) {
-        nLineWidth = 0;
-    }
-    if (m_nColumnGridLineWidth != nLineWidth) {
-        m_nColumnGridLineWidth = nLineWidth;
-        if (m_pDataView != nullptr) {
-            m_pDataView->Invalidate();
-        }
-    }    
+    m_pDataView->SetColumnGridLineWidth(nLineWidth, bNeedDpiScale);
 }
 
 int32_t ListCtrl::GetColumnGridLineWidth() const
 {
-    return m_nColumnGridLineWidth;
+    return m_pDataView->GetColumnGridLineWidth();
 }
 
 void ListCtrl::SetColumnGridLineColor(const std::wstring& color)
 {
-    if (m_columnGridLineColor != color) {
-        m_columnGridLineColor = color;
-        if (m_pDataView != nullptr) {
-            m_pDataView->Invalidate();
-        }
-    }
+    m_pDataView->SetColumnGridLineColor(color);
 }
 
 std::wstring ListCtrl::GetColumnGridLineColor() const
 {
-    return m_columnGridLineColor.c_str();
+    return m_pDataView->GetColumnGridLineColor();
 }
 
 void ListCtrl::SetEnableColumnWidthAuto(bool bEnable)
@@ -280,12 +256,22 @@ void ListCtrl::DoInit()
     }
     m_bInited = true;
 
+    //初始化Body
+    ASSERT(m_pDataView != nullptr);
+    AddItem(m_pDataView);
+    std::wstring dataViewClass = GetDataViewClass();
+    if (!dataViewClass.empty()) {
+        m_pDataView->SetClass(dataViewClass.c_str());
+    }
+
     //初始化Header
     ASSERT(m_pHeaderCtrl == nullptr);
     if (m_pHeaderCtrl == nullptr) {
         m_pHeaderCtrl = new ListCtrlHeader;
     }
     m_pHeaderCtrl->SetListCtrl(this);
+    // Header添加到数据视图中管理，作为第一个元素，在Layout的实现中控制显示属性
+    m_pDataView->AddItem(m_pHeaderCtrl);
 
     if (!m_headerClass.empty()) {
         m_pHeaderCtrl->SetClass(m_headerClass.c_str());
@@ -296,19 +282,6 @@ void ListCtrl::DoInit()
     if (!m_bShowHeaderCtrl) {
         SetHeaderVisible(false);
     }
-    
-    //初始化Body
-    ASSERT(m_pDataView == nullptr);
-    m_pDataView = new ListCtrlDataView;
-    m_pDataView->SetListCtrl(this);
-    if (!m_dataViewClass.empty()) {
-        m_pDataView->SetClass(m_dataViewClass.c_str());
-    }
-
-    AddItem(m_pDataView);
-
-    // Header添加到数据视图中管理，作为第一个元素，在Layout的实现中控制显示属性
-    m_pDataView->AddItem(m_pHeaderCtrl);
 
     //同步单选和多选的状态
     m_pDataView->SetMultiSelect(IsMultiSelect());
@@ -627,33 +600,17 @@ void ListCtrl::OnColumnWidthChanged(size_t nColumnId1, size_t nColumnId2)
     if (!m_pHeaderCtrl->GetColumnInfo(nColumnId2, nColumn2, nColumnWidth2)) {
         nColumnWidth2 = -1;
     }
-
-    if ((nColumnWidth1 < 0) && (nColumnWidth2 < 0)) {
+    std::map<size_t, int32_t> subItemWidths;
+    if (nColumnWidth1 >= 0) {
+        subItemWidths[nColumn1] = nColumnWidth1;
+    }
+    if (nColumnWidth2 >= 0) {
+        subItemWidths[nColumn2] = nColumnWidth2;
+    }
+    if (subItemWidths.empty()) {
         return;
     }
-
-    size_t itemCount = m_pDataView->GetItemCount();
-    for (size_t index = 1; index < itemCount; ++index) {
-        ListCtrlItem* pItem = dynamic_cast<ListCtrlItem*>(m_pDataView->GetItemAt(index));
-        if (pItem == nullptr) {
-            continue;
-        }
-        size_t columnCount = pItem->GetItemCount();
-        for (size_t nColumn = 0; nColumn < columnCount; ++nColumn) {
-            if ((nColumn == nColumn1) && (nColumnWidth1 >= 0)) {
-                ListCtrlSubItem* pSubItem = dynamic_cast<ListCtrlSubItem*>(pItem->GetItemAt(nColumn));
-                if (pSubItem != nullptr) {
-                    pSubItem->SetFixedWidth(UiFixedInt(nColumnWidth1), true, false);
-                }
-            }
-            if ((nColumn == nColumn2) && (nColumnWidth2 >= 0)) {
-                ListCtrlSubItem* pSubItem = dynamic_cast<ListCtrlSubItem*>(pItem->GetItemAt(nColumn));
-                if (pSubItem != nullptr) {
-                    pSubItem->SetFixedWidth(UiFixedInt(nColumnWidth2), true, false);
-                }
-            }
-        }
-    }
+    m_pDataView->AdjustSubItemWidth(subItemWidths);
     Arrange();
 }
 
@@ -1065,23 +1022,20 @@ void ListCtrl::SetMultiSelect(bool bMultiSelect)
 
 void ListCtrl::SetSelectedDataItems(const std::vector<size_t>& selectedIndexs, bool bClearOthers)
 {
-    ASSERT(m_pDataView != nullptr);
-    if (m_pDataView != nullptr) {
-        std::vector<size_t> refreshIndexs;
-        m_pDataView->SetSelectedElements(selectedIndexs, bClearOthers, refreshIndexs);
-        if (!refreshIndexs.empty()) {
+    std::vector<size_t> refreshIndexs;
+    m_pData->SetSelectedElements(selectedIndexs, bClearOthers, refreshIndexs);
+    if (!refreshIndexs.empty()) {
+        ASSERT(m_pDataView != nullptr);
+        if (m_pDataView != nullptr) {
             m_pDataView->RefreshElements(refreshIndexs);
-            UpdateHeaderCheckBox();
         }
+        UpdateHeaderCheckBox();
     }
 }
 
 void ListCtrl::GetSelectedDataItems(std::vector<size_t>& itemIndexs) const
 {
-    ASSERT(m_pDataView != nullptr);
-    if (m_pDataView != nullptr) {
-        m_pDataView->GetSelectedElements(itemIndexs);
-    }
+    m_pData->GetSelectedElements(itemIndexs);
 }
 
 void ListCtrl::SetCheckedDataItems(const std::vector<size_t>& itemIndexs, bool bClearOthers)
@@ -1103,23 +1057,31 @@ void ListCtrl::GetCheckedDataItems(std::vector<size_t>& itemIndexs) const
 
 void ListCtrl::SetSelectAll()
 {
-    ASSERT(m_pDataView != nullptr);
-    if (m_pDataView != nullptr) {
-        m_pDataView->SetSelectAll();
+    std::vector<size_t> refreshIndexs;
+    m_pData->SelectAll(refreshIndexs);
+    if (!refreshIndexs.empty()) {
+        ASSERT(m_pDataView != nullptr);
+        if (m_pDataView != nullptr) {
+            m_pDataView->RefreshElements(refreshIndexs);
+        }
         if (IsAutoCheckSelect()) {
             UpdateHeaderCheckBox();
         }
-    }
+    }    
 }
 
 void ListCtrl::SetSelectNone()
 {
-    ASSERT(m_pDataView != nullptr);
-    if (m_pDataView != nullptr) {
-        m_pDataView->SetSelectNone();
+    std::vector<size_t> refreshIndexs;
+    m_pData->SelectNone(refreshIndexs);
+    if (!refreshIndexs.empty()) {
+        ASSERT(m_pDataView != nullptr);
+        if (m_pDataView != nullptr) {
+            m_pDataView->RefreshElements(refreshIndexs);
+        }
         if (IsAutoCheckSelect()) {
             UpdateHeaderCheckBox();
-        }        
+        }
     }
 }
 

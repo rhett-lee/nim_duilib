@@ -1495,5 +1495,109 @@ void ListCtrlData::SetSortCompareFunction(ListCtrlDataCompareFunc pfnCompareFunc
     m_pUserData = pUserData;
 }
 
+void ListCtrlData::SetSelectedElements(const std::vector<size_t>& selectedIndexs,
+                                       bool bClearOthers,
+                                       std::vector<size_t>& refreshIndexs)
+{
+    refreshIndexs.clear();
+    ASSERT(IsMultiSelect());
+    if (!IsMultiSelect()) {
+        return;
+    }
+    std::set<size_t> selectSet;
+    for (auto index : selectedIndexs) {
+        selectSet.insert(index);
+    }
+    std::set<size_t> refreshSet;
+    std::vector<size_t> oldSelectedIndexs;
+    if (bClearOthers) {
+        GetSelectedElements(oldSelectedIndexs);
+        if (!oldSelectedIndexs.empty()) {
+            for (size_t nElementIndex : oldSelectedIndexs) {
+                if (selectSet.find(nElementIndex) != selectSet.end()) {
+                    //过滤掉即将选择的
+                    continue;
+                }
+                SetElementSelected(nElementIndex, false);
+                refreshSet.insert(nElementIndex);
+            }
+        }
+    }
+    for (size_t nElementIndex : selectedIndexs) {
+        if (IsElementSelected(nElementIndex)) {
+            continue;
+        }
+        SetElementSelected(nElementIndex, true);
+        refreshSet.insert(nElementIndex);
+    }
+    for (auto index : refreshSet) {
+        refreshIndexs.push_back(index);
+    }
+}
+
+bool ListCtrlData::SelectAll(std::vector<size_t>& refreshIndexs)
+{
+    ASSERT(IsMultiSelect());
+    if (!IsMultiSelect()) {
+        return false;
+    }
+    std::vector<size_t> selectedIndexs;
+    size_t nCount = GetElementCount();
+    for (size_t nElementIndex = 0; nElementIndex < nCount; ++nElementIndex) {
+        if (IsSelectableElement(nElementIndex) && !IsElementSelected(nElementIndex)) {
+            SetElementSelected(nElementIndex, true);
+            selectedIndexs.push_back(nElementIndex);
+        }
+    }
+    refreshIndexs.swap(selectedIndexs);
+    return !refreshIndexs.empty();
+}
+
+bool ListCtrlData::IsSelectableRowData(const ListCtrlItemData& rowData) const
+{
+    //可见，并且不置顶显示
+    return rowData.bVisible && (rowData.nAlwaysAtTop < 0);
+}
+
+bool ListCtrlData::IsSelectableElement(size_t nElementIndex) const
+{
+    bool bSelectable = true;
+    const ListCtrlData::RowDataList& itemDataList = GetItemDataList();
+    if (nElementIndex < itemDataList.size()) {
+        const ListCtrlItemData& rowData = itemDataList[nElementIndex];
+        bSelectable = IsSelectableRowData(rowData);
+    }
+    return bSelectable;
+}
+
+void ListCtrlData::SelectNone(std::vector<size_t>& refreshIndexs)
+{
+    SelectNoneExclude(std::vector<size_t>(), refreshIndexs);
+}
+
+void ListCtrlData::SelectNoneExclude(const std::vector<size_t>& excludeIndexs,
+                                     std::vector<size_t>& refreshIndexs)
+{
+    refreshIndexs.clear();
+    std::vector<size_t> selectedIndexs;
+    GetSelectedElements(selectedIndexs);
+    if (!selectedIndexs.empty()) {
+        std::set<size_t> indexSet;
+        for (size_t nElementIndex : excludeIndexs) {
+            indexSet.insert(nElementIndex);
+        }
+        for (size_t nElementIndex : selectedIndexs) {
+            if (!indexSet.empty()) {
+                if (indexSet.find(nElementIndex) != indexSet.end()) {
+                    //排除
+                    continue;
+                }
+            }
+            SetElementSelected(nElementIndex, false);
+        }
+        refreshIndexs.swap(selectedIndexs);
+    }
+}
+
 }//namespace ui
 

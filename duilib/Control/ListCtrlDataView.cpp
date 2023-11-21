@@ -31,6 +31,9 @@ ListCtrlDataView::ListCtrlDataView() :
     }
     m_frameSelectionBorderSize = (uint8_t)GlobalManager::Instance().Dpi().GetScaleInt(1);
     m_frameSelectionAlpha = 128;
+
+    m_nRowGridLineWidth = GlobalManager::Instance().Dpi().GetScaleInt(1);
+    m_nColumnGridLineWidth = GlobalManager::Instance().Dpi().GetScaleInt(1);
 }
 
 ListCtrlDataView::~ListCtrlDataView() 
@@ -1041,22 +1044,19 @@ void ListCtrlDataView::PaintChild(IRender* pRender, const UiRect& rcPaint)
 
 void ListCtrlDataView::PaintGridLines(IRender* pRender)
 {
-    int32_t nColumnLineWidth = GlobalManager::Instance().Dpi().GetScaleInt(1);//纵向边线宽度        
-    int32_t nRowLineWidth = GlobalManager::Instance().Dpi().GetScaleInt(1);   //横向边线宽度
+    int32_t nColumnLineWidth = GetColumnGridLineWidth();//纵向边线宽度        
+    int32_t nRowLineWidth = GetRowGridLineWidth();   //横向边线宽度
     UiColor columnLineColor;
     UiColor rowLineColor;
-    if (m_pListCtrl != nullptr) {
-        nColumnLineWidth = m_pListCtrl->GetColumnGridLineWidth();
-        nRowLineWidth = m_pListCtrl->GetRowGridLineWidth();
-        std::wstring color = m_pListCtrl->GetColumnGridLineColor();
-        if (!color.empty()) {
-            columnLineColor = m_pListCtrl->GetUiColor(color);
-        }
-        color = m_pListCtrl->GetRowGridLineColor();
-        if (!color.empty()) {
-            rowLineColor = m_pListCtrl->GetUiColor(color);
-        }
+    std::wstring color = GetColumnGridLineColor();
+    if (!color.empty()) {
+        columnLineColor = GetUiColor(color);
     }
+    color = GetRowGridLineColor();
+    if (!color.empty()) {
+        rowLineColor = GetUiColor(color);
+    }
+
     if ((nColumnLineWidth > 0) && !columnLineColor.IsEmpty()) {
         //绘制纵向网格线        
         UiRect viewRect = GetRect();
@@ -1472,6 +1472,34 @@ int32_t ListCtrlDataView::GetMaxDataItemWidth(const std::vector<ListCtrlSubItemD
     return nMaxWidth;
 }
 
+void ListCtrlDataView::AdjustSubItemWidth(const std::map<size_t, int32_t>& subItemWidths)
+{
+    if (subItemWidths.empty()) {
+        return;
+    }
+    size_t itemCount = GetItemCount();
+    for (size_t index = 1; index < itemCount; ++index) {
+        ListCtrlItem* pItem = dynamic_cast<ListCtrlItem*>(GetItemAt(index));
+        if (pItem == nullptr) {
+            continue;
+        }
+        size_t columnCount = pItem->GetItemCount();
+        for (size_t nColumn = 0; nColumn < columnCount; ++nColumn) {
+            auto iter = subItemWidths.find(nColumn);
+            if (iter != subItemWidths.end()) {
+                int32_t nColumnWidth = iter->second;
+                if (nColumnWidth < 0) {
+                    nColumnWidth = 0;
+                }
+                ListCtrlSubItem* pSubItem = dynamic_cast<ListCtrlSubItem*>(pItem->GetItemAt(nColumn));
+                if (pSubItem != nullptr) {
+                    pSubItem->SetFixedWidth(UiFixedInt(nColumnWidth), true, false);
+                }
+            }
+        }
+    }
+}
+
 void ListCtrlDataView::OnSubItemColumnChecked(size_t nElementIndex, size_t nColumnId, bool bChecked)
 {
     ListCtrlData* pDataProvider = dynamic_cast<ListCtrlData*>(GetDataProvider());
@@ -1502,23 +1530,13 @@ size_t ListCtrlDataView::GetDisplayItemCount(bool /*bIsHorizontal*/, size_t& nCo
     return nRows * nColumns;
 }
 
-bool ListCtrlDataView::IsSelectableRowData(const ListCtrlItemData& rowData) const
-{
-    //可见，并且不置顶显示
-    return rowData.bVisible && (rowData.nAlwaysAtTop < 0);
-}
-
 bool ListCtrlDataView::IsSelectableElement(size_t nElementIndex) const
 {
     bool bSelectable = true;
     ListCtrlData* pDataProvider = dynamic_cast<ListCtrlData*>(GetDataProvider());
     ASSERT(pDataProvider != nullptr);
     if (pDataProvider != nullptr) {
-        const ListCtrlData::RowDataList& itemDataList = pDataProvider->GetItemDataList();
-        if (nElementIndex < itemDataList.size()) {
-            const ListCtrlItemData& rowData = itemDataList[nElementIndex];
-            bSelectable = IsSelectableRowData(rowData);
-        }
+        bSelectable = pDataProvider->IsSelectableElement(nElementIndex);
     }
     return bSelectable;
 }
@@ -1530,18 +1548,17 @@ size_t ListCtrlDataView::FindSelectableElement(size_t nElementIndex, bool bForwa
     if (pDataProvider == nullptr) {
         return nElementIndex;
     }
-    const ListCtrlData::RowDataList& itemDataList = pDataProvider->GetItemDataList();
-    const size_t nElementCount = itemDataList.size();
+    const size_t nElementCount = pDataProvider->GetElementCount();
     if ((nElementCount == 0) || (nElementIndex >= nElementCount)) {
         return Box::InvalidIndex;
     }
-    if (!IsSelectableRowData(itemDataList[nElementIndex])) {
+    if (!pDataProvider->IsSelectableElement(nElementIndex)) {
         size_t nStartIndex = nElementIndex;
         nElementIndex = Box::InvalidIndex;
         if (bForward) {
             //向前查找下一个不是置顶的
             for (size_t i = nStartIndex + 1; i < nElementCount; ++i) {
-                if (IsSelectableRowData(itemDataList[i])) {
+                if (pDataProvider->IsSelectableElement(i)) {
                     nElementIndex = i;
                     break;
                 }
@@ -1550,7 +1567,7 @@ size_t ListCtrlDataView::FindSelectableElement(size_t nElementIndex, bool bForwa
         else {
             //向后查找下一个不是置顶的
             for (int32_t i = (int32_t)nStartIndex - 1; i >= 0; --i) {
-                if (IsSelectableRowData(itemDataList[i])) {
+                if (pDataProvider->IsSelectableElement(i)) {
                     nElementIndex = i;
                     break;
                 }
@@ -1943,6 +1960,70 @@ void ListCtrlDataView::SendEvent(const EventArgs& event)
     if ((event.Type == kEventSelect) || (event.Type == kEventUnSelect)) {
         SendEvent(kEventSelChange);
     }
+}
+
+void ListCtrlDataView::SetRowGridLineWidth(int32_t nLineWidth, bool bNeedDpiScale)
+{
+    if (bNeedDpiScale) {
+        GlobalManager::Instance().Dpi().ScaleInt(nLineWidth);
+    }
+    if (nLineWidth < 0) {
+        nLineWidth = 0;
+    }
+    if (m_nRowGridLineWidth != nLineWidth) {
+        m_nRowGridLineWidth = nLineWidth;
+        Invalidate();
+    }
+}
+
+int32_t ListCtrlDataView::GetRowGridLineWidth() const
+{
+    return m_nRowGridLineWidth;
+}
+
+void ListCtrlDataView::SetRowGridLineColor(const std::wstring& color)
+{
+    if (m_rowGridLineColor != color) {
+        m_rowGridLineColor = color;
+        Invalidate();
+    }
+}
+
+std::wstring ListCtrlDataView::GetRowGridLineColor() const
+{
+    return m_rowGridLineColor.c_str();
+}
+
+void ListCtrlDataView::SetColumnGridLineWidth(int32_t nLineWidth, bool bNeedDpiScale)
+{
+    if (bNeedDpiScale) {
+        GlobalManager::Instance().Dpi().ScaleInt(nLineWidth);
+    }
+    if (nLineWidth < 0) {
+        nLineWidth = 0;
+    }
+    if (m_nColumnGridLineWidth != nLineWidth) {
+        m_nColumnGridLineWidth = nLineWidth;
+        Invalidate();
+    }
+}
+
+int32_t ListCtrlDataView::GetColumnGridLineWidth() const
+{
+    return m_nColumnGridLineWidth;
+}
+
+void ListCtrlDataView::SetColumnGridLineColor(const std::wstring& color)
+{
+    if (m_columnGridLineColor != color) {
+        m_columnGridLineColor = color;
+        Invalidate();
+    }
+}
+
+std::wstring ListCtrlDataView::GetColumnGridLineColor() const
+{
+    return m_columnGridLineColor.c_str();
 }
 
 ////////////////////////////////////////////////////////////////////////

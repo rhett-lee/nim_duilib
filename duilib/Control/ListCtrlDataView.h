@@ -147,6 +147,37 @@ public:
                            const UiPoint& mousePos = UiPoint()) override;
     virtual void SendEvent(const EventArgs& event) override;
 
+public:
+    /** 横向网格线的宽度
+    * @param [in] nLineWidth 网格线的宽度，如果为0表示不显示横向网格线
+    * @param [in] bNeedDpiScale 如果为true表示需要对宽度进行DPI自适应
+    */
+    void SetRowGridLineWidth(int32_t nLineWidth, bool bNeedDpiScale);
+    int32_t GetRowGridLineWidth() const;
+
+    /** 横向网格线的颜色
+    * @param [in] color 横向网格线的颜色
+    */
+    void SetRowGridLineColor(const std::wstring& color);
+    std::wstring GetRowGridLineColor() const;
+
+    /** 纵向网格线的宽度
+    * @param [in] nLineWidth 网格线的宽度，如果为0表示不显示纵向网格线
+    * @param [in] bNeedDpiScale 如果为true表示需要对宽度进行DPI自适应
+    */
+    void SetColumnGridLineWidth(int32_t nLineWidth, bool bNeedDpiScale);
+    int32_t GetColumnGridLineWidth() const;
+
+    /** 纵向网格线的颜色
+    * @param [in] color 纵向网格线的颜色
+    */
+    void SetColumnGridLineColor(const std::wstring& color);
+    std::wstring GetColumnGridLineColor() const;
+
+    /** 调整列的宽度: 数组中第1个值是列的序号，第2个值列宽度
+    */
+    void AdjustSubItemWidth(const std::map<size_t, int32_t>& subItemWidths);
+
 protected:
     /** 绘制子控件
     */
@@ -272,10 +303,6 @@ private:
     */
     void MoveTopItemsToLast(std::vector<Control*>& items, std::vector<Control*>& atTopItems) const;
 
-    /** 判断一个行数据是否可选择
-    */
-    bool IsSelectableRowData(const ListCtrlItemData& rowData) const;
-
     /** 响应KeyDown消息
     * @return 返回true表示成功处理，返回false表示未处理此消息
     */
@@ -301,6 +328,23 @@ private:
     /** 置顶的UI控件索引号
     */
     std::vector<size_t> m_atTopControlList;
+
+private:
+    /** 横向网格线的宽度
+    */
+    int32_t m_nRowGridLineWidth;
+
+    /** 横向网格线的颜色
+    */
+    UiString m_rowGridLineColor;
+
+    /** 纵向网格线的宽度
+    */
+    int32_t m_nColumnGridLineWidth;
+
+    /** 纵向网格线的颜色
+    */
+    UiString m_columnGridLineColor;
 
 private:
     /** 普通列表项（非Header、非置顶）的top坐标

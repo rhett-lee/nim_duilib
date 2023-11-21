@@ -417,6 +417,43 @@ public:
     */
     void SetSortCompareFunction(ListCtrlDataCompareFunc pfnCompareFunc, void* pUserData);
 
+public:
+    /** 批量设置选择元素, 不更新界面显示
+    * @param [in] selectedIndexs 需要设置选择的元素列表，有效范围：[0, GetElementCount())
+    * @param [in] bClearOthers 如果为true，表示对其他已选择的进行清除选择，只保留本次设置的为选择项
+    * @param [out] refreshIndexs 返回需要刷新显示的元素索引号
+    */
+    void SetSelectedElements(const std::vector<size_t>& selectedIndexs,
+                             bool bClearOthers,
+                             std::vector<size_t>& refreshIndexs);
+
+    /** 选择全部(排除不可见元素、置顶元素), 不更新界面显示
+    * @return 如果有数据变化返回true，否则返回false
+    * @param [out] refreshIndexs 返回需要刷新显示的元素索引号
+    */
+    bool SelectAll(std::vector<size_t>& refreshIndexs);
+
+    /** 取消所有选择, 不更新界面显示，可以由外部刷新界面显示
+    * @param [out] refreshIndexs 返回需要刷新显示的元素索引号
+    */
+    void SelectNone(std::vector<size_t>& refreshIndexs);
+
+    /** 取消所有选择(但排除部分元素), 不更新界面显示，可以由外部刷新界面显示
+    * @param [in] excludeIndexs 需要排除的元素索引号，这部分元素的选择状态保持原状
+    * @param [out] refreshIndexs 返回需要刷新显示的元素索引号
+    */
+    void SelectNoneExclude(const std::vector<size_t>& excludeIndexs,
+                           std::vector<size_t>& refreshIndexs);
+
+    /** 判断一个行数据是否可选择
+    */
+    bool IsSelectableRowData(const ListCtrlItemData& rowData) const;
+
+    /** 判断一个数据元素是否为可选择项
+    * @param [in] nElementIndex 元素索引号，有效范围：[0, GetElementCount())
+    */
+    bool IsSelectableElement(size_t nElementIndex) const;
+
 private:
     /** 数据转换为存储数据结构
     */

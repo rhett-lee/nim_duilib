@@ -731,22 +731,6 @@ private:
     */
     UiString m_dataSubItemClass;
 
-    /** 横向网格线的宽度
-    */
-    int32_t m_nRowGridLineWidth;
-
-    /** 横向网格线的颜色
-    */
-    UiString m_rowGridLineColor;
-
-    /** 纵向网格线的宽度
-    */
-    int32_t m_nColumnGridLineWidth;
-
-    /** 纵向网格线的颜色
-    */
-    UiString m_columnGridLineColor;
-
     /** ListBox的Class属性
     */
     UiString m_dataViewClass;
