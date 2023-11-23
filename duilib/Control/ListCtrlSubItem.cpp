@@ -178,8 +178,11 @@ ImagePtr ListCtrlSubItem::LoadItemImage() const
     if ((m_imageId >= 0) && (m_pItem != nullptr)) {
         ListCtrl* pListCtrl = m_pItem->GetListCtrl();
         if (pListCtrl != nullptr) {
-            pItemImage = pListCtrl->GetImageList().GetImageData(m_imageId);
-            ASSERT(pItemImage != nullptr);
+            ImageList* pImageList = pListCtrl->GetImageList(ListCtrlType::Report);
+            if (pImageList != nullptr) {
+                pItemImage = pImageList->GetImageData(m_imageId);
+                ASSERT(pItemImage != nullptr);
+            }
         }
     }
     if ((pItemImage != nullptr) && (pItemImage->GetImageCache() == nullptr)) {
@@ -221,14 +224,36 @@ void ListCtrlSubItem::PaintText(IRender* pRender)
         nCheckBoxWidth += nIconTextSpacing;
     }
 
+    UiSize imageSize;
+    ListCtrl* pListCtrl = nullptr;
+    if (m_pItem != nullptr) {
+        pListCtrl = m_pItem->GetListCtrl();
+    }
+    if (pListCtrl != nullptr) {
+        ImageList* pImageList = pListCtrl->GetImageList(ListCtrlType::Report);
+        if (pImageList != nullptr) {
+            imageSize = pImageList->GetImageSize();
+        }
+    }
+
+    if (imageSize.cx <= 0) {
+        imageSize.cx = pItemImage->GetImageCache()->GetWidth();
+    }
+    if (imageSize.cy <= 0) {
+        imageSize.cy = pItemImage->GetImageCache()->GetHeight();
+    }
+
     //图标靠左侧，文字按原来的方式绘制
     UiRect rc = GetRect();
     rc.Deflate(GetControlPadding());
     rc.left += nCheckBoxWidth;
     rc.Validate();
+    rc.right = rc.left + imageSize.cx;
 
-    PaintImage(pRender, pItemImage.get(), L"", -1, nullptr, &rc, nullptr);
-    rc.left += pItemImage->GetImageCache()->GetWidth();
+    UiRect imageRect = rc;
+    VAlignRect(imageRect, GetTextStyle(), imageSize.cy);
+    PaintImage(pRender, pItemImage.get(), L"", -1, nullptr, &imageRect, nullptr);
+    rc.left += imageSize.cx;
     rc.left += nIconTextSpacing;
 
     UiRect textRect = GetRect();
@@ -237,6 +262,26 @@ void ListCtrlSubItem::PaintText(IRender* pRender)
     textRect.left = std::max(textRect.left, rc.left);
 
     DoPaintText(textRect, pRender);
+}
+
+void ListCtrlSubItem::VAlignRect(UiRect& rc, uint32_t textStyle, int32_t nImageHeight)
+{
+    if ((nImageHeight <= 0) || (nImageHeight >= rc.Height())) {
+        return;
+    }
+    if (textStyle & TEXT_VCENTER) {
+        //居中对齐
+        rc.top = rc.CenterY() - nImageHeight / 2;
+        rc.bottom = rc.top + nImageHeight;
+    }
+    else if (textStyle & TEXT_BOTTOM) {
+        //底部对齐
+        rc.top = rc.bottom - nImageHeight;
+    }
+    else {
+        //顶部对齐
+        rc.bottom = rc.top + nImageHeight;
+    }
 }
 
 UiSize ListCtrlSubItem::EstimateText(UiSize szAvailable)

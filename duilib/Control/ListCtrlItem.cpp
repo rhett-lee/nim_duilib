@@ -250,6 +250,22 @@ void ListCtrlItem::Paint(IRender* pRender, const UiRect& rcPaint)
     }
     ImagePtr pItemImage = LoadItemImage();
     if (pItemImage != nullptr) {
+        UiSize imageSize;
+        ListCtrl* pListCtrl = GetListCtrl();
+        if (pListCtrl != nullptr) {
+            ImageList* pImageList = pListCtrl->GetImageList(ListCtrlType::Report);
+            if (pImageList != nullptr) {
+                imageSize = pImageList->GetImageSize();
+            }
+        }
+
+        if (imageSize.cx <= 0) {
+            imageSize.cx = pItemImage->GetImageCache()->GetWidth();
+        }
+        if (imageSize.cy <= 0) {
+            imageSize.cy = pItemImage->GetImageCache()->GetHeight();
+        }
+
         UiRect rc = GetRect();
         rc.Deflate(GetControlPadding());
         int32_t nPaddingLeft = 0;
@@ -259,6 +275,8 @@ void ListCtrlItem::Paint(IRender* pRender, const UiRect& rcPaint)
         }
         rc.left += nPaddingLeft;
         rc.Validate();
+        rc.right = rc.left + imageSize.cx;
+        VAlignRect(rc, TEXT_VCENTER, imageSize.cy);
         PaintImage(pRender, pItemImage.get(), L"", -1, nullptr, &rc, nullptr);
     }
 }
@@ -269,8 +287,11 @@ ImagePtr ListCtrlItem::LoadItemImage() const
     if (m_imageId >= 0) {
         ListCtrl* pListCtrl = GetListCtrl();
         if (pListCtrl != nullptr) {
-            pItemImage = pListCtrl->GetImageList().GetImageData(m_imageId);
-            ASSERT(pItemImage != nullptr);
+            ImageList* pImageList = pListCtrl->GetImageList(ListCtrlType::Report);
+            if (pImageList != nullptr) {
+                pItemImage = pImageList->GetImageData(m_imageId);
+                ASSERT(pItemImage != nullptr);
+            }
         }
     }
     if ((pItemImage != nullptr) && (pItemImage->GetImageCache() == nullptr)) {
@@ -286,6 +307,26 @@ ImagePtr ListCtrlItem::LoadItemImage() const
         }
     }
     return pItemImage;
+}
+
+void ListCtrlItem::VAlignRect(UiRect& rc, uint32_t textStyle, int32_t nImageHeight)
+{
+    if ((nImageHeight <= 0) || (nImageHeight >= rc.Height())) {
+        return;
+    }
+    if (textStyle & TEXT_VCENTER) {
+        //居中对齐
+        rc.top = rc.CenterY() - nImageHeight / 2;
+        rc.bottom = rc.top + nImageHeight;
+    }
+    else if (textStyle & TEXT_BOTTOM) {
+        //底部对齐
+        rc.top = rc.bottom - nImageHeight;
+    }
+    else {
+        //顶部对齐
+        rc.bottom = rc.top + nImageHeight;
+    }
 }
 
 void ListCtrlItem::SetIconSpacing(int32_t nIconSpacing, bool bNeedDpiScale)

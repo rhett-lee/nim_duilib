@@ -109,6 +109,10 @@ protected:
     */
     ImagePtr LoadItemImage() const;
 
+    /** 使得目标区域纵向对齐
+    */
+    void VAlignRect(UiRect& rc, uint32_t textStyle, int32_t nImageHeight);
+
     /** 获取CheckBox的图片宽度
     */
     int32_t GetCheckBoxImageWidth();

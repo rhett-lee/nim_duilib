@@ -98,6 +98,405 @@ Control::~Control()
 
 std::wstring Control::GetType() const { return DUI_CTR_CONTROL; }
 
+void Control::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
+{
+	if (strName == L"class") {
+		SetClass(strValue);
+	}
+	else if (strName == L"halign") {
+		if (strValue == L"left") {
+			SetHorAlignType(kHorAlignLeft);
+		}
+		else if (strValue == L"center") {
+			SetHorAlignType(kHorAlignCenter);
+		}
+		else if (strValue == L"right") {
+			SetHorAlignType(kHorAlignRight);
+		}
+		else {
+			ASSERT(FALSE);
+		}
+	}
+	else if (strName == L"valign") {
+		if (strValue == L"top") {
+			SetVerAlignType(kVerAlignTop);
+		}
+		else if (strValue == L"center") {
+			SetVerAlignType(kVerAlignCenter);
+		}
+		else if (strValue == L"bottom") {
+			SetVerAlignType(kVerAlignBottom);
+		}
+		else {
+			ASSERT(FALSE);
+		}
+	}
+	else if (strName == L"margin") {
+		UiMargin rcMargin;
+		AttributeUtil::ParseMarginValue(strValue.c_str(), rcMargin);
+		SetMargin(rcMargin, true);
+	}
+	else if (strName == L"padding") {
+		UiPadding rcPadding;
+		AttributeUtil::ParsePaddingValue(strValue.c_str(), rcPadding);
+		SetPadding(rcPadding, true);
+	}
+	else if (strName == L"control_padding") {
+		SetEnableControlPadding(strValue == L"true");
+	}
+	else if (strName == L"bkcolor" || strName == L"bkcolor1") {
+		SetBkColor(strValue);
+	}
+	else if ((strName == L"border_size") || (strName == L"bordersize")) {
+		std::wstring nValue = strValue;
+		if (nValue.find(L',') == std::wstring::npos) {
+			int32_t nBorderSize = _wtoi(strValue.c_str());
+			if (nBorderSize < 0) {
+				nBorderSize = 0;
+			}
+			UiRect rcBorder(nBorderSize, nBorderSize, nBorderSize, nBorderSize);
+			SetBorderSize(rcBorder);
+		}
+		else {
+			UiMargin rcMargin;
+			AttributeUtil::ParseMarginValue(strValue.c_str(), rcMargin);
+			UiRect rcBorder(rcMargin.left, rcMargin.top, rcMargin.right, rcMargin.bottom);
+			SetBorderSize(rcBorder);
+		}
+	}
+	else if ((strName == L"border_round") || (strName == L"borderround")) {
+		UiSize cxyRound;
+		AttributeUtil::ParseSizeValue(strValue.c_str(), cxyRound);
+		SetBorderRound(cxyRound);
+	}
+	else if ((strName == L"box_shadow") || (strName == L"boxshadow")) {
+		SetBoxShadow(strValue);
+	}
+	else if (strName == L"width") {
+		if (strValue == L"stretch") {
+			//宽度为拉伸：由父容器负责分配宽度
+			SetFixedWidth(UiFixedInt::MakeStretch(), true, true);
+		}
+		else if (strValue == L"auto") {
+			//宽度为自动：根据控件的文本、图片等自动计算宽度
+			SetFixedWidth(UiFixedInt::MakeAuto(), true, true);
+		}
+		else if (!strValue.empty()) {
+			if (strValue.back() == L'%') {
+				//宽度为拉伸：由父容器负责按百分比分配宽度，比如 width="30%"，代表该控件的宽度期望值为父控件宽度的30%
+				int32_t iValue = _wtoi(strValue.c_str());
+				if ((iValue <= 0) || (iValue > 100)) {
+					iValue = 100;
+				}
+				SetFixedWidth(UiFixedInt::MakeStretch(iValue), true, false);
+			}
+			else {
+				//宽度为固定值
+				ASSERT(_wtoi(strValue.c_str()) >= 0);
+				SetFixedWidth(UiFixedInt(_wtoi(strValue.c_str())), true, true);
+			}
+		}
+		else {
+			SetFixedWidth(UiFixedInt(0), true, true);
+		}
+	}
+	else if (strName == L"height") {
+		if (strValue == L"stretch") {
+			//高度为拉伸：由父容器负责分配高度
+			SetFixedHeight(UiFixedInt::MakeStretch(), true, true);
+		}
+		else if (strValue == L"auto") {
+			//高度为自动：根据控件的文本、图片等自动计算高度
+			SetFixedHeight(UiFixedInt::MakeAuto(), true, true);
+		}
+		else if (!strValue.empty()) {
+			if (strValue.back() == L'%') {
+				//高度为拉伸：由父容器负责按百分比分配高度，比如 height="30%"，代表该控件的高度期望值为父控件高度的30%
+				int32_t iValue = _wtoi(strValue.c_str());
+				if ((iValue <= 0) || (iValue > 100)) {
+					iValue = 100;
+				}
+				SetFixedHeight(UiFixedInt::MakeStretch(iValue), true, false);
+			}
+			else {
+				//高度为固定值
+				ASSERT(_wtoi(strValue.c_str()) >= 0);
+				SetFixedHeight(UiFixedInt(_wtoi(strValue.c_str())), true, true);
+			}
+		}
+		else {
+			SetFixedHeight(UiFixedInt(0), true, true);
+		}
+	}
+	else if (strName == L"state") {
+		if (strValue == L"normal") {
+			SetState(kControlStateNormal);
+		}
+		else if (strValue == L"hot") {
+			SetState(kControlStateHot);
+		}
+		else if (strValue == L"pushed") {
+			SetState(kControlStatePushed);
+		}
+		else if (strValue == L"disabled") {
+			SetState(kControlStateDisabled);
+		}
+		else {
+			ASSERT(FALSE);
+		}
+	}
+	else if ((strName == L"cursor_type") || (strName == L"cursortype")) {
+		if (strValue == L"arrow") {
+			SetCursorType(kCursorArrow);
+		}
+		else if (strValue == L"hand") {
+			SetCursorType(kCursorHand);
+		}
+		else if (strValue == L"ibeam") {
+			SetCursorType(kCursorHandIbeam);
+		}
+		else if (strValue == L"sizewe") {
+			SetCursorType(kCursorSizeWE);
+		}
+		else if (strValue == L"sizens") {
+			SetCursorType(kCursorSizeNS);
+		}
+		else {
+			ASSERT(FALSE);
+		}
+	}
+	else if ((strName == L"render_offset") || (strName == L"renderoffset")) {
+		UiPoint renderOffset;
+		AttributeUtil::ParsePointValue(strValue.c_str(), renderOffset);
+		GlobalManager::Instance().Dpi().ScalePoint(renderOffset);
+		SetRenderOffset(renderOffset);
+	}
+	else if ((strName == L"normal_color") || (strName == L"normalcolor")) {
+		SetStateColor(kControlStateNormal, strValue);
+	}
+	else if ((strName == L"hot_color") || (strName == L"hotcolor")) {
+		SetStateColor(kControlStateHot, strValue);
+	}
+	else if ((strName == L"pushed_color") || (strName == L"pushedcolor")) {
+		SetStateColor(kControlStatePushed, strValue);
+	}
+	else if ((strName == L"disabled_color") || (strName == L"disabledcolor")) {
+		SetStateColor(kControlStateDisabled, strValue);
+	}
+	else if ((strName == L"border_color") || (strName == L"bordercolor")) {
+		SetBorderColor(strValue);
+	}
+	else if (strName == L"normal_border_color") {
+		SetBorderColor(kControlStateNormal, strValue);
+	}
+	else if (strName == L"hot_border_color") {
+		SetBorderColor(kControlStateHot, strValue);
+	}
+	else if (strName == L"pushed_border_color") {
+		SetBorderColor(kControlStatePushed, strValue);
+	}
+	else if (strName == L"disabled_border_color") {
+		SetBorderColor(kControlStateDisabled, strValue);
+	}
+	else if (strName == L"focus_border_color") {
+		SetFocusBorderColor(strValue);
+	}
+	else if ((strName == L"left_border_size") || (strName == L"leftbordersize")) {
+		SetLeftBorderSize(_wtoi(strValue.c_str()));
+	}
+	else if ((strName == L"top_border_size") || (strName == L"topbordersize")) {
+		SetTopBorderSize(_wtoi(strValue.c_str()));
+	}
+	else if ((strName == L"right_border_size") || (strName == L"rightbordersize")) {
+		SetRightBorderSize(_wtoi(strValue.c_str()));
+	}
+	else if ((strName == L"bottom_border_size") || (strName == L"bottombordersize")) {
+		SetBottomBorderSize(_wtoi(strValue.c_str()));
+	}
+	else if (strName == L"bkimage") {
+		SetBkImage(strValue);
+	}
+	else if ((strName == L"min_width") || (strName == L"minwidth")) {
+		SetMinWidth(_wtoi(strValue.c_str()));
+	}
+	else if ((strName == L"max_width") || (strName == L"maxwidth")) {
+		SetMaxWidth(_wtoi(strValue.c_str()));
+	}
+	else if ((strName == L"min_height") || (strName == L"minheight")) {
+		SetMinHeight(_wtoi(strValue.c_str()));
+	}
+	else if ((strName == L"max_height") || (strName == L"maxheight")) {
+		SetMaxHeight(_wtoi(strValue.c_str()));
+	}
+	else if (strName == L"name") {
+		SetName(strValue);
+	}
+	else if ((strName == L"tooltip_text") || (strName == L"tooltiptext")) {
+		SetToolTipText(strValue);
+	}
+	else if ((strName == L"tooltip_textid") || (strName == L"tooltiptextid")) {
+		SetToolTipTextId(strValue);
+	}
+	else if (strName == L"dataid") {
+		SetDataID(strValue);
+	}
+	else if (strName == L"user_dataid") {
+		SetUserDataID(_wtoi(strValue.c_str()));
+	}
+	else if (strName == L"enabled") {
+		SetEnabled(strValue == L"true");
+	}
+	else if ((strName == L"mouse_enabled") || (strName == L"mouse")) {
+		SetMouseEnabled(strValue == L"true");
+	}
+	else if ((strName == L"keyboard_enabled") || (strName == L"keyboard")) {
+		SetKeyboardEnabled(strValue == L"true");
+	}
+	else if (strName == L"visible") {
+		SetVisible(strValue == L"true");
+	}
+	else if ((strName == L"fade_visible") || (strName == L"fadevisible")) {
+		SetFadeVisible(strValue == L"true");
+	}
+	else if (strName == L"float") {
+		SetFloat(strValue == L"true");
+	}
+	else if (strName == L"cache") {
+		SetUseCache(strValue == L"true");
+	}
+	else if (strName == L"nofocus") {
+		SetNoFocus();
+	}
+	else if (strName == L"alpha") {
+		SetAlpha(_wtoi(strValue.c_str()));
+	}
+	else if ((strName == L"normal_image") || (strName == L"normalimage")) {
+		SetStateImage(kControlStateNormal, strValue);
+	}
+	else if ((strName == L"hot_image") || (strName == L"hotimage")) {
+		SetStateImage(kControlStateHot, strValue);
+	}
+	else if ((strName == L"pushed_image") || (strName == L"pushedimage")) {
+		SetStateImage(kControlStatePushed, strValue);
+	}
+	else if ((strName == L"disabled_image") || (strName == L"disabledimage")) {
+		SetStateImage(kControlStateDisabled, strValue);
+	}
+	else if ((strName == L"fore_normal_image") || (strName == L"forenormalimage")) {
+		SetForeStateImage(kControlStateNormal, strValue);
+	}
+	else if ((strName == L"fore_hot_image") || (strName == L"forehotimage")) {
+		SetForeStateImage(kControlStateHot, strValue);
+	}
+	else if ((strName == L"fore_pushed_image") || (strName == L"forepushedimage")) {
+		SetForeStateImage(kControlStatePushed, strValue);
+	}
+	else if ((strName == L"fore_disabled_image") || (strName == L"foredisabledimage")) {
+		SetForeStateImage(kControlStateDisabled, strValue);
+	}
+	else if ((strName == L"fade_alpha") || (strName == L"fadealpha")) {
+		GetAnimationManager().SetFadeAlpha(strValue == L"true");
+	}
+	else if ((strName == L"fade_hot") || (strName == L"fadehot")) {
+		GetAnimationManager().SetFadeHot(strValue == L"true");
+	}
+	else if ((strName == L"fade_width") || (strName == L"fadewidth")) {
+		GetAnimationManager().SetFadeWidth(strValue == L"true");
+	}
+	else if ((strName == L"fade_height") || (strName == L"fadeheight")) {
+		GetAnimationManager().SetFadeHeight(strValue == L"true");
+	}
+	else if ((strName == L"fade_in_out_x_from_left") || (strName == L"fadeinoutxfromleft")) {
+		GetAnimationManager().SetFadeInOutX(strValue == L"true", false);
+	}
+	else if ((strName == L"fade_in_out_x_from_right") || (strName == L"fadeinoutxfromright")) {
+		GetAnimationManager().SetFadeInOutX(strValue == L"true", true);
+	}
+	else if ((strName == L"fade_in_out_y_from_top") || (strName == L"fadeinoutyfromtop")) {
+		GetAnimationManager().SetFadeInOutY(strValue == L"true", false);
+	}
+	else if ((strName == L"fade_in_out_y_from_bottom") || (strName == L"fadeinoutyfrombottom")) {
+		GetAnimationManager().SetFadeInOutY(strValue == L"true", true);
+	}
+	else if ((strName == L"tab_stop") || (strName == L"tabstop")) {
+		SetTabStop(strValue == L"true");
+	}
+	else if ((strName == L"loading_image") || (strName == L"loadingimage")) {
+		SetLoadingImage(strValue);
+	}
+	else if ((strName == L"loading_bkcolor") || (strName == L"loadingbkcolor")) {
+		SetLoadingBkColor(strValue);
+	}
+	else {
+		ASSERT(!"Control::SetAttribute失败: 发现不能识别的属性");
+	}
+}
+
+void Control::SetClass(const std::wstring& strClass)
+{
+	if (strClass.empty()) {
+		return;
+	}
+	std::list<std::wstring> splitList = StringHelper::Split(strClass, L" ");
+	for (auto it = splitList.begin(); it != splitList.end(); it++) {
+		std::wstring pDefaultAttributes = GlobalManager::Instance().GetClassAttributes((*it));
+		Window* pWindow = GetWindow();
+		if (pDefaultAttributes.empty() && (pWindow != nullptr)) {
+			pDefaultAttributes = pWindow->GetClassAttributes(*it);
+		}
+
+		ASSERT(!pDefaultAttributes.empty());
+		if (!pDefaultAttributes.empty()) {
+			ApplyAttributeList(pDefaultAttributes);
+		}
+	}
+}
+
+void Control::ApplyAttributeList(const std::wstring& strList)
+{
+	//属性列表，先解析，然后再应用
+	std::vector<std::pair<std::wstring, std::wstring>> attributeList;
+	AttributeUtil::ParseAttributeList(strList, L'\"', attributeList);
+	for (const auto& attribute : attributeList) {
+		SetAttribute(attribute.first, attribute.second);
+	}
+}
+
+bool Control::OnApplyAttributeList(const std::wstring& strReceiver, const std::wstring& strList, const EventArgs& /*eventArgs*/)
+{
+	bool isFindSubControl = false;
+	std::wstring receiverName = strReceiver;
+	if (receiverName.size() >= 2) {
+		if (receiverName.substr(0, 2) == L".\\" || receiverName.substr(0, 2) == L"./") {
+			receiverName = receiverName.substr(2);
+			isFindSubControl = true;
+		}
+	}
+	Control* pReceiverControl = nullptr;
+	if (isFindSubControl) {
+		Box* pBox = dynamic_cast<Box*>(this);
+		if (pBox != nullptr) {
+			pReceiverControl = pBox->FindSubControl(receiverName);
+		}
+	}
+	else {
+		pReceiverControl = GetWindow()->FindControl(receiverName);
+	}
+
+	if (pReceiverControl != nullptr) {
+		std::wstring strValueList = strList;
+		//这个是手工写入的属性，以花括号{}代替双引号，编写的时候就不需要转义字符了；
+		StringHelper::ReplaceAll(L"{", L"\"", strValueList);
+		StringHelper::ReplaceAll(L"}", L"\"", strValueList);
+		pReceiverControl->ApplyAttributeList(strValueList);
+		return true;
+	}
+	else {
+		ASSERT(!"Control::OnApplyAttributeList error!");
+		return false;
+	}
+}
+
 AnimationManager& Control::GetAnimationManager()
 {
 	if (m_animationManager == nullptr) {
@@ -1495,405 +1894,6 @@ bool Control::OnImeEndComposition(const EventArgs& /*msg*/)
 {
 	//默认不处理，交由父控件处理
 	return false;
-}
-
-void Control::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
-{
-	if (strName == L"class") {
-		SetClass(strValue);
-	}
-	else if (strName == L"halign") {
-		if (strValue == L"left") {
-			SetHorAlignType(kHorAlignLeft);
-		}
-		else if (strValue == L"center") {
-			SetHorAlignType(kHorAlignCenter);
-		}
-		else if (strValue == L"right") {
-			SetHorAlignType(kHorAlignRight);
-		}
-		else {
-			ASSERT(FALSE);
-		}
-	}
-	else if (strName == L"valign") {
-		if (strValue == L"top") {
-			SetVerAlignType(kVerAlignTop);
-		}
-		else if (strValue == L"center") {
-			SetVerAlignType(kVerAlignCenter);
-		}
-		else if (strValue == L"bottom") {
-			SetVerAlignType(kVerAlignBottom);
-		}
-		else {
-			ASSERT(FALSE);
-		}
-	}
-	else if (strName == L"margin") {
-		UiMargin rcMargin;
-		AttributeUtil::ParseMarginValue(strValue.c_str(), rcMargin);
-		SetMargin(rcMargin, true);
-	}
-	else if (strName == L"padding") {
-		UiPadding rcPadding;
-		AttributeUtil::ParsePaddingValue(strValue.c_str(), rcPadding);
-		SetPadding(rcPadding, true);
-	}
-	else if (strName == L"control_padding") {
-		SetEnableControlPadding(strValue == L"true");
-	}
-	else if (strName == L"bkcolor" || strName == L"bkcolor1") {
-		SetBkColor(strValue);
-	}
-	else if ((strName == L"border_size") || (strName == L"bordersize")){
-		std::wstring nValue = strValue;
-		if (nValue.find(L',') == std::wstring::npos) {
-			int32_t nBorderSize = _wtoi(strValue.c_str());
-			if (nBorderSize < 0) {
-				nBorderSize = 0;
-			}
-			UiRect rcBorder(nBorderSize, nBorderSize, nBorderSize, nBorderSize);
-			SetBorderSize(rcBorder);
-		}
-		else {
-			UiMargin rcMargin;
-			AttributeUtil::ParseMarginValue(strValue.c_str(), rcMargin);
-			UiRect rcBorder(rcMargin.left, rcMargin.top, rcMargin.right, rcMargin.bottom);
-			SetBorderSize(rcBorder);
-		}
-	}
-	else if ((strName == L"border_round") || (strName == L"borderround")) {
-		UiSize cxyRound;
-		AttributeUtil::ParseSizeValue(strValue.c_str(), cxyRound);
-		SetBorderRound(cxyRound);
-	}
-	else if ((strName == L"box_shadow") || (strName == L"boxshadow")) {
-		SetBoxShadow(strValue);
-	}
-	else if(strName == L"width") {
-		if (strValue == L"stretch") {
-			//宽度为拉伸：由父容器负责分配宽度
-			SetFixedWidth(UiFixedInt::MakeStretch(), true, true);
-		}
-		else if (strValue == L"auto") {
-			//宽度为自动：根据控件的文本、图片等自动计算宽度
-			SetFixedWidth(UiFixedInt::MakeAuto(), true, true);
-		}
-		else if (!strValue.empty()) {
-			if (strValue.back() == L'%') {
-				//宽度为拉伸：由父容器负责按百分比分配宽度，比如 width="30%"，代表该控件的宽度期望值为父控件宽度的30%
-				int32_t iValue = _wtoi(strValue.c_str());
-				if ((iValue <= 0) || (iValue > 100)) {
-					iValue = 100;
-				}
-				SetFixedWidth(UiFixedInt::MakeStretch(iValue), true, false);
-			}
-			else {
-				//宽度为固定值
-				ASSERT(_wtoi(strValue.c_str()) >= 0);
-				SetFixedWidth(UiFixedInt(_wtoi(strValue.c_str())), true, true);
-			}
-		}
-		else {
-			SetFixedWidth(UiFixedInt(0), true, true);
-		}
-	}
-	else if(strName == L"height") {
-		if (strValue == L"stretch") {
-			//高度为拉伸：由父容器负责分配高度
-			SetFixedHeight(UiFixedInt::MakeStretch(), true, true);
-		}
-		else if (strValue == L"auto") {
-			//高度为自动：根据控件的文本、图片等自动计算高度
-			SetFixedHeight(UiFixedInt::MakeAuto(), true, true);
-		}
-		else if (!strValue.empty()) {
-			if (strValue.back() == L'%') {
-				//高度为拉伸：由父容器负责按百分比分配高度，比如 height="30%"，代表该控件的高度期望值为父控件高度的30%
-				int32_t iValue = _wtoi(strValue.c_str());
-				if ((iValue <= 0) || (iValue > 100)) {
-					iValue = 100;
-				}
-				SetFixedHeight(UiFixedInt::MakeStretch(iValue), true, false);
-			}
-			else {
-				//高度为固定值
-				ASSERT(_wtoi(strValue.c_str()) >= 0);
-				SetFixedHeight(UiFixedInt(_wtoi(strValue.c_str())), true, true);
-			}
-		}
-		else {
-			SetFixedHeight(UiFixedInt(0), true, true);
-		}
-	}
-	else if(strName == L"state") {
-		if (strValue == L"normal") {
-			SetState(kControlStateNormal);
-		}
-		else if (strValue == L"hot") {
-			SetState(kControlStateHot);
-		}
-		else if (strValue == L"pushed") {
-			SetState(kControlStatePushed);
-		}
-		else if (strValue == L"disabled") {
-			SetState(kControlStateDisabled);
-		}
-		else {
-			ASSERT(FALSE);
-		}
-	}
-	else if ((strName == L"cursor_type") || (strName == L"cursortype")) {
-		if (strValue == L"arrow") {
-			SetCursorType(kCursorArrow);
-		}
-		else if (strValue == L"hand") {
-			SetCursorType(kCursorHand);
-		}
-		else if (strValue == L"ibeam") {
-			SetCursorType(kCursorHandIbeam);
-		}
-		else if (strValue == L"sizewe") {
-			SetCursorType(kCursorSizeWE);
-		}
-		else if (strValue == L"sizens") {
-			SetCursorType(kCursorSizeNS);
-		}
-		else {
-			ASSERT(FALSE);
-		}
-	}
-	else if ((strName == L"render_offset") || (strName == L"renderoffset")) {
-		UiPoint renderOffset;
-		AttributeUtil::ParsePointValue(strValue.c_str(), renderOffset);
-		GlobalManager::Instance().Dpi().ScalePoint(renderOffset);
-		SetRenderOffset(renderOffset);
-	}
-	else if ((strName == L"normal_color") || (strName == L"normalcolor")) {
-		SetStateColor(kControlStateNormal, strValue);
-	}
-	else if ((strName == L"hot_color") || (strName == L"hotcolor")) {
-		SetStateColor(kControlStateHot, strValue);
-	}
-	else if ((strName == L"pushed_color") || (strName == L"pushedcolor")) {
-		SetStateColor(kControlStatePushed, strValue);
-	}
-	else if ((strName == L"disabled_color") || (strName == L"disabledcolor")) {
-		SetStateColor(kControlStateDisabled, strValue);
-	}
-	else if ((strName == L"border_color") || (strName == L"bordercolor")) {
-		SetBorderColor(strValue);
-	}
-	else if (strName == L"normal_border_color") {
-		SetBorderColor(kControlStateNormal, strValue);
-	}
-	else if (strName == L"hot_border_color") {
-		SetBorderColor(kControlStateHot, strValue);
-	}
-	else if (strName == L"pushed_border_color") {
-		SetBorderColor(kControlStatePushed, strValue);
-	}
-	else if (strName == L"disabled_border_color") {
-		SetBorderColor(kControlStateDisabled, strValue);
-	}
-	else if (strName == L"focus_border_color") {
-		SetFocusBorderColor(strValue);
-	}
-	else if ((strName == L"left_border_size") || (strName == L"leftbordersize")) {
-		SetLeftBorderSize(_wtoi(strValue.c_str()));
-	}
-	else if ((strName == L"top_border_size") || (strName == L"topbordersize")){
-		SetTopBorderSize(_wtoi(strValue.c_str()));
-	}
-	else if ((strName == L"right_border_size") || (strName == L"rightbordersize")) {
-		SetRightBorderSize(_wtoi(strValue.c_str()));
-	}
-	else if ((strName == L"bottom_border_size") || (strName == L"bottombordersize")) {
-		SetBottomBorderSize(_wtoi(strValue.c_str()));
-	}
-	else if (strName == L"bkimage") {
-		SetBkImage(strValue);
-	}
-	else if ((strName == L"min_width") || (strName == L"minwidth")) {
-		SetMinWidth(_wtoi(strValue.c_str()));
-	}
-	else if ((strName == L"max_width") || (strName == L"maxwidth")) {
-		SetMaxWidth(_wtoi(strValue.c_str()));
-	}
-	else if ((strName == L"min_height") || (strName == L"minheight")) {
-		SetMinHeight(_wtoi(strValue.c_str()));
-	}
-	else if ((strName == L"max_height") || (strName == L"maxheight")) {
-		SetMaxHeight(_wtoi(strValue.c_str()));
-	}
-	else if (strName == L"name") {
-		SetName(strValue);
-	}
-	else if ((strName == L"tooltip_text") || (strName == L"tooltiptext")) {
-		SetToolTipText(strValue);
-	}
-	else if ((strName == L"tooltip_textid") || (strName == L"tooltiptextid")) {
-		SetToolTipTextId(strValue);
-	}
-	else if (strName == L"dataid") {
-		SetDataID(strValue);
-	}
-	else if (strName == L"user_dataid") {
-		SetUserDataID(_wtoi(strValue.c_str()));
-	}
-	else if (strName == L"enabled") {
-		SetEnabled(strValue == L"true");
-	}
-	else if ((strName == L"mouse_enabled") || (strName == L"mouse")) {
-		SetMouseEnabled(strValue == L"true");
-	}
-	else if ((strName == L"keyboard_enabled") || (strName == L"keyboard")) {
-		SetKeyboardEnabled(strValue == L"true");
-	}
-	else if (strName == L"visible") {
-		SetVisible(strValue == L"true");
-	}
-	else if ((strName == L"fade_visible") || (strName == L"fadevisible")) {
-		SetFadeVisible(strValue == L"true");
-	}
-	else if (strName == L"float") {
-		SetFloat(strValue == L"true");
-	}
-	else if (strName == L"cache") {
-		SetUseCache(strValue == L"true");
-	}
-	else if (strName == L"nofocus") {
-		SetNoFocus();
-	}
-	else if (strName == L"alpha") {
-		SetAlpha(_wtoi(strValue.c_str()));
-	}
-	else if ((strName == L"normal_image") || (strName == L"normalimage")) {
-		SetStateImage(kControlStateNormal, strValue);
-	}
-	else if ((strName == L"hot_image") || (strName == L"hotimage")) {
-		SetStateImage(kControlStateHot, strValue);
-	}
-	else if ((strName == L"pushed_image") || (strName == L"pushedimage")) {
-		SetStateImage(kControlStatePushed, strValue);
-	}
-	else if ((strName == L"disabled_image") || (strName == L"disabledimage")) {
-		SetStateImage(kControlStateDisabled, strValue);
-	}
-	else if ((strName == L"fore_normal_image") || (strName == L"forenormalimage")) {
-		SetForeStateImage(kControlStateNormal, strValue);
-	}
-	else if ((strName == L"fore_hot_image") || (strName == L"forehotimage")) {
-		SetForeStateImage(kControlStateHot, strValue);
-	}
-	else if ((strName == L"fore_pushed_image") || (strName == L"forepushedimage")) {
-		SetForeStateImage(kControlStatePushed, strValue);
-	}
-	else if ((strName == L"fore_disabled_image") || (strName == L"foredisabledimage")) {
-		SetForeStateImage(kControlStateDisabled, strValue);
-	}
-	else if ((strName == L"fade_alpha") || (strName == L"fadealpha")) {
-		GetAnimationManager().SetFadeAlpha(strValue == L"true");
-	}
-	else if ((strName == L"fade_hot") || (strName == L"fadehot")) {
-		GetAnimationManager().SetFadeHot(strValue == L"true");
-	}
-	else if ((strName == L"fade_width") || (strName == L"fadewidth")) {
-		GetAnimationManager().SetFadeWidth(strValue == L"true");
-	}
-	else if ((strName == L"fade_height") || (strName == L"fadeheight")) {
-		GetAnimationManager().SetFadeHeight(strValue == L"true");
-	}
-	else if ((strName == L"fade_in_out_x_from_left") || (strName == L"fadeinoutxfromleft")) {
-		GetAnimationManager().SetFadeInOutX(strValue == L"true", false);
-	}
-	else if ((strName == L"fade_in_out_x_from_right") || (strName == L"fadeinoutxfromright")) {
-		GetAnimationManager().SetFadeInOutX(strValue == L"true", true);
-	}
-	else if ((strName == L"fade_in_out_y_from_top") || (strName == L"fadeinoutyfromtop")) {
-		GetAnimationManager().SetFadeInOutY(strValue == L"true", false);
-	}
-	else if ((strName == L"fade_in_out_y_from_bottom") || (strName == L"fadeinoutyfrombottom")) {
-		GetAnimationManager().SetFadeInOutY(strValue == L"true", true);
-	}
-	else if ((strName == L"tab_stop") || (strName == L"tabstop")) {
-		SetTabStop(strValue == L"true");
-	}
-	else if ((strName == L"loading_image") || (strName == L"loadingimage")) {
-		SetLoadingImage(strValue);
-	}
-	else if ((strName == L"loading_bkcolor") || (strName == L"loadingbkcolor")){
-		SetLoadingBkColor(strValue);
-	}
-	else {
-		ASSERT(!"Control::SetAttribute失败: 发现不能识别的属性");
-	}
-}
-
-void Control::SetClass(const std::wstring& strClass)
-{
-	if (strClass.empty()) {
-		return;
-	}
-	std::list<std::wstring> splitList = StringHelper::Split(strClass, L" ");
-	for (auto it = splitList.begin(); it != splitList.end(); it++) {
-		std::wstring pDefaultAttributes = GlobalManager::Instance().GetClassAttributes((*it));
-		Window* pWindow = GetWindow();
-		if (pDefaultAttributes.empty() && (pWindow != nullptr)) {
-			pDefaultAttributes = pWindow->GetClassAttributes(*it);
-		}
-
-		ASSERT(!pDefaultAttributes.empty());
-		if( !pDefaultAttributes.empty() ) {
-			ApplyAttributeList(pDefaultAttributes);
-		}
-	}
-}
-
-void Control::ApplyAttributeList(const std::wstring& strList)
-{
-	//属性列表，先解析，然后再应用
-	std::vector<std::pair<std::wstring, std::wstring>> attributeList;
-	AttributeUtil::ParseAttributeList(strList, L'\"', attributeList);
-	for (const auto& attribute : attributeList) {
-		SetAttribute(attribute.first, attribute.second);
-	}
-}
-
-bool Control::OnApplyAttributeList(const std::wstring& strReceiver, const std::wstring& strList, const EventArgs& /*eventArgs*/)
-{
-	bool isFindSubControl = false;
-	std::wstring receiverName = strReceiver;
-	if (receiverName.size() >= 2) {
-		if (receiverName.substr(0, 2) == L".\\" || receiverName.substr(0, 2) == L"./") {
-			receiverName = receiverName.substr(2);
-			isFindSubControl = true;
-		}
-	}
-	Control* pReceiverControl = nullptr;
-	if (isFindSubControl) {
-		Box* pBox = dynamic_cast<Box*>(this);
-		if (pBox != nullptr) {
-			pReceiverControl = pBox->FindSubControl(receiverName);
-		}
-	}
-	else {
-		pReceiverControl = GetWindow()->FindControl(receiverName);
-	}
-
-	if (pReceiverControl != nullptr) {
-		std::wstring strValueList = strList;
-		//这个是手工写入的属性，以花括号{}代替双引号，编写的时候就不需要转义字符了；
-		StringHelper::ReplaceAll(L"{", L"\"", strValueList);
-		StringHelper::ReplaceAll(L"}", L"\"", strValueList);
-		pReceiverControl->ApplyAttributeList(strValueList);
-		return true;
-	}
-	else {
-		ASSERT(!"Control::OnApplyAttributeList error!");
-		return false;
-	}	
 }
 
 bool Control::PaintImage(IRender* pRender, Image* pImage,

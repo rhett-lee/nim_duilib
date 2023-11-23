@@ -372,6 +372,9 @@
     <ClCompile Include="Control\ListCtrlReportView.cpp">
       <Filter>Control</Filter>
     </ClCompile>
+    <ClCompile Include="Control\ListCtrlIconView.cpp">
+      <Filter>Control</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -819,6 +822,9 @@
       <Filter>Control</Filter>
     </ClInclude>
     <ClInclude Include="Control\ListCtrlReportView.h">
+      <Filter>Control</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\ListCtrlIconView.h">
       <Filter>Control</Filter>
     </ClInclude>
   </ItemGroup>

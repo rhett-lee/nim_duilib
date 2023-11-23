@@ -46,11 +46,11 @@ void Box::SetWindow(Window* pManager)
 
 void Box::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
-	if (m_pLayout->SetAttribute(strName, strValue))	{
-		return;
-	}
-	else if ((strName == L"mouse_child") || (strName == L"mousechild")) {
+	if ((strName == L"mouse_child") || (strName == L"mousechild")) {
 		SetMouseChildEnabled(strValue == L"true");
+	}
+	else if (m_pLayout->SetAttribute(strName, strValue)) {
+		return;
 	}
 	else {
 		Control::SetAttribute(strName, strValue);

@@ -39,12 +39,50 @@ void MainForm::OnInitWindow()
 	if (pListCtrl == nullptr) {
 		return;
 	}
+	ui::ImageList* pReportImageList = new ui::ImageList;
+	ui::ImageList* pIconImageList = new ui::ImageList;
+	ui::ImageList* pListImageList = new ui::ImageList;
+	pListCtrl->SetImageList(ui::ListCtrlType::Report, pReportImageList);
+	pListCtrl->SetImageList(ui::ListCtrlType::Icon, pIconImageList);
+	pListCtrl->SetImageList(ui::ListCtrlType::List, pListImageList);
+
+	pReportImageList->SetImageSize(ui::UiSize(18, 18), true);
+	pListImageList->SetImageSize(ui::UiSize(32, 32), true);
+	pIconImageList->SetImageSize(ui::UiSize(64, 64), true);
+
 	//添加图片资源
-	ui::ImageList& imageList = pListCtrl->GetImageList();
-	uint32_t imageId = imageList.AddImageString(L"file='1.svg' width='18' height='18' valign='center'");
+	uint32_t imageId = pReportImageList->AddImageString(L"file='1.svg' width='18' height='18'");
+	pListImageList->AddImageString(L"file='1.svg' width='32' height='32' valign='center' halign='center'");
+	pIconImageList->AddImageString(L"file='1.svg' width='64' height='64' valign='center' halign='center'");
 
 	//填充数据
-	InsertItemData(200, 9, (int32_t)imageId);
+	InsertItemData(400, 9, (int32_t)imageId);
+
+	// 表格类型
+	ui::Combo* pTypeCombo = dynamic_cast<ui::Combo*>(FindControl(L"list_ctrl_type_combo"));
+	if (pTypeCombo != nullptr) {
+		pTypeCombo->SetCurSel(0);
+		pTypeCombo->AttachSelect([this, pListCtrl, pTypeCombo](const ui::EventArgs& args) {
+			size_t nCurSel = args.wParam;
+			size_t nType = pTypeCombo->GetItemData(nCurSel);
+			if (nType == 0) {
+				if (pListCtrl) {
+					pListCtrl->SetListCtrlType(ui::ListCtrlType::Report);
+				}				
+			}
+			else if (nType == 1) {
+				if (pListCtrl) {
+					pListCtrl->SetListCtrlType(ui::ListCtrlType::Icon);
+				}
+			}
+			else if (nType == 2) {
+				if (pListCtrl) {
+					pListCtrl->SetListCtrlType(ui::ListCtrlType::List);
+				}
+			}
+			return true;
+			});
+	}
 
 	//表头高度控制
 	ui::RichEdit* pHeaderHeightEdit = dynamic_cast<ui::RichEdit*>(FindControl(L"header_height_edit"));
@@ -599,6 +637,9 @@ void MainForm::InsertItemData(int32_t nRows, int32_t nColumns, int32_t nImageId)
 			subItemData.text = ui::StringHelper::Printf(L"第 %03d 行/第 %02d 列", itemIndex, columnIndex);
 			subItemData.bShowCheckBox = bShowCheckBox;
 			subItemData.nImageId = nImageId;
+			if (columnIndex == 0) {
+				subItemData.text += L"-测试1234567890-测试1234567890-测试1234567890-测试1234567890";
+			}
 			pListCtrl->SetSubItemData(itemIndex, columnIndex, subItemData);
 		}
 	}

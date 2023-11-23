@@ -65,11 +65,16 @@ void ListCtrlHeaderItem::PaintText(IRender* pRender)
     }
     //文本前的图标
     ImagePtr pItemImage;
+    UiSize itemImageSize;
     if ((m_imageId >= 0) && (m_pHeaderCtrl != nullptr)) {
         ListCtrl* pListCtrl = m_pHeaderCtrl->GetListCtrl();
         if (pListCtrl != nullptr) {
-            pItemImage = pListCtrl->GetImageList().GetImageData(m_imageId);
-            ASSERT(pItemImage != nullptr);
+            ImageList* pImageList = pListCtrl->GetImageList(ListCtrlType::Report);
+            if (pImageList != nullptr) {
+                itemImageSize = pImageList->GetImageSize();
+                pItemImage = pImageList->GetImageData(m_imageId);
+                ASSERT(pItemImage != nullptr);
+            }
         }
     }
     if ((pItemImage != nullptr) && (pItemImage->GetImageCache() == nullptr)) {
@@ -116,7 +121,12 @@ void ListCtrlHeaderItem::PaintText(IRender* pRender)
         int32_t nImageHeight = pSortImage->GetImageCache()->GetHeight();
         rc.left = rc.CenterX() - nImageWidth / 2;
         rc.right = rc.left + nImageWidth;
-        rc.bottom = rc.top + nImageHeight;
+        if (!(GetTextStyle() & TEXT_VCENTER) && !(GetTextStyle() & TEXT_BOTTOM)) {
+            rc.top = rc.bottom - nImageHeight;
+        }
+        else {
+            rc.bottom = rc.top + nImageHeight;
+        }
 
         //绘制排序图标
         PaintImage(pRender, pSortImage, L"", -1, nullptr, &rc, nullptr);
@@ -127,14 +137,20 @@ void ListCtrlHeaderItem::PaintText(IRender* pRender)
         __super::PaintText(pRender);
         return;
     }
-    
-    int32_t nItemImageWidth = 0;
+
     if (pItemImage != nullptr) {
-        nItemImageWidth = pItemImage->GetImageCache()->GetWidth();
+        if (itemImageSize.cx <= 0) {
+            itemImageSize.cx = pItemImage->GetImageCache()->GetWidth();
+        }
+        if (itemImageSize.cy <= 0) {
+            itemImageSize.cy = pItemImage->GetImageCache()->GetHeight();
+        }
     }
-    int32_t nSortImageWidth = 0;
+
+    UiSize sortImageSize;
     if (pSortImage != nullptr) {
-        nSortImageWidth = pSortImage->GetImageCache()->GetWidth();
+        sortImageSize.cx = pSortImage->GetImageCache()->GetWidth();
+        sortImageSize.cy = pSortImage->GetImageCache()->GetHeight();
     }
 
     int32_t nIconTextSpacing = GetIconSpacing();
@@ -159,7 +175,7 @@ void ListCtrlHeaderItem::PaintText(IRender* pRender)
         rcItemRect.Validate();
     }
     
-    if ((nSortImageWidth + nItemImageWidth + measureRect.Width()) > rcItemRect.Width()) {
+    if ((sortImageSize.cx + itemImageSize.cx + measureRect.Width()) > rcItemRect.Width()) {
         //横向的空间不足，按左对齐绘制
         nIconTextSpacing = 0;
         textStyle = TEXT_LEFT;
@@ -180,17 +196,20 @@ void ListCtrlHeaderItem::PaintText(IRender* pRender)
             UiRect itemRect = rc;
             itemRect.left = textRect.CenterX() - measureRect.Width() / 2;
             itemRect.left -= nIconTextSpacing;
-            itemRect.left -= nItemImageWidth;
+            itemRect.left -= itemImageSize.cx;
             itemRect.left = std::max(itemRect.left, rc.left);
             itemRect.Validate();
+            itemRect.right = itemRect.left + itemImageSize.cx;
+            VAlignRect(itemRect, GetTextStyle(), itemImageSize.cy);
             PaintImage(pRender, pItemImage.get(), L"", -1, nullptr, &itemRect, nullptr);
         }
         if (pSortImage != nullptr) {
             UiRect sortRect = rc;
             sortRect.left = textRect.CenterX() + measureRect.Width() / 2;
             sortRect.left += nIconTextSpacing;
-            sortRect.right = sortRect.left + nSortImageWidth;
+            sortRect.right = sortRect.left + sortImageSize.cx;
             sortRect.Validate();
+            VAlignRect(sortRect, GetTextStyle(), sortImageSize.cy);
             PaintImage(pRender, pSortImage, L"", -1, nullptr, &sortRect, nullptr);
         }
 
@@ -200,8 +219,9 @@ void ListCtrlHeaderItem::PaintText(IRender* pRender)
         //靠右对齐
         if (pSortImage != nullptr) {
             UiRect sortRect = rc;
-            sortRect.left = sortRect.right - nSortImageWidth;
+            sortRect.left = sortRect.right - sortImageSize.cx;
             sortRect.Validate();
+            VAlignRect(sortRect, GetTextStyle(), sortImageSize.cy);
             PaintImage(pRender, pSortImage, L"", -1, nullptr, &sortRect, nullptr);
             rc.right = sortRect.left;
             rc.right -= nIconTextSpacing;
@@ -222,18 +242,23 @@ void ListCtrlHeaderItem::PaintText(IRender* pRender)
             rc.right -= nIconTextSpacing;
             rc.Validate();
 
-            if (rc.Width() > nItemImageWidth) {
-                rc.left = rc.right - nItemImageWidth;
+            if (rc.Width() > itemImageSize.cx) {
+                rc.left = rc.right - itemImageSize.cx;
                 rc.Validate();
             }
-            PaintImage(pRender, pItemImage.get(), L"", -1, nullptr, &rc, nullptr);
+            UiRect itemRect = rc;
+            VAlignRect(itemRect, GetTextStyle(), itemImageSize.cy);
+            PaintImage(pRender, pItemImage.get(), L"", -1, nullptr, &itemRect, nullptr);
         }
     }
     else {
         //靠左对齐：图标、文字、排序图标依次绘制
         if (pItemImage != nullptr) {
-            PaintImage(pRender, pItemImage.get(), L"", -1, nullptr, &rc, nullptr);
-            rc.left += pItemImage->GetImageCache()->GetWidth();
+            UiRect itemRect = rc;
+            itemRect.right = itemRect.left + itemImageSize.cx;
+            VAlignRect(itemRect, GetTextStyle(), itemImageSize.cy);
+            PaintImage(pRender, pItemImage.get(), L"", -1, nullptr, &itemRect, nullptr);
+            rc.left += itemImageSize.cx;
             rc.left += nIconTextSpacing;
         }
 
@@ -250,8 +275,30 @@ void ListCtrlHeaderItem::PaintText(IRender* pRender)
         rc.left += nIconTextSpacing;
 
         if (pSortImage != nullptr) {
-            PaintImage(pRender, pSortImage, L"", -1, nullptr, &rc, nullptr);
+            UiRect sortRect = rc;
+            VAlignRect(sortRect, GetTextStyle(), sortImageSize.cy);
+            PaintImage(pRender, pSortImage, L"", -1, nullptr, &sortRect, nullptr);
         }
+    }
+}
+
+void ListCtrlHeaderItem::VAlignRect(UiRect& rc, uint32_t textStyle, int32_t nImageHeight)
+{
+    if ((nImageHeight <= 0) || (nImageHeight >= rc.Height())){
+        return;
+    }
+    if (textStyle & TEXT_VCENTER) {
+        //居中对齐
+        rc.top = rc.CenterY() - nImageHeight / 2;
+        rc.bottom = rc.top + nImageHeight;
+    }
+    else if (textStyle & TEXT_BOTTOM) {
+        //底部对齐
+        rc.top = rc.bottom - nImageHeight;
+    }
+    else {
+        //顶部对齐
+        rc.bottom = rc.top + nImageHeight;
     }
 }
 

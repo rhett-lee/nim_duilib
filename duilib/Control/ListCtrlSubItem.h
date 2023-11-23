@@ -92,6 +92,10 @@ protected:
     */
     ImagePtr LoadItemImage() const;
 
+    /** 使得目标区域纵向对齐
+    */
+    void VAlignRect(UiRect& rc, uint32_t textStyle, int32_t nImageHeight);
+
 private:
     /** 关联的Item接口
     */

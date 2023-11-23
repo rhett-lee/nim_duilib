@@ -19,6 +19,7 @@ class ListCtrl: public VBox
 {
     friend class ListCtrlData;          //列表数据管理容器
     friend class ListCtrlReportView;    //列表数据显示UI控件
+    friend class ListCtrlIconView;    //列表数据显示UI控件
     friend class ListCtrlHeader;
     friend class ListCtrlHeaderItem;
     friend class ListCtrlItem;
@@ -31,6 +32,29 @@ public:
 	*/
 	virtual std::wstring GetType() const override;
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
+
+public:
+    /** 设置表格类型（默认为Report类型）
+    */
+    void SetListCtrlType(ListCtrlType type);
+
+    /** 获取表格类型
+    */
+    ListCtrlType GetListCtrlType() const;
+
+    /** 设置图片列表，每个视图有一个独立的图片列表
+    * @param [in] type 视图类型
+    * @param [in] pImageList 图片资源接口，设置后由内部管理对象的生命周期
+    */
+    void SetImageList(ListCtrlType type, ImageList* pImageList);
+
+    /** 获取图片列表，可以添加图片资源，用于在列表中显示图标资源
+    */
+    ImageList* GetImageList(ListCtrlType type);
+
+    /** 获取图片列表，用于在列表中显示图标资源
+    */
+    const ImageList* GetImageList(ListCtrlType type) const;
 
 public:
     /** 获取列的个数
@@ -536,11 +560,6 @@ public:
     void SetEnableColumnWidthAuto(bool bEnable);
     bool IsEnableColumnWidthAuto() const;
 
-    /** 获取图片列表，可以添加图片资源，用于在列表中显示图标资源
-    */
-    ImageList& GetImageList();
-    const ImageList& GetImageList() const;
-
 public:
     /** 监听选择子项的事件
      * @param[in] callback 选择子项时的回调函数
@@ -616,10 +635,10 @@ protected:
     void SetCheckBoxClass(const std::wstring& className);
     std::wstring GetCheckBoxClass() const;
 
-    /** 数据视图中的ListBox的Class属性
+    /** 数据Report视图中的ListBox的Class属性
     */
-    void SetDataViewClass(const std::wstring& className);
-    std::wstring GetDataViewClass() const;
+    void SetReportViewClass(const std::wstring& className);
+    std::wstring GetReportViewClass() const;
 
     /** ListCtrlItem的Class属性
     */
@@ -630,6 +649,36 @@ protected:
     */
     void SetDataSubItemClass(const std::wstring& className);
     std::wstring GetDataSubItemClass() const;
+
+    /** 数据Icon视图中的ListBox的Class属性
+    */
+    void SetIconViewClass(const std::wstring& className);
+    std::wstring GetIconViewClass() const;
+
+    /** 数据Icon视图中的ListBox的子项Class属性
+    */
+    void SetIconViewItemClass(const std::wstring& className);
+    std::wstring GetIconViewItemClass() const;
+
+    void SetIconViewItemImageClass(const std::wstring& className);
+    std::wstring GetIconViewItemImageClass() const;
+    void SetIconViewItemLabelClass(const std::wstring& className);
+    std::wstring GetIconViewItemLabelClass() const;
+
+    /** 数据List视图中的ListBox的Class属性
+    */
+    void SetListViewClass(const std::wstring& className);
+    std::wstring GetListViewClass() const;
+
+    /** 数据List视图中的ListBox的子项Class属性
+    */
+    void SetListViewItemClass(const std::wstring& className);
+    std::wstring GetListViewItemClass() const;
+
+    void SetListViewItemImageClass(const std::wstring& className);
+    std::wstring GetListViewItemImageClass() const;
+    void SetListViewItemLabelClass(const std::wstring& className);
+    std::wstring GetListViewItemLabelClass() const;
 
 protected:
     /** 增加一列
@@ -692,13 +741,25 @@ private:
 	*/
 	bool m_bInited;
 
+    /** 表格类型（默认为Report类型）
+    */
+    ListCtrlType m_listCtrlType;
+
 	/** 表头控件
 	*/
 	ListCtrlHeader* m_pHeaderCtrl;
 
-	/** 列表数据展示
+	/** 列表数据展示(Report视图)
 	*/
     ListCtrlReportView* m_pReportView;
+
+    /** 列表数据展示(Icon视图)
+    */
+    ListCtrlIconView* m_pIconView;
+
+    /** 列表数据展示(List视图)
+    */
+    ListCtrlIconView* m_pListView;
 
 	/** 列表数据管理
 	*/
@@ -736,9 +797,41 @@ private:
     */
     UiString m_dataSubItemClass;
 
-    /** ListBox的Class属性
+    /** ListBox的Report视图Class属性
     */
-    UiString m_dataViewClass;
+    UiString m_reportViewClass;
+
+    /** ListBox的Icon视图Class属性(Icon视图)
+    */
+    UiString m_iconViewClass;
+
+    /** ListBox的Icon视图子项Class属性(Icon视图)
+    */
+    UiString m_iconViewItemClass;
+
+    /** ListBox的Icon视图图标子项Class属性(Icon视图)
+    */
+    UiString m_iconViewItemImageClass;
+
+    /** ListBox的Icon视图文本子项Class属性(Icon视图)
+    */
+    UiString m_iconViewItemLabelClass;
+
+    /** ListBox的List视图Class属性(List视图)
+    */
+    UiString m_listViewClass;
+
+    /** ListBox的List视图Class属性(List视图)
+    */
+    UiString m_listViewItemClass;
+
+    /** ListBox的List视图图标子项Class属性(List视图)
+    */
+    UiString m_listViewItemImageClass;
+
+    /** ListBox的List视图文本子项Class属性(List视图)
+    */
+    UiString m_listViewItemLabelClass;
 
     /** 表头的高度
     */
@@ -778,7 +871,7 @@ private:
 
     /** 图片列表
     */
-    ImageList m_imageList;
+    ImageList* m_imageList[3];
 };
 
 }//namespace ui

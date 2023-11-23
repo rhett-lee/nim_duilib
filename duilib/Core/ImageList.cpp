@@ -1,5 +1,6 @@
 #include "ImageList.h"
 #include "duilib/Utils/StringUtil.h"
+#include "duilib/Core/GlobalManager.h"
 
 namespace ui 
 {
@@ -11,6 +12,25 @@ ImageList::ImageList():
 
 ImageList::~ImageList()
 {
+}
+
+void ImageList::SetImageSize(UiSize imageSize, bool bNeedDpiScale)
+{
+    if (imageSize.cx < 0) {
+        imageSize.cx = 0;
+    }
+    if (imageSize.cy < 0) {
+        imageSize.cy = 0;
+    }
+    if (bNeedDpiScale) {
+        GlobalManager::Instance().Dpi().ScaleSize(imageSize);
+    }
+    m_imageSize = imageSize;
+}
+
+UiSize ImageList::GetImageSize() const
+{
+    return m_imageSize;
 }
 
 int32_t ImageList::AddImageString(const std::wstring& imageString)

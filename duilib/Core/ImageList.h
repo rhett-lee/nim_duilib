@@ -26,6 +26,17 @@ public:
 	ImageList& operator = (const ImageList&) = delete;
 
 public:
+	/** 设置图片大小（可选设置，如果不设置，则从每个图片获取）
+	* @param [in] imageSize 图片大小
+	* @param [in] bNeedDpiScale 是否需要对列宽值进行DPI自适应
+	*/
+	void SetImageSize(UiSize imageSize, bool bNeedDpiScale);
+
+	/** 获取图片大小
+	* @return 返回设置的图片大小，如果未设置，则返回(0,0)
+	*/
+	UiSize GetImageSize() const;
+
 	/** 添加一个图片资源
 	* @param [in] imageString 图片资源字符串，格式同：Image::SetImageString函数
 	* @return 返回图片资源的ID，如果失败返回-1，否则返回大于等于0的ID
@@ -71,6 +82,10 @@ private:
 	/** 下一个ID
 	*/
 	int32_t m_nNextID;
+
+	/** 图片大小（可选设置，如果不设置，则从每个图片获取）
+	*/
+	UiSize m_imageSize;
 
 	/** 图片资源映射表
 	*/

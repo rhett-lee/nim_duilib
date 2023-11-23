@@ -60,6 +60,7 @@ void CComboWnd::InitComboWnd(Combo* pOwner, bool bActivated)
 			hWndParent = ::GetParent(hWndParent);
 		}
 		::ShowWindow(GetHWND(), SW_SHOW);
+		::SetForegroundWindow(GetHWND());
 		::SendMessage(hWndParent, WM_NCACTIVATE, TRUE, 0L);
 		pOwner->GetTreeView()->SetFocus();
 		pOwner->SetState(kControlStateHot);
@@ -156,6 +157,15 @@ void CComboWnd::CloseComboWnd(bool bCanceled, bool needUpdateSelItem)
 	if ((pRootBox != nullptr) && (pRootBox->GetItemCount() > 0)) {
 		m_pOwner->GetTreeView()->SetWindow(nullptr, nullptr, false);
 		pRootBox->RemoveAllItems();
+	}
+	//先将前端窗口切换为父窗口，避免前端窗口关闭后，切换到其他窗口
+	HWND hWnd = GetHWND();
+	HWND hParentWnd = ::GetParent(hWnd);
+	HWND hForeWnd = ::GetForegroundWindow();
+	if ((hForeWnd == hWnd) || hForeWnd == hParentWnd) {
+		if (hParentWnd != nullptr) {
+			::SetForegroundWindow(hParentWnd);
+		}		
 	}
 	CloseWnd();
 	if (m_pOwner != nullptr) {

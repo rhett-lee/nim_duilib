@@ -2466,6 +2466,18 @@ HDC Window::GetPaintDC() const
 
 ui::IRender* Window::GetRender() const
 {
+    if ((m_render.get() != nullptr) && 
+        ((m_render->GetWidth() <= 0) || (m_render->GetHeight() <= 0))) {
+        //在估算控件大小的时候，需要Render有宽高等数据，所以需要进行Resize初始化
+        UiRect rcClient;
+        GetClientRect(rcClient);
+        if ((rcClient.Width() > 0) && (rcClient.Height() > 0)) {
+            m_render->Resize(rcClient.Width(), rcClient.Height());
+        }
+        else {
+            m_render->Resize(1, 1);
+        }
+    }
     return m_render.get();
 }
 

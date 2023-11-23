@@ -1,6 +1,8 @@
 #include "ListCtrl.h"
 #include "duilib/Control/ListCtrlReportView.h"
+#include "duilib/Control/ListCtrlIconView.h"
 #include "duilib/Core/GlobalManager.h"
+#include <set>
 
 namespace ui
 {
@@ -9,6 +11,8 @@ ListCtrl::ListCtrl():
     m_bInited(false),
     m_pHeaderCtrl(nullptr),
     m_pReportView(nullptr),
+    m_pIconView(nullptr),
+    m_pListView(nullptr),
     m_bEnableHeaderDragOrder(true),
     m_bShowHeaderCtrl(true),
     m_bEnableRefresh(true),
@@ -16,7 +20,8 @@ ListCtrl::ListCtrl():
     m_bEnableColumnWidthAuto(true),
     m_bAutoCheckSelect(false),
     m_bHeaderShowCheckBox(false),
-    m_bDataItemShowCheckBox(false)
+    m_bDataItemShowCheckBox(false),
+    m_listCtrlType(ListCtrlType::Report)
 {
     m_pData = new ListCtrlData;
     m_nItemHeight = GlobalManager::Instance().Dpi().GetScaleInt(32);
@@ -26,6 +31,12 @@ ListCtrl::ListCtrl():
 
     m_pReportView = new ListCtrlReportView;
     m_pReportView->SetListCtrl(this);
+    m_pReportView->SetDataProvider(m_pData);
+
+    size_t nCount = sizeof(m_imageList) / sizeof(m_imageList[0]);
+    for (size_t i = 0; i < nCount; ++i) {
+        m_imageList[i] = nullptr;
+    }
 }
 
 ListCtrl::~ListCtrl()
@@ -38,9 +49,87 @@ ListCtrl::~ListCtrl()
         delete m_pReportView;
         m_pReportView = nullptr;
     }
+    if (!m_bInited && (m_pIconView != nullptr)) {
+        delete m_pIconView;
+        m_pIconView = nullptr;
+    }
+    if (!m_bInited && (m_pListView != nullptr)) {
+        delete m_pListView;
+        m_pListView = nullptr;
+    }
+    std::set<ImageList*> pImageSet;
+    for (ImageList* pImage : m_imageList) {
+        pImageSet.insert(pImage);        
+    }
+    for (ImageList* pImage : pImageSet) {
+        if (pImage != nullptr) {
+            delete pImage;
+            pImage = nullptr;
+        }
+    }
 }
 
 std::wstring ListCtrl::GetType() const { return DUI_CTR_LISTCTRL; }
+
+void ListCtrl::SetImageList(ListCtrlType type, ImageList* pImageList)
+{
+    ImageList* pOldImageList = nullptr;
+    if (type == ListCtrlType::Report) {
+        pOldImageList = m_imageList[0];
+        m_imageList[0] = pImageList;
+    }
+    else if (type == ListCtrlType::Icon) {
+        pOldImageList = m_imageList[1];
+        m_imageList[1] = pImageList;
+    }
+    else if (type == ListCtrlType::List) {
+        pOldImageList = m_imageList[2];
+        m_imageList[2] = pImageList;
+    }
+    else {
+        ASSERT(FALSE);
+    }
+    std::set<ImageList*> pImageSet;
+    for (ImageList* pImage : m_imageList) {
+        pImageSet.insert(pImage);
+    }
+    if ((pOldImageList != nullptr) && (pImageSet.find(pOldImageList) == pImageSet.end())) {
+        delete pOldImageList;
+        pOldImageList = nullptr;
+    }
+}
+
+ImageList* ListCtrl::GetImageList(ListCtrlType type)
+{
+    if (type == ListCtrlType::Report) {
+        return m_imageList[0];
+    }
+    else if (type == ListCtrlType::Icon) {
+        return m_imageList[1];
+    }
+    else if (type == ListCtrlType::List) {
+        return m_imageList[2];
+    }
+    else {
+        return nullptr;
+    }
+}
+
+const ImageList* ListCtrl::GetImageList(ListCtrlType type) const
+{
+    if (type == ListCtrlType::Report) {
+        return m_imageList[0];
+    }
+    else if (type == ListCtrlType::Icon) {
+        return m_imageList[1];
+    }
+    else if (type == ListCtrlType::List) {
+        return m_imageList[2];
+    }
+    else {
+        return nullptr;
+    }
+}
 
 void ListCtrl::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
@@ -80,8 +169,8 @@ void ListCtrl::SetAttribute(const std::wstring& strName, const std::wstring& str
     else if (strName == L"column_grid_line_color") {
         SetColumnGridLineColor(strValue);
     }
-    else if (strName == L"data_view_class") {
-        SetDataViewClass(strValue);
+    else if (strName == L"report_view_class") {
+        SetReportViewClass(strValue);
     }
     else if (strName == L"header_height") {
         SetHeaderHeight(_wtoi(strValue.c_str()), true);
@@ -107,9 +196,194 @@ void ListCtrl::SetAttribute(const std::wstring& strName, const std::wstring& str
     else if (strName == L"show_data_item_checkbox") {
         SetDataItemShowCheckBox(strValue == L"true");
     }
+    else if (strName == L"type") {
+        if (strValue == L"report") {
+            SetListCtrlType(ListCtrlType::Report);
+        }
+        else if (strValue == L"icon") {
+            SetListCtrlType(ListCtrlType::Icon);
+        }
+        else if (strValue == L"list") {
+            SetListCtrlType(ListCtrlType::List);
+        }
+    }
+    else if (strName == L"icon_view_class") {
+        SetIconViewClass(strValue);
+    }
+    else if (strName == L"icon_view_item_class") {
+        SetIconViewItemClass(strValue);
+    }
+    else if (strName == L"icon_view_item_image_class") {
+        SetIconViewItemImageClass(strValue);
+    }
+    else if (strName == L"icon_view_item_label_class") {
+        SetIconViewItemLabelClass(strValue);
+    }
+    else if (strName == L"list_view_class") {
+        SetListViewClass(strValue);
+    }
+    else if (strName == L"list_view_item_class") {
+        SetListViewItemClass(strValue);
+    }
+    else if (strName == L"list_view_item_image_class") {
+        SetListViewItemImageClass(strValue);
+    }
+    else if (strName == L"list_view_item_label_class") {
+        SetListViewItemLabelClass(strValue);
+    }
     else {
         __super::SetAttribute(strName, strValue);
     }
+}
+
+void ListCtrl::DoInit()
+{
+    if (m_bInited) {
+        return;
+    }
+    m_bInited = true;
+
+    //初始化Body
+    ASSERT(m_pReportView != nullptr);
+    AddItem(m_pReportView);
+    m_pReportView->SetClass(GetReportViewClass());
+
+    //初始化Header
+    ASSERT(m_pHeaderCtrl == nullptr);
+    if (m_pHeaderCtrl == nullptr) {
+        m_pHeaderCtrl = new ListCtrlHeader;
+    }
+    m_pHeaderCtrl->SetListCtrl(this);
+    // Header添加到数据视图中管理，作为第一个元素，在Layout的实现中控制显示属性
+    m_pReportView->AddItem(m_pHeaderCtrl);
+
+    if (!m_headerClass.empty()) {
+        m_pHeaderCtrl->SetClass(m_headerClass.c_str());
+    }
+    m_pHeaderCtrl->SetAutoCheckSelect(false);
+    m_pHeaderCtrl->SetShowCheckBox(m_bHeaderShowCheckBox); //是否显示CheckBox
+    m_pHeaderCtrl->SetFixedHeight(UiFixedInt(m_nHeaderHeight), true, false);
+    if (!m_bShowHeaderCtrl) {
+        SetHeaderVisible(false);
+    }
+
+    //同步单选和多选的状态
+    m_pReportView->SetMultiSelect(IsMultiSelect());
+    m_pReportView->SetDataProvider(m_pData);
+
+    //更新默认的文本属性
+    SetDataSubItemClass(GetDataSubItemClass());
+
+    //更新默认的行高
+    m_pData->SetDefaultItemHeight(GetDataItemHeight());
+
+    //事件转接函数
+    auto OnDataViewEvent = [this](const EventArgs& args) {
+        size_t nItemIndex = args.wParam;
+        Control* pControl = m_pReportView->GetItemAt(nItemIndex);
+        ListCtrlItem* pItem = nullptr;
+        if (pControl != nullptr) {
+            pItem = dynamic_cast<ListCtrlItem*>(pControl);
+        }
+        if (pItem != nullptr) {
+            EventArgs msg = args;
+            msg.wParam = (WPARAM)pItem;
+            msg.lParam = pItem->GetElementIndex();
+            msg.pSender = this;
+            SendEvent(msg);
+        }
+        else if (args.Type == kEventSelChange) {
+            EventArgs msg = args;
+            msg.pSender = this;
+            SendEvent(msg);
+        }
+        };
+
+    //挂载事件，转接给外层
+    m_pReportView->AttachSelect([this, OnDataViewEvent](const EventArgs& args) {
+        OnDataViewEvent(args);
+        return true;
+        });
+    m_pReportView->AttachSelChange([this, OnDataViewEvent](const EventArgs& args) {
+        OnDataViewEvent(args);
+        return true;
+        });
+    m_pReportView->AttachDoubleClick([this, OnDataViewEvent](const EventArgs& args) {
+        OnDataViewEvent(args);
+        return true;
+        });
+    m_pReportView->AttachClick([this, OnDataViewEvent](const EventArgs& args) {
+        OnDataViewEvent(args);
+        return true;
+        });
+    m_pReportView->AttachRClick([this, OnDataViewEvent](const EventArgs& args) {
+        OnDataViewEvent(args);
+        return true;
+        });
+    m_pReportView->AttachReturn([this, OnDataViewEvent](const EventArgs& args) {
+        OnDataViewEvent(args);
+        return true;
+        });
+
+    SetListCtrlType(GetListCtrlType());
+}
+
+void ListCtrl::SetListCtrlType(ListCtrlType type)
+{
+    m_listCtrlType = type;
+    if (!m_bInited) {
+        return;
+    }
+    if (m_listCtrlType == ListCtrlType::Report) {
+        m_pReportView->SetDataProvider(m_pData);
+        m_pData->SetListView(m_pReportView);
+        m_pReportView->SetVisible(true);
+        if (m_pIconView != nullptr) {
+            m_pIconView->SetVisible(false);
+        }
+        if (m_pListView != nullptr) {
+            m_pListView->SetVisible(false);
+        }
+    }
+    else if (m_listCtrlType == ListCtrlType::Icon) {
+        if (m_pIconView == nullptr) {
+            m_pIconView = new ListCtrlIconView(false);
+            m_pIconView->SetListCtrl(this);
+            AddItem(m_pIconView);
+            m_pIconView->SetClass(GetIconViewClass());
+        }
+        m_pIconView->SetDataProvider(m_pData);
+        m_pData->SetListView(m_pIconView);
+        m_pIconView->SetVisible(true);
+        if (m_pReportView != nullptr) {
+            m_pReportView->SetVisible(false);
+        }
+        if (m_pListView != nullptr) {
+            m_pListView->SetVisible(false);
+        }
+    }
+    else if (m_listCtrlType == ListCtrlType::List) {
+        if (m_pListView == nullptr) {
+            m_pListView = new ListCtrlIconView(true);
+            m_pListView->SetListCtrl(this);
+            AddItem(m_pListView);
+            m_pListView->SetClass(GetListViewClass());
+        }
+        m_pListView->SetDataProvider(m_pData);
+        m_pData->SetListView(m_pListView);
+        m_pListView->SetVisible(true);
+        if (m_pReportView != nullptr) {
+            m_pReportView->SetVisible(false);
+        }
+        if (m_pIconView != nullptr) {
+            m_pIconView->SetVisible(false);
+        }
+    }
+}
+
+ListCtrlType ListCtrl::GetListCtrlType() const
+{
+    return m_listCtrlType;
 }
 
 void ListCtrl::SetHeaderClass(const std::wstring& className)
@@ -160,17 +434,17 @@ std::wstring ListCtrl::GetCheckBoxClass() const
     return m_checkBoxClass.c_str();
 }
 
-void ListCtrl::SetDataViewClass(const std::wstring& className)
+void ListCtrl::SetReportViewClass(const std::wstring& className)
 {
-    m_dataViewClass = className;
+    m_reportViewClass = className;
     if (m_bInited && (m_pReportView != nullptr)) {
         m_pReportView->SetClass(className);
     }
 }
 
-std::wstring ListCtrl::GetDataViewClass() const
+std::wstring ListCtrl::GetReportViewClass() const
 {
-    return m_dataViewClass.c_str();
+    return m_reportViewClass.c_str();
 }
 
 void ListCtrl::SetDataItemClass(const std::wstring& className)
@@ -197,6 +471,92 @@ void ListCtrl::SetDataSubItemClass(const std::wstring& className)
 std::wstring ListCtrl::GetDataSubItemClass() const
 {
     return m_dataSubItemClass.c_str();
+}
+
+void ListCtrl::SetIconViewClass(const std::wstring& className)
+{
+    m_iconViewClass = className;
+    if (m_bInited && (m_pIconView != nullptr)) {
+        m_pIconView->SetClass(className);
+    }
+}
+
+std::wstring ListCtrl::GetIconViewClass() const
+{
+    return m_iconViewClass.c_str();
+}
+
+void ListCtrl::SetIconViewItemClass(const std::wstring& className)
+{
+    m_iconViewItemClass = className;
+}
+
+std::wstring ListCtrl::GetIconViewItemClass() const
+{
+    return m_iconViewItemClass.c_str();
+}
+
+void ListCtrl::SetIconViewItemImageClass(const std::wstring& className)
+{
+    m_iconViewItemImageClass = className;
+}
+
+std::wstring ListCtrl::GetIconViewItemImageClass() const
+{
+    return m_iconViewItemImageClass.c_str();
+}
+
+void ListCtrl::SetIconViewItemLabelClass(const std::wstring& className)
+{
+    m_iconViewItemLabelClass = className;
+}
+
+std::wstring ListCtrl::GetIconViewItemLabelClass() const
+{
+    return m_iconViewItemLabelClass.c_str();
+}
+
+void ListCtrl::SetListViewClass(const std::wstring& className)
+{
+    m_listViewClass = className;
+    if (m_bInited && (m_pListView != nullptr)) {
+        m_pListView->SetClass(className);
+    }
+}
+
+std::wstring ListCtrl::GetListViewClass() const
+{
+    return m_listViewClass.c_str();
+}
+
+void ListCtrl::SetListViewItemClass(const std::wstring& className)
+{
+    m_listViewItemClass = className;
+}
+
+std::wstring ListCtrl::GetListViewItemClass() const
+{
+    return m_listViewItemClass.c_str();
+}
+
+void ListCtrl::SetListViewItemImageClass(const std::wstring& className)
+{
+    m_listViewItemImageClass = className;
+}
+
+std::wstring ListCtrl::GetListViewItemImageClass() const
+{
+    return m_listViewItemImageClass.c_str();
+}
+
+void ListCtrl::SetListViewItemLabelClass(const std::wstring& className)
+{
+    m_listViewItemLabelClass = className;
+}
+
+std::wstring ListCtrl::GetListViewItemLabelClass() const
+{
+    return m_listViewItemLabelClass.c_str();
 }
 
 void ListCtrl::SetRowGridLineWidth(int32_t nLineWidth, bool bNeedDpiScale)
@@ -247,100 +607,6 @@ void ListCtrl::SetEnableColumnWidthAuto(bool bEnable)
 bool ListCtrl::IsEnableColumnWidthAuto() const
 {
     return m_bEnableColumnWidthAuto;
-}
-
-void ListCtrl::DoInit()
-{
-    if (m_bInited) {
-        return;
-    }
-    m_bInited = true;
-
-    //初始化Body
-    ASSERT(m_pReportView != nullptr);
-    AddItem(m_pReportView);
-    std::wstring dataViewClass = GetDataViewClass();
-    if (!dataViewClass.empty()) {
-        m_pReportView->SetClass(dataViewClass.c_str());
-    }
-
-    //初始化Header
-    ASSERT(m_pHeaderCtrl == nullptr);
-    if (m_pHeaderCtrl == nullptr) {
-        m_pHeaderCtrl = new ListCtrlHeader;
-    }
-    m_pHeaderCtrl->SetListCtrl(this);
-    // Header添加到数据视图中管理，作为第一个元素，在Layout的实现中控制显示属性
-    m_pReportView->AddItem(m_pHeaderCtrl);
-
-    if (!m_headerClass.empty()) {
-        m_pHeaderCtrl->SetClass(m_headerClass.c_str());
-    }
-    m_pHeaderCtrl->SetAutoCheckSelect(false);
-    m_pHeaderCtrl->SetShowCheckBox(m_bHeaderShowCheckBox); //是否显示CheckBox
-    m_pHeaderCtrl->SetFixedHeight(UiFixedInt(m_nHeaderHeight), true, false);
-    if (!m_bShowHeaderCtrl) {
-        SetHeaderVisible(false);
-    }
-
-    //同步单选和多选的状态
-    m_pReportView->SetMultiSelect(IsMultiSelect());
-    m_pReportView->SetDataProvider(m_pData);
-
-    //更新默认的文本属性
-    SetDataSubItemClass(GetDataSubItemClass());
-
-    m_pData->SetListView(m_pReportView);
-    //更新默认的行高
-    m_pData->SetDefaultItemHeight(GetDataItemHeight());
-
-    //事件转接函数
-    auto OnDataViewEvent = [this](const EventArgs & args) {
-        size_t nItemIndex = args.wParam;
-        Control* pControl = m_pReportView->GetItemAt(nItemIndex);
-        ListCtrlItem* pItem = nullptr;
-        if (pControl != nullptr) {
-            pItem = dynamic_cast<ListCtrlItem*>(pControl);
-        }
-        if (pItem != nullptr) {
-            EventArgs msg = args;
-            msg.wParam = (WPARAM)pItem;
-            msg.lParam = pItem->GetElementIndex();
-            msg.pSender = this;
-            SendEvent(msg);
-        }
-        else if (args.Type == kEventSelChange) {
-            EventArgs msg = args;
-            msg.pSender = this;
-            SendEvent(msg);
-        }
-    };
-
-    //挂载事件，转接给外层
-    m_pReportView->AttachSelect([this, OnDataViewEvent](const EventArgs& args) {
-        OnDataViewEvent(args);
-        return true;
-        });
-    m_pReportView->AttachSelChange([this, OnDataViewEvent](const EventArgs& args) {
-        OnDataViewEvent(args);
-        return true;
-        });
-    m_pReportView->AttachDoubleClick([this, OnDataViewEvent](const EventArgs& args) {
-        OnDataViewEvent(args);
-        return true;
-        });
-    m_pReportView->AttachClick([this, OnDataViewEvent](const EventArgs& args) {
-        OnDataViewEvent(args);
-        return true;
-        });
-    m_pReportView->AttachRClick([this, OnDataViewEvent](const EventArgs& args) {
-        OnDataViewEvent(args);
-        return true;
-        });
-    m_pReportView->AttachReturn([this, OnDataViewEvent](const EventArgs& args) {
-        OnDataViewEvent(args);
-        return true;
-        });
 }
 
 ListCtrlHeaderItem* ListCtrl::InsertColumn(int32_t columnIndex, const ListCtrlColumn& columnInfo)
@@ -1211,16 +1477,6 @@ bool ListCtrl::SetDataItemCheck(size_t itemIndex, bool bCheck)
 bool ListCtrl::IsDataItemCheck(size_t itemIndex) const
 {
     return m_pData->IsDataItemChecked(itemIndex);
-}
-
-ImageList& ListCtrl::GetImageList()
-{
-    return m_imageList;
-}
-
-const ImageList& ListCtrl::GetImageList() const
-{
-    return m_imageList;
 }
 
 }//namespace ui

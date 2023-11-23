@@ -3,10 +3,19 @@
 
 #pragma once
 
+#include "duilib/Box/ListBoxItem.h"
 #include "duilib/Control/CheckBox.h"
 
 namespace ui
 {
+/** 表格类型
+*/
+enum class ListCtrlType
+{
+    Report = 0, //Report类型
+    Icon   = 1, //Icon类型
+    List   = 2  //List类型
+};
 
 /** 列的基本信息（用于添加列）
 */
@@ -123,6 +132,25 @@ public:
     * @return 返回该列宽度的最大值，返回的是DPI自适应后的值； 如果失败返回-1
     */
     virtual int32_t GetMaxDataItemWidth(const std::vector<ListCtrlSubItemData2Ptr>& subItemList) = 0;
+};
+
+/** Icon视图的列表项类型(垂直布局)
+*/
+class ListCtrlIconViewItem : public ListBoxItemV
+{
+public:
+    /** 获取控件类型
+    */
+    virtual std::wstring GetType() const override { return L"ListCtrlIconViewItem"; }
+};
+
+/** List视图的列表项类型(水平布局)
+*/
+class ListCtrlListViewItem : public ListBoxItemH
+{
+    /** 获取控件类型
+    */
+    virtual std::wstring GetType() const override { return L"ListCtrlListViewItem"; }
 };
 
 /** 列表中使用的CheckBox

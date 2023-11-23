@@ -139,6 +139,15 @@ void ComboButtonWnd::CloseComboWnd(bool bCanceled)
 		m_pOwner->GetComboBox()->SetWindow(nullptr, nullptr, false);
 		pRootBox->RemoveAllItems();
 	}
+	//先将前端窗口切换为父窗口，避免前端窗口关闭后，切换到其他窗口
+	HWND hWnd = GetHWND();
+	HWND hParentWnd = ::GetParent(hWnd);
+	HWND hForeWnd = ::GetForegroundWindow();
+	if ((hForeWnd == hWnd) || hForeWnd == hParentWnd) {
+		if (hParentWnd != nullptr) {
+			::SetForegroundWindow(hParentWnd);
+		}
+	}
 	CloseWnd();
 	if (m_pOwner != nullptr) {
 		m_pOwner->OnComboWndClosed(bCanceled);
