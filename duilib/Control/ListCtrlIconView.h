@@ -34,6 +34,38 @@ public:
     */
     virtual void SetDataProvider(VirtualListBoxElement* pProvider) override;
 
+    /** 监听选择项发生变化的事件
+     * @param[in] callback 选择子项时的回调函数
+     */
+    void AttachSelChange(const EventCallback& callback) { AttachEvent(kEventSelChange, callback); }
+
+    /** 发送事件的函数
+    */
+    virtual void SendEvent(EventType eventType, WPARAM wParam = 0, LPARAM lParam = 0, TCHAR tChar = 0,
+                           const UiPoint& mousePos = UiPoint()) override;
+    virtual void SendEvent(const EventArgs& event) override;
+
+public:
+    /** 获取顶部元素的索引号
+    */
+    size_t GetTopElementIndex() const;
+
+    /** 判断一个数据项是否可见
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    */
+    bool IsDataItemDisplay(size_t itemIndex) const;
+
+    /** 获取当前显示的数据项列表，顺序是从上到下
+    * @param [in] itemIndexList 当前显示的数据项索引号列表
+    */
+    void GetDisplayDataItems(std::vector<size_t>& itemIndexList) const;
+
+    /** 确保数据索引项可见
+    * @param [in] itemIndex 数据项的索引号
+    * @param [in] bToTop 是否确保在最上方
+    */
+    bool EnsureDataItemVisible(size_t itemIndex, bool bToTop);
+
 protected:
     /** 控件初始化
     */

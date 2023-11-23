@@ -460,18 +460,45 @@ public:
     */
     bool IsEnableRefresh() const;
 
-    /** 获取第一个数据项的界面控件接口
+public:
+    /** 获取第一个数据项的界面控件接口（Report视图）
     * @return 返回界面控件接口
               注意事项：界面刷新后，界面控件与数据元素之间的关系会动态变化
     */
     ListCtrlItem* GetFirstDisplayItem() const;
 
-    /** 获取下一个数据项的界面控件接口
+    /** 获取下一个数据项的界面控件接口（Report视图）
     * @param [in] pItem 当前界面控件接口
     * @return 返回当前界面控件的下一个界面控件接口，如果当前已经是最后一个，返回nullptr
     *         注意事项：界面刷新后，界面控件与数据元素之间的关系会动态变化
     */
     ListCtrlItem* GetNextDisplayItem(ListCtrlItem* pItem) const;
+
+    /** 获取第一个数据项的界面控件接口（Icon视图）
+    * @return 返回界面控件接口
+              注意事项：界面刷新后，界面控件与数据元素之间的关系会动态变化
+    */
+    ListCtrlIconViewItem* GetFirstDisplayIconItem() const;
+
+    /** 获取下一个数据项的界面控件接口（Icon视图）
+    * @param [in] pItem 当前界面控件接口
+    * @return 返回当前界面控件的下一个界面控件接口，如果当前已经是最后一个，返回nullptr
+    *         注意事项：界面刷新后，界面控件与数据元素之间的关系会动态变化
+    */
+    ListCtrlIconViewItem* GetNextDisplayIconItem(ListCtrlIconViewItem* pItem) const;
+
+    /** 获取第一个数据项的界面控件接口（Icon视图）
+    * @return 返回界面控件接口
+              注意事项：界面刷新后，界面控件与数据元素之间的关系会动态变化
+    */
+    ListCtrlListViewItem* GetFirstDisplayListItem() const;
+
+    /** 获取下一个数据项的界面控件接口（Icon视图）
+    * @param [in] pItem 当前界面控件接口
+    * @return 返回当前界面控件的下一个界面控件接口，如果当前已经是最后一个，返回nullptr
+    *         注意事项：界面刷新后，界面控件与数据元素之间的关系会动态变化
+    */
+    ListCtrlListViewItem* GetNextDisplayListItem(ListCtrlListViewItem* pItem) const;
 
 public:
     /** @name CheckBox（行级）关联函数
@@ -610,6 +637,18 @@ protected:
     /** 控件初始化
     */
     virtual void DoInit() override;
+
+    /** 初始化Report视图
+    */
+    void InitReportView();
+
+    /** 初始化Icon视图
+    */
+    void InitIconView();
+
+    /** 初始化List视图
+    */
+    void InitListView();
 
     /** 设置ListCtrlHeader的属性Class
     */

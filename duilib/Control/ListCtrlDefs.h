@@ -135,6 +135,8 @@ public:
 };
 
 /** Icon视图的列表项类型(垂直布局)
+*   基本结构：<ListCtrlIconViewItem> <Control/><Label/> </ListCtrlListViewItem>
+*   其中的Control和Label的属性，支持从配置文件读取
 */
 class ListCtrlIconViewItem : public ListBoxItemV
 {
@@ -145,6 +147,8 @@ public:
 };
 
 /** List视图的列表项类型(水平布局)
+*   基本结构：<ListCtrlListViewItem> <Control/><Label/> </ListCtrlListViewItem>
+*   其中的Control和Label的属性，支持从配置文件读取
 */
 class ListCtrlListViewItem : public ListBoxItemH
 {

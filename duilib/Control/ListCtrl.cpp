@@ -268,7 +268,6 @@ void ListCtrl::DoInit()
     }
 
     //同步单选和多选的状态
-    m_pReportView->SetMultiSelect(IsMultiSelect());
     m_pReportView->SetDataProvider(m_pData);
 
     //更新默认的文本属性
@@ -277,55 +276,179 @@ void ListCtrl::DoInit()
     //更新默认的行高
     m_pData->SetDefaultItemHeight(GetDataItemHeight());
 
+    InitReportView();
+    SetListCtrlType(GetListCtrlType());
+}
+
+void ListCtrl::InitReportView()
+{
+    ASSERT(m_pReportView != nullptr);
+    if (m_pReportView == nullptr) {
+        return;
+    }
+    m_pReportView->SetMultiSelect(IsMultiSelect());
+
     //事件转接函数
-    auto OnDataViewEvent = [this](const EventArgs& args) {
-        size_t nItemIndex = args.wParam;
-        Control* pControl = m_pReportView->GetItemAt(nItemIndex);
-        ListCtrlItem* pItem = nullptr;
-        if (pControl != nullptr) {
-            pItem = dynamic_cast<ListCtrlItem*>(pControl);
-        }
-        if (pItem != nullptr) {
-            EventArgs msg = args;
-            msg.wParam = (WPARAM)pItem;
-            msg.lParam = pItem->GetElementIndex();
-            msg.pSender = this;
-            SendEvent(msg);
-        }
-        else if (args.Type == kEventSelChange) {
-            EventArgs msg = args;
-            msg.pSender = this;
-            SendEvent(msg);
-        }
+    auto OnReportViewEvent = [this](const EventArgs& args) {
+            size_t nItemIndex = args.wParam;
+            Control* pControl = m_pReportView->GetItemAt(nItemIndex);
+            ListCtrlItem* pItem = nullptr;
+            if (pControl != nullptr) {
+                pItem = dynamic_cast<ListCtrlItem*>(pControl);
+            }
+            if (pItem != nullptr) {
+                EventArgs msg = args;
+                msg.wParam = (WPARAM)pItem;
+                msg.lParam = pItem->GetElementIndex();
+                msg.pSender = this;
+                SendEvent(msg);
+            }
+            else if (args.Type == kEventSelChange) {
+                EventArgs msg = args;
+                msg.pSender = this;
+                SendEvent(msg);
+            }
         };
 
     //挂载事件，转接给外层
-    m_pReportView->AttachSelect([this, OnDataViewEvent](const EventArgs& args) {
-        OnDataViewEvent(args);
+    m_pReportView->AttachSelect([this, OnReportViewEvent](const EventArgs& args) {
+        OnReportViewEvent(args);
         return true;
         });
-    m_pReportView->AttachSelChange([this, OnDataViewEvent](const EventArgs& args) {
-        OnDataViewEvent(args);
+    m_pReportView->AttachSelChange([this, OnReportViewEvent](const EventArgs& args) {
+        OnReportViewEvent(args);
         return true;
         });
-    m_pReportView->AttachDoubleClick([this, OnDataViewEvent](const EventArgs& args) {
-        OnDataViewEvent(args);
+    m_pReportView->AttachDoubleClick([this, OnReportViewEvent](const EventArgs& args) {
+        OnReportViewEvent(args);
         return true;
         });
-    m_pReportView->AttachClick([this, OnDataViewEvent](const EventArgs& args) {
-        OnDataViewEvent(args);
+    m_pReportView->AttachClick([this, OnReportViewEvent](const EventArgs& args) {
+        OnReportViewEvent(args);
         return true;
         });
-    m_pReportView->AttachRClick([this, OnDataViewEvent](const EventArgs& args) {
-        OnDataViewEvent(args);
+    m_pReportView->AttachRClick([this, OnReportViewEvent](const EventArgs& args) {
+        OnReportViewEvent(args);
         return true;
         });
-    m_pReportView->AttachReturn([this, OnDataViewEvent](const EventArgs& args) {
-        OnDataViewEvent(args);
+    m_pReportView->AttachReturn([this, OnReportViewEvent](const EventArgs& args) {
+        OnReportViewEvent(args);
         return true;
         });
+}
 
-    SetListCtrlType(GetListCtrlType());
+void ListCtrl::InitIconView()
+{
+    ASSERT(m_pIconView != nullptr);
+    if (m_pIconView == nullptr) {
+        return;
+    }
+    m_pIconView->SetMultiSelect(IsMultiSelect());
+
+    //事件转接函数
+    auto OnIconViewEvent = [this](const EventArgs& args) {
+            size_t nItemIndex = args.wParam;
+            Control* pControl = m_pIconView->GetItemAt(nItemIndex);
+            ListCtrlIconViewItem* pItem = nullptr;
+            if (pControl != nullptr) {
+                pItem = dynamic_cast<ListCtrlIconViewItem*>(pControl);
+            }
+            if (pItem != nullptr) {
+                EventArgs msg = args;
+                msg.wParam = (WPARAM)pItem;
+                msg.lParam = pItem->GetElementIndex();
+                msg.pSender = this;
+                SendEvent(msg);
+            }
+            else if (args.Type == kEventSelChange) {
+                EventArgs msg = args;
+                msg.pSender = this;
+                SendEvent(msg);
+            }
+        };
+
+    //挂载事件，转接给外层
+    m_pIconView->AttachSelect([this, OnIconViewEvent](const EventArgs& args) {
+        OnIconViewEvent(args);
+        return true;
+        });
+    m_pIconView->AttachSelChange([this, OnIconViewEvent](const EventArgs& args) {
+        OnIconViewEvent(args);
+        return true;
+        });
+    m_pIconView->AttachDoubleClick([this, OnIconViewEvent](const EventArgs& args) {
+        OnIconViewEvent(args);
+        return true;
+        });
+    m_pIconView->AttachClick([this, OnIconViewEvent](const EventArgs& args) {
+        OnIconViewEvent(args);
+        return true;
+        });
+    m_pIconView->AttachRClick([this, OnIconViewEvent](const EventArgs& args) {
+        OnIconViewEvent(args);
+        return true;
+        });
+    m_pIconView->AttachReturn([this, OnIconViewEvent](const EventArgs& args) {
+        OnIconViewEvent(args);
+        return true;
+        });
+}
+
+void ListCtrl::InitListView()
+{
+    ASSERT(m_pListView != nullptr);
+    if (m_pListView == nullptr) {
+        return;
+    }
+    m_pIconView->SetMultiSelect(IsMultiSelect());
+
+    //事件转接函数
+    auto OnListViewEvent = [this](const EventArgs& args) {
+            size_t nItemIndex = args.wParam;
+            Control* pControl = m_pListView->GetItemAt(nItemIndex);
+            ListCtrlListViewItem* pItem = nullptr;
+            if (pControl != nullptr) {
+                pItem = dynamic_cast<ListCtrlListViewItem*>(pControl);
+            }
+            if (pItem != nullptr) {
+                EventArgs msg = args;
+                msg.wParam = (WPARAM)pItem;
+                msg.lParam = pItem->GetElementIndex();
+                msg.pSender = this;
+                SendEvent(msg);
+            }
+            else if (args.Type == kEventSelChange) {
+                EventArgs msg = args;
+                msg.pSender = this;
+                SendEvent(msg);
+            }
+        };
+
+    //挂载事件，转接给外层
+    m_pListView->AttachSelect([this, OnListViewEvent](const EventArgs& args) {
+        OnListViewEvent(args);
+        return true;
+        });
+    m_pListView->AttachSelChange([this, OnListViewEvent](const EventArgs& args) {
+        OnListViewEvent(args);
+        return true;
+        });
+    m_pListView->AttachDoubleClick([this, OnListViewEvent](const EventArgs& args) {
+        OnListViewEvent(args);
+        return true;
+        });
+    m_pListView->AttachClick([this, OnListViewEvent](const EventArgs& args) {
+        OnListViewEvent(args);
+        return true;
+        });
+    m_pListView->AttachRClick([this, OnListViewEvent](const EventArgs& args) {
+        OnListViewEvent(args);
+        return true;
+        });
+    m_pListView->AttachReturn([this, OnListViewEvent](const EventArgs& args) {
+        OnListViewEvent(args);
+        return true;
+        });
 }
 
 void ListCtrl::SetListCtrlType(ListCtrlType type)
@@ -351,6 +474,7 @@ void ListCtrl::SetListCtrlType(ListCtrlType type)
             m_pIconView->SetListCtrl(this);
             AddItem(m_pIconView);
             m_pIconView->SetClass(GetIconViewClass());
+            InitIconView();
         }
         m_pIconView->SetDataProvider(m_pData);
         m_pData->SetListView(m_pIconView);
@@ -368,6 +492,7 @@ void ListCtrl::SetListCtrlType(ListCtrlType type)
             m_pListView->SetListCtrl(this);
             AddItem(m_pListView);
             m_pListView->SetClass(GetListViewClass());
+            InitListView();
         }
         m_pListView->SetDataProvider(m_pData);
         m_pData->SetListView(m_pListView);
@@ -850,6 +975,88 @@ ListCtrlItem* ListCtrl::GetNextDisplayItem(ListCtrlItem* pItem) const
     return pNextItem;
 }
 
+ListCtrlIconViewItem* ListCtrl::GetFirstDisplayIconItem() const
+{
+    ListCtrlIconViewItem* pItem = nullptr;
+    ASSERT(m_pIconView != nullptr);
+    if (m_pIconView != nullptr) {
+        size_t itemCount = m_pIconView->GetItemCount();
+        for (size_t index = 0; index < itemCount; ++index) {
+            pItem = dynamic_cast<ListCtrlIconViewItem*>(m_pIconView->GetItemAt(index));
+            if ((pItem != nullptr) && pItem->IsVisible()) {
+                break;
+            }
+        }
+    }
+    return pItem;
+}
+
+ListCtrlIconViewItem* ListCtrl::GetNextDisplayIconItem(ListCtrlIconViewItem* pItem) const
+{
+    ListCtrlIconViewItem* pNextItem = nullptr;
+    if (pItem == nullptr) {
+        pNextItem = GetFirstDisplayIconItem();
+    }
+    else {
+        ASSERT(m_pIconView != nullptr);
+        if (m_pIconView != nullptr) {
+            size_t itemCount = m_pIconView->GetItemCount();
+            size_t nStartIndex = m_pIconView->GetItemIndex(pItem);
+            if ((itemCount > 0) && (nStartIndex < (itemCount - 1))) {
+                for (size_t index = nStartIndex + 1; index < itemCount; ++index) {
+                    ListCtrlIconViewItem* pCheckItem = dynamic_cast<ListCtrlIconViewItem*>(m_pIconView->GetItemAt(index));
+                    if ((pCheckItem != nullptr) && pCheckItem->IsVisible()) {
+                        pNextItem = pCheckItem;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    return pNextItem;
+}
+
+ListCtrlListViewItem* ListCtrl::GetFirstDisplayListItem() const
+{
+    ListCtrlListViewItem* pItem = nullptr;
+    ASSERT(m_pListView != nullptr);
+    if (m_pListView != nullptr) {
+        size_t itemCount = m_pListView->GetItemCount();
+        for (size_t index = 0; index < itemCount; ++index) {
+            pItem = dynamic_cast<ListCtrlListViewItem*>(m_pListView->GetItemAt(index));
+            if ((pItem != nullptr) && pItem->IsVisible()) {
+                break;
+            }
+        }
+    }
+    return pItem;
+}
+
+ListCtrlListViewItem* ListCtrl::GetNextDisplayListItem(ListCtrlListViewItem* pItem) const
+{
+    ListCtrlListViewItem* pNextItem = nullptr;
+    if (pItem == nullptr) {
+        pNextItem = GetFirstDisplayListItem();
+    }
+    else {
+        ASSERT(m_pListView != nullptr);
+        if (m_pListView != nullptr) {
+            size_t itemCount = m_pListView->GetItemCount();
+            size_t nStartIndex = m_pListView->GetItemIndex(pItem);
+            if ((itemCount > 0) && (nStartIndex < (itemCount - 1))) {
+                for (size_t index = nStartIndex + 1; index < itemCount; ++index) {
+                    ListCtrlListViewItem* pCheckItem = dynamic_cast<ListCtrlListViewItem*>(m_pListView->GetItemAt(index));
+                    if ((pCheckItem != nullptr) && pCheckItem->IsVisible()) {
+                        pNextItem = pCheckItem;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    return pNextItem;
+}
+
 void ListCtrl::OnColumnWidthChanged(size_t nColumnId1, size_t nColumnId2)
 {
     if ((m_pReportView == nullptr) || (m_pHeaderCtrl == nullptr)){
@@ -1283,6 +1490,12 @@ void ListCtrl::SetMultiSelect(bool bMultiSelect)
     if (m_pReportView != nullptr) {
         m_pReportView->SetMultiSelect(bMultiSelect);
     }
+    if (m_pIconView != nullptr) {
+        m_pIconView->SetMultiSelect(bMultiSelect);
+    }
+    if (m_pListView != nullptr) {
+        m_pListView->SetMultiSelect(bMultiSelect);
+    }
     UpdateHeaderCheckBox();
 }
 
@@ -1343,16 +1556,40 @@ void ListCtrl::SetSelectNone()
 void ListCtrl::GetDisplayDataItems(std::vector<size_t>& itemIndexList) const
 {
     itemIndexList.clear();
-    if (m_pReportView != nullptr) {
-        m_pReportView->GetDisplayDataItems(itemIndexList);
+    if (m_listCtrlType == ListCtrlType::Report) {
+        if (m_pReportView != nullptr) {
+            m_pReportView->GetDisplayDataItems(itemIndexList);
+        }
+    }
+    else if (m_listCtrlType == ListCtrlType::Icon) {
+        if (m_pIconView != nullptr) {
+            m_pIconView->GetDisplayDataItems(itemIndexList);
+        }
+    }
+    else if (m_listCtrlType == ListCtrlType::List) {
+        if (m_pListView != nullptr) {
+            m_pListView->GetDisplayDataItems(itemIndexList);
+        }
     }
 }
 
 size_t ListCtrl::GetTopDataItem() const
 {
     size_t nTopItemIndex = Box::InvalidIndex;
-    if (m_pReportView != nullptr) {
-        nTopItemIndex = m_pReportView->GetTopElementIndex();
+    if (m_listCtrlType == ListCtrlType::Report) {
+        if (m_pReportView != nullptr) {
+            nTopItemIndex = m_pReportView->GetTopElementIndex();
+        }
+    }
+    else if (m_listCtrlType == ListCtrlType::Icon) {
+        if (m_pIconView != nullptr) {
+            nTopItemIndex = m_pIconView->GetTopElementIndex();
+        }
+    }
+    else if (m_listCtrlType == ListCtrlType::List) {
+        if (m_pListView != nullptr) {
+            nTopItemIndex = m_pListView->GetTopElementIndex();
+        }
     }
     return nTopItemIndex;
 }
@@ -1360,8 +1597,20 @@ size_t ListCtrl::GetTopDataItem() const
 bool ListCtrl::IsDataItemDisplay(size_t itemIndex) const
 {
     bool bItemVisible = false;
-    if (m_pReportView != nullptr) {
-        bItemVisible = m_pReportView->IsDataItemDisplay(itemIndex);
+    if (m_listCtrlType == ListCtrlType::Report) {
+        if (m_pReportView != nullptr) {
+            bItemVisible = m_pReportView->IsDataItemDisplay(itemIndex);
+        }
+    }
+    else if (m_listCtrlType == ListCtrlType::Icon) {
+        if (m_pIconView != nullptr) {
+            bItemVisible = m_pIconView->IsDataItemDisplay(itemIndex);
+        }
+    }
+    else if (m_listCtrlType == ListCtrlType::List) {
+        if (m_pListView != nullptr) {
+            bItemVisible = m_pListView->IsDataItemDisplay(itemIndex);
+        }
     }
     return bItemVisible;
 }
@@ -1369,8 +1618,20 @@ bool ListCtrl::IsDataItemDisplay(size_t itemIndex) const
 bool ListCtrl::EnsureDataItemVisible(size_t itemIndex, bool bToTop)
 {
     bool bRet = false;
-    if (m_pReportView != nullptr) {
-        bRet = m_pReportView->EnsureDataItemVisible(itemIndex, bToTop);
+    if (m_listCtrlType == ListCtrlType::Report) {
+        if (m_pReportView != nullptr) {
+            bRet = m_pReportView->EnsureDataItemVisible(itemIndex, bToTop);
+        }
+    }
+    else if (m_listCtrlType == ListCtrlType::Icon) {
+        if (m_pIconView != nullptr) {
+            bRet = m_pIconView->EnsureDataItemVisible(itemIndex, bToTop);
+        }
+    }
+    else if (m_listCtrlType == ListCtrlType::List) {
+        if (m_pListView != nullptr) {
+            bRet = m_pListView->EnsureDataItemVisible(itemIndex, bToTop);
+        }
     }
     return bRet;
 }
@@ -1378,8 +1639,20 @@ bool ListCtrl::EnsureDataItemVisible(size_t itemIndex, bool bToTop)
 void ListCtrl::Refresh()
 {
     if (m_bEnableRefresh) {
-        if (m_pReportView != nullptr) {
-            m_pReportView->Refresh();
+        if (m_listCtrlType == ListCtrlType::Report) {
+            if (m_pReportView != nullptr) {
+                m_pReportView->Refresh();
+            }
+        }
+        else if (m_listCtrlType == ListCtrlType::Icon) {
+            if (m_pIconView != nullptr) {
+                m_pIconView->Refresh();
+            }
+        }
+        else if (m_listCtrlType == ListCtrlType::List) {
+            if (m_pListView != nullptr) {
+                m_pListView->Refresh();
+            }
         }
     }
 }
@@ -1387,9 +1660,21 @@ void ListCtrl::Refresh()
 void ListCtrl::RefreshDataItems(std::vector<size_t> dataItemIndexs)
 {
     if (m_bEnableRefresh && !dataItemIndexs.empty()) {
-        if (m_pReportView != nullptr) {
-            m_pReportView->RefreshElements(dataItemIndexs);
+        if (m_listCtrlType == ListCtrlType::Report) {
+            if (m_pReportView != nullptr) {
+                m_pReportView->RefreshElements(dataItemIndexs);
+            }
         }
+        else if (m_listCtrlType == ListCtrlType::Icon) {
+            if (m_pIconView != nullptr) {
+                m_pIconView->RefreshElements(dataItemIndexs);
+            }
+        }
+        else if (m_listCtrlType == ListCtrlType::List) {
+            if (m_pListView != nullptr) {
+                m_pListView->RefreshElements(dataItemIndexs);
+            }
+        }        
     }
 }
 

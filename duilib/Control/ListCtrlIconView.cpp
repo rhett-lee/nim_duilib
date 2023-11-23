@@ -55,6 +55,19 @@ void ListCtrlIconView::SetDataProvider(VirtualListBoxElement* pProvider)
     m_pData = dynamic_cast<ListCtrlData*>(GetDataProvider());
 }
 
+void ListCtrlIconView::SendEvent(EventType eventType, WPARAM wParam, LPARAM lParam, TCHAR tChar, const UiPoint& mousePos)
+{
+    __super::SendEvent(eventType, wParam, lParam, tChar, mousePos);
+}
+
+void ListCtrlIconView::SendEvent(const EventArgs& event)
+{
+    __super::SendEvent(event);
+    if ((event.Type == kEventSelect) || (event.Type == kEventUnSelect)) {
+        SendEvent(kEventSelChange);
+    }
+}
+
 void ListCtrlIconView::DoInit()
 {
     //禁止随鼠标滚轮的滚动改变选中项
@@ -75,6 +88,8 @@ Control* ListCtrlIconView::CreateDataItem()
         pControl->SetClass(m_pListCtrl->GetListViewItemClass());
         Control* pItemImage = new Control;
         Label* pItemLabel = new Label;
+        pItemImage->SetMouseEnabled(false);
+        pItemLabel->SetMouseEnabled(false);
         pItem->AddItem(pItemImage);
         pItem->AddItem(pItemLabel);
     }
@@ -85,6 +100,8 @@ Control* ListCtrlIconView::CreateDataItem()
         pControl->SetClass(m_pListCtrl->GetIconViewItemClass());
         Control* pItemImage = new Control;
         Label* pItemLabel = new Label;
+        pItemImage->SetMouseEnabled(false);
+        pItemLabel->SetMouseEnabled(false);
         pItem->AddItem(pItemImage);
         pItem->AddItem(pItemLabel);
     }
@@ -180,6 +197,37 @@ int32_t ListCtrlIconView::GetMaxDataItemWidth(const std::vector<ListCtrlSubItemD
 {
     //不需要实现
     return -1;
+}
+
+size_t ListCtrlIconView::GetTopElementIndex() const
+{
+    std::vector<size_t> itemIndexList;
+    GetDisplayElements(itemIndexList);
+    if (itemIndexList.empty()) {
+        return Box::InvalidIndex;
+    }
+    else {
+        return itemIndexList.front();
+    }
+}
+
+bool ListCtrlIconView::IsDataItemDisplay(size_t itemIndex) const
+{
+    std::vector<size_t> itemIndexList;
+    GetDisplayElements(itemIndexList);
+    return std::find(itemIndexList.begin(), itemIndexList.end(), itemIndex) != itemIndexList.end();
+}
+
+void ListCtrlIconView::GetDisplayDataItems(std::vector<size_t>& itemIndexList) const
+{
+    itemIndexList.clear();
+    GetDisplayElements(itemIndexList);
+}
+
+bool ListCtrlIconView::EnsureDataItemVisible(size_t itemIndex, bool bToTop)
+{
+    EnsureVisible(itemIndex, bToTop);
+    return true;
 }
 
 }//namespace ui
