@@ -46,6 +46,16 @@ public:
     virtual void SendEvent(const EventArgs& event) override;
 
 public:
+    /** 设置布局方向（默认情况下，Icon视图是纵向布局，List视图是横向布局）
+    * @param [in] bHorizontal true表示横向布局，false表示纵向布局
+    */
+    void SetHorizontalLayout(bool bHorizontal);
+
+    /** 判断当前布局方向是否为横向布局
+    */
+    bool IsHorizontalLayout() const;
+
+public:
     /** 获取顶部元素的索引号
     */
     size_t GetTopElementIndex() const;

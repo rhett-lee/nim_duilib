@@ -590,7 +590,7 @@ bool HTileLayout::SetAttribute(const std::wstring& strName, const std::wstring& 
 		AttributeUtil::ParseSizeValue(strValue.c_str(), szItem);
 		SetItemSize(szItem);
 	}
-	else if( strName == L"rows") {		
+	else if ((strName == L"columns") || (strName == L"rows")) {
 		if (strValue == L"auto") {
 			//自动计算列数
 			SetAutoCalcRows(true);
@@ -669,6 +669,11 @@ void HTileLayout::SetScaleDown(bool bScaleDown)
 			GetOwner()->Arrange();
 		}
 	}
+}
+
+bool HTileLayout::IsScaleDown() const
+{
+	return m_bScaleDown;
 }
 
 } // namespace ui

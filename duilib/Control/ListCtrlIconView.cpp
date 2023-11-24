@@ -12,15 +12,13 @@ ListCtrlIconView::ListCtrlIconView(bool bListMode):
 {
     if (bListMode) {
         Layout* pLayout = GetLayout();
-        ReSetLayout(new VirtualHTileLayout);
+        VirtualHTileLayout* pNewLayout = new VirtualHTileLayout;
+        ReSetLayout(pNewLayout);
+        SetVirtualLayout(pNewLayout);
         if (pLayout) {
             delete pLayout;
             pLayout = nullptr;
-        }
-        VirtualHTileLayout* pDataLayout = dynamic_cast<VirtualHTileLayout*>(GetLayout());
-        ASSERT(pDataLayout != nullptr);
-        VirtualLayout* pVirtualLayout = pDataLayout;
-        SetVirtualLayout(pVirtualLayout);
+        }        
     }
     else {
         VirtualVTileLayout* pDataLayout = dynamic_cast<VirtualVTileLayout*>(GetLayout());
@@ -36,12 +34,68 @@ ListCtrlIconView::~ListCtrlIconView()
 
 void ListCtrlIconView::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
-    if (strName == L"") {
-
+    if (strName == L"horizontal_layout") {
+        SetHorizontalLayout(strValue == L"true");
     }
     else {
         __super::SetAttribute(strName, strValue);
     }
+}
+
+void ListCtrlIconView::SetHorizontalLayout(bool bHorizontal)
+{
+    if (bHorizontal) {
+        //横向布局        
+        if (dynamic_cast<VirtualHTileLayout*>(GetLayout()) == nullptr) {
+            Layout* pLayout = GetLayout();
+            VirtualVTileLayout* pOldLayout = dynamic_cast<VirtualVTileLayout*>(pLayout);
+            VirtualHTileLayout* pNewLayout = new VirtualHTileLayout;
+            ReSetLayout(pNewLayout);
+            SetVirtualLayout(pNewLayout);
+            if (pOldLayout != nullptr) {
+                //同步属性
+                pNewLayout->SetItemSize(pOldLayout->GetItemSize());
+                pNewLayout->SetRows(pOldLayout->GetColumns());
+                pNewLayout->SetAutoCalcRows(pOldLayout->IsAutoCalcColumns());
+                pNewLayout->SetChildMarginX(pOldLayout->GetChildMarginX());
+                pNewLayout->SetChildMarginY(pOldLayout->GetChildMarginY());
+                pNewLayout->SetScaleDown(pOldLayout->IsScaleDown());
+            }
+            if (pLayout) {
+                delete pLayout;
+                pLayout = nullptr;
+            }
+        }
+    }
+    else {
+        //纵向布局
+        if (dynamic_cast<VirtualVTileLayout*>(GetLayout()) == nullptr) {
+            Layout* pLayout = GetLayout();
+            VirtualHTileLayout* pOldLayout = dynamic_cast<VirtualHTileLayout*>(pLayout);
+            VirtualVTileLayout* pNewLayout = new VirtualVTileLayout;
+            ReSetLayout(pNewLayout);
+            SetVirtualLayout(pNewLayout);
+            if (pOldLayout != nullptr) {
+                //同步属性
+                pNewLayout->SetItemSize(pOldLayout->GetItemSize());
+                pNewLayout->SetColumns(pOldLayout->GetRows());
+                pNewLayout->SetAutoCalcColumns(pOldLayout->IsAutoCalcRows());
+                pNewLayout->SetChildMarginX(pOldLayout->GetChildMarginX());
+                pNewLayout->SetChildMarginY(pOldLayout->GetChildMarginY());
+                pNewLayout->SetScaleDown(pOldLayout->IsScaleDown());
+            }
+            if (pLayout) {
+                delete pLayout;
+                pLayout = nullptr;
+            }
+        }
+    }
+}
+
+bool ListCtrlIconView::IsHorizontalLayout() const
+{
+    VirtualHTileLayout* pDataLayout = dynamic_cast<VirtualHTileLayout*>(GetLayout());
+    return pDataLayout != nullptr;
 }
 
 void ListCtrlIconView::SetListCtrl(ListCtrl* pListCtrl)

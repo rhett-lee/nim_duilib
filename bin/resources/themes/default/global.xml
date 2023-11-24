@@ -270,15 +270,13 @@
                                       frame_selection_border="1" frame_selection_border_color="#FF0078D7"/>
     <Class name="list_ctrl_item" icon_spacing="4" hot_color="Wheat" pushed_color="#FFD9EEFF" selected_normal_color="#FFCCE8FF"/>
     <Class name="list_ctrl_sub_item" icon_spacing="2" auto_tooltip="true" single_line="true"/>    
-    <Class name="list_ctrl_icon_view" bkcolor="white" vscrollbar="true" hscrollbar="false" width="100%" padding="0,0,0,0"
-                                      child_margin_x="0" child_margin_y="4" paint_selected_colors="true"
-                                      item_size="100,120" columns="auto"/>
+    <Class name="list_ctrl_icon_view" bkcolor="white" vscrollbar="true" hscrollbar="true" width="100%" padding="0,0,0,0" paint_selected_colors="true"
+                                      horizontal_layout="false" item_size="100,120" columns="auto" child_margin_x="8" child_margin_y="8"/>
     <Class name="list_ctrl_icon_view_item" hot_color="Wheat" pushed_color="#FFD9EEFF" selected_normal_color="#FFCCE8FF"/>
     <Class name="list_ctrl_icon_view_item_image" halign="center" margin="2,4,2,2"/>
     <Class name="list_ctrl_icon_view_item_label" width="100%" height="100%" text_align="hcenter,vcenter" single_line="false" auto_tooltip="true"/>
-    <Class name="list_ctrl_list_view" bkcolor="white" vscrollbar="false" hscrollbar="true" height="100%" padding="0,0,0,0"
-                                      child_margin_x="4" child_margin_y="0" paint_selected_colors="true"
-                                      item_size="180,36" rows="auto"/>
+    <Class name="list_ctrl_list_view" bkcolor="white" vscrollbar="true" hscrollbar="true" height="100%" padding="0,0,0,0" paint_selected_colors="true"
+                                      horizontal_layout="false" item_size="180,36" rows="auto" child_margin_x="8" child_margin_y="8"/>
     <Class name="list_ctrl_list_view_item" hot_color="Wheat" pushed_color="#FFD9EEFF" selected_normal_color="#FFCCE8FF"/>
     <Class name="list_ctrl_list_view_item_image" valign="center" margin="8,2,2,2"/>
     <Class name="list_ctrl_list_view_item_label" width="100%" height="100%" text_align="vcenter,left" single_line="true" auto_tooltip="true"/>

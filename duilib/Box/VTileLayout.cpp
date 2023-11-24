@@ -590,7 +590,7 @@ bool VTileLayout::SetAttribute(const std::wstring& strName, const std::wstring& 
 		AttributeUtil::ParseSizeValue(strValue.c_str(), szItem);
 		SetItemSize(szItem);
 	}
-	else if( strName == L"columns") {		
+	else if( (strName == L"columns") || (strName == L"rows")) {
 		if (strValue == L"auto") {
 			//自动计算列数
 			SetAutoCalcColumns(true);
@@ -669,6 +669,11 @@ void VTileLayout::SetScaleDown(bool bScaleDown)
 			GetOwner()->Arrange();
 		}
 	}
+}
+
+bool VTileLayout::IsScaleDown() const
+{
+	return m_bScaleDown;
 }
 
 } // namespace ui

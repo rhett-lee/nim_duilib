@@ -75,6 +75,10 @@ public:
 	*/
 	void SetScaleDown(bool bScaleDown);
 
+	/** 判断超出边界的时候，是否按比例缩小
+	*/
+	bool IsScaleDown() const;
+
 private:
 	/** 未处理的子控件接口和其宽高信息
 	*/

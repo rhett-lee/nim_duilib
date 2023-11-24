@@ -461,6 +461,9 @@ void ListCtrl::SetListCtrlType(ListCtrlType type)
         m_pReportView->SetDataProvider(m_pData);
         m_pData->SetListView(m_pReportView);
         m_pReportView->SetVisible(true);
+        if (m_pReportView->IsMultiSelect() != IsMultiSelect()) {
+            m_pReportView->SetMultiSelect(IsMultiSelect());
+        }
         if (m_pIconView != nullptr) {
             m_pIconView->SetVisible(false);
         }
@@ -479,6 +482,9 @@ void ListCtrl::SetListCtrlType(ListCtrlType type)
         m_pIconView->SetDataProvider(m_pData);
         m_pData->SetListView(m_pIconView);
         m_pIconView->SetVisible(true);
+        if (m_pIconView->IsMultiSelect() != IsMultiSelect()) {
+            m_pIconView->SetMultiSelect(IsMultiSelect());
+        }
         if (m_pReportView != nullptr) {
             m_pReportView->SetVisible(false);
         }
@@ -497,6 +503,9 @@ void ListCtrl::SetListCtrlType(ListCtrlType type)
         m_pListView->SetDataProvider(m_pData);
         m_pData->SetListView(m_pListView);
         m_pListView->SetVisible(true);
+        if (m_pListView->IsMultiSelect() != IsMultiSelect()) {
+            m_pListView->SetMultiSelect(IsMultiSelect());
+        }
         if (m_pReportView != nullptr) {
             m_pReportView->SetVisible(false);
         }
