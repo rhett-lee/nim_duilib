@@ -289,13 +289,25 @@ bool ScrollBox::MouseLeave(const EventArgs& msg)
 	if (!IsHotState() && (m_pVScrollBar != nullptr) && m_pVScrollBar->IsValid() && m_pVScrollBar->IsEnabled()) {
 		if ((m_pVScrollBar->GetThumbState() == kControlStateNormal) && 
 			 m_pVScrollBar->IsAutoHideScroll()) {
-			m_pVScrollBar->SetFadeVisible(false);
+			Control* pNewHover = nullptr;
+			if (GetWindow() != nullptr) {
+				pNewHover = GetWindow()->GetHoverControl();
+			}
+			if (pNewHover != m_pVScrollBar.get()) {
+				m_pVScrollBar->SetFadeVisible(false);
+			}
 		}
 	}
 	if (!IsHotState() && (m_pHScrollBar != nullptr) && m_pHScrollBar->IsValid() && m_pHScrollBar->IsEnabled()) {
 		if ((m_pHScrollBar->GetThumbState() == kControlStateNormal) && 
 			 m_pHScrollBar->IsAutoHideScroll()) {
-			m_pHScrollBar->SetFadeVisible(false);
+			Control* pNewHover = nullptr;
+			if (GetWindow() != nullptr) {
+				pNewHover = GetWindow()->GetHoverControl();
+			}
+			if (pNewHover != m_pHScrollBar.get()) {
+				m_pHScrollBar->SetFadeVisible(false);
+			}
 		}
 	}
 	return bRet;

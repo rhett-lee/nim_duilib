@@ -474,6 +474,7 @@ public:
     */
     ListCtrlItem* GetNextDisplayItem(ListCtrlItem* pItem) const;
 
+public:
     /** 获取第一个数据项的界面控件接口（Icon视图）
     * @return 返回界面控件接口
               注意事项：界面刷新后，界面控件与数据元素之间的关系会动态变化

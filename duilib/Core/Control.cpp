@@ -455,8 +455,16 @@ void Control::SetClass(const std::wstring& strClass)
 void Control::ApplyAttributeList(const std::wstring& strList)
 {
 	//属性列表，先解析，然后再应用
+	if (strList.empty()) {
+		return;
+	}
 	std::vector<std::pair<std::wstring, std::wstring>> attributeList;
-	AttributeUtil::ParseAttributeList(strList, L'\"', attributeList);
+	if (strList.find(L'\"') != std::wstring::npos) {
+		AttributeUtil::ParseAttributeList(strList, L'\"', attributeList);
+	}	
+	else if (strList.find(L'\'') != std::wstring::npos) {
+		AttributeUtil::ParseAttributeList(strList, L'\'', attributeList);
+	}
 	for (const auto& attribute : attributeList) {
 		SetAttribute(attribute.first, attribute.second);
 	}
