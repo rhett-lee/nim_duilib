@@ -8,7 +8,14 @@ ListCtrlIconView::ListCtrlIconView(bool bListMode):
     VirtualListBox(new VirtualVTileLayout),
     m_pListCtrl(nullptr),
     m_pData(nullptr),
-    m_bListMode(bListMode)
+    m_bListMode(bListMode),
+    m_bMouseDown(false),
+    m_bRMouseDown(false),
+    m_bInMouseMove(false),
+    m_pMouseSender(nullptr),
+    m_bEnableFrameSelection(true),
+    m_nLastNoShiftIndex(0),
+    m_bMouseDownInView(false)
 {
     if (bListMode) {
         Layout* pLayout = GetLayout();
@@ -36,6 +43,21 @@ void ListCtrlIconView::SetAttribute(const std::wstring& strName, const std::wstr
 {
     if (strName == L"horizontal_layout") {
         SetHorizontalLayout(strValue == L"true");
+    }
+    else if (strName == L"enable_frame_selection") {
+        m_bEnableFrameSelection = (strValue == L"true");
+    }
+    else if (strName == L"frame_selection_color") {
+        m_frameSelectionColor = strValue;
+    }
+    else if (strName == L"frame_selection_alpha") {
+        m_frameSelectionAlpha = (uint8_t)_wtoi(strValue.c_str());
+    }
+    else if (strName == L"frame_selection_border") {
+        m_frameSelectionBorderSize = (uint8_t)_wtoi(strValue.c_str());
+    }
+    else if (strName == L"frame_selection_border_color") {
+        m_frameSelectionBorderColor = strValue;
     }
     else {
         __super::SetAttribute(strName, strValue);
@@ -158,6 +180,33 @@ Control* ListCtrlIconView::CreateDataItem()
         pItemLabel->SetMouseEnabled(false);
         pItem->AddItem(pItemImage);
         pItem->AddItem(pItemLabel);
+    }
+    if (pControl != nullptr) {
+        //挂载鼠标事件
+        pControl->AttachButtonDown([this](const EventArgs& args) {
+            OnButtonDown(args.ptMouse, args.pSender);
+            return true;
+            });
+        pControl->AttachButtonUp([this](const EventArgs& args) {
+            OnButtonUp(args.ptMouse, args.pSender);
+            return true;
+            });
+        pControl->AttachRButtonDown([this](const EventArgs& args) {
+            OnRButtonDown(args.ptMouse, args.pSender);
+            return true;
+            });
+        pControl->AttachRButtonUp([this](const EventArgs& args) {
+            OnButtonUp(args.ptMouse, args.pSender);
+            return true;
+            });
+        pControl->AttachMouseMove([this](const EventArgs& args) {
+            OnMouseMove(args.ptMouse, args.pSender);
+            return true;
+            });
+        pControl->AttachWindowKillFocus([this](const EventArgs&) {
+            OnWindowKillFocus();
+            return true;
+            });
     }
     return pControl;
 }
@@ -282,6 +331,521 @@ bool ListCtrlIconView::EnsureDataItemVisible(size_t itemIndex, bool bToTop)
 {
     EnsureVisible(itemIndex, bToTop);
     return true;
+}
+
+bool ListCtrlIconView::ButtonDown(const EventArgs& msg)
+{
+    bool bRet = __super::ButtonDown(msg);
+    OnButtonDown(msg.ptMouse, msg.pSender);
+    return bRet;
+}
+
+bool ListCtrlIconView::ButtonUp(const EventArgs& msg)
+{
+    bool bRet = __super::ButtonUp(msg);
+    OnButtonUp(msg.ptMouse, msg.pSender);
+    return bRet;
+}
+
+bool ListCtrlIconView::RButtonDown(const EventArgs& msg)
+{
+    bool bRet = __super::RButtonDown(msg);
+    OnRButtonDown(msg.ptMouse, msg.pSender);
+    return bRet;
+}
+
+bool ListCtrlIconView::RButtonUp(const EventArgs& msg)
+{
+    bool bRet = __super::RButtonUp(msg);
+    OnRButtonUp(msg.ptMouse, msg.pSender);
+    return bRet;
+}
+
+bool ListCtrlIconView::MouseMove(const EventArgs& msg)
+{
+    bool bRet = __super::MouseMove(msg);
+    OnMouseMove(msg.ptMouse, msg.pSender);
+    return bRet;
+}
+
+bool ListCtrlIconView::OnWindowKillFocus(const EventArgs& msg)
+{
+    bool bRet = __super::OnWindowKillFocus(msg);
+    OnWindowKillFocus();
+    return bRet;
+}
+
+void ListCtrlIconView::OnButtonDown(const UiPoint& ptMouse, Control* pSender)
+{
+    if (m_bInMouseMove) {
+        m_bInMouseMove = false;
+        Invalidate();
+    }
+    m_bMouseDownInView = (pSender == this) ? true : false;
+    m_bMouseDown = true;
+    m_pMouseSender = pSender;
+    UiSize64 scrollPos = GetScrollPos();
+    m_ptMouseDown.cx = ptMouse.x + scrollPos.cx;
+    m_ptMouseDown.cy = ptMouse.y + scrollPos.cy;
+}
+
+void ListCtrlIconView::OnButtonUp(const UiPoint& /*ptMouse*/, Control* pSender)
+{
+    bool bClickedBlank = false;
+    if (m_bMouseDownInView && !m_bInMouseMove && (pSender == this)) {
+        bClickedBlank = true;
+    }
+    if (m_bInMouseMove) {
+        m_bInMouseMove = false;
+        Invalidate();
+    }
+    m_bMouseDownInView = false;
+    m_bMouseDown = false;
+    m_pMouseSender = nullptr;
+    if (bClickedBlank) {
+        if (OnListCtrlClickedBlank()) {
+            SendEvent(kEventSelChange);
+        }
+    }
+}
+
+void ListCtrlIconView::OnRButtonDown(const UiPoint& ptMouse, Control* pSender)
+{
+    if (m_bInMouseMove) {
+        m_bInMouseMove = false;
+        Invalidate();
+    }
+    m_bMouseDownInView = (pSender == this) ? true : false;
+    m_bRMouseDown = true;
+    m_pMouseSender = pSender;
+    UiSize64 scrollPos = GetScrollPos();
+    m_ptMouseDown.cx = ptMouse.x + scrollPos.cx;
+    m_ptMouseDown.cy = ptMouse.y + scrollPos.cy;
+}
+
+void ListCtrlIconView::OnRButtonUp(const UiPoint& /*ptMouse*/, Control* pSender)
+{
+    bool bClickedBlank = false;
+    if (m_bMouseDownInView && !m_bInMouseMove && (pSender == this)) {
+        bClickedBlank = true;
+    }
+    if (m_bInMouseMove) {
+        m_bInMouseMove = false;
+        Invalidate();
+    }
+    m_bMouseDownInView = false;
+    m_bRMouseDown = false;
+    m_pMouseSender = nullptr;
+    if (bClickedBlank) {
+        if (OnListCtrlClickedBlank()) {
+            SendEvent(kEventSelChange);
+        }
+    }
+}
+
+void ListCtrlIconView::OnMouseMove(const UiPoint& ptMouse, Control* pSender)
+{
+    if (!m_bEnableFrameSelection || !IsMultiSelect()) {
+        //功能关闭 或者 单选模式
+        return;
+    }
+    if ((m_bMouseDown || m_bRMouseDown) &&
+        (pSender != nullptr) &&
+        (m_pMouseSender == pSender) && pSender->IsMouseFocused()) {
+        UiSize64 scrollPos = GetScrollPos();
+        m_ptMouseMove.cx = ptMouse.x + scrollPos.cx;
+        m_ptMouseMove.cy = ptMouse.y + scrollPos.cy;
+        //按需滚动视图，并更新鼠标在滚动后的位置
+        m_bInMouseMove = true;
+        OnCheckScrollView();
+    }
+    else if (m_bInMouseMove) {
+        m_bInMouseMove = false;
+        Invalidate();
+    }
+}
+
+void ListCtrlIconView::OnWindowKillFocus()
+{
+    if (m_bInMouseMove) {
+        Invalidate();
+    }
+    m_bMouseDownInView = false;
+    m_bMouseDown = false;
+    m_bRMouseDown = false;
+    m_bInMouseMove = false;
+    m_pMouseSender = nullptr;
+}
+
+bool ListCtrlIconView::OnListCtrlClickedBlank()
+{
+    //在空白处点击鼠标左键或者右键，取消全部选择
+    return SetSelectNone();
+}
+
+void ListCtrlIconView::OnCheckScrollView()
+{
+    if (!m_bInMouseMove) {
+        //取消定时器
+        m_scrollViewFlag.Cancel();
+        return;
+    }
+    bool bScrollView = false;
+    const UiSize64 scrollPos = GetScrollPos();
+    UiSize64 pt = m_ptMouseMove;
+    pt.cx -= scrollPos.cx;
+    pt.cy -= scrollPos.cy;
+    const UiSize64 ptMouseMove = pt; //记录原值
+
+    if (m_bInMouseMove) {
+        int32_t nHScrollValue = DUI_NOSET_VALUE;
+        int32_t nVScrollValue = DUI_NOSET_VALUE;
+        GetScrollDeltaValue(nHScrollValue, nVScrollValue);
+        UiRect viewRect = GetRect();
+        if (pt.cx <= viewRect.left) {
+            //向左滚动视图
+            LineLeft(nHScrollValue);
+            bScrollView = true;
+        }
+        else if (pt.cx >= viewRect.right) {
+            //向右滚动视图
+            LineRight(nHScrollValue);
+            bScrollView = true;
+        }
+        if (pt.cy <= viewRect.top) {
+            //向上滚动视图
+            LineUp(nVScrollValue, false);
+            bScrollView = true;
+        }
+        else if (pt.cy >= viewRect.bottom) {
+            //向下滚动视图
+            LineDown(nVScrollValue, false);
+            bScrollView = true;
+        }
+    }
+
+    if (bScrollView) {
+        UiSize64 scrollPosNew = GetScrollPos();
+        if (scrollPos != scrollPosNew) {
+            //更新鼠标位置
+            m_ptMouseMove.cx = ptMouseMove.cx + scrollPosNew.cx;
+            m_ptMouseMove.cy = ptMouseMove.cy + scrollPosNew.cy;
+        }
+
+        //启动定时器
+        m_scrollViewFlag.Cancel();
+        GlobalManager::Instance().Timer().AddCancelableTimer(m_scrollViewFlag.GetWeakFlag(),
+                                    nbase::Bind(&ListCtrlIconView::OnCheckScrollView, this),
+                                    50, 1); //只执行一次
+    }
+    else {
+        //取消定时器
+        m_scrollViewFlag.Cancel();
+    }
+
+    int64_t top = std::min(m_ptMouseDown.cy, m_ptMouseMove.cy);
+    int64_t bottom = std::max(m_ptMouseDown.cy, m_ptMouseMove.cy);
+    int64_t left = std::min(m_ptMouseDown.cx, m_ptMouseMove.cx);
+    int64_t right = std::max(m_ptMouseDown.cx, m_ptMouseMove.cx);
+    int32_t offsetTop = GetRect().top;//当前控件左上角的top坐标
+    top -= offsetTop;
+    bottom -= offsetTop;
+
+    int32_t offsetLeft = GetRect().left;//当前控件左上角的left坐标
+    left -= offsetLeft;
+    right -= offsetLeft;
+    bool bRet = OnFrameSelection(left, right, top, bottom);
+    Invalidate();
+    if (bRet) {
+        SendEvent(kEventSelChange);
+    }
+}
+
+void ListCtrlIconView::GetScrollDeltaValue(int32_t& nHScrollValue, int32_t& nVScrollValue) const
+{
+    nHScrollValue = DUI_NOSET_VALUE;
+    nVScrollValue = DUI_NOSET_VALUE;
+    if (IsHorizontalLayout()) {
+        //横向布局
+        VirtualHTileLayout* pLayout = dynamic_cast<VirtualHTileLayout*>(GetLayout());
+        if (pLayout != nullptr) {
+            UiSize szItem = pLayout->GetItemSize();
+            int32_t deltaValue = szItem.cx * 2; 
+            if (deltaValue > 0) {
+                deltaValue = std::max(GetRect().Width() / 3, deltaValue);
+                nHScrollValue = deltaValue;
+            }
+        }
+    }
+    else {
+        //纵向布局
+        VirtualVTileLayout* pLayout = dynamic_cast<VirtualVTileLayout*>(GetLayout());
+        if (pLayout != nullptr) {
+            UiSize szItem = pLayout->GetItemSize();
+            int32_t deltaValue = szItem.cy * 2;
+            if (deltaValue > 0) {
+                deltaValue = std::max(GetRect().Height() / 3, deltaValue);
+                nHScrollValue = deltaValue;
+            }
+        }
+    }
+}
+
+bool ListCtrlIconView::OnFrameSelection(int64_t left, int64_t right, int64_t top, int64_t bottom)
+{
+    ASSERT((top <= bottom) && (left <= right));
+    if ((top > bottom) && (left > right)) {
+        return false;
+    }
+    ASSERT(m_pListCtrl != nullptr);
+    if (m_pListCtrl == nullptr) {
+        return false;
+    }
+    ListCtrlData* pDataProvider = m_pData;
+    ASSERT(pDataProvider != nullptr);
+    if (pDataProvider == nullptr) {
+        return false;
+    }
+    const ListCtrlData::RowDataList& itemDataList = pDataProvider->GetItemDataList();
+    const size_t dataItemCount = itemDataList.size();
+    if (dataItemCount == 0) {
+        return false;
+    }
+    Layout* pLayout = GetLayout();
+    VirtualHTileLayout* pHLayout = dynamic_cast<VirtualHTileLayout*>(pLayout);
+    VirtualVTileLayout* pVLayout = dynamic_cast<VirtualVTileLayout*>(pLayout);
+    if ((pHLayout == nullptr) && (pVLayout == nullptr)) {
+        return false;
+    }
+    else if ((pHLayout != nullptr) && (pVLayout != nullptr)) {
+        return false;
+    }
+
+    UiSize szItem;
+    if (pHLayout != nullptr) {
+        szItem = pHLayout->GetItemSize();
+    }
+    else {
+        szItem = pVLayout->GetItemSize();
+    }
+    if ((szItem.cx <= 0) || (szItem.cy <= 0)) {
+        return false;
+    }
+
+    int64_t iLeft = 0;
+    int64_t iTop = 0;
+    int64_t iRight = 0;
+    int64_t iBottom = 0;
+
+    int64_t cLeft = 0;
+    int64_t cTop = 0;
+    int64_t cRight = 0;
+    int64_t cBottom = 0;
+
+    bool bRet = false;
+    if (pHLayout != nullptr) {
+        //横向布局
+        int32_t childMarginY = pHLayout->GetChildMarginY();
+        if (childMarginY < 0) {
+            childMarginY = 0;
+        }
+        int32_t nRows = pHLayout->GetRows();
+        bool bAutoRows = pHLayout->IsAutoCalcRows();
+        if (bAutoRows) {
+            nRows = 0;
+        }
+        if (nRows <= 0) {
+            UiRect rc = GetRect();
+            rc.Deflate(GetControlPadding());
+            int32_t totalHeight = rc.Height();
+            while (totalHeight > 0) {
+                totalHeight -= szItem.cy;
+                if (nRows != 0) {
+                    totalHeight -= childMarginY;
+                }
+                if (totalHeight >= 0) {
+                    ++nRows;
+                }
+            }
+        }
+        if (nRows <= 0) {
+            nRows = 1;
+        }
+
+        //不支持隐藏
+        std::vector<size_t> itemIndexList;
+        int32_t childMarginX = pHLayout->GetChildMarginX();
+        if (childMarginX < 0) {
+            childMarginX = 0;
+        }
+        int64_t nStartIndex = (left / (szItem.cx + childMarginX)) * nRows;
+        const size_t nCount = GetElementCount();
+        for (size_t nElemenetIndex = nStartIndex; nElemenetIndex < nCount; ++nElemenetIndex) {
+            CalcElementRectH(nElemenetIndex, szItem, nRows, childMarginX, childMarginY,
+                             iLeft, iTop, iRight, iBottom);
+            cLeft = std::max(left, iLeft);
+            cTop = std::max(top, iTop);
+            cRight = std::min(right, iRight);
+            cBottom = std::min(bottom, iBottom);
+            if ((cRight > cLeft) && (cBottom > cTop)) {
+                itemIndexList.push_back(nElemenetIndex);
+            }
+            if (iLeft > right) {
+                break;
+            }
+        }
+        bRet = SetSelectedElements(itemIndexList, true);
+    }
+    else {
+        //纵向布局
+        int32_t childMarginX = pVLayout->GetChildMarginX();
+        if (childMarginX < 0) {
+            childMarginX = 0;
+        }
+        int32_t nColumns = pVLayout->GetColumns();
+        bool bAutoColumns = pVLayout->IsAutoCalcColumns();
+        if (bAutoColumns) {
+            nColumns = 0;
+        }
+        if (nColumns <= 0) {
+            UiRect rc = GetRect();
+            rc.Deflate(GetControlPadding());
+            int32_t totalWidth = rc.Width();
+            while (totalWidth > 0) {
+                totalWidth -= szItem.cx;
+                if (nColumns != 0) {
+                    totalWidth -= childMarginX;
+                }
+                if (totalWidth >= 0) {
+                    ++nColumns;
+                }
+            }
+        }
+        if (nColumns <= 0) {
+            nColumns = 1;
+        }
+
+        //不支持隐藏
+        std::vector<size_t> itemIndexList;
+        int32_t childMarginY = pVLayout->GetChildMarginY();
+        if (childMarginY < 0) {
+            childMarginY = 0;
+        }
+        int64_t nStartIndex = (top / (szItem.cy + childMarginY)) * nColumns;
+        const size_t nCount = GetElementCount();
+        for (size_t nElemenetIndex = nStartIndex; nElemenetIndex < nCount; ++nElemenetIndex) {
+            CalcElementRectV(nElemenetIndex, szItem, nColumns, childMarginX, childMarginY,
+                            iLeft, iTop, iRight, iBottom);
+            cLeft = std::max(left, iLeft);
+            cTop = std::max(top, iTop);
+            cRight = std::min(right, iRight);
+            cBottom = std::min(bottom, iBottom);
+            if ((cRight > cLeft) && (cBottom > cTop)) {
+                itemIndexList.push_back(nElemenetIndex);
+            }
+            if (iTop > bottom) {
+                break;
+            }
+        }
+        bRet = SetSelectedElements(itemIndexList, true);
+    }
+    return bRet;
+}
+
+void ListCtrlIconView::CalcElementRectV(size_t nElemenetIndex, const UiSize& szItem,
+                                        int32_t nColumns, int32_t childMarginX, int32_t childMarginY,
+                                        int64_t& iLeft, int64_t& iTop, 
+                                        int64_t& iRight, int64_t& iBottom) const
+{
+    iLeft = 0;
+    iRight = 0;
+    iTop = 0;
+    iBottom = 0;
+    ASSERT(nColumns > 0);
+    if (nColumns <= 0) {
+        return;
+    }
+    if (childMarginX < 0) {
+        childMarginX = 0;
+    }
+    if (childMarginY < 0) {
+        childMarginY = 0;
+    }
+    ASSERT((szItem.cx > 0) || (szItem.cy > 0));
+    if ((szItem.cx <= 0) || (szItem.cy <= 0)) {
+        return;
+    }
+
+    size_t nRowIndex = nElemenetIndex / nColumns;
+    size_t nColumnIndex = nElemenetIndex % nColumns;
+
+    iBottom = (nRowIndex + 1) * szItem.cy + nRowIndex * childMarginY;
+    iTop = iBottom - szItem.cy;
+
+    iRight = (nColumnIndex + 1) * szItem.cx + nColumnIndex * childMarginX;
+    iLeft = iRight - szItem.cx;
+}
+
+void ListCtrlIconView::CalcElementRectH(size_t nElemenetIndex, const UiSize& szItem,
+                                        int32_t nRows, int32_t childMarginX, int32_t childMarginY,
+                                        int64_t& iLeft, int64_t& iTop,
+                                        int64_t& iRight, int64_t& iBottom) const
+{
+    iLeft = 0;
+    iRight = 0;
+    iTop = 0;
+    iBottom = 0;
+    ASSERT(nRows > 0);
+    if (nRows <= 0) {
+        return;
+    }
+    if (childMarginX < 0) {
+        childMarginX = 0;
+    }
+    if (childMarginY < 0) {
+        childMarginY = 0;
+    }
+    ASSERT((szItem.cx > 0) || (szItem.cy > 0));
+    if ((szItem.cx <= 0) || (szItem.cy <= 0)) {
+        return;
+    }
+
+    size_t nColumnIndex = nElemenetIndex / nRows;
+    size_t nRowIndex = nElemenetIndex % nRows;    
+
+    iRight = (nColumnIndex + 1) * szItem.cx + nColumnIndex * childMarginX;
+    iLeft = iRight - szItem.cx;
+
+    iBottom = (nRowIndex + 1) * szItem.cy + nRowIndex * childMarginY;
+    iTop = iBottom - szItem.cy;
+}
+
+void ListCtrlIconView::PaintChild(IRender* pRender, const UiRect& rcPaint)
+{
+    __super::PaintChild(pRender, rcPaint);
+    PaintFrameSelection(pRender);
+}
+
+void ListCtrlIconView::PaintFrameSelection(IRender* pRender)
+{
+    if (!m_bInMouseMove || (pRender == nullptr)) {
+        return;
+    }
+    UiSize64 scrollPos = GetScrollPos();
+    int64_t left = std::min(m_ptMouseDown.cx, m_ptMouseMove.cx) - scrollPos.cx;
+    int64_t right = std::max(m_ptMouseDown.cx, m_ptMouseMove.cx) - scrollPos.cx;
+    int64_t top = std::min(m_ptMouseDown.cy, m_ptMouseMove.cy) - scrollPos.cy;
+    int64_t bottom = std::max(m_ptMouseDown.cy, m_ptMouseMove.cy) - scrollPos.cy;
+
+    UiRect rect(TruncateToInt32(left), TruncateToInt32(top),
+                TruncateToInt32(right), TruncateToInt32(bottom));
+
+    if ((m_frameSelectionBorderSize > 0) && !m_frameSelectionBorderColor.empty()) {
+        pRender->DrawRect(rect, GetUiColor(m_frameSelectionBorderColor.c_str()), m_frameSelectionBorderSize);
+    }
+    if (!m_frameSelectionColor.empty()) {
+        pRender->FillRect(rect, GetUiColor(m_frameSelectionColor.c_str()), m_frameSelectionAlpha);
+    }
 }
 
 }//namespace ui

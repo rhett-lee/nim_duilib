@@ -104,6 +104,65 @@ protected:
     */
     virtual int32_t GetMaxDataItemWidth(const std::vector<ListCtrlSubItemData2Ptr>& subItemList) override;
 
+protected:
+    //鼠标消息（返回true：表示消息已处理；返回false：则表示消息未处理，需转发给父控件）
+    virtual bool ButtonDown(const EventArgs& msg) override;
+    virtual bool ButtonUp(const EventArgs& msg) override;
+    virtual bool RButtonDown(const EventArgs& msg) override;
+    virtual bool RButtonUp(const EventArgs& msg) override;
+    virtual bool MouseMove(const EventArgs& msg) override;
+    virtual bool OnWindowKillFocus(const EventArgs& msg) override;//控件所属的窗口失去焦点
+
+    /** 绘制子控件
+    */
+    virtual void PaintChild(IRender* pRender, const UiRect& rcPaint) override;
+
+private:
+    void OnButtonDown(const UiPoint& ptMouse, Control* pSender);
+    void OnButtonUp(const UiPoint& ptMouse, Control* pSender);
+    void OnRButtonDown(const UiPoint& ptMouse, Control* pSender);
+    void OnRButtonUp(const UiPoint& ptMouse, Control* pSender);
+    void OnMouseMove(const UiPoint& ptMouse, Control* pSender);
+    void OnWindowKillFocus();
+
+private:
+    /** 在视图空白处点击了鼠标左键/右键
+    */
+    bool OnListCtrlClickedBlank();
+
+    /** 检查是否需要滚动视图
+    */
+    void OnCheckScrollView();
+
+    /** 执行了鼠标框选操作
+    * @param [in] left 框选的X坐标left值
+    * @param [in] right 框选的X坐标right值
+    * @param [in] top 框选的Y坐标top值
+    * @param [in] bottom 框选的Y坐标bottom值
+    * @return 如果有选择变化返回true，否则返回false
+    */
+    bool OnFrameSelection(int64_t left, int64_t right, int64_t top, int64_t bottom);
+
+    /** 计算一个元素的矩形区域
+    */
+    void CalcElementRectV(size_t nElemenetIndex, const UiSize& szItem, 
+                          int32_t nColumns, int32_t childMarginX, int32_t childMarginY,
+                          int64_t& iLeft, int64_t& iTop, int64_t& iRight, int64_t& iBottom) const;
+
+    /** 计算一个元素的矩形区域
+    */
+    void CalcElementRectH(size_t nElemenetIndex, const UiSize& szItem, 
+                          int32_t nRows, int32_t childMarginX, int32_t childMarginY,
+                          int64_t& iLeft, int64_t& iTop, int64_t& iRight, int64_t& iBottom) const;
+
+    /** 绘制鼠标框选的边框和填充颜色
+    */
+    void PaintFrameSelection(IRender* pRender);
+
+    /** 获取滚动视图的滚动幅度
+    */
+    void GetScrollDeltaValue(int32_t& nHScrollValue, int32_t& nVScrollValue) const;
+
 private:
     /** ListCtrl 控件接口
     */
@@ -116,6 +175,52 @@ private:
     /** 是否为List模式: true表示列表视图，否则为图标视图 
     */
     const bool m_bListMode;
+
+private:
+    /** 是否鼠标在视图中按下左键或者右键
+    */
+    bool m_bMouseDownInView;
+
+    /** 是否鼠标左键按下
+    */
+    bool m_bMouseDown;
+
+    /** 是否鼠标右键按下
+    */
+    bool m_bRMouseDown;
+
+    /** 是否处于鼠标滑动操作中
+    */
+    bool m_bInMouseMove;
+
+    /** 鼠标按下时的鼠标位置
+    */
+    UiSize64 m_ptMouseDown;
+
+    /** 鼠标滑动时的鼠标位置
+    */
+    UiSize64 m_ptMouseMove;
+
+    /** 鼠标按下时的控件接口
+    */
+    Control* m_pMouseSender;
+
+    /** 定时器滚动视图时的取消机制
+    */
+    nbase::WeakCallbackFlag m_scrollViewFlag;
+
+    /** 鼠标框选功能的设置
+    */
+    bool m_bEnableFrameSelection; //是否支持鼠标框选功能
+    UiString m_frameSelectionColor; //框选填充颜色
+    uint8_t m_frameSelectionAlpha;  //框选填充颜色的Alpha值
+    UiString m_frameSelectionBorderColor; //框选边框颜色
+    uint8_t m_frameSelectionBorderSize; //框选边框大小
+
+private:
+    /** 没按Shift键时的最后一次选中项，有效范围：[0, GetElementCount())
+    */
+    size_t m_nLastNoShiftIndex;
 };
 
 }//namespace ui

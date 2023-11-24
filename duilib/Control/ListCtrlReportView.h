@@ -318,6 +318,10 @@ private:
     */
     bool OnListCtrlClickedBlank();
 
+    /** 获取滚动视图的滚动幅度
+    */
+    void GetScrollDeltaValue(int32_t& nHScrollValue, int32_t& nVScrollValue) const;
+
 private:
     /** ListCtrl 控件接口
     */

@@ -1743,6 +1743,10 @@ void ListCtrlReportView::OnCheckScrollView()
     const UiSize64 ptMouseMove = pt; //记录原值
 
     if (m_bInMouseMove) {
+        int32_t nHScrollValue = DUI_NOSET_VALUE;
+        int32_t nVScrollValue = DUI_NOSET_VALUE;
+        GetScrollDeltaValue(nHScrollValue, nVScrollValue);
+
         UiRect viewRect = GetRect();
         if (m_nNormalItemTop > 0) {
             viewRect.top = m_nNormalItemTop;
@@ -1751,30 +1755,22 @@ void ListCtrlReportView::OnCheckScrollView()
 
         if (pt.cx <= viewRect.left) {
             //向左滚动视图
-            LineLeft();
+            LineLeft(nHScrollValue);
             bScrollView = true;
         }
         else if (pt.cx >= viewRect.right) {
             //向右滚动视图
-            LineRight();
+            LineRight(nHScrollValue);
             bScrollView = true;
-        }
-
-        int32_t deltaValue = DUI_NOSET_VALUE;
-        if (m_pListCtrl != nullptr) {
-            deltaValue = m_pListCtrl->GetDataItemHeight() * 2;            
-        }
-        if (deltaValue > 0) {
-            deltaValue = std::max(GetRect().Height() / 3, deltaValue);
         }
         if (pt.cy <= viewRect.top) {
             //向上滚动视图
-            LineUp(deltaValue, false);
+            LineUp(nVScrollValue, false);
             bScrollView = true;
         }
         else if (pt.cy >= viewRect.bottom) {
             //向下滚动视图
-            LineDown(deltaValue, false);
+            LineDown(nVScrollValue, false);
             bScrollView = true;
         }
     }
@@ -1810,6 +1806,20 @@ void ListCtrlReportView::OnCheckScrollView()
     Invalidate();
     if (bRet) {
         SendEvent(kEventSelChange);
+    }
+}
+
+void ListCtrlReportView::GetScrollDeltaValue(int32_t& nHScrollValue, int32_t& nVScrollValue) const
+{
+    nHScrollValue = DUI_NOSET_VALUE;
+    nVScrollValue = DUI_NOSET_VALUE;
+    int32_t deltaValue = DUI_NOSET_VALUE;
+    if (m_pListCtrl != nullptr) {
+        deltaValue = m_pListCtrl->GetDataItemHeight() * 2;
+    }
+    if (deltaValue > 0) {
+        deltaValue = std::max(GetRect().Height() / 3, deltaValue);
+        nVScrollValue = deltaValue;
     }
 }
 
