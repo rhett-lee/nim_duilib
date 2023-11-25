@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "duilib/Box/ListBoxItem.h"
+#include "duilib/Box/ListBox.h"
 #include "duilib/Control/CheckBox.h"
 
 namespace ui
@@ -134,11 +134,99 @@ public:
     virtual int32_t GetMaxDataItemWidth(const std::vector<ListCtrlSubItemData2Ptr>& subItemList) = 0;
 };
 
+/** ListCtrl各个视图中数据项的基类模板
+*/
+template<typename InheritType>
+class UILIB_API ListCtrlItemTemplate : public ListBoxItemTemplate<InheritType>
+{
+public:
+    ListCtrlItemTemplate() {}
+    virtual ~ListCtrlItemTemplate() {}
+
+    /** 设置控件是否选择状态
+  * @param [in] bSelected 为 true 时为选择状态，false 时为取消选择状态
+  * @param [in] bTriggerEvent 是否发送状态改变事件，true 为发送，否则为 false。默认为 false
+  */
+    virtual void Selected(bool bSelect, bool bTriggerEvent) override
+    {
+        if (__super::IsSelected() != bSelect) {
+            __super::Selected(bSelect, bTriggerEvent);
+        }
+    }
+
+protected:
+    /** 激活函数
+    */
+    virtual void Activate() override
+    {
+        //重写基类的实现逻辑，这里只发出一个Click事件
+        if (this->IsActivatable()) {
+            this->SendEvent(kEventClick);
+        }
+    }
+
+    /** 鼠标左键按下事件：触发选择子项事件
+    */
+    virtual bool ButtonDown(const EventArgs& msg) override
+    {
+        if (this->IsEnabled() && this->IsActivatable() && this->IsPointInWithScrollOffset(msg.ptMouse)) {
+            uint64_t vkFlag = kVkLButton;
+#ifdef UILIB_IMPL_WINSDK
+            if (msg.wParam & MK_CONTROL) {
+                vkFlag |= kVkControl;
+            }
+            if (msg.wParam & MK_SHIFT) {
+                vkFlag |= kVkShift;
+            }
+#endif
+            //左键按下的时候，选择
+            SelectItem(vkFlag);
+        }
+        return __super::ButtonDown(msg);
+    }
+
+    /** 鼠标右键按下事件：触发选择子项事件
+    */
+    virtual bool RButtonDown(const EventArgs& msg) override
+    {
+        if (this->IsEnabled() && this->IsActivatable() && this->IsPointInWithScrollOffset(msg.ptMouse)) {
+            uint64_t vkFlag = kVkRButton;
+#ifdef UILIB_IMPL_WINSDK
+            if (msg.wParam & MK_CONTROL) {
+                vkFlag |= kVkControl;
+            }
+            if (msg.wParam & MK_SHIFT) {
+                vkFlag |= kVkShift;
+            }
+#endif
+            //右键按下的时候，选择
+            SelectItem(vkFlag);
+        }
+        return __super::RButtonDown(msg);
+    }
+
+    /** 执行选择功能
+    * @param [in] vkFlag 按键标志, 取值范围参见 enum VKFlag 的定义
+    */
+    void SelectItem(uint64_t vkFlag)
+    {
+        IListBoxOwner* pOwner = this->GetOwner();
+        ASSERT(pOwner != nullptr);
+        if (pOwner != nullptr) {
+            size_t nListBoxIndex = this->GetListBoxIndex();
+            pOwner->SelectItem(nListBoxIndex, true, true, vkFlag);
+        }
+    }
+};
+
+typedef ListCtrlItemTemplate<HBox> ListCtrlItemBaseH; //基类为：ListBoxItemH
+typedef ListCtrlItemTemplate<VBox> ListCtrlItemBaseV; //基类为：ListBoxItemV
+
 /** Icon视图的列表项类型(垂直布局)
 *   基本结构：<ListCtrlIconViewItem> <Control/><Label/> </ListCtrlListViewItem>
 *   其中的Control和Label的属性，支持从配置文件读取
 */
-class ListCtrlIconViewItem : public ListBoxItemV
+class ListCtrlIconViewItem : public ListCtrlItemBaseV
 {
 public:
     /** 获取控件类型
@@ -150,7 +238,7 @@ public:
 *   基本结构：<ListCtrlListViewItem> <Control/><Label/> </ListCtrlListViewItem>
 *   其中的Control和Label的属性，支持从配置文件读取
 */
-class ListCtrlListViewItem : public ListBoxItemH
+class ListCtrlListViewItem : public ListCtrlItemBaseH
 {
     /** 获取控件类型
     */

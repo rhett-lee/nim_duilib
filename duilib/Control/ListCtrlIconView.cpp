@@ -343,7 +343,15 @@ bool ListCtrlIconView::ButtonDown(const EventArgs& msg)
 bool ListCtrlIconView::ButtonUp(const EventArgs& msg)
 {
     bool bRet = __super::ButtonUp(msg);
-    OnButtonUp(msg.ptMouse, msg.pSender);
+    //按住Ctrl或者Shift的时候，不触发清空选择操作，避免误操作
+    Control* pSender = msg.pSender;
+    if (msg.wParam & MK_CONTROL) {
+        pSender = nullptr;
+    }
+    else if (msg.wParam & MK_SHIFT) {
+        pSender = nullptr;
+    }
+    OnButtonUp(msg.ptMouse, pSender);
     return bRet;
 }
 
@@ -455,9 +463,21 @@ void ListCtrlIconView::OnMouseMove(const UiPoint& ptMouse, Control* pSender)
         UiSize64 scrollPos = GetScrollPos();
         m_ptMouseMove.cx = ptMouse.x + scrollPos.cx;
         m_ptMouseMove.cy = ptMouse.y + scrollPos.cy;
-        //按需滚动视图，并更新鼠标在滚动后的位置
-        m_bInMouseMove = true;
-        OnCheckScrollView();
+
+        //鼠标移动超过指定像素数的时候，才开始按移动操作，避免将正常的点击操作识别为框选操作
+        const int32_t minPt = 8;
+        if (!m_bInMouseMove) {
+            if ((std::abs(m_ptMouseMove.cx - m_ptMouseDown.cx) > minPt) ||
+                (std::abs(m_ptMouseMove.cy - m_ptMouseDown.cy) > minPt)) {
+                //开始框选操作
+                m_bInMouseMove = true;
+                OnCheckScrollView();
+            }
+        }
+        else {
+            //按需滚动视图，并更新鼠标在滚动后的位置            
+            OnCheckScrollView();
+        }
     }
     else if (m_bInMouseMove) {
         m_bInMouseMove = false;
@@ -1191,6 +1211,105 @@ bool ListCtrlIconView::OnListCtrlKeyDown(const EventArgs& msg)
         SendEvent(kEventSelect, nCurSel, Box::InvalidIndex);
     }
     return bHandled;
+}
+
+bool ListCtrlIconView::SelectItem(size_t iIndex, bool bTakeFocus,
+                                  bool bTriggerEvent, uint64_t vkFlag)
+{
+    //事件触发，需要放在函数返回之前，不能放在代码中间
+    bool bRet = false;
+    if (IsMultiSelect()) {
+        //多选模式
+        const size_t nCurElementIndex = GetDisplayItemElementIndex(iIndex);
+        if ((nCurElementIndex >= GetElementCount()) || !IsSelectableElement(nCurElementIndex)) {
+            //无有效选择，或者选择在置顶的数据项，按多选处理
+            bRet = SelectItemMulti(iIndex, bTakeFocus, bTriggerEvent);
+            return bRet;
+        }
+
+        bool bRbuttonDown = vkFlag & kVkRButton;
+        bool bShift = vkFlag & kVkShift;
+        bool bControl = vkFlag & kVkControl;
+        if (bShift && bControl) {
+            //同时按下Shift和Ctrl键，忽略
+            bShift = false;
+            bControl = false;
+        }
+        if (bRbuttonDown || (!bShift && !bControl)) {
+            //按右键的时候：如果当前项没选择，按单选逻辑实现，只保留一个选项；
+            //            如果已经选择，则保持原选择，所有项选择状态不变（以提供右键菜单，对所选项操作的机会）
+            //在没有按下Control键也没有按Shift键：按单选逻辑实现，只保留一个选项            
+            size_t nElementIndex = GetDisplayItemElementIndex(iIndex);
+            if (bRbuttonDown && IsElementSelected(nElementIndex)) {
+                bRet = true;
+            }
+            else {
+                std::vector<size_t> refreshDataIndexs;
+                m_nLastNoShiftIndex = nElementIndex;
+                if (nElementIndex == Box::InvalidIndex) {
+                    SetSelectNone(refreshDataIndexs);
+                }
+                else {
+                    std::vector<size_t> excludeIndexs;
+                    excludeIndexs.push_back(nElementIndex);
+                    SetSelectNoneExclude(excludeIndexs, refreshDataIndexs);
+                }
+                SetCurSel(iIndex);
+                bRet = SelectItemSingle(iIndex, bTakeFocus, false);
+                RefreshElements(refreshDataIndexs);
+                ASSERT(IsElementSelected(nElementIndex));
+                ASSERT(nElementIndex == GetDisplayItemElementIndex(iIndex));
+                bRet = true;
+            }
+        }
+        else {
+            if (bShift) {
+                //按左键: 同时按下了Shift键
+                size_t nIndexStart = m_nLastNoShiftIndex;
+                if (nIndexStart >= GetElementCount()) {
+                    nIndexStart = 0;
+                }
+                size_t nElementIndex = GetDisplayItemElementIndex(iIndex);
+                if (nElementIndex < GetElementCount()) {
+                    std::vector<size_t> selectedIndexs;
+                    size_t iStart = std::min(nIndexStart, nElementIndex);
+                    size_t iEnd = std::max(nIndexStart, nElementIndex);
+                    for (size_t i = iStart; i <= iEnd; ++i) {
+                        if (IsSelectableElement(i)) {
+                            selectedIndexs.push_back(i);
+                        }
+                    }
+                    std::vector<size_t> refreshDataIndexs;
+                    SetSelectedElements(selectedIndexs, true, refreshDataIndexs);
+                    SetCurSel(iIndex);
+                    bRet = SelectItemSingle(iIndex, bTakeFocus, false);
+                    RefreshElements(refreshDataIndexs);
+                    ASSERT(IsElementSelected(nElementIndex));
+                    ASSERT(nElementIndex == GetDisplayItemElementIndex(iIndex));
+                    bRet = true;
+                }
+                else {
+                    //未知情况，正常无法走到这里
+                    bRet = SelectItemMulti(iIndex, bTakeFocus, false);
+                }
+            }
+            else {
+                //按左键: 同时按下了Control键，保持多选
+                bRet = SelectItemMulti(iIndex, bTakeFocus, false);
+                if (bRet) {
+                    m_nLastNoShiftIndex = GetDisplayItemElementIndex(iIndex);
+                }
+            }
+        }
+    }
+    else {
+        //单选
+        bRet = SelectItemSingle(iIndex, bTakeFocus, false);
+    }
+    if (bTriggerEvent && bRet) {
+        SendEvent(kEventSelect, iIndex, Box::InvalidIndex);
+    }
+    return bRet;
 }
 
 }//namespace ui

@@ -1706,9 +1706,21 @@ void ListCtrlReportView::OnMouseMove(const UiPoint& ptMouse, Control* pSender)
         UiSize64 scrollPos = GetScrollPos();
         m_ptMouseMove.cx = ptMouse.x + scrollPos.cx;
         m_ptMouseMove.cy = ptMouse.y + scrollPos.cy;
-        //按需滚动视图，并更新鼠标在滚动后的位置
-        m_bInMouseMove = true;
-        OnCheckScrollView();
+
+        //鼠标移动超过指定像素数的时候，才开始按移动操作，避免将正常的点击操作识别为框选操作
+        const int32_t minPt = 8;
+        if (!m_bInMouseMove) {
+            if ((std::abs(m_ptMouseMove.cx - m_ptMouseDown.cx) > minPt) ||
+                (std::abs(m_ptMouseMove.cy - m_ptMouseDown.cy) > minPt)) {
+                //开始框选操作
+                m_bInMouseMove = true;
+                OnCheckScrollView();
+            }
+        }
+        else {
+            //按需滚动视图，并更新鼠标在滚动后的位置            
+            OnCheckScrollView();
+        }
     }
     else if (m_bInMouseMove) {
         m_bInMouseMove = false;

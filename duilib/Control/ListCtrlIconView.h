@@ -25,6 +25,15 @@ public:
     virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue);
     virtual void HandleEvent(const EventArgs& msg) override;
 
+    /** 选择子项
+    *  @param [in] iIndex 子项目的ID
+    *  @param [in] bTakeFocus 是否让子项控件成为焦点控件
+    *  @param [in] bTriggerEvent 是否触发选择事件, 如果为true，会触发一个kEventSelect事件
+    *  @param [in] vkFlag 按键标志, 取值范围参见 enum VKFlag 的定义
+    */
+    virtual bool SelectItem(size_t iIndex, bool bTakeFocus,
+                            bool bTriggerEvent, uint64_t vkFlag) override;
+
 public:
     /** 设置ListCtrl控件接口
     */

@@ -981,7 +981,7 @@ bool ListBox::SelectItemMulti(size_t iIndex, bool bTakeFocus, bool bTriggerEvent
 	
 	if (pListItem->IsSelected()) {
 		//多选时，再次选择时，按取消选择处理
-		pListItem->OptionSelected(false, bTriggerEvent);
+		pListItem->OptionSelected(false, false);
 		Invalidate();
 		if (bTriggerEvent) {
 			SendEvent(kEventUnSelect, iIndex, Box::InvalidIndex);
@@ -990,7 +990,7 @@ bool ListBox::SelectItemMulti(size_t iIndex, bool bTakeFocus, bool bTriggerEvent
 	else {
 		//如果原来是非选择状态，更新为选择状态
 		m_iCurSel = iIndex;
-		pListItem->OptionSelected(true, bTriggerEvent);		
+		pListItem->OptionSelected(true, false);		
 		if (bTakeFocus) {			
 			pControl->SetFocus();
 		}

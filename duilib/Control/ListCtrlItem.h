@@ -6,6 +6,7 @@
 #include "duilib/Box/ListBox.h"
 #include "duilib/Control/Label.h"
 #include "duilib/Core/ImageList.h"
+#include "duilib/Control/ListCtrlDefs.h"
 
 namespace ui
 {
@@ -17,7 +18,7 @@ namespace ui
 */
 class ListCtrl;
 class ListCtrlSubItem;
-class ListCtrlItem : public ListBoxItemH
+class ListCtrlItem : public ListCtrlItemBaseH
 {
     friend class ListCtrlReportView;//开放部分protect接口
 public:
@@ -36,12 +37,6 @@ public:
      * @return 默认返回false
      */
     virtual bool IsSelectableType() const override;
-
-    /** 设置控件是否选择状态
-     * @param [in] bSelected 为 true 时为选择状态，false 时为取消选择状态
-     * @param [in] bTriggerEvent 是否发送状态改变事件，true 为发送，否则为 false。默认为 false
-     */
-    virtual void Selected(bool bSelect, bool bTriggerEvent) override;
 
     /** 设置是否可以选择(置顶数据不可选择，其他数据可选择)
     */
@@ -118,13 +113,10 @@ protected:
     int32_t GetCheckBoxImageWidth();
 
 protected:
-    virtual void Activate();
-    virtual bool ButtonDown(const EventArgs& msg) override;
+    
+    /** 鼠标左键弹起事件
+    */
     virtual bool ButtonUp(const EventArgs& msg) override;
-    virtual bool ButtonDoubleClick(const EventArgs& msg) override;
-    virtual bool RButtonDown(const EventArgs& msg) override;
-    virtual bool RButtonUp(const EventArgs& msg) override;
-    virtual bool RButtonDoubleClick(const EventArgs& msg) override;
 
     /** 是否支持勾选模式（目前是TreeView/ListCtrl在使用这个模式）
         勾选模式是指：
@@ -136,12 +128,6 @@ protected:
     /** 绘制函数
     */
     virtual void Paint(IRender* pRender, const UiRect& rcPaint) override;
-
-protected:
-    /** 执行选择功能
-    * @param [in] vkFlag 按键标志, 取值范围参见 enum VKFlag 的定义
-    */
-    void SelectItem(uint64_t vkFlag);
 
 private:
     /** 是否可以选择（影响方向键切换选择项）
