@@ -133,7 +133,11 @@ bool ListBox::OnListBoxKeyDown(const EventArgs& msg)
 			size_t nColumns = 0;
 			size_t nRows = 0;
 			GetDisplayItemCount(false, nColumns, nRows);
-			SelectItemCountN(true, true, false, nColumns);
+			if ((m_iCurSel < GetItemCount()) && IsSelectableItem(m_iCurSel) &&
+				(GetItemCountBefore(m_iCurSel) >= nColumns)) {
+				//可以向上滚动1行
+				SelectItemCountN(true, true, false, nColumns);
+			}
 		}		
 		break;
 	case VK_DOWN:
@@ -146,7 +150,14 @@ bool ListBox::OnListBoxKeyDown(const EventArgs& msg)
 			size_t nColumns = 0;
 			size_t nRows = 0;
 			GetDisplayItemCount(false, nColumns, nRows);
-			SelectItemCountN(true, true, true, nColumns);
+			if ((m_iCurSel < GetItemCount()) && IsSelectableItem(m_iCurSel) &&
+				(GetItemCountAfter(m_iCurSel) >= nColumns)) {
+				SelectItemCountN(true, true, true, nColumns);
+			}
+			else {
+				PageDown();
+				SelectItem(m_iCurSel, true, false);
+			}
 		}
 		break;
 	case VK_LEFT:
@@ -155,7 +166,10 @@ bool ListBox::OnListBoxKeyDown(const EventArgs& msg)
 			size_t nColumns = 0;
 			size_t nRows = 0;
 			GetDisplayItemCount(false, nColumns, nRows);
-			SelectItemCountN(true, true, false, nRows);
+			if ((m_iCurSel < GetItemCount()) && IsSelectableItem(m_iCurSel) &&
+				(GetItemCountBefore(m_iCurSel) >= nRows)) {
+				SelectItemCountN(true, true, false, nRows);
+			}
 		}
 		else {
 			//不是横向滚动条，向上1条
@@ -168,7 +182,14 @@ bool ListBox::OnListBoxKeyDown(const EventArgs& msg)
 			size_t nColumns = 0;
 			size_t nRows = 0;
 			GetDisplayItemCount(false, nColumns, nRows);
-			SelectItemCountN(true, true, true, nRows);
+			if ((m_iCurSel < GetItemCount()) && IsSelectableItem(m_iCurSel) &&
+				(GetItemCountAfter(m_iCurSel) >= nRows)) {
+				SelectItemCountN(true, true, true, nRows);
+			}
+			else {
+				PageRight();
+				SelectItem(m_iCurSel, true, false);
+			}
 		}
 		else {
 			//不是横向滚动条，向下1条
@@ -300,9 +321,6 @@ size_t ListBox::SelectItemPage(bool bTakeFocus, bool bTriggerEvent, bool bForwar
 	size_t nColumns = 0;
 	size_t nRows = 0;
 	size_t nTotalDisplayCount = GetDisplayItemCount(bIsHorizontal, nColumns, nRows);
-	if ((nColumns > 0) && (nRows > 0)){
-		nTotalDisplayCount = nColumns * nRows;
-	}
 	if (nTotalDisplayCount < 1) {
 		nTotalDisplayCount = 1;
 	}
@@ -311,7 +329,28 @@ size_t ListBox::SelectItemPage(bool bTakeFocus, bool bTriggerEvent, bool bForwar
 		nCountPerPage = nTotalDisplayCount * std::abs(nDeltaValue) / GetRect().Width();
 		if (nCountPerPage > nRows) {
 			nCountPerPage -= nRows; //减掉1行
-		}		
+		}
+		if ((m_iCurSel < GetItemCount()) && IsSelectableItem(m_iCurSel)) {
+			//如果无法满足翻页，那么停留在最后一列
+			while (nCountPerPage > nRows) {
+				if (bForward) {
+					if (GetItemCountAfter(m_iCurSel) >= nCountPerPage) {
+						break;
+					}
+				}
+				else {
+					if (GetItemCountBefore(m_iCurSel) >= nCountPerPage) {
+						break;
+					}
+				}
+				if (nCountPerPage > nRows) {
+					nCountPerPage -= nRows;
+				}
+				else {
+					break;
+				}
+			}
+		}
 	}
 	else {
 		//其他情况，按纵向滚动处理
@@ -319,11 +358,65 @@ size_t ListBox::SelectItemPage(bool bTakeFocus, bool bTriggerEvent, bool bForwar
 		if (nCountPerPage > nColumns) {
 			nCountPerPage -= nColumns; //减掉1列
 		}
+		if ((m_iCurSel < GetItemCount()) && IsSelectableItem(m_iCurSel)) {
+			//如果无法满足翻页，那么停留在最后一行
+			while (nCountPerPage > nColumns) {
+				if (bForward) {
+					if (GetItemCountAfter(m_iCurSel) >= nCountPerPage) {
+						break;
+					}
+				}
+				else {
+					if (GetItemCountBefore(m_iCurSel) >= nCountPerPage) {
+						break;
+					}
+				}
+				if (nCountPerPage > nColumns) {
+					nCountPerPage -= nColumns;
+				}
+				else {
+					break;
+				}
+			}
+		}
 	}
 	if (nCountPerPage < 1) {
 		nCountPerPage = 1;
 	}
-	return SelectItemCountN(bTakeFocus, bTriggerEvent, bForward, nCountPerPage);
+	
+	itemIndex = Box::InvalidIndex;
+	if ((m_iCurSel < GetItemCount()) && IsSelectableItem(m_iCurSel)) {
+		if (bForward) {
+			if (GetItemCountAfter(m_iCurSel) >= nCountPerPage) {
+				itemIndex = SelectItemCountN(bTakeFocus, bTriggerEvent, bForward, nCountPerPage);
+			}
+		}
+		else {
+			if (GetItemCountBefore(m_iCurSel) >= nCountPerPage) {
+				itemIndex = SelectItemCountN(bTakeFocus, bTriggerEvent, bForward, nCountPerPage);
+			}
+		}
+	}
+	if (itemIndex == Box::InvalidIndex) {
+		if (IsHorizontalScrollBar()) {
+			if (bForward) {
+				PageRight();
+			}
+			else {
+				PageLeft();
+			}			
+		}
+		else {
+			if (bForward) {
+				PageDown();
+			}
+			else {
+				PageUp();
+			}
+		}
+		SelectItem(m_iCurSel, true, false);
+	}
+	return itemIndex;
 }
 
 size_t ListBox::SelectItemCountN(bool bTakeFocus, bool bTriggerEvent, bool bForward, size_t nCount)
@@ -427,50 +520,223 @@ bool ListBox::IsSelectableItem(size_t itemIndex) const
 
 size_t ListBox::GetDisplayItemCount(bool bIsHorizontal, size_t& nColumns, size_t& nRows) const
 {
-	std::map<int32_t, int32_t> rows;
-	std::map<int32_t, int32_t> columns;
-	size_t nCount = 0;
-	UiRect boxRect = GetRect();
-	const size_t nItemCount = GetItemCount();
-	for (size_t nItemIndex = 0; nItemIndex < nItemCount; ++nItemIndex) {
-		Control* pControl = GetItemAt(nItemIndex);
-		if ((pControl == nullptr) || !pControl->IsVisible() || pControl->IsFloat()){
-			continue;
-		}
+	nColumns = 1;
+	nRows = 1;
+	size_t nCount = 1;
+	bool bRet = false;
+	HTileLayout* pHTileLayout = dynamic_cast<HTileLayout*>(GetLayout());
+	if ((pHTileLayout != nullptr) && pHTileLayout->IsFreeLayout()) {
+		pHTileLayout = nullptr;
+	}
+	VTileLayout* pVTileLayout = dynamic_cast<VTileLayout*>(GetLayout());
+	if ((pVTileLayout != nullptr) && pVTileLayout->IsFreeLayout()) {
+		pVTileLayout = nullptr;
+	}
+	if (pHTileLayout != nullptr) {
+		nRows = CalcHTileRows(pHTileLayout);
+		nColumns = CalcHTileColumns(pHTileLayout);
+		nCount = nColumns * nRows;
+		bRet = true;
+	}
+	else if (pVTileLayout != nullptr) {		
+		nRows = CalcVTileRows(pVTileLayout);
+		nColumns = CalcVTileColumns(pVTileLayout);
+		nCount = nColumns * nRows;
+		bRet = true;
+	}
+	if(!bRet) {
+		std::map<int32_t, int32_t> rows;
+		std::map<int32_t, int32_t> columns;		
+		UiRect boxRect = GetRect();
+		const size_t nItemCount = GetItemCount();
+		for (size_t nItemIndex = 0; nItemIndex < nItemCount; ++nItemIndex) {
+			Control* pControl = GetItemAt(nItemIndex);
+			if ((pControl == nullptr) || !pControl->IsVisible() || pControl->IsFloat()) {
+				continue;
+			}
 
-		bool bDisplayItem = false;
-		const UiRect& rc = pControl->GetRect();
-		if (bIsHorizontal) {
-			if ((rc.left >= boxRect.left) && 
-				(rc.right <= boxRect.right)) {
-				if ((rc.top >= boxRect.top) && (rc.top < boxRect.bottom)) {
-					bDisplayItem = true;
-				}
-				else if ((rc.bottom >= boxRect.top) && (rc.top < boxRect.bottom)) {
-					bDisplayItem = true;
-				}
-			}
-		}
-		else {
-			if ((rc.top >= boxRect.top) &&
-				(rc.bottom <= boxRect.bottom)) {
-				if ((rc.left >= boxRect.left) && (rc.left < boxRect.right)) {
-					bDisplayItem = true;
-				}
-				else if ((rc.right >= boxRect.left) && (rc.right < boxRect.right)) {
-					bDisplayItem = true;
+			bool bDisplayItem = false;
+			const UiRect& rc = pControl->GetRect();
+			if (bIsHorizontal) {
+				if ((rc.left >= boxRect.left) &&
+					(rc.right <= boxRect.right)) {
+					if ((rc.top >= boxRect.top) && (rc.top < boxRect.bottom)) {
+						bDisplayItem = true;
+					}
+					else if ((rc.bottom >= boxRect.top) && (rc.top < boxRect.bottom)) {
+						bDisplayItem = true;
+					}
 				}
 			}
+			else {
+				if ((rc.top >= boxRect.top) &&
+					(rc.bottom <= boxRect.bottom)) {
+					if ((rc.left >= boxRect.left) && (rc.left < boxRect.right)) {
+						bDisplayItem = true;
+					}
+					else if ((rc.right >= boxRect.left) && (rc.right < boxRect.right)) {
+						bDisplayItem = true;
+					}
+				}
+			}
+			if (bDisplayItem) {
+				rows[pControl->GetRect().top] = 0;
+				columns[pControl->GetRect().left] = 0;
+				++nCount;
+			}
 		}
-		if (bDisplayItem) {
-			rows[pControl->GetRect().top] = 0;
-			columns[pControl->GetRect().left] = 0;
-			++nCount;
+		nColumns = columns.size();
+		nRows = rows.size();
+		if (nCount >= (nRows * nColumns)) {
+			nCount = nRows * nColumns;
 		}
 	}
-	nColumns = columns.size();
-	nRows = rows.size();
 	return nCount;
+}
+
+int32_t ListBox::CalcHTileRows(HTileLayout* pHTileLayout) const
+{
+	int32_t nRows = 1;
+	if (pHTileLayout == nullptr) {
+		return nRows;
+	}
+	UiSize szItem = pHTileLayout->GetItemSize();
+	if ((szItem.cx <= 0) || (szItem.cy <= 0)) {
+		return nRows;
+	}
+	int32_t childMarginY = pHTileLayout->GetChildMarginY();
+	if (childMarginY < 0) {
+		childMarginY = 0;
+	}
+	nRows = pHTileLayout->GetRows();
+	bool bAutoRows = pHTileLayout->IsAutoCalcRows();
+	if (bAutoRows) {
+		nRows = 0;
+	}
+	if (nRows <= 0) {
+		UiRect rc = GetRect();
+		rc.Deflate(GetControlPadding());
+		int32_t totalHeight = rc.Height();
+		while (totalHeight > 0) {
+			totalHeight -= szItem.cy;
+			if (nRows != 0) {
+				totalHeight -= childMarginY;
+			}
+			if (totalHeight >= 0) {
+				++nRows;
+			}
+		}
+	}
+	if (nRows <= 0) {
+		nRows = 1;
+	}
+	return nRows;
+}
+
+int32_t ListBox::CalcHTileColumns(HTileLayout* pHTileLayout) const
+{
+	int32_t nColumns = 1;
+	if (pHTileLayout == nullptr) {
+		return nColumns;
+	}
+	UiSize szItem = pHTileLayout->GetItemSize();
+	if ((szItem.cx <= 0) || (szItem.cy <= 0)) {
+		return nColumns;
+	}
+	int32_t childMarginX = pHTileLayout->GetChildMarginX();
+	if (childMarginX < 0) {
+		childMarginX = 0;
+	}
+	nColumns = 0;
+	UiRect rc = GetRect();
+	rc.Deflate(GetControlPadding());
+	int32_t totalWidth = rc.Width();
+	while (totalWidth > 0) {
+		totalWidth -= szItem.cx;
+		if (nColumns != 0) {
+			totalWidth -= childMarginX;
+		}
+		if (totalWidth >= 0) {
+			++nColumns;
+		}
+	}
+	if (nColumns <= 0) {
+		nColumns = 1;
+	}
+	return nColumns;
+}
+
+int32_t ListBox::CalcVTileColumns(VTileLayout* pVTileLayout) const
+{
+	int32_t nColumns = 1;
+	if (pVTileLayout == nullptr) {
+		return nColumns;
+	}
+	UiSize szItem = pVTileLayout->GetItemSize();
+	if ((szItem.cx <= 0) || (szItem.cy <= 0)) {
+		return nColumns;
+	}
+	int32_t childMarginX = pVTileLayout->GetChildMarginX();
+	if (childMarginX < 0) {
+		childMarginX = 0;
+	}
+
+	nColumns = pVTileLayout->GetColumns();
+	bool bAutoColumns = pVTileLayout->IsAutoCalcColumns();
+	if (bAutoColumns) {
+		nColumns = 0;
+	}
+	if (nColumns <= 0) {
+		UiRect rc = GetRect();
+		rc.Deflate(GetControlPadding());
+		int32_t totalWidth = rc.Width();
+		while (totalWidth > 0) {
+			totalWidth -= szItem.cx;
+			if (nColumns != 0) {
+				totalWidth -= childMarginX;
+			}
+			if (totalWidth >= 0) {
+				++nColumns;
+			}
+		}
+	}
+	if (nColumns <= 0) {
+		nColumns = 1;
+	}
+	return nColumns;
+}
+
+int32_t ListBox::CalcVTileRows(VTileLayout* pVTileLayout) const
+{
+	int32_t nRows = 1;
+	if (pVTileLayout == nullptr) {
+		return nRows;
+	}
+	UiSize szItem = pVTileLayout->GetItemSize();
+	if ((szItem.cx <= 0) || (szItem.cy <= 0)) {
+		return nRows;
+	}
+	int32_t childMarginY = pVTileLayout->GetChildMarginY();
+	if (childMarginY < 0) {
+		childMarginY = 0;
+	}
+	nRows = 0;
+	UiRect rc = GetRect();
+	rc.Deflate(GetControlPadding());
+	int32_t totalHeight = rc.Height();
+	while (totalHeight > 0) {
+		totalHeight -= szItem.cy;
+		if (nRows != 0) {
+			totalHeight -= childMarginY;
+		}
+		if (totalHeight >= 0) {
+			++nRows;
+		}
+	}
+	if (nRows <= 0) {
+		nRows = 1;
+	}
+	return nRows;
 }
 
 void ListBox::SendEvent(EventType eventType, WPARAM wParam, LPARAM lParam, TCHAR tChar, const UiPoint& mousePos)
@@ -546,6 +812,25 @@ bool ListBox::OnFindSelectable(size_t /*nCurSel*/, SelectableMode /*mode*/,
 							   size_t /*nCount*/, size_t& /*nDestItemIndex*/)
 {
 	return false;
+}
+
+size_t ListBox::GetItemCountBefore(size_t nCurSel)
+{
+	if (nCurSel < GetItemCount()) {
+		return nCurSel;
+	}
+	else {
+		return 0;
+	}
+}
+
+size_t ListBox::GetItemCountAfter(size_t nCurSel)
+{
+	size_t nCount = 0;
+	if (nCurSel < GetItemCount()) {
+		nCount = GetItemCount() - nCurSel - 1;
+	}
+	return nCount;
 }
 
 bool ListBox::SelectItem(size_t iIndex, bool bTakeFocus, bool bTriggerEvent, uint64_t /*vkFlag*/)

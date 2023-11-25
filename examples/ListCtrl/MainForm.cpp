@@ -61,7 +61,7 @@ void MainForm::OnInitWindow()
 	// 表格类型
 	ui::Combo* pTypeCombo = dynamic_cast<ui::Combo*>(FindControl(L"list_ctrl_type_combo"));
 	if (pTypeCombo != nullptr) {
-		pTypeCombo->SetCurSel(0);
+		pTypeCombo->SetCurSel((int32_t)pListCtrl->GetListCtrlType());
 		pTypeCombo->AttachSelect([this, pListCtrl, pTypeCombo](const ui::EventArgs& args) {
 			size_t nCurSel = args.wParam;
 			size_t nType = pTypeCombo->GetItemData(nCurSel);

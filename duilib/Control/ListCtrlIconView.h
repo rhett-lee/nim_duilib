@@ -23,6 +23,7 @@ public:
 
     virtual std::wstring GetType() const override { return L"ListCtrlIconView"; }
     virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue);
+    virtual void HandleEvent(const EventArgs& msg) override;
 
 public:
     /** 设置ListCtrl控件接口
@@ -143,6 +144,14 @@ private:
     */
     bool OnFrameSelection(int64_t left, int64_t right, int64_t top, int64_t bottom);
 
+    /** 横向布局，计算行数
+    */
+    int32_t CalcRows() const;
+
+    /** 纵向布局，计算列数
+    */
+    int32_t CalcColumns() const;
+
     /** 计算一个元素的矩形区域
     */
     void CalcElementRectV(size_t nElemenetIndex, const UiSize& szItem, 
@@ -162,6 +171,11 @@ private:
     /** 获取滚动视图的滚动幅度
     */
     void GetScrollDeltaValue(int32_t& nHScrollValue, int32_t& nVScrollValue) const;
+
+    /** 响应KeyDown消息
+    * @return 返回true表示成功处理，返回false表示未处理此消息
+    */
+    bool OnListCtrlKeyDown(const EventArgs& msg);
 
 private:
     /** ListCtrl 控件接口

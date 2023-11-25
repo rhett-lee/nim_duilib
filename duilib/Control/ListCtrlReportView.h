@@ -493,7 +493,7 @@ private:
 
     /** 获取数据项的高度, 高度不包含表头
     * @param [in] nCount 数据项个数，如果为Box::InvalidIndex，则获取所有数据项的高度总和
-    * * @parma [in] bIncludeAtTops 是否包含置顶元素的高度值
+    * @parma [in] bIncludeAtTops 是否包含置顶元素的高度值
     * @return 返回 nCount 个数据项的高度总和, 不包含表头的高度
     */
     int64_t GetElementsHeight(size_t nCount, bool bIncludeAtTops) const;

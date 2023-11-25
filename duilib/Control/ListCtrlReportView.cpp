@@ -212,7 +212,7 @@ bool ListCtrlReportView::OnListCtrlKeyDown(const EventArgs& msg)
         }
         break;
     case VK_DOWN:
-        //不纵向滚动条，向下1行
+        //纵向滚动条，向下1行
         nIndexEnd = nIndexCurSel + 1;
         if (nIndexEnd >= nElementCount) {
             nIndexEnd = nElementCount - 1;
@@ -2653,7 +2653,7 @@ void ListCtrlReportLayout::EnsureVisible(UiRect rc, size_t iIndex, bool bToTop) 
             return;
         }
     }
-    UiSize szElementSize = GetElementSize(0, iIndex); //目标元素的大小
+    const UiSize szElementSize = GetElementSize(0, iIndex); //目标元素的大小
     int64_t nNewTopPos = 0;     //顶部对齐时的位置
     int64_t nNewBottomPos = 0;  //底部对齐时的位置
     if (iIndex > 0) {
@@ -2685,26 +2685,39 @@ void ListCtrlReportLayout::EnsureVisible(UiRect rc, size_t iIndex, bool bToTop) 
     if (nNewBottomPos > pVScrollBar->GetScrollRange()) {
         nNewBottomPos = pVScrollBar->GetScrollRange();
     }
-    ui::UiSize64 sz = pDataView->GetScrollPos();
-    int64_t nNewPos = sz.cy;
+    ui::UiSize64 scrollPos = pDataView->GetScrollPos();
+    int64_t nScrollPosY = scrollPos.cy;
+    int64_t nNewPos = nScrollPosY;
     if (bToTop) {
         //顶部对齐
         nNewPos = nNewTopPos;
     }
     else {
         //未指定对齐，智能判断
-        int64_t diff = sz.cy - nNewBottomPos;
-        if (diff < 0) {
-            //向上滚动：底部对齐
-            nNewPos = nNewBottomPos;
+        int64_t diffTop = nNewTopPos - nScrollPosY;
+        int64_t diffBottom = nNewBottomPos - nScrollPosY;
+        bool bFullDisplay = false; //是否已经可以完全显示出来（纵向）
+        if ((nScrollPosY >= nNewBottomPos) && (nScrollPosY <= nNewTopPos)) {
+            if ((std::abs(diffTop) >= szElementSize.cy) && (std::abs(diffBottom) >= szElementSize.cy)) {
+                //当前是完全显示的，不需要滚动
+                bFullDisplay = true;
+            }
         }
-        else {
-            //向下滚动：顶部对齐
-            nNewPos = nNewTopPos;
+        if (!bFullDisplay) {
+            if (std::abs(diffTop) > std::abs(diffBottom)) {
+                //向上滚动：底部对齐
+                nNewPos = nNewBottomPos;
+            }
+            else {
+                //向下滚动：顶部对齐
+                nNewPos = nNewTopPos;
+            }
         }
     }
-    sz.cy = nNewPos;
-    pDataView->SetScrollPos(sz);
+    if (scrollPos.cy != nNewPos) {
+        scrollPos.cy = nNewPos;
+        pDataView->SetScrollPos(scrollPos);
+    }    
 }
 
 int64_t ListCtrlReportLayout::GetElementsHeight(size_t nCount, bool bIncludeAtTops) const

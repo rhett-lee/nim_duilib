@@ -357,6 +357,16 @@ protected:
 	virtual bool OnFindSelectable(size_t nCurSel, SelectableMode mode, 
 								  size_t nCount, size_t& nDestItemIndex);
 
+	/** 查询本条数据前面还有几条数据（支持虚表数据）
+	* @param [in] nCurSel 当前选择的显示控件索引号
+	*/
+	virtual size_t GetItemCountBefore(size_t nCurSel);
+
+	/** 查询本条数据后面还有几条数据（支持虚表数据）
+	* @param [in] nCurSel 当前选择的显示控件索引号
+	*/
+	virtual size_t GetItemCountAfter(size_t nCurSel);
+
 	/** 子项的选择状态变化事件，用于状态同步
 	* @param [in] iIndex 子项目的ID，范围是：[0, GetItemCount())
 	* @param [in] pListBoxItem 关联的列表项接口
@@ -446,6 +456,26 @@ protected:
 	* @return 返回可视区域显示的记录数
 	*/
 	virtual size_t GetDisplayItemCount(bool bIsHorizontal, size_t& nColumns, size_t& nRows) const;
+
+	/** 横向瓦片布局，计算可显示行数
+	* @return 返回值：>= 1
+	*/
+	int32_t CalcHTileRows(HTileLayout* pHTileLayout) const;
+
+	/** 横向瓦片布局，计算可显示列数
+	* @return 返回值：>= 1
+	*/
+	int32_t CalcHTileColumns(HTileLayout* pHTileLayout) const;
+
+	/** 纵向瓦片布局，计算列数
+	* @return 返回值：>= 1
+	*/
+	int32_t CalcVTileColumns(VTileLayout* pVTileLayout) const;
+
+	/** 纵向瓦片布局，计算可现实行数
+	* @return 返回值：>= 1
+	*/
+	int32_t CalcVTileRows(VTileLayout* pVTileLayout) const;
 
 private:
 	//是否随滚动改变选中项

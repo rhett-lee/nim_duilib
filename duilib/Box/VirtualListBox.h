@@ -316,6 +316,16 @@ protected:
 	virtual bool OnFindSelectable(size_t nCurSel, SelectableMode mode, 
 								  size_t nCount, size_t& nDestItemIndex) override;
 
+    /** 查询本条数据前面还有几条数据（支持虚表数据）
+    * @param [in] nCurSel 当前选择的显示控件索引号
+    */
+    virtual size_t GetItemCountBefore(size_t nCurSel) override;
+
+    /** 查询本条数据后面还有几条数据（支持虚表数据）
+    * @param [in] nCurSel 当前选择的显示控件索引号
+    */
+    virtual size_t GetItemCountAfter(size_t nCurSel) override;
+
     /** 判断一个数据元素是否为可选择项
 	* @param [in] nElementIndex 元素索引号，有效范围：[0, GetElementCount())
 	*/

@@ -287,10 +287,11 @@ bool VirtualVTileLayout::IsElementDisplay(UiRect rc, size_t iIndex) const
 
     int64_t nScrollPos = pOwnerBox->GetScrollPos().cy;
     int64_t nElementPos = GetElementsHeight(rc, iIndex + 1);
-    int64_t nElementHeight = GetElementsHeight(rc, 1);
-    if ((nElementPos - nElementHeight) > nScrollPos) { //矩形的top位置
+    UiSize szItem = GetItemSize();
+    if ((nElementPos - szItem.cy) > nScrollPos) { //矩形的top位置
         int64_t nBoxHeight = pOwnerBox->GetHeight();
         if (nElementPos <= (nScrollPos + nBoxHeight)) {//矩形的bottom位置
+            //完整显示
             return true;
         }
     }
@@ -378,7 +379,7 @@ void VirtualVTileLayout::EnsureVisible(UiRect rc, size_t iIndex, bool bToTop) co
     if (elementHeight <= 0) {
         return;
     }
-    int32_t nColumns = CalcTileColumns(rc.Width());
+    const int32_t nColumns = CalcTileColumns(rc.Width());
     int64_t nTopIndex = 0;
     if (elementHeight > 0) {
         nTopIndex = (nPos / elementHeight) * nColumns;
@@ -395,14 +396,15 @@ void VirtualVTileLayout::EnsureVisible(UiRect rc, size_t iIndex, bool bToTop) co
         if (IsElementDisplay(rc, iIndex)) {
             return;
         }
-
-        if ((int64_t)iIndex > nTopIndex) {
-            // 向下
+        int64_t nTopRows = nTopIndex / nColumns;
+        int64_t nDestRows = iIndex / nColumns;
+        if ((int64_t)nDestRows > nTopRows) {
+            // 向下滚动：确保在底部
             int64_t height = GetElementsHeight(rc, iIndex + 1);
             nNewPos = height - pOwnerBox->GetRect().Height();
         }
         else {
-            // 向上
+            // 向上滚动：确保在顶部
             nNewPos = GetElementsHeight(rc, iIndex + 1);
             if (nNewPos >= elementHeight) {
                 nNewPos -= elementHeight;

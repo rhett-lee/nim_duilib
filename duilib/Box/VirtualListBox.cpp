@@ -814,6 +814,27 @@ bool VirtualListBox::OnFindSelectable(size_t nCurSel, SelectableMode mode,
     return bLoaded;
 }
 
+size_t VirtualListBox::GetItemCountBefore(size_t nCurSel)
+{
+    size_t nElementIndex = GetDisplayItemElementIndex(nCurSel);
+    if (nElementIndex == Box::InvalidIndex) {
+        nElementIndex = 0;
+    }
+    return nElementIndex;
+}
+
+size_t VirtualListBox::GetItemCountAfter(size_t nCurSel)
+{
+    size_t nElementIndex = GetDisplayItemElementIndex(nCurSel);
+    if (nElementIndex < GetElementCount()) {
+        nElementIndex = GetElementCount() - nElementIndex - 1;
+    }
+    else {
+        nElementIndex = 0;
+    }
+    return nElementIndex;
+}
+
 bool VirtualListBox::IsSelectableElement(size_t /*nElementIndex*/) const
 {
     return true;

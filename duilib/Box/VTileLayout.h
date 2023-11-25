@@ -79,6 +79,10 @@ public:
 	*/
 	bool IsScaleDown() const;
 
+	/** 当前是否为自由布局
+	*/
+	bool IsFreeLayout() const;
+
 private:
 	/** 未处理的子控件接口和其宽高信息
 	*/
@@ -179,10 +183,6 @@ private:
 	UiSize64 ArrangeChildFreeLayout(const std::vector<Control*>& items, 
 									UiRect rect, 
 									bool isCalcOnly) const;
-
-	/** 当前是否为自由布局
-	*/
-	bool IsFreeLayout() const;
 
 private:
 
