@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include "duilib/Box/VirtualListBox.h"
 #include "duilib/Control/ListCtrlDefs.h"
 
 namespace ui
@@ -15,7 +14,7 @@ namespace ui
 class ListCtrl;
 class ListCtrlData;
 struct ListCtrlItemData;
-class ListCtrlReportView : public VirtualListBox, public IListCtrlView
+class ListCtrlReportView : public ListCtrlView, public IListCtrlView
 {
     friend class ListCtrlReportLayout;
 public:
@@ -23,17 +22,6 @@ public:
     virtual ~ListCtrlReportView();
 
     virtual std::wstring GetType() const override { return L"ListCtrlReportView"; }
-    virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue);
-    virtual void HandleEvent(const EventArgs& msg) override;
-
-    /** 选择子项
-	*  @param [in] iIndex 子项目的ID
-	*  @param [in] bTakeFocus 是否让子项控件成为焦点控件
-	*  @param [in] bTriggerEvent 是否触发选择事件, 如果为true，会触发一个kEventSelect事件
-	*  @param [in] vkFlag 按键标志, 取值范围参见 enum VKFlag 的定义
-	*/
-	virtual bool SelectItem(size_t iIndex, bool bTakeFocus, 
-							bool bTriggerEvent, uint64_t vkFlag) override;
 
     /** 设置ListCtrl控件接口
     */
@@ -58,7 +46,7 @@ public:
 
     /** 获取顶部元素的索引号
     */
-    size_t GetTopElementIndex() const;
+    virtual size_t GetTopElementIndex() const override;
 
     /** 设置当前显示的数据项列表，顺序是从上到下
     * @param [in] itemIndexList 当前显示的数据项索引号列表
@@ -68,18 +56,18 @@ public:
     /** 获取当前显示的数据项列表，顺序是从上到下
     * @param [in] itemIndexList 当前显示的数据项索引号列表
     */
-    void GetDisplayDataItems(std::vector<size_t>& itemIndexList) const;
+    virtual void GetDisplayDataItems(std::vector<size_t>& itemIndexList) const override;
 
     /** 判断一个数据项是否可见
     * @param [in] itemIndex 数据项的索引号
     */
-    bool IsDataItemDisplay(size_t itemIndex) const;
+    virtual bool IsDataItemDisplay(size_t itemIndex) const override;
 
     /** 确保数据索引项可见
     * @param [in] itemIndex 数据项的索引号
     * @param [in] bToTop 是否确保在最上方
     */
-    bool EnsureDataItemVisible(size_t itemIndex, bool bToTop);
+    virtual bool EnsureDataItemVisible(size_t itemIndex, bool bToTop) override;
 
 public:
     /** 得到可见范围内第一个元素的索引
@@ -141,17 +129,6 @@ public:
     /** 调整UI控件个数，以确保足够显示出应显示的数据
     */
     void AjustItemCount();
-
-    /** 监听选择项发生变化的事件
-     * @param[in] callback 选择子项时的回调函数
-     */
-    void AttachSelChange(const EventCallback& callback) { AttachEvent(kEventSelChange, callback); }
-
-    /** 发送事件的函数
-    */
-    virtual void SendEvent(EventType eventType, WPARAM wParam = 0, LPARAM lParam = 0, TCHAR tChar = 0,
-                           const UiPoint& mousePos = UiPoint()) override;
-    virtual void SendEvent(const EventArgs& event) override;
 
 public:
     /** 横向网格线的宽度
@@ -235,10 +212,6 @@ protected:
     */
     virtual size_t FindSelectableElement(size_t nElementIndex, bool bForward) const override;
 
-    /** 控件初始化
-    */
-    virtual void DoInit() override;
-
     /** 子项的选择状态变化事件，用于状态同步
     * @param [in] iIndex 子项目的ID，范围是：[0, GetItemCount())
     * @param [in] pListBoxItem 关联的列表项接口
@@ -253,7 +226,20 @@ protected:
 
     /** 选择状态发生变化
     */
-    void OnSelectStatusChanged();
+    virtual void OnSelectStatusChanged() override;
+
+    /** 获取滚动视图的滚动幅度
+    */
+    virtual void GetScrollDeltaValue(int32_t& nHScrollValue, int32_t& nVScrollValue) const override;
+
+    /** 执行了鼠标框选操作
+    * @param [in] left 框选的X坐标left值
+    * @param [in] right 框选的X坐标right值
+    * @param [in] top 框选的Y坐标top值
+    * @param [in] bottom 框选的Y坐标bottom值
+    * @return 如果有选择变化返回true，否则返回false
+    */
+    virtual bool OnFrameSelection(int64_t left, int64_t right, int64_t top, int64_t bottom) override;
 
     /** 某个数据项的Check勾选状态变化(列级)
     * @param [in] nElementIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
@@ -262,65 +248,16 @@ protected:
     */
     void OnSubItemColumnChecked(size_t nElementIndex, size_t nColumnId, bool bChecked);
 
-protected:
-    //鼠标消息（返回true：表示消息已处理；返回false：则表示消息未处理，需转发给父控件）
-    virtual bool ButtonDown(const EventArgs& msg) override;
-    virtual bool ButtonUp(const EventArgs& msg) override;
-    virtual bool RButtonDown(const EventArgs& msg) override;
-    virtual bool RButtonUp(const EventArgs& msg) override;
-    virtual bool MouseMove(const EventArgs& msg) override;
-    virtual bool OnWindowKillFocus(const EventArgs& msg) override;//控件所属的窗口失去焦点
-
 private:
-    void OnButtonDown(const UiPoint& ptMouse, Control* pSender);
-    void OnButtonUp(const UiPoint& ptMouse, Control* pSender);
-    void OnRButtonDown(const UiPoint& ptMouse, Control* pSender);
-    void OnRButtonUp(const UiPoint& ptMouse, Control* pSender);
-    void OnMouseMove(const UiPoint& ptMouse, Control* pSender);
-    void OnWindowKillFocus();
-
     /** 绘制网格线
     */
     void PaintGridLines(IRender* pRender);
-
-    /** 绘制鼠标框选的边框和填充颜色
-    */
-    void PaintFrameSelection(IRender* pRender);
-
-    /** 检查是否需要滚动视图
-    */
-    void OnCheckScrollView();
-
-    /** 执行了鼠标框选操作
-    * @param [in] top 框选的Y坐标top值
-    * @param [in] bottom 框选的Y坐标bottom值
-    * @param [in] bInListItem true表示框选范围在列表项的内容中，false表示只在空白处
-    * @return 如果有选择变化返回true，否则返回false
-    */
-    bool OnFrameSelection(int64_t top, int64_t bottom, bool bInListItem);
-
-    /** 设置普通列表项（非Header、非置顶）的top坐标
-    */
-    void SetNormalItemTop(int32_t nNormalItemTop);
 
     /** 将header和置顶项放在最后
     * @param [in,out] items 需要移动的控件列表
     * @param [out] atTopItems 返回置顶的控件列表
     */
     void MoveTopItemsToLast(std::vector<Control*>& items, std::vector<Control*>& atTopItems) const;
-
-    /** 响应KeyDown消息
-    * @return 返回true表示成功处理，返回false表示未处理此消息
-    */
-    bool OnListCtrlKeyDown(const EventArgs& msg);
-
-    /** 在视图空白处点击了鼠标左键/右键
-    */
-    bool OnListCtrlClickedBlank();
-
-    /** 获取滚动视图的滚动幅度
-    */
-    void GetScrollDeltaValue(int32_t& nHScrollValue, int32_t& nVScrollValue) const;
 
 private:
     /** ListCtrl 控件接口
@@ -359,56 +296,6 @@ private:
     /** 纵向网格线的颜色
     */
     UiString m_columnGridLineColor;
-
-private:
-    /** 普通列表项（非Header、非置顶）的top坐标
-    */
-    int32_t m_nNormalItemTop;
-
-    /** 是否鼠标在视图中按下左键或者右键
-    */
-    bool m_bMouseDownInView;
-
-    /** 是否鼠标左键按下
-    */
-    bool m_bMouseDown;
-
-    /** 是否鼠标右键按下
-    */
-    bool m_bRMouseDown;
-
-    /** 是否处于鼠标滑动操作中
-    */
-    bool m_bInMouseMove;
-
-    /** 鼠标按下时的鼠标位置
-    */
-    UiSize64 m_ptMouseDown;
-
-    /** 鼠标滑动时的鼠标位置
-    */
-    UiSize64 m_ptMouseMove;
-
-    /** 鼠标按下时的控件接口
-    */
-    Control* m_pMouseSender;
-
-    /** 定时器滚动视图时的取消机制
-    */
-    nbase::WeakCallbackFlag m_scrollViewFlag;
-
-    /** 鼠标框选功能的设置
-    */
-    bool m_bEnableFrameSelection; //是否支持鼠标框选功能
-    UiString m_frameSelectionColor; //框选填充颜色
-    uint8_t m_frameSelectionAlpha;  //框选填充颜色的Alpha值
-    UiString m_frameSelectionBorderColor; //框选边框颜色
-    uint8_t m_frameSelectionBorderSize; //框选边框大小
-
-private:
-    /** 没按Shift键时的最后一次选中项，有效范围：[0, GetElementCount())
-    */
-    size_t m_nLastNoShiftIndex;
 };
 
 /** 列表数据显示控件的布局管理接口
