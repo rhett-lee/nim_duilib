@@ -59,6 +59,7 @@
                         <CheckBox class="checkbox_font14" name="checkbox_column_sort" text="可排序" margin="4,0,0,0" valign="center"/>
                         <CheckBox class="checkbox_font14" name="checkbox_column_icon_at_top" text="排序图标在上方" margin="4,0,0,0" valign="center"/>
                         <CheckBox class="checkbox_font14" name="checkbox_column_drag_order" text="可拖动调序" margin="4,0,0,0" valign="center"/>
+                        <CheckBox class="checkbox_font14" name="checkbox_column_editable" text="可编辑文本" margin="4,0,0,0" valign="center"/>
                     </HBox>
                     <HBox minheight="18" bkcolor="bk_wnd_darkcolor" height="auto" margin="4,0,4,0">
                         <Control width="153"/>
@@ -154,7 +155,8 @@
                           list_view_class="list_ctrl_list_view"
                           list_view_item_class="list_ctrl_list_view_item"
                           list_view_item_image_class="list_ctrl_list_view_item_image"
-                          list_view_item_label_class="list_ctrl_list_view_item_label"/>
+                          list_view_item_label_class="list_ctrl_list_view_item_label"
+                          enable_item_edit="true" list_ctrl_richedit_class="list_ctrl_richedit"/>
             </VBox>
         </VBox>
     </VBox>

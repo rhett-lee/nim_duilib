@@ -21,7 +21,9 @@ ListCtrl::ListCtrl():
     m_bAutoCheckSelect(false),
     m_bHeaderShowCheckBox(false),
     m_bDataItemShowCheckBox(false),
-    m_listCtrlType(ListCtrlType::Report)
+    m_listCtrlType(ListCtrlType::Report),
+    m_pRichEdit(nullptr),
+    m_bEnableItemEdit(true)
 {
     m_pData = new ListCtrlData;
     m_nItemHeight = GlobalManager::Instance().Dpi().GetScaleInt(32);
@@ -56,6 +58,10 @@ ListCtrl::~ListCtrl()
     if (!m_bInited && (m_pListView != nullptr)) {
         delete m_pListView;
         m_pListView = nullptr;
+    }
+    if (!m_bInited && (m_pRichEdit != nullptr)) {
+        delete m_pRichEdit;
+        m_pRichEdit = nullptr;
     }
     std::set<ImageList*> pImageSet;
     for (ImageList* pImage : m_imageList) {
@@ -231,8 +237,25 @@ void ListCtrl::SetAttribute(const std::wstring& strName, const std::wstring& str
     else if (strName == L"list_view_item_label_class") {
         SetListViewItemLabelClass(strValue);
     }
+    else if (strName == L"enable_item_edit") {
+        SetEnableItemEdit(strValue == L"true");
+    }
+    else if (strName == L"list_ctrl_richedit_class") {
+        SetRichEditClass(strValue);
+    }
     else {
         __super::SetAttribute(strName, strValue);
+    }
+}
+
+void ListCtrl::HandleEvent(const EventArgs& msg)
+{
+    __super::HandleEvent(msg);
+    if ((msg.Type > kEventKeyBegin) && (msg.Type < kEventKeyEnd)) {
+        OnViewKeyboardEvents(msg);
+    }
+    else if ((msg.Type > kEventMouseBegin) && (msg.Type < kEventMouseEnd)) {
+        OnViewMouseEvents(msg);
     }
 }
 
@@ -691,6 +714,36 @@ void ListCtrl::SetListViewItemLabelClass(const std::wstring& className)
 std::wstring ListCtrl::GetListViewItemLabelClass() const
 {
     return m_listViewItemLabelClass.c_str();
+}
+
+void ListCtrl::SetRichEditClass(const std::wstring& richEditClass)
+{
+    if (m_listCtrlRichEditClass != richEditClass) {
+        m_listCtrlRichEditClass = richEditClass;
+        if (m_bInited && (m_pRichEdit != nullptr)) {
+            m_pRichEdit->SetClass(richEditClass);
+        }
+    }
+}
+
+void ListCtrl::SetEnableItemEdit(bool bEnableItemEdit)
+{
+    m_bEnableItemEdit = bEnableItemEdit;
+}
+
+bool ListCtrl::IsEnableItemEdit() const
+{
+    return m_bEnableItemEdit;
+}
+
+RichEdit* ListCtrl::GetRichEdit() const
+{
+    return m_pRichEdit;
+}
+
+std::wstring ListCtrl::GetRichEditClass() const
+{
+    return m_listCtrlRichEditClass.c_str();
 }
 
 void ListCtrl::SetRowGridLineWidth(int32_t nLineWidth, bool bNeedDpiScale)
@@ -1471,6 +1524,16 @@ int32_t ListCtrl::GetSubItemImageId(size_t itemIndex, size_t columnIndex) const
     return m_pData->GetSubItemImageId(itemIndex, GetColumnId(columnIndex));
 }
 
+bool ListCtrl::SetSubItemEditable(size_t itemIndex, size_t columnIndex, bool bEditable)
+{
+    return m_pData->SetSubItemEditable(itemIndex, GetColumnId(columnIndex), bEditable);
+}
+
+bool ListCtrl::IsSubItemEditable(size_t itemIndex, size_t columnIndex) const
+{
+    return m_pData->IsSubItemEditable(itemIndex, GetColumnId(columnIndex));
+}
+
 bool ListCtrl::SortDataItems(size_t columnIndex, bool bSortedUp, 
                              ListCtrlDataCompareFunc pfnCompareFunc,
                              void* pUserData)
@@ -1771,6 +1834,476 @@ bool ListCtrl::SetDataItemCheck(size_t itemIndex, bool bCheck)
 bool ListCtrl::IsDataItemCheck(size_t itemIndex) const
 {
     return m_pData->IsDataItemChecked(itemIndex);
+}
+
+void ListCtrl::OnItemEnterEditMode(size_t itemIndex, size_t nColumnId,
+                                   IListBoxItem* pItem, ListCtrlLabel* pSubItem)
+{
+    ASSERT(itemIndex < GetDataItemCount());
+    ASSERT(GetColumnIndex(nColumnId) < GetColumnCount());
+    ASSERT((pItem != nullptr) && (pSubItem != nullptr));
+    ASSERT(pItem->GetElementIndex() == itemIndex);
+    if (itemIndex >= GetDataItemCount()) {
+        return;
+    }
+    if (pItem->GetElementIndex() != itemIndex) {
+        return;
+    }
+    size_t nColumnIndex = GetColumnIndex(nColumnId);
+    if (nColumnIndex >= GetColumnCount()) {
+        return;
+    }
+
+    ListCtrlEditParam editParam;
+    editParam.listCtrlType = m_listCtrlType;
+    editParam.nItemIndex = itemIndex;
+    editParam.nColumnId = nColumnId;
+    editParam.nColumnIndex = nColumnIndex;
+    editParam.pItem = pItem;
+    editParam.pSubItem = pSubItem;
+
+    if (!IsValidItemEditState(editParam) && !IsValidItemEditParam(editParam)) {
+        ASSERT(FALSE);
+        return;
+    }
+
+    std::wstring editClass = GetRichEditClass();
+    ASSERT(!editClass.empty());
+    if (editClass.empty()) {
+        return;
+    }
+
+    //启动定时器, 只执行一次(使用定时器的原因：避免影响双击操作)
+    m_editModeFlag.Cancel();
+    std::function<void()> editModeCallback = std::bind(&ListCtrl::OnItemEditMode, this, editParam);
+    TimerManager& timer = GlobalManager::Instance().Timer();
+    timer.AddCancelableTimer(m_editModeFlag.GetWeakFlag(), editModeCallback, 600, 1);
+}
+
+bool ListCtrl::IsValidItemEditState(const ListCtrlEditParam& editParam) const
+{
+    if (!IsEnableItemEdit()) {
+        return false;
+    }
+    if (editParam.listCtrlType != m_listCtrlType) {
+        return false;
+    }
+
+    if (editParam.listCtrlType == ListCtrlType::Icon) {
+        //Icon视图
+        ListCtrlIconViewItem* pItem = dynamic_cast<ListCtrlIconViewItem*>(editParam.pItem);
+        ASSERT((pItem != nullptr) && pItem->IsVisible() && pItem->IsSelected() && pItem->IsFocused());
+        if ((pItem == nullptr) || !pItem->IsVisible() || !pItem->IsSelected() || !pItem->IsFocused()) {
+            return false;
+        }
+        ASSERT(m_pIconView != nullptr);
+        if (m_pIconView == nullptr) {
+            return false;
+        }
+    }
+    else if (editParam.listCtrlType == ListCtrlType::List) {
+        //List视图
+        ListCtrlListViewItem* pItem = dynamic_cast<ListCtrlListViewItem*>(editParam.pItem);
+        ASSERT((pItem != nullptr) && pItem->IsVisible() && pItem->IsSelected() && pItem->IsFocused());
+        if ((pItem == nullptr) || !pItem->IsVisible() || !pItem->IsSelected() || !pItem->IsFocused()) {
+            return false;
+        }
+        ASSERT(m_pListView != nullptr);
+        if (m_pListView == nullptr) {
+            return false;
+        }
+    }
+    else {
+        //Report视图
+        ListCtrlItem* pItem = dynamic_cast<ListCtrlItem*>(editParam.pItem);
+        ASSERT((pItem != nullptr) && pItem->IsVisible() && pItem->IsSelected() && pItem->IsFocused());
+        if ((pItem == nullptr) || !pItem->IsVisible() || !pItem->IsSelected() || !pItem->IsFocused()) {
+            return false;
+        }
+        ASSERT(m_pReportView != nullptr);
+        if (m_pReportView == nullptr) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool ListCtrl::IsValidItemEditParam(const ListCtrlEditParam& editParam) const
+{
+    if (editParam.listCtrlType != m_listCtrlType) {
+        return false;
+    }
+    if (editParam.listCtrlType == ListCtrlType::Icon) {
+        //Icon视图
+        ListCtrlIconViewItem* pItem = dynamic_cast<ListCtrlIconViewItem*>(editParam.pItem);
+        ASSERT(pItem != nullptr);
+        if (pItem == nullptr) {
+            return false;
+        }
+        size_t nDataItemIndex = editParam.nItemIndex;
+        ListCtrlIconViewItem* pDestItem = nullptr;
+        ListCtrlIconViewItem* pNextItem = GetFirstDisplayIconItem();
+        while (pNextItem != nullptr) {
+            if (pNextItem->GetElementIndex() == nDataItemIndex) {
+                pDestItem = pNextItem;
+                break;
+            }
+            pNextItem = GetNextDisplayIconItem(pNextItem);
+        }
+        ASSERT(pDestItem == pItem);
+        if (pDestItem != pItem) {
+            //已经发生变化
+            return false;
+        }
+
+        size_t nSubItemIndex = pItem->GetItemIndex(editParam.pSubItem);
+        ASSERT(nSubItemIndex < pItem->GetItemCount());
+        if (nSubItemIndex >= pItem->GetItemCount()) {
+            return false;
+        }
+
+        size_t nColumnIndex = editParam.nColumnIndex;
+        ASSERT(GetColumnId(nColumnIndex) == editParam.nColumnId);
+        if (GetColumnId(nColumnIndex) != editParam.nColumnId) {
+            return false;
+        }
+    }
+    else if (editParam.listCtrlType == ListCtrlType::List) {
+        //List视图
+        ListCtrlListViewItem* pItem = dynamic_cast<ListCtrlListViewItem*>(editParam.pItem);
+        ASSERT(pItem != nullptr);
+        if (pItem == nullptr) {
+            return false;
+        }
+        size_t nDataItemIndex = editParam.nItemIndex;        
+        ListCtrlListViewItem* pDestItem = nullptr;
+        ListCtrlListViewItem* pNextItem = GetFirstDisplayListItem();
+        while (pNextItem != nullptr) {
+            if (pNextItem->GetElementIndex() == nDataItemIndex) {
+                pDestItem = pNextItem;
+                break;
+            }
+            pNextItem = GetNextDisplayListItem(pNextItem);
+        }
+        ASSERT(pDestItem == pItem);
+        if (pDestItem != pItem) {
+            //已经发生变化
+            return false;
+        }
+
+        size_t nSubItemIndex = pItem->GetItemIndex(editParam.pSubItem);
+        ASSERT(nSubItemIndex < pItem->GetItemCount());
+        if (nSubItemIndex >= pItem->GetItemCount()) {
+            return false;
+        }
+
+        size_t nColumnIndex = editParam.nColumnIndex;
+        ASSERT(GetColumnId(nColumnIndex) == editParam.nColumnId);
+        if (GetColumnId(nColumnIndex) != editParam.nColumnId) {
+            return false;
+        }
+    }
+    else {
+        //Report视图
+        ListCtrlItem* pItem = dynamic_cast<ListCtrlItem*>(editParam.pItem);
+        ListCtrlSubItem* pSubItem = dynamic_cast<ListCtrlSubItem*>(editParam.pSubItem);
+        ASSERT((pItem != nullptr) && (pSubItem != nullptr));
+        if ((pItem == nullptr) || (pSubItem == nullptr)) {
+            return false;
+        }
+        size_t nDataItemIndex = editParam.nItemIndex;
+        size_t nColumnIndex = editParam.nColumnIndex;
+        ListCtrlItem* pDestItem = nullptr;
+        ListCtrlItem* pNextItem = GetFirstDisplayItem();
+        while (pNextItem != nullptr) {
+            if (pNextItem->GetElementIndex() == nDataItemIndex) {
+                pDestItem = pNextItem;
+                break;
+            }
+            pNextItem = GetNextDisplayItem(pNextItem);
+        }
+        ASSERT(pDestItem == pItem);
+        if (pDestItem != pItem) {
+            //已经发生变化
+            return false;
+        }
+        if (pItem->GetSubItemIndex(pSubItem) != nColumnIndex) {
+            return false;
+        }
+        ASSERT(GetColumnId(nColumnIndex) == editParam.nColumnId);
+        if (GetColumnId(nColumnIndex) != editParam.nColumnId) {
+            return false;
+        }
+    }
+    return true;
+}
+
+void ListCtrl::OnItemEditMode(ListCtrlEditParam editParam)
+{
+    std::wstring editClass = GetRichEditClass();
+    ASSERT(!editClass.empty());
+    if (editClass.empty()) {
+        return;
+    }
+    if (!IsValidItemEditState(editParam) && !IsValidItemEditParam(editParam)) {
+        //状态已经失效
+        return;
+    }
+    if (m_pRichEdit == nullptr) {
+        m_pRichEdit = new RichEdit;
+        AddItem(m_pRichEdit);
+        m_pRichEdit->SetClass(editClass);
+    }
+    else if(GetItemCount() > 0) {
+        //将Edit控件，调整到最后
+        size_t nItem = GetItemIndex(m_pRichEdit);
+        size_t nLastItemIndex = GetItemCount() - 1;
+        if (nItem != nLastItemIndex) {
+            SetItemIndex(m_pRichEdit, nLastItemIndex);
+        }
+    }
+    if (m_pRichEdit == nullptr) {
+        return;
+    }
+
+    ListCtrlLabel* pSubItem = editParam.pSubItem;
+    size_t nDataItemIndex = editParam.nItemIndex;
+
+    std::wstring sOldItemText = pSubItem->GetText();
+    UiRect rcItem = pSubItem->GetTextRect();
+    UiPoint offsetPt = pSubItem->GetScrollOffsetInScrollBox();
+    rcItem.Offset(-offsetPt.x, -offsetPt.y);
+    UiRect rect = GetRect();
+    UiMargin rcMargin(rcItem.left - rect.left, rcItem.top - rect.top, 0, 0);
+    m_pRichEdit->SetMargin(rcMargin, false);
+    m_pRichEdit->SetFloat(true);
+    m_pRichEdit->SetVisible(true);
+    m_pRichEdit->SetText(sOldItemText);
+    m_pRichEdit->SetFocus();
+    m_pRichEdit->SetSelAll();
+    UpdateRichEditSize(pSubItem);
+
+    //还原焦点：将编辑框的焦点还原会原来的列表控件
+    auto RestoreItemFocus = [this, nDataItemIndex]() {
+            if ((m_pRichEdit != nullptr) && m_pRichEdit->IsVisible() && m_pRichEdit->IsFocused()) {
+                ListCtrlItem* pDestItem = nullptr;
+                ListCtrlItem* pNextItem = GetFirstDisplayItem();
+                while (pNextItem != nullptr) {
+                    if (pNextItem->GetElementIndex() == nDataItemIndex) {
+                        pDestItem = pNextItem;
+                        break;
+                    }
+                    pNextItem = GetNextDisplayItem(pNextItem);
+                }
+                if (pDestItem != nullptr) {
+                    pDestItem->SetFocus();
+                }
+            }
+        };
+
+    //触发事件：开始编辑
+    ListCtrlEditParam enterEditParam = editParam;
+    enterEditParam.sNewText.clear();
+    enterEditParam.bCancelled = false;
+    SendEvent(kEventEnterEdit, (WPARAM)&enterEditParam);
+    if (enterEditParam.bCancelled || !IsValidItemEditState(editParam) && !IsValidItemEditParam(editParam)) {
+        //状态已经失效, 或者用户取消编辑
+        ClearEditEvents();
+        RestoreItemFocus();
+        LeaveEditMode();
+        return;
+    }
+
+    m_pRichEdit->SetFloat(true);
+    m_pRichEdit->SetVisible(true);
+    m_pRichEdit->SetFocus();
+
+    //文本变化的时候，自动调整编辑框的大小
+    m_pRichEdit->DetachEvent(kEventTextChange);
+    m_pRichEdit->AttachTextChange([this, pSubItem](const EventArgs&) {
+        UpdateRichEditSize(pSubItem);
+        return true;
+        });
+
+    //编辑结束的时候，触发事件
+    auto OnLeaveRichEdit = [this, sOldItemText, RestoreItemFocus, editParam]() {
+        std::wstring sNewItemText;
+        if ((m_pRichEdit != nullptr) && m_pRichEdit->IsVisible()) {
+            sNewItemText = m_pRichEdit->GetText();
+            m_pRichEdit->SetVisible(false);                     
+        }
+        if ((sNewItemText != sOldItemText) && IsValidItemEditParam(editParam)) {
+            //文本内容发生变化
+            OnItemEdited(editParam, sNewItemText);
+        }
+        };
+
+    //按回车：应用修改
+    m_pRichEdit->DetachEvent(kEventReturn);
+    m_pRichEdit->AttachReturn([this, RestoreItemFocus, OnLeaveRichEdit](const EventArgs&) {
+        ClearEditEvents();
+        RestoreItemFocus();
+        OnLeaveRichEdit();
+        return false;
+        });
+    //按ESC键：取消修改
+    m_pRichEdit->DetachEvent(kEventKeyDown);
+    m_pRichEdit->AttachEvent(kEventKeyDown, [this, RestoreItemFocus](const EventArgs& msg) {
+        if ((msg.Type == kEventKeyDown) && (msg.chKey == VK_ESCAPE)) {
+            ClearEditEvents();
+            RestoreItemFocus();
+            return false;
+        }
+        else {
+            return true;
+        }
+        });
+
+    //控件失去焦点: 应用修改
+    m_pRichEdit->DetachEvent(kEventKillFocus);
+    m_pRichEdit->AttachKillFocus([this, RestoreItemFocus, OnLeaveRichEdit](const EventArgs&) {
+        ClearEditEvents();
+        RestoreItemFocus();
+        OnLeaveRichEdit();
+        return false;
+        });
+
+    //窗口失去焦点: 应用修改
+    m_pRichEdit->DetachEvent(kEventWindowKillFocus);
+    m_pRichEdit->AttachWindowKillFocus([this, RestoreItemFocus, OnLeaveRichEdit](const EventArgs&) {
+        ClearEditEvents();
+        RestoreItemFocus();
+        OnLeaveRichEdit();
+        return false;
+        });
+}
+
+void ListCtrl::UpdateRichEditSize(ListCtrlLabel* pSubItem)
+{
+    if ((pSubItem == nullptr) || (m_pRichEdit == nullptr)) {
+        return;
+    }
+    UiRect rcItem = pSubItem->GetTextRect();
+    UiPoint offsetPt = pSubItem->GetScrollOffsetInScrollBox();
+    rcItem.Offset(-offsetPt.x, -offsetPt.y);
+    UiRect rect = GetRect();
+    bool bSingleLine = pSubItem->IsSingleLine();
+    if (bSingleLine) {
+        if (m_pRichEdit->GetMultiLine()) {
+            m_pRichEdit->SetMultiLine(false);
+        }
+        m_pRichEdit->SetFixedHeight(UiFixedInt::MakeAuto(), false, false);
+        m_pRichEdit->SetFixedWidth(UiFixedInt::MakeAuto(), false, false);
+        UiEstSize sz = m_pRichEdit->EstimateSize(UiSize(0, 0));
+        //设置宽度
+        m_pRichEdit->SetFixedWidth(UiFixedInt(sz.cx.GetInt32()), true, false);
+
+        //设置高度
+        const int32_t nEditHeight = sz.cy.GetInt32() + sz.cy.GetInt32() / 2;
+        m_pRichEdit->SetFixedHeight(UiFixedInt(nEditHeight), true, false);
+        m_pRichEdit->SetMinHeight(nEditHeight, false);
+
+        //设置文本框所在位置和大小限制
+        uint32_t textStyle = pSubItem->GetTextStyle();
+        if (textStyle & TEXT_VCENTER) {
+            //CENTER对齐
+            rcItem.top = rcItem.CenterY() - nEditHeight / 2;
+            rcItem.bottom = rcItem.top + nEditHeight;
+        }
+        else if (textStyle & TEXT_BOTTOM) {
+            //BOTTOM对齐
+            rcItem.top = rcItem.bottom - nEditHeight;
+        }
+
+        UiMargin rcMargin(rcItem.left - rect.left, rcItem.top - rect.top, 0, 0);
+        m_pRichEdit->SetMargin(rcMargin, false);
+
+        m_pRichEdit->SetMinWidth(rcItem.Width(), false);
+        int32_t nMaxWidth = std::max(rcItem.Width(), rect.Width() - rcMargin.left);
+        m_pRichEdit->SetMaxWidth(nMaxWidth, false);
+    }
+    else {
+        if (!m_pRichEdit->GetMultiLine()) {
+            m_pRichEdit->SetMultiLine(true);
+        }
+
+        //宽度固定：与原控件相同
+        m_pRichEdit->SetFixedWidth(UiFixedInt(rcItem.Width()), false, false);
+        m_pRichEdit->SetMaxWidth(rcItem.Width(), false);
+        m_pRichEdit->SetMinWidth(rcItem.Width(), false);
+        
+        //设置高度和位置
+        m_pRichEdit->SetFixedHeight(UiFixedInt::MakeAuto(), false, false);        
+        UiEstSize sz = m_pRichEdit->EstimateSize(UiSize(rcItem.Width(), 0));
+        m_pRichEdit->SetFixedHeight(UiFixedInt(sz.cy.GetInt32()), true, false);
+
+        UiMargin rcMargin(rcItem.left - rect.left, rcItem.top - rect.top, 0, 0);
+        m_pRichEdit->SetMargin(rcMargin, false);
+
+        int32_t nMaxHeight = std::max(rcItem.Height(), rect.Height() - rcMargin.top);
+        m_pRichEdit->SetMaxHeight(nMaxHeight, false);
+        m_pRichEdit->SetMinHeight(rcItem.Height(), false);
+    }
+}
+
+void ListCtrl::OnItemEdited(const ListCtrlEditParam& editParam, const std::wstring& newItemText)
+{
+    //触发事件：结束编辑，如果用户取消编辑，那么不执行修改操作
+    ListCtrlEditParam leaveEditParam = editParam;
+    leaveEditParam.sNewText = newItemText;
+    leaveEditParam.bCancelled = false;
+    SendEvent(kEventLeaveEdit, (WPARAM)&leaveEditParam);
+    if (!leaveEditParam.bCancelled) {
+        //用户未取消编辑
+        SetSubItemText(editParam.nItemIndex, editParam.nColumnIndex, newItemText);
+    }    
+}
+
+void ListCtrl::OnViewMouseEvents(const EventArgs& msg)
+{
+    if ((msg.Type == kEventMouseWheel) ||
+        (msg.Type == kEventMouseButtonDown) ||
+        (msg.Type == kEventMouseButtonUp) ||
+        (msg.Type == kEventMouseDoubleClick) ||
+        (msg.Type == kEventMouseRButtonDown) ||
+        (msg.Type == kEventMouseRButtonUp) ||
+        (msg.Type == kEventMouseRDoubleClick) ||
+        (msg.Type == kEventMouseMenu)) {
+        if (msg.pSender != m_pRichEdit) {
+            LeaveEditMode();
+        }
+    }    
+}
+
+void ListCtrl::OnViewKeyboardEvents(const EventArgs& msg)
+{
+    if (msg.pSender != m_pRichEdit) {
+        LeaveEditMode();
+    }    
+}
+
+void ListCtrl::LeaveEditMode()
+{
+    //取消编辑状态的定时器
+    m_editModeFlag.Cancel();
+    if ((m_pRichEdit != nullptr) && m_pRichEdit->IsVisible() && m_pRichEdit->IsFocused()) {
+        m_pRichEdit->SendEvent(kEventKillFocus);
+    }
+    if ((m_pRichEdit != nullptr) && m_pRichEdit->IsVisible()) {
+        m_pRichEdit->SetVisible(false);
+    }
+    ClearEditEvents();
+}
+
+void ListCtrl::ClearEditEvents()
+{
+    if (m_pRichEdit != nullptr) {
+        m_pRichEdit->DetachEvent(kEventWindowKillFocus);
+        m_pRichEdit->DetachEvent(kEventKillFocus);
+        m_pRichEdit->DetachEvent(kEventReturn);
+        m_pRichEdit->DetachEvent(kEventTextChange);
+        m_pRichEdit->DetachEvent(kEventKeyDown);
+    }
 }
 
 }//namespace ui

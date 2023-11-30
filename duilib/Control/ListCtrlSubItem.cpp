@@ -203,6 +203,7 @@ ImagePtr ListCtrlSubItem::LoadItemImage() const
 void ListCtrlSubItem::PaintText(IRender* pRender)
 {
     //需要绘制的内容包括：图标、文字
+    SetTextRect(UiRect());
     if (pRender == nullptr) {
         return;
     }
@@ -262,6 +263,7 @@ void ListCtrlSubItem::PaintText(IRender* pRender)
     textRect.left = std::max(textRect.left, rc.left);
 
     DoPaintText(textRect, pRender);
+    SetTextRect(textRect);
 }
 
 void ListCtrlSubItem::VAlignRect(UiRect& rc, uint32_t textStyle, int32_t nImageHeight)

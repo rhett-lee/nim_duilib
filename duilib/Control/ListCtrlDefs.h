@@ -5,6 +5,8 @@
 
 #include "duilib/Control/ListCtrlView.h"
 #include "duilib/Control/CheckBox.h"
+#include "duilib/Control/Label.h"
+#include "duilib/Control/RichEdit.h"
 
 namespace ui
 {
@@ -57,6 +59,7 @@ struct ListCtrlSubItemData
     UiColor bkColor;                //背景颜色
     bool bShowCheckBox = true;      //是否显示CheckBox
     bool bChecked = false;          //是否处于勾选状态（CheckBox勾选状态）
+    bool bEditable = false;         //是否可编辑
 };
 
 /** 列表数据项用于内部存储的数据结构(列数据，每<行,列>1条数据)
@@ -70,11 +73,7 @@ struct ListCtrlSubItemData2
     UiColor bkColor;                //背景颜色
     bool bShowCheckBox = true;      //是否显示CheckBox  
     bool bChecked = false;          //是否处于勾选状态（CheckBox勾选状态）
-
-    //TODO: 待实现功能列表
-    //Item的文本可以编辑
-    //多视图的支持：Report，Icon等，类似与Windows资源管理器
-    //数据类型的支持：比如整型，日期型，下拉表，字符串类型等
+    bool bEditable = false;         //是否可编辑
 };
 
 //列数据的智能指针
@@ -134,27 +133,112 @@ public:
     virtual int32_t GetMaxDataItemWidth(const std::vector<ListCtrlSubItemData2Ptr>& subItemList) = 0;
 };
 
-/** Icon视图的列表项类型(垂直布局)
-*   基本结构：<ListCtrlIconViewItem> <Control/><Label/> </ListCtrlListViewItem>
-*   其中的Control和Label的属性，支持从配置文件读取
+/** 列表中使用的Label控件，用于显示文本，并提供文本编辑功能
 */
-class ListCtrlIconViewItem : public ListCtrlItemBaseV
+class ListCtrlLabel: public LabelTemplate<HBox>
 {
 public:
-    /** 获取控件类型
+    /** 消息处理
     */
-    virtual std::wstring GetType() const override { return L"ListCtrlIconViewItem"; }
+    virtual void HandleEvent(const EventArgs& msg) override
+    {
+        if ((msg.Type > kEventMouseBegin) && (msg.Type < kEventMouseEnd)) {
+            //当前控件禁止接收鼠标消息时，将鼠标相关消息转发给上层处理
+            bool bButtonUpEvent = false;
+            if (IsEnabled() && IsMouseEnabled()) {
+                if (msg.Type == kEventMouseButtonDown) {
+                    m_bMouseDown = false;
+                    if (GetWindow() != nullptr) {
+                        Control* pFocus = GetWindow()->GetFocus();
+                        if ((pFocus != nullptr) && (pFocus == m_pListBoxItem)) {
+                            //避免每次点击都进入编辑模式
+                            m_bMouseDown = true;
+                        }
+                    }
+                }
+                else if (msg.Type == kEventMouseButtonUp) {
+                    if (m_bMouseDown) {
+                        m_bMouseDown = false;
+                        bButtonUpEvent = true;
+                    }                    
+                }
+            }
+            Box* pParent = GetParent();
+            if (pParent != nullptr) {
+                pParent->SendEvent(msg);
+            }
+            if (bButtonUpEvent) {
+                //进入编辑状态
+                OnItemEnterEditMode();
+            }
+            return;
+        }
+        __super::HandleEvent(msg);
+    }
+
+    /** 进入编辑状态
+    */
+    virtual void OnItemEnterEditMode()
+    {
+        SendEvent(kEventEnterEdit, (WPARAM)this);
+    }
+
+    /** 设置文本所在位置的矩形区域
+    */
+    void SetTextRect(const UiRect& rect)
+    {
+        m_textRect = rect;
+    }
+
+    /** 获取文本所在位置的矩形区域
+    */
+    UiRect GetTextRect() const
+    {
+        UiRect rect = m_textRect;
+        if (rect.IsZero()) {
+            rect = GetRect();
+            rect.Deflate(GetControlPadding());
+            rect.Deflate(GetTextPadding());
+        }        
+        return rect;
+    }
+
+    /** 设置关联的列表项
+    */
+    /** 关联的列表项
+    */
+    void SetListBoxItem(Control* pListBoxItem)
+    {
+        m_pListBoxItem = pListBoxItem;
+    }
+
+private:
+    /** 是否鼠标点击在控件范围内
+    */
+    bool m_bMouseDown = false;
+
+    /** 关联的列表项
+    */
+    Control* m_pListBoxItem = nullptr;
+
+    /** 文本所在位置的矩形区域
+    */
+    UiRect m_textRect;
 };
 
-/** List视图的列表项类型(水平布局)
-*   基本结构：<ListCtrlListViewItem> <Control/><Label/> </ListCtrlListViewItem>
-*   其中的Control和Label的属性，支持从配置文件读取
+/** 编辑状态的输入参数
 */
-class ListCtrlListViewItem : public ListCtrlItemBaseH
+struct ListCtrlEditParam
 {
-    /** 获取控件类型
-    */
-    virtual std::wstring GetType() const override { return L"ListCtrlListViewItem"; }
+    ListCtrlType listCtrlType;
+    size_t nItemIndex;          //数据项的索引号, 有效范围：[0, GetDataItemCount())
+    size_t nColumnId;           //列的ID
+    size_t nColumnIndex;        //列的序号, 有效范围：[0, GetColumnCount())
+    IListBoxItem* pItem;        //数据子项接口
+    ListCtrlLabel* pSubItem;    //文本控件接口（含修改前的文本内容）
+
+    UiString sNewText;          //修改后的文本内容
+    bool bCancelled;            //是否取消操作，如果设置为true，则取消编辑操作
 };
 
 /** 列表中使用的CheckBox
@@ -162,6 +246,12 @@ class ListCtrlListViewItem : public ListCtrlItemBaseH
 class ListCtrlCheckBox: public CheckBox
 {
 public:
+    ListCtrlCheckBox()
+    {
+        //CheckBox本身不接收键盘消息
+        SetKeyboardEnabled(false);
+    }
+
     /** 获取控件类型和设置属性
     */
     virtual std::wstring GetType() const override { return L"ListCtrlCheckBox"; }
@@ -217,6 +307,65 @@ private:
     /** 显示CheckBox所占的宽度，用于设置父控件的Padding值
     */
     int32_t m_nCheckBoxWidth = 0;
+};
+
+/** Icon视图的列表项类型(垂直布局)
+*   基本结构：<ListCtrlIconViewItem> <Control/><ListCtrlLabel/> </ListCtrlListViewItem>
+*   其中的Control和Label的属性，支持从配置文件读取
+*/
+class ListCtrl;
+class ListCtrlIconViewItem : public ListCtrlItemBaseV
+{
+public:
+    /** 获取控件类型
+    */
+    virtual std::wstring GetType() const override { return L"ListCtrlIconViewItem"; }
+
+    /** 事件处理函数
+    */
+    virtual void HandleEvent(const EventArgs& msg) override;
+
+    /** 设置关联的ListCtrl接口
+    */
+    void SetListCtrl(ListCtrl* pListCtrl) { m_pListCtrl = pListCtrl; }
+
+    /** 获取关联的ListCtrl接口
+    */
+    ListCtrl* GetListCtrl() const { return m_pListCtrl; }
+
+private:
+    /** 关联的ListCtrl接口
+    */
+    ListCtrl* m_pListCtrl = nullptr;
+};
+
+/** List视图的列表项类型(水平布局)
+*   基本结构：<ListCtrlListViewItem> <Control/><ListCtrlLabel/> </ListCtrlListViewItem>
+*   其中的Control和Label的属性，支持从配置文件读取
+*/
+class ListCtrlListViewItem : public ListCtrlItemBaseH
+{
+public:
+    /** 获取控件类型
+    */
+    virtual std::wstring GetType() const override { return L"ListCtrlListViewItem"; }
+
+    /** 事件处理函数
+    */
+    virtual void HandleEvent(const EventArgs& msg) override;
+
+    /** 设置关联的ListCtrl接口
+    */
+    void SetListCtrl(ListCtrl* pListCtrl) { m_pListCtrl = pListCtrl; }
+
+    /** 获取关联的ListCtrl接口
+    */
+    ListCtrl* GetListCtrl() const { return m_pListCtrl; }
+
+private:
+    /** 关联的ListCtrl接口
+    */
+    ListCtrl* m_pListCtrl = nullptr;
 };
 
 }//namespace ui

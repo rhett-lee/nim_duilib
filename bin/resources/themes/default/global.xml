@@ -279,13 +279,15 @@
     <Class name="list_ctrl_icon_view_item_image" halign="center" margin="2,4,2,2"/>
     <Class name="list_ctrl_icon_view_item_label" width="100%" height="100%" text_align="hcenter,vcenter" single_line="false" auto_tooltip="true"/>
     <Class name="list_ctrl_list_view" bkcolor="white" vscrollbar="true" hscrollbar="true" height="100%" padding="0,0,0,0" paint_selected_colors="true"
-                                      horizontal_layout="true" item_size="180,36" rows="auto" child_margin_x="8" child_margin_y="8"
+                                      horizontal_layout="true" item_size="240,36" rows="auto" child_margin_x="8" child_margin_y="8"
                                       enable_frame_selection="true" 
                                       frame_selection_color="#FFAACCEE" frame_selection_alpha="128" 
                                       frame_selection_border="1" frame_selection_border_color="#FF0078D7"/>
     <Class name="list_ctrl_list_view_item" hot_color="Wheat" pushed_color="#FFD9EEFF" selected_normal_color="#FFCCE8FF"/>
     <Class name="list_ctrl_list_view_item_image" valign="center" margin="8,2,2,2"/>
     <Class name="list_ctrl_list_view_item_label" width="100%" height="100%" text_align="vcenter,left" single_line="true" auto_tooltip="true"/>
+    <Class name="list_ctrl_richedit" text_align="left,vcenter" bkcolor="white" min_height="28" multi_line="false" word_wrap="true" auto_hscroll="true" want_return_msg="true" want_tab="false" rich_text="false" text_padding="2,2,2,2" padding="1,1,1,1" border_size="1" border_color="light_gray" hot_border_color="blue" focus_border_color="CornflowerBlue"/>
+    
     <!--气泡框通用样式-->
     <TextColor name="popover_color_0" value="#FFECF1F8"/>
     <TextColor name="popover_color_1" value="#FFF2F7FF"/>

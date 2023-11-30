@@ -3,9 +3,8 @@
 
 #pragma once
 
-#include "duilib/Box/ListBox.h"
-#include "duilib/Control/Label.h"
 #include "duilib/Core/ImageList.h"
+#include "duilib/Control/ListCtrlDefs.h"
 
 namespace ui
 {
@@ -13,7 +12,7 @@ namespace ui
 */
 class ListCtrlItem;
 class ListCtrlCheckBox;
-class ListCtrlSubItem : public LabelBox
+class ListCtrlSubItem : public ListCtrlLabel
 {
 public:
     ListCtrlSubItem();

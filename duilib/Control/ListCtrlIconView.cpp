@@ -42,6 +42,45 @@ void ListCtrlIconView::SetAttribute(const std::wstring& strName, const std::wstr
     }
 }
 
+void ListCtrlIconViewItem::HandleEvent(const EventArgs& msg)
+{
+    __super::HandleEvent(msg);
+    if (m_pListCtrl != nullptr) {
+        if ((msg.Type > kEventKeyBegin) && (msg.Type < kEventKeyEnd)) {
+            m_pListCtrl->OnViewKeyboardEvents(msg);
+        }
+        else if ((msg.Type > kEventMouseBegin) && (msg.Type < kEventMouseEnd)) {
+            m_pListCtrl->OnViewMouseEvents(msg);
+        }
+    }
+}
+
+void ListCtrlListViewItem::HandleEvent(const EventArgs& msg)
+{
+    __super::HandleEvent(msg);
+    if (m_pListCtrl != nullptr) {
+        if ((msg.Type > kEventKeyBegin) && (msg.Type < kEventKeyEnd)) {
+            m_pListCtrl->OnViewKeyboardEvents(msg);
+        }
+        else if ((msg.Type > kEventMouseBegin) && (msg.Type < kEventMouseEnd)) {
+            m_pListCtrl->OnViewMouseEvents(msg);
+        }
+    }
+}
+
+void ListCtrlIconView::HandleEvent(const EventArgs& msg)
+{
+    __super::HandleEvent(msg);
+    if (m_pListCtrl != nullptr) {
+        if ((msg.Type > kEventKeyBegin) && (msg.Type < kEventKeyEnd)) {
+            m_pListCtrl->OnViewKeyboardEvents(msg);
+        }
+        else if ((msg.Type > kEventMouseBegin) && (msg.Type < kEventMouseEnd)) {
+            m_pListCtrl->OnViewMouseEvents(msg);
+        }
+    }
+}
+
 void ListCtrlIconView::SetHorizontalLayout(bool bHorizontal)
 {
     if (bHorizontal) {
@@ -119,24 +158,22 @@ Control* ListCtrlIconView::CreateDataItem()
     if (m_bListMode) {
         //列表视图: 水平布局
         ListCtrlListViewItem* pItem = new ListCtrlListViewItem;
+        pItem->SetListCtrl(m_pListCtrl);
         pControl = pItem;
         pControl->SetClass(m_pListCtrl->GetListViewItemClass());
         Control* pItemImage = new Control;
-        Label* pItemLabel = new Label;
-        pItemImage->SetMouseEnabled(false);
-        pItemLabel->SetMouseEnabled(false);
+        ListCtrlLabel* pItemLabel = new ListCtrlLabel;
         pItem->AddItem(pItemImage);
         pItem->AddItem(pItemLabel);
     }
     else {
         //图标视图：垂直布局
         ListCtrlIconViewItem* pItem = new ListCtrlIconViewItem;
+        pItem->SetListCtrl(m_pListCtrl);
         pControl = pItem;
         pControl->SetClass(m_pListCtrl->GetIconViewItemClass());
         Control* pItemImage = new Control;
-        Label* pItemLabel = new Label;
-        pItemImage->SetMouseEnabled(false);
-        pItemLabel->SetMouseEnabled(false);
+        ListCtrlLabel* pItemLabel = new ListCtrlLabel;
         pItem->AddItem(pItemImage);
         pItem->AddItem(pItemLabel);
     }
@@ -145,7 +182,7 @@ Control* ListCtrlIconView::CreateDataItem()
 }
 
 bool ListCtrlIconView::FillDataItem(Control* pControl,
-                                    size_t /*nElementIndex*/,
+                                    size_t nElementIndex,
                                     const ListCtrlItemData& itemData,
                                     const std::vector<ListCtrlSubItemData2Pair>& subItemList)
 {
@@ -176,7 +213,7 @@ bool ListCtrlIconView::FillDataItem(Control* pControl,
     }
 
     Control* pItemImage = pItemBox->GetItemAt(0);
-    Label* pItemLabel = dynamic_cast<Label*>(pItemBox->GetItemAt(1));
+    ListCtrlLabel* pItemLabel = dynamic_cast<ListCtrlLabel*>(pItemBox->GetItemAt(1));
     ASSERT((pItemImage != nullptr) && (pItemLabel != nullptr));
     if ((pItemImage == nullptr) || (pItemLabel == nullptr)) {
         return false;
@@ -225,6 +262,34 @@ bool ListCtrlIconView::FillDataItem(Control* pControl,
     }
     else {
         pItemLabel->SetText(L"");
+    }
+
+    //设置不获取焦点等属性
+    pItemImage->SetNoFocus();
+    pItemLabel->SetNoFocus();
+
+    pItemImage->SetMouseEnabled(false);
+
+    //设置可编辑属性
+    bool bEditable = (pSubItemData != nullptr) ? pSubItemData->bEditable : false;
+    if (bEditable && m_pListCtrl->IsEnableItemEdit()) {
+        IListBoxItem* pItem = dynamic_cast<IListBoxItem*>(pControl);
+        ListCtrlLabel* pSubItem = pItemLabel;
+        ASSERT(pItem != nullptr);
+        pItemLabel->SetListBoxItem(pControl);
+        pItemLabel->SetMouseEnabled(true);
+        pItemLabel->DetachEvent(kEventEnterEdit);
+        pItemLabel->AttachEvent(kEventEnterEdit, [this, nElementIndex, nColumnId, pItem, pSubItem](const EventArgs& /*args*/) {
+            if (m_pListCtrl != nullptr) {
+                m_pListCtrl->OnItemEnterEditMode(nElementIndex, nColumnId, pItem, pSubItem);
+            }
+            return true;
+            });
+    }
+    else {
+        pItemLabel->SetListBoxItem(nullptr);
+        pItemLabel->DetachEvent(kEventEnterEdit);
+        pItemLabel->SetMouseEnabled(false);
     }
     return true;
 }

@@ -33,6 +33,10 @@ public:
     */
     virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 
+    /** 事件处理函数
+    */
+    virtual void HandleEvent(const EventArgs& msg) override;
+
     /** 判断控件类型是否为可选择的
      * @return 默认返回false
      */
@@ -69,6 +73,11 @@ public:
     * @param [in] ptMouse 鼠标所在的位置，屏幕坐标点
     */
     size_t GetSubItemIndex(const UiPoint& ptMouse) const;
+
+    /** 获取子控件的列索引序号(哪一列)
+    * @param [in] pSubItem 子控件的接口
+    */
+    size_t GetSubItemIndex(ListCtrlSubItem* pSubItem) const;
 
     /** 设置是否在行首显示CheckBox
     * @param [in] bShow true表示在行首显示CheckBox，false表示不显示

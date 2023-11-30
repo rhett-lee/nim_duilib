@@ -142,6 +142,7 @@ void MainForm::OnInitWindow()
 	ui::CheckBox* pColumnSort = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_sort"));
 	ui::CheckBox* pColumnIcon = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_icon_at_top"));
 	ui::CheckBox* pColumnDragOrder = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_drag_order"));
+	ui::CheckBox* pColumnEditable = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_editable"));
 	ui::CheckBox* pColumnHeaderCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_show_header_checkbox"));
 	ui::CheckBox* pColumnShowCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_show_checkbox"));
 
@@ -254,6 +255,24 @@ void MainForm::OnInitWindow()
 		});
 	pColumnDragOrder->AttachUnSelect([this, OnColumnDragOrder](const ui::EventArgs& args) {
 		OnColumnDragOrder(false);
+		return true;
+		});
+
+	//ÊÇ·ñ¿É±à¼­
+	auto OnColumnEditable = [this, pColumnCombo, pListCtrl](bool bEditable) {
+		size_t nColumnId = pColumnCombo->GetItemData(pColumnCombo->GetCurSel());
+		size_t nColumnIndex = pListCtrl->GetColumnIndex(nColumnId);
+		size_t nItemCount = pListCtrl->GetDataItemCount();
+		for (size_t nItemIndex = 0; nItemIndex < nItemCount; ++nItemIndex) {
+			pListCtrl->SetSubItemEditable(nItemIndex, nColumnIndex, bEditable);
+		}
+		};
+	pColumnEditable->AttachSelect([this, OnColumnEditable](const ui::EventArgs&) {
+		OnColumnEditable(true);
+		return true;
+		});
+	pColumnEditable->AttachUnSelect([this, OnColumnEditable](const ui::EventArgs& args) {
+		OnColumnEditable(false);
 		return true;
 		});
 
@@ -542,6 +561,7 @@ void MainForm::OnColumnChanged(size_t nColumnId)
 	ui::CheckBox* pColumnSort = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_sort"));
 	ui::CheckBox* pColumnIcon = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_icon_at_top"));
 	ui::CheckBox* pColumnDragOrder = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_drag_order"));
+	ui::CheckBox* pColumnEditable = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_editable"));
 	ui::CheckBox* pColumnHeaderCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_show_header_checkbox"));
 	ui::CheckBox* pColumnShowCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_show_checkbox"));
 
@@ -570,6 +590,7 @@ void MainForm::OnColumnChanged(size_t nColumnId)
 
 	bool bColumnDataHasCheckBox = false;
 	bool bColumnDataHasIcon = false;
+	bool bColumnEditable = pListCtrl->IsSubItemEditable(0, 0);
 	ui::ListCtrlItem* pItem = pListCtrl->GetFirstDisplayItem();
 	if (pItem != nullptr) {
 		ui::ListCtrlSubItem* pSubItem = pItem->GetSubItem(pListCtrl->GetColumnIndex(nColumnId));
@@ -584,6 +605,7 @@ void MainForm::OnColumnChanged(size_t nColumnId)
 	}
 	pColumnShowCheckBox->Selected(bColumnDataHasCheckBox, false);
 	pColumnShowIcon->Selected(bColumnDataHasIcon, false);
+	pColumnEditable->Selected(bColumnEditable, false);
 
 	ui::HorAlignType hAlignType = pHeaderItem->GetTextHorAlign();
 	if (hAlignType == ui::HorAlignType::kHorAlignCenter) {

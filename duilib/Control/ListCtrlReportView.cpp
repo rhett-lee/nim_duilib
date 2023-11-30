@@ -30,6 +30,19 @@ ListCtrlReportView::~ListCtrlReportView()
 {
 }
 
+void ListCtrlReportView::HandleEvent(const EventArgs& msg)
+{
+    __super::HandleEvent(msg);
+    if (m_pListCtrl != nullptr) {
+        if ((msg.Type > kEventKeyBegin) && (msg.Type < kEventKeyEnd)) {
+            m_pListCtrl->OnViewKeyboardEvents(msg);
+        }
+        else if ((msg.Type > kEventMouseBegin) && (msg.Type < kEventMouseEnd)) {
+            m_pListCtrl->OnViewMouseEvents(msg);
+        }
+    }
+}
+
 void ListCtrlReportView::SetListCtrl(ListCtrl* pListCtrl)
 {
     m_pListCtrl = pListCtrl;
@@ -903,10 +916,30 @@ bool ListCtrlReportView::FillDataItem(Control* pControl,
         else {
             pSubItem = new ListCtrlSubItem;
             pSubItem->SetListCtrlItem(pItem);
+            pSubItem->SetListBoxItem(pItem);
             pItem->AddItem(pSubItem);
             if (!defaultSubItemClass.empty()) {
                 pSubItem->SetClass(defaultSubItemClass);
-            }
+            }            
+        }
+        //设置不获取焦点
+        pSubItem->SetNoFocus();
+
+        //设置可编辑属性
+        bool bEditable = (elementData.pStorage != nullptr) ? elementData.pStorage->bEditable : false;
+        if (bEditable && m_pListCtrl->IsEnableItemEdit()) {
+            size_t nColumnId = elementData.nColumnId;
+            pSubItem->SetMouseEnabled(true);
+            pSubItem->DetachEvent(kEventEnterEdit);
+            pSubItem->AttachEvent(kEventEnterEdit, [this, nElementIndex, nColumnId, pItem, pSubItem](const EventArgs& /*args*/) {
+                if (m_pListCtrl != nullptr) {
+                    m_pListCtrl->OnItemEnterEditMode(nElementIndex, nColumnId, pItem, pSubItem);
+                }
+                return true;
+                });
+        }
+        else {
+            pSubItem->DetachEvent(kEventEnterEdit);
             pSubItem->SetMouseEnabled(false);
         }
 

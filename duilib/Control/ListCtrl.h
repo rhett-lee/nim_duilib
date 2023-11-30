@@ -24,6 +24,8 @@ class ListCtrl: public VBox
     friend class ListCtrlHeaderItem;
     friend class ListCtrlItem;
     friend class ListCtrlSubItem;
+    friend class ListCtrlIconViewItem;
+    friend class ListCtrlListViewItem;
 public:
 	ListCtrl();
 	virtual ~ListCtrl();
@@ -32,6 +34,7 @@ public:
 	*/
 	virtual std::wstring GetType() const override;
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
+    virtual void HandleEvent(const EventArgs& msg) override;
 
 public:
     /** 设置表格类型（默认为Report类型）
@@ -374,6 +377,19 @@ public:
     */
     int32_t GetSubItemImageId(size_t itemIndex, size_t columnIndex) const;
 
+    /** 设置该列的文本是否可编辑
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
+    * @param [in] bEditable true表示可编辑，false表示不可编辑
+    */
+    bool SetSubItemEditable(size_t itemIndex, size_t columnIndex, bool bEditable);
+
+    /** 获取该列的文本是否可编辑
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
+    */
+    bool IsSubItemEditable(size_t itemIndex, size_t columnIndex) const;
+
 public:
     /** 对数据排序
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
@@ -500,6 +516,18 @@ public:
     *         注意事项：界面刷新后，界面控件与数据元素之间的关系会动态变化
     */
     ListCtrlListViewItem* GetNextDisplayListItem(ListCtrlListViewItem* pItem) const;
+
+    /** 设置是否支持子项编辑
+    */
+    void SetEnableItemEdit(bool bEnableItemEdit);
+
+    /** 判断是否支持子项编辑
+    */
+    bool IsEnableItemEdit() const;
+
+    /** 获取编辑框控件的接口(只有执行编辑操作以后，才有值)
+    */
+    RichEdit* GetRichEdit() const;
 
 public:
     /** @name CheckBox（行级）关联函数
@@ -634,6 +662,20 @@ public:
      */
     void AttachReturn(const EventCallback& callback) { this->AttachEvent(kEventReturn, callback); }
 
+    /** 监听开始编辑事件
+     * @param[in] callback 事件回调函数
+      * 参数说明:
+     *   wParam: 是接口指针：ListCtrlEditParam*，可以通过设置bCancelled取消操作
+     */
+    void AttachEnterEdit(const EventCallback& callback) { this->AttachEvent(kEventEnterEdit, callback); }
+
+    /** 监听结束编辑事件
+     * @param[in] callback 事件回调函数
+      * 参数说明:
+     *   wParam: 是接口指针：ListCtrlEditParam*，可以通过设置bCancelled取消操作
+     */
+    void AttachLeaveEdit(const EventCallback& callback) { this->AttachEvent(kEventLeaveEdit, callback); }
+
 protected:
     /** 控件初始化
     */
@@ -720,6 +762,11 @@ protected:
     void SetListViewItemLabelClass(const std::wstring& className);
     std::wstring GetListViewItemLabelClass() const;
 
+    /** 编辑框的Class属性
+    */
+    void SetRichEditClass(const std::wstring& richEditClass);
+    std::wstring GetRichEditClass() const;
+
 protected:
     /** 增加一列
     * @param [in] nColumnId 列的ID
@@ -775,6 +822,56 @@ protected:
     /** 同步UI的Check状态(行级别的CheckBox)
     */
     void UpdateHeaderCheckBox();
+
+private:
+    /** 进入编辑状态
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @param [in] nColumnId 列的ID
+    * @param [in] pItem 列表项的接口
+    * @param [in] pSubItem 列表项子项的接口
+    */
+    void OnItemEnterEditMode(size_t itemIndex, size_t nColumnId,
+                             IListBoxItem* pItem, ListCtrlLabel* pSubItem);
+
+    /** 进入编辑状态的定时器取消机制
+    */
+    nbase::WeakCallbackFlag m_editModeFlag;
+
+    /** 从定时器进入编辑状态
+    */
+    void OnItemEditMode(ListCtrlEditParam editParam);
+
+    /** 校验编辑状态的输入参数，是否有效
+    */
+    bool IsValidItemEditParam(const ListCtrlEditParam& editParam) const;
+
+    /** 校验是否满足可编辑状态
+    */
+    bool IsValidItemEditState(const ListCtrlEditParam& editParam) const;
+
+    /** 更新RichEdit控件的位置和大小
+    */
+    void UpdateRichEditSize(ListCtrlLabel* pSubItem);
+
+    /** 子项编辑事件
+    */
+    void OnItemEdited(const ListCtrlEditParam& editParam, const std::wstring& newItemText);
+
+    /** 视图接收到鼠标消息
+    */
+    void OnViewMouseEvents(const EventArgs& msg);
+
+    /** 视图接收到鼠标消息
+    */
+    void OnViewKeyboardEvents(const EventArgs& msg);
+
+    /** 结束编辑状态
+    */
+    void LeaveEditMode();
+
+    /** 清除所有编辑状态的事件监听
+    */
+    void ClearEditEvents();
 
 private:
 	/** 初始化标志
@@ -873,6 +970,10 @@ private:
     */
     UiString m_listViewItemLabelClass;
 
+    /** ListCtrl的编辑框Class属性
+    */
+    UiString m_listCtrlRichEditClass;
+
     /** 表头的高度
     */
     int32_t m_nHeaderHeight;
@@ -912,6 +1013,14 @@ private:
     /** 图片列表
     */
     ImageList* m_imageList[3];
+
+    /** 编辑框控件
+    */
+    RichEdit* m_pRichEdit;
+
+    /** 是否支持子项编辑
+    */
+    bool m_bEnableItemEdit;
 };
 
 }//namespace ui

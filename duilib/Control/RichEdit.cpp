@@ -1542,14 +1542,6 @@ UiEstSize RichEdit::EstimateSize(UiSize /*szAvailable*/)
 	if (fixexSize.cx.IsAuto() || fixexSize.cy.IsAuto()) {
 		LONG iWidth = size.cx;
 		LONG iHeight = size.cy;
-		if (fixexSize.cy.IsAuto()) {
-			ASSERT(!fixexSize.cx.IsAuto());
-			iHeight = 0;
-		}
-		else if (fixexSize.cx.IsAuto()) {
-			ASSERT(!fixexSize.cy.IsAuto());
-			iWidth = 0;
-		}
 		SIZEL szExtent = {-1, -1};
 		pTextServices->TxGetNaturalSize(DVASPECT_CONTENT,
 										GetWindowDC(),
@@ -1567,7 +1559,7 @@ UiEstSize RichEdit::EstimateSize(UiSize /*szAvailable*/)
 			size.cy = iHeight + (rcPadding.top + rcPadding.bottom) + (rcTextPadding.top + rcTextPadding.bottom);
 			fixexSize.cy.SetInt32(size.cy);
 		}
-		else if (fixexSize.cx.IsAuto()) {
+		if (fixexSize.cx.IsAuto()) {
 			size.cx = iWidth + (rcPadding.left + rcPadding.right) + (rcTextPadding.left + rcTextPadding.right);
 			fixexSize.cx.SetInt32(size.cx);
 		}

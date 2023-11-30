@@ -215,6 +215,7 @@ void ListCtrlData::SubItemToStorage(const ListCtrlSubItemData& item, Storage& st
     storage.bkColor = item.bkColor;
     storage.bShowCheckBox = item.bShowCheckBox;
     storage.bChecked = item.bChecked;
+    storage.bEditable = item.bEditable;
 }
 
 void ListCtrlData::StorageToSubItem(const Storage& storage, ListCtrlSubItemData& item) const
@@ -231,6 +232,7 @@ void ListCtrlData::StorageToSubItem(const Storage& storage, ListCtrlSubItemData&
     item.bkColor = storage.bkColor;
     item.bShowCheckBox = storage.bShowCheckBox;
     item.bChecked = storage.bChecked;
+    item.bEditable = storage.bEditable;
 }
 
 bool ListCtrlData::IsValidDataItemIndex(size_t itemIndex) const
@@ -1374,6 +1376,32 @@ int32_t ListCtrlData::GetSubItemImageId(size_t itemIndex, size_t columnId) const
         nImageId = pStorage->nImageId;
     }
     return nImageId;
+}
+
+bool ListCtrlData::SetSubItemEditable(size_t itemIndex, size_t columnId, bool bEditable)
+{
+    StoragePtr pStorage = GetSubItemStorageForWrite(itemIndex, columnId);
+    ASSERT(pStorage != nullptr);
+    if (pStorage == nullptr) {
+        //Ë÷ÒýºÅÎÞÐ§
+        return false;
+    }
+    if (pStorage->bEditable != bEditable) {
+        pStorage->bEditable = bEditable;
+        EmitDataChanged(itemIndex, itemIndex);
+    }
+    return true;
+}
+
+bool ListCtrlData::IsSubItemEditable(size_t itemIndex, size_t columnId) const
+{
+    bool bEditable = false;
+    StoragePtr pStorage = GetSubItemStorage(itemIndex, columnId);
+    ASSERT(pStorage != nullptr);
+    if (pStorage != nullptr) {
+        bEditable = pStorage->bEditable;
+    }
+    return bEditable;
 }
 
 bool ListCtrlData::SortDataItems(size_t nColumnId, size_t nColumnIndex, bool bSortedUp,

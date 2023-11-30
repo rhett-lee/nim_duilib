@@ -401,6 +401,19 @@ public:
     */
     int32_t GetSubItemImageId(size_t itemIndex, size_t columnId) const;
 
+    /** 设置该列的文本是否可编辑
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @param [in] columnId 列的ID
+    * @param [in] bEditable true表示可编辑，false表示不可编辑
+    */
+    bool SetSubItemEditable(size_t itemIndex, size_t columnId, bool bEditable);
+
+    /** 获取该列的文本是否可编辑
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @param [in] columnId 列的ID
+    */
+    bool IsSubItemEditable(size_t itemIndex, size_t columnId) const;
+
     /** 对数据排序，并刷新界面显示
     * @param [in] columnId 列的ID
     * @param [in] nColumnIndex 列的序号

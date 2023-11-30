@@ -25,8 +25,9 @@ public:
 
 	bool operator() (const ui::EventArgs& param) const
 	{
+		//支持在回调函数中，操作此容器
 		for (size_t index = 0; index < this->size(); ++index) {
-			const EventCallback& callback = this->at(index);
+			EventCallback callback = this->at(index);
 			if (!callback(param)) {
 				return false;
 			}

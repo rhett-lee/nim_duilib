@@ -313,6 +313,9 @@ namespace ui
 
 		kEventSplitDraged,			//Split类：通过拖动操作调整了控件的大小，WPARAM是第一个控件接口，LPARAM是第二个控件接口
 
+		kEventEnterEdit,			//ListCtrl类：进入编辑状态, wParam 是接口：ListCtrlEditParam*
+		kEventLeaveEdit,			//ListCtrl类：退出编辑状态, wParam 是接口：ListCtrlEditParam*
+
 		kEventLast					//Control类：该控件的最后一个消息，当这个控件对象销毁时触发
 	};
 

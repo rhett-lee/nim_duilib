@@ -29,6 +29,19 @@ void ListCtrlItem::SetAttribute(const std::wstring& strName, const std::wstring&
     }
 }
 
+void ListCtrlItem::HandleEvent(const EventArgs& msg)
+{
+    __super::HandleEvent(msg);
+    if (m_pListCtrl != nullptr) {
+        if ((msg.Type > kEventKeyBegin) && (msg.Type < kEventKeyEnd)) {
+            m_pListCtrl->OnViewKeyboardEvents(msg);
+        }
+        else if ((msg.Type > kEventMouseBegin) && (msg.Type < kEventMouseEnd)) {
+            m_pListCtrl->OnViewMouseEvents(msg);
+        }
+    }
+}
+
 bool ListCtrlItem::IsSelectableType() const
 {
     return m_bSelectable;
@@ -94,6 +107,19 @@ size_t ListCtrlItem::GetSubItemIndex(const UiPoint& ptMouse) const
                 nSubItemIndex = index;
                 break;
             }
+        }
+    }
+    return nSubItemIndex;
+}
+
+size_t ListCtrlItem::GetSubItemIndex(ListCtrlSubItem* pSubItem) const
+{
+    size_t nSubItemIndex = Box::InvalidIndex;
+    size_t nItemCount = GetItemCount();
+    for (size_t index = 0; index < nItemCount; ++index) {
+        if (pSubItem == dynamic_cast<ListCtrlSubItem*>(GetItemAt(index))) {
+            nSubItemIndex = index;
+            break;
         }
     }
     return nSubItemIndex;

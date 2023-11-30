@@ -22,6 +22,7 @@ public:
     virtual ~ListCtrlReportView();
 
     virtual std::wstring GetType() const override { return L"ListCtrlReportView"; }
+    virtual void HandleEvent(const EventArgs& msg) override;
 
     /** 设置ListCtrl控件接口
     */
