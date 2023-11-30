@@ -1,6 +1,12 @@
 #include "Font_Skia.h"
 #include "duilib/Utils/StringUtil.h"
+
+#pragma warning (push)
+#pragma warning (disable: 4244)
+
 #include "include/core/SkFont.h"
+
+#pragma warning (pop)
 
 namespace ui 
 {

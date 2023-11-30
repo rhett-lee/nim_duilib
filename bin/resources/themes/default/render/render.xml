@@ -60,9 +60,6 @@
                 <Button class="btn_global_blue_80x30" width="50" height="32" text="Layout" margin="8,0,0,0">
                     <Event type="buttonup" receiver="main_view_tab" applyattribute="selected_id={15}" />
                 </Button>
-                <Button class="btn_global_blue_80x30" width="50" height="32" text="ListCtrl" margin="8,0,0,0">
-                    <Event type="buttonup" receiver="main_view_tab" applyattribute="selected_id={16}" />
-                </Button>
             </HBox>
             <Control />
             <!-- 标题栏：右侧窗口控制区域，窗口最小化、最大化、还原、关闭按钮 -->
@@ -78,7 +75,7 @@
         
         <!-- 显示区域 --> 
         <VBox>            
-            <TabBox name="main_view_tab" bkcolor="white" fadeswitch="true" selected_id="16">
+            <TabBox name="main_view_tab" bkcolor="white" fadeswitch="true" selected_id="15">
                 <VBox name="main_view_page_01">
                     <Label text="页面1：IRender接口的图片绘制相关接口测试（DrawImage，BitBlt，StretchBlt，AlphaBlend）"/>
                     <RenderTest1 />
@@ -134,9 +131,6 @@
                 </VBox>
                 <VBox name="main_view_page_16">
                     <Include src="page_layout.xml"/>
-                </VBox>
-                <VBox name="main_view_page_17">
-                    <Include src="page_list_ctrl.xml"/>
                 </VBox>
             </TabBox>
         </VBox>
