@@ -359,7 +359,7 @@ template<typename InheritType>
 bool SplitTemplate<InheritType>::MouseMove(const EventArgs& msg)
 {
     bool bRet = __super::MouseMove(msg);
-    if (!IsSplitDragValid()) {
+    if (!IsSplitDragValid() || !this->IsMouseFocused()) {
         return bRet;
     }
 
@@ -418,14 +418,39 @@ bool SplitTemplate<InheritType>::MouseMove(const EventArgs& msg)
         pControl1 = m_pLeftTop;
         nNewValue1 = CalculateControlPos(m_bHLayout, nTotal, nOffset, m_pLeftTop, m_nLeftUpFixedValue, m_pRightBottom);
     }
+    else {
+        nNewValue1 = -1;
+    }
     if (!m_nRightBottomFixedValue.IsStretch()) {
         pControl2 = m_pRightBottom;
         nNewValue2 = CalculateControlPos(m_bHLayout, nTotal, -nOffset, m_pRightBottom, m_nRightBottomFixedValue, m_pLeftTop);
     }
-    if ((nNewValue1 + nNewValue2) != nTotal) {
-        //超过限制，不调整
+    else {
+        nNewValue2 = -1;
+    }
+    if ((nNewValue1 < 0) && (nNewValue2 < 0)) {
+        //两个控件都是拉伸类型的，不调整
         return bRet;
     }
+    else if ((nNewValue1 >= 0) && (nNewValue2 >= 0)) {
+        if ((nNewValue1 + nNewValue2) != nTotal) {
+            //超过限制，不调整
+            return bRet;
+        }
+    }
+    else if (nNewValue1 >= 0) {
+        if (nNewValue1 > nTotal) {
+            //超过限制，不调整
+            return bRet;
+        }
+    }
+    else if (nNewValue2 >= 0) {
+        if (nNewValue2 > nTotal) {
+            //超过限制，不调整
+            return bRet;
+        }
+    }
+    
     bool bAdjusted = false;
     if ((pControl1 != nullptr) && (nNewValue1 >= 0)) {
         bAdjusted = true;
