@@ -97,6 +97,14 @@ void Box::PaintChild(IRender* pRender, const UiRect& rcPaint)
 		}
 		pControl->AlphaPaint(pRender, rcPaint);
 	}
+
+	if ((pRender != nullptr) && IsShowFocusRect() && IsFocused()) {
+		DoPaintFocusRect(pRender);	//»æÖÆ½¹µã×´Ì¬
+	}
+}
+
+void Box::PaintFocusRect(IRender* /*pRender*/)
+{
 }
 
 void Box::SetEnabled(bool bEnabled)

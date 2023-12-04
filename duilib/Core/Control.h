@@ -416,32 +416,41 @@ public:
 	 */
     virtual void SetKeyboardEnabled(bool bEnable);
 
-	/**
-	 * @brief 检查控件是否具有焦点
+	/** 检查控件是否具有焦点
 	 * @return 返回控件是否具有检点，为 true 时是当前具有焦点，为 false 时控件没有焦点
 	 */
     virtual bool IsFocused() const;
 
-	/**
-	 * @brief 让控件获取焦点
-	 * @return 无
+	/** 让控件获取焦点
 	 */
     virtual void SetFocus();
 
-	/**
-	 * @brief 返回控件的标识，用于判断是否可以响应 TAB 切换事件
+	/** 返回控件的标识，用于判断是否可以响应 TAB 切换事件
 	 * @return 返回控件的标识类型
 	 */
 	virtual UINT GetControlFlags() const;
 
-	/**
-	 * @brief 让控件设置永远获取不到焦点
-	 * @return 无
+	/** 让控件设置永远获取不到焦点
 	 */
 	void SetNoFocus(); // 控件永远不要焦点，与KillFocus不一样
 
-	/**
-	 * @brief 判断当前鼠标焦点是否在控件上
+	/** 设置是否显示焦点状态(一个虚线构成的矩形)
+	*/
+	void SetShowFocusRect(bool bShowFocusRect);
+
+	/** 设置是否显示焦点状态(一个虚线构成的矩形)
+	*/
+	bool IsShowFocusRect() const;
+
+	/** 设置焦点状态虚线矩形的颜色(线条的颜色)
+	*/
+	void SetFocusRectColor(const std::wstring& focusRectColor);
+
+	/** 获取焦点状态虚线矩形的颜色(线条的颜色)
+	*/
+	std::wstring GetFocusRectColor() const;
+
+	/** 判断当前鼠标焦点是否在控件上
 	 * @return 返回鼠标焦点是否在控件上，true 鼠标焦点在控件上，false 鼠标焦点不在控件上
 	 */
 	virtual bool IsMouseFocused() const { return m_bMouseFocused;}
@@ -1003,6 +1012,7 @@ protected:
 	virtual void PaintStateImages(IRender* pRender);
 	virtual void PaintText(IRender* pRender);
 	virtual void PaintBorder(IRender* pRender);
+	virtual void PaintFocusRect(IRender* pRender);
 	virtual void PaintLoading(IRender* pRender);
 
 protected:
@@ -1089,6 +1099,10 @@ protected:
 	/** 停止播放GIF动画
 	*/
 	void CheckStopGifPlay(GifStopType frame = kGifStopCurrent);
+
+	/** 绘制焦点状态的矩形（虚线组成的矩形）
+	*/
+	void DoPaintFocusRect(IRender* pRender);
 
 private:
 	/** 绘制边框：根据条件判断绘制圆角矩形边框还是普通矩形边框
@@ -1278,6 +1292,12 @@ private:
 
 	//控件的光标类型(CursorType)
 	int8_t m_cursorType;
+
+	//是否显示焦点状态(一个虚线构成的矩形)
+	bool m_bShowFocusRect;
+
+	//焦点状态虚线矩形的颜色
+	UiString m_focusRectColor;
 };
 
 } // namespace ui

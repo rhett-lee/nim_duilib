@@ -45,7 +45,8 @@ Control::Control() :
 	m_pOnBubbledEvent(nullptr),
 	m_pOnXmlBubbledEvent(nullptr),
 	m_pLoading(nullptr),
-	m_pGif(nullptr)
+	m_pGif(nullptr),
+	m_bShowFocusRect(false)
 {
 }
 
@@ -426,6 +427,12 @@ void Control::SetAttribute(const std::wstring& strName, const std::wstring& strV
 	}
 	else if ((strName == L"loading_bkcolor") || (strName == L"loadingbkcolor")) {
 		SetLoadingBkColor(strValue);
+	}
+	else if (strName == L"show_focus_rect") {
+		SetShowFocusRect(strValue == L"true");
+	}
+	else if (strName == L"focus_rect_color") {
+		SetFocusRectColor(strValue);
 	}
 	else {
 		ASSERT(!"Control::SetAttribute失败: 发现不能识别的属性");
@@ -1243,6 +1250,26 @@ void Control::SetNoFocus()
 	EnsureNoFocus();
 }
 
+void Control::SetShowFocusRect(bool bShowFocusRect)
+{
+	m_bShowFocusRect = bShowFocusRect;
+}
+
+bool Control::IsShowFocusRect() const
+{
+	return m_bShowFocusRect;
+}
+
+void Control::SetFocusRectColor(const std::wstring& focusRectColor)
+{
+	m_focusRectColor = focusRectColor;
+}
+
+std::wstring Control::GetFocusRectColor() const
+{
+	return m_focusRectColor.c_str();
+}
+
 void Control::Activate()
 {
 
@@ -1871,7 +1898,6 @@ bool Control::OnKillFocus(const EventArgs& /*msg*/)
 {
 	if (GetState() == kControlStateHot) {
 		SetState(kControlStateNormal);
-		Invalidate();
 	}
 	else if (GetState() == kControlStatePushed) {
 		//失去焦点时，修复控件状态（如果鼠标按下时，窗口失去焦点，鼠标弹起事件这个控件就收不到了）
@@ -1881,8 +1907,8 @@ bool Control::OnKillFocus(const EventArgs& /*msg*/)
 			player->Stop();
 		}
 		SetState(kControlStateNormal);
-		Invalidate();
 	}
+	Invalidate();
 	return true;
 }
 
@@ -2233,6 +2259,7 @@ void Control::Paint(IRender* pRender, const UiRect& rcPaint)
 	PaintStateImages(pRender);	//先绘制背景图片，然后绘制前景图片，每个图片有指定的状态：普通状态、焦点状态、按下状态、禁用状态
 	PaintText(pRender);			//绘制文本
 	PaintBorder(pRender);		//绘制边框
+	PaintFocusRect(pRender);	//绘制焦点状态
     PaintLoading(pRender);		//绘制Loading图片，无状态
 }
 
@@ -2435,6 +2462,64 @@ bool Control::ShouldBeRoundRectBorders() const
 {
 	bool isRoundRect = ShouldBeRoundRectFill();
 	return isRoundRect && (m_rcBorderSize.left > 0);
+}
+
+void Control::PaintFocusRect(IRender* pRender)
+{
+	if ((pRender != nullptr) && IsShowFocusRect() && IsFocused()) {
+		DoPaintFocusRect(pRender);	//绘制焦点状态
+	}
+}
+
+void Control::DoPaintFocusRect(IRender* pRender)
+{
+	IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
+	if (pRenderFactory == nullptr) {
+		return;
+	}
+	int32_t nWidth = ui::GlobalManager::Instance().Dpi().GetScaleInt(1); //画笔宽度
+	UiColor dwBorderColor;//画笔颜色
+	std::wstring focusRectColor = GetFocusRectColor();
+	if (!focusRectColor.empty()) {
+		dwBorderColor = GetUiColor(focusRectColor);
+	}
+	if(dwBorderColor.IsEmpty()) {
+		dwBorderColor = UiColor(UiColors::Gray);
+	}
+	UiRect rcBorderSize(1, 1, 1, 1);
+	UiRect rcFocusRect = GetRect();
+	int32_t nFocusWidth = ui::GlobalManager::Instance().Dpi().GetScaleInt(2); //矩形间隙
+	rcFocusRect.Deflate(nFocusWidth, nFocusWidth);
+	if (rcFocusRect.IsEmpty()) {
+		return;
+	}
+	std::unique_ptr<IPen> pPen(pRenderFactory->CreatePen(dwBorderColor, nWidth));
+	pPen->SetDashStyle(IPen::DashStyle::kDashStyleDot);
+
+	if (rcBorderSize.left > 0) {
+		//左边线
+		UiPoint pt1(rcFocusRect.left, rcFocusRect.top);
+		UiPoint pt2(rcFocusRect.left, rcFocusRect.bottom);
+		pRender->DrawLine(pt1, pt2, pPen.get());
+	}
+	if (rcBorderSize.top > 0) {
+		//上边线
+		UiPoint pt1(rcFocusRect.left, rcFocusRect.top);
+		UiPoint pt2(rcFocusRect.right, rcFocusRect.top);
+		pRender->DrawLine(pt1, pt2, pPen.get());
+	}
+	if (rcBorderSize.right > 0) {
+		//右边线
+		UiPoint pt1(rcFocusRect.right, rcFocusRect.top);
+		UiPoint pt2(rcFocusRect.right, rcFocusRect.bottom);
+		pRender->DrawLine(pt1, pt2, pPen.get());
+	}
+	if (rcBorderSize.bottom > 0) {
+		//下边线
+		UiPoint pt1(rcFocusRect.left, rcFocusRect.bottom);
+		UiPoint pt2(rcFocusRect.right, rcFocusRect.bottom);
+		pRender->DrawLine(pt1, pt2, pPen.get());
+	}
 }
 
 bool Control::IsRootBox() const

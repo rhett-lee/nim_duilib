@@ -35,6 +35,7 @@ public:
 	virtual void SetWindow(Window* pManager) override;
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 	virtual void PaintChild(IRender* pRender, const UiRect& rcPaint) override;
+	virtual void PaintFocusRect(IRender* pRender);
 	virtual void SetEnabled(bool bEnabled) override;
 	virtual void SetVisible(bool bVisible) override;
 	virtual Control* FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, UiPoint scrollPos = UiPoint()) override;
