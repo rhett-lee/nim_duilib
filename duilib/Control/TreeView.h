@@ -47,10 +47,14 @@ public:
 	 */
 	void SetTreeView(TreeView* pTreeView);
 
+	/** 获取子项所属的树容器
+	 */
+	TreeView* GetTreeView() const;
+
 	/** 获取父节点指针
 	 * @return 返回父节点指针
 	 */
-	TreeNode* GetParentNode();
+	TreeNode* GetParentNode() const;
 
 	/** 设置父节点
 	 * @param[in] pParentTreeNode 父节点指针
@@ -89,24 +93,24 @@ public:
 	/** 递归获取所有子节点个数
 	 * @return 返回所有子节点个数
 	 */
-	size_t GetDescendantNodeCount();
+	size_t GetDescendantNodeCount() const;
 
 	/** 获取下一级子节点个数
 	 * @return 返回子节点个数
 	 */
-	size_t GetChildNodeCount();
+	size_t GetChildNodeCount() const;
 
 	/** 获取一个子节点指针
 	 * @param[in] iIndex 要获取的子节点索引
 	 * @return 返回子节点指针
 	 */
-	TreeNode* GetChildNode(size_t iIndex);
+	TreeNode* GetChildNode(size_t iIndex) const;
 
 	/** 根据子节点指针获取子节点位置索引
 	 * @param[in] pTreeNode 子节点指针
 	 * @return 返回位置索引
 	 */
-	size_t GetChildNodeIndex(TreeNode* pTreeNode);
+	size_t GetChildNodeIndex(TreeNode* pTreeNode) const;
 
 	/** 判断是否展开状态
 	 * @return 返回 true 为展开状态，否则为 false

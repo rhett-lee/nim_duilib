@@ -2404,7 +2404,7 @@ void Control::PaintBorders(IRender* pRender, UiRect rcDraw,
 		DrawRoundRect(pRender, rcDraw, m_cxyBorderRound, dwBorderColor, nBorderSize);
 	}
 	else {
-		pRender->DrawRect(rcDraw, dwBorderColor, nBorderSize, true);
+		pRender->DrawRect(rcDraw, dwBorderColor, nBorderSize, false);
 	}
 }
 

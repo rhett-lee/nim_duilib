@@ -117,6 +117,7 @@
 #include "Control/HotKey.h"
 #include "Control/HyperLink.h"
 #include "Control/ListCtrl.h"
+#include "Control/PropertyGrid.h"
 
 #include "Control/ColorPicker.h"
 #include "Control/ColorControl.h"

@@ -295,6 +295,12 @@ bool SplitTemplate<InheritType>::ButtonDown(const EventArgs& msg)
     if (!IsSplitDragValid()) {
         StopSplitDrag();
     }
+    if ((m_pLeftTop != nullptr) && (m_pRightBottom != nullptr)) {
+        //如果两个控件都是拉伸类型的，那么让左侧(上侧)的变为非拉伸的，允许拖动操作
+        if (m_nLeftUpFixedValue.IsStretch() && m_nRightBottomFixedValue.IsStretch()) {
+            m_nLeftUpFixedValue.SetInt32(m_pLeftTop->GetWidth());
+        }
+    }
     this->Invalidate();
     return bRet;
 }

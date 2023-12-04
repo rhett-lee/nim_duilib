@@ -214,6 +214,11 @@ void TreeNode::SetTreeView(TreeView* pTreeView)
     m_pTreeView = pTreeView;
 }
 
+TreeView* TreeNode::GetTreeView() const
+{
+	return m_pTreeView;
+}
+
 bool TreeNode::OnDoubleClickItem(const EventArgs& args)
 {
     TreeNode* pItem = dynamic_cast<TreeNode*>(args.pSender);
@@ -269,7 +274,7 @@ bool TreeNode::SupportCheckedMode() const
 	return m_pTreeView->IsMultiCheckMode();
 }
 
-TreeNode* TreeNode::GetParentNode()
+TreeNode* TreeNode::GetParentNode() const
 {
 	return m_pParentTreeNode;
 }
@@ -858,7 +863,7 @@ bool TreeNode::RemoveSelf()
 	return bRemoved;
 }
 
-size_t TreeNode::GetDescendantNodeCount()
+size_t TreeNode::GetDescendantNodeCount() const
 {
 	size_t nodeCount = GetChildNodeCount();
 	for (TreeNode* pTreeNode : m_aTreeNodes) {
@@ -869,7 +874,7 @@ size_t TreeNode::GetDescendantNodeCount()
 	return nodeCount;
 }
 
-size_t TreeNode::GetChildNodeCount()
+size_t TreeNode::GetChildNodeCount() const
 {
 	return m_aTreeNodes.size();
 }
@@ -891,7 +896,7 @@ size_t TreeNode::GetDescendantNodeMaxListBoxIndex() const
 	return maxListBoxIndex;
 }
 	
-TreeNode* TreeNode::GetChildNode(size_t iIndex)
+TreeNode* TreeNode::GetChildNode(size_t iIndex) const
 {
 	if (iIndex >= m_aTreeNodes.size()) {
 		return nullptr;
@@ -899,7 +904,7 @@ TreeNode* TreeNode::GetChildNode(size_t iIndex)
 	return m_aTreeNodes[iIndex];
 }
 	
-size_t TreeNode::GetChildNodeIndex(TreeNode* pTreeNode)
+size_t TreeNode::GetChildNodeIndex(TreeNode* pTreeNode) const
 {
 	auto it = std::find(m_aTreeNodes.begin(), m_aTreeNodes.end(), pTreeNode);
 	if (it == m_aTreeNodes.end()) {

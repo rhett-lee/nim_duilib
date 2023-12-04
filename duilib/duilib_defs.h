@@ -75,7 +75,9 @@ namespace ui
 	#define  DUI_CTR_VLISTBOX                        (L"VListBox")
 	#define  DUI_CTR_HTILE_LISTBOX                   (L"HTileListBox")
 	#define  DUI_CTR_VTILE_LISTBOX                   (L"VTileListBox")
+
 	#define  DUI_CTR_LISTCTRL						 (L"ListCtrl")
+	#define  DUI_CTR_PROPERTY_GRID					 (L"PropertyGrid")
 
 	#define  DUI_CTR_VIRTUAL_VLISTBOX				 (L"VirtualVListBox")
 	#define  DUI_CTR_VIRTUAL_HLISTBOX				 (L"VirtualHListBox")

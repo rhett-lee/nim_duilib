@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<VBox>
+    <PropertyGrid name="property_grid_test" 
+                  bkcolor="YellowGreen" 
+                  width="280"
+                  left_column_width="130"
+                  row_grid_line_width="1"
+                  row_grid_line_color="darkgray"
+                  column_grid_line_width="1"
+                  column_grid_line_color="darkgray"
+                  header_class="property_grid_header"
+                  group_class="property_grid_group"
+                  propterty_class="property_grid_propterty"/>
+</VBox>

@@ -366,6 +366,7 @@
     <ClCompile Include="Control\ListCtrlSubItem.cpp" />
     <ClCompile Include="Control\ListCtrlView.cpp" />
     <ClCompile Include="Control\Menu.cpp" />
+    <ClCompile Include="Control\PropertyGrid.cpp" />
     <ClCompile Include="Control\RichEditHost.cpp" />
     <ClCompile Include="Control\RichText.cpp" />
     <ClCompile Include="Core\Box.cpp" />
@@ -485,6 +486,7 @@
     <ClInclude Include="Control\ListCtrlView.h" />
     <ClInclude Include="Control\Menu.h" />
     <ClInclude Include="Control\observer_impl_base.hpp" />
+    <ClInclude Include="Control\PropertyGrid.h" />
     <ClInclude Include="Control\RichEditCtrl.h" />
     <ClInclude Include="Control\RichEditHost.h" />
     <ClInclude Include="Control\RichText.h" />

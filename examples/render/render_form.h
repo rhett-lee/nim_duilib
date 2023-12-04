@@ -41,5 +41,9 @@ public:
 	/** 窗口类名
 	*/
 	static const std::wstring kClassName;
+
+private:
+	//测试PropertyGrid控件
+	void TestPropertyGrid();
 };
 

@@ -31,7 +31,7 @@ std::wstring RenderForm::GetWindowClassName() const
 
 void RenderForm::OnInitWindow()
 {
-
+	TestPropertyGrid();
 }
 
 LRESULT RenderForm::OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
@@ -52,4 +52,25 @@ ui::Control* RenderForm::CreateControl(const std::wstring& strClass)
 		return new ui::RenderTest3;
 	}
 	return nullptr;
+}
+
+void RenderForm::TestPropertyGrid()
+{
+	ui::PropertyGrid* pPropertyGrid = dynamic_cast<ui::PropertyGrid*>(FindControl(L"property_grid_test"));
+	if (pPropertyGrid == nullptr) {
+		return;
+	}
+	pPropertyGrid->SetEnableHeaderCtrl(true, L"Property", L"Value");
+	pPropertyGrid->SetEnableDescriptionArea(true);
+
+	ui::PropertyGridGroup* pGroup = nullptr;
+	
+	pGroup = pPropertyGrid->AddGroup(L"第一个属性");
+	pPropertyGrid->AddProperty(pGroup, L"属性1", L"值1");
+
+	pGroup = pPropertyGrid->AddGroup(L"第二个属性");
+	pPropertyGrid->AddProperty(pGroup, L"属性2", L"值2");
+
+	pGroup = pPropertyGrid->AddGroup(L"第三个属性");
+	pPropertyGrid->AddProperty(pGroup, L"属性3", L"值3");
 }
