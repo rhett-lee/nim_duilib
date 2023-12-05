@@ -126,6 +126,10 @@ public:
     */
     bool SetRichText(const std::wstring& richText);
 
+    /** 清空原来的格式文本
+    */
+    void Clear();
+
     /** 追加一个文本片段
     */
     void AppendTextSlice(const RichTextSlice&& textSlice);

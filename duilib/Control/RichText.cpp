@@ -343,12 +343,31 @@ void RichText::SetTextPadding(UiPadding padding, bool bNeedDpiScale)
 
 bool RichText::SetRichText(const std::wstring& richText)
 {
+    Clear();
     //XML解析的内容，全部封装在WindowBuilder这个类中，以避免到处使用XML解析器，从而降低代码维护复杂度
-    bool bResult = WindowBuilder::ParseRichTextXmlText(richText, this);
+    bool bResult = false;
+    if (!richText.empty()) {
+        if (richText.find(L"<RichText") == std::wstring::npos) {
+            std::wstring formatedText = L"<RichText>" + richText + L"</RichText>";
+            bResult = WindowBuilder::ParseRichTextXmlText(formatedText, this);
+        }
+        else {
+            bResult = WindowBuilder::ParseRichTextXmlText(richText, this);
+        }        
+    }
     if (bResult) {
         RelayoutOrRedraw();
     }
     return bResult;
+}
+
+void RichText::Clear()
+{
+    m_textData.clear();
+    if (!m_textSlice.empty()) {
+        m_textSlice.clear();
+        Invalidate();
+    }
 }
 
 std::wstring RichText::GetFontId() const

@@ -85,7 +85,7 @@ void PropertyGrid::DoInit()
         m_bHeaderCtrl = false;
     }
 
-    m_pDescriptionArea = dynamic_cast<Label*>(FindSubControl(L"duilib_property_grid_description_area"));
+    m_pDescriptionArea = dynamic_cast<RichText*>(FindSubControl(L"duilib_property_grid_description_area"));
     m_bDescriptionArea = m_pDescriptionArea != nullptr;
     m_pDescriptionAreaSplit = dynamic_cast<Split*>(FindSubControl(L"duilib_property_grid_description_area_split"));
 
@@ -102,6 +102,40 @@ void PropertyGrid::DoInit()
 
     //初始化第一列宽度
     SetLeftColumnWidth(m_nLeftColumnWidth, false);
+
+    //关联描述区域
+    if ((m_pDescriptionArea != nullptr) && (m_pTreeView != nullptr)) {
+        m_pTreeView->AttachSelect([this](const EventArgs& args) {
+            Control* pItem = nullptr;
+            size_t nItem = args.wParam;
+            if (nItem != Box::InvalidIndex) {
+                pItem = m_pTreeView->GetItemAt(nItem);
+            }
+            std::wstring description;
+            std::wstring name;
+            if (pItem != nullptr) {
+                PropertyGridGroup* pGroup = dynamic_cast<PropertyGridGroup*>(pItem);
+                if (pGroup != nullptr) {
+                    description = pGroup->GetDescriptiion();
+                    name = pGroup->GetGroupName();
+                }
+                else {
+                    PropertyGridProperty* pProperty = dynamic_cast<PropertyGridProperty*>(pItem);
+                    if (pProperty != nullptr) {
+                        description = pProperty->GetDescriptiion();
+                        name = pProperty->GetPropertyName();
+                    }
+                }
+            }
+            if (description.empty() && !name.empty()) {
+                description = name;
+            }
+            if (m_pDescriptionArea != nullptr) {
+                m_pDescriptionArea->SetRichText(description);
+            }
+            return true;
+            });
+    }
 }
 
 void PropertyGrid::PaintChild(IRender* pRender, const UiRect& rcPaint)
@@ -428,13 +462,13 @@ std::wstring PropertyGrid::GetPropertyClass() const
     return m_propertyClass.c_str();
 }
 
-PropertyGridGroup* PropertyGrid::AddGroup(const std::wstring& groupName)
+PropertyGridGroup* PropertyGrid::AddGroup(const std::wstring& groupName, const std::wstring& description)
 {
     ASSERT(m_pTreeView != nullptr);
     if (m_pTreeView == nullptr) {
         return nullptr;
     }
-    PropertyGridGroup* pGroup = new PropertyGridGroup(groupName);
+    PropertyGridGroup* pGroup = new PropertyGridGroup(groupName, description);
     m_pTreeView->GetRootNode()->AddChildNode(pGroup);
     pGroup->SetClass(GetGroupClass());
     pGroup->SetExpand(true);
@@ -458,13 +492,14 @@ void PropertyGrid::GetGroups(std::vector<PropertyGridGroup*>& groups) const
 
 PropertyGridProperty* PropertyGrid::AddProperty(PropertyGridGroup* pGroup,
                                                 const std::wstring& propertyName,
-                                                const std::wstring& propertyValue)
+                                                const std::wstring& propertyValue,
+                                                const std::wstring& description)
 {
     ASSERT(pGroup != nullptr);
     if (pGroup == nullptr) {
         return nullptr;
     }
-    PropertyGridProperty* pProperty = new PropertyGridProperty(propertyName, propertyValue);
+    PropertyGridProperty* pProperty = new PropertyGridProperty(propertyName, propertyValue, description);
     pGroup->AddChildNode(pProperty);
     pProperty->SetClass(GetPropertyClass());
 
@@ -521,11 +556,12 @@ int32_t PropertyGrid::GetLeftColumnWidth() const
 ////////////////////////////////////////////////////////////////////////////
 ///
 
-PropertyGridGroup::PropertyGridGroup(const std::wstring& groupName) :
+PropertyGridGroup::PropertyGridGroup(const std::wstring& groupName, const std::wstring& description) :
     m_bInited(false),
     m_pLabelBox(nullptr)
 {
     m_groupName = groupName;
+    m_description = description;
 }
 
 void PropertyGridGroup::DoInit()
@@ -534,6 +570,8 @@ void PropertyGridGroup::DoInit()
         return;
     }
     m_bInited = true;
+    SetTabStop(false);
+
     HBox* pHBox = new HBox;
     AddItem(pHBox);
 
@@ -569,14 +607,43 @@ void PropertyGridGroup::GetProperties(std::vector<PropertyGridProperty*>& proper
 
 ////////////////////////////////////////////////////////////////////////////
 ///
-PropertyGridProperty::PropertyGridProperty(const std::wstring& propertyName, const std::wstring& propertyValue):
+PropertyGridProperty::PropertyGridProperty(const std::wstring& propertyName, 
+                                           const std::wstring& propertyValue,
+                                           const std::wstring& description):
     m_bInited(false),
     m_pLabelBoxLeft(nullptr),
     m_pLabelBoxRight(nullptr)
 {
     m_propertyName = propertyName;
     m_propertyValue = propertyValue;
+    m_description = description;
 }
+
+class PropertyGridLabelBox : public LabelBox
+{
+public:
+    /** 消息处理函数
+    * @param [in] msg 消息内容
+    */
+    virtual void HandleEvent(const EventArgs& msg) override
+    {
+        Box* pParent = GetParent();
+        if (pParent != nullptr) {
+            pParent->SendEvent(msg);
+        }
+        if (!IsDisabledEvents(msg)) {
+            __super::HandleEvent(msg);
+        }
+    }
+
+    /** 初始化函数
+     */
+    virtual void DoInit() override
+    {
+        SetShowFocusRect(true);
+        SetTabStop(false);
+    }
+};
 
 void PropertyGridProperty::DoInit()
 {
@@ -584,6 +651,8 @@ void PropertyGridProperty::DoInit()
         return;
     }
     m_bInited = true;
+    SetTabStop(false);
+
     HBox* pHBox = new HBox;
     AddItem(pHBox);
     pHBox->SetBkColor(L"white");
@@ -591,11 +660,11 @@ void PropertyGridProperty::DoInit()
     pHBox->SetMouseEnabled(false);
     pHBox->SetNoFocus();
 
-    m_pLabelBoxLeft = new LabelBox;
+    m_pLabelBoxLeft = new PropertyGridLabelBox;
     pHBox->AddItem(m_pLabelBoxLeft);
     m_pLabelBoxLeft->SetText(m_propertyName.c_str());
 
-    m_pLabelBoxRight = new LabelBox;
+    m_pLabelBoxRight = new PropertyGridLabelBox;
     pHBox->AddItem(m_pLabelBoxRight);
     m_pLabelBoxRight->SetText(m_propertyValue.c_str());
 }

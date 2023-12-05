@@ -6,6 +6,7 @@
 #include "duilib/Box/VBox.h"
 #include "duilib/Control/Split.h"
 #include "duilib/Control/Label.h"
+#include "duilib/Control/RichText.h"
 #include "duilib/Control/TreeView.h"
 
 namespace ui
@@ -53,9 +54,11 @@ public:
 public:
 	/** 增加一个分组
 	* @param [in] groupName 分组的名称
+	* @param [in] description 分组的描述信息
 	* @return 返回该分组的接口，可用于添加属性
 	*/
-	PropertyGridGroup* AddGroup(const std::wstring& groupName);
+	PropertyGridGroup* AddGroup(const std::wstring& groupName, 
+							    const std::wstring& description = L"");
 
 	/** 获取所有的分组
 	* @param [out] groups 返回当前所有的分组列表
@@ -64,13 +67,15 @@ public:
 
 	/** 增加一个属性
 	* @param [in] pGroup 该属性所属的分组
-	* @param[in] propertyName 属性的名称
-	* @param[in] propertyValue 属性的值
+	* @param [in] propertyName 属性的名称
+	* @param [in] propertyValue 属性的值
+	* @param [in] description 属性的描述信息
 	* @return 返回该属性的接口
 	*/
 	PropertyGridProperty* AddProperty(PropertyGridGroup* pGroup,
 									  const std::wstring& propertyName, 
-									  const std::wstring& propertyValue);
+									  const std::wstring& propertyValue,
+									  const std::wstring& description = L"");
 
 	/** 设置左侧一列的宽度
 	* @param [in] nLeftColumnWidth 左侧一列的宽度
@@ -103,7 +108,7 @@ public:
 
 	/** 获取描述控件的接口
 	*/
-	Label* GetDescriptionArea() const { return m_pDescriptionArea; }
+	RichText* GetDescriptionArea() const { return m_pDescriptionArea; }
 
 	/** 描述控件的分割条接口
 	*/
@@ -217,7 +222,7 @@ private:
 
 	/** 描述控件
 	*/
-	Label* m_pDescriptionArea;
+	RichText* m_pDescriptionArea;
 
 	/** 是否显示描述区域
 	*/
@@ -270,13 +275,19 @@ class PropertyGridGroup : public TreeNode
 public:
 	/** 构造一个组
 	@param [in] groupName 组的名称
+	@param [in] description 组的描述信息
 	*/
-	explicit PropertyGridGroup(const std::wstring& groupName);
+	explicit PropertyGridGroup(const std::wstring& groupName, 
+							   const std::wstring& description = L"");
 
 public:
 	/** 获取属性名称
 	*/
 	std::wstring GetGroupName() const { return m_groupName.c_str(); }
+
+	/** 获取组的描述信息
+	*/
+	std::wstring GetDescriptiion() const { return m_description.c_str(); }
 
 	/** 获取属性名称的显示控件
 	*/
@@ -301,6 +312,10 @@ private:
 	*/
 	UiString m_groupName;
 
+	/** 组的描述信息
+	*/
+	UiString m_description;
+
 	/** 属性名称的显示控件
 	*/
 	LabelBox* m_pLabelBox;
@@ -320,8 +335,11 @@ public:
 	/** 构造一个属性
 	@param [in] propertyName 属性的名称
 	@param [in] propertyValue 属性的值
+	@param [in] description 属性的描述信息
 	*/
-	PropertyGridProperty(const std::wstring& propertyName, const std::wstring& propertyValue);
+	PropertyGridProperty(const std::wstring& propertyName, 
+					     const std::wstring& propertyValue,
+					     const std::wstring& description = L"");
 
 public:
 	/** 获取属性名称
@@ -331,6 +349,10 @@ public:
 	/** 获取属性值
 	*/
 	std::wstring GetPropertyValue() const { return m_propertyValue.c_str(); }
+
+	/** 获取属性的描述信息
+	*/
+	std::wstring GetDescriptiion() const { return m_description.c_str(); }
 
 	/** 获取属性名称的显示控件
 	*/
@@ -357,6 +379,10 @@ private:
 	/** 属性的值
 	*/
 	UiString m_propertyValue;
+
+	/** 属性的描述信息
+	*/
+	UiString m_description;
 
 	/** 属性名称的显示控件
 	*/
