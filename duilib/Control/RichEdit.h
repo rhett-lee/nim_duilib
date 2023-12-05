@@ -12,6 +12,7 @@ namespace ui
 
 class RichEditHost;
 class ControlDropTarget;
+class VBox;
 class UILIB_API RichEdit : public ScrollBox
 {
 public:
@@ -836,6 +837,16 @@ public:
 	*/
 	bool IsEnableDragDrop() const;
 
+	/** 设置是否支持Spin控件
+	* @param [in] bEnable true表示支持Spin控件，false表示不支持Spin控件
+	* @param [in] spinClass Spin控件的Class属性，字符串需要包含3个值，具体设置参见：global.xml里面的rich_edit_spin设置
+	*             取值举例：rich_edit_spin_box,rich_edit_spin_btn_up,rich_edit_spin_btn_down
+	* @param [in] nMin 表示设置数字的最小值
+	* @param [in] nMax 表示设置数字的最大值，如果 nMin和nMax同时为0, 表示不设置数字的最小值和最大值
+	*/
+	bool SetEnableSpin(bool bEnable, const std::wstring& spinClass, int32_t nMin = 0, int32_t nMax = 0);
+
+public:
 	/** 监听回车按键按下事件
 	 * @param[in] callback 回车被按下的自定义回调函数
 	 */
@@ -950,7 +961,7 @@ private:
 
 	/** 设置Spin功能的Class名称
 	*/
-	void SetSpinClass(const std::wstring& spinClass);
+	bool SetSpinClass(const std::wstring& spinClass);
 
 	/** 获取文本内容，并转换为数字
 	*/
@@ -1098,9 +1109,9 @@ private:
 	*/
 	int32_t m_minNumber;
 
-	/** Spin功能是否已经初始化
+	/** Spin功能的容器
 	*/
-	bool m_bSpinInited;
+	VBox* m_pSpinBox;
 
     /** 自动调整文本数字值的定时器生命周期管理
 	*/

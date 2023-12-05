@@ -179,7 +179,7 @@ RichEdit::RichEdit() :
 	m_bDisableTextChangeEvent(false),
 	m_maxNumber(INT_MAX),
 	m_minNumber(INT_MIN),
-	m_bSpinInited(false),
+	m_pSpinBox(nullptr),
 	m_pClearButton(nullptr),
 	m_pShowPasswordButton(nullptr)
 {
@@ -2898,7 +2898,7 @@ void RichEdit::OnTextChanged()
 	}
 }
 
-void RichEdit::SetSpinClass(const std::wstring& spinClass)
+bool RichEdit::SetSpinClass(const std::wstring& spinClass)
 {
 	std::wstring spinBoxClass;
 	std::wstring spinBtnUpClass;
@@ -2910,61 +2910,124 @@ void RichEdit::SetSpinClass(const std::wstring& spinClass)
 		spinBtnUpClass = *iter++;
 		spinBtnDownClass = *iter++;
 	}
-	if (!spinBoxClass.empty() && !spinBtnUpClass.empty() && !spinBtnDownClass.empty()) {
-		ASSERT(!m_bSpinInited);
-		if (m_bSpinInited) {
-			return;
+	if (!spinClass.empty()) {
+		ASSERT(!spinBoxClass.empty() && !spinBtnUpClass.empty() && !spinBtnDownClass.empty());
+	}
+	if (!spinBoxClass.empty() && !spinBtnUpClass.empty() && !spinBtnDownClass.empty()) {		
+		Button* pUpButton = nullptr;
+		Button* pDownButton = nullptr;
+		if (m_pSpinBox == nullptr) {
+			m_pSpinBox = new VBox;
+			AddItem(m_pSpinBox);
+
+			pUpButton = new Button;
+			m_pSpinBox->AddItem(pUpButton);
+
+			pDownButton = new Button;
+			m_pSpinBox->AddItem(pDownButton);
 		}
-		m_bSpinInited = true;
-		Box* pBox = new VBox;
-		pBox->SetClass(spinBoxClass);
-		AddItem(pBox);
-
-		Button* pUpButton = new Button;
+		else {
+			pUpButton = dynamic_cast<Button*>(m_pSpinBox->GetItemAt(0));
+			pDownButton = dynamic_cast<Button*>(m_pSpinBox->GetItemAt(1));
+			ASSERT((pUpButton != nullptr) && (pDownButton != nullptr));
+			if ((pUpButton == nullptr) || (pDownButton == nullptr)) {
+				RemoveItem(m_pSpinBox);
+				m_pSpinBox = nullptr;
+				return false;
+			}
+		}
+		m_pSpinBox->SetClass(spinBoxClass);
 		pUpButton->SetClass(spinBtnUpClass);
-		pBox->AddItem(pUpButton);
-
-		Button* pDownButton = new Button;
 		pDownButton->SetClass(spinBtnDownClass);
-		pBox->AddItem(pDownButton);
-
+		
 		//挂载事件处理
+		pUpButton->DetachEvent(kEventClick);
 		pUpButton->AttachClick([this](const EventArgs& /*args*/){
 			AdjustTextNumber(1);
 			return true;
 			});
 
+		pUpButton->DetachEvent(kEventMouseButtonDown);
 		pUpButton->AttachButtonDown([this](const EventArgs& /*args*/) {
 			StartAutoAdjustTextNumberTimer(1);
 			return true;
 			});
+
+		pUpButton->DetachEvent(kEventMouseButtonUp);
 		pUpButton->AttachButtonUp([this](const EventArgs& /*args*/) {
 			StopAutoAdjustTextNumber();
 			return true;
 			});
+
+		pUpButton->DetachEvent(kEventMouseLeave);
 		pUpButton->AttachMouseLeave([this](const EventArgs& /*args*/) {
 			StopAutoAdjustTextNumber();
 			return true;
 			});
 
+		pDownButton->DetachEvent(kEventClick);
 		pDownButton->AttachClick([this](const EventArgs& /*args*/) {
 			StopAutoAdjustTextNumber();
 			AdjustTextNumber(-1);
 			return true;
 			});
+
+		pDownButton->DetachEvent(kEventMouseButtonDown);
 		pDownButton->AttachButtonDown([this](const EventArgs& /*args*/) {
 			StartAutoAdjustTextNumberTimer(-1);
 			return true;
 			});
+
+		pDownButton->DetachEvent(kEventMouseButtonUp);
 		pDownButton->AttachButtonUp([this](const EventArgs& /*args*/) {
 			StopAutoAdjustTextNumber();
 			return true;
 			});
+
+		pDownButton->DetachEvent(kEventMouseLeave);
 		pDownButton->AttachMouseLeave([this](const EventArgs& /*args*/) {
 			StopAutoAdjustTextNumber();
 			return true;
 			});
+		return true;
 	}
+	else {
+		if (m_pSpinBox != nullptr) {
+			RemoveItem(m_pSpinBox);
+			m_pSpinBox = nullptr;
+		}	
+	}
+	return false;
+}
+
+bool RichEdit::SetEnableSpin(bool bEnable, const std::wstring& spinClass, int32_t nMin, int32_t nMax)
+{
+	bool bRet = false;
+	if (bEnable) {
+		ASSERT(!spinClass.empty());
+		if (spinClass.empty()) {
+			return false;
+		}
+		bRet = SetSpinClass(spinClass);
+		if (bRet) {
+			SetNumberOnly(true);
+			if ((nMin != 0) || (nMax != 0)) {
+				SetMaxNumber(nMax);
+				SetMinNumber(nMin);
+			}			
+		}
+	}
+	else {
+		bool hasSpin = m_pSpinBox != nullptr;
+		SetSpinClass(L"");
+		bRet = true;
+		if (hasSpin) {
+			SetNumberOnly(false);
+			SetMaxNumber(INT_MAX);
+			SetMinNumber(INT_MIN);
+		}		
+	}
+	return bRet;
 }
 
 int64_t RichEdit::GetTextNumber() const
@@ -3082,6 +3145,12 @@ void RichEdit::SetShowPasswordBtnClass(const std::wstring& btnClass)
 			SetShowPassword(false);
 			return true;
 			});
+	}
+	else {
+		if (m_pShowPasswordButton != nullptr) {
+			RemoveItem(m_pShowPasswordButton);
+			m_pShowPasswordButton = nullptr;
+		}
 	}
 }
 

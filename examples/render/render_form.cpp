@@ -72,6 +72,12 @@ void RenderForm::TestPropertyGrid()
 	pPropertyGrid->AddProperty(pGroup, L"属性2", L"值2", L"属性2的描述信息");
 
 	pGroup = pPropertyGrid->AddGroup(L"分组三", L"描述信息三");
-	pPropertyGrid->AddProperty(pGroup, L"属性3", L"值3", L"属性3的描述信息");
-	pPropertyGrid->AddProperty(pGroup, L"属性3-1", L"值3-1", L"属性3的描述信息");
+	auto p1 = pPropertyGrid->AddProperty(pGroup, L"属性3", L"3", L"属性3的描述信息");
+	p1->SetEnableSpin(true, -10, 10);
+
+	auto p2 = pPropertyGrid->AddProperty(pGroup, L"属性3-1", L"值3-1(只读)", L"属性3的描述信息");
+	p2->SetReadOnly(true);
+
+	auto p3 = pPropertyGrid->AddProperty(pGroup, L"属性3-2", L"值3-2", L"属性3的描述信息");
+	p3->SetPassword(true);
 }

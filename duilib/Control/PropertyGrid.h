@@ -7,6 +7,7 @@
 #include "duilib/Control/Split.h"
 #include "duilib/Control/Label.h"
 #include "duilib/Control/RichText.h"
+#include "duilib/Control/RichEdit.h"
 #include "duilib/Control/TreeView.h"
 
 namespace ui
@@ -368,22 +369,63 @@ public:
 	*/
 	std::wstring GetPropertyValue() const { return m_propertyValue.c_str(); }
 
+	/** 获取新的属性值（修改后的属性值, 如果无修改则返回原值）
+	*/
+	std::wstring GetNewPropertyValue() const;
+
 	/** 获取属性的描述信息
 	*/
 	std::wstring GetDescriptiion() const { return m_description.c_str(); }
 
-	/** 获取属性名称的显示控件
+	/** 获取属性名称和属性值所在容器控件，可用于设置背景色等
+	*/
+	HBox* GetHBox() const {	return m_pHBox;	}
+
+	/** 获取属性名称的显示控件, 父控件是GetHBox()
 	*/
 	LabelBox* GetLabelBoxLeft() const { return m_pLabelBoxLeft; }
 
-	/** 获取属性值的显示控件
+	/** 获取属性值的显示控件, 父控件是GetHBox()
 	*/
 	LabelBox* GetLabelBoxRight() const { return m_pLabelBoxRight; }
+
+	/** 获取编辑框控件
+	*/
+	RichEdit* GetRichEdit() const { return m_pRichEdit; }
+
+	/** 设置只读模式
+	*/
+	void SetReadOnly(bool bReadOnly);
+
+	/** 是否为只读模式
+	*/
+	bool IsReadOnly() const { return m_bReadOnly; }
+
+	/** 设置密码模式（显示 ***）
+	 * @param[in] bPassword 设置为 true 让控件显示内容为 ***，false 为显示正常内容
+	 */
+	void SetPassword(bool bPassword);
+
+	/** 是否为密码模式
+	*/
+	bool IsPassword() const { return m_bPassword; }
+
+	/** 设置是否支持Spin控件
+	* @param [in] bEnable true表示支持Spin控件，false表示不支持Spin控件
+	* @param [in] nMin 表示设置数字的最小值
+	* @param [in] nMax 表示设置数字的最大值，如果 nMin和nMax同时为0, 表示不设置数字的最小值和最大值
+	*/
+	void SetEnableSpin(bool bEnable, int32_t nMin = 0, int32_t nMax = 0);
 
 protected:
 	/** 初始化函数
 	 */
 	virtual void DoInit() override;
+
+	/** 设置是否显示编辑框控件
+	* @param [in] bShow true表示显示编辑框控件，false表示不显示编辑框控件
+	*/
+	void SetShowRichEdit(bool bShow);
 
 private:
 	/** 是否已经完成初始化
@@ -402,6 +444,10 @@ private:
 	*/
 	UiString m_description;
 
+	/** 属性名称和属性值所在容器控件
+	*/
+	HBox* m_pHBox;
+
 	/** 属性名称的显示控件
 	*/
 	LabelBox* m_pLabelBoxLeft;
@@ -409,6 +455,18 @@ private:
 	/** 属性值的显示控件
 	*/
 	LabelBox* m_pLabelBoxRight;
+
+	/** 编辑框控件(用于修改属性)
+	*/
+	RichEdit* m_pRichEdit;
+
+	/** 只读模式
+	*/
+	bool m_bReadOnly;
+
+	/** 密码模式
+	*/
+	bool m_bPassword;
 };
 
 }//namespace ui

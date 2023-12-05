@@ -222,11 +222,16 @@
     <Class name="edit" hot_image="file='../public/edit/edit1.png' corner='10,10,10,10'" focused_image="file='../public/edit/edit2.png' corner='10,10,10,10'"/>
     <Class name="input" normal_image="file='../public/edit/edit0.png' corner='10,10,10,10'" hot_image="file='../public/edit/edit0.png' corner='10,10,10,10'" focused_image="file='../public/edit/edit0.png' corner='10,10,10,10'" disabled_image="file='../public/edit/edit0.png' corner='10,10,10,10' fade='80'"/>
     
-    <!--RichEdit上的Spin按钮样式-->
+    <!--RichEdit上的Spin按钮样式: 左侧和下侧有边线-->
     <Class name="rich_edit_spin" spin_class="rich_edit_spin_box,rich_edit_spin_btn_up,rich_edit_spin_btn_down" bkcolor="white" number_only="true" height="28" width="64" text_padding="0, 0, 18, 0" text_align="vcenter,hcenter"/>
-    <Class name="rich_edit_spin_box" width="18" halign="right"/>
-    <Class name="rich_edit_spin_btn_up" height="50%" width="100%" padding="1,0,0,0" border_size="1,0,0,0" border_color="light_gray" normal_image="file='../public/button/arrow-up.svg' width='10' height='10' valign='center' halign='center'" normal_color="bk_wnd_darkcolor" hot_color="#FFE5F3FF" pushed_color="#FFCCE8FF"/>
-    <Class name="rich_edit_spin_btn_down" height="50%" width="100%" padding="1,1,0,0" border_size="1,1,0,0" border_color="light_gray" normal_image="file='../public/button/arrow-down.svg' width='10' height='10' valign='center' halign='center'" normal_color="bk_wnd_darkcolor" hot_color="#FFE5F3FF" pushed_color="#FFCCE8FF"/>
+    <Class name="rich_edit_spin_box" width="18" halign="right" nofocus="true"/>
+    <Class name="rich_edit_spin_btn_up" height="50%" width="100%" nofocus="true" padding="1,0,0,0" border_size="1,0,0,0" border_color="light_gray" normal_image="file='../public/button/arrow-up.svg' width='10' height='10' valign='center' halign='center'" normal_color="bk_wnd_darkcolor" hot_color="#FFE5F3FF" pushed_color="#FFCCE8FF"/>
+    <Class name="rich_edit_spin_btn_down" height="50%" width="100%" nofocus="true" padding="1,1,0,0" border_size="1,1,0,0" border_color="light_gray" normal_image="file='../public/button/arrow-down.svg' width='10' height='10' valign='center' halign='center'" normal_color="bk_wnd_darkcolor" hot_color="#FFE5F3FF" pushed_color="#FFCCE8FF"/>
+    
+    <!--RichEdit上的Spin按钮样式: 四周都有边线-->
+    <Class name="rich_edit_spin2" spin_class="rich_edit_spin_box,rich_edit_spin_btn_up2,rich_edit_spin_btn_down2" bkcolor="white" number_only="true" height="28" width="64" text_padding="0, 0, 18, 0" text_align="vcenter,hcenter"/>
+    <Class name="rich_edit_spin_btn_up2" height="50%" width="100%" nofocus="true" padding="1,1,1,1" border_size="1,1,1,1" border_color="light_gray" normal_image="file='../public/button/arrow-up.svg' width='10' height='10' valign='center' halign='center'" normal_color="bk_wnd_darkcolor" hot_color="#FFE5F3FF" pushed_color="#FFCCE8FF"/>
+    <Class name="rich_edit_spin_btn_down2" height="50%" width="100%" nofocus="true" padding="1,0,1,1" border_size="1,0,1,1" border_color="light_gray" normal_image="file='../public/button/arrow-down.svg' width='10' height='10' valign='center' halign='center'" normal_color="bk_wnd_darkcolor" hot_color="#FFE5F3FF" pushed_color="#FFCCE8FF"/>
     
     <!--RichEdit上的清除按钮样式-->
     <Class name="rich_edit_clear_btn" clear_btn_class="rich_edit_clear_btn_class" text_align="vcenter"/>

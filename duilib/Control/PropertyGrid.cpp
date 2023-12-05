@@ -639,8 +639,12 @@ PropertyGridProperty::PropertyGridProperty(const std::wstring& propertyName,
                                            const std::wstring& propertyValue,
                                            const std::wstring& description):
     m_bInited(false),
+    m_pHBox(nullptr),
     m_pLabelBoxLeft(nullptr),
-    m_pLabelBoxRight(nullptr)
+    m_pLabelBoxRight(nullptr),
+    m_pRichEdit(nullptr),
+    m_bReadOnly(false),
+    m_bPassword(false)
 {
     m_propertyName = propertyName;
     m_propertyValue = propertyValue;
@@ -668,7 +672,45 @@ public:
      */
     virtual void DoInit() override
     {
+        __super::DoInit();
         SetShowFocusRect(true);
+        SetTabStop(false);
+    }
+};
+
+class PropertyGridRichEdit : public RichEdit
+{
+public:
+    /** 消息处理函数
+    * @param [in] msg 消息内容
+    */
+    virtual void HandleEvent(const EventArgs& msg) override
+    {
+        if (IsDisabledEvents(msg)) {
+            //如果是鼠标键盘消息，并且控件是Disabled的，转发给上层控件
+            Box* pParent = GetParent();
+            if (pParent != nullptr) {
+                pParent->SendEvent(msg);
+            }
+        }
+        else {
+            if ((msg.Type > kEventMouseBegin) && (msg.Type < kEventMouseEnd)) {
+                //鼠标消息，转给父控件
+                Box* pParent = GetParent();
+                if (pParent != nullptr) {
+                    pParent->SendEvent(msg);
+                }
+            }
+            __super::HandleEvent(msg);
+        }        
+    }
+
+    /** 初始化函数
+     */
+    virtual void DoInit() override
+    {
+        __super::DoInit();
+        SetShowFocusRect(false);
         SetTabStop(false);
     }
 };
@@ -681,20 +723,154 @@ void PropertyGridProperty::DoInit()
     m_bInited = true;
     SetTabStop(false);
 
-    HBox* pHBox = new HBox;
-    AddItem(pHBox);
-    pHBox->SetBkColor(L"white");
+    m_pHBox = new HBox;
+    AddItem(m_pHBox);
+    //背景色：在property_grid.xml中定义
+    m_pHBox->SetBkColor(L"property_grid_propterty_bkcolor");
 
-    pHBox->SetMouseEnabled(false);
-    pHBox->SetNoFocus();
+    m_pHBox->SetMouseEnabled(false);
+    m_pHBox->SetNoFocus();
 
     m_pLabelBoxLeft = new PropertyGridLabelBox;
-    pHBox->AddItem(m_pLabelBoxLeft);
+    m_pHBox->AddItem(m_pLabelBoxLeft);
     m_pLabelBoxLeft->SetText(m_propertyName.c_str());
 
     m_pLabelBoxRight = new PropertyGridLabelBox;
-    pHBox->AddItem(m_pLabelBoxRight);
+    m_pHBox->AddItem(m_pLabelBoxRight);
     m_pLabelBoxRight->SetText(m_propertyValue.c_str());
+    //属性值的正常字体：在property_grid.xml中定义
+    m_pLabelBoxRight->SetFontId(L"property_grid_propterty_font_normal");
+
+    SetShowRichEdit(!IsReadOnly());
+}
+
+void PropertyGridProperty::SetShowRichEdit(bool bShow)
+{
+    ASSERT(m_bInited);
+    if (!bShow) {
+        if ((m_pLabelBoxRight != nullptr) && (m_pRichEdit != nullptr)) {
+            m_pLabelBoxRight->RemoveItem(m_pRichEdit);
+            m_pRichEdit = nullptr;
+        }
+        return;
+    }
+    if (m_pRichEdit != nullptr) {
+        return;
+    }
+    ASSERT(m_pLabelBoxRight != nullptr);
+    if (m_pLabelBoxRight == nullptr) {
+        return;
+    }
+    m_pRichEdit = new PropertyGridRichEdit;
+    m_pLabelBoxRight->AddItem(m_pRichEdit);
+    //编辑框的属性：在property_grid.xml中定义
+    m_pRichEdit->SetClass(L"property_grid_propterty_edit");
+    m_pRichEdit->SetText(m_pLabelBoxRight->GetText());
+
+    //同步左边距
+    UiPadding rcTextPadding = m_pRichEdit->GetTextPadding();
+    rcTextPadding.right = 0;
+    rcTextPadding.top = 0;
+    rcTextPadding.bottom = 0;
+    m_pLabelBoxRight->SetTextPadding(rcTextPadding);
+    m_pRichEdit->SetVisible(false);
+
+    auto HideRichEdit = [this]() {
+            if ((m_pRichEdit != nullptr) && (m_pLabelBoxRight != nullptr)) {
+                std::wstring newText = m_pRichEdit->GetText();
+                if (IsPassword()) {
+                    std::wstring showText;
+                    showText.resize(newText.size(), L'*');
+                    m_pLabelBoxRight->SetText(showText);
+                }
+                else {
+                    m_pLabelBoxRight->SetText(newText);
+                }
+                if (newText != GetPropertyValue()) {
+                    //有修改
+                    m_pLabelBoxRight->SetFontId(L"property_grid_propterty_font_bold");
+                }
+                else {
+                    //无修改
+                    m_pLabelBoxRight->SetFontId(L"property_grid_propterty_font_normal");
+                }
+                m_pRichEdit->SetVisible(false);
+            }
+        };
+    m_pRichEdit->AttachReturn([this](const EventArgs&) {
+        if (m_pLabelBoxRight != nullptr) {
+            m_pLabelBoxRight->SetFocus();
+        }
+        return true;
+        });
+    m_pRichEdit->AttachKillFocus([this, HideRichEdit](const EventArgs&) {
+        HideRichEdit();
+        return true;
+        });
+
+    m_pLabelBoxRight->DetachEvent(kEventMouseButtonDown);
+    m_pLabelBoxRight->AttachButtonDown([this](const EventArgs&) {
+        if (!IsReadOnly() && (m_pRichEdit != nullptr) && (m_pLabelBoxRight != nullptr)) {
+            m_pRichEdit->SetVisible(true);
+            m_pRichEdit->SetFocus();
+        }
+        return true;
+        });
+}
+
+void PropertyGridProperty::SetReadOnly(bool bReadOnly)
+{
+    m_bReadOnly = bReadOnly;
+    SetShowRichEdit(!IsReadOnly());
+}
+
+void PropertyGridProperty::SetPassword(bool bPassword)
+{
+    m_bPassword = bPassword;
+    if (m_pRichEdit == nullptr) {
+        return;
+    }
+    m_pRichEdit->SetPassword(bPassword);
+    m_pRichEdit->SetFlashPasswordChar(true);
+    std::wstring text = m_pRichEdit->GetText();
+    if (bPassword) {
+        if (m_pLabelBoxRight != nullptr) {
+            std::wstring showText;
+            showText.resize(text.size(), L'*');
+            m_pLabelBoxRight->SetText(showText);
+        }
+    }
+    else {
+        if (m_pLabelBoxRight != nullptr) {
+            m_pLabelBoxRight->SetText(text);
+        }
+    }
+}
+
+std::wstring PropertyGridProperty::GetNewPropertyValue() const
+{
+    std::wstring propertyValue = m_propertyValue.c_str();
+    if (IsPassword()) {
+        if (m_pRichEdit != nullptr) {
+            propertyValue = m_pRichEdit->GetText();
+        }
+    }
+    else {
+        if (m_pLabelBoxRight != nullptr) {
+            propertyValue = m_pLabelBoxRight->GetText();
+        }
+    }    
+    return propertyValue;
+}
+
+void PropertyGridProperty::SetEnableSpin(bool bEnable, int32_t nMin, int32_t nMax)
+{
+    RichEdit* pRichEdit = GetRichEdit();
+    ASSERT(pRichEdit != nullptr);
+    if (pRichEdit != nullptr) {
+        std::wstring spinClass = L"property_grid_spin_box,property_grid_spin_btn_up,property_grid_spin_btn_down";
+        pRichEdit->SetEnableSpin(bEnable, spinClass, nMin, nMax);
+    }
 }
 
 }//namespace ui
