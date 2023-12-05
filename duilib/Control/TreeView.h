@@ -88,7 +88,7 @@ public:
 
 	/** 移除所有子节点
 	 */
-	void RemoveAllChildNode();
+	void RemoveAllChildNodes();
 
 	/** 递归获取所有子节点个数
 	 * @return 返回所有子节点个数

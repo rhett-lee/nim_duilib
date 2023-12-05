@@ -127,10 +127,10 @@ void PropertyGrid::DoInit()
                     }
                 }
             }
-            if (description.empty() && !name.empty()) {
-                description = name;
-            }
             if (m_pDescriptionArea != nullptr) {
+                if (!name.empty()) {
+                    description = L"<b>" + name + L"</b><br/>" + description;
+                }
                 m_pDescriptionArea->SetRichText(description);
             }
             return true;
@@ -490,6 +490,21 @@ void PropertyGrid::GetGroups(std::vector<PropertyGridGroup*>& groups) const
     }
 }
 
+bool PropertyGrid::RemoveGroup(PropertyGridGroup* pGroup)
+{
+    if ((m_pTreeView == nullptr) || (pGroup == nullptr)){
+        return false;
+    }
+    return m_pTreeView->GetRootNode()->RemoveChildNode(pGroup);
+}
+
+void PropertyGrid::RemoveAllGroups()
+{
+    if (m_pTreeView != nullptr) {
+        m_pTreeView->GetRootNode()->RemoveAllChildNodes();
+    }
+}
+
 PropertyGridProperty* PropertyGrid::AddProperty(PropertyGridGroup* pGroup,
                                                 const std::wstring& propertyName,
                                                 const std::wstring& propertyValue,
@@ -603,6 +618,19 @@ void PropertyGridGroup::GetProperties(std::vector<PropertyGridProperty*>& proper
             properties.push_back(pProperty);
         }
     }
+}
+
+bool PropertyGridGroup::RemoveProperty(PropertyGridProperty* pProperty)
+{
+    if (pProperty == nullptr) {
+        return false;
+    }
+    return RemoveChildNode(pProperty);
+}
+
+void PropertyGridGroup::RemoveAllProperties()
+{
+    RemoveAllChildNodes();
 }
 
 ////////////////////////////////////////////////////////////////////////////

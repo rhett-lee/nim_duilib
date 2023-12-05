@@ -65,12 +65,13 @@ void RenderForm::TestPropertyGrid()
 
 	ui::PropertyGridGroup* pGroup = nullptr;
 	
-	pGroup = pPropertyGrid->AddGroup(L"分组一", L"<b>分组一</b><br/>描述信息");
-	pPropertyGrid->AddProperty(pGroup, L"属性1", L"值1", L"<b>属性1</b><br/>属性1的描述信息");
+	pGroup = pPropertyGrid->AddGroup(L"分组一", L"描述信息一");
+	pPropertyGrid->AddProperty(pGroup, L"属性1", L"值1", L"属性1的描述信息");
 
-	pGroup = pPropertyGrid->AddGroup(L"分组二", L"<b>分组二</b><br/>描述信息");
-	pPropertyGrid->AddProperty(pGroup, L"属性2", L"值2", L"<b>属性2</b><br/>属性2的描述信息");
+	pGroup = pPropertyGrid->AddGroup(L"分组二", L"描述信息二");
+	pPropertyGrid->AddProperty(pGroup, L"属性2", L"值2", L"属性2的描述信息");
 
-	pGroup = pPropertyGrid->AddGroup(L"分组三", L"<b>分组三</b><br/>描述信息");
-	pPropertyGrid->AddProperty(pGroup, L"属性3", L"值3", L"<b>属性3</b><br/>属性3的描述信息");
+	pGroup = pPropertyGrid->AddGroup(L"分组三", L"描述信息三");
+	pPropertyGrid->AddProperty(pGroup, L"属性3", L"值3", L"属性3的描述信息");
+	pPropertyGrid->AddProperty(pGroup, L"属性3-1", L"值3-1", L"属性3的描述信息");
 }

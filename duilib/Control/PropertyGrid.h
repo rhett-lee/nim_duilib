@@ -65,6 +65,15 @@ public:
 	*/
 	void GetGroups(std::vector<PropertyGridGroup*>& groups) const;
 
+	/** 删除分组
+	* @param [in] pGroup 待删除的分组
+	*/
+	bool RemoveGroup(PropertyGridGroup* pGroup);
+
+	/** 删除所有分组
+	*/
+	void RemoveAllGroups();
+
 	/** 增加一个属性
 	* @param [in] pGroup 该属性所属的分组
 	* @param [in] propertyName 属性的名称
@@ -297,6 +306,15 @@ public:
 	* @param [out] properties 返回当前所有的分组列表
 	*/
 	void GetProperties(std::vector<PropertyGridProperty*>& properties) const;
+
+	/** 删除该分组下的属性
+	* @param [in] pProperty 需要删除的属性接口
+	*/
+	bool RemoveProperty(PropertyGridProperty* pProperty);
+
+	/** 删除该分组下的所有属性
+	*/
+	void RemoveAllProperties();
 
 protected:
 	/** 初始化函数

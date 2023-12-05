@@ -837,7 +837,7 @@ bool TreeNode::RemoveChildNode(TreeNode* pTreeNode)
 	return RemoveChildNodeAt(iIndex, true);
 }
 	
-void TreeNode::RemoveAllChildNode()
+void TreeNode::RemoveAllChildNodes()
 {
 	while (m_aTreeNodes.size() > 0) {
 		RemoveChildNodeAt(0, false);
