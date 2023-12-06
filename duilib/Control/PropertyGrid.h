@@ -18,6 +18,7 @@ namespace ui
 class PropertyGridGroup;
 class PropertyGridProperty;
 class PropertyGridTextProperty;
+class PropertyGridComboProperty;
 class PropertyGrid : public VBox
 {
 public:
@@ -98,6 +99,20 @@ public:
 									          const std::wstring& propertyValue,
 									          const std::wstring& description = L"",
 									          size_t nPropertyData = 0);
+
+	/** 增加一个属性
+	* @param [in] pGroup 该属性所属的分组
+	* @param [in] propertyName 属性的名称
+	* @param [in] propertyValue 属性的值
+	* @param [in] description 属性的描述信息
+	* @param [in] nPropertyData 用户自定义数据
+	* @return 返回该属性的接口
+	*/
+	PropertyGridComboProperty* AddComboProperty(PropertyGridGroup* pGroup,
+									            const std::wstring& propertyName, 
+									            const std::wstring& propertyValue,
+									            const std::wstring& description = L"",
+									            size_t nPropertyData = 0);
 
 	/** 设置左侧一列的宽度
 	* @param [in] nLeftColumnWidth 左侧一列的宽度
@@ -372,6 +387,7 @@ enum class PropertyGridPropertyType
 {
 	kNone,		//无具体类型，基类
 	kText,		//普通文本
+	kCombo,		//下拉框
 
 	kCustom		//用户自定义的类型，比如自己实现一个子类
 };
@@ -459,14 +475,17 @@ protected:
 	 */
 	virtual void DoInit() override;
 
-	/** 属性值显示控件上鼠标左键按下事件, 用于切换到编辑状态
+	/** 设置是否允许存在编辑框控件
+	* @param [in] bEnable true表示允许存在编辑框控件，false表示不允许存在编辑框控件
 	*/
-	virtual void OnPropertyTextButtonDown() {}
+	virtual void EnableEditControl(bool /*bEnable*/) {}
 
-	/** 只读/编辑模式切换
+	/** 显示或者隐藏编辑框控件
+	* @param [in] bShow 表示显示编辑控件，false表示隐藏编辑控件
 	*/
-	virtual void OnReadOnlyChanged() {}
+	virtual void ShowEditControl(bool /*bShow*/) {}
 
+protected:
 	/** 设置属性值的文本(显示控件)
 	* @param [in] text 文本内容
 	* @param [in] bChanged 是否标记为变化
@@ -580,26 +599,15 @@ public:
 	void SetEnableSpin(bool bEnable, int32_t nMin = 0, int32_t nMax = 0);
 
 protected:
-	/** 初始化函数
-	 */
-	virtual void DoInit() override;
-
-	/** 属性值显示控件上鼠标左键按下事件, 用于切换到编辑状态
+	/** 设置是否允许存在编辑框控件
+	* @param [in] bEnable true表示允许存在编辑框控件，false表示不允许存在编辑框控件
 	*/
-	virtual void OnPropertyTextButtonDown() override;
+	virtual void EnableEditControl(bool bEnable) override;
 
-	/** 只读/编辑模式切换
+	/** 显示或者隐藏编辑框控件
+	* @param [in] bShow 表示显示编辑控件，false表示隐藏编辑控件
 	*/
-	virtual void OnReadOnlyChanged() override;
-
-	/** 设置是否显示编辑框控件
-	* @param [in] bShow true表示显示编辑框控件，false表示不显示编辑框控件
-	*/
-	void SetShowRichEdit(bool bShow);
-
-	/** 隐藏编辑框控件（完成编辑）
-	*/
-	void HideRichEdit();
+	virtual void ShowEditControl(bool bShow) override;
 
 private:
 	/** 编辑框控件(用于修改属性)
@@ -609,6 +617,94 @@ private:
 	/** 密码模式
 	*/
 	bool m_bPassword;
+};
+
+/** 下拉框类型的属性：使用Combo编辑
+*/
+class PropertyGridComboProperty : public PropertyGridProperty
+{
+public:
+	/** 构造一个属性
+	@param [in] propertyName 属性的名称
+	@param [in] propertyValue 属性的值
+	@param [in] description 属性的描述信息
+	@param [in] nPropertyData 用户自定义数据
+	*/
+	PropertyGridComboProperty(const std::wstring& propertyName,
+							  const std::wstring& propertyValue,
+							  const std::wstring& description = L"",
+							  size_t nPropertyData = 0);
+
+public:
+	/** 获取属性类型
+	*/
+	virtual PropertyGridPropertyType GetPropertyType() const
+	{
+		return PropertyGridPropertyType::kCombo;
+	}
+
+	/** 获取新的属性值（修改后的属性值, 如果无修改则返回原值）
+	*/
+	virtual std::wstring GetPropertyNewValue() const override;
+
+	/** 增加一个下拉框选项
+	* @param [in] optionText 下拉框列表项的内容
+	*/
+	void AddOption(const std::wstring& optionText);
+
+	/** 获取下拉框选项的格式
+	*/
+	size_t GetOptionCount() const;
+
+	/** 获取下拉表子项的文本
+	* @param [in] nIndex 子项的下标值，有效范围：[0, GetOptionCount())
+	*/
+	std::wstring GetOption(size_t nIndex) const;
+
+	/** 删除指定的子项
+	* @param [in] nIndex 子项的下标值，有效范围：[0, GetOptionCount())
+	*/
+	bool RemoveOption(size_t nIndex);
+
+	/** 删除所有子项
+	*/
+	void RemoveAllOptions();
+
+	/** 获取当前选择项索引
+	 * @return 返回当前选择项索引, (如果无有效索引，则返回Box::InvalidIndex)
+	 */
+	size_t GetCurSel() const;
+
+	/** 选择一个子项, 不触发选择事件
+	 * @param[in] nIndex 要选择的子项索引，有效范围：[0, GetOptionCount())
+	 * @return 返回 true 表示成功，否则为 false
+	 */
+	bool SetCurSel(size_t nIndex);
+
+	/** 设置为列表模式
+	* @param [in] bListMode true表示不支持编辑文本，只能从下拉表中选择；false表示允许编辑，允许选择
+	*/
+	void SetComboListMode(bool bListMode);
+
+	/** 获取下拉框接口
+	*/
+	Combo* GetCombo() const { return m_pCombo; }
+
+protected:
+	/** 设置是否允许存在编辑框控件
+	* @param [in] bEnable true表示允许存在编辑框控件，false表示不允许存在编辑框控件
+	*/
+	virtual void EnableEditControl(bool bEnable) override;
+
+	/** 显示或者隐藏编辑框控件
+	* @param [in] bShow 表示显示编辑控件，false表示隐藏编辑控件
+	*/
+	virtual void ShowEditControl(bool bShow) override;
+
+private:
+	/** 下拉框接口
+	*/
+	Combo* m_pCombo;
 };
 
 }//namespace ui

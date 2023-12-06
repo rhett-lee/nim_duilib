@@ -84,6 +84,19 @@ void RenderForm::TestPropertyGrid()
 
 	auto p3 = pPropertyGrid->AddTextProperty(pGroup, L"属性3-3(密码)", L"值3-3", L"属性3的描述信息");
 	p3->SetPassword(true);
+
+	pGroup = pPropertyGrid->AddGroup(L"分组四", L"描述信息四");
+	auto p10 = pPropertyGrid->AddComboProperty(pGroup, L"属性4-1(下拉表)", L"文本值4", L"属性4的描述信息");
+	p10->AddOption(L"取值1");
+	p10->AddOption(L"取值2");
+	p10->AddOption(L"取值3");
+	p10->SetComboListMode(true);
+
+	auto p11 = pPropertyGrid->AddComboProperty(pGroup, L"属性4-1(下拉框)", L"文本值4", L"属性4的描述信息");
+	p11->AddOption(L"取值1");
+	p11->AddOption(L"取值2");
+	p11->AddOption(L"取值3");
+	p11->SetComboListMode(false);//默认
 }
 
 void RenderForm::CheckPropertyGridResult()

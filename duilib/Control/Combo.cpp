@@ -450,23 +450,28 @@ void Combo::DoInit()
 	m_bInited = true;
 	__super::DoInit();
 
-	HBox* pBox = new HBox;
+	HBox* pBox = new HBox;	
 	AddItem(pBox);
+	pBox->SetNoFocus();
+	AttachMouseEvents(pBox);
+
 	if (m_pIconControl != nullptr) {		
 		pBox->AddItem(m_pIconControl);
+		AttachMouseEvents(m_pIconControl);
 	}
 	if (m_pEditControl != nullptr) {
 		pBox->AddItem(m_pEditControl);
 	}
 	if (m_pButtonControl != nullptr) {
 		pBox->AddItem(m_pButtonControl);
+		AttachMouseEvents(m_pButtonControl);
 	}
 
 	if (m_pIconControl != nullptr) {
 		m_pIconControl->SetNoFocus();
 	}
 	if (m_pButtonControl != nullptr) {
-		m_pButtonControl->SetNoFocus();
+		m_pButtonControl->SetNoFocus();		
 		m_pButtonControl->AttachButtonDown(nbase::Bind(&Combo::OnButtonDown, this, std::placeholders::_1));
 		m_pButtonControl->AttachClick(nbase::Bind(&Combo::OnButtonClicked, this, std::placeholders::_1));
 	}
@@ -475,6 +480,7 @@ void Combo::DoInit()
 		m_pEditControl->AttachButtonDown(nbase::Bind(&Combo::OnEditButtonDown, this, std::placeholders::_1));
 		m_pEditControl->AttachButtonUp(nbase::Bind(&Combo::OnEditButtonUp, this, std::placeholders::_1));
 		m_pEditControl->AttachEvent(kEventKeyDown, nbase::Bind(&Combo::OnEditKeyDown, this, std::placeholders::_1));
+		m_pEditControl->AttachSetFocus(nbase::Bind(&Combo::OnEditSetFocus, this, std::placeholders::_1));
 		m_pEditControl->AttachKillFocus(nbase::Bind(&Combo::OnEditKillFocus, this, std::placeholders::_1));
 		m_pEditControl->AttachEvent(kEventWindowKillFocus, nbase::Bind(&Combo::OnWindowKillFocus, this, std::placeholders::_1));
 		m_pEditControl->AttachEvent(kEventWindowMove, nbase::Bind(&Combo::OnWindowMove, this, std::placeholders::_1));
@@ -687,6 +693,11 @@ bool Combo::DeleteItem(size_t iIndex)
 	return bRemoved;
 }
 
+void Combo::DeleteAllItems()
+{
+	m_treeView.GetRootNode()->RemoveAllChildNodes();
+}
+
 size_t Combo::SelectTextItem(const std::wstring& itemText, bool bTriggerEvent)
 {
 	size_t nSelIndex = Box::InvalidIndex;
@@ -889,6 +900,13 @@ bool Combo::OnEditKeyDown(const EventArgs& args)
 	return true;
 }
 
+bool Combo::OnEditSetFocus(const EventArgs& /*args*/)
+{
+	//将RichEdit控件的焦点状态，作为Combo的焦点状态
+	SendEvent(kEventSetFocus);
+	return true;
+}
+
 bool Combo::OnEditKillFocus(const EventArgs& /*args*/)
 {
 	if (m_pWindow != nullptr) {
@@ -898,6 +916,8 @@ bool Combo::OnEditKillFocus(const EventArgs& /*args*/)
 	}
 	HideComboList();
 	Invalidate();
+	//将RichEdit控件的焦点状态，作为Combo的焦点状态
+	SendEvent(kEventKillFocus);
 	return true;
 }
 
@@ -979,6 +999,43 @@ void Combo::UpdateComboList()
 {
 	if (m_pWindow != nullptr) {
 		m_pWindow->UpdateComboWnd();
+	}
+}
+
+void Combo::AttachMouseEvents(Control* pControl)
+{
+	if (pControl == nullptr) {
+		return;
+	}
+	auto SetRichEditFocus = [this]() {
+		if ((m_pEditControl != nullptr) && m_pEditControl->IsVisible()) {
+			if (!m_pEditControl->IsFocused()) {
+				m_pEditControl->SetFocus();
+			}
+		}
+		};
+	pControl->AttachButtonDown([SetRichEditFocus](const EventArgs&) {
+		SetRichEditFocus();
+		return true;
+		});
+	pControl->AttachRButtonDown([SetRichEditFocus](const EventArgs&) {
+		SetRichEditFocus();
+		return true;
+		});
+}
+
+void Combo::SetFocus()
+{
+	//将焦点设置在Edit控件上
+	if (IsNoFocus()) {
+		if ((m_pEditControl != nullptr) && m_pEditControl->IsVisible()) {
+			if (!m_pEditControl->IsFocused()) {
+				m_pEditControl->SetFocus();
+			}
+		}
+	}
+	else {
+		__super::SetFocus();
 	}
 }
 

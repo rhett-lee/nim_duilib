@@ -148,6 +148,10 @@ public:
 	*/
 	bool DeleteItem(size_t iIndex);
 
+	/** 移除所有子节点
+	 */
+	void DeleteAllItems();
+
 	/** 选择匹配的文本项目
 	* @param [in] itemText 子项的文本内容
 	* @param [in] bTriggerEvent bTriggerEvent 是否触发选择事件, 如果为true，会触发一个kEventSelect事件
@@ -163,6 +167,10 @@ public:
 	/** 设置编辑框内的文本
 	*/
 	void SetText(const std::wstring& text);
+
+	/** 让控件获取焦点
+	 */
+	virtual void SetFocus();
 
 public:
 	/** 获取下拉列表的树接口
@@ -250,6 +258,12 @@ protected:
 	 */
 	virtual bool OnEditKeyDown(const EventArgs& args);
 
+	/** Edit控件获得焦点
+	* @param[in] args 参数列表
+	* @return 始终返回 true
+	*/
+	virtual bool OnEditSetFocus(const EventArgs& args);
+
 	/** Edit控件失去焦点
 	* @param[in] args 参数列表
 	* @return 始终返回 true
@@ -295,6 +309,10 @@ private:
 	/** 创建一个新的树节点
 	*/
 	TreeNode* CreateTreeNode(const std::wstring& itemText);
+
+	/** 挂载该控件的鼠标事件，设置焦点
+	*/
+	void AttachMouseEvents(Control* pControl);
 
 private:
 	/** Combo类型

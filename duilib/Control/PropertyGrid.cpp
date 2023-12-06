@@ -543,6 +543,20 @@ PropertyGridTextProperty* PropertyGrid::AddTextProperty(PropertyGridGroup* pGrou
     return pProperty;
 }
 
+PropertyGridComboProperty* PropertyGrid::AddComboProperty(PropertyGridGroup* pGroup,
+                                                          const std::wstring& propertyName,
+                                                          const std::wstring& propertyValue,
+                                                          const std::wstring& description,
+                                                          size_t nPropertyData)
+{
+    PropertyGridComboProperty* pProperty = new PropertyGridComboProperty(propertyName, propertyValue, description, nPropertyData);
+    if (!AddProperty(pGroup, pProperty)) {
+        delete pProperty;
+        pProperty = nullptr;
+    }
+    return pProperty;
+}
+
 void PropertyGrid::SetLeftColumnWidth(int32_t nLeftColumnWidth, bool bNeedDpiScale)
 {
     if (nLeftColumnWidth <= 0) {
@@ -729,10 +743,13 @@ void PropertyGridProperty::DoInit()
     //挂载鼠标左键按下事件
     m_pLabelBoxRight->AttachButtonDown([this](const EventArgs&) {
         if (!IsReadOnly()) {
-            OnPropertyTextButtonDown();
+            ShowEditControl(true);
         }
         return true;
         });
+
+    //允许或者禁止编辑控件
+    EnableEditControl(!IsReadOnly());
 }
 
 void PropertyGridProperty::SetPropertyText(const std::wstring& text, bool bChanged)
@@ -804,7 +821,7 @@ void PropertyGridProperty::SetReadOnly(bool bReadOnly)
 {
     if (m_bReadOnly != bReadOnly) {
         m_bReadOnly = bReadOnly;
-        OnReadOnlyChanged();
+        EnableEditControl(!bReadOnly);
     }
 }
 
@@ -814,11 +831,9 @@ std::wstring PropertyGridProperty::GetPropertyNewValue() const
 }
 
 ////////////////////////////////////////////////////////////////////////////
-///
-
-/** 编辑框控件
-*/
-class PropertyGridRichEdit : public RichEdit
+/// 控件的基类
+template<typename InheritType = Control>
+class PropertyGridEditTemplate : public InheritType
 {
 public:
     /** 消息处理函数
@@ -826,9 +841,9 @@ public:
     */
     virtual void HandleEvent(const EventArgs& msg) override
     {
-        if (IsDisabledEvents(msg)) {
+        if (this->IsDisabledEvents(msg)) {
             //如果是鼠标键盘消息，并且控件是Disabled的，转发给上层控件
-            Box* pParent = GetParent();
+            Box* pParent = this->GetParent();
             if (pParent != nullptr) {
                 pParent->SendEvent(msg);
             }
@@ -836,7 +851,7 @@ public:
         else {
             if ((msg.Type > kEventMouseBegin) && (msg.Type < kEventMouseEnd)) {
                 //鼠标消息，转给父控件
-                Box* pParent = GetParent();
+                Box* pParent = this->GetParent();
                 if (pParent != nullptr) {
                     pParent->SendEvent(msg);
                 }
@@ -850,10 +865,14 @@ public:
     virtual void DoInit() override
     {
         __super::DoInit();
-        SetShowFocusRect(false);
-        SetTabStop(false);
+        this->SetShowFocusRect(false);
+        this->SetTabStop(false);
     }
 };
+
+/** 编辑框控件
+*/
+typedef PropertyGridEditTemplate<RichEdit> PropertyGridRichEdit;
 
 PropertyGridTextProperty::PropertyGridTextProperty(const std::wstring& propertyName,
                                                    const std::wstring& propertyValue,
@@ -865,35 +884,10 @@ PropertyGridTextProperty::PropertyGridTextProperty(const std::wstring& propertyN
 {
 }
 
-void PropertyGridTextProperty::DoInit()
-{
-    if (IsInited()) {
-        return;
-    }
-    __super::DoInit();
-    SetShowRichEdit(!IsReadOnly());
-}
-
-void PropertyGridTextProperty::OnPropertyTextButtonDown()
-{
-    if (!IsReadOnly() && (m_pRichEdit != nullptr)) {
-        m_pRichEdit->SetVisible(true);
-        m_pRichEdit->SetFocus();
-    }
-}
-
-void PropertyGridTextProperty::OnReadOnlyChanged()
-{
-    SetShowRichEdit(!IsReadOnly());
-}
-
-void PropertyGridTextProperty::SetShowRichEdit(bool bShow)
+void PropertyGridTextProperty::EnableEditControl(bool bEnable)
 {
     ASSERT(IsInited());
-    if (!IsInited()) {
-        return;
-    }
-    if (!bShow) {
+    if (!bEnable) {
         RemovePropertySubItem(m_pRichEdit);
         m_pRichEdit = nullptr;
         return;
@@ -919,14 +913,22 @@ void PropertyGridTextProperty::SetShowRichEdit(bool bShow)
         return true;
         });
     m_pRichEdit->AttachKillFocus([this](const EventArgs&) {
-        HideRichEdit();
+        ShowEditControl(false);
         return true;
         });
 }
 
-void PropertyGridTextProperty::HideRichEdit()
+void PropertyGridTextProperty::ShowEditControl(bool bShow)
 {
-    if (m_pRichEdit != nullptr) {
+    if (IsReadOnly() || (m_pRichEdit == nullptr)) {
+        return;
+    }
+
+    if (bShow) {
+        m_pRichEdit->SetVisible(true);
+        m_pRichEdit->SetFocus();
+    }
+    else {
         std::wstring newText = m_pRichEdit->GetText();
         bool bChanged = newText != GetPropertyValue(); //相对原值，是否有修改
         if (IsPassword()) {
@@ -978,6 +980,153 @@ std::wstring PropertyGridTextProperty::GetPropertyNewValue() const
         propertyValue = m_pRichEdit->GetText();
     }
     return propertyValue;
+}
+
+////////////////////////////////////////////////////////////////////////////
+///
+
+/** 编辑框控件
+*/
+typedef PropertyGridEditTemplate<Combo> PropertyGridCombo;
+
+PropertyGridComboProperty::PropertyGridComboProperty(const std::wstring& propertyName,
+    const std::wstring& propertyValue,
+    const std::wstring& description,
+    size_t nPropertyData) :
+    PropertyGridProperty(propertyName, propertyValue, description, nPropertyData),
+    m_pCombo(nullptr)
+{
+}
+
+void PropertyGridComboProperty::EnableEditControl(bool bEnable)
+{
+    ASSERT(IsInited());
+    if (!bEnable) {
+        RemovePropertySubItem(m_pCombo);
+        m_pCombo = nullptr;
+        return;
+    }
+    if (m_pCombo != nullptr) {
+        return;
+    }
+    m_pCombo = new PropertyGridCombo;
+    m_pCombo->SetWindow(GetWindow());
+    m_pCombo->SetClass(L"property_grid_combo");
+    if (!AddPropertySubItem(m_pCombo)) {
+        delete m_pCombo;
+        m_pCombo = nullptr;
+        return;
+    }
+    //编辑框的属性：在property_grid.xml中定义    
+    m_pCombo->SetText(GetPropertyText());
+    m_pCombo->SetVisible(false);
+
+    //挂载回车和焦点切换事件
+    m_pCombo->AttachKillFocus([this](const EventArgs&) {
+        ShowEditControl(false);
+        return true;
+        });
+}
+
+void PropertyGridComboProperty::ShowEditControl(bool bShow)
+{
+    if (IsReadOnly() || (m_pCombo == nullptr)) {
+        return;
+    }
+
+    if (bShow) {
+        m_pCombo->SetVisible(true);
+        m_pCombo->SetFocus();
+    }
+    else {
+        std::wstring newText = m_pCombo->GetText();
+        bool bChanged = newText != GetPropertyValue(); //相对原值，是否有修改
+        SetPropertyText(newText, bChanged);
+        m_pCombo->SetVisible(false);
+    }
+}
+
+std::wstring PropertyGridComboProperty::GetPropertyNewValue() const
+{
+    std::wstring propertyValue = GetPropertyValue();
+    if (!IsReadOnly() && (m_pCombo != nullptr)) {
+        propertyValue = m_pCombo->GetText();
+    }
+    return propertyValue;
+}
+
+void PropertyGridComboProperty::AddOption(const std::wstring& optionText)
+{
+    ASSERT(m_pCombo != nullptr);
+    if (m_pCombo != nullptr) {
+        m_pCombo->AddTextItem(optionText);
+    }
+}
+
+size_t PropertyGridComboProperty::GetOptionCount() const
+{
+    size_t nCount = 0;
+    ASSERT(m_pCombo != nullptr);
+    if (m_pCombo != nullptr) {
+        nCount = m_pCombo->GetCount();
+    }
+    return nCount;
+}
+
+std::wstring PropertyGridComboProperty::GetOption(size_t nIndex) const
+{
+    std::wstring text;
+    ASSERT(m_pCombo != nullptr);
+    if (m_pCombo != nullptr) {
+        text = m_pCombo->GetItemText(nIndex);
+    }
+    return text;
+}
+
+bool PropertyGridComboProperty::RemoveOption(size_t nIndex)
+{
+    bool bRet = false;
+    ASSERT(m_pCombo != nullptr);
+    if (m_pCombo != nullptr) {
+        bRet = m_pCombo->DeleteItem(nIndex);
+    }
+    return bRet;
+}
+
+void PropertyGridComboProperty::RemoveAllOptions()
+{
+    ASSERT(m_pCombo != nullptr);
+    if (m_pCombo != nullptr) {
+        m_pCombo->DeleteAllItems();
+    }
+}
+
+size_t PropertyGridComboProperty::GetCurSel() const
+{
+    size_t nIndex = Box::InvalidIndex;
+    ASSERT(m_pCombo != nullptr);
+    if (m_pCombo != nullptr) {
+        nIndex = m_pCombo->GetCurSel();
+    }
+    return nIndex;
+}
+
+bool PropertyGridComboProperty::SetCurSel(size_t nIndex)
+{
+    bool bRet = false;
+    ASSERT(m_pCombo != nullptr);
+    if (m_pCombo != nullptr) {
+        bRet = m_pCombo->SetCurSel(nIndex);
+    }
+    return bRet;
+}
+
+void PropertyGridComboProperty::SetComboListMode(bool bListMode)
+{
+    ASSERT(m_pCombo != nullptr);
+    if (m_pCombo != nullptr) {
+        m_pCombo->SetComboType(bListMode ? Combo::ComboType::kCombo_DropList : Combo::ComboType::kCombo_DropDown);
+    }
 }
 
 }//namespace ui

@@ -434,6 +434,10 @@ public:
 	 */
 	void SetNoFocus(); // 控件永远不要焦点，与KillFocus不一样
 
+	/** 该控件是否不获取焦点
+	*/
+	bool IsNoFocus() const { return m_bNoFocus; }
+
 	/** 设置是否显示焦点状态(一个虚线构成的矩形)
 	*/
 	void SetShowFocusRect(bool bShowFocusRect);

@@ -137,7 +137,7 @@
     <Class name="check_combo" bordersize="1" bordercolor="splitline_level1" 
                               dropbox="padding='1,1,1,1' bkcolor='bk_wnd_lightcolor' border_color='splitline_level1' border_size='1,1,1,1' vscrollbar='true'"
                               dropbox_item_class="width={stretch} height={24} text_padding={20,2,2,0} text_align={left,vcenter} normal_image={file='../public/checkbox/check_no.png' dest='2,4,18,20'} selected_normal_image={file='../public/checkbox/check_yes.png' dest='2,4,18,20'}" 
-                              selected_item_class="width={auto} height={22} margin={4,2,4,2} bkcolor={bk_menuitem_selected} text_padding={2,3,2,3}"/>
+                              selected_item_class="width={auto} height={22} margin={4,2,4,2} bkcolor={bk_menuitem_selected} text_padding={2,1,2,1}"/>
     <Class name="combo_button" padding="1,1,1,1" border_size="1" hot_border_color="blue" hot_color="#FFE5F3FF" pushed_color="#FFCCE8FF"
                                combo_box_class="padding='1,1,1,1' border_size='1,1,1,1' bkcolor='white' border_color='gray'" 
                                left_button_class="height={stretch} width={stretch} padding={0,0,1,0} border_size={0,0,1,0} hot_border_color={blue} pushed_border_color={blue} valign={center} hot_color={#FFE5F3FF} pushed_color={#FFCCE8FF} " 
