@@ -462,13 +462,15 @@ std::wstring PropertyGrid::GetPropertyClass() const
     return m_propertyClass.c_str();
 }
 
-PropertyGridGroup* PropertyGrid::AddGroup(const std::wstring& groupName, const std::wstring& description)
+PropertyGridGroup* PropertyGrid::AddGroup(const std::wstring& groupName,
+                                          const std::wstring& description,
+                                          size_t nGroupData)
 {
     ASSERT(m_pTreeView != nullptr);
     if (m_pTreeView == nullptr) {
         return nullptr;
     }
-    PropertyGridGroup* pGroup = new PropertyGridGroup(groupName, description);
+    PropertyGridGroup* pGroup = new PropertyGridGroup(groupName, description, nGroupData);
     m_pTreeView->GetRootNode()->AddChildNode(pGroup);
     pGroup->SetClass(GetGroupClass());
     pGroup->SetExpand(true);
@@ -508,13 +510,14 @@ void PropertyGrid::RemoveAllGroups()
 PropertyGridProperty* PropertyGrid::AddProperty(PropertyGridGroup* pGroup,
                                                 const std::wstring& propertyName,
                                                 const std::wstring& propertyValue,
-                                                const std::wstring& description)
+                                                const std::wstring& description,
+                                                size_t nPropertyData)
 {
     ASSERT(pGroup != nullptr);
     if (pGroup == nullptr) {
         return nullptr;
     }
-    PropertyGridProperty* pProperty = new PropertyGridProperty(propertyName, propertyValue, description);
+    PropertyGridProperty* pProperty = new PropertyGridProperty(propertyName, propertyValue, description, nPropertyData);
     pGroup->AddChildNode(pProperty);
     pProperty->SetClass(GetPropertyClass());
 
@@ -571,9 +574,12 @@ int32_t PropertyGrid::GetLeftColumnWidth() const
 ////////////////////////////////////////////////////////////////////////////
 ///
 
-PropertyGridGroup::PropertyGridGroup(const std::wstring& groupName, const std::wstring& description) :
+PropertyGridGroup::PropertyGridGroup(const std::wstring& groupName, 
+                                     const std::wstring& description,
+                                     size_t nGroupData) :
     m_bInited(false),
-    m_pLabelBox(nullptr)
+    m_pLabelBox(nullptr),
+    m_nGroupData(nGroupData)
 {
     m_groupName = groupName;
     m_description = description;
@@ -637,14 +643,16 @@ void PropertyGridGroup::RemoveAllProperties()
 ///
 PropertyGridProperty::PropertyGridProperty(const std::wstring& propertyName, 
                                            const std::wstring& propertyValue,
-                                           const std::wstring& description):
+                                           const std::wstring& description,
+                                           size_t nPropertyData):
     m_bInited(false),
     m_pHBox(nullptr),
     m_pLabelBoxLeft(nullptr),
     m_pLabelBoxRight(nullptr),
     m_pRichEdit(nullptr),
     m_bReadOnly(false),
-    m_bPassword(false)
+    m_bPassword(false),
+    m_nPropertyData(nPropertyData)
 {
     m_propertyName = propertyName;
     m_propertyValue = propertyValue;

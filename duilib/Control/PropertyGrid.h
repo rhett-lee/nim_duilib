@@ -56,10 +56,12 @@ public:
 	/** 增加一个分组
 	* @param [in] groupName 分组的名称
 	* @param [in] description 分组的描述信息
+	* @param [in] nGroupData 用户自定义数据
 	* @return 返回该分组的接口，可用于添加属性
 	*/
 	PropertyGridGroup* AddGroup(const std::wstring& groupName, 
-							    const std::wstring& description = L"");
+							    const std::wstring& description = L"",
+								size_t nGroupData = 0);
 
 	/** 获取所有的分组
 	* @param [out] groups 返回当前所有的分组列表
@@ -80,12 +82,14 @@ public:
 	* @param [in] propertyName 属性的名称
 	* @param [in] propertyValue 属性的值
 	* @param [in] description 属性的描述信息
+	* @param [in] nPropertyData 用户自定义数据
 	* @return 返回该属性的接口
 	*/
 	PropertyGridProperty* AddProperty(PropertyGridGroup* pGroup,
 									  const std::wstring& propertyName, 
 									  const std::wstring& propertyValue,
-									  const std::wstring& description = L"");
+									  const std::wstring& description = L"",
+									  size_t nPropertyData = 0);
 
 	/** 设置左侧一列的宽度
 	* @param [in] nLeftColumnWidth 左侧一列的宽度
@@ -286,9 +290,11 @@ public:
 	/** 构造一个组
 	@param [in] groupName 组的名称
 	@param [in] description 组的描述信息
+	@param [in] nGroupData 用户自定义数据
 	*/
 	explicit PropertyGridGroup(const std::wstring& groupName, 
-							   const std::wstring& description = L"");
+							   const std::wstring& description = L"",
+		                       size_t nGroupData = 0);
 
 public:
 	/** 获取属性名称
@@ -298,6 +304,14 @@ public:
 	/** 获取组的描述信息
 	*/
 	std::wstring GetDescriptiion() const { return m_description.c_str(); }
+
+	/** 获取用户自定义数据
+	*/
+	size_t GetGroupData() const { return m_nGroupData; }
+
+	/** 设置用户自定义数据
+	*/
+	void SetGroupData(size_t nGroupData) { m_nGroupData = nGroupData; }
 
 	/** 获取属性名称的显示控件
 	*/
@@ -335,6 +349,10 @@ private:
 	*/
 	UiString m_description;
 
+	/** 用户自定义数据
+	*/
+	size_t m_nGroupData;
+
 	/** 属性名称的显示控件
 	*/
 	LabelBox* m_pLabelBox;
@@ -355,10 +373,12 @@ public:
 	@param [in] propertyName 属性的名称
 	@param [in] propertyValue 属性的值
 	@param [in] description 属性的描述信息
+	@param [in] nPropertyData 用户自定义数据
 	*/
 	PropertyGridProperty(const std::wstring& propertyName, 
 					     const std::wstring& propertyValue,
-					     const std::wstring& description = L"");
+					     const std::wstring& description = L"",
+					     size_t nPropertyData = 0);
 
 public:
 	/** 获取属性名称
@@ -376,6 +396,14 @@ public:
 	/** 获取属性的描述信息
 	*/
 	std::wstring GetDescriptiion() const { return m_description.c_str(); }
+
+	/** 获取用户自定义数据
+	*/
+	size_t GetPropertyData() const { return m_nPropertyData; }
+
+	/** 设置用户自定义数据
+	*/
+	void SetPropertyData(size_t nPropertyData) { m_nPropertyData = nPropertyData; }
 
 	/** 获取属性名称和属性值所在容器控件，可用于设置背景色等
 	*/
@@ -443,6 +471,10 @@ private:
 	/** 属性的描述信息
 	*/
 	UiString m_description;
+
+	/** 用户自定义数据
+	*/
+	size_t m_nPropertyData;
 
 	/** 属性名称和属性值所在容器控件
 	*/
