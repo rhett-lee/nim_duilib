@@ -775,9 +775,25 @@ void ColorPicker::OnPickColorFromScreen()
 	pScreenColorPicker->EnterFullScreen();
 	pScreenColorPicker->AttachWindowClose([this, pScreenColorPicker, bHideWindow](const ui::EventArgs& /*args*/) {
 		//更新选择的颜色值
-		UiColor selColor = pScreenColorPicker->GetSelColor();
-		if (!selColor.IsEmpty()) {
-			this->OnSelectColor(selColor);
+		UiColor selectedColor = pScreenColorPicker->GetSelColor();
+		if (!selectedColor.IsEmpty()) {
+			//更新选择的颜色
+			this->OnSelectColor(selectedColor);
+			//更新常用颜色
+			if (m_pRegularPicker != nullptr) {
+				m_pRegularPicker->SelectColor(selectedColor);
+			}
+			//更新标准颜色
+			if (m_pStatardPicker != nullptr) {
+				m_pStatardPicker->SelectColor(selectedColor);
+			}
+			if (m_pStatardGrayPicker != nullptr) {
+				m_pStatardGrayPicker->SelectColor(selectedColor);
+			}
+			//更新自定义颜色
+			if (m_pCustomPicker != nullptr) {
+				m_pCustomPicker->SelectColor(selectedColor);
+			}
 		}
 		if (bHideWindow) {
 			//显示主窗口
