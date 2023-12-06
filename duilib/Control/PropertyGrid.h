@@ -9,6 +9,7 @@
 #include "duilib/Control/RichText.h"
 #include "duilib/Control/RichEdit.h"
 #include "duilib/Control/TreeView.h"
+#include "duilib/Control/Combo.h"
 
 namespace ui
 {
@@ -16,6 +17,7 @@ namespace ui
 */
 class PropertyGridGroup;
 class PropertyGridProperty;
+class PropertyGridTextProperty;
 class PropertyGrid : public VBox
 {
 public:
@@ -77,6 +79,12 @@ public:
 	*/
 	void RemoveAllGroups();
 
+	/** 添加一个属性(由调用方创建属性)
+	* @param [in] pGroup 该属性所属的分组
+	* @param [in] pProperty 属性接口
+	*/
+	bool AddProperty(PropertyGridGroup* pGroup, PropertyGridProperty* pProperty);
+
 	/** 增加一个属性
 	* @param [in] pGroup 该属性所属的分组
 	* @param [in] propertyName 属性的名称
@@ -85,11 +93,11 @@ public:
 	* @param [in] nPropertyData 用户自定义数据
 	* @return 返回该属性的接口
 	*/
-	PropertyGridProperty* AddProperty(PropertyGridGroup* pGroup,
-									  const std::wstring& propertyName, 
-									  const std::wstring& propertyValue,
-									  const std::wstring& description = L"",
-									  size_t nPropertyData = 0);
+	PropertyGridTextProperty* AddTextProperty(PropertyGridGroup* pGroup,
+									          const std::wstring& propertyName, 
+									          const std::wstring& propertyValue,
+									          const std::wstring& description = L"",
+									          size_t nPropertyData = 0);
 
 	/** 设置左侧一列的宽度
 	* @param [in] nLeftColumnWidth 左侧一列的宽度
@@ -358,6 +366,16 @@ private:
 	LabelBox* m_pLabelBox;
 };
 
+/** 属性的类型
+*/
+enum class PropertyGridPropertyType
+{
+	kNone,		//无具体类型，基类
+	kText,		//普通文本
+
+	kCustom		//用户自定义的类型，比如自己实现一个子类
+};
+
 /** 属性表的属性, 基本结构
 *   <PropertyGridProperty>
 *		<HBox>
@@ -381,17 +399,20 @@ public:
 					     size_t nPropertyData = 0);
 
 public:
+	/** 获取属性类型
+	*/
+	virtual PropertyGridPropertyType GetPropertyType() const 
+	{ 
+		return PropertyGridPropertyType::kNone; 
+	}
+
 	/** 获取属性名称
 	*/
 	std::wstring GetPropertyName() const { return m_propertyName.c_str(); }
 
-	/** 获取属性值
+	/** 获取属性值(原值)
 	*/
 	std::wstring GetPropertyValue() const { return m_propertyValue.c_str(); }
-
-	/** 获取新的属性值（修改后的属性值, 如果无修改则返回原值）
-	*/
-	std::wstring GetNewPropertyValue() const;
 
 	/** 获取属性的描述信息
 	*/
@@ -417,10 +438,6 @@ public:
 	*/
 	LabelBox* GetLabelBoxRight() const { return m_pLabelBoxRight; }
 
-	/** 获取编辑框控件
-	*/
-	RichEdit* GetRichEdit() const { return m_pRichEdit; }
-
 	/** 设置只读模式
 	*/
 	void SetReadOnly(bool bReadOnly);
@@ -429,31 +446,52 @@ public:
 	*/
 	bool IsReadOnly() const { return m_bReadOnly; }
 
-	/** 设置密码模式（显示 ***）
-	 * @param[in] bPassword 设置为 true 让控件显示内容为 ***，false 为显示正常内容
-	 */
-	void SetPassword(bool bPassword);
-
-	/** 是否为密码模式
+	/** 获取新的属性值（修改后的属性值, 如果无修改则返回原值）
 	*/
-	bool IsPassword() const { return m_bPassword; }
-
-	/** 设置是否支持Spin控件
-	* @param [in] bEnable true表示支持Spin控件，false表示不支持Spin控件
-	* @param [in] nMin 表示设置数字的最小值
-	* @param [in] nMax 表示设置数字的最大值，如果 nMin和nMax同时为0, 表示不设置数字的最小值和最大值
-	*/
-	void SetEnableSpin(bool bEnable, int32_t nMin = 0, int32_t nMax = 0);
+	virtual std::wstring GetPropertyNewValue() const;
 
 protected:
+	/** 是否已经初始化
+	*/
+	bool IsInited() const { return m_bInited; }
+
 	/** 初始化函数
 	 */
 	virtual void DoInit() override;
 
-	/** 设置是否显示编辑框控件
-	* @param [in] bShow true表示显示编辑框控件，false表示不显示编辑框控件
+	/** 属性值显示控件上鼠标左键按下事件, 用于切换到编辑状态
 	*/
-	void SetShowRichEdit(bool bShow);
+	virtual void OnPropertyTextButtonDown() {}
+
+	/** 只读/编辑模式切换
+	*/
+	virtual void OnReadOnlyChanged() {}
+
+	/** 设置属性值的文本(显示控件)
+	* @param [in] text 文本内容
+	* @param [in] bChanged 是否标记为变化
+	*/
+	void SetPropertyText(const std::wstring& text, bool bChanged);
+
+	/** 获取属性值文本(显示控件)
+	*/
+	std::wstring GetPropertyText() const;
+
+	/** 将焦点设置到属性值文本显示控件
+	*/
+	void SetPropertyFocus();
+
+	/** 在属性值的LabelBox中添加控件
+	*/
+	bool AddPropertySubItem(Control* pControl);
+
+	/** 在属性值的LabelBox中移除控件
+	*/
+	bool RemovePropertySubItem(Control* pControl);
+
+	/** 判断属性值的LabelBox中是否包含控件
+	*/
+	bool HasPropertySubItem(Control* pControl) const;
 
 private:
 	/** 是否已经完成初始化
@@ -488,13 +526,85 @@ private:
 	*/
 	LabelBox* m_pLabelBoxRight;
 
-	/** 编辑框控件(用于修改属性)
-	*/
-	RichEdit* m_pRichEdit;
-
 	/** 只读模式
 	*/
 	bool m_bReadOnly;
+};
+
+/** 文本类型的属性：使用RichEdit编辑
+*/
+class PropertyGridTextProperty : public PropertyGridProperty
+{
+public:
+	/** 构造一个属性
+	@param [in] propertyName 属性的名称
+	@param [in] propertyValue 属性的值
+	@param [in] description 属性的描述信息
+	@param [in] nPropertyData 用户自定义数据
+	*/
+	PropertyGridTextProperty(const std::wstring& propertyName,
+					         const std::wstring& propertyValue,
+					         const std::wstring& description = L"",
+					         size_t nPropertyData = 0);
+
+public:
+	/** 获取属性类型
+	*/
+	virtual PropertyGridPropertyType GetPropertyType() const
+	{
+		return PropertyGridPropertyType::kText;
+	}
+
+	/** 获取新的属性值（修改后的属性值, 如果无修改则返回原值）
+	*/
+	virtual std::wstring GetPropertyNewValue() const override;
+
+	/** 获取编辑框控件
+	*/
+	RichEdit* GetRichEdit() const { return m_pRichEdit; }
+
+	/** 设置密码模式（显示 ***）
+	 * @param[in] bPassword 设置为 true 让控件显示内容为 ***，false 为显示正常内容
+	 */
+	void SetPassword(bool bPassword);
+
+	/** 是否为密码模式
+	*/
+	bool IsPassword() const { return m_bPassword; }
+
+	/** 设置是否支持Spin控件
+	* @param [in] bEnable true表示支持Spin控件，false表示不支持Spin控件
+	* @param [in] nMin 表示设置数字的最小值
+	* @param [in] nMax 表示设置数字的最大值，如果 nMin和nMax同时为0, 表示不设置数字的最小值和最大值
+	*/
+	void SetEnableSpin(bool bEnable, int32_t nMin = 0, int32_t nMax = 0);
+
+protected:
+	/** 初始化函数
+	 */
+	virtual void DoInit() override;
+
+	/** 属性值显示控件上鼠标左键按下事件, 用于切换到编辑状态
+	*/
+	virtual void OnPropertyTextButtonDown() override;
+
+	/** 只读/编辑模式切换
+	*/
+	virtual void OnReadOnlyChanged() override;
+
+	/** 设置是否显示编辑框控件
+	* @param [in] bShow true表示显示编辑框控件，false表示不显示编辑框控件
+	*/
+	void SetShowRichEdit(bool bShow);
+
+	/** 隐藏编辑框控件（完成编辑）
+	*/
+	void HideRichEdit();
+
+private:
+	/** 编辑框控件(用于修改属性)
+	*/
+	RichEdit* m_pRichEdit;
 
 	/** 密码模式
 	*/

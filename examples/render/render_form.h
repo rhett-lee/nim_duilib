@@ -45,5 +45,8 @@ public:
 private:
 	//测试PropertyGrid控件
 	void TestPropertyGrid();
+
+	//获取PropertyGrid控件的结果
+	void CheckPropertyGridResult();
 };
 
