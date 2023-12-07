@@ -10,6 +10,7 @@
 #include "duilib/Control/RichEdit.h"
 #include "duilib/Control/TreeView.h"
 #include "duilib/Control/Combo.h"
+#include "duilib/Control/ComboButton.h"
 
 namespace ui
 {
@@ -17,10 +18,11 @@ namespace ui
 */
 class PropertyGridGroup;
 class PropertyGridProperty;
-class PropertyGridTextProperty;
-class PropertyGridComboProperty;
-class PropertyGridFontProperty;
-class PropertyGridFontSizeProperty;
+class PropertyGridTextProperty;		//文本和数字
+class PropertyGridComboProperty;	//下拉框
+class PropertyGridFontProperty;		//字体名称
+class PropertyGridFontSizeProperty;	//字体大小
+class PropertyGridColorProperty;	//颜色
 class PropertyGrid : public VBox
 {
 public:
@@ -143,6 +145,20 @@ public:
 									                  const std::wstring& propertyValue,
 									                  const std::wstring& description = L"",
 									                  size_t nPropertyData = 0);
+
+	/** 增加一个属性(颜色)
+	* @param [in] pGroup 该属性所属的分组
+	* @param [in] propertyName 属性的名称
+	* @param [in] propertyValue 属性的值（字体大小）
+	* @param [in] description 属性的描述信息
+	* @param [in] nPropertyData 用户自定义数据
+	* @return 返回该属性的接口
+	*/
+	PropertyGridColorProperty* AddColorProperty(PropertyGridGroup* pGroup,
+									            const std::wstring& propertyName, 
+									            const std::wstring& propertyValue,
+									            const std::wstring& description = L"",
+									            size_t nPropertyData = 0);
 	/** 设置左侧一列的宽度
 	* @param [in] nLeftColumnWidth 左侧一列的宽度
     * @param [in] bNeedDpiScale 是否需要对列宽值进行DPI自适应
@@ -525,6 +541,11 @@ protected:
 	*/
 	std::wstring GetPropertyText() const;
 
+	/** 设置属性值的文字颜色(显示控件)
+	* @param [in] text 文本内容
+	*/
+	void SetPropertyTextColor(const std::wstring& textColor);
+
 	/** 将焦点设置到属性值文本显示控件
 	*/
 	void SetPropertyFocus();
@@ -844,6 +865,59 @@ private:
 	/** 字体大小
 	*/
 	std::vector<FontSizeInfo> m_fontSizeList;
+};
+
+/** 设置颜色的属性
+*/
+class PropertyGridColorProperty : public PropertyGridProperty
+{
+public:
+	/** 构造一个属性
+	@param [in] propertyName 属性的名称
+	@param [in] propertyValue 属性的值(原字体名称)
+	@param [in] description 属性的描述信息
+	@param [in] nPropertyData 用户自定义数据
+	*/
+	PropertyGridColorProperty(const std::wstring& propertyName,
+							  const std::wstring& propertyValue,
+							  const std::wstring& description = L"",
+							  size_t nPropertyData = 0);
+
+
+public:
+
+	/** 获取颜色选择控件接口
+	*/
+	ComboButton* GetComboButton() const { return m_pComboButton; }
+
+protected:
+	/** 设置是否允许存在编辑框控件
+	* @param [in] bEnable true表示允许存在编辑框控件，false表示不允许存在编辑框控件
+	*/
+	virtual void EnableEditControl(bool bEnable) override;
+
+	/** 显示或者隐藏编辑框控件
+	* @param [in] bShow 表示显示编辑控件，false表示隐藏编辑控件
+	*/
+	virtual void ShowEditControl(bool bShow) override;
+
+private:
+	/** 初始化设置颜色的Combo按钮
+	*/
+	void InitColorCombo();
+
+	/** 显示拾色器窗口
+	*/
+	void ShowColorPicker();
+
+	/** 设置选择颜色
+	*/
+	void OnSelectColor(const std::wstring& color);
+
+private:
+	/** 颜色选择控件
+	*/
+	ComboButton* m_pComboButton;
 };
 
 }//namespace ui

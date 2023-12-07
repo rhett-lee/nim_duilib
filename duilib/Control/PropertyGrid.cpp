@@ -1,6 +1,8 @@
 #include "PropertyGrid.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Render/IRender.h"
+#include "duilib/Control/ColorPicker.h"
+#include "duilib/Control/ColorPickerRegular.h"
 
 namespace ui
 {
@@ -585,6 +587,20 @@ PropertyGridFontSizeProperty* PropertyGrid::AddFontSizeProperty(PropertyGridGrou
     return pProperty;
 }
 
+PropertyGridColorProperty* PropertyGrid::AddColorProperty(PropertyGridGroup* pGroup,
+                                                          const std::wstring& propertyName,
+                                                          const std::wstring& propertyValue,
+                                                          const std::wstring& description,
+                                                          size_t nPropertyData)
+{
+    PropertyGridColorProperty* pProperty = new PropertyGridColorProperty(propertyName, propertyValue, description, nPropertyData);
+    if (!AddProperty(pGroup, pProperty)) {
+        delete pProperty;
+        pProperty = nullptr;
+    }
+    return pProperty;
+}
+
 void PropertyGrid::SetLeftColumnWidth(int32_t nLeftColumnWidth, bool bNeedDpiScale)
 {
     if (nLeftColumnWidth <= 0) {
@@ -791,6 +807,18 @@ void PropertyGridProperty::SetPropertyText(const std::wstring& text, bool bChang
         else {
             m_pLabelBoxRight->SetFontId(L"property_grid_propterty_font_normal");
         }
+    }
+}
+
+void PropertyGridProperty::SetPropertyTextColor(const std::wstring& textColor)
+{
+    if (GetUiColor(textColor).IsEmpty()) {
+        //无效颜色值
+        return;
+    }
+    ASSERT(m_pLabelBoxRight != nullptr);
+    if (m_pLabelBoxRight != nullptr) {
+        m_pLabelBoxRight->SetStateTextColor(kControlStateNormal, textColor);
     }
 }
 
@@ -1403,6 +1431,193 @@ std::wstring PropertyGridFontSizeProperty::GetDpiFontSize(const std::wstring& fo
         }
     }
     return fontSize;
+}
+
+////////////////////////////////////////////////////////////////////////////
+///
+PropertyGridColorProperty::PropertyGridColorProperty(const std::wstring& propertyName,
+    const std::wstring& propertyValue,
+    const std::wstring& description,
+    size_t nPropertyData) :
+    PropertyGridProperty(propertyName, propertyValue, description, nPropertyData),
+    m_pComboButton(nullptr)
+{
+}
+
+void PropertyGridColorProperty::EnableEditControl(bool bEnable)
+{
+    ASSERT(IsInited());
+    if (!bEnable) {
+        RemovePropertySubItem(m_pComboButton);
+        m_pComboButton = nullptr;
+        return;
+    }
+    if (m_pComboButton != nullptr) {
+        return;
+    }
+    m_pComboButton = new ComboButton;
+    m_pComboButton->SetWindow(GetWindow());
+    //属性：在property_grid.xml中定义    
+    m_pComboButton->SetClass(L"property_grid_combo_button");
+    if (!AddPropertySubItem(m_pComboButton)) {
+        delete m_pComboButton;
+        m_pComboButton = nullptr;
+        return;
+    }
+
+    Label* pLabelText = m_pComboButton->GetLabelTop();
+    if (pLabelText != nullptr) {
+        pLabelText->SetText(GetPropertyText());
+    }
+    Label* pLabelColor = m_pComboButton->GetLabelBottom();
+    if (pLabelColor != nullptr) {
+        pLabelColor->SetBkColor(GetPropertyText());
+    }
+
+    //更新字体颜色
+    SetPropertyTextColor(GetPropertyText());
+
+    m_pComboButton->SetVisible(false);
+
+    //挂载回车和焦点切换事件
+    m_pComboButton->AttachKillFocus([this](const EventArgs&) {
+        ShowEditControl(false);
+        return true;
+        });
+
+    InitColorCombo();
+}
+
+void PropertyGridColorProperty::ShowEditControl(bool bShow)
+{
+    if (IsReadOnly() || (m_pComboButton == nullptr)) {
+        return;
+    }
+
+    if (bShow) {
+        m_pComboButton->SetVisible(true);
+        m_pComboButton->SetFocus();
+    }
+    else {
+        std::wstring newText;
+        Label* pColorLabel = m_pComboButton->GetLabelTop();
+        if (pColorLabel != nullptr) {
+            newText = pColorLabel->GetText();
+        }
+        bool bChanged = newText != GetPropertyValue(); //相对原值，是否有修改
+        SetPropertyText(newText, bChanged);
+        SetPropertyTextColor(newText);
+        m_pComboButton->SetVisible(false);
+    }
+}
+
+void PropertyGridColorProperty::InitColorCombo()
+{
+    ComboButton* pColorComboBtn = m_pComboButton;
+    if (pColorComboBtn == nullptr) {
+        return;
+    }
+    UiSize boxSize = pColorComboBtn->GetDropBoxSize();
+    Box* pComboBox = pColorComboBtn->GetComboBox();
+    if (pComboBox == nullptr) {
+        return;
+    }
+    pComboBox->SetWindow(GetWindow());
+    GlobalManager::Instance().FillBoxWithCache(pComboBox, L"public/property_grid/color_combox.xml");
+    pComboBox->SetFixedHeight(UiFixedInt(boxSize.cy), false, false);
+    pComboBox->SetFixedWidth(UiFixedInt(boxSize.cx), false, false);
+
+    if (pComboBox->GetItemAt(0) != nullptr) {
+        pComboBox->GetItemAt(0)->SetFixedHeight(UiFixedInt(boxSize.cy), false, false);
+        pComboBox->GetItemAt(0)->SetFixedWidth(UiFixedInt(boxSize.cx), false, false);
+    }
+
+    ColorPickerRegular* pColorPicker = dynamic_cast<ColorPickerRegular*>(pComboBox->FindSubControl(L"color_combo_picker"));
+    if (pColorPicker != nullptr) {
+        //响应选择颜色事件
+        pColorPicker->AttachSelectColor([this, pColorComboBtn](const EventArgs& args) {
+            UiColor newColor((uint32_t)args.wParam);
+            //设置选择后的颜色
+            Label* pLeftColorLabel = pColorComboBtn->GetLabelBottom();
+            if (pLeftColorLabel != nullptr) {
+                pLeftColorLabel->SetBkColor(newColor);
+                OnSelectColor(pLeftColorLabel->GetBkColor());
+            }
+            return true;
+            });
+    }
+
+    Button* pMoreColorButton = dynamic_cast<Button*>(pComboBox->FindSubControl(L"color_combo_picker_more"));
+    if (pMoreColorButton != nullptr) {
+        pMoreColorButton->AttachClick([this](const EventArgs& /*args*/) {
+            ShowColorPicker();
+            return true;
+            });
+    }
+}
+
+void PropertyGridColorProperty::ShowColorPicker()
+{
+    ComboButton* pColorComboBtn = m_pComboButton;
+    if (pColorComboBtn == nullptr) {
+        return;
+    }
+    Label* pColorLabel = pColorComboBtn->GetLabelBottom();//颜色显示控件
+    if (pColorLabel == nullptr) {
+        return;
+    }
+    Window* pWindow = GetWindow();
+    if (pWindow == nullptr) {
+        return;
+    }
+    std::wstring oldTextColor = pColorLabel->GetBkColor(); //原来的颜色
+
+    ColorPicker* pColorPicker = new ColorPicker;
+    pColorPicker->CreateWnd(pWindow->GetHWND(), ColorPicker::kClassName.c_str(), UI_WNDSTYLE_FRAME, WS_EX_LAYERED);
+    pColorPicker->CenterWindow();
+    pColorPicker->ShowModalFake(pWindow->GetHWND());
+
+    if (!oldTextColor.empty() && (pColorPicker != nullptr)) {
+        pColorPicker->SetSelectedColor(GetUiColor(oldTextColor));
+    }
+    //如果在界面选择颜色，则临时更新控件文本的颜色
+    pColorPicker->AttachSelectColor([this, pColorLabel](const ui::EventArgs& args) {
+        ui::UiColor newColor = ui::UiColor((uint32_t)args.wParam);
+        pColorLabel->SetBkColor(newColor);
+        OnSelectColor(GetColorString(newColor));
+        return true;
+        });
+
+    //窗口关闭事件
+    pColorPicker->AttachWindowClose([this, pColorPicker, oldTextColor, pColorLabel](const ui::EventArgs& args) {
+        ui::UiColor newColor = pColorPicker->GetSelectedColor();
+        if ((args.wParam == 0) && !newColor.IsEmpty()) {
+            //如果是"确认"，则设置控件的文本颜色
+            pColorLabel->SetBkColor(newColor);
+            OnSelectColor(GetColorString(newColor));
+        }
+        else {
+            //如果是"取消"或者关闭窗口，则恢复原来的颜色
+            pColorLabel->SetBkColor(newColor);
+            OnSelectColor(oldTextColor);
+        }
+        return true;
+        });
+}
+
+void PropertyGridColorProperty::OnSelectColor(const std::wstring& color)
+{
+    if (m_pComboButton == nullptr) {
+        return;
+    }
+    Label* pLabelText = m_pComboButton->GetLabelTop();
+    if (pLabelText != nullptr) {
+        pLabelText->SetText(color);
+    }
+    Label* pLabelColor = m_pComboButton->GetLabelBottom();
+    if (pLabelColor != nullptr) {
+        pLabelColor->SetBkColor(color);
+    }
 }
 
 }//namespace ui

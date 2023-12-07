@@ -473,6 +473,7 @@ void ComboButton::DoInit()
 
 	HBox* pBox = new HBox;
 	AddItem(pBox);
+	pBox->SetNoFocus();
 
 	if (m_pLeftButton == nullptr) {
 		if (m_pLabelTop != nullptr) {
@@ -513,7 +514,6 @@ void ComboButton::DoInit()
 		m_pRightButton->AttachClick(nbase::Bind(&ComboButton::OnRightButtonClicked, this, std::placeholders::_1));
 		m_pRightButton->AttachStateChange(nbase::Bind(&ComboButton::OnButtonStateChanged, this, std::placeholders::_1));
 	}
-	SetNoFocus();
 }
 
 bool ComboButton::IsInited() const

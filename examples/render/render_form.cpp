@@ -100,7 +100,7 @@ void RenderForm::TestPropertyGrid()
 
 	pGroup = pPropertyGrid->AddGroup(L"分组五", L"描述信息五：字体");
 	auto p20 = pPropertyGrid->AddFontProperty(pGroup, L"字体", L"宋体", L"描述信息：设置字体名称");
-	auto p21 = pPropertyGrid->AddFontSizeProperty(pGroup, L"字体", L"五号", L"描述信息：设置字体大小");
+	auto p21 = pPropertyGrid->AddFontSizeProperty(pGroup, L"字号", L"五号", L"描述信息：设置字体大小");
 
 	auto s000 = p21->GetPropertyNewValue();
 	auto s001 = p21->GetFontSize();
@@ -108,7 +108,7 @@ void RenderForm::TestPropertyGrid()
 	auto s003 = p21->GetFontSize(L"六号");
 	auto s004 = p21->GetDpiFontSize(L"六号");
 
-
+	auto p22 = pPropertyGrid->AddColorProperty(pGroup, L"颜色", L"Blue", L"描述信息：设置字体颜色");
 
 	return;
 }
