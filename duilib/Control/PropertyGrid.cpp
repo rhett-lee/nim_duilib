@@ -557,6 +557,34 @@ PropertyGridComboProperty* PropertyGrid::AddComboProperty(PropertyGridGroup* pGr
     return pProperty;
 }
 
+PropertyGridFontProperty* PropertyGrid::AddFontProperty(PropertyGridGroup* pGroup,
+                                                        const std::wstring& propertyName,
+                                                        const std::wstring& propertyValue,
+                                                        const std::wstring& description,
+                                                        size_t nPropertyData)
+{
+    PropertyGridFontProperty* pProperty = new PropertyGridFontProperty(propertyName, propertyValue, description, nPropertyData);
+    if (!AddProperty(pGroup, pProperty)) {
+        delete pProperty;
+        pProperty = nullptr;
+    }
+    return pProperty;
+}
+
+PropertyGridFontSizeProperty* PropertyGrid::AddFontSizeProperty(PropertyGridGroup* pGroup,
+                                                                const std::wstring& propertyName,
+                                                                const std::wstring& propertyValue,
+                                                                const std::wstring& description,
+                                                                size_t nPropertyData)
+{
+    PropertyGridFontSizeProperty* pProperty = new PropertyGridFontSizeProperty(propertyName, propertyValue, description, nPropertyData);
+    if (!AddProperty(pGroup, pProperty)) {
+        delete pProperty;
+        pProperty = nullptr;
+    }
+    return pProperty;
+}
+
 void PropertyGrid::SetLeftColumnWidth(int32_t nLeftColumnWidth, bool bNeedDpiScale)
 {
     if (nLeftColumnWidth <= 0) {
@@ -1055,12 +1083,32 @@ std::wstring PropertyGridComboProperty::GetPropertyNewValue() const
     return propertyValue;
 }
 
-void PropertyGridComboProperty::AddOption(const std::wstring& optionText)
+size_t PropertyGridComboProperty::AddOption(const std::wstring& optionText)
+{
+    size_t nIndex = Box::InvalidIndex;
+    ASSERT(m_pCombo != nullptr);
+    if (m_pCombo != nullptr) {
+        nIndex = m_pCombo->AddTextItem(optionText);
+    }
+    return nIndex;
+}
+
+void PropertyGridComboProperty::SetOptionData(size_t nIndex, size_t nOptionData)
 {
     ASSERT(m_pCombo != nullptr);
     if (m_pCombo != nullptr) {
-        m_pCombo->AddTextItem(optionText);
+        m_pCombo->SetItemData(nIndex, nOptionData);
     }
+}
+
+size_t PropertyGridComboProperty::GetOptionData(size_t nIndex) const
+{
+    size_t nOptionData = 0;
+    ASSERT(m_pCombo != nullptr);
+    if (m_pCombo != nullptr) {
+        nOptionData = m_pCombo->GetItemData(nIndex);
+    }
+    return nOptionData;
 }
 
 size_t PropertyGridComboProperty::GetOptionCount() const
@@ -1127,6 +1175,234 @@ void PropertyGridComboProperty::SetComboListMode(bool bListMode)
     if (m_pCombo != nullptr) {
         m_pCombo->SetComboType(bListMode ? Combo::ComboType::kCombo_DropList : Combo::ComboType::kCombo_DropDown);
     }
+}
+
+////////////////////////////////////////////////////////////////////////////
+///
+PropertyGridFontProperty::PropertyGridFontProperty(const std::wstring& propertyName,
+    const std::wstring& propertyValue,
+    const std::wstring& description,
+    size_t nPropertyData) :
+    PropertyGridComboProperty(propertyName, propertyValue, description, nPropertyData)
+{
+}
+
+std::wstring PropertyGridFontProperty::GetPropertyNewValue() const
+{
+    return __super::GetPropertyNewValue();
+}
+
+void PropertyGridFontProperty::DoInit()
+{
+    if (IsInited()) {
+        return;
+    }
+    __super::DoInit();
+    std::vector<std::wstring> fontList; 
+    GetSystemFontList(fontList);
+    for (const std::wstring& fontName : fontList) {
+        AddOption(fontName);
+    }
+}
+
+namespace PropertyGridFontPropertyImpl
+{
+    struct FontInfo
+    {
+        LOGFONT lf;
+        DWORD fontType;
+    };
+
+    //枚举字体的回调函数
+    static int EnumFontFamExProc(const LOGFONT* lpelfe, const TEXTMETRIC* /*lpntme*/, DWORD fontType, LPARAM lParam)
+    {
+        std::vector<FontInfo>* pFontList = (std::vector<FontInfo>*)lParam;
+        if (pFontList != nullptr) {
+            FontInfo fontInfo;
+            if (lpelfe != nullptr) {
+                fontInfo.lf = *lpelfe;
+            }
+            else {
+                fontInfo.lf = {};
+            }
+            fontInfo.fontType = fontType;
+            pFontList->emplace_back(std::move(fontInfo));
+            return 1;
+        }
+        else {
+            return 0;
+        }
+    }
+
+    static void GetSystemFontList(Window* pWindow, std::vector<std::wstring>& fontNameList)
+    {
+        fontNameList.clear();
+        std::vector<FontInfo> fontList;
+        HDC hDC = pWindow != nullptr ? pWindow->GetPaintDC() : nullptr;        
+        LOGFONT logfont = {};
+        logfont.lfCharSet = DEFAULT_CHARSET;
+        logfont.lfFaceName[0] = L'\0';
+        logfont.lfPitchAndFamily = 0;
+        ::EnumFontFamiliesEx(hDC, &logfont, EnumFontFamExProc, (LPARAM)&fontList, 0);
+
+        //字体名称列表
+        std::map<std::wstring, FontInfo> fontMap;
+        for (auto font : fontList) {
+            if (font.lf.lfWeight != FW_NORMAL) {
+                continue;
+            }
+            if (font.lf.lfFaceName[0] == L'@') {
+                continue;
+            }
+            fontMap[font.lf.lfFaceName] = font;
+        }
+        for (auto iter : fontMap) {
+            fontNameList.push_back(iter.second.lf.lfFaceName);
+        }
+    }
+
+} //end of namepsace PropertyGridFontPropertyImpl
+
+void PropertyGridFontProperty::GetSystemFontList(std::vector<std::wstring>& fontList) const
+{
+    PropertyGridFontPropertyImpl::GetSystemFontList(GetWindow(), fontList);
+}
+
+////////////////////////////////////////////////////////////////////////////
+///
+PropertyGridFontSizeProperty::PropertyGridFontSizeProperty(const std::wstring& propertyName,
+    const std::wstring& propertyValue,
+    const std::wstring& description,
+    size_t nPropertyData) :
+    PropertyGridComboProperty(propertyName, propertyValue, description, nPropertyData)
+{
+}
+
+std::wstring PropertyGridFontSizeProperty::GetPropertyNewValue() const
+{
+    return __super::GetPropertyNewValue();
+}
+
+void PropertyGridFontSizeProperty::DoInit()
+{
+    if (IsInited()) {
+        return;
+    }
+    __super::DoInit();
+    if (m_fontSizeList.empty()) {
+        GetSystemFontSizeList(m_fontSizeList);
+        const size_t nCount = m_fontSizeList.size();
+        for (size_t nIndex = 0; nIndex < nCount; ++nIndex) {
+            size_t nItem = AddOption(m_fontSizeList[nIndex].fontSizeName);
+            SetOptionData(nItem, nIndex);
+        }
+    }    
+}
+
+void PropertyGridFontSizeProperty::GetSystemFontSizeList(std::vector<FontSizeInfo>& fontSizeList) const
+{
+    fontSizeList.clear();
+    fontSizeList.push_back({ L"8",  8.0f, 0 });
+    fontSizeList.push_back({ L"9",  9.0f, 0 });
+    fontSizeList.push_back({ L"10", 10.0f, 0 });
+    fontSizeList.push_back({ L"11", 11.0f, 0 });
+    fontSizeList.push_back({ L"12", 12.0f, 0 });
+    fontSizeList.push_back({ L"14", 14.0f, 0 });
+    fontSizeList.push_back({ L"16", 16.0f, 0 });
+    fontSizeList.push_back({ L"18", 18.0f, 0 });
+    fontSizeList.push_back({ L"20", 20.0f, 0 });
+    fontSizeList.push_back({ L"22", 22.0f, 0 });
+    fontSizeList.push_back({ L"24", 24.0f, 0 });
+    fontSizeList.push_back({ L"26", 26.0f, 0 });
+    fontSizeList.push_back({ L"28", 28.0f, 0 });
+    fontSizeList.push_back({ L"32", 32.0f, 0 });
+    fontSizeList.push_back({ L"36", 36.0f, 0 });
+    fontSizeList.push_back({ L"48", 48.0f, 0 });
+    fontSizeList.push_back({ L"72", 72.0f, 0 });
+    fontSizeList.push_back({ L"1英寸", 95.6f, 0 });
+    fontSizeList.push_back({ L"大特号", 83.7f, 0 });
+    fontSizeList.push_back({ L"特号", 71.7f, 0 });
+    fontSizeList.push_back({ L"初号", 56.0f, 0 });
+    fontSizeList.push_back({ L"小初", 48.0f, 0 });
+    fontSizeList.push_back({ L"一号", 34.7f, 0 });
+    fontSizeList.push_back({ L"小一", 32.0f, 0 });
+    fontSizeList.push_back({ L"二号", 29.3f, 0 });
+    fontSizeList.push_back({ L"小二", 24.0f, 0 });
+    fontSizeList.push_back({ L"三号", 21.3f, 0 });
+    fontSizeList.push_back({ L"小三", 20.0f, 0 });
+    fontSizeList.push_back({ L"四号", 18.7f, 0 });
+    fontSizeList.push_back({ L"小四", 16.0f, 0 });
+    fontSizeList.push_back({ L"五号", 14.0f, 0 });
+    fontSizeList.push_back({ L"小五", 12.0f, 0 });
+    fontSizeList.push_back({ L"六号", 10.0f, 0 });
+    fontSizeList.push_back({ L"小六", 8.7f, 0 });
+    fontSizeList.push_back({ L"七号", 7.3f, 0 });
+    fontSizeList.push_back({ L"八号", 6.7f, 0 });
+
+    //更新DPI自适应值
+    for (FontSizeInfo& fontSize : fontSizeList) {
+        int32_t nSize = static_cast<int32_t>(fontSize.fFontSize * 1000);
+        ui::GlobalManager::Instance().Dpi().ScaleInt(nSize);
+        fontSize.fDpiFontSize = nSize / 1000.0f;
+    }
+}
+
+std::wstring PropertyGridFontSizeProperty::GetFontSize() const
+{
+    std::wstring fontSize;
+    size_t nCurSel = GetCurSel();
+    if (nCurSel != Box::InvalidIndex) {
+        size_t nIndex = GetOptionData(nCurSel);
+        if (nIndex < m_fontSizeList.size()) {
+            fontSize = StringHelper::Printf(L"%.01f", m_fontSizeList[nIndex].fFontSize);
+        }
+    }
+    if (fontSize.empty()) {
+        fontSize = GetFontSize(GetPropertyNewValue());
+    }
+    return fontSize;
+}
+
+std::wstring PropertyGridFontSizeProperty::GetDpiFontSize() const
+{
+    std::wstring fontSize;
+    size_t nCurSel = GetCurSel();
+    if (nCurSel != Box::InvalidIndex) {
+        size_t nIndex = GetOptionData(nCurSel);
+        if (nIndex < m_fontSizeList.size()) {
+            fontSize = StringHelper::Printf(L"%.01f", m_fontSizeList[nIndex].fDpiFontSize);
+        }
+    }
+    if (fontSize.empty()) {
+        fontSize = GetDpiFontSize(GetPropertyNewValue());
+    }
+    return fontSize;
+}
+
+std::wstring PropertyGridFontSizeProperty::GetFontSize(const std::wstring& fontSizeName) const
+{
+    std::wstring fontSize;
+    const size_t nCount = m_fontSizeList.size();
+    for (size_t nIndex = 0; nIndex < nCount; ++nIndex) {
+        if (m_fontSizeList[nIndex].fontSizeName == fontSizeName) {
+            fontSize = StringHelper::Printf(L"%.01f", m_fontSizeList[nIndex].fFontSize);
+            break;
+        }
+    }
+    return fontSize;
+}
+
+std::wstring PropertyGridFontSizeProperty::GetDpiFontSize(const std::wstring& fontSizeName) const
+{
+    std::wstring fontSize;
+    const size_t nCount = m_fontSizeList.size();
+    for (size_t nIndex = 0; nIndex < nCount; ++nIndex) {
+        if (m_fontSizeList[nIndex].fontSizeName == fontSizeName) {
+            fontSize = StringHelper::Printf(L"%.01f", m_fontSizeList[nIndex].fDpiFontSize);
+            break;
+        }
+    }
+    return fontSize;
 }
 
 }//namespace ui

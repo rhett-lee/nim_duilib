@@ -19,6 +19,8 @@ class PropertyGridGroup;
 class PropertyGridProperty;
 class PropertyGridTextProperty;
 class PropertyGridComboProperty;
+class PropertyGridFontProperty;
+class PropertyGridFontSizeProperty;
 class PropertyGrid : public VBox
 {
 public:
@@ -86,7 +88,7 @@ public:
 	*/
 	bool AddProperty(PropertyGridGroup* pGroup, PropertyGridProperty* pProperty);
 
-	/** 增加一个属性
+	/** 增加一个属性(文本、数字类型)
 	* @param [in] pGroup 该属性所属的分组
 	* @param [in] propertyName 属性的名称
 	* @param [in] propertyValue 属性的值
@@ -100,7 +102,7 @@ public:
 									          const std::wstring& description = L"",
 									          size_t nPropertyData = 0);
 
-	/** 增加一个属性
+	/** 增加一个属性(下拉框)
 	* @param [in] pGroup 该属性所属的分组
 	* @param [in] propertyName 属性的名称
 	* @param [in] propertyValue 属性的值
@@ -114,6 +116,33 @@ public:
 									            const std::wstring& description = L"",
 									            size_t nPropertyData = 0);
 
+	/** 增加一个属性(字体名称)
+	* @param [in] pGroup 该属性所属的分组
+	* @param [in] propertyName 属性的名称
+	* @param [in] propertyValue 属性的值（字体名称）
+	* @param [in] description 属性的描述信息
+	* @param [in] nPropertyData 用户自定义数据
+	* @return 返回该属性的接口
+	*/
+	PropertyGridFontProperty* AddFontProperty(PropertyGridGroup* pGroup,
+									          const std::wstring& propertyName, 
+									          const std::wstring& propertyValue,
+									          const std::wstring& description = L"",
+									          size_t nPropertyData = 0);
+
+	/** 增加一个属性(字体大小)
+	* @param [in] pGroup 该属性所属的分组
+	* @param [in] propertyName 属性的名称
+	* @param [in] propertyValue 属性的值（字体大小）
+	* @param [in] description 属性的描述信息
+	* @param [in] nPropertyData 用户自定义数据
+	* @return 返回该属性的接口
+	*/
+	PropertyGridFontSizeProperty* AddFontSizeProperty(PropertyGridGroup* pGroup,
+									                  const std::wstring& propertyName, 
+									                  const std::wstring& propertyValue,
+									                  const std::wstring& description = L"",
+									                  size_t nPropertyData = 0);
 	/** 设置左侧一列的宽度
 	* @param [in] nLeftColumnWidth 左侧一列的宽度
     * @param [in] bNeedDpiScale 是否需要对列宽值进行DPI自适应
@@ -649,8 +678,9 @@ public:
 
 	/** 增加一个下拉框选项
 	* @param [in] optionText 下拉框列表项的内容
+	* @return 返回该子项的下标值
 	*/
-	void AddOption(const std::wstring& optionText);
+	size_t AddOption(const std::wstring& optionText);
 
 	/** 获取下拉框选项的格式
 	*/
@@ -660,6 +690,17 @@ public:
 	* @param [in] nIndex 子项的下标值，有效范围：[0, GetOptionCount())
 	*/
 	std::wstring GetOption(size_t nIndex) const;
+
+	/** 设置子项关联的数据
+	* @param [in] nIndex 子项的下标值，有效范围：[0, GetOptionCount())
+	* @param [in] nOptionData 关联数据
+	*/
+	void SetOptionData(size_t nIndex, size_t nOptionData);
+
+	/** 获取子项关联的数据
+	* @param [in] nIndex 子项的下标值，有效范围：[0, GetOptionCount())
+	*/
+	size_t GetOptionData(size_t nIndex) const;
 
 	/** 删除指定的子项
 	* @param [in] nIndex 子项的下标值，有效范围：[0, GetOptionCount())
@@ -705,6 +746,104 @@ private:
 	/** 下拉框接口
 	*/
 	Combo* m_pCombo;
+};
+
+/** 设置字体名称的属性
+*/
+class PropertyGridFontProperty : public PropertyGridComboProperty
+{
+public:
+	/** 构造一个属性
+	@param [in] propertyName 属性的名称
+	@param [in] propertyValue 属性的值(原字体名称)
+	@param [in] description 属性的描述信息
+	@param [in] nPropertyData 用户自定义数据
+	*/
+	PropertyGridFontProperty(const std::wstring& propertyName,
+							 const std::wstring& propertyValue,
+							 const std::wstring& description = L"",
+						     size_t nPropertyData = 0);
+
+public:
+	/** 获取新的字体值（修改后的属性值, 如果无修改则返回原值）
+	*/
+	virtual std::wstring GetPropertyNewValue() const override;
+
+protected:
+
+	/** 初始化函数
+	 */
+	virtual void DoInit() override;
+
+private:
+	/** 获取系统字体列表
+	*/
+	void GetSystemFontList(std::vector<std::wstring>& fontList) const;
+};
+
+/** 设置字体大小的属性
+*/
+class PropertyGridFontSizeProperty : public PropertyGridComboProperty
+{
+public:
+	/** 构造一个属性
+	@param [in] propertyName 属性的名称
+	@param [in] propertyValue 属性的值(原字体名称)
+	@param [in] description 属性的描述信息
+	@param [in] nPropertyData 用户自定义数据
+	*/
+	PropertyGridFontSizeProperty(const std::wstring& propertyName,
+								 const std::wstring& propertyValue,
+								 const std::wstring& description = L"",
+								 size_t nPropertyData = 0);
+
+public:
+	/** 获取新的字体大小值, 显示值（修改后的属性值, 如果无修改则返回原值）
+	*/
+	virtual std::wstring GetPropertyNewValue() const override;
+
+	/** 获取字体大小值，浮点数，未做DPI自适应值
+	* @return 如果从列表中选择，返回值为非空；如果未能从列表中选择，则返回空
+	*/
+	std::wstring GetFontSize() const;
+
+	/** 获取字体大小值，浮点数，已做DPI自适应值
+	* @return 如果从列表中选择，返回值为非空；如果未能从列表中选择，则返回空
+	*/
+	std::wstring GetDpiFontSize() const;
+
+	/** 获取字体大小显示名称对应的字体大小值，浮点数，未做DPI自适应值
+	* @param [in] fontSizeName 比如："五号"
+	*/
+	std::wstring GetFontSize(const std::wstring& fontSizeName) const;
+
+	/** 获取字体大小显示名称对应的字体大小值，浮点数，已做DPI自适应值
+	* @param [in] fontSizeName 比如："五号"
+	*/
+	std::wstring GetDpiFontSize(const std::wstring& fontSizeName) const;
+
+protected:
+
+	/** 初始化函数
+	 */
+	virtual void DoInit() override;
+
+private:
+	struct FontSizeInfo
+	{
+		std::wstring fontSizeName; //字体大小的显示名称，比如"五号"
+		float fFontSize;		   //单位：像素，未做DPI自适应
+		float fDpiFontSize;		   //单位：像素，已做DPI自适应
+	};
+
+	/** 获取系统字体大小列表
+	*/
+	void GetSystemFontSizeList(std::vector<FontSizeInfo>& fontSizeList) const;
+
+private:
+	/** 字体大小
+	*/
+	std::vector<FontSizeInfo> m_fontSizeList;
 };
 
 }//namespace ui
