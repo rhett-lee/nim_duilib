@@ -110,6 +110,19 @@ void RenderForm::TestPropertyGrid()
 
 	auto p22 = pPropertyGrid->AddColorProperty(pGroup, L"颜色", L"Blue", L"描述信息：设置字体颜色");
 
+	pGroup = pPropertyGrid->AddGroup(L"分组六", L"描述信息六：日期时间");
+	pPropertyGrid->AddDateTimeProperty(pGroup, L"日期", L"2023-12-07", L"描述信息：设置日期");
+	pPropertyGrid->AddDateTimeProperty(pGroup, L"日期", L"2023/12/07", L"描述信息：设置日期");
+	pPropertyGrid->AddDateTimeProperty(pGroup, L"日期", L"2023-12-07", L"描述信息：设置日期", 0,
+										ui::DateTime::EditFormat::kDateUpDown);
+	pPropertyGrid->AddDateTimeProperty(pGroup, L"日期时间", L"2023-12-07 17:30:02", L"描述信息：设置日期时间", 0, 
+										ui::DateTime::EditFormat::kDateTimeUpDown);
+	pPropertyGrid->AddDateTimeProperty(pGroup, L"日期时间", L"2023-12-07 17:30", L"描述信息：设置日期时间", 0,
+										ui::DateTime::EditFormat::kDateMinuteUpDown);
+	pPropertyGrid->AddDateTimeProperty(pGroup, L"时间", L"17:30:02", L"描述信息：设置时间", 0,
+										ui::DateTime::EditFormat::kTimeUpDown);
+	pPropertyGrid->AddDateTimeProperty(pGroup, L"时间", L"17:30", L"描述信息：设置时间", 0,
+										ui::DateTime::EditFormat::kMinuteUpDown);
 	return;
 }
 

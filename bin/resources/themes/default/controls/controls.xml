@@ -97,13 +97,15 @@
                         </VBox>
                         <!-- DateTime -->
                         <VBox margin="4,8,0,0">
-                            <HBox childmargin="4" width="240">
-                                <Label text="默认的格式" height="24" text_align="vcenter" hottextcolor="red" pushedtextcolor="blue"/>
-                                <DateTime width="100%" height="24" />
+                            <HBox childmargin="4" width="260">
+                                <Label text="日期" height="24" text_align="vcenter" hottextcolor="red" pushedtextcolor="blue"/>
+                                <DateTime width="54%" height="24" text="2022-02-01"/>
+                                <DateTime width="46%" height="24" edit_format="date_up_down" />
                             </HBox>
-                            <HBox childmargin="4" width="240">
-                                <Label text="自定义格式" height="24" text_align="vcenter" />
-                                <DateTime width="100%" height="24" format="%Y/%m/%d %H:%M" />
+                            <HBox childmargin="4" width="260">
+                                <Label text="时间" height="24" text_align="vcenter" />
+                                <DateTime width="100%" height="24" edit_format="date_time_up_down" />
+                                <DateTime width="64" height="24" edit_format="minute_up_down" />
                             </HBox>
                         </VBox>
                     </HBox>

@@ -2,7 +2,7 @@
 <VBox>
     <PropertyGrid name="property_grid_test" 
                   bkcolor="YellowGreen" 
-                  width="280"
+                  width="320"
                   left_column_width="130"
                   row_grid_line_width="1"
                   row_grid_line_color="darkgray"

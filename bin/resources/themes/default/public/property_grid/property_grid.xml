@@ -41,6 +41,9 @@
                                left_button_bottom_label_class="width={stretch} height={stretch} margin={2,0,2,1} bkcolor={black}" 
                                right_button_class="height={stretch} width={auto} padding={1,0,0,0} border_size={1,0,0,0} hot_border_color={blue} pushed_border_color={blue} valign={center} hot_color={#FFE5F3FF} pushed_color={#FFCCE8FF} normal_image={file='../public/combo/arrow_normal.svg' valign='center'} hot_image={file='../public/combo/arrow_hot.svg' valign='center'}"/>
 
+    <!--日期时间-->
+    <Class name="property_grid_date_time" bkcolor="white" height="100%" width="100%"/>
+    
     <PropertyGrid>
         <!-- 表头 -->
         <HBox name="duilib_property_grid_header">

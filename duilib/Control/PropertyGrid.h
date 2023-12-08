@@ -11,6 +11,7 @@
 #include "duilib/Control/TreeView.h"
 #include "duilib/Control/Combo.h"
 #include "duilib/Control/ComboButton.h"
+#include "duilib/Control/DateTime.h"
 
 namespace ui
 {
@@ -23,6 +24,7 @@ class PropertyGridComboProperty;	//下拉框
 class PropertyGridFontProperty;		//字体名称
 class PropertyGridFontSizeProperty;	//字体大小
 class PropertyGridColorProperty;	//颜色
+class PropertyGridDateTimeProperty; //日期时间
 class PropertyGrid : public VBox
 {
 public:
@@ -159,6 +161,22 @@ public:
 									            const std::wstring& propertyValue,
 									            const std::wstring& description = L"",
 									            size_t nPropertyData = 0);
+
+	/** 增加一个属性(日期时间)
+	* @param [in] pGroup 该属性所属的分组
+	* @param [in] propertyName 属性的名称
+	* @param [in] dateTimeValue 属性的值（日期时间值）
+	* @param [in] editFormat 日期的编辑格式
+	* @param [in] description 属性的描述信息
+	* @param [in] nPropertyData 用户自定义数据
+	* @return 返回该属性的接口
+	*/
+	PropertyGridDateTimeProperty* AddDateTimeProperty(PropertyGridGroup* pGroup,
+									                  const std::wstring& propertyName, 
+									                  const std::wstring& dateTimeValue,												      
+									                  const std::wstring& description = L"",
+									                  size_t nPropertyData = 0,
+													  DateTime::EditFormat editFormat = DateTime::EditFormat::kDateCalendar);
 	/** 设置左侧一列的宽度
 	* @param [in] nLeftColumnWidth 左侧一列的宽度
     * @param [in] bNeedDpiScale 是否需要对列宽值进行DPI自适应
@@ -918,6 +936,52 @@ private:
 	/** 颜色选择控件
 	*/
 	ComboButton* m_pComboButton;
+};
+
+/** 设置日期时间的属性
+*/
+class PropertyGridDateTimeProperty : public PropertyGridProperty
+{
+public:
+	/** 构造一个属性
+	@param [in] propertyName 属性的名称
+	@param [in] dateTimeValue 日期时间的值
+	@param [in] description 属性的描述信息
+	@param [in] nPropertyData 用户自定义数据
+	@param [in] editFormat 日期时间的格式
+	*/
+	PropertyGridDateTimeProperty(const std::wstring& propertyName,
+								 const std::wstring& dateTimeValue,
+								 const std::wstring& description = L"",
+								 size_t nPropertyData = 0,
+								 DateTime::EditFormat editFormat = DateTime::EditFormat::kDateCalendar);
+
+
+public:
+
+	/** 获取日期时间控件接口
+	*/
+	DateTime* GetDateTime() const { return m_pDateTime; }
+
+protected:
+	/** 设置是否允许存在编辑框控件
+	* @param [in] bEnable true表示允许存在编辑框控件，false表示不允许存在编辑框控件
+	*/
+	virtual void EnableEditControl(bool bEnable) override;
+
+	/** 显示或者隐藏编辑框控件
+	* @param [in] bShow 表示显示编辑控件，false表示隐藏编辑控件
+	*/
+	virtual void ShowEditControl(bool bShow) override;
+
+private:
+	/** 日期时间控件接口
+	*/
+	DateTime* m_pDateTime;
+
+	/** 日期时间的格式
+	*/
+	DateTime::EditFormat m_editFormat;
 };
 
 }//namespace ui

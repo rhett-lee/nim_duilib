@@ -167,8 +167,10 @@ void PropertyGrid::PaintGridLines(IRender* pRender)
     }
 
     if ((nColumnLineWidth > 0) && !columnLineColor.IsEmpty()) {
-        //绘制纵向网格线        
+        //绘制纵向网格线
         UiRect viewRect = m_pTreeView->GetRect();
+        UiPoint viewScrollPos = m_pTreeView->GetScrollOffsetInScrollBox();
+        viewRect.Offset(-viewScrollPos.x, -viewScrollPos.y);
         int32_t yTop = viewRect.top;
         std::vector<int32_t> xPosList;
         const size_t itemCount = m_pTreeView->GetItemCount();
@@ -196,6 +198,8 @@ void PropertyGrid::PaintGridLines(IRender* pRender)
     if ((nRowLineWidth > 0) && !rowLineColor.IsEmpty()) {
         //绘制横向网格线
         UiRect viewRect = m_pTreeView->GetRect();
+        UiPoint viewScrollPos = m_pTreeView->GetScrollOffsetInScrollBox();
+        viewRect.Offset(-viewScrollPos.x, -viewScrollPos.y);
         const size_t itemCount = m_pTreeView->GetItemCount();
         for (size_t index = 0; index < itemCount; ++index) {
             PropertyGridProperty* pItem = dynamic_cast<PropertyGridProperty*>(m_pTreeView->GetItemAt(index));
@@ -203,7 +207,11 @@ void PropertyGrid::PaintGridLines(IRender* pRender)
                 continue;
             }
             //纵坐标位置放在每个子项控件的底部（Header控件的底部不画线）
-            int32_t yPos = pItem->GetRect().bottom;
+            UiRect rcItemRect = pItem->GetRect();
+            UiPoint scrollBoxOffset = pItem->GetScrollOffsetInScrollBox();
+            rcItemRect.Offset(-scrollBoxOffset.x, -scrollBoxOffset.y);
+            int32_t yPos = rcItemRect.bottom;
+
             int32_t nChildMarginY = 0;
             Layout* pLayout = GetLayout();
             if (pLayout != nullptr) {
@@ -217,11 +225,17 @@ void PropertyGrid::PaintGridLines(IRender* pRender)
 
             UiRect leftRect = viewRect;
             if (pItem->GetLabelBoxLeft() != nullptr) {
-                leftRect = pItem->GetLabelBoxLeft()->GetRect();
+                UiRect rcRect = pItem->GetLabelBoxLeft()->GetRect();
+                UiPoint scrollOffset = pItem->GetLabelBoxLeft()->GetScrollOffsetInScrollBox();
+                rcRect.Offset(-scrollOffset.x, -scrollOffset.y);
+                leftRect = rcRect;
             }
             UiRect rightRect = viewRect;
             if (pItem->GetLabelBoxRight() != nullptr) {
-                rightRect = pItem->GetLabelBoxRight()->GetRect();
+                UiRect rcRect = pItem->GetLabelBoxRight()->GetRect();
+                UiPoint scrollOffset = pItem->GetLabelBoxRight()->GetScrollOffsetInScrollBox();
+                rcRect.Offset(-scrollOffset.x, -scrollOffset.y);
+                rightRect = rcRect;
             }
             UiPoint pt1(leftRect.left, yPos);
             UiPoint pt2(rightRect.right, yPos);
@@ -601,6 +615,21 @@ PropertyGridColorProperty* PropertyGrid::AddColorProperty(PropertyGridGroup* pGr
     return pProperty;
 }
 
+PropertyGridDateTimeProperty* PropertyGrid::AddDateTimeProperty(PropertyGridGroup* pGroup,
+                                                                const std::wstring& propertyName,
+                                                                const std::wstring& dateTimeValue,                                                                
+                                                                const std::wstring& description,
+                                                                size_t nPropertyData,
+                                                                DateTime::EditFormat editFormat)
+{
+    PropertyGridDateTimeProperty* pProperty = new PropertyGridDateTimeProperty(propertyName, dateTimeValue, description, nPropertyData, editFormat);
+    if (!AddProperty(pGroup, pProperty)) {
+        delete pProperty;
+        pProperty = nullptr;
+    }
+    return pProperty;
+}
+
 void PropertyGrid::SetLeftColumnWidth(int32_t nLeftColumnWidth, bool bNeedDpiScale)
 {
     if (nLeftColumnWidth <= 0) {
@@ -718,6 +747,10 @@ void PropertyGridGroup::RemoveAllProperties()
 class PropertyGridLabelBox : public LabelBox
 {
 public:
+    PropertyGridLabelBox()
+    {
+        SetAutoToolTip(true);
+    }
     /** 消息处理函数
     * @param [in] msg 消息内容
     */
@@ -1617,6 +1650,79 @@ void PropertyGridColorProperty::OnSelectColor(const std::wstring& color)
     Label* pLabelColor = m_pComboButton->GetLabelBottom();
     if (pLabelColor != nullptr) {
         pLabelColor->SetBkColor(color);
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////
+///
+/** 日期时间控件
+*/
+typedef PropertyGridEditTemplate<DateTime> PropertyGridDateTime;
+
+PropertyGridDateTimeProperty::PropertyGridDateTimeProperty(const std::wstring& propertyName,
+        const std::wstring& dateTimeValue,
+        const std::wstring& description,
+        size_t nPropertyData,
+        DateTime::EditFormat editFormat):
+    PropertyGridProperty(propertyName, dateTimeValue, description, nPropertyData),
+    m_pDateTime(nullptr)
+{
+    m_editFormat = editFormat;
+}
+
+void PropertyGridDateTimeProperty::EnableEditControl(bool bEnable)
+{
+    ASSERT(IsInited());
+    if (!bEnable) {
+        RemovePropertySubItem(m_pDateTime);
+        m_pDateTime = nullptr;
+        return;
+    }
+    if (m_pDateTime != nullptr) {
+        return;
+    }
+    m_pDateTime = new PropertyGridDateTime;
+    m_pDateTime->SetWindow(GetWindow());
+    //属性：在property_grid.xml中定义
+    m_pDateTime->SetClass(L"property_grid_date_time");
+    if (!AddPropertySubItem(m_pDateTime)) {
+        delete m_pDateTime;
+        m_pDateTime = nullptr;
+        return;
+    }
+
+    m_pDateTime->SetEditFormat(m_editFormat);
+    bool bValid = m_pDateTime->SetDateTimeString(GetPropertyText());
+    m_pDateTime->SetVisible(false);
+    m_pDateTime->SetText(GetPropertyText());
+
+    ASSERT_UNUSED_VARIABLE(bValid);
+    auto s0 = m_pDateTime->GetDateTimeString();
+    auto s1 = GetPropertyText();
+    ASSERT(m_pDateTime->GetDateTimeString() == GetPropertyText());
+
+    //挂载焦点切换事件
+    m_pDateTime->AttachKillFocus([this](const EventArgs&) {
+        ShowEditControl(false);
+        return true;
+        });
+}
+
+void PropertyGridDateTimeProperty::ShowEditControl(bool bShow)
+{
+    if (IsReadOnly() || (m_pDateTime == nullptr)) {
+        return;
+    }
+
+    if (bShow) {
+        m_pDateTime->SetVisible(true);
+        m_pDateTime->SetFocus();
+    }
+    else {
+        std::wstring newText = m_pDateTime->GetText();
+        bool bChanged = newText != GetPropertyValue(); //相对原值，是否有修改
+        SetPropertyText(newText, bChanged);
+        m_pDateTime->SetVisible(false);
     }
 }
 
