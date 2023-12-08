@@ -37,6 +37,7 @@ void IPAddress::DoInit()
         pRichEdit->SetAttribute(L"limit_text", L"3");
         pRichEdit->SetAttribute(L"want_return_msg", L"true");
         pRichEdit->SetAttribute(L"want_tab", L"false");
+        pRichEdit->SetAttribute(L"number_only", L"true");        
         AddItem(pRichEdit);
         m_editList.push_back(pRichEdit);
         if (index != 3) {
@@ -45,6 +46,8 @@ void IPAddress::DoInit()
             pLabel->SetAttribute(L"text_align", L"bottom,hcenter");
             pLabel->SetAttribute(L"width", L"4");
             pLabel->SetTabStop(false);
+            pLabel->SetNoFocus();
+            pLabel->SetMouseEnabled(false);
             AddItem(pLabel);
         }
     }
@@ -76,6 +79,11 @@ void IPAddress::DoInit()
                     pRichEdit->SetTextNoEvent(L"255");
                 }
             }
+            return true;
+            });
+
+        pRichEdit->AttachKillFocus([this, pRichEdit](const EventArgs& args) {
+            OnKillFocusEvent(pRichEdit, (Control*)args.wParam);
             return true;
             });
     }
@@ -125,6 +133,39 @@ std::wstring IPAddress::GetIPAddress() const
         ipAddress = m_ipAddress.c_str();
     }
     return ipAddress;
+}
+
+void IPAddress::SendEvent(EventType eventType,
+                          WPARAM wParam,
+                          LPARAM lParam,
+                          TCHAR tChar,
+                          const UiPoint& mousePos)
+{
+    __super::SendEvent(eventType, wParam, lParam, tChar, mousePos);
+}
+
+void IPAddress::SendEvent(const EventArgs& msg)
+{
+    if ((msg.pSender == this) && (msg.Type == kEventKillFocus)) {
+        Control* pNewFocus = (Control*)msg.wParam;
+        if (std::find(m_editList.begin(), m_editList.end(), pNewFocus) != m_editList.end()) {
+            //焦点切换到编辑框，不发出KillFocus事件
+            return;
+        }
+    }
+    __super::SendEvent(msg);
+}
+
+void IPAddress::OnKillFocusEvent(RichEdit* /*pRichEdit*/, Control* pNewFocus)
+{
+    if (pNewFocus == this) {
+        return;
+    }
+    if (std::find(m_editList.begin(), m_editList.end(), pNewFocus) != m_editList.end()) {
+        return;
+    }
+    //焦点转移到其他的控件，发出KillFocus事件
+    SendEvent(kEventKillFocus);
 }
 
 }//namespace ui

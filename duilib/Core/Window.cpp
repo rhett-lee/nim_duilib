@@ -2182,7 +2182,8 @@ void Window::SetFocus(Control* pControl)
     }
     // Remove focus from old control
     if (m_pFocus != nullptr) {
-        m_pFocus->SendEvent(kEventKillFocus);
+        //WPARAM 是新的焦点控件接口
+        m_pFocus->SendEvent(kEventKillFocus, (WPARAM)pControl);
         m_pFocus = nullptr;
     }
     // Set focus to new control	

@@ -630,6 +630,20 @@ PropertyGridDateTimeProperty* PropertyGrid::AddDateTimeProperty(PropertyGridGrou
     return pProperty;
 }
 
+PropertyGridIPAddressProperty* PropertyGrid::AddIPAddressProperty(PropertyGridGroup* pGroup,
+                                                                  const std::wstring& propertyName,
+                                                                  const std::wstring& propertyValue,
+                                                                  const std::wstring& description,
+                                                                  size_t nPropertyData)
+{
+    PropertyGridIPAddressProperty* pProperty = new PropertyGridIPAddressProperty(propertyName, propertyValue, description, nPropertyData);
+    if (!AddProperty(pGroup, pProperty)) {
+        delete pProperty;
+        pProperty = nullptr;
+    }
+    return pProperty;
+}
+
 void PropertyGrid::SetLeftColumnWidth(int32_t nLeftColumnWidth, bool bNeedDpiScale)
 {
     if (nLeftColumnWidth <= 0) {
@@ -1723,6 +1737,66 @@ void PropertyGridDateTimeProperty::ShowEditControl(bool bShow)
         bool bChanged = newText != GetPropertyValue(); //相对原值，是否有修改
         SetPropertyText(newText, bChanged);
         m_pDateTime->SetVisible(false);
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////
+///
+PropertyGridIPAddressProperty::PropertyGridIPAddressProperty(const std::wstring& propertyName,
+    const std::wstring& propertyValue,
+    const std::wstring& description,
+    size_t nPropertyData) :
+    PropertyGridProperty(propertyName, propertyValue, description, nPropertyData),
+    m_pIPAddress(nullptr)
+{
+}
+
+void PropertyGridIPAddressProperty::EnableEditControl(bool bEnable)
+{
+    ASSERT(IsInited());
+    if (!bEnable) {
+        RemovePropertySubItem(m_pIPAddress);
+        m_pIPAddress = nullptr;
+        return;
+    }
+    if (m_pIPAddress != nullptr) {
+        return;
+    }
+    m_pIPAddress = new IPAddress;
+    m_pIPAddress->SetWindow(GetWindow());
+    //属性：在property_grid.xml中定义    
+    m_pIPAddress->SetClass(L"property_grid_ip_address");
+    if (!AddPropertySubItem(m_pIPAddress)) {
+        delete m_pIPAddress;
+        m_pIPAddress = nullptr;
+        return;
+    }
+
+    m_pIPAddress->SetIPAddress(GetPropertyText());
+    m_pIPAddress->SetVisible(false);
+
+    //挂载回车和焦点切换事件
+    m_pIPAddress->AttachKillFocus([this](const EventArgs&) {
+        ShowEditControl(false);
+        return true;
+        });
+}
+
+void PropertyGridIPAddressProperty::ShowEditControl(bool bShow)
+{
+    if (IsReadOnly() || (m_pIPAddress == nullptr)) {
+        return;
+    }
+
+    if (bShow) {
+        m_pIPAddress->SetVisible(true);
+        m_pIPAddress->SetFocus();
+    }
+    else {
+        std::wstring newText = m_pIPAddress->GetIPAddress();
+        bool bChanged = newText != GetPropertyValue(); //相对原值，是否有修改
+        SetPropertyText(newText, bChanged);
+        m_pIPAddress->SetVisible(false);
     }
 }
 

@@ -123,6 +123,10 @@ void RenderForm::TestPropertyGrid()
 										ui::DateTime::EditFormat::kTimeUpDown);
 	pPropertyGrid->AddDateTimeProperty(pGroup, L"时间", L"17:30", L"描述信息：设置时间", 0,
 										ui::DateTime::EditFormat::kMinuteUpDown);
+
+	pGroup = pPropertyGrid->AddGroup(L"分组七", L"描述信息七");
+	pPropertyGrid->AddIPAddressProperty(pGroup, L"IP地址", L"192.168.0.1", L"描述信息：IP地址");
+
 	return;
 }
 
