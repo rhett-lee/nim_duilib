@@ -126,6 +126,10 @@ void RenderForm::TestPropertyGrid()
 
 	pGroup = pPropertyGrid->AddGroup(L"分组七", L"描述信息七");
 	pPropertyGrid->AddIPAddressProperty(pGroup, L"IP地址", L"192.168.0.1", L"描述信息：IP地址");
+	pPropertyGrid->AddHotKeyProperty(pGroup, L"热键1", L"Ctrl+C", L"描述信息：热键 HotKey控件1");
+	pPropertyGrid->AddHotKeyProperty(pGroup, L"热键2", L"Ctrl+Shift+C", L"描述信息：热键 HotKey控件2");
+	pPropertyGrid->AddHotKeyProperty(pGroup, L"热键3", L"Ctrl+Shift+Alt+C", L"描述信息：热键 HotKey控件3");
+	pPropertyGrid->AddHotKeyProperty(pGroup, L"热键4", L"Ctrl+Shift", L"描述信息：热键 HotKey控件4");
 
 	return;
 }

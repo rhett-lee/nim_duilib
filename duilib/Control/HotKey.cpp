@@ -168,7 +168,7 @@ public:
         std::wstring sKeyName;
         uint8_t wCode = 0;
         uint8_t wModifiers = 0;
-        const wchar_t szPlus[] = L" + ";
+        const wchar_t szPlus[] = L"+";
         GetHotKey(wCode, wModifiers);
         if (wModifiers == 0) {
             //必须有组合键，才是有效的热键
@@ -176,19 +176,40 @@ public:
         }
         if (wCode != 0 || wModifiers != 0) {
             if (wModifiers & HOTKEYF_CONTROL) {
-                sKeyName += GetKeyName(VK_CONTROL, wModifiers & HOTKEYF_EXT);
-                sKeyName += szPlus;
+                std::wstring sKey = GetKeyName(VK_CONTROL, wModifiers & HOTKEYF_EXT);
+                if (!sKey.empty()) {
+                    if (!sKeyName.empty()) {
+                        sKeyName += szPlus;
+                    }
+                    sKeyName += sKey;
+                }
             }
             if (wModifiers & HOTKEYF_SHIFT) {
-                sKeyName += GetKeyName(VK_SHIFT, wModifiers & HOTKEYF_EXT);
-                sKeyName += szPlus;
+                std::wstring sKey = GetKeyName(VK_SHIFT, wModifiers & HOTKEYF_EXT);
+                if (!sKey.empty()) {
+                    if (!sKeyName.empty()) {
+                        sKeyName += szPlus;
+                    }
+                    sKeyName += sKey;
+                }
             }
             if (wModifiers & HOTKEYF_ALT) {
-                sKeyName += GetKeyName(VK_MENU, wModifiers & HOTKEYF_EXT);
-                sKeyName += szPlus;
+                std::wstring sKey = GetKeyName(VK_MENU, wModifiers & HOTKEYF_EXT);
+                if (!sKey.empty()) {
+                    if (!sKeyName.empty()) {
+                        sKeyName += szPlus;
+                    }
+                    sKeyName += sKey;
+                }
             }
             if ((wCode != VK_SHIFT) && (wCode != VK_CONTROL) && (wCode != VK_MENU)) {
-                sKeyName += GetKeyName(wCode, wModifiers & HOTKEYF_EXT);
+                std::wstring sKey = GetKeyName(wCode, wModifiers & HOTKEYF_EXT);
+                if (!sKey.empty()) {
+                    if (!sKeyName.empty()) {
+                        sKeyName += szPlus;
+                    }
+                    sKeyName += sKey;
+                }
             }
         }
         return sKeyName;
@@ -258,7 +279,29 @@ void HotKey::DoInit()
     pRichEdit->SetText(m_defaultText.c_str());
     pRichEdit->SetAttribute(L"text_align", L"vcenter,hcenter");
     pRichEdit->SetAttribute(L"want_tab", L"false");
+    pRichEdit->SetAttribute(L"width", L"100%");
+    pRichEdit->SetAttribute(L"height", L"100%");
     AddItem(pRichEdit);
+
+    //以RichEdit控件的焦点作为整个控件的焦点
+    pRichEdit->AttachSetFocus([this](const EventArgs&) {
+        SendEvent(kEventSetFocus);
+        return true;
+        });
+    pRichEdit->AttachKillFocus([this](const EventArgs&) {
+        SendEvent(kEventKillFocus);
+        return true;
+        });
+}
+
+void HotKey::SetFocus()
+{
+    if (IsVisible() && IsEnabled() && (m_pRichEdit != nullptr)) {
+        m_pRichEdit->SetFocus();
+    }
+    else {
+        __super::SetFocus();
+    }
 }
 
 void HotKey::SetHotKey(uint8_t wVirtualKeyCode, uint8_t wModifiers)
@@ -307,6 +350,93 @@ uint16_t HotKey::GetHotKey() const
 std::wstring HotKey::GetHotKeyName() const
 {
     return m_pRichEdit->GetHotKeyName();
+}
+
+bool HotKey::SetHotKeyName(const std::wstring& hotKeyName)
+{
+    std::list<std::wstring> hotKeyList = StringHelper::Split(hotKeyName, L"+");
+    for (std::wstring& hotKey : hotKeyList) {
+        StringHelper::Trim(hotKey);
+        hotKey = StringHelper::MakeLowerString(hotKey);
+    }
+    if (hotKeyList.empty()) {
+        return false;
+    }
+    std::wstring keyCtrl = GetKeyName(VK_CONTROL, false);
+    std::wstring keyShift = GetKeyName(VK_SHIFT, false);
+    std::wstring keyAlt = GetKeyName(VK_MENU, false);
+    keyCtrl = StringHelper::MakeLowerString(keyCtrl);
+    keyShift = StringHelper::MakeLowerString(keyShift);
+    keyAlt = StringHelper::MakeLowerString(keyAlt);
+
+    uint8_t wModifiers = 0;
+    auto iter = hotKeyList.begin();
+    while (iter != hotKeyList.end()) {
+        const std::wstring& hotKey = *iter;
+        if (hotKey == keyCtrl) {
+            wModifiers |= kHotKey_Contrl;
+            iter = hotKeyList.erase(iter);
+            continue;
+        }
+        else if (hotKey == keyShift) {
+            wModifiers |= kHotKey_Shift;
+            iter = hotKeyList.erase(iter);
+            continue;
+        }
+        else if (hotKey == keyAlt) {
+            wModifiers |= kHotKey_Alt;
+            iter = hotKeyList.erase(iter);
+            continue;
+        }
+        else {
+            ++iter;
+        }        
+    }
+    uint8_t wVirtualKeyCode = 0;
+    if (!hotKeyList.empty()) {
+        std::map<std::wstring, uint8_t> vkCodeMap;
+        std::wstring temp;
+        for (uint32_t vkCode = 0; vkCode <= 256; ++vkCode) {
+            temp = StringHelper::MakeLowerString(GetKeyName((uint8_t)vkCode, false));
+            if (!temp.empty()) {
+                vkCodeMap[temp] = (uint8_t)vkCode;
+            }
+        }
+        for (const std::wstring& hotKey : hotKeyList) {
+            auto pos = vkCodeMap.find(hotKey);
+            if (pos != vkCodeMap.end()) {
+                //只支持一个键，其他的忽略掉
+                wVirtualKeyCode = pos->second;
+                break;
+            }
+        }
+    }
+    if ((wVirtualKeyCode == 0) && !hotKeyList.empty()) {
+        std::map<std::wstring, uint8_t> vkCodeExtMap;
+        std::wstring temp;
+        for (uint32_t vkCode = 0; vkCode <= 256; ++vkCode) {
+            temp = StringHelper::MakeLowerString(GetKeyName((uint8_t)vkCode, true));
+            if (!temp.empty()) {
+                vkCodeExtMap[temp] = (uint8_t)vkCode;
+            }
+        }
+        for (const std::wstring& hotKey : hotKeyList) {
+            auto pos = vkCodeExtMap.find(hotKey);
+            if (pos != vkCodeExtMap.end()) {
+                //只支持一个键，其他的忽略掉
+                wVirtualKeyCode = pos->second;
+                wModifiers |= kHotKey_Ext;
+                break;
+            }
+        }
+    }
+
+    bool bRet = false;
+    if ((wVirtualKeyCode != 0) || (wModifiers != 0)) {
+        SetHotKey(wVirtualKeyCode, wModifiers);
+        bRet = true;
+    }
+    return bRet;
 }
 
 std::wstring HotKey::GetKeyName(uint8_t wVirtualKeyCode, bool fExtended)

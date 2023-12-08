@@ -6,7 +6,8 @@ namespace ui
 {
 
 IPAddress::IPAddress():
-    m_bInited(false)
+    m_bInited(false),
+    m_pLastFocus(nullptr)
 {
 }
 
@@ -92,6 +93,24 @@ void IPAddress::DoInit()
     }
 }
 
+void IPAddress::SetFocus()
+{
+    if (IsVisible() && IsEnabled() && !m_editList.empty()) {
+        RichEdit* pRichEdit = m_editList.front();
+        if (m_pLastFocus != nullptr) {
+            if (std::find(m_editList.begin(), m_editList.end(), m_pLastFocus) != m_editList.end()) {
+                pRichEdit = m_pLastFocus;
+            }
+        }
+        if (pRichEdit != nullptr) {
+            pRichEdit->SetFocus();
+        }
+    }
+    else {
+        __super::SetFocus();
+    }
+}
+
 void IPAddress::SetIPAddress(const std::wstring& ipAddress)
 {
     m_ipAddress = ipAddress;
@@ -156,8 +175,9 @@ void IPAddress::SendEvent(const EventArgs& msg)
     __super::SendEvent(msg);
 }
 
-void IPAddress::OnKillFocusEvent(RichEdit* /*pRichEdit*/, Control* pNewFocus)
+void IPAddress::OnKillFocusEvent(RichEdit* pRichEdit, Control* pNewFocus)
 {
+    m_pLastFocus = pRichEdit;
     if (pNewFocus == this) {
         return;
     }

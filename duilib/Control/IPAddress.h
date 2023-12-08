@@ -20,6 +20,10 @@ public:
 	virtual std::wstring GetType() const override;
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 
+	/** 让控件获取焦点
+	 */
+	virtual void SetFocus() override;
+
 	/** 设置IP地址
 	*/
 	void SetIPAddress(const std::wstring& ipAddress);
@@ -64,6 +68,10 @@ private:
 	/** 编辑框列表
 	*/
 	std::vector<RichEdit*> m_editList;
+
+	/** 上次焦点在哪个控件上
+	*/
+	RichEdit* m_pLastFocus;
 
 	/** IP地址
 	*/

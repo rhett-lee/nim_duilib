@@ -47,6 +47,9 @@
     <!--IP地址控件通用样式-->
     <Class name="property_grid_ip_address" height="100%" width="100%" bkcolor="white" border_size="1" border_color="light_gray"/>
     
+    <!--HotKey控件通用样式-->
+    <Class name="property_grid_hot_key" height="100%" width="100%" bkcolor="white" border_size="1" border_color="light_gray"/>
+    
     <PropertyGrid>
         <!-- 表头 -->
         <HBox name="duilib_property_grid_header">

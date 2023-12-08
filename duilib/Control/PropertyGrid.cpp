@@ -644,6 +644,20 @@ PropertyGridIPAddressProperty* PropertyGrid::AddIPAddressProperty(PropertyGridGr
     return pProperty;
 }
 
+PropertyGridHotKeyProperty* PropertyGrid::AddHotKeyProperty(PropertyGridGroup* pGroup,
+                                                            const std::wstring& propertyName,
+                                                            const std::wstring& propertyValue,
+                                                            const std::wstring& description,
+                                                            size_t nPropertyData)
+{
+    PropertyGridHotKeyProperty* pProperty = new PropertyGridHotKeyProperty(propertyName, propertyValue, description, nPropertyData);
+    if (!AddProperty(pGroup, pProperty)) {
+        delete pProperty;
+        pProperty = nullptr;
+    }
+    return pProperty;
+}
+
 void PropertyGrid::SetLeftColumnWidth(int32_t nLeftColumnWidth, bool bNeedDpiScale)
 {
     if (nLeftColumnWidth <= 0) {
@@ -1797,6 +1811,66 @@ void PropertyGridIPAddressProperty::ShowEditControl(bool bShow)
         bool bChanged = newText != GetPropertyValue(); //相对原值，是否有修改
         SetPropertyText(newText, bChanged);
         m_pIPAddress->SetVisible(false);
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////
+///
+PropertyGridHotKeyProperty::PropertyGridHotKeyProperty(const std::wstring& propertyName,
+    const std::wstring& propertyValue,
+    const std::wstring& description,
+    size_t nPropertyData) :
+    PropertyGridProperty(propertyName, propertyValue, description, nPropertyData),
+    m_pHotKey(nullptr)
+{
+}
+
+void PropertyGridHotKeyProperty::EnableEditControl(bool bEnable)
+{
+    ASSERT(IsInited());
+    if (!bEnable) {
+        RemovePropertySubItem(m_pHotKey);
+        m_pHotKey = nullptr;
+        return;
+    }
+    if (m_pHotKey != nullptr) {
+        return;
+    }
+    m_pHotKey = new HotKey;
+    m_pHotKey->SetWindow(GetWindow());
+    //属性：在property_grid.xml中定义    
+    m_pHotKey->SetClass(L"property_grid_hot_key");
+    if (!AddPropertySubItem(m_pHotKey)) {
+        delete m_pHotKey;
+        m_pHotKey = nullptr;
+        return;
+    }
+
+    m_pHotKey->SetHotKeyName(GetPropertyText());
+    m_pHotKey->SetVisible(false);
+
+    //挂载回车和焦点切换事件
+    m_pHotKey->AttachKillFocus([this](const EventArgs&) {
+        ShowEditControl(false);
+        return true;
+        });
+}
+
+void PropertyGridHotKeyProperty::ShowEditControl(bool bShow)
+{
+    if (IsReadOnly() || (m_pHotKey == nullptr)) {
+        return;
+    }
+
+    if (bShow) {
+        m_pHotKey->SetVisible(true);
+        m_pHotKey->SetFocus();
+    }
+    else {
+        std::wstring newText = m_pHotKey->GetHotKeyName();
+        bool bChanged = newText != GetPropertyValue(); //相对原值，是否有修改
+        SetPropertyText(newText, bChanged);
+        m_pHotKey->SetVisible(false);
     }
 }
 

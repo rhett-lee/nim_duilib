@@ -13,6 +13,7 @@
 #include "duilib/Control/ComboButton.h"
 #include "duilib/Control/DateTime.h"
 #include "duilib/Control/IPAddress.h"
+#include "duilib/Control/HotKey.h"
 
 namespace ui
 {
@@ -27,6 +28,7 @@ class PropertyGridFontSizeProperty;	//字体大小
 class PropertyGridColorProperty;	//颜色
 class PropertyGridDateTimeProperty; //日期时间
 class PropertyGridIPAddressProperty;//IP地址
+class PropertyGridHotKeyProperty;	//热键
 
 /** 属性表控件
 */
@@ -196,6 +198,20 @@ public:
 														const std::wstring& propertyValue,
 														const std::wstring& description = L"",
 														size_t nPropertyData = 0);
+
+	/** 增加一个属性(热键)
+	* @param [in] pGroup 该属性所属的分组
+	* @param [in] propertyName 属性的名称
+	* @param [in] propertyValue 属性的值（字体大小）
+	* @param [in] description 属性的描述信息
+	* @param [in] nPropertyData 用户自定义数据
+	* @return 返回该属性的接口
+	*/
+	PropertyGridHotKeyProperty* AddHotKeyProperty(PropertyGridGroup* pGroup,
+												  const std::wstring& propertyName, 
+												  const std::wstring& propertyValue,
+												  const std::wstring& description = L"",
+												  size_t nPropertyData = 0);
 
 	/** 设置左侧一列的宽度
 	* @param [in] nLeftColumnWidth 左侧一列的宽度
@@ -1042,6 +1058,46 @@ private:
 	/** IP地址控件
 	*/
 	IPAddress* m_pIPAddress;
+};
+
+/** 设置热键的属性
+*/
+class PropertyGridHotKeyProperty : public PropertyGridProperty
+{
+public:
+	/** 构造一个属性
+	@param [in] propertyName 属性的名称
+	@param [in] propertyValue 属性的值(原字体名称)
+	@param [in] description 属性的描述信息
+	@param [in] nPropertyData 用户自定义数据
+	*/
+	PropertyGridHotKeyProperty(const std::wstring& propertyName,
+							   const std::wstring& propertyValue,
+						       const std::wstring& description = L"",
+							   size_t nPropertyData = 0);
+
+
+public:
+
+	/** 获取热键控件接口
+	*/
+	HotKey* GetHotKey() const { return m_pHotKey; }
+
+protected:
+	/** 设置是否允许存在编辑框控件
+	* @param [in] bEnable true表示允许存在编辑框控件，false表示不允许存在编辑框控件
+	*/
+	virtual void EnableEditControl(bool bEnable) override;
+
+	/** 显示或者隐藏编辑框控件
+	* @param [in] bShow 表示显示编辑控件，false表示隐藏编辑控件
+	*/
+	virtual void ShowEditControl(bool bShow) override;
+
+private:
+	/** 热键控件
+	*/
+	HotKey* m_pHotKey;
 };
 
 }//namespace ui
