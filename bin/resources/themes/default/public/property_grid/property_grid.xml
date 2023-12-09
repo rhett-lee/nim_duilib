@@ -49,6 +49,8 @@
     
     <!--HotKey控件通用样式-->
     <Class name="property_grid_hot_key" height="100%" width="100%" bkcolor="white" border_size="1" border_color="light_gray"/>
+    <!-- 纯色按钮 -->
+    <Class name="property_grid_button" height="100%" width="40" text=". . ." halign="right" valign="center" text_padding="0,0,0,4" font="system_14" normal_text_color="black" disabled_text_color="gray" text_align="hcenter,vcenter" normal_color="#FFF0F0F0" hot_color="#FFE5F3FF" pushed_color="#FFCCE8FF"/>
     
     <PropertyGrid>
         <!-- 表头 -->

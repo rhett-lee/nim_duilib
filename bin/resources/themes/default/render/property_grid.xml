@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<VBox>
+<Box>
+    <HBox>
     <PropertyGrid name="property_grid_test" 
                   bkcolor="YellowGreen" 
                   width="320"
@@ -11,4 +12,7 @@
                   header_class="property_grid_header"
                   group_class="property_grid_group"
                   propterty_class="property_grid_propterty"/>
-</VBox>
+    <Split bkcolor="splitline_level1" width="2"/>
+    <Box/>
+    </HBox>
+</Box>

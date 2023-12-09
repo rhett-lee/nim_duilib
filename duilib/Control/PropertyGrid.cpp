@@ -658,6 +658,41 @@ PropertyGridHotKeyProperty* PropertyGrid::AddHotKeyProperty(PropertyGridGroup* p
     return pProperty;
 }
 
+PropertyGridFileProperty* PropertyGrid::AddFileProperty(PropertyGridGroup* pGroup,
+                                                        const std::wstring& propertyName,
+                                                        const std::wstring& propertyValue,                                                        
+                                                        const std::wstring& description,
+                                                        size_t nPropertyData,
+                                                        bool bOpenFileDialog,
+                                                        const std::vector<FileDialog::FileType>& fileTypes,
+                                                        int32_t nFileTypeIndex,
+                                                        const std::wstring& defaultExt)
+{
+    PropertyGridFileProperty* pProperty = new PropertyGridFileProperty(propertyName, propertyValue,
+                                                                       description, nPropertyData,
+                                                                       bOpenFileDialog, fileTypes,
+                                                                       nFileTypeIndex, defaultExt);
+    if (!AddProperty(pGroup, pProperty)) {
+        delete pProperty;
+        pProperty = nullptr;
+    }
+    return pProperty;
+}
+
+PropertyGridDirectoryProperty* PropertyGrid::AddDirectoryProperty(PropertyGridGroup* pGroup,
+                                                                  const std::wstring& propertyName,
+                                                                  const std::wstring& propertyValue,
+                                                                  const std::wstring& description,
+                                                                  size_t nPropertyData)
+{
+    PropertyGridDirectoryProperty* pProperty = new PropertyGridDirectoryProperty(propertyName, propertyValue, description, nPropertyData);
+    if (!AddProperty(pGroup, pProperty)) {
+        delete pProperty;
+        pProperty = nullptr;
+    }
+    return pProperty;
+}
+
 void PropertyGrid::SetLeftColumnWidth(int32_t nLeftColumnWidth, bool bNeedDpiScale)
 {
     if (nLeftColumnWidth <= 0) {
@@ -847,14 +882,14 @@ void PropertyGridProperty::DoInit()
 
     //挂载鼠标左键按下事件
     m_pLabelBoxRight->AttachButtonDown([this](const EventArgs&) {
-        if (!IsReadOnly()) {
+        if (!IsReadOnly() && IsEnabled()) {
             ShowEditControl(true);
         }
         return true;
         });
 
     //允许或者禁止编辑控件
-    EnableEditControl(!IsReadOnly());
+    EnableEditControl(!IsReadOnly() && IsEnabled());
 }
 
 void PropertyGridProperty::SetPropertyText(const std::wstring& text, bool bChanged)
@@ -1871,6 +1906,122 @@ void PropertyGridHotKeyProperty::ShowEditControl(bool bShow)
         bool bChanged = newText != GetPropertyValue(); //相对原值，是否有修改
         SetPropertyText(newText, bChanged);
         m_pHotKey->SetVisible(false);
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////
+///
+PropertyGridFileProperty::PropertyGridFileProperty(const std::wstring& propertyName,
+    const std::wstring& propertyValue,
+    const std::wstring& description,
+    size_t nPropertyData,
+    bool bOpenFileDialog,
+    const std::vector<FileDialog::FileType>& fileTypes,
+    int32_t nFileTypeIndex,
+    const std::wstring& defaultExt) :
+    PropertyGridTextProperty(propertyName, propertyValue, description, nPropertyData),
+    m_pBrowseBtn(nullptr),
+    m_bOpenFileDialog(bOpenFileDialog),
+    m_fileTypes(fileTypes),
+    m_nFileTypeIndex(nFileTypeIndex),
+    m_defaultExt(defaultExt)
+{
+}
+
+void PropertyGridFileProperty::EnableEditControl(bool bEnable)
+{
+    __super::EnableEditControl(bEnable);
+    if (!bEnable) {
+        return;
+    }
+    RichEdit* pRichEdit = GetRichEdit();
+    if (pRichEdit == nullptr) {
+        return;
+    }
+    if (m_pBrowseBtn != nullptr) {
+        size_t nItemIndex = pRichEdit->GetItemIndex(m_pBrowseBtn);
+        if (nItemIndex == Box::InvalidIndex) {
+            m_pBrowseBtn = nullptr;
+        }
+    }
+    if (m_pBrowseBtn == nullptr) {
+        m_pBrowseBtn = new Button;
+        m_pBrowseBtn->SetWindow(GetWindow());
+        m_pBrowseBtn->SetClass(L"property_grid_button");
+        m_pBrowseBtn->SetNoFocus();
+        pRichEdit->AddItem(m_pBrowseBtn);
+
+        //点击事件
+        m_pBrowseBtn->AttachClick([this](const EventArgs&) {
+            OnBrowseButtonClicked();
+            return true;
+            });
+    }
+}
+
+void PropertyGridFileProperty::OnBrowseButtonClicked()
+{
+    std::wstring filePath;
+    FileDialog fileDlg;
+    if (fileDlg.BrowseForFile(GetWindow(), filePath, m_bOpenFileDialog, m_fileTypes, m_nFileTypeIndex, m_defaultExt)) {
+        RichEdit* pRichEdit = GetRichEdit();
+        if (pRichEdit != nullptr) {
+            pRichEdit->SetText(filePath);
+        }
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////
+///
+PropertyGridDirectoryProperty::PropertyGridDirectoryProperty(const std::wstring& propertyName,
+    const std::wstring& propertyValue,
+    const std::wstring& description,
+    size_t nPropertyData) :
+    PropertyGridTextProperty(propertyName, propertyValue, description, nPropertyData),
+    m_pBrowseBtn(nullptr)
+{
+}
+
+void PropertyGridDirectoryProperty::EnableEditControl(bool bEnable)
+{
+    __super::EnableEditControl(bEnable);
+    if (!bEnable) {
+        return;
+    }
+    RichEdit* pRichEdit = GetRichEdit();
+    if (pRichEdit == nullptr) {
+        return;
+    }
+    if (m_pBrowseBtn != nullptr) {
+        size_t nItemIndex = pRichEdit->GetItemIndex(m_pBrowseBtn);
+        if (nItemIndex == Box::InvalidIndex) {
+            m_pBrowseBtn = nullptr;
+        }
+    }
+    if (m_pBrowseBtn == nullptr) {
+        m_pBrowseBtn = new Button;
+        m_pBrowseBtn->SetWindow(GetWindow());
+        m_pBrowseBtn->SetClass(L"property_grid_button");
+        m_pBrowseBtn->SetNoFocus();
+        pRichEdit->AddItem(m_pBrowseBtn);
+
+        //点击事件
+        m_pBrowseBtn->AttachClick([this](const EventArgs&) {
+            OnBrowseButtonClicked();
+            return true;
+            });
+    }
+}
+
+void PropertyGridDirectoryProperty::OnBrowseButtonClicked()
+{
+    std::wstring folderPath;
+    FileDialog fileDlg;
+    if (fileDlg.BrowseForFolder(GetWindow(), folderPath)) {
+        RichEdit* pRichEdit = GetRichEdit();
+        if (pRichEdit != nullptr) {
+            pRichEdit->SetText(folderPath);
+        }
     }
 }
 

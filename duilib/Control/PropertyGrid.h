@@ -14,6 +14,7 @@
 #include "duilib/Control/DateTime.h"
 #include "duilib/Control/IPAddress.h"
 #include "duilib/Control/HotKey.h"
+#include "duilib/Utils/FileDialog.h"
 
 namespace ui
 {
@@ -29,6 +30,8 @@ class PropertyGridColorProperty;	//颜色
 class PropertyGridDateTimeProperty; //日期时间
 class PropertyGridIPAddressProperty;//IP地址
 class PropertyGridHotKeyProperty;	//热键
+class PropertyGridFileProperty;		//文件路径
+class PropertyGridDirectoryProperty;//文件夹
 
 /** 属性表控件
 */
@@ -188,7 +191,7 @@ public:
 	/** 增加一个属性(IP地址)
 	* @param [in] pGroup 该属性所属的分组
 	* @param [in] propertyName 属性的名称
-	* @param [in] propertyValue 属性的值（字体大小）
+	* @param [in] propertyValue 属性的值
 	* @param [in] description 属性的描述信息
 	* @param [in] nPropertyData 用户自定义数据
 	* @return 返回该属性的接口
@@ -202,7 +205,7 @@ public:
 	/** 增加一个属性(热键)
 	* @param [in] pGroup 该属性所属的分组
 	* @param [in] propertyName 属性的名称
-	* @param [in] propertyValue 属性的值（字体大小）
+	* @param [in] propertyValue 属性的值
 	* @param [in] description 属性的描述信息
 	* @param [in] nPropertyData 用户自定义数据
 	* @return 返回该属性的接口
@@ -212,6 +215,42 @@ public:
 												  const std::wstring& propertyValue,
 												  const std::wstring& description = L"",
 												  size_t nPropertyData = 0);
+
+	/** 增加一个属性(文件路径)
+	* @param [in] pGroup 该属性所属的分组
+	* @param [in] propertyName 属性的名称
+	* @param [in] propertyValue 属性的值(文件路径)
+	* @param [in] description 属性的描述信息
+	* @param [in] nPropertyData 用户自定义数据
+	* @param [in] bOpenFileDialog true表示打开文件，false表示保存文件
+	* @param [in] fileTypes 对话框可以打开或保存的文件类型
+	* @param [in] nFileTypeIndex 选择的文件类型，有效范围：[0, fileTypes.size())
+	* @param [in] defaultExt 默认的文件类型, 举例："doc;docx"
+	* @return 返回该属性的接口
+	*/
+	PropertyGridFileProperty* AddFileProperty(PropertyGridGroup* pGroup,
+										      const std::wstring& propertyName, 
+										      const std::wstring& propertyValue,											  
+											  const std::wstring& description = L"",
+											  size_t nPropertyData = 0,
+											  bool bOpenFileDialog = true,
+											  const std::vector<FileDialog::FileType>& fileTypes = std::vector<FileDialog::FileType>(),
+											  int32_t nFileTypeIndex = -1,
+											  const std::wstring& defaultExt = L"");
+
+	/** 增加一个属性(文件夹)
+	* @param [in] pGroup 该属性所属的分组
+	* @param [in] propertyName 属性的名称
+	* @param [in] propertyValue 属性的值
+	* @param [in] description 属性的描述信息
+	* @param [in] nPropertyData 用户自定义数据
+	* @return 返回该属性的接口
+	*/
+	PropertyGridDirectoryProperty* AddDirectoryProperty(PropertyGridGroup* pGroup,
+													    const std::wstring& propertyName, 
+													    const std::wstring& propertyValue,
+													    const std::wstring& description = L"",
+													    size_t nPropertyData = 0);
 
 	/** 设置左侧一列的宽度
 	* @param [in] nLeftColumnWidth 左侧一列的宽度
@@ -410,9 +449,9 @@ class PropertyGridGroup : public TreeNode
 {
 public:
 	/** 构造一个组
-	@param [in] groupName 组的名称
-	@param [in] description 组的描述信息
-	@param [in] nGroupData 用户自定义数据
+	* @param [in] groupName 组的名称
+	* @param [in] description 组的描述信息
+	* @param [in] nGroupData 用户自定义数据
 	*/
 	explicit PropertyGridGroup(const std::wstring& groupName, 
 							   const std::wstring& description = L"",
@@ -503,10 +542,10 @@ class PropertyGridProperty: public TreeNode
 {
 public:
 	/** 构造一个属性
-	@param [in] propertyName 属性的名称
-	@param [in] propertyValue 属性的值
-	@param [in] description 属性的描述信息
-	@param [in] nPropertyData 用户自定义数据
+	* @param [in] propertyName 属性的名称
+	* @param [in] propertyValue 属性的值
+	* @param [in] description 属性的描述信息
+	* @param [in] nPropertyData 用户自定义数据
 	*/
 	PropertyGridProperty(const std::wstring& propertyName, 
 					     const std::wstring& propertyValue,
@@ -660,10 +699,10 @@ class PropertyGridTextProperty : public PropertyGridProperty
 {
 public:
 	/** 构造一个属性
-	@param [in] propertyName 属性的名称
-	@param [in] propertyValue 属性的值
-	@param [in] description 属性的描述信息
-	@param [in] nPropertyData 用户自定义数据
+	* @param [in] propertyName 属性的名称
+	* @param [in] propertyValue 属性的值
+	* @param [in] description 属性的描述信息
+	* @param [in] nPropertyData 用户自定义数据
 	*/
 	PropertyGridTextProperty(const std::wstring& propertyName,
 					         const std::wstring& propertyValue,
@@ -729,10 +768,10 @@ class PropertyGridComboProperty : public PropertyGridProperty
 {
 public:
 	/** 构造一个属性
-	@param [in] propertyName 属性的名称
-	@param [in] propertyValue 属性的值
-	@param [in] description 属性的描述信息
-	@param [in] nPropertyData 用户自定义数据
+	* @param [in] propertyName 属性的名称
+	* @param [in] propertyValue 属性的值
+	* @param [in] description 属性的描述信息
+	* @param [in] nPropertyData 用户自定义数据
 	*/
 	PropertyGridComboProperty(const std::wstring& propertyName,
 							  const std::wstring& propertyValue,
@@ -829,10 +868,10 @@ class PropertyGridFontProperty : public PropertyGridComboProperty
 {
 public:
 	/** 构造一个属性
-	@param [in] propertyName 属性的名称
-	@param [in] propertyValue 属性的值(原字体名称)
-	@param [in] description 属性的描述信息
-	@param [in] nPropertyData 用户自定义数据
+	* @param [in] propertyName 属性的名称
+	* @param [in] propertyValue 属性的值(原字体名称)
+	* @param [in] description 属性的描述信息
+	* @param [in] nPropertyData 用户自定义数据
 	*/
 	PropertyGridFontProperty(const std::wstring& propertyName,
 							 const std::wstring& propertyValue,
@@ -862,10 +901,10 @@ class PropertyGridFontSizeProperty : public PropertyGridComboProperty
 {
 public:
 	/** 构造一个属性
-	@param [in] propertyName 属性的名称
-	@param [in] propertyValue 属性的值(原字体名称)
-	@param [in] description 属性的描述信息
-	@param [in] nPropertyData 用户自定义数据
+	* @param [in] propertyName 属性的名称
+	* @param [in] propertyValue 属性的值(原字体名称)
+	* @param [in] description 属性的描述信息
+	* @param [in] nPropertyData 用户自定义数据
 	*/
 	PropertyGridFontSizeProperty(const std::wstring& propertyName,
 								 const std::wstring& propertyValue,
@@ -927,10 +966,10 @@ class PropertyGridColorProperty : public PropertyGridProperty
 {
 public:
 	/** 构造一个属性
-	@param [in] propertyName 属性的名称
-	@param [in] propertyValue 属性的值(原字体名称)
-	@param [in] description 属性的描述信息
-	@param [in] nPropertyData 用户自定义数据
+	* @param [in] propertyName 属性的名称
+	* @param [in] propertyValue 属性的值(原字体名称)
+	* @param [in] description 属性的描述信息
+	* @param [in] nPropertyData 用户自定义数据
 	*/
 	PropertyGridColorProperty(const std::wstring& propertyName,
 							  const std::wstring& propertyValue,
@@ -980,11 +1019,11 @@ class PropertyGridDateTimeProperty : public PropertyGridProperty
 {
 public:
 	/** 构造一个属性
-	@param [in] propertyName 属性的名称
-	@param [in] dateTimeValue 日期时间的值
-	@param [in] description 属性的描述信息
-	@param [in] nPropertyData 用户自定义数据
-	@param [in] editFormat 日期时间的格式
+	* @param [in] propertyName 属性的名称
+	* @param [in] dateTimeValue 日期时间的值
+	* @param [in] description 属性的描述信息
+	* @param [in] nPropertyData 用户自定义数据
+	* @param [in] editFormat 日期时间的格式
 	*/
 	PropertyGridDateTimeProperty(const std::wstring& propertyName,
 								 const std::wstring& dateTimeValue,
@@ -1026,10 +1065,10 @@ class PropertyGridIPAddressProperty : public PropertyGridProperty
 {
 public:
 	/** 构造一个属性
-	@param [in] propertyName 属性的名称
-	@param [in] propertyValue 属性的值(原字体名称)
-	@param [in] description 属性的描述信息
-	@param [in] nPropertyData 用户自定义数据
+	* @param [in] propertyName 属性的名称
+	* @param [in] propertyValue 属性的值
+	* @param [in] description 属性的描述信息
+	* @param [in] nPropertyData 用户自定义数据
 	*/
 	PropertyGridIPAddressProperty(const std::wstring& propertyName,
 							      const std::wstring& propertyValue,
@@ -1067,7 +1106,7 @@ class PropertyGridHotKeyProperty : public PropertyGridProperty
 public:
 	/** 构造一个属性
 	@param [in] propertyName 属性的名称
-	@param [in] propertyValue 属性的值(原字体名称)
+	@param [in] propertyValue 属性的值
 	@param [in] description 属性的描述信息
 	@param [in] nPropertyData 用户自定义数据
 	*/
@@ -1098,6 +1137,96 @@ private:
 	/** 热键控件
 	*/
 	HotKey* m_pHotKey;
+};
+
+/** 设置文件路径属性
+*/
+class PropertyGridFileProperty : public PropertyGridTextProperty
+{
+public:
+	/** 构造一个属性
+	* @param [in] propertyName 属性的名称
+	* @param [in] propertyValue 属性的值(文件的路径)
+	* @param [in] description 属性的描述信息
+	* @param [in] nPropertyData 用户自定义数据
+	* @param [in] bOpenFileDialog true表示打开文件，false表示保存文件
+	* @param [in] fileTypes 对话框可以打开或保存的文件类型
+	* @param [in] nFileTypeIndex 选择的文件类型，有效范围：[0, fileTypes.size())
+	* @param [in] defaultExt 默认的文件类型, 举例："doc;docx"
+	*/
+	PropertyGridFileProperty(const std::wstring& propertyName,
+							 const std::wstring& propertyValue,
+							 const std::wstring& description = L"",
+							 size_t nPropertyData = 0,
+							 bool bOpenFileDialog = true,
+							 const std::vector<FileDialog::FileType>& fileTypes = std::vector<FileDialog::FileType>(),
+							 int32_t nFileTypeIndex = -1,
+							 const std::wstring& defaultExt = L"");
+
+
+protected:
+	/** 设置是否允许存在编辑框控件
+	* @param [in] bEnable true表示允许存在编辑框控件，false表示不允许存在编辑框控件
+	*/
+	virtual void EnableEditControl(bool bEnable) override;
+
+	/** 点击了浏览按钮
+	*/
+	virtual void OnBrowseButtonClicked();
+
+private:
+	/** 浏览按钮
+	*/
+	Button* m_pBrowseBtn;
+
+	/** true表示打开文件，false表示保存文件
+	*/
+	bool m_bOpenFileDialog;
+
+	/** 文件类型过滤器
+	*/
+	std::vector<FileDialog::FileType> m_fileTypes;
+
+	/** 选择的文件类型下标值
+	*/
+	int32_t m_nFileTypeIndex;
+
+	/** 默认的文件类型
+	*/
+	std::wstring m_defaultExt;
+};
+
+/** 设置文件夹属性
+*/
+class PropertyGridDirectoryProperty : public PropertyGridTextProperty
+{
+public:
+	/** 构造一个属性
+	* @param [in] propertyName 属性的名称
+	* @param [in] propertyValue 属性的值(文件夹路径)
+	* @param [in] description 属性的描述信息
+	* @param [in] nPropertyData 用户自定义数据
+	*/
+	PropertyGridDirectoryProperty(const std::wstring& propertyName,
+							      const std::wstring& propertyValue,
+							      const std::wstring& description = L"",
+							      size_t nPropertyData = 0);
+
+
+protected:
+	/** 设置是否允许存在编辑框控件
+	* @param [in] bEnable true表示允许存在编辑框控件，false表示不允许存在编辑框控件
+	*/
+	virtual void EnableEditControl(bool bEnable) override;
+
+	/** 点击了浏览按钮
+	*/
+	virtual void OnBrowseButtonClicked();
+
+private:
+	/** 浏览按钮
+	*/
+	Button* m_pBrowseBtn;
 };
 
 }//namespace ui

@@ -424,6 +424,7 @@
     <ClCompile Include="third_party\xml\pugixml.cpp" />
     <ClCompile Include="Utils\ApiWrapper.cpp" />
     <ClCompile Include="Utils\AttributeUtil.cpp" />
+    <ClCompile Include="Utils\FileDialog.cpp" />
     <ClCompile Include="Utils\FileUtil.cpp" />
     <ClCompile Include="Utils\OnScreenKeyboardManager.cpp" />
     <ClCompile Include="Utils\PerformanceUtil.cpp" />
@@ -571,6 +572,7 @@
     <ClInclude Include="third_party\xml\pugixml.hpp" />
     <ClInclude Include="Utils\ApiWrapper.h" />
     <ClInclude Include="Utils\AttributeUtil.h" />
+    <ClInclude Include="Utils\FileDialog.h" />
     <ClInclude Include="Utils\FileUtil.h" />
     <ClInclude Include="Utils\Macros.h" />
     <ClInclude Include="Utils\OnScreenKeyboardManager.h" />

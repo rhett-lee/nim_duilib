@@ -70,6 +70,8 @@ void RenderForm::TestPropertyGrid()
 	ASSERT(pGroup->GetGroupData() == (size_t)this);
 	auto p = pPropertyGrid->AddTextProperty(pGroup, L"属性1", L"值1", L"属性1的描述信息", (size_t)this);
 	ASSERT(p->GetPropertyData() == (size_t)this);
+	auto p00 = pPropertyGrid->AddTextProperty(pGroup, L"属性2", L"值2", L"属性2的描述信息：Disable");
+	p00->SetEnabled(false);
 
 	pGroup = pPropertyGrid->AddGroup(L"分组二", L"描述信息二");
 	pPropertyGrid->AddTextProperty(pGroup, L"属性2", L"值2", L"属性2的描述信息");
@@ -130,6 +132,28 @@ void RenderForm::TestPropertyGrid()
 	pPropertyGrid->AddHotKeyProperty(pGroup, L"热键2", L"Ctrl+Shift+C", L"描述信息：热键 HotKey控件2");
 	pPropertyGrid->AddHotKeyProperty(pGroup, L"热键3", L"Ctrl+Shift+Alt+C", L"描述信息：热键 HotKey控件3");
 	pPropertyGrid->AddHotKeyProperty(pGroup, L"热键4", L"Ctrl+Shift", L"描述信息：热键 HotKey控件4");
+
+	pGroup = pPropertyGrid->AddGroup(L"分组八", L"描述信息八");
+	auto p80 = pPropertyGrid->AddFileProperty(pGroup, L"文件路径", L"C:\\Test-Save.txt", L"描述信息：文件路径", 0,
+		                                      false, 
+											  { 
+												  {L"Text文件", L"*.txt"},
+												  {L"CSV文件", L"*.csv"},
+												  {L"INI文件", L"*.ini"},
+												  {L"所有文件", L"*.*"}
+		                                      }, 
+											  0, L"txt");
+	auto p81 = pPropertyGrid->AddFileProperty(pGroup, L"文件路径", L"C:\\Test-Open.txt", L"描述信息：文件路径", 0,
+											  true, 
+											  { 
+												  {L"Text文件", L"*.txt"},
+												  {L"CSV文件", L"*.csv"},
+												  {L"INI文件", L"*.ini"},
+												  {L"所有文件", L"*.*"}
+		                                      }, 
+											  0, L"txt");
+
+	auto p82 = pPropertyGrid->AddDirectoryProperty(pGroup, L"文件夹", L"C:\\Test\\", L"描述信息：文件夹");
 
 	return;
 }

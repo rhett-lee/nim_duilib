@@ -28,6 +28,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /** Windows SDK 实现(内部采用Windows API实现部分功能)
+*   最低支持的系统平台：Win7
 */
 #define UILIB_IMPL_WINSDK 1
 
@@ -60,19 +61,19 @@
 #endif
 
 #ifndef WINVER
-    #define WINVER _WIN32_WINNT_WINXP
+    #define WINVER _WIN32_WINNT_WIN7
 #endif
 
 #ifndef _WIN32_WINNT
-    #define _WIN32_WINNT _WIN32_WINNT_WINXP
+    #define _WIN32_WINNT _WIN32_WINNT_WIN7
 #endif
 
 #ifndef _WIN32_WINDOWS
-    #define _WIN32_WINDOWS _WIN32_WINNT_WINXP
+    #define _WIN32_WINDOWS _WIN32_WINNT_WIN7
 #endif
 
 #ifndef _WIN32_IE
-    #define _WIN32_IE _WIN32_IE_IE60
+    #define _WIN32_IE _WIN32_IE_WIN7
 #endif
 
 #ifndef NOMINMAX

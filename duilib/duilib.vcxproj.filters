@@ -381,6 +381,9 @@
     <ClCompile Include="Control\PropertyGrid.cpp">
       <Filter>Control</Filter>
     </ClCompile>
+    <ClCompile Include="Utils\FileDialog.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -838,6 +841,9 @@
     </ClInclude>
     <ClInclude Include="Control\PropertyGrid.h">
       <Filter>Control</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\FileDialog.h">
+      <Filter>Utils</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
