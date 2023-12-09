@@ -218,6 +218,10 @@ void PropertyGrid::PaintGridLines(IRender* pRender)
                 nChildMarginY = pLayout->GetChildMarginY();
             }
             yPos += nChildMarginY / 2;
+            if (yPos <= viewRect.top) {
+                //位置不在矩形区域内，不需要画线
+                continue;
+            }
             if (yPos > viewRect.bottom) {
                 //已经超越底部边线，不再继续绘制
                 break;

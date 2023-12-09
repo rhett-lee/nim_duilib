@@ -526,7 +526,14 @@ enum class PropertyGridPropertyType
 	kNone,		//无具体类型，基类
 	kText,		//普通文本
 	kCombo,		//下拉框
-
+	kFont,		//字体名称
+	kFontSize,  //字体大小
+	kColor,		//颜色
+	kDateTime,	//日期时间
+	kIPAddress,	//IP地址
+	kHotKey,	//热键
+	kFile,		//文件路径
+	kDirectory,	//文件夹
 	kCustom		//用户自定义的类型，比如自己实现一个子类
 };
 
@@ -892,6 +899,13 @@ public:
 						     size_t nPropertyData = 0);
 
 public:
+	/** 获取属性类型
+	*/
+	virtual PropertyGridPropertyType GetPropertyType() const
+	{
+		return PropertyGridPropertyType::kFont;
+	}
+
 	/** 获取新的字体值（修改后的属性值, 如果无修改则返回原值）
 	*/
 	virtual std::wstring GetPropertyNewValue() const override;
@@ -925,6 +939,13 @@ public:
 								 size_t nPropertyData = 0);
 
 public:
+	/** 获取属性类型
+	*/
+	virtual PropertyGridPropertyType GetPropertyType() const
+	{
+		return PropertyGridPropertyType::kFontSize;
+	}
+
 	/** 获取新的字体大小值, 显示值（修改后的属性值, 如果无修改则返回原值）
 	*/
 	virtual std::wstring GetPropertyNewValue() const override;
@@ -991,6 +1012,12 @@ public:
 
 
 public:
+	/** 获取属性类型
+	*/
+	virtual PropertyGridPropertyType GetPropertyType() const
+	{
+		return PropertyGridPropertyType::kColor;
+	}
 
 	/** 获取颜色选择控件接口
 	*/
@@ -1050,6 +1077,12 @@ public:
 
 
 public:
+	/** 获取属性类型
+	*/
+	virtual PropertyGridPropertyType GetPropertyType() const
+	{
+		return PropertyGridPropertyType::kDateTime;
+	}
 
 	/** 获取日期时间控件接口
 	*/
@@ -1098,6 +1131,12 @@ public:
 
 
 public:
+	/** 获取属性类型
+	*/
+	virtual PropertyGridPropertyType GetPropertyType() const
+	{
+		return PropertyGridPropertyType::kIPAddress;
+	}
 
 	/** 获取IP地址控件接口
 	*/
@@ -1138,6 +1177,12 @@ public:
 
 
 public:
+	/** 获取属性类型
+	*/
+	virtual PropertyGridPropertyType GetPropertyType() const
+	{
+		return PropertyGridPropertyType::kHotKey;
+	}
 
 	/** 获取热键控件接口
 	*/
@@ -1186,6 +1231,13 @@ public:
 
 
 protected:
+	/** 获取属性类型
+	*/
+	virtual PropertyGridPropertyType GetPropertyType() const
+	{
+		return PropertyGridPropertyType::kFile;
+	}
+
 	/** 设置是否允许存在编辑框控件
 	* @param [in] bEnable true表示允许存在编辑框控件，false表示不允许存在编辑框控件
 	*/
@@ -1235,6 +1287,13 @@ public:
 
 
 protected:
+	/** 获取属性类型
+	*/
+	virtual PropertyGridPropertyType GetPropertyType() const
+	{
+		return PropertyGridPropertyType::kDirectory;
+	}
+
 	/** 设置是否允许存在编辑框控件
 	* @param [in] bEnable true表示允许存在编辑框控件，false表示不允许存在编辑框控件
 	*/
