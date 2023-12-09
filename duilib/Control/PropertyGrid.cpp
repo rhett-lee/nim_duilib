@@ -1827,6 +1827,10 @@ Control* PropertyGridDateTimeProperty::ShowEditControl(bool bShow)
     }
 
     if (bShow) {
+        int32_t nWidth = GetEditControlMarginRight();
+        UiMargin rcMargin = m_pDateTime->GetMargin();
+        rcMargin.right = nWidth;
+        m_pDateTime->SetMargin(rcMargin, false);
         m_pDateTime->SetVisible(true);
         m_pDateTime->SetFocus();
     }
