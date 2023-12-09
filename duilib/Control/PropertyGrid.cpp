@@ -883,13 +883,36 @@ void PropertyGridProperty::DoInit()
     //挂载鼠标左键按下事件
     m_pLabelBoxRight->AttachButtonDown([this](const EventArgs&) {
         if (!IsReadOnly() && IsEnabled()) {
-            ShowEditControl(true);
+            Control* pControl = ShowEditControl(true);
+            if (pControl != nullptr) {
+                int32_t nWidth = GetEditControlMarginRight();
+                UiMargin rcMargin = pControl->GetMargin();
+                rcMargin.right = nWidth;
+                pControl->SetMargin(rcMargin, false);
+            }
         }
         return true;
         });
 
     //允许或者禁止编辑控件
     EnableEditControl(!IsReadOnly() && IsEnabled());
+}
+
+int32_t PropertyGridProperty::GetEditControlMarginRight() const
+{
+    int32_t nWidth = 0;
+    ScrollBar* pVScrollBar = nullptr;
+    TreeView* pTreeView = GetTreeView();
+    if (pTreeView != nullptr) {
+        pVScrollBar = pTreeView->GetVScrollBar();
+    }
+    if ((pVScrollBar != nullptr) && pVScrollBar->IsValid()) {
+        nWidth = pVScrollBar->GetWidth();
+    }
+    if (nWidth < 0) {
+        nWidth = 0;
+    }
+    return nWidth;
 }
 
 void PropertyGridProperty::SetPropertyText(const std::wstring& text, bool bChanged)
@@ -1070,10 +1093,10 @@ void PropertyGridTextProperty::EnableEditControl(bool bEnable)
         });
 }
 
-void PropertyGridTextProperty::ShowEditControl(bool bShow)
+Control* PropertyGridTextProperty::ShowEditControl(bool bShow)
 {
     if (IsReadOnly() || (m_pRichEdit == nullptr)) {
-        return;
+        return nullptr;
     }
 
     if (bShow) {
@@ -1093,6 +1116,7 @@ void PropertyGridTextProperty::ShowEditControl(bool bShow)
         }
         m_pRichEdit->SetVisible(false);
     }
+    return m_pRichEdit;
 }
 
 void PropertyGridTextProperty::SetPassword(bool bPassword)
@@ -1180,10 +1204,10 @@ void PropertyGridComboProperty::EnableEditControl(bool bEnable)
         });
 }
 
-void PropertyGridComboProperty::ShowEditControl(bool bShow)
+Control* PropertyGridComboProperty::ShowEditControl(bool bShow)
 {
     if (IsReadOnly() || (m_pCombo == nullptr)) {
-        return;
+        return nullptr;
     }
 
     if (bShow) {
@@ -1196,6 +1220,7 @@ void PropertyGridComboProperty::ShowEditControl(bool bShow)
         SetPropertyText(newText, bChanged);
         m_pCombo->SetVisible(false);
     }
+    return m_pCombo;
 }
 
 std::wstring PropertyGridComboProperty::GetPropertyNewValue() const
@@ -1584,10 +1609,10 @@ void PropertyGridColorProperty::EnableEditControl(bool bEnable)
     InitColorCombo();
 }
 
-void PropertyGridColorProperty::ShowEditControl(bool bShow)
+Control* PropertyGridColorProperty::ShowEditControl(bool bShow)
 {
     if (IsReadOnly() || (m_pComboButton == nullptr)) {
-        return;
+        return nullptr;
     }
 
     if (bShow) {
@@ -1605,6 +1630,7 @@ void PropertyGridColorProperty::ShowEditControl(bool bShow)
         SetPropertyTextColor(newText);
         m_pComboButton->SetVisible(false);
     }
+    return m_pComboButton;
 }
 
 void PropertyGridColorProperty::InitColorCombo()
@@ -1771,10 +1797,10 @@ void PropertyGridDateTimeProperty::EnableEditControl(bool bEnable)
         });
 }
 
-void PropertyGridDateTimeProperty::ShowEditControl(bool bShow)
+Control* PropertyGridDateTimeProperty::ShowEditControl(bool bShow)
 {
     if (IsReadOnly() || (m_pDateTime == nullptr)) {
-        return;
+        return nullptr;
     }
 
     if (bShow) {
@@ -1787,6 +1813,7 @@ void PropertyGridDateTimeProperty::ShowEditControl(bool bShow)
         SetPropertyText(newText, bChanged);
         m_pDateTime->SetVisible(false);
     }
+    return m_pDateTime;
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -1831,10 +1858,10 @@ void PropertyGridIPAddressProperty::EnableEditControl(bool bEnable)
         });
 }
 
-void PropertyGridIPAddressProperty::ShowEditControl(bool bShow)
+Control* PropertyGridIPAddressProperty::ShowEditControl(bool bShow)
 {
     if (IsReadOnly() || (m_pIPAddress == nullptr)) {
-        return;
+        return nullptr;
     }
 
     if (bShow) {
@@ -1847,6 +1874,7 @@ void PropertyGridIPAddressProperty::ShowEditControl(bool bShow)
         SetPropertyText(newText, bChanged);
         m_pIPAddress->SetVisible(false);
     }
+    return m_pIPAddress;
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -1891,10 +1919,10 @@ void PropertyGridHotKeyProperty::EnableEditControl(bool bEnable)
         });
 }
 
-void PropertyGridHotKeyProperty::ShowEditControl(bool bShow)
+Control* PropertyGridHotKeyProperty::ShowEditControl(bool bShow)
 {
     if (IsReadOnly() || (m_pHotKey == nullptr)) {
-        return;
+        return nullptr;
     }
 
     if (bShow) {
@@ -1907,6 +1935,7 @@ void PropertyGridHotKeyProperty::ShowEditControl(bool bShow)
         SetPropertyText(newText, bChanged);
         m_pHotKey->SetVisible(false);
     }
+    return m_pHotKey;
 }
 
 ////////////////////////////////////////////////////////////////////////////

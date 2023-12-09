@@ -620,8 +620,13 @@ protected:
 
 	/** 显示或者隐藏编辑框控件
 	* @param [in] bShow 表示显示编辑控件，false表示隐藏编辑控件
+	* @return 返回编辑控件的接口
 	*/
-	virtual void ShowEditControl(bool /*bShow*/) {}
+	virtual Control* ShowEditControl(bool /*bShow*/) { return nullptr; }
+
+	/** 获取编辑控件的Margin.right（避免滚动条遮挡编辑控件）
+	*/
+	int32_t GetEditControlMarginRight() const;
 
 protected:
 	/** 设置属性值的文本(显示控件)
@@ -750,7 +755,7 @@ protected:
 	/** 显示或者隐藏编辑框控件
 	* @param [in] bShow 表示显示编辑控件，false表示隐藏编辑控件
 	*/
-	virtual void ShowEditControl(bool bShow) override;
+	virtual Control* ShowEditControl(bool bShow) override;
 
 private:
 	/** 编辑框控件(用于修改属性)
@@ -854,7 +859,7 @@ protected:
 	/** 显示或者隐藏编辑框控件
 	* @param [in] bShow 表示显示编辑控件，false表示隐藏编辑控件
 	*/
-	virtual void ShowEditControl(bool bShow) override;
+	virtual Control* ShowEditControl(bool bShow) override;
 
 private:
 	/** 下拉框接口
@@ -992,7 +997,7 @@ protected:
 	/** 显示或者隐藏编辑框控件
 	* @param [in] bShow 表示显示编辑控件，false表示隐藏编辑控件
 	*/
-	virtual void ShowEditControl(bool bShow) override;
+	virtual Control* ShowEditControl(bool bShow) override;
 
 private:
 	/** 初始化设置颜色的Combo按钮
@@ -1047,7 +1052,7 @@ protected:
 	/** 显示或者隐藏编辑框控件
 	* @param [in] bShow 表示显示编辑控件，false表示隐藏编辑控件
 	*/
-	virtual void ShowEditControl(bool bShow) override;
+	virtual Control* ShowEditControl(bool bShow) override;
 
 private:
 	/** 日期时间控件接口
@@ -1091,7 +1096,7 @@ protected:
 	/** 显示或者隐藏编辑框控件
 	* @param [in] bShow 表示显示编辑控件，false表示隐藏编辑控件
 	*/
-	virtual void ShowEditControl(bool bShow) override;
+	virtual Control* ShowEditControl(bool bShow) override;
 
 private:
 	/** IP地址控件
@@ -1131,7 +1136,7 @@ protected:
 	/** 显示或者隐藏编辑框控件
 	* @param [in] bShow 表示显示编辑控件，false表示隐藏编辑控件
 	*/
-	virtual void ShowEditControl(bool bShow) override;
+	virtual Control* ShowEditControl(bool bShow) override;
 
 private:
 	/** 热键控件
