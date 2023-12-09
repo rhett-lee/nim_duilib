@@ -111,6 +111,10 @@ public:
     */
     EditFormat GetEditFormat() const;
 
+    /** 更新下编辑窗口的位置
+    */
+    void UpdateEditWndPos();
+
     /** 添加日期时间值变化监听事件
     */
     void AttachTimeChange(const EventCallback& callback) { AttachEvent(kEventValueChange, callback); }

@@ -624,6 +624,10 @@ protected:
 	*/
 	virtual Control* ShowEditControl(bool /*bShow*/) { return nullptr; }
 
+	/** 滚动条发生了滚动(用于处理弹出式子窗口的位置问题)
+	*/
+	virtual void OnScrollPosChanged() {}
+
 	/** 获取编辑控件的Margin.right（避免滚动条遮挡编辑控件）
 	*/
 	int32_t GetEditControlMarginRight() const;
@@ -861,6 +865,10 @@ protected:
 	*/
 	virtual Control* ShowEditControl(bool bShow) override;
 
+	/** 滚动条发生了滚动(用于处理弹出式子窗口的位置问题)
+	*/
+	virtual void OnScrollPosChanged() override;
+
 private:
 	/** 下拉框接口
 	*/
@@ -999,6 +1007,10 @@ protected:
 	*/
 	virtual Control* ShowEditControl(bool bShow) override;
 
+	/** 滚动条发生了滚动(用于处理弹出式子窗口的位置问题)
+	*/
+	virtual void OnScrollPosChanged() override;
+
 private:
 	/** 初始化设置颜色的Combo按钮
 	*/
@@ -1053,6 +1065,10 @@ protected:
 	* @param [in] bShow 表示显示编辑控件，false表示隐藏编辑控件
 	*/
 	virtual Control* ShowEditControl(bool bShow) override;
+
+	/** 滚动条发生了滚动(用于处理弹出式子窗口的位置问题)
+	*/
+	virtual void OnScrollPosChanged() override;
 
 private:
 	/** 日期时间控件接口

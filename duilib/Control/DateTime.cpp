@@ -19,6 +19,9 @@ public:
     HFONT CreateHFont() const;
     UiRect CalPos();
 
+    //更新窗口的位置
+    void UpdateWndPos();
+
     virtual std::wstring GetWindowClassName() const override;
     virtual std::wstring GetSuperClassName() const override;
     void OnFinalMessage(HWND hWnd);
@@ -158,6 +161,27 @@ bool DateTimeWnd::Init(DateTime* pOwner)
     ::SendMessage(hWndParent, WM_NCACTIVATE, TRUE, 0L);
     m_bInit = true;
     return true;
+}
+
+void DateTimeWnd::UpdateWndPos()
+{
+    if (m_pOwner == nullptr) {
+        return;
+    }
+    UiRect rcPos = CalPos();
+    if (rcPos.IsEmpty()) {
+        return;
+    }
+    UiPoint pt1 = { rcPos.left, rcPos.top };
+    UiPoint pt2 = { rcPos.right, rcPos.bottom };
+    ClientToScreen(m_pOwner->GetWindow()->GetHWND(), pt1);
+    ClientToScreen(m_pOwner->GetWindow()->GetHWND(), pt2);
+    UiRect rc;
+    rc.left = pt1.x;
+    rc.top = pt1.y;
+    rc.right = pt2.x;
+    rc.bottom = pt2.y;
+    ::SetWindowPos(GetHWND(), NULL, rc.left, rc.top, rc.Width(), rc.Height(), SWP_NOZORDER | SWP_NOACTIVATE);
 }
 
 HFONT DateTimeWnd::CreateHFont() const
@@ -552,6 +576,13 @@ void DateTime::SetEditFormat(EditFormat editFormat)
 DateTime::EditFormat DateTime::GetEditFormat() const
 {
     return m_editFormat;
+}
+
+void DateTime::UpdateEditWndPos()
+{
+    if (m_pDateWindow != nullptr) {
+        m_pDateWindow->UpdateWndPos();
+    }
 }
 
 void DateTime::HandleEvent(const EventArgs& msg)

@@ -1002,6 +1002,13 @@ void Combo::UpdateComboList()
 	}
 }
 
+void Combo::UpdateComboWndPos()
+{
+	if (m_pWindow != nullptr) {
+		m_pWindow->UpdateComboWnd();
+	}
+}
+
 void Combo::AttachMouseEvents(Control* pControl)
 {
 	if (pControl == nullptr) {

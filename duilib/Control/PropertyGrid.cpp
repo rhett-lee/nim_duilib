@@ -896,6 +896,15 @@ void PropertyGridProperty::DoInit()
 
     //允许或者禁止编辑控件
     EnableEditControl(!IsReadOnly() && IsEnabled());
+
+    //滚动条滚动事件
+    TreeView* pTreeView = GetTreeView();
+    if (pTreeView != nullptr) {
+        pTreeView->AttachScrollChange([this](const EventArgs&) {
+            OnScrollPosChanged();
+            return true;
+            });
+    }
 }
 
 int32_t PropertyGridProperty::GetEditControlMarginRight() const
@@ -1221,6 +1230,13 @@ Control* PropertyGridComboProperty::ShowEditControl(bool bShow)
         m_pCombo->SetVisible(false);
     }
     return m_pCombo;
+}
+
+void PropertyGridComboProperty::OnScrollPosChanged()
+{
+    if ((m_pCombo != nullptr) && m_pCombo->IsVisible()) {
+        m_pCombo->UpdateComboWndPos();
+    }
 }
 
 std::wstring PropertyGridComboProperty::GetPropertyNewValue() const
@@ -1633,6 +1649,13 @@ Control* PropertyGridColorProperty::ShowEditControl(bool bShow)
     return m_pComboButton;
 }
 
+void PropertyGridColorProperty::OnScrollPosChanged()
+{
+    if ((m_pComboButton != nullptr) && m_pComboButton->IsVisible()) {
+        m_pComboButton->UpdateComboWndPos();
+    }
+}
+
 void PropertyGridColorProperty::InitColorCombo()
 {
     ComboButton* pColorComboBtn = m_pComboButton;
@@ -1814,6 +1837,13 @@ Control* PropertyGridDateTimeProperty::ShowEditControl(bool bShow)
         m_pDateTime->SetVisible(false);
     }
     return m_pDateTime;
+}
+
+void PropertyGridDateTimeProperty::OnScrollPosChanged()
+{
+    if ((m_pDateTime != nullptr) && m_pDateTime->IsVisible()) {
+        m_pDateTime->UpdateEditWndPos();
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////

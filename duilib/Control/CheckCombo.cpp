@@ -385,6 +385,13 @@ void CheckCombo::SetSelectedItemClass(const std::wstring& classValue)
 	m_selectedItemClass = classValue;
 }
 
+void CheckCombo::UpdateComboWndPos()
+{
+	if (m_pCheckComboWnd != nullptr) {
+		m_pCheckComboWnd->UpdateComboWnd();
+	}
+}
+
 void CheckCombo::ParseAttributeList(const std::wstring& strList,
 								    std::vector<std::pair<std::wstring, std::wstring>>& attributeList) const
 {

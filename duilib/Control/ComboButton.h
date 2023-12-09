@@ -92,6 +92,10 @@ public:
 	*/
 	Button* GetRightButton() const;
 
+	/** 更新下拉列表窗口的位置
+	*/
+	void UpdateComboWndPos();
+
 public:
 	/** 监听子项按钮点击事件（左侧的按钮被点击）
 	 * @param[in] callback 触发的回调函数

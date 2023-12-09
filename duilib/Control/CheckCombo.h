@@ -84,6 +84,10 @@ public:
 	*/
 	void SetSelectedItemClass(const std::wstring& classValue);
 
+	/** 更新下拉列表窗口的位置
+	*/
+	void UpdateComboWndPos();
+
 	/** 监听下拉窗关闭事件
 	* @param[in] callback 下拉窗关闭后触发的回调函数
 	*/

@@ -546,6 +546,13 @@ Button* ComboButton::GetRightButton() const
 	return m_pRightButton;
 }
 
+void ComboButton::UpdateComboWndPos()
+{
+	if (m_pWindow != nullptr) {
+		m_pWindow->UpdateComboWnd();
+	}
+}
+
 UiSize ComboButton::GetDropBoxSize() const
 {
     return m_szDropBox;

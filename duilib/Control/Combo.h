@@ -189,6 +189,10 @@ public:
 	*/
 	Button* GetButtonContrl() const;
 
+	/** 更新下拉列表窗口的位置
+	*/
+	void UpdateComboWndPos();
+
 public:
 	/** 监听子项被选择事件
 	 * @param[in] callback 子项被选择后触发的回调函数
