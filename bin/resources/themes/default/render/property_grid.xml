@@ -13,6 +13,13 @@
                   group_class="property_grid_group"
                   propterty_class="property_grid_propterty"/>
     <Split bkcolor="splitline_level1" width="2"/>
-    <Box/>
+    <HBox bkcolor="white">
+        <TabCtrl class="tab_ctrl" name="tab_list" margin="10,10,10,10">
+            <TabCtrlItem class="tab_ctrl_item" title="标签1" icon="file='../public/caption/logo_18x18.png' valign='center' halign='center'"/>
+            <TabCtrlItem class="tab_ctrl_item" title="标签2" icon="file='../public/caption/logo_18x18.png' valign='center' halign='center'"/>
+            <TabCtrlItem class="tab_ctrl_item" title="标签3" icon="file='../public/caption/logo_18x18.png' valign='center' halign='center'"/>
+            <TabCtrlItem class="tab_ctrl_item" title="标签4" icon="file='../public/caption/logo_18x18.png' valign='center' halign='center'"/>
+        </TabCtrl>
+    </HBox>
     </HBox>
 </Box>

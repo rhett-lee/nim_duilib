@@ -384,6 +384,9 @@
     <ClCompile Include="Utils\FileDialog.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
+    <ClCompile Include="Control\TabCtrl.cpp">
+      <Filter>Control</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -844,6 +847,9 @@
     </ClInclude>
     <ClInclude Include="Utils\FileDialog.h">
       <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\TabCtrl.h">
+      <Filter>Control</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

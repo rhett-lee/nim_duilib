@@ -31,6 +31,7 @@
 #include "duilib/Control/HyperLink.h"
 #include "duilib/Control/ListCtrl.h"
 #include "duilib/Control/PropertyGrid.h"
+#include "duilib/Control/TabCtrl.h"
 
 #include "duilib/Box/HBox.h"
 #include "duilib/Box/VBox.h"
@@ -783,6 +784,8 @@ Control* WindowBuilder::CreateControlByClass(const std::wstring& strControlClass
 		{DUI_CTR_IPADDRESS, []() { return new IPAddress; }},
 		{DUI_CTR_HOTKEY, []() { return new HotKey; }},
 		{DUI_CTR_HYPER_LINK, []() { return new HyperLink; }},
+		{DUI_CTR_TAB_CTRL, []() { return new TabCtrl; }},
+		{DUI_CTR_TAB_CTRL_ITEM, []() { return new TabCtrlItem; }},
 
 		{DUI_CTR_SPLIT, []() { return new Split; }},
 		{DUI_CTR_SPLITBOX, []() { return new SplitBox; }},

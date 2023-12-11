@@ -2553,11 +2553,18 @@ bool Control::IsWindowRoundRect() const
 	return isWindowRoundRect;
 }
 
-void Control::AddRoundRectPath(IPath* path, const UiRect& rc, const UiSize& roundSize) const
+void Control::AddRoundRectPath(IPath* path, const UiRect& rc, UiSize roundSize) const
 {
 	ASSERT(path != nullptr);
 	if (path == nullptr) {
 		return;
+	}
+	//确保圆角宽度和高度都是偶数
+	if ((roundSize.cx % 2) != 0) {
+		roundSize.cx += 1;
+	}
+	if ((roundSize.cy % 2) != 0) {
+		roundSize.cy += 1;
 	}
 	//这种画法的圆角形状，与CreateRoundRectRgn产生的圆角形状，基本一致的
 	path->AddArc(UiRect((INT)rc.left, rc.top, rc.left + roundSize.cx, rc.top + roundSize.cy), 180, 90);

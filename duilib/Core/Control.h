@@ -1124,7 +1124,7 @@ private:
   
     /** 填充路径, 形成圆角矩形
 	*/
-	void AddRoundRectPath(IPath* path, const UiRect& rc, const UiSize& roundSize) const;
+	void AddRoundRectPath(IPath* path, const UiRect& rc, UiSize roundSize) const;
 
 	/** 当前控件是否为窗口的Root节点
 	*/

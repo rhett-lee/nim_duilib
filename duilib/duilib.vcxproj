@@ -369,6 +369,7 @@
     <ClCompile Include="Control\PropertyGrid.cpp" />
     <ClCompile Include="Control\RichEditHost.cpp" />
     <ClCompile Include="Control\RichText.cpp" />
+    <ClCompile Include="Control\TabCtrl.cpp" />
     <ClCompile Include="Core\Box.cpp" />
     <ClCompile Include="Core\BoxShadow.cpp" />
     <ClCompile Include="Core\ColorManager.cpp" />
@@ -493,6 +494,7 @@
     <ClInclude Include="Control\RichText.h" />
     <ClInclude Include="Control\CircleProgress.h" />
     <ClInclude Include="Control\Split.h" />
+    <ClInclude Include="Control\TabCtrl.h" />
     <ClInclude Include="Core\Box.h" />
     <ClInclude Include="Core\BoxShadow.h" />
     <ClInclude Include="Core\ColorManager.h" />

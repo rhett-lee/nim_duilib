@@ -293,6 +293,23 @@
     <Class name="list_ctrl_list_view_item_label" width="100%" height="100%" text_align="vcenter,left" single_line="true" auto_tooltip="true"/>
     <Class name="list_ctrl_richedit" text_align="left,vcenter" bkcolor="white" min_height="28" multi_line="false" word_wrap="true" auto_hscroll="true" want_return_msg="true" want_tab="false" rich_text="false" text_padding="2,2,2,2" padding="1,1,1,1" border_size="1" border_color="light_gray" hot_border_color="blue" focus_border_color="CornflowerBlue"/>
     
+    <!--TabCtrl控件通用样式-->
+    <Class name="tab_ctrl" height="36" border_round="4,4" bkcolor="#FFD3E3FD" vscrollbar="true"/>
+    <Class name="tab_ctrl_item" margin="0,4,0,0" height="32"  padding="10,0,0,0"
+                                hot_color="#FFA8C7FA" pushed_color="#FFA8C7FA" 
+                                selected_normal_color="white" selected_round_corner="12,12" fadehot="false"                                
+                                hot_round_corner="5,5" hot_padding="3,0,3,3"
+                                auto_hide_close_button="true"
+                                icon_class="tab_ctrl_item_icon"
+                                title_class="tab_ctrl_item_title"
+                                close_button_class="tab_ctrl_item_close"/>
+    <Class name="tab_ctrl_item_icon" width="24" height="24" valign="center" mouse="false"/>
+    <Class name="tab_ctrl_item_title" width="stretch" height="24" margin="2,0,10,0" valign="center" font="system_12" mouse="false"/>
+    <Class name="tab_ctrl_item_close" width="16" height="16" margin="0,0,10,8"
+                float="true" halign="right" valign="center" visible="false" 
+                normal_image="file='../public/button/btn_close.svg' height='10' width='10' halign='center' valign='center'"
+                hot_color="#FFDCDCDD" pushed_color="#FFC2C2C3" border_round="4,4"/>
+    
     <!--气泡框通用样式-->
     <TextColor name="popover_color_0" value="#FFECF1F8"/>
     <TextColor name="popover_color_1" value="#FFF2F7FF"/>
