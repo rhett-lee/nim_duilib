@@ -83,14 +83,16 @@ public:
 	 */
 	Control* FindSubControlByName(Control* pParent, const std::wstring& strName) const;
 
-	/**@brief 回收控件
+	/** 添加一个控件，对控件名称做索引
+	*/
+	void AddControl(Control* pControl);
+
+	/**@brief 回收控件（通过AddControl函数添加的控件）
 	 * @param[in] pControl 控件指针
 	 */
-	void ReapObjects(Control* pControl);
+	void RemoveControl(Control* pControl);
 
 public:
-	static Control* CALLBACK __FindControlFromNameHash(Control* pThis, LPVOID pData);
-	static Control* CALLBACK __FindControlFromCount(Control* pThis, LPVOID pData);
 	static Control* CALLBACK __FindControlFromPoint(Control* pThis, LPVOID pData);
 	static Control* CALLBACK __FindControlFromTab(Control* pThis, LPVOID pData);
 	static Control* CALLBACK __FindControlFromUpdate(Control* pThis, LPVOID pData);

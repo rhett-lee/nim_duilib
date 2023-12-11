@@ -681,8 +681,8 @@ bool Window::InitControls(Control* pControl, Box* pParent /*= NULL*/)
     if (pControl == nullptr) {
         return false;
     }
+    m_controlFinder.AddControl(pControl);
     pControl->SetWindow(this, pParent != nullptr ? pParent : pControl->GetParent(), true);
-    pControl->FindControl(ControlFinder::__FindControlFromNameHash, &m_controlFinder, UIFIND_ALL);
     return true;
 }
 
@@ -703,7 +703,7 @@ void Window::ReapObjects(Control* pControl)
     if (pControl == m_pFocus) {
         m_pFocus = nullptr;
     }
-    m_controlFinder.ReapObjects(pControl);
+    m_controlFinder.RemoveControl(pControl);
 }
 
 const std::wstring& Window::GetResourcePath() const

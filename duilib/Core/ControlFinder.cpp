@@ -79,7 +79,7 @@ Control* ControlFinder::FindSubControlByName(Control* pParent, const std::wstrin
 	return nullptr;
 }
 
-void ControlFinder::ReapObjects(Control* pControl)
+void ControlFinder::RemoveControl(Control* pControl)
 {
 	if (pControl == nullptr) {
 		return;
@@ -87,43 +87,31 @@ void ControlFinder::ReapObjects(Control* pControl)
 	const std::wstring sName = pControl->GetName();
 	if (!sName.empty()) {
 		auto it = m_mNameHash.find(sName);
-		if (it != m_mNameHash.end())
-		{
+		if (it != m_mNameHash.end()) {
 			m_mNameHash.erase(it);
 		}
 	}
 }
 
-Control* CALLBACK ControlFinder::__FindControlFromNameHash(Control* pThis, LPVOID pData)
+void ControlFinder::AddControl(Control* pControl)
 {
-	const std::wstring sName = pThis->GetName();
-	if (sName.empty()) {
-		return nullptr;
+	if (pControl == nullptr) {
+		return;
 	}
-	// Add this control to the hash list
-	ControlFinder* pManager = static_cast<ControlFinder*>(pData);
-	if (pManager != nullptr) {
-		auto iter = pManager->m_mNameHash.find(sName);
-		if (iter != pManager->m_mNameHash.end()){
-			//ASSERT(iter->second == pThis);
-			if (iter->second != pThis) {
-				iter->second = pThis;
-			}
+	const std::wstring sName = pControl->GetName();
+	if (sName.empty()) {
+		return;
+	}
+	auto iter = m_mNameHash.find(sName);
+	if (iter != m_mNameHash.end()) {
+		if (iter->second != pControl) {
+			//控件名称相同的，覆盖
+			iter->second = pControl;
 		}
-		else {
-			pManager->m_mNameHash[sName] = pThis;
-		}
-	}	
-	return nullptr; // Attempt to add all controls
-}
-
-Control* CALLBACK ControlFinder::__FindControlFromCount(Control* /*pThis*/, LPVOID pData)
-{
-	int* pnCount = static_cast<int*>(pData);
-	if (pnCount != nullptr)	{
-		(*pnCount)++;
-	}	
-	return nullptr;  // Count all controls
+	}
+	else {
+		m_mNameHash[sName] = pControl;
+	}
 }
 
 Control* CALLBACK ControlFinder::__FindControlFromPoint(Control* pThis, LPVOID pData)

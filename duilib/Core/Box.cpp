@@ -411,11 +411,11 @@ bool Box::DoAddItemAt(Control* pControl, size_t iIndex)
 		ASSERT(FALSE);
 		return false;
 	}
+	m_items.insert(m_items.begin() + iIndex, pControl);
 	Window* pWindow = GetWindow();
 	if (pWindow != nullptr) {
 		pWindow->InitControls(pControl, this);
-	}
-	m_items.insert(m_items.begin() + iIndex, pControl);
+	}	
 	if (IsVisible()) {
 		Arrange();
 	}	
