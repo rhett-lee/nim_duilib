@@ -463,7 +463,7 @@ public:
         }
     }
 
-    void DoInit() override {
+    virtual void DoInit() override {
         if (m_bInited)
             return;
 
@@ -623,7 +623,7 @@ public:
 private:
     // жиди
     std::wstring GetType() const;
-    void DoInit() override;
+    virtual void DoInit() override;
     virtual LRESULT FilterMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
 
     /**

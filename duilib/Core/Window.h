@@ -402,9 +402,8 @@ public:
 
     /** 初始化控件，在容器中添加控件时会被调用（用于对控件名称做缓存）
     * @param [in] pControl 控件指针
-    * @param [in] pParent 控件父容器
     */
-    bool InitControls(Control* pControl, Box* pParent = NULL);
+    bool InitControls(Control* pControl);
 
     /** 初始化布局
     */

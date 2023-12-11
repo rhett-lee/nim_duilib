@@ -28,20 +28,26 @@ Box::~Box()
 
 std::wstring Box::GetType() const { return DUI_CTR_BOX; }
 
-void Box::SetWindow(Window* pManager, Box* pParent, bool bInit)
+void Box::SetParent(Box* pParent)
 {
+	Control::SetParent(pParent);
 	for (auto pControl : m_items) {
 		ASSERT(pControl != nullptr);
 		if (pControl != nullptr) {
-			pControl->SetWindow(pManager, this, bInit);
-		}		
-	}
-	Control::SetWindow(pManager, pParent, bInit);
+			pControl->SetParent(this);
+		}
+	}	
 }
 
 void Box::SetWindow(Window* pManager)
 {
 	Control::SetWindow(pManager);
+	for (auto pControl : m_items) {
+		ASSERT(pControl != nullptr);
+		if (pControl != nullptr) {
+			pControl->SetWindow(pManager);
+		}
+	}	
 }
 
 void Box::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
@@ -414,8 +420,12 @@ bool Box::DoAddItemAt(Control* pControl, size_t iIndex)
 	m_items.insert(m_items.begin() + iIndex, pControl);
 	Window* pWindow = GetWindow();
 	if (pWindow != nullptr) {
-		pWindow->InitControls(pControl, this);
-	}	
+		pWindow->InitControls(pControl);
+	}
+	pControl->SetParent(this);
+
+	//在添加到父容器以后，调用初始化函数
+	pControl->Init();
 	if (IsVisible()) {
 		Arrange();
 	}	

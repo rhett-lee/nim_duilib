@@ -32,8 +32,6 @@ public:
 	virtual std::wstring GetType() const override;
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 	virtual bool IsVisible() const override;
-	virtual void SetWindow(Window* pManager, Box* pParent, bool bInit = true) override;
-	virtual void SetWindow(Window* pManager) override;
 	virtual bool SupportCheckedMode() const override;
 
 private:
@@ -312,7 +310,7 @@ public:
 	/// 重写父类方法，提供个性化功能，请参考父类声明
 	virtual std::wstring GetType() const override;
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
-	virtual void SetWindow(Window* pManager, Box* pParent, bool bInit = true) override;
+	virtual void SetParent(Box* pParent) override;
 	virtual void SetWindow(Window* pManager) override;
 
 	/** 获取根节点

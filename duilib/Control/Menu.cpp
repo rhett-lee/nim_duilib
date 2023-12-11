@@ -115,11 +115,12 @@ void CMenuWnd::DetachOwner()
 			m_pLayout->SelectItem(Box::InvalidIndex, false, false);
 		}
 
-		//将在OnInitWindow中，添加到Layout上的节点，接触关联关系
+		//将在OnInitWindow中，添加到Layout上的节点，解除关联关系
 		std::vector<Control*> submenuControls;
 		CMenuElementUI::GetAllSubMenuControls(m_pOwner, submenuControls);
 		for (auto pItem : submenuControls) {
-			pItem->SetWindow(nullptr, nullptr, false);
+			pItem->SetWindow(nullptr);
+			pItem->SetParent(nullptr);
 		}
 
 		m_pLayout->RemoveAllItems();

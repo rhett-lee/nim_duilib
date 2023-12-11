@@ -253,16 +253,6 @@ bool TreeNode::IsVisible() const
 	return true;
 }
 
-void TreeNode::SetWindow(Window* pManager, Box* pParent, bool bInit)
-{
-	ListBoxItem::SetWindow(pManager, pParent, bInit);
-}
-
-void TreeNode::SetWindow(Window* pManager)
-{
-	__super::SetWindow(pManager);
-}
-
 bool TreeNode::SupportCheckedMode() const
 {
 	bool bHasStateImages = HasStateImages();
@@ -316,9 +306,8 @@ bool TreeNode::AddChildNodeAt(TreeNode* pTreeNode, const size_t iIndex)
 	pTreeNode->m_uDepth = m_uDepth + 1;
 	pTreeNode->SetParentNode(this);
 	pTreeNode->SetTreeView(m_pTreeView);
-	if (GetWindow() != nullptr) {
-		GetWindow()->InitControls(pTreeNode, nullptr);
-	}
+	pTreeNode->SetWindow(GetWindow());
+
 	//监听双击事件：用于展开子节点
 	pTreeNode->AttachEvent(kEventMouseDoubleClick, nbase::Bind(&TreeNode::OnDoubleClickItem, this, std::placeholders::_1));
 	
@@ -1376,10 +1365,10 @@ void TreeView::RemoveAllItems()
 	ASSERT(FALSE);
 }
 
-void TreeView::SetWindow(Window* pManager, Box* pParent, bool bInit)
+void TreeView::SetParent(Box* pParent)
 {
-	ListBox::SetWindow(pManager, pParent, bInit);
-	m_rootNode->SetWindow(pManager, pParent, bInit);
+	ListBox::SetParent(pParent);
+	m_rootNode->SetParent(pParent);
 }
 
 void TreeView::SetWindow(Window* pManager)

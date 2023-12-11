@@ -31,7 +31,7 @@ public:
 public:
 	/// 重写父类接口，提供个性化功能。方法具体说明请查看 Control 控件
 	virtual std::wstring GetType() const override;
-	virtual void SetWindow(Window* pManager, Box* pParent, bool bInit = true) override;
+	virtual void SetParent(Box* pParent) override;
 	virtual void SetWindow(Window* pManager) override;
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 	virtual void PaintChild(IRender* pRender, const UiRect& rcPaint) override;

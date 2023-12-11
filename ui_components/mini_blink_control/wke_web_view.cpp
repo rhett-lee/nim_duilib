@@ -75,18 +75,19 @@ void WkeWebView::Paint(ui::IRender* pRender, const ui::UiRect& rcPaint) {
   pRender->BitBlt(rect.left, rect.top, rect.Width(), rect.Height(), bitmap.get(), 0, 0, ui::RopMode::kSrcCopy);
 }
 
-void WkeWebView::SetWindow(ui::Window* pManager, ui::Box* pParent, bool bInit) {
+void WkeWebView::SetWindow(ui::Window* pManager) {
   if (!m_wke_web_view)
   {
-    __super::SetWindow(pManager, pParent, bInit);
+    __super::SetWindow(pManager);
     return;
   }
 
-  if (GetWindow())
-  {
+  if (GetWindow()) {
       GetWindow()->RemoveMessageFilter(this);
-    __super::SetWindow(pManager, pParent, bInit);
-    pManager->AddMessageFilter(this);
+    __super::SetWindow(pManager);
+    if (pManager != nullptr) {
+        pManager->AddMessageFilter(this);
+    }    
   }
 }
 

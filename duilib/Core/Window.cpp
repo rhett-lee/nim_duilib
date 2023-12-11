@@ -675,14 +675,14 @@ bool Window::AttachBox(Box* pRoot)
     return isInit;
 }
 
-bool Window::InitControls(Control* pControl, Box* pParent /*= NULL*/)
+bool Window::InitControls(Control* pControl)
 {
     ASSERT(pControl != nullptr);
     if (pControl == nullptr) {
         return false;
     }
     m_controlFinder.AddControl(pControl);
-    pControl->SetWindow(this, pParent != nullptr ? pParent : pControl->GetParent(), true);
+    pControl->SetWindow(this);   
     return true;
 }
 
@@ -2431,7 +2431,7 @@ void Window::SetArrange(bool bArrange)
 void Window::AddDelayedCleanup(Control* pControl)
 {
     if (pControl != nullptr) {
-        pControl->SetWindow(this, NULL, false);
+        pControl->SetWindow(this);
         m_aDelayedCleanup.push_back(pControl);
         ::PostMessage(m_hWnd, WM_APP + 1, 0, 0L);
     }

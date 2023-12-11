@@ -11,7 +11,7 @@ public:
     ~AlertFooter() = default;
 
     std::wstring GetType() const override;
-    void DoInit() override;
+    virtual void DoInit() override;
 };
 
 }

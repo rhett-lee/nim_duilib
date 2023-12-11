@@ -611,7 +611,6 @@ public:
 
 	/** 设置关联窗口
 	*/
-	virtual void SetWindow(Window* pManager, Box* pParent, bool bInit) override;
 	virtual void SetWindow(Window* pManager) override;
 
 	/** 设置控件位置（子类可改变行为）

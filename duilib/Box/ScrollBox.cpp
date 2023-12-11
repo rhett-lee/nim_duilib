@@ -370,15 +370,15 @@ void ScrollBox::SetMouseEnabled(bool bEnabled)
 	Box::SetMouseEnabled(bEnabled);
 }
 
-void ScrollBox::SetWindow(Window* pManager, Box* pParent, bool bInit)
+void ScrollBox::SetParent(Box* pParent)
 {
 	if (m_pVScrollBar != nullptr) {
-		m_pVScrollBar->SetWindow(pManager, this, bInit);
+		m_pVScrollBar->SetParent(this);
 	}
 	if (m_pHScrollBar != nullptr) {
-		m_pHScrollBar->SetWindow(pManager, this, bInit);
+		m_pHScrollBar->SetParent(this);
 	}
-	Box::SetWindow(pManager, pParent, bInit);
+	Box::SetParent(pParent);
 }
 
 void ScrollBox::SetWindow(Window* pManager)
@@ -826,7 +826,7 @@ void ScrollBox::EnableScrollBar(bool bEnableVertical, bool bEnableHorizontal)
 		m_pVScrollBar->SetVisible(false);
 		m_pVScrollBar->SetScrollRange(0);
 		m_pVScrollBar->SetOwner(this);
-		m_pVScrollBar->SetWindow(GetWindow(), nullptr, false);
+		m_pVScrollBar->SetWindow(GetWindow());
 		m_pVScrollBar->SetClass(L"vscrollbar");
 	}
 	else if( !bEnableVertical && (m_pVScrollBar != nullptr) ) {
@@ -839,7 +839,7 @@ void ScrollBox::EnableScrollBar(bool bEnableVertical, bool bEnableHorizontal)
 		m_pHScrollBar->SetScrollRange(0);
 		m_pHScrollBar->SetHorizontal(true);
 		m_pHScrollBar->SetOwner(this);
-		m_pHScrollBar->SetWindow(GetWindow(), nullptr, false);
+		m_pHScrollBar->SetWindow(GetWindow());
 		m_pHScrollBar->SetClass(L"hscrollbar");
 	}
 	else if( !bEnableHorizontal && (m_pHScrollBar != nullptr)) {

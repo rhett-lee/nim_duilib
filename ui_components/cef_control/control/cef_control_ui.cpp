@@ -180,18 +180,16 @@ void CefControl::Paint(ui::IRender* pRender, const ui::UiRect& rcPaint)
 	}
 }
 
-void CefControl::SetWindow(ui::Window* pManager, ui::Box* pParent, bool bInit)
+void CefControl::SetWindow(ui::Window* pManager)
 {
-	if (!browser_handler_)
-	{
-		__super::SetWindow(pManager, pParent, bInit);
+	if (!browser_handler_) {
+		__super::SetWindow(pManager);
 		return;
 	}
 
-	if (GetWindow())
-	{
+	if (GetWindow()) {
 		GetWindow()->RemoveMessageFilter(this);
-		__super::SetWindow(pManager, pParent, bInit);
+		__super::SetWindow(pManager);
 		pManager->AddMessageFilter(this);
 	}
 

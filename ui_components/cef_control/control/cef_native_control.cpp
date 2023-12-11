@@ -123,21 +123,24 @@ void CefNativeControl::SetVisible(bool bVisible)
 	}
 }
 
-void CefNativeControl::SetWindow(ui::Window* pManager, ui::Box* pParent, bool bInit)
+void CefNativeControl::SetWindow(ui::Window* pManager)
 {
+	if (pManager == nullptr) {
+		return;
+	}
 	if (browser_handler_)
 		browser_handler_->SetHostWindow(pManager->GetHWND());
 
 	// 设置Cef窗口句柄为新的主窗口的子窗口
 	auto hwnd = GetCefHandle();
 	if (hwnd)
-		SetParent(hwnd, pManager->GetHWND());
+		::SetParent(hwnd, pManager->GetHWND());
 
 	// 为新的主窗口重新设置WS_CLIPSIBLINGS、WS_CLIPCHILDREN样式，否则Cef窗口刷新会出问题
 	LONG style = GetWindowLong(pManager->GetHWND(), GWL_STYLE);
 	SetWindowLong(pManager->GetHWND(), GWL_STYLE, style | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
 
-	__super::SetWindow(pManager, pParent, bInit);
+	__super::SetWindow(pManager);
 }
 
 bool CefNativeControl::AttachDevTools(Control* /*view*/)

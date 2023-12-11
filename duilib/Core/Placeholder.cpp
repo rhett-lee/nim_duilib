@@ -34,7 +34,7 @@ std::wstring PlaceHolder::GetType() const { return L"PlaceHolder"; }
 
 ui::Box* PlaceHolder::GetAncestor(const std::wstring& strName)
 {
-	Box* pAncestor = this->GetParent();
+	Box* pAncestor = GetParent();
 	while ((pAncestor != nullptr) && !pAncestor->IsNameEquals(strName)) {
 		pAncestor = pAncestor->GetParent();
 	}
@@ -70,13 +70,9 @@ void PlaceHolder::SetUTF8Name(const std::string& strName)
 	SetName(strOut);
 }
 
-void PlaceHolder::SetWindow(Window* pManager, Box* pParent, bool bInit)
+void PlaceHolder::SetParent(Box* pParent)
 {
-	m_pWindow = pManager;
 	m_pParent = pParent;
-	if (bInit && m_pParent) {
-		Init();
-	}
 }
 
 void PlaceHolder::SetWindow(Window* pManager)

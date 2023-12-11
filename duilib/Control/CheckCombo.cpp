@@ -103,7 +103,8 @@ void CCheckComboWnd::CloseComboWnd()
 	m_bIsClosed = true;
 	Box* pRootBox = GetRoot();
 	if ((pRootBox != nullptr) && (pRootBox->GetItemCount() > 0)) {
-		m_pOwner->GetListBox()->SetWindow(nullptr, nullptr, false);
+		m_pOwner->GetListBox()->SetWindow(nullptr);
+		m_pOwner->GetListBox()->SetParent(nullptr);
 		pRootBox->RemoveAllItems();
 	}
 	//先将前端窗口切换为父窗口，避免前端窗口关闭后，切换到其他窗口
@@ -127,7 +128,8 @@ void CCheckComboWnd::OnFinalMessage(HWND /*hWnd*/)
 {
 	if (m_pOwner != nullptr) {
 		if (m_pOwner->GetListBox()->GetWindow() == this) {
-			m_pOwner->GetListBox()->SetWindow(nullptr, nullptr, false);
+			m_pOwner->GetListBox()->SetWindow(nullptr);
+			m_pOwner->GetListBox()->SetParent(nullptr);
 		}
 		if (m_pOwner->m_pCheckComboWnd == this) {
 			m_pOwner->m_pCheckComboWnd = nullptr;
@@ -161,10 +163,10 @@ LRESULT CCheckComboWnd::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam,
 	else if (uMsg == WM_CLOSE) {
 		Box* pRootBox = GetRoot();
 		if ((pRootBox != nullptr) && (pRootBox->GetItemCount() > 0)) {
-			m_pOwner->GetListBox()->SetWindow(nullptr, nullptr, false);
+			m_pOwner->GetListBox()->SetWindow(nullptr);
+			m_pOwner->GetListBox()->SetParent(nullptr);
 			pRootBox->RemoveAllItems();
 		}
-		m_pOwner->SetWindow(m_pOwner->GetWindow(), m_pOwner->GetParent(), false);
 		m_pOwner->SetPos(m_pOwner->GetPos());
 		m_pOwner->SetFocus();
 	}

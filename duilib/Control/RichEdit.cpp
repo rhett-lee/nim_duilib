@@ -444,17 +444,6 @@ void RichEdit::SetAttribute(const std::wstring& strName, const std::wstring& str
 	}
 }
 
-void RichEdit::SetWindow(Window* pManager, Box* pParent, bool bInit)
-{
-	if (IsEnableDragDrop() && (pManager != GetWindow())) {
-		UnregisterDragDrop();
-	}
-	__super::SetWindow(pManager, pParent, bInit);
-	if (IsEnableDragDrop()) {
-		RegisterDragDrop();
-	}
-}
-
 void RichEdit::SetWindow(Window* pManager)
 {
 	if (IsEnableDragDrop() && (pManager != GetWindow())) {

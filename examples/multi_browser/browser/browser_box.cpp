@@ -94,12 +94,12 @@ TaskbarTabItem* BrowserBox::GetTaskbarItem()
 	return taskbar_item_;
 }
 
-void BrowserBox::SetWindow(Window* pManager, Box* pParent, bool bInit)
+void BrowserBox::SetWindow(Window* pManager)
 {
 	browser_form_ = dynamic_cast<MultiBrowserForm*>(pManager);
 	ASSERT(NULL != browser_form_);
 
-	__super::SetWindow(pManager, pParent, bInit);
+	__super::SetWindow(pManager);
 }
 
 void BrowserBox::Invalidate()

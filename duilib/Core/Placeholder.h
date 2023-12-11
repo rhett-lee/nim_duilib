@@ -27,54 +27,52 @@ public:
 	*/
 	virtual std::wstring GetType() const;
 
-	/**@brief 获取父容器指针
-	 */
-	Box* GetParent() const { return m_pParent;}
-
-	/**@brief 根据名称获取祖先容器指针
-	 * @param[in] strName 要获取的祖先容器名称
-	 */
-	Box* GetAncestor(const std::wstring& strName);
-
-	/**@brief 获取控件名称，对应 xml 中 name 属性
+	/** 获取控件名称，对应 xml 中 name 属性
 	 */
 	std::wstring GetName() const;
+
+	/** 获取控件名称，对应 xml 中 name 属性
+	 * @return 返回控件名称（UTF8 编码）
+	 */
+	std::string GetUTF8Name() const;
+
+	/** 设置控件名称，内存中设置不会写入 xml 中
+	 * @param [in] strName 要设置的名称
+	 */
+	void SetName(const std::wstring& strName);
+
+	/** 设置控件名称，内存中设置不会写入 xml 中（UTF8 编码）
+	 * @param[in] strName 要设置的名称
+	 */
+	void SetUTF8Name(const std::string& strName);
 
 	/** 判断控件名称是否相等
 	*/
 	bool IsNameEquals(const std::wstring& name) const;
 
-	/**@brief 获取控件名称，对应 xml 中 name 属性
-	 * @return 返回控件名称（UTF8 编码）
-	 */
-	std::string GetUTF8Name() const;
+	/** 根据名称获取祖先容器指针
+	* @param [in] strName 要获取的祖先容器名称
+	*/
+	Box* GetAncestor(const std::wstring& strName);
 
-	/**@brief 设置控件名称，内存中设置不会写入 xml 中
-	 * @param[in] strName 要设置的名称
+	/** 设置容器所属窗口
+	 * @param [in] pParent 父容器指针
 	 */
-	void SetName(const std::wstring& strName);
+	virtual void SetParent(Box* pParent);
 
-	/**@brief 设置控件名称，内存中设置不会写入 xml 中（UTF8 编码）
-	 * @param[in] strName 要设置的名称
-	 */
-	void SetUTF8Name(const std::string& strName);
-
-	/**@brief 获取关联的窗口指针
-	 * @return 返回关联窗口的指针
-	 */
-	virtual Window* GetWindow() const { return m_pWindow; }
-
-	/**@brief 设置容器所属窗口
-	 * @param[in] pManager 窗口指针
-	 * @param[in] pParent 父容器
-	 * @param[in] bInit 设置后是否调用 Init 初始化控件
-	 */
-	virtual void SetWindow(Window* pManager, Box* pParent, bool bInit);
-
-	/**@brief 设置容器所属窗口
-	 * @param[in] pManager 窗口指针
+	/** 设置容器所属窗口
+	 * @param [in] pManager 窗口指针
 	 */
 	virtual void SetWindow(Window* pManager);
+
+	/** 获取父容器指针
+	*/
+	Box* GetParent() const { return m_pParent; }
+
+	/** 获取关联的窗口指针
+	 * @return 返回关联窗口的指针
+	 */
+	Window* GetWindow() const { return m_pWindow; }
 
 	/**@brief 初始化函数
 	 */

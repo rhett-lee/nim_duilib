@@ -12,7 +12,7 @@ public:
 
     std::wstring GetType() const override;
     virtual ui::UiEstSize EstimateSize(ui::UiSize szAvailable) override;
-    void DoInit() override;
+    virtual void DoInit() override;
 };
 
 }

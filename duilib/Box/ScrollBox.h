@@ -33,7 +33,7 @@ public:
 	virtual bool MouseLeave(const EventArgs& msg) override;
 	virtual void PaintChild(IRender* pRender, const UiRect& rcPaint) override;
 	virtual void SetMouseEnabled(bool bEnable = true) override;
-	virtual void SetWindow(Window* pManager, Box* pParent, bool bInit) override;
+	virtual void SetParent(Box* pParent) override;
 	virtual void SetWindow(Window* pManager) override;
 	virtual Control* FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, UiPoint scrollPos = UiPoint()) override;
 	virtual void ClearImageCache() override;

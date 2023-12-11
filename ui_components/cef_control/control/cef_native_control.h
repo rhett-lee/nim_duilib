@@ -19,7 +19,7 @@ public:
 	virtual void SetPos(ui::UiRect rc) override;
 	virtual void HandleEvent(const ui::EventArgs& msg) override;
 	virtual void SetVisible(bool bVisible) override;
-	virtual void SetWindow(ui::Window* pManager, ui::Box* pParent, bool bInit) override;
+	virtual void SetWindow(ui::Window* pManager) override;
 
 	/**
 	* @brief 打开开发者工具

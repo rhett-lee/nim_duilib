@@ -20,7 +20,7 @@ class AppItemUi : public ui::VBox
 {
 public:
 	static AppItemUi* Create(const AppItem& item);
-	virtual void DoInit();
+	virtual void DoInit() override;
 	void SetAppdata(const AppItem& item,bool refresh);
 	void FixPos(int step,int index=-1);   //前进/后退多少步  目前应该有-1 0 1    
 	inline int getIndex() const { return index_; }
