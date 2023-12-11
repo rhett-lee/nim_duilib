@@ -216,8 +216,7 @@ ComboButton::ComboButton() :
 	m_pLabelTop(nullptr),
 	m_pLabelBottom(nullptr),
 	m_pRightButton(nullptr),
-	m_bDropListShown(false),
-	m_bInited(false)
+	m_bDropListShown(false)
 {
 	//需要调用设置函数，内部有DPI自适应的逻辑调整大小
 	SetDropBoxSize({ 0, 150 }, true);
@@ -226,7 +225,7 @@ ComboButton::ComboButton() :
 
 ComboButton::~ComboButton()
 {
-	if (!m_bInited) {
+	if (!IsInited()) {
 		if (m_pLeftButton != nullptr) {
 			delete m_pLeftButton;
 			m_pLeftButton = nullptr;
@@ -465,13 +464,12 @@ std::wstring ComboButton::GetBorderColor(ControlStateType stateType) const
 	return borderColor;
 }
 
-void ComboButton::DoInit()
+void ComboButton::OnInit()
 {
-	if (m_bInited) {
+	if (IsInited()) {
 		return;
 	}
-	m_bInited = true;
-	__super::DoInit();
+	__super::OnInit();
 
 	HBox* pBox = new HBox;
 	AddItem(pBox);
@@ -516,11 +514,6 @@ void ComboButton::DoInit()
 		m_pRightButton->AttachClick(nbase::Bind(&ComboButton::OnRightButtonClicked, this, std::placeholders::_1));
 		m_pRightButton->AttachStateChange(nbase::Bind(&ComboButton::OnButtonStateChanged, this, std::placeholders::_1));
 	}
-}
-
-bool ComboButton::IsInited() const
-{
-	return m_bInited;
 }
 
 Box* ComboButton::GetComboBox() const

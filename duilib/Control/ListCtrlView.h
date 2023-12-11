@@ -74,7 +74,7 @@ public:
 protected:
     /** 控件初始化
     */
-    virtual void DoInit() override;
+    virtual void OnInit() override;
 
     /** 绘制子控件
     */

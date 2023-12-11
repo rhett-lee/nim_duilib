@@ -36,7 +36,7 @@ protected:
 
 	/** 初始化接口
 	*/
-	virtual void DoInit() override;
+	virtual void OnInit() override;
 
 	/** @brief 控件统一的消息处理入口，将传统 Windows 消息转换为自定义格式的消息
 	 * @param[in] eventType	消息内容
@@ -61,10 +61,6 @@ protected:
 	void OnKillFocusEvent(RichEdit* pRichEdit, Control* pNewFocus);
 
 private:
-
-	//初始化标志
-	bool m_bInited;
-
 	/** 编辑框列表
 	*/
 	std::vector<RichEdit*> m_editList;

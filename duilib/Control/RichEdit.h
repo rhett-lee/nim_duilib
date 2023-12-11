@@ -908,7 +908,7 @@ protected:
 
 	//一些基类的虚函数
 	virtual bool CanPlaceCaptionBar() const override;
-	virtual void DoInit() override;
+	virtual void OnInit() override;
 	virtual UINT GetControlFlags() const override;	
 
 	//消息处理函数
@@ -1017,9 +1017,6 @@ protected:
 
 	//RichEdit Host类
 	RichEditHost* m_pRichHost;
-
-	//是否已经初始化
-	bool m_bInited;
 
     bool m_bVScrollBarFixing; //滚动条修正标志
     bool m_bWantTab;		  //是否接收TAB键，如果为true的时候，TAB键会当作文本输入，否则过滤掉TAB键

@@ -48,11 +48,4 @@ ui::UiEstSize TooltipBody::EstimateSize(ui::UiSize szAvailable)
     return estSize;
 }
 
-void TooltipBody::DoInit()
-{
-    if (m_bInited)
-        return;
-
-    m_bInited = true;
-}
 }

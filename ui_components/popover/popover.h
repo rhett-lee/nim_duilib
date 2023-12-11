@@ -140,7 +140,7 @@ public:
     virtual ~PopoverArrow();
 
     virtual std::wstring GetType() const override;
-    virtual void DoInit() override;
+    virtual void OnInit() override;
 
     void SetArrowArea(ui::UiRect rcArea);
 
@@ -157,7 +157,6 @@ protected:
     virtual void CalcTrianglePoints();
     virtual void PaintBkColor(ui::IRender* pRender) override;
 protected:
-    bool m_bInited;
     int m_nPlacement;
     ui::UiRect m_rcArea;
     ui::UiPoint m_ptTriangle[3];
@@ -178,7 +177,6 @@ public:
     // 重载父类
     virtual std::wstring GetType() const override;
     virtual ui::UiEstSize EstimateSize(ui::UiSize szAvailable) override;
-    virtual void DoInit() override;
 
     // 更新内容
     virtual void UpdateTitle(const std::wstring& strTitle);
@@ -190,7 +188,6 @@ protected:
 
 
 protected:
-    bool m_bInited;
     bool m_bUseMaxSize;
     ui::CEventSource OnClose;
     std::wstring m_strTitle;
@@ -211,11 +208,9 @@ public:
 
     virtual std::wstring GetType() const override;
     virtual ui::UiEstSize EstimateSize(ui::UiSize szAvailable) override;
-    virtual void DoInit() override;
-
+ 
     virtual void UpdateContent(const std::wstring& strContent);
 protected:
-    bool m_bInited;
     bool m_bUseMaxSize;
     ui::RichEdit* m_pRichEditContent;
 };
@@ -229,13 +224,12 @@ public:
 
     virtual std::wstring GetType() const override;
     virtual ui::UiEstSize EstimateSize(ui::UiSize szAvailable) override;
-    virtual void DoInit() override;
+    virtual void OnInit() override;
 
     void AttachCancelClicked(const ui::EventCallback& callback) { OnCancel += callback; }
     void AttachOkClicked(const ui::EventCallback& callback) { OnOk += callback; }
 
 protected:
-    bool m_bInited;
     bool m_bUseMaxSize;
     std::wstring m_strOk;
     std::wstring m_strCancel;
@@ -289,7 +283,7 @@ public:
     // 重载父类
     virtual std::wstring GetType() const override;
     virtual ui::UiEstSize EstimateSize(ui::UiSize szAvailable) override;
-    virtual void DoInit() override;
+    virtual void OnInit() override;
     virtual void SetPos(ui::UiRect rc) override;
 
     ui::Control* GetAnchor() const { return m_pAnchor; }
@@ -355,7 +349,6 @@ protected:
 
 protected:
     std::wstring m_strTag;
-    bool m_bInited;
     ui::Control* m_pAnchor;
     int m_nPlacement;
     int m_nShowType;
@@ -425,7 +418,7 @@ class NotificationHolderLayer :public PopoverHolderLayer
 public:
     explicit NotificationHolderLayer(ui::Control* pAnchor) :
         PopoverHolderLayer(PopoverHolderLayer::kHolderTypeNotification, new ui::VLayout()),
-        m_pAnchor(pAnchor), m_bInited(false)
+        m_pAnchor(pAnchor)
     {
     }
 
@@ -463,20 +456,19 @@ public:
         }
     }
 
-    virtual void DoInit() override {
-        if (m_bInited)
-            return;
+    virtual void OnInit() override {
 
+        if (IsInited()) {
+            return;
+        }
+        __super::OnInit();
         ASSERT(m_pAnchor);
 
         m_pAnchor->AttachResize(nbase::Bind(&NotificationHolderLayer::OnAnchorResize, this, std::placeholders::_1));
-
-        m_bInited = true;
     }
 
 private:
     ui::Control* m_pAnchor;
-    bool m_bInited;
 };
 
 /**
@@ -623,7 +615,7 @@ public:
 private:
     // 重载
     std::wstring GetType() const;
-    virtual void DoInit() override;
+    virtual void OnInit() override;
     virtual LRESULT FilterMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
 
     /**
@@ -644,7 +636,6 @@ private:
     void OnMouseEventButtonDown(ui::UiPoint pt);
 
 private:
-    bool m_bInited;
     bool m_bShowMask;
     bool m_bDisableWindow;
     int alert_count;

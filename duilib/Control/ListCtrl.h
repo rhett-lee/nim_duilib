@@ -679,7 +679,7 @@ public:
 protected:
     /** 控件初始化
     */
-    virtual void DoInit() override;
+    virtual void OnInit() override;
 
     /** 初始化Report视图
     */
@@ -874,10 +874,6 @@ private:
     void ClearEditEvents();
 
 private:
-	/** 初始化标志
-	*/
-	bool m_bInited;
-
     /** 表格类型（默认为Report类型）
     */
     ListCtrlType m_listCtrlType;

@@ -238,8 +238,7 @@ Combo::Combo() :
 	m_pEditControl(nullptr),
 	m_pButtonControl(nullptr),
 	m_comboType(kCombo_DropDown),
-	m_bDropListShown(false),
-	m_bInited(false)
+	m_bDropListShown(false)
 {
 	//需要调用设置函数，内部有DPI自适应的逻辑调整大小
 	SetDropBoxSize({ 0, 150 }, true);
@@ -249,7 +248,7 @@ Combo::Combo() :
 
 Combo::~Combo()
 {
-	if (!m_bInited) {
+	if (!IsInited()) {
 		if (m_pIconControl != nullptr) {
 			delete m_pIconControl;
 			m_pIconControl = nullptr;
@@ -444,13 +443,12 @@ std::wstring Combo::GetBorderColor(ControlStateType stateType) const
 	return borderColor;
 }
 
-void Combo::DoInit()
+void Combo::OnInit()
 {
-	if (m_bInited) {
+	if (IsInited()) {
 		return;
 	}
-	m_bInited = true;
-	__super::DoInit();
+	__super::OnInit();
 
 	HBox* pBox = new HBox;	
 	AddItem(pBox);
@@ -490,11 +488,6 @@ void Combo::DoInit()
 	}
 	SetNoFocus();
 	SetComboType(GetComboType());
-}
-
-bool Combo::IsInited() const
-{
-	return m_bInited;
 }
 
 TreeView* Combo::GetTreeView()

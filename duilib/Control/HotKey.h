@@ -71,13 +71,9 @@ public:
 protected:
 
 	//初始化
-	virtual void DoInit() override;
+	virtual void OnInit() override;
 
 private:
-	/** 初始化标志
-    */
-	bool m_bInited;
-
 	/** 默认显示的文字
     */
 	UiString m_defaultText;

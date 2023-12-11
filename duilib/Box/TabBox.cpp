@@ -10,15 +10,17 @@ TabBox::TabBox(Layout* pLayout)
 : Box(pLayout)
 , m_iCurSel(Box::InvalidIndex)
 , m_iInitSel(Box::InvalidIndex)
-, m_bIsInit(false)
 , m_bFadeSwith(false)
 {
 
 }
 
-void TabBox::DoInit()
+void TabBox::OnInit()
 {
-	m_bIsInit = true;
+	if (IsInited()) {
+		return;
+	}
+	__super::OnInit();
 	if (Box::IsValidItemIndex(m_iInitSel)) {
 		SelectItem(m_iInitSel);
 	}
@@ -268,7 +270,7 @@ void TabBox::SetAttribute(const std::wstring& strName, const std::wstring& strVa
 {
 	if ((strName == L"selected_id") || (strName == L"selectedid")){
 		size_t iSel = (size_t)_wtoi(strValue.c_str());
-		if (m_bIsInit) {
+		if (IsInited()) {
 			SelectItem(iSel);
 		}
 		else {

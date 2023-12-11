@@ -126,7 +126,7 @@ private:
 private:
 	/** 是否已经完成初始化
 	*/
-	bool m_bInited;
+	bool m_bPickerInited;
 
 	/** 旧的颜色
 	*/

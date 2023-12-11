@@ -313,8 +313,7 @@ DateTime::DateTime():
     m_dateTime({0,}),
     m_pDateWindow(nullptr),
     m_editFormat(EditFormat::kDateCalendar),
-    m_dateSeparator(L'-'),
-    m_bInited(false)
+    m_dateSeparator(L'-')
 {
     //…Ë÷√ƒ¨»œ Ù–‘
     SetAttribute(L"border_size", L"1");
@@ -508,7 +507,7 @@ bool DateTime::IsValidDateTime() const
 
 void DateTime::SetStringFormat(const std::wstring& sFormat)
 {
-    if (!m_bInited) {
+    if (!IsInited()) {
         m_sFormat = sFormat;
     }
     else if (m_sFormat != sFormat) {
@@ -558,7 +557,7 @@ std::wstring DateTime::GetStringFormat() const
 
 void DateTime::SetEditFormat(EditFormat editFormat)
 {
-    if (!m_bInited) {
+    if (!IsInited()) {
         m_editFormat = editFormat;
     }
     else if (m_editFormat != editFormat) {
@@ -671,13 +670,12 @@ void DateTime::HandleEvent(const EventArgs& msg)
     __super::HandleEvent(msg);
 }
 
-void DateTime::DoInit()
+void DateTime::OnInit()
 {
-    if (m_bInited) {
+    if (IsInited()) {
         return;
     }
-    m_bInited = true;
-    __super::DoInit();
+    __super::OnInit();
 
     if (!IsValidDateTime()) {
         std::wstring text = GetText();

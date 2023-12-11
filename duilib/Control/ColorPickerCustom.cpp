@@ -6,7 +6,7 @@ namespace ui
 {
 
 ColorPickerCustom::ColorPickerCustom() :
-	m_bInited(false),
+	m_bPickerInited(false),
 	m_pRegularPicker(nullptr),
 	m_pSpectrumControl(nullptr),
 	m_pNewColorEdit(nullptr)
@@ -17,7 +17,7 @@ std::wstring ColorPickerCustom::GetType() const { return DUI_CTR_COLOR_PICKER_CU
 
 void ColorPickerCustom::SelectColor(const UiColor& color)
 {
-	if (!m_bInited) {
+	if (!m_bPickerInited) {
 		m_oldColor = color;
 		return;
 	}
@@ -32,7 +32,7 @@ void ColorPickerCustom::SetPos(UiRect rc)
 
 void ColorPickerCustom::InitPicker()
 {
-	if (m_bInited) {
+	if (m_bPickerInited) {
 		return;
 	}
 	Window* pWindow = GetWindow();
@@ -106,7 +106,7 @@ void ColorPickerCustom::InitPicker()
 	InitHSL(m_hslS, 100, ChangeReason::ColorHSL_S);
 	InitHSL(m_hslL, 100, ChangeReason::ColorHSL_L);
 
-	m_bInited = true;
+	m_bPickerInited = true;
 	if (!m_oldColor.IsEmpty()) {
 		OnColorChanged(m_oldColor.GetARGB(), 0, ChangeReason::ColorUpdate);
 	}

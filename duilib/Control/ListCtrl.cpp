@@ -8,7 +8,6 @@ namespace ui
 {
 
 ListCtrl::ListCtrl():
-    m_bInited(false),
     m_pHeaderCtrl(nullptr),
     m_pReportView(nullptr),
     m_pIconView(nullptr),
@@ -47,19 +46,19 @@ ListCtrl::~ListCtrl()
         delete m_pData;
         m_pData = nullptr;
     }
-    if (!m_bInited && (m_pReportView != nullptr)) {
+    if (!IsInited() && (m_pReportView != nullptr)) {
         delete m_pReportView;
         m_pReportView = nullptr;
     }
-    if (!m_bInited && (m_pIconView != nullptr)) {
+    if (!IsInited() && (m_pIconView != nullptr)) {
         delete m_pIconView;
         m_pIconView = nullptr;
     }
-    if (!m_bInited && (m_pListView != nullptr)) {
+    if (!IsInited() && (m_pListView != nullptr)) {
         delete m_pListView;
         m_pListView = nullptr;
     }
-    if (!m_bInited && (m_pRichEdit != nullptr)) {
+    if (!IsInited() && (m_pRichEdit != nullptr)) {
         delete m_pRichEdit;
         m_pRichEdit = nullptr;
     }
@@ -259,13 +258,12 @@ void ListCtrl::HandleEvent(const EventArgs& msg)
     }
 }
 
-void ListCtrl::DoInit()
+void ListCtrl::OnInit()
 {
-    if (m_bInited) {
+    if (IsInited()) {
         return;
     }
-    m_bInited = true;
-
+    __super::OnInit();
     //³õÊ¼»¯Body
     ASSERT(m_pReportView != nullptr);
     AddItem(m_pReportView);
@@ -477,7 +475,7 @@ void ListCtrl::InitListView()
 void ListCtrl::SetListCtrlType(ListCtrlType type)
 {
     m_listCtrlType = type;
-    if (!m_bInited) {
+    if (!IsInited()) {
         return;
     }
     if (m_listCtrlType == ListCtrlType::Report) {
@@ -546,7 +544,7 @@ ListCtrlType ListCtrl::GetListCtrlType() const
 void ListCtrl::SetHeaderClass(const std::wstring& className)
 {
     m_headerClass = className;
-    if (m_bInited && (m_pHeaderCtrl != nullptr)) {
+    if (IsInited() && (m_pHeaderCtrl != nullptr)) {
         m_pHeaderCtrl->SetClass(className);
     }
 }
@@ -594,7 +592,7 @@ std::wstring ListCtrl::GetCheckBoxClass() const
 void ListCtrl::SetReportViewClass(const std::wstring& className)
 {
     m_reportViewClass = className;
-    if (m_bInited && (m_pReportView != nullptr)) {
+    if (IsInited() && (m_pReportView != nullptr)) {
         m_pReportView->SetClass(className);
     }
 }
@@ -617,7 +615,7 @@ std::wstring ListCtrl::GetDataItemClass() const
 void ListCtrl::SetDataSubItemClass(const std::wstring& className)
 {
     m_dataSubItemClass = className;
-    if (m_bInited && !className.empty()) {
+    if (IsInited() && !className.empty()) {
         ListCtrlSubItem defaultSubItem;
         defaultSubItem.SetWindow(GetWindow());
         defaultSubItem.SetClass(className);
@@ -633,7 +631,7 @@ std::wstring ListCtrl::GetDataSubItemClass() const
 void ListCtrl::SetIconViewClass(const std::wstring& className)
 {
     m_iconViewClass = className;
-    if (m_bInited && (m_pIconView != nullptr)) {
+    if (IsInited() && (m_pIconView != nullptr)) {
         m_pIconView->SetClass(className);
     }
 }
@@ -676,7 +674,7 @@ std::wstring ListCtrl::GetIconViewItemLabelClass() const
 void ListCtrl::SetListViewClass(const std::wstring& className)
 {
     m_listViewClass = className;
-    if (m_bInited && (m_pListView != nullptr)) {
+    if (IsInited() && (m_pListView != nullptr)) {
         m_pListView->SetClass(className);
     }
 }
@@ -720,7 +718,7 @@ void ListCtrl::SetRichEditClass(const std::wstring& richEditClass)
 {
     if (m_listCtrlRichEditClass != richEditClass) {
         m_listCtrlRichEditClass = richEditClass;
-        if (m_bInited && (m_pRichEdit != nullptr)) {
+        if (IsInited() && (m_pRichEdit != nullptr)) {
             m_pRichEdit->SetClass(richEditClass);
         }
     }
@@ -939,7 +937,7 @@ bool ListCtrl::IsHeaderVisible() const
     if (m_pHeaderCtrl != nullptr) {
         return m_pHeaderCtrl->IsVisible();
     }
-    else if(!m_bInited){
+    else if(!IsInited()){
         return m_bShowHeaderCtrl;
     }
     else {
@@ -1777,7 +1775,7 @@ bool ListCtrl::SetHeaderShowCheckBox(bool bShow)
 {
     m_bHeaderShowCheckBox = bShow;
     bool bRet = false;
-    if (m_bInited) {
+    if (IsInited()) {
         ListCtrlHeader* pHeaderCtrl = GetHeaderCtrl();
         ASSERT(pHeaderCtrl != nullptr);
         if (pHeaderCtrl != nullptr) {
@@ -1793,7 +1791,7 @@ bool ListCtrl::SetHeaderShowCheckBox(bool bShow)
 bool ListCtrl::IsHeaderShowCheckBox() const
 {
     bool bRet = false;
-    if (m_bInited) {
+    if (IsInited()) {
         ListCtrlHeader* pHeaderCtrl = GetHeaderCtrl();
         ASSERT(pHeaderCtrl != nullptr);
         if (pHeaderCtrl != nullptr) {
@@ -1810,7 +1808,7 @@ void ListCtrl::SetDataItemShowCheckBox(bool bShow)
 {
     if (m_bDataItemShowCheckBox != bShow) {
         m_bDataItemShowCheckBox = bShow;
-        if (m_bInited) {
+        if (IsInited()) {
             Refresh();
         }
     }

@@ -19,10 +19,12 @@ namespace ui
 		return new GridBody(this);
 	}
 
-	void Grid::Init()
+	void Grid::OnInit()
 	{
-		if (m_bIsInit)
+		if (IsInited()) {
 			return;
+		}
+		__super::OnInit();
 
 		m_pBody = CreateGridBody();
 		if (!m_pBody)
@@ -41,8 +43,6 @@ namespace ui
 			m_pVScrollBar->SetAutoHideScroll(false);
 		if (m_pHScrollBar)
 			m_pHScrollBar->SetAutoHideScroll(false);
-
-		m_bIsInit = true;
 	}
 
 	int Grid::GetDefaultRowHeight(){ return m_pBody->GetDefaultRowHeight(); };

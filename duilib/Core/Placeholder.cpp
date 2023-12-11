@@ -19,7 +19,8 @@ PlaceHolder::PlaceHolder() :
 	m_bIsArranged(true),
 	m_bUseCache(false),
 	m_bCacheDirty(true),
-	m_bEnableControlPadding(true)
+	m_bEnableControlPadding(true),
+	m_bInited(false)
 {
 	//控件的高度和宽度值，默认设置为拉伸
 	m_cxyFixed.cx.SetStretch();
@@ -82,12 +83,20 @@ void PlaceHolder::SetWindow(Window* pManager)
 
 void PlaceHolder::Init()
 {
-	DoInit();
+	if (!m_bInited) {
+		OnInit();
+		m_bInited = true;
+	}
 }
 
-void PlaceHolder::DoInit()
+bool PlaceHolder::IsInited() const
 {
+	return m_bInited;
+}
 
+void PlaceHolder::OnInit()
+{
+	m_bInited = true;
 }
 
 void PlaceHolder::SetVisible(bool bVisible)

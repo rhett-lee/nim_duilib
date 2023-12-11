@@ -26,11 +26,7 @@ public:
 	virtual std::wstring GetBorderColor(ControlStateType stateType) const override;
 
 protected:
-	virtual void DoInit() override;
-
-	/** 是否完成初始化
-	*/
-	bool IsInited() const;
+	virtual void OnInit() override;
 
 public:
 	/** Combo类型
@@ -355,10 +351,6 @@ private:
 	/** 按钮控件
 	*/
 	Button* m_pButtonControl;
-
-	/** 是否已经初始化
-	*/
-	bool m_bInited;
 
 	/** 当前选择项索引号
 	*/

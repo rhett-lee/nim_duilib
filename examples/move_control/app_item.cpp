@@ -10,8 +10,12 @@ AppItemUi* AppItemUi::Create(const AppItem& item)
 	return uiItem;
 }
 
-void AppItemUi::DoInit()
+void AppItemUi::OnInit()
 {
+	if (IsInited()) {
+		return;
+	}
+	__super::OnInit();
 	app_icon_ = static_cast<ui::Control*>(FindSubControl(L"app_icon"));
 	if (app_icon_)
 	{

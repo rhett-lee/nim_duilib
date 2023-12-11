@@ -6,7 +6,6 @@ namespace ui
 {
 
 IPAddress::IPAddress():
-    m_bInited(false),
     m_pLastFocus(nullptr)
 {
 }
@@ -23,13 +22,12 @@ void IPAddress::SetAttribute(const std::wstring& strName, const std::wstring& st
     }
 }
 
-void IPAddress::DoInit()
+void IPAddress::OnInit()
 {
-    if (m_bInited) {
+    if (IsInited()) {
         return;
     }
-    m_bInited = true;
-    __super::DoInit();
+    __super::OnInit();
     m_editList.clear();
     for (size_t index = 0; index < 4; ++index) {
         RichEdit* pRichEdit = new RichEdit;

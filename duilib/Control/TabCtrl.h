@@ -22,11 +22,10 @@ public:
 protected:
 	/** 初始化接口
 	*/
-	virtual void DoInit() override;
+	virtual void OnInit() override;
 
 private:
-	//初始化标志
-	bool m_bInited;
+
 };
 
 /** 多标签控件的一个标签页
@@ -131,13 +130,9 @@ public:
 	bool IsAutoHideCloseButton() const;
 
 protected:
-	/** 是否已经完成初始化
-	*/
-	bool IsInited() const;
-
 	/** 初始化接口
 	*/
-	virtual void DoInit() override;
+	virtual void OnInit() override;
 
 	/** 处理鼠标移入消息
 	*/
@@ -201,10 +196,6 @@ private:
 	/** Hot标签的状态Padding值
 	*/
 	HotPadding m_hotPadding;
-
-	/** 初始化标志
-	*/
-	bool m_bInited;
 
 	/** 关闭按钮是否自动隐藏
 	*/

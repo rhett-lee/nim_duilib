@@ -14,7 +14,7 @@ public:
 	explicit TabBox(Layout* pLayout = new Layout());
 
 	// 用于初始化xml属性
-	virtual void DoInit() override;
+	virtual void OnInit() override;
 
 	/// 重写父类方法，提供个性化功能，请参考父类声明
 	virtual std::wstring GetType() const override;
@@ -97,9 +97,6 @@ private:
 
 	//初始化时需要选择的Item下表
 	size_t m_iInitSel;
-
-	//是否已经完成初始化
-	bool m_bIsInit;
 
 	//是否需要切换动画
 	bool m_bFadeSwith;

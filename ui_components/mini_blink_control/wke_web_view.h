@@ -15,7 +15,7 @@ class WkeWebView : public ui::Control,
   ~WkeWebView() override;
 
   // override form ui::Control
-  virtual void DoInit() override;
+  virtual void OnInit() override;
   void Paint(ui::IRender* pRender, const ui::UiRect& rcPaint) override;
   void SetWindow(ui::Window* pManager) override;
 
@@ -31,7 +31,6 @@ class WkeWebView : public ui::Control,
   bool SetCursorInfoTypeByCache();
   bool GetWebViewPos(ui::UiPoint& point);
 
-  bool m_bInit = false;
   bool m_bWheelEnabled = true;
   std::unique_ptr<WkeMemoryDC> m_web_view_dc;
   int m_cursorInfoType = 0;

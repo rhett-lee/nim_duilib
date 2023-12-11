@@ -9,7 +9,6 @@ namespace ui
 
 PropertyGrid::PropertyGrid():
     m_bHeaderCtrl(true),
-    m_bInited(false),
     m_pHeaderCtrl(nullptr),
     m_pHeaderLeft(nullptr),
     m_pHeaderRight(nullptr),
@@ -60,13 +59,12 @@ void PropertyGrid::SetAttribute(const std::wstring& strName, const std::wstring&
     }
 }
 
-void PropertyGrid::DoInit()
+void PropertyGrid::OnInit()
 {
-    if (m_bInited) {
+    if (IsInited()) {
         return;
     }
-    m_bInited = true;
-
+    __super::OnInit();
     //初始化基本结构
     if (m_configXml.empty()) {
         //默认的配置文件
@@ -314,7 +312,7 @@ void PropertyGrid::SetEnableHeaderCtrl(bool bEnable,
                                        const std::wstring& sLeftColumn,
                                        const std::wstring& sRightColumn)
 {
-    ASSERT(m_bInited);
+    ASSERT(IsInited());
     m_bHeaderCtrl = bEnable;
     if (m_pHeaderCtrl != nullptr) {
         m_pHeaderCtrl->SetVisible(bEnable);
@@ -331,7 +329,7 @@ void PropertyGrid::SetEnableHeaderCtrl(bool bEnable,
 
 void PropertyGrid::SetEnableDescriptionArea(bool bEnable)
 {
-    ASSERT(m_bInited);
+    ASSERT(IsInited());
     m_bDescriptionArea = bEnable;
     if (m_pDescriptionArea != nullptr) {
         m_pDescriptionArea->SetVisible(bEnable);
@@ -340,7 +338,7 @@ void PropertyGrid::SetEnableDescriptionArea(bool bEnable)
 
 void PropertyGrid::SetDescriptionAreaHeight(int32_t nHeight, bool bNeedDpiScale)
 {
-    ASSERT(m_bInited);
+    ASSERT(IsInited());
     if (nHeight < 0) {
         nHeight = 0;
     }
@@ -708,7 +706,7 @@ void PropertyGrid::SetLeftColumnWidth(int32_t nLeftColumnWidth, bool bNeedDpiSca
     if (m_nLeftColumnWidth != nLeftColumnWidth) {
         m_nLeftColumnWidth = nLeftColumnWidth;
     }
-    if (m_bInited) {
+    if (IsInited()) {
         int32_t nSplitWidth = 0;
         if (m_pHeaderSplit != nullptr) {
             nSplitWidth = m_pHeaderSplit->GetFixedWidth().GetInt32();
@@ -730,7 +728,7 @@ void PropertyGrid::SetLeftColumnWidth(int32_t nLeftColumnWidth, bool bNeedDpiSca
 int32_t PropertyGrid::GetLeftColumnWidth() const
 {
     int32_t nLeftColumnWidth = m_nLeftColumnWidth;
-    if (m_bInited && (m_pHeaderLeft != nullptr)) {
+    if (IsInited() && (m_pHeaderLeft != nullptr)) {
         int32_t nSplitWidth = 0;
         if (m_pHeaderSplit != nullptr) {
             nSplitWidth = m_pHeaderSplit->GetFixedWidth().GetInt32();
@@ -746,7 +744,6 @@ int32_t PropertyGrid::GetLeftColumnWidth() const
 PropertyGridGroup::PropertyGridGroup(const std::wstring& groupName, 
                                      const std::wstring& description,
                                      size_t nGroupData) :
-    m_bInited(false),
     m_pLabelBox(nullptr),
     m_nGroupData(nGroupData)
 {
@@ -754,12 +751,12 @@ PropertyGridGroup::PropertyGridGroup(const std::wstring& groupName,
     m_description = description;
 }
 
-void PropertyGridGroup::DoInit()
+void PropertyGridGroup::OnInit()
 {
-    if (m_bInited) {
+    if (IsInited()) {
         return;
     }
-    m_bInited = true;
+    __super::OnInit();
     SetTabStop(false);
 
     HBox* pHBox = new HBox;
@@ -834,9 +831,12 @@ public:
 
     /** 初始化函数
      */
-    virtual void DoInit() override
+    virtual void OnInit() override
     {
-        __super::DoInit();
+        if (IsInited()) {
+            return;
+        }
+        __super::OnInit();
         SetShowFocusRect(true);
         SetTabStop(false);
     }
@@ -846,7 +846,6 @@ PropertyGridProperty::PropertyGridProperty(const std::wstring& propertyName,
                                            const std::wstring& propertyValue,
                                            const std::wstring& description,
                                            size_t nPropertyData):
-    m_bInited(false),
     m_pHBox(nullptr),
     m_pLabelBoxLeft(nullptr),
     m_pLabelBoxRight(nullptr),
@@ -858,12 +857,12 @@ PropertyGridProperty::PropertyGridProperty(const std::wstring& propertyName,
     m_description = description;
 }
 
-void PropertyGridProperty::DoInit()
+void PropertyGridProperty::OnInit()
 {
-    if (m_bInited) {
+    if (IsInited()) {
         return;
     }
-    m_bInited = true;
+    __super::OnInit();
     SetTabStop(false);
 
     m_pHBox = new HBox;
@@ -1050,9 +1049,12 @@ public:
 
     /** 初始化函数
      */
-    virtual void DoInit() override
+    virtual void OnInit() override
     {
-        __super::DoInit();
+        if (this->IsInited()) {
+            return;
+        }
+        __super::OnInit();
         this->SetShowFocusRect(false);
         this->SetTabStop(false);
     }
@@ -1361,12 +1363,12 @@ std::wstring PropertyGridFontProperty::GetPropertyNewValue() const
     return __super::GetPropertyNewValue();
 }
 
-void PropertyGridFontProperty::DoInit()
+void PropertyGridFontProperty::OnInit()
 {
     if (IsInited()) {
         return;
     }
-    __super::DoInit();
+    __super::OnInit();
     std::vector<std::wstring> fontList; 
     GetSystemFontList(fontList);
     for (const std::wstring& fontName : fontList) {
@@ -1452,12 +1454,12 @@ std::wstring PropertyGridFontSizeProperty::GetPropertyNewValue() const
     return __super::GetPropertyNewValue();
 }
 
-void PropertyGridFontSizeProperty::DoInit()
+void PropertyGridFontSizeProperty::OnInit()
 {
     if (IsInited()) {
         return;
     }
-    __super::DoInit();
+    __super::OnInit();
     if (m_fontSizeList.empty()) {
         GetSystemFontSizeList(m_fontSizeList);
         const size_t nCount = m_fontSizeList.size();

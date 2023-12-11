@@ -74,13 +74,13 @@ public:
 	 */
 	Window* GetWindow() const { return m_pWindow; }
 
-	/**@brief 初始化函数
+	/** 初始化函数(当该控件被添加到父控件的时候，调用该Init函数)
 	 */
 	virtual void Init();
 
-	/**@brief 由 Init 调用，功能与 Init 相同
-	 */
-	virtual void DoInit();
+	/** 是否已经初始化
+	*/
+	bool IsInited() const;
 
 	/**@brief 设置该控件是否可见
 	 */
@@ -336,6 +336,11 @@ protected:
 	 */
 	virtual void ArrangeSelf();
 
+	/** 执行初始化函数的事件（每个控件在初始化时，会调用该函数，并且只调用一次）
+	 *  该函数执行时，IsInited()的值为false，如果IsInited()为true，表示OnInit()函数重复执行了。
+	 */
+	virtual void OnInit();
+
 private:
 	//控件名称，用于查找控件等操作
 	UiString m_sName;
@@ -395,6 +400,9 @@ private:
 
 	//是否可见
 	bool m_bVisible;
+
+	//是否已经完成初始化
+	bool m_bInited;
 };
 
 } // namespace ui

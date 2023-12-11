@@ -4,7 +4,6 @@ namespace ui
 {
 
 TabCtrl::TabCtrl():
-    m_bInited(false),
     ListBox(new HLayout)
 {
 }
@@ -20,13 +19,12 @@ void TabCtrl::SetAttribute(const std::wstring& strName, const std::wstring& strV
     }
 }
 
-void TabCtrl::DoInit()
+void TabCtrl::OnInit()
 {
-    if (m_bInited) {
+    if (IsInited()) {
         return;
     }
-    m_bInited = true;
-    __super::DoInit();
+    __super::OnInit();
     //设置为单选
     SetMultiSelect(false);
 }
@@ -34,7 +32,6 @@ void TabCtrl::DoInit()
 ///////////////////////////////////////////////////////////////////
 ////
 TabCtrlItem::TabCtrlItem():
-    m_bInited(false),
     m_pIcon(nullptr),
     m_pLabel(nullptr),
     m_pCloseBtn(nullptr),
@@ -105,18 +102,12 @@ void TabCtrlItem::SetVisible(bool bVisible)
     }
 }
 
-bool TabCtrlItem::IsInited() const
-{
-    return m_bInited;
-}
-
-void TabCtrlItem::DoInit()
+void TabCtrlItem::OnInit()
 {
     if (IsInited()) {
         return;
     }
-    m_bInited = true;
-    __super::DoInit();
+    __super::OnInit();
     SetIconClass(GetIconClass());
     SetTitleClass(GetTitleClass());
     SetCloseButtonClass(GetCloseButtonClass());

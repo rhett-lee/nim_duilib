@@ -11,11 +11,12 @@ AlertFooter::AlertFooter(const std::wstring& strOk,
 
 std::wstring AlertFooter::GetType() const { return L"AlertFooter"; }
 
-void AlertFooter::DoInit()
+void AlertFooter::OnInit()
 {
-    if (m_bInited)
+    if (IsInited()) {
         return;
-
+    }
+    __super::OnInit();
     if (m_strCancel.length()) {
         m_pButtonCancel = new ui::Button();
         m_pButtonCancel->SetName(L"btn_cancel");
@@ -39,7 +40,5 @@ void AlertFooter::DoInit()
 
         AddItem(m_pButtonOk);
     }
-
-    m_bInited = true;
 }
 }

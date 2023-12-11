@@ -21,7 +21,7 @@ public:
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 
 protected:
-	virtual void DoInit() override;
+	virtual void OnInit() override;
 	
 protected:
 	/** 鼠标在Edit上面按下按钮

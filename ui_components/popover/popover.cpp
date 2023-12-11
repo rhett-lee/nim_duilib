@@ -20,7 +20,6 @@ const int PopoverArrow::kMargin = 36;
 
 // PopoverArrow
 PopoverArrow::PopoverArrow(int nPlacement) :
-    m_bInited(false),
     m_nPlacement(nPlacement),
     m_rcArea({ 0,0,0,0 })
 {
@@ -40,11 +39,12 @@ PopoverArrow::~PopoverArrow()
 
 std::wstring PopoverArrow::GetType() const { return L"PopoverArrow"; }
 
-void PopoverArrow::DoInit()
+void PopoverArrow::OnInit()
 {
-    if (m_bInited)
+    if (IsInited()) {
         return;
-
+    }
+    __super::OnInit();
     SetBkColor(L"white");
     SetFixedWidth(ui::UiFixedInt(kWidth), true, true);
     SetFixedHeight(ui::UiFixedInt(kHeight), true, true);
@@ -65,8 +65,6 @@ void PopoverArrow::DoInit()
     SetVerAlignType(verAlignType);
 
     SetMargin(GetMarginByPlacement(), true);
-
-    m_bInited = true;;
 }
 
 void PopoverArrow::SetArrowArea(ui::UiRect rcArea)
@@ -196,7 +194,6 @@ PopoverHeader::PopoverHeader(
     const std::wstring& strTitle,
     bool bShowClose,
     PopoverIconType nIconType) :
-    m_bInited(false),
     m_bUseMaxSize(false),
     m_strTitle(strTitle),
     m_bShowClose(bShowClose),
@@ -327,14 +324,6 @@ ui::UiEstSize PopoverHeader::EstimateSize(ui::UiSize szAvailable)
     return MakeEstSize(GetFixedSize());
 }
 
-void PopoverHeader::DoInit()
-{
-    if (m_bInited)
-        return;
-
-    m_bInited = true;
-}
-
 void PopoverHeader::UpdateTitle(const std::wstring& strTitle)
 {
     if (m_pRichEditTitle)
@@ -345,7 +334,6 @@ void PopoverHeader::UpdateTitle(const std::wstring& strTitle)
 
 // PopoverBody
 PopoverBody::PopoverBody(const std::wstring& content, const std::wstring& colorId) :
-    m_bInited(false),
     m_bUseMaxSize(false),
     m_pRichEditContent(nullptr)
 {
@@ -419,14 +407,6 @@ ui::UiEstSize PopoverBody::EstimateSize(ui::UiSize szAvailable)
     return MakeEstSize(GetFixedSize());
 }
 
-void PopoverBody::DoInit()
-{
-    if (m_bInited)
-        return;
-
-    m_bInited = true;
-}
-
 void PopoverBody::UpdateContent(const std::wstring& strContent)
 {
     if (m_pRichEditContent)
@@ -438,7 +418,6 @@ void PopoverBody::UpdateContent(const std::wstring& strContent)
 // PopoverFooter
 PopoverFooter::PopoverFooter(const std::wstring& strOk,
     const std::wstring& strCancel) :
-    m_bInited(false),
     m_bUseMaxSize(false),
     m_pButtonOk(nullptr),
     m_pButtonCancel(nullptr),
@@ -504,11 +483,12 @@ ui::UiEstSize PopoverFooter::EstimateSize(ui::UiSize szAvailable)
     return MakeEstSize(GetFixedSize());
 }
 
-void PopoverFooter::DoInit()
+void PopoverFooter::OnInit()
 {
-    if (m_bInited)
+    if (IsInited()) {
         return;
-
+    }
+    __super::OnInit();
     if (m_strCancel.length()) {
         m_pButtonCancel = new ui::Button();
         m_pButtonCancel->SetName(L"btn_cancel");
@@ -532,8 +512,6 @@ void PopoverFooter::DoInit()
 
         AddItem(m_pButtonOk);
     }
-
-    m_bInited = true;
 }
 
 // PopoverRoot
@@ -594,7 +572,6 @@ Popover::Popover(ui::Control* pAnchor,
     PopoverFooter* footer,
     PopoverArrow* arrow) :
     m_strTag(),
-    m_bInited(false),
     m_pAnchor(pAnchor),
     m_nPlacement(nPlacement),
     m_nShowType(nShowType),
@@ -692,17 +669,16 @@ ui::UiEstSize Popover::EstimateSize(ui::UiSize szAvailable)
     return MakeEstSize(GetFixedSize());
 }
 
-void Popover::DoInit()
+void Popover::OnInit()
 {
-    if (m_bInited)
+    if (IsInited()) {
         return;
-
+    }
+    __super::OnInit();
     InitializeElements();
     InitializePosition();
     InitializeShowTriggers(kTriggerNone, m_nShowType, m_nShowTimeouts);
     InitializeDisappearTriggers(kTriggerNone, m_nDisappearType, m_nDisappearTimeouts);
-
-    m_bInited = true;
 }
 
 void Popover::SetPos(ui::UiRect rc)
@@ -1248,7 +1224,6 @@ const std::wstring PopoverHolderLayer::kHolderTypeAlert = L"AlertHolder";
 
 // PopoverLayer
 PopoverLayer::PopoverLayer() :
-    m_bInited(false),
     m_bShowMask(false),
     m_bDisableWindow(false),
     alert_count(0),
@@ -1352,11 +1327,12 @@ void PopoverLayer::ClearAll()
 
 std::wstring PopoverLayer::GetType() const { return L"PopoverLayer"; }
 
-void PopoverLayer::DoInit()
+void PopoverLayer::OnInit()
 {
-    if (m_bInited)
+    if (IsInited()) {
         return;
-
+    }
+    __super::OnInit();
     auto pHolderLayer = new NotificationHolderLayer(GetParent());
     m_NotifyLayerMap[GetParent()] = pHolderLayer;
     AddItem(pHolderLayer);
@@ -1369,8 +1345,6 @@ void PopoverLayer::DoInit()
 
     if (GetWindow())
         GetWindow()->AddMessageFilter(this);
-
-    m_bInited = true;
 }
 
 LRESULT PopoverLayer::FilterMessage(UINT uMsg,

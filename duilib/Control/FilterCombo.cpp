@@ -24,9 +24,12 @@ void FilterCombo::SetAttribute(const std::wstring& strName, const std::wstring& 
     }
 }
 
-void FilterCombo::DoInit()
+void FilterCombo::OnInit()
 {
-    __super::DoInit();
+    if (IsInited()) {
+        return;
+    }
+    __super::OnInit();
     SetComboType(kCombo_DropDown);
 }
 

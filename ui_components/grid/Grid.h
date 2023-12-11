@@ -12,7 +12,7 @@ namespace ui
 		Grid();
 		virtual ~Grid();
 		virtual GridBody* CreateGridBody();		//继承类需要重载这个接口 并实现自定义GridBody
-		virtual void Init() override;
+		virtual void OnInit() override;
 	public:
 
 		
@@ -193,9 +193,6 @@ namespace ui
 
 		/* 是否可编辑表格 */
 		bool m_bEditable = true;
-	private:
-		/* 防止virtual void Init()重复调用 */
-		bool m_bIsInit = false;		
 	};
 
 	

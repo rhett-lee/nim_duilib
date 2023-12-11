@@ -238,15 +238,14 @@ private:
     UiString m_defaultText;
 };
 
-HotKey::HotKey():
-    m_bInited(false)
+HotKey::HotKey()
 {
     m_pRichEdit = new HotKeyRichEdit();
 }
 
 HotKey::~HotKey()
 {
-    if (!m_bInited) {
+    if (!IsInited()) {
         if (m_pRichEdit != nullptr) {
             delete m_pRichEdit;
             m_pRichEdit = nullptr;
@@ -266,13 +265,12 @@ void HotKey::SetAttribute(const std::wstring& strName, const std::wstring& strVa
     }
 }
 
-void HotKey::DoInit()
+void HotKey::OnInit()
 {
-    if (m_bInited) {
+    if (IsInited()) {
         return;
     }
-    m_bInited = true;
-    __super::DoInit();
+    __super::OnInit();
     HotKeyRichEdit* pRichEdit = m_pRichEdit;
     ASSERT(pRichEdit != nullptr);
     pRichEdit->SetDefaultText(m_defaultText.c_str());

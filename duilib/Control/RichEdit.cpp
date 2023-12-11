@@ -151,7 +151,6 @@ RichEdit::RichEdit() :
 	m_bWantTab(true),
 	m_bNeedReturnMsg(false),
 	m_bReturnMsgWantCtrl(false),
-	m_bInited(false),
 	m_bAllowPrompt(false),
 	m_bSelAllEver(false),		 
 	m_bNoSelOnKillFocus(true), 
@@ -1460,13 +1459,12 @@ void RichEdit::EndRight()
 
 std::wstring RichEdit::GetType() const { return DUI_CTR_RICHEDIT; }
 
-void RichEdit::DoInit()
+void RichEdit::OnInit()
 {
-	if (m_bInited) {
+	if (IsInited()) {
 		return;
 	}
-	m_bInited = true;
-
+	__super::OnInit();
 	//…Ë÷√◊÷ÃÂ
 	std::wstring fontId = GetFontId();
 	if (m_pRichHost != nullptr) {

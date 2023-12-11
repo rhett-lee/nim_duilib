@@ -338,7 +338,7 @@ public:
 protected:
 	/** 初始化函数
 	 */
-	virtual void DoInit() override;
+	virtual void OnInit() override;
 
 	/** 绘制子控件
 	*/
@@ -357,10 +357,6 @@ protected:
 	void ResizePropertyColumn(TreeNode* pPropertyNode, int32_t nLeftColumnWidth);
 
 private:
-	/** 是否已经完成初始化
-	*/
-	bool m_bInited;
-
 	/** 配置XML文件
 	*/
 	UiString m_configXml;
@@ -495,13 +491,9 @@ public:
 protected:
 	/** 初始化函数
 	 */
-	virtual void DoInit() override;
+	virtual void OnInit() override;
 
 private:
-	/** 是否已经完成初始化
-	*/
-	bool m_bInited;
-
 	/** 分组的名称
 	*/
 	UiString m_groupName;
@@ -612,13 +604,9 @@ public:
 	virtual std::wstring GetPropertyNewValue() const;
 
 protected:
-	/** 是否已经初始化
-	*/
-	bool IsInited() const { return m_bInited; }
-
 	/** 初始化函数
 	 */
-	virtual void DoInit() override;
+	virtual void OnInit() override;
 
 	/** 设置是否允许存在编辑框控件
 	* @param [in] bEnable true表示允许存在编辑框控件，false表示不允许存在编辑框控件
@@ -672,10 +660,6 @@ protected:
 	bool HasPropertySubItem(Control* pControl) const;
 
 private:
-	/** 是否已经完成初始化
-	*/
-	bool m_bInited;
-
 	/** 属性的名称
 	*/
 	UiString m_propertyName;
@@ -914,7 +898,7 @@ protected:
 
 	/** 初始化函数
 	 */
-	virtual void DoInit() override;
+	virtual void OnInit() override;
 
 private:
 	/** 获取系统字体列表
@@ -974,7 +958,7 @@ protected:
 
 	/** 初始化函数
 	 */
-	virtual void DoInit() override;
+	virtual void OnInit() override;
 
 private:
 	struct FontSizeInfo

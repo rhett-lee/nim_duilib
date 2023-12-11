@@ -126,7 +126,7 @@ public:
     virtual void HandleEvent(const EventArgs& msg) override;
 
     //用于初始化xml属性
-    virtual void DoInit() override;
+    virtual void OnInit() override;
 
 private:
     /** 比较两个时间是否相同
@@ -153,10 +153,6 @@ private:
     /** 设置日期控件窗口接口
     */
     DateTimeWnd* m_pDateWindow;
-
-    /** 是否已经完成初始化
-    */
-    bool m_bInited;
 };
 
 }//namespace ui

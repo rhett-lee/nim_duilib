@@ -25,11 +25,11 @@ WkeWebView::~WkeWebView() {
   }
 }
 
-void WkeWebView::DoInit() {
-  if (m_bInit) {
-    return;
-  }
-  m_bInit = true;
+void WkeWebView::OnInit() {
+    if (IsInited()) {
+        return;
+    }
+    __super::OnInit();
   m_web_view_dc = std::make_unique<WkeMemoryDC>();
 
   m_wke_web_view = CreateWebView();

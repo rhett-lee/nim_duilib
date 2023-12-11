@@ -99,8 +99,12 @@ int32_t ListCtrlView::GetNormalItemTop() const
     return m_nNormalItemTop;
 }
 
-void ListCtrlView::DoInit()
+void ListCtrlView::OnInit()
 {
+    if (IsInited()) {
+        return;
+    }
+    __super::OnInit();
     //禁止随鼠标滚轮的滚动改变选中项
     SetScrollSelect(false);
 }
