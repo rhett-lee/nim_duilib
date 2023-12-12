@@ -132,6 +132,11 @@ public:
 	void SetCloseButtonClass(const std::wstring& closeButtonClass);
 	std::wstring GetCloseButtonClass() const;
 
+	/** 分割线控件的Class
+	*/
+	void SetLineClass(const std::wstring& lineClass);
+	std::wstring GetLineClass() const;
+
 public:
 	/** 设置选择状态的标签圆角大小
 	* @param [in] szCorner 圆角的宽度和高度
@@ -172,10 +177,19 @@ public:
 	*/
 	bool IsAutoHideCloseButton() const;
 
+	/** 处理分割线的显示或者隐藏
+	*/
+	void AdjustItemLineStatus();
+
 protected:
 	/** 初始化接口
 	*/
 	virtual void OnInit() override;
+
+	/** 消息处理函数
+	* @param [in] msg 消息内容
+	*/
+	virtual void HandleEvent(const EventArgs& msg) override;
 
 	/** 处理鼠标移入消息
 	*/
@@ -208,6 +222,14 @@ protected:
 	/** 填充路径, 形成圆角矩形
 	*/
 	void AddTabItemPath(IPath* path, const UiRect& rect, UiSize roundSize) const;
+
+	/** 调整子控件的顺序
+	*/
+	void AdjustSubItemIndex();
+
+	/** 获取TabCtrl接口
+	*/
+	TabCtrl* GetTabCtrl() const;
 
 private:
 	/** 选择标签的圆角大小
@@ -256,6 +278,10 @@ private:
 	*/
 	Button* m_pCloseBtn;
 
+	/** 标签之间的分割线
+	*/
+	Control* m_pLine;
+
 	/** 图标控件的Class
 	*/
 	UiString m_iconClass;
@@ -267,6 +293,10 @@ private:
 	/** 关闭按钮控件的Class
 	*/
 	UiString m_closeBtnClass;
+
+	/** 分割线的Class
+	*/
+	UiString m_lineClass;
 
 	/** 文本内容
 	*/
