@@ -304,7 +304,7 @@
                                 title_class="tab_ctrl_item_title"
                                 close_button_class="tab_ctrl_item_close"/>
     <Class name="tab_ctrl_item_icon" width="24" height="24" valign="center" mouse="false"/>
-    <Class name="tab_ctrl_item_title" width="stretch" height="24" margin="2,0,10,0" valign="center" font="system_12" mouse="false"/>
+    <Class name="tab_ctrl_item_title" width="stretch" height="24" margin="2,0,10,0" valign="center" font="system_12" auto_tooltip="true" mouse="false"/>
     <Class name="tab_ctrl_item_close" width="16" height="16" margin="0,0,10,8"
                 float="true" halign="right" valign="center" visible="false" 
                 normal_image="file='../public/button/btn_close.svg' height='10' width='10' halign='center' valign='center'"

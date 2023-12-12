@@ -9,62 +9,7 @@
                 <Control width="auto" height="auto" bkimage="logo_18x18.png" valign="center" margin="8,0,0,0"/>
                 <Label text="渲染引擎测试" valign="center" margin="8,0,0,0"/>
             </HBox>
-            <Control />
-            <!-- 标题栏：中间按钮区域 -->
-            <HBox margin="0,0,30,0" valign="center" width="auto" height="auto">
-                <Button class="btn_global_blue_80x30" width="20" height="32" text="1" margin="8,0,0,0" tooltiptext="页面1" borderround="2,2">
-                    <Event type="buttonup" receiver="main_view_tab" applyattribute="selected_id={0}" />
-                </Button>
-                <Button class="btn_global_blue_80x30" width="20" height="32" text="2" margin="8,0,0,0" tooltiptext="页面2">
-                    <Event type="buttonup" receiver="main_view_tab" applyattribute="selected_id={1}" />
-                </Button>
-                <Button class="btn_global_blue_80x30" width="20" height="32" text="3" margin="8,0,0,0" tooltiptext="页面3" borderround="2,2">
-                    <Event type="buttonup" receiver="main_view_tab" applyattribute="selected_id={2}" />
-                </Button>
-                <Button class="btn_global_blue_80x30" width="20" height="32" text="4" margin="8,0,0,0" tooltiptext="页面4">
-                    <Event type="buttonup" receiver="main_view_tab" applyattribute="selected_id={3}" />
-                </Button>
-                <Button class="btn_global_blue_80x30" width="36" height="32" text="文字" margin="8,0,0,0" tooltiptext="文字绘制" borderround="2,2">
-                    <Event type="buttonup" receiver="main_view_tab" applyattribute="selected_id={4}" />
-                </Button>
-                <Button class="btn_global_blue_80x30" width="20" height="32" text="6" margin="8,0,0,0" tooltiptext="页面6">
-                    <Event type="buttonup" receiver="main_view_tab" applyattribute="selected_id={5}" />
-                </Button>
-                <Button class="btn_global_blue_80x30" width="32" height="32" text="Box" margin="8,0,0,0">
-                    <Event type="buttonup" receiver="main_view_tab" applyattribute="selected_id={6}" />
-                </Button>
-                <Button class="btn_global_blue_80x30" width="40" height="32" text="HBox" margin="8,0,0,0">
-                    <Event type="buttonup" receiver="main_view_tab" applyattribute="selected_id={7}" />
-                </Button>
-                <Button class="btn_global_blue_80x30" width="40" height="32" text="VBox" margin="8,0,0,0">
-                    <Event type="buttonup" receiver="main_view_tab" applyattribute="selected_id={8}" />
-                </Button>
-                <Button class="btn_global_blue_80x30" width="54" height="32" text="TileBox" margin="8,0,0,0">
-                    <Event type="buttonup" receiver="main_view_tab" applyattribute="selected_id={9}" />
-                </Button>
-                <Button class="btn_global_blue_80x30" width="54" height="32" text="ScrollBox" tooltip_text="ScrollBox" margin="8,0,0,0">
-                    <Event type="buttonup" receiver="main_view_tab" applyattribute="selected_id={10}" />
-                </Button>
-                <Button class="btn_global_blue_80x30" width="54" height="32" text="HScrollBox" tooltip_text="HScrollBox" margin="8,0,0,0">
-                    <Event type="buttonup" receiver="main_view_tab" applyattribute="selected_id={11}" />
-                </Button>
-                <Button class="btn_global_blue_80x30" width="54" height="32" text="VScrollBox" tooltip_text="VScrollBox" margin="8,0,0,0">
-                    <Event type="buttonup" receiver="main_view_tab" applyattribute="selected_id={12}" />
-                </Button>
-                <Button class="btn_global_blue_80x30" width="54" height="32" text="TileScrollBox" tooltip_text="TileScrollBox" margin="8,0,0,0">
-                    <Event type="buttonup" receiver="main_view_tab" applyattribute="selected_id={13}" />
-                </Button>
-                <Button class="btn_global_blue_80x30" width="54" height="32" text="ListBox" margin="8,0,0,0">
-                    <Event type="buttonup" receiver="main_view_tab" applyattribute="selected_id={14}" />
-                </Button>
-                <Button class="btn_global_blue_80x30" width="50" height="32" text="Layout" margin="8,0,0,0">
-                    <Event type="buttonup" receiver="main_view_tab" applyattribute="selected_id={15}" />
-                </Button>
-                <Button class="btn_global_blue_80x30" width="50" height="32" text="PropertyGrid" margin="8,0,0,0" tooltip_text="PropertyGrid">
-                    <Event type="buttonup" receiver="main_view_tab" applyattribute="selected_id={16}" />
-                </Button>
-            </HBox>
-            <Control />
+            <Control />            
             <!-- 标题栏：右侧窗口控制区域，窗口最小化、最大化、还原、关闭按钮 -->
             <HBox margin="0,0,0,0" valign="center" width="auto" height="36">
                 <Button class="btn_wnd_min_11" height="32" width="40" name="minbtn" margin="0,2,0,2" tooltip_text="最小化"/>
@@ -77,7 +22,26 @@
         </HBox> <!-- 标题栏区域结束 --> 
         
         <!-- 显示区域 --> 
-        <VBox>            
+        <VBox>
+            <TabCtrl class="tab_ctrl" tab_box_name="main_view_tab" selected_id="16">
+                <TabCtrlItem class="tab_ctrl_item" title="标签1" close_button_class="" tab_box_item_index="0"/>
+                <TabCtrlItem class="tab_ctrl_item" title="标签2" close_button_class="" tab_box_item_index="1"/>
+                <TabCtrlItem class="tab_ctrl_item" title="标签3" close_button_class="" tab_box_item_index="2"/>
+                <TabCtrlItem class="tab_ctrl_item" title="标签4" close_button_class="" tab_box_item_index="3"/>
+                <TabCtrlItem class="tab_ctrl_item" title="文字" close_button_class="" tab_box_item_index="4"/>
+                <TabCtrlItem class="tab_ctrl_item" title="标签6" close_button_class="" tab_box_item_index="5"/>
+                <TabCtrlItem class="tab_ctrl_item" title="Box" close_button_class="" tab_box_item_index="6"/>
+                <TabCtrlItem class="tab_ctrl_item" title="HBox" close_button_class="" tab_box_item_index="7"/>
+                <TabCtrlItem class="tab_ctrl_item" title="VBox" close_button_class="" tab_box_item_index="8"/>
+                <TabCtrlItem class="tab_ctrl_item" title="TileBox" close_button_class="" tab_box_item_index="9"/>
+                <TabCtrlItem class="tab_ctrl_item" title="ScrollBox" close_button_class="" tab_box_item_index="10"/>
+                <TabCtrlItem class="tab_ctrl_item" title="HScrollBox" close_button_class="" tab_box_item_index="11"/>
+                <TabCtrlItem class="tab_ctrl_item" title="VScrollBox" close_button_class="" tab_box_item_index="12"/>
+                <TabCtrlItem class="tab_ctrl_item" title="TileScrollBox" close_button_class="" tab_box_item_index="13"/>
+                <TabCtrlItem class="tab_ctrl_item" title="ListBox" close_button_class="" tab_box_item_index="14"/>
+                <TabCtrlItem class="tab_ctrl_item" title="Layout" close_button_class="" tab_box_item_index="15"/>
+                <TabCtrlItem class="tab_ctrl_item" title="PropertyGrid" close_button_class="" tab_box_item_index="16"/>
+            </TabCtrl>
             <TabBox name="main_view_tab" bkcolor="white" fadeswitch="true" selected_id="16">
                 <VBox name="main_view_page_01">
                     <Label text="页面1：IRender接口的图片绘制相关接口测试（DrawImage，BitBlt，StretchBlt，AlphaBlend）"/>

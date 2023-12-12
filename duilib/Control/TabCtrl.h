@@ -9,6 +9,7 @@ namespace ui
 {
 /** 多标签控件（类似浏览器的多标签）
 */
+class TabBox;
 class TabCtrl: public ListBox
 {
 public:
@@ -19,13 +20,45 @@ public:
 	virtual std::wstring GetType() const override;
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 
+public:
+	/** 设置绑定的TabBox控件名称
+	*/
+	void SetTabBoxName(const std::wstring& tabBoxName);
+
+	/** 获取绑定的TabBox控件名称
+	*/
+	std::wstring GetTabBoxName() const;
+
+	/** 设置绑定的TabBox接口
+	*/
+	void SetTabBox(TabBox* pTabBox);
+
+	/** 获取绑定的TabBox接口
+	*/
+	TabBox* GetTabBox() const;
+
 protected:
 	/** 初始化接口
 	*/
 	virtual void OnInit() override;
 
-private:
+	/** 消息处理函数
+	* @param [in] msg 消息内容
+	*/
+	virtual void HandleEvent(const EventArgs& msg) override;
 
+private:
+	/** 默认选择的子项
+	*/
+	size_t m_nSelectedId;
+
+	/** 绑定的TabBox名称
+	*/
+	UiString m_tabBoxName;
+
+	/** 绑定的TabBox接口
+	*/
+	TabBox* m_pTabBox;
 };
 
 /** 多标签控件的一个标签页
@@ -40,6 +73,7 @@ public:
 	virtual std::wstring GetType() const override;
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 	virtual void SetVisible(bool bVisible) override;
+	virtual std::wstring GetToolTipText() const override;
 
 public:
 	/** 设置图标
@@ -59,6 +93,15 @@ public:
 	/** 获取文字内容
 	*/
 	std::wstring GetTitle() const;
+
+public:
+	/** 设置绑定的TabBox子项索引号
+	*/
+	void SetTabBoxItemIndex(size_t nTabBoxItemIndex);
+
+	/** 获取绑定的TabBox子项ID索引号
+	*/
+	size_t GetTabBoxItemIndex() const;
 
 public:
 	/** 获取图标控件
@@ -232,6 +275,11 @@ private:
 	/** 图标资源字符串
 	*/
 	UiString m_iconImageString;
+
+private:
+	/** 绑定的TabBox子项索引号
+	*/
+	size_t m_nTabBoxItemIndex;
 };
 
 }//namespace ui

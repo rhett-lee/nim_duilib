@@ -230,20 +230,22 @@ std::wstring LabelTemplate<InheritType>::GetToolTipText() const
 template<typename InheritType>
 void LabelTemplate<InheritType>::CheckShowToolTip()
 {
+    m_sAutoShowTooltipCache.clear();
     if (!m_bAutoShowToolTip || (this->GetWindow() == nullptr)) {
         return;
     }
     auto pRender = this->GetWindow()->GetRender();
     if (pRender == nullptr) {
         return;
-    }
-    m_sAutoShowTooltipCache.clear();
+    }    
     std::wstring sText = this->GetText();
     if (sText.empty()) {
         return;
     }
-
     UiRect rc = this->GetRect();
+    if (rc.IsEmpty()) {
+        return;
+    }
     UiPadding rcPadding = this->GetControlPadding();
     rc.Deflate(rcPadding);
     rc.Deflate(this->GetTextPadding());

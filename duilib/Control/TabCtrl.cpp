@@ -1,10 +1,13 @@
 #include "TabCtrl.h"
+#include "duilib/Box/TabBox.h"
 
 namespace ui
 {
 
 TabCtrl::TabCtrl():
-    ListBox(new HLayout)
+    ListBox(new HLayout),
+    m_nSelectedId(Box::InvalidIndex),
+    m_pTabBox(nullptr)
 {
 }
 
@@ -12,8 +15,15 @@ std::wstring TabCtrl::GetType() const { return DUI_CTR_TAB_CTRL; }
 
 void TabCtrl::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
-    if (strName == L"") {
-    }    
+    if (strName == L"selected_id") {
+        int32_t nValue = _wtoi(strValue.c_str());
+        if (nValue >= 0) {
+            m_nSelectedId = nValue;
+        }
+    }
+    else if (strName == L"tab_box_name") {
+        SetTabBoxName(strValue);
+    }
     else {
         __super::SetAttribute(strName, strValue);
     }
@@ -25,8 +35,75 @@ void TabCtrl::OnInit()
         return;
     }
     __super::OnInit();
+
     //设置为单选
     SetMultiSelect(false);
+
+    //默认选择的子项
+    if (m_nSelectedId != Box::InvalidIndex) {
+        SelectItem(m_nSelectedId);
+    }
+}
+
+void TabCtrl::HandleEvent(const EventArgs& msg)
+{
+    if ((msg.pSender == this) && (msg.Type == kEventSelect)) {
+        //尝试设置关联的TabBox
+        if ((m_pTabBox == nullptr) && !m_tabBoxName.empty()) {
+            SetTabBoxName(m_tabBoxName.c_str());
+        }
+        if (m_pTabBox != nullptr) {
+            TabCtrlItem* pItem = nullptr;
+            size_t nSelectIndex = msg.wParam;
+            Control* pControl = GetItemAt(nSelectIndex);
+            if (pControl != nullptr) {
+                pItem = dynamic_cast<TabCtrlItem*>(pControl);
+            }
+            if (pItem != nullptr) {
+                size_t nItemIndex = pItem->GetTabBoxItemIndex();
+                if (nItemIndex != Box::InvalidIndex) {
+                    m_pTabBox->SelectItem(nItemIndex);
+                }
+            }
+        }
+    }
+    __super::HandleEvent(msg);
+}
+
+void TabCtrl::SetTabBoxName(const std::wstring& tabBoxName)
+{
+    if (m_tabBoxName != tabBoxName) {
+        m_tabBoxName = tabBoxName;
+    }    
+    if (!tabBoxName.empty() && (GetWindow() != nullptr) ) {
+        TabBox* pTabBox = nullptr;
+        Control* pSubControl = nullptr;
+        Box* pRoot = GetWindow()->GetRoot();
+        if (pRoot != nullptr) {
+            pSubControl = pRoot->FindSubControl(tabBoxName);
+        }
+        if (pSubControl != nullptr) {
+            pTabBox = dynamic_cast<TabBox*>(pSubControl);            
+        }
+        if (pTabBox != nullptr) {
+            SetTabBox(pTabBox);
+        }
+    }
+}
+
+std::wstring TabCtrl::GetTabBoxName() const
+{
+    return m_tabBoxName.c_str();
+}
+
+void TabCtrl::SetTabBox(TabBox* pTabBox)
+{
+    m_pTabBox = pTabBox;
+}
+
+TabBox* TabCtrl::GetTabBox() const
+{
+    return m_pTabBox;
 }
 
 ///////////////////////////////////////////////////////////////////
@@ -35,7 +112,8 @@ TabCtrlItem::TabCtrlItem():
     m_pIcon(nullptr),
     m_pLabel(nullptr),
     m_pCloseBtn(nullptr),
-    m_bAutoHideCloseBtn(false)
+    m_bAutoHideCloseBtn(false),
+    m_nTabBoxItemIndex(Box::InvalidIndex)
 {
     m_rcSelected.cx = (uint8_t)GlobalManager::Instance().Dpi().GetScaleInt(12);
     m_rcSelected.cy = m_rcSelected.cx;
@@ -53,7 +131,10 @@ std::wstring TabCtrlItem::GetType() const { return DUI_CTR_TAB_CTRL_ITEM; }
 
 void TabCtrlItem::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
-    if (strName == L"title") {
+    if (strName == L"tab_box_item_index") {
+        SetTabBoxItemIndex((size_t)_wtoi(strValue.c_str()));
+    }
+    else if (strName == L"title") {
         SetTitle(strValue);
     }
     else if (strName == L"icon") {
@@ -91,17 +172,6 @@ void TabCtrlItem::SetAttribute(const std::wstring& strName, const std::wstring& 
     }
 }
 
-void TabCtrlItem::SetVisible(bool bVisible)
-{
-    __super::SetVisible(bVisible);
-    if (m_pIcon != nullptr) {
-        m_pIcon->SetVisible(!m_pIcon->GetBkImage().empty());
-    }
-    if (IsVisible() && (m_pCloseBtn != nullptr)) {
-        m_pCloseBtn->SetVisible(!IsAutoHideCloseButton());
-    }
-}
-
 void TabCtrlItem::OnInit()
 {
     if (IsInited()) {
@@ -117,6 +187,28 @@ void TabCtrlItem::OnInit()
     if (m_pCloseBtn != nullptr) {
         m_pCloseBtn->SetVisible(!IsAutoHideCloseButton() || IsSelected());
     }
+}
+
+void TabCtrlItem::SetVisible(bool bVisible)
+{
+    __super::SetVisible(bVisible);
+    if (m_pIcon != nullptr) {
+        m_pIcon->SetVisible(!m_pIcon->GetBkImage().empty());
+    }
+    if (IsVisible() && (m_pCloseBtn != nullptr)) {
+        m_pCloseBtn->SetVisible(!IsAutoHideCloseButton());
+    }
+}
+
+std::wstring TabCtrlItem::GetToolTipText() const
+{
+    std::wstring tooltip = __super::GetToolTipText();
+    if (tooltip.empty()) {
+        if (m_pLabel != nullptr) {
+            tooltip = m_pLabel->GetToolTipText();
+        }
+    }
+    return tooltip;
 }
 
 void TabCtrlItem::SetIconClass(const std::wstring& iconClass)
@@ -505,6 +597,16 @@ std::wstring TabCtrlItem::GetTitle() const
         title = m_title.c_str();
     }
     return title;
+}
+
+void TabCtrlItem::SetTabBoxItemIndex(size_t nTabBoxItemIndex)
+{
+    m_nTabBoxItemIndex = nTabBoxItemIndex;
+}
+
+size_t TabCtrlItem::GetTabBoxItemIndex() const
+{
+    return m_nTabBoxItemIndex;
 }
 
 }//namespace ui
