@@ -40,6 +40,7 @@ namespace ui
 {
 	//定义所有控件类型
 	#define  DUI_CTR_CONTROL                         (L"Control")
+	#define  DUI_CTR_CONTROL_DRAGABLE                (L"ControlDragable")
 	#define  DUI_CTR_LABEL                           (L"Label")
 	#define  DUI_CTR_RICHTEXT                        (L"RichText")
 	#define  DUI_CTR_HYPER_LINK                      (L"HyperLink")
@@ -59,6 +60,10 @@ namespace ui
 	#define  DUI_CTR_VBOX                            (L"VBox")
 	#define  DUI_CTR_VTILE_BOX					     (L"VTileBox")
 	#define  DUI_CTR_HTILE_BOX					     (L"HTileBox")
+
+	#define  DUI_CTR_BOX_DRAGABLE					 (L"BoxDragable")
+	#define  DUI_CTR_HBOX_DRAGABLE				     (L"HBoxDragable")
+	#define  DUI_CTR_VBOX_DRAGABLE                   (L"VBoxDragable")
 
 	#define  DUI_CTR_GROUP_BOX                       (L"GroupBox")
 	#define  DUI_CTR_GROUP_HBOX                      (L"GroupHBox")

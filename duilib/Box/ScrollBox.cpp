@@ -324,6 +324,7 @@ void ScrollBox::PaintChild(IRender* pRender, const UiRect& rcPaint)
 		return;
 	}
 
+	std::vector<Control*> delayItems;
 	for (Control* pControl : m_items) {
 		if (pControl == nullptr) {
 			continue;
@@ -331,12 +332,29 @@ void ScrollBox::PaintChild(IRender* pRender, const UiRect& rcPaint)
 		if (!pControl->IsVisible()) {
 			continue;
 		}
-		/*if (pControl->IsFloat()) {
-		    //此处逻辑：认为浮动控件不会出现在滚动区域，但这个加上不合理，导致浮动控件无法出现在滚动区域内；
-			//所以注释掉。
-			pControl->AlphaPaint(pRender, rcPaint);	
+		if (pControl->GetPaintOrder() != 0) {
+			//设置了绘制顺序， 放入延迟绘制列表
+			delayItems.push_back(pControl);
+			continue;
 		}
-		else */{
+		UiSize scrollPos = GetScrollOffset();
+		UiRect rcNewPaint = GetPosWithoutPadding();
+		AutoClip alphaClip(pRender, rcNewPaint, IsClip());
+		rcNewPaint.Offset(scrollPos.cx, scrollPos.cy);
+		rcNewPaint.Offset(GetRenderOffset().x, GetRenderOffset().y);
+
+		UiPoint ptOffset(scrollPos.cx, scrollPos.cy);
+		UiPoint ptOldOrg = pRender->OffsetWindowOrg(ptOffset);
+		pControl->AlphaPaint(pRender, rcNewPaint);
+		pRender->SetWindowOrg(ptOldOrg);
+	}
+
+	if (!delayItems.empty()) {
+		std::sort(delayItems.begin(), delayItems.end(), [](const Control* a, const Control* b) {
+			return a->GetPaintOrder() < b->GetPaintOrder();
+			});
+		//绘制延迟绘制的控件
+		for (auto pControl : delayItems) {
 			UiSize scrollPos = GetScrollOffset();
 			UiRect rcNewPaint = GetPosWithoutPadding();
 			AutoClip alphaClip(pRender, rcNewPaint, IsClip());

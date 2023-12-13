@@ -46,7 +46,8 @@ Control::Control() :
 	m_pOnXmlBubbledEvent(nullptr),
 	m_pLoading(nullptr),
 	m_pGif(nullptr),
-	m_bShowFocusRect(false)
+	m_bShowFocusRect(false),
+	m_nPaintOrder(0)
 {
 }
 
@@ -433,6 +434,10 @@ void Control::SetAttribute(const std::wstring& strName, const std::wstring& strV
 	}
 	else if (strName == L"focus_rect_color") {
 		SetFocusRectColor(strValue);
+	}
+	else if (strName == L"paint_order") {
+		uint8_t nPaintOrder = TruncateToUInt8(_wtoi(strValue.c_str()));
+		SetPaintOrder(nPaintOrder);
 	}
 	else {
 		ASSERT(!"Control::SetAttribute失败: 发现不能识别的属性");
@@ -3152,6 +3157,16 @@ bool Control::ClientToScreen(UiPoint& pt)
 	pt.x = point.x;
 	pt.y = point.y;
 	return bRet;
+}
+
+void Control::SetPaintOrder(uint8_t nPaintOrder)
+{
+	m_nPaintOrder = nPaintOrder;
+}
+
+uint8_t Control::GetPaintOrder() const
+{
+	return m_nPaintOrder;
 }
 
 } // namespace ui

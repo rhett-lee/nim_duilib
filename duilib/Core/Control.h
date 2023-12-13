@@ -1152,6 +1152,15 @@ public:
 	*/
 	void SetCursor(CursorType cursorType);
 
+	/** 设置绘制顺序
+	* @param [in] nPaintOrder 0 表示常规绘制，非0表示指定绘制顺序，值越大表示越晚绘制
+	*/
+	void SetPaintOrder(uint8_t nPaintOrder);
+
+	/** 获取绘制顺序
+	*/
+	uint8_t GetPaintOrder() const;
+
 private:
 
 	/** 获取颜色名称对应的颜色值
@@ -1302,6 +1311,9 @@ private:
 
 	//焦点状态虚线矩形的颜色
 	UiString m_focusRectColor;
+
+	//绘制顺序: 0 表示常规绘制，非0表示指定绘制顺序，值越大表示绘制越晚绘制
+	uint8_t m_nPaintOrder;
 };
 
 } // namespace ui

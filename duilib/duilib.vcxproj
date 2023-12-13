@@ -499,6 +499,7 @@
     <ClInclude Include="Core\BoxShadow.h" />
     <ClInclude Include="Core\ColorManager.h" />
     <ClInclude Include="Core\Control.h" />
+    <ClInclude Include="Core\ControlDragable.h" />
     <ClInclude Include="Core\ControlDropTarget.h" />
     <ClInclude Include="Core\ControlFinder.h" />
     <ClInclude Include="Core\ControlGif.h" />

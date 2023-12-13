@@ -94,6 +94,7 @@ void Box::PaintChild(IRender* pRender, const UiRect& rcPaint)
 		return;
 	}
 
+	std::vector<Control*> delayItems;
 	for (auto pControl : m_items) {
 		if (pControl == nullptr) {
 			continue;
@@ -101,7 +102,22 @@ void Box::PaintChild(IRender* pRender, const UiRect& rcPaint)
 		if (!pControl->IsVisible()) {
 			continue;
 		}
+		if (pControl->GetPaintOrder() != 0) {
+			//设置了绘制顺序， 放入延迟绘制列表
+			delayItems.push_back(pControl);
+			continue;
+		}
 		pControl->AlphaPaint(pRender, rcPaint);
+	}
+
+	if (!delayItems.empty()) {
+		std::sort(delayItems.begin(), delayItems.end(), [](const Control* a, const Control* b) {
+			return a->GetPaintOrder() < b->GetPaintOrder();
+			});
+		//绘制延迟绘制的控件
+		for (auto pControl : delayItems) {
+			pControl->AlphaPaint(pRender, rcPaint);
+		}
 	}
 
 	if ((pRender != nullptr) && IsShowFocusRect() && IsFocused()) {

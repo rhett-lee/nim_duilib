@@ -3,6 +3,7 @@
 #include "duilib/Core/Window.h"
 #include "duilib/Core/Box.h"
 #include "duilib/Core/Control.h"
+#include "duilib/Core/ControlDragable.h"
 #include "duilib/Core/ScrollBar.h"
 
 #include "duilib/Control/TreeView.h"
@@ -753,6 +754,7 @@ Control* WindowBuilder::CreateControlByClass(const std::wstring& strControlClass
 		{DUI_CTR_VIRTUAL_HLISTBOX, []() { return new VirtualHListBox; }},
 
 		{DUI_CTR_CONTROL, []() { return new Control; }},
+		{DUI_CTR_CONTROL_DRAGABLE, []() { return new ControlDragable; }},
 		{DUI_CTR_SCROLLBAR, []() { return new ScrollBar; }},
 		{DUI_CTR_LABEL, []() { return new Label; }},
 		{DUI_CTR_LABELBOX, []() { return new LabelBox; }},
@@ -792,6 +794,10 @@ Control* WindowBuilder::CreateControlByClass(const std::wstring& strControlClass
 		{DUI_CTR_GROUP_BOX, []() { return new GroupBox; }},
 		{DUI_CTR_GROUP_HBOX, []() { return new GroupHBox; }},
 		{DUI_CTR_GROUP_VBOX, []() { return new GroupVBox; }},
+
+		{DUI_CTR_BOX_DRAGABLE, []() { return new BoxDragable; }},
+		{DUI_CTR_HBOX_DRAGABLE, []() { return new HBoxDragable; }},
+		{DUI_CTR_VBOX_DRAGABLE, []() { return new VBoxDragable; }},
 	};
 	Control* pControl = nullptr;
 	auto iter = createControlMap.find(strControlClass);

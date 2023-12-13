@@ -7,6 +7,7 @@
 #include "duilib/Control/CheckBox.h"
 #include "duilib/Control/Split.h"
 #include "duilib/Image/Image.h"
+#include "duilib/Core/ControlDragable.h"
 
 namespace ui
 {
@@ -15,7 +16,7 @@ namespace ui
 */
 class ListCtrlHeader;
 class ListCtrlHeaderItem:
-    public ButtonBox
+    public ControlDragableT<ButtonBox>
 {
 public:
     ListCtrlHeaderItem();
@@ -127,13 +128,9 @@ public:
     */
     int32_t GetImageId() const;
 
-    /** 设置该列是否支持列表头拖动改变列的顺序
-    */
-    void SetEnableDragOrder(bool bEnable);
-
     /** 该列是否支持列表头拖动改变列的顺序
     */
-    bool IsEnableDragOrder() const;
+    virtual bool IsEnableDragOrder() const override;
 
 public:
     /** 设置是否显示CheckBox
@@ -185,21 +182,33 @@ private:
     void VAlignRect(UiRect& rc, uint32_t textStyle, int32_t nImageHeight);
 
 protected:
-    /** @name 拖动相关的成员函数
+    /** @name 拖动调序相关的成员函数
     * @{ */
-
-    virtual bool ButtonDown(const EventArgs& msg) override;
-    virtual bool ButtonUp(const EventArgs& msg) override;
-    virtual bool MouseMove(const EventArgs& msg) override;
-    virtual bool OnWindowKillFocus(const EventArgs& msg) override;//控件所属的窗口失去焦点
-
     /** 根据鼠标位置调整各个控件的位置(拖动操作的一部分)
-    */
-    void AdjustHeaderItemPos(const UiPoint& mousePt);
+	* @param [in] pt 当前鼠标的位置
+	* @param [in] ptMouseDown 鼠标按下时的位置
+	* @param [in] rcItemList 子控件的列表
+	*/
+	virtual void AdjustItemPos(const UiPoint& pt, const UiPoint& ptMouseDown,
+							   const std::vector<ItemStatus>& rcItemList) const override;
 
-    /** 清除拖动状态
-    */
-    void ClearDragStatus();
+	/** 交换两个控件的位置，完成顺序调整
+	* @param [in] pt 当前鼠标的位置
+	* @param [in] rcItemList 子控件的列表
+	* @param [in] nOldItemIndex 原来的子项索引号
+	* @param [in] nNewItemIndex 最新的子项索引号
+	* @return 如果有顺序调整，返回true；否则返回false
+	*/
+	virtual bool AdjustItemOrders(const UiPoint& pt,
+								  const std::vector<ItemStatus>& rcItemList,
+								  size_t& nOldItemIndex,
+								  size_t& nNewItemIndex) override;
+
+	/** 控件位置拖动完成事件
+	* @param [in] nOldItemIndex 原来的子项索引号
+	* @param [in] nNewItemIndex 最新的子项索引号
+	*/
+	virtual void OnItemOrdersChanged(size_t nOldItemIndex, size_t nNewItemIndex) override;
 
     /** @} */
 
@@ -252,47 +261,6 @@ private:
     /** 关联的Header接口
     */
     ListCtrlHeader* m_pHeaderCtrl;
-
-private:
-    /** @name 拖动相关的成员变量
-    * @{ */
-    
-    /** 是否支持拖动改变列的顺序
-    */
-    bool bEnableDragOrder;
-
-    /** 是否鼠标左键按下
-    */
-    bool m_bMouseDown;
-
-    /** 是否处于拖拽操作中
-    */
-    bool m_bInDragging;
-
-    /** 原来的透明度
-    */
-    uint8_t m_nOldAlpha;
-
-    /** 鼠标按下时的鼠标位置
-    */
-    UiPoint m_ptMouseDown;
-
-    /** 鼠标按下时的控件矩形区域
-    */
-    UiRect m_rcMouseDown;
-
-    struct ItemStatus
-    {
-        Control* m_pItem = nullptr;
-        UiRect m_rcPos;
-        size_t m_index = Box::InvalidIndex;
-    };
-
-    /** 鼠标按下时，父容器中，每个控件的位置
-    */
-    std::vector<ItemStatus> m_rcItemList;
-
-    /** @} */
 };
 
 }//namespace ui

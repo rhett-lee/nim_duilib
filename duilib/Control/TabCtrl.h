@@ -4,6 +4,7 @@
 #pragma once
 
 #include "duilib/Box/ListBox.h"
+#include "duilib/Core/ControlDragable.h"
 
 namespace ui
 {
@@ -63,7 +64,7 @@ private:
 
 /** 多标签控件的一个标签页
 */
-class TabCtrlItem : public ListBoxItemH
+class TabCtrlItem : public ControlDragableT<ListBoxItemH>
 {
 public:
 	TabCtrlItem();

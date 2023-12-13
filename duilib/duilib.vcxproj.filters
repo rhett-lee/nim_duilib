@@ -851,5 +851,8 @@
     <ClInclude Include="Control\TabCtrl.h">
       <Filter>Control</Filter>
     </ClInclude>
+    <ClInclude Include="Core\ControlDragable.h">
+      <Filter>Core</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
