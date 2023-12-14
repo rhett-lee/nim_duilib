@@ -168,11 +168,7 @@ bool SplitTemplate<InheritType>::IsVLayout(Control* pControl) const
     if (pLayout == nullptr) {
         return false;
     }
-    LayoutType layoutType = pLayout->GetLayoutType();
-    if (layoutType == LayoutType::VLayout) {
-        return true;
-    }
-    return false;
+    return pLayout->IsVLayout();
 }
 
 template<typename InheritType>
@@ -186,11 +182,7 @@ bool SplitTemplate<InheritType>::IsHLayout(Control* pControl) const
     if (pLayout == nullptr) {
         return false;
     }
-    LayoutType layoutType = pLayout->GetLayoutType();
-    if (layoutType == LayoutType::HLayout) {
-        return true;
-    }
-    return false;
+    return pLayout->IsHLayout();
 }
 
 template<typename InheritType>

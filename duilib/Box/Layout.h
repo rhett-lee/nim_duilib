@@ -44,6 +44,29 @@ public:
 	*/
 	virtual LayoutType GetLayoutType() const { return LayoutType::FloatLayout; }
 
+	/** 是否为纵向布局
+	*/
+	virtual bool IsVLayout() const 
+	{
+		LayoutType type = GetLayoutType();
+		return (type == LayoutType::VLayout) ||
+			   (type == LayoutType::VTileLayout) ||
+			   (type == LayoutType::VirtualVLayout) ||
+			   (type == LayoutType::VirtualVTileLayout) ||
+			   (type == LayoutType::ListCtrlReportLayout);
+	}
+
+	/** 是否为横向布局
+	*/
+	virtual bool IsHLayout() const 
+	{
+		LayoutType type = GetLayoutType();
+		return (type == LayoutType::HLayout) ||
+			   (type == LayoutType::HTileLayout) ||
+			   (type == LayoutType::VirtualHLayout) ||
+			   (type == LayoutType::VirtualHTileLayout);
+	}
+
 	/** 设置所有者容器接口
 	 */
 	void SetOwner(Box* pOwner);

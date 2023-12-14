@@ -1173,15 +1173,11 @@ bool ListBox::IsHorizontalScrollBar() const
 	}
 
 	bool bIsHorizontal = (bHasHScrollBar && !bHasVScrollBar) ? true : false;
-	LayoutType type = GetLayout()->GetLayoutType();
-	if ((type == LayoutType::HLayout) ||
-		(type == LayoutType::HTileLayout) ||
-		(type == LayoutType::VirtualHLayout) ||
-		(type == LayoutType::VirtualHTileLayout)) {
+	if (GetLayout()->IsHLayout()) {
 		//确定是横向布局
 		bIsHorizontal = true;
 	}
-	else if (type == LayoutType::ListCtrlReportLayout) {
+	else if (GetLayout()->IsVLayout()) {
 		bIsHorizontal = false;
 	}
 	return bIsHorizontal;

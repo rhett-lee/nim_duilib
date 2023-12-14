@@ -94,6 +94,10 @@ protected:
 	*/
 	void ClearDragStatus();
 
+    /** 将当前鼠标位置，转换到子项所在区域有效的范围内
+    */
+    void GetValidPointInItemRects(UiPoint& pt) const;
+
 	/** @} */
 
 private:
@@ -220,6 +224,10 @@ bool ControlDragableT<T>::ButtonDown(const EventArgs& msg)
     if (pParent == nullptr) {
         return bRet;
     }
+    Layout* pLayout = pParent->GetLayout();
+    if ((pLayout == nullptr) || (!pLayout->IsHLayout() && !pLayout->IsVLayout())) {
+        return bRet;
+    }
     UiPoint pt(msg.ptMouse);
     pt.Offset(this->GetScrollOffsetInScrollBox());
 
@@ -258,15 +266,19 @@ bool ControlDragableT<T>::MouseMove(const EventArgs& msg)
     if (pParent == nullptr) {
         return bRet;
     }
-    UiPoint pt(msg.ptMouse);
-    pt.Offset(this->GetScrollOffsetInScrollBox());
-    int32_t xOffset = pt.x - m_ptMouseDown.x;
-    if (std::abs(xOffset) < GlobalManager::Instance().Dpi().GetScaleInt(3)) {
+    Layout* pLayout = pParent->GetLayout();
+    if ((pLayout == nullptr) || (!pLayout->IsHLayout() && !pLayout->IsVLayout())) {
         return bRet;
     }
 
-    UiRect boxRect = pParent->GetRect();
-    if ((pt.x >= boxRect.left) && (pt.x < boxRect.right)) {
+    UiPoint pt(msg.ptMouse);
+    pt.Offset(this->GetScrollOffsetInScrollBox());
+    GetValidPointInItemRects(pt);
+    if (pLayout->IsHLayout()) {
+        int32_t xOffset = pt.x - m_ptMouseDown.x;
+        if (std::abs(xOffset) < GlobalManager::Instance().Dpi().GetScaleInt(3)) {
+            return bRet;
+        }
         //调整其他控件的位置
         AdjustItemPos(pt, m_ptMouseDown, m_rcItemList);
 
@@ -274,13 +286,26 @@ bool ControlDragableT<T>::MouseMove(const EventArgs& msg)
         rect.left += xOffset;
         rect.right += xOffset;
         this->SetPos(rect);
-
-        if (!m_bInDragging) {
-            m_bInDragging = true;
-            m_nOldAlpha = (uint8_t)this->GetAlpha();
-            //设置为半透明的效果
-            this->SetAlpha(m_nDragAlpha);
+    }
+    else {
+        int32_t yOffset = pt.y - m_ptMouseDown.y;
+        if (std::abs(yOffset) < GlobalManager::Instance().Dpi().GetScaleInt(3)) {
+            return bRet;
         }
+        //调整其他控件的位置
+        AdjustItemPos(pt, m_ptMouseDown, m_rcItemList);
+
+        UiRect rect = m_rcMouseDown;
+        rect.top += yOffset;
+        rect.bottom += yOffset;
+        this->SetPos(rect);
+    }
+
+    if (!m_bInDragging) {
+        m_bInDragging = true;
+        m_nOldAlpha = (uint8_t)this->GetAlpha();
+        //设置为半透明的效果
+        this->SetAlpha(m_nDragAlpha);
     }
     return bRet;
 }
@@ -294,9 +319,10 @@ bool ControlDragableT<T>::ButtonUp(const EventArgs& msg)
         ClearDragStatus();
         return bRet;
     }
-
     UiPoint pt(msg.ptMouse);
     pt.Offset(this->GetScrollOffsetInScrollBox());
+    GetValidPointInItemRects(pt);
+
     size_t nOldItemIndex = Box::InvalidIndex;
     size_t nNewItemIndex = Box::InvalidIndex;
     bool bOrderChanged = AdjustItemOrders(pt, m_rcItemList, nOldItemIndex, nNewItemIndex);
@@ -306,6 +332,54 @@ bool ControlDragableT<T>::ButtonUp(const EventArgs& msg)
         OnItemOrdersChanged(nOldItemIndex, nNewItemIndex);
     }
     return bRet;
+}
+
+template<typename T>
+void ControlDragableT<T>::GetValidPointInItemRects(UiPoint& pt) const
+{
+    Box* pParent = this->GetParent();
+    if (pParent == nullptr) {
+        return;
+    }
+
+    UiRect boxRect = pParent->GetRect();
+    UiRect rcItemRects = boxRect;
+    for (size_t nIndex = 0; nIndex < m_rcItemList.size(); ++nIndex) {
+        const ItemStatus& itemStatus = m_rcItemList[nIndex];
+        if ((itemStatus.m_pItem != nullptr) && !itemStatus.m_pItem->IsFloat()) {
+            if (itemStatus.m_rcPos.left > rcItemRects.left) {
+                rcItemRects.left = itemStatus.m_rcPos.left;
+            }
+            if (itemStatus.m_rcPos.top > rcItemRects.top) {
+                rcItemRects.top = itemStatus.m_rcPos.top;
+            }
+            break;
+        }
+    }
+    for (int32_t nIndex = (int32_t)m_rcItemList.size() - 1; nIndex >= 0; --nIndex) {
+        const ItemStatus& itemStatus = m_rcItemList[nIndex];
+        if ((itemStatus.m_pItem != nullptr) && !itemStatus.m_pItem->IsFloat()) {
+            if (itemStatus.m_rcPos.right < rcItemRects.right) {
+                rcItemRects.right = itemStatus.m_rcPos.right;
+            }
+            if (itemStatus.m_rcPos.bottom < rcItemRects.bottom) {
+                rcItemRects.bottom = itemStatus.m_rcPos.bottom;
+            }
+            break;
+        }
+    }
+    if (pt.x < rcItemRects.left) {
+        pt.x = rcItemRects.left;
+    }
+    if (pt.x >= rcItemRects.right) {
+        pt.x = rcItemRects.right - 1;
+    }
+    if (pt.y < rcItemRects.top) {
+        pt.y = rcItemRects.top;
+    }
+    if (pt.y >= rcItemRects.bottom) {
+        pt.y = rcItemRects.bottom - 1;
+    }
 }
 
 template<typename T>
