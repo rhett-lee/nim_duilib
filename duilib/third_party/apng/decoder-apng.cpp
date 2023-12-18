@@ -53,6 +53,8 @@ void on_png_warning(png_structp /*png*/, png_const_charp message)
     char msg[256] = { 0 };
     sprintf_s(msg, "libpng warning: %s\n", message);
     ::OutputDebugStringA(msg);
+#else
+    (void)message;
 #endif
 }
 
@@ -63,6 +65,8 @@ void on_png_error(png_structp /*png*/, png_const_charp message)
     sprintf_s(msg, "libpng error: %s\n", message);
     ::OutputDebugStringA(msg);
     throw 1;
+#else
+    (void)message;
 #endif
 }
 

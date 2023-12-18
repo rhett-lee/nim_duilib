@@ -69,7 +69,7 @@ HDC Render_GdiPlus::GetDC()
 
 void Render_GdiPlus::ReleaseDC(HDC hdc)
 {
-	ASSERT(hdc == m_hDC);
+	ASSERT_UNUSED_VARIABLE(hdc == m_hDC);
 }
 
 bool Render_GdiPlus::Resize(int width, int height)

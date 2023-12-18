@@ -1,5 +1,11 @@
 #include "Bitmap_Skia.h"
+
+#pragma warning (push)
+#pragma warning (disable: 4244 4201)
+
 #include "include/core/SkBitmap.h"
+
+#pragma warning (pop)
 
 namespace ui
 {

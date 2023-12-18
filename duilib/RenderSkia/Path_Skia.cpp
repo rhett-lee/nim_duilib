@@ -1,6 +1,12 @@
 #include "Path_Skia.h"
 
+#pragma warning (push)
+#pragma warning (disable: 4244 4201)
+
 #include "include/core/SkPath.h"
+
+#pragma warning (pop)
+
 #include "duilib/RenderSkia/Matrix_Skia.h"
 
 namespace ui {
@@ -187,7 +193,7 @@ void Path_Skia::Transform(IMatrix* pMatrix)
 	}
 }
 
-ui::UiRect Path_Skia::GetBounds(const IPen* pen)
+ui::UiRect Path_Skia::GetBounds(const IPen* /*pen*/)
 {
 	SkRect bounds = m_skPath->getBounds();
 	return ui::UiRect(SkScalarTruncToInt(bounds.fLeft), 
