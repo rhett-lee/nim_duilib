@@ -20,6 +20,7 @@ namespace ui
 #define UIFIND_ENABLED       0x00000002
 #define UIFIND_HITTEST       0x00000004
 #define UIFIND_TOP_FIRST     0x00000008
+#define UIFIND_DRAG_DROP     0x00000010
 #define UIFIND_ME_FIRST      0x80000000
 
 class Control;
@@ -60,6 +61,12 @@ public:
 	 */
 	Control* FindContextMenuControl(const UiPoint* pt) const;
 
+	/** 查找可以支持拖放的Box容器
+	* @param [in] pt 指定坐标
+	* @param [in] nDropInId 拖放的ID值（每个控件可以设置一个ID，来接收拖放, 0表示不可以拖入，非0表示可以拖入）
+	*/
+	Box* FindDroppableBox(const UiPoint& pt, uint8_t nDropInId) const;
+
 	/**
 	 * @brief 根据控件名称查找控件
 	 * @param[in] strName 控件名称
@@ -98,6 +105,7 @@ public:
 	static Control* CALLBACK __FindControlFromUpdate(Control* pThis, LPVOID pData);
 	static Control* CALLBACK __FindControlFromName(Control* pThis, LPVOID pData);
 	static Control* CALLBACK __FindContextMenuControl(Control* pThis, LPVOID pData);
+	static Control* CALLBACK __FindControlFromDroppableBox(Control* pThis, LPVOID pData);
 
 private:
     /** 根节点

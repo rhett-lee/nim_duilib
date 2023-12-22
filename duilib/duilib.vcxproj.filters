@@ -387,6 +387,9 @@
     <ClCompile Include="Control\TabCtrl.cpp">
       <Filter>Control</Filter>
     </ClCompile>
+    <ClCompile Include="Core\DragWindow.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -852,6 +855,9 @@
       <Filter>Control</Filter>
     </ClInclude>
     <ClInclude Include="Core\ControlDragable.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\DragWindow.h">
       <Filter>Core</Filter>
     </ClInclude>
   </ItemGroup>

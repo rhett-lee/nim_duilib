@@ -117,6 +117,77 @@ TabBox* TabCtrl::GetTabBox() const
     return m_pTabBox;
 }
 
+bool TabCtrl::SetItemIndex(Control* pControl, size_t iIndex)
+{
+    size_t nOldIndex = GetItemIndex(pControl);
+    bool bRet = __super::SetItemIndex(pControl, iIndex);
+    if (bRet) {
+        TabCtrlItem* pItem = dynamic_cast<TabCtrlItem*>(GetItemAt(nOldIndex));
+        if (pItem != nullptr) {
+            pItem->AdjustItemLineStatus();
+        }
+        pItem = dynamic_cast<TabCtrlItem*>(pControl);
+        if (pItem != nullptr) {
+            pItem->AdjustItemLineStatus();
+        }
+    }
+    return bRet;
+}
+
+bool TabCtrl::AddItem(Control* pControl)
+{
+    bool bRet = __super::AddItem(pControl);
+    if (bRet) {
+        TabCtrlItem* pItem = dynamic_cast<TabCtrlItem*>(pControl);
+        if (pItem != nullptr) {
+            pItem->AdjustItemLineStatus();
+        }
+    }
+    return bRet;
+}
+
+bool TabCtrl::AddItemAt(Control* pControl, size_t iIndex)
+{
+    bool bRet = __super::AddItemAt(pControl, iIndex);
+    if (bRet) {
+        TabCtrlItem* pItem = dynamic_cast<TabCtrlItem*>(pControl);
+        if (pItem != nullptr) {
+            pItem->AdjustItemLineStatus();
+        }
+    }
+    return bRet;
+}
+
+bool TabCtrl::RemoveItem(Control* pControl)
+{
+    size_t iIndex = GetItemIndex(pControl);
+    bool bRet = __super::RemoveItem(pControl);
+    if (bRet) {
+        TabCtrlItem* pItem = dynamic_cast<TabCtrlItem*>(GetItemAt(iIndex - 1));
+        if (pItem != nullptr) {
+            pItem->AdjustItemLineStatus();
+        }
+    }
+    return bRet;
+}
+
+bool TabCtrl::RemoveItemAt(size_t iIndex)
+{
+    bool bRet = __super::RemoveItemAt(iIndex);
+    if (bRet) {
+        TabCtrlItem* pItem = dynamic_cast<TabCtrlItem*>(GetItemAt(iIndex - 1));
+        if (pItem != nullptr) {
+            pItem->AdjustItemLineStatus();
+        }
+    }
+    return bRet;
+}
+
+void TabCtrl::RemoveAllItems()
+{
+    __super::RemoveAllItems();
+}
+
 ///////////////////////////////////////////////////////////////////
 ////
 TabCtrlItem::TabCtrlItem():
@@ -196,13 +267,14 @@ void TabCtrlItem::OnInit()
     SetIconClass(GetIconClass());
     SetTitleClass(GetTitleClass());
     SetLineClass(GetLineClass());
-    SetCloseButtonClass(GetCloseButtonClass());    
+    SetCloseButtonClass(GetCloseButtonClass());
     if (m_pIcon != nullptr) {
         m_pIcon->SetVisible(!m_pIcon->GetBkImage().empty());
     }
     if (m_pCloseBtn != nullptr) {
         m_pCloseBtn->SetVisible(!IsAutoHideCloseButton() || IsSelected());
     }
+    AdjustItemLineStatus();
 }
 
 void TabCtrlItem::HandleEvent(const EventArgs& msg)
@@ -221,8 +293,9 @@ void TabCtrlItem::SetVisible(bool bVisible)
         m_pIcon->SetVisible(!m_pIcon->GetBkImage().empty());
     }
     if (IsVisible() && (m_pCloseBtn != nullptr)) {
-        m_pCloseBtn->SetVisible(!IsAutoHideCloseButton());
+        m_pCloseBtn->SetVisible(!IsAutoHideCloseButton() || IsSelected());
     }
+    AdjustItemLineStatus();
 }
 
 std::wstring TabCtrlItem::GetToolTipText() const
@@ -431,10 +504,13 @@ void TabCtrlItem::AdjustItemLineStatus()
         }
         if (pItem->m_pLine->IsVisible() != bLineVisible) {
             pItem->m_pLine->SetVisible(bLineVisible);
-        }
+        }        
     }
     //当前标签前面一个标签的分割线
     if (nItem > 0) {
+        if (!pItem->IsVisible()) {
+            bLineVisible = true;
+        }
         pItem = dynamic_cast<TabCtrlItem*>(pTabCtrl->GetItemAt(nItem - 1));
         if ((pItem != nullptr) && (pItem->m_pLine != nullptr)) {
             ControlStateType state = pItem->GetState();

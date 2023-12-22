@@ -24,7 +24,7 @@ Control* ControlFinder::FindControl(const UiPoint& pt) const
 	ASSERT(m_pRoot != nullptr);
 	if (m_pRoot != nullptr) {
 		UiPoint ptLocal = pt;
-		return m_pRoot->FindControl(__FindControlFromPoint, &ptLocal, UIFIND_VISIBLE | UIFIND_HITTEST | UIFIND_TOP_FIRST);
+		return m_pRoot->FindControl(__FindControlFromPoint, &ptLocal, UIFIND_VISIBLE | UIFIND_HITTEST | UIFIND_TOP_FIRST, pt);
 	}
 	return nullptr;
 }
@@ -35,13 +35,26 @@ Control* ControlFinder::FindContextMenuControl(const UiPoint* pt) const
 	if(m_pRoot != nullptr){
 		if (pt != nullptr) {
 			UiPoint ptLocal = *pt;
-			pControl = m_pRoot->FindControl(__FindContextMenuControl, &ptLocal, UIFIND_VISIBLE | UIFIND_ENABLED | UIFIND_HITTEST | UIFIND_TOP_FIRST);
+			pControl = m_pRoot->FindControl(__FindContextMenuControl, &ptLocal, UIFIND_VISIBLE | UIFIND_ENABLED | UIFIND_HITTEST | UIFIND_TOP_FIRST, ptLocal);
 		}
 		else {
 			pControl = m_pRoot->FindControl(__FindContextMenuControl, nullptr, UIFIND_VISIBLE | UIFIND_ENABLED | UIFIND_TOP_FIRST);
 		}
 	}
 	return pControl;
+}
+
+Box* ControlFinder::FindDroppableBox(const UiPoint& pt, uint8_t nDropInId) const
+{
+	Control* pControl = nullptr;
+	ASSERT(m_pRoot != nullptr);
+	if (m_pRoot != nullptr) {
+		pControl = m_pRoot->FindControl(__FindControlFromDroppableBox, (void*)(size_t)nDropInId, UIFIND_VISIBLE | UIFIND_HITTEST | UIFIND_TOP_FIRST | UIFIND_DRAG_DROP, pt);
+	}
+	if (pControl != nullptr) {
+		return dynamic_cast<Box*>(pControl);
+	}
+	return nullptr;
 }
 
 Control* ControlFinder::FindControl2(const std::wstring& strName) const
@@ -62,7 +75,7 @@ Control* ControlFinder::FindSubControlByPoint(Control* pParent, const UiPoint& p
 	ASSERT(pParent);
 	if (pParent != nullptr) {
 		UiPoint ptLocal = pt;
-		return pParent->FindControl(__FindControlFromPoint, &ptLocal, UIFIND_VISIBLE | UIFIND_HITTEST | UIFIND_TOP_FIRST);
+		return pParent->FindControl(__FindControlFromPoint, &ptLocal, UIFIND_VISIBLE | UIFIND_HITTEST | UIFIND_TOP_FIRST, pt);
 	}
 	return nullptr;
 }
@@ -120,8 +133,10 @@ Control* CALLBACK ControlFinder::__FindControlFromPoint(Control* pThis, LPVOID p
 	if ((pPoint == nullptr) || (pThis == nullptr)) {
 		return nullptr;
 	}
-	UiRect pos = pThis->GetPos();
-	return pos.ContainsPt(*pPoint) ? pThis : nullptr;
+	UiPoint pt(*pPoint);
+	pt.Offset(pThis->GetScrollOffsetInScrollBox());
+	UiRect rect = pThis->GetRect();
+	return rect.ContainsPt(pt) ? pThis : nullptr;
 }
 
 Control* CALLBACK ControlFinder::__FindControlFromTab(Control* pThis, LPVOID pData)
@@ -181,6 +196,20 @@ Control* CALLBACK ControlFinder::__FindContextMenuControl(Control* pThis, LPVOID
 		}
 	}	
 	return pThis;
+}
+
+Control* CALLBACK ControlFinder::__FindControlFromDroppableBox(Control* pThis, LPVOID pData)
+{
+	if (pThis != nullptr) {
+		Box* pBox = dynamic_cast<Box*>(pThis);
+		if (pBox != nullptr) {
+			uint8_t nDropInId = (uint8_t)(size_t)pData;
+			if (nDropInId == pBox->GetDropInId()) {
+				return pThis;
+			}			
+		}
+	}
+	return nullptr;
 }
 
 } // namespace ui

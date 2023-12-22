@@ -1308,6 +1308,9 @@ bool ListBox::AddItem(Control* pControl)
 	if( pListItem != nullptr) {
 		pListItem->SetOwner(this);
 		pListItem->SetListBoxIndex(GetItemCount());
+		if (!IsMultiSelect()) {
+			pListItem->OptionSelected(false, false);
+		}
 	}
 	return ScrollBox::AddItem(pControl);
 }
@@ -1327,6 +1330,9 @@ bool ListBox::AddItemAt(Control* pControl, size_t iIndex)
 	if( pListItem != nullptr ) {
 		pListItem->SetOwner(this);
 		pListItem->SetListBoxIndex(iIndex);
+		if (!IsMultiSelect()) {
+			pListItem->OptionSelected(false, false);
+		}
 	}
 
 	const size_t itemCount = GetItemCount();
@@ -1354,6 +1360,13 @@ bool ListBox::RemoveItem(Control* pControl)
 
 bool ListBox::RemoveItemAt(size_t iIndex)
 {
+	if (!IsAutoDestroyChild()) {
+		Control* p = GetItemAt(iIndex);
+		IListBoxItem* pListItem = dynamic_cast<IListBoxItem*>(p);
+		if (pListItem != nullptr) {
+			pListItem->SetOwner(nullptr);
+		}
+	}
 	if (!ScrollBox::RemoveItemAt(iIndex)) {
 		return false;
 	}
@@ -1384,6 +1397,16 @@ bool ListBox::RemoveItemAt(size_t iIndex)
 
 void ListBox::RemoveAllItems()
 {
+	if (!IsAutoDestroyChild()) {
+		const size_t itemCount = GetItemCount();
+		for (size_t i = 0; i < itemCount; ++i) {
+			Control* p = GetItemAt(i);
+			IListBoxItem* pListItem = dynamic_cast<IListBoxItem*>(p);
+			if (pListItem != nullptr) {
+				pListItem->SetOwner(nullptr);
+			}
+		}
+	}
 	m_iCurSel = Box::InvalidIndex;
 	ScrollBox::RemoveAllItems();
 }

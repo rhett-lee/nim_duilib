@@ -35,7 +35,9 @@ public:
 	virtual void SetMouseEnabled(bool bEnable = true) override;
 	virtual void SetParent(Box* pParent) override;
 	virtual void SetWindow(Window* pManager) override;
-	virtual Control* FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, UiPoint scrollPos = UiPoint()) override;
+	virtual Control* FindControl(FINDCONTROLPROC Proc, LPVOID pProcData,
+								 uint32_t uFlags, const UiPoint& ptMouse,
+								 const UiPoint& scrollPos = UiPoint()) override;
 	virtual void ClearImageCache() override;
 
 	/** 获取滚动条的真实偏移量, 以32位整型值标志偏移 (虚表会使用虚拟滚动条位置)

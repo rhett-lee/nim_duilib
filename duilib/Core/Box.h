@@ -38,9 +38,11 @@ public:
 	virtual void PaintFocusRect(IRender* pRender);
 	virtual void SetEnabled(bool bEnabled) override;
 	virtual void SetVisible(bool bVisible) override;
-	virtual Control* FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, UiPoint scrollPos = UiPoint()) override;
+	virtual Control* FindControl(FINDCONTROLPROC Proc, LPVOID pProcData, uint32_t uFlags, 
+								 const UiPoint& ptMouse = UiPoint(),
+								 const UiPoint& scrollPos = UiPoint()) override;
 	virtual void ClearImageCache() override;
-	virtual UINT GetControlFlags() const override;
+	virtual uint32_t GetControlFlags() const override;
 
 	/** 设置控件位置（子类可改变行为）
 	 * @param [in] rc 要设置的矩形区域信息，包含内边距，不包含外边距
@@ -187,13 +189,32 @@ public:
 	 */
 	void ReSetLayout(Layout* pLayout);
 
+public:
+	/** 设置是否支持拖拽投放进入该容器: 如果不等于0，支持拖入，否则不支持拖入(从DragOutId==DropInId的容器拖入到该容器)
+	*/
+	void SetDropInId(uint8_t nDropInId);
+
+	/** 获取是否支持拖拽投放进入该容器: 如果不等于0，支持拖入，否则不支持拖入
+	*/
+	uint8_t GetDropInId() const;
+
+	/** 设置是否支持拖拽拖出该容器：如果不等于0，支持拖出，否则不支持拖出（拖出到DropInId==DragOutId的容器）
+	*/
+	void SetDragOutId(uint8_t nDragOutId);
+
+	/** 获取是否支持拖拽拖出该容器：如果不等于0，支持拖出，否则不支持拖出
+	*/
+	uint8_t GetDragOutId() const;
+
 protected:
 
 	/** 查找控件, 子控件列表由外部传入
 	*/
 	Control* FindControlInItems(const std::vector<Control*>& items, 
-								FINDCONTROLPROC Proc, LPVOID pData, 
-							    UINT uFlags, UiPoint scrollPos);
+								FINDCONTROLPROC Proc, LPVOID pProcData,
+								uint32_t uFlags, 
+							    const UiPoint& ptMouse, 
+							    const UiPoint& scrollPos);
 
 private:
 	/**@brief 向指定位置添加一个控件
@@ -225,6 +246,12 @@ private:
 
 	//是否允许响应子控件的鼠标消息
 	bool m_bMouseChildEnabled;
+
+	//是否支持拖拽投放进入该容器: 如果不等于0，支持拖入，否则不支持拖入(从DragOutId==DropInId的容器拖入到该容器)
+	uint8_t m_nDropInId;
+
+	//是否支持拖拽拖出该容器：如果不等于0，支持拖出，否则不支持拖出（拖出到DropInId==DragOutId的容器）
+	uint8_t m_nDragOutId;
 };
 
 } // namespace ui

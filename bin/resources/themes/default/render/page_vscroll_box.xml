@@ -16,5 +16,46 @@
 <!--
         <Label text="float 301*301 center,center" float="true" halign="center" valign="center" single_line="false" width="301" height="301" border_size="1" border_color="green" bkcolor="LemonChiffon"/>
 -->
+        <VListBox class="list" name="list" height="100" width="200" padding="5,3,5,3" tooltiptext="ui::VListBox">
+                <ListBoxItem class="listitem" height="20" text="VListBox::ListBoxItem"/>
+                <ListBoxItem class="listitem" height="20" text="VListBox::ListBoxItem"/>
+                <ListBoxItem class="listitem" height="20" text="VListBox::ListBoxItem"/>
+                <ListBoxItem class="listitem" height="20" text="VListBox::ListBoxItem"/>
+                <ListBoxItem class="listitem" height="20" text="VListBox::ListBoxItem"/>
+                <ListBoxItem class="listitem" height="20" text="VListBox::ListBoxItem"/>
+                <ListBoxItem class="listitem" height="20" text="VListBox::ListBoxItem"/>
+                <ListBoxItem class="listitem" height="20" text="VListBox::ListBoxItem"/>
+                <ListBoxItem class="listitem" height="20" text="VListBox::ListBoxItem"/>
+                <ListBoxItem class="listitem" height="20" text="VListBox::ListBoxItem"/>
+                <ListBoxItem class="listitem" height="20" text="VListBox::ListBoxItem"/>
+        </VListBox>
+        <HBox height="120">
+            <VListBox class="list" name="list" height="100" width="200" padding="5,3,5,3" tooltiptext="ui::VListBox">
+                <ListBoxItem class="listitem" height="20" text="VListBox::ListBoxItem"/>
+                <ListBoxItem class="listitem" height="20" text="VListBox::ListBoxItem"/>
+                <ListBoxItem class="listitem" height="20" text="VListBox::ListBoxItem"/>
+                <ListBoxItem class="listitem" height="20" text="VListBox::ListBoxItem"/>
+                <ListBoxItem class="listitem" height="20" text="VListBox::ListBoxItem"/>
+                <ListBoxItem class="listitem" height="20" text="VListBox::ListBoxItem"/>
+                <ListBoxItem class="listitem" height="20" text="VListBox::ListBoxItem"/>
+                <ListBoxItem class="listitem" height="20" text="VListBox::ListBoxItem"/>
+                <ListBoxItem class="listitem" height="20" text="VListBox::ListBoxItem"/>
+                <ListBoxItem class="listitem" height="20" text="VListBox::ListBoxItem"/>
+                <ListBoxItem class="listitem" height="20" text="VListBox::ListBoxItem"/>
+            </VListBox>
+            <HListBox class="list" name="list" height="50" width="600" hscrollbar="true" padding="5,3,5,3" tooltiptext="ui::HListBox">
+                <ListBoxItem class="listitem" height="40" width="100" text="HListBox::ListBoxItem"/>
+                <ListBoxItem class="listitem" height="40" width="100" text="HListBox::ListBoxItem"/>
+                <ListBoxItem class="listitem" height="40" width="100" text="HListBox::ListBoxItem"/>
+                <ListBoxItem class="listitem" height="40" width="100" text="HListBox::ListBoxItem"/>
+                <ListBoxItem class="listitem" height="40" width="100" text="HListBox::ListBoxItem"/>
+                <ListBoxItem class="listitem" height="40" width="100" text="HListBox::ListBoxItem"/>
+                <ListBoxItem class="listitem" height="40" width="100" text="HListBox::ListBoxItem"/>
+                <ListBoxItem class="listitem" height="40" width="100" text="HListBox::ListBoxItem"/>
+                <ListBoxItem class="listitem" height="40" width="100" text="HListBox::ListBoxItem"/>
+                <ListBoxItem class="listitem" height="40" width="100" text="HListBox::ListBoxItem"/>
+                <ListBoxItem class="listitem" height="40" width="100" text="HListBox::ListBoxItem"/>
+            </HListBox>
+        </HBox>
    </VScrollBox>
 </Window>

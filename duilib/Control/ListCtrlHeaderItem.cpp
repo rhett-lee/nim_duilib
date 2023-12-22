@@ -300,7 +300,7 @@ void ListCtrlHeaderItem::VAlignRect(UiRect& rc, uint32_t textStyle, int32_t nIma
 
 void ListCtrlHeaderItem::Activate()
 {
-    if (IsInDragging()) {
+    if (IsInDraggingOrder() || IsInDraggingOut()) {
         //处于拖动改变列顺序的状态
         return;
     }

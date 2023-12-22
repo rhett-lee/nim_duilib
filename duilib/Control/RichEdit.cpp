@@ -1672,7 +1672,7 @@ void RichEdit::ArrangeChild(const std::vector<Control*>& items) const
 	GetLayout()->ArrangeChild(items, GetPos());
 }
 
-UINT RichEdit::GetControlFlags() const
+uint32_t RichEdit::GetControlFlags() const
 {
 	return IsEnabled() && IsAllowTabStop() ? UIFLAG_TABSTOP : UIFLAG_DEFAULT;
 }

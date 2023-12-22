@@ -8,7 +8,9 @@ Box::Box(Layout* pLayout) :
 	m_bAutoDestroyChild(true),
 	m_bDelayedDestroy(true),
 	m_bMouseChildEnabled(true),
-	m_items()
+	m_items(),
+	m_nDropInId(0),
+	m_nDragOutId(0)
 {
 	ASSERT(m_pLayout != nullptr);
 	if (m_pLayout) {
@@ -27,6 +29,27 @@ Box::~Box()
 }
 
 std::wstring Box::GetType() const { return DUI_CTR_BOX; }
+
+void Box::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
+{
+	if ((strName == L"mouse_child") || (strName == L"mousechild")) {
+		SetMouseChildEnabled(strValue == L"true");
+	}
+	else if (m_pLayout->SetAttribute(strName, strValue)) {
+		return;
+	}
+	else if (strName == L"drag_out_id") {
+		uint8_t nValue = ui::TruncateToUInt8(_wtoi(strValue.c_str()));
+		SetDragOutId(nValue);
+	}
+	else if (strName == L"drop_in_id") {
+		uint8_t nValue = ui::TruncateToUInt8(_wtoi(strValue.c_str()));
+		SetDropInId(nValue);
+	}
+	else {
+		Control::SetAttribute(strName, strValue);
+	}
+}
 
 void Box::SetParent(Box* pParent)
 {
@@ -48,19 +71,6 @@ void Box::SetWindow(Window* pManager)
 			pControl->SetWindow(pManager);
 		}
 	}	
-}
-
-void Box::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
-{
-	if ((strName == L"mouse_child") || (strName == L"mousechild")) {
-		SetMouseChildEnabled(strValue == L"true");
-	}
-	else if (m_pLayout->SetAttribute(strName, strValue)) {
-		return;
-	}
-	else {
-		Control::SetAttribute(strName, strValue);
-	}
 }
 
 void Box::SetPos(UiRect rc)
@@ -221,64 +231,62 @@ UiEstSize Box::EstimateSize(UiSize szAvailable)
 	return estSize;
 }
 
-Control* Box::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, UiPoint scrollPos)
+Control* Box::FindControl(FINDCONTROLPROC Proc, LPVOID pProcData,
+					      uint32_t uFlags, const UiPoint& ptMouse, const UiPoint& scrollPos)
 {
-	return FindControlInItems(m_items, Proc, pData, uFlags, scrollPos);
+	return FindControlInItems(m_items, Proc, pProcData, uFlags, ptMouse, scrollPos);
 }
 
 Control* Box::FindControlInItems(const std::vector<Control*>& items,
-								 FINDCONTROLPROC Proc, LPVOID pData,
-								 UINT uFlags, UiPoint scrollPos)
+								 FINDCONTROLPROC Proc, LPVOID pProcData,
+								 uint32_t uFlags, 
+								 const UiPoint& ptMouse, 
+							     const UiPoint& scrollPos)
 {
-	Box* pBox = this;
-	// Check if this guy is valid
-	if ((uFlags & UIFIND_VISIBLE) != 0 && !pBox->IsVisible()) {
+	//ptMouse: 是适配过容器自身的坐标
+	//scrollPos: 是当前容器的滚动条偏移	
+	if ((uFlags & UIFIND_VISIBLE) != 0 && !IsVisible()) {
 		return nullptr;
 	}
-	if ((uFlags & UIFIND_ENABLED) != 0 && !pBox->IsEnabled()) {
+	if ((uFlags & UIFIND_ENABLED) != 0 && !IsEnabled()) {
 		return nullptr;
 	}
 	if ((uFlags & UIFIND_HITTEST) != 0) {
-		ASSERT(pData != nullptr);
-		UiPoint pt(*(static_cast<UiPoint*>(pData)));
-		if ((pData != nullptr) && !pBox->GetRect().ContainsPt(pt)) {
+		if (!GetRect().ContainsPt(ptMouse)) {
 			return nullptr;
 		}
-		if (!pBox->IsMouseChildEnabled()) {
-			Control* pResult = pBox->Control::FindControl(Proc, pData, uFlags);
+		if (!IsMouseChildEnabled()) {
+			Control* pResult = Control::FindControl(Proc, pProcData, uFlags, ptMouse);
 			return pResult;
 		}
 	}
 
 	if ((uFlags & UIFIND_ME_FIRST) != 0) {
-		Control* pControl = pBox->Control::FindControl(Proc, pData, uFlags);
+		Control* pControl = Control::FindControl(Proc, pProcData, uFlags, ptMouse);
 		if (pControl != nullptr) {
 			return pControl;
 		}
 	}
-	UiRect rc = pBox->GetRectWithoutPadding();
+#ifdef _DEBUG
+	if (((uFlags & UIFIND_HITTEST) != 0) && ((uFlags & UIFIND_DRAG_DROP) == 0) && (pProcData != nullptr)) {
+		UiPoint ptOrg(*(UiPoint*)pProcData);
+		ptOrg.Offset(this->GetScrollOffsetInScrollBox());
+		ASSERT(ptOrg == ptMouse);
+	}
+#endif // _DEBUG
+	UiPoint boxPt(ptMouse);
+	boxPt.Offset(scrollPos);
+	UiRect rc = GetRectWithoutPadding();
 	if ((uFlags & UIFIND_TOP_FIRST) != 0) {
-		for (int it = (int)items.size() - 1; it >= 0; --it) {
+		//倒序
+		for (int32_t it = (int32_t)items.size() - 1; it >= 0; --it) {
 			if (items[it] == nullptr) {
 				continue;
 			}
-			Control* pControl = nullptr;
-			if ((uFlags & UIFIND_HITTEST) != 0) {
-				ASSERT(pData != nullptr);
-				if (pData != nullptr) {
-					UiPoint newPoint(*(static_cast<UiPoint*>(pData)));
-					newPoint.Offset(scrollPos);
-					pControl = items[it]->FindControl(Proc, &newPoint, uFlags);
-				}				
-			}
-			else {
-				pControl = items[it]->FindControl(Proc, pData, uFlags);
-			}
+			Control* pControl = items[it]->FindControl(Proc, pProcData, uFlags, boxPt);
 			if (pControl != nullptr) {
 				if ((uFlags & UIFIND_HITTEST) != 0 &&
-					!pControl->IsFloat() && 
-					(pData != nullptr) &&
-					!rc.ContainsPt(*(static_cast<UiPoint*>(pData)))) {
+					!pControl->IsFloat() && !rc.ContainsPt(ptMouse)) {
 					continue;
 				}
 				else {
@@ -288,27 +296,15 @@ Control* Box::FindControlInItems(const std::vector<Control*>& items,
 		}
 	}
 	else {
+		//正常顺序
 		for (Control* pItemControl : items) {
 			if (pItemControl == nullptr) {
 				continue;
 			}
-			Control* pControl = nullptr;
-			if ((uFlags & UIFIND_HITTEST) != 0) {
-				ASSERT(pData != nullptr);
-				if (pData != nullptr) {
-					UiPoint newPoint(*(static_cast<UiPoint*>(pData)));
-					newPoint.Offset(scrollPos);
-					pControl = pItemControl->FindControl(Proc, &newPoint, uFlags);
-				}
-			}
-			else {
-				pControl = pItemControl->FindControl(Proc, pData, uFlags);
-			}
+			Control* pControl = pControl = pItemControl->FindControl(Proc, pProcData, uFlags, boxPt);
 			if (pControl != nullptr) {
 				if ((uFlags & UIFIND_HITTEST) != 0 && 
-					!pControl->IsFloat() && 
-					(pData != nullptr) &&
-					!rc.ContainsPt(*(static_cast<UiPoint*>(pData)))) {
+					!pControl->IsFloat() && !rc.ContainsPt(ptMouse)) {
 					continue;
 				}
 				else {
@@ -320,7 +316,7 @@ Control* Box::FindControlInItems(const std::vector<Control*>& items,
 
 	Control* pResult = nullptr;
 	if ((uFlags & UIFIND_ME_FIRST) == 0) {
-		pResult = pBox->Control::FindControl(Proc, pData, uFlags);
+		pResult = Control::FindControl(Proc, pProcData, uFlags, ptMouse);
 	}
 	return pResult;
 }
@@ -525,9 +521,29 @@ void Box::ClearImageCache()
 	}
 }
 
-UINT Box::GetControlFlags() const
+uint32_t Box::GetControlFlags() const
 {
 	return UIFLAG_DEFAULT; // Box 默认不支持 TAB 切换焦点
+}
+
+void Box::SetDropInId(uint8_t nDropInId)
+{
+	m_nDropInId = nDropInId;
+}
+
+uint8_t Box::GetDropInId() const
+{
+	return m_nDropInId;
+}
+
+void Box::SetDragOutId(uint8_t nDragOutId)
+{
+	m_nDragOutId = nDragOutId;
+}
+
+uint8_t Box::GetDragOutId() const
+{
+	return m_nDragOutId;
 }
 
 } // namespace ui

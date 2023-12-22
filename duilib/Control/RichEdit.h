@@ -909,7 +909,7 @@ protected:
 	//一些基类的虚函数
 	virtual bool CanPlaceCaptionBar() const override;
 	virtual void OnInit() override;
-	virtual UINT GetControlFlags() const override;	
+	virtual uint32_t GetControlFlags() const override;
 
 	//消息处理函数
 	virtual bool OnSetCursor(const EventArgs& msg) override;

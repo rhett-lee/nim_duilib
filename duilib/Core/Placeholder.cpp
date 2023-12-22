@@ -523,23 +523,19 @@ void PlaceHolder::RelayoutOrRedraw()
 UiPoint PlaceHolder::GetScrollOffsetInScrollBox() const
 {
 	UiPoint scrollPos;
-	Control* parent = GetParent();	
-	if (IsFloat()) {
-		ScrollBox* pScrollBox= dynamic_cast<ScrollBox*>(parent);
-		if ((pScrollBox != nullptr) &&
-			(pScrollBox->IsVScrollBarValid() || pScrollBox->IsHScrollBarValid())) {
-			//当前控件是浮动的，父控件是ScrollBox， 并且父控件存在横向滚动条或者纵向滚动条
-			return scrollPos;
-		}
-	}
-	
-	while (parent != nullptr) {			
+	Control* parent = GetParent();
+	while (parent != nullptr) {
 		ScrollBox* pScrollBox = dynamic_cast<ScrollBox*>(parent);
 		if ((pScrollBox != nullptr) &&
 			(pScrollBox->IsVScrollBarValid() || pScrollBox->IsHScrollBarValid())) {
 			//此父控件是ScrollBox，并且父控件存在横向滚动条或者纵向滚动条
-			scrollPos.x += pScrollBox->GetScrollOffset().cx;
-			scrollPos.y += pScrollBox->GetScrollOffset().cy;
+			if (IsFloat() && (pScrollBox == GetParent())) {
+				//当前控件是浮动的，父控件是ScrollBox，不计入统计
+			}
+			else {
+				scrollPos.x += pScrollBox->GetScrollOffset().cx;
+				scrollPos.y += pScrollBox->GetScrollOffset().cy;
+			}
 		}
 		parent = parent->GetParent();
 	}

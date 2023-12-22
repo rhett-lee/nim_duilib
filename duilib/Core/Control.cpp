@@ -1244,7 +1244,7 @@ void Control::SetFocus()
 	}
 }
 
-UINT Control::GetControlFlags() const
+uint32_t Control::GetControlFlags() const
 {
 	return IsAllowTabStop() ? UIFLAG_TABSTOP : UIFLAG_DEFAULT;
 }
@@ -1288,7 +1288,9 @@ bool Control::IsActivatable() const
 	return true;
 }
 
-Control* Control::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, UiPoint /*scrollPos*/)
+Control* Control::FindControl(FINDCONTROLPROC Proc, LPVOID pProcData,
+							  uint32_t uFlags, const UiPoint& ptMouse,
+							  const UiPoint& scrollPos)
 {
 	if ((uFlags & UIFIND_VISIBLE) != 0 && !IsVisible()) {
 		return nullptr;
@@ -1296,11 +1298,20 @@ Control* Control::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, U
 	if ((uFlags & UIFIND_ENABLED) != 0 && !IsEnabled()) {
 		return nullptr;
 	}
+	UiPoint pt(ptMouse);
+	pt.Offset(scrollPos);
+#ifdef _DEBUG
+	if (((uFlags & UIFIND_HITTEST) != 0) && ((uFlags & UIFIND_DRAG_DROP) == 0) && (pProcData != nullptr)) {
+		UiPoint ptOrg(*(UiPoint*)pProcData);
+		ptOrg.Offset(this->GetScrollOffsetInScrollBox());
+		ASSERT(ptOrg == pt);
+	}
+#endif // _DEBUG
 	if ((uFlags & UIFIND_HITTEST) != 0 && 
-		(!m_bMouseEnabled || ((pData != nullptr) && !GetRect().ContainsPt(*static_cast<UiPoint*>(pData))))) {
+		(!m_bMouseEnabled || !GetRect().ContainsPt(pt))) {
 		return nullptr;
 	}
-    return Proc(this, pData);
+    return Proc(this, pProcData);
 }
 
 UiRect Control::GetPos() const

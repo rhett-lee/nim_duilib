@@ -195,12 +195,14 @@ void ScrollBar::SetVisible(bool bVisible)
 
 bool ScrollBar::ButtonUp(const EventArgs& msg)
 {
+	UiPoint pt(msg.ptMouse);
+	pt.Offset(GetScrollOffsetInScrollBox());
 	bool ret = false;
 	if( IsMouseFocused() ) {
 		SetMouseFocused(false);
 		Invalidate();
 		UiRect pos = GetPos();
-		if (pos.ContainsPt(msg.ptMouse)) {
+		if (pos.ContainsPt(pt)) {
 			SetState(kControlStateHot);
 			ret = true;
 		}
@@ -210,7 +212,7 @@ bool ScrollBar::ButtonUp(const EventArgs& msg)
 	}
 
 	UiRect ownerPos = m_pOwner->GetPos();
-	if (m_bAutoHide && !ownerPos.ContainsPt(msg.ptMouse)) {
+	if (m_bAutoHide && !ownerPos.ContainsPt(pt)) {
 		SetFadeVisible(false);
 	}
 
@@ -426,6 +428,8 @@ void ScrollBar::HandleEvent(const EventArgs& msg)
 		return;
 	}
 
+	UiPoint pt(msg.ptMouse);
+	pt.Offset(GetScrollOffsetInScrollBox());
 	if ((msg.Type == kEventMouseButtonDown) || (msg.Type == kEventMouseDoubleClick)) {
 		m_nLastScrollOffset = 0;
 		m_nScrollRepeatDelay = 0;
@@ -433,7 +437,7 @@ void ScrollBar::HandleEvent(const EventArgs& msg)
 		auto callback = nbase::Bind(&ScrollBar::ScrollTimeHandle, this);
 		GlobalManager::Instance().Timer().AddCancelableTimer(m_weakFlagOwner.GetWeakFlag(), callback, 50, TimerManager::REPEAT_FOREVER);
 
-		if (m_rcButton1.ContainsPt(msg.ptMouse)) {
+		if (m_rcButton1.ContainsPt(pt)) {
 			//鼠标位置：[上按钮](垂直滚动条) 或者 [左按钮](水平滚动条)
 			m_uButton1State = kControlStatePushed;
 			if (!m_bHorizontal) {
@@ -455,7 +459,7 @@ void ScrollBar::HandleEvent(const EventArgs& msg)
 				}
 			}
 		}
-		else if (m_rcButton2.ContainsPt(msg.ptMouse)) {
+		else if (m_rcButton2.ContainsPt(pt)) {
 			//鼠标位置：[下按钮](垂直滚动条) 或者 [右按钮](水平滚动条)
 			m_uButton2State = kControlStatePushed;
 			if (!m_bHorizontal) {
@@ -477,18 +481,18 @@ void ScrollBar::HandleEvent(const EventArgs& msg)
 				}
 			}
 		}
-		else if (m_rcThumb.ContainsPt(msg.ptMouse)) {
+		else if (m_rcThumb.ContainsPt(pt)) {
 			//鼠标位置：在滚动条的滑动块按钮上
 			m_uThumbState = kControlStatePushed;
 			SetMouseFocused(true);
-			m_ptLastMouse = msg.ptMouse;
+			m_ptLastMouse = pt;
 			m_nLastScrollPos = m_nScrollPos;
 		}
 		else {
 			//鼠标位置：滚动条非按钮区域
 			if (!m_bHorizontal) {
 				//垂直滚动条
-				if (msg.ptMouse.y < m_rcThumb.top) {
+				if (pt.y < m_rcThumb.top) {
 					if (m_pOwner != nullptr) {
 						m_pOwner->PageUp();
 					}
@@ -496,7 +500,7 @@ void ScrollBar::HandleEvent(const EventArgs& msg)
 						SetScrollPos(m_nScrollPos + GetRect().top - GetRect().bottom);
 					}
 				}
-				else if (msg.ptMouse.y > m_rcThumb.bottom){
+				else if (pt.y > m_rcThumb.bottom){
 					if (m_pOwner != nullptr) {
 						m_pOwner->PageDown();
 					}
@@ -507,7 +511,7 @@ void ScrollBar::HandleEvent(const EventArgs& msg)
 			}
 			else {
 				//水平滚动条
-				if (msg.ptMouse.x < m_rcThumb.left) {
+				if (pt.x < m_rcThumb.left) {
 					if (m_pOwner != nullptr) {
 						m_pOwner->PageLeft();
 					}
@@ -515,7 +519,7 @@ void ScrollBar::HandleEvent(const EventArgs& msg)
 						SetScrollPos(m_nScrollPos + GetRect().left - GetRect().right);
 					}
 				}
-				else if (msg.ptMouse.x > m_rcThumb.right){
+				else if (pt.x > m_rcThumb.right){
 					if (m_pOwner != nullptr) {
 						m_pOwner->PageRight();
 					}
@@ -536,7 +540,7 @@ void ScrollBar::HandleEvent(const EventArgs& msg)
 		m_weakFlagOwner.Cancel();
 
 		if (IsMouseFocused()) {
-			if (GetRect().ContainsPt(msg.ptMouse)) {
+			if (GetRect().ContainsPt(pt)) {
 				m_uThumbState = kControlStateHot;
 			}
 			else {
@@ -574,7 +578,7 @@ void ScrollBar::HandleEvent(const EventArgs& msg)
 				}
 
 				if (vRange != 0) {
-					m_nLastScrollOffset = (msg.ptMouse.y - m_ptLastMouse.y) * m_nRange / vRange;
+					m_nLastScrollOffset = (pt.y - m_ptLastMouse.y) * m_nRange / vRange;
 				}
 			}
 			else {
@@ -588,7 +592,7 @@ void ScrollBar::HandleEvent(const EventArgs& msg)
 				}
 
 				if (hRange != 0) {
-					m_nLastScrollOffset = (msg.ptMouse.x - m_ptLastMouse.x) * m_nRange / hRange;
+					m_nLastScrollOffset = (pt.x - m_ptLastMouse.x) * m_nRange / hRange;
 				}
 			}
 		}
@@ -905,9 +909,11 @@ void ScrollBar::ScrollTimeHandle()
 		if (m_nScrollRepeatDelay <= 5) {
 			return;
 		}
-		POINT pt = { 0 };
-		::GetCursorPos(&pt);
-		::ScreenToClient(GetWindow()->GetHWND(), &pt);
+		POINT ptClient = { 0 };
+		::GetCursorPos(&ptClient);
+		::ScreenToClient(GetWindow()->GetHWND(), &ptClient);
+		UiPoint pt(ptClient.x, ptClient.y);
+		pt.Offset(GetScrollOffsetInScrollBox());
 		if( !m_bHorizontal ) {
 			//垂直滚动条
 			if( pt.y < m_rcThumb.top ) {

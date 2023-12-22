@@ -6,6 +6,7 @@
 #include "duilib/Core/Control.h"
 #include "duilib/Core/Box.h"
 #include "duilib/Core/GlobalManager.h"
+#include "duilib/Core/DragWindow.h"
 #include "duilib/Box/VBox.h"
 #include "duilib/Box/HBox.h"
 
@@ -40,9 +41,21 @@ public:
 	*/
 	uint8_t GetDragAlpha() const;
 
-	/** 当前是否处于拖拽操作中
+    /** 设置是否支持拖出操作
+    */
+    void SetEnableDragOut(bool bEnable);
+
+    /** 判断是否支持拖出操作
+    */
+    virtual bool IsEnableDragOut() const;
+
+	/** 当前是否处于拖拽调序操作中
 	*/
-	bool IsInDragging() const;
+	bool IsInDraggingOrder() const;
+
+    /** 当前是否处于拖出操作中
+    */
+    bool IsInDraggingOut() const;
 
 protected:
 	/** @name 拖动相关的成员函数
@@ -92,19 +105,71 @@ protected:
 
 	/** 清除拖动状态，恢复原状态
 	*/
-	void ClearDragStatus();
+    virtual void ClearDragStatus();
 
     /** 将当前鼠标位置，转换到子项所在区域有效的范围内
     */
-    void GetValidPointInItemRects(UiPoint& pt) const;
+    virtual void GetValidPointInItemRects(UiPoint& pt) const;
 
 	/** @} */
 
+protected:
+    /** @name 在相同窗口内不同的Box内拖动相关的成员变量
+    * @{ */
+
+    /** 拖拽拖放事件
+    * @param [in] ptMouse 当前鼠标所在位置
+    * @return 返回true表示匹配到拖入的控件，返回false表示未找到拖入的控件位置
+    */
+    virtual bool OnDragOutMouseOver(Box* pTargetBox, Box* pOldTargetBox,
+                                    Control* pDestControl, const UiPoint& ptMouse);
+
+    /** 创建拖出操作时，显示的跟随窗口
+    */
+    virtual DragWindow* CreateDragWindow();
+
+    /** 目标位置指示控件
+    */
+    virtual Control* CreateDestControl();
+
+    /** 生成控件拖出时的位图
+    */
+    virtual std::shared_ptr<IBitmap> CreateDragoutImage();
+
+    /** 判断鼠标位置是否在控件的矩形范围内
+    */
+    virtual bool IsPtInControlRect(Control* pControl, const UiPoint& pt) const;
+
+    /** @} */
+
 private:
-	/** @name 拖动相关的成员变量
+    /** 鼠标移动时执行的拖出操作
+    * @return 返回true表示处于拖出操作中，返回false表示未执行拖出操作
+    */
+    bool DragOutMouseMove(const EventArgs& msg);
+
+    /** 鼠标弹起时执行的拖出操作
+    */
+    void DragOutMouseUp(const EventArgs& msg);
+
+    /** 鼠标按下时执行的拖动调整顺序操作
+    */
+    void DragOrderMouseDown(const EventArgs& msg);
+
+    /** 鼠标移动时执行的拖动调整顺序操作
+    * @return 返回true表示处于拖动调序操作中，返回false表示未执行拖动调序操作
+    */
+    bool DragOrderMouseMove(const EventArgs& msg);
+
+    /** 鼠标弹起时执行的拖出操作
+    */
+    void DragOrderMouseUp(const EventArgs& msg);
+
+private:
+	/** @name 在相同窗口内同一个Box内拖动相关的成员变量
 	* @{ */
 
-	/** 是否支持拖动改变列的顺序
+	/** 是否支持拖动改变列的顺序(功能开关)
 	*/
 	bool m_bEnableDragOrder;
 
@@ -112,9 +177,9 @@ private:
 	*/
 	bool m_bMouseDown;
 
-	/** 是否处于拖拽操作中
+	/** 是否处于拖拽调序操作中
 	*/
-	bool m_bInDragging;
+	bool m_bInDraggingOrder;
 
 	/** 拖动顺序时，控件的透明度
 	*/
@@ -137,17 +202,50 @@ private:
 	std::vector<ItemStatus> m_rcItemList;
 
 	/** @} */
+
+    /** @name 在相同窗口内不同的Box内拖动相关的成员变量
+    * @{ */
+
+    /** 是否支持拖出操作(功能开关)
+    */
+    bool m_bEnableDragOut;
+
+    /** 目标Box
+    */
+    Box* m_pTargetBox;
+
+    /** 目标位置指示控件
+    */
+    Control* m_pDestControl;
+
+    /** 拖拽的状态窗口
+    */
+    DragWindow* m_pDragWindow;
+
+    /** 该拖出控件的位图
+    */
+    std::shared_ptr<IBitmap> m_pDragImage;
+
+    /** 当前是否正在执行拖出操作
+    */
+    bool m_bDraggingOut;
+
+    /** @} */
 };
 
 template<typename T>
 ControlDragableT<T>::ControlDragableT():
     m_bEnableDragOrder(true),
     m_bMouseDown(false),
-    m_bInDragging(false),
+    m_bInDraggingOrder(false),
     m_nDragAlpha(216),
-    m_nOldAlpha(255)
+    m_nOldAlpha(255),
+    m_bEnableDragOut(true),
+    m_pTargetBox(nullptr),
+    m_pDestControl(nullptr),
+    m_pDragWindow(nullptr),
+    m_bDraggingOut(false)
 {
-    
 }
 
 template<typename T>
@@ -171,11 +269,16 @@ template<typename T>
 void ControlDragableT<T>::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
 	if (strName == L"drag_order") {
+        //是否支持拖动调整顺序（在同一个容器内）
 		SetEnableDragOrder(strValue == L"true");
 	}
-	else if (strName == L"drag_order") {
+	else if (strName == L"drag_alpha") {
 		SetDragAlpha((uint8_t)_wtoi(strValue.c_str()));
 	}
+    else if (strName == L"drag_out") {
+        //是否支持拖出操纵（在相同窗口的不同容器内）
+        SetEnableDragOut(strValue == L"true");
+    }
 	else {
 		__super::SetAttribute(strName, strValue);
 	}
@@ -206,9 +309,27 @@ uint8_t ControlDragableT<T>::GetDragAlpha() const
 }
 
 template<typename T>
-bool ControlDragableT<T>::IsInDragging() const
+void ControlDragableT<T>::SetEnableDragOut(bool bEnable)
 {
-    return m_bInDragging;
+    m_bEnableDragOut = bEnable;
+}
+
+template<typename T>
+bool ControlDragableT<T>::IsEnableDragOut() const
+{
+    return m_bEnableDragOut;
+}
+
+template<typename T>
+bool ControlDragableT<T>::IsInDraggingOrder() const
+{
+    return m_bInDraggingOrder;
+}
+
+template<typename T>
+bool ControlDragableT<T>::IsInDraggingOut() const
+{
+    return m_bDraggingOut;
 }
 
 template<typename T>
@@ -216,8 +337,7 @@ bool ControlDragableT<T>::ButtonDown(const EventArgs& msg)
 {
     m_bMouseDown = false;
     bool bRet = __super::ButtonDown(msg);
-    if (!IsEnableDragOrder()) {
-        //当前列为固定列，不允许调整顺序
+    if (!IsEnableDragOrder() && !IsEnableDragOut()) {
         return bRet;
     }
     Box* pParent = this->GetParent();
@@ -235,23 +355,7 @@ bool ControlDragableT<T>::ButtonDown(const EventArgs& msg)
     m_ptMouseDown = pt;
     m_rcMouseDown = this->GetRect();
 
-    m_rcItemList.clear();
-    size_t nItemCount = pParent->GetItemCount();
-    for (size_t index = 0; index < nItemCount; ++index) {
-        ItemStatus itemStatus;
-        itemStatus.m_index = index;
-        itemStatus.m_pItem = pParent->GetItemAt(index);
-        if (itemStatus.m_pItem != nullptr) {
-            itemStatus.m_rcPos = itemStatus.m_pItem->GetRect();
-            itemStatus.m_nPaintOrder = itemStatus.m_pItem->GetPaintOrder();
-            m_rcItemList.push_back(itemStatus);
-        }
-        if (itemStatus.m_pItem == this) {
-            //当前控件，绘制顺序需要放最后，避免被其他控件遮挡
-            itemStatus.m_pItem->SetPaintOrder(255);
-            ASSERT(itemStatus.m_rcPos.ContainsPt(m_ptMouseDown));
-        }
-    }
+    DragOrderMouseDown(msg); 
     return bRet;
 }
 
@@ -259,53 +363,11 @@ template<typename T>
 bool ControlDragableT<T>::MouseMove(const EventArgs& msg)
 {
     bool bRet = __super::MouseMove(msg);
-    if (!m_bMouseDown) {
-        return bRet;
-    }
-    Box* pParent = this->GetParent();
-    if (pParent == nullptr) {
-        return bRet;
-    }
-    Layout* pLayout = pParent->GetLayout();
-    if ((pLayout == nullptr) || (!pLayout->IsHLayout() && !pLayout->IsVLayout())) {
-        return bRet;
-    }
-
-    UiPoint pt(msg.ptMouse);
-    pt.Offset(this->GetScrollOffsetInScrollBox());
-    GetValidPointInItemRects(pt);
-    if (pLayout->IsHLayout()) {
-        int32_t xOffset = pt.x - m_ptMouseDown.x;
-        if (std::abs(xOffset) < GlobalManager::Instance().Dpi().GetScaleInt(3)) {
-            return bRet;
+    if (m_bMouseDown) {
+        m_bDraggingOut = DragOutMouseMove(msg);
+        if (!m_bDraggingOut) {
+            DragOrderMouseMove(msg);
         }
-        //调整其他控件的位置
-        AdjustItemPos(pt, m_ptMouseDown, m_rcItemList);
-
-        UiRect rect = m_rcMouseDown;
-        rect.left += xOffset;
-        rect.right += xOffset;
-        this->SetPos(rect);
-    }
-    else {
-        int32_t yOffset = pt.y - m_ptMouseDown.y;
-        if (std::abs(yOffset) < GlobalManager::Instance().Dpi().GetScaleInt(3)) {
-            return bRet;
-        }
-        //调整其他控件的位置
-        AdjustItemPos(pt, m_ptMouseDown, m_rcItemList);
-
-        UiRect rect = m_rcMouseDown;
-        rect.top += yOffset;
-        rect.bottom += yOffset;
-        this->SetPos(rect);
-    }
-
-    if (!m_bInDragging) {
-        m_bInDragging = true;
-        m_nOldAlpha = (uint8_t)this->GetAlpha();
-        //设置为半透明的效果
-        this->SetAlpha(m_nDragAlpha);
     }
     return bRet;
 }
@@ -314,23 +376,17 @@ template<typename T>
 bool ControlDragableT<T>::ButtonUp(const EventArgs& msg)
 {
     bool bRet = __super::ButtonUp(msg);
-    if (!m_bInDragging) {
-        //没有处于拖动改变列顺序的状态
-        ClearDragStatus();
-        return bRet;
-    }
-    UiPoint pt(msg.ptMouse);
-    pt.Offset(this->GetScrollOffsetInScrollBox());
-    GetValidPointInItemRects(pt);
-
-    size_t nOldItemIndex = Box::InvalidIndex;
-    size_t nNewItemIndex = Box::InvalidIndex;
-    bool bOrderChanged = AdjustItemOrders(pt, m_rcItemList, nOldItemIndex, nNewItemIndex);
+    DragOutMouseUp(msg);
+    DragOrderMouseUp(msg);
     ClearDragStatus();
-    if (bOrderChanged) {
-        //触发列交换事件
-        OnItemOrdersChanged(nOldItemIndex, nNewItemIndex);
-    }
+    return bRet;
+}
+
+template<typename T>
+bool ControlDragableT<T>::OnWindowKillFocus(const EventArgs& msg)
+{
+    bool bRet = __super::OnWindowKillFocus(msg);
+    ClearDragStatus();
     return bRet;
 }
 
@@ -380,14 +436,6 @@ void ControlDragableT<T>::GetValidPointInItemRects(UiPoint& pt) const
     if (pt.y >= rcItemRects.bottom) {
         pt.y = rcItemRects.bottom - 1;
     }
-}
-
-template<typename T>
-bool ControlDragableT<T>::OnWindowKillFocus(const EventArgs& msg)
-{
-    bool bRet = __super::OnWindowKillFocus(msg);
-    ClearDragStatus();
-    return bRet;
 }
 
 template<typename T>
@@ -532,10 +580,30 @@ void ControlDragableT<T>::OnItemOrdersChanged(size_t /*nOldItemIndex*/, size_t /
 template<typename T>
 void ControlDragableT<T>::ClearDragStatus()
 {
-    if (m_bInDragging) {
+    //恢复拖出操作的状态
+    if ((m_pDestControl != nullptr) && (m_pTargetBox != nullptr)) {
+        if (m_pTargetBox->RemoveItem(m_pDestControl)) {
+            m_pDestControl = nullptr;
+        }
+    }
+    if (m_pDragWindow != nullptr) {
+        if (!m_pDragWindow->IsClosingWnd()) {
+            m_pDragWindow->SetDragImage(nullptr);
+            m_pDragWindow->CloseWnd();
+        }
+        m_pDragWindow->Release();
+        m_pDragWindow = nullptr;
+    }
+    m_pDragImage.reset();
+    m_pTargetBox = nullptr;
+    m_bDraggingOut = false;
+    this->SetVisible(true);
+
+    //恢复拖动调序操作的状态
+    if (m_bInDraggingOrder) {
         this->SetAlpha(m_nOldAlpha);
         m_nOldAlpha = 255;
-        m_bInDragging = false;
+        m_bInDraggingOrder = false;
     }
     m_bMouseDown = false;
     if (!m_rcItemList.empty()) {
@@ -554,6 +622,433 @@ void ControlDragableT<T>::ClearDragStatus()
             pParent->SetPos(pParent->GetPos());
         }
     }
+}
+
+template<typename T>
+void ControlDragableT<T>::DragOutMouseUp(const EventArgs& msg)
+{
+    if (!IsInDraggingOut() || !IsEnableDragOut() || (m_pTargetBox == nullptr)) {
+        return;
+    }
+    //控件拖出操作
+    Box* pParent = this->GetParent();
+    UiPoint pt(msg.ptMouse);
+    pt.Offset(m_pTargetBox->GetScrollOffsetInScrollBox());
+    if ((pParent == nullptr) || !m_pTargetBox->GetRect().ContainsPt(pt)) {
+        return;
+    }
+    size_t nIndex = Box::InvalidIndex;
+    if (m_pDestControl != nullptr) {
+        nIndex = m_pTargetBox->GetItemIndex(m_pDestControl);
+    }
+    if (nIndex == Box::InvalidIndex) {
+        const size_t nCount = m_pTargetBox->GetItemCount();
+        for (size_t nItem = 0; nItem < nCount; ++nItem) {
+            Control* pControl = m_pTargetBox->GetItemAt(nItem);
+            if ((pControl == nullptr) || !pControl->IsVisible() || pControl->IsFloat()) {
+                continue;
+            }
+            if (IsPtInControlRect(pControl, pt)) {
+                nIndex = nItem;
+                break;
+            }
+        }
+    }
+    if (nIndex < m_pTargetBox->GetItemCount()) {
+        if (m_pDestControl != nullptr) {
+            m_pTargetBox->RemoveItem(m_pDestControl);
+            m_pDestControl = nullptr;
+        }
+
+        bool bAutoDestroyChild = pParent->IsAutoDestroyChild();
+        pParent->SetAutoDestroyChild(false);
+        pParent->RemoveItem(this);
+        pParent->SetAutoDestroyChild(bAutoDestroyChild);
+
+        this->SetVisible(true);
+        m_pTargetBox->AddItem(this);
+        m_pTargetBox->SetItemIndex(this, nIndex);
+        m_pTargetBox = nullptr;
+    }
+}
+
+template<typename T>
+void ControlDragableT<T>::DragOrderMouseUp(const EventArgs& msg)
+{
+    if (!IsEnableDragOrder() || !IsInDraggingOrder()) {
+        return;
+    }
+    //控件内：拖动改变顺序
+    UiPoint pt(msg.ptMouse);
+    pt.Offset(this->GetScrollOffsetInScrollBox());
+    GetValidPointInItemRects(pt);
+    size_t nOldItemIndex = Box::InvalidIndex;
+    size_t nNewItemIndex = Box::InvalidIndex;
+    bool bOrderChanged = AdjustItemOrders(pt, m_rcItemList, nOldItemIndex, nNewItemIndex);
+    ClearDragStatus();
+    if (bOrderChanged) {
+        //触发列交换事件
+        OnItemOrdersChanged(nOldItemIndex, nNewItemIndex);
+    }
+}
+
+template<typename T>
+bool ControlDragableT<T>::OnDragOutMouseOver(Box* pTargetBox, Box* pOldTargetBox, Control* pDestControl, const UiPoint& ptMouse)
+{
+    bool bDropped = false;
+    if (pTargetBox == nullptr) {
+        return bDropped;
+    }
+    if ((pOldTargetBox != nullptr) && (pTargetBox != pOldTargetBox) && (pDestControl != nullptr)) {
+        //从旧的中移除出来
+        size_t nIndex = pOldTargetBox->GetItemIndex(pDestControl);
+        if (nIndex != Box::InvalidIndex) {
+            bool bAutoDestroyChild = pOldTargetBox->IsAutoDestroyChild();
+            pOldTargetBox->SetAutoDestroyChild(false);
+            pOldTargetBox->RemoveItem(pDestControl);
+            pOldTargetBox->SetAutoDestroyChild(bAutoDestroyChild);
+        }
+    }
+
+    UiPoint pt(ptMouse);
+    pt.Offset(pTargetBox->GetScrollOffsetInScrollBox());
+    const size_t nCount = pTargetBox->GetItemCount();
+    for (size_t nIndex = 0; nIndex < nCount; ++nIndex) {
+        Control* pControl = pTargetBox->GetItemAt(nIndex);
+        if ((pControl == nullptr) || !pControl->IsVisible() || pControl->IsFloat()) {
+            continue;
+        }
+        if ((pControl == pDestControl) && (IsPtInControlRect(pControl, pt))) {
+            //鼠标在指示控件上
+            bDropped = true;
+            break;
+        }
+        if (IsPtInControlRect(pControl, pt)) {
+            bDropped = true;
+            if (pDestControl == nullptr) {
+                break;
+            }
+            size_t nOldIndex = pTargetBox->GetItemIndex(pDestControl);
+            if (nOldIndex == Box::InvalidIndex) {
+                pTargetBox->AddItem(pDestControl);
+            }
+            UiRect rc = pControl->GetRect();
+            if ((pTargetBox->GetLayout() != nullptr) && pTargetBox->GetLayout()->IsHLayout()) {
+                size_t nNewIndex = nIndex;
+                if ((pt.x - rc.left) > rc.Width() / 2) {
+                    if (nNewIndex < (pTargetBox->GetItemCount() - 1)) {
+                        nNewIndex += 1;
+                    }
+                    if (nOldIndex != nNewIndex) {
+                        pTargetBox->SetItemIndex(pDestControl, nNewIndex);
+                    }
+                }
+                else {
+                    if (nOldIndex != (nNewIndex - 1)) {
+                        pTargetBox->SetItemIndex(pDestControl, nNewIndex);
+                    }
+                }
+            }
+            else {
+                size_t nNewIndex = nIndex;
+                if ((pt.y - rc.top) > rc.Height() / 2) {
+                    if (nNewIndex < (pTargetBox->GetItemCount() - 1)) {
+                        nNewIndex += 1;
+                    }
+                    if (nOldIndex != nNewIndex) {
+                        pTargetBox->SetItemIndex(pDestControl, nNewIndex);
+                    }
+                }
+                else {
+                    if (nOldIndex != (nNewIndex - 1)) {
+                        pTargetBox->SetItemIndex(pDestControl, nNewIndex);
+                    }
+                }
+            }
+            break;
+        }
+    }
+    return bDropped;
+}
+
+template<typename T>
+DragWindow* ControlDragableT<T>::CreateDragWindow()
+{
+    return new DragWindow;
+}
+
+template<typename T>
+Control* ControlDragableT<T>::CreateDestControl()
+{
+    Control* pDestControl = new Control;
+    pDestControl->SetAttribute(L"bkcolor", L"#FF5D6B99");
+    pDestControl->SetAttribute(L"width", L"4");
+    pDestControl->SetAttribute(L"height", L"80%");
+    pDestControl->SetAttribute(L"valign", L"center");
+    pDestControl->SetAttribute(L"halign", L"center");
+    return pDestControl;
+}
+
+template<typename T>
+std::shared_ptr<IBitmap> ControlDragableT<T>::CreateDragoutImage()
+{
+    UiRect rc = this->GetRect();
+    if (rc.IsEmpty()) {
+        return nullptr;
+    }
+    std::unique_ptr<IRender> render;
+    IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
+    ASSERT(pRenderFactory != nullptr);
+    if (pRenderFactory != nullptr) {
+        render.reset(pRenderFactory->CreateRender());
+    }
+    ASSERT(render != nullptr);
+    // const int32_t kDragImageWidth = GlobalManager::Instance().Dpi().GetScaleInt(90);
+    // const int32_t kDragImageHeight = GlobalManager::Instance().Dpi().GetScaleInt(90);
+    const int32_t kDragImageWidth = rc.Width();
+    const int32_t kDragImageHeight = rc.Height();
+    if (render->Resize(kDragImageWidth, kDragImageHeight)) {
+        int32_t destWidth = 0;
+        int32_t destHeight = 0;
+        float scale = (float)rc.Width() / (float)rc.Height();
+        if (scale >= 1.0) {
+            destWidth = kDragImageWidth;
+            destHeight = (int32_t)(kDragImageWidth * (float)rc.Height() / (float)rc.Width());
+        }
+        else {
+            destHeight = kDragImageHeight;
+            destWidth = (int32_t)(kDragImageHeight * (float)rc.Width() / (float)rc.Height());
+        }
+        render->AlphaBlend((kDragImageWidth - destWidth) / 2, 0, destWidth, destHeight,
+            this->GetWindow()->GetRender(),
+            rc.left, rc.top, rc.Width(), rc.Height());
+    }
+    std::shared_ptr<IBitmap> pDragImage(render->DetachBitmap());
+    return pDragImage;
+}
+
+template<typename T>
+bool ControlDragableT<T>::IsPtInControlRect(Control* pControl, const UiPoint& pt) const
+{
+    if (pControl == nullptr) {
+        return false;
+    }
+    UiRect rc = pControl->GetRect();
+    if (rc.ContainsPt(pt)) {
+        return true;
+    }
+    UiMargin rcMargin = pControl->GetMargin();
+    rc.Inflate(rcMargin);
+    if (rc.ContainsPt(pt)) {
+        return true;
+    }
+    Layout* pLayout = nullptr;
+    Box* pBox = pControl->GetParent();
+    if (pBox != nullptr) {
+        pLayout = pBox->GetLayout();
+    }
+    if (pLayout != nullptr) {
+        int32_t nChildMarginX = pLayout->GetChildMarginX() / 2;
+        int32_t nChildMarginY = pLayout->GetChildMarginY() / 2;
+        if ((nChildMarginX > 0) || (nChildMarginY > 0)) {
+            rc = pControl->GetRect();
+            rc.left -= nChildMarginX;
+            rc.right += nChildMarginX;
+            rc.top -= nChildMarginY;
+            rc.bottom += nChildMarginY;
+            if (rc.ContainsPt(pt)) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+template<typename T>
+void ControlDragableT<T>::DragOrderMouseDown(const EventArgs& /*msg*/)
+{
+    m_rcItemList.clear();
+    if (!IsEnableDragOrder()) {
+        return;
+    }
+    Box* pParent = this->GetParent();
+    if (pParent == nullptr) {
+        return;
+    }
+    //控件内的顺序调整：记录每个控件的原始位置信息
+    size_t nItemCount = pParent->GetItemCount();
+    for (size_t index = 0; index < nItemCount; ++index) {
+        ItemStatus itemStatus;
+        itemStatus.m_index = index;
+        itemStatus.m_pItem = pParent->GetItemAt(index);
+        if (itemStatus.m_pItem != nullptr) {
+            itemStatus.m_rcPos = itemStatus.m_pItem->GetRect();
+            itemStatus.m_nPaintOrder = itemStatus.m_pItem->GetPaintOrder();
+            m_rcItemList.push_back(itemStatus);
+        }
+        if (itemStatus.m_pItem == this) {
+            //当前控件，绘制顺序需要放最后，避免被其他控件遮挡
+            itemStatus.m_pItem->SetPaintOrder(255);
+            ASSERT(itemStatus.m_rcPos.ContainsPt(m_ptMouseDown));
+        }
+    }
+}
+
+template<typename T>
+bool ControlDragableT<T>::DragOrderMouseMove(const EventArgs& msg)
+{
+    bool bRet = false;
+    if (!IsEnableDragOrder()) {
+        //该控件禁止拖动调序
+        return bRet;
+    }    
+    Box* pParent = this->GetParent();
+    if (pParent == nullptr) {
+        return bRet;
+    }
+    Layout* pLayout = pParent->GetLayout();
+    if ((pLayout == nullptr) || (!pLayout->IsHLayout() && !pLayout->IsVLayout())) {
+        return bRet;
+    }
+    UiPoint pt(msg.ptMouse);
+    pt.Offset(this->GetScrollOffsetInScrollBox());
+    GetValidPointInItemRects(pt);
+    if (pLayout->IsHLayout()) {
+        int32_t xOffset = pt.x - m_ptMouseDown.x;
+        if (std::abs(xOffset) < GlobalManager::Instance().Dpi().GetScaleInt(3)) {
+            return bRet;
+        }
+        //调整其他控件的位置
+        AdjustItemPos(pt, m_ptMouseDown, m_rcItemList);
+
+        UiRect rect = m_rcMouseDown;
+        rect.left += xOffset;
+        rect.right += xOffset;
+
+        this->SetPos(rect);
+    }
+    else {
+        int32_t yOffset = pt.y - m_ptMouseDown.y;
+        if (std::abs(yOffset) < GlobalManager::Instance().Dpi().GetScaleInt(3)) {
+            return bRet;
+        }
+        //调整其他控件的位置
+        AdjustItemPos(pt, m_ptMouseDown, m_rcItemList);
+
+        UiRect rect = m_rcMouseDown;
+        rect.top += yOffset;
+        rect.bottom += yOffset;
+        this->SetPos(rect);
+    }
+
+    if (!m_bInDraggingOrder) {
+        bRet = true;
+        m_bInDraggingOrder = true;
+        m_nOldAlpha = (uint8_t)this->GetAlpha();
+        //设置为半透明的效果
+        this->SetAlpha(m_nDragAlpha);
+    }
+    return bRet;
+}
+
+template<typename T>
+bool ControlDragableT<T>::DragOutMouseMove(const EventArgs& msg)
+{
+    bool bRet = false;
+    if (!IsEnableDragOut()) {
+        //该控件禁止拖出操作
+        return bRet;
+    }
+    Window* pWindow = this->GetWindow();
+    Box* pParent = this->GetParent();
+    if ((pParent == nullptr) || (pWindow == nullptr)) {
+        return bRet;
+    }
+    if (pParent->GetDragOutId() == 0) {
+        //父容器不支持拖出操作
+        return bRet;
+    }
+    Layout* pLayout = pParent->GetLayout();
+    if ((pLayout == nullptr) || (!pLayout->IsHLayout() && !pLayout->IsVLayout())) {
+        return bRet;
+    }
+    UiPoint pt(msg.ptMouse);
+    pt.Offset(this->GetScrollOffsetInScrollBox());
+
+    std::shared_ptr<IBitmap> pDragImage = m_pDragImage;
+    if (pDragImage == nullptr) {
+        pDragImage = CreateDragoutImage();
+        m_pDragImage = pDragImage;
+    }
+
+    bool bDropped = false;
+    Box* pOldTargetBox = m_pTargetBox;
+    m_pTargetBox = pWindow->FindDroppableBox(msg.ptMouse, pParent->GetDragOutId());
+    if (m_pTargetBox == pParent) {
+        m_pTargetBox = nullptr;
+    }
+    if (m_pTargetBox != nullptr) {
+        if (m_pDestControl == nullptr) {
+            m_pDestControl = CreateDestControl();
+        }
+        bDropped = OnDragOutMouseOver(m_pTargetBox, pOldTargetBox, m_pDestControl, msg.ptMouse);
+    }
+    if (!bDropped && (m_pDestControl != nullptr)) {
+        if (m_pTargetBox != nullptr) {
+            if (m_pTargetBox->RemoveItem(m_pDestControl)) {
+                m_pDestControl = nullptr;
+            }
+        }
+        if (pOldTargetBox != nullptr) {
+            if (pOldTargetBox->RemoveItem(m_pDestControl)) {
+                m_pDestControl = nullptr;
+            }
+        }
+        if (m_pDestControl != nullptr) {
+            delete m_pDestControl;
+            m_pDestControl = nullptr;
+        }
+    }
+    if (!bDropped) {
+        m_pTargetBox = nullptr;
+    }
+    if (!pParent->GetRect().ContainsPt(pt)) {
+        //拖出父容器
+        if ((m_pDragWindow == nullptr) || m_pDragWindow->IsClosingWnd()) {
+            if (m_pDragWindow != nullptr) {
+                m_pDragWindow->Release();
+                m_pDragWindow = nullptr;
+            }
+            m_pDragWindow = CreateDragWindow();
+            ASSERT(m_pDragWindow != nullptr);
+            if (m_pDragWindow != nullptr) {
+                m_pDragWindow->AddRef();
+                m_pDragWindow->CreateWnd(this->GetWindow()->GetHWND(), L"", WS_POPUP, WS_EX_TOOLWINDOW | WS_EX_LAYERED);
+                if (m_pDragWindow->IsWindow()) {
+                    m_pDragWindow->AddRef();
+                }
+                m_pDragWindow->SetDragImage(pDragImage);
+            }
+        }
+        if (m_pDragWindow != nullptr) {
+            m_pDragWindow->AdjustPos();
+        }
+        this->SetVisible(false);
+        bRet = true;
+    }
+    else {
+        //当前鼠标在父容器内
+        if (m_pDragWindow != nullptr) {
+            if (!m_pDragWindow->IsClosingWnd()) {
+                m_pDragWindow->SetDragImage(nullptr);
+                m_pDragWindow->CloseWnd();
+            }
+            m_pDragWindow->Release();
+            m_pDragWindow = nullptr;
+        }
+        this->SetVisible(true);
+    }
+    return bRet;
 }
 
 typedef ControlDragableT<Control> ControlDragable;

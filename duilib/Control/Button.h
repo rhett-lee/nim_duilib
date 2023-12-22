@@ -17,7 +17,7 @@ public:
     virtual std::wstring GetType() const override;
     virtual void Activate() override;
     virtual void HandleEvent(const EventArgs& msg) override;
-    virtual UINT GetControlFlags() const override;
+    virtual uint32_t GetControlFlags() const override;
 
     /** 该控件是否可以放置在标题栏上（以用于处理NC消息响应）
      * @return 返回 true 表示可以，false 表示不可以， 默认返回false
@@ -32,7 +32,7 @@ template<>
 inline std::wstring ButtonTemplate<Box>::GetType() const { return DUI_CTR_BUTTONBOX; }
 
 template<typename InheritType>
-UINT ui::ButtonTemplate<InheritType>::GetControlFlags() const
+uint32_t ui::ButtonTemplate<InheritType>::GetControlFlags() const
 {
     return this->IsKeyboardEnabled() && this->IsEnabled() && this->IsAllowTabStop() ? UIFLAG_TABSTOP : UIFLAG_DEFAULT;
 }

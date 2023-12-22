@@ -91,6 +91,11 @@ Window::~Window()
     }
 }
 
+bool Window::IsWindow() const
+{
+    return (m_hWnd != nullptr) && ::IsWindow(m_hWnd);
+}
+
 HWND Window::GetHWND() const
 {
     return m_hWnd;
@@ -226,21 +231,21 @@ HWND Window::CreateWnd(HWND hwndParent, const wchar_t* windowName, uint32_t dwSt
 
 void Window::CloseWnd(UINT nRet)
 {
+    m_bCloseing = true;
     ASSERT(::IsWindow(m_hWnd));
     if (!::IsWindow(m_hWnd)) {
         return;
-    }
-    m_bCloseing = true;
+    }    
     PostMessage(WM_CLOSE, (WPARAM)nRet, 0L);    
 }
 
 void Window::Close()
 {
+    m_bCloseing = true;
     ASSERT(::IsWindow(m_hWnd));
     if (!::IsWindow(m_hWnd)) {
         return;
-    }
-    m_bCloseing = true;
+    }    
     SendMessage(WM_CLOSE, 0L, 0L);
 }
 
@@ -2780,6 +2785,16 @@ Control* Window::FindControl(const UiPoint& pt) const
 Control* Window::FindContextMenuControl(const UiPoint* pt) const
 {
     Control* pControl = m_controlFinder.FindContextMenuControl(pt);
+    if ((pControl != nullptr) && (pControl->GetWindow() != this)) {
+        ASSERT(FALSE);
+        pControl = nullptr;
+    }
+    return pControl;
+}
+
+Box* Window::FindDroppableBox(const UiPoint& pt, uint8_t nDropInId) const
+{
+    Box* pControl = m_controlFinder.FindDroppableBox(pt, nDropInId);
     if ((pControl != nullptr) && (pControl->GetWindow() != this)) {
         ASSERT(FALSE);
         pControl = nullptr;

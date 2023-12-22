@@ -38,6 +38,38 @@ public:
 	*/
 	TabBox* GetTabBox() const;
 
+public:
+	/** 设置子项的位置索引
+	 * @param [in] pControl 子项指针
+	 * @param [in] iIndex 索引号，范围是：[0, GetItemCount())
+	 */
+	virtual bool SetItemIndex(Control* pControl, size_t iIndex) override;
+
+	/** 追加一个子项到末尾
+	 * @param [in] pControl 子项指针
+	 */
+	virtual bool AddItem(Control* pControl) override;
+
+	/** 在指定位置之后插入一个子项
+	 * @param [in] pControl 子项指针
+	 * @param[in] iIndex 要插入的位置索引，范围是：[0, GetItemCount())
+	 */
+	virtual bool AddItemAt(Control* pControl, size_t  iIndex) override;
+
+	/** 根据子项指针
+	 * @param [in] pControl 子项指针
+	 */
+	virtual bool RemoveItem(Control* pControl) override;
+
+	/** 根据索引移除一个子项
+	 * @param [in] iIndex 子项索引，范围是：[0, GetItemCount())
+	 */
+	virtual bool RemoveItemAt(size_t iIndex) override;
+
+	/** 移除所有子项
+	 */
+	virtual void RemoveAllItems() override;
+
 protected:
 	/** 初始化接口
 	*/

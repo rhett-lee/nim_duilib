@@ -428,7 +428,7 @@ public:
 	/** 返回控件的标识，用于判断是否可以响应 TAB 切换事件
 	 * @return 返回控件的标识类型
 	 */
-	virtual UINT GetControlFlags() const;
+	virtual uint32_t GetControlFlags() const;
 
 	/** 让控件设置永远获取不到焦点
 	 */
@@ -479,16 +479,17 @@ public:
 	 */
 	virtual void Activate();
 
-	/// 控件搜索
-	/**
-	 * @brief 根据坐标查找指定控件
-	 * @param[in] Proc
-	 * @param[in] pData
-	 * @param[in] uFlags
-	 * @param[in] scrollPos
+	/** 根据坐标查找指定控件
+	 * @param [in] Proc 查找的匹配函数
+	 * @param [in] pProcData 查找函数的自定义数据
+	 * @param [in] ptMouse 鼠标所在的坐标, 仅当含有UIFIND_HITTEST时有效
+	 * @param [in] uFlags 查找标志，比如：UIFIND_ENABLED 等
+	 * @param [in] scrollPos 滚动条的滚动位置
 	 * @return 返回控件的指针
 	 */
-    virtual Control* FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, UiPoint scrollPos = UiPoint());
+    virtual Control* FindControl(FINDCONTROLPROC Proc, LPVOID pProcData, uint32_t uFlags,								 
+								 const UiPoint& ptMouse = UiPoint(),
+								 const UiPoint& scrollPos = UiPoint());
 
 	/// 位置相关
 	/** 获取控件位置（子类可改变行为）

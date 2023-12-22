@@ -76,6 +76,10 @@ public:
                            uint32_t dwExStyle,
                            const UiRect& rc = UiRect(0, 0, 0, 0));
 
+    /** 是否含有有效的窗口句柄
+    */
+    bool IsWindow() const;
+
     /** 获取窗口所属的 Windows 句柄
     */
     HWND GetHWND() const;
@@ -831,6 +835,12 @@ public:
     * @param [in] pt 指定坐标
     */
     Control* FindContextMenuControl(const UiPoint* pt) const;
+
+    /** 查找可以支持拖放的Box容器
+    * @param [in] pt 指定坐标
+    * @param [in] nDropInId 拖放的ID值（每个控件可以设置一个ID，来接收拖放）
+    */
+    Box* FindDroppableBox(const UiPoint& pt, uint8_t nDropInId) const;
 
     /** 根据控件名称查找控件
     * @param [in] strName 控件名称

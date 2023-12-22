@@ -296,7 +296,7 @@ void AnimationManager::MouseLeave()
 void AnimationManager::Clear(Control* control)
 {
 	if (m_pControl != nullptr) {
-		ASSERT(control == m_pControl);
+		ASSERT_UNUSED_VARIABLE(control == m_pControl);
 	}
 
 	for (auto& iter : m_animationMap) {

@@ -410,34 +410,41 @@ void ScrollBox::SetWindow(Window* pManager)
 	Box::SetWindow(pManager);
 }
 
-Control* ScrollBox::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, UiPoint /*scrollPos*/)
+Control* ScrollBox::FindControl(FINDCONTROLPROC Proc, LPVOID pProcData,
+								uint32_t uFlags, const UiPoint& ptMouse,
+								const UiPoint& scrollPos)
 {
-	// Check if this guy is valid
+	//ptMouse: 是适配过容器自身的坐标
+	//scrollPos: 是当前容器的滚动条偏移	
 	if ((uFlags & UIFIND_VISIBLE) != 0 && !IsVisible()) {
 		return nullptr;
 	}
 	if ((uFlags & UIFIND_ENABLED) != 0 && !IsEnabled()) {
 		return nullptr;
 	}
+	UiPoint boxPt(ptMouse);
+	boxPt.Offset(scrollPos);
+#ifdef _DEBUG
+	if (((uFlags & UIFIND_HITTEST) != 0) && ((uFlags & UIFIND_DRAG_DROP) == 0) && (pProcData != nullptr)) {
+		UiPoint ptOrg(*(UiPoint*)pProcData);
+		ptOrg.Offset(this->GetScrollOffsetInScrollBox());
+		ASSERT(ptOrg == boxPt);
+	}
+#endif // _DEBUG
 	if ((uFlags & UIFIND_HITTEST) != 0) {
-		ASSERT(pData != nullptr);
-		if (pData == nullptr) {
-			return nullptr;
-		}
-		UiPoint pt(*(static_cast<UiPoint*>(pData)));
-		if (!GetRect().ContainsPt(pt)) {
+		if (!GetRect().ContainsPt(boxPt)) {
 			return nullptr;
 		}
 		if (!IsMouseChildEnabled()) {
 			Control* pResult = nullptr;
 			if (m_pVScrollBar != nullptr) {
-				pResult = m_pVScrollBar->FindControl(Proc, pData, uFlags);
+				pResult = m_pVScrollBar->FindControl(Proc, pProcData, uFlags, boxPt);
 			}
-			if (pResult == nullptr && m_pHScrollBar != nullptr) {
-				pResult = m_pHScrollBar->FindControl(Proc, pData, uFlags);
+			if ((pResult == nullptr) && (m_pHScrollBar != nullptr)) {
+				pResult = m_pHScrollBar->FindControl(Proc, pProcData, uFlags, boxPt);
 			}
 			if (pResult == nullptr) {
-				pResult = Control::FindControl(Proc, pData, uFlags);
+				pResult = Control::FindControl(Proc, pProcData, uFlags, boxPt);
 			}
 			return pResult;
 		}
@@ -445,18 +452,18 @@ Control* ScrollBox::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags,
 
 	Control* pResult = nullptr;
 	if (m_pVScrollBar != nullptr) {
-		pResult = m_pVScrollBar->FindControl(Proc, pData, uFlags);
+		pResult = m_pVScrollBar->FindControl(Proc, pProcData, uFlags, boxPt);
 	}
-	if (pResult == nullptr && m_pHScrollBar != nullptr) {
-		pResult = m_pHScrollBar->FindControl(Proc, pData, uFlags);
+	if ((pResult == nullptr) && (m_pHScrollBar != nullptr)) {
+		pResult = m_pHScrollBar->FindControl(Proc, pProcData, uFlags, boxPt);
 	}
 	if (pResult != nullptr) {
 		return pResult;
 	}
 
-	UiSize scrollPos = GetScrollOffset();
-	UiPoint ptNewScrollPos(scrollPos.cx, scrollPos.cy);
-	return Box::FindControl(Proc, pData, uFlags, ptNewScrollPos);
+	UiSize boxScrollOffset = GetScrollOffset();
+	UiPoint boxScrollPos(boxScrollOffset.cx, boxScrollOffset.cy);
+	return FindControlInItems(m_items, Proc, pProcData, uFlags, boxPt, boxScrollPos);
 }
 
 UiSize64 ScrollBox::GetScrollPos() const

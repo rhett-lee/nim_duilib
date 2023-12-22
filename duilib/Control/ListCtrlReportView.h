@@ -169,7 +169,9 @@ protected:
 
     /** 查找子控件
     */
-    virtual Control* FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, UiPoint scrollPos = UiPoint()) override;
+    virtual Control* FindControl(FINDCONTROLPROC Proc, LPVOID pProcData, uint32_t uFlags, 
+                                 const UiPoint& ptMouse = UiPoint(),
+                                 const UiPoint& scrollPos = UiPoint()) override;
 
     /** 创建一个数据项
     * @return 返回创建后的数据项指针

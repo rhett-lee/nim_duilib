@@ -727,11 +727,13 @@ void ListCtrlReportView::PaintGridLines(IRender* pRender)
     }
 }
 
-Control* ListCtrlReportView::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UINT uFlags, UiPoint scrollPos)
+Control* ListCtrlReportView::FindControl(FINDCONTROLPROC Proc, LPVOID pProcData,
+                                         uint32_t uFlags, const UiPoint& ptMouse,
+                                         const UiPoint& scrollPos)
 {
     //重写：ScrollBox::FindControl 函数，让Header优先被查找到，只处理含有UIFIND_TOP_FIRST标志的情况
     if ((uFlags & UIFIND_TOP_FIRST) == 0) {
-        return __super::FindControl(Proc, pData, uFlags, scrollPos);
+        return __super::FindControl(Proc, pProcData, uFlags, ptMouse, scrollPos);
     }
 
     std::vector<Control*> newItems = m_items;
@@ -746,27 +748,31 @@ Control* ListCtrlReportView::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UIN
     if ((uFlags & UIFIND_ENABLED) != 0 && !IsEnabled()) {
         return nullptr;
     }
+    UiPoint boxPt(ptMouse);
+    boxPt.Offset(scrollPos);
+#ifdef _DEBUG
+    if (((uFlags & UIFIND_HITTEST) != 0) && ((uFlags & UIFIND_DRAG_DROP) == 0) && (pProcData != nullptr)) {
+        UiPoint ptOrg(*(UiPoint*)pProcData);
+        ptOrg.Offset(this->GetScrollOffsetInScrollBox());
+        ASSERT(ptOrg == boxPt);
+    }
+#endif // _DEBUG
     ScrollBar* pVScrollBar = GetVScrollBar();
     ScrollBar* pHScrollBar = GetHScrollBar();
     if ((uFlags & UIFIND_HITTEST) != 0) {
-        ASSERT(pData != nullptr);
-        if (pData == nullptr) {
-            return nullptr;
-        }
-        UiPoint pt(*(static_cast<UiPoint*>(pData)));
-        if (!GetRect().ContainsPt(pt)) {
+        if (!GetRect().ContainsPt(boxPt)) {
             return nullptr;
         }
         if (!IsMouseChildEnabled()) {
             Control* pResult = nullptr;            
             if (pVScrollBar != nullptr) {
-                pResult = pVScrollBar->FindControl(Proc, pData, uFlags);
+                pResult = pVScrollBar->FindControl(Proc, pProcData, uFlags, boxPt);
             }            
             if ((pResult == nullptr) && (pHScrollBar != nullptr)) {
-                pResult = pHScrollBar->FindControl(Proc, pData, uFlags);
+                pResult = pHScrollBar->FindControl(Proc, pProcData, uFlags, boxPt);
             }
             if (pResult == nullptr) {
-                pResult = Control::FindControl(Proc, pData, uFlags);
+                pResult = Control::FindControl(Proc, pProcData, uFlags, boxPt);
             }
             return pResult;
         }
@@ -774,18 +780,18 @@ Control* ListCtrlReportView::FindControl(FINDCONTROLPROC Proc, LPVOID pData, UIN
 
     Control* pResult = nullptr;
     if (pVScrollBar != nullptr) {
-        pResult = pVScrollBar->FindControl(Proc, pData, uFlags);
+        pResult = pVScrollBar->FindControl(Proc, pProcData, uFlags, boxPt);
     }
     if ((pResult == nullptr) && (pHScrollBar != nullptr)) {
-        pResult = pHScrollBar->FindControl(Proc, pData, uFlags);
+        pResult = pHScrollBar->FindControl(Proc, pProcData, uFlags, boxPt);
     }
     if (pResult != nullptr) {
         return pResult;
     }
 
-    UiSize ptScrollPos = GetScrollOffset();
-    UiPoint ptNewScrollPos(ptScrollPos.cx, ptScrollPos.cy);
-    return FindControlInItems(newItems, Proc, pData, uFlags, ptNewScrollPos);
+    UiSize boxScrollOffset = GetScrollOffset();
+    UiPoint boxScrollPos(boxScrollOffset.cx, boxScrollOffset.cy);
+    return FindControlInItems(m_items, Proc, pProcData, uFlags, boxPt, boxScrollPos);
 }
 
 Control* ListCtrlReportView::CreateDataItem()
