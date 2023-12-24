@@ -31,39 +31,13 @@ public:
 	 * 收到 WM_CLOSE 消息时该函数会被调用
 	 */
 	virtual LRESULT OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
-	/**
-	* @brief 接收到鼠标左键弹起消息时被调用
-	* @param[in] uMsg 消息内容
-	* @param[in] wParam 消息附加参数
-	* @param[in] lParam 消息附加参数
-	* @param[out] bHandled 返回 false 则继续派发该消息，否则不再派发该消息
-	* @return 返回消息处理结果
-	*/
-	virtual LRESULT OnLButtonUp(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
-
-
-public:
-	static void ShowCustomWindow(const std::wstring& class_name, const std::wstring& theme_directory, const std::wstring& layout_xml);
 
 private:
-	//drag-drop相关
-	bool OnProcessAppItemDrag(const ui::EventArgs& param);
-	void DoDrag(ui::Control* pAppItem, POINT pt_offset);
-	void DoBeforeDrag();
-	void DoDraging(POINT pt_offset);
-	bool DoAfterDrag(ui::Box* check);
+	std::wstring m_class_name;
+	std::wstring m_theme_directory;
+	std::wstring m_layout_xml;
 
-private:
-	std::wstring class_name_;
-	std::wstring theme_directory_;
-	std::wstring layout_xml_;
-
-	ui::Box* frequent_app_=nullptr;
-	ui::Box* my_app_ = nullptr;
-
-	bool is_drag_state_=false;
-	POINT old_drag_point_;
-	AppItemUi* current_item_ = nullptr;
-	
+	ui::Box* m_frequent_app=nullptr;
+	ui::Box* m_my_app = nullptr;
 };
 

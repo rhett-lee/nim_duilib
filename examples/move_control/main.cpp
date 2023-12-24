@@ -35,7 +35,11 @@ void MainThread::Init()
 	// 如需修改请指定 Startup 最后两个参数
 	std::wstring theme_dir = nbase::win32::GetCurrentModuleDirectory();
 	ui::GlobalManager::Instance().Startup(theme_dir + L"resources\\", ui::CreateControlCallback(), bAdaptDpi);
-	MoveControlForm::ShowCustomWindow(L"move_control", L"move_control", L"main.xml");
+	
+	MoveControlForm* window = new MoveControlForm(L"move_control", L"move_control", L"main.xml");
+	window->CreateWnd(NULL, L"move_control", UI_WNDSTYLE_FRAME, WS_EX_LAYERED);
+	window->CenterWindow();
+	window->ShowWindow();
 }
 
 void MainThread::Cleanup()

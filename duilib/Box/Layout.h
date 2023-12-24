@@ -67,6 +67,17 @@ public:
 			   (type == LayoutType::VirtualHTileLayout);
 	}
 
+	/** 是否为瓦片布局(可能为纵向或者横向布局)
+	*/
+	virtual bool IsTileLayout() const
+	{
+		LayoutType type = GetLayoutType();
+		return (type == LayoutType::VTileLayout) ||
+			   (type == LayoutType::HTileLayout) ||
+			   (type == LayoutType::VirtualVTileLayout) ||
+			   (type == LayoutType::VirtualHTileLayout);
+	}
+
 	/** 设置所有者容器接口
 	 */
 	void SetOwner(Box* pOwner);

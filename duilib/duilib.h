@@ -83,6 +83,7 @@
 #include "Core/Control.h"
 #include "Core/Box.h"
 #include "Core/ScrollBar.h"
+#include "Core/ControlDragable.h"
 
 #include "Box/VBox.h"
 #include "Box/HBox.h"

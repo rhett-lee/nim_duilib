@@ -65,6 +65,7 @@ protected:
 	virtual bool ButtonUp(const EventArgs& msg) override;
 	virtual bool MouseMove(const EventArgs& msg) override;
 	virtual bool OnWindowKillFocus(const EventArgs& msg) override;//控件所属的窗口失去焦点
+    virtual void HandleEvent(const EventArgs& msg) override;
 
 protected:
 	/** 子控件的状态
@@ -97,7 +98,7 @@ protected:
 								  size_t& nOldItemIndex,
 								  size_t& nNewItemIndex);
 
-	/** 控件位置拖动完成事件
+	/** 控件位置拖动完成事件（在同一个容器内）
 	* @param [in] nOldItemIndex 原来的子项索引号
 	* @param [in] nNewItemIndex 最新的子项索引号
 	*/
@@ -121,16 +122,16 @@ protected:
     * @param [in] ptMouse 当前鼠标所在位置
     * @return 返回true表示匹配到拖入的控件，返回false表示未找到拖入的控件位置
     */
-    virtual bool OnDragOutMouseOver(Box* pTargetBox, Box* pOldTargetBox,
-                                    Control* pDestControl, const UiPoint& ptMouse);
+    virtual bool OnDragOutMouseOver(Box* pTargetBox, Box* pOldTargetBox, const UiPoint& ptMouse);
 
     /** 创建拖出操作时，显示的跟随窗口
     */
     virtual DragWindow* CreateDragWindow();
 
     /** 目标位置指示控件
+    * @param [in] pTargetBox 即将拖入的目标Box控件接口
     */
-    virtual Control* CreateDestControl();
+    virtual Control* CreateDestControl(Box* pTargetBox);
 
     /** 生成控件拖出时的位图
     */
@@ -139,6 +140,15 @@ protected:
     /** 判断鼠标位置是否在控件的矩形范围内
     */
     virtual bool IsPtInControlRect(Control* pControl, const UiPoint& pt) const;
+
+    /** 控件所属容器拖动完成事件（在同一个容器/或者不同容器内）
+    * @param [in] pOldBox 控件原来所属的容器接口
+    * @param [in] nOldItemIndex 原来的子项索引号
+    * @param [in] pNewBox 控件最新所属的容器接口
+    * @param [in] nNewItemIndex 最新的子项索引号
+    */
+    virtual void OnItemBoxChanged(Box* pOldBox, size_t nOldItemIndex, 
+                                  Box* pNewBox, size_t nNewItemIndex);
 
     /** @} */
 
@@ -149,8 +159,9 @@ private:
     bool DragOutMouseMove(const EventArgs& msg);
 
     /** 鼠标弹起时执行的拖出操作
+    * @return 返回true表示执行了拖出操作，返回false表示未执行拖出操作
     */
-    void DragOutMouseUp(const EventArgs& msg);
+    bool DragOutMouseUp(const EventArgs& msg);
 
     /** 鼠标按下时执行的拖动调整顺序操作
     */
@@ -376,8 +387,9 @@ template<typename T>
 bool ControlDragableT<T>::ButtonUp(const EventArgs& msg)
 {
     bool bRet = __super::ButtonUp(msg);
-    DragOutMouseUp(msg);
-    DragOrderMouseUp(msg);
+    if (!DragOutMouseUp(msg)) {
+        DragOrderMouseUp(msg);
+    }
     ClearDragStatus();
     return bRet;
 }
@@ -388,6 +400,18 @@ bool ControlDragableT<T>::OnWindowKillFocus(const EventArgs& msg)
     bool bRet = __super::OnWindowKillFocus(msg);
     ClearDragStatus();
     return bRet;
+}
+
+template<typename T>
+void ControlDragableT<T>::HandleEvent(const EventArgs& msg)
+{
+    __super::HandleEvent(msg);
+    if ((msg.Type == kEventMouseClickChanged) ||
+        (msg.Type == kEventMouseClickEsc) ||
+        (msg.Type == kEventMouseRButtonDown)) {
+        //取消拖动调序或者拖出操作
+        ClearDragStatus();
+    }
 }
 
 template<typename T>
@@ -625,17 +649,17 @@ void ControlDragableT<T>::ClearDragStatus()
 }
 
 template<typename T>
-void ControlDragableT<T>::DragOutMouseUp(const EventArgs& msg)
+bool ControlDragableT<T>::DragOutMouseUp(const EventArgs& msg)
 {
     if (!IsInDraggingOut() || !IsEnableDragOut() || (m_pTargetBox == nullptr)) {
-        return;
+        return false;
     }
     //控件拖出操作
     Box* pParent = this->GetParent();
     UiPoint pt(msg.ptMouse);
     pt.Offset(m_pTargetBox->GetScrollOffsetInScrollBox());
     if ((pParent == nullptr) || !m_pTargetBox->GetRect().ContainsPt(pt)) {
-        return;
+        return false;
     }
     size_t nIndex = Box::InvalidIndex;
     if (m_pDestControl != nullptr) {
@@ -660,6 +684,11 @@ void ControlDragableT<T>::DragOutMouseUp(const EventArgs& msg)
             m_pDestControl = nullptr;
         }
 
+        Box* pOldBox = pParent;
+        size_t nOldItemIndex = pParent->GetItemIndex(this);
+        Box* pNewBox = m_pTargetBox;
+        size_t nNewItemIndex = nIndex;
+
         bool bAutoDestroyChild = pParent->IsAutoDestroyChild();
         pParent->SetAutoDestroyChild(false);
         pParent->RemoveItem(this);
@@ -669,7 +698,18 @@ void ControlDragableT<T>::DragOutMouseUp(const EventArgs& msg)
         m_pTargetBox->AddItem(this);
         m_pTargetBox->SetItemIndex(this, nIndex);
         m_pTargetBox = nullptr;
+
+        //触发事件
+        OnItemBoxChanged(pOldBox, nOldItemIndex, pNewBox, nNewItemIndex);
+        return true;
     }
+    return false;
+}
+
+template<typename T>
+void ControlDragableT<T>::OnItemBoxChanged(Box* /*pOldBox*/, size_t /*nOldItemIndex*/,
+                                           Box* /*pNewBox*/, size_t /*nNewItemIndex*/)
+{
 }
 
 template<typename T>
@@ -693,20 +733,19 @@ void ControlDragableT<T>::DragOrderMouseUp(const EventArgs& msg)
 }
 
 template<typename T>
-bool ControlDragableT<T>::OnDragOutMouseOver(Box* pTargetBox, Box* pOldTargetBox, Control* pDestControl, const UiPoint& ptMouse)
+bool ControlDragableT<T>::OnDragOutMouseOver(Box* pTargetBox, Box* pOldTargetBox, const UiPoint& ptMouse)
 {
     bool bDropped = false;
-    if (pTargetBox == nullptr) {
+    if ((pTargetBox == nullptr) || (pTargetBox->GetLayout() == nullptr)) {
         return bDropped;
     }
-    if ((pOldTargetBox != nullptr) && (pTargetBox != pOldTargetBox) && (pDestControl != nullptr)) {
-        //从旧的中移除出来
-        size_t nIndex = pOldTargetBox->GetItemIndex(pDestControl);
+    if ((pOldTargetBox != nullptr) && (pOldTargetBox != pTargetBox) && (m_pDestControl != nullptr)) {
+        //从旧的中移除
+        size_t nIndex = pOldTargetBox->GetItemIndex(m_pDestControl);
         if (nIndex != Box::InvalidIndex) {
-            bool bAutoDestroyChild = pOldTargetBox->IsAutoDestroyChild();
-            pOldTargetBox->SetAutoDestroyChild(false);
-            pOldTargetBox->RemoveItem(pDestControl);
-            pOldTargetBox->SetAutoDestroyChild(bAutoDestroyChild);
+            if (pOldTargetBox->RemoveItem(m_pDestControl)) {
+                m_pDestControl = nullptr;
+            }
         }
     }
 
@@ -718,34 +757,37 @@ bool ControlDragableT<T>::OnDragOutMouseOver(Box* pTargetBox, Box* pOldTargetBox
         if ((pControl == nullptr) || !pControl->IsVisible() || pControl->IsFloat()) {
             continue;
         }
-        if ((pControl == pDestControl) && (IsPtInControlRect(pControl, pt))) {
+        if ((pControl == m_pDestControl) && (IsPtInControlRect(pControl, pt))) {
             //鼠标在指示控件上
             bDropped = true;
             break;
         }
         if (IsPtInControlRect(pControl, pt)) {
             bDropped = true;
-            if (pDestControl == nullptr) {
+            if (m_pDestControl == nullptr) {
+                m_pDestControl = CreateDestControl(pTargetBox);
+            }
+            if (m_pDestControl == nullptr) {
                 break;
             }
-            size_t nOldIndex = pTargetBox->GetItemIndex(pDestControl);
+            size_t nOldIndex = pTargetBox->GetItemIndex(m_pDestControl);
             if (nOldIndex == Box::InvalidIndex) {
-                pTargetBox->AddItem(pDestControl);
+                pTargetBox->AddItem(m_pDestControl);
             }
             UiRect rc = pControl->GetRect();
-            if ((pTargetBox->GetLayout() != nullptr) && pTargetBox->GetLayout()->IsHLayout()) {
+            if (pTargetBox->GetLayout()->IsHLayout()) {
                 size_t nNewIndex = nIndex;
                 if ((pt.x - rc.left) > rc.Width() / 2) {
                     if (nNewIndex < (pTargetBox->GetItemCount() - 1)) {
                         nNewIndex += 1;
                     }
                     if (nOldIndex != nNewIndex) {
-                        pTargetBox->SetItemIndex(pDestControl, nNewIndex);
+                        pTargetBox->SetItemIndex(m_pDestControl, nNewIndex);
                     }
                 }
                 else {
                     if (nOldIndex != (nNewIndex - 1)) {
-                        pTargetBox->SetItemIndex(pDestControl, nNewIndex);
+                        pTargetBox->SetItemIndex(m_pDestControl, nNewIndex);
                     }
                 }
             }
@@ -756,16 +798,26 @@ bool ControlDragableT<T>::OnDragOutMouseOver(Box* pTargetBox, Box* pOldTargetBox
                         nNewIndex += 1;
                     }
                     if (nOldIndex != nNewIndex) {
-                        pTargetBox->SetItemIndex(pDestControl, nNewIndex);
+                        pTargetBox->SetItemIndex(m_pDestControl, nNewIndex);
                     }
                 }
                 else {
                     if (nOldIndex != (nNewIndex - 1)) {
-                        pTargetBox->SetItemIndex(pDestControl, nNewIndex);
+                        pTargetBox->SetItemIndex(m_pDestControl, nNewIndex);
                     }
                 }
             }
             break;
+        }
+    }
+    if (!bDropped && pTargetBox->GetRect().ContainsPt(pt)) {
+        bDropped = true;
+        if (m_pDestControl == nullptr) {
+            m_pDestControl = CreateDestControl(pTargetBox);
+        }
+        size_t nOldIndex = pTargetBox->GetItemIndex(m_pDestControl);
+        if (nOldIndex == Box::InvalidIndex) {
+            pTargetBox->AddItem(m_pDestControl);
         }
     }
     return bDropped;
@@ -778,14 +830,39 @@ DragWindow* ControlDragableT<T>::CreateDragWindow()
 }
 
 template<typename T>
-Control* ControlDragableT<T>::CreateDestControl()
+Control* ControlDragableT<T>::CreateDestControl(Box* pTargetBox)
 {
     Control* pDestControl = new Control;
     pDestControl->SetAttribute(L"bkcolor", L"#FF5D6B99");
-    pDestControl->SetAttribute(L"width", L"4");
-    pDestControl->SetAttribute(L"height", L"80%");
     pDestControl->SetAttribute(L"valign", L"center");
     pDestControl->SetAttribute(L"halign", L"center");
+
+    Layout* pLayout = nullptr;
+    if (pTargetBox != nullptr) {
+        pLayout = pTargetBox->GetLayout();
+    }
+    bool bInited = false;
+    if ((pLayout != nullptr) && pLayout->IsTileLayout()) {
+        UiSize szItem;
+        szItem.cx = this->GetFixedWidth().GetInt32();
+        szItem.cy = this->GetFixedHeight().GetInt32();
+        if ((szItem.cx > 0) && (szItem.cy > 0)) {
+            pDestControl->SetAlpha(128);
+            pDestControl->SetFixedHeight(UiFixedInt(szItem.cy), false, false);
+            pDestControl->SetFixedWidth(UiFixedInt(szItem.cx), false, false);
+            bInited = true;
+        }
+    }
+    if (!bInited) {        
+        if (pLayout->IsVLayout()) {
+            pDestControl->SetAttribute(L"height", L"4");
+            pDestControl->SetAttribute(L"width", L"80%");
+        }
+        else {
+            pDestControl->SetAttribute(L"width", L"4");
+            pDestControl->SetAttribute(L"height", L"80%");
+        }
+    }
     return pDestControl;
 }
 
@@ -907,7 +984,7 @@ bool ControlDragableT<T>::DragOrderMouseMove(const EventArgs& msg)
         return bRet;
     }
     Layout* pLayout = pParent->GetLayout();
-    if ((pLayout == nullptr) || (!pLayout->IsHLayout() && !pLayout->IsVLayout())) {
+    if ((pLayout == nullptr) || pLayout->IsTileLayout() || (!pLayout->IsHLayout() && !pLayout->IsVLayout())) {
         return bRet;
     }
     UiPoint pt(msg.ptMouse);
@@ -974,6 +1051,14 @@ bool ControlDragableT<T>::DragOutMouseMove(const EventArgs& msg)
     }
     UiPoint pt(msg.ptMouse);
     pt.Offset(this->GetScrollOffsetInScrollBox());
+    if (!IsInDraggingOut()) {
+        int32_t xOffset = pt.x - m_ptMouseDown.x;
+        int32_t yOffset = pt.y - m_ptMouseDown.y;
+        int32_t nMinOffset = GlobalManager::Instance().Dpi().GetScaleInt(5);
+        if ((std::abs(xOffset) < nMinOffset) && (std::abs(yOffset) < nMinOffset)) {
+            return bRet;
+        }
+    }
 
     std::shared_ptr<IBitmap> pDragImage = m_pDragImage;
     if (pDragImage == nullptr) {
@@ -984,22 +1069,16 @@ bool ControlDragableT<T>::DragOutMouseMove(const EventArgs& msg)
     bool bDropped = false;
     Box* pOldTargetBox = m_pTargetBox;
     m_pTargetBox = pWindow->FindDroppableBox(msg.ptMouse, pParent->GetDragOutId());
-    if (m_pTargetBox == pParent) {
-        m_pTargetBox = nullptr;
-    }
     if (m_pTargetBox != nullptr) {
-        if (m_pDestControl == nullptr) {
-            m_pDestControl = CreateDestControl();
-        }
-        bDropped = OnDragOutMouseOver(m_pTargetBox, pOldTargetBox, m_pDestControl, msg.ptMouse);
+        bDropped = OnDragOutMouseOver(m_pTargetBox, pOldTargetBox, msg.ptMouse);
     }
-    if (!bDropped && (m_pDestControl != nullptr)) {
-        if (m_pTargetBox != nullptr) {
+    if (!bDropped) {
+        if ((m_pDestControl != nullptr) && (m_pTargetBox != nullptr)) {
             if (m_pTargetBox->RemoveItem(m_pDestControl)) {
                 m_pDestControl = nullptr;
             }
         }
-        if (pOldTargetBox != nullptr) {
+        if ((m_pDestControl != nullptr) && (pOldTargetBox != nullptr)) {
             if (pOldTargetBox->RemoveItem(m_pDestControl)) {
                 m_pDestControl = nullptr;
             }
@@ -1012,42 +1091,31 @@ bool ControlDragableT<T>::DragOutMouseMove(const EventArgs& msg)
     if (!bDropped) {
         m_pTargetBox = nullptr;
     }
-    if (!pParent->GetRect().ContainsPt(pt)) {
-        //拖出父容器
-        if ((m_pDragWindow == nullptr) || m_pDragWindow->IsClosingWnd()) {
-            if (m_pDragWindow != nullptr) {
-                m_pDragWindow->Release();
-                m_pDragWindow = nullptr;
-            }
-            m_pDragWindow = CreateDragWindow();
-            ASSERT(m_pDragWindow != nullptr);
-            if (m_pDragWindow != nullptr) {
-                m_pDragWindow->AddRef();
-                m_pDragWindow->CreateWnd(this->GetWindow()->GetHWND(), L"", WS_POPUP, WS_EX_TOOLWINDOW | WS_EX_LAYERED);
-                if (m_pDragWindow->IsWindow()) {
-                    m_pDragWindow->AddRef();
-                }
-                m_pDragWindow->SetDragImage(pDragImage);
-            }
-        }
+
+    //拖出父容器
+    if ((m_pDragWindow == nullptr) || m_pDragWindow->IsClosingWnd()) {
         if (m_pDragWindow != nullptr) {
-            m_pDragWindow->AdjustPos();
-        }
-        this->SetVisible(false);
-        bRet = true;
-    }
-    else {
-        //当前鼠标在父容器内
-        if (m_pDragWindow != nullptr) {
-            if (!m_pDragWindow->IsClosingWnd()) {
-                m_pDragWindow->SetDragImage(nullptr);
-                m_pDragWindow->CloseWnd();
-            }
             m_pDragWindow->Release();
             m_pDragWindow = nullptr;
         }
-        this->SetVisible(true);
+        m_pDragWindow = CreateDragWindow();
+        ASSERT(m_pDragWindow != nullptr);
+        if (m_pDragWindow != nullptr) {
+            m_pDragWindow->AddRef();
+            m_pDragWindow->CreateWnd(this->GetWindow()->GetHWND(), L"", WS_POPUP, WS_EX_TOOLWINDOW | WS_EX_LAYERED);
+            if (m_pDragWindow->IsWindow()) {
+                m_pDragWindow->AddRef();
+            }
+            m_pDragWindow->SetDragImage(pDragImage);
+        }
     }
+    if (m_pDragWindow != nullptr) {
+        m_pDragWindow->AdjustPos();
+    }
+    if (this->IsVisible()) {
+        this->SetVisible(false);
+    }    
+    bRet = true;
     return bRet;
 }
 

@@ -177,6 +177,10 @@ std::wstring EventTypeToString(EventType eventType)
 		return L"kEventClick";
 	case kEventRClick:
 		return L"kEventRClick";
+	case kEventMouseClickChanged:
+		return L"kEventMouseClickChanged";
+	case kEventMouseClickEsc:
+		return L"kEventMouseClickEsc";
 	case kEventSelect:
 		return L"kEventSelect";
 	case kEventUnSelect:

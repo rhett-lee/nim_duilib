@@ -291,6 +291,10 @@ namespace ui
 		kEventClick,				//Button类、ListBoxItem、Option、CheckBox等：当点击按钮（或者键盘回车）时触发
 		kEventRClick,				//Control类：当鼠标右键弹起时触发
 
+		//鼠标点击控件发生变化，发给旧的鼠标点击事件
+		kEventMouseClickChanged,	//Window类：当收到鼠标按下相关消息时触发，发送给上次鼠标按下时的控件
+		kEventMouseClickEsc,	    //Window类：当收到键盘ESC键消息时触发，发送给鼠标按下时的控件
+
 		//选择/取消选择
 		kEventSelect,				//CheckBox类、Option类、ListBox类、Combo类：当变成选中状态时触发
 		kEventUnSelect,			    //CheckBox类、Option类、ListBox类、Combo类：当变成非选中状态时触发

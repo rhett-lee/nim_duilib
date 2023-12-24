@@ -1775,10 +1775,14 @@ void Window::OnButtonDown(EventType eventType, WPARAM wParam, LPARAM lParam, con
     m_ptLastMousePos = pt;
     Control* pControl = FindControl(pt);
     if (pControl != nullptr) {
+        Control* pOldEventClick = m_pEventClick;
         m_pEventClick = pControl;
         pControl->SetFocus();
         SetCapture();
         pControl->SendEvent(eventType, wParam, lParam, 0, pt);
+        if ((pOldEventClick != nullptr) && (pOldEventClick != pControl)) {
+            pOldEventClick->SendEvent(kEventMouseClickChanged);
+        }
     }
 }
 
@@ -1926,23 +1930,25 @@ LRESULT Window::OnKeyDownMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHan
         return 0;
     }
 
-    if (m_pFocus == nullptr) {
-        return 0;
-    }
-    if (wParam == VK_TAB) {
-        if (m_pFocus->IsVisible() &&
-            m_pFocus->IsEnabled() &&
-            m_pFocus->IsWantTab()) {
-            return 0;
+    if (m_pFocus != nullptr) {
+        if (wParam == VK_TAB) {
+            if (m_pFocus->IsVisible() &&
+                m_pFocus->IsEnabled() &&
+                m_pFocus->IsWantTab()) {
+                return 0;
+            }
+            else {
+                //通过TAB键切换焦点控件
+                SetNextTabControl(::GetKeyState(VK_SHIFT) >= 0);
+            }
         }
         else {
-            //通过TAB键切换焦点控件
-            SetNextTabControl(::GetKeyState(VK_SHIFT) >= 0);
+            m_pEventKey = m_pFocus;
+            m_pFocus->SendEvent(kEventKeyDown, wParam, lParam, static_cast<TCHAR>(wParam));
         }
     }
-    else {
-        m_pEventKey = m_pFocus;
-        m_pFocus->SendEvent(kEventKeyDown, wParam, lParam, static_cast<TCHAR>(wParam));
+    if ((wParam == VK_ESCAPE) && (m_pEventClick != nullptr)) {
+        m_pEventClick->SendEvent(kEventMouseClickEsc);
     }
     return 0;
 }
