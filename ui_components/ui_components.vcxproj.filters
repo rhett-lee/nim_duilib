@@ -19,9 +19,6 @@
     <Filter Include="toast">
       <UniqueIdentifier>{58d06459-bf5d-48b5-b653-9461e77b1773}</UniqueIdentifier>
     </Filter>
-    <Filter Include="modal_wnd">
-      <UniqueIdentifier>{92881902-1d31-4623-ac4e-6b01d27d2582}</UniqueIdentifier>
-    </Filter>
     <Filter Include="windows_manager">
       <UniqueIdentifier>{9cd0028e-cbbc-4078-b80e-b5a7e1e09eb2}</UniqueIdentifier>
     </Filter>
@@ -59,18 +56,6 @@
     </ClInclude>
     <ClInclude Include="msgbox\msgbox.h">
       <Filter>msgbox</Filter>
-    </ClInclude>
-    <ClInclude Include="modal_wnd\async_do_modal.h">
-      <Filter>modal_wnd</Filter>
-    </ClInclude>
-    <ClInclude Include="modal_wnd\async_modal_runner.h">
-      <Filter>modal_wnd</Filter>
-    </ClInclude>
-    <ClInclude Include="modal_wnd\file_dialog_ex.h">
-      <Filter>modal_wnd</Filter>
-    </ClInclude>
-    <ClInclude Include="modal_wnd\modal_wnd_base.h">
-      <Filter>modal_wnd</Filter>
     </ClInclude>
     <ClInclude Include="toast\toast.h">
       <Filter>toast</Filter>
@@ -169,15 +154,6 @@
   <ItemGroup>
     <ClCompile Include="msgbox\msgbox.cpp">
       <Filter>msgbox</Filter>
-    </ClCompile>
-    <ClCompile Include="modal_wnd\async_do_modal.cpp">
-      <Filter>modal_wnd</Filter>
-    </ClCompile>
-    <ClCompile Include="modal_wnd\async_modal_runner.cpp">
-      <Filter>modal_wnd</Filter>
-    </ClCompile>
-    <ClCompile Include="modal_wnd\file_dialog_ex.cpp">
-      <Filter>modal_wnd</Filter>
     </ClCompile>
     <ClCompile Include="toast\toast.cpp">
       <Filter>toast</Filter>

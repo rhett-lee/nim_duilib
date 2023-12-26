@@ -224,10 +224,6 @@
     <ClInclude Include="cef_control\manager\cef_manager.h" />
     <ClInclude Include="cef_control\util\memory_dc.h" />
     <ClInclude Include="cef_control\util\util.h" />
-    <ClInclude Include="modal_wnd\async_do_modal.h" />
-    <ClInclude Include="modal_wnd\async_modal_runner.h" />
-    <ClInclude Include="modal_wnd\file_dialog_ex.h" />
-    <ClInclude Include="modal_wnd\modal_wnd_base.h" />
     <ClInclude Include="msgbox\msgbox.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="toast\toast.h" />
@@ -256,9 +252,6 @@
     <ClCompile Include="mini_blink_control\wke_memory_dc.cpp" />
     <ClCompile Include="mini_blink_control\wke_web_native.cpp" />
     <ClCompile Include="mini_blink_control\wke_web_view.cpp" />
-    <ClCompile Include="modal_wnd\async_do_modal.cpp" />
-    <ClCompile Include="modal_wnd\async_modal_runner.cpp" />
-    <ClCompile Include="modal_wnd\file_dialog_ex.cpp" />
     <ClCompile Include="msgbox\msgbox.cpp" />
     <ClCompile Include="popover\alert.cpp" />
     <ClCompile Include="popover\notification.cpp" />
