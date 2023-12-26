@@ -46,9 +46,6 @@
     <Filter Include="cef_control\handler\drag">
       <UniqueIdentifier>{7747b13a-cc8c-4e86-b230-3528a4bb5752}</UniqueIdentifier>
     </Filter>
-    <Filter Include="grid">
-      <UniqueIdentifier>{6df87217-a234-4ebe-9d68-3682171b1c61}</UniqueIdentifier>
-    </Filter>
     <Filter Include="popover">
       <UniqueIdentifier>{9909f163-035f-4861-8cf9-6ba43ac5c02d}</UniqueIdentifier>
     </Filter>
@@ -144,15 +141,6 @@
     <ClInclude Include="cef_control\handler\drag\osr_dragdrop_win.h">
       <Filter>cef_control\handler\drag</Filter>
     </ClInclude>
-    <ClInclude Include="grid\Grid.h">
-      <Filter>grid</Filter>
-    </ClInclude>
-    <ClInclude Include="grid\GridBase.h">
-      <Filter>grid</Filter>
-    </ClInclude>
-    <ClInclude Include="grid\GridBody.h">
-      <Filter>grid</Filter>
-    </ClInclude>
     <ClInclude Include="popover\popover.h">
       <Filter>popover</Filter>
     </ClInclude>
@@ -247,15 +235,6 @@
     </ClCompile>
     <ClCompile Include="cef_control\handler\drag\util_win.cc">
       <Filter>cef_control\handler\drag</Filter>
-    </ClCompile>
-    <ClCompile Include="grid\Grid.cpp">
-      <Filter>grid</Filter>
-    </ClCompile>
-    <ClCompile Include="grid\GridBase.cpp">
-      <Filter>grid</Filter>
-    </ClCompile>
-    <ClCompile Include="grid\GridBody.cpp">
-      <Filter>grid</Filter>
     </ClCompile>
     <ClCompile Include="popover\popover.cpp">
       <Filter>popover</Filter>

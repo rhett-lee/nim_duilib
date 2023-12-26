@@ -202,9 +202,6 @@
     <ClInclude Include="cef_control\handler\drag\osr_dragdrop_win.h" />
     <ClInclude Include="cef_control\handler\drag\util_win.h" />
     <ClInclude Include="cef_control\util\auto_unregister.h" />
-    <ClInclude Include="grid\Grid.h" />
-    <ClInclude Include="grid\GridBase.h" />
-    <ClInclude Include="grid\GridBody.h" />
     <ClInclude Include="mini_blink_control\web_view_base.h" />
     <ClInclude Include="mini_blink_control\wke_memory_dc.h" />
     <ClInclude Include="mini_blink_control\wke_web_native.h" />
@@ -255,9 +252,6 @@
     <ClCompile Include="cef_control\handler\drag\util_win.cc" />
     <ClCompile Include="cef_control\manager\cef_manager.cpp" />
     <ClCompile Include="cef_control\util\memory_dc.cpp" />
-    <ClCompile Include="grid\Grid.cpp" />
-    <ClCompile Include="grid\GridBase.cpp" />
-    <ClCompile Include="grid\GridBody.cpp" />
     <ClCompile Include="mini_blink_control\web_view_base.cpp" />
     <ClCompile Include="mini_blink_control\wke_memory_dc.cpp" />
     <ClCompile Include="mini_blink_control\wke_web_native.cpp" />
