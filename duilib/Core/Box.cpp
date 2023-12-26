@@ -21,7 +21,12 @@ Box::Box(Layout* pLayout) :
 Box::~Box()
 {
 	m_bDelayedDestroy = false;
-	RemoveAllItems();
+	for (Control* pControl : m_items) {
+		if (pControl != nullptr) {
+			delete pControl;
+		}
+	}
+	m_items.clear();
 	if (m_pLayout != nullptr) {
 		delete m_pLayout;
 		m_pLayout = nullptr;
