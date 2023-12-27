@@ -356,18 +356,10 @@ void ControlForm::ShowPopupMenu(const ui::UiPoint& point)
     ui::CMenuElementUI* menu_about = static_cast<ui::CMenuElementUI*>(menu->FindControl(L"about"));
 	if (menu_about != nullptr) {
 		menu_about->AttachClick([this](const ui::EventArgs& args) {
-			AboutForm* about_form = (AboutForm*)(nim_comp::WindowsManager::GetInstance()->GetWindow(AboutForm::kClassName, AboutForm::kClassName));
-			if (!about_form)
-			{
-				about_form = new AboutForm();
-				about_form->CreateWnd(GetHWND(), AboutForm::kClassName, WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX, WS_EX_LAYERED);
-				about_form->CenterWindow();
-				about_form->ShowWindow();
-			}
-			else
-			{
-				about_form->ActiveWindow();
-			}
+			AboutForm* about_form = new AboutForm();
+			about_form->CreateWnd(GetHWND(), AboutForm::kClassName, WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX, WS_EX_LAYERED);
+			about_form->CenterWindow();
+			about_form->ShowModalFake(GetHWND());
 			return true;
 			});
 	}

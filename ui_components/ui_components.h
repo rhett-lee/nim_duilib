@@ -1,8 +1,6 @@
 #pragma once
 
 #include "ui_components/msgbox/msgbox.h"
-#include "ui_components/windows_manager/windows_manager.h"
-#include "ui_components/windows_manager/window_ex.h"
 #include "ui_components/toast/toast.h"
 #include "ui_components/popover/popover.h"
 #include "ui_components/popover/notification.h"

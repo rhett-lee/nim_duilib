@@ -228,8 +228,6 @@
     <ClInclude Include="targetver.h" />
     <ClInclude Include="toast\toast.h" />
     <ClInclude Include="ui_components.h" />
-    <ClInclude Include="windows_manager\windows_manager.h" />
-    <ClInclude Include="windows_manager\window_ex.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cef_control\app\cef_js_bridge.cpp" />
@@ -258,8 +256,6 @@
     <ClCompile Include="popover\popover.cpp" />
     <ClCompile Include="popover\tooltip.cpp" />
     <ClCompile Include="toast\toast.cpp" />
-    <ClCompile Include="windows_manager\windows_manager.cpp" />
-    <ClCompile Include="windows_manager\window_ex.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="third_party\cef_wrapper\libcef_dll_wrapper.vcxproj">
