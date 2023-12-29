@@ -583,6 +583,8 @@ LRESULT CALLBACK Window::__WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
     }
 }
 
+static const wchar_t* sPropName = L"DuiLibWndX"; //  Ù–‘√˚≥∆
+
 LRESULT CALLBACK Window::__ControlProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     Window* pThis = nullptr;
@@ -590,18 +592,18 @@ LRESULT CALLBACK Window::__ControlProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
         LPCREATESTRUCT lpcs = reinterpret_cast<LPCREATESTRUCT>(lParam);
         pThis = static_cast<Window*>(lpcs->lpCreateParams);
         if (pThis != nullptr) {
-            ::SetPropW(hWnd, L"WndX", (HANDLE)pThis);
+            ::SetPropW(hWnd, sPropName, (HANDLE)pThis);
             pThis->m_hWnd = hWnd;
         }
     }
     else {
-        pThis = reinterpret_cast<Window*>(::GetPropW(hWnd, L"WndX"));
+        pThis = reinterpret_cast<Window*>(::GetPropW(hWnd, sPropName));
         if (uMsg == WM_NCDESTROY && pThis != nullptr) {
             LRESULT lRes = ::CallWindowProc(pThis->m_OldWndProc, hWnd, uMsg, wParam, lParam);
             if (pThis->m_bSubclassed) {
                 pThis->Unsubclass();
             }
-            ::SetPropW(hWnd, L"WndX", NULL);
+            ::SetPropW(hWnd, sPropName, NULL);
             ASSERT(hWnd == pThis->GetHWND());
             pThis->OnFinalMessage(hWnd);
             return lRes;
@@ -614,6 +616,21 @@ LRESULT CALLBACK Window::__ControlProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
     else {
         return ::DefWindowProc(hWnd, uMsg, wParam, lParam);
     }
+}
+
+Window* Window::GetWindowObject(HWND hWnd)
+{
+    Window* pThis = reinterpret_cast<Window*>(::GetWindowLongPtr(hWnd, GWLP_USERDATA));
+    if ((pThis != nullptr) && (pThis->m_hWnd != hWnd)) {
+        pThis = nullptr;
+    }
+    if (pThis == nullptr) {
+        pThis = reinterpret_cast<Window*>(::GetPropW(hWnd, sPropName));
+        if ((pThis != nullptr) && (pThis->m_hWnd != hWnd)) {
+            pThis = nullptr;
+        }
+    }
+    return pThis;
 }
 
 void Window::InitWnd(HWND hWnd)
@@ -2314,9 +2331,19 @@ void Window::MapWindowRect(HWND hwndFrom, HWND hwndTo, UiRect& rc) const
     rc.bottom = pts[1].y;
 }
 
-HWND Window::WindowFromPoint(const UiPoint& pt) const
+Window* Window::WindowFromPoint(const UiPoint& pt)
 {
-    return ::WindowFromPoint({ pt.x, pt.y });
+    Window* pWindow = nullptr;
+    HWND hWnd = ::WindowFromPoint({ pt.x, pt.y });
+    if (::IsWindow(hWnd)) {
+        if (hWnd == m_hWnd) {
+            pWindow = this;
+        }
+        else {
+            pWindow = GetWindowObject(hWnd);
+        }
+    }
+    return pWindow;
 }
 
 HWND Window::GetWindowOwner() const

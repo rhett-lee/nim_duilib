@@ -898,9 +898,9 @@ public:
     */
     void MapWindowRect(UiRect& rc) const;
 
-    /** 获取一个点对应的窗口句柄
+    /** 获取一个点对应的窗口接口
     */
-    HWND WindowFromPoint(const UiPoint& pt) const;
+    Window* WindowFromPoint(const UiPoint& pt);
 
     /** 获取当前窗口所在显示器的工作区矩形，以虚拟屏幕坐标表示。
         请注意，如果显示器不是主显示器，则一些矩形的坐标可能是负值。
@@ -1046,6 +1046,12 @@ private:
     * @return 返回消息处理结果
     */
     static LRESULT CALLBACK __ControlProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+
+    /** 获取窗口对应的Window对象接口
+    * @param [in] hWnd 窗口句柄
+    * @return 返回窗口句柄对应的Window对象接口
+    */
+    static Window* GetWindowObject(HWND hWnd);
 
 private:
     //窗口句柄

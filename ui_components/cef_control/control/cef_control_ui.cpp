@@ -467,9 +467,10 @@ LRESULT CefControl::SendMouseWheelEvent(UINT /*uMsg*/, WPARAM wParam, LPARAM lPa
 	CefRefPtr<CefBrowserHost> host = browser_handler_->GetBrowserHost();
 
 	ui::UiPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
-	HWND scrolled_wnd = GetWindow()->WindowFromPoint(pt);
-	if (scrolled_wnd != GetWindow()->GetHWND())
+	ui::Window* pScrolledWnd = GetWindow()->WindowFromPoint(pt);
+	if (pScrolledWnd != GetWindow()) {
 		return 0;
+	}
 
 	GetWindow()->ScreenToClient(pt);
 	pt.Offset(GetScrollOffsetInScrollBox());
