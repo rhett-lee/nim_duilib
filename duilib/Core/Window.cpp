@@ -1019,7 +1019,7 @@ void Window::SetShadowCorner(const UiPadding& padding, bool bNeedDpiScale)
     m_shadow->SetShadowCorner(padding, bNeedDpiScale);
 }
 
-UiRect Window::GetPos(bool bContainShadow) const
+UiRect Window::GetWindowPos(bool bContainShadow) const
 {
     ASSERT(::IsWindow(m_hWnd));
     UiRect rcPos;
@@ -1031,7 +1031,7 @@ UiRect Window::GetPos(bool bContainShadow) const
     return rcPos;
 }
 
-void Window::SetPos(const UiRect& rc, bool bNeedDpiScale, UINT uFlags, HWND hWndInsertAfter, bool bContainShadow)
+bool Window::SetWindowPos(const UiRect& rc, bool bNeedDpiScale, UINT uFlags, HWND hWndInsertAfter, bool bContainShadow)
 {
     UiRect rcNewPos = rc;
     if (bNeedDpiScale) {
@@ -1043,7 +1043,13 @@ void Window::SetPos(const UiRect& rc, bool bNeedDpiScale, UINT uFlags, HWND hWnd
         UiPadding rcCorner = m_shadow->GetShadowCorner();
         rcNewPos.Inflate(rcCorner);
     }
-    ::SetWindowPos(m_hWnd, hWndInsertAfter, rcNewPos.left, rcNewPos.top, rcNewPos.Width(), rcNewPos.Height(), uFlags);
+    return SetWindowPos(hWndInsertAfter, rcNewPos.left, rcNewPos.top, rcNewPos.Width(), rcNewPos.Height(), uFlags);
+}
+
+bool Window::SetWindowPos(HWND hWndInsertAfter, int32_t X, int32_t Y, int32_t cx, int32_t cy, UINT uFlags)
+{
+    ASSERT(::IsWindow(m_hWnd));
+    return ::SetWindowPos(m_hWnd, hWndInsertAfter, X, Y, cx, cy, uFlags) != FALSE;
 }
 
 UiSize Window::GetMinInfo(bool bContainShadow) const

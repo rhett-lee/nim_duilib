@@ -280,8 +280,7 @@ void CMenuWnd::ResizeMenu()
 		SetForegroundWindow(GetHWND());
 		SetFocus(m_pLayout);
 	}
-	SetWindowPos(GetHWND(), HWND_TOPMOST,
-		         point.x - rcCorner.left, point.y - rcCorner.top,
+	SetWindowPos(HWND_TOPMOST, point.x - rcCorner.left, point.y - rcCorner.top,
 		         szAvailable.cx, szAvailable.cy,
 		         SWP_SHOWWINDOW | (m_noFocus ? SWP_NOACTIVATE : 0));
 }
@@ -384,8 +383,7 @@ void CMenuWnd::ResizeSubMenu()
 		SetForegroundWindow(GetHWND());
 		SetFocus(m_pLayout);
 	}
-	SetWindowPos(GetHWND(), HWND_TOPMOST,
-		         rc.left - rcCorner.left, rc.top - rcCorner.top,
+	SetWindowPos(HWND_TOPMOST, rc.left - rcCorner.left, rc.top - rcCorner.top,
 				 rc.right - rc.left, rc.bottom - rc.top,
 				 SWP_SHOWWINDOW | (m_noFocus ? SWP_NOACTIVATE : 0));
 }

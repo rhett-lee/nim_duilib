@@ -74,7 +74,7 @@ LRESULT ShadowWndBase::FilterMessage(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/
 				if (::IsWindowVisible(hWnd)) {
 					RECT rc = { 0 };
 					::GetWindowRect(hWnd, &rc);
-					SetPos(ui::UiRect(rc.left, rc.top, rc.right, rc.bottom), false, SWP_SHOWWINDOW | SWP_NOACTIVATE, hWnd);
+					SetWindowPos(ui::UiRect(rc.left, rc.top, rc.right, rc.bottom), false, SWP_SHOWWINDOW | SWP_NOACTIVATE, hWnd);
 					m_isFirstPainted = true;
 				}
 			}			

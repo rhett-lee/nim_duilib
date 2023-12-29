@@ -248,16 +248,26 @@ public:
     /** 获取窗口位置信息
      * @param [in] bContainShadow 是否包含阴影，true 为包含，默认为 false 不包含
      */
-    UiRect GetPos(bool bContainShadow = false) const;
+    UiRect GetWindowPos(bool bContainShadow = false) const;
 
-    /** 设置窗口位置（对 SetWindowPos 的一层封装）
+    /** 设置窗口位置（对 ::SetWindowPos API 的一层封装）
     * @param [in] rc 窗口位置
     * @param [in] bNeedDpiScale 为 false 表示不需要把 rc 根据 DPI 自动调整
-    * @param [in] uFlags 对应 SetWindowPos 的 uFlags 选项
+    * @param [in] uFlags 对应 ::SetWindowPos API 的 uFlags 选项
     * @param [in] hWndInsertAfter 对应 SetWindowPos 的 hWndInsertAfter 选项
     * @param [in] bContainShadow rc区域是否包含阴影范围，默认为 false
     */
-    void SetPos(const UiRect& rc, bool bNeedDpiScale, UINT uFlags, HWND hWndInsertAfter = NULL, bool bContainShadow = false);
+    bool SetWindowPos(const UiRect& rc, bool bNeedDpiScale, UINT uFlags, HWND hWndInsertAfter = NULL, bool bContainShadow = false);
+
+    /** 设置窗口位置（对 ::SetWindowPos API 的一层封装）
+    * @param [in] hWndInsertAfter 对应 SetWindowPos 的 hWndInsertAfter 选项
+    * @param [in] X 窗口的X坐标
+    * @param [in] Y 窗口的Y坐标
+    * @param [in] cx 窗口的宽度
+    * @param [in] cy 窗口的高度
+    * @param [in] uFlags 对应 ::SetWindowPos API 的 uFlags 选项 
+    */
+    bool SetWindowPos(HWND hWndInsertAfter, int32_t X, int32_t Y, int32_t cx, int32_t cy, UINT uFlags);
 
     /** 重置窗口大小
     * @param [in] cx 宽度

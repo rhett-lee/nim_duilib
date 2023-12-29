@@ -75,7 +75,7 @@ void CefNativeControl::SetPos(ui::UiRect rc)
 	HWND hwnd = GetCefHandle();
 	if (hwnd) 
 	{
-		SetWindowPos(hwnd, HWND_TOP, rc.left, rc.top, rc.Width(), rc.Height(), SWP_NOZORDER);
+		::SetWindowPos(hwnd, HWND_TOP, rc.left, rc.top, rc.Width(), rc.Height(), SWP_NOZORDER);
 	}
 }
 
@@ -118,7 +118,7 @@ void CefNativeControl::SetVisible(bool bVisible)
 		}
 		else
 		{
-			SetWindowPos(hwnd, NULL, 0, 0, 0, 0, SWP_NOZORDER | SWP_NOMOVE | SWP_NOACTIVATE);
+			::SetWindowPos(hwnd, NULL, 0, 0, 0, 0, SWP_NOZORDER | SWP_NOMOVE | SWP_NOACTIVATE);
 		}
 	}
 }

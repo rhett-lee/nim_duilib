@@ -172,13 +172,13 @@ void MultiBrowserManager::SetEnableMerge(bool enable)
 				{
 					first_sort = false;
 					sort_form->CenterWindow();
-					rect_old_form = sort_form->GetPos(true);
+					rect_old_form = sort_form->GetWindowPos(true);
 				}
 				else
 				{
 					rect_old_form.left += kSplitFormXOffset;
 					rect_old_form.top += kSplitFormXOffset;
-					sort_form->SetPos(rect_old_form, true, SWP_NOSIZE, NULL, true);
+					sort_form->SetWindowPos(rect_old_form, true, SWP_NOSIZE, NULL, true);
 				}
 			}
 		}
@@ -364,7 +364,7 @@ void MultiBrowserManager::OnAfterDragBorwserBox()
 						POINT pt_mouse;
 						::GetCursorPos(&pt_mouse);
 						ui::UiRect rect(pt_mouse.x + kDragFormXOffset, pt_mouse.y + kDragFormYOffset, 0, 0);
-						browser_form->SetPos(rect, false, SWP_NOSIZE);
+						browser_form->SetWindowPos(rect, false, SWP_NOSIZE);
 					}
 				}
 			}

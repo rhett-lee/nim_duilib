@@ -181,7 +181,7 @@ void DateTimeWnd::UpdateWndPos()
     rc.top = pt1.y;
     rc.right = pt2.x;
     rc.bottom = pt2.y;
-    ::SetWindowPos(GetHWND(), NULL, rc.left, rc.top, rc.Width(), rc.Height(), SWP_NOZORDER | SWP_NOACTIVATE);
+    SetWindowPos(nullptr, rc.left, rc.top, rc.Width(), rc.Height(), SWP_NOZORDER | SWP_NOACTIVATE);
 }
 
 HFONT DateTimeWnd::CreateHFont() const

@@ -92,7 +92,7 @@ void CCheckComboWnd::UpdateComboWnd()
 		rc.bottom = rcOwner.top;
 		pOwner->GetWindow()->MapWindowRect(rc);
 	}
-	::SetWindowPos(GetHWND(), NULL, rc.left, rc.top, rc.Width(), rc.Height(), SWP_NOZORDER | SWP_NOACTIVATE);
+	SetWindowPos(nullptr, rc.left, rc.top, rc.Width(), rc.Height(), SWP_NOZORDER | SWP_NOACTIVATE);
 }
 
 void CCheckComboWnd::CloseComboWnd()
