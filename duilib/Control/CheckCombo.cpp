@@ -144,7 +144,7 @@ void CCheckComboWnd::OnFinalMessage(HWND /*hWnd*/)
 
 void CCheckComboWnd::OnSeleteItem()
 {
-	PostMessage(WM_KILLFOCUS);
+	PostMsg(WM_KILLFOCUS);
 }
 
 LRESULT CCheckComboWnd::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)

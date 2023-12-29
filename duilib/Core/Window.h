@@ -508,7 +508,7 @@ public:
     * @param [in] lParam 消息附加参数
     * @return 返回窗口对消息的处理结果
     */
-    LRESULT SendMessage(UINT uMsg, WPARAM wParam = 0, LPARAM lParam = 0L);
+    LRESULT SendMsg(UINT uMsg, WPARAM wParam = 0, LPARAM lParam = 0L);
 
     /** 投递一个消息到消息队列
     * @param [in] uMsg 消息类型
@@ -516,7 +516,7 @@ public:
     * @param [in] lParam 消息附加参数
     * @return 返回窗口对消息的处理结果
     */
-    LRESULT PostMessage(UINT uMsg, WPARAM wParam = 0, LPARAM lParam = 0L);
+    LRESULT PostMsg(UINT uMsg, WPARAM wParam = 0, LPARAM lParam = 0L);
 
     /** 主动发起一个消息, 发送给该窗口的事件回调管理器（m_OnEvent）中注册的消息处理函数
     * @param [in] eventType 转化后的消息体

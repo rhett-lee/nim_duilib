@@ -259,7 +259,7 @@ bool MultiBrowserForm::OnClicked(const ui::EventArgs& arg )
 	}
 	else if (name == L"btn_min")
 	{
-		SendMessage(WM_SYSCOMMAND, SC_MINIMIZE, 0);
+		PostMsg(WM_SYSCOMMAND, SC_MINIMIZE, 0);
 	}
 	else if (name == L"btn_add")
 	{

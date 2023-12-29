@@ -263,14 +263,14 @@ LRESULT DateTimeWnd::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bo
     bHandled = false;
     if (uMsg == WM_KEYDOWN && wParam == VK_ESCAPE) {
         m_pOwner->SetDateTime(SystemTimeToStdTime(m_oldSysTime));
-        PostMessage(WM_CLOSE);
+        PostMsg(WM_CLOSE);
         bHandled = true;
     }
     else if (uMsg == WM_KEYDOWN && wParam == VK_RETURN) {
         SYSTEMTIME systime = { 0, };
         ::SendMessage(GetHWND(), DTM_GETSYSTEMTIME, 0, (LPARAM)&systime);
         m_pOwner->SetDateTime(SystemTimeToStdTime(systime));
-        PostMessage(WM_CLOSE);
+        PostMsg(WM_CLOSE);
         bHandled = true;
     }
     else if (uMsg == OCM_NOTIFY)
@@ -289,7 +289,7 @@ LRESULT DateTimeWnd::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bo
                 SYSTEMTIME systime = { 0, };
                 ::SendMessage(GetHWND(), DTM_GETSYSTEMTIME, 0, (LPARAM)&systime);
                 m_pOwner->SetDateTime(SystemTimeToStdTime(systime));
-                PostMessage(WM_CLOSE);
+                PostMsg(WM_CLOSE);
                 m_bDropOpen = false;
             }
         }
@@ -297,7 +297,7 @@ LRESULT DateTimeWnd::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bo
     else if (uMsg == WM_KILLFOCUS)
     {
         if (!m_bDropOpen) {
-            PostMessage(WM_CLOSE);
+            PostMsg(WM_CLOSE);
         }
     }
     if (!bHandled) {

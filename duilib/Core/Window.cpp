@@ -243,7 +243,7 @@ void Window::CloseWnd(UINT nRet)
     if (!::IsWindow(m_hWnd)) {
         return;
     }    
-    PostMessage(WM_CLOSE, (WPARAM)nRet, 0L);    
+    ::PostMessage(m_hWnd, WM_CLOSE, (WPARAM)nRet, 0L);
 }
 
 void Window::Close()
@@ -253,7 +253,7 @@ void Window::Close()
     if (!::IsWindow(m_hWnd)) {
         return;
     }    
-    SendMessage(WM_CLOSE, 0L, 0L);
+    ::SendMessage(m_hWnd, WM_CLOSE, 0L, 0L);
 }
 
 void Window::ShowWindow(bool bShow /*= true*/, bool bTakeFocus /*= false*/)
@@ -502,13 +502,13 @@ void Window::SetIcon(UINT nRes)
     ::SendMessage(m_hWnd, WM_SETICON, (WPARAM)FALSE, (LPARAM)hIcon);
 }
 
-LRESULT Window::SendMessage(UINT uMsg, WPARAM wParam /*= 0*/, LPARAM lParam /*= 0*/)
+LRESULT Window::SendMsg(UINT uMsg, WPARAM wParam /*= 0*/, LPARAM lParam /*= 0*/)
 {
     ASSERT(::IsWindow(m_hWnd));
     return ::SendMessage(m_hWnd, uMsg, wParam, lParam);
 }
 
-LRESULT Window::PostMessage(UINT uMsg, WPARAM wParam /*= 0*/, LPARAM lParam /*= 0*/)
+LRESULT Window::PostMsg(UINT uMsg, WPARAM wParam /*= 0*/, LPARAM lParam /*= 0*/)
 {
     ASSERT(::IsWindow(m_hWnd));
     return ::PostMessage(m_hWnd, uMsg, wParam, lParam);

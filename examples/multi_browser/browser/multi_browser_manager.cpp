@@ -340,7 +340,7 @@ void MultiBrowserManager::OnAfterDragBorwserBox()
 		// (因为窗口被拖拽时触发了ButtonDown和ButtonMove消息，但是最终的ButtonUp消息会被忽略，这里补上)
 		// 如果只有一个浏览器盒子，则浏览器盒子脱离浏览器窗口时，浏览器窗口就会关闭，不需要投递
 		if (box_count > 1)
-			drag_browser_form->PostMessage(WM_LBUTTONUP, 0, 0);
+			drag_browser_form->PostMsg(WM_LBUTTONUP, 0, 0);
 	}
 	// 如果没有被拖拽到另一个浏览器窗口里
 	else
@@ -371,7 +371,7 @@ void MultiBrowserManager::OnAfterDragBorwserBox()
 		}
 
 		// 如果没有被拖拽到另一个浏览器窗口里，这时不会有浏览器窗口被关闭，所以直接投递ButtonUp消息
-		drag_browser_form->PostMessage(WM_LBUTTONUP, 0, 0);
+		drag_browser_form->PostMsg(WM_LBUTTONUP, 0, 0);
 	}
 
 	draging_box_ = NULL;
