@@ -226,7 +226,7 @@ LRESULT WkeWebView::FilterMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool&
     if (pt.x == -1 || pt.y == -1) {
       break;
     }
-    GetWindow()->ScreenToClient(hWnd, pt);
+    GetWindow()->ScreenToClient(pt);
 
     if (!GetWebViewPos(pt)) {
       break;
@@ -263,7 +263,7 @@ LRESULT WkeWebView::FilterMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool&
       break;
     }
 
-    GetWindow()->ScreenToClient(hWnd, pt);
+    GetWindow()->ScreenToClient(pt);
 
     if (!GetWebViewPos(pt)) {
       break;  
@@ -340,11 +340,9 @@ void WkeWebView::OnCursorChange() {
 }
 
 bool WkeWebView::SetCursorInfoTypeByCache() {
-  HWND hWnd = GetWindow()->GetHWND();
-
   ui::UiPoint pt;
   GetWindow()->GetCursorPos(pt);
-  GetWindow()->ScreenToClient(hWnd, pt);
+  GetWindow()->ScreenToClient(pt);
   if (!GetWebViewPos(pt))
     return false;
 

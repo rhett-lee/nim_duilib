@@ -18,7 +18,7 @@ public:
 	virtual std::wstring GetWindowClassName() const override;
 
 	virtual LRESULT FilterMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
-	HWND Create(Window* window);
+	bool Create(Window* window);
 private:
 	Window* m_pWindow;
 	//标记被跟随的窗口是否完成首次绘制
@@ -46,7 +46,7 @@ std::wstring ShadowWndBase::GetWindowClassName() const
 	return L"ShadowWnd";
 }
 
-HWND ShadowWndBase::Create(Window* window)
+bool ShadowWndBase::Create(Window* window)
 {
 	m_pWindow = window;
 	return Window::CreateWnd(NULL, L"ShadowWnd", WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX, WS_EX_TRANSPARENT | WS_EX_TOOLWINDOW | WS_EX_LAYERED);
@@ -96,11 +96,11 @@ ShadowWnd::ShadowWnd():
 {
 }
 
-HWND ShadowWnd::CreateWnd(HWND hwndParent, const wchar_t* windowName, uint32_t dwStyle, uint32_t dwExStyle, const ui::UiRect& rc )
+bool ShadowWnd::CreateWnd(HWND hwndParent, const wchar_t* windowName, uint32_t dwStyle, uint32_t dwExStyle, const ui::UiRect& rc )
 {
 	ASSERT((m_pShadowWnd == nullptr) && (GetHWND() == nullptr));
 	if ((m_pShadowWnd != nullptr) || (GetHWND() != nullptr)){
-		return nullptr;
+		return false;
 	}
 	//取消层窗口属性
 	dwExStyle &= ~WS_EX_LAYERED;
@@ -109,7 +109,7 @@ HWND ShadowWnd::CreateWnd(HWND hwndParent, const wchar_t* windowName, uint32_t d
 	bool needCreateShadowWnd = NeedCreateShadowWnd();
 	if (!needCreateShadowWnd) {
 		//配置文件，设置了层窗口，或者关闭阴影，不再附加透明阴影		
-		return GetHWND();
+		return GetHWND() != nullptr;
 	}
 	//关闭默认的窗口阴影
 	if (IsShadowAttached()) {
@@ -131,7 +131,7 @@ HWND ShadowWnd::CreateWnd(HWND hwndParent, const wchar_t* windowName, uint32_t d
 			m_pShadowWnd->ShowWindow();
 		}
 	}
-	return GetHWND();
+	return GetHWND() != nullptr;
 }
 
 Box* ShadowWnd::AttachShadow(Box* pRoot)

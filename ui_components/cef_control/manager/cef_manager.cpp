@@ -58,8 +58,8 @@ bool CefMessageLoopDispatcher::Dispatch(const MSG &msg)
 // 这样操作之后就不会出现菜单无法关闭的bug了，虽然不知道为什么但是bug解决了
 void FixContextMenuBug(HWND hwnd)
 {
-	CreateWindow(L"Static", L"", WS_CHILD, 0, 0, 0, 0, hwnd, NULL, NULL, NULL);
-	PostMessage(hwnd, WM_CLOSE, 0, 0);
+	::CreateWindow(L"Static", L"", WS_CHILD, 0, 0, 0, 0, hwnd, NULL, NULL, NULL);
+	::PostMessage(hwnd, WM_CLOSE, 0, 0);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////

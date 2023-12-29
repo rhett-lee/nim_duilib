@@ -278,7 +278,7 @@ bool BrowserHandler::GetScreenPoint(CefRefPtr<CefBrowser> browser, int viewX, in
 	//将页面坐标转换为窗口客户区坐标，否则页面弹出的右键菜单位置不正确
 	screen_pt.x = screen_pt.x + rect_cef_control_.left;
 	screen_pt.y = screen_pt.y + rect_cef_control_.top;
-	ClientToScreen(hwnd_, &screen_pt);
+	::ClientToScreen(hwnd_, &screen_pt);
 	screenX = screen_pt.x;
 	screenY = screen_pt.y;
 	return true;

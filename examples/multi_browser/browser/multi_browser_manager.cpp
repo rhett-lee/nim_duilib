@@ -17,36 +17,29 @@ BrowserBox* MultiBrowserManager::CreateBorwserBox(MultiBrowserForm *browser_form
 	BrowserBox *browser_box = NULL;
 	// 如果启用了窗口合并功能，就把新浏览器盒子都集中创建到某一个浏览器窗口里
 	// 否则每个浏览器盒子都创建一个浏览器窗口
-	if (enable_merge_)
-	{
-		if (!browser_form)
-		{
+	if (enable_merge_) {
+		if (!browser_form) {
 			browser_form = new MultiBrowserForm;
-			HWND hwnd = browser_form->CreateWnd(NULL, L"MultiBrowser", UI_WNDSTYLE_FRAME, 0);
-			if (hwnd == NULL)
-			{
-				browser_form = NULL;
-				return NULL;
+			if (!browser_form->CreateWnd(NULL, L"MultiBrowser", UI_WNDSTYLE_FRAME, 0)) {
+				browser_form = nullptr;
+				return nullptr;
 			}
-
 			browser_form->CenterWindow();
 		}
-
 		browser_box = browser_form->CreateBox(id, url);
-		if (NULL == browser_box)
-			return NULL;
+		if (nullptr == browser_box) {
+			return nullptr;
+		}
 	}
-	else
-	{
+	else {
 		browser_form = new MultiBrowserForm;
-		HWND hwnd = browser_form->CreateWnd(NULL, L"MultiBrowser", UI_WNDSTYLE_FRAME, 0);
-		if (hwnd == NULL)
-			return NULL;
-
+		if (!browser_form->CreateWnd(NULL, L"MultiBrowser", UI_WNDSTYLE_FRAME, 0)) {
+			return nullptr;
+		}
 		browser_box = browser_form->CreateBox(id, url);
-		if (NULL == browser_box)
-			return NULL;
-
+		if (nullptr == browser_box) {
+			return nullptr;
+		}
 		browser_form->CenterWindow();
 	}
 
@@ -162,19 +155,14 @@ void MultiBrowserManager::SetEnableMerge(bool enable)
 			else if (parent_form->DetachBox(it_box.second))
 			{
 				MultiBrowserForm *browser_form = new MultiBrowserForm;
-				HWND hwnd = browser_form->CreateWnd(NULL, L"MultiBrowser", UI_WNDSTYLE_FRAME, 0);
-				if (hwnd == NULL)
-				{
+				if (!browser_form->CreateWnd(NULL, L"MultiBrowser", UI_WNDSTYLE_FRAME, 0)) {
 					ASSERT(0);
 					continue;
 				}
-
-				if (!browser_form->AttachBox(it_box.second))
-				{
+				if (!browser_form->AttachBox(it_box.second)) {
 					ASSERT(0);
 					continue;
 				}
-
 				sort_form = browser_form;
 			}
 
@@ -370,11 +358,8 @@ void MultiBrowserManager::OnAfterDragBorwserBox()
 			if (drag_browser_form->DetachBox(draging_box_))
 			{
 				MultiBrowserForm *browser_form = new MultiBrowserForm;
-				HWND hwnd = browser_form->CreateWnd(NULL, L"MultiBrowser", UI_WNDSTYLE_FRAME, 0);
-				if (hwnd != NULL)
-				{
-					if (browser_form->AttachBox(draging_box_))
-					{
+				if (browser_form->CreateWnd(NULL, L"MultiBrowser", UI_WNDSTYLE_FRAME, 0)) {
+					if (browser_form->AttachBox(draging_box_)) {
 						// 这里设置新浏览器窗口的位置，设置到偏移鼠标坐标100,20的位置
 						POINT pt_mouse;
 						::GetCursorPos(&pt_mouse);

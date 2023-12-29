@@ -75,7 +75,7 @@ void OnScreenKeyboardManager::TimerCallback()
 		}
 		else {
 			if (auto hwnd = FindWindow(L"IPTip_Main_Window", NULL))
-				PostMessage(hwnd, WM_SYSCOMMAND, (int)SC_CLOSE, 0);
+				::PostMessage(hwnd, WM_SYSCOMMAND, (int)SC_CLOSE, 0);
 		}
 	}
 }

@@ -163,18 +163,24 @@ HMODULE Window::GetResModuleHandle() const
     return ::GetModuleHandle(NULL);
 }
 
-HWND Window::Subclass(HWND hWnd)
+bool Window::Subclass(HWND hWnd)
 {
     ASSERT(::IsWindow(hWnd));
+    if (!::IsWindow(hWnd)) {
+        return false;
+    }
     ASSERT(m_hWnd == nullptr);
+    if (m_hWnd != nullptr) {
+        return false;
+    }
     m_OldWndProc = SubclassWindow(hWnd, __WndProc);
     if (m_OldWndProc == nullptr) {
-        return nullptr;
+        return false;
     }
     m_bSubclassed = true;
     m_hWnd = hWnd;
     ::SetWindowLongPtr(hWnd, GWLP_USERDATA, reinterpret_cast<LPARAM>(this));
-    return m_hWnd;
+    return m_hWnd != nullptr;
 }
 
 void Window::Unsubclass()
@@ -190,16 +196,16 @@ void Window::Unsubclass()
     }
 }
 
-HWND Window::CreateWnd(HWND hwndParent, const wchar_t* windowName, uint32_t dwStyle, uint32_t dwExStyle, const UiRect& rc)
+bool Window::CreateWnd(HWND hwndParent, const wchar_t* windowName, uint32_t dwStyle, uint32_t dwExStyle, const UiRect& rc)
 {
     if (!GetSuperClassName().empty()) {
         if (!RegisterSuperClass()) {
-            return nullptr;
+            return false;
         }
     }
     else {
         if (!RegisterWindowClass()) {
-            return nullptr;
+            return false;
         }
     }
     std::wstring className = GetWindowClassName();
@@ -227,7 +233,7 @@ HWND Window::CreateWnd(HWND hwndParent, const wchar_t* windowName, uint32_t dwSt
         m_hWnd = hWnd;
     }
     OnInitWindow();
-    return hWnd;
+    return hWnd != nullptr;
 }
 
 void Window::CloseWnd(UINT nRet)
@@ -2280,6 +2286,12 @@ void Window::GetCursorPos(UiPoint& pt) const
     POINT ptPos;
     ::GetCursorPos(&ptPos);
     pt = { ptPos.x, ptPos.y };
+}
+
+void Window::MapWindowRect(UiRect& rc) const
+{
+    ASSERT(IsWindow());
+    MapWindowRect(GetHWND(), HWND_DESKTOP, rc);
 }
 
 void Window::MapWindowRect(HWND hwndFrom, HWND hwndTo, UiRect& rc) const

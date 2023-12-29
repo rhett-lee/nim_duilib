@@ -253,9 +253,9 @@ ui::IBitmap* MultiBrowserForm::GenerateBoxWindowBitmap()
 		return NULL;
 
 	HWND cef_window = active_browser_box_->GetCefControl()->GetCefHandle();
-	UiRect src_rect;
-	GetClientRect(cef_window, src_rect);
-
+	RECT src_rect = {0, };
+	::GetClientRect(cef_window, &src_rect);
+	
 	int src_width = src_rect.right - src_rect.left;
 	int src_height = src_rect.bottom - src_rect.top;
 

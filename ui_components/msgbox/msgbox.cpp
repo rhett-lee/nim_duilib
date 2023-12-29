@@ -13,9 +13,10 @@ void ShowMsgBox(HWND hwnd, MsgboxCallback cb,
 	const std::wstring &no, bool btn_no_is_id)
 {
 	MsgBox* msgbox = new MsgBox;
-	HWND hWnd = msgbox->CreateWnd(hwnd, L"", WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX, WS_EX_LAYERED);
-	if (hWnd == NULL)
+	if (!msgbox->CreateWnd(hwnd, L"", WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX, WS_EX_LAYERED)) {
+		delete msgbox;
 		return;
+	}
 	msgbox->SetTitle(title_is_id ? ui::GlobalManager::Instance().Lang().GetStringViaID(title) : title);
 	msgbox->SetContent(content_is_id ? ui::GlobalManager::Instance().Lang().GetStringViaID(content) : content);
 	msgbox->SetButton(btn_yes_is_id ? ui::GlobalManager::Instance().Lang().GetStringViaID(yes) : yes, btn_no_is_id ? ui::GlobalManager::Instance().Lang().GetStringViaID(no) : no);
@@ -70,13 +71,11 @@ void MsgBox::OnEsc(BOOL &bHandled)
 void MsgBox::CloseWnd(UINT nRet)
 {
 	// 提示框关闭之前先Enable父窗口，防止父窗口隐到后面去。
-	HWND hWndParent = GetWindowOwner();
-	if (hWndParent)
-	{
+	HWND hWndParent = ::GetWindow(GetHWND(), GW_OWNER);
+	if (hWndParent) {
 		::EnableWindow(hWndParent, TRUE);
 		::SetFocus(hWndParent);
 	}
-
 	__super::CloseWnd(nRet);
 }
 

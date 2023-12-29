@@ -1219,7 +1219,7 @@ void RichEdit::OnTxNotify(DWORD iNotify, void *pv)
 				phdr->idFrom = nId;   
 				phdr->code = iNotify;  
 
-				SendMessage(GetWindowHandle(), WM_NOTIFY, (WPARAM)nId, (LPARAM)pv);
+				::SendMessage(GetWindowHandle(), WM_NOTIFY, (WPARAM)nId, (LPARAM)pv);
 			}    
 		}
 		break;

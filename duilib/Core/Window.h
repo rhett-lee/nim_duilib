@@ -68,9 +68,8 @@ public:
     * @param [in] dwStyle 窗口样式
     * @param [in] dwExStyle 窗口拓展样式, 可以设置层窗口（WS_EX_LAYERED）等属性
     * @param [in] rc 窗口大小
-    * @return 返回窗口句柄
     */
-    virtual HWND CreateWnd(HWND hwndParent,
+    virtual bool CreateWnd(HWND hwndParent,
                            const wchar_t* windowName,
                            uint32_t dwStyle,
                            uint32_t dwExStyle,
@@ -86,9 +85,8 @@ public:
 
     /** 子类化窗口（更改窗口过程函数）
     * @param [in] 窗口句柄
-    * @return 新的窗口句柄
     */
-    HWND Subclass(HWND hWnd);
+    bool Subclass(HWND hWnd);
 
     /** 取消子类化窗口（恢复原来的窗口过程函数）
     */
@@ -870,72 +868,39 @@ public:
     */
     void GetClientRect(UiRect& rcClient) const;
 
-    /** 获取指定窗口的客户区矩形
-    */
-    void GetClientRect(HWND hWnd, UiRect& rcClient) const;
-
     /** 获取当前窗口的窗口区矩形
     */
     void GetWindowRect(UiRect& rcWindow) const;
-
-    /** 获取指定窗口的窗口区矩形
-    */
-    void GetWindowRect(HWND hWnd, UiRect& rcWindow) const;
 
     /** 将屏幕坐标转换为当前窗口的客户区坐标
     */
     void ScreenToClient(UiPoint& pt) const;
 
-    /** 将屏幕坐标转换为指定窗口的客户区坐标
-    */
-    void ScreenToClient(HWND hWnd, UiPoint& pt) const;
-
     /** 将当前窗口的客户区坐标转换为屏幕坐标
     */
     void ClientToScreen(UiPoint& pt) const;
-
-    /** 将指定窗口的客户区坐标转换为屏幕坐标
-    */
-    void ClientToScreen(HWND hWnd, UiPoint& pt) const;
 
     /** 获取当前鼠标所在坐标
     */
     void GetCursorPos(UiPoint& pt) const;
 
-    /* 将rc的左上角坐标和右下角坐标点从相对于一个窗口的坐标空间转换为相对于另一个窗口的坐标空间
+    /* 将rc的左上角坐标和右下角坐标点从相对于当前窗口的坐标空间转换为相对于桌面窗口的坐标空间
     */
-    void MapWindowRect(HWND hwndFrom, HWND hwndTo, UiRect& rc) const;
+    void MapWindowRect(UiRect& rc) const;
 
     /** 获取一个点对应的窗口句柄
     */
     HWND WindowFromPoint(const UiPoint& pt) const;
-
-    /** 获取当前窗口Owner窗口句柄
-    */
-    HWND GetWindowOwner() const;
-
-    /** 替换窗口函数
-    */
-    WNDPROC SubclassWindow(HWND hWnd, WNDPROC pfnWndProc) const;
 
     /** 获取当前窗口所在显示器的工作区矩形，以虚拟屏幕坐标表示。
         请注意，如果显示器不是主显示器，则一些矩形的坐标可能是负值。
     */
     bool GetMonitorWorkRect(UiRect& rcWork) const;
 
-    /** 获取指定窗口所在显示器的工作区矩形，以虚拟屏幕坐标表示。
-        请注意，如果显示器不是主显示器，则一些矩形的坐标可能是负值。
-    */
-    bool GetMonitorWorkRect(HWND hWnd, UiRect& rcWork) const;
-
     /** 获取指定点所在显示器的工作区矩形，以虚拟屏幕坐标表示。
         请注意，如果显示器不是主显示器，则一些矩形的坐标可能是负值。
     */
     bool GetMonitorWorkRect(const UiPoint& pt, UiRect& rcWork) const;
-
-    /** 获取指定窗口所在显示器的显示器矩形和工作区矩形
-    */
-    bool GetMonitorRect(HWND hWnd, UiRect& rcMonitor, UiRect& rcWork) const;
 
     /** 注册一个拖放接口
     */
@@ -1002,6 +967,44 @@ private:
     void SetRenderOffsetY(int renderOffsetY);
 
     /** @} */
+
+private:
+    /** 将屏幕坐标转换为指定窗口的客户区坐标
+    */
+    void ScreenToClient(HWND hWnd, UiPoint& pt) const;
+
+    /** 将指定窗口的客户区坐标转换为屏幕坐标
+    */
+    void ClientToScreen(HWND hWnd, UiPoint& pt) const;
+
+    /** 获取指定窗口的客户区矩形
+    */
+    void GetClientRect(HWND hWnd, UiRect& rcClient) const;
+
+    /** 获取指定窗口的窗口区矩形
+    */
+    void GetWindowRect(HWND hWnd, UiRect& rcWindow) const;
+
+    /** 获取指定窗口所在显示器的工作区矩形，以虚拟屏幕坐标表示。
+        请注意，如果显示器不是主显示器，则一些矩形的坐标可能是负值。
+    */
+    bool GetMonitorWorkRect(HWND hWnd, UiRect& rcWork) const;
+
+    /** 获取指定窗口所在显示器的显示器矩形和工作区矩形
+    */
+    bool GetMonitorRect(HWND hWnd, UiRect& rcMonitor, UiRect& rcWork) const;
+
+    /** 替换窗口函数
+    */
+    WNDPROC SubclassWindow(HWND hWnd, WNDPROC pfnWndProc) const;
+
+    /** 获取当前窗口Owner窗口句柄
+    */
+    HWND GetWindowOwner() const;
+
+    /* 将rc的左上角坐标和右下角坐标点从相对于一个窗口的坐标空间转换为相对于另一个窗口的坐标空间
+    */
+    void MapWindowRect(HWND hwndFrom, HWND hwndTo, UiRect& rc) const;
 
 private:
     /** 检查并确保当前窗口为焦点窗口

@@ -29,9 +29,8 @@ public:
 	 * @param[in] dwStyle 窗口样式
 	 * @param[in] dwExStyle 窗口拓展样式, 可以设置层窗口（WS_EX_LAYERED）等属性
 	 * @param[in] rc 窗口大小
-	 * @return 返回窗口句柄
 	 */
-	virtual HWND CreateWnd(HWND hwndParent,
+	virtual bool CreateWnd(HWND hwndParent,
 						   const wchar_t* windowName,
 						   uint32_t dwStyle,
 						   uint32_t dwExStyle,

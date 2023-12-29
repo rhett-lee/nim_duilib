@@ -104,8 +104,8 @@ bool DateTimeWnd::Init(DateTime* pOwner)
 
         UiPoint pt1 = { rcPos.left, rcPos.top };
         UiPoint pt2 = { rcPos.right, rcPos.bottom };
-        ClientToScreen(pOwner->GetWindow()->GetHWND(), pt1);
-        ClientToScreen(pOwner->GetWindow()->GetHWND(), pt2);
+        pOwner->GetWindow()->ClientToScreen(pt1);
+        pOwner->GetWindow()->ClientToScreen(pt2);
         CreateWnd(m_pOwner->GetWindow()->GetHWND(), L"", uStyle, 0, {pt1.x, pt1.y, pt2.x, pt2.y});
         ASSERT(GetHWND() != nullptr);
 
@@ -174,8 +174,8 @@ void DateTimeWnd::UpdateWndPos()
     }
     UiPoint pt1 = { rcPos.left, rcPos.top };
     UiPoint pt2 = { rcPos.right, rcPos.bottom };
-    ClientToScreen(m_pOwner->GetWindow()->GetHWND(), pt1);
-    ClientToScreen(m_pOwner->GetWindow()->GetHWND(), pt2);
+    m_pOwner->GetWindow()->ClientToScreen(pt1);
+    m_pOwner->GetWindow()->ClientToScreen(pt2);
     UiRect rc;
     rc.left = pt1.x;
     rc.top = pt1.y;

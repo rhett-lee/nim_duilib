@@ -320,11 +320,11 @@ void CMenuWnd::ResizeSubMenu()
 	}
 	UiPadding rcCorner = GetShadowCorner();
 	UiRect rcWindow;
-	GetWindowRect(m_pOwner->GetWindow()->GetHWND(), rcWindow);
+	m_pOwner->GetWindow()->GetWindowRect(rcWindow);
 	//去阴影
 	rcWindow.Deflate(rcCorner);
 
-	MapWindowRect(m_pOwner->GetWindow()->GetHWND(), HWND_DESKTOP, rc);
+	m_pOwner->GetWindow()->MapWindowRect(rc);
 	
 	rc.left = rcWindow.right;
 	rc.right = rc.left + cxFixed;
@@ -339,7 +339,7 @@ void CMenuWnd::ResizeSubMenu()
 	while (pReceiver != nullptr) {
 		CMenuWnd* pContextMenu = dynamic_cast<CMenuWnd*>(pReceiver);
 		if (pContextMenu != nullptr) {
-			GetWindowRect(pContextMenu->GetHWND(), rcPreWindow);  //需要减掉阴影
+			pContextMenu->GetWindowRect(rcPreWindow);  //需要减掉阴影
 
 			bReachRight = (rcPreWindow.left + rcCorner.left) >= rcWindow.right;
 			bReachBottom = (rcPreWindow.top + rcCorner.top) >= rcWindow.bottom;

@@ -59,8 +59,8 @@ DragForm* DragForm::CreateDragForm(HBITMAP bitmap, POINT pt_offset)
 {
 	DragForm *drag_form = new DragForm;
 
-	HWND hwnd = drag_form->CreateWnd(NULL, kClassName, UI_WNDSTYLE_FRAME, WS_EX_TOPMOST | WS_EX_TRANSPARENT | WS_EX_LAYERED | WS_EX_TOOLWINDOW);
-	ASSERT(hwnd != NULL);
+	drag_form->CreateWnd(NULL, kClassName, UI_WNDSTYLE_FRAME, WS_EX_TOPMOST | WS_EX_TRANSPARENT | WS_EX_LAYERED | WS_EX_TOOLWINDOW);
+	ASSERT(drag_form->GetHWND() != NULL);
 	drag_form->SetDragImage(bitmap);
 
 	POINT pt;
