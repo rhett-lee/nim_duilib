@@ -69,7 +69,7 @@ public:
 protected:
     /** 当接收到窗口创建消息时被调用，供子类中做一些初始化的工作
      */
-    virtual void OnInitWindow();
+    virtual void OnInitWindow() override;
 
     /** 窗口消息的派发函数, 子类继承该函数，重写函数中，需要调用基类的函数
     * @param [in] uMsg 消息体

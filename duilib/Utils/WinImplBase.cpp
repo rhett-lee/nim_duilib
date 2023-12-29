@@ -134,8 +134,6 @@ LRESULT WindowImplBase::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
             pControl->AttachClick(nbase::Bind(&WindowImplBase::OnButtonClick, this, std::placeholders::_1));
         }
     }
-
-    OnInitWindow();
     return 0;
 }
 

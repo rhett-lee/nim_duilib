@@ -217,15 +217,16 @@ HWND Window::CreateWnd(HWND hwndParent, const wchar_t* windowName, uint32_t dwSt
     }
 
     HWND hWnd = ::CreateWindowEx(dwExStyle,
-        className.c_str(),
-        windowName,
-        dwStyle,
-        rc.left, rc.top, rc.Width(), rc.Height(),
-        hwndParent, NULL, GetResModuleHandle(), this);
+                                 className.c_str(),
+                                 windowName,
+                                 dwStyle,
+                                 rc.left, rc.top, rc.Width(), rc.Height(),
+                                 hwndParent, NULL, GetResModuleHandle(), this);
     ASSERT(::IsWindow(hWnd));
     if (hWnd != m_hWnd) {
         m_hWnd = hWnd;
     }
+    OnInitWindow();
     return hWnd;
 }
 
@@ -510,6 +511,10 @@ LRESULT Window::PostMessage(UINT uMsg, WPARAM wParam /*= 0*/, LPARAM lParam /*= 
 void Window::AttachWindowClose(const EventCallback& callback)
 {
     m_OnEvent[kEventWindowClose] += callback;
+}
+
+void Window::OnInitWindow()
+{
 }
 
 void Window::OnFinalMessage(HWND hWnd)

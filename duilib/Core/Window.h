@@ -62,7 +62,7 @@ public:
     * @{
     */
 
-    /** 创建窗口
+    /** 创建窗口, 可使用 OnInitWindow 接口来实现窗口创建完成后的自定义需求
     * @param [in] hwndParent 父窗口句柄
     * @param [in] windowName 窗口名称
     * @param [in] dwStyle 窗口样式
@@ -139,6 +139,10 @@ protected:
     * @param [in] hWnd 窗口句柄
     */
     virtual void InitWnd(HWND hWnd);
+
+    /** 当接收到窗口创建消息时被调用，供子类中做一些初始化的工作
+     */
+    virtual void OnInitWindow();
 
     /** 在窗口收到 WM_NCDESTROY 消息时会被调用
     * @param [in] hWnd 窗口句柄
