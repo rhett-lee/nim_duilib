@@ -1016,6 +1016,14 @@ private:
     */
     void MapWindowRect(HWND hwndFrom, HWND hwndTo, UiRect& rc) const;
 
+    /** 根据root自动调整窗口大小
+    */
+    void AutoResizeWindow(bool bRepaint);
+
+    /** 对控件进行布局调整
+    */
+    void ArrangeRoot();
+
 private:
     /** 检查并确保当前窗口为焦点窗口
     */

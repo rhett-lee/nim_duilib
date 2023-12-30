@@ -686,25 +686,7 @@ bool Window::AttachBox(Box* pRoot)
     m_bFirstLayout = true;
     // Initiate all control
     bool isInit = InitControls(m_pRoot);
-    if ((pRoot != nullptr) &&
-        ((pRoot->GetFixedWidth().IsAuto()) || (pRoot->GetFixedHeight().IsAuto()))) {
-        UiSize maxSize(999999, 999999);
-        UiEstSize estSize = pRoot->EstimateSize(maxSize);
-        UiSize needSize = MakeSize(estSize);
-        if (needSize.cx < pRoot->GetMinWidth()) {
-            needSize.cx = pRoot->GetMinWidth();
-        }
-        if (needSize.cx > pRoot->GetMaxWidth()) {
-            needSize.cx = pRoot->GetMaxWidth();
-        }
-        if (needSize.cy < pRoot->GetMinHeight()) {
-            needSize.cy = pRoot->GetMinHeight();
-        }
-        if (needSize.cy > pRoot->GetMaxHeight()) {
-            needSize.cy = pRoot->GetMaxHeight();
-        }
-        ::MoveWindow(GetHWND(), 0, 0, needSize.cx, needSize.cy, FALSE);
-    }
+    AutoResizeWindow(false);
     return isInit;
 }
 
@@ -2574,46 +2556,40 @@ void Window::Paint()
             m_render->Resize(rcClient.Width(), rcClient.Height());
         }
     }
-
-    if (m_bIsArranged && m_pRoot->IsArranged() && (m_pRoot->GetFixedWidth().IsAuto() || m_pRoot->GetFixedHeight().IsAuto())) {
-        UiSize maxSize(999999, 999999);
-        UiEstSize estSize = m_pRoot->EstimateSize(maxSize);
-        UiSize needSize = MakeSize(estSize);
-        if (needSize.cx < m_pRoot->GetMinWidth()) {
-            needSize.cx = m_pRoot->GetMinWidth();
-        }
-        if (needSize.cx > m_pRoot->GetMaxWidth()) {
-            needSize.cx = m_pRoot->GetMaxWidth();
-        }
-        if (needSize.cy < m_pRoot->GetMinHeight()) {
-            needSize.cy = m_pRoot->GetMinHeight();
-        }
-        if (needSize.cy > m_pRoot->GetMaxHeight()) {
-            needSize.cy = m_pRoot->GetMaxHeight();
-        }
-        UiRect rect;
-        GetWindowRect(rect);
-        ::MoveWindow(m_hWnd, rect.left, rect.top, needSize.cx, needSize.cy, TRUE);
+    bool bFirstLayout = m_bFirstLayout;
+    if (m_bIsArranged && m_pRoot->IsArranged()) {
+        //如果root配置的宽度和高度是auto类型的，自动调整窗口大小
+        AutoResizeWindow(true);
     }
 
-    // Should we paint?
-    RECT rectPaint = { 0, };
-    if (!::GetUpdateRect(m_hWnd, &rectPaint, FALSE) && !m_bFirstLayout) {
-        return;
-    }
-    UiRect rcPaint(rectPaint.left, rectPaint.top, rectPaint.right, rectPaint.bottom);
+    //对控件进行布局
+    ArrangeRoot();
 
     UiRect rcClient;
     GetClientRect(rcClient);
     UiRect rcWindow;
     GetWindowRect(rcWindow);
+    if (rcClient.IsEmpty()) {
+        return;
+    }
+    if (!m_render->Resize(rcClient.Width(), rcClient.Height())) {
+        ASSERT(!"m_render->Resize resize failed!");
+        return;
+    }
+
+    // Should we paint?
+    RECT rectPaint = { 0, };
+    if (!::GetUpdateRect(m_hWnd, &rectPaint, FALSE) && !bFirstLayout) {
+        return;
+    }
+    UiRect rcPaint(rectPaint.left, rectPaint.top, rectPaint.right, rectPaint.bottom);
 
     //使用层窗口时，窗口部分在屏幕外时，获取到的无效区域仅仅是屏幕内的部分，这里做修正处理
     if (m_bIsLayeredWindow) {
-        int xScreen = GetSystemMetrics(SM_XVIRTUALSCREEN);
-        int yScreen = GetSystemMetrics(SM_YVIRTUALSCREEN);
-        int cxScreen = GetSystemMetrics(SM_CXVIRTUALSCREEN);
-        int cyScreen = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+        int32_t xScreen = GetSystemMetrics(SM_XVIRTUALSCREEN);
+        int32_t yScreen = GetSystemMetrics(SM_YVIRTUALSCREEN);
+        int32_t cxScreen = GetSystemMetrics(SM_CXVIRTUALSCREEN);
+        int32_t cyScreen = GetSystemMetrics(SM_CYVIRTUALSCREEN);
         if (rcWindow.left < xScreen && rcWindow.left + rcPaint.left == xScreen) {
             rcPaint.left = rcClient.left;
         }
@@ -2630,40 +2606,6 @@ void Window::Paint()
 
     PAINTSTRUCT ps = { 0 };
     ::BeginPaint(m_hWnd, &ps);
-
-    if (m_bIsArranged) {
-        m_bIsArranged = false;
-        if (!rcClient.IsEmpty()) {
-            if (m_pRoot->IsArranged()) {
-                m_pRoot->SetPos(rcClient);
-            }
-            else {
-                Control* pControl = m_pRoot->FindControl(ControlFinder::__FindControlFromUpdate, nullptr, UIFIND_VISIBLE | UIFIND_ME_FIRST);
-                while (pControl != nullptr) {
-                    pControl->SetPos(pControl->GetPos());
-                    //ASSERT(!pControl->IsArranged());
-                    pControl = m_pRoot->FindControl(ControlFinder::__FindControlFromUpdate, nullptr, UIFIND_VISIBLE | UIFIND_ME_FIRST);
-                }
-            }
-
-            if (m_bFirstLayout) {
-                m_bFirstLayout = false;
-                OnInitLayout();
-            }
-        }
-    }
-
-    if ((rcClient.Width() > 0) && (rcClient.Height() > 0)) {
-        if (!m_render->Resize(rcClient.Width(), rcClient.Height())) {
-            ASSERT(!"m_render->Resize resize failed!");
-            ::EndPaint(m_hWnd, &ps);
-            return;
-        }
-    }
-    else {
-        ::EndPaint(m_hWnd, &ps);
-        return;
-    }
 
     // 去掉alpha通道
     if (m_bIsLayeredWindow) {
@@ -2731,11 +2673,66 @@ void Window::Paint()
     else {
         HDC hdc = m_render->GetDC();
         ::BitBlt(ps.hdc, rcPaint.left, rcPaint.top, rcPaint.Width(), rcPaint.Height(),
-            hdc, rcPaint.left, rcPaint.top, SRCCOPY);
+                 hdc, rcPaint.left, rcPaint.top, SRCCOPY);
         m_render->ReleaseDC(hdc);
     }
 
     ::EndPaint(m_hWnd, &ps);
+}
+
+void Window::AutoResizeWindow(bool bRepaint)
+{
+    if ((m_pRoot != nullptr) && (m_pRoot->GetFixedWidth().IsAuto() || m_pRoot->GetFixedHeight().IsAuto())) {
+        UiSize maxSize(999999, 999999);
+        UiEstSize estSize = m_pRoot->EstimateSize(maxSize);
+        if (!estSize.cx.IsStretch() && !estSize.cy.IsStretch()) {
+            UiSize needSize = MakeSize(estSize);
+            if (needSize.cx < m_pRoot->GetMinWidth()) {
+                needSize.cx = m_pRoot->GetMinWidth();
+            }
+            if (needSize.cx > m_pRoot->GetMaxWidth()) {
+                needSize.cx = m_pRoot->GetMaxWidth();
+            }
+            if (needSize.cy < m_pRoot->GetMinHeight()) {
+                needSize.cy = m_pRoot->GetMinHeight();
+            }
+            if (needSize.cy > m_pRoot->GetMaxHeight()) {
+                needSize.cy = m_pRoot->GetMaxHeight();
+            }
+            UiRect rect;
+            GetWindowRect(rect);
+            if ((rect.Width() != needSize.cx) || (rect.Height() != needSize.cy)) {
+                ::MoveWindow(m_hWnd, rect.left, rect.top, needSize.cx, needSize.cy, bRepaint ? TRUE : FALSE);
+            }
+        }
+    }
+}
+
+void Window::ArrangeRoot()
+{
+    if (m_bIsArranged) {
+        m_bIsArranged = false;
+        UiRect rcClient;
+        GetClientRect(rcClient);
+        if (!rcClient.IsEmpty()) {
+            if (m_pRoot->IsArranged()) {
+                m_pRoot->SetPos(rcClient);
+            }
+            else {
+                Control* pControl = m_pRoot->FindControl(ControlFinder::__FindControlFromUpdate, nullptr, UIFIND_VISIBLE | UIFIND_ME_FIRST);
+                while (pControl != nullptr) {
+                    pControl->SetPos(pControl->GetPos());
+                    //ASSERT(!pControl->IsArranged());
+                    pControl = m_pRoot->FindControl(ControlFinder::__FindControlFromUpdate, nullptr, UIFIND_VISIBLE | UIFIND_ME_FIRST);
+                }
+            }
+
+            if (m_bFirstLayout) {
+                m_bFirstLayout = false;
+                OnInitLayout();
+            }
+        }
+    }
 }
 
 void Window::SetWindowAlpha(int nAlpha)
