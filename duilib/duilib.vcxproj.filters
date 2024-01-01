@@ -390,6 +390,9 @@
     <ClCompile Include="Core\DragWindow.cpp">
       <Filter>Core</Filter>
     </ClCompile>
+    <ClCompile Include="Core\StateColorMap.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -858,6 +861,9 @@
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="Core\DragWindow.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\StateColorMap.h">
       <Filter>Core</Filter>
     </ClInclude>
   </ItemGroup>

@@ -7,6 +7,7 @@
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/Box.h"
 #include "duilib/Core/Window.h"
+#include "duilib/Core/StateColorMap.h"
 #include "duilib/Image/Image.h"
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Utils/AttributeUtil.h"

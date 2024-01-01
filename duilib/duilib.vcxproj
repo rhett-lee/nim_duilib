@@ -390,6 +390,7 @@
     <ClCompile Include="Core\Placeholder.cpp" />
     <ClCompile Include="Core\ScrollBar.cpp" />
     <ClCompile Include="Core\Shadow.cpp" />
+    <ClCompile Include="Core\StateColorMap.cpp" />
     <ClCompile Include="Core\TimerManager.cpp" />
     <ClCompile Include="Core\ToolTip.cpp" />
     <ClCompile Include="Core\UiColors.cpp" />
@@ -517,6 +518,7 @@
     <ClInclude Include="Core\Placeholder.h" />
     <ClInclude Include="Core\ScrollBar.h" />
     <ClInclude Include="Core\Shadow.h" />
+    <ClInclude Include="Core\StateColorMap.h" />
     <ClInclude Include="Core\TimerManager.h" />
     <ClInclude Include="Core\ToolTip.h" />
     <ClInclude Include="Core\UiColor.h" />

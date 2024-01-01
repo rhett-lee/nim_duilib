@@ -5,6 +5,7 @@
 #include "duilib/Core/Box.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/ColorManager.h"
+#include "duilib/Core/StateColorMap.h"
 #include "duilib/Image/Image.h"
 #include "duilib/Render/IRender.h"
 #include "duilib/Render/AutoClip.h"
