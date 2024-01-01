@@ -393,6 +393,21 @@
     <ClCompile Include="Core\StateColorMap.cpp">
       <Filter>Core</Filter>
     </ClCompile>
+    <ClCompile Include="Image\ImageInfo.cpp">
+      <Filter>Image</Filter>
+    </ClCompile>
+    <ClCompile Include="Image\ImageAttribute.cpp">
+      <Filter>Image</Filter>
+    </ClCompile>
+    <ClCompile Include="Image\ImageLoadAttribute.cpp">
+      <Filter>Image</Filter>
+    </ClCompile>
+    <ClCompile Include="Image\StateImageMap.cpp">
+      <Filter>Image</Filter>
+    </ClCompile>
+    <ClCompile Include="Image\StateImage.cpp">
+      <Filter>Image</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -865,6 +880,21 @@
     </ClInclude>
     <ClInclude Include="Core\StateColorMap.h">
       <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Image\ImageInfo.h">
+      <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="Image\ImageAttribute.h">
+      <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="Image\ImageLoadAttribute.h">
+      <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="Image\StateImageMap.h">
+      <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="Image\StateImage.h">
+      <Filter>Image</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

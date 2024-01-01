@@ -400,7 +400,12 @@
     <ClCompile Include="Core\ZipManager.cpp" />
     <ClCompile Include="duilib.cpp" />
     <ClCompile Include="Image\Image.cpp" />
+    <ClCompile Include="Image\ImageAttribute.cpp" />
     <ClCompile Include="Image\ImageDecoder.cpp" />
+    <ClCompile Include="Image\ImageInfo.cpp" />
+    <ClCompile Include="Image\ImageLoadAttribute.cpp" />
+    <ClCompile Include="Image\StateImage.cpp" />
+    <ClCompile Include="Image\StateImageMap.cpp" />
     <ClCompile Include="RenderGdiPlus\BitmapHepler.cpp" />
     <ClCompile Include="RenderGdiPlus\Bitmap_GDI.cpp" />
     <ClCompile Include="RenderGdiPlus\Brush_Gdiplus.cpp" />
@@ -543,7 +548,12 @@
     <ClInclude Include="duilib_config.h" />
     <ClInclude Include="duilib_defs.h" />
     <ClInclude Include="Image\Image.h" />
+    <ClInclude Include="Image\ImageAttribute.h" />
     <ClInclude Include="Image\ImageDecoder.h" />
+    <ClInclude Include="Image\ImageInfo.h" />
+    <ClInclude Include="Image\ImageLoadAttribute.h" />
+    <ClInclude Include="Image\StateImage.h" />
+    <ClInclude Include="Image\StateImageMap.h" />
     <ClInclude Include="RenderGdiPlus\BitmapHelper.h" />
     <ClInclude Include="RenderGdiPlus\Bitmap_GDI.h" />
     <ClInclude Include="RenderGdiPlus\Brush_Gdiplus.h" />
