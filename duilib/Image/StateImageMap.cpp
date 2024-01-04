@@ -8,11 +8,11 @@ StateImageMap::StateImageMap():
 {
 }
 
-void StateImageMap::SetControl(Control* control)
+void StateImageMap::SetControl(Control* pControl)
 {
-	m_pControl = control;
+	m_pControl = pControl;
 	for (auto& it : m_stateImageMap) {
-		it.second.SetControl(control);
+		it.second.SetControl(pControl);
 	}
 }
 
@@ -69,11 +69,37 @@ bool StateImageMap::PaintStateImage(IRender* pRender,
 									const std::wstring& sImageModify,
 	                                UiRect* pDestRect)
 {
+	bool bRet = false;
 	auto it = m_stateImageMap.find(stateImageType);
 	if (it != m_stateImageMap.end()) {
-		return it->second.PaintStateImage(pRender, stateType, sImageModify, pDestRect);
+		bRet = it->second.PaintStateImage(pRender, stateType, sImageModify, pDestRect);
 	}
-	return false;
+	//Í£Ö¹ÆäËû×´Ì¬Í¼Æ¬µÄ¶¯»­
+	if ((stateImageType == kStateImageBk) || (stateImageType == kStateImageFore)) {
+		for (auto iter = m_stateImageMap.begin(); iter != m_stateImageMap.end(); ++iter) {
+			if ((iter->first == kStateImageBk) || (iter->first == kStateImageFore)) {
+				continue;
+			}
+			iter->second.StopGifPlay();
+		}
+	}
+	else if ((stateImageType == kStateImageSelectedBk) || (stateImageType == kStateImageSelectedFore)) {
+		for (auto iter = m_stateImageMap.begin(); iter != m_stateImageMap.end(); ++iter) {
+			if ((iter->first == kStateImageSelectedBk) || (iter->first == kStateImageSelectedFore)) {
+				continue;
+			}
+			iter->second.StopGifPlay();
+		}
+	}
+	else if ((stateImageType == kStateImagePartSelectedBk) || (stateImageType == kStateImagePartSelectedFore)) {
+		for (auto iter = m_stateImageMap.begin(); iter != m_stateImageMap.end(); ++iter) {
+			if ((iter->first == kStateImagePartSelectedBk) || (iter->first == kStateImagePartSelectedFore)) {
+				continue;
+			}
+			iter->second.StopGifPlay();
+		}
+	}
+	return bRet;
 }
 
 Image* StateImageMap::GetEstimateImage(StateImageType stateImageType) const
@@ -106,6 +132,13 @@ void StateImageMap::ClearImageCache()
 {
 	for (auto iter = m_stateImageMap.begin(); iter != m_stateImageMap.end(); ++iter) {
 		iter->second.ClearImageCache();
+	}
+}
+
+void StateImageMap::StopGifPlay()
+{
+	for (auto iter = m_stateImageMap.begin(); iter != m_stateImageMap.end(); ++iter) {
+		iter->second.StopGifPlay();
 	}
 }
 

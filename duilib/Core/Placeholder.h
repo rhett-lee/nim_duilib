@@ -278,19 +278,24 @@ public:
 	*/
 	const UiRect& GetRect() const { return m_uiRect; }
 
-	/**@brief 设置控件矩形区域(单纯设置m_uiRect值)，包含内边距，不包含外边距
+	/** 设置控件矩形区域(单纯设置m_uiRect值)，包含内边距，不包含外边距
 	*/
 	void SetRect(const UiRect& rc);
 
-	/**@brief 重绘控件
+	/** 重绘控件
 	*/
 	virtual void Invalidate();
 
-	/**@brief 进行布局重排
+	/** 重绘控件的部分区域
+	* @param [in] rc 需要重绘的区域
+	*/
+	virtual void InvalidateRect(const UiRect& rc);
+
+	/** 控件布局重排
 	 */
 	virtual void Arrange();
 
-	/**@brief 让父容器重排
+	/** 让父容器进行布局重排
 	 */
 	virtual void ArrangeAncestor();
 
@@ -298,41 +303,40 @@ public:
 	*/
 	void RelayoutOrRedraw();
 
-	/**@brief 判断是否已经排列过
+	/** 判断是否已经排列过
 	 */
 	bool IsArranged() const { return m_bIsArranged; }
 
-	/**@brief 设置是否已经排列过
+	/** 设置是否已经排列过
 	 */
 	void SetArranged(bool bArranged);
 
-	/**@brief 设置是否使用缓存
+	/** 设置是否使用缓存
 	 */
 	void SetUseCache(bool cache);
 
-	/**@brief 判断是否使用缓存
+	/** 判断是否使用缓存
 	 */
 	bool IsUseCache() { return m_bUseCache; }
 
-	/**@brief 设置缓存脏标志位
+	/** 设置缓存脏标志位
 	 */
 	void SetCacheDirty(bool dirty);
 
-	/**@brief 判断缓存脏标志位值
+	/** 判断缓存脏标志位值
 	 */
 	bool IsCacheDirty() { return m_bCacheDirty; }
 
-	/** @brief 获取外层滚动偏移
+	/** 获取外层滚动偏移
 	 */
 	UiPoint GetScrollOffsetInScrollBox() const;
 
-	/** @brief 判断两个控件是否存在父子/子孙关系
+	/** 判断两个控件是否存在父子/子孙关系
 	 */
 	bool IsChild(PlaceHolder* pAncestor, PlaceHolder* pChild) const;
 
 protected:
-	/** @brief 让自己重排
-	 * @return void 无
+	/** 让自己重排
 	 */
 	virtual void ArrangeSelf();
 

@@ -16,7 +16,7 @@ public:
 
 	/** 设置关联的控件接口
 	*/
-	void SetControl(Control* control);
+	void SetControl(Control* pControl);
 
 	/** 设置图片属性
 	*@param [in] stateImageType 图片类型，比如正常状态前景图片、背景图片；选择状态的前景图片、背景图片等
@@ -72,6 +72,10 @@ public:
 	/** 清除所有图片类型的缓存，释放资源
 	*/
 	void ClearImageCache();
+
+	/** 停止所有图片的动画
+	*/
+	void StopGifPlay();
 
 private:
 	//关联的控件接口

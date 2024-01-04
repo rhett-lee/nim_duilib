@@ -139,19 +139,19 @@ bool ControlLoading::StartLoading(int32_t fStartAngle)
 	return true;
 }
 
-void ControlLoading::StopLoading(GifStopType frame)
+void ControlLoading::StopLoading(GifFrameType frame)
 {
 	if (!m_bIsLoading) {
 		return;
 	}
 
 	switch (frame) {
-	case kGifStopFirst:
+	case kGifFrameFirst:
 		m_fCurrrentAngele = 0;
 		break;
-	case kGifStopCurrent:
+	case kGifFrameCurrent:
 		break;
-	case  kGifStopLast:
+	case  kGifFrameLast:
 		m_fCurrrentAngele = 360;
 	}
 	m_bIsLoading = false;

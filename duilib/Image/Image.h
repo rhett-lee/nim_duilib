@@ -7,11 +7,13 @@
 #include "duilib/Image/ImageAttribute.h"
 #include "duilib/Image/ImageLoadAttribute.h"
 #include "duilib/Image/StateImageMap.h"
+#include "duilib/Utils/Delegate.h"
 #include <memory>
 
 namespace ui 
 {
 class Control;
+class ImageGif;
 
 /** 图片相关封装，支持的文件格式：SVG/PNG/GIF/JPG/BMP/APNG/WEBP/ICO
 */
@@ -22,6 +24,10 @@ public:
 	Image(const Image&) = delete;
 	Image& operator=(const Image&) = delete;
 
+public:
+	/** @name 图片属性
+	* @{
+	*/
 	/** 初始化图片属性
 	*/
 	void InitImageAttribute();
@@ -59,6 +65,14 @@ public:
 	*/
 	void SetImagePaintEnabled(bool bEnable);
 
+	/** 设置图片属性：播放次数（仅当多帧图片时）
+	*/
+	void SetImagePlayCount(int32_t nPlayCount);
+
+	/** 设置图片属性：透明度（仅当多帧图片时）
+	*/
+	void SetImageFade(uint8_t nFade);
+
 	/** 获取图片属性（只读）
 	*/
 	const ImageAttribute& GetImageAttribute() const;
@@ -67,7 +81,12 @@ public:
 	*/
 	ImageLoadAttribute GetImageLoadAttribute() const;
 
+	/** @} */
+
 public:
+	/** @name 图片数据（由外部加载图片数据）
+	* @{
+	*/
 	/** 获取图片信息接口
 	*/
 	const std::shared_ptr<ImageInfo>& GetImageCache() const;
@@ -80,70 +99,84 @@ public:
 	*/
 	void ClearImageCache();
 
-public:
-	/** 设置图片属性：播放次数（仅当多帧图片时）
-	*/
-	void SetImagePlayCount(int32_t nPlayCount);
-
-	/** 设置图片属性：透明度（仅当多帧图片时）
-	*/
-	void SetImageFade(uint8_t nFade);
-
-	/** 是否正在播放中（仅当多帧图片时）
-	*/
-	bool IsPlaying() const { return m_bPlaying; }
-
-	/** 设置是否正在播放中（仅当多帧图片时）
-	*/
-	void SetPlaying(bool bPlaying) { m_bPlaying = bPlaying; }
-
-	/** 跳到下一帧（仅当多帧图片时）
-	*/
-	bool IncrementCurrentFrame();
-
 	/** 设置当前图片帧（仅当多帧图片时）
 	*/
 	void SetCurrentFrame(uint32_t nCurrentFrame);
 
 	/** 获取当前图片帧索引（仅当多帧图片时）
 	*/
-	uint32_t GetCurrentFrameIndex() const;
+	uint32_t GetCurrentFrame() const;
+
+	/** 获取图片的帧数
+	*/
+	uint32_t GetFrameCount() const;
+
+	/** 是否位多帧图片(比如GIF等)
+	*/
+	bool IsMultiFrameImage() const;
 
 	/** 获取当前图片帧的图片数据
 	*/
 	IBitmap* GetCurrentBitmap() const;
 
-	/** 获取当前图片帧播放的时间间隔（单位: 毫秒，仅当多帧图片时）
-	*/
-	int32_t GetCurrentInterval() const;
+	/** @} */
 
-	/** 获取当前已循环播放的次数（仅当多帧图片时）
+public:
+	/** @name 图片的显示
+	* @{
 	*/
-	int32_t GetCycledCount() const;
+	/** 设置关联的控件接口
+	*/
+	void SetControl(Control* pControl);
 
-	/** 清空当前已循环播放的次数（仅当多帧图片时）
+	/** 播放 GIF/WebP/APNG 动画
+	* @param [in] rcImageRect 动画图片的显示区域
 	*/
-	void ClearCycledCount();
+	bool CheckStartGifPlay(const UiRect& rcImageRect);
 
-	/** 判断是否应该继续播放（仅当多帧图片时）
-	*/
-	bool ContinuePlay() const;
+	/** 停止播放 GIF/WebP/APNG 动画
+	 */
+	void CheckStopGifPlay();
+
+	/** 播放 GIF/WebP/APNG 动画
+	 * @param [in] nStartFrame 从哪一帧开始播放，可设置第一帧、当前帧和最后一帧。请参考 GifFrameType 枚举
+	 * @param [in] nPlayCount 指定播放次数, 如果是-1表示一直播放
+	 */
+	bool StartGifPlay(GifFrameType nStartFrame = kGifFrameFirst, int32_t nPlayCount = -1);
+
+	/** 停止播放 GIF/WebP/APNG 动画
+	 * @param [in] bTriggerEvent 是否将停止事件通知给订阅者，参考 AttachGifPlayStop 方法
+	 * @param [in] nStopFrame 播放结束停止在哪一帧，可设置第一帧、当前帧和最后一帧。请参考 GifFrameType 枚举
+	 */
+	void StopGifPlay(bool bTriggerEvent = false, GifFrameType nStopFrame = kGifFrameCurrent);
+
+	/** 监听 GIF 播放完成通知
+	 * @param[in] callback 要监听 GIF 停止播放的回调函数
+	 */
+	void AttachGifPlayStop(const EventCallback& callback);
+
+	/** @} */
 
 private:
 
-	//当前正在播放的图片帧（仅当多帧图片时）
+	/** 当前正在播放的图片帧（仅当多帧图片时）
+	*/
 	uint32_t m_nCurrentFrame;
 
-	//是否正在播放（仅当多帧图片时）
-	bool m_bPlaying;
+	/** 关联的控件接口
+	*/
+	Control* m_pControl;
 
-	//已播放次数（仅当多帧图片时）
-	int32_t m_nCycledCount;
+	/** 多帧图片播放实现接口
+	*/
+	ImageGif* m_pImageGif;
 
-	//图片属性
+	/** 图片属性
+	*/
 	ImageAttribute m_imageAttribute;
 
-	//图片信息
+	/** 图片信息
+	*/
 	std::shared_ptr<ImageInfo> m_imageCache;
 };
 

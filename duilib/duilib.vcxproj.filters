@@ -291,9 +291,6 @@
     <ClCompile Include="Core\ControlLoading.cpp">
       <Filter>Core</Filter>
     </ClCompile>
-    <ClCompile Include="Core\ControlGif.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
     <ClCompile Include="Core\IconManager.cpp">
       <Filter>Core</Filter>
     </ClCompile>
@@ -406,6 +403,9 @@
       <Filter>Image</Filter>
     </ClCompile>
     <ClCompile Include="Image\StateImage.cpp">
+      <Filter>Image</Filter>
+    </ClCompile>
+    <ClCompile Include="Image\ImageGif.cpp">
       <Filter>Image</Filter>
     </ClCompile>
   </ItemGroup>
@@ -755,9 +755,6 @@
     <ClInclude Include="Core\ControlLoading.h">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="Core\ControlGif.h">
-      <Filter>Core</Filter>
-    </ClInclude>
     <ClInclude Include="Core\IconManager.h">
       <Filter>Core</Filter>
     </ClInclude>
@@ -894,6 +891,9 @@
       <Filter>Image</Filter>
     </ClInclude>
     <ClInclude Include="Image\StateImage.h">
+      <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="Image\ImageGif.h">
       <Filter>Image</Filter>
     </ClInclude>
   </ItemGroup>

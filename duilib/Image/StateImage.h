@@ -21,7 +21,7 @@ public:
 
 	/** 设置关联的控件接口
 	*/
-	void SetControl(Control* control) {	m_pControl = control; }
+	void SetControl(Control* pControl);
 
 	/** 设置图片属性
 	*@param [in] stateType 图片类型
@@ -84,6 +84,10 @@ public:
 	/** 清空图片缓存，释放资源
 	*/
 	void ClearImageCache();
+
+	/** 停止所有图片的动画
+	*/
+	void StopGifPlay();
 
 private:
 	//关联的控件接口

@@ -24,6 +24,17 @@ StateImage::~StateImage()
 	m_stateImageMap.clear();
 }
 
+void StateImage::SetControl(Control* pControl)
+{ 
+	m_pControl = pControl;
+	for (auto iter : m_stateImageMap) {
+		Image* pImage = iter.second;
+		if (pImage != nullptr) {
+			pImage->SetControl(pControl);
+		}
+	}
+}
+
 void StateImage::SetImageString(ControlStateType stateType, const std::wstring& strImageString)
 {
 	Image* pImage = nullptr;
@@ -39,6 +50,7 @@ void StateImage::SetImageString(ControlStateType stateType, const std::wstring& 
 	}
 	if (pImage == nullptr) {
 		pImage = new Image;
+		pImage->SetControl(m_pControl);
 		m_stateImageMap[stateType] = pImage;
 	}
 	pImage->SetImageString(strImageString);
@@ -150,8 +162,18 @@ bool StateImage::PaintStateImage(IRender* pRender, ControlStateType stateType,
 	if (stateType == kControlStateDisabled && GetImageString(kControlStateDisabled).empty()) {
 		stateType = kControlStateNormal;
 	}
-
-	return m_pControl->PaintImage(pRender, GetStateImage(stateType), sImageModify, -1, nullptr, nullptr, pDestRect);
+	Image* pImage = GetStateImage(stateType);
+	if (pImage == nullptr) {
+		return false;
+	}
+	for (auto iter = m_stateImageMap.begin(); iter != m_stateImageMap.end(); ++iter) {
+		ASSERT(iter->second != nullptr);
+		if (iter->second != pImage) {
+			//Í£Ö¹ÆäËû×´Ì¬Í¼Æ¬µÄ¶¯»­
+			iter->second->StopGifPlay();
+		}
+	}
+	return m_pControl->PaintImage(pRender, pImage, sImageModify, -1, nullptr, nullptr, pDestRect);
 }
 
 Image* StateImage::GetEstimateImage() const
@@ -203,6 +225,14 @@ void StateImage::ClearImageCache()
 	for (auto iter = m_stateImageMap.begin(); iter != m_stateImageMap.end(); ++iter) {
 		ASSERT(iter->second != nullptr);
 		iter->second->ClearImageCache();
+	}
+}
+
+void StateImage::StopGifPlay()
+{
+	for (auto iter = m_stateImageMap.begin(); iter != m_stateImageMap.end(); ++iter) {
+		ASSERT(iter->second != nullptr);
+		iter->second->StopGifPlay();
 	}
 }
 

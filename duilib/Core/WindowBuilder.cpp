@@ -840,8 +840,14 @@ void WindowBuilder::AttachXmlEvent(bool bBubbled, const pugi::xml_node& node, Co
 	auto typeList = StringHelper::Split(strType, L" ");
 	auto receiverList = StringHelper::Split(strReceiver, L" ");
 	for (auto itType = typeList.begin(); itType != typeList.end(); itType++) {
+		if (receiverList.empty()) {
+			receiverList.push_back(L"");
+		}
 		for (auto itReceiver = receiverList.begin(); itReceiver != receiverList.end(); itReceiver++) {
 			EventType eventType = StringToEventType(*itType);
+			if (eventType == EventType::kEventNone) {
+				continue;
+			}
 			auto callback = nbase::Bind(&Control::OnApplyAttributeList, pParent, *itReceiver, strApplyAttribute, std::placeholders::_1);
 			if (!bBubbled) {
 				pParent->AttachXmlEvent(eventType, callback);

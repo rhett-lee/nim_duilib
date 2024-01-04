@@ -1,6 +1,5 @@
 #include "Control.h"
 #include "duilib/Core/ControlLoading.h"
-#include "duilib/Core/ControlGif.h"
 #include "duilib/Core/Window.h"
 #include "duilib/Core/Box.h"
 #include "duilib/Core/GlobalManager.h"
@@ -46,7 +45,6 @@ Control::Control() :
 	m_pOnBubbledEvent(nullptr),
 	m_pOnXmlBubbledEvent(nullptr),
 	m_pLoading(nullptr),
-	m_pGif(nullptr),
 	m_bShowFocusRect(false),
 	m_nPaintOrder(0)
 {
@@ -71,10 +69,6 @@ Control::~Control()
 	if (m_pLoading != nullptr) {
 		delete m_pLoading;
 		m_pLoading = nullptr;
-	}
-	if (m_pGif != nullptr) {
-		delete m_pGif;
-		m_pGif = nullptr;
 	}
 
 	if (m_pBoxShadow != nullptr) {
@@ -440,6 +434,14 @@ void Control::SetAttribute(const std::wstring& strName, const std::wstring& strV
 		uint8_t nPaintOrder = TruncateToUInt8(_wtoi(strValue.c_str()));
 		SetPaintOrder(nPaintOrder);
 	}
+	else if (strName == L"start_gif_play") {
+		int32_t nPlayCount = _wtoi(strValue.c_str());
+		StartGifPlay(kGifFrameCurrent, nPlayCount);
+	}
+	else if (strName == L"stop_gif_play") {
+		GifFrameType nStopFrame = (GifFrameType)_wtoi(strValue.c_str());
+		StopGifPlay(false, nStopFrame);
+	}
 	else {
 		ASSERT(!"Control::SetAttribute失败: 发现不能识别的属性");
 	}
@@ -500,8 +502,11 @@ bool Control::OnApplyAttributeList(const std::wstring& strReceiver, const std::w
 			pReceiverControl = pBox->FindSubControl(receiverName);
 		}
 	}
-	else {
+	else if (!receiverName.empty()) {
 		pReceiverControl = GetWindow()->FindControl(receiverName);
+	}
+	else {
+		pReceiverControl = this;
 	}
 
 	if (pReceiverControl != nullptr) {
@@ -595,6 +600,7 @@ void Control::SetBkImage(const std::wstring& strImage)
 	if (!strImage.empty()) {
 		if (m_pBkImage == nullptr) {
 			m_pBkImage = std::make_shared<Image>();
+			m_pBkImage->SetControl(this);
 		}
 	}
 	if (m_pBkImage != nullptr) {
@@ -612,7 +618,6 @@ void Control::SetUTF8BkImage(const std::string& strImage)
 
 void Control::SetLoadingImage(const std::wstring& strImage) 
 {
-	CheckStopGifPlay();
 	if (!strImage.empty()) {
 		if (m_pLoading == nullptr) {
 			m_pLoading = new ControlLoading(this);
@@ -622,7 +627,7 @@ void Control::SetLoadingImage(const std::wstring& strImage)
 		if (m_pLoading->SetLoadingImage(strImage)) {
 			Invalidate();
 		}
-	}	
+	}
 }
 
 void Control::SetLoadingBkColor(const std::wstring& strColor) 
@@ -641,7 +646,7 @@ void Control::StartLoading(int32_t fStartAngle)
 	}
 }
 
-void Control::StopLoading(GifStopType frame)
+void Control::StopLoading(GifFrameType frame)
 {
 	if (m_pLoading != nullptr) {
 		m_pLoading->StopLoading(frame);
@@ -1214,6 +1219,10 @@ void Control::SetEnabled(bool bEnabled)
 	}
 	else {
 		PrivateSetState(kControlStateDisabled);
+	}
+
+	if (!IsEnabled()) {
+		CheckStopGifPlay();
 	}
     Invalidate();
 }
@@ -1949,7 +1958,7 @@ bool Control::OnImeEndComposition(const EventArgs& /*msg*/)
 
 bool Control::PaintImage(IRender* pRender, Image* pImage,
 					    const std::wstring& strModify, int32_t nFade, 
-	                    IMatrix* pMatrix, UiRect* pInRect, UiRect* pPaintedRect)
+	                    IMatrix* pMatrix, UiRect* pInRect, UiRect* pPaintedRect) const
 {
 	//注解：strModify参数，目前外部传入的主要是："destscale='false' dest='%d,%d,%d,%d'"
 	//                   也有一个类传入了：L" corner='%d,%d,%d,%d'"。
@@ -1978,27 +1987,6 @@ bool Control::PaintImage(IRender* pRender, Image* pImage,
 	ASSERT(imageInfo != nullptr);
 	if (imageInfo == nullptr) {
 		return false;
-	}
-
-	bool bBkIsGif = false; //是否满足播放GIF动画的条件
-	if ((m_pBkImage != nullptr) &&
-		(m_pBkImage->GetImageAttribute().nPlayCount != 0) &&
-		(m_pBkImage->GetImageCache() != nullptr) &&
-		(m_pBkImage->GetImageCache()->IsMultiFrameImage())) {
-		bBkIsGif = true;
-	}
-	if (bBkIsGif && (m_pGif == nullptr)) {
-		//满足播放GIF动画的条件，需要创建GIF播放动画对象
-		m_pGif = new ControlGif(this);
-		m_pBkImage->SetPlaying(false);
-	}
-
-	if (bBkIsGif && (m_pGif != nullptr) && m_pGif->CanGifPlay()) {
-		//自动启动播放GIF动画
-		if ((m_pBkImage != nullptr) && !m_pBkImage->IsPlaying()) {
-			m_pGif->SetBkImage(m_pBkImage);
-			m_pGif->StartGifPlay(false);
-		}
 	}
 
 	IBitmap* pBitmap = duiImage.GetCurrentBitmap();
@@ -2106,6 +2094,8 @@ bool Control::PaintImage(IRender* pRender, Image* pImage,
 						   newImageAttribute.bFullTiledX, newImageAttribute.bFullTiledY,
 						   newImageAttribute.nTiledMargin);
 	}
+	//按需启动动画
+	duiImage.CheckStartGifPlay(rcDest);
 	return true;
 }
 
@@ -2120,7 +2110,6 @@ IRender* Control::GetRender()
 	}
 	return m_render.get();
 }
-
 
 void Control::ClearRender()
 {
@@ -2748,66 +2737,41 @@ void Control::SetRenderOffsetY(int64_t renderOffsetY)
 	}
 }
 
-void Control::CheckStopGifPlay(GifStopType frame)
+void Control::CheckStopGifPlay()
 {
-	if (m_pGif != nullptr) {
-		if (m_pGif->StopGifPlay(frame)) {
-			Invalidate();
-		}
+	if (m_pBkImage != nullptr) {
+		m_pBkImage->CheckStopGifPlay();
+	}
+	if (m_pImageMap != nullptr) {
+		m_pImageMap->StopGifPlay();
 	}
 }
 
-bool Control::StartGifPlay(GifStopType frame, int32_t playcount)
+bool Control::StartGifPlay(GifFrameType nStartFrame, int32_t nPlayCount)
 {
 	if (m_pBkImage == nullptr) {
 		return false;
 	}
-	if (playcount < 0) {
-		playcount = -1;
-	}
-	if (playcount == 0) {
+	if (!LoadImageData(*m_pBkImage)) {
 		return false;
 	}
-	LoadImageData(*m_pBkImage);
-	bool bBkIsGif = false; //是否满足播放GIF动画的条件
-	if ((m_pBkImage != nullptr) &&
-		(m_pBkImage->GetImageCache() != nullptr) &&
-		(m_pBkImage->GetImageCache()->IsMultiFrameImage())) {
-		bBkIsGif = true;
-	}
-
-	if (bBkIsGif && (m_pGif == nullptr)) {
-		//满足播放GIF动画的条件，需要创建GIF播放动画对象
-		m_pGif = new ControlGif(this);
-	}
-	bool isPlaying = false;
-	if (bBkIsGif && (m_pGif != nullptr)) {
-		m_pGif->SetBkImage(m_pBkImage);
-		if (m_pGif->StartGifPlayForUI(frame, playcount)) {
-			isPlaying = true;
-		}
-	}
-	if (isPlaying) {
-		Invalidate();
-	}
-	return isPlaying;
+	return m_pBkImage->StartGifPlay(nStartFrame, nPlayCount);
 }
 
-void Control::StopGifPlay(bool transfer, GifStopType frame)
+void Control::StopGifPlay(bool bTriggerEvent, GifFrameType stopType)
 {
-	if (m_pGif != nullptr) {
-		if (m_pGif->StopGifPlayForUI(transfer, frame)) {
-			Invalidate();
-		}
+	if (m_pBkImage != nullptr) {
+		m_pBkImage->StopGifPlay(bTriggerEvent, stopType);
 	}
 }
 
 void Control::AttachGifPlayStop(const EventCallback& callback)
 {
-	if (m_pGif == nullptr) {
-		m_pGif = new ControlGif(this);
+	if (m_pBkImage == nullptr) {
+		m_pBkImage = std::make_shared<Image>();
+		m_pBkImage->SetControl(this);
 	}
-	m_pGif->AttachGifPlayStop(callback);
+	m_pBkImage->AttachGifPlayStop(callback);
 }
 
 bool Control::LoadImageData(Image& duiImage) const

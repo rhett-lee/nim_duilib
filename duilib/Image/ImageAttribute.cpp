@@ -218,7 +218,7 @@ void ImageAttribute::ModifyAttribute(const std::wstring& strImageString)
 			}
 			AttributeUtil::ParseRectValue(value.c_str(), *imageAttribute.rcCorner);
 		}
-		else if (name == L"dpiscale") {
+		else if ((name == L"dpi_scale") || (name == L"dpiscale")) {
 			//加载图片时，按照DPI缩放图片大小（会影响width属性、height属性、sources属性、corner属性）
 			imageAttribute.srcDpiScale = (value == L"true");
 			bHasSrcDpiScale = true;
@@ -231,7 +231,7 @@ void ImageAttribute::ModifyAttribute(const std::wstring& strImageString)
 			AttributeUtil::ParseRectValue(value.c_str(), *imageAttribute.rcDest);
 			bHasDest = true;
 		}
-		else if (name == L"destscale") {
+		else if ((name == L"dest_scale") || (name == L"destscale")) {
 			//加载时，对dest属性按照DPI缩放图片，仅当设置了dest属性时有效（会影响dest属性）
 			//绘制时（内部使用），控制是否对dest属性进行DPI缩放
 			bDisalbeScaleDest = (value == L"false");
@@ -265,7 +265,7 @@ void ImageAttribute::ModifyAttribute(const std::wstring& strImageString)
 			//横向平铺
 			imageAttribute.bTiledX = (value == L"true");
 		}
-		else if (name == L"fullxtiled") {
+		else if ((name == L"full_xtiled") || (name == L"fullxtiled")) {
 			//横向平铺时，保证整张图片绘制
 			imageAttribute.bFullTiledX = (value == L"true");
 		}
@@ -273,24 +273,24 @@ void ImageAttribute::ModifyAttribute(const std::wstring& strImageString)
 			//纵向平铺
 			imageAttribute.bTiledY = (value == L"true");
 		}
-		else if (name == L"fullytiled") {
+		else if ((name == L"full_ytiled") || (name == L"fullytiled")) {
 			//纵向平铺时，保证整张图片绘制
 			imageAttribute.bFullTiledY = (value == L"true");
 		}
-		else if (name == L"tiledmargin") {
+		else if ((name == L"tiled_margin") || (name == L"tiledmargin")) {
 			//平铺绘制时，各平铺图片之间的间隔，包括横向平铺和纵向平铺
 			imageAttribute.nTiledMargin = wcstol(value.c_str(), nullptr, 10);
 		}
-		else if (name == L"playcount") {
+		else if ((name == L"icon_size") || (name == L"iconsize")) {
+			//指定加载ICO文件的图片大小(仅当图片文件是ICO文件时有效)
+			imageAttribute.iconSize = (uint32_t)wcstol(value.c_str(), nullptr, 10);
+		}
+		else if ((name == L"play_count") || (name == L"playcount")) {
 			//如果是GIF、APNG、WEBP等动画图片，可以指定播放次数 -1 ：一直播放，缺省值。
 			imageAttribute.nPlayCount = wcstol(value.c_str(), nullptr, 10);
 			if (imageAttribute.nPlayCount < 0) {
 				imageAttribute.nPlayCount = -1;
 			}
-		}
-		else if (name == L"iconsize") {
-			//指定加载ICO文件的图片大小(仅当图片文件是ICO文件时有效)
-			imageAttribute.iconSize = (uint32_t)wcstol(value.c_str(), nullptr, 10);
 		}
 		else {
 			ASSERT(!"ImageAttribute::ModifyAttribute: fount unknown attribute!");

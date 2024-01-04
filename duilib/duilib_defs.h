@@ -225,12 +225,12 @@ namespace ui
 		kAnimationInoutYFromBottom,
 	};
 
-	//GIF图片停止类型
-	enum GifStopType
+	//GIF图片帧类型
+	enum GifFrameType
 	{
-		kGifStopCurrent = -1,	// 当前帧
-		kGifStopFirst = 0,		// GIF 停止时定位到第一帧	
-		kGifStopLast = 0xFFFF,	// 最后一帧
+		kGifFrameFirst   = 0,	// 第一帧	
+		kGifFrameCurrent = 1,	// 当前帧		
+		kGifFrameLast    = 2	// 最后一帧
 	};
 
 	//光标

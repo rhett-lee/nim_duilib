@@ -508,6 +508,25 @@ void PlaceHolder::Invalidate()
 	}
 }
 
+void PlaceHolder::InvalidateRect(const UiRect& rc)
+{
+	if (!IsVisible()) {
+		return;
+	}
+
+	SetCacheDirty(true);
+	UiRect rcInvalidate = GetPos();
+	if (!rc.IsEmpty()) {
+		//È¡½»¼¯
+		rcInvalidate.Intersect(rc);
+	}	
+	ui::UiPoint scrollBoxOffset = GetScrollOffsetInScrollBox();
+	rcInvalidate.Offset(-scrollBoxOffset.x, -scrollBoxOffset.y);
+	if (m_pWindow != nullptr) {
+		m_pWindow->Invalidate(rcInvalidate);
+	}
+}
+
 void PlaceHolder::RelayoutOrRedraw()
 {
 	if ((GetFixedWidth().IsAuto()) || (GetFixedHeight().IsAuto())) {

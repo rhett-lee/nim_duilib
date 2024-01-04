@@ -13,7 +13,6 @@ namespace ui
 {
 	class Control;
 	class ControlLoading;
-	class ControlGif;
 	class Image;
 	class IMatrix;
 	class StateColorMap;
@@ -111,9 +110,9 @@ public:
 	void StartLoading(int32_t fStartAngle = -1);
 
 	/** 关闭loading状态
-	* @param[in] frame 播放完成停止在哪一帧，可设置第一帧、当前帧和最后一帧。请参考 GifStopType 枚举
+	* @param[in] frame 播放完成停止在哪一帧，可设置第一帧、当前帧和最后一帧。请参考 GifFrameType 枚举
 	*/
-	void StopLoading(GifStopType frame = kGifStopFirst);
+	void StopLoading(GifFrameType frame = kGifFrameFirst);
 
 public:
 	/**
@@ -595,7 +594,7 @@ public:
 		            int32_t nFade = DUI_NOSET_VALUE,
 		            IMatrix* pMatrix = nullptr,
 		            UiRect* pInRect = nullptr,
-		            UiRect* pPaintedRect = nullptr);
+		            UiRect* pPaintedRect = nullptr) const;
 
 	/**
 	* @brief 获取绘制上下文对象
@@ -719,15 +718,16 @@ public:
 
 	/// 动画图片
 	/** 播放 GIF/WebP/APNG 动画
-	 * @param [in] 播放完成停止在哪一帧，可设置第一帧、当前帧和最后一帧。请参考 GifStopType 枚举
+	 * @param [in] nStartFrame 从哪一帧开始播放，可设置第一帧、当前帧和最后一帧。请参考 GifFrameType 枚举
+	 * @param [in] nPlayCount 指定播放次数, 如果是-1表示一直播放
 	 */
-	bool StartGifPlay(GifStopType frame = kGifStopFirst,int32_t playcount = -1);
+	bool StartGifPlay(GifFrameType nStartFrame = kGifFrameFirst, int32_t nPlayCount = -1);
 
 	/** 停止播放 GIF/WebP/APNG 动画
-	 * @param [in] transfer 是否将停止事件通知给订阅者，参考 AttachGifPlayStop 方法
-	 * @param [frame] frame 播放结束停止在哪一帧，可设置第一帧、当前帧和最后一帧。请参考 GifStopType 枚举
+	 * @param [in] bTriggerEvent 是否将停止事件通知给订阅者，参考 AttachGifPlayStop 方法
+	 * @param [in] nStopFrame 播放结束停止在哪一帧，可设置第一帧、当前帧和最后一帧。请参考 GifFrameType 枚举
 	 */
-	void StopGifPlay(bool transfer = false, GifStopType frame = kGifStopCurrent);
+	void StopGifPlay(bool bTriggerEvent = false, GifFrameType nStopFrame = kGifFrameCurrent);
 
 	/** 监听 GIF 播放完成通知
 	 * @param[in] callback 要监听 GIF 停止播放的回调函数
@@ -1101,13 +1101,13 @@ protected:
 	*/
 	void SetPaintRect(const UiRect& rect);
 
-	/** 停止播放GIF动画
-	*/
-	void CheckStopGifPlay(GifStopType frame = kGifStopCurrent);
-
 	/** 绘制焦点状态的矩形（虚线组成的矩形）
 	*/
 	void DoPaintFocusRect(IRender* pRender);
+
+	/** 停止播放GIF动画(背景图片的动画等)
+	*/
+	void CheckStopGifPlay();
 
 private:
 	/** 绘制边框：根据条件判断绘制圆角矩形边框还是普通矩形边框
@@ -1221,10 +1221,6 @@ private:
 	/** 控件"加载中"逻辑的实现接口
 	*/
 	ControlLoading* m_pLoading;
-
-	/** 控件背景动态播放动画的逻辑封装（支持GIF/WebP/APNG动画）
-	*/
-	ControlGif* m_pGif;
 
 private:
 	//控件动画播放管理器
