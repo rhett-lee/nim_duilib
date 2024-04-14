@@ -50,11 +50,12 @@ static inline void DrawFunction(SkCanvas* pSkCanvas,
 	pSkCanvas->drawImageRect(skImage, rcSkSrc, rcSkDest, SkSamplingOptions(), &skPaint, SkCanvas::kStrict_SrcRectConstraint);
 }
 
-Render_Skia::Render_Skia()
+Render_Skia::Render_Skia(IRenderFactory* pRenderFactory)
 	: m_bTransparent(false),
 	m_pSkCanvas(nullptr),
 	m_hDC(nullptr),
-	m_saveCount(0)
+	m_saveCount(0),
+	m_pRenderFactory(pRenderFactory)
 {
 	m_pSkPointOrg = new SkPoint;
 	m_pSkPointOrg->iset(0, 0);
@@ -130,7 +131,7 @@ void Render_Skia::Clear()
 
 std::unique_ptr<ui::IRender> Render_Skia::Clone()
 {
-	std::unique_ptr<ui::IRender> pClone = std::make_unique<ui::Render_Skia>();
+	std::unique_ptr<ui::IRender> pClone = std::make_unique<ui::Render_Skia>(m_pRenderFactory);
 	pClone->Resize(GetWidth(), GetHeight());
 	pClone->BitBlt(0, 0, GetWidth(), GetHeight(), this, 0, 0, RopMode::kSrcCopy);
 	return pClone;
@@ -1463,7 +1464,7 @@ void Render_Skia::DrawRichText(const UiRect& rc,
 		const UiColor& color = textData.m_textColor;
 		skPaint.setARGB(color.GetA(), color.GetR(), color.GetG(), color.GetB());
 		
-		std::shared_ptr<Font_Skia> spSkiaFont = std::make_shared<Font_Skia>();
+		std::shared_ptr<Font_Skia> spSkiaFont = std::make_shared<Font_Skia>(m_pRenderFactory);
 		if (!spSkiaFont->InitFont(textData.m_fontInfo)) {
 			spSkiaFont.reset();
 		}

@@ -1,18 +1,21 @@
 #include "Font_Skia.h"
+#include "RenderFactory_Skia.h"
 #include "duilib/Utils/StringUtil.h"
 
 #pragma warning (push)
 #pragma warning (disable: 4244)
 
 #include "include/core/SkFont.h"
+#include "include/core/SkFontMgr.h"
 
 #pragma warning (pop)
 
 namespace ui 
 {
 
-Font_Skia::Font_Skia() :
-	m_skFont(nullptr)
+Font_Skia::Font_Skia(IRenderFactory* pRenderFactory) :
+	m_skFont(nullptr),
+	m_pRenderFactory(pRenderFactory)
 {
 }
 
@@ -61,7 +64,22 @@ const SkFont* Font_Skia::GetFontHandle()
 	}
 	std::string fontName; //UTF8±àÂëµÄ×ÖÌåÃû³Æ
 	StringHelper::UnicodeToMBCS(m_uiFont.m_fontName, fontName, CP_UTF8);
-	sk_sp<SkTypeface> spTypeface = SkTypeface::MakeFromName(fontName.c_str(), fontStyle);
+	ASSERT(m_pRenderFactory != nullptr);
+	if (m_pRenderFactory == nullptr) {
+		return nullptr;
+	}
+	RenderFactory_Skia* pRenderFactory = dynamic_cast<RenderFactory_Skia*>(m_pRenderFactory);
+	ASSERT(pRenderFactory != nullptr);
+	if (pRenderFactory == nullptr) {
+		return nullptr;
+	}
+
+	SkFontMgr* pSkFontMgr = pRenderFactory->GetSkFontMgr();
+	ASSERT(pSkFontMgr != nullptr);
+	if (pSkFontMgr == nullptr) {
+		return nullptr;
+	}
+	sk_sp<SkTypeface> spTypeface = pSkFontMgr->legacyMakeTypeface(fontName.c_str(), fontStyle);
 	ASSERT(spTypeface != nullptr);
 	if (spTypeface == nullptr) {
 		return nullptr;

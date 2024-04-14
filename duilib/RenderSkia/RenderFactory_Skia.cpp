@@ -7,11 +7,31 @@
 #include "duilib/RenderSkia/Path_Skia.h"
 #include "duilib/RenderSkia/Matrix_Skia.h"
 
+#pragma warning (push)
+#pragma warning (disable: 4244)
+
+#include "include/core/SkFontMgr.h"
+#include "include/ports/SkTypeface_win.h"
+
+#pragma warning (pop)
+
 namespace ui {
+
+RenderFactory_Skia::RenderFactory_Skia():
+	m_pSkFontMgr(nullptr)
+{
+}
+
+RenderFactory_Skia::~RenderFactory_Skia()
+{
+	if (m_pSkFontMgr != nullptr) {
+		m_pSkFontMgr->unref();
+	}
+}
 
 IFont* RenderFactory_Skia::CreateIFont()
 {
-	return new Font_Skia();
+	return new Font_Skia(this);
 }
 
 IPen* RenderFactory_Skia::CreatePen(UiColor color, int width /*= 1*/)
@@ -41,7 +61,19 @@ IBitmap* RenderFactory_Skia::CreateBitmap()
 
 IRender* RenderFactory_Skia::CreateRender()
 {
-	return new Render_Skia();
+	return new Render_Skia(this);
+}
+
+SkFontMgr* RenderFactory_Skia::GetSkFontMgr()
+{
+	if (m_pSkFontMgr == nullptr) {
+		sk_sp<SkFontMgr> spSkFontMgr = SkFontMgr_New_DirectWrite();
+		ASSERT(spSkFontMgr != nullptr);
+		m_pSkFontMgr = spSkFontMgr.get();
+		m_pSkFontMgr->ref();
+		spSkFontMgr.reset(nullptr);
+	}
+	return m_pSkFontMgr;
 }
 
 } // namespace ui

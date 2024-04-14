@@ -15,7 +15,7 @@ namespace ui
 class UILIB_API Font_Skia: public IFont
 {
 public:
-    Font_Skia();
+    explicit Font_Skia(IRenderFactory* pRenderFactory);
     Font_Skia(const Font_Skia&) = delete;
     Font_Skia& operator=(const Font_Skia&) = delete;
     virtual ~Font_Skia();
@@ -59,6 +59,9 @@ private:
 
     //×ÖÌå¾ä±ú
     SkFont* m_skFont;
+
+    //äÖÈ¾½Ó¿Ú
+    IRenderFactory* m_pRenderFactory;
 };
 
 } // namespace ui

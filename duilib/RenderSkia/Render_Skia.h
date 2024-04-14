@@ -18,7 +18,7 @@ class Bitmap_Skia;
 class UILIB_API Render_Skia : public IRender
 {
 public:
-	Render_Skia();
+	explicit Render_Skia(IRenderFactory* pRenderFactory);
 	virtual ~Render_Skia();
 
 	/** 获取Render实现类型
@@ -166,6 +166,10 @@ private:
 	/** 关联的DC句柄
 	*/
 	HDC m_hDC;
+
+	/** Render工厂接口，用于创建字体
+	*/
+	IRenderFactory* m_pRenderFactory;
 };
 
 } // namespace ui
