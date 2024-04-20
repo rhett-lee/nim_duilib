@@ -27,9 +27,9 @@
     //     比如void SkPaint::setShader(sk_sp<SkShader> shader);
     //     需要改为：void SkPaint::setShader(const sk_sp<SkShader>& shader); 才能避免崩溃
     //     这种类型的接口比较多，如果想要使用，就需要修改源码，然后重新编译Skia。
-	#pragma comment (lib, "../../../../develop/skia/skia/out/DebugLLVM/skia.lib")
+	#pragma comment (lib, "../../../skia/out/DebugLLVM/skia.lib")
 #else
-	#pragma comment (lib, "../../../../develop/skia/skia/out/ReleaseLLVM/skia.lib")
+	#pragma comment (lib, "../../../skia/out/ReleaseLLVM/skia.lib")
 #endif
 
 #else if(duilib_kRenderType == duilib_kRenderType_GdiPlus)
