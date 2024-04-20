@@ -1,6 +1,6 @@
-# Summary
+# 文档包含的主要内容
 
-* [项目简介](README.md)
+* [项目简介](../README.md)
 * [快速上手](GETTING-STARTED.md)
 * [全局样式](GLOBAL.md)
 * [容器](Containers/README.md)
