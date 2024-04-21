@@ -62,12 +62,12 @@
     <OutDir>..\..\bin\</OutDir>
     <IntDir>$(ProjectDir)..\..\tmp\$(PlatformName)\$(ProjectName)\$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)_d</TargetName>
-    <IncludePath>.\;..\;..\..\;..\..\third_party\cef_wrapper\;$(IncludePath)</IncludePath>
+    <IncludePath>$(IncludePath)</IncludePath>
     <LibraryPath>..\..\libs\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>.\;..\;..\..\;..\..\third_party\cef_wrapper\;$(IncludePath)</IncludePath>
+    <IncludePath>$(IncludePath)</IncludePath>
     <LibraryPath>..\..\libs\;$(LibraryPath)</LibraryPath>
     <OutDir>..\..\bin\</OutDir>
     <IntDir>$(ProjectDir)..\..\tmp\$(PlatformName)\$(ProjectName)\$(Configuration)\</IntDir>
@@ -76,11 +76,11 @@
     <OutDir>..\..\bin\</OutDir>
     <IntDir>$(ProjectDir)..\..\tmp\$(PlatformName)\$(ProjectName)\$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)64_d</TargetName>
-    <IncludePath>.\;..\;..\..\;..\..\third_party\cef_wrapper\;$(IncludePath)</IncludePath>
+    <IncludePath>$(IncludePath)</IncludePath>
     <LibraryPath>..\..\libs\x64\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>.\;..\;..\..\;..\..\third_party\cef_wrapper\;$(IncludePath)</IncludePath>
+    <IncludePath>$(IncludePath)</IncludePath>
     <LibraryPath>..\..\libs\x64\;$(LibraryPath)</LibraryPath>
     <OutDir>..\..\bin\</OutDir>
     <IntDir>$(ProjectDir)..\..\tmp\$(PlatformName)\$(ProjectName)\$(Configuration)\</IntDir>
@@ -95,7 +95,7 @@
       <SDLCheck>true</SDLCheck>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
-      <AdditionalIncludeDirectories>$(ProjectDir)\..\..\ui_components\third_party\cef_wrapper</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\;..\..\;..\..\third_party\cef_wrapper\;..\..\ui_components\third_party\cef_wrapper</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -120,7 +120,7 @@
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalIncludeDirectories>$(ProjectDir)\..\..\ui_components\third_party\cef_wrapper</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\;..\..\;..\..\third_party\cef_wrapper\;..\..\ui_components\third_party\cef_wrapper</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -137,7 +137,7 @@
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalIncludeDirectories>$(ProjectDir)\..\..\ui_components\third_party\cef_wrapper</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\;..\..\;..\..\third_party\cef_wrapper\;..\..\ui_components\third_party\cef_wrapper</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <DelayLoadDLLs>nim_libcef.dll</DelayLoadDLLs>
@@ -150,7 +150,7 @@
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalIncludeDirectories>$(ProjectDir)\..\..\ui_components\third_party\cef_wrapper</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\;..\..\;..\..\third_party\cef_wrapper\;..\..\ui_components\third_party\cef_wrapper</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <DelayLoadDLLs>nim_libcef.dll</DelayLoadDLLs>
