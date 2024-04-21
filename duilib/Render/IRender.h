@@ -779,16 +779,39 @@ public:
 	virtual std::unique_ptr<IRender> Clone() = 0;
 };
 
+/** 渲染接口管理，用于创建Font、Pen、Brush、Path、Matrix、Bitmap、Render等渲染实现对象
+*/
 class UILIB_API IRenderFactory
 {
 public:
 	virtual ~IRenderFactory() = default;
+
+	/** 创建一个Font对象
+	*/
 	virtual IFont* CreateIFont() = 0;
+
+	/** 创建一个Pen对象
+	*/
 	virtual IPen* CreatePen(UiColor color, int width = 1) = 0;
+
+	/** 创建一个Brush对象
+	*/
 	virtual IBrush* CreateBrush(UiColor corlor) = 0;
+
+	/** 创建一个Path对象
+	*/
 	virtual IPath* CreatePath() = 0;
+
+	/** 创建一个Matrix对象
+	*/
 	virtual IMatrix* CreateMatrix() = 0;
+
+	/** 创建一个Bitmap对象
+	*/
 	virtual IBitmap* CreateBitmap() = 0;
+
+	/** 创建一个Render对象
+	*/
 	virtual IRender* CreateRender() = 0;
 };
 

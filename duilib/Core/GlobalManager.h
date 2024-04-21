@@ -22,7 +22,7 @@ namespace ui
 	class IRenderFactory;
 ;
 /**
-* @brief 全局属性管理工具类
+* 全局属性管理工具类
 * 用于管理一些全局属性的工具类，包含全局样式（global.xml）和语言设置等
 */
 class UILIB_API GlobalManager
