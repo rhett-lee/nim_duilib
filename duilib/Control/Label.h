@@ -18,6 +18,8 @@
 namespace ui
 {
 
+/** 标签控件（模板），用于显示文本
+*/
 template<typename InheritType = Control>
 class UILIB_API LabelTemplate : public InheritType
 {

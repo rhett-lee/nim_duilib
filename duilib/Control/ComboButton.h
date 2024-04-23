@@ -12,7 +12,7 @@ namespace ui
 {
 typedef ButtonTemplate<VBox> ButtonVBox;
 
-/** 带有下拉框的按钮
+/** 带有下拉组合框的按钮
 */
 class UILIB_API ComboButton : public Box
 {

@@ -8,6 +8,8 @@
 namespace ui
 {
 
+/** 单选按钮控件
+*/
 template<typename InheritType = Control>
 class UILIB_API OptionTemplate : public CheckBoxTemplate<InheritType>
 {

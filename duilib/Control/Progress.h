@@ -9,6 +9,8 @@
 namespace ui
 {
 
+/** 进度条控件
+*/
 class UILIB_API Progress : public LabelTemplate<Control>
 {
 public:

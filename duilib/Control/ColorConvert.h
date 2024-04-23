@@ -16,6 +16,8 @@ namespace ui
 
 typedef unsigned long COLORREF;
 
+/** 颜色类型（RGB/HSV/HSL）转换类
+*/
 class ColorConvert
 {
 public:

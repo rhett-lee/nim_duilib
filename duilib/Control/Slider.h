@@ -9,6 +9,8 @@
 namespace ui
 {
 
+/** »¬¿é¿Ø¼þ
+*/
 class UILIB_API Slider : public Progress
 {
 public:

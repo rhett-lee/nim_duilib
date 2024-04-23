@@ -8,7 +8,7 @@
 
 namespace ui
 {
-/** 颜色选择器：常用颜色
+/** 颜色选择器：标准颜色
 */
 class ColorPickerStatard : public Control
 {

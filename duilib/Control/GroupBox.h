@@ -10,6 +10,8 @@
 namespace ui
 {
 
+/** 分组容器
+*/
 template<typename InheritType>
 class UILIB_API GroupBoxTemplate : public LabelTemplate<InheritType>
 {
@@ -243,6 +245,8 @@ void GroupBoxTemplate<InheritType>::PaintText(IRender* pRender)
     }    
 }
 
+/** 分组容器/垂直分组容器/水平分组容器
+*/
 typedef GroupBoxTemplate<Box>  GroupBox;
 typedef GroupBoxTemplate<HBox> GroupHBox;
 typedef GroupBoxTemplate<VBox> GroupVBox;

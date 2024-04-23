@@ -7,7 +7,7 @@
 
 namespace ui {
 
-/**@brief 使用附加阴影窗口的基类，实现了创建窗口并附加的功能，提供没有 WS_EX_LAYERED 属性的窗口继承
+/** 使用附加阴影窗口的基类，实现了创建窗口并附加的功能，提供没有 WS_EX_LAYERED 属性的窗口继承
  * 该类实现，封装了3种窗口模式：
  * （1）正常模式，不附加阴影的窗口：可以通过XML配置文件<Window>如下配置（举例）：
  *             shadow_attached="false" layered_window="false" ，不需要配置alpha属性，不支持alpha属性;

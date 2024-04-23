@@ -52,6 +52,8 @@ enum UILIB_API BitmapAlphaType: int
 	kUnpremul_SkAlphaType	//!< pixel components are independent of alpha
 };
 
+/** 位图接口
+*/
 class UILIB_API IBitmap : public virtual nbase::SupportWeakCallback
 {
 public:
@@ -97,6 +99,8 @@ public:
 	virtual IBitmap* Clone() = 0;
 };
 
+/** 画笔接口
+*/
 class UILIB_API IPen : public virtual nbase::SupportWeakCallback
 {
 public:
@@ -190,6 +194,8 @@ public:
 	virtual IPen* Clone() const = 0;
 };
 
+/** 画刷接口
+*/
 //目前只支持一个SolidBrush
 class UILIB_API IBrush : public virtual nbase::SupportWeakCallback
 {
@@ -198,6 +204,8 @@ public:
 	virtual UiColor GetColor() const = 0;
 };
 
+/** 路径接口
+*/
 class IMatrix;
 class UILIB_API IPath : public virtual nbase::SupportWeakCallback
 {
@@ -324,7 +332,7 @@ public:
 	virtual IPath* Clone() = 0;
 };
 
-/** 3x3 矩阵的封装
+/** 3x3 矩阵接口
 */
 class UILIB_API IMatrix : public nbase::SupportWeakCallback
 {
@@ -417,6 +425,8 @@ public:
 	std::vector<UiRect> m_textRects;
 };
 
+/** 渲染接口
+*/
 class UILIB_API IRender : public virtual nbase::SupportWeakCallback
 {
 public:
