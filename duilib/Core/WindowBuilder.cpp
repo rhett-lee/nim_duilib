@@ -210,24 +210,24 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
 					else if (strName == L"textid") {
 						pWindow->SetTextId(strValue);
 					}
-					else if( strName == L"roundcorner" ) {
+					else if (strName == L"round_corner" || strName == L"roundcorner" ) {
 						UiSize size;
 						AttributeUtil::ParseSizeValue(strValue.c_str(), size);
 						pWindow->SetRoundCorner(size.cx, size.cy);
 					}								
-					else if (strName == L"alphafixcorner" || strName == L"custom_shadow") {
+					else if (strName == L"alpha_fix_corner" || strName == L"alphafixcorner") {
 						UiRect rc;
 						AttributeUtil::ParseRectValue(strValue.c_str(), rc);
 						pWindow->SetAlphaFixCorner(rc);
 					}
-					else if (strName == L"renderalpha") {
+					else if (strName == L"render_transparent") {
 						pWindow->SetRenderTransparent(strValue == L"true");
 					}
 					else if ((strName == L"shadow_attached") || (strName == L"shadowattached")) {
 						//设置是否支持窗口阴影（阴影实现有两种：层窗口和普通窗口）
 						pWindow->SetShadowAttached(strValue == L"true");
 					}
-					else if ((strName == L"shado_wimage") || (strName == L"shadowimage")) {
+					else if ((strName == L"shadow_image") || (strName == L"shadowimage")) {
 						//设置阴影图片
 						pWindow->SetShadowImage(strValue);
 					}

@@ -1,9 +1,12 @@
-# 文档包含的主要内容
+## 项目关联内容链接
 
 * [项目简介](../README.md)
-* [快速上手](GETTING-STARTED.md)
-* [全局样式](GLOBAL.md)
+* [快速上手](Getting-Started.md)
+* [全局样式](Global.md)
+* [窗口的样式](Window.md)
+* [控件与容器的样式](Control-Box.md)
 
+## 项目中主要类的简表
 * 基本数据类型
 | 类名称 | 关联头文件| 用途 |
 | :--- | :--- | :--- |
@@ -56,37 +59,6 @@
 | VirtualVLayout |VLayout| [duilib/Box/VirtualVLayout.h](../duilib/Box/VirtualVLayout.h) | 虚表纵向布局|
 | VirtualHTileLayout |HTileLayout| [duilib/Box/VirtualHTileLayout.h](../duilib/Box/VirtualHTileLayout.h) | 虚表横向瓦片布局|
 | VirtualVTileLayout |VTileLayout| [duilib/Box/VirtualVTileLayout.h](../duilib/Box/VirtualVTileLayout.h) | 虚表纵向瓦片布局|
-
-1. 自由布局（浮动布局）
-| 属性名称 | 默认值 | 参数类型 | 用途 |
-| :--- | :--- | :--- | :--- |
-| child_margin | 0 | int | 子控件之间的额外边距: X 轴方向 和 Y 轴方向同时设置为相同值|
-| child_margin_x | 0 | int | 子控件之间的额外边距: X 轴方向 |
-| child_margin_y | 0 | int | 子控件之间的额外边距: Y 轴方向|
-2. 横向布局：可用属性与自由布局相同
-3. 纵向布局：可用属性与自由布局相同
-4. 横向瓦片布局
-| 属性名称 | 默认值 | 参数类型 | 用途 |
-| :--- | :--- | :--- | :--- |
-| item_size | 0,0 | size | 子项大小, 该宽度和高度，是包含了控件的外边距和内边距的，比如"100,40"|
-| rows | 0 | int | 如果设置为"auto"，表示自动计算行数，如果为数值，表示设置为固定行数|
-| scale_down | true | bool | 当控件内容超出边界时，按比例缩小，以使控件内容完全显示在瓦片区域内|
-5. 纵向瓦片布局
-| 属性名称 | 默认值 | 参数类型 | 用途 |
-| :--- | :--- | :--- | :--- |
-| item_size | 0,0 | size | 子项大小, 该宽度和高度，是包含了控件的外边距和内边距的，比如"100,40"|
-| columns | 0 | int | 如果设置为"auto"，表示自动计算列数，如果为数值，表示设置为固定列数|
-| scale_down | true | bool | 当控件内容超出边界时，按比例缩小，以使控件内容完全显示在瓦片区域内|
-6. 虚表横向布局
-| 属性名称 | 默认值 | 参数类型 | 用途 |
-| :--- | :--- | :--- | :--- |
-| item_size | 0,0 | size | 子项大小, 该宽度和高度，是包含了控件的外边距和内边距的，比如"100,40"|
-7. 虚表纵向布局
-| 属性名称 | 默认值 | 参数类型 | 用途 |
-| :--- | :--- | :--- | :--- |
-| item_size | 0,0 | size | 子项大小, 该宽度和高度，是包含了控件的外边距和内边距的，比如"100,40"|
-8. 虚表横向瓦片布局:可用属性与横向瓦片布局相同
-9. 虚表纵向瓦片布局:可用属性与纵向瓦片布局相同
 
 * 容器
 | 类名称 | 基类名称 |布局类型|关联头文件| 名称/用途 |

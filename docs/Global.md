@@ -2,12 +2,12 @@
 
 Global 全局样式提供了通用的样式列表，避免在多个不同的 XML 中出现相同的描述而产生冗余的代码和消耗开发人员在界面设置上的时间。
 
-在调用 GlobalManager::Startup 方法后，会根据设定的皮肤资源路径下查找 `global.xml` 作为全局的样式资源。在现有的 samples 示例代码中，
+在调用 GlobalManager::Startup 方法后，会根据设定的皮肤资源路径下查找 [global.xml](../bin/resources/themes/default/global.xml)  作为全局的样式资源。在现有的 samples 示例代码中，
 包含了一些预设的全局样式，如字体、颜色和一些通用样式。
 
 ## 字体（Font）
 
-如果你想添加一个字体，则在 `global.xml` 中添加如下代码，程序启动后会加载所有字体列表到缓存中，以 ID 作为区分。
+如果你想添加一个字体，则在 [global.xml](../bin/resources/themes/default/global.xml) 中添加如下代码，程序启动后会加载所有字体列表到缓存中，以 ID 作为区分。
 
 ```xml
 <!-- name 代表字体名称，size 代表字体大小，bold 代表是否粗体，underline 代表是否包含下划线 -->
