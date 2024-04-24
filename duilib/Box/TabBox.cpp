@@ -15,6 +15,27 @@ TabBox::TabBox(Layout* pLayout)
 
 }
 
+std::wstring TabBox::GetType() const { return DUI_CTR_TABBOX; }
+
+void TabBox::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
+{
+	if ((strName == L"selected_id") || (strName == L"selectedid")) {
+		size_t iSel = (size_t)_wtoi(strValue.c_str());
+		if (IsInited()) {
+			SelectItem(iSel);
+		}
+		else {
+			m_iInitSel = iSel;
+		}
+	}
+	else if ((strName == L"fade_switch") || (strName == L"fadeswitch")) {
+		SetFadeSwitch(strValue == L"true");
+	}
+	else {
+		Box::SetAttribute(strName, strValue);
+	}
+}
+
 void TabBox::OnInit()
 {
 	if (IsInited()) {
@@ -25,8 +46,6 @@ void TabBox::OnInit()
 		SelectItem(m_iInitSel);
 	}
 }
-
-std::wstring TabBox::GetType() const { return DUI_CTR_TABBOX; }
 
 bool TabBox::AddItem(Control* pControl)
 {
@@ -264,25 +283,6 @@ bool TabBox::SelectItem(const std::wstring& pControlName)
 	Control* pControl = FindSubControl(pControlName);
 	ASSERT(pControl != nullptr);
 	return SelectItem(pControl);
-}
-
-void TabBox::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
-{
-	if ((strName == L"selected_id") || (strName == L"selectedid")){
-		size_t iSel = (size_t)_wtoi(strValue.c_str());
-		if (IsInited()) {
-			SelectItem(iSel);
-		}
-		else {
-			m_iInitSel = iSel;
-		}
-	}
-	else if ((strName == L"fade_switch") || (strName == L"fadeswitch")) {
-		SetFadeSwitch(strValue == L"true");
-	}
-	else {
-		Box::SetAttribute(strName, strValue);
-	}
 }
 
 void TabBox::SetFadeSwitch(bool bFadeSwitch)

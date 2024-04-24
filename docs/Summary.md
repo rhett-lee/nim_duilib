@@ -4,7 +4,8 @@
 * [快速上手](Getting-Started.md)
 * [全局样式](Global.md)
 * [窗口的样式](Window.md)
-* [控件与容器的样式](Control-Box.md)
+* [控件的样式](Control.md)
+* [容器的样式](Box.md)
 
 ## 项目中主要类的简表
 * 基本数据类型
@@ -70,10 +71,10 @@
 | VTileBox | Box|[VTileLayout](../duilib/Box/VTileLayout.h)|[duilib/Box/TileBox.h](../duilib/Box/TileBox.h) | 垂直瓦片布局容器|
 | HTileBox | Box|[HTileLayout](../duilib/Box/HTileLayout.h)|[duilib/Box/TileBox.h](../duilib/Box/TileBox.h) | 水平瓦片布局容器|
 | ScrollBox | Box|[Layout](../duilib/Box/Layout.h)|[duilib/Box/ScrollBox.h](../duilib/Box/ScrollBox.h) | 自由布局可滚动容器，带有垂直或水平滚动条|
-| VScrollBox | Box|[VLayout](../duilib/Box/VLayout.h)|[duilib/Box/ScrollBox.h](../duilib/Box/ScrollBox.h) | 垂直布局可滚动容器，带有垂直或水平滚动条|
-| HScrollBox | Box|[HLayout](../duilib/Box/HLayout.h)|[duilib/Box/ScrollBox.h](../duilib/Box/ScrollBox.h) | 水平布局可滚动容器，带有垂直或水平滚动条|
-| VTileScrollBox |Box|[VTileLayout](../duilib/Box/VTileLayout.h)|[duilib/Box/ScrollBox.h](../duilib/Box/ScrollBox.h) | 垂直瓦片布局可滚动容器，带有垂直或水平滚动条|
-| HTileScrollBox |Box|[HTileLayout](../duilib/Box/HTileLayout.h)|[duilib/Box/ScrollBox.h](../duilib/Box/ScrollBox.h) | 水平瓦片布局可滚动容器，带有垂直或水平滚动条|
+| VScrollBox | ScrollBox|[VLayout](../duilib/Box/VLayout.h)|[duilib/Box/ScrollBox.h](../duilib/Box/ScrollBox.h) | 垂直布局可滚动容器，带有垂直或水平滚动条|
+| HScrollBox | ScrollBox|[HLayout](../duilib/Box/HLayout.h)|[duilib/Box/ScrollBox.h](../duilib/Box/ScrollBox.h) | 水平布局可滚动容器，带有垂直或水平滚动条|
+| VTileScrollBox |ScrollBox|[VTileLayout](../duilib/Box/VTileLayout.h)|[duilib/Box/ScrollBox.h](../duilib/Box/ScrollBox.h) | 垂直瓦片布局可滚动容器，带有垂直或水平滚动条|
+| HTileScrollBox |ScrollBox|[HTileLayout](../duilib/Box/HTileLayout.h)|[duilib/Box/ScrollBox.h](../duilib/Box/ScrollBox.h) | 水平瓦片布局可滚动容器，带有垂直或水平滚动条|
 | ListBox | ScrollBox|[Layout](../duilib/Box/Layout.h)|[duilib/Box/ListBox.h](../duilib/Box/ListBox.h) | 自由布局的列表容器|
 | VListBox | ListBox|[VLayout](../duilib/Box/VLayout.h)|[duilib/Box/ListBox.h](../duilib/Box/ListBox.h) | 垂直布局的列表容器|
 | HListBox | ListBox|[HLayout](../duilib/Box/HLayout.h)|[duilib/Box/ListBox.h](../duilib/Box/ListBox.h) | 水平布局的列表容器|
