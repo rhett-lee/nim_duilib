@@ -141,7 +141,7 @@ void Control::SetAttribute(const std::wstring& strName, const std::wstring& strV
 	else if (strName == L"control_padding") {
 		SetEnableControlPadding(strValue == L"true");
 	}
-	else if (strName == L"bkcolor" || strName == L"bkcolor1") {
+	else if (strName == L"bkcolor") {
 		SetBkColor(strValue);
 	}
 	else if ((strName == L"border_size") || (strName == L"bordersize")) {

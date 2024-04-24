@@ -51,14 +51,14 @@
 | 类名称 | 基类名称 |关联头文件| 用途 |
 | :--- | :--- |:--- | :--- |
 | Layout | |[duilib/Box/Layout.h](../duilib/Box/Layout.h) | 自由布局（浮动布局）|
-| HLayout |Layout |[duilib/Box/HLayout.h](../duilib/Box/HLayout.h) | 横向布局|
-| VLayout |Layout |[duilib/Box/VLayout.h](../duilib/Box/VLayout.h) | 纵向布局|
-| HTileLayout |Layout| [duilib/Box/HTileLayout.h](../duilib/Box/HTileLayout.h) | 横向瓦片布局|
-| VTileLayout |Layout| [duilib/Box/VTileLayout.h](../duilib/Box/VTileLayout.h) | 纵向瓦片布局|
-| VirtualHLayout |HLayout| [duilib/Box/VirtualHLayout.h](../duilib/Box/VirtualHLayout.h) | 虚表横向布局|
-| VirtualVLayout |VLayout| [duilib/Box/VirtualVLayout.h](../duilib/Box/VirtualVLayout.h) | 虚表纵向布局|
-| VirtualHTileLayout |HTileLayout| [duilib/Box/VirtualHTileLayout.h](../duilib/Box/VirtualHTileLayout.h) | 虚表横向瓦片布局|
-| VirtualVTileLayout |VTileLayout| [duilib/Box/VirtualVTileLayout.h](../duilib/Box/VirtualVTileLayout.h) | 虚表纵向瓦片布局|
+| HLayout |Layout |[duilib/Box/HLayout.h](../duilib/Box/HLayout.h) | 水平布局|
+| VLayout |Layout |[duilib/Box/VLayout.h](../duilib/Box/VLayout.h) | 垂直布局|
+| HTileLayout |Layout| [duilib/Box/HTileLayout.h](../duilib/Box/HTileLayout.h) | 水平瓦片布局|
+| VTileLayout |Layout| [duilib/Box/VTileLayout.h](../duilib/Box/VTileLayout.h) | 垂直瓦片布局|
+| VirtualHLayout |HLayout| [duilib/Box/VirtualHLayout.h](../duilib/Box/VirtualHLayout.h) | 虚表水平布局|
+| VirtualVLayout |VLayout| [duilib/Box/VirtualVLayout.h](../duilib/Box/VirtualVLayout.h) | 虚表垂直布局|
+| VirtualHTileLayout |HTileLayout| [duilib/Box/VirtualHTileLayout.h](../duilib/Box/VirtualHTileLayout.h) | 虚表水平瓦片布局|
+| VirtualVTileLayout |VTileLayout| [duilib/Box/VirtualVTileLayout.h](../duilib/Box/VirtualVTileLayout.h) | 虚表垂直瓦片布局|
 
 * 容器
 | 类名称 | 基类名称 |布局类型|关联头文件| 名称/用途 |
