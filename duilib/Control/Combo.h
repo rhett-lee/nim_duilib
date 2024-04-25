@@ -9,7 +9,8 @@
 
 namespace ui 
 {
-
+/** ×éºÏ¿ò¿Ø¼þ
+*/
 class UILIB_API Combo : public Box
 {
     friend class CComboWnd;

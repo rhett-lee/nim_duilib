@@ -67,7 +67,7 @@
 | focus_rect_color | | string | SetFocusRectColor| 焦点状态矩形的颜色 |
 | alpha | 255 | int | SetAlpha|控件的整体透明度,如(128)，有效值为 0-255 |
 | state | normal | string | SetState|控件的当前状态: 支持normal、hot、pushed、disabled状态 |
-| cursortype | arrow | string | SetCursorType|鼠标移动到控件上时的鼠标光标: arrow(箭头)、hand(手型)、ibeam(“I”形状)、sizewe(左右拖动)、sizens(上下拖动)|
+| cursor_type | arrow | string | SetCursorType|鼠标移动到控件上时的鼠标光标: arrow(箭头)、hand(手型)、ibeam(“I”形状)、sizewe(左右拖动)、sizens(上下拖动)|
 | render_offset | 0,0 | size | SetRenderOffset|控件绘制时的偏移量,如(10,10),一般用于绘制动画 |
 | fade_alpha | false | bool | GetAnimationManager(). SetFadeAlpha|是否启用控件透明渐变动画,如(true) |
 | fade_hot | false | bool |GetAnimationManager(). SetFadeHot |是否启用控件悬浮状态下 的透明渐变动画,如(true) |
@@ -84,3 +84,176 @@
 | stop_gif_play | | int | StopGifPlay| 停止动画，参数表示停止在哪一帧 |
 | box_shadow | | string | SetBoxShadow|设置控件的阴影属性，举例：boxshadow="color='red' offset='0,0' blurradius='8' spreadradius='8' |
 | cache | false | bool |SetUseCache |是否启用控件绘制缓存,如(true) |
+
+## ScrollBar的属性
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :--- | :--- | :--- | :--- |
+| button1_normal_image |  | string | 左或上按钮普通状态图片 |
+| button1_hot_image |  | string | 左或上按钮鼠标悬浮状态图片 |
+| button1_pushed_image |  | string | 左或上按钮鼠标按下状态图片 |
+| button1_disabled_image |  | string | 左或上按钮禁用状态图片 |
+| button2_normal_image |  | string | 右或下按钮普通状态图片 |
+| button2_hot_image |  | string | 右或下按钮鼠标悬浮状态图片 |
+| button2_pushed_image |  | string | 右或下按钮鼠标按下状态图片 |
+| button2_disabled_image |  | string | 右或下按钮禁用状态图片 |
+| thumb_normal_image |  | string | 滑块普通状态图片 |
+| thumb_hot_image |  | string | 滑块鼠标悬浮状态图片 |
+| thumb_pushed_image |  | string | 滑块鼠标按下状态图片 |
+| thumb_disabled_image |  | string | 滑块禁用状态图片 |
+| rail_normal_image |  | string | 滑块中间标识普通状态图片 |
+| rail_hot_image |  | string | 滑块中间标识鼠标悬浮状态图片 |
+| rail_pushed_image |  | string | 滑块中间标识鼠标按下状态图片 |
+| rail_disabled_image |  | string | 滑块中间标识禁用状态图片 |
+| bk_normal_image |  | string | 背景普通状态图片 |
+| bk_hot_image |  | string | 背景鼠标悬浮状态图片 |
+| bk_pushed_image |  | string | 背景鼠标按下状态图片 |
+| bk_disabled_image |  | string | 背景禁用状态图片 |
+| horizontal | false | bool | 水平或垂直,如(true) |
+| line_size | 8 | int | 滚动一行的大小,如(8) |
+| thumb_min_length | 30 | int | 滑块的最小长度 |
+| range | 100 | int | 滚动范围,如(100) |
+| value | 0 | int | 滚动位置,如(0) |
+| show_button1 | true | bool | 是否显示左或上按钮,如(true) |
+| show_button2 | true | bool | 是否显示右或下按钮,如(true) |
+| auto_hide_scroll | true | bool | 是否自动隐藏滚动条,如(true) |
+
+ScrollBar 控件继承了 `Control` 属性，更多可用属性请参考`Control`的属性
+
+## Label的属性
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :--- | :--- | :--- | :--- |
+| text |  | string | 显示文本 |
+| textid |  | string | 多语言功能的文本ID |
+| text_align | left | string | 文本的对其方式, 支持以下取值：left、hcenter、right、top、vcenter、bottom |
+| text_padding | 0,0,0,0 | rect | 文字显示的边距, 如(2,2,2,2) |
+| font | | string | 字体ID，该字体ID必须在 global.xml 中存在 |
+| end_ellipsis | false | bool | 句末显示不完整是否使用...代替 |
+| path_ellipsis | false | bool | 对于路径，显示不完整时是否使用...代替中间路径 |
+| normal_text_color |  | string | 普通字体颜色,不指定则使用默认颜色,如(blue) |
+| hot_text_color |  | string | 鼠标悬浮字体颜色,不指定则使用默认颜色,如(blue) |
+| pushed_text_color |  | string | 鼠标按下字体颜色,不指定则使用默认颜色,如(blue) |
+| disabled_text_color |  | string | disabled字体颜色,不指定则使用默认颜色,如(blue) |
+| single_line | true | bool | 是否单行输出文字 |
+| multi_line | false | bool | 是否多行输出文字，与single_line属性互斥 |
+| auto_tooltip | false | bool | 鼠标悬浮到控件显示的提示文本是否省略号出现时才显示|
+
+Label 控件继承了 `Control` 属性，更多可用属性请参考`Control`的属性
+
+## LabelBox的属性
+LabelBox与Label是基于相同模板的类，请参考 `Label`的属性    
+LabelBox 控件继承了 `Box` 属性，更多可用属性请参考`Box`的属性
+
+## Button的属性
+Button 控件继承了 `Label` 属性，更多可用属性请参考`Label`的属性
+
+## ButtonBox的属性
+ButtonBox与Button是基于相同模板的类，请参考 `Button`的属性    
+ButtonBox 控件继承了 `Box` 属性，更多可用属性请参考`Box`的属性
+
+## CheckBox的属性
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :--- | :--- | :--- | :--- |
+| selected | false | bool | 是否选中 |
+| selected_normal_image |  | string | 选择状态时，普通状态图片 |
+| selected_hot_image |  | string | 选择状态时，鼠标悬浮的状态图片 |
+| selected_pushed_image |  | string | 选择状态时，鼠标按下的状态图片 |
+| selected_disabled_image |  | string | 选择状态时，禁用的状态图片 |
+| selected_fore_normal_image |  | string | 选择状态时，前景图片 |
+| selected_fore_hot_image |  | string | 选择状态时，鼠标悬浮状态的图片 |
+| selected_fore_pushed_image |  | string | 选择状态时，鼠标按下状态的前景图片 |
+| selected_fore_disabled_image |  | string | 选择状态时，禁用状态的前景图片 |
+| part_selected_normal_image |  | string | 部分选择时，普通状态图片 |
+| part_selected_hot_image |  | string | 部分选择时，鼠标悬浮的状态图片 |
+| part_selected_pushed_image |  | string | 部分选择时，鼠标按下的状态图片 |
+| part_selected_disabled_image |  | string | 部分选择时，禁用的状态图片 |
+| part_selected_fore_normal_image |  | string | 部分选择时，前景图片 |
+| part_selected_fore_hot_image |  | string | 部分选择时，鼠标悬浮状态的图片 |
+| part_selected_fore_pushed_image |  | string | 部分选择时，鼠标按下状态的前景图片 |
+| part_selected_fore_disabled_image |  | string | 部分选择时，禁用状态的前景图片 |
+| selected_text_color |  | string | 选择状态的字体颜色,不指定则使用默认颜色,如(blue) |
+| selected_normal_text_color |  | string | 选择状态的普通状态字体颜色,不指定则使用默认颜色,如(blue) |
+| selected_hot_text_color |  | string | 选择状态的鼠标悬浮状态字体颜色,不指定则使用默认颜色,如(blue) |
+| selected_pushed_text_color |  | string | 选择状态的鼠标按下状态字体颜色,不指定则使用默认颜色,如(blue) |
+| selected_disabled_text_color |  | string | 选择状态的禁用状态字体颜色,不指定则使用默认颜色,如(blue) |
+| normal_first | false | bool | 控件在选择状态下，没有设置背景色或背景图时，用非选择状态的对应属性来绘制 |
+
+CheckBox 控件继承了 `Button` 属性，更多可用属性请参考`Button`的属性
+
+## CheckBoxBox的属性
+CheckBoxBox与CheckBox是基于相同模板的类，请参考 `CheckBox`的属性    
+CheckBoxBox 控件继承了 `Box` 属性，更多可用属性请参考`Box`的属性
+
+## Option的属性
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :--- | :--- | :--- | :--- |
+| group |  | string | 所属组的名称，在相同的组名称下，保持单选 |
+
+Option 控件继承了 `CheckBox` 属性，更多可用属性请参考`CheckBox`的属性
+
+## OptionBox的属性
+OptionBoxBox与OptionBox是基于相同模板的类，请参考 `OptionBox`的属性    
+OptionBoxBox 控件继承了 `Box` 属性，更多可用属性请参考`Box`的属性
+
+## GroupBox的属性
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :--- | :--- | :--- | :--- |
+| corner_size | "0,0" | size | 圆角大小 |
+| line_width | 0 | int | 线条宽度 |
+| line_color | | string | 线条颜色 |
+| text | | string | 文本内容 |
+
+GroupBox 控件继承了 `Label` 属性，更多可用属性请参考`Label`的属性
+
+## GroupVBox的属性
+GroupVBox 与 GroupBox 是相同模板实现，可用属性请参考`GroupBox`的属性    
+GroupVBox 控件继承了 `VBox` 属性，更多可用属性请参考`VBox`的属性
+
+## GroupHBox的属性
+GroupHBox 与 GroupBox 是相同模板实现，可用属性请参考`GroupBox`的属性    
+GroupHBox 控件继承了 `HBox` 属性，更多可用属性请参考`HBox`的属性
+
+## Combo的属性
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :--- | :--- | :--- | :--- |
+| combo_type | "drop_down" | string | 组合框的类型："drop_list" 表示为不可编辑列表，"drop_down" 表示为可编辑列表|
+| dropbox_size | | string | 下拉列表的大小（宽度和高度）|
+| popup_top | false | bool | 下拉列表是否向上弹出 |
+| combo_tree_view_class | | string | 下拉表TreeView的Class属性，定义方法请参考`global.xml` 中的对应内容|
+| combo_tree_node_class | | string | 下拉表TreeView的节点的Class属性，定义方法请参考`global.xml` 中的对应内容|
+| combo_icon_class | | string | 显示图标的Class属性，定义方法请参考`global.xml` 中的对应内容|
+| combo_edit_class | | string | 编辑控件的Class属性，定义方法请参考`global.xml` 中的对应内容|
+| combo_button_class | | string | 按钮控件的Class属性，定义方法请参考`global.xml` 中的对应内容|
+
+Combo 控件继承了 `Box` 属性，更多可用属性请参考`Box`的属性
+
+## FilterCombo的属性
+FilterCombo 控件不支持"combo_type"属性    
+FilterCombo 控件继承了 `Combo` 属性，更多可用属性请参考`Combo`的属性
+
+## ComboButton的属性
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :--- | :--- | :--- | :--- |
+| dropbox_size | | string | 下拉列表的大小（宽度和高度）|
+| popup_top | false | bool | 下拉列表是否向上弹出 |
+| combo_box_class | | string | 下拉表组合框的Class属性，定义方法请参考`global.xml` 中的对应内容|
+| left_button_class | | string | 左侧按钮控件的Class属性，定义方法请参考`global.xml` 中的对应内容|
+| left_button_top_label_class | | string | 左侧按钮上侧的Label控件的Class属性，定义方法请参考`global.xml` 中的对应内容|
+| left_button_bottom_label_class | | string | 左侧按钮下侧的Label控件的Class属性，定义方法请参考`global.xml` 中的对应内容|
+| left_button_top_label_text | | string | 左侧按钮上侧的Label控件的文本|
+| left_button_bottom_label_text | | string | 左侧按钮下侧的Label控件的文本|
+| left_button_top_label_bkcolor | | string | 左侧按钮上侧的Label控件的背景色|
+| left_button_bottom_label_bkcolor | | string | 左侧按钮下侧的Label控件的背景色|
+| right_button_class | | string | 右侧按钮控件的Class属性，定义方法请参考`global.xml` 中的对应内容|
+
+ComboButton 控件继承了 `Box` 属性，更多可用属性请参考`Box`的属性
+
+## CheckCombo的属性
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :--- | :--- | :--- | :--- |
+| dropbox | | string | 下拉框的属性信息，具体设置方法可参照示例程序|
+| dropbox_size | | string | 下拉列表的大小（宽度和高度）|
+| popup_top | false | bool | 下拉列表是否向上弹出 |
+| dropbox_item_class | | string | 下拉列表中每一个列表项的属性，具体设置方法可参照示例程序|
+| selected_item_class | | string | 选择项中每一个子项的属性，具体设置方法可参照示例程序|
+
+CheckCombo 控件继承了 `Box` 属性，更多可用属性请参考`Box`的属性

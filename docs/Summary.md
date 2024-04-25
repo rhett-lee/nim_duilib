@@ -151,9 +151,12 @@
 | 类名称/功能组件 | 基类 | 关联头文件| 用途 |
 | :--- | :--- | :---| :--- |
 | ScrollBar | Control| [duilib/Core/ScrollBar.h](../duilib/Core/ScrollBar.h) | 滚动条控件 |
+| Label | Control| [duilib/Control/Label.h](../duilib/Control/Label.h) | 标签控件（模板），用于显示文本 |
+| LabelBox | Box| [duilib/Control/Label.h](../duilib/Control/Label.h) | 标签容器（模板），用于显示文本 |
 | Button | Control| [duilib/Control/Button.h](../duilib/Control/Button.h) | 按钮控件（模板实现） |
 | ButtonBox | Box| [duilib/Control/Button.h](../duilib/Control/Button.h) | 按钮容器控件（模板实现） |
 | CheckBox | Control| [duilib/Control/CheckBox.h](../duilib/Control/CheckBox.h) | 复选框控件（模板实现） |
+| CheckBoxBox | Box| [duilib/Control/CheckBox.h](../duilib/Control/CheckBox.h) | 复选框容器（模板实现） |
 | Option | Control| [duilib/Control/Option.h](../duilib/Control/Option.h) | 单选按钮控件|
 | OptionBox | Box| [duilib/Control/Option.h](../duilib/Control/Option.h) | 单选按钮容器|
 | GroupBox | Box| [duilib/Control/GroupBox.h](../duilib/Control/GroupBox.h) | 分组容器（模板） |
@@ -172,8 +175,6 @@
 | Progress | Label| [duilib/Control/Progress.h](../duilib/Control/Progress.h) | 进度条控件 |
 | Slider | Progress| [duilib/Control/Slider.h](../duilib/Control/Slider.h) | 滑块控件 |
 | CircleProgress | Control| [duilib/Control/CircleProgress.h](../duilib/Control/CircleProgress.h) | 环形进度条 |
-| Label | Control| [duilib/Control/Label.h](../duilib/Control/Label.h) | 标签控件（模板），用于显示文本 |
-| LabelBox | Box| [duilib/Control/Label.h](../duilib/Control/Label.h) | 标签容器（模板），用于显示文本 |
 | RichEdit | ScrollBox| [duilib/Control/RichEdit.h](../duilib/Control/RichEdit.h) | 富文本编辑框控件 |
 | RichEdit实现类 | | [duilib/Control/RichEditCtrl.h](../duilib/Control/RichEditCtrl.h) | 富文本编辑框的主要功能封装 |
 | RichEdit实现类 | | [duilib/Control/RichEditHost.h](../duilib/Control/RichEditHost.h) | 富文本编辑框的主要功能实现 |
