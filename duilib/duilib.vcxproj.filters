@@ -500,9 +500,6 @@
     <ClInclude Include="Control\DateTime.h">
       <Filter>Control</Filter>
     </ClInclude>
-    <ClInclude Include="Render\Font_GDI.h">
-      <Filter>Render</Filter>
-    </ClInclude>
     <ClInclude Include="Image\Image.h">
       <Filter>Image</Filter>
     </ClInclude>

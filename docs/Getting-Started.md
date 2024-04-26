@@ -426,4 +426,4 @@ void MainThread::Init()
 
 这样一个简单的带有最小化、最大化、还原和关闭按钮、全屏按钮，具有阴影效果和一行文字提示的窗口就创建出来了，你可以编译运行以下代码看一看窗口效果。
 
-<img src="./Images/preview_02.png"/>
+<img src="./Images/MyDuilibApp.png"/>

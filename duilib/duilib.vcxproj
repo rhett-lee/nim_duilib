@@ -576,7 +576,6 @@
     <ClInclude Include="RenderSkia\SkUtils.h" />
     <ClInclude Include="Render\AutoClip.h" />
     <ClInclude Include="Render\BitmapAlpha.h" />
-    <ClInclude Include="Render\Font_GDI.h" />
     <ClInclude Include="Render\IRender.h" />
     <ClInclude Include="Render\RenderConfig.h" />
     <ClInclude Include="third_party\apng\decoder-apng.h" />
