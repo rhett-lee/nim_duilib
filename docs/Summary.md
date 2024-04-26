@@ -179,6 +179,8 @@
 | RichEdit实现类 | | [duilib/Control/RichEditCtrl.h](../duilib/Control/RichEditCtrl.h) | 富文本编辑框的主要功能封装 |
 | RichEdit实现类 | | [duilib/Control/RichEditHost.h](../duilib/Control/RichEditHost.h) | 富文本编辑框的主要功能实现 |
 | RichText | Control| [duilib/Control/RichText.h](../duilib/Control/RichText.h) | 格式化文本（类HTML格式） |
+| Split | Control| [duilib/Control/Split.h](../duilib/Control/Split.h) | 分割条控件 |
+| SplitBox | Box| [duilib/Control/Split.h](../duilib/Control/Split.h) | 分割条容器 |
 | TabCtrl | ListBox| [duilib/Control/TabCtrl.h](../duilib/Control/TabCtrl.h) | 多标签控件（类似浏览器的多标签） |
 | TreeView | ListBox| [duilib/Control/TreeView.h](../duilib/Control/TreeView.h) | 树控件 |
 | TreeNode | ListBoxItem| [duilib/Control/TreeView.h](../duilib/Control/TreeView.h) | 树控件的节点 |

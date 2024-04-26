@@ -405,11 +405,14 @@ void RichEdit::SetAttribute(const std::wstring& strName, const std::wstring& str
 		SetSaveSelection(strValue == L"true");
 	}
 	else if (strName == L"hide_selection") {
-		//是否隐藏选项项
+		//是否隐藏选择内容
 		SetHideSelection(strValue == L"true");
 	}
 	else if (strName == L"zoom") {
-		//缩放比例
+		//缩放比例：
+		//设置缩放比例：设 wParam：缩放比例的分子，lParam：缩放比例的分母，
+		// "wParam,lParam" 表示按缩放比例分子/分母显示的缩放，取值范围：1/64 < (wParam / lParam) < 64。
+		// 举例：则："0,0"表示关闭缩放功能，"2,1"表示放大到200%，"1,2"表示缩小到50% 
 		UiSize zoomValue;
 		AttributeUtil::ParseSizeValue(strValue.c_str(), zoomValue);
 		if ((zoomValue.cx >= 0) && (zoomValue.cx <= 64) &&
@@ -422,7 +425,7 @@ void RichEdit::SetAttribute(const std::wstring& strName, const std::wstring& str
 		SetEnableWheelZoom(strValue == L"true");
 	}
 	else if (strName == L"default_context_menu") {
-		//指定右键菜单的开关
+		//是否使用默认的右键菜单
 		SetEnableDefaultContextMenu(strValue == L"true");
 	}
 	else if (strName == L"enable_drag_drop") {

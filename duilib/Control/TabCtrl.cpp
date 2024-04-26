@@ -22,6 +22,7 @@ void TabCtrl::SetAttribute(const std::wstring& strName, const std::wstring& strV
         }
     }
     else if (strName == L"tab_box_name") {
+        //绑定的TabBox控件名称，绑定后TabCtrl的选择项变化时，TabBox的选择项会跟随变化
         SetTabBoxName(strValue);
     }
     else {

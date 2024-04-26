@@ -257,3 +257,280 @@ ComboButton 控件继承了 `Box` 属性，更多可用属性请参考`Box`的属性
 | selected_item_class | | string | 选择项中每一个子项的属性，具体设置方法可参照示例程序|
 
 CheckCombo 控件继承了 `Box` 属性，更多可用属性请参考`Box`的属性
+
+## DateTime的属性
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :--- | :--- | :--- | :--- |
+| format | | string | 日期的格式，具体可参考：`DateTime.h`中函数的说明 |
+| edit_format | | string | 编辑状态时，日期的编辑格式，可选值："date_calendar"：年-月-日，通过下拉框展示月日历的方式来修改日期；"date_up_down"： 编辑时显示：年-月-日，通过控件的右侧放置一个向上-向下的控件以修改日期；"date_time_up_down"：编辑时显示：年-月-日 时:分:秒；"date_minute_up_down"：编辑时显示：年-月-日 时:分；"time_up_down"：编辑时显示：时:分:秒；"minute_up_down"：编辑时显示：时:分|
+
+DateTime 控件继承了 `Label` 属性，更多可用属性请参考`Label`的属性
+
+## HotKey的属性
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :--- | :--- | :--- | :--- |
+| default_text | | string | 默认显示的文字 |
+
+HotKey 控件继承了 `HBox` 属性，更多可用属性请参考`HBox`的属性
+
+## HyperLink的属性
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :--- | :--- | :--- | :--- |
+| url | | string | URL |
+
+HyperLink 控件继承了 `Label` 属性，更多可用属性请参考`Label`的属性
+
+## IPAddress的属性
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :--- | :--- | :--- | :--- |
+| ip | | string | IP地址，比如："192.168.0.0" |
+
+HotKey 控件继承了 `HBox` 属性，更多可用属性请参考`HBox`的属性
+
+## Line的属性
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :--- | :--- | :--- | :--- |
+| vertical | false | bool | 是否为垂直的线 |
+| line_color | | string | 线的颜色 |
+| line_width | | int | 线的宽度 |
+| dash_style | | string | 线的形状，可选值："solid"：实线；"dash"：短划线构成的虚线；"dot"：点构成的虚线；"dash_dot"：交替短划线点线；"dash_dot_dot"：交替短划线点点线|
+
+Line 控件继承了 `Control` 属性，更多可用属性请参考`Control`的属性
+
+## CMenuWnd的属性
+CMenuWnd是一个窗口，具体用法请参考示例程序中的菜单    
+CMenuWnd 控件继承了 `Window` 属性，更多可用属性请参考`Window`的属性
+
+## Progress的属性
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :--- | :--- | :--- | :--- |
+| horizontal | true | bool | 是否水平的，true表示水平，false表示垂直 |
+| min | 0 | int | 进度最小值,如(0) |
+| max | 100 | int | 进度最大值,如(100) |
+| value | 0 | int | 进度值,如(50) |
+| progress_image |  | string | 进度条前景图片 |
+| stretch_fore_image | true | bool | 指定进度条前景图片是否缩放显示 |
+| progress_color |  | string | 进度条前景颜色,不指定则使用默认颜色,如(blue) |
+| marquee | true | bool | 是否滚动显示 |
+| marquee_width | | int | 滚动的宽度 |
+| marquee_step | | int | 滚动的步长 |
+| reverse | false | bool | 进度值是否倒数（进度从100 到 0） |
+
+Progress 控件继承了 `Label` 属性，更多可用属性请参考`Label`的属性
+
+## Slider的属性
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :--- | :--- | :--- | :--- |
+| thumb_normal_image |  | string | 拖动滑块普通状态图片 |
+| thumb_hot_image |  | string | 拖动滑块鼠标悬浮状态图片 |
+| thumb_pushed_image |  | string | 拖动滑块鼠标按下状态图片 |
+| thumb_disabled_image |  | string | 拖动滑块鼠标禁用状态图片 |
+| thumb_size | 10,10 | size | 拖动滑块大小,如(10,10) |
+| step | 1 | int | 进度步长,如(1) |
+| progress_bar_padding | 0,0,0,0 | rect | 滑动条绘制时缩小的内边距 |
+
+Slider 控件继承了 `Progress` 属性，更多可用属性请参考`Progress`的属性
+
+## CircleProgress的属性
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :--- | :--- | :--- | :--- |
+| circular | true | bool | 功能开关：是否为环形进度条 |
+| circle_width | 1 | int | 环形进度条的宽度，如(10) |
+| indicator |  | string | 设置进度指示移动图标 |
+| clockwise | true | bool |设置递增方向 |
+| bgcolor |  | string | 设置进度条背景颜色 |
+| fgcolor |  | string | 设置进度条背前景色 |
+| gradient_color |  | string | 设置进度条前景渐变颜色，与 fgcolor 同时使用，可以不设置则无渐变效果 |
+
+CircleProgress 控件继承了 `Progress` 属性，更多可用属性请参考`Progress`的属性
+
+## RichEdit的属性
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :--- | :--- | :--- | :--- |
+| vscrollbar | false | bool | 是否使用竖向滚动条,如(true) |
+| hscrollbar | false | bool | 是否使用横向滚动条,如(true) |
+| auto_vscroll | false | bool | 是否随输入竖向滚动,如(true) |
+| auto_hscroll | false | bool | 是否随输入横向滚动,如(true) |
+| want_tab | true | bool | 是否接受tab按键消息,如(true) |
+| want_return_msg | true | bool | 是否接受return按键消息,如(true) |
+| return_msg_want_ctrl | true | bool | 是否接受ctrl+return按键消息,如(true) |
+| rich_text | true | bool | 是否使用富格式,如(true) |
+| single_line | true | bool | 是否使用单行,如(true) |
+| multi_line | true | bool | 是否使用多行,该属性与single_line互斥,如(true) |
+| readonly | false | bool | 是否只读,如(false) |
+| password | false | bool | 是否为密码模式,如(true) |
+| show_password | false | bool | 是否显示密码符,如(true) |
+| password_char | | string | 设置密码字符，默认为 " * " 字符，可用通过这个属性改变|
+| flash_password_char | false | bool | 先显示字符，然后再显示密码字符|
+| number_only | false | bool | 是否只允许输入数字,如(false) |
+| max_number | INT_MAX | int | 允许的最大数字(仅当number_only为true的时候有效) |
+| min_number | INT_MIN | int | 允许的最小数字(仅当number_only为true的时候有效 |
+| text_align | left,top | string | 文字对齐方式, 取值: left、right、hcenter、top、vcenter、bottom, 如(right,bottom) |
+| text_padding |  | rect | 文本内边距，如："2,2,2,2" |
+| text |  | string | 显示文本,如(测试文本) |
+| textid |  | string | 显示文本的多语言功能ID |
+| font | | string | 字体ID |
+| normal_text_color |  | string | 普通状态文字颜色,不指定则使用默认颜色,如(blue) |
+| disabled_text_color |  | string | 禁用状态文字颜色,不指定则使用默认颜色,如(blue) |
+| caret_color |  | string | 光标的颜色 |
+| prompt_mode | false | bool | 是否显示提示文字,如(true) |
+| prompt_text |  | string | 文本框内提示文字,当文本框text为空时显示 |
+| prompt_textid |  | string | 多语言功能的ID,如(TEXT_OUT) |
+| prompt_color |  | string | 文本框内提示文字的颜色 |
+| focused_image |  | string | 焦点状态下的图片 |
+| auto_detect_url | false | bool | 是否自动检测URL，如果是URL则显示为超链接 |
+| limit_text | | int | 限制最多字符数 |
+| limit_chars | | string | 限制允许输入哪些字符，比如"abc"表示只允许输入a、b、c字符，不允许输入其他字符 |
+| allow_beep | | bool | 是否允许发出Beep声音 |
+| word_wrap | | bool | 是否自动换行 |
+| no_caret_readonly | | bool | 只读模式，不显示光标 |
+| save_selection | | bool | 如果 为 true，则当控件处于非活动状态时，应保存所选内容的边界 |
+| hide_selection | | bool | 是否隐藏选择内容 |
+| zoom | | size | 设置缩放比例：设 wParam：缩放比例的分子，lParam：缩放比例的分母。"wParam,lParam" 表示按缩放比例分子/分母显示的缩放，取值范围：1/64 < (wParam / lParam) < 64。举例：则："0,0"表示关闭缩放功能，"2,1"表示放大到200%，"1,2"表示缩小到50% |
+| wheel_zoom | | bool | 是否允许Ctrl + 滚轮来调整缩放比例 |
+| default_context_menu | | bool | 是否使用默认的右键菜单 |
+| enable_drag_drop | | bool | 是否允许拖放操作 |
+| spin_class | | string | 设置Spin功能的Class名称，如果不为空则显示Spin按钮，详细用法参见示例程序|
+| clear_btn_class | | string | 设置清除按钮功能的Class名称，如果不为空则显示清楚按钮，详细用法参见示例程序 |
+| show_passowrd_btn_class | | string |设置显示密码按钮功能的Class名称，如果不为空则显示显示密码按钮 ，详细用法参见示例程序 |
+
+RichEdit 控件继承了 `ScrollBox` 属性，更多可用属性请参考`ScrollBox`的属性
+
+## RichText的属性
+RichText是带有格式的文本，其格式类似于HTML标签，格式文本以`<RichText>`开头，以`</RichText>`结尾。    
+举例：`<RichText>格式文本演示：<a href="URL">文本</a></RichText>`    
+支持的标签列表：    
+```cpp
+   // 支持的标签列表(兼容HTML的标签):
+   // 超级链接：   <a href="URL">文本</a>
+   // 粗体字:      <b> </b>
+   // 斜体字:      <i> </i>
+   // 删除字:      <s> </s> 或 <del> </del> 或者 <strike> </strike>
+   // 下划线字:    <u> </u>
+   // 设置背景色:  <bgcolor color="#000000"> </bgcolor>
+   // 设置字体:    <font face="宋体" size="12" color="#000000">
+   // 换行标签：   <br/>
+```
+具体用法也可用参考示例程序。
+
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :--- | :--- | :--- | :--- |
+| text_align | left,top | string | 文字对齐方式, 取值: left、right、hcenter、top、vcenter、bottom, 如(right,bottom) |
+| text_padding |  | rect | 文本内边距，如："2,2,2,2" |
+| font | | string | 字体ID |
+| text_color | | string | 默认文本颜色 |
+| default_link_font_color | | string | 超级链接：常规文本颜色值 |
+| hover_link_font_color | | string | 超级链接：Hover状态文本颜色值 |
+| mouse_down_link_font_color | | string | 超级链接：鼠标按下状态文本颜色值 |
+| link_font_underline | | string | 超级链接：是否使用带下划线的字体 |
+| row_spacing_mul | | float | 行间距倍数, 比如1.5代表1.5倍行间距 |
+
+RichText 控件继承了 `Control` 属性，更多可用属性请参考`Control`的属性
+
+## Split的属性
+分割条控件，可以通过拖动分割条改变左右或者上下两个控件的宽度或者高度，应用方法:     
+如果放在横向布局（HLayout）中，则左右拖动    
+如果放在纵向布局（VLayout）中，则上下拖动    
+注意事项：如果两个控件都设置为拉伸类型的，则分割条无法正常工作。
+
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :--- | :--- | :--- | :--- |
+| enable_split_single | false | bool | 当只有一个控件的时候，是否允许调整其宽度 |
+
+Split 控件继承了 `Control` 属性，更多可用属性请参考`Control`的属性
+
+## SplitBox的属性
+SplitBox 与 Split 是相同模板实现，可用属性请参考`Split`的属性    
+SplitBox 控件继承了 `Box` 属性，更多可用属性请参考`Box`的属性
+
+## TabCtrl的属性
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :--- | :--- | :--- | :--- |
+| selected_id | | int | 默认选择的子项 |
+| tab_box_name | | string | 绑定的TabBox控件名称，绑定后TabCtrl的选择项变化时，TabBox的选择项会跟随变化 |
+
+TabCtrl 控件继承了 `ListBox` 属性，更多可用属性请参考`ListBox`的属性
+
+## TreeView的属性
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :--- | :--- | :--- | :--- |
+| indent | | int | 树节点的缩进（每层节点缩进一个indent单位） |
+| multi_select | false | bool | 是否支持多选 |
+| check_box_class | | string | 显示CheckBox的Class属性，定义方法请参考`global.xml` 中的对应内容和示例程序|
+| expand_image_class | | string | 显示展开/收起图标的Class属性，定义方法请参考`global.xml` 中的对应内容和示例程序|
+| show_icon | | string | 显示图标的Class属性，定义方法请参考`global.xml` 中的对应内容和示例程序|
+
+TreeView 控件继承了 `ListBox` 属性，更多可用属性请参考`ListBox`的属性
+
+## TreeNode的属性
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :--- | :--- | :--- | :--- |
+| expand_normal_image | | string | 展开时，正常状态的图片，定义方法请参考`global.xml` 中的对应内容和示例程序|
+| expand_hot_image | | string | 展开时，悬停状态的图片，定义方法请参考`global.xml` 中的对应内容和示例程序|
+| expand_pushed_image | | string | 展开时，按下状态的图片，定义方法请参考`global.xml` 中的对应内容和示例程序|
+| expand_disabled_image | | string | 展开时，禁止状态的图片，定义方法请参考`global.xml` 中的对应内容和示例程序|
+| collapse_normal_image | | string | 收起时，正常状态的图片，定义方法请参考`global.xml` 中的对应内容和示例程序|
+| collapse_hot_image | | string | 收起时，悬停状态的图片，定义方法请参考`global.xml` 中的对应内容和示例程序|
+| collapse_pushed_image | | string | 收起时，按下状态的图片，定义方法请参考`global.xml` 中的对应内容和示例程序|
+| collapse_disabled_image | | string | 收起时，禁止状态的图片，定义方法请参考`global.xml` 中的对应内容和示例程序|
+| expand_image_right_space | | int | 展开图片右侧的空隙 |
+| check_box_image_right_space | | int | CheckBox图片右侧的空隙 |
+| icon_image_right_space | | int | 图标右侧的空隙 |
+
+TreeNode 控件继承了 `ListBoxItem` 属性，更多可用属性请参考`ListBoxItem`的属性
+
+## ListCtrl的属性
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :--- | :--- | :--- | :--- |
+| type | "report" | string | 类型，可选值："report"、"icon"、"list" |
+| header_class | | string | ListCtrlHeader的Class属性，定义方法请参考`global.xml` 中的对应内容和示例程序|
+| header_item_class | | string | ListCtrlHeaderItem的Class属性，定义方法请参考`global.xml` 中的对应内容和示例程序|
+| header_split_box_class | | string | ListCtrlHeader/SplitBox的Class属性，定义方法请参考`global.xml` 中的对应内容和示例程序|
+| header_split_control_class | | string | ListCtrlHeader/SplitBox/Control的Class属性，定义方法请参考`global.xml` 中的对应内容和示例程序|
+| enable_header_drag_order | true | bool | 是否支持列表头拖动改变列的顺序|
+| check_box_class | | string | CheckBox的Class属性(应用于Header和ListCtrl数据)，定义方法请参考`global.xml` 中的对应内容和示例程序|
+| data_item_class | | string | ListCtrlItem的Class属性，定义方法请参考`global.xml` 中的对应内容和示例程序|
+| data_sub_item_class | | string | ListCtrlItem/ListCtrlSubItem的Class属性，定义方法请参考`global.xml` 中的对应内容和示例程序|
+| row_grid_line_width | | int | 横向网格线的宽度|
+| row_grid_line_color | | int | 横向网格线的颜色|
+| column_grid_line_width | | int | 纵向网格线的宽度|
+| column_grid_line_color | | int | 纵向网格线的颜色|
+| report_view_class | | string | 数据Report视图中的ListBox的Class属性，定义方法请参考`global.xml` 中的对应内容和示例程序|
+| header_height | | int | 表头控件的高度|
+| data_item_height | | int | 数据项的默认高度(行高)|
+| show_header | true | bool | 是否显示表头控件|
+| multi_select | true | bool | 是否支持多选|
+| enable_column_width_auto | true | bool | 是否支持双击Header的分割条自动调整列宽|
+| auto_check_select | false | bool | 是否自动勾选选择的数据项(作用于Header与每行)|
+| show_header_checkbox | false | bool | 是否在表头最左侧显示CheckBox|
+| show_data_item_checkbox | false | bool | 是否在每行行首显示CheckBox|
+| icon_view_class | | string | 数据Icon视图中的ListBox的Class属性，定义方法请参考`global.xml` 中的对应内容和示例程序|
+| icon_view_item_image_class | | string | 数据Icon视图中的ListBox的子项中图片的Class属性，定义方法请参考`global.xml` 中的对应内容和示例程序|
+| icon_view_item_label_class | | string | 数据Icon视图中的ListBox的子项中Label的Class属性，定义方法请参考`global.xml` 中的对应内容和示例程序|
+| list_view_class | | string | 数据List视图中的ListBox的Class属性，定义方法请参考`global.xml` 中的对应内容和示例程序|
+| list_view_item_class | | string | 数据List视图中的ListBox的子项Class属性，定义方法请参考`global.xml` 中的对应内容和示例程序|
+| list_view_item_image_class | | string | 数据List视图中的ListBox的子项的图片的Class属性，定义方法请参考`global.xml` 中的对应内容和示例程序|
+| list_view_item_label_class | | string | 数据List视图中的ListBox的子项的Label的Class属性，定义方法请参考`global.xml` 中的对应内容和示例程序|
+| enable_item_edit | true | bool | 是否支持子项编辑|
+| list_ctrl_richedit_class | | string | 编辑框的Class属性，定义方法请参考`global.xml` 中的对应内容和示例程序|
+
+ListCtrl 控件继承了 `VBox` 属性，更多可用属性请参考`VBox`的属性
+
+## PropertyGrid的属性
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :--- | :--- | :--- | :--- |
+| property_grid_xml | | string | 配置文件XML，如果为空，默认为："public/property_grid/property_grid.xml" |
+| row_grid_line_width | | int | 横向网格线的宽度|
+| row_grid_line_color | | int | 横向网格线的颜色|
+| column_grid_line_width | | int | 纵向网格线的宽度|
+| column_grid_line_color | | int | 纵向网格线的颜色|
+| header_class | | string | 表头的Class属性，定义方法请参考`global.xml` 中的对应内容和示例程序|
+| group_class | | string | 分组的ClassClass属性，定义方法请参考`global.xml` 中的对应内容和示例程序|
+| propterty_class | | string | 属性的ClassClass属性，定义方法请参考`global.xml` 中的对应内容和示例程序|
+| left_column_width | | int | 左侧一列的宽度|
+
+PropertyGrid 控件继承了 `VBox` 属性，更多可用属性请参考`VBox`的属性
+
+## ColorPicker的属性
+ColorPicker是一个窗口，具体用法请参考示例程序中的菜单    
+ColorPicker 控件继承了 `Window` 属性，更多可用属性请参考`Window`的属性

@@ -137,7 +137,7 @@ void Progress::SetProgressColor(const std::wstring& strProgressColor)
 
 void Progress::SetAttribute(const std::wstring& srName, const std::wstring& strValue)
 {
-	if ((srName == L"hor") || (srName == L"horizontal")){
+	if ((srName == L"horizontal") || (srName == L"hor")){
 		SetHorizontal(strValue == L"true");
 	}
 	else if (srName == L"min") {

@@ -742,8 +742,13 @@ protected:
     void SetIconViewItemClass(const std::wstring& className);
     std::wstring GetIconViewItemClass() const;
 
+    /** 数据Icon视图中的ListBox的子项中图片的Class属性
+    */
     void SetIconViewItemImageClass(const std::wstring& className);
     std::wstring GetIconViewItemImageClass() const;
+
+    /** 数据Icon视图中的ListBox的子项中Label的Class属性
+    */
     void SetIconViewItemLabelClass(const std::wstring& className);
     std::wstring GetIconViewItemLabelClass() const;
 
@@ -757,8 +762,13 @@ protected:
     void SetListViewItemClass(const std::wstring& className);
     std::wstring GetListViewItemClass() const;
 
+    /** 数据List视图中的ListBox的子项的图片的Class属性
+    */
     void SetListViewItemImageClass(const std::wstring& className);
     std::wstring GetListViewItemImageClass() const;
+
+    /** 数据List视图中的ListBox的子项的Label的Class属性
+    */
     void SetListViewItemLabelClass(const std::wstring& className);
     std::wstring GetListViewItemLabelClass() const;
 
