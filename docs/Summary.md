@@ -2,10 +2,11 @@
 
 * [项目简介](../README.md)
 * [快速上手](Getting-Started.md)
-* [全局样式](Global.md)
+* [示例程序](docs/Examples.md)
+* [全局样式：字体、颜色、图片等资源](Global.md)
 * [窗口的样式](Window.md)
-* [控件的样式](Control.md)
 * [容器的样式](Box.md)
+* [控件的样式](Control.md)
 
 ## 项目中主要类的简表
 * 基本数据类型
