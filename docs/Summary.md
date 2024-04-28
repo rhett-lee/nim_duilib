@@ -2,11 +2,12 @@
 
 * [项目简介](../README.md)
 * [快速上手](Getting-Started.md)
-* [示例程序](docs/Examples.md)
+* [示例程序](Examples.md)
 * [全局样式：字体、颜色、图片等资源](Global.md)
 * [窗口的样式](Window.md)
 * [容器的样式](Box.md)
 * [控件的样式](Control.md)
+* [XML文件中各控件的节点名称](Node.md)
 
 ## 项目中主要类的简表
 * 基本数据类型
@@ -167,7 +168,7 @@
 | ComboButton | Box| [duilib/Control/ComboButton.h](../duilib/Control/ComboButton.h) | 带有下拉组合框的按钮 |
 | CheckCombo | Control| [duilib/Control/CheckCombo.h](../duilib/Control/CheckCombo.h) | 带复选框的组合框 |
 | FilterCombo | Combo| [duilib/Control/FilterCombo.h](../duilib/Control/FilterCombo.h) | 带有过滤功能的组合框 |
-| DateTime | Label| [duilib/Control/XXXXX.h](../duilib/Control/DateTime.h) | 日期时间选择控件 |
+| DateTime | Label| [duilib/Control/DateTime.h](../duilib/Control/DateTime.h) | 日期时间选择控件 |
 | HotKey | HBox| [duilib/Control/HotKey.h](../duilib/Control/HotKey.h) | 热键控件 |
 | HyperLink | Label| [duilib/Control/HyperLink.h](../duilib/Control/HyperLink.h) | 带有超级链接的文字, 如果URL为空的话，可以当作普通的文字按钮使用 |
 | IPAddress | HBox| [duilib/Control/IPAddress.h](../duilib/Control/IPAddress.h) | IP地址控件 |
@@ -204,6 +205,10 @@
 | 拾色器实现类 | | [duilib/Control/ColorPickerStatard.h](../duilib/Control/ColorPickerStatard.h) | ColorPicker的实现类，标准颜色 |
 | 拾色器实现类 | | [duilib/Control/ColorPickerStatardGray.h](../duilib/Control/ColorPickerStatardGray.h) | ColorPicker的实现类，标准颜色，灰色 |
 | 拾色器实现类 | | [duilib/Control/ColorSlider.h](../duilib/Control/ColorSlider.h) | ColorPicker的实现类 |
+| ControlDragable | Control | [duilib/Control/ControlDragable.h](../duilib/Control/ControlDragable.h) | 支持相同Box内的子控件通过拖动来调整顺序 |
+| BoxDragable | Box | [duilib/Control/ControlDragable.h](../duilib/Control/ControlDragable.h) | 支持相同Box内的子控件通过拖动来调整顺序 |
+| HBoxDragable | HBox | [duilib/Control/ControlDragable.h](../duilib/Control/ControlDragable.h) | 支持相同Box内的子控件通过拖动来调整顺序 |
+| VBoxDragable | VBoxDragable | [duilib/Control/ControlDragable.h](../duilib/Control/ControlDragable.h) | 支持相同Box内的子控件通过拖动来调整顺序 |
 
 * 全局资源
 | 类名称 | 关联头文件| 用途 |

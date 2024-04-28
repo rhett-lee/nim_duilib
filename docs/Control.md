@@ -534,3 +534,12 @@ PropertyGrid 控件继承了 `VBox` 属性，更多可用属性请参考`VBox`的属性
 ## ColorPicker的属性
 ColorPicker是一个窗口，具体用法请参考示例程序中的菜单    
 ColorPicker 控件继承了 `Window` 属性，更多可用属性请参考`Window`的属性
+
+## ControlDragable的属性
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :--- | :--- | :--- | :--- |
+| drag_order | true | bool | 是否支持拖动调整顺序（在同一个容器内） |
+| drag_alpha | 216 | int | 设置拖动顺序时，控件的透明度（0 - 255） |
+| drag_out | true | bool | 是否支持拖出操纵（在相同窗口的不同容器内） |
+
+ControlDragable 控件继承了 `Control` 属性，更多可用属性请参考`Control`的属性

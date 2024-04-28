@@ -188,3 +188,21 @@ VirtualVTileListBox 控件继承了 `VirtualListBox` 属性，更多可用属性请参考`Virtual
 | scale_down | true | bool | 当控件内容超出边界时，按比例缩小，以使控件内容完全显示在瓦片区域内|
 
 VirtualHTileListBox 控件继承了 `VirtualListBox` 属性，更多可用属性请参考`VirtualListBox`的属性
+
+## BoxDragable的属性
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :--- | :--- | :--- | :--- |
+| drag_order | true | bool | 是否支持拖动调整顺序（在同一个容器内） |
+| drag_alpha | 216 | int | 设置拖动顺序时，控件的透明度（0 - 255） |
+| drag_out | true | bool | 是否支持拖出操纵（在相同窗口的不同容器内） |
+
+BoxDragable 控件继承了 `Box` 属性，更多可用属性请参考`Box`的属性
+
+## HBoxDragable的属性
+HBoxDragable 与 BoxDragable是一个模板类实现的，属性请参考`BoxDragable`的属性    
+HBoxDragable 控件继承了 `HBox` 属性，更多可用属性请参考`HBox`的属性
+
+## VBoxDragable的属性
+VBoxDragable 与 BoxDragable是一个模板类实现的，属性请参考`BoxDragable`的属性    
+VBoxDragable 控件继承了 `VBox` 属性，更多可用属性请参考`VBox`的属性
+
