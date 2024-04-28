@@ -55,7 +55,8 @@ typedef class ReceiverImpl<BOOL, ContextMenuParam> ContextMenuReceiver;
 /////////////////////////////////////////////////////////////////////////////////////
 //
 
-
+/** 菜单类
+*/
 class CMenuElementUI;
 class CMenuWnd : public ui::WindowImplBase, public ContextMenuReceiver
 {
@@ -169,6 +170,8 @@ private:
 	ui::ListBox* m_pLayout;
 };
 
+/** 菜单项
+*/
 class CMenuElementUI : public ui::ListBoxItem
 {
 public:
