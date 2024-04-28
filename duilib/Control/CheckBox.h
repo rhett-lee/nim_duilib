@@ -664,7 +664,7 @@ void CheckBoxTemplate<InheritType>::PaintText(IRender* pRender)
     }
     this->SetTextStyle(uTextStyle, false);
 
-    if (this->GetAnimationManager().GetAnimationPlayer(kAnimationHot)) {
+    if (this->GetAnimationManager().GetAnimationPlayer(AnimationType::kAnimationHot)) {
         if ((stateType == kControlStateNormal || stateType == kControlStateHot)
             && !GetSelectedStateTextColor(kControlStateHot).empty()) {
             std::wstring clrStateColor = GetSelectedStateTextColor(kControlStateNormal);

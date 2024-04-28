@@ -504,7 +504,7 @@ void LabelTemplate<InheritType>::DoPaintText(const UiRect & rc, IRender * pRende
         m_uTextStyle &= ~TEXT_SINGLELINE;
     }
     std::wstring fontId = GetFontId();
-    if (this->GetAnimationManager().GetAnimationPlayer(kAnimationHot)) {
+    if (this->GetAnimationManager().GetAnimationPlayer(AnimationType::kAnimationHot)) {
         if ((stateType == kControlStateNormal || stateType == kControlStateHot) && 
             !GetStateTextColor(kControlStateHot).empty()) {
             std::wstring clrColor = GetStateTextColor(kControlStateNormal);

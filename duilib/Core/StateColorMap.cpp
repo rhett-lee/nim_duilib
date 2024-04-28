@@ -64,7 +64,7 @@ void StateColorMap::PaintStateColor(IRender* pRender, UiRect rcPaint, ControlSta
 		return;
 	}
 	if (m_pControl != nullptr) {
-		bool bFadeHot = m_pControl->GetAnimationManager().GetAnimationPlayer(kAnimationHot) != nullptr;
+		bool bFadeHot = m_pControl->GetAnimationManager().GetAnimationPlayer(AnimationType::kAnimationHot) != nullptr;
 		int32_t nHotAlpha = m_pControl->GetHotAlpha();
 		if (bFadeHot) {
 			if ((stateType == kControlStateNormal || stateType == kControlStateHot) && HasStateColor(kControlStateHot)) {

@@ -212,17 +212,17 @@ namespace ui
 	};
 
 	//控件动画类型
-	enum AnimationType
+	enum class AnimationType
 	{
-		kAnimationNone,
-		kAnimationAlpha,
-		kAnimationHeight,
-		kAnimationWidth,
-		kAnimationHot,
-		kAnimationInoutXFromLeft,
-		kAnimationInoutXFromRight,
-		kAnimationInoutYFromTop,
-		kAnimationInoutYFromBottom,
+		kAnimationNone,					//无动画
+		kAnimationAlpha,				//透明度渐变动画
+		kAnimationHeight,				//控件高度变化动画
+		kAnimationWidth,				//控件宽度变化动画
+		kAnimationHot,					//鼠标悬停状态的动画
+		kAnimationInoutXFromLeft,		//控件的X坐标变化动画，从左侧
+		kAnimationInoutXFromRight,		//控件的X坐标变化动画，从右侧
+		kAnimationInoutYFromTop,		//控件的Y坐标变化动画，从上侧
+		kAnimationInoutYFromBottom,		//控件的Y坐标变化动画，从下侧
 	};
 
 	//GIF图片帧类型

@@ -7,11 +7,14 @@ namespace ui
 {
 
 static bool IsZeroValue(double value) {
-	const double epsilon = 0.00001;
-	return std::abs(value - 0) < epsilon;
+	return std::abs(value - 0) < 0.00001;
 }
 
-AnimationPlayerBase::AnimationPlayerBase() : m_bFirstRun(true), m_animationType(0)
+AnimationPlayerBase::AnimationPlayerBase(): 
+	m_bFirstRun(true),
+	m_animationType(AnimationType::kAnimationNone),
+	m_playCallback(nullptr),
+	m_completeCallback(nullptr)
 {
 	Init();
 }
@@ -37,10 +40,9 @@ void AnimationPlayerBase::Init()
 	m_totalMillSeconds = AP_NO_VALUE;
 	m_palyedMillSeconds = 0;
 	m_elapseMillSeconds = 0;
-	m_currentTime.QuadPart = 0;
-	m_timeFrequency.QuadPart = 0;
 	m_reverseStart = false;
 	m_bPlaying = false;
+	m_startTime = std::chrono::high_resolution_clock::now();
 }
 
 void AnimationPlayerBase::Start()
@@ -86,9 +88,7 @@ void AnimationPlayerBase::ReverseContinue()
 
 void AnimationPlayerBase::StartTimer()
 {
-	QueryPerformanceFrequency(&m_timeFrequency);
-	QueryPerformanceCounter(&m_currentTime);
-
+	m_startTime = std::chrono::high_resolution_clock::now();
 	m_bPlaying = true;
 	if (m_endValue - m_startValue == 0) {
 		Complete();
@@ -108,28 +108,29 @@ void AnimationPlayerBase::StartTimer()
 
 void AnimationPlayerBase::Play()
 {
-	LARGE_INTEGER newCurrentTime;
-	QueryPerformanceCounter(&newCurrentTime);
-	m_palyedMillSeconds += (static_cast<double>(newCurrentTime.QuadPart - m_currentTime.QuadPart) * 1000 )/m_timeFrequency.QuadPart;
-	QueryPerformanceCounter(&m_currentTime);
+	std::chrono::steady_clock::time_point endTime = std::chrono::high_resolution_clock::now();
+	auto thisTime = endTime - m_startTime; //播放耗时：微秒(千分之一毫秒)
+	m_palyedMillSeconds += (thisTime.count() / 1000); //累计到已播放时间（毫秒）
+	m_startTime = std::chrono::high_resolution_clock::now();
 
 	int64_t newCurrentValue = GetCurrentValue();
-	if (m_playCallback) {
-		if (m_endValue > m_startValue && newCurrentValue >= m_endValue
-			|| m_endValue < m_startValue && newCurrentValue <= m_endValue) {
-			newCurrentValue = m_endValue;
-			m_playCallback(newCurrentValue);
-			Complete();
-		}
-		else {
-			if (newCurrentValue != m_currentValue) {
-				m_playCallback(newCurrentValue);
-			}
-		}
-	}
-	else {
-		ASSERT(FALSE);
-	}
+    if (m_playCallback) {
+        if (( (m_endValue > m_startValue) && (newCurrentValue >= m_endValue) ) ||
+			( (m_endValue < m_startValue) && (newCurrentValue <= m_endValue) ) ) {
+			//播放完成
+            newCurrentValue = m_endValue;
+            m_playCallback(newCurrentValue);
+            Complete();
+        }
+        else {
+            if (newCurrentValue != m_currentValue) {
+                m_playCallback(newCurrentValue);
+            }
+        }
+    }
+    else {
+        ASSERT(FALSE);
+    }
 
 	m_currentValue = newCurrentValue;
 }
@@ -139,8 +140,9 @@ void AnimationPlayerBase::ReverseAllValue()
 	std::swap(m_startValue, m_endValue);
 	m_currentValue = m_startValue;
 	m_palyedMillSeconds = m_totalMillSeconds - m_palyedMillSeconds;
-	if (m_palyedMillSeconds < 0)
+	if (m_palyedMillSeconds < 0) {
 		m_palyedMillSeconds = 0;
+	}
 }
 
 void AnimationPlayerBase::Complete()
@@ -178,7 +180,7 @@ void AnimationPlayer::StartTimer()
 	__super::StartTimer();
 }
 
-int64_t AnimationPlayer::GetCurrentValue()
+int64_t AnimationPlayer::GetCurrentValue() const
 {
 	if (m_palyedMillSeconds >= m_totalMillSeconds) {
 		return m_endValue;
@@ -215,7 +217,6 @@ int64_t AnimationPlayer::GetCurrentValue()
 void AnimationPlayer::InitFactor()
 {
 	int64_t s = std::abs(m_endValue - m_startValue);
-
 	if (m_speedUpRatio == 0 && m_speedDownRatio == 0) {	//liner
 		ASSERT(m_totalMillSeconds == AP_NO_VALUE && !IsZeroValue(m_linearSpeed) || 
 			   m_totalMillSeconds != AP_NO_VALUE && IsZeroValue(m_linearSpeed));
