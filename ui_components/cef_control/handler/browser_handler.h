@@ -5,16 +5,20 @@
   * @date 2016/7/19
 */
 #pragma once
+#include "ui_components/cef_control/util/auto_unregister.h"
+#include "ui_components/cef_control/app/cef_js_bridge.h"
+#include "ui_components/cef_control/handler/drag/osr_dragdrop_win.h"
+
+#pragma warning (push)
+#pragma warning (disable:4100)
 #include "include/cef_client.h"
 #include "include/cef_browser.h"
-#include "cef_control/util/auto_unregister.h"
-#include "cef_control/app/cef_js_bridge.h"
+#pragma warning (pop)
 
 namespace nim_comp
 {
 // BrowserHandler implements CefClient and a number of other interfaces.
-class BrowserHandler : 
-	public nbase::SupportWeakCallback,
+class BrowserHandler : public virtual nbase::SupportWeakCallback,
 	public CefClient,
 	public CefLifeSpanHandler,
 	public CefRenderHandler,
@@ -27,7 +31,8 @@ class BrowserHandler :
 	public CefLoadHandler,
 	public CefRequestHandler,
 	public CefDownloadHandler,
-	public CefDialogHandler
+	public CefDialogHandler,
+	public client::OsrDragEvents
 {
 public:
 	BrowserHandler();
@@ -52,6 +57,8 @@ public:
 		virtual void OnPopupShow(CefRefPtr<CefBrowser> browser, bool show) = 0;
 
 		virtual void OnPopupSize(CefRefPtr<CefBrowser> browser, const CefRect& rect) = 0;
+
+		virtual void ClientToControl(POINT &pt) = 0;
 
 		virtual void UpdateWindowPos() = 0;
 
@@ -206,6 +213,8 @@ public:
 
 	virtual bool GetScreenPoint(CefRefPtr<CefBrowser> browser, int viewX, int viewY, int& screenX, int& screenY) OVERRIDE;
 
+	virtual bool GetScreenInfo(CefRefPtr<CefBrowser> browser, CefScreenInfo& screen_info) OVERRIDE;
+
 	virtual void OnPopupShow(CefRefPtr<CefBrowser> browser, bool show) OVERRIDE;
 
 	virtual void OnPopupSize(CefRefPtr<CefBrowser> browser, const CefRect& rect) OVERRIDE;
@@ -213,6 +222,20 @@ public:
 	virtual void OnPaint(CefRefPtr<CefBrowser> browser,	PaintElementType type, const RectList& dirtyRects, const void* buffer, int width, int height) OVERRIDE;
 
 	virtual void OnCursorChange(CefRefPtr<CefBrowser> browser, CefCursorHandle cursor, CursorType type,	const CefCursorInfo& custom_cursor_info) OVERRIDE;
+
+	bool StartDragging(CefRefPtr<CefBrowser> browser, CefRefPtr<CefDragData> drag_data, CefRenderHandler::DragOperationsMask allowed_ops, int x, int y) OVERRIDE;
+	void UpdateDragCursor(CefRefPtr<CefBrowser> browser, CefRenderHandler::DragOperation operation) OVERRIDE;
+
+	// OsrDragEvents methods.
+	CefBrowserHost::DragOperationsMask OnDragEnter(
+		CefRefPtr<CefDragData> drag_data,
+		CefMouseEvent ev,
+		CefBrowserHost::DragOperationsMask effect) OVERRIDE;
+	CefBrowserHost::DragOperationsMask OnDragOver(CefMouseEvent ev,
+		CefBrowserHost::DragOperationsMask effect) OVERRIDE;
+	void OnDragLeave() OVERRIDE;
+	CefBrowserHost::DragOperationsMask OnDrop(CefMouseEvent ev,
+		CefBrowserHost::DragOperationsMask effect) OVERRIDE;
 
 	// CefContextMenuHandler methods
 	virtual void OnBeforeContextMenu(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefContextMenuParams> params, CefRefPtr<CefMenuModel> model) OVERRIDE;
@@ -317,6 +340,8 @@ protected:
 	bool					is_focus_oneditable_field_;
 	UnregistedCallbackList<StdClosure>	task_list_after_created_;
 
+	client::DropTargetHandle drop_target_;
+	CefRenderHandler::DragOperation current_drag_op_;
 	IMPLEMENT_REFCOUNTING(BrowserHandler);
 };
 }

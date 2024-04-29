@@ -12,6 +12,7 @@
 #include "base/util/string_util.h"
 
 #if defined(OS_WIN)
+#include "base/build/winsdk_config.h"
 #include <windows.h>
 #include "base/win32/scoped_win_handle.h"
 

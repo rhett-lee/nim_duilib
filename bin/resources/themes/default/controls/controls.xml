@@ -1,74 +1,178 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Window size="800,600" caption="0,0,0,35">
-  <VBox bkcolor="bk_wnd_darkcolor">
-    <HBox width="stretch" height="35" bkcolor="bk_wnd_lightcolor">
-      <Control width="auto" height="auto" bkimage="logo_18x18.png" valign="center" margin="8"/>
-      <Label text="Controls" valign="center" margin="8"/>
-      <Control />
-      <Button class="btn_wnd_settings" name="settings" margin="4,6,0,0"/>
-      <Button class="btn_wnd_min" name="minbtn" margin="4,6,0,0"/>
-      <Box width="21" margin="4,6,0,0">
-        <Button class="btn_wnd_max" name="maxbtn"/>
-        <Button class="btn_wnd_restore" name="restorebtn" visible="false"/>
-      </Box>
-      <Button class="btn_wnd_close" name="closebtn" margin="4,6,8,0"/>
-    </HBox>
-    <VBox padding="30,30,30,30">
-      <HBox height="110" padding="0,0,0,20">
-        <!-- Buttons -->
-        <VBox>
-          <Button class="btn_global_blue_80x30" text="blue"/>
-          <Button class="btn_global_white_80x30" text="white"/>
-          <Button class="btn_global_red_80x30" text="red"/>
+<Window size="1000,760" caption="0,0,0,36" sizebox="2,2,2,2" mininfo="400,320" >
+    <!-- 整个布局放在一个VBox容器中 -->
+    <!-- 布局属性：margin="left,top,right,bottom"; padding="left,top,right,bottom" -->
+    <VBox bkcolor="bk_wnd_darkcolor">
+        <!-- 标题栏区域 -->
+        <HBox width="stretch" height="36" bkcolor="bk_wnd_lightcolor">
+            <Control width="auto" height="auto" bkimage="logo_18x18.png" valign="center" margin="8"/>
+            <Label text="Controls" valign="center" margin="8"/>
+            <Control />
+            <Button class="btn_wnd_settings_11" height="32" width="40" name="settings" margin="0,2,0,2" tooltip_text="设置"/>            
+            <Button class="btn_wnd_min_11" height="32" width="40" name="minbtn" margin="0,2,0,2" tooltip_text="最小化"/>
+            <Box height="stretch" width="40" margin="0,2,0,2">
+                <Button class="btn_wnd_max_11" height="32" width="stretch" name="maxbtn" tooltip_text="最大化"/>
+                <Button class="btn_wnd_restore_11" height="32" width="stretch" name="restorebtn" visible="false" tooltip_text="还原"/>
+            </Box>
+            <Button class="btn_wnd_close_11" height="stretch" width="40" name="closebtn" margin="0,0,0,2" tooltip_text="关闭"/>
+        </HBox>
+        <!-- 工作区域，除了标题栏外的内容都放在这个大的VBox区域 -->
+        <VBox padding="10,10,10,10">
+            <!-- 第一排 -->
+            <HBox height="170" padding="0,0,0,10">
+                <!-- Buttons -->
+                <VBox width="120">
+                    <Button class="btn_global_blue_80x30" text="blue" tooltiptext="ui::Buttons"/>
+                    <Button class="btn_global_white_80x30" text="white"/>
+                    <Button class="btn_global_red_80x30" text="red"/>
+                    <Button class="btn_global_color_gray" text="纯色按钮" width="80" height="30" border_round="3,3" margin="0,2,0,0"/>
+                    <Button class="btn_global_color_gray" name="show_color_picker" text="拾色器" width="80" height="30" border_round="3,3" margin="0,2,0,0"/>
+                </VBox>
+                <!-- Checkbox -->
+                <VBox width="120">
+                    <CheckBox class="checkbox_font12" text="checkbox1" margin="0,5,0,10" selected="true" tooltiptext="ui::Checkbox"/>
+                    <CheckBox class="checkbox_font12" text="checkbox2" margin="0,5,0,10"/>
+                    <CheckBox class="checkbox_font12" text="checkbox3" margin="0,5,0,10"/>
+                </VBox>
+                <!-- Option -->
+                <VBox width="120">
+                    <Option class="circle_option_2" group="option_group" text="option1" margin="0,3,0,10" selected="true" tooltiptext="ui::Option"/>
+                    <Option class="circle_option_2" group="option_group" text="option2" margin="0,3,0,10"/>
+                    <Option class="circle_option_2" group="option_group" text="option3" margin="0,3,0,10"/>
+                </VBox>
+                <!-- List -->
+                <VListBox class="list" name="list" padding="5,3,5,3" tooltiptext="ui::VListBox">
+                    <ListBoxItem class="listitem" height="20" text="ui::VListBox::ListBoxItem"/>
+                </VListBox>
+                <!-- TreeView -->
+                <TreeView class="list" name="tree" padding="5,3,5,3" margin="8,0,0,0" indent="20" tooltiptext="ui::TreeView">
+                    <TreeNode class="listitem" height="20" text="ui::TreeView Parent Node 0"/>
+                    <TreeNode class="listitem" height="20" text="ui::TreeView Parent Node 1">
+                        <TreeNode class="listitem" height="20" text="ui::TreeView::TreeNode 1-1"/>
+                        <TreeNode class="listitem" height="20" text="ui::TreeView::TreeNode 1-3"/>
+                        <TreeNode class="listitem" height="20" text="ui::TreeView::TreeNode 1-3">
+                            <TreeNode class="listitem" height="20" text="ui::TreeView::TreeNode 1-3-1"/>
+                            <TreeNode class="listitem" height="20" text="ui::TreeView::TreeNode 1-3-2">
+                                <TreeNode class="listitem" height="20" text="ui::TreeView::TreeNode 1-3-2-1"/>
+                            </TreeNode>
+                        </TreeNode>
+                    </TreeNode>
+                    <TreeNode class="listitem" height="20" text="ui::TreeView Parent Node 2">
+                        <TreeNode class="listitem" height="20" text="ui::TreeView::TreeNode 2-1"/>
+                        <TreeNode class="listitem" height="20" text="ui::TreeView::TreeNode 2-2"/>
+                        <TreeNode class="listitem" height="20" text="ui::TreeView::TreeNode 2-3"/>
+                    </TreeNode>
+                </TreeView>
+            </HBox>
+            <Control class="splitline_hor_level1"/>
+            <!-- 第二排 -->
+            <HBox height="220">
+                <!-- Combo/RichEdit/FilterCombo/CheckCombo -->
+                <VBox width="300" margin="0,0,10">
+                    <Combo class="combo" name="combo" combo_type="drop_list" dropbox_size="0,150" height="30" margin="0,12,0,0" tooltiptext="ui::Combo"/>
+                    <FilterCombo class="filter_combo" name="filter_combo" dropbox_size="0,150" height="30" margin="0,12,0,0" tooltiptext="ui::FilterCombo"/>
+                    <RichEdit class="simple input" height="30" margin="0,3" font="system_14" text_align="vcenter" text_padding="8,4,8,4" promptmode="true" prompttext="ui::RichEdit: Single line text control" promptcolor="lightcolor"/>
+                    <CheckCombo class="check_combo" name="check_combo" height="30" margin="0,3" tooltiptext="nim_comp::CheckCombo"/>
+                </VBox>
+                
+                <!-- 一些基本控件 -->
+                <VBox height="240">
+                    <HBox>
+                        <!-- Progress/Slider -->
+                        <VBox>
+                            <HBox margin="0,10" height="32">
+                                <Control width="auto" height="auto" bkimage="../public/animation/ani_loading.gif" valign="center"/>
+                                <Progress class="progress_blue" name="progress" value="0" margin="10" tooltiptext="ui::Progress"/>
+                            </HBox>
+                            <HBox margin="0,0,0,10" height="32">
+                                <Control width="auto" height="auto" bkimage="set_speaker.png" valign="center"/>
+                                <Slider class="slider_green" value="70" margin="10" tooltiptext="ui::Slider"/>
+                            </HBox>
+                        </VBox>
+                        <!-- CircleProgress -->
+                        <VBox width="90" margin="10,0">
+                            <CircleProgress name="circleprogress" circular="true" height="80" width="80"
+                            circlewidth="10" bgcolor="gray" fgcolor="green" gradientcolor="red" clockwise="true"  min="0" max="100" value="75" margin="10"
+                            textpadding="10,32,10,10" normaltextcolor="darkcolor" indicator="file='logo_18x18.png' width='70%'" tooltiptext="ui::CircleProgress"/>
+                        </VBox>
+                        <!-- DateTime -->
+                        <VBox margin="4,8,0,0">
+                            <HBox childmargin="4" width="260">
+                                <Label text="日期" height="24" text_align="vcenter" hottextcolor="red" pushedtextcolor="blue"/>
+                                <DateTime width="54%" height="24" text="2022-02-01"/>
+                                <DateTime width="46%" height="24" edit_format="date_up_down" />
+                            </HBox>
+                            <HBox childmargin="4" width="260">
+                                <Label text="时间" height="24" text_align="vcenter" />
+                                <DateTime width="100%" height="24" edit_format="date_time_up_down" />
+                                <DateTime width="64" height="24" edit_format="minute_up_down" />
+                            </HBox>
+                        </VBox>
+                    </HBox>
+                    <!-- IPAddress / RichEdit With Spin -->
+                    <HBox>                        
+                        <VBox margin="10,0,0,0">
+                            <HBox childmargin="10">
+                                <Label text="IP地址" height="28" text_align="vcenter"/>
+                                <IPAddress class="ip_address" ip="192.168.0.1"/>
+                            </HBox>
+                            <HBox childmargin="10">
+                                <Label text="RichEdit Spin" height="28" text_align="vcenter"/>
+                                <RichEdit class="simple simple_border rich_edit_spin" min_number="-64" max_number="64" limit_text="3" text="0"/>
+                            </HBox>
+                        </VBox>
+                        <VBox margin="10,0,0,0">
+                            <HBox childmargin="10">
+                                <HotKey class="hot_key" name="set_hot_key" default_text="无"/>
+                                <Button class="btn_global_color_gray" name="btn_set_hot_key" text="设置窗口热键" width="100%" height="28" border_round="3,3" text_align="vcenter"/>
+                            </HBox>
+                            <HBox childmargin="10">
+                                <HotKey class="hot_key" name="set_system_hot_key" default_text="无"/>
+                                <Button class="btn_global_color_gray" name="btn_set_system_hot_key" text="设置系统热键" width="100%" height="28" border_round="3,3" text_align="vcenter"/>
+                            </HBox>
+                        </VBox>
+                    </HBox>
+                    <!-- RichText / Line -->
+                    <HBox childmargin="10">
+                        <HBox childmargin="10">
+                            <RichText class="rich_text" name="rich_text_demo" row_spacing_mul="1.2">
+                                RichText:　<a href="www.baidu.com">点击访问百度首页</a><br/>
+                                RichText:　<a href="www.sohu.com">点击访问搜狐首页</a>
+                            </RichText>
+                            <VBox width="80">
+                                <HyperLink class="hyper_link" name="hyper_link1" text="百度首页" url="www.baidu.com" tooltip_text="这是一个HyperLink控件"/>
+                                <HyperLink class="hyper_link" name="hyper_link2" text="文字按钮" url="" tooltip_text="这是一个HyperLink控件"/>
+                            </VBox>
+                        </HBox>
+                        <HBox childmargin="10">
+                            <Label text="Line:" valign="center" />
+                            <VBox>
+                                <Line vertical="false" line_color="blue" dash_style="solid" line_width="2"/>
+                                <Line vertical="false" line_color="red" dash_style="dash" line_width="2"/>
+                                <Line vertical="false" line_color="green" dash_style="dot" line_width="2"/>
+                                <Line vertical="false" line_color="black" dash_style="dash_dot" line_width="2"/>
+                                <Line vertical="false" line_color="orange" dash_style="dash_dot_dot" line_width="2"/>
+                            </VBox>
+                            <VBox>
+                                <HBox margin="0,4,0,4">
+                                    <Line vertical="true" line_color="blue" dash_style="solid" line_width="1"/>
+                                    <Line vertical="true" line_color="red" dash_style="dash" line_width="1"/>
+                                    <Line vertical="true" line_color="green" dash_style="dot" line_width="1"/>
+                                    <Line vertical="true" line_color="black" dash_style="dash_dot" line_width="1"/>
+                                    <Line vertical="true" line_color="orange" dash_style="dash_dot_dot" line_width="1"/>
+                                </HBox>
+                            </VBox>
+                        </HBox>
+                    </HBox>
+                </VBox>
+            </HBox>
+            
+            <!-- 分割线 -->
+            <Control class="splitline_hor_level1"/>
+            <!-- RichEdit -->
+            <RichEdit class="prompt" name="edit" bkcolor="bk_wnd_lightcolor" width="stretch" height="stretch"
+                        multiline="true" vscrollbar="true" hscrollbar="true" autovscroll="true"
+                        normaltextcolor="darkcolor" wantreturnmsg="true" rich="false" loadingimage="file='autumn.png'" loadingbkcolor="blue"/>
         </VBox>
-        <!-- Checkbox -->
-        <VBox>
-          <CheckBox class="checkbox_font12" text="checkbox1" margin="0,5,0,10" selected="true"/>
-          <CheckBox class="checkbox_font12" text="checkbox2" margin="0,5,0,10"/>
-          <CheckBox class="checkbox_font12" text="checkbox3" margin="0,5,0,10"/>
-        </VBox>
-        <!-- Option -->
-        <VBox>
-          <Option class="circle_option_2" group="option_group" text="option1" margin="0,3,0,10" selected="true"/>
-          <Option class="circle_option_2" group="option_group" text="option2" margin="0,3,0,10"/>
-          <Option class="circle_option_2" group="option_group" text="option3" margin="0,3,0,10"/>
-        </VBox>
-        <!-- List -->
-        <VListBox class="list" name="list" padding="5,3,5,3">
-        </VListBox>
-        <!-- TreeView -->
-        <TreeView class="list" name="tree" padding="5,3,5,3" margin="20">
-        </TreeView>
-      </HBox>
-      <Control class="splitline_hor_level1"/>
-      <HBox height="85">
-        <VBox margin="0,0,10">
-          <Combo class="list" name="combo" height="30" margin="0,12,0,0" padding="6" bkimage="file='../public/combo/normal.png' corner='5,5,30,5'"/>
-          <RichEdit class="simple input" height="30" margin="0,3" padding="6,6,6" promptmode="true" prompttext="Single line text control" promptcolor="lightcolor"/>
-        </VBox>
-        <!-- Progress -->
-        <VBox>
-          <HBox margin="0,10" height="32">
-            <Control width="auto" height="auto" bkimage="../public/animation/ani_loading.gif" valign="center"/>
-            <Progress class="progress_blue" name="progress" value="0" margin="10"/>
-          </HBox>
-          <HBox margin="0,0,0,10" height="32">
-            <Control width="auto" height="auto" bkimage="set_speaker.png" valign="center"/>
-            <Slider class="slider_green" value="70" margin="10"/>
-          </HBox>
-        </VBox>
-		<VBox width="120">
-             <CircleProgress name="circleprogress" circular="true"  height="80" width="80" 
-             circlewidth="10" bgcolor="gray" fgcolor="green"  clockwise="true"  min="1" max="100" value="75" margin="10"
-             textpadding="10,32,10,10" normaltextcolor="darkcolor" indicator="logo_18x18.png"/>
-		</VBox>
-      </HBox>
-	
-      <Control class="splitline_hor_level1"/>
-      <!-- RichEdit -->
-      <RichEdit class="prompt" name="edit" bkcolor="bk_wnd_lightcolor" width="stretch" height="stretch" 
-                  multiline="true" vscrollbar="true" hscrollbar="true" autovscroll="true" 
-                  normaltextcolor="darkcolor" wantreturnmsg="true" rich="true"/>
     </VBox>
-  </VBox>
 </Window>

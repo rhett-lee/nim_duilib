@@ -3,12 +3,16 @@
 
 #pragma once
 
-#include "Core/Define.h"
+#include "duilib/Core/EventArgs.h"
+#include <functional>
+#include <vector>
+#include <string>
+#include <map>
 
 namespace ui 
 {
 
-typedef std::function<bool(ui::EventArgs*)> EventCallback;
+typedef std::function<bool(const ui::EventArgs&)> EventCallback;
 
 class CEventSource : public std::vector<EventCallback>
 {
@@ -19,10 +23,14 @@ public:
 		return *this;
 	}
 
-	bool operator() (ui::EventArgs* param) const 
+	bool operator() (const ui::EventArgs& param) const
 	{
-		for (auto it = this->begin(); it != this->end(); it++) {
-			if(!(*it)(param)) return false;
+		//支持在回调函数中，操作此容器
+		for (size_t index = 0; index < this->size(); ++index) {
+			EventCallback callback = this->at(index);
+			if (!callback(param)) {
+				return false;
+			}
 		}
 		return true;
 	}

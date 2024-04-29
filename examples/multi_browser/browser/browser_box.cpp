@@ -53,7 +53,7 @@ void BrowserBox::InitBrowserBox(const std::wstring &url)
 	cef_control_->LoadURL(html_path);
 
 	// 初始化任务栏缩略图
-	if ((GetWindowExStyle(m_pWindow->GetHWND()) & WS_EX_LAYERED) != 0)
+	if ((::GetWindowLong(GetWindow()->GetHWND(), GWL_EXSTYLE) & WS_EX_LAYERED) != 0)
 	{
 		taskbar_item_ = new TaskbarTabItem(this);
 		if (taskbar_item_)
@@ -61,11 +61,11 @@ void BrowserBox::InitBrowserBox(const std::wstring &url)
 	}
 
 	// Box获取焦点时把焦点转移给Cef控件
-	this->AttachSetFocus([this](ui::EventArgs* param)->bool
+	this->AttachSetFocus([this](const ui::EventArgs& param)->bool
 	{
 		cef_control_->SetFocus();
 		return true;
-	});
+	}); 
 }
 
 void BrowserBox::UninitBrowserBox()
@@ -94,21 +94,12 @@ TaskbarTabItem* BrowserBox::GetTaskbarItem()
 	return taskbar_item_;
 }
 
-void BrowserBox::SetWindow(Window* pManager, Box* pParent, bool bInit)
+void BrowserBox::SetWindow(Window* pManager)
 {
 	browser_form_ = dynamic_cast<MultiBrowserForm*>(pManager);
 	ASSERT(NULL != browser_form_);
 
-	__super::SetWindow(pManager, pParent, bInit);
-}
-
-void BrowserBox::SetInternVisible(bool bVisible /*= true*/)
-{
-	Control::SetInternVisible(bVisible);
-	if (m_items.empty()) return;
-	for (auto it = m_items.begin(); it != m_items.end(); it++) {
-		(*it)->SetInternVisible(bVisible);
-	}
+	__super::SetWindow(pManager);
 }
 
 void BrowserBox::Invalidate()
@@ -174,7 +165,7 @@ void BrowserBox::OnLoadEnd(int httpStatusCode)
 {
 	// 注册一个方法提供前端调用
 	cef_control_->RegisterCppFunc(L"ShowMessageBox", ToWeakCallback([](const std::string& params, nim_comp::ReportResultFunction callback) {
-		MessageBoxA(NULL, params.c_str(), "接收到 JavaScript 发来的消息", MB_OK);
+		MessageBox(NULL, nbase::UTF8ToUTF16(params).c_str(), L"接收到 JavaScript 发来的消息", MB_OK);
 		callback(false, R"({ "message": "Success." })");
 	}));
 }

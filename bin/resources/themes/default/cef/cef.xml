@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Window size="800,600" caption="0,0,0,35" shadowattached="false">
+<Window size="800,600" caption="0,0,0,35" shadowattached="true">
   <VBox bkcolor="bk_wnd_darkcolor">
     <HBox width="stretch" height="35" bkcolor="bk_wnd_lightcolor">
       <Control />
@@ -14,7 +14,7 @@
     <HBox height="auto">
       <Button class="btn_global_blue_80x30" name="btn_back" text="后退" width="60"/>
       <Button class="btn_global_blue_80x30" name="btn_forward" text="前进" width="60" margin="5,0,5"/>
-      <RichEdit class="simple prompt input" name="edit_url" width="stretch" height="28" valign="center" padding="5,5,5,5" prompttext="请输入网址"/>
+      <RichEdit class="simple prompt input" name="edit_url" width="stretch" height="28" valign="center" text_padding="5,5,5,5" prompttext="请输入网址"/>
       <Button class="btn_global_blue_80x30" name="btn_navigate" text="转到" width="60" margin="5"/>
       <Button class="btn_global_blue_80x30" name="btn_refresh" text="刷新" width="60" margin="5"/>
     </HBox>

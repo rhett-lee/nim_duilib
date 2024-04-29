@@ -1,9 +1,9 @@
-﻿#ifndef BASE_WIN32_SCOPED_WIN_HANDLE_H_
+#ifndef BASE_WIN32_SCOPED_WIN_HANDLE_H_
 #define BASE_WIN32_SCOPED_WIN_HANDLE_H_
 
 #include "base/base_config.h"
 #if defined(OS_WIN)
-
+#include "base/build/winsdk_config.h"
 #include <windows.h>
 #include "base/base_export.h"
 #include "base/base_types.h"

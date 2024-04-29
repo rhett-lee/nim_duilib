@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Window>
+    <Class name="page_scroll_box" width="400" height="160" text_padding="4,4,4,4" halign="center" valign="center" bkcolor="Sienna" border_size="2" border_color="Blue"/>
+    <Label text="布局VTileScrollBox测试"/>
+    <VTileScrollBox hscrollbar="true" vscrollbar="true" width="stretch" height="400" bkcolor="white" border_size="2" border_color="red" padding="20,20,20,20">
+        <Label class="page_scroll_box" text="1 right,top" text_align="right,bottom" halign="right" valign="top"/>
+        <Label class="page_scroll_box" text="2 left,top" halign="left" valign="top"/>
+        <Label class="page_scroll_box" text="3 left,center" halign="left" valign="center"/>
+        <Label class="page_scroll_box" text="4 left,bottom" halign="left" valign="bottom"/>
+        <Label class="page_scroll_box" text="5 center,top" halign="center" valign="top"/>
+        <Label class="page_scroll_box" text="6 center,center" halign="center" valign="center"/>
+        <Label class="page_scroll_box" text="7 center,bottom" halign="center" valign="bottom"/>
+        <Label class="page_scroll_box" text="8 right,top" halign="right" valign="top"/>
+        <Label class="page_scroll_box" text="9 right,center" halign="right" valign="center"/>
+        <Label class="page_scroll_box" text="10 center,center" halign="center" valign="center"/>
+        <Label class="page_scroll_box" text="11 center,center" halign="center" valign="center"/>
+        <Label class="page_scroll_box" text="12 center,center" halign="center" valign="center"/>
+        <Label class="page_scroll_box" text="13 center,center" halign="center" valign="center"/>
+        <Label class="page_scroll_box" text="14 center,center" halign="center" valign="center"/>
+        <Label class="page_scroll_box" text="15 center,center" halign="center" valign="center"/>
+        <Label class="page_scroll_box" text="16 center,center" halign="center" valign="center"/>
+   </VTileScrollBox>
+   <Label text="布局HTileScrollBox测试" margin="0,4,0,4"/>
+   <HTileScrollBox hscrollbar="true" vscrollbar="false" width="stretch" height="380" bkcolor="white" border_size="2" border_color="red" padding="20,20,20,20">
+        <Label class="page_scroll_box" text="1 right,top" text_align="right,bottom" halign="right" valign="top"/>
+        <Label class="page_scroll_box" text="2 left,top" halign="left" valign="top"/>
+        <Label class="page_scroll_box" text="3 left,center" halign="left" valign="center"/>
+        <Label class="page_scroll_box" text="4 left,bottom" halign="left" valign="bottom"/>
+        <Label class="page_scroll_box" text="5 center,top" halign="center" valign="top"/>
+        <Label class="page_scroll_box" text="6 center,center" halign="center" valign="center"/>
+        <Label class="page_scroll_box" text="7 center,bottom" halign="center" valign="bottom"/>
+        <Label class="page_scroll_box" text="8 right,top" halign="right" valign="top"/>
+        <Label class="page_scroll_box" text="9 right,center" halign="right" valign="center"/>
+        <Label class="page_scroll_box" text="10 center,center" halign="center" valign="center"/>
+        <Label class="page_scroll_box" text="11 center,center" halign="center" valign="center"/>
+        <Label class="page_scroll_box" text="12 center,center" halign="center" valign="center"/>
+        <Label class="page_scroll_box" text="13 center,center" halign="center" valign="center"/>
+        <Label class="page_scroll_box" text="14 center,center" halign="center" valign="center"/>
+        <Label class="page_scroll_box" text="15 center,center" halign="center" valign="center"/>
+        <Label class="page_scroll_box" text="16 center,center" halign="center" valign="center"/>
+   </HTileScrollBox>
+</Window>

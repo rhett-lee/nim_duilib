@@ -1,5 +1,9 @@
 #pragma once
 
+#include "duilib/Utils/WinImplBase.h"
+#include "duilib/Control/RichEdit.h"
+#include "duilib/Control/Button.h"
+
 namespace nim_comp {
 /** @class Toast
  * @brief 提供一个简易的提示窗体，相当于MessageBox的简化版
@@ -33,7 +37,7 @@ public:
 	 * 窗口初始化函数
 	 * @return void	无返回值
 	 */
-	virtual void InitWindow() override;
+	virtual void OnInitWindow() override;
 
 	/**
 	 * 拦截并处理底层窗体消息
@@ -42,7 +46,7 @@ public:
 	 * @param[in] lParam 附加参数
 	 * @return LRESULT 处理结果
 	 */
-	virtual LRESULT HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) override;
+	virtual LRESULT OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
 
 	/**
 	 * 设置窗体的显示时长
@@ -57,7 +61,7 @@ private:
 	 * @param[in] msg 消息的相关信息
 	 * @return bool true 继续传递控件消息，false 停止传递控件消息
 	 */
-	bool OnClicked(ui::EventArgs* msg);
+	bool OnClicked(const ui::EventArgs& msg);
 
 	/**
 	 * 设置提示内容
@@ -69,7 +73,7 @@ private:
 	public:
 		static const LPCTSTR kClassName;
 	private:
-		ui::RichEdit	*content_;
-		ui::Button		*close_button_;
+		ui::RichEdit	*content_ = nullptr;
+		ui::Button		*close_button_ = nullptr;
 	};
 }

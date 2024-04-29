@@ -40,10 +40,10 @@ ui::Control* CefForm::CreateControl(const std::wstring& pstrClass)
 	return NULL;
 }
 
-void CefForm::InitWindow()
+void CefForm::OnInitWindow()
 {
 	// 监听鼠标单击事件
-	m_pRoot->AttachBubbledEvent(ui::kEventClick, nbase::Bind(&CefForm::OnClicked, this, std::placeholders::_1));
+	GetRoot()->AttachBubbledEvent(ui::kEventClick, nbase::Bind(&CefForm::OnClicked, this, std::placeholders::_1));
 
 	// 从 XML 中查找指定控件
 	cef_control_		= dynamic_cast<nim_comp::CefControlBase*>(FindControl(L"cef_control"));
@@ -65,18 +65,18 @@ void CefForm::InitWindow()
 	cef_control_->LoadURL(nbase::win32::GetCurrentModuleDirectory() + L"resources\\themes\\default\\cef\\cef.html");
 
 	if (!nim_comp::CefManager::GetInstance()->IsEnableOffsetRender())
-		cef_control_dev_->SetVisible(false);
+		cef_control_dev_->SetFadeVisible(false);
 }
 
-LRESULT CefForm::OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+LRESULT CefForm::OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
 	nim_comp::CefManager::GetInstance()->PostQuitMessage(0L);
 	return __super::OnClose(uMsg, wParam, lParam, bHandled);
 }
 
-bool CefForm::OnClicked(ui::EventArgs* msg)
+bool CefForm::OnClicked(const ui::EventArgs& msg)
 {
-	std::wstring name = msg->pSender->GetName();
+	std::wstring name = msg.pSender->GetName();
 
 	if (name == L"btn_dev_tool")
 	{
@@ -91,7 +91,7 @@ bool CefForm::OnClicked(ui::EventArgs* msg)
 
 		if (nim_comp::CefManager::GetInstance()->IsEnableOffsetRender())
 		{
-			cef_control_dev_->SetVisible(cef_control_->IsAttachedDevTools());
+			cef_control_dev_->SetFadeVisible(cef_control_->IsAttachedDevTools());
 		}
 	}
 	else if (name == L"btn_back")
@@ -104,7 +104,8 @@ bool CefForm::OnClicked(ui::EventArgs* msg)
 	}
 	else if (name == L"btn_navigate")
 	{
-		OnNavigate(nullptr);
+		ui::EventArgs emptyMsg;
+		OnNavigate(emptyMsg);
 	}
 	else if (name == L"btn_refresh")
 	{
@@ -114,7 +115,7 @@ bool CefForm::OnClicked(ui::EventArgs* msg)
 	return true;
 }
 
-bool CefForm::OnNavigate(ui::EventArgs* msg)
+bool CefForm::OnNavigate(const ui::EventArgs& /*msg*/)
 {
 	if (!edit_url_->GetText().empty())
 	{

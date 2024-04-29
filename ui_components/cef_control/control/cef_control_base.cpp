@@ -1,20 +1,28 @@
-#include "stdafx.h"
 #include "cef_control_base.h"
-#include "cef_control/util/util.h"
+#include "ui_components/cef_control/util/util.h"
+#include "base/thread/framework_thread.h"
+#include "base/thread/thread_manager.h"
 
 namespace nim_comp {
 
-void CefControlBase::OnPaint(CefRefPtr<CefBrowser> browser, CefRenderHandler::PaintElementType type, const CefRenderHandler::RectList& dirtyRects, const std::string* buffer, int width, int height)
+void CefControlBase::OnPaint(CefRefPtr<CefBrowser> /*browser*/, CefRenderHandler::PaintElementType /*type*/, const CefRenderHandler::RectList& /*dirtyRects*/, const std::string* /*buffer*/, int /*width*/, int /*height*/)
+{
+	//必须不使用缓存，否则绘制异常
+	ASSERT(IsUseCache() == false);
+	return;
+}
+
+void CefControlBase::ClientToControl(POINT &/*pt*/)
 {
 	return;
 }
 
-void CefControlBase::OnPopupShow(CefRefPtr<CefBrowser> browser, bool show)
+void CefControlBase::OnPopupShow(CefRefPtr<CefBrowser> /*browser*/, bool /*show*/)
 {
 	return;
 }
 
-void CefControlBase::OnPopupSize(CefRefPtr<CefBrowser> browser, const CefRect& rect)
+void CefControlBase::OnPopupSize(CefRefPtr<CefBrowser> /*rowser*/, const CefRect& /*rect*/)
 {
 	return;
 }
@@ -84,17 +92,17 @@ void CefControlBase::OnLoadError(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFra
 		cb_load_error_(errorCode, errorText, failedUrl);
 }
 
-bool CefControlBase::OnBeforePopup(CefRefPtr<CefBrowser> browser,
-	CefRefPtr<CefFrame> frame,
+bool CefControlBase::OnBeforePopup(CefRefPtr<CefBrowser> /*browser*/,
+	CefRefPtr<CefFrame> /*frame*/,
 	const CefString& target_url,
-	const CefString& target_frame_name,
-	CefLifeSpanHandler::WindowOpenDisposition target_disposition,
-	bool user_gesture,
-	const CefPopupFeatures& popupFeatures,
-	CefWindowInfo& windowInfo,
-	CefRefPtr<CefClient>& client,
-	CefBrowserSettings& settings,
-	bool* no_javascript_access)
+	const CefString& /*target_frame_name*/,
+	CefLifeSpanHandler::WindowOpenDisposition /*target_disposition*/,
+	bool /*user_gesture*/,
+	const CefPopupFeatures& /*popupFeatures*/,
+	CefWindowInfo& /*windowInfo*/,
+	CefRefPtr<CefClient>& /*client*/,
+	CefBrowserSettings& /*settings*/,
+	bool* /*no_javascript_access*/)
 {
 	if (cb_link_click_ && !target_url.empty())
 		return cb_link_click_(target_url);
@@ -140,7 +148,7 @@ CefRequestHandler::ReturnValue CefControlBase::OnBeforeResourceLoad(CefRefPtr<Ce
 	return RV_CONTINUE;
 }
 
-void CefControlBase::OnRenderProcessTerminated(CefRefPtr<CefBrowser> browser, CefRequestHandler::TerminationStatus status)
+void CefControlBase::OnRenderProcessTerminated(CefRefPtr<CefBrowser> /*browser*/, CefRequestHandler::TerminationStatus /*status*/)
 {
 	return;
 }

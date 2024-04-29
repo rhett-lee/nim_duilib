@@ -1,18 +1,20 @@
-#include "stdafx.h"
 #include "cef_control.h"
-#include "cef_control/util/util.h"
+#include "ui_components/cef_control/util/util.h"
 
 namespace nim_comp {
 
-void CefControl::OnPaint(CefRefPtr<CefBrowser> browser, CefRenderHandler::PaintElementType type, const CefRenderHandler::RectList& dirtyRects, const std::string* buffer, int width, int height)
+void CefControl::OnPaint(CefRefPtr<CefBrowser> browser, CefRenderHandler::PaintElementType type, const CefRenderHandler::RectList& /*dirtyRects*/, const std::string* buffer, int width, int height)
 {
+	//必须不使用缓存，否则绘制异常
+	ASSERT(IsUseCache() == false);
+
 	if (NULL == buffer)
 		return;
 
 	if (type == PET_VIEW)
 	{
 		if (dc_cef_.GetWidth() != width || dc_cef_.GetHeight() != height)
-			dc_cef_.Init(m_pWindow->GetPaintDC(), width, height);
+			dc_cef_.Init(GetWindow()->GetPaintDC(), width, height);
 
 		LPBYTE pDst = (LPBYTE)dc_cef_.GetBits();
 		if (pDst)
@@ -22,7 +24,7 @@ void CefControl::OnPaint(CefRefPtr<CefBrowser> browser, CefRenderHandler::PaintE
 	{
 		// 单独保存popup窗口的位图
 		if (dc_cef_popup_.GetWidth() != width || dc_cef_popup_.GetHeight() != height)
-			dc_cef_popup_.Init(m_pWindow->GetPaintDC(), width, height);
+			dc_cef_popup_.Init(GetWindow()->GetPaintDC(), width, height);
 
 		LPBYTE pDst = (LPBYTE)dc_cef_popup_.GetBits();
 		if (pDst)
@@ -30,6 +32,13 @@ void CefControl::OnPaint(CefRefPtr<CefBrowser> browser, CefRenderHandler::PaintE
 	}
 
 	this->Invalidate();
+}
+
+void CefControl::ClientToControl(POINT &pt)
+{
+	auto offset = GetScrollOffsetInScrollBox();
+	pt.x = pt.x + offset.x - GetRect().left;
+	pt.y = pt.y + offset.y - GetRect().top;
 }
 
 void CefControl::OnPopupShow(CefRefPtr<CefBrowser> browser, bool show)

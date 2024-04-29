@@ -12,11 +12,11 @@ interface IDropTargetHelper;
 
 class BrowserBox;
 class BrowserTabItem;
-class MultiBrowserForm : public nim_comp::ShadowWndBase, public IDropTarget, public TaskbarManager::ITaskbarDelegate
+class MultiBrowserForm : public ui::ShadowWnd, public IDropTarget, public TaskbarManager::ITaskbarDelegate
 {
 public:
 	MultiBrowserForm();
-	~MultiBrowserForm() { };
+	virtual ~MultiBrowserForm();
 	
 	//覆盖虚函数
 	virtual std::wstring GetSkinFolder() override;
@@ -29,7 +29,7 @@ public:
 	* 窗口初始化函数
 	* @return void	无返回值
 	*/
-	virtual void InitWindow() override;
+	virtual void OnInitWindow() override;
 
 	/**
 	* 根据控件类名创建自定义控件
@@ -43,10 +43,10 @@ public:
 	* @param[in] uMsg 消息类型
 	* @param[in] wParam 附加参数
 	* @param[in] lParam 附加参数
-	* @param[in out] bHandled 是否处理了消息，如果处理了不继续传递消息
+	* @param[out] bHandled 是否处理了消息，如果处理了不继续传递消息
 	* @return LRESULT 处理结果
 	*/
-	LRESULT HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	virtual LRESULT OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
 
 	/**
 	* 拦截并处理WM_CLOSE消息
@@ -57,7 +57,7 @@ public:
 	* @param[in] bHandled 是否处理了消息，如果处理了不继续传递消息
 	* @return LRESULT 处理结果
 	*/
-	virtual LRESULT OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	virtual LRESULT OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
 
 	/**
 	* 处理窗口销毁消息
@@ -67,8 +67,8 @@ public:
 
 private:
 	void OnWndSizeMax(bool max);
-	bool OnClicked(ui::EventArgs* arg);
-	bool OnReturn(ui::EventArgs* arg);
+	bool OnClicked(const ui::EventArgs& arg);
+	bool OnReturn(const ui::EventArgs& arg);
 
 public:
 	/**
@@ -154,7 +154,7 @@ private:
 	* @param[in] param 消息的相关信息
 	* @return bool true 继续传递控件消息，false 停止传递控件消息
 	*/
-	bool OnTabItemSelected(ui::EventArgs* param);
+	bool OnTabItemSelected(const ui::EventArgs& param);
 
 	/**
 	* 处理标签控件的关闭按钮的单击消息
@@ -162,7 +162,7 @@ private:
 	* @param[in] browser_id 列表项对应的浏览器id
 	* @return bool true 继续传递控件消息，false 停止传递控件消息
 	*/
-	bool OnTabItemClose(ui::EventArgs* param, const std::string& browser_id);
+	bool OnTabItemClose(const ui::EventArgs& param, const std::string& browser_id);
 
 	/**
 	* 在本窗口内查找浏览器盒子
@@ -193,10 +193,10 @@ public:
 	virtual HWND GetHandle() const override { return this->GetHWND(); };
 
 	/**
-	* 获取渲染上下文
-	* @return IRenderContext*	渲染上下文
+	* 获取渲染接口
+	* @return IRender*	渲染接口
 	*/
-	virtual HDC GetRenderDC() const override { return this->GetRenderContext()->GetDC(); };
+	virtual ui::IRender* GetTaskbarRender() const override { return this->GetRender(); };
 
 	/**
 	* 关闭一个任务栏项
@@ -256,21 +256,21 @@ private:
 	* @param[in] param 处理浏览器窗口左侧会话合并列表项发送的事件
 	* @return bool 返回值true: 继续传递控件消息， false: 停止传递控件消息
 	*/
-	bool OnProcessTabItemDrag(ui::EventArgs* param);
+	bool OnProcessTabItemDrag(const ui::EventArgs& param);
 
 	/**
 	* 生成当前窗体中某个区域对应的位图，用于离屏渲染模式
 	* @param[in] src_rect 目标位图的位置
 	* @return HBITMAP 生成的位图
 	*/
-	HBITMAP GenerateBoxOffsetRenderBitmap(const ui::UiRect &src_rect);
+	ui::IBitmap* GenerateBoxOffsetRenderBitmap(const ui::UiRect &src_rect);
 
 	/**
 	* 生成当前激活的浏览器盒子的位图，用于有窗模式
 	* @param[in] src_rect 目标位图的位置
 	* @return HBITMAP 生成的位图
 	*/
-	HBITMAP GenerateBoxWindowBitmap();
+	ui::IBitmap* GenerateBoxWindowBitmap();
 
 public:
 	static const LPCTSTR kClassName;

@@ -21,6 +21,7 @@
 #include "base/base_export.h"
 
 #if defined(OS_WIN)
+#  include "base/build/winsdk_config.h"
 #  include <windows.h>
 #else
 #  include <sys/time.h>

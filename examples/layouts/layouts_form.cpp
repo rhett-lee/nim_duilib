@@ -28,12 +28,12 @@ std::wstring LayoutsForm::GetWindowClassName() const
 	return class_name_;
 }
 
-void LayoutsForm::InitWindow()
+void LayoutsForm::OnInitWindow()
 {
 
 }
 
-LRESULT LayoutsForm::OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+LRESULT LayoutsForm::OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
 	PostQuitMessage(0L);
 	return __super::OnClose(uMsg, wParam, lParam, bHandled);
@@ -42,7 +42,7 @@ LRESULT LayoutsForm::OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHan
 void LayoutsForm::ShowCustomWindow(const std::wstring& class_name, const std::wstring& theme_directory, const std::wstring& layout_xml)
 {
 	LayoutsForm* window = new LayoutsForm(class_name, theme_directory, layout_xml);
-	window->Create(NULL, class_name.c_str(), WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX, 0);
+	window->CreateWnd(NULL, class_name.c_str(), UI_WNDSTYLE_FRAME, WS_EX_LAYERED);
 	window->CenterWindow();
 	window->ShowWindow();
 }

@@ -25,12 +25,12 @@ public:
 	/**
 	 * 收到 WM_CREATE 消息时该函数会被调用，通常做一些控件初始化的操作
 	 */
-	virtual void InitWindow() override;
+	virtual void OnInitWindow() override;
 
 	/**
 	 * 收到 WM_CLOSE 消息时该函数会被调用
 	 */
-	virtual LRESULT OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	virtual LRESULT OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
 
 	/**
 	 * 标识窗口 class name
@@ -38,14 +38,39 @@ public:
 	static const std::wstring kClassName;
 
 private:
+
+	/** 显示菜单
+	* @param [in] point 显示位置坐标，屏幕坐标
+	*/
+	void ShowPopupMenu(const ui::UiPoint& point);
+
+	/**
+	 * 被投递到杂事线程读取 xml 数据的任务函数
+	 */
+	void LoadRichEditData();
+
 	/**
 	 * 用于在杂事线程读取 xml 完成后更新 UI 内容的接口
 	 */
-	void OnLoadedResourceFile(const std::wstring& xml);
+	void OnResourceFileLoaded(const std::wstring& xml);
 
 	/**
 	 * 动态更新进度条接口
 	 */
 	void OnProgressValueChagned(float value);
+
+	/** 显示拾色器窗口
+	*/
+	void ShowColorPicker();
+
+private:
+	/** 接收键盘按键按下消息(WM_HOTKEY)时被调用
+	* @param [in] uMsg 消息内容
+	* @param [in] wParam 消息附加参数
+	* @param [in] lParam 消息附加参数
+	* @param [out] bHandled 返回 false 则继续派发该消息，否则不再派发该消息
+	* @return 返回消息处理结果
+	*/
+	virtual LRESULT OnHotKey(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
 };
 

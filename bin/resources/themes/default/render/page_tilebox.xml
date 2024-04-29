@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Window>
+    <Class name="page_tile_box" margin="10,10,10,10" width="200" height="100" text_padding="4,0,0,0" bkcolor="Sienna" border_size="1" border_color="green"/>
+    <Label text="布局VTileBox测试（纵向布局）"/>
+    <VTileBox columns="0" item_size="0,0" scale_down="true" width="stretch" height="auto" padding="10,10,10,10" bkcolor="gray" border_size="1" border_color="red">
+        <Control float="true" width="stretch" height="stretch" border_size="1" border_color="green" bkcolor="Cornsilk"/>
+<!--       
+        <Label text="minwidth/minheight: 300*300" float="true" text_align="top" width="200" height="100" minwidth="300" minheight="300" margin="64,160,6,6" border_size="1" border_color="green" bkcolor="Olive"/>
+        <Label text="maxwidth/maxheight: 80*80" float="true" single_line="false" width="200" height="100" maxwidth="80" maxheight="80" margin="600,160,6,6" border_size="1" border_color="green" bkcolor="LemonChiffon"/>
+        <LabelBox text="布局测试" float="true" single_line="false" width="200" height="200" margin="800,160,6,6" padding="6,6,6,6" border_size="1" border_color="green" bkcolor="LemonChiffon">
+            <Control margin="6,6,6,6" width="stretch" height="stretch" border_size="2" border_color="red" bkcolor="Sienna"/>
+        </LabelBox>
+         minwidth="300" maxheight="60"
+-->        
+        <Label class="page_tile_box" text="1 left,top" halign="left" valign="top"/>
+        <Label class="page_tile_box" text="2 left,center" halign="left" valign="center"/>
+        <Label class="page_tile_box" text="3 left,bottom" halign="left" valign="bottom"/>
+        <Label class="page_tile_box" text="4 center,top" halign="center" valign="top"/>
+        <Label class="page_tile_box" text="5 center,center" halign="center" valign="center"/>
+        <Label class="page_tile_box" text="6 center,bottom" halign="center" valign="bottom"/>
+        <Label class="page_tile_box" text="7 right,top" halign="right" valign="top"/>
+        <Label class="page_tile_box" text="8 right,center" halign="right" valign="center"/>
+        <Label class="page_tile_box" text="9 right,bottom" halign="right" valign="bottom"/>
+    </VTileBox>
+    
+    <Label text="布局HTileBox测试（横向布局）" margin="0,4,0,4"/>
+    <HTileBox rows="0" item_size="0,0" scale_down="true" width="stretch" height="stretch" padding="10,10,10,10" bkcolor="gray" border_size="1" border_color="red">
+        <Control float="true" width="stretch" height="stretch" border_size="1" border_color="green" bkcolor="Cornsilk"/>    
+        <Label class="page_tile_box" text="1 left,top" halign="left" valign="top"/>
+        <Label class="page_tile_box" text="2 left,center" halign="left" valign="center"/>
+        <Label class="page_tile_box" text="3 left,bottom" halign="left" valign="bottom"/>
+        <Label class="page_tile_box" text="4 center,top" halign="center" valign="top"/>
+        <Label class="page_tile_box" text="5 center,center" halign="center" valign="center"/>
+        <Label class="page_tile_box" text="6 center,bottom" halign="center" valign="bottom"/>
+        <Label class="page_tile_box" text="7 right,top" halign="right" valign="top"/>
+        <Label class="page_tile_box" text="8 right,center" halign="right" valign="center"/>
+        <Label class="page_tile_box" text="9 right,bottom" halign="right" valign="bottom"/>
+    </HTileBox>
+</Window>

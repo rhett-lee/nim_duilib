@@ -1,7 +1,10 @@
-#include "StdAfx.h"
 #include "OnScreenKeyboardManager.h"
+#include "duilib/Core/GlobalManager.h"
+#include "duilib/Utils/VersionHelpers.h"
 #include <initguid.h>
 #include <shlobj.h>
+#include <shellapi.h>
+#include <string>
 
 namespace ui
 {
@@ -45,7 +48,7 @@ void OnScreenKeyboardManager::ShowOSK(bool show)
 	if (bNeedOsk) {
 		m_bShow = show;
 		auto callback = nbase::Bind(&OnScreenKeyboardManager::TimerCallback, this);
-		TimerManager::GetInstance()->AddCancelableTimer(this->GetWeakFlag(), callback, 10, 1);
+		GlobalManager::Instance().Timer().AddCancelableTimer(this->GetWeakFlag(), callback, 10, 1);
 	}
 }
 
@@ -72,7 +75,7 @@ void OnScreenKeyboardManager::TimerCallback()
 		}
 		else {
 			if (auto hwnd = FindWindow(L"IPTip_Main_Window", NULL))
-				PostMessage(hwnd, WM_SYSCOMMAND, (int)SC_CLOSE, 0);
+				::PostMessage(hwnd, WM_SYSCOMMAND, (int)SC_CLOSE, 0);
 		}
 	}
 }
@@ -82,23 +85,21 @@ void OnScreenKeyboardManager::StartTabTip()
 	DWORD bufferSize = GetEnvironmentVariable(L"CommonProgramW6432", nullptr, 0);
 
 	std::wstring tabTipPath;
-	if (bufferSize) {
+	if (bufferSize > 0) {
 		tabTipPath.resize(bufferSize);
 		GetEnvironmentVariable(L"CommonProgramW6432", &tabTipPath[0], bufferSize);
 
-		if (!tabTipPath.empty()) {
-			if (tabTipPath[tabTipPath.length() - 1] == '\0') {
-				tabTipPath = tabTipPath.substr(0, tabTipPath.length() - 1);
-			}
-			tabTipPath = tabTipPath + LR"(\microsoft shared\ink\TabTip.exe)";
+		if (tabTipPath[tabTipPath.length() - 1] == '\0') {
+			tabTipPath = tabTipPath.substr(0, tabTipPath.length() - 1);
 		}
+		tabTipPath = tabTipPath + LR"(\microsoft shared\ink\TabTip.exe)";
 	}
 
 	if (tabTipPath.empty()) {
 		tabTipPath = LR"(C:\\Program Files\Common Files\microsoft shared\ink\TabTip.exe)";
 	}
 
-	ShellExecute(NULL, L"open", tabTipPath.c_str(), NULL, NULL, SW_SHOWDEFAULT);
+	::ShellExecute(NULL, L"open", tabTipPath.c_str(), NULL, NULL, SW_SHOWDEFAULT);
 }
 
 }

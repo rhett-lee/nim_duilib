@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Box>
+    <HBox>
+        <PropertyGrid name="property_grid_test" 
+                      bkcolor="YellowGreen" 
+                      width="320"
+                      left_column_width="130"
+                      row_grid_line_width="1"
+                      row_grid_line_color="darkgray"
+                      column_grid_line_width="1"
+                      column_grid_line_color="darkgray"
+                      header_class="property_grid_header"
+                      group_class="property_grid_group"
+                      propterty_class="property_grid_propterty"/>
+        <Split bkcolor="splitline_level1" width="2"/>
+        <VBox>
+            <HBox bkcolor="white">
+                <TabCtrl class="tab_ctrl" name="tab_list1" margin="10,10,10,10" drag_out_id="1">
+                    <TabCtrlItem class="tab_ctrl_item" title="标签1-1" icon="file='../public/caption/logo_18x18.png' valign='center' halign='center'"/>
+                    <TabCtrlItem class="tab_ctrl_item" title="标签1-2" icon="file='../public/caption/logo_18x18.png' valign='center' halign='center'"/>
+                    <TabCtrlItem class="tab_ctrl_item" title="标签1-3" icon="file='../public/caption/logo_18x18.png' valign='center' halign='center'"/>
+                    <TabCtrlItem class="tab_ctrl_item" title="标签1-4" icon="file='../public/caption/logo_18x18.png' valign='center' halign='center'"/>
+                </TabCtrl>                
+                <TabCtrl class="tab_ctrl" margin="10,10,10,10" drop_in_id="1">
+                    <TabCtrlItem class="tab_ctrl_item" title="标签2-1" icon="file='../public/caption/logo_18x18.png' valign='center' halign='center'"/>
+                    <TabCtrlItem class="tab_ctrl_item" title="标签2-2" icon="file='../public/caption/logo_18x18.png' valign='center' halign='center'"/>
+                    <TabCtrlItem class="tab_ctrl_item" title="标签2-3" icon="file='../public/caption/logo_18x18.png' valign='center' halign='center'"/>
+                    <TabCtrlItem class="tab_ctrl_item" title="标签2-4" icon="file='../public/caption/logo_18x18.png' valign='center' halign='center'"/>
+                </TabCtrl>
+            </HBox>
+            <VListBox margin="10,10,10,10" drop_in_id="1" width="128">
+                <TabCtrlItem class="tab_ctrl_item" title="标签2-1" icon="file='../public/caption/logo_18x18.png' valign='center' halign='center'"/>
+                <TabCtrlItem class="tab_ctrl_item" title="标签2-2" icon="file='../public/caption/logo_18x18.png' valign='center' halign='center'"/>
+                <TabCtrlItem class="tab_ctrl_item" title="标签2-3" icon="file='../public/caption/logo_18x18.png' valign='center' halign='center'"/>
+                <TabCtrlItem class="tab_ctrl_item" title="标签2-4" icon="file='../public/caption/logo_18x18.png' valign='center' halign='center'"/>
+            </VListBox>
+        </VBox>
+    </HBox>
+</Box>

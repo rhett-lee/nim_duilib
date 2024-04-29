@@ -9,6 +9,7 @@
 
 #if defined(OS_WIN)
 #include <process.h>
+#include "base/build/winsdk_config.h"
 #include <windows.h>
 #else
 #include <pthread.h>

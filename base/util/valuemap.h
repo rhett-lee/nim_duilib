@@ -38,13 +38,13 @@ private:
         virtual std::string to_string(void *v) const
 		{
              assert(v);
-             char buf[128];
-             sprintf(buf, format_, *((const T *)v));
+             char buf[128] = {0};
+             sprintf_s(buf, format_, *((const T *)v));
              return std::string((const char *)buf);
         }
         virtual bool to_value(const char *s, void *v)
 		{
-            return sscanf(s, format_, v) == 1;
+            return sscanf_s(s, format_, v) == 1;
         }
     };
 

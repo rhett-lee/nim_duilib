@@ -1,6 +1,6 @@
-﻿//{{NO_DEPENDENCIES}}
-// Microsoft Visual C++ 生成的包含文件。
-// 供 controls.rc 使用
+//{{NO_DEPENDENCIES}}
+// Microsoft Visual C++ ���ɵİ����ļ���
+// �� controls.rc ʹ��
 //
 #define IDC_MYICON                      2
 #define IDD_CONTROLS_DIALOG             102

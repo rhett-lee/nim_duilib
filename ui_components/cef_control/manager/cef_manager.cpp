@@ -1,10 +1,16 @@
-#include "stdafx.h"
 #include "cef_manager.h"
+#include "ui_components/cef_control/app/client_app.h"
+#include "ui_components/cef_control/handler/browser_handler.h"
+#include "ui_components/public_define.h"
+#include "base/win32/path_util.h"
+#include "base/file/file_util.h"
+#include "base/thread/thread_manager.h"
+
+#pragma warning (push)
+#pragma warning (disable:4100)
 #include "include/wrapper/cef_closure_task.h"
 #include "include/base/cef_bind.h"
-
-#include "cef_control/app/client_app.h"
-#include "cef_control/handler/browser_handler.h"
+#pragma warning (pop)
 
 namespace nim_comp
 {
@@ -52,8 +58,8 @@ bool CefMessageLoopDispatcher::Dispatch(const MSG &msg)
 // 这样操作之后就不会出现菜单无法关闭的bug了，虽然不知道为什么但是bug解决了
 void FixContextMenuBug(HWND hwnd)
 {
-	CreateWindow(L"Static", L"", WS_CHILD, 0, 0, 0, 0, hwnd, NULL, NULL, NULL);
-	PostMessage(hwnd, WM_CLOSE, 0, 0);
+	::CreateWindow(L"Static", L"", WS_CHILD, 0, 0, 0, 0, hwnd, NULL, NULL, NULL);
+	::PostMessage(hwnd, WM_CLOSE, 0, 0);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////
@@ -61,6 +67,11 @@ CefManager::CefManager()
 {
 	browser_count_ = 0;
 	is_enable_offset_render_ = true;
+}
+
+CefManager::~CefManager()
+{
+	ASSERT(map_drag_target_reference_.empty());
 }
 
 void CefManager::AddCefDllToPath()
@@ -73,12 +84,13 @@ void CefManager::AddCefDllToPath()
 	GetEnvironmentVariable(L"path", path_envirom, 4096);
 	
 	std::wstring cef_path = nbase::win32::GetCurrentModuleDirectory();
-#ifdef _DEBUG
-	//cef_path += L"cef_debug"; // 现在即使在debug模式下也使用cef release版本的dll，为了屏蔽掉cef退出时的中断，如果不需要调试cef的功能不需要使用debug版本的dll
-	cef_path += L"cef";
+
+#ifdef _WIN64
+	cef_path += L"cef_x64";
 #else
 	cef_path += L"cef";
 #endif
+
 	if (!nbase::FilePathIsExist(cef_path, true))
 	{
 		MessageBox(NULL, L"请解压Cef.rar压缩包", L"提示", MB_OK);
@@ -186,6 +198,42 @@ void CefManager::PostQuitMessage(int nExitCode)
 		};
 
 		nbase::ThreadManager::PostDelayedTask(kThreadUI, cb, nbase::TimeDelta::FromMilliseconds(500));
+	}
+}
+
+client::DropTargetHandle CefManager::GetDropTarget(HWND hwnd)
+{
+	// 查找是否存在这个弱引用
+	auto it = map_drag_target_reference_.find(hwnd);
+	if (it == map_drag_target_reference_.end()) {
+		auto deleter = [this](client::DropTargetWin *src) {
+			auto it = map_drag_target_reference_.find(src->GetHWND());
+			if (it != map_drag_target_reference_.end()) {
+				RevokeDragDrop(src->GetHWND());
+
+				// 移除弱引用对象
+				map_drag_target_reference_.erase(it);
+			}
+			else {
+				ASSERT(false);
+			}
+
+			delete src;
+		};
+		
+		// 如果不存在就新增一个
+		client::DropTargetHandle handle(new client::DropTargetWin(hwnd), deleter);
+		map_drag_target_reference_[hwnd] = handle;
+
+		HRESULT register_res = RegisterDragDrop(hwnd, handle.get());
+		(void)register_res;
+		ASSERT(register_res == S_OK);
+
+		return handle;
+	}
+	else {
+		// 如果存在就返回弱引用对应的强引用指针
+		return it->second.lock();
 	}
 }
 

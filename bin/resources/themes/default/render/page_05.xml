@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Window>
+    <HBox>
+        <VBox width="300" margin="4">
+            <HBox height="60" bkcolor="blue">
+                <Label height="stretch" width="stretch" text="文字(横向：左对齐，纵向：上对齐)" align="left,top"/>
+            </HBox>
+            <HBox height="60" bkcolor="dark_gray">
+                <Label height="stretch" width="stretch" text="文字(横向：左对齐，纵向：中对齐)" align="left,vcenter"/>
+            </HBox>
+            <HBox height="60" bkcolor="blue">
+                <Label height="stretch" width="stretch" text="文字(横向：左对齐，纵向：下对齐)" align="left,bottom"/>
+            </HBox>
+            <HBox height="60" bkcolor="dark_gray">
+                <Label height="stretch" width="stretch" text="文字(横向：中对齐，纵向：上对齐)" align="center,top"/>
+            </HBox>
+            <HBox height="60" bkcolor="blue">
+                <Label height="stretch" width="stretch" text="文字(横向：中对齐，纵向：中对齐)" align="center,vcenter"/>
+            </HBox>
+            <HBox height="60" bkcolor="dark_gray">
+                <Label height="stretch" width="stretch" text="文字(横向：中对齐，纵向：下对齐)" align="center,bottom"/>
+            </HBox>
+            <HBox height="60" bkcolor="blue">
+                <Label height="stretch" width="stretch" text="文字(横向：右对齐，纵向：上对齐)" align="right,top"/>
+            </HBox>
+            <HBox height="60" bkcolor="dark_gray">
+                <Label height="stretch" width="stretch" text="文字(横向：右对齐，纵向：中对齐)" align="right,vcenter"/>
+            </HBox>
+            <HBox height="60" bkcolor="blue">
+                <Label height="stretch" width="stretch" text="文字(横向：右对齐，纵向：下对齐)" align="right,bottom"/>
+            </HBox>
+            <HBox height="60" bkcolor="dark_gray">
+                <Label height="auto" width="auto" maxwidth="stretch" text="MeasureString结果测试1，MeasureString结果测试2，MeasureString结果测试3，" singleline="false" bkcolor="red" align="center,vcenter"/>
+            </HBox>
+        </VBox>
+        <VBox width="300" margin="4">                            
+            <HBox height="60" bkcolor="dark_gray">
+                <Label height="stretch" width="stretch" text="超长文字绘制\n测试, 单行文本，不自动增加点点点，1234567890-。qwertyuiopasdfghjkl;lmnozxccvb.NBVCXZASDFGHJKLPOIUYTREWQ." autotooltip="true" endellipsis="false"/>
+            </HBox>
+            <HBox height="60" bkcolor="blue">
+                <Label height="stretch" width="stretch" text="超长文字绘制\n测试, 单行文本，自动增加点点点，1234567890-。qwertyuiopasdfghjkl;lmnozxccvb.NBVCXZASDFGHJKLPOIUYTREWQ." autotooltip="true"/>
+            </HBox>
+            <HBox height="60" bkcolor="dark_gray">
+                <Label height="stretch" width="stretch" text="超长文字绘制\n测试, 多行文本，text is 1234567890-。qwertyuiopasdfghjkl-v." autotooltip="true" singleline="false"/>
+            </HBox>
+            <HBox height="60" bkcolor="blue">
+                <Label height="stretch" width="stretch" text="超长文字绘制\n测试, 多行文本，自动增加点点点，超长文本测试good bad test text is 1234567890-。qwertyuiopasdfghjkl;lmnozxccvb.NBVCXZASDFGHJKLPOIUYTREWQ. 超长文本测试，超长文本测试，超长文本测试，超长文本测试，超长文本测试，超长文本测试，超长文本测试，超长文本测试，，超长文本测试，超长文本测试，超长文本测试，超长文本测试" autotooltip="true" singleline="false"/>
+            </HBox>
+            <HBox height="60" bkcolor="dark_gray">
+                <Label height="stretch" width="stretch" text="超长文字绘制\n测试, 多行文本，不自动增加点点点，1234567890NBVCXZASDFGHJKLPOIUYTREWQNBVCXZASDFGHJKLPOIUYTREWQ 超长文本测试good bad test text is -。qwertyuiopasdfghjkl;lmnozxccvb.NBVCXZASDFGHJKLPOIUYTREWQ. 超长文本测试，超长文本测试，超长文本测试，超长文本测试，超长文本测试，超长文本测试，超长文本测试，超长文本测试，，超长文本测试，超长文本测试，超长文本测试，超长文本测试" autotooltip="true" singleline="false" endellipsis="false"/>
+            </HBox>
+            <HBox height="60" bkcolor="blue">
+                <Label height="stretch" width="stretch" text="C:\develop\编程开发学习\Windows内核原理与实现\编程开发\测试编程开发编程开发编程开发.txt" autotooltip="true" singleline="true" path_ellipsis="true"/>
+            </HBox>
+        </VBox>
+        <VBox width="300" margin="4">                            
+            <HBox height="60" bkcolor="dark_gray">
+                <Label height="stretch" width="stretch" text="文本绘制-带下划线的字" font="system_underline_14"/>
+            </HBox>
+            <HBox height="60" bkcolor="blue">
+                <Label height="stretch" width="stretch" text="文本绘制-粗体字" font="system_bold_14"/>
+            </HBox>
+            <HBox height="60" bkcolor="dark_gray">
+                <Label height="stretch" width="stretch" text="文本绘制-删除线" font="system_strikeout_14"/>
+            </HBox>
+            <HBox height="60" bkcolor="blue">
+                <Label height="stretch" width="stretch" text="文本绘制-斜体字" font="system_italic_14"/>
+            </HBox>
+            <HBox height="60" bkcolor="dark_gray">
+                <Label height="stretch" width="stretch" text="文本绘制-全部风格" font="system_fullstyle_20" normaltextcolor="green"/>
+            </HBox>
+        </VBox>
+        <VBox width="300" margin="4">                            
+            <RichText class="rich_text" bkcolor="green" row_spacing_mul="1.5" width="100%" height="auto">
+                RichText文本<br/>内容1
+                <b>
+                    粗体
+                    <bgcolor color="#FFFFFF">
+                        <u>
+                            <a href="www.baidu.com">这里是超级链接：点击访问百度首页</a>
+                        </u>
+                    </bgcolor>
+                    <font color="#FF0000">红色加粗</font>
+                </b>
+                <font face="宋体" size="12">
+                    宋体12号字演示1
+                    <font face="楷体" size="18">
+                        楷体效果演示：18号字
+                    </font>
+                    宋体12号字演示2
+                </font>
+                <a href="www.sohu.com">这里是超级链接：点击访问搜狐首页</a>
+                <font face="宋体" size="8">
+                    宋体8号字演示
+                </font>  
+                <i>斜体号字演示</i> 
+                <b>粗体号字演示</b> 
+                <s>删除字演示</s> 
+                <u>下划线字演示</u> 
+                <font face="微软雅黑" size="14">
+                    微软雅黑14号字演示
+                </font>  
+                <bgcolor color="#802378">背景颜色演示</bgcolor>                
+                RichText文本内容2RichText文本内容3RichText文本内容4RichText文本内容5RichText文本内容6RichText文本内容7RichText文本内容8RichText文本内容9RichText文本内容10
+            </RichText>
+        </VBox>
+    </HBox>
+</Window>

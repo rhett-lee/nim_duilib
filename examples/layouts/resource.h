@@ -1,6 +1,6 @@
-О╩©//{{NO_DEPENDENCIES}}
-// Microsoft Visual C++ Г■÷Ф┬░Г └Е▄┘Е░╚Ф√┤Д╩╤Ц─┌
-// Д╫©Г■╗Х─┘ layouts.rc
+//{{NO_DEPENDENCIES}}
+// Microsoft Visual C++ иЗЁи╣д╟Э╨╛нд╪Ч║ё
+// й╧сцуъ layouts.rc
 
 #define IDS_APP_TITLE			103
 
@@ -16,7 +16,7 @@
 #ifndef IDC_STATIC
 #define IDC_STATIC				-1
 #endif
-// Ф√╟Е╞╧Х╠║Г └Д╦▀Д╦─Г╩└И╩≤Х╝╓Е─╪
+// пб╤тоС╣добр╩вИд╛хож╣
 //
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS

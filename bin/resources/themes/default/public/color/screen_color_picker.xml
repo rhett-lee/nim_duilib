@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Window size="400,300" shadowattached="false" layered_window="false">
+    <Box>
+        <!-- 从屏幕获取颜色的控件 -->
+        <ScreenColorPicker name="screen_color_picker"/>
+        <ScreenColorPreview name="screen_color_preview" width="160" height="160" border_size="2" border_color="gray" bkcolor="white"/>
+    </Box>
+</Window>

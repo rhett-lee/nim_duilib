@@ -10,6 +10,8 @@
 
 #pragma once
 
+#include "duilib/Control/Progress.h"
+
 namespace ui
 {
 
@@ -17,10 +19,12 @@ class UILIB_API CircleProgress : public Progress
 {
 public:
 	CircleProgress();
+	virtual ~CircleProgress();
 
 	/// 重写父类方法，提供个性化功能，请参考父类声明
+	virtual std::wstring GetType() const override;
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
-	virtual void PaintStatusImage(IRenderContext* pRender) override;
+	virtual void PaintStateImages(IRender* pRender) override;
 	virtual void ClearImageCache() override;
 
 	/**
@@ -73,15 +77,13 @@ public:
 	void SetIndicator(const std::wstring& sIndicatorImage);
 
 protected:
-	bool			m_bCircular;
-	bool			m_bClockwise;
-	int				m_nCircleWidth;
-	DWORD			m_dwBackgroundColor;
-	DWORD			m_dwForegroundColor;
-	DWORD			m_dwGradientColor;
-	Gdiplus::Image*	m_pIndicator;   //此类目前维护资源管理
-	std::wstring	m_sIndicatorImage;
-
+	bool m_bCircular;
+	bool m_bClockwise;
+	int m_nCircleWidth;
+	UiColor m_dwBackgroundColor;
+	UiColor m_dwForegroundColor;
+	UiColor m_dwGradientColor;
+	Image* m_pIndicatorImage;
 };
 
 } // namespace ui

@@ -5,9 +5,13 @@
  * @date 2016/7/19
  */
 #pragma once
+#include "ui_components/cef_control/app/cef_js_bridge.h"
+
+#pragma warning (push)
+#pragma warning (disable:4100)
 #include "include/cef_base.h"
 #include "include/cef_app.h"
-#include "cef_control/app/cef_js_bridge.h"
+#pragma warning (pop)
 
 namespace nim_comp
 {

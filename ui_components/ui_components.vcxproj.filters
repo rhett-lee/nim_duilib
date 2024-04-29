@@ -19,18 +19,6 @@
     <Filter Include="toast">
       <UniqueIdentifier>{58d06459-bf5d-48b5-b653-9461e77b1773}</UniqueIdentifier>
     </Filter>
-    <Filter Include="menu">
-      <UniqueIdentifier>{b12ecb80-abc3-46d1-960d-de7aa972379d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="modal_wnd">
-      <UniqueIdentifier>{92881902-1d31-4623-ac4e-6b01d27d2582}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="shadow_wnd">
-      <UniqueIdentifier>{39703511-f230-45bb-a21b-9748a2709349}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="windows_manager">
-      <UniqueIdentifier>{9cd0028e-cbbc-4078-b80e-b5a7e1e09eb2}</UniqueIdentifier>
-    </Filter>
     <Filter Include="cef_control">
       <UniqueIdentifier>{510a5c72-09fb-4840-b95d-6978a740e3ab}</UniqueIdentifier>
     </Filter>
@@ -49,46 +37,28 @@
     <Filter Include="cef_control\manager">
       <UniqueIdentifier>{f2d952a7-0fa0-4aa2-b596-1e5294c94c0b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="cef_control\handler\drag">
+      <UniqueIdentifier>{7747b13a-cc8c-4e86-b230-3528a4bb5752}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="popover">
+      <UniqueIdentifier>{9909f163-035f-4861-8cf9-6ba43ac5c02d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="mini_blink_control">
+      <UniqueIdentifier>{ce4e70a6-09b9-44db-9a71-db4fae9f195a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="stdafx.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="targetver.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="msgbox\msgbox.h">
       <Filter>msgbox</Filter>
     </ClInclude>
-    <ClInclude Include="menu\ui_menu.h">
-      <Filter>menu</Filter>
-    </ClInclude>
-    <ClInclude Include="modal_wnd\async_do_modal.h">
-      <Filter>modal_wnd</Filter>
-    </ClInclude>
-    <ClInclude Include="modal_wnd\async_modal_runner.h">
-      <Filter>modal_wnd</Filter>
-    </ClInclude>
-    <ClInclude Include="modal_wnd\file_dialog_ex.h">
-      <Filter>modal_wnd</Filter>
-    </ClInclude>
-    <ClInclude Include="modal_wnd\modal_wnd_base.h">
-      <Filter>modal_wnd</Filter>
-    </ClInclude>
-    <ClInclude Include="shadow_wnd\shadow_wnd.h">
-      <Filter>shadow_wnd</Filter>
-    </ClInclude>
     <ClInclude Include="toast\toast.h">
       <Filter>toast</Filter>
     </ClInclude>
     <ClInclude Include="ui_components.h">
       <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="windows_manager\window_ex.h">
-      <Filter>windows_manager</Filter>
-    </ClInclude>
-    <ClInclude Include="windows_manager\windows_manager.h">
-      <Filter>windows_manager</Filter>
     </ClInclude>
     <ClInclude Include="cef_control\app\cef_js_bridge.h">
       <Filter>cef_control\app</Filter>
@@ -135,37 +105,49 @@
     <ClInclude Include="public_define.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="cef_control\handler\drag\util_win.h">
+      <Filter>cef_control\handler\drag</Filter>
+    </ClInclude>
+    <ClInclude Include="cef_control\handler\drag\bytes_write_handler.h">
+      <Filter>cef_control\handler\drag</Filter>
+    </ClInclude>
+    <ClInclude Include="cef_control\handler\drag\osr_dragdrop_events.h">
+      <Filter>cef_control\handler\drag</Filter>
+    </ClInclude>
+    <ClInclude Include="cef_control\handler\drag\osr_dragdrop_win.h">
+      <Filter>cef_control\handler\drag</Filter>
+    </ClInclude>
+    <ClInclude Include="popover\popover.h">
+      <Filter>popover</Filter>
+    </ClInclude>
+    <ClInclude Include="popover\notification.h">
+      <Filter>popover</Filter>
+    </ClInclude>
+    <ClInclude Include="popover\alert.h">
+      <Filter>popover</Filter>
+    </ClInclude>
+    <ClInclude Include="popover\tooltip.h">
+      <Filter>popover</Filter>
+    </ClInclude>
+    <ClInclude Include="mini_blink_control\web_view_base.h">
+      <Filter>mini_blink_control</Filter>
+    </ClInclude>
+    <ClInclude Include="mini_blink_control\wke_memory_dc.h">
+      <Filter>mini_blink_control</Filter>
+    </ClInclude>
+    <ClInclude Include="mini_blink_control\wke_web_native.h">
+      <Filter>mini_blink_control</Filter>
+    </ClInclude>
+    <ClInclude Include="mini_blink_control\wke_web_view.h">
+      <Filter>mini_blink_control</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="stdafx.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="msgbox\msgbox.cpp">
       <Filter>msgbox</Filter>
     </ClCompile>
-    <ClCompile Include="menu\ui_menu.cpp">
-      <Filter>menu</Filter>
-    </ClCompile>
-    <ClCompile Include="modal_wnd\async_do_modal.cpp">
-      <Filter>modal_wnd</Filter>
-    </ClCompile>
-    <ClCompile Include="modal_wnd\async_modal_runner.cpp">
-      <Filter>modal_wnd</Filter>
-    </ClCompile>
-    <ClCompile Include="modal_wnd\file_dialog_ex.cpp">
-      <Filter>modal_wnd</Filter>
-    </ClCompile>
-    <ClCompile Include="shadow_wnd\shadow_wnd.cpp">
-      <Filter>shadow_wnd</Filter>
-    </ClCompile>
     <ClCompile Include="toast\toast.cpp">
       <Filter>toast</Filter>
-    </ClCompile>
-    <ClCompile Include="windows_manager\window_ex.cpp">
-      <Filter>windows_manager</Filter>
-    </ClCompile>
-    <ClCompile Include="windows_manager\windows_manager.cpp">
-      <Filter>windows_manager</Filter>
     </ClCompile>
     <ClCompile Include="cef_control\app\cef_js_bridge.cpp">
       <Filter>cef_control\app</Filter>
@@ -205,6 +187,39 @@
     </ClCompile>
     <ClCompile Include="cef_control\util\memory_dc.cpp">
       <Filter>cef_control\util</Filter>
+    </ClCompile>
+    <ClCompile Include="cef_control\handler\drag\bytes_write_handler.cc">
+      <Filter>cef_control\handler\drag</Filter>
+    </ClCompile>
+    <ClCompile Include="cef_control\handler\drag\osr_dragdrop_win.cc">
+      <Filter>cef_control\handler\drag</Filter>
+    </ClCompile>
+    <ClCompile Include="cef_control\handler\drag\util_win.cc">
+      <Filter>cef_control\handler\drag</Filter>
+    </ClCompile>
+    <ClCompile Include="popover\popover.cpp">
+      <Filter>popover</Filter>
+    </ClCompile>
+    <ClCompile Include="popover\notification.cpp">
+      <Filter>popover</Filter>
+    </ClCompile>
+    <ClCompile Include="popover\alert.cpp">
+      <Filter>popover</Filter>
+    </ClCompile>
+    <ClCompile Include="popover\tooltip.cpp">
+      <Filter>popover</Filter>
+    </ClCompile>
+    <ClCompile Include="mini_blink_control\web_view_base.cpp">
+      <Filter>mini_blink_control</Filter>
+    </ClCompile>
+    <ClCompile Include="mini_blink_control\wke_memory_dc.cpp">
+      <Filter>mini_blink_control</Filter>
+    </ClCompile>
+    <ClCompile Include="mini_blink_control\wke_web_native.cpp">
+      <Filter>mini_blink_control</Filter>
+    </ClCompile>
+    <ClCompile Include="mini_blink_control\wke_web_view.cpp">
+      <Filter>mini_blink_control</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -1,4 +1,4 @@
-ï»¿// a thread manager for iter-thread communicatios, etc.
+// a thread manager for iter-thread communicatios, etc.
 
 #ifndef BASE_THREAD_THREAD_MANAGER_H_
 #define BASE_THREAD_THREAD_MANAGER_H_
@@ -33,21 +33,21 @@ private:
 	std::map<int, FrameworkThread*> threads_;
 };
 
-// ä½¿ç”¨ThreadManagerå¯ä»¥æå¤§åœ°æ–¹ä¾¿çº¿ç¨‹é—´é€šä¿¡
-// æ³¨æ„ï¼šåªæœ‰å—ThreadManageræ‰˜ç®¡çš„çº¿ç¨‹ï¼ˆé€šè¿‡Registeræ‰˜ç®¡ï¼‰æ‰å…è®¸è°ƒç”¨é™¤Registerå’ŒPostæ—å¤–çš„æˆå‘˜å‡½æ•°
+// Ê¹ÓÃThreadManager¿ÉÒÔ¼«´óµØ·½±ãÏß³Ì¼äÍ¨ĞÅ
+// ×¢Òâ£ºÖ»ÓĞÊÜThreadManagerÍĞ¹ÜµÄÏß³Ì£¨Í¨¹ıRegisterÍĞ¹Ü£©²ÅÔÊĞíµ÷ÓÃ³ıRegisterºÍPost×åÍâµÄ³ÉÔ±º¯Êı
 class BASE_EXPORT ThreadManager
 {
 public:
 
-	// æ‰˜ç®¡å½“å‰FrameworkThreadçº¿ç¨‹
+	// ÍĞ¹Üµ±Ç°FrameworkThreadÏß³Ì
 	// identifier >= 0
-	// å¿…é¡»åœ¨selfçš„çº¿ç¨‹è¿‡ç¨‹å†…è¢«è°ƒç”¨
+	// ±ØĞëÔÚselfµÄÏß³Ì¹ı³ÌÄÚ±»µ÷ÓÃ
 	static bool RegisterThread(int self_identifier);
-	// å–æ¶ˆå½“å‰çº¿ç¨‹æ‰˜ç®¡
-	// çº¿ç¨‹è¿è¡Œç»“æŸä¹‹å‰å¿…é¡»è°ƒç”¨UnregisterThreadå–æ¶ˆæ‰˜ç®¡
+	// È¡Ïûµ±Ç°Ïß³ÌÍĞ¹Ü
+	// Ïß³ÌÔËĞĞ½áÊøÖ®Ç°±ØĞëµ÷ÓÃUnregisterThreadÈ¡ÏûÍĞ¹Ü
 	static bool UnregisterThread();
 
-	// æŸ¥æ‰¾
+	// ²éÕÒ
 	static FrameworkThread* CurrentThread();
 	template<typename T> static T* CurrentThreadT();
 	static int QueryThreadId(const FrameworkThread *thread);

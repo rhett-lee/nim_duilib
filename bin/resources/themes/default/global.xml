@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Global>
-    <!--所有字体-->
-    <Font id="system_12" name="system" size="12" default="true"/>
-    <Font id="system_14" name="system" size="14"/>
+    <!--所有字体：默认为五号字-->
+    <Font id="system_12" name="system" size="12"/>
+    <Font id="system_14" name="system" size="14" default="true"/>
     <Font id="system_16" name="system" size="16"/>
     <Font id="system_18" name="system" size="18"/>
     <Font id="system_20" name="system" size="20"/>
@@ -13,6 +13,25 @@
     <Font id="system_bold_18" name="system" size="18" bold="true"/>
     <Font id="system_bold_20" name="system" size="20" bold="true"/>
     <Font id="system_bold_22" name="system" size="22" bold="true"/>
+    <Font id="system_underline_12" name="system" size="12" underline="true"/>
+    <Font id="system_underline_14" name="system" size="14" underline="true"/>
+    <Font id="system_underline_16" name="system" size="16" underline="true"/>
+    <Font id="system_underline_18" name="system" size="18" underline="true"/>
+    <Font id="system_underline_20" name="system" size="20" underline="true"/>
+    <Font id="system_underline_22" name="system" size="22" underline="true"/>
+    <Font id="system_italic_12" name="system" size="12" italic="true"/>
+    <Font id="system_italic_14" name="system" size="14" italic="true"/>
+    <Font id="system_italic_16" name="system" size="16" italic="true"/>
+    <Font id="system_italic_18" name="system" size="18" italic="true"/>
+    <Font id="system_italic_20" name="system" size="20" italic="true"/>
+    <Font id="system_italic_22" name="system" size="22" italic="true"/>
+    <Font id="system_strikeout_12" name="system" size="12" strikeout="true"/>
+    <Font id="system_strikeout_14" name="system" size="14" strikeout="true"/>
+    <Font id="system_strikeout_16" name="system" size="16" strikeout="true"/>
+    <Font id="system_strikeout_18" name="system" size="18" strikeout="true"/>
+    <Font id="system_strikeout_20" name="system" size="20" strikeout="true"/>
+    <Font id="system_strikeout_22" name="system" size="22" strikeout="true"/>
+    <Font id="system_fullstyle_20" name="system" size="20" italic="true" strikeout="true" underline="true" bold="true"/>
     <Font id="arial_12" name="arial" size="12"/>
     <Font id="arial_14" name="arial" size="14"/>
     <Font id="arial_16" name="arial" size="16"/>
@@ -25,13 +44,19 @@
     <Font id="arial_bold_18" name="arial" size="18" bold="true"/>
     <Font id="arial_bold_20" name="arial" size="20" bold="true"/>
     <Font id="arial_bold_22" name="arial" size="22" bold="true"/>
-    <Font id="system_underline_12" name="system" size="12" underline="true"/>
-    <Font id="system_underline_14" name="system" size="14" underline="true"/>
-    <Font id="system_underline_16" name="system" size="16" underline="true"/>
-    <Font id="system_underline_18" name="system" size="18" underline="true"/>
-    <Font id="system_underline_20" name="system" size="20" underline="true"/>
-    <Font id="system_underline_22" name="system" size="22" underline="true"/>
-
+    
+    <!-- 默认文本颜色值：常规状态 -->
+    <TextColor name="default_font_color" value="#ff333333"/>
+    <!-- 默认文本颜色值：禁止状态 -->
+    <TextColor name="disabled_font_color" value="#ffa1aebc"/>
+    
+    <!-- 超级链接：常规文本颜色值 -->
+    <TextColor name="default_link_font_color" value="#FF0000FF"/>
+    <!-- 超级链接：Hover状态文本颜色值 -->
+    <TextColor name="hover_link_font_color" value="#FFD3215F"/>
+    <!-- 超级链接：鼠标按下状态文本颜色值 -->
+    <TextColor name="mouse_down_link_font_color" value="#FFFF0000"/>
+    
     <!--一些常规固定颜色-->
     <TextColor name="white" value="#ffffffff"/>
     <TextColor name="black" value="#ff000000"/>
@@ -44,11 +69,7 @@
     <TextColor name="light_green" value="#ff21c7a6"/>
     <TextColor name="blue" value="#ff006DD9"/>
     <TextColor name="red" value="#ffC63535"/>
-
-    <!--文字色值，不带透明层-->
-    <TextColor name="textdefaultcolor" value="#ff333333"/>
-    <TextColor name="textdefaultdisablecolor" value="#ffa1aebc"/>
-
+    
     <!--窗口常用背景色-->
     <TextColor name="bk_main_wnd_title" value="#ff238efa"/>
     <TextColor name="bk_main_wnd_search" value="#ff1e7ad7"/>
@@ -58,25 +79,20 @@
     <TextColor name="bk_menuitem_selected" value="#ffced4db"/>
     <TextColor name="bk_listitem_hovered" value="#fff0f2f5"/>
     <TextColor name="bk_listitem_selected" value="#ffe4e7eb"/>
-
     <!--置顶项的背景颜色-->
     <TextColor name="bk_topitem_normal" value="#ffffffe0"/>
     <TextColor name="bk_topitem_hovered" value="#ffffffeb"/>
     <TextColor name="bk_topitem_selected" value="#fffafacd"/>
-
     <!--进度条专用-->
     <TextColor name="bk_progress_bk" value="#ffe3ecf5"/>
     <TextColor name="bk_progress_progress" value="#ff2aceae"/>
-
     <!--背景色值，半透明-->
     <TextColor name="transbkblack" value="#80000000"/>
-
+    <TextColor name="maskbkblack" value="#81000000"/>
     <!--第一级分割线，较深-->
     <TextColor name="splitline_level1" value="#ffd2d4d6"/>
-
     <!--第二级分割线，较浅-->
     <TextColor name="splitline_level2" value="#ffebedf0"/>
-
     <!--调色板色值-->
     <TextColor name="color_palette1" value="#ffff2600"/>
     <TextColor name="color_palette2" value="#ffffeb00"/>
@@ -87,76 +103,337 @@
     <TextColor name="color_palette7" value="#ff545454"/>
     <TextColor name="color_palette8" value="#ffa8a8a8"/>
     <TextColor name="color_palette9" value="#ffffffff"/>
-
+    <!--duilib控件相关颜色-->
+    <TextColor name="grid_line" value="#ffcccccc"/>
+    <TextColor name="grid_sel_fore" value="#ff20b0fb"/>
     <!--字体大小-->
     <Class name="font_title" font="system_14"/>
-
     <!--标题栏-->
     <Class name="caption" height="34" bkimage="file='../public/caption/caption_public.png' corner='0,0,0,1'" padding="10,0,5,0" />
-
     <!--滚动条-->
-    <Class name="vscrollbar" width="14" fadealpha="true" thumbnormalimage="file='../public/vscrollbar/thumb_normal.png'  corner='0,8,0,8'" thumbhotimage="file='../public/vscrollbar/thumb_hovered.png' corner='0,8,0,8'" bkhotimage="file='../public/vscrollbar/bk_hovered.png' corner='0,4,0,4'" showbutton1="false" showbutton2="false" />   
-    <Class name="hscrollbar" height="14" fadealpha="true" thumbnormalimage="file='../public/hscrollbar/thumb_normal.png' corner='8,0,8,0'" thumbhotimage="file='../public/hscrollbar/thumb_hovered.png' corner='8,0,8,0'" bkhotimage="file='../public/hscrollbar/bk_hovered.png' corner='4,0,4,0'" showbutton1="false" showbutton2="false"/>
-
+    <Class name="vscrollbar" width="14" fadealpha="true" 
+           thumb_normal_image="file='../public/vscrollbar/thumb_normal.png' corner='0,8,0,8'" 
+           thumb_hot_image="file='../public/vscrollbar/thumb_hovered.png' corner='0,8,0,8'" 
+           bk_hot_image="file='../public/vscrollbar/bk_hovered.png' corner='0,4,0,4'" 
+           show_button1="false" 
+           show_button2="false" />
+    <Class name="hscrollbar" height="14" fadealpha="true" 
+           thumb_normal_image="file='../public/hscrollbar/thumb_normal.png' corner='8,0,8,0'" 
+           thumb_hot_image="file='../public/hscrollbar/thumb_hovered.png' corner='8,0,8,0'" 
+           bk_hot_image="file='../public/hscrollbar/bk_hovered.png' corner='4,0,4,0'" 
+           show_button1="false" 
+           show_button2="false"/>
     <!--单选框-->
-    <Class name="option" selectednormalimage="../public/option/selected.png" selectedhotimage="../public/option/selectedhover.png" selectedpushedimage="../public/option/selectedhover.png"/>
-    <Class name="circle_option" normalimage="../public/option/circle_unselected.png" disabledimage="../public/option/circle_unselected_disabled.png"/>
-    <Class name="circle_option_2" height="18" textpadding="25,0,0,0" font="system_12" normaltextcolor="darkcolor" normalimage="file='../public/option/circle_unselected.png' dest='0,0,18,18'" selectednormalimage="file='../public/option/circle_selected.png' dest='0,0,18,18'"/>
-
+    <Class name="option" selected_normal_image="../public/option/selected.png" 
+                         selected_hot_image="../public/option/selectedhover.png" 
+                         selected_pushed_image="../public/option/selectedhover.png"/>
+    <Class name="circle_option" normal_image="../public/option/circle_unselected.png" 
+                                disabled_image="../public/option/circle_unselected_disabled.png"/>
+    <Class name="circle_option_2" height="18" text_padding="20,0,0,0" font="system_14" 
+                                  normal_image="file='../public/option/circle_unselected.png' valign='center'" 
+                                  selected_normal_image="file='../public/option/circle_selected.png' valign='center'"/>
+    <Class name="circle_option_3" height="18" text_padding="20,0,0,0" font="system_14" 
+                                  normal_image="file='../public/option/radio-unchecked.svg' valign='center'" 
+                                  selected_normal_image="file='../public/option/radio-checked.svg' valign='center'"/>
     <!--复选框-->
-    <Class name="checkbox_font12" height="16" textpadding="20,0,0,0" font="system_12" normaltextcolor="darkcolor" normalimage="file='../public/CheckBox/check_no.png' dest='0,0,16,16'" disabledimage="file='../public/CheckBox/check_no.png' dest='0,0,16,16' fade='80'" selectednormalimage="file='../public/CheckBox/check_yes.png' dest='0,0,16,16'" selecteddisabledimage="file='../public/CheckBox/check_yes.png' dest='0,0,16,16' fade='80'"/>
-    <Class name="checkbox_font14" height="20" textpadding="20,0,0,0" font="system_14" normaltextcolor="darkcolor" normalimage="file='../public/CheckBox/check_no.png' dest='0,2,16,18'" disabledimage="file='../public/CheckBox/check_no.png' dest='0,2,16,18' fade='80'" selectednormalimage="file='../public/CheckBox/check_yes.png' dest='0,2,16,18'" selecteddisabledimage="file='../public/CheckBox/check_yes.png' dest='0,2,16,18' fade='80'"/>
-    <Class name="checkbox_green" normalimage="file='../public/CheckBox/check_green_no.png'" disabledimage="file='../public/CheckBox/check_green_no.png' fade='80'" selectednormalimage="file='../public/CheckBox/check_green_yes.png'" selecteddisabledimage="file='../public/CheckBox/check_green_yes.png' fade='80'"/>
+    <Class name="checkbox_font12" height="16" text_padding="20,0,0,0" font="system_12" normal_text_color="darkcolor" 
+                                  normal_image="file='../public/CheckBox/check_no.png' dest='0,0,16,16'" 
+                                  disabled_image="file='../public/CheckBox/check_no.png' dest='0,0,16,16' fade='80'" 
+                                  selected_normal_image="file='../public/CheckBox/check_yes.png' dest='0,0,16,16'" 
+                                  selected_disabled_image="file='../public/CheckBox/check_yes.png' dest='0,0,16,16' fade='80'"/>
+    <Class name="checkbox_font14" height="20" text_padding="20,0,0,0" font="system_14" 
+                                  normal_text_color="darkcolor" 
+                                  normal_image="file='../public/CheckBox/check_no.png' dest='0,2,16,18'" 
+                                  disabled_image="file='../public/CheckBox/check_no.png' dest='0,2,16,18' fade='80'" 
+                                  selected_normal_image="file='../public/CheckBox/check_yes.png' dest='0,2,16,18'" 
+                                  selected_disabled_image="file='../public/CheckBox/check_yes.png' dest='0,2,16,18' fade='80'"/>
+    <Class name="checkbox_green" normal_image="file='../public/CheckBox/check_green_no.png'" 
+                                 disabled_image="file='../public/CheckBox/check_green_no.png' fade='80'" 
+                                 selected_normal_image="file='../public/CheckBox/check_green_yes.png'" 
+                                 selected_disabled_image="file='../public/CheckBox/check_green_yes.png' fade='80'"/>
+    <!--下拉框-->
+    <Class name="combo" bkcolor="white" padding="1,1,1,1" border_size="1" border_color="light_gray" hot_border_color="blue" 
+                        combo_tree_view_class="padding='1,1,1,1' border_size='1,1,1,1' bkcolor='white' border_color='gray' indent='20' class='tree_view'"
+                        combo_tree_node_class="tree_node" 
+                        combo_icon_class="bkimage='../public/caption/logo_18x18.png' width='auto' height='auto' valign='center' margin='2,0,2,0'" 
+                        combo_edit_class="bkcolor='white' text_align='vcenter' text_padding='2,0,2,0' single_line='true' word_wrap='false' auto_hscroll='true'"
+                        combo_button_class="height={stretch} width={auto} margin={1,0,0,0} padding={1,0,0,0} border_size={1,0,0,0} hot_border_color={blue} pushed_border_color={blue} valign={center} hot_color={#FFE5F3FF} pushed_color={#FFCCE8FF} normal_image={file='../public/combo/arrow_normal.svg' valign='center'} hot_image={file='../public/combo/arrow_hot.svg' valign='center'}"/>
+    <Class name="filter_combo" bkcolor="white" padding="1,1,1,1" border_size="1" border_color="light_gray" hot_border_color="blue" 
+                               combo_tree_view_class="padding='1,1,1,1' border_size='1,1,1,1' bkcolor='white' border_color='gray' indent='20' class='tree_view'"
+                               combo_tree_node_class="tree_node" 
+                               combo_icon_class="bkimage='../public/caption/logo_18x18.png' width='auto' height='auto' valign='center' margin='2,0,2,0'" 
+                               combo_edit_class="bkcolor='white' text_align='vcenter' text_padding='2,0,2,0' single_line='true' word_wrap='false' auto_hscroll='true'"/>
+    <Class name="check_combo" bordersize="1" bordercolor="splitline_level1" 
+                              dropbox="padding='1,1,1,1' bkcolor='bk_wnd_lightcolor' border_color='splitline_level1' border_size='1,1,1,1' vscrollbar='true'"
+                              dropbox_item_class="width={stretch} height={24} text_padding={20,2,2,0} text_align={left,vcenter} normal_image={file='../public/checkbox/check_no.png' dest='2,4,18,20'} selected_normal_image={file='../public/checkbox/check_yes.png' dest='2,4,18,20'}" 
+                              selected_item_class="width={auto} height={22} margin={4,2,4,2} bkcolor={bk_menuitem_selected} text_padding={2,1,2,1}"/>
+    <Class name="combo_button" padding="1,1,1,1" border_size="1" hot_border_color="blue" hot_color="#FFE5F3FF" pushed_color="#FFCCE8FF"
+                               combo_box_class="padding='1,1,1,1' border_size='1,1,1,1' bkcolor='white' border_color='gray'" 
+                               left_button_class="height={stretch} width={stretch} padding={0,0,1,0} border_size={0,0,1,0} hot_border_color={blue} pushed_border_color={blue} valign={center} hot_color={#FFE5F3FF} pushed_color={#FFCCE8FF} " 
+                               left_button_top_label_class="width={stretch} height={20} margin={1,0,1,0} font={system_bold_14} text_align={bottom,hcenter}" 
+                               left_button_bottom_label_class="width={stretch} height={stretch} margin={6,0,6,2} bkcolor={black}" 
+                               right_button_class="height={stretch} width={auto} padding={1,0,0,0} border_size={1,0,0,0} hot_border_color={blue} pushed_border_color={blue} valign={center} hot_color={#FFE5F3FF} pushed_color={#FFCCE8FF} normal_image={file='../public/combo/arrow_normal.svg' valign='center'} hot_image={file='../public/combo/arrow_hot.svg' valign='center'}"/>
+
+    <!--按钮：图片按钮-->
+    <Class name="btn_global_blue_80x30" font="system_bold_14" normal_text_color="white" 
+                normal_image="file='../public/button/btn_global_blue_80x30_normal.png'" 
+                hot_image="file='../public/button/btn_global_blue_80x30_hovered.png'" 
+                pushed_image="file='../public/button/btn_global_blue_80x30_pushed.png'" 
+                disabled_image="file='../public/button/btn_global_blue_80x30_normal.png' fade='80'"/>
+    <Class name="btn_global_white_80x30" font="system_bold_14" normal_text_color="dark_gray" 
+                normal_image="file='../public/button/btn_global_white_80x30_normal.png'" 
+                hot_image="file='../public/button/btn_global_white_80x30_hovered.png'" 
+                pushed_image="file='../public/button/btn_global_white_80x30_pushed.png'" 
+                disabled_image="file='../public/button/btn_global_white_80x30_normal.png' fade='128'"/>
+    <Class name="btn_global_red_80x30" font="system_bold_14" normal_text_color="white" 
+                normal_image="file='../public/button/btn_global_red_80x30_normal.png'" 
+                hot_image="file='../public/button/btn_global_red_80x30_hovered.png'" 
+                pushed_image="file='../public/button/btn_global_red_80x30_pushed.png'" 
+                disabled_image="file='../public/button/btn_global_red_80x30_normal.png' fade='80'"/>
+    <!--按钮：纯色按钮-->
+    <Class name="btn_global_color_gray" font="system_14" normal_text_color="black" disabled_text_color="gray" text_align="hcenter,vcenter" normal_color="#FFD7DCE0" hot_color="#FFFAFCFF" pushed_color="#FFB0B4B8"/>
     
-    <!--按钮-->
-    <Class name="btn_global_blue_80x30" font="system_bold_14" normaltextcolor="white" normalimage="file='../public/button/btn_global_blue_80x30_normal.png'" hotimage="file='../public/button/btn_global_blue_80x30_hovered.png'" pushedimage="file='../public/button/btn_global_blue_80x30_pushed.png'" disabledimage="file='../public/button/btn_global_blue_80x30_normal.png' fade='80'"/>
-    <Class name="btn_global_white_80x30" font="system_bold_14" normaltextcolor="dark_gray" normalimage="file='../public/button/btn_global_white_80x30_normal.png'" hotimage="file='../public/button/btn_global_white_80x30_hovered.png'" pushedimage="file='../public/button/btn_global_white_80x30_pushed.png'" disabledimage="file='../public/button/btn_global_white_80x30_normal.png' fade='128'"/>
-    <Class name="btn_global_red_80x30" font="system_bold_14" normaltextcolor="white" normalimage="file='../public/button/btn_global_red_80x30_normal.png'" hotimage="file='../public/button/btn_global_red_80x30_hovered.png'" pushedimage="file='../public/button/btn_global_red_80x30_pushed.png'" disabledimage="file='../public/button/btn_global_red_80x30_normal.png' fade='80'"/>
+    <!--窗口右上角按钮 灰色版 -->
+    <Class name="btn_wnd_min_11" normal_image="file='../public/button/window-minimize.svg' width='24' height='24' valign='center' halign='center'" hot_color="AliceBlue" pushed_color="Lavender"/>
+    <Class name="btn_wnd_close_11" normal_image="file='../public/button/window-close.svg' width='24' height='24' valign='center' halign='center'" hot_color="red" pushed_color="OrangeRed"/>
+    <Class name="btn_wnd_max_11" normal_image="file='../public/button/window-maximize.svg' width='24' height='24' valign='center' halign='center'" hot_color="AliceBlue" pushed_color="Lavender"/>
+    <Class name="btn_wnd_restore_11" normal_image="file='../public/button/window-restore.svg' width='24' height='24' valign='center' halign='center'" hot_color="AliceBlue" pushed_color="Lavender"/>
+    <Class name="btn_wnd_fullscreen_11" normal_image="file='../public/button/window-fullscreen.svg' width='24' height='24' valign='center' halign='center' padding='0,4,0,0'" hot_color="AliceBlue" pushed_color="Lavender"/>
+    <Class name="btn_wnd_settings_11" normal_image="file='../public/button/btn_setting.svg' width='24' height='24' valign='center' halign='center'" hot_color="AliceBlue" pushed_color="Lavender"/>
 
     <!--窗口右上角按钮 灰色版 -->
-    <Class name="btn_wnd_min" width="auto" height="auto" forenormalimage="file='../public/button/btn_wnd_gray_min.png' dest='4,4,16,16'" normalimage="" hotimage="../public/button/btn_wnd_gray_min_hovered.png" pushedimage="../public/button/btn_wnd_gray_min_pushed.png"/>
-    <Class name="btn_wnd_close" width="20" height="20" normalimage="file='../public/button/btn_wnd_gray_close.png' dest='4,4,16,16'" hotimage="../public/button/btn_wnd_white_close_hovered.png" pushedimage="../public/button/btn_wnd_white_close_pushed.png" fadehot="false"/>
-    <Class name="btn_wnd_max" width="auto" height="auto" forenormalimage="file='../public/button/btn_wnd_gray_max.png' dest='4,4,16,16'" normalimage="" hotimage="../public/button/btn_wnd_gray_max_hovered.png" pushedimage="../public/button/btn_wnd_gray_max_pushed.png"/>
-    <Class name="btn_wnd_restore" width="auto" height="auto" forenormalimage="file='../public/button/btn_wnd_gray_restore.png' dest='4,4,16,16'" normalimage="" hotimage="../public/button/btn_wnd_gray_restore_hovered.png" pushedimage="../public/button/btn_wnd_gray_restore_pushed.png"/>
-    <Class name="btn_wnd_settings" width="auto" height="auto" forenormalimage="file='../public/button/btn_wnd_settings.png' source='1,1,21,21'" hotimage="../public/button/btn_wnd_bk_hovered.png" pushedimage="../public/button/btn_wnd_bk_pushed.png"/>
-
+    <Class name="btn_wnd_min" width="auto" height="auto" 
+                fore_normal_image="file='../public/button/btn_wnd_gray_min.png' dest='4,4,16,16'" 
+                normal_image="" 
+                hot_image="../public/button/btn_wnd_gray_min_hovered.png" 
+                pushed_image="../public/button/btn_wnd_gray_min_pushed.png"/>
+    <Class name="btn_wnd_close" width="20" height="20" 
+                normal_image="file='../public/button/btn_wnd_gray_close.png' dest='4,4,16,16'" 
+                hot_image="../public/button/btn_wnd_white_close_hovered.png" 
+                pushed_image="../public/button/btn_wnd_white_close_pushed.png" 
+                fadehot="false"/>
+    <Class name="btn_wnd_max" width="auto" height="auto" 
+                fore_normal_image="file='../public/button/btn_wnd_gray_max.png' dest='4,4,16,16'" 
+                normal_image="" hot_image="../public/button/btn_wnd_gray_max_hovered.png" 
+                pushed_image="../public/button/btn_wnd_gray_max_pushed.png"/>
+    <Class name="btn_wnd_restore" width="auto" height="auto" 
+                fore_normal_image="file='../public/button/btn_wnd_gray_restore.png' dest='4,4,16,16'" 
+                normal_image="" hot_image="../public/button/btn_wnd_gray_restore_hovered.png" 
+                pushed_image="../public/button/btn_wnd_gray_restore_pushed.png"/>
+    <Class name="btn_wnd_settings" width="auto" height="auto" 
+                fore_normal_image="file='../public/button/btn_wnd_settings.png' source='1,1,21,21'" 
+                hot_image="../public/button/btn_wnd_bk_hovered.png" 
+                pushed_image="../public/button/btn_wnd_bk_pushed.png"/>
+    
     <!--窗口右上角按钮 白色版 -->
-    <Class name="btn_wnd_white_min" width="auto" height="auto" forenormalimage="file='../public/button/btn_wnd_white_min.png'" normalimage="" hotimage="../public/button/btn_wnd_white_min_hovered.png" pushedimage="../public/button/btn_wnd_white_min_pushed.png"/>
-    <Class name="btn_wnd_white_close" width="auto" height="auto" forenormalimage="file='../public/button/btn_wnd_white_close.png'" normalimage="" hotimage="../public/button/btn_wnd_white_close_hovered.png" pushedimage="../public/button/btn_wnd_white_close_pushed.png"/>
-    <Class name="btn_wnd_white_max" width="auto" height="auto" forenormalimage="file='../public/button/btn_wnd_white_max.png' dest='4,4,16,16'" normalimage="" hotimage="../public/button/btn_wnd_white_max_hovered.png" pushedimage="../public/button/btn_wnd_white_max_pushed.png"/>
-    <Class name="btn_wnd_white_menu" width="auto" height="auto" forenormalimage="file='../public/button/btn_wnd_white_menu.png' dest='4,5,16,15'" normalimage="" hotimage="../public/button/btn_wnd_white_menu_hovered.png" pushedimage="../public/button/btn_wnd_white_menu_pushed.png"/>
-
+    <Class name="btn_wnd_white_min" width="auto" height="auto" 
+                fore_normal_image="file='../public/button/btn_wnd_white_min.png'" 
+                normal_image="" 
+                hot_image="../public/button/btn_wnd_white_min_hovered.png" 
+                pushed_image="../public/button/btn_wnd_white_min_pushed.png"/>
+    <Class name="btn_wnd_white_close" width="auto" height="auto" 
+                fore_normal_image="file='../public/button/btn_wnd_white_close.png'" 
+                normal_image="" 
+                hot_image="../public/button/btn_wnd_white_close_hovered.png" 
+                pushed_image="../public/button/btn_wnd_white_close_pushed.png"/>
+    <Class name="btn_wnd_white_max" width="auto" height="auto" 
+                fore_normal_image="file='../public/button/btn_wnd_white_max.png' dest='4,4,16,16'" 
+                normal_image="" 
+                hot_image="../public/button/btn_wnd_white_max_hovered.png" 
+                pushed_image="../public/button/btn_wnd_white_max_pushed.png"/>
+    <Class name="btn_wnd_white_menu" width="auto" height="auto" 
+                fore_normal_image="file='../public/button/btn_wnd_white_menu.png' dest='4,5,16,15'" 
+                normal_image="" 
+                hot_image="../public/button/btn_wnd_white_menu_hovered.png" 
+                pushed_image="../public/button/btn_wnd_white_menu_pushed.png"/>
+    
     <!--删除按钮通用样式-->
-    <Class name="btn_delete" normalimage="file='../public/button/funcicon.png' source='0,0,26,26'" hotimage="file='../public/button/funcicon.png' source='31,0,57,26'" pushedimage="file='../public/button/funcicon.png' source='62,0,88,26'" disabledimage="file='../public/button/funcicon.png' source='93,0,119,26'"/>
-    <Class name="btn_recycle" width="auto" height="auto" normalimage="file='../public/button/btn_recycle_normal.png'" hotimage="file='../public/button/btn_recycle_hovered.png'" pushedimage="file='../public/button/btn_recycle_pushed.png'" disabledimage="file='../public/button/btn_recycle_normal.png' fade='80'"/>
-    <Class name="btn_refresh" width="auto" height="auto" normalimage="file='../public/button/btn_refresh_normal.png'" hotimage="file='../public/button/btn_refresh_hovered.png'" pushedimage="file='../public/button/btn_refresh_pushed.png'" disabledimage="file='../public/button/btn_refresh_normal.png' fade='80'"/>
-    <Class name="btn_del_search" normalimage="../public/button/btn_del_search_normal_gray.png" hotimage="../public/button/btn_del_search_hover_gray.png" pushedimage="../public/button/btn_del_search_pushed_gray.png"/>
-
+    <Class name="btn_delete" 
+                normal_image="file='../public/button/funcicon.png' source='0,0,26,26'" 
+                hot_image="file='../public/button/funcicon.png' source='31,0,57,26'" 
+                pushed_image="file='../public/button/funcicon.png' source='62,0,88,26'" 
+                disabled_image="file='../public/button/funcicon.png' source='93,0,119,26'"/>
+    <Class name="btn_recycle" width="auto" height="auto" 
+                normal_image="file='../public/button/btn_recycle_normal.png'" 
+                hot_image="file='../public/button/btn_recycle_hovered.png'" 
+                pushed_image="file='../public/button/btn_recycle_pushed.png'" 
+                disabled_image="file='../public/button/btn_recycle_normal.png' fade='80'"/>
+    <Class name="btn_refresh" width="auto" height="auto" 
+                normal_image="file='../public/button/btn_refresh_normal.png'" 
+                hot_image="file='../public/button/btn_refresh_hovered.png'" 
+                pushed_image="file='../public/button/btn_refresh_pushed.png'" 
+                disabled_image="file='../public/button/btn_refresh_normal.png' fade='80'"/>
+    <Class name="btn_del_search" 
+                normal_image="../public/button/btn_del_search_normal_gray.png" 
+                hot_image="../public/button/btn_del_search_hover_gray.png" 
+                pushed_image="../public/button/btn_del_search_pushed_gray.png"/>
     <!--列表通用样式-->
     <Class name="list" bkcolor="bk_wnd_lightcolor" vscrollbar="true"/>
-    <Class name="listitem" hotcolor="bk_listitem_hovered" pushedcolor="bk_listitem_selected" selectednormalcolor="bk_listitem_selected" fadehot="false"/>
-    <Class name="list_topitem" normalcolor="bk_topitem_normal" hotcolor="bk_topitem_hovered" pushedcolor="bk_topitem_selected" selectednormalcolor="bk_topitem_selected" fadehot="false"/>
-
-    <!--进度条通用样式, 注意进度条的值使用`_value`属性-->
-    <Class name="progress_blue" valign="center" _value="0" bkimage="../public/progress/progress_blue_bg.png" height="3" width="stretch" hor="true" max="100" min="0" progressimage="../public/progress/progress_blue_fg.png"/>
-    <Class name="slider_green" width="stretch" height="14" margin="4,0,0,0" valign="center" thumbsize="14,14" min="0" max="255" progressbarpadding="0,6,0,6" bkimage="file='../public/slider/slider_hor_bk.png' dest='0,6,1000,8'" progresscolor="bk_progress_progress" thumbnormalimage="../public/slider/slider_thumb.png"/>
-
+    <Class name="listitem" hot_color="bk_listitem_hovered" pushed_color="bk_listitem_selected" selected_normal_color="bk_listitem_selected" fadehot="false"/>
+    <Class name="list_topitem" normal_color="bk_topitem_normal" hot_color="bk_topitem_hovered" pushed_color="bk_topitem_selected" selected_normal_color="bk_topitem_selected" fadehot="false"/>
+    <!--TreeView通用样式-->
+    <Class name="tree_view" bkcolor="bk_wnd_lightcolor" vscrollbar="true"/>
+    <Class name="tree_node" height="20" hot_color="bk_listitem_hovered" pushed_color="bk_listitem_selected" selected_normal_color="bk_listitem_selected" icon_image_right_space="4" fadehot="false"/>
+    <Class name="tree_node_checkbox" normal_image="file='../public/CheckBox/check_no.png' padding='2,0,0,0' valign='center'" 
+                                     disabled_image="file='../public/CheckBox/check_no.png' padding='2,0,0,0' valign='center' fade='80'" 
+                                     selected_normal_image="file='../public/CheckBox/check_yes.png' padding='2,0,0,0' valign='center'" 
+                                     selected_disabled_image="file='../public/CheckBox/check_yes.png' padding='2,0,0,0' valign='center' fade='80'" 
+                                     part_selected_normal_image="file='../public/CheckBox/part_check.png' padding='2,0,0,0' valign='center'" 
+                                     part_selected_disabled_image="file='../public/CheckBox/part_check.png' padding='2,0,0,0' valign='center' fade='80'"
+                                     check_box_image_right_space="6"/>
+    <Class name="tree_node_expand" expand_normal_image="file='../public/tree/expand_normal.svg' padding='2,0,0,0' valign='center'" 
+                                   expand_hot_image="file='../public/tree/expand_hot.svg' padding='2,0,0,0' valign='center'" 
+                                   expand_disabled_image="file='../public/tree/expand_normal.svg' padding='2,0,0,0' valign='center' fade='80'" 
+                                   collapse_normal_image="file='../public/tree/collapse_normal.svg' padding='2,0,0,0' valign='center'" 
+                                   collapse_hot_image="file='../public/tree/collapse_hot.svg' padding='2,0,0,0' valign='center'" 
+                                   collapse_disabled_image="file='../public/tree/collapse_normal.svg' padding='2,0,0,0' valign='center' fade='80'"
+                                   icon_image_right_space="4"/>
+    <!--进度条通用样式-->
+    <Class name="progress_blue" valign="center" value="0" bkimage="../public/progress/progress_blue_bg.png" height="3" width="stretch" hor="true" max="100" min="0" progressimage="../public/progress/progress_blue_fg.png"/>
+    <Class name="slider_green" width="stretch" height="14" margin="4,0,0,0" valign="center" thumb_size="14,14" min="0" max="255" progress_bar_padding="0,6,0,6" bkimage="file='../public/slider/slider_hor_bk.png' dest='0,6,1000,8'" progresscolor="bk_progress_progress" thumbnormalimage="../public/slider/slider_thumb.png"/>
     <!--菜单通用样式-->
     <Class name="menu" width="auto" height="auto" bkcolor="bk_wnd_lightcolor"/>
-    <Class name="menu_element" padding="20,0,20,0" height="40" hotcolor="bk_menuitem_hovered" pushedcolor="bk_menuitem_selected" selectednormalcolor="bk_menuitem_selected"/>
-    <Class name="menu_text" normaltextcolor="darkcolor" font="system_14" valign="center"/>
-
+    <Class name="menu_element" height="32" padding="20,0,20,0" margin="1,1,1,1" hot_color="bk_menuitem_hovered" pushed_color="bk_menuitem_selected" selected_normal_color="bk_menuitem_selected"/>
+    <Class name="menu_text" normal_text_color="darkcolor" font="system_14" valign="center"/>
+    <Class name="menu_split_box" padding="16,0,16,0" height="auto" />
+    <Class name="menu_split_line" bkcolor="splitline_level1" height="1" />
+    <Class name="menu_checkbox" height="auto" valign="center" text_padding="20,0,0,0" font="system_14" normal_text_color="darkcolor" normal_image="" disabled_image="" selectednormalimage="file='../public/CheckBox/check_yes.png' dest='0,2,16,18'" selecteddisabledimage="file='../public/CheckBox/check_yes.png' dest='0,2,16,18' fade='80'"/>
     <!--分割线通用样式-->
     <Class name="splitline_hor_level1" bkcolor="splitline_level1" height="1"/>
     <Class name="splitline_hor_level2" bkcolor="splitline_level2" height="1"/>
     <Class name="splitline_ver_level1" bkcolor="splitline_level1" width="1"/>
+    
+    <!--RichEdit富文本控件通用样式-->
+    <Class name="simple" multi_line="false" auto_hscroll="true" want_return_msg="true" want_tab="false" rich_text="false" normal_text_color="darkcolor" disabled_text_color="disabled_font_color"/>
+    <Class name="simple_border" padding="1,1,1,1" border_size="1" border_color="light_gray" hot_border_color="blue" focus_border_color="CornflowerBlue"/>
+    <Class name="simple_border_bottom" padding="0,0,0,1" border_size="0,0,0,1" border_color="light_gray" hot_border_color="blue" focus_border_color="CornflowerBlue"/>
+    <Class name="prompt" prompt_mode="true" prompt_color="light_gray"/>
+    <Class name="edit" hot_image="file='../public/edit/edit1.png' corner='10,10,10,10'" focused_image="file='../public/edit/edit2.png' corner='10,10,10,10'"/>
+    <Class name="input" normal_image="file='../public/edit/edit0.png' corner='10,10,10,10'" hot_image="file='../public/edit/edit0.png' corner='10,10,10,10'" focused_image="file='../public/edit/edit0.png' corner='10,10,10,10'" disabled_image="file='../public/edit/edit0.png' corner='10,10,10,10' fade='80'"/>
+    
+    <!--RichEdit上的Spin按钮样式: 左侧和下侧有边线-->
+    <Class name="rich_edit_spin" spin_class="rich_edit_spin_box,rich_edit_spin_btn_up,rich_edit_spin_btn_down" bkcolor="white" number_only="true" height="28" width="64" text_padding="0, 0, 18, 0" text_align="vcenter,hcenter"/>
+    <Class name="rich_edit_spin_box" width="18" halign="right" nofocus="true"/>
+    <Class name="rich_edit_spin_btn_up" height="50%" width="100%" nofocus="true" padding="1,0,0,0" border_size="1,0,0,0" border_color="light_gray" normal_image="file='../public/button/arrow-up.svg' width='10' height='10' valign='center' halign='center'" normal_color="bk_wnd_darkcolor" hot_color="#FFE5F3FF" pushed_color="#FFCCE8FF"/>
+    <Class name="rich_edit_spin_btn_down" height="50%" width="100%" nofocus="true" padding="1,1,0,0" border_size="1,1,0,0" border_color="light_gray" normal_image="file='../public/button/arrow-down.svg' width='10' height='10' valign='center' halign='center'" normal_color="bk_wnd_darkcolor" hot_color="#FFE5F3FF" pushed_color="#FFCCE8FF"/>
+    
+    <!--RichEdit上的Spin按钮样式: 四周都有边线-->
+    <Class name="rich_edit_spin2" spin_class="rich_edit_spin_box,rich_edit_spin_btn_up2,rich_edit_spin_btn_down2" bkcolor="white" number_only="true" height="28" width="64" text_padding="0, 0, 18, 0" text_align="vcenter,hcenter"/>
+    <Class name="rich_edit_spin_btn_up2" height="50%" width="100%" nofocus="true" padding="1,1,1,1" border_size="1,1,1,1" border_color="light_gray" normal_image="file='../public/button/arrow-up.svg' width='10' height='10' valign='center' halign='center'" normal_color="bk_wnd_darkcolor" hot_color="#FFE5F3FF" pushed_color="#FFCCE8FF"/>
+    <Class name="rich_edit_spin_btn_down2" height="50%" width="100%" nofocus="true" padding="1,0,1,1" border_size="1,0,1,1" border_color="light_gray" normal_image="file='../public/button/arrow-down.svg' width='10' height='10' valign='center' halign='center'" normal_color="bk_wnd_darkcolor" hot_color="#FFE5F3FF" pushed_color="#FFCCE8FF"/>
+    
+    <!--RichEdit上的清除按钮样式-->
+    <Class name="rich_edit_clear_btn" clear_btn_class="rich_edit_clear_btn_class" text_align="vcenter"/>
+    <Class name="rich_edit_clear_btn_class" height="22" width="24" border_round="4,4" margin="0,0,2,0" halign="right" valign="center" normal_image="file='../public/button/window-close.svg' width='18' height='18' valign='center' halign='center'" normal_color="bk_wnd_darkcolor" hot_color="#FFE5F3FF" pushed_color="#FFCCE8FF"/>
 
-    <!--富文本控件通用样式-->
-    <Class name="simple" multiline="false" autohscroll="true" wantreturnmsg="true" wanttab="false" rich="false" normaltextcolor="darkcolor" disabledtextcolor="textdefaultdisablecolor"/>
-    <Class name="prompt" promptmode="true" promptcolor="light_gray"/>
-    <Class name="edit" hotimage="file='../public/edit/edit1.png' corner='10,10,10,10'" focusedimage="file='../public/edit/edit2.png' corner='10,10,10,10'"/>
-    <Class name="input" normalimage="file='../public/edit/edit0.png' corner='10,10,10,10'" hotimage="file='../public/edit/edit0.png' corner='10,10,10,10'" focusedimage="file='../public/edit/edit0.png' corner='10,10,10,10'" disabledimage="file='../public/edit/edit0.png' corner='10,10,10,10' fade='80'"/>
-
-   <!--头像蒙版-->
-    <Class name="icon_headimage_mask_40x40" width="40" height="40" bkimage="../public/headmask/icon_headimage_mask_40x40_normal.png"/>
+    <!--RichEdit上的显示密码按钮样式-->
+    <Class name="rich_edit_show_password_btn" password="true" show_password="false" show_passowrd_btn_class="rich_edit_show_password_btn_class" text_align="vcenter"/>
+    <Class name="rich_edit_show_password_btn_class" height="22" width="24" border_round="4,4" margin="0,0,2,0" halign="right" valign="center" normal_image="file='../public/button/icon_visibility.svg' width='14' height='14' valign='center' halign='center'" normal_color="bk_wnd_darkcolor" hot_color="#FFE5F3FF" pushed_color="#FFCCE8FF"/>    
+    
+    <!--RichText 的基本属性-->
+    <Class name="rich_text" text_color="default_font_color" default_link_font_color="default_link_font_color" hover_link_font_color="hover_link_font_color" mouse_down_link_font_color="mouse_down_link_font_color" link_font_underline="true"/>
+    
+    <!--IP地址控件通用样式-->
+    <Class name="ip_address" width="140" height="28" bkcolor="white" border_size="1" border_color="light_gray"/>
+    
+    <!--HotKey控件通用样式-->
+    <Class name="hot_key" width="216" height="28" bkcolor="white" border_size="1" border_color="light_gray"/>
+    
+    <!--HyperLink控件通用样式-->
+    <Class name="hyper_link" cursor_type="hand" font="system_underline_14" normal_text_color="default_link_font_color" hot_text_color="hover_link_font_color" pushed_text_color="mouse_down_link_font_color"/>
+    
+    <!--ListCtrl控件列表项通用样式-->
+    <Class name="list_ctrl_header" icon_spacing="4" bkcolor="Cornsilk" width="100%"/>
+    <Class name="list_ctrl_header_item" height="100%" text_align="vcenter,hcenter" hot_color="#FFE5F3FF" pushed_color="#FFD9EEFF"            
+                                        show_icon_at_top="true" icon_spacing="6"
+                                        sorted_up_image="file='../public/listctrl/arrow-sorted-up.svg' width='10' height='10' valign='center' halign='left'" 
+                                        sorted_down_image="file='../public/listctrl/arrow-sorted-down.svg' width='10' height='10' valign='center' halign='left'"/>
+    <Class name="list_ctrl_header_split_box" width="3" height="100%" enable_split_single="true"/>
+    <Class name="list_ctrl_header_split_control" width="1" height="100%" margin="2,4,0,2" bkcolor="splitline_level1"/>
+    <Class name="list_ctrl_checkbox" valign="center" halign="left"
+                                     normal_image="file='../public/CheckBox/check_no.png' padding='2,0,0,0' valign='center'" 
+                                     disabled_image="file='../public/CheckBox/check_no.png' padding='2,0,0,0' valign='center' fade='80'" 
+                                     selected_normal_image="file='../public/CheckBox/check_yes.png' padding='2,0,0,0' valign='center'" 
+                                     selected_disabled_image="file='../public/CheckBox/check_yes.png' padding='2,0,0,0' valign='center' fade='80'" 
+                                     part_selected_normal_image="file='../public/CheckBox/part_check.png' padding='2,0,0,0' valign='center'" 
+                                     part_selected_disabled_image="file='../public/CheckBox/part_check.png' padding='2,0,0,0' valign='center' fade='80'"/>
+    <Class name="list_ctrl_report_view" bkcolor="white" vscrollbar="true" hscrollbar="true" width="100%" padding="0,0,0,0"
+                                      child_margin_y="0" paint_selected_colors="true"
+                                      enable_frame_selection="true" 
+                                      frame_selection_color="#FFAACCEE" frame_selection_alpha="128" 
+                                      frame_selection_border="1" frame_selection_border_color="#FF0078D7"/>
+    <Class name="list_ctrl_item" icon_spacing="4" hot_color="Wheat" pushed_color="#FFD9EEFF" selected_normal_color="#FFCCE8FF"/>
+    <Class name="list_ctrl_sub_item" icon_spacing="2" auto_tooltip="true" single_line="true"/>    
+    <Class name="list_ctrl_icon_view" bkcolor="white" vscrollbar="true" hscrollbar="true" width="100%" padding="0,0,0,0" paint_selected_colors="true"
+                                      horizontal_layout="false" item_size="100,120" columns="auto" child_margin_x="8" child_margin_y="8"
+                                      enable_frame_selection="true" 
+                                      frame_selection_color="#FFAACCEE" frame_selection_alpha="128" 
+                                      frame_selection_border="1" frame_selection_border_color="#FF0078D7"/>
+    <Class name="list_ctrl_icon_view_item" hot_color="Wheat" pushed_color="#FFD9EEFF" selected_normal_color="#FFCCE8FF"/>
+    <Class name="list_ctrl_icon_view_item_image" halign="center" margin="2,4,2,2"/>
+    <Class name="list_ctrl_icon_view_item_label" width="100%" height="100%" text_align="hcenter,vcenter" single_line="false" auto_tooltip="true"/>
+    <Class name="list_ctrl_list_view" bkcolor="white" vscrollbar="true" hscrollbar="true" height="100%" padding="0,0,0,0" paint_selected_colors="true"
+                                      horizontal_layout="true" item_size="240,36" rows="auto" child_margin_x="8" child_margin_y="8"
+                                      enable_frame_selection="true" 
+                                      frame_selection_color="#FFAACCEE" frame_selection_alpha="128" 
+                                      frame_selection_border="1" frame_selection_border_color="#FF0078D7"/>
+    <Class name="list_ctrl_list_view_item" hot_color="Wheat" pushed_color="#FFD9EEFF" selected_normal_color="#FFCCE8FF"/>
+    <Class name="list_ctrl_list_view_item_image" valign="center" margin="8,2,2,2"/>
+    <Class name="list_ctrl_list_view_item_label" width="100%" height="100%" text_align="vcenter,left" single_line="true" auto_tooltip="true"/>
+    <Class name="list_ctrl_richedit" text_align="left,vcenter" bkcolor="white" min_height="28" multi_line="false" word_wrap="true" auto_hscroll="true" want_return_msg="true" want_tab="false" rich_text="false" text_padding="2,2,2,2" padding="1,1,1,1" border_size="1" border_color="light_gray" hot_border_color="blue" focus_border_color="CornflowerBlue"/>
+    
+    <!--TabCtrl控件通用样式-->
+    <Class name="tab_ctrl" height="36" border_round="4,4" bkcolor="#FFD3E3FD" vscrollbar="true"/>
+    <Class name="tab_ctrl_item" margin="0,4,0,0" height="32"  padding="10,0,0,0"
+                                hot_color="#FFA8C7FA" pushed_color="#FFA8C7FA" 
+                                selected_normal_color="white" selected_round_corner="12,12" fadehot="false"                                
+                                hot_round_corner="5,5" hot_padding="3,0,3,3"
+                                auto_hide_close_button="true"
+                                icon_class="tab_ctrl_item_icon"
+                                title_class="tab_ctrl_item_title"
+                                close_button_class="tab_ctrl_item_close"
+                                line_class="tab_ctrl_item_line"/>
+    <Class name="tab_ctrl_item_icon" width="24" height="24" valign="center" mouse="false"/>
+    <Class name="tab_ctrl_item_title" width="stretch" height="24" margin="2,0,10,0" valign="center" font="system_12" auto_tooltip="true" mouse="false"/>
+    <Class name="tab_ctrl_item_close" width="16" height="16" margin="0,0,10,8"
+                float="true" halign="right" valign="center" visible="false" 
+                normal_image="file='../public/button/btn_close.svg' height='10' width='10' halign='center' valign='center'"
+                hot_color="#FFDCDCDD" pushed_color="#FFC2C2C3" border_round="4,4"/>
+    <Class name="tab_ctrl_item_line" bkcolor="#FFA8C7FA" width="1" height="22" valign="center" mouse="false"/>
+    
+    <!--气泡框通用样式-->
+    <TextColor name="popover_color_0" value="#FFECF1F8"/>
+    <TextColor name="popover_color_1" value="#FFF2F7FF"/>
+    <TextColor name="popover_color_2" value="#FFD0DAE7"/>
+    <TextColor name="popover_color_3" value="#FF0087FF"/>
+    <TextColor name="popover_color_4" value="#FF2096FF"/>
+    <TextColor name="popover_color_5" value="#FF0274D9"/>
+    <TextColor name="popover_title_color" value="#D9000000"/>
+    <TextColor name="popover_content_color" value="#FF878787"/>
+    <TextColor name="popover_content_color1" value="#FF393430"/>
+    <TextColor name="popover_tooltip_color" value="#FF040405"/>
+    <Class name="popover_shadow" width="auto" height="auto" maxwidth="244" minwidth="100" bkimage="file='../public/shadow/bk_shadow.png' corner='30,30,30,30'"/>
+    <Class name="popover_root" width="auto" height="auto" bkcolor="white" margin="8,8,8,8" padding="16,12,16,12" childmargin="8" borderround="2,2"/>
+    <Class name="popover_footer" padding="0,4,0,0" halign="right" childmargin="12"/>
+    <Class name="popover_popover" maxwidth="228"/>
+    <Class name="popover_notification" minwidth="268" maxwidth="268"/>
+    <Class name="popover_alert" maxwidth="260"/>
+    <Class name="popover_tooltip" maxwidth="300"/>
+    <Class name="popover_icon" width="16" height="16" halign="center" valign="top" margin="0,4,0,0"/>
+    <Class name="popover_icon_info" bkimage="file='../public/popover/info.svg'"/>
+    <Class name="popover_icon_warning" bkimage="file='../public/popover/warning.svg'"/>
+    <Class name="popover_icon_error" bkimage="file='../public/popover/error.svg'"/>
+    <Class name="popover_label" multi_line="true" auto_hscroll="false" want_return_msg="false" want_tab="false" rich_text="true" enabled="false" readonly="true"/>
+    <Class name="popover_label_title" font="system_bold_14" disabled_text_color="popover_title_color"/>
+    <Class name="popover_btn_close" cursortype="hand" width="16" height="16" margin="0,2,0,0" normal_image="file='../public/button/btn_close.svg' dest='2,2,14,14'" hot_image="file='../public/button/btn_close.svg' dest='2,2,14,14'" pushed_image="file='../public/button/btn_close.svg' dest='2,2,14,14'" fadehot="false"/>
+    <Class name="popover_label_content" width="auto" height="auto" font="system_12" disabled_text_color="popover_content_color"/>
+    <Class name="popover_btn_ok" cursortype="hand" borderround="3,3" font="system_12" normal_text_color="white" width="52" height="24" normal_color="popover_color_3" hot_color="popover_color_4" pushed_color="popover_color_5"/>
+    <Class name="popover_btn_cancel" cursortype="hand" borderround="3,3" font="system_12" width="52" height="24" normal_color="popover_color_0" hot_color="popover_color_1" pushed_color="popover_color_2"/>
+    <Class name="notification_label_title" font="system_12"/>
+    <Class name="alert_root" padding="16,16,16,16" childmargin="8"/>
+    <Class name="alert_footer" padding="0,8,0,0" childmargin="24" halign="right"/>
+    <Class name="alert_btn_ok" width="94" height="30"/>
+    <Class name="alert_btn_cancel" width="94" height="30"/>
+    <Class name="tooltip_root" padding="16,12,16,12"/>
+    <Class name="tooltip_content" font="system_bold_12" disabled_text_color="popover_tooltip_color"/>
 </Global>

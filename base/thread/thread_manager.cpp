@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2012, NetEase Inc. All rights reserved.
+// Copyright (c) 2012, NetEase Inc. All rights reserved.
 //
 // wrt(guangguang)
 // 2012/2/22
@@ -98,7 +98,7 @@ int ThreadMap::QueryThreadId(const FrameworkThread *thread)
 	AUTO_MAP_LOCK()
 	std::map<int, FrameworkThread*>::iterator iter;
 	for (iter = GetInstance()->threads_.begin();
-		iter != GetInstance()->threads_.end(); iter++) {
+		iter != GetInstance()->threads_.end(); ++iter) {
 		if (iter->second == thread)
 			return iter->first;
 	}

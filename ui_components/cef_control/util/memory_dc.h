@@ -6,6 +6,8 @@
  */
 #pragma once
 
+#include "duilib/duilib_defs.h"
+
 class MemoryDC
 {
 public:

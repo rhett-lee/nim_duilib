@@ -1,7 +1,7 @@
-ï»¿#pragma once
+#pragma once
 
 /** @class BitmapControl
-  * @brief æŠŠHBITMAPä½œä¸ºèƒŒæ™¯çš„æ§ä»¶,æ§ä»¶ä¸è´Ÿè´£é”€æ¯HBITMAP
+  * @brief °ÑHBITMAP×÷Îª±³¾°µÄ¿Ø¼ş,¿Ø¼ş²»¸ºÔğÏú»ÙHBITMAP
   * @copyright (c) 2016, NetEase Inc. All rights reserved
   * @author Redrain
   * @date 2019/3/20
@@ -12,17 +12,17 @@ public:
 	BitmapControl();
 
 	/**
-	* é‡å†™çˆ¶æ§ä»¶ç»˜åˆ¶å‡½æ•°
-	* @param[in] hDC ç›®æ ‡DC
-	* @param[in] rcPaint å¯ç»˜åˆ¶åŒºåŸŸ
-	* @return void	æ— è¿”å›å€¼
+	* ÖØĞ´¸¸¿Ø¼ş»æÖÆº¯Êı
+	* @param[in] hDC Ä¿±êDC
+	* @param[in] rcPaint ¿É»æÖÆÇøÓò
+	* @return void	ÎŞ·µ»ØÖµ
 	*/
-	virtual void Paint(ui::IRenderContext* pRender, const ui::UiRect& rcPaint) override;
+	virtual void Paint(ui::IRender* pRender, const ui::UiRect& rcPaint) override;
 
 	/**
-	* è®¾ç½®æ˜¾ç¤ºåœ¨èƒŒæ™¯çš„HBITMAPå¯¹è±¡
-	* @param[in] bitmap ä½å›¾å¯¹è±¡
-	* @return void	æ— è¿”å›å€¼
+	* ÉèÖÃÏÔÊ¾ÔÚ±³¾°µÄHBITMAP¶ÔÏó
+	* @param[in] bitmap Î»Í¼¶ÔÏó
+	* @return void	ÎŞ·µ»ØÖµ
 	*/
 	void SetBitmapImage(HBITMAP bitmap);
 

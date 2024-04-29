@@ -1,4 +1,4 @@
-ï»¿// Network utility function
+// Network utility function
 
 #ifndef BASE_NETWORK_NETWORK_UTIL_H_
 #define BASE_NETWORK_NETWORK_UTIL_H_
@@ -9,29 +9,29 @@
 
 namespace nbase 
 {
-// è·å–æœ¬æœºIPåœ°å€
+// »ñÈ¡±¾»úIPµØÖ·
 BASE_EXPORT bool GetIpAddressList(std::vector<uint32_t> &ip_addresses);
 BASE_EXPORT bool GetIpAddressList(std::vector<std::string> &ip_addresses);
     
-// è·å–æœ¬æœºMACåœ°å€
+// »ñÈ¡±¾»úMACµØÖ·
 BASE_EXPORT bool GetMacAddress(std::string &mac_address);
     
-// æ˜¯å¦å†…ç½‘IP
+// ÊÇ·ñÄÚÍøIP
 BASE_EXPORT bool IsInternalIP(const uint32_t ip);
 BASE_EXPORT bool IsInternalIP(const std::string &ip);
     
-// å­—ç¬¦ä¸²IPåœ°å€è½¬æ¢æˆNumberåœ°å€
+// ×Ö·û´®IPµØÖ·×ª»»³ÉNumberµØÖ·
 BASE_EXPORT uint32_t InetStringToNumber(const char *ip);
 BASE_EXPORT uint32_t InetStringToNumber(const std::string &ip);
     
-// å­—ç¬¦ä¸²IPåœ°å€è½¬æ¢æˆNumberåœ°å€
+// ×Ö·û´®IPµØÖ·×ª»»³ÉNumberµØÖ·
 BASE_EXPORT std::string InetNumberToString(uint32_t ip);
     
-// æŠŠIPåœ°å€å’Œç«¯å£æ‹¼æˆå­—ç¬¦ä¸²
+// °ÑIPµØÖ·ºÍ¶Ë¿ÚÆ´³É×Ö·û´®
 BASE_EXPORT std::string MakeNetAddress(const uint32_t ip, const uint16_t port);
 BASE_EXPORT std::string MakeNetAddress(const std::string &ip, const uint16_t port);
     
-// ä»åœ°å€å­—ç¬¦ä¸²ä¸­è·å–IPåœ°å€å’Œç«¯å£    
+// ´ÓµØÖ·×Ö·û´®ÖĞ»ñÈ¡IPµØÖ·ºÍ¶Ë¿Ú    
 BASE_EXPORT bool AnalyzeNetAddress(const std::string &address, uint32_t &out_ip, uint16_t &out_port);
 }  // namespace nbase
 

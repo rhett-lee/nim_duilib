@@ -1,4 +1,4 @@
-﻿// The base class of a cross flatform waitable event
+// The base class of a cross flatform waitable event
 // NOTE: support Windows only currently
 
 #ifndef BASE_SYNCHRONIZATION_WAITABLE_EVENT_H_
@@ -8,6 +8,7 @@
 #include "base/base_types.h"
 
 #if defined(OS_WIN)
+#include "base/build/winsdk_config.h"
 #include <windows.h>
 #elif defined(OS_POSIX)
 #include <list>

@@ -1,0 +1,68 @@
+<Window size="80%,80%" sizebox="4,4,4,4" caption="0,0,0,36" text="TreeView控件测试程序">
+    <!-- 该窗口下的Class定义 --> 
+    
+    <!-- 整个窗口中，所有控件都放在这个VBox容器中 -->  
+    <VBox bkcolor="bk_wnd_darkcolor">
+        <!-- 标题栏区域 -->  
+        <HBox width="stretch" height="36" bkcolor="bk_wnd_lightcolor">
+            <!-- 标题栏：窗口左上角显示区域 -->  
+            <HBox margin="0,0,30,0" valign="center" width="auto" height="auto">
+                <Control width="auto" height="auto" bkimage="logo_18x18.png" valign="center" margin="8,0,0,0"/>
+                <Label text="TreeView控件测试程序" valign="center" margin="8,0,0,0"/>
+            </HBox>
+            <Control />
+            <!-- 标题栏：右侧窗口控制区域，窗口最小化、最大化、还原、关闭按钮 -->
+            <HBox margin="0,0,0,0" valign="center" width="auto" height="36">
+                <Button class="btn_wnd_min_11" height="32" width="40" name="minbtn" margin="0,2,0,2" tooltip_text="最小化"/>
+                <Box height="stretch" width="40" margin="0,2,0,2">
+                    <Button class="btn_wnd_max_11" height="32" width="stretch" name="maxbtn" tooltip_text="最大化"/>
+                    <Button class="btn_wnd_restore_11" height="32" width="stretch" name="restorebtn" visible="false" tooltip_text="还原"/>
+                </Box>
+                <Button class="btn_wnd_close_11" height="stretch" width="40" name="closebtn" margin="0,0,0,2" tooltip_text="关闭"/>
+            </HBox>
+        </HBox> <!-- 标题栏区域结束 --> 
+        
+        <!-- 显示区域 --> 
+        <VBox>            
+            <HBox minheight="18" bkcolor="gray" height="auto">
+                <Label text="功能控制：" valign="center" margin="12,0,10,0"/>
+                <Option class="btn_global_blue_80x30" group="expand" selected="true" width="auto" height="32" text="显示展开标志" padding="18,0,18,0" margin="8,0,0,0" borderround="2,2" valign="center">
+                    <Event type="buttonup" receiver="tree" applyattribute="expand_image_class={tree_node_expand}" />
+                </Option>
+                <Option class="btn_global_blue_80x30" group="expand" selected="false" width="auto" height="32" text="隐藏展开标志" margin="8,0,0,0" borderround="2,2" valign="center">
+                    <Event type="buttonup" receiver="tree" applyattribute="expand_image_class={}" />
+                </Option>
+                <Option class="btn_global_blue_80x30" group="check_box" selected="true" width="auto" height="32" text="显示CheckBox" padding="18,0,18,0" margin="8,0,0,0" borderround="2,2" valign="center">
+                    <Event type="buttonup" receiver="tree" applyattribute="check_box_class={tree_node_checkbox}" />
+                </Option>
+                <Option class="btn_global_blue_80x30" group="check_box" selected="false" width="auto" height="32" text="隐藏CheckBox" margin="8,0,0,0" borderround="2,2" valign="center">
+                    <Event type="buttonup" receiver="tree" applyattribute="check_box_class={}" />
+                </Option>
+                <Option class="btn_global_blue_80x30" group="icon" selected="true" width="auto" height="32" text="显示图标" margin="8,0,0,0" borderround="2,2" valign="center">
+                    <Event type="buttonup" receiver="tree" applyattribute="show_icon={true}" />
+                </Option>
+                <Option class="btn_global_blue_80x30" group="icon" selected="false" width="auto" height="32" text="隐藏图标" margin="8,0,0,0" borderround="2,2" valign="center">
+                    <Event type="buttonup" receiver="tree" applyattribute="show_icon={false}" />
+                </Option>
+                <Option class="btn_global_blue_80x30" group="multi_select" selected="true" width="auto" height="32" text="多项选择" margin="8,0,0,0" borderround="2,2" valign="center">
+                    <Event type="buttonup" receiver="tree" applyattribute="multi_select={true}" />
+                </Option>
+                <Option class="btn_global_blue_80x30" group="multi_select" selected="false" width="auto" height="32" text="单项选择" margin="8,0,0,0" borderround="2,2" valign="center">
+                    <Event type="buttonup" receiver="tree" applyattribute="multi_select={false}" />
+                </Option>
+            </HBox>
+            <!-- 横向分割条，用于调整上下区域大小 -->
+            <Split bkcolor="splitline_level1" height="2"/>
+            <HBox minheight="60">
+                <HBox width="300" minwidth="60" bkcolor="SeaShell" border_size="1,1,0,1" border_color="blue">
+                    <TreeView class="tree_view" name="tree" padding="5,3,5,3" indent="20"/>
+                </HBox>
+                <!-- 纵向分割条，用于调整左右区域大小 -->
+                <Split bkcolor="splitline_level1" width="2"/>
+                <HBox bkcolor="Pink" border_size="1" border_color="blue" minwidth="60">
+                    <VirtualVTileListBox class="list" name="list" columns="auto" itemsize="200,120" multi_select="false" vscrollbar="true" hscrollbar="true" bordersize="1" bordercolor="splitline_level2" padding="1,1,1,1"/>
+                </HBox>
+            </HBox>
+        </VBox>
+    </VBox>
+</Window>

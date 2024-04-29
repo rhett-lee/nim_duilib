@@ -1,5 +1,10 @@
 #pragma once
-#include "duilib/UIlib.h"
+
+#include "duilib/Utils/WinImplBase.h"
+#include "duilib/Control/Button.h"
+#include "duilib/Control/RichEdit.h"
+#include "duilib/Control/Label.h"
+#include <functional>
 
 namespace nim_comp {
 
@@ -32,16 +37,15 @@ public:
 	virtual std::wstring GetSkinFolder() override;
 	virtual std::wstring GetSkinFile() override;
 	virtual std::wstring GetZIPFileName() const;
-	virtual LRESULT HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) override;
 	virtual void OnEsc(BOOL &bHandled);
-	virtual void Close(UINT nRet = IDOK) override;
+	virtual void CloseWnd(UINT nRet = IDOK) override;
 
 	virtual std::wstring GetWindowClassName() const override;
 	virtual std::wstring GetWindowId() const /*override*/;
 	virtual UINT GetClassStyle() const override;
-	virtual void InitWindow() override;
+	virtual void OnInitWindow() override;
 private:
-	bool OnClicked(ui::EventArgs* msg);
+	bool OnClicked(const ui::EventArgs& msg);
 
 	void SetTitle(const std::wstring &str);
 	void SetContent(const std::wstring &str);
@@ -52,10 +56,10 @@ private:
 public:
 	static const LPCTSTR kClassName;
 private:
-	ui::Label*		title_;
-	ui::RichEdit*	content_;
-	ui::Button*		btn_yes_;
-	ui::Button*		btn_no_;
+	ui::Label*		title_   = nullptr;
+	ui::RichEdit*	content_ = nullptr;
+	ui::Button*		btn_yes_ = nullptr;
+	ui::Button*		btn_no_  = nullptr;
 
 	MsgboxCallback	 msgbox_callback_;
 };

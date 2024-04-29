@@ -1,5 +1,9 @@
-ï»¿#ifndef UI_UTILS_STRINGUTIL_H_
+#ifndef UI_UTILS_STRINGUTIL_H_
 #define UI_UTILS_STRINGUTIL_H_
+
+#include "duilib/duilib_defs.h"
+#include <string>
+#include <list>
 
 namespace ui
 {
@@ -7,13 +11,31 @@ namespace ui
 class UILIB_API StringHelper
 {
 public:
-	static std::wstring ReparsePath(const std::wstring& strFilePath);
+	//¶ÔÂ·¾¶ÖĞµÄ·Ö¸ô·û/µã£¨"/\\."£©×Ö·û½øĞĞ¹æ·¶»¯´¦Àí, È·±£Ä¿Â¼ÒÔ·Ö¸ô·û½áÊø(ÊÊÓÃÓÚÄ¿Â¼)
+	static std::wstring NormalizeDirPath(const std::wstring& strFilePath);
 
+	//¶ÔÂ·¾¶ÖĞµÄ·Ö¸ô·û/µã£¨"/\\."£©×Ö·û½øĞĞ¹æ·¶»¯´¦Àí, £¨ÊÊÓÃÓÚÎÄ¼ş£©
+	static std::wstring NormalizeFilePath(const std::wstring& strFilePath);
+
+	//Á¬½ÓÁ½¸öÂ·¾¶£¬Éú³ÉÒ»¸öĞÂµÄÂ·¾¶£¬ÓÃÓÚÂ·¾¶Æ´½Ó
+	static std::wstring JoinFilePath(const std::wstring& path1, const std::wstring& path2);
+
+	//ÅĞ¶ÏÂ·¾¶Ö¸ÏòµÄÎÄ¼şÊÇ·ñ´æÔÚ
+	static bool IsExistsPath(const std::wstring& strFilePath);
+
+	//ÅĞ¶ÏÂ·¾¶ÊÇ·ñÎªÏà¶ÔÂ·¾¶
+	static bool IsRelativePath(const std::wstring& strFilePath);
+
+	//ÅĞ¶ÏÂ·¾¶ÊÇ·ñÎª¾ø¶ÔÂ·¾¶
+	static bool IsAbsolutePath(const std::wstring& strFilePath);
+
+public:
 	// format a string
 	static std::wstring Printf(const wchar_t *format, ...);
 
 	// replace all 'find' with 'replace' in the string
 	static size_t ReplaceAll(const std::wstring& find, const std::wstring& replace, std::wstring& output);
+	static size_t ReplaceAll(const std::string& find, const std::string& replace, std::string& output);
 
 	static std::wstring MakeLowerString(const std::wstring &str);
 	static std::wstring MakeUpperString(const std::wstring &str);
@@ -40,6 +62,16 @@ public:
 	// find all tokens splitted by one of the characters in 'delimitor'
 	static std::list<std::string> Split(const std::string& input, const std::string& delimitor);
 	static std::list<std::wstring> Split(const std::wstring& input, const std::wstring& delimitor);
+
+	//±È½Ï×Ö·û´®ÊÇ·ñÏàµÈ£¬±È½ÏÊ±ºöÂÔ´óĞ¡Ğ´
+	static bool IsEqualNoCase(const std::wstring& lhs, const std::wstring& rhs);
+	static bool IsEqualNoCase(const wchar_t* lhs, const std::wstring& rhs);
+	static bool IsEqualNoCase(const std::wstring& lhs, const wchar_t* rhs);
+	static bool IsEqualNoCase(const wchar_t* lhs, const wchar_t* rhs);
+
+	//½«ÕûĞÍ×ª»»Îª×Ö·û´®
+	static std::wstring UInt64ToString(uint64_t value);
+	static std::wstring UInt32ToString(uint32_t value);
 };
 
 }

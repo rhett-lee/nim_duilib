@@ -1,73 +1,73 @@
-ï»¿#pragma once
+#pragma once
 
 /** @class BrowserTabItem
-  * @brief å¤šæ ‡ç­¾æµè§ˆå™¨çª—å£é¡¶éƒ¨æ ‡ç­¾æ§ä»¶
+  * @brief ¶à±êÇ©ä¯ÀÀÆ÷´°¿Ú¶¥²¿±êÇ©¿Ø¼ş
   * @copyright (c) 2016, NetEase Inc. All rights reserved
   * @author Redrain
   * @date 2019/3/20
   */
-class BrowserTabItem : public ui::ListContainerElement
+class BrowserTabItem : public ui::ListBoxItem
 {
 public:
 	BrowserTabItem();
 
 	/** 
-	* åˆå§‹åŒ–æ§ä»¶å†…éƒ¨æŒ‡é’ˆ	
-	* @param[in] browser_id æµè§ˆå™¨id
-	* @return void æ— è¿”å›å€¼
+	* ³õÊ¼»¯¿Ø¼şÄÚ²¿Ö¸Õë	
+	* @param[in] browser_id ä¯ÀÀÆ÷id
+	* @return void ÎŞ·µ»ØÖµ
 	*/
 	void InitControl(std::string browser_id);
 
 	/**
-	* è®¾ç½®æ˜¾ç¤ºçš„æµè§ˆå™¨æ ‡é¢˜
-	* @param[in] name æ ‡é¢˜
-	* @return void	æ— è¿”å›å€¼
+	* ÉèÖÃÏÔÊ¾µÄä¯ÀÀÆ÷±êÌâ
+	* @param[in] name ±êÌâ
+	* @return void	ÎŞ·µ»ØÖµ
 	*/
 	void SetTitle(std::wstring name);
 
 	/**
-	* è®¾ç½®æ˜¾ç¤ºçš„æµè§ˆå™¨å¤´åƒ
-	* @param[in] icon å¤´åƒè·¯å¾„
-	* @return void	æ— è¿”å›å€¼
+	* ÉèÖÃÏÔÊ¾µÄä¯ÀÀÆ÷Í·Ïñ
+	* @param[in] icon Í·ÏñÂ·¾¶
+	* @return void	ÎŞ·µ»ØÖµ
 	*/
 	void SetIcon(std::wstring icon);
 
 private:
 
 	/**
-	* å¤„ç†é¼ æ ‡ç§»å…¥æ¶ˆæ¯
-	* @param[in] msg æ¶ˆæ¯çš„ç›¸å…³ä¿¡æ¯
-	* @return bool true ç»§ç»­ä¼ é€’æ§ä»¶æ¶ˆæ¯ï¼Œfalse åœæ­¢ä¼ é€’æ§ä»¶æ¶ˆæ¯
+	* ´¦ÀíÊó±êÒÆÈëÏûÏ¢
+	* @param[in] msg ÏûÏ¢µÄÏà¹ØĞÅÏ¢
+	* @return bool true ¼ÌĞø´«µİ¿Ø¼şÏûÏ¢£¬false Í£Ö¹´«µİ¿Ø¼şÏûÏ¢
 	*/
-	bool OnMouseEnter(ui::EventArgs* msg);
+	bool OnMouseEnter(const ui::EventArgs& msg);
 
 	/**
-	* å¤„ç†é¼ æ ‡ç§»å‡ºæ¶ˆæ¯
-	* @param[in] msg æ¶ˆæ¯çš„ç›¸å…³ä¿¡æ¯
-	* @return bool true ç»§ç»­ä¼ é€’æ§ä»¶æ¶ˆæ¯ï¼Œfalse åœæ­¢ä¼ é€’æ§ä»¶æ¶ˆæ¯
+	* ´¦ÀíÊó±êÒÆ³öÏûÏ¢
+	* @param[in] msg ÏûÏ¢µÄÏà¹ØĞÅÏ¢
+	* @return bool true ¼ÌĞø´«µİ¿Ø¼şÏûÏ¢£¬false Í£Ö¹´«µİ¿Ø¼şÏûÏ¢
 	*/
-	bool OnMouseLeave(ui::EventArgs* msg);
+	bool OnMouseLeave(const ui::EventArgs& msg);
 
 	/**
-	* å¤„ç†æ§ä»¶çš„èœå•æ¶ˆæ¯
-	* @param[in] msg æ¶ˆæ¯çš„ç›¸å…³ä¿¡æ¯
-	* @return bool true ç»§ç»­ä¼ é€’æ§ä»¶æ¶ˆæ¯ï¼Œfalse åœæ­¢ä¼ é€’æ§ä»¶æ¶ˆæ¯
+	* ´¦Àí¿Ø¼şµÄ²Ëµ¥ÏûÏ¢
+	* @param[in] msg ÏûÏ¢µÄÏà¹ØĞÅÏ¢
+	* @return bool true ¼ÌĞø´«µİ¿Ø¼şÏûÏ¢£¬false Í£Ö¹´«µİ¿Ø¼şÏûÏ¢
 	*/
-	bool OnItemMenu(ui::EventArgs* msg);
+	bool OnItemMenu(const ui::EventArgs& msg);
 
 	/**
-	* å¼¹å‡ºèœå•
-	* @param[in] point å¼¹å‡ºåæ ‡
-	* @return void	æ— è¿”å›å€¼
+	* µ¯³ö²Ëµ¥
+	* @param[in] point µ¯³ö×ø±ê
+	* @return void	ÎŞ·µ»ØÖµ
 	*/
 	void PopupItemMenu(POINT point);
 
 	/**
-	* å¤„ç†èœå•é¡¹è¢«å•å‡»çš„æ¶ˆæ¯
-	* @param[in] msg æ¶ˆæ¯çš„ç›¸å…³ä¿¡æ¯
-	* @return bool true ç»§ç»­ä¼ é€’æ§ä»¶æ¶ˆæ¯ï¼Œfalse åœæ­¢ä¼ é€’æ§ä»¶æ¶ˆæ¯
+	* ´¦Àí²Ëµ¥Ïî±»µ¥»÷µÄÏûÏ¢
+	* @param[in] msg ÏûÏ¢µÄÏà¹ØĞÅÏ¢
+	* @return bool true ¼ÌĞø´«µİ¿Ø¼şÏûÏ¢£¬false Í£Ö¹´«µİ¿Ø¼şÏûÏ¢
 	*/
-	bool MergeItemMenuItemClick(ui::EventArgs* msg);
+	bool MergeItemMenuItemClick(const ui::EventArgs& msg);
 
 private:
 	ui::Control		*icon_;

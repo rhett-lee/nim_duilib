@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Window size="600,520" mininfo="80,50" caption="0,0,0,35" shadowattached="true" layered_window="true" alpha="255" sizebox="4,4,4,4">
+  
+  <TextColor name="color_picker_bkcolor" value="#FFF0F0F0"/>
+  <TextColor name="color_picker_box_bkcolor" value="#FFF9F9F9"/>
+  <Class name="color_picker_tab_option" width="48" height="32" font="system_14" normal_text_color="black" text_align="hcenter,vcenter" normal_color="#FFE6E6E6" hot_color="#FFE3E3E3" selected_normal_color="color_picker_box_bkcolor"/>
+  <Class name="color_picker_color_edit" text_padding="4,0,4,0" width="32" margin="2,0,0,0" default_context_menu="true" number_only="true" limit_text="3" valign="center" text_align="vcenter" bkcolor="white" border_size="1" border_color="light_gray"/>
+  <Class name="color_picker_slider_horizontal" horizontal="true" width="stretch" height="22" margin="4,0,4,0" bkcolor="white" value="0" valign="center" thumbsize="20,20" min="0" max="255" progress_bar_padding="0,2,0,2" thumb_normal_image="file='../public/color/slider_thumb.svg' valign='center'"/>
+    
+  <VBox bkcolor="bk_wnd_darkcolor" bordersize="1" bordercolor="lightcolor" visible="true">
+    
+    <!-- 标题栏区域 -->
+    <HBox width="stretch" height="36" bkcolor="bk_wnd_lightcolor">
+        <Label text="选择颜色" valign="center" margin="8"/>
+        <Control />
+        <Button class="btn_wnd_min_11" height="32" width="40" name="minbtn" margin="0,2,0,2" tooltip_text="最小化"/>
+        <Box height="stretch" width="40" margin="0,2,0,2">
+            <Button class="btn_wnd_max_11" height="32" width="stretch" name="maxbtn" tooltip_text="最大化"/>
+            <Button class="btn_wnd_restore_11" height="32" width="stretch" name="restorebtn" visible="false" tooltip_text="还原"/>
+        </Box>
+        <Button class="btn_wnd_close_11" height="stretch" width="40" name="closebtn" margin="0,0,0,2" tooltip_text="关闭"/>
+    </HBox>
+    
+    <!-- 工作区域，除了标题栏外的内容都放在这个大的Box区域 -->
+    <Box bkcolor="color_picker_bkcolor">
+        <VBox>
+            <HBox height="32">
+                 <Option class="color_picker_tab_option" name="常用" group="color_picker_option_group" text="常用">
+                    <Event type="select" receiver="color_picker_tab" applyattribute="selected_id={0}" />
+                 </Option>
+                 <Option class="color_picker_tab_option" name="标准" group="color_picker_option_group" text="标准">
+                    <Event type="select" receiver="color_picker_tab" applyattribute="selected_id={1}" />
+                 </Option>
+                 <Option class="color_picker_tab_option" name="自定义" group="color_picker_option_group" text="自定义" selected="true">
+                    <Event type="select" receiver="color_picker_tab" applyattribute="selected_id={2}" />
+                 </Option>
+            </HBox>
+            <HBox>
+                <VBox>
+                    <TabBox name="color_picker_tab" bkcolor="color_picker_box_bkcolor" fadeswitch="false" margin="1,1,1,1" selected_id="2">
+                        <VBox name="color_picker_tab_page_1">
+                            <!-- 常用颜色 -->
+                            <ColorPickerRegular name="color_picker_regular" color_type="default" item_size="40,20" columns="10" child_margin="2" padding="2,2,2,2" halign="center" valign="center"/>
+                        </VBox>
+                        <VBox name="color_picker_tab_page_2">
+                            <!-- 标准颜色 -->
+                            <ColorPickerStatard name="color_picker_standard" />
+                            <ColorPickerStatardGray name="color_picker_standard_gray" height="auto" max_height="160" padding="10,10,10,10"/>
+                        </VBox>
+                        <VBox name="color_picker_tab_page_3">
+                            <!-- 自定义颜色 -->
+                            <ColorPickerCustom name="color_picker_custom">
+                                <HBox>
+                                    <HBox>
+                                        <GroupBox margin="2,2,2,2" text="">
+                                            <VBox margin="0,2,0,0">
+                                                <ColorControl name="color_picker_custom_spectrum" bkcolor="blue" height="60%" width="stretch" margin="2,2,4,2"/>
+                                                <ColorPickerRegular name="color_picker_custom_regular" color_type="basic" height="40%" width="stretch" item_size="20,10" columns="6" child_margin="2" padding="1,1,1,1" halign="center" valign="center"/>
+                                            </VBox> 
+                                        </GroupBox>
+                                    </HBox>
+                                    <VBox width="204">
+                                        <HBox height="28" margin="0,2,0,0">
+                                            <Label text="颜色值ARGB：" height="28" text_align="vcenter" margin="2,0,0,0"/>
+                                            <RichEdit class="simple color_picker_color_edit" name="color_picker_new_color_edit" height="28" width="90" text="#FFFFFFFF" halign="center" text_align="left,vcenter" readonly="false" limit_text="9" limit_chars="#0123456789ABCDEFabcdef"/>
+                                        </HBox>
+                                        <GroupVBox margin="2,0,2,2" height="auto" text=" RGB ">
+                                            <HBox height="28" margin="4,22,0,0">
+                                                <Label text="A:" width="14" height="28" text_align="vcenter" tooltip_text="透明度"/>
+                                                <RichEdit class="simple color_picker_color_edit" name="color_picker_edit_RGB_A"/>
+                                                <ColorSlider class="color_picker_slider_horizontal" name="color_picker_slider_RGB_A"/>
+                                            </HBox>
+                                            <HBox height="28" margin="4,2,0,0">
+                                                <Label text="R:" width="14" height="28" text_align="vcenter" tooltip_text="红色"/>
+                                                <RichEdit class="simple color_picker_color_edit" name="color_picker_edit_RGB_R"/>
+                                                <ColorSlider class="color_picker_slider_horizontal" name="color_picker_slider_RGB_R" bkcolor="red"/>
+                                            </HBox>
+                                            <HBox height="28" margin="4,2,0,0">
+                                                <Label text="G:" width="14" height="28" text_align="vcenter" tooltip_text="绿色"/>
+                                                <RichEdit class="simple color_picker_color_edit" name="color_picker_edit_RGB_G"/>
+                                                <ColorSlider class="color_picker_slider_horizontal" name="color_picker_slider_RGB_G" bkcolor="green" />
+                                            </HBox>
+                                            <HBox height="28" margin="4,2,0,4">
+                                                <Label text="B:" width="14" height="28" text_align="vcenter" tooltip_text="蓝色"/>
+                                                <RichEdit class="simple color_picker_color_edit" name="color_picker_edit_RGB_B"/>
+                                                <ColorSlider class="color_picker_slider_horizontal" name="color_picker_slider_RGB_B" bkcolor="blue" />
+                                            </HBox>
+                                        </GroupVBox>
+                                        <GroupVBox margin="2,4,2,2" height="auto" text=" HSV ">
+                                            <HBox height="28" margin="4,22,0,0">
+                                                <Label text="H:" width="14" height="28" text_align="vcenter" tooltip_text="色调"/>
+                                                <RichEdit class="simple color_picker_color_edit" name="color_picker_edit_HSV_H"/>
+                                                <ColorSlider class="color_picker_slider_horizontal" name="color_picker_slider_HSV_H"/>
+                                            </HBox>
+                                            <HBox height="28" margin="4,2,0,0">
+                                                <Label text="S:" width="14" height="28" text_align="vcenter" tooltip_text="饱和度"/>
+                                                <RichEdit class="simple color_picker_color_edit" name="color_picker_edit_HSV_S"/>
+                                                <ColorSlider class="color_picker_slider_horizontal" name="color_picker_slider_HSV_S"/>
+                                            </HBox>
+                                            <HBox height="28" margin="4,2,0,4">
+                                                <Label text="V:" width="14" height="28" text_align="vcenter" tooltip_text="明度"/>
+                                                <RichEdit class="simple color_picker_color_edit" name="color_picker_edit_HSV_V"/>
+                                                <ColorSlider class="color_picker_slider_horizontal" name="color_picker_slider_HSV_V"/>
+                                            </HBox>
+                                        </GroupVBox>
+                                        <GroupVBox margin="2,4,2,2" height="auto" text=" HSL ">
+                                            <HBox height="28" margin="4,22,0,0">
+                                                <Label text="H:" width="14" height="28" text_align="vcenter" tooltip_text="色调"/>
+                                                <RichEdit class="simple color_picker_color_edit" name="color_picker_edit_HSL_H"/>
+                                                <ColorSlider class="color_picker_slider_horizontal" name="color_picker_slider_HSL_H"/>
+                                            </HBox>
+                                            <HBox height="28" margin="4,2,0,0">
+                                                <Label text="S:" width="14" height="28" text_align="vcenter" tooltip_text="饱和度"/>
+                                                <RichEdit class="simple color_picker_color_edit" name="color_picker_edit_HSL_S"/>
+                                                <ColorSlider class="color_picker_slider_horizontal" name="color_picker_slider_HSL_S"/>
+                                            </HBox>
+                                            <HBox height="28" margin="4,2,0,4">
+                                                <Label text="L:" width="14" height="28" text_align="vcenter" tooltip_text="亮度"/>
+                                                <RichEdit class="simple color_picker_color_edit" name="color_picker_edit_HSL_L"/>
+                                                <ColorSlider class="color_picker_slider_horizontal" name="color_picker_slider_HSL_L"/>
+                                            </HBox>
+                                        </GroupVBox>
+                                    </VBox>
+                                </HBox>
+                            </ColorPickerCustom>
+                        </VBox>
+                    </TabBox>
+                </VBox>
+                <VBox width="110">
+                    <VBox margin="2,2,2,2" height="150">
+                        <Button class="btn_global_color_gray" name="color_picker_ok" width="80" height="30" text="确定" halign="center" margin="2,6,2,2"/>
+                        <Button class="btn_global_color_gray" name="color_picker_cancel" width="80" height="30" text="取消" halign="center" margin="2,2,2,2"/>
+                        <Button class="btn_global_color_gray" name="color_picker_choose" width="80" height="30" text="选择" halign="center" margin="2,2,2,2" bkimage="file='../public/color/dropper.png' halign='left' valign='center' width='20' height='20' padding='4,0,0,0'"/>
+                        <CheckBox class="checkbox_font14" name="color_picker_choose_hide" height="20" text="隐藏本窗口" halign="center" margin="2,2,2,2" selected="true"/>
+                    </VBox>
+                    <VBox margin="2,6,2,2">                        
+                        <Label text="所选颜色" width="120" height="28" text_align="hcenter"/>
+                        <Box height="50%" bkcolor="white">
+                            <Label name="color_picker_new_color" width="stretch" height="stretch" text_align="hcenter,bottom"/>
+                        </Box>
+                        <Box height="50%" bkcolor="white">
+                            <Label name="color_picker_old_color" width="stretch" height="stretch" text_align="hcenter,top"/>
+                        </Box>
+                        <Label text="当前颜色" width="120" height="28" text_align="hcenter"/>
+                    </VBox>
+                </VBox>
+            </HBox>
+        </VBox>
+    </Box>
+  </VBox>
+</Window>

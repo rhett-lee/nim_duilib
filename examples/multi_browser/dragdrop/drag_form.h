@@ -51,7 +51,7 @@ public:
 	* 窗口初始化函数
 	* @return void	无返回值
 	*/
-	virtual void InitWindow() override;
+	virtual void OnInitWindow() override;
 
 private:
 	DragForm();

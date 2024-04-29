@@ -22,7 +22,7 @@ LRESULT CALLBACK DragForm::LowLevelMouseProc(int nCode, WPARAM wParam, LPARAM lP
 					//系统拖拽窗口。标题：Drag，类名：SysDragImage，GWL_EXSTYLE:524456
 					//WS_EX_TOPMOST--WS_EX_TRANSPARENT--WS_EX_PALETTEWINDOW--WS_EX_LAYERED--WS_EX_TOOLWINDOW
 					ui::UiRect rc(pMouseStruct->pt.x - s_point_offset.x, pMouseStruct->pt.y - s_point_offset.y, 0, 0);
-					s_drag_form->SetPos(rc, false, SWP_NOSIZE);
+					s_drag_form->SetWindowPos(rc, false, SWP_NOSIZE);
 				}
 			}
 		}
@@ -43,7 +43,7 @@ void DragForm::CloseCustomDragImage()
 {
 	if (NULL != s_drag_form)
 	{
-		s_drag_form->Close();
+		s_drag_form->CloseWnd();
 		s_drag_form = NULL;
 	}
 
@@ -59,8 +59,8 @@ DragForm* DragForm::CreateDragForm(HBITMAP bitmap, POINT pt_offset)
 {
 	DragForm *drag_form = new DragForm;
 
-	HWND hwnd = drag_form->Create(NULL, kClassName, UI_WNDSTYLE_FRAME, WS_EX_TOPMOST | WS_EX_TRANSPARENT | WS_EX_LAYERED | WS_EX_TOOLWINDOW);
-	ASSERT(hwnd != NULL);
+	drag_form->CreateWnd(NULL, kClassName, UI_WNDSTYLE_FRAME, WS_EX_TOPMOST | WS_EX_TRANSPARENT | WS_EX_LAYERED | WS_EX_TOOLWINDOW);
+	ASSERT(drag_form->GetHWND() != NULL);
 	drag_form->SetDragImage(bitmap);
 
 	POINT pt;
@@ -74,7 +74,7 @@ DragForm* DragForm::CreateDragForm(HBITMAP bitmap, POINT pt_offset)
 	rect.top = pt.y - pt_offset.y;
 	rect.right = rect.left + bitmap_info.bmWidth;
 	rect.bottom = rect.top + bitmap_info.bmHeight;
-	drag_form->SetPos(rect, false, SWP_SHOWWINDOW);
+	drag_form->SetWindowPos(rect, false, SWP_SHOWWINDOW);
 
 	return drag_form;
 }
@@ -114,7 +114,7 @@ UINT DragForm::GetClassStyle() const
 	return (UI_CLASSSTYLE_FRAME);
 }
 
-void DragForm::InitWindow()
+void DragForm::OnInitWindow()
 {
 	bitmap_control_ = static_cast<BitmapControl*>(FindControl(L"bitmap"));
 	ASSERT(NULL != bitmap_control_);

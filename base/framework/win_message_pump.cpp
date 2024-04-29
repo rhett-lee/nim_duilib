@@ -1,4 +1,4 @@
-ï»¿// Copyright (c) 2011, NetEase Inc. All rights reserved.
+// Copyright (c) 2011, NetEase Inc. All rights reserved.
 //
 // Author: wrt(guangguang)
 // Date: 2011/6/8
@@ -44,10 +44,10 @@ int64_t WinMessagePump::GetCurrentDelay() const
 	if (delayed_work_time_.is_null())
 		return -1;
 
-	// å°†å¾®å¦™çš„ç²¾åº¦è½¬æ¢ä¸ºæ¯«ç§’
+	// ½«Î¢ÃîµÄ¾«¶È×ª»»ÎªºÁÃë
 	double timeout = ceil((delayed_work_time_ - TimeTicks::Now()).ToInternalValue()/1000.0);
 
-	// å¦‚æœdelayçš„å€¼æ˜¯è´Ÿçš„ï¼Œé‚£ä¹ˆè¡¨ç¤ºä»»åŠ¡éœ€è¦è¢«è¶Šå¿«è¿è¡Œè¶Šå¥½
+	// Èç¹ûdelayµÄÖµÊÇ¸ºµÄ£¬ÄÇÃ´±íÊ¾ÈÎÎñĞèÒª±»Ô½¿ìÔËĞĞÔ½ºÃ
 	int64_t delay = static_cast<int64_t>(timeout);
 	if (delay < 0)
 		delay = 0;

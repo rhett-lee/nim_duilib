@@ -6,6 +6,7 @@
 #include "base/framework/message_pump.h"
 
 #if defined(OS_WIN)
+#include "base/build/winsdk_config.h"
 #include <windows.h>
 #include "base/time/time.h"
 

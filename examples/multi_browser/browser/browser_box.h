@@ -74,20 +74,10 @@ public:
 	TaskbarTabItem* GetTaskbarItem();
 
 	/**
-	* 覆盖父类虚函数，用于指定本控件所属窗体及父控件信息
+	* 覆盖父类虚函数，用于指定本控件所属窗体
 	* @param[in] pManager 所属窗口指针
-	* @param[in] pParent 父控件指针
-	* @param[in] bInit 是否要初始化本控件
-	* @return void	无返回值
 	*/
-	virtual void SetWindow(ui::Window* pManager, ui::Box* pParent, bool bInit) override;
-
-	/**
-	* 覆盖基类虚函数，为了在任务栏显示缩略图和预览图，重写了设置子控件SetInternVisible属性的逻辑
-	* @param[in] bVisible 是否显示
-	* @return void	无返回值
-	*/
-	virtual void SetInternVisible(bool bVisible = true) override;
+	virtual void SetWindow(ui::Window* pManager) override;
 
 	/**
 	* 覆盖基类虚函数，为了在重绘任务栏显示的缩略图

@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2011, NetEase Inc. All rights reserved.
+// Copyright (c) 2011, NetEase Inc. All rights reserved.
 //
 // Author: wrt(guangguang)
 // Date: 2011/6/14
@@ -8,6 +8,7 @@
 #include "base/thread/thread_local.h"
 #if defined(OS_WIN)
 #include <assert.h>
+#include "base/build/winsdk_config.h"
 #include <windows.h>
 
 namespace nbase

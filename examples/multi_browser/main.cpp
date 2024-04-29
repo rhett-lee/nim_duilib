@@ -1,11 +1,14 @@
-ï»¿// basic.cpp : å®šä¹‰åº”ç”¨ç¨‹åºçš„å…¥å£ç‚¹ã€‚
+// basic.cpp : ¶¨ÒåÓ¦ÓÃ³ÌĞòµÄÈë¿Úµã¡£
 //
 
 #include "stdafx.h"
 #include "main.h"
 #include "browser/multi_browser_manager.h"
 
-#pragma comment(lib, "dbghelp.lib")
+#include <clocale>
+
+//¿ªÆôDPI×ÔÊÊÓ¦¹¦ÄÜ
+bool bAdaptDpi = true;
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
@@ -15,8 +18,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	UNREFERENCED_PARAMETER(hPrevInstance);
 	UNREFERENCED_PARAMETER(lpCmdLine);
 
-	// å°† bin\\cef ç›®å½•æ·»åŠ åˆ°ç¯å¢ƒå˜é‡ï¼Œè¿™æ ·å¯ä»¥å°†æ‰€æœ‰ CEF ç›¸å…³æ–‡ä»¶æ”¾åˆ°è¯¥ç›®å½•ä¸‹ï¼Œæ–¹ä¾¿ç®¡ç†
-	// åœ¨é¡¹ç›®å±æ€§->è¿æ¥å™¨->è¾“å…¥ï¼Œå»¶è¿ŸåŠ è½½ nim_libcef.dll
+	// ½« bin\\cef Ä¿Â¼Ìí¼Óµ½»·¾³±äÁ¿£¬ÕâÑù¿ÉÒÔ½«ËùÓĞ CEF Ïà¹ØÎÄ¼ş·Åµ½¸ÃÄ¿Â¼ÏÂ£¬·½±ã¹ÜÀí
+	// ÔÚÏîÄ¿ÊôĞÔ->Á¬½ÓÆ÷->ÊäÈë£¬ÑÓ³Ù¼ÓÔØ nim_libcef.dll
 	nim_comp::CefManager::GetInstance()->AddCefDllToPath();
 
 	_wsetlocale(LC_ALL, L"chs");
@@ -32,20 +35,23 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	if (FAILED(hr))
 		return 0;
 
-	// åˆå§‹åŒ– CEF
+	//±ØĞëÔÚCefManager::InitializeÇ°µ÷ÓÃ£¬ÉèÖÃDPI×ÔÊÊÓ¦ÊôĞÔ£¬·ñÔò»áµ¼ÖÂÏÔÊ¾²»Õı³£
+	ui::GlobalManager::Instance().Dpi().SetAdaptDPI(bAdaptDpi);
+
+	// ³õÊ¼»¯ CEF
 	CefSettings settings;
 	if (!nim_comp::CefManager::GetInstance()->Initialize(nbase::win32::GetCurrentModuleDirectory() + L"cef_temp\\", settings, true))
 	{
 		return 0;
 	}
 
-	// åˆ›å»ºä¸»çº¿ç¨‹
+	// ´´½¨Ö÷Ïß³Ì
 	MainThread thread;
 
-	// æ‰§è¡Œä¸»çº¿ç¨‹å¾ªç¯
+	// Ö´ĞĞÖ÷Ïß³ÌÑ­»·
 	thread.RunOnCurrentThreadWithLoop(nbase::MessageLoop::kUIMessageLoop);
 
-    // æ¸…ç† CEF
+    // ÇåÀí CEF
     nim_comp::CefManager::GetInstance()->UnInitialize();
 
 	::OleUninitialize();
@@ -58,7 +64,7 @@ void MainThread::Init()
 	nbase::ThreadManager::RegisterThread(kThreadUI);
 
 	std::wstring theme_dir = nbase::win32::GetCurrentModuleDirectory();
-	ui::GlobalManager::Startup(theme_dir + L"resources\\", ui::CreateControlCallback(), false);
+	ui::GlobalManager::Instance().Startup(theme_dir + L"resources\\", ui::CreateControlCallback(), bAdaptDpi);
 
 	nbase::TimeDelta time_delta = nbase::TimeDelta::FromMicroseconds(nbase::Time::Now().ToInternalValue());
 	std::string timeStamp = nbase::StringPrintf("%I64u", time_delta.ToMilliseconds());
@@ -67,7 +73,7 @@ void MainThread::Init()
 
 void MainThread::Cleanup()
 {
-	ui::GlobalManager::Shutdown();
+	ui::GlobalManager::Instance().Shutdown();
 	SetThreadWasQuitProperly(true);
 	nbase::ThreadManager::UnregisterThread();
 }

@@ -150,7 +150,7 @@ private:
 };
 
 template<>
-void MessageLoopProxy::PostTaskAndReplyRelay<void(), void()>::Run()
+inline void MessageLoopProxy::PostTaskAndReplyRelay<void(), void()>::Run()
 {
 	std_task_();
 	origin_loop_->PostTask(

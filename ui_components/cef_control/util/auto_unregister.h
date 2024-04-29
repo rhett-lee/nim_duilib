@@ -1,8 +1,12 @@
 #pragma once
+
+#include "base/callback/callback.h"
 #include <unordered_map>
-typedef std::function<void()> UnregisterCallback;
+#include <functional>
 
 namespace nim_comp {
+
+typedef std::function<void()> UnregisterCallback;
 
 class AutoUnregister 
 {
@@ -40,7 +44,7 @@ public:
 	UnregisterCallback AddCallback(const TCallback& cb)
 	{
 		auto new_cb = std::make_shared<TCallback>(cb);
-		int cb_id = (int)(new_cb.get());
+		size_t cb_id = (size_t)new_cb.get();
 		element_list_.insert(std::make_pair(cb_id, new_cb));
 		return ToWeakCallback([this, cb_id]() {
 			element_list_.erase(cb_id);
@@ -49,7 +53,7 @@ public:
 	UnregisterCallback AddCallback(TCallback&& cb)
 	{
 		auto new_cb = std::make_shared<TCallback>(std::forward<TCallback>(cb));
-		int cb_id = (int)(new_cb.get());
+		size_t cb_id = (size_t)new_cb.get();
 		element_list_.insert(std::make_pair(cb_id, new_cb));
 		return ToWeakCallback([this, cb_id]() {
 			element_list_.erase(cb_id);
@@ -64,7 +68,7 @@ public:
 		}
 	}	
 private:
-	std::unordered_map<int, std::shared_ptr<TCallback>> element_list_;
+	std::unordered_map<size_t, std::shared_ptr<TCallback>> element_list_;
 };
 
 }

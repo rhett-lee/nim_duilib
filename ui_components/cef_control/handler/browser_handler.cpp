@@ -1,10 +1,17 @@
-#include "stdafx.h"
 #include "browser_handler.h"
+#include "ui_components/cef_control/manager/cef_manager.h"
+#include "ui_components/cef_control/util/util.h"
+#include "ui_components/cef_control/app/ipc_string_define.h"
+#include "ui_components/cef_control/app/cef_js_bridge.h"
+#include "ui_components/public_define.h"
+
+#include "base/thread/thread_manager.h"
+#include "duilib/Core/GlobalManager.h"
+
+#pragma warning (push)
+#pragma warning (disable:4100)
 #include "include/cef_frame.h"
-#include "cef_control/manager/cef_manager.h"
-#include "cef_control/util/util.h"
-#include "cef_control/app/ipc_string_define.h"
-#include "cef_control/app/cef_js_bridge.h"
+#pragma warning (pop)
 
 namespace nim_comp
 {
@@ -49,15 +56,14 @@ void BrowserHandler::CloseAllBrowser()
 	{
 		IMPLEMENT_REFCOUNTING(CloseAllBrowserTask);
 	public:
-		CloseAllBrowserTask(const std::vector<CefRefPtr<CefBrowser>>& browser_list)
+		explicit CloseAllBrowserTask(const std::vector<CefRefPtr<CefBrowser>>& browser_list)
 		{
 			browser_list_.assign(browser_list.begin(), browser_list.end());
 		}
 	public:
 		void Execute()
 		{
-			for (auto it : browser_list_)
-			{
+			for (auto it : browser_list_) {
 				if (it != nullptr)
 					it->GetHost()->CloseBrowser(true);
 			}
@@ -68,7 +74,7 @@ void BrowserHandler::CloseAllBrowser()
 	CefPostTask(TID_UI, new CloseAllBrowserTask(browser_list_));
 }
 
-bool BrowserHandler::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser, CefProcessId source_process, CefRefPtr<CefProcessMessage> message)
+bool BrowserHandler::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser, CefProcessId /*source_process*/, CefRefPtr<CefProcessMessage> message)
 {
 	// 处理render进程发来的消息
 	std::string message_name = message->GetName();
@@ -157,6 +163,19 @@ void BrowserHandler::OnAfterCreated(CefRefPtr<CefBrowser> browser)
 		task_list_after_created_.Clear();
 	}));
 
+	// 必须在cef ui线程调用RegisterDragDrop
+	// 执行::DoDragDrop时，会在调用RegisterDragDrop的线程触发的DragOver、DragLeave、Drop、Drop回调
+	// 进而调用browser_->GetHost()->DragTargetDragEnter、DragTargetDragOver、DragTargetDragLeave、DragTargetDrop
+	// 这几个cef接口内部发现不在cef ui线程触发，则会转发到cef ui线程
+	// 导致DragSourceEndedAt接口被调用时有部分DragTarget*方法没有被调用
+	// 最终拖拽效果就会有问题，详见DragSourceEndedAt接口描述
+	// 所以在cef ui线程调用RegisterDragDrop，让后面一系列操作都在cef ui线程里同步执行，则没问题
+	//
+	// RegisterDragDrop内部会在调用这个API的线程里创建一个窗口，用过这个窗口来做消息循环模拟阻塞的过程
+	// 所以哪个线程调用RegisterDragDrop，就会在哪个线程阻塞并触发IDragTarget回调
+	// 见https://docs.microsoft.com/zh-cn/windows/win32/api/ole2/nf-ole2-registerdragdrop
+	if (hwnd_)
+		drop_target_ = CefManager::GetInstance()->GetDropTarget(hwnd_);
 }
 
 bool BrowserHandler::DoClose(CefRefPtr<CefBrowser> browser)
@@ -217,6 +236,15 @@ bool BrowserHandler::GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect)
 		rect.y = 0;
 		rect.width = rect_cef_control_.right - rect_cef_control_.left;
 		rect.height = rect_cef_control_.bottom - rect_cef_control_.top;
+
+		if (CefManager::GetInstance()->IsEnableOffsetRender()) {
+			//离屏渲染模式，需要传给原始宽度和高度，因为CEF内部会进一步做DPI自适应
+			uint32_t dpiScale = ui::GlobalManager::Instance().Dpi().GetScale();
+			if (dpiScale > 100) {
+				rect.width = rect.width * 100 / dpiScale;
+				rect.height = rect.height * 100 / dpiScale;
+			}
+		}		
 		return true;
 	}
 	else
@@ -238,11 +266,38 @@ bool BrowserHandler::GetScreenPoint(CefRefPtr<CefBrowser> browser, int viewX, in
 		return false;
 
 	// Convert the point from view coordinates to actual screen coordinates.
-	POINT screen_pt = { viewX, viewY };
-	ClientToScreen(hwnd_, &screen_pt);
+	POINT screen_pt = { viewX, viewY};
+	if (CefManager::GetInstance()->IsEnableOffsetRender()) {
+		//离屏渲染模式下，给到的参数是原始坐标，未经DPI自适应，所以需要做DPI自适应处理，否则页面的右键菜单位置显示不对
+		uint32_t dpiScale = ui::GlobalManager::Instance().Dpi().GetScale();
+		if (dpiScale > 100) {
+			screen_pt.x = screen_pt.x * dpiScale / 100;
+			screen_pt.y = screen_pt.y * dpiScale / 100;
+		}
+	}
+	//将页面坐标转换为窗口客户区坐标，否则页面弹出的右键菜单位置不正确
+	screen_pt.x = screen_pt.x + rect_cef_control_.left;
+	screen_pt.y = screen_pt.y + rect_cef_control_.top;
+	::ClientToScreen(hwnd_, &screen_pt);
 	screenX = screen_pt.x;
 	screenY = screen_pt.y;
 	return true;
+}
+
+bool BrowserHandler::GetScreenInfo(CefRefPtr<CefBrowser> browser, CefScreenInfo& screen_info)
+{
+	//只有离屏渲染模式下，才处理DPI缩放因子
+	if (!CefManager::GetInstance()->IsEnableOffsetRender()) {
+		return false;
+	}
+	uint32_t dpiScale = ui::GlobalManager::Instance().Dpi().GetScale();
+	if (dpiScale == 100) {
+		return false;
+	}
+	else {
+		screen_info.device_scale_factor = dpiScale / 100.0f;
+		return true;
+	}	
 }
 
 void BrowserHandler::OnPopupShow(CefRefPtr<CefBrowser> browser, bool show)
@@ -277,11 +332,91 @@ void BrowserHandler::OnPaint(CefRefPtr<CefBrowser> browser,
 	}
 }
 
-void BrowserHandler::OnCursorChange(CefRefPtr<CefBrowser> browser, CefCursorHandle cursor, CursorType type, const CefCursorInfo& custom_cursor_info)
+void BrowserHandler::OnCursorChange(CefRefPtr<CefBrowser> browser, CefCursorHandle cursor, CursorType /*type*/, const CefCursorInfo& /*custom_cursor_info*/)
 {
 	SetClassLongPtr(hwnd_, GCLP_HCURSOR, static_cast<LONG>(reinterpret_cast<LONG_PTR>(cursor)));
 	SetCursor(cursor);
 }
+
+bool BrowserHandler::StartDragging(CefRefPtr<CefBrowser> browser, CefRefPtr<CefDragData> drag_data, CefRenderHandler::DragOperationsMask allowed_ops, int x, int y)
+{
+	REQUIRE_UI_THREAD();
+	if (!handle_delegate_)
+		return false;
+
+	if (!drop_target_)
+		return false;
+
+	current_drag_op_ = DRAG_OPERATION_NONE;
+	CefBrowserHost::DragOperationsMask result =
+		drop_target_->StartDragging(this, drag_data, allowed_ops, x, y);
+	current_drag_op_ = DRAG_OPERATION_NONE;
+	POINT pt = {};
+	GetCursorPos(&pt);
+	ScreenToClient(hwnd_, &pt);
+	handle_delegate_->ClientToControl(pt);
+	browser->GetHost()->DragSourceEndedAt(
+		pt.x,
+		pt.y,
+		result);
+	browser->GetHost()->DragSourceSystemDragEnded();
+
+	return true;
+}
+
+void BrowserHandler::UpdateDragCursor(CefRefPtr<CefBrowser> browser, CefRenderHandler::DragOperation operation)
+{
+	REQUIRE_UI_THREAD();
+	current_drag_op_ = operation;
+}
+
+CefBrowserHost::DragOperationsMask BrowserHandler::OnDragEnter(CefRefPtr<CefDragData> drag_data, CefMouseEvent ev, CefBrowserHost::DragOperationsMask effect)
+{
+	REQUIRE_UI_THREAD();
+	if (browser_) {
+		POINT pt = { ev.x, ev.y };
+		handle_delegate_->ClientToControl(pt);
+		ev.x = pt.x;
+		ev.y = pt.y;
+		browser_->GetHost()->DragTargetDragEnter(drag_data, ev, effect);
+		browser_->GetHost()->DragTargetDragOver(ev, effect);
+	}
+	return current_drag_op_;
+}
+
+CefBrowserHost::DragOperationsMask BrowserHandler::OnDragOver(CefMouseEvent ev, CefBrowserHost::DragOperationsMask effect)
+{
+	REQUIRE_UI_THREAD();
+	if (browser_) {
+		POINT pt = { ev.x, ev.y };
+		handle_delegate_->ClientToControl(pt);
+		ev.x = pt.x;
+		ev.y = pt.y;
+		browser_->GetHost()->DragTargetDragOver(ev, effect);
+	}
+	return current_drag_op_;
+}
+
+void BrowserHandler::OnDragLeave()
+{
+	REQUIRE_UI_THREAD();
+	if (browser_)
+		browser_->GetHost()->DragTargetDragLeave();
+}
+
+CefBrowserHost::DragOperationsMask BrowserHandler::OnDrop(CefMouseEvent ev, CefBrowserHost::DragOperationsMask effect)
+{
+	if (browser_) {
+		POINT pt = { ev.x, ev.y };
+		handle_delegate_->ClientToControl(pt);
+		ev.x = pt.x;
+		ev.y = pt.y;
+		browser_->GetHost()->DragTargetDragOver(ev, effect);
+		browser_->GetHost()->DragTargetDrop(ev);
+	}
+	return current_drag_op_;
+}
+
 #pragma endregion
 
 #pragma region CefContextMenuHandler
@@ -348,7 +483,7 @@ void BrowserHandler::OnTitleChange(CefRefPtr<CefBrowser> browser, const CefStrin
 		nbase::ThreadManager::PostTask(kThreadUI, nbase::Bind(&HandlerDelegate::OnTitleChange, handle_delegate_, browser, title));
 }
 
-bool BrowserHandler::OnConsoleMessage(CefRefPtr<CefBrowser> browser, const CefString& message, const CefString& source, int line)
+bool BrowserHandler::OnConsoleMessage(CefRefPtr<CefBrowser> browser, const CefString& /*message*/, const CefString& /*source*/, int /*line*/)
 {
 	// Log a console message...
 	return true;
@@ -384,9 +519,10 @@ void BrowserHandler::OnLoadError(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFra
 		nbase::ThreadManager::PostTask(kThreadUI, nbase::Bind(&HandlerDelegate::OnLoadError, handle_delegate_, browser, frame, errorCode, errorText, failedUrl));
 }
 
-bool BrowserHandler::OnJSDialog(CefRefPtr<CefBrowser> browser, const CefString& origin_url, const CefString& accept_lang, JSDialogType dialog_type, const CefString& message_text, const CefString& default_prompt_text, CefRefPtr<CefJSDialogCallback> callback, bool& suppress_message)
+bool BrowserHandler::OnJSDialog(CefRefPtr<CefBrowser> browser, const CefString& /*origin_url*/, const CefString& /*accept_lang*/, JSDialogType /*dialog_type*/, const CefString& /*message_text*/, const CefString& /*default_prompt_text*/, CefRefPtr<CefJSDialogCallback> callback, bool& suppress_message)
 {
 	// release时阻止弹出js对话框
+	(void)suppress_message;
 #ifndef _DEBUG
 	suppress_message = true;
 #endif
@@ -429,7 +565,7 @@ void BrowserHandler::OnRenderProcessTerminated(CefRefPtr<CefBrowser> browser, Te
 }
 
 bool BrowserHandler::OnQuotaRequest(CefRefPtr<CefBrowser> browser,
-	const CefString& origin_url,
+	const CefString& /*origin_url*/,
 	int64 new_size,
 	CefRefPtr<CefRequestCallback> callback)
 {

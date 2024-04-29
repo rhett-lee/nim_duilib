@@ -1,4 +1,4 @@
-Ôªø#ifndef BASE_UTIL_STRING_UTIL_H_
+#ifndef BASE_UTIL_STRING_UTIL_H_
 #define BASE_UTIL_STRING_UTIL_H_
 
 #include <list>
@@ -56,7 +56,7 @@ BASE_EXPORT std::string HexStringToBinary(const std::string &input);
 // if c is not a hexadecimal character, -1 will be returned
 BASE_EXPORT char HexCharToInt8(char c);
 
-// the following functions are used to convert encodings in utf-8„ÄÅutf-16 and utf-32
+// the following functions are used to convert encodings in utf-8°¢utf-16 and utf-32
 BASE_EXPORT std::wstring UTF8ToUTF16(const UTF8Char *utf8, size_t length);
 BASE_EXPORT std::string UTF16ToUTF8(const UTF16Char *utf16, size_t length);
 BASE_EXPORT std::basic_string<UTF32Char> UTF8ToUTF32(const UTF8Char *utf8, size_t length);

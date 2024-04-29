@@ -1,13 +1,14 @@
-#include "stdafx.h"
 #include "js_handler.h"
-#include "cef_control/util/util.h"
-#include "cef_control/app/ipc_string_define.h"
-#include "cef_control/app/cef_js_bridge.h"
+#include "ui_components/cef_control/util/util.h"
+#include "ui_components/cef_control/app/ipc_string_define.h"
+#include "ui_components/cef_control/app/cef_js_bridge.h"
+
+#include "base/util/string_util.h"
 
 namespace nim_comp
 {
 
-bool CefJSHandler::Execute(const CefString& name, CefRefPtr<CefV8Value> object, const CefV8ValueList& arguments, CefRefPtr<CefV8Value>& retval, CefString& exception)
+bool CefJSHandler::Execute(const CefString& name, CefRefPtr<CefV8Value> object, const CefV8ValueList& arguments, CefRefPtr<CefV8Value>& /*retval*/, CefString& exception)
 {
 	// 当Web中调用了"NimCefWebFunction"函数后，会触发到这里，然后把参数保存，转发到Broswer进程
 	// Broswer进程的BrowserHandler类在OnProcessMessageReceived接口中处理kJsCallbackMessage消息，就可以收到这个消息
@@ -24,6 +25,8 @@ bool CefJSHandler::Execute(const CefString& name, CefRefPtr<CefV8Value> object, 
 
 	int64_t browser_id = browser->GetIdentifier();
 	int64_t frame_id = frame->GetIdentifier();
+	(void)browser_id;
+	(void)frame_id;
 
 	if (name == "call")
 	{
@@ -50,7 +53,7 @@ bool CefJSHandler::Execute(const CefString& name, CefRefPtr<CefV8Value> object, 
 		// 执行 C++ 方法
 		if (!js_bridge_->CallCppFunction(function_name, params, callback))
 		{
-			exception = nbase::StringPrintf("Failed to call function %s.", function_name).c_str();
+			exception = nbase::StringPrintf("Failed to call function %s.", function_name.c_str()).c_str();
 			return false;
 		}
 

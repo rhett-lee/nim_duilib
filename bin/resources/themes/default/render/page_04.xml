@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Window>
+    <HBox width="auto" height="auto">
+        <Control width="auto" height="auto" bkimage="file='bmp_test_24.bmp' width='140'" valign="center" margin="8"/>
+        <Control width="auto" height="auto" bkimage="file='webp_test2.webp' width='140'" valign="center" margin="8"/>
+        <Control width="auto" height="auto" bkimage="file='jpg_test.jpg' width='140'" valign="center" margin="8"/>
+        <Control width="auto" height="auto" bkimage="file='icon_test.ico' width='140' iconsize='256'" valign="center" margin="8"/>                    
+    </HBox>
+    <HBox width="auto" height="auto">
+        <Label width="140" height="auto" text="BMP格式" align="center" margin="8"/>
+        <Label width="140" height="auto" text="WEBP格式" align="center" margin="8"/>
+        <Label width="140" height="auto" text="JPG格式" align="center" margin="8"/>
+        <Label width="140" height="auto" text="ICO格式" align="center" margin="8"/>               
+    </HBox>
+    <HBox width="auto" height="auto">
+        <Control width="auto" height="auto" bkimage="file='autumn.png' width='140'" valign="center" margin="8"/>
+        <Control width="auto" height="auto" bkimage="file='svg_test.svg' width='140'" valign="center" margin="8"/>
+        <Control width="auto" height="auto" bkimage="file='gif_test2.gif' width='140'" valign="center" margin="8"/>                        
+    </HBox>
+    <HBox width="auto" height="auto">
+        <Label width="140" height="auto" text="PNG格式" align="center" margin="8"/>
+        <Label width="140" height="auto" text="SVG格式" align="center" margin="8"/>
+        <Label width="140" height="auto" text="GIF格式" align="center" margin="8"/>            
+    </HBox>
+    <HBox width="auto" height="auto">           
+        <Control width="auto" height="auto" bkimage="file='gif_test.gif' width='150' playcount='-1'" valign="center" margin="8"/>            
+        <Control width="auto" height="auto" bkimage="file='apng_test.png' width='150' playcount='-1'" valign="center" margin="8"/>
+        <Control width="auto" height="auto" bkimage="file='apng_test2.png' width='150' playcount='-1'" valign="center" margin="8"/>
+        <Control width="auto" height="auto" bkimage="file='webp_test.webp' width='150' playcount='-1'" valign="center" margin="8"/>
+    </HBox>
+    <HBox width="auto" height="auto">
+        <Label width="150" height="auto" text="GIF格式动画" align="center" margin="8"/>
+        <Label width="150" height="auto" text="APNG格式动画" align="center" margin="8"/>
+        <Label width="150" height="auto" text="APNG格式动画" align="center" margin="8"/>
+        <Label width="150" height="auto" text="WEBP格式动画" align="center" margin="8"/>               
+    </HBox>
+    <HBox width="auto" height="80" margin="20, 10, 0, 0">
+        <Control width="80" height="80" bkimage="file='fan.gif' width='80' height='80' playcount='0' valign='center' halign='center'" hot_color="AliceBlue" pushed_color="Lavender">
+            <Event type="mouseenter" receiver="" applyattribute="start_gif_play={-1}" />
+            <Event type="mouseleave" receiver="" applyattribute="stop_gif_play={1}" />
+        </Control>
+    </HBox>
+</Window>
