@@ -794,6 +794,11 @@ void Render_GdiPlus::FillRect(const UiRect& rc, UiColor dwColor, uint8_t uFade)
 	graphics.FillRectangle(&brush, rcFill);
 }
 
+void Render_GdiPlus::FillRect(const UiRect& rc, UiColor dwColor, UiColor /*dwColor2*/, int8_t /*nColor2Direction*/, uint8_t uFade)
+{
+	return FillRect(rc, dwColor, uFade);
+}
+
 void Render_GdiPlus::DrawLine(const UiPoint& pt1, const UiPoint& pt2, UiColor penColor, int32_t nWidth)
 {
 	ASSERT((GetWidth() > 0) && (GetHeight() > 0));
@@ -881,6 +886,11 @@ void Render_GdiPlus::FillRoundRect(const UiRect& rc, const UiSize& roundSize, Ui
 	graphics.FillPath(&brush, &pPath);
 }
 
+void Render_GdiPlus::FillRoundRect(const UiRect& rc, const UiSize& roundSize, UiColor dwColor, UiColor /*dwColor2*/, int8_t /*nColor2Direction*/, uint8_t uFade)
+{
+	return FillRoundRect(rc, roundSize, dwColor, uFade);
+}
+
 void Render_GdiPlus::DrawCircle(const UiPoint& /*centerPt*/, int32_t /*radius*/, UiColor /*penColor*/, int /*nWidth*/)
 {
 	ASSERT(!"No Impl!");
@@ -945,6 +955,11 @@ void Render_GdiPlus::FillPath(const IPath* path, const IBrush* brush)
 	Gdiplus::Graphics graphics(m_hDC);
 	graphics.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
 	graphics.FillPath(((Brush_Gdiplus*)brush)->GetBrush(), ((Path_Gdiplus*)path)->GetPath());
+}
+
+void Render_GdiPlus::FillPath(const IPath* /*path*/, const UiRect& /*rc*/, UiColor /*dwColor*/, UiColor /*dwColor2*/, int8_t /*nColor2Direction*/)
+{
+	ASSERT(!"No Impl!");
 }
 
 void Render_GdiPlus::DrawString(const UiRect& rc, const std::wstring& strText,

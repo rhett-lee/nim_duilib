@@ -25,6 +25,8 @@
 | valign | top | string | SetVerAlignType|控件的纵向位置,如(center),支持top、center、bottom三种位置 |
 | float | false | bool | SetFloat|是否使用绝对定位,如(true) |
 | bkcolor |  | string | SetBkColor|背景颜色字符串常量,如(white) |
+| bkcolor2 |  | string | SetBkColor2|第二背景颜色字符串常量,如果设置了第二背景色，则支持背景颜色渐变,如(blue) |
+| bkcolor2_direction | "1" | string | SetBkColor2Direction|第二背景色方向，"1": 左->右，"2": 上->下，"3": 左上->右下，"4": 右上->左下|
 | normal_color |  | string | SetStateColor|普通状态颜色,如(white) |
 | hot_color |  | string | SetStateColor|悬浮状态颜色,如(white) |
 | pushed_color |  | string | SetStateColor|按下状态颜色,如(white) |

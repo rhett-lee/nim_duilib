@@ -88,16 +88,16 @@ void Path_Skia::MoveToPoint(int x1, int y1)
 {
 	SkPoint lastPt = SkPoint::Make(0, 0);
 	m_skPath->getLastPt(&lastPt);
-	if (lastPt != SkPoint::Make(x1, y1)) {
+	if (lastPt != SkPoint::Make(static_cast<float>(x1), static_cast<float>(y1))) {
 		//如果不相等才调用moveTo函数，否则影响路径的闭合逻辑
-		m_skPath->moveTo(SkPoint::Make(x1, y1));
+		m_skPath->moveTo(SkPoint::Make(static_cast<float>(x1), static_cast<float>(y1)));
 	}
 }
 
 void Path_Skia::AddLine(int x1, int y1, int x2, int y2)
 {
 	MoveToPoint(x1, y1);
-	m_skPath->lineTo(SkPoint::Make(x2, y2));
+	m_skPath->lineTo(SkPoint::Make(static_cast<float>(x2), static_cast<float>(y2)));
 }
 
 void Path_Skia::AddLines(const UiPoint* points, int count)
@@ -109,14 +109,16 @@ void Path_Skia::AddLines(const UiPoint* points, int count)
 	}
 	MoveToPoint(points[0].x, points[0].y);
 	for (int i = 1; i < count; ++i) {
-		m_skPath->lineTo(SkPoint::Make(points[i].x, points[i].y));
+		m_skPath->lineTo(SkPoint::Make(static_cast<float>(points[i].x), static_cast<float>(points[i].y)));
 	}
 }
 
 void Path_Skia::AddBezier(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4)
 {
 	MoveToPoint(x1, y1);
-	m_skPath->cubicTo(SkPoint::Make(x2, y2), SkPoint::Make(x3, y3), SkPoint::Make(x4, y4));
+	m_skPath->cubicTo(SkPoint::Make(static_cast<float>(x2), static_cast<float>(y2)), 
+					  SkPoint::Make(static_cast<float>(x3), static_cast<float>(y3)), 
+					  SkPoint::Make(static_cast<float>(x4), static_cast<float>(y4)));
 }
 
 void Path_Skia::AddBeziers(const UiPoint* points, int count)
@@ -129,26 +131,30 @@ void Path_Skia::AddBeziers(const UiPoint* points, int count)
 	MoveToPoint(points[0].x, points[0].y);
 	int i = 1;
 	for (; i < count; i += 3) {
-		m_skPath->cubicTo(SkPoint::Make(points[i].x, points[i].y),
-						  SkPoint::Make(points[i + 1].x, points[i + 1].y), 
-						  SkPoint::Make(points[i + 2].x, points[i + 2].y));
+		m_skPath->cubicTo(SkPoint::Make(static_cast<float>(points[i].x), static_cast<float>(points[i].y)),
+						  SkPoint::Make(static_cast<float>(points[i + 1].x), static_cast<float>(points[i + 1].y)),
+						  SkPoint::Make(static_cast<float>(points[i + 2].x), static_cast<float>(points[i + 2].y)));
 	}
 	SkASSERT(i == (count - 1));
 }
 
 void Path_Skia::AddRect(const UiRect& rect)
 {
-	m_skPath->addRect(SkRect::MakeLTRB(rect.left, rect.top, rect.right, rect.bottom));
+	m_skPath->addRect(SkRect::MakeLTRB(static_cast<float>(rect.left), static_cast<float>(rect.top),
+		                               static_cast<float>(rect.right), static_cast<float>(rect.bottom)));
 }
 
 void Path_Skia::AddEllipse(const UiRect& rect)
 {
-	m_skPath->addOval(SkRect::MakeLTRB(rect.left, rect.top, rect.right, rect.bottom));
+	m_skPath->addOval(SkRect::MakeLTRB(static_cast<float>(rect.left), static_cast<float>(rect.top),
+									   static_cast<float>(rect.right), static_cast<float>(rect.bottom)));
 }
 
 void Path_Skia::AddArc(const UiRect& rect, float startAngle, float sweepAngle)
 {
-	m_skPath->arcTo(SkRect::MakeLTRB(rect.left, rect.top, rect.right, rect.bottom), startAngle, sweepAngle, false);
+	m_skPath->arcTo(SkRect::MakeLTRB(static_cast<float>(rect.left), static_cast<float>(rect.top),
+									 static_cast<float>(rect.right), static_cast<float>(rect.bottom)), 
+					startAngle, sweepAngle, false);
 }
 
 void Path_Skia::AddPolygon(const UiPoint* points, int count)

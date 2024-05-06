@@ -846,6 +846,67 @@ void Render_Skia::FillRect(const UiRect& rc, UiColor dwColor, uint8_t uFade)
 	}
 }
 
+void Render_Skia::InitGradientColor(SkPaint& skPaint, const UiRect& rc, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction) const
+{
+	if ((nColor2Direction != 2) && (nColor2Direction != 3) && (nColor2Direction != 4)) {
+		nColor2Direction = 1;
+	}
+	SkIRect rcSkDestI = { rc.left, rc.top, rc.right, rc.bottom };
+	SkRect rcSkDest = SkRect::Make(rcSkDestI);
+	rcSkDest.offset(*m_pSkPointOrg);
+
+	SkPoint pts[2];
+	pts[0].set(rcSkDest.fLeft, rcSkDest.fTop);
+	if (nColor2Direction == 2) {
+		//上->下
+		pts[1].set(rcSkDest.fLeft, rcSkDest.fBottom);
+	}
+	else if (nColor2Direction == 3) {
+		//左上->右下
+		pts[1].set(rcSkDest.fRight, rcSkDest.fBottom);
+	}
+	else if (nColor2Direction == 4) {
+		//右上->左下
+		pts[0].set(rcSkDest.fRight, rcSkDest.fTop);
+		pts[1].set(rcSkDest.fLeft, rcSkDest.fBottom);
+	}
+	else {
+		//左->右
+		pts[1].set(rcSkDest.fRight, rcSkDest.fTop);
+	}
+
+	SkColor colors[2];
+	colors[0] = SkColorSetRGB(dwColor.GetR(), dwColor.GetG(), dwColor.GetB());
+	colors[1] = SkColorSetRGB(dwColor2.GetR(), dwColor2.GetG(), dwColor2.GetB());
+
+	sk_sp<SkShader> shader(SkGradientShader::MakeLinear(pts, colors, nullptr, 2, SkTileMode::kClamp));
+	skPaint.setShader(shader);
+}
+
+void Render_Skia::FillRect(const UiRect& rc, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction, uint8_t uFade)
+{
+	ASSERT((GetWidth() > 0) && (GetHeight() > 0));
+	if (dwColor2.IsEmpty()) {
+		return FillRect(rc, dwColor, uFade);
+	}
+
+	SkPaint skPaint = *m_pSkPaint;
+	if (uFade != 0xFF) {
+		skPaint.setAlpha(uFade);
+	}
+	skPaint.setStyle(SkPaint::kFill_Style);
+	SkIRect rcSkDestI = { rc.left, rc.top, rc.right, rc.bottom };
+	SkRect rcSkDest = SkRect::Make(rcSkDestI);
+	rcSkDest.offset(*m_pSkPointOrg);
+
+	InitGradientColor(skPaint, rc, dwColor, dwColor2, nColor2Direction);
+
+	ASSERT(m_pSkCanvas != nullptr);
+	if (m_pSkCanvas != nullptr) {
+		m_pSkCanvas->drawRect(rcSkDest, skPaint);
+	}
+}
+
 void Render_Skia::DrawLine(const UiPoint& pt1, const UiPoint& pt2, UiColor penColor, int32_t nWidth)
 {
 	ASSERT((GetWidth() > 0) && (GetHeight() > 0));
@@ -969,6 +1030,31 @@ void Render_Skia::FillRoundRect(const UiRect& rc, const UiSize& roundSize, UiCol
 	SkIRect rcSkDestI = { rc.left, rc.top, rc.right, rc.bottom };
 	SkRect rcSkDest = SkRect::Make(rcSkDestI);
 	rcSkDest.offset(*m_pSkPointOrg);
+
+	ASSERT(m_pSkCanvas != nullptr);
+	if (m_pSkCanvas != nullptr) {
+		m_pSkCanvas->drawRoundRect(rcSkDest, SkIntToScalar(roundSize.cx), SkIntToScalar(roundSize.cy), skPaint);
+	}
+}
+
+void Render_Skia::FillRoundRect(const UiRect& rc, const UiSize& roundSize, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction, uint8_t uFade)
+{
+	ASSERT((GetWidth() > 0) && (GetHeight() > 0));
+	if (dwColor2.IsEmpty()) {
+		return FillRoundRect(rc, roundSize, dwColor, uFade);
+	}
+
+	SkPaint skPaint = *m_pSkPaint;
+	skPaint.setStyle(SkPaint::kFill_Style);
+	if (uFade != 0xFF) {
+		skPaint.setAlpha(uFade);
+	}
+
+	SkIRect rcSkDestI = { rc.left, rc.top, rc.right, rc.bottom };
+	SkRect rcSkDest = SkRect::Make(rcSkDestI);
+	rcSkDest.offset(*m_pSkPointOrg);
+
+	InitGradientColor(skPaint, rc, dwColor, dwColor2, nColor2Direction);
 
 	ASSERT(m_pSkCanvas != nullptr);
 	if (m_pSkCanvas != nullptr) {
@@ -1187,12 +1273,37 @@ void Render_Skia::FillPath(const IPath* path, const IBrush* brush)
 	SkPaint paint = *m_pSkPaint;
 	paint.setColor(brush->GetColor().GetARGB());
 	paint.setStyle(SkPaint::kFill_Style);
-	
+
 	SkPath skPath;
 	pSkiaPath->GetSkPath()->offset(m_pSkPointOrg->fX, m_pSkPointOrg->fY, &skPath);
 	ASSERT(m_pSkCanvas != nullptr);
 	if (m_pSkCanvas != nullptr) {
 		m_pSkCanvas->drawPath(skPath, paint);
+	}
+}
+
+void Render_Skia::FillPath(const IPath* path, const UiRect& rc, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction)
+{
+	ASSERT(path != nullptr);
+	if (path == nullptr){
+		return;
+	}
+	const Path_Skia* pSkiaPath = dynamic_cast<const Path_Skia*>(path);
+	ASSERT(pSkiaPath != nullptr);
+	if (pSkiaPath == nullptr) {
+		return;
+	}
+
+	SkPaint skPaint = *m_pSkPaint;
+	skPaint.setStyle(SkPaint::kFill_Style);
+
+	InitGradientColor(skPaint, rc, dwColor, dwColor2, nColor2Direction);
+	
+	SkPath skPath;
+	pSkiaPath->GetSkPath()->offset(m_pSkPointOrg->fX, m_pSkPointOrg->fY, &skPath);
+	ASSERT(m_pSkCanvas != nullptr);
+	if (m_pSkCanvas != nullptr) {
+		m_pSkCanvas->drawPath(skPath, skPaint);
 	}
 }
 

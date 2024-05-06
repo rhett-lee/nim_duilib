@@ -34,6 +34,18 @@
                 <TabCtrlItem class="tab_ctrl_item" title="标签2-3" icon="file='../public/caption/logo_18x18.png' valign='center' halign='center'"/>
                 <TabCtrlItem class="tab_ctrl_item" title="标签2-4" icon="file='../public/caption/logo_18x18.png' valign='center' halign='center'"/>
             </VListBox>
+            <HBox bkcolor="white" margin="4,4,4,0">
+                <Control bkcolor="blue" bkcolor2="red" bkcolor2_direction="1" margin="0,0,4,0"/>
+                <Control bkcolor="blue" bkcolor2="red" bkcolor2_direction="2" margin="0,0,4,0"/>
+                <Control bkcolor="blue" bkcolor2="red" bkcolor2_direction="3" margin="0,0,4,0"/>
+                <Control bkcolor="blue" bkcolor2="red" bkcolor2_direction="4" />
+            </HBox>
+            <HBox bkcolor="white" margin="4,4,4,4">
+                <Control border_round="8,8" bkcolor="blue" bkcolor2="red" bkcolor2_direction="1" margin="0,0,4,0"/>
+                <Control border_round="8,8" bkcolor="blue" bkcolor2="red" bkcolor2_direction="2" margin="0,0,4,0"/>
+                <Control border_round="8,8" bkcolor="blue" bkcolor2="red" bkcolor2_direction="3" margin="0,0,4,0"/>
+                <Control border_round="8,8" bkcolor="blue" bkcolor2="red" bkcolor2_direction="4" />
+            </HBox>
         </VBox>
     </HBox>
 </Box>

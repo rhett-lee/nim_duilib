@@ -52,6 +52,25 @@ public:
 	 */
 	void SetBkColor(const UiColor& color);
 
+	/** 设置第二背景色（实现渐变背景色）
+	 * @param [in] strColor 要设置的背景颜色值，该值必须在 global.xml 中存在
+	 */
+	void SetBkColor2(const std::wstring& strColor);
+
+	/** 获取第二背景色（实现渐变背景色）
+	 */
+	std::wstring GetBkColor2() const;
+
+	/** 设置第二背景色的方向
+	 * @param [in] direction 第二背景色的方向："1": 左->右，"2": 上->下，"3": 左上->右下，"4": 右上->左下
+	 */
+	void SetBkColor2Direction(const std::wstring& direction);
+
+	/** 获取第二背景色的方向
+	* @return 返回第二背景色的方向："1": 左->右，"2": 上->下，"3": 左上->右下，"4": 右上->左下
+	 */
+	std::wstring GetBkColor2Direction() const;
+
 	/**
 	 * @brief 获取某个状态下的控件颜色
 	 * @param[in] stateType 要获取何种状态下的颜色值，参考 ControlStateType 枚举
@@ -1177,6 +1196,10 @@ private:
 	 */
 	void PrivateSetState(ControlStateType controlState);
 
+	/** 获取渐变颜色的方向
+	*/
+	int8_t GetColor2Direction(const UiString& bkColor2Direction) const;
+
 private:
 	/** 边框圆角大小(与m_rcBorderSize联合应用)或者阴影的圆角大小(与m_boxShadow联合应用)
 	    仅当 m_rcBorderSize 四个边框值都有效, 并且都相同时
@@ -1200,6 +1223,12 @@ private:
 private:
 	//控件的背景颜色
 	UiString m_strBkColor;
+
+	//控件的第二背景色(实现渐变背景色)
+	UiString m_strBkColor2;
+
+	//控件的第二背景色方向：："1": 左->右，"2": 上->下，"3": 左上->右下，"4": 右上->左下
+	UiString m_strBkColor2Direction;
 
 	//控件的背景图片
 	std::shared_ptr<Image> m_pBkImage;

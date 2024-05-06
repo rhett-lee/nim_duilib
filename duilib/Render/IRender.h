@@ -628,6 +628,15 @@ public:
 	*/
 	virtual void FillRect(const UiRect& rc, UiColor dwColor, uint8_t uFade = 255) = 0;
 
+	/** 用渐变颜色填充矩形（支持渐变颜色）
+	* @param [in] rc 目标矩形区域
+	* @param [in] dwColor 第一颜色值
+	* @param [in] dwColor2 第二颜色值
+	* @param [in] nColor2Direction 渐变颜色的渐变方向，"1": 左->右，"2": 上->下，"3": 左上->右下，"4": 右上->左下
+	* @param [in] uFade 透明度（0 - 255）
+	*/
+	virtual void FillRect(const UiRect& rc, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction, uint8_t uFade = 255) = 0;
+
 	/** 绘制圆角矩形
 	* @param [in] rc 矩形区域
 	* @param [in] roundSize 圆角的宽和高
@@ -643,6 +652,16 @@ public:
 	* @param [in] uFade 透明度（0 - 255）
 	*/
 	virtual void FillRoundRect(const UiRect& rc, const UiSize& roundSize, UiColor dwColor, uint8_t uFade = 255) = 0;
+
+	/** 用颜色填充圆角矩形(支持渐变颜色)
+	* @param [in] rc 矩形区域
+	* @param [in] roundSize 圆角的宽和高
+	* @param [in] dwColor 颜色值
+	* @param [in] dwColor2 第二颜色值
+	* @param [in] nColor2Direction 渐变颜色的渐变方向，"1": 左->右，"2": 上->下，"3": 左上->右下，"4": 右上->左下
+	* @param [in] uFade 透明度（0 - 255）
+	*/
+	virtual void FillRoundRect(const UiRect& rc, const UiSize& roundSize, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction, uint8_t uFade = 255) = 0;
 
 	/** 绘制曲线（椭圆的一部分）
 	* @param [in] rc 包含圆弧的椭圆的矩形边界区域
@@ -684,6 +703,15 @@ public:
 	* @param [in] brush 填充路径使用的画刷
 	*/
 	virtual void FillPath(const IPath* path, const IBrush* brush) = 0;
+
+	/** 填充路径（支持背景颜色渐变）
+	* @param [in] path 路径的接口
+	* @param [in] rc 矩形区域
+	* @param [in] dwColor 填充路径使用的第一个颜色
+	* @param [in] dwColor2 填充路径使用的第二个颜色
+	* @param [in] nColor2Direction 渐变颜色的渐变方向，"1": 左->右，"2": 上->下，"3": 左上->右下，"4": 右上->左下
+	*/
+	virtual void FillPath(const IPath* path, const UiRect& rc, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction) = 0;
 
 	/** 计算指定文本字符串的宽度和高度
 	* @param [in] strText 文字内容

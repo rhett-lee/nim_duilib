@@ -142,7 +142,16 @@ void Control::SetAttribute(const std::wstring& strName, const std::wstring& strV
 		SetEnableControlPadding(strValue == L"true");
 	}
 	else if (strName == L"bkcolor") {
+		//背景色
 		SetBkColor(strValue);
+	}
+	else if (strName == L"bkcolor2") {
+		//第二背景色（实现渐变背景色）
+		SetBkColor2(strValue);
+	}
+	else if (strName == L"bkcolor2_direction") {
+		//第二背景色的方向："1": 左->右，"2": 上->下，"3": 左上->右下，"4": 右上->左下
+		SetBkColor2Direction(strValue);
 	}
 	else if ((strName == L"border_size") || (strName == L"bordersize")) {
 		std::wstring nValue = strValue;
@@ -550,6 +559,51 @@ void Control::SetBkColor(const UiColor& color)
 	else {
 		SetBkColor(GetColorString(color));
 	}	
+}
+
+void Control::SetBkColor2(const std::wstring& strColor)
+{
+	ASSERT(strColor.empty() || HasUiColor(strColor));
+	if (m_strBkColor2 == strColor) {
+		return;
+	}
+	m_strBkColor2 = strColor;
+	Invalidate();
+}
+
+std::wstring Control::GetBkColor2() const
+{
+	return m_strBkColor2.c_str();
+}
+
+void Control::SetBkColor2Direction(const std::wstring& direction)
+{
+	if (m_strBkColor2Direction == direction) {
+		return;
+	}
+	m_strBkColor2Direction = direction;
+	Invalidate();
+}
+
+std::wstring Control::GetBkColor2Direction() const
+{
+	return m_strBkColor2Direction.c_str();
+}
+
+int8_t Control::GetColor2Direction(const UiString& bkColor2Direction) const
+{
+	int8_t nColor2Direction = 1;
+	//渐变背景色
+	if (bkColor2Direction == L"2") {
+		nColor2Direction = 2;
+	}
+	else if (bkColor2Direction == L"3") {
+		nColor2Direction = 3;
+	}
+	else if (bkColor2Direction == L"4") {
+		nColor2Direction = 4;
+	}
+	return nColor2Direction;
 }
 
 std::wstring Control::GetStateColor(ControlStateType stateType) const
@@ -2323,8 +2377,19 @@ void Control::PaintBkColor(IRender* pRender)
 			//需要绘制圆角矩形，填充也需要填充圆角矩形
 			FillRoundRect(pRender, fillRect, m_cxyBorderRound, dwBackColor);
 		}
-		else {
-			pRender->FillRect(fillRect, dwBackColor);
+		else {			
+			UiColor dwBackColor2;
+			if (!m_strBkColor2.empty()) {
+				dwBackColor2 = GetUiColor(m_strBkColor2.c_str());
+			}
+			if (!dwBackColor2.IsEmpty()) {
+				//渐变背景色
+				int8_t nColor2Direction = GetColor2Direction(m_strBkColor2Direction);
+				pRender->FillRect(fillRect, dwBackColor, dwBackColor2, nColor2Direction);
+			}
+			else {
+				pRender->FillRect(fillRect, dwBackColor);
+			}			
 		}
 	}
 }
@@ -2622,6 +2687,7 @@ void Control::FillRoundRect(IRender* pRender, const UiRect& rc, const UiSize& ro
 		return;
 	}
 	if (pRender->GetRenderType() != RenderType::kRenderType_Skia) {
+		//非Skia引擎
 		pRender->FillRoundRect(rc, roundSize, dwColor);
 		return;
 	}
@@ -2637,13 +2703,35 @@ void Control::FillRoundRect(IRender* pRender, const UiRect& rc, const UiSize& ro
 			if (brush && path) {
 				//这种画法的圆角形状，与CreateRoundRectRgn产生的圆角形状，基本一致的
 				AddRoundRectPath(path.get(), rc, roundSize);
-				pRender->FillPath(path.get(), brush.get());
+				UiColor dwBackColor2;
+				if (!m_strBkColor2.empty()) {
+					dwBackColor2 = GetUiColor(m_strBkColor2.c_str());
+				}
+				if (!dwBackColor2.IsEmpty()) {
+					//渐变背景色
+					int8_t nColor2Direction = GetColor2Direction(m_strBkColor2Direction);
+					pRender->FillPath(path.get(), rc, dwColor, dwBackColor2, nColor2Direction);
+				}
+				else {
+					pRender->FillPath(path.get(), brush.get());
+				}				
 				isDrawOk = true;
 			}
 		}
 	}
 	if (!isDrawOk) {
-		pRender->FillRoundRect(rc, roundSize, dwColor);
+		UiColor dwBackColor2;
+		if (!m_strBkColor2.empty()) {
+			dwBackColor2 = GetUiColor(m_strBkColor2.c_str());
+		}
+		if (!dwBackColor2.IsEmpty()) {
+			//渐变背景色
+			int8_t nColor2Direction = GetColor2Direction(m_strBkColor2Direction);
+			pRender->FillRoundRect(rc, roundSize, dwColor, dwBackColor2, nColor2Direction);
+		}
+		else {
+			pRender->FillRoundRect(rc, roundSize, dwColor);
+		}
 	}	
 }
 

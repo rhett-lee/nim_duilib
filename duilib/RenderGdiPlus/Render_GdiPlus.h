@@ -70,9 +70,11 @@ public:
 
 	virtual void DrawRect(const UiRect& rc, UiColor penColor, int32_t nWidth, bool bLineInRect = false) override;
 	virtual void FillRect(const UiRect& rc, UiColor dwColor, uint8_t uFade = 255) override;
+	virtual void FillRect(const UiRect& rc, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction, uint8_t uFade = 255) override;
 
 	virtual void DrawRoundRect(const UiRect& rc, const UiSize& roundSize, UiColor penColor, int nWidth) override;
 	virtual void FillRoundRect(const UiRect& rc, const UiSize& roundSize, UiColor dwColor, uint8_t uFade = 255) override;
+	virtual void FillRoundRect(const UiRect& rc, const UiSize& roundSize, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction, uint8_t uFade = 255) override;
 
 	virtual void DrawCircle(const UiPoint& centerPt, int32_t radius, UiColor penColor, int nWidth) override;
 	virtual void FillCircle(const UiPoint& centerPt, int32_t radius, UiColor dwColor, uint8_t uFade = 255) override;
@@ -83,6 +85,7 @@ public:
 
 	virtual void DrawPath(const IPath* path, const IPen* pen) override;
 	virtual void FillPath(const IPath* path, const IBrush* brush) override;
+	virtual void FillPath(const IPath* path, const UiRect& rc, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction) override;
 
 	virtual UiRect MeasureString(const std::wstring& strText,
 		                         const std::wstring& strFontId, 
