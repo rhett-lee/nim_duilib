@@ -187,6 +187,12 @@
     <ClInclude Include="macros.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\build\build_config.h">
+      <Filter>build</Filter>
+    </ClInclude>
+    <ClInclude Include="..\build\winsdk_config.h">
+      <Filter>build</Filter>
+    </ClInclude>
     <ClInclude Include="..\build\xp_style_manifest_win.h">
       <Filter>build</Filter>
     </ClInclude>
@@ -237,9 +243,6 @@
     </ClInclude>
     <ClInclude Include="base.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="build\build_config.h">
-      <Filter>build</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

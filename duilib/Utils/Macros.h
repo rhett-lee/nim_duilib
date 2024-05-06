@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include "duilib/duilib_defs.h"
-
 namespace ui
 {
 ///////////////////////////////////////////////////////
@@ -12,13 +10,18 @@ namespace ui
 #define GET_X_LPARAM(lp)                        ((int)(short)LOWORD(lp))
 #define GET_Y_LPARAM(lp)                        ((int)(short)HIWORD(lp))
 
-/* Value for rolling one detent */
-#define WHEEL_DELTA                     120
-#define GET_WHEEL_DELTA_WPARAM(wParam)  ((short)HIWORD(wParam))
-#define GET_KEYSTATE_WPARAM(wParam)     (LOWORD(wParam))
+#define     SubclassWindow(hwnd, lpfn)       \
+              ((WNDPROC)SetWindowLongPtr((hwnd), GWLP_WNDPROC, (LPARAM)(WNDPROC)(lpfn)))
+
+#define     MapWindowRect(hwndFrom, hwndTo, lprc) \
+                    MapWindowPoints((hwndFrom), (hwndTo), (POINT *)(lprc), 2)
+
+#define     GetWindowStyle(hwnd)    ((DWORD)GetWindowLong(hwnd, GWL_STYLE))
+#define     GetWindowExStyle(hwnd)  ((DWORD)GetWindowLong(hwnd, GWL_EXSTYLE))
+#define     GetWindowOwner(hwnd)    GetWindow(hwnd, GW_OWNER)
 
 ///////////////////////////////////////////////////////
-// WM_TOUCH触摸消息
+// WM_TOUCH′￥?t???￠
 #define WM_TOUCH                        0x0240
 #define WM_GESTURE                      0x0119
 #define WM_GESTURENOTIFY                0x011A
@@ -54,14 +57,7 @@ namespace ui
 #define TOUCHINPUTMASKF_CONTACTAREA     0x0004  // the cxContact and cyContact fields are valid
 
 ///////////////////////////////////////////////////////
-// DPI适配
-DECLARE_HANDLE(PROCESS_DPI_AWARENESS_CONTEXT);
-#define PROCESS_DPI_AWARENESS_CONTEXT_UNAWARE               ((PROCESS_DPI_AWARENESS_CONTEXT)-1)
-#define PROCESS_DPI_AWARENESS_CONTEXT_SYSTEM_AWARE          ((PROCESS_DPI_AWARENESS_CONTEXT)-2)
-#define PROCESS_DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE     ((PROCESS_DPI_AWARENESS_CONTEXT)-3)
-#define PROCESS_DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2  ((PROCESS_DPI_AWARENESS_CONTEXT)-4)
-#define PROCESS_DPI_AWARENESS_CONTEXT_UNAWARE_GDISCALED     ((PROCESS_DPI_AWARENESS_CONTEXT)-5)
-
+// DPIêê??
 typedef enum PROCESS_DPI_AWARENESS {
 	PROCESS_DPI_UNAWARE = 0,
 	PROCESS_SYSTEM_DPI_AWARE = 1,
@@ -91,7 +87,7 @@ typedef struct tagTOUCHINPUT {
 typedef TOUCHINPUT const * PCTOUCHINPUT;
 
 ///////////////////////////////////////////////////////
-// WM_POINTER消息
+// WM_POINTER???￠
 #define WM_NCPOINTERUPDATE              0x0241
 #define WM_NCPOINTERDOWN                0x0242
 #define WM_NCPOINTERUP                  0x0243
@@ -233,6 +229,5 @@ typedef struct tagPOINTER_PEN_INFO {
 #define PA_ACTIVATE                     MA_ACTIVATE
 #define PA_NOACTIVATE                   MA_NOACTIVATE
 
-}// namespace ui
-
+}
 #endif // UI_MACROS_H_

@@ -4,7 +4,7 @@
     <Box width="130" height="130" margin="0,10,0,0" halign="center">
       <Control width="auto" height="auto" halign="center" valign="center" bkimage="head_shadow.png" mouse="false"/>
     </Box>
-    <Box height="auto" margin="0,50,0,0" padding="14,14,14,14" bkimage="file='../public/shadow/bk_shadow.png' corner='30,30,30,30'">
+    <Box height="auto" margin="0,50,0,0" padding="14,14,14,14" bkimage="file='../public/bk/bk_shadow.png' corner='30,30,30,30'">
       <VBox height="auto" bkcolor="bk_wnd_lightcolor" borderround="3,3,3,3">
         <VBox height="auto">
           <HBox height="20" margin="0,6,5,40">
@@ -14,8 +14,8 @@
           </HBox>
           <HBox height="auto">
             <Control />
-            <Button name="register_account" margin="0,5,15,10" halign="right" text="注册" cursortype="hand" font="system_underline_12" normaltextcolor="light_green"/>
-            <Button name="enter_login" margin="0,5,15,10" halign="right" text="直接登录" cursortype="hand" font="system_underline_12" normaltextcolor="light_green" visible="false"/>
+            <Button name="register_account" margin="0,5,15,10" halign="right" text="注册" cursortype="hand" font="system_underline_12" normaltextcolor="link_green"/>
+            <Button name="enter_login" margin="0,5,15,10" halign="right" text="直接登录" cursortype="hand" font="system_underline_12" normaltextcolor="link_green" visible="false"/>
           </HBox>
           <!--帐号和密码-->
           <VBox name="enter_panel" width="240" height="auto" margin="20,0,20,0" bkimage="user_password.png">

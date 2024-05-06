@@ -1,4 +1,4 @@
-// The LazyInstance<Type> class manages a single instance of Type,
+﻿// The LazyInstance<Type> class manages a single instance of Type,
 // which will be lazily created on the first time it's accessed
 
 #ifndef BASE_MEMORY_LAZY_INSTANCE_H_

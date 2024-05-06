@@ -1,9 +1,9 @@
-#pragma once
+ï»¿#pragma once
 
 interface ITaskbarList4;
 
 /** @class TaskbarTabItem
-  * @brief ÔÚÈÎÎñÀ¸¸½¼Óµ½Ä³´°¿ÚÖĞÏÔÊ¾µÄÒ»¸öÈÎÎñÀ¸ËõÂÔÍ¼Tab(Ö»ÔÚWin7¼°ÒÔÉÏÏµÍ³ÓĞ)
+  * @brief åœ¨ä»»åŠ¡æ é™„åŠ åˆ°æŸçª—å£ä¸­æ˜¾ç¤ºçš„ä¸€ä¸ªä»»åŠ¡æ ç¼©ç•¥å›¾Tab(åªåœ¨Win7åŠä»¥ä¸Šç³»ç»Ÿæœ‰)
   * @copyright (c) 2016, NetEase Inc. All rights reserved
   * @author Redrain
   * @date 2019/3/20
@@ -13,97 +13,97 @@ class TaskbarTabItem final : public ui::Window
 {
 public:
 	/**
-	* @param[in] bind_control ÓëTaskbarTabItem°ó¶¨ÔÚÒ»ÆğµÄÌá¹©ËõÂÔÍ¼ºÍÔ¤ÀÀÍ¼µÄ¿Ø¼şµÄÖ¸Õë
-	* ¹¹Ôìº¯Êı
+	* @param[in] bind_control ä¸TaskbarTabItemç»‘å®šåœ¨ä¸€èµ·çš„æä¾›ç¼©ç•¥å›¾å’Œé¢„è§ˆå›¾çš„æ§ä»¶çš„æŒ‡é’ˆ
+	* æ„é€ å‡½æ•°
 	*/
 	TaskbarTabItem(ui::Control *bind_control);
 
 	/**
-	* »ñÈ¡ÓëTaskbarTabItem°ó¶¨ÔÚÒ»ÆğµÄ¿Ø¼şÖ¸Õë
-	* @return ui::Control* ¿Ø¼şÖ¸Õë
+	* è·å–ä¸TaskbarTabItemç»‘å®šåœ¨ä¸€èµ·çš„æ§ä»¶æŒ‡é’ˆ
+	* @return ui::Control* æ§ä»¶æŒ‡é’ˆ
 	*/
 	ui::Control* GetBindControl();
 
 	/**
-	* »ñÈ¡ËõÂÔÍ¼TabµÄÎ¨Ò»id
+	* è·å–ç¼©ç•¥å›¾Tabçš„å”¯ä¸€id
 	* @return std::string& id
 	*/
 	std::string& GetId();
 
 	/**
-	* ³õÊ¼»¯º¯Êı£¬TaskbarTabItem±»newºóÁ¢¼´µ÷ÓÃ
-	* @param[in] taskbar_title ÔÚÈÎÎñÀ¸ËõÂÔÍ¼ÉÏÏÔÊ¾µÄ±êÌâ
-	* @param[in] id ËõÂÔÍ¼TabµÄÎ¨Ò»id
-	* @return void	ÎŞ·µ»ØÖµ
+	* åˆå§‹åŒ–å‡½æ•°ï¼ŒTaskbarTabItemè¢«newåç«‹å³è°ƒç”¨
+	* @param[in] taskbar_title åœ¨ä»»åŠ¡æ ç¼©ç•¥å›¾ä¸Šæ˜¾ç¤ºçš„æ ‡é¢˜
+	* @param[in] id ç¼©ç•¥å›¾Tabçš„å”¯ä¸€id
+	* @return void	æ— è¿”å›å€¼
 	*/
 	void Init(const std::wstring &taskbar_title, const std::string &id);
 
 	/**
-	* ·´³õÊ¼»¯º¯Êı
-	* @return void	ÎŞ·µ»ØÖµ
+	* ååˆå§‹åŒ–å‡½æ•°
+	* @return void	æ— è¿”å›å€¼
 	*/
 	void UnInit();
 
 	/**
-	* ÉèÖÃ±¾TabËõÂÔÍ¼µÄ±êÌâ
-	* @param[in] title ±êÌâ
-	* @return void	ÎŞ·µ»ØÖµ
+	* è®¾ç½®æœ¬Tabç¼©ç•¥å›¾çš„æ ‡é¢˜
+	* @param[in] title æ ‡é¢˜
+	* @return void	æ— è¿”å›å€¼
 	*/
 	void SetTaskbarTitle(const std::wstring &title);
 
 	/**
-	* ÉèÖÃ±¾TabËùÊôµÄ´°Ìå¶ÔÓ¦µÄTaskbarManager
-	* @param[in] taskbar_manager TaskbarManagerÖ¸Õë
-	* @return void	ÎŞ·µ»ØÖµ
+	* è®¾ç½®æœ¬Tabæ‰€å±çš„çª—ä½“å¯¹åº”çš„TaskbarManager
+	* @param[in] taskbar_manager TaskbarManageræŒ‡é’ˆ
+	* @return void	æ— è¿”å›å€¼
 	*/
 	void SetTaskbarManager(TaskbarManager *taskbar_manager);
 
 	/**
-	* »ñÈ¡±¾TabËùÊôµÄ´°Ìå¶ÔÓ¦µÄTaskbarManager
-	* @return TaskbarManager* TaskbarManagerÖ¸Õë
+	* è·å–æœ¬Tabæ‰€å±çš„çª—ä½“å¯¹åº”çš„TaskbarManager
+	* @return TaskbarManager* TaskbarManageræŒ‡é’ˆ
 	*/
 	TaskbarManager* GetTaskbarManager();
 
 	/**
-	* °ÑTaskbarTabItemÔÚÈÎÎñÀ¸µÄËõÂÔÍ¼ÉèÎªÎŞĞ§×´Ì¬£¬ÓÃÓÚÖØ»æËõÂÔÍ¼
-	* @return bool true ³É¹¦£¬false Ê§°Ü
+	* æŠŠTaskbarTabItemåœ¨ä»»åŠ¡æ çš„ç¼©ç•¥å›¾è®¾ä¸ºæ— æ•ˆçŠ¶æ€ï¼Œç”¨äºé‡ç»˜ç¼©ç•¥å›¾
+	* @return bool true æˆåŠŸï¼Œfalse å¤±è´¥
 	*/
 	bool InvalidateTab();
 
 private:
 	/**
-	* ·µ»Ø±¾´°¿ÚµÄ´°¿ÚÀàÃû
-	* @return std::wstring ´°¿ÚÀàÃû
+	* è¿”å›æœ¬çª—å£çš„çª—å£ç±»å
+	* @return std::wstring çª—å£ç±»å
 	*/
 	virtual std::wstring GetWindowClassName() const override;
 
 	/**
-	* À¹½Ø²¢´¦Àíµ×²ã´°ÌåÏûÏ¢
-	* @param[in] uMsg ÏûÏ¢ÀàĞÍ
-	* @param[in] wParam ¸½¼Ó²ÎÊı
-	* @param[in] lParam ¸½¼Ó²ÎÊı
-	* @param[in out] bHandled ÊÇ·ñ´¦ÀíÁËÏûÏ¢£¬Èç¹û´¦ÀíÁË²»¼ÌĞø´«µİÏûÏ¢
-	* @return LRESULT ´¦Àí½á¹û
+	* æ‹¦æˆªå¹¶å¤„ç†åº•å±‚çª—ä½“æ¶ˆæ¯
+	* @param[in] uMsg æ¶ˆæ¯ç±»å‹
+	* @param[in] wParam é™„åŠ å‚æ•°
+	* @param[in] lParam é™„åŠ å‚æ•°
+	* @param[in out] bHandled æ˜¯å¦å¤„ç†äº†æ¶ˆæ¯ï¼Œå¦‚æœå¤„ç†äº†ä¸ç»§ç»­ä¼ é€’æ¶ˆæ¯
+	* @return LRESULT å¤„ç†ç»“æœ
 	*/
-	virtual LRESULT OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
+	virtual LRESULT HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) override;
 
 	/**
-	* ´¦Àí´°¿ÚÏú»ÙÏûÏ¢
-	* @return void	ÎŞ·µ»ØÖµ
+	* å¤„ç†çª—å£é”€æ¯æ¶ˆæ¯
+	* @return void	æ— è¿”å›å€¼
 	*/
 	virtual void OnFinalMessage(HWND hWnd) override;
 
 	/**
-	* ÏìÓ¦WM_DWMSENDICONICTHUMBNAILÏûÏ¢
-	* @param[in] width ĞèÒªµÄÎ»Í¼¿í¶È
-	* @param[in] height ĞèÒªµÄÎ»Í¼¸ß¶È
-	* @return void	ÎŞ·µ»ØÖµ
+	* å“åº”WM_DWMSENDICONICTHUMBNAILæ¶ˆæ¯
+	* @param[in] width éœ€è¦çš„ä½å›¾å®½åº¦
+	* @param[in] height éœ€è¦çš„ä½å›¾é«˜åº¦
+	* @return void	æ— è¿”å›å€¼
 	*/
 	void OnSendThumbnail(int width, int height);
 
 	/**
-	* ÏìÓ¦WM_DWMSENDICONICLIVEPREVIEWBITMAPÏûÏ¢
-	* @return void	ÎŞ·µ»ØÖµ
+	* å“åº”WM_DWMSENDICONICLIVEPREVIEWBITMAPæ¶ˆæ¯
+	* @return void	æ— è¿”å›å€¼
 	*/
 	void OnSendPreview();
 
@@ -115,130 +115,130 @@ private:
 };
 
 /** @class TaskbarManager
-  * @brief ¹ÜÀíÄ³¸ö»á»°´°¿ÚÔÚÈÎÎñÀ¸ÏÔÊ¾µÄÔ¤ÀÀĞ§¹û(Ö»ÔÚWin7¼°ÒÔÉÏÏµÍ³ÓĞ),ÆäÖĞ°üº¬¶à¸öTaskbarItem
+  * @brief ç®¡ç†æŸä¸ªä¼šè¯çª—å£åœ¨ä»»åŠ¡æ æ˜¾ç¤ºçš„é¢„è§ˆæ•ˆæœ(åªåœ¨Win7åŠä»¥ä¸Šç³»ç»Ÿæœ‰),å…¶ä¸­åŒ…å«å¤šä¸ªTaskbarItem
   * @copyright (c) 2016, NetEase Inc. All rights reserved
   * @author Redrain
   * @date 2019/3/20
   */
 class SessionForm;
-class TaskbarManager final : public virtual nbase::SupportWeakCallback
+class TaskbarManager final : public nbase::SupportWeakCallback
 {
 public:
 	/** @class ITaskbarDelegate
-	  * @brief TaskbarManagerµÄÊÂ¼şÎ¯ÍĞÀà£¬Ö»ÓĞ¼Ì³Ğ¸ÃÀàµÄÀà¿ÉÒÔÊ¹ÓÃTaskbarManager¹¦ÄÜ
+	  * @brief TaskbarManagerçš„äº‹ä»¶å§”æ‰˜ç±»ï¼Œåªæœ‰ç»§æ‰¿è¯¥ç±»çš„ç±»å¯ä»¥ä½¿ç”¨TaskbarManageråŠŸèƒ½
 	  * @date 2019/3/20
 	  */
 	class ITaskbarDelegate
 	{
 	public:
 		/**
-		* »ñÈ¡´°Ìå¾ä±ú
-		* @return HWND	´°Ìå¾ä±ú
+		* è·å–çª—ä½“å¥æŸ„
+		* @return HWND	çª—ä½“å¥æŸ„
 		*/
 		virtual HWND GetHandle() const = 0;
 
 		/**
-		* »ñÈ¡äÖÈ¾½Ó¿Ú
-		* @return äÖÈ¾½Ó¿Ú
+		* è·å–æ¸²æŸ“ä¸Šä¸‹æ–‡
+		* @return HDC HDC
 		*/
-		virtual ui::IRender* GetTaskbarRender() const = 0;
+		virtual HDC GetRenderDC() const = 0;
 
 		/**
-		* ¹Ø±ÕÒ»¸öÈÎÎñÀ¸Ïî
-		* @param[in] id ÈÎÎñÀ¸Ïîid
-		* @return void	ÎŞ·µ»ØÖµ
+		* å…³é—­ä¸€ä¸ªä»»åŠ¡æ é¡¹
+		* @param[in] id ä»»åŠ¡æ é¡¹id
+		* @return void	æ— è¿”å›å€¼
 		*/
 		virtual void CloseTaskbarItem(const std::string &id) = 0;
 
 		/**
-		* ¼¤»î²¢ÇĞ»»µ½Ò»¸öÈÎÎñÀ¸Ïî
-		* @param[in] id ÈÎÎñÀ¸Ïîid
-		* @return void ÎŞ·µ»ØÖµ
+		* æ¿€æ´»å¹¶åˆ‡æ¢åˆ°ä¸€ä¸ªä»»åŠ¡æ é¡¹
+		* @param[in] id ä»»åŠ¡æ é¡¹id
+		* @return void æ— è¿”å›å€¼
 		*/
 		virtual void SetActiveTaskbarItem(const std::string &id) = 0;
 	};
 
 	/**
-	* ¹¹Ôìº¯Êı
+	* æ„é€ å‡½æ•°
 	*/
 	TaskbarManager();
 
 	/**
-	* ³õÊ¼»¯ITaskbarList4½Ó¿Ú
-	* @param[in] taskbar_delegate ×÷ÎªÈÎÎñÀ¸ËõÂÔÍ¼Ö÷´°¿Ú
-	* @return void	ÎŞ·µ»ØÖµ
+	* åˆå§‹åŒ–ITaskbarList4æ¥å£
+	* @param[in] taskbar_delegate ä½œä¸ºä»»åŠ¡æ ç¼©ç•¥å›¾ä¸»çª—å£
+	* @return void	æ— è¿”å›å€¼
 	*/
 	void Init(ITaskbarDelegate *taskbar_delegate);
 
 	/**
-	* °ÑÒ»¸öTaskbarTabItem×¢²áÎªÖ÷´°¿ÚµÄÒ»¸öTabÒ³
-	* @param[in] tab_item TaskbarItem¶ÔÏó
-	* @return bool true ³É¹¦£¬false Ê§°Ü
+	* æŠŠä¸€ä¸ªTaskbarTabItemæ³¨å†Œä¸ºä¸»çª—å£çš„ä¸€ä¸ªTabé¡µ
+	* @param[in] tab_item TaskbarItemå¯¹è±¡
+	* @return bool true æˆåŠŸï¼Œfalse å¤±è´¥
 	*/
 	bool RegisterTab(TaskbarTabItem &tab_item);
 
 	/**
-	* °ÑÒ»¸öTaskbarTabItem´ÓÖ÷´°¿ÚÖĞ·´×¢²áÎª
-	* @param[in] tab_item TaskbarItem¶ÔÏó
-	* @return bool true ³É¹¦£¬false Ê§°Ü
+	* æŠŠä¸€ä¸ªTaskbarTabItemä»ä¸»çª—å£ä¸­åæ³¨å†Œä¸º
+	* @param[in] tab_item TaskbarItemå¯¹è±¡
+	* @return bool true æˆåŠŸï¼Œfalse å¤±è´¥
 	*/
 	bool UnregisterTab(TaskbarTabItem &tab_item);
 
 	/**
-	* °ÑÒ»¸öTaskbarTabItemÔÚÖ÷´°¿ÚµÄËõÂÔÍ¼ÖĞµÄÏÔÊ¾Ë³ĞòÉèÖÃµ½ÁíÒ»¸öTaskbarTabItemÇ°Ãæ
-	* @param[in] tab_item ±»ÉèÖÃË³ĞòµÄTaskbarItem¶ÔÏó
-	* @param[in] tab_item_insert_before ±»²åÈëµÄTaskbarItem¶ÔÏó
-	* @return bool true ³É¹¦£¬false Ê§°Ü
+	* æŠŠä¸€ä¸ªTaskbarTabItemåœ¨ä¸»çª—å£çš„ç¼©ç•¥å›¾ä¸­çš„æ˜¾ç¤ºé¡ºåºè®¾ç½®åˆ°å¦ä¸€ä¸ªTaskbarTabItemå‰é¢
+	* @param[in] tab_item è¢«è®¾ç½®é¡ºåºçš„TaskbarItemå¯¹è±¡
+	* @param[in] tab_item_insert_before è¢«æ’å…¥çš„TaskbarItemå¯¹è±¡
+	* @return bool true æˆåŠŸï¼Œfalse å¤±è´¥
 	*/
 	bool SetTabOrder(const TaskbarTabItem &tab_item, const TaskbarTabItem &tab_item_insert_before);
 
 	/**
-	* °ÑÒ»¸öTaskbarTabItemÔÚÈÎÎñÀ¸ÉèÖÃÎª¼¤»î×´Ì¬
-	* @param[in] tab_item TaskbarItem¶ÔÏó
-	* @return bool true ³É¹¦£¬false Ê§°Ü
+	* æŠŠä¸€ä¸ªTaskbarTabItemåœ¨ä»»åŠ¡æ è®¾ç½®ä¸ºæ¿€æ´»çŠ¶æ€
+	* @param[in] tab_item TaskbarItemå¯¹è±¡
+	* @return bool true æˆåŠŸï¼Œfalse å¤±è´¥
 	*/
 	bool SetTabActive(const TaskbarTabItem &tab_item);
 
 	/**
-	* Éú³ÉÄ³¸ö¿Ø¼ş¶ÔÓ¦µÄÎ»Í¼£¨·µ»ØÎ»Í¼°üº¬´°¿Ú£¬ÇÒ³ß´çÎª´°¿Ú´óĞ¡£©
-	* @param[in] control ¿Ø¼şÖ¸Õë
-	* @return HBITMAP	Éú³ÉµÄÎ»Í¼
+	* ç”ŸæˆæŸä¸ªæ§ä»¶å¯¹åº”çš„ä½å›¾ï¼ˆè¿”å›ä½å›¾åŒ…å«çª—å£ï¼Œä¸”å°ºå¯¸ä¸ºçª—å£å¤§å°ï¼‰
+	* @param[in] control æ§ä»¶æŒ‡é’ˆ
+	* @return HBITMAP	ç”Ÿæˆçš„ä½å›¾
 	*/
-	ui::IBitmap* GenerateBindControlBitmapWithForm(ui::Control *control);
+	HBITMAP GenerateBindControlBitmapWithForm(ui::Control *control);
 
 	/**
-	* Éú³ÉÄ³¸ö¿Ø¼ş¶ÔÓ¦µÄÎ»Í¼
-	* @param[in] control ¿Ø¼şÖ¸Õë
-	* @param[in] dest_width Ä¿±ê¿í¶È
-	* @param[in] dest_height Ä¿±ê¸ß¶È
-	* @return HBITMAP	Éú³ÉµÄÎ»Í¼
+	* ç”ŸæˆæŸä¸ªæ§ä»¶å¯¹åº”çš„ä½å›¾
+	* @param[in] control æ§ä»¶æŒ‡é’ˆ
+	* @param[in] dest_width ç›®æ ‡å®½åº¦
+	* @param[in] dest_height ç›®æ ‡é«˜åº¦
+	* @return HBITMAP	ç”Ÿæˆçš„ä½å›¾
 	*/
-	ui::IBitmap* GenerateBindControlBitmap(ui::Control *control, const int dest_width, const int dest_height);
+	HBITMAP GenerateBindControlBitmap(ui::Control *control, const int dest_width, const int dest_height);
 
 	/**
-	* Ëõ·ÅÒ»¸öÄÚ´æÎ»Í¼
-	* @param[in] dest_width Ä¿±ê¿í¶È
-	* @param[in] dest_height Ä¿±ê¸ß¶È
-	* @param[in] pSrcRender Ô´Render½Ó¿Ú
-	* @param[in] src_x Ô´ºá×ø±ê
-	* @param[in] src_y Ô´×İ×ø±ê
-	* @param[in] src_width Ô´¿í¶È
-	* @param[in] src_height Ô´¸ß¶È
-	* @return HBITMAP	Éú³ÉµÄÎ»Í¼
+	* ç¼©æ”¾ä¸€ä¸ªå†…å­˜ä½å›¾
+	* @param[in] dest_width ç›®æ ‡å®½åº¦
+	* @param[in] dest_height ç›®æ ‡é«˜åº¦
+	* @param[in] src_dc æºHDC
+	* @param[in] src_x æºæ¨ªåæ ‡
+	* @param[in] src_y æºçºµåæ ‡
+	* @param[in] src_width æºå®½åº¦
+	* @param[in] src_height æºé«˜åº¦
+	* @return HBITMAP	ç”Ÿæˆçš„ä½å›¾
 	*/
-	ui::IBitmap* ResizeBitmap(int dest_width, int dest_height, ui::IRender* pSrcRender, int src_x, int src_y, int src_width, int src_height);
+	HBITMAP ResizeBitmap(int dest_width, int dest_height, HDC src_dc, int src_x, int src_y, int src_width, int src_height);
 
 	/**
-	* ´¦ÀíÈÎÎñÀ¸TabµÄËõÂÔÍ¼µÄWM_CLOSEÏûÏ¢
-	* @param[in] tab_item ´¥·¢ÏûÏ¢µÄTab
-	* @return void	ÎŞ·µ»ØÖµ
+	* å¤„ç†ä»»åŠ¡æ Tabçš„ç¼©ç•¥å›¾çš„WM_CLOSEæ¶ˆæ¯
+	* @param[in] tab_item è§¦å‘æ¶ˆæ¯çš„Tab
+	* @return void	æ— è¿”å›å€¼
 	*/
 	void OnTabItemClose(TaskbarTabItem &tab_item);
 
 	/**
-	* ´¦ÀíÈÎÎñÀ¸TabµÄËõÂÔÍ¼µÄWM_ACTIVATEÏûÏ¢
-	* @param[in] tab_item ´¥·¢ÏûÏ¢µÄTab
-	* @return void	ÎŞ·µ»ØÖµ
+	* å¤„ç†ä»»åŠ¡æ Tabçš„ç¼©ç•¥å›¾çš„WM_ACTIVATEæ¶ˆæ¯
+	* @param[in] tab_item è§¦å‘æ¶ˆæ¯çš„Tab
+	* @return void	æ— è¿”å›å€¼
 	*/
 	void OnTabItemClicked(TaskbarTabItem &tab_item);
 private:

@@ -1,4 +1,4 @@
-// This file implements some useful thread local template data structures
+﻿// This file implements some useful thread local template data structures
 
 #ifndef BASE_THREAD_THREAD_LOCAL_H_
 #define BASE_THREAD_THREAD_LOCAL_H_
@@ -77,7 +77,7 @@ public:
 
 	void Set(bool val)
 	{
-		tlp_.Set(reinterpret_cast<void*>(val ? (size_t)1 : (size_t)0));
+		tlp_.Set(reinterpret_cast<void*>(val ? 1 : 0));
 	}
 
 private:

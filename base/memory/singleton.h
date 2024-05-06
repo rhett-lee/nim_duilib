@@ -1,4 +1,4 @@
-#ifndef BASE_MEMORY_SINGLETON_H_
+ï»¿#ifndef BASE_MEMORY_SINGLETON_H_
 #define BASE_MEMORY_SINGLETON_H_
 
 #include <memory>
@@ -6,7 +6,7 @@
 #include "../util/at_exit.h"
 namespace nbase
 {
-//¶öººÄ£Ê½
+//é¥¿æ±‰æ¨¡å¼
 #define SINGLETON_DEFINE(TypeName)				\
 static TypeName* GetInstance()					\
 {												\
@@ -17,12 +17,12 @@ static TypeName* GetInstance()					\
 TypeName(const TypeName&) = delete;				\
 TypeName& operator=(const TypeName&) = delete
 
-// ÀÁººÄ£Ê½
-//release_atexitmanager ÊÇ·ñÓÉatexitmanagerÀ´ÊÍ·Å
+// æ‡’æ±‰æ¨¡å¼
+//release_atexitmanager æ˜¯å¦ç”±atexitmanageræ¥é‡Šæ”¾
 template <typename TSingleton,bool release_atexitmanager = true>
 class Singleton
 {
-	/* Èç¹ûTSingletonµÄ¹¹Ôìº¯ÊıÊÇprivate / protectedĞèÒªÔÚÀà¶¨ÒåÊ±ÒıÈë´Ëºê, ÈçÏÂËùÊ¾
+	/* å¦‚æœTSingletonçš„æ„é€ å‡½æ•°æ˜¯private / protectedéœ€è¦åœ¨ç±»å®šä¹‰æ—¶å¼•å…¥æ­¤å®, å¦‚ä¸‹æ‰€ç¤º
 	class Test : public Singleton<Test>
 	{
 		SingletonHideConstructor(Test)

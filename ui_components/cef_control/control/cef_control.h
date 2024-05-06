@@ -5,13 +5,12 @@
  * @date 2016/7/19
  */
 #pragma once
-#include "ui_components/cef_control/control/cef_control_base.h"
-#include "ui_components/cef_control/util/memory_dc.h"
-#include "duilib/Core/Window.h"
+#include "cef_control_base.h"
+#include "cef_control/util/memory_dc.h"
 
 namespace nim_comp {
 
-class CefControl :public CefControlBase, public ui::IUIMessageFilter
+class CefControl :public CefControlBase, public IUIMessageFilter
 {	
 public:
 	CefControl(void);
@@ -19,13 +18,14 @@ public:
 
 	/// 重写父类接口，提供个性化功能
 	virtual void Init() override;
-	virtual void SetPos(ui::UiRect rc) override;
-	virtual void HandleEvent(const ui::EventArgs& msg) override;
-	virtual void SetVisible(bool bVisible) override;
-	virtual void Paint(ui::IRender* pRender, const ui::UiRect& rcPaint) override;
-	virtual void SetWindow(ui::Window* pManager) override;
+	virtual void SetPos(UiRect rc) override;
+	virtual void HandleMessage(EventArgs& event) override;
+	virtual void SetVisible(bool bVisible = true) override;
+	virtual void SetInternVisible(bool bVisible = true) override;
+	virtual void Paint(IRenderContext* pRender, const UiRect& rcPaint) override;
+	virtual void SetWindow(ui::Window* pManager, ui::Box* pParent, bool bInit) override;
 
-	virtual LRESULT FilterMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override; // 处理窗体消息，转发到Cef浏览器对象
+	virtual LRESULT MessageHandler(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled) override; // 处理窗体消息，转发到Cef浏览器对象
 
 	/**
 	* @brief 打开开发者工具
@@ -34,17 +34,8 @@ public:
 	*/
 	virtual bool AttachDevTools(Control* view) override;
 
-	/**
-	* @brief 关闭开发者工具
-	* @return 无
-	*/
-	virtual void DettachDevTools() override;
-
 protected:
 	virtual void ReCreateBrowser() override;
-
-	// 在非UI线程中被调用
-	virtual void OnBeforeContextMenu(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefContextMenuParams> params, CefRefPtr<CefMenuModel> model) override;
 
 protected:
 	/**
@@ -55,7 +46,7 @@ protected:
 	 * @param[out] bHandled 是否继续传递消息
 	 * @return 返回消息处理结果
 	 */
-	LRESULT SendButtonDownEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
+	LRESULT SendButtonDownEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 
 	/**
 	 * @brief 转发鼠标双击消息到 BrowserHost
@@ -65,7 +56,7 @@ protected:
 	 * @param[out] bHandled 是否继续传递消息
 	 * @return 返回消息处理结果
 	 */
-	LRESULT SendButtonDoubleDownEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
+	LRESULT SendButtonDoubleDownEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 
 	/**
 	 * @brief 转发鼠标弹起消息到 BrowserHost
@@ -75,7 +66,7 @@ protected:
 	 * @param[out] bHandled 是否继续传递消息
 	 * @return 返回消息处理结果
 	 */
-	LRESULT SendButtonUpEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
+	LRESULT SendButtonUpEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 
 	/**
 	 * @brief 转发鼠标移动消息到 BrowserHost
@@ -85,7 +76,7 @@ protected:
 	 * @param[out] bHandled 是否继续传递消息
 	 * @return 返回消息处理结果
 	 */
-	LRESULT SendMouseMoveEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
+	LRESULT SendMouseMoveEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 
 	/**
 	 * @brief 转发鼠标滚动消息到 BrowserHost
@@ -95,7 +86,7 @@ protected:
 	 * @param[out] bHandled 是否继续传递消息
 	 * @return 返回消息处理结果
 	 */
-	LRESULT SendMouseWheelEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
+	LRESULT SendMouseWheelEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 
 	/**
 	 * @brief 转发鼠标离开消息到 BrowserHost
@@ -105,7 +96,7 @@ protected:
 	 * @param[out] bHandled 是否继续传递消息
 	 * @return 返回消息处理结果
 	 */
-	LRESULT SendMouseLeaveEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
+	LRESULT SendMouseLeaveEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 
 	/**
 	 * @brief 转发键盘相关消息到 BrowserHost
@@ -115,7 +106,7 @@ protected:
 	 * @param[out] bHandled 是否继续传递消息
 	 * @return 返回消息处理结果
 	 */
-	LRESULT SendKeyEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
+	LRESULT SendKeyEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 
 	/**
 	 * @brief 转发捕获焦点消息到 BrowserHost
@@ -125,7 +116,7 @@ protected:
 	 * @param[out] bHandled 是否继续传递消息
 	 * @return 返回消息处理结果
 	 */
-	LRESULT SendCaptureLostEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
+	LRESULT SendCaptureLostEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	
 	/**
 	 * @brief 判断是否有按键按下
@@ -160,20 +151,14 @@ private:
 		int width,
 		int height) OVERRIDE;
 
-	virtual void ClientToControl(POINT &pt) OVERRIDE;
-
 	virtual void OnPopupShow(CefRefPtr<CefBrowser> browser, bool show) OVERRIDE;
 
 	virtual void OnPopupSize(CefRefPtr<CefBrowser> browser, const CefRect& rect) OVERRIDE;
-
-	//处理DPI自适应（离屏渲染模式与正常模式不同）
-	void AdaptDpiScale(CefMouseEvent& mouse_event);
 
 private:
 	MemoryDC			dc_cef_;		// 内存dc,把cef离屏渲染的数据保存到dc中
 	MemoryDC			dc_cef_popup_;	// 内存dc,把cef的popup窗口的离屏渲染数据保存到dc中
 	CefRect				rect_popup_;	// 当网页的组合框一类的控件弹出时，记录弹出的位置
-	CefControl*         devtool_view_;  //开发者工具对应的控件
 };
 
 }

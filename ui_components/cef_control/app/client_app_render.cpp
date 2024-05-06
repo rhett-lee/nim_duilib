@@ -1,19 +1,16 @@
+#include "stdafx.h"
 #include "client_app.h" 
-#include "ui_components/cef_control/util/util.h"
+#include <string>
 
-#include "ui_components/cef_control/app/js_handler.h"
-#include "ui_components/cef_control/app/ipc_string_define.h"
-#include "ui_components/cef_control/app/cef_js_bridge.h"
-
-#pragma warning (push)
-#pragma warning (disable:4100)
 #include "include/cef_cookie.h"
 #include "include/cef_process_message.h"
 #include "include/cef_task.h"
 #include "include/cef_v8.h"
-#pragma warning (pop)
+#include "cef_control/util/util.h"
 
-#include <string>
+#include "cef_control/app/js_handler.h"
+#include "cef_control/app/ipc_string_define.h"
+#include "cef_control/app/cef_js_bridge.h"
 
 namespace nim_comp
 {
@@ -78,38 +75,38 @@ CefRefPtr<CefLoadHandler> ClientApp::GetLoadHandler()
 }
 
 bool ClientApp::OnBeforeNavigation(
-	CefRefPtr<CefBrowser> /*browser*/,
-	CefRefPtr<CefFrame> /*frame*/,
-	CefRefPtr<CefRequest> /*request*/,
-	NavigationType /*navigation_type*/,
-	bool /*is_redirect*/)
+	CefRefPtr<CefBrowser> browser,
+	CefRefPtr<CefFrame> frame,
+	CefRefPtr<CefRequest> request,
+	NavigationType navigation_type,
+	bool is_redirect)
 {
 	return false;
 }
 
-void ClientApp::OnContextCreated(CefRefPtr<CefBrowser> /*browser*/, CefRefPtr<CefFrame> /*frame*/, CefRefPtr<CefV8Context> /*context*/)
+void ClientApp::OnContextCreated(CefRefPtr<CefBrowser> browser,	CefRefPtr<CefFrame> frame, CefRefPtr<CefV8Context> context) 
 {
 
 }
 
-void ClientApp::OnContextReleased(CefRefPtr<CefBrowser> /*browser*/, CefRefPtr<CefFrame> frame, CefRefPtr<CefV8Context> /*context*/)
+void ClientApp::OnContextReleased(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame,	CefRefPtr<CefV8Context> context) 
 {
 	render_js_bridge_->RemoveCallbackFuncWithFrame(frame);
 	render_js_bridge_->UnRegisterJSFuncWithFrame(frame);
 }
 
 void ClientApp::OnUncaughtException(
-	CefRefPtr<CefBrowser> /*browser*/,
-	CefRefPtr<CefFrame> /*frame*/,
-	CefRefPtr<CefV8Context> /*context*/,
-	CefRefPtr<CefV8Exception> /*exception*/,
-	CefRefPtr<CefV8StackTrace> /*stackTrace*/)
+	CefRefPtr<CefBrowser> browser,
+	CefRefPtr<CefFrame> frame,
+	CefRefPtr<CefV8Context> context,
+	CefRefPtr<CefV8Exception> exception,
+	CefRefPtr<CefV8StackTrace> stackTrace) 
 {
 }
 
 void ClientApp::OnFocusedNodeChanged(
 	CefRefPtr<CefBrowser> browser,
-	CefRefPtr<CefFrame> /*frame*/,
+	CefRefPtr<CefFrame> frame,
 	CefRefPtr<CefDOMNode> node) 
 {
 	bool is_editable = (node.get() && node->IsEditable());
@@ -129,7 +126,6 @@ bool ClientApp::OnProcessMessageReceived(
 	CefProcessId source_process,
 	CefRefPtr<CefProcessMessage> message) 
 {
-	(void)source_process;
 	ASSERT(source_process == PID_BROWSER);
 	// 收到 browser 的消息回复
 	const CefString& message_name = message->GetName();

@@ -2,40 +2,56 @@
 
 using namespace ui;
 
-ui::UiSize64 CustomLayout::ArrangeChild(const std::vector<ui::Control*>& m_items, ui::UiRect rc)
+ui::CSize CustomLayout::ArrangeChild(const std::vector<ui::Control*>& m_items, ui::UiRect rc)
 {
-	UiSize size;
+	CSize size;
 	for (auto it = m_items.begin(); it != m_items.end(); it++) {
 		Control* pControl = *it;
-		UiSize new_size = this->SetCustomPos(pControl, rc);
-		size.cx = std::max(size.cx, new_size.cx);
-		size.cy = std::max(size.cy, new_size.cy);
+
+		// 即使子控件internVisible属性为false，这里也暂时强行设置为true，排版完成后恢复属性。
+		// 否则无法排版被隐藏的SessionBox，在任务栏生成缩略图和预览图时需要排版后的SessionBox
+		bool visible = pControl->IsInternVisible();
+		pControl->SetInternVisible(true);
+		CSize new_size = this->SetCustomPos(pControl, rc);
+		pControl->SetInternVisible(visible);
+
+		size.cx = max(size.cx, new_size.cx);
+		size.cy = max(size.cy, new_size.cy);
 	}
-	return UiSize64(size.cx, size.cy);
+
+	return size;
 }
 
-UiSize CustomLayout::SetCustomPos(Control* pControl, UiRect containerRect)
+CSize CustomLayout::SetCustomPos(Control* pControl, UiRect containerRect)
 {
 	int childLeft = 0;
 	int childRight = 0;
 	int childTop = 0;
 	int childBottm = 0;
-	UiMargin rcMargin = pControl->GetMargin();
+	UiRect rcMargin = pControl->GetMargin();
 	int iPosLeft = containerRect.left + rcMargin.left;
 	int iPosRight = containerRect.right - rcMargin.right;
 	int iPosTop = containerRect.top + rcMargin.top;
 	int iPosBottom = containerRect.bottom - rcMargin.bottom;
-	UiSize szAvailable(iPosRight - iPosLeft, iPosBottom - iPosTop);
-	UiEstSize estSize = pControl->EstimateSize(szAvailable);
-	UiSize childSize(estSize.cx.GetInt32(), estSize.cy.GetInt32());
-	if (estSize.cx.IsStretch()) {
-		childSize.cx = std::max(0, szAvailable.cx);
+	CSize szAvailable(iPosRight - iPosLeft, iPosBottom - iPosTop);
+	CSize childSize = pControl->EstimateSize(szAvailable);
+	if (pControl->GetFixedWidth() == DUI_LENGTH_AUTO && pControl->GetFixedHeight() == DUI_LENGTH_AUTO
+		&& pControl->GetMaxWidth() == DUI_LENGTH_STRETCH) {
+		int maxwidth = max(0, szAvailable.cx);
+		if (childSize.cx > maxwidth) {
+			pControl->SetFixedWidth(maxwidth, false);
+			childSize = pControl->EstimateSize(szAvailable);
+			pControl->SetFixedWidth(DUI_LENGTH_AUTO, false);
+		}
+	}
+	if (childSize.cx == DUI_LENGTH_STRETCH) {
+		childSize.cx = max(0, szAvailable.cx);
 	}
 	if (childSize.cx < pControl->GetMinWidth()) childSize.cx = pControl->GetMinWidth();
 	if (pControl->GetMaxWidth() >= 0 && childSize.cx > pControl->GetMaxWidth()) childSize.cx = pControl->GetMaxWidth();
 
-	if (estSize.cy.IsStretch()) {
-		childSize.cy = std::max(0, szAvailable.cy);
+	if (childSize.cy == DUI_LENGTH_STRETCH) {
+		childSize.cy = max(0, szAvailable.cy);
 	}
 	if (childSize.cy < pControl->GetMinHeight()) childSize.cy = pControl->GetMinHeight();
 	if (childSize.cy > pControl->GetMaxHeight()) childSize.cy = pControl->GetMaxHeight();
@@ -74,5 +90,5 @@ UiSize CustomLayout::SetCustomPos(Control* pControl, UiRect containerRect)
 
 	UiRect childPos(childLeft, childTop, childRight, childBottm);
 	pControl->SetPos(childPos);
-	return UiSize(childPos.Width(), childPos.Height());
+	return CSize(childPos.GetWidth(), childPos.GetHeight());
 }

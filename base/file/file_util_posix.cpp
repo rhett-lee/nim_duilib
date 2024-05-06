@@ -137,7 +137,7 @@ int WriteFile(const char *filepath, const void *data, size_t size)
 		bytes_written_total += bytes_written_partial)
 	{
 		bytes_written_partial =
-			write(fd, (const char*)data + bytes_written_total,
+			write(fd, data + bytes_written_total,
 			size - bytes_written_total);
 		if (bytes_written_partial < 0)
 			return -1;

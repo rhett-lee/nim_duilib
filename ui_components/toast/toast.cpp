@@ -1,6 +1,7 @@
+#include "stdafx.h"
 #include "toast.h"
-#include "ui_components/public_define.h"
-#include "base/thread/thread_manager.h"
+
+using namespace ui;
 
 namespace nim_comp {
 
@@ -9,10 +10,10 @@ const LPCTSTR Toast::kClassName = L"Toast";
 void Toast::ShowToast(const std::wstring &content, int duration, HWND parent)
 {
 	Toast *toast = new Toast;
-	if (!toast->CreateWnd(parent, L"", WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX, WS_EX_LAYERED)) {
-		delete toast;
+	HWND hWnd = toast->Create(parent, L"", WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX, 0);
+	if (hWnd == NULL)
 		return;
-	}
+
 	toast->SetContent(content);
 	toast->SetDuration(duration);
 	toast->CenterWindow();
@@ -44,46 +45,44 @@ UINT Toast::GetClassStyle() const
 	return (UI_CLASSSTYLE_FRAME | CS_DBLCLKS);
 }
 
-LRESULT Toast::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+LRESULT Toast::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	if (uMsg == WM_KEYDOWN && wParam == VK_ESCAPE)
 	{
-		this->CloseWnd();
+		this->Close();
 	}
 	// 整个toast界面都在标题栏，所以要处理WM_NC消息
 	else if (uMsg == WM_NCLBUTTONDBLCLK || uMsg == WM_LBUTTONDBLCLK)
 	{
-		this->CloseWnd();
+		this->Close();
 	}
 	// duilib在WM_MOUSELEAVE消息中会发送一个lparam为-1的WM_MOUSEMOVE消息
 	else if ((uMsg == WM_NCMOUSEMOVE || uMsg == WM_MOUSEMOVE) && lParam != -1)
 	{
 		if (NULL != close_button_ && !close_button_->IsVisible())
-			close_button_->SetFadeVisible(true);
+			close_button_->SetVisible(true);
 	}
 	else if (uMsg == WM_NCMOUSELEAVE || uMsg == WM_MOUSELEAVE)
 	{
-		ui::UiPoint pt;
-		GetCursorPos(pt);
-		ScreenToClient(pt);		
-		ui::UiRect clientRect;
-		GetClientRect(clientRect);
+		POINT pt;
+		GetCursorPos(&pt);
+		ScreenToClient(m_hWnd, &pt);
+		UiRect client_rect;
+		::GetClientRect(m_hWnd, &client_rect);
 		// leave消息触发时，获取的鼠标坐标有可能还在client_rect范围内，会偏差1像素，这里缩减1像素
-		clientRect.Deflate(1, 1, 1, 1);
-		if (NULL != close_button_ && !clientRect.ContainsPt(ui::UiPoint(pt.x, pt.y)))
-			close_button_->SetFadeVisible(false);
+		client_rect.Deflate(UiRect(1, 1, 1, 1));
+		if (NULL != close_button_ && !client_rect.IsPointIn(pt))
+			close_button_->SetVisible(false);
 	}
-	return __super::OnWindowMessage(uMsg, wParam, lParam, bHandled);
+	return __super::HandleMessage(uMsg, wParam, lParam);
 }
 
-void Toast::OnInitWindow()
+void Toast::InitWindow()
 {
-	GetRoot()->AttachBubbledEvent(ui::kEventClick, nbase::Bind(&Toast::OnClicked, this, std::placeholders::_1));
+	m_pRoot->AttachBubbledEvent(ui::kEventClick, nbase::Bind(&Toast::OnClicked, this, std::placeholders::_1));
 
-	content_ = dynamic_cast<ui::RichEdit*>(FindControl(L"content"));
-	close_button_ = dynamic_cast<ui::Button*>(FindControl(L"close_btn"));
-	ASSERT(content_ != nullptr);
-	ASSERT(close_button_ != nullptr);
+	content_ = static_cast<RichEdit*>(FindControl(L"content"));
+	close_button_ = static_cast<Button*>(FindControl(L"close_btn"));
 }
 
 void Toast::SetDuration(int duration)
@@ -93,16 +92,16 @@ void Toast::SetDuration(int duration)
 
 	nbase::ThreadManager::PostDelayedTask(kThreadUI, ToWeakCallback([this]()
 	{
-		this->CloseWnd();
+		this->Close();
 	}), nbase::TimeDelta::FromMilliseconds(duration));
 }
 
-bool Toast::OnClicked(const ui::EventArgs& msg)
+bool Toast::OnClicked(ui::EventArgs* msg)
 {
-	std::wstring name = msg.pSender->GetName();
+	std::wstring name = msg->pSender->GetName();
 	if (name == L"close_btn")
 	{
-		this->CloseWnd();
+		this->Close();
 	}
 
 	return true;
@@ -112,9 +111,9 @@ void Toast::SetContent(const std::wstring &str)
 {
 	content_->SetText(str);
 
-	int width = content_->GetFixedWidth().GetInt32();
+	int width = content_->GetFixedWidth();
 
-	ui::UiSize sz = content_->GetNaturalSize(width, 0);
-	content_->SetFixedHeight(ui::UiFixedInt(sz.cy), true, true);
+	ui::CSize sz = content_->GetNaturalSize(width, 0);
+	content_->SetFixedHeight(sz.cy);
 }
 }

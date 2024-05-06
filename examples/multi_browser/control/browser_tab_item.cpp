@@ -1,4 +1,4 @@
-#include "browser_tab_item.h"
+﻿#include "browser_tab_item.h"
 
 using namespace ui;
 
@@ -31,24 +31,24 @@ void BrowserTabItem::SetIcon(std::wstring icon)
 	icon_->SetBkImage(icon);
 }
 
-bool BrowserTabItem::OnMouseEnter(const ui::EventArgs& msg)
+bool BrowserTabItem::OnMouseEnter(ui::EventArgs* msg)
 {
-	button_close_->SetFadeVisible(true);
+	button_close_->SetVisible(true);
 
 	return true;
 }
 
-bool BrowserTabItem::OnMouseLeave(const ui::EventArgs& msg)
+bool BrowserTabItem::OnMouseLeave(ui::EventArgs* msg)
 {
-	if (!GetRect().ContainsPt(msg.ptMouse))
+	if (!m_rcItem.IsPointIn(msg->ptMouse))
 	{
-		button_close_->SetFadeVisible(false);
+		button_close_->SetVisible(false);
 	}
 	
 	return false;
 }
 
-bool BrowserTabItem::OnItemMenu(const ui::EventArgs& /*arg*/)
+bool BrowserTabItem::OnItemMenu(ui::EventArgs* arg)
 {
 	POINT point;
 	::GetCursorPos(&point);
@@ -61,7 +61,7 @@ void BrowserTabItem::PopupItemMenu(POINT point)
 
 }
 
-bool BrowserTabItem::MergeItemMenuItemClick(const ui::EventArgs& /*param*/)
+bool BrowserTabItem::MergeItemMenuItemClick(ui::EventArgs* param)
 {
 	return true;
 }

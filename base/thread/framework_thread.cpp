@@ -28,9 +28,6 @@ FrameworkThread::FrameworkThread(const char* name)
 	  loop_type_(MessageLoop::kDefaultMessageLoop),
 	  message_loop_(NULL),
 	  event_(false, false),
-#if defined(OS_WIN)
-	 dispatcher_(nullptr),
-#endif // OS_WIN
 	  name_(name)
 {
 

@@ -1,16 +1,11 @@
+#include "stdafx.h"
 #include "cef_control_base.h"
-#include "ui_components/cef_control/handler/browser_handler.h"
-#include "ui_components/cef_control/manager/cef_manager.h"
-#include "ui_components/cef_control/app/cef_js_bridge.h"
-
-#include "base/util/string_util.h"
-
-#pragma warning (push)
-#pragma warning (disable:4100)
 #include "include/cef_browser.h"
 #include "include/cef_frame.h"
 #include "include/cef_runnable.h"
-#pragma warning (pop)
+#include "cef_control/handler/browser_handler.h"
+#include "cef_control/manager/cef_manager.h"
+#include "cef_control/app/cef_js_bridge.h"
 
 namespace nim_comp {
 
@@ -20,8 +15,6 @@ CefControlBase::CefControlBase(void)
 #if !defined(SUPPORT_CEF)
 	ASSERT(FALSE && L"要使用Cef功能请开启SUPPORT_CEF宏");
 #endif
-	//这个标记必须为false，否则绘制有问题
-	SetUseCache(false);
 }
 
 CefControlBase::~CefControlBase(void)
@@ -180,7 +173,7 @@ std::string CefControlBase::GetUTF8URL()
 CefString CefControlBase::GetMainURL(const CefString& url)
 {
 	std::string temp = url.ToString();
-	size_t end_pos = temp.find("#") == std::string::npos ? temp.length() : temp.find("#");
+	int end_pos = temp.find("#") == std::string::npos ? temp.length() : temp.find("#");
 	temp = temp.substr(0, end_pos);
 	return CefString(temp.c_str());
 }

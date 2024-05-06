@@ -4,7 +4,7 @@
         <HBox padding="5,0,10,0" childmargin="5" mouse="false">
             <Box width="40" height="40" valign="center" mouse="false" mousechild="false" visible="false">
                 <Control name="tab_item_icon" width="38" height="38" borderround="38,38,38,38" margin="1,1,0,0"/>
-                <Control />
+                <Control class="icon_headimage_mask_40x40"/>
             </Box>
             <Label name="tab_item_name" width="stretch" valign="center" font="system_12" mouse="false"/>
 

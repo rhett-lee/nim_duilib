@@ -1,4 +1,4 @@
-#ifndef BASE_WIN32_WIN_UTIL_H_
+﻿#ifndef BASE_WIN32_WIN_UTIL_H_
 #define BASE_WIN32_WIN_UTIL_H_
 
 #include "base/base_config.h"

@@ -27,11 +27,12 @@ std::wstring BasicForm::GetWindowClassName() const
 	return kClassName;
 }
 
-void BasicForm::OnInitWindow()
+void BasicForm::InitWindow()
 {
+
 }
 
-LRESULT BasicForm::OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+LRESULT BasicForm::OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
 	PostQuitMessage(0L);
 	return __super::OnClose(uMsg, wParam, lParam, bHandled);

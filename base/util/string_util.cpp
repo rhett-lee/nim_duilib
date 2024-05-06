@@ -1,4 +1,4 @@
-/*
+ï»¿/*
  *
  *	Author		wrt(guangguang)
  *	Date		2011-06-08
@@ -139,19 +139,15 @@ size_t StringReplaceAllT(const std::basic_string<CharType> &find,
 	return replaced;
 }
 
-inline int vsnprintfT(char *dst, size_t buffer_count, size_t count, const char *format, va_list ap)
+inline int vsnprintfT(char *dst, size_t count, const char *format, va_list ap)
 {
-#if defined(OS_WIN)	
-	return _vsnprintf_s(dst, buffer_count, count, format, ap);
-#else	
 	return vsnprintf(dst, count, format, ap);
-#endif	
 }
 
-inline int vsnprintfT(wchar_t *dst, size_t buffer_count, size_t count, const wchar_t *format, va_list ap)
+inline int vsnprintfT(wchar_t *dst, size_t count, const wchar_t *format, va_list ap)
 {
 #if defined(OS_WIN)	
-	return _vsnwprintf_s(dst, buffer_count, count, format, ap);
+	return _vsnwprintf(dst, count, format, ap);
 #else	
 	return vswprintf(dst, count, format, ap);
 #endif	
@@ -160,14 +156,13 @@ inline int vsnprintfT(wchar_t *dst, size_t buffer_count, size_t count, const wch
 template<typename CharType>
 void StringAppendVT(const CharType *format, va_list ap, std::basic_string<CharType> &output)
 {
-	const size_t buffer_count = 1024;
-	CharType stack_buffer[buffer_count] = {0};
+	CharType stack_buffer[1024];
 
 	/* first, we try to finish the task using a fixed-size buffer in the stack */
 	va_list ap_copy;
 	GG_VA_COPY(ap_copy, ap);
 
-	int result = vsnprintfT(stack_buffer, buffer_count, buffer_count - 1, format, ap_copy);
+	int result = vsnprintfT(stack_buffer, COUNT_OF(stack_buffer), format, ap_copy);
 	va_end(ap_copy);
 	if (result >= 0 && result < static_cast<int>(COUNT_OF(stack_buffer)))
 	{
@@ -177,17 +172,15 @@ void StringAppendVT(const CharType *format, va_list ap, std::basic_string<CharTy
 	}
 
 	/* then, we have to repeatedly increase buffer size until it fits. */
-	size_t buffer_size = COUNT_OF(stack_buffer);
+	int buffer_size = COUNT_OF(stack_buffer);
 	std::basic_string<CharType> heap_buffer;
 	for (;;)
 	{
-#if !defined(OS_WIN)
-		if (result < 0)
+		if (result != -1)
 		{
 			assert(0);
 			return; /* not expected, result should be -1 here */
 		}
-#endif
 		buffer_size <<= 1; /* try doubling the buffer size */
 		if (buffer_size > 32 * 1024 * 1024)
 		{
@@ -201,10 +194,10 @@ void StringAppendVT(const CharType *format, va_list ap, std::basic_string<CharTy
 		 * need to make a new copy each time so we don't use up the original.
 		 */
 		GG_VA_COPY(ap_copy, ap);
-		result = vsnprintfT(&heap_buffer[0], buffer_size, buffer_size - 1, format, ap_copy);
+		result = vsnprintfT(&heap_buffer[0], buffer_size, format, ap_copy);
 		va_end(ap_copy);
 
-		if ((result >= 0) && (result < (int)buffer_size)) {
+		if ((result >= 0) && (result < buffer_size)) {
 			/* It fits */
 			output.append(&heap_buffer[0], result);
 			return;
@@ -357,12 +350,11 @@ std::list<std::string> StringTokenize(const char *input, const char *delimitor)
 	if (input2.empty())
 		return output;
 
-	char* context = nullptr;
-	char *token = strtok_s(input2.data(), delimitor, &context);
+	char *token = strtok(&input2[0], delimitor);
 	while (token != NULL)
 	{
 		output.push_back(token);
-		token = strtok_s(NULL, delimitor, &context);
+		token = strtok(NULL, delimitor);
 	}
 
 	return output;
@@ -377,12 +369,11 @@ std::list<std::wstring> StringTokenize(const wchar_t *input, const wchar_t *deli
 		return output;
 
 #if defined(OS_WIN)	
-	wchar_t* context = nullptr;
-	wchar_t *token = wcstok_s(input2.data(), delimitor, &context);
+	wchar_t *token = wcstok(&input2[0], delimitor);
 	while (token != NULL)
 	{
 		output.push_back(token);
-		token = wcstok_s(NULL, delimitor, &context);
+		token = wcstok(NULL, delimitor);
 	}
 #else
 	wchar_t *ptr;
@@ -793,19 +784,19 @@ void UTF8CreateLengthTable(unsigned table[256])
 bool ValidateUTF8Stream(const void* stream, unsigned length)
 {
 	/*
-	 *	¸ù¾İRFC3629£¨http://tools.ietf.org/html/rfc3629£©£¬
-	 *	UTF-8Á÷Ò»¸ö×Ö·ûµÄµÚÒ»¸ö×Ö½ÚÓÉ0-4¸öÊıÖµÎª1µÄ¶ş½øÖÆÎ»
-	 *	ÕâĞ©Î»Ö®ºóµÄµÚÒ»Î»±ØĞëÊÇ0£¬µ±ÕâĞ©Î»µÄ¸öÊıÎª0µÄÊ±ºò±í
-	 *	Ê¾Õâ¸ö×Ö·ûÊÇASCII£¬Õ¼ÓÃÒ»¸ö×Ö½Ú£¬³ı´ËÖ®Íâ±íÊ¾Õâ¸ö×Ö·û
-	 *	ËùÕ¼ÓÃµÄ×Ö½ÚÊı£»µÚ¶ş¸ö×Ö½Ú¿ªÊ¼£¬Ã¿¸ö×Ö½Ú±ØĞëÊ¹ÓÃ10µÄ
-	 *	¶ş½øÖÆÎ»¿ªÍ·£¬ÕâÑùÀûÓÚ¿ìËÙ¶¨Î»Ò»¸ö×Ö·ûµÄÆğÊ¼×Ö½Ú£¬ÀıÈç£º
+	 *	æ ¹æ®RFC3629ï¼ˆhttp://tools.ietf.org/html/rfc3629ï¼‰ï¼Œ
+	 *	UTF-8æµä¸€ä¸ªå­—ç¬¦çš„ç¬¬ä¸€ä¸ªå­—èŠ‚ç”±0-4ä¸ªæ•°å€¼ä¸º1çš„äºŒè¿›åˆ¶ä½
+	 *	è¿™äº›ä½ä¹‹åçš„ç¬¬ä¸€ä½å¿…é¡»æ˜¯0ï¼Œå½“è¿™äº›ä½çš„ä¸ªæ•°ä¸º0çš„æ—¶å€™è¡¨
+	 *	ç¤ºè¿™ä¸ªå­—ç¬¦æ˜¯ASCIIï¼Œå ç”¨ä¸€ä¸ªå­—èŠ‚ï¼Œé™¤æ­¤ä¹‹å¤–è¡¨ç¤ºè¿™ä¸ªå­—ç¬¦
+	 *	æ‰€å ç”¨çš„å­—èŠ‚æ•°ï¼›ç¬¬äºŒä¸ªå­—èŠ‚å¼€å§‹ï¼Œæ¯ä¸ªå­—èŠ‚å¿…é¡»ä½¿ç”¨10çš„
+	 *	äºŒè¿›åˆ¶ä½å¼€å¤´ï¼Œè¿™æ ·åˆ©äºå¿«é€Ÿå®šä½ä¸€ä¸ªå­—ç¬¦çš„èµ·å§‹å­—èŠ‚ï¼Œä¾‹å¦‚ï¼š
 	 *
 	 *	0XXXXXXX
 	 *	110XXXXX 10XXXXXX
 	 *	1110XXXX 10XXXXXX 10XXXXXX
 	 *	11110XXX 10XXXXXX 10XXXXXX 10XXXXXX
 	 *
-	 *	Áí£¬UTF-8ÀíÂÛÉÏÖ§³Ö6×Ö½Ú³¤¶È£¬µ«ÊÇ±ê×¼½«ÆäÏŞ¶¨Îª4×Ö½Ú
+	 *	å¦ï¼ŒUTF-8ç†è®ºä¸Šæ”¯æŒ6å­—èŠ‚é•¿åº¦ï¼Œä½†æ˜¯æ ‡å‡†å°†å…¶é™å®šä¸º4å­—èŠ‚
 	 */
 
 	unsigned i, j, k;
@@ -813,16 +804,16 @@ bool ValidateUTF8Stream(const void* stream, unsigned length)
 	static unsigned int table_created = 0;
 	static unsigned int table[256];
 
-	/* ±£Ö¤¶àÏß³Ì°²È« */
+	/* ä¿è¯å¤šçº¿ç¨‹å®‰å…¨ */
 	if (!table_created)
 	{
-		/* ÀûÓÃlock-freeµÄË¼Ïë´´½¨Ò»Ä£Ò»ÑùµÄ±í */
+		/* åˆ©ç”¨lock-freeçš„æ€æƒ³åˆ›å»ºä¸€æ¨¡ä¸€æ ·çš„è¡¨ */
 		UTF8CreateLengthTable(table);
-		/* ±ê¼Ç£¬Ö®ºóµÄÏß³Ì½«²»»áÖØ¸´´´½¨¸Ã±í */
+		/* æ ‡è®°ï¼Œä¹‹åçš„çº¿ç¨‹å°†ä¸ä¼šé‡å¤åˆ›å»ºè¯¥è¡¨ */
 		table_created = 1;
 	}
 
-	/* ÕâÀïÊ¹ÓÃ²é±í·¨ÊÇÒòÎª¿¼ÂÇµ½Õâ¸ö±í»á±»·ÅÈëCPUµÄCache */
+	/* è¿™é‡Œä½¿ç”¨æŸ¥è¡¨æ³•æ˜¯å› ä¸ºè€ƒè™‘åˆ°è¿™ä¸ªè¡¨ä¼šè¢«æ”¾å…¥CPUçš„Cache */
 
 	for (i = 0; i < length;)
 	{
@@ -841,16 +832,16 @@ bool ValidateUTF8Stream(const void* stream, unsigned length)
 bool ValidateGB2312Stream(const void* stream, unsigned length)
 {
 	/*
-	 *	¸ù¾İhttp://zh.wikipedia.org/zh-cn/Gb2312£º
-	 *	01-09ÇøÎªÌØÊâ·ûºÅ¡£
-	 *	16-55ÇøÎªÒ»¼¶ºº×Ö£¬°´Æ´ÒôÅÅĞò¡£
-	 *	56-87ÇøÎª¶ş¼¶ºº×Ö£¬°´²¿Ê×£¯±Ê»­ÅÅĞò¡£
-	 *	10-15Çø¼°88-94ÇøÔòÎ´ÓĞ±àÂë¡£
+	 *	æ ¹æ®http://zh.wikipedia.org/zh-cn/Gb2312ï¼š
+	 *	01-09åŒºä¸ºç‰¹æ®Šç¬¦å·ã€‚
+	 *	16-55åŒºä¸ºä¸€çº§æ±‰å­—ï¼ŒæŒ‰æ‹¼éŸ³æ’åºã€‚
+	 *	56-87åŒºä¸ºäºŒçº§æ±‰å­—ï¼ŒæŒ‰éƒ¨é¦–ï¼ç¬”ç”»æ’åºã€‚
+	 *	10-15åŒºåŠ88-94åŒºåˆ™æœªæœ‰ç¼–ç ã€‚
 	 *
-	 *	Ã¿¸öºº×Ö¼°·ûºÅÒÔÁ½¸ö×Ö½ÚÀ´±íÊ¾¡£µÚÒ»¸ö×Ö½Ú³ÆÎª¡°¸ßÎ»×Ö½Ú¡±£¬µÚ¶ş¸ö×Ö½Ú³ÆÎª¡°µÍÎ»×Ö½Ú¡±¡£
-	 *	¡°¸ßÎ»×Ö½Ú¡±Ê¹ÓÃÁË0xA1-0xF7£¨°Ñ01-87ÇøµÄÇøºÅ¼ÓÉÏ0xA0£©£¬¡°µÍÎ»×Ö½Ú¡±Ê¹ÓÃÁË0xA1-0xFE£¨°Ñ01-94¼ÓÉÏ 0xA0£©¡£
-	 *	ÓÉÓÚÒ»¼¶ºº×Ö´Ó16ÇøÆğÊ¼£¬ºº×ÖÇøµÄ¡°¸ßÎ»×Ö½Ú¡±µÄ·¶Î§ÊÇ0xB0-0xF7£¬¡°µÍÎ»×Ö½Ú¡±µÄ·¶Î§ÊÇ0xA1-0xFE£¬
-	 *	Õ¼ÓÃµÄÂëÎ»ÊÇ 72*94=6768¡£ÆäÖĞÓĞ5¸ö¿ÕÎ»ÊÇD7FA-D7FE¡£
+	 *	æ¯ä¸ªæ±‰å­—åŠç¬¦å·ä»¥ä¸¤ä¸ªå­—èŠ‚æ¥è¡¨ç¤ºã€‚ç¬¬ä¸€ä¸ªå­—èŠ‚ç§°ä¸ºâ€œé«˜ä½å­—èŠ‚â€ï¼Œç¬¬äºŒä¸ªå­—èŠ‚ç§°ä¸ºâ€œä½ä½å­—èŠ‚â€ã€‚
+	 *	â€œé«˜ä½å­—èŠ‚â€ä½¿ç”¨äº†0xA1-0xF7ï¼ˆæŠŠ01-87åŒºçš„åŒºå·åŠ ä¸Š0xA0ï¼‰ï¼Œâ€œä½ä½å­—èŠ‚â€ä½¿ç”¨äº†0xA1-0xFEï¼ˆæŠŠ01-94åŠ ä¸Š 0xA0ï¼‰ã€‚
+	 *	ç”±äºä¸€çº§æ±‰å­—ä»16åŒºèµ·å§‹ï¼Œæ±‰å­—åŒºçš„â€œé«˜ä½å­—èŠ‚â€çš„èŒƒå›´æ˜¯0xB0-0xF7ï¼Œâ€œä½ä½å­—èŠ‚â€çš„èŒƒå›´æ˜¯0xA1-0xFEï¼Œ
+	 *	å ç”¨çš„ç ä½æ˜¯ 72*94=6768ã€‚å…¶ä¸­æœ‰5ä¸ªç©ºä½æ˜¯D7FA-D7FEã€‚
 	 */
 
 	unsigned char* s = (unsigned char*)stream;

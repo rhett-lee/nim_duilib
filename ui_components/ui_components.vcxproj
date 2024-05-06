@@ -23,32 +23,32 @@
     <ProjectGuid>{0149BA6E-3C0A-426D-AA0A-0B9EC7742F19}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>uicomponents</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v120_xp</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v120_xp</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v120_xp</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v120_xp</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -74,13 +74,11 @@
     <LinkIncremental>true</LinkIncremental>
     <IntDir>$(ProjectDir)..\tmp\$(PlatformName)\$(ProjectName)\$(Configuration)\</IntDir>
     <OutDir>$(ProjectDir)..\libs\</OutDir>
-    <TargetName>$(ProjectName)_d</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <IntDir>$(ProjectDir)..\tmp\$(PlatformName)\$(ProjectName)\$(Configuration)\</IntDir>
     <OutDir>$(ProjectDir)..\libs\x64\</OutDir>
-    <TargetName>$(ProjectName)_d</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -94,17 +92,14 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level4</WarningLevel>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>SUPPORT_CEF;WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <ConformanceMode>false</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)\..\;$(ProjectDir)\third_party\cef_wrapper\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>.\;..\;..\third_party\cef_wrapper\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <LanguageStandard>stdcpp20</LanguageStandard>
-      <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -118,17 +113,14 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level4</WarningLevel>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>SUPPORT_CEF;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <ConformanceMode>false</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)\..\;$(ProjectDir)\third_party\cef_wrapper\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>.\;..\;..\third_party\cef_wrapper\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <LanguageStandard>stdcpp20</LanguageStandard>
-      <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -142,19 +134,16 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level4</WarningLevel>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>SUPPORT_CEF;WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <ConformanceMode>false</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)\..\;$(ProjectDir)\third_party\cef_wrapper\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>.\;..\;..\third_party\cef_wrapper\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <LanguageStandard>stdcpp20</LanguageStandard>
-      <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -170,19 +159,16 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level4</WarningLevel>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>SUPPORT_CEF;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <ConformanceMode>false</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)\..\;$(ProjectDir)\third_party\cef_wrapper\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>.\;..\;..\third_party\cef_wrapper\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <LanguageStandard>stdcpp20</LanguageStandard>
-      <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -197,19 +183,7 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="cef_control\handler\drag\bytes_write_handler.h" />
-    <ClInclude Include="cef_control\handler\drag\osr_dragdrop_events.h" />
-    <ClInclude Include="cef_control\handler\drag\osr_dragdrop_win.h" />
-    <ClInclude Include="cef_control\handler\drag\util_win.h" />
     <ClInclude Include="cef_control\util\auto_unregister.h" />
-    <ClInclude Include="mini_blink_control\web_view_base.h" />
-    <ClInclude Include="mini_blink_control\wke_memory_dc.h" />
-    <ClInclude Include="mini_blink_control\wke_web_native.h" />
-    <ClInclude Include="mini_blink_control\wke_web_view.h" />
-    <ClInclude Include="popover\alert.h" />
-    <ClInclude Include="popover\notification.h" />
-    <ClInclude Include="popover\popover.h" />
-    <ClInclude Include="popover\tooltip.h" />
     <ClInclude Include="public_define.h" />
     <ClInclude Include="ui_cef_control.h" />
     <ClInclude Include="cef_control\app\cef_js_bridge.h" />
@@ -224,10 +198,19 @@
     <ClInclude Include="cef_control\manager\cef_manager.h" />
     <ClInclude Include="cef_control\util\memory_dc.h" />
     <ClInclude Include="cef_control\util\util.h" />
+    <ClInclude Include="menu\ui_menu.h" />
+    <ClInclude Include="modal_wnd\async_do_modal.h" />
+    <ClInclude Include="modal_wnd\async_modal_runner.h" />
+    <ClInclude Include="modal_wnd\file_dialog_ex.h" />
+    <ClInclude Include="modal_wnd\modal_wnd_base.h" />
     <ClInclude Include="msgbox\msgbox.h" />
+    <ClInclude Include="shadow_wnd\shadow_wnd.h" />
+    <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="toast\toast.h" />
     <ClInclude Include="ui_components.h" />
+    <ClInclude Include="windows_manager\windows_manager.h" />
+    <ClInclude Include="windows_manager\window_ex.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cef_control\app\cef_js_bridge.cpp" />
@@ -241,24 +224,26 @@
     <ClCompile Include="cef_control\control\cef_control_ui.cpp" />
     <ClCompile Include="cef_control\control\cef_native_control.cpp" />
     <ClCompile Include="cef_control\handler\browser_handler.cpp" />
-    <ClCompile Include="cef_control\handler\drag\bytes_write_handler.cc" />
-    <ClCompile Include="cef_control\handler\drag\osr_dragdrop_win.cc" />
-    <ClCompile Include="cef_control\handler\drag\util_win.cc" />
     <ClCompile Include="cef_control\manager\cef_manager.cpp" />
     <ClCompile Include="cef_control\util\memory_dc.cpp" />
-    <ClCompile Include="mini_blink_control\web_view_base.cpp" />
-    <ClCompile Include="mini_blink_control\wke_memory_dc.cpp" />
-    <ClCompile Include="mini_blink_control\wke_web_native.cpp" />
-    <ClCompile Include="mini_blink_control\wke_web_view.cpp" />
+    <ClCompile Include="menu\ui_menu.cpp" />
+    <ClCompile Include="modal_wnd\async_do_modal.cpp" />
+    <ClCompile Include="modal_wnd\async_modal_runner.cpp" />
+    <ClCompile Include="modal_wnd\file_dialog_ex.cpp" />
     <ClCompile Include="msgbox\msgbox.cpp" />
-    <ClCompile Include="popover\alert.cpp" />
-    <ClCompile Include="popover\notification.cpp" />
-    <ClCompile Include="popover\popover.cpp" />
-    <ClCompile Include="popover\tooltip.cpp" />
+    <ClCompile Include="shadow_wnd\shadow_wnd.cpp" />
+    <ClCompile Include="stdafx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="toast\toast.cpp" />
+    <ClCompile Include="windows_manager\windows_manager.cpp" />
+    <ClCompile Include="windows_manager\window_ex.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="third_party\cef_wrapper\libcef_dll_wrapper.vcxproj">
+    <ProjectReference Include="..\third_party\cef_wrapper\libcef_dll_wrapper.vcxproj">
       <Project>{a9d6dc71-c0dc-4549-aea0-3b15b44e86a9}</Project>
     </ProjectReference>
   </ItemGroup>

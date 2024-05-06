@@ -5,18 +5,13 @@
 * @date 2016/7/22
 */
 #pragma once
-#pragma warning (push)
-#pragma warning (disable:4100)
 #include "include/cef_load_handler.h"
 #include "include/cef_request_handler.h"
 #include "include/cef_context_menu_handler.h"
 #include "include/cef_download_handler.h"
 #include "include/cef_dialog_handler.h"
-#pragma warning (pop)
 
-#include <functional>
-
-namespace nim_comp
+namespace ui 
 {
 	typedef std::function<void(CefRefPtr<CefContextMenuParams> params, CefRefPtr<CefMenuModel> model)> OnBeforeMenuEvent;
 	typedef std::function<bool(CefRefPtr<CefContextMenuParams> params, int command_id, CefContextMenuHandler::EventFlags event_flags)> OnMenuCommandEvent;

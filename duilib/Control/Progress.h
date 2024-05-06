@@ -3,35 +3,28 @@
 
 #pragma once
 
-#include "duilib/Control/Label.h"
-#include "duilib/Image/Image.h"
-
 namespace ui
 {
 
-/** 进度条控件
-*/
 class UILIB_API Progress : public LabelTemplate<Control>
 {
 public:
 	Progress();
-	virtual ~Progress();
 
 	/// 重写父类方法，提供个性化功能，请参考父类声明
-	virtual std::wstring GetType() const override;
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
-	virtual void PaintStateImages(IRender* pRender) override;
+	virtual void PaintStatusImage(IRenderContext* pRender) override;
 	virtual void ClearImageCache() override;
 
 	/**
 	 * @brief 判断是否是水平进度条
-	 * @return 返回 true 是水平进度条，false 为垂直进度条
+	 * @return 返回 true 是水平进度条，false 为垂直滚动条
 	 */
 	bool IsHorizontal();
 
 	/**
-	 * @brief 设置水平或垂直进度条
-	 * @param[in] bHorizontal 为 true 时设置为水平进度条，false 时设置为垂直进度条，默认为 true
+	 * @brief 设置水平或垂直滚动条
+	 * @param[in] bHorizontal 为 true 时设置为水平滚动条，false 时设置为垂直滚动条，默认为 true
 	 * @return 无
 	 */
 	void SetHorizontal(bool bHorizontal = true);
@@ -120,109 +113,15 @@ public:
 	 */
 	virtual UiRect GetProgressPos();
 
-	/**
-	 * @brief 播放Marquee
-	 * @return 无
-	 */
-	virtual void Play();
-
-	/**
-	 * @brief 绘制Marquee
-	 * @return 无
-	 */
-	void PaintMarquee(IRender* pRender);
-
-	/**
-	 * @brief 是否是Marquee
-	 * @return 无
-	 */
-	bool IsMarquee();
-
-	/**
-	 * @brief 设置Marquee
-	 * @return 无
-	 */
-	void SetMarquee(bool bMarquee);
-
-	/**
-	 * @brief 获取Marquee宽度
-	 * @return 无
-	 */
-	int GetMarqueeWidth();
-
-	/**
-	 * @brief 设置Marquee宽度
-	 * @return 无
-	 */
-	void SetMarqueeWidth(int nMarqueeWidth);
-
-	/**
-	 * @brief 获取Marquee步长
-	 * @return 无
-	 */
-	int GetMarqueeStep();
-
-	/**
-	 * @brief 设置Marquee步长
-	 * @return 无
-	 */
-	void SetMarqueeStep(int nMarqueeStep);
-
-	/**
-	 * @brief 获取Marquee持续时间
-	 * @return 无
-	 */
-	int GetMarqueeElapsed();
-
-	/**
-	 * @brief 设置Marquee持续时间
-	 * @return 无
-	 */
-	void SetMarqueeElapsed(int nMarqueeElapsed);
-
-  /**
-  * @brief 设置是否反向填充进度条
-  * @return 无
-  */
-  void SetReverse(bool bReverse);
-
 protected:
-	//进度条是水平或垂直: true为水平，false为垂直
 	bool m_bHorizontal;
-
-	//指定进度条前景图片是否缩放显示
 	bool m_bStretchForeImage;
-
-	//进度最大值（默认为100）
 	int m_nMax;
-
-	//进度最小值（默认为0）
 	int m_nMin;
-
-	//当前进度值
 	double m_nValue;
-
-	//进度条前景图片
-	Image* m_pProgressImage;
-
-	//进度条前景图片属性
-	UiString m_sProgressImageModify;
-
-	//进度条前景颜色,不指定则使用默认颜色
-	UiString m_sProgressColor;
-
-	//滚动效果
-	bool m_bMarquee;
-	int m_nMarqueeWidth;
-	int m_nMarqueeStep;
-	int m_nMarqueeElapsed;
-	int m_nMarqueePos;
-
-	//是否倒数（进度从100 到 0）
-	bool m_bReverse;
-
-	//定时器取消机制
-	nbase::WeakCallbackFlag m_timer;
+	Image m_progressImage;
+	std::wstring m_sProgressColor;
+	std::wstring m_sProgressImageModify;
 };
 
 } // namespace ui

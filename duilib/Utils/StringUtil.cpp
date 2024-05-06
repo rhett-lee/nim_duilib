@@ -1,5 +1,4 @@
-#include "StringUtil.h"
-#include <filesystem>
+ï»¿#include "StdAfx.h"
 
 namespace ui
 {
@@ -134,7 +133,7 @@ inline int vsnprintfT(char *dst, size_t count, const char *format, va_list ap)
 
 inline int vsnprintfT(wchar_t *dst, size_t count, const wchar_t *format, va_list ap)
 {
-	return _vsnwprintf_s(dst, count, count, format, ap);
+	return _vsnwprintf(dst, count, format, ap);
 }
 
 template<typename CharType>
@@ -162,13 +161,13 @@ void StringAppendVT(const CharType *format, va_list ap, std::basic_string<CharTy
 	{
 		if (result != -1)
 		{
-			ASSERT(0);
+			assert(0);
 			return; /* not expected, result should be -1 here */
 		}
 		buffer_size <<= 1; /* try doubling the buffer size */
 		if (buffer_size > 32 * 1024 * 1024)
 		{
-			ASSERT(0);
+			assert(0);
 			return;	/* too long */
 		}
 		/* resize */
@@ -246,62 +245,12 @@ void StringTrimRightT(std::basic_string<CharType> &output)
 
 } // anonymous namespace
 
-std::wstring StringHelper::NormalizeDirPath(const std::wstring& strFilePath)
-{
-	std::wstring dirPath(strFilePath);
-	ReplaceAll(L"/", L"\\", dirPath);
-	ReplaceAll(L"\\\\", L"\\", dirPath);
-	std::filesystem::path dir_path(dirPath);
-	dir_path = dir_path.lexically_normal();
-	dirPath = dir_path.native();
-	if (!dirPath.empty()) {
-		//È·±£Â·¾¶×îºó×Ö·ûÊÇ·Ö¸î×Ö·û
-		auto cEnd = dirPath.back();
-		if (cEnd != L'\\' && cEnd != L'/') {
-			dirPath += L'\\';
-		}
-	}
-	return dirPath;
-}
-
-std::wstring StringHelper::NormalizeFilePath(const std::wstring& strFilePath)
+std::wstring StringHelper::ReparsePath(const std::wstring& strFilePath)
 {
 	std::wstring tmp(strFilePath);
 	ReplaceAll(L"/", L"\\", tmp);
 	ReplaceAll(L"\\\\", L"\\", tmp);
-	std::filesystem::path file_path(tmp);
-	file_path = file_path.lexically_normal();
-	tmp = file_path.native();
 	return tmp;
-}
-
-std::wstring StringHelper::JoinFilePath(const std::wstring& path1, const std::wstring& path2)
-{
-	std::filesystem::path file_path(path1);
-	file_path /= path2;
-	file_path = file_path.lexically_normal();
-	std::wstring tmp = file_path.native();
-	return tmp;
-}
-
-bool StringHelper::IsExistsPath(const std::wstring& strFilePath)
-{
-	try {
-		return std::filesystem::exists(strFilePath);
-	}
-	catch (...) {
-		return false;
-	}
-}
-
-bool StringHelper::IsRelativePath(const std::wstring& strFilePath)
-{
-	return std::filesystem::path(strFilePath).is_relative();
-}
-
-bool StringHelper::IsAbsolutePath(const std::wstring& strFilePath)
-{
-	return std::filesystem::path(strFilePath).is_absolute();
 }
 
 std::wstring StringHelper::Printf(const wchar_t *format, ...)
@@ -317,19 +266,13 @@ std::wstring StringHelper::Printf(const wchar_t *format, ...)
 
 size_t StringHelper::ReplaceAll(const std::wstring& find, const std::wstring& replace, std::wstring& output)
 {
-	if (output.empty()) {
+	if (output.empty())
+	{
 		return 0;
 	}
 	return StringReplaceAllT<wchar_t>(find, replace, output);
 }
 
-size_t StringHelper::ReplaceAll(const std::string& find, const std::string& replace, std::string& output)
-{
-	if (output.empty())	{
-		return 0;
-	}
-	return StringReplaceAllT<char>(find, replace, output);
-}
 
 std::wstring StringHelper::MakeLowerString(const std::wstring &str)
 {
@@ -523,12 +466,11 @@ std::list<std::string> StringHelper::Split(const std::string& input, const std::
 	if (input2.empty())
 		return output;
 
-	char* context = nullptr;
-	char *token = strtok_s(input2.data(), delimitor.c_str(), &context);
+	char *token = strtok(&input2[0], delimitor.c_str());
 	while (token != NULL)
 	{
 		output.push_back(token);
-		token = strtok_s(NULL, delimitor.c_str(), &context);
+		token = strtok(NULL, delimitor.c_str());
 	}
 
 	return output;
@@ -542,92 +484,15 @@ std::list<std::wstring> StringHelper::Split(const std::wstring& input, const std
 	if (input2.empty())
 		return output;
 
-	wchar_t* context = nullptr;
-	wchar_t* token = wcstok_s(input2.data(), delimitor.c_str(), &context);
+	wchar_t *token = wcstok(&input2[0], delimitor.c_str());
 	while (token != NULL)
 	{
 		output.push_back(token);
-		token = wcstok_s(NULL, delimitor.c_str(), &context);
+		token = wcstok(NULL, delimitor.c_str());
 	}
 
 
 	return output;
-}
-
-static bool IsEqualNoCasePrivate(const wchar_t* lhs, const wchar_t* rhs)
-{
-	if (lhs == rhs) {
-		return true;
-	}
-	for (;;) {
-		if (*lhs == *rhs) {
-			if (*lhs++ == 0) {
-				return true;
-			}
-			rhs++;
-			continue;
-		}
-		if (towupper(*lhs++) == towupper(*rhs++)) {
-			continue;
-		}
-		return false;
-	}
-}
-
-bool StringHelper::IsEqualNoCase(const std::wstring& lhs, const std::wstring& rhs)
-{
-	if (lhs.size() != rhs.size()) {
-		return false;
-	}
-	return IsEqualNoCasePrivate(lhs.c_str(), rhs.c_str());
-}
-
-bool StringHelper::IsEqualNoCase(const wchar_t* lhs, const std::wstring& rhs)
-{
-	if (lhs == nullptr) {
-		return false;
-	}
-	return IsEqualNoCasePrivate(lhs, rhs.c_str());
-}
-
-bool StringHelper::IsEqualNoCase(const std::wstring& lhs, const wchar_t* rhs)
-{
-	if (rhs == nullptr) {
-		return false;
-	}
-	return IsEqualNoCasePrivate(lhs.c_str(), rhs);
-}
-
-bool StringHelper::IsEqualNoCase(const wchar_t* lhs, const wchar_t* rhs)
-{
-	if (lhs == nullptr) {
-		return (rhs == nullptr) ? true : false;
-	}
-	else if (rhs == nullptr) {
-		return (lhs == nullptr) ? true : false;
-	}
-	return IsEqualNoCasePrivate(lhs, rhs);
-}
-
-std::wstring StringHelper::UInt64ToString(uint64_t value)
-{
-	wchar_t temp[32] = {0};
-	int pos = 0;
-	do {
-		temp[pos++] = (wchar_t)(L'0' + (int)(value % 10));
-		value /= 10;
-	} while (value != 0);
-
-	std::wstring str;
-	do {
-		str += temp[--pos];
-	} while (pos > 0);
-	return str;
-}
-
-std::wstring StringHelper::UInt32ToString(uint32_t value)
-{
-	return UInt64ToString(value);
 }
 
 } // namespace nbase

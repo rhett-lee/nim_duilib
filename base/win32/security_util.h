@@ -1,4 +1,4 @@
-// utilities for security associated operations
+﻿// utilities for security associated operations
 
 #ifndef BASE_WIN32_SECURITY_UTIL_H_
 #define BASE_WIN32_SECURITY_UTIL_H_

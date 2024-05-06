@@ -40,10 +40,10 @@ ui::Control* CefForm::CreateControl(const std::wstring& pstrClass)
 	return NULL;
 }
 
-void CefForm::OnInitWindow()
+void CefForm::InitWindow()
 {
 	// 监听鼠标单击事件
-	GetRoot()->AttachBubbledEvent(ui::kEventClick, nbase::Bind(&CefForm::OnClicked, this, std::placeholders::_1));
+	m_pRoot->AttachBubbledEvent(ui::kEventClick, nbase::Bind(&CefForm::OnClicked, this, std::placeholders::_1));
 
 	// 从 XML 中查找指定控件
 	cef_control_		= dynamic_cast<nim_comp::CefControlBase*>(FindControl(L"cef_control"));
@@ -65,18 +65,18 @@ void CefForm::OnInitWindow()
 	cef_control_->LoadURL(nbase::win32::GetCurrentModuleDirectory() + L"resources\\themes\\default\\cef\\cef.html");
 
 	if (!nim_comp::CefManager::GetInstance()->IsEnableOffsetRender())
-		cef_control_dev_->SetFadeVisible(false);
+		cef_control_dev_->SetVisible(false);
 }
 
-LRESULT CefForm::OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+LRESULT CefForm::OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
 	nim_comp::CefManager::GetInstance()->PostQuitMessage(0L);
 	return __super::OnClose(uMsg, wParam, lParam, bHandled);
 }
 
-bool CefForm::OnClicked(const ui::EventArgs& msg)
+bool CefForm::OnClicked(ui::EventArgs* msg)
 {
-	std::wstring name = msg.pSender->GetName();
+	std::wstring name = msg->pSender->GetName();
 
 	if (name == L"btn_dev_tool")
 	{
@@ -91,7 +91,7 @@ bool CefForm::OnClicked(const ui::EventArgs& msg)
 
 		if (nim_comp::CefManager::GetInstance()->IsEnableOffsetRender())
 		{
-			cef_control_dev_->SetFadeVisible(cef_control_->IsAttachedDevTools());
+			cef_control_dev_->SetVisible(cef_control_->IsAttachedDevTools());
 		}
 	}
 	else if (name == L"btn_back")
@@ -104,8 +104,7 @@ bool CefForm::OnClicked(const ui::EventArgs& msg)
 	}
 	else if (name == L"btn_navigate")
 	{
-		ui::EventArgs emptyMsg;
-		OnNavigate(emptyMsg);
+		OnNavigate(nullptr);
 	}
 	else if (name == L"btn_refresh")
 	{
@@ -115,7 +114,7 @@ bool CefForm::OnClicked(const ui::EventArgs& msg)
 	return true;
 }
 
-bool CefForm::OnNavigate(const ui::EventArgs& /*msg*/)
+bool CefForm::OnNavigate(ui::EventArgs* msg)
 {
 	if (!edit_url_->GetText().empty())
 	{

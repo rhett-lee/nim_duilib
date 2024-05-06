@@ -1,4 +1,4 @@
-// basic.cpp : ¶¨ÒåÓ¦ÓÃ³ÌĞòµÄÈë¿Úµã¡£
+ï»¿// basic.cpp : å®šä¹‰åº”ç”¨ç¨‹åºçš„å…¥å£ç‚¹ã€‚
 //
 
 #include "stdafx.h"
@@ -18,10 +18,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	UNREFERENCED_PARAMETER(hPrevInstance);
 	UNREFERENCED_PARAMETER(lpCmdLine);
 
-	// ´´½¨Ö÷Ïß³Ì
+	// åˆ›å»ºä¸»çº¿ç¨‹
 	MainThread thread;
 
-	// Ö´ĞĞÖ÷Ïß³ÌÑ­»·
+	// æ‰§è¡Œä¸»çº¿ç¨‹å¾ªç¯
 	thread.RunOnCurrentThreadWithLoop(nbase::MessageLoop::kUIMessageLoop);
 
 	return 0;
@@ -31,26 +31,23 @@ void MainThread::Init()
 {
 	nbase::ThreadManager::RegisterThread(kThreadUI);
 
-	//¿ªÆôDPI×ÔÊÊÓ¦¹¦ÄÜ
-	bool bAdaptDpi = true;
-
-	// »ñÈ¡×ÊÔ´Â·¾¶£¬³õÊ¼»¯È«¾Ö²ÎÊı
-	// Ä¬ÈÏÆ¤·ôÊ¹ÓÃ resources\\themes\\default
-	// Ä¬ÈÏÓïÑÔÊ¹ÓÃ resources\\lang\\zh_CN
-	// ÈçĞèĞŞ¸ÄÇëÖ¸¶¨ Startup ×îºóÁ½¸ö²ÎÊı
+	// è·å–èµ„æºè·¯å¾„ï¼Œåˆå§‹åŒ–å…¨å±€å‚æ•°
+	// é»˜è®¤çš®è‚¤ä½¿ç”¨ resources\\themes\\default
+	// é»˜è®¤è¯­è¨€ä½¿ç”¨ resources\\lang\\zh_CN
+	// å¦‚éœ€ä¿®æ”¹è¯·æŒ‡å®š Startup æœ€åä¸¤ä¸ªå‚æ•°
 	std::wstring theme_dir = nbase::win32::GetCurrentModuleDirectory();
-	ui::GlobalManager::Instance().Startup(theme_dir + L"resources\\", ui::CreateControlCallback(), bAdaptDpi);
+	ui::GlobalManager::Startup(theme_dir + L"resources\\", ui::CreateControlCallback(), false);
 
-	// Ò»¸ö·ÂÎ¢ĞÅµÄ²¼¾ÖÊ¾Àı
+	// ä¸€ä¸ªä»¿å¾®ä¿¡çš„å¸ƒå±€ç¤ºä¾‹
 	LayoutsForm::ShowCustomWindow(L"basic_layout", L"layouts", L"wechat.xml");
 
-	// Ò»¸ö·ÂµÇÂ¼´°¿ÚµÄ²¼¾ÖÊ¾Àı
+	// ä¸€ä¸ªä»¿ç™»å½•çª—å£çš„å¸ƒå±€ç¤ºä¾‹
 	// LayoutsForm::ShowCustomWindow(L"login", L"layouts", L"login.xml");
 }
 
 void MainThread::Cleanup()
 {
-	ui::GlobalManager::Instance().Shutdown();
+	ui::GlobalManager::Shutdown();
 	SetThreadWasQuitProperly(true);
 	nbase::ThreadManager::UnregisterThread();
 }

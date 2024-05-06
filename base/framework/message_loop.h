@@ -1,4 +1,4 @@
-// This file trys to implement a cross flatform message loop,
+ï»¿// This file trys to implement a cross flatform message loop,
 // the mechanism of which is from the Google Chrome project.
 
 #ifndef BASE_FRAMEWORK_MESSAGE_LOOP_H_
@@ -23,13 +23,13 @@
 namespace nbase
 {
 
-// Ò»¸öÏß³Ì×î¶àÖ»ÄÜÊ¹ÓÃÒ»¸öMessageLoop¡£
-// MessageLoopÓÃÓÚ´¦ÀíTask£¬Í¬Ê±£¬¸ù¾İÀàĞÍµÄ²»Í¬£¬MessageLoop»¹¿ÉÄÜ´¦ÀíWindowsÏûÏ¢¡¢¶¨Ê±Æ÷¡¢IOÊÂ¼şµÈ
-// ³ı·ÇÌØ±ğËµÃ÷£¬MessageLoopÀàËùÓĞµÄ³ÉÔ±º¯Êı¶¼Ö»ÔÊĞíÔÚÖ´ĞĞMessageLoopµÄÏß³ÌÉÏµ÷ÓÃ
+// ä¸€ä¸ªçº¿ç¨‹æœ€å¤šåªèƒ½ä½¿ç”¨ä¸€ä¸ªMessageLoopã€‚
+// MessageLoopç”¨äºå¤„ç†Taskï¼ŒåŒæ—¶ï¼Œæ ¹æ®ç±»å‹çš„ä¸åŒï¼ŒMessageLoopè¿˜å¯èƒ½å¤„ç†Windowsæ¶ˆæ¯ã€å®šæ—¶å™¨ã€IOäº‹ä»¶ç­‰
+// é™¤éç‰¹åˆ«è¯´æ˜ï¼ŒMessageLoopç±»æ‰€æœ‰çš„æˆå‘˜å‡½æ•°éƒ½åªå…è®¸åœ¨æ‰§è¡ŒMessageLoopçš„çº¿ç¨‹ä¸Šè°ƒç”¨
 //
-// MessageLoopÓĞTaskÖØÈë±£»¤£¬Ò²¾ÍÊÇËµÔÚÒ»¸öTaskÖ´ĞĞ¹ı³ÌÖĞÉú³ÉÁËµÚ¶ş¸öTask£¬
-// ÄÇÃ´µÚ¶ş¸öTask½«ÔÚµÚÒ»¸öTaskÖ´ĞĞÍê³ÉÖ®ºó²Å»á±»Ö´ĞĞ£¬ÒòÎªµÚ¶ş¸öTaskÄÜÒ²»áÉú³ÉÒ»¸öMessagePump¡£
-// Òª´òÆÆÕâ¸öĞĞÎª£¬ĞèÒªÊ¹ÓÃSetNestableTasksAllowed·½·¨£¬Ïê¼ûÕâ¸ö·½·¨µÄËµÃ÷
+// MessageLoopæœ‰Taské‡å…¥ä¿æŠ¤ï¼Œä¹Ÿå°±æ˜¯è¯´åœ¨ä¸€ä¸ªTaskæ‰§è¡Œè¿‡ç¨‹ä¸­ç”Ÿæˆäº†ç¬¬äºŒä¸ªTaskï¼Œ
+// é‚£ä¹ˆç¬¬äºŒä¸ªTaskå°†åœ¨ç¬¬ä¸€ä¸ªTaskæ‰§è¡Œå®Œæˆä¹‹åæ‰ä¼šè¢«æ‰§è¡Œï¼Œå› ä¸ºç¬¬äºŒä¸ªTaskèƒ½ä¹Ÿä¼šç”Ÿæˆä¸€ä¸ªMessagePumpã€‚
+// è¦æ‰“ç ´è¿™ä¸ªè¡Œä¸ºï¼Œéœ€è¦ä½¿ç”¨SetNestableTasksAllowedæ–¹æ³•ï¼Œè¯¦è§è¿™ä¸ªæ–¹æ³•çš„è¯´æ˜
 
 class UIMessageLoop;
 class IOMessageLoop;
@@ -63,8 +63,8 @@ public:
 	static MessageLoop* current();
 
 #if defined(OS_WIN)
-	// ×ª»»³É¶ÔÓ¦ÅÉÉúÀàĞÍµÄMessageLoopÖ¸Õë
-	// Èç¹ûÔ­Ö¸Õë·Ç¶ÔÓ¦ÀàĞÍµÄÖ¸Õë£¬½«·µ»ØNULL
+	// è½¬æ¢æˆå¯¹åº”æ´¾ç”Ÿç±»å‹çš„MessageLoopæŒ‡é’ˆ
+	// å¦‚æœåŸæŒ‡é’ˆéå¯¹åº”ç±»å‹çš„æŒ‡é’ˆï¼Œå°†è¿”å›NULL
 	UIMessageLoop* ToUIMessageLoop();
 	IOMessageLoop* ToIOMessageLoop();
 #elif defined(OS_POSIX)
@@ -75,61 +75,61 @@ public:
 
 	Type type() const { return type_; }
 
-	// ÔËĞĞMessageLoop
+	// è¿è¡ŒMessageLoop
 	void Run();
 #if defined(OS_WIN)
 	void RunWithDispatcher(Dispatcher *dispatcher);
 #endif
 
-	// ´¦ÀíËùÓĞ´ı´¦ÀíµÄTask¡¢WindowsÏûÏ¢¡¢IOÊÂ¼şµÈµÈ£¬µ«ÊÇ½øĞĞWait/Sleep¡£
-	// µ±ËùÓĞ´ı´¦ÀíµÄTask±»´¦ÀíÍê³Éºó£¬Á¢¼´´Ó¶ÔÕâ¸ö·½·¨µÄµ÷ÓÃ·µ»Ø
+	// å¤„ç†æ‰€æœ‰å¾…å¤„ç†çš„Taskã€Windowsæ¶ˆæ¯ã€IOäº‹ä»¶ç­‰ç­‰ï¼Œä½†æ˜¯è¿›è¡ŒWait/Sleepã€‚
+	// å½“æ‰€æœ‰å¾…å¤„ç†çš„Taskè¢«å¤„ç†å®Œæˆåï¼Œç«‹å³ä»å¯¹è¿™ä¸ªæ–¹æ³•çš„è°ƒç”¨è¿”å›
 	void RunAllPending();
 
-	// Í¨ÖªMessageLoopÔÚ´¦ÀíËùÓĞ´ı´¦ÀíÈÎÎñÖ®ºó´ÓRun·½·¨ÖĞ·µ»Ø¡£
-	// Õâ¸ö·½·¨Ö»ÄÜÔÚµ÷ÓÃRun·½·¨µÄÄÇ¸öÏß³ÌÖĞ±»µ÷ÓÃ
-	// ÒªÍË³öÆäËûÏß³ÌµÄMessageLoop£¬ĞèÒªÊ¹ÓÃPostTask×åº¯ÊıÍ¶µİÒ»¸öQuitTask£¨¼ûÏÂÃæ£©
+	// é€šçŸ¥MessageLoopåœ¨å¤„ç†æ‰€æœ‰å¾…å¤„ç†ä»»åŠ¡ä¹‹åä»Runæ–¹æ³•ä¸­è¿”å›ã€‚
+	// è¿™ä¸ªæ–¹æ³•åªèƒ½åœ¨è°ƒç”¨Runæ–¹æ³•çš„é‚£ä¸ªçº¿ç¨‹ä¸­è¢«è°ƒç”¨
+	// è¦é€€å‡ºå…¶ä»–çº¿ç¨‹çš„MessageLoopï¼Œéœ€è¦ä½¿ç”¨PostTaskæ—å‡½æ•°æŠ•é€’ä¸€ä¸ªQuitTaskï¼ˆè§ä¸‹é¢ï¼‰
 	void Quit();
 
-	// Quit·½·¨µÄ±äÌå£¬ÓÃÓÚÁ¢¼´´ÓRun·µ»Ø¶ø²»´¦ÀíÈÎºÎ´ı´¦ÀíµÄTask
+	// Quitæ–¹æ³•çš„å˜ä½“ï¼Œç”¨äºç«‹å³ä»Runè¿”å›è€Œä¸å¤„ç†ä»»ä½•å¾…å¤„ç†çš„Task
 	void QuitNow();
 
-	// PostTask×åº¯Êı¶¼ÓÃÓÚ¸øMessageLoopÌí¼ÓÒì²½Ö´ĞĞµÄÈÎÎñ£º
+	// PostTaskæ—å‡½æ•°éƒ½ç”¨äºç»™MessageLoopæ·»åŠ å¼‚æ­¥æ‰§è¡Œçš„ä»»åŠ¡ï¼š
 	//
-	// - PostTaskÓÃÓÚÌí¼ÓÆÕÍ¨µÄÇ¶Ì×ÈÎÎñ
-	// - PostDelayedTaskÓÃÓÚÌí¼Ó¶¨Ê±ÈÎÎñ£¬ÊÊºÏÒ»Ğ©ĞèÒª±»ÑÓºóÖ¸¶¨Ê±¼äÖ´ĞĞµÄÇ¶Ì×ÈÎÎñ
-	// - PostNonNestableTaskÓÃÓÚÌí¼Ó·ÇÇ¶Ì×Ö´ĞĞµÄÈÎÎñ£¬ÕâÀàÈÎÎñÖ»ÔÚ×î¶¥²ãµÄMessageLoopµÄRun·½·¨ÖĞ±»Ö´ĞĞµÄÈÎÎñ¡£
-	//   ÔÚÇ¶Ì×µÄMessageLoopÖĞPostNonNestableTask£¬ÄÇÃ´ÕâĞ©±»PostµÄTask½«±»Ôİ´æ¡£
-	// - PostNonNestableDelayedTaskÓÃÓÚÌí¼Ó·ÇÇ¶Ì×µÄ¶¨Ê±ÈÎÎñ£¬ÕâÀàÈÎÎñÖ»ÔÚÌØ¶¨Ê±¼äÔÚ×î¶¥²ãµÄMessageLoopµÄRun·½·¨
-	//   ÖĞ±»Ö´ĞĞµÄÈÎÎñ£¬Ëü²»»áÔÚÇ¶Ì×µÄMessageLoopÖĞ£¬ÊÊºÏĞèÒª±»ÑÓºóÖ¸¶¨Ê±¼äÖ´ĞĞµÄ·ÇÇ¶Ì×ÈÎÎñ
+	// - PostTaskç”¨äºæ·»åŠ æ™®é€šçš„åµŒå¥—ä»»åŠ¡
+	// - PostDelayedTaskç”¨äºæ·»åŠ å®šæ—¶ä»»åŠ¡ï¼Œé€‚åˆä¸€äº›éœ€è¦è¢«å»¶åæŒ‡å®šæ—¶é—´æ‰§è¡Œçš„åµŒå¥—ä»»åŠ¡
+	// - PostNonNestableTaskç”¨äºæ·»åŠ éåµŒå¥—æ‰§è¡Œçš„ä»»åŠ¡ï¼Œè¿™ç±»ä»»åŠ¡åªåœ¨æœ€é¡¶å±‚çš„MessageLoopçš„Runæ–¹æ³•ä¸­è¢«æ‰§è¡Œçš„ä»»åŠ¡ã€‚
+	//   åœ¨åµŒå¥—çš„MessageLoopä¸­PostNonNestableTaskï¼Œé‚£ä¹ˆè¿™äº›è¢«Postçš„Taskå°†è¢«æš‚å­˜ã€‚
+	// - PostNonNestableDelayedTaskç”¨äºæ·»åŠ éåµŒå¥—çš„å®šæ—¶ä»»åŠ¡ï¼Œè¿™ç±»ä»»åŠ¡åªåœ¨ç‰¹å®šæ—¶é—´åœ¨æœ€é¡¶å±‚çš„MessageLoopçš„Runæ–¹æ³•
+	//   ä¸­è¢«æ‰§è¡Œçš„ä»»åŠ¡ï¼Œå®ƒä¸ä¼šåœ¨åµŒå¥—çš„MessageLoopä¸­ï¼Œé€‚åˆéœ€è¦è¢«å»¶åæŒ‡å®šæ—¶é—´æ‰§è¡Œçš„éåµŒå¥—ä»»åŠ¡
 	//
-	// PostTask×åº¯Êı¾ùÏß³Ì°²È«£¬Ò»¸öÏß³Ì¿ÉÒÔÊ¹ÓÃÕâĞ©·½·¨¸øÆäËûÏß³Ì·¢ËÍÈÎÎñ
+	// PostTaskæ—å‡½æ•°å‡çº¿ç¨‹å®‰å…¨ï¼Œä¸€ä¸ªçº¿ç¨‹å¯ä»¥ä½¿ç”¨è¿™äº›æ–¹æ³•ç»™å…¶ä»–çº¿ç¨‹å‘é€ä»»åŠ¡
 	//
-	// ×¢Òâ£ºÒ»¸öÈÎÎñ±»Postµ½MessageLoopÖ®ºó£¬ÆäÉúÃüÖÜÆÚ½«ÓÉÕâ¸öMessageLoopËùÔÚµÄÏß³Ì¿ØÖÆ
+	// æ³¨æ„ï¼šä¸€ä¸ªä»»åŠ¡è¢«Poståˆ°MessageLoopä¹‹åï¼Œå…¶ç”Ÿå‘½å‘¨æœŸå°†ç”±è¿™ä¸ªMessageLoopæ‰€åœ¨çš„çº¿ç¨‹æ§åˆ¶
 	void PostTask(const StdClosure &task);
 	void PostDelayedTask(const StdClosure &task, TimeDelta delay);
 	void PostNonNestableTask(const StdClosure &task);
 	void PostNonNestableDelayedTask(const StdClosure &task, TimeDelta delay);
 
-	// SetNestableTasksAllowedÓÃÓÚÆôÓÃ»òÕß½ûÓÃÇ¶Ì×ÈÎÎñ´¦Àí
-	// Èç¹ûÆôÓÃÇ¶Ì×ÈÎÎñ£¬ÄÇÃ´Task½«±»Á¢¼´Ö´ĞĞ£¬·ñÔò½«ÏÈ±»Ôİ´æÔÚÒ»¸ö¶ÓÁĞÖĞÖ±µ½ÉÏ²ãÈÎÎñÖ´ĞĞÍê³ÉÔÙÖ´ĞĞ
-	// µäĞÍµÄ³¡¾°£º
-	// - Ïß³ÌÆô¶¯ÁËÒ»¸öMessageLoop
-	// - Ïß³ÌÊÕµ½ÁËÒ»¸öTask£¬Task #1
-	// - Task #1Ö´ĞĞ¹ı³ÌÖĞµ¯³öÁËÒ»¸öMessageBox´Ó¶øÒşÊ½µØ½øÈëÁíÒ»¸öMessageLoop£¬¼´MessageBoxÏûÏ¢Ñ­»·¡£
-	// - ÔÚMessageBoxµÄMessageLoopÉĞÎ´½áÊøÇ°£¬Ïß³ÌÓÖÊÕµ½ÁËÁíÒ»¸öTask£¬Task #2
-	// - Èç¹û´ËÊ±Ç¶Ì×ÈÎÎñ´¦Àí±»ÆôÓÃ£¬ÄÇÃ´Task #2½«Á¢¼´±»Ö´ĞĞ£¨²»¹ÜTask #1ÊÇ·ñÒÑ¾­½áÊø£©£¬
-	//   ·ñÔò£¬Task #2½«ÔÚTask #1±»Ö´ĞĞÍê³ÉºóÔÙÔÚÏß³ÌµÄMessageLoopÖĞÖ´ĞĞ¡£
+	// SetNestableTasksAllowedç”¨äºå¯ç”¨æˆ–è€…ç¦ç”¨åµŒå¥—ä»»åŠ¡å¤„ç†
+	// å¦‚æœå¯ç”¨åµŒå¥—ä»»åŠ¡ï¼Œé‚£ä¹ˆTaskå°†è¢«ç«‹å³æ‰§è¡Œï¼Œå¦åˆ™å°†å…ˆè¢«æš‚å­˜åœ¨ä¸€ä¸ªé˜Ÿåˆ—ä¸­ç›´åˆ°ä¸Šå±‚ä»»åŠ¡æ‰§è¡Œå®Œæˆå†æ‰§è¡Œ
+	// å…¸å‹çš„åœºæ™¯ï¼š
+	// - çº¿ç¨‹å¯åŠ¨äº†ä¸€ä¸ªMessageLoop
+	// - çº¿ç¨‹æ”¶åˆ°äº†ä¸€ä¸ªTaskï¼ŒTask #1
+	// - Task #1æ‰§è¡Œè¿‡ç¨‹ä¸­å¼¹å‡ºäº†ä¸€ä¸ªMessageBoxä»è€Œéšå¼åœ°è¿›å…¥å¦ä¸€ä¸ªMessageLoopï¼Œå³MessageBoxæ¶ˆæ¯å¾ªç¯ã€‚
+	// - åœ¨MessageBoxçš„MessageLoopå°šæœªç»“æŸå‰ï¼Œçº¿ç¨‹åˆæ”¶åˆ°äº†å¦ä¸€ä¸ªTaskï¼ŒTask #2
+	// - å¦‚æœæ­¤æ—¶åµŒå¥—ä»»åŠ¡å¤„ç†è¢«å¯ç”¨ï¼Œé‚£ä¹ˆTask #2å°†ç«‹å³è¢«æ‰§è¡Œï¼ˆä¸ç®¡Task #1æ˜¯å¦å·²ç»ç»“æŸï¼‰ï¼Œ
+	//   å¦åˆ™ï¼ŒTask #2å°†åœ¨Task #1è¢«æ‰§è¡Œå®Œæˆåå†åœ¨çº¿ç¨‹çš„MessageLoopä¸­æ‰§è¡Œã€‚
 	void SetNestableTasksAllowed(bool allowed);
 	bool IsNestableTasksAllowed() const { return nestable_tasks_allowed_; }
 	bool IsNested() const { if (state_) return state_->run_depth > 1; return false; }
 
-	// MessageLoopProxyÌá¹©¿çÏß³Ì°²È«·ÃÎÊMessageLoopµÄ»úÖÆ£¬
-	// ËùÓĞ·ÇÏß³ÌÄÚµÄPostTask×åº¯Êı±ØĞëÍ¨¹ıMessageLoopProxyµ÷ÓÃ
+	// MessageLoopProxyæä¾›è·¨çº¿ç¨‹å®‰å…¨è®¿é—®MessageLoopçš„æœºåˆ¶ï¼Œ
+	// æ‰€æœ‰éçº¿ç¨‹å†…çš„PostTaskæ—å‡½æ•°å¿…é¡»é€šè¿‡MessageLoopProxyè°ƒç”¨
 	std::shared_ptr<MessageLoopProxy> message_loop_proxy() {
 		return message_loop_proxy_;
 	}
 
-	// MessageLoopÏú»Ù¹Û²ìÕß£¬MessageLoopÏú»ÙÇ°½«»áÍ¨ÖªÕâĞ©¹Û²ìÕß
+	// MessageLoopé”€æ¯è§‚å¯Ÿè€…ï¼ŒMessageLoopé”€æ¯å‰å°†ä¼šé€šçŸ¥è¿™äº›è§‚å¯Ÿè€…
 	class BASE_EXPORT DestructionObserver
 	{
 	public:
@@ -140,7 +140,7 @@ public:
 	void AddDestructionObserver(DestructionObserver *observer);
 	void RemoveDestructionObserver(DestructionObserver *observer);
 
-	// ÈÎÎñ¹Û²ìÕß£¬Ã¿¸öÈÎÎñ±»´¦ÀíÇ°ºÍ´¦Àíºó¾ù»áÍ¨ÖªÕâĞ©¹Û²ìÕß
+	// ä»»åŠ¡è§‚å¯Ÿè€…ï¼Œæ¯ä¸ªä»»åŠ¡è¢«å¤„ç†å‰å’Œå¤„ç†åå‡ä¼šé€šçŸ¥è¿™äº›è§‚å¯Ÿè€…
 	class BASE_EXPORT TaskObserver
 	{
 	public:
@@ -204,14 +204,14 @@ protected:
 
 		~PendingTask();
 
-		// ÓÃÓÚÓÅÏÈ¶ÓÁĞµÄÅÅĞò£¬std::heapÄ¬ÈÏÎª´ó¶¥¶Ñ£¬
-		// ¶øÎÒÃÇÒªµÄÊÇĞ¡¶¥¶Ñ£¬ËùÒÔÕâ¸ö²Ù×÷·ûÖØÔØÊµ¼ÊµÃ·µ»Ø´óÓÚµÄ±È½Ï½á¹û
+		// ç”¨äºä¼˜å…ˆé˜Ÿåˆ—çš„æ’åºï¼Œstd::heapé»˜è®¤ä¸ºå¤§é¡¶å †ï¼Œ
+		// è€Œæˆ‘ä»¬è¦çš„æ˜¯å°é¡¶å †ï¼Œæ‰€ä»¥è¿™ä¸ªæ“ä½œç¬¦é‡è½½å®é™…å¾—è¿”å›å¤§äºçš„æ¯”è¾ƒç»“æœ
 		bool operator<(const PendingTask& other) const;
-		// ÈÎÎñ±»ÔËĞĞµÄÊ±¿Ì£¬Õâ¸öÒ²ÓÃÓÚ¼ø±ğ¶¨Ê±ÈÎÎñÓë·Ç¶¨Ê±ÈÎÎñ
+		// ä»»åŠ¡è¢«è¿è¡Œçš„æ—¶åˆ»ï¼Œè¿™ä¸ªä¹Ÿç”¨äºé‰´åˆ«å®šæ—¶ä»»åŠ¡ä¸éå®šæ—¶ä»»åŠ¡
 		nbase::TimeTicks delayed_run_time;
-		// ¶¨Ê±ÈÎÎñĞòºÅ£¬¿É×÷Îª¶¨Ê±ÈÎÎñµÄµÚ¶şÅÅĞò¼ü£¬·Ç¶¨Ê±ÈÎÎñ´ËÏîÎŞĞ§
+		// å®šæ—¶ä»»åŠ¡åºå·ï¼Œå¯ä½œä¸ºå®šæ—¶ä»»åŠ¡çš„ç¬¬äºŒæ’åºé”®ï¼Œéå®šæ—¶ä»»åŠ¡æ­¤é¡¹æ— æ•ˆ
 		int sequence_num;
-		// ÊÇ·ñÔÊĞíÔÚÇ¶Ì×µÄMessageLoopÖĞ±»Ö´ĞĞ
+		// æ˜¯å¦å…è®¸åœ¨åµŒå¥—çš„MessageLoopä¸­è¢«æ‰§è¡Œ
 		bool nestable;
 
 		void Run()
@@ -233,7 +233,7 @@ protected:
 	public:
 		void Swap(TaskQueue* queue)
 		{
-			c.swap(queue->c);  // ³£ÊıÊ±¼ä¸´ÔÓ¶ÈµÄÄÚ´æ½»»»
+			c.swap(queue->c);  // å¸¸æ•°æ—¶é—´å¤æ‚åº¦çš„å†…å­˜äº¤æ¢
 		}
 	};
 
@@ -245,7 +245,7 @@ protected:
 
 	void RunInternal();
 
-	// AddToIncomingQueueº¯ÊıÏß³Ì°²È«£¬ÆäÓà¾ùÎª²»Ïß³Ì°²È«
+	// AddToIncomingQueueå‡½æ•°çº¿ç¨‹å®‰å…¨ï¼Œå…¶ä½™å‡ä¸ºä¸çº¿ç¨‹å®‰å…¨
 	virtual void AddToIncomingQueue(const PendingTask &task);
 	void AddToDelayedWorkQueue(const PendingTask &task);
 	void ReloadWorkQueue();
@@ -260,42 +260,42 @@ protected:
 
 	static TimeTicks EvalDelayedRuntime(int64_t delay_ms);
 
-	// MessageLoopÀàĞÍ
+	// MessageLoopç±»å‹
 	Type type_;
-	// ÔËĞĞ×´Ì¬
+	// è¿è¡ŒçŠ¶æ€
 	RunState *state_;
-	// ÏûÏ¢±Ã
+	// æ¶ˆæ¯æ³µ
 	std::shared_ptr<MessagePump> pump_;
 
 #if defined(OS_WIN)
-	// OSÊÇ·ñ´¦ÓÚÄ£Ì¬Ñ­»·ÖĞ£¬±ÈÈçµ÷ÓÃÁËMessageBoxÖ®ºóÏûÏ¢Ñ­»·±»OS½Ó¹Ü£¬ÕâÑù¾Í´¦ÓÚOSÄ£Ì¬Ñ­»·ÖĞ
+	// OSæ˜¯å¦å¤„äºæ¨¡æ€å¾ªç¯ä¸­ï¼Œæ¯”å¦‚è°ƒç”¨äº†MessageBoxä¹‹åæ¶ˆæ¯å¾ªç¯è¢«OSæ¥ç®¡ï¼Œè¿™æ ·å°±å¤„äºOSæ¨¡æ€å¾ªç¯ä¸­
 	bool os_modal_loop_;
 #endif // OS_WIN
 
-	// ÊÇ·ñÔÊĞíÇ¶Ì×ÈÎÎñ
+	// æ˜¯å¦å…è®¸åµŒå¥—ä»»åŠ¡
 	bool nestable_tasks_allowed_;
-	// ÈÎÎñÊäÈë¶ÓÁĞ£¬ÈÎºÎ¾­¹ıPost×åº¯Êı¼ÓÈëµÄÈÎÎñ¶¼Ê×ÏÈ½øÈë¸Ã¶ÓÁĞ£¬Ö®ºóÓÉÔËĞĞRunµÄÏß³Ì·ÖÅäµ½¸÷¸ö×¨Ö°¶ÓÁĞ
+	// ä»»åŠ¡è¾“å…¥é˜Ÿåˆ—ï¼Œä»»ä½•ç»è¿‡Postæ—å‡½æ•°åŠ å…¥çš„ä»»åŠ¡éƒ½é¦–å…ˆè¿›å…¥è¯¥é˜Ÿåˆ—ï¼Œä¹‹åç”±è¿è¡ŒRunçš„çº¿ç¨‹åˆ†é…åˆ°å„ä¸ªä¸“èŒé˜Ÿåˆ—
 	TaskQueue incoming_queue_;
-	// ÊäÈë¶ÓÁĞËø
+	// è¾“å…¥é˜Ÿåˆ—é”
 	NLock incoming_queue_lock_;
 
-	// Õâ¸ö¹¤×÷¶ÓÁĞµÄÉè¼ÆÊÇÎªÁË×î´óÏŞ¶È¼õÉÙ¶ÔÊäÈë¶ÓÁĞµÄ¼ÓËø²Ù×÷¡£
-	// ÕâÖÖ¹ØÏµÀàËÆÓÚË«»º´æÉè¼Æ£¬ÊäÈë¶ÓÁĞÔİ´æ±¾Ïß³ÌºÍÆäËûÏß³ÌÍ¶µİ¹ıÀ´µÄÈÎÎñ£¬
-	// ¹¤×÷¶ÓÁĞÔò½ö½ö±»ÔËĞĞRun·½·¨µÄÏß³Ì²Ù×÷£¬Ö»ÓĞÏß³Ì¼ì²éµ½¹¤×÷¶ÓÁĞÎª¿Õ²Å»áÈ¥ÊäÈë¶ÓÁĞÀ­ÈÎÎñ·Åµ½¹¤×÷¶ÓÁĞÈ»ºóÖğ¸öÔËĞĞ¡£
-	// ÕâÀï²ÉÓÃÁË½»»»ÄÚ´æµÄ·½·¨À´Ìá¸ßÀ­ÈÎÎñµÄĞ§ÂÊ£¬Ò²¾ÍÊÇËµÀ­ÈÎÎñµÄ²Ù×÷ÆäÊµ²»ÊÇÒ»¸öÒ»¸ö´ÓÊäÈë¶ÓÁĞÖĞÒÆ¶¯ÈÎÎñÀ´Íê³ÉµÄ£¬
-	// ¶øÊÇÖ±½Ó½»»»Ë«·½µÄÄÚ´æ£¬ÕâÑù½»»»ºóÊäÈë¶ÓÁĞË²Ê±±ä¿Õ£¬¶øÈÎÎñ¶ÓÁĞÔòÓµÓĞÁËÖ®Ç°ÊäÈë¶ÓÁĞËùÓĞµÄÊı¾İ¡£
+	// è¿™ä¸ªå·¥ä½œé˜Ÿåˆ—çš„è®¾è®¡æ˜¯ä¸ºäº†æœ€å¤§é™åº¦å‡å°‘å¯¹è¾“å…¥é˜Ÿåˆ—çš„åŠ é”æ“ä½œã€‚
+	// è¿™ç§å…³ç³»ç±»ä¼¼äºåŒç¼“å­˜è®¾è®¡ï¼Œè¾“å…¥é˜Ÿåˆ—æš‚å­˜æœ¬çº¿ç¨‹å’Œå…¶ä»–çº¿ç¨‹æŠ•é€’è¿‡æ¥çš„ä»»åŠ¡ï¼Œ
+	// å·¥ä½œé˜Ÿåˆ—åˆ™ä»…ä»…è¢«è¿è¡ŒRunæ–¹æ³•çš„çº¿ç¨‹æ“ä½œï¼Œåªæœ‰çº¿ç¨‹æ£€æŸ¥åˆ°å·¥ä½œé˜Ÿåˆ—ä¸ºç©ºæ‰ä¼šå»è¾“å…¥é˜Ÿåˆ—æ‹‰ä»»åŠ¡æ”¾åˆ°å·¥ä½œé˜Ÿåˆ—ç„¶åé€ä¸ªè¿è¡Œã€‚
+	// è¿™é‡Œé‡‡ç”¨äº†äº¤æ¢å†…å­˜çš„æ–¹æ³•æ¥æé«˜æ‹‰ä»»åŠ¡çš„æ•ˆç‡ï¼Œä¹Ÿå°±æ˜¯è¯´æ‹‰ä»»åŠ¡çš„æ“ä½œå…¶å®ä¸æ˜¯ä¸€ä¸ªä¸€ä¸ªä»è¾“å…¥é˜Ÿåˆ—ä¸­ç§»åŠ¨ä»»åŠ¡æ¥å®Œæˆçš„ï¼Œ
+	// è€Œæ˜¯ç›´æ¥äº¤æ¢åŒæ–¹çš„å†…å­˜ï¼Œè¿™æ ·äº¤æ¢åè¾“å…¥é˜Ÿåˆ—ç¬æ—¶å˜ç©ºï¼Œè€Œä»»åŠ¡é˜Ÿåˆ—åˆ™æ‹¥æœ‰äº†ä¹‹å‰è¾“å…¥é˜Ÿåˆ—æ‰€æœ‰çš„æ•°æ®ã€‚
 	TaskQueue work_queue_;
-	// MessageLoop´¦ÓÚÇ¶Ì×ÖĞÊ±£¬·ÇÇ¶Ì×ÈÎÎñ½«±»ÔİÊ±»º´æÔÚÕâ¸ö¶ÓÁĞ£¬µÈMessageLoop»Øµ½¶¥²ãµÄÊ±ºòÔÙÍ¨¹ıDoIdleWorkÖğ¸öÖ´ĞĞÖ®
+	// MessageLoopå¤„äºåµŒå¥—ä¸­æ—¶ï¼ŒéåµŒå¥—ä»»åŠ¡å°†è¢«æš‚æ—¶ç¼“å­˜åœ¨è¿™ä¸ªé˜Ÿåˆ—ï¼Œç­‰MessageLoopå›åˆ°é¡¶å±‚çš„æ—¶å€™å†é€šè¿‡DoIdleWorké€ä¸ªæ‰§è¡Œä¹‹
 	TaskQueue deferred_non_nestable_work_queue_;
-	// ¶¨Ê±ÈÎÎñ¶ÓÁĞ£¨Ç¶Ì×ºÍ·ÇÇ¶Ì×£©
+	// å®šæ—¶ä»»åŠ¡é˜Ÿåˆ—ï¼ˆåµŒå¥—å’ŒéåµŒå¥—ï¼‰
 	DelayedTaskQueue delayed_work_queue_;
-	// ÏÂÒ»¸ö¶¨Ê±ÈÎÎñµÄĞòÁĞºÅ
+	// ä¸‹ä¸€ä¸ªå®šæ—¶ä»»åŠ¡çš„åºåˆ—å·
 	int next_delayed_task_sequence_num_;
-	// ×î½üÒ»´Îµ÷ÓÃTimeTicks::Now·½·¨µÄÊ±¼ä
+	// æœ€è¿‘ä¸€æ¬¡è°ƒç”¨TimeTicks::Nowæ–¹æ³•çš„æ—¶é—´
 	TimeTicks recent_tick_;
-	// ÈÎÎñ¹Û²ìÕßÁĞ±í
+	// ä»»åŠ¡è§‚å¯Ÿè€…åˆ—è¡¨
 	ObserverList<TaskObserver> task_observers_;
-	// MessageLoopÏú»Ù¹Û²ìÕßÁĞ±í
+	// MessageLoopé”€æ¯è§‚å¯Ÿè€…åˆ—è¡¨
 	ObserverList<DestructionObserver> destruction_observers_;
 	// The message loop proxy associated with this message loop, if one exists.
 	std::shared_ptr<MessageLoopProxy> message_loop_proxy_;

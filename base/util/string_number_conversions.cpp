@@ -50,7 +50,7 @@ struct IntToStringT {
   struct TestNegT {};
   template <typename INT2>
   struct TestNegT<INT2, false> {
-    static bool TestNeg(INT2 /*value*/) {
+    static bool TestNeg(INT2 value) {
       // value is unsigned, and can never be negative.
       return false;
     }
@@ -105,7 +105,7 @@ template<typename CHAR, int BASE> class BaseCharToDigit<CHAR, BASE, true> {
  public:
   static bool Convert(CHAR c, uint8_t* digit) {
     if (c >= '0' && c < '0' + BASE) {
-      *digit = static_cast<uint8_t>(c - '0');
+      *digit = c - '0';
       return true;
     }
     return false;
@@ -218,10 +218,9 @@ class IteratorRangeToNumber {
 
       // Note: no performance difference was found when using template
       // specialization to remove this check in bases other than 16
-      if constexpr (traits::kBase == 16) {
-          if ((end - begin > 2) && (*begin == '0') && ((*(begin + 1) == 'x') || (*(begin + 1) == 'X'))) {
-              begin += 2;
-          }
+      if (traits::kBase == 16 && end - begin > 2 && *begin == '0' &&
+          (*(begin + 1) == 'x' || *(begin + 1) == 'X')) {
+        begin += 2;
       }
 
       for (const_iterator current = begin; current != end; ++current) {
@@ -247,10 +246,10 @@ class IteratorRangeToNumber {
   class Positive : public Base<Positive> {
    public:
     static bool CheckBounds(value_type* output, uint8_t new_digit) {
-      if (*output > static_cast<value_type>((traits::max)() / traits::kBase) ||
-          (*output == static_cast<value_type>((traits::max)() / traits::kBase) &&
-           new_digit > (traits::max)() % traits::kBase)) {
-        *output = (traits::max)();
+      if (*output > static_cast<value_type>(traits::max() / traits::kBase) ||
+          (*output == static_cast<value_type>(traits::max() / traits::kBase) &&
+           new_digit > traits::max() % traits::kBase)) {
+        *output = traits::max();
         return false;
       }
       return true;
@@ -263,10 +262,10 @@ class IteratorRangeToNumber {
   class Negative : public Base<Negative> {
    public:
     static bool CheckBounds(value_type* output, uint8_t new_digit) {
-      if (*output < (traits::min)() / traits::kBase ||
-          (*output == (traits::min)() / traits::kBase &&
-           new_digit > 0 - (traits::min)() % traits::kBase)) {
-        *output = (traits::min)();
+      if (*output < traits::min() / traits::kBase ||
+          (*output == traits::min() / traits::kBase &&
+           new_digit > 0 - traits::min() % traits::kBase)) {
+        *output = traits::min();
         return false;
       }
       return true;
@@ -282,11 +281,11 @@ class BaseIteratorRangeToNumberTraits {
  public:
   typedef ITERATOR iterator_type;
   typedef VALUE value_type;
-  static value_type (min)() {
-    return (std::numeric_limits<value_type>::min)();
+  static value_type min() {
+    return std::numeric_limits<value_type>::min();
   }
-  static value_type (max)() {
-    return (std::numeric_limits<value_type>::max)();
+  static value_type max() {
+    return std::numeric_limits<value_type>::max();
   }
   static const int kBase = BASE;
 };
@@ -296,8 +295,8 @@ class BaseHexIteratorRangeToIntTraits
     : public BaseIteratorRangeToNumberTraits<ITERATOR, int, 16> {
  public:
   // Allow parsing of 0xFFFFFFFF, which is technically an overflow
-  static unsigned int (max)() {
-    return (std::numeric_limits<unsigned int>::max)();
+  static unsigned int max() {
+    return std::numeric_limits<unsigned int>::max();
   }
 };
 
@@ -370,13 +369,13 @@ std::wstring Uint64ToString16(uint64_t value) {
 }
 
 std::string DoubleToString(double value) {
-    char buffer[64] = { 0 };
+  char buffer[64];
 #ifdef COMPILER_MSVC
-    _snprintf_s(buffer, sizeof(buffer), "%lf", value);
+  _snprintf(buffer, sizeof(buffer), "%lf", value);
 #else
-    snprintf(buffer, sizeof(buffer), "%lf", value);
+  snprintf(buffer, sizeof(buffer), "%lf", value);
 #endif
-    return std::string(buffer);
+  return std::string(buffer);
 }
 
 bool StringToInt(const std::string& input, int* output) {
@@ -422,7 +421,7 @@ bool StringToSizeT(const std::wstring& input, size_t* output) {
 bool StringToDouble(const std::string& input, double* output) {
 	if (input.empty() || !output)
 		return false;
-	if (sscanf_s(input.c_str(), "%lf", output) == 1)
+	if (sscanf(input.c_str(), "%lf", output) == 1)
 		return true;
 	return false;
 }

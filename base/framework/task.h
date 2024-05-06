@@ -1,4 +1,4 @@
-// This file defines all kinds of tasks
+ï»¿// This file defines all kinds of tasks
 
 #ifndef BASE_FRAMEWORK_TASK_H_
 #define BASE_FRAMEWORK_TASK_H_
@@ -10,11 +10,11 @@ namespace nbase
 {
 const size_t kDeadTask = 0xDEAD7A53;
 
-// TaskÓÃÓÚÈÃÄ³¸öMessageLoopÒì²½µØÍê³ÉÄ³Ïî¹¤×÷¡£
-// Task¶ÔÏó±¾ÉíÊÇÏß³Ì°²È«£¬Ò»¸öTask¿ÉÒÔÔÚÍ¬Ò»¸öÏß³ÌÖĞÉú³É²¢ÔËĞĞ£¬Ò²¿ÉÒÔÔÚÒ»¸öÏß³ÌÉú³ÉÔÚÁíÒ»¸öÏß³ÌÔËĞĞ£¬
-// ºóÕßµÄRunº¯Êı±àĞ´ĞèÒª×¢Òâ¿çÏß³ÌÔËĞĞµÄÎÊÌâ¡£
-// TaskÍ¨¹ıMessageLoopµÄPost×åº¯Êı±»¼ÓÈëµ½MessageLoopÖĞÔËĞĞ£¬
-// Ò»µ©±»¼ÓÈëµ½MessageLoopÖĞ£¬Éú³ÉTaskµÄÏß³Ì²»Ó¦¸ÃÔÙ¸ºÔğTaskµÄÏú»Ù¶ø¸ÄÓÉMessageLoopËùÔËĞĞµÄÏß³Ì¸ºÔğ¡£
+// Taskç”¨äºè®©æŸä¸ªMessageLoopå¼‚æ­¥åœ°å®ŒæˆæŸé¡¹å·¥ä½œã€‚
+// Taskå¯¹è±¡æœ¬èº«æ˜¯çº¿ç¨‹å®‰å…¨ï¼Œä¸€ä¸ªTaskå¯ä»¥åœ¨åŒä¸€ä¸ªçº¿ç¨‹ä¸­ç”Ÿæˆå¹¶è¿è¡Œï¼Œä¹Ÿå¯ä»¥åœ¨ä¸€ä¸ªçº¿ç¨‹ç”Ÿæˆåœ¨å¦ä¸€ä¸ªçº¿ç¨‹è¿è¡Œï¼Œ
+// åè€…çš„Runå‡½æ•°ç¼–å†™éœ€è¦æ³¨æ„è·¨çº¿ç¨‹è¿è¡Œçš„é—®é¢˜ã€‚
+// Taské€šè¿‡MessageLoopçš„Postæ—å‡½æ•°è¢«åŠ å…¥åˆ°MessageLoopä¸­è¿è¡Œï¼Œ
+// ä¸€æ—¦è¢«åŠ å…¥åˆ°MessageLoopä¸­ï¼Œç”ŸæˆTaskçš„çº¿ç¨‹ä¸åº”è¯¥å†è´Ÿè´£Taskçš„é”€æ¯è€Œæ”¹ç”±MessageLoopæ‰€è¿è¡Œçš„çº¿ç¨‹è´Ÿè´£ã€‚
 
 
 // RunnableMethodTraits --------------------------------------------------------

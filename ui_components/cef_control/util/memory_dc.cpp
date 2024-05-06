@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include "memory_dc.h"
  
 MemoryDC::MemoryDC() 

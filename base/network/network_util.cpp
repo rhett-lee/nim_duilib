@@ -1,4 +1,4 @@
-// Copyright (c) 2011, NetEase Inc. All rights reserved.
+ï»¿// Copyright (c) 2011, NetEase Inc. All rights reserved.
 //
 // Author: rl
 // Date: 2011/11/6
@@ -14,8 +14,6 @@
 #include <nb30.h>
 #include <snmp.h>
 #include <iphlpapi.h>
-#pragma warning (push)
-#pragma warning (disable: 4996)
 #else
 #include <net/if_dl.h>
 #if defined (OS_IOS) && !defined (IFT_ETHER)
@@ -33,7 +31,7 @@ bool GetIpAddressList(std::vector<uint32_t> &ip_addresses)
 {
     ip_addresses.clear();
     
-	char host_name[128] = {0};
+    char host_name[128];
     if (::gethostname(host_name, sizeof(host_name)) == 0)
     {
         struct hostent *host;
@@ -54,7 +52,7 @@ bool GetIpAddressList(std::vector<std::string> &ip_addresses)
 {
     ip_addresses.clear();
     
-	char host_name[128] = { 0 };
+    char host_name[128];
     std::string ip_address;
     if (::gethostname(host_name, 128) == 0)
     {
@@ -79,7 +77,7 @@ typedef struct _ASTAT
 	ADAPTER_STATUS adapt;  
 	NAME_BUFFER NameBuffer[30];  
 }ASTAT, *PASTAT;
-//Í¨¹ıNetBIOS»ñÈ¡MACµØÖ·
+//é€šè¿‡NetBIOSè·å–MACåœ°å€
 bool GetMacAddressByNetBIOS(std::string &mac_address)
 {
 	ASTAT     Adapter;  
@@ -101,7 +99,7 @@ bool GetMacAddressByNetBIOS(std::string &mac_address)
 		memset(&Ncb, 0, sizeof(Ncb));  
 		Ncb.ncb_command  = NCBASTAT;  
 		Ncb.ncb_lana_num = lenum.lana[i];  
-		strcpy_s((char *)Ncb.ncb_callname, NCBNAMSZ, "*                               ");
+		strcpy((char *)Ncb.ncb_callname, "*                               ");  
 		Ncb.ncb_buffer   = (unsigned char *)&Adapter;  
 		Ncb.ncb_length   = sizeof(Adapter);  
 		uRetCode         = Netbios(&Ncb);  
@@ -143,54 +141,54 @@ bool ParseMac(const std::string &input, std::string &mac_address)
 	}
 	return false;
 }
-//Í¨¹ı¶Ô¿ØÖÆÌ¨ipconfig /allÃüÁîÖØ¶¨Ïò
+//é€šè¿‡å¯¹æ§åˆ¶å°ipconfig /allå‘½ä»¤é‡å®šå‘
 bool GetMacAddressByCmd(std::string &mac_address)
 {
 	bool ret = false;
-	//³õÊ¼»¯·µ»ØMACµØÖ·»º³åÇø
+	//åˆå§‹åŒ–è¿”å›MACåœ°å€ç¼“å†²åŒº
 	SECURITY_ATTRIBUTES sa; 
 	sa.nLength = sizeof(SECURITY_ATTRIBUTES); 
 	sa.lpSecurityDescriptor = NULL; 
 	sa.bInheritHandle = TRUE; 
-	//´´½¨¹ÜµÀ
+	//åˆ›å»ºç®¡é“
 	HANDLE read_pipe = NULL;
 	HANDLE write_pipe = NULL;
 	if(CreatePipe(&read_pipe, &write_pipe, &sa, 0) == TRUE)
 	{
-		//¿ØÖÆÃüÁîĞĞ´°¿ÚĞÅÏ¢
+		//æ§åˆ¶å‘½ä»¤è¡Œçª—å£ä¿¡æ¯
 		STARTUPINFO si; 
 		memset(&si, 0, sizeof(si));
-		//·µ»Ø½ø³ÌĞÅÏ¢
+		//è¿”å›è¿›ç¨‹ä¿¡æ¯
 		PROCESS_INFORMATION pi;
 		si.cb = sizeof(STARTUPINFO); 
 		GetStartupInfo(&si); 
 		si.hStdError = write_pipe; 
 		si.hStdOutput = write_pipe; 
-		si.wShowWindow = SW_HIDE; //Òş²ØÃüÁîĞĞ´°¿Ú
+		si.wShowWindow = SW_HIDE; //éšè—å‘½ä»¤è¡Œçª—å£
 		si.dwFlags = STARTF_USESHOWWINDOW | STARTF_USESTDHANDLES;
 
-		//´´½¨»ñÈ¡ÃüÁîĞĞ½ø³Ì
+		//åˆ›å»ºè·å–å‘½ä»¤è¡Œè¿›ç¨‹
 		if (::CreateProcessW(NULL, L"ipconfig /all", NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi) == TRUE) 
 		{ 
-			WaitForSingleObject(pi.hProcess, 3000); // ÉèÖÃ³¬Ê±Ê±¼ä£¬·ÀÖ¹Vista¡¢Win7µÈ²Ù×÷ÏµÍ³¿¨ËÀ
+			WaitForSingleObject(pi.hProcess, 3000); // è®¾ç½®è¶…æ—¶æ—¶é—´ï¼Œé˜²æ­¢Vistaã€Win7ç­‰æ“ä½œç³»ç»Ÿå¡æ­»
 			unsigned long count;
 			CloseHandle(write_pipe);
-			std::string buffer(1024 * 10, '\0'); // ×¼±¸×ã¹»´óµÄ»º³åÇø
+			std::string buffer(1024 * 10, '\0'); // å‡†å¤‡è¶³å¤Ÿå¤§çš„ç¼“å†²åŒº
 			if(ReadFile(read_pipe, const_cast<char*>(buffer.data()), buffer.size() - 1, &count, 0) == TRUE)
 			{
-				buffer.resize(buffer.find_first_of('\0')); // ½Øµô»º³åÇøºóÃæ¶àÓàµÄ'\0'
-				ret = ParseMac(buffer, mac_address);//ÌáÈ¡MACµØÖ·´®
+				buffer.resize(buffer.find_first_of('\0')); // æˆªæ‰ç¼“å†²åŒºåé¢å¤šä½™çš„'\0'
+				ret = ParseMac(buffer, mac_address);//æå–MACåœ°å€ä¸²
 			}
 			CloseHandle(pi.hThread); 
 			CloseHandle(pi.hProcess); 
 		}
-		CloseHandle(write_pipe); // VS2010ÏÂµ÷ÊÔ£¬´Ë´¦»áÓĞ¡°An invalid handle was specified¡±µÄÖĞ¶Ï£¬Ö±½ÓÔËĞĞÕı³££¬Ô­ÒòÎ´Öª¡£VS2008ÉÏÕı³£¡£
+		CloseHandle(write_pipe); // VS2010ä¸‹è°ƒè¯•ï¼Œæ­¤å¤„ä¼šæœ‰â€œAn invalid handle was specifiedâ€çš„ä¸­æ–­ï¼Œç›´æ¥è¿è¡Œæ­£å¸¸ï¼ŒåŸå› æœªçŸ¥ã€‚VS2008ä¸Šæ­£å¸¸ã€‚
 		CloseHandle(read_pipe);
 	}
 	return ret;
 }*/
 
-//Í¨¹ıSNMP(¼òµ¥ÍøÂç·ÃÎÊĞ­Òé)
+//é€šè¿‡SNMP(ç®€å•ç½‘ç»œè®¿é—®åè®®)
 bool GetMacAddressBySNMP(std::string &mac_address)
 {
 	bool ret = false;
@@ -292,7 +290,7 @@ bool GetMacAddressBySNMP(std::string &mac_address)
 	SnmpUtilVarBindFree(&var_bind[1]);
 	return ret;
 }
-//Í¨¹ıGetAdaptersInfoº¯Êı£¨ÊÊÓÃÓÚWindows 2000¼°ÒÔÉÏ°æ±¾£©
+//é€šè¿‡GetAdaptersInfoå‡½æ•°ï¼ˆé€‚ç”¨äºWindows 2000åŠä»¥ä¸Šç‰ˆæœ¬ï¼‰
 bool GetMacAddressByAdaptersInfo(std::string &mac_address)
 {
 	bool ret = false;
@@ -315,10 +313,10 @@ bool GetMacAddressByAdaptersInfo(std::string &mac_address)
 		PIP_ADAPTER_INFO adapter = adapter_info; 
 		for(; adapter != NULL; adapter = adapter->Next)
 		{
-			// È·±£ÊÇÒÔÌ«Íø
+			// ç¡®ä¿æ˜¯ä»¥å¤ªç½‘
 			if(adapter->Type != MIB_IF_TYPE_ETHERNET)
 				continue;
-			// È·±£MACµØÖ·µÄ³¤¶ÈÎª 00-00-00-00-00-00
+			// ç¡®ä¿MACåœ°å€çš„é•¿åº¦ä¸º 00-00-00-00-00-00
 			if(adapter->AddressLength != 6)
 				continue;
 
@@ -338,7 +336,7 @@ bool GetMacAddressByAdaptersInfo(std::string &mac_address)
 	free(adapter_info);
 	return ret;
 }
-//Í¨¹ıGetAdaptersAddressesº¯Êı£¨ÊÊÓÃÓÚWindows XP¼°ÒÔÉÏ°æ±¾£©
+//é€šè¿‡GetAdaptersAddresseså‡½æ•°ï¼ˆé€‚ç”¨äºWindows XPåŠä»¥ä¸Šç‰ˆæœ¬ï¼‰
 bool GetMacAddressByAdaptersAddresses(std::string &mac_address)
 {
 	bool ret = false;
@@ -362,7 +360,7 @@ bool GetMacAddressByAdaptersAddresses(std::string &mac_address)
 		PIP_ADAPTER_ADDRESSES curr_addresses = addresses;
 		for(; curr_addresses != NULL; curr_addresses = curr_addresses->Next)
 		{
-			// È·±£MACµØÖ·µÄ³¤¶ÈÎª 00-00-00-00-00-00
+			// ç¡®ä¿MACåœ°å€çš„é•¿åº¦ä¸º 00-00-00-00-00-00
 			if(curr_addresses->PhysicalAddressLength != 6)
 				continue;
 
@@ -387,8 +385,8 @@ bool GetMacAddressByAdaptersAddresses(std::string &mac_address)
 bool GetMacAddress(std::string &mac_address)
 {
 #if defined (OS_WIN)
-	//Ä¿Ç°ÎªÖ¹£¬ÉĞÎ´·¢ÏÖÓĞÈÎºÎÒ»¸öÍ¨ÓÃµÄ100%µÄÊÊÓÃÓÚËùÓĞWindowsÆ½Ì¨µÄ·½·¨¿ÉÒÔÎÈ¶¨µÄÈ¡µÃMACµØÖ·¡£
-	//ÓÅ»¯ºóµÄ½â¾ö·½°¸£ºÍ¨¹ı¶àÖÖ·½·¨ÒÀ´ÎÊ¹ÓÃÀ´Ìá¸ß³É¹¦ÂÊ¡£modified by HarrisonFeng, 2014.5.23
+	//ç›®å‰ä¸ºæ­¢ï¼Œå°šæœªå‘ç°æœ‰ä»»ä½•ä¸€ä¸ªé€šç”¨çš„100%çš„é€‚ç”¨äºæ‰€æœ‰Windowså¹³å°çš„æ–¹æ³•å¯ä»¥ç¨³å®šçš„å–å¾—MACåœ°å€ã€‚
+	//ä¼˜åŒ–åçš„è§£å†³æ–¹æ¡ˆï¼šé€šè¿‡å¤šç§æ–¹æ³•ä¾æ¬¡ä½¿ç”¨æ¥æé«˜æˆåŠŸç‡ã€‚modified by HarrisonFeng, 2014.5.23
 	bool  success;
 	if(true == (success = GetMacAddressByNetBIOS(mac_address)))
 	{
@@ -455,10 +453,10 @@ bool GetMacAddress(std::string &mac_address)
 }
 
 /*
- * ¼ì²éÊÇ·ñÎªÒÔÏÂÈıÀàÄÚÍøip
- * AÀà: 10.0.0.0 ~ 10.255.255.255
- * BÀà: 172.16.0.0 ~ 172.31.255.255
- * CÀà: 192.168.0.0 ~ 192.168.255.255
+ * æ£€æŸ¥æ˜¯å¦ä¸ºä»¥ä¸‹ä¸‰ç±»å†…ç½‘ip
+ * Aç±»: 10.0.0.0 ~ 10.255.255.255
+ * Bç±»: 172.16.0.0 ~ 172.31.255.255
+ * Cç±»: 192.168.0.0 ~ 192.168.255.255
  */
 bool IsInternalIP(const uint32_t ip)
 {
@@ -520,9 +518,5 @@ bool AnalyzeNetAddress(const std::string &address, uint32_t &out_ip, uint16_t &o
     out_port = (uint16_t)atoi((*(ip_and_port.begin())).c_str());
     return true ;
 }
-
-#if defined (OS_WIN)
-#pragma warning (pop)
-#endif
     
 }  // namespace nbase

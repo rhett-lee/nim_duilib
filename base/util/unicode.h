@@ -1,4 +1,4 @@
-// Unicode define
+﻿// Unicode define
 
 #ifndef BASE_UTIL_UNICODE_H_
 #define BASE_UTIL_UNICODE_H_

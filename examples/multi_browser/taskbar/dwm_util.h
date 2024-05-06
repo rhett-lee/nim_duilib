@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #define WM_DWMSENDICONICTHUMBNAIL           0x0323
 #define WM_DWMSENDICONICLIVEPREVIEWBITMAP   0x0326
@@ -21,8 +21,8 @@ enum DWMWINDOWATTRIBUTE
 };
 
 /**
-* ��Win7ϵͳ��ͬ��API���а�װ����̬���Ҷ�ӦAPI
-* @return void	�޷���ֵ
+* 对Win7系统的同名API进行包装，动态查找对应API
+* @return void	无返回值
 */
 HRESULT DwmSetIconicThumbnail(HWND hwnd, HBITMAP hbmp, DWORD dwSITFlags);
 HRESULT DwmSetIconicLivePreviewBitmap(HWND hwnd, HBITMAP hbmp, POINT *pptClient, DWORD dwSITFlags);

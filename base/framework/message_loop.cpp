@@ -1,4 +1,4 @@
-// Copyright (c) 2011, NetEase Inc. All rights reserved.
+ï»¿// Copyright (c) 2011, NetEase Inc. All rights reserved.
 //
 // Author: wrt(guangguang)
 // Date: 2011/06/09
@@ -26,9 +26,9 @@ MessageLoop::MessageLoop()
 	  nestable_tasks_allowed_(true),
 	  next_delayed_task_sequence_num_(0)
 {
-	// Ò»¸öÏß³ÌÄÚ²»ÄÜ´æÔÚÁ½¸ö»òÒÔÉÏMessageLoop
+	// ä¸€ä¸ªçº¿ç¨‹å†…ä¸èƒ½å­˜åœ¨ä¸¤ä¸ªæˆ–ä»¥ä¸ŠMessageLoop
 	assert(g_lazy_ptr.Pointer()->Get() == NULL);
-	// Ä¬ÈÏÏûÏ¢Ñ­»·
+	// é»˜è®¤æ¶ˆæ¯å¾ªçŽ¯
 	if (type_ == kDefaultMessageLoop)
 		pump_.reset(new DefaultMessagePump);
 	g_lazy_ptr.Pointer()->Set(this);
@@ -41,8 +41,8 @@ MessageLoop::~MessageLoop()
 {
 	bool has_work = false;
 
-	// ÇåÀíÎ´´¦ÀíµÄÈÎÎñ¿ÉÄÜµ¼ÖÂÉú³ÉÐÂµÄÈÎÎñ£¬
-	// ÕâÀïÍ¨¹ýÓÐÏÞ´ÎµÄÑ­»·³¢ÊÔÇåÀíÕâÐ©ÐÂÉú³ÉµÄÈÎÎñ
+	// æ¸…ç†æœªå¤„ç†çš„ä»»åŠ¡å¯èƒ½å¯¼è‡´ç”Ÿæˆæ–°çš„ä»»åŠ¡ï¼Œ
+	// è¿™é‡Œé€šè¿‡æœ‰é™æ¬¡çš„å¾ªçŽ¯å°è¯•æ¸…ç†è¿™äº›æ–°ç”Ÿæˆçš„ä»»åŠ¡
 	for (int i = 0; i < 100; i++)
 	{
 		DeletePendingTasks();
@@ -206,7 +206,7 @@ TimeTicks MessageLoop::EvalDelayedRuntime(int64_t delay_ms)
 
 void MessageLoop::AddToIncomingQueue(const PendingTask &task)
 {
-	// ±¾·½·¨¿ÉÄÜ»áÔÚÁíÒ»¸öÏß³ÌÖÐ±»Ö´ÐÐ£¬ËùÒÔ±ØÐëÏß³Ì°²È«
+	// æœ¬æ–¹æ³•å¯èƒ½ä¼šåœ¨å¦ä¸€ä¸ªçº¿ç¨‹ä¸­è¢«æ‰§è¡Œï¼Œæ‰€ä»¥å¿…é¡»çº¿ç¨‹å®‰å…¨
 	std::shared_ptr<MessagePump> pump;
 	{
 		NAutoLock lock(&incoming_queue_lock_);
@@ -214,11 +214,11 @@ void MessageLoop::AddToIncomingQueue(const PendingTask &task)
 		incoming_queue_.push(task);
 		if (!was_empty)
 			return;
-		// ÒòÎªÕâº¯Êý¿ÉÄÜÊÇ¼ä½ÓµØÔÚÁíÒ»¸öÏß³ÌÖÐ±»µ÷ÓÃµÄ£¬
-		// ´ËÊ±MessageLoopÖÐ¿ÉÄÜÕýÓÐÈÎÎñÔÚÔËÐÐ£¬
-		// ÕâÐ©ÈÎÎñÖÐ¿ÉÄÜ°üº¬Ïú»ÙMessageLoopµÄÈÎÎñ£¬
-		// ÎªÁË±£Ö¤¶ÔMessageLoopÖÐµÄMessagePumpÒýÓÃÓÐÐ§£¬
-		// ÕâÀïÐèÒªÓÃµ½ÒýÓÃÖ¸Õë
+		// å› ä¸ºè¿™å‡½æ•°å¯èƒ½æ˜¯é—´æŽ¥åœ°åœ¨å¦ä¸€ä¸ªçº¿ç¨‹ä¸­è¢«è°ƒç”¨çš„ï¼Œ
+		// æ­¤æ—¶MessageLoopä¸­å¯èƒ½æ­£æœ‰ä»»åŠ¡åœ¨è¿è¡Œï¼Œ
+		// è¿™äº›ä»»åŠ¡ä¸­å¯èƒ½åŒ…å«é”€æ¯MessageLoopçš„ä»»åŠ¡ï¼Œ
+		// ä¸ºäº†ä¿è¯å¯¹MessageLoopä¸­çš„MessagePumpå¼•ç”¨æœ‰æ•ˆï¼Œ
+		// è¿™é‡Œéœ€è¦ç”¨åˆ°å¼•ç”¨æŒ‡é’ˆ
 		pump = pump_;
 	}
 	pump->ScheduleWork();
@@ -240,20 +240,20 @@ void MessageLoop::ReloadWorkQueue()
 		NAutoLock lock(&incoming_queue_lock_);
 		if (incoming_queue_.empty())
 			return;
-		// ³£ÊýÊ±¼ä½»»»ÄÚ´æ
+		// å¸¸æ•°æ—¶é—´äº¤æ¢å†…å­˜
 		work_queue_.Swap(&incoming_queue_);
 	}
 }
 
 bool MessageLoop::DeferOrRunPendingTask(const PendingTask &task)
 {
-	// ÈÎÎñ·ûºÏÁ¢¼´Ö´ÐÐµÄÌõ¼þ£¬ÄÇÃ´Ö´ÐÐÖ®
+	// ä»»åŠ¡ç¬¦åˆç«‹å³æ‰§è¡Œçš„æ¡ä»¶ï¼Œé‚£ä¹ˆæ‰§è¡Œä¹‹
 	if (task.nestable || state_->run_depth == 1)
 	{
 		RunTask(task);
 		return true;
 	}
-	// ²»¿ÉÇ¶Ì×ÈÎÎñ£¬ÐèÒª»º´æÖ®Ö±µ½ÔÚ×î¶¥²ãMessageLoopÖÐÖ´ÐÐ
+	// ä¸å¯åµŒå¥—ä»»åŠ¡ï¼Œéœ€è¦ç¼“å­˜ä¹‹ç›´åˆ°åœ¨æœ€é¡¶å±‚MessageLoopä¸­æ‰§è¡Œ
 	deferred_non_nestable_work_queue_.push(task);
 	return false;
 }
@@ -262,8 +262,8 @@ void MessageLoop::RunTask(const PendingTask &task)
 {
 	assert(nestable_tasks_allowed_);
 
-	// ¿¼ÂÇµ½×î»µÇé¿öÏÂ£¬ÈÎÎñ¿ÉÄÜÊÇ²»¿ÉÖØÈëµÄ£¬
-	// ËùÒÔÔÝÊ±½ûÓÃÇ¶Ì×ÈÎÎñ
+	// è€ƒè™‘åˆ°æœ€åæƒ…å†µä¸‹ï¼Œä»»åŠ¡å¯èƒ½æ˜¯ä¸å¯é‡å…¥çš„ï¼Œ
+	// æ‰€ä»¥æš‚æ—¶ç¦ç”¨åµŒå¥—ä»»åŠ¡
 
 	nestable_tasks_allowed_ = false;
 	PendingTask pending_task = task;
@@ -275,27 +275,27 @@ void MessageLoop::RunTask(const PendingTask &task)
 
 bool MessageLoop::DoWork()
 {
-	// ÈÎÎñµ±Ç°ÊÇ·ñÔÊÐí±»Ö´ÐÐ
+	// ä»»åŠ¡å½“å‰æ˜¯å¦å…è®¸è¢«æ‰§è¡Œ
 	if (!nestable_tasks_allowed_)
 		return false;
 
 	for (;;)
 	{
-		// ÏÈ´Óincoming¶ÓÁÐÈ¡ÈÎÎñ
+		// å…ˆä»Žincomingé˜Ÿåˆ—å–ä»»åŠ¡
 		ReloadWorkQueue();
 		if (work_queue_.empty())
 			break;
 
-		// Ò»´ÎÐÔ´¦Àíwork¶ÓÁÐÖÐµÄËùÓÐÈÎÎñ
+		// ä¸€æ¬¡æ€§å¤„ç†worké˜Ÿåˆ—ä¸­çš„æ‰€æœ‰ä»»åŠ¡
 		do
 		{
 			PendingTask task = work_queue_.front();
 			work_queue_.pop();
 			if (!task.delayed_run_time.is_null())
 			{
-				// ¼ÓÈëµ½¶¨Ê±ÈÎÎñ¶ÓÁÐ
+				// åŠ å…¥åˆ°å®šæ—¶ä»»åŠ¡é˜Ÿåˆ—
 				AddToDelayedWorkQueue(task);
-				// Èç¹û¼ÓÈëµÄÐÂÈÎÎñÊÇ½«±»×îÏÈÖ´ÐÐµÄ£¬ÄÇÃ´ÐèÒªÖØÐÂµ÷¶È
+				// å¦‚æžœåŠ å…¥çš„æ–°ä»»åŠ¡æ˜¯å°†è¢«æœ€å…ˆæ‰§è¡Œçš„ï¼Œé‚£ä¹ˆéœ€è¦é‡æ–°è°ƒåº¦
 				if (delayed_work_queue_.top().sequence_num == task.sequence_num)
 					pump_->ScheduleDelayedWork(task.delayed_run_time);
 			}
@@ -318,25 +318,25 @@ bool MessageLoop::DoDelayedWork(nbase::TimeTicks* next_delayed_work_time)
 		return false;
 	}
 
-	// recent_tick_¼ÇÂ¼×î½üÒ»´Îµ÷ÓÃTimeTick::NowÊ±µÄÊ±¼ä£¬
-	// Ëü²»ÄÜ´úÌæTimeTick::Now£¬ËüÊÇÖ»ÊÇÒ»¸ö¹ýÈ¥µÄNowµÄ»º´æ£¬
-	// ÓÃÀ´×î´óÏÞ¶È¼õÉÙ¶ÔTimeTick::NowµÄµ÷ÓÃ¡£
-	// recent_tick_ÓÃÀ´½øÐÐµÚÒ»ÂÖÅÐ¶Ï£¬Òª½øÐÐ¾«È·ÅÐ¶ÏÐèÒª¸üÐÂËüÎªÕæÕýµÄTimeTick::Now
+	// recent_tick_è®°å½•æœ€è¿‘ä¸€æ¬¡è°ƒç”¨TimeTick::Nowæ—¶çš„æ—¶é—´ï¼Œ
+	// å®ƒä¸èƒ½ä»£æ›¿TimeTick::Nowï¼Œå®ƒæ˜¯åªæ˜¯ä¸€ä¸ªè¿‡åŽ»çš„Nowçš„ç¼“å­˜ï¼Œ
+	// ç”¨æ¥æœ€å¤§é™åº¦å‡å°‘å¯¹TimeTick::Nowçš„è°ƒç”¨ã€‚
+	// recent_tick_ç”¨æ¥è¿›è¡Œç¬¬ä¸€è½®åˆ¤æ–­ï¼Œè¦è¿›è¡Œç²¾ç¡®åˆ¤æ–­éœ€è¦æ›´æ–°å®ƒä¸ºçœŸæ­£çš„TimeTick::Now
 
 	TimeTicks next_run_time = delayed_work_queue_.top().delayed_run_time;
 	if (next_run_time > recent_tick_)
 	{
-		// ¿ÉÄÜÊÇrecent_tick_µÄ²»¾«È·ÐÔÒýÆð£¬ÐèÒª¸üÐÂÖ®
+		// å¯èƒ½æ˜¯recent_tick_çš„ä¸ç²¾ç¡®æ€§å¼•èµ·ï¼Œéœ€è¦æ›´æ–°ä¹‹
 		recent_tick_ = TimeTicks::Now();
 		if (next_run_time > recent_tick_)
 		{
-			// ÕæµÄÊÇÒ»¸ö½«À´²ÅÐèÒª±»ÔËÐÐµÄÈÎÎñ£¬Áôµ½½«À´ÔËÐÐ
+			// çœŸçš„æ˜¯ä¸€ä¸ªå°†æ¥æ‰éœ€è¦è¢«è¿è¡Œçš„ä»»åŠ¡ï¼Œç•™åˆ°å°†æ¥è¿è¡Œ
 			*next_delayed_work_time = next_run_time;
 			return false;
 		}
 	}
 
-	// Õâ¸ö¶¨Ê±ÈÎÎñÔËÐÐÊ±¿ÌÒÑµ½£¬ÔËÐÐÖ®
+	// è¿™ä¸ªå®šæ—¶ä»»åŠ¡è¿è¡Œæ—¶åˆ»å·²åˆ°ï¼Œè¿è¡Œä¹‹
 	PendingTask task = delayed_work_queue_.top();
 	delayed_work_queue_.pop();
 
@@ -348,7 +348,7 @@ bool MessageLoop::DoDelayedWork(nbase::TimeTicks* next_delayed_work_time)
 
 bool MessageLoop::ProcessNextDelayedNonNestableTask()
 {
-	// Ç¶Ì×ÈÎÎñ£¿
+	// åµŒå¥—ä»»åŠ¡ï¼Ÿ
 	if (state_->run_depth != 1)
 		return false;
 
@@ -363,11 +363,11 @@ bool MessageLoop::ProcessNextDelayedNonNestableTask()
 
 bool MessageLoop::DoIdleWork()
 {
-	// ½øÈëIdle×´Ì¬ºó£¬ÏÈ³¢ÊÔÖ´ÐÐ±»»º´æ×ÅµÄ·ÇÇ¶Ì×ÈÎÎñ
+	// è¿›å…¥IdleçŠ¶æ€åŽï¼Œå…ˆå°è¯•æ‰§è¡Œè¢«ç¼“å­˜ç€çš„éžåµŒå¥—ä»»åŠ¡
 	if (ProcessNextDelayedNonNestableTask())
 		return true;
 
-	// ¼ì²éÍË³ö±ê¼Ç
+	// æ£€æŸ¥é€€å‡ºæ ‡è®°
 	if (state_->quit_received)
 		pump_->Quit();
 

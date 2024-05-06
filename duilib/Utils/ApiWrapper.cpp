@@ -1,7 +1,22 @@
+#include "StdAfx.h"
 #include "ApiWrapper.h"
 
 namespace ui
 {
+
+bool GetDpiForSystemWrapper(UINT& dpi)
+{
+	typedef UINT (WINAPI* GetDpiForSystemPtr)(VOID);
+
+	static GetDpiForSystemPtr get_dpi_for_system_func = reinterpret_cast<GetDpiForSystemPtr>(GetProcAddress(GetModuleHandleA("user32.dll"), "GetDpiForSystem"));
+
+	if (get_dpi_for_system_func) {
+		dpi = get_dpi_for_system_func();
+		return true;
+	}
+
+	return false;
+}
 
 bool GetDpiForMonitorWrapper(HMONITOR hMonitor, MONITOR_DPI_TYPE dpiType, UINT *dpiX, UINT *dpiY)
 {
@@ -18,81 +33,61 @@ bool GetDpiForMonitorWrapper(HMONITOR hMonitor, MONITOR_DPI_TYPE dpiType, UINT *
 	return false;
 }
 
-bool SetProcessDpiAwarenessContextWrapper(PROCESS_DPI_AWARENESS_CONTEXT value)
-{
-	typedef	BOOL (WINAPI *SetProcessDpiAwarenessContextPtr)(PROCESS_DPI_AWARENESS_CONTEXT value);
-	static SetProcessDpiAwarenessContextPtr set_process_dpi_awareness_context_func = reinterpret_cast<SetProcessDpiAwarenessContextPtr>(GetProcAddress(GetModuleHandleA("user32.dll"), "SetProcessDpiAwarenessContext"));
-	bool isOk = false;
-	if (set_process_dpi_awareness_context_func) {
-		isOk = set_process_dpi_awareness_context_func(value) != FALSE;
-	}
-	return isOk;
-}
-
-bool AreDpiAwarenessContextsEqualWrapper(PROCESS_DPI_AWARENESS_CONTEXT dpiContextA, PROCESS_DPI_AWARENESS_CONTEXT dpiContextB)
-{
-	typedef BOOL (WINAPI *AreDpiAwarenessContextsEqualPtr)(PROCESS_DPI_AWARENESS_CONTEXT dpiContextA, PROCESS_DPI_AWARENESS_CONTEXT dpiContextB);
-	static AreDpiAwarenessContextsEqualPtr are_process_dpi_awareness_context_equal_func = reinterpret_cast<AreDpiAwarenessContextsEqualPtr>(GetProcAddress(GetModuleHandleA("user32.dll"), "AreDpiAwarenessContextsEqual"));
-	bool isOk = false;
-	if (are_process_dpi_awareness_context_equal_func) {
-		if (are_process_dpi_awareness_context_equal_func(dpiContextA, dpiContextB)) {
-			isOk = true;
-		}
-	}
-	return isOk;
-}
-
-bool GetProcessDpiAwarenessContextWrapper(PROCESS_DPI_AWARENESS_CONTEXT& value)
-{
-	typedef PROCESS_DPI_AWARENESS_CONTEXT(WINAPI *GetDpiAwarenessContextForProcessPtr)(HANDLE hProcess);
-	static GetDpiAwarenessContextForProcessPtr get_process_dpi_awareness_context_func = reinterpret_cast<GetDpiAwarenessContextForProcessPtr>(GetProcAddress(GetModuleHandleA("user32.dll"), "GetDpiAwarenessContextForProcess"));
-	bool isOk = false;
-	if (get_process_dpi_awareness_context_func) {
-		value = get_process_dpi_awareness_context_func(NULL);
-		isOk = true;
-	}
-	return isOk;
-}
-
 bool SetProcessDPIAwarenessWrapper(PROCESS_DPI_AWARENESS value)
 {
-	typedef BOOL(WINAPI *SetProcessDpiAwarenessPtr)(PROCESS_DPI_AWARENESS);
-	static SetProcessDpiAwarenessPtr set_process_dpi_awareness_func = reinterpret_cast<SetProcessDpiAwarenessPtr>(GetProcAddress(GetModuleHandleA("user32.dll"), "SetProcessDpiAwarenessInternal"));
-	if (set_process_dpi_awareness_func) {
-		if (set_process_dpi_awareness_func(value)) {
-			return true;
-		}
-	}
-	return false;
-}
+	typedef HRESULT(WINAPI *SetProcessDpiAwarenessPtr)(PROCESS_DPI_AWARENESS);
 
-bool GetProcessDPIAwarenessWrapper(PROCESS_DPI_AWARENESS& awareness)
-{
-	typedef BOOL (WINAPI* GetProcessDpiAwarenessPtr)(HANDLE, PROCESS_DPI_AWARENESS*);
-	static GetProcessDpiAwarenessPtr get_process_dpi_awareness_func = reinterpret_cast<GetProcessDpiAwarenessPtr>(GetProcAddress(GetModuleHandleA("user32.dll"), "GetProcessDpiAwarenessInternal"));
-	if (get_process_dpi_awareness_func) {
-		if (get_process_dpi_awareness_func(NULL, &awareness)) {
+	static SetProcessDpiAwarenessPtr set_process_dpi_awareness_func = reinterpret_cast<SetProcessDpiAwarenessPtr>(GetProcAddress(GetModuleHandleA("user32.dll"), "SetProcessDpiAwarenessInternal"));
+
+	if (set_process_dpi_awareness_func) {
+		HRESULT hr = set_process_dpi_awareness_func(value);
+		if (S_OK == hr) {
 			return true;
 		}
+		else if (hr == E_ACCESSDENIED) {
+			//"Access denied error from SetProcessDpiAwareness. Function called twice, or manifest was used.";
+		}
 	}
+
 	return false;
 }
 
 bool SetProcessDPIAwareWrapper()
 {
 	typedef BOOL(WINAPI *SetProcessDPIAwarePtr)(VOID);
+
 	static SetProcessDPIAwarePtr set_process_dpi_aware_func = reinterpret_cast<SetProcessDPIAwarePtr>(GetProcAddress(GetModuleHandleA("user32.dll"), "SetProcessDPIAware"));
+
 	return set_process_dpi_aware_func && set_process_dpi_aware_func();
+}
+
+
+bool GetProcessDPIAwarenessWrapper(PROCESS_DPI_AWARENESS& awareness)
+{
+	typedef HRESULT(WINAPI *GetProcessDpiAwarenessPtr)(HANDLE, PROCESS_DPI_AWARENESS*);
+
+	static GetProcessDpiAwarenessPtr get_process_dpi_awareness_func = reinterpret_cast<GetProcessDpiAwarenessPtr>(GetProcAddress(GetModuleHandleA("user32.dll"), "GetProcessDpiAwarenessInternal"));
+
+	if (get_process_dpi_awareness_func) {
+		HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, false, GetCurrentProcessId());
+		get_process_dpi_awareness_func(hProcess, &awareness);
+		return true;
+	}
+
+	return false;
 }
 
 bool IsProcessDPIAwareWrapper(bool& bAware)
 {
-	typedef BOOL(WINAPI* IsProcessDPIAwarePtr)();
+	typedef BOOL(WINAPI *IsProcessDPIAwarePtr)();
+
 	static IsProcessDPIAwarePtr is_process_dpi_aware_func = reinterpret_cast<IsProcessDPIAwarePtr>(GetProcAddress(GetModuleHandleA("user32.dll"), "IsProcessDPIAware"));
+
 	if (is_process_dpi_aware_func) {
-		bAware = is_process_dpi_aware_func() != FALSE;
+		bAware = TRUE == is_process_dpi_aware_func();
 		return true;
 	}
+
 	return false;
 }
 

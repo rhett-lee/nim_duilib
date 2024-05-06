@@ -5,19 +5,16 @@
  * @date 2019/3/20
  */
 #pragma once
-#include "ui_components/cef_control/control/cef_control_event.h"
-#include "ui_components/cef_control/app/cef_js_bridge.h"
-#include "ui_components/cef_control/handler/browser_handler.h"
-#include "duilib/Core/Control.h"
-
-#pragma warning (push)
-#pragma warning (disable:4100)
 #include "include/cef_base.h"
-#pragma warning (pop)
+#include "cef_control_event.h"
+#include "cef_control/app/cef_js_bridge.h"
+#include "cef_control/handler/browser_handler.h"
 
 namespace nim_comp {
 
-class CefControlBase : public ui::Control, public nim_comp::BrowserHandler::HandlerDelegate
+using namespace ui;
+
+class CefControlBase : public Control, public nim_comp::BrowserHandler::HandlerDelegate
 {
 public:
 	CefControlBase(void);
@@ -167,7 +164,7 @@ public:
 	* @param[in] view 一个 CefControl 控件实例(仅在CefControl类里需要传入)
 	* @return 成功返回 true，失败返回 false
 	*/
-	virtual bool AttachDevTools(ui::Control* view) = 0;
+	virtual bool AttachDevTools(Control* view) = 0;
 
 	/**
 	* @brief 关闭开发者工具
@@ -329,7 +326,6 @@ private:
 		const std::string* buffer,
 		int width,
 		int height) OVERRIDE;
-	virtual void ClientToControl(POINT &pt) OVERRIDE;
 
 	virtual void OnPopupShow(CefRefPtr<CefBrowser> browser, bool show) OVERRIDE;
 
@@ -337,10 +333,8 @@ private:
 
 	virtual void UpdateWindowPos() OVERRIDE;
 
-protected:
 	virtual void OnBeforeContextMenu(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefContextMenuParams> params, CefRefPtr<CefMenuModel> model) OVERRIDE;
 
-public:
 	virtual bool OnContextMenuCommand(CefRefPtr<CefBrowser> browser,
 		CefRefPtr<CefFrame> frame,
 		CefRefPtr<CefContextMenuParams> params,

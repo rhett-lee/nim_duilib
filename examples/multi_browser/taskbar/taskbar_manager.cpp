@@ -1,5 +1,4 @@
-#include "taskbar_manager.h"
-#include "duilib/RenderGdiPlus/BitmapHelper.h"
+ï»¿#include "taskbar_manager.h"
 #include "dwm_util.h"
 #include <shobjidl.h>
 
@@ -29,12 +28,12 @@ void TaskbarTabItem::Init(const std::wstring &taskbar_title, const std::string &
 	if (!is_win7_or_greater_)
 		return;
 
-	CreateWnd(NULL, taskbar_title.c_str(), WS_OVERLAPPED, 0);
+	Create(NULL, taskbar_title.c_str(), WS_OVERLAPPED, 0, false);
 
 	HRESULT ret = S_OK;
 	BOOL truth = TRUE;
-	ret |= DwmSetWindowAttribute(GetHWND(), DWMWA_HAS_ICONIC_BITMAP, &truth, sizeof(truth));
-	ret |= DwmSetWindowAttribute(GetHWND(), DWMWA_FORCE_ICONIC_REPRESENTATION, &truth, sizeof(truth));
+	ret |= DwmSetWindowAttribute(m_hWnd, DWMWA_HAS_ICONIC_BITMAP, &truth, sizeof(truth));
+	ret |= DwmSetWindowAttribute(m_hWnd, DWMWA_FORCE_ICONIC_REPRESENTATION, &truth, sizeof(truth));
 	if (ret != S_OK)
 	{
 		is_win7_or_greater_ = false;
@@ -43,13 +42,13 @@ void TaskbarTabItem::Init(const std::wstring &taskbar_title, const std::string &
 
 void TaskbarTabItem::UnInit()
 {
-	if (NULL != GetHWND())
-		DestroyWindow(GetHWND());
+	if (NULL != m_hWnd)
+		DestroyWindow(m_hWnd);
 }
 
 void TaskbarTabItem::SetTaskbarTitle(const std::wstring &title)
 {
-	::SetWindowTextW(GetHWND(), title.c_str());
+	::SetWindowTextW(m_hWnd, title.c_str());
 }
 
 void TaskbarTabItem::SetTaskbarManager(TaskbarManager *taskbar_manager)
@@ -75,17 +74,10 @@ void TaskbarTabItem::OnSendThumbnail(int width, int height)
 	if (!is_win7_or_greater_ || NULL == taskbar_manager_)
 		return;
 
-	ui::IBitmap* pBitmap = taskbar_manager_->GenerateBindControlBitmap(bind_control_, width, height);
-	HBITMAP hBitmap = ui::BitmapHelper::CreateGDIBitmap(pBitmap);
-	DwmSetIconicThumbnail(GetHWND(), hBitmap, 0);
-	if (pBitmap != nullptr) {
-		delete pBitmap;
-		pBitmap = nullptr;
-	}
-	if (hBitmap != nullptr) {
-		::DeleteObject(hBitmap);
-		hBitmap = nullptr;
-	}
+	HBITMAP bitmap = taskbar_manager_->GenerateBindControlBitmap(bind_control_, width, height);
+	DwmSetIconicThumbnail(m_hWnd, bitmap, 0);
+
+	DeleteObject(bitmap);
 }
 
 void TaskbarTabItem::OnSendPreview()
@@ -93,17 +85,10 @@ void TaskbarTabItem::OnSendPreview()
 	if (!is_win7_or_greater_ || NULL == taskbar_manager_)
 		return;
 
-	ui::IBitmap* pBitmap = taskbar_manager_->GenerateBindControlBitmapWithForm(bind_control_);
-	HBITMAP hBitmap = ui::BitmapHelper::CreateGDIBitmap(pBitmap);
-	DwmSetIconicLivePreviewBitmap(GetHWND(), hBitmap, NULL, 0);
-	if (pBitmap != nullptr) {
-		delete pBitmap;
-		pBitmap = nullptr;
-	}
-	if (hBitmap != nullptr) {
-		::DeleteObject(hBitmap);
-		hBitmap = nullptr;
-	}
+	HBITMAP bitmap = taskbar_manager_->GenerateBindControlBitmapWithForm(bind_control_);
+	DwmSetIconicLivePreviewBitmap(m_hWnd, bitmap, NULL, 0);
+
+	DeleteObject(bitmap);
 }
 
 std::wstring TaskbarTabItem::GetWindowClassName() const
@@ -111,9 +96,8 @@ std::wstring TaskbarTabItem::GetWindowClassName() const
 	return L"Nim.TaskbarItem";
 }
 
-LRESULT TaskbarTabItem::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+LRESULT TaskbarTabItem::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	bHandled = true;
 	if (uMsg == WM_DWMSENDICONICTHUMBNAIL)
 	{
 		OnSendThumbnail(HIWORD(lParam), LOWORD(lParam));
@@ -147,7 +131,8 @@ LRESULT TaskbarTabItem::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam,
 			
 		return 0;
 	}
-	return __super::OnWindowMessage(uMsg, wParam, lParam, bHandled);
+
+	return __super::HandleMessage(uMsg, wParam, lParam);
 }
 
 void TaskbarTabItem::OnFinalMessage(HWND hWnd)
@@ -230,7 +215,7 @@ bool TaskbarManager::SetTabActive(const TaskbarTabItem &tab_item)
 		return false;
 }
 
-ui::IBitmap* TaskbarManager::GenerateBindControlBitmapWithForm(ui::Control *control)
+HBITMAP TaskbarManager::GenerateBindControlBitmapWithForm(ui::Control *control)
 {
 	ASSERT( NULL != control);
 	if ( NULL == control)
@@ -239,11 +224,11 @@ ui::IBitmap* TaskbarManager::GenerateBindControlBitmapWithForm(ui::Control *cont
 	int window_width = 0, window_height = 0;
 	RECT rc_wnd;
 	bool check_wnd_size = false;
-	if (::IsIconic(taskbar_delegate_->GetHandle())) //µ±Ç°ÊÇ×îĞ¡»¯×´Ì¬
+	if (::IsIconic(taskbar_delegate_->GetHandle())) //å½“å‰æ˜¯æœ€å°åŒ–çŠ¶æ€
 	{
 		WINDOWPLACEMENT placement{ sizeof(WINDOWPLACEMENT) };
 		::GetWindowPlacement(taskbar_delegate_->GetHandle(), &placement);
-		if (placement.flags == WPF_RESTORETOMAXIMIZED) //×îĞ¡»¯Ç°ÊÇ×î´ó»¯×´Ì¬
+		if (placement.flags == WPF_RESTORETOMAXIMIZED) //æœ€å°åŒ–å‰æ˜¯æœ€å¤§åŒ–çŠ¶æ€
 		{
 			MONITORINFO oMonitor = { sizeof(MONITORINFO) };
 			::GetMonitorInfo(::MonitorFromWindow(taskbar_delegate_->GetHandle(), MONITOR_DEFAULTTONEAREST), &oMonitor);
@@ -252,7 +237,7 @@ ui::IBitmap* TaskbarManager::GenerateBindControlBitmapWithForm(ui::Control *cont
 		else
 		{
 			rc_wnd = placement.rcNormalPosition;
-			check_wnd_size = true; //ÉÙÊıÇé¿öÏÂ£¬WINDOWPLACEMENT::rcNormalPosition²»ÕıÈ·
+			check_wnd_size = true; //å°‘æ•°æƒ…å†µä¸‹ï¼ŒWINDOWPLACEMENT::rcNormalPositionä¸æ­£ç¡®
 		}
 	}
 	else
@@ -262,37 +247,36 @@ ui::IBitmap* TaskbarManager::GenerateBindControlBitmapWithForm(ui::Control *cont
 	if (window_width == 0 || window_height == 0)
 		return nullptr;
 
-	// 1.´´½¨ÄÚ´ædc
-	std::unique_ptr<IRender> render;
-	IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
-	ASSERT(pRenderFactory != nullptr);
-	if (pRenderFactory != nullptr) {
-		render.reset(pRenderFactory->CreateRender());
-	}
-	ASSERT(render != nullptr);
+	// 1.åˆ›å»ºå†…å­˜dc
+	auto render = GlobalManager::CreateRenderContext();
 	render->Resize(window_width, window_height);
 
-	// 2.°Ñ´°¿ÚË«»º³åµÄÎ»Í¼»­µ½ÄÚ´ædc
-	render->BitBlt(0, 0, window_width, window_height, taskbar_delegate_->GetTaskbarRender(), 0, 0, RopMode::kSrcCopy);
+	// 2.æŠŠçª—å£åŒç¼“å†²çš„ä½å›¾ç”»åˆ°å†…å­˜dc
+	render->BitBlt(0, 0, window_width, window_height, taskbar_delegate_->GetRenderDC());
 
-	// 3.°ÑÄ³¸ö»á»°ºĞ×ÓµÄÎ»Í¼»­µ½ÄÚ´ædc£¬¸²¸ÇÔ­´°¿Ú¶ÔÓ¦Î»ÖÃµÄÎ»Í¼
+	// 3.æŠŠæŸä¸ªä¼šè¯ç›’å­çš„ä½å›¾ç”»åˆ°å†…å­˜dcï¼Œè¦†ç›–åŸçª—å£å¯¹åº”ä½ç½®çš„ä½å›¾
 	UiRect rcPaint = control->GetPos();
-	if (rcPaint.IsEmpty())
+	if (rcPaint.IsRectEmpty())
 		return NULL;
 	rcPaint.Intersect(UiRect(0, 0, window_width, window_height));
 
-	// ÕâÀï²»ÉèÖÃ¼ô²ÃÇøÓò£¬¾ÍÎŞ·¨Õı³£»æÖÆ
+	// è¿™é‡Œä¸è®¾ç½®å‰ªè£åŒºåŸŸï¼Œå°±æ— æ³•æ­£å¸¸ç»˜åˆ¶
 	{
 		AutoClip rectClip(render.get(), rcPaint);
+
+		bool visible = control->IsInternVisible();
+		control->SetInternVisible(true);
 		control->Paint(render.get(), rcPaint);
+		control->SetInternVisible(visible);
 	}
 
-	// 4.ĞŞ¸´»æÖÆÇøÓòµÄalphaÍ¨µÀ
+	// 4.ä¿®å¤ç»˜åˆ¶åŒºåŸŸçš„alphaé€šé“
 	render->RestoreAlpha(rcPaint);
+
 	return render->DetachBitmap();
 }
 
-ui::IBitmap* TaskbarManager::GenerateBindControlBitmap(ui::Control *control, const int dest_width, const int dest_height)
+HBITMAP TaskbarManager::GenerateBindControlBitmap(ui::Control *control, const int dest_width, const int dest_height)
 {
 	ASSERT(dest_width > 0 && dest_height > 0 && NULL != control);
 	if (dest_width <= 0 || dest_height <= 0 || NULL == control)
@@ -301,11 +285,11 @@ ui::IBitmap* TaskbarManager::GenerateBindControlBitmap(ui::Control *control, con
 	int window_width = 0, window_height = 0;
 	RECT rc_wnd;
 	bool check_wnd_size = false;
-	if (::IsIconic(taskbar_delegate_->GetHandle())) //µ±Ç°ÊÇ×îĞ¡»¯×´Ì¬
+	if (::IsIconic(taskbar_delegate_->GetHandle())) //å½“å‰æ˜¯æœ€å°åŒ–çŠ¶æ€
 	{
 		WINDOWPLACEMENT placement{ sizeof(WINDOWPLACEMENT) };
 		::GetWindowPlacement(taskbar_delegate_->GetHandle(), &placement);
-		if (placement.flags == WPF_RESTORETOMAXIMIZED) //×îĞ¡»¯Ç°ÊÇ×î´ó»¯×´Ì¬
+		if (placement.flags == WPF_RESTORETOMAXIMIZED) //æœ€å°åŒ–å‰æ˜¯æœ€å¤§åŒ–çŠ¶æ€
 		{
 			MONITORINFO oMonitor = { sizeof(MONITORINFO) };
 			::GetMonitorInfo(::MonitorFromWindow(taskbar_delegate_->GetHandle(), MONITOR_DEFAULTTONEAREST), &oMonitor);
@@ -314,7 +298,7 @@ ui::IBitmap* TaskbarManager::GenerateBindControlBitmap(ui::Control *control, con
 		else
 		{
 			rc_wnd = placement.rcNormalPosition;
-			check_wnd_size = true; //ÉÙÊıÇé¿öÏÂ£¬WINDOWPLACEMENT::rcNormalPosition²»ÕıÈ·
+			check_wnd_size = true; //å°‘æ•°æƒ…å†µä¸‹ï¼ŒWINDOWPLACEMENT::rcNormalPositionä¸æ­£ç¡®
 		}
 	}
 	else
@@ -324,45 +308,37 @@ ui::IBitmap* TaskbarManager::GenerateBindControlBitmap(ui::Control *control, con
 	if (window_width == 0 || window_height == 0)
 		return nullptr;
 
-	// 1.´´½¨ÄÚ´ædc
-	std::unique_ptr<IRender> render;
-	IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
-	ASSERT(pRenderFactory != nullptr);
-	if (pRenderFactory != nullptr) {
-		render.reset(pRenderFactory->CreateRender());
-	}
-	ASSERT(render != nullptr);
+	// 1.åˆ›å»ºå†…å­˜dc
+	auto render = GlobalManager::CreateRenderContext();
 	render->Resize(window_width, window_height);
 
-	// 2.°ÑÄ³¸ö»á»°ºĞ×ÓµÄÎ»Í¼»­µ½ÄÚ´ædc£¬¸²¸ÇÔ­´°¿Ú¶ÔÓ¦Î»ÖÃµÄÎ»Í¼
+	// 2.æŠŠæŸä¸ªä¼šè¯ç›’å­çš„ä½å›¾ç”»åˆ°å†…å­˜dcï¼Œè¦†ç›–åŸçª—å£å¯¹åº”ä½ç½®çš„ä½å›¾
 	UiRect rcPaint = control->GetPos();
-	if (rcPaint.IsEmpty())
+	if (rcPaint.IsRectEmpty())
 		return NULL;
 	rcPaint.Intersect(UiRect(0, 0, window_width, window_height));
 
-	// ÕâÀï²»ÉèÖÃ¼ô²ÃÇøÓò£¬¾ÍÎŞ·¨Õı³£»æÖÆ
+	// è¿™é‡Œä¸è®¾ç½®å‰ªè£åŒºåŸŸï¼Œå°±æ— æ³•æ­£å¸¸ç»˜åˆ¶
 	{
 		AutoClip rectClip(render.get(), rcPaint);
+
+		bool visible = control->IsInternVisible();
+		control->SetInternVisible(true);
 		control->Paint(render.get(), rcPaint);
+		control->SetInternVisible(visible);
 	}
 
-	// 3.ĞŞ¸´»æÖÆÇøÓòµÄalphaÍ¨µÀ
+	// 3.ä¿®å¤ç»˜åˆ¶åŒºåŸŸçš„alphaé€šé“
 	render->RestoreAlpha(rcPaint);
 
-	// 4.Ëõ·Åµ½Ä¿±ê³ß´ç
+	// 4.ç¼©æ”¾åˆ°ç›®æ ‡å°ºå¯¸
 	UiRect rcControl = control->GetPos();
-	return ResizeBitmap(dest_width, dest_height, render.get(), rcControl.left, rcControl.top, rcControl.Width(), rcControl.Height());
+	return ResizeBitmap(dest_width, dest_height, render->GetDC(), rcControl.left, rcControl.top, rcControl.GetWidth(), rcControl.GetHeight());
 }
 
-ui::IBitmap* TaskbarManager::ResizeBitmap(int dest_width, int dest_height, ui::IRender* pSrcRender, int src_x, int src_y, int src_width, int src_height)
+HBITMAP TaskbarManager::ResizeBitmap(int dest_width, int dest_height, HDC src_dc, int src_x, int src_y, int src_width, int src_height)
 {
-	std::unique_ptr<IRender> render;
-	IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
-	ASSERT(pRenderFactory != nullptr);
-	if (pRenderFactory != nullptr) {
-		render.reset(pRenderFactory->CreateRender());
-	}
-	ASSERT(render != nullptr);
+	auto render = GlobalManager::CreateRenderContext();
 	if (render->Resize(dest_width, dest_height))
 	{
 		int scale_width = 0;
@@ -381,7 +357,7 @@ ui::IBitmap* TaskbarManager::ResizeBitmap(int dest_width, int dest_height, ui::I
 			scale_width = (int)(dest_height * (float)src_width / (float)src_height);
 		}
 
-		render->AlphaBlend((dest_width - scale_width) / 2, (dest_height - scale_height) / 2, scale_width, scale_height, pSrcRender, src_x, src_y, src_width, src_height);
+		render->AlphaBlend((dest_width - scale_width) / 2, (dest_height - scale_height) / 2, scale_width, scale_height, src_dc, src_x, src_y, src_width, src_height);
 	}
 
 	return render->DetachBitmap();

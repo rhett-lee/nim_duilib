@@ -1,7 +1,6 @@
+#include "stdafx.h"
 #include "cef_js_bridge.h"
 #include "ipc_string_define.h"
-#include "ui_components/public_define.h"
-#include "base/thread/thread_manager.h"
 
 namespace nim_comp {
 

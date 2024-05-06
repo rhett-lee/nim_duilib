@@ -1,4 +1,4 @@
-// A wrapper class of Windows shared memory
+﻿// A wrapper class of Windows shared memory
 
 #ifndef BASE_SHARED_MEMORY_H_
 #define BASE_SHARED_MEMORY_H_
@@ -9,7 +9,6 @@
 
 #include "base/base_export.h"
 #include <assert.h>
-#include "base/build/winsdk_config.h"
 #include <windows.h>
 
 namespace nbase

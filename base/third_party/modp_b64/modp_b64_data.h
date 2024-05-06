@@ -1,4 +1,4 @@
-#include "base/build/build_config.h"
+#include "build/build_config.h"
 #if !defined(COMPILER_MSVC)
 #include <stdint.h>
 #else

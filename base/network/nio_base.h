@@ -209,7 +209,7 @@ inline int socket_error()
 
 inline bool would_block()
 {
-	int err = socket_error();
+	register int err = socket_error();
 #if defined(OS_WIN)
 	if (err == WSAEWOULDBLOCK || err == WSAEINPROGRESS)
 		return true;

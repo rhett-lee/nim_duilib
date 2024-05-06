@@ -80,7 +80,6 @@ HANDLE ObjectWatcher::GetWatchedObject() {
 
 // static
 void CALLBACK ObjectWatcher::DoneWaiting(void* param, BOOLEAN timed_out) {
-  (void)timed_out;
   assert(!timed_out);
 
   // The destructor blocks on any callbacks that are in flight, so we know that

@@ -1,4 +1,4 @@
-// controls.cpp : ¶¨ÒåÓ¦ÓÃ³ÌÐòµÄÈë¿Úµã¡£
+ï»¿// controls.cpp : å®šä¹‰åº”ç”¨ç¨‹åºçš„å…¥å£ç‚¹ã€‚
 //
 
 #include "stdafx.h"
@@ -12,10 +12,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 {
 	UNREFERENCED_PARAMETER(hPrevInstance);
 	UNREFERENCED_PARAMETER(lpCmdLine);
-
-	//¿ªÆôÓÃÊó±êÄ£ÄâWM_POINTERÏûÏ¢
-	//BOOL isOk = EnableMouseInPointer(TRUE);
-	//BOOL isOk2 = IsMouseInPointerEnabled();
 
 	MainThread().RunOnCurrentThreadWithLoop(nbase::MessageLoop::kUIMessageLoop);
 
@@ -36,27 +32,24 @@ void MainThread::Init()
 {
 	nbase::ThreadManager::RegisterThread(kThreadUI);
 
-	// Æô¶¯ÔÓÊÂ´¦ÀíÏß³Ì
+	// å¯åŠ¨æ‚äº‹å¤„ç†çº¿ç¨‹
 	misc_thread_.reset(new MiscThread(kThreadGlobalMisc, "Global Misc Thread"));
 	misc_thread_->Start();
 
-	//¿ªÆôDPI×ÔÊÊÓ¦¹¦ÄÜ
-	bool bAdaptDpi = true;
-
-	// »ñÈ¡×ÊÔ´Â·¾¶£¬³õÊ¼»¯È«¾Ö²ÎÊý
+	// èŽ·å–èµ„æºè·¯å¾„ï¼Œåˆå§‹åŒ–å…¨å±€å‚æ•°
 	std::wstring app_dir = nbase::win32::GetCurrentModuleDirectory();
-	ui::GlobalManager::Instance().Startup(app_dir + L"resources\\", ui::CreateControlCallback(), bAdaptDpi);
+	ui::GlobalManager::Startup(app_dir + L"resources\\", ui::CreateControlCallback(), false);
 
-	// ´´½¨Ò»¸öÄ¬ÈÏ´øÓÐÒõÓ°µÄ¾ÓÖÐ´°¿Ú
+	// åˆ›å»ºä¸€ä¸ªé»˜è®¤å¸¦æœ‰é˜´å½±çš„å±…ä¸­çª—å£
 	ControlForm* window = new ControlForm();
-	window->CreateWnd(NULL, ControlForm::kClassName.c_str(), UI_WNDSTYLE_FRAME, WS_EX_LAYERED);
+	window->Create(NULL, ControlForm::kClassName.c_str(), WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX, 0);
 	window->CenterWindow();
 	window->ShowWindow();
 }
 
 void MainThread::Cleanup()
 {
-	ui::GlobalManager::Instance().Shutdown();
+	ui::GlobalManager::Shutdown();
 
 	misc_thread_->Stop();
 	misc_thread_.reset(nullptr);

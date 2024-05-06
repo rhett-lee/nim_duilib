@@ -1,4 +1,4 @@
-// Multi-byte strings and Unicode strings conversion, etc.
+﻿// Multi-byte strings and Unicode strings conversion, etc.
 
 #ifndef BASE_PLATFORM_STRING_UTIL_H_
 #define BASE_PLATFORM_STRING_UTIL_H_

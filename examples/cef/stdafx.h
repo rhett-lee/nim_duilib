@@ -1,6 +1,6 @@
-// stdafx.h: ±ê×¼ÏµÍ³°üº¬ÎÄ¼şµÄ°üº¬ÎÄ¼ş£¬
-// »òÊÇ¾­³£Ê¹ÓÃµ«²»³£¸ü¸ÄµÄ
-// ÏîÄ¿ÌØ¶¨µÄ°üº¬ÎÄ¼ş
+ï»¿// stdafx.h: æ ‡å‡†ç³»ç»ŸåŒ…å«æ–‡ä»¶çš„åŒ…å«æ–‡ä»¶ï¼Œ
+// æˆ–æ˜¯ç»å¸¸ä½¿ç”¨ä½†ä¸å¸¸æ›´æ”¹çš„
+// é¡¹ç›®ç‰¹å®šçš„åŒ…å«æ–‡ä»¶
 //
 
 #pragma once
@@ -17,7 +17,7 @@
 #include "base/base.h"
 
 // duilib
-#include "duilib/duilib.h"
+#include "duilib/UIlib.h"
 
 // ui components
 #include "ui_components/ui_components.h"

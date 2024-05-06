@@ -1,4 +1,4 @@
-// basic.cpp : ¶¨ÒåÓ¦ÓÃ³ÌÐòµÄÈë¿Úµã¡£
+ï»¿// basic.cpp : å®šä¹‰åº”ç”¨ç¨‹åºçš„å…¥å£ç‚¹ã€‚
 //
 
 #include "stdafx.h"
@@ -10,8 +10,7 @@ enum ThreadId
 	kThreadUI
 };
 
-//¿ªÆôDPI×ÔÊÊÓ¦¹¦ÄÜ
-bool bAdaptDpi = true;
+#pragma comment(lib, "dbghelp.lib")
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
@@ -21,31 +20,28 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	UNREFERENCED_PARAMETER(hPrevInstance);
 	UNREFERENCED_PARAMETER(lpCmdLine);
 
-	// ½« bin\\cef Ä¿Â¼Ìí¼Óµ½»·¾³±äÁ¿£¬ÕâÑù¿ÉÒÔ½«ËùÓÐ CEF Ïà¹ØÎÄ¼þ·Åµ½¸ÃÄ¿Â¼ÏÂ£¬·½±ã¹ÜÀí
-	// ÔÚÏîÄ¿ÊôÐÔ->Á¬½ÓÆ÷->ÊäÈë£¬ÑÓ³Ù¼ÓÔØ nim_libcef.dll
+	// å°† bin\\cef ç›®å½•æ·»åŠ åˆ°çŽ¯å¢ƒå˜é‡ï¼Œè¿™æ ·å¯ä»¥å°†æ‰€æœ‰ CEF ç›¸å…³æ–‡ä»¶æ”¾åˆ°è¯¥ç›®å½•ä¸‹ï¼Œæ–¹ä¾¿ç®¡ç†
+	// åœ¨é¡¹ç›®å±žæ€§->è¿žæŽ¥å™¨->è¾“å…¥ï¼Œå»¶è¿ŸåŠ è½½ nim_libcef.dll
 	nim_comp::CefManager::GetInstance()->AddCefDllToPath();
 
 	HRESULT hr = ::OleInitialize(NULL);
 	if (FAILED(hr))
 		return 0;
 
-	//±ØÐëÔÚCefManager::InitializeÇ°µ÷ÓÃ£¬ÉèÖÃDPI×ÔÊÊÓ¦ÊôÐÔ£¬·ñÔò»áµ¼ÖÂÏÔÊ¾²»Õý³£
-	ui::GlobalManager::Instance().Dpi().SetAdaptDPI(bAdaptDpi);
-
-	// ³õÊ¼»¯ CEF
+	// åˆå§‹åŒ– CEF
 	CefSettings settings;
 	if (!nim_comp::CefManager::GetInstance()->Initialize(nbase::win32::GetCurrentModuleDirectory() + L"cef_temp\\", settings, kEnableOffsetRender))
 	{
 		return 0;
 	}
 
-	// ´´½¨Ö÷Ïß³Ì
+	// åˆ›å»ºä¸»çº¿ç¨‹
 	MainThread thread;
 
-	// Ö´ÐÐÖ÷Ïß³ÌÑ­»·
+	// æ‰§è¡Œä¸»çº¿ç¨‹å¾ªçŽ¯
 	thread.RunOnCurrentThreadWithLoop(nbase::MessageLoop::kUIMessageLoop);
 
-    // ÇåÀí CEF
+    // æ¸…ç† CEF
 	nim_comp::CefManager::GetInstance()->UnInitialize();
 
 	::OleUninitialize();
@@ -57,27 +53,23 @@ void MainThread::Init()
 {
 	nbase::ThreadManager::RegisterThread(kThreadUI);
 
-	// »ñÈ¡×ÊÔ´Â·¾¶£¬³õÊ¼»¯È«¾Ö²ÎÊý
-	// Ä¬ÈÏÆ¤·ôÊ¹ÓÃ resources\\themes\\default
-	// Ä¬ÈÏÓïÑÔÊ¹ÓÃ resources\\lang\\zh_CN
-	// ÈçÐèÐÞ¸ÄÇëÖ¸¶¨ Startup ×îºóÁ½¸ö²ÎÊý
+	// èŽ·å–èµ„æºè·¯å¾„ï¼Œåˆå§‹åŒ–å…¨å±€å‚æ•°
+	// é»˜è®¤çš®è‚¤ä½¿ç”¨ resources\\themes\\default
+	// é»˜è®¤è¯­è¨€ä½¿ç”¨ resources\\lang\\zh_CN
+	// å¦‚éœ€ä¿®æ”¹è¯·æŒ‡å®š Startup æœ€åŽä¸¤ä¸ªå‚æ•°
 	std::wstring theme_dir = nbase::win32::GetCurrentModuleDirectory();
-	ui::GlobalManager::Instance().Startup(theme_dir + L"resources\\", ui::CreateControlCallback(), bAdaptDpi);
+	ui::GlobalManager::Startup(theme_dir + L"resources\\", ui::CreateControlCallback(), false);
 
-	// ´´½¨Ò»¸öÄ¬ÈÏ´øÓÐÒõÓ°µÄ¾ÓÖÐ´°¿Ú
+	// åˆ›å»ºä¸€ä¸ªé»˜è®¤å¸¦æœ‰é˜´å½±çš„å±…ä¸­çª—å£
 	CefForm* window = new CefForm();
-	uint32_t dwExStyle = 0;
-	if (nim_comp::CefManager::GetInstance()->IsEnableOffsetRender()) {
-		dwExStyle |= WS_EX_LAYERED;
-	}
-	window->CreateWnd(NULL, CefForm::kClassName.c_str(), UI_WNDSTYLE_FRAME, dwExStyle);
+	window->Create(NULL, CefForm::kClassName.c_str(), WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX, 0, nim_comp::CefManager::GetInstance()->IsEnableOffsetRender());
 	window->CenterWindow();
 	window->ShowWindow();
 }
 
 void MainThread::Cleanup()
 {
-	ui::GlobalManager::Instance().Shutdown();
+	ui::GlobalManager::Shutdown();
 	SetThreadWasQuitProperly(true);
 	nbase::ThreadManager::UnregisterThread();
 }

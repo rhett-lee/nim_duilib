@@ -17,7 +17,6 @@
 #endif
 
 #if defined(OS_WIN)
-#include "base/build/winsdk_config.h"
 #include <windows.h>
 #endif // OS_WIN
 

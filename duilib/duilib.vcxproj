@@ -21,32 +21,31 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{E106ACD7-4E53-4AEE-942B-D0DD426DB34E}</ProjectGuid>
     <RootNamespace>duilib</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v120_xp</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v120_xp</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v120_xp</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v120_xp</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -121,23 +120,19 @@
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\;..\..\skia\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\;..\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <MinimalRebuild>false</MinimalRebuild>
+      <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
       <WarningLevel>Level4</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <TreatWarningAsError>false</TreatWarningAsError>
-      <DisableSpecificWarnings>
-      </DisableSpecificWarnings>
-      <LanguageStandard>stdcpp20</LanguageStandard>
-      <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <DisableSpecificWarnings>4100;4121;4127;4244;4310;4355;4481;4505;4512;4702;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -175,22 +170,18 @@
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\;..\..\skia\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\;..\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
       <WarningLevel>Level4</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <TreatWarningAsError>false</TreatWarningAsError>
-      <DisableSpecificWarnings>
-      </DisableSpecificWarnings>
-      <LanguageStandard>stdcpp20</LanguageStandard>
-      <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <DisableSpecificWarnings>4100;4121;4127;4244;4310;4355;4481;4505;4512;4702;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -229,22 +220,18 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <InlineFunctionExpansion>Default</InlineFunctionExpansion>
-      <AdditionalIncludeDirectories>..\;..\..\skia\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\;..\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <FunctionLevelLinking>true</FunctionLevelLinking>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
       <WarningLevel>Level4</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <DisableSpecificWarnings>
-      </DisableSpecificWarnings>
-      <LanguageStandard>stdcpp20</LanguageStandard>
-      <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <DisableSpecificWarnings>4100;4121;4127;4244;4310;4355;4481;4505;4512;4702;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -283,22 +270,18 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <InlineFunctionExpansion>Default</InlineFunctionExpansion>
-      <AdditionalIncludeDirectories>..\;..\..\skia\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\;..\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <FunctionLevelLinking>true</FunctionLevelLinking>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
       <WarningLevel>Level4</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <DisableSpecificWarnings>
-      </DisableSpecificWarnings>
-      <LanguageStandard>stdcpp20</LanguageStandard>
-      <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <DisableSpecificWarnings>4100;4121;4127;4244;4310;4355;4481;4505;4512;4702;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -327,284 +310,109 @@
   <ItemGroup>
     <ClCompile Include="Animation\AnimationManager.cpp" />
     <ClCompile Include="Animation\AnimationPlayer.cpp" />
-    <ClCompile Include="Box\HLayout.cpp" />
-    <ClCompile Include="Box\HTileLayout.cpp" />
-    <ClCompile Include="Box\Layout.cpp" />
-    <ClCompile Include="Box\ListBox.cpp" />
-    <ClCompile Include="Box\ScrollBox.cpp" />
+    <ClCompile Include="Box\ChildBox.cpp">
+      <PreprocessToFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</PreprocessToFile>
+    </ClCompile>
+    <ClCompile Include="Box\HBox.cpp" />
     <ClCompile Include="Box\TabBox.cpp" />
-    <ClCompile Include="Box\VirtualHLayout.cpp" />
-    <ClCompile Include="Box\VirtualHTileLayout.cpp" />
-    <ClCompile Include="Box\VirtualListBox.cpp" />
-    <ClCompile Include="Box\VirtualVLayout.cpp" />
-    <ClCompile Include="Box\VirtualVTileLayout.cpp" />
-    <ClCompile Include="Box\VLayout.cpp" />
-    <ClCompile Include="Box\VTileLayout.cpp" />
-    <ClCompile Include="Control\CheckCombo.cpp" />
+    <ClCompile Include="Box\TileBox.cpp" />
+    <ClCompile Include="Box\VBox.cpp" />
     <ClCompile Include="Control\CircleProgress.cpp" />
-    <ClCompile Include="Control\ColorControl.cpp" />
-    <ClCompile Include="Control\ColorConvert.cpp" />
-    <ClCompile Include="Control\ColorPicker.cpp" />
-    <ClCompile Include="Control\ColorPickerCustom.cpp" />
-    <ClCompile Include="Control\ColorPickerRegular.cpp" />
-    <ClCompile Include="Control\ColorPickerStatard.cpp" />
-    <ClCompile Include="Control\ColorPickerStatardGray.cpp" />
-    <ClCompile Include="Control\ColorSlider.cpp" />
-    <ClCompile Include="Control\ComboButton.cpp" />
-    <ClCompile Include="Control\DateTime.cpp" />
-    <ClCompile Include="Control\FilterCombo.cpp" />
-    <ClCompile Include="Control\HotKey.cpp" />
-    <ClCompile Include="Control\IPAddress.cpp" />
-    <ClCompile Include="Control\Line.cpp" />
-    <ClCompile Include="Control\ListCtrl.cpp" />
-    <ClCompile Include="Control\ListCtrlData.cpp" />
-    <ClCompile Include="Control\ListCtrlHeader.cpp" />
-    <ClCompile Include="Control\ListCtrlHeaderItem.cpp" />
-    <ClCompile Include="Control\ListCtrlIconView.cpp" />
-    <ClCompile Include="Control\ListCtrlItem.cpp" />
-    <ClCompile Include="Control\ListCtrlReportView.cpp" />
-    <ClCompile Include="Control\ListCtrlSubItem.cpp" />
-    <ClCompile Include="Control\ListCtrlView.cpp" />
-    <ClCompile Include="Control\Menu.cpp" />
-    <ClCompile Include="Control\PropertyGrid.cpp" />
-    <ClCompile Include="Control\RichEditHost.cpp" />
-    <ClCompile Include="Control\RichText.cpp" />
-    <ClCompile Include="Control\TabCtrl.cpp" />
-    <ClCompile Include="Core\Box.cpp" />
-    <ClCompile Include="Core\BoxShadow.cpp" />
-    <ClCompile Include="Core\ColorManager.cpp" />
-    <ClCompile Include="Core\Control.cpp" />
-    <ClCompile Include="Core\ControlDropTarget.cpp" />
-    <ClCompile Include="Core\ControlFinder.cpp" />
-    <ClCompile Include="Core\ControlLoading.cpp" />
-    <ClCompile Include="Core\DpiManager.cpp" />
-    <ClCompile Include="Core\DragWindow.cpp" />
-    <ClCompile Include="Core\EventArgs.cpp" />
-    <ClCompile Include="Core\FontManager.cpp" />
-    <ClCompile Include="Core\GlobalManager.cpp" />
-    <ClCompile Include="Core\IconManager.cpp" />
-    <ClCompile Include="Core\ImageList.cpp" />
-    <ClCompile Include="Core\ImageManager.cpp" />
-    <ClCompile Include="Core\LangManager.cpp" />
+    <ClCompile Include="Control\VirtualListBox.cpp" />
+    <ClCompile Include="Core\Define.cpp" />
+    <ClCompile Include="Core\Image.cpp" />
     <ClCompile Include="Core\Placeholder.cpp" />
-    <ClCompile Include="Core\ScrollBar.cpp" />
-    <ClCompile Include="Core\Shadow.cpp" />
-    <ClCompile Include="Core\StateColorMap.cpp" />
-    <ClCompile Include="Core\TimerManager.cpp" />
-    <ClCompile Include="Core\ToolTip.cpp" />
-    <ClCompile Include="Core\UiColors.cpp" />
-    <ClCompile Include="Core\Window.cpp" />
-    <ClCompile Include="Core\WindowBuilder.cpp" />
-    <ClCompile Include="Core\WindowDropTarget.cpp" />
-    <ClCompile Include="Core\ZipManager.cpp" />
-    <ClCompile Include="duilib.cpp" />
-    <ClCompile Include="Image\Image.cpp" />
-    <ClCompile Include="Image\ImageAttribute.cpp" />
-    <ClCompile Include="Image\ImageDecoder.cpp" />
-    <ClCompile Include="Image\ImageGif.cpp" />
-    <ClCompile Include="Image\ImageInfo.cpp" />
-    <ClCompile Include="Image\ImageLoadAttribute.cpp" />
-    <ClCompile Include="Image\StateImage.cpp" />
-    <ClCompile Include="Image\StateImageMap.cpp" />
-    <ClCompile Include="RenderGdiPlus\BitmapHepler.cpp" />
-    <ClCompile Include="RenderGdiPlus\Bitmap_GDI.cpp" />
-    <ClCompile Include="RenderGdiPlus\Brush_Gdiplus.cpp" />
-    <ClCompile Include="RenderGdiPlus\Font_GDI.cpp" />
-    <ClCompile Include="RenderGdiPlus\Matrix_Gdiplus.cpp" />
-    <ClCompile Include="RenderGdiPlus\Path_Gdiplus.cpp" />
-    <ClCompile Include="RenderGdiPlus\Pen_GdiPlus.cpp" />
-    <ClCompile Include="RenderGdiPlus\RenderFactory_GdiPlus.cpp" />
-    <ClCompile Include="RenderGdiPlus\Render_GdiPlus.cpp" />
-    <ClCompile Include="RenderSkia\Bitmap_Skia.cpp" />
-    <ClCompile Include="RenderSkia\Brush_Skia.cpp" />
-    <ClCompile Include="RenderSkia\Font_Skia.cpp" />
-    <ClCompile Include="RenderSkia\Matrix_Skia.cpp" />
-    <ClCompile Include="RenderSkia\Path_Skia.cpp" />
-    <ClCompile Include="RenderSkia\Pen_Skia.cpp" />
-    <ClCompile Include="RenderSkia\RenderFactory_Skia.cpp" />
-    <ClCompile Include="RenderSkia\Render_Skia.cpp" />
-    <ClCompile Include="RenderSkia\SkTextBox.cpp" />
-    <ClCompile Include="RenderSkia\SkUtils.cpp" />
-    <ClCompile Include="Render\AutoClip.cpp" />
-    <ClCompile Include="Render\BitmapAlpha.cpp" />
-    <ClCompile Include="third_party\apng\decoder-apng.cpp" />
-    <ClCompile Include="third_party\unzip\UnZip.cpp" />
-    <ClCompile Include="third_party\xml\pugixml.cpp" />
+    <ClCompile Include="Render\Bitmap.cpp" />
+    <ClCompile Include="Render\Brush.cpp" />
+    <ClCompile Include="Render\Clip.cpp" />
+    <ClCompile Include="Render\Factory.cpp" />
+    <ClCompile Include="Render\IRender.cpp" />
+    <ClCompile Include="Render\Matrix.cpp" />
+    <ClCompile Include="Render\Path.cpp" />
+    <ClCompile Include="Render\Pen.cpp" />
+    <ClCompile Include="Render\Render.cpp" />
+    <ClCompile Include="StdAfx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="UIlib.cpp" />
     <ClCompile Include="Utils\ApiWrapper.cpp" />
-    <ClCompile Include="Utils\AttributeUtil.cpp" />
-    <ClCompile Include="Utils\FileDialog.cpp" />
-    <ClCompile Include="Utils\FileUtil.cpp" />
+    <ClCompile Include="Utils\DpiManager.cpp" />
+    <ClCompile Include="Utils\MultiLangSupport.cpp" />
     <ClCompile Include="Utils\OnScreenKeyboardManager.cpp" />
-    <ClCompile Include="Utils\PerformanceUtil.cpp" />
-    <ClCompile Include="Utils\ShadowWnd.cpp" />
+    <ClCompile Include="Utils\Shadow.cpp" />
     <ClCompile Include="Utils\StringUtil.cpp" />
+    <ClCompile Include="Utils\TimerManager.cpp" />
+    <ClCompile Include="Core\Window.cpp" />
+    <ClCompile Include="Core\Box.cpp" />
+    <ClCompile Include="Core\Control.cpp" />
+    <ClCompile Include="Core\WindowBuilder.cpp" />
+    <ClCompile Include="Core\GlobalManager.cpp" />
+    <ClCompile Include="Core\Markup.cpp" />
     <ClCompile Include="Control\Combo.cpp" />
+    <ClCompile Include="Control\List.cpp" />
     <ClCompile Include="Control\Progress.cpp" />
     <ClCompile Include="Control\RichEdit.cpp" />
+    <ClCompile Include="Control\ScrollBar.cpp" />
     <ClCompile Include="Control\Slider.cpp" />
     <ClCompile Include="Control\TreeView.cpp" />
+    <ClCompile Include="Utils\UnZip.cpp" />
     <ClCompile Include="Utils\WinImplBase.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h" />
     <ClInclude Include="Animation\AnimationPlayer.h" />
+    <ClInclude Include="Box\ChildBox.h" />
     <ClInclude Include="Box\HBox.h" />
-    <ClInclude Include="Box\HLayout.h" />
-    <ClInclude Include="Box\HTileLayout.h" />
-    <ClInclude Include="Box\Layout.h" />
-    <ClInclude Include="Box\ListBox.h" />
-    <ClInclude Include="Box\ListBoxItem.h" />
-    <ClInclude Include="Box\ScrollBox.h" />
     <ClInclude Include="Box\TabBox.h" />
     <ClInclude Include="Box\TileBox.h" />
     <ClInclude Include="Box\VBox.h" />
-    <ClInclude Include="Box\VirtualHLayout.h" />
-    <ClInclude Include="Box\VirtualHTileLayout.h" />
-    <ClInclude Include="Box\VirtualLayout.h" />
-    <ClInclude Include="Box\VirtualListBox.h" />
-    <ClInclude Include="Box\VirtualVLayout.h" />
-    <ClInclude Include="Box\VirtualVTileLayout.h" />
-    <ClInclude Include="Box\VLayout.h" />
-    <ClInclude Include="Box\VTileLayout.h" />
-    <ClInclude Include="Control\CheckCombo.h" />
-    <ClInclude Include="Control\ColorControl.h" />
-    <ClInclude Include="Control\ColorConvert.h" />
-    <ClInclude Include="Control\ColorPicker.h" />
-    <ClInclude Include="Control\ColorPickerCustom.h" />
-    <ClInclude Include="Control\ColorPickerRegular.h" />
-    <ClInclude Include="Control\ColorPickerStatard.h" />
-    <ClInclude Include="Control\ColorPickerStatardGray.h" />
-    <ClInclude Include="Control\ColorSlider.h" />
-    <ClInclude Include="Control\ComboButton.h" />
-    <ClInclude Include="Control\DateTime.h" />
-    <ClInclude Include="Control\FilterCombo.h" />
-    <ClInclude Include="Control\GroupBox.h" />
-    <ClInclude Include="Control\HotKey.h" />
-    <ClInclude Include="Control\HyperLink.h" />
-    <ClInclude Include="Control\IPAddress.h" />
-    <ClInclude Include="Control\Line.h" />
-    <ClInclude Include="Control\ListCtrl.h" />
-    <ClInclude Include="Control\ListCtrlData.h" />
-    <ClInclude Include="Control\ListCtrlDefs.h" />
-    <ClInclude Include="Control\ListCtrlHeader.h" />
-    <ClInclude Include="Control\ListCtrlHeaderItem.h" />
-    <ClInclude Include="Control\ListCtrlIconView.h" />
-    <ClInclude Include="Control\ListCtrlItem.h" />
-    <ClInclude Include="Control\ListCtrlReportView.h" />
-    <ClInclude Include="Control\ListCtrlSubItem.h" />
-    <ClInclude Include="Control\ListCtrlView.h" />
-    <ClInclude Include="Control\Menu.h" />
-    <ClInclude Include="Control\observer_impl_base.hpp" />
-    <ClInclude Include="Control\PropertyGrid.h" />
-    <ClInclude Include="Control\RichEditCtrl.h" />
-    <ClInclude Include="Control\RichEditHost.h" />
-    <ClInclude Include="Control\RichText.h" />
     <ClInclude Include="Control\CircleProgress.h" />
-    <ClInclude Include="Control\Split.h" />
-    <ClInclude Include="Control\TabCtrl.h" />
-    <ClInclude Include="Core\Box.h" />
-    <ClInclude Include="Core\BoxShadow.h" />
-    <ClInclude Include="Core\ColorManager.h" />
-    <ClInclude Include="Core\Control.h" />
-    <ClInclude Include="Core\ControlDragable.h" />
-    <ClInclude Include="Core\ControlDropTarget.h" />
-    <ClInclude Include="Core\ControlFinder.h" />
-    <ClInclude Include="Core\ControlLoading.h" />
-    <ClInclude Include="Core\DpiManager.h" />
-    <ClInclude Include="Core\DragWindow.h" />
-    <ClInclude Include="Core\EventArgs.h" />
-    <ClInclude Include="Core\FontManager.h" />
-    <ClInclude Include="Core\GlobalManager.h" />
-    <ClInclude Include="Core\IconManager.h" />
-    <ClInclude Include="Core\ImageList.h" />
-    <ClInclude Include="Core\ImageManager.h" />
-    <ClInclude Include="Core\LangManager.h" />
+    <ClInclude Include="Control\VirtualListBox.h" />
+    <ClInclude Include="Core\Image.h" />
     <ClInclude Include="Core\Placeholder.h" />
-    <ClInclude Include="Core\ScrollBar.h" />
-    <ClInclude Include="Core\Shadow.h" />
-    <ClInclude Include="Core\StateColorMap.h" />
-    <ClInclude Include="Core\TimerManager.h" />
-    <ClInclude Include="Core\ToolTip.h" />
-    <ClInclude Include="Core\UiColor.h" />
-    <ClInclude Include="Core\UiColors.h" />
-    <ClInclude Include="Core\UiEstInt.h" />
-    <ClInclude Include="Core\UiFixedInt.h" />
-    <ClInclude Include="Core\UiFont.h" />
-    <ClInclude Include="Core\UiMargin.h" />
-    <ClInclude Include="Core\UiPadding.h" />
-    <ClInclude Include="Core\UiPoint.h" />
-    <ClInclude Include="Core\UiPointF.h" />
-    <ClInclude Include="Core\UiRect.h" />
-    <ClInclude Include="Core\UiSize.h" />
-    <ClInclude Include="Core\UiSize64.h" />
-    <ClInclude Include="Core\UiString.h" />
-    <ClInclude Include="Core\UiTypes.h" />
-    <ClInclude Include="Core\Window.h" />
-    <ClInclude Include="Core\WindowBuilder.h" />
-    <ClInclude Include="Core\WindowDropTarget.h" />
-    <ClInclude Include="Core\ZipManager.h" />
-    <ClInclude Include="duilib.h" />
-    <ClInclude Include="duilib_config.h" />
-    <ClInclude Include="duilib_defs.h" />
-    <ClInclude Include="Image\Image.h" />
-    <ClInclude Include="Image\ImageAttribute.h" />
-    <ClInclude Include="Image\ImageDecoder.h" />
-    <ClInclude Include="Image\ImageGif.h" />
-    <ClInclude Include="Image\ImageInfo.h" />
-    <ClInclude Include="Image\ImageLoadAttribute.h" />
-    <ClInclude Include="Image\StateImage.h" />
-    <ClInclude Include="Image\StateImageMap.h" />
-    <ClInclude Include="RenderGdiPlus\BitmapHelper.h" />
-    <ClInclude Include="RenderGdiPlus\Bitmap_GDI.h" />
-    <ClInclude Include="RenderGdiPlus\Brush_Gdiplus.h" />
-    <ClInclude Include="RenderGdiPlus\Font_GDI.h" />
-    <ClInclude Include="RenderGdiPlus\GdiPlusDefs.h" />
-    <ClInclude Include="RenderGdiPlus\Matrix_Gdiplus.h" />
-    <ClInclude Include="RenderGdiPlus\Path_Gdiplus.h" />
-    <ClInclude Include="RenderGdiPlus\Pen_GdiPlus.h" />
-    <ClInclude Include="RenderGdiPlus\RenderFactory_GdiPlus.h" />
-    <ClInclude Include="RenderGdiPlus\Render_GdiPlus.h" />
-    <ClInclude Include="RenderSkia\Bitmap_Skia.h" />
-    <ClInclude Include="RenderSkia\Brush_Skia.h" />
-    <ClInclude Include="RenderSkia\Font_Skia.h" />
-    <ClInclude Include="RenderSkia\Matrix_Skia.h" />
-    <ClInclude Include="RenderSkia\Path_Skia.h" />
-    <ClInclude Include="RenderSkia\Pen_Skia.h" />
-    <ClInclude Include="RenderSkia\RenderFactory_Skia.h" />
-    <ClInclude Include="RenderSkia\Render_Skia.h" />
-    <ClInclude Include="RenderSkia\SkTextBox.h" />
-    <ClInclude Include="RenderSkia\SkUtils.h" />
-    <ClInclude Include="Render\AutoClip.h" />
-    <ClInclude Include="Render\BitmapAlpha.h" />
+    <ClInclude Include="Render\Bitmap.h" />
+    <ClInclude Include="Render\Brush.h" />
+    <ClInclude Include="Render\Clip.h" />
+    <ClInclude Include="Render\Factory.h" />
     <ClInclude Include="Render\IRender.h" />
-    <ClInclude Include="Render\RenderConfig.h" />
-    <ClInclude Include="third_party\apng\decoder-apng.h" />
-    <ClInclude Include="third_party\stb_image\stb_image.h" />
-    <ClInclude Include="third_party\stb_image\stb_image_resize.h" />
-    <ClInclude Include="third_party\svg\nanosvg.h" />
-    <ClInclude Include="third_party\svg\nanosvgrast.h" />
-    <ClInclude Include="third_party\unzip\UnZip.h" />
-    <ClInclude Include="third_party\xml\pugiconfig.hpp" />
-    <ClInclude Include="third_party\xml\pugixml.hpp" />
+    <ClInclude Include="Render\Matrix.h" />
+    <ClInclude Include="Render\Path.h" />
+    <ClInclude Include="Render\Pen.h" />
+    <ClInclude Include="Render\Render.h" />
+    <ClInclude Include="StdAfx.h" />
+    <ClInclude Include="UIlib.h" />
     <ClInclude Include="Utils\ApiWrapper.h" />
-    <ClInclude Include="Utils\AttributeUtil.h" />
-    <ClInclude Include="Utils\FileDialog.h" />
-    <ClInclude Include="Utils\FileUtil.h" />
+    <ClInclude Include="Utils\DpiManager.h" />
     <ClInclude Include="Utils\Macros.h" />
+    <ClInclude Include="Utils\MultiLangSupport.h" />
     <ClInclude Include="Utils\OnScreenKeyboardManager.h" />
-    <ClInclude Include="Utils\PerformanceUtil.h" />
-    <ClInclude Include="Utils\ShadowWnd.h" />
+    <ClInclude Include="Utils\Shadow.h" />
     <ClInclude Include="Utils\StringUtil.h" />
     <ClInclude Include="Utils\Delegate.h" />
+    <ClInclude Include="Utils\TimerManager.h" />
+    <ClInclude Include="Utils\UnZip.h" />
+    <ClInclude Include="Utils\Utils.h" />
     <ClInclude Include="Utils\VersionHelpers.h" />
     <ClInclude Include="Utils\WinImplBase.h" />
+    <ClInclude Include="Core\Window.h" />
+    <ClInclude Include="Core\Box.h" />
+    <ClInclude Include="Core\Control.h" />
+    <ClInclude Include="Core\Define.h" />
+    <ClInclude Include="Core\WindowBuilder.h" />
+    <ClInclude Include="Core\GlobalManager.h" />
+    <ClInclude Include="Core\Markup.h" />
     <ClInclude Include="Control\Button.h" />
     <ClInclude Include="Control\CheckBox.h" />
     <ClInclude Include="Control\Combo.h" />
     <ClInclude Include="Control\Label.h" />
+    <ClInclude Include="Control\List.h" />
     <ClInclude Include="Control\Option.h" />
     <ClInclude Include="Control\Progress.h" />
     <ClInclude Include="Control\RichEdit.h" />
+    <ClInclude Include="Control\ScrollBar.h" />
     <ClInclude Include="Control\Slider.h" />
     <ClInclude Include="Control\TreeView.h" />
   </ItemGroup>

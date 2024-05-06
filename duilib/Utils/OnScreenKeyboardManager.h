@@ -3,13 +3,10 @@
 
 #pragma once
 
-#include "duilib/duilib_defs.h"
-#include "base/callback/callback.h"
-
 namespace ui
 {
 /** @class OnScreenKeyboardManager
-  * @brief 虚拟键盘管理类
+  * @brief Dé?a?ü?ì1üàíàà
   * @copyright (c) 2018, NetEase Inc. All rights reserved
   * @author Redrain
   * @date 2018/08/28
@@ -20,14 +17,14 @@ public:
 	static OnScreenKeyboardManager* GetInstance();
 
 	/**
-	  * 虚拟键盘是否正在显示
+	  * Dé?a?ü?ìê?·??y?ú??ê?
 	  * @return bool
 	  */
 	bool IsVisible();
 
 	/**
-	  * 显示虚拟键盘
-	  * @param[in] show 是否显示
+	  * ??ê?Dé?a?ü?ì
+	  * @param[in] show ê?·???ê?
 	  * @return void
 	  */
 	void ShowOSK(bool show);

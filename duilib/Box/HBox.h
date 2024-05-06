@@ -3,23 +3,23 @@
 
 #pragma once
 
-#include "duilib/Core/Box.h"
-#include "duilib/Box/HLayout.h"
-
 namespace ui
 {
 
-/** 水平布局的Box
-*/
+class UILIB_API HLayout : public Layout
+{
+public:
+	HLayout();
+
+	/// 重写父类方法，提供个性化功能，请参考父类声明
+	virtual CSize ArrangeChild(const std::vector<Control*>& items, UiRect rc) override;
+	virtual CSize AjustSizeByChild(const std::vector<Control*>& items, CSize szAvailable) override;
+};
+
 class UILIB_API HBox : public Box
 {
 public:
-	HBox() :
-		Box(new HLayout())
-	{
-	}
-
-	virtual std::wstring GetType() const override { return DUI_CTR_HBOX; }
+	HBox();
 };
 
 }

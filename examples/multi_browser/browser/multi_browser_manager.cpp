@@ -1,4 +1,4 @@
-#include "multi_browser_manager.h"
+ï»¿#include "multi_browser_manager.h"
 #include "multi_browser_form.h"
 #include "browser_box.h"
 #include "dragdrop/drag_form.h"
@@ -6,40 +6,47 @@
 
 namespace
 {
-	const int kSplitFormXOffset = 20;	//×Ô¶¯²ğ·Öä¯ÀÀÆ÷´°¿ÚºóĞÂ´°¿ÚµÄxÆ«ÒÆ×ø±ê
-	const int kSplitFormYOffset = 20;	//×Ô¶¯²ğ·Öä¯ÀÀÆ÷´°¿ÚºóĞÂ´°¿ÚµÄyÆ«ÒÆ×ø±ê
-	const int kDragFormXOffset = -100;	//ÍÏ×§³öĞÂä¯ÀÀÆ÷´°¿ÚºóµÄÏà¶ÔÊó±êµÄxÆ«ÒÆ×ø±ê
-	const int kDragFormYOffset = -20;	//ÍÏ×§³öĞÂä¯ÀÀÆ÷´°¿ÚºóµÄÏà¶ÔÊó±êµÄyÆ«ÒÆ×ø±ê
+	const int kSplitFormXOffset = 20;	//è‡ªåŠ¨æ‹†åˆ†æµè§ˆå™¨çª—å£åæ–°çª—å£çš„xåç§»åæ ‡
+	const int kSplitFormYOffset = 20;	//è‡ªåŠ¨æ‹†åˆ†æµè§ˆå™¨çª—å£åæ–°çª—å£çš„yåç§»åæ ‡
+	const int kDragFormXOffset = -100;	//æ‹–æ‹½å‡ºæ–°æµè§ˆå™¨çª—å£åçš„ç›¸å¯¹é¼ æ ‡çš„xåç§»åæ ‡
+	const int kDragFormYOffset = -20;	//æ‹–æ‹½å‡ºæ–°æµè§ˆå™¨çª—å£åçš„ç›¸å¯¹é¼ æ ‡çš„yåç§»åæ ‡
 }
 
 BrowserBox* MultiBrowserManager::CreateBorwserBox(MultiBrowserForm *browser_form, const std::string &id, const std::wstring &url)
 {
 	BrowserBox *browser_box = NULL;
-	// Èç¹ûÆôÓÃÁË´°¿ÚºÏ²¢¹¦ÄÜ£¬¾Í°ÑĞÂä¯ÀÀÆ÷ºĞ×Ó¶¼¼¯ÖĞ´´½¨µ½Ä³Ò»¸öä¯ÀÀÆ÷´°¿ÚÀï
-	// ·ñÔòÃ¿¸öä¯ÀÀÆ÷ºĞ×Ó¶¼´´½¨Ò»¸öä¯ÀÀÆ÷´°¿Ú
-	if (enable_merge_) {
-		if (!browser_form) {
+	// å¦‚æœå¯ç”¨äº†çª—å£åˆå¹¶åŠŸèƒ½ï¼Œå°±æŠŠæ–°æµè§ˆå™¨ç›’å­éƒ½é›†ä¸­åˆ›å»ºåˆ°æŸä¸€ä¸ªæµè§ˆå™¨çª—å£é‡Œ
+	// å¦åˆ™æ¯ä¸ªæµè§ˆå™¨ç›’å­éƒ½åˆ›å»ºä¸€ä¸ªæµè§ˆå™¨çª—å£
+	if (enable_merge_)
+	{
+		if (!browser_form)
+		{
 			browser_form = new MultiBrowserForm;
-			if (!browser_form->CreateWnd(NULL, L"MultiBrowser", UI_WNDSTYLE_FRAME, 0)) {
-				browser_form = nullptr;
-				return nullptr;
+			HWND hwnd = browser_form->Create(NULL, L"MultiBrowser", UI_WNDSTYLE_FRAME, 0, false);
+			if (hwnd == NULL)
+			{
+				browser_form = NULL;
+				return NULL;
 			}
+
 			browser_form->CenterWindow();
 		}
+
 		browser_box = browser_form->CreateBox(id, url);
-		if (nullptr == browser_box) {
-			return nullptr;
-		}
+		if (NULL == browser_box)
+			return NULL;
 	}
-	else {
+	else
+	{
 		browser_form = new MultiBrowserForm;
-		if (!browser_form->CreateWnd(NULL, L"MultiBrowser", UI_WNDSTYLE_FRAME, 0)) {
-			return nullptr;
-		}
+		HWND hwnd = browser_form->Create(NULL, L"MultiBrowser", UI_WNDSTYLE_FRAME, 0, false);
+		if (hwnd == NULL)
+			return NULL;
+
 		browser_box = browser_form->CreateBox(id, url);
-		if (nullptr == browser_box) {
-			return nullptr;
-		}
+		if (NULL == browser_box)
+			return NULL;
+
 		browser_form->CenterWindow();
 	}
 
@@ -111,14 +118,14 @@ void MultiBrowserManager::SetEnableMerge(bool enable)
 
 	if (enable_merge_)
 	{
-		// Èç¹ûµ±Ç°Ö»ÓĞÒ»¸öä¯ÀÀÆ÷´°¿Ú»òÕßä¯ÀÀÆ÷ºĞ×Ó£¬¾Í²»ĞèÒª½øĞĞºÏ²¢²Ù×÷
+		// å¦‚æœå½“å‰åªæœ‰ä¸€ä¸ªæµè§ˆå™¨çª—å£æˆ–è€…æµè§ˆå™¨ç›’å­ï¼Œå°±ä¸éœ€è¦è¿›è¡Œåˆå¹¶æ“ä½œ
 		if (box_map_.size() <= 1)
 			return;
 
-		// Ñ¡ÔñµÚÒ»¸öä¯ÀÀÆ÷ºĞ×ÓËùÊôµÄ´°¿Ú×÷ÎªºÏ²¢´°¿Ú
+		// é€‰æ‹©ç¬¬ä¸€ä¸ªæµè§ˆå™¨ç›’å­æ‰€å±çš„çª—å£ä½œä¸ºåˆå¹¶çª—å£
 		MultiBrowserForm *merge_form = box_map_.begin()->second->GetBrowserForm();
 
-		// ±éÀúËùÓĞä¯ÀÀÆ÷ºĞ×Ó£¬ÍÑÀëÔ­ä¯ÀÀÆ÷´°¿Ú£¬ÔÙ¸½¼Óµ½ºÏ²¢´°¿ÚÀï
+		// éå†æ‰€æœ‰æµè§ˆå™¨ç›’å­ï¼Œè„±ç¦»åŸæµè§ˆå™¨çª—å£ï¼Œå†é™„åŠ åˆ°åˆå¹¶çª—å£é‡Œ
 		for (auto it_box : box_map_)
 		{
 			ASSERT(NULL != it_box.second);
@@ -134,16 +141,16 @@ void MultiBrowserManager::SetEnableMerge(bool enable)
 	}
 	else
 	{
-		// Èç¹ûµ±Ç°Ö»ÓĞÒ»¸öä¯ÀÀÆ÷ºĞ×Ó£¬¾Í²»ĞèÒª½øĞĞ²ğ·Ö²Ù×÷
+		// å¦‚æœå½“å‰åªæœ‰ä¸€ä¸ªæµè§ˆå™¨ç›’å­ï¼Œå°±ä¸éœ€è¦è¿›è¡Œæ‹†åˆ†æ“ä½œ
 		if (box_map_.size() <= 1)
 			return;
 
-		// ¸øĞÂ²ğ·ÖµÄ´°¿ÚÉèÖÃ×ø±ê
+		// ç»™æ–°æ‹†åˆ†çš„çª—å£è®¾ç½®åæ ‡
 		bool first_sort = true;
 		ui::UiRect rect_old_form;
 		MultiBrowserForm *sort_form = NULL;
 
-		// ±éÀúËùÓĞä¯ÀÀÆ÷ºĞ×Ó£¬ÍÑÀëÔ­ä¯ÀÀÆ÷´°¿Ú£¬´´½¨ĞÂµÄä¯ÀÀÆ÷´°¿Ú²¢¸½¼Óä¯ÀÀÆ÷ºĞ×Ó
+		// éå†æ‰€æœ‰æµè§ˆå™¨ç›’å­ï¼Œè„±ç¦»åŸæµè§ˆå™¨çª—å£ï¼Œåˆ›å»ºæ–°çš„æµè§ˆå™¨çª—å£å¹¶é™„åŠ æµè§ˆå™¨ç›’å­
 		for (auto it_box : box_map_)
 		{
 			ASSERT(NULL != it_box.second);
@@ -155,14 +162,19 @@ void MultiBrowserManager::SetEnableMerge(bool enable)
 			else if (parent_form->DetachBox(it_box.second))
 			{
 				MultiBrowserForm *browser_form = new MultiBrowserForm;
-				if (!browser_form->CreateWnd(NULL, L"MultiBrowser", UI_WNDSTYLE_FRAME, 0)) {
+				HWND hwnd = browser_form->Create(NULL, L"MultiBrowser", UI_WNDSTYLE_FRAME, 0, false);
+				if (hwnd == NULL)
+				{
 					ASSERT(0);
 					continue;
 				}
-				if (!browser_form->AttachBox(it_box.second)) {
+
+				if (!browser_form->AttachBox(it_box.second))
+				{
 					ASSERT(0);
 					continue;
 				}
+
 				sort_form = browser_form;
 			}
 
@@ -172,13 +184,13 @@ void MultiBrowserManager::SetEnableMerge(bool enable)
 				{
 					first_sort = false;
 					sort_form->CenterWindow();
-					rect_old_form = sort_form->GetWindowPos(true);
+					rect_old_form = sort_form->GetPos(true);
 				}
 				else
 				{
 					rect_old_form.left += kSplitFormXOffset;
 					rect_old_form.top += kSplitFormXOffset;
-					sort_form->SetWindowPos(rect_old_form, true, SWP_NOSIZE, NULL, true);
+					sort_form->SetPos(rect_old_form, true, SWP_NOSIZE, NULL, true);
 				}
 			}
 		}
@@ -226,18 +238,18 @@ bool MultiBrowserManager::DoDragBorwserBox(BrowserBox *browser_box, HBITMAP bitm
 	if (data_object == NULL)
 		return false;
 
-	// ÎŞÂÛÊ²Ã´Ê±ºò¶¼ÈÃÍÏ×§Ê±¹â±êÏÔÊ¾Îª¼ıÍ·
-	drop_src->SetFeedbackCursor(::LoadCursor(NULL, IDC_ARROW));
+	// æ— è®ºä»€ä¹ˆæ—¶å€™éƒ½è®©æ‹–æ‹½æ—¶å…‰æ ‡æ˜¾ç¤ºä¸ºç®­å¤´
+	drop_src->SetFeedbackCursor(::LoadCursor(NULL, MAKEINTRESOURCE(IDC_ARROW)));
 
 	OnBeforeDragBorwserBox(browser_box, bitmap, pt_offset);
 
-	// ´Ëº¯Êı»á×èÈûÖ±µ½ÍÏ×§Íê³É
+	// æ­¤å‡½æ•°ä¼šé˜»å¡ç›´åˆ°æ‹–æ‹½å®Œæˆ
 	DWORD dwEffect;
 	HRESULT hr = ::DoDragDrop(data_object, drop_src, DROPEFFECT_COPY | DROPEFFECT_MOVE, &dwEffect);
 
 	OnAfterDragBorwserBox();
 
-	// Ïú»ÙÎ»Í¼
+	// é”€æ¯ä½å›¾
 	DeleteObject(bitmap);
 	drop_src->Release();
 	data_object->Release();
@@ -288,12 +300,12 @@ SdkDataObject* MultiBrowserManager::CreateDragDataObject(HBITMAP bitmap, POINT p
 
 void MultiBrowserManager::OnBeforeDragBorwserBox(BrowserBox *browser_box, HBITMAP bitmap, POINT pt_offset)
 {
-	// »ñÈ¡µ±Ç°±»ÍÏ×§µÄä¯ÀÀÆ÷ºĞ×ÓËùÊôµÄä¯ÀÀÆ÷´°¿Ú
+	// è·å–å½“å‰è¢«æ‹–æ‹½çš„æµè§ˆå™¨ç›’å­æ‰€å±çš„æµè§ˆå™¨çª—å£
 	draging_box_ = browser_box;
 	MultiBrowserForm *drag_browser_form = draging_box_->GetBrowserForm();
 	ASSERT(NULL != drag_browser_form);
 
-	// »ñÈ¡±»ÍÏ×§ä¯ÀÀÆ÷´°¿ÚÖĞä¯ÀÀÆ÷ºĞ×ÓµÄÊıÁ¿
+	// è·å–è¢«æ‹–æ‹½æµè§ˆå™¨çª—å£ä¸­æµè§ˆå™¨ç›’å­çš„æ•°é‡
 	int box_count = drag_browser_form->GetBoxCount();
 	ASSERT(box_count > 0);
 	drop_browser_form_ = NULL;
@@ -312,15 +324,15 @@ void MultiBrowserManager::OnAfterDragBorwserBox()
 	if (NULL == draging_box_)
 		return;
 
-	// »ñÈ¡µ±Ç°±»ÍÏ×§µÄä¯ÀÀÆ÷ºĞ×ÓËùÊôµÄä¯ÀÀÆ÷´°¿Ú
+	// è·å–å½“å‰è¢«æ‹–æ‹½çš„æµè§ˆå™¨ç›’å­æ‰€å±çš„æµè§ˆå™¨çª—å£
 	MultiBrowserForm *drag_browser_form = draging_box_->GetBrowserForm();
 	ASSERT(NULL != drag_browser_form);
 
-	// »ñÈ¡±»ÍÏ×§ä¯ÀÀÆ÷´°¿ÚÖĞä¯ÀÀÆ÷ºĞ×ÓµÄÊıÁ¿
+	// è·å–è¢«æ‹–æ‹½æµè§ˆå™¨çª—å£ä¸­æµè§ˆå™¨ç›’å­çš„æ•°é‡
 	int box_count = drag_browser_form->GetBoxCount();
 	ASSERT(box_count > 0);
 
-	// Èç¹û±»ÍÏ×§µÄä¯ÀÀÆ÷ºĞ×Ó·ÅÈëµ½Ò»¸öä¯ÀÀÆ÷´°¿ÚÀï
+	// å¦‚æœè¢«æ‹–æ‹½çš„æµè§ˆå™¨ç›’å­æ”¾å…¥åˆ°ä¸€ä¸ªæµè§ˆå™¨çª—å£é‡Œ
 	if (NULL != drop_browser_form_)
 	{
 		if (drag_browser_form == drop_browser_form_)
@@ -336,21 +348,21 @@ void MultiBrowserManager::OnAfterDragBorwserBox()
 			}
 		}
 
-		// Èç¹û±»ÍÏ×§µÄä¯ÀÀÆ÷´°¿Ú°üº¬¶à¸öä¯ÀÀÆ÷ºĞ×Ó£¬¾ÍÍ¶µİÒ»¸öWM_LBUTTONUPÏûÏ¢¸ø´°¿Ú
-		// (ÒòÎª´°¿Ú±»ÍÏ×§Ê±´¥·¢ÁËButtonDownºÍButtonMoveÏûÏ¢£¬µ«ÊÇ×îÖÕµÄButtonUpÏûÏ¢»á±»ºöÂÔ£¬ÕâÀï²¹ÉÏ)
-		// Èç¹ûÖ»ÓĞÒ»¸öä¯ÀÀÆ÷ºĞ×Ó£¬Ôòä¯ÀÀÆ÷ºĞ×ÓÍÑÀëä¯ÀÀÆ÷´°¿ÚÊ±£¬ä¯ÀÀÆ÷´°¿Ú¾Í»á¹Ø±Õ£¬²»ĞèÒªÍ¶µİ
+		// å¦‚æœè¢«æ‹–æ‹½çš„æµè§ˆå™¨çª—å£åŒ…å«å¤šä¸ªæµè§ˆå™¨ç›’å­ï¼Œå°±æŠ•é€’ä¸€ä¸ªWM_LBUTTONUPæ¶ˆæ¯ç»™çª—å£
+		// (å› ä¸ºçª—å£è¢«æ‹–æ‹½æ—¶è§¦å‘äº†ButtonDownå’ŒButtonMoveæ¶ˆæ¯ï¼Œä½†æ˜¯æœ€ç»ˆçš„ButtonUpæ¶ˆæ¯ä¼šè¢«å¿½ç•¥ï¼Œè¿™é‡Œè¡¥ä¸Š)
+		// å¦‚æœåªæœ‰ä¸€ä¸ªæµè§ˆå™¨ç›’å­ï¼Œåˆ™æµè§ˆå™¨ç›’å­è„±ç¦»æµè§ˆå™¨çª—å£æ—¶ï¼Œæµè§ˆå™¨çª—å£å°±ä¼šå…³é—­ï¼Œä¸éœ€è¦æŠ•é€’
 		if (box_count > 1)
-			drag_browser_form->PostMsg(WM_LBUTTONUP, 0, 0);
+			drag_browser_form->PostMessage(WM_LBUTTONUP, 0, 0);
 	}
-	// Èç¹ûÃ»ÓĞ±»ÍÏ×§µ½ÁíÒ»¸öä¯ÀÀÆ÷´°¿ÚÀï
+	// å¦‚æœæ²¡æœ‰è¢«æ‹–æ‹½åˆ°å¦ä¸€ä¸ªæµè§ˆå™¨çª—å£é‡Œ
 	else
 	{
-		// Èç¹û±»ÍÏ×§µÄä¯ÀÀÆ÷´°¿ÚÀïÖ»ÓĞÒ»¸öä¯ÀÀÆ÷ºĞ×Ó,ÔòÍÏ×§Ê§°Ü
+		// å¦‚æœè¢«æ‹–æ‹½çš„æµè§ˆå™¨çª—å£é‡Œåªæœ‰ä¸€ä¸ªæµè§ˆå™¨ç›’å­,åˆ™æ‹–æ‹½å¤±è´¥
 		if (1 == box_count)
 		{
 			drag_browser_form->OnAfterDragBoxCallback(false);
 		}
-		// Èç¹ûÓĞ¶à¸öä¯ÀÀÆ÷ºĞ×Ó, ¾Í°Ñä¯ÀÀÆ÷ºĞ×ÓÍÑÀëÔ­ä¯ÀÀÆ÷´°¿Ú£¬¸½¼Óµ½ĞÂµÄä¯ÀÀÆ÷´°¿Ú£¬ÍÏ×§³É¹¦
+		// å¦‚æœæœ‰å¤šä¸ªæµè§ˆå™¨ç›’å­, å°±æŠŠæµè§ˆå™¨ç›’å­è„±ç¦»åŸæµè§ˆå™¨çª—å£ï¼Œé™„åŠ åˆ°æ–°çš„æµè§ˆå™¨çª—å£ï¼Œæ‹–æ‹½æˆåŠŸ
 		else
 		{
 			drag_browser_form->OnAfterDragBoxCallback(true);
@@ -358,20 +370,23 @@ void MultiBrowserManager::OnAfterDragBorwserBox()
 			if (drag_browser_form->DetachBox(draging_box_))
 			{
 				MultiBrowserForm *browser_form = new MultiBrowserForm;
-				if (browser_form->CreateWnd(NULL, L"MultiBrowser", UI_WNDSTYLE_FRAME, 0)) {
-					if (browser_form->AttachBox(draging_box_)) {
-						// ÕâÀïÉèÖÃĞÂä¯ÀÀÆ÷´°¿ÚµÄÎ»ÖÃ£¬ÉèÖÃµ½Æ«ÒÆÊó±ê×ø±ê100,20µÄÎ»ÖÃ
+				HWND hwnd = browser_form->Create(NULL, L"MultiBrowser", UI_WNDSTYLE_FRAME, 0, false);
+				if (hwnd != NULL)
+				{
+					if (browser_form->AttachBox(draging_box_))
+					{
+						// è¿™é‡Œè®¾ç½®æ–°æµè§ˆå™¨çª—å£çš„ä½ç½®ï¼Œè®¾ç½®åˆ°åç§»é¼ æ ‡åæ ‡100,20çš„ä½ç½®
 						POINT pt_mouse;
 						::GetCursorPos(&pt_mouse);
 						ui::UiRect rect(pt_mouse.x + kDragFormXOffset, pt_mouse.y + kDragFormYOffset, 0, 0);
-						browser_form->SetWindowPos(rect, false, SWP_NOSIZE);
+						browser_form->SetPos(rect, false, SWP_NOSIZE);
 					}
 				}
 			}
 		}
 
-		// Èç¹ûÃ»ÓĞ±»ÍÏ×§µ½ÁíÒ»¸öä¯ÀÀÆ÷´°¿ÚÀï£¬ÕâÊ±²»»áÓĞä¯ÀÀÆ÷´°¿Ú±»¹Ø±Õ£¬ËùÒÔÖ±½ÓÍ¶µİButtonUpÏûÏ¢
-		drag_browser_form->PostMsg(WM_LBUTTONUP, 0, 0);
+		// å¦‚æœæ²¡æœ‰è¢«æ‹–æ‹½åˆ°å¦ä¸€ä¸ªæµè§ˆå™¨çª—å£é‡Œï¼Œè¿™æ—¶ä¸ä¼šæœ‰æµè§ˆå™¨çª—å£è¢«å…³é—­ï¼Œæ‰€ä»¥ç›´æ¥æŠ•é€’ButtonUpæ¶ˆæ¯
+		drag_browser_form->PostMessage(WM_LBUTTONUP, 0, 0);
 	}
 
 	draging_box_ = NULL;

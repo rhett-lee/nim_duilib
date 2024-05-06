@@ -1,4 +1,4 @@
-/*
+ï»¿/*
  *	Author		wrt(guangguang)
  *	Date		2011-06-14
  *	Copyright	Hangzhou, Netease Inc.
@@ -7,7 +7,6 @@
 
 #include "base/win32/win_util.h"
 #if defined(OS_WIN)
-#include <VersionHelpers.h>
 #include <assert.h>
 #include <stdlib.h>
 
@@ -19,8 +18,7 @@ namespace win32
 HMODULE GetModuleHandleFromAddress(void* address)
 {
 	MEMORY_BASIC_INFORMATION mbi = {0};
-	SIZE_T result = ::VirtualQuery(address, &mbi, sizeof(mbi));
-	(void)result;
+	DWORD result = ::VirtualQuery(address, &mbi, sizeof(mbi));
 	assert(result == sizeof(mbi));
 	return static_cast<HMODULE>(mbi.AllocationBase);
 }
@@ -41,7 +39,6 @@ std::wstring GetHostName()
 	DWORD name_len = MAX_COMPUTERNAME_LENGTH + 1;
 	host_name.resize(name_len);
 	bool result = !!::GetComputerName(&host_name[0], &name_len);
-	(void)result;
 	assert(result);
 	host_name.resize(name_len);
 	return host_name;
@@ -84,7 +81,7 @@ bool RunAppWithRedirection(const wchar_t *application,
 	si.hStdOutput	= output ? output : ::GetStdHandle(STD_OUTPUT_HANDLE);
 	si.hStdError	= error ? error : ::GetStdHandle(STD_ERROR_HANDLE);
 
-	wchar_t *command_dup = _wcsdup(command);
+	wchar_t *command_dup = wcsdup(command);
 
 	if (::CreateProcessW(application,
 						 command_dup,
@@ -112,8 +109,17 @@ bool RunAppWithRedirection(const wchar_t *application,
 
 bool MinimizeProcessWorkingSize()
 {
-	::SetProcessWorkingSetSize(::GetCurrentProcess(), (SIZE_T)-1, (SIZE_T)-1);
-	return true;
+	OSVERSIONINFOW osvi;
+	osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+
+	::GetVersionExW(&osvi);
+	if(osvi.dwPlatformId == VER_PLATFORM_WIN32_NT)
+	{
+		::SetProcessWorkingSetSize(GetCurrentProcess(), (SIZE_T)-1, (SIZE_T)-1);
+		return true;
+	}
+
+	return false;
 }
 
 bool SingletonRun(const wchar_t *application)
@@ -133,13 +139,16 @@ bool SingletonRun(const wchar_t *application)
 		return false;
 	}
 
-	/* ´Ó´ËÕâ¸ö»¥³âÐÅºÅÁ¿¾Í±»²»ÊÜ¿ØµØ´ò¿ªÁË£¬Ö±µ½½ø³ÌÍË³ö */
+	/* ä»Žæ­¤è¿™ä¸ªäº’æ–¥ä¿¡å·é‡å°±è¢«ä¸å—æŽ§åœ°æ‰“å¼€äº†ï¼Œç›´åˆ°è¿›ç¨‹é€€å‡º */
 	return true;
 }
 
 bool IsRunningOnVistaOrHigher()
 {
-	return IsWindowsVistaOrGreater();
+	OSVERSIONINFO os_version = {0};
+	os_version.dwOSVersionInfoSize = sizeof(os_version);
+	GetVersionEx(&os_version);
+	return os_version.dwMajorVersion >= 6;
 }
 
 bool OpenResource(const wchar_t *resource,

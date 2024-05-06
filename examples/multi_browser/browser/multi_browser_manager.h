@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include "browser_box.h"
 
 enum ThreadId
@@ -7,11 +7,11 @@ enum ThreadId
 };
 
 /** @class MultiBrowserManager
-  * @brief ¶à±êÇ©ä¯ÀÀÆ÷¹ÜÀíÀà£¬ÓÃÓÚÍ³Ò»¹ÜÀí¶à±êÇ©ä¯ÀÀÆ÷´ò¿ª¡¢ºÏ²¢¡¢²ğ·Ö¡¢ÍÏ×§¹¦ÄÜ
+  * @brief å¤šæ ‡ç­¾æµè§ˆå™¨ç®¡ç†ç±»ï¼Œç”¨äºç»Ÿä¸€ç®¡ç†å¤šæ ‡ç­¾æµè§ˆå™¨æ‰“å¼€ã€åˆå¹¶ã€æ‹†åˆ†ã€æ‹–æ‹½åŠŸèƒ½
   * @date 2019/3/20
   */
 class SdkDataObject;
-class MultiBrowserManager : public virtual nbase::SupportWeakCallback
+class MultiBrowserManager : public nbase::SupportWeakCallback
 {
 public:
 	SINGLETON_DEFINE(MultiBrowserManager);
@@ -20,114 +20,114 @@ public:
 	~MultiBrowserManager();
 
 	/**
-	* ´´½¨Ò»¸öä¯ÀÀÆ÷ºĞ×Ó
-	* @param[in] browser_form ä¯ÀÀÆ÷´°¿Ú£¬Èç¹ûÎªNULLÔò´´½¨Ò»¸öĞÂµÄ´°¿Ú£¬·ñÔòÔÚÕâ¸ö´°¿ÚÀïĞÂ½¨ä¯ÀÀÆ÷ºĞ×Ó
-	* @param[in] id Ä³¸öä¯ÀÀÆ÷ºĞ×ÓµÄÎ¨Ò»±êÊ¶
-	* @param[in] url ³õÊ¼»¯URL
-	* @return BorwserBox*	ä¯ÀÀÆ÷ºĞ×ÓÖ¸Õë
+	* åˆ›å»ºä¸€ä¸ªæµè§ˆå™¨ç›’å­
+	* @param[in] browser_form æµè§ˆå™¨çª—å£ï¼Œå¦‚æœä¸ºNULLåˆ™åˆ›å»ºä¸€ä¸ªæ–°çš„çª—å£ï¼Œå¦åˆ™åœ¨è¿™ä¸ªçª—å£é‡Œæ–°å»ºæµè§ˆå™¨ç›’å­
+	* @param[in] id æŸä¸ªæµè§ˆå™¨ç›’å­çš„å”¯ä¸€æ ‡è¯†
+	* @param[in] url åˆå§‹åŒ–URL
+	* @return BorwserBox*	æµè§ˆå™¨ç›’å­æŒ‡é’ˆ
 	*/
 	BrowserBox* CreateBorwserBox(MultiBrowserForm *browser_form, const std::string &id, const std::wstring &url);
 
 	/**
-	* ÅĞ¶ÏÄ³¸öä¯ÀÀÆ÷ºĞ×ÓÊÇ·ñ´¦ÓÚ¼¤»î×´Ì¬
-	* @param[in] id Ä³¸öä¯ÀÀÆ÷ºĞ×ÓµÄÎ¨Ò»±êÊ¶
-	* @return bool true ¼¤»î£¬false ·Ç¼¤»î
+	* åˆ¤æ–­æŸä¸ªæµè§ˆå™¨ç›’å­æ˜¯å¦å¤„äºæ¿€æ´»çŠ¶æ€
+	* @param[in] id æŸä¸ªæµè§ˆå™¨ç›’å­çš„å”¯ä¸€æ ‡è¯†
+	* @return bool true æ¿€æ´»ï¼Œfalse éæ¿€æ´»
 	*/
 	bool IsBorwserBoxActive(const std::string& id);
 
 	/**
-	* ¸ù¾İ»á»°id£¬ÕÒ»Øä¯ÀÀÆ÷ºĞ×Ó
-	* @param[in] id Ä³¸öä¯ÀÀÆ÷ºĞ×ÓµÄÎ¨Ò»±êÊ¶
-	* @return BorwserBox* ·µ»Øä¯ÀÀÆ÷ºĞ×ÓµÄÖ¸Õë
+	* æ ¹æ®ä¼šè¯idï¼Œæ‰¾å›æµè§ˆå™¨ç›’å­
+	* @param[in] id æŸä¸ªæµè§ˆå™¨ç›’å­çš„å”¯ä¸€æ ‡è¯†
+	* @return BorwserBox* è¿”å›æµè§ˆå™¨ç›’å­çš„æŒ‡é’ˆ
 	*/
 	BrowserBox* FindBorwserBox(const std::string &id);
 
 	/**
-	* ¸ù¾İ»á»°id£¬ÒÆ³ı±¾ÀàÖĞä¯ÀÀÆ÷ºĞ×ÓĞÅÏ¢
-	* @param[in] id Ä³¸öä¯ÀÀÆ÷ºĞ×ÓµÄÎ¨Ò»±êÊ¶
-	* @param[in] box id¶ÔÓ¦µÄä¯ÀÀÆ÷ºĞ×ÓÖ¸Õë
-	* @return void ÎŞ·µ»ØÖµ
+	* æ ¹æ®ä¼šè¯idï¼Œç§»é™¤æœ¬ç±»ä¸­æµè§ˆå™¨ç›’å­ä¿¡æ¯
+	* @param[in] id æŸä¸ªæµè§ˆå™¨ç›’å­çš„å”¯ä¸€æ ‡è¯†
+	* @param[in] box idå¯¹åº”çš„æµè§ˆå™¨ç›’å­æŒ‡é’ˆ
+	* @return void æ— è¿”å›å€¼
 	*/
 	void RemoveBorwserBox(std::string id, const BrowserBox* box = NULL);
 
 public:
 	/**
-	* ÉèÖÃÊÇ·ñ¿ªÆô±êÇ©ºÏ²¢¹¦ÄÜ
-	* @param[in] enable true:¿ªÆôºÏ²¢¹¦ÄÜ,×Ô¶¯ºÏ²¢µ±Ç°ËùÓĞä¯ÀÀÆ÷ºĞ×Ó
-	*					false:¹Ø±ÕºÏ²¢¹¦ÄÜ,×Ô¶¯²ğ·Öµ±Ç°ËùÓĞä¯ÀÀÆ÷ºĞ×Ó
-	* @return ÎŞ·µ»ØÖµ
+	* è®¾ç½®æ˜¯å¦å¼€å¯æ ‡ç­¾åˆå¹¶åŠŸèƒ½
+	* @param[in] enable true:å¼€å¯åˆå¹¶åŠŸèƒ½,è‡ªåŠ¨åˆå¹¶å½“å‰æ‰€æœ‰æµè§ˆå™¨ç›’å­
+	*					false:å…³é—­åˆå¹¶åŠŸèƒ½,è‡ªåŠ¨æ‹†åˆ†å½“å‰æ‰€æœ‰æµè§ˆå™¨ç›’å­
+	* @return æ— è¿”å›å€¼
 	*/
 	void SetEnableMerge(bool enable);
 
 	/**
-	* ÊÇ·ñ¿ªÆô±êÇ©ºÏ²¢¹¦ÄÜ
-	* @return bool true ÊÇ£¬false ·ñ
+	* æ˜¯å¦å¼€å¯æ ‡ç­¾åˆå¹¶åŠŸèƒ½
+	* @return bool true æ˜¯ï¼Œfalse å¦
 	*/
 	bool IsEnableMerge() const;
 
 	/**
-	* ÉèÖÃÊÇ·ñÊ¹ÓÃ×Ô¶¨ÒåµÄÍÏ×§ËõÂÔÍ¼
-	* @param[in] use true:Ê¹ÓÃ×Ô¶¨ÒåÍÏ×§ËõÂÔÍ¼£¬»áÊ¹ÓÃµÍ¼¶¼üÅÌ¹³×Ó£¬Ò»Ğ©°²È«Èí¼ş»áÀ¹½Ø
-	*				 false:Ê¹ÓÃÏµÍ³µÄÍÏ×§ËõÂÔÍ¼£¬Ğ§¹ûÉÏ²»Èç×Ô¶¨ÒåµÄºÃ
-	* @return ÎŞ·µ»ØÖµ
+	* è®¾ç½®æ˜¯å¦ä½¿ç”¨è‡ªå®šä¹‰çš„æ‹–æ‹½ç¼©ç•¥å›¾
+	* @param[in] use true:ä½¿ç”¨è‡ªå®šä¹‰æ‹–æ‹½ç¼©ç•¥å›¾ï¼Œä¼šä½¿ç”¨ä½çº§é”®ç›˜é’©å­ï¼Œä¸€äº›å®‰å…¨è½¯ä»¶ä¼šæ‹¦æˆª
+	*				 false:ä½¿ç”¨ç³»ç»Ÿçš„æ‹–æ‹½ç¼©ç•¥å›¾ï¼Œæ•ˆæœä¸Šä¸å¦‚è‡ªå®šä¹‰çš„å¥½
+	* @return æ— è¿”å›å€¼
 	*/
 	void SetUseCustomDragImage(bool use);
 
 	/**
-	* ÊÇ·ñÊ¹ÓÃ×Ô¶¨ÒåµÄÍÏ×§ËõÂÔÍ¼
-	* @return bool true ÊÇ£¬false ·ñ
+	* æ˜¯å¦ä½¿ç”¨è‡ªå®šä¹‰çš„æ‹–æ‹½ç¼©ç•¥å›¾
+	* @return bool true æ˜¯ï¼Œfalse å¦
 	*/
 	bool IsUseCustomDragImage() const;
 
 	/**
-	* µ±Ç°ÊÇ·ñÕıÔÚÍÏ×§ä¯ÀÀÆ÷ºĞ×Ó
-	* @return bool true ÊÇ£¬false ·ñ
+	* å½“å‰æ˜¯å¦æ­£åœ¨æ‹–æ‹½æµè§ˆå™¨ç›’å­
+	* @return bool true æ˜¯ï¼Œfalse å¦
 	*/
 	bool IsDragingBorwserBox() const;
 
 	/**
-	* ÉèÖÃ±»·ÅÈëä¯ÀÀÆ÷ºĞ×ÓµÄä¯ÀÀÆ÷´°Ìå
-	* @param[in] browser_form ä¯ÀÀÆ÷´°¿Ú
-	* @return void	ÎŞ·µ»ØÖµ
+	* è®¾ç½®è¢«æ”¾å…¥æµè§ˆå™¨ç›’å­çš„æµè§ˆå™¨çª—ä½“
+	* @param[in] browser_form æµè§ˆå™¨çª—å£
+	* @return void	æ— è¿”å›å€¼
 	*/
 	void SetDropForm(MultiBrowserForm *browser_form);
 
 	/**
-	* Ö´ĞĞÍÏ×§ä¯ÀÀÆ÷ºĞ×ÓµÄ²Ù×÷
-	* @param[in] browser_box ä¯ÀÀÆ÷ºĞ×Ó
-	* @param[in] bitmap ä¯ÀÀÆ÷ºĞ×ÓÉú³ÉµÄÎ»Í¼
-	* @param[in] pt_offset ÍÏ×§Í¼ÏñÏà¶ÔÓÚÊó±êµÄÆ«ÒÆ
-	* @return bool true ³É¹¦£¬false Ê§°Ü
+	* æ‰§è¡Œæ‹–æ‹½æµè§ˆå™¨ç›’å­çš„æ“ä½œ
+	* @param[in] browser_box æµè§ˆå™¨ç›’å­
+	* @param[in] bitmap æµè§ˆå™¨ç›’å­ç”Ÿæˆçš„ä½å›¾
+	* @param[in] pt_offset æ‹–æ‹½å›¾åƒç›¸å¯¹äºé¼ æ ‡çš„åç§»
+	* @return bool true æˆåŠŸï¼Œfalse å¤±è´¥
 	*/
 	bool DoDragBorwserBox(BrowserBox *browser_box, HBITMAP bitmap, POINT pt_offset);
 
 private:
 
 	/**
-	* ´´½¨Ò»¸öÓÃÓÚÍÏ×§µÄIDataObject¶ÔÏó
-	* @param[in] bitmap ÓÃÓÚÉú³ÉÍÏ×§Ğ§¹ûµÄÎ»Í¼
-	* @param[in] pt_offset ÍÏ×§Í¼ÏñÏà¶ÔÓÚÊó±êµÄÆ«ÒÆ
-	* @return SdkDataObject* IDataObject¶ÔÏó
+	* åˆ›å»ºä¸€ä¸ªç”¨äºæ‹–æ‹½çš„IDataObjectå¯¹è±¡
+	* @param[in] bitmap ç”¨äºç”Ÿæˆæ‹–æ‹½æ•ˆæœçš„ä½å›¾
+	* @param[in] pt_offset æ‹–æ‹½å›¾åƒç›¸å¯¹äºé¼ æ ‡çš„åç§»
+	* @return SdkDataObject* IDataObjectå¯¹è±¡
 	*/
 	SdkDataObject* CreateDragDataObject(HBITMAP bitmap, POINT pt_offset);
 
 	/**
-	* Ö´ĞĞÍÏ×§²Ù×÷Ç°±»µ÷ÓÃ
-	* @return void	ÎŞ·µ»ØÖµ
+	* æ‰§è¡Œæ‹–æ‹½æ“ä½œå‰è¢«è°ƒç”¨
+	* @return void	æ— è¿”å›å€¼
 	*/
 	void OnBeforeDragBorwserBox(BrowserBox *browser_box, HBITMAP bitmap, POINT pt_offset);
 
 	/**
-	* Ö´ĞĞÍÏ×§²Ù×÷ºó±»µ÷ÓÃ
-	* @return void	ÎŞ·µ»ØÖµ
+	* æ‰§è¡Œæ‹–æ‹½æ“ä½œåè¢«è°ƒç”¨
+	* @return void	æ— è¿”å›å€¼
 	*/
 	void OnAfterDragBorwserBox();
 
 private:
 	bool				enable_merge_;
 	bool				use_custom_drag_image_;
-	BrowserBox			*draging_box_;	// µ±ÏÂÕıÔÚ±»ÍÏ×§µÄä¯ÀÀÆ÷ºĞ×Ó
-	MultiBrowserForm	*drop_browser_form_;	// ÍÏÈëä¯ÀÀÆ÷ºĞ×ÓµÄä¯ÀÀÆ÷´°¿Ú£¬ÓÃÓÚ¸½¼ÓÍÏ×§À´µÄä¯ÀÀÆ÷ºĞ×Ó
+	BrowserBox			*draging_box_;	// å½“ä¸‹æ­£åœ¨è¢«æ‹–æ‹½çš„æµè§ˆå™¨ç›’å­
+	MultiBrowserForm	*drop_browser_form_;	// æ‹–å…¥æµè§ˆå™¨ç›’å­çš„æµè§ˆå™¨çª—å£ï¼Œç”¨äºé™„åŠ æ‹–æ‹½æ¥çš„æµè§ˆå™¨ç›’å­
 
 	std::map<std::string, BrowserBox*>	box_map_;
 };

@@ -3,26 +3,19 @@
 
 #pragma once
 
-#include "duilib/Control/Progress.h"
-#include <string>
-
 namespace ui
 {
 
-/** 滑块控件
-*/
 class UILIB_API Slider : public Progress
 {
 public:
 	Slider();
 
 	/// 重写父类方法，提供个性化功能，请参考父类声明
-	virtual std::wstring GetType() const override;
 	virtual UiRect GetProgressPos() override;
-	virtual void HandleEvent(const EventArgs& msg) override;
+	virtual void HandleMessage(EventArgs& event) override;
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
-	virtual void PaintStateImages(IRender* pRender) override;
-	virtual void PaintBkColor(IRender* pRender) override;
+	virtual void PaintStatusImage(IRenderContext* pRender) override;
 	virtual void ClearImageCache() override;
 
 	/**
@@ -43,7 +36,7 @@ public:
 	 * @param[in] szXY 要设置的大小
 	 * @return 无
 	 */
-	void SetThumbSize(UiSize szXY);
+	void SetThumbSize(CSize szXY);
 
 	/**
 	 * @brief 获取滑块的矩形信息
@@ -56,7 +49,7 @@ public:
 	 * @param[in] stateType 要获取的状态标识，参考 ControlStateType 枚举
 	 * @return 返回图片路径
 	 */
-	std::wstring GetThumbStateImage(ControlStateType stateType) const;
+	std::wstring GetThumbStateImage(ControlStateType stateType);
 
 	/**
 	 * @brief 设置指定状态下滑块的图片
@@ -66,28 +59,33 @@ public:
 	 */
 	void SetThumbStateImage(ControlStateType stateType, const std::wstring& pStrImage);
 
-	/** 获取进度条内边距
+	/**
+	 * @brief 获取进度条内边距
+	 * @return 返回内边距信息
 	 */
-	const UiPadding& GetProgressBarPadding() const;
+	UiRect GetProgressBarPadding() const;
 
-	/** 设置进度条内边距
-	 * @param[in] padding 要设置的内边距信息
+	/**
+	 * @brief 设置进度条内边距
+	 * @param[in] rc 要设置的边距信息
+	 * @return 无
 	 */
-	void SetProgressBarPadding(UiPadding padding);
+	void SetProgressBarPadding(UiRect rc);
 
 	/**
 	 * @brief 监听进度条进度改变事件
 	 * @param[in] callback 进度条进度改变后调用的回调函数
 	 * @return 无
 	 */
-	void AttachValueChange(const EventCallback& callback) { AttachEvent(kEventValueChange, callback);	}
+	void AttachValueChange(const EventCallback& callback) {	OnEvent[kEventValueChange] += callback;	}
 
 protected:
 	int m_nStep;
-	UiSize m_szThumb;
+	CSize m_szThumb;
 	StateImage m_thumbStateImage;
-	UiPadding m_rcProgressBarPadding;
-	UiString m_sImageModify;
+	UiRect	m_rcProgressBarPadding;
+	ControlStateType m_uButtonState;
+	std::wstring m_sImageModify;
 };
 
 }

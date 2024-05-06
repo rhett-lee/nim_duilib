@@ -1,4 +1,4 @@
-// utilities for path operation
+﻿// utilities for path operation
 
 #ifndef BASE_WIN32_PATH_UTIL_H_
 #define BASE_WIN32_PATH_UTIL_H_
