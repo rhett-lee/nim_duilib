@@ -80,7 +80,11 @@ GlobalManager& GlobalManager::Instance()
 	return self;
 }
 
-void GlobalManager::Startup(const std::wstring& strResourcePath, const CreateControlCallback& callback, bool bAdaptDpi, const std::wstring& theme, const std::wstring& language)
+void GlobalManager::Startup(const std::wstring& strResourcePath, 
+							const CreateControlCallback& callback, 
+                            bool bAdaptDpi, 
+                            const std::wstring& theme, 
+							const std::wstring& language)
 {
 	ASSERT(m_renderFactory == nullptr);
 	m_dwUiThreadId = GetCurrentThreadId();

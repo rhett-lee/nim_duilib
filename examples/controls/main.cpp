@@ -40,12 +40,9 @@ void MainThread::Init()
 	misc_thread_.reset(new MiscThread(kThreadGlobalMisc, "Global Misc Thread"));
 	misc_thread_->Start();
 
-	//开启DPI自适应功能
-	bool bAdaptDpi = true;
-
 	// 获取资源路径，初始化全局参数
 	std::wstring app_dir = nbase::win32::GetCurrentModuleDirectory();
-	ui::GlobalManager::Instance().Startup(app_dir + L"resources\\", ui::CreateControlCallback(), bAdaptDpi);
+	ui::GlobalManager::Instance().Startup(app_dir + L"resources\\");
 
 	// 创建一个默认带有阴影的居中窗口
 	ControlForm* window = new ControlForm();

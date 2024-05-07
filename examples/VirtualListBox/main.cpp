@@ -31,12 +31,9 @@ void MainThread::Init()
 {
 	nbase::ThreadManager::RegisterThread(kThreadUI);
 
-	//开启DPI自适应功能
-	bool bAdaptDpi = true;
-
 	// 获取资源路径，初始化全局参数
 	std::wstring theme_dir = nbase::win32::GetCurrentModuleDirectory();
-	ui::GlobalManager::Instance().Startup(theme_dir + L"resources\\", nullptr, bAdaptDpi);
+	ui::GlobalManager::Instance().Startup(theme_dir + L"resources\\");
 
 	// 创建一个默认带有阴影的居中窗口
 	MainForm* window = new MainForm();
