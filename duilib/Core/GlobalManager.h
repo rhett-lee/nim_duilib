@@ -42,13 +42,13 @@ public:
 	/** 初始化全局设置函数
 	 * @param[in] strResourcePath 资源路径位置
 	 * @param[in] callback 创建自定义控件时的全局回调函数
-	 * @param[in] bAdaptDpi 是否启用 DPI 适配
+	 * @param[in] bAdaptDpi 是否启用 DPI 自动适配
 	 * @param[in] theme 主题目录名，默认为 themes\\default
 	 * @param[in] language 使用语言，默认为 lang\\zh_CN
 	 */
 	void Startup(const std::wstring& strResourcePath, 
-				 const CreateControlCallback& callback,
-				 bool bAdaptDpi, 
+				 const CreateControlCallback& callback = nullptr,
+				 bool bAdaptDpi = true, 
 				 const std::wstring& theme = L"themes\\default", 
 				 const std::wstring& language = L"lang\\zh_CN");
 
