@@ -59,8 +59,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 3. `C Language Standard` 改为：`ISO C17 (2018) Standard (/std:c17)`
 
 - 项目属性->常规，修改目标名称（最终的exe名称）
-1. Target Name: Debug|x64的改为$(ProjectName)d，Debug|x64的改为$(ProjectName)
-2. Target Name: Debug|Win32的改为$(ProjectName)32d，Debug|x64的改为$(ProjectName)32（可选，如果不编译32位程序，可以不设置）
+1. Target Name: Debug|x64的改为$(ProjectName)64_d，Release|x64的改为$(ProjectName)64
+2. Target Name: Debug|Win32的改为$(ProjectName)_d，Release|x32的改为$(ProjectName)（可选，如果不编译32位程序，可以不设置）
 
 <img src="./Images/vs01.png"/>
 
@@ -83,10 +83,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 ## 引入线程库
 
-在创建的项目中增加自定义的线程类（主线程和一个工作线程）
+在创建的项目中增加自定义的线程类（主线程和一个工作线程）    
+创建两个文件（`MainThread.h` 和 `MainThread.cpp`），并添加到VS工程中，两个文件的内容分别如下：
 
 ```cpp
-//WorkerThread.h
+//MainThread.h
 #ifndef UI_MAINTHREAD_H_
 #define UI_MAINTHREAD_H_
 
@@ -359,8 +360,8 @@ LRESULT MyDuilibForm::OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHa
 ## 创建窗口描述 XML 文件
 
 在我们创建的窗口类中，指定了窗口描述文件目录是 `my_duilib_app`，指定窗口的描述文件为 `MyDuilibForm.xml`。
-接下来在 `resources\\themes\\default` 目录下创建 `my_duilib_app` 文件夹并新建一个 `MyDuilibForm.xml` 文件，写下如下内容。
-
+接下来在 `resources\\themes\\default` 目录下创建 `my_duilib_app` 文件夹并新建一个 `MyDuilibForm.xml` 文件，写下如下内容。    
+注意事项：XML文件的编码格式是UTF-8。  
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <Window size="75%,90%" mininfo="80,50" use_system_caption="false" caption="0,0,0,36" shadowattached="true" layered_window="true" alpha="255" sizebox="4,4,4,4">

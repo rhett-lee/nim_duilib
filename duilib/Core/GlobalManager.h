@@ -46,7 +46,11 @@ public:
 	 * @param[in] theme 主题目录名，默认为 themes\\default
 	 * @param[in] language 使用语言，默认为 lang\\zh_CN
 	 */
-	void Startup(const std::wstring& strResourcePath, const CreateControlCallback& callback, bool bAdaptDpi, const std::wstring& theme = L"themes\\default", const std::wstring& language = L"lang\\zh_CN");
+	void Startup(const std::wstring& strResourcePath, 
+				 const CreateControlCallback& callback,
+				 bool bAdaptDpi, 
+				 const std::wstring& theme = L"themes\\default", 
+				 const std::wstring& language = L"lang\\zh_CN");
 
 	/** 释放全局资源
 	 */
