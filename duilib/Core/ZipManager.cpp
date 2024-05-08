@@ -4,8 +4,6 @@
 
 #include "duilib/third_party/unzip/UnZip.h"
 
-#include <unordered_set>
-
 namespace ui 
 {
 
@@ -134,9 +132,8 @@ bool ZipManager::IsZipResExist(const std::wstring& path) const
 		if (file_path.empty()) {
 			return false;
 		}
-		static std::unordered_set<std::wstring> zip_path_cache;
-		auto it = zip_path_cache.find(path);
-		if (it != zip_path_cache.end()) {
+		auto it = m_zipPathCache.find(path);
+		if (it != m_zipPathCache.end()) {
 			return true;
 		}
 
@@ -144,7 +141,7 @@ bool ZipManager::IsZipResExist(const std::wstring& path) const
 		int i = 0;
 		bool find = FindZipItem((HZIP)m_hzip, file_path.c_str(), true, &i, &ze) == ZR_OK;
 		if (find) {
-			zip_path_cache.insert(path);
+			m_zipPathCache.insert(path);
 		}
 		return find;
 	}
@@ -157,6 +154,36 @@ void ZipManager::CloseResZip()
 		CloseZip((HZIP)m_hzip);
 		m_hzip = nullptr;
 	}
+	m_zipPathCache.clear();
+}
+
+bool ZipManager::GetZipFileList(const std::wstring& path, std::vector<std::wstring>& fileList) const
+{
+	GlobalManager::Instance().AssertUIThread();
+	if ((m_hzip != nullptr) && !path.empty()) {
+		std::wstring innerPath = GetZipFilePath(path);
+		if (innerPath.empty()) {
+			return false;
+		}
+		ZIPENTRY ze = {0, };
+		if (GetZipItem((HZIP)m_hzip, -1, &ze) != ZR_OK) {
+			ze.index = 0;
+		}
+		std::wstring fileName;
+		int32_t numitems = ze.index;
+		for (int32_t i = 0; i < numitems; i++) {
+			if (GetZipItem((HZIP)m_hzip, i, &ze) != ZR_OK) {
+				break;
+			}
+			fileName = ze.name;
+			size_t nPos = fileName.find(innerPath);
+			if ((nPos == 0) && (fileName.size() > innerPath.size())) {
+				fileList.push_back(fileName.substr(innerPath.size()));
+			}
+		}
+		return true;
+	}
+	return false;
 }
 
 }

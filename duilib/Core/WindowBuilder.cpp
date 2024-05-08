@@ -207,7 +207,7 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
 					else if( strName == L"text" ) {
 						pWindow->SetText(strValue);
 					}
-					else if (strName == L"textid") {
+					else if ((strName == L"text_id") || (strName == L"textid")) {
 						pWindow->SetTextId(strValue);
 					}
 					else if (strName == L"round_corner" || strName == L"roundcorner" ) {
@@ -658,13 +658,13 @@ bool WindowBuilder::ParseRichTextXmlNode(const pugi::xml_node& xmlNode, Control*
 		if (nodeName.empty()) {
 			std::wstring nodeValue = node.value();
 			if (!nodeValue.empty()) {
-				textSlice.m_text = StringHelper::Trim(nodeValue);
+				textSlice.m_text = pRichText->TrimText(nodeValue);
 			}
 			//无节点名称，只读取文本内容, 不需要递归遍历子节点
 			bParseChildren = false;
 		}		
 		else if (nodeName == L"a") {			
-			textSlice.m_text = StringHelper::Trim(node.first_child().value());
+			textSlice.m_text = pRichText->TrimText(node.first_child().value());
 			textSlice.m_linkUrl = StringHelper::Trim(node.attribute(L"href").as_string());
 			//超级链接节点, 不需要递归遍历子节点
 			bParseChildren = false;

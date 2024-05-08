@@ -233,6 +233,7 @@ bool Window::CreateWnd(HWND hwndParent, const wchar_t* windowName, uint32_t dwSt
         m_hWnd = hWnd;
     }
     OnInitWindow();
+    GlobalManager::Instance().AddWindow(this);
     return hWnd != nullptr;
 }
 
@@ -545,6 +546,7 @@ void Window::OnFinalMessage(HWND hWnd)
     }
 
     //»ØÊÕ¿Ø¼þ
+    GlobalManager::Instance().RemoveWindow(this);
     ReapObjects(GetRoot());
     m_hWnd = nullptr;
 }
@@ -964,12 +966,24 @@ void Window::SetText(const std::wstring& strText)
 {
     ASSERT(::IsWindow(m_hWnd));
     ::SetWindowText(m_hWnd, strText.c_str());
+    m_text = strText;
+}
+
+std::wstring Window::GetText() const
+{
+    return m_text;
 }
 
 void Window::SetTextId(const std::wstring& strTextId)
 {
     ASSERT(::IsWindow(m_hWnd));
     ::SetWindowText(m_hWnd, GlobalManager::Instance().Lang().GetStringViaID(strTextId).c_str());
+    m_textId = strTextId;
+}
+
+std::wstring Window::GetTextId() const
+{
+    return m_textId;
 }
 
 Box* Window::AttachShadow(Box* pRoot)

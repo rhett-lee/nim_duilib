@@ -1,6 +1,7 @@
 //MainThread.cpp
 #include "MainThread.h"
 #include "MainForm.h"
+#include "resource.h"
 
 WorkerThread::WorkerThread(ThreadId threadID, const char* name)
     : FrameworkThread(name)
@@ -42,10 +43,36 @@ void MainThread::Init()
     m_workerThread.reset(new WorkerThread(kThreadWorker, "WorkerThread"));
     m_workerThread->Start();
 
-    //初始化全局资源, 使用本地文件夹作为资源
-    std::wstring resourcePath = nbase::win32::GetCurrentModuleDirectory();
-    resourcePath += L"resources\\";
-    ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath));
+	//初始化全局资源
+	constexpr ui::ResourceType resType = ui::ResourceType::kLocalFiles;
+	if (resType == ui::ResourceType::kLocalFiles) {
+		//使用本地文件夹作为资源
+		std::wstring resourcePath = nbase::win32::GetCurrentModuleDirectory();
+		resourcePath += L"resources\\";
+		ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath));
+	}
+	else if (resType == ui::ResourceType::kZipFile) {
+		//使用本地zip压缩包作为资源（压缩包位于exe相同目录）	
+		ui::ZipFileResParam resParam;
+		resParam.resourcePath = L"resources\\";
+		resParam.zipFilePath = nbase::win32::GetCurrentModuleDirectory();
+		resParam.zipFilePath += L"resources.zip";
+		resParam.zipPassword = "";
+		ui::GlobalManager::Instance().Startup(resParam);
+	}
+	else if (resType == ui::ResourceType::kResZipFile) {
+		//使用exe资源文件中的zip压缩包
+		ui::ResZipFileResParam resParam;
+		resParam.resourcePath = L"resources\\";
+		resParam.hResModule = nullptr;
+		resParam.resourceName = MAKEINTRESOURCE(IDR_THEME);
+		resParam.resourceType = L"THEME";
+		resParam.zipPassword = "";
+		ui::GlobalManager::Instance().Startup(resParam);
+	}
+	else {
+		return;
+	}
 
     //在下面加入启动窗口代码
     //创建一个默认带有阴影的居中窗口

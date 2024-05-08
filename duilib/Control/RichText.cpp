@@ -58,6 +58,10 @@ UiSize RichText::EstimateText(UiSize szAvailable)
         return fixedSize;
     }
 
+    if (!m_richTextId.empty() && (m_langFileName != GlobalManager::Instance().GetLanguageFileName())) {
+        DoSetText(GlobalManager::Instance().Lang().GetStringViaID(m_richTextId.c_str()));
+        m_langFileName = GlobalManager::Instance().GetLanguageFileName();
+    }
     if (m_textData.empty()) {
         ParseText(m_textData);
     }
@@ -157,6 +161,36 @@ void RichText::SetAttribute(const std::wstring& strName, const std::wstring& str
         //超级链接：是否使用带下划线的字体
         m_bLinkUnderlineFont = (strValue == L"true");
     }
+    else if (strName == L"text") {
+        //允许使用'{'代替'<'，'}'代替'>'
+        if (((strValue.find(L'<') == std::wstring::npos) && (strValue.find(L'>') == std::wstring::npos)) &&
+            ((strValue.find(L'{') != std::wstring::npos) && (strValue.find(L'}') != std::wstring::npos))) {
+            std::wstring richText(strValue);
+            StringHelper::ReplaceAll(L"{", L"<", richText);
+            StringHelper::ReplaceAll(L"}", L">", richText);
+            SetText(richText);
+        }
+        else {
+            SetText(strValue);
+        }        
+    }
+    else if ((strName == L"text_id") || (strName == L"textid")) {
+        SetTextId(strValue);
+    }
+    else if (strName == L"trim_policy") {
+        if (strValue == L"all") {
+            m_trimPolicy = TrimPolicy::kAll;
+        }
+        else if (strValue == L"none") {
+            m_trimPolicy = TrimPolicy::kNone;
+        }
+        else if (strValue == L"keep_one") {
+            m_trimPolicy = TrimPolicy::kKeepOne;
+        }
+        else {
+            m_trimPolicy = TrimPolicy::kAll;
+        }
+    }
     else {
         __super::SetAttribute(strName, strValue);
     }
@@ -171,6 +205,10 @@ void RichText::PaintText(IRender* pRender)
     rc.Deflate(GetControlPadding());
     rc.Deflate(GetTextPadding());
 
+    if (!m_richTextId.empty() && (m_langFileName != GlobalManager::Instance().GetLanguageFileName())) {
+        DoSetText(GlobalManager::Instance().Lang().GetStringViaID(m_richTextId.c_str()));
+        m_langFileName = GlobalManager::Instance().GetLanguageFileName();
+    }
     if (m_textData.empty()) {
         ParseText(m_textData);
     }
@@ -341,11 +379,67 @@ void RichText::SetTextPadding(UiPadding padding, bool bNeedDpiScale)
     }
 }
 
-bool RichText::SetRichText(const std::wstring& richText)
+const std::wstring& RichText::TrimText(std::wstring& text)
+{
+    if (m_trimPolicy == TrimPolicy::kNone) {
+        //不处理
+    }
+    else if (m_trimPolicy == TrimPolicy::kKeepOne) {
+        //只保留一个空格
+        if (!text.empty()) {
+            bool bFirst = (text.front() == L' ');
+            bool bLast = text[text.size() - 1] == L' ';
+            StringHelper::Trim(text);
+            if (text.empty()) {
+                text = L" ";
+            }
+            else {
+                if (bFirst) {
+                    text = L" " + text;
+                }
+                else if (bLast) {
+                    text += L" ";
+                }
+            }
+        }
+    }
+    else {
+        //去掉所有空格
+        StringHelper::Trim(text);
+    }    
+    return text;
+}
+
+std::wstring RichText::TrimText(const wchar_t* text)
+{
+    if (m_trimPolicy == TrimPolicy::kNone) {
+        //不处理
+        std::wstring retText;
+        if (text != nullptr) {
+            retText = text;
+        }
+        return retText;
+    }
+    else if (m_trimPolicy == TrimPolicy::kKeepOne) {
+        //只保留一个空格
+        std::wstring retText;
+        if (text != nullptr) {
+            retText = text;
+        }
+        TrimText(retText);
+        return retText;
+    }
+    else {
+        //去掉所有空格
+        return StringHelper::Trim(text);
+    }    
+}
+
+bool RichText::DoSetText(const std::wstring& richText)
 {
     Clear();
     //XML解析的内容，全部封装在WindowBuilder这个类中，以避免到处使用XML解析器，从而降低代码维护复杂度
-    bool bResult = false;
+    bool bResult = true;
     if (!richText.empty()) {
         if (richText.find(L"<RichText") == std::wstring::npos) {
             std::wstring formatedText = L"<RichText>" + richText + L"</RichText>";
@@ -353,12 +447,31 @@ bool RichText::SetRichText(const std::wstring& richText)
         }
         else {
             bResult = WindowBuilder::ParseRichTextXmlText(richText, this);
-        }        
+        }
     }
+    return bResult;
+}
+
+bool RichText::SetText(const std::wstring& richText)
+{
+    bool bResult = DoSetText(richText);
     if (bResult) {
         RelayoutOrRedraw();
     }
     return bResult;
+}
+
+bool RichText::SetTextId(const std::wstring& richTextId)
+{
+    bool bRet = SetText(GlobalManager::Instance().Lang().GetStringViaID(richTextId));
+    m_richTextId = richTextId;
+    if (!m_richTextId.empty()) {
+        m_langFileName = GlobalManager::Instance().GetLanguageFileName();
+    }
+    else {
+        m_langFileName.clear();
+    }
+    return bRet;
 }
 
 void RichText::Clear()
