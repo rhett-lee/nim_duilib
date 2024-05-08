@@ -299,9 +299,9 @@ HotKey 控件继承了 `HBox` 属性，更多可用属性请参考`HBox`的属性
 
 Line 控件继承了 `Control` 属性，更多可用属性请参考`Control`的属性
 
-## CMenuWnd的属性
-CMenuWnd是一个窗口，具体用法请参考示例程序中的菜单    
-CMenuWnd 控件继承了 `Window` 属性，更多可用属性请参考`Window`的属性
+## Menu的属性
+Menu是一个窗口，具体用法请参考示例程序中的菜单    
+Menu 控件继承了 `Window` 属性，更多可用属性请参考`Window`的属性
 
 ## Progress的属性
 | 属性名称 | 默认值 | 参数类型 | 用途 |

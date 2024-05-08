@@ -295,14 +295,14 @@ void ControlForm::ShowColorPicker()
 
 void ControlForm::ShowPopupMenu(const ui::UiPoint& point)
 {
-    ui::CMenuWnd* menu = new ui::CMenuWnd(GetHWND());//需要设置父窗口，否在菜单弹出的时候，程序状态栏编程非激活状态
+    ui::Menu* menu = new ui::Menu(GetHWND());//需要设置父窗口，否在菜单弹出的时候，程序状态栏编程非激活状态
     std::wstring xml(L"settings_menu.xml");
     menu->ShowMenu(xml, point);
 
     //在二级菜单中，添加子菜单项
-    ui::CMenuElementUI* menu_fourth = static_cast<ui::CMenuElementUI*>(menu->FindControl(L"fourth"));
+    ui::MenuItem* menu_fourth = static_cast<ui::MenuItem*>(menu->FindControl(L"fourth"));
 	if (menu_fourth != nullptr) {
-		ui::CMenuElementUI* menu_item = new ui::CMenuElementUI;
+		ui::MenuItem* menu_item = new ui::MenuItem;
 		menu_item->SetText(L"Dynamically created");
 		menu_item->SetClass(L"menu_element");
 		menu_item->SetFixedWidth(ui::UiFixedInt(180), true, true);
@@ -314,7 +314,7 @@ void ControlForm::ShowPopupMenu(const ui::UiPoint& point)
 
     //在一级菜单中，添加子菜单项
     /*
-    menu_item = new ui::CMenuElementUI;
+    menu_item = new ui::MenuItem;
     menu_item->SetText(L"Dynamically created");
     menu_item->SetClass(L"menu_element");
     menu_item->SetFixedWidth(180);
@@ -326,7 +326,7 @@ void ControlForm::ShowPopupMenu(const ui::UiPoint& point)
     //CheckBox菜单项的功能演示
     static bool s_is_checked_01_flag = false;
     bool& flag = s_is_checked_01_flag;
-    ui::CMenuElementUI* menu_check_01 = dynamic_cast<ui::CMenuElementUI*>(menu->FindControl(L"menu_check_01"));
+    ui::MenuItem* menu_check_01 = dynamic_cast<ui::MenuItem*>(menu->FindControl(L"menu_check_01"));
 	if (menu_check_01 != nullptr) {
 		menu_check_01->AttachClick([&flag](const ui::EventArgs& args) {
 			flag = true;
@@ -338,7 +338,7 @@ void ControlForm::ShowPopupMenu(const ui::UiPoint& point)
 		menuCheckBox01->Selected(s_is_checked_01_flag);
 	}
 
-    ui::CMenuElementUI* menu_check_02 = dynamic_cast<ui::CMenuElementUI*>(menu->FindControl(L"menu_check_02"));
+    ui::MenuItem* menu_check_02 = dynamic_cast<ui::MenuItem*>(menu->FindControl(L"menu_check_02"));
 	if (menu_check_02 != nullptr) {
 		menu_check_02->AttachClick([&flag](const ui::EventArgs& args) {
 			flag = false;
@@ -353,7 +353,7 @@ void ControlForm::ShowPopupMenu(const ui::UiPoint& point)
 
 
     /* About menu */
-    ui::CMenuElementUI* menu_about = static_cast<ui::CMenuElementUI*>(menu->FindControl(L"about"));
+    ui::MenuItem* menu_about = static_cast<ui::MenuItem*>(menu->FindControl(L"about"));
 	if (menu_about != nullptr) {
 		menu_about->AttachClick([this](const ui::EventArgs& args) {
 			AboutForm* about_form = new AboutForm();

@@ -106,7 +106,7 @@ namespace ui
 
 	#define  DUI_CTR_MENU							 (L"Menu")
 	#define  DUI_CTR_SUB_MENU				   		 (L"SubMenu")
-	#define  DUI_CTR_MENUELEMENT					 (L"MenuElement")
+	#define  DUI_CTR_MENU_ITEM                       (L"MenuItem")
 
 	#define  DUI_CTR_DATETIME                        (L"DateTime")
 

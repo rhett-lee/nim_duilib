@@ -2706,7 +2706,7 @@ void RichEdit::ShowPopupMenu(const ui::UiPoint& point)
 	if (pWindow != nullptr) {
 		hParent = pWindow->GetHWND();
 	}	
-	CMenuWnd* menu = new CMenuWnd(hParent);//需要设置父窗口，否在菜单弹出的时候，程序状态栏编程非激活状态
+	Menu* menu = new Menu(hParent);//需要设置父窗口，否在菜单弹出的时候，程序状态栏编程非激活状态
 	menu->SetSkinFolder(skinFolder);
 	std::wstring xml(L"rich_edit_menu.xml");
 
@@ -2715,10 +2715,10 @@ void RichEdit::ShowPopupMenu(const ui::UiPoint& point)
 	ClientToScreen(pt);
 	menu->ShowMenu(xml, pt);
 
-	ui::CMenuElementUI* menu_item = nullptr;
+	ui::MenuItem* menu_item = nullptr;
 	//更新命令状态，并添加菜单命令响应
 	bool hasSelText = nEndChar > nStartChar ? true : false;
-	menu_item = dynamic_cast<ui::CMenuElementUI*>(menu->FindControl(L"edit_menu_copy"));
+	menu_item = dynamic_cast<ui::MenuItem*>(menu->FindControl(L"edit_menu_copy"));
 	if (menu_item != nullptr) {
 		if (!hasSelText) {
 			menu_item->SetEnabled(false);
@@ -2728,7 +2728,7 @@ void RichEdit::ShowPopupMenu(const ui::UiPoint& point)
 			return true;
 			});
 	}
-	menu_item = dynamic_cast<ui::CMenuElementUI*>(menu->FindControl(L"edit_menu_cut"));
+	menu_item = dynamic_cast<ui::MenuItem*>(menu->FindControl(L"edit_menu_cut"));
 	if (menu_item != nullptr) {
 		if (!hasSelText) {
 			menu_item->SetEnabled(false);
@@ -2741,7 +2741,7 @@ void RichEdit::ShowPopupMenu(const ui::UiPoint& point)
 			return true;
 			});
 	}
-	menu_item = dynamic_cast<ui::CMenuElementUI*>(menu->FindControl(L"edit_menu_paste"));
+	menu_item = dynamic_cast<ui::MenuItem*>(menu->FindControl(L"edit_menu_paste"));
 	if (menu_item != nullptr) {
 		if (!pRichEdit->CanPaste()) {
 			menu_item->SetEnabled(false);
@@ -2754,7 +2754,7 @@ void RichEdit::ShowPopupMenu(const ui::UiPoint& point)
 			return true;
 			});
 	}
-	menu_item = dynamic_cast<ui::CMenuElementUI*>(menu->FindControl(L"edit_menu_del"));
+	menu_item = dynamic_cast<ui::MenuItem*>(menu->FindControl(L"edit_menu_del"));
 	if (menu_item != nullptr) {
 		if (!hasSelText) {
 			menu_item->SetEnabled(false);
@@ -2767,7 +2767,7 @@ void RichEdit::ShowPopupMenu(const ui::UiPoint& point)
 			return true;
 			});
 	}
-	menu_item = dynamic_cast<ui::CMenuElementUI*>(menu->FindControl(L"edit_menu_sel_all"));
+	menu_item = dynamic_cast<ui::MenuItem*>(menu->FindControl(L"edit_menu_sel_all"));
 	if (menu_item != nullptr) {
 		if ((nStartChar == 0) && (nEndChar == pRichEdit->GetTextLength())) {
 			menu_item->SetEnabled(false);
@@ -2777,7 +2777,7 @@ void RichEdit::ShowPopupMenu(const ui::UiPoint& point)
 			return true;
 			});
 	}
-	menu_item = dynamic_cast<ui::CMenuElementUI*>(menu->FindControl(L"edit_menu_undo"));
+	menu_item = dynamic_cast<ui::MenuItem*>(menu->FindControl(L"edit_menu_undo"));
 	if (menu_item != nullptr) {
 		if (!pRichEdit->CanUndo()) {
 			menu_item->SetEnabled(false);
@@ -2790,7 +2790,7 @@ void RichEdit::ShowPopupMenu(const ui::UiPoint& point)
 			return true;
 			});
 	}
-	menu_item = dynamic_cast<ui::CMenuElementUI*>(menu->FindControl(L"edit_menu_redo"));
+	menu_item = dynamic_cast<ui::MenuItem*>(menu->FindControl(L"edit_menu_redo"));
 	if (menu_item != nullptr) {
 		if (!pRichEdit->CanRedo()) {
 			menu_item->SetEnabled(false);

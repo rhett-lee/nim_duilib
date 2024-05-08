@@ -57,7 +57,7 @@ LRESULT MainForm::OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandle
 
 void MainForm::ShowPopupMenu(const ui::UiPoint& point)
 {
-	ui::CMenuWnd* menu = new ui::CMenuWnd(GetHWND());//需要设置父窗口，否在菜单弹出的时候，程序状态栏编程非激活状态
+	ui::Menu* menu = new ui::Menu(GetHWND());//需要设置父窗口，否在菜单弹出的时候，程序状态栏编程非激活状态
 	//设置菜单xml所在的目录
 	menu->SetSkinFolder(GetResourcePath());
 	std::wstring xml(L"lang_menu.xml");
@@ -78,7 +78,7 @@ void MainForm::ShowPopupMenu(const ui::UiPoint& point)
 		const std::wstring fileName = lang.first;
 		std::wstring& displayName = lang.second;
 
-		ui::CMenuElementUI* pMenuItem = new ui::CMenuElementUI;
+		ui::MenuItem* pMenuItem = new ui::MenuItem;
 		pMenuItem->SetClass(L"menu_element");
 		ui::CheckBox* pCheckBox = new ui::CheckBox;
 		pCheckBox->SetClass(L"menu_checkbox");
