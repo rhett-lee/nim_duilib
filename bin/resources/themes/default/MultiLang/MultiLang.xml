@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Window text_id="MULTI_LANG_WINDOW_TEXT" size="60%,80%" mininfo="80,50" use_system_caption="false" caption="0,0,0,36" shadowattached="true" layered_window="true" alpha="255" sizebox="4,4,4,4">
+<Window text_id="MULTI_LANG_WINDOW_TEXT" size="600,400" mininfo="80,50" use_system_caption="false" caption="0,0,0,36" shadowattached="true" layered_window="true" alpha="255" sizebox="4,4,4,4">
     <Class name="btn_language" normal_image="file='language.svg' width='14' height='14' valign='center' halign='center'" hot_color="AliceBlue" pushed_color="Lavender"/>
     <VBox bkcolor="bk_wnd_darkcolor" visible="true">    
         <!-- 标题栏区域 -->
         <HBox name="window_caption_bar" width="stretch" height="36" bkcolor="bk_wnd_lightcolor">
             <Label text_id="MULTI_LANG_WINDOW_TEXT" height="32" width="stretch" margin="8,2,0,2" text_align="vcenter,left"/>
-            <Control />
+            <Control width="40"/>
             <Button class="btn_language" height="32" width="40" name="language" margin="0,2,0,2" tooltip_textid="MULTI_LANG_SELECT_LANGUAGE"/>
             <Button class="btn_wnd_min_11" height="32" width="40" name="minbtn" margin="0,2,0,2" tooltip_textid="MULTI_LANG_SELECT_WINDOW_MIN"/>
             <Box height="stretch" width="40" margin="0,2,0,2">
@@ -20,7 +20,7 @@
             <VBox margin="0,0,0,0" valign="center" halign="center">
                 <Label text_id="LANGUAGE_DISPLAY_NAME" height="20%" width="100%" text_align="hcenter,vcenter" bkcolor="AntiqueWhite"/>
                 <Label text_id="MULTI_LANG_LABEL_TEXT" height="20%" width="100%" text_align="hcenter,vcenter" bkcolor="LightCyan"/>
-                <RichText trim_policy="none" text_id="MULTI_LANG_RICH_TEXT" height="20%" width="100%" text_align="hcenter,bottom" bkcolor="NavajoWhite"/>
+                <RichText trim_policy="none" text_id="MULTI_LANG_RICH_TEXT" height="20%" width="100%" text_align="hcenter,vcenter" bkcolor="NavajoWhite"/>
             </VBox>
         </Box>
     </VBox>

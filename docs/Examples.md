@@ -54,4 +54,8 @@ examples 目录中包含了一些示例程序，你可以参考这些示例程序来完善你的应用程序。
 ## 13. examples/VirtualListBox
 演示如何使用基于虚表实现的ListBox容器。    
 <img src="./Images/VirtualListBox.png"/>
+    
+## 14. examples/MultiLang
+演示如何使用多语言功能，支持多语言的动态切换。    
+<img src="./Images/MultiLang.png"/>
  
