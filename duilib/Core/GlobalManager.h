@@ -275,7 +275,17 @@ private:
 
 	/** 所有的窗口列表
 	*/
-	std::vector<Window*> m_windowList;
+	struct WindowWeakFlag
+	{
+		/** 窗口的接口
+		*/
+		Window* m_pWindow = nullptr;
+		
+		/** 窗口接口的有效期标志
+		*/
+		std::weak_ptr<nbase::WeakFlag> m_weakFlag;
+	};
+	std::vector<WindowWeakFlag> m_windowList;
 
 	/** 颜色管理器
 	*/

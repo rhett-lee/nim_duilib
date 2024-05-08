@@ -798,7 +798,7 @@ bool MenuItem::MouseEnter(const ui::EventArgs& msg)
 	}
 	std::weak_ptr<nbase::WeakFlag> weakFlag = pWindow->GetWeakFlag();
 	bool ret = __super::MouseEnter(msg);
-	if (IsHotState() && !weakFlag.expired()) {
+	if (!weakFlag.expired() && IsHotState()) {
 		//这里处理下如果有子菜单则显示子菜单
 		if (!CheckSubMenuItem()) {
 			ContextMenuParam param;
@@ -806,7 +806,7 @@ bool MenuItem::MouseEnter(const ui::EventArgs& msg)
 			param.wParam = MenuCloseType::eMenuCloseThis;
 			Menu::GetMenuObserver().RBroadcast(param);
 			//这里得把之前选中的置为未选中
-			if (GetOwner() != nullptr) {
+			if (!weakFlag.expired() && (GetOwner() != nullptr)) {
 				GetOwner()->SelectItem(Box::InvalidIndex, false, false);
 			}
 		}
