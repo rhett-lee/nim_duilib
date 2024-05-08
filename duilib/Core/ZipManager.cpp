@@ -20,14 +20,16 @@ ZipManager::~ZipManager()
 }
 
 
-bool ZipManager::IsUseZip()
+bool ZipManager::IsUseZip() const
 {
 	return m_hzip != nullptr;
 }
 
-bool ZipManager::OpenResZip(LPCTSTR resourceName, LPCTSTR resourceType, const std::string& password)
+#ifdef UILIB_IMPL_WINSDK
+
+bool ZipManager::OpenResZip(HMODULE hModule, LPCTSTR resourceName, LPCTSTR resourceType, const std::string& password)
 {
-	HRSRC rsc = ::FindResource(NULL, resourceName, resourceType);
+	HRSRC rsc = ::FindResource(hModule, resourceName, resourceType);
 	ASSERT(rsc != nullptr);
 	if (rsc == nullptr) {
 		return false;
@@ -42,15 +44,16 @@ bool ZipManager::OpenResZip(LPCTSTR resourceName, LPCTSTR resourceType, const st
 	m_hzip = OpenZip(resource, size, password.c_str());
 	return m_hzip != nullptr;
 }
+#endif
 
-bool ZipManager::OpenResZip(const std::wstring& path, const std::string& password)
+bool ZipManager::OpenZipFile(const std::wstring& path, const std::string& password)
 {
 	CloseResZip();
 	m_hzip = OpenZip(path.c_str(), password.c_str());
 	return m_hzip != nullptr;
 }
 
-bool ZipManager::GetZipData(const std::wstring& path, std::vector<unsigned char>& file_data)
+bool ZipManager::GetZipData(const std::wstring& path, std::vector<unsigned char>& file_data) const
 {
 	GlobalManager::Instance().AssertUIThread();
 	ASSERT(m_hzip != nullptr);
@@ -80,7 +83,7 @@ bool ZipManager::GetZipData(const std::wstring& path, std::vector<unsigned char>
 	return false;
 }
 
-std::wstring ZipManager::GetZipFilePath(const std::wstring& path)
+std::wstring ZipManager::GetZipFilePath(const std::wstring& path) const
 {
 	if (!StringHelper::IsRelativePath(path)) {
 		return L"";
@@ -123,7 +126,7 @@ std::wstring ZipManager::GetZipFilePath(const std::wstring& path)
 	return file_path;
 }
 
-bool ZipManager::IsZipResExist(const std::wstring& path)
+bool ZipManager::IsZipResExist(const std::wstring& path) const
 {
 	GlobalManager::Instance().AssertUIThread();
 	if ((m_hzip != nullptr) && !path.empty()) {

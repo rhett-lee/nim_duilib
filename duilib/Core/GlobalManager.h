@@ -12,6 +12,7 @@
 #include "duilib/Core/LangManager.h"
 #include "duilib/Core/DpiManager.h"
 #include "duilib/Core/TimerManager.h"
+#include "duilib/Core/ResourceParam.h"
 
 #include <string>
 #include <vector>
@@ -19,11 +20,12 @@
 
 namespace ui 
 {
-	class IRenderFactory;
-;
-/**
-* 全局属性管理工具类
-* 用于管理一些全局属性的工具类，包含全局样式（global.xml）和语言设置等
+/** 渲染引擎工厂接口
+*/
+class IRenderFactory;
+
+/** 全局属性管理工具类
+*   用于管理一些全局属性的工具类，包含全局样式（global.xml）和语言设置等
 */
 class UILIB_API GlobalManager
 {
@@ -40,70 +42,91 @@ public:
 
 public:
 	/** 初始化全局设置函数
-	 * @param[in] strResourcePath 资源路径位置
-	 * @param[in] callback 创建自定义控件时的全局回调函数
-	 * @param[in] bAdaptDpi 是否启用 DPI 自动适配
-	 * @param[in] theme 主题目录名，默认为 themes\\default
-	 * @param[in] language 使用语言，默认为 lang\\zh_CN
+	 * @param [in] resParam 资源相关的参数，根据资源类型不同，有以下可选项
+	 *                      1. 本地文件的形式，所有资源都已本地文件的形式存在
+	 *                         使用 LocalFilesResParam 类型作为参数
+	 *                      2. 资源文件打包为zip压缩包，然后以本地文件的形式存在
+	 *                         使用 ZipFileResParam 类型作为参数
+	 *                      3. 资源文件打包为zip压缩包，然后放在exe/dll的资源文件中
+	 *                         使用 ResZipFileResParam 类型作为参数
+	 * @param [in] bAdaptDpi 是否启用 DPI 自动适配
+	 * @param [in] callback 创建自定义控件时的全局回调函数
 	 */
-	void Startup(const std::wstring& strResourcePath, 
-				 const CreateControlCallback& callback = nullptr,
-				 bool bAdaptDpi = true, 
-				 const std::wstring& theme = L"themes\\default", 
-				 const std::wstring& language = L"lang\\zh_CN");
+	bool Startup(const ResourceParam& resParam,
+				 bool bAdaptDpi = true,
+				 const CreateControlCallback& callback = nullptr);
 
 	/** 释放全局资源
 	 */
 	void Shutdown();
 
 public:
-	/** 设置皮肤资源所在目录
+	/** 设置皮肤资源所在路径
+	 *   如果 resType == kLocalFiles，需要设置资源所在的本地路径（绝对路径）
+	 *   如果 resType == kZipFile 或者 resType == kResZip，设置资源所在的起始目录（相对路径），比如：L"resources\\"
 	 */
 	void SetResourcePath(const std::wstring& strPath);
 
-	/** 获取当前资源所在目录
+	/** 获取当前资源所在路径
 	 */
-	const std::wstring& GetResourcePath();
+	const std::wstring& GetResourcePath() const;
 
-	/** 设置当前语言文件路径
+	/** 重新加载皮肤资源（可通过此接口实现动态换肤功能）
+	* @param [in] resParam 资源相关的参数，根据资源类型不同，有以下可选项
+	 *                      1. 本地文件的形式，所有资源都已本地文件的形式存在
+	 *                         使用 LocalFilesResParam 类型作为参数
+	 *                      2. 资源文件打包为zip压缩包，然后以本地文件的形式存在
+	 *                         使用 ZipFileResParam 类型作为参数
+	 *                      3. 资源文件打包为zip压缩包，然后放在exe/dll的资源文件中
+	 *                         使用 ResZipFileResParam 类型作为参数
+	 * @param [in] bInvalidate 是否刷新界面显示：true表示更新完语言文件后刷新界面显示，false表示不刷新界面显示
+	*/
+	bool ReloadResource(const ResourceParam& resParam, bool bInvalidate = false);
+
+public:
+	/** 设置语言文件所在路径，可以是相对路径或者是绝对路径（多语言版时，所有的语言文件都放在这个目录中）
+	*   如果是绝对路径，则在这个绝对路径中查找语言文件
+	*   如果是相对路径，则根据resType和resourcePath决定的资源路径下，按相对路径查找资源文件
 	*/
 	void SetLanguagePath(const std::wstring& strPath);
 
-	/** 获取当前语言文件路径
+	/** 获取语言文件所在路径
 	*/
-	const std::wstring& GetLanguagePath();
+	const std::wstring& GetLanguagePath() const;
 
-	/** 根据资源加载方式，返回对应的资源路径
-	 * @param[in] path 要获取的资源路径
-	 * @param [in] windowResPath 窗口对应的资源相对目录，比如："basic\"
-	 * @param [in] resPath 资源文件路径，比如："../public/button/btn_wnd_gray_min_hovered.png"
-	 * @return 可用的完整的资源路径，比如：
-	          （1）如果是使用ZIP压缩包，返回："resources\themes\default\public\button\btn_wnd_gray_min_hovered.png"
-			  （2）如果未使用ZIP压缩包，返回："D:\<程序所在目录>\resources\themes\default\public\button\btn_wnd_gray_min_hovered.png"
+	/** 获取语言文件名，不含路径
+	*/
+	const std::wstring& GetLanguageFileName() const;
+
+	/** 重新加载语言资源（通过此接口实现多语言动态切换功能）
+	 * @param [in] languagePath 语言文件所在路径
+	               如果是绝对路径，则在此绝对路径的目录中查找语言文件；
+				   如果为空，表示使用Startup时初始化的语言文件路径；
+				   如果为相对路径，则对应于压缩包中的相对路径
+	 * @param [in] languageFileName 当前使用语言文件的文件名（不含路径）
+	 * @param [in] bInvalidate 是否刷新界面显示：true表示更新完语言文件后刷新界面显示，false表示不刷新界面显示
 	 */
-	std::wstring GetResFullPath(const std::wstring& windowResPath, const std::wstring& resPath);
+	bool ReloadLanguage(const std::wstring& languagePath = L"",
+				        const std::wstring& languageFileName = L"zh_CN.txt",
+						bool bInvalidate = false);
 
-	/** 重新加载皮肤资源
-	 * @param[in] resourcePath 资源路径
-	 */
-	void ReloadSkin(const std::wstring& resourcePath);
+	/** 获取语言文件列表和显示名称（以支持多语言切换）
+	* @param [in] languageNameID 用于读取显示名称的字符串ID，如果为空则不读取显示名称
+	* @param [out] languageList 返回语言文件和显示名称的列表
+	*/
+	bool GetLanguageList(std::vector<std::pair<std::wstring, std::wstring>>& languageList,
+						 const std::wstring& languageNameID = L"LANGUAGE_DISPLAY_NAME") const;
 
-	/** 重新加载语言资源
-	 * @param[in] languagePath 语言资源路径
-	 */
-	void ReloadLanguage(const std::wstring& languagePath, bool invalidateAll = false);
-
+public:
 	/** 添加一个窗口接口（主要用于换肤、切换语言之后的重绘、资源同步等操作）
+	* @param [in] pWindow 窗口的接口
 	*/
 	void AddWindow(Window* pWindow);
 
 	/** 移除一个窗口
+	* @param [in] pWindow 窗口的接口
 	*/
 	void RemoveWindow(Window* pWindow);
-
-	/** 获取绘制接口类对象
-	 */
-	IRenderFactory* GetRenderFactory();
 
 	/** 添加一个全局 Class 属性
 	 * @param[in] strClassName 全局 Class 名称
@@ -115,7 +138,7 @@ public:
 	 * @param[in] strClassName 全局 class 名称
 	 * @return 返回字符串形式的 class 属性值
 	 */
-	std::wstring GetClassAttributes(const std::wstring& strClassName);
+	std::wstring GetClassAttributes(const std::wstring& strClassName) const;
 
 	/** 从全局属性中删除所有 class 属性
 	 * @return 返回绘制区域对象
@@ -123,6 +146,10 @@ public:
 	void RemoveAllClasss();
 
 public:
+	/** 获取绘制接口类对象
+	*/
+	IRenderFactory* GetRenderFactory();
+
 	/** 获取颜色管理器
 	*/
 	ColorManager& Color();
@@ -139,10 +166,6 @@ public:
 	/** 获取ICON资源管理器
 	*/
 	IconManager& Icon();
-
-	/** RichEdit依赖的DLL, 加载并返回句柄
-	*/
-	HMODULE GetRichEditModule();
 
 #endif
 
@@ -163,6 +186,16 @@ public:
 	LangManager& Lang();
 
 public:
+	/** 根据资源加载方式，返回对应的资源路径
+	 * @param[in] path 要获取的资源路径
+	 * @param [in] windowResPath 窗口对应的资源相对目录，比如："basic\"
+	 * @param [in] resPath 资源文件路径，比如："../public/button/btn_wnd_gray_min_hovered.png"
+	 * @return 可用的完整的资源路径，比如：
+			  （1）如果是使用ZIP压缩包，返回："resources\themes\default\public\button\btn_wnd_gray_min_hovered.png"
+			  （2）如果未使用ZIP压缩包，返回："D:\<程序所在目录>\resources\themes\default\public\button\btn_wnd_gray_min_hovered.png"
+	 */
+	std::wstring GetResFullPath(const std::wstring& windowResPath, const std::wstring& resPath);
+
 	/** 根据 XML 创建一个 Box
 	 * @param[in] strXmlPath XML 文件路径
 	 * @param[in] callback 自定义控件的回调处理函数
@@ -199,15 +232,9 @@ public:
 
 	/** 如果该函数不是在UI线程中调用的，进行断言报错
 	*/
-	void AssertUIThread();
+	void AssertUIThread() const;
 
 private:
-	/**
-	 * @brief 加载全局资源
-	 * @return 无
-	 */
-	void LoadGlobalResource();
-
 	/** 从缓存中删除所有图片
 	 */
 	void RemoveAllImages();
@@ -218,13 +245,17 @@ private:
 	*/
 	std::unique_ptr<IRenderFactory> m_renderFactory;
 
-	/** 全局的资源路径，换肤的时候修改这个变量
+	/** 全局的资源路径，换肤的时候修改这个变量（绝对路径）
 	*/
 	std::wstring m_resourcePath; 
 
-	/** 全局语言文件路径
+	/** 全局语言文件路径（绝对路径）
 	*/
 	std::wstring m_languagePath; 
+
+	/** 全局语言文件名（不含路径）
+	*/
+	std::wstring m_languageFileName;
 	
 	/** 窗口构建管理接口，KEY是XML文件路径，VALUE是窗口构建管理接口（已经解析后的XML，可避免重复解析）
 	*/
@@ -278,10 +309,6 @@ private:
 	/** ICON资源管理器
 	*/
 	IconManager m_iconManager;
-
-	/** RichEdit依赖的DLL, 加载并返回句柄
-	*/
-	HMODULE m_hRichEditModule;
 #endif
 };
 

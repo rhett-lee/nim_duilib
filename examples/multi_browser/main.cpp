@@ -62,9 +62,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 void MainThread::Init()
 {
 	nbase::ThreadManager::RegisterThread(kThreadUI);
-
-	std::wstring theme_dir = nbase::win32::GetCurrentModuleDirectory();
-	ui::GlobalManager::Instance().Startup(theme_dir + L"resources\\", ui::CreateControlCallback(), bAdaptDpi);
+    
+	//初始化全局资源, 使用本地文件夹作为资源
+	std::wstring resourcePath = nbase::win32::GetCurrentModuleDirectory();
+	resourcePath += L"resources\\";
+	ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath), bAdaptDpi);
 
 	nbase::TimeDelta time_delta = nbase::TimeDelta::FromMicroseconds(nbase::Time::Now().ToInternalValue());
 	std::string timeStamp = nbase::StringPrintf("%I64u", time_delta.ToMilliseconds());

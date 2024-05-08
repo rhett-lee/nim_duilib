@@ -2,7 +2,7 @@
 <Window>
     <VListBox class="menu">       
         <!-- 在菜单中插入普通控件，实现特定功能 -->
-        <HBox class="menu_split_box" height="36">
+        <HBox class="menu_split_box" height="36" width="256">
             <Label class="menu_text" textid="MULTI_LANG_SELECT_LANGUAGE" textpadding="0,0,6,0"/>     
         </HBox>
         
@@ -11,13 +11,13 @@
             <Control class="menu_split_line" />
         </Box>
         
-        <!-- 带勾选项的菜单项 -->
+        <!-- 带勾选项的菜单项 
         <MenuElement class="menu_element" name="menu_lang_chinese" width="180">
-            <CheckBox class="menu_checkbox" name="checkbox_lang_chinese" text="中文(简体)" margin="0,5,0,10" selected="true" tooltiptext="ui::Checkbox"/>
+            <CheckBox class="menu_checkbox" name="checkbox_lang_chinese" text="中文(简体)" margin="0,5,0,10" selected="true"/>
         </MenuElement>
         <MenuElement class="menu_element" name="menu_lang_english" width="180">
-            <CheckBox class="menu_checkbox" name="checkbox_lang_english" text="English" margin="0,5,0,10" selected="false" tooltiptext="ui::Checkbox"/>
+            <CheckBox class="menu_checkbox" name="checkbox_lang_english" text="English" margin="0,5,0,10" selected="false"/>
         </MenuElement>
-        
+        -->
   </VListBox>
 </Window>

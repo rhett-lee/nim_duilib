@@ -5,6 +5,9 @@
 ;注释符号：“;”
 ;使用规范：每个窗口单独成方阵，不允许出现跨窗口复用情况（一个字符资源多个窗口使用）
 
+;语言显示名称
+LANGUAGE_DISPLAY_NAME = Chinese Simplified(简体中文)
+
 ;通用
 STRING_OK = 确定
 STRING_CANCEL = 取消

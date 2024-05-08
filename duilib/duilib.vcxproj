@@ -520,6 +520,7 @@
     <ClInclude Include="Core\ImageManager.h" />
     <ClInclude Include="Core\LangManager.h" />
     <ClInclude Include="Core\Placeholder.h" />
+    <ClInclude Include="Core\ResourceParam.h" />
     <ClInclude Include="Core\ScrollBar.h" />
     <ClInclude Include="Core\Shadow.h" />
     <ClInclude Include="Core\StateColorMap.h" />
