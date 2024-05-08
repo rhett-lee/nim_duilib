@@ -44,6 +44,52 @@ EXTERN_C const IID IID_ITextHost = { /* c5bdd8d0-d26e-11ce-a89e-00aa006cadc5 */
 	{0xa8, 0x9e, 0x00, 0xaa, 0x00, 0x6c, 0xad, 0xc5}
 };
 
+/** RichEdit控件的DLL模块管理
+*/
+class RichEditModule
+{
+private:
+	RichEditModule():
+		m_hRichEditModule(nullptr)
+	{
+	}
+
+	~RichEditModule()
+	{
+		if (m_hRichEditModule != nullptr) {
+			::FreeLibrary(m_hRichEditModule);
+			m_hRichEditModule = nullptr;
+		}
+	}
+
+	RichEditModule(const RichEditModule&) = delete;
+	RichEditModule& operator = (const RichEditModule&) = delete;
+
+public:
+	/** 获取单例对象
+	*/
+	static RichEditModule& Instance()
+	{
+		static RichEditModule self;
+		return self;
+	}
+
+	/** RichEdit依赖的DLL, 加载并返回句柄
+	*/
+	HMODULE GetRichEditModule()
+	{
+		if (m_hRichEditModule == nullptr) {
+			m_hRichEditModule = ::LoadLibraryW(RichEditCtrl::GetLibraryName());
+		}
+		return m_hRichEditModule;
+	}
+
+private:
+	/** RichEdit依赖的DLL, 加载并返回句柄
+	*/
+	HMODULE m_hRichEditModule;
+};
+
 RichEditHost::RichEditHost(RichEdit* pRichEdit) :
 	m_pRichEdit(pRichEdit),
 	m_cRefs(1),
@@ -132,7 +178,7 @@ void RichEditHost::Init()
 	m_fInplaceActive = true;
 
 	PCreateTextServices pfnTextServicesProc = nullptr;
-	HMODULE hRichEditModule = GlobalManager::Instance().GetRichEditModule();
+	HMODULE hRichEditModule = RichEditModule::Instance().GetRichEditModule();
 	if (hRichEditModule != nullptr) {
 		pfnTextServicesProc = (PCreateTextServices)::GetProcAddress(hRichEditModule, "CreateTextServices");
 	}

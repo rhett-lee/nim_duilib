@@ -5,6 +5,9 @@
 ;comment symbol：“;”
 ;rule：Every window uses its own strings. One windows is not permitted to use strings of other windows'.
 
+;Language display name
+LANGUAGE_DISPLAY_NAME = English(English)
+
 ;Common
 STRING_OK = OK
 STRING_CANCEL = Cancel

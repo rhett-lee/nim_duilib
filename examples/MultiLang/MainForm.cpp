@@ -63,13 +63,42 @@ void MainForm::ShowPopupMenu(const ui::UiPoint& point)
 	std::wstring xml(L"lang_menu.xml");
 	menu->ShowMenu(xml, point);
 
-	//更新当前选择的语言
-	ui::CheckBox* checkBoxChinese = dynamic_cast<ui::CheckBox*>(menu->FindControl(L"checkbox_lang_chinese"));
-	if (checkBoxChinese != nullptr) {
-		checkBoxChinese->Selected(false);
+	//当前语言文件
+	std::wstring currentLangFileName = ui::GlobalManager::Instance().GetLanguageFileName();
+
+	//可用语言文件列表和显示名称
+	std::vector<std::pair<std::wstring, std::wstring>> languageList;
+	ui::GlobalManager::Instance().GetLanguageList(languageList);
+	if (languageList.empty()) {
+		languageList.push_back({ currentLangFileName , L""});
 	}
-	ui::CheckBox* checkBoxEnglish = dynamic_cast<ui::CheckBox*>(menu->FindControl(L"checkbox_lang_english"));
-	if (checkBoxEnglish != nullptr) {
-		checkBoxEnglish->Selected(true);
+
+	//动态添加菜单项
+	for (auto& lang : languageList) {
+		const std::wstring fileName = lang.first;
+		std::wstring& displayName = lang.second;
+
+		ui::CMenuElementUI* pMenuItem = new ui::CMenuElementUI;
+		pMenuItem->SetClass(L"menu_element");
+		ui::CheckBox* pCheckBox = new ui::CheckBox;
+		pCheckBox->SetClass(L"menu_checkbox");
+		pCheckBox->SetAttribute(L"margin", L"0,5,0,10");
+		pCheckBox->SetText(!displayName.empty() ? displayName : fileName);
+		pMenuItem->AddItem(pCheckBox);
+		menu->AddMenuItem(pMenuItem);
+
+		if (ui::StringHelper::IsEqualNoCase(fileName, currentLangFileName)) {
+			pCheckBox->Selected(true);
+		}
+
+		//挂载选择语言事件
+		pMenuItem->AttachClick([fileName](const ui::EventArgs& args) {
+			//切换语言
+			ui::GlobalManager& globalManager = ui::GlobalManager::Instance();
+			if (globalManager.GetLanguageFileName() != fileName) {
+				globalManager.ReloadLanguage(L"", fileName, true);
+			}			
+			return true;
+			});
 	}
 }

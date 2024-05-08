@@ -40,9 +40,10 @@ void MainThread::Init()
 	misc_thread_.reset(new MiscThread(kThreadGlobalMisc, "Global Misc Thread"));
 	misc_thread_->Start();
 
-	// 获取资源路径，初始化全局参数
-	std::wstring app_dir = nbase::win32::GetCurrentModuleDirectory();
-	ui::GlobalManager::Instance().Startup(app_dir + L"resources\\");
+	//初始化全局资源, 使用本地文件夹作为资源
+	std::wstring resourcePath = nbase::win32::GetCurrentModuleDirectory();
+	resourcePath += L"resources\\";
+	ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath));
 
 	// 创建一个默认带有阴影的居中窗口
 	ControlForm* window = new ControlForm();

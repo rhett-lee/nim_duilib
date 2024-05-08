@@ -31,23 +31,36 @@ void MainThread::Init()
 {
 	nbase::ThreadManager::RegisterThread(kThreadUI);
 
-#ifdef _DEBUG
-	// 获取资源路径，初始化全局参数
-	std::wstring theme_dir = nbase::win32::GetCurrentModuleDirectory();
-	// Debug 模式下使用本地文件夹作为资源
-	// 默认皮肤使用 resources\\themes\\default
-	// 默认语言使用 resources\\lang\\zh_CN
-	// 如需修改请指定 Startup 最后两个参数
-	ui::GlobalManager::Instance().Startup(theme_dir + L"resources\\");
-#else
-	// Release 模式下使用资源中的压缩包作为资源
-	// 资源被导入到资源列表分类为 THEME，资源名称为 IDR_THEME
-	// 如果资源使用的是本地的 zip 文件而非资源中的 zip 压缩包
-	// 可以使用 OpenResZip 另一个重载函数打开本地的资源压缩包
-	ui::GlobalManager::Instance().Zip().OpenResZip(MAKEINTRESOURCE(IDR_THEME), L"THEME", "");
-	// ui::GlobalManager::Instance().OpenResZip(L"resources.zip", "");
-	ui::GlobalManager::Instance().Startup(L"resources\\");
-#endif
+	//初始化全局资源
+	constexpr ui::ResourceType resType = ui::ResourceType::kZipFile;
+	if (resType == ui::ResourceType::kLocalFiles) {
+		//使用本地文件夹作为资源
+		std::wstring resourcePath = nbase::win32::GetCurrentModuleDirectory();
+		resourcePath += L"resources\\";
+		ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath));
+	}
+	else if (resType == ui::ResourceType::kZipFile) {
+		//使用本地zip压缩包作为资源（压缩包位于exe相同目录）	
+		ui::ZipFileResParam resParam;
+		resParam.resourcePath = L"resources\\";
+		resParam.zipFilePath = nbase::win32::GetCurrentModuleDirectory();
+		resParam.zipFilePath += L"resources.zip";
+		resParam.zipPassword = "";
+		ui::GlobalManager::Instance().Startup(resParam);
+	}
+	else if (resType == ui::ResourceType::kResZipFile) {
+		//使用exe资源文件中的zip压缩包
+		ui::ResZipFileResParam resParam;
+		resParam.resourcePath = L"resources\\";
+		resParam.hResModule = nullptr;
+		resParam.resourceName = MAKEINTRESOURCE(IDR_THEME);
+		resParam.resourceType = L"THEME";
+		resParam.zipPassword = "";
+		ui::GlobalManager::Instance().Startup(resParam);
+	}
+	else {
+		return;
+	}
 
 	// 创建一个默认带有阴影的居中窗口
 	BasicForm* window = new BasicForm();
