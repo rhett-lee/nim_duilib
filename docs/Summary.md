@@ -175,7 +175,7 @@
 | HyperLink | Label| [duilib/Control/HyperLink.h](../duilib/Control/HyperLink.h) | 带有超级链接的文字, 如果URL为空的话，可以当作普通的文字按钮使用 |
 | IPAddress | HBox| [duilib/Control/IPAddress.h](../duilib/Control/IPAddress.h) | IP地址控件 |
 | Line | Control| [duilib/Control/Line.h](../duilib/Control/Line.h) | 画线控件 |
-| CMenuWnd | WindowImplBase| [duilib/Control/Menu.h](../duilib/Control/Menu.h) | 菜单，独立窗口 |
+| Menu | WindowImplBase| [duilib/Control/Menu.h](../duilib/Control/Menu.h) | 菜单，独立窗口 |
 | Progress | Label| [duilib/Control/Progress.h](../duilib/Control/Progress.h) | 进度条控件 |
 | Slider | Progress| [duilib/Control/Slider.h](../duilib/Control/Slider.h) | 滑块控件 |
 | CircleProgress | Control| [duilib/Control/CircleProgress.h](../duilib/Control/CircleProgress.h) | 环形进度条 |

@@ -74,7 +74,7 @@
 | 类名称 | XML节点名称 |关联头文件| 备注 |
 | :--- | :--- |:--- | :--- |
 | 窗口(Window) | "Window" | [duilib/Core/Window.h](../duilib/Core/Window.h) | |
-| 菜单(CMenuWnd) | "Menu" | [duilib/Control/Menu.h](../duilib/Control/Menu.h) | |
-| 子菜单(CSubMenuUI) | "SubMenu" | [duilib/Control/Menu.h](../duilib/Control/Menu.h) | |
-| 菜单项(CMenuElementUI) | "MenuElement" | [duilib/Control/Menu.h](../duilib/Control/Menu.h) | |
+| 菜单(Menu) | "Menu" | [duilib/Control/Menu.h](../duilib/Control/Menu.h) | |
+| 子菜单(SubMenu) | "SubMenu" | [duilib/Control/Menu.h](../duilib/Control/Menu.h) | |
+| 菜单项(MenuItem) | "MenuItem" | [duilib/Control/Menu.h](../duilib/Control/Menu.h) | |
 

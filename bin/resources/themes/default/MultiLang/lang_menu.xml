@@ -12,12 +12,12 @@
         </Box>
         
         <!-- 带勾选项的菜单项 
-        <MenuElement class="menu_element" name="menu_lang_chinese" width="180">
+        <MenuItem class="menu_element" name="menu_lang_chinese" width="180">
             <CheckBox class="menu_checkbox" name="checkbox_lang_chinese" text="中文(简体)" margin="0,5,0,10" selected="true"/>
-        </MenuElement>
-        <MenuElement class="menu_element" name="menu_lang_english" width="180">
+        </MenuItem>
+        <MenuItem class="menu_element" name="menu_lang_english" width="180">
             <CheckBox class="menu_checkbox" name="checkbox_lang_english" text="English" margin="0,5,0,10" selected="false"/>
-        </MenuElement>
+        </MenuItem>
         -->
   </VListBox>
 </Window>

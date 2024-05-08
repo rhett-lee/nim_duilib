@@ -49,21 +49,21 @@ struct ContextMenuParam
 	HWND hWnd;
 };
 
-typedef class ObserverImpl<BOOL, ContextMenuParam> ContextMenuObserver;
-typedef class ReceiverImpl<BOOL, ContextMenuParam> ContextMenuReceiver;
+typedef class ObserverImpl<bool, ContextMenuParam> ContextMenuObserver;
+typedef class ReceiverImpl<bool, ContextMenuParam> ContextMenuReceiver;
 
 /////////////////////////////////////////////////////////////////////////////////////
 //
 
 /** 菜单类
 */
-class CMenuElementUI;
-class CMenuWnd : public ui::WindowImplBase, public ContextMenuReceiver
+class MenuItem;
+class Menu : public ui::WindowImplBase, public ContextMenuReceiver
 {
 public:
 	/** 构造函数，初始化菜单的父窗口句柄
 	*/
-	explicit CMenuWnd(HWND hParent);
+	explicit Menu(HWND hParent);
 
 	/** 设置资源加载的文件夹名称，如果没设置，内部默认为 "menu"
 	*   XML文件中的资源（图片、XML等），均在这个文件夹中查找
@@ -88,7 +88,7 @@ public:
 		          const UiPoint& point,
 		          MenuPopupPosType popupPosType = MenuPopupPosType::LEFT_TOP, 
 		          bool noFocus = false,
-		          CMenuElementUI* pOwner = nullptr);
+		          MenuItem* pOwner = nullptr);
 
 	/** 关闭菜单
 	*/
@@ -96,22 +96,22 @@ public:
 
 public:
 	//添加子菜单项
-	bool AddMenuItem(CMenuElementUI* pMenuItem);
-	bool AddMenuItemAt(CMenuElementUI* pMenuItem, size_t iIndex);
+	bool AddMenuItem(MenuItem* pMenuItem);
+	bool AddMenuItemAt(MenuItem* pMenuItem, size_t iIndex);
 
 	//删除菜单项
-	bool RemoveMenuItem(CMenuElementUI* pMenuItem);
+	bool RemoveMenuItem(MenuItem* pMenuItem);
 	bool RemoveMenuItemAt(size_t iIndex);
 
 	//获取菜单项个数
 	size_t GetMenuItemCount() const;
 
 	//获取菜单项接口
-	CMenuElementUI* GetMenuItemAt(size_t iIndex) const;
-	CMenuElementUI* GetMenuItemByName(const std::wstring& name) const;
+	MenuItem* GetMenuItemAt(size_t iIndex) const;
+	MenuItem* GetMenuItemByName(const std::wstring& name) const;
 
 private:
-	friend CMenuElementUI; //需要访问部分私有成员函数
+	friend MenuItem; //需要访问部分私有成员函数
 
 	//获取全局菜单Observer对象
 	static ContextMenuObserver& GetMenuObserver();
@@ -128,7 +128,7 @@ private:
 
 private:
 
-	virtual BOOL Receive(ContextMenuParam param) override;
+	virtual bool Receive(ContextMenuParam param) override;
 
 	virtual ui::Control* CreateControl(const std::wstring& pstrClass) override;
 	virtual std::wstring GetSkinFolder() override;
@@ -164,7 +164,7 @@ private:
 	bool m_noFocus;
 
 	//菜单的父菜单接口
-	CMenuElementUI* m_pOwner;
+	MenuItem* m_pOwner;
 
 	//菜单的布局接口
 	ui::ListBox* m_pLayout;
@@ -172,17 +172,17 @@ private:
 
 /** 菜单项
 */
-class CMenuElementUI : public ui::ListBoxItem
+class MenuItem : public ui::ListBoxItem
 {
 public:
-	CMenuElementUI();
+	MenuItem();
 
 	//添加子菜单项
-	bool AddSubMenuItem(CMenuElementUI* pMenuItem);
-	bool AddSubMenuItemAt(CMenuElementUI* pMenuItem, size_t iIndex);
+	bool AddSubMenuItem(MenuItem* pMenuItem);
+	bool AddSubMenuItemAt(MenuItem* pMenuItem, size_t iIndex);
 
 	//删除子菜单项
-	bool RemoveSubMenuItem(CMenuElementUI* pMenuItem);
+	bool RemoveSubMenuItem(MenuItem* pMenuItem);
 	bool RemoveSubMenuItemAt(size_t iIndex);
 	void RemoveAllSubMenuItem();
 
@@ -190,17 +190,17 @@ public:
 	size_t GetSubMenuItemCount() const;
 
 	//获取子菜单项接口
-	CMenuElementUI* GetSubMenuItemAt(size_t iIndex) const;
-	CMenuElementUI* GetSubMenuItemByName(const std::wstring& name) const;
+	MenuItem* GetSubMenuItemAt(size_t iIndex) const;
+	MenuItem* GetSubMenuItemByName(const std::wstring& name) const;
 
 
 private:
 	//获取一个菜单项下所有子菜单项的接口(仅包含菜单子项元素)
-	static void GetAllSubMenuItem(const CMenuElementUI* pParentElementUI, 
-						          std::vector<CMenuElementUI*>& submenuItems);
+	static void GetAllSubMenuItem(const MenuItem* pParentElementUI, 
+						          std::vector<MenuItem*>& submenuItems);
 
 	//获取一个菜单项下所有子菜单控件的接口(包含菜单子项元素和其他控件)
-	static void GetAllSubMenuControls(const CMenuElementUI* pParentElementUI,
+	static void GetAllSubMenuControls(const MenuItem* pParentElementUI,
 						              std::vector<Control*>& submenuControls);
 
 private:
@@ -209,7 +209,7 @@ private:
 	virtual void PaintChild(ui::IRender* pRender, const ui::UiRect& rcPaint) override;
 
 private:
-	friend CMenuWnd; //需要访问部分私有成员函数
+	friend Menu; //需要访问部分私有成员函数
 
 	//检查子菜单，如果是下级菜单，则创建下级菜单窗口，并显示
 	bool CheckSubMenuItem();
@@ -219,7 +219,7 @@ private:
 
 private:
 	//下级菜单窗口接口
-	CMenuWnd* m_pSubWindow;
+	Menu* m_pSubWindow;
 };
 
 } // namespace ui
