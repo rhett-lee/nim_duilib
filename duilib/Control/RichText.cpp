@@ -11,7 +11,7 @@ namespace ui
 {
 
 RichText::RichText() :
-    m_uTextStyle(TEXT_LEFT | TEXT_VCENTER),
+    m_uTextStyle(TEXT_LEFT | TEXT_TOP),
     m_fRowSpacingMul(1.0f),
     m_bLinkUnderlineFont(true)
 {
@@ -22,85 +22,6 @@ RichText::~RichText()
 }
 
 std::wstring RichText::GetType() const { return DUI_CTR_RICHTEXT; }
-
-UiSize RichText::EstimateText(UiSize szAvailable)
-{
-    UiSize fixedSize;
-    IRender* pRender = nullptr;
-    if (GetWindow() != nullptr) {
-        pRender = GetWindow()->GetRender();
-    }
-    if (pRender == nullptr) {
-        return fixedSize;
-    }
-
-    int32_t nWidth = szAvailable.cx;
-    if (GetFixedWidth().IsStretch()) {
-        //如果是拉伸类型，使用外部宽度
-        nWidth = CalcStretchValue(GetFixedWidth(), szAvailable.cx);
-    }
-    else if (GetFixedWidth().IsInt32()) {
-        nWidth = GetFixedWidth().GetInt32();
-    }
-
-    //最大高度，不限制
-    int32_t nHeight = INT_MAX;
-    
-    UiRect rc;
-    rc.left = 0;
-    rc.right = rc.left + nWidth;
-    rc.top = 0;
-    rc.bottom = rc.top + nHeight;
-    rc.Deflate(GetControlPadding());
-    rc.Deflate(GetTextPadding());
-
-    if (rc.IsEmpty()) {
-        return fixedSize;
-    }
-
-    if (!m_richTextId.empty() && (m_langFileName != GlobalManager::Instance().GetLanguageFileName())) {
-        DoSetText(GlobalManager::Instance().Lang().GetStringViaID(m_richTextId.c_str()));
-        m_langFileName = GlobalManager::Instance().GetLanguageFileName();
-    }
-    if (m_textData.empty()) {
-        ParseText(m_textData);
-    }
-    if (!m_textData.empty()) {
-        std::vector<RichTextData> richTextData;
-        richTextData.reserve(m_textData.size());
-        for (const RichTextData& textData : m_textData) {
-            richTextData.push_back(textData);
-        }
-        pRender->DrawRichText(rc, richTextData, m_uTextStyle, true, (uint8_t)GetAlpha());
-        for (size_t index = 0; index < richTextData.size(); ++index) {
-            m_textData[index].m_textRects = richTextData[index].m_textRects;
-        }
-    }
-
-    UiRect rect;
-    for (const RichTextData& textData : m_textData) {
-        for (const UiRect& textRect : textData.m_textRects) {
-            if (rect.IsZero()) {
-                rect = textRect;
-            }
-            else {
-                rect.Union(textRect);
-            }
-        }
-    }
-
-    UiPadding rcTextPadding = GetTextPadding();
-    UiPadding rcPadding = GetControlPadding();
-    if (GetFixedWidth().IsAuto()) {
-        fixedSize.cx = rect.Width() + rcTextPadding.left + rcTextPadding.right;
-        fixedSize.cx += (rcPadding.left + rcPadding.right);
-    }
-    if (GetFixedHeight().IsAuto()) {
-        fixedSize.cy = rect.Height() + rcTextPadding.top + rcTextPadding.bottom;
-        fixedSize.cy += (rcPadding.top + rcPadding.bottom);
-    }
-    return fixedSize;
-}
 
 void RichText::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
@@ -196,6 +117,92 @@ void RichText::SetAttribute(const std::wstring& strName, const std::wstring& str
     }
 }
 
+void RichText::CalcDestRect(IRender* pRender, UiRect rc, UiRect& rect)
+{
+    rect.Clear();
+    if (!m_textData.empty()) {
+        std::vector<RichTextData> richTextData;
+        richTextData.reserve(m_textData.size());
+        for (const RichTextData& textData : m_textData) {
+            richTextData.push_back(textData);
+        }
+        pRender->DrawRichText(rc, richTextData, m_uTextStyle, true, (uint8_t)GetAlpha());
+        for (size_t index = 0; index < richTextData.size(); ++index) {
+            m_textData[index].m_textRects = richTextData[index].m_textRects;
+        }
+    }
+    for (const RichTextData& textData : m_textData) {
+        for (const UiRect& textRect : textData.m_textRects) {
+            if (rect.IsZero()) {
+                rect = textRect;
+            }
+            else {
+                rect.Union(textRect);
+            }
+        }
+    }
+}
+
+UiSize RichText::EstimateText(UiSize szAvailable)
+{
+    UiSize fixedSize;
+    IRender* pRender = nullptr;
+    if (GetWindow() != nullptr) {
+        pRender = GetWindow()->GetRender();
+    }
+    if (pRender == nullptr) {
+        return fixedSize;
+    }
+
+    int32_t nWidth = szAvailable.cx;
+    if (GetFixedWidth().IsStretch()) {
+        //如果是拉伸类型，使用外部宽度
+        nWidth = CalcStretchValue(GetFixedWidth(), szAvailable.cx);
+    }
+    else if (GetFixedWidth().IsInt32()) {
+        nWidth = GetFixedWidth().GetInt32();
+    }
+
+    //最大高度，不限制
+    int32_t nHeight = INT_MAX;
+
+    UiRect rc;
+    rc.left = 0;
+    rc.right = rc.left + nWidth;
+    rc.top = 0;
+    rc.bottom = rc.top + nHeight;
+    rc.Deflate(GetControlPadding());
+    rc.Deflate(GetTextPadding());
+
+    if (rc.IsEmpty()) {
+        return fixedSize;
+    }
+
+    if (!m_richTextId.empty() && (m_langFileName != GlobalManager::Instance().GetLanguageFileName())) {
+        DoSetText(GlobalManager::Instance().Lang().GetStringViaID(m_richTextId.c_str()));
+        m_langFileName = GlobalManager::Instance().GetLanguageFileName();
+    }
+    if (m_textData.empty()) {
+        ParseText(m_textData);
+    }
+
+    //计算绘制所占的区域大小
+    UiRect rect;
+    CalcDestRect(pRender, rc, rect);
+
+    UiPadding rcTextPadding = GetTextPadding();
+    UiPadding rcPadding = GetControlPadding();
+    if (GetFixedWidth().IsAuto()) {
+        fixedSize.cx = rect.Width() + rcTextPadding.left + rcTextPadding.right;
+        fixedSize.cx += (rcPadding.left + rcPadding.right);
+    }
+    if (GetFixedHeight().IsAuto()) {
+        fixedSize.cy = rect.Height() + rcTextPadding.top + rcTextPadding.bottom;
+        fixedSize.cy += (rcPadding.top + rcPadding.bottom);
+    }
+    return fixedSize;
+}
+
 void RichText::PaintText(IRender* pRender)
 {
     if (pRender == nullptr) {
@@ -212,6 +219,34 @@ void RichText::PaintText(IRender* pRender)
     if (m_textData.empty()) {
         ParseText(m_textData);
     }
+
+    //如果设置了对齐方式，需要评估绘制位置
+    if ((m_uTextStyle & (TEXT_CENTER | TEXT_RIGHT | TEXT_VCENTER | TEXT_BOTTOM))) {
+        //计算绘制所占的区域大小
+        UiRect rect;
+        CalcDestRect(pRender, rc, rect);
+        if ((rect.Width() < rc.Width()) && (m_uTextStyle & (TEXT_CENTER | TEXT_RIGHT))) {            
+            //水平方向
+            int32_t diff = rc.Width() - rect.Width();
+            if (m_uTextStyle & TEXT_CENTER) {
+                rc.Offset(diff / 2, 0);
+            }
+            else if (m_uTextStyle & TEXT_RIGHT) {
+                rc.Offset(diff, 0);
+            }
+        }
+        if ((rect.Height() < rc.Height()) && (m_uTextStyle & (TEXT_VCENTER | TEXT_BOTTOM))) {
+            //垂直方向
+            int32_t diff = rc.Height() - rect.Height();
+            if (m_uTextStyle & TEXT_VCENTER) {
+                rc.Offset(0, diff / 2);
+            }
+            else if (m_uTextStyle & TEXT_BOTTOM) {
+                rc.Offset(0, diff);
+            }
+        }
+    }
+
     if (!m_textData.empty()) {
         UiColor normalLinkTextColor;
         if (!m_linkNormalTextColor.empty()) {
