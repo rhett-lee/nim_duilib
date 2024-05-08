@@ -6,6 +6,7 @@
 #include "duilib/duilib_defs.h"
 #include <string>
 #include <vector>
+#include <unordered_set>
 
 namespace ui 
 {
@@ -58,6 +59,12 @@ public:
 	 */
 	bool IsZipResExist(const std::wstring& path) const;
 
+	/** 获取指定目录下的文件名称列表
+	* @param [in] path 目录名称
+	* @param [out] fileList 返回该目录下的文件列表
+	*/
+	bool GetZipFileList(const std::wstring& path, std::vector<std::wstring>& fileList) const;
+
 	/** 关闭压缩包
 	*/
 	void CloseResZip();
@@ -67,6 +74,10 @@ private:
 	/** 打开的压缩包句柄
 	*/
 	void* m_hzip;
+
+	/** 路径缓存
+	*/
+	mutable std::unordered_set<std::wstring> m_zipPathCache;
 };
 
 }

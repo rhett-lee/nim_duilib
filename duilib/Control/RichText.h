@@ -124,7 +124,12 @@ public:
     /** 设置格式的文本
     * @param [in] richText 带有格式的文本内容
     */
-    bool SetRichText(const std::wstring& richText);
+    bool SetText(const std::wstring& richText);
+
+    /** 设置格式的文本ID
+    * @param [in] richTextId 带有格式的文本内容ID
+    */
+    bool SetTextId(const std::wstring& richTextId);
 
     /** 清空原来的格式文本
     */
@@ -138,6 +143,18 @@ public:
     */
     void AppendTextSlice(const RichTextSlice& textSlice);
 
+    /** 根据Trim方案，对文本进行Trim处理，去掉多余的空格
+    * @param [in,out] text 传入需要处理的文本，传出处理完成后的文本
+    * @return 返回text的引用
+    */
+    const std::wstring& TrimText(std::wstring& text);
+
+    /** 根据Trim方案，对文本进行Trim处理，去掉多余的空格
+    * @param [in] text 传入需要处理的文本
+    * @return 返回处理好的字符串
+    */
+    std::wstring TrimText(const wchar_t* text);
+
 public:
     /** 输出带格式化文本
     */
@@ -149,6 +166,11 @@ public:
     void AttachLinkClick(const EventCallback& callback) { AttachEvent(kEventLinkClick, callback); }
 
 private:
+    /** 设置格式的文本, 但不重绘
+    * @param [in] richText 带有格式的文本内容
+    */
+    bool DoSetText(const std::wstring& richText);
+
     /** 解析格式化文本, 生成解析后的数据结构
     */
     bool ParseText(std::vector<RichTextDataEx>& outTextData) const;
@@ -219,6 +241,26 @@ private:
     /** 是否显示下划线字体风格
     */
     bool m_bLinkUnderlineFont;
+
+    /** 文本ID
+    */
+    UiString m_richTextId;
+
+    /** 语言文件
+    */
+    UiString m_langFileName;
+
+    /** 文本的Trim策略
+    */
+    enum class TrimPolicy {
+        kNone    = 0, //不处理
+        kAll     = 1, //去掉所有空格
+        kKeepOne = 2, //去掉多余的空格，只保留一个空格
+    };
+
+    /** 文本的Trim策略
+    */
+    TrimPolicy m_trimPolicy = TrimPolicy::kAll;
 };
 
 } // namespace ui

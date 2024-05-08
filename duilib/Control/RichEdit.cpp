@@ -346,7 +346,7 @@ void RichEdit::SetAttribute(const std::wstring& strName, const std::wstring& str
 		//提示文字
 		SetPromptText(strValue);
 	}
-	else if ((strName == L"prompt_textid") || (strName == L"prompttextid")) {
+	else if ((strName == L"prompt_text_id") || (strName == L"prompt_textid") || (strName == L"prompttextid")) {
 		//提示文字ID
 		SetPromptTextId(strValue);
 	}
@@ -359,7 +359,7 @@ void RichEdit::SetAttribute(const std::wstring& strName, const std::wstring& str
 	else if (strName == L"text") {
 		SetText(strValue);
 	}
-	else if ((strName == L"textid") || (strName == L"textid")) {
+	else if ((strName == L"text_id") || (strName == L"textid")) {
 		SetTextId(strValue);
 	}
 	else if ((strName == L"want_tab") || (strName == L"wanttab")) {

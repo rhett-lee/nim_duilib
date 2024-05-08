@@ -199,11 +199,11 @@ void MainThread::Init()
     m_workerThread.reset(new WorkerThread(kThreadWorker, "WorkerThread"));
     m_workerThread->Start();
 
-    // 获取资源路径，初始化全局参数
-    std::wstring theme_dir = nbase::win32::GetCurrentModuleDirectory();
+    //初始化全局资源, 使用本地文件夹作为资源
+    std::wstring resourcePath = nbase::win32::GetCurrentModuleDirectory();
+    resourcePath += L"resources\\";
+    ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath));
 
-    // Debug 模式下使用本地文件夹作为资源
-    ui::GlobalManager::Instance().Startup(theme_dir + L"resources\\");
 	//在下面加入启动窗口代码
 
 }
@@ -397,18 +397,13 @@ void MainThread::Init()
 	m_workerThread.reset(new WorkerThread(kThreadWorker, "WorkerThread"));
 	m_workerThread->Start();
 
-	//开启DPI自适应功能
-	bool bAdaptDpi = true;
+	//初始化全局资源, 使用本地文件夹作为资源
+	std::wstring resourcePath = nbase::win32::GetCurrentModuleDirectory();
+	resourcePath += L"resources\\";
+	ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath));
 
-	// 获取资源路径，初始化全局参数
-	std::wstring theme_dir = nbase::win32::GetCurrentModuleDirectory();
-
-	// Debug 模式下使用本地文件夹作为资源
-	// 默认皮肤使用 resources\\themes\\default
-	// 默认语言使用 resources\\lang\\zh_CN
-	// 如需修改请指定 Startup 最后两个参数
-	ui::GlobalManager::Instance().Startup(theme_dir + L"resources\\", ui::CreateControlCallback(), bAdaptDpi);
-
+	//在下面加入启动窗口代码
+	//
 	//创建一个默认带有阴影的居中窗口
 	MyDuilibForm* window = new MyDuilibForm();
 	window->CreateWnd(nullptr, MyDuilibForm::kClassName.c_str(), UI_WNDSTYLE_FRAME, WS_EX_LAYERED);

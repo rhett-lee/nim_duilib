@@ -46,6 +46,8 @@ void MainThread::Init()
 	resourcePath += L"resources\\";
 	ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath));
 
+	//在下面加入启动窗口代码
+	//
 	//创建一个默认带有阴影的居中窗口
 	MyDuilibForm* window = new MyDuilibForm();
 	window->CreateWnd(nullptr, MyDuilibForm::kClassName.c_str(), UI_WNDSTYLE_FRAME, WS_EX_LAYERED);

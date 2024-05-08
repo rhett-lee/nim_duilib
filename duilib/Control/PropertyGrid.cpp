@@ -131,7 +131,7 @@ void PropertyGrid::OnInit()
                 if (!name.empty()) {
                     description = L"<b>" + name + L"</b><br/>" + description;
                 }
-                m_pDescriptionArea->SetRichText(description);
+                m_pDescriptionArea->SetText(description);
             }
             return true;
             });

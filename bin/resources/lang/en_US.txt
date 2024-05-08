@@ -13,22 +13,25 @@ STRING_OK = OK
 STRING_CANCEL = Cancel
 
 ;cef Browser
-STRID_CEF_BROWSER_WINDOW_MODE		=	Window Mode Cef Browser Component Test
-STRID_CEF_BROWSER_BACKWARD		=	Back
-STRID_CEF_BROWSER_FORWARD		=	Forward
-STRID_CEF_BROWSER_INPUT_ADDRESS		=	Input Address
-STRID_CEF_BROWSER_BROWSE_TO		=	Go To
-STRID_CEF_BROWSER_REFRESH		=	Reload
-STRID_CEF_BROWSER_HELLO_JS		= 	Hello JS！
-STRID_CEF_BROWSER_INPUT_TEXT		=	Input text sending to JS
-STRID_CEF_BROWSER_SEND_TO_JS		=	Send to JS
-STRID_CEF_BROWSER_OFF_SCREEN_MODE	=	Off-screen Rendering Cef Browser Component Test
-STRID_CEF_BROWSER_RECEIVE_JS_MSG	=	Received Msg From JS: %s
-STRID_CEF_BROWSER_MULTI_TAB		=	Multi Tab Browser
+STRID_CEF_BROWSER_WINDOW_MODE        =    Window Mode Cef Browser Component Test
+STRID_CEF_BROWSER_BACKWARD           =    Back
+STRID_CEF_BROWSER_FORWARD            =    Forward
+STRID_CEF_BROWSER_INPUT_ADDRESS      =    Input Address
+STRID_CEF_BROWSER_BROWSE_TO          =    Go To
+STRID_CEF_BROWSER_REFRESH            =    Reload
+STRID_CEF_BROWSER_HELLO_JS           =    Hello JS！
+STRID_CEF_BROWSER_INPUT_TEXT         =    Input text sending to JS
+STRID_CEF_BROWSER_SEND_TO_JS         =    Send to JS
+STRID_CEF_BROWSER_OFF_SCREEN_MODE    =    Off-screen Rendering Cef Browser Component Test
+STRID_CEF_BROWSER_RECEIVE_JS_MSG     =    Received Msg From JS: %s
+STRID_CEF_BROWSER_MULTI_TAB          =    Multi Tab Browser
 
 ;examples/MultiLang
-MULTI_LANG_SELECT_LANGUAGE		=	Select Language
-MULTI_LANG_SELECT_WINDOW_MAX		=	Maximize
-MULTI_LANG_SELECT_WINDOW_RESTORE	=	Restore
-MULTI_LANG_SELECT_WINDOW_MIN		=	Minimize
-MULTI_LANG_SELECT_WINDOW_CLOSE		=	Close
+MULTI_LANG_WINDOW_TEX                =   Support for multilingual windows
+MULTI_LANG_SELECT_LANGUAGE           =   Select Language
+MULTI_LANG_SELECT_WINDOW_MAX         =   Maximize
+MULTI_LANG_SELECT_WINDOW_RESTORE     =   Restore
+MULTI_LANG_SELECT_WINDOW_MIN         =   Minimize
+MULTI_LANG_SELECT_WINDOW_CLOSE       =   Close
+MULTI_LANG_LABEL_TEXT                =   This is a program that supports multiple languages.
+MULTI_LANG_RICH_TEXT                 =   <font color="#8B0000">This is</font> a <b>program </b>that <bgcolor color="#6495ED">supports multiple languages </bgcolor>.

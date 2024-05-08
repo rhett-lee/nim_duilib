@@ -258,7 +258,7 @@ void LabelTemplate<InheritType>::SetAttribute(const std::wstring& strName, const
     else if (strName == L"text") {
         SetText(strValue);
     }
-    else if (strName == L"textid") {
+    else if ((strName == L"text_id") || (strName == L"textid")){
         SetTextId(strValue);
     }
     else if ((strName == L"auto_tooltip") || (strName == L"autotooltip")) {

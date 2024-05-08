@@ -53,17 +53,16 @@
 | fore_pushed_image |  | string | SetForeStateImage|鼠标按下的状态前景图片 |
 | fore_disabled_image |  | string | SetForeStateImage|禁用的状态前景图片 |
 | tooltip_text |  | string | SetToolTipText|鼠标悬浮提示,如(请在这里输入你的密码) |
-| tooltip_textid |  | string | SetToolTipTextId|鼠标悬浮提示,指定多语言模块的ID,当tooltiptext为空时则显示此属性,如(TOOL_TIP_ID) |
-| dataid |  | string | SetDataID|自定义字符串数据,辅助函数，供用户使用 |
-| user_dataid |  | size_t | SetUserDataID|自定义整型数据, 供用户使用 |
+| tooltip_text_id |  | string | SetToolTipTextId|鼠标悬浮提示,指定多语言模块的ID,当tooltiptext为空时则显示此属性,如(TOOL_TIP_ID) |
+| data_id |  | string | SetDataID|自定义字符串数据,辅助函数，供用户使用 |
+| user_data_id |  | size_t | SetUserDataID|自定义整型数据, 供用户使用 |
 | enabled | true | bool | SetEnabled|是否可以响应用户操作,如(true) |
 | mouse_enabled | true | bool | SetMouseEnabled|本控件是否可以响应鼠标操作,如(true) |
 | keyboard_enabled | true | bool | SetKeyboardEnabled|非CButtonUI类忽略该值,为false时不支持TAB_STOP,且该对象不处理键盘信息 |
-| receivepointer | true | bool | |是否响应触控消息,如(true) |
 | visible | true | bool | SetVisible|是否可见,如(true) |
 | fade_visible | true | bool | SetFadeVisible|是否可见,如(true),此属性会触发控件动画效果 |
 | menu | false | bool | |是否需要右键菜单,如(true) |
-| nofocus | false | bool | SetNoFocus|是否可以获取焦点,如(true) |
+| no_focus | false | bool | SetNoFocus|是否可以获取焦点,如(true) |
 | tab_stop | true | bool | SetTabStop| 是否允许通过按TAB键切换到此控件 |
 | show_focus_rect | false| bool | SetLoadingBkColor| 是否显示焦点状态(一个虚线构成的矩形) |
 | focus_rect_color | | string | SetFocusRectColor| 焦点状态矩形的颜色 |
@@ -125,7 +124,7 @@ ScrollBar 控件继承了 `Control` 属性，更多可用属性请参考`Control`的属性
 | 属性名称 | 默认值 | 参数类型 | 用途 |
 | :--- | :--- | :--- | :--- |
 | text |  | string | 显示文本 |
-| textid |  | string | 多语言功能的文本ID |
+| text_id |  | string | 多语言功能的文本ID |
 | text_align | left | string | 文本的对其方式, 支持以下取值：left、hcenter、right、top、vcenter、bottom |
 | text_padding | 0,0,0,0 | rect | 文字显示的边距, 如(2,2,2,2) |
 | font | | string | 字体ID，该字体ID必须在 global.xml 中存在 |
@@ -370,14 +369,14 @@ CircleProgress 控件继承了 `Progress` 属性，更多可用属性请参考`Progress`的属性
 | text_align | left,top | string | 文字对齐方式, 取值: left、right、hcenter、top、vcenter、bottom, 如(right,bottom) |
 | text_padding |  | rect | 文本内边距，如："2,2,2,2" |
 | text |  | string | 显示文本,如(测试文本) |
-| textid |  | string | 显示文本的多语言功能ID |
+| text_id |  | string | 显示文本的多语言功能ID |
 | font | | string | 字体ID |
 | normal_text_color |  | string | 普通状态文字颜色,不指定则使用默认颜色,如(blue) |
 | disabled_text_color |  | string | 禁用状态文字颜色,不指定则使用默认颜色,如(blue) |
 | caret_color |  | string | 光标的颜色 |
 | prompt_mode | false | bool | 是否显示提示文字,如(true) |
 | prompt_text |  | string | 文本框内提示文字,当文本框text为空时显示 |
-| prompt_textid |  | string | 多语言功能的ID,如(TEXT_OUT) |
+| prompt_text_id |  | string | 多语言功能的ID,如(TEXT_OUT) |
 | prompt_color |  | string | 文本框内提示文字的颜色 |
 | focused_image |  | string | 焦点状态下的图片 |
 | auto_detect_url | false | bool | 是否自动检测URL，如果是URL则显示为超链接 |
@@ -421,6 +420,9 @@ RichText是带有格式的文本，其格式类似于HTML标签，格式文本以`<RichText>`开头，以`<
 | text_padding |  | rect | 文本内边距，如："2,2,2,2" |
 | font | | string | 字体ID |
 | text_color | | string | 默认文本颜色 |
+| text | | string | 设置格式文本内容，其中允许使用'{'代替'<'，'}'代替'>'，从而避免使用转移字符，便于阅读 |
+| text_id | | string | 设置格式文本内容ID，其中对应的内容允许使用'{'代替'<'，'}'代替'>'，从而避免使用转移字符，便于阅读 |
+| trim_policy | "all" | string | 设置Trim文本的策略："all"表示去除全部空格；"none"表示不需要去除空格；"keep_one"表示只保留一个空格 |
 | default_link_font_color | | string | 超级链接：常规文本颜色值 |
 | hover_link_font_color | | string | 超级链接：Hover状态文本颜色值 |
 | mouse_down_link_font_color | | string | 超级链接：鼠标按下状态文本颜色值 |

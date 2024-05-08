@@ -340,13 +340,13 @@ void Control::SetAttribute(const std::wstring& strName, const std::wstring& strV
 	else if ((strName == L"tooltip_text") || (strName == L"tooltiptext")) {
 		SetToolTipText(strValue);
 	}
-	else if ((strName == L"tooltip_textid") || (strName == L"tooltiptextid")) {
+	else if ((strName == L"tooltip_text_id") || (strName == L"tooltip_textid") || (strName == L"tooltiptextid")) {
 		SetToolTipTextId(strValue);
 	}
-	else if (strName == L"dataid") {
+	else if ((strName == L"data_id") || (strName == L"dataid")) {
 		SetDataID(strValue);
 	}
-	else if (strName == L"user_dataid") {
+	else if ((strName == L"user_data_id") || (strName == L"user_dataid")) {
 		SetUserDataID(_wtoi(strValue.c_str()));
 	}
 	else if (strName == L"enabled") {
@@ -370,7 +370,7 @@ void Control::SetAttribute(const std::wstring& strName, const std::wstring& strV
 	else if (strName == L"cache") {
 		SetUseCache(strValue == L"true");
 	}
-	else if (strName == L"nofocus") {
+	else if ((strName == L"no_focus") || (strName == L"nofocus")) {
 		SetNoFocus();
 	}
 	else if (strName == L"alpha") {

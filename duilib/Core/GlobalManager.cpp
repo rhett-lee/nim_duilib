@@ -290,6 +290,10 @@ bool GlobalManager::ReloadLanguage(const std::wstring& languagePath,
 		for (Window* pWindow : m_windowList) {
 			Box* pBox = nullptr;
 			if (pWindow != nullptr) {
+				if (pWindow->GetText().empty() && !pWindow->GetTextId().empty()) {
+					//更新窗口标题栏文本
+					pWindow->SetTextId(pWindow->GetTextId());
+				}				
 				pBox = pWindow->GetRoot();
 			}
 			if (pBox != nullptr) {
@@ -331,9 +335,13 @@ bool GlobalManager::GetLanguageList(std::vector<std::pair<std::wstring, std::wst
 			}
 		}
 	}
-	else {
+	else if(m_zipManager.IsUseZip()){
 		//相对路径，语言文件应该都在压缩包内
-
+		std::vector<std::wstring> fileList;
+		m_zipManager.GetZipFileList(languagePath, fileList);
+		for (auto const& file : fileList) {
+			languageList.push_back({ file, L"" });
+		}
 
 		if (!languageNameID.empty()) {
 			for (auto& lang : languageList) {
@@ -350,7 +358,11 @@ bool GlobalManager::GetLanguageList(std::vector<std::pair<std::wstring, std::wst
 				}
 			}
 		}
-	}	
+	}
+	else {
+		ASSERT(false);
+		return false;
+	}
 	return true;
 }
 

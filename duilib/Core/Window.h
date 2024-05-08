@@ -287,10 +287,18 @@ public:
     */
     void SetText(const std::wstring& strText);
 
+    /** 获取窗口标题栏文本
+    */
+    std::wstring GetText() const;
+
     /** 根据语言列表中的文本 ID， 根据ID设置窗口标题栏文本
     * @param [in] strTextId 语言 ID，该 ID 必须在语言文件中存在
     */
     void SetTextId(const std::wstring& strTextId);
+
+    /** 获取窗口标题栏文本的文本ID
+    */
+    std::wstring GetTextId() const;
 
     /** @} */
 
@@ -1218,6 +1226,15 @@ private:
     /** 系统全局热键的ID
     */
     std::vector<int32_t> m_hotKeyIds;
+
+private:
+    /** 窗口标题栏文本的文本ID
+    */
+    std::wstring m_text;
+
+    /** 窗口标题栏文本的文本ID
+    */
+    std::wstring m_textId;
 };
 
 } // namespace ui
