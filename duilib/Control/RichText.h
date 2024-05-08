@@ -188,6 +188,10 @@ private:
     */
     std::wstring ToString(const RichTextSlice& textSlice, const std::wstring& indent) const;
 
+    /** 计算绘制后的目标区域大小
+    */
+    void CalcDestRect(IRender* pRender, UiRect rc, UiRect& rect);
+
 private:
     //鼠标消息（返回true：表示消息已处理；返回false：则表示消息未处理，需转发给父控件）
     virtual bool ButtonDown(const EventArgs& msg) override;
