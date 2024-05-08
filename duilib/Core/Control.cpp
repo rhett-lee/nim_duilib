@@ -1609,6 +1609,7 @@ bool Control::IsDisabledEvents(const EventArgs& msg) const
 
 void Control::HandleEvent(const EventArgs& msg)
 {
+	std::weak_ptr<nbase::WeakFlag> weakFlag = GetWeakFlag();
 	if (IsDisabledEvents(msg)) {
 		//如果是鼠标键盘消息，并且控件是Disabled的，转发给上层控件
 		Box* pParent = GetParent();
@@ -1743,7 +1744,7 @@ void Control::HandleEvent(const EventArgs& msg)
 		}
 	}
 
-	if (GetParent() != nullptr) {
+	if (!weakFlag.expired() && (GetParent() != nullptr)) {
 		GetParent()->SendEvent(msg);
 	}
 }

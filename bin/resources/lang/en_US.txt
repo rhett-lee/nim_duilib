@@ -27,7 +27,7 @@ STRID_CEF_BROWSER_RECEIVE_JS_MSG     =    Received Msg From JS: %s
 STRID_CEF_BROWSER_MULTI_TAB          =    Multi Tab Browser
 
 ;examples/MultiLang
-MULTI_LANG_WINDOW_TEX                =   Support for multilingual windows
+MULTI_LANG_WINDOW_TEXT               =   Support for multilingual windows
 MULTI_LANG_SELECT_LANGUAGE           =   Select Language
 MULTI_LANG_SELECT_WINDOW_MAX         =   Maximize
 MULTI_LANG_SELECT_WINDOW_RESTORE     =   Restore

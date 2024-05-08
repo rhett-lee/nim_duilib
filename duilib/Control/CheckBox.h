@@ -395,7 +395,17 @@ void CheckBoxTemplate<InheritType>::SetAttribute(const std::wstring& strName, co
 template<typename InheritType>
 bool CheckBoxTemplate<InheritType>::ButtonUp(const EventArgs& msg)
 {
+    std::weak_ptr<nbase::WeakFlag> weakFlag;
+    if (this->GetWindow() != nullptr) {
+        weakFlag = this->GetWindow()->GetWeakFlag();
+    }
+    else {
+        weakFlag = this->GetWeakFlag();
+    }
     bool bRet = __super::ButtonUp(msg);
+    if (weakFlag.expired()) {
+        return true;
+    }
     bool bCheckedMode = SupportCheckedMode();
     if (bCheckedMode && (m_pCheckBoxImageRect != nullptr)) {
         if (!this->IsEnabled()) {
