@@ -65,7 +65,6 @@
 #include "Utils/ApiWrapper.h"
 #include "Utils/Delegate.h"
 #include "Utils/StringUtil.h"
-#include "Utils/OnScreenKeyboardManager.h"
 #include "Utils/WinImplBase.h"
 #include "Utils/ShadowWnd.h"
 

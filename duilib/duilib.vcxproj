@@ -434,7 +434,6 @@
     <ClCompile Include="Utils\AttributeUtil.cpp" />
     <ClCompile Include="Utils\FileDialog.cpp" />
     <ClCompile Include="Utils\FileUtil.cpp" />
-    <ClCompile Include="Utils\OnScreenKeyboardManager.cpp" />
     <ClCompile Include="Utils\PerformanceUtil.cpp" />
     <ClCompile Include="Utils\ShadowWnd.cpp" />
     <ClCompile Include="Utils\StringUtil.cpp" />
@@ -592,7 +591,6 @@
     <ClInclude Include="Utils\FileDialog.h" />
     <ClInclude Include="Utils\FileUtil.h" />
     <ClInclude Include="Utils\Macros.h" />
-    <ClInclude Include="Utils\OnScreenKeyboardManager.h" />
     <ClInclude Include="Utils\PerformanceUtil.h" />
     <ClInclude Include="Utils\ShadowWnd.h" />
     <ClInclude Include="Utils\StringUtil.h" />

@@ -84,9 +84,6 @@
     <ClCompile Include="Utils\ApiWrapper.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
-    <ClCompile Include="Utils\OnScreenKeyboardManager.cpp">
-      <Filter>Utils</Filter>
-    </ClCompile>
     <ClCompile Include="Utils\StringUtil.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
@@ -474,9 +471,6 @@
       <Filter>Utils</Filter>
     </ClInclude>
     <ClInclude Include="Utils\Macros.h">
-      <Filter>Utils</Filter>
-    </ClInclude>
-    <ClInclude Include="Utils\OnScreenKeyboardManager.h">
       <Filter>Utils</Filter>
     </ClInclude>
     <ClInclude Include="Utils\StringUtil.h">

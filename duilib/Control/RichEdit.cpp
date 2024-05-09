@@ -8,7 +8,6 @@
 #include "duilib/Core/ScrollBar.h"
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Utils/Macros.h"
-#include "duilib/Utils/OnScreenKeyboardManager.h"
 #include "duilib/Utils/AttributeUtil.h"
 #include "duilib/Render/IRender.h"
 #include "duilib/Render/AutoClip.h"
@@ -1821,7 +1820,6 @@ bool RichEdit::OnKillFocus(const EventArgs& /*msg*/)
 		SetSelNone();
 	}
 
-	OnScreenKeyboardManager::GetInstance()->ShowOSK(false);
 	SetImmStatus(FALSE);
 
 	if (m_pClearButton != nullptr) {

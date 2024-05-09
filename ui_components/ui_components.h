@@ -2,8 +2,6 @@
 
 #include "ui_components/msgbox/msgbox.h"
 #include "ui_components/toast/toast.h"
-#include "ui_components/popover/popover.h"
-#include "ui_components/popover/notification.h"
 
 #if 0
 // CEF 控件需要使用第三方 libcef_dll_wrapper 封装层
