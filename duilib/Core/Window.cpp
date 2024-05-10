@@ -1279,6 +1279,7 @@ LRESULT Window::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHa
     case WM_GETMINMAXINFO:		lResult = OnGetMinMaxInfoMsg(uMsg, wParam, lParam, bHandled); break;
     case WM_WINDOWPOSCHANGING:	lResult = OnWindowPosChangingMsg(uMsg, wParam, lParam, bHandled); break;
     case WM_SIZE:				lResult = OnSizeMsg(uMsg, wParam, lParam, bHandled); break;
+    case WM_DPICHANGED:			lResult = OnDpiChangedMsg(uMsg, wParam, lParam, bHandled); break;
     case WM_MOVE:				lResult = OnMoveMsg(uMsg, wParam, lParam, bHandled); break;
     case WM_ERASEBKGND:			lResult = OnEraseBkGndMsg(uMsg, wParam, lParam, bHandled); break;
     case WM_PAINT:				lResult = OnPaintMsg(uMsg, wParam, lParam, bHandled); break;
@@ -1617,6 +1618,14 @@ LRESULT Window::OnSizeMsg(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/, bool& bHa
     if (m_pFocus != nullptr) {
         m_pFocus->SendEvent(kEventWindowSize);
     }
+    return 0;
+}
+
+LRESULT Window::OnDpiChangedMsg(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/, bool& bHandled)
+{
+    ASSERT_UNUSED_VARIABLE(uMsg == WM_DPICHANGED);
+    uint32_t nNewDPI = HIWORD(wParam);
+    bHandled = false;
     return 0;
 }
 

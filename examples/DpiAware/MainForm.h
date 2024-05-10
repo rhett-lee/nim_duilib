@@ -1,6 +1,6 @@
-//MyDuilibForm.h
-#ifndef MY_DUILIB_FORM_H_
-#define MY_DUILIB_FORM_H_
+//MainForm.h
+#ifndef MAIN_FORM_H_
+#define MAIN_FORM_H_
 
 #pragma once
 
@@ -9,11 +9,11 @@
 
 /** 应用程序的主窗口实现
 */
-class MyDuilibForm : public ui::WindowImplBase
+class MainForm : public ui::WindowImplBase
 {
 public:
-	MyDuilibForm();
-	virtual ~MyDuilibForm();
+    MainForm();
+    virtual ~MainForm();
 
     /**  创建窗口时被调用，由子类实现用以获取窗口皮肤目录
     * @return 子类需实现并返回窗口皮肤目录
@@ -32,17 +32,17 @@ public:
     */
     virtual std::wstring GetWindowClassName() const override;
 
-	/** 收到 WM_CREATE 消息时该函数会被调用，通常做一些控件初始化的操作
-	 */
-	virtual void OnInitWindow() override;
+    /** 收到 WM_CREATE 消息时该函数会被调用，通常做一些控件初始化的操作
+     */
+    virtual void OnInitWindow() override;
 
-	/** 收到 WM_CLOSE 消息时该函数会被调用
-	 */
-	virtual LRESULT OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
+    /** 收到 WM_CLOSE 消息时该函数会被调用
+     */
+    virtual LRESULT OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
 
     /** 窗口的类名
     */
-	static const std::wstring kClassName;
+    static const std::wstring kClassName;
 };
 
-#endif //MY_DUILIB_FORM_H_
+#endif //MAIN_FORM_H_

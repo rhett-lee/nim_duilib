@@ -1,5 +1,5 @@
 #include "MainThread.h"
-#include "MyDuilibForm.h"
+#include "MainForm.h"
 
 WorkerThread::WorkerThread(ThreadId threadID, const char* name)
 	: FrameworkThread(name)
@@ -49,8 +49,8 @@ void MainThread::Init()
 	//在下面加入启动窗口代码
 	//
 	//创建一个默认带有阴影的居中窗口
-	MyDuilibForm* window = new MyDuilibForm();
-	window->CreateWnd(nullptr, MyDuilibForm::kClassName.c_str(), UI_WNDSTYLE_FRAME, WS_EX_LAYERED);
+	MainForm* window = new MainForm();
+	window->CreateWnd(nullptr, MainForm::kClassName.c_str(), UI_WNDSTYLE_FRAME, WS_EX_LAYERED);
 	window->CenterWindow();
 	window->ShowWindow();
 }

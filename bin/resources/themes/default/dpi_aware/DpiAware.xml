@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Window size="640,480" mininfo="80,50" use_system_caption="false" caption="0,0,0,36" shadowattached="true" layered_window="true" alpha="255" sizebox="4,4,4,4">
+    <VBox bkcolor="bk_wnd_darkcolor" visible="true">    
+        <!-- 标题栏区域 -->
+        <HBox name="window_caption_bar" width="stretch" height="36" bkcolor="bk_wnd_lightcolor">
+            <Control />
+            <Button class="btn_wnd_min_11" height="32" width="40" name="minbtn" margin="0,2,0,2" tooltip_text="最小化"/>
+            <Box height="stretch" width="40" margin="0,2,0,2">
+                <Button class="btn_wnd_max_11" height="32" width="stretch" name="maxbtn" tooltip_text="最大化"/>
+                <Button class="btn_wnd_restore_11" height="32" width="stretch" name="restorebtn" visible="false" tooltip_text="还原"/>
+            </Box>
+            <Button class="btn_wnd_close_11" height="stretch" width="40" name="closebtn" margin="0,0,0,2" tooltip_text="关闭"/>
+        </HBox>
+        
+        <!-- 工作区域，除了标题栏外的内容都放在这个大的Box区域 -->
+        <Box>
+            <VBox valign="top" halign="center">
+                <HBox height="60" width="100%" valign="center">
+                    <Label name="" text="支持DPI感知功能的应用程序示例" height="80" width="100%" text_align="hcenter,vcenter"/>
+                </HBox>
+                <HBox height="36" width="100%" valign="center">
+                    <Control width="40"/>
+                    <Label name="" text="当前进程的DPI感知模式：" width="180" text_align="right,vcenter"/>
+                    <Label name="dpi_awareness" text="PROCESS_DPI_UNAWARE" width="100%" text_align="left,vcenter"/>
+                </HBox>
+                <HBox height="36" width="100%" valign="center">
+                    <Control width="40"/>
+                    <Label name="" text="系统的DPI值：" width="180" text_align="right,vcenter"/>
+                    <Label name="system_dpi" text="192" width="64" text_align="left,vcenter"/>
+                    <Control width="4"/>
+                    <Label name="" text="缩放百分比：" width="auto" text_align="right,vcenter"/>
+                    <Label name="system_dpi_percent" text="200%" width="64" text_align="left,vcenter"/>
+                </HBox>
+                <HBox height="36" width="100%" valign="center">
+                    <Control width="40"/>
+                    <Label name="" text="当前窗口的DPI值：" width="180" text_align="right,vcenter"/>
+                    <Label name="window_dpi" text="192" width="64" text_align="left,vcenter"/>
+                    <Control width="4"/>
+                    <Label name="" text="缩放百分比：" width="auto" text_align="right,vcenter"/>
+                    <Label name="window_dpi_percent" text="200%" width="64" text_align="left,vcenter"/>
+                </HBox>
+            </VBox>
+        </Box>
+    </VBox>
+</Window>

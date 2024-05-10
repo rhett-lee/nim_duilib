@@ -24,7 +24,7 @@
     <ClInclude Include="Resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MyDuilibApp.h">
+    <ClInclude Include="DpiAware.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="MainThread.h">
@@ -35,7 +35,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="MyDuilibApp.cpp">
+    <ClCompile Include="DpiAware.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MainThread.cpp">
@@ -46,7 +46,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="MyDuilibApp.rc">
+    <ResourceCompile Include="DpiAware.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>
@@ -54,7 +54,7 @@
     <Image Include="small.ico">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="MyDuilibApp.ico">
+    <Image Include="DpiAware.ico">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

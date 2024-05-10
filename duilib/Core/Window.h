@@ -41,13 +41,14 @@ public:
 //
 
 /** 窗口类
-*  外部调用需要初始化的基本流程：
-*  1. 调用Window::CreateWnd创建窗口；
-*  2. Window::InitWnd；
-*  3. Window::SetResourcePath；
-*  4. WindowBuilder::Create, 得到Box* pRoot；
-*  5. Window::AttachShadow(pRoot), 得到附加阴影的Box* pRoot, 以支持窗口阴影效果
-*  6. Window::AttachBox(pRoot)
+*  //外部调用需要初始化的基本流程:
+*  1. 调用Window::CreateWnd创建窗口;
+*  //以下内容，可用实现在OnCreate函数中:
+*  2. Window::InitWnd;
+*  3. Window::SetResourcePath;
+*  4. WindowBuilder::Create, 得到Box* pRoot;
+*  5. Window::AttachShadow(pRoot), 得到附加阴影的Box* pRoot, 以支持窗口阴影效果;
+*  6. Window::AttachBox(pRoot);
 */
 class UILIB_API Window : public virtual nbase::SupportWeakCallback
 {
@@ -621,6 +622,7 @@ private:
     LRESULT OnGetMinMaxInfoMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
     LRESULT OnWindowPosChangingMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
     LRESULT OnSizeMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
+    LRESULT OnDpiChangedMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
     LRESULT OnMoveMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
     LRESULT OnEraseBkGndMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
     LRESULT OnPaintMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);

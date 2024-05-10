@@ -36,8 +36,8 @@ git clone https://github.com/rhett-lee/skia_compile
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
-                     _In_ LPWSTR    lpCmdLine,
-                     _In_ int       nCmdShow)
+                     _In_ LPWSTR lpCmdLine,
+                     _In_ int nCmdShow)
 {
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
@@ -102,8 +102,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 //线程ID
 enum ThreadId
 {
-	kThreadUI,		//主线程ID
-	kThreadWorker	//工作线程ID
+    kThreadUI,      //主线程ID
+    kThreadWorker   //工作线程ID
 };
 
 /** 工作线程
@@ -111,22 +111,22 @@ enum ThreadId
 class WorkerThread : public nbase::FrameworkThread
 {
 public:
-	WorkerThread(ThreadId threadID, const char* name);
-	virtual ~WorkerThread();
+    WorkerThread(ThreadId threadID, const char* name);
+    virtual ~WorkerThread();
 
 private:
-	/** 初始化线程
-	*/
-	virtual void Init() override;
+    /** 初始化线程
+    */
+    virtual void Init() override;
 
-	/** 线程退出时，做一些清理工作
-	*/
-	virtual void Cleanup() override;
+    /** 线程退出时，做一些清理工作
+    */
+    virtual void Cleanup() override;
 
 private:
-	/** 线程ID
-	*/
-	ThreadId m_threadID;
+    /** 线程ID
+    */
+    ThreadId m_threadID;
 };
 
 /** 主线程
@@ -134,22 +134,22 @@ private:
 class MainThread : public nbase::FrameworkThread
 {
 public:
-	MainThread();
-	virtual ~MainThread();
+    MainThread();
+    virtual ~MainThread();
 
 private:
-	/** 初始化主线程
-	*/
-	virtual void Init() override;
+    /** 初始化主线程
+    */
+    virtual void Init() override;
 
-	/** 主线程退出时，做一些清理工作
-	*/
-	virtual void Cleanup() override;
+    /** 主线程退出时，做一些清理工作
+    */
+    virtual void Cleanup() override;
 
 private:
-	/** 工作线程(如果不需要多线程处理业务，可以移除工作线程的代码)
-	*/
-	std::unique_ptr<WorkerThread> m_workerThread;
+    /** 工作线程(如果不需要多线程处理业务，可以移除工作线程的代码)
+    */
+    std::unique_ptr<WorkerThread> m_workerThread;
 };
 
 #endif // UI_MAINTHREAD_H_
@@ -160,8 +160,8 @@ private:
 #include "MainThread.h"
 
 WorkerThread::WorkerThread(ThreadId threadID, const char* name)
-	: FrameworkThread(name)
-	, m_threadID(threadID)
+    : FrameworkThread(name)
+    , m_threadID(threadID)
 {
 }
 
@@ -171,18 +171,18 @@ WorkerThread::~WorkerThread()
 
 void WorkerThread::Init()
 {
-	::OleInitialize(nullptr);
-	nbase::ThreadManager::RegisterThread(m_threadID);
+    ::OleInitialize(nullptr);
+    nbase::ThreadManager::RegisterThread(m_threadID);
 }
 
 void WorkerThread::Cleanup()
 {
-	nbase::ThreadManager::UnregisterThread();
-	::OleUninitialize();
+    nbase::ThreadManager::UnregisterThread();
+    ::OleUninitialize();
 }
 
 MainThread::MainThread(): 
-	nbase::FrameworkThread("MainThread") 
+    nbase::FrameworkThread("MainThread") 
 {
 }
 
@@ -204,37 +204,37 @@ void MainThread::Init()
     resourcePath += L"resources\\";
     ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath));
 
-	//在下面加入启动窗口代码
+    //在下面加入启动窗口代码
 
 }
 
 void MainThread::Cleanup()
 {
-	ui::GlobalManager::Instance().Shutdown();
-	if (m_workerThread != nullptr) {
-		m_workerThread->Stop();
-		m_workerThread.reset(nullptr);
-	}
-	SetThreadWasQuitProperly(true);
-	nbase::ThreadManager::UnregisterThread();
-	::OleUninitialize();
+    ui::GlobalManager::Instance().Shutdown();
+    if (m_workerThread != nullptr) {
+        m_workerThread->Stop();
+        m_workerThread.reset(nullptr);
+    }
+    SetThreadWasQuitProperly(true);
+    nbase::ThreadManager::UnregisterThread();
+    ::OleUninitialize();
 }
 ```
 
 在 wWinMain 实例化主线程对象，并调用执行主线程循环，添加后 wWinMain 函数修改如下：
 
 ```cpp
-/ MyDuilibApp.cpp : Defines the entry point for the application.
-//
-
+// MyDuilibApp.cpp : Defines the entry point for the application.
 #include "framework.h"
 #include "MyDuilibApp.h"
+
+//主线程
 #include "MainThread.h"
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
-                     _In_opt_ HINSTANCE hPrevInstance,
-                     _In_ LPWSTR    lpCmdLine,
-                     _In_ int       nCmdShow)
+                      _In_opt_ HINSTANCE hPrevInstance,
+                      _In_ LPWSTR lpCmdLine,
+                      _In_ int nCmdShow)
 {
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
@@ -255,9 +255,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 创建一个窗口类，继承 `ui::WindowImplBase` 类，并覆写 `GetSkinFolder` `GetSkinFile` `GetWindowClassName` 三个方法。
 
 ```cpp
-//MyDuilibForm.h
-#ifndef MY_DUILIB_FORM_H_
-#define MY_DUILIB_FORM_H_
+//MainForm.h
+#ifndef MAIN_FORM_H_
+#define MAIN_FORM_H_
 
 #pragma once
 
@@ -266,11 +266,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 /** 应用程序的主窗口实现
 */
-class MyDuilibForm : public ui::WindowImplBase
+class MainForm : public ui::WindowImplBase
 {
 public:
-	MyDuilibForm();
-	virtual ~MyDuilibForm();
+    MainForm();
+    virtual ~MainForm();
 
     /**  创建窗口时被调用，由子类实现用以获取窗口皮肤目录
     * @return 子类需实现并返回窗口皮肤目录
@@ -289,65 +289,65 @@ public:
     */
     virtual std::wstring GetWindowClassName() const override;
 
-	/** 收到 WM_CREATE 消息时该函数会被调用，通常做一些控件初始化的操作
-	 */
-	virtual void OnInitWindow() override;
+    /** 收到 WM_CREATE 消息时该函数会被调用，通常做一些控件初始化的操作
+     */
+    virtual void OnInitWindow() override;
 
-	/** 收到 WM_CLOSE 消息时该函数会被调用
-	 */
-	virtual LRESULT OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
+    /** 收到 WM_CLOSE 消息时该函数会被调用
+     */
+    virtual LRESULT OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
 
     /** 窗口的类名
     */
-	static const std::wstring kClassName;
+    static const std::wstring kClassName;
 };
 
-#endif //MY_DUILIB_FORM_H_
+#endif //MAIN_FORM_H_
+
 ```
 
 ```cpp
-//MyDuilibForm.cpp
-#include "MyDuilibForm.h"
+//MainForm.cpp
+#include "MainForm.h"
 
-const std::wstring MyDuilibForm::kClassName = L"MyDuilibForm";
+const std::wstring MainForm::kClassName = L"MainForm";
 
-MyDuilibForm::MyDuilibForm()
+MainForm::MainForm()
 {
 }
 
 
-MyDuilibForm::~MyDuilibForm()
+MainForm::~MainForm()
 {
 }
 
-std::wstring MyDuilibForm::GetSkinFolder()
+std::wstring MainForm::GetSkinFolder()
 {
-	return L"my_duilib_app";
+    return L"my_duilib_app";
 }
 
-std::wstring MyDuilibForm::GetSkinFile()
+std::wstring MainForm::GetSkinFile()
 {
-	return L"MyDuilibForm.xml";
+    return L"MyDuilibForm.xml";
 }
 
-std::wstring MyDuilibForm::GetWindowClassName() const
+std::wstring MainForm::GetWindowClassName() const
 {
-	return kClassName;
+    return kClassName;
 }
 
-void MyDuilibForm::OnInitWindow()
+void MainForm::OnInitWindow()
 {
-	//窗口初始化完成，可以进行本Form的初始化
+    //窗口初始化完成，可以进行本Form的初始化
 
 }
 
-LRESULT MyDuilibForm::OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+LRESULT MainForm::OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
-	//窗口关闭时，终止主线程的消息循环，从而退出程序
-	PostQuitMessage(0L);
-	return __super::OnClose(uMsg, wParam, lParam, bHandled);
+    //窗口关闭时，终止主线程的消息循环，从而退出程序
+    PostQuitMessage(0L);
+    return __super::OnClose(uMsg, wParam, lParam, bHandled);
 }
-
 ```
 
 ## 创建窗口描述 XML 文件
@@ -385,30 +385,30 @@ LRESULT MyDuilibForm::OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHa
 ## 显示窗口
 
 在主线程的 MainThread::Init 方法中，创建窗口并居中显示，创建窗口前先引入窗口的头文件，修改后的代码如下：    
-（首先在文件中包含头文件：`#include MyDuilibForm.h`）
+（首先在文件中包含头文件：`#include "MainForm.h"`）
 
 ```cpp
 void MainThread::Init()
 {
-	::OleInitialize(nullptr);
-	nbase::ThreadManager::RegisterThread(kThreadUI);
+    ::OleInitialize(nullptr);
+    nbase::ThreadManager::RegisterThread(kThreadUI);
 
-	//启动工作线程
-	m_workerThread.reset(new WorkerThread(kThreadWorker, "WorkerThread"));
-	m_workerThread->Start();
+    //启动工作线程
+    m_workerThread.reset(new WorkerThread(kThreadWorker, "WorkerThread"));
+    m_workerThread->Start();
 
-	//初始化全局资源, 使用本地文件夹作为资源
-	std::wstring resourcePath = nbase::win32::GetCurrentModuleDirectory();
-	resourcePath += L"resources\\";
-	ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath));
+    //初始化全局资源, 使用本地文件夹作为资源
+    std::wstring resourcePath = nbase::win32::GetCurrentModuleDirectory();
+    resourcePath += L"resources\\";
+    ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath));
 
-	//在下面加入启动窗口代码
-	//
-	//创建一个默认带有阴影的居中窗口
-	MyDuilibForm* window = new MyDuilibForm();
-	window->CreateWnd(nullptr, MyDuilibForm::kClassName.c_str(), UI_WNDSTYLE_FRAME, WS_EX_LAYERED);
-	window->CenterWindow();
-	window->ShowWindow();
+    //在下面加入启动窗口代码
+    //
+    //创建一个默认带有阴影的居中窗口
+    MainForm* window = new MainForm();
+    window->CreateWnd(nullptr, MainForm::kClassName.c_str(), UI_WNDSTYLE_FRAME, WS_EX_LAYERED);
+    window->CenterWindow();
+    window->ShowWindow();
 }
 
 ```

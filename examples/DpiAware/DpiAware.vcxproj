@@ -21,8 +21,8 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{0ed0315f-a900-45b1-b01f-feac4305ded3}</ProjectGuid>
-    <RootNamespace>MyDuilibApp</RootNamespace>
+    <ProjectGuid>{b153e62e-29a4-435e-9150-e2c2cea28524}</ProjectGuid>
+    <RootNamespace>DpiAware</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -78,7 +78,6 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>..\..\bin\</OutDir>
     <IntDir>$(ProjectDir)..\..\tmp\$(PlatformName)\$(ProjectName)\$(Configuration)\</IntDir>
-    <TargetName>$(ProjectName)</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>..\..\bin\</OutDir>
@@ -163,23 +162,23 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="DpiAware.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="MainForm.h" />
     <ClInclude Include="MainThread.h" />
-    <ClInclude Include="MyDuilibApp.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="DpiAware.cpp" />
     <ClCompile Include="MainForm.cpp" />
     <ClCompile Include="MainThread.cpp" />
-    <ClCompile Include="MyDuilibApp.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="MyDuilibApp.rc" />
+    <ResourceCompile Include="DpiAware.rc" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="MyDuilibApp.ico" />
+    <Image Include="DpiAware.ico" />
     <Image Include="small.ico" />
   </ItemGroup>
   <ItemGroup>
