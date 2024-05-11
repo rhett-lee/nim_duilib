@@ -10,6 +10,14 @@ Image::Image() :
 {
 }
 
+Image::~Image()
+{
+	if (m_pImageGif != nullptr) {
+		m_pImageGif->StopGifPlay();
+		delete m_pImageGif;
+	}
+}
+
 void Image::InitImageAttribute()
 {
 	m_imageAttribute.Init();

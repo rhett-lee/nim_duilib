@@ -21,6 +21,7 @@ class UILIB_API Image
 {
 public:
 	Image();
+	~Image();
 	Image(const Image&) = delete;
 	Image& operator=(const Image&) = delete;
 
