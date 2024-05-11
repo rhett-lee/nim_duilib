@@ -28,8 +28,7 @@
 ├─`examples` 各类示例程序源代码  
 ├─`docs` 说明文档  
 ├─`libs` 静态库编译后的输出目录，包含预设的一些 CEF 组件静态库  
-├─`bin` 各个示例程序输出目录，包含预设的皮肤和语言文件以及 CEF 依赖  
-├─`build` Windows下的程序配置及manifest文件等    
+├─`bin` 各个示例程序输出目录，包含预设的皮肤和语言文件以及 CEF 依赖     
 ├─`licenses` 引用的其他开源代码对应的licenses    
 ├─`duilib/third_party` nim_duilib 核心代码依赖的第三方库    
 　　├─ apng 用于对APNG图片格式的支持     

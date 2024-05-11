@@ -7,8 +7,8 @@
 
 #include <clocale>
 
-//开启DPI自适应功能
-bool bAdaptDpi = true;
+//开启DPI感知功能设置参数
+ui::DpiInitParam dpiInitParam;
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
@@ -36,7 +36,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		return 0;
 
 	//必须在CefManager::Initialize前调用，设置DPI自适应属性，否则会导致显示不正常
-	ui::GlobalManager::Instance().Dpi().SetAdaptDPI(bAdaptDpi);
+	ui::GlobalManager::Instance().Dpi().InitDpiAwareness(dpiInitParam);
 
 	// 初始化 CEF
 	CefSettings settings;
@@ -66,7 +66,7 @@ void MainThread::Init()
 	//初始化全局资源, 使用本地文件夹作为资源
 	std::wstring resourcePath = nbase::win32::GetCurrentModuleDirectory();
 	resourcePath += L"resources\\";
-	ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath), bAdaptDpi);
+	ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath), dpiInitParam);
 
 	nbase::TimeDelta time_delta = nbase::TimeDelta::FromMicroseconds(nbase::Time::Now().ToInternalValue());
 	std::string timeStamp = nbase::StringPrintf("%I64u", time_delta.ToMilliseconds());

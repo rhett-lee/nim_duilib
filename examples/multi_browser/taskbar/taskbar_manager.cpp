@@ -2,6 +2,7 @@
 #include "duilib/RenderGdiPlus/BitmapHelper.h"
 #include "dwm_util.h"
 #include <shobjidl.h>
+#include <VersionHelpers.h>
 
 using namespace ui;
 
@@ -9,7 +10,7 @@ TaskbarTabItem::TaskbarTabItem(ui::Control *bind_control)
 {
 	ASSERT(NULL != bind_control);
 	bind_control_ = bind_control;
-	is_win7_or_greater_ = IsWindows7OrGreater();
+	is_win7_or_greater_ = ::IsWindows7OrGreater();
 	taskbar_manager_ = NULL;
 }
 
