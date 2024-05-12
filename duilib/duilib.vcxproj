@@ -595,7 +595,6 @@
     <ClInclude Include="Utils\ShadowWnd.h" />
     <ClInclude Include="Utils\StringUtil.h" />
     <ClInclude Include="Utils\Delegate.h" />
-    <ClInclude Include="Utils\VersionHelpers.h" />
     <ClInclude Include="Utils\WinImplBase.h" />
     <ClInclude Include="Control\Button.h" />
     <ClInclude Include="Control\CheckBox.h" />

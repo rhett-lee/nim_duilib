@@ -1,8 +1,8 @@
 #include "FontManager.h"
 #include "duilib/Core/GlobalManager.h"
-#include "duilib/Utils/VersionHelpers.h"
 #include "duilib/Render/IRender.h"
 #include "duilib/Utils/StringUtil.h"
+#include <VersionHelpers.h>
 
 namespace ui 
 {

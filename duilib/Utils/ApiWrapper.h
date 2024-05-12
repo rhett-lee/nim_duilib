@@ -9,9 +9,12 @@
 namespace ui
 {
 	// DPI适配
+	//Windows 10版本 1607
+	bool GetDpiForSystemWrapper(UINT& dpi);
+	//
 	bool GetDpiForMonitorWrapper(HMONITOR hMonitor, MONITOR_DPI_TYPE dpiType, UINT *dpiX, UINT *dpiY);
 
-	//Windows 10 版本 1607以上
+	//Windows 10 版本 1703 以上
 	bool SetProcessDpiAwarenessContextWrapper(PROCESS_DPI_AWARENESS_CONTEXT value);
 	bool GetProcessDpiAwarenessContextWrapper(PROCESS_DPI_AWARENESS_CONTEXT& value);
 	bool AreDpiAwarenessContextsEqualWrapper(PROCESS_DPI_AWARENESS_CONTEXT dpiContextA, PROCESS_DPI_AWARENESS_CONTEXT dpiContextB);

@@ -1,6 +1,5 @@
 #include "GlobalManager.h"
 #include "duilib/Utils/StringUtil.h"
-#include "duilib/Utils/VersionHelpers.h"
 
 #include "duilib/Core/Window.h"
 #include "duilib/Core/Control.h"
@@ -67,7 +66,7 @@ GlobalManager& GlobalManager::Instance()
 }
 
 bool GlobalManager::Startup(const ResourceParam& resParam,
-	                        bool bAdaptDpi,
+	                        DpiInitParam dpiInitParam,
 							const CreateControlCallback& callback)
 {
 	ASSERT(m_renderFactory == nullptr);
@@ -80,8 +79,8 @@ bool GlobalManager::Startup(const ResourceParam& resParam,
 	//保存回调函数
 	m_pfnCreateControlCallback = callback;
 
-	//适配DPI
-	m_dpiManager.SetAdaptDPI(bAdaptDpi);
+	//DPI感知模式
+	m_dpiManager.InitDpiAwareness(dpiInitParam);
 
 #if (duilib_kRenderType == duilib_kRenderType_Skia)
 	//Skia渲染引擎实现

@@ -476,9 +476,6 @@
     <ClInclude Include="Utils\StringUtil.h">
       <Filter>Utils</Filter>
     </ClInclude>
-    <ClInclude Include="Utils\VersionHelpers.h">
-      <Filter>Utils</Filter>
-    </ClInclude>
     <ClInclude Include="Utils\WinImplBase.h">
       <Filter>Utils</Filter>
     </ClInclude>

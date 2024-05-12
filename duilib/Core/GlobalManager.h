@@ -49,11 +49,11 @@ public:
 	 *                         使用 ZipFileResParam 类型作为参数
 	 *                      3. 资源文件打包为zip压缩包，然后放在exe/dll的资源文件中
 	 *                         使用 ResZipFileResParam 类型作为参数
-	 * @param [in] bAdaptDpi 是否启用 DPI 自动适配
+	 * @param [in] dpiInitParam DPI感知模式和DPI值的设置参数
 	 * @param [in] callback 创建自定义控件时的全局回调函数
 	 */
 	bool Startup(const ResourceParam& resParam,
-				 bool bAdaptDpi = true,
+				 DpiInitParam dpiInitParam = DpiInitParam(),
 				 const CreateControlCallback& callback = nullptr);
 
 	/** 释放全局资源

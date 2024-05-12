@@ -9,7 +9,6 @@
 #include "duilib/Render/AutoClip.h"
 #include "duilib/Animation/AnimationManager.h"
 #include "duilib/Animation/AnimationPlayer.h"
-#include "duilib/Utils/VersionHelpers.h"
 #include "duilib/Utils/ApiWrapper.h"
 #include "duilib/Utils/PerformanceUtil.h"
 
@@ -2841,7 +2840,7 @@ void Window::SetRenderOffsetY(int renderOffsetY)
 
 void Window::OnInitLayout()
 {
-    if ((m_pRoot != nullptr) && IsWindowsVistaOrGreater()) {
+    if ((m_pRoot != nullptr) && ::IsWindowsVistaOrGreater()) {
         if (m_pRoot->IsVisible()) {
             m_pRoot->SetFadeVisible(true);
         }

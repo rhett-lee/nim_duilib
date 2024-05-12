@@ -3,6 +3,19 @@
 namespace ui
 {
 
+bool GetDpiForSystemWrapper(UINT& dpi)
+{
+	typedef UINT(WINAPI* GetDpiForSystemPtr)();
+	static GetDpiForSystemPtr get_dpi_for_system_func = reinterpret_cast<GetDpiForSystemPtr>(GetProcAddress(GetModuleHandleA("user32.dll"), "GetDpiForSystem"));
+
+	dpi = 96;
+	if (get_dpi_for_system_func) {
+		dpi = get_dpi_for_system_func();
+		return true;
+	}
+	return false;
+}
+
 bool GetDpiForMonitorWrapper(HMONITOR hMonitor, MONITOR_DPI_TYPE dpiType, UINT *dpiX, UINT *dpiY)
 {
 	typedef HRESULT(WINAPI *GetDpiForMonitorPtr)(HMONITOR, MONITOR_DPI_TYPE, UINT*, UINT*);
