@@ -315,13 +315,13 @@ void VirtualHLayout::GetDisplayElements(UiRect rc, std::vector<size_t>& collecti
         return;
     }
 
-    size_t nEleWidth = GetElementsWidth(rc, 1);
-    if (nEleWidth == 0) {
+    int64_t nEleWidth = GetElementsWidth(rc, 1);
+    if (nEleWidth <= 0) {
         return;
     }
 
-    size_t min = ((size_t)pOwnerBox->GetScrollPos().cx / nEleWidth);
-    size_t max = min + ((size_t)rc.Width() / nEleWidth);
+    size_t min = (size_t)(pOwnerBox->GetScrollPos().cx / nEleWidth);
+    size_t max = min + (size_t)(rc.Width() / nEleWidth);
 
     size_t nCount = pOwnerBox->GetElementCount();
     if (nCount > 0) {

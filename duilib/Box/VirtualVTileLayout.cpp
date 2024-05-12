@@ -107,7 +107,7 @@ int64_t VirtualVTileLayout::GetElementsHeight(UiRect rc, size_t nCount) const
         return 0;
     }
     int32_t nColumns = CalcTileColumns(rc.Width());
-    if (nCount <= nColumns && nCount != Box::InvalidIndex) {
+    if (nCount <= (size_t)nColumns && nCount != Box::InvalidIndex) {
         //不到1行，或者刚好1行
         return szItem.cy + GetChildMarginY();
     }
@@ -338,14 +338,14 @@ void VirtualVTileLayout::GetDisplayElements(UiRect rc, std::vector<size_t>& coll
         return;
     }
 
-    size_t nEleHeight = GetElementsHeight(rc, 1);
+    int64_t nEleHeight = GetElementsHeight(rc, 1);
     if (nEleHeight == 0) {
         return;
     }
 
     int32_t nColumns = CalcTileColumns(rc.Width());
-    size_t min = ((size_t)pOwnerBox->GetScrollPos().cy / nEleHeight) * nColumns;
-    size_t max = min + ((size_t)rc.Height() / nEleHeight) * nColumns;
+    size_t min = (size_t)(pOwnerBox->GetScrollPos().cy / nEleHeight) * nColumns;
+    size_t max = min + (size_t)(rc.Height() / nEleHeight) * nColumns;
 
     size_t nCount = pOwnerBox->GetElementCount();
     if (nCount > 0) {

@@ -107,7 +107,7 @@ bool FileDialog::BrowseForFile(Window* pWindow,
             }
             hr = pfd->SetFileTypes((UINT)filterSpecs.size(), filterSpecs.data());
         }
-        if ((nFileTypeIndex >= 0) && (nFileTypeIndex < fileTypes.size())) {
+        if ((nFileTypeIndex >= 0) && (nFileTypeIndex < (int32_t)fileTypes.size())) {
             hr = pfd->SetFileTypeIndex((UINT)nFileTypeIndex + 1); //SetFileTypeIndex的下标是从1开始的
             ASSERT(SUCCEEDED(hr));
         }
@@ -156,7 +156,7 @@ bool FileDialog::BrowseForFiles(Window* pWindow,
             }
             hr = pfd->SetFileTypes((UINT)filterSpecs.size(), filterSpecs.data());
         }
-        if ((nFileTypeIndex >= 0) && (nFileTypeIndex < fileTypes.size())) {
+        if ((nFileTypeIndex >= 0) && (nFileTypeIndex < (int32_t)fileTypes.size())) {
             hr = pfd->SetFileTypeIndex((UINT)nFileTypeIndex + 1); //SetFileTypeIndex的下标是从1开始的
             ASSERT(SUCCEEDED(hr));
         }

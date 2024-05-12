@@ -822,7 +822,7 @@ bool SkTextBox::TextToGlyphs(const void* text, size_t byteLength, SkTextEncoding
     if (glyphsCount <= 0) {
         return false;
     }
-    SkASSERT(glyphsCount <= glyphs.size());
+    SkASSERT(glyphsCount <= (int)glyphs.size());
     glyphs.resize(glyphsCount);
 
     glyphChars.resize(glyphs.size(), 1);
@@ -850,7 +850,7 @@ bool SkTextBox::TextToGlyphs(const void* text, size_t byteLength, SkTextEncoding
                     break;
                 }
             }
-            if (count < glyphChars.size()) {
+            if (count < (int)glyphChars.size()) {
                 glyphChars[count] = numChars;
             }
             else {
@@ -885,7 +885,7 @@ bool SkTextBox::TextToGlyphs(const void* text, size_t byteLength, SkTextEncoding
                 }
                 numChars = 2;
             }
-            if (count < glyphChars.size()) {
+            if (count < (int)glyphChars.size()) {
                 glyphChars[count] = numChars;
             }
             else {

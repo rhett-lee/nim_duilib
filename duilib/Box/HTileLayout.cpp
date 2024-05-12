@@ -411,7 +411,7 @@ UiSize64 HTileLayout::ArrangeChildNormal(const std::vector<Control*>& items,
 		const int32_t rowIndex = nRows - nColumnTileCount;//当前列下标[0, nRows)
 		int32_t fixedRowHeight = 0; //当前传入的行高宽度, 固定值
 		if (((int32_t)fixedRowHeights.size() == nRows) &&
-			(rowIndex < fixedRowHeights.size())) {
+			(rowIndex < (int32_t)fixedRowHeights.size())) {
 			fixedRowHeight = fixedRowHeights[rowIndex];
 		}
 
@@ -453,7 +453,7 @@ UiSize64 HTileLayout::ArrangeChildNormal(const std::vector<Control*>& items,
 			ptTile.y += cyHeight + GetChildMarginY();
 		}		
 		//记录每行的高度（取这一行中，控件高度的最大值，包含此控件的外边距）
-		if (rowIndex < rowHeights.size()) {
+		if (rowIndex < (int32_t)rowHeights.size()) {
 			int32_t tileHeight = (m_szItem.cy > 0) ? m_szItem.cy : cyHeight;	
 			rowHeights[rowIndex] = std::max(tileHeight, rowHeights[rowIndex]);
 		}

@@ -101,6 +101,7 @@ bool IconManager::LoadIconData(const std::wstring& str,
 	if (!::GetIconInfo(hIcon, &iconInfo)) {
 #ifdef _DEBUG
 		DWORD dwLastError = ::GetLastError();
+		(void)dwLastError;
 		ASSERT(!"GetIconInfo failed!");
 #endif
 		return false;
@@ -234,6 +235,7 @@ uint32_t IconManager::AddIcon(HICON hIcon)
 		ScopedICONINFO iconInfo;
 		if (!::GetIconInfo(hIcon, &iconInfo)) {
 			DWORD dwLastError = ::GetLastError();
+			(void)dwLastError;
 			//ASSERT(!"GetIconInfo failed!");
 			return id;
 		}

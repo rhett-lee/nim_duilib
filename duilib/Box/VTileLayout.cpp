@@ -411,7 +411,7 @@ UiSize64 VTileLayout::ArrangeChildNormal(const std::vector<Control*>& items,
 		const int32_t colIndex = nColumns - nRowTileCount;//当前列下标[0, nColumns)
 		int32_t fixedColumnWidth = 0; //当前传入的列宽度, 固定值
 		if (((int32_t)fixedColumnWidths.size() == nColumns) &&
-			(colIndex < fixedColumnWidths.size())) {
+			(colIndex < (int32_t)fixedColumnWidths.size())) {
 			fixedColumnWidth = fixedColumnWidths[colIndex];
 		}
 
@@ -453,7 +453,7 @@ UiSize64 VTileLayout::ArrangeChildNormal(const std::vector<Control*>& items,
 			ptTile.x += cxWidth + GetChildMarginX();
 		}		
 		//记录每列的宽度（取这一列中，控件宽度的最大值，包含此控件的外边距）
-		if (colIndex < columnWidths.size()) {
+		if (colIndex < (int32_t)columnWidths.size()) {
 			int32_t tileWidth = (m_szItem.cx > 0) ? m_szItem.cx : cxWidth;	
 			columnWidths[colIndex] = std::max(tileWidth, columnWidths[colIndex]);
 		}

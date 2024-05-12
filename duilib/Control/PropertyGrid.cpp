@@ -1385,7 +1385,7 @@ namespace PropertyGridFontPropertyImpl
     };
 
     //枚举字体的回调函数
-    static int EnumFontFamExProc(const LOGFONT* lpelfe, const TEXTMETRIC* /*lpntme*/, DWORD fontType, LPARAM lParam)
+    static int CALLBACK EnumFontFamExProc(const LOGFONT* lpelfe, const TEXTMETRIC* /*lpntme*/, DWORD fontType, LPARAM lParam)
     {
         std::vector<FontInfo>* pFontList = (std::vector<FontInfo>*)lParam;
         if (pFontList != nullptr) {

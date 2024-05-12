@@ -494,7 +494,7 @@ bool ListCtrlView::OnFrameSelection(int64_t left, int64_t right, int64_t top, in
         }
         int64_t nStartIndex = (left / (szItem.cx + childMarginX)) * nRows;
         const size_t nCount = GetElementCount();
-        for (size_t nElemenetIndex = nStartIndex; nElemenetIndex < nCount; ++nElemenetIndex) {
+        for (size_t nElemenetIndex = (size_t)nStartIndex; nElemenetIndex < nCount; ++nElemenetIndex) {
             CalcElementRectH(nElemenetIndex, szItem, nRows, childMarginX, childMarginY,
                              iLeft, iTop, iRight, iBottom);
             cLeft = std::max(left, iLeft);
@@ -526,7 +526,7 @@ bool ListCtrlView::OnFrameSelection(int64_t left, int64_t right, int64_t top, in
         }
         int64_t nStartIndex = (top / (szItem.cy + childMarginY)) * nColumns;
         const size_t nCount = GetElementCount();
-        for (size_t nElemenetIndex = nStartIndex; nElemenetIndex < nCount; ++nElemenetIndex) {
+        for (size_t nElemenetIndex = (size_t)nStartIndex; nElemenetIndex < nCount; ++nElemenetIndex) {
             CalcElementRectV(nElemenetIndex, szItem, nColumns, childMarginX, childMarginY,
                             iLeft, iTop, iRight, iBottom);
             cLeft = std::max(left, iLeft);
@@ -806,7 +806,7 @@ bool ListCtrlView::OnListCtrlKeyDown(const EventArgs& msg)
         }
         else {
             //纵向布局
-            if (nIndexCurSel >= nColumns) {
+            if ((int32_t)nIndexCurSel >= nColumns) {
                 nIndexEnd = nIndexCurSel - nColumns;
             }
             else {
@@ -837,7 +837,7 @@ bool ListCtrlView::OnListCtrlKeyDown(const EventArgs& msg)
     case VK_LEFT:
         if (IsHorizontalLayout()) {
             //横向布局
-            if (nIndexCurSel >= nRows) {
+            if ((int32_t)nIndexCurSel >= nRows) {
                 nIndexEnd = nIndexCurSel - nRows;
             }
             else {
