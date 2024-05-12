@@ -159,11 +159,11 @@ void MainForm::ShowVirtualDirectoryNode(int csidl, REFKNOWNFOLDERID rfid, const 
         m_hShell32Dll = ::LoadLibraryW(L"Shell32.dll");
     }
 
-    typedef HRESULT (*PFN_SHGetKnownFolderPath)( REFKNOWNFOLDERID rfid,
+    typedef HRESULT (CALLBACK *PFN_SHGetKnownFolderPath)( REFKNOWNFOLDERID rfid,
                                                  DWORD            dwFlags,
                                                  HANDLE           hToken,
                                                  PWSTR * ppszPath );
-    typedef HRESULT (*PFN_SHGetKnownFolderIDList)( REFKNOWNFOLDERID rfid,
+    typedef HRESULT (CALLBACK *PFN_SHGetKnownFolderIDList)( REFKNOWNFOLDERID rfid,
                                                    DWORD            dwFlags,
                                                    HANDLE           hToken,
                                                    PIDLIST_ABSOLUTE * ppidl );
