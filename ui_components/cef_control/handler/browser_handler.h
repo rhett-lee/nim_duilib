@@ -15,6 +15,8 @@
 #include "include/cef_browser.h"
 #pragma warning (pop)
 
+#include "duilib/Core/Window.h"
+
 namespace nim_comp
 {
 // BrowserHandler implements CefClient and a number of other interfaces.
@@ -148,8 +150,9 @@ public:
 
 public:
 
-	// 设置Cef浏览器对象所属的窗体的句柄
-	void SetHostWindow(HWND hwnd){ hwnd_ = hwnd; }
+	/** 设置Cef浏览器对象所属的窗口
+	*/
+	void SetHostWindow(ui::Window* window);
 
 	// 设置委托类指针，浏览器对象的一些事件会交给此指针对象来处理
 	// 当指针所指的对象不需要处理事件时，应该给参数传入NULL
@@ -333,7 +336,8 @@ public:
 protected:
 	CefRefPtr<CefBrowser>	browser_;
 	std::vector<CefRefPtr<CefBrowser>> browser_list_;
-	HWND					hwnd_;
+	ui::Window*				window_;
+	std::weak_ptr<nbase::WeakFlag> window_flag_;	
 	HandlerDelegate*		handle_delegate_;
 	RECT					rect_cef_control_;
 	std::string				paint_buffer_;

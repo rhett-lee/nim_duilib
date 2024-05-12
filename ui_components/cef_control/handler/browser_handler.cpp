@@ -6,7 +6,6 @@
 #include "ui_components/public_define.h"
 
 #include "base/thread/thread_manager.h"
-#include "duilib/Core/GlobalManager.h"
 
 #pragma warning (push)
 #pragma warning (disable:4100)
@@ -17,9 +16,19 @@ namespace nim_comp
 {
 BrowserHandler::BrowserHandler()
 {
-	handle_delegate_ = NULL;
+	window_ = nullptr;
+	handle_delegate_ = nullptr;
 	is_focus_oneditable_field_ = false;
 	ZeroMemory(&rect_cef_control_, sizeof(RECT));
+}
+
+void BrowserHandler::SetHostWindow(ui::Window* window)
+{ 
+	window_ = window;
+	window_flag_.reset();
+	if (window != nullptr) {
+		window_flag_ = window->GetWeakFlag();
+	}
 }
 
 void BrowserHandler::SetViewRect(RECT rc)
@@ -174,8 +183,9 @@ void BrowserHandler::OnAfterCreated(CefRefPtr<CefBrowser> browser)
 	// RegisterDragDrop内部会在调用这个API的线程里创建一个窗口，用过这个窗口来做消息循环模拟阻塞的过程
 	// 所以哪个线程调用RegisterDragDrop，就会在哪个线程阻塞并触发IDragTarget回调
 	// 见https://docs.microsoft.com/zh-cn/windows/win32/api/ole2/nf-ole2-registerdragdrop
-	if (hwnd_)
-		drop_target_ = CefManager::GetInstance()->GetDropTarget(hwnd_);
+	if ((window_ != nullptr) && !window_flag_.expired()) {
+		drop_target_ = CefManager::GetInstance()->GetDropTarget(window_->GetHWND());
+	}
 }
 
 bool BrowserHandler::DoClose(CefRefPtr<CefBrowser> browser)
@@ -218,8 +228,11 @@ void BrowserHandler::OnBeforeClose(CefRefPtr<CefBrowser> browser)
 // CefRenderHandler methods
 bool BrowserHandler::GetRootScreenRect(CefRefPtr<CefBrowser> browser, CefRect& rect)
 {
+	if ((window_ == nullptr) || window_flag_.expired()) {
+		return false;
+	}
 	RECT window_rect = { 0 };
-	HWND root_window = GetAncestor(hwnd_, GA_ROOT);
+	HWND root_window = GetAncestor(window_->GetHWND(), GA_ROOT);
 	if (::GetWindowRect(root_window, &window_rect))
 	{
 		rect = CefRect(window_rect.left, window_rect.top, window_rect.right - window_rect.left, window_rect.bottom - window_rect.top);
@@ -230,6 +243,9 @@ bool BrowserHandler::GetRootScreenRect(CefRefPtr<CefBrowser> browser, CefRect& r
 
 bool BrowserHandler::GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect)
 {
+	if ((window_ == nullptr) || window_flag_.expired()) {
+		return false;
+	}
 	if (handle_delegate_)
 	{
 		rect.x = 0;
@@ -239,7 +255,7 @@ bool BrowserHandler::GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect)
 
 		if (CefManager::GetInstance()->IsEnableOffsetRender()) {
 			//离屏渲染模式，需要传给原始宽度和高度，因为CEF内部会进一步做DPI自适应
-			uint32_t dpiScale = ui::GlobalManager::Instance().Dpi().GetScale();
+			uint32_t dpiScale = window_->Dpi().GetScale();
 			if (dpiScale > 100) {
 				rect.width = rect.width * 100 / dpiScale;
 				rect.height = rect.height * 100 / dpiScale;
@@ -250,7 +266,7 @@ bool BrowserHandler::GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect)
 	else
 	{
 		RECT clientRect;
-		if (!::GetClientRect(hwnd_, &clientRect))
+		if (!::GetClientRect(window_->GetHWND(), &clientRect))
 			return false;
 		rect.x = rect.y = 0;
 		rect.width = clientRect.right;
@@ -262,14 +278,18 @@ bool BrowserHandler::GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect)
 
 bool BrowserHandler::GetScreenPoint(CefRefPtr<CefBrowser> browser, int viewX, int viewY, int& screenX, int& screenY)
 {
-	if (!::IsWindow(hwnd_))
+	if ((window_ == nullptr) || window_flag_.expired()) {
 		return false;
+	}
+	if (!::IsWindow(window_->GetHWND())) {
+		return false;
+	}
 
 	// Convert the point from view coordinates to actual screen coordinates.
 	POINT screen_pt = { viewX, viewY};
 	if (CefManager::GetInstance()->IsEnableOffsetRender()) {
 		//离屏渲染模式下，给到的参数是原始坐标，未经DPI自适应，所以需要做DPI自适应处理，否则页面的右键菜单位置显示不对
-		uint32_t dpiScale = ui::GlobalManager::Instance().Dpi().GetScale();
+		uint32_t dpiScale = window_->Dpi().GetScale();
 		if (dpiScale > 100) {
 			screen_pt.x = screen_pt.x * dpiScale / 100;
 			screen_pt.y = screen_pt.y * dpiScale / 100;
@@ -278,7 +298,7 @@ bool BrowserHandler::GetScreenPoint(CefRefPtr<CefBrowser> browser, int viewX, in
 	//将页面坐标转换为窗口客户区坐标，否则页面弹出的右键菜单位置不正确
 	screen_pt.x = screen_pt.x + rect_cef_control_.left;
 	screen_pt.y = screen_pt.y + rect_cef_control_.top;
-	::ClientToScreen(hwnd_, &screen_pt);
+	::ClientToScreen(window_->GetHWND(), &screen_pt);
 	screenX = screen_pt.x;
 	screenY = screen_pt.y;
 	return true;
@@ -290,7 +310,10 @@ bool BrowserHandler::GetScreenInfo(CefRefPtr<CefBrowser> browser, CefScreenInfo&
 	if (!CefManager::GetInstance()->IsEnableOffsetRender()) {
 		return false;
 	}
-	uint32_t dpiScale = ui::GlobalManager::Instance().Dpi().GetScale();
+	if ((window_ == nullptr) || window_flag_.expired()) {
+		return false;
+	}
+	uint32_t dpiScale = window_->Dpi().GetScale();
 	if (dpiScale == 100) {
 		return false;
 	}
@@ -334,7 +357,9 @@ void BrowserHandler::OnPaint(CefRefPtr<CefBrowser> browser,
 
 void BrowserHandler::OnCursorChange(CefRefPtr<CefBrowser> browser, CefCursorHandle cursor, CursorType /*type*/, const CefCursorInfo& /*custom_cursor_info*/)
 {
-	SetClassLongPtr(hwnd_, GCLP_HCURSOR, static_cast<LONG>(reinterpret_cast<LONG_PTR>(cursor)));
+	if ((window_ != nullptr) && !window_flag_.expired()) {
+		SetClassLongPtr(window_->GetHWND(), GCLP_HCURSOR, static_cast<LONG>(reinterpret_cast<LONG_PTR>(cursor)));
+	}
 	SetCursor(cursor);
 }
 
@@ -352,8 +377,13 @@ bool BrowserHandler::StartDragging(CefRefPtr<CefBrowser> browser, CefRefPtr<CefD
 		drop_target_->StartDragging(this, drag_data, allowed_ops, x, y);
 	current_drag_op_ = DRAG_OPERATION_NONE;
 	POINT pt = {};
-	GetCursorPos(&pt);
-	ScreenToClient(hwnd_, &pt);
+	if ((window_ != nullptr) && !window_flag_.expired()) {
+		ui::UiPoint uiPt;
+		window_->GetCursorPos(uiPt);
+		window_->ScreenToClient(uiPt);
+		pt.x = uiPt.x;
+		pt.y = uiPt.y;
+	}
 	handle_delegate_->ClientToControl(pt);
 	browser->GetHost()->DragSourceEndedAt(
 		pt.x,

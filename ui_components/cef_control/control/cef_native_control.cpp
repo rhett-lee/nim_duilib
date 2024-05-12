@@ -41,7 +41,7 @@ void CefNativeControl::Init()
 		ASSERT((::GetWindowLong(GetWindow()->GetHWND(), GWL_EXSTYLE) & WS_EX_LAYERED) == 0 && L"无法在分层窗口内使用本控件");
 
 		browser_handler_ = new nim_comp::BrowserHandler;
-		browser_handler_->SetHostWindow(GetWindow()->GetHWND());
+		browser_handler_->SetHostWindow(GetWindow());
 		browser_handler_->SetHandlerDelegate(this);
 		ReCreateBrowser();
 	}
@@ -129,7 +129,7 @@ void CefNativeControl::SetWindow(ui::Window* pManager)
 		return;
 	}
 	if (browser_handler_)
-		browser_handler_->SetHostWindow(pManager->GetHWND());
+		browser_handler_->SetHostWindow(pManager);
 
 	// 设置Cef窗口句柄为新的主窗口的子窗口
 	auto hwnd = GetCefHandle();

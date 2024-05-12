@@ -7,6 +7,7 @@
 #include "base/callback/callback.h"
 #include "duilib/Core/ControlFinder.h"
 #include "duilib/Core/ColorManager.h"
+#include "duilib/Core/DpiManager.h"
 #include "duilib/Core/UiTypes.h"
 
 #include <string>
@@ -933,6 +934,10 @@ public:
     /** 更新ToolTip信息（此时ToolTip的信息已经发生变化）
     */
     void UpdateToolTip();
+
+    /** 获取该窗口对应的DPI管理器
+    */
+    const DpiManager& Dpi() const;
 
 public:
     /** 设置系统激活窗口热键，注册后按此热键，系统可以自动激活本窗口

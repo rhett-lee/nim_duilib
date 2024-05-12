@@ -1702,6 +1702,11 @@ void Window::UpdateToolTip()
     m_toolTip->ClearMouseTracking();
 }
 
+const DpiManager& Window::Dpi() const
+{
+    return GlobalManager::Instance().Dpi();
+}
+
 LRESULT Window::OnMouseMoveMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
     ASSERT_UNUSED_VARIABLE(uMsg == WM_MOUSEMOVE);
