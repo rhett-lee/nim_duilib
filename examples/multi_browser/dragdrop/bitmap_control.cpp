@@ -25,7 +25,8 @@ void BitmapControl::Paint(ui::IRender* pRender, const ui::UiRect& rcPaint)
 	IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
 	ASSERT(pRenderFactory != nullptr);
 	if (pRenderFactory != nullptr) {
-		render.reset(pRenderFactory->CreateRender());
+		ASSERT(GetWindow() != nullptr);
+		render.reset(pRenderFactory->CreateRender(GetWindow()));
 		bitmap.reset(pRenderFactory->CreateBitmap());
 	}
 	ASSERT(render != nullptr);

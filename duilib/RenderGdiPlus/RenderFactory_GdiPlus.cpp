@@ -39,7 +39,7 @@ IBitmap* RenderFactory_GdiPlus::CreateBitmap()
 	return new Bitmap_GDI();
 }
 
-IRender* RenderFactory_GdiPlus::CreateRender()
+IRender* RenderFactory_GdiPlus::CreateRender(Window* /*pWindow*/)
 {
 	return new Render_GdiPlus();
 }

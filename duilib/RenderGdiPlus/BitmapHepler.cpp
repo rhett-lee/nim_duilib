@@ -17,7 +17,7 @@ namespace BitmapHelper {
         IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
         ASSERT(pRenderFactory != nullptr);
         if (pRenderFactory != nullptr) {
-            pRender = pRenderFactory->CreateRender();
+            pRender = pRenderFactory->CreateRender(nullptr);
             bitmap.reset(pRenderFactory->CreateBitmap());
         }
         ASSERT(pRender != nullptr);
@@ -79,7 +79,7 @@ namespace BitmapHelper {
         IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
         ASSERT(pRenderFactory != nullptr);
         if (pRenderFactory != nullptr) {
-            pRender = pRenderFactory->CreateRender();
+            pRender = pRenderFactory->CreateRender(nullptr);
         }
         ASSERT(pRender != nullptr);
         if (pRender == nullptr) {

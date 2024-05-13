@@ -268,7 +268,8 @@ ui::IBitmap* TaskbarManager::GenerateBindControlBitmapWithForm(ui::Control *cont
 	IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
 	ASSERT(pRenderFactory != nullptr);
 	if (pRenderFactory != nullptr) {
-		render.reset(pRenderFactory->CreateRender());
+		ASSERT(control->GetWindow() != nullptr);
+		render.reset(pRenderFactory->CreateRender(control->GetWindow()));
 	}
 	ASSERT(render != nullptr);
 	render->Resize(window_width, window_height);
@@ -330,7 +331,8 @@ ui::IBitmap* TaskbarManager::GenerateBindControlBitmap(ui::Control *control, con
 	IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
 	ASSERT(pRenderFactory != nullptr);
 	if (pRenderFactory != nullptr) {
-		render.reset(pRenderFactory->CreateRender());
+		ASSERT(control->GetWindow() != nullptr);
+		render.reset(pRenderFactory->CreateRender(control->GetWindow()));
 	}
 	ASSERT(render != nullptr);
 	render->Resize(window_width, window_height);
@@ -361,7 +363,7 @@ ui::IBitmap* TaskbarManager::ResizeBitmap(int dest_width, int dest_height, ui::I
 	IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
 	ASSERT(pRenderFactory != nullptr);
 	if (pRenderFactory != nullptr) {
-		render.reset(pRenderFactory->CreateRender());
+		render.reset(pRenderFactory->CreateRender(nullptr));
 	}
 	ASSERT(render != nullptr);
 	if (render->Resize(dest_width, dest_height))

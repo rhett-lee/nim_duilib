@@ -651,7 +651,7 @@ void Window::InitWnd(HWND hWnd)
     IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
     ASSERT(pRenderFactory != nullptr);
     if (pRenderFactory != nullptr) {
-        m_render.reset(pRenderFactory->CreateRender());
+        m_render.reset(pRenderFactory->CreateRender(this));
     }
     ASSERT(m_render != nullptr);
     if ((m_render != nullptr) && (m_render->GetWidth() == 0)) {

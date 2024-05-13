@@ -4,6 +4,7 @@
 #pragma once
 
 #include "duilib/Render/IRender.h"
+#include "base/callback/callback.h"
 
 //Skia相关类的前置声明
 class SkCanvas;
@@ -18,7 +19,7 @@ class Bitmap_Skia;
 class UILIB_API Render_Skia : public IRender
 {
 public:
-	explicit Render_Skia(IRenderFactory* pRenderFactory);
+	explicit Render_Skia(IRenderFactory* pRenderFactory, Window* pWindow);
 	virtual ~Render_Skia();
 
 	/** 获取Render实现类型
@@ -173,6 +174,14 @@ private:
 	/** 关联的DC句柄
 	*/
 	HDC m_hDC;
+
+	/** 关联的窗口
+	*/
+	Window* m_pWindow;
+
+	/** 关联窗口的生命周期标志
+	*/
+	std::weak_ptr<nbase::WeakFlag> m_windowFlag;
 
 	/** Render工厂接口，用于创建字体
 	*/

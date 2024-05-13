@@ -17,7 +17,7 @@ public:
 	virtual IPath* CreatePath() override;
 	virtual IMatrix* CreateMatrix() override;
 	virtual IBitmap* CreateBitmap() override;
-	virtual IRender* CreateRender() override;
+	virtual IRender* CreateRender(Window* pWindow) override;
 };
 
 } // namespace ui

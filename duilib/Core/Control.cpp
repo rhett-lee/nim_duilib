@@ -2160,7 +2160,8 @@ IRender* Control::GetRender()
 		IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
 		ASSERT(pRenderFactory != nullptr);
 		if (pRenderFactory != nullptr) {
-			m_render.reset(pRenderFactory->CreateRender());
+			ASSERT(GetWindow() != nullptr);
+			m_render.reset(pRenderFactory->CreateRender(GetWindow()));
 		}
 	}
 	return m_render.get();

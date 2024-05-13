@@ -59,9 +59,9 @@ IBitmap* RenderFactory_Skia::CreateBitmap()
 	return new Bitmap_Skia();
 }
 
-IRender* RenderFactory_Skia::CreateRender()
+IRender* RenderFactory_Skia::CreateRender(Window* pWindow)
 {
-	return new Render_Skia(this);
+	return new Render_Skia(this, pWindow);
 }
 
 SkFontMgr* RenderFactory_Skia::GetSkFontMgr()

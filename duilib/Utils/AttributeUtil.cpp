@@ -179,10 +179,11 @@ void AttributeUtil::ParseWindowSize(Window* pWindow, const wchar_t* strValue, Ui
 	//支持的格式：size="1200,800",或者size="50%,50%",或者size="1200,50%",size="50%,800"
 	//百分比是指屏幕宽度或者高度的百分比
 	ASSERT(pWindow != nullptr);
-	UiRect rcWork;
-	if (pWindow != nullptr) {
-		pWindow->GetMonitorWorkRect(rcWork);
+	if (pWindow == nullptr) {
+		return;
 	}
+	UiRect rcWork;
+	pWindow->GetMonitorWorkRect(rcWork);
 	wchar_t* pstr = nullptr;
 	std::tuple<int32_t, float> x = ParseString(strValue, &pstr);
 	AttributeUtil::SkipSepChar(pstr);
@@ -223,10 +224,10 @@ void AttributeUtil::ParseWindowSize(Window* pWindow, const wchar_t* strValue, Ui
 		cy = 0;
 	}
 	if (needScaleCX) {
-		GlobalManager::Instance().Dpi().ScaleInt(cx);
+		pWindow->Dpi().ScaleInt(cx);
 	}
 	if (needScaleCY) {
-		GlobalManager::Instance().Dpi().ScaleInt(cy);
+		pWindow->Dpi().ScaleInt(cy);
 	}
 	if (cx > rcWork.Width()) {
 		cx = rcWork.Width();

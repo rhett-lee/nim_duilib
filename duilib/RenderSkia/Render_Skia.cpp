@@ -7,6 +7,7 @@
 
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Core/GlobalManager.h"
+#include "duilib/Core/Window.h"
 #include "duilib/Render/BitmapAlpha.h"
 #include "duilib/Utils/PerformanceUtil.h"
 
@@ -50,10 +51,11 @@ static inline void DrawFunction(SkCanvas* pSkCanvas,
 	pSkCanvas->drawImageRect(skImage, rcSkSrc, rcSkDest, SkSamplingOptions(), &skPaint, SkCanvas::kStrict_SrcRectConstraint);
 }
 
-Render_Skia::Render_Skia(IRenderFactory* pRenderFactory)
-	: m_bTransparent(false),
+Render_Skia::Render_Skia(IRenderFactory* pRenderFactory, Window* pWindow): 
+	m_bTransparent(false),
 	m_pSkCanvas(nullptr),
 	m_hDC(nullptr),
+	m_pWindow(pWindow),
 	m_saveCount(0),
 	m_pRenderFactory(pRenderFactory)
 {
@@ -63,6 +65,9 @@ Render_Skia::Render_Skia(IRenderFactory* pRenderFactory)
 	m_pSkPaint->setAntiAlias(true);
 	m_pSkPaint->setDither(true);
 	m_pSkPaint->setStyle(SkPaint::kStrokeAndFill_Style);
+	if (pWindow != nullptr) {
+		m_windowFlag = pWindow->GetWeakFlag();
+	}
 }
 
 Render_Skia::~Render_Skia()
@@ -131,7 +136,11 @@ void Render_Skia::Clear()
 
 std::unique_ptr<ui::IRender> Render_Skia::Clone()
 {
-	std::unique_ptr<ui::IRender> pClone = std::make_unique<ui::Render_Skia>(m_pRenderFactory);
+	Window* pWindow = m_pWindow;
+	if (m_windowFlag.expired()) {
+		pWindow = nullptr;
+	}
+	std::unique_ptr<ui::IRender> pClone = std::make_unique<ui::Render_Skia>(m_pRenderFactory, pWindow);
 	pClone->Resize(GetWidth(), GetHeight());
 	pClone->BitBlt(0, 0, GetWidth(), GetHeight(), this, 0, 0, RopMode::kSrcCopy);
 	return pClone;
@@ -1164,8 +1173,10 @@ void Render_Skia::SetPaintByPen(SkPaint& skPaint, const IPen* pen)
 
 	sk_sp<SkPathEffect> skPathEffect;
 	IPen::DashStyle dashStyle = pen->GetDashStyle();
-	//线宽的倍数
-	int32_t nRatio = pen->GetWidth() / GlobalManager::Instance().Dpi().GetScaleInt(1);
+	//线宽的倍数	
+	const Window* pWindow = !m_windowFlag.expired() ? m_pWindow : nullptr;
+	const DpiManager& dpi = (pWindow != nullptr) ? pWindow->Dpi() : GlobalManager::Instance().Dpi();
+	int32_t nRatio = pen->GetWidth() / dpi.GetScaleInt(1);
 	switch (dashStyle) {
 	case IPen::kDashStyleSolid:
 	{
@@ -1175,31 +1186,31 @@ void Render_Skia::SetPaintByPen(SkPaint& skPaint, const IPen* pen)
 	}
 	case IPen::kDashStyleDash:
 	{
-		int32_t nValue = GlobalManager::Instance().Dpi().GetScaleInt(5) * nRatio;
+		int32_t nValue = dpi.GetScaleInt(5) * nRatio;
 		SkScalar intervals[] = { nValue * 1.0f, nValue * 1.0f };
 		skPathEffect = SkDashPathEffect::Make(intervals, 2, 0.0f);
 		break;
 	}
 	case IPen::kDashStyleDot:
 	{
-		int32_t nValue1 = GlobalManager::Instance().Dpi().GetScaleInt(1) * nRatio;
-		int32_t nValue4 = GlobalManager::Instance().Dpi().GetScaleInt(4) * nRatio;
+		int32_t nValue1 = dpi.GetScaleInt(1) * nRatio;
+		int32_t nValue4 = dpi.GetScaleInt(4) * nRatio;
 		SkScalar intervals[] = { nValue1 * 1.0f, nValue4 * 1.0f };
 		skPathEffect = SkDashPathEffect::Make(intervals, 2, 0.0f);
 		break;
 	}
 	case IPen::kDashStyleDashDot:
 	{
-		int32_t nValue1 = GlobalManager::Instance().Dpi().GetScaleInt(1) * nRatio;
-		int32_t nValue4 = GlobalManager::Instance().Dpi().GetScaleInt(4) * nRatio;
+		int32_t nValue1 = dpi.GetScaleInt(1) * nRatio;
+		int32_t nValue4 = dpi.GetScaleInt(4) * nRatio;
 		SkScalar intervals[] = { nValue4 * 1.0f, nValue1 * 1.0f, nValue1 * 1.0f, nValue1 * 1.0f };
 		skPathEffect = SkDashPathEffect::Make(intervals, 4, 0.0f);
 		break;
 	}
 	case IPen::kDashStyleDashDotDot:
 	{
-		int32_t nValue1 = GlobalManager::Instance().Dpi().GetScaleInt(1) * nRatio;
-		int32_t nValue4 = GlobalManager::Instance().Dpi().GetScaleInt(4) * nRatio;
+		int32_t nValue1 = dpi.GetScaleInt(1) * nRatio;
+		int32_t nValue4 = dpi.GetScaleInt(4) * nRatio;
 		SkScalar intervals[] = { nValue4 * 1.0f, nValue1 * 1.0f, nValue1 * 1.0f, nValue1 * 1.0f, nValue1 * 1.0f, nValue1 * 1.0f };
 		skPathEffect = SkDashPathEffect::Make(intervals, 6, 0.0f);
 		break;
@@ -1902,7 +1913,11 @@ HDC Render_Skia::GetDC()
 	if (hBitmap == nullptr) {
 		return nullptr;
 	}
-	HDC hDeskDC = ::GetDC(NULL);
+	Window* pWindow = m_pWindow;
+	if (m_windowFlag.expired()) {
+		pWindow = nullptr;
+	}
+	HDC hDeskDC = ::GetDC((pWindow != nullptr) ? pWindow->GetHWND() : nullptr);
 	HDC hGetDC = ::CreateCompatibleDC(hDeskDC);
 	::ReleaseDC(NULL, hDeskDC);
 	hDeskDC = nullptr;

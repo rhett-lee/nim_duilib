@@ -427,6 +427,7 @@ public:
 
 /** 渲染接口
 */
+class Window;
 class UILIB_API IRender : public virtual nbase::SupportWeakCallback
 {
 public:
@@ -849,8 +850,9 @@ public:
 	virtual IBitmap* CreateBitmap() = 0;
 
 	/** 创建一个Render对象
+	* @param [in] pWindow 关联的窗口
 	*/
-	virtual IRender* CreateRender() = 0;
+	virtual IRender* CreateRender(Window* pWindow) = 0;
 };
 
 } // namespace ui

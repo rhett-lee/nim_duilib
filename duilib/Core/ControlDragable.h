@@ -877,7 +877,8 @@ std::shared_ptr<IBitmap> ControlDragableT<T>::CreateDragoutImage()
     IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
     ASSERT(pRenderFactory != nullptr);
     if (pRenderFactory != nullptr) {
-        render.reset(pRenderFactory->CreateRender());
+        ASSERT(this->GetWindow() != nullptr);
+        render.reset(pRenderFactory->CreateRender(this->GetWindow()));
     }
     ASSERT(render != nullptr);
     // const int32_t kDragImageWidth = GlobalManager::Instance().Dpi().GetScaleInt(90);
