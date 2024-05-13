@@ -1,6 +1,7 @@
 #include "ImageDecoder.h"
 #include "duilib/Image/Image.h"
 #include "duilib/Core/GlobalManager.h"
+#include "duilib/Core/DpiManager.h"
 #include "duilib/Utils/StringUtil.h"
 
 #include "duilib/third_party/apng/decoder-apng.h"
@@ -193,6 +194,7 @@ namespace SVGImageLoader
 	*/
 	bool LoadImageFromMemory(std::vector<uint8_t>& fileData, 
 						     const ImageLoadAttribute& imageLoadAttribute, 
+							 const DpiManager& dpi,
 							 ImageDecoder::ImageData& imageData,
 							 bool& bDpiScaled)
 	{
@@ -235,7 +237,7 @@ namespace SVGImageLoader
 			needDpiScale = imageLoadAttribute.NeedDpiScale();
 		}
 		if (needDpiScale) {
-			UINT dpiScale = GlobalManager::Instance().Dpi().GetScale();
+			uint32_t dpiScale = dpi.GetScale();
 			if ((dpiScale != 100) && (dpiScale != 0)) {
 				float scaleRatio = (float)dpiScale / 100.0f;
 				scale *= scaleRatio;
@@ -535,7 +537,8 @@ ImageDecoder::ImageFormat ImageDecoder::GetImageFormat(const std::wstring& path)
 }
 
 std::unique_ptr<ImageInfo> ImageDecoder::LoadImageData(std::vector<uint8_t>& fileData,
-											           const ImageLoadAttribute& imageLoadAttribute)
+											           const ImageLoadAttribute& imageLoadAttribute,
+													   const DpiManager& dpi)
 {
 	std::wstring imageFullPath = imageLoadAttribute.GetImageFullPath();
 	ASSERT(!fileData.empty() && !imageFullPath.empty());
@@ -553,7 +556,7 @@ std::unique_ptr<ImageInfo> ImageDecoder::LoadImageData(std::vector<uint8_t>& fil
 	int32_t playCount = -1;
 
 	PerformanceUtil::Instance().BeginStat(L"DecodeImageData");
-	bool isLoaded = DecodeImageData(fileData, imageLoadAttribute, imageData, playCount, bDpiScaled);
+	bool isLoaded = DecodeImageData(fileData, imageLoadAttribute, dpi, imageData, playCount, bDpiScaled);
 	PerformanceUtil::Instance().EndStat(L"DecodeImageData");
 	if (!isLoaded || imageData.empty()) {
 		return nullptr;
@@ -579,7 +582,7 @@ std::unique_ptr<ImageInfo> ImageDecoder::LoadImageData(std::vector<uint8_t>& fil
 			needDpiScale = imageLoadAttribute.NeedDpiScale();
 		}
 		if (needDpiScale) {
-			UINT dpiScale = GlobalManager::Instance().Dpi().GetScale();
+			uint32_t dpiScale = dpi.GetScale();
 			if ((dpiScale != 100) && (dpiScale != 0)) {
 				float scaleRatio = (float)dpiScale / 100.0f;
 				nImageWidth = static_cast<int>(nImageWidth * scaleRatio);
@@ -691,6 +694,7 @@ bool ImageDecoder::ResizeImageData(std::vector<ImageData>& imageData,
 
 bool ImageDecoder::DecodeImageData(std::vector<uint8_t>& fileData,
 								   const ImageLoadAttribute& imageLoadAttribute,
+	                               const DpiManager& dpi,
 								   std::vector<ImageData>& imageData,
 								   int32_t& playCount,
 	                               bool& bDpiScaled)
@@ -712,7 +716,7 @@ bool ImageDecoder::DecodeImageData(std::vector<uint8_t>& fileData,
 		break;
 	case ImageFormat::kSVG:
 		imageData.resize(1);
-		isLoaded = SVGImageLoader::LoadImageFromMemory(fileData, imageLoadAttribute, imageData[0], bDpiScaled);
+		isLoaded = SVGImageLoader::LoadImageFromMemory(fileData, imageLoadAttribute, dpi, imageData[0], bDpiScaled);
 		break;
 	case ImageFormat::kJPEG:
 	case ImageFormat::kBMP:

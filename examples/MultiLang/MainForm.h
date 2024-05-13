@@ -31,8 +31,8 @@ public:
     */
     virtual std::wstring GetWindowClassName() const override;
 
-    /** 收到 WM_CREATE 消息时该函数会被调用，通常做一些控件初始化的操作
-     */
+    /** 当窗口创建完成以后调用此函数，供子类中做一些初始化的工作
+    */
     virtual void OnInitWindow() override;
 
     /** 收到 WM_CLOSE 消息时该函数会被调用

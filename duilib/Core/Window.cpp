@@ -58,7 +58,6 @@ Window::Window() :
 {
     m_rcLastWindowPlacement = {sizeof(WINDOWPLACEMENT), };
     m_toolTip = std::make_unique<ToolTip>();
-    m_shadow = std::make_unique<Shadow>();
 }
 
 Window::~Window()
@@ -88,6 +87,7 @@ Window::~Window()
         ::ReleaseDC(m_hWnd, m_hDcPaint);
         m_hDcPaint = nullptr;
     }
+    m_shadow.reset();
 }
 
 bool Window::IsWindow() const
@@ -214,13 +214,6 @@ bool Window::CreateWnd(HWND hwndParent, const wchar_t* windowName, uint32_t dwSt
     if (dwExStyle & WS_EX_LAYERED) {
         m_bIsLayeredWindow = true;
     }
-
-    //根据窗口是否为层窗口，重新初始化阴影附加属性值(层窗口为true，否则为false)
-    if (m_shadow->IsUseDefaultShadowAttached()) {
-        m_shadow->SetShadowAttached(m_bIsLayeredWindow);
-        m_shadow->SetUseDefaultShadowAttached(true);
-    }
-
     HWND hWnd = ::CreateWindowEx(dwExStyle,
                                  className.c_str(),
                                  windowName,
@@ -232,7 +225,6 @@ bool Window::CreateWnd(HWND hwndParent, const wchar_t* windowName, uint32_t dwSt
         m_hWnd = hWnd;
     }
     OnInitWindow();
-    GlobalManager::Instance().AddWindow(this);
     return hWnd != nullptr;
 }
 
@@ -634,24 +626,59 @@ Window* Window::GetWindowObject(HWND hWnd)
     return pThis;
 }
 
-void Window::InitWnd(HWND hWnd)
+uint32_t Window::GetWindowStyle() const
 {
+    ASSERT(::IsWindow(GetHWND()));
+    uint32_t styleValue = (uint32_t)::GetWindowLong(GetHWND(), GWL_STYLE);
+    //使用自绘的标题栏：从原来窗口样式中，移除 WS_CAPTION 属性
+    styleValue &= ~WS_CAPTION;
+    return styleValue;
+}
+
+void Window::OnCreateWindow()
+{
+    HWND hWnd = GetHWND();
     ASSERT(::IsWindow(hWnd));
     if (!::IsWindow(hWnd)) {
         return;
     }
-    ASSERT((m_hWnd == nullptr) || (m_hWnd == hWnd));
-    m_hWnd = hWnd;
+    //根据窗口是否为层窗口，重新初始化阴影附加属性值(层窗口为true，否则为false)
+    ASSERT(m_shadow == nullptr);
+    if (m_shadow != nullptr) {
+        return;
+    }
+    m_shadow = std::make_unique<Shadow>(this);
+    if (m_shadow->IsUseDefaultShadowAttached()) {
+        m_shadow->SetShadowAttached(m_bIsLayeredWindow);
+        m_shadow->SetUseDefaultShadowAttached(true);
+    }
 
-    // Remember the window context we came from
     ASSERT(m_hDcPaint == nullptr);
-    m_hDcPaint = ::GetDC(hWnd);
+    if (m_hDcPaint != nullptr) {
+        //避免重复初始化
+        return;
+    }
+    //添加到全局管理器
+    GlobalManager::Instance().AddWindow(this);
 
+    //设置窗口风格
+    uint32_t nStyle = GetWindowStyle();
+    if (nStyle != 0) {
+        ::SetWindowLong(hWnd, GWL_STYLE, nStyle);
+    }
+    
+    //创建绘制设备上下文
+    m_hDcPaint = ::GetDC(hWnd);
+    ASSERT(m_hDcPaint != nullptr);
+
+    //创建渲染接口
     ASSERT(m_render == nullptr);
-    IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
-    ASSERT(pRenderFactory != nullptr);
-    if (pRenderFactory != nullptr) {
-        m_render.reset(pRenderFactory->CreateRender(this));
+    if (m_render == nullptr) {
+        IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
+        ASSERT(pRenderFactory != nullptr);
+        if (pRenderFactory != nullptr) {
+            m_render.reset(pRenderFactory->CreateRender(this));
+        }
     }
     ASSERT(m_render != nullptr);
     if ((m_render != nullptr) && (m_render->GetWidth() == 0)) {
@@ -663,6 +690,7 @@ void Window::InitWnd(HWND hWnd)
         }
     }
 
+    //注册接受Touch消息
     RegisterTouchWindowWrapper(hWnd, 0);
 }
 
@@ -839,7 +867,11 @@ void Window::RemoveAllOptionGroups()
 
 void Window::ClearImageCache()
 {
-    Control* pRoot = m_shadow->GetRoot();
+    Control* pRoot = nullptr;
+    ASSERT(m_shadow != nullptr);
+    if (m_shadow != nullptr) {
+        pRoot = m_shadow->GetRoot();
+    }
     if (pRoot) {
         pRoot->ClearImageCache();
     }
@@ -872,7 +904,7 @@ void Window::SetCaptionRect(const UiRect& rcCaption, bool bNeedDpiScale)
 {
     m_rcCaption = rcCaption;
     if (bNeedDpiScale) {
-        GlobalManager::Instance().Dpi().ScaleRect(m_rcCaption);
+        Dpi().ScaleRect(m_rcCaption);
     }
 }
 
@@ -911,7 +943,7 @@ const UiSize& Window::GetRoundCorner() const
     return m_szRoundCorner;
 }
 
-void Window::SetRoundCorner(int cx, int cy)
+void Window::SetRoundCorner(int cx, int cy, bool bNeedDpiScale)
 {
     ASSERT(cx >= 0);
     ASSERT(cy >= 0);
@@ -930,8 +962,10 @@ void Window::SetRoundCorner(int cx, int cy)
             return;
         }
     }
-    GlobalManager::Instance().Dpi().ScaleInt(cx);
-    GlobalManager::Instance().Dpi().ScaleInt(cy);
+    if (bNeedDpiScale) {
+        Dpi().ScaleInt(cx);
+        Dpi().ScaleInt(cy);
+    }    
     m_szRoundCorner.cx = cx;
     m_szRoundCorner.cy = cy;
 }
@@ -941,10 +975,12 @@ const UiRect& Window::GetMaximizeInfo() const
     return m_rcMaximizeInfo;
 }
 
-void Window::SetMaximizeInfo(const UiRect& rcMaximize)
+void Window::SetMaximizeInfo(const UiRect& rcMaximize, bool bNeedDpiScale)
 {
     m_rcMaximizeInfo = rcMaximize;
-    GlobalManager::Instance().Dpi().ScaleRect(m_rcMaximizeInfo);
+    if (bNeedDpiScale) {
+        Dpi().ScaleRect(m_rcMaximizeInfo);
+    }
 }
 
 const UiRect& Window::GetAlphaFixCorner() const
@@ -952,12 +988,14 @@ const UiRect& Window::GetAlphaFixCorner() const
     return m_rcAlphaFix;
 }
 
-void Window::SetAlphaFixCorner(const UiRect& rc)
+void Window::SetAlphaFixCorner(const UiRect& rc, bool bNeedDpiScale)
 {
     ASSERT((rc.left >= 0) && (rc.top >= 0) && (rc.right >= 0) && (rc.bottom >= 0));
     if ((rc.left >= 0) && (rc.top >= 0) && (rc.right >= 0) && (rc.bottom >= 0)) {
         m_rcAlphaFix = rc;
-        GlobalManager::Instance().Dpi().ScaleRect(m_rcAlphaFix);
+        if (bNeedDpiScale) {
+            Dpi().ScaleRect(m_rcAlphaFix);
+        }
     }
 }
 
@@ -988,47 +1026,89 @@ std::wstring Window::GetTextId() const
 Box* Window::AttachShadow(Box* pRoot)
 {
     //将阴影附加到窗口
-    return m_shadow->AttachShadow(pRoot);
+    ASSERT(m_shadow != nullptr);
+    if (m_shadow != nullptr) {
+        return m_shadow->AttachShadow(pRoot);
+    }
+    else {
+        return pRoot;
+    }
 }
 
 void Window::SetShadowAttached(bool bShadowAttached)
 {
-    m_shadow->SetShadowAttached(bShadowAttached);
+    ASSERT(m_shadow != nullptr);
+    if (m_shadow != nullptr) {
+        m_shadow->SetShadowAttached(bShadowAttached);
+    }
 }
 
-const std::wstring& Window::GetShadowImage() const
+std::wstring Window::GetShadowImage() const
 {
-    return m_shadow->GetShadowImage();
+    ASSERT(m_shadow != nullptr);
+    if (m_shadow != nullptr) {
+        return m_shadow->GetShadowImage();
+    }
+    else {
+        return std::wstring();
+    }
 }
 
 void Window::SetShadowImage(const std::wstring& strImage)
 {
-    m_shadow->SetShadowImage(strImage);
+    ASSERT(m_shadow != nullptr);
+    if (m_shadow != nullptr) {
+        m_shadow->SetShadowImage(strImage);
+    }
 }
 
 UiPadding Window::GetShadowCorner() const
 {
-    return m_shadow->GetShadowCorner();
+    ASSERT(m_shadow != nullptr);
+    if (m_shadow != nullptr) {
+        return m_shadow->GetShadowCorner();
+    }
+    else {
+        return UiPadding();
+    }
 }
 
 bool Window::IsShadowAttached() const
 {
-    return m_shadow->IsShadowAttached();
+    ASSERT(m_shadow != nullptr);
+    if (m_shadow != nullptr) {
+        return m_shadow->IsShadowAttached();
+    }
+    else {
+        return false;
+    }
 }
 
 bool Window::IsUseDefaultShadowAttached() const
 {
-    return m_shadow->IsUseDefaultShadowAttached();
+    ASSERT(m_shadow != nullptr);
+    if (m_shadow != nullptr) {
+        return m_shadow->IsUseDefaultShadowAttached();
+    } 
+    else {
+        return false;
+    }    
 }
 
 void Window::SetUseDefaultShadowAttached(bool isDefault)
 {
-    m_shadow->SetUseDefaultShadowAttached(isDefault);
+    ASSERT(m_shadow != nullptr);
+    if (m_shadow != nullptr) {
+        m_shadow->SetUseDefaultShadowAttached(isDefault);
+    }
 }
 
 void Window::SetShadowCorner(const UiPadding& padding, bool bNeedDpiScale)
 {
-    m_shadow->SetShadowCorner(padding, bNeedDpiScale);
+    ASSERT(m_shadow != nullptr);
+    if (m_shadow != nullptr) {
+        m_shadow->SetShadowCorner(padding, bNeedDpiScale);
+    }
 }
 
 UiRect Window::GetWindowPos(bool bContainShadow) const
@@ -1037,8 +1117,11 @@ UiRect Window::GetWindowPos(bool bContainShadow) const
     UiRect rcPos;
     GetWindowRect(rcPos);
     if (!bContainShadow) {
-        UiPadding padding = m_shadow->GetShadowCorner();
-        rcPos.Deflate(padding);
+        ASSERT(m_shadow != nullptr);
+        if (m_shadow != nullptr) {
+            UiPadding padding = m_shadow->GetShadowCorner();
+            rcPos.Deflate(padding);
+        }        
     }
     return rcPos;
 }
@@ -1047,13 +1130,16 @@ bool Window::SetWindowPos(const UiRect& rc, bool bNeedDpiScale, UINT uFlags, HWN
 {
     UiRect rcNewPos = rc;
     if (bNeedDpiScale) {
-        GlobalManager::Instance().Dpi().ScaleRect(rcNewPos);
+        Dpi().ScaleRect(rcNewPos);
     }
 
     ASSERT(::IsWindow(m_hWnd));
     if (!bContainShadow) {
-        UiPadding rcCorner = m_shadow->GetShadowCorner();
-        rcNewPos.Inflate(rcCorner);
+        ASSERT(m_shadow != nullptr);
+        if (m_shadow != nullptr) {
+            UiPadding rcCorner = m_shadow->GetShadowCorner();
+            rcNewPos.Inflate(rcCorner);
+        }
     }
     return SetWindowPos(hWndInsertAfter, rcNewPos.left, rcNewPos.top, rcNewPos.Width(), rcNewPos.Height(), uFlags);
 }
@@ -1068,15 +1154,17 @@ UiSize Window::GetMinInfo(bool bContainShadow) const
 {
     UiSize xy = m_szMinWindow;
     if (!bContainShadow) {
-        UiPadding rcShadow = m_shadow->GetShadowCorner();
-        if (xy.cx != 0) {
-            xy.cx -= rcShadow.left + rcShadow.right;
-        }
-        if (xy.cy != 0) {
-            xy.cy -= rcShadow.top + rcShadow.bottom;
+        ASSERT(m_shadow != nullptr);
+        if (m_shadow != nullptr) {
+            UiPadding rcShadow = m_shadow->GetShadowCorner();
+            if (xy.cx != 0) {
+                xy.cx -= rcShadow.left + rcShadow.right;
+            }
+            if (xy.cy != 0) {
+                xy.cy -= rcShadow.top + rcShadow.bottom;
+            }
         }
     }
-
     return xy;
 }
 
@@ -1090,16 +1178,19 @@ void Window::SetMinInfo(int cx, int cy, bool bContainShadow, bool bNeedDpiScale)
         cy = 0;
     }
     if (bNeedDpiScale) {
-        GlobalManager::Instance().Dpi().ScaleInt(cx);
-        GlobalManager::Instance().Dpi().ScaleInt(cy);
+        Dpi().ScaleInt(cx);
+        Dpi().ScaleInt(cy);
     }
     if (!bContainShadow) {
-        UiPadding rcShadow = m_shadow->GetShadowCorner();
-        if (cx != 0) {
-            cx += rcShadow.left + rcShadow.right;
-        }
-        if (cy != 0) {
-            cy += rcShadow.top + rcShadow.bottom;
+        ASSERT(m_shadow != nullptr);
+        if (m_shadow != nullptr) {
+            UiPadding rcShadow = m_shadow->GetShadowCorner();
+            if (cx != 0) {
+                cx += rcShadow.left + rcShadow.right;
+            }
+            if (cy != 0) {
+                cy += rcShadow.top + rcShadow.bottom;
+            }
         }
     }
     m_szMinWindow.cx = cx;
@@ -1110,12 +1201,15 @@ UiSize Window::GetMaxInfo(bool bContainShadow) const
 {
     UiSize xy = m_szMaxWindow;
     if (!bContainShadow) {
-        UiPadding rcShadow = m_shadow->GetShadowCorner();
-        if (xy.cx != 0) {
-            xy.cx -= rcShadow.left + rcShadow.right;
-        }
-        if (xy.cy != 0) {
-            xy.cy -= rcShadow.top + rcShadow.bottom;
+        ASSERT(m_shadow != nullptr);
+        if (m_shadow != nullptr) {
+            UiPadding rcShadow = m_shadow->GetShadowCorner();
+            if (xy.cx != 0) {
+                xy.cx -= rcShadow.left + rcShadow.right;
+            }
+            if (xy.cy != 0) {
+                xy.cy -= rcShadow.top + rcShadow.bottom;
+            }
         }
     }
 
@@ -1132,16 +1226,19 @@ void Window::SetMaxInfo(int cx, int cy, bool bContainShadow, bool bNeedDpiScale)
         cy = 0;
     }
     if (bNeedDpiScale) {
-        GlobalManager::Instance().Dpi().ScaleInt(cx);
-        GlobalManager::Instance().Dpi().ScaleInt(cy);
+        Dpi().ScaleInt(cx);
+        Dpi().ScaleInt(cy);
     }
     if (!bContainShadow) {
-        UiPadding rcShadow = m_shadow->GetShadowCorner();
-        if (cx != 0) {
-            cx += rcShadow.left + rcShadow.right;
-        }
-        if (cy != 0) {
-            cy += rcShadow.top + rcShadow.bottom;
+        ASSERT(m_shadow != nullptr);
+        if (m_shadow != nullptr) {
+            UiPadding rcShadow = m_shadow->GetShadowCorner();
+            if (cx != 0) {
+                cx += rcShadow.left + rcShadow.right;
+            }
+            if (cy != 0) {
+                cy += rcShadow.top + rcShadow.bottom;
+            }
         }
     }
     m_szMaxWindow.cx = cx;
@@ -1152,12 +1249,15 @@ UiSize Window::GetInitSize(bool bContainShadow) const
 {
     UiSize xy = m_szInitWindowSize;
     if (!bContainShadow) {
-        UiPadding rcShadow = m_shadow->GetShadowCorner();
-        if (xy.cx != 0) {
-            xy.cx -= rcShadow.left + rcShadow.right;
-        }
-        if (xy.cy != 0) {
-            xy.cy -= rcShadow.top + rcShadow.bottom;
+        ASSERT(m_shadow != nullptr);
+        if (m_shadow != nullptr) {
+            UiPadding rcShadow = m_shadow->GetShadowCorner();
+            if (xy.cx != 0) {
+                xy.cx -= rcShadow.left + rcShadow.right;
+            }
+            if (xy.cy != 0) {
+                xy.cy -= rcShadow.top + rcShadow.bottom;
+            }
         }
     }
 
@@ -1174,14 +1274,17 @@ void Window::Resize(int cx, int cy, bool bContainShadow, bool bNeedDpiScale)
         cy = 0;
     }
     if (bNeedDpiScale) {
-        GlobalManager::Instance().Dpi().ScaleInt(cy);
-        GlobalManager::Instance().Dpi().ScaleInt(cx);
+        Dpi().ScaleInt(cy);
+        Dpi().ScaleInt(cx);
     }
 
     if (!bContainShadow) {
-        UiPadding rcShadow = m_shadow->GetShadowCorner();
-        cx += rcShadow.left + rcShadow.right;
-        cy += rcShadow.top + rcShadow.bottom;
+        ASSERT(m_shadow != nullptr);
+        if (m_shadow != nullptr) {
+            UiPadding rcShadow = m_shadow->GetShadowCorner();
+            cx += rcShadow.left + rcShadow.right;
+            cy += rcShadow.top + rcShadow.bottom;
+        }
     }
     m_szInitWindowSize.cx = cx;
     m_szInitWindowSize.cy = cy;
@@ -1220,6 +1323,11 @@ bool Window::RemoveMessageFilter(IUIMessageFilter* pFilter)
 LRESULT Window::WindowMessageProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     HWND hWnd = m_hWnd;
+    if (uMsg == WM_CREATE) {
+        //执行窗口的初始化工作        
+        OnCreateWindow();
+    }
+
     //第一优先级：将消息发给过滤器进行过滤
     for (auto filter : m_aMessageFilters) {
         bool bHandled = false;
@@ -1391,8 +1499,10 @@ LRESULT Window::OnNcHitTestMsg(UINT uMsg, WPARAM /*wParam*/, LPARAM lParam, bool
     GetClientRect(rcClient);
 
     //客户区域，排除掉阴影部分区域
-    UiPadding rcCorner = m_shadow->GetShadowCorner();
-    rcClient.Deflate(rcCorner);
+    if (m_shadow != nullptr) {
+        UiPadding rcCorner = m_shadow->GetShadowCorner();
+        rcClient.Deflate(rcCorner);
+    }
 
     if (!IsWindowMaximized()) {
         //非最大化状态
@@ -1609,10 +1719,14 @@ LRESULT Window::OnSizeMsg(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/, bool& bHa
         m_pRoot->Arrange();
     }
     if (wParam == SIZE_MAXIMIZED) {
-        m_shadow->MaximizedOrRestored(true);
+        if (m_shadow != nullptr) {
+            m_shadow->MaximizedOrRestored(true);
+        }
     }
     else if (wParam == SIZE_RESTORED) {
-        m_shadow->MaximizedOrRestored(false);
+        if (m_shadow != nullptr) {
+            m_shadow->MaximizedOrRestored(false);
+        }
     }
     if (m_pFocus != nullptr) {
         m_pFocus->SendEvent(kEventWindowSize);
@@ -2657,7 +2771,7 @@ void Window::Paint()
 
     // alpha修复
     if (m_bIsLayeredWindow) {
-        if (m_shadow->IsShadowAttached() && m_renderOffset.x == 0 && m_renderOffset.y == 0) {
+        if ((m_shadow != nullptr) && m_shadow->IsShadowAttached() && m_renderOffset.x == 0 && m_renderOffset.y == 0) {
             //补救由于Gdi绘制造成的alpha通道为0
             UiRect rcNewPaint = rcPaint;
             rcNewPaint.Intersect(m_pRoot->GetPosWithoutPadding());
@@ -2794,7 +2908,7 @@ void Window::SetLayeredWindow(bool bIsLayeredWindow)
     m_bIsLayeredWindow = bIsLayeredWindow;
 
     //根据窗口是否为层窗口，重新初始化阴影附加属性值(层窗口为true，否则为false)
-    if (m_shadow->IsUseDefaultShadowAttached()) {
+    if ((m_shadow != nullptr) && m_shadow->IsUseDefaultShadowAttached()) {
         m_shadow->SetShadowAttached(m_bIsLayeredWindow);
         m_shadow->SetUseDefaultShadowAttached(true);
     }

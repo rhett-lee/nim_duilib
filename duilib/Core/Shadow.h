@@ -12,6 +12,7 @@ namespace ui
 
 class Box;
 class Control;
+class Window;
 
 /** 窗口阴影属性
 */
@@ -19,11 +20,15 @@ class UILIB_API Shadow
 {
 public:
 	/** Attach的Box圆角属性（Attach后，需要修改原来Box的圆角属性）
+	* @param [in] pBox 关联的容器，用于处理DPI缩放
 	*/
-	static UiSize GetChildBoxBorderRound();
+	static UiSize GetChildBoxBorderRound(Box* pBox);
 
 public:
-	Shadow();
+	/** 构造函数
+	 @param [in] pWindow 关联的窗口
+	*/
+	explicit Shadow(Window* pWindow);
 
 	/** 设置是否支持阴影效果
 	 * @param[in] bShadowAttached 设置 true 为支持阴影效果，false 为不支持阴影效果
@@ -101,6 +106,9 @@ private:
 
 	//Root容器接口
 	Box* m_pRoot;
+
+	//关联的窗口
+	Window* m_pWindow;
 };
 
 }

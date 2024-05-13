@@ -205,7 +205,7 @@ void CircleProgress::SetIndicator(const std::wstring& sIndicatorImage)
 	}
 	if (m_pIndicatorImage->GetImageString() != sIndicatorImage) {
 		m_pIndicatorImage->ClearImageCache();
-		m_pIndicatorImage->SetImageString(sIndicatorImage);
+		m_pIndicatorImage->SetImageString(sIndicatorImage, Dpi());
 		Invalidate();	
 	}
 }

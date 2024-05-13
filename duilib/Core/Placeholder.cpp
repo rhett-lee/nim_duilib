@@ -135,7 +135,7 @@ void PlaceHolder::SetFixedWidth(UiFixedInt cx, bool bArrange, bool bNeedDpiScale
 		return;
 	}
 	if (bNeedDpiScale && cx.IsInt32()) {
-		GlobalManager::Instance().Dpi().ScaleInt(cx.value);
+		Dpi().ScaleInt(cx.value);
 	}		
 
 	if (m_cxyFixed.cx != cx) {
@@ -163,7 +163,7 @@ void PlaceHolder::SetFixedHeight(UiFixedInt cy, bool bArrange, bool bNeedDpiScal
 	}
 
 	if (bNeedDpiScale && cy.IsInt32()) {
-		GlobalManager::Instance().Dpi().ScaleInt(cy.value);
+		Dpi().ScaleInt(cy.value);
 	}
 
 	if (m_cxyFixed.cy != cy) {
@@ -220,7 +220,7 @@ void PlaceHolder::SetMinWidth(int32_t cx, bool bNeedDpiScale)
 		return;
 	}
 	if (bNeedDpiScale) {
-		GlobalManager::Instance().Dpi().ScaleInt(cx);
+		Dpi().ScaleInt(cx);
 	}	
 	if (m_cxyMin.cx == cx) {
 		return;
@@ -246,7 +246,7 @@ void PlaceHolder::SetMaxWidth(int32_t cx, bool bNeedDpiScale)
 		return;
 	}
 	if (bNeedDpiScale) {
-		GlobalManager::Instance().Dpi().ScaleInt(cx);
+		Dpi().ScaleInt(cx);
 	}	
 	if (m_cxyMax.cx == cx) {
 		return;
@@ -272,7 +272,7 @@ void PlaceHolder::SetMinHeight(int32_t cy, bool bNeedDpiScale)
 		return;
 	}
 	if (bNeedDpiScale) {
-		GlobalManager::Instance().Dpi().ScaleInt(cy);
+		Dpi().ScaleInt(cy);
 	}	
 	if (m_cxyMin.cy == cy) {
 		return;
@@ -298,7 +298,7 @@ void PlaceHolder::SetMaxHeight(int32_t cy, bool bNeedDpiScale)
 		return;
 	}
 	if (bNeedDpiScale) {
-		GlobalManager::Instance().Dpi().ScaleInt(cy);
+		Dpi().ScaleInt(cy);
 	}	
 	if (m_cxyMax.cy == cy) {
 		return;
@@ -359,7 +359,7 @@ void PlaceHolder::SetMargin(UiMargin rcMargin, bool bNeedDpiScale)
 	ASSERT((rcMargin.left >= 0) && (rcMargin.top >= 0) && (rcMargin.right >= 0) && (rcMargin.bottom >= 0));
 	rcMargin.Validate();
 	if (bNeedDpiScale) {
-		GlobalManager::Instance().Dpi().ScaleMargin(rcMargin);
+		Dpi().ScaleMargin(rcMargin);
 	}
 
 	if (!GetMargin().Equals(rcMargin)) {
@@ -381,7 +381,7 @@ void PlaceHolder::SetPadding(UiPadding rcPadding, bool bNeedDpiScale /*= true*/)
 	ASSERT((rcPadding.left >= 0) && (rcPadding.top >= 0) && (rcPadding.right >= 0) && (rcPadding.bottom >= 0));
 	rcPadding.Validate();
 	if (bNeedDpiScale) {
-		GlobalManager::Instance().Dpi().ScalePadding(rcPadding);
+		Dpi().ScalePadding(rcPadding);
 	}
 	if (!GetPadding().Equals(rcPadding)) {
 		m_rcPadding.left = TruncateToUInt16(rcPadding.left);

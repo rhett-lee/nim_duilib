@@ -309,6 +309,12 @@ void DpiManager::ScaleSize(UiSize &size) const
 	size.cy = MulDiv(size.cy, m_nScaleFactor, 100);
 }
 
+UiSize DpiManager::GetScaleSize(UiSize size) const
+{
+	ScaleSize(size);
+	return size;
+}
+
 void DpiManager::ScalePoint(POINT &point) const
 {
 	if (m_nScaleFactor == 100) {

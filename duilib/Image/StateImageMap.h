@@ -19,11 +19,15 @@ public:
 	void SetControl(Control* pControl);
 
 	/** 设置图片属性
-	*@param [in] stateImageType 图片类型，比如正常状态前景图片、背景图片；选择状态的前景图片、背景图片等
-	*@param [in] stateType 图片状态，比如正常、焦点、按下、禁用状态等
-	*@param [in] strImagePath 图片属性字符串
+	* @param [in] stateImageType 图片类型，比如正常状态前景图片、背景图片；选择状态的前景图片、背景图片等
+	* @param [in] stateType 图片状态，比如正常、焦点、按下、禁用状态等
+	* @param [in] strImagePath 图片属性字符串
+	* @param [in] dpi DPI缩放管理接口
 	*/
-	void SetImageString(StateImageType stateImageType, ControlStateType stateType, const std::wstring& strImagePath);
+	void SetImageString(StateImageType stateImageType, 
+					    ControlStateType stateType, 
+					    const std::wstring& strImagePath,
+		                const DpiManager& dpi);
 
 	/** 获取图片属性
 	*@param [in] stateImageType 图片类型，比如正常状态前景图片、背景图片；选择状态的前景图片、背景图片等

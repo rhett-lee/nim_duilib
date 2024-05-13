@@ -2308,7 +2308,7 @@ void RichEdit::SetFocusedImage( const std::wstring& strImage )
 	if (m_pFocusedImage == nullptr) {
 		m_pFocusedImage = new Image;
 	}
-	m_pFocusedImage->SetImageString(strImage);
+	m_pFocusedImage->SetImageString(strImage, Dpi());
 	Invalidate();
 }
 

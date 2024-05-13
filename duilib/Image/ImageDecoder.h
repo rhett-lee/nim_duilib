@@ -12,6 +12,7 @@ namespace ui
 {
 class ImageInfo;
 class ImageLoadAttribute;
+class DpiManager;
 
 /** 图片格式解码类
 */
@@ -21,9 +22,11 @@ public:
     /** 从内存文件数据中加载图片并解码图片数据, 宽和高属性可以只设置一个，另外一个属性则默认按源图片等比计算得出
     * @param [in] fileData 图片文件的数据，部分格式加载过程中内部有增加尾0的写操作
     * @param [in] imageLoadAttribute 图片加载属性, 包括图片路径等
+    * @param [in] dpi DPI缩放管理接口
     */
 	std::unique_ptr<ImageInfo> LoadImageData(std::vector<uint8_t>& fileData,
-                                             const ImageLoadAttribute& imageLoadAttribute);
+                                             const ImageLoadAttribute& imageLoadAttribute,
+                                             const DpiManager& dpi);
 
 public:
     /** 加载后的图片数据
@@ -62,6 +65,7 @@ private:
     */
     bool DecodeImageData(std::vector<uint8_t>& fileData, 
                          const ImageLoadAttribute& imageLoadAttribute,
+                         const DpiManager& dpi,
                          std::vector<ImageData>& imageData,
                          int32_t& playCount,
                          bool& bDpiScaled);

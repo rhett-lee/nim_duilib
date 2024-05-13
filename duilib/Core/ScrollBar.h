@@ -91,12 +91,11 @@ public:
 	 */
 	int GetLineSize() const;
 
-	/**
-	 * @brief 设置滚动一行的大小
-	 * @param[in] nSize 要设置的大小数值
-	 * @return 无
+	/** 设置滚动一行的大小
+	 * @param [in] nSize 要设置的大小数值
+	 * @param [in] bNeedDpiScale 是否进行DPI缩放
 	 */
-	void SetLineSize(int nSize);
+	void SetLineSize(int nSize, bool bNeedDpiScale = true);
 
 	/**
 	 * @brief 获取滑块的最小长度
@@ -104,12 +103,11 @@ public:
 	 */
 	int GetThumbMinLength() const;
 
-	/**
-	 * @brief 设置滑块的最小长度
+	/** 设置滑块的最小长度
 	 * @param[in] nThumbMinLength 要设置的最小长度
-	 * @return 无
+	 * @param [in] bNeedDpiScale 是否进行DPI缩放
 	 */
-	void SetThumbMinLength(int nThumbMinLength);
+	void SetThumbMinLength(int nThumbMinLength, bool bNeedDpiScale = true);
 
 	/**
 	 * @brief 是否显示左或上按钮

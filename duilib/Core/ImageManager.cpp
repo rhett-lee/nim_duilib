@@ -2,6 +2,7 @@
 #include "duilib/Image/Image.h"
 #include "duilib/Image/ImageDecoder.h"
 #include "duilib/Core/GlobalManager.h"
+#include "duilib/Core/DpiManager.h"
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Utils/FileUtil.h"
 
@@ -28,7 +29,7 @@ std::shared_ptr<ImageInfo> ImageManager::GetCachedImage(const ImageLoadAttribute
 	return sharedImage;
 }
 
-std::shared_ptr<ImageInfo> ImageManager::GetImage(const ImageLoadAttribute& loadAtrribute)
+std::shared_ptr<ImageInfo> ImageManager::GetImage(const DpiManager& dpi, const ImageLoadAttribute& loadAtrribute)
 {
 	std::wstring imageCacheKey = loadAtrribute.GetCacheKey();
 	auto it = m_imageMap.find(imageCacheKey);
@@ -54,7 +55,7 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const ImageLoadAttribute& load
 #endif
 
 	if (!isIcon) {
-		LoadImageData(loadAtrribute, isDpiScaledImageFile, imageInfo);
+		LoadImageData(dpi, loadAtrribute, isDpiScaledImageFile, imageInfo);
 	}	
 	std::shared_ptr<ImageInfo> sharedImage;
 	if (imageInfo != nullptr) {
@@ -69,13 +70,14 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const ImageLoadAttribute& load
 	return sharedImage;
 }
 
-void ImageManager::LoadImageData(const ImageLoadAttribute& loadAtrribute,
+void ImageManager::LoadImageData(const DpiManager& dpi, 
+							     const ImageLoadAttribute& loadAtrribute,
 								 bool& isDpiScaledImageFile,
 								 std::unique_ptr<ImageInfo>& imageInfo) const
 {
 	std::wstring loadImageFullPath = loadAtrribute.GetImageFullPath();
 	bool isUseZip = GlobalManager::Instance().Zip().IsUseZip();
-	std::wstring imageFullPath = GetDpiImageFullPath(loadImageFullPath, isUseZip);
+	std::wstring imageFullPath = GetDpiImageFullPath(dpi, loadImageFullPath, isUseZip);
 	//标记DPI自适应图片属性，如果路径不同，说明已经选择了对应DPI下的文件
 	isDpiScaledImageFile = imageFullPath != loadImageFullPath;
 
@@ -95,7 +97,7 @@ void ImageManager::LoadImageData(const ImageLoadAttribute& loadAtrribute,
 		if (isDpiScaledImageFile) {
 			imageLoadAtrribute.SetNeedDpiScale(false);
 		}
-		imageInfo = imageDecoder.LoadImageData(fileData, imageLoadAtrribute);
+		imageInfo = imageDecoder.LoadImageData(fileData, imageLoadAtrribute, dpi);
 	}
 }
 
@@ -165,10 +167,12 @@ bool ImageManager::IsDpiScaleAllImages()
 	return m_bDpiScaleAllImages;
 }
 
-std::wstring ImageManager::GetDpiImageFullPath(const std::wstring& strImageFullPath, bool bIsUseZip) const
+std::wstring ImageManager::GetDpiImageFullPath(const DpiManager& dpi, 
+											   const std::wstring& strImageFullPath, 
+											   bool bIsUseZip) const
 {
-	UINT dpi = GlobalManager::Instance().Dpi().GetScale();
-	if (dpi == 100) {
+	uint32_t uDPI = dpi.GetScale();
+	if (uDPI == 100) {
 		//当前DPI无需缩放
 		return strImageFullPath;
 	}
@@ -195,7 +199,7 @@ std::wstring ImageManager::GetDpiImageFullPath(const std::wstring& strImageFullP
 	std::wstring strFileExtension = strPathFileName.substr(iPointPos, strPathFileName.length() - iPointPos);
 	std::wstring strFile = strPathFileName.substr(0, iPointPos);
 	//返回指定DPI下的图片，举例DPI为120的图片："image.png" 对应于 "image@120.png"
-	strPathFileName = StringHelper::Printf(L"%s%s%d%s", strFile.c_str(), L"@", dpi, strFileExtension.c_str());
+	strPathFileName = StringHelper::Printf(L"%s%s%d%s", strFile.c_str(), L"@", uDPI, strFileExtension.c_str());
 	std::wstring strNewFilePath = strPathDir + strPathFileName;
 	if (bIsUseZip) {
 		bool hasData = GlobalManager::Instance().Zip().IsZipResExist(strNewFilePath);

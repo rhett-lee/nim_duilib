@@ -165,7 +165,6 @@ LRESULT ComboButtonWnd::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam,
 {
 	bHandled = false;
     if( uMsg == WM_CREATE ) {
-		InitWnd(GetHWND());
 		Box* pRoot = new Box;
 		pRoot->SetAutoDestroyChild(false);
 		pRoot->AddItem(m_pOwner->GetComboBox());

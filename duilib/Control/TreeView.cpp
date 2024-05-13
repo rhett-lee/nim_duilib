@@ -140,7 +140,7 @@ void TreeNode::SetExpandStateImage(ControlStateType stateType, const std::wstrin
 		m_expandImage.reset(new StateImage);
 		m_expandImage->SetControl(this);
 	}
-	m_expandImage->SetImageString(stateType, strImage);
+	m_expandImage->SetImageString(stateType, strImage, Dpi());
 }
 
 std::wstring TreeNode::GetCollapseStateImage(ControlStateType stateType)
@@ -161,7 +161,7 @@ void TreeNode::SetCollapseStateImage(ControlStateType stateType, const std::wstr
 		m_collapseImage.reset(new StateImage);
 		m_collapseImage->SetControl(this);
 	}
-	m_collapseImage->SetImageString(stateType, strImage);
+	m_collapseImage->SetImageString(stateType, strImage, Dpi());
 }
 
 void TreeNode::PaintStateImages(IRender* pRender)

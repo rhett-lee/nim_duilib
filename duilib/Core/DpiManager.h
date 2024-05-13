@@ -141,6 +141,7 @@ public:
 	*/
 	void ScaleSize(SIZE& size) const;
 	void ScaleSize(UiSize& size) const;
+	UiSize GetScaleSize(UiSize size) const;
 
 	/** 根据界面缩放比来缩放POINT
 	* @param[in] point 需要缩放的point引用

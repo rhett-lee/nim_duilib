@@ -46,14 +46,14 @@ void MainForm::OnInitWindow()
 	pListCtrl->SetImageList(ui::ListCtrlType::Icon, pIconImageList);
 	pListCtrl->SetImageList(ui::ListCtrlType::List, pListImageList);
 
-	pReportImageList->SetImageSize(ui::UiSize(18, 18), true);
-	pListImageList->SetImageSize(ui::UiSize(32, 32), true);
-	pIconImageList->SetImageSize(ui::UiSize(64, 64), true);
+	pReportImageList->SetImageSize(Dpi().GetScaleSize(ui::UiSize(18, 18)));
+	pListImageList->SetImageSize(Dpi().GetScaleSize(ui::UiSize(32, 32)));
+	pIconImageList->SetImageSize(Dpi().GetScaleSize(ui::UiSize(64, 64)));
 
 	//添加图片资源
-	uint32_t imageId = pReportImageList->AddImageString(L"file='1.svg' width='18' height='18'");
-	pListImageList->AddImageString(L"file='1.svg' width='32' height='32' valign='center' halign='center'");
-	pIconImageList->AddImageString(L"file='1.svg' width='64' height='64' valign='center' halign='center'");
+	uint32_t imageId = pReportImageList->AddImageString(L"file='1.svg' width='18' height='18'", Dpi());
+	pListImageList->AddImageString(L"file='1.svg' width='32' height='32' valign='center' halign='center'", Dpi());
+	pIconImageList->AddImageString(L"file='1.svg' width='64' height='64' valign='center' halign='center'", Dpi());
 
 	//填充数据
 	InsertItemData(400, 9, (int32_t)imageId);

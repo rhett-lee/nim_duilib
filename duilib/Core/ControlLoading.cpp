@@ -11,6 +11,7 @@ ControlLoading::ControlLoading(Control* pControl):
     m_fCurrrentAngele(0),
 	m_pControl(pControl)
 {
+	ASSERT(pControl != nullptr);
 }
 
 ControlLoading::~ControlLoading()
@@ -27,7 +28,8 @@ bool ControlLoading::SetLoadingImage(const std::wstring& strImage)
     bool bChanged = false;
     if (m_pLoadingImage != nullptr) {
         if (m_pLoadingImage->GetImageString() != strImage) {
-            m_pLoadingImage->SetImageString(strImage);
+			const DpiManager& dpi = (m_pControl != nullptr) ? m_pControl->Dpi() : GlobalManager::Instance().Dpi();
+            m_pLoadingImage->SetImageString(strImage, dpi);
             bChanged = true;
         }        
     }

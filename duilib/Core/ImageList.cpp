@@ -1,6 +1,5 @@
 #include "ImageList.h"
 #include "duilib/Utils/StringUtil.h"
-#include "duilib/Core/GlobalManager.h"
 
 namespace ui 
 {
@@ -14,16 +13,11 @@ ImageList::~ImageList()
 {
 }
 
-void ImageList::SetImageSize(UiSize imageSize, bool bNeedDpiScale)
+void ImageList::SetImageSize(UiSize imageSize)
 {
-    if (imageSize.cx < 0) {
-        imageSize.cx = 0;
-    }
-    if (imageSize.cy < 0) {
-        imageSize.cy = 0;
-    }
-    if (bNeedDpiScale) {
-        GlobalManager::Instance().Dpi().ScaleSize(imageSize);
+    ASSERT ((imageSize.cx > 0) && (imageSize.cy > 0) );
+    if ((imageSize.cx < 0) || (imageSize.cy < 0)) {
+        return;
     }
     m_imageSize = imageSize;
 }
@@ -33,7 +27,7 @@ UiSize ImageList::GetImageSize() const
     return m_imageSize;
 }
 
-int32_t ImageList::AddImageString(const std::wstring& imageString)
+int32_t ImageList::AddImageString(const std::wstring& imageString, const DpiManager& dpi)
 {
     int32_t imageId = -1;
     if (!imageString.empty()) {
@@ -41,7 +35,7 @@ int32_t ImageList::AddImageString(const std::wstring& imageString)
         if (imageId < 0) {
             imageId = m_nNextID++;
             ImagePtr spImage = std::make_shared<Image>();
-            spImage->SetImageString(imageString);
+            spImage->SetImageString(imageString, dpi);
             m_imageMap[imageId] = spImage;
         }
     }    

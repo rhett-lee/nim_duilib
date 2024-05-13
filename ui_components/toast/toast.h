@@ -33,10 +33,8 @@ public:
 	virtual std::wstring GetWindowId() const /*override*/;
 	virtual UINT GetClassStyle() const override;
 
-	/**
-	 * 窗口初始化函数
-	 * @return void	无返回值
-	 */
+	/** 当窗口创建完成以后调用此函数，供子类中做一些初始化的工作
+	*/
 	virtual void OnInitWindow() override;
 
 	/**

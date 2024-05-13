@@ -8,12 +8,17 @@
 
 namespace ui {
 
+class Control;
+
 /** 控件阴影属性类
 */
 class UILIB_API BoxShadow
 {
 public:
-	BoxShadow();
+	/** 构造函数
+	* @param [in] pControl 关联的控件接口
+	*/
+	explicit BoxShadow(Control* pControl);
 
 	/**
 	 * @brief 设置阴影属性
@@ -44,11 +49,15 @@ public:
 
 	/** 模糊半径，值越大，模糊面积越大，阴影就越大越淡, 如果为0，此时阴影边缘锐利，无模糊效果，不能为负值。
 	 */
-	int m_nBlurRadius;
+	int32_t m_nBlurRadius;
 
 	/** 扩展半径，即模糊区域距离rc矩形边缘多少个像素。取正值时，阴影扩大；取负值时，阴影收缩。
 	 */
-	int m_nSpreadRadius;
+	int32_t m_nSpreadRadius;
+
+	/** 关联的控件接口
+	*/
+	Control* m_pControl;
 };
 
 } // namespace ui

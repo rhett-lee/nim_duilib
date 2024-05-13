@@ -22,14 +22,9 @@ Control* WindowImplBase::CreateControl(const std::wstring& /*strClass*/)
     return nullptr;
 }
 
-UINT WindowImplBase::GetStyle() const
+uint32_t WindowImplBase::GetWindowStyle() const
 {
-    ASSERT(::IsWindow(GetHWND()));
-    UINT styleValue = (UINT)::GetWindowLong(GetHWND(), GWL_STYLE);
-
-    //使用自绘的标题栏：从原来窗口样式中，移除 WS_CAPTION 属性
-    styleValue &= ~WS_CAPTION;
-    return styleValue;
+    return __super::GetWindowStyle();
 }
 
 LRESULT WindowImplBase::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
@@ -68,9 +63,6 @@ LRESULT WindowImplBase::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam,
 LRESULT WindowImplBase::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, bool& bHandled)
 {
     bHandled = false;
-    ::SetWindowLong(this->GetHWND(), GWL_STYLE, GetStyle());
-
-    InitWnd(GetHWND());
     SetResourcePath(GetSkinFolder());
 
     std::wstring strSkinFile;

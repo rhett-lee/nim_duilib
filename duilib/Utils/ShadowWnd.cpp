@@ -152,7 +152,7 @@ Box* ShadowWnd::AttachShadow(Box* pRoot)
 		AddMessageFilter(m_pShadowWnd);
 
 		//外置的阴影窗口需要将原窗口设置为圆角，避免圆角处出现黑色背景
-		UiSize borderRound = Shadow::GetChildBoxBorderRound();
+		UiSize borderRound = Shadow::GetChildBoxBorderRound(pRoot);
 		SetRoundCorner(borderRound.cx, borderRound.cy);
 		pRoot->SetBorderRound(borderRound);
 		return pRoot;

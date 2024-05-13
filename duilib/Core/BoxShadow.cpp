@@ -1,16 +1,21 @@
 #include "BoxShadow.h"
-#include "duilib/Core/GlobalManager.h"
+#include "duilib/Core/Control.h"
+#include "duilib/Core/DpiManager.h"
 #include "duilib/Utils/AttributeUtil.h"
 
 namespace ui {
 
-BoxShadow::BoxShadow():
+BoxShadow::BoxShadow(Control* pControl):
 	m_cpOffset(0, 0),
 	m_nBlurRadius(2),
-	m_nSpreadRadius(2)
+	m_nSpreadRadius(2),
+	m_pControl(pControl)
 {
-	GlobalManager::Instance().Dpi().ScaleInt(m_nBlurRadius);
-	GlobalManager::Instance().Dpi().ScaleInt(m_nSpreadRadius);
+	ASSERT(m_pControl != nullptr);
+	if (m_pControl != nullptr) {
+		m_pControl->Dpi().ScaleInt(m_nBlurRadius);
+		m_pControl->Dpi().ScaleInt(m_nSpreadRadius);
+	}
 }
 
 void BoxShadow::SetBoxShadowString(const std::wstring& strBoxShadow)
@@ -29,7 +34,10 @@ void BoxShadow::SetBoxShadowString(const std::wstring& strBoxShadow)
 		}
 		else if (name == L"offset") {
 			AttributeUtil::ParsePointValue(value.c_str(), m_cpOffset);
-			GlobalManager::Instance().Dpi().ScalePoint(m_cpOffset);			
+			ASSERT(m_pControl != nullptr);
+			if (m_pControl != nullptr) {
+				m_pControl->Dpi().ScalePoint(m_cpOffset);
+			}
 		}
 		else if ((name == L"blur_radius") || name == L"blurradius") {
 			m_nBlurRadius = wcstol(value.c_str(), nullptr, 10);
@@ -37,7 +45,10 @@ void BoxShadow::SetBoxShadowString(const std::wstring& strBoxShadow)
 			if (m_nBlurRadius < 0) {
 				m_nBlurRadius = 2;
 			}
-			GlobalManager::Instance().Dpi().ScaleInt(m_nBlurRadius);
+			ASSERT(m_pControl != nullptr);
+			if (m_pControl != nullptr) {
+				m_pControl->Dpi().ScaleInt(m_nBlurRadius);
+			}
 		}
 		else if ((name == L"spread_radius") || (name == L"spreadradius")) {
 			m_nSpreadRadius = wcstol(value.c_str(), nullptr, 10);
@@ -45,7 +56,10 @@ void BoxShadow::SetBoxShadowString(const std::wstring& strBoxShadow)
 			if (m_nSpreadRadius < 0) {
 				m_nSpreadRadius = 2;
 			}
-			GlobalManager::Instance().Dpi().ScaleInt(m_nSpreadRadius);
+			ASSERT(m_pControl != nullptr);
+			if (m_pControl != nullptr) {
+				m_pControl->Dpi().ScaleInt(m_nSpreadRadius);
+			}
 		}
 		else {
 			ASSERT(!"BoxShadow::SetBoxShadowString found unknown item name!");

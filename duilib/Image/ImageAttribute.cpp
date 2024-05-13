@@ -1,5 +1,5 @@
 #include "ImageAttribute.h"
-#include "duilib/Core/GlobalManager.h"
+#include "duilib/Core/DpiManager.h"
 #include "duilib/Utils/AttributeUtil.h"
 
 namespace ui 
@@ -164,15 +164,15 @@ ImageAttribute::~ImageAttribute()
 	}
 }
 
-void ImageAttribute::InitByImageString(const std::wstring& strImageString)
+void ImageAttribute::InitByImageString(const std::wstring& strImageString, const DpiManager& dpi)
 {
 	Init();
 	sImageString = strImageString;
 	sImagePath = strImageString;
-	ModifyAttribute(strImageString);
+	ModifyAttribute(strImageString, dpi);
 }
 
-void ImageAttribute::ModifyAttribute(const std::wstring& strImageString)
+void ImageAttribute::ModifyAttribute(const std::wstring& strImageString, const DpiManager& dpi)
 {
 	if (strImageString.find(L'=') == std::wstring::npos) {
 		//不含有等号，说明没有属性，直接返回
@@ -240,7 +240,7 @@ void ImageAttribute::ModifyAttribute(const std::wstring& strImageString)
 			//在目标区域中设置内边距
 			UiPadding padding;
 			AttributeUtil::ParsePaddingValue(value.c_str(), padding);
-			GlobalManager::Instance().Dpi().ScalePadding(padding);
+			dpi.ScalePadding(padding);
 			imageAttribute.SetPadding(padding);
 		}
 		else if (name == L"halign") {
@@ -300,7 +300,7 @@ void ImageAttribute::ModifyAttribute(const std::wstring& strImageString)
 		//如果没有配置"destscale" 或者 destscale="true"的情况，都需要对rcDest进行DPI自适应
 		//只有设置了destscale="false"的时候，才禁止对rcDest进行DPI自适应
 		if (imageAttribute.rcDest != nullptr) {
-			GlobalManager::Instance().Dpi().ScaleRect(*imageAttribute.rcDest);
+			dpi.ScaleRect(*imageAttribute.rcDest);
 		}		
 	}
 }
@@ -317,7 +317,8 @@ bool ImageAttribute::HasValidImageRect(const UiRect& rcDest)
 	return false;
 }
 
-void ImageAttribute::ScaleImageRect(uint32_t imageWidth, uint32_t imageHeight, bool bImageDpiScaled,
+void ImageAttribute::ScaleImageRect(uint32_t imageWidth, uint32_t imageHeight, 
+								    const DpiManager& dpi, bool bImageDpiScaled,
 					                UiRect& rcDestCorners,
 					                UiRect& rcSource, UiRect& rcSourceCorners)
 {
@@ -333,7 +334,7 @@ void ImageAttribute::ScaleImageRect(uint32_t imageWidth, uint32_t imageHeight, b
 		rcSourceCorners.Clear();
 	}
 	else if (bImageDpiScaled) {
-		GlobalManager::Instance().Dpi().ScaleRect(rcSourceCorners);
+		dpi.ScaleRect(rcSourceCorners);
 	}
 
 	//对rcDestCorners进行处理：由rcSourceCorners赋值，边角保持一致，避免绘制图片的时候四个角有变形；
@@ -341,7 +342,7 @@ void ImageAttribute::ScaleImageRect(uint32_t imageWidth, uint32_t imageHeight, b
 	rcDestCorners = rcSourceCorners;
 	if (!bImageDpiScaled) {
 		//rcDestCorners必须做DPI自适应，rcSourceCorners可能不做DPI自适应（根据配置指定，跟随图片）
-		GlobalManager::Instance().Dpi().ScaleRect(rcDestCorners);
+		dpi.ScaleRect(rcDestCorners);
 	}
 
 	// 如果源位图已经按照DPI缩放过，那么对应的rcImageSource也需要缩放
@@ -356,7 +357,7 @@ void ImageAttribute::ScaleImageRect(uint32_t imageWidth, uint32_t imageHeight, b
 	}
 	else if (bImageDpiScaled) {
 		//如果外部设置此值，做DPI自适应处理
-		GlobalManager::Instance().Dpi().ScaleRect(rcSource);
+		dpi.ScaleRect(rcSource);
 	}
 
 	//图片源容错处理

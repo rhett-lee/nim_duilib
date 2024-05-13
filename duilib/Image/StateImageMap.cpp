@@ -16,11 +16,14 @@ void StateImageMap::SetControl(Control* pControl)
 	}
 }
 
-void StateImageMap::SetImageString(StateImageType stateImageType, ControlStateType stateType, const std::wstring& strImagePath)
+void StateImageMap::SetImageString(StateImageType stateImageType, 
+								   ControlStateType stateType, 
+								   const std::wstring& strImagePath,
+	                               const DpiManager& dpi)
 {
 	StateImage& stateImage = m_stateImageMap[stateImageType];
 	stateImage.SetControl(m_pControl);
-	stateImage.SetImageString(stateType, strImagePath);
+	stateImage.SetImageString(stateType, strImagePath, dpi);
 }
 
 std::wstring StateImageMap::GetImageString(StateImageType stateImageType, ControlStateType stateType) const

@@ -362,7 +362,7 @@ void ListCtrlHeaderItem::SetSortedDownImage(const std::wstring& sImageString)
     if (m_pSortedDownImage == nullptr) {
         m_pSortedDownImage = new Image;
     }
-    m_pSortedDownImage->SetImageString(sImageString);
+    m_pSortedDownImage->SetImageString(sImageString, Dpi());
     Invalidate();
 }
 
@@ -371,7 +371,7 @@ void ListCtrlHeaderItem::SetSortedUpImage(const std::wstring& sImageString)
     if (m_pSortedUpImage == nullptr) {
         m_pSortedUpImage = new Image;
     }
-    m_pSortedUpImage->SetImageString(sImageString);
+    m_pSortedUpImage->SetImageString(sImageString, Dpi());
     Invalidate();
 }
 

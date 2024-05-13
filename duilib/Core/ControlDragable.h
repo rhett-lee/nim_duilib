@@ -881,8 +881,6 @@ std::shared_ptr<IBitmap> ControlDragableT<T>::CreateDragoutImage()
         render.reset(pRenderFactory->CreateRender(this->GetWindow()));
     }
     ASSERT(render != nullptr);
-    // const int32_t kDragImageWidth = GlobalManager::Instance().Dpi().GetScaleInt(90);
-    // const int32_t kDragImageHeight = GlobalManager::Instance().Dpi().GetScaleInt(90);
     const int32_t kDragImageWidth = rc.Width();
     const int32_t kDragImageHeight = rc.Height();
     if (render->Resize(kDragImageWidth, kDragImageHeight)) {
@@ -993,7 +991,7 @@ bool ControlDragableT<T>::DragOrderMouseMove(const EventArgs& msg)
     GetValidPointInItemRects(pt);
     if (pLayout->IsHLayout()) {
         int32_t xOffset = pt.x - m_ptMouseDown.x;
-        if (std::abs(xOffset) < GlobalManager::Instance().Dpi().GetScaleInt(3)) {
+        if (std::abs(xOffset) < this->Dpi().GetScaleInt(3)) {
             return bRet;
         }
         //调整其他控件的位置
@@ -1007,7 +1005,7 @@ bool ControlDragableT<T>::DragOrderMouseMove(const EventArgs& msg)
     }
     else {
         int32_t yOffset = pt.y - m_ptMouseDown.y;
-        if (std::abs(yOffset) < GlobalManager::Instance().Dpi().GetScaleInt(3)) {
+        if (std::abs(yOffset) < this->Dpi().GetScaleInt(3)) {
             return bRet;
         }
         //调整其他控件的位置
@@ -1055,7 +1053,7 @@ bool ControlDragableT<T>::DragOutMouseMove(const EventArgs& msg)
     if (!IsInDraggingOut()) {
         int32_t xOffset = pt.x - m_ptMouseDown.x;
         int32_t yOffset = pt.y - m_ptMouseDown.y;
-        int32_t nMinOffset = GlobalManager::Instance().Dpi().GetScaleInt(5);
+        int32_t nMinOffset = this->Dpi().GetScaleInt(5);
         if ((std::abs(xOffset) < nMinOffset) && (std::abs(yOffset) < nMinOffset)) {
             return bRet;
         }

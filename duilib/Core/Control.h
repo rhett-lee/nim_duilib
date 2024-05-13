@@ -263,8 +263,9 @@ public:
 
 	/** 设置边框大小
 	 * @param [in] cxyRound 一个 UiSize 结构表示圆角大小
+	 * @param [in] bNeedDpiScale 是否需要做DPI自适应
 	 */
-	void SetBorderRound(UiSize cxyRound);
+	void SetBorderRound(UiSize cxyRound, bool bNeedDpiScale = true);
 
 	/** 设置边框阴影
 	 * @param[in] 要设置的阴影属性
@@ -322,12 +323,11 @@ public:
 	 */
 	virtual void SetUTF8ToolTipTextId(const std::string& strTextId);
 
-	/**
-	 * @brief 设置鼠标悬浮到控件上提示的文本单行最大宽度
-	 * @param[in] nWidth 要设置的宽度值
-	 * @return 无
+	/** 设置鼠标悬浮到控件上提示的文本单行最大宽度
+	 * @param [in] nWidth 要设置的宽度值
+	 * @param [in] bNeedDpiScale 兼容 DPI 缩放，默认为 true
 	 */
-	virtual void SetToolTipWidth(int32_t nWidth);
+	virtual void SetToolTipWidth(int32_t nWidth, bool bNeedDpiScale);
 
 	/**
 	 * @brief 获取鼠标悬浮到控件上提示的文本单行最大宽度

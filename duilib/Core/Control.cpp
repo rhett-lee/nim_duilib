@@ -274,7 +274,7 @@ void Control::SetAttribute(const std::wstring& strName, const std::wstring& strV
 	else if ((strName == L"render_offset") || (strName == L"renderoffset")) {
 		UiPoint renderOffset;
 		AttributeUtil::ParsePointValue(strValue.c_str(), renderOffset);
-		GlobalManager::Instance().Dpi().ScalePoint(renderOffset);
+		Dpi().ScalePoint(renderOffset);
 		SetRenderOffset(renderOffset);
 	}
 	else if ((strName == L"normal_color") || (strName == L"normalcolor")) {
@@ -658,7 +658,7 @@ void Control::SetBkImage(const std::wstring& strImage)
 		}
 	}
 	if (m_pBkImage != nullptr) {
-		m_pBkImage->SetImageString(strImage);
+		m_pBkImage->SetImageString(strImage, Dpi());
 	}
 	RelayoutOrRedraw();
 }
@@ -738,7 +738,7 @@ void Control::SetStateImage(StateImageType imageType, ControlStateType stateType
 		m_pImageMap = std::make_unique<StateImageMap>();
 		m_pImageMap->SetControl(this);
 	}
-	m_pImageMap->SetImageString(imageType, stateType, strImage);
+	m_pImageMap->SetImageString(imageType, stateType, strImage, Dpi());
 }
 
 bool Control::PaintStateImage(IRender* pRender, StateImageType stateImageType, 
@@ -807,7 +807,7 @@ void Control::SetForeStateImage(ControlStateType stateType, const std::wstring& 
 bool Control::AdjustStateImagesPaddingLeft(int32_t leftOffset, bool bNeedDpiScale)
 {
 	if (bNeedDpiScale) {
-		GlobalManager::Instance().Dpi().ScaleInt(leftOffset);
+		Dpi().ScaleInt(leftOffset);
 	}
 	if (leftOffset == 0) {
 		return false;
@@ -849,7 +849,7 @@ bool Control::SetBkImagePadding(UiPadding rcPadding, bool bNeedDpiScale)
 	bool bSetOk = false;
 	if (m_pBkImage != nullptr) {
 		if (bNeedDpiScale) {
-			GlobalManager::Instance().Dpi().ScalePadding(rcPadding);
+			Dpi().ScalePadding(rcPadding);
 		}
 		if (!m_pBkImage->GetImagePadding().Equals(rcPadding)) {
 			m_pBkImage->SetImagePadding(rcPadding);
@@ -981,7 +981,7 @@ std::wstring Control::GetFocusBorderColor() const
 void Control::SetBorderSize(UiRect rc, bool bNeedDpiScale)
 {
 	if (bNeedDpiScale) {
-		GlobalManager::Instance().Dpi().ScaleRect(rc);
+		Dpi().ScaleRect(rc);
 	}
 	rc.left = std::max(rc.left, 0);
 	rc.top = std::max(rc.top, 0);
@@ -1001,7 +1001,7 @@ int32_t Control::GetLeftBorderSize() const
 void Control::SetLeftBorderSize(int32_t nSize, bool bNeedDpiScale)
 {
 	if (bNeedDpiScale) {
-		GlobalManager::Instance().Dpi().ScaleInt(nSize);
+		Dpi().ScaleInt(nSize);
 	}
 	if (m_rcBorderSize.left != nSize) {
 		m_rcBorderSize.left = nSize;
@@ -1017,7 +1017,7 @@ int32_t Control::GetTopBorderSize() const
 void Control::SetTopBorderSize(int32_t nSize, bool bNeedDpiScale)
 {
 	if (bNeedDpiScale) {
-		GlobalManager::Instance().Dpi().ScaleInt(nSize);
+		Dpi().ScaleInt(nSize);
 	}
 	if (m_rcBorderSize.top != nSize) {
 		m_rcBorderSize.top = nSize;
@@ -1033,7 +1033,7 @@ int32_t Control::GetRightBorderSize() const
 void Control::SetRightBorderSize(int32_t nSize, bool bNeedDpiScale)
 {
 	if (bNeedDpiScale) {
-		GlobalManager::Instance().Dpi().ScaleInt(nSize);
+		Dpi().ScaleInt(nSize);
 	}
 	if (m_rcBorderSize.right != nSize) {
 		m_rcBorderSize.right = nSize;
@@ -1049,7 +1049,7 @@ int32_t Control::GetBottomBorderSize() const
 void Control::SetBottomBorderSize(int32_t nSize, bool bNeedDpiScale)
 {
 	if (bNeedDpiScale) {
-		GlobalManager::Instance().Dpi().ScaleInt(nSize);
+		Dpi().ScaleInt(nSize);
 	}
 	if (m_rcBorderSize.bottom != nSize) {
 		m_rcBorderSize.bottom = nSize;
@@ -1062,7 +1062,7 @@ const UiSize& Control::GetBorderRound() const
     return m_cxyBorderRound;
 }
 
-void Control::SetBorderRound(UiSize cxyRound)
+void Control::SetBorderRound(UiSize cxyRound, bool bNeedDpiScale)
 {
 	int32_t cx = cxyRound.cx;
 	int32_t cy = cxyRound.cy;
@@ -1083,9 +1083,13 @@ void Control::SetBorderRound(UiSize cxyRound)
 			return;
 		}
 	}
-	GlobalManager::Instance().Dpi().ScaleSize(cxyRound);
-    m_cxyBorderRound = cxyRound;
-    Invalidate();
+	if (bNeedDpiScale) {
+		Dpi().ScaleSize(cxyRound);
+	}
+	if (m_cxyBorderRound != cxyRound) {
+		m_cxyBorderRound = cxyRound;
+		Invalidate();
+	}    
 }
 
 void Control::SetBoxShadow(const std::wstring& strShadow)
@@ -1094,7 +1098,7 @@ void Control::SetBoxShadow(const std::wstring& strShadow)
 		return;
 	}
 	if (m_pBoxShadow == nullptr) {
-		m_pBoxShadow = new BoxShadow;
+		m_pBoxShadow = new BoxShadow(this);
 	}
 	m_pBoxShadow->SetBoxShadowString(strShadow);
 }
@@ -1174,11 +1178,13 @@ void Control::SetUTF8ToolTipTextId(const std::string& strTextId)
 	SetToolTipTextId(strOut);
 }
 
-void Control::SetToolTipWidth( int32_t nWidth )
+void Control::SetToolTipWidth( int32_t nWidth, bool bNeedDpiScale)
 {
-	GlobalManager::Instance().Dpi().ScaleInt(nWidth);
 	if (nWidth < 0) {
 		nWidth = 0;
+	}
+	if (bNeedDpiScale) {
+		Dpi().ScaleInt(nWidth);
 	}
 	m_nTooltipWidth = TruncateToUInt16(nWidth);
 }
@@ -1459,7 +1465,7 @@ UiEstSize Control::EstimateSize(UiSize szAvailable)
 		UiRect rcSource = imageAttribute.GetSourceRect();
 		UiRect rcSourceCorners = imageAttribute.GetCorner();
 		ImageAttribute::ScaleImageRect(imageCache->GetWidth(), imageCache->GetHeight(),
-									   imageCache->IsBitmapSizeDpiScaled(),
+									   Dpi(), imageCache->IsBitmapSizeDpiScaled(),
 									   rcDestCorners,
 									   rcSource,
 									   rcSourceCorners);
@@ -2052,7 +2058,7 @@ bool Control::PaintImage(IRender* pRender, Image* pImage,
 
 	ImageAttribute newImageAttribute = duiImage.GetImageAttribute();
 	if (!strModify.empty()) {
-		newImageAttribute.ModifyAttribute(strModify);
+		newImageAttribute.ModifyAttribute(strModify, Dpi());
 	}
 	bool hasDestAttr = false; // 外部是否设置了rcDest属性
 	UiRect rcDest = GetRect();
@@ -2075,7 +2081,7 @@ bool Control::PaintImage(IRender* pRender, Image* pImage,
 	UiRect rcSource = newImageAttribute.GetSourceRect();
 	UiRect rcSourceCorners = newImageAttribute.GetCorner();
 	ImageAttribute::ScaleImageRect(pBitmap->GetWidth(), pBitmap->GetHeight(), 
-								   imageInfo->IsBitmapSizeDpiScaled(),
+								   Dpi(), imageInfo->IsBitmapSizeDpiScaled(),
 		                           rcDestCorners,
 		                           rcSource,
 		                           rcSourceCorners);
@@ -2330,7 +2336,7 @@ void Control::PaintShadow(IRender* pRender)
 	if (!HasBoxShadow()) {
 		return;
 	}
-	BoxShadow boxShadow;
+	BoxShadow boxShadow(this);
 	if (m_pBoxShadow != nullptr) {
 		boxShadow = *m_pBoxShadow;
 	}
@@ -2550,7 +2556,7 @@ void Control::DoPaintFocusRect(IRender* pRender)
 	if (pRenderFactory == nullptr) {
 		return;
 	}
-	int32_t nWidth = ui::GlobalManager::Instance().Dpi().GetScaleInt(1); //画笔宽度
+	int32_t nWidth =  Dpi().GetScaleInt(1); //画笔宽度
 	UiColor dwBorderColor;//画笔颜色
 	std::wstring focusRectColor = GetFocusRectColor();
 	if (!focusRectColor.empty()) {
@@ -2561,7 +2567,7 @@ void Control::DoPaintFocusRect(IRender* pRender)
 	}
 	UiRect rcBorderSize(1, 1, 1, 1);
 	UiRect rcFocusRect = GetRect();
-	int32_t nFocusWidth = ui::GlobalManager::Instance().Dpi().GetScaleInt(2); //矩形间隙
+	int32_t nFocusWidth = Dpi().GetScaleInt(2); //矩形间隙
 	rcFocusRect.Deflate(nFocusWidth, nFocusWidth);
 	if (rcFocusRect.IsEmpty()) {
 		return;
@@ -2898,7 +2904,7 @@ bool Control::LoadImageData(Image& duiImage) const
 	if ((imageCache == nullptr) || 
 		(imageCache->GetCacheKey() != imageLoadAttr.GetCacheKey())) {
 		//如果图片没有加载则执行加载图片；如果图片发生变化，则重新加载该图片
-		imageCache = GlobalManager::Instance().Image().GetImage(imageLoadAttr);
+		imageCache = GlobalManager::Instance().Image().GetImage(Dpi(), imageLoadAttr);
 		duiImage.SetImageCache(imageCache);
 	}
 	return imageCache ? true : false;

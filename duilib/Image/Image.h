@@ -14,6 +14,7 @@ namespace ui
 {
 class Control;
 class ImageGif;
+class DpiManager;
 
 /** 图片相关封装，支持的文件格式：SVG/PNG/GIF/JPG/BMP/APNG/WEBP/ICO
 */
@@ -34,9 +35,10 @@ public:
 	void InitImageAttribute();
 
 	/** 设置并初始化图片属性
-	*@param [in] strImageString 图片属性字符串
+	* @param [in] strImageString 图片属性字符串
+	* @param [in] dpi DPI缩放接口
 	*/
-	void SetImageString(const std::wstring& strImageString);
+	void SetImageString(const std::wstring& strImageString, const DpiManager& dpi);
 
 	/** 获取图片属性（含文件名，和图片设置属性等）
 	*/

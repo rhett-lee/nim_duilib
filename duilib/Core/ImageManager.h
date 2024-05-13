@@ -13,6 +13,7 @@ namespace ui
 {
 class ImageInfo;
 class ImageLoadAttribute;
+class DpiManager;
 
 /** 图片管理器
  */
@@ -32,10 +33,11 @@ public:
 	std::shared_ptr<ImageInfo> GetCachedImage(const ImageLoadAttribute& loadAtrribute);
 
 	/** 加载图片 ImageInfo 对象
-	 * @param[in] loadAtrribute 图片的加载属性，包含图片路径等信息
+	 * @param [in] loadAtrribute 图片的加载属性，包含图片路径等信息
+	 * @param [in] dpi DPI缩放管理接口
 	 * @return 返回图片 ImageInfo 对象的智能指针
 	 */
-	std::shared_ptr<ImageInfo> GetImage(const ImageLoadAttribute& loadAtrribute);
+	std::shared_ptr<ImageInfo> GetImage(const DpiManager& dpi, const ImageLoadAttribute& loadAtrribute);
 
 	/** 从缓存中删除所有图片
 	 */
@@ -58,11 +60,14 @@ private:
 
 	/** 查找对应DPI下的图片，可以每个DPI设置一个图片，以提高不同DPI下的图片质量
 	*/
-	std::wstring GetDpiImageFullPath(const std::wstring& strImageFullPath, bool bIsUseZip) const;
+	std::wstring GetDpiImageFullPath(const DpiManager& dpi, 
+									 const std::wstring& strImageFullPath, 
+									 bool bIsUseZip) const;
 
 	/** 从文件加载一个图片
 	*/
-	void LoadImageData(const ImageLoadAttribute& loadAtrribute,
+	void LoadImageData(const DpiManager& dpi, 
+					   const ImageLoadAttribute& loadAtrribute,
 		               bool& isDpiScaledImageFile,
 		               std::unique_ptr<ImageInfo>& imageInfo) const;
 

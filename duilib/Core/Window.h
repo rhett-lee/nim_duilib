@@ -45,11 +45,10 @@ public:
 *  //外部调用需要初始化的基本流程:
 *  1. 调用Window::CreateWnd创建窗口;
 *  //以下内容，可用实现在OnCreate函数中:
-*  2. Window::InitWnd;
-*  3. Window::SetResourcePath;
-*  4. WindowBuilder::Create, 得到Box* pRoot;
-*  5. Window::AttachShadow(pRoot), 得到附加阴影的Box* pRoot, 以支持窗口阴影效果;
-*  6. Window::AttachBox(pRoot);
+*  2. Window::SetResourcePath;
+*  3. WindowBuilder::Create, 得到Box* pRoot;
+*  4. Window::AttachShadow(pRoot), 得到附加阴影的Box* pRoot, 以支持窗口阴影效果;
+*  5. Window::AttachBox(pRoot);
 */
 class UILIB_API Window : public virtual nbase::SupportWeakCallback
 {
@@ -135,13 +134,18 @@ protected:
     */
     virtual HMODULE GetResModuleHandle() const;
 
-    /** 窗口接收到 WM_CREATE 消息时会被调用
-    * @param [in] hWnd 窗口句柄
+    /** 获取窗口样式
+    * @return 默认返回当前窗口的样式去掉WS_CAPTION属性
+    *         如果子类重写该函数后，返回值为0，则不改变当前窗口的样式
     */
-    virtual void InitWnd(HWND hWnd);
+    virtual uint32_t GetWindowStyle() const;
 
-    /** 当接收到窗口创建消息时被调用，供子类中做一些初始化的工作
-     */
+    /** 窗口接收到 WM_CREATE 消息时会被调用
+    */
+    virtual void OnCreateWindow();
+
+    /** 当窗口创建完成以后调用此函数，供子类中做一些初始化的工作
+    */
     virtual void OnInitWindow();
 
     /** 在窗口收到 WM_NCDESTROY 消息时会被调用
@@ -342,8 +346,9 @@ public:
     /** 设置窗口圆角大小
     * @param [in] cx 圆角宽
     * @param [in] cy 圆角高
+    * @param [in] bNeedDpiScale 为 false 表示不根据 DPI 调整
     */
-    void SetRoundCorner(int cx, int cy);
+    void SetRoundCorner(int cx, int cy, bool bNeedDpiScale = true);
 
     /** 获取窗口最大化信息
     */
@@ -351,8 +356,9 @@ public:
 
     /** 设置窗口最大化信息
     * @param [in] rcMaximize 要设置的最大化数值
+    * @param [in] bNeedDpiScale 是否进行DPI缩放
     */
-    void SetMaximizeInfo(const UiRect& rcMaximize);
+    void SetMaximizeInfo(const UiRect& rcMaximize, bool bNeedDpiScale = true);
 
     /** 获取透明通道修补范围的的九宫格描述，对应 XML 中 alphafixcorner 属性
     */
@@ -360,8 +366,9 @@ public:
 
     /** 设置透明通道修补范围的的九宫格描述
     * @param [in] rc 要设置的修补范围
+    * @param [in] bNeedDpiScale 是否进行DPI缩放
     */
-    void SetAlphaFixCorner(const UiRect& rc);
+    void SetAlphaFixCorner(const UiRect& rc, bool bNeedDpiScale = true);
 
     /** 获取窗口最小范围，对应 XML 中 mininfo 属性
     * @param [in] bContainShadow 是否包含阴影范围，默认为 false
@@ -765,7 +772,7 @@ public:
 
     /** 获取阴影图片
     */
-    const std::wstring& GetShadowImage() const;
+    std::wstring GetShadowImage() const;
 
     /** 设置窗口阴影图片
     * @param [in] strImage 图片位置

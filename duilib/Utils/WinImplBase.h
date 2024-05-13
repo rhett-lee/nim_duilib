@@ -56,7 +56,7 @@ public:
     * @return 默认返回当前窗口的样式去掉WS_CAPTION属性
     *         如果子类重写该函数后，返回值为0，则不改变当前窗口的样式
     */
-    virtual UINT GetStyle() const;
+    virtual uint32_t GetWindowStyle() const override;
 
 public:
 
@@ -67,8 +67,8 @@ public:
     virtual Control* CreateControl(const std::wstring& strClass);
 
 protected:
-    /** 当接收到窗口创建消息时被调用，供子类中做一些初始化的工作
-     */
+    /** 当窗口创建完成以后调用此函数，供子类中做一些初始化的工作
+    */
     virtual void OnInitWindow() override;
 
     /** 窗口消息的派发函数, 子类继承该函数，重写函数中，需要调用基类的函数

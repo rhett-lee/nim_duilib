@@ -116,7 +116,7 @@ void Progress::SetProgressImage(const std::wstring& strImage)
 	if (m_pProgressImage == nullptr) {
 		m_pProgressImage = new Image;
 	}
-	m_pProgressImage->SetImageString(strImage);
+	m_pProgressImage->SetImageString(strImage, Dpi());
 	Invalidate();
 }
 

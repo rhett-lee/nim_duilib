@@ -13,6 +13,8 @@ namespace ui
 class Control;
 class Image;
 class IRender;
+class DpiManager;
+
 class UILIB_API StateImage
 {
 public:
@@ -24,10 +26,13 @@ public:
 	void SetControl(Control* pControl);
 
 	/** 设置图片属性
-	*@param [in] stateType 图片类型
-	*@param [in] strImageString 图片属性字符串
+	* @param [in] stateType 图片类型
+	* @param [in] strImageString 图片属性字符串
+	* @param [in] dpi DPI缩放管理接口
 	*/
-	void SetImageString(ControlStateType stateType, const std::wstring& strImageString);
+	void SetImageString(ControlStateType stateType, 
+						const std::wstring& strImageString,
+		                const DpiManager& dpi);
 
 	/** 获取图片属性
 	*@param [in] stateType 图片类型

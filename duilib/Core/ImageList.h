@@ -27,10 +27,9 @@ public:
 
 public:
 	/** 设置图片大小（可选设置，如果不设置，则从每个图片获取）
-	* @param [in] imageSize 图片大小
-	* @param [in] bNeedDpiScale 是否需要对列宽值进行DPI自适应
+	* @param [in] imageSize 图片大小, 内部不进行DPI缩放，需要由外部进行DPI缩放
 	*/
-	void SetImageSize(UiSize imageSize, bool bNeedDpiScale);
+	void SetImageSize(UiSize imageSize);
 
 	/** 获取图片大小
 	* @return 返回设置的图片大小，如果未设置，则返回(0,0)
@@ -39,9 +38,10 @@ public:
 
 	/** 添加一个图片资源
 	* @param [in] imageString 图片资源字符串，格式同：Image::SetImageString函数
+	* @param [in] dpi DPI缩放管理接口
 	* @return 返回图片资源的ID，如果失败返回-1，否则返回大于等于0的ID
 	*/
-	int32_t AddImageString(const std::wstring& imageString);
+	int32_t AddImageString(const std::wstring& imageString, const DpiManager& dpi);
 
 	/** 获取图片资源字符串
 	* @param [in] imageId 图片资源的ID，由AddImage函数返回的值

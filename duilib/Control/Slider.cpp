@@ -279,7 +279,7 @@ std::wstring Slider::GetThumbStateImage(ControlStateType stateType) const
 
 void Slider::SetThumbStateImage(ControlStateType stateType, const std::wstring& pStrImage)
 {
-	m_thumbStateImage.SetImageString(stateType, pStrImage);
+	m_thumbStateImage.SetImageString(stateType, pStrImage, Dpi());
 	Invalidate();
 }
 

@@ -23,10 +23,10 @@ void Image::InitImageAttribute()
 	m_imageAttribute.Init();
 }
 
-void Image::SetImageString(const std::wstring& strImageString)
+void Image::SetImageString(const std::wstring& strImageString, const DpiManager& dpi)
 {
 	ClearImageCache();
-	m_imageAttribute.InitByImageString(strImageString);
+	m_imageAttribute.InitByImageString(strImageString, dpi);
 }
 
 std::wstring Image::GetImageString() const

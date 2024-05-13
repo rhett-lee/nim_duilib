@@ -86,15 +86,20 @@ private:
 	UiColor m_bkColor = UiColor(UiColors::LightGray);
 };
 
-UiSize Shadow::GetChildBoxBorderRound()
+UiSize Shadow::GetChildBoxBorderRound(Box* pBox)
 {
-	return { 3, 3 };
+	UiSize rcSize{ 3, 3 };
+	if (pBox != nullptr) {
+		pBox->Dpi().ScaleSize(rcSize);
+	}
+	return rcSize;
 }
 
-Shadow::Shadow():
+Shadow::Shadow(Window* pWindow):
 	m_bShadowAttached(true),
 	m_bUseDefaultShadowAttached(true),
-	m_pRoot(nullptr)
+	m_pRoot(nullptr),
+	m_pWindow(pWindow)
 {
 	ResetDefaultShadow();
 }
@@ -138,7 +143,10 @@ void Shadow::SetShadowCorner(const UiPadding& padding, bool bNeedDpiScale)
 	if ((padding.left >= 0) && (padding.top >= 0) && (padding.right >= 0) && (padding.bottom >= 0)) {
 		m_rcShadowCorner = padding;
 		if (bNeedDpiScale) {
-			GlobalManager::Instance().Dpi().ScalePadding(m_rcShadowCorner);
+			ASSERT(m_pWindow != nullptr);
+			if (m_pWindow != nullptr) {
+				m_pWindow->Dpi().ScalePadding(m_rcShadowCorner);
+			}
 		}
 		m_rcShadowCornerBackup = m_rcShadowCorner;
 	}	
@@ -160,7 +168,10 @@ void Shadow::ResetDefaultShadow()
 	m_strImage = L"file='public/shadow/bk_shadow.png' corner='30,30,30,30'";
 
 	m_rcShadowCorner = { 14, 14, 14, 14 };
-	GlobalManager::Instance().Dpi().ScalePadding(m_rcShadowCorner);
+	ASSERT(m_pWindow != nullptr);
+	if (m_pWindow != nullptr) {
+		m_pWindow->Dpi().ScalePadding(m_rcShadowCorner);
+	}
 	m_rcShadowCornerBackup = m_rcShadowCorner;
 }
 
@@ -199,7 +210,7 @@ Box* Shadow::AttachShadow(Box* pRoot)
 	}
 
 	if (m_bUseDefaultImage)	{
-		pRoot->SetBorderRound(Shadow::GetChildBoxBorderRound());
+		pRoot->SetBorderRound(Shadow::GetChildBoxBorderRound(pRoot));
 	}
 
 	m_pRoot->AddItem(pRoot);

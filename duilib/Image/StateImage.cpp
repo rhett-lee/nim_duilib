@@ -35,7 +35,9 @@ void StateImage::SetControl(Control* pControl)
 	}
 }
 
-void StateImage::SetImageString(ControlStateType stateType, const std::wstring& strImageString)
+void StateImage::SetImageString(ControlStateType stateType, 
+							    const std::wstring& strImageString,
+								const DpiManager& dpi)
 {
 	Image* pImage = nullptr;
 	auto iter = m_stateImageMap.find(stateType);
@@ -53,7 +55,7 @@ void StateImage::SetImageString(ControlStateType stateType, const std::wstring& 
 		pImage->SetControl(m_pControl);
 		m_stateImageMap[stateType] = pImage;
 	}
-	pImage->SetImageString(strImageString);
+	pImage->SetImageString(strImageString, dpi);
 }
 
 std::wstring StateImage::GetImageString(ControlStateType stateType) const
