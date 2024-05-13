@@ -1302,7 +1302,7 @@ void MainForm::GetFontSizeList(std::vector<FontSizeInfo>& fontSizeList) const
 	//更新DPI自适应值
 	for (FontSizeInfo& fontSize : fontSizeList) {
 		int32_t nSize = static_cast<int32_t>(fontSize.fFontSize * 1000);
-		ui::GlobalManager::Instance().Dpi().ScaleInt(nSize);
+		Dpi().ScaleInt(nSize);
 		fontSize.fontSize = nSize / 1000;
 	}
 }

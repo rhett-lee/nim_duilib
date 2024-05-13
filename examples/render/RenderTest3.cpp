@@ -23,8 +23,8 @@ void RenderTest3::Paint(IRender* pRender, const UiRect& rcPaint)
     __super::Paint(pRender, rcPaint);
     int marginLeft = 8;
     int marginTop = 4;
-    GlobalManager::Instance().Dpi().ScaleInt(marginLeft);
-    GlobalManager::Instance().Dpi().ScaleInt(marginTop);
+    Dpi().ScaleInt(marginLeft);
+    Dpi().ScaleInt(marginTop);
 
     UiRect rect = GetRect();
     UiRect textRect = rect;
@@ -33,8 +33,8 @@ void RenderTest3::Paint(IRender* pRender, const UiRect& rcPaint)
 
     int nSize = 110;
     int nTextLineHeight = 40;
-    GlobalManager::Instance().Dpi().ScaleInt(nSize);
-    GlobalManager::Instance().Dpi().ScaleInt(nTextLineHeight);
+    Dpi().ScaleInt(nSize);
+    Dpi().ScaleInt(nTextLineHeight);
 
     rect.right = rect.left + nSize;
     rect.bottom = rect.top + nSize;
@@ -110,7 +110,7 @@ void RenderTest3::Paint(IRender* pRender, const UiRect& rcPaint)
     rect.left = rect.right + marginLeft;
     rect.right = rect.left + nSize;
     UiSize roundSize(12, 12);
-    GlobalManager::Instance().Dpi().ScaleSize(roundSize);
+    Dpi().ScaleSize(roundSize);
     pRender->DrawRoundRect(rect, roundSize, UiColor(0xffC63535), DpiScaledInt(2));
     textRect = rect;
     textRect.top = rect.bottom;
@@ -272,7 +272,7 @@ void RenderTest3::PaintChild(IRender* pRender, const UiRect& rcPaint)
 
 int RenderTest3::DpiScaledInt(int iValue)
 {
-    return GlobalManager::Instance().Dpi().GetScaleInt(iValue);
+    return Dpi().GetScaleInt(iValue);
 }
 
 void RenderTest3::DrawColorMap(IRender* pRender, const UiRect& rect)
