@@ -68,27 +68,25 @@ UiSize VirtualHLayout::EstimateSizeByChild(const std::vector<Control*>& items, u
     return size;
 }
 
-bool VirtualHLayout::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
+bool VirtualHLayout::SetAttribute(const std::wstring& strName, const std::wstring& strValue, const DpiManager& dpiManager)
 {
     bool hasAttribute = true;
     if ((strName == L"item_size") || (strName == L"itemsize")) {
         UiSize szItem;
         AttributeUtil::ParseSizeValue(strValue.c_str(), szItem);
+        dpiManager.ScaleSize(szItem);
         SetItemSize(szItem);
     }
     else {
-        hasAttribute = HLayout::SetAttribute(strName, strValue);
+        hasAttribute = HLayout::SetAttribute(strName, strValue, dpiManager);
     }
     return hasAttribute;
 }
 
-void VirtualHLayout::SetItemSize(UiSize szItem, bool bNeedDpiScale)
+void VirtualHLayout::SetItemSize(UiSize szItem)
 {
     szItem.cx = std::max(szItem.cx, 0);
     szItem.cy = std::max(szItem.cy, 0);
-    if (bNeedDpiScale) {
-        GlobalManager::Instance().Dpi().ScaleSize(szItem);
-    }
     ASSERT((szItem.cx > 0) && (szItem.cy > 0));
     if ((m_szItem.cx != szItem.cx) || (m_szItem.cy != szItem.cy)) {
         m_szItem = szItem;

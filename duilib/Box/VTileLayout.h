@@ -38,11 +38,14 @@ public:
 	virtual UiSize EstimateSizeByChild(const std::vector<Control*>& items, UiSize szAvailable);
 	
 	/** 设置布局属性
-	 * @param[in] strName 要设置的属性名
-	 * @param[in] strValue 要设置的属性值
+	 * @param [in] strName 要设置的属性名
+	 * @param [in] strValue 要设置的属性值
+	 * @param [in] dpiManager DPI管理接口
 	 * @return true 设置成功，false 属性不存在
 	 */
-	virtual bool SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
+	virtual bool SetAttribute(const std::wstring& strName, 
+							  const std::wstring& strValue,
+							  const DpiManager& dpiManager) override;
 
 public:
 	/** 获取子项大小，该宽度和高度，是包含了控件的外边距和内边距的
@@ -52,7 +55,7 @@ public:
 	/** 设置子项大小
 	 * @param[in] szItem 子项大小数据，该宽度和高度，是包含了控件的外边距和内边距的
 	 */
-	void SetItemSize(UiSize szItem, bool bNeedDpiScale = true);
+	void SetItemSize(UiSize szItem);
 
 	/** 获取列数量
 	 */

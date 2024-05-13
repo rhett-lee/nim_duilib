@@ -132,30 +132,30 @@ public:
 	* @param[in] iValue 整数
 	* @return int 缩放后的值
 	*/
-	int32_t ScaleInt(int32_t& iValue);
-	int32_t GetScaleInt(int32_t iValue);
-	uint32_t GetScaleInt(uint32_t iValue);
+	int32_t ScaleInt(int32_t& iValue) const;
+	int32_t GetScaleInt(int32_t iValue) const;
+	uint32_t GetScaleInt(uint32_t iValue) const;
 
 	/** 根据界面缩放比来缩放SIZE
 	* @param[in] size 需要缩放的Size引用
 	*/
-	void ScaleSize(SIZE& size);
-	void ScaleSize(UiSize& size);
+	void ScaleSize(SIZE& size) const;
+	void ScaleSize(UiSize& size) const;
 
 	/** 根据界面缩放比来缩放POINT
 	* @param[in] point 需要缩放的point引用
 	*/
-	void ScalePoint(POINT& point);
-	void ScalePoint(UiPoint& point);
+	void ScalePoint(POINT& point) const;
+	void ScalePoint(UiPoint& point) const;
 
 	/** 根据界面缩放比来缩放RECT
 	* @param[in] rect 需要缩放的rect引用
 	* @return void	无返回值
 	*/
-	void ScaleRect(RECT& rect);
-	void ScaleRect(UiRect& rect);
-	void ScalePadding(UiPadding& padding);
-	void ScaleMargin(UiMargin& margin);
+	void ScaleRect(RECT& rect) const;
+	void ScaleRect(UiRect& rect) const;
+	void ScalePadding(UiPadding& padding) const;
+	void ScaleMargin(UiMargin& margin) const;
 
 private:
 

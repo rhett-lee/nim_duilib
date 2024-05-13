@@ -40,7 +40,7 @@ void Box::SetAttribute(const std::wstring& strName, const std::wstring& strValue
 	if ((strName == L"mouse_child") || (strName == L"mousechild")) {
 		SetMouseChildEnabled(strValue == L"true");
 	}
-	else if (m_pLayout->SetAttribute(strName, strValue)) {
+	else if (m_pLayout->SetAttribute(strName, strValue, Dpi())) {
 		return;
 	}
 	else if (strName == L"drag_out_id") {

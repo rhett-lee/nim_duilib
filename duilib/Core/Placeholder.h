@@ -12,6 +12,7 @@ namespace ui
 {
 	class Box;
 	class Window;
+	class DpiManager;
 
 /** 控件的位置、大小、外观形状的基本封装
 */
@@ -334,6 +335,10 @@ public:
 	/** 判断两个控件是否存在父子/子孙关系
 	 */
 	bool IsChild(PlaceHolder* pAncestor, PlaceHolder* pChild) const;
+
+	/** 获取该窗口对应的DPI管理器
+	*/
+	const DpiManager& Dpi() const;
 
 protected:
 	/** 让自己重排

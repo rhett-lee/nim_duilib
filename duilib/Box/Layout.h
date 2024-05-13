@@ -11,6 +11,7 @@ namespace ui
 {
 class Box;
 class Control;
+class DpiManager;
 
 /** 控件的布局类型
 */
@@ -94,11 +95,14 @@ public:
 	static UiSize64 SetFloatPos(Control* pControl, const UiRect& rcContainer);
 
 	/** 设置布局属性
-	 * @param[in] strName 要设置的属性名
-	 * @param[in] strValue 要设置的属性值
+	 * @param [in] strName 要设置的属性名
+	 * @param [in] strValue 要设置的属性值
+	 * @param [in] dpiManager DPI管理接口
 	 * @return true 设置成功，false 属性不存在
 	 */
-	virtual bool SetAttribute(const std::wstring& strName, const std::wstring& strValue);
+	virtual bool SetAttribute(const std::wstring& strName, 
+							  const std::wstring& strValue,
+							  const DpiManager& dpiManager);
 
 	/** 调整内部所有控件的位置信息
 	 * @param[in] items 控件列表
@@ -130,17 +134,17 @@ public:
 	int32_t GetChildMarginY() const { return m_iChildMarginY; }
 
 	/** 设置子控件之间的额外边距（X轴方向）
-	 * @param[in] iMarginX 要设置的边距数值
+	 * @param [in] iMarginX 要设置的边距数值
 	 */
 	void SetChildMarginX(int32_t iMarginX);
 
 	/** 设置子控件之间的额外边距（Y轴方向）
-	 * @param[in] iMarginY 要设置的边距数值
+	 * @param [in] iMarginY 要设置的边距数值
 	 */
 	void SetChildMarginY(int32_t iMarginY);
 
 	/** 设置子控件之间的额外边距（X轴方向和Y轴方向，均设置为同一个值）
-	 * @param[in] iMargin 要设置的边距数值
+	 * @param [in] iMargin 要设置的边距数值
 	 */
 	void SetChildMargin(int32_t iMargin);
 

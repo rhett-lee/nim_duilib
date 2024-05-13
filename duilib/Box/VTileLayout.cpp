@@ -582,12 +582,13 @@ UiSize VTileLayout::EstimateSizeByChild(const std::vector<Control*>& items, UiSi
 	return size;
 }
 
-bool VTileLayout::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
+bool VTileLayout::SetAttribute(const std::wstring& strName, const std::wstring& strValue, const DpiManager& dpiManager)
 {
 	bool hasAttribute = true;
 	if((strName == L"item_size") || (strName == L"itemsize")){
 		UiSize szItem;
 		AttributeUtil::ParseSizeValue(strValue.c_str(), szItem);
+		dpiManager.ScaleSize(szItem);
 		SetItemSize(szItem);
 	}
 	else if( (strName == L"columns") || (strName == L"rows")) {
@@ -604,7 +605,7 @@ bool VTileLayout::SetAttribute(const std::wstring& strName, const std::wstring& 
 		SetScaleDown(strValue == L"true");
 	}
 	else {
-		hasAttribute = Layout::SetAttribute(strName, strValue);
+		hasAttribute = Layout::SetAttribute(strName, strValue, dpiManager);
 	}
 	return hasAttribute;
 }
@@ -614,14 +615,10 @@ const UiSize& VTileLayout::GetItemSize() const
 	return m_szItem;
 }
 
-void VTileLayout::SetItemSize(UiSize szItem, bool bNeedDpiScale)
+void VTileLayout::SetItemSize(UiSize szItem)
 {
 	szItem.cx = std::max(szItem.cx, 0);
 	szItem.cy = std::max(szItem.cy, 0);
-	if (bNeedDpiScale) {
-		GlobalManager::Instance().Dpi().ScaleSize(szItem);
-	}
-
 	if( (m_szItem.cx != szItem.cx) || (m_szItem.cy != szItem.cy) ) {
 		m_szItem = szItem;
 		if (GetOwner() != nullptr) {

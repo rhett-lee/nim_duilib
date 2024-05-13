@@ -175,10 +175,10 @@ void ColorPickerRegular::SetPos(UiRect rc)
             szItem.cx = (rect.Width() - childMarginX * (columns - 1)) / columns;
             szItem.cy = (rect.Height() - childMarginY * (rows - 1)) / rows;
             if ((szItem.cx > 0) && (szItem.cy > 0)) {
-                pVirtualLayout->SetItemSize(szItem, false);
+                pVirtualLayout->SetItemSize(szItem);
             }
             else if ((m_szItem.cx > 0) && (m_szItem.cy > 0)) {
-                pVirtualLayout->SetItemSize(m_szItem, false);
+                pVirtualLayout->SetItemSize(m_szItem);
             }
         }
     }

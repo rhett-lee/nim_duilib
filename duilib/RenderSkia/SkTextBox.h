@@ -9,7 +9,7 @@
 #define UI_RENDER_SKIA_SK_TEXT_BOX_H_
 
 #pragma warning (push)
-#pragma warning (disable: 4244)
+#pragma warning (disable: 4244 4267)
 #include "include/core/SkCanvas.h"
 #pragma warning (pop)
 

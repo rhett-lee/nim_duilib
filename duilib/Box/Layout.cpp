@@ -121,19 +121,22 @@ UiRect Layout::GetFloatPos(Control* pControl, UiRect rcContainer, UiSize childSi
 	return childPos;
 }
 
-bool Layout::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
+bool Layout::SetAttribute(const std::wstring& strName, const std::wstring& strValue, const DpiManager& dpiManager)
 {
 	bool hasAttribute = true;
 	if ((strName == L"child_margin") || (strName == L"childmargin")) {
 		int32_t iMargin = _wtoi(strValue.c_str());
+		dpiManager.ScaleInt(iMargin);
 		SetChildMargin(iMargin);
 	}
 	else if ((strName == L"child_margin_x") || (strName == L"childmarginx")) {
 		int32_t iMargin = _wtoi(strValue.c_str());
+		dpiManager.ScaleInt(iMargin);
 		SetChildMarginX(iMargin);
 	}
 	else if ((strName == L"child_margin_y") || (strName == L"childmarginy")) {
 		int32_t iMargin = _wtoi(strValue.c_str());
+		dpiManager.ScaleInt(iMargin);
 		SetChildMarginY(iMargin);
 	}
 	else {
@@ -265,7 +268,6 @@ void Layout::SetChildMargin(int32_t iMargin)
 {
 	ASSERT(iMargin >= 0);
 	iMargin = std::max(iMargin, 0);
-	GlobalManager::Instance().Dpi().ScaleInt(iMargin);
 	bool isChanged = ((int32_t)m_iChildMarginX != iMargin) || ((int32_t)m_iChildMarginY != iMargin);
 	m_iChildMarginX = TruncateToUInt16((uint32_t)iMargin);
 	m_iChildMarginY = TruncateToUInt16((uint32_t)iMargin);
@@ -279,7 +281,6 @@ void Layout::SetChildMarginX(int32_t iMarginX)
 {
 	ASSERT(iMarginX >= 0);
 	iMarginX = std::max(iMarginX, 0);
-	GlobalManager::Instance().Dpi().ScaleInt(iMarginX);
 	bool isChanged = ((int32_t)m_iChildMarginX != iMarginX);
 	m_iChildMarginX = TruncateToUInt16((uint32_t)iMarginX);
 	ASSERT(m_pOwner != nullptr);
@@ -292,7 +293,6 @@ void Layout::SetChildMarginY(int32_t iMarginY)
 {
 	ASSERT(iMarginY >= 0);
 	iMarginY = std::max(iMarginY, 0);
-	GlobalManager::Instance().Dpi().ScaleInt(iMarginY);
 	bool isChanged = ((int32_t)m_iChildMarginY != iMarginY);
 	m_iChildMarginY = TruncateToUInt16((uint32_t)iMarginY);
 	ASSERT(m_pOwner != nullptr);

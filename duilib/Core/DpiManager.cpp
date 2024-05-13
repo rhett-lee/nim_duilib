@@ -264,7 +264,7 @@ bool DpiManager::IsScaled() const
 	return m_nScaleFactor != 100;
 }
 
-int32_t DpiManager::ScaleInt(int32_t& iValue)
+int32_t DpiManager::ScaleInt(int32_t& iValue) const
 {
 	if (m_nScaleFactor == 100) {
 		return iValue;
@@ -273,7 +273,7 @@ int32_t DpiManager::ScaleInt(int32_t& iValue)
 	return iValue;
 }
 
-int32_t DpiManager::GetScaleInt(int32_t iValue)
+int32_t DpiManager::GetScaleInt(int32_t iValue) const
 {
 	if (m_nScaleFactor == 100) {
 		return iValue;
@@ -282,7 +282,7 @@ int32_t DpiManager::GetScaleInt(int32_t iValue)
 	return iValue;
 }
 
-uint32_t DpiManager::GetScaleInt(uint32_t iValue)
+uint32_t DpiManager::GetScaleInt(uint32_t iValue) const
 {
 	if (m_nScaleFactor == 100) {
 		return iValue;
@@ -291,7 +291,7 @@ uint32_t DpiManager::GetScaleInt(uint32_t iValue)
 	return iValue;
 }
 
-void DpiManager::ScaleSize(SIZE &size)
+void DpiManager::ScaleSize(SIZE &size) const
 {
 	if (m_nScaleFactor == 100) {
 		return;
@@ -300,7 +300,7 @@ void DpiManager::ScaleSize(SIZE &size)
 	size.cy = MulDiv(size.cy, m_nScaleFactor, 100);
 }
 
-void DpiManager::ScaleSize(UiSize &size)
+void DpiManager::ScaleSize(UiSize &size) const
 {
 	if (m_nScaleFactor == 100) {
 		return;
@@ -309,7 +309,7 @@ void DpiManager::ScaleSize(UiSize &size)
 	size.cy = MulDiv(size.cy, m_nScaleFactor, 100);
 }
 
-void DpiManager::ScalePoint(POINT &point)
+void DpiManager::ScalePoint(POINT &point) const
 {
 	if (m_nScaleFactor == 100) {
 		return;
@@ -318,7 +318,7 @@ void DpiManager::ScalePoint(POINT &point)
 	point.y = MulDiv(point.y, m_nScaleFactor, 100);
 }
 
-void DpiManager::ScalePoint(UiPoint &point)
+void DpiManager::ScalePoint(UiPoint &point) const
 {
 	if (m_nScaleFactor == 100) {
 		return;
@@ -328,7 +328,7 @@ void DpiManager::ScalePoint(UiPoint &point)
 	point.y = MulDiv(point.y, m_nScaleFactor, 100);
 }
 
-void DpiManager::ScaleRect(RECT &rect)
+void DpiManager::ScaleRect(RECT &rect) const
 {
 	if (m_nScaleFactor == 100) {
 		return;
@@ -341,7 +341,7 @@ void DpiManager::ScaleRect(RECT &rect)
 	rect.bottom = rect.top + height;
 }
 
-void DpiManager::ScaleRect(UiRect &rect)
+void DpiManager::ScaleRect(UiRect &rect) const
 {
 	if (m_nScaleFactor == 100) {
 		return;
@@ -354,7 +354,7 @@ void DpiManager::ScaleRect(UiRect &rect)
 	rect.bottom = rect.top + height;
 }
 
-void DpiManager::ScalePadding(UiPadding& padding)
+void DpiManager::ScalePadding(UiPadding& padding) const
 {
 	if (m_nScaleFactor == 100) {
 		return;
@@ -365,7 +365,7 @@ void DpiManager::ScalePadding(UiPadding& padding)
 	padding.bottom = MulDiv(padding.bottom, m_nScaleFactor, 100);
 }
 
-void DpiManager::ScaleMargin(UiMargin& margin)
+void DpiManager::ScaleMargin(UiMargin& margin) const
 {
 	if (m_nScaleFactor == 100) {
 		return;
