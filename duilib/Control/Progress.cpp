@@ -333,7 +333,7 @@ void Progress::PaintMarquee(IRender* pRender)
 				rc.top = std::max(m_nMarqueePos, 0) + rc.top;
 				rc.bottom = rc.top + (m_nMarqueePos >= 0 ? m_nMarqueeWidth : (m_nMarqueeWidth + m_nMarqueePos));
 			}
-			GlobalManager::Instance().Dpi().ScaleRect(rc);
+			Dpi().ScaleRect(rc);
 			pRender->FillRect(rc, dwProgressColor);
 		}
 	}

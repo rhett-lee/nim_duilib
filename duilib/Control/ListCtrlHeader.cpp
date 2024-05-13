@@ -8,9 +8,9 @@ ListCtrlHeader::ListCtrlHeader() :
     m_pListCtrl(nullptr),
     m_nCheckBoxPadding(0),
     m_nPaddingLeftValue(0),
-    m_bEnableCheckChangeEvent(true)
+    m_bEnableCheckChangeEvent(true),
+    m_nIconSpacing(-1)
 {
-    m_nIconSpacing = GlobalManager::Instance().Dpi().GetScaleInt(4);
 }
 
 ListCtrlHeader::~ListCtrlHeader()
@@ -32,7 +32,7 @@ void ListCtrlHeader::SetAttribute(const std::wstring& strName, const std::wstrin
 void ListCtrlHeader::SetIconSpacing(int32_t nIconSpacing, bool bNeedDpiScale)
 {
     if (bNeedDpiScale) {
-        GlobalManager::Instance().Dpi().ScaleInt(nIconSpacing);
+        Dpi().ScaleInt(nIconSpacing);
     }
     if (m_nIconSpacing != nIconSpacing) {
         m_nIconSpacing = nIconSpacing;
@@ -45,7 +45,11 @@ void ListCtrlHeader::SetIconSpacing(int32_t nIconSpacing, bool bNeedDpiScale)
 
 int32_t ListCtrlHeader::GetIconSpacing() const
 {
-    return m_nIconSpacing;
+    int32_t nIconSpacing = m_nIconSpacing;
+    if (nIconSpacing < 0) {
+        nIconSpacing = Dpi().GetScaleInt(4);
+    }
+    return nIconSpacing;
 }
 
 bool ListCtrlHeader::IsSelectableType() const
@@ -61,7 +65,7 @@ ListCtrlHeaderItem* ListCtrlHeader::InsertColumn(int32_t columnIndex, const List
         return nullptr;
     }
     if (columnInfo.bNeedDpiScale) {
-        GlobalManager::Instance().Dpi().ScaleInt(nColumnWidth);
+        Dpi().ScaleInt(nColumnWidth);
     }
     if (nColumnWidth < 0) {
         nColumnWidth = 0;
@@ -504,7 +508,7 @@ void ListCtrlHeader::UpdatePaddingLeft()
     UiPadding rcOldPadding = rcPadding;
     int32_t nCheckBoxWidth = GetCheckBoxImageWidth();
     if (nCheckBoxWidth > 0) {
-        nCheckBoxWidth += m_nIconSpacing;
+        nCheckBoxWidth += GetIconSpacing();
     }
     rcPadding.left = std::max(nCheckBoxWidth, m_nPaddingLeftValue);
     if (rcPadding.left != rcOldPadding.left) {

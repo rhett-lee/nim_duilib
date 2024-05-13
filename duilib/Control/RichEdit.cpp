@@ -2506,7 +2506,7 @@ void RichEdit::SetTextPadding(UiPadding padding, bool bNeedDpiScale)
 		return;
 	}
 	if (bNeedDpiScale) {
-		GlobalManager::Instance().Dpi().ScalePadding(padding);
+		Dpi().ScalePadding(padding);
 	}
 	if (!GetTextPadding().Equals(padding)) {
 		m_rcTextPadding.left = TruncateToUInt16(padding.left);

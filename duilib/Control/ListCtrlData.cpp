@@ -1007,14 +1007,11 @@ int8_t ListCtrlData::GetDataItemAlwaysAtTop(size_t itemIndex) const
     return nValue;
 }
 
-bool ListCtrlData::SetDataItemHeight(size_t itemIndex, int32_t nItemHeight, bool bNeedDpiScale, bool& bChanged)
+bool ListCtrlData::SetDataItemHeight(size_t itemIndex, int32_t nItemHeight, bool& bChanged)
 {
     bChanged = false;
     if (nItemHeight < 0) {
         nItemHeight = -1;
-    }
-    if (bNeedDpiScale && (nItemHeight > 0)) {
-        GlobalManager::Instance().Dpi().ScaleInt(nItemHeight);
     }
     if (m_nDefaultItemHeight == nItemHeight) {
         //如果等于默认高度，则设置为标志值

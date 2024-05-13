@@ -56,7 +56,7 @@ UiEstSize ColorPickerStatardGray::EstimateSize(UiSize szAvailable)
 	const float cosRadius = std::cos(30 / 57.2957795f);//边长的30度余弦长度
 	int32_t bigRadius = static_cast<int32_t>(szAvailable.cy / 2);
 	int32_t smallRadius = bigRadius / 2;
-	const int32_t marginX = ui::GlobalManager::Instance().Dpi().GetScaleInt(10);
+	const int32_t marginX = Dpi().GetScaleInt(10);
 	int32_t totalWidth = static_cast<int32_t>(smallRadius * 23 * cosRadius + marginX * 2);
 	if (totalWidth > szAvailable.cx) {
 		smallRadius = static_cast<int32_t>((szAvailable.cx - marginX * 2) / 23 / cosRadius);
@@ -97,7 +97,7 @@ void ColorPickerStatardGray::DrawColorMap(IRender* pRender, const UiRect& rect)
 	const float cosRadius = std::cos(30 / 57.2957795f);//边长的30度余弦长度
 	int32_t bigRadius = static_cast<int32_t>(rect.Height() / 2);
 	int32_t smallRadius = bigRadius / 2;
-	const int32_t marginX = ui::GlobalManager::Instance().Dpi().GetScaleInt(10);
+	const int32_t marginX = Dpi().GetScaleInt(10);
 	int32_t totalWidth = static_cast<int32_t>(smallRadius * 23 * cosRadius + marginX * 2);
 	if (totalWidth > rect.Width()) {
 		smallRadius = static_cast<int32_t>((rect.Width() - marginX * 2) / 23 / cosRadius);

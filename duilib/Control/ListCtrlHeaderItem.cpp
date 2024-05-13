@@ -15,9 +15,9 @@ ListCtrlHeaderItem::ListCtrlHeaderItem() :
     m_bShowIconAtTop(true),
     m_bColumnVisible(true),
     m_imageId(-1),
-    m_pHeaderCtrl(nullptr)
+    m_pHeaderCtrl(nullptr),
+    m_nIconSpacing(-1)
 {
-    m_nIconSpacing = GlobalManager::Instance().Dpi().GetScaleInt(6);
 }
 
 ListCtrlHeaderItem::~ListCtrlHeaderItem()
@@ -416,7 +416,7 @@ void ListCtrlHeaderItem::SetColumnWidth(int32_t nWidth, bool bNeedDpiScale)
         nWidth = 0;
     }
     if (bNeedDpiScale) {
-        GlobalManager::Instance().Dpi().ScaleInt(nWidth);
+        Dpi().ScaleInt(nWidth);
     }
     m_nColumnWidth = nWidth;
     CheckColumnWidth();
@@ -447,7 +447,7 @@ void ListCtrlHeaderItem::CheckColumnWidth()
 void ListCtrlHeaderItem::SetIconSpacing(int32_t nIconSpacing, bool bNeedDpiScale)
 {
     if (bNeedDpiScale) {
-        GlobalManager::Instance().Dpi().ScaleInt(nIconSpacing);
+        Dpi().ScaleInt(nIconSpacing);
     }
     if (m_nIconSpacing != nIconSpacing) {
         m_nIconSpacing = nIconSpacing;
@@ -460,7 +460,11 @@ void ListCtrlHeaderItem::SetIconSpacing(int32_t nIconSpacing, bool bNeedDpiScale
 
 int32_t ListCtrlHeaderItem::GetIconSpacing() const
 {
-    return m_nIconSpacing;
+    int32_t nIconSpacing = m_nIconSpacing;
+    if (nIconSpacing < 0) {
+        nIconSpacing = Dpi().GetScaleInt(6);
+    }
+    return nIconSpacing;
 }
 
 void ListCtrlHeaderItem::SetShowIconAtTop(bool bShowIconAtTop)

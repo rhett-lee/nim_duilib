@@ -10,7 +10,9 @@ ListCtrlReportView::ListCtrlReportView() :
     ListCtrlView(new ListCtrlReportLayout),
     m_pListCtrl(nullptr),
     m_pData(nullptr),
-    m_nTopElementIndex(0)
+    m_nTopElementIndex(0),
+    m_nRowGridLineWidth(-1),
+    m_nColumnGridLineWidth(-1)
 {
     ListCtrlReportLayout* pDataLayout = dynamic_cast<ListCtrlReportLayout*>(GetLayout());
     ASSERT(pDataLayout != nullptr);
@@ -22,8 +24,6 @@ ListCtrlReportView::ListCtrlReportView() :
     if (pDataLayout != nullptr) {
         pDataLayout->SetDataView(this);
     }
-    m_nRowGridLineWidth = GlobalManager::Instance().Dpi().GetScaleInt(1);
-    m_nColumnGridLineWidth = GlobalManager::Instance().Dpi().GetScaleInt(1);
 }
 
 ListCtrlReportView::~ListCtrlReportView() 
@@ -1067,7 +1067,7 @@ int32_t ListCtrlReportView::GetMaxDataItemWidth(const std::vector<ListCtrlSubIte
     }
     else {
         //增加一点余量
-        nMaxWidth += GlobalManager::Instance().Dpi().GetScaleInt(4);
+        nMaxWidth += Dpi().GetScaleInt(4);
     }
     return nMaxWidth;
 }
@@ -1332,7 +1332,7 @@ void ListCtrlReportView::OnSelectStatusChanged()
 void ListCtrlReportView::SetRowGridLineWidth(int32_t nLineWidth, bool bNeedDpiScale)
 {
     if (bNeedDpiScale) {
-        GlobalManager::Instance().Dpi().ScaleInt(nLineWidth);
+        Dpi().ScaleInt(nLineWidth);
     }
     if (nLineWidth < 0) {
         nLineWidth = 0;
@@ -1345,7 +1345,11 @@ void ListCtrlReportView::SetRowGridLineWidth(int32_t nLineWidth, bool bNeedDpiSc
 
 int32_t ListCtrlReportView::GetRowGridLineWidth() const
 {
-    return m_nRowGridLineWidth;
+    int32_t nRowGridLineWidth = m_nRowGridLineWidth;
+    if (nRowGridLineWidth < 0) {
+        nRowGridLineWidth = Dpi().GetScaleInt(1);
+    }    
+    return nRowGridLineWidth;
 }
 
 void ListCtrlReportView::SetRowGridLineColor(const std::wstring& color)
@@ -1364,7 +1368,7 @@ std::wstring ListCtrlReportView::GetRowGridLineColor() const
 void ListCtrlReportView::SetColumnGridLineWidth(int32_t nLineWidth, bool bNeedDpiScale)
 {
     if (bNeedDpiScale) {
-        GlobalManager::Instance().Dpi().ScaleInt(nLineWidth);
+        Dpi().ScaleInt(nLineWidth);
     }
     if (nLineWidth < 0) {
         nLineWidth = 0;
@@ -1377,7 +1381,11 @@ void ListCtrlReportView::SetColumnGridLineWidth(int32_t nLineWidth, bool bNeedDp
 
 int32_t ListCtrlReportView::GetColumnGridLineWidth() const
 {
-    return m_nColumnGridLineWidth;
+    int32_t nColumnGridLineWidth = m_nColumnGridLineWidth;
+    if (nColumnGridLineWidth < 0) {
+        nColumnGridLineWidth = Dpi().GetScaleInt(1);
+    }
+    return nColumnGridLineWidth;
 }
 
 void ListCtrlReportView::SetColumnGridLineColor(const std::wstring& color)
@@ -1400,7 +1408,6 @@ ListCtrlReportLayout::ListCtrlReportLayout():
     m_pDataView(nullptr),
     m_bReserveSet(false)
 {
-    m_nReserveHeight = GlobalManager::Instance().Dpi().GetScaleInt(8);
 }
 
 void ListCtrlReportLayout::SetDataView(ListCtrlReportView* pDataView)
@@ -1424,7 +1431,7 @@ UiSize64 ListCtrlReportLayout::ArrangeChild(const std::vector<ui::Control*>& /*i
     m_bReserveSet = false;
     if (nTotalHeight > rc.Height()) {
         //需要出现滚动条，底部预留空间
-        sz.cy += m_nReserveHeight;
+        sz.cy += GetReserveHeight();
         if (pDataView->GetHScrollBar() != nullptr) {
             sz.cy += pDataView->GetHScrollBar()->GetHeight();
         }
@@ -1562,8 +1569,8 @@ void ListCtrlReportLayout::LazyArrangeChild(UiRect rc) const
             if (nLastItemIndex == pDataView->GetElementCount() - 1) {
                 //已经是最后一条记录，确保底部显示完整
                 int32_t rcHeights = rc.Height();
-                if (m_bReserveSet && (rcHeights > m_nReserveHeight)) {
-                    rcHeights -= m_nReserveHeight;
+                if (m_bReserveSet && (rcHeights > GetReserveHeight())) {
+                    rcHeights -= GetReserveHeight();
                     if (pDataView->GetHScrollBar() != nullptr) {
                         rcHeights -= pDataView->GetHScrollBar()->GetHeight();
                     }                    
@@ -2168,6 +2175,15 @@ int32_t ListCtrlReportLayout::GetHeaderHeight() const
         }
     }
     return nHeaderHeight;
+}
+
+int32_t ListCtrlReportLayout::GetReserveHeight() const
+{
+    int32_t nReserveHeight = 8;
+    if (m_pDataView != nullptr) {
+        m_pDataView->Dpi().ScaleInt(nReserveHeight);
+    }
+    return nReserveHeight;
 }
 
 }//namespace ui

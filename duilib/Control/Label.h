@@ -629,7 +629,7 @@ void LabelTemplate<InheritType>::SetTextPadding(UiPadding padding, bool bNeedDpi
         return;
     }
     if (bNeedDpiScale) {
-        GlobalManager::Instance().Dpi().ScalePadding(padding);
+        this->Dpi().ScalePadding(padding);
     }    
     if (!this->GetTextPadding().Equals(padding)) {
         m_rcTextPadding.left = TruncateToUInt16(padding.left);

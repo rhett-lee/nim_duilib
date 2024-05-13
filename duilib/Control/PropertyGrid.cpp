@@ -16,9 +16,9 @@ PropertyGrid::PropertyGrid():
     m_pDescriptionArea(nullptr),
     m_bDescriptionArea(true),
     m_pDescriptionAreaSplit(nullptr),
-    m_pTreeView(nullptr)
+    m_pTreeView(nullptr),
+    m_nLeftColumnWidth(-1)
 {
-    m_nLeftColumnWidth = GlobalManager::Instance().Dpi().GetScaleInt(130);
 }
 
 std::wstring PropertyGrid::GetType() const { return DUI_CTR_PROPERTY_GRID; }
@@ -101,7 +101,7 @@ void PropertyGrid::OnInit()
     }
 
     //初始化第一列宽度
-    SetLeftColumnWidth(m_nLeftColumnWidth, false);
+    SetLeftColumnWidth(GetLeftColumnWidthValue(), false);
 
     //关联描述区域
     if ((m_pDescriptionArea != nullptr) && (m_pTreeView != nullptr)) {
@@ -359,7 +359,7 @@ int32_t PropertyGrid::GetDescriptionAreaHeight() const
 void PropertyGrid::SetRowGridLineWidth(int32_t nLineWidth, bool bNeedDpiScale)
 {
     if (bNeedDpiScale) {
-        GlobalManager::Instance().Dpi().ScaleInt(nLineWidth);
+        Dpi().ScaleInt(nLineWidth);
     }
     if (nLineWidth < 0) {
         nLineWidth = 0;
@@ -391,7 +391,7 @@ std::wstring PropertyGrid::GetRowGridLineColor() const
 void PropertyGrid::SetColumnGridLineWidth(int32_t nLineWidth, bool bNeedDpiScale)
 {
     if (bNeedDpiScale) {
-        GlobalManager::Instance().Dpi().ScaleInt(nLineWidth);
+        Dpi().ScaleInt(nLineWidth);
     }
     if (nLineWidth < 0) {
         nLineWidth = 0;
@@ -701,7 +701,7 @@ void PropertyGrid::SetLeftColumnWidth(int32_t nLeftColumnWidth, bool bNeedDpiSca
         return;
     }
     if (bNeedDpiScale) {
-        GlobalManager::Instance().Dpi().ScaleInt(nLeftColumnWidth);
+        Dpi().ScaleInt(nLeftColumnWidth);
     }
     if (m_nLeftColumnWidth != nLeftColumnWidth) {
         m_nLeftColumnWidth = nLeftColumnWidth;
@@ -727,13 +727,22 @@ void PropertyGrid::SetLeftColumnWidth(int32_t nLeftColumnWidth, bool bNeedDpiSca
 
 int32_t PropertyGrid::GetLeftColumnWidth() const
 {
-    int32_t nLeftColumnWidth = m_nLeftColumnWidth;
+    int32_t nLeftColumnWidth = GetLeftColumnWidthValue();
     if (IsInited() && (m_pHeaderLeft != nullptr)) {
         int32_t nSplitWidth = 0;
         if (m_pHeaderSplit != nullptr) {
             nSplitWidth = m_pHeaderSplit->GetFixedWidth().GetInt32();
         }
         nLeftColumnWidth = m_pHeaderLeft->GetFixedWidth().GetInt32() + nSplitWidth / 2;
+    }
+    return nLeftColumnWidth;
+}
+
+int32_t PropertyGrid::GetLeftColumnWidthValue() const
+{
+    int32_t nLeftColumnWidth = m_nLeftColumnWidth;
+    if (nLeftColumnWidth < 0) {
+        nLeftColumnWidth = Dpi().GetScaleInt(130);
     }
     return nLeftColumnWidth;
 }
@@ -1513,7 +1522,7 @@ void PropertyGridFontSizeProperty::GetSystemFontSizeList(std::vector<FontSizeInf
     //更新DPI自适应值
     for (FontSizeInfo& fontSize : fontSizeList) {
         int32_t nSize = static_cast<int32_t>(fontSize.fFontSize * 1000);
-        ui::GlobalManager::Instance().Dpi().ScaleInt(nSize);
+        Dpi().ScaleInt(nSize);
         fontSize.fDpiFontSize = nSize / 1000.0f;
     }
 }

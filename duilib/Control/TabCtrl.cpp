@@ -199,16 +199,16 @@ TabCtrlItem::TabCtrlItem():
     m_bAutoHideCloseBtn(false),
     m_nTabBoxItemIndex(Box::InvalidIndex)
 {
-    m_rcSelected.cx = (uint8_t)GlobalManager::Instance().Dpi().GetScaleInt(12);
-    m_rcSelected.cy = m_rcSelected.cx;
+    m_rcSelected.cx = (uint8_t)-1;
+    m_rcSelected.cy = (uint8_t)-1;
 
-    m_rcHot.cx = (uint8_t)GlobalManager::Instance().Dpi().GetScaleInt(5);
-    m_rcHot.cy = m_rcHot.cx;
+    m_rcHot.cx = (uint8_t)-1;
+    m_rcHot.cy = (uint8_t)-1;
 
     m_hotPadding.top = 0;
-    m_hotPadding.left = (uint8_t)GlobalManager::Instance().Dpi().GetScaleInt(3);
-    m_hotPadding.right = m_hotPadding.left;
-    m_hotPadding.bottom = m_hotPadding.left;
+    m_hotPadding.left = (uint8_t)-1;
+    m_hotPadding.right = 0;
+    m_hotPadding.bottom = 0;
 }
 
 std::wstring TabCtrlItem::GetType() const { return DUI_CTR_TAB_CTRL_ITEM; }
@@ -543,7 +543,7 @@ void TabCtrlItem::SetSelectedRoundCorner(UiSize szCorner, bool bNeedDpiScale)
     ASSERT((szCorner.cx >= 0) && (szCorner.cy >= 0));
     szCorner.Validate();
     if (bNeedDpiScale) {
-        GlobalManager::Instance().Dpi().ScaleSize(szCorner);
+        Dpi().ScaleSize(szCorner);
     }
     m_rcSelected.cx = ui::TruncateToUInt8(szCorner.cx);
     m_rcSelected.cy = ui::TruncateToUInt8(szCorner.cy);
@@ -552,8 +552,14 @@ void TabCtrlItem::SetSelectedRoundCorner(UiSize szCorner, bool bNeedDpiScale)
 UiSize TabCtrlItem::GetSelectedRoundCorner() const
 {
     UiSize szCorner;
-    szCorner.cx = m_rcSelected.cx;
-    szCorner.cy = m_rcSelected.cy;
+    szCorner.cx = (int8_t)m_rcSelected.cx;
+    szCorner.cy = (int8_t)m_rcSelected.cy;
+    if (szCorner.cx < 0) {
+        szCorner.cx = Dpi().GetScaleInt(12);
+    }
+    if (szCorner.cy < 0) {
+        szCorner.cy = Dpi().GetScaleInt(12);
+    }
     return szCorner;
 }
 
@@ -562,7 +568,7 @@ void TabCtrlItem::SetHotRoundCorner(UiSize szCorner, bool bNeedDpiScale)
     ASSERT((szCorner.cx >= 0) && (szCorner.cy >= 0));
     szCorner.Validate();
     if (bNeedDpiScale) {
-        GlobalManager::Instance().Dpi().ScaleSize(szCorner);
+        Dpi().ScaleSize(szCorner);
     }
     m_rcHot.cx = ui::TruncateToUInt8(szCorner.cx);
     m_rcHot.cy = ui::TruncateToUInt8(szCorner.cy);
@@ -571,8 +577,14 @@ void TabCtrlItem::SetHotRoundCorner(UiSize szCorner, bool bNeedDpiScale)
 UiSize TabCtrlItem::GetHotRoundCorner() const
 {
     UiSize szCorner;
-    szCorner.cx = m_rcHot.cx;
-    szCorner.cy = m_rcHot.cy;
+    szCorner.cx = (int8_t)m_rcHot.cx;
+    szCorner.cy = (int8_t)m_rcHot.cy;
+    if (szCorner.cx < 0) {
+        szCorner.cx = Dpi().GetScaleInt(5);
+    }
+    if (szCorner.cy < 0) {
+        szCorner.cy = Dpi().GetScaleInt(5);
+    }
     return szCorner;
 }
 
@@ -581,7 +593,7 @@ void TabCtrlItem::SetHotPadding(UiPadding rcPadding, bool bNeedDpiScale)
     ASSERT((rcPadding.left >= 0) && (rcPadding.top >= 0) && (rcPadding.right >= 0) && (rcPadding.bottom >= 0));
     rcPadding.Validate();
     if (bNeedDpiScale) {
-        GlobalManager::Instance().Dpi().ScalePadding(rcPadding);
+        Dpi().ScalePadding(rcPadding);
     }
     m_hotPadding.left = TruncateToUInt8(rcPadding.left);
     m_hotPadding.top = TruncateToUInt8(rcPadding.top);
@@ -592,10 +604,16 @@ void TabCtrlItem::SetHotPadding(UiPadding rcPadding, bool bNeedDpiScale)
 UiPadding TabCtrlItem::GetHotPadding() const
 {
     UiPadding rcPadding;
-    rcPadding.left = m_hotPadding.left;
-    rcPadding.top = m_hotPadding.top;
-    rcPadding.right = m_hotPadding.right;
-    rcPadding.bottom = m_hotPadding.bottom;
+    rcPadding.left = (int8_t)m_hotPadding.left;
+    rcPadding.top = (int8_t)m_hotPadding.top;
+    rcPadding.right = (int8_t)m_hotPadding.right;
+    rcPadding.bottom = (int8_t)m_hotPadding.bottom;
+    if (rcPadding.left < 0) {
+        rcPadding.top = 0;
+        rcPadding.left = (uint8_t)Dpi().GetScaleInt(3);
+        rcPadding.right = rcPadding.left;
+        rcPadding.bottom = rcPadding.left;
+    }
     return rcPadding;
 }
 
@@ -677,7 +695,7 @@ void TabCtrlItem::PaintTabItemSelected(IRender* pRender)
         return;
     }
 
-    UiSize roundSize(m_rcSelected.cx, m_rcSelected.cy);
+    UiSize roundSize = GetSelectedRoundCorner();
     if (rc.Width() < roundSize.cx * 2) {
         roundSize.cx = rc.Width() / 3;
     }
@@ -745,12 +763,13 @@ void TabCtrlItem::PaintTabItemHot(IRender* pRender)
     if (rc.IsEmpty()) {
         return;
     }
-    rc.top += m_hotPadding.top;
-    rc.left += m_hotPadding.left;
-    rc.right -= m_hotPadding.right;
-    rc.bottom -= m_hotPadding.bottom;
+    UiPadding hotPadding = GetHotPadding();
+    rc.top += hotPadding.top;
+    rc.left += hotPadding.left;
+    rc.right -= hotPadding.right;
+    rc.bottom -= hotPadding.bottom;
  
-    UiSize roundSize(m_rcHot.cx, m_rcHot.cy);
+    UiSize roundSize = GetHotRoundCorner();
     std::wstring color = GetStateColor(ControlStateType::kControlStateHot);
     if (color.empty()) {
         return;

@@ -270,7 +270,7 @@ public:
     void SetCheckBoxWidth(int32_t nWidth, bool bNeedDpiScale)
     {
         if (bNeedDpiScale) {
-            GlobalManager::Instance().Dpi().ScaleInt(nWidth);
+            Dpi().ScaleInt(nWidth);
         }
         if (nWidth < 0) {
             nWidth = 0;
@@ -298,7 +298,7 @@ public:
             nWidth += rcPadding.left + rcPadding.right;
             m_nCheckBoxWidth = nWidth;
 
-            m_nCheckBoxWidth += GlobalManager::Instance().Dpi().GetScaleInt(2);
+            m_nCheckBoxWidth += Dpi().GetScaleInt(2);
         }
         return m_nCheckBoxWidth;
     }

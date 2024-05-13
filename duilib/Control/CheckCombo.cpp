@@ -191,13 +191,10 @@ LRESULT CCheckComboWnd::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam,
 
 CheckCombo::CheckCombo() :
 	m_pCheckComboWnd(nullptr),
-	m_szDropBox(0, 150),
+	m_szDropBox(0, 0),
 	m_bPopupTop(false),
 	m_iOrgHeight(20)
 {
-	//需要调用设置函数，内部有DPI自适应的逻辑调整大小
-	SetDropBoxSize({ 0, 150 });
-
 	m_pDropList.reset(new ui::ListBox(new ui::VLayout));
 	m_pDropList->EnableScrollBar();
 	
@@ -351,9 +348,9 @@ void CheckCombo::SetAttribute(const std::wstring& strName, const std::wstring& s
 	else if (strName == L"vscrollbar") {
 	}
 	else if ((strName == L"dropbox_size") || (strName == L"dropboxsize")) {
-		ui::UiSize szDropBoxSize;
-		ui::AttributeUtil::ParseSizeValue(strValue.c_str(), szDropBoxSize);
-		SetDropBoxSize(szDropBoxSize);
+		UiSize szDropBoxSize;
+		AttributeUtil::ParseSizeValue(strValue.c_str(), szDropBoxSize);
+		SetDropBoxSize(szDropBoxSize, true);
 	}
 	else if ((strName == L"popup_top") || (strName == L"popuptop")) {
 		SetPopupTop(strValue == L"true");
@@ -430,12 +427,27 @@ void CheckCombo::SetAttributeList(Control* pControl, const std::wstring& classVa
 
 ui::UiSize CheckCombo::GetDropBoxSize() const
 {
-	return m_szDropBox;
+	if (m_szDropBox.IsEmpty()) {
+		//如果为空，返回默认值
+		UiSize szDropBox = { 0, 150 };
+		Dpi().ScaleSize(szDropBox);
+		return szDropBox;
+	}
+	else {
+		return m_szDropBox;
+	}
 }
 
-void CheckCombo::SetDropBoxSize(ui::UiSize szDropBox)
+void CheckCombo::SetDropBoxSize(UiSize szDropBox, bool bNeedScaleDpi)
 {
-	ui::GlobalManager::Instance().Dpi().ScaleSize(szDropBox);
+	ASSERT(szDropBox.cy > 0);
+	if (szDropBox.cy <= 0) {
+		return;
+	}
+	szDropBox.Validate();
+	if (bNeedScaleDpi) {
+		Dpi().ScaleSize(szDropBox);
+	}
 	m_szDropBox = szDropBox;
 }
 

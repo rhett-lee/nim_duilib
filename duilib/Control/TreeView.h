@@ -255,6 +255,18 @@ private:
 	*   如果没有有效元素，则返回 Box::InvalidIndex
 	*/
 	size_t GetDescendantNodeMaxListBoxIndex() const;
+
+	/** 获取[展开/收起]按钮后面的间隔
+	*/
+	uint16_t GetExpandIndent() const;
+
+	/** 获取CheckBox 后面的间隔
+	*/
+	uint16_t GetCheckBoxIndent() const;
+
+	/** icon 图标后面的间隔
+	*/
+	uint16_t GetIconIndent() const;
 	
 private:
 	//子项层级

@@ -250,9 +250,11 @@ void Slider::SetChangeStep(int step)
 	m_nStep = step;
 }
 
-void Slider::SetThumbSize(UiSize szXY)
+void Slider::SetThumbSize(UiSize szXY, bool bNeedDpiScale)
 {
-	GlobalManager::Instance().Dpi().ScaleSize(szXY);
+	if (bNeedDpiScale) {
+		Dpi().ScaleSize(szXY);
+	}	
 	m_szThumb = szXY;
 }
 
@@ -286,9 +288,11 @@ const UiPadding& Slider::GetProgressBarPadding() const
 	return m_rcProgressBarPadding;
 }
 
-void Slider::SetProgressBarPadding(UiPadding padding)
+void Slider::SetProgressBarPadding(UiPadding padding, bool bNeedDpiScale)
 {
-	GlobalManager::Instance().Dpi().ScalePadding(padding);
+	if (bNeedDpiScale) {
+		Dpi().ScalePadding(padding);
+	}
 	if (!m_rcProgressBarPadding.Equals(padding)) {
 		m_rcProgressBarPadding = padding;
 		RelayoutOrRedraw();

@@ -357,6 +357,11 @@ protected:
 	void ResizePropertyColumn(TreeNode* pPropertyNode, int32_t nLeftColumnWidth);
 
 private:
+	/** 获取左侧列宽的值
+	*/
+	int32_t GetLeftColumnWidthValue() const;
+
+private:
 	/** 配置XML文件
 	*/
 	UiString m_configXml;

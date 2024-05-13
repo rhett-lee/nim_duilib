@@ -99,7 +99,7 @@ void GroupBoxTemplate<InheritType>::SetCornerSize(UiSize cxyRound, bool bNeedDpi
         }
     }
     if (bNeedDpiScale) {
-        GlobalManager::Instance().Dpi().ScaleSize(cxyRound);
+        this->Dpi().ScaleSize(cxyRound);
     }
     if (m_cornerSize != cxyRound) {
         m_cornerSize = cxyRound;
@@ -114,7 +114,7 @@ void GroupBoxTemplate<InheritType>::SetLineWidth(int32_t nLineWidth, bool bNeedD
         nLineWidth = 0;
     }
     if (bNeedDpiScale) {
-        GlobalManager::Instance().Dpi().ScaleInt(nLineWidth);
+        this->Dpi().ScaleInt(nLineWidth);
     }
     if (m_nLineWidth != nLineWidth) {
         m_nLineWidth = nLineWidth;
@@ -195,7 +195,7 @@ void GroupBoxTemplate<InheritType>::PaintText(IRender* pRender)
     //在文字底部绘制边框
     int32_t nLineWidth = m_nLineWidth;
     if (nLineWidth <= 0) {
-        nLineWidth = GlobalManager::Instance().Dpi().GetScaleInt(1);
+        nLineWidth = this->Dpi().GetScaleInt(1);
     }
     UiSize cornerSize = m_cornerSize;
     UiColor lineColor;

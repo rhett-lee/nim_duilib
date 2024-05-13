@@ -8,9 +8,9 @@ ListCtrlItem::ListCtrlItem():
     m_bSelectable(true),
     m_pListCtrl(nullptr),
     m_imageId(-1),
-    m_nCheckBoxWidth(0)
+    m_nCheckBoxWidth(0),
+    m_nIconSpacing(-1)
 {
-    m_nIconSpacing = GlobalManager::Instance().Dpi().GetScaleInt(2);
 }
 
 ListCtrlItem::~ListCtrlItem()
@@ -223,7 +223,7 @@ void ListCtrlItem::Paint(IRender* pRender, const UiRect& rcPaint)
         int32_t nPaddingLeft = 0;
         if (IsShowCheckBox()) {
             nPaddingLeft += GetCheckBoxImageWidth();
-            nPaddingLeft += m_nIconSpacing;
+            nPaddingLeft += GetIconSpacing();
         }
         rc.left += nPaddingLeft;
         rc.Validate();
@@ -284,7 +284,7 @@ void ListCtrlItem::VAlignRect(UiRect& rc, uint32_t textStyle, int32_t nImageHeig
 void ListCtrlItem::SetIconSpacing(int32_t nIconSpacing, bool bNeedDpiScale)
 {
     if (bNeedDpiScale) {
-        GlobalManager::Instance().Dpi().ScaleInt(nIconSpacing);
+        Dpi().ScaleInt(nIconSpacing);
     }
     if (m_nIconSpacing != nIconSpacing) {
         m_nIconSpacing = nIconSpacing;
@@ -297,7 +297,11 @@ void ListCtrlItem::SetIconSpacing(int32_t nIconSpacing, bool bNeedDpiScale)
 
 int32_t ListCtrlItem::GetIconSpacing() const
 {
-    return m_nIconSpacing;
+    int32_t nIconSpacing = m_nIconSpacing;
+    if (nIconSpacing < 0) {
+        nIconSpacing = Dpi().GetScaleInt(2);
+    }
+    return nIconSpacing;
 }
 
 int32_t ListCtrlItem::GetItemPaddingLeft()
@@ -305,12 +309,12 @@ int32_t ListCtrlItem::GetItemPaddingLeft()
     int32_t nPaddingLeft = 0;
     if (IsShowCheckBox()) {
         nPaddingLeft += GetCheckBoxImageWidth();
-        nPaddingLeft += m_nIconSpacing;
+        nPaddingLeft += GetIconSpacing();
     }
     ImagePtr pItemImage = LoadItemImage();
     if (pItemImage != nullptr) {
         nPaddingLeft += pItemImage->GetImageCache()->GetWidth();
-        nPaddingLeft += m_nIconSpacing;
+        nPaddingLeft += GetIconSpacing();
     }
     return nPaddingLeft;
 }

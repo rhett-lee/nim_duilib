@@ -22,12 +22,11 @@ ListCtrl::ListCtrl():
     m_bDataItemShowCheckBox(false),
     m_listCtrlType(ListCtrlType::Report),
     m_pRichEdit(nullptr),
-    m_bEnableItemEdit(true)
+    m_bEnableItemEdit(true),
+    m_nItemHeight(-1),
+    m_nHeaderHeight(-1)
 {
     m_pData = new ListCtrlData;
-    m_nItemHeight = GlobalManager::Instance().Dpi().GetScaleInt(32);
-    m_nHeaderHeight = m_nItemHeight;
-
     m_pData->SetAutoCheckSelect(IsAutoCheckSelect());
 
     m_pReportView = new ListCtrlReportView;
@@ -283,7 +282,11 @@ void ListCtrl::OnInit()
     }
     m_pHeaderCtrl->SetAutoCheckSelect(false);
     m_pHeaderCtrl->SetShowCheckBox(m_bHeaderShowCheckBox); //ÊÇ·ñÏÔÊ¾CheckBox
-    m_pHeaderCtrl->SetFixedHeight(UiFixedInt(m_nHeaderHeight), true, false);
+    int32_t nHeaderHeight = m_nHeaderHeight;
+    if (nHeaderHeight < 0) {
+        nHeaderHeight = GetDataItemHeight();
+    }
+    m_pHeaderCtrl->SetFixedHeight(UiFixedInt(nHeaderHeight), true, false);
     if (!m_bShowHeaderCtrl) {
         SetHeaderVisible(false);
     }
@@ -951,7 +954,7 @@ void ListCtrl::SetHeaderHeight(int32_t nHeaderHeight, bool bNeedDpiScale)
         nHeaderHeight = 0;
     }
     if (bNeedDpiScale) {
-        GlobalManager::Instance().Dpi().ScaleInt(nHeaderHeight);
+        Dpi().ScaleInt(nHeaderHeight);
     }
     if (m_pHeaderCtrl != nullptr) {
         m_pHeaderCtrl->SetFixedHeight(UiFixedInt(nHeaderHeight), true, false);
@@ -968,6 +971,9 @@ int32_t ListCtrl::GetHeaderHeight() const
     }
     else {
         nHeaderHeight = m_nHeaderHeight;
+        if (nHeaderHeight < 0) {
+            nHeaderHeight = GetDataItemHeight();
+        }
     }
     return nHeaderHeight;
 }
@@ -979,7 +985,7 @@ void ListCtrl::SetDataItemHeight(int32_t nItemHeight, bool bNeedDpiScale)
         return;
     }
     if (bNeedDpiScale) {
-        GlobalManager::Instance().Dpi().ScaleInt(nItemHeight);
+        Dpi().ScaleInt(nItemHeight);
     }
     if (m_nItemHeight != nItemHeight) {
         m_nItemHeight = nItemHeight;
@@ -991,7 +997,12 @@ void ListCtrl::SetDataItemHeight(int32_t nItemHeight, bool bNeedDpiScale)
 
 int32_t ListCtrl::GetDataItemHeight() const
 {
-    return m_nItemHeight;
+    if (m_nItemHeight < 0) {
+        return Dpi().GetScaleInt(32);
+    }
+    else {
+        return m_nItemHeight;
+    }    
 }
 
 ListCtrlItem* ListCtrl::GetFirstDisplayItem() const
@@ -1434,7 +1445,13 @@ int8_t ListCtrl::GetDataItemAlwaysAtTop(size_t itemIndex) const
 bool ListCtrl::SetDataItemHeight(size_t itemIndex, int32_t nItemHeight, bool bNeedDpiScale)
 {
     bool bChanged = false;
-    bool bRet = m_pData->SetDataItemHeight(itemIndex, nItemHeight, bNeedDpiScale, bChanged);
+    if (nItemHeight < 0) {
+        nItemHeight = 0;
+    }
+    if (bNeedDpiScale) {
+        Dpi().ScaleInt(nItemHeight);
+    }
+    bool bRet = m_pData->SetDataItemHeight(itemIndex, nItemHeight, bChanged);
     if (bChanged) {
         Refresh();
     }

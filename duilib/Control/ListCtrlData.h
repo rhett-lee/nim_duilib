@@ -257,10 +257,9 @@ public:
     /** 设置数据项的行高, 不刷新界面，由外部负责调用界面刷新
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] nItemHeight 行高, -1表示使用ListCtrl设置的默认行高，其他值表示本行的设置行高
-    * @param [in] bNeedDpiScale 如果为true表示需要对宽度进行DPI自适应
     * @param [out] bChanged 返回数据是否变化
     */
-    bool SetDataItemHeight(size_t itemIndex, int32_t nItemHeight, bool bNeedDpiScale, bool& bChanged);
+    bool SetDataItemHeight(size_t itemIndex, int32_t nItemHeight, bool& bChanged);
 
     /** 获取数据项的行高
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())

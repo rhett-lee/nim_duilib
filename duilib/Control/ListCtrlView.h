@@ -157,6 +157,10 @@ private:
     */
     bool OnListCtrlKeyDown(const EventArgs& msg);
 
+    /** 获取框选边框大小
+    */
+    int32_t GetFrameSelectionBorderSize() const;
+
 private:
     /** 是否鼠标在视图中按下左键或者右键
     */

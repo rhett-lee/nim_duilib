@@ -419,14 +419,14 @@ private:
     void GetDisplayElements(UiRect rc, std::vector<size_t>& collection, 
                             std::vector<size_t>* pAtTopItemIndexList) const;
 
+    /** 底部预留的空间，确保滚动到最底部的时候，最后一条数据容易看完整
+    */
+    int32_t GetReserveHeight() const;
+
 private:
     /** 关联的ListBox接口
     */
     ListCtrlReportView* m_pDataView;
-
-    /** 底部预留的空间，确保滚动到最底部的时候，最后一条数据容易看完整
-    */
-    int32_t m_nReserveHeight;
 
     /** 是否设置了底部预留空间
     */

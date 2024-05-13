@@ -62,10 +62,11 @@ public:
 	*/
 	ui::UiSize GetDropBoxSize() const;
 
-	/** 设置下拉框容器大小
-	* @param[in] szDropBox 要设置的大小信息
-	*/
-	void SetDropBoxSize(ui::UiSize szDropBox);
+	/** 设置下拉框列表大小(宽度和高度)
+	 * @param [in] szDropBox 要设置的大小信息
+	 * @param [in] bNeedScaleDpi 是否需要做DPI自适应
+	 */
+	void SetDropBoxSize(UiSize szDropBox, bool bNeedScaleDpi);
 
 	/** 设置 Combobox 是否向上弹出
 	* @param [in] top 为 true 则向上弹出，false 为向下弹出
@@ -116,7 +117,7 @@ private:
 	*/
 	void UpdateSelectedListHeight();
 
-protected:
+private:
 	/** 下拉框的窗口接口
 	*/
 	CCheckComboWnd* m_pCheckComboWnd;

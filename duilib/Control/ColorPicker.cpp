@@ -279,9 +279,9 @@ public:
 
 		//画预览中心点的圆圈
 		UiPoint centerPt = rcDest.Center();
-		int32_t radius = GlobalManager::Instance().Dpi().GetScaleInt(6);
+		int32_t radius = Dpi().GetScaleInt(6);
 		UiColor penColor = UiColor(UiColors::Brown);
-		int32_t nWidth = GlobalManager::Instance().Dpi().GetScaleInt(2);
+		int32_t nWidth = Dpi().GetScaleInt(2);
 		pRender->DrawCircle(centerPt, radius, penColor, nWidth);
 	}
 
@@ -422,7 +422,7 @@ private:
 		if (m_pColorPreview == nullptr) {
 			return true;
 		}
-		const int32_t offset = ui::GlobalManager::Instance().Dpi().GetScaleInt(36);
+		const int32_t offset = Dpi().GetScaleInt(36);
 		const UiRect rcPickker = GetRect();
 		const UiRect rcPreview = m_pColorPreview->GetRect();
 		UiRect rcPreviewNew;

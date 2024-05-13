@@ -18,9 +18,9 @@ TreeNode::TreeNode() :
 	m_pExpandImageRect(nullptr),
 	m_pCollapseImageRect(nullptr)
 {
-	m_expandIndent = (uint16_t)ui::GlobalManager::Instance().Dpi().GetScaleInt(4);
-	m_checkBoxIndent = (uint16_t)ui::GlobalManager::Instance().Dpi().GetScaleInt(6);
-	m_iconIndent = (uint16_t)ui::GlobalManager::Instance().Dpi().GetScaleInt(4);
+	m_expandIndent = (uint16_t)-1;
+	m_checkBoxIndent = (uint16_t)-1;
+	m_iconIndent = (uint16_t)-1;
 }
 
 TreeNode::~TreeNode()
@@ -65,21 +65,60 @@ void TreeNode::SetAttribute(const std::wstring& strName, const std::wstring& str
 	}
 	else if (strName == L"expand_image_right_space") {
 		int32_t iValue = wcstol(strValue.c_str(), nullptr, 10);
-		ui::GlobalManager::Instance().Dpi().ScaleInt(iValue);
+		Dpi().ScaleInt(iValue);
+		if (iValue < 0) {
+			iValue = 0;
+		}
 		m_expandIndent = ui::TruncateToUInt16(iValue);
 	}
 	else if (strName == L"check_box_image_right_space") {
 		int32_t iValue = wcstol(strValue.c_str(), nullptr, 10);
-		ui::GlobalManager::Instance().Dpi().ScaleInt(iValue);
+		Dpi().ScaleInt(iValue);
+		if (iValue < 0) {
+			iValue = 0;
+		}
 		m_checkBoxIndent = ui::TruncateToUInt16(iValue);
 	}
 	else if (strName == L"icon_image_right_space") {
 		int32_t iValue = wcstol(strValue.c_str(), nullptr, 10);
-		ui::GlobalManager::Instance().Dpi().ScaleInt(iValue);
+		Dpi().ScaleInt(iValue);
+		if (iValue < 0) {
+			iValue = 0;
+		}
 		m_iconIndent = ui::TruncateToUInt16(iValue);
 	}
 	else {
 		__super::SetAttribute(strName, strValue);
+	}
+}
+
+uint16_t TreeNode::GetExpandIndent() const
+{
+	if ((int16_t)m_expandIndent < 0) {
+		return (uint16_t)Dpi().GetScaleInt(4);
+	}
+	else {
+		return m_expandIndent;
+	}
+}
+
+uint16_t TreeNode::GetCheckBoxIndent() const
+{
+	if ((int16_t)m_checkBoxIndent < 0) {
+		return (uint16_t)Dpi().GetScaleInt(6);
+	}
+	else {
+		return m_checkBoxIndent;
+	}
+}
+
+uint16_t TreeNode::GetIconIndent() const
+{
+	if ((int16_t)m_iconIndent < 0) {
+		return (uint16_t)Dpi().GetScaleInt(4);
+	}
+	else {
+		return m_iconIndent;
 	}
 }
 
@@ -204,7 +243,7 @@ int32_t TreeNode::GetExpandImagePadding(void) const
 		}
 	}
 	if (imageWidth > 0) {
-		imageWidth += m_expandIndent;
+		imageWidth += GetExpandIndent();
 	}
 	return imageWidth;
 }
@@ -523,7 +562,7 @@ void TreeNode::AdjustCheckBoxPadding()
 {
 	if (HasStateImage(kStateImageBk)) {
 		//ÏÔÊ¾CheckBox
-		uint16_t extraPadding = m_checkBoxIndent;
+		uint16_t extraPadding = GetCheckBoxIndent();
 		UiSize imageSize = GetStateImageSize(kStateImageBk, kControlStateNormal);
 		uint16_t checkBoxPadding = TruncateToUInt16(imageSize.cx);
 		if (checkBoxPadding > 0) {
@@ -579,7 +618,7 @@ void TreeNode::AdjustIconPadding()
 	if (!iconString.empty()) {
 		//ÏÔÊ¾Í¼±ê
 		if (m_iconTextPadding == 0) {
-			const uint16_t extraPadding = m_iconIndent;
+			const uint16_t extraPadding = GetIconIndent();
 			UiSize imageSize = GetBkImageSize();
 			uint16_t iconTextPadding = TruncateToUInt16(imageSize.cx);
 			if (iconTextPadding > 0) {
@@ -1183,7 +1222,7 @@ void TreeView::SetIndent(int32_t indent, bool bNeedDpiScale)
 {
 	ASSERT(indent >= 0);
 	if (bNeedDpiScale) {
-		GlobalManager::Instance().Dpi().ScaleInt(indent);
+		Dpi().ScaleInt(indent);
 	}
 	if (indent >= 0) {
 		m_iIndent = indent;

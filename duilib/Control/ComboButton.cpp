@@ -218,8 +218,6 @@ ComboButton::ComboButton() :
 	m_pRightButton(nullptr),
 	m_bDropListShown(false)
 {
-	//需要调用设置函数，内部有DPI自适应的逻辑调整大小
-	SetDropBoxSize({ 0, 150 }, true);
 	m_pComboBox = new Box;
 }
 
@@ -550,7 +548,15 @@ void ComboButton::UpdateComboWndPos()
 
 UiSize ComboButton::GetDropBoxSize() const
 {
-    return m_szDropBox;
+	if (m_szDropBox.IsEmpty()) {
+		//如果为空，返回默认值
+		UiSize szDropBox = { 0, 150 };
+		Dpi().ScaleSize(szDropBox);
+		return szDropBox;
+	}
+	else {
+		return m_szDropBox;
+	}
 }
 
 void ComboButton::SetDropBoxSize(UiSize szDropBox, bool bNeedScaleDpi)
@@ -561,7 +567,7 @@ void ComboButton::SetDropBoxSize(UiSize szDropBox, bool bNeedScaleDpi)
 	}
 	szDropBox.Validate();
 	if (bNeedScaleDpi) {
-		GlobalManager::Instance().Dpi().ScaleSize(szDropBox);
+		Dpi().ScaleSize(szDropBox);
 	}
     m_szDropBox = szDropBox;
 }

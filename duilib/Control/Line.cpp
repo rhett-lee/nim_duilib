@@ -7,9 +7,9 @@ namespace ui
 
 Line::Line():
     m_bLineVertical(false),
-    m_dashStyle(IPen::kDashStyleDashDot)
+    m_dashStyle(IPen::kDashStyleDashDot),
+    m_lineWidth(0)
 {
-    m_lineWidth = GlobalManager::Instance().Dpi().GetScaleInt(1);
 }
 
 std::wstring Line::GetType() const { return DUI_CTR_LINE; }
@@ -26,9 +26,9 @@ void Line::SetAttribute(const std::wstring& strName, const std::wstring& strValu
     }
     else if (strName == L"line_width") {
         if (!strValue.empty()) {
-            m_lineWidth = GlobalManager::Instance().Dpi().GetScaleInt(_wtoi(strValue.c_str()));
+            m_lineWidth = this->Dpi().GetScaleInt(_wtoi(strValue.c_str()));
             if (m_lineWidth <= 0) {
-                m_lineWidth = GlobalManager::Instance().Dpi().GetScaleInt(1);
+                m_lineWidth = this->Dpi().GetScaleInt(1);
             }
         }
     }
@@ -73,8 +73,11 @@ void Line::Paint(IRender* pRender, const UiRect& rcPaint)
         std::wstring colorStr = GlobalManager::Instance().Color().GetDefaultTextColor();
         m_lineColor = GetUiColor(colorStr);
     }
-
-    IPen* pLinePen = pRenderFactory->CreatePen(m_lineColor, m_lineWidth);
+    int32_t lineWidth = m_lineWidth;
+    if (lineWidth <= 0) {
+        lineWidth = this->Dpi().GetScaleInt(1);
+    }
+    IPen* pLinePen = pRenderFactory->CreatePen(m_lineColor, lineWidth);
     std::unique_ptr<IPen> spLinePen(pLinePen);
     ASSERT(spLinePen != nullptr);
     if (spLinePen == nullptr) {

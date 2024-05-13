@@ -13,9 +13,9 @@ ListCtrlView::ListCtrlView(Layout* pLayout):
     m_bEnableFrameSelection(true),
     m_nLastNoShiftIndex(0),
     m_bMouseDownInView(false),
-    m_nNormalItemTop(-1)
+    m_nNormalItemTop(-1),
+    m_frameSelectionBorderSize((uint8_t)-1)
 {
-    m_frameSelectionBorderSize = (uint8_t)GlobalManager::Instance().Dpi().GetScaleInt(1);
     m_frameSelectionAlpha = 128;
 }
 
@@ -35,7 +35,12 @@ void ListCtrlView::SetAttribute(const std::wstring& strName, const std::wstring&
         m_frameSelectionAlpha = (uint8_t)_wtoi(strValue.c_str());
     }
     else if (strName == L"frame_selection_border") {
-        m_frameSelectionBorderSize = (uint8_t)_wtoi(strValue.c_str());
+        int32_t iValue = _wtoi(strValue.c_str());
+        Dpi().ScaleInt(iValue);
+        if (iValue < 0) {
+            iValue = 0;
+        }
+        m_frameSelectionBorderSize = (uint8_t)iValue;        
     }
     else if (strName == L"frame_selection_border_color") {
         m_frameSelectionBorderColor = strValue;
@@ -637,7 +642,7 @@ void ListCtrlView::PaintFrameSelection(IRender* pRender)
     int64_t bottom = std::max(m_ptMouseDown.cy, m_ptMouseMove.cy) - scrollPos.cy;
     if (m_nNormalItemTop > 0) {
         if (top < m_nNormalItemTop) {
-            top = m_nNormalItemTop - GlobalManager::Instance().Dpi().GetScaleInt(4);
+            top = m_nNormalItemTop - Dpi().GetScaleInt(4);
         }
         if (bottom < m_nNormalItemTop) {
             bottom = m_nNormalItemTop;
@@ -647,8 +652,9 @@ void ListCtrlView::PaintFrameSelection(IRender* pRender)
     UiRect rect(TruncateToInt32(left), TruncateToInt32(top),
         TruncateToInt32(right), TruncateToInt32(bottom));
 
-    if ((m_frameSelectionBorderSize > 0) && !m_frameSelectionBorderColor.empty()) {
-        pRender->DrawRect(rect, GetUiColor(m_frameSelectionBorderColor.c_str()), m_frameSelectionBorderSize);
+    int32_t frameSelectionBorderSize = GetFrameSelectionBorderSize();
+    if ((frameSelectionBorderSize > 0) && !m_frameSelectionBorderColor.empty()) {
+        pRender->DrawRect(rect, GetUiColor(m_frameSelectionBorderColor.c_str()), frameSelectionBorderSize);
     }
     if (!m_frameSelectionColor.empty()) {
         pRender->FillRect(rect, GetUiColor(m_frameSelectionColor.c_str()), m_frameSelectionAlpha);
@@ -1044,6 +1050,15 @@ bool ListCtrlView::OnListCtrlKeyDown(const EventArgs& msg)
         SendEvent(kEventSelect, nCurSel, Box::InvalidIndex);
     }
     return bHandled;
+}
+
+int32_t ListCtrlView::GetFrameSelectionBorderSize() const
+{
+    int32_t frameSelectionBorderSize = m_frameSelectionBorderSize;
+    if (frameSelectionBorderSize < 0) {
+        frameSelectionBorderSize = Dpi().GetScaleInt(1);
+    }
+    return frameSelectionBorderSize;
 }
 
 bool ListCtrlView::SelectItem(size_t iIndex, bool bTakeFocus, bool bTriggerEvent, uint64_t vkFlag)

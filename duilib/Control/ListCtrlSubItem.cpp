@@ -5,9 +5,9 @@ namespace ui
 {
 ListCtrlSubItem::ListCtrlSubItem():
     m_pItem(nullptr),
-    m_imageId(-1)
+    m_imageId(-1),
+    m_nIconSpacing(-1)
 {
-    m_nIconSpacing = GlobalManager::Instance().Dpi().GetScaleInt(2);
 }
 
 std::wstring ListCtrlSubItem::GetType() const { return L"ListCtrlSubItem"; }
@@ -156,7 +156,7 @@ int32_t ListCtrlSubItem::GetImageId() const
 void ListCtrlSubItem::SetIconSpacing(int32_t nIconSpacing, bool bNeedDpiScale)
 {
     if (bNeedDpiScale) {
-        GlobalManager::Instance().Dpi().ScaleInt(nIconSpacing);
+        Dpi().ScaleInt(nIconSpacing);
     }
     if (m_nIconSpacing != nIconSpacing) {
         m_nIconSpacing = nIconSpacing;
@@ -169,7 +169,11 @@ void ListCtrlSubItem::SetIconSpacing(int32_t nIconSpacing, bool bNeedDpiScale)
 
 int32_t ListCtrlSubItem::GetIconSpacing() const
 {
-    return m_nIconSpacing;
+    int32_t nIconSpacing = m_nIconSpacing;
+    if (nIconSpacing < 0) {
+        nIconSpacing = Dpi().GetScaleInt(2);
+    }
+    return nIconSpacing;
 }
 
 ImagePtr ListCtrlSubItem::LoadItemImage() const
