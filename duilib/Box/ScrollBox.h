@@ -185,21 +185,21 @@ public:
 	
 	/** 获取垂直滚动条滚动步长
 	 */
-	int GetVerScrollUnitPixels() const;
+	int32_t GetVerScrollUnitPixels() const;
 
 	/** 设置垂直滚动条滚动步长
 	 * @param[in] nUnitPixels 要设置的步长
 	 */
-	void SetVerScrollUnitPixels(int nUnitPixels);
+	void SetVerScrollUnitPixels(int32_t nUnitPixels);
 
 	/** 获取横向滚动条滚动步长
 	*/
-	int GetHorScrollUnitPixels() const;
+	int32_t GetHorScrollUnitPixels() const;
 
 	/** 设置横向滚动条滚动步长
 	* @param[in] nUnitPixels 要设置的步长
 	*/
-	void SetHorScrollUnitPixels(int nUnitPixels);
+	void SetHorScrollUnitPixels(int32_t nUnitPixels);
 
 	/** 获取容器的滚动条是否悬浮在子控件上面
 	 * @return 返回 true 表示悬浮在滚动条上，否则为 false
@@ -282,16 +282,16 @@ protected:
 
 private:
 	//垂直滚动条滚动步长
-	int m_nVScrollUnitPixels;
+	int32_t m_nVScrollUnitPixels;
 
 	//垂直滚动条滚动步长(默认)
-	const int m_nVScrollUnitPixelsDefault = 30;
+	const int32_t m_nVScrollUnitPixelsDefault = 30;
 
 	//水平滚动条滚动步长
-    int m_nHScrollUnitPixels;
+	int32_t m_nHScrollUnitPixels;
 
 	//水平滚动条滚动步长(默认)
-	int m_nHScrollUnitPixelsDefault = 30;
+	const int32_t m_nHScrollUnitPixelsDefault = 30;
 
 	// 防止SetPos循环调用
 	bool m_bScrollProcess; 
