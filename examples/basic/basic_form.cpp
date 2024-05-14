@@ -31,8 +31,8 @@ void BasicForm::OnInitWindow()
 {
 }
 
-LRESULT BasicForm::OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+void BasicForm::OnCloseWindow()
 {
+	//关闭窗口后，退出主线程的消息循环，关闭程序
 	PostQuitMessage(0L);
-	return __super::OnClose(uMsg, wParam, lParam, bHandled);
 }

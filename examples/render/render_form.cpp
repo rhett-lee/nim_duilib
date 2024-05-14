@@ -34,11 +34,11 @@ void RenderForm::OnInitWindow()
 	TestPropertyGrid();
 }
 
-LRESULT RenderForm::OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+void RenderForm::OnCloseWindow()
 {
 	CheckPropertyGridResult();
+	//关闭窗口后，退出主线程的消息循环，关闭程序
 	PostQuitMessage(0L);
-	return __super::OnClose(uMsg, wParam, lParam, bHandled);
 }
 
 ui::Control* RenderForm::CreateControl(const std::wstring& strClass)

@@ -62,32 +62,9 @@ Window::Window() :
 
 Window::~Window()
 {
-    // Delete the control-tree structures
-    for (auto it = m_aDelayedCleanup.begin(); it != m_aDelayedCleanup.end(); ++it) {
-        delete* it;
+    if (m_hWnd != nullptr) {
+        ClearWindow(false);
     }
-    m_aDelayedCleanup.clear();
-
-    if (m_pRoot != nullptr) {
-        delete m_pRoot;
-        m_pRoot = nullptr;
-    }
-
-    RemoveAllClass();
-    RemoveAllOptionGroups();
-
-    m_toolTip.reset();
-
-    if (m_pWindowDropTarget != nullptr) {
-        delete m_pWindowDropTarget;
-        m_pWindowDropTarget = nullptr;
-    }
-
-    if (m_hDcPaint != nullptr) {
-        ::ReleaseDC(m_hWnd, m_hDcPaint);
-        m_hDcPaint = nullptr;
-    }
-    m_shadow.reset();
 }
 
 bool Window::IsWindow() const
@@ -511,35 +488,13 @@ void Window::AttachWindowClose(const EventCallback& callback)
     m_OnEvent[kEventWindowClose] += callback;
 }
 
-void Window::OnInitWindow()
+uint32_t Window::GetWindowStyle() const
 {
-}
-
-void Window::OnFinalMessage(HWND hWnd)
-{
-    ASSERT(m_hWnd == hWnd);
-    //取消异步关闭窗口回调，避免访问非法资源
-    m_closeFlag.Cancel();
-
-    std::vector<int32_t> hotKeyIds = m_hotKeyIds;
-    for (int32_t id : hotKeyIds) {
-        UnregisterHotKey(id);
-    }
-
-    UnregisterTouchWindowWrapper(hWnd);
-    SendNotify(kEventWindowClose);
-
-    //注销拖放操作
-    if (m_pWindowDropTarget != nullptr) {
-        m_pWindowDropTarget->Clear();
-        delete m_pWindowDropTarget;
-        m_pWindowDropTarget = nullptr;
-    }
-
-    //回收控件
-    GlobalManager::Instance().RemoveWindow(this);
-    ReapObjects(GetRoot());
-    m_hWnd = nullptr;
+    ASSERT(::IsWindow(GetHWND()));
+    uint32_t styleValue = (uint32_t)::GetWindowLong(GetHWND(), GWL_STYLE);
+    //使用自绘的标题栏：从原来窗口样式中，移除 WS_CAPTION 属性
+    styleValue &= ~WS_CAPTION;
+    return styleValue;
 }
 
 LRESULT CALLBACK Window::__WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -562,7 +517,7 @@ LRESULT CALLBACK Window::__WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
                 pThis->Unsubclass();
             }
             ASSERT(hWnd == pThis->GetHWND());
-            pThis->OnFinalMessage(hWnd);
+            pThis->OnFinalMessage();
             return lRes;
         }
     }
@@ -577,6 +532,21 @@ LRESULT CALLBACK Window::__WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
 }
 
 static const wchar_t* sPropName = L"DuiLibWndX"; // 属性名称
+
+Window* Window::GetWindowObject(HWND hWnd)
+{
+    Window* pThis = reinterpret_cast<Window*>(::GetWindowLongPtr(hWnd, GWLP_USERDATA));
+    if ((pThis != nullptr) && (pThis->m_hWnd != hWnd)) {
+        pThis = nullptr;
+    }
+    if (pThis == nullptr) {
+        pThis = reinterpret_cast<Window*>(::GetPropW(hWnd, sPropName));
+        if ((pThis != nullptr) && (pThis->m_hWnd != hWnd)) {
+            pThis = nullptr;
+        }
+    }
+    return pThis;
+}
 
 LRESULT CALLBACK Window::__ControlProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -598,7 +568,7 @@ LRESULT CALLBACK Window::__ControlProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
             }
             ::SetPropW(hWnd, sPropName, NULL);
             ASSERT(hWnd == pThis->GetHWND());
-            pThis->OnFinalMessage(hWnd);
+            pThis->OnFinalMessage();
             return lRes;
         }
     }
@@ -611,31 +581,7 @@ LRESULT CALLBACK Window::__ControlProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
     }
 }
 
-Window* Window::GetWindowObject(HWND hWnd)
-{
-    Window* pThis = reinterpret_cast<Window*>(::GetWindowLongPtr(hWnd, GWLP_USERDATA));
-    if ((pThis != nullptr) && (pThis->m_hWnd != hWnd)) {
-        pThis = nullptr;
-    }
-    if (pThis == nullptr) {
-        pThis = reinterpret_cast<Window*>(::GetPropW(hWnd, sPropName));
-        if ((pThis != nullptr) && (pThis->m_hWnd != hWnd)) {
-            pThis = nullptr;
-        }
-    }
-    return pThis;
-}
-
-uint32_t Window::GetWindowStyle() const
-{
-    ASSERT(::IsWindow(GetHWND()));
-    uint32_t styleValue = (uint32_t)::GetWindowLong(GetHWND(), GWL_STYLE);
-    //使用自绘的标题栏：从原来窗口样式中，移除 WS_CAPTION 属性
-    styleValue &= ~WS_CAPTION;
-    return styleValue;
-}
-
-void Window::OnCreateWindow()
+void Window::InitWindow()
 {
     HWND hWnd = GetHWND();
     ASSERT(::IsWindow(hWnd));
@@ -666,7 +612,7 @@ void Window::OnCreateWindow()
     if (nStyle != 0) {
         ::SetWindowLong(hWnd, GWL_STYLE, nStyle);
     }
-    
+
     //创建绘制设备上下文
     m_hDcPaint = ::GetDC(hWnd);
     ASSERT(m_hDcPaint != nullptr);
@@ -692,6 +638,84 @@ void Window::OnCreateWindow()
 
     //注册接受Touch消息
     RegisterTouchWindowWrapper(hWnd, 0);
+}
+
+void Window::OnInitWindow()
+{
+}
+
+void Window::OnCloseWindow()
+{
+}
+
+void Window::ClearWindow(bool bSendClose)
+{
+    HWND hWnd = m_hWnd;
+    //取消异步关闭窗口回调，避免访问非法资源
+    m_closeFlag.Cancel();
+
+    std::vector<int32_t> hotKeyIds = m_hotKeyIds;
+    for (int32_t id : hotKeyIds) {
+        UnregisterHotKey(id);
+    }
+
+    //注销平板消息
+    UnregisterTouchWindowWrapper(hWnd);
+
+    //注销拖放操作
+    if (m_pWindowDropTarget != nullptr) {
+        m_pWindowDropTarget->Clear();
+        delete m_pWindowDropTarget;
+        m_pWindowDropTarget = nullptr;
+    }
+
+    //发送关闭事件
+    if (bSendClose) {
+        SendNotify(kEventWindowClose);
+    }
+
+    //回收控件
+    GlobalManager::Instance().RemoveWindow(this);
+    ReapObjects(GetRoot());
+
+    //删除清理的控件
+    for (auto it = m_aDelayedCleanup.begin(); it != m_aDelayedCleanup.end(); ++it) {
+        delete* it;
+    }
+    m_aDelayedCleanup.clear();
+
+    if (m_pRoot != nullptr) {
+        delete m_pRoot;
+        m_pRoot = nullptr;
+    }
+
+    RemoveAllClass();
+    RemoveAllOptionGroups();
+
+    m_toolTip.reset();
+
+    if (m_pWindowDropTarget != nullptr) {
+        delete m_pWindowDropTarget;
+        m_pWindowDropTarget = nullptr;
+    }
+
+    if (m_hDcPaint != nullptr) {
+        ::ReleaseDC(m_hWnd, m_hDcPaint);
+        m_hDcPaint = nullptr;
+    }
+    m_shadow.reset();
+    m_hWnd = nullptr;
+}
+
+void Window::OnFinalMessage()
+{
+    ClearWindow(true);
+    OnDeleteSelf();
+}
+
+void Window::OnDeleteSelf()
+{
+    delete this;
 }
 
 bool Window::AttachBox(Box* pRoot)
@@ -1325,7 +1349,7 @@ LRESULT Window::WindowMessageProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
     HWND hWnd = m_hWnd;
     if (uMsg == WM_CREATE) {
         //执行窗口的初始化工作        
-        OnCreateWindow();
+        InitWindow();
     }
 
     //第一优先级：将消息发给过滤器进行过滤
@@ -1341,6 +1365,11 @@ LRESULT Window::WindowMessageProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
     //第二优先级：派发给子类回调函数
     bool bHandled = false;
     LRESULT lResult = OnWindowMessage(uMsg, wParam, lParam, bHandled);
+
+    if (!bHandled && (uMsg == WM_CLOSE)) {
+        //窗口即将关闭
+        OnCloseWindow();
+    }
 
     //第三优先级：内部处理函数，优先保证自身功能正常
     if (!bHandled) {

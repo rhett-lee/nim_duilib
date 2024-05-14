@@ -26,12 +26,13 @@ public:
 	*/
 	virtual void OnInitWindow() override;
 
-	/**
-	 * 收到 WM_CLOSE 消息时该函数会被调用
-	 */
-	virtual LRESULT OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
+	/** 当窗口即将被关闭时调用此函数，供子类中做一些收尾工作
+	*/
+	virtual void OnCloseWindow() override;
 
-	static const std::wstring	kClassName;
+	/** 窗口类名
+	*/
+	static const std::wstring kClassName;
 
 private:
 	bool OnClicked(const ui::EventArgs& msg);

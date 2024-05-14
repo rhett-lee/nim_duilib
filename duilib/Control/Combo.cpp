@@ -15,7 +15,7 @@ public:
     void InitComboWnd(Combo* pOwner, bool bActivated);
 	void UpdateComboWnd();
     virtual std::wstring GetWindowClassName() const override;
-	virtual void OnFinalMessage(HWND hWnd) override;
+	virtual void OnFinalMessage() override;
 	virtual LRESULT OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
 
 	/** ¹Ø±ÕÏÂÀ­¿ò
@@ -131,7 +131,7 @@ std::wstring CComboWnd::GetWindowClassName() const
     return L"ComboWnd";
 }
 
-void CComboWnd::OnFinalMessage(HWND hWnd)
+void CComboWnd::OnFinalMessage()
 {
 	if (m_pOwner != nullptr) {
 		if (m_pOwner->GetTreeView()->GetWindow() == this) {
@@ -144,8 +144,7 @@ void CComboWnd::OnFinalMessage(HWND hWnd)
 			m_pOwner->Invalidate();
 		}
 	}
-	__super::OnFinalMessage(hWnd);
-    delete this;
+	__super::OnFinalMessage();
 }
 
 void CComboWnd::CloseComboWnd(bool bCanceled, bool needUpdateSelItem)

@@ -695,7 +695,7 @@ bool WindowBuilder::ParseRichTextXmlNode(const pugi::xml_node& xmlNode, Control*
 			textSlice.m_fontInfo.m_fontName = node.attribute(L"face").as_string();
 			textSlice.m_fontInfo.m_fontSize = node.attribute(L"size").as_int();
 			//字号进行DPI自适应
-			GlobalManager::Instance().Dpi().ScaleInt(textSlice.m_fontInfo.m_fontSize);
+			pRichText->Dpi().ScaleInt(textSlice.m_fontInfo.m_fontSize);
 		}
 		else if (nodeName == L"br") {
 			textSlice.m_text = L"\n";

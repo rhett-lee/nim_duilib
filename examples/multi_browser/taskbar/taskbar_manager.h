@@ -88,12 +88,6 @@ private:
 	virtual LRESULT OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
 
 	/**
-	* 处理窗口销毁消息
-	* @return void	无返回值
-	*/
-	virtual void OnFinalMessage(HWND hWnd) override;
-
-	/**
 	* 响应WM_DWMSENDICONICTHUMBNAIL消息
 	* @param[in] width 需要的位图宽度
 	* @param[in] height 需要的位图高度

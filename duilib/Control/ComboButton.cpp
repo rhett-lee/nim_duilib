@@ -14,7 +14,7 @@ public:
     void InitComboWnd(ComboButton* pOwner, bool bActivated);
 	void UpdateComboWnd();
     virtual std::wstring GetWindowClassName() const override;
-	virtual void OnFinalMessage(HWND hWnd) override;
+	virtual void OnFinalMessage() override;
 	virtual LRESULT OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
 
 	/** ¹Ø±ÕÏÂÀ­¿ò
@@ -113,7 +113,7 @@ std::wstring ComboButtonWnd::GetWindowClassName() const
     return L"ComboWnd";
 }
 
-void ComboButtonWnd::OnFinalMessage(HWND hWnd)
+void ComboButtonWnd::OnFinalMessage()
 {
 	if (m_pOwner != nullptr) {
 		if (m_pOwner->GetComboBox()->GetWindow() == this) {
@@ -121,12 +121,12 @@ void ComboButtonWnd::OnFinalMessage(HWND hWnd)
 			m_pOwner->GetComboBox()->SetParent(nullptr);
 		}
 		if (m_pOwner->m_pWindow == this) {			
-			m_pOwner->m_pWindow = nullptr;			
+			m_pOwner->m_pWindow = nullptr;
+			m_pOwner->SetState(kControlStateNormal);
 			m_pOwner->Invalidate();
 		}
 	}
-	__super::OnFinalMessage(hWnd);
-    delete this;
+	__super::OnFinalMessage();
 }
 
 void ComboButtonWnd::CloseComboWnd(bool bCanceled)

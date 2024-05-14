@@ -162,54 +162,29 @@ LRESULT MultiBrowserForm::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lPara
 
 LRESULT MultiBrowserForm::OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
-	CloseReason closeReason = (CloseReason)wParam;
-
-	// 如果是因为所有浏览器盒子都关闭了导致窗口关闭，则正常返回
-	if (kBrowserBoxClose == closeReason)
+	int browser_count = GetBoxCount();
+	if (browser_count > 0 && nullptr != active_browser_box_)
 	{
-		return __super::OnClose(uMsg, wParam, lParam, bHandled);
-	}
-	// 如果是其他原因触发了WM_CLOSE
-	else
-	{
-		int browser_count = GetBoxCount();
-		if (browser_count > 0 && NULL != active_browser_box_)
-		{
-			// 如果只有一个浏览器盒子，就直接关闭
-			if (1 == browser_count)
-			{
-				CloseBox(active_browser_box_->GetId());
+		// 如果只有一个浏览器盒子，就直接关闭
+		if (1 == browser_count)	{
+			CloseBox(active_browser_box_->GetId());
+		}		
+		else {
+			// 如果包含多个浏览器盒子
+			while (GetBoxCount() > 0) {
+				Control* tab_item = tab_list_->GetItemAt(0);
+				ASSERT(nullptr != tab_item);
+				if (nullptr == tab_item) {
+					break;
+				}
+				CloseBox(tab_item->GetUTF8Name());
 			}
-			// 如果包含多个浏览器盒子，就询问用户
-			else
-			{
-				MsgboxCallback cb = ToWeakCallback([this](MsgBoxRet ret)
-				{
-					if (ret == MB_YES)
-					{
-						while (GetBoxCount() > 0)
-						{
-							Control *tab_item = tab_list_->GetItemAt(0);
-							ASSERT(NULL != tab_item);
-							if (NULL == tab_item)
-								break;
-
-							CloseBox(tab_item->GetUTF8Name());
-						}
-					}
-				});
-				ShowMsgBox(this->GetHWND(), cb, L"STRID_CEF_BROWSER_CLOSING", true, L"STRING_TIPS", true, L"STRING_OK", true, L"STRING_NO", true);
-			}
-
-			bHandled = TRUE;
-			return 0;
 		}
 	}
-
 	return __super::OnClose(uMsg, wParam, lParam, bHandled);
 }
 
-void MultiBrowserForm::OnFinalMessage(HWND hWnd)
+void MultiBrowserForm::OnFinalMessage()
 {
 	// 使用tab_list_来判断浏览器盒子总数，browser_box_tab_获取的总数不准确
 	int browser_box_count = GetBoxCount();
@@ -226,8 +201,7 @@ void MultiBrowserForm::OnFinalMessage(HWND hWnd)
 	}
 
 	UnInitDragDrop();
-
-	__super::OnFinalMessage(hWnd);
+	__super::OnFinalMessage();
 }
 
 void MultiBrowserForm::OnWndSizeMax(bool max)

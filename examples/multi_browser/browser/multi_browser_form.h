@@ -56,11 +56,9 @@ public:
 	*/
 	virtual LRESULT OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
 
-	/**
-	* 处理窗口销毁消息
-	* @return void	无返回值
+	/** 在窗口销毁时会被调用，这是该窗口的最后一个消息
 	*/
-	virtual void OnFinalMessage(HWND hWnd) override;
+	virtual void OnFinalMessage() override;
 
 private:
 	void OnWndSizeMax(bool max);

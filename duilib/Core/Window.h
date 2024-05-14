@@ -140,18 +140,21 @@ protected:
     */
     virtual uint32_t GetWindowStyle() const;
 
-    /** 窗口接收到 WM_CREATE 消息时会被调用
-    */
-    virtual void OnCreateWindow();
-
     /** 当窗口创建完成以后调用此函数，供子类中做一些初始化的工作
     */
     virtual void OnInitWindow();
 
-    /** 在窗口收到 WM_NCDESTROY 消息时会被调用
-    * @param [in] hWnd 窗口句柄
+    /** 当窗口即将被关闭时调用此函数，供子类中做一些收尾工作
     */
-    virtual void OnFinalMessage(HWND hWnd);
+    virtual void OnCloseWindow();
+
+    /** 在窗口销毁时会被调用，这是该窗口的最后一个消息（该类默认实现是清理资源，并调用OnDeleteSelf函数销毁该窗口对象）
+    */
+    virtual void OnFinalMessage();
+
+    /** 销毁自己（子类可用重载这个方法，避免自身被销毁）
+    */
+    virtual void OnDeleteSelf();
 
     /** @} */
 
@@ -1082,6 +1085,16 @@ private:
     * @return 返回窗口句柄对应的Window对象接口
     */
     static Window* GetWindowObject(HWND hWnd);
+
+private:
+    /** 初始化窗口数据
+    */
+    void InitWindow();
+
+    /** 清理窗口资源
+    * @param [in] bSendClose 是否发送关闭事件
+    */
+    void ClearWindow(bool bSendClose);
 
 private:
     //窗口句柄

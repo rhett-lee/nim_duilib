@@ -130,12 +130,11 @@ void Menu::DetachOwner()
 	}
 }
 
-void Menu::OnFinalMessage(HWND hWnd)
+void Menu::OnFinalMessage()
 {
 	RemoveObserver();
 	DetachOwner();
-	Window::OnFinalMessage(hWnd);
-	delete this;
+	__super::OnFinalMessage();
 }
 
 std::wstring Menu::GetSkinFolder()

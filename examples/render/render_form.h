@@ -26,10 +26,9 @@ public:
 	*/
 	virtual void OnInitWindow() override;
 
-	/**
-	 * 收到 WM_CLOSE 消息时该函数会被调用
-	 */
-	virtual LRESULT OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
+	/** 当窗口即将被关闭时调用此函数，供子类中做一些收尾工作
+	*/
+	virtual void OnCloseWindow() override;
 
 	/**@brief 当要创建的控件不是标准的控件名称时会调用该函数
 	 * @param[in] strClass 控件名称

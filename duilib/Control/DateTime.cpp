@@ -24,8 +24,7 @@ public:
 
     virtual std::wstring GetWindowClassName() const override;
     virtual std::wstring GetSuperClassName() const override;
-    void OnFinalMessage(HWND hWnd);
-
+    virtual void OnFinalMessage() override;
     virtual LRESULT OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
 
     std::tm SystemTimeToStdTime(const SYSTEMTIME& sysTime) const;
@@ -251,10 +250,12 @@ std::wstring DateTimeWnd::GetSuperClassName() const
     return DATETIMEPICK_CLASS;
 }
 
-void DateTimeWnd::OnFinalMessage(HWND /*hWnd*/)
+void DateTimeWnd::OnFinalMessage()
 {
-    m_pOwner->m_pDateWindow = nullptr;
-    delete this;
+    if (m_pOwner != nullptr) {
+        m_pOwner->m_pDateWindow = nullptr;
+    }    
+    __super::OnFinalMessage();
 }
 
 LRESULT DateTimeWnd::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)

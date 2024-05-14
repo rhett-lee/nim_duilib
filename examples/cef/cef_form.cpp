@@ -68,10 +68,10 @@ void CefForm::OnInitWindow()
 		cef_control_dev_->SetFadeVisible(false);
 }
 
-LRESULT CefForm::OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+void CefForm::OnCloseWindow()
 {
+	//关闭窗口后，退出主线程的消息循环，关闭程序
 	nim_comp::CefManager::GetInstance()->PostQuitMessage(0L);
-	return __super::OnClose(uMsg, wParam, lParam, bHandled);
 }
 
 bool CefForm::OnClicked(const ui::EventArgs& msg)

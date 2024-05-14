@@ -62,7 +62,6 @@ void RichlistForm::OnInitWindow()
 	m_pListBox->AttachSelect(nbase::Bind(&RichlistForm::OnSelected, this, std::placeholders::_1));
 }
 
-
 bool RichlistForm::OnSelected(const ui::EventArgs& args)
 {
 	int current = static_cast<int>(args.wParam);
@@ -86,8 +85,9 @@ bool RichlistForm::OnSelected(const ui::EventArgs& args)
 	return true;
 }
 
-LRESULT RichlistForm::OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+void RichlistForm::OnCloseWindow()
 {
+	//关闭窗口后，退出主线程的消息循环，关闭程序
 	PostQuitMessage(0L);
-	return __super::OnClose(uMsg, wParam, lParam, bHandled);
 }
+

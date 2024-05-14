@@ -87,10 +87,15 @@ std::wstring DragWindow::GetWindowClassName() const
     return L"DragWindow";
 }
 
-void DragWindow::OnFinalMessage(HWND hWnd)
+void DragWindow::OnFinalMessage()
 {
-    Window::OnFinalMessage(hWnd);
+    __super::OnFinalMessage();
     Release();
+}
+
+void DragWindow::OnDeleteSelf()
+{
+    //不调用基类，避免对象被删除
 }
 
 /** 设置显示的图片

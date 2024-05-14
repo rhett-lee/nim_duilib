@@ -59,7 +59,6 @@ public:
     virtual uint32_t GetWindowStyle() const override;
 
 public:
-
     /** 当要创建的控件不是标准的控件名称时会调用该函数
     * @param [in] strClass 控件名称
     * @return 返回一个自定义控件指针，一般情况下根据 strClass 参数创建自定义的控件
@@ -70,6 +69,14 @@ protected:
     /** 当窗口创建完成以后调用此函数，供子类中做一些初始化的工作
     */
     virtual void OnInitWindow() override;
+
+    /** 当窗口即将被关闭时调用此函数，供子类中做一些收尾工作
+    */
+    virtual void OnCloseWindow() override;
+
+    /** 在窗口销毁时会被调用，这是该窗口的最后一个消息（该类默认实现是清理资源，并销毁该窗口对象）
+    */
+    virtual void OnFinalMessage() override;
 
     /** 窗口消息的派发函数, 子类继承该函数，重写函数中，需要调用基类的函数
     * @param [in] uMsg 消息体
@@ -82,6 +89,7 @@ protected:
     */
     virtual LRESULT OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
 
+protected:
     /** 收到窗口创建消息（WM_CREATE）时被调用，请使用 OnInitWindow 接口来实现自定义需求
     * @param [in] uMsg 消息ID
     * @param [in] wParam 消息附加参数
@@ -91,21 +99,6 @@ protected:
     */
     virtual LRESULT OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
 
-    /** 在窗口收到 WM_NCDESTROY 消息时会被调用
-    * @param [in] hWnd 要销毁的窗口句柄
-    */
-    virtual void OnFinalMessage(HWND hWnd) override;
-
-    /** 接收窗口控制命令消息时（WM_SYSCOMMAND）被调用
-    *  @param [in] uMsg 消息内容
-    *  @param [in] wParam 消息附加参数
-    *  @param [in] lParam 消息附加参数
-    *  @param[out] bHandled 返回 false 则继续派发该消息，否则不再派发该消息
-    *  @return 返回消息处理结果
-    */
-    virtual LRESULT OnSysCommand(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
-
-protected:
     /** 当收到窗口关闭消息(WM_CLOSE)时被调用
     * @param [in] uMsg 消息内容
     * @param [in] wParam 消息附加参数
@@ -123,6 +116,15 @@ protected:
     * @return 返回消息处理结果
     */
     virtual LRESULT OnDestroy(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
+
+    /** 接收窗口控制命令消息时（WM_SYSCOMMAND）被调用
+    *  @param [in] uMsg 消息内容
+    *  @param [in] wParam 消息附加参数
+    *  @param [in] lParam 消息附加参数
+    *  @param[out] bHandled 返回 false 则继续派发该消息，否则不再派发该消息
+    *  @return 返回消息处理结果
+    */
+    virtual LRESULT OnSysCommand(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
 
     /** 接收到鼠标移动消息(WM_MOUSEMOVE)时被调用
     * @param [in] uMsg 消息内容

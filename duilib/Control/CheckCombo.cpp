@@ -16,7 +16,7 @@ public:
 	void CloseComboWnd();
 
 	virtual std::wstring GetWindowClassName() const override;
-	virtual void OnFinalMessage(HWND hWnd) override;
+	virtual void OnFinalMessage() override;
 	virtual LRESULT OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
 
 	void OnSeleteItem();
@@ -124,7 +124,7 @@ std::wstring CCheckComboWnd::GetWindowClassName() const
 	return L"CCheckComboWnd";
 }
 
-void CCheckComboWnd::OnFinalMessage(HWND /*hWnd*/)
+void CCheckComboWnd::OnFinalMessage()
 {
 	if (m_pOwner != nullptr) {
 		if (m_pOwner->GetListBox()->GetWindow() == this) {
@@ -136,10 +136,8 @@ void CCheckComboWnd::OnFinalMessage(HWND /*hWnd*/)
 			m_pOwner->SetState(kControlStateNormal);
 			m_pOwner->Invalidate();
 		}
-	}
-	m_pOwner->SetState(ui::kControlStateNormal);
-	m_pOwner->Invalidate();
-	delete this;
+	}	
+	__super::OnFinalMessage();
 }
 
 void CCheckComboWnd::OnSeleteItem()

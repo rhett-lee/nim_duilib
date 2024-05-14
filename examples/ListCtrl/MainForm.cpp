@@ -26,10 +26,10 @@ std::wstring MainForm::GetWindowClassName() const
 	return kClassName;
 }
 
-LRESULT MainForm::OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+void MainForm::OnCloseWindow()
 {
-    PostQuitMessage(0L);
-    return __super::OnClose(uMsg, wParam, lParam, bHandled);
+	//关闭窗口后，退出主线程的消息循环，关闭程序
+	PostQuitMessage(0L);
 }
 
 void MainForm::OnInitWindow()

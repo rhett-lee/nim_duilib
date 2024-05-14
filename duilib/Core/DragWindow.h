@@ -42,7 +42,11 @@ public:
     /** 在窗口收到 WM_NCDESTROY 消息时会被调用
     * @param [in] hWnd 要销毁的窗口句柄
     */
-    virtual void OnFinalMessage(HWND hWnd) override;
+    virtual void OnFinalMessage() override;
+
+    /** 销毁自己（子类可用重载这个方法，避免自身被销毁）
+    */
+    virtual void OnDeleteSelf() override;
 
 public:
     /** 设置显示的图片

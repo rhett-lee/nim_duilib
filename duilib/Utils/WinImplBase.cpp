@@ -17,6 +17,15 @@ void WindowImplBase::OnInitWindow()
 {
 }
 
+void WindowImplBase::OnCloseWindow()
+{
+}
+
+void WindowImplBase::OnFinalMessage()
+{
+    __super::OnFinalMessage();
+}
+
 Control* WindowImplBase::CreateControl(const std::wstring& /*strClass*/)
 {
     return nullptr;
@@ -127,12 +136,6 @@ LRESULT WindowImplBase::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
         }
     }
     return 0;
-}
-
-void WindowImplBase::OnFinalMessage(HWND hWnd)
-{
-    __super::OnFinalMessage(hWnd);
-    delete this;
 }
 
 LRESULT WindowImplBase::OnSysCommand(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)

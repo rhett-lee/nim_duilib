@@ -365,10 +365,10 @@ void ControlForm::ShowPopupMenu(const ui::UiPoint& point)
 	}
 }
 
-LRESULT ControlForm::OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+void ControlForm::OnCloseWindow()
 {
+	//关闭窗口后，退出主线程的消息循环，关闭程序
 	PostQuitMessage(0L);
-	return __super::OnClose(uMsg, wParam, lParam, bHandled);
 }
 
 void ControlForm::LoadRichEditData()

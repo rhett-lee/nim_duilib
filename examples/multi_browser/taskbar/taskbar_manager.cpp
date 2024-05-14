@@ -151,12 +151,6 @@ LRESULT TaskbarTabItem::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam,
 	return __super::OnWindowMessage(uMsg, wParam, lParam, bHandled);
 }
 
-void TaskbarTabItem::OnFinalMessage(HWND hWnd)
-{
-	__super::OnFinalMessage(hWnd);
-	delete this;
-}
-
 ////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////
 

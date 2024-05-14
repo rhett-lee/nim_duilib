@@ -33,10 +33,10 @@ void LayoutsForm::OnInitWindow()
 
 }
 
-LRESULT LayoutsForm::OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+void LayoutsForm::OnCloseWindow()
 {
+	//关闭窗口后，退出主线程的消息循环，关闭程序
 	PostQuitMessage(0L);
-	return __super::OnClose(uMsg, wParam, lParam, bHandled);
 }
 
 void LayoutsForm::ShowCustomWindow(const std::wstring& class_name, const std::wstring& theme_directory, const std::wstring& layout_xml)
