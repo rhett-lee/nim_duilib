@@ -1,9 +1,10 @@
-#ifndef UI_UTILS_DPIMANAGER_H_
-#define UI_UTILS_DPIMANAGER_H_
+#ifndef UI_CORE_DPI_MANAGER_H_
+#define UI_CORE_DPI_MANAGER_H_
 
 #pragma once
 
 #include "duilib/Core/UiTypes.h"
+#include "duilib/Core/DpiAwareness.h"
 
 namespace ui
 {
@@ -13,71 +14,7 @@ namespace ui
 * @author Redrain
 * @date 2016/10/10
 */
-
-/** DPI感知模式
-*/
-enum class UILIB_API DpiAwarenessMode
-{
-	/** 无法感知
-	 *    应用程序的 DPI 视图：所有显示器均为 96 DPI
-	 *	  DPI 更改时的行为：位图拉伸（模糊）
-	 */
-	kDpiUnaware = 0,
-
-	/** 系统
-	 *  引入的Windows版本：Vista
-	 *  应用程序的 DPI 视图：所有显示器均为 96 DPI
-	 *	DPI 更改时的行为：位图拉伸（模糊））
-	 */
-	kSystemDpiAware = 1,
-
-	/** 每显示器
-	 *  引入的Windows版本：8.1
-	 *  应用程序的 DPI 视图：应用程序窗口主要位于的显示器的 DPI
-	 *	DPI 更改时的行为：通知顶级 HWND DPI 更改，没有任何 UI 元素的 DPI 缩放。
-	 */
-	kPerMonitorDpiAware = 2,
-
-	/** 每显示器 V2
-	 *  引入的Windows版本：Windows 10 创意者更新 (1703)
-	 *  应用程序的 DPI 视图：应用程序窗口主要位于的显示器的 DPI
-	 *	DPI 更改时的行为：通知顶级 HWND DPI 更改，自动 DPI 缩放：非工作区、常用控件中的主题绘制位图 (comctl32 V6)、对话框 (CreateDialog)。
-	 */
-	kPerMonitorDpiAware_V2 = 3
-};
-
-/** DPI感知功能初始化参数
-*/
-class UILIB_API DpiInitParam
-{
-public:
-	enum class DpiAwarenessFlag
-	{
-		kFromManifest,  //从可执行程序的manifest配置中读取，不需要再次设置
-		kFromUserDefine //通过参数设置（即：DpiInitParam::m_dpiAwarenessMode 成员变量）
-	};
-	enum class DpiFlag
-	{
-		kFromSystem,    //从操作系统的DPI配置中读取
-		kFromUserDefine //通过参数设置（即：DpiInitParam::m_uDPI 成员变量）
-	};
-
-	/** DPI感知参数类型（默认是通过 m_dpiAwarenessMode 值设置的）
-	*/
-	DpiAwarenessFlag m_dpiAwarenessFlag = DpiInitParam::DpiAwarenessFlag::kFromUserDefine;
-
-	/** 参数设置的DPI感知参数模式(仅当 m_dpiAwarenessFlag 为 kFromUserDefine时有效)
-	*/
-	DpiAwarenessMode m_dpiAwarenessMode = DpiAwarenessMode::kPerMonitorDpiAware_V2;
-
-	/** DPI值的参数类型（默认读取系统设置的DPI值，不读取m_uDPI值）
-	*/
-	DpiFlag m_dpiFlag = DpiInitParam::DpiFlag::kFromSystem;
-
-	/** 参数设置的DPI值(仅当 m_dpiFlag 为 kFromUserDefine时有效)
-	*/
-	uint32_t m_uDPI = 96;
-};
+class Window;
 
 /** DPI感知功能的接口
 */
@@ -91,15 +28,34 @@ public:
 
 public:
 	/** 初始化DPI感知模式和DPI值（该函数只可调用一次，后续调用被忽略）
-	* @param [in] initParam 初始化参数，详见参数说明
+	* @param [in] dpiInitParam 初始化参数，详见参数说明
 	*/
-	bool InitDpiAwareness(const DpiInitParam& initParam);
-	
+	void InitDpiAwareness(const DpiInitParam& dpiInitParam);
+
+	/** DPI值是否为用户自定义(调用InitDpiAwareness函数时，dpiInitParam.m_dpiFlag == DpiInitParam::DpiFlag::kFromUserDefine)
+	*/
+	bool IsUserDefineDpi() const;
+
 	/** 获取进程的DPI感知模式
 	*/
 	DpiAwarenessMode GetDpiAwareness() const;
 
-public:
+	/** 是否DPI为每显示器模式
+	*/
+	bool IsPerMonitorDpiAware() const;
+
+	/** 当DPI发生变化时，按配置检测更新DPI值为新值
+	* @param [out] nOldDPI 如果有更新，返回原来的DPI值
+	* @return 如果更新过，返回true，否则返回false
+	*/
+	bool UpdateDPI(uint32_t& nOldDPI);
+
+	/** 根据窗口的DPI值，初始化DPI管理器的DPI值
+	    (Win10 以后，每个显示器可以有不同的DPI值，所以不同的窗口可能有不同的DPI值)
+	 @param [in] pWindow 窗口的接口，如果为nullptr，则读取系统配置的DPI值
+	*/
+	void SetDpiByWindow(Window* pWindow);
+
 	/** 设置DPI值，并更新界面缩放比
 	*   DPI值会影响界面缩放比，常用的值关系如下：
 	*   DPI 值    缩放百分比(Scale值)
@@ -113,6 +69,7 @@ public:
 	*/
 	void SetDPI(uint32_t uDPI);
 
+public:
 	/** 获取DPI值
 	*/
 	uint32_t GetDPI() const;
@@ -159,19 +116,6 @@ public:
 	void ScaleMargin(UiMargin& margin) const;
 
 private:
-
-	/** 设置进程的DPI感知模式
-	   （DPI感知模式只允许设置一次，设置成功后不允许修改；如果在可执行程序的manifest配置中设置了感知模式，也无法更改）
-	* @param [in] dpiAwarenessMode 期望的DPI感知模式，总体策略是逐步降级设置
-	*             依次为：kPerMonitorDpiAware_V2 -> kPerMonitorDpiAware -> kSystemDpiAware
-	* @return 返回实际的进程DPI感知模式
-	*/
-	DpiAwarenessMode SetDpiAwareness(DpiAwarenessMode dpiAwarenessMode) const;
-
-	/** 获取当前进程的DPI感知模式
-	*/
-	DpiAwarenessMode GetDpiAwarenessMode() const;
-
 	/** 获取主显示器DPI，开启DPI感知后有效
 	* @return 返回 DPI值
 	*/
@@ -190,6 +134,10 @@ private:
 	*/
 	DpiAwarenessMode m_dpiAwarenessMode;
 
+	/** DPI值是否为用户自定义
+	*/
+	bool m_bUserDefineDpi;
+
 	/** 当前的DPI值
 	*/
 	uint32_t m_uDpi;
@@ -199,4 +147,4 @@ private:
 	uint32_t m_nScaleFactor;
 };
 }
-#endif //UI_UTILS_DPIMANAGER_H_
+#endif //UI_CORE_DPI_MANAGER_H_

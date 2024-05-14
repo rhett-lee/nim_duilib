@@ -11,7 +11,9 @@ namespace ui
 	// DPI适配
 	//Windows 10版本 1607
 	bool GetDpiForSystemWrapper(UINT& dpi);
-	//
+	bool GetDpiForWindowWrapper(HWND hwnd, UINT& dpi);
+
+	//Windows 8.1 
 	bool GetDpiForMonitorWrapper(HMONITOR hMonitor, MONITOR_DPI_TYPE dpiType, UINT *dpiX, UINT *dpiY);
 
 	//Windows 10 版本 1703 以上

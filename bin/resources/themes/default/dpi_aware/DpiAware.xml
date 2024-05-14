@@ -14,7 +14,7 @@
         
         <!-- 工作区域，除了标题栏外的内容都放在这个大的Box区域 -->
         <Box>
-            <VBox valign="top" halign="center">
+            <GroupVBox valign="top" halign="center" valign="center" width="620" height="420">
                 <HBox height="60" width="100%" valign="center">
                     <Label name="" text="支持DPI感知功能的应用程序示例" height="80" width="100%" text_align="hcenter,vcenter"/>
                 </HBox>
@@ -39,7 +39,13 @@
                     <Label name="" text="缩放百分比：" width="auto" text_align="right,vcenter"/>
                     <Label name="window_dpi_percent" text="200%" width="64" text_align="left,vcenter"/>
                 </HBox>
-            </VBox>
+                <HBox height="40" width="100%" valign="center" halign="center">
+                    <Control />
+                    <Button class="btn_global_blue_80x30" width="auto" name="UpdateUI" text="更新" margin="0,10,10,0" />
+                    <Button class="btn_global_blue_80x30" width="auto" name="NewWindow" text="新窗口" margin="0,10,0,0" />
+                    <Control />
+                </HBox>
+            </GroupVBox>
         </Box>
     </VBox>
 </Window>

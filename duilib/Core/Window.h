@@ -1219,6 +1219,9 @@ private:
     //窗口已经延迟关闭：add by djj 20200428 调用Close时会延迟Post WM_CLOSE, 这个期间需要有一个标识此种'待关闭状态'
     bool m_bCloseing;
 
+    //窗口自己的DPI管理器
+    std::unique_ptr<DpiManager> m_dpi;
+
 private:
     /**@name 全屏相关状态
     * @{

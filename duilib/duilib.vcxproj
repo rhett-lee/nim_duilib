@@ -377,6 +377,7 @@
     <ClCompile Include="Core\ControlDropTarget.cpp" />
     <ClCompile Include="Core\ControlFinder.cpp" />
     <ClCompile Include="Core\ControlLoading.cpp" />
+    <ClCompile Include="Core\DpiAwareness.cpp" />
     <ClCompile Include="Core\DpiManager.cpp" />
     <ClCompile Include="Core\DragWindow.cpp" />
     <ClCompile Include="Core\EventArgs.cpp" />
@@ -509,6 +510,7 @@
     <ClInclude Include="Core\ControlDropTarget.h" />
     <ClInclude Include="Core\ControlFinder.h" />
     <ClInclude Include="Core\ControlLoading.h" />
+    <ClInclude Include="Core\DpiAwareness.h" />
     <ClInclude Include="Core\DpiManager.h" />
     <ClInclude Include="Core\DragWindow.h" />
     <ClInclude Include="Core\EventArgs.h" />

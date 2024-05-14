@@ -43,6 +43,11 @@ public:
     /** 窗口类名
     */
     static const std::wstring kClassName;
+
+private:
+    /** 刷新界面
+    */
+    void UpdateUI();
 };
 
 #endif //MAIN_FORM_H_

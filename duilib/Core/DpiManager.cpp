@@ -1,4 +1,5 @@
 #include "DpiManager.h"
+#include "duilib/Core/Window.h"
 #include "duilib/Utils/ApiWrapper.h"
 #include <VersionHelpers.h>
 
@@ -11,229 +12,164 @@ namespace ui
 
 DpiManager::DpiManager():
 	m_bDpiInited(false),
+	m_dpiAwarenessMode(DpiAwarenessMode::kDpiUnaware),
+	m_bUserDefineDpi(false),
 	m_uDpi(DPI_96),
 	m_nScaleFactor(100)
 {
-	m_dpiAwarenessMode = GetDpiAwarenessMode();
 }
 
 DpiManager::~DpiManager()
 {
 }
 
-bool DpiManager::InitDpiAwareness(const DpiInitParam& initParam)
+uint32_t DpiManager::GetMainMonitorDPI()
 {
-	if (m_bDpiInited) {
-		return false;
-	}
-	m_bDpiInited = true;
-	bool bRet = true;
-	if (initParam.m_dpiAwarenessFlag == DpiInitParam::DpiAwarenessFlag::kFromUserDefine) {
-		//设置一次 Dpi Awareness
-		SetDpiAwareness(initParam.m_dpiAwarenessMode);
-		m_dpiAwarenessMode = GetDpiAwarenessMode();
-		if (initParam.m_dpiAwarenessMode == DpiAwarenessMode::kDpiUnaware) {
-			bRet = (m_dpiAwarenessMode == DpiAwarenessMode::kDpiUnaware) ? true : false;
-		}
-		else {
-			bRet = (m_dpiAwarenessMode != DpiAwarenessMode::kDpiUnaware) ? true : false;
-		}
-	}
-	else {
-		m_dpiAwarenessMode = GetDpiAwarenessMode();
-	}
-
-	if (initParam.m_dpiFlag == DpiInitParam::DpiFlag::kFromSystem) {
-		//从系统配置中读取默认的DPI值
-		if (m_dpiAwarenessMode == DpiAwarenessMode::kDpiUnaware) {
-			SetDPI(DPI_96);
-		}
-		else {
-			SetDPI(DpiManager::GetMainMonitorDPI());
-		}
-	}
-	else {
-		//外部设置自定义的DPI值
-		SetDPI(initParam.m_uDPI);
-	}
-	return bRet;
-}
-
-DpiAwarenessMode DpiManager::SetDpiAwareness(DpiAwarenessMode dpiAwarenessMode) const
-{
-	if (!::IsWindowsVistaOrGreater()) {
-		//Vista以下版本系统，不支持DPI感知
-		return DpiAwarenessMode::kDpiUnaware;
-	}
-
-	//说明：如果应用程序 (.exe) 清单设置 DPI 感知，则相关的设置API会调用失败
-	//     如果此前调用或一次执行函数，则第二次调用的时候会失败（应该有限制，只允许设置一次）
-	if (dpiAwarenessMode != DpiAwarenessMode::kDpiUnaware) {
-		bool bSetOk = false;
-		if (!bSetOk && ::IsWindows10OrGreater()) {
-			//Windows10 及以上
-			PROCESS_DPI_AWARENESS_CONTEXT newValueWin10 = PROCESS_DPI_AWARENESS_CONTEXT_UNAWARE;
-			if (dpiAwarenessMode == DpiAwarenessMode::kPerMonitorDpiAware_V2) {
-				newValueWin10 = PROCESS_DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2;
-			}
-			else if (dpiAwarenessMode == DpiAwarenessMode::kPerMonitorDpiAware) {
-				newValueWin10 = PROCESS_DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE;
-			}
-			else {
-				newValueWin10 = PROCESS_DPI_AWARENESS_CONTEXT_SYSTEM_AWARE;
-			}
-			PROCESS_DPI_AWARENESS_CONTEXT oldValueWin10 = PROCESS_DPI_AWARENESS_CONTEXT_UNAWARE;
-			if (GetProcessDpiAwarenessContextWrapper(oldValueWin10)) {
-				if (AreDpiAwarenessContextsEqualWrapper(oldValueWin10, newValueWin10)) {
-					bSetOk = true;
-				}
-				if (!bSetOk && SetProcessDpiAwarenessContextWrapper(newValueWin10)) {
-					bSetOk = true;
-				}
-				if (!bSetOk && (dpiAwarenessMode == DpiAwarenessMode::kPerMonitorDpiAware_V2)) {
-					newValueWin10 = PROCESS_DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE;
-					if (SetProcessDpiAwarenessContextWrapper(newValueWin10)) {
-						bSetOk = true;
-					}
-				}
-			}
-		}
-
-		if (!bSetOk && ::IsWindows8Point1OrGreater()) {
-			//Win8.1 及以上
-			PROCESS_DPI_AWARENESS newValueWin8 = PROCESS_DPI_UNAWARE;
-			if ((dpiAwarenessMode == DpiAwarenessMode::kPerMonitorDpiAware) || 
-				(dpiAwarenessMode == DpiAwarenessMode::kPerMonitorDpiAware_V2) ) {
-				newValueWin8 = PROCESS_PER_MONITOR_DPI_AWARE;
-			}
-			else {
-				newValueWin8 = PROCESS_SYSTEM_DPI_AWARE;
-			}
-			PROCESS_DPI_AWARENESS oldValueWin8 = PROCESS_DPI_UNAWARE;
-			if (GetProcessDPIAwarenessWrapper(oldValueWin8)) {
-				if (oldValueWin8 == newValueWin8) {
-					bSetOk = true;
-				}
-				if (!bSetOk && SetProcessDPIAwarenessWrapper(newValueWin8)) {
-					bSetOk = true;
-				}
-			}
-		}
-
-		if (!bSetOk) {
-			bool bAware = false;
-			if (IsProcessDPIAwareWrapper(bAware)) {
-				if (bAware) {
-					bSetOk = true;
-				}
-			}
-			if (!bSetOk && SetProcessDPIAwareWrapper()) {
-				bSetOk = true;
-			}
-		}
-	}
-	return GetDpiAwarenessMode();
-}
-
-DpiAwarenessMode DpiManager::GetDpiAwareness() const
-{
-	return m_dpiAwarenessMode;
-}
-
-DpiAwarenessMode DpiManager::GetDpiAwarenessMode() const
-{
-	DpiAwarenessMode dpiAwarenessMode = DpiAwarenessMode::kDpiUnaware;
-	if (!::IsWindowsVistaOrGreater()) {
-		//Vista以下版本系统，不支持DPI感知
-		return dpiAwarenessMode;
-	}
-	bool bDpiInited = false;
-	if (!bDpiInited && ::IsWindows10OrGreater()) {
-		//Windows10 及以上
-		PROCESS_DPI_AWARENESS_CONTEXT value = PROCESS_DPI_AWARENESS_CONTEXT_UNAWARE;
-		if (GetProcessDpiAwarenessContextWrapper(value)) {
-			bDpiInited = true;
-			if (AreDpiAwarenessContextsEqualWrapper(value, PROCESS_DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2)) {
-				dpiAwarenessMode = DpiAwarenessMode::kPerMonitorDpiAware_V2;
-			}
-			else if (AreDpiAwarenessContextsEqualWrapper(value, PROCESS_DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE)) {
-				dpiAwarenessMode = DpiAwarenessMode::kPerMonitorDpiAware;
-			}
-			else if (AreDpiAwarenessContextsEqualWrapper(value, PROCESS_DPI_AWARENESS_CONTEXT_SYSTEM_AWARE)) {
-				dpiAwarenessMode = DpiAwarenessMode::kSystemDpiAware;
-			}
-			else if (AreDpiAwarenessContextsEqualWrapper(value, PROCESS_DPI_AWARENESS_CONTEXT_UNAWARE)) {
-				dpiAwarenessMode = DpiAwarenessMode::kDpiUnaware;
-			}
-			else {
-				dpiAwarenessMode = DpiAwarenessMode::kDpiUnaware;
-			}
-		}
-	}
-	if (!bDpiInited && ::IsWindows8Point1OrGreater()) {
-		//Win8.1 及以上
-		PROCESS_DPI_AWARENESS value = PROCESS_DPI_UNAWARE;
-		if (GetProcessDPIAwarenessWrapper(value)) {
-			bDpiInited = true;
-			if (value == PROCESS_PER_MONITOR_DPI_AWARE) {
-				dpiAwarenessMode = DpiAwarenessMode::kPerMonitorDpiAware;
-			}
-			else if (value == PROCESS_SYSTEM_DPI_AWARE) {
-				dpiAwarenessMode = DpiAwarenessMode::kSystemDpiAware;
-			}
-			else {
-				dpiAwarenessMode = DpiAwarenessMode::kDpiUnaware;
-			}
-		}
-	}
-	if (!bDpiInited) {
-		bool bAware = false;
-		if (IsProcessDPIAwareWrapper(bAware)) {
-			bDpiInited = true;
-			if (bAware) {
-				dpiAwarenessMode = DpiAwarenessMode::kSystemDpiAware;
-			}
-			else {
-				dpiAwarenessMode = DpiAwarenessMode::kDpiUnaware;
-			}
-		}
-	}
-	return dpiAwarenessMode;
-}
-
-/** 获取某个显示器的DPI，开启DPI感知后有效
-* @param[in] HMONITOR句柄
-* @return 返回 DPI值
-*/
-static uint32_t GetMonitorDPI(HMONITOR hMonitor)
-{
-	uint32_t dpix = 96;
-	uint32_t dpiy = 96;
 	bool bOk = false;
+	uint32_t uDPI = 96;
 	if (::IsWindows10OrGreater()) {
-		if (GetDpiForSystemWrapper(dpix)) {
+		if (GetDpiForSystemWrapper(uDPI)) {
 			bOk = true;
 		}
 	}
 	if (!bOk && ::IsWindows8OrGreater()) {
-		if (GetDpiForMonitorWrapper(hMonitor, MDT_EFFECTIVE_DPI, &dpix, &dpiy)) {
-			bOk = true;
+		POINT pt = { 1, 1 };
+		HMONITOR hMonitor = ::MonitorFromPoint(pt, MONITOR_DEFAULTTOPRIMARY);
+		if (hMonitor != nullptr) {
+			uint32_t dpix = 96;
+			uint32_t dpiy = 96;
+			if (GetDpiForMonitorWrapper(hMonitor, MDT_EFFECTIVE_DPI, &dpix, &dpiy)) {
+				uDPI = dpix;
+				bOk = true;
+			}
 		}
 	}
 	if (!bOk) {
-		HDC desktopDc = ::GetDC(NULL);
-		dpix = (uint32_t)::GetDeviceCaps(desktopDc, LOGPIXELSX);
-		::ReleaseDC(0, desktopDc);
+		HDC desktopDc = ::GetDC(nullptr);
+		uDPI = (uint32_t)::GetDeviceCaps(desktopDc, LOGPIXELSX);
+		::ReleaseDC(nullptr, desktopDc);
 	}
-	return dpix;
+	if (uDPI == 0) {
+		uDPI = 96;
+	}
+	return uDPI;
 }
 
-uint32_t DpiManager::GetMainMonitorDPI()
+void DpiManager::InitDpiAwareness(const DpiInitParam& dpiInitParam)
 {
-	POINT pt = { 1, 1 };
-	HMONITOR hMonitor;
-	hMonitor = ::MonitorFromPoint(pt, MONITOR_DEFAULTTOPRIMARY);
-	return GetMonitorDPI(hMonitor);
+	//如果已经初始化过，则不重复初始化
+	if (m_bDpiInited) {
+		return;
+	}
+	m_bDpiInited = true;
+
+	//初始化DPI感知模式
+	DpiAwareness dpiAwareness;
+	dpiAwareness.InitDpiAwareness(dpiInitParam);
+	m_dpiAwarenessMode = dpiAwareness.GetDpiAwareness();
+
+	//初始化DPI值
+	if (dpiInitParam.m_dpiFlag == DpiInitParam::DpiFlag::kFromSystem) {
+		m_bUserDefineDpi = false;
+		//从系统配置中读取默认的DPI值
+		SetDpiByWindow(nullptr);
+	}
+	else {
+		//外部设置自定义的DPI值
+		m_bUserDefineDpi = true;
+		SetDPI(dpiInitParam.m_uDPI);
+	}
+}
+
+bool DpiManager::IsUserDefineDpi() const
+{
+	return m_bUserDefineDpi;
+}
+
+DpiAwarenessMode DpiManager::GetDpiAwareness() const
+{
+	DpiAwarenessMode dpiAwarenessMode = m_dpiAwarenessMode;
+	if (!m_bDpiInited) {
+		DpiAwareness dpiAwareness;
+		dpiAwarenessMode = dpiAwareness.GetDpiAwareness();
+	}
+	return dpiAwarenessMode;
+}
+
+bool DpiManager::IsPerMonitorDpiAware() const
+{
+	DpiAwarenessMode dpiAwarenessMode = GetDpiAwareness();
+	if ((dpiAwarenessMode == DpiAwarenessMode::kPerMonitorDpiAware) ||
+		(dpiAwarenessMode == DpiAwarenessMode::kPerMonitorDpiAware_V2)) {
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+//待删除（此函数不起作用）
+bool DpiManager::UpdateDPI(uint32_t& nOldDPI)
+{
+	if (IsUserDefineDpi() || !IsPerMonitorDpiAware()) {
+		return false;
+	}
+	nOldDPI = GetDPI();
+	SetDpiByWindow(nullptr);
+	uint32_t nNewDPI = GetDPI();
+	return (nOldDPI != nNewDPI);
+}
+
+void DpiManager::SetDpiByWindow(Window* pWindow)
+{
+	//读取窗口的DPI值
+	uint32_t uDPI = 0;
+	HWND hWnd = nullptr;
+	if (pWindow != nullptr) {
+		hWnd = pWindow->GetHWND();
+	}
+	if (hWnd != nullptr) {
+		if (::IsWindows10OrGreater()) {
+			if (!GetDpiForWindowWrapper(pWindow->GetHWND(), uDPI)) {
+				uDPI = 0;
+			}
+		}
+	}
+	if ((uDPI == 0) && (hWnd != nullptr) && ::IsWindows8OrGreater()) {
+		HMONITOR hMonitor = ::MonitorFromWindow(hWnd, MONITOR_DEFAULTTONEAREST);
+		if (hMonitor == nullptr) {
+			hMonitor = ::MonitorFromWindow(hWnd, MONITOR_DEFAULTTOPRIMARY);
+		}
+		if (hMonitor != nullptr) {
+			uint32_t dpix = 96;
+			uint32_t dpiy = 96;
+			if (GetDpiForMonitorWrapper(hMonitor, MDT_EFFECTIVE_DPI, &dpix, &dpiy)) {
+				uDPI = dpix;
+			}
+		}
+	}
+	if ((uDPI == 0) && (hWnd != nullptr)) {
+		HDC hDC = ::GetDC(hWnd);
+		if (hDC != nullptr) {
+			uDPI = (uint32_t)::GetDeviceCaps(hDC, LOGPIXELSX);
+			::ReleaseDC(hWnd, hDC);
+		}		
+	}
+
+	//从系统配置中读取默认的DPI值
+	if (uDPI == 0) {
+		DpiAwarenessMode dpiAwarenessMode = GetDpiAwareness();
+		if (dpiAwarenessMode == DpiAwarenessMode::kDpiUnaware) {
+			uDPI = DPI_96;
+		}
+		else {
+			uDPI = DpiManager::GetMainMonitorDPI();
+		}
+	}
+	if (uDPI == 0) {
+		uDPI = DPI_96;
+	}
+	SetDPI(uDPI);
 }
 
 void DpiManager::SetDPI(uint32_t uDPI)

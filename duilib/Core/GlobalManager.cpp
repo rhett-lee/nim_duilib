@@ -112,8 +112,9 @@ bool GlobalManager::Startup(const ResourceParam& resParam,
 	//保存回调函数
 	m_pfnCreateControlCallback = callback;
 
-	//DPI感知模式
-	m_dpiManager.InitDpiAwareness(dpiInitParam);
+	//初始化DPI感知模式，//初始化DPI值
+	DpiManager& dpiManager = Dpi();
+	dpiManager.InitDpiAwareness(dpiInitParam);
 
 #if (duilib_kRenderType == duilib_kRenderType_Skia)
 	//Skia渲染引擎实现

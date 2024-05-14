@@ -405,6 +405,9 @@
     <ClCompile Include="Image\ImageGif.cpp">
       <Filter>Image</Filter>
     </ClCompile>
+    <ClCompile Include="Core\DpiAwareness.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -885,6 +888,9 @@
       <Filter>Image</Filter>
     </ClInclude>
     <ClInclude Include="Core\ResourceParam.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\DpiAwareness.h">
       <Filter>Core</Filter>
     </ClInclude>
   </ItemGroup>

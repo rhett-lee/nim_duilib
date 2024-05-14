@@ -607,6 +607,14 @@ void Window::InitWindow()
     //添加到全局管理器
     GlobalManager::Instance().AddWindow(this);
 
+    //初始化窗口自身的DPI管理器
+    const DpiManager& dpiManager = GlobalManager::Instance().Dpi();
+    if (!dpiManager.IsUserDefineDpi() && dpiManager.IsPerMonitorDpiAware()) {
+        //每个显示器，有独立的DPI：初始化窗口自己的DPI管理器
+        m_dpi = std::make_unique<DpiManager>();
+        m_dpi->SetDpiByWindow(this);
+    }
+
     //设置窗口风格
     uint32_t nStyle = GetWindowStyle();
     if (nStyle != 0) {
@@ -704,6 +712,7 @@ void Window::ClearWindow(bool bSendClose)
         m_hDcPaint = nullptr;
     }
     m_shadow.reset();
+    m_dpi.reset();
     m_hWnd = nullptr;
 }
 
@@ -1766,8 +1775,24 @@ LRESULT Window::OnSizeMsg(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/, bool& bHa
 LRESULT Window::OnDpiChangedMsg(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/, bool& bHandled)
 {
     ASSERT_UNUSED_VARIABLE(uMsg == WM_DPICHANGED);
-    uint32_t nNewDPI = HIWORD(wParam);
     bHandled = false;
+
+    const DpiManager& dpiManager = GlobalManager::Instance().Dpi();
+    if ((m_dpi != nullptr) && !dpiManager.IsUserDefineDpi() && dpiManager.IsPerMonitorDpiAware()) {
+        uint32_t nNewWindowDPI = HIWORD(wParam);
+        uint32_t nOldWindowDPI = m_dpi->GetDPI();
+        uint32_t nOldWindowScale = m_dpi->GetScale();
+
+        //更新全局DPI值为系统当前值
+        uint32_t nOldDPI = 0;
+        GlobalManager::Instance().Dpi().UpdateDPI(nOldDPI);//无用，删除此函数
+
+        //更新窗口的DPI值为新值
+        m_dpi->SetDPI(nNewWindowDPI);        
+        uint32_t nNewWindowScale = m_dpi->GetScale();
+        nNewWindowDPI = m_dpi->GetDPI();
+
+    }       
     return 0;
 }
 
@@ -1847,7 +1872,7 @@ void Window::UpdateToolTip()
 
 const DpiManager& Window::Dpi() const
 {
-    return GlobalManager::Instance().Dpi();
+    return (m_dpi != nullptr) ? *m_dpi : GlobalManager::Instance().Dpi();
 }
 
 LRESULT Window::OnMouseMoveMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)

@@ -571,7 +571,7 @@ bool PlaceHolder::IsChild(PlaceHolder* pAncestor, PlaceHolder* pControl) const
 
 const DpiManager& PlaceHolder::Dpi() const
 {
-	return GlobalManager::Instance().Dpi();
+	return (m_pWindow != nullptr) ? m_pWindow->Dpi() : GlobalManager::Instance().Dpi();
 }
 
 }

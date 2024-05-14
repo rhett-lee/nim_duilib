@@ -7,7 +7,6 @@ bool GetDpiForSystemWrapper(UINT& dpi)
 {
 	typedef UINT(WINAPI* GetDpiForSystemPtr)();
 	static GetDpiForSystemPtr get_dpi_for_system_func = reinterpret_cast<GetDpiForSystemPtr>(GetProcAddress(GetModuleHandleA("user32.dll"), "GetDpiForSystem"));
-
 	dpi = 96;
 	if (get_dpi_for_system_func) {
 		dpi = get_dpi_for_system_func();
@@ -21,13 +20,23 @@ bool GetDpiForMonitorWrapper(HMONITOR hMonitor, MONITOR_DPI_TYPE dpiType, UINT *
 	typedef HRESULT(WINAPI *GetDpiForMonitorPtr)(HMONITOR, MONITOR_DPI_TYPE, UINT*, UINT*);
 
 	static GetDpiForMonitorPtr get_dpi_for_monitor_func = reinterpret_cast<GetDpiForMonitorPtr>(GetProcAddress(GetModuleHandleA("user32.dll"), "GetDpiForMonitorInternal"));
-
 	if (get_dpi_for_monitor_func) {
 		if (get_dpi_for_monitor_func(hMonitor, dpiType, dpiX, dpiY) != S_OK) {
 			return true;
 		}
 	}
+	return false;
+}
 
+bool GetDpiForWindowWrapper(HWND hwnd, UINT& dpi)
+{
+	typedef UINT(WINAPI* GetDpiForWindowPtr)(HWND hwnd);
+	static GetDpiForWindowPtr get_dpi_for_window_func = reinterpret_cast<GetDpiForWindowPtr>(GetProcAddress(GetModuleHandleA("user32.dll"), "GetDpiForWindow"));
+	dpi = 0;
+	if (get_dpi_for_window_func) {
+		dpi = get_dpi_for_window_func(hwnd);
+		return true;
+	}
 	return false;
 }
 
