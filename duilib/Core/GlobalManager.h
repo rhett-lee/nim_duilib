@@ -192,7 +192,7 @@ public:
 	 * @param [in] resPath 资源文件路径，比如："../public/button/btn_wnd_gray_min_hovered.png"
 	 * @return 可用的完整的资源路径，比如：
 			  （1）如果是使用ZIP压缩包，返回："resources\themes\default\public\button\btn_wnd_gray_min_hovered.png"
-			  （2）如果未使用ZIP压缩包，返回："D:\<程序所在目录>\resources\themes\default\public\button\btn_wnd_gray_min_hovered.png"
+			  （2）如果未使用ZIP压缩包，返回："<程序所在目录>\resources\themes\default\public\button\btn_wnd_gray_min_hovered.png"
 	 */
 	std::wstring GetResFullPath(const std::wstring& windowResPath, const std::wstring& resPath);
 

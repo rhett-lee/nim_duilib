@@ -26,18 +26,13 @@ public:
 	ImageManager& operator = (const ImageManager&) = delete;
 
 public:
-	/** 检查指定图片是否已经被缓存
-	 * @param[in] loadAtrribute 图片的加载属性，包含图片路径等信息
-	 * @return 如果已经被缓存，则返回 ImageInfo 的智能指针对象
-	 */
-	std::shared_ptr<ImageInfo> GetCachedImage(const ImageLoadAttribute& loadAtrribute);
-
 	/** 加载图片 ImageInfo 对象
 	 * @param [in] loadAtrribute 图片的加载属性，包含图片路径等信息
 	 * @param [in] dpi DPI缩放管理接口
 	 * @return 返回图片 ImageInfo 对象的智能指针
 	 */
-	std::shared_ptr<ImageInfo> GetImage(const DpiManager& dpi, const ImageLoadAttribute& loadAtrribute);
+	std::shared_ptr<ImageInfo> GetImage(const DpiManager& dpi,
+										const ImageLoadAttribute& loadAtrribute);
 
 	/** 从缓存中删除所有图片
 	 */
@@ -50,7 +45,17 @@ public:
 
 	/** 判断是否默认对所有图片在加载时根据DPI进行缩放
 	*/
-	bool IsDpiScaleAllImages();
+	bool IsDpiScaleAllImages() const;
+
+	/** 设置是否智能匹配临近的缩放百分比图片
+	*   比如当dpiScale为120的时候，如果无图片匹配，但存在缩放百分比为125的图片，会自动匹配到
+	*   这个功能可用减少各个DPI下的图片，降低适配DPI的工作量
+	*/
+	void SetAutoMatchScaleImage(bool bAutoMatchScaleImage);
+
+	/** 获取是否智能匹配临近的缩放百分比图片
+	*/
+	bool IsAutoMatchScaleImage() const;
 
 private:
 	/** 图片被销毁的回调函数，用于释放图片资源
@@ -58,11 +63,37 @@ private:
 	 */
 	static void OnImageInfoDestroy(ImageInfo* pImageInfo);
 
-	/** 查找对应DPI下的图片，可以每个DPI设置一个图片，以提高不同DPI下的图片质量
+	/** 查找指定DPI缩放百分比下的图片，可以每个DPI设置一个图片，以提高不同DPI下的图片质量
+	*   举例：DPI缩放百分比为120（即放大到120%）的图片："image.png" 对应于 "image@120.png"
+	* @param [in] dpiScale 需要查找的DPI缩放百分比
+	* @param [in] bIsUseZip 是否使用zip压缩包资源
+	* @param [in] imageFullPath 图片资源的完整路径
+	* @param [out] dpiImageFullPath 返回指定DPI下的图片资源路径，如果没找到，则返回空串
 	*/
-	std::wstring GetDpiImageFullPath(const DpiManager& dpi, 
-									 const std::wstring& strImageFullPath, 
-									 bool bIsUseZip) const;
+	bool GetDpiScaleImageFullPath(uint32_t dpiScale, 
+								  bool bIsUseZip,
+							      const std::wstring& imageFullPath,
+							      std::wstring& dpiImageFullPath) const;
+
+	/** 查找指定DPI缩放百分比下的图片，可以每个DPI设置一个图片，以提高不同DPI下的图片质量
+	*   举例：DPI缩放百分比为120（即放大到120%）的图片："image.png" 对应于 "image@120.png"
+	* @param [in] dpiScale 需要查找的DPI缩放百分比
+	* @param [in] bIsUseZip 是否使用zip压缩包资源
+	* @param [in] imageFullPath 图片资源的完整路径
+	* @param [out] dpiImageFullPath 返回指定DPI下的图片资源路径，如果没找到，则返回空串
+	*/
+	bool FindDpiScaleImageFullPath(uint32_t dpiScale, 
+								  bool bIsUseZip,
+							      const std::wstring& imageFullPath,
+							      std::wstring& dpiImageFullPath) const;
+
+	/** 获取指定DPI缩放百分比下的图片资源路径
+	*   举例：DPI缩放百分比为120（即放大到120%）的图片："image.png" 对应于 "image@120.png"
+	* @param [in] dpiScale 需要查找的DPI缩放百分比
+	* @param [in] imageFullPath 图片资源的完整路径
+	* @return 返回指定DPI下的图片资源路径, 如果失败则返回空串
+	*/
+	std::wstring GetDpiScaledPath(uint32_t dpiScale, const std::wstring& imageFullPath) const;
 
 	/** 从文件加载一个图片
 	*/
@@ -79,10 +110,14 @@ private:
 #endif
 
 private:
-	/** 设置是否默认对所有图片在加载时根据DPI进行缩放，这个是全局属性，默认为true，应用于所有图片
+	/** 是否默认对所有图片在加载时根据DPI进行缩放，这个是全局属性，默认为true，应用于所有图片
 	   （设置为true后，也可以通过在xml中，使用"dpiscale='false'"属性关闭某个图片的DPI自动缩放）
 	*/
 	bool m_bDpiScaleAllImages;
+
+	/** 是否智能匹配临近的缩放百分比图片
+	*/
+	bool m_bAutoMatchScaleImage;
 
 	/** 图片资源映射表
 	*/

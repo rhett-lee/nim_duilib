@@ -86,13 +86,22 @@ public:
 	*/
 	int32_t GetPlayCount() const;
 
-	/** 设置图片的缓存KEY, 用于图片的生命周期管理
+	/** 设置图片的加载KEY, 用于图片的生命周期管理
+	* @param [in] loadKey 图片加载时的KEY
 	*/
-	void SetCacheKey(const std::wstring& cacheKey);
+	void SetLoadKey(const std::wstring& loadKey);
 
-	/** 获取图片的缓存KEY
+	/** 获取图片的加载KEY
 	*/
-	std::wstring GetCacheKey() const;
+	std::wstring GetLoadKey() const;
+
+	/** 设置生成图片加载时的DPI界面缩放比
+	*/
+	void SetLoadDpiScale(uint32_t dpiScale);
+
+	/** 获取生成图片加载时的DPI界面缩放比
+	*/
+	uint32_t GetLoadDpiScale() const;
 
 private:
 	//图片的完整路径
@@ -119,9 +128,13 @@ private:
 	//循环播放次数(大于等于0，如果等于0，表示动画是循环播放的, APNG格式支持设置循环播放次数)
 	int32_t m_nPlayCount;
 
-	/** 图片的缓存KEY, 用于图片的生命周期管理
+	/** 图片的加载KEY, 用于图片的生命周期管理
 	*/
-	UiString m_cacheKey;
+	UiString m_loadKey;
+
+	/** 生成图片加载时的DPI界面缩放比
+	*/
+	uint32_t m_loadDpiScale;
 };
 
 } // namespace ui

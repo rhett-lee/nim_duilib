@@ -32,16 +32,21 @@ std::wstring ImageLoadAttribute::GetImageFullPath() const
 	return m_srcImageFullPath.c_str();
 }
 
-std::wstring ImageLoadAttribute::GetCacheKey() const
+std::wstring ImageLoadAttribute::GetCacheKey(uint32_t nDpiScale) const
 {
 	ASSERT(!m_srcImageFullPath.empty());
 	std::wstring fullPath = m_srcImageFullPath.c_str();
+	if ((nDpiScale != 0) && (nDpiScale != 100)) {
+		//追加缩放百分比
+		fullPath += L"@";
+		fullPath += StringHelper::UInt32ToString(nDpiScale);
+	}
 	if (!m_srcWidth.empty() || !m_srcHeight.empty()) {
 		fullPath += L"@";
 		fullPath += m_srcWidth.c_str();
 		fullPath += L":";
 		fullPath += m_srcHeight.c_str();
-	}	
+	}
 	return fullPath;
 }
 

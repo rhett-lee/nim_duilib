@@ -2873,8 +2873,10 @@ void Control::AttachGifPlayStop(const EventCallback& callback)
 bool Control::LoadImageData(Image& duiImage) const
 {
 	if (duiImage.GetImageCache() != nullptr) {
-		//如果图片缓存存在，则不再加载（当图片变化的时候，会清空这个缓存）
-		return true;
+		//如果图片缓存存在，并且DPI缩放百分比没变化，则不再加载（当图片变化的时候，会清空这个缓存）
+		if (duiImage.GetImageCache()->GetLoadDpiScale() == Dpi().GetScale()) {
+			return true;
+		}		
 	}
 	Window* pWindow = GetWindow();
 	ASSERT(pWindow != nullptr);
@@ -2902,7 +2904,7 @@ bool Control::LoadImageData(Image& duiImage) const
 	imageLoadAttr.SetImageFullPath(imageFullPath);
 	std::shared_ptr<ImageInfo> imageCache = duiImage.GetImageCache();
 	if ((imageCache == nullptr) || 
-		(imageCache->GetCacheKey() != imageLoadAttr.GetCacheKey())) {
+		(imageCache->GetLoadKey() != imageLoadAttr.GetCacheKey(Dpi().GetScale()))) {
 		//如果图片没有加载则执行加载图片；如果图片发生变化，则重新加载该图片
 		imageCache = GlobalManager::Instance().Image().GetImage(Dpi(), imageLoadAttr);
 		duiImage.SetImageCache(imageCache);

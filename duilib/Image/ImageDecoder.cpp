@@ -190,11 +190,16 @@ namespace SVGImageLoader
 		inline void operator()(NSVGrasterizer* x) const { nsvgDeleteRasterizer(x); }
 	};
 
-	/** 从内存数据加载图片
+	/** 从内存数据加载svg图片
+	* @param [in] fileData 图片文件的数据，部分格式加载过程中内部有增加尾0的写操作
+	* @param [in] imageLoadAttribute 图片加载属性, 包括图片路径等
+    * @param [in] bEnableDpiScale 是否允许按照DPI对图片大小进行缩放（此为功能开关）
+    * @param [in] dpi DPI缩放管理接口
 	*/
 	bool LoadImageFromMemory(std::vector<uint8_t>& fileData, 
 						     const ImageLoadAttribute& imageLoadAttribute, 
-							 const DpiManager& dpi,
+							 bool bEnableDpiScale,
+							 const DpiManager& dpi,		                     
 							 ImageDecoder::ImageData& imageData,
 							 bool& bDpiScaled)
 	{
@@ -231,7 +236,7 @@ namespace SVGImageLoader
 			width = (int)nImageWidth;
 			height = (int)nImageHeight;
 		}
-		bool needDpiScale = GlobalManager::Instance().Image().IsDpiScaleAllImages();
+		bool needDpiScale = bEnableDpiScale;
 		if (imageLoadAttribute.HasSrcDpiScale()) {
 			//如果配置文件中有设置scaledpi属性，则以配置文件中的设置为准
 			needDpiScale = imageLoadAttribute.NeedDpiScale();
@@ -538,6 +543,7 @@ ImageDecoder::ImageFormat ImageDecoder::GetImageFormat(const std::wstring& path)
 
 std::unique_ptr<ImageInfo> ImageDecoder::LoadImageData(std::vector<uint8_t>& fileData,
 											           const ImageLoadAttribute& imageLoadAttribute,
+	                                                   bool bEnableDpiScale,
 													   const DpiManager& dpi)
 {
 	std::wstring imageFullPath = imageLoadAttribute.GetImageFullPath();
@@ -556,7 +562,7 @@ std::unique_ptr<ImageInfo> ImageDecoder::LoadImageData(std::vector<uint8_t>& fil
 	int32_t playCount = -1;
 
 	PerformanceUtil::Instance().BeginStat(L"DecodeImageData");
-	bool isLoaded = DecodeImageData(fileData, imageLoadAttribute, dpi, imageData, playCount, bDpiScaled);
+	bool isLoaded = DecodeImageData(fileData, imageLoadAttribute, bEnableDpiScale, dpi, imageData, playCount, bDpiScaled);
 	PerformanceUtil::Instance().EndStat(L"DecodeImageData");
 	if (!isLoaded || imageData.empty()) {
 		return nullptr;
@@ -576,7 +582,7 @@ std::unique_ptr<ImageInfo> ImageDecoder::LoadImageData(std::vector<uint8_t>& fil
 		}
 
 		//加载图片时，按需对图片大小进行DPI自适应
-		bool needDpiScale = GlobalManager::Instance().Image().IsDpiScaleAllImages();
+		bool needDpiScale = bEnableDpiScale;
 		if (imageLoadAttribute.HasSrcDpiScale()) {
 			//如果配置文件中有设置scaledpi属性，则以配置文件中的设置为准
 			needDpiScale = imageLoadAttribute.NeedDpiScale();
@@ -694,6 +700,7 @@ bool ImageDecoder::ResizeImageData(std::vector<ImageData>& imageData,
 
 bool ImageDecoder::DecodeImageData(std::vector<uint8_t>& fileData,
 								   const ImageLoadAttribute& imageLoadAttribute,
+								   bool bEnableDpiScale,
 	                               const DpiManager& dpi,
 								   std::vector<ImageData>& imageData,
 								   int32_t& playCount,
@@ -716,7 +723,7 @@ bool ImageDecoder::DecodeImageData(std::vector<uint8_t>& fileData,
 		break;
 	case ImageFormat::kSVG:
 		imageData.resize(1);
-		isLoaded = SVGImageLoader::LoadImageFromMemory(fileData, imageLoadAttribute, dpi, imageData[0], bDpiScaled);
+		isLoaded = SVGImageLoader::LoadImageFromMemory(fileData, imageLoadAttribute, bEnableDpiScale, dpi, imageData[0], bDpiScaled);
 		break;
 	case ImageFormat::kJPEG:
 	case ImageFormat::kBMP:
@@ -727,6 +734,7 @@ bool ImageDecoder::DecodeImageData(std::vector<uint8_t>& fileData,
 		isLoaded = CxImageLoader::LoadImageFromMemory(fileData, imageData, false, 0);
 		break;
 	case ImageFormat::kICO:
+		//加载的时候，可用指定加载的ICO图片大小（因一个ICO文件中，可包含各种大小的图片）
 		isLoaded = CxImageLoader::LoadImageFromMemory(fileData, imageData, true, imageLoadAttribute.GetIconSize());
 		break;
 	case ImageFormat::kWEBP:

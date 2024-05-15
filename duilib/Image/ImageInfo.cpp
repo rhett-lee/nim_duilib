@@ -10,7 +10,8 @@ ImageInfo::ImageInfo():
 	m_nPlayCount(-1),
 	m_pFrameIntervals(nullptr),
 	m_nFrameCount(0),
-	m_pFrameBitmaps(nullptr)
+	m_pFrameBitmaps(nullptr),
+	m_loadDpiScale(0)
 {
 }
 
@@ -126,14 +127,24 @@ int32_t ImageInfo::GetPlayCount() const
 	return m_nPlayCount;
 }
 
-void ImageInfo::SetCacheKey(const std::wstring& cacheKey)
+void ImageInfo::SetLoadKey(const std::wstring& loadKey)
 {
-	m_cacheKey = cacheKey;
+	m_loadKey = loadKey;
 }
 
-std::wstring ImageInfo::GetCacheKey() const
+std::wstring ImageInfo::GetLoadKey() const
 {
-	return m_cacheKey.c_str();
+	return m_loadKey.c_str();
+}
+
+void ImageInfo::SetLoadDpiScale(uint32_t dpiScale)
+{
+	m_loadDpiScale = dpiScale;
+}
+
+uint32_t ImageInfo::GetLoadDpiScale() const
+{
+	return m_loadDpiScale;
 }
 
 }
