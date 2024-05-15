@@ -180,7 +180,7 @@ void GroupBoxTemplate<InheritType>::PaintText(IRender* pRender)
     UiRect drawTextRect;//文本的绘制区域
     bool hasClip = false;
     if (!textValue.empty()) {
-        UiRect textRect = pRender->MeasureString(textValue, this->GetFontId(), 0, 0);
+        UiRect textRect = pRender->MeasureString(textValue, this->GetIFontById(this->GetFontId()), 0, 0);
         drawTextRect = this->GetRect();
         drawTextRect.Deflate(rcPadding);
         drawTextRect.Deflate(this->GetTextPadding());

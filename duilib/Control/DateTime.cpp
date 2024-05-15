@@ -186,9 +186,9 @@ void DateTimeWnd::UpdateWndPos()
 HFONT DateTimeWnd::CreateHFont() const
 {
     //优先获取默认字体
-    IFont* pFont = GlobalManager::Instance().Font().GetIFont(L"");
+    IFont* pFont = GlobalManager::Instance().Font().GetIFont(L"", Dpi());
     if (pFont == nullptr) {
-        pFont = GlobalManager::Instance().Font().GetIFont(L"system_12");
+        pFont = GlobalManager::Instance().Font().GetIFont(L"system_12", Dpi());
     }
     ASSERT(pFont != nullptr);
     if (pFont == nullptr) {

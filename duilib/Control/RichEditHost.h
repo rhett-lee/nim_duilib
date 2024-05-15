@@ -107,7 +107,7 @@ public:
 
 public:
 
-    static void GetLogFont(const std::wstring& fontId, LOGFONT& lf);
+    static void GetLogFont(RichEdit* pRichEdit, const std::wstring& fontId, LOGFONT& lf);
 
 public:
     // -----------------------------

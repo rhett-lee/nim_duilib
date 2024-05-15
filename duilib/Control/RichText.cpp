@@ -13,7 +13,8 @@ namespace ui
 RichText::RichText() :
     m_uTextStyle(TEXT_LEFT | TEXT_TOP),
     m_fRowSpacingMul(1.0f),
-    m_bLinkUnderlineFont(true)
+    m_bLinkUnderlineFont(true),
+    m_nTextDataDPI(0)
 {
 }
 
@@ -178,13 +179,8 @@ UiSize RichText::EstimateText(UiSize szAvailable)
         return fixedSize;
     }
 
-    if (!m_richTextId.empty() && (m_langFileName != GlobalManager::Instance().GetLanguageFileName())) {
-        DoSetText(GlobalManager::Instance().Lang().GetStringViaID(m_richTextId.c_str()));
-        m_langFileName = GlobalManager::Instance().GetLanguageFileName();
-    }
-    if (m_textData.empty()) {
-        ParseText(m_textData);
-    }
+    //检查并更新文本
+    CheckParseText();
 
     //计算绘制所占的区域大小
     UiRect rect;
@@ -212,13 +208,8 @@ void RichText::PaintText(IRender* pRender)
     rc.Deflate(GetControlPadding());
     rc.Deflate(GetTextPadding());
 
-    if (!m_richTextId.empty() && (m_langFileName != GlobalManager::Instance().GetLanguageFileName())) {
-        DoSetText(GlobalManager::Instance().Lang().GetStringViaID(m_richTextId.c_str()));
-        m_langFileName = GlobalManager::Instance().GetLanguageFileName();
-    }
-    if (m_textData.empty()) {
-        ParseText(m_textData);
-    }
+    //检查并更新文本
+    CheckParseText();
 
     //如果设置了对齐方式，需要评估绘制位置
     if ((m_uTextStyle & (TEXT_CENTER | TEXT_RIGHT | TEXT_VCENTER | TEXT_BOTTOM))) {
@@ -298,11 +289,30 @@ void RichText::PaintText(IRender* pRender)
     }
 }
 
+void RichText::CheckParseText()
+{
+    if (!m_richTextId.empty() && (m_langFileName != GlobalManager::Instance().GetLanguageFileName())) {
+        //多语言版：当语言发生变化时，更新文本内容
+        DoSetText(GlobalManager::Instance().Lang().GetStringViaID(m_richTextId.c_str()));
+        m_langFileName = GlobalManager::Instance().GetLanguageFileName();
+    }
+
+    //当DPI变化时，需要重新解析文本，更新字体大小
+    if (m_nTextDataDPI != Dpi().GetDPI()) {
+        m_textData.clear();
+    }
+
+    if (m_textData.empty()) {
+        ParseText(m_textData);
+        m_nTextDataDPI = Dpi().GetDPI();
+    }
+}
+
 bool RichText::ParseText(std::vector<RichTextDataEx>& outTextData) const
 {
     //默认字体
     std::wstring sFontId = GetFontId();
-    IFont* pFont = GlobalManager::Instance().Font().GetIFont(sFontId);
+    IFont* pFont = GlobalManager::Instance().Font().GetIFont(sFontId, Dpi());
     ASSERT(pFont != nullptr);
     if (pFont == nullptr) {
         return false;
@@ -361,7 +371,7 @@ bool RichText::ParseTextSlice(const RichTextSlice& textSlice,
         currentTextData.m_fontInfo.m_fontName = textSlice.m_fontInfo.m_fontName;
     }
     if (textSlice.m_fontInfo.m_fontSize > 0) {
-        currentTextData.m_fontInfo.m_fontSize = textSlice.m_fontInfo.m_fontSize;
+        currentTextData.m_fontInfo.m_fontSize = Dpi().GetScaleInt(textSlice.m_fontInfo.m_fontSize); //字体大小，需要DPI缩放
     }
     if (textSlice.m_fontInfo.m_bBold) {
         currentTextData.m_fontInfo.m_bBold = textSlice.m_fontInfo.m_bBold;

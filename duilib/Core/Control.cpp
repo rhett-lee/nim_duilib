@@ -3229,4 +3229,9 @@ uint8_t Control::GetPaintOrder() const
 	return m_nPaintOrder;
 }
 
+IFont* Control::GetIFontById(const std::wstring& strFontId) const
+{
+	return GlobalManager::Instance().Font().GetIFont(strFontId, this->Dpi());
+}
+
 } // namespace ui

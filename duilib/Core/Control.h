@@ -20,6 +20,7 @@ namespace ui
 	class AnimationManager;
 	class IRender;
 	class IPath;
+	class IFont;
 
 	typedef Control* (CALLBACK* FINDCONTROLPROC)(Control*, LPVOID);
 
@@ -1180,6 +1181,12 @@ public:
 	/** 获取绘制顺序
 	*/
 	uint8_t GetPaintOrder() const;
+
+	/** 获取一个字体ID对应的字体数据接口
+	* @param[in] strFontId 要设置的字体ID，该字体ID必须在 global.xml 中存在
+	* @return 成功返回字体接口，外部调用不需要释放资源；如果失败则返回nullptr
+	*/
+	IFont* GetIFontById(const std::wstring& strFontId) const;
 
 private:
 

@@ -39,6 +39,21 @@
                     <Label name="" text="缩放百分比：" width="auto" text_align="right,vcenter"/>
                     <Label name="window_dpi_percent" text="200%" width="64" text_align="left,vcenter"/>
                 </HBox>
+                <HBox height="100" width="100%" valign="center">
+                    <RichText class="rich_text" bkcolor="green" row_spacing_mul="1.5" width="100%" height="auto">
+                        RichText文本：<b>粗体，<font color="#FF0000">红色加粗，</font></b>
+                        <font face="微软雅黑" size="16">微软雅黑16号字演示，</font>
+                        <font face="微软雅黑" size="14">微软雅黑14号字演示，</font>
+                        <font face="微软雅黑" size="12">微软雅黑12号字演示，</font>   
+                        <font face="微软雅黑" size="10">微软雅黑10号字演示，</font>  
+                        <font face="微软雅黑" size="8">微软雅黑8号字演示，</font>  
+                        <i>斜体号字演示，</i> 
+                        <b>粗体号字演示，</b> 
+                        <s>删除字演示，</s> 
+                        <u>下划线字演示，</u>             
+                        RichText文本内容。
+                    </RichText>
+                </HBox> 
                 <HBox height="40" width="100%" valign="center" halign="center">
                     <Control />
                     <Button class="btn_global_blue_80x30" width="auto" name="UpdateUI" text="更新" margin="0,10,10,0" />

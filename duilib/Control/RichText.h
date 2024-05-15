@@ -175,6 +175,10 @@ private:
     */
     bool ParseText(std::vector<RichTextDataEx>& outTextData) const;
 
+    /** 检查按需解析文本
+    */
+    void CheckParseText();
+
     /** 文本片段解析为绘制结构
     * @param [in] textSlice 文本片段
     * @param [in] parentTextData 父对象信息
@@ -229,6 +233,10 @@ private:
     /** 绘制的文本内容（解析后）
     */
     std::vector<RichTextDataEx> m_textData;
+
+    /** 解析文本对应的DPI值
+    */
+    uint32_t m_nTextDataDPI;
 
     /** 超级链接的文本：常规文本颜色
     */

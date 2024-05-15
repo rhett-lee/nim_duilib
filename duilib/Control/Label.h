@@ -368,7 +368,7 @@ void LabelTemplate<InheritType>::CheckShowToolTip()
         width = rc.Width();
     }
 
-    UiRect rcMessure = pRender->MeasureString(sText, GetFontId(), m_uTextStyle, width);
+    UiRect rcMessure = pRender->MeasureString(sText, this->GetIFontById(this->GetFontId()), m_uTextStyle, width);
     if (rc.Width() < rcMessure.Width() || rc.Height() < rcMessure.Height()) {
         m_sAutoShowTooltipCache = sText;
     }
@@ -463,7 +463,7 @@ UiSize LabelTemplate<InheritType>::EstimateText(UiSize szAvailable)
     if (!textValue.empty() && (this->GetWindow() != nullptr)) {
         auto pRender = this->GetWindow()->GetRender();
         if (pRender != nullptr) {
-            UiRect rect = pRender->MeasureString(textValue, GetFontId(), m_uTextStyle, width);            
+            UiRect rect = pRender->MeasureString(textValue, this->GetIFontById(GetFontId()), m_uTextStyle, width);            
             if (this->GetFixedWidth().IsAuto()) {
                 fixedSize.cx = rect.Width() + rcTextPadding.left + rcTextPadding.right;
                 fixedSize.cx += (rcPadding.left + rcPadding.right);
@@ -510,14 +510,14 @@ void LabelTemplate<InheritType>::DoPaintText(const UiRect & rc, IRender * pRende
             std::wstring clrColor = GetStateTextColor(kControlStateNormal);
             if (!clrColor.empty()) {
                 UiColor dwTextColor = this->GetUiColor(clrColor);
-                pRender->DrawString(rc, textValue, dwTextColor, fontId, m_uTextStyle);
+                pRender->DrawString(rc, textValue, dwTextColor, this->GetIFontById(fontId), m_uTextStyle);
             }
 
             if (this->GetHotAlpha() > 0) {
                 std::wstring textColor = GetStateTextColor(kControlStateHot);
                 if (!textColor.empty()) {
                     UiColor dwTextColor = this->GetUiColor(textColor);
-                    pRender->DrawString(rc, textValue, dwTextColor, fontId, m_uTextStyle, (BYTE)this->GetHotAlpha());
+                    pRender->DrawString(rc, textValue, dwTextColor, this->GetIFontById(fontId), m_uTextStyle, (BYTE)this->GetHotAlpha());
                 }
             }
 
@@ -525,7 +525,7 @@ void LabelTemplate<InheritType>::DoPaintText(const UiRect & rc, IRender * pRende
         }
     }
 
-    pRender->DrawString(rc, textValue, dwClrColor, fontId, m_uTextStyle);
+    pRender->DrawString(rc, textValue, dwClrColor, this->GetIFontById(fontId), m_uTextStyle);
 }
 
 template<typename InheritType>

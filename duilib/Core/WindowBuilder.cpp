@@ -437,7 +437,7 @@ void WindowBuilder::ParseFontXmlNode(const pugi::xml_node& xmlNode) const
 	if (!strFontName.empty() && !strFontId.empty()) {
 		UiFont fontInfo;
 		fontInfo.m_fontName = strFontName;
-		fontInfo.m_fontSize = GlobalManager::Instance().Dpi().GetScaleInt(size);
+		fontInfo.m_fontSize = size;
 		fontInfo.m_bBold = bold;
 		fontInfo.m_bItalic = italic;
 		fontInfo.m_bUnderline = underline;
@@ -693,9 +693,8 @@ bool WindowBuilder::ParseRichTextXmlNode(const pugi::xml_node& xmlNode, Control*
 			//字体设置：文本颜色
 			textSlice.m_textColor = node.attribute(L"color").as_string();
 			textSlice.m_fontInfo.m_fontName = node.attribute(L"face").as_string();
-			textSlice.m_fontInfo.m_fontSize = node.attribute(L"size").as_int();
-			//字号进行DPI自适应
-			pRichText->Dpi().ScaleInt(textSlice.m_fontInfo.m_fontSize);
+			//字号不需要进行DPI缩放，绘制的时候，会根据当时的DPI进行缩放
+			textSlice.m_fontInfo.m_fontSize = node.attribute(L"size").as_int();			
 		}
 		else if (nodeName == L"br") {
 			textSlice.m_text = L"\n";

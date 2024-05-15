@@ -716,27 +716,27 @@ public:
 
 	/** 计算指定文本字符串的宽度和高度
 	* @param [in] strText 文字内容
-	* @param [in] strFontId 文字的字体ID，字体属性在全局配置中设置
+	* @param [in] pFont 文字的字体数据接口
 	* @param [in] uFormat 文字的格式，参见 enum DrawStringFormat 类型定义
 	* @param [in] width 当前区域的限制宽度
 	* @return 返回文本字符串的宽度和高度，以矩形表示结果
 	*/
 	virtual UiRect MeasureString(const std::wstring& strText, 
-		                         const std::wstring& strFontId, 
+		                         IFont* pFont, 
 		                         uint32_t uFormat,
 		                         int width = DUI_NOSET_VALUE) = 0;
 	/** 绘制文字
 	* @param [in] 矩形区域
 	* @param [in] strText 文字内容
 	* @param [in] dwTextColor 文字颜色值
-	* @param [in] strFontId 文字的字体ID，字体属性在全局配置中设置
+	* @param [in] pFont 文字的字体数据接口
 	* @param [in] uFormat 文字的格式，参见 enum DrawStringFormat 类型定义
 	* @param [in] uFade 透明度（0 - 255）
 	*/
 	virtual void DrawString(const UiRect& rc,
 		                    const std::wstring& strText,
 		                    UiColor dwTextColor,
-		                    const std::wstring& strFontId, 
+		                    IFont* pFont, 
 		                    uint32_t uFormat,
 		                    uint8_t uFade = 255) = 0;
 

@@ -1,5 +1,6 @@
 #include "FontManager.h"
 #include "duilib/Core/GlobalManager.h"
+#include "duilib/Core/DpiManager.h"
 #include "duilib/Render/IRender.h"
 #include "duilib/Utils/StringUtil.h"
 #include <VersionHelpers.h>
@@ -17,66 +18,121 @@ FontManager::~FontManager()
 	RemoveAllFontFiles();
 }
 
-bool FontManager::AddFont(const std::wstring& strFontId,
-						  const UiFont& fontInfo,
-						  bool bDefault)
+bool FontManager::AddFont(const std::wstring& fontId, const UiFont& fontInfo, bool bDefault)
 {
-	ASSERT(!strFontId.empty());
-	if (strFontId.empty()) {
+	ASSERT(!fontId.empty());
+	if (fontId.empty()) {
 		return false;
 	}
 
-	auto iter = m_fontMap.find(strFontId);
-	ASSERT(iter == m_fontMap.end());
-	if (iter != m_fontMap.end()) {
+	ASSERT(fontInfo.m_fontSize > 0);
+	if (fontInfo.m_fontSize <= 0) {
 		return false;
 	}
 
-	static bool bOsOverXp = IsWindowsVistaOrGreater();
-	std::wstring fontName = fontInfo.m_fontName;
-	if (fontName.empty() || (fontName == L"system")) {
-		//字体使用英文名称，保持兼容性
-		fontName = bOsOverXp ? L"Microsoft YaHei" : L"SimSun";
+	auto iter = m_fontIdMap.find(fontId);
+	ASSERT(iter == m_fontIdMap.end());
+	if (iter != m_fontIdMap.end()) {
+		//避免相同的字体ID重复添加
+		return false;
 	}
 
+	//保存字体信息，但不创建字体数据
+	m_fontIdMap[fontId] = fontInfo;
+	if (bDefault) {
+		//默认字体ID
+		m_defaultFontId = fontId;
+	}
+	return true;
+}
+
+std::wstring FontManager::GetDpiFontId(const std::wstring& fontId, const DpiManager& dpi) const
+{
+	std::wstring dpiFontId;
+	if (!fontId.empty()) {
+		dpiFontId = fontId + L"@" + StringHelper::UInt32ToString(dpi.GetScale());
+	}
+	return dpiFontId;
+}
+
+IFont* FontManager::GetIFont(const std::wstring& fontId, const DpiManager& dpi)
+{
+	//先在缓存中查找
 	IFont* pFont = nullptr;
+	if (!fontId.empty()) {		
+		std::wstring dpiFontId = GetDpiFontId(fontId, dpi);
+		auto iter = m_fontMap.find(dpiFontId);
+		if (iter != m_fontMap.end()) {
+			pFont = iter->second;
+		}
+	}
+	if (pFont == nullptr) {
+		auto iter = m_fontIdMap.find(fontId);
+		if ((iter == m_fontIdMap.end()) && !m_defaultFontId.empty()) {
+			//没有这个字体ID，使用默认的字体ID
+			std::wstring dpiFontId = GetDpiFontId(m_defaultFontId, dpi);
+			auto pos = m_fontMap.find(dpiFontId);
+			if (pos != m_fontMap.end()) {
+				pFont = pos->second;
+			}
+		}
+	}
+	if (pFont != nullptr) {
+		//使用缓存中已经创建好的字体数据
+		return pFont;
+	}
+
+	//缓存中不存在，需要创建字体
+	UiFont fontInfo;
+	std::wstring realFontId = fontId;
+	auto iter = m_fontIdMap.find(realFontId);
+	if (iter == m_fontIdMap.end()) {
+		realFontId = m_defaultFontId;
+		iter = m_fontIdMap.find(realFontId);
+		if (iter != m_fontIdMap.end()) {
+			fontInfo = iter->second;
+		}
+		else {
+			realFontId.clear();
+		}
+	}
+	else {
+		fontInfo = iter->second;
+	}
+	ASSERT(!realFontId.empty());
+	if (realFontId.empty()) {
+		//无此字体ID
+		return nullptr;
+	}
+	std::wstring dpiFontId = GetDpiFontId(realFontId, dpi);	
+	if (fontInfo.m_fontName.empty() || 
+		StringHelper::IsEqualNoCase(fontInfo.m_fontName, L"system")) {
+		//字体使用英文名称，保持兼容性
+		static bool bOsOverXp = IsWindowsVistaOrGreater();
+		fontInfo.m_fontName = bOsOverXp ? L"Microsoft YaHei" : L"SimSun";
+	}
+
+	//对字体大小进行DPI缩放
+	ASSERT(fontInfo.m_fontSize > 0);
+	dpi.ScaleInt(fontInfo.m_fontSize);
+	ASSERT(fontInfo.m_fontSize > 0);
+
 	IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
 	if (pRenderFactory != nullptr) {
 		pFont = pRenderFactory->CreateIFont();
 	}
 	ASSERT(pFont != nullptr);
 	if (pFont == nullptr) {
-		return false;
+		return nullptr;
 	}
-	UiFont fontInfoNew = fontInfo;
-	fontInfoNew.m_fontName = fontName;
-	bool isInitOk = pFont->InitFont(fontInfoNew);
+	bool isInitOk = pFont->InitFont(fontInfo);
 	ASSERT(isInitOk);
 	if (!isInitOk) {
 		delete pFont;
 		pFont = nullptr;
-		return false;
+		return nullptr;
 	}
-	m_fontMap.insert(std::make_pair(strFontId, pFont));
-	if (bDefault) {
-		m_defaultFontId = strFontId;
-	}
-	return true;
-}
-
-IFont* FontManager::GetIFont(const std::wstring& strFontId)
-{
-	auto iter = m_fontMap.find(strFontId);
-	if (iter == m_fontMap.end()) {
-		//如果找不到，则用默认字体
-		if (!m_defaultFontId.empty()) {
-			iter = m_fontMap.find(m_defaultFontId);
-		}		
-	}
-	IFont* pFont = nullptr;
-	if (iter != m_fontMap.end()) {
-		pFont = iter->second;
-	}
+	m_fontMap.insert(std::make_pair(dpiFontId, pFont));
 	return pFont;
 }
 
@@ -90,6 +146,7 @@ void FontManager::RemoveAllFonts()
 	}
 	m_fontMap.clear();
 	m_defaultFontId.clear();
+	m_fontIdMap.clear();
 }
 
 void FontManager::AddFontFile(const std::wstring& strFontFile, const std::wstring& strFontName)

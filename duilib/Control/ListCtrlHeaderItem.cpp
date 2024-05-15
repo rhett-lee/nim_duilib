@@ -163,7 +163,7 @@ void ListCtrlHeaderItem::PaintText(IRender* pRender)
     }
 
     uint32_t textStyle = GetTextStyle();
-    UiRect measureRect = pRender->MeasureString(GetText(), GetFontId(), textStyle);
+    UiRect measureRect = pRender->MeasureString(GetText(), GetIFontById(GetFontId()), textStyle);
     UiRect rcItemRect = GetRect();
     rcItemRect.Deflate(GetControlPadding());
     if (nCheckBoxWidth > 0) {

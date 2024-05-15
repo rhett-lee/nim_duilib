@@ -17,6 +17,7 @@ namespace ui
   * @date 2021/2/26
   */
 class IFont;
+class DpiManager;
 class UILIB_API FontManager
 {
 public:
@@ -35,19 +36,19 @@ public:
 	static std::wstring GetFontSystemName(const std::wstring& fontName);
 
 public:
-	/** 添加一个字体信息
-	 * @param[in] strFontId 指定字体的ID标记
-	 * @param[in] fontInfo 字体属性信息
-	 * @param[in] bDefault 是否设置为默认字体
+	/** 添加一个字体信息，字体大小未经DPI处理
+	 * @param [in] fontId 指定字体的ID标记
+	 * @param [in] fontInfo 字体属性信息
+	 * @param [in] bDefault 是否设置为默认字体
 	 */
-	bool AddFont(const std::wstring& strFontId, 
-			     const UiFont& fontInfo,
-		         bool bDefault);
+	bool AddFont(const std::wstring& fontId, const UiFont& fontInfo, bool bDefault);
 
-	/** 获取字体接口, 如果通过strFontId找不到字体接口，那么会继续查找m_defaultFontId字体接口
-	* @param[in] strFontId 字体ID
+	/** 获取字体接口, 如果通过fontId找不到字体接口，那么会继续查找m_defaultFontId字体接口
+	* @param [in] fontId 字体ID
+	* @param [in] dpi DPI缩放管理器，用于对字体大小进行缩放
+	* @return 成功返回字体接口，外部调用不需要释放资源；如果失败则返回nullptr
 	*/
-	IFont* GetIFont(const std::wstring& strFontId);
+	IFont* GetIFont(const std::wstring& fontId, const DpiManager& dpi);
 
 	/** 删除所有字体, 不包含已经加载的字体文件
 	 */
@@ -67,6 +68,14 @@ public:
 	void RemoveAllFontFiles();
 
 private:
+	/** 获取DPI缩放后实际的字体ID
+	*/
+	std::wstring GetDpiFontId(const std::wstring& fontId, const DpiManager& dpi) const;
+
+private:
+	/** 自定义字体数据：Key时FontID，Value是字体描述信息
+	*/
+	std::unordered_map<std::wstring, UiFont> m_fontIdMap;
 
 	/** 自定义字体信息：Key是FontId
 	*/

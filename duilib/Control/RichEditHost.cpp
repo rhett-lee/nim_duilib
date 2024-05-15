@@ -225,12 +225,15 @@ void RichEditHost::OnTxPropertyBitsChange(DWORD dwMask, DWORD dwBits)
 	}
 }
 
-void RichEditHost::GetLogFont(const std::wstring& fontId, LOGFONT& lf)
+void RichEditHost::GetLogFont(RichEdit* pRichEdit, const std::wstring& fontId, LOGFONT& lf)
 {
 	//优先获取默认字体
 	lf = { 0 };
 	::GetObject(::GetStockObject(DEFAULT_GUI_FONT), sizeof(LOGFONT), &lf);
-	IFont* pFont = GlobalManager::Instance().Font().GetIFont(fontId);
+	IFont* pFont = nullptr;
+	if (pRichEdit != nullptr) {
+		pFont = GlobalManager::Instance().Font().GetIFont(fontId, pRichEdit->Dpi());
+	}
 	ASSERT(pFont != nullptr);
 	if (pFont == nullptr) {
 		return;
@@ -980,7 +983,7 @@ void RichEditHost::SetFontId(const std::wstring& fontId)
 {
 	//fontId不需要判空，如果fontId为空，则使用默认字体
 	LOGFONT lf = { 0, };
-	GetLogFont(fontId, lf);
+	GetLogFont(m_pRichEdit, fontId, lf);
 	InitCharFormat(lf);
 	OnTxPropertyBitsChange(TXTBIT_CHARFORMATCHANGE, TXTBIT_CHARFORMATCHANGE);
 }

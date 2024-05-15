@@ -6,7 +6,6 @@
 #include "duilib/RenderSkia/SkTextBox.h"
 
 #include "duilib/Utils/StringUtil.h"
-#include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/Window.h"
 #include "duilib/Render/BitmapAlpha.h"
 #include "duilib/Utils/PerformanceUtil.h"
@@ -1175,7 +1174,11 @@ void Render_Skia::SetPaintByPen(SkPaint& skPaint, const IPen* pen)
 	IPen::DashStyle dashStyle = pen->GetDashStyle();
 	//线宽的倍数	
 	const Window* pWindow = !m_windowFlag.expired() ? m_pWindow : nullptr;
-	const DpiManager& dpi = (pWindow != nullptr) ? pWindow->Dpi() : GlobalManager::Instance().Dpi();
+	ASSERT(pWindow != nullptr);
+	if (pWindow == nullptr) {
+		return;
+	}
+	const DpiManager& dpi = pWindow->Dpi();
 	int32_t nRatio = pen->GetWidth() / dpi.GetScaleInt(1);
 	switch (dashStyle) {
 	case IPen::kDashStyleSolid:
@@ -1321,7 +1324,7 @@ void Render_Skia::FillPath(const IPath* path, const UiRect& rc, UiColor dwColor,
 void Render_Skia::DrawString(const UiRect& rc, 
 							 const std::wstring& strText,
 	                         UiColor dwTextColor, 
-	                         const std::wstring& strFontId, 
+	                         IFont* pFont, 
 	                         uint32_t uFormat, 
 	                         uint8_t uFade /*= 255*/)
 {
@@ -1331,6 +1334,10 @@ void Render_Skia::DrawString(const UiRect& rc,
 	if (strText.empty()) {
 		return;
 	}
+	ASSERT(pFont != nullptr);
+	if (pFont == nullptr) {
+		return;
+	}
 	ASSERT(m_pSkCanvas != nullptr);
 	if (m_pSkCanvas == nullptr) {
 		return;
@@ -1338,12 +1345,7 @@ void Render_Skia::DrawString(const UiRect& rc,
 	//文本编码
 	SkTextEncoding textEncoding = SkTextEncoding::kUTF16;
 	
-	//获取字体接口
-	IFont* pFont = GlobalManager::Instance().Font().GetIFont(strFontId);
-	ASSERT(pFont != nullptr);
-	if (pFont == nullptr) {
-		return;
-	}
+	//获取字体接口	
 	Font_Skia* pSkiaFont = dynamic_cast<Font_Skia*>(pFont);
 	const SkFont* pSkFont = pSkiaFont->GetFontHandle();
 	ASSERT(pSkFont != nullptr);
@@ -1427,7 +1429,7 @@ void Render_Skia::DrawString(const UiRect& rc,
 }
 
 UiRect Render_Skia::MeasureString(const std::wstring& strText, 
-								  const std::wstring& strFontId,
+								  IFont* pFont, 
 						          uint32_t uFormat, 
 						    	  int width /*= DUI_NOSET_VALUE*/)
 {
@@ -1437,17 +1439,16 @@ UiRect Render_Skia::MeasureString(const std::wstring& strText,
 	if (strText.empty()) {
 		return UiRect();
 	}
+	ASSERT(pFont != nullptr);
+	if (pFont == nullptr) {
+		return UiRect();
+	}
 	ASSERT(m_pSkCanvas != nullptr);
 	if (m_pSkCanvas == nullptr) {
 		return UiRect();
 	}
 
 	//获取字体接口
-	IFont* pFont = GlobalManager::Instance().Font().GetIFont(strFontId);
-	ASSERT(pFont != nullptr);
-	if (pFont == nullptr) {
-		return UiRect();
-	}
 	Font_Skia* pSkiaFont = dynamic_cast<Font_Skia*>(pFont);
 	const SkFont* pSkFont = pSkiaFont->GetFontHandle();
 	ASSERT(pSkFont != nullptr);

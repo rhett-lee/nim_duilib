@@ -1,5 +1,4 @@
 #include "Render_GdiPlus.h"
-#include "duilib/Core/GlobalManager.h"
 #include "duilib/RenderGdiPlus/Pen_Gdiplus.h"
 #include "duilib/RenderGdiPlus/Path_Gdiplus.h"
 #include "duilib/RenderGdiPlus/Brush_Gdiplus.h"
@@ -963,15 +962,17 @@ void Render_GdiPlus::FillPath(const IPath* /*path*/, const UiRect& /*rc*/, UiCol
 }
 
 void Render_GdiPlus::DrawString(const UiRect& rc, const std::wstring& strText,
-	                            UiColor dwTextColor, const std::wstring& strFontId, uint32_t uFormat, uint8_t uFade /*= 255*/)
+	                            UiColor dwTextColor, IFont* pFont, uint32_t uFormat, uint8_t uFade /*= 255*/)
 {
 	ASSERT((GetWidth() > 0) && (GetHeight() > 0));
 	ASSERT(::GetObjectType(m_hDC) == OBJ_DC || ::GetObjectType(m_hDC) == OBJ_MEMDC);
 	if (strText.empty()) {
 		return;
 	}
-
-	IFont* pFont = GlobalManager::Instance().Font().GetIFont(strFontId);
+	ASSERT(pFont != nullptr);
+	if (pFont == nullptr) {
+		return;
+	}
 	Font_GDI* pGdiFont = dynamic_cast<Font_GDI*>(pFont);
 	ASSERT(pGdiFont != nullptr);
 	if (pGdiFont == nullptr) {
@@ -1036,10 +1037,13 @@ void Render_GdiPlus::DrawString(const UiRect& rc, const std::wstring& strText,
 	graphics.DrawString(strText.c_str(), (int)strText.length(), &font, rcPaint, &stringFormat, &tBrush);
 }
 
-UiRect Render_GdiPlus::MeasureString(const std::wstring& strText, const std::wstring& strFontId,
+UiRect Render_GdiPlus::MeasureString(const std::wstring& strText, IFont* pFont,
 								     uint32_t uFormat, int width /*= DUI_NOSET_VALUE*/)
 {
-	IFont* pFont = GlobalManager::Instance().Font().GetIFont(strFontId);
+	ASSERT(pFont != nullptr);
+	if (pFont == nullptr) {
+		return UiRect();
+	}
 	Font_GDI* pGdiFont = dynamic_cast<Font_GDI*>(pFont);
 	ASSERT(pGdiFont != nullptr);
 	if (pGdiFont == nullptr) {

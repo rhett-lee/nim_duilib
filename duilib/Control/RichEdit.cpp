@@ -2292,7 +2292,7 @@ void RichEdit::PaintPromptText(IRender* pRender)
 	}
 	UiColor dwClrColor = GetUiColor(m_sPromptColor.c_str());
 	UINT dwStyle = TEXT_NOCLIP;
-	pRender->DrawString(rc, strPrompt, dwClrColor, m_sFontId.c_str(), dwStyle);
+	pRender->DrawString(rc, strPrompt, dwClrColor, GetIFontById(m_sFontId.c_str()), dwStyle);
 }
 
 std::wstring RichEdit::GetFocusedImage()
@@ -2425,10 +2425,10 @@ void RichEdit::AddLinkColorTextEx(const std::wstring& str, const std::wstring &c
 	StringHelper::UnicodeToMBCS(str, text);
 	LOGFONT lf = {0,};
 	if (strFontId.empty()) {
-		RichEditHost::GetLogFont(m_sFontId.c_str(), lf);
+		RichEditHost::GetLogFont(this, m_sFontId.c_str(), lf);
 	}
 	else {
-		RichEditHost::GetLogFont(strFontId, lf);
+		RichEditHost::GetLogFont(this, strFontId, lf);
 	}
 	StringHelper::UnicodeToMBCS(lf.lfFaceName, font_face);
 	UiColor dwTextColor = GlobalManager::Instance().Color().GetColor(color);
