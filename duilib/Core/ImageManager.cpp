@@ -22,18 +22,22 @@ ImageManager::~ImageManager()
 std::shared_ptr<ImageInfo> ImageManager::GetImage(const DpiManager& dpi, 
 												  const ImageLoadAttribute& loadAtrribute)
 {
-	std::wstring imageCacheKey = loadAtrribute.GetCacheKey(dpi.GetScale());
-	auto it = m_imageMap.find(imageCacheKey);
-	if (it != m_imageMap.end()) {
-		std::shared_ptr<ImageInfo> sharedImage = it->second.lock();
-		if (sharedImage) {
-			//从缓存中，找到有效图片资源，直接返回
-			return sharedImage;
+	//查找对应关系：LoadKey ->(多对一) ImageKey ->(一对一) SharedImage
+	std::wstring loadKey = loadAtrribute.GetCacheKey(dpi.GetScale());
+	auto iter = m_loadKeyMap.find(loadKey);
+	if (iter != m_loadKeyMap.end()) {
+		const std::wstring& imageKey = iter->second;
+		auto it = m_imageMap.find(imageKey);
+		if (it != m_imageMap.end()) {
+			std::shared_ptr<ImageInfo> sharedImage = it->second.lock();
+			if (sharedImage) {
+				//从缓存中，找到有效图片资源，直接返回
+				return sharedImage;
+			}
 		}
-	}
+	}	
 
-	//重新加载资源
-	bool isDpiScaledImageFile = false;
+	//重新加载资源	
 	std::unique_ptr<ImageInfo> imageInfo;
 	std::wstring loadImageFullPath = loadAtrribute.GetImageFullPath();
 	bool isIcon = false;
@@ -45,63 +49,98 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const DpiManager& dpi,
 	}
 #endif
 
+	bool isDpiScaledImageFile = false;
 	if (!isIcon) {
-		LoadImageData(dpi, loadAtrribute, isDpiScaledImageFile, imageInfo);
+		std::wstring imageFullPath = loadAtrribute.GetImageFullPath();
+		bool isUseZip = GlobalManager::Instance().Zip().IsUseZip();
+		std::wstring dpiImageFullPath;
+		uint32_t nImageDpiScale = 0;
+		//仅在DPI缩放图片功能开启的情况下，查找对应DPI的图片是否存在
+		const bool bEnableImageDpiScale = IsDpiScaleAllImages();
+		if (bEnableImageDpiScale && GetDpiScaleImageFullPath(dpi.GetScale(), isUseZip, imageFullPath,
+									 dpiImageFullPath, nImageDpiScale)) {
+			//标记DPI自适应图片属性，如果路径不同，说明已经选择了对应DPI下的文件
+			isDpiScaledImageFile = true;
+			imageFullPath = dpiImageFullPath;
+			ASSERT(!imageFullPath.empty());
+			ASSERT(nImageDpiScale > 100);
+		}
+		else {
+			nImageDpiScale = 100; //原始图片，未经DPI缩放
+			isDpiScaledImageFile = false;
+		}
+		//加载图片的KEY
+		ImageLoadAttribute realLoadAttribute = loadAtrribute;
+		realLoadAttribute.SetImageFullPath(imageFullPath);
+		std::wstring imageKey;
+		if (isDpiScaledImageFile) {
+			//有对应DPI的图片文件
+			imageKey = realLoadAttribute.GetCacheKey(nImageDpiScale);
+		}
+		else {
+			//无对应DPI缩放比的图片文件
+			imageKey = realLoadAttribute.GetCacheKey(0);
+		}
+
+		//根据imageKey查询缓存
+		if (!imageKey.empty()) {
+			auto it = m_imageMap.find(imageKey);
+			if (it != m_imageMap.end()) {
+				std::shared_ptr<ImageInfo> sharedImage = it->second.lock();
+				if (sharedImage) {
+					//从缓存中，找到有效图片资源，直接返回
+					return sharedImage;
+				}
+			}
+		}
+
+		//从内存数据加载文件
+		std::vector<uint8_t> fileData;
+		if (isUseZip) {
+			GlobalManager::Instance().Zip().GetZipData(imageFullPath, fileData);
+		}
+		else {
+			FileUtil::ReadFileData(imageFullPath, fileData);
+		}
+		ASSERT(!fileData.empty());
+
+		imageInfo.reset();
+		if (!fileData.empty()) {
+			ImageDecoder imageDecoder;
+			ImageLoadAttribute imageLoadAtrribute(loadAtrribute);
+			if (isDpiScaledImageFile) {
+				imageLoadAtrribute.SetNeedDpiScale(false);
+			}			
+			imageInfo = imageDecoder.LoadImageData(fileData, 
+												   imageLoadAtrribute, 
+												   bEnableImageDpiScale, nImageDpiScale, dpi);
+			imageInfo->SetImageKey(imageKey);
+		}
 	}	
 	std::shared_ptr<ImageInfo> sharedImage;
 	if (imageInfo != nullptr) {
+		std::wstring imageKey = imageInfo->GetImageKey();
 		sharedImage.reset(imageInfo.release(), &OnImageInfoDestroy);
-		sharedImage->SetLoadKey(imageCacheKey);
+		sharedImage->SetLoadKey(loadKey);
 		sharedImage->SetLoadDpiScale(dpi.GetScale());
 		if (isDpiScaledImageFile) {
 			//使用了DPI自适应的图片，做标记（必须位true时才能修改这个值）
 			sharedImage->SetBitmapSizeDpiScaled(isDpiScaledImageFile);
 		}
-		m_imageMap[imageCacheKey] = sharedImage;
+		if (imageKey.empty()) {
+			imageKey = loadKey;
+		}
+
+		//保存对应关系：LoadKey ->(多对一) ImageKey ->(一对一) SharedImage
+		m_loadKeyMap[loadKey] = imageKey;
+		m_imageMap[imageKey] = sharedImage;
+
 #ifdef _DEBUG
-		std::wstring log = L"Loaded Image: " + imageCacheKey + L"\n";
+		std::wstring log = L"Loaded Image: " + imageKey + L"\n";
 		::OutputDebugString(log.c_str());
 #endif
 	}
 	return sharedImage;
-}
-
-void ImageManager::LoadImageData(const DpiManager& dpi, 
-							     const ImageLoadAttribute& loadAtrribute,
-								 bool& isDpiScaledImageFile,
-								 std::unique_ptr<ImageInfo>& imageInfo) const
-{
-	std::wstring imageFullPath = loadAtrribute.GetImageFullPath();
-	bool isUseZip = GlobalManager::Instance().Zip().IsUseZip();
-	std::wstring dpiImageFullPath;
-	if (GetDpiScaleImageFullPath(dpi.GetScale(), isUseZip, imageFullPath, dpiImageFullPath)) {
-		//标记DPI自适应图片属性，如果路径不同，说明已经选择了对应DPI下的文件
-		isDpiScaledImageFile = true;
-		imageFullPath = dpiImageFullPath;
-		ASSERT(!imageFullPath.empty());
-	}
-	else {
-		isDpiScaledImageFile = false;
-	}
-	std::vector<uint8_t> fileData;
-	if (isUseZip) {
-		GlobalManager::Instance().Zip().GetZipData(imageFullPath, fileData);
-	}
-	else {
-		FileUtil::ReadFileData(imageFullPath, fileData);
-	}
-	ASSERT(!fileData.empty());
-
-	imageInfo.reset();
-	if (!fileData.empty()) {
-		ImageDecoder imageDecoder;
-		ImageLoadAttribute imageLoadAtrribute(loadAtrribute);
-		if (isDpiScaledImageFile) {
-			imageLoadAtrribute.SetNeedDpiScale(false);
-		}
-		bool bEnableDpiScale = IsDpiScaleAllImages();
-		imageInfo = imageDecoder.LoadImageData(fileData, imageLoadAtrribute, bEnableDpiScale, dpi);
-	}
 }
 
 #ifdef UILIB_IMPL_WINSDK
@@ -144,16 +183,24 @@ void ImageManager::OnImageInfoDestroy(ImageInfo* pImageInfo)
 	ASSERT(pImageInfo != nullptr);
 	ImageManager& imageManager = GlobalManager::Instance().Image();
 	if (pImageInfo != nullptr) {
-		std::wstring imageCacheKey = pImageInfo->GetLoadKey();
-		if (!imageCacheKey.empty()) {
-			auto it = imageManager.m_imageMap.find(imageCacheKey);
-			if (it != imageManager.m_imageMap.end()) {
-				imageManager.m_imageMap.erase(it);
+		std::wstring imageKey;
+		std::wstring loadKey = pImageInfo->GetLoadKey();
+		if (!loadKey.empty()) {			
+			auto iter = imageManager.m_loadKeyMap.find(loadKey);
+			if (iter != imageManager.m_loadKeyMap.end()) {
+				imageKey = iter->second;
+				imageManager.m_loadKeyMap.erase(iter);
+			}
+			if (imageKey.empty()) {
+				auto it = imageManager.m_imageMap.find(imageKey);
+				if (it != imageManager.m_imageMap.end()) {
+					imageManager.m_imageMap.erase(it);
+				}
 			}
 		}
 		delete pImageInfo;
 #ifdef _DEBUG
-		std::wstring log = L"Removed Image: " + imageCacheKey + L"\n";
+		std::wstring log = L"Removed Image: " + imageKey + L"\n";
 		::OutputDebugString(log.c_str());
 #endif
 	}	
@@ -187,9 +234,12 @@ bool ImageManager::IsAutoMatchScaleImage() const
 bool ImageManager::GetDpiScaleImageFullPath(uint32_t dpiScale,
 										    bool bIsUseZip,
 										    const std::wstring& imageFullPath,
-										    std::wstring& dpiImageFullPath) const
+										    std::wstring& dpiImageFullPath,
+	                                        uint32_t& nImageDpiScale) const
 {
+	nImageDpiScale = 0;
 	if (FindDpiScaleImageFullPath(dpiScale, bIsUseZip, imageFullPath, dpiImageFullPath)) {
+		nImageDpiScale = dpiScale;
 		return true;
 	}
 	dpiImageFullPath.clear();
@@ -216,6 +266,7 @@ bool ImageManager::GetDpiScaleImageFullPath(uint32_t dpiScale,
 			if (index == 0) {
 				//第一个
 				dpiImageFullPath = sPath;
+				nImageDpiScale = nScale;
 				break;
 			}
 			else {
@@ -226,9 +277,11 @@ bool ImageManager::GetDpiScaleImageFullPath(uint32_t dpiScale,
 				float diffScale = ((float)nScale - (float)dpiScale) / (float)nScale;
 				if (diffScaleLast < diffScale) {
 					dpiImageFullPath = allDpiImagePath[index - 1].second;
+					nImageDpiScale = allDpiImagePath[index - 1].first;
 				}
 				else {
 					dpiImageFullPath = sPath;
+					nImageDpiScale = nScale;
 				}
 				break;
 			}
@@ -236,6 +289,7 @@ bool ImageManager::GetDpiScaleImageFullPath(uint32_t dpiScale,
 		else if (index == (nCount - 1)) {
 			//最后一个
 			dpiImageFullPath = sPath;
+			nImageDpiScale = nScale;
 		}
 	}
 	return !dpiImageFullPath.empty();

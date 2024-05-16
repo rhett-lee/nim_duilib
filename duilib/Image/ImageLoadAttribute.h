@@ -47,9 +47,9 @@ public:
 	*/
 	bool HasSrcDpiScale() const;
 
-	/** 获取图片加载后应当缩放的宽度和高度
+	/** 获取图片加载后应当缩放的宽度和高度（如果只设置了宽度或者高度，那么会按锁定纵横比的方式对整个图片进行缩放）
 	* @param [in,out] nImageWidth 传入原始图片的宽度，返回计算后的宽度
-	* @param [in,out] nImageHeight 原始图片的高度，返回计算后的高度
+	* @param [in,out] nImageHeight 传入原始图片的高度，返回计算后的高度
 	* @return 返回true表示图片大小有缩放，返回false表示图片大小无缩放
 	*/
 	bool CalcImageLoadSize(uint32_t& nImageWidth, uint32_t& nImageHeight) const;
@@ -60,6 +60,7 @@ public:
 
 private:
 	/** 获取设置的缩放后的大小
+	* @return 返回缩放后的大小，如果失败则返回0
 	*/
 	uint32_t GetScacledSize(const std::wstring& srcSize, uint32_t nImageSize) const;
 

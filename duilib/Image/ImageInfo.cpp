@@ -147,4 +147,14 @@ uint32_t ImageInfo::GetLoadDpiScale() const
 	return m_loadDpiScale;
 }
 
+void ImageInfo::SetImageKey(const std::wstring& imageKey)
+{
+	m_imageKey = imageKey;
+}
+
+std::wstring ImageInfo::GetImageKey() const
+{
+	return m_imageKey.c_str();
+}
+
 }

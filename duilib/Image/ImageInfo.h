@@ -32,6 +32,7 @@ public:
 	std::wstring GetImageFullPath() const;
 
 	/** 设置该图片的大小是否已经做过适应DPI处理
+	*  （这个属性值影响：图片的"source"和"corner"属性的DPI缩放操作）
 	*/
 	void SetBitmapSizeDpiScaled(bool isDpiScaled) { m_bDpiScaled = isDpiScaled; }
 
@@ -103,11 +104,20 @@ public:
 	*/
 	uint32_t GetLoadDpiScale() const;
 
+	/** 设置实际图片的KEY, 用于图片的生命周期管理
+	* @param [in] imageKey 实际图片时的KEY
+	*/
+	void SetImageKey(const std::wstring& imageKey);
+
+	/** 获取实际图片的KEY
+	*/
+	std::wstring GetImageKey() const;
+
 private:
 	//图片的完整路径
 	UiString m_imageFullPath;
 
-	//该图片的大小是否已经做过适应DPI处理
+	//该图片的大小是否已经做过适应DPI处理（这个属性值影响：图片的"source"和"corner"属性的DPI缩放操作）
 	bool m_bDpiScaled;
 
 	//图片的宽度
@@ -135,6 +145,10 @@ private:
 	/** 生成图片加载时的DPI界面缩放比
 	*/
 	uint32_t m_loadDpiScale;
+
+	/** 实际图片的KEY, 用于图片的生命周期管理（多个DPI的图片，实际可能指向同一个文件）
+	*/
+	UiString m_imageKey;
 };
 
 } // namespace ui

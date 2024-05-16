@@ -69,11 +69,13 @@ private:
 	* @param [in] bIsUseZip 是否使用zip压缩包资源
 	* @param [in] imageFullPath 图片资源的完整路径
 	* @param [out] dpiImageFullPath 返回指定DPI下的图片资源路径，如果没找到，则返回空串
+	* @param [out] nImageDpiScale 图片对应的DPI缩放百分比
 	*/
 	bool GetDpiScaleImageFullPath(uint32_t dpiScale, 
 								  bool bIsUseZip,
 							      const std::wstring& imageFullPath,
-							      std::wstring& dpiImageFullPath) const;
+							      std::wstring& dpiImageFullPath,
+		                          uint32_t& nImageDpiScale) const;
 
 	/** 查找指定DPI缩放百分比下的图片，可以每个DPI设置一个图片，以提高不同DPI下的图片质量
 	*   举例：DPI缩放百分比为120（即放大到120%）的图片："image.png" 对应于 "image@120.png"
@@ -95,13 +97,6 @@ private:
 	*/
 	std::wstring GetDpiScaledPath(uint32_t dpiScale, const std::wstring& imageFullPath) const;
 
-	/** 从文件加载一个图片
-	*/
-	void LoadImageData(const DpiManager& dpi, 
-					   const ImageLoadAttribute& loadAtrribute,
-		               bool& isDpiScaledImageFile,
-		               std::unique_ptr<ImageInfo>& imageInfo) const;
-
 #ifdef UILIB_IMPL_WINSDK
 	/** 从HICON句柄加载一个图片
 	*/
@@ -119,9 +114,13 @@ private:
 	*/
 	bool m_bAutoMatchScaleImage;
 
-	/** 图片资源映射表
+	/** 图片资源映射表（图片的Key与图片数据）
 	*/
 	std::unordered_map<std::wstring, std::weak_ptr<ImageInfo>> m_imageMap;
+
+	/** 图片资源Key映射表（图片的加载Key与图片Key）
+	*/
+	std::unordered_map <std::wstring, std::wstring> m_loadKeyMap;
 };
 
 }
