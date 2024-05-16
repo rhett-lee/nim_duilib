@@ -5,6 +5,7 @@
 #include "duilib/Control/ColorPickerStatardGray.h"
 #include "duilib/Control/ColorPickerCustom.h"
 #include "duilib/Core/GlobalManager.h"
+#include "duilib/Utils/ApiWrapper.h"
 
 namespace ui
 {
@@ -661,10 +662,10 @@ public:
 		}
 
 		//ץȡ��Ļλͼ
-		int32_t xScreen = GetSystemMetrics(SM_XVIRTUALSCREEN);
-		int32_t yScreen = GetSystemMetrics(SM_YVIRTUALSCREEN);
-		int32_t cxScreen = GetSystemMetrics(SM_CXVIRTUALSCREEN);
-		int32_t cyScreen = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+		int32_t xScreen = GetSystemMetricsForDpiWrapper(SM_XVIRTUALSCREEN, Dpi().GetDPI());
+		int32_t yScreen = GetSystemMetricsForDpiWrapper(SM_YVIRTUALSCREEN, Dpi().GetDPI());
+		int32_t cxScreen = GetSystemMetricsForDpiWrapper(SM_CXVIRTUALSCREEN, Dpi().GetDPI());
+		int32_t cyScreen = GetSystemMetricsForDpiWrapper(SM_CYVIRTUALSCREEN, Dpi().GetDPI());
 		if ((cxScreen <= 0) || (cyScreen <= 0)) {
 			return;
 		}

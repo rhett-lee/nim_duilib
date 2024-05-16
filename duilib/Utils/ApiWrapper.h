@@ -12,6 +12,7 @@ namespace ui
 	//Windows 10°æ±¾ 1607
 	bool GetDpiForSystemWrapper(UINT& dpi);
 	bool GetDpiForWindowWrapper(HWND hwnd, UINT& dpi);
+	int GetSystemMetricsForDpiWrapper(int nIndex, UINT dpi);
 
 	//Windows 8.1 
 	bool GetDpiForMonitorWrapper(HMONITOR hMonitor, MONITOR_DPI_TYPE dpiType, UINT *dpiX, UINT *dpiY);

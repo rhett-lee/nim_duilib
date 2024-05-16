@@ -368,10 +368,10 @@ bool Window::EnterFullScreen()
     m_rcLastWindowPlacement.length = sizeof(WINDOWPLACEMENT);
     ::GetWindowPlacement(m_hWnd, &m_rcLastWindowPlacement);
 
-    int32_t xScreen = GetSystemMetrics(SM_XVIRTUALSCREEN);
-    int32_t yScreen = GetSystemMetrics(SM_YVIRTUALSCREEN);
-    int32_t cxScreen = GetSystemMetrics(SM_CXVIRTUALSCREEN);
-    int32_t cyScreen = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+    int32_t xScreen = GetSystemMetricsForDpiWrapper(SM_XVIRTUALSCREEN, Dpi().GetDPI());
+    int32_t yScreen = GetSystemMetricsForDpiWrapper(SM_YVIRTUALSCREEN, Dpi().GetDPI());
+    int32_t cxScreen = GetSystemMetricsForDpiWrapper(SM_CXVIRTUALSCREEN, Dpi().GetDPI());
+    int32_t cyScreen = GetSystemMetricsForDpiWrapper(SM_CYVIRTUALSCREEN, Dpi().GetDPI());
 
     // 去掉标题栏、边框
     DWORD dwFullScreenStyle = (m_dwLastStyle | WS_VISIBLE | WS_POPUP | WS_MAXIMIZE) & ~WS_CAPTION & ~WS_BORDER & ~WS_THICKFRAME & ~WS_DLGFRAME;
@@ -463,10 +463,16 @@ bool Window::UpdateWindow() const
 void Window::SetIcon(UINT nRes)
 {
     ASSERT(::IsWindow(m_hWnd));
-    HICON hIcon = (HICON)::LoadImage(GetResModuleHandle(), MAKEINTRESOURCE(nRes), IMAGE_ICON, ::GetSystemMetrics(SM_CXICON), ::GetSystemMetrics(SM_CYICON), LR_DEFAULTCOLOR | LR_SHARED);
+    HICON hIcon = (HICON)::LoadImage(GetResModuleHandle(), MAKEINTRESOURCE(nRes), IMAGE_ICON, 
+                                     GetSystemMetricsForDpiWrapper(SM_CXICON, Dpi().GetDPI()),
+                                     GetSystemMetricsForDpiWrapper(SM_CYICON, Dpi().GetDPI()),
+                                      LR_DEFAULTCOLOR | LR_SHARED);
     ASSERT(hIcon);
     ::SendMessage(m_hWnd, WM_SETICON, (WPARAM)TRUE, (LPARAM)hIcon);
-    hIcon = (HICON)::LoadImage(GetResModuleHandle(), MAKEINTRESOURCE(nRes), IMAGE_ICON, ::GetSystemMetrics(SM_CXSMICON), ::GetSystemMetrics(SM_CYSMICON), LR_DEFAULTCOLOR | LR_SHARED);
+    hIcon = (HICON)::LoadImage(GetResModuleHandle(), MAKEINTRESOURCE(nRes), IMAGE_ICON, 
+                               GetSystemMetricsForDpiWrapper(SM_CXSMICON, Dpi().GetDPI()),
+                               GetSystemMetricsForDpiWrapper(SM_CYSMICON, Dpi().GetDPI()),
+                               LR_DEFAULTCOLOR | LR_SHARED);
     ASSERT(hIcon);
     ::SendMessage(m_hWnd, WM_SETICON, (WPARAM)FALSE, (LPARAM)hIcon);
 }
@@ -2781,10 +2787,10 @@ void Window::Paint()
 
     //使用层窗口时，窗口部分在屏幕外时，获取到的无效区域仅仅是屏幕内的部分，这里做修正处理
     if (m_bIsLayeredWindow) {
-        int32_t xScreen = GetSystemMetrics(SM_XVIRTUALSCREEN);
-        int32_t yScreen = GetSystemMetrics(SM_YVIRTUALSCREEN);
-        int32_t cxScreen = GetSystemMetrics(SM_CXVIRTUALSCREEN);
-        int32_t cyScreen = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+        int32_t xScreen = GetSystemMetricsForDpiWrapper(SM_XVIRTUALSCREEN, Dpi().GetDPI());
+        int32_t yScreen = GetSystemMetricsForDpiWrapper(SM_YVIRTUALSCREEN, Dpi().GetDPI());
+        int32_t cxScreen = GetSystemMetricsForDpiWrapper(SM_CXVIRTUALSCREEN, Dpi().GetDPI());
+        int32_t cyScreen = GetSystemMetricsForDpiWrapper(SM_CYVIRTUALSCREEN, Dpi().GetDPI());
         if (rcWindow.left < xScreen && rcWindow.left + rcPaint.left == xScreen) {
             rcPaint.left = rcClient.left;
         }

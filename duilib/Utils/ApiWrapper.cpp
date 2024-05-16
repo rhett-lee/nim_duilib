@@ -40,6 +40,20 @@ bool GetDpiForWindowWrapper(HWND hwnd, UINT& dpi)
 	return false;
 }
 
+int GetSystemMetricsForDpiWrapper(int nIndex, UINT dpi)
+{
+	int nMetrics = 0;
+	typedef int(WINAPI* GetSystemMetricsForDpiPtr)(int nIndex, UINT dpi);
+	static GetSystemMetricsForDpiPtr get_system_metrics_for_dpi_func = reinterpret_cast<GetSystemMetricsForDpiPtr>(GetProcAddress(GetModuleHandleA("user32.dll"), "GetSystemMetricsForDpi"));
+	if (get_system_metrics_for_dpi_func) {
+		nMetrics = get_system_metrics_for_dpi_func(nIndex, dpi);
+	}
+	else {
+		nMetrics = ::GetSystemMetrics(nIndex);
+	}
+	return nMetrics;
+}
+
 bool SetProcessDpiAwarenessContextWrapper(PROCESS_DPI_AWARENESS_CONTEXT value)
 {
 	typedef	BOOL (WINAPI *SetProcessDpiAwarenessContextPtr)(PROCESS_DPI_AWARENESS_CONTEXT value);
