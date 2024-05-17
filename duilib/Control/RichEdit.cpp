@@ -321,7 +321,7 @@ void RichEdit::SetAttribute(const std::wstring& strName, const std::wstring& str
 	else if ((strName == L"text_padding") || (strName == L"textpadding")) {
 		UiPadding rcTextPadding;
 		AttributeUtil::ParsePaddingValue(strValue.c_str(), rcTextPadding);
-		SetTextPadding(rcTextPadding);
+		SetTextPadding(rcTextPadding, true);
 	}
 	else if ((strName == L"normal_text_color") || (strName == L"normaltextcolor")) {
 		SetTextColor(strValue);
@@ -443,6 +443,22 @@ void RichEdit::SetAttribute(const std::wstring& strName, const std::wstring& str
 	else {
 		Box::SetAttribute(strName, strValue);
 	}
+}
+
+void RichEdit::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
+{
+	ASSERT(nNewDpiScale == Dpi().GetScale());
+	if (nNewDpiScale != Dpi().GetScale()) {
+		return;
+	}
+	UiPadding rcTextPadding = GetTextPadding();
+	rcTextPadding = Dpi().GetScalePadding(rcTextPadding, nOldDpiScale);
+	SetTextPadding(rcTextPadding, false);
+
+	if (m_pRichHost != nullptr) {
+		m_pRichHost->ChangeDpiScale(Dpi(), nOldDpiScale);
+	}
+	__super::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
 }
 
 void RichEdit::SetWindow(Window* pManager)

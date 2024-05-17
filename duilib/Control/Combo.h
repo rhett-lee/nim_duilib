@@ -26,6 +26,12 @@ public:
 	virtual bool CanPlaceCaptionBar() const override;
 	virtual std::wstring GetBorderColor(ControlStateType stateType) const override;
 
+	/** DPI发生变化，更新控件大小和布局
+	* @param [in] nOldDpiScale 旧的DPI缩放百分比
+	* @param [in] nNewDpiScale 新的DPI缩放百分比，与Dpi().GetScale()的值一致
+	*/
+	virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override;
+
 protected:
 	virtual void OnInit() override;
 

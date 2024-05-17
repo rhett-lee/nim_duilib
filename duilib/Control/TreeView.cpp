@@ -65,31 +65,51 @@ void TreeNode::SetAttribute(const std::wstring& strName, const std::wstring& str
 	}
 	else if (strName == L"expand_image_right_space") {
 		int32_t iValue = wcstol(strValue.c_str(), nullptr, 10);
-		Dpi().ScaleInt(iValue);
-		if (iValue < 0) {
-			iValue = 0;
-		}
-		m_expandIndent = ui::TruncateToUInt16(iValue);
+		SetExpandIndent(iValue, true);
 	}
 	else if (strName == L"check_box_image_right_space") {
 		int32_t iValue = wcstol(strValue.c_str(), nullptr, 10);
-		Dpi().ScaleInt(iValue);
-		if (iValue < 0) {
-			iValue = 0;
-		}
-		m_checkBoxIndent = ui::TruncateToUInt16(iValue);
+		SetCheckBoxIndent(iValue, true);
 	}
 	else if (strName == L"icon_image_right_space") {
 		int32_t iValue = wcstol(strValue.c_str(), nullptr, 10);
-		Dpi().ScaleInt(iValue);
-		if (iValue < 0) {
-			iValue = 0;
-		}
-		m_iconIndent = ui::TruncateToUInt16(iValue);
+		SetIconIndent(iValue, true);
 	}
 	else {
 		__super::SetAttribute(strName, strValue);
 	}
+}
+
+void TreeNode::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
+{
+	ASSERT(nNewDpiScale == Dpi().GetScale());
+	if (nNewDpiScale != Dpi().GetScale()) {
+		return;
+	}
+	int32_t iValue = GetExpandIndent();
+	iValue = Dpi().GetScaleInt(iValue, nOldDpiScale);
+	SetExpandIndent(iValue, false);
+
+	iValue = GetCheckBoxIndent();
+	iValue = Dpi().GetScaleInt(iValue, nOldDpiScale);
+	SetCheckBoxIndent(iValue, false);
+
+	iValue = GetIconIndent();
+	iValue = Dpi().GetScaleInt(iValue, nOldDpiScale);
+	SetIconIndent(iValue, false);
+
+	__super::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
+}
+
+void TreeNode::SetExpandIndent(int32_t nExpandIndent, bool bNeedDpiScale)
+{
+	if (nExpandIndent < 0) {
+		nExpandIndent = 0;
+	}
+	if (bNeedDpiScale) {
+		Dpi().ScaleInt(nExpandIndent);
+	}
+	m_expandIndent = ui::TruncateToUInt16(nExpandIndent);
 }
 
 uint16_t TreeNode::GetExpandIndent() const
@@ -102,6 +122,17 @@ uint16_t TreeNode::GetExpandIndent() const
 	}
 }
 
+void TreeNode::SetCheckBoxIndent(int32_t nIndent, bool bNeedDpiScale)
+{
+	if (nIndent < 0) {
+		nIndent = 0;
+	}
+	if (bNeedDpiScale) {
+		Dpi().ScaleInt(nIndent);
+	}
+	m_checkBoxIndent = ui::TruncateToUInt16(nIndent);
+}
+
 uint16_t TreeNode::GetCheckBoxIndent() const
 {
 	if ((int16_t)m_checkBoxIndent < 0) {
@@ -110,6 +141,17 @@ uint16_t TreeNode::GetCheckBoxIndent() const
 	else {
 		return m_checkBoxIndent;
 	}
+}
+
+void TreeNode::SetIconIndent(int32_t nIndent, bool bNeedDpiScale)
+{
+	if (nIndent < 0) {
+		nIndent = 0;
+	}
+	if (bNeedDpiScale) {
+		Dpi().ScaleInt(nIndent);
+	}
+	m_iconIndent = ui::TruncateToUInt16(nIndent);
 }
 
 uint16_t TreeNode::GetIconIndent() const
@@ -235,9 +277,7 @@ int32_t TreeNode::GetExpandImagePadding(void) const
 		}
 	}
 	if (pImage != nullptr) {
-		if (pImage->GetImageCache() == nullptr) {
-			LoadImageData(*pImage);
-		}
+		LoadImageData(*pImage);
 		if (pImage->GetImageCache() != nullptr) {
 			imageWidth = pImage->GetImageCache()->GetWidth();
 		}

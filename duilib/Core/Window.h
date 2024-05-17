@@ -257,7 +257,7 @@ public:
     /** 获取窗口位置信息
      * @param [in] bContainShadow 是否包含阴影，true 为包含，默认为 false 不包含
      */
-    UiRect GetWindowPos(bool bContainShadow = false) const;
+    UiRect GetWindowPos(bool bContainShadow /*= false*/) const;
 
     /** 设置窗口位置（对 ::SetWindowPos API 的一层封装）
     * @param [in] rc 窗口位置
@@ -268,7 +268,7 @@ public:
     */
     bool SetWindowPos(const UiRect& rc, bool bNeedDpiScale, UINT uFlags, HWND hWndInsertAfter = NULL, bool bContainShadow = false);
 
-    /** 设置窗口位置（对 ::SetWindowPos API 的一层封装）
+    /** 设置窗口位置（对 ::SetWindowPos API 的一层封装，内部无DPI缩放）
     * @param [in] hWndInsertAfter 对应 SetWindowPos 的 hWndInsertAfter 选项
     * @param [in] X 窗口的X坐标
     * @param [in] Y 窗口的Y坐标
@@ -284,7 +284,7 @@ public:
     * @param [in] bContainShadow 为 false 表示 cx cy 不包含阴影
     * @param [in] bNeedDpiScale 为 false 表示不根据 DPI 调整
     */
-    void Resize(int cx, int cy, bool bContainShadow = false, bool bNeedDpiScale = true);
+    void Resize(int cx, int cy, bool bContainShadow /*= false*/, bool bNeedDpiScale);
 
     /** 设置窗口图标
     *  @param [in] nRes 窗口图标资源 ID
@@ -321,8 +321,9 @@ public:
 
     /** 设置窗口四边可拉伸范围的大小
     * @param [in] rcSizeBox 要设置的大小
+    * @param [in] bNeedDpiScale 是否支持DPI缩放
     */
-    void SetSizeBox(const UiRect& rcSizeBox);
+    void SetSizeBox(const UiRect& rcSizeBox, bool bNeedDpiScale);
 
     /** 获取窗口标题栏区域（可拖动区域），对应 XML 中 caption 属性
     */
@@ -332,7 +333,7 @@ public:
     * @param [in] rcCaption 要设置的区域范围
     * @param [in] bNeedDpiScale 为 false 表示不根据 DPI 调整
     */
-    void SetCaptionRect(const UiRect& rcCaption, bool bNeedDpiScale = true);
+    void SetCaptionRect(const UiRect& rcCaption, bool bNeedDpiScale);
 
     /** 设置是否使用系统标题栏
     */
@@ -351,7 +352,7 @@ public:
     * @param [in] cy 圆角高
     * @param [in] bNeedDpiScale 为 false 表示不根据 DPI 调整
     */
-    void SetRoundCorner(int cx, int cy, bool bNeedDpiScale = true);
+    void SetRoundCorner(int cx, int cy, bool bNeedDpiScale);
 
     /** 获取窗口最大化信息
     */
@@ -361,7 +362,7 @@ public:
     * @param [in] rcMaximize 要设置的最大化数值
     * @param [in] bNeedDpiScale 是否进行DPI缩放
     */
-    void SetMaximizeInfo(const UiRect& rcMaximize, bool bNeedDpiScale = true);
+    void SetMaximizeInfo(const UiRect& rcMaximize, bool bNeedDpiScale);
 
     /** 获取透明通道修补范围的的九宫格描述，对应 XML 中 alphafixcorner 属性
     */
@@ -371,12 +372,12 @@ public:
     * @param [in] rc 要设置的修补范围
     * @param [in] bNeedDpiScale 是否进行DPI缩放
     */
-    void SetAlphaFixCorner(const UiRect& rc, bool bNeedDpiScale = true);
+    void SetAlphaFixCorner(const UiRect& rc, bool bNeedDpiScale);
 
     /** 获取窗口最小范围，对应 XML 中 mininfo 属性
     * @param [in] bContainShadow 是否包含阴影范围，默认为 false
     */
-    UiSize GetMinInfo(bool bContainShadow = false) const;
+    UiSize GetMinInfo(bool bContainShadow /*= false*/) const;
 
     /** 设置窗口最小范围
     * @param [in] cx 宽度
@@ -384,12 +385,12 @@ public:
     * @param [in] bContainShadow 为 false 表示 cx cy 不包含阴影
     * @param [in] bNeedDpiScale 为 false 表示不需要把 rc 根据 DPI 自动调整
     */
-    void SetMinInfo(int cx, int cy, bool bContainShadow = false, bool bNeedDpiScale = true);
+    void SetMinInfo(int cx, int cy, bool bContainShadow /*= false*/, bool bNeedDpiScale);
 
     /** 获取窗口最大范围，对应 XML 中 maxinfo 属性
     * @param [in] bContainShadow 是否包含阴影范围，默认为 false
     */
-    UiSize GetMaxInfo(bool bContainShadow = false) const;
+    UiSize GetMaxInfo(bool bContainShadow /*= false*/) const;
 
     /** 设置窗口最大范围
     * @param [in] cx 宽度
@@ -397,12 +398,7 @@ public:
     * @param [in] bContainShadow 为 false 表示 cx cy 不包含阴影
     * @param [in] bNeedDpiScale 为 false 表示不需要把 rc 根据 DPI 自动调整
     */
-    void SetMaxInfo(int cx, int cy, bool bContainShadow = false, bool bNeedDpiScale = true);
-
-    /** 获取窗口初始大小
-    * @param [in] bContainShadow 是否包含阴影范围，默认为 false
-    */
-    UiSize GetInitSize(bool bContainShadow = false) const;
+    void SetMaxInfo(int cx, int cy, bool bContainShadow /*= false*/, bool bNeedDpiScale);
 
     /** 设置窗口初始大小
     * @param [in] cx 宽度
@@ -410,7 +406,7 @@ public:
     * @param [in] bContainShadow 为 false 表示 cx cy 不包含阴影
     * @param [in] bNeedDpiScale 为 false 表示不根据 DPI 调整
     */
-    void SetInitSize(int cx, int cy, bool bContainShadow = false, bool bNeedDpiScale = true);
+    void SetInitSize(int cx, int cy, bool bContainShadow /*= false*/, bool bNeedDpiScale);
 
     /** @}*/
 
@@ -790,7 +786,7 @@ public:
     * @param [in] padding 九宫格描述信息
     * @param [in] bNeedDpiScale 为 false 表示不需要把 rc 根据 DPI 自动调整
     */
-    void SetShadowCorner(const UiPadding& padding, bool bNeedDpiScale = true);
+    void SetShadowCorner(const UiPadding& padding, bool bNeedDpiScale);
 
     /** 设置窗口透明度
     * @param [in] nAlpha 透明度数值[0, 255]
@@ -948,6 +944,12 @@ public:
     /** 获取该窗口对应的DPI管理器
     */
     const DpiManager& Dpi() const;
+
+    /** 窗口的DPI发生变化，更新控件大小和布局
+    * @param [in] nOldDpiScale 旧的DPI缩放百分比
+    * @param [in] nNewDpiScale 新的DPI缩放百分比，与Dpi().GetScale()的值一致
+    */
+    void OnDpiScaleChanged(uint32_t nOldDpiScale, uint32_t nNewDpiScale);
 
 public:
     /** 设置系统激活窗口热键，注册后按此热键，系统可以自动激活本窗口
@@ -1110,9 +1112,6 @@ private:
     EventMap m_OnEvent;
 
 private:
-    //窗口的初始化大小
-    UiSize m_szInitWindowSize;
-
     //窗口最小信息
     UiSize m_szMinWindow;
 

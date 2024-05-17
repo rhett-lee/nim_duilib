@@ -300,6 +300,20 @@ void ComboButton::SetAttribute(const std::wstring& strName, const std::wstring& 
 	}
 }
 
+void ComboButton::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
+{
+	ASSERT(nNewDpiScale == Dpi().GetScale());
+	if (nNewDpiScale != Dpi().GetScale()) {
+		return;
+	}
+
+	UiSize szDropBoxSize = GetDropBoxSize();
+	szDropBoxSize = Dpi().GetScaleSize(szDropBoxSize, nOldDpiScale);
+	SetDropBoxSize(szDropBoxSize, false);
+
+	__super::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
+}
+
 void ComboButton::SetLeftButtonClass(const std::wstring& classValue)
 {
 	if (classValue.empty()) {

@@ -20,6 +20,12 @@ public:
     virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue);
     virtual void HandleEvent(const EventArgs& msg) override;
 
+    /** DPI发生变化，更新控件大小和布局
+    * @param [in] nOldDpiScale 旧的DPI缩放百分比
+    * @param [in] nNewDpiScale 新的DPI缩放百分比，与Dpi().GetScale()的值一致
+    */
+    virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override;
+
     /** 选择子项
     *  @param [in] iIndex 子项目的ID
     *  @param [in] bTakeFocus 是否让子项控件成为焦点控件
@@ -70,6 +76,16 @@ public:
     /** 获取普通列表项（非Header、非置顶）的top坐标
     */
     int32_t GetNormalItemTop() const;
+
+    /** 设置框选边框的大小
+    * @param [in] nBorderSize 边框大小
+    * @param [in] bNeedDpiScale 是否支持DPI缩放
+    */
+    void SetFrameSelectionBorderSize(int32_t nBorderSize, bool bNeedDpiScale);
+
+    /** 获取框选边框的大小
+    */
+    int32_t GetFrameSelectionBorderSize() const;
 
 protected:
     /** 控件初始化
@@ -156,10 +172,6 @@ private:
     * @return 返回true表示成功处理，返回false表示未处理此消息
     */
     bool OnListCtrlKeyDown(const EventArgs& msg);
-
-    /** 获取框选边框大小
-    */
-    int32_t GetFrameSelectionBorderSize() const;
 
 private:
     /** 是否鼠标在视图中按下左键或者右键

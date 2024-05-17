@@ -159,12 +159,12 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
 					if (strName == L"mininfo") {
 						UiSize size;
 						AttributeUtil::ParseSizeValue(strValue.c_str(), size);
-						pWindow->SetMinInfo(size.cx, size.cy);
+						pWindow->SetMinInfo(size.cx, size.cy, false, true);
 					}
 					else if (strName == L"maxinfo") {
 						UiSize size;
 						AttributeUtil::ParseSizeValue(strValue.c_str(), size);
-						pWindow->SetMaxInfo(size.cx, size.cy);
+						pWindow->SetMaxInfo(size.cx, size.cy, false, true);
 					}
 				}
 				for (pugi::xml_attribute attr : root.attributes()) {
@@ -175,8 +175,8 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
 						AttributeUtil::ParseWindowSize(pWindow, strValue.c_str(), windowSize);
 						int32_t cx = windowSize.cx;
 						int32_t cy = windowSize.cy;
-						UiSize minSize = pWindow->GetMinInfo();
-						UiSize maxSize = pWindow->GetMaxInfo();
+						UiSize minSize = pWindow->GetMinInfo(false);
+						UiSize maxSize = pWindow->GetMaxInfo(false);
 						if ((minSize.cx > 0) && (cx < minSize.cx)) {
 							cx = minSize.cx;
 						}
@@ -194,12 +194,12 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
 					else if( strName == L"sizebox" ) {
 						UiRect rcSizeBox;
 						AttributeUtil::ParseRectValue(strValue.c_str(), rcSizeBox);
-						pWindow->SetSizeBox(rcSizeBox);
+						pWindow->SetSizeBox(rcSizeBox, true);
 					}
 					else if( strName == L"caption" ) {
 						UiRect rcCaption;
 						AttributeUtil::ParseRectValue(strValue.c_str(), rcCaption);
-						pWindow->SetCaptionRect(rcCaption);
+						pWindow->SetCaptionRect(rcCaption, true);
 					}
 					else if (strName == L"use_system_caption") {
 						pWindow->SetUseSystemCaption(strValue == L"true");
@@ -213,12 +213,12 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
 					else if (strName == L"round_corner" || strName == L"roundcorner" ) {
 						UiSize size;
 						AttributeUtil::ParseSizeValue(strValue.c_str(), size);
-						pWindow->SetRoundCorner(size.cx, size.cy);
+						pWindow->SetRoundCorner(size.cx, size.cy, true);
 					}								
 					else if (strName == L"alpha_fix_corner" || strName == L"alphafixcorner") {
 						UiRect rc;
 						AttributeUtil::ParseRectValue(strValue.c_str(), rc);
-						pWindow->SetAlphaFixCorner(rc);
+						pWindow->SetAlphaFixCorner(rc, true);
 					}
 					else if (strName == L"render_transparent") {
 						pWindow->SetRenderTransparent(strValue == L"true");
@@ -235,7 +235,7 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
 						//设置窗口阴影的九宫格属性
 						UiPadding padding;
 						AttributeUtil::ParsePaddingValue(strValue.c_str(), padding);
-						pWindow->SetShadowCorner(padding);
+						pWindow->SetShadowCorner(padding, true);
 					}
 					else if ((strName == L"layered_window") || (strName == L"layeredwindow")) {
 						//设置是否设置层窗口属性（层窗口还是普通窗口）

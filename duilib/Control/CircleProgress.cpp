@@ -31,8 +31,7 @@ void CircleProgress::SetAttribute(const std::wstring& srName, const std::wstring
 	}
 	else if ((srName == L"circle_width") || (srName == L"circlewidth")) {
 		int32_t iValue = _wtoi(strValue.c_str());
-		Dpi().ScaleInt(iValue);
-		SetCircleWidth(iValue);
+		SetCircleWidth(iValue, true);
 	}
 	else if (srName == L"indicator") {
 		SetIndicator(strValue);
@@ -52,6 +51,18 @@ void CircleProgress::SetAttribute(const std::wstring& srName, const std::wstring
 	else {
 		Progress::SetAttribute(srName, strValue);
 	}
+}
+
+void CircleProgress::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
+{
+	ASSERT(nNewDpiScale == Dpi().GetScale());
+	if (nNewDpiScale != Dpi().GetScale()) {
+		return;
+	}
+	int32_t iValue = GetCircleWidth();
+	iValue = Dpi().GetScaleInt(iValue, nOldDpiScale);
+	SetCircleWidth(iValue, false);
+	__super::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
 }
 
 void CircleProgress::PaintStateImages(IRender* pRender)
@@ -102,16 +113,18 @@ void CircleProgress::PaintStateImages(IRender* pRender)
 	rcBorder.bottom = rcBorder.top + side;
 
 	//º”‘ÿÕº∆¨
+
+	std::shared_ptr<ImageInfo> pIndicatorImageInfo;
 	if (m_pIndicatorImage != nullptr) {
 		LoadImageData(*m_pIndicatorImage);
-		ASSERT(m_pIndicatorImage->GetImageCache() != nullptr);
+		pIndicatorImageInfo = m_pIndicatorImage->GetImageCache();
+		ASSERT(pIndicatorImageInfo != nullptr);
 	}	
 
 	UiRect outer = rcBorder;
-	if ((m_pIndicatorImage != nullptr) &&
-		(m_pIndicatorImage->GetImageCache() != nullptr)) {
-		outer.Inflate(-1 * m_pIndicatorImage->GetImageCache()->GetWidth() / 2,
-					  -1 * m_pIndicatorImage->GetImageCache()->GetWidth() / 2);
+	if (pIndicatorImageInfo != nullptr) {
+		outer.Inflate(-1 * pIndicatorImageInfo->GetWidth() / 2,
+					  -1 * pIndicatorImageInfo->GetWidth() / 2);
 	}
 	else {
 		outer.Inflate(-1 * m_nCircleWidth / 2, -1 * m_nCircleWidth / 2);
@@ -134,8 +147,7 @@ void CircleProgress::PaintStateImages(IRender* pRender)
 		pRender->DrawArc(outer, 270, sweepAngle, false, fgPen, &m_dwGradientColor, &rcBorder);
 	}
 	
-	if ((m_pIndicatorImage != nullptr) &&
-		(m_pIndicatorImage->GetImageCache() != nullptr)) {
+	if (pIndicatorImageInfo != nullptr) {
 		std::unique_ptr<IMatrix> spMatrix(pRenderFactory->CreateMatrix());
 		if ((spMatrix != nullptr) && ((m_nMax - m_nMin) != 0)){
 			float angle = direction * 360 * ((float)m_nValue - m_nMin) / (m_nMax - m_nMin);
@@ -143,10 +155,10 @@ void CircleProgress::PaintStateImages(IRender* pRender)
 		}
 
 		UiRect imageRect;
-		imageRect.left = center.x - m_pIndicatorImage->GetImageCache()->GetWidth() / 2;
-		imageRect.top = outer.top + bordersize / 2 - m_pIndicatorImage->GetImageCache()->GetHeight() / 2;
-		imageRect.right = imageRect.left + m_pIndicatorImage->GetImageCache()->GetWidth();
-		imageRect.bottom = imageRect.top + m_pIndicatorImage->GetImageCache()->GetHeight();
+		imageRect.left = center.x - pIndicatorImageInfo->GetWidth() / 2;
+		imageRect.top = outer.top + bordersize / 2 - pIndicatorImageInfo->GetHeight() / 2;
+		imageRect.right = imageRect.left + pIndicatorImageInfo->GetWidth();
+		imageRect.bottom = imageRect.top + pIndicatorImageInfo->GetHeight();
 		imageRect.Offset(-GetRect().left, -GetRect().top);
 		std::wstring imageModify = StringHelper::Printf(L"destscale='false' dest='%d,%d,%d,%d'", 
 			imageRect.left, imageRect.top, imageRect.right, imageRect.bottom);
@@ -173,15 +185,23 @@ void CircleProgress::SetClockwiseRotation(bool bClockwise /*= true*/)
 	m_bClockwise = bClockwise;
 }
 
-void CircleProgress::SetCircleWidth(int nCircleWidth)
+void CircleProgress::SetCircleWidth(int nCircleWidth, bool bNeedDpiScale)
 {
 	if (nCircleWidth < 0) {
 		nCircleWidth = 0;
+	}
+	if (bNeedDpiScale) {
+		Dpi().ScaleInt(nCircleWidth);
 	}
 	if (m_nCircleWidth != nCircleWidth) {
 		m_nCircleWidth = nCircleWidth;
 		Invalidate();
 	}	
+}
+
+int32_t CircleProgress::GetCircleWidth() const
+{
+	return m_nCircleWidth;
 }
 
 void CircleProgress::SetBackgroudColor(const std::wstring& strColor)

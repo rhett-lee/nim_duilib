@@ -24,13 +24,27 @@ public:
     virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
     virtual void PaintText(IRender* pRender) override;
 
+    /** DPI发生变化，更新控件大小和布局
+    * @param [in] nOldDpiScale 旧的DPI缩放百分比
+    * @param [in] nNewDpiScale 新的DPI缩放百分比，与Dpi().GetScale()的值一致
+    */
+    virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override;
+
     /** 设置圆角大小
      */
     void SetCornerSize(UiSize cxyRound, bool bNeedDpiScale);
 
+    /** 获取圆角大小
+    */
+    const UiSize& GetCornerSize() const;
+
     /** 设置线条宽度
     */
     void SetLineWidth(int32_t nLineWidth, bool bNeedDpiScale);
+
+    /** 获取线条宽度
+    */
+    int32_t GetLineWidth() const;
 
     /** 设置线条颜色
     */
@@ -108,6 +122,12 @@ void GroupBoxTemplate<InheritType>::SetCornerSize(UiSize cxyRound, bool bNeedDpi
 }
 
 template<typename InheritType>
+const UiSize& GroupBoxTemplate<InheritType>::GetCornerSize() const
+{
+    return m_cornerSize;
+}
+
+template<typename InheritType>
 void GroupBoxTemplate<InheritType>::SetLineWidth(int32_t nLineWidth, bool bNeedDpiScale)
 {
     if (nLineWidth < 0) {
@@ -120,6 +140,12 @@ void GroupBoxTemplate<InheritType>::SetLineWidth(int32_t nLineWidth, bool bNeedD
         m_nLineWidth = nLineWidth;
         this->Invalidate();
     }
+}
+
+template<typename InheritType>
+int32_t GroupBoxTemplate<InheritType>::GetLineWidth() const
+{
+    return m_nLineWidth;
 }
 
 template<typename InheritType>
@@ -163,6 +189,23 @@ void GroupBoxTemplate<InheritType>::SetAttribute(const std::wstring& strName, co
     else {
         __super::SetAttribute(strName, strValue);
     }
+}
+
+template<typename InheritType>
+void GroupBoxTemplate<InheritType>::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
+{
+    ASSERT(nNewDpiScale == this->Dpi().GetScale());
+    if (nNewDpiScale != this->Dpi().GetScale()) {
+        return;
+    }
+    UiSize cxyRound = this->GetCornerSize();
+    cxyRound = this->Dpi().GetScaleSize(cxyRound, nOldDpiScale);
+    this->SetCornerSize(cxyRound, false);
+
+    int32_t iValue = this->GetLineWidth();
+    iValue = this->Dpi().GetScaleInt(iValue, nOldDpiScale);
+    this->SetLineWidth(iValue, false);
+    __super::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
 }
 
 template<typename InheritType>

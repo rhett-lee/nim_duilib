@@ -59,6 +59,27 @@ void PropertyGrid::SetAttribute(const std::wstring& strName, const std::wstring&
     }
 }
 
+void PropertyGrid::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
+{
+    ASSERT(nNewDpiScale == Dpi().GetScale());
+    if (nNewDpiScale != Dpi().GetScale()) {
+        return;
+    }
+    int32_t iValue = GetRowGridLineWidth();
+    iValue = Dpi().GetScaleInt(iValue, nOldDpiScale);
+    SetRowGridLineWidth(iValue, false);
+
+    iValue = GetColumnGridLineWidth();
+    iValue = Dpi().GetScaleInt(iValue, nOldDpiScale);
+    SetColumnGridLineWidth(iValue, false);
+
+    iValue = GetLeftColumnWidth();
+    iValue = Dpi().GetScaleInt(iValue, nOldDpiScale);
+    SetLeftColumnWidth(iValue, false);
+
+    __super::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
+}
+
 void PropertyGrid::OnInit()
 {
     if (IsInited()) {

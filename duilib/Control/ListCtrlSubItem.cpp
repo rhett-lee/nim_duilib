@@ -22,6 +22,18 @@ void ListCtrlSubItem::SetAttribute(const std::wstring& strName, const std::wstri
     }
 }
 
+void ListCtrlSubItem::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
+{
+    ASSERT(nNewDpiScale == Dpi().GetScale());
+    if (nNewDpiScale != Dpi().GetScale()) {
+        return;
+    }
+    int32_t iValue = GetIconSpacing();
+    iValue = Dpi().GetScaleInt(iValue, nOldDpiScale);
+    SetIconSpacing(iValue, false);
+    __super::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
+}
+
 void ListCtrlSubItem::SetListCtrlItem(ListCtrlItem* pItem)
 {
     m_pItem = pItem;
@@ -189,14 +201,15 @@ ImagePtr ListCtrlSubItem::LoadItemImage() const
             }
         }
     }
-    if ((pItemImage != nullptr) && (pItemImage->GetImageCache() == nullptr)) {
+    if (pItemImage != nullptr) {
         LoadImageData(*pItemImage);
-        if (pItemImage->GetImageCache() == nullptr) {
+        std::shared_ptr<ImageInfo> pItemImageCache = pItemImage->GetImageCache();
+        if (pItemImageCache == nullptr) {
             pItemImage = nullptr;
         }
         else {
-            if ((pItemImage->GetImageCache()->GetWidth() <= 0) ||
-                (pItemImage->GetImageCache()->GetHeight() <= 0)) {
+            if ((pItemImageCache->GetWidth() <= 0) ||
+                (pItemImageCache->GetHeight() <= 0)) {
                 pItemImage = nullptr;
             }
         }

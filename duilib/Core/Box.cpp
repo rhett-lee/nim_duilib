@@ -56,6 +56,23 @@ void Box::SetAttribute(const std::wstring& strName, const std::wstring& strValue
 	}
 }
 
+void Box::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
+{
+	ASSERT(nNewDpiScale == Dpi().GetScale());
+	if (nNewDpiScale != Dpi().GetScale()) {
+		return;
+	}
+	if (m_pLayout != nullptr) {
+		m_pLayout->ChangeDpiScale(Dpi(), nOldDpiScale);
+	}
+	__super::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
+	for (auto pControl : m_items) {
+		if (pControl != nullptr) {
+			pControl->ChangeDpiScale(nOldDpiScale, nNewDpiScale);
+		}
+	}
+}
+
 void Box::SetParent(Box* pParent)
 {
 	Control::SetParent(pParent);

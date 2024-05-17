@@ -988,6 +988,20 @@ void RichEditHost::SetFontId(const std::wstring& fontId)
 	OnTxPropertyBitsChange(TXTBIT_CHARFORMATCHANGE, TXTBIT_CHARFORMATCHANGE);
 }
 
+void RichEditHost::ChangeDpiScale(const DpiManager& dpiManager, uint32_t nOldDpiScale)
+{
+	if (!IsRichText()) {
+		//非富文本模式下，所有文本的字体大小都一样，直接修改字体大小
+		m_charFormat.dwMask |= CFM_SIZE;
+		m_charFormat.yHeight = dpiManager.GetScaleInt((int32_t)m_charFormat.yHeight, nOldDpiScale);
+		OnTxPropertyBitsChange(TXTBIT_CHARFORMATCHANGE, TXTBIT_CHARFORMATCHANGE);
+	}
+	else {
+		//富文本模式下：暂不支持
+
+	}
+}
+
 void RichEditHost::SetTextColor(COLORREF dwColor)
 {
 	if (dwColor != m_charFormat.crTextColor) {

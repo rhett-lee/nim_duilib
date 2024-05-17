@@ -40,6 +40,12 @@ public:
 								 const UiPoint& scrollPos = UiPoint()) override;
 	virtual void ClearImageCache() override;
 
+	/** DPI发生变化，更新控件大小和布局
+	* @param [in] nOldDpiScale 旧的DPI缩放百分比
+	* @param [in] nNewDpiScale 新的DPI缩放百分比，与Dpi().GetScale()的值一致
+	*/
+	virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override;
+
 	/** 获取滚动条的真实偏移量, 以32位整型值标志偏移 (虚表会使用虚拟滚动条位置)
 	*   如果设置了ScrollVirtualOffset，那么这个函数会将滚动条的位置减去这个虚拟偏移；
 	*   如果没有设置ScrollVirtualOffset，那么这个函数返回与UiSize64 GetScrollPos()相同的结果，但会检查是否越界；
@@ -188,18 +194,20 @@ public:
 	int32_t GetVerScrollUnitPixels() const;
 
 	/** 设置垂直滚动条滚动步长
-	 * @param[in] nUnitPixels 要设置的步长
+	 * @param [in] nUnitPixels 要设置的步长
+	 * @param [in] bNeedDpiScale 是否需要DPI缩放
 	 */
-	void SetVerScrollUnitPixels(int32_t nUnitPixels);
+	void SetVerScrollUnitPixels(int32_t nUnitPixels, bool bNeedDpiScale);
 
 	/** 获取横向滚动条滚动步长
 	*/
 	int32_t GetHorScrollUnitPixels() const;
 
 	/** 设置横向滚动条滚动步长
-	* @param[in] nUnitPixels 要设置的步长
+	* @param [in] nUnitPixels 要设置的步长
+	* @param [in] bNeedDpiScale 是否需要DPI缩放
 	*/
-	void SetHorScrollUnitPixels(int32_t nUnitPixels);
+	void SetHorScrollUnitPixels(int32_t nUnitPixels, bool bNeedDpiScale);
 
 	/** 获取容器的滚动条是否悬浮在子控件上面
 	 * @return 返回 true 表示悬浮在滚动条上，否则为 false
@@ -226,9 +234,10 @@ public:
 	const UiPadding& GetScrollBarPadding() const;
 
 	/** 设置滚动条的外边距，可以让滚动条不占满容器
-	 * @param[in] rcScrollBarPadding 要设置的边距
+	 * @param [in] rcScrollBarPadding 要设置的边距
+	 * @param [in] bNeedDpiScale 是否支持DPI缩放
 	 */
-	void SetScrollBarPadding(UiPadding rcScrollBarPadding);
+	void SetScrollBarPadding(UiPadding rcScrollBarPadding, bool bNeedDpiScale);
 
 	/** 停止滚动条动画
 	*/

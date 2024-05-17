@@ -47,6 +47,12 @@ public:
      */
     virtual UiSize EstimateText(UiSize szAvailable) override;
 
+    /** DPI发生变化，更新控件大小和布局
+    * @param [in] nOldDpiScale 旧的DPI缩放百分比
+    * @param [in] nNewDpiScale 新的DPI缩放百分比，与Dpi().GetScale()的值一致
+    */
+    virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override;
+
     /** 恢复默认的文本样式
     */
     void SetDefaultTextStyle(bool bRedraw);
@@ -97,18 +103,16 @@ public:
      */
 	void SetFontId(const std::wstring& strFontId);
 
-    /**
-     * @brief 获取文字内边距
+    /** 获取文字内边距
      * @return 返回文字的内边距信息
      */
 	UiPadding GetTextPadding() const;
 
-    /**
-     * @brief 设置文字内边距信息
-     * @param[in] padding 内边距信息
-     * @param[in] bNeedDpiScale 兼容 DPI 缩放，默认为 true
+    /** 设置文字内边距信息
+     * @param [in] padding 内边距信息
+     * @param [in] bNeedDpiScale 是否支持DPI缩放
      */
-	void SetTextPadding(UiPadding padding, bool bNeedDpiScale = true);
+	void SetTextPadding(UiPadding padding, bool bNeedDpiScale);
 
     /**
      * @brief 判断是否是单行模式
@@ -282,11 +286,25 @@ void LabelTemplate<InheritType>::SetAttribute(const std::wstring& strName, const
     else if ((strName == L"text_padding") || (strName == L"textpadding")) {
         UiPadding rcTextPadding;
         AttributeUtil::ParsePaddingValue(strValue.c_str(), rcTextPadding);
-        SetTextPadding(rcTextPadding);
+        SetTextPadding(rcTextPadding, true);
     }
     else {
         __super::SetAttribute(strName, strValue);
     }
+}
+
+template<typename InheritType>
+void LabelTemplate<InheritType>::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
+{
+    ASSERT(nNewDpiScale == this->Dpi().GetScale());
+    if (nNewDpiScale != this->Dpi().GetScale()) {
+        return;
+    }
+    UiPadding rcTextPadding = GetTextPadding();
+    rcTextPadding = this->Dpi().GetScalePadding(rcTextPadding, nOldDpiScale);
+    this->SetTextPadding(rcTextPadding, false);
+
+    __super::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
 }
 
 template<typename InheritType>

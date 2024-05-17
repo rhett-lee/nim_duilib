@@ -40,6 +40,12 @@ public:
 	virtual void Paint(IRender* pRender, const UiRect& rcPaint) override;
 	virtual void ClearImageCache() override;
 
+	/** DPI发生变化，更新控件大小和布局
+	* @param [in] nOldDpiScale 旧的DPI缩放百分比
+	* @param [in] nNewDpiScale 新的DPI缩放百分比，与Dpi().GetScale()的值一致
+	*/
+	virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override;
+
 	/**
 	 * @brief 是否是水平滚动条
 	 * @return 返回 true 代表是水平滚动条，否则为 false 代表是垂直滚动条
@@ -95,7 +101,7 @@ public:
 	 * @param [in] nSize 要设置的大小数值
 	 * @param [in] bNeedDpiScale 是否进行DPI缩放
 	 */
-	void SetLineSize(int nSize, bool bNeedDpiScale = true);
+	void SetLineSize(int nSize, bool bNeedDpiScale);
 
 	/**
 	 * @brief 获取滑块的最小长度
@@ -107,7 +113,7 @@ public:
 	 * @param[in] nThumbMinLength 要设置的最小长度
 	 * @param [in] bNeedDpiScale 是否进行DPI缩放
 	 */
-	void SetThumbMinLength(int nThumbMinLength, bool bNeedDpiScale = true);
+	void SetThumbMinLength(int nThumbMinLength, bool bNeedDpiScale);
 
 	/**
 	 * @brief 是否显示左或上按钮

@@ -118,6 +118,19 @@ void RichText::SetAttribute(const std::wstring& strName, const std::wstring& str
     }
 }
 
+void RichText::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
+{
+    ASSERT(nNewDpiScale == Dpi().GetScale());
+    if (nNewDpiScale != Dpi().GetScale()) {
+        return;
+    }
+    UiPadding rcTextPadding = GetTextPadding();
+    rcTextPadding = Dpi().GetScalePadding(rcTextPadding, nOldDpiScale);
+    SetTextPadding(rcTextPadding, false);
+
+    __super::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
+}
+
 void RichText::CalcDestRect(IRender* pRender, UiRect rc, UiRect& rect)
 {
     rect.Clear();

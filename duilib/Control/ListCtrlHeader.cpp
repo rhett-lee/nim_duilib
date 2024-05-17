@@ -29,6 +29,18 @@ void ListCtrlHeader::SetAttribute(const std::wstring& strName, const std::wstrin
     }
 }
 
+void ListCtrlHeader::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
+{
+    ASSERT(nNewDpiScale == Dpi().GetScale());
+    if (nNewDpiScale != Dpi().GetScale()) {
+        return;
+    }
+    int32_t iValue = GetIconSpacing();
+    iValue = Dpi().GetScaleInt(iValue, nOldDpiScale);
+    SetIconSpacing(iValue, false);
+    __super::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
+}
+
 void ListCtrlHeader::SetIconSpacing(int32_t nIconSpacing, bool bNeedDpiScale)
 {
     if (bNeedDpiScale) {

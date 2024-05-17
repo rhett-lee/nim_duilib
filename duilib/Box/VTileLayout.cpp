@@ -610,6 +610,14 @@ bool VTileLayout::SetAttribute(const std::wstring& strName, const std::wstring& 
 	return hasAttribute;
 }
 
+void VTileLayout::ChangeDpiScale(const DpiManager& dpiManager, uint32_t nOldDpiScale)
+{
+	UiSize szItem = GetItemSize();
+	szItem = dpiManager.GetScaleSize(szItem, nOldDpiScale);
+	SetItemSize(szItem);
+	__super::ChangeDpiScale(dpiManager, nOldDpiScale);
+}
+
 const UiSize& VTileLayout::GetItemSize() const
 {
 	return m_szItem;

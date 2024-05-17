@@ -166,7 +166,7 @@ public:
 	 * @param [in] cx 要设置的最小宽度（包含内边距，不包含外边距）（值 >= 0）
 	 * @param [in] bNeedDpiScale 是否需要做DPI自适应
 	 */
-	void SetMinWidth(int32_t cx, bool bNeedDpiScale = true);
+	void SetMinWidth(int32_t cx, bool bNeedDpiScale);
 
 	/** 获取最大宽度
 	* @return 返回最大宽度（包含内边距，不包含外边距）（返回值 >= 0）
@@ -177,7 +177,7 @@ public:
 	 * @param [in] cx 要设置的最大宽度（包含内边距，不包含外边距）（值 >= 0）
 	 * @param [in] bNeedDpiScale 是否需要做DPI自适应
 	 */
-	void SetMaxWidth(int32_t cx, bool bNeedDpiScale = true);
+	void SetMaxWidth(int32_t cx, bool bNeedDpiScale);
 
 	/** 获取最小高度
 	* @return 返回最小高度（包含内边距，不包含外边距）（返回值 >= 0）
@@ -188,7 +188,7 @@ public:
 	 * @param [in] cy 要设置的最小高度（包含内边距，不包含外边距）（值 >= 0）
 	 * @param [in] bNeedDpiScale 是否需要做DPI自适应
 	 */
-	void SetMinHeight(int32_t cy, bool bNeedDpiScale = true);
+	void SetMinHeight(int32_t cy, bool bNeedDpiScale);
 
 	/** 获取最大高度
 	* @return 返回最大高度（包含内边距，不包含外边距）（返回值 >= 0）
@@ -199,7 +199,7 @@ public:
 	 * @param[in] cy 要设置的最大高度（包含内边距，不包含外边距）（值 >= 0）
 	 * @param [in] bNeedDpiScale 是否需要做DPI自适应
 	 */
-	void SetMaxHeight(int32_t cy, bool bNeedDpiScale = true);
+	void SetMaxHeight(int32_t cy, bool bNeedDpiScale);
 
 	/** 获取实际宽度（包括内边距，不包括外边距）
 	 */
@@ -244,7 +244,7 @@ public:
 
 	/** 设置内边距
 	 * @param[in] rcPadding 内边距数据
-	 * @param[in] bNeedDpiScale 是否根据 DPI 自适应，默认为 true
+	 * @param[in] bNeedDpiScale 是否根据 DPI 自适应
 	 */
 	void SetPadding(UiPadding rcPadding, bool bNeedDpiScale);
 

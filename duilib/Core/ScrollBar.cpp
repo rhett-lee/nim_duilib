@@ -131,10 +131,10 @@ void ScrollBar::SetAttribute(const std::wstring& strName, const std::wstring& st
 		SetHorizontal(strValue == L"true");
 	}
 	else if ((strName == L"line_size") || (strName == L"linesize")) {
-		SetLineSize(_wtoi(strValue.c_str()));
+		SetLineSize(_wtoi(strValue.c_str()), true);
 	}
 	else if ((strName == L"thumb_min_length") || (strName == L"thumbminlength")) {
-		SetThumbMinLength(_wtoi(strValue.c_str()));
+		SetThumbMinLength(_wtoi(strValue.c_str()), true);
 	}
 	else if (strName == L"range") {
 		SetScrollRange(_wtoi(strValue.c_str()));
@@ -154,6 +154,23 @@ void ScrollBar::SetAttribute(const std::wstring& strName, const std::wstring& st
 	else {
 		Control::SetAttribute(strName, strValue);
 	}
+}
+
+void ScrollBar::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
+{
+	ASSERT(nNewDpiScale == Dpi().GetScale());
+	if (nNewDpiScale != Dpi().GetScale()) {
+		return;
+	}
+	int32_t iValue = GetLineSize();
+	iValue = Dpi().GetScaleInt(iValue, nOldDpiScale);
+	SetLineSize(iValue, false);
+
+	iValue = GetThumbMinLength();
+	iValue = Dpi().GetScaleInt(iValue, nOldDpiScale);
+	SetThumbMinLength(iValue, false);
+
+	__super::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
 }
 
 void ScrollBar::SetEnabled(bool bEnable)

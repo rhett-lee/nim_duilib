@@ -161,19 +161,19 @@ void Control::SetAttribute(const std::wstring& strName, const std::wstring& strV
 				nBorderSize = 0;
 			}
 			UiRect rcBorder(nBorderSize, nBorderSize, nBorderSize, nBorderSize);
-			SetBorderSize(rcBorder);
+			SetBorderSize(rcBorder, true);
 		}
 		else {
 			UiMargin rcMargin;
 			AttributeUtil::ParseMarginValue(strValue.c_str(), rcMargin);
 			UiRect rcBorder(rcMargin.left, rcMargin.top, rcMargin.right, rcMargin.bottom);
-			SetBorderSize(rcBorder);
+			SetBorderSize(rcBorder, true);
 		}
 	}
 	else if ((strName == L"border_round") || (strName == L"borderround")) {
 		UiSize cxyRound;
 		AttributeUtil::ParseSizeValue(strValue.c_str(), cxyRound);
-		SetBorderRound(cxyRound);
+		SetBorderRound(cxyRound, true);
 	}
 	else if ((strName == L"box_shadow") || (strName == L"boxshadow")) {
 		SetBoxShadow(strValue);
@@ -274,8 +274,7 @@ void Control::SetAttribute(const std::wstring& strName, const std::wstring& strV
 	else if ((strName == L"render_offset") || (strName == L"renderoffset")) {
 		UiPoint renderOffset;
 		AttributeUtil::ParsePointValue(strValue.c_str(), renderOffset);
-		Dpi().ScalePoint(renderOffset);
-		SetRenderOffset(renderOffset);
+		SetRenderOffset(renderOffset, true);
 	}
 	else if ((strName == L"normal_color") || (strName == L"normalcolor")) {
 		SetStateColor(kControlStateNormal, strValue);
@@ -308,31 +307,31 @@ void Control::SetAttribute(const std::wstring& strName, const std::wstring& strV
 		SetFocusBorderColor(strValue);
 	}
 	else if ((strName == L"left_border_size") || (strName == L"leftbordersize")) {
-		SetLeftBorderSize(_wtoi(strValue.c_str()));
+		SetLeftBorderSize(_wtoi(strValue.c_str()), true);
 	}
 	else if ((strName == L"top_border_size") || (strName == L"topbordersize")) {
-		SetTopBorderSize(_wtoi(strValue.c_str()));
+		SetTopBorderSize(_wtoi(strValue.c_str()), true);
 	}
 	else if ((strName == L"right_border_size") || (strName == L"rightbordersize")) {
-		SetRightBorderSize(_wtoi(strValue.c_str()));
+		SetRightBorderSize(_wtoi(strValue.c_str()), true);
 	}
 	else if ((strName == L"bottom_border_size") || (strName == L"bottombordersize")) {
-		SetBottomBorderSize(_wtoi(strValue.c_str()));
+		SetBottomBorderSize(_wtoi(strValue.c_str()), true);
 	}
 	else if (strName == L"bkimage") {
 		SetBkImage(strValue);
 	}
 	else if ((strName == L"min_width") || (strName == L"minwidth")) {
-		SetMinWidth(_wtoi(strValue.c_str()));
+		SetMinWidth(_wtoi(strValue.c_str()), true);
 	}
 	else if ((strName == L"max_width") || (strName == L"maxwidth")) {
-		SetMaxWidth(_wtoi(strValue.c_str()));
+		SetMaxWidth(_wtoi(strValue.c_str()), true);
 	}
 	else if ((strName == L"min_height") || (strName == L"minheight")) {
-		SetMinHeight(_wtoi(strValue.c_str()));
+		SetMinHeight(_wtoi(strValue.c_str()), true);
 	}
 	else if ((strName == L"max_height") || (strName == L"maxheight")) {
-		SetMaxHeight(_wtoi(strValue.c_str()));
+		SetMaxHeight(_wtoi(strValue.c_str()), true);
 	}
 	else if (strName == L"name") {
 		SetName(strValue);
@@ -342,6 +341,10 @@ void Control::SetAttribute(const std::wstring& strName, const std::wstring& strV
 	}
 	else if ((strName == L"tooltip_text_id") || (strName == L"tooltip_textid") || (strName == L"tooltiptextid")) {
 		SetToolTipTextId(strValue);
+	}
+	else if (strName == L"tooltip_width") {
+
+		SetToolTipWidth(_wtoi(strValue.c_str()), true);
 	}
 	else if ((strName == L"data_id") || (strName == L"dataid")) {
 		SetDataID(strValue);
@@ -454,6 +457,78 @@ void Control::SetAttribute(const std::wstring& strName, const std::wstring& strV
 	else {
 		ASSERT(!"Control::SetAttribute失败: 发现不能识别的属性");
 	}
+}
+
+void Control::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
+{
+	ASSERT(nNewDpiScale == Dpi().GetScale());
+	if (nNewDpiScale != Dpi().GetScale()) {
+		return;
+	}
+	UiMargin rcMargin = GetMargin();
+	rcMargin = Dpi().GetScaleMargin(rcMargin, nOldDpiScale);
+	SetMargin(rcMargin, false);
+
+	UiPadding rcPadding = GetPadding();
+	rcPadding = Dpi().GetScalePadding(rcPadding, nOldDpiScale);
+	SetPadding(rcPadding, false);
+
+	UiRect rcBorder = GetBorderSize();
+	rcBorder = Dpi().GetScaleRect(rcBorder, nOldDpiScale);
+	SetBorderSize(rcBorder, false);
+
+	UiSize cxyRound = GetBorderRound();
+	cxyRound = Dpi().GetScaleSize(cxyRound, nOldDpiScale);
+	SetBorderRound(cxyRound, false);
+	
+	UiPoint renderOffset = GetRenderOffset();
+	renderOffset = Dpi().GetScalePoint(renderOffset, nOldDpiScale);
+	SetRenderOffset(renderOffset, false);
+
+	int32_t nMinWidth = GetMinWidth();
+	nMinWidth = Dpi().GetScaleInt(nMinWidth, nOldDpiScale);
+	SetMinWidth(nMinWidth, false);
+
+	int32_t nMaxWidth = GetMaxWidth();
+	nMaxWidth = Dpi().GetScaleInt(nMaxWidth, nOldDpiScale);
+	SetMaxWidth(nMaxWidth, false);
+
+	int32_t nMinHeight = GetMinHeight();
+	nMinHeight = Dpi().GetScaleInt(nMinHeight, nOldDpiScale);
+	SetMinHeight(nMinHeight, false);
+
+	int32_t nMaxHeight = GetMaxHeight();
+	nMaxHeight = Dpi().GetScaleInt(nMaxHeight, nOldDpiScale);
+	SetMaxHeight(nMaxHeight, false);
+
+	int32_t nToolTipWidth = GetToolTipWidth();
+	nToolTipWidth = Dpi().GetScaleInt(nToolTipWidth, nOldDpiScale);
+	SetToolTipWidth(nToolTipWidth, false);
+
+	UiPadding rcBkImagePadding = GetBkImagePadding();
+	rcBkImagePadding = Dpi().GetScalePadding(rcBkImagePadding, nOldDpiScale);
+	SetBkImagePadding(rcBkImagePadding, false);
+
+	UiSize cxyBorderRound = GetBorderRound();
+	cxyBorderRound = Dpi().GetScaleSize(cxyBorderRound, nOldDpiScale);
+	SetBorderRound(cxyBorderRound, false);
+
+	UiFixedInt fixedWidth = GetFixedWidth();
+	if (fixedWidth.IsInt32()) {
+		int32_t nFixedWidth = Dpi().GetScaleInt(fixedWidth.GetInt32(), nOldDpiScale);
+		SetFixedWidth(UiFixedInt(nFixedWidth), true, false);
+	}
+	UiFixedInt fixedHeight = GetFixedHeight();
+	if (fixedHeight.IsInt32()) {
+		int32_t nFixedHeight = Dpi().GetScaleInt(fixedHeight.GetInt32(), nOldDpiScale);
+		SetFixedHeight(UiFixedInt(nFixedHeight), true, false);
+	}
+
+	//对于auto类型的控件，需要重新评估大小
+	SetReEstimateSize(true);
+
+	//图片属性：待查
+	//AdjustStateImagesPaddingLeft(int32_t leftOffset, bool bNeedDpiScale)
 }
 
 void Control::SetClass(const std::wstring& strClass)
@@ -891,11 +966,8 @@ UiSize Control::GetBkImageSize() const
 {
 	UiSize imageSize;
 	if (m_pBkImage != nullptr) {
+		LoadImageData(*m_pBkImage);
 		std::shared_ptr<ImageInfo> imageInfo = m_pBkImage->GetImageCache();
-		if (imageInfo == nullptr) {
-			LoadImageData(*m_pBkImage);
-			imageInfo = m_pBkImage->GetImageCache();
-		}
 		if (imageInfo != nullptr) {
 			imageSize.cx = imageInfo->GetWidth();
 			imageSize.cy = imageInfo->GetHeight();
@@ -991,6 +1063,11 @@ void Control::SetBorderSize(UiRect rc, bool bNeedDpiScale)
 		m_rcBorderSize = rc;
 		Invalidate();
 	}	
+}
+
+const UiRect& Control::GetBorderSize() const
+{
+	return m_rcBorderSize;
 }
 
 int32_t Control::GetLeftBorderSize() const
@@ -2807,8 +2884,11 @@ void Control::SetTabStop(bool enable)
 	m_bAllowTabstop = enable;
 }
 
-void Control::SetRenderOffset(UiPoint renderOffset)
+void Control::SetRenderOffset(UiPoint renderOffset, bool bNeedDpiScale)
 {
+	if (bNeedDpiScale) {
+		Dpi().ScalePoint(renderOffset);
+	}	
 	if (m_renderOffset != renderOffset) {
 		m_renderOffset = renderOffset;
 		Invalidate();

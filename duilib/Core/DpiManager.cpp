@@ -108,18 +108,6 @@ bool DpiManager::IsPerMonitorDpiAware() const
 	}
 }
 
-//待删除（此函数不起作用）
-bool DpiManager::UpdateDPI(uint32_t& nOldDPI)
-{
-	if (IsUserDefineDpi() || !IsPerMonitorDpiAware()) {
-		return false;
-	}
-	nOldDPI = GetDPI();
-	SetDpiByWindow(nullptr);
-	uint32_t nNewDPI = GetDPI();
-	return (nOldDPI != nNewDPI);
-}
-
 void DpiManager::SetDpiByWindow(Window* pWindow)
 {
 	//读取窗口的DPI值
@@ -227,6 +215,24 @@ uint32_t DpiManager::GetScaleInt(uint32_t iValue) const
 	return iValue;
 }
 
+int32_t DpiManager::GetScaleInt(int32_t iValue, uint32_t nOldDpiScale) const
+{
+	if ((nOldDpiScale == 0) || (m_nScaleFactor == 0)) {
+		return iValue;
+	}
+	iValue = (uint32_t)MulDiv((int)iValue, m_nScaleFactor, nOldDpiScale);
+	return iValue;
+}
+
+uint32_t DpiManager::GetScaleInt(uint32_t iValue, uint32_t nOldDpiScale) const
+{
+	if ((nOldDpiScale == 0) || (m_nScaleFactor == 0)) {
+		return iValue;
+	}
+	iValue = (uint32_t)MulDiv((int)iValue, m_nScaleFactor, nOldDpiScale);
+	return iValue;
+}
+
 void DpiManager::ScaleSize(SIZE &size) const
 {
 	if (m_nScaleFactor == 100) {
@@ -251,6 +257,16 @@ UiSize DpiManager::GetScaleSize(UiSize size) const
 	return size;
 }
 
+UiSize DpiManager::GetScaleSize(UiSize size, uint32_t nOldDpiScale) const
+{
+	if ((m_nScaleFactor == 0) || (nOldDpiScale == 0) ){
+		return size;
+	}
+	size.cx = MulDiv(size.cx, m_nScaleFactor, nOldDpiScale);
+	size.cy = MulDiv(size.cy, m_nScaleFactor, nOldDpiScale);
+	return size;
+}
+
 void DpiManager::ScalePoint(POINT &point) const
 {
 	if (m_nScaleFactor == 100) {
@@ -265,9 +281,18 @@ void DpiManager::ScalePoint(UiPoint &point) const
 	if (m_nScaleFactor == 100) {
 		return;
 	}
-
 	point.x = MulDiv(point.x, m_nScaleFactor, 100);
 	point.y = MulDiv(point.y, m_nScaleFactor, 100);
+}
+
+UiPoint DpiManager::GetScalePoint(UiPoint point, uint32_t nOldDpiScale) const
+{
+	if ((m_nScaleFactor == 0) || (nOldDpiScale == 0)) {
+		return point;
+	}
+	point.x = MulDiv(point.x, m_nScaleFactor, nOldDpiScale);
+	point.y = MulDiv(point.y, m_nScaleFactor, nOldDpiScale);
+	return point;
 }
 
 void DpiManager::ScaleRect(RECT &rect) const
@@ -296,6 +321,20 @@ void DpiManager::ScaleRect(UiRect &rect) const
 	rect.bottom = rect.top + height;
 }
 
+UiRect DpiManager::GetScaleRect(UiRect rect, uint32_t nOldDpiScale) const
+{
+	if ((m_nScaleFactor == 0) || (nOldDpiScale == 0)) {
+		return rect;
+	}
+	int32_t width = MulDiv(rect.right - rect.left, m_nScaleFactor, nOldDpiScale);
+	int32_t height = MulDiv(rect.bottom - rect.top, m_nScaleFactor, nOldDpiScale);
+	rect.left = MulDiv(rect.left, m_nScaleFactor, nOldDpiScale);
+	rect.top = MulDiv(rect.top, m_nScaleFactor, nOldDpiScale);
+	rect.right = rect.left + width;
+	rect.bottom = rect.top + height;
+	return rect;
+}
+
 void DpiManager::ScalePadding(UiPadding& padding) const
 {
 	if (m_nScaleFactor == 100) {
@@ -307,6 +346,18 @@ void DpiManager::ScalePadding(UiPadding& padding) const
 	padding.bottom = MulDiv(padding.bottom, m_nScaleFactor, 100);
 }
 
+UiPadding DpiManager::GetScalePadding(UiPadding padding, uint32_t nOldDpiScale) const
+{
+	if ((m_nScaleFactor == 0) || (nOldDpiScale == 0)) {
+		return padding;
+	}
+	padding.left = MulDiv(padding.left, m_nScaleFactor, nOldDpiScale);
+	padding.top = MulDiv(padding.top, m_nScaleFactor, nOldDpiScale);
+	padding.right = MulDiv(padding.right, m_nScaleFactor, nOldDpiScale);
+	padding.bottom = MulDiv(padding.bottom, m_nScaleFactor, nOldDpiScale);
+	return padding;
+}
+
 void DpiManager::ScaleMargin(UiMargin& margin) const
 {
 	if (m_nScaleFactor == 100) {
@@ -316,6 +367,18 @@ void DpiManager::ScaleMargin(UiMargin& margin) const
 	margin.top = MulDiv(margin.top, m_nScaleFactor, 100);
 	margin.right = MulDiv(margin.right, m_nScaleFactor, 100);
 	margin.bottom = MulDiv(margin.bottom, m_nScaleFactor, 100);
+}
+
+UiMargin DpiManager::GetScaleMargin(UiMargin margin, uint32_t nOldDpiScale) const
+{
+	if ((m_nScaleFactor == 0) || (nOldDpiScale == 0)) {
+		return margin;
+	}
+	margin.left = MulDiv(margin.left, m_nScaleFactor, nOldDpiScale);
+	margin.top = MulDiv(margin.top, m_nScaleFactor, nOldDpiScale);
+	margin.right = MulDiv(margin.right, m_nScaleFactor, nOldDpiScale);
+	margin.bottom = MulDiv(margin.bottom, m_nScaleFactor, nOldDpiScale);
+	return margin;
 }
 
 int32_t DpiManager::MulDiv(int32_t nNumber, int32_t nNumerator, int32_t nDenominator) const

@@ -265,6 +265,23 @@ public:
         }
     }
 
+    /** DPI发生变化，更新控件大小和布局
+    * @param [in] nOldDpiScale 旧的DPI缩放百分比
+    * @param [in] nNewDpiScale 新的DPI缩放百分比，与Dpi().GetScale()的值一致
+    */
+    virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override
+    {
+        ASSERT(nNewDpiScale == Dpi().GetScale());
+        if (nNewDpiScale != Dpi().GetScale()) {
+            return;
+        }
+        int32_t iValue = GetCheckBoxWidth();
+        iValue = Dpi().GetScaleInt(iValue, nOldDpiScale);
+        SetCheckBoxWidth(iValue, false);
+
+        __super::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
+    }
+
     /** 设置CheckBox所占的宽度值
     */
     void SetCheckBoxWidth(int32_t nWidth, bool bNeedDpiScale)

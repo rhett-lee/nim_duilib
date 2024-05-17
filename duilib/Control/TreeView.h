@@ -34,6 +34,12 @@ public:
 	virtual bool IsVisible() const override;
 	virtual bool SupportCheckedMode() const override;
 
+	/** DPI发生变化，更新控件大小和布局
+	* @param [in] nOldDpiScale 旧的DPI缩放百分比
+	* @param [in] nNewDpiScale 新的DPI缩放百分比，与Dpi().GetScale()的值一致
+	*/
+	virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override;
+
 private:
 	virtual void PaintStateImages(IRender* pRender) override;
 	virtual bool ButtonDown(const EventArgs& msg) override;
@@ -256,15 +262,27 @@ private:
 	*/
 	size_t GetDescendantNodeMaxListBoxIndex() const;
 
+	/** 设置[展开/收起]按钮后面的间隔
+	*/
+	void SetExpandIndent(int32_t nExpandIndent, bool bNeedDpiScale);
+
 	/** 获取[展开/收起]按钮后面的间隔
 	*/
 	uint16_t GetExpandIndent() const;
+
+	/** 设置 CheckBox 后面的间隔
+	*/
+	void SetCheckBoxIndent(int32_t nIndent, bool bNeedDpiScale);
 
 	/** 获取CheckBox 后面的间隔
 	*/
 	uint16_t GetCheckBoxIndent() const;
 
-	/** icon 图标后面的间隔
+	/** 设置 icon 图标后面的间隔
+	*/
+	void SetIconIndent(int32_t nIndent, bool bNeedDpiScale);
+
+	/** 获取 icon 图标后面的间隔
 	*/
 	uint16_t GetIconIndent() const;
 	

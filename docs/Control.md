@@ -54,6 +54,7 @@
 | fore_disabled_image |  | string | SetForeStateImage|禁用的状态前景图片 |
 | tooltip_text |  | string | SetToolTipText|鼠标悬浮提示,如(请在这里输入你的密码) |
 | tooltip_text_id |  | string | SetToolTipTextId|鼠标悬浮提示,指定多语言模块的ID,当tooltiptext为空时则显示此属性,如(TOOL_TIP_ID) |
+| tooltip_width |  | int | SetToolTipWidth| 鼠标悬浮提示所占的宽度 |
 | data_id |  | string | SetDataID|自定义字符串数据,辅助函数，供用户使用 |
 | user_data_id |  | size_t | SetUserDataID|自定义整型数据, 供用户使用 |
 | enabled | true | bool | SetEnabled|是否可以响应用户操作,如(true) |

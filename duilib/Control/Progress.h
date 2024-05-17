@@ -23,168 +23,129 @@ public:
 	virtual void PaintStateImages(IRender* pRender) override;
 	virtual void ClearImageCache() override;
 
-	/**
-	 * @brief 判断是否是水平进度条
+	/** DPI发生变化，更新控件大小和布局
+	* @param [in] nOldDpiScale 旧的DPI缩放百分比
+	* @param [in] nNewDpiScale 新的DPI缩放百分比，与Dpi().GetScale()的值一致
+	*/
+	virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override;
+
+	/** 判断是否是水平进度条
 	 * @return 返回 true 是水平进度条，false 为垂直进度条
 	 */
-	bool IsHorizontal();
+	bool IsHorizontal() const;
 
-	/**
-	 * @brief 设置水平或垂直进度条
-	 * @param[in] bHorizontal 为 true 时设置为水平进度条，false 时设置为垂直进度条，默认为 true
-	 * @return 无
+	/** 设置水平或垂直进度条
+	 * @param [in] bHorizontal 为 true 时设置为水平进度条，false 时设置为垂直进度条，默认为 true
 	 */
 	void SetHorizontal(bool bHorizontal = true);
 
-	/**
-	 * @brief 获取进度条最小值
+	/** 获取进度条最小值
 	 * @return 返回进度条最小值
 	 */
-	int GetMinValue() const;
+	int32_t GetMinValue() const;
 
-	/**
-	 * @brief 设置进度条最小值
-	 * @param[in] nMin 最小值数值
-	 * @return 无
+	/** 设置进度条最小值
+	 * @param [in] nMin 最小值数值
 	 */
-	void SetMinValue(int nMin);
+	void SetMinValue(int32_t nMin);
 
-	/**
-	 * @brief 获取进度条最大值
+	/** 获取进度条最大值
 	 * @return 返回进度条最大值
 	 */
-	int GetMaxValue() const;
+	int32_t GetMaxValue() const;
 
-	/**
-	 * @brief 设置进度条最大值
-	 * @param[in] nMax 要设置的最大值
-	 * @return 无
+	/** 设置进度条最大值
+	 * @param [in] nMax 要设置的最大值
 	 */
-	void SetMaxValue(int nMax);
+	void SetMaxValue(int32_t nMax);
 
-	/**
-	 * @brief 获取当前进度百分比
+	/** 获取当前进度百分比
 	 * @return 返回当前进度百分比
 	 */
 	double GetValue() const;
 
-	/**
-	 * @brief 设置当前进度百分比
+	/** 设置当前进度百分比
 	 * @param[in] nValue 要设置的百分比数值
-	 * @return 无
 	 */
 	void SetValue(double nValue);
 
-	/**
-	 * @brief 进度条前景图片是否缩放显示
+	/** 进度条前景图片是否缩放显示
 	 * @return 返回 true 为缩放显示，false 为不缩放显示
 	 */
 	bool IsStretchForeImage();
 
-	/**
-	 * @brief 设置进度条前景图片是否缩放显示
-	 * @param[in] bStretchForeImage true 为缩放显示，false 为不缩放显示
-	 * @return 无
+	/** 设置进度条前景图片是否缩放显示
+	 * @param [in] bStretchForeImage true 为缩放显示，false 为不缩放显示
 	 */
 	void SetStretchForeImage(bool bStretchForeImage = true);
 
-	/**
-	 * @brief 获取滚动条背景图片
+	/** 获取滚动条背景图片
 	 * @return 返回背景图片位置
 	 */
 	std::wstring GetProgressImage() const;
 
-	/**
-	 * @brief 设置进度条背景图片
-	 * @param[in] strImage 图片地址
-	 * @return 无
+	/** 设置进度条背景图片
+	 * @param [in] strImage 图片地址
 	 */
 	void SetProgressImage(const std::wstring& strImage);
 
-	/**
-	 * @brief 获取进度条背景颜色
+	/** 获取进度条背景颜色
 	 * @return 返回背景颜色的字符串值，对应 global.xml 中的指定色值
 	 */
 	std::wstring GetProgressColor() const;
 
-	/**
-	 * @brief 设置进度条背景颜色
-	 * @param[in] 要设置的背景颜色字符串，该字符串必须在 global.xml 中存在
-	 * @return 无
+	/** 设置进度条背景颜色
+	 * @param [in] 要设置的背景颜色字符串，该字符串必须在 global.xml 中存在
 	 */
 	void SetProgressColor(const std::wstring& strProgressColor);
 
-	/**
-	 * @brief 获取进度条位置
-	 * @return 返回进度条当前位置
+	/** 获取进度条位置
 	 */
 	virtual UiRect GetProgressPos();
 
-	/**
-	 * @brief 播放Marquee
-	 * @return 无
+	/** 播放Marquee
 	 */
 	virtual void Play();
 
-	/**
-	 * @brief 绘制Marquee
-	 * @return 无
+	/** 绘制Marquee
 	 */
 	void PaintMarquee(IRender* pRender);
 
-	/**
-	 * @brief 是否是Marquee
-	 * @return 无
+	/** 是否是Marquee
 	 */
-	bool IsMarquee();
+	bool IsMarquee() const;
 
-	/**
-	 * @brief 设置Marquee
-	 * @return 无
+	/** 设置Marquee
 	 */
 	void SetMarquee(bool bMarquee);
 
-	/**
-	 * @brief 获取Marquee宽度
-	 * @return 无
+	/** 获取Marquee宽度
 	 */
-	int GetMarqueeWidth();
+	int32_t GetMarqueeWidth() const;
 
-	/**
-	 * @brief 设置Marquee宽度
-	 * @return 无
+	/** 设置Marquee宽度
 	 */
-	void SetMarqueeWidth(int nMarqueeWidth);
+	void SetMarqueeWidth(int32_t nMarqueeWidth, bool bNeedDpiScale);
 
-	/**
-	 * @brief 获取Marquee步长
-	 * @return 无
+	/** 获取Marquee步长
 	 */
-	int GetMarqueeStep();
+	int32_t GetMarqueeStep() const;
 
-	/**
-	 * @brief 设置Marquee步长
-	 * @return 无
+	/** 设置Marquee步长
 	 */
-	void SetMarqueeStep(int nMarqueeStep);
+	void SetMarqueeStep(int32_t nMarqueeStep, bool bNeedDpiScale);
 
-	/**
-	 * @brief 获取Marquee持续时间
-	 * @return 无
+	/** 获取Marquee持续时间
 	 */
-	int GetMarqueeElapsed();
+	int32_t GetMarqueeElapsed() const;
 
-	/**
-	 * @brief 设置Marquee持续时间
-	 * @return 无
+	/** 设置Marquee持续时间
 	 */
-	void SetMarqueeElapsed(int nMarqueeElapsed);
+	void SetMarqueeElapsed(int32_t nMarqueeElapsed);
 
-  /**
-  * @brief 设置是否反向填充进度条
-  * @return 无
-  */
-  void SetReverse(bool bReverse);
+	/** 设置是否反向填充进度条
+	*/
+	void SetReverse(bool bReverse);
 
 protected:
 	//进度条是水平或垂直: true为水平，false为垂直
@@ -194,10 +155,10 @@ protected:
 	bool m_bStretchForeImage;
 
 	//进度最大值（默认为100）
-	int m_nMax;
+	int32_t m_nMax;
 
 	//进度最小值（默认为0）
-	int m_nMin;
+	int32_t m_nMin;
 
 	//当前进度值
 	double m_nValue;
@@ -213,10 +174,10 @@ protected:
 
 	//滚动效果
 	bool m_bMarquee;
-	int m_nMarqueeWidth;
-	int m_nMarqueeStep;
-	int m_nMarqueeElapsed;
-	int m_nMarqueePos;
+	int32_t m_nMarqueeWidth;
+	int32_t m_nMarqueeStep;
+	int32_t m_nMarqueeElapsed;
+	int32_t m_nMarqueePos;
 
 	//是否倒数（进度从100 到 0）
 	bool m_bReverse;

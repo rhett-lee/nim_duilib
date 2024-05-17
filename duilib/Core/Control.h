@@ -213,7 +213,11 @@ public:
 	 * @param [in] rc 一个 `UiRect` 结构的边框大小集合
 	 * @param [in] bNeedDpiScale 是否需要做DPI自适应
 	 */
-	void SetBorderSize(UiRect rc, bool bNeedDpiScale = true);
+	void SetBorderSize(UiRect rc, bool bNeedDpiScale);
+
+	/** 获取边框大小
+	*/
+	const UiRect& GetBorderSize() const;
 
 	/** 获取左侧边框大小
 	 * @return 左侧边框的大小  
@@ -224,7 +228,7 @@ public:
 	 * @param [in] nSize 要设置的左侧边框大小
 	 * @param [in] bNeedDpiScale 是否需要做DPI自适应
 	 */
-	void SetLeftBorderSize(int32_t nSize, bool bNeedDpiScale = true);
+	void SetLeftBorderSize(int32_t nSize, bool bNeedDpiScale);
 
 	/** 获取顶部边框大小
 	 */
@@ -234,7 +238,7 @@ public:
 	 * @param [in] nSize 要设置的上方边框大小
 	 * @param [in] bNeedDpiScale 是否需要做DPI自适应
 	 */
-	void SetTopBorderSize(int32_t nSize, bool bNeedDpiScale = true);
+	void SetTopBorderSize(int32_t nSize, bool bNeedDpiScale);
 
 	/** 获取右侧边框大小
 	 * @return 右侧的边框大小
@@ -245,7 +249,7 @@ public:
 	 * @param [in] nSize 要设置的右侧边框大小
 	 * @param [in] bNeedDpiScale 是否需要做DPI自适应
 	 */
-	void SetRightBorderSize(int32_t nSize, bool bNeedDpiScale = true);
+	void SetRightBorderSize(int32_t nSize, bool bNeedDpiScale);
 
 	/** 获取下方边框大小
 	 * @return 下方边框大小
@@ -256,7 +260,7 @@ public:
 	 * @param [in] nSize 要设置的下方边框大小
 	 * @param [in] bNeedDpiScale 是否需要做DPI自适应
 	 */
-	void SetBottomBorderSize(int32_t nSize, bool bNeedDpiScale = true);
+	void SetBottomBorderSize(int32_t nSize, bool bNeedDpiScale);
 
 	/** 获取圆角大小
 	 */
@@ -266,7 +270,7 @@ public:
 	 * @param [in] cxyRound 一个 UiSize 结构表示圆角大小
 	 * @param [in] bNeedDpiScale 是否需要做DPI自适应
 	 */
-	void SetBorderRound(UiSize cxyRound, bool bNeedDpiScale = true);
+	void SetBorderRound(UiSize cxyRound, bool bNeedDpiScale);
 
 	/** 设置边框阴影
 	 * @param[in] 要设置的阴影属性
@@ -326,7 +330,7 @@ public:
 
 	/** 设置鼠标悬浮到控件上提示的文本单行最大宽度
 	 * @param [in] nWidth 要设置的宽度值
-	 * @param [in] bNeedDpiScale 兼容 DPI 缩放，默认为 true
+	 * @param [in] bNeedDpiScale 是否支持DPI缩放
 	 */
 	virtual void SetToolTipWidth(int32_t nWidth, bool bNeedDpiScale);
 
@@ -715,24 +719,19 @@ public:
 	 */
 	UiPoint GetRenderOffset() const { return m_renderOffset;	}
 
-	/**
-	 * @brief 设置控件绘制偏移量
-	 * @param[in] renderOffset 控件偏移数据
-	 * @return 无
+	/** 设置控件绘制偏移量
+	 * @param [in] renderOffset 控件偏移数据
+	 * @param [in] bNeedDpiScale 是否支持DPI缩放
 	 */
-	void SetRenderOffset(UiPoint renderOffset);
+	void SetRenderOffset(UiPoint renderOffset, bool bNeedDpiScale);
 
-	/**
-	 * @brief 设置控件偏移的 X 坐标
+	/** 设置控件偏移的 X 坐标
 	 * @param[in] renderOffsetX X 坐标值
-	 * @return 无
 	 */
 	void SetRenderOffsetX(int64_t renderOffsetX);
 
-	/**
-	 * @brief 设置控件偏移的 Y 坐标
+	/** 设置控件偏移的 Y 坐标
 	 * @param[in] renderOffsetY Y 坐标值
-	 * @return 无
 	 */
 	void SetRenderOffsetY(int64_t renderOffsetY);
 
@@ -776,6 +775,12 @@ public:
 	/** 客户区坐标转换为屏幕坐标
 	*/
 	virtual bool ClientToScreen(UiPoint& pt);
+
+	/** DPI发生变化，更新控件大小和布局
+	* @param [in] nOldDpiScale 旧的DPI缩放百分比
+	* @param [in] nNewDpiScale 新的DPI缩放百分比，与Dpi().GetScale()的值一致
+	*/
+	virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale);
 
 public:
 	/** 监听控件所有事件
@@ -1080,7 +1085,7 @@ protected:
 	* @param [in] bNeedDpiScale 兼容 DPI 缩放，默认为 true
 	* @return 成功返回true，失败返回false
 	*/
-	bool AdjustStateImagesPaddingLeft(int32_t leftOffset, bool bNeedDpiScale = true);
+	bool AdjustStateImagesPaddingLeft(int32_t leftOffset, bool bNeedDpiScale);
 
 	/** 获取背景图片的内边距
 	 */
@@ -1088,9 +1093,9 @@ protected:
 
 	/** 设置背景图片的内边距
 	 * @param[in] rcPadding 要设置的图片内边距
-	 * @param[in] bNeedDpiScale 兼容 DPI 缩放，默认为 true
+	 * @param[in] bNeedDpiScale 兼容 DPI 缩放
 	 */
-	bool SetBkImagePadding(UiPadding rcPadding, bool bNeedDpiScale = true);
+	bool SetBkImagePadding(UiPadding rcPadding, bool bNeedDpiScale);
 
 	/** 判断是否禁用背景图片绘制
 	*/

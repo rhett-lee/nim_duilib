@@ -83,6 +83,14 @@ bool VirtualHLayout::SetAttribute(const std::wstring& strName, const std::wstrin
     return hasAttribute;
 }
 
+void VirtualHLayout::ChangeDpiScale(const DpiManager& dpiManager, uint32_t nOldDpiScale)
+{
+    UiSize szItem = GetItemSize();
+    szItem = dpiManager.GetScaleSize(szItem, nOldDpiScale);
+    SetItemSize(szItem);
+    __super::ChangeDpiScale(dpiManager, nOldDpiScale);
+}
+
 void VirtualHLayout::SetItemSize(UiSize szItem)
 {
     szItem.cx = std::max(szItem.cx, 0);

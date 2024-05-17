@@ -609,6 +609,12 @@ public:
 	*/
 	virtual void SetAttribute(const std::wstring& pstrName, const std::wstring& pstrValue) override;
 
+	/** DPI发生变化，更新控件大小和布局
+	* @param [in] nOldDpiScale 旧的DPI缩放百分比
+	* @param [in] nNewDpiScale 新的DPI缩放百分比，与Dpi().GetScale()的值一致
+	*/
+	virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override;
+
 	/** 设置关联窗口
 	*/
 	virtual void SetWindow(Window* pManager) override;
@@ -800,9 +806,9 @@ public:
 
 	/** 设置文字内边距信息
 	 * @param[in] padding 内边距信息
-	 * @param[in] bNeedDpiScale 兼容 DPI 缩放，默认为 true
+	 * @param[in] bNeedDpiScale 是否支持DPI缩放
 	 */
-	void SetTextPadding(UiPadding padding, bool bNeedDpiScale = true);
+	void SetTextPadding(UiPadding padding, bool bNeedDpiScale);
 
 	/** 获取文字内边距
 	 */

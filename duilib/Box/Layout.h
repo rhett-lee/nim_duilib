@@ -122,6 +122,12 @@ public:
 	 */
 	virtual UiSize EstimateSizeByChild(const std::vector<Control*>& items, UiSize szAvailable);
 
+	/** DPI发生变化，更新控件大小和布局
+	* @param [in] nOldDpiScale 旧的DPI缩放百分比
+	* @param [in] dpiManager DPI缩放管理器
+	*/
+	virtual void ChangeDpiScale(const DpiManager& dpiManager, uint32_t nOldDpiScale);
+
 public:
 	/** 获取子控件之间的额外边距（X轴方向）
 	 * @return 返回额外间距的数值

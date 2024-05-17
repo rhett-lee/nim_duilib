@@ -27,52 +27,49 @@ public:
 	virtual void PaintStateImages(IRender* pRender) override;
 	virtual void ClearImageCache() override;
 
-	/**
-	* @brief 设置环型进度条，默认为普通进度条
-	* @param[in] bCircular 为 true 时设置为环型进度条，false 时设置为父级进度条样式，默认为 true
-	* @return 无
+	/** DPI发生变化，更新控件大小和布局
+	* @param [in] nOldDpiScale 旧的DPI缩放百分比
+	* @param [in] nNewDpiScale 新的DPI缩放百分比，与Dpi().GetScale()的值一致
+	*/
+	virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override;
+
+	/** 设置环型进度条，默认为普通进度条
+	* @param [in] bCircular 为 true 时设置为环型进度条，false 时设置为父级进度条样式，默认为 true
 	*/
 	void SetCircular(bool bCircular = true);
 
-	/**
-	* @brief 设置递增方向
-	* @param[in] bClockwise 为 true 时设置为顺时针，false 时设置为逆时针，默认为 true
-	* @return 无
+	/** 设置递增方向
+	* @param [in] bClockwise 为 true 时设置为顺时针，false 时设置为逆时针，默认为 true
 	*/
 	void SetClockwiseRotation(bool bClockwise = true);
 
-	/**
-	* @brief 设置圆环宽度
-	* @param[in] nCircleWidth 宽度数值
-	* @return 无
+	/** 设置圆环宽度
+	* @param [in] nCircleWidth 宽度数值
+	* @param [in] bNeedDpiScale 是否支持DPI缩放
 	*/
-	void SetCircleWidth(int nCircleWidth);
+	void SetCircleWidth(int32_t nCircleWidth, bool bNeedDpiScale);
 
-	/**
-	* @brief 设置进度条背景颜色
-	* @param[in] strColor要设置的背景颜色字符串，该字符串必须在 global.xml 中存在
-	* @return 无
+	/** 获取圆环宽度
+	*/
+	int32_t GetCircleWidth() const;
+
+	/** 设置进度条背景颜色
+	* @param [in] strColor要设置的背景颜色字符串，该字符串必须在 global.xml 中存在
 	*/
 	void SetBackgroudColor(const std::wstring& strColor);
 
-	/**
-	* @brief 设置进度条前景颜色
-	* @param[in] strColor要设置的前景颜色字符串，该字符串必须在 global.xml 中存在
-	* @return 无
+	/** 设置进度条前景颜色
+	* @param [in] strColor要设置的前景颜色字符串，该字符串必须在 global.xml 中存在
 	*/
 	void SetForegroudColor(const std::wstring& strColor);
 
-	/**
-	* @brief 设置进度条前景渐变颜色，与 SetForegroudColor 同时使用，可以不设置,则无渐变效果
-	* @param[in] strColor要设置的前景渐变颜色字符串，该字符串必须在 global.xml 中存在
-	* @return 无
+	/** 设置进度条前景渐变颜色，与 SetForegroudColor 同时使用，可以不设置,则无渐变效果
+	* @param [in] strColor要设置的前景渐变颜色字符串，该字符串必须在 global.xml 中存在
 	*/
 	void SetCircleGradientColor(const std::wstring& strColor);
 
-	/**
-	* @brief 设置进度指示移动图标
-	* @param[in] sIndicatorImage 要设置的图片
-	* @return 无
+	/** 设置进度指示移动图标
+	* @param [in] sIndicatorImage 要设置的图片
 	*/
 	void SetIndicator(const std::wstring& sIndicatorImage);
 

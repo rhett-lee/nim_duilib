@@ -36,11 +36,7 @@ void ListCtrlView::SetAttribute(const std::wstring& strName, const std::wstring&
     }
     else if (strName == L"frame_selection_border") {
         int32_t iValue = _wtoi(strValue.c_str());
-        Dpi().ScaleInt(iValue);
-        if (iValue < 0) {
-            iValue = 0;
-        }
-        m_frameSelectionBorderSize = (uint8_t)iValue;        
+        SetFrameSelectionBorderSize(iValue, true);    
     }
     else if (strName == L"frame_selection_border_color") {
         m_frameSelectionBorderColor = strValue;
@@ -48,6 +44,39 @@ void ListCtrlView::SetAttribute(const std::wstring& strName, const std::wstring&
     else {
         __super::SetAttribute(strName, strValue);
     }
+}
+
+void ListCtrlView::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
+{
+    ASSERT(nNewDpiScale == Dpi().GetScale());
+    if (nNewDpiScale != Dpi().GetScale()) {
+        return;
+    }
+    int32_t iValue = GetFrameSelectionBorderSize();
+    iValue = Dpi().GetScaleInt(iValue, nOldDpiScale);
+    SetFrameSelectionBorderSize(iValue, false);
+
+    __super::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
+}
+
+void ListCtrlView::SetFrameSelectionBorderSize(int32_t nBorderSize, bool bNeedDpiScale)
+{
+    if (nBorderSize < 0) {
+        nBorderSize = 0;
+    }
+    if (bNeedDpiScale) {
+        Dpi().ScaleInt(nBorderSize);
+    }
+    m_frameSelectionBorderSize = (uint8_t)nBorderSize;
+}
+
+int32_t ListCtrlView::GetFrameSelectionBorderSize() const
+{
+    int32_t frameSelectionBorderSize = (int8_t)m_frameSelectionBorderSize;
+    if (frameSelectionBorderSize < 0) {
+        frameSelectionBorderSize = Dpi().GetScaleInt(1);
+    }
+    return frameSelectionBorderSize;
 }
 
 void ListCtrlView::SendEvent(EventType eventType, WPARAM wParam, LPARAM lParam, TCHAR tChar, const UiPoint& mousePos)
@@ -1050,15 +1079,6 @@ bool ListCtrlView::OnListCtrlKeyDown(const EventArgs& msg)
         SendEvent(kEventSelect, nCurSel, Box::InvalidIndex);
     }
     return bHandled;
-}
-
-int32_t ListCtrlView::GetFrameSelectionBorderSize() const
-{
-    int32_t frameSelectionBorderSize = m_frameSelectionBorderSize;
-    if (frameSelectionBorderSize < 0) {
-        frameSelectionBorderSize = Dpi().GetScaleInt(1);
-    }
-    return frameSelectionBorderSize;
 }
 
 bool ListCtrlView::SelectItem(size_t iIndex, bool bTakeFocus, bool bTriggerEvent, uint64_t vkFlag)

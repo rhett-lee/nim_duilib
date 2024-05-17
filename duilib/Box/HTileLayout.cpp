@@ -610,6 +610,14 @@ bool HTileLayout::SetAttribute(const std::wstring& strName, const std::wstring& 
 	return hasAttribute;
 }
 
+void HTileLayout::ChangeDpiScale(const DpiManager& dpiManager, uint32_t nOldDpiScale)
+{
+	UiSize szItem = GetItemSize();
+	szItem = dpiManager.GetScaleSize(szItem, nOldDpiScale);
+	SetItemSize(szItem);
+	__super::ChangeDpiScale(dpiManager, nOldDpiScale);
+}
+
 const UiSize& HTileLayout::GetItemSize() const
 {
 	return m_szItem;

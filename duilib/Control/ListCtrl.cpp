@@ -246,6 +246,31 @@ void ListCtrl::SetAttribute(const std::wstring& strName, const std::wstring& str
     }
 }
 
+void ListCtrl::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
+{
+    ASSERT(nNewDpiScale == Dpi().GetScale());
+    if (nNewDpiScale != Dpi().GetScale()) {
+        return;
+    }
+    int32_t iValue = GetRowGridLineWidth();
+    iValue = Dpi().GetScaleInt(iValue, nOldDpiScale);
+    SetRowGridLineWidth(iValue, false);
+
+    iValue = GetColumnGridLineWidth();
+    iValue = Dpi().GetScaleInt(iValue, nOldDpiScale);
+    SetColumnGridLineWidth(iValue, false);
+
+    iValue = GetHeaderHeight();
+    iValue = Dpi().GetScaleInt(iValue, nOldDpiScale);
+    SetHeaderHeight(iValue, false);
+
+    iValue = GetDataItemHeight();
+    iValue = Dpi().GetScaleInt(iValue, nOldDpiScale);
+    SetDataItemHeight(iValue, false);
+
+    __super::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
+}
+
 void ListCtrl::HandleEvent(const EventArgs& msg)
 {
     __super::HandleEvent(msg);

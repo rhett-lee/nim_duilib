@@ -13,6 +13,7 @@ namespace ui
 class Box;
 class Control;
 class Window;
+class DpiManager;
 
 /** 窗口阴影属性
 */
@@ -51,7 +52,7 @@ public:
 	 * @param[in] rc 要设置的九宫格属性
 	 * @param[in] bNeedDpiScale 为 false 表示不需要把 rc 根据 DPI 自动调整
 	 */
-	void SetShadowCorner(const UiPadding&rc, bool bNeedDpiScale = true);
+	void SetShadowCorner(const UiPadding&rc, bool bNeedDpiScale);
 
 	/** 获取阴影的九宫格属性
 	 */
@@ -86,6 +87,13 @@ public:
 	/** 清理图片缓存
 	 */
 	void ClearImageCache();
+
+	/** DPI发生变化，更新控件大小和布局
+	* @param [in] dpi DPI管理器
+	* @param [in] nOldDpiScale 旧的DPI缩放百分比
+	* @param [in] nNewDpiScale 新的DPI缩放百分比，与Dpi().GetScale()的值一致
+	*/
+	void ChangeDpiScale(const DpiManager& dpi, uint32_t nOldDpiScale, uint32_t nNewDpiScale);
 
 private:
 	//是否支持阴影效果

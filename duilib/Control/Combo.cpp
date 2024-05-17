@@ -302,6 +302,20 @@ void Combo::SetAttribute(const std::wstring& strName, const std::wstring& strVal
 	}
 }
 
+void Combo::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
+{
+	ASSERT(nNewDpiScale == Dpi().GetScale());
+	if (nNewDpiScale != Dpi().GetScale()) {
+		return;
+	}
+
+	UiSize szDropBoxSize = GetDropBoxSize();
+	szDropBoxSize = Dpi().GetScaleSize(szDropBoxSize, nOldDpiScale);
+	SetDropBoxSize(szDropBoxSize, false);
+
+	__super::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
+}
+
 void Combo::SetComboTreeClass(const std::wstring& classValue)
 {
 	SetAttributeList(&m_treeView, classValue);

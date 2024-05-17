@@ -23,6 +23,12 @@ public:
 	virtual void Activate() override;
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 
+	/** DPI发生变化，更新控件大小和布局
+	* @param [in] nOldDpiScale 旧的DPI缩放百分比
+	* @param [in] nNewDpiScale 新的DPI缩放百分比，与Dpi().GetScale()的值一致
+	*/
+	virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override;
+
 public:
 	/// 重写父类方法，提供个性化功能，请参考父类声明
 	virtual std::wstring GetType() const override;
@@ -93,6 +99,11 @@ public:
 	* @param[in] callback 下拉窗关闭后触发的回调函数
 	*/
 	void AttachWindowClose(const ui::EventCallback& callback) { AttachEvent(ui::kEventWindowClose, callback); }
+
+protected:
+	/** 初始化函数
+	*/
+	virtual void OnInit() override;
 
 private:
 	/** 默认的子项被选择处理函数

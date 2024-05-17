@@ -186,11 +186,13 @@ LRESULT CCheckComboWnd::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam,
 
 ////////////////////////////////////////////////////////
 
+#define CHECK_COMBO_DEFAULT_HEIGHT 20 
+
 CheckCombo::CheckCombo() :
 	m_pCheckComboWnd(nullptr),
 	m_szDropBox(0, 0),
 	m_bPopupTop(false),
-	m_iOrgHeight(20)
+	m_iOrgHeight(CHECK_COMBO_DEFAULT_HEIGHT)
 {
 	m_pDropList.reset(new ui::ListBox(new ui::VLayout));
 	m_pDropList->EnableScrollBar();
@@ -201,8 +203,6 @@ CheckCombo::CheckCombo() :
 	m_pList->EnableScrollBar();
 
 	Box::AddItem(m_pList.get());
-	SetMaxHeight(m_iOrgHeight * 3);
-	SetMinHeight(m_iOrgHeight);
 }
 
 CheckCombo::~CheckCombo()
@@ -213,6 +213,18 @@ CheckCombo::~CheckCombo()
 }
 
 std::wstring CheckCombo::GetType() const { return DUI_CTR_CHECK_COMBO; }
+
+void CheckCombo::OnInit()
+{
+	if (IsInited()) {
+		return;
+	}
+	if (m_iOrgHeight == CHECK_COMBO_DEFAULT_HEIGHT) {
+		SetMaxHeight(m_iOrgHeight * 3, true);
+		SetMinHeight(m_iOrgHeight, true);
+	}
+	__super::OnInit();
+}
 
 bool CheckCombo::AddItem(Control* pControl)
 {
@@ -357,13 +369,27 @@ void CheckCombo::SetAttribute(const std::wstring& strName, const std::wstring& s
 		if (strValue != L"stretch" && strValue != L"auto") {
 			ASSERT(_wtoi(strValue.c_str()) >= 0);
 			m_iOrgHeight = _wtoi(strValue.c_str());
-			SetMaxHeight(m_iOrgHeight * 3);
-			SetMinHeight(m_iOrgHeight);
+			SetMaxHeight(m_iOrgHeight * 3, true);
+			SetMinHeight(m_iOrgHeight, true);
 		}
 	}
 	else {
 		__super::SetAttribute(strName, strValue);
 	}
+}
+
+void CheckCombo::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
+{
+	ASSERT(nNewDpiScale == Dpi().GetScale());
+	if (nNewDpiScale != Dpi().GetScale()) {
+		return;
+	}
+
+	UiSize szDropBoxSize = GetDropBoxSize();
+	szDropBoxSize = Dpi().GetScaleSize(szDropBoxSize, nOldDpiScale);
+	SetDropBoxSize(szDropBoxSize, false);
+
+	__super::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
 }
 
 void CheckCombo::SetDropBoxAttributeList(const std::wstring& pstrList)

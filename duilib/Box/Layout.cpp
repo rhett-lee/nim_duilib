@@ -18,6 +18,41 @@ void Layout::SetOwner(Box* pOwner)
 	m_pOwner = pOwner;
 }
 
+bool Layout::SetAttribute(const std::wstring& strName, const std::wstring& strValue, const DpiManager& dpiManager)
+{
+	bool hasAttribute = true;
+	if ((strName == L"child_margin") || (strName == L"childmargin")) {
+		int32_t iMargin = _wtoi(strValue.c_str());
+		dpiManager.ScaleInt(iMargin);
+		SetChildMargin(iMargin);
+	}
+	else if ((strName == L"child_margin_x") || (strName == L"childmarginx")) {
+		int32_t iMargin = _wtoi(strValue.c_str());
+		dpiManager.ScaleInt(iMargin);
+		SetChildMarginX(iMargin);
+	}
+	else if ((strName == L"child_margin_y") || (strName == L"childmarginy")) {
+		int32_t iMargin = _wtoi(strValue.c_str());
+		dpiManager.ScaleInt(iMargin);
+		SetChildMarginY(iMargin);
+	}
+	else {
+		hasAttribute = false;
+	}
+	return hasAttribute;
+}
+
+void Layout::ChangeDpiScale(const DpiManager& dpiManager, uint32_t nOldDpiScale)
+{
+	int32_t iMargin = GetChildMarginX();
+	iMargin = dpiManager.GetScaleInt(iMargin, nOldDpiScale);
+	SetChildMarginX(iMargin);
+
+	iMargin = GetChildMarginY();
+	iMargin = dpiManager.GetScaleInt(iMargin, nOldDpiScale);
+	SetChildMarginY(iMargin);
+}
+
 UiSize64 Layout::SetFloatPos(Control* pControl, const UiRect& rcContainer)
 {
 	ASSERT(pControl != nullptr);
@@ -119,30 +154,6 @@ UiRect Layout::GetFloatPos(Control* pControl, UiRect rcContainer, UiSize childSi
 
 	UiRect childPos(childLeft, childTop, childRight, childBottm);
 	return childPos;
-}
-
-bool Layout::SetAttribute(const std::wstring& strName, const std::wstring& strValue, const DpiManager& dpiManager)
-{
-	bool hasAttribute = true;
-	if ((strName == L"child_margin") || (strName == L"childmargin")) {
-		int32_t iMargin = _wtoi(strValue.c_str());
-		dpiManager.ScaleInt(iMargin);
-		SetChildMargin(iMargin);
-	}
-	else if ((strName == L"child_margin_x") || (strName == L"childmarginx")) {
-		int32_t iMargin = _wtoi(strValue.c_str());
-		dpiManager.ScaleInt(iMargin);
-		SetChildMarginX(iMargin);
-	}
-	else if ((strName == L"child_margin_y") || (strName == L"childmarginy")) {
-		int32_t iMargin = _wtoi(strValue.c_str());
-		dpiManager.ScaleInt(iMargin);
-		SetChildMarginY(iMargin);
-	}
-	else {
-		hasAttribute = false;
-	}
-	return hasAttribute;
 }
 
 UiSize64 Layout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)

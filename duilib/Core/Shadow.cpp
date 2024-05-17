@@ -210,7 +210,7 @@ Box* Shadow::AttachShadow(Box* pRoot)
 	}
 
 	if (m_bUseDefaultImage)	{
-		pRoot->SetBorderRound(Shadow::GetChildBoxBorderRound(pRoot));
+		pRoot->SetBorderRound(Shadow::GetChildBoxBorderRound(pRoot), false);
 	}
 
 	m_pRoot->AddItem(pRoot);
@@ -245,6 +245,16 @@ void Shadow::ClearImageCache()
 	if (m_pRoot) {
 		m_pRoot->ClearImageCache();
 	}	
+}
+
+void Shadow::ChangeDpiScale(const DpiManager& dpi, uint32_t nOldDpiScale, uint32_t nNewDpiScale)
+{
+	ASSERT(nNewDpiScale == dpi.GetScale());
+	if (nNewDpiScale != dpi.GetScale()) {
+		return;
+	}
+	m_rcShadowCorner = dpi.GetScalePadding(m_rcShadowCorner, nOldDpiScale);
+	m_rcShadowCornerBackup = dpi.GetScalePadding(m_rcShadowCornerBackup, nOldDpiScale);
 }
 
 }

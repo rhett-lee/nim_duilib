@@ -47,6 +47,12 @@ public:
 							  const std::wstring& strValue,
 							  const DpiManager& dpiManager) override;
 
+	/** DPI发生变化，更新控件大小和布局
+	* @param [in] nOldDpiScale 旧的DPI缩放百分比
+	* @param [in] dpiManager DPI缩放管理器
+	*/
+	virtual void ChangeDpiScale(const DpiManager& dpiManager, uint32_t nOldDpiScale) override;
+
 public:
 	/** 获取子项大小，该宽度和高度，是包含了控件的外边距和内边距的
 	 */

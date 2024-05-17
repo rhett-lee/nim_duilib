@@ -13,6 +13,7 @@ namespace ui
 {
 
 class RichEdit;
+class DpiManager;
 class UILIB_API RichEditHost : public ITextHost
 {
 public:
@@ -82,6 +83,13 @@ public:
 
 	// 设置字体
     void SetFontId(const std::wstring& fontId);
+
+	/** 按DPI变化来修改字体大小
+	* @param [in] nOldDpiScale 旧的DPI缩放百分比
+	* @param [in] dpiManager DPI缩放管理器
+	*/
+	void ChangeDpiScale(const DpiManager& dpiManager, uint32_t nOldDpiScale);
+
 	//设置文本颜色
     void SetTextColor(COLORREF dwColor);
 	//获取文本颜色

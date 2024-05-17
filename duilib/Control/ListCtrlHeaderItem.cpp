@@ -53,6 +53,18 @@ void ListCtrlHeaderItem::SetAttribute(const std::wstring& strName, const std::ws
     }
 }
 
+void ListCtrlHeaderItem::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
+{
+    ASSERT(nNewDpiScale == Dpi().GetScale());
+    if (nNewDpiScale != Dpi().GetScale()) {
+        return;
+    }
+    int32_t iValue = GetIconSpacing();
+    iValue = Dpi().GetScaleInt(iValue, nOldDpiScale);
+    SetIconSpacing(iValue, false);
+    __super::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
+}
+
 void ListCtrlHeaderItem::PaintText(IRender* pRender)
 {
     //需要绘制的内容包括：图标、文字、排序图标
@@ -73,15 +85,19 @@ void ListCtrlHeaderItem::PaintText(IRender* pRender)
             }
         }
     }
-    if ((pItemImage != nullptr) && (pItemImage->GetImageCache() == nullptr)) {
+    std::shared_ptr<ImageInfo> pItemImageCache;
+    if (pItemImage != nullptr) {
         LoadImageData(*pItemImage);
-        if (pItemImage->GetImageCache() == nullptr) {
+        pItemImageCache = pItemImage->GetImageCache();
+        if (pItemImageCache == nullptr) {
             pItemImage = nullptr;
+            pItemImageCache.reset();
         }
         else {
-            if ((pItemImage->GetImageCache()->GetWidth() <= 0) ||
-                (pItemImage->GetImageCache()->GetHeight() <= 0)) {
+            if ((pItemImageCache->GetWidth() <= 0) ||
+                (pItemImageCache->GetHeight() <= 0)) {
                 pItemImage = nullptr;
+                pItemImageCache.reset();
             }
         }
     }
@@ -96,25 +112,30 @@ void ListCtrlHeaderItem::PaintText(IRender* pRender)
         //降序
         pSortImage = m_pSortedDownImage;
     }
-    if ((pSortImage != nullptr) && (pSortImage->GetImageCache() == nullptr)) {
+
+    std::shared_ptr<ImageInfo> pSortImageCache;
+    if (pSortImage != nullptr) {
         LoadImageData(*pSortImage);
-        if (pSortImage->GetImageCache() == nullptr) {
+        pSortImageCache = pSortImage->GetImageCache();
+        if (pSortImageCache == nullptr) {
             pSortImage = nullptr;
+            pSortImageCache.reset();
         }
         else {
-            if ((pSortImage->GetImageCache()->GetWidth() <= 0) ||
-                (pSortImage->GetImageCache()->GetHeight() <= 0)) {
+            if ((pSortImageCache->GetWidth() <= 0) ||
+                (pSortImageCache->GetHeight() <= 0)) {
                 pSortImage = nullptr;
+                pSortImageCache.reset();
             }
         }
     }
 
-    if ((pSortImage != nullptr) && IsShowIconAtTop()) {
+    if ((pSortImageCache != nullptr) && IsShowIconAtTop()) {
         //图标显示在文字的上方，居中显示
         UiRect rc = GetRect();
         rc.Deflate(GetControlPadding());
-        int32_t nImageWidth = pSortImage->GetImageCache()->GetWidth();
-        int32_t nImageHeight = pSortImage->GetImageCache()->GetHeight();
+        int32_t nImageWidth = pSortImageCache->GetWidth();
+        int32_t nImageHeight = pSortImageCache->GetHeight();
         rc.left = rc.CenterX() - nImageWidth / 2;
         rc.right = rc.left + nImageWidth;
         if (!(GetTextStyle() & TEXT_VCENTER) && !(GetTextStyle() & TEXT_BOTTOM)) {
@@ -134,19 +155,19 @@ void ListCtrlHeaderItem::PaintText(IRender* pRender)
         return;
     }
 
-    if (pItemImage != nullptr) {
+    if (pItemImageCache != nullptr) {
         if (itemImageSize.cx <= 0) {
-            itemImageSize.cx = pItemImage->GetImageCache()->GetWidth();
+            itemImageSize.cx = pItemImageCache->GetWidth();
         }
         if (itemImageSize.cy <= 0) {
-            itemImageSize.cy = pItemImage->GetImageCache()->GetHeight();
+            itemImageSize.cy = pItemImageCache->GetHeight();
         }
     }
 
     UiSize sortImageSize;
-    if (pSortImage != nullptr) {
-        sortImageSize.cx = pSortImage->GetImageCache()->GetWidth();
-        sortImageSize.cy = pSortImage->GetImageCache()->GetHeight();
+    if (pSortImageCache != nullptr) {
+        sortImageSize.cx = pSortImageCache->GetWidth();
+        sortImageSize.cy = pSortImageCache->GetHeight();
     }
 
     int32_t nIconTextSpacing = GetIconSpacing();

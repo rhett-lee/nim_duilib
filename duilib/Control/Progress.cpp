@@ -13,8 +13,8 @@ Progress::Progress() :
 	m_pProgressImage(nullptr),
 	m_sProgressImageModify(),
 	m_bMarquee(false),
-	m_nMarqueeWidth(10),
-	m_nMarqueeStep(4),
+	m_nMarqueeWidth(0),
+	m_nMarqueeStep(0),
 	m_nMarqueeElapsed(50), // for 1s 25fps,will use 20fps default
 	m_nMarqueePos(0),
     m_bReverse(false)
@@ -33,7 +33,7 @@ Progress::~Progress()
 
 std::wstring Progress::GetType() const { return DUI_CTR_PROGRESS; }
 
-bool Progress::IsHorizontal()
+bool Progress::IsHorizontal() const
 {
 	return m_bHorizontal;
 }
@@ -47,23 +47,23 @@ void Progress::SetHorizontal(bool bHorizontal)
 	Invalidate();
 }
 
-int Progress::GetMinValue() const
+int32_t Progress::GetMinValue() const
 {
 	return m_nMin;
 }
 
-void Progress::SetMinValue(int nMin)
+void Progress::SetMinValue(int32_t nMin)
 {
 	m_nMin = nMin;
 	Invalidate();
 }
 
-int Progress::GetMaxValue() const
+int32_t Progress::GetMaxValue() const
 {
 	return m_nMax;
 }
 
-void Progress::SetMaxValue(int nMax)
+void Progress::SetMaxValue(int32_t nMax)
 {
 	m_nMax = nMax;
 	Invalidate();
@@ -162,10 +162,10 @@ void Progress::SetAttribute(const std::wstring& srName, const std::wstring& strV
 		SetMarquee(strValue == L"true");
 	}
 	else if ((srName == L"marquee_width") || (srName == L"marqueewidth")){
-		SetMarqueeWidth(_wtoi(strValue.c_str()));
+		SetMarqueeWidth(_wtoi(strValue.c_str()), true);
 	}
 	else if ((srName == L"marquee_step") || (srName == L"marqueestep")){
-		SetMarqueeStep(_wtoi(strValue.c_str()));
+		SetMarqueeStep(_wtoi(strValue.c_str()), true);
 	}
 	else if (srName == L"reverse") {
 		SetReverse(strValue == L"true");
@@ -173,6 +173,23 @@ void Progress::SetAttribute(const std::wstring& srName, const std::wstring& strV
 	else {
 		Label::SetAttribute(srName, strValue);
 	}
+}
+
+void Progress::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
+{
+	ASSERT(nNewDpiScale == Dpi().GetScale());
+	if (nNewDpiScale != Dpi().GetScale()) {
+		return;
+	}
+	int32_t iValue = GetMarqueeWidth();
+	iValue = Dpi().GetScaleInt(iValue, nOldDpiScale);
+	SetMarqueeWidth(iValue, false);
+
+	iValue = GetMarqueeStep();
+	iValue = Dpi().GetScaleInt(iValue, nOldDpiScale);
+	SetMarqueeStep(iValue, false);
+
+	__super::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
 }
 
 void Progress::PaintStateImages(IRender* pRender)
@@ -207,6 +224,8 @@ void Progress::PaintStateImages(IRender* pRender)
 	if ((m_pProgressImage == nullptr) || (m_pProgressImage->GetImageString().empty())) {
 		return;
 	}
+	//¼ÓÔØÍ¼Æ¬×ÊÔ´
+	LoadImageData(*m_pProgressImage);
 
     m_sProgressImageModify.clear();
     if (m_bStretchForeImage) {
@@ -214,12 +233,13 @@ void Progress::PaintStateImages(IRender* pRender)
     }
     else {
         ui::UiRect m_rcSrc = rc;
-        if (m_pProgressImage->GetImageCache()) {
-            if (m_rcSrc.right > m_pProgressImage->GetImageCache()->GetWidth()) {
-                m_rcSrc.right = m_pProgressImage->GetImageCache()->GetWidth();
+		std::shared_ptr<ImageInfo> pProgressImageCache = m_pProgressImage->GetImageCache();
+        if (pProgressImageCache != nullptr) {
+            if (m_rcSrc.right > pProgressImageCache->GetWidth()) {
+                m_rcSrc.right = pProgressImageCache->GetWidth();
             }
-            if (m_rcSrc.bottom > m_pProgressImage->GetImageCache()->GetHeight()) {
-                m_rcSrc.bottom = m_pProgressImage->GetImageCache()->GetHeight();
+            if (m_rcSrc.bottom > pProgressImageCache->GetHeight()) {
+                m_rcSrc.bottom = pProgressImageCache->GetHeight();
             }
         }
         m_sProgressImageModify = StringHelper::Printf(L"destscale='false' dest='%d,%d,%d,%d' source='%d,%d,%d,%d'"
@@ -297,17 +317,17 @@ void Progress::Play()
         m_timer.Cancel();
         return;
     }
-    m_nMarqueePos = m_nMarqueePos + m_nMarqueeStep;
+    m_nMarqueePos = m_nMarqueePos + GetMarqueeStep();
 
     ui::UiRect rc = GetRect();
     if (m_bHorizontal) {
         if (m_nMarqueePos > rc.right - rc.left) {
-            m_nMarqueePos = (m_nMarqueePos - (rc.right - rc.left)) - m_nMarqueeWidth;
+            m_nMarqueePos = (m_nMarqueePos - (rc.right - rc.left)) - GetMarqueeWidth();
         }
     }
     else {
         if (m_nMarqueePos > rc.bottom - rc.top) {
-            m_nMarqueePos = (m_nMarqueePos - (rc.bottom - rc.top) - m_nMarqueeWidth);
+            m_nMarqueePos = (m_nMarqueePos - (rc.bottom - rc.top) - GetMarqueeWidth());
         }
     }
 
@@ -327,19 +347,18 @@ void Progress::PaintMarquee(IRender* pRender)
 			ui::UiRect rc = GetRect();
 			if (m_bHorizontal) {
 				rc.left = std::max(m_nMarqueePos, 0) + rc.left;
-				rc.right = rc.left + (m_nMarqueePos >= 0 ? m_nMarqueeWidth : (m_nMarqueeWidth + m_nMarqueePos));
+				rc.right = rc.left + (m_nMarqueePos >= 0 ? GetMarqueeWidth() : (GetMarqueeWidth() + m_nMarqueePos));
 			}
 			else {
 				rc.top = std::max(m_nMarqueePos, 0) + rc.top;
-				rc.bottom = rc.top + (m_nMarqueePos >= 0 ? m_nMarqueeWidth : (m_nMarqueeWidth + m_nMarqueePos));
+				rc.bottom = rc.top + (m_nMarqueePos >= 0 ? GetMarqueeWidth() : (GetMarqueeWidth() + m_nMarqueePos));
 			}
-			Dpi().ScaleRect(rc);
 			pRender->FillRect(rc, dwProgressColor);
 		}
 	}
 }
 
-bool Progress::IsMarquee()
+bool Progress::IsMarquee() const
 {
 	return m_bMarquee;
 }
@@ -363,40 +382,52 @@ void Progress::SetMarquee(bool bMarquee)
 	Invalidate();
 }
 
-int Progress::GetMarqueeWidth()
+int32_t Progress::GetMarqueeWidth() const
 {
-	return m_nMarqueeWidth;
-}
-
-void Progress::SetMarqueeWidth(int nMarqueeWidth)
-{
-	if (m_nMarqueeWidth == nMarqueeWidth) {
-		return;
+	int32_t nMarqueeWidth = m_nMarqueeWidth;
+	if (nMarqueeWidth <= 0) {
+		nMarqueeWidth = Dpi().GetScaleInt(10);
 	}
-	m_nMarqueeWidth = nMarqueeWidth;
-	Invalidate();
+	return nMarqueeWidth;
 }
 
-int Progress::GetMarqueeStep()
+void Progress::SetMarqueeWidth(int32_t nMarqueeWidth, bool bNeedDpiScale)
 {
-	return m_nMarqueeStep;
-}
-
-void Progress::SetMarqueeStep(int nMarqueeStep)
-{
-	if (m_nMarqueeStep == nMarqueeStep) {
-		return;
+	if (bNeedDpiScale) {
+		Dpi().ScaleInt(nMarqueeWidth);
 	}
-	m_nMarqueeStep = nMarqueeStep;
-	Invalidate();
+	if (m_nMarqueeWidth != nMarqueeWidth) {
+		m_nMarqueeWidth = nMarqueeWidth;
+		Invalidate();
+	}
 }
 
-int Progress::GetMarqueeElapsed()
+int32_t Progress::GetMarqueeStep() const
+{
+	int32_t nMarqueeStep = m_nMarqueeStep;
+	if (nMarqueeStep <= 0) {
+		nMarqueeStep = Dpi().GetScaleInt(4);
+	}
+	return nMarqueeStep;
+}
+
+void Progress::SetMarqueeStep(int32_t nMarqueeStep, bool bNeedDpiScale)
+{
+	if (bNeedDpiScale) {
+		Dpi().ScaleInt(nMarqueeStep);
+	}
+	if (m_nMarqueeStep != nMarqueeStep) {
+		m_nMarqueeStep = nMarqueeStep;
+		Invalidate();
+	}	
+}
+
+int32_t Progress::GetMarqueeElapsed() const
 {
 	return m_nMarqueeElapsed;
 }
 
-void Progress::SetMarqueeElapsed(int nMarqueeElapsed)
+void Progress::SetMarqueeElapsed(int32_t nMarqueeElapsed)
 {
 	if (!IsMarquee() || nMarqueeElapsed == m_nMarqueeElapsed) {
 		return;

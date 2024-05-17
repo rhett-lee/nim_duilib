@@ -254,7 +254,7 @@ Control* ColorPickerRegularProvider::CreateElement()
 {
     ListBoxItem* pControl = new ListBoxItem;
     UiRect borderSize(1, 1, 1, 1);
-    pControl->SetBorderSize(borderSize);
+    pControl->SetBorderSize(borderSize, true);
     pControl->SetBorderColor(kControlStatePushed, L"blue");
     return pControl;
 }

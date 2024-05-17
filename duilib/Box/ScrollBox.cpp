@@ -60,18 +60,15 @@ void ScrollBox::SetAttribute(const std::wstring& pstrName, const std::wstring& p
 	else if ((pstrName == L"scrollbar_padding") || (pstrName == L"scrollbarpadding")) {
 		UiPadding rcScrollbarPadding;
 		AttributeUtil::ParsePaddingValue(pstrValue.c_str(), rcScrollbarPadding);
-		Dpi().ScalePadding(rcScrollbarPadding);
-		SetScrollBarPadding(rcScrollbarPadding);
+		SetScrollBarPadding(rcScrollbarPadding, true);
 	}
 	else if ((pstrName == L"vscroll_unit") || (pstrName == L"vscrollunit")) {
 		int32_t iValue = _wtoi(pstrValue.c_str());
-		Dpi().ScaleInt(iValue);
-		SetVerScrollUnitPixels(iValue);
+		SetVerScrollUnitPixels(iValue, true);
 	}
 	else if ((pstrName == L"hscroll_unit") || (pstrName == L"hscrollunit")) {
 		int32_t iValue = _wtoi(pstrValue.c_str());
-		Dpi().ScaleInt(iValue);
-		SetHorScrollUnitPixels(iValue);
+		SetHorScrollUnitPixels(iValue, true);
 	}
 	else if ((pstrName == L"scrollbar_float") || (pstrName == L"scrollbarfloat")) {
 		SetScrollBarFloat(pstrValue == L"true");
@@ -85,6 +82,27 @@ void ScrollBox::SetAttribute(const std::wstring& pstrName, const std::wstring& p
 	else {
 		Box::SetAttribute(pstrName, pstrValue);
 	}
+}
+
+void ScrollBox::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
+{
+	ASSERT(nNewDpiScale == Dpi().GetScale());
+	if (nNewDpiScale != Dpi().GetScale()) {
+		return;
+	}
+	UiPadding rcScrollbarPadding = GetScrollBarPadding();
+	rcScrollbarPadding = Dpi().GetScalePadding(rcScrollbarPadding, nOldDpiScale);
+	SetScrollBarPadding(rcScrollbarPadding, false);
+
+	int32_t iValue = GetVerScrollUnitPixels();
+	iValue = Dpi().GetScaleInt(iValue, nOldDpiScale);
+	SetVerScrollUnitPixels(iValue, false);
+
+	iValue = GetHorScrollUnitPixels();
+	iValue = Dpi().GetScaleInt(iValue, nOldDpiScale);
+	SetHorScrollUnitPixels(iValue, false);
+
+	__super::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
 }
 
 void ScrollBox::SetPos(UiRect rc)
@@ -1051,10 +1069,13 @@ int32_t ScrollBox::GetVerScrollUnitPixels() const
 	}	
 }
 
-void ScrollBox::SetVerScrollUnitPixels(int32_t nUnitPixels)
+void ScrollBox::SetVerScrollUnitPixels(int32_t nUnitPixels, bool bNeedDpiScale)
 {
 	if (nUnitPixels < 0) {
 		nUnitPixels = 0;
+	}
+	if (bNeedDpiScale) {
+		Dpi().ScaleInt(nUnitPixels);
 	}
 	m_nVScrollUnitPixels = nUnitPixels;
 }
@@ -1069,10 +1090,13 @@ int32_t ScrollBox::GetHorScrollUnitPixels() const
 	}    
 }
 
-void ScrollBox::SetHorScrollUnitPixels(int32_t nUnitPixels)
+void ScrollBox::SetHorScrollUnitPixels(int32_t nUnitPixels, bool bNeedDpiScale)
 {
 	if (nUnitPixels < 0) {
 		nUnitPixels = 0;
+	}
+	if (bNeedDpiScale) {
+		Dpi().ScaleInt(nUnitPixels);
 	}
     m_nHScrollUnitPixels = nUnitPixels;
 }
@@ -1102,8 +1126,11 @@ const UiPadding& ScrollBox::GetScrollBarPadding() const
 	return m_rcScrollBarPadding;
 }
 
-void ScrollBox::SetScrollBarPadding(UiPadding rcScrollBarPadding)
+void ScrollBox::SetScrollBarPadding(UiPadding rcScrollBarPadding, bool bNeedDpiScale)
 {
+	if (bNeedDpiScale) {
+		Dpi().ScalePadding(rcScrollBarPadding);
+	}
 	m_rcScrollBarPadding = rcScrollBarPadding;
 }
 

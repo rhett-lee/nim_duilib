@@ -307,7 +307,7 @@ void ControlForm::ShowPopupMenu(const ui::UiPoint& point)
 		menu_item->SetClass(L"menu_element");
 		menu_item->SetFixedWidth(ui::UiFixedInt(180), true, true);
 		menu_item->SetFontId(L"system_14");
-		menu_item->SetTextPadding({ 20, 0, 20, 0 });
+		menu_item->SetTextPadding({ 20, 0, 20, 0 }, true);
 		menu_fourth->AddSubMenuItemAt(menu_item, 1);//添加后，资源由菜单统一管理
 	}
 	

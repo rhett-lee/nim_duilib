@@ -48,6 +48,12 @@ public:
 							  const std::wstring& strValue,
 							  const DpiManager& dpiManager) override;
 
+    /** DPI发生变化，更新控件大小和布局
+    * @param [in] nOldDpiScale 旧的DPI缩放百分比
+    * @param [in] dpiManager DPI缩放管理器
+    */
+    virtual void ChangeDpiScale(const DpiManager& dpiManager, uint32_t nOldDpiScale) override;
+
 public:
     /** 延迟加载展示数据
     * @param [in] rc 当前容器大小信息, 外部调用时，需要先剪去内边距

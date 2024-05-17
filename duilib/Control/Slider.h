@@ -25,6 +25,12 @@ public:
 	virtual void PaintBkColor(IRender* pRender) override;
 	virtual void ClearImageCache() override;
 
+	/** DPI发生变化，更新控件大小和布局
+	* @param [in] nOldDpiScale 旧的DPI缩放百分比
+	* @param [in] nNewDpiScale 新的DPI缩放百分比，与Dpi().GetScale()的值一致
+	*/
+	virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override;
+
 	/** 获取步进步长
 	 * @return 返回步进步长
 	 */
@@ -35,11 +41,15 @@ public:
 	 */
 	void SetChangeStep(int step);
 
-	/** 设置多动滑块的大小
+	/** 设置滑块的大小
 	 * @param [in] szXY 要设置的大小
 	 * @param [in] bNeedDpiScale 是否 DPI 缩放
 	 */
-	void SetThumbSize(UiSize szXY, bool bNeedDpiScale = true);
+	void SetThumbSize(UiSize szXY, bool bNeedDpiScale);
+
+	/** 获取滑块的大小
+	*/
+	UiSize GetThumbSize() const;
 
 	/** 获取滑块的矩形信息
 	 * @return 返回滑块的矩形信息
@@ -66,7 +76,7 @@ public:
 	 * @param [in] padding 要设置的内边距信息
 	 * @param [in] bNeedDpiScale 是否 DPI 缩放
 	 */
-	void SetProgressBarPadding(UiPadding padding, bool bNeedDpiScale = true);
+	void SetProgressBarPadding(UiPadding padding, bool bNeedDpiScale);
 
 	/** 监听进度条进度改变事件
 	 * @param[in] callback 进度条进度改变后调用的回调函数

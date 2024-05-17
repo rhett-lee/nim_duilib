@@ -44,12 +44,6 @@ public:
 	*/
 	bool IsPerMonitorDpiAware() const;
 
-	/** 当DPI发生变化时，按配置检测更新DPI值为新值
-	* @param [out] nOldDPI 如果有更新，返回原来的DPI值
-	* @return 如果更新过，返回true，否则返回false
-	*/
-	bool UpdateDPI(uint32_t& nOldDPI);
-
 	/** 根据窗口的DPI值，初始化DPI管理器的DPI值
 	    (Win10 以后，每个显示器可以有不同的DPI值，所以不同的窗口可能有不同的DPI值)
 	 @param [in] pWindow 窗口的接口，如果为nullptr，则读取系统配置的DPI值
@@ -102,6 +96,9 @@ public:
 	int32_t GetScaleInt(int32_t iValue) const;
 	uint32_t GetScaleInt(uint32_t iValue) const;
 
+	int32_t GetScaleInt(int32_t iValue, uint32_t nOldDpiScale) const;
+	uint32_t GetScaleInt(uint32_t iValue, uint32_t nOldDpiScale) const;
+
 	/** 根据界面缩放比来缩放SIZE
 	* @param[in] size 需要缩放的Size引用
 	*/
@@ -109,11 +106,15 @@ public:
 	void ScaleSize(UiSize& size) const;
 	UiSize GetScaleSize(UiSize size) const;
 
+	UiSize GetScaleSize(UiSize size, uint32_t nOldDpiScale) const;
+
 	/** 根据界面缩放比来缩放POINT
 	* @param[in] point 需要缩放的point引用
 	*/
 	void ScalePoint(POINT& point) const;
 	void ScalePoint(UiPoint& point) const;
+
+	UiPoint GetScalePoint(UiPoint point, uint32_t nOldDpiScale) const;
 
 	/** 根据界面缩放比来缩放RECT
 	* @param[in] rect 需要缩放的rect引用
@@ -123,6 +124,10 @@ public:
 	void ScaleRect(UiRect& rect) const;
 	void ScalePadding(UiPadding& padding) const;
 	void ScaleMargin(UiMargin& margin) const;
+
+	UiRect GetScaleRect(UiRect rect, uint32_t nOldDpiScale) const;
+	UiPadding GetScalePadding(UiPadding padding, uint32_t nOldDpiScale) const;
+	UiMargin GetScaleMargin(UiMargin margin, uint32_t nOldDpiScale) const;
 
 private:
 	/** 获取主显示器DPI，开启DPI感知后有效
