@@ -598,6 +598,16 @@ void Window::InitWindow()
     if (m_shadow != nullptr) {
         return;
     }
+
+    //初始化窗口自身的DPI管理器
+    const DpiManager& dpiManager = GlobalManager::Instance().Dpi();
+    if (!dpiManager.IsUserDefineDpi() && dpiManager.IsPerMonitorDpiAware()) {
+        //每个显示器，有独立的DPI：初始化窗口自己的DPI管理器
+        m_dpi = std::make_unique<DpiManager>();
+        m_dpi->SetDpiByWindow(this);
+    }
+
+    //创建窗口阴影
     m_shadow = std::make_unique<Shadow>(this);
     if (m_shadow->IsUseDefaultShadowAttached()) {
         m_shadow->SetShadowAttached(m_bIsLayeredWindow);
@@ -611,14 +621,6 @@ void Window::InitWindow()
     }
     //添加到全局管理器
     GlobalManager::Instance().AddWindow(this);
-
-    //初始化窗口自身的DPI管理器
-    const DpiManager& dpiManager = GlobalManager::Instance().Dpi();
-    if (!dpiManager.IsUserDefineDpi() && dpiManager.IsPerMonitorDpiAware()) {
-        //每个显示器，有独立的DPI：初始化窗口自己的DPI管理器
-        m_dpi = std::make_unique<DpiManager>();
-        m_dpi->SetDpiByWindow(this);
-    }
 
     //设置窗口风格
     uint32_t nStyle = GetWindowStyle();
