@@ -44,10 +44,11 @@ public:
 	*/
 	std::wstring GetImagePath(ControlStateType stateType) const;
 
-	/** 获取图片的源区域大小
-	*@param [in] stateType 图片类型
+	/** 比较两个状态的图片源区域是否相同
+	*@param [in] stateType1 图片类型1
+	*@param [in] stateType2 图片类型2
 	*/
-	UiRect GetImageSourceRect(ControlStateType stateType) const;
+	bool AreImageSourceRectsEqual(ControlStateType stateType1, ControlStateType stateType2) const;
 
 	/** 获取图片的透明度
 	*@param [in] stateType 图片类型

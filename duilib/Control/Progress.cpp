@@ -248,7 +248,7 @@ void Progress::PaintStateImages(IRender* pRender)
     }
 
     // 让corner的值不超过可绘制范围
-    const UiRect corner = m_pProgressImage->GetImageAttribute().GetCorner();
+    const UiRect corner = m_pProgressImage->GetImageAttribute().GetImageCorner();
     if (IsHorizontal()) {
         if (corner.left != 0 && corner.left >= rc.right) {
 			std::wstring imageModify = m_sProgressImageModify.c_str();

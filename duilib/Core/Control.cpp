@@ -486,24 +486,34 @@ void Control::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
 	SetRenderOffset(renderOffset, false);
 
 	int32_t nMinWidth = GetMinWidth();
-	nMinWidth = Dpi().GetScaleInt(nMinWidth, nOldDpiScale);
-	SetMinWidth(nMinWidth, false);
+	if (nMinWidth >= 0) {
+		nMinWidth = Dpi().GetScaleInt(nMinWidth, nOldDpiScale);
+		SetMinWidth(nMinWidth, false);
+	}
 
 	int32_t nMaxWidth = GetMaxWidth();
-	nMaxWidth = Dpi().GetScaleInt(nMaxWidth, nOldDpiScale);
-	SetMaxWidth(nMaxWidth, false);
+	if (nMaxWidth >= 0) {
+		nMaxWidth = Dpi().GetScaleInt(nMaxWidth, nOldDpiScale);
+		SetMaxWidth(nMaxWidth, false);
+	}
 
 	int32_t nMinHeight = GetMinHeight();
-	nMinHeight = Dpi().GetScaleInt(nMinHeight, nOldDpiScale);
-	SetMinHeight(nMinHeight, false);
+	if (nMinHeight >= 0) {
+		nMinHeight = Dpi().GetScaleInt(nMinHeight, nOldDpiScale);
+		SetMinHeight(nMinHeight, false);
+	}	
 
 	int32_t nMaxHeight = GetMaxHeight();
-	nMaxHeight = Dpi().GetScaleInt(nMaxHeight, nOldDpiScale);
-	SetMaxHeight(nMaxHeight, false);
+	if (nMaxHeight >= 0) {
+		nMaxHeight = Dpi().GetScaleInt(nMaxHeight, nOldDpiScale);
+		SetMaxHeight(nMaxHeight, false);
+	}
 
 	int32_t nToolTipWidth = GetToolTipWidth();
-	nToolTipWidth = Dpi().GetScaleInt(nToolTipWidth, nOldDpiScale);
-	SetToolTipWidth(nToolTipWidth, false);
+	if (nToolTipWidth >= 0) {
+		nToolTipWidth = Dpi().GetScaleInt(nToolTipWidth, nOldDpiScale);
+		SetToolTipWidth(nToolTipWidth, false);
+	}
 
 	UiPadding rcBkImagePadding = GetBkImagePadding();
 	rcBkImagePadding = Dpi().GetScalePadding(rcBkImagePadding, nOldDpiScale);
@@ -526,9 +536,6 @@ void Control::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
 
 	//对于auto类型的控件，需要重新评估大小
 	SetReEstimateSize(true);
-
-	//图片属性：待查
-	//AdjustStateImagesPaddingLeft(int32_t leftOffset, bool bNeedDpiScale)
 }
 
 void Control::SetClass(const std::wstring& strClass)
@@ -894,13 +901,13 @@ bool Control::AdjustStateImagesPaddingLeft(int32_t leftOffset, bool bNeedDpiScal
 	bool bSetOk = false;
 	UiPadding rcPadding;
 	for (Image* pImage : allImages) {
-		rcPadding = pImage->GetImagePadding();
+		rcPadding = pImage->GetImagePadding(Dpi());
 		rcPadding.left += leftOffset;
 		if (rcPadding.left < 0) {
 			rcPadding.left = 0;
 		}
-		if (!pImage->GetImagePadding().Equals(rcPadding)) {
-			pImage->SetImagePadding(rcPadding);
+		if (!pImage->GetImagePadding(Dpi()).Equals(rcPadding)) {
+			pImage->SetImagePadding(rcPadding, false, Dpi());
 			bSetOk = true;
 		}
 	}
@@ -914,7 +921,7 @@ UiPadding Control::GetBkImagePadding() const
 {
 	UiPadding rcPadding;
 	if (m_pBkImage != nullptr) {
-		rcPadding = m_pBkImage->GetImagePadding();
+		rcPadding = m_pBkImage->GetImagePadding(Dpi());
 	}
 	return rcPadding;
 }
@@ -926,8 +933,8 @@ bool Control::SetBkImagePadding(UiPadding rcPadding, bool bNeedDpiScale)
 		if (bNeedDpiScale) {
 			Dpi().ScalePadding(rcPadding);
 		}
-		if (!m_pBkImage->GetImagePadding().Equals(rcPadding)) {
-			m_pBkImage->SetImagePadding(rcPadding);
+		if (!m_pBkImage->GetImagePadding(Dpi()).Equals(rcPadding)) {
+			m_pBkImage->SetImagePadding(rcPadding, false, Dpi());
 			bSetOk = true;
 			Invalidate();
 		}		
@@ -1533,14 +1540,15 @@ UiEstSize Control::EstimateSize(UiSize szAvailable)
 		ImageAttribute imageAttribute = image->GetImageAttribute();
 		UiRect rcDest;
 		bool hasDestAttr = false;
-		if (ImageAttribute::HasValidImageRect(imageAttribute.GetDestRect())) {
+		UiRect rcImageDestRect = imageAttribute.GetImageDestRect(Dpi());
+		if (ImageAttribute::HasValidImageRect(rcImageDestRect)) {
 			//使用配置中指定的目标区域
-			rcDest = imageAttribute.GetDestRect();
+			rcDest = rcImageDestRect;
 			hasDestAttr = true;
 		}
 		UiRect rcDestCorners;
-		UiRect rcSource = imageAttribute.GetSourceRect();
-		UiRect rcSourceCorners = imageAttribute.GetCorner();
+		UiRect rcSource = imageAttribute.GetImageSourceRect();
+		UiRect rcSourceCorners = imageAttribute.GetImageCorner();
 		ImageAttribute::ScaleImageRect(imageCache->GetWidth(), imageCache->GetHeight(),
 									   Dpi(), imageCache->IsBitmapSizeDpiScaled(),
 									   rcDestCorners,
@@ -1567,7 +1575,7 @@ UiEstSize Control::EstimateSize(UiSize szAvailable)
 		}
 		if (!hasDestAttr) {
 			//如果没有rcDest属性，则需要增加图片的内边距
-			UiPadding rcPadding = imageAttribute.GetPadding();
+			UiPadding rcPadding = imageAttribute.GetImagePadding(Dpi());
 			imageSize.cx += (rcPadding.left + rcPadding.right);
 			imageSize.cy += (rcPadding.top + rcPadding.bottom);
 		}
@@ -2144,19 +2152,20 @@ bool Control::PaintImage(IRender* pRender, Image* pImage,
 		//使用外部传入的矩形区域绘制图片
 		rcDest = *pInRect;
 	}
-	if (ImageAttribute::HasValidImageRect(newImageAttribute.GetDestRect())) {
+	UiRect rcImageDestRect = newImageAttribute.GetImageDestRect(Dpi());
+	if (ImageAttribute::HasValidImageRect(rcImageDestRect)) {
 		//使用配置中指定的目标区域
-		if ((newImageAttribute.GetDestRect().Width() <= rcDest.Width()) &&
-			(newImageAttribute.GetDestRect().Height() <= rcDest.Height())) {
-			rcDest = newImageAttribute.GetDestRect();
+		if ((rcImageDestRect.Width() <= rcDest.Width()) &&
+			(rcImageDestRect.Height() <= rcDest.Height())) {
+			rcDest = rcImageDestRect;
 			rcDest.Offset(GetRect().left, GetRect().top);
 			hasDestAttr = true;
 		}
 	}
 
 	UiRect rcDestCorners;
-	UiRect rcSource = newImageAttribute.GetSourceRect();
-	UiRect rcSourceCorners = newImageAttribute.GetCorner();
+	UiRect rcSource = newImageAttribute.GetImageSourceRect();
+	UiRect rcSourceCorners = newImageAttribute.GetImageCorner();
 	ImageAttribute::ScaleImageRect(pBitmap->GetWidth(), pBitmap->GetHeight(), 
 								   Dpi(), imageInfo->IsBitmapSizeDpiScaled(),
 		                           rcDestCorners,
@@ -2165,7 +2174,7 @@ bool Control::PaintImage(IRender* pRender, Image* pImage,
 	
 	if (!hasDestAttr) {
 		//运用rcPadding、hAlign、vAlign 三个图片属性
-		rcDest.Deflate(newImageAttribute.GetPadding());
+		rcDest.Deflate(newImageAttribute.GetImagePadding(Dpi()));
 		rcDest.Validate();
 		rcSource.Validate();
 		const int32_t imageWidth = rcSource.Width();
@@ -2221,7 +2230,7 @@ bool Control::PaintImage(IRender* pRender, Image* pImage,
 	uint8_t iFade = (nFade == DUI_NOSET_VALUE) ? newImageAttribute.bFade : static_cast<uint8_t>(nFade);
 	if (pMatrix != nullptr) {
 		//矩阵绘制: 对不支持的属性，增加断言，避免出错
-		ASSERT(newImageAttribute.GetCorner().IsEmpty());
+		ASSERT(newImageAttribute.GetImageCorner().IsEmpty());
 		ASSERT(!newImageAttribute.bTiledX);
 		ASSERT(!newImageAttribute.bTiledY);
 		pRender->DrawImageRect(m_rcPaint, pBitmap, rcDest, rcSource, iFade, pMatrix);

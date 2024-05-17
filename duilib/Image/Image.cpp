@@ -44,14 +44,14 @@ std::wstring Image::GetImagePath() const
 	return m_imageAttribute.sImagePath.c_str();
 }
 
-void Image::SetImagePadding(const UiPadding& newPadding)
+void Image::SetImagePadding(const UiPadding& newPadding, bool bNeedDpiScale, const DpiManager& dpi)
 {
-	m_imageAttribute.SetPadding(newPadding);
+	m_imageAttribute.SetImagePadding(newPadding, bNeedDpiScale, dpi);
 }
 
-UiPadding Image::GetImagePadding() const
+UiPadding Image::GetImagePadding(const DpiManager& dpi) const
 {
-	return m_imageAttribute.GetPadding();
+	return m_imageAttribute.GetImagePadding(dpi);
 }
 
 bool Image::IsImagePaintEnabled() const

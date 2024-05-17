@@ -87,9 +87,17 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const DpiManager& dpi,
 			auto it = m_imageMap.find(imageKey);
 			if (it != m_imageMap.end()) {
 				std::shared_ptr<ImageInfo> sharedImage = it->second.lock();
-				if (sharedImage) {
-					//从缓存中，找到有效图片资源，直接返回
-					return sharedImage;
+				if (sharedImage != nullptr) {
+					//如果从缓存中，找到有效图片资源，直接返回
+					if (!sharedImage->IsBitmapSizeDpiScaled()) {
+						//图片没有做过DPI缩放，可用
+						return sharedImage;
+					}
+					else if(sharedImage->IsBitmapSizeDpiScaled() && (sharedImage->GetLoadDpiScale() == dpi.GetScale())) {
+						//图片做过DPI缩放，但与请求的DPI缩放百分比相同
+						return sharedImage;
+
+					}
 				}
 			}
 		}

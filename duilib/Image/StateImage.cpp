@@ -78,14 +78,16 @@ std::wstring StateImage::GetImagePath(ControlStateType stateType) const
 	return imageFilePath;
 }
 
-UiRect StateImage::GetImageSourceRect(ControlStateType stateType) const
+bool StateImage::AreImageSourceRectsEqual(ControlStateType stateType1, ControlStateType stateType2) const
 {
-	UiRect rcSource;
-	auto iter = m_stateImageMap.find(stateType);
-	if (iter != m_stateImageMap.end()) {
-		rcSource = iter->second->GetImageAttribute().GetSourceRect();
+	auto iter1 = m_stateImageMap.find(stateType1);
+	auto iter2 = m_stateImageMap.find(stateType2);
+	if ((iter1 != m_stateImageMap.end()) && (iter2 != m_stateImageMap.end())) {
+		UiRect rcSource1 = iter1->second->GetImageAttribute().GetImageSourceRect();
+		UiRect rcSource2 = iter2->second->GetImageAttribute().GetImageSourceRect();
+		return rcSource1.Equals(rcSource2);
 	}
-	return rcSource;
+	return false;
 }
 
 int32_t StateImage::GetImageFade(ControlStateType stateType) const
@@ -134,8 +136,7 @@ bool StateImage::PaintStateImage(IRender* pRender, ControlStateType stateType,
 				if (strNormalImagePath.empty() || 
 					strHotImagePath.empty()    || 
 					(strNormalImagePath != strHotImagePath) || 
-					!GetImageSourceRect(kControlStateNormal).Equals(GetImageSourceRect(kControlStateHot))) {
-
+					!AreImageSourceRectsEqual(kControlStateNormal, kControlStateHot)) {
 					m_pControl->PaintImage(pRender, GetStateImage(kControlStateNormal), sImageModify, -1, nullptr, nullptr, pDestRect);
 					int32_t nHotFade = GetImageFade(kControlStateHot);
 					nHotFade = int32_t(nHotFade * (double)nHotAlpha / 255);

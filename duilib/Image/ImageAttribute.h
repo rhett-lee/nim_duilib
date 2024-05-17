@@ -56,25 +56,30 @@ public:
 		                       UiRect& rcSource, UiRect& rcSourceCorners);
 
 public:
-	/** 获取rcSource
+	/** 获取rcSource(未进行DPI缩放)
 	*/
-	UiRect GetSourceRect() const;
+	UiRect GetImageSourceRect() const;
 
-	/** 获取rcDest
+	/** 获取rcCorner(未进行DPI缩放)
 	*/
-	UiRect GetDestRect() const;
+	UiRect GetImageCorner() const;
 
-	/** rcPadding;
+	/** 获取rcDest(按配置决定是否进行DPI缩放)
 	*/
-	UiPadding GetPadding() const;
+	UiRect GetImageDestRect(const DpiManager& dpi) const;
 
-	/** 获取rcCorner;
+	/** 获取图片属性的内边距
+	* @param [in] dpi DPI缩放管理器
+	* @return 返回按照传入DPI缩放管理器适应的内边距数据
 	*/
-	UiRect GetCorner() const;
+	UiPadding GetImagePadding(const DpiManager& dpi) const;
 
 	/** 设置图片属性的内边距(内部不做DPI自适应)
+	* @param [in] newPadding 需要设置的内边距
+	* @param [in] bNeedDpiScale 是否需要对newPadding进行DPI缩放
+	* @param [in] dpi 与newPadding数据关联的DPI管理器
 	*/
-	void SetPadding(const UiPadding& newPadding);
+	void SetImagePadding(const UiPadding& newPadding, bool bNeedDpiScale, const DpiManager& dpi);
 
 public:
 	//图片文件属性字符串
@@ -89,11 +94,17 @@ public:
 	//设置图片高度，可以放大或缩小图像：pixels或者百分比%，比如200，或者30%
 	UiString srcHeight;
 
-	//加载图片时，DPI自适应属性，即按照DPI缩放图片大小
+	//rcSource的DPI自适应属性（仅当bHasSrcDpiScale为true时有效）
 	bool srcDpiScale;
 
-	//加载图片时，是否设置了DPI自适应属性
+	//加载图片时，是否设置了DPI自适应属性（"dpi_scale"）
 	bool bHasSrcDpiScale;
+
+	//rcDest属性的DPI自适应属性（仅当bHasDestDpiScale时有效）
+	bool destDpiScale;
+
+	//rcDest是否设置了DPI自适应属性（"dest_scale"）
+	bool bHasDestDpiScale;
 
 	//在绘制目标区域中横向对齐方式(如果指定了rcDest值，则此选项无效)
 	UiString hAlign;
@@ -131,16 +142,19 @@ public:
 	bool bPaintEnabled;
 
 private:
-	//绘制目标区域位置和大小（相对于控件区域的位置）
+	//绘制目标区域位置和大小(相对于控件区域的位置, 未进行DPI缩放)
 	UiRect* rcDest;
 
 	//在绘制目标区域中的内边距(如果指定了rcDest值，则此选项无效)
 	UiPadding16* rcPadding;
 
-	//图片源区域位置和大小
+	//rcPadding对应的DPI缩放百分比
+	uint16_t rcPaddingScale;
+
+	//图片源区域位置和大小(未进行DPI缩放)
 	UiRect* rcSource;
 
-	//圆角属性
+	//圆角属性(未进行DPI缩放)
 	UiRect* rcCorner;
 };
 

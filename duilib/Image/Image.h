@@ -52,13 +52,18 @@ public:
 	*/
 	std::wstring GetImagePath() const;
 
-	/** 设置图片属性的内边距
-	*/
-	void SetImagePadding(const UiPadding& newPadding);
-
 	/** 获取图片属性的内边距
+	* @param [in] dpi DPI缩放管理器
+	* @return 返回按照传入DPI缩放管理器适应的内边距数据
 	*/
-	UiPadding GetImagePadding() const;
+	UiPadding GetImagePadding(const DpiManager& dpi) const;
+
+	/** 设置图片属性的内边距(内部不做DPI自适应)
+	* @param [in] newPadding 需要设置的内边距
+	* @param [in] bNeedDpiScale 是否需要对newPadding进行DPI缩放
+	* @param [in] dpi 与newPadding数据关联的DPI管理器
+	*/
+	void SetImagePadding(const UiPadding& newPadding, bool bNeedDpiScale, const DpiManager& dpi);
 
 	/** 判断是否禁用图片绘制
 	*/

@@ -36,6 +36,10 @@ ImageAttribute& ImageAttribute::operator=(const ImageAttribute& r)
 
 	srcDpiScale = r.srcDpiScale;
 	bHasSrcDpiScale = r.bHasSrcDpiScale;
+	destDpiScale = r.destDpiScale;
+	bHasDestDpiScale = r.bHasDestDpiScale;
+	rcPaddingScale = r.rcPaddingScale;
+
 	hAlign = r.hAlign;
 	vAlign = r.vAlign;
 
@@ -113,6 +117,10 @@ void ImageAttribute::Init()
 
 	srcDpiScale = false;
 	bHasSrcDpiScale = false;
+	destDpiScale = false;
+	bHasDestDpiScale = false;
+	rcPaddingScale = 0;
+
 	hAlign.clear();
 	vAlign.clear();
 
@@ -142,6 +150,7 @@ void ImageAttribute::Init()
 		delete rcCorner;
 		rcCorner = nullptr;
 	}
+	rcPaddingScale = 0;
 }
 
 ImageAttribute::~ImageAttribute()
@@ -182,9 +191,8 @@ void ImageAttribute::ModifyAttribute(const std::wstring& strImageString, const D
 	AttributeUtil::ParseAttributeList(strImageString, L'\'', attributeList);
 
 	ImageAttribute& imageAttribute = *this;
-	bool bDisalbeScaleDest = false;
-	bool bHasDest = false;
-	bHasSrcDpiScale = false;
+	imageAttribute.bHasSrcDpiScale = false;
+	imageAttribute.bHasDestDpiScale = false;
 	for (const auto& attribute : attributeList) {
 		const std::wstring& name = attribute.first;
 		const std::wstring& value = attribute.second;
@@ -221,7 +229,7 @@ void ImageAttribute::ModifyAttribute(const std::wstring& strImageString, const D
 		else if ((name == L"dpi_scale") || (name == L"dpiscale")) {
 			//加载图片时，按照DPI缩放图片大小（会影响width属性、height属性、sources属性、corner属性）
 			imageAttribute.srcDpiScale = (value == L"true");
-			bHasSrcDpiScale = true;
+			imageAttribute.bHasSrcDpiScale = true;
 		}
 		else if (name == L"dest") {
 			//设置目标区域，该区域是指相对于所属控件的Rect区域
@@ -229,19 +237,18 @@ void ImageAttribute::ModifyAttribute(const std::wstring& strImageString, const D
 				imageAttribute.rcDest = new UiRect;
 			}
 			AttributeUtil::ParseRectValue(value.c_str(), *imageAttribute.rcDest);
-			bHasDest = true;
 		}
 		else if ((name == L"dest_scale") || (name == L"destscale")) {
 			//加载时，对dest属性按照DPI缩放图片，仅当设置了dest属性时有效（会影响dest属性）
 			//绘制时（内部使用），控制是否对dest属性进行DPI缩放
-			bDisalbeScaleDest = (value == L"false");
+			imageAttribute.destDpiScale = (value == L"true");
+			imageAttribute.bHasDestDpiScale = true;
 		}
 		else if (name == L"padding") {
 			//在目标区域中设置内边距
 			UiPadding padding;
 			AttributeUtil::ParsePaddingValue(value.c_str(), padding);
-			dpi.ScalePadding(padding);
-			imageAttribute.SetPadding(padding);
+			imageAttribute.SetImagePadding(padding, true, dpi);
 		}
 		else if (name == L"halign") {
 			//在目标区域中设置横向对齐方式			
@@ -295,13 +302,6 @@ void ImageAttribute::ModifyAttribute(const std::wstring& strImageString, const D
 		else {
 			ASSERT(!"ImageAttribute::ModifyAttribute: fount unknown attribute!");
 		}
-	}
-	if (bHasDest && !bDisalbeScaleDest) {
-		//如果没有配置"destscale" 或者 destscale="true"的情况，都需要对rcDest进行DPI自适应
-		//只有设置了destscale="false"的时候，才禁止对rcDest进行DPI自适应
-		if (imageAttribute.rcDest != nullptr) {
-			dpi.ScaleRect(*imageAttribute.rcDest);
-		}		
 	}
 }
 
@@ -369,7 +369,7 @@ void ImageAttribute::ScaleImageRect(uint32_t imageWidth, uint32_t imageHeight,
 	}
 }
 
-UiRect ImageAttribute::GetSourceRect() const
+UiRect ImageAttribute::GetImageSourceRect() const
 {
 	UiRect rc;
 	if (rcSource != nullptr) {
@@ -378,26 +378,40 @@ UiRect ImageAttribute::GetSourceRect() const
 	return rc;
 }
 
-UiRect ImageAttribute::GetDestRect() const
+UiRect ImageAttribute::GetImageDestRect(const DpiManager& dpi) const
 {
 	UiRect rc;
 	if (rcDest != nullptr) {
 		rc = *rcDest;
+		if (bHasDestDpiScale && !destDpiScale) {
+			//禁止DPI缩放
+		}
+		else {
+			//应进行DPI缩放
+			dpi.ScaleRect(rc);
+		}
 	}
 	return rc;
 }
 
-UiPadding ImageAttribute::GetPadding() const
+UiPadding ImageAttribute::GetImagePadding(const DpiManager& dpi) const
 {
 	UiPadding rc;
 	if (rcPadding != nullptr) {
 		rc = UiPadding(rcPadding->left, rcPadding->top, rcPadding->right, rcPadding->bottom);
+		if (rcPaddingScale != dpi.GetScale()) {
+			rc = dpi.GetScalePadding(rc, rcPaddingScale);
+		}
 	}
 	return rc;
 }
 
-void ImageAttribute::SetPadding(const UiPadding& newPadding)
+void ImageAttribute::SetImagePadding(const UiPadding& newPadding, bool bNeedDpiScale, const DpiManager& dpi)
 {
+	UiPadding rcPaddingDpi = newPadding;
+	if (bNeedDpiScale) {
+		dpi.ScalePadding(rcPaddingDpi);
+	}
 	if (rcPadding == nullptr) {
 		rcPadding = new UiPadding16;
 	}
@@ -405,9 +419,10 @@ void ImageAttribute::SetPadding(const UiPadding& newPadding)
 	rcPadding->top = TruncateToUInt16(newPadding.top);
 	rcPadding->right = TruncateToUInt16(newPadding.right);
 	rcPadding->bottom = TruncateToUInt16(newPadding.bottom);
+	rcPaddingScale = TruncateToUInt16(dpi.GetScale());
 }
 
-UiRect ImageAttribute::GetCorner() const
+UiRect ImageAttribute::GetImageCorner() const
 {
 	UiRect rc;
 	if (rcCorner != nullptr) {
