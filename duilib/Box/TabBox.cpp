@@ -6,8 +6,8 @@
 namespace ui
 {
 
-TabBox::TabBox(Layout* pLayout) 
-: Box(pLayout)
+TabBox::TabBox(Window* pWindow, Layout* pLayout)
+: Box(pWindow, pLayout)
 , m_iCurSel(Box::InvalidIndex)
 , m_iInitSel(Box::InvalidIndex)
 , m_bFadeSwith(false)

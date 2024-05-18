@@ -5,7 +5,8 @@
 namespace ui
 {
 
-IPAddress::IPAddress():
+IPAddress::IPAddress(Window* pWindow):
+    HBox(pWindow),
     m_pLastFocus(nullptr)
 {
 }
@@ -30,7 +31,7 @@ void IPAddress::OnInit()
     __super::OnInit();
     m_editList.clear();
     for (size_t index = 0; index < 4; ++index) {
-        RichEdit* pRichEdit = new RichEdit;
+        RichEdit* pRichEdit = new RichEdit(GetWindow());
         pRichEdit->SetText(L"");
         pRichEdit->SetAttribute(L"text_align", L"vcenter,hcenter");
         pRichEdit->SetAttribute(L"limit_text", L"3");
@@ -40,7 +41,7 @@ void IPAddress::OnInit()
         AddItem(pRichEdit);
         m_editList.push_back(pRichEdit);
         if (index != 3) {
-            Label* pLabel = new Label;
+            Label* pLabel = new Label(GetWindow());
             pLabel->SetText(L".");
             pLabel->SetAttribute(L"text_align", L"bottom,hcenter");
             pLabel->SetAttribute(L"width", L"4");

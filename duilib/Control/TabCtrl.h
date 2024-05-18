@@ -14,7 +14,7 @@ class TabBox;
 class TabCtrl: public ListBox
 {
 public:
-	TabCtrl();
+	explicit TabCtrl(Window* pWindow);
 
 	/** 获取控件类型
 	*/
@@ -99,7 +99,7 @@ private:
 class TabCtrlItem : public ControlDragableT<ListBoxItemH>
 {
 public:
-	TabCtrlItem();
+	explicit TabCtrlItem(Window* pWindow);
 
 	/** 获取控件类型
 	*/

@@ -7,7 +7,8 @@
 namespace ui
 {
 
-ListCtrl::ListCtrl():
+ListCtrl::ListCtrl(Window* pWindow):
+    VBox(pWindow),
     m_pHeaderCtrl(nullptr),
     m_pReportView(nullptr),
     m_pIconView(nullptr),
@@ -29,7 +30,7 @@ ListCtrl::ListCtrl():
     m_pData = new ListCtrlData;
     m_pData->SetAutoCheckSelect(IsAutoCheckSelect());
 
-    m_pReportView = new ListCtrlReportView;
+    m_pReportView = new ListCtrlReportView(pWindow);
     m_pReportView->SetListCtrl(this);
     m_pReportView->SetDataProvider(m_pData);
 
@@ -296,7 +297,7 @@ void ListCtrl::OnInit()
     //初始化Header
     ASSERT(m_pHeaderCtrl == nullptr);
     if (m_pHeaderCtrl == nullptr) {
-        m_pHeaderCtrl = new ListCtrlHeader;
+        m_pHeaderCtrl = new ListCtrlHeader(GetWindow());
     }
     m_pHeaderCtrl->SetListCtrl(this);
     // Header添加到数据视图中管理，作为第一个元素，在Layout的实现中控制显示属性
@@ -449,8 +450,10 @@ void ListCtrl::InitListView()
     if (m_pListView == nullptr) {
         return;
     }
-    m_pIconView->SetMultiSelect(IsMultiSelect());
-
+    if (m_pIconView != nullptr) {
+        m_pIconView->SetMultiSelect(IsMultiSelect());
+    }
+    
     //事件转接函数
     auto OnListViewEvent = [this](const EventArgs& args) {
             size_t nItemIndex = args.wParam;
@@ -522,7 +525,7 @@ void ListCtrl::SetListCtrlType(ListCtrlType type)
     }
     else if (m_listCtrlType == ListCtrlType::Icon) {
         if (m_pIconView == nullptr) {
-            m_pIconView = new ListCtrlIconView(false);
+            m_pIconView = new ListCtrlIconView(GetWindow(), false);
             m_pIconView->SetListCtrl(this);
             AddItem(m_pIconView);
             m_pIconView->SetClass(GetIconViewClass());
@@ -543,7 +546,7 @@ void ListCtrl::SetListCtrlType(ListCtrlType type)
     }
     else if (m_listCtrlType == ListCtrlType::List) {
         if (m_pListView == nullptr) {
-            m_pListView = new ListCtrlIconView(true);
+            m_pListView = new ListCtrlIconView(GetWindow(), true);
             m_pListView->SetListCtrl(this);
             AddItem(m_pListView);
             m_pListView->SetClass(GetListViewClass());
@@ -644,8 +647,7 @@ void ListCtrl::SetDataSubItemClass(const std::wstring& className)
 {
     m_dataSubItemClass = className;
     if (IsInited() && !className.empty()) {
-        ListCtrlSubItem defaultSubItem;
-        defaultSubItem.SetWindow(GetWindow());
+        ListCtrlSubItem defaultSubItem(GetWindow());
         defaultSubItem.SetClass(className);
         m_pData->SetDefaultTextStyle(defaultSubItem.GetTextStyle());
     }
@@ -1750,6 +1752,9 @@ bool ListCtrl::EnsureDataItemVisible(size_t itemIndex, bool bToTop)
 
 void ListCtrl::Refresh()
 {
+    if (!IsInited()) {
+        return;
+    }
     if (m_bEnableRefresh) {
         if (m_listCtrlType == ListCtrlType::Report) {
             if (m_pReportView != nullptr) {
@@ -2090,7 +2095,7 @@ void ListCtrl::OnItemEditMode(ListCtrlEditParam editParam)
         return;
     }
     if (m_pRichEdit == nullptr) {
-        m_pRichEdit = new RichEdit;
+        m_pRichEdit = new RichEdit(GetWindow());
         AddItem(m_pRichEdit);
         m_pRichEdit->SetClass(editClass);
     }

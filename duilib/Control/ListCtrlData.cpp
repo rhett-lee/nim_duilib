@@ -21,8 +21,13 @@ ListCtrlData::ListCtrlData() :
 {
 }
 
-Control* ListCtrlData::CreateElement()
+Control* ListCtrlData::CreateElement(ui::VirtualListBox* pVirtualListBox)
 {
+    ASSERT(pVirtualListBox != nullptr);
+    if (pVirtualListBox == nullptr) {
+        return nullptr;
+    }
+    ASSERT(pVirtualListBox->GetWindow() != nullptr);
     Control* pItem = nullptr;
     ASSERT(m_pListView != nullptr);
     if (m_pListView != nullptr) {

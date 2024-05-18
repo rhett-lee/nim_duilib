@@ -42,8 +42,7 @@ void RichlistForm::OnInitWindow()
 	bool bVTileListBox = dynamic_cast<ui::VTileListBox*>(m_pListBox) != nullptr;
 
 	for (auto i = 0; i < 300; i++) {
-		Item* item = new Item;
-		item->SetWindow(this);//由于item.xml里面在Window下设置了Class属性，所以需要设置
+		Item* item = new Item(this);
 		ui::GlobalManager::Instance().FillBoxWithCache(item, L"list_box/item.xml");
 
 		if (bHListBox || bHTileListBox || bVTileListBox) {

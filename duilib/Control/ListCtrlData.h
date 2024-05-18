@@ -26,9 +26,10 @@ public:
     ListCtrlData();
 
     /** 创建一个数据项
+    * @param [in] pVirtualListBox 关联的虚表的接口
     * @return 返回创建后的数据项指针
     */
-    virtual Control* CreateElement() override;
+    virtual ui::Control* CreateElement(ui::VirtualListBox* pVirtualListBox) override;
 
     /** 填充指定数据项
     * @param [in] pControl 数据项控件指针

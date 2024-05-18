@@ -14,8 +14,8 @@ namespace ui
 class UILIB_API VTileBox : public Box
 {
 public:
-	VTileBox() :
-		Box(new VTileLayout())
+	explicit VTileBox(Window* pWindow) :
+		Box(pWindow, new VTileLayout())
 	{
 	}
 
@@ -27,8 +27,8 @@ public:
 class UILIB_API HTileBox : public Box
 {
 public:
-	HTileBox() :
-		Box(new HTileLayout())
+	explicit HTileBox(Window* pWindow) :
+		Box(pWindow, new HTileLayout())
 	{
 	}
 

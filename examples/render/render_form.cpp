@@ -44,13 +44,13 @@ void RenderForm::OnCloseWindow()
 ui::Control* RenderForm::CreateControl(const std::wstring& strClass)
 {
 	if (strClass == L"RenderTest1") {
-		return new ui::RenderTest1;
+		return new ui::RenderTest1(this);
 	}
 	else if (strClass == L"RenderTest2") {
-		return new ui::RenderTest2;
+		return new ui::RenderTest2(this);
 	}
 	if (strClass == L"RenderTest3") {
-		return new ui::RenderTest3;
+		return new ui::RenderTest3(this);
 	}
 	return nullptr;
 }

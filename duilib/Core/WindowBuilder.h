@@ -69,7 +69,7 @@ public:
 
 private:
     Control* ParseXmlNode(const pugi::xml_node& xmlNode, Control* pParent = nullptr, Window* pWindow = nullptr);
-	Control* CreateControlByClass(const std::wstring& strControlClass);
+	Control* CreateControlByClass(const std::wstring& strControlClass, Window* pWindow);
 	void AttachXmlEvent(bool bBubbled, const pugi::xml_node& node, Control* pParent);
 
     /** 判断XML文件是否存在

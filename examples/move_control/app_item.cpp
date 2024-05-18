@@ -2,12 +2,22 @@
 #include "app_item.h"
 #include "app_db.h"
 
-AppItemUi* AppItemUi::Create(const AppItem& item)
+AppItemUi* AppItemUi::Create(const AppItem& item, Box* p)
 {
-	AppItemUi* uiItem = new AppItemUi;
+	ASSERT(p != nullptr);
+	if (p == nullptr) {
+		return nullptr;
+	}
+	ASSERT(p->GetWindow() != nullptr);
+	AppItemUi* uiItem = new AppItemUi(p->GetWindow());
 	uiItem->SetAppdata(item, false);
 	ui::GlobalManager::Instance().FillBoxWithCache(uiItem, L"move_control/app_item.xml");
 	return uiItem;
+}
+
+AppItemUi::AppItemUi(ui::Window* pWindow) :
+	ui::ControlDragableT<ui::VBox>(pWindow)
+{
 }
 
 void AppItemUi::OnInit()

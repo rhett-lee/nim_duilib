@@ -15,9 +15,10 @@ public:
     void SetColors(const std::vector<std::pair<std::wstring, int32_t>>& uiColors);
 
     /** 创建一个数据项
+    * @param [in] pVirtualListBox 关联的虚表的接口
     * @return 返回创建后的数据项指针
     */
-    virtual Control* CreateElement() override;
+    virtual ui::Control* CreateElement(ui::VirtualListBox* pVirtualListBox) override;
 
     /** 填充指定数据项
     * @param [in] pControl 数据项控件指针
@@ -100,7 +101,8 @@ private:
     std::vector<RegularColor> m_colors;
 };
 
-ColorPickerRegular::ColorPickerRegular()
+ColorPickerRegular::ColorPickerRegular(Window* pWindow):
+    VirtualVTileListBox(pWindow)
 {
     m_regularColors = std::make_unique<ColorPickerRegularProvider>();
     SetDataProvider(m_regularColors.get());
@@ -250,9 +252,14 @@ void ColorPickerRegularProvider::SetColors(const std::vector<std::pair<std::wstr
     std::sort(m_colors.begin(), m_colors.end());
 }
 
-Control* ColorPickerRegularProvider::CreateElement()
+Control* ColorPickerRegularProvider::CreateElement(VirtualListBox* pVirtualListBox)
 {
-    ListBoxItem* pControl = new ListBoxItem;
+    ASSERT(pVirtualListBox != nullptr);
+    if (pVirtualListBox == nullptr) {
+        return nullptr;
+    }
+    ASSERT(pVirtualListBox->GetWindow() != nullptr);
+    ListBoxItem* pControl = new ListBoxItem(pVirtualListBox->GetWindow());
     UiRect borderSize(1, 1, 1, 1);
     pControl->SetBorderSize(borderSize, true);
     pControl->SetBorderColor(kControlStatePushed, L"blue");

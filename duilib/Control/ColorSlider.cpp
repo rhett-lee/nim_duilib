@@ -4,10 +4,10 @@
 namespace ui
 {
 
-ColorSlider::ColorSlider():
+ColorSlider::ColorSlider(Window* pWindow):
+	Slider(pWindow),
 	m_colorMode(ColorMode::kMode_ARGB)
 {
-	//TODO: ´ýÊµÏÖ
 	SetColorInfo(UiColor(255, 0, 100, 200), ColorAdjustMode::kMode_ARGB_R);
 }
 

@@ -17,7 +17,7 @@ public:
 	* 构造函数
 	* @param[in] id	浏览器盒子的唯一标识，用于区分不同的标签页
 	*/
-	BrowserBox(std::string id);
+	BrowserBox(ui::Window* pWindow, std::string id);
 	~BrowserBox() { };
 
 	/**

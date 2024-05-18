@@ -67,7 +67,7 @@ public:
 class UILIB_API RichText : public Control
 {
 public:
-    RichText();
+    explicit RichText(Window* pWindow);
     RichText(const RichText& r) = delete;
     RichText& operator=(const RichText& r) = delete;
     virtual ~RichText();

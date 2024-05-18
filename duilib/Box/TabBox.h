@@ -11,7 +11,7 @@ namespace ui
 class UILIB_API TabBox : public Box
 {
 public:
-	explicit TabBox(Layout* pLayout = new Layout());
+	explicit TabBox(Window* pWindow, Layout* pLayout = new Layout());
 
 	// 用于初始化xml属性
 	virtual void OnInit() override;

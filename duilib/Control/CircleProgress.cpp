@@ -3,7 +3,8 @@
 namespace ui
 {
 
-CircleProgress::CircleProgress() :
+CircleProgress::CircleProgress(Window* pWindow) :
+	Progress(pWindow),
 	m_bCircular(true),
 	m_bClockwise(true),
 	m_nCircleWidth(1),

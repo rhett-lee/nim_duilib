@@ -7,8 +7,8 @@
 namespace ui
 {
 
-PlaceHolder::PlaceHolder() :
-	m_pWindow(nullptr),
+PlaceHolder::PlaceHolder(Window* pWindow) :
+	m_pWindow(pWindow),
 	m_cxyMin(0, 0),
 	m_cxyMax(INT32_MAX, INT32_MAX),
 	m_pParent(nullptr),

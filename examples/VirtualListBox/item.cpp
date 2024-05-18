@@ -2,8 +2,9 @@
 #include "item.h"
 #include "provider.h"
 
-Item::Item()
-:control_img_(nullptr)
+Item::Item(ui::Window* pWindow):
+	ui::ListBoxItem(pWindow),
+	control_img_(nullptr)
 {
 }
 

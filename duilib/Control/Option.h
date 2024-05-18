@@ -14,7 +14,7 @@ template<typename InheritType = Control>
 class UILIB_API OptionTemplate : public CheckBoxTemplate<InheritType>
 {
 public:
-	OptionTemplate();
+	explicit OptionTemplate(Window* pWindow);
 	~OptionTemplate();
 		
 	/// 重写父类方法，提供个性化功能，请参考父类声明
@@ -44,7 +44,8 @@ private:
 };
 
 template<typename InheritType>
-OptionTemplate<InheritType>::OptionTemplate() :
+OptionTemplate<InheritType>::OptionTemplate(Window* pWindow) :
+    CheckBoxTemplate<InheritType>(pWindow),
     m_sGroupName()
 {
 }

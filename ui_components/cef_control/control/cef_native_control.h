@@ -12,7 +12,7 @@ namespace nim_comp {
 class CefNativeControl : public CefControlBase
 {
 public:
-	CefNativeControl(void);
+	explicit CefNativeControl(ui::Window* pWindow);
 	~CefNativeControl(void);	
 
 	virtual void Init() override;

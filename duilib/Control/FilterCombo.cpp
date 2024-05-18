@@ -3,7 +3,8 @@
 namespace ui 
 {
 
-FilterCombo::FilterCombo()
+FilterCombo::FilterCombo(Window* pWindow):
+    Combo(pWindow)
 {
     SetComboType(kCombo_DropDown);
 }

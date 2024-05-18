@@ -14,7 +14,8 @@
 
 namespace nim_comp {
 
-CefControlBase::CefControlBase(void)
+CefControlBase::CefControlBase(ui::Window* pWindow):
+	ui::Control(pWindow)
 {
 	devtool_attached_ = false;
 #if !defined(SUPPORT_CEF)

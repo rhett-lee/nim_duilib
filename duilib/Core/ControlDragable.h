@@ -18,7 +18,7 @@ template<typename T = Control>
 class UILIB_API ControlDragableT: public T
 {
 public:
-    ControlDragableT();
+    explicit ControlDragableT(Window* pWindow);
     virtual ~ControlDragableT();
 
 	/// 重写父类方法，提供个性化功能，请参考父类声明
@@ -245,7 +245,8 @@ private:
 };
 
 template<typename T>
-ControlDragableT<T>::ControlDragableT():
+ControlDragableT<T>::ControlDragableT(Window* pWindow):
+    T(pWindow),
     m_bEnableDragOrder(true),
     m_bMouseDown(false),
     m_bInDraggingOrder(false),
@@ -832,7 +833,7 @@ DragWindow* ControlDragableT<T>::CreateDragWindow()
 template<typename T>
 Control* ControlDragableT<T>::CreateDestControl(Box* pTargetBox)
 {
-    Control* pDestControl = new Control;
+    Control* pDestControl = new Control(this->GetWindow());
     pDestControl->SetAttribute(L"bkcolor", L"#FF5D6B99");
     pDestControl->SetAttribute(L"valign", L"center");
     pDestControl->SetAttribute(L"halign", L"center");

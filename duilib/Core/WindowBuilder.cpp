@@ -59,6 +59,92 @@ WindowBuilder::~WindowBuilder()
 {
 }
 
+
+Control* WindowBuilder::CreateControlByClass(const std::wstring& strControlClass, Window* pWindow)
+{
+	typedef std::function<Control* (Window* pWindow)> CreateControlFunction;
+	static std::map<std::wstring, CreateControlFunction> createControlMap =
+	{
+		{DUI_CTR_BOX,  [](Window* pWindow) { return new Box(pWindow); }},
+		{DUI_CTR_HBOX, [](Window* pWindow) { return new HBox(pWindow); }},
+		{DUI_CTR_VBOX, [](Window* pWindow) { return new VBox(pWindow); }},
+		{DUI_CTR_VTILE_BOX, [](Window* pWindow) { return new VTileBox(pWindow); }},
+		{DUI_CTR_HTILE_BOX, [](Window* pWindow) { return new HTileBox(pWindow); }},
+		{DUI_CTR_TABBOX, [](Window* pWindow) { return new TabBox(pWindow); }},
+
+		{DUI_CTR_SCROLLBOX, [](Window* pWindow) { return new ScrollBox(pWindow); }},
+		{DUI_CTR_HSCROLLBOX, [](Window* pWindow) { return new HScrollBox(pWindow); }},
+		{DUI_CTR_VSCROLLBOX, [](Window* pWindow) { return new VScrollBox(pWindow); }},
+		{DUI_CTR_HTILE_SCROLLBOX, [](Window* pWindow) { return new HTileScrollBox(pWindow); }},
+		{DUI_CTR_VTILE_SCROLLBOX, [](Window* pWindow) { return new VTileScrollBox(pWindow); }},
+
+		{DUI_CTR_LISTBOX_ITEM, [](Window* pWindow) { return new ListBoxItem(pWindow); }},
+		{DUI_CTR_HLISTBOX, [](Window* pWindow) { return new HListBox(pWindow); }},
+		{DUI_CTR_VLISTBOX, [](Window* pWindow) { return new VListBox(pWindow); }},
+		{DUI_CTR_HTILE_LISTBOX, [](Window* pWindow) { return new HTileListBox(pWindow); }},
+		{DUI_CTR_VTILE_LISTBOX, [](Window* pWindow) { return new VTileListBox(pWindow); }},
+		{DUI_CTR_LISTCTRL, [](Window* pWindow) { return new ListCtrl(pWindow); }},
+		{DUI_CTR_PROPERTY_GRID, [](Window* pWindow) { return new PropertyGrid(pWindow); }},
+
+		{DUI_CTR_VIRTUAL_HTILE_LISTBOX, [](Window * pWindow) { return new VirtualHTileListBox(pWindow); }},
+		{DUI_CTR_VIRTUAL_VTILE_LISTBOX, [](Window* pWindow) { return new VirtualVTileListBox(pWindow); }},
+		{DUI_CTR_VIRTUAL_VLISTBOX, [](Window* pWindow) { return new VirtualVListBox(pWindow); }},
+		{DUI_CTR_VIRTUAL_HLISTBOX, [](Window* pWindow) { return new VirtualHListBox(pWindow); }},
+
+		{DUI_CTR_CONTROL, [](Window* pWindow) { return new Control(pWindow); }},
+		{DUI_CTR_CONTROL_DRAGABLE, [](Window* pWindow) { return new ControlDragable(pWindow); }},
+		{DUI_CTR_SCROLLBAR, [](Window* pWindow) { return new ScrollBar(pWindow); }},
+		{DUI_CTR_LABEL, [](Window* pWindow) { return new Label(pWindow); }},
+		{DUI_CTR_LABELBOX, [](Window* pWindow) { return new LabelBox(pWindow); }},
+		{DUI_CTR_BUTTON, [](Window* pWindow) { return new Button(pWindow); }},
+		{DUI_CTR_BUTTONBOX, [](Window* pWindow) { return new ButtonBox(pWindow); }},
+		{DUI_CTR_OPTION, [](Window* pWindow) { return new Option(pWindow); }},
+		{DUI_CTR_OPTIONBOX, [](Window* pWindow) { return new OptionBox(pWindow); }},
+		{DUI_CTR_CHECKBOX, [](Window* pWindow) { return new CheckBox(pWindow); }},
+		{DUI_CTR_CHECKBOXBOX, [](Window* pWindow) { return new CheckBoxBox(pWindow); }},
+		{DUI_CTR_TREEVIEW, [](Window* pWindow) { return new TreeView(pWindow); }},
+		{DUI_CTR_TREENODE, [](Window* pWindow) { return new TreeNode(pWindow); }},
+		{DUI_CTR_COMBO, [](Window* pWindow) { return new Combo(pWindow); }},
+		{DUI_CTR_COMBO_BUTTON, [](Window* pWindow) { return new ComboButton(pWindow); }},
+		{DUI_CTR_FILTER_COMBO, [](Window* pWindow) { return new FilterCombo(pWindow); }},
+		{DUI_CTR_CHECK_COMBO, [](Window* pWindow) { return new CheckCombo(pWindow); }},
+		{DUI_CTR_SLIDER, [](Window* pWindow) { return new Slider(pWindow); }},
+		{DUI_CTR_PROGRESS, [](Window* pWindow) { return new Progress(pWindow); }},
+		{DUI_CTR_CIRCLEPROGRESS, [](Window* pWindow) { return new CircleProgress(pWindow); }},
+		{DUI_CTR_RICHTEXT, [](Window* pWindow) { return new RichText(pWindow); }},
+		{DUI_CTR_RICHEDIT, [](Window* pWindow) { return new RichEdit(pWindow); }},
+		{DUI_CTR_DATETIME, [](Window* pWindow) { return new DateTime(pWindow); }},
+		{DUI_CTR_COLOR_CONTROL, [](Window* pWindow) { return new ColorControl(pWindow); }},
+		{DUI_CTR_COLOR_SLIDER, [](Window* pWindow) { return new ColorSlider(pWindow); }},
+		{DUI_CTR_COLOR_PICKER_REGULAR, [](Window* pWindow) { return new ColorPickerRegular(pWindow); }},
+		{DUI_CTR_COLOR_PICKER_STANDARD, [](Window* pWindow) { return new ColorPickerStatard(pWindow); }},
+		{DUI_CTR_COLOR_PICKER_STANDARD_GRAY, [](Window* pWindow) { return new ColorPickerStatardGray(pWindow); }},
+		{DUI_CTR_COLOR_PICKER_CUSTOM, [](Window* pWindow) { return new ColorPickerCustom(pWindow); }},
+		{DUI_CTR_LINE, [](Window* pWindow) { return new Line(pWindow); }},
+		{DUI_CTR_IPADDRESS, [](Window* pWindow) { return new IPAddress(pWindow); }},
+		{DUI_CTR_HOTKEY, [](Window* pWindow) { return new HotKey(pWindow); }},
+		{DUI_CTR_HYPER_LINK, [](Window* pWindow) { return new HyperLink(pWindow); }},
+		{DUI_CTR_TAB_CTRL, [](Window* pWindow) { return new TabCtrl(pWindow); }},
+		{DUI_CTR_TAB_CTRL_ITEM, [](Window* pWindow) { return new TabCtrlItem(pWindow); }},
+
+		{DUI_CTR_SPLIT, [](Window* pWindow) { return new Split(pWindow); }},
+		{DUI_CTR_SPLITBOX, [](Window* pWindow) { return new SplitBox(pWindow); }},
+		{DUI_CTR_GROUP_BOX, [](Window* pWindow) { return new GroupBox(pWindow); }},
+		{DUI_CTR_GROUP_HBOX, [](Window* pWindow) { return new GroupHBox(pWindow); }},
+		{DUI_CTR_GROUP_VBOX, [](Window* pWindow) { return new GroupVBox(pWindow); }},
+
+		{DUI_CTR_BOX_DRAGABLE, [](Window* pWindow) { return new BoxDragable(pWindow); }},
+		{DUI_CTR_HBOX_DRAGABLE, [](Window* pWindow) { return new HBoxDragable(pWindow); }},
+		{DUI_CTR_VBOX_DRAGABLE, [](Window* pWindow) { return new VBoxDragable(pWindow); }},
+	};
+	Control* pControl = nullptr;
+	auto iter = createControlMap.find(strControlClass);
+	if (iter != createControlMap.end()) {
+		pControl = iter->second(pWindow);
+	}
+	return pControl;
+}
+
 bool WindowBuilder::IsXmlFileExists(const std::wstring& xml) const
 {
 	if (xml.empty()) {
@@ -503,7 +589,7 @@ Control* WindowBuilder::ParseXmlNode(const pugi::xml_node& xmlNode, Control* pPa
             continue;
         }
         else {
-			pControl = CreateControlByClass(strClass);
+			pControl = CreateControlByClass(strClass, pWindow);
 			if (pControl == nullptr) {
 				if ((strClass == L"Event") || 
 					(strClass == L"BubbledEvent")) {
@@ -719,91 +805,6 @@ bool WindowBuilder::ParseRichTextXmlNode(const pugi::xml_node& xmlNode, Control*
 		}
 	}
 	return true;
-}
-
-Control* WindowBuilder::CreateControlByClass(const std::wstring& strControlClass)
-{
-	typedef std::function<Control* (void)> CreateControlFunction;
-	static std::map<std::wstring, CreateControlFunction> createControlMap = 
-	{ 
-		{DUI_CTR_BOX,  []() { return new Box; }},
-		{DUI_CTR_HBOX, []() { return new HBox; }},
-		{DUI_CTR_VBOX, []() { return new VBox; }},
-		{DUI_CTR_VTILE_BOX, []() { return new VTileBox; }},
-		{DUI_CTR_HTILE_BOX, []() { return new HTileBox; }},
-		{DUI_CTR_TABBOX, []() { return new TabBox; }},
-
-		{DUI_CTR_SCROLLBOX, []() { return new ScrollBox; }},
-		{DUI_CTR_HSCROLLBOX, []() { return new HScrollBox; }},
-		{DUI_CTR_VSCROLLBOX, []() { return new VScrollBox; }},
-		{DUI_CTR_HTILE_SCROLLBOX, []() { return new HTileScrollBox; }},
-		{DUI_CTR_VTILE_SCROLLBOX, []() { return new VTileScrollBox; }},
-	
-		{DUI_CTR_LISTBOX_ITEM, []() { return new ListBoxItem; }},
-		{DUI_CTR_HLISTBOX, []() { return new HListBox; }},
-		{DUI_CTR_VLISTBOX, []() { return new VListBox; }},
-		{DUI_CTR_HTILE_LISTBOX, []() { return new HTileListBox; }},
-		{DUI_CTR_VTILE_LISTBOX, []() { return new VTileListBox; }},
-		{DUI_CTR_LISTCTRL, []() { return new ListCtrl; }},
-		{DUI_CTR_PROPERTY_GRID, []() { return new PropertyGrid; }},
-
-		{DUI_CTR_VIRTUAL_HTILE_LISTBOX, []() { return new VirtualHTileListBox; }},
-		{DUI_CTR_VIRTUAL_VTILE_LISTBOX, []() { return new VirtualVTileListBox; }},
-		{DUI_CTR_VIRTUAL_VLISTBOX, []() { return new VirtualVListBox; }},
-		{DUI_CTR_VIRTUAL_HLISTBOX, []() { return new VirtualHListBox; }},
-
-		{DUI_CTR_CONTROL, []() { return new Control; }},
-		{DUI_CTR_CONTROL_DRAGABLE, []() { return new ControlDragable; }},
-		{DUI_CTR_SCROLLBAR, []() { return new ScrollBar; }},
-		{DUI_CTR_LABEL, []() { return new Label; }},
-		{DUI_CTR_LABELBOX, []() { return new LabelBox; }},
-		{DUI_CTR_BUTTON, []() { return new Button; }},
-		{DUI_CTR_BUTTONBOX, []() { return new ButtonBox; }},
-		{DUI_CTR_OPTION, []() { return new Option; }},
-		{DUI_CTR_OPTIONBOX, []() { return new OptionBox; }},
-		{DUI_CTR_CHECKBOX, []() { return new CheckBox; }},
-		{DUI_CTR_CHECKBOXBOX, []() { return new CheckBoxBox; }},
-		{DUI_CTR_TREEVIEW, []() { return new TreeView; }},
-		{DUI_CTR_TREENODE, []() { return new TreeNode; }},
-		{DUI_CTR_COMBO, []() { return new Combo; }},
-		{DUI_CTR_COMBO_BUTTON, []() { return new ComboButton; }},
-		{DUI_CTR_FILTER_COMBO, []() { return new FilterCombo; }},
-		{DUI_CTR_CHECK_COMBO, []() { return new CheckCombo; }},
-		{DUI_CTR_SLIDER, []() { return new Slider; }},
-		{DUI_CTR_PROGRESS, []() { return new Progress; }},
-		{DUI_CTR_CIRCLEPROGRESS, []() { return new CircleProgress; }},
-		{DUI_CTR_RICHTEXT, []() { return new RichText; }},
-		{DUI_CTR_RICHEDIT, []() { return new RichEdit; }},
-		{DUI_CTR_DATETIME, []() { return new DateTime; }},
-		{DUI_CTR_COLOR_CONTROL, []() { return new ColorControl; }},
-		{DUI_CTR_COLOR_SLIDER, []() { return new ColorSlider; }},
-		{DUI_CTR_COLOR_PICKER_REGULAR, []() { return new ColorPickerRegular; }},
-		{DUI_CTR_COLOR_PICKER_STANDARD, []() { return new ColorPickerStatard; }},
-		{DUI_CTR_COLOR_PICKER_STANDARD_GRAY, []() { return new ColorPickerStatardGray; }},
-		{DUI_CTR_COLOR_PICKER_CUSTOM, []() { return new ColorPickerCustom; }},
-		{DUI_CTR_LINE, []() { return new Line; }},
-		{DUI_CTR_IPADDRESS, []() { return new IPAddress; }},
-		{DUI_CTR_HOTKEY, []() { return new HotKey; }},
-		{DUI_CTR_HYPER_LINK, []() { return new HyperLink; }},
-		{DUI_CTR_TAB_CTRL, []() { return new TabCtrl; }},
-		{DUI_CTR_TAB_CTRL_ITEM, []() { return new TabCtrlItem; }},
-
-		{DUI_CTR_SPLIT, []() { return new Split; }},
-		{DUI_CTR_SPLITBOX, []() { return new SplitBox; }},
-		{DUI_CTR_GROUP_BOX, []() { return new GroupBox; }},
-		{DUI_CTR_GROUP_HBOX, []() { return new GroupHBox; }},
-		{DUI_CTR_GROUP_VBOX, []() { return new GroupVBox; }},
-
-		{DUI_CTR_BOX_DRAGABLE, []() { return new BoxDragable; }},
-		{DUI_CTR_HBOX_DRAGABLE, []() { return new HBoxDragable; }},
-		{DUI_CTR_VBOX_DRAGABLE, []() { return new VBoxDragable; }},
-	};
-	Control* pControl = nullptr;
-	auto iter = createControlMap.find(strControlClass);
-	if (iter != createControlMap.end()) {
-		pControl = iter->second();
-	}
-	return pControl;
 }
 
 void WindowBuilder::AttachXmlEvent(bool bBubbled, const pugi::xml_node& node, Control* pParent)

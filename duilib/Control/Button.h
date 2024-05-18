@@ -11,7 +11,7 @@ template<typename InheritType = Control>
 class UILIB_API ButtonTemplate : public LabelTemplate<InheritType>
 {
 public:
-    ButtonTemplate();
+    explicit ButtonTemplate(Window* pWindow);
 
     /// 重写父类方法，提供个性化功能，请参考父类声明
     virtual std::wstring GetType() const override;
@@ -26,6 +26,13 @@ public:
 };
 
 template<typename InheritType>
+ButtonTemplate<InheritType>::ButtonTemplate(Window* pWindow):
+    LabelTemplate<InheritType>(pWindow)
+{
+    this->SetTextStyle(TEXT_VCENTER | TEXT_CENTER | TEXT_END_ELLIPSIS | TEXT_NOCLIP | TEXT_SINGLELINE, false);
+}
+
+template<typename InheritType>
 inline std::wstring ButtonTemplate<InheritType>::GetType() const { return DUI_CTR_BUTTON; }
 
 template<>
@@ -35,12 +42,6 @@ template<typename InheritType>
 uint32_t ui::ButtonTemplate<InheritType>::GetControlFlags() const
 {
     return this->IsKeyboardEnabled() && this->IsEnabled() && this->IsAllowTabStop() ? UIFLAG_TABSTOP : UIFLAG_DEFAULT;
-}
-
-template<typename InheritType>
-ButtonTemplate<InheritType>::ButtonTemplate()
-{
-    this->SetTextStyle(TEXT_VCENTER | TEXT_CENTER | TEXT_END_ELLIPSIS | TEXT_NOCLIP | TEXT_SINGLELINE, false);
 }
 
 template<typename InheritType>

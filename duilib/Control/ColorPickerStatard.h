@@ -13,7 +13,7 @@ namespace ui
 class ColorPickerStatard : public Control
 {
 public:
-	ColorPickerStatard();
+	explicit ColorPickerStatard(Window* pWindow);
 
 	/** 获取控件类型
 	*/

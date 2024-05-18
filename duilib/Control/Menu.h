@@ -28,9 +28,9 @@ enum class MenuCloseType
 
 //菜单弹出位置的类型
 enum class MenuPopupPosType
-{					    //鼠标点击的point属于菜单的哪个位置    1.-----.2       1左上 2右上              
-												   //     |     |
-	//这里假定用户是喜欢智能的                                3.-----.4       3左下 4右下
+{   //鼠标点击的point属于菜单的哪个位置		1.-----.2       1左上 2右上              
+    //									 |     |
+	//这里假定用户是喜欢智能的				3.-----.4       3左下 4右下
 	RIGHT_BOTTOM	= eMenuAlignment_Right | eMenuAlignment_Bottom | eMenuAlignment_Intelligent,
 	RIGHT_TOP		= eMenuAlignment_Right | eMenuAlignment_Top    | eMenuAlignment_Intelligent,
 	LEFT_BOTTOM		= eMenuAlignment_Left  | eMenuAlignment_Bottom | eMenuAlignment_Intelligent,
@@ -175,7 +175,7 @@ private:
 class MenuItem : public ui::ListBoxItem
 {
 public:
-	MenuItem();
+	explicit MenuItem(Window* pWindow);
 
 	//添加子菜单项
 	bool AddSubMenuItem(MenuItem* pMenuItem);

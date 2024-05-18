@@ -10,7 +10,8 @@
 namespace ui 
 {
 
-RichText::RichText() :
+RichText::RichText(Window* pWindow) :
+    Control(pWindow),
     m_uTextStyle(TEXT_LEFT | TEXT_TOP),
     m_fRowSpacingMul(1.0f),
     m_bLinkUnderlineFont(true),

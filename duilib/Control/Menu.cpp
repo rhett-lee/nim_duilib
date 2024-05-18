@@ -12,15 +12,20 @@ ContextMenuObserver& Menu::GetMenuObserver()
 //二级或者多级子菜单的托管类
 class SubMenu: public ui::ListBoxItem
 {
+public:
+	explicit SubMenu(Window* pWindow):
+		ListBoxItem(pWindow)
+	{
+	}
 };
 
 ui::Control* Menu::CreateControl(const std::wstring& pstrClass)
 {
 	if (pstrClass == DUI_CTR_MENU_ITEM){
-		return new MenuItem();
+		return new MenuItem(this);
 	}
 	else if (pstrClass == DUI_CTR_SUB_MENU) {
-		return new SubMenu();
+		return new SubMenu(this);
 	}
 	return NULL;
 }
@@ -545,7 +550,8 @@ MenuItem* Menu::GetMenuItemByName(const std::wstring& name) const
 	return pElementUI;
 }
 
-MenuItem::MenuItem():
+MenuItem::MenuItem(Window* pWindow):
+	ListBoxItem(pWindow),
 	m_pSubWindow(nullptr)
 {
 	//在菜单元素上，不让子控件响应鼠标消息

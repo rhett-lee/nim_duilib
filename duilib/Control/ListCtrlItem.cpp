@@ -4,7 +4,8 @@
 
 namespace ui
 {
-ListCtrlItem::ListCtrlItem():
+ListCtrlItem::ListCtrlItem(Window* pWindow):
+    ListCtrlItemBaseH(pWindow),
     m_bSelectable(true),
     m_pListCtrl(nullptr),
     m_imageId(-1),

@@ -48,7 +48,7 @@ void MoveControlForm::OnInitWindow()
 	ASSERT(m_my_app != nullptr);
 	
 	for (const auto& item: applist) {
-		AppItemUi* pAppUi = AppItemUi::Create(item);
+		AppItemUi* pAppUi = AppItemUi::Create(item, m_frequent_app);
 		pAppUi->SetFrequentBox(m_frequent_app);
 		if (item.m_isFrequent) {
 			m_frequent_app->AddItem(pAppUi);

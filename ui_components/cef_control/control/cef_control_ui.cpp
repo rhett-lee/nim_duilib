@@ -23,7 +23,8 @@ namespace {
 	#define GET_Y_LPARAM(lp)                        ((int)(short)HIWORD(lp))
 }
 
-CefControl::CefControl(void):
+CefControl::CefControl(ui::Window* pWindow):
+	CefControlBase(pWindow),
 	devtool_view_(nullptr)
 {
 }

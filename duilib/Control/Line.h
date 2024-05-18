@@ -12,7 +12,7 @@ namespace ui
 class Line: public Control
 {
 public:
-	Line();
+	explicit Line(Window* pWindow);
 
 	/** 获取控件类型
 	*/

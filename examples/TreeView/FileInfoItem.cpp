@@ -1,7 +1,8 @@
 #include "FileInfoItem.h"
 #include "FileInfoList.h"
 
-FileInfoItem::FileInfoItem():
+FileInfoItem::FileInfoItem(ui::Window* pWindow):
+    ui::ListBoxItem(pWindow),
     m_nElementIndex(ui::Box::InvalidIndex),
     m_pIconControl(nullptr),
     m_pTextControl(nullptr)

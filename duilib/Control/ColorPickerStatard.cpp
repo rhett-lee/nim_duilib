@@ -5,7 +5,8 @@
 namespace ui
 {
 
-ColorPickerStatard::ColorPickerStatard():
+ColorPickerStatard::ColorPickerStatard(Window* pWindow):
+	Control(pWindow),
 	m_radius(0)
 {
 	InitColorMap();

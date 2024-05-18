@@ -9,11 +9,11 @@ namespace ui
 {
 
 class CCheckComboWnd;
-class UILIB_API CheckCombo : public ui::Box
+class UILIB_API CheckCombo : public Box
 {
 	friend class CCheckComboWnd;
 public:
-	CheckCombo();
+	explicit CheckCombo(Window* pWindow);
 	CheckCombo(const CheckCombo& r) = delete;
 	CheckCombo& operator=(const CheckCombo& r) = delete;
 	virtual ~CheckCombo();

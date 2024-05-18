@@ -11,7 +11,7 @@ class WkeWebView : public ui::Control,
                    public WebViewBase,
                    public ui::IUIMessageFilter {
  public:
-  WkeWebView();
+  explicit WkeWebView(ui::Window* pWindow);
   ~WkeWebView() override;
 
   // override form ui::Control

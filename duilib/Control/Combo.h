@@ -15,7 +15,7 @@ class UILIB_API Combo : public Box
 {
     friend class CComboWnd;
 public:
-	Combo();
+	explicit Combo(Window* pWindow);
 	Combo(const Combo& r) = delete;
 	Combo& operator=(const Combo& r) = delete;
 	virtual ~Combo();

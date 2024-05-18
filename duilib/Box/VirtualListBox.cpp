@@ -33,8 +33,8 @@ void VirtualListBoxElement::EmitCountChanged()
 
 /////////////////////////////////////////////////////////////////////////////
 //
-VirtualListBox::VirtualListBox(Layout* pLayout)
-    : ListBox(pLayout)
+VirtualListBox::VirtualListBox(Window* pWindow, Layout* pLayout)
+    : ListBox(pWindow, pLayout)
     , m_pDataProvider(nullptr)
     , m_pVirtualLayout(nullptr)
     , m_bEnableUpdateProvider(true)
@@ -122,7 +122,7 @@ Control* VirtualListBox::CreateElement()
     Control* pControl = nullptr;
     ASSERT(m_pDataProvider != nullptr);
     if (m_pDataProvider != nullptr) {
-        pControl = m_pDataProvider->CreateElement();
+        pControl = m_pDataProvider->CreateElement(this);
     }
     if (pControl != nullptr) {
         //挂载鼠标事件，转接给List Box本身

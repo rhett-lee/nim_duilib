@@ -23,7 +23,7 @@ class UILIB_API TreeNode : public ListBoxItem
 {
 	friend class TreeView;
 public:
-	TreeNode();
+	explicit TreeNode(Window* pWindow);
 	TreeNode(const TreeNode& r) = delete;
 	TreeNode& operator=(const TreeNode& r) = delete;
 	virtual ~TreeNode();
@@ -334,7 +334,7 @@ class UILIB_API TreeView : public ListBox
 {
 	friend class TreeNode;
 public:
-	TreeView();
+	explicit TreeView(Window* pWindow);
 	virtual ~TreeView();
 
 	/// 重写父类方法，提供个性化功能，请参考父类声明

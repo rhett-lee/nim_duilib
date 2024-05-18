@@ -138,6 +138,11 @@ public:
 class ListCtrlLabel: public LabelTemplate<HBox>
 {
 public:
+    explicit ListCtrlLabel(Window* pWindow):
+        LabelTemplate<HBox>(pWindow)
+    {
+    }
+
     /** 消息处理
     */
     virtual void HandleEvent(const EventArgs& msg) override
@@ -246,7 +251,8 @@ struct ListCtrlEditParam
 class ListCtrlCheckBox: public CheckBox
 {
 public:
-    ListCtrlCheckBox()
+    explicit ListCtrlCheckBox(Window* pWindow):
+        CheckBox(pWindow)
     {
         //CheckBox本身不接收键盘消息
         SetKeyboardEnabled(false);
@@ -334,6 +340,10 @@ class ListCtrl;
 class ListCtrlIconViewItem : public ListCtrlItemBaseV
 {
 public:
+    explicit ListCtrlIconViewItem(Window* pWindow):
+        ListCtrlItemBaseV(pWindow)
+    {
+    }
     /** 获取控件类型
     */
     virtual std::wstring GetType() const override { return L"ListCtrlIconViewItem"; }
@@ -363,6 +373,10 @@ private:
 class ListCtrlListViewItem : public ListCtrlItemBaseH
 {
 public:
+    explicit ListCtrlListViewItem(Window* pWindow) :
+        ListCtrlItemBaseH(pWindow)
+    {
+    }
     /** 获取控件类型
     */
     virtual std::wstring GetType() const override { return L"ListCtrlListViewItem"; }

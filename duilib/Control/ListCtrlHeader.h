@@ -17,7 +17,7 @@ class ListCtrlHeader : public ListBoxItemH
 {
     friend class ListCtrlHeaderItem;
 public:
-    ListCtrlHeader();
+    explicit ListCtrlHeader(Window* pWindow);
     virtual ~ListCtrlHeader();
 
     /** 获取控件类型

@@ -2,9 +2,10 @@
 
 using namespace ui;
 
-BitmapControl::BitmapControl()
+BitmapControl::BitmapControl(ui::Window* pWindow):
+	ui::Control(pWindow),
+	bitmap_(nullptr)
 {
-	bitmap_ = NULL;
 }
 
 void BitmapControl::Paint(ui::IRender* pRender, const ui::UiRect& rcPaint)

@@ -14,8 +14,8 @@ namespace ui
 class UILIB_API HBox : public Box
 {
 public:
-	HBox() :
-		Box(new HLayout())
+	explicit HBox(Window* pWindow) :
+		Box(pWindow, new HLayout())
 	{
 	}
 

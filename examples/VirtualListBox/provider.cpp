@@ -15,9 +15,14 @@ Provider::Provider():
 Provider::~Provider()
 = default;
 
-ui::Control* Provider::CreateElement()
+ui::Control* Provider::CreateElement(ui::VirtualListBox* pVirtualListBox)
 {
-	Item* item = new Item;
+	ASSERT(pVirtualListBox != nullptr);
+	if (pVirtualListBox == nullptr) {
+		return nullptr;
+	}
+	ASSERT(pVirtualListBox->GetWindow() != nullptr);
+	Item* item = new Item(pVirtualListBox->GetWindow());
 	ui::GlobalManager::Instance().FillBoxWithCache(item, L"virtual_list_box/item.xml");
 	return item;
 }

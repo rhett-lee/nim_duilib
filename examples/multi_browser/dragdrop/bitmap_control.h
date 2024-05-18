@@ -9,7 +9,7 @@
 class BitmapControl : public ui::Control
 {
 public:
-	BitmapControl();
+	explicit BitmapControl(ui::Window* pWindow);
 
 	/**
 	* 重写父控件绘制函数

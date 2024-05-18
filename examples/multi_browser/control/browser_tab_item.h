@@ -9,7 +9,7 @@
 class BrowserTabItem : public ui::ListBoxItem
 {
 public:
-	BrowserTabItem();
+	explicit BrowserTabItem(ui::Window* pWindow);
 
 	/** 
 	* 初始化控件内部指针	

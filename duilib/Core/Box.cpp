@@ -3,7 +3,8 @@
 
 namespace ui
 {
-Box::Box(Layout* pLayout) :
+Box::Box(Window* pWindow, Layout* pLayout) :
+	Control(pWindow),
 	m_pLayout(pLayout),
 	m_bAutoDestroyChild(true),
 	m_bDelayedDestroy(true),

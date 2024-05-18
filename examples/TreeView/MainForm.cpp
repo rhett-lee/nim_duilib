@@ -70,7 +70,7 @@ void MainForm::OnInitWindow()
 
     //在磁盘前面，放一个横线分隔符
     if (pFirstDiskNode != nullptr) {
-        ui::Control* pLineControl = new ui::Control;
+        ui::Control* pLineControl = new ui::Control(this);
         pLineControl->SetClass(L"splitline_hor_level1");
         pLineControl->SetMargin(ui::UiMargin(12, 8, 12, 8), true);
         m_pTree->InsertControlBeforeNode(pFirstDiskNode, pLineControl);
@@ -117,8 +117,7 @@ ui::TreeNode* MainForm::InsertTreeNode(ui::TreeNode* pTreeNode,
         return nullptr;
     }
 
-    ui::TreeNode* node = new ui::TreeNode;
-    node->SetWindow(this);
+    ui::TreeNode* node = new ui::TreeNode(this);
     node->SetClass(L"tree_node");//在"global.xml"中定义
     node->SetText(displayName);
         

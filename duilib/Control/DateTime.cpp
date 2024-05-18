@@ -310,7 +310,8 @@ LRESULT DateTimeWnd::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bo
 
 //////////////////////////////////////////////////////////////////////////
 
-DateTime::DateTime():
+DateTime::DateTime(Window* pWindow):
+    Label(pWindow),
     m_dateTime({0,}),
     m_pDateWindow(nullptr),
     m_editFormat(EditFormat::kDateCalendar),

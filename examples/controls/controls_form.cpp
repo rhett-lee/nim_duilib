@@ -47,7 +47,7 @@ void ControlForm::OnInitWindow()
 	if (list != nullptr) {
 		for (auto i = 0; i < 30; i++)
 		{
-			ui::ListBoxItem* element = new ui::ListBoxItem;
+			ui::ListBoxItem* element = new ui::ListBoxItem(this);
 			element->SetText(nbase::StringPrintf(L"ui::VListBox::ListBoxItem %d", i));
 			element->SetClass(L"listitem");
 			element->SetFixedHeight(ui::UiFixedInt(20), true, true);
@@ -61,8 +61,7 @@ void ControlForm::OnInitWindow()
 		ui::TreeView* pTreeView = combo->GetTreeView();
 		ui::TreeNode* pTreeNode = pTreeView->GetRootNode();
 		for (auto i = 0; i < 10; i++) {
-			ui::TreeNode* node = new ui::TreeNode;
-			node->SetWindow(this);
+			ui::TreeNode* node = new ui::TreeNode(this);
 			node->SetClass(L"tree_node");
 			node->SetText(nbase::StringPrintf(L"ui::Combo::TreeNode %d", i));
 			pTreeNode->AddChildNode(node);
@@ -302,7 +301,7 @@ void ControlForm::ShowPopupMenu(const ui::UiPoint& point)
     //在二级菜单中，添加子菜单项
     ui::MenuItem* menu_fourth = static_cast<ui::MenuItem*>(menu->FindControl(L"fourth"));
 	if (menu_fourth != nullptr) {
-		ui::MenuItem* menu_item = new ui::MenuItem;
+		ui::MenuItem* menu_item = new ui::MenuItem(menu);
 		menu_item->SetText(L"Dynamically created");
 		menu_item->SetClass(L"menu_element");
 		menu_item->SetFixedWidth(ui::UiFixedInt(180), true, true);
@@ -314,7 +313,8 @@ void ControlForm::ShowPopupMenu(const ui::UiPoint& point)
 
     //在一级菜单中，添加子菜单项
     /*
-    menu_item = new ui::MenuItem;
+    menu_item = new ui::MenuItem(menu);
+	menu_item->SetWindow(menu);
     menu_item->SetText(L"Dynamically created");
     menu_item->SetClass(L"menu_element");
     menu_item->SetFixedWidth(180);

@@ -4,7 +4,8 @@
 namespace ui
 {
 
-ListCtrlHeader::ListCtrlHeader() :
+ListCtrlHeader::ListCtrlHeader(Window* pWindow) :
+    ListBoxItemH(pWindow),
     m_pListCtrl(nullptr),
     m_nCheckBoxPadding(0),
     m_nPaddingLeftValue(0),
@@ -83,9 +84,9 @@ ListCtrlHeaderItem* ListCtrlHeader::InsertColumn(int32_t columnIndex, const List
         nColumnWidth = 0;
     }
 
-    ListCtrlHeaderItem* pHeaderItem = new ListCtrlHeaderItem;
+    ListCtrlHeaderItem* pHeaderItem = new ListCtrlHeaderItem(GetWindow());
     pHeaderItem->SetHeaderCtrl(this);
-    SplitBox* pHeaderSplit = new SplitBox;
+    SplitBox* pHeaderSplit = new SplitBox(GetWindow());
     size_t nColumnCount = GetColumnCount();
     if ((size_t)columnIndex >= nColumnCount) {
         //放在最后
@@ -103,7 +104,7 @@ ListCtrlHeaderItem* ListCtrlHeader::InsertColumn(int32_t columnIndex, const List
         pHeaderSplit->SetClass(m_pListCtrl->GetHeaderSplitBoxClass());
     }
 
-    Control* pSplitCtrl = new Control;
+    Control* pSplitCtrl = new Control(GetWindow());
     pSplitCtrl->SetMouseEnabled(false);
     pSplitCtrl->SetMouseFocused(false);
     pSplitCtrl->SetNoFocus();

@@ -143,8 +143,8 @@ private:
 	ITextServices* m_pTextServices;
 };
 
-RichEdit::RichEdit() : 
-	ScrollBox(new Layout),
+RichEdit::RichEdit(Window* pWindow) :
+	ScrollBox(pWindow, new Layout),
 	m_pRichHost(nullptr), 
 	m_bVScrollBarFixing(false), 
 	m_bWantTab(true),
@@ -2921,13 +2921,13 @@ bool RichEdit::SetSpinClass(const std::wstring& spinClass)
 		Button* pUpButton = nullptr;
 		Button* pDownButton = nullptr;
 		if (m_pSpinBox == nullptr) {
-			m_pSpinBox = new VBox;
+			m_pSpinBox = new VBox(GetWindow());
 			AddItem(m_pSpinBox);
 
-			pUpButton = new Button;
+			pUpButton = new Button(GetWindow());
 			m_pSpinBox->AddItem(pUpButton);
 
-			pDownButton = new Button;
+			pDownButton = new Button(GetWindow());
 			m_pSpinBox->AddItem(pDownButton);
 		}
 		else {
@@ -3103,7 +3103,7 @@ void RichEdit::SetClearBtnClass(const std::wstring& btnClass)
 		if (m_pClearButton != nullptr) {
 			return;
 		}
-		Button* pClearButton = new Button;
+		Button* pClearButton = new Button(GetWindow());
 		pClearButton->SetClass(btnClass);
 		pClearButton->SetNoFocus();
 		pClearButton->SetVisible(false);
@@ -3125,7 +3125,7 @@ void RichEdit::SetShowPasswordBtnClass(const std::wstring& btnClass)
 		if (m_pShowPasswordButton != nullptr) {
 			return;
 		}
-		Button* pButton = new Button;
+		Button* pButton = new Button(GetWindow());
 		pButton->SetClass(btnClass);
 		pButton->SetNoFocus();
 		pButton->SetVisible(false);

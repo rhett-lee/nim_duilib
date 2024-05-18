@@ -7,8 +7,8 @@
 
 namespace ui
 {
-ScrollBox::ScrollBox(Layout* pLayout) :
-	Box(pLayout),
+ScrollBox::ScrollBox(Window* pWindow, Layout* pLayout) :
+	Box(pWindow, pLayout),
 	m_pVScrollBar(),
 	m_pHScrollBar(),
 	m_bScrollProcess(false),
@@ -858,11 +858,10 @@ void ScrollBox::TouchDown(int deltaValue)
 void ScrollBox::EnableScrollBar(bool bEnableVertical, bool bEnableHorizontal)
 {
 	if( bEnableVertical && (m_pVScrollBar == nullptr) ) {
-		m_pVScrollBar.reset(new ScrollBar);
+		m_pVScrollBar.reset(new ScrollBar(GetWindow()));
 		m_pVScrollBar->SetVisible(false);
 		m_pVScrollBar->SetScrollRange(0);
-		m_pVScrollBar->SetOwner(this);
-		m_pVScrollBar->SetWindow(GetWindow());
+		m_pVScrollBar->SetOwner(this);		
 		m_pVScrollBar->SetClass(L"vscrollbar");
 	}
 	else if( !bEnableVertical && (m_pVScrollBar != nullptr) ) {
@@ -870,12 +869,11 @@ void ScrollBox::EnableScrollBar(bool bEnableVertical, bool bEnableHorizontal)
 	}
 
 	if( bEnableHorizontal && (m_pHScrollBar == nullptr)) {
-		m_pHScrollBar.reset(new ScrollBar);
+		m_pHScrollBar.reset(new ScrollBar(GetWindow()));
 		m_pHScrollBar->SetVisible(false);
 		m_pHScrollBar->SetScrollRange(0);
 		m_pHScrollBar->SetHorizontal(true);
-		m_pHScrollBar->SetOwner(this);
-		m_pHScrollBar->SetWindow(GetWindow());
+		m_pHScrollBar->SetOwner(this);		
 		m_pHScrollBar->SetClass(L"hscrollbar");
 	}
 	else if( !bEnableHorizontal && (m_pHScrollBar != nullptr)) {

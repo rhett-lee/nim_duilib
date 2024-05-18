@@ -17,7 +17,7 @@ class UILIB_API ScrollBar:
 	public Control
 {
 public:
-	ScrollBar();
+	explicit ScrollBar(Window* pWindow);
 	ScrollBar(const ScrollBar& r) = delete;
 	ScrollBar& operator=(const ScrollBar& r) = delete;
 

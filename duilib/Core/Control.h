@@ -28,7 +28,7 @@ class UILIB_API Control :
 	public PlaceHolder
 {
 public:
-	Control();
+	explicit Control(Window* pWindow);
 	Control(const Control& r) = delete;
 	Control& operator=(const Control& r) = delete;
     virtual ~Control();

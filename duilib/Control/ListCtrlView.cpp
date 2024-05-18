@@ -4,8 +4,8 @@
 
 namespace ui
 {
-ListCtrlView::ListCtrlView(Layout* pLayout):
-    VirtualListBox(pLayout),
+ListCtrlView::ListCtrlView(Window* pWindow, Layout* pLayout):
+    VirtualListBox(pWindow, pLayout),
     m_bMouseDown(false),
     m_bRMouseDown(false),
     m_bInMouseMove(false),

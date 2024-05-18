@@ -15,7 +15,7 @@ class ListCtrlCheckBox;
 class ListCtrlSubItem : public ListCtrlLabel
 {
 public:
-    ListCtrlSubItem();
+    explicit ListCtrlSubItem(Window* pWindow);
 
     /** 获取控件类型
     */

@@ -578,6 +578,7 @@ void GlobalManager::FillBoxWithCache(Box* pUserDefinedBox, const std::wstring& s
 	if (pUserDefinedBox == nullptr) {
 		return;
 	}
+	ASSERT(pUserDefinedBox->GetWindow() != nullptr); //DPI感知功能要求，必须先关联窗口
 	Box* box = nullptr;
 	auto it = m_builderMap.find(strXmlPath);
 	if (it == m_builderMap.end()) {

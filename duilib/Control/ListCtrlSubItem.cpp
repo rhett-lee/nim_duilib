@@ -3,7 +3,8 @@
 
 namespace ui
 {
-ListCtrlSubItem::ListCtrlSubItem():
+ListCtrlSubItem::ListCtrlSubItem(Window* pWindow):
+    ListCtrlLabel(pWindow),
     m_pItem(nullptr),
     m_imageId(-1),
     m_nIconSpacing(-1)
@@ -58,7 +59,7 @@ bool ListCtrlSubItem::SetCheckBoxVisible(bool bVisible)
             pCheckBox = dynamic_cast<ListCtrlCheckBox*>(GetItemAt(0));
         }
         if (pCheckBox == nullptr) {
-            pCheckBox = new ListCtrlCheckBox;
+            pCheckBox = new ListCtrlCheckBox(GetWindow());
             AddItem(pCheckBox);
             ListCtrl* pListCtrl = pItem->GetListCtrl();            
             std::wstring checkBoxClass;

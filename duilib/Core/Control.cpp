@@ -15,7 +15,8 @@
 
 namespace ui 
 {
-Control::Control() :
+Control::Control(Window* pWindow) :
+	PlaceHolder(pWindow),
 	m_bContextMenuUsed(false),
 	m_bEnabled(true),
 	m_bMouseEnabled(true),
@@ -97,6 +98,7 @@ std::wstring Control::GetType() const { return DUI_CTR_CONTROL; }
 
 void Control::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
+	ASSERT(GetWindow() != nullptr);//由于需要做DPI感知功能，所以必须先设置关联窗口
 	if (strName == L"class") {
 		SetClass(strValue);
 	}

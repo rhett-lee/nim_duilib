@@ -15,7 +15,7 @@ void OnPaintCallback(wkeWebView webView, void* param, const void* buffer, const 
 
 namespace nim_comp {
 
-WkeWebView::WkeWebView() {}
+WkeWebView::WkeWebView(ui::Window* pWindow): ui::Control(pWindow){}
 
 WkeWebView::~WkeWebView() {
     GetWindow()->RemoveMessageFilter(this);

@@ -19,7 +19,9 @@ struct AppItem
 class AppItemUi : public ui::ControlDragableT<ui::VBox>
 {
 public:
-	static AppItemUi* Create(const AppItem& item);
+	static AppItemUi* Create(const AppItem& item, Box* p);
+
+	explicit AppItemUi(ui::Window* pWindow);
 	virtual void OnInit() override;
 	void SetAppdata(const AppItem& item,bool refresh);
 	inline const AppItem& getAppData() const { return m_app_data; }

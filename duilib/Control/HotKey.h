@@ -14,7 +14,7 @@ class HotKeyRichEdit;
 class HotKey: public HBox
 {
 public:
-	HotKey();
+	explicit HotKey(Window* pWindow);
     virtual ~HotKey();
 
 	/** 获取控件类型

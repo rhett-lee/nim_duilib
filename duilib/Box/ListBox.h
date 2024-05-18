@@ -122,7 +122,7 @@ public:
 class UILIB_API ListBox : public ScrollBox, public IListBoxOwner
 {
 public:
-	explicit ListBox(Layout* pLayout);
+	ListBox(Window* pWindow, Layout* pLayout);
 	ListBox(const ListBox& r) = delete;
 	ListBox& operator=(const ListBox& r) = delete;
 
@@ -508,8 +508,8 @@ private:
 class UILIB_API HListBox : public ListBox
 {
 public:
-	HListBox() :
-		ListBox(new HLayout)
+	explicit HListBox(Window* pWindow) :
+		ListBox(pWindow, new HLayout)
 	{
 	}
 
@@ -521,8 +521,8 @@ public:
 class UILIB_API VListBox : public ListBox
 {
 public:
-	VListBox() :
-		ListBox(new VLayout)
+	explicit VListBox(Window* pWindow) :
+		ListBox(pWindow, new VLayout)
 	{
 	}
 
@@ -534,8 +534,8 @@ public:
 class UILIB_API HTileListBox : public ListBox
 {
 public:
-	HTileListBox() :
-		ListBox(new HTileLayout)
+	explicit HTileListBox(Window* pWindow) :
+		ListBox(pWindow, new HTileLayout)
 	{
 	}
 
@@ -547,8 +547,8 @@ public:
 class UILIB_API VTileListBox : public ListBox
 {
 public:
-	VTileListBox() :
-		ListBox(new VTileLayout)
+	explicit VTileListBox(Window* pWindow) :
+		ListBox(pWindow, new VTileLayout)
 	{
 	}
 

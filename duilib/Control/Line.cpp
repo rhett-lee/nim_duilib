@@ -5,7 +5,8 @@
 namespace ui
 {
 
-Line::Line():
+Line::Line(Window* pWindow):
+    Control(pWindow),
     m_bLineVertical(false),
     m_dashStyle(IPen::kDashStyleDashDot),
     m_lineWidth(0)

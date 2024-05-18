@@ -18,7 +18,7 @@ template<typename InheritType = Control>
 class UILIB_API SplitTemplate : public InheritType
 {
 public:
-    SplitTemplate();
+    explicit SplitTemplate(Window* pWindow);
 
     virtual std::wstring GetType() const override;
     virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
@@ -99,7 +99,8 @@ private:
 };
 
 template<typename InheritType>
-SplitTemplate<InheritType>::SplitTemplate():
+SplitTemplate<InheritType>::SplitTemplate(Window* pWindow):
+    InheritType(pWindow),
     m_pLeftTop(nullptr),
     m_pRightBottom(nullptr),
     m_bHLayout(true),

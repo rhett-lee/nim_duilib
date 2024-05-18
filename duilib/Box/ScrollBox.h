@@ -20,7 +20,7 @@ namespace ui
 class UILIB_API ScrollBox : public Box
 {
 public:
-	explicit ScrollBox(Layout* pLayout = new Layout);
+	explicit ScrollBox(Window* pWindow, Layout* pLayout = new Layout);
 	ScrollBox(const ScrollBox& r) = delete;
 	ScrollBox& operator=(const ScrollBox& r) = delete;
 	virtual ~ScrollBox();
@@ -329,8 +329,8 @@ private:
 class UILIB_API HScrollBox : public ScrollBox
 {
 public:
-	HScrollBox() :
-		ScrollBox(new HLayout)
+	explicit HScrollBox(Window* pWindow) :
+		ScrollBox(pWindow, new HLayout)
 	{
 	}
 
@@ -342,8 +342,8 @@ public:
 class UILIB_API VScrollBox : public ScrollBox
 {
 public:
-	VScrollBox() :
-		ScrollBox(new VLayout)
+	explicit VScrollBox(Window* pWindow) :
+		ScrollBox(pWindow, new VLayout)
 	{
 	}
 
@@ -355,8 +355,8 @@ public:
 class UILIB_API HTileScrollBox : public ScrollBox
 {
 public:
-	HTileScrollBox() :
-		ScrollBox(new HTileLayout)
+	explicit HTileScrollBox(Window* pWindow) :
+		ScrollBox(pWindow, new HTileLayout)
 	{
 	}
 
@@ -368,8 +368,8 @@ public:
 class UILIB_API VTileScrollBox : public ScrollBox
 {
 public:
-	VTileScrollBox() :
-		ScrollBox(new VTileLayout)
+	explicit VTileScrollBox(Window* pWindow) :
+		ScrollBox(pWindow, new VTileLayout)
 	{
 	}
 

@@ -4,8 +4,8 @@
 
 namespace ui
 {
-ListCtrlIconView::ListCtrlIconView(bool bListMode):
-    ListCtrlView(new VirtualVTileLayout),
+ListCtrlIconView::ListCtrlIconView(Window* pWindow, bool bListMode):
+    ListCtrlView(pWindow, new VirtualVTileLayout),
     m_pListCtrl(nullptr),
     m_pData(nullptr),
     m_bListMode(bListMode)
@@ -157,23 +157,23 @@ Control* ListCtrlIconView::CreateDataItem()
     Control* pControl = nullptr;
     if (m_bListMode) {
         //列表视图: 水平布局
-        ListCtrlListViewItem* pItem = new ListCtrlListViewItem;
+        ListCtrlListViewItem* pItem = new ListCtrlListViewItem(GetWindow());
         pItem->SetListCtrl(m_pListCtrl);
         pControl = pItem;
         pControl->SetClass(m_pListCtrl->GetListViewItemClass());
-        Control* pItemImage = new Control;
-        ListCtrlLabel* pItemLabel = new ListCtrlLabel;
+        Control* pItemImage = new Control(GetWindow());
+        ListCtrlLabel* pItemLabel = new ListCtrlLabel(GetWindow());
         pItem->AddItem(pItemImage);
         pItem->AddItem(pItemLabel);
     }
     else {
         //图标视图：垂直布局
-        ListCtrlIconViewItem* pItem = new ListCtrlIconViewItem;
+        ListCtrlIconViewItem* pItem = new ListCtrlIconViewItem(GetWindow());
         pItem->SetListCtrl(m_pListCtrl);
         pControl = pItem;
         pControl->SetClass(m_pListCtrl->GetIconViewItemClass());
-        Control* pItemImage = new Control;
-        ListCtrlLabel* pItemLabel = new ListCtrlLabel;
+        Control* pItemImage = new Control(GetWindow());
+        ListCtrlLabel* pItemLabel = new ListCtrlLabel(GetWindow());
         pItem->AddItem(pItemImage);
         pItem->AddItem(pItemLabel);
     }

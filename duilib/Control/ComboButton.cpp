@@ -165,7 +165,7 @@ LRESULT ComboButtonWnd::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam,
 {
 	bHandled = false;
     if( uMsg == WM_CREATE ) {
-		Box* pRoot = new Box;
+		Box* pRoot = new Box(this);
 		pRoot->SetAutoDestroyChild(false);
 		pRoot->AddItem(m_pOwner->GetComboBox());
 		AttachBox(pRoot);
@@ -207,7 +207,8 @@ LRESULT ComboButtonWnd::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam,
 
 ////////////////////////////////////////////////////////
 
-ComboButton::ComboButton() :
+ComboButton::ComboButton(Window* pWindow) :
+	Box(pWindow),
 	m_pWindow(nullptr),
 	m_bPopupTop(false),
 	m_pComboBox(nullptr),
@@ -217,7 +218,7 @@ ComboButton::ComboButton() :
 	m_pRightButton(nullptr),
 	m_bDropListShown(false)
 {
-	m_pComboBox = new Box;
+	m_pComboBox = new Box(pWindow);
 }
 
 ComboButton::~ComboButton()
@@ -334,7 +335,7 @@ void ComboButton::SetLeftButtonClass(const std::wstring& classValue)
 	}
 	else {
 		if (m_pLeftButton == nullptr) {
-			m_pLeftButton = new ButtonVBox;
+			m_pLeftButton = new ButtonVBox(GetWindow());
 		}
 		SetAttributeList(m_pLeftButton, classValue);
 	}
@@ -353,7 +354,7 @@ void ComboButton::SetLeftButtonTopLabelClass(const std::wstring& classValue)
 	}
 	else {
 		if (m_pLabelTop == nullptr) {
-			m_pLabelTop = new Label;
+			m_pLabelTop = new Label(GetWindow());
 		}
 		SetAttributeList(m_pLabelTop, classValue);
 	}
@@ -372,7 +373,7 @@ void ComboButton::SetLeftButtonBottomLabelClass(const std::wstring& classValue)
 	}
 	else {
 		if (m_pLabelBottom == nullptr) {
-			m_pLabelBottom = new Label;
+			m_pLabelBottom = new Label(GetWindow());
 		}
 		SetAttributeList(m_pLabelBottom, classValue);
 	}
@@ -389,7 +390,7 @@ void ComboButton::SetRightButtonClass(const std::wstring& classValue)
 	}
 	else {
 		if (m_pRightButton == nullptr) {
-			m_pRightButton = new Button;
+			m_pRightButton = new Button(GetWindow());
 		}
 		SetAttributeList(m_pRightButton, classValue);
 	}
@@ -482,7 +483,7 @@ void ComboButton::OnInit()
 	}
 	__super::OnInit();
 
-	HBox* pBox = new HBox;
+	HBox* pBox = new HBox(GetWindow());
 	AddItem(pBox);
 	pBox->SetNoFocus();
 

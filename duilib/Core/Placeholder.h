@@ -19,7 +19,7 @@ namespace ui
 class UILIB_API PlaceHolder : public virtual nbase::SupportWeakCallback
 {
 public:
-	PlaceHolder();
+	explicit PlaceHolder(Window* pWindow);
 	PlaceHolder(const PlaceHolder& r) = delete;
 	PlaceHolder& operator=(const PlaceHolder& r) = delete;
 	virtual ~PlaceHolder();

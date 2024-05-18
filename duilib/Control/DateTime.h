@@ -12,7 +12,7 @@ class UILIB_API DateTime : public Label
 {
     friend class DateTimeWnd;
 public:
-    DateTime();
+    explicit DateTime(Window* pWindow);
     DateTime(const DateTime& r) = delete;
     DateTime& operator=(const DateTime& r) = delete;
     virtual ~DateTime();

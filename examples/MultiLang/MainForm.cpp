@@ -77,9 +77,9 @@ void MainForm::ShowPopupMenu(const ui::UiPoint& point)
 		const std::wstring fileName = lang.first;
 		std::wstring& displayName = lang.second;
 
-		ui::MenuItem* pMenuItem = new ui::MenuItem;
+		ui::MenuItem* pMenuItem = new ui::MenuItem(this);
 		pMenuItem->SetClass(L"menu_element");
-		ui::CheckBox* pCheckBox = new ui::CheckBox;
+		ui::CheckBox* pCheckBox = new ui::CheckBox(this);
 		pCheckBox->SetClass(L"menu_checkbox");
 		pCheckBox->SetAttribute(L"margin", L"0,5,0,10");
 		pCheckBox->SetText(!displayName.empty() ? displayName : fileName);

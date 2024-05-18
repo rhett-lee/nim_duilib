@@ -242,6 +242,10 @@ UiColor ColorPicker::GetSelectedColor() const
 class ScreenColorPreview : public Label
 {
 public:
+	explicit ScreenColorPreview(Window* pWindow):
+		Label(pWindow)
+	{
+	}
 	/** 绘制背景图片的入口函数
 	* @param[in] pRender 指定绘制区域
 	*/
@@ -319,7 +323,8 @@ private:
 class ScreenColorPicker : public Control
 {
 public:
-	ScreenColorPicker():
+	explicit ScreenColorPicker(Window* pWindow):
+		Control(pWindow),
 		m_hCursor(nullptr),
 		m_pColorPreview(nullptr)
 	{
@@ -617,7 +622,7 @@ public:
 	{
 		if (strClass == L"ScreenColorPicker") {
 			if (m_pScreenColorPicker == nullptr) {
-				m_pScreenColorPicker = new ScreenColorPicker;
+				m_pScreenColorPicker = new ScreenColorPicker(this);
 				if (m_spBitmap != nullptr) {
 					m_pScreenColorPicker->SetBitmap(m_spBitmap);
 					m_spBitmap.reset();
@@ -626,7 +631,7 @@ public:
 			return m_pScreenColorPicker;
 		}
 		else if (strClass == L"ScreenColorPreview") {
-			ScreenColorPreview* pScreenColorPreview = new ScreenColorPreview;
+			ScreenColorPreview* pScreenColorPreview = new ScreenColorPreview(this);
 			if (m_pScreenColorPicker != nullptr) {
 				m_pScreenColorPicker->SetColorPreview(pScreenColorPreview);
 			}

@@ -5,7 +5,8 @@
 namespace ui
 {
 
-ColorPickerCustom::ColorPickerCustom() :
+ColorPickerCustom::ColorPickerCustom(Window* pWindow) :
+	Box(pWindow),
 	m_bPickerInited(false),
 	m_pRegularPicker(nullptr),
 	m_pSpectrumControl(nullptr),

@@ -10,7 +10,7 @@ struct FileInfo;
 class FileInfoItem : public ui::ListBoxItem
 {
 public:
-    FileInfoItem();
+    explicit FileInfoItem(ui::Window* pWindow);
     virtual ~FileInfoItem();
     void InitSubControls(const FileInfo& fileInfo, size_t nElementIndex);
 

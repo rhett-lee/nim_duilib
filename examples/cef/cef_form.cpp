@@ -32,9 +32,9 @@ ui::Control* CefForm::CreateControl(const std::wstring& pstrClass)
 	if (pstrClass == L"CefControl")
 	{
 		if (nim_comp::CefManager::GetInstance()->IsEnableOffsetRender())
-			return new nim_comp::CefControl;
+			return new nim_comp::CefControl(this);
 		else
-			return new nim_comp::CefNativeControl;
+			return new nim_comp::CefNativeControl(this);
 	}
 
 	return NULL;

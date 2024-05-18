@@ -149,7 +149,7 @@ LRESULT CCheckComboWnd::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam,
 {
 	bHandled = false;
 	if (uMsg == WM_CREATE) {
-		Box* pRoot = new Box;
+		Box* pRoot = new Box(this);
 		pRoot->SetAutoDestroyChild(false);
 		pRoot->AddItem(m_pOwner->GetListBox());
 		this->AttachBox(pRoot);
@@ -188,16 +188,17 @@ LRESULT CCheckComboWnd::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam,
 
 #define CHECK_COMBO_DEFAULT_HEIGHT 20 
 
-CheckCombo::CheckCombo() :
+CheckCombo::CheckCombo(Window* pWindow) :
+	Box(pWindow),
 	m_pCheckComboWnd(nullptr),
 	m_szDropBox(0, 0),
 	m_bPopupTop(false),
 	m_iOrgHeight(CHECK_COMBO_DEFAULT_HEIGHT)
 {
-	m_pDropList.reset(new ui::ListBox(new ui::VLayout));
+	m_pDropList.reset(new ui::ListBox(pWindow, new ui::VLayout));
 	m_pDropList->EnableScrollBar();
 	
-	m_pList.reset(new ui::ListBox(new ui::VTileLayout));
+	m_pList.reset(new ui::ListBox(pWindow, new ui::VTileLayout));
 	m_pList->AttachButtonDown(std::bind(&CheckCombo::OnListButtonDown, this, std::placeholders::_1));
 	m_pList->SetMouseChildEnabled(false);
 	m_pList->EnableScrollBar();
@@ -319,7 +320,7 @@ bool CheckCombo::AddTextItem(const std::wstring& itemText)
 		}
 	}
 
-	CheckBox* item = new CheckBox;
+	CheckBox* item = new CheckBox(GetWindow());
 	SetAttributeList(item, m_dropboxItemClass.c_str());
 	item->SetText(itemText);
 	return AddItem(item);
@@ -488,7 +489,7 @@ bool CheckCombo::OnSelectItem(const ui::EventArgs& args)
 		return true;
 	}
 
-	ui::Label* item = new ui::Label;
+	Label* item = new Label(m_pList->GetWindow());
 	SetAttributeList(item, m_selectedItemClass.c_str());
 	item->SetText(itemText);
 	m_pList->AddItem(item);

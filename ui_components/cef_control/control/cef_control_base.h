@@ -20,7 +20,7 @@ namespace nim_comp {
 class CefControlBase : public ui::Control, public nim_comp::BrowserHandler::HandlerDelegate
 {
 public:
-	CefControlBase(void);
+	explicit CefControlBase(ui::Window* pWindow);
 	virtual ~CefControlBase(void);	
 
 public:

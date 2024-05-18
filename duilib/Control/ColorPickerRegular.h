@@ -13,7 +13,7 @@ class ColorPickerRegularProvider;
 class ColorPickerRegular : public VirtualVTileListBox
 {
 public:
-    ColorPickerRegular();
+    explicit ColorPickerRegular(Window* pWindow);
 
     /** 获取控件类型
     */

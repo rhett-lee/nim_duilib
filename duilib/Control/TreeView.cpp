@@ -4,7 +4,8 @@
 namespace ui
 {
 
-TreeNode::TreeNode() :
+TreeNode::TreeNode(Window* pWindow) :
+	ListBoxItem(pWindow),
 	m_bExpand(true),
 	m_pTreeView(nullptr),
 	m_pParentTreeNode(nullptr),
@@ -1006,14 +1007,14 @@ uint16_t TreeNode::GetDepth() const
 	return m_uDepth;
 }
 
-TreeView::TreeView() :
-	ListBox(new VLayout),
+TreeView::TreeView(Window* pWindow) :
+	ListBox(pWindow, new VLayout),
 	m_iIndent(0),
 	m_rootNode(),
 	m_bEnableIcon(true)
 {
 	m_bMultiCheckMode = __super::IsMultiSelect();
-	m_rootNode.reset(new TreeNode());
+	m_rootNode.reset(new TreeNode(pWindow));
 	m_rootNode->SetTreeView(this);
 	//缩进默认设置为20个像素
 	SetIndent(20, true);

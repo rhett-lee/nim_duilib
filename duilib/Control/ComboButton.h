@@ -18,7 +18,7 @@ class UILIB_API ComboButton : public Box
 {
     friend class ComboButtonWnd;
 public:
-	ComboButton();
+	explicit ComboButton(Window* pWindow);
 	ComboButton(const ComboButton& r) = delete;
 	ComboButton& operator=(const ComboButton& r) = delete;
 	virtual ~ComboButton();

@@ -14,7 +14,7 @@ namespace ui
 class UILIB_API Progress : public LabelTemplate<Control>
 {
 public:
-	Progress();
+	explicit Progress(Window* pWindow);
 	virtual ~Progress();
 
 	/// 重写父类方法，提供个性化功能，请参考父类声明

@@ -13,7 +13,7 @@ namespace ui
 class ColorControl: public Control
 {
 public:
-	ColorControl();
+	explicit ColorControl(Window* pWindow);
 
 	/** 获取控件类型
 	*/

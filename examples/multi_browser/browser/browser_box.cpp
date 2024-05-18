@@ -6,7 +6,8 @@
 using namespace ui;
 using namespace std;
 
-BrowserBox::BrowserBox(std::string id)
+BrowserBox::BrowserBox(ui::Window* pWindow, std::string id):
+	ui::VBox(pWindow)
 {
 	taskbar_item_ = nullptr;
 	browser_form_ = nullptr;
@@ -81,9 +82,9 @@ ui::Control* BrowserBox::CreateControl(const std::wstring& pstrClass)
 	if (pstrClass == L"CefControl")
 	{
 		if (nim_comp::CefManager::GetInstance()->IsEnableOffsetRender())
-			return new nim_comp::CefControl;
+			return new nim_comp::CefControl(GetWindow());
 		else
-			return new nim_comp::CefNativeControl;
+			return new nim_comp::CefNativeControl(GetWindow());
 	}
 
 	return NULL;

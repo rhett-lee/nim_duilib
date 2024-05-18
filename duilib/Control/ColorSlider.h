@@ -58,7 +58,7 @@ public:
 class ColorSlider: public Slider
 {
 public:
-	ColorSlider();
+	explicit ColorSlider(Window* pWindow);
 
 	/** 获取控件类型
 	*/

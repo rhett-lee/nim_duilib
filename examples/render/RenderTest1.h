@@ -8,7 +8,7 @@ namespace ui {
 class RenderTest1 : public ui::Control
 {
 public:
-	RenderTest1();
+	explicit RenderTest1(ui::Window* pWindow);
 	virtual ~RenderTest1();
 
 public:

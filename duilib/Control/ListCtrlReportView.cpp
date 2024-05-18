@@ -6,8 +6,8 @@
 
 namespace ui
 {
-ListCtrlReportView::ListCtrlReportView() :
-    ListCtrlView(new ListCtrlReportLayout),
+ListCtrlReportView::ListCtrlReportView(Window* pWindow) :
+    ListCtrlView(pWindow, new ListCtrlReportLayout),
     m_pListCtrl(nullptr),
     m_pData(nullptr),
     m_nTopElementIndex(0),
@@ -59,6 +59,9 @@ void ListCtrlReportView::Refresh()
 {
     if ((m_pListCtrl != nullptr) && !m_pListCtrl->IsEnableRefresh()) {
         //刷新功能已经禁止
+        return;
+    }
+    if (!m_pListCtrl->IsInited()) {
         return;
     }
     if ((GetWindow() == nullptr) || !HasDataProvider()) {
@@ -800,7 +803,7 @@ Control* ListCtrlReportView::CreateDataItem()
     if (m_pListCtrl == nullptr) {
         return nullptr;
     }
-    ListCtrlItem* pItem = new ListCtrlItem;
+    ListCtrlItem* pItem = new ListCtrlItem(GetWindow());
     pItem->SetListCtrl(m_pListCtrl);
     pItem->SetClass(m_pListCtrl->GetDataItemClass());
     pItem->SetAutoCheckSelect(m_pListCtrl->IsAutoCheckSelect());
@@ -905,8 +908,7 @@ bool ListCtrlReportView::FillDataItem(Control* pControl,
 
     //默认属性
     std::wstring defaultSubItemClass = m_pListCtrl->GetDataSubItemClass();
-    ListCtrlSubItem defaultSubItem;
-    defaultSubItem.SetWindow(m_pListCtrl->GetWindow());
+    ListCtrlSubItem defaultSubItem(m_pListCtrl->GetWindow());
     defaultSubItem.SetClass(defaultSubItemClass);
 
     for (size_t nColumn = 0; nColumn < showColumnCount; ++nColumn) {
@@ -920,7 +922,7 @@ bool ListCtrlReportView::FillDataItem(Control* pControl,
             }
         }
         else {
-            pSubItem = new ListCtrlSubItem;
+            pSubItem = new ListCtrlSubItem(GetWindow());
             pSubItem->SetListCtrlItem(pItem);
             pSubItem->SetListBoxItem(pItem);
             pItem->AddItem(pSubItem);
@@ -1021,19 +1023,16 @@ int32_t ListCtrlReportView::GetMaxDataItemWidth(const std::vector<ListCtrlSubIte
     }
 
     //默认属性
-    ListCtrlItem defaultItem;
+    ListCtrlItem defaultItem(m_pListCtrl->GetWindow());
     defaultItem.SetListCtrl(m_pListCtrl);
-    defaultItem.SetWindow(m_pListCtrl->GetWindow());
     defaultItem.SetClass(m_pListCtrl->GetDataItemClass());
 
     std::wstring defaultSubItemClass = m_pListCtrl->GetDataSubItemClass();
-    ListCtrlSubItem defaultSubItem;
-    defaultSubItem.SetWindow(m_pListCtrl->GetWindow());
+    ListCtrlSubItem defaultSubItem(m_pListCtrl->GetWindow());
     defaultSubItem.SetClass(defaultSubItemClass);
     defaultSubItem.SetListCtrlItem(&defaultItem);
 
-    ListCtrlSubItem subItem;
-    subItem.SetWindow(m_pListCtrl->GetWindow());
+    ListCtrlSubItem subItem(m_pListCtrl->GetWindow());
     subItem.SetClass(defaultSubItemClass);
     subItem.SetListCtrlItem(&defaultItem);
 

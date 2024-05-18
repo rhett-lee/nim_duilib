@@ -18,7 +18,7 @@ class UILIB_API RichEdit : public ScrollBox
 public:
 	typedef std::function<bool(LONG, LONG, UiSize&)> FunGetNaturalSize;
 public:
-	RichEdit();
+	explicit RichEdit(Window* pWindow);
 	RichEdit(const RichEdit& r) = delete;
 	RichEdit& operator=(const RichEdit& r) = delete;
     virtual ~RichEdit();

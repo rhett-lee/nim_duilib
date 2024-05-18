@@ -16,15 +16,17 @@ namespace ui {
 typedef std::function<void(size_t nStartIndex, size_t nEndIndex)> DataChangedNotify;
 typedef std::function<void()> CountChangedNotify;
 
+class VirtualListBox;
 class UILIB_API VirtualListBoxElement : public virtual nbase::SupportWeakCallback
 {
 public:
     VirtualListBoxElement();
 
     /** 创建一个数据项
+    * @param [in] pVirtualListBox 关联的虚表的接口
     * @return 返回创建后的数据项指针
     */
-    virtual ui::Control* CreateElement() = 0;
+    virtual ui::Control* CreateElement(ui::VirtualListBox* pVirtualListBox) = 0;
 
     /** 填充指定数据项
     * @param [in] pControl 数据项控件指针
@@ -102,7 +104,7 @@ class UILIB_API VirtualListBox : public ListBox
     friend class VirtualHTileLayout;
     friend class VirtualVTileLayout;
 public:
-    explicit VirtualListBox(Layout* pLayout);
+    VirtualListBox(Window* pWindow, Layout* pLayout);
 
     /** 设置数据代理对象
     * @param[in] pProvider 开发者需要重写 VirtualListBoxElement 的接口来作为数据代理对象
@@ -426,8 +428,8 @@ private:
 class UILIB_API VirtualHListBox : public VirtualListBox
 {
 public:
-    VirtualHListBox() :
-        VirtualListBox(new VirtualHLayout)
+    explicit VirtualHListBox(Window* pWindow) :
+        VirtualListBox(pWindow, new VirtualHLayout)
     {
         VirtualLayout* pVirtualLayout = dynamic_cast<VirtualHLayout*>(GetLayout());
         SetVirtualLayout(pVirtualLayout);
@@ -441,8 +443,8 @@ public:
 class UILIB_API VirtualVListBox : public VirtualListBox
 {
 public:
-    VirtualVListBox() :
-        VirtualListBox(new VirtualVLayout)
+    explicit VirtualVListBox(Window* pWindow) :
+        VirtualListBox(pWindow, new VirtualVLayout)
     {
         VirtualLayout* pVirtualLayout = dynamic_cast<VirtualVLayout*>(GetLayout());
         SetVirtualLayout(pVirtualLayout);
@@ -456,8 +458,8 @@ public:
 class UILIB_API VirtualHTileListBox : public VirtualListBox
 {
 public:
-    VirtualHTileListBox() :
-        VirtualListBox(new VirtualHTileLayout)
+    explicit VirtualHTileListBox(Window* pWindow) :
+        VirtualListBox(pWindow, new VirtualHTileLayout)
     {
         VirtualLayout* pVirtualLayout = dynamic_cast<VirtualHTileLayout*>(GetLayout());
         SetVirtualLayout(pVirtualLayout);
@@ -471,8 +473,8 @@ public:
 class UILIB_API VirtualVTileListBox : public VirtualListBox
 {
 public:
-    VirtualVTileListBox() :
-        VirtualListBox(new VirtualVTileLayout)
+    explicit VirtualVTileListBox(Window* pWindow) :
+        VirtualListBox(pWindow, new VirtualVTileLayout)
     {
         VirtualLayout* pVirtualLayout = dynamic_cast<VirtualVTileLayout*>(GetLayout());
         SetVirtualLayout(pVirtualLayout);

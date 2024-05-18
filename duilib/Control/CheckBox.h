@@ -11,7 +11,7 @@ template<typename InheritType = Control>
 class UILIB_API CheckBoxTemplate : public ButtonTemplate<InheritType>
 {
 public:
-    CheckBoxTemplate();
+    explicit CheckBoxTemplate(Window* pWindow);
     CheckBoxTemplate(const CheckBoxTemplate& r) = delete;
     CheckBoxTemplate& operator=(const CheckBoxTemplate& r) = delete;
     virtual ~CheckBoxTemplate();
@@ -261,7 +261,8 @@ private: //（三态选择[全部选择、部分选择、未选择]/勾选模式两种功能的变量）
 };
 
 template<typename InheritType>
-CheckBoxTemplate<InheritType>::CheckBoxTemplate() : 
+CheckBoxTemplate<InheritType>::CheckBoxTemplate(Window* pWindow) :
+    ButtonTemplate<InheritType>(pWindow),
     m_bSelected(false), 
     m_bPaintNormalFirst(false), 
     m_dwSelectedTextColor(), 

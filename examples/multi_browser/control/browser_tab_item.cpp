@@ -2,9 +2,9 @@
 
 using namespace ui;
 
-BrowserTabItem::BrowserTabItem()
+BrowserTabItem::BrowserTabItem(ui::Window* pWindow):
+	ui::ListBoxItem(pWindow)
 {
-
 }
 
 void BrowserTabItem::InitControl(std::string browser_id)

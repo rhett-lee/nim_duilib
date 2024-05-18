@@ -24,7 +24,7 @@ template<typename InheritType = Control>
 class UILIB_API LabelTemplate : public InheritType
 {
 public:
-	LabelTemplate();
+	explicit LabelTemplate(Window* pWindow);
     virtual ~LabelTemplate();
 
 	/// 重写父类方法，提供个性化功能，请参考父类声明
@@ -158,7 +158,8 @@ private:
 };
 
 template<typename InheritType>
-LabelTemplate<InheritType>::LabelTemplate() :
+LabelTemplate<InheritType>::LabelTemplate(Window* pWindow) :
+    InheritType(pWindow),
     m_sFontId(),
     m_uTextStyle(TEXT_LEFT | TEXT_VCENTER | TEXT_END_ELLIPSIS | TEXT_NOCLIP | TEXT_SINGLELINE),
     m_bSingleLine(true),

@@ -8,7 +8,8 @@
 namespace ui
 {
 
-ScrollBar::ScrollBar() :
+ScrollBar::ScrollBar(Window* pWindow) :
+	Control(pWindow),
 	m_bHorizontal(false),
 	m_bShowButton1(true),
 	m_bShowButton2(true),

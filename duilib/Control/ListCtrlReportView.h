@@ -18,7 +18,7 @@ class ListCtrlReportView : public ListCtrlView, public IListCtrlView
 {
     friend class ListCtrlReportLayout;
 public:
-    ListCtrlReportView();
+    explicit ListCtrlReportView(Window* pWindow);
     virtual ~ListCtrlReportView();
 
     virtual std::wstring GetType() const override { return L"ListCtrlReportView"; }

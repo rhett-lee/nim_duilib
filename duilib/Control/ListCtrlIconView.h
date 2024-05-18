@@ -17,7 +17,7 @@ public:
     /** 设置是否为List模式
     * @param [in] bListMode true表示列表视图，否则为图标视图
     */
-    explicit ListCtrlIconView(bool bListMode);
+    ListCtrlIconView(Window* pWindow, bool bListMode);
     virtual ~ListCtrlIconView();
 
     virtual std::wstring GetType() const override { return L"ListCtrlIconView"; }

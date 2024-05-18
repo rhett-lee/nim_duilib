@@ -13,7 +13,7 @@ class RichEdit;
 class IPAddress: public HBox
 {
 public:
-	IPAddress();
+	explicit IPAddress(Window* pWindow);
 
 	/** 获取控件类型
 	*/

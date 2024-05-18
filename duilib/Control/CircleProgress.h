@@ -18,7 +18,7 @@ namespace ui
 class UILIB_API CircleProgress : public Progress
 {
 public:
-	CircleProgress();
+	explicit CircleProgress(Window* pWindow);
 	virtual ~CircleProgress();
 
 	/// 重写父类方法，提供个性化功能，请参考父类声明

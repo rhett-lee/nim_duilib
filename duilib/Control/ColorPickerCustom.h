@@ -16,7 +16,7 @@ class ColorPickerRegular;
 class ColorPickerCustom : public Box
 {
 public:
-	ColorPickerCustom();
+	explicit ColorPickerCustom(Window* pWindow);
 
 	/** 获取控件类型
 	*/

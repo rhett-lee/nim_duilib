@@ -4,8 +4,8 @@
 namespace ui
 {
 
-TabCtrl::TabCtrl():
-    ListBox(new HLayout),
+TabCtrl::TabCtrl(Window* pWindow):
+    ListBox(pWindow, new HLayout),
     m_nSelectedId(Box::InvalidIndex),
     m_pTabBox(nullptr)
 {
@@ -191,7 +191,8 @@ void TabCtrl::RemoveAllItems()
 
 ///////////////////////////////////////////////////////////////////
 ////
-TabCtrlItem::TabCtrlItem():
+TabCtrlItem::TabCtrlItem(Window* pWindow):
+    ControlDragableT<ListBoxItemH>(pWindow),
     m_pIcon(nullptr),
     m_pLabel(nullptr),
     m_pCloseBtn(nullptr),
@@ -321,8 +322,7 @@ void TabCtrlItem::SetIconClass(const std::wstring& iconClass)
     }
     if (!iconClass.empty()) {
         if (m_pIcon == nullptr) {
-            m_pIcon = new Control;
-            m_pIcon->SetWindow(GetWindow());
+            m_pIcon = new Control(GetWindow());
             m_pIcon->SetClass(iconClass);
             AddItem(m_pIcon);
             if (!m_iconImageString.empty()) {
@@ -358,8 +358,7 @@ void TabCtrlItem::SetTitleClass(const std::wstring& titleClass)
     }
     if (!titleClass.empty()) {
         if (m_pLabel == nullptr) {
-            m_pLabel = new Label;
-            m_pLabel->SetWindow(GetWindow());
+            m_pLabel = new Label(GetWindow());
             m_pLabel->SetClass(titleClass);
             AddItem(m_pLabel);
             if (!m_title.empty()) {
@@ -395,8 +394,7 @@ void TabCtrlItem::SetCloseButtonClass(const std::wstring& closeButtonClass)
     }
     if (!closeButtonClass.empty()) {
         if (m_pCloseBtn == nullptr) {
-            m_pCloseBtn = new Button;
-            m_pCloseBtn->SetWindow(GetWindow());
+            m_pCloseBtn = new Button(GetWindow());
             m_pCloseBtn->SetClass(closeButtonClass);
             AddItem(m_pCloseBtn);
             AdjustSubItemIndex();
@@ -429,8 +427,7 @@ void TabCtrlItem::SetLineClass(const std::wstring& lineClass)
     }
     if (!lineClass.empty()) {
         if (m_pLine == nullptr) {
-            m_pLine = new Control;
-            m_pLine->SetWindow(GetWindow());
+            m_pLine = new Control(GetWindow());
             m_pLine->SetClass(lineClass);
             AddItem(m_pLine);
             AdjustSubItemIndex();

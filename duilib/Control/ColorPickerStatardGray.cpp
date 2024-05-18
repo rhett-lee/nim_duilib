@@ -5,7 +5,8 @@
 namespace ui
 {
 
-ColorPickerStatardGray::ColorPickerStatardGray()
+ColorPickerStatardGray::ColorPickerStatardGray(Window* pWindow):
+	Control(pWindow)
 {
 	InitColorMap();
 }

@@ -186,7 +186,7 @@ LRESULT CComboWnd::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool
 {
 	bHandled = false;
     if( uMsg == WM_CREATE ) {
-		Box* pRoot = new Box;
+		Box* pRoot = new Box(this);
 		pRoot->SetAutoDestroyChild(false);
 		pRoot->AddItem(m_pOwner->GetTreeView());
 		AttachBox(pRoot);
@@ -228,7 +228,9 @@ LRESULT CComboWnd::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool
 
 ////////////////////////////////////////////////////////
 
-Combo::Combo() :
+Combo::Combo(Window* pWindow) :
+	Box(pWindow),
+	m_treeView(pWindow),
     m_pWindow(nullptr),
 	m_bPopupTop(false),
 	m_iCurSel(Box::InvalidIndex),
@@ -318,6 +320,9 @@ void Combo::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
 
 void Combo::SetComboTreeClass(const std::wstring& classValue)
 {
+	if (m_treeView.GetWindow() == nullptr) {
+		m_treeView.SetWindow(GetWindow());
+	}
 	SetAttributeList(&m_treeView, classValue);
 }
 
@@ -337,7 +342,7 @@ void Combo::SetIconControlClass(const std::wstring& classValue)
 	}
 	else {
 		if (m_pIconControl == nullptr) {
-			m_pIconControl = new Control;
+			m_pIconControl = new Control(GetWindow());
 		}
 		SetAttributeList(m_pIconControl, classValue);
 	}
@@ -354,7 +359,7 @@ void Combo::SetEditControlClass(const std::wstring& classValue)
 	}
 	else {
 		if (m_pEditControl == nullptr) {
-			m_pEditControl = new RichEdit;
+			m_pEditControl = new RichEdit(GetWindow());
 		}
 		SetAttributeList(m_pEditControl, classValue);
 	}	
@@ -371,7 +376,7 @@ void Combo::SetButtonControlClass(const std::wstring& classValue)
 	}
 	else {
 		if (m_pButtonControl == nullptr) {
-			m_pButtonControl = new Button;
+			m_pButtonControl = new Button(GetWindow());
 		}
 		SetAttributeList(m_pButtonControl, classValue);
 	}
@@ -460,7 +465,7 @@ void Combo::OnInit()
 	}
 	__super::OnInit();
 
-	HBox* pBox = new HBox;	
+	HBox* pBox = new HBox(GetWindow());
 	AddItem(pBox);
 	pBox->SetNoFocus();
 	AttachMouseEvents(pBox);
@@ -736,7 +741,7 @@ size_t Combo::SelectTextItem(const std::wstring& itemText, bool bTriggerEvent)
 
 TreeNode* Combo::CreateTreeNode(const std::wstring& itemText)
 {
-	TreeNode* pNewNode = new TreeNode;
+	TreeNode* pNewNode = new TreeNode(GetWindow());
 	if (!m_treeNodeClass.empty()) {
 		SetAttributeList(pNewNode, m_treeNodeClass.c_str());
 	}

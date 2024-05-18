@@ -4,7 +4,7 @@
 class Item : public ui::ListBoxItem
 {
 public:
-	Item();
+	explicit Item(ui::Window* pWindow);
 	~Item();
 
 	// 提供外部调用来初始化 item 数据

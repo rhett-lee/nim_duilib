@@ -98,7 +98,7 @@ ui::Control* DragForm::CreateControl(const std::wstring& pstrClass)
 {
 	if (pstrClass == L"BitmapControl")
 	{
-		return new BitmapControl;
+		return new BitmapControl(this);
 	}
 
 	return NULL;

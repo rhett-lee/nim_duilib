@@ -8,6 +8,11 @@ namespace ui
 class DragWindowBitmap: public Control
 {
 public:
+    explicit DragWindowBitmap(Window* pWindow):
+        Control(pWindow)
+    {
+    }
+
     /** »æÖÆº¯Êý
     */
     virtual void Paint(ui::IRender* pRender, const ui::UiRect& rcPaint) override
@@ -121,7 +126,7 @@ void DragWindow::SetDragImage(const std::shared_ptr<IBitmap>& pBitmap)
     const int32_t nImageWidth = pBitmap->GetWidth();
     const int32_t nImageHeight = pBitmap->GetHeight();
 
-    DragWindowBitmap* pBitmapControl = new DragWindowBitmap();
+    DragWindowBitmap* pBitmapControl = new DragWindowBitmap(this);
     pBitmapControl->SetBitmap(pBitmap);
     pBitmapControl->SetAttribute(L"width", L"100%");
     pBitmapControl->SetAttribute(L"height", L"100%");

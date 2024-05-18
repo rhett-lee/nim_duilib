@@ -22,7 +22,7 @@ class ListCtrlItem : public ListCtrlItemBaseH
 {
     friend class ListCtrlReportView;//开放部分protect接口
 public:
-    ListCtrlItem();
+    explicit ListCtrlItem(Window* pWindow);
     virtual ~ListCtrlItem();
 
     /** 获取控件类型

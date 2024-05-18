@@ -14,8 +14,8 @@ namespace ui
 class UILIB_API VBox : public Box
 {
 public:
-	VBox() :
-		Box(new VLayout())
+	explicit VBox(Window* pWindow) :
+		Box(pWindow, new VLayout())
 	{
 	}
 

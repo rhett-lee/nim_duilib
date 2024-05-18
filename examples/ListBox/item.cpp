@@ -2,10 +2,10 @@
 #include "item.h"
 
 
-Item::Item()
+Item::Item(ui::Window* pWindow):
+	ui::ListBoxItem(pWindow)
 {
 }
-
 
 Item::~Item()
 {

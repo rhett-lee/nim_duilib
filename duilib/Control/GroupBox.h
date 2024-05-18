@@ -16,7 +16,7 @@ template<typename InheritType>
 class UILIB_API GroupBoxTemplate : public LabelTemplate<InheritType>
 {
 public:
-    GroupBoxTemplate();
+    explicit GroupBoxTemplate(Window* pWindow);
 	virtual ~GroupBoxTemplate();
 		
 	/// 重写父类方法，提供个性化功能，请参考父类声明
@@ -67,7 +67,9 @@ private:
 };
 
 template<typename InheritType>
-GroupBoxTemplate<InheritType>::GroupBoxTemplate(): m_nLineWidth(0)
+GroupBoxTemplate<InheritType>::GroupBoxTemplate(Window* pWindow):
+    LabelTemplate<InheritType>(pWindow),
+    m_nLineWidth(0)
 {
     SetAttribute(L"text_align", L"top,left");
     SetAttribute(L"text_padding", L"8,0,0,0");

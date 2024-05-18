@@ -3,14 +3,13 @@
 
 namespace ui {
 
-RenderTest1::RenderTest1()
+RenderTest1::RenderTest1(ui::Window* pWindow):
+    ui::Control(pWindow)
 {
-
 }
 
 RenderTest1::~RenderTest1()
 {
-
 }
 
 void RenderTest1::AlphaPaint(IRender* pRender, const UiRect& rcPaint)

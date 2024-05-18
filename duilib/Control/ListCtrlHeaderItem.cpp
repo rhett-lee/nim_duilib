@@ -5,7 +5,8 @@
 
 namespace ui
 {
-ListCtrlHeaderItem::ListCtrlHeaderItem() :
+ListCtrlHeaderItem::ListCtrlHeaderItem(Window* pWindow) :
+    ControlDragableT<ButtonBox>(pWindow),
     m_pSortedDownImage(nullptr),
     m_pSortedUpImage(nullptr),
     m_sortMode(SortMode::kDown),
@@ -576,7 +577,7 @@ bool ListCtrlHeaderItem::SetCheckBoxVisible(bool bVisible)
             pCheckBox = dynamic_cast<ListCtrlCheckBox*>(GetItemAt(0));
         }
         if (pCheckBox == nullptr) {
-            pCheckBox = new ListCtrlCheckBox; 
+            pCheckBox = new ListCtrlCheckBox(GetWindow());
             AddItem(pCheckBox);
             std::wstring checkBoxClass;
             if (pListCtrl != nullptr) {

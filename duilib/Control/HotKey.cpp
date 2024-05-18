@@ -13,6 +13,10 @@ namespace ui
 class HotKeyRichEdit : public RichEdit
 {
 public:
+    explicit HotKeyRichEdit(Window* pWindow):
+        RichEdit(pWindow)
+    {
+    }
 
     /** ÊäÈë×Ö·û
     */
@@ -238,9 +242,10 @@ private:
     UiString m_defaultText;
 };
 
-HotKey::HotKey()
+HotKey::HotKey(Window* pWindow):
+    HBox(pWindow)
 {
-    m_pRichEdit = new HotKeyRichEdit();
+    m_pRichEdit = new HotKeyRichEdit(pWindow);
 }
 
 HotKey::~HotKey()
@@ -272,6 +277,7 @@ void HotKey::OnInit()
     }
     __super::OnInit();
     HotKeyRichEdit* pRichEdit = m_pRichEdit;
+    pRichEdit->SetWindow(GetWindow());
     ASSERT(pRichEdit != nullptr);
     pRichEdit->SetDefaultText(m_defaultText.c_str());
     pRichEdit->SetText(m_defaultText.c_str());

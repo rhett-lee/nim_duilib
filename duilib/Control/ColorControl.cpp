@@ -6,7 +6,8 @@
 namespace ui
 {
 
-ColorControl::ColorControl()
+ColorControl::ColorControl(Window* pWindow):
+	Control(pWindow)
 {
 	m_lastPt.x = -1;
 	m_lastPt.y = -1;

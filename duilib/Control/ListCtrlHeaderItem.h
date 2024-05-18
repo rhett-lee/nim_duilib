@@ -19,7 +19,7 @@ class ListCtrlHeaderItem:
     public ControlDragableT<ButtonBox>
 {
 public:
-    ListCtrlHeaderItem();
+    explicit ListCtrlHeaderItem(Window* pWindow);
     virtual ~ListCtrlHeaderItem();
 
     /** 获取控件类型

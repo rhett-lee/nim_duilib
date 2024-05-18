@@ -3,7 +3,8 @@
 namespace ui
 {
 
-Progress::Progress() :
+Progress::Progress(Window* pWindow) :
+	LabelTemplate<Control>(pWindow),
 	m_bHorizontal(true),
 	m_bStretchForeImage(true),
 	m_nMax(100),

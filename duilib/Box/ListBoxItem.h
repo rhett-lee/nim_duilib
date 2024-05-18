@@ -69,7 +69,7 @@ class UILIB_API ListBoxItemTemplate:
 	public IListBoxItem
 {
 public:
-	ListBoxItemTemplate();
+	explicit ListBoxItemTemplate(Window* pWindow);
 
 	/// 重写父类方法，提供个性化功能，请参考父类声明
 	virtual std::wstring GetType() const override;	
@@ -180,7 +180,8 @@ private:
 /////////////////////////////////////////////////////////////////////////////////////
 
 template<typename InheritType>
-ListBoxItemTemplate<InheritType>::ListBoxItemTemplate():
+ListBoxItemTemplate<InheritType>::ListBoxItemTemplate(Window* pWindow):
+	OptionTemplate<InheritType>(pWindow),
 	m_iListBoxIndex(Box::InvalidIndex),
 	m_iElementIndex(Box::InvalidIndex),
 	m_pOwner(nullptr)

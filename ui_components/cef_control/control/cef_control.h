@@ -14,7 +14,7 @@ namespace nim_comp {
 class CefControl :public CefControlBase, public ui::IUIMessageFilter
 {	
 public:
-	CefControl(void);
+	explicit CefControl(ui::Window* pWindow);
 	~CefControl(void);	
 
 	/// 重写父类接口，提供个性化功能

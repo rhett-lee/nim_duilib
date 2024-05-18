@@ -12,8 +12,8 @@ enum ePaintSelectedColors
 	PAINT_SELECTED_COLORS_NO = 2
 };
 
-ListBox::ListBox(Layout* pLayout) :
-	ScrollBox(pLayout),
+ListBox::ListBox(Window* pWindow, Layout* pLayout) :
+	ScrollBox(pWindow, pLayout),
 	m_bScrollSelect(false),
 	m_bMultiSelect(false),
 	m_uPaintSelectedColors(PAINT_SELECTED_COLORS_DEFAULT),

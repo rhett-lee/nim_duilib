@@ -16,9 +16,9 @@
 
 namespace nim_comp {
 
-CefNativeControl::CefNativeControl(void)
+CefNativeControl::CefNativeControl(ui::Window* pWindow):
+	CefControlBase(pWindow)
 {
-
 }
 
 CefNativeControl::~CefNativeControl(void)

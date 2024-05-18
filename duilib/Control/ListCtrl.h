@@ -27,7 +27,7 @@ class ListCtrl: public VBox
     friend class ListCtrlIconViewItem;
     friend class ListCtrlListViewItem;
 public:
-	ListCtrl();
+    explicit ListCtrl(Window* pWindow);
 	virtual ~ListCtrl();
 
 	/** 获取控件类型

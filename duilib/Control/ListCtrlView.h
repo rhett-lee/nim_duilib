@@ -13,7 +13,7 @@ namespace ui
 class ListCtrlView : public VirtualListBox
 {
 public:
-    explicit ListCtrlView(Layout* pLayout);
+    ListCtrlView(Window* pWindow, Layout* pLayout);
     virtual ~ListCtrlView();
 
     virtual std::wstring GetType() const override { return L"ListCtrlView"; }
@@ -231,7 +231,10 @@ template<typename InheritType>
 class UILIB_API ListCtrlItemTemplate : public ListBoxItemTemplate<InheritType>
 {
 public:
-    ListCtrlItemTemplate() {}
+    explicit ListCtrlItemTemplate(Window* pWindow):
+        ListBoxItemTemplate<InheritType>(pWindow)
+    {
+    }
     virtual ~ListCtrlItemTemplate() {}
 
     /** 设置控件是否选择状态

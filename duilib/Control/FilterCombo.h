@@ -13,7 +13,7 @@ namespace ui
 class UILIB_API FilterCombo : public Combo
 {
 public:
-	FilterCombo();
+	explicit FilterCombo(Window* pWindow);
 	FilterCombo(const FilterCombo& r) = delete;
 	Combo& operator=(const FilterCombo& r) = delete;
 	virtual ~FilterCombo();

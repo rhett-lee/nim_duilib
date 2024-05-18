@@ -10,7 +10,8 @@ namespace ui
 class ShadowBox : public Box
 {
 public:
-	ShadowBox()
+	explicit ShadowBox(Window* pWindow):
+		Box(pWindow)
 	{
 		//关闭控件自身的内边距，否则阴影绘制不出来
 		SetEnableControlPadding(false);
@@ -189,7 +190,7 @@ Box* Shadow::AttachShadow(Box* pRoot)
 		return nullptr;
 	}
 
-	m_pRoot = new ShadowBox();
+	m_pRoot = new ShadowBox(pRoot->GetWindow());
 	m_pRoot->SetPadding(m_rcShadowCorner, false);
 
 	if (pRoot->GetFixedWidth().IsInt32()) {

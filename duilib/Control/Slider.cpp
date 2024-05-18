@@ -4,7 +4,8 @@
 namespace ui
 {
 
-Slider::Slider() :
+Slider::Slider(Window* pWindow) :
+	Progress(pWindow),
 	m_szThumb(0, 0),
 	m_nStep(1),
 	m_sImageModify(),

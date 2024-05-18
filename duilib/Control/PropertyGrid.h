@@ -38,7 +38,7 @@ class PropertyGridDirectoryProperty;//文件夹
 class PropertyGrid : public VBox
 {
 public:
-	PropertyGrid();
+	explicit PropertyGrid(Window* pWindow);
 
 	/** 获取控件类型
 	*/
@@ -460,7 +460,8 @@ public:
 	* @param [in] description 组的描述信息
 	* @param [in] nGroupData 用户自定义数据
 	*/
-	explicit PropertyGridGroup(const std::wstring& groupName, 
+	explicit PropertyGridGroup(Window* pWindow,
+		                       const std::wstring& groupName,
 							   const std::wstring& description = L"",
 		                       size_t nGroupData = 0);
 
@@ -557,7 +558,8 @@ public:
 	* @param [in] description 属性的描述信息
 	* @param [in] nPropertyData 用户自定义数据
 	*/
-	PropertyGridProperty(const std::wstring& propertyName, 
+	PropertyGridProperty(Window* pWindow, 
+					     const std::wstring& propertyName,
 					     const std::wstring& propertyValue,
 					     const std::wstring& description = L"",
 					     size_t nPropertyData = 0);
@@ -715,7 +717,8 @@ public:
 	* @param [in] description 属性的描述信息
 	* @param [in] nPropertyData 用户自定义数据
 	*/
-	PropertyGridTextProperty(const std::wstring& propertyName,
+	PropertyGridTextProperty(Window* pWindow,
+							 const std::wstring& propertyName,
 					         const std::wstring& propertyValue,
 					         const std::wstring& description = L"",
 					         size_t nPropertyData = 0);
@@ -784,7 +787,8 @@ public:
 	* @param [in] description 属性的描述信息
 	* @param [in] nPropertyData 用户自定义数据
 	*/
-	PropertyGridComboProperty(const std::wstring& propertyName,
+	PropertyGridComboProperty(Window* pWindow, 
+							  const std::wstring& propertyName,
 							  const std::wstring& propertyValue,
 							  const std::wstring& description = L"",
 							  size_t nPropertyData = 0);
@@ -888,7 +892,8 @@ public:
 	* @param [in] description 属性的描述信息
 	* @param [in] nPropertyData 用户自定义数据
 	*/
-	PropertyGridFontProperty(const std::wstring& propertyName,
+	PropertyGridFontProperty(Window* pWindow,
+							 const std::wstring& propertyName,
 							 const std::wstring& propertyValue,
 							 const std::wstring& description = L"",
 						     size_t nPropertyData = 0);
@@ -928,7 +933,8 @@ public:
 	* @param [in] description 属性的描述信息
 	* @param [in] nPropertyData 用户自定义数据
 	*/
-	PropertyGridFontSizeProperty(const std::wstring& propertyName,
+	PropertyGridFontSizeProperty(Window* pWindow, 
+								 const std::wstring& propertyName,
 								 const std::wstring& propertyValue,
 								 const std::wstring& description = L"",
 								 size_t nPropertyData = 0);
@@ -1000,7 +1006,8 @@ public:
 	* @param [in] description 属性的描述信息
 	* @param [in] nPropertyData 用户自定义数据
 	*/
-	PropertyGridColorProperty(const std::wstring& propertyName,
+	PropertyGridColorProperty(Window* pWindow, 
+							  const std::wstring& propertyName,
 							  const std::wstring& propertyValue,
 							  const std::wstring& description = L"",
 							  size_t nPropertyData = 0);
@@ -1064,7 +1071,8 @@ public:
 	* @param [in] nPropertyData 用户自定义数据
 	* @param [in] editFormat 日期时间的格式
 	*/
-	PropertyGridDateTimeProperty(const std::wstring& propertyName,
+	PropertyGridDateTimeProperty(Window* pWindow, 
+								 const std::wstring& propertyName,
 								 const std::wstring& dateTimeValue,
 								 const std::wstring& description = L"",
 								 size_t nPropertyData = 0,
@@ -1119,7 +1127,8 @@ public:
 	* @param [in] description 属性的描述信息
 	* @param [in] nPropertyData 用户自定义数据
 	*/
-	PropertyGridIPAddressProperty(const std::wstring& propertyName,
+	PropertyGridIPAddressProperty(Window* pWindow, 
+								  const std::wstring& propertyName,
 							      const std::wstring& propertyValue,
 								  const std::wstring& description = L"",
 								  size_t nPropertyData = 0);
@@ -1165,7 +1174,8 @@ public:
 	@param [in] description 属性的描述信息
 	@param [in] nPropertyData 用户自定义数据
 	*/
-	PropertyGridHotKeyProperty(const std::wstring& propertyName,
+	PropertyGridHotKeyProperty(Window* pWindow, 
+							   const std::wstring& propertyName,
 							   const std::wstring& propertyValue,
 						       const std::wstring& description = L"",
 							   size_t nPropertyData = 0);
@@ -1215,7 +1225,8 @@ public:
 	* @param [in] nFileTypeIndex 选择的文件类型，有效范围：[0, fileTypes.size())
 	* @param [in] defaultExt 默认的文件类型, 举例："doc;docx"
 	*/
-	PropertyGridFileProperty(const std::wstring& propertyName,
+	PropertyGridFileProperty(Window* pWindow, 
+							 const std::wstring& propertyName,
 							 const std::wstring& propertyValue,
 							 const std::wstring& description = L"",
 							 size_t nPropertyData = 0,
@@ -1275,7 +1286,8 @@ public:
 	* @param [in] description 属性的描述信息
 	* @param [in] nPropertyData 用户自定义数据
 	*/
-	PropertyGridDirectoryProperty(const std::wstring& propertyName,
+	PropertyGridDirectoryProperty(Window* pWindow, 
+								  const std::wstring& propertyName,
 							      const std::wstring& propertyValue,
 							      const std::wstring& description = L"",
 							      size_t nPropertyData = 0);
