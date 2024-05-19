@@ -411,7 +411,7 @@ void ControlForm::OnResourceFileLoaded(const std::wstring& xml)
 
 	//Æô¶¯¼ÓÔØ¶¯»­
 	//control_edit->StartLoading();
-	//control_edit->StartGifPlayForUI();
+	//control_edit->StartGifPlay();
 
 	// Show about form
 	//nim_comp::WindowsManager::SingletonShow<AboutForm>(AboutForm::kClassName);

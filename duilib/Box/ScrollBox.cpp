@@ -1073,7 +1073,7 @@ int32_t ScrollBox::GetVerScrollUnitPixels() const
 void ScrollBox::SetVerScrollUnitPixels(int32_t nUnitPixels, bool bNeedDpiScale)
 {
 	if (nUnitPixels < 0) {
-		nUnitPixels = 0;
+		nUnitPixels = 30;
 	}
 	if (bNeedDpiScale) {
 		Dpi().ScaleInt(nUnitPixels);
@@ -1089,7 +1089,7 @@ int32_t ScrollBox::GetHorScrollUnitPixels() const
 void ScrollBox::SetHorScrollUnitPixels(int32_t nUnitPixels, bool bNeedDpiScale)
 {
 	if (nUnitPixels < 0) {
-		nUnitPixels = 0;
+		nUnitPixels = 30;
 	}
 	if (bNeedDpiScale) {
 		Dpi().ScaleInt(nUnitPixels);
