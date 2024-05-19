@@ -206,6 +206,15 @@ void ListCtrlData::SetDefaultItemHeight(int32_t nItemHeight)
     m_nDefaultItemHeight = nItemHeight;
 }
 
+void ListCtrlData::ChangeDpiScale(const DpiManager& dpiManager, uint32_t nOldDpiScale)
+{
+    for (ListCtrlItemData& data : m_rowDataList) {
+        if (data.nItemHeight > 0) {
+            data.nItemHeight = ui::TruncateToUInt16(dpiManager.GetScaleInt((int32_t)data.nItemHeight, nOldDpiScale));
+        }
+    }
+}
+
 void ListCtrlData::SubItemToStorage(const ListCtrlSubItemData& item, Storage& storage) const
 {
     storage.text = item.text;

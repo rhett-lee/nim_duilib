@@ -22,6 +22,8 @@ Progress::Progress(Window* pWindow) :
 {
 	SetTextStyle(TEXT_SINGLELINE | TEXT_CENTER, false);
 	SetFixedHeight(UiFixedInt(12), true, true);
+	SetMarqueeWidth(10, true);
+	SetMarqueeStep(4, true);
 }
 
 Progress::~Progress()
@@ -385,15 +387,14 @@ void Progress::SetMarquee(bool bMarquee)
 
 int32_t Progress::GetMarqueeWidth() const
 {
-	int32_t nMarqueeWidth = m_nMarqueeWidth;
-	if (nMarqueeWidth <= 0) {
-		nMarqueeWidth = Dpi().GetScaleInt(10);
-	}
-	return nMarqueeWidth;
+	return m_nMarqueeWidth;
 }
 
 void Progress::SetMarqueeWidth(int32_t nMarqueeWidth, bool bNeedDpiScale)
 {
+	if (nMarqueeWidth < 0) {
+		nMarqueeWidth = 10;
+	}
 	if (bNeedDpiScale) {
 		Dpi().ScaleInt(nMarqueeWidth);
 	}
@@ -405,15 +406,14 @@ void Progress::SetMarqueeWidth(int32_t nMarqueeWidth, bool bNeedDpiScale)
 
 int32_t Progress::GetMarqueeStep() const
 {
-	int32_t nMarqueeStep = m_nMarqueeStep;
-	if (nMarqueeStep <= 0) {
-		nMarqueeStep = Dpi().GetScaleInt(4);
-	}
-	return nMarqueeStep;
+	return m_nMarqueeStep;
 }
 
 void Progress::SetMarqueeStep(int32_t nMarqueeStep, bool bNeedDpiScale)
 {
+	if (nMarqueeStep < 0) {
+		nMarqueeStep = 4;
+	}
 	if (bNeedDpiScale) {
 		Dpi().ScaleInt(nMarqueeStep);
 	}

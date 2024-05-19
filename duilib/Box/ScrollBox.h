@@ -279,7 +279,7 @@ private:
 	 */
 	void SetPosInternally(UiRect rc);
 
-protected:
+private:
 	//垂直滚动条接口
 	std::unique_ptr<ScrollBar> m_pVScrollBar;
 
@@ -293,14 +293,8 @@ private:
 	//垂直滚动条滚动步长
 	int32_t m_nVScrollUnitPixels;
 
-	//垂直滚动条滚动步长(默认)
-	const int32_t m_nVScrollUnitPixelsDefault = 30;
-
 	//水平滚动条滚动步长
 	int32_t m_nHScrollUnitPixels;
-
-	//水平滚动条滚动步长(默认)
-	const int32_t m_nHScrollUnitPixelsDefault = 30;
 
 	// 防止SetPos循环调用
 	bool m_bScrollProcess; 

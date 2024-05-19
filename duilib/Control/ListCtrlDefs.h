@@ -188,6 +188,22 @@ public:
         SendEvent(kEventEnterEdit, (WPARAM)this);
     }
 
+    /** DPI发生变化，更新控件大小和布局
+    * @param [in] nOldDpiScale 旧的DPI缩放百分比
+    * @param [in] nNewDpiScale 新的DPI缩放百分比，与Dpi().GetScale()的值一致
+    */
+    virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override
+    {
+        ASSERT(nNewDpiScale == Dpi().GetScale());
+        if (nNewDpiScale != Dpi().GetScale()) {
+            return;
+        }
+        if (!m_textRect.IsZero()) {
+            m_textRect = Dpi().GetScaleRect(m_textRect, nOldDpiScale);
+        }
+        __super::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
+    }
+
     /** 设置文本所在位置的矩形区域
     */
     void SetTextRect(const UiRect& rect)
@@ -281,9 +297,10 @@ public:
         if (nNewDpiScale != Dpi().GetScale()) {
             return;
         }
-        int32_t iValue = GetCheckBoxWidth();
-        iValue = Dpi().GetScaleInt(iValue, nOldDpiScale);
-        SetCheckBoxWidth(iValue, false);
+        if (m_nCheckBoxWidth > 0) {
+            int32_t iValue = Dpi().GetScaleInt(m_nCheckBoxWidth, nOldDpiScale);
+            SetCheckBoxWidth(iValue, false);
+        }
 
         __super::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
     }

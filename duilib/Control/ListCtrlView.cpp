@@ -14,8 +14,9 @@ ListCtrlView::ListCtrlView(Window* pWindow, Layout* pLayout):
     m_nLastNoShiftIndex(0),
     m_bMouseDownInView(false),
     m_nNormalItemTop(-1),
-    m_frameSelectionBorderSize((uint8_t)-1)
+    m_frameSelectionBorderSize(0)
 {
+    SetFrameSelectionBorderSize(1, true);
     m_frameSelectionAlpha = 128;
 }
 
@@ -72,11 +73,7 @@ void ListCtrlView::SetFrameSelectionBorderSize(int32_t nBorderSize, bool bNeedDp
 
 int32_t ListCtrlView::GetFrameSelectionBorderSize() const
 {
-    int32_t frameSelectionBorderSize = (int8_t)m_frameSelectionBorderSize;
-    if (frameSelectionBorderSize < 0) {
-        frameSelectionBorderSize = Dpi().GetScaleInt(1);
-    }
-    return frameSelectionBorderSize;
+    return m_frameSelectionBorderSize;
 }
 
 void ListCtrlView::SendEvent(EventType eventType, WPARAM wParam, LPARAM lParam, TCHAR tChar, const UiPoint& mousePos)

@@ -24,9 +24,15 @@ ListCtrl::ListCtrl(Window* pWindow):
     m_listCtrlType(ListCtrlType::Report),
     m_pRichEdit(nullptr),
     m_bEnableItemEdit(true),
-    m_nItemHeight(-1),
-    m_nHeaderHeight(-1)
+    m_nItemHeight(0),
+    m_nHeaderHeight(0),
+    m_pData(nullptr)
 {
+    size_t nCount = sizeof(m_imageList) / sizeof(m_imageList[0]);
+    for (size_t i = 0; i < nCount; ++i) {
+        m_imageList[i] = nullptr;
+    }
+
     m_pData = new ListCtrlData;
     m_pData->SetAutoCheckSelect(IsAutoCheckSelect());
 
@@ -34,10 +40,8 @@ ListCtrl::ListCtrl(Window* pWindow):
     m_pReportView->SetListCtrl(this);
     m_pReportView->SetDataProvider(m_pData);
 
-    size_t nCount = sizeof(m_imageList) / sizeof(m_imageList[0]);
-    for (size_t i = 0; i < nCount; ++i) {
-        m_imageList[i] = nullptr;
-    }
+    SetDataItemHeight(32, true);
+    SetHeaderHeight(32, true);
 }
 
 ListCtrl::~ListCtrl()
@@ -253,6 +257,9 @@ void ListCtrl::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
     if (nNewDpiScale != Dpi().GetScale()) {
         return;
     }
+
+    //首先禁止界面刷新
+    bool bOldValue = SetEnableRefresh(false);
     int32_t iValue = GetRowGridLineWidth();
     iValue = Dpi().GetScaleInt(iValue, nOldDpiScale);
     SetRowGridLineWidth(iValue, false);
@@ -261,15 +268,37 @@ void ListCtrl::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
     iValue = Dpi().GetScaleInt(iValue, nOldDpiScale);
     SetColumnGridLineWidth(iValue, false);
 
-    iValue = GetHeaderHeight();
-    iValue = Dpi().GetScaleInt(iValue, nOldDpiScale);
-    SetHeaderHeight(iValue, false);
+    if (m_nHeaderHeight > 0) {
+        m_nHeaderHeight = Dpi().GetScaleInt(m_nHeaderHeight, nOldDpiScale);
+    }
 
     iValue = GetDataItemHeight();
     iValue = Dpi().GetScaleInt(iValue, nOldDpiScale);
     SetDataItemHeight(iValue, false);
 
+    if (m_pData != nullptr) {
+        m_pData->ChangeDpiScale(Dpi(), nOldDpiScale);
+    }
+
+    size_t nCount = sizeof(m_imageList) / sizeof(m_imageList[0]);
+    for (size_t i = 0; i < nCount; ++i) {
+        if (m_imageList[i] != nullptr) {
+            m_imageList[i]->ChangeDpiScale(Dpi(), nOldDpiScale);
+        }
+    }
     __super::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
+
+    //更新列宽
+    size_t nColumnCount = GetColumnCount();
+    for (size_t columnIndex = 0; columnIndex < nColumnCount; ++columnIndex) {
+        int32_t nColumnWidth = GetColumnWidth(columnIndex);
+        if (nColumnWidth > 0) {
+            SetColumnWidth(columnIndex, nColumnWidth, false);
+        }        
+    }
+    //刷新数据
+    SetEnableRefresh(bOldValue);
+    Refresh();
 }
 
 void ListCtrl::HandleEvent(const EventArgs& msg)
@@ -1024,12 +1053,7 @@ void ListCtrl::SetDataItemHeight(int32_t nItemHeight, bool bNeedDpiScale)
 
 int32_t ListCtrl::GetDataItemHeight() const
 {
-    if (m_nItemHeight < 0) {
-        return Dpi().GetScaleInt(32);
-    }
-    else {
-        return m_nItemHeight;
-    }    
+    return m_nItemHeight;
 }
 
 ListCtrlItem* ListCtrl::GetFirstDisplayItem() const

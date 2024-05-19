@@ -240,6 +240,7 @@ Combo::Combo(Window* pWindow) :
 	m_comboType(kCombo_DropDown),
 	m_bDropListShown(false)
 {
+	SetDropBoxSize({0, 150}, true);
 	m_treeView.SetSelectNextWhenActiveRemoved(false);
     m_treeView.AttachSelect(nbase::Bind(&Combo::OnSelectItem, this, std::placeholders::_1));
 }
@@ -315,6 +316,12 @@ void Combo::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
 	szDropBoxSize = Dpi().GetScaleSize(szDropBoxSize, nOldDpiScale);
 	SetDropBoxSize(szDropBoxSize, false);
 
+	if (m_treeView.GetWindow() == nullptr) {
+		m_treeView.SetWindow(GetWindow());
+	}
+	if ((m_treeView.GetWindow() == GetWindow()) && (m_treeView.GetParent() == nullptr)) {
+		m_treeView.ChangeDpiScale(nOldDpiScale, nNewDpiScale);
+	}
 	__super::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
 }
 
@@ -557,17 +564,9 @@ Combo::ComboType Combo::GetComboType() const
 	return kCombo_DropList;
 }
 
-UiSize Combo::GetDropBoxSize() const
+const UiSize& Combo::GetDropBoxSize() const
 {
-	if (m_szDropBox.IsEmpty()) {
-		//如果为空，返回默认值
-		UiSize szDropBox = { 0, 150 };
-		Dpi().ScaleSize(szDropBox);
-		return szDropBox;
-	}
-	else {
-		return m_szDropBox;
-	}
+	return m_szDropBox;
 }
 
 void Combo::SetDropBoxSize(UiSize szDropBox, bool bNeedScaleDpi)

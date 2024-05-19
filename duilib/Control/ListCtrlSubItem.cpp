@@ -7,8 +7,9 @@ ListCtrlSubItem::ListCtrlSubItem(Window* pWindow):
     ListCtrlLabel(pWindow),
     m_pItem(nullptr),
     m_imageId(-1),
-    m_nIconSpacing(-1)
+    m_nIconSpacing(0)
 {
+    SetIconSpacing(2, true);
 }
 
 std::wstring ListCtrlSubItem::GetType() const { return L"ListCtrlSubItem"; }
@@ -182,11 +183,7 @@ void ListCtrlSubItem::SetIconSpacing(int32_t nIconSpacing, bool bNeedDpiScale)
 
 int32_t ListCtrlSubItem::GetIconSpacing() const
 {
-    int32_t nIconSpacing = m_nIconSpacing;
-    if (nIconSpacing < 0) {
-        nIconSpacing = Dpi().GetScaleInt(2);
-    }
-    return nIconSpacing;
+    return m_nIconSpacing;
 }
 
 ImagePtr ListCtrlSubItem::LoadItemImage() const

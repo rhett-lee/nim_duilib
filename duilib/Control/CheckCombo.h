@@ -57,7 +57,7 @@ public:
 public:
 	/** 获取当前所属的 List 对象
 	*/
-	ui::ScrollBox* GetListBox() { return m_pDropList.get(); }
+	ScrollBox* GetListBox() { return m_pDropList.get(); }
 
 	/** 设置下拉框的属性信息
 	* @param [in] pstrList 转义后的 XML 格式属性列表
@@ -66,7 +66,7 @@ public:
 
 	/** 获取下拉框容器大小
 	*/
-	ui::UiSize GetDropBoxSize() const;
+	const UiSize& GetDropBoxSize() const;
 
 	/** 设置下拉框列表大小(宽度和高度)
 	 * @param [in] szDropBox 要设置的大小信息
@@ -99,11 +99,6 @@ public:
 	* @param[in] callback 下拉窗关闭后触发的回调函数
 	*/
 	void AttachWindowClose(const ui::EventCallback& callback) { AttachEvent(ui::kEventWindowClose, callback); }
-
-protected:
-	/** 初始化函数
-	*/
-	virtual void OnInit() override;
 
 private:
 	/** 默认的子项被选择处理函数

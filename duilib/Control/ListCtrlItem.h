@@ -33,6 +33,12 @@ public:
     */
     virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 
+    /** DPI发生变化，更新控件大小和布局
+    * @param [in] nOldDpiScale 旧的DPI缩放百分比
+    * @param [in] nNewDpiScale 新的DPI缩放百分比，与Dpi().GetScale()的值一致
+    */
+    virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override;
+
     /** 事件处理函数
     */
     virtual void HandleEvent(const EventArgs& msg) override;
@@ -150,10 +156,6 @@ private:
     /** 关联图标Id, 如果为-1表示不显示图标，图标显示在文本前面
     */
     int32_t m_imageId;
-
-    /** CheckBox所占宽度
-    */
-    int32_t m_nCheckBoxWidth;
 
     /** 图标之间的间隔
     */

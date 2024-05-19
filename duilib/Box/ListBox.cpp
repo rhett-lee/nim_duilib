@@ -1019,7 +1019,7 @@ void ListBox::EnsureVisible(const UiRect& rcItem,
 			rcList.left += pVScrollBar->GetFixedWidth().GetInt32();
 		}
 		else {
-			ASSERT(m_pVScrollBar->GetFixedWidth().GetInt32() > 0);
+			ASSERT(pVScrollBar->GetFixedWidth().GetInt32() > 0);
 			rcList.right -= pVScrollBar->GetFixedWidth().GetInt32();
 		}
 	}

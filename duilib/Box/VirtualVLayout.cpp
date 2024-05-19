@@ -355,7 +355,7 @@ void VirtualVLayout::EnsureVisible(UiRect rc, size_t iIndex, bool bToTop) const
     if (!Box::IsValidItemIndex(iIndex) || iIndex >= pOwnerBox->GetElementCount()) {
         return;
     }
-    if (pOwnerBox->m_pVScrollBar == nullptr) {
+    if (pOwnerBox->GetVScrollBar() == nullptr) {
         return;
     }
     int64_t nPos = pOwnerBox->GetScrollPos().cy;
@@ -396,8 +396,8 @@ void VirtualVLayout::EnsureVisible(UiRect rc, size_t iIndex, bool bToTop) const
     if (nNewPos < 0) {
         nNewPos = 0;
     }
-    if (nNewPos > pOwnerBox->m_pVScrollBar->GetScrollRange()) {
-        nNewPos = pOwnerBox->m_pVScrollBar->GetScrollRange();
+    if (nNewPos > pOwnerBox->GetVScrollBar()->GetScrollRange()) {
+        nNewPos = pOwnerBox->GetVScrollBar()->GetScrollRange();
     }
     ui::UiSize64 sz(0, nNewPos);
     pOwnerBox->SetScrollPos(sz);

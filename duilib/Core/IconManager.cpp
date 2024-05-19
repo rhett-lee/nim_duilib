@@ -1,5 +1,7 @@
 #include "IconManager.h"
 #include "duilib/Utils/StringUtil.h"
+#include "duilib/Core/Window.h"
+#include "duilib/Image/ImageLoadAttribute.h"
 
 #ifdef UILIB_IMPL_WINSDK
 
@@ -83,13 +85,18 @@ struct ScopedICONINFO :
 };
 
 bool IconManager::LoadIconData(const std::wstring& str,
+							   const Window* pWindow,
+	                           const ImageLoadAttribute& loadAtrribute,
+	                           bool bEnableDpiScale,
 							   std::vector<uint8_t>& bitmapData,
-							   uint32_t& imageWidth,
-							   uint32_t& imageHeight) const
+							   uint32_t& bitmapWidth,
+							   uint32_t& bitmapHeight,
+	                           bool& bDpiScaled) const
 {
 	bitmapData.clear();
-	imageWidth = 0;
-	imageHeight = 0;
+	bitmapWidth = 0;
+	bitmapHeight = 0;
+	bDpiScaled = false;
 
 	HICON hIcon = GetIcon(str);
 	ASSERT(hIcon != nullptr);
@@ -123,6 +130,36 @@ bool IconManager::LoadIconData(const std::wstring& str,
 		return false;
 	}
 
+	uint32_t iconWidth = nWidth;
+	uint32_t iconHeight = nHeight;
+	//此处：如果只设置了宽度或者高度，那么会按锁定纵横比的方式对整个图片进行缩放
+	if (!loadAtrribute.CalcImageLoadSize(iconWidth, iconHeight)) {
+		iconWidth = nWidth;
+		iconHeight = nHeight;
+	}
+
+	//加载图片时，按需对图片大小进行DPI自适应
+	bool bNeedDpiScale = bEnableDpiScale;
+	if (loadAtrribute.HasSrcDpiScale()) {
+		//如果配置文件中有设置scaledpi属性，则以配置文件中的设置为准
+		bNeedDpiScale = loadAtrribute.NeedDpiScale();
+	}
+	if (bNeedDpiScale && (pWindow != nullptr)) {
+		uint32_t dpiScale = pWindow->Dpi().GetScale();
+		ASSERT(dpiScale > 0);
+		if (dpiScale != 0) {
+			float scaleRatio = (float)dpiScale / 100.0f;
+			iconWidth = static_cast<int>(iconWidth * scaleRatio);
+			iconHeight = static_cast<int>(iconHeight * scaleRatio);
+			bDpiScaled = true;
+		}
+	}
+
+	if ((iconWidth > 0) && (iconHeight > 0)) {
+		nWidth = iconWidth;
+		nHeight = iconHeight;
+	}
+
 	BITMAPINFOHEADER bi = { 0 };
 	bi.biSize = sizeof(BITMAPINFOHEADER);
 	bi.biWidth = nWidth;
@@ -131,7 +168,8 @@ bool IconManager::LoadIconData(const std::wstring& str,
 	bi.biBitCount = 32;
 	bi.biCompression = BI_RGB;
 
-	HDC hdc = ::GetDC(nullptr);
+	HWND hWnd = (pWindow != nullptr) ? pWindow->GetHWND() : nullptr;
+	HDC hdc = ::GetDC(hWnd);
 	uint32_t* bits = nullptr;
 	HBITMAP dib = ::CreateDIBSection(hdc,
 									 reinterpret_cast<BITMAPINFO*>(&bi),
@@ -141,16 +179,16 @@ bool IconManager::LoadIconData(const std::wstring& str,
 									 0);
 	ASSERT(dib != nullptr);
 	if (dib == nullptr)	{
-		::ReleaseDC(nullptr, hdc);
+		::ReleaseDC(hWnd, hdc);
 		return false;
 	}
 	if (bits == nullptr) {
-		::ReleaseDC(nullptr, hdc);
+		::ReleaseDC(hWnd, hdc);
 		::DeleteObject(dib);
 		return false;
 	}
 	HDC dibDC = ::CreateCompatibleDC(hdc);
-	::ReleaseDC(nullptr, hdc);
+	::ReleaseDC(hWnd, hdc);
 	hdc = nullptr;
 
 	HGDIOBJ oldObj = ::SelectObject(dibDC, dib);
@@ -194,8 +232,8 @@ bool IconManager::LoadIconData(const std::wstring& str,
 	::DeleteDC(dibDC);
 	delete[] opaque;
 
-	imageWidth = nWidth;
-	imageHeight = nHeight;	
+	bitmapWidth = nWidth;
+	bitmapHeight = nHeight;
 	return true;
 }
 

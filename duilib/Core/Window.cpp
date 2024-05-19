@@ -1774,7 +1774,7 @@ LRESULT Window::OnSizeMsg(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/, bool& bHa
     return 0;
 }
 
-LRESULT Window::OnDpiChangedMsg(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/, bool& bHandled)
+LRESULT Window::OnDpiChangedMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
     ASSERT_UNUSED_VARIABLE(uMsg == WM_DPICHANGED);
     bHandled = false;
@@ -1791,6 +1791,18 @@ LRESULT Window::OnDpiChangedMsg(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/, boo
 
         //按新的DPI更新窗口布局
         OnDpiScaleChanged(nOldDpiScale, nNewDpiScale);
+
+        //更新窗口的位置和大小
+        RECT* const prcNewWindow = (RECT*)lParam;
+        if (prcNewWindow != nullptr) {
+            ::SetWindowPos(m_hWnd,
+                           NULL,
+                           prcNewWindow->left,
+                           prcNewWindow->top,
+                           prcNewWindow->right - prcNewWindow->left,
+                           prcNewWindow->bottom - prcNewWindow->top,
+                           SWP_NOZORDER | SWP_NOACTIVATE);
+        }
     }
     return 0;
 }

@@ -211,10 +211,6 @@ private:
     */
     ListCtrl* m_pListCtrl;
 
-    /** 设置的CheckBox宽度值
-    */
-    int32_t m_nCheckBoxPadding;
-
     /** 左侧的Padding值，用于与数据行对齐显示
     */
     int32_t m_nPaddingLeftValue;

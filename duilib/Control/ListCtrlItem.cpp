@@ -9,9 +9,9 @@ ListCtrlItem::ListCtrlItem(Window* pWindow):
     m_bSelectable(true),
     m_pListCtrl(nullptr),
     m_imageId(-1),
-    m_nCheckBoxWidth(0),
-    m_nIconSpacing(-1)
+    m_nIconSpacing(0)
 {
+    SetIconSpacing(2, true);
 }
 
 ListCtrlItem::~ListCtrlItem()
@@ -28,6 +28,18 @@ void ListCtrlItem::SetAttribute(const std::wstring& strName, const std::wstring&
     else {
         __super::SetAttribute(strName, strValue);
     }
+}
+
+void ListCtrlItem::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
+{
+    ASSERT(nNewDpiScale == Dpi().GetScale());
+    if (nNewDpiScale != Dpi().GetScale()) {
+        return;
+    }
+    int32_t iValue = GetIconSpacing();
+    iValue = Dpi().GetScaleInt(iValue, nOldDpiScale);
+    SetIconSpacing(iValue, false);
+    __super::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
 }
 
 void ListCtrlItem::HandleEvent(const EventArgs& msg)
@@ -299,11 +311,7 @@ void ListCtrlItem::SetIconSpacing(int32_t nIconSpacing, bool bNeedDpiScale)
 
 int32_t ListCtrlItem::GetIconSpacing() const
 {
-    int32_t nIconSpacing = m_nIconSpacing;
-    if (nIconSpacing < 0) {
-        nIconSpacing = Dpi().GetScaleInt(2);
-    }
-    return nIconSpacing;
+    return m_nIconSpacing;
 }
 
 int32_t ListCtrlItem::GetItemPaddingLeft()

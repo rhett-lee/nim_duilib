@@ -17,8 +17,9 @@ ListCtrlHeaderItem::ListCtrlHeaderItem(Window* pWindow) :
     m_bColumnVisible(true),
     m_imageId(-1),
     m_pHeaderCtrl(nullptr),
-    m_nIconSpacing(-1)
+    m_nIconSpacing()
 {
+    SetIconSpacing(6, true);
 }
 
 ListCtrlHeaderItem::~ListCtrlHeaderItem()
@@ -63,6 +64,12 @@ void ListCtrlHeaderItem::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiS
     int32_t iValue = GetIconSpacing();
     iValue = Dpi().GetScaleInt(iValue, nOldDpiScale);
     SetIconSpacing(iValue, false);
+
+    int32_t nColumnWidth = GetColumnWidth();
+    if (nColumnWidth > 0) {
+        nColumnWidth = Dpi().GetScaleInt(nColumnWidth, nOldDpiScale);
+        SetColumnWidth(nColumnWidth, false);
+    }
     __super::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
 }
 
@@ -482,11 +489,7 @@ void ListCtrlHeaderItem::SetIconSpacing(int32_t nIconSpacing, bool bNeedDpiScale
 
 int32_t ListCtrlHeaderItem::GetIconSpacing() const
 {
-    int32_t nIconSpacing = m_nIconSpacing;
-    if (nIconSpacing < 0) {
-        nIconSpacing = Dpi().GetScaleInt(6);
-    }
-    return nIconSpacing;
+    return m_nIconSpacing;
 }
 
 void ListCtrlHeaderItem::SetShowIconAtTop(bool bShowIconAtTop)

@@ -140,9 +140,12 @@ public:
 
 	/** 设置背景图片(HICON句柄)
 	 * @param [in] hIcon 要设置的图标句柄，设置后，由ui::GlobalManager::Instance().Icon()管理资源的生命周期
-	               如果hIcon为nullptr, 则删除节点的图标，但不会从ui::GlobalManager::Instance().Icon()移除原来关联的图标句柄
+	 *             如果hIcon为nullptr, 则删除节点的图标，但不会从ui::GlobalManager::Instance().Icon()移除原来关联的图标句柄
+	 * @param [in] nIconSize 图标的大小（宽度和高度值）；
+	               如果设置为0，表示以实际图标的大小作为图标的大小，但这样设置会导致无法实现DPI感知功能，所以建议设置一个合理值。
+	 * @param [in] bNeedDpiScale 是否需要做DPI自适应
 	 */
-	void SetBkIcon(HICON hIcon);
+	void SetBkIcon(HICON hIcon, uint32_t nIconSize, bool bNeedDpiScale);
 
 #endif
 
@@ -302,32 +305,32 @@ private:
 	//子节点列表
 	std::vector<TreeNode*> m_aTreeNodes;
 
-	//图片/文字元素之间的固定间隔
+	//图片/文字元素之间的固定间隔（DPI相关）
 	uint16_t m_expandIndent;	//[展开/收起]按钮后面的间隔
 	uint16_t m_checkBoxIndent;	//CheckBox 后面的间隔
 	uint16_t m_iconIndent;		//icon 图标后面的间隔
 
-	//Expand图标关联的图标/文字内边距：3个
+	//Expand图标关联的图标/文字内边距：3个（DPI相关）
 	uint16_t m_expandCheckBoxPadding;
 	uint16_t m_expandIconPadding;
 	uint16_t m_expandTextPadding;
 
-	//CheckBox关联的图标/文字内边距：2个
+	//CheckBox关联的图标/文字内边距：2个（DPI相关）
 	uint16_t m_checkBoxIconPadding;
 	uint16_t m_checkBoxTextPadding;
 
-	//图标关联的文字内边距：1个
+	//图标关联的文字内边距：1个（DPI相关）
 	uint16_t m_iconTextPadding;
 
 	/** 控件展开状态的图片类型与状态图片的MAP, 绘制的目标矩形
 	*/
 	std::unique_ptr<StateImage> m_expandImage;
-	UiRect* m_pExpandImageRect;
+	UiRect* m_pExpandImageRect;//DPI无关，每次绘制后会更新此值
 
 	/** 控件未展开状态的图片类型与状态图片的MAP, 绘制的目标矩形
 	*/
 	std::unique_ptr<StateImage> m_collapseImage;
-	UiRect* m_pCollapseImageRect;
+	UiRect* m_pCollapseImageRect;//DPI无关，每次绘制后会更新此值
 };
 
 class UILIB_API TreeView : public ListBox
@@ -342,6 +345,12 @@ public:
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 	virtual void SetParent(Box* pParent) override;
 	virtual void SetWindow(Window* pManager) override;
+
+	/** DPI发生变化，更新控件大小和布局
+	* @param [in] nOldDpiScale 旧的DPI缩放百分比
+	* @param [in] nNewDpiScale 新的DPI缩放百分比，与Dpi().GetScale()的值一致
+	*/
+	virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override;
 
 	/** 获取根节点
 	 * @return 返回根节点指针

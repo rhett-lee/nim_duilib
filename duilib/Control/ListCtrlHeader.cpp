@@ -7,11 +7,11 @@ namespace ui
 ListCtrlHeader::ListCtrlHeader(Window* pWindow) :
     ListBoxItemH(pWindow),
     m_pListCtrl(nullptr),
-    m_nCheckBoxPadding(0),
     m_nPaddingLeftValue(0),
     m_bEnableCheckChangeEvent(true),
-    m_nIconSpacing(-1)
+    m_nIconSpacing(0)
 {
+    SetIconSpacing(4, true);
 }
 
 ListCtrlHeader::~ListCtrlHeader()
@@ -36,6 +36,10 @@ void ListCtrlHeader::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale
     if (nNewDpiScale != Dpi().GetScale()) {
         return;
     }
+    if (m_nPaddingLeftValue > 0) {
+        m_nPaddingLeftValue = Dpi().GetScaleInt(m_nPaddingLeftValue, nOldDpiScale);
+    }
+
     int32_t iValue = GetIconSpacing();
     iValue = Dpi().GetScaleInt(iValue, nOldDpiScale);
     SetIconSpacing(iValue, false);
@@ -58,11 +62,7 @@ void ListCtrlHeader::SetIconSpacing(int32_t nIconSpacing, bool bNeedDpiScale)
 
 int32_t ListCtrlHeader::GetIconSpacing() const
 {
-    int32_t nIconSpacing = m_nIconSpacing;
-    if (nIconSpacing < 0) {
-        nIconSpacing = Dpi().GetScaleInt(4);
-    }
-    return nIconSpacing;
+    return m_nIconSpacing;
 }
 
 bool ListCtrlHeader::IsSelectableType() const

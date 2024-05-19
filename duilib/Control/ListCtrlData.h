@@ -89,6 +89,12 @@ public:
     */
     void SetDefaultItemHeight(int32_t nItemHeight);
 
+    /** DPI发生变化，更新控件大小和布局
+    * @param [in] nOldDpiScale 旧的DPI缩放百分比
+    * @param [in] dpiManager DPI缩放管理器
+    */
+    void ChangeDpiScale(const DpiManager& dpiManager, uint32_t nOldDpiScale);
+
 public:
     /** 增加一列, 并刷新界面显示
     * @param [in] columnId 列的ID

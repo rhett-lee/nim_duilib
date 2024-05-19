@@ -28,13 +28,31 @@ public:
 public:
 	/** 设置图片大小（可选设置，如果不设置，则从每个图片获取）
 	* @param [in] imageSize 图片大小, 内部不进行DPI缩放，需要由外部进行DPI缩放
+	* @param [in] dpi DPI缩放管理器
+	* @param [in] bNeedDpiScale 是否支持DPI缩放
 	*/
-	void SetImageSize(UiSize imageSize);
+	void SetImageSize(UiSize imageSize, const DpiManager& dpi, bool bNeedDpiScale);
 
 	/** 获取图片大小
 	* @return 返回设置的图片大小，如果未设置，则返回(0,0)
 	*/
 	UiSize GetImageSize() const;
+
+	/** 设置当DPI变化时，图片大小是否需要DPI缩放，默认开启
+	* @param [in] bEnableChangeImageSizeDpi true表示开启功能，false表示关闭功能
+	*/
+	void EnableChangeImageSizeDpi(bool bEnableChangeImageSizeDpi);
+
+	/** 当DPI变化时，图片大小是否需要DPI缩放，默认开启
+	* @param [in] bEnableChangeImageSizeDpi true表示开启功能，false表示关闭功能
+	*/
+	bool IsEnableChangeImageSizeDpi() const;
+
+	/** DPI发生变化，更新图片大小
+	* @param [in] nOldDpiScale 旧的DPI缩放百分比
+	* @param [in] dpi DPI缩放管理器
+	*/
+	void ChangeDpiScale(const DpiManager& dpi, uint32_t nOldDpiScale);
 
 	/** 添加一个图片资源
 	* @param [in] imageString 图片资源字符串，格式同：Image::SetImageString函数
@@ -86,6 +104,10 @@ private:
 	/** 图片大小（可选设置，如果不设置，则从每个图片获取）
 	*/
 	UiSize m_imageSize;
+
+	/** 当DPI变化时，图片大小是否需要DPI缩放，默认开启
+	*/
+	bool m_bEnableChangeImageSizeDpi;
 
 	/** 图片资源映射表
 	*/

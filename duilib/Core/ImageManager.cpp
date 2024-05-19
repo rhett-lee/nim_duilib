@@ -3,6 +3,7 @@
 #include "duilib/Image/ImageDecoder.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/DpiManager.h"
+#include "duilib/Core/Window.h"
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Utils/FileUtil.h"
 
@@ -19,9 +20,10 @@ ImageManager::~ImageManager()
 {
 }
 
-std::shared_ptr<ImageInfo> ImageManager::GetImage(const DpiManager& dpi, 
+std::shared_ptr<ImageInfo> ImageManager::GetImage(const Window* pWindow,
 												  const ImageLoadAttribute& loadAtrribute)
 {
+	const DpiManager& dpi = (pWindow != nullptr) ? pWindow->Dpi() : GlobalManager::Instance().Dpi();
 	//查找对应关系：LoadKey ->(多对一) ImageKey ->(一对一) SharedImage
 	std::wstring loadKey = loadAtrribute.GetCacheKey(dpi.GetScale());
 	auto iter = m_loadKeyMap.find(loadKey);
@@ -45,7 +47,7 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const DpiManager& dpi,
 	if (GlobalManager::Instance().Icon().IsIconString(loadImageFullPath)) {
 		//加载ICON
 		isIcon = true;
-		LoadIconData(loadAtrribute, imageInfo);
+		LoadIconData(pWindow, loadAtrribute, imageInfo);
 	}
 #endif
 
@@ -87,17 +89,9 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const DpiManager& dpi,
 			auto it = m_imageMap.find(imageKey);
 			if (it != m_imageMap.end()) {
 				std::shared_ptr<ImageInfo> sharedImage = it->second.lock();
-				if (sharedImage != nullptr) {
-					//如果从缓存中，找到有效图片资源，直接返回
-					if (!sharedImage->IsBitmapSizeDpiScaled()) {
-						//图片没有做过DPI缩放，可用
-						return sharedImage;
-					}
-					else if(sharedImage->IsBitmapSizeDpiScaled() && (sharedImage->GetLoadDpiScale() == dpi.GetScale())) {
-						//图片做过DPI缩放，但与请求的DPI缩放百分比相同
-						return sharedImage;
-
-					}
+				if ((sharedImage != nullptr) && (sharedImage->GetLoadDpiScale() == dpi.GetScale())) {
+					//与请求的DPI缩放百分比相同
+					return sharedImage;
 				}
 			}
 		}
@@ -152,16 +146,22 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const DpiManager& dpi,
 }
 
 #ifdef UILIB_IMPL_WINSDK
-void ImageManager::LoadIconData(const ImageLoadAttribute& loadAtrribute,
+void ImageManager::LoadIconData(const Window* pWindow, 
+							    const ImageLoadAttribute& loadAtrribute,
 								std::unique_ptr<ImageInfo>& imageInfo) const
 {
 	imageInfo.reset();
 	//加载HICON句柄，作为图片，仅在Windows平台有这个句柄
 	std::wstring iconString = loadAtrribute.GetImageFullPath();
+	bool bEnableDpiScale = IsDpiScaleAllImages();
 	std::vector<uint8_t> bitmapData;
 	uint32_t imageWidth = 0;
 	uint32_t imageHeight = 0;
-	if (GlobalManager::Instance().Icon().LoadIconData(iconString, bitmapData, imageWidth, imageHeight)) {
+	bool bDpiScaled = false;
+	if (GlobalManager::Instance().Icon().LoadIconData(iconString, 
+													  pWindow, loadAtrribute, bEnableDpiScale,
+		                                              bitmapData, 
+		                                              imageWidth, imageHeight, bDpiScaled)) {
 		ASSERT(bitmapData.size() == (imageWidth * imageHeight * 4));
 		IBitmap* pBitmap = nullptr;
 		IRenderFactory* pRenderFactroy = GlobalManager::Instance().GetRenderFactory();
@@ -179,7 +179,7 @@ void ImageManager::LoadIconData(const ImageLoadAttribute& loadAtrribute,
 			imageInfo->SetImageSize(imageWidth, imageHeight);
 			imageInfo->SetImageFullPath(iconString);
 			imageInfo->SetPlayCount(-1);
-			imageInfo->SetBitmapSizeDpiScaled(false);
+			imageInfo->SetBitmapSizeDpiScaled(bDpiScaled);
 		}
 	}
 	ASSERT(imageInfo != nullptr);

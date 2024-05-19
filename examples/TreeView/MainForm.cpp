@@ -129,7 +129,7 @@ ui::TreeNode* MainForm::InsertTreeNode(ui::TreeNode* pTreeNode,
     ui::GlobalManager::Instance().Icon().AddIcon(hIcon);
     node->SetUserDataID((size_t)pFolder);
 
-    node->SetBkIcon(hIcon);//设置树节点的关联图标
+    node->SetBkIcon(hIcon, 16, true);//设置树节点的关联图标(图标大小与CheckBox的原图大小相同，都是16*16)
     node->AttachExpand(nbase::Bind(&MainForm::OnTreeNodeExpand, this, std::placeholders::_1));
     node->AttachClick(nbase::Bind(&MainForm::OnTreeNodeClick, this, std::placeholders::_1));
     node->AttachSelect(nbase::Bind(&MainForm::OnTreeNodeSelect, this, std::placeholders::_1));

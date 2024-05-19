@@ -1,11 +1,13 @@
 #include "ImageList.h"
 #include "duilib/Utils/StringUtil.h"
+#include "duilib/Core/DpiManager.h"
 
 namespace ui 
 {
 
 ImageList::ImageList():
-    m_nNextID(0)
+    m_nNextID(0),
+    m_bEnableChangeImageSizeDpi(true)
 {
 }
 
@@ -13,18 +15,40 @@ ImageList::~ImageList()
 {
 }
 
-void ImageList::SetImageSize(UiSize imageSize)
+void ImageList::SetImageSize(UiSize imageSize, const DpiManager& dpi, bool bNeedDpiScale)
 {
     ASSERT ((imageSize.cx > 0) && (imageSize.cy > 0) );
     if ((imageSize.cx < 0) || (imageSize.cy < 0)) {
         return;
     }
     m_imageSize = imageSize;
+    if (bNeedDpiScale) {
+        dpi.ScaleSize(m_imageSize);
+    }    
 }
 
 UiSize ImageList::GetImageSize() const
 {
     return m_imageSize;
+}
+
+void ImageList::EnableChangeImageSizeDpi(bool bEnableChangeImageSizeDpi)
+{
+    m_bEnableChangeImageSizeDpi = bEnableChangeImageSizeDpi;
+}
+
+bool ImageList::IsEnableChangeImageSizeDpi() const
+{
+    return m_bEnableChangeImageSizeDpi;
+}
+
+void ImageList::ChangeDpiScale(const DpiManager& dpi, uint32_t nOldDpiScale)
+{
+    UiSize szImageSize = GetImageSize();
+    if ((szImageSize.cx > 0) && (szImageSize.cy > 0)) {
+        szImageSize = dpi.GetScaleSize(szImageSize, nOldDpiScale);
+        SetImageSize(szImageSize, dpi, false);
+    }
 }
 
 int32_t ImageList::AddImageString(const std::wstring& imageString, const DpiManager& dpi)

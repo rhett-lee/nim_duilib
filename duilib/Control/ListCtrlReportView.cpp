@@ -11,8 +11,8 @@ ListCtrlReportView::ListCtrlReportView(Window* pWindow) :
     m_pListCtrl(nullptr),
     m_pData(nullptr),
     m_nTopElementIndex(0),
-    m_nRowGridLineWidth(-1),
-    m_nColumnGridLineWidth(-1)
+    m_nRowGridLineWidth(0),
+    m_nColumnGridLineWidth(0)
 {
     ListCtrlReportLayout* pDataLayout = dynamic_cast<ListCtrlReportLayout*>(GetLayout());
     ASSERT(pDataLayout != nullptr);
@@ -24,6 +24,8 @@ ListCtrlReportView::ListCtrlReportView(Window* pWindow) :
     if (pDataLayout != nullptr) {
         pDataLayout->SetDataView(this);
     }
+    SetRowGridLineWidth(1, true);
+    SetColumnGridLineWidth(1, true);
 }
 
 ListCtrlReportView::~ListCtrlReportView() 
@@ -1343,12 +1345,8 @@ void ListCtrlReportView::SetRowGridLineWidth(int32_t nLineWidth, bool bNeedDpiSc
 }
 
 int32_t ListCtrlReportView::GetRowGridLineWidth() const
-{
-    int32_t nRowGridLineWidth = m_nRowGridLineWidth;
-    if (nRowGridLineWidth < 0) {
-        nRowGridLineWidth = Dpi().GetScaleInt(1);
-    }    
-    return nRowGridLineWidth;
+{   
+    return m_nRowGridLineWidth;
 }
 
 void ListCtrlReportView::SetRowGridLineColor(const std::wstring& color)
@@ -1380,11 +1378,7 @@ void ListCtrlReportView::SetColumnGridLineWidth(int32_t nLineWidth, bool bNeedDp
 
 int32_t ListCtrlReportView::GetColumnGridLineWidth() const
 {
-    int32_t nColumnGridLineWidth = m_nColumnGridLineWidth;
-    if (nColumnGridLineWidth < 0) {
-        nColumnGridLineWidth = Dpi().GetScaleInt(1);
-    }
-    return nColumnGridLineWidth;
+    return m_nColumnGridLineWidth;
 }
 
 void ListCtrlReportView::SetColumnGridLineColor(const std::wstring& color)

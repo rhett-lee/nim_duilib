@@ -46,9 +46,9 @@ void MainForm::OnInitWindow()
 	pListCtrl->SetImageList(ui::ListCtrlType::Icon, pIconImageList);
 	pListCtrl->SetImageList(ui::ListCtrlType::List, pListImageList);
 
-	pReportImageList->SetImageSize(Dpi().GetScaleSize(ui::UiSize(18, 18)));
-	pListImageList->SetImageSize(Dpi().GetScaleSize(ui::UiSize(32, 32)));
-	pIconImageList->SetImageSize(Dpi().GetScaleSize(ui::UiSize(64, 64)));
+	pReportImageList->SetImageSize(ui::UiSize(18, 18), Dpi(), true);
+	pListImageList->SetImageSize(ui::UiSize(32, 32), Dpi(), true);
+	pIconImageList->SetImageSize(ui::UiSize(64, 64), Dpi(), true);
 
 	//Ìí¼ÓÍ¼Æ¬×ÊÔ´
 	uint32_t imageId = pReportImageList->AddImageString(L"file='1.svg' width='18' height='18'", Dpi());

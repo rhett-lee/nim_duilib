@@ -177,6 +177,16 @@ namespace ui
         return static_cast<uint16_t>(x);
     }
 
+    /** 将32位有符号整型值转换位16位无符号整型值
+    */
+    inline int16_t TruncateToInt16(int32_t x)
+    {
+        ASSERT((x >= 0) && (x <= INT16_MAX));
+        x = x > 0 ? x : 0;
+        x = x < INT16_MAX ? x : INT16_MAX;
+        return static_cast<int16_t>(x);
+    }
+
     /** 将32位整型值转换位8位整型值
     */
     inline int8_t TruncateToInt8(int32_t x)

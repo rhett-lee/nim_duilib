@@ -210,7 +210,8 @@ void PlaceHolder::SetEstimateSize(const UiEstSize& szEstimateSize, const UiSize&
 
 int32_t PlaceHolder::GetMinWidth() const
 { 
-	ASSERT(m_cxyMin.cx >= 0); return m_cxyMin.cx; 
+	ASSERT(m_cxyMin.cx >= 0); 
+	return m_cxyMin.cx; 
 }
 
 void PlaceHolder::SetMinWidth(int32_t cx, bool bNeedDpiScale)
@@ -236,7 +237,8 @@ void PlaceHolder::SetMinWidth(int32_t cx, bool bNeedDpiScale)
 
 int32_t PlaceHolder::GetMaxWidth() const
 { 
-	ASSERT(m_cxyMax.cx >= 0); return m_cxyMax.cx; 
+	ASSERT(m_cxyMax.cx >= 0); 
+	return m_cxyMax.cx; 
 }
 
 void PlaceHolder::SetMaxWidth(int32_t cx, bool bNeedDpiScale)
@@ -262,7 +264,8 @@ void PlaceHolder::SetMaxWidth(int32_t cx, bool bNeedDpiScale)
 }
 int32_t PlaceHolder::GetMinHeight() const
 { 
-	ASSERT(m_cxyMin.cy >= 0); return m_cxyMin.cy; 
+	ASSERT(m_cxyMin.cy >= 0);
+	return m_cxyMin.cy; 
 }
 
 void PlaceHolder::SetMinHeight(int32_t cy, bool bNeedDpiScale)
@@ -288,7 +291,8 @@ void PlaceHolder::SetMinHeight(int32_t cy, bool bNeedDpiScale)
 
 int32_t PlaceHolder::GetMaxHeight() const
 { 
-	ASSERT(m_cxyMax.cy >= 0); return m_cxyMax.cy; 
+	ASSERT(m_cxyMax.cy >= 0); 
+	return m_cxyMax.cy; 
 }
 
 void PlaceHolder::SetMaxHeight(int32_t cy, bool bNeedDpiScale)

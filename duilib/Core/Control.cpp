@@ -494,7 +494,7 @@ void Control::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
 	}
 
 	int32_t nMaxWidth = GetMaxWidth();
-	if (nMaxWidth >= 0) {
+	if ((nMaxWidth >= 0) && (nMaxWidth != INT32_MAX)){
 		nMaxWidth = Dpi().GetScaleInt(nMaxWidth, nOldDpiScale);
 		SetMaxWidth(nMaxWidth, false);
 	}
@@ -506,7 +506,7 @@ void Control::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
 	}	
 
 	int32_t nMaxHeight = GetMaxHeight();
-	if (nMaxHeight >= 0) {
+	if ((nMaxHeight >= 0) && (nMaxHeight != INT32_MAX)) {
 		nMaxHeight = Dpi().GetScaleInt(nMaxHeight, nOldDpiScale);
 		SetMaxHeight(nMaxHeight, false);
 	}
@@ -518,8 +518,7 @@ void Control::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
 	}
 
 	UiPadding rcBkImagePadding = GetBkImagePadding();
-	rcBkImagePadding = Dpi().GetScalePadding(rcBkImagePadding, nOldDpiScale);
-	SetBkImagePadding(rcBkImagePadding, false);
+	SetBkImagePadding(rcBkImagePadding, false);//这个值不需要做DPI缩放，直接转存为当前DPI的值
 
 	UiSize cxyBorderRound = GetBorderRound();
 	cxyBorderRound = Dpi().GetScaleSize(cxyBorderRound, nOldDpiScale);
@@ -2997,7 +2996,7 @@ bool Control::LoadImageData(Image& duiImage) const
 	if ((imageCache == nullptr) || 
 		(imageCache->GetLoadKey() != imageLoadAttr.GetCacheKey(Dpi().GetScale()))) {
 		//如果图片没有加载则执行加载图片；如果图片发生变化，则重新加载该图片
-		imageCache = GlobalManager::Instance().Image().GetImage(Dpi(), imageLoadAttr);
+		imageCache = GlobalManager::Instance().Image().GetImage(GetWindow(), imageLoadAttr);
 		duiImage.SetImageCache(imageCache);
 	}
 	return imageCache ? true : false;

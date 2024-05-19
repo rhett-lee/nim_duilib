@@ -11,6 +11,7 @@ Line::Line(Window* pWindow):
     m_dashStyle(IPen::kDashStyleDashDot),
     m_lineWidth(0)
 {
+    SetLineWidth(1, true);
 }
 
 std::wstring Line::GetType() const { return DUI_CTR_LINE; }

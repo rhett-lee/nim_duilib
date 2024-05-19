@@ -195,6 +195,10 @@ CheckCombo::CheckCombo(Window* pWindow) :
 	m_bPopupTop(false),
 	m_iOrgHeight(CHECK_COMBO_DEFAULT_HEIGHT)
 {
+	SetDropBoxSize({0, 150}, true);
+	SetMaxHeight(m_iOrgHeight * 3, true);
+	SetMinHeight(m_iOrgHeight, true);
+
 	m_pDropList.reset(new ui::ListBox(pWindow, new ui::VLayout));
 	m_pDropList->EnableScrollBar();
 	
@@ -214,18 +218,6 @@ CheckCombo::~CheckCombo()
 }
 
 std::wstring CheckCombo::GetType() const { return DUI_CTR_CHECK_COMBO; }
-
-void CheckCombo::OnInit()
-{
-	if (IsInited()) {
-		return;
-	}
-	if (m_iOrgHeight == CHECK_COMBO_DEFAULT_HEIGHT) {
-		SetMaxHeight(m_iOrgHeight * 3, true);
-		SetMinHeight(m_iOrgHeight, true);
-	}
-	__super::OnInit();
-}
 
 bool CheckCombo::AddItem(Control* pControl)
 {
@@ -390,6 +382,15 @@ void CheckCombo::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
 	szDropBoxSize = Dpi().GetScaleSize(szDropBoxSize, nOldDpiScale);
 	SetDropBoxSize(szDropBoxSize, false);
 
+	if (m_pDropList != nullptr) {
+		if (m_pDropList->GetWindow() == nullptr) {
+			m_pDropList->SetWindow(GetWindow());
+		}
+		if ((m_pDropList->GetWindow() == GetWindow()) && (m_pDropList->GetParent() == nullptr)) {
+			m_pDropList->ChangeDpiScale(nOldDpiScale, nNewDpiScale);
+		}
+	}
+
 	__super::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
 }
 
@@ -449,17 +450,9 @@ void CheckCombo::SetAttributeList(Control* pControl, const std::wstring& classVa
 	}
 }
 
-ui::UiSize CheckCombo::GetDropBoxSize() const
+const UiSize& CheckCombo::GetDropBoxSize() const
 {
-	if (m_szDropBox.IsEmpty()) {
-		//如果为空，返回默认值
-		UiSize szDropBox = { 0, 150 };
-		Dpi().ScaleSize(szDropBox);
-		return szDropBox;
-	}
-	else {
-		return m_szDropBox;
-	}
+	return m_szDropBox;
 }
 
 void CheckCombo::SetDropBoxSize(UiSize szDropBox, bool bNeedScaleDpi)

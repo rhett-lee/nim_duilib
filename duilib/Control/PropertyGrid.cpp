@@ -18,8 +18,13 @@ PropertyGrid::PropertyGrid(Window* pWindow):
     m_bDescriptionArea(true),
     m_pDescriptionAreaSplit(nullptr),
     m_pTreeView(nullptr),
-    m_nLeftColumnWidth(-1)
+    m_nLeftColumnWidth(0),
+    m_nRowGridLineWidth(0),
+    m_nColumnGridLineWidth(0)
 {
+    SetLeftColumnWidth(130, true);
+    SetRowGridLineWidth(1, true);
+    SetColumnGridLineWidth(1, true);
 }
 
 std::wstring PropertyGrid::GetType() const { return DUI_CTR_PROPERTY_GRID; }
@@ -74,11 +79,13 @@ void PropertyGrid::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
     iValue = Dpi().GetScaleInt(iValue, nOldDpiScale);
     SetColumnGridLineWidth(iValue, false);
 
-    iValue = GetLeftColumnWidth();
-    iValue = Dpi().GetScaleInt(iValue, nOldDpiScale);
-    SetLeftColumnWidth(iValue, false);
-
+    if (!IsInited() || (m_pHeaderLeft == nullptr)) {
+        m_nLeftColumnWidth = Dpi().GetScaleInt(m_nLeftColumnWidth, nOldDpiScale);
+    }
     __super::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
+    if (IsInited() && (m_pHeaderLeft != nullptr)) {
+        m_nLeftColumnWidth = GetLeftColumnWidth();
+    }
 }
 
 void PropertyGrid::OnInit()
@@ -762,11 +769,7 @@ int32_t PropertyGrid::GetLeftColumnWidth() const
 
 int32_t PropertyGrid::GetLeftColumnWidthValue() const
 {
-    int32_t nLeftColumnWidth = m_nLeftColumnWidth;
-    if (nLeftColumnWidth < 0) {
-        nLeftColumnWidth = Dpi().GetScaleInt(130);
-    }
-    return nLeftColumnWidth;
+    return m_nLeftColumnWidth;
 }
 
 ////////////////////////////////////////////////////////////////////////////

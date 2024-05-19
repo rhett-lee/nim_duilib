@@ -57,7 +57,7 @@ public:
 
 	/** 获取下拉框列表大小(宽度和高度)
 	*/
-	UiSize GetDropBoxSize() const;
+	const UiSize& GetDropBoxSize() const;
 
 	/** 设置下拉框列表大小(宽度和高度)
 	 * @param [in] szDropBox 要设置的大小信息

@@ -21,6 +21,8 @@ ScrollBox::ScrollBox(Window* pWindow, Layout* pLayout) :
 	m_nVScrollUnitPixels(0),
 	m_nHScrollUnitPixels(0)
 {
+	SetVerScrollUnitPixels(30, true);
+	SetHorScrollUnitPixels(30, true);
 }
 
 ScrollBox::~ScrollBox()
@@ -102,6 +104,12 @@ void ScrollBox::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
 	iValue = Dpi().GetScaleInt(iValue, nOldDpiScale);
 	SetHorScrollUnitPixels(iValue, false);
 
+	if (m_pVScrollBar != nullptr) {
+		m_pVScrollBar->ChangeDpiScale(nOldDpiScale, nNewDpiScale);
+	}
+	if (m_pHScrollBar != nullptr) {
+		m_pHScrollBar->ChangeDpiScale(nOldDpiScale, nNewDpiScale);
+	}
 	__super::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
 }
 
@@ -1059,12 +1067,7 @@ void ScrollBox::SetHoldEnd(bool bHoldEnd)
 
 int32_t ScrollBox::GetVerScrollUnitPixels() const
 {
-	if (m_nVScrollUnitPixels <= 0) {
-		return Dpi().GetScaleInt(m_nVScrollUnitPixelsDefault);
-	}
-	else {
-		return m_nVScrollUnitPixels;
-	}	
+	return m_nVScrollUnitPixels;
 }
 
 void ScrollBox::SetVerScrollUnitPixels(int32_t nUnitPixels, bool bNeedDpiScale)
@@ -1080,12 +1083,7 @@ void ScrollBox::SetVerScrollUnitPixels(int32_t nUnitPixels, bool bNeedDpiScale)
 
 int32_t ScrollBox::GetHorScrollUnitPixels() const
 {
-	if (m_nHScrollUnitPixels <= 0) {
-		return Dpi().GetScaleInt(m_nHScrollUnitPixelsDefault);
-	}
-	else {
-		return m_nHScrollUnitPixels;
-	}    
+	return m_nHScrollUnitPixels;
 }
 
 void ScrollBox::SetHorScrollUnitPixels(int32_t nUnitPixels, bool bNeedDpiScale)

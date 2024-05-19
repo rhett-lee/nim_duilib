@@ -17,11 +17,14 @@ TreeNode::TreeNode(Window* pWindow) :
 	m_checkBoxTextPadding(0),
 	m_iconTextPadding(0),
 	m_pExpandImageRect(nullptr),
-	m_pCollapseImageRect(nullptr)
+	m_pCollapseImageRect(nullptr),
+	m_expandIndent(0),
+	m_checkBoxIndent(0),
+	m_iconIndent(0)
 {
-	m_expandIndent = (uint16_t)-1;
-	m_checkBoxIndent = (uint16_t)-1;
-	m_iconIndent = (uint16_t)-1;
+	SetExpandIndent(4, true);
+	SetCheckBoxIndent(6, true);
+	SetIconIndent(4, true);
 }
 
 TreeNode::~TreeNode()
@@ -87,6 +90,7 @@ void TreeNode::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
 	if (nNewDpiScale != Dpi().GetScale()) {
 		return;
 	}
+
 	int32_t iValue = GetExpandIndent();
 	iValue = Dpi().GetScaleInt(iValue, nOldDpiScale);
 	SetExpandIndent(iValue, false);
@@ -99,13 +103,31 @@ void TreeNode::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
 	iValue = Dpi().GetScaleInt(iValue, nOldDpiScale);
 	SetIconIndent(iValue, false);
 
+	if (m_expandCheckBoxPadding > 0) {
+		m_expandCheckBoxPadding = ui::TruncateToUInt16(Dpi().GetScaleInt((int32_t)m_expandCheckBoxPadding, nOldDpiScale));
+	}
+	if (m_expandIconPadding > 0) {
+		m_expandIconPadding = ui::TruncateToUInt16(Dpi().GetScaleInt((int32_t)m_expandIconPadding, nOldDpiScale));
+	}
+	if (m_expandTextPadding > 0) {
+		m_expandTextPadding = ui::TruncateToUInt16(Dpi().GetScaleInt((int32_t)m_expandTextPadding, nOldDpiScale));
+	}
+	if (m_checkBoxIconPadding > 0) {
+		m_checkBoxIconPadding = ui::TruncateToUInt16(Dpi().GetScaleInt((int32_t)m_checkBoxIconPadding, nOldDpiScale));
+	}
+	if (m_checkBoxTextPadding > 0) {
+		m_checkBoxTextPadding = ui::TruncateToUInt16(Dpi().GetScaleInt((int32_t)m_checkBoxTextPadding, nOldDpiScale));
+	}
+	if (m_iconTextPadding > 0) {
+		m_iconTextPadding = ui::TruncateToUInt16(Dpi().GetScaleInt((int32_t)m_iconTextPadding, nOldDpiScale));
+	}
 	__super::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
 }
 
 void TreeNode::SetExpandIndent(int32_t nExpandIndent, bool bNeedDpiScale)
 {
 	if (nExpandIndent < 0) {
-		nExpandIndent = 0;
+		nExpandIndent = 4;
 	}
 	if (bNeedDpiScale) {
 		Dpi().ScaleInt(nExpandIndent);
@@ -115,18 +137,13 @@ void TreeNode::SetExpandIndent(int32_t nExpandIndent, bool bNeedDpiScale)
 
 uint16_t TreeNode::GetExpandIndent() const
 {
-	if ((int16_t)m_expandIndent < 0) {
-		return (uint16_t)Dpi().GetScaleInt(4);
-	}
-	else {
-		return m_expandIndent;
-	}
+	return m_expandIndent;
 }
 
 void TreeNode::SetCheckBoxIndent(int32_t nIndent, bool bNeedDpiScale)
 {
 	if (nIndent < 0) {
-		nIndent = 0;
+		nIndent = 6;
 	}
 	if (bNeedDpiScale) {
 		Dpi().ScaleInt(nIndent);
@@ -136,18 +153,13 @@ void TreeNode::SetCheckBoxIndent(int32_t nIndent, bool bNeedDpiScale)
 
 uint16_t TreeNode::GetCheckBoxIndent() const
 {
-	if ((int16_t)m_checkBoxIndent < 0) {
-		return (uint16_t)Dpi().GetScaleInt(6);
-	}
-	else {
-		return m_checkBoxIndent;
-	}
+	return m_checkBoxIndent;
 }
 
 void TreeNode::SetIconIndent(int32_t nIndent, bool bNeedDpiScale)
 {
 	if (nIndent < 0) {
-		nIndent = 0;
+		nIndent = 4;
 	}
 	if (bNeedDpiScale) {
 		Dpi().ScaleInt(nIndent);
@@ -157,12 +169,7 @@ void TreeNode::SetIconIndent(int32_t nIndent, bool bNeedDpiScale)
 
 uint16_t TreeNode::GetIconIndent() const
 {
-	if ((int16_t)m_iconIndent < 0) {
-		return (uint16_t)Dpi().GetScaleInt(4);
-	}
-	else {
-		return m_iconIndent;
-	}
+	return m_iconIndent;
 }
 
 std::wstring TreeNode::GetExpandStateImage(ControlStateType stateType)
@@ -448,46 +455,48 @@ bool TreeNode::AddChildNodeAt(TreeNode* pTreeNode, const size_t iIndex)
 
 #ifdef UILIB_IMPL_WINSDK
 
-void TreeNode::SetBkIcon(HICON hIcon)
+void TreeNode::SetBkIcon(HICON hIcon, uint32_t nIconSize, bool bNeedDpiScale)
 {
+	if (hIcon == nullptr) {
+		SetBkImage(L"");
+		AdjustIconPadding();
+		return;
+	}
 	GlobalManager::Instance().Icon().AddIcon(hIcon);
 	std::wstring iconString = GlobalManager::Instance().Icon().GetIconString(hIcon);
-	std::wstring oldIconString = GetBkImagePath();
+	if (iconString.empty()) {
+		SetBkImage(L"");
+		AdjustIconPadding();
+		return;
+	}
+
+	if (nIconSize > 0) {
+		if (bNeedDpiScale) {
+			iconString = StringHelper::Printf(L"file='%s' width='%d' height='%d' halign='left' valign='center' dpi_scale='true'",
+											  iconString.c_str(), nIconSize, nIconSize);
+		}
+		else {
+			iconString = StringHelper::Printf(L"file='%s' width='%d' height='%d' halign='left' valign='center' dpi_scale='false'",
+											  iconString.c_str(), nIconSize, nIconSize);
+		}
+	}
+	else {
+		iconString = StringHelper::Printf(L"file='%s' halign='left' valign='center'",
+										   iconString.c_str());
+	}
+	std::wstring oldIconString = GetBkImage();
 	if (iconString == oldIconString) {
 		//没有变化，直接返回
 		return;
 	}
-	//旧的图标大小
-	HICON hOldIcon = GlobalManager::Instance().Icon().GetIcon(oldIconString);
-	UiSize oldIconSize = GlobalManager::Instance().Icon().GetIconSize(hOldIcon);
-
-	//新的图标大小
-	UiSize newIconSize = GlobalManager::Instance().Icon().GetIconSize(hIcon);
-
-	bool bAdjustIconPadding = true;
 	if (!oldIconString.empty()) {
-		if (newIconSize.cx != oldIconSize.cx) {
-			//旧图标存在，并且图标大小不同，首先清除原来的图标
-			SetBkImage(L"");
-			AdjustIconPadding();
-		}
-		else {
-			//新旧图标大小相同，不需要调整图标内边距
-			bAdjustIconPadding = false;
-		}
-	}
-
-	if (!iconString.empty()) {
-		iconString = StringHelper::Printf(L"file='%s' halign='left' valign='center'", iconString.c_str());
-		SetBkImage(iconString);
-	}
-	else {
+		//旧图标存在，并且图标大小不同，首先清除原来的图标
 		SetBkImage(L"");
-	}
-
-	if (bAdjustIconPadding) {
 		AdjustIconPadding();
 	}
+
+	SetBkImage(iconString);
+	AdjustIconPadding();
 
 	//按需修改是否显示图标标志
 	if (m_pTreeView != nullptr) {
@@ -1054,6 +1063,19 @@ void TreeView::SetAttribute(const std::wstring& strName, const std::wstring& str
 	else {
 		ListBox::SetAttribute(strName, strValue);
 	}
+}
+
+void TreeView::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
+{
+	ASSERT(nNewDpiScale == Dpi().GetScale());
+	if (nNewDpiScale != Dpi().GetScale()) {
+		return;
+	}
+	int32_t iValue = GetIndent();
+	iValue = Dpi().GetScaleInt(iValue, nOldDpiScale);
+	SetIndent(iValue, false);
+
+	__super::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
 }
 
 bool TreeView::IsMultiSelect() const

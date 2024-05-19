@@ -219,6 +219,7 @@ ComboButton::ComboButton(Window* pWindow) :
 	m_bDropListShown(false)
 {
 	m_pComboBox = new Box(pWindow);
+	SetDropBoxSize({0, 150}, true);
 }
 
 ComboButton::~ComboButton()
@@ -560,17 +561,9 @@ void ComboButton::UpdateComboWndPos()
 	}
 }
 
-UiSize ComboButton::GetDropBoxSize() const
+const UiSize& ComboButton::GetDropBoxSize() const
 {
-	if (m_szDropBox.IsEmpty()) {
-		//如果为空，返回默认值
-		UiSize szDropBox = { 0, 150 };
-		Dpi().ScaleSize(szDropBox);
-		return szDropBox;
-	}
-	else {
-		return m_szDropBox;
-	}
+	return m_szDropBox;
 }
 
 void ComboButton::SetDropBoxSize(UiSize szDropBox, bool bNeedScaleDpi)

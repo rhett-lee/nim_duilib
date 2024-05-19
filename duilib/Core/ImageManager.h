@@ -14,6 +14,7 @@ namespace ui
 class ImageInfo;
 class ImageLoadAttribute;
 class DpiManager;
+class Window;
 
 /** 图片管理器
  */
@@ -27,11 +28,11 @@ public:
 
 public:
 	/** 加载图片 ImageInfo 对象
-	 * @param [in] loadAtrribute 图片的加载属性，包含图片路径等信息
-	 * @param [in] dpi DPI缩放管理接口
+	 * @param [in] pWindow 图片关联的窗口（用于DPI缩放、HICON绘制等）
+	 * @param [in] loadAtrribute 图片的加载属性，包含图片路径等信息	 
 	 * @return 返回图片 ImageInfo 对象的智能指针
 	 */
-	std::shared_ptr<ImageInfo> GetImage(const DpiManager& dpi,
+	std::shared_ptr<ImageInfo> GetImage(const Window* pWindow,
 										const ImageLoadAttribute& loadAtrribute);
 
 	/** 从缓存中删除所有图片
@@ -100,7 +101,8 @@ private:
 #ifdef UILIB_IMPL_WINSDK
 	/** 从HICON句柄加载一个图片
 	*/
-	void LoadIconData(const ImageLoadAttribute& loadAtrribute,
+	void LoadIconData(const Window* pWindow,
+		              const ImageLoadAttribute& loadAtrribute,
 		              std::unique_ptr<ImageInfo>& imageInfo) const;
 #endif
 
