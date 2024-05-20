@@ -32,15 +32,7 @@ void MainForm::OnInitWindow()
     //窗口初始化完成，可以进行本Form的初始化
     UpdateUI();
 
-    ui::Button* pButton = dynamic_cast<ui::Button*>(FindControl(L"UpdateUI"));
-    if (pButton != nullptr) {
-        pButton->AttachClick([this](const ui::EventArgs& /*args*/) {
-            UpdateUI();
-            return true;
-            });
-    }
-
-    pButton = dynamic_cast<ui::Button*>(FindControl(L"NewWindow"));
+    ui::Button* pButton = dynamic_cast<ui::Button*>(FindControl(L"NewWindow"));
     if (pButton != nullptr) {
         pButton->AttachClick([this](const ui::EventArgs& /*args*/) {
             //弹出一个新窗口
@@ -57,12 +49,33 @@ void MainForm::OnInitWindow()
             return true;
             });
     }
+
+    pButton = dynamic_cast<ui::Button*>(FindControl(L"SetDPI"));
+    if (pButton != nullptr) {
+        pButton->AttachClick([this](const ui::EventArgs& /*args*/) {
+            //修改DPI值
+            ui::RichEdit* pRichEdit = dynamic_cast<ui::RichEdit*>(FindControl(L"DPI"));
+            if (pRichEdit != nullptr) {
+                int32_t nNewDpi = _wtoi(pRichEdit->GetText().c_str());
+                if (nNewDpi > 0) {
+                    ChangeDpi((uint32_t)nNewDpi);
+                    UpdateUI();
+                }
+            }
+            return true;
+            });
+    }
 }
 
 void MainForm::OnCloseWindow()
 {
     //关闭窗口后，退出主线程的消息循环，关闭程序
     PostQuitMessage(0L);
+}
+
+void MainForm::OnWindowDpiChanged(uint32_t /*nOldDPI*/, uint32_t /*nNewDPI*/)
+{
+    UpdateUI();
 }
 
 void MainForm::UpdateUI()

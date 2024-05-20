@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Window size="640,480" mininfo="80,50" use_system_caption="false" caption="0,0,0,36" shadowattached="true" layered_window="true" alpha="255" sizebox="4,4,4,4">
+<Window size="700,540" mininfo="80,50" use_system_caption="false" caption="0,0,0,36" shadowattached="true" layered_window="true" alpha="255" sizebox="4,4,4,4">
     <VBox bkcolor="bk_wnd_darkcolor" visible="true">    
         <!-- 标题栏区域 -->
         <HBox name="window_caption_bar" width="stretch" height="36" bkcolor="bk_wnd_lightcolor">
@@ -14,9 +14,9 @@
         
         <!-- 工作区域，除了标题栏外的内容都放在这个大的Box区域 -->
         <Box>
-            <GroupVBox valign="top" halign="center" valign="center" width="620" height="420">
-                <HBox height="60" width="100%" valign="center">
-                    <Label name="" text="支持DPI感知功能的应用程序示例" height="80" width="100%" text_align="hcenter,vcenter"/>
+            <GroupVBox valign="top" halign="center" valign="center" width="680" height="480">
+                <HBox height="40" width="100%" valign="center">
+                    <Label name="" text="支持DPI感知功能的应用程序示例" height="40" width="100%" text_align="hcenter,vcenter"/>
                 </HBox>
                 <HBox height="36" width="100%" valign="center">
                     <Control width="40"/>
@@ -25,7 +25,7 @@
                 </HBox>
                 <HBox height="36" width="100%" valign="center">
                     <Control width="40"/>
-                    <Label name="" text="系统的DPI值：" width="180" text_align="right,vcenter"/>
+                    <Label name="" text="启动时的DPI值：" width="180" text_align="right,vcenter"/>
                     <Label name="system_dpi" text="192" width="64" text_align="left,vcenter"/>
                     <Control width="4"/>
                     <Label name="" text="缩放百分比：" width="auto" text_align="right,vcenter"/>
@@ -40,7 +40,7 @@
                     <Label name="window_dpi_percent" text="200%" width="64" text_align="left,vcenter"/>
                 </HBox>
                 <HBox height="100" width="100%" valign="center">
-                    <RichText class="rich_text" bkcolor="green" row_spacing_mul="1.5" width="100%" height="auto">
+                    <RichText class="rich_text" bkcolor="green" row_spacing_mul="1.5" width="100%" height="auto" margin="4,0,4,0">
                         RichText文本：<b>粗体，<font color="#FF0000">红色加粗，</font></b>
                         <font face="微软雅黑" size="16">微软雅黑16号字演示，</font>
                         <font face="微软雅黑" size="14">微软雅黑14号字演示，</font>
@@ -53,11 +53,29 @@
                         <u>下划线字演示，</u>             
                         RichText文本内容。
                     </RichText>
-                </HBox> 
-                <HBox height="40" width="100%" valign="center" halign="center">
+                </HBox>
+                <HBox>
+                    <VBox>
+                        <VBox height="64" margin="4,0,0,0">
+                            <Label text="DPI及缩放百分比对应关系："/>
+                            <Label text="  96(100%)、120(125%)、144(150%)、168(175%)"/>
+                            <Label text="192(200%)、216(225%)、240(250%)、288(300%)"/>
+                        </VBox>
+                        <HBox>
+                            <HBox valign="center">                        
+                                <Label text="调整窗口DPI值：" height="32" valign="center" text_align="left,vcenter" margin="4,0,0,0"/>
+                                <RichEdit class="simple" name="DPI" text="" number="true" height="32" width="60" max_char="4" min_number="0" max_number="300" valign="center" text_align="hcenter,vcenter" bkcolor="white" margin="1,0,4,0"/>
+                                <Button class="btn_global_blue_80x30" height="32" width="auto" valign="center" name="SetDPI" text="修改DPI" text_padding="10,0,10,0" />
+                            </HBox>                        
+                        </HBox>
+                    </VBox>
+                    <VBox border_size="1" border_color="blue">
+                        <Control bkimage="autumn.png" width="180" height="186" halign="center" valign="center" margin="2,2,2,2" border_size="1" border_color="red"/>
+                    </VBox>
+                </HBox>
+                <HBox height="40" width="100%" valign="center" halign="center" margin="1,1,1,1">
                     <Control />
-                    <Button class="btn_global_blue_80x30" width="auto" name="UpdateUI" text="更新" margin="0,10,10,0" />
-                    <Button class="btn_global_blue_80x30" width="auto" name="NewWindow" text="新窗口" margin="0,10,0,0" />
+                    <Button class="btn_global_blue_80x30" width="auto" name="NewWindow" text="创建新窗口" text_padding="10,0,10,0" />
                     <Control />
                 </HBox>
             </GroupVBox>

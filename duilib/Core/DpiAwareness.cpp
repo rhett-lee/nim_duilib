@@ -7,8 +7,7 @@ namespace ui
 DpiInitParam::DpiInitParam():
 	m_dpiAwarenessFlag(DpiInitParam::DpiAwarenessFlag::kFromUserDefine),
 	m_dpiAwarenessMode(DpiAwarenessMode::kPerMonitorDpiAware_V2),
-	m_dpiFlag(DpiInitParam::DpiFlag::kFromSystem),
-	m_uDPI(96)
+	m_uDPI(0)
 {
 }
 

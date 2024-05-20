@@ -615,6 +615,12 @@ protected:
     */
     virtual void OnUseSystemCaptionBarChanged();
 
+    /** 窗口的DPI发生了变化
+    * @param [in] nOldDPI 旧的DPI值
+    * @param [in] nNewDPI 新的DPI值
+    */
+    virtual void OnWindowDpiChanged(uint32_t nOldDPI, uint32_t nNewDPI);
+
 private:
     /** @name 私有窗口消息处理相关
     * @{
@@ -945,11 +951,10 @@ public:
     */
     const DpiManager& Dpi() const;
 
-    /** 窗口的DPI发生变化，更新控件大小和布局
-    * @param [in] nOldDpiScale 旧的DPI缩放百分比
-    * @param [in] nNewDpiScale 新的DPI缩放百分比，与Dpi().GetScale()的值一致
+    /** 主动调整窗口的DPI
+    * @param [in] nNewDPI 新的DPI值，比如96代表界面DPI缩放比为100%
     */
-    void OnDpiScaleChanged(uint32_t nOldDpiScale, uint32_t nNewDpiScale);
+    bool ChangeDpi(uint32_t nNewDPI);
 
 public:
     /** 设置系统激活窗口热键，注册后按此热键，系统可以自动激活本窗口
@@ -1097,6 +1102,12 @@ private:
     * @param [in] bSendClose 是否发送关闭事件
     */
     void ClearWindow(bool bSendClose);
+
+    /** 窗口的DPI发生变化，更新控件大小和布局
+    * @param [in] nOldDpiScale 旧的DPI缩放百分比
+    * @param [in] nNewDpiScale 新的DPI缩放百分比，与Dpi().GetScale()的值一致
+    */
+    void OnDpiScaleChanged(uint32_t nOldDpiScale, uint32_t nNewDpiScale);
 
 private:
     //窗口句柄

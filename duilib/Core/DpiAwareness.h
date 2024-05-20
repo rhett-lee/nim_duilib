@@ -50,11 +50,7 @@ public:
 	{
 		kFromManifest,  //从可执行程序的manifest配置中读取，不需要再次设置
 		kFromUserDefine //通过参数设置（即：DpiInitParam::m_dpiAwarenessMode 成员变量）
-	};
-	enum class DpiFlag
-	{
-		kFromSystem,    //从操作系统的DPI配置中读取
-		kFromUserDefine //通过参数设置（即：DpiInitParam::m_uDPI 成员变量）
+		                //如果可执行程序的manifest配置已经设置了DPI感知类型，则是无法修改的。
 	};
 
 	/** DPI感知参数类型（默认是通过 m_dpiAwarenessMode 值设置的）
@@ -65,11 +61,8 @@ public:
 	*/
 	DpiAwarenessMode m_dpiAwarenessMode;
 
-	/** DPI值的参数类型（默认读取系统设置的DPI值，不读取m_uDPI值）
-	*/
-	DpiFlag m_dpiFlag;
-
-	/** 参数设置的DPI值(仅当 m_dpiFlag 为 kFromUserDefine时有效)
+	/** 参数设置的DPI值（如果设置了有效值，则按设置的值作为启动时的DPI值；
+	                   如果未设置（值为0时），则读取系统配置的DPI值）
 	*/
 	uint32_t m_uDPI;
 };

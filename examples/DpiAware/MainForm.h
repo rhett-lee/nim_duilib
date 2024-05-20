@@ -40,6 +40,12 @@ public:
     */
     virtual void OnCloseWindow() override;
 
+    /** 窗口的DPI发生了变化
+    * @param [in] nOldDPI 旧的DPI值
+    * @param [in] nNewDPI 新的DPI值
+    */
+    virtual void OnWindowDpiChanged(uint32_t nOldDPI, uint32_t nNewDPI) override;
+
     /** 窗口类名
     */
     static const std::wstring kClassName;

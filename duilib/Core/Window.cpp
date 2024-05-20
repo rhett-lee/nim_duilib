@@ -1779,10 +1779,13 @@ LRESULT Window::OnDpiChangedMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& b
     ASSERT_UNUSED_VARIABLE(uMsg == WM_DPICHANGED);
     bHandled = false;
 
+    //此消息必须处理，否则窗口大小与界面的比例将失调
     const DpiManager& dpiManager = GlobalManager::Instance().Dpi();
-    if ((m_dpi != nullptr) && !dpiManager.IsUserDefineDpi() && dpiManager.IsPerMonitorDpiAware()) {
-        uint32_t nNewDPI = HIWORD(wParam);
-        uint32_t nOldDpiScale = m_dpi->GetScale();
+    if ((m_dpi != nullptr) && dpiManager.IsPerMonitorDpiAware()) {
+        //调整DPI值
+        uint32_t nOldDPI = m_dpi->GetDPI();
+        uint32_t nOldDpiScale = m_dpi->GetScale();        
+        uint32_t nNewDPI = HIWORD(wParam);     
 
         //更新窗口的DPI值为新值
         m_dpi->SetDPI(nNewDPI);        
@@ -1803,8 +1806,95 @@ LRESULT Window::OnDpiChangedMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& b
                            prcNewWindow->bottom - prcNewWindow->top,
                            SWP_NOZORDER | SWP_NOACTIVATE);
         }
+        OnWindowDpiChanged(nOldDPI, nNewDPI);
     }
     return 0;
+}
+
+bool Window::ChangeDpi(uint32_t nNewDPI)
+{
+    ASSERT(m_hWnd != nullptr);
+    if (m_hWnd == nullptr) {
+        return false;
+    }
+    //DPI值限制在60到300之间(小于50的时候，会出问题，比如原来是1的，经过DPI转换后，会变成0，导致很多逻辑失效)
+    ASSERT((nNewDPI >= 60) && (nNewDPI <= 300)) ;
+    if ((nNewDPI < 60) || (nNewDPI > 300)) {
+        return false;
+    }
+
+    uint32_t nOldDPI = Dpi().GetDPI();
+    uint32_t nOldDpiScale = Dpi().GetScale();
+    if (m_dpi == nullptr) {
+        m_dpi = std::make_unique<DpiManager>();
+    }
+    //更新窗口的DPI值为新值
+    m_dpi->SetDPI(nNewDPI);
+
+    ASSERT(nNewDPI == m_dpi->GetDPI());
+    uint32_t nNewDpiScale = m_dpi->GetScale();
+
+    //按新的DPI更新窗口布局
+    OnDpiScaleChanged(nOldDpiScale, nNewDpiScale);
+
+    //更新窗口大小和位置
+    UiRect rcOldWindow;
+    GetWindowRect(rcOldWindow);
+    UiRect rcNewWindow = Dpi().GetScaleRect(rcOldWindow, nOldDpiScale);
+    ::SetWindowPos(m_hWnd,
+                   NULL,
+                   rcOldWindow.left,
+                   rcOldWindow.top,
+                   rcNewWindow.Width(),
+                   rcNewWindow.Height(),
+                   SWP_NOZORDER | SWP_NOACTIVATE);
+    OnWindowDpiChanged(nOldDPI, nNewDPI);
+    return true;
+}
+
+void Window::OnWindowDpiChanged(uint32_t /*nOldDPI*/, uint32_t /*nNewDPI*/)
+{
+}
+
+const DpiManager& Window::Dpi() const
+{
+    return (m_dpi != nullptr) ? *m_dpi : GlobalManager::Instance().Dpi();
+}
+
+void Window::OnDpiScaleChanged(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
+{
+    if ((nOldDpiScale == nNewDpiScale) || (nNewDpiScale == 0)) {
+        return;
+    }
+    ASSERT(nNewDpiScale == Dpi().GetScale());
+    if (nNewDpiScale != Dpi().GetScale()) {
+        return;
+    }
+    //窗口阴影
+    if (m_shadow != nullptr) {
+        m_shadow->ChangeDpiScale(Dpi(), nOldDpiScale, nNewDpiScale);
+    }
+
+    //更新窗口自身的DPI关联属性
+    m_szMinWindow = Dpi().GetScaleSize(m_szMinWindow, nOldDpiScale);
+    m_szMaxWindow = Dpi().GetScaleSize(m_szMaxWindow, nOldDpiScale);
+    m_rcMaximizeInfo = Dpi().GetScaleRect(m_rcMaximizeInfo, nOldDpiScale);
+    m_rcSizeBox = Dpi().GetScaleRect(m_rcSizeBox, nOldDpiScale);
+    m_rcAlphaFix = Dpi().GetScaleRect(m_rcAlphaFix, nOldDpiScale);
+    m_szRoundCorner = Dpi().GetScaleSize(m_szRoundCorner, nOldDpiScale);
+    m_rcCaption = Dpi().GetScaleRect(m_rcCaption, nOldDpiScale);
+    m_renderOffset = Dpi().GetScalePoint(m_renderOffset, nOldDpiScale);
+    m_ptLastMousePos = Dpi().GetScalePoint(m_ptLastMousePos, nOldDpiScale);
+
+    //更新布局和控件的DPI关联属性
+    SetArrange(true);
+
+    Box* pRoot = GetRoot();
+    if (pRoot != nullptr) {
+        pRoot->ChangeDpiScale(nOldDpiScale, nNewDpiScale);
+        pRoot->Arrange();
+        Invalidate(m_pRoot->GetPos());
+    }
 }
 
 LRESULT Window::OnMoveMsg(UINT uMsg, WPARAM /*wParam*/, LPARAM /*lParam*/, bool& bHandled)
@@ -1879,47 +1969,6 @@ void Window::UpdateToolTip()
     //隐藏现有的，等待重新显示即会更新
     m_toolTip->HideToolTip();
     m_toolTip->ClearMouseTracking();
-}
-
-const DpiManager& Window::Dpi() const
-{
-    return (m_dpi != nullptr) ? *m_dpi : GlobalManager::Instance().Dpi();
-}
-
-void Window::OnDpiScaleChanged(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
-{
-    if ((nOldDpiScale == nNewDpiScale) || (nNewDpiScale == 0)) {
-        return;
-    }
-    ASSERT(nNewDpiScale == Dpi().GetScale());
-    if (nNewDpiScale != Dpi().GetScale()) {
-        return;
-    }
-    //窗口阴影
-    if (m_shadow != nullptr) {
-        m_shadow->ChangeDpiScale(Dpi(), nOldDpiScale, nNewDpiScale);
-    }
-
-    //更新窗口自身的DPI关联属性
-    m_szMinWindow = Dpi().GetScaleSize(m_szMinWindow, nOldDpiScale);
-    m_szMaxWindow = Dpi().GetScaleSize(m_szMaxWindow, nOldDpiScale);
-    m_rcMaximizeInfo = Dpi().GetScaleRect(m_rcMaximizeInfo, nOldDpiScale);
-    m_rcSizeBox = Dpi().GetScaleRect(m_rcSizeBox, nOldDpiScale);
-    m_rcAlphaFix = Dpi().GetScaleRect(m_rcAlphaFix, nOldDpiScale);
-    m_szRoundCorner = Dpi().GetScaleSize(m_szRoundCorner, nOldDpiScale);
-    m_rcCaption = Dpi().GetScaleRect(m_rcCaption, nOldDpiScale);
-    m_renderOffset = Dpi().GetScalePoint(m_renderOffset, nOldDpiScale);
-    m_ptLastMousePos = Dpi().GetScalePoint(m_ptLastMousePos, nOldDpiScale);
-
-    //更新布局和控件的DPI关联属性
-    SetArrange(true);
-
-    Box* pRoot = GetRoot();
-    if (pRoot != nullptr) {
-        pRoot->ChangeDpiScale(nOldDpiScale, nNewDpiScale);
-        pRoot->Arrange();
-        Invalidate(m_pRoot->GetPos());
-    }
 }
 
 LRESULT Window::OnMouseMoveMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)

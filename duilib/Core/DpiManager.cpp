@@ -69,7 +69,7 @@ void DpiManager::InitDpiAwareness(const DpiInitParam& dpiInitParam)
 	m_dpiAwarenessMode = dpiAwareness.GetDpiAwareness();
 
 	//初始化DPI值
-	if (dpiInitParam.m_dpiFlag == DpiInitParam::DpiFlag::kFromSystem) {
+	if (dpiInitParam.m_uDPI == 0) {
 		m_bUserDefineDpi = false;
 		//从系统配置中读取默认的DPI值
 		SetDpiByWindow(nullptr);

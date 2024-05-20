@@ -17,7 +17,7 @@ ListCtrlHeaderItem::ListCtrlHeaderItem(Window* pWindow) :
     m_bColumnVisible(true),
     m_imageId(-1),
     m_pHeaderCtrl(nullptr),
-    m_nIconSpacing()
+    m_nIconSpacing(0)
 {
     SetIconSpacing(6, true);
 }

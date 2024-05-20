@@ -32,7 +32,7 @@ public:
 	*/
 	void InitDpiAwareness(const DpiInitParam& dpiInitParam);
 
-	/** DPI值是否为用户自定义(调用InitDpiAwareness函数时，dpiInitParam.m_dpiFlag == DpiInitParam::DpiFlag::kFromUserDefine)
+	/** DPI值是否为用户自定义
 	*/
 	bool IsUserDefineDpi() const;
 

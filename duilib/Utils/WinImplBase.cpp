@@ -243,6 +243,11 @@ void WindowImplBase::OnUseSystemCaptionBarChanged()
     }
 }
 
+void WindowImplBase::OnWindowDpiChanged(uint32_t nOldDPI, uint32_t nNewDPI)
+{
+    __super::OnWindowDpiChanged(nOldDPI, nNewDPI);
+}
+
 void WindowImplBase::ProcessMaxRestoreStatus()
 {
     if (IsUseSystemCaption()) {
