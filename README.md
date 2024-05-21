@@ -112,6 +112,8 @@ git clone https://github.com/rhett-lee/skia_compile
  - 全局资源（GlobalManager）的接口进行了优化，使得所有资源全部通过此接口管理，易于理解和维护
  - 同一个窗口内的不同容器之间，容器内的控件可以通过属性设置支持拖出和拖入操作
  - 控件的背景色支持渐变色
+ - 完善了多国语言的功能，能够更好的支持多语言动态切换，并提供示例程序examples/MultiLang
+ - 完善了DPI感知功能，支持Unaware、SystemAware、PerMonitorAware、PerMonitorAware_V2四种模式，支持独立设置DPI，支持高清DPI的适配，提供了示例程序examples/DpiAware
 11. 性能优化：
  - 优化了Control及子控件的内存占用，在界面元素较多的时候，内存占有率有大幅降低；
  - 优化了动画绘制流程，合并定时器的触发事件，避免播放控件动画或者播放动画图片的过程中导致界面很卡的现象
@@ -122,6 +124,8 @@ git clone https://github.com/rhett-lee/skia_compile
  - examples/render：新增加了渲染引擎示例程序，演示了大部分容器、控件、资源管理的功能
  - examples/TreeView：新增加了树控件的示例程序，演示了树控件的各种功能
  - examples/RichEdit：新增加了富文本编辑控件的示例程序，演示了富文本编辑控件的各种功能
+ - examples/MultiLang：提供多语言的动态切换功能演示
+ - examples/DpiAware：提供了DPI感知功能的功能演示
  - 其他的示例程序：大部分进行了代码兼容性修改和优化，使得示例程序也可以当作测试程序使用；
 13. 文档的完善：
 - README.md和docs子目录的文档重新进行了梳理，使得阅读者更容易理解界面库的功能、用法，更易上手
@@ -129,7 +133,7 @@ git clone https://github.com/rhett-lee/skia_compile
 
 ## 开发计划
  - 窗口的封装优化：支持跨平台的窗口引擎（SDL/GTK等，进行跨平台尝试）
- - 支持DPI感知：支持Per-Monitor (V2) DPI 感知，提高对多显示器模式下的用户体验；
+ - 动画功能的加强
  - 不断测试发现缺陷并修复，不断完善代码
  - 其他待补充
 
