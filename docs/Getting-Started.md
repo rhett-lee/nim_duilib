@@ -81,6 +81,12 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 添加成功后，可以看到引用成功的项目：    
 <img src="./Images/vs05.png"/>  
 
+设置应用程序清单，以使代码兼容Win7/8/10/11等（Win32和x64需要分开设置）：    
+x64设置内容：`../../manifest/duilib.x64.manifest`
+<img src="./Images/vs06.png"/>
+Win32设置内容：`../../manifest/duilib.x86.manifest`
+<img src="./Images/vs07.png"/>
+
 ## 引入线程库
 
 在创建的项目中增加自定义的线程类（主线程和一个工作线程）    
@@ -158,10 +164,11 @@ private:
 ```cpp
 //MainThread.cpp
 #include "MainThread.h"
+#include "MainForm.h"
 
 WorkerThread::WorkerThread(ThreadId threadID, const char* name)
-    : FrameworkThread(name)
-    , m_threadID(threadID)
+	: FrameworkThread(name)
+	, m_threadID(threadID)
 {
 }
 
@@ -171,18 +178,18 @@ WorkerThread::~WorkerThread()
 
 void WorkerThread::Init()
 {
-    ::OleInitialize(nullptr);
-    nbase::ThreadManager::RegisterThread(m_threadID);
+	::OleInitialize(nullptr);
+	nbase::ThreadManager::RegisterThread(m_threadID);
 }
 
 void WorkerThread::Cleanup()
 {
-    nbase::ThreadManager::UnregisterThread();
-    ::OleUninitialize();
+	nbase::ThreadManager::UnregisterThread();
+	::OleUninitialize();
 }
 
 MainThread::MainThread(): 
-    nbase::FrameworkThread("MainThread") 
+	nbase::FrameworkThread("MainThread") 
 {
 }
 
@@ -192,33 +199,34 @@ MainThread::~MainThread()
 
 void MainThread::Init()
 {
-    ::OleInitialize(nullptr);
-    nbase::ThreadManager::RegisterThread(kThreadUI);
+	::OleInitialize(nullptr);
+	nbase::ThreadManager::RegisterThread(kThreadUI);
 
-    //启动工作线程
-    m_workerThread.reset(new WorkerThread(kThreadWorker, "WorkerThread"));
-    m_workerThread->Start();
+	//启动工作线程
+	m_workerThread.reset(new WorkerThread(kThreadWorker, "WorkerThread"));
+	m_workerThread->Start();
 
-    //初始化全局资源, 使用本地文件夹作为资源
-    std::wstring resourcePath = nbase::win32::GetCurrentModuleDirectory();
-    resourcePath += L"resources\\";
-    ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath));
+	//初始化全局资源, 使用本地文件夹作为资源
+	std::wstring resourcePath = nbase::win32::GetCurrentModuleDirectory();
+	resourcePath += L"resources\\";
+	ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath));
 
-    //在下面加入启动窗口代码
+	//在下面加入启动窗口代码
 
 }
 
 void MainThread::Cleanup()
 {
-    ui::GlobalManager::Instance().Shutdown();
-    if (m_workerThread != nullptr) {
-        m_workerThread->Stop();
-        m_workerThread.reset(nullptr);
-    }
-    SetThreadWasQuitProperly(true);
-    nbase::ThreadManager::UnregisterThread();
-    ::OleUninitialize();
+	ui::GlobalManager::Instance().Shutdown();
+	if (m_workerThread != nullptr) {
+		m_workerThread->Stop();
+		m_workerThread.reset(nullptr);
+	}
+	SetThreadWasQuitProperly(true);
+	nbase::ThreadManager::UnregisterThread();
+	::OleUninitialize();
 }
+
 ```
 
 在 wWinMain 实例化主线程对象，并调用执行主线程循环，添加后 wWinMain 函数修改如下：
@@ -289,13 +297,13 @@ public:
     */
     virtual std::wstring GetWindowClassName() const override;
 
-    /** 收到 WM_CREATE 消息时该函数会被调用，通常做一些控件初始化的操作
-     */
+    /** 当窗口创建完成以后调用此函数，供子类中做一些初始化的工作
+    */
     virtual void OnInitWindow() override;
 
-    /** 收到 WM_CLOSE 消息时该函数会被调用
-     */
-    virtual LRESULT OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
+    /** 当窗口即将被关闭时调用此函数，供子类中做一些收尾工作
+    */
+    virtual void OnCloseWindow() override;
 
     /** 窗口的类名
     */
@@ -303,7 +311,6 @@ public:
 };
 
 #endif //MAIN_FORM_H_
-
 ```
 
 ```cpp
@@ -342,11 +349,10 @@ void MainForm::OnInitWindow()
 
 }
 
-LRESULT MainForm::OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+void MainForm::OnCloseWindow()
 {
-    //窗口关闭时，终止主线程的消息循环，从而退出程序
+    //关闭窗口后，退出主线程的消息循环，关闭程序
     PostQuitMessage(0L);
-    return __super::OnClose(uMsg, wParam, lParam, bHandled);
 }
 ```
 
@@ -390,27 +396,26 @@ LRESULT MainForm::OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandle
 ```cpp
 void MainThread::Init()
 {
-    ::OleInitialize(nullptr);
-    nbase::ThreadManager::RegisterThread(kThreadUI);
+	::OleInitialize(nullptr);
+	nbase::ThreadManager::RegisterThread(kThreadUI);
 
-    //启动工作线程
-    m_workerThread.reset(new WorkerThread(kThreadWorker, "WorkerThread"));
-    m_workerThread->Start();
+	//启动工作线程
+	m_workerThread.reset(new WorkerThread(kThreadWorker, "WorkerThread"));
+	m_workerThread->Start();
 
-    //初始化全局资源, 使用本地文件夹作为资源
-    std::wstring resourcePath = nbase::win32::GetCurrentModuleDirectory();
-    resourcePath += L"resources\\";
-    ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath));
+	//初始化全局资源, 使用本地文件夹作为资源
+	std::wstring resourcePath = nbase::win32::GetCurrentModuleDirectory();
+	resourcePath += L"resources\\";
+	ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath));
 
-    //在下面加入启动窗口代码
-    //
-    //创建一个默认带有阴影的居中窗口
-    MainForm* window = new MainForm();
-    window->CreateWnd(nullptr, MainForm::kClassName.c_str(), UI_WNDSTYLE_FRAME, WS_EX_LAYERED);
-    window->CenterWindow();
-    window->ShowWindow();
+	//在下面加入启动窗口代码
+	//
+	//创建一个默认带有阴影的居中窗口
+	MainForm* window = new MainForm();
+	window->CreateWnd(nullptr, MainForm::kClassName.c_str(), UI_WNDSTYLE_FRAME, WS_EX_LAYERED);
+	window->CenterWindow();
+	window->ShowWindow();
 }
-
 ```
 
 这样一个简单的带有最小化、最大化、还原和关闭按钮、全屏按钮，具有阴影效果和一行文字提示的窗口就创建出来了，你可以编译运行以下代码看一看窗口效果。

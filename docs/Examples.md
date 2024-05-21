@@ -58,4 +58,7 @@ examples 目录中包含了一些示例程序，你可以参考这些示例程序来完善你的应用程序。
 ## 14. examples/MultiLang
 演示如何使用多语言功能，支持多语言的动态切换。    
 <img src="./Images/MultiLang.png"/>
- 
+
+## 15. examples/DpiAware
+演示如何使用DPI感知功能，如何动态设置窗口的DPI。    
+<img src="./Images/DpiAware.png"/>

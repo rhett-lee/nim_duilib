@@ -15,9 +15,9 @@
  - 多种图片格式，支持的图片文件格式有：SVG/PNG/GIF/JPG/BMP/APNG/WEBP/ICO
  - 动画图片，支持GIF动画文件、APNG动画文件、WebP动画文件
  - 抽象渲染接口，支持Skia渲染引擎（也可以通过接口扩展为其他渲染引擎提供支持）
- - DPI 自适应，支持高清DPI的适配
+ - 支持DPI感知（Unaware、SystemAware、PerMonitorAware、PerMonitorAware_V2四种模式），支持独立设置DPI，支持高清DPI的适配
  - 触控设备支持（Surface、Wacom）
- - 多国语言支持，易于实现国际化
+ - 多国语言支持，支持动态多种语言切换，易于实现国际化
  - CEF 控件支持
 
 ## 目录

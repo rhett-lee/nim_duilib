@@ -952,6 +952,9 @@ public:
     const DpiManager& Dpi() const;
 
     /** 主动调整窗口的DPI
+    *   注意事项：该函数可用改变窗口的显示DPI，从而改变窗口、控件的界面百分比；
+    *            但如果进程的DPI感知类型是kPerMonitorDpiAware/kPerMonitorDpiAware_V2时，
+    *            当系统DPI改变或者跨越不同DPI的多屏幕时，窗口的大小和DPI会被系统调整，进而会有冲突，导致窗口控件大小显示异常。
     * @param [in] nNewDPI 新的DPI值，比如96代表界面DPI缩放比为100%
     */
     bool ChangeDpi(uint32_t nNewDPI);
