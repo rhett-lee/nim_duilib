@@ -69,8 +69,8 @@
                             </HBox>                        
                         </HBox>
                     </VBox>
-                    <VBox border_size="1" border_color="blue">
-                        <Control bkimage="autumn.png" width="180" height="186" halign="center" valign="center" margin="2,2,2,2" border_size="1" border_color="red"/>
+                    <VBox border_size="1" border_color="blue" width="auto" height="auto" margin="4,0,4,0">
+                        <Control bkimage="autumn.png" width="auto" height="auto" halign="center" valign="center" margin="2,2,2,2" border_size="1" border_color="red"/>
                     </VBox>
                 </HBox>
                 <HBox height="40" width="100%" valign="center" halign="center" margin="1,1,1,1">

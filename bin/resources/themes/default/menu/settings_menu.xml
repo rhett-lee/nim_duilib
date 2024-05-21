@@ -80,7 +80,7 @@
             <Control class="menu_split_line" />
         </Box>
     
-        <MenuItem class="menu_element" name="about" width="180">
+        <MenuItem class="menu_element" name="about" width="auto">
             <Button name="button_06" width="auto" height="auto" bkimage="menu_about.png" valign="center" mouse="false"/>
             <Label class="menu_text" text="关于" margin="30,0,0,0"/>
         </MenuItem>

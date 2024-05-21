@@ -105,6 +105,34 @@ void Menu::ShowMenu(const std::wstring& xml, const UiPoint& point, MenuPopupPosT
 		ResizeMenu();
 	}
 	::SendMessage(hWndParent, WM_NCACTIVATE, TRUE, 0L);
+	//修正菜单项的宽度，保持一致
+	UpdateWindow();
+	if (m_pLayout != nullptr) {
+		std::vector<MenuItem*> allMenuItems;
+		const size_t nItemCount = m_pLayout->GetItemCount();
+		for (size_t i = 0; i < nItemCount; ++i) {
+			MenuItem* pMenuItem = dynamic_cast<MenuItem*>(m_pLayout->GetItemAt(i));
+			if (pMenuItem != nullptr) {
+				allMenuItems.push_back(pMenuItem);
+			}
+		}
+		int32_t nMaxWidth = 0;
+		for (auto pMenuItem : allMenuItems) {
+			if (pMenuItem->GetFixedWidth().IsInt32()) {
+				nMaxWidth = std::max(nMaxWidth, pMenuItem->GetFixedWidth().GetInt32());
+			}
+			else if (pMenuItem->GetFixedWidth().IsAuto()) {
+				nMaxWidth = std::max(nMaxWidth, pMenuItem->GetWidth());
+			}
+		}
+		if (nMaxWidth > 0) {
+			for (auto pMenuItem : allMenuItems) {
+				if (pMenuItem->GetFixedWidth().IsAuto() || pMenuItem->GetFixedWidth().IsInt32()) {
+					pMenuItem->SetFixedWidth(UiFixedInt(nMaxWidth), true, false);
+				}
+			}
+		}
+	}
 }
 
 void Menu::CloseMenu()
