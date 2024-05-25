@@ -17,28 +17,28 @@ namespace internal {
 // static
 void ThreadLocalPlatform::AllocateSlot(SlotType &slot)
 {
-	int error = pthread_key_create(&slot, NULL);
-	assert(error == 0);
+    int error = pthread_key_create(&slot, NULL);
+    assert(error == 0);
 }
 
 // static
 void ThreadLocalPlatform::FreeSlot(SlotType &slot)
 {
-	int error = pthread_key_delete(slot);
-	assert(error == 0);
+    int error = pthread_key_delete(slot);
+    assert(error == 0);
 }
 
 // static
 void* ThreadLocalPlatform::GetValueFromSlot(SlotType &slot)
 {
-	return pthread_getspecific(slot);
+    return pthread_getspecific(slot);
 }
 
 // static
 void ThreadLocalPlatform::SetValueInSlot(SlotType &slot, void *value)
 {
-	int error = pthread_setspecific(slot, value);
-	assert(error == 0);
+    int error = pthread_setspecific(slot, value);
+    assert(error == 0);
 }
 
 }  // namespace internal

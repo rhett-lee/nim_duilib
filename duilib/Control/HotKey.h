@@ -14,16 +14,16 @@ class HotKeyRichEdit;
 class HotKey: public HBox
 {
 public:
-	explicit HotKey(Window* pWindow);
+    explicit HotKey(Window* pWindow);
     virtual ~HotKey();
 
-	/** 获取控件类型
-	*/
-	virtual std::wstring GetType() const override;
+    /** 获取控件类型
+    */
+    virtual std::wstring GetType() const override;
 
     /** 设置属性
     */
-	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
+    virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 
     /** 让控件获取焦点
      */
@@ -70,13 +70,13 @@ public:
 
 protected:
 
-	//初始化
-	virtual void OnInit() override;
+    //初始化
+    virtual void OnInit() override;
 
 private:
-	/** 默认显示的文字
+    /** 默认显示的文字
     */
-	UiString m_defaultText;
+    UiString m_defaultText;
 
     /** 编辑框控件的接口
     */

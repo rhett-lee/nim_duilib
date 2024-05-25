@@ -191,30 +191,30 @@ protected:
     /** @name 拖动调序相关的成员函数
     * @{ */
     /** 根据鼠标位置调整各个控件的位置(拖动操作的一部分)
-	* @param [in] pt 当前鼠标的位置
-	* @param [in] ptMouseDown 鼠标按下时的位置
-	* @param [in] rcItemList 子控件的列表
-	*/
-	virtual void AdjustItemPos(const UiPoint& pt, const UiPoint& ptMouseDown,
-							   const std::vector<ItemStatus>& rcItemList) const override;
+    * @param [in] pt 当前鼠标的位置
+    * @param [in] ptMouseDown 鼠标按下时的位置
+    * @param [in] rcItemList 子控件的列表
+    */
+    virtual void AdjustItemPos(const UiPoint& pt, const UiPoint& ptMouseDown,
+                               const std::vector<ItemStatus>& rcItemList) const override;
 
-	/** 交换两个控件的位置，完成顺序调整
-	* @param [in] pt 当前鼠标的位置
-	* @param [in] rcItemList 子控件的列表
-	* @param [in] nOldItemIndex 原来的子项索引号
-	* @param [in] nNewItemIndex 最新的子项索引号
-	* @return 如果有顺序调整，返回true；否则返回false
-	*/
-	virtual bool AdjustItemOrders(const UiPoint& pt,
-								  const std::vector<ItemStatus>& rcItemList,
-								  size_t& nOldItemIndex,
-								  size_t& nNewItemIndex) override;
+    /** 交换两个控件的位置，完成顺序调整
+    * @param [in] pt 当前鼠标的位置
+    * @param [in] rcItemList 子控件的列表
+    * @param [in] nOldItemIndex 原来的子项索引号
+    * @param [in] nNewItemIndex 最新的子项索引号
+    * @return 如果有顺序调整，返回true；否则返回false
+    */
+    virtual bool AdjustItemOrders(const UiPoint& pt,
+                                  const std::vector<ItemStatus>& rcItemList,
+                                  size_t& nOldItemIndex,
+                                  size_t& nNewItemIndex) override;
 
-	/** 控件位置拖动完成事件
-	* @param [in] nOldItemIndex 原来的子项索引号
-	* @param [in] nNewItemIndex 最新的子项索引号
-	*/
-	virtual void OnItemOrdersChanged(size_t nOldItemIndex, size_t nNewItemIndex) override;
+    /** 控件位置拖动完成事件
+    * @param [in] nOldItemIndex 原来的子项索引号
+    * @param [in] nNewItemIndex 最新的子项索引号
+    */
+    virtual void OnItemOrdersChanged(size_t nOldItemIndex, size_t nNewItemIndex) override;
 
     /** @} */
 

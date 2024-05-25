@@ -20,40 +20,40 @@ namespace win32
 class BASE_EXPORT SharedMemory
 {
 public:
-	SharedMemory() : mapping_(NULL) {}
-	~SharedMemory() { Close(); };
-	bool Create(const wchar_t *name, int size);
-	bool Open(const wchar_t *name);
-	void Close();
+    SharedMemory() : mapping_(NULL) {}
+    ~SharedMemory() { Close(); };
+    bool Create(const wchar_t *name, int size);
+    bool Open(const wchar_t *name);
+    void Close();
 
-	class MappedView
-	{
-	public:
-		MappedView() : view_(NULL) {}
-		~MappedView() { CloseView(); }
-		bool OpenView(SharedMemory *shared_memory, bool read_write);
-		void CloseView();
-		unsigned char *view() { return view_; }
+    class MappedView
+    {
+    public:
+        MappedView() : view_(NULL) {}
+        ~MappedView() { CloseView(); }
+        bool OpenView(SharedMemory *shared_memory, bool read_write);
+        void CloseView();
+        unsigned char *view() { return view_; }
 
-	private:
-		unsigned char *view_;
-	};
+    private:
+        unsigned char *view_;
+    };
 
-	template<class T>
-	class MappedViewOf : public MappedView
-	{
-	public:
-		T *get() { return reinterpret_cast<T*>(view()); }
-		T* operator->()
-		{
-			assert(view() != NULL);
-			return reinterpret_cast<T*>(view());
-		}
-	};
+    template<class T>
+    class MappedViewOf : public MappedView
+    {
+    public:
+        T *get() { return reinterpret_cast<T*>(view()); }
+        T* operator->()
+        {
+            assert(view() != NULL);
+            return reinterpret_cast<T*>(view());
+        }
+    };
 
 private:
-	friend class MappedView;
-	HANDLE mapping_;
+    friend class MappedView;
+    HANDLE mapping_;
 };
 
 } // namespace win32

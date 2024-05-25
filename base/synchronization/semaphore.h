@@ -25,21 +25,21 @@ typedef HANDLE OSSemaphoreType;
 typedef sem_t *OSSemaphoreType;
 #endif
 
-	Semaphore();
-	~Semaphore();
+    Semaphore();
+    ~Semaphore();
 
 public:
-	bool CreateSemaphore(const char *sem_name, uint32_t init_value, uint32_t max_value);
-	/* wait the semaphore until some post one*/
-	bool WaitSemaphore();
-	/* wait the semaphore until some post one or timeout */
-	bool WaitSemaphore(uint32_t timeout_ms);
-	/* post some semaphore*/
-	bool PostSemaphore(uint32_t post_num);
+    bool CreateSemaphore(const char *sem_name, uint32_t init_value, uint32_t max_value);
+    /* wait the semaphore until some post one*/
+    bool WaitSemaphore();
+    /* wait the semaphore until some post one or timeout */
+    bool WaitSemaphore(uint32_t timeout_ms);
+    /* post some semaphore*/
+    bool PostSemaphore(uint32_t post_num);
 
 private:
-	uint32_t        init_value_;
-	OSSemaphoreType semaphore_;
+    uint32_t        init_value_;
+    OSSemaphoreType semaphore_;
 };
 
 }  // namespace nbase

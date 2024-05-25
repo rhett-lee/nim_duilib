@@ -12,23 +12,23 @@ namespace nim_comp {
 class CefNativeControl : public CefControlBase
 {
 public:
-	explicit CefNativeControl(ui::Window* pWindow);
-	~CefNativeControl(void);	
+    explicit CefNativeControl(ui::Window* pWindow);
+    ~CefNativeControl(void);    
 
-	virtual void Init() override;
-	virtual void SetPos(ui::UiRect rc) override;
-	virtual void HandleEvent(const ui::EventArgs& msg) override;
-	virtual void SetVisible(bool bVisible) override;
-	virtual void SetWindow(ui::Window* pManager) override;
+    virtual void Init() override;
+    virtual void SetPos(ui::UiRect rc) override;
+    virtual void HandleEvent(const ui::EventArgs& msg) override;
+    virtual void SetVisible(bool bVisible) override;
+    virtual void SetWindow(ui::Window* pManager) override;
 
-	/**
-	* @brief 打开开发者工具
-	* @param[in] view 一个 CefControl 控件实例(仅在CefControl类里需要传入)
-	* @return 成功返回 true，失败返回 false
-	*/
-	virtual bool AttachDevTools(ui::Control* view) override;
+    /**
+    * @brief 打开开发者工具
+    * @param[in] view 一个 CefControl 控件实例(仅在CefControl类里需要传入)
+    * @return 成功返回 true，失败返回 false
+    */
+    virtual bool AttachDevTools(ui::Control* view) override;
 
 protected:
-	virtual void ReCreateBrowser() override;
+    virtual void ReCreateBrowser() override;
 };
 }

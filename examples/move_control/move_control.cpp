@@ -6,9 +6,9 @@ using namespace std;
 
 
 MoveControlForm::MoveControlForm(const std::wstring& class_name, const std::wstring& theme_directory, const std::wstring& layout_xml)
-	: m_class_name(class_name)
-	, m_theme_directory(theme_directory)
-	, m_layout_xml(layout_xml)
+    : m_class_name(class_name)
+    , m_theme_directory(theme_directory)
+    , m_layout_xml(layout_xml)
 {
 }
 
@@ -19,50 +19,50 @@ MoveControlForm::~MoveControlForm()
 
 std::wstring MoveControlForm::GetSkinFolder()
 {
-	return m_theme_directory;
+    return m_theme_directory;
 }
 
 std::wstring MoveControlForm::GetSkinFile()
 {
-	return m_layout_xml;
+    return m_layout_xml;
 }
 
 std::wstring MoveControlForm::GetWindowClassName() const
 {
-	return m_class_name;
+    return m_class_name;
 }
 
 void MoveControlForm::OnInitWindow()
 {
-	//添加应用。应用有可能是服务器下发的，一般本地也有保存的
-	//loadFromDb
-	//getFromServer---->后台可以先保存到db，再post个消息出来，界面重新从db load。
+    //添加应用。应用有可能是服务器下发的，一般本地也有保存的
+    //loadFromDb
+    //getFromServer---->后台可以先保存到db，再post个消息出来，界面重新从db load。
 
-	//作为demo，先写死
-	std::vector<AppItem> applist;
-	CAppDb::GetInstance().LoadFromDb(applist);
+    //作为demo，先写死
+    std::vector<AppItem> applist;
+    CAppDb::GetInstance().LoadFromDb(applist);
 
-	m_frequent_app = static_cast<ui::Box*>(FindControl(L"frequent_app"));
-	m_my_app = static_cast<ui::Box*>(FindControl(L"my_app"));
-	ASSERT(m_frequent_app != nullptr);
-	ASSERT(m_my_app != nullptr);
-	
-	for (const auto& item: applist) {
-		AppItemUi* pAppUi = AppItemUi::Create(item, m_frequent_app);
-		pAppUi->SetFrequentBox(m_frequent_app);
-		if (item.m_isFrequent) {
-			m_frequent_app->AddItem(pAppUi);
-		}
-		else
-		{
-			m_my_app->AddItem(pAppUi);
-		}
-	}
+    m_frequent_app = static_cast<ui::Box*>(FindControl(L"frequent_app"));
+    m_my_app = static_cast<ui::Box*>(FindControl(L"my_app"));
+    ASSERT(m_frequent_app != nullptr);
+    ASSERT(m_my_app != nullptr);
+    
+    for (const auto& item: applist) {
+        AppItemUi* pAppUi = AppItemUi::Create(item, m_frequent_app);
+        pAppUi->SetFrequentBox(m_frequent_app);
+        if (item.m_isFrequent) {
+            m_frequent_app->AddItem(pAppUi);
+        }
+        else
+        {
+            m_my_app->AddItem(pAppUi);
+        }
+    }
 }
 
 void MoveControlForm::OnCloseWindow()
 {
-	//关闭窗口后，退出主线程的消息循环，关闭程序
-	PostQuitMessage(0L);
+    //关闭窗口后，退出主线程的消息循环，关闭程序
+    PostQuitMessage(0L);
 }
 

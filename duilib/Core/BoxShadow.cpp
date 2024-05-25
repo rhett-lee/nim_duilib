@@ -6,70 +6,70 @@
 namespace ui {
 
 BoxShadow::BoxShadow(Control* pControl):
-	m_cpOffset(0, 0),
-	m_nBlurRadius(2),
-	m_nSpreadRadius(2),
-	m_pControl(pControl)
+    m_cpOffset(0, 0),
+    m_nBlurRadius(2),
+    m_nSpreadRadius(2),
+    m_pControl(pControl)
 {
-	ASSERT(m_pControl != nullptr);
-	if (m_pControl != nullptr) {
-		m_pControl->Dpi().ScaleInt(m_nBlurRadius);
-		m_pControl->Dpi().ScaleInt(m_nSpreadRadius);
-	}
+    ASSERT(m_pControl != nullptr);
+    if (m_pControl != nullptr) {
+        m_pControl->Dpi().ScaleInt(m_nBlurRadius);
+        m_pControl->Dpi().ScaleInt(m_nSpreadRadius);
+    }
 }
 
 void BoxShadow::SetBoxShadowString(const std::wstring& strBoxShadow)
 {
-	//格式如：如 "color='black' offset='1,1' blur_radius='2' spread_radius='2'"
-	std::vector<std::pair<std::wstring, std::wstring>> attributeList;
-	AttributeUtil::ParseAttributeList(strBoxShadow, L'\'', attributeList);
-	for (const auto& attribute : attributeList) {
-		const std::wstring& name = attribute.first;
-		const std::wstring& value = attribute.second;
-		if (name.empty() || value.empty()) {
-			continue;
-		}
-		if (name == L"color") {
-			m_strColor = value;
-		}
-		else if (name == L"offset") {
-			AttributeUtil::ParsePointValue(value.c_str(), m_cpOffset);
-			ASSERT(m_pControl != nullptr);
-			if (m_pControl != nullptr) {
-				m_pControl->Dpi().ScalePoint(m_cpOffset);
-			}
-		}
-		else if ((name == L"blur_radius") || name == L"blurradius") {
-			m_nBlurRadius = wcstol(value.c_str(), nullptr, 10);
-			ASSERT(m_nBlurRadius >= 0);
-			if (m_nBlurRadius < 0) {
-				m_nBlurRadius = 2;
-			}
-			ASSERT(m_pControl != nullptr);
-			if (m_pControl != nullptr) {
-				m_pControl->Dpi().ScaleInt(m_nBlurRadius);
-			}
-		}
-		else if ((name == L"spread_radius") || (name == L"spreadradius")) {
-			m_nSpreadRadius = wcstol(value.c_str(), nullptr, 10);
-			ASSERT(m_nSpreadRadius >= 0);
-			if (m_nSpreadRadius < 0) {
-				m_nSpreadRadius = 2;
-			}
-			ASSERT(m_pControl != nullptr);
-			if (m_pControl != nullptr) {
-				m_pControl->Dpi().ScaleInt(m_nSpreadRadius);
-			}
-		}
-		else {
-			ASSERT(!"BoxShadow::SetBoxShadowString found unknown item name!");
-		}
-	}
+    //格式如：如 "color='black' offset='1,1' blur_radius='2' spread_radius='2'"
+    std::vector<std::pair<std::wstring, std::wstring>> attributeList;
+    AttributeUtil::ParseAttributeList(strBoxShadow, L'\'', attributeList);
+    for (const auto& attribute : attributeList) {
+        const std::wstring& name = attribute.first;
+        const std::wstring& value = attribute.second;
+        if (name.empty() || value.empty()) {
+            continue;
+        }
+        if (name == L"color") {
+            m_strColor = value;
+        }
+        else if (name == L"offset") {
+            AttributeUtil::ParsePointValue(value.c_str(), m_cpOffset);
+            ASSERT(m_pControl != nullptr);
+            if (m_pControl != nullptr) {
+                m_pControl->Dpi().ScalePoint(m_cpOffset);
+            }
+        }
+        else if ((name == L"blur_radius") || name == L"blurradius") {
+            m_nBlurRadius = wcstol(value.c_str(), nullptr, 10);
+            ASSERT(m_nBlurRadius >= 0);
+            if (m_nBlurRadius < 0) {
+                m_nBlurRadius = 2;
+            }
+            ASSERT(m_pControl != nullptr);
+            if (m_pControl != nullptr) {
+                m_pControl->Dpi().ScaleInt(m_nBlurRadius);
+            }
+        }
+        else if ((name == L"spread_radius") || (name == L"spreadradius")) {
+            m_nSpreadRadius = wcstol(value.c_str(), nullptr, 10);
+            ASSERT(m_nSpreadRadius >= 0);
+            if (m_nSpreadRadius < 0) {
+                m_nSpreadRadius = 2;
+            }
+            ASSERT(m_pControl != nullptr);
+            if (m_pControl != nullptr) {
+                m_pControl->Dpi().ScaleInt(m_nSpreadRadius);
+            }
+        }
+        else {
+            ASSERT(!"BoxShadow::SetBoxShadowString found unknown item name!");
+        }
+    }
 }
 
 bool BoxShadow::HasShadow() const
 {
-	return !m_strColor.empty();
+    return !m_strColor.empty();
 }
 
 } // namespace ui

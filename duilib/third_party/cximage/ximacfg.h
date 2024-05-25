@@ -7,13 +7,13 @@
 #define CXIMAGE_SUPPORT_SELECTION      0
 #define CXIMAGE_SUPPORT_TRANSFORMATION 0
 #define CXIMAGE_SUPPORT_DSP            0
-#define CXIMAGE_SUPPORT_LAYERS		   0
+#define CXIMAGE_SUPPORT_LAYERS           0
 #define CXIMAGE_SUPPORT_INTERPOLATION  0
 
-#define CXIMAGE_SUPPORT_DECODE	1
-#define CXIMAGE_SUPPORT_ENCODE	0		//<vho><T.Peck>
-#define	CXIMAGE_SUPPORT_WINDOWS 0
-#define	CXIMAGE_SUPPORT_EXIF    0
+#define CXIMAGE_SUPPORT_DECODE    1
+#define CXIMAGE_SUPPORT_ENCODE    0        //<vho><T.Peck>
+#define    CXIMAGE_SUPPORT_WINDOWS 0
+#define    CXIMAGE_SUPPORT_EXIF    0
 
 /////////////////////////////////////////////////////////////////////////////
 // CxImage supported formats
@@ -34,7 +34,7 @@
 #define CXIMAGE_SUPPORT_PNM 0
 #define CXIMAGE_SUPPORT_RAS 0
 
-#define CXIMAGE_SUPPORT_JBG 0		// GPL'd see ../jbig/copying.txt & ../jbig/patents.htm
+#define CXIMAGE_SUPPORT_JBG 0        // GPL'd see ../jbig/copying.txt & ../jbig/patents.htm
 
 #define CXIMAGE_SUPPORT_MNG 0
 #define CXIMAGE_SUPPORT_SKA 0
@@ -42,7 +42,7 @@
 #define CXIMAGE_SUPPORT_PSD 0
 
 /////////////////////////////////////////////////////////////////////////////
-#define	CXIMAGE_MAX_MEMORY 268435456
+#define    CXIMAGE_MAX_MEMORY 268435456
 
 #define CXIMAGE_DEFAULT_DPI 96
 

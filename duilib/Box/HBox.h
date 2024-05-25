@@ -14,12 +14,12 @@ namespace ui
 class UILIB_API HBox : public Box
 {
 public:
-	explicit HBox(Window* pWindow) :
-		Box(pWindow, new HLayout())
-	{
-	}
+    explicit HBox(Window* pWindow) :
+        Box(pWindow, new HLayout())
+    {
+    }
 
-	virtual std::wstring GetType() const override { return DUI_CTR_HBOX; }
+    virtual std::wstring GetType() const override { return DUI_CTR_HBOX; }
 };
 
 }

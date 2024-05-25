@@ -42,26 +42,26 @@ LRESULT WindowImplBase::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam,
     bHandled = false;
     switch (uMsg)
     {
-    case WM_CREATE:			lRes = OnCreate(uMsg, wParam, lParam, bHandled); break;
-    case WM_SYSCOMMAND:		lRes = OnSysCommand(uMsg, wParam, lParam, bHandled); break;
+    case WM_CREATE:            lRes = OnCreate(uMsg, wParam, lParam, bHandled); break;
+    case WM_SYSCOMMAND:        lRes = OnSysCommand(uMsg, wParam, lParam, bHandled); break;
     //以下消息，无具体实现
-    case WM_CLOSE:			lRes = OnClose(uMsg, wParam, lParam, bHandled); break;
-    case WM_DESTROY:		lRes = OnDestroy(uMsg, wParam, lParam, bHandled); break;
-    case WM_MOUSEMOVE:		lRes = OnMouseMove(uMsg, wParam, lParam, bHandled); break;
-    case WM_MOUSEWHEEL:		lRes = OnMouseWheel(uMsg, wParam, lParam, bHandled); break;
-    case WM_MOUSEHOVER:		lRes = OnMouseHover(uMsg, wParam, lParam, bHandled); break;
-    case WM_LBUTTONDOWN:	lRes = OnLButtonDown(uMsg, wParam, lParam, bHandled); break;
-    case WM_LBUTTONUP:		lRes = OnLButtonUp(uMsg, wParam, lParam, bHandled); break;
-    case WM_LBUTTONDBLCLK:	lRes = OnLButtonDbClk(uMsg, wParam, lParam, bHandled); break;
-    case WM_RBUTTONDOWN:	lRes = OnRButtonDown(uMsg, wParam, lParam, bHandled); break;
-    case WM_RBUTTONUP:		lRes = OnRButtonUp(uMsg, wParam, lParam, bHandled); break;
-    case WM_RBUTTONDBLCLK:	lRes = OnRButtonDbClk(uMsg, wParam, lParam, bHandled); break;
-    case WM_CHAR:			lRes = OnChar(uMsg, wParam, lParam, bHandled); break;
-    case WM_KEYDOWN:		lRes = OnKeyDown(uMsg, wParam, lParam, bHandled); break;
-    case WM_KEYUP:			lRes = OnKeyUp(uMsg, wParam, lParam, bHandled); break;
-    case WM_SYSKEYDOWN:		lRes = OnSysKeyDown(uMsg, wParam, lParam, bHandled); break;
-    case WM_SYSKEYUP:		lRes = OnSysKeyUp(uMsg, wParam, lParam, bHandled); break;
-    case WM_HOTKEY:		    lRes = OnHotKey(uMsg, wParam, lParam, bHandled); break;
+    case WM_CLOSE:            lRes = OnClose(uMsg, wParam, lParam, bHandled); break;
+    case WM_DESTROY:        lRes = OnDestroy(uMsg, wParam, lParam, bHandled); break;
+    case WM_MOUSEMOVE:        lRes = OnMouseMove(uMsg, wParam, lParam, bHandled); break;
+    case WM_MOUSEWHEEL:        lRes = OnMouseWheel(uMsg, wParam, lParam, bHandled); break;
+    case WM_MOUSEHOVER:        lRes = OnMouseHover(uMsg, wParam, lParam, bHandled); break;
+    case WM_LBUTTONDOWN:    lRes = OnLButtonDown(uMsg, wParam, lParam, bHandled); break;
+    case WM_LBUTTONUP:        lRes = OnLButtonUp(uMsg, wParam, lParam, bHandled); break;
+    case WM_LBUTTONDBLCLK:    lRes = OnLButtonDbClk(uMsg, wParam, lParam, bHandled); break;
+    case WM_RBUTTONDOWN:    lRes = OnRButtonDown(uMsg, wParam, lParam, bHandled); break;
+    case WM_RBUTTONUP:        lRes = OnRButtonUp(uMsg, wParam, lParam, bHandled); break;
+    case WM_RBUTTONDBLCLK:    lRes = OnRButtonDbClk(uMsg, wParam, lParam, bHandled); break;
+    case WM_CHAR:            lRes = OnChar(uMsg, wParam, lParam, bHandled); break;
+    case WM_KEYDOWN:        lRes = OnKeyDown(uMsg, wParam, lParam, bHandled); break;
+    case WM_KEYUP:            lRes = OnKeyUp(uMsg, wParam, lParam, bHandled); break;
+    case WM_SYSKEYDOWN:        lRes = OnSysKeyDown(uMsg, wParam, lParam, bHandled); break;
+    case WM_SYSKEYUP:        lRes = OnSysKeyUp(uMsg, wParam, lParam, bHandled); break;
+    case WM_HOTKEY:            lRes = OnHotKey(uMsg, wParam, lParam, bHandled); break;
     default:
         bHandled = false;
         break;

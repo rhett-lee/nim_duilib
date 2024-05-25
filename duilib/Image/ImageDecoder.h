@@ -26,7 +26,7 @@ public:
     * @param [in] nImageDpiScale 图片数据对应的DPI缩放百分比（比如：i.jpg为100，i@150.jpg为150）
     * @param [in] dpi DPI缩放管理接口
     */
-	std::unique_ptr<ImageInfo> LoadImageData(std::vector<uint8_t>& fileData,                                             
+    std::unique_ptr<ImageInfo> LoadImageData(std::vector<uint8_t>& fileData,                                             
                                              const ImageLoadAttribute& imageLoadAttribute,
                                              bool bEnableDpiScale,
                                              uint32_t nImageDpiScale,

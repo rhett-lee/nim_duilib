@@ -13,15 +13,15 @@ namespace ui
 class UILIB_API Brush_Skia : public IBrush
 {
 public:
-	explicit Brush_Skia(UiColor color);
-	Brush_Skia(const Brush_Skia& r);
-	Brush_Skia& operator=(const Brush_Skia& r) = delete;
+    explicit Brush_Skia(UiColor color);
+    Brush_Skia(const Brush_Skia& r);
+    Brush_Skia& operator=(const Brush_Skia& r) = delete;
 
-	virtual IBrush* Clone() override;
-	virtual UiColor GetColor() const override;
+    virtual IBrush* Clone() override;
+    virtual UiColor GetColor() const override;
 
 private:
-	UiColor m_color;
+    UiColor m_color;
 };
 
 } // namespace ui

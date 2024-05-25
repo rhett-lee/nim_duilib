@@ -233,30 +233,30 @@ public:
     virtual void Refresh();
 
     /** 确保矩形区域可见
-	* @param [in] rcItem 可见区域的矩形范围
-	* @param [in] vVisibleType 垂直方向可见的附加标志
-	* @param [in] hVisibleType 水平方向可见的附加标志
-	*/
-	virtual void EnsureVisible(const UiRect& rcItem,
-							   ListBoxVerVisible vVisibleType,
-							   ListBoxHorVisible hVisibleType) override;
+    * @param [in] rcItem 可见区域的矩形范围
+    * @param [in] vVisibleType 垂直方向可见的附加标志
+    * @param [in] hVisibleType 水平方向可见的附加标志
+    */
+    virtual void EnsureVisible(const UiRect& rcItem,
+                               ListBoxVerVisible vVisibleType,
+                               ListBoxHorVisible hVisibleType) override;
 
     /** 确保子项可见
-	* @param [in] iIndex 子项索引，范围是：[0, GetItemCount())
-	* @param [in] vVisibleType 垂直方向可见的附加标志
-	* @param [in] hVisibleType 水平方向可见的附加标志
-	* @return 如果是虚表实现，返回该元素对应的新的控件索引号，范围是：[0, GetItemCount())
-	*/
-	virtual size_t EnsureVisible(size_t iIndex,
-							     ListBoxVerVisible vVisibleType = ListBoxVerVisible::kVisible,
-							     ListBoxHorVisible hVisibleType = ListBoxHorVisible::kVisible) override;
+    * @param [in] iIndex 子项索引，范围是：[0, GetItemCount())
+    * @param [in] vVisibleType 垂直方向可见的附加标志
+    * @param [in] hVisibleType 水平方向可见的附加标志
+    * @return 如果是虚表实现，返回该元素对应的新的控件索引号，范围是：[0, GetItemCount())
+    */
+    virtual size_t EnsureVisible(size_t iIndex,
+                                 ListBoxVerVisible vVisibleType = ListBoxVerVisible::kVisible,
+                                 ListBoxHorVisible hVisibleType = ListBoxHorVisible::kVisible) override;
 
 public:
     /** 监听选择子项的事件
     * @param[in] callback 选择子项时的回调函数
     * 参数说明:
     *   wParam: 当前新选择的子项ID，有效范围：[0, GetItemCount())
-    *	lParam: 原来旧选择的子项ID，有效范围：[0, GetItemCount())，可能为无效值Box::InvalidIndex
+    *    lParam: 原来旧选择的子项ID，有效范围：[0, GetItemCount())，可能为无效值Box::InvalidIndex
     *   可以通过 GetDisplayItemElementIndex 函数得到关联的数据元素索引号
     */
     void AttachSelect(const EventCallback& callback) { AttachEvent(kEventSelect, callback); }
@@ -309,14 +309,14 @@ protected:
     virtual void RemoveAllItems() override;
 
     /** 即将查找指定的元素（为虚表提供加载数据的机会）
-	* @param [in] nCurSel 当前选择的显示控件索引号
-	* @param [in] mode  查找的模式
-	* @param [in] nCount 查找的控件的第几个数据
-	* @param [out] nDestItemIndex 返回加载后的目标控件索引号，有效范围: [0, GetItemCount())
-	* @return 返回true表示有数据加载行为，false表示无任何动作
-	*/
-	virtual bool OnFindSelectable(size_t nCurSel, SelectableMode mode, 
-								  size_t nCount, size_t& nDestItemIndex) override;
+    * @param [in] nCurSel 当前选择的显示控件索引号
+    * @param [in] mode  查找的模式
+    * @param [in] nCount 查找的控件的第几个数据
+    * @param [out] nDestItemIndex 返回加载后的目标控件索引号，有效范围: [0, GetItemCount())
+    * @return 返回true表示有数据加载行为，false表示无任何动作
+    */
+    virtual bool OnFindSelectable(size_t nCurSel, SelectableMode mode, 
+                                  size_t nCount, size_t& nDestItemIndex) override;
 
     /** 查询本条数据前面还有几条数据（支持虚表数据）
     * @param [in] nCurSel 当前选择的显示控件索引号
@@ -329,8 +329,8 @@ protected:
     virtual size_t GetItemCountAfter(size_t nCurSel) override;
 
     /** 判断一个数据元素是否为可选择项
-	* @param [in] nElementIndex 元素索引号，有效范围：[0, GetElementCount())
-	*/
+    * @param [in] nElementIndex 元素索引号，有效范围：[0, GetElementCount())
+    */
     virtual bool IsSelectableElement(size_t nElementIndex) const;
 
     /** 获取下一个可选择的数据元素

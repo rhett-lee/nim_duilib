@@ -44,8 +44,8 @@ namespace nbase
 typedef uint32_t event_t;
 enum
 {
-	EREAD  = 0x02,
-	EWRITE = 0x04
+    EREAD  = 0x02,
+    EWRITE = 0x04
 };
 
 /*
@@ -72,29 +72,29 @@ enum ProxyType
 };
 struct ProxySetting : protected ProxySet
 {
-	ProxySetting(){
-		Clear();
-	}
-	virtual ~ProxySetting(){}
-	void SetType(ProxyType type){ type_ = type; }
-	ProxyType GetType() const{ return (ProxyType)(type_);	 }
-	void SetHost(const std::string& host) { host_ = host; }
-	std::string GetHost() const { return host_; }
-	void SetPort(uint16_t port) { port_ = port; }
-	uint16_t GetPort() const { return port_; }
-	void SetUserName(const std::string& username) { username_ = username; }
-	std::string GetUserName() const { return username_; }
-	void SetPassowrd(const std::string& password) { password_ = password; }
-	std::string GetPassowrd() const { return password_; }
-	bool IsEmpty() const { return type_ == ProxyType::kProxyTypeNone; }
-	void Clear()
-	{
-		type_ = ProxyType::kProxyTypeNone;
-		host_.clear();
-		port_ = 0;
-		username_.clear();
-		password_.clear();
-	}
+    ProxySetting(){
+        Clear();
+    }
+    virtual ~ProxySetting(){}
+    void SetType(ProxyType type){ type_ = type; }
+    ProxyType GetType() const{ return (ProxyType)(type_);     }
+    void SetHost(const std::string& host) { host_ = host; }
+    std::string GetHost() const { return host_; }
+    void SetPort(uint16_t port) { port_ = port; }
+    uint16_t GetPort() const { return port_; }
+    void SetUserName(const std::string& username) { username_ = username; }
+    std::string GetUserName() const { return username_; }
+    void SetPassowrd(const std::string& password) { password_ = password; }
+    std::string GetPassowrd() const { return password_; }
+    bool IsEmpty() const { return type_ == ProxyType::kProxyTypeNone; }
+    void Clear()
+    {
+        type_ = ProxyType::kProxyTypeNone;
+        host_.clear();
+        port_ = 0;
+        username_.clear();
+        password_.clear();
+    }
 };
 /*
  *  Purpose     Network IO binary input interface
@@ -209,16 +209,16 @@ inline int socket_error()
 
 inline bool would_block()
 {
-	int err = socket_error();
+    int err = socket_error();
 #if defined(OS_WIN)
-	if (err == WSAEWOULDBLOCK || err == WSAEINPROGRESS)
-		return true;
+    if (err == WSAEWOULDBLOCK || err == WSAEINPROGRESS)
+        return true;
 #else
-	if (err == EWOULDBLOCK || err == EINPROGRESS || err == EAGAIN)
-		return true;
+    if (err == EWOULDBLOCK || err == EINPROGRESS || err == EAGAIN)
+        return true;
 #endif
-	//DEFLOG(nbase::LogInterface::LV_PRO, __FILE__, __LINE__, "[nbase::would_block] err_code:%d", err);
-	return false;
+    //DEFLOG(nbase::LogInterface::LV_PRO, __FILE__, __LINE__, "[nbase::would_block] err_code:%d", err);
+    return false;
 }
 
 inline void set_block(SOCKET s, bool b)
@@ -230,39 +230,39 @@ inline void set_block(SOCKET s, bool b)
       int val = fcntl(s, F_GETFL, 0);
       if (b)
       {
-		  if (val & O_NONBLOCK)
-			  fcntl(s, F_SETFL,val & (~O_NONBLOCK));
+          if (val & O_NONBLOCK)
+              fcntl(s, F_SETFL,val & (~O_NONBLOCK));
       }
       else
       {
-		  if (!(val & O_NONBLOCK))
-			  fcntl(s, F_SETFL, val | O_NONBLOCK);
+          if (!(val & O_NONBLOCK))
+              fcntl(s, F_SETFL, val | O_NONBLOCK);
       }
 #endif
 }
 
 inline void reuse_address(SOCKET s)
 {
-	int v = 1;
-	int r = ::setsockopt(s, SOL_SOCKET, SO_REUSEADDR, (const char *)&v, sizeof(v));
-	if (r != 0)
-	{
-		int err = socket_error();
-		// use trace here?
-		printf("reuse_addres occur error, err_code:%d\n", err);
-	}
+    int v = 1;
+    int r = ::setsockopt(s, SOL_SOCKET, SO_REUSEADDR, (const char *)&v, sizeof(v));
+    if (r != 0)
+    {
+        int err = socket_error();
+        // use trace here?
+        printf("reuse_addres occur error, err_code:%d\n", err);
+    }
 }
 
 inline void allow_broadcast(SOCKET s)
 {
-	int v = 1;
-	int r = ::setsockopt(s, SOL_SOCKET, SO_BROADCAST, (const char *)&v, sizeof(v));
-	if (r != 0)
-	{
-		int err = socket_error();
-		// use trace here?
-		printf("allow_broadcast occur error, err_code:%d\n", err);
-	}
+    int v = 1;
+    int r = ::setsockopt(s, SOL_SOCKET, SO_BROADCAST, (const char *)&v, sizeof(v));
+    if (r != 0)
+    {
+        int err = socket_error();
+        // use trace here?
+        printf("allow_broadcast occur error, err_code:%d\n", err);
+    }
 }
 
 #endif  // BASE_NETWORK_NIO_H_

@@ -8,7 +8,7 @@
 
 namespace Gdiplus
 {
-	class Brush;
+    class Brush;
 }
 
 namespace ui 
@@ -17,17 +17,17 @@ namespace ui
 class UILIB_API Brush_Gdiplus : public IBrush
 {
 public:
-	explicit Brush_Gdiplus(UiColor color);
-	Brush_Gdiplus(const Brush_Gdiplus& r);
-	Brush_Gdiplus& operator=(const Brush_Gdiplus& r) = delete;
+    explicit Brush_Gdiplus(UiColor color);
+    Brush_Gdiplus(const Brush_Gdiplus& r);
+    Brush_Gdiplus& operator=(const Brush_Gdiplus& r) = delete;
 
-	virtual IBrush* Clone() override;
-	virtual UiColor GetColor() const override { return color_; };
+    virtual IBrush* Clone() override;
+    virtual UiColor GetColor() const override { return color_; };
 
-	Gdiplus::Brush* GetBrush() const;
+    Gdiplus::Brush* GetBrush() const;
 private:
-	UiColor color_;
-	std::unique_ptr<Gdiplus::Brush> brush_;
+    UiColor color_;
+    std::unique_ptr<Gdiplus::Brush> brush_;
 };
 
 } // namespace ui

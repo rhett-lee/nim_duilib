@@ -13,26 +13,26 @@ namespace ui
 class UILIB_API RenderFactory_Skia : public IRenderFactory
 {
 public:
-	RenderFactory_Skia();
-	virtual ~RenderFactory_Skia();
+    RenderFactory_Skia();
+    virtual ~RenderFactory_Skia();
 
-	virtual IFont* CreateIFont() override;
-	virtual IPen* CreatePen(UiColor color, int width = 1) override;
-	virtual IBrush* CreateBrush(UiColor corlor) override;
-	virtual IPath* CreatePath() override;
-	virtual IMatrix* CreateMatrix() override;
-	virtual IBitmap* CreateBitmap() override;
-	virtual IRender* CreateRender(Window* pWindow) override;
+    virtual IFont* CreateIFont() override;
+    virtual IPen* CreatePen(UiColor color, int width = 1) override;
+    virtual IBrush* CreateBrush(UiColor corlor) override;
+    virtual IPath* CreatePath() override;
+    virtual IMatrix* CreateMatrix() override;
+    virtual IBitmap* CreateBitmap() override;
+    virtual IRender* CreateRender(Window* pWindow) override;
 
 public:
-	/** 获取Skia字体管理器
-	*/
-	SkFontMgr* GetSkFontMgr();
+    /** 获取Skia字体管理器
+    */
+    SkFontMgr* GetSkFontMgr();
 
 private:
-	/** Skia字体管理器
-	*/
-	SkFontMgr* m_pSkFontMgr;
+    /** Skia字体管理器
+    */
+    SkFontMgr* m_pSkFontMgr;
 };
 
 } // namespace ui

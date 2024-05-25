@@ -7,7 +7,7 @@
 
 namespace Gdiplus
 {
-	class Matrix;
+    class Matrix;
 }
 
 namespace ui 
@@ -16,17 +16,17 @@ namespace ui
 class UILIB_API Matrix_Gdiplus : public IMatrix
 {
 public:
-	Matrix_Gdiplus();
+    Matrix_Gdiplus();
 
-	virtual void Translate(int offsetX, int offsetY) override;
-	virtual void Scale(float scaleX, float scaleY) override;
-	virtual void Rotate(float angle) override;
-	virtual void RotateAt(float angle, const UiPoint& center) override;
+    virtual void Translate(int offsetX, int offsetY) override;
+    virtual void Scale(float scaleX, float scaleY) override;
+    virtual void Rotate(float angle) override;
+    virtual void RotateAt(float angle, const UiPoint& center) override;
 
-	Gdiplus::Matrix* GetMatrix() { return m_matrix.get(); }
+    Gdiplus::Matrix* GetMatrix() { return m_matrix.get(); }
 
 private:
-	std::unique_ptr<Gdiplus::Matrix> m_matrix;
+    std::unique_ptr<Gdiplus::Matrix> m_matrix;
 };
 
 } // namespace ui

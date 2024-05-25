@@ -28,22 +28,22 @@ MainForm::~MainForm()
 
 std::wstring MainForm::GetSkinFolder()
 {
-	return L"tree_view";
+    return L"tree_view";
 }
 
 std::wstring MainForm::GetSkinFile()
 {
-	return L"tree_view.xml";
+    return L"tree_view.xml";
 }
 
 std::wstring MainForm::GetWindowClassName() const
 {
-	return kClassName;
+    return kClassName;
 }
 
 void MainForm::OnInitWindow()
 {
-	m_pTree = dynamic_cast<ui::TreeView*>(FindControl(L"tree"));
+    m_pTree = dynamic_cast<ui::TreeView*>(FindControl(L"tree"));
     ASSERT(m_pTree != nullptr);
     m_pListBox = dynamic_cast<ui::VirtualListBox*>(FindControl(L"list"));
     ASSERT(m_pListBox != nullptr);
@@ -56,7 +56,7 @@ void MainForm::OnInitWindow()
     m_pTree->SetExpandImageClass(L"tree_node_expand");
     //设置是否支持多选
     m_pTree->SetMultiSelect(true);
-	
+    
     //显示虚拟路径
     ShowVirtualDirectoryNode(CSIDL_DESKTOP, FOLDERID_Desktop, L"桌面");
     ShowVirtualDirectoryNode(CSIDL_PERSONAL, FOLDERID_Documents, L"文档");

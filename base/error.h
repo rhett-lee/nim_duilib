@@ -28,15 +28,15 @@ class BASE_EXPORT NException : public std::runtime_error
 public:
     NException(const std::string &e) : std::runtime_error(e), error_code_(nbase::kResultFailed) {}
     NException(const char *s, uint32_t error_code = nbase::kResultFailed) 
-		: std::runtime_error(s), error_code_(error_code) 
-	{}
+        : std::runtime_error(s), error_code_(error_code) 
+    {}
     NException() 
-		: std::runtime_error((const char *)"Unknown error"), error_code_(nbase::kResultFailed)
-	{}
+        : std::runtime_error((const char *)"Unknown error"), error_code_(nbase::kResultFailed)
+    {}
     virtual ~NException() throw() {}
     uint32_t error_code() const{ return error_code_; }
 private:
-	uint32_t error_code_;
+    uint32_t error_code_;
 };
 
 }

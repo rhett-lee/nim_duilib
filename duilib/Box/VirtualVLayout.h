@@ -39,14 +39,14 @@ public:
     virtual UiSize EstimateSizeByChild(const std::vector<Control*>& items, UiSize szAvailable) override;
 
     /** 设置布局属性
-	 * @param [in] strName 要设置的属性名
-	 * @param [in] strValue 要设置的属性值
-	 * @param [in] dpiManager DPI管理接口
-	 * @return true 设置成功，false 属性不存在
-	 */
-	virtual bool SetAttribute(const std::wstring& strName, 
-							  const std::wstring& strValue,
-							  const DpiManager& dpiManager) override;
+     * @param [in] strName 要设置的属性名
+     * @param [in] strValue 要设置的属性值
+     * @param [in] dpiManager DPI管理接口
+     * @return true 设置成功，false 属性不存在
+     */
+    virtual bool SetAttribute(const std::wstring& strName, 
+                              const std::wstring& strValue,
+                              const DpiManager& dpiManager) override;
 
     /** DPI发生变化，更新控件大小和布局
     * @param [in] nOldDpiScale 旧的DPI缩放百分比

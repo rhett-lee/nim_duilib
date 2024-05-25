@@ -9,23 +9,23 @@
 class BitmapControl : public ui::Control
 {
 public:
-	explicit BitmapControl(ui::Window* pWindow);
+    explicit BitmapControl(ui::Window* pWindow);
 
-	/**
-	* 重写父控件绘制函数
-	* @param[in] hDC 目标DC
-	* @param[in] rcPaint 可绘制区域
-	* @return void	无返回值
-	*/
-	virtual void Paint(ui::IRender* pRender, const ui::UiRect& rcPaint) override;
+    /**
+    * 重写父控件绘制函数
+    * @param[in] hDC 目标DC
+    * @param[in] rcPaint 可绘制区域
+    * @return void    无返回值
+    */
+    virtual void Paint(ui::IRender* pRender, const ui::UiRect& rcPaint) override;
 
-	/**
-	* 设置显示在背景的HBITMAP对象
-	* @param[in] bitmap 位图对象
-	* @return void	无返回值
-	*/
-	void SetBitmapImage(HBITMAP bitmap);
+    /**
+    * 设置显示在背景的HBITMAP对象
+    * @param[in] bitmap 位图对象
+    * @return void    无返回值
+    */
+    void SetBitmapImage(HBITMAP bitmap);
 
 private:
-	HBITMAP bitmap_;
+    HBITMAP bitmap_;
 };

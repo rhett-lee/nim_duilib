@@ -14,33 +14,33 @@ template<typename InheritType = Control>
 class UILIB_API OptionTemplate : public CheckBoxTemplate<InheritType>
 {
 public:
-	explicit OptionTemplate(Window* pWindow);
-	~OptionTemplate();
-		
-	/// 重写父类方法，提供个性化功能，请参考父类声明
-	virtual std::wstring GetType() const override;
+    explicit OptionTemplate(Window* pWindow);
+    ~OptionTemplate();
+        
+    /// 重写父类方法，提供个性化功能，请参考父类声明
+    virtual std::wstring GetType() const override;
     virtual void SetWindow(Window* pManager) override;
-	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
-	virtual void Selected(bool bSelected, bool bTriggerEvent = false) override;
-	virtual void Activate() override;
+    virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
+    virtual void Selected(bool bSelected, bool bTriggerEvent = false) override;
+    virtual void Activate() override;
 
-	/**
-	 * @brief 获取所属组名称
-	 * @return 返回组名称
-	 */
-	virtual std::wstring GetGroup() const;
+    /**
+     * @brief 获取所属组名称
+     * @return 返回组名称
+     */
+    virtual std::wstring GetGroup() const;
 
-	/**
-	 * @brief 设置所属组
-	 * @param[in] strGroupName 组名称
-	 * @return 无
-	 */
-	virtual void SetGroup(const std::wstring& strGroupName);
+    /**
+     * @brief 设置所属组
+     * @param[in] strGroupName 组名称
+     * @return 无
+     */
+    virtual void SetGroup(const std::wstring& strGroupName);
 
 private:
 
     //所属组名称(同一个组内的控件，进行单选状态控制)
-	UiString m_sGroupName;
+    UiString m_sGroupName;
 };
 
 template<typename InheritType>

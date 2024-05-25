@@ -20,32 +20,32 @@ namespace internal
 // static
 void ThreadLocalPlatform::AllocateSlot(SlotType &slot)
 {
-	slot = ::TlsAlloc();
-	assert(slot != TLS_OUT_OF_INDEXES);
+    slot = ::TlsAlloc();
+    assert(slot != TLS_OUT_OF_INDEXES);
 }
 
 // static
 void ThreadLocalPlatform::FreeSlot(SlotType &slot)
 {
-	if (!::TlsFree(slot))
-	{
-		assert(false);
-	}
+    if (!::TlsFree(slot))
+    {
+        assert(false);
+    }
 }
 
 // static
 void* ThreadLocalPlatform::GetValueFromSlot(SlotType &slot)
 {
-	return ::TlsGetValue(slot);
+    return ::TlsGetValue(slot);
 }
 
 // static
 void ThreadLocalPlatform::SetValueInSlot(SlotType &slot, void *value)
 {
-	if (!::TlsSetValue(slot, value))
-	{
-		assert(false);
-	}
+    if (!::TlsSetValue(slot, value))
+    {
+        assert(false);
+    }
 }
 
 }  // namespace internal

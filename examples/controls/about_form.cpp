@@ -15,28 +15,28 @@ AboutForm::~AboutForm()
 
 std::wstring AboutForm::GetSkinFolder()
 {
-	return L"controls";
+    return L"controls";
 }
 
 std::wstring AboutForm::GetSkinFile()
 {
-	return L"about.xml";
+    return L"about.xml";
 }
 
 std::wstring AboutForm::GetWindowClassName() const
 {
-	return kClassName;
+    return kClassName;
 }
 
 void AboutForm::OnInitWindow()
 {
-	ui::Label* link = static_cast<ui::Label*>(FindControl(L"link"));
-	if (link)
-	{
-		link->AttachButtonUp([link](const ui::EventArgs& args) {
-			ShellExecute(NULL, L"open", link->GetText().c_str(), NULL, NULL, SW_SHOWDEFAULT);
-			return true;
-		});
-	}
+    ui::Label* link = static_cast<ui::Label*>(FindControl(L"link"));
+    if (link)
+    {
+        link->AttachButtonUp([link](const ui::EventArgs& args) {
+            ShellExecute(NULL, L"open", link->GetText().c_str(), NULL, NULL, SW_SHOWDEFAULT);
+            return true;
+        });
+    }
 }
 

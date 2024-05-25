@@ -8,33 +8,33 @@
 #include "base_types.h"
 
 // check the pointer is null and return null
-#define PTR_NULL(p)				{ assert(p); if (NULL == p) return NULL; }
+#define PTR_NULL(p)                { assert(p); if (NULL == p) return NULL; }
 // check the pointer is null and return void
-#define PTR_VOID(p)				{ assert(p); if (NULL == p) return; }
+#define PTR_VOID(p)                { assert(p); if (NULL == p) return; }
 // check the pointer avalible， if not then return false
-#define PTR_FALSE(p)			{ assert(p); if (NULL == p) return false; }
+#define PTR_FALSE(p)            { assert(p); if (NULL == p) return false; }
 
 // delete pointer on safe mode
 #ifndef SAFE_DELETE
-#define SAFE_DELETE(p)			{ if (NULL != p) { delete (p); (p) = NULL; } }
+#define SAFE_DELETE(p)            { if (NULL != p) { delete (p); (p) = NULL; } }
 #endif
 
 // release object on safe mode
-#define SAFE_RELEASE(p)			{ if (NULL != p) { (p)->Release(); (p) = NULL; } }
+#define SAFE_RELEASE(p)            { if (NULL != p) { (p)->Release(); (p) = NULL; } }
 
 //namespace
 #ifndef NAMESPACE_USING_
-#define NAMESPACE_USING_(n)		using namespace n;
+#define NAMESPACE_USING_(n)        using namespace n;
 #endif
 #ifndef NAMESPACE_BEGIN_
-#define NAMESPACE_BEGIN_(n)		namespace n {
+#define NAMESPACE_BEGIN_(n)        namespace n {
 #endif
 #ifndef NAMESPACE_END_
-#define NAMESPACE_END_(n)		}
+#define NAMESPACE_END_(n)        }
 #endif
 
 #ifndef COUNT_OF
-#define COUNT_OF(array)			(sizeof(array)/sizeof(array[0]))
+#define COUNT_OF(array)            (sizeof(array)/sizeof(array[0]))
 #endif
 
 // define some format string

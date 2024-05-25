@@ -14,24 +14,24 @@ class DefaultMessagePump : public MessagePump
 {
 public:
 
-	DefaultMessagePump();
-	virtual ~DefaultMessagePump() {}
+    DefaultMessagePump();
+    virtual ~DefaultMessagePump() {}
 
-	virtual void Run(Delegate* delegate);
-	virtual void Quit();
-	virtual void ScheduleWork();
-	virtual void ScheduleDelayedWork(const TimeTicks& delay_message_time);
+    virtual void Run(Delegate* delegate);
+    virtual void Quit();
+    virtual void ScheduleWork();
+    virtual void ScheduleDelayedWork(const TimeTicks& delay_message_time);
 
 private:
-	void Wait();
-	void WaitTimeout(const TimeDelta &timeout);
-	void Wakeup();
+    void Wait();
+    void WaitTimeout(const TimeDelta &timeout);
+    void Wakeup();
 
-	WaitableEvent event_;
-	bool should_quit_;
-	TimeTicks delayed_work_time_;
+    WaitableEvent event_;
+    bool should_quit_;
+    TimeTicks delayed_work_time_;
 
-	DISALLOW_COPY_AND_ASSIGN(DefaultMessagePump);
+    DISALLOW_COPY_AND_ASSIGN(DefaultMessagePump);
 };
 
 }

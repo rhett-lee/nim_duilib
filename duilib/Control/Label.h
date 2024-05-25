@@ -24,21 +24,21 @@ template<typename InheritType = Control>
 class UILIB_API LabelTemplate : public InheritType
 {
 public:
-	explicit LabelTemplate(Window* pWindow);
+    explicit LabelTemplate(Window* pWindow);
     virtual ~LabelTemplate();
 
-	/// 重写父类方法，提供个性化功能，请参考父类声明
-	virtual std::wstring GetType() const override;
-	virtual std::wstring GetText() const;
-	virtual std::string GetUTF8Text() const;
-	virtual void SetText(const std::wstring& strText);
-	virtual void SetUTF8Text(const std::string& strText);
-	virtual void SetTextId(const std::wstring& strTextId);
-	virtual void SetUTF8TextId(const std::string& strTextId);
-	virtual bool HasHotState() override;
-	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
-	virtual void PaintText(IRender* pRender) override;
-	virtual void SetPos(UiRect rc) override;
+    /// 重写父类方法，提供个性化功能，请参考父类声明
+    virtual std::wstring GetType() const override;
+    virtual std::wstring GetText() const;
+    virtual std::string GetUTF8Text() const;
+    virtual void SetText(const std::wstring& strText);
+    virtual void SetUTF8Text(const std::string& strText);
+    virtual void SetTextId(const std::wstring& strTextId);
+    virtual void SetUTF8TextId(const std::string& strTextId);
+    virtual bool HasHotState() override;
+    virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
+    virtual void PaintText(IRender* pRender) override;
+    virtual void SetPos(UiRect rc) override;
     virtual std::wstring GetToolTipText() const override;
 
     /** 计算文本区域大小（宽和高）
@@ -62,28 +62,28 @@ public:
      * @param[in] uStyle 要设置的样式
      * @return 无
      */
-	void SetTextStyle(UINT uStyle, bool bRedraw);
+    void SetTextStyle(UINT uStyle, bool bRedraw);
 
-	/**
+    /**
      * @brief 获取文本样式
      * @return 返回文本样式
      */
-	UINT GetTextStyle() const;
+    UINT GetTextStyle() const;
 
-	/**
+    /**
      * @brief 获取指定状态下的文本颜色
      * @param[in] stateType 要获取的状态标志
      * @return 返回指定状态下的文本颜色
      */
-	std::wstring GetStateTextColor(ControlStateType stateType) const;
+    std::wstring GetStateTextColor(ControlStateType stateType) const;
 
-	/**
+    /**
      * @brief 设置指定状态下的文本颜色
      * @param[in] stateType 要设置的状态标志
      * @param[in] dwTextColor 要设置的状态颜色字符串，该值必须在 global.xml 中存在
      * @return 无
      */
-	void SetStateTextColor(ControlStateType stateType, const std::wstring& dwTextColor);
+    void SetStateTextColor(ControlStateType stateType, const std::wstring& dwTextColor);
 
     /**
      * @brief 获取指定状态下的实际被渲染文本颜色
@@ -91,53 +91,53 @@ public:
      * @param[out] stateType 实际被渲染的状态
      * @return 返回颜色字符串，该值在 global.xml 中定义
      */
-	std::wstring GetPaintStateTextColor(ControlStateType buttonStateType, ControlStateType& stateType);
+    std::wstring GetPaintStateTextColor(ControlStateType buttonStateType, ControlStateType& stateType);
 
     /** 获取当前字体ID
      * @return 返回字体ID，该字体ID在 global.xml 中标识
      */
-	std::wstring GetFontId() const;
+    std::wstring GetFontId() const;
 
     /** 设置当前字体ID
      * @param[in] strFontId 要设置的字体ID，该字体ID必须在 global.xml 中存在
      */
-	void SetFontId(const std::wstring& strFontId);
+    void SetFontId(const std::wstring& strFontId);
 
     /** 获取文字内边距
      * @return 返回文字的内边距信息
      */
-	UiPadding GetTextPadding() const;
+    UiPadding GetTextPadding() const;
 
     /** 设置文字内边距信息
      * @param [in] padding 内边距信息
      * @param [in] bNeedDpiScale 是否支持DPI缩放
      */
-	void SetTextPadding(UiPadding padding, bool bNeedDpiScale);
+    void SetTextPadding(UiPadding padding, bool bNeedDpiScale);
 
     /**
      * @brief 判断是否是单行模式
      * @return 返回 true 表示单行模式，否则为 false
      */
-	bool IsSingleLine() const;
+    bool IsSingleLine() const;
 
     /**
      * @brief 设置为单行输入模式
      * @param[in] bSingleLine 为 true 时为单行模式，否则为 false
      * @return 无
      */
-	void SetSingleLine(bool bSingleLine);
+    void SetSingleLine(bool bSingleLine);
 
     /**
     * @brief 设置鼠标悬浮到控件显示的提示文本是否省略号出现时才显示
     * @param[in] bAutoShow true 省略号出现才显示 false 不做任何控制
     * @return 无
     */
-	void SetAutoToolTip(bool bAutoShow);
+    void SetAutoToolTip(bool bAutoShow);
 
 protected:
     /** 检查是否需要自动显示ToolTip
     */
-	void CheckShowToolTip();
+    void CheckShowToolTip();
 
     /** 绘制文字的实现函数
     * @param [in] rc 实际绘制区域，不包含内边距（需由调用方剪去内边距）
@@ -146,15 +146,15 @@ protected:
     void DoPaintText(const UiRect& rc, IRender* pRender);
 
 private:
-	UiString m_sFontId;
+    UiString m_sFontId;
     UiString m_sAutoShowTooltipCache;
-	UINT	m_uTextStyle;
-	bool    m_bSingleLine;
-	bool    m_bAutoShowToolTip;
-	UiPadding16	m_rcTextPadding;
+    UINT    m_uTextStyle;
+    bool    m_bSingleLine;
+    bool    m_bAutoShowToolTip;
+    UiPadding16    m_rcTextPadding;
     UiString m_sText;
-	UiString m_sTextId;
-	StateColorMap* m_pTextColorMap;
+    UiString m_sTextId;
+    StateColorMap* m_pTextColorMap;
 };
 
 template<typename InheritType>
@@ -322,28 +322,28 @@ std::wstring LabelTemplate<InheritType>::GetText() const
 template<typename InheritType>
 void LabelTemplate<InheritType>::SetAutoToolTip(bool bAutoShow)
 {
-	m_bAutoShowToolTip = bAutoShow;
-	CheckShowToolTip();
+    m_bAutoShowToolTip = bAutoShow;
+    CheckShowToolTip();
 }
 
 template<typename InheritType /*= Control*/>
 void ui::LabelTemplate<InheritType>::SetPos(UiRect rc)
 {
-	__super::SetPos(rc);
-	CheckShowToolTip();
+    __super::SetPos(rc);
+    CheckShowToolTip();
 }
 
 template<typename InheritType>
 std::wstring LabelTemplate<InheritType>::GetToolTipText() const
 {
-	std::wstring toolTip = __super::GetToolTipText();
+    std::wstring toolTip = __super::GetToolTipText();
     if (!toolTip.empty()) {
         return toolTip;
     }
     else if (m_bAutoShowToolTip) {
         toolTip = m_sAutoShowTooltipCache.c_str();
     }
-	return toolTip;
+    return toolTip;
 }
 
 template<typename InheritType>
@@ -410,7 +410,7 @@ void LabelTemplate<InheritType>::SetText(const std::wstring& strText)
     }
     m_sText = strText;
     this->RelayoutOrRedraw();
-	CheckShowToolTip();
+    CheckShowToolTip();
 }
 
 template<typename InheritType>

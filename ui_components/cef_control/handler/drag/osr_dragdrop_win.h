@@ -53,7 +53,7 @@ namespace client {
 class DropTargetWin : public IDropTarget {
  public:
   CefBrowserHost::DragOperationsMask StartDragging(
-	  OsrDragEvents *browser_handler,
+      OsrDragEvents *browser_handler,
       CefRefPtr<CefDragData> drag_data,
       CefRenderHandler::DragOperationsMask allowed_ops,
       int x, int y);

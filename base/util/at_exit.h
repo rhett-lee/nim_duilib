@@ -29,38 +29,38 @@ namespace nbase
 class BASE_EXPORT AtExitManager
 {
 public:
-	typedef void (*AtExitCallbackType)(void*);
+    typedef void (*AtExitCallbackType)(void*);
 
-	AtExitManager();
+    AtExitManager();
 
-	// The dtor calls all the registered callbacks. Do not try to register more
-	// callbacks after this point.
-	~AtExitManager();
+    // The dtor calls all the registered callbacks. Do not try to register more
+    // callbacks after this point.
+    ~AtExitManager();
 
-	// Registers the specified function to be called at exit. The prototype of
-	// the callback function is void func(void*).
-	static void RegisterCallback(AtExitCallbackType func, void* param);
+    // Registers the specified function to be called at exit. The prototype of
+    // the callback function is void func(void*).
+    static void RegisterCallback(AtExitCallbackType func, void* param);
 
-	// Registers the specified task to be called at exit.
-	static void RegisterTask(StdClosure task);
+    // Registers the specified task to be called at exit.
+    static void RegisterTask(StdClosure task);
 
-	// Calls the functions registered with RegisterCallback in LIFO order. It
-	// is possible to register new callbacks after calling this function.
-	static void ProcessCallbacksNow();
+    // Calls the functions registered with RegisterCallback in LIFO order. It
+    // is possible to register new callbacks after calling this function.
+    static void ProcessCallbacksNow();
 
-	protected:
-	// This constructor will allow this instance of AtExitManager to be created
-	// even if one already exists.  This should only be used for testing!
-	// AtExitManagers are kept on a global stack, and it will be removed during
-	// destruction.  This allows you to shadow another AtExitManager.
-	explicit AtExitManager(bool shadow);
+    protected:
+    // This constructor will allow this instance of AtExitManager to be created
+    // even if one already exists.  This should only be used for testing!
+    // AtExitManagers are kept on a global stack, and it will be removed during
+    // destruction.  This allows you to shadow another AtExitManager.
+    explicit AtExitManager(bool shadow);
 
 private:
-	nbase::NLock lock_;
-	std::stack<StdClosure> stack_;
-	AtExitManager* next_manager_;  // Stack of managers to allow shadowing.
+    nbase::NLock lock_;
+    std::stack<StdClosure> stack_;
+    AtExitManager* next_manager_;  // Stack of managers to allow shadowing.
 
-	DISALLOW_COPY_AND_ASSIGN(AtExitManager);
+    DISALLOW_COPY_AND_ASSIGN(AtExitManager);
 };
 
 }  // namespace nbase

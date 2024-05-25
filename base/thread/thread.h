@@ -33,62 +33,62 @@ const ThreadId kInvalidThreadId = 0;
 // Valid values for thread priority
 enum ThreadPriority
 {
-	kThreadPriorityDefault,
-	kThreadPriorityLow,
-	kThreadPriorityNormal,
-	kThreadPriorityHigh,
-	kThreadPriorityRealtime
+    kThreadPriorityDefault,
+    kThreadPriorityLow,
+    kThreadPriorityNormal,
+    kThreadPriorityHigh,
+    kThreadPriorityRealtime
 };
 
 class BASE_EXPORT Thread
 {
 public:
-	Thread();
-	virtual ~Thread();
+    Thread();
+    virtual ~Thread();
 
     // Create a thread with a option, if the option is null, thread will start with
-	// a default option
-	bool Create();
+    // a default option
+    bool Create();
 
-	// Close the thread
-	void Close();
+    // Close the thread
+    void Close();
 
-	// Terminate the thread
-	void Terminate();
+    // Terminate the thread
+    void Terminate();
 
-	// Sleeps for the specified duration (units are milliseconds)
-	static void Sleep(int duration_ms);
+    // Sleeps for the specified duration (units are milliseconds)
+    static void Sleep(int duration_ms);
 
-	// Yield the current thread so another thread can be scheduled
-	static void YieldThread();
+    // Yield the current thread so another thread can be scheduled
+    static void YieldThread();
 
-	// Gets the current thread id
-	static ThreadId CurrentId();
+    // Gets the current thread id
+    static ThreadId CurrentId();
 
-	ThreadId thread_id() const { return thread_id_; }
+    ThreadId thread_id() const { return thread_id_; }
 
-	void set_thread_id(ThreadId thread_id) { thread_id_ = thread_id; }
+    void set_thread_id(ThreadId thread_id) { thread_id_ = thread_id; }
 
-	// Gets the current thread handle
-	ThreadHandle thread_handle() const  { return thread_handle_; }
+    // Gets the current thread handle
+    ThreadHandle thread_handle() const  { return thread_handle_; }
 
-	// Set the thread's priority
-	void set_thread_priority(ThreadPriority priority) { thread_priority_ = priority; }
+    // Set the thread's priority
+    void set_thread_priority(ThreadPriority priority) { thread_priority_ = priority; }
 
 protected:
-	// Thread process function
-	virtual void Run() {}
+    // Thread process function
+    virtual void Run() {}
 
 private:
 #if defined(OS_WIN)
-	static uint32_t __stdcall ThreadProcFunc(void *arg);
+    static uint32_t __stdcall ThreadProcFunc(void *arg);
 #else
-	static void* ThreadProcFunc(void *arg);
+    static void* ThreadProcFunc(void *arg);
 #endif
 
     ThreadId       thread_id_;
-	ThreadHandle   thread_handle_;
-	ThreadPriority thread_priority_;
+    ThreadHandle   thread_handle_;
+    ThreadPriority thread_priority_;
 };
 
 #if defined(OS_WIN) && defined(COMPILER_MSVC)

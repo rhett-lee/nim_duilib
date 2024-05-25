@@ -13,17 +13,17 @@ namespace ui
 class UILIB_API Matrix_Skia : public IMatrix
 {
 public:
-	Matrix_Skia();
+    Matrix_Skia();
 
-	virtual void Translate(int offsetX, int offsetY) override;
-	virtual void Scale(float scaleX, float scaleY) override;
-	virtual void Rotate(float angle) override;
-	virtual void RotateAt(float angle, const UiPoint& center) override;
+    virtual void Translate(int offsetX, int offsetY) override;
+    virtual void Scale(float scaleX, float scaleY) override;
+    virtual void Rotate(float angle) override;
+    virtual void RotateAt(float angle, const UiPoint& center) override;
 
-	SkMatrix* GetMatrix() { return m_matrix.get(); }
+    SkMatrix* GetMatrix() { return m_matrix.get(); }
 
 private:
-	std::unique_ptr<SkMatrix> m_matrix;
+    std::unique_ptr<SkMatrix> m_matrix;
 };
 
 } // namespace ui
