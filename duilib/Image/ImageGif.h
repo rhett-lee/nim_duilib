@@ -15,7 +15,7 @@ class Image;
 class Control;
 typedef std::map<int32_t, CEventSource> GifEventMap;
 
-/** ¿Ø¼ş±³¾°¶¯Ì¬²¥·Å¶¯»­µÄÂß¼­·â×°£¨Ö§³ÖGIF/WebP/APNG¶¯»­£©
+/** æ§ä»¶èƒŒæ™¯åŠ¨æ€æ’­æ”¾åŠ¨ç”»çš„é€»è¾‘å°è£…ï¼ˆæ”¯æŒGIF/WebP/APNGåŠ¨ç”»ï¼‰
 */
 class ImageGif: public nbase::SupportWeakCallback
 {
@@ -26,106 +26,106 @@ public:
 	ImageGif& operator = (const ImageGif&) = delete;
 
 public:
-	/** ÉèÖÃ¹ØÁªµÄ¿Ø¼ş½Ó¿Ú
+	/** è®¾ç½®å…³è”çš„æ§ä»¶æ¥å£
 	*/
 	void SetControl(Control* pControl);
 
-	/** ÉèÖÃ¹ØÁªµÄÍ¼Æ¬½Ó¿Ú
+	/** è®¾ç½®å…³è”çš„å›¾ç‰‡æ¥å£
 	*/
 	void SetImage(Image* pImage);
 
-	/** ÉèÖÃ¶¯»­µÄÏÔÊ¾ÇøÓò
+	/** è®¾ç½®åŠ¨ç”»çš„æ˜¾ç¤ºåŒºåŸŸ
 	*/
 	void SetImageRect(const UiRect& rcImageRect);
 
-	/** ²¥·Å GIF/WebP/APNG ¶¯»­
+	/** æ’­æ”¾ GIF/WebP/APNG åŠ¨ç”»
 	 */
 	bool StartGifPlay();
 
-	/** Í£Ö¹²¥·Å GIF/WebP/APNG ¶¯»­
+	/** åœæ­¢æ’­æ”¾ GIF/WebP/APNG åŠ¨ç”»
 	 */
 	void StopGifPlay();
 
-	/** ²¥·Å GIF/WebP/APNG ¶¯»­
-	 * @param [in] nStartFrame ´ÓÄÄÒ»Ö¡¿ªÊ¼²¥·Å£¬¿ÉÉèÖÃµÚÒ»Ö¡¡¢µ±Ç°Ö¡ºÍ×îºóÒ»Ö¡¡£Çë²Î¿¼ GifFrameType Ã¶¾Ù
-	 * @param [in] nPlayCount Ö¸¶¨²¥·Å´ÎÊı, Èç¹ûÊÇ-1±íÊ¾Ò»Ö±²¥·Å
+	/** æ’­æ”¾ GIF/WebP/APNG åŠ¨ç”»
+	 * @param [in] nStartFrame ä»å“ªä¸€å¸§å¼€å§‹æ’­æ”¾ï¼Œå¯è®¾ç½®ç¬¬ä¸€å¸§ã€å½“å‰å¸§å’Œæœ€åä¸€å¸§ã€‚è¯·å‚è€ƒ GifFrameType æšä¸¾
+	 * @param [in] nPlayCount æŒ‡å®šæ’­æ”¾æ¬¡æ•°, å¦‚æœæ˜¯-1è¡¨ç¤ºä¸€ç›´æ’­æ”¾
 	 */
 	bool StartGifPlay(GifFrameType nStartFrame, int32_t nPlayCount);
 
-	/** Í£Ö¹²¥·Å GIF/WebP/APNG ¶¯»­
-	 * @param [in] bTriggerEvent ÊÇ·ñ½«Í£Ö¹ÊÂ¼şÍ¨Öª¸ø¶©ÔÄÕß£¬²Î¿¼ AttachGifPlayStop ·½·¨
-	 * @param [in] nStopFrame ²¥·Å½áÊøÍ£Ö¹ÔÚÄÄÒ»Ö¡£¬¿ÉÉèÖÃµÚÒ»Ö¡¡¢µ±Ç°Ö¡ºÍ×îºóÒ»Ö¡¡£Çë²Î¿¼ GifFrameType Ã¶¾Ù
+	/** åœæ­¢æ’­æ”¾ GIF/WebP/APNG åŠ¨ç”»
+	 * @param [in] bTriggerEvent æ˜¯å¦å°†åœæ­¢äº‹ä»¶é€šçŸ¥ç»™è®¢é˜…è€…ï¼Œå‚è€ƒ AttachGifPlayStop æ–¹æ³•
+	 * @param [in] nStopFrame æ’­æ”¾ç»“æŸåœæ­¢åœ¨å“ªä¸€å¸§ï¼Œå¯è®¾ç½®ç¬¬ä¸€å¸§ã€å½“å‰å¸§å’Œæœ€åä¸€å¸§ã€‚è¯·å‚è€ƒ GifFrameType æšä¸¾
 	 */
 	void StopGifPlay(bool bTriggerEvent, GifFrameType nStopFrame);
 
-	/** ÊÇ·ñÕıÔÚ²¥·Å¶¯»­
+	/** æ˜¯å¦æ­£åœ¨æ’­æ”¾åŠ¨ç”»
 	*/
 	bool IsPlayingGif() const;
 
-	/** ¼àÌı GIF ²¥·ÅÍê³ÉÍ¨Öª
-	 * @param[in] callback Òª¼àÌı GIF Í£Ö¹²¥·ÅµÄ»Øµ÷º¯Êı
+	/** ç›‘å¬ GIF æ’­æ”¾å®Œæˆé€šçŸ¥
+	 * @param[in] callback è¦ç›‘å¬ GIF åœæ­¢æ’­æ”¾çš„å›è°ƒå‡½æ•°
 	 */
 	void AttachGifPlayStop(const EventCallback& callback) { m_OnGifEvent[m_nVirtualEventGifStop] += callback; };
 
 private:
-	/** Ïò¼àÌıÕß·¢ËÍ²¥·ÅÍ£Ö¹ÊÂ¼ş
+	/** å‘ç›‘å¬è€…å‘é€æ’­æ”¾åœæ­¢äº‹ä»¶
 	*/
 	void BroadcastGifEvent(int32_t nVirtualEvent) const;
 
-	/** »ñÈ¡GIFÖ¡ºÅ
+	/** è·å–GIFå¸§å·
 	*/
 	uint32_t GetGifFrameIndex(GifFrameType frame) const;
 
-	/** ¶¨Ê±Æ÷²¥·ÅGIFµÄ»Øµ÷º¯Êı
+	/** å®šæ—¶å™¨æ’­æ”¾GIFçš„å›è°ƒå‡½æ•°
 	*/
 	bool PlayGif();
 
-	/** ÖØ»æÍ¼Æ¬
+	/** é‡ç»˜å›¾ç‰‡
 	*/
 	void RedrawImage();
 
-	/** ÊÇ·ñÎ»¶àÖ¡Í¼Æ¬(±ÈÈçGIFµÈ)
+	/** æ˜¯å¦ä½å¤šå¸§å›¾ç‰‡(æ¯”å¦‚GIFç­‰)
 	*/
 	bool IsMultiFrameImage() const;
 
 private:
-	/** GIF±³¾°Í¼Æ¬²¥·ÅµÄÈ¡Ïû»úÖÆ
+	/** GIFèƒŒæ™¯å›¾ç‰‡æ’­æ”¾çš„å–æ¶ˆæœºåˆ¶
 	*/
 	nbase::WeakCallbackFlag m_gifWeakFlag;
 
-	/** GIF²¥·ÅÊÂ¼şµÄ»Øµ÷×¢²á¹ÜÀíÈİÆ÷(Ä¿Ç°Ö»ÓĞ²¥·ÅÍê³ÉÒ»¸öÊÂ¼ş)
+	/** GIFæ’­æ”¾äº‹ä»¶çš„å›è°ƒæ³¨å†Œç®¡ç†å®¹å™¨(ç›®å‰åªæœ‰æ’­æ”¾å®Œæˆä¸€ä¸ªäº‹ä»¶)
 	*/
 	GifEventMap m_OnGifEvent;
 
-	/** ¹ØÁªµÄControl¶ÔÏó
+	/** å…³è”çš„Controlå¯¹è±¡
 	*/
 	Control* m_pControl;
 
-	/** Í¼Æ¬½Ó¿Ú
+	/** å›¾ç‰‡æ¥å£
 	*/
 	Image* m_pImage;
 
-	/** ¶¯»­µÄÏÔÊ¾ÇøÓò
+	/** åŠ¨ç”»çš„æ˜¾ç¤ºåŒºåŸŸ
 	*/
 	UiRect m_rcImageRect;
 
-	/** ÊÇ·ñÕıÔÚ²¥·Å¶¯»­Í¼Æ¬
+	/** æ˜¯å¦æ­£åœ¨æ’­æ”¾åŠ¨ç”»å›¾ç‰‡
 	*/
 	bool m_bPlayingGif;
 
-	/** ÊÇ·ñ×Ô¶¯¿ªÊ¼²¥·Å
+	/** æ˜¯å¦è‡ªåŠ¨å¼€å§‹æ’­æ”¾
 	*/
 	bool m_bAutoPlay;
 
-	/** ÒÑ²¥·Å´ÎÊı
+	/** å·²æ’­æ”¾æ¬¡æ•°
 	*/
 	int32_t m_nCycledCount;
 
-	/** ×î´ó²¥·Å´ÎÊı
+	/** æœ€å¤§æ’­æ”¾æ¬¡æ•°
 	*/
 	int32_t m_nMaxPlayCount;
 
-	/** GIF±³¾°Í¼Æ¬²¥·ÅÍê³ÉÊÂ¼şµÄID
+	/** GIFèƒŒæ™¯å›¾ç‰‡æ’­æ”¾å®Œæˆäº‹ä»¶çš„ID
 	*/
 	static const int32_t m_nVirtualEventGifStop = 1;
 };

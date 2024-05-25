@@ -4,7 +4,7 @@
 #pragma once
 
 #include "duilib/Core/UiTypes.h"
-//Ê¹ÓÃWindowsµÄITextHostÊµÏÖ
+//ä½¿ç”¨Windowsçš„ITextHostå®ç°
 #include <Richedit.h>
 #include <TextServ.h>
 #include <RichOle.h>
@@ -17,7 +17,7 @@ class DpiManager;
 class UILIB_API RichEditHost : public ITextHost
 {
 public:
-	/** ¹¹Ôìº¯Êı£¬¹¹ÔìºóÒıÓÃ¼ÆÊıÎª1£¬Íâ²¿¿ÉÒÔÍ¨¹ıAddRefºÍRelease¿ØÖÆ¶ÔÏóµÄÉúÃüÖÜÆÚ
+	/** æ„é€ å‡½æ•°ï¼Œæ„é€ åå¼•ç”¨è®¡æ•°ä¸º1ï¼Œå¤–éƒ¨å¯ä»¥é€šè¿‡AddRefå’ŒReleaseæ§åˆ¶å¯¹è±¡çš„ç”Ÿå‘½å‘¨æœŸ
 	*/
 	explicit RichEditHost(RichEdit* pRichEdit);
 	RichEditHost(const RichEditHost& r) = delete;
@@ -27,72 +27,72 @@ private:
 	virtual ~RichEditHost();
 
 public:
-	/** »ñÈ¡ITextServices½Ó¿Ú
+	/** è·å–ITextServicesæ¥å£
 	*/
 	ITextServices* GetTextServices(void) const;
 
-	/** ÊÍ·Å×ÊÔ´
+	/** é‡Šæ”¾èµ„æº
 	*/
 	void Clear();
 
     void SetClientRect(const UiRect& rc);
 	void GetControlRect(UiRect* prc);
 
-	//ÊÇ·ñ×Ô¶¯»»ĞĞ£¨½öÔÚµ¥ĞĞÎÄ±¾Ä£Ê½ÏÂÓĞĞ§£¬¶àĞĞÎÄ±¾Ä£Ê½Ê±ÎŞĞ§£©
+	//æ˜¯å¦è‡ªåŠ¨æ¢è¡Œï¼ˆä»…åœ¨å•è¡Œæ–‡æœ¬æ¨¡å¼ä¸‹æœ‰æ•ˆï¼Œå¤šè¡Œæ–‡æœ¬æ¨¡å¼æ—¶æ— æ•ˆï¼‰
     void SetWordWrap(bool bWordWrap);
 	bool IsWordWrap() const;
 
-	//ÊÇ·ñ×Ô¶¯Ñ¡Ôñµ¥´Ê
+	//æ˜¯å¦è‡ªåŠ¨é€‰æ‹©å•è¯
 	void SetEnableAutoWordSel(bool bEnableAutoWordSel);
 
-	//ÊÇ·ñÖ»¶Á
+	//æ˜¯å¦åªè¯»
     void SetReadOnly(bool fReadOnly);
 	bool IsReadOnly() const;
 
-	//ÉèÖÃÃÜÂë×Ö·û£¬±ØĞëÎªÓĞĞ§µÄ×Ö·û£¬²»¿ÉÒÔÊÇ'\0'
+	//è®¾ç½®å¯†ç å­—ç¬¦ï¼Œå¿…é¡»ä¸ºæœ‰æ•ˆçš„å­—ç¬¦ï¼Œä¸å¯ä»¥æ˜¯'\0'
 	void SetPasswordChar(WCHAR chPasswordChar);
     void SetPassword(bool bPassword);
 	bool IsPassword() const;
-	void SetShowPassword(bool bShow); //ÉèÖÃÊÇ·ñÏÔÊ¾ÃÜÂë
-	bool IsShowPassword() const;//ÊÇ·ñÏÔÊ¾ÃÜÂë
+	void SetShowPassword(bool bShow); //è®¾ç½®æ˜¯å¦æ˜¾ç¤ºå¯†ç 
+	bool IsShowPassword() const;//æ˜¯å¦æ˜¾ç¤ºå¯†ç 
 	void SetFlashPasswordChar(bool bFlash);
 	bool IsFlashPasswordChar() const;
 
-	//ÊÇ·ñÖ»ÔÊĞíÊäÈëÊı×Ö×Ö·û
+	//æ˜¯å¦åªå…è®¸è¾“å…¥æ•°å­—å­—ç¬¦
 	bool IsNumberOnly() const;
 	void SetNumberOnly(bool bNumberOnly);
 
-	//ÊÇ·ñÖ§³Ö¶àĞĞ
+	//æ˜¯å¦æ”¯æŒå¤šè¡Œ
 	bool IsMultiLine() const;
 	void SetMultiLine(bool bMultiLine);
 
-	//ÎÄ±¾ºáÏòºÍ×İÏò¶ÔÆë·½Ê½
+	//æ–‡æœ¬æ¨ªå‘å’Œçºµå‘å¯¹é½æ–¹å¼
 	void SetHAlignType(HorAlignType alignType);
 	void SetVAlignType(VerAlignType alignType);
 
-	//ºáÏòºÍ×İÏò¹ö¶¯ÌõÉèÖÃ
+	//æ¨ªå‘å’Œçºµå‘æ»šåŠ¨æ¡è®¾ç½®
 	void SetVScrollBar(bool bEnable);
 	void SetHScrollBar(bool bEnable);	
 
-	//µ±ÓÃ»§ÔÚ×îºóÒ»ĞĞ°´ ENTER Ê±£¬×Ô¶¯½«ÎÄ±¾ÏòÉÏ¹ö¶¯Ò»Ò³¡£
+	//å½“ç”¨æˆ·åœ¨æœ€åä¸€è¡ŒæŒ‰ ENTER æ—¶ï¼Œè‡ªåŠ¨å°†æ–‡æœ¬å‘ä¸Šæ»šåŠ¨ä¸€é¡µã€‚
 	void SetAutoVScroll(bool bEnable);
 
-	//µ±ÓÃ»§ÔÚĞĞÎ²¼üÈëÒ»¸ö×Ö·ûÊ±£¬×Ô¶¯½«ÎÄ±¾ÏòÓÒ¹ö¶¯ 10 ¸ö×Ö·û¡£
-	//µ±ÓÃ»§°´ Enter Ê±£¬¿Ø¼ş»á½«ËùÓĞÎÄ±¾¹ö¶¯»ØÁãÎ»ÖÃ¡£
+	//å½“ç”¨æˆ·åœ¨è¡Œå°¾é”®å…¥ä¸€ä¸ªå­—ç¬¦æ—¶ï¼Œè‡ªåŠ¨å°†æ–‡æœ¬å‘å³æ»šåŠ¨ 10 ä¸ªå­—ç¬¦ã€‚
+	//å½“ç”¨æˆ·æŒ‰ Enter æ—¶ï¼Œæ§ä»¶ä¼šå°†æ‰€æœ‰æ–‡æœ¬æ»šåŠ¨å›é›¶ä½ç½®ã€‚
 	void SetAutoHScroll(bool bEnable);
 
-	// ÉèÖÃ×ÖÌå
+	// è®¾ç½®å­—ä½“
     void SetFontId(const std::wstring& fontId);
 
-	/** °´DPI±ä»¯À´ĞŞ¸Ä×ÖÌå´óĞ¡
-	* @param [in] nOldDpiScale ¾ÉµÄDPIËõ·Å°Ù·Ö±È
-	* @param [in] dpiManager DPIËõ·Å¹ÜÀíÆ÷
+	/** æŒ‰DPIå˜åŒ–æ¥ä¿®æ”¹å­—ä½“å¤§å°
+	* @param [in] nOldDpiScale æ—§çš„DPIç¼©æ”¾ç™¾åˆ†æ¯”
+	* @param [in] dpiManager DPIç¼©æ”¾ç®¡ç†å™¨
 	*/
 	void ChangeDpiScale(const DpiManager& dpiManager, uint32_t nOldDpiScale);
 
-	//ÉèÖÃÎÄ±¾ÑÕÉ«
+	//è®¾ç½®æ–‡æœ¬é¢œè‰²
     void SetTextColor(COLORREF dwColor);
-	//»ñÈ¡ÎÄ±¾ÑÕÉ«
+	//è·å–æ–‡æœ¬é¢œè‰²
 	COLORREF GetTextColor() const;
 
     void SetExtent(SIZEL sizelExtent);
@@ -253,17 +253,17 @@ public:
 	virtual HRESULT TxGetSelectionBarWidth(LONG* lSelBarWidth) override;
 
 private:
-	/** Í¨ÖªOnTxPropertyBitsChange½Ó¿Ú
+	/** é€šçŸ¥OnTxPropertyBitsChangeæ¥å£
 	*/
 	void OnTxPropertyBitsChange(DWORD dwMask, DWORD dwBits);
 
-	//¹¹ÔìºóµÄ³õÊ¼»¯
+	//æ„é€ åçš„åˆå§‹åŒ–
 	void Init();
 
-	//³õÊ¼»¯×ÖÌåĞÅÏ¢
+	//åˆå§‹åŒ–å­—ä½“ä¿¡æ¯
 	void InitCharFormat(const LOGFONT& lf);
 
-	//×ª»»¾ØĞÎ¸ñÊ½
+	//è½¬æ¢çŸ©å½¢æ ¼å¼
 	UiRect MakeUiRect(const RECT& rc);
 
 	// Convert Pixels on the X axis to Himetric
@@ -273,10 +273,10 @@ private:
 	LONG DYtoHimetricY(LONG dy, LONG yPerInch);
 
 private:
-	//ÒıÓÃ¼ÆÊı
+	//å¼•ç”¨è®¡æ•°
 	ULONG m_cRefs;
 
-	//RichEdit¿Ø¼şµÄUI²ã½Ó¿Ú
+	//RichEditæ§ä»¶çš„UIå±‚æ¥å£
     RichEdit* m_pRichEdit;
 
 	// pointer to Text Services object
@@ -295,11 +295,11 @@ private:
     UiRect m_rcClient;			// Client Rect for this control
     SIZEL m_sizelExtent;		// Extent array
 	
-    CHARFORMAT2 m_charFormat;  //ÎÄ×ÖµÄ×ÖÌå
-    PARAFORMAT2	m_paraFormat;	//¶ÎÂä¸ñÊ½
+    CHARFORMAT2 m_charFormat;  //æ–‡å­—çš„å­—ä½“
+    PARAFORMAT2	m_paraFormat;	//æ®µè½æ ¼å¼
     WCHAR m_chPasswordChar;		// Password character
-	bool m_bShowPassword;       //ÊÇ·ñÏÔÊ¾ÃÜÂë
-	bool m_bFlashPasswordChar;  //¶ÌÔİµÄÏÔÊ¾ÃÜÂë×Ö·û£¬È»ºóÔÙÒş²Ø
+	bool m_bShowPassword;       //æ˜¯å¦æ˜¾ç¤ºå¯†ç 
+	bool m_bFlashPasswordChar;  //çŸ­æš‚çš„æ˜¾ç¤ºå¯†ç å­—ç¬¦ï¼Œç„¶åå†éšè—
 };
 
 

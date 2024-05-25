@@ -8,61 +8,61 @@
 
 namespace ui 
 {
-/** XML½âÎöºóµÄ¸ñÊ½»¯ÎÄ±¾Æ¬¶Î
+/** XMLè§£æåçš„æ ¼å¼åŒ–æ–‡æœ¬ç‰‡æ®µ
 */
 class RichTextSlice
 {
 public:   
-    /** ½ÚµãÃû³Æ
+    /** èŠ‚ç‚¹åç§°
     */
     UiString m_nodeName;
 
-    /** ÎÄ×ÖÄÚÈİ
+    /** æ–‡å­—å†…å®¹
     */
     UiString m_text;
 
-    /** ³¬Á´½ÓµÄURL: "href"
+    /** è¶…é“¾æ¥çš„URL: "href"
     */
     UiString m_linkUrl;
 
-    /** ÎÄ×ÖÑÕÉ«: "color"
+    /** æ–‡å­—é¢œè‰²: "color"
     */
     UiString m_textColor;
 
-    /** ±³¾°ÑÕÉ«: "color"
+    /** èƒŒæ™¯é¢œè‰²: "color"
     */
     UiString m_bgColor;
 
-    /** ×ÖÌåĞÅÏ¢
+    /** å­—ä½“ä¿¡æ¯
     */
     UiFont m_fontInfo;
 
 public:
-    /** ×Ó½Úµã
+    /** å­èŠ‚ç‚¹
     */
     std::vector<RichTextSlice> m_childs;
 };
 
-/** ¸ñÊ½»¯ÎÄ±¾£¬½âÎöºóµÄ½á¹¹
+/** æ ¼å¼åŒ–æ–‡æœ¬ï¼Œè§£æåçš„ç»“æ„
 */
 class RichTextDataEx:
     public RichTextData
 {
 public:
-    /** ³¬Á´½ÓµÄURL
+    /** è¶…é“¾æ¥çš„URL
     */
     UiString m_linkUrl;
 
-    /** Êó±êÊÇ·ñ°´ÏÂ
+    /** é¼ æ ‡æ˜¯å¦æŒ‰ä¸‹
     */
     bool m_bMouseDown = false;
 
-    /** ÊÇ·ñ´¦ÓÚÊó±êĞüÍ£×´Ì¬
+    /** æ˜¯å¦å¤„äºé¼ æ ‡æ‚¬åœçŠ¶æ€
     */
     bool m_bMouseHover = false;
 };
 
-/** ¸ñÊ½»¯ÎÄ±¾£¨ÀàHTML¸ñÊ½£©
+/** æ ¼å¼åŒ–æ–‡æœ¬ï¼ˆç±»HTMLæ ¼å¼ï¼‰
 */
 class UILIB_API RichText : public Control
 {
@@ -72,138 +72,138 @@ public:
     RichText& operator=(const RichText& r) = delete;
     virtual ~RichText();
 
-    /// ÖØĞ´¸¸Àà·½·¨£¬Ìá¹©¸öĞÔ»¯¹¦ÄÜ£¬Çë²Î¿¼¸¸ÀàÉùÃ÷
+    /// é‡å†™çˆ¶ç±»æ–¹æ³•ï¼Œæä¾›ä¸ªæ€§åŒ–åŠŸèƒ½ï¼Œè¯·å‚è€ƒçˆ¶ç±»å£°æ˜
     virtual std::wstring GetType() const override;
     virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
     virtual void PaintText(IRender* pRender) override;
 
-    /** DPI·¢Éú±ä»¯£¬¸üĞÂ¿Ø¼ş´óĞ¡ºÍ²¼¾Ö
-    * @param [in] nOldDpiScale ¾ÉµÄDPIËõ·Å°Ù·Ö±È
-    * @param [in] nNewDpiScale ĞÂµÄDPIËõ·Å°Ù·Ö±È£¬ÓëDpi().GetScale()µÄÖµÒ»ÖÂ
+    /** DPIå‘ç”Ÿå˜åŒ–ï¼Œæ›´æ–°æ§ä»¶å¤§å°å’Œå¸ƒå±€
+    * @param [in] nOldDpiScale æ—§çš„DPIç¼©æ”¾ç™¾åˆ†æ¯”
+    * @param [in] nNewDpiScale æ–°çš„DPIç¼©æ”¾ç™¾åˆ†æ¯”ï¼Œä¸Dpi().GetScale()çš„å€¼ä¸€è‡´
     */
     virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override;
 
-    /** ¼ÆËãÎÄ±¾ÇøÓò´óĞ¡£¨¿íºÍ¸ß£©
-     *  @param [in] szAvailable ¿ÉÓÃ´óĞ¡£¬²»°üº¬ÄÚ±ß¾à£¬²»°üº¬Íâ±ß¾à
-     *  @return ¿Ø¼şµÄÎÄ±¾¹ÀËã´óĞ¡£¬°üº¬ÄÚ±ß¾à(Box)£¬²»°üº¬Íâ±ß¾à
+    /** è®¡ç®—æ–‡æœ¬åŒºåŸŸå¤§å°ï¼ˆå®½å’Œé«˜ï¼‰
+     *  @param [in] szAvailable å¯ç”¨å¤§å°ï¼Œä¸åŒ…å«å†…è¾¹è·ï¼Œä¸åŒ…å«å¤–è¾¹è·
+     *  @return æ§ä»¶çš„æ–‡æœ¬ä¼°ç®—å¤§å°ï¼ŒåŒ…å«å†…è¾¹è·(Box)ï¼Œä¸åŒ…å«å¤–è¾¹è·
      */
     virtual UiSize EstimateText(UiSize szAvailable) override;
 
 public:
-    /** »ñÈ¡ÎÄ×ÖÄÚ±ß¾à
+    /** è·å–æ–‡å­—å†…è¾¹è·
      */
     UiPadding GetTextPadding() const;
 
-    /** ÉèÖÃÎÄ×ÖÄÚ±ß¾àĞÅÏ¢, º¯ÊıÄÚ²¿»á½øĞĞDPI×ÔÊÊÓ¦²Ù×÷
-     * @param [in] padding ¾ØĞÎµÄËÄ¸ö±ßÖµ·Ö±ğ´ú±í¶ÔÓ¦µÄËÄ¸öÄÚ±ß¾àÖµ
-     * @param [in] bNeedDpiScale ¼æÈİ DPI Ëõ·Å£¬Ä¬ÈÏÎª true
+    /** è®¾ç½®æ–‡å­—å†…è¾¹è·ä¿¡æ¯, å‡½æ•°å†…éƒ¨ä¼šè¿›è¡ŒDPIè‡ªé€‚åº”æ“ä½œ
+     * @param [in] padding çŸ©å½¢çš„å››ä¸ªè¾¹å€¼åˆ†åˆ«ä»£è¡¨å¯¹åº”çš„å››ä¸ªå†…è¾¹è·å€¼
+     * @param [in] bNeedDpiScale å…¼å®¹ DPI ç¼©æ”¾ï¼Œé»˜è®¤ä¸º true
      */
     void SetTextPadding(UiPadding padding, bool bNeedDpiScale = true);
 
-    /** »ñÈ¡µ±Ç°×ÖÌåID
-     * @return ·µ»Ø×ÖÌåID£¬¸Ã±àºÅÔÚ global.xml ÖĞ±êÊ¶
+    /** è·å–å½“å‰å­—ä½“ID
+     * @return è¿”å›å­—ä½“IDï¼Œè¯¥ç¼–å·åœ¨ global.xml ä¸­æ ‡è¯†
      */
     std::wstring GetFontId() const;
 
-    /** ÉèÖÃµ±Ç°×ÖÌåID
-     * @param [in] strFontId ÒªÉèÖÃµÄ×ÖÌåID£¬¸ÃID¿ÉÔÚ global.xml ÖĞ´æÔÚ
+    /** è®¾ç½®å½“å‰å­—ä½“ID
+     * @param [in] strFontId è¦è®¾ç½®çš„å­—ä½“IDï¼Œè¯¥IDå¯åœ¨ global.xml ä¸­å­˜åœ¨
      */
     void SetFontId(const std::wstring& strFontId);
 
-    /** »ñÈ¡Ä¬ÈÏÎÄ±¾ÑÕÉ«
+    /** è·å–é»˜è®¤æ–‡æœ¬é¢œè‰²
      */
     std::wstring GetTextColor() const;
 
-    /** ÉèÖÃÄ¬ÈÏÎÄ±¾ÑÕÉ«
+    /** è®¾ç½®é»˜è®¤æ–‡æœ¬é¢œè‰²
      */
     void SetTextColor(const std::wstring& sTextColor);
 
-    /** »ñÈ¡ĞĞ¼ä¾à±¶Êı
+    /** è·å–è¡Œé—´è·å€æ•°
     */
     float GetRowSpacingMul() const;
 
-    /** ÉèÖÃĞĞ¼ä¾à±¶Êı
+    /** è®¾ç½®è¡Œé—´è·å€æ•°
     */
     void SetRowSpacingMul(float fRowSpacingMul);
 
 public:
-    /** ÉèÖÃ¸ñÊ½µÄÎÄ±¾
-    * @param [in] richText ´øÓĞ¸ñÊ½µÄÎÄ±¾ÄÚÈİ
+    /** è®¾ç½®æ ¼å¼çš„æ–‡æœ¬
+    * @param [in] richText å¸¦æœ‰æ ¼å¼çš„æ–‡æœ¬å†…å®¹
     */
     bool SetText(const std::wstring& richText);
 
-    /** ÉèÖÃ¸ñÊ½µÄÎÄ±¾ID
-    * @param [in] richTextId ´øÓĞ¸ñÊ½µÄÎÄ±¾ÄÚÈİID
+    /** è®¾ç½®æ ¼å¼çš„æ–‡æœ¬ID
+    * @param [in] richTextId å¸¦æœ‰æ ¼å¼çš„æ–‡æœ¬å†…å®¹ID
     */
     bool SetTextId(const std::wstring& richTextId);
 
-    /** Çå¿ÕÔ­À´µÄ¸ñÊ½ÎÄ±¾
+    /** æ¸…ç©ºåŸæ¥çš„æ ¼å¼æ–‡æœ¬
     */
     void Clear();
 
-    /** ×·¼ÓÒ»¸öÎÄ±¾Æ¬¶Î
+    /** è¿½åŠ ä¸€ä¸ªæ–‡æœ¬ç‰‡æ®µ
     */
     void AppendTextSlice(const RichTextSlice&& textSlice);
 
-    /** ×·¼ÓÒ»¸öÎÄ±¾Æ¬¶Î
+    /** è¿½åŠ ä¸€ä¸ªæ–‡æœ¬ç‰‡æ®µ
     */
     void AppendTextSlice(const RichTextSlice& textSlice);
 
-    /** ¸ù¾İTrim·½°¸£¬¶ÔÎÄ±¾½øĞĞTrim´¦Àí£¬È¥µô¶àÓàµÄ¿Õ¸ñ
-    * @param [in,out] text ´«ÈëĞèÒª´¦ÀíµÄÎÄ±¾£¬´«³ö´¦ÀíÍê³ÉºóµÄÎÄ±¾
-    * @return ·µ»ØtextµÄÒıÓÃ
+    /** æ ¹æ®Trimæ–¹æ¡ˆï¼Œå¯¹æ–‡æœ¬è¿›è¡ŒTrimå¤„ç†ï¼Œå»æ‰å¤šä½™çš„ç©ºæ ¼
+    * @param [in,out] text ä¼ å…¥éœ€è¦å¤„ç†çš„æ–‡æœ¬ï¼Œä¼ å‡ºå¤„ç†å®Œæˆåçš„æ–‡æœ¬
+    * @return è¿”å›textçš„å¼•ç”¨
     */
     const std::wstring& TrimText(std::wstring& text);
 
-    /** ¸ù¾İTrim·½°¸£¬¶ÔÎÄ±¾½øĞĞTrim´¦Àí£¬È¥µô¶àÓàµÄ¿Õ¸ñ
-    * @param [in] text ´«ÈëĞèÒª´¦ÀíµÄÎÄ±¾
-    * @return ·µ»Ø´¦ÀíºÃµÄ×Ö·û´®
+    /** æ ¹æ®Trimæ–¹æ¡ˆï¼Œå¯¹æ–‡æœ¬è¿›è¡ŒTrimå¤„ç†ï¼Œå»æ‰å¤šä½™çš„ç©ºæ ¼
+    * @param [in] text ä¼ å…¥éœ€è¦å¤„ç†çš„æ–‡æœ¬
+    * @return è¿”å›å¤„ç†å¥½çš„å­—ç¬¦ä¸²
     */
     std::wstring TrimText(const wchar_t* text);
 
 public:
-    /** Êä³ö´ø¸ñÊ½»¯ÎÄ±¾
+    /** è¾“å‡ºå¸¦æ ¼å¼åŒ–æ–‡æœ¬
     */
     std::wstring ToString() const;
 
-    /** ¼àÌı³¬¼¶Á´½Ó±»µã»÷ÊÂ¼ş
-     * @param[in] callback ³¬¼¶Á´½Ó±»µã»÷ºóµÄ»Øµ÷º¯Êı
+    /** ç›‘å¬è¶…çº§é“¾æ¥è¢«ç‚¹å‡»äº‹ä»¶
+     * @param[in] callback è¶…çº§é“¾æ¥è¢«ç‚¹å‡»åçš„å›è°ƒå‡½æ•°
      */
     void AttachLinkClick(const EventCallback& callback) { AttachEvent(kEventLinkClick, callback); }
 
 private:
-    /** ÉèÖÃ¸ñÊ½µÄÎÄ±¾, µ«²»ÖØ»æ
-    * @param [in] richText ´øÓĞ¸ñÊ½µÄÎÄ±¾ÄÚÈİ
+    /** è®¾ç½®æ ¼å¼çš„æ–‡æœ¬, ä½†ä¸é‡ç»˜
+    * @param [in] richText å¸¦æœ‰æ ¼å¼çš„æ–‡æœ¬å†…å®¹
     */
     bool DoSetText(const std::wstring& richText);
 
-    /** ½âÎö¸ñÊ½»¯ÎÄ±¾, Éú³É½âÎöºóµÄÊı¾İ½á¹¹
+    /** è§£ææ ¼å¼åŒ–æ–‡æœ¬, ç”Ÿæˆè§£æåçš„æ•°æ®ç»“æ„
     */
     bool ParseText(std::vector<RichTextDataEx>& outTextData) const;
 
-    /** ¼ì²é°´Ğè½âÎöÎÄ±¾
+    /** æ£€æŸ¥æŒ‰éœ€è§£ææ–‡æœ¬
     */
     void CheckParseText();
 
-    /** ÎÄ±¾Æ¬¶Î½âÎöÎª»æÖÆ½á¹¹
-    * @param [in] textSlice ÎÄ±¾Æ¬¶Î
-    * @param [in] parentTextData ¸¸¶ÔÏóĞÅÏ¢
-    * @param [out] textData ½âÎöºóµÄÎÄ±¾½á¹¹
+    /** æ–‡æœ¬ç‰‡æ®µè§£æä¸ºç»˜åˆ¶ç»“æ„
+    * @param [in] textSlice æ–‡æœ¬ç‰‡æ®µ
+    * @param [in] parentTextData çˆ¶å¯¹è±¡ä¿¡æ¯
+    * @param [out] textData è§£æåçš„æ–‡æœ¬ç»“æ„
     */
     bool ParseTextSlice(const RichTextSlice& textSlice, 
                         const RichTextDataEx& parentTextData,
                         std::vector<RichTextDataEx>& textData) const;
 
-    /** Êä³ö´ø¸ñÊ½»¯ÎÄ±¾
+    /** è¾“å‡ºå¸¦æ ¼å¼åŒ–æ–‡æœ¬
     */
     std::wstring ToString(const RichTextSlice& textSlice, const std::wstring& indent) const;
 
-    /** ¼ÆËã»æÖÆºóµÄÄ¿±êÇøÓò´óĞ¡
+    /** è®¡ç®—ç»˜åˆ¶åçš„ç›®æ ‡åŒºåŸŸå¤§å°
     */
     void CalcDestRect(IRender* pRender, UiRect rc, UiRect& rect);
 
 private:
-    //Êó±êÏûÏ¢£¨·µ»Øtrue£º±íÊ¾ÏûÏ¢ÒÑ´¦Àí£»·µ»Øfalse£ºÔò±íÊ¾ÏûÏ¢Î´´¦Àí£¬Ğè×ª·¢¸ø¸¸¿Ø¼ş£©
+    //é¼ æ ‡æ¶ˆæ¯ï¼ˆè¿”å›trueï¼šè¡¨ç¤ºæ¶ˆæ¯å·²å¤„ç†ï¼›è¿”å›falseï¼šåˆ™è¡¨ç¤ºæ¶ˆæ¯æœªå¤„ç†ï¼Œéœ€è½¬å‘ç»™çˆ¶æ§ä»¶ï¼‰
     virtual bool ButtonDown(const EventArgs& msg) override;
     virtual bool ButtonUp(const EventArgs& msg) override;
     virtual bool MouseMove(const EventArgs& msg) override;
@@ -212,71 +212,71 @@ private:
     virtual bool OnSetCursor(const EventArgs& msg) override;
 
 private:
-    /** ÎÄ±¾»æÖÆµÄÄÚ±ß¾à(·Ö±ğ¶ÔÓ¦ËÄ¸ö±ßµÄÄÚ±ß¾à´óĞ¡)
+    /** æ–‡æœ¬ç»˜åˆ¶çš„å†…è¾¹è·(åˆ†åˆ«å¯¹åº”å››ä¸ªè¾¹çš„å†…è¾¹è·å¤§å°)
     */
     UiPadding16 m_rcTextPadding;
 
-    /** Ä¬ÈÏ×ÖÌå
+    /** é»˜è®¤å­—ä½“
     */
     UiString m_sFontId;
 
-    /** Ä¬ÈÏÎÄ±¾ÑÕÉ«
+    /** é»˜è®¤æ–‡æœ¬é¢œè‰²
     */
     UiString m_sTextColor;
 
-    /** ÎÄ±¾¶ÔÆë·½Ê½
+    /** æ–‡æœ¬å¯¹é½æ–¹å¼
     */
     uint32_t m_uTextStyle;
 
-    /** ĞĞ¼ä¾à±¶Êı
+    /** è¡Œé—´è·å€æ•°
     */
     float m_fRowSpacingMul;
 
-    /** »æÖÆµÄÎÄ±¾ÄÚÈİ£¨½âÎöÇ°£©
+    /** ç»˜åˆ¶çš„æ–‡æœ¬å†…å®¹ï¼ˆè§£æå‰ï¼‰
     */
     std::vector<RichTextSlice> m_textSlice;
 
-    /** »æÖÆµÄÎÄ±¾ÄÚÈİ£¨½âÎöºó£©
+    /** ç»˜åˆ¶çš„æ–‡æœ¬å†…å®¹ï¼ˆè§£æåï¼‰
     */
     std::vector<RichTextDataEx> m_textData;
 
-    /** ½âÎöÎÄ±¾¶ÔÓ¦µÄDPIÖµ
+    /** è§£ææ–‡æœ¬å¯¹åº”çš„DPIå€¼
     */
     uint32_t m_nTextDataDPI;
 
-    /** ³¬¼¶Á´½ÓµÄÎÄ±¾£º³£¹æÎÄ±¾ÑÕÉ«
+    /** è¶…çº§é“¾æ¥çš„æ–‡æœ¬ï¼šå¸¸è§„æ–‡æœ¬é¢œè‰²
     */
     UiString m_linkNormalTextColor;
 
-    /** ³¬¼¶Á´½ÓµÄÎÄ±¾£ºHoverÎÄ±¾ÑÕÉ«
+    /** è¶…çº§é“¾æ¥çš„æ–‡æœ¬ï¼šHoveræ–‡æœ¬é¢œè‰²
     */
     UiString m_linkHoverTextColor;
 
-    /** ³¬¼¶Á´½ÓµÄÎÄ±¾£ºÊó±ê°´ÏÂÎÄ±¾ÑÕÉ«
+    /** è¶…çº§é“¾æ¥çš„æ–‡æœ¬ï¼šé¼ æ ‡æŒ‰ä¸‹æ–‡æœ¬é¢œè‰²
     */
     UiString m_linkMouseDownTextColor;
 
-    /** ÊÇ·ñÏÔÊ¾ÏÂ»®Ïß×ÖÌå·ç¸ñ
+    /** æ˜¯å¦æ˜¾ç¤ºä¸‹åˆ’çº¿å­—ä½“é£æ ¼
     */
     bool m_bLinkUnderlineFont;
 
-    /** ÎÄ±¾ID
+    /** æ–‡æœ¬ID
     */
     UiString m_richTextId;
 
-    /** ÓïÑÔÎÄ¼ş
+    /** è¯­è¨€æ–‡ä»¶
     */
     UiString m_langFileName;
 
-    /** ÎÄ±¾µÄTrim²ßÂÔ
+    /** æ–‡æœ¬çš„Trimç­–ç•¥
     */
     enum class TrimPolicy {
-        kNone    = 0, //²»´¦Àí
-        kAll     = 1, //È¥µôËùÓĞ¿Õ¸ñ
-        kKeepOne = 2, //È¥µô¶àÓàµÄ¿Õ¸ñ£¬Ö»±£ÁôÒ»¸ö¿Õ¸ñ
+        kNone    = 0, //ä¸å¤„ç†
+        kAll     = 1, //å»æ‰æ‰€æœ‰ç©ºæ ¼
+        kKeepOne = 2, //å»æ‰å¤šä½™çš„ç©ºæ ¼ï¼Œåªä¿ç•™ä¸€ä¸ªç©ºæ ¼
     };
 
-    /** ÎÄ±¾µÄTrim²ßÂÔ
+    /** æ–‡æœ¬çš„Trimç­–ç•¥
     */
     TrimPolicy m_trimPolicy = TrimPolicy::kAll;
 };

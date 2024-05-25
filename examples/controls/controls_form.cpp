@@ -7,7 +7,7 @@
 
 const std::wstring ControlForm::kClassName = L"Controls";
 
-//ÏµÍ³È«¾ÖÈÈ¼üµÄID
+//ç³»ç»Ÿå…¨å±€çƒ­é”®çš„ID
 #define SYSTEM_HOTKEY_ID 111
 
 ControlForm::ControlForm()
@@ -37,9 +37,9 @@ std::wstring ControlForm::GetWindowClassName() const
 void ControlForm::OnInitWindow()
 {
 	/**
-	 * ÎªÁËÈÃ´úÂë¿´ÆğÀ´Ïà¶ÔÈİÒ×Àí½â£¬²»ĞèÒªÆµ·±¸ú½ø²ÅÄÜ¿´Ã÷°×Ê¾Àı´úÂë
-	 * ÎÒÃÇ½«Ò»Ğ©¿Ø¼ş´¢´æÎª¾Ö²¿±äÁ¿£¬ÕıÈ·µÄÊ¹ÓÃÓ¦¸ÃÊÇ½«ËûÃÇ×÷Îª³ÉÔ±±äÁ¿
-	 * ²»ÒªÔÚÃ¿´ÎÊ¹ÓÃµÄÊ±ºò¶¼ĞèÒª FindControl£¬·ñÔò»áÓ°ÏìĞÔÄÜ´úÂë²»Ò×¶Á
+	 * ä¸ºäº†è®©ä»£ç çœ‹èµ·æ¥ç›¸å¯¹å®¹æ˜“ç†è§£ï¼Œä¸éœ€è¦é¢‘ç¹è·Ÿè¿›æ‰èƒ½çœ‹æ˜ç™½ç¤ºä¾‹ä»£ç 
+	 * æˆ‘ä»¬å°†ä¸€äº›æ§ä»¶å‚¨å­˜ä¸ºå±€éƒ¨å˜é‡ï¼Œæ­£ç¡®çš„ä½¿ç”¨åº”è¯¥æ˜¯å°†ä»–ä»¬ä½œä¸ºæˆå‘˜å˜é‡
+	 * ä¸è¦åœ¨æ¯æ¬¡ä½¿ç”¨çš„æ—¶å€™éƒ½éœ€è¦ FindControlï¼Œå¦åˆ™ä¼šå½±å“æ€§èƒ½ä»£ç ä¸æ˜“è¯»
 	 */
 
 	/* Initialize ListBox data */
@@ -55,7 +55,7 @@ void ControlForm::OnInitWindow()
 		}
 	}
 
-	//³õÊ¼»¯ComboµÄÊı¾İ
+	//åˆå§‹åŒ–Comboçš„æ•°æ®
 	ui::Combo* combo = static_cast<ui::Combo*>(FindControl(L"combo"));
 	if (combo != nullptr) {
 		ui::TreeView* pTreeView = combo->GetTreeView();
@@ -99,13 +99,13 @@ void ControlForm::OnInitWindow()
 
 	ui::CheckCombo* check_combo = static_cast<ui::CheckCombo*>(FindControl(L"check_combo"));
 	if (check_combo != nullptr) {
-		check_combo->AddTextItem(L"ĞÇÆÚÒ»");
-		check_combo->AddTextItem(L"ĞÇÆÚ¶ş");
-		check_combo->AddTextItem(L"ĞÇÆÚÈı");
-		check_combo->AddTextItem(L"ĞÇÆÚËÄ");
-		check_combo->AddTextItem(L"ĞÇÆÚÎå");
-		check_combo->AddTextItem(L"ĞÇÆÚÁù");
-		check_combo->AddTextItem(L"ĞÇÆÚÈÕ");
+		check_combo->AddTextItem(L"æ˜ŸæœŸä¸€");
+		check_combo->AddTextItem(L"æ˜ŸæœŸäºŒ");
+		check_combo->AddTextItem(L"æ˜ŸæœŸä¸‰");
+		check_combo->AddTextItem(L"æ˜ŸæœŸå››");
+		check_combo->AddTextItem(L"æ˜ŸæœŸäº”");
+		check_combo->AddTextItem(L"æ˜ŸæœŸå…­");
+		check_combo->AddTextItem(L"æ˜ŸæœŸæ—¥");
 	}
 
 	/* Load xml file content in global misc thread, and post update RichEdit task to UI thread */
@@ -131,7 +131,7 @@ void ControlForm::OnInitWindow()
 		return true;
 	});
 
-	//×¢²áÒ»¸öContext Menu£¬ÑİÊ¾¹¦ÄÜ£¨ÓÃÕâÁ½ÖÖ·½·¨¶¼¿ÉÒÔ×¢²áÉÏÏÂÎÄ²Ëµ¥¹¦ÄÜ£©
+	//æ³¨å†Œä¸€ä¸ªContext Menuï¼Œæ¼”ç¤ºåŠŸèƒ½ï¼ˆç”¨è¿™ä¸¤ç§æ–¹æ³•éƒ½å¯ä»¥æ³¨å†Œä¸Šä¸‹æ–‡èœå•åŠŸèƒ½ï¼‰
 	//m_pRoot->AttachAllEvents([this](ui::EventArgs& args) {
 	//m_pRoot->AttachMenu([this](ui::EventArgs& args) {
 	ui::RichEdit* edit = static_cast<ui::RichEdit*>(FindControl(L"edit"));
@@ -140,14 +140,14 @@ void ControlForm::OnInitWindow()
 			if (args.Type == ui::kEventMouseMenu) {
 				ui::UiPoint pt = args.ptMouse;
 				if ((pt.x != -1) && (pt.y != -1)) {
-					ui::Control* pControl = (ui::Control*)args.lParam;//µ±Ç°µã»÷µãËùÔÚµÄ¿Ø¼ş
+					ui::Control* pControl = (ui::Control*)args.lParam;//å½“å‰ç‚¹å‡»ç‚¹æ‰€åœ¨çš„æ§ä»¶
 
-					//Êó±êÏûÏ¢²úÉúµÄÉÏÏÂÎÄ²Ëµ¥
+					//é¼ æ ‡æ¶ˆæ¯äº§ç”Ÿçš„ä¸Šä¸‹æ–‡èœå•
 					ClientToScreen(pt);
 					ShowPopupMenu(pt);
 				}
 				else {
-					//°´Shift + F10£¬ÓÉÏµÍ³²úÉúÉÏÏÂÎÄ²Ëµ¥
+					//æŒ‰Shift + F10ï¼Œç”±ç³»ç»Ÿäº§ç”Ÿä¸Šä¸‹æ–‡èœå•
 					pt = { 100, 100 };
 					ClientToScreen(pt);
 					ShowPopupMenu(pt);
@@ -157,7 +157,7 @@ void ControlForm::OnInitWindow()
 			});
 	}
 
-	//ÏÔÊ¾Ê°É«Æ÷
+	//æ˜¾ç¤ºæ‹¾è‰²å™¨
 	ui::Button* pShowColorPicker = dynamic_cast<ui::Button*>(FindControl(L"show_color_picker"));
 	if (pShowColorPicker != nullptr) {
 		pShowColorPicker->AttachClick([this](const ui::EventArgs& args) {
@@ -166,25 +166,25 @@ void ControlForm::OnInitWindow()
 		});
 	}
 
-	//RichTextÏÔÊ¾³¬¼¶Á´½Ó
+	//RichTextæ˜¾ç¤ºè¶…çº§é“¾æ¥
 	ui::RichText* pRichText = dynamic_cast<ui::RichText*>(FindControl(L"rich_text_demo"));
 	if (pRichText != nullptr) {
 		pRichText->AttachLinkClick([this](const ui::EventArgs& args) {
 			const wchar_t* url = (const wchar_t*)args.wParam;
 			if (url != nullptr) {
-				::MessageBox(GetHWND(), url, L"RichTextµã»÷³¬Á´½Ó", MB_OK);
+				::MessageBox(GetHWND(), url, L"RichTextç‚¹å‡»è¶…é“¾æ¥", MB_OK);
 			}
 			return true;
 			});
 	}
 
-	//HyperLink¿Ø¼ş
+	//HyperLinkæ§ä»¶
 	ui::HyperLink* pHyperLink = dynamic_cast<ui::HyperLink*>(FindControl(L"hyper_link1"));
 	if (pHyperLink != nullptr) {
 		pHyperLink->AttachLinkClick([this](const ui::EventArgs& args) {
 			const wchar_t* url = (const wchar_t*)args.wParam;
 			if (url != nullptr) {
-				::MessageBox(GetHWND(), url, L"HyperLinkµã»÷³¬Á´½Ó", MB_OK);
+				::MessageBox(GetHWND(), url, L"HyperLinkç‚¹å‡»è¶…é“¾æ¥", MB_OK);
 			}
 			return true;
 			});
@@ -193,12 +193,12 @@ void ControlForm::OnInitWindow()
 	pHyperLink = dynamic_cast<ui::HyperLink*>(FindControl(L"hyper_link2"));
 	if (pHyperLink != nullptr) {
 		pHyperLink->AttachLinkClick([this](const ui::EventArgs& /*args*/) {
-			::MessageBox(GetHWND(), L"ÎÄ×Ö°´Å¥ÊÂ¼şÏìÓ¦", L"HyperLinkµã»÷", MB_OK);
+			::MessageBox(GetHWND(), L"æ–‡å­—æŒ‰é’®äº‹ä»¶å“åº”", L"HyperLinkç‚¹å‡»", MB_OK);
 			return true;
 			});
 	}
 
-	//ÈÈ¼üÉèÖÃ
+	//çƒ­é”®è®¾ç½®
 	ui::HotKey* pHotKey = dynamic_cast<ui::HotKey*>(FindControl(L"set_hot_key"));
 	ui::Button* pHotKeyButton = dynamic_cast<ui::Button*>(FindControl(L"btn_set_hot_key"));
 	if (pHotKey && pHotKeyButton) {
@@ -207,13 +207,13 @@ void ControlForm::OnInitWindow()
 			uint8_t wModifiers = 0;
 			pHotKey->GetHotKey(wVirtualKeyCode, wModifiers);
 			if (wVirtualKeyCode != 0) {
-				//ÉèÖÃÎª¼¤»î´°¿ÚµÄÈÈ¼ü
+				//è®¾ç½®ä¸ºæ¿€æ´»çª—å£çš„çƒ­é”®
 				int32_t nRet = SetWindowHotKey(wVirtualKeyCode, wModifiers);
 				ASSERT(nRet == 1);
 			}
 
 			//if (1) {
-			//	//²âÊÔ´úÂë
+			//	//æµ‹è¯•ä»£ç 
 			//	std::wstring hotKeyName = pHotKey->GetHotKeyName();
 			//	uint8_t wVirtualKeyCode = 0;
 			//	uint8_t wModifiers = 0;
@@ -246,7 +246,7 @@ void ControlForm::OnInitWindow()
 			uint8_t wModifiers = 0;
 			pHotKey->GetHotKey(wVirtualKeyCode, wModifiers);
 			if (wVirtualKeyCode != 0) {
-				//ÉèÖÃÎªÏµÍ³È«¾ÖµÄÈÈ¼ü
+				//è®¾ç½®ä¸ºç³»ç»Ÿå…¨å±€çš„çƒ­é”®
 				bool nRet = RegisterHotKey(wVirtualKeyCode, wModifiers, SYSTEM_HOTKEY_ID);
 				ASSERT(nRet);
 			}
@@ -268,22 +268,22 @@ void ControlForm::ShowColorPicker()
 		if (!oldTextColor.empty() && (pColorPicker != nullptr)) {
 			pColorPicker->SetSelectedColor(pEdit->GetUiColor(oldTextColor));
 		}
-		//Èç¹ûÔÚ½çÃæÑ¡ÔñÑÕÉ«£¬ÔòÁÙÊ±¸üĞÂRichEdit¿Ø¼şÎÄ±¾µÄÑÕÉ«
+		//å¦‚æœåœ¨ç•Œé¢é€‰æ‹©é¢œè‰²ï¼Œåˆ™ä¸´æ—¶æ›´æ–°RichEditæ§ä»¶æ–‡æœ¬çš„é¢œè‰²
 		pColorPicker->AttachSelectColor([this, pEdit](const ui::EventArgs& args) {
 			ui::UiColor newColor = ui::UiColor((uint32_t)args.wParam);
 			pEdit->SetTextColor(pEdit->GetColorString(newColor));
 			return true;
 			});
 
-		//´°¿Ú¹Ø±ÕÊÂ¼ş
+		//çª—å£å…³é—­äº‹ä»¶
 		pColorPicker->AttachWindowClose([this, pColorPicker, pEdit, oldTextColor](const ui::EventArgs& args) {
 			ui::UiColor newColor = pColorPicker->GetSelectedColor();
 			if ((args.wParam == 0) && !newColor.IsEmpty()) {
-				//Èç¹ûÊÇ"È·ÈÏ"£¬ÔòÉèÖÃRichEdit¿Ø¼şµÄÎÄ±¾ÑÕÉ«
+				//å¦‚æœæ˜¯"ç¡®è®¤"ï¼Œåˆ™è®¾ç½®RichEditæ§ä»¶çš„æ–‡æœ¬é¢œè‰²
 				pEdit->SetTextColor(pEdit->GetColorString(newColor));
 			}
 			else {
-				//Èç¹ûÊÇ"È¡Ïû"»òÕß¹Ø±Õ´°¿Ú£¬Ôò»Ö¸´Ô­À´µÄÑÕÉ«
+				//å¦‚æœæ˜¯"å–æ¶ˆ"æˆ–è€…å…³é—­çª—å£ï¼Œåˆ™æ¢å¤åŸæ¥çš„é¢œè‰²
 				pEdit->SetTextColor(oldTextColor);
 			}
 			return true;
@@ -294,11 +294,11 @@ void ControlForm::ShowColorPicker()
 
 void ControlForm::ShowPopupMenu(const ui::UiPoint& point)
 {
-    ui::Menu* menu = new ui::Menu(GetHWND());//ĞèÒªÉèÖÃ¸¸´°¿Ú£¬·ñÔÚ²Ëµ¥µ¯³öµÄÊ±ºò£¬³ÌĞò×´Ì¬À¸±à³Ì·Ç¼¤»î×´Ì¬
+    ui::Menu* menu = new ui::Menu(GetHWND());//éœ€è¦è®¾ç½®çˆ¶çª—å£ï¼Œå¦åœ¨èœå•å¼¹å‡ºçš„æ—¶å€™ï¼Œç¨‹åºçŠ¶æ€æ ç¼–ç¨‹éæ¿€æ´»çŠ¶æ€
     std::wstring xml(L"settings_menu.xml");
     menu->ShowMenu(xml, point);
 
-    //ÔÚ¶ş¼¶²Ëµ¥ÖĞ£¬Ìí¼Ó×Ó²Ëµ¥Ïî
+    //åœ¨äºŒçº§èœå•ä¸­ï¼Œæ·»åŠ å­èœå•é¡¹
     ui::MenuItem* menu_fourth = static_cast<ui::MenuItem*>(menu->FindControl(L"fourth"));
 	if (menu_fourth != nullptr) {
 		ui::MenuItem* menu_item = new ui::MenuItem(menu);
@@ -307,11 +307,11 @@ void ControlForm::ShowPopupMenu(const ui::UiPoint& point)
 		menu_item->SetFixedWidth(ui::UiFixedInt(180), true, true);
 		menu_item->SetFontId(L"system_14");
 		menu_item->SetTextPadding({ 20, 0, 20, 0 }, true);
-		menu_fourth->AddSubMenuItemAt(menu_item, 1);//Ìí¼Óºó£¬×ÊÔ´ÓÉ²Ëµ¥Í³Ò»¹ÜÀí
+		menu_fourth->AddSubMenuItemAt(menu_item, 1);//æ·»åŠ åï¼Œèµ„æºç”±èœå•ç»Ÿä¸€ç®¡ç†
 	}
 	
 
-    //ÔÚÒ»¼¶²Ëµ¥ÖĞ£¬Ìí¼Ó×Ó²Ëµ¥Ïî
+    //åœ¨ä¸€çº§èœå•ä¸­ï¼Œæ·»åŠ å­èœå•é¡¹
     /*
     menu_item = new ui::MenuItem(menu);
 	menu_item->SetWindow(menu);
@@ -320,10 +320,10 @@ void ControlForm::ShowPopupMenu(const ui::UiPoint& point)
     menu_item->SetFixedWidth(180);
     menu_item->SetFontId(L"system_14");
     menu_item->SetTextPadding({ 20, 0, 20, 0 });
-    menu->AddMenuItemAt(menu_item, 4);//Ìí¼Óºó£¬×ÊÔ´ÓÉ²Ëµ¥Í³Ò»¹ÜÀí
+    menu->AddMenuItemAt(menu_item, 4);//æ·»åŠ åï¼Œèµ„æºç”±èœå•ç»Ÿä¸€ç®¡ç†
     */
 
-    //CheckBox²Ëµ¥ÏîµÄ¹¦ÄÜÑİÊ¾
+    //CheckBoxèœå•é¡¹çš„åŠŸèƒ½æ¼”ç¤º
     static bool s_is_checked_01_flag = false;
     bool& flag = s_is_checked_01_flag;
     ui::MenuItem* menu_check_01 = dynamic_cast<ui::MenuItem*>(menu->FindControl(L"menu_check_01"));
@@ -367,7 +367,7 @@ void ControlForm::ShowPopupMenu(const ui::UiPoint& point)
 
 void ControlForm::OnCloseWindow()
 {
-	//¹Ø±Õ´°¿Úºó£¬ÍË³öÖ÷Ïß³ÌµÄÏûÏ¢Ñ­»·£¬¹Ø±Õ³ÌĞò
+	//å…³é—­çª—å£åï¼Œé€€å‡ºä¸»çº¿ç¨‹çš„æ¶ˆæ¯å¾ªç¯ï¼Œå…³é—­ç¨‹åº
 	PostQuitMessage(0L);
 }
 
@@ -409,7 +409,7 @@ void ControlForm::OnResourceFileLoaded(const std::wstring& xml)
 		control_edit->HomeUp();
 	}
 
-	//Æô¶¯¼ÓÔØ¶¯»­
+	//å¯åŠ¨åŠ è½½åŠ¨ç”»
 	//control_edit->StartLoading();
 	//control_edit->StartGifPlay();
 
@@ -419,7 +419,7 @@ void ControlForm::OnResourceFileLoaded(const std::wstring& xml)
 
 void ControlForm::OnProgressValueChagned(float value)
 {
-	//»Øµ÷¸øµÄ½ø¶È·¶Î§ÊÇ£º[0, 99), ×ª»»Îª[0, 100]
+	//å›è°ƒç»™çš„è¿›åº¦èŒƒå›´æ˜¯ï¼š[0, 99), è½¬æ¢ä¸º[0, 100]
 	int lastValue = 0;
 	value = value * 100 / 99 + 0.5f;
 	auto progress = static_cast<ui::Progress*>(FindControl(L"progress"));
@@ -435,7 +435,7 @@ void ControlForm::OnProgressValueChagned(float value)
 	}
 
 	if (((int)value == progress->GetMaxValue()) || (value < lastValue)) {
-		//½ø¶È´ïµ½×î´óÖµ£¬Í£Ö¹¼ÓÔØ¶¯»­
+		//è¿›åº¦è¾¾åˆ°æœ€å¤§å€¼ï¼Œåœæ­¢åŠ è½½åŠ¨ç”»
 		auto control_edit = static_cast<ui::RichEdit*>(FindControl(L"edit"));
 		if (control_edit) {
 			control_edit->StopLoading();
@@ -449,7 +449,7 @@ LRESULT ControlForm::OnHotKey(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHa
 	bHandled = true;
 	if (wParam == SYSTEM_HOTKEY_ID) {
 		SetForeground();
-		::MessageBox(GetHWND(), L"½ÓÊÕµ½ÏµÍ³ÈÈ¼üÃüÁî", L"ControlForm::OnHotKey", MB_OK);
+		::MessageBox(GetHWND(), L"æ¥æ”¶åˆ°ç³»ç»Ÿçƒ­é”®å‘½ä»¤", L"ControlForm::OnHotKey", MB_OK);
 	}
 	return lResult;
 }

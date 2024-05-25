@@ -11,7 +11,7 @@
 
 namespace pugi
 {
-    //XML ½âÎöÆ÷Ïà¹Ø¶¨Òå
+    //XML è§£æå™¨ç›¸å…³å®šä¹‰
     class xml_document;
     class xml_node;
 }
@@ -24,11 +24,11 @@ class Window;
 class Control;
 class RichTextSlice;
 
-/** ´´½¨¿Ø¼şµÄ»Øµ÷º¯Êı
+/** åˆ›å»ºæ§ä»¶çš„å›è°ƒå‡½æ•°
 */
 typedef std::function<Control* (const std::wstring&)> CreateControlCallback;
 
-/** ¸ù¾İXMLÎÄ¼ş£¬½âÎö²¢´´½¨¿Ø¼şºÍ²¼¾Ö
+/** æ ¹æ®XMLæ–‡ä»¶ï¼Œè§£æå¹¶åˆ›å»ºæ§ä»¶å’Œå¸ƒå±€
 */
 class UILIB_API WindowBuilder
 {
@@ -40,11 +40,11 @@ public:
     WindowBuilder& operator = (const WindowBuilder&) = delete;
 
 public:
-    /** Ê¹ÓÃXMLÎÄ¼ş´´½¨´°¿Ú²¼¾ÖµÈ
-    @param [in] xml ¿ÉÒÔÊÇÎÄ¼şÎÄ±¾ÄÚÈİ£¬Èç¹ûÊÇXMLÎÄ¼şÄÚÈİ£¬×Ö·û´®ĞèÒªÒÔ×Ö·û '<'¿ªÍ·;
-                Ò²¿ÉÒÔÊÇXMLÎÄ¼şµÄÂ·¾¶
-    @param [in] pWindow ¹ØÁªµÄ´°¿Ú
-    @param [in] pParent ¸¸ÈİÆ÷
+    /** ä½¿ç”¨XMLæ–‡ä»¶åˆ›å»ºçª—å£å¸ƒå±€ç­‰
+    @param [in] xml å¯ä»¥æ˜¯æ–‡ä»¶æ–‡æœ¬å†…å®¹ï¼Œå¦‚æœæ˜¯XMLæ–‡ä»¶å†…å®¹ï¼Œå­—ç¬¦ä¸²éœ€è¦ä»¥å­—ç¬¦ '<'å¼€å¤´;
+                ä¹Ÿå¯ä»¥æ˜¯XMLæ–‡ä»¶çš„è·¯å¾„
+    @param [in] pWindow å…³è”çš„çª—å£
+    @param [in] pParent çˆ¶å®¹å™¨
     */
     Box* Create(const std::wstring& xml, 
                 CreateControlCallback pCallback = CreateControlCallback(),
@@ -52,18 +52,18 @@ public:
                 Box* pParent = nullptr, 
                 Box* pUserDefinedBox = nullptr);
 
-    //Ê¹ÓÃ»º´æÖĞµÄXMLÎÄ¼ş(¼´ÉÏÃæµÄCreateº¯Êı´«ÈëµÄXMLÎÄ¼ş)´´½¨´°¿Ú²¼¾ÖµÈ
+    //ä½¿ç”¨ç¼“å­˜ä¸­çš„XMLæ–‡ä»¶(å³ä¸Šé¢çš„Createå‡½æ•°ä¼ å…¥çš„XMLæ–‡ä»¶)åˆ›å»ºçª—å£å¸ƒå±€ç­‰
     Box* Create(CreateControlCallback pCallback = CreateControlCallback(), 
                 Window* pWindow = nullptr,
                 Box* pParent = nullptr, 
                 Box* pUserDefinedBox = nullptr);
 
 public:
-    /** ½âÎö´ø¸ñÊ½µÄÎÄ±¾ÄÚÈİ£¬²¢ÉèÖÃµ½RichText Control¶ÔÏó
+    /** è§£æå¸¦æ ¼å¼çš„æ–‡æœ¬å†…å®¹ï¼Œå¹¶è®¾ç½®åˆ°RichText Controlå¯¹è±¡
     */
     static bool ParseRichTextXmlText(const std::wstring& xmlText, Control* pControl);
     
-    /** ½âÎö´ø¸ñÊ½µÄÎÄ±¾ÄÚÈİ£¬²¢ÉèÖÃµ½RichText Control¶ÔÏó
+    /** è§£æå¸¦æ ¼å¼çš„æ–‡æœ¬å†…å®¹ï¼Œå¹¶è®¾ç½®åˆ°RichText Controlå¯¹è±¡
     */
     static bool ParseRichTextXmlNode(const pugi::xml_node& xmlNode, Control* pControl, RichTextSlice* pTextSlice = nullptr);
 
@@ -72,25 +72,25 @@ private:
 	Control* CreateControlByClass(const std::wstring& strControlClass, Window* pWindow);
 	void AttachXmlEvent(bool bBubbled, const pugi::xml_node& node, Control* pParent);
 
-    /** ÅĞ¶ÏXMLÎÄ¼şÊÇ·ñ´æÔÚ
+    /** åˆ¤æ–­XMLæ–‡ä»¶æ˜¯å¦å­˜åœ¨
     */
     bool IsXmlFileExists(const std::wstring& xml) const;
 
-    /** ½âÎö×ÖÌå½Úµã
+    /** è§£æå­—ä½“èŠ‚ç‚¹
     */
     void ParseFontXmlNode(const pugi::xml_node& xmlNode) const;
 
 private:
     
-    /** µ±Ç°½âÎöµÄXMLÎÄµµ¶ÔÏó
+    /** å½“å‰è§£æçš„XMLæ–‡æ¡£å¯¹è±¡
     */
     std::unique_ptr<pugi::xml_document> m_xml;
 
-    /** ´´½¨ControlµÄ»Øµ÷½Ó¿Ú
+    /** åˆ›å»ºControlçš„å›è°ƒæ¥å£
     */
 	CreateControlCallback m_createControlCallback;
 
-    /** µ±Ç°½âÎöµÄXMLÎÄ¼şÂ·¾¶
+    /** å½“å‰è§£æçš„XMLæ–‡ä»¶è·¯å¾„
     */
     std::wstring m_xmlFilePath;
 };

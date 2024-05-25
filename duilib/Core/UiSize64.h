@@ -9,7 +9,7 @@
 namespace ui 
 {
 
-/** Size64µÄ·â×°
+/** Size64çš„å°è£…
 */
 class UILIB_API UiSize64
 {
@@ -31,7 +31,7 @@ public:
 		cy = cyValue;
 	}
 
-	/** ÉèÖÃĞÂµÄ¿í¶ÈºÍ¸ß¶È
+	/** è®¾ç½®æ–°çš„å®½åº¦å’Œé«˜åº¦
 	*/
 	void SetWidthHeight(int64_t cxValue, int64_t cyValue)
 	{
@@ -39,27 +39,27 @@ public:
 		cy = cyValue;
 	}
 
-	/** ÉèÖÃĞÂµÄ¿í¶È
+	/** è®¾ç½®æ–°çš„å®½åº¦
 	*/
 	void SetWidth(int64_t cxValue) { cx = cxValue; }
 
-	/** ÉèÖÃĞÂµÄ¸ß¶È
+	/** è®¾ç½®æ–°çš„é«˜åº¦
 	*/
 	void SetHeight(int64_t cyValue) { cy = cyValue; }
 
-	/** ·µ»Ø¿í¶È
+	/** è¿”å›å®½åº¦
 	*/
 	constexpr int64_t Width() const { return cx; }
 
-	/** ·µ»Ø¸ß¶È
+	/** è¿”å›é«˜åº¦
 	*/
 	constexpr int64_t Height() const { return cy; }
 
-	/** Èç¹ûcxºÍcy¶¼ÊÇ0£¬·µ»Øtrue
+	/** å¦‚æœcxå’Œcyéƒ½æ˜¯0ï¼Œè¿”å›true
 	*/
 	bool IsEmpty() const { return cx == 0 && cy == 0; }
 
-	/** cxºÍcy¶¼ÉèÖÃÎª0
+	/** cxå’Œcyéƒ½è®¾ç½®ä¸º0
 	*/
 	void Clear()
 	{
@@ -67,28 +67,28 @@ public:
 		cy = 0;
 	}
 
-	/** ÅĞ¶ÏÊÇ·ñÓëÁíÍâÒ»¸öSizeÏàÍ¬
+	/** åˆ¤æ–­æ˜¯å¦ä¸å¦å¤–ä¸€ä¸ªSizeç›¸åŒ
 	*/
 	bool Equals(int64_t cxValue, int64_t cyValue) const
 	{
 		return cx == cxValue && cy == cyValue;
 	}
 
-	/** ÅĞ¶ÏÊÇ·ñÓëÁíÍâÒ»¸öSizeÏàÍ¬
+	/** åˆ¤æ–­æ˜¯å¦ä¸å¦å¤–ä¸€ä¸ªSizeç›¸åŒ
 	*/
 	bool Equals(const UiSize64& dst) const
 	{
 		return cx == dst.cx && cy == dst.cy;
 	}
 
-	/** ÅĞ¶ÏÁ½¸öÖµÊÇ·ñÏàµÈ
+	/** åˆ¤æ–­ä¸¤ä¸ªå€¼æ˜¯å¦ç›¸ç­‰
 	*/
 	friend bool operator == (const UiSize64& a, const UiSize64& b)
 	{
 		return a.Equals(b);
 	}
 
-	/** ÅĞ¶ÏÁ½¸öÖµÊÇ·ñ²»ÏàµÈ
+	/** åˆ¤æ–­ä¸¤ä¸ªå€¼æ˜¯å¦ä¸ç›¸ç­‰
 	*/
 	friend bool operator != (const UiSize64& a, const UiSize64& b)
 	{
@@ -96,11 +96,11 @@ public:
 	}
 
 public:
-	/** ¿í¶È
+	/** å®½åº¦
 	*/
 	int64_t cx;
 
-	/** ¸ß¶È
+	/** é«˜åº¦
 	*/
 	int64_t cy;
 };

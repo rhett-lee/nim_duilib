@@ -76,10 +76,10 @@ bool Bitmap_Skia::Init(uint32_t nWidth, uint32_t nHeight, bool flipHeight,
 
     std::vector<uint8_t> flipPixelBits;
     if (!flipHeight) {
-        //±ÜÃâÍ¼ÏñÊÇµ¹×ÅµÄ£¬´Ë´¦¶ÔÍ¼Æ¬Êı¾İ½øĞĞ·­×ª´¦Àí£¨SkiaËÆºõ²»Ö§³ÖflipHeightµÄÇé¿ö£©
+        //é¿å…å›¾åƒæ˜¯å€’ç€çš„ï¼Œæ­¤å¤„å¯¹å›¾ç‰‡æ•°æ®è¿›è¡Œç¿»è½¬å¤„ç†ï¼ˆSkiaä¼¼ä¹ä¸æ”¯æŒflipHeightçš„æƒ…å†µï¼‰
         ASSERT(pPixelBits != nullptr);
         if (pPixelBits != nullptr) {
-            //ĞèÒª¶ÔÍ¼Æ¬Êı¾İ½øĞĞ´¹Ö±·­×ª£¬·ñÔòÍ¼Æ¬ÊÇµ¹×ÅµÄ            
+            //éœ€è¦å¯¹å›¾ç‰‡æ•°æ®è¿›è¡Œå‚ç›´ç¿»è½¬ï¼Œå¦åˆ™å›¾ç‰‡æ˜¯å€’ç€çš„            
             flipPixelBits.resize(nWidth * nHeight * 4);
             FlipPixelBits((const uint8_t*)pPixelBits, nWidth, nHeight, flipPixelBits);
             pPixelBits = flipPixelBits.data();
@@ -119,7 +119,7 @@ void Bitmap_Skia::FlipPixelBits(const uint8_t* pPixelBits, uint32_t nWidth, uint
 {
     ASSERT(flipBits.size() == nWidth* nHeight*4);
 
-    const uint32_t dwEffWidth = nWidth * 4;//Ã¿ĞĞÊı¾İ×Ö½ÚÊı, °´ĞĞ¸´ÖÆÊı¾İ
+    const uint32_t dwEffWidth = nWidth * 4;//æ¯è¡Œæ•°æ®å­—èŠ‚æ•°, æŒ‰è¡Œå¤åˆ¶æ•°æ®
     for (uint32_t row = 0; row < nHeight; ++row) {
         uint8_t* dest = flipBits.data() + row * dwEffWidth;
         const uint8_t* src = pPixelBits + (nHeight - 1 - row) * dwEffWidth;
@@ -206,10 +206,10 @@ HBITMAP Bitmap_Skia::CreateBitmap(int32_t nWidth, int32_t nHeight, bool flipHeig
     bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
     bmi.bmiHeader.biWidth = nWidth;
     if (flipHeight) {
-        bmi.bmiHeader.biHeight = -nHeight;//¸ºÊı±íÊ¾Î»Í¼·½Ïò£º´ÓÉÏµ½ÏÂ£¬×óÉÏ½ÇÎªÔ²µã
+        bmi.bmiHeader.biHeight = -nHeight;//è´Ÿæ•°è¡¨ç¤ºä½å›¾æ–¹å‘ï¼šä»ä¸Šåˆ°ä¸‹ï¼Œå·¦ä¸Šè§’ä¸ºåœ†ç‚¹
     }
     else {
-        bmi.bmiHeader.biHeight = nHeight; //ÕıÊı±íÊ¾Î»Í¼·½Ïò£º´ÓÏÂµ½ÉÏ£¬×óÏÂ½ÇÎªÔ²µã
+        bmi.bmiHeader.biHeight = nHeight; //æ­£æ•°è¡¨ç¤ºä½å›¾æ–¹å‘ï¼šä»ä¸‹åˆ°ä¸Šï¼Œå·¦ä¸‹è§’ä¸ºåœ†ç‚¹
     }    
     bmi.bmiHeader.biPlanes = 1;
     bmi.bmiHeader.biBitCount = 32;
@@ -233,7 +233,7 @@ void Bitmap_Skia::UpdateAlphaFlag(const uint8_t* pPixelBits)
         return;
     }
     if (m_alphaType == kOpaque_SkAlphaType) {
-        //Ö¸¶¨Îª²»Í¸Ã÷Í¼Æ¬£¬²»ĞèÒª¸üĞÂAlphaBitmap±êÖ¾
+        //æŒ‡å®šä¸ºä¸é€æ˜å›¾ç‰‡ï¼Œä¸éœ€è¦æ›´æ–°AlphaBitmapæ ‡å¿—
         return;
     }
     for (uint32_t i = 0; i < m_nHeight; ++i) {

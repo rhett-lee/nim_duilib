@@ -8,90 +8,90 @@
 
 namespace ui
 {
-/** ÑÕÉ«Ñ¡ÔñÆ÷£º±ê×¼ÑÕÉ«
+/** é¢œè‰²é€‰æ‹©å™¨ï¼šæ ‡å‡†é¢œè‰²
 */
 class ColorPickerStatard : public Control
 {
 public:
 	explicit ColorPickerStatard(Window* pWindow);
 
-	/** »ñÈ¡¿Ø¼şÀàĞÍ
+	/** è·å–æ§ä»¶ç±»å‹
 	*/
 	virtual std::wstring GetType() const override;
 
-	/** Ñ¡ÔñÒ»¸öÑÕÉ«
+	/** é€‰æ‹©ä¸€ä¸ªé¢œè‰²
 	*/
 	void SelectColor(const UiColor& color);
 
 	/**
-	* @brief »æÖÆ¿Ø¼şµÄÈë¿Úº¯Êı
-	* @param[in] pRender Ö¸¶¨»æÖÆÇøÓò
-	* @param[in] rcPaint Ö¸¶¨»æÖÆ×ø±ê
-	* @return ÎŞ
+	* @brief ç»˜åˆ¶æ§ä»¶çš„å…¥å£å‡½æ•°
+	* @param[in] pRender æŒ‡å®šç»˜åˆ¶åŒºåŸŸ
+	* @param[in] rcPaint æŒ‡å®šç»˜åˆ¶åæ ‡
+	* @return æ— 
 	*/
 	virtual void Paint(IRender* pRender, const UiRect& rcPaint) override;
 
-	/** ÔÚÒ»¸ö¾ØĞÎÄÚ»æÖÆÕıÁù±ßĞÎÆ´½ÓµÄÑÕÉ«µØÍ¼, ¾¡Á¿³äÂúÕû¸ö¾ØĞÎ
+	/** åœ¨ä¸€ä¸ªçŸ©å½¢å†…ç»˜åˆ¶æ­£å…­è¾¹å½¢æ‹¼æ¥çš„é¢œè‰²åœ°å›¾, å°½é‡å……æ»¡æ•´ä¸ªçŸ©å½¢
 	*/
 	void DrawColorMap(IRender* pRender, const UiRect& rect);
 
-	/** »æÖÆÒ»¸öÕıÁù±ßĞÎ(²ÉÓÃ¶à±ßĞÎ¶¥µãµÄ·½Ê½½øĞĞÂ·¾¶Ìî³ä)
-	* @param [in] pRender äÖÈ¾½Ó¿Ú
-	* @param [in] centerPt ÕıÁù±ßĞÎµÄÖĞĞÄµã×ø±ê
-	* @param [in] radius ÕıÁù±ßĞÎµÄ°ë¾¶£¬ÖĞĞÄµã¾àÀë¶¥µãµÄ¾àÀë£¨Í¬Ê±Ò²ÊÇ±ß³¤£©
-	* @param [in] penColor »­±ÊµÄÑÕÉ«£¬Èç¹ûÎª0£¬Ôò²»»æÖÆ±ß¿ò
-	* @param [in] penWidth »­±ÊµÄ¿í¶È£¬Èç¹ûÎª0£¬Ôò²»»æÖÆ±ß¿ò
-	* @param [in] brushColor »­Ë¢µÄÑÕÉ«£¬Èç¹ûÎª0£¬ÔòÌî³äÑÕÉ«
+	/** ç»˜åˆ¶ä¸€ä¸ªæ­£å…­è¾¹å½¢(é‡‡ç”¨å¤šè¾¹å½¢é¡¶ç‚¹çš„æ–¹å¼è¿›è¡Œè·¯å¾„å¡«å……)
+	* @param [in] pRender æ¸²æŸ“æ¥å£
+	* @param [in] centerPt æ­£å…­è¾¹å½¢çš„ä¸­å¿ƒç‚¹åæ ‡
+	* @param [in] radius æ­£å…­è¾¹å½¢çš„åŠå¾„ï¼Œä¸­å¿ƒç‚¹è·ç¦»é¡¶ç‚¹çš„è·ç¦»ï¼ˆåŒæ—¶ä¹Ÿæ˜¯è¾¹é•¿ï¼‰
+	* @param [in] penColor ç”»ç¬”çš„é¢œè‰²ï¼Œå¦‚æœä¸º0ï¼Œåˆ™ä¸ç»˜åˆ¶è¾¹æ¡†
+	* @param [in] penWidth ç”»ç¬”çš„å®½åº¦ï¼Œå¦‚æœä¸º0ï¼Œåˆ™ä¸ç»˜åˆ¶è¾¹æ¡†
+	* @param [in] brushColor ç”»åˆ·çš„é¢œè‰²ï¼Œå¦‚æœä¸º0ï¼Œåˆ™å¡«å……é¢œè‰²
 	*/
 	bool DrawRegularHexagon(IRender* pRender, const UiPointF& centerPt, int32_t radius,
 		                    const UiColor& penColor, int32_t penWidth, const UiColor& brushColor);
 
-	/** Êó±êÒÆ¶¯
+	/** é¼ æ ‡ç§»åŠ¨
 	*/
 	virtual bool MouseMove(const EventArgs& msg) override;
 
-	/** Êó±ê×ó¼ü°´ÏÂ
+	/** é¼ æ ‡å·¦é”®æŒ‰ä¸‹
 	*/
 	virtual bool ButtonDown(const EventArgs& msg) override;
 
-	/** »ñÈ¡µ±Ç°Êó±êËùÔÚµãµÄÑÕÉ«ĞÅÏ¢
+	/** è·å–å½“å‰é¼ æ ‡æ‰€åœ¨ç‚¹çš„é¢œè‰²ä¿¡æ¯
 	*/
 	bool GetColorInfo(const UiPoint& ptMouse, UiColor& ptColor) const;
 
-	/** ¼ÆËãÁ½µãÖ®¼äµÄ¾àÀë
+	/** è®¡ç®—ä¸¤ç‚¹ä¹‹é—´çš„è·ç¦»
 	*/
 	float GetPointsDistance(const UiPointF& pt1, const UiPointF& pt2) const;
 
-	/** ³õÊ¼»¯ÑÕÉ«±í
+	/** åˆå§‹åŒ–é¢œè‰²è¡¨
 	*/
 	void InitColorMap();
 
-	/** ¼àÌıÑ¡ÔñÑÕÉ«µÄÊÂ¼ş
-	* @param[in] callback Ñ¡ÔñÑÕÉ«±ä»¯Ê±µÄ»Øµ÷º¯Êı
-	*            ²ÎÊıËµÃ÷:
-						wParam: µ±Ç°ĞÂÑ¡ÔñµÄÑÕÉ«Öµ£¬¿ÉÒÔÓÃUiColor((uint32_t)wParam)Éú³ÉÑÕÉ«
-						lParam: Ô­À´¾ÉÑ¡ÔñµÄÑÕÉ«Öµ£¬¿ÉÒÔÓÃUiColor((uint32_t)lParam)Éú³ÉÑÕÉ«
+	/** ç›‘å¬é€‰æ‹©é¢œè‰²çš„äº‹ä»¶
+	* @param[in] callback é€‰æ‹©é¢œè‰²å˜åŒ–æ—¶çš„å›è°ƒå‡½æ•°
+	*            å‚æ•°è¯´æ˜:
+						wParam: å½“å‰æ–°é€‰æ‹©çš„é¢œè‰²å€¼ï¼Œå¯ä»¥ç”¨UiColor((uint32_t)wParam)ç”Ÿæˆé¢œè‰²
+						lParam: åŸæ¥æ—§é€‰æ‹©çš„é¢œè‰²å€¼ï¼Œå¯ä»¥ç”¨UiColor((uint32_t)lParam)ç”Ÿæˆé¢œè‰²
 	*/
 	void AttachSelectColor(const EventCallback& callback) { AttachEvent(kEventSelectColor, callback); }
 
 private:
-	/** ÑÕÉ«±í
+	/** é¢œè‰²è¡¨
 	*/
 	struct ColorInfo
 	{
-		//ÑÕÉ«Öµ
+		//é¢œè‰²å€¼
 		UiColor color;
 
-		//¸ÃÑÕÉ«µÄÕıÁù±ßĞÎÖĞĞÄµã×ø±ê
+		//è¯¥é¢œè‰²çš„æ­£å…­è¾¹å½¢ä¸­å¿ƒç‚¹åæ ‡
 		UiPointF centerPt;
 	};
 	std::vector<ColorInfo> m_colorMap;
 
-	/** ÕıÁù±ßĞÎµÄ°ë¾¶
+	/** æ­£å…­è¾¹å½¢çš„åŠå¾„
 	*/
 	int32_t m_radius;
 
-	/** µ±Ç°Ñ¡ÔñÁËÄÄÖÖÑÕÉ«
+	/** å½“å‰é€‰æ‹©äº†å“ªç§é¢œè‰²
 	*/
 	UiColor m_selectedColor;
 };

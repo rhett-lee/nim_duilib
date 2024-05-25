@@ -136,7 +136,7 @@ void ListCtrlView::OnInit()
         return;
     }
     __super::OnInit();
-    //½ûÖ¹ËæÊó±ê¹öÂÖµÄ¹ö¶¯¸Ä±äÑ¡ÖĞÏî
+    //ç¦æ­¢éšé¼ æ ‡æ»šè½®çš„æ»šåŠ¨æ”¹å˜é€‰ä¸­é¡¹
     SetScrollSelect(false);
 }
 
@@ -150,7 +150,7 @@ void ListCtrlView::AttachMouseEvents(Control* pListBoxItem)
 {
     ASSERT(pListBoxItem != nullptr);
     if (pListBoxItem != nullptr) {
-        //¹ÒÔØÊó±êÊÂ¼ş
+        //æŒ‚è½½é¼ æ ‡äº‹ä»¶
         pListBoxItem->AttachButtonDown([this](const EventArgs& args) {
             OnButtonDown(args.ptMouse, args.pSender);
             return true;
@@ -188,7 +188,7 @@ bool ListCtrlView::ButtonDown(const EventArgs& msg)
 bool ListCtrlView::ButtonUp(const EventArgs& msg)
 {
     bool bRet = __super::ButtonUp(msg);
-    //°´×¡Ctrl»òÕßShiftµÄÊ±ºò£¬²»´¥·¢Çå¿ÕÑ¡Ôñ²Ù×÷£¬±ÜÃâÎó²Ù×÷
+    //æŒ‰ä½Ctrlæˆ–è€…Shiftçš„æ—¶å€™ï¼Œä¸è§¦å‘æ¸…ç©ºé€‰æ‹©æ“ä½œï¼Œé¿å…è¯¯æ“ä½œ
     Control* pSender = msg.pSender;
     if (msg.wParam & MK_CONTROL) {
         pSender = nullptr;
@@ -299,7 +299,7 @@ void ListCtrlView::OnRButtonUp(const UiPoint& /*ptMouse*/, Control* pSender)
 void ListCtrlView::OnMouseMove(const UiPoint& ptMouse, Control* pSender)
 {
     if (!m_bEnableFrameSelection || !IsMultiSelect()) {
-        //¹¦ÄÜ¹Ø±Õ »òÕß µ¥Ñ¡Ä£Ê½
+        //åŠŸèƒ½å…³é—­ æˆ–è€… å•é€‰æ¨¡å¼
         return;
     }
     if ((m_bMouseDown || m_bRMouseDown) &&
@@ -309,18 +309,18 @@ void ListCtrlView::OnMouseMove(const UiPoint& ptMouse, Control* pSender)
         m_ptMouseMove.cx = ptMouse.x + scrollPos.cx;
         m_ptMouseMove.cy = ptMouse.y + scrollPos.cy;
 
-        //Êó±êÒÆ¶¯³¬¹ıÖ¸¶¨ÏñËØÊıµÄÊ±ºò£¬²Å¿ªÊ¼°´ÒÆ¶¯²Ù×÷£¬±ÜÃâ½«Õı³£µÄµã»÷²Ù×÷Ê¶±ğÎª¿òÑ¡²Ù×÷
+        //é¼ æ ‡ç§»åŠ¨è¶…è¿‡æŒ‡å®šåƒç´ æ•°çš„æ—¶å€™ï¼Œæ‰å¼€å§‹æŒ‰ç§»åŠ¨æ“ä½œï¼Œé¿å…å°†æ­£å¸¸çš„ç‚¹å‡»æ“ä½œè¯†åˆ«ä¸ºæ¡†é€‰æ“ä½œ
         const int32_t minPt = 8;
         if (!m_bInMouseMove) {
             if ((std::abs(m_ptMouseMove.cx - m_ptMouseDown.cx) > minPt) ||
                 (std::abs(m_ptMouseMove.cy - m_ptMouseDown.cy) > minPt)) {
-                //¿ªÊ¼¿òÑ¡²Ù×÷
+                //å¼€å§‹æ¡†é€‰æ“ä½œ
                 m_bInMouseMove = true;
                 OnCheckScrollView();
             }
         }
         else {
-            //°´Ğè¹ö¶¯ÊÓÍ¼£¬²¢¸üĞÂÊó±êÔÚ¹ö¶¯ºóµÄÎ»ÖÃ            
+            //æŒ‰éœ€æ»šåŠ¨è§†å›¾ï¼Œå¹¶æ›´æ–°é¼ æ ‡åœ¨æ»šåŠ¨åçš„ä½ç½®            
             OnCheckScrollView();
         }
     }
@@ -344,7 +344,7 @@ void ListCtrlView::OnWindowKillFocus()
 
 bool ListCtrlView::OnListCtrlClickedBlank()
 {
-    //ÔÚ¿Õ°×´¦µã»÷Êó±ê×ó¼ü»òÕßÓÒ¼ü£¬È¡ÏûÈ«²¿Ñ¡Ôñ
+    //åœ¨ç©ºç™½å¤„ç‚¹å‡»é¼ æ ‡å·¦é”®æˆ–è€…å³é”®ï¼Œå–æ¶ˆå…¨éƒ¨é€‰æ‹©
     bool bRet = SetSelectNone();
     OnSelectStatusChanged();
     return bRet;
@@ -353,7 +353,7 @@ bool ListCtrlView::OnListCtrlClickedBlank()
 void ListCtrlView::OnCheckScrollView()
 {
     if (!m_bInMouseMove) {
-        //È¡Ïû¶¨Ê±Æ÷
+        //å–æ¶ˆå®šæ—¶å™¨
         m_scrollViewFlag.Cancel();
         return;
     }
@@ -362,7 +362,7 @@ void ListCtrlView::OnCheckScrollView()
     UiSize64 pt = m_ptMouseMove;
     pt.cx -= scrollPos.cx;
     pt.cy -= scrollPos.cy;
-    const UiSize64 ptMouseMove = pt; //¼ÇÂ¼Ô­Öµ
+    const UiSize64 ptMouseMove = pt; //è®°å½•åŸå€¼
 
     if (m_bInMouseMove) {
         int32_t nHScrollValue = DUI_NOSET_VALUE;
@@ -374,22 +374,22 @@ void ListCtrlView::OnCheckScrollView()
             ASSERT(viewRect.top <= viewRect.bottom);
         }
         if (pt.cx <= viewRect.left) {
-            //Ïò×ó¹ö¶¯ÊÓÍ¼
+            //å‘å·¦æ»šåŠ¨è§†å›¾
             LineLeft(nHScrollValue);
             bScrollView = true;
         }
         else if (pt.cx >= viewRect.right) {
-            //ÏòÓÒ¹ö¶¯ÊÓÍ¼
+            //å‘å³æ»šåŠ¨è§†å›¾
             LineRight(nHScrollValue);
             bScrollView = true;
         }
         if (pt.cy <= viewRect.top) {
-            //ÏòÉÏ¹ö¶¯ÊÓÍ¼
+            //å‘ä¸Šæ»šåŠ¨è§†å›¾
             LineUp(nVScrollValue, false);
             bScrollView = true;
         }
         else if (pt.cy >= viewRect.bottom) {
-            //ÏòÏÂ¹ö¶¯ÊÓÍ¼
+            //å‘ä¸‹æ»šåŠ¨è§†å›¾
             LineDown(nVScrollValue, false);
             bScrollView = true;
         }
@@ -398,19 +398,19 @@ void ListCtrlView::OnCheckScrollView()
     if (bScrollView) {
         UiSize64 scrollPosNew = GetScrollPos();
         if (scrollPos != scrollPosNew) {
-            //¸üĞÂÊó±êÎ»ÖÃ
+            //æ›´æ–°é¼ æ ‡ä½ç½®
             m_ptMouseMove.cx = ptMouseMove.cx + scrollPosNew.cx;
             m_ptMouseMove.cy = ptMouseMove.cy + scrollPosNew.cy;
         }
 
-        //Æô¶¯¶¨Ê±Æ÷
+        //å¯åŠ¨å®šæ—¶å™¨
         m_scrollViewFlag.Cancel();
         GlobalManager::Instance().Timer().AddCancelableTimer(m_scrollViewFlag.GetWeakFlag(),
                                     nbase::Bind(&ListCtrlView::OnCheckScrollView, this),
-                                    50, 1); //Ö»Ö´ĞĞÒ»´Î
+                                    50, 1); //åªæ‰§è¡Œä¸€æ¬¡
     }
     else {
-        //È¡Ïû¶¨Ê±Æ÷
+        //å–æ¶ˆå®šæ—¶å™¨
         m_scrollViewFlag.Cancel();
     }
 
@@ -418,11 +418,11 @@ void ListCtrlView::OnCheckScrollView()
     int64_t bottom = std::max(m_ptMouseDown.cy, m_ptMouseMove.cy);
     int64_t left = std::min(m_ptMouseDown.cx, m_ptMouseMove.cx);
     int64_t right = std::max(m_ptMouseDown.cx, m_ptMouseMove.cx);
-    int32_t offsetTop = GetRect().top;//µ±Ç°¿Ø¼ş×óÉÏ½ÇµÄtop×ø±ê
+    int32_t offsetTop = GetRect().top;//å½“å‰æ§ä»¶å·¦ä¸Šè§’çš„topåæ ‡
     top -= offsetTop;
     bottom -= offsetTop;
 
-    int32_t offsetLeft = GetRect().left;//µ±Ç°¿Ø¼ş×óÉÏ½ÇµÄleft×ø±ê
+    int32_t offsetLeft = GetRect().left;//å½“å‰æ§ä»¶å·¦ä¸Šè§’çš„leftåæ ‡
     left -= offsetLeft;
     right -= offsetLeft;
     bool bRet = OnFrameSelection(left, right, top, bottom);
@@ -437,7 +437,7 @@ void ListCtrlView::GetScrollDeltaValue(int32_t& nHScrollValue, int32_t& nVScroll
     nHScrollValue = DUI_NOSET_VALUE;
     nVScrollValue = DUI_NOSET_VALUE;
     if (IsHorizontalLayout()) {
-        //ºáÏò²¼¾Ö
+        //æ¨ªå‘å¸ƒå±€
         VirtualHTileLayout* pLayout = dynamic_cast<VirtualHTileLayout*>(GetLayout());
         if (pLayout != nullptr) {
             UiSize szItem = pLayout->GetItemSize();
@@ -449,7 +449,7 @@ void ListCtrlView::GetScrollDeltaValue(int32_t& nHScrollValue, int32_t& nVScroll
         }
     }
     else {
-        //×İÏò²¼¾Ö
+        //çºµå‘å¸ƒå±€
         VirtualVTileLayout* pLayout = dynamic_cast<VirtualVTileLayout*>(GetLayout());
         if (pLayout != nullptr) {
             UiSize szItem = pLayout->GetItemSize();
@@ -510,14 +510,14 @@ bool ListCtrlView::OnFrameSelection(int64_t left, int64_t right, int64_t top, in
 
     bool bRet = false;
     if (pHLayout != nullptr) {
-        //ºáÏò²¼¾Ö
+        //æ¨ªå‘å¸ƒå±€
         int32_t childMarginY = pHLayout->GetChildMarginY();
         if (childMarginY < 0) {
             childMarginY = 0;
         }
         int32_t nRows = CalcRows();
 
-        //²»Ö§³ÖÒş²Ø
+        //ä¸æ”¯æŒéšè—
         std::vector<size_t> itemIndexList;
         int32_t childMarginX = pHLayout->GetChildMarginX();
         if (childMarginX < 0) {
@@ -542,14 +542,14 @@ bool ListCtrlView::OnFrameSelection(int64_t left, int64_t right, int64_t top, in
         bRet = SetSelectedElements(itemIndexList, true);
     }
     else {
-        //×İÏò²¼¾Ö
+        //çºµå‘å¸ƒå±€
         int32_t childMarginX = pVLayout->GetChildMarginX();
         if (childMarginX < 0) {
             childMarginX = 0;
         }
         int32_t nColumns = CalcColumns();
 
-        //²»Ö§³ÖÒş²Ø
+        //ä¸æ”¯æŒéšè—
         std::vector<size_t> itemIndexList;
         int32_t childMarginY = pVLayout->GetChildMarginY();
         if (childMarginY < 0) {
@@ -690,7 +690,7 @@ void ListCtrlView::PaintFrameSelection(IRender* pRender)
 void ListCtrlView::HandleEvent(const EventArgs& msg)
 {
     if (IsDisabledEvents(msg)) {
-        //Èç¹ûÊÇÊó±ê¼üÅÌÏûÏ¢£¬²¢ÇÒ¿Ø¼şÊÇDisabledµÄ£¬×ª·¢¸øÉÏ²ã¿Ø¼ş
+        //å¦‚æœæ˜¯é¼ æ ‡é”®ç›˜æ¶ˆæ¯ï¼Œå¹¶ä¸”æ§ä»¶æ˜¯Disabledçš„ï¼Œè½¬å‘ç»™ä¸Šå±‚æ§ä»¶
         Box* pParent = GetParent();
         if (pParent != nullptr) {
             pParent->SendEvent(msg);
@@ -715,7 +715,7 @@ bool ListCtrlView::OnListCtrlKeyDown(const EventArgs& msg)
     bool bHandled = false;
     bool bCtrlADown = (msg.Type == kEventKeyDown) && ((msg.chKey == L'A') || (msg.chKey == L'a'));
     if (bCtrlADown) {
-        //Ctrl + A È«Ñ¡²Ù×÷
+        //Ctrl + A å…¨é€‰æ“ä½œ
         bHandled = true;
         bool bRet = SetSelectAll();
         if (bRet) {
@@ -725,7 +725,7 @@ bool ListCtrlView::OnListCtrlKeyDown(const EventArgs& msg)
         return bHandled;
     }
 
-    //·½Ïò¼ü²Ù×÷
+    //æ–¹å‘é”®æ“ä½œ
     bool bArrowKeyDown = (msg.Type == kEventKeyDown) &&
                          ((msg.chKey == VK_UP) || (msg.chKey == VK_DOWN) ||
                           (msg.chKey == VK_LEFT) || (msg.chKey == VK_RIGHT) ||
@@ -733,7 +733,7 @@ bool ListCtrlView::OnListCtrlKeyDown(const EventArgs& msg)
                           (msg.chKey == VK_HOME) || (msg.chKey == VK_END));
     const size_t nElementCount = GetElementCount();
     if (!bArrowKeyDown || !IsMultiSelect() || (nElementCount == 0)) {
-        //ÔÚ·½Ïò¼ü°´ÏÂÏûÏ¢¡¢ÎŞÊı¾İ¡¢²»Ö§³Ö¶àÑ¡µÄÇé¿öÏÂ£¬×ßÄ¬ÈÏ´¦ÀíÁ÷³Ì
+        //åœ¨æ–¹å‘é”®æŒ‰ä¸‹æ¶ˆæ¯ã€æ— æ•°æ®ã€ä¸æ”¯æŒå¤šé€‰çš„æƒ…å†µä¸‹ï¼Œèµ°é»˜è®¤å¤„ç†æµç¨‹
         return bHandled;
     }
 
@@ -748,22 +748,22 @@ bool ListCtrlView::OnListCtrlKeyDown(const EventArgs& msg)
 #endif
 
     if (bAltDown || bControlDown) {
-        //Èç¹û°´×¡Ctrl¼ü »òÕß Alt¼ü×ßÄ¬ÈÏÁ÷³Ì
+        //å¦‚æœæŒ‰ä½Ctrlé”® æˆ–è€… Alté”®èµ°é»˜è®¤æµç¨‹
         return bHandled;
     }
 
-    // ÒÔÏÂÁ÷³Ì´¦Àí·½Ïò¼ü²Ù×÷
-    // ´¦Àí¶àÑ¡Çé¿öÏÂµÄ·½Ïò¼ü²Ù×÷£¬»ù±¾Óëµ¥Ñ¡Á÷³ÌÏàËÆ£¬¶àÑ¡µÄÇé¿öÏÂGetCurSel()Öµ²»Ò»¶¨ÕıÈ·£¬ĞèÒªĞ£×¼
+    // ä»¥ä¸‹æµç¨‹å¤„ç†æ–¹å‘é”®æ“ä½œ
+    // å¤„ç†å¤šé€‰æƒ…å†µä¸‹çš„æ–¹å‘é”®æ“ä½œï¼ŒåŸºæœ¬ä¸å•é€‰æµç¨‹ç›¸ä¼¼ï¼Œå¤šé€‰çš„æƒ…å†µä¸‹GetCurSel()å€¼ä¸ä¸€å®šæ­£ç¡®ï¼Œéœ€è¦æ ¡å‡†
     size_t nCurSel = GetCurSel();
     if (nCurSel < GetItemCount()) {
-        //ÅĞ¶ÏÆäÊÇ·ñ¿ÉÒÔÑ¡Ôñ£ºÖÃ¶¥ÏîÊÇ²»¿ÉÑ¡ÔñµÄ£¬Ó¦¼ÓÒÔ¹ıÂË
+        //åˆ¤æ–­å…¶æ˜¯å¦å¯ä»¥é€‰æ‹©ï¼šç½®é¡¶é¡¹æ˜¯ä¸å¯é€‰æ‹©çš„ï¼Œåº”åŠ ä»¥è¿‡æ»¤
         Control* pControl = GetItemAt(nCurSel);
         if ((pControl == nullptr) || !pControl->IsVisible() || !pControl->IsSelectableType()) {
             nCurSel = Box::InvalidIndex;
         }
     }
     if (nCurSel >= GetItemCount()) {
-        //²éÕÒµ±Ç°ÊÓÍ¼ÄÚµÚÒ»¸ö¿ÉÑ¡ÔñµÄÏîÄ¿£¬×÷ÎªÆğÊ¼µã
+        //æŸ¥æ‰¾å½“å‰è§†å›¾å†…ç¬¬ä¸€ä¸ªå¯é€‰æ‹©çš„é¡¹ç›®ï¼Œä½œä¸ºèµ·å§‹ç‚¹
         size_t nCount = GetItemCount();
         for (size_t index = 0; index < nCount; ++index) {
             Control* pControl = GetItemAt(index);
@@ -778,7 +778,7 @@ bool ListCtrlView::OnListCtrlKeyDown(const EventArgs& msg)
         }
     }
     if (nCurSel >= GetItemCount()) {
-        //³¢ÊÔ²éÕÒÎ´ÔÚµ±Ç°ÊÓÍ¼ÏÔÊ¾µÄÒÑÑ¡ÔñÔªËØ
+        //å°è¯•æŸ¥æ‰¾æœªåœ¨å½“å‰è§†å›¾æ˜¾ç¤ºçš„å·²é€‰æ‹©å…ƒç´ 
         size_t nDestItemIndex = Box::InvalidIndex;
         if (OnFindSelectable(GetCurSel(), SelectableMode::kSelect, 1, nDestItemIndex)) {
             nCurSel = GetCurSel();
@@ -786,7 +786,7 @@ bool ListCtrlView::OnListCtrlKeyDown(const EventArgs& msg)
         }
     }
     if (nCurSel >= GetItemCount()) {
-        //È«²¿³¢ÊÔÎ´³É¹¦ºó£¬ÒÔµ±Ç°ÊÓÍ¼ÄÚµÄµÚÒ»¸öÔªËØÎªÆğÊ¼µã
+        //å…¨éƒ¨å°è¯•æœªæˆåŠŸåï¼Œä»¥å½“å‰è§†å›¾å†…çš„ç¬¬ä¸€ä¸ªå…ƒç´ ä¸ºèµ·å§‹ç‚¹
         size_t nCount = GetItemCount();
         for (size_t index = 0; index < nCount; ++index) {
             Control* pControl = GetItemAt(index);
@@ -811,24 +811,24 @@ bool ListCtrlView::OnListCtrlKeyDown(const EventArgs& msg)
     const bool bForward = (msg.chKey == VK_DOWN) || (msg.chKey == VK_RIGHT) || 
                           (msg.chKey == VK_NEXT) || (msg.chKey == VK_HOME);
     if (nIndexCurSel < nElementCount) {
-        //Æ¥Åä¿ÉÑ¡ÔñÏî
+        //åŒ¹é…å¯é€‰æ‹©é¡¹
         nIndexCurSel = FindSelectableElement(nIndexCurSel, bForward);
     }
     if (nIndexCurSel >= nElementCount) {
-        //Ã»ÓĞÓĞĞ§µÄÊı¾İÑ¡ÔñÏî
+        //æ²¡æœ‰æœ‰æ•ˆçš„æ•°æ®é€‰æ‹©é¡¹
         return bHandled;
     }
 
     const int32_t nRows = CalcRows();
     const int32_t nColumns = CalcColumns();
 
-    size_t nIndexEnsureVisible = Box::InvalidIndex; //ĞèÒª±£Ö¤¿É¼ûµÄÔªËØ
+    size_t nIndexEnsureVisible = Box::InvalidIndex; //éœ€è¦ä¿è¯å¯è§çš„å…ƒç´ 
     size_t nIndexEnd = Box::InvalidIndex;
-    //ÊµÏÖShift¼ü + ·½Ïò¼üµÄÑ¡ÔñÂß¼­
+    //å®ç°Shifté”® + æ–¹å‘é”®çš„é€‰æ‹©é€»è¾‘
     switch (msg.chKey) {
     case VK_UP:
         if (IsHorizontalLayout()) {
-            //ºáÏò²¼¾Ö
+            //æ¨ªå‘å¸ƒå±€
             if (nIndexCurSel >= 1) {
                 nIndexEnd = nIndexCurSel - 1;
             }
@@ -837,7 +837,7 @@ bool ListCtrlView::OnListCtrlKeyDown(const EventArgs& msg)
             }
         }
         else {
-            //×İÏò²¼¾Ö
+            //çºµå‘å¸ƒå±€
             if ((int32_t)nIndexCurSel >= nColumns) {
                 nIndexEnd = nIndexCurSel - nColumns;
             }
@@ -848,7 +848,7 @@ bool ListCtrlView::OnListCtrlKeyDown(const EventArgs& msg)
         break;
     case VK_DOWN:
         if (IsHorizontalLayout()) {
-            //ºáÏò²¼¾Ö
+            //æ¨ªå‘å¸ƒå±€
             if ((nIndexCurSel + 1) < nElementCount) {
                 nIndexEnd = nIndexCurSel + 1;
             }
@@ -857,7 +857,7 @@ bool ListCtrlView::OnListCtrlKeyDown(const EventArgs& msg)
             }
         }
         else {
-            //×İÏò²¼¾Ö
+            //çºµå‘å¸ƒå±€
             if ((nIndexCurSel + nColumns) < nElementCount) {
                 nIndexEnd = nIndexCurSel + nColumns;
             }
@@ -868,7 +868,7 @@ bool ListCtrlView::OnListCtrlKeyDown(const EventArgs& msg)
         break;
     case VK_LEFT:
         if (IsHorizontalLayout()) {
-            //ºáÏò²¼¾Ö
+            //æ¨ªå‘å¸ƒå±€
             if ((int32_t)nIndexCurSel >= nRows) {
                 nIndexEnd = nIndexCurSel - nRows;
             }
@@ -877,9 +877,9 @@ bool ListCtrlView::OnListCtrlKeyDown(const EventArgs& msg)
             }
         }
         else {
-            //×İÏò²¼¾Ö
+            //çºµå‘å¸ƒå±€
             if (nColumns <= 1) {
-                //Ö»ÓĞ1ÁĞµÄÊ±ºò£¬°´¹ö¶¯´¦Àí
+                //åªæœ‰1åˆ—çš„æ—¶å€™ï¼ŒæŒ‰æ»šåŠ¨å¤„ç†
                 LineLeft();
                 bHandled = true;
             }
@@ -895,7 +895,7 @@ bool ListCtrlView::OnListCtrlKeyDown(const EventArgs& msg)
         break;
     case VK_RIGHT:
         if (IsHorizontalLayout()) {
-            //ºáÏò²¼¾Ö
+            //æ¨ªå‘å¸ƒå±€
             if ((nIndexCurSel + nRows) < nElementCount) {
                 nIndexEnd = nIndexCurSel + nRows;
             }
@@ -905,12 +905,12 @@ bool ListCtrlView::OnListCtrlKeyDown(const EventArgs& msg)
         }
         else {
             if (nColumns <= 1) {
-                //Ö»ÓĞ1ÁĞµÄÊ±ºò£¬°´¹ö¶¯´¦Àí
+                //åªæœ‰1åˆ—çš„æ—¶å€™ï¼ŒæŒ‰æ»šåŠ¨å¤„ç†
                 LineRight();
                 bHandled = true;
             }
             else {
-                //×İÏò²¼¾Ö
+                //çºµå‘å¸ƒå±€
                 if ((nIndexCurSel + 1) < nElementCount) {
                     nIndexEnd = nIndexCurSel + 1;
                 }
@@ -925,11 +925,11 @@ bool ListCtrlView::OnListCtrlKeyDown(const EventArgs& msg)
         size_t nShowColumns = 0;
         size_t nShowRows = 0;
         if (IsHorizontalLayout()) {
-            //ºáÏò²¼¾Ö
+            //æ¨ªå‘å¸ƒå±€
             GetDisplayItemCount(true, nShowColumns, nShowRows);
         }
         else {
-            //×İÏò²¼¾Ö            
+            //çºµå‘å¸ƒå±€            
             GetDisplayItemCount(false, nShowColumns, nShowRows);
         }
         size_t nScrollCount = nShowColumns * nShowRows;
@@ -941,7 +941,7 @@ bool ListCtrlView::OnListCtrlKeyDown(const EventArgs& msg)
                 for (int32_t nColumn = (int32_t)nShowColumns - 1; nColumn >= 0; --nColumn) {
                     nScrollCount = (size_t)nColumn * nShowRows;
                     if (nIndexCurSel >= nScrollCount) {
-                        //Ìø×ªµ½µÚÒ»ÁĞ£¬Í¬ĞĞµÄÎ»ÖÃ
+                        //è·³è½¬åˆ°ç¬¬ä¸€åˆ—ï¼ŒåŒè¡Œçš„ä½ç½®
                         nIndexEnd = nIndexCurSel - nScrollCount;
                         break;
                     }
@@ -951,7 +951,7 @@ bool ListCtrlView::OnListCtrlKeyDown(const EventArgs& msg)
                 for (int32_t nRow = (int32_t)nShowRows - 1; nRow >= 0; --nRow) {
                     nScrollCount = nShowColumns * (size_t)nRow;
                     if (nIndexCurSel >= nScrollCount) {
-                        //Ìø×ªµ½µÚÒ»ĞĞ£¬Í¬ÁĞµÄÎ»ÖÃ
+                        //è·³è½¬åˆ°ç¬¬ä¸€è¡Œï¼ŒåŒåˆ—çš„ä½ç½®
                         nIndexEnd = nIndexCurSel - nScrollCount;
                         break;
                     }
@@ -965,11 +965,11 @@ bool ListCtrlView::OnListCtrlKeyDown(const EventArgs& msg)
         size_t nShowColumns = 0;
         size_t nShowRows = 0;
         if (IsHorizontalLayout()) {
-            //ºáÏò²¼¾Ö
+            //æ¨ªå‘å¸ƒå±€
             GetDisplayItemCount(true, nShowColumns, nShowRows);            
         }
         else {
-            //×İÏò²¼¾Ö            
+            //çºµå‘å¸ƒå±€            
             GetDisplayItemCount(false, nShowColumns, nShowRows);            
         }
         size_t nScrollCount = nShowColumns * nShowRows;
@@ -981,7 +981,7 @@ bool ListCtrlView::OnListCtrlKeyDown(const EventArgs& msg)
                 for (int32_t nColumn = (int32_t)nShowColumns - 1; nColumn >= 0; --nColumn) {
                     nScrollCount = (size_t)nColumn * nShowRows;
                     if ((nIndexCurSel + nScrollCount) < nElementCount) {
-                        //Ìø×ªµ½×îºóÒ»ÁĞ£¬Í¬ĞĞµÄÎ»ÖÃ
+                        //è·³è½¬åˆ°æœ€åä¸€åˆ—ï¼ŒåŒè¡Œçš„ä½ç½®
                         nIndexEnd = nIndexCurSel + nScrollCount;
                         nIndexEnsureVisible = nElementCount - 1;
                         break;
@@ -992,7 +992,7 @@ bool ListCtrlView::OnListCtrlKeyDown(const EventArgs& msg)
                 for (int32_t nRow = (int32_t)nShowRows - 1; nRow >= 0; --nRow) {
                     nScrollCount = nShowColumns * (size_t)nRow;
                     if ((nIndexCurSel + nScrollCount) < nElementCount) {
-                        //Ìø×ªµ½×îºóÒ»ĞĞ£¬Í¬ÁĞµÄÎ»ÖÃ
+                        //è·³è½¬åˆ°æœ€åä¸€è¡Œï¼ŒåŒåˆ—çš„ä½ç½®
                         nIndexEnd = nIndexCurSel + nScrollCount;
                         nIndexEnsureVisible = nElementCount - 1;
                         break;
@@ -1019,17 +1019,17 @@ bool ListCtrlView::OnListCtrlKeyDown(const EventArgs& msg)
         return bHandled;
     }
 
-    //Æ¥Åä¿ÉÑ¡ÔñÏî
+    //åŒ¹é…å¯é€‰æ‹©é¡¹
     nIndexEnd = FindSelectableElement(nIndexEnd, bForward);
     if (nIndexEnd >= nElementCount) {
         return bHandled;
     }
 
     bHandled = true;
-    std::vector<size_t> selectedIndexs; //ĞèÒªÑ¡ÔñµÄÁĞ±í
+    std::vector<size_t> selectedIndexs; //éœ€è¦é€‰æ‹©çš„åˆ—è¡¨
     if (bShiftDown) {
-        //°´×¡Shift¼ü£ºÑ¡Ôñ·¶Î§ÄÚµÄËùÓĞÊı¾İ
-        size_t nLastNoShiftIndex = m_nLastNoShiftIndex;//ÆğÊ¼µÄÔªËØË÷ÒıºÅ
+        //æŒ‰ä½Shifté”®ï¼šé€‰æ‹©èŒƒå›´å†…çš„æ‰€æœ‰æ•°æ®
+        size_t nLastNoShiftIndex = m_nLastNoShiftIndex;//èµ·å§‹çš„å…ƒç´ ç´¢å¼•å·
         if (nLastNoShiftIndex >= nElementCount) {
             nLastNoShiftIndex = 0;
         }
@@ -1042,11 +1042,11 @@ bool ListCtrlView::OnListCtrlKeyDown(const EventArgs& msg)
         }
     }
     else {
-        //Ã»ÓĞ°´×¡Shift¼ü£ºÖ»Ñ¡Ôñ×îºóÒ»¸öÊı¾İ
+        //æ²¡æœ‰æŒ‰ä½Shifté”®ï¼šåªé€‰æ‹©æœ€åä¸€ä¸ªæ•°æ®
         selectedIndexs.push_back(nIndexEnd);
     }
 
-    //Ñ¡ÔñÕâ¸ö·¶Î§ÄÚµÄËùÓĞÔªËØ
+    //é€‰æ‹©è¿™ä¸ªèŒƒå›´å†…çš„æ‰€æœ‰å…ƒç´ 
     std::vector<size_t> refreshIndexs;
     SetSelectedElements(selectedIndexs, true, refreshIndexs);
     RefreshElements(refreshIndexs);
@@ -1080,14 +1080,14 @@ bool ListCtrlView::OnListCtrlKeyDown(const EventArgs& msg)
 
 bool ListCtrlView::SelectItem(size_t iIndex, bool bTakeFocus, bool bTriggerEvent, uint64_t vkFlag)
 {
-    //ÊÂ¼ş´¥·¢£¬ĞèÒª·ÅÔÚº¯Êı·µ»ØÖ®Ç°£¬²»ÄÜ·ÅÔÚ´úÂëÖĞ¼ä
+    //äº‹ä»¶è§¦å‘ï¼Œéœ€è¦æ”¾åœ¨å‡½æ•°è¿”å›ä¹‹å‰ï¼Œä¸èƒ½æ”¾åœ¨ä»£ç ä¸­é—´
     bool bSelectStatusChanged = false;
     bool bRet = false;
     if (IsMultiSelect()) {
-        //¶àÑ¡Ä£Ê½
+        //å¤šé€‰æ¨¡å¼
         const size_t nCurElementIndex = GetDisplayItemElementIndex(iIndex);
         if ((nCurElementIndex >= GetElementCount()) || !IsSelectableElement(nCurElementIndex)) {
-            //ÎŞÓĞĞ§Ñ¡Ôñ£¬»òÕßÑ¡ÔñÔÚÖÃ¶¥µÄÊı¾İÏî£¬°´¶àÑ¡´¦Àí
+            //æ— æœ‰æ•ˆé€‰æ‹©ï¼Œæˆ–è€…é€‰æ‹©åœ¨ç½®é¡¶çš„æ•°æ®é¡¹ï¼ŒæŒ‰å¤šé€‰å¤„ç†
             bRet = SelectItemMulti(iIndex, bTakeFocus, bTriggerEvent);
             return bRet;
         }
@@ -1096,14 +1096,14 @@ bool ListCtrlView::SelectItem(size_t iIndex, bool bTakeFocus, bool bTriggerEvent
         bool bShift = vkFlag & kVkShift;
         bool bControl = vkFlag & kVkControl;
         if (bShift && bControl) {
-            //Í¬Ê±°´ÏÂShiftºÍCtrl¼ü£¬ºöÂÔ
+            //åŒæ—¶æŒ‰ä¸‹Shiftå’ŒCtrlé”®ï¼Œå¿½ç•¥
             bShift = false;
             bControl = false;
         }
         if (bRbuttonDown || (!bShift && !bControl)) {
-            //°´ÓÒ¼üµÄÊ±ºò£ºÈç¹ûµ±Ç°ÏîÃ»Ñ¡Ôñ£¬°´µ¥Ñ¡Âß¼­ÊµÏÖ£¬Ö»±£ÁôÒ»¸öÑ¡Ïî£»
-            //            Èç¹ûÒÑ¾­Ñ¡Ôñ£¬Ôò±£³ÖÔ­Ñ¡Ôñ£¬ËùÓĞÏîÑ¡Ôñ×´Ì¬²»±ä£¨ÒÔÌá¹©ÓÒ¼ü²Ëµ¥£¬¶ÔËùÑ¡Ïî²Ù×÷µÄ»ú»á£©
-            //ÔÚÃ»ÓĞ°´ÏÂControl¼üÒ²Ã»ÓĞ°´Shift¼ü£º°´µ¥Ñ¡Âß¼­ÊµÏÖ£¬Ö»±£ÁôÒ»¸öÑ¡Ïî            
+            //æŒ‰å³é”®çš„æ—¶å€™ï¼šå¦‚æœå½“å‰é¡¹æ²¡é€‰æ‹©ï¼ŒæŒ‰å•é€‰é€»è¾‘å®ç°ï¼Œåªä¿ç•™ä¸€ä¸ªé€‰é¡¹ï¼›
+            //            å¦‚æœå·²ç»é€‰æ‹©ï¼Œåˆ™ä¿æŒåŸé€‰æ‹©ï¼Œæ‰€æœ‰é¡¹é€‰æ‹©çŠ¶æ€ä¸å˜ï¼ˆä»¥æä¾›å³é”®èœå•ï¼Œå¯¹æ‰€é€‰é¡¹æ“ä½œçš„æœºä¼šï¼‰
+            //åœ¨æ²¡æœ‰æŒ‰ä¸‹Controlé”®ä¹Ÿæ²¡æœ‰æŒ‰Shifté”®ï¼šæŒ‰å•é€‰é€»è¾‘å®ç°ï¼Œåªä¿ç•™ä¸€ä¸ªé€‰é¡¹            
             size_t nElementIndex = GetDisplayItemElementIndex(iIndex);
             if (bRbuttonDown && IsElementSelected(nElementIndex)) {
                 bRet = true;
@@ -1130,7 +1130,7 @@ bool ListCtrlView::SelectItem(size_t iIndex, bool bTakeFocus, bool bTriggerEvent
         }
         else {
             if (bShift) {
-                //°´×ó¼ü: Í¬Ê±°´ÏÂÁËShift¼ü
+                //æŒ‰å·¦é”®: åŒæ—¶æŒ‰ä¸‹äº†Shifté”®
                 size_t nIndexStart = m_nLastNoShiftIndex;
                 if (nIndexStart >= GetElementCount()) {
                     nIndexStart = 0;
@@ -1156,12 +1156,12 @@ bool ListCtrlView::SelectItem(size_t iIndex, bool bTakeFocus, bool bTriggerEvent
                     bRet = true;
                 }
                 else {
-                    //Î´ÖªÇé¿ö£¬Õı³£ÎŞ·¨×ßµ½ÕâÀï
+                    //æœªçŸ¥æƒ…å†µï¼Œæ­£å¸¸æ— æ³•èµ°åˆ°è¿™é‡Œ
                     bRet = SelectItemMulti(iIndex, bTakeFocus, false);
                 }
             }
             else {
-                //°´×ó¼ü: Í¬Ê±°´ÏÂÁËControl¼ü£¬±£³Ö¶àÑ¡
+                //æŒ‰å·¦é”®: åŒæ—¶æŒ‰ä¸‹äº†Controlé”®ï¼Œä¿æŒå¤šé€‰
                 bRet = SelectItemMulti(iIndex, bTakeFocus, false);
                 if (bRet) {
                     m_nLastNoShiftIndex = GetDisplayItemElementIndex(iIndex);
@@ -1170,7 +1170,7 @@ bool ListCtrlView::SelectItem(size_t iIndex, bool bTakeFocus, bool bTriggerEvent
         }
     }
     else {
-        //µ¥Ñ¡
+        //å•é€‰
         bRet = SelectItemSingle(iIndex, bTakeFocus, false);
     }
     if (bSelectStatusChanged) {

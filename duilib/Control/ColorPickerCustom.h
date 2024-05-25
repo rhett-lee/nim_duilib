@@ -10,7 +10,7 @@
 
 namespace ui
 {
-/** ÑÕÉ«Ñ¡ÔñÆ÷£º×Ô¶¨ÒåÑÕÉ«
+/** é¢œè‰²é€‰æ‹©å™¨ï¼šè‡ªå®šä¹‰é¢œè‰²
 */
 class ColorPickerRegular;
 class ColorPickerCustom : public Box
@@ -18,147 +18,147 @@ class ColorPickerCustom : public Box
 public:
 	explicit ColorPickerCustom(Window* pWindow);
 
-	/** »ñÈ¡¿Ø¼şÀàĞÍ
+	/** è·å–æ§ä»¶ç±»å‹
 	*/
 	virtual std::wstring GetType() const override;
 
-	/** Ñ¡ÔñÒ»¸öÑÕÉ«
+	/** é€‰æ‹©ä¸€ä¸ªé¢œè‰²
 	*/
 	void SelectColor(const UiColor& color);
 
-	/** ÉèÖÃ¿Ø¼şÎ»ÖÃ
+	/** è®¾ç½®æ§ä»¶ä½ç½®
 	*/
 	virtual void SetPos(UiRect rc) override;
 
-	/** ¼àÌıÑ¡ÔñÑÕÉ«µÄÊÂ¼ş
-	* @param[in] callback Ñ¡ÔñÑÕÉ«±ä»¯Ê±µÄ»Øµ÷º¯Êı
-	*            ²ÎÊıËµÃ÷:
-						wParam: µ±Ç°ĞÂÑ¡ÔñµÄÑÕÉ«Öµ£¬¿ÉÒÔÓÃUiColor((uint32_t)wParam)Éú³ÉÑÕÉ«
-						lParam: Ô­À´¾ÉÑ¡ÔñµÄÑÕÉ«Öµ£¬¿ÉÒÔÓÃUiColor((uint32_t)lParam)Éú³ÉÑÕÉ«
+	/** ç›‘å¬é€‰æ‹©é¢œè‰²çš„äº‹ä»¶
+	* @param[in] callback é€‰æ‹©é¢œè‰²å˜åŒ–æ—¶çš„å›è°ƒå‡½æ•°
+	*            å‚æ•°è¯´æ˜:
+						wParam: å½“å‰æ–°é€‰æ‹©çš„é¢œè‰²å€¼ï¼Œå¯ä»¥ç”¨UiColor((uint32_t)wParam)ç”Ÿæˆé¢œè‰²
+						lParam: åŸæ¥æ—§é€‰æ‹©çš„é¢œè‰²å€¼ï¼Œå¯ä»¥ç”¨UiColor((uint32_t)lParam)ç”Ÿæˆé¢œè‰²
 	*/
 	void AttachSelectColor(const EventCallback& callback) { AttachEvent(kEventSelectColor, callback); }
 
 private:
-	/** ÑÕÉ«±ä»¯µÄÔ­Òò
+	/** é¢œè‰²å˜åŒ–çš„åŸå› 
 	*/
 	enum class ChangeReason
 	{
-		ColorUpdate,	//ÑÕÉ«Öµ´ÓÆäËûÒ³Ãæ¸üĞÂ
-		ColorSpectrum,	//ÑÕÉ«¹âÆ×Í¼
-		ColorRegular,	//±ê×¼ÑÕÉ«±í
-		NewColorEdit,	//ĞÂÑÕÉ«µÄ¿É±à¼­¿ò
+		ColorUpdate,	//é¢œè‰²å€¼ä»å…¶ä»–é¡µé¢æ›´æ–°
+		ColorSpectrum,	//é¢œè‰²å…‰è°±å›¾
+		ColorRegular,	//æ ‡å‡†é¢œè‰²è¡¨
+		NewColorEdit,	//æ–°é¢œè‰²çš„å¯ç¼–è¾‘æ¡†
 
-		ColorARGB_A,	//ARGBÑÕÉ«±ä»¯
-		ColorARGB_R,	//ARGBÑÕÉ«±ä»¯
-		ColorARGB_G,	//ARGBÑÕÉ«±ä»¯
-		ColorARGB_B,	//ARGBÑÕÉ«±ä»¯
+		ColorARGB_A,	//ARGBé¢œè‰²å˜åŒ–
+		ColorARGB_R,	//ARGBé¢œè‰²å˜åŒ–
+		ColorARGB_G,	//ARGBé¢œè‰²å˜åŒ–
+		ColorARGB_B,	//ARGBé¢œè‰²å˜åŒ–
 
-		ColorHSV_H,		//HSVÑÕÉ«±ä»¯
-		ColorHSV_S,		//HSVÑÕÉ«±ä»¯
-		ColorHSV_V,		//HSVÑÕÉ«±ä»¯
+		ColorHSV_H,		//HSVé¢œè‰²å˜åŒ–
+		ColorHSV_S,		//HSVé¢œè‰²å˜åŒ–
+		ColorHSV_V,		//HSVé¢œè‰²å˜åŒ–
 
-		ColorHSL_H,		//HSLÑÕÉ«±ä»¯
-		ColorHSL_S,		//HSLÑÕÉ«±ä»¯
-		ColorHSL_L,		//HSLÑÕÉ«±ä»¯
+		ColorHSL_H,		//HSLé¢œè‰²å˜åŒ–
+		ColorHSL_S,		//HSLé¢œè‰²å˜åŒ–
+		ColorHSL_L,		//HSLé¢œè‰²å˜åŒ–
 	};
 
-	/** ³õÊ¼»¯
+	/** åˆå§‹åŒ–
 	*/
 	void InitPicker();
 
-	/** ÑÕÉ«·¢Éú±ä»¯
+	/** é¢œè‰²å‘ç”Ÿå˜åŒ–
 	*/
 	void OnColorChanged(WPARAM wParam, LPARAM lParam, ChangeReason reason);
 
-	/** ÅĞ¶ÏÊäÈëÊÇ·ñÎªºÏ·¨µÄÑÕÉ«×Ö·û´®£¬¸ñÊ½Èç"#FF123456"
+	/** åˆ¤æ–­è¾“å…¥æ˜¯å¦ä¸ºåˆæ³•çš„é¢œè‰²å­—ç¬¦ä¸²ï¼Œæ ¼å¼å¦‚"#FF123456"
 	*/
 	bool IsValidColorString(const std::wstring& colorText) const;
 
 private:
-	/** Ò»¸öÑÕÉ«Í¨µÀµÄ½çÃæ¿Ø¼ş
+	/** ä¸€ä¸ªé¢œè‰²é€šé“çš„ç•Œé¢æ§ä»¶
 	*/
 	struct ColorUI
 	{
-		//ÑÕÉ«ÖµÏÔÊ¾¿Ø¼ş
+		//é¢œè‰²å€¼æ˜¾ç¤ºæ§ä»¶
 		RichEdit* m_pColorEdit = nullptr;
 
-		//ÑÕÉ«Öµµ÷Õû¿Ø¼ş
+		//é¢œè‰²å€¼è°ƒæ•´æ§ä»¶
 		ColorSlider* m_pColorSlider = nullptr;
 	};
 
-	/** ³õÊ¼»¯Ò»¸öRGBÍ¨µÀ
+	/** åˆå§‹åŒ–ä¸€ä¸ªRGBé€šé“
 	*/
 	void InitRGB(const ColorUI& colorUI, ChangeReason reason);
 
-	/** ³õÊ¼»¯Ò»¸öHSVÍ¨µÀ
+	/** åˆå§‹åŒ–ä¸€ä¸ªHSVé€šé“
 	*/
 	void InitHSV(const ColorUI& colorUI, int32_t maxValue, ChangeReason reason);
 
-	/** ³õÊ¼»¯Ò»¸öHSLÍ¨µÀ
+	/** åˆå§‹åŒ–ä¸€ä¸ªHSLé€šé“
 	*/
 	void InitHSL(const ColorUI& colorUI, int32_t maxValue, ChangeReason reason);
 
-	/** ¸üĞÂRGB
+	/** æ›´æ–°RGB
 	* @param [in] flag: 0 - A, 1 - R, 2 - G, 3 - B
 	*/
 	void UpdateRGB(const ColorUI& colorUI, const UiColor& color, int32_t flag);
 
-	/** ¸üĞÂHSV
+	/** æ›´æ–°HSV
 	*/
 	void UpdateHSV(const ColorUI& colorUIH, const ColorUI& colorUIS, const ColorUI& colorUIV, const UiColor& color, ChangeReason reason);
 
-	/** ¸üĞÂHSL
+	/** æ›´æ–°HSL
 	*/
 	void UpdateHSL(const ColorUI& colorUIH, const ColorUI& colorUIS, const ColorUI& colorUIL, const UiColor& color, ChangeReason reason);
 
-	/** RGBÑÕÉ«·¢Éú±ä»¯
+	/** RGBé¢œè‰²å‘ç”Ÿå˜åŒ–
 	*/
 	void OnRGBChanged(ChangeReason reason);
 
-	/** HSVÑÕÉ«·¢Éú±ä»¯
+	/** HSVé¢œè‰²å‘ç”Ÿå˜åŒ–
 	*/
 	void OnHSVChanged(ChangeReason reason);
 
-	/** HSLÑÕÉ«·¢Éú±ä»¯
+	/** HSLé¢œè‰²å‘ç”Ÿå˜åŒ–
 	*/
 	void OnHSLChanged(ChangeReason reason);
 
 private:
-	/** ÊÇ·ñÒÑ¾­Íê³É³õÊ¼»¯
+	/** æ˜¯å¦å·²ç»å®Œæˆåˆå§‹åŒ–
 	*/
 	bool m_bPickerInited;
 
-	/** ¾ÉµÄÑÕÉ«
+	/** æ—§çš„é¢œè‰²
 	*/
 	UiColor m_oldColor;
 
-	/** ±ê×¼ÑÕÉ«¿Ø¼ş½Ó¿Ú
+	/** æ ‡å‡†é¢œè‰²æ§ä»¶æ¥å£
 	*/
 	ColorPickerRegular* m_pRegularPicker;
 
-	/** É«Æ×¿Ø¼ş
+	/** è‰²è°±æ§ä»¶
 	*/
 	ColorControl* m_pSpectrumControl;
 
-	/** ĞÂÑ¡ÔñµÄÑÕÉ«¿Ø¼şÎÄ±¾¿ò½Ó¿Ú
+	/** æ–°é€‰æ‹©çš„é¢œè‰²æ§ä»¶æ–‡æœ¬æ¡†æ¥å£
 	*/
 	RichEdit* m_pNewColorEdit;
 
 private:
-	/** RGBÑÕÉ«µ÷Õû¿Ø¼ş
+	/** RGBé¢œè‰²è°ƒæ•´æ§ä»¶
 	*/
 	ColorUI m_rgbA;
 	ColorUI m_rgbR;
 	ColorUI m_rgbG;
 	ColorUI m_rgbB;
 
-	/** HSVÑÕÉ«µ÷Õû¿Ø¼ş
+	/** HSVé¢œè‰²è°ƒæ•´æ§ä»¶
 	*/
 	ColorUI m_hsvH;
 	ColorUI m_hsvS;
 	ColorUI m_hsvV;
 
-	/** HSLÑÕÉ«µ÷Õû¿Ø¼ş
+	/** HSLé¢œè‰²è°ƒæ•´æ§ä»¶
 	*/
 	ColorUI m_hslH;
 	ColorUI m_hslS;

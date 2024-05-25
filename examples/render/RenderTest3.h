@@ -13,55 +13,55 @@ public:
 
 public:
 	/**
-	* @brief ´ı²¹³ä
-	* @param[in] ´ı²¹³ä
-	* @return ´ı²¹³ä
+	* @brief å¾…è¡¥å……
+	* @param[in] å¾…è¡¥å……
+	* @return å¾…è¡¥å……
 	*/
 	virtual void AlphaPaint(IRender* pRender, const UiRect& rcPaint);
 
 	/**
-	* @brief »æÖÆ¿Ø¼şµÄÈë¿Úº¯Êı
-	* @param[in] pRender Ö¸¶¨»æÖÆÇøÓò
-	* @param[in] rcPaint Ö¸¶¨»æÖÆ×ø±ê
-	* @return ÎŞ
+	* @brief ç»˜åˆ¶æ§ä»¶çš„å…¥å£å‡½æ•°
+	* @param[in] pRender æŒ‡å®šç»˜åˆ¶åŒºåŸŸ
+	* @param[in] rcPaint æŒ‡å®šç»˜åˆ¶åæ ‡
+	* @return æ— 
 	*/
 	virtual void Paint(IRender* pRender, const UiRect& rcPaint);
 
 	/**
-	* @brief »æÖÆ¿Ø¼ş×ÓÏîÈë¿Úº¯Êı
-	* @param[in] pRender Ö¸¶¨»æÖÆÇøÓò
-	* @param[in] rcPaint Ö¸¶¨»æÖÆ×ø±ê
-	* @return ÎŞ
+	* @brief ç»˜åˆ¶æ§ä»¶å­é¡¹å…¥å£å‡½æ•°
+	* @param[in] pRender æŒ‡å®šç»˜åˆ¶åŒºåŸŸ
+	* @param[in] rcPaint æŒ‡å®šç»˜åˆ¶åæ ‡
+	* @return æ— 
 	*/
 	virtual void PaintChild(IRender* pRender, const UiRect& rcPaint);
 
 private:
-	/** ¶ÔÕûĞÍÖµ½øĞĞDPI×ÔÊÊÓ¦
+	/** å¯¹æ•´å‹å€¼è¿›è¡ŒDPIè‡ªé€‚åº”
 	*/
 	int DpiScaledInt(int iValue);
 
-	/** ÔÚÒ»¸ö¾ØĞÎÄÚ»æÖÆÕıÁù±ßĞÎÆ´½ÓµÄÑÕÉ«µØÍ¼, ¾¡Á¿³äÂúÕû¸ö¾ØĞÎ
+	/** åœ¨ä¸€ä¸ªçŸ©å½¢å†…ç»˜åˆ¶æ­£å…­è¾¹å½¢æ‹¼æ¥çš„é¢œè‰²åœ°å›¾, å°½é‡å……æ»¡æ•´ä¸ªçŸ©å½¢
 	*/
 	void DrawColorMap(IRender* pRender, const UiRect& rect);
 
-	/** »æÖÆÒ»¸öÕıÁù±ßĞÎ(²ÉÓÃ¶à±ßĞÎ¶¥µãµÄ·½Ê½½øĞĞÂ·¾¶Ìî³ä)
-	* @param [in] pRender äÖÈ¾½Ó¿Ú
-	* @param [in] centerPt ÕıÁù±ßĞÎµÄÖĞĞÄµã×ø±ê
-	* @param [in] radius ÕıÁù±ßĞÎµÄ°ë¾¶£¬ÖĞĞÄµã¾àÀë¶¥µãµÄ¾àÀë£¨Í¬Ê±Ò²ÊÇ±ß³¤£©
-	* @param [in] penColor »­±ÊµÄÑÕÉ«£¬Èç¹ûÎª0£¬Ôò²»»æÖÆ±ß¿ò
-	* @param [in] penWidth »­±ÊµÄ¿í¶È£¬Èç¹ûÎª0£¬Ôò²»»æÖÆ±ß¿ò
-	* @param [in] brushColor »­Ë¢µÄÑÕÉ«£¬Èç¹ûÎª0£¬ÔòÌî³äÑÕÉ«
+	/** ç»˜åˆ¶ä¸€ä¸ªæ­£å…­è¾¹å½¢(é‡‡ç”¨å¤šè¾¹å½¢é¡¶ç‚¹çš„æ–¹å¼è¿›è¡Œè·¯å¾„å¡«å……)
+	* @param [in] pRender æ¸²æŸ“æ¥å£
+	* @param [in] centerPt æ­£å…­è¾¹å½¢çš„ä¸­å¿ƒç‚¹åæ ‡
+	* @param [in] radius æ­£å…­è¾¹å½¢çš„åŠå¾„ï¼Œä¸­å¿ƒç‚¹è·ç¦»é¡¶ç‚¹çš„è·ç¦»ï¼ˆåŒæ—¶ä¹Ÿæ˜¯è¾¹é•¿ï¼‰
+	* @param [in] penColor ç”»ç¬”çš„é¢œè‰²ï¼Œå¦‚æœä¸º0ï¼Œåˆ™ä¸ç»˜åˆ¶è¾¹æ¡†
+	* @param [in] penWidth ç”»ç¬”çš„å®½åº¦ï¼Œå¦‚æœä¸º0ï¼Œåˆ™ä¸ç»˜åˆ¶è¾¹æ¡†
+	* @param [in] brushColor ç”»åˆ·çš„é¢œè‰²ï¼Œå¦‚æœä¸º0ï¼Œåˆ™å¡«å……é¢œè‰²
 	*/
 	bool DrawRegularHexagon(IRender* pRender, const UiPointF& centerPt, int32_t radius, 
 						    const UiColor& penColor, int32_t penWidth, const UiColor& brushColor);
 
-	/** »æÖÆÒ»¸öÕıÁù±ßĞÎ(²ÉÓÃÈı½ÇĞÎĞı×ªµÄ·½Ê½»æÖÆ)
-	* @param [in] pRender äÖÈ¾½Ó¿Ú
-	* @param [in] centerPt ÕıÁù±ßĞÎµÄÖĞĞÄµã×ø±ê
-	* @param [in] radius ÕıÁù±ßĞÎµÄ°ë¾¶£¬ÖĞĞÄµã¾àÀë¶¥µãµÄ¾àÀë£¨Í¬Ê±Ò²ÊÇ±ß³¤£©
-	* @param [in] penColor »­±ÊµÄÑÕÉ«£¬Èç¹ûÎª0£¬Ôò²»»æÖÆ±ß¿ò
-	* @param [in] penWidth »­±ÊµÄ¿í¶È£¬Èç¹ûÎª0£¬Ôò²»»æÖÆ±ß¿ò
-	* @param [in] brushColor »­Ë¢µÄÑÕÉ«£¬Èç¹ûÎª0£¬ÔòÌî³äÑÕÉ«
+	/** ç»˜åˆ¶ä¸€ä¸ªæ­£å…­è¾¹å½¢(é‡‡ç”¨ä¸‰è§’å½¢æ—‹è½¬çš„æ–¹å¼ç»˜åˆ¶)
+	* @param [in] pRender æ¸²æŸ“æ¥å£
+	* @param [in] centerPt æ­£å…­è¾¹å½¢çš„ä¸­å¿ƒç‚¹åæ ‡
+	* @param [in] radius æ­£å…­è¾¹å½¢çš„åŠå¾„ï¼Œä¸­å¿ƒç‚¹è·ç¦»é¡¶ç‚¹çš„è·ç¦»ï¼ˆåŒæ—¶ä¹Ÿæ˜¯è¾¹é•¿ï¼‰
+	* @param [in] penColor ç”»ç¬”çš„é¢œè‰²ï¼Œå¦‚æœä¸º0ï¼Œåˆ™ä¸ç»˜åˆ¶è¾¹æ¡†
+	* @param [in] penWidth ç”»ç¬”çš„å®½åº¦ï¼Œå¦‚æœä¸º0ï¼Œåˆ™ä¸ç»˜åˆ¶è¾¹æ¡†
+	* @param [in] brushColor ç”»åˆ·çš„é¢œè‰²ï¼Œå¦‚æœä¸º0ï¼Œåˆ™å¡«å……é¢œè‰²
 	*/
 	bool DrawRegularHexagon3(IRender* pRender, const UiPoint& centerPt, int32_t radius, 
 						     const UiColor& penColor, int32_t penWidth, const UiColor& brushColor);

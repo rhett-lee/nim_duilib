@@ -9,7 +9,7 @@
 namespace ui
 {
 
-/** 水平布局的Box
+/** 姘村钩甯冨眬鐨凚ox
 */
 class UILIB_API HBox : public Box
 {

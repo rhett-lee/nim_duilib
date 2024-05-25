@@ -218,9 +218,9 @@ int ColorConvert::HSL2RGB(double hue, double sat, double lightness, double* red,
     S = sat;
     L = lightness;
 
-    if (S == 0)							 //HSL values = 0 �� 1
+    if (S == 0)							 //HSL values = 0 ÷ 1
     {
-        *red = L;                   //RGB results = 0 �� 255
+        *red = L;                   //RGB results = 0 ÷ 255
         *green = L;
         *blue = L;
     }
@@ -255,7 +255,7 @@ int ColorConvert::HSL2RGB(double hue, double sat, double lightness, uint8_t& red
 int ColorConvert::RGB2HSL(double red, double green, double blue, double* hue, double* sat, double* lightness)
 {
     double R, G, B, Max, Min, del_R, del_G, del_B, del_Max, H, S, L;
-    R = red;       //Where RGB values = 0 �� 255
+    R = red;       //Where RGB values = 0 ÷ 255
     G = green;
     B = blue;
 
@@ -271,7 +271,7 @@ int ColorConvert::RGB2HSL(double red, double green, double blue, double* hue, do
     H = 0;
 
     if (del_Max == 0) {         //This is a gray, no chroma...
-        H = 0;                  //HSL results = 0 �� 1
+        H = 0;                  //HSL results = 0 ÷ 1
         S = 0;
     }
     else {                      //Chromatic data...
@@ -537,7 +537,7 @@ void ColorConvert::HSL_HUE(uint32_t* buffer, int samples, double sat, double lig
     while (samples--) {
         // set current pixel (in DIB bitmap format is BGR, not RGB!)
         if (samples == 0) {
-            //���һ������ֵΪ359.9
+            //最后一个，赋值为359.9
             hue = 359.9;
         }
         HSL2RGB(hue, sat, lightness, red, green, blue);
@@ -562,7 +562,7 @@ void ColorConvert::HSL_SAT(uint32_t* buffer, int samples, double hue, double lig
     while (samples--) {
         // set current pixel (in DIB bitmap format is BGR, not RGB!)
         if (samples == 0) {
-            //���һ������ֵΪ1.0
+            //最后一个，赋值为1.0
             sat = 1.0;
         }
         HSL2RGB(hue, sat, lightness, red, green, blue);
@@ -588,7 +588,7 @@ void ColorConvert::HSL_LIG(uint32_t* buffer, int samples, double hue, double sat
         // set current pixel (in DIB bitmap format is BGR, not RGB!)
 
         if (samples == 0) {
-            //���һ������ֵΪ1.0
+            //最后一个，赋值为1.0
             lightness = 1.0;
         }
         HSL2RGB(hue, sat, lightness, red, green, blue);

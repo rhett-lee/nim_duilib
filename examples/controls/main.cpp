@@ -1,4 +1,4 @@
-// controls.cpp : ¶¨ÒåÓ¦ÓÃ³ÌÐòµÄÈë¿Úµã¡£
+// controls.cpp : å®šä¹‰åº”ç”¨ç¨‹åºçš„å…¥å£ç‚¹ã€‚
 //
 
 #include "stdafx.h"
@@ -13,7 +13,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	UNREFERENCED_PARAMETER(hPrevInstance);
 	UNREFERENCED_PARAMETER(lpCmdLine);
 
-	//¿ªÆôÓÃÊó±êÄ£ÄâWM_POINTERÏûÏ¢
+	//å¼€å¯ç”¨é¼ æ ‡æ¨¡æ‹ŸWM_POINTERæ¶ˆæ¯
 	//BOOL isOk = EnableMouseInPointer(TRUE);
 	//BOOL isOk2 = IsMouseInPointerEnabled();
 
@@ -36,16 +36,16 @@ void MainThread::Init()
 {
 	nbase::ThreadManager::RegisterThread(kThreadUI);
 
-	// Æô¶¯ÔÓÊÂ´¦ÀíÏß³Ì
+	// å¯åŠ¨æ‚äº‹å¤„ç†çº¿ç¨‹
 	misc_thread_.reset(new MiscThread(kThreadGlobalMisc, "Global Misc Thread"));
 	misc_thread_->Start();
 
-	//³õÊ¼»¯È«¾Ö×ÊÔ´, Ê¹ÓÃ±¾µØÎÄ¼þ¼Ð×÷Îª×ÊÔ´
+	//åˆå§‹åŒ–å…¨å±€èµ„æº, ä½¿ç”¨æœ¬åœ°æ–‡ä»¶å¤¹ä½œä¸ºèµ„æº
 	std::wstring resourcePath = nbase::win32::GetCurrentModuleDirectory();
 	resourcePath += L"resources\\";
 	ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath));
 
-	// ´´½¨Ò»¸öÄ¬ÈÏ´øÓÐÒõÓ°µÄ¾ÓÖÐ´°¿Ú
+	// åˆ›å»ºä¸€ä¸ªé»˜è®¤å¸¦æœ‰é˜´å½±çš„å±…ä¸­çª—å£
 	ControlForm* window = new ControlForm();
 	window->CreateWnd(NULL, ControlForm::kClassName.c_str(), UI_WNDSTYLE_FRAME, WS_EX_LAYERED);
 	window->CenterWindow();

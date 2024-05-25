@@ -20,16 +20,16 @@ public:
     virtual ~Box();
 
 public:
-	/** ÎŞĞ§µÄ×ÓÏîË÷Òı
+	/** æ— æ•ˆçš„å­é¡¹ç´¢å¼•
 	*/
 	static constexpr auto InvalidIndex{ static_cast<size_t>(-1) };
 
-	/** @brief ÊÇ·ñÎªÓĞĞ§µÄ×Ó¿Ø¼şË÷Òı
+	/** @brief æ˜¯å¦ä¸ºæœ‰æ•ˆçš„å­æ§ä»¶ç´¢å¼•
 	*/
 	static bool IsValidItemIndex(size_t index) { return index != Box::InvalidIndex; }
 
 public:
-	/// ÖØĞ´¸¸Àà½Ó¿Ú£¬Ìá¹©¸öĞÔ»¯¹¦ÄÜ¡£·½·¨¾ßÌåËµÃ÷Çë²é¿´ Control ¿Ø¼ş
+	/// é‡å†™çˆ¶ç±»æ¥å£ï¼Œæä¾›ä¸ªæ€§åŒ–åŠŸèƒ½ã€‚æ–¹æ³•å…·ä½“è¯´æ˜è¯·æŸ¥çœ‹ Control æ§ä»¶
 	virtual std::wstring GetType() const override;
 	virtual void SetParent(Box* pParent) override;
 	virtual void SetWindow(Window* pManager) override;
@@ -44,177 +44,177 @@ public:
 	virtual void ClearImageCache() override;
 	virtual uint32_t GetControlFlags() const override;
 
-	/** ÉèÖÃ¿Ø¼şÎ»ÖÃ£¨×ÓÀà¿É¸Ä±äĞĞÎª£©
-	 * @param [in] rc ÒªÉèÖÃµÄ¾ØĞÎÇøÓòĞÅÏ¢£¬°üº¬ÄÚ±ß¾à£¬²»°üº¬Íâ±ß¾à
+	/** è®¾ç½®æ§ä»¶ä½ç½®ï¼ˆå­ç±»å¯æ”¹å˜è¡Œä¸ºï¼‰
+	 * @param [in] rc è¦è®¾ç½®çš„çŸ©å½¢åŒºåŸŸä¿¡æ¯ï¼ŒåŒ…å«å†…è¾¹è·ï¼Œä¸åŒ…å«å¤–è¾¹è·
 	 */
 	virtual void SetPos(UiRect rc) override;
 
-	/** »ñÈ¡¿Ø¼şÊµ¼Ê¿ÉÓÃ¾ØĞÎÇøÓò
-	*@return ·µ»Ø¿Ø¼şµÄÊµ¼Ê¿ÉÓÃÇøÓò£¬¼´GetPos¼ôÈ¥PaddingºóµÄÇøÓò
+	/** è·å–æ§ä»¶å®é™…å¯ç”¨çŸ©å½¢åŒºåŸŸ
+	*@return è¿”å›æ§ä»¶çš„å®é™…å¯ç”¨åŒºåŸŸï¼Œå³GetPoså‰ªå»Paddingåçš„åŒºåŸŸ
 	*/
 	virtual UiRect GetPosWithoutPadding() const;
 
-	/** »ñÈ¡¿Ø¼şÊµ¼Ê¿ÉÓÃ¾ØĞÎÇøÓò
-	*@return ·µ»Ø¿Ø¼şµÄÊµ¼Ê¿ÉÓÃÇøÓò£¬¼´GetRect¼ôÈ¥PaddingºóµÄÇøÓò
+	/** è·å–æ§ä»¶å®é™…å¯ç”¨çŸ©å½¢åŒºåŸŸ
+	*@return è¿”å›æ§ä»¶çš„å®é™…å¯ç”¨åŒºåŸŸï¼Œå³GetRectå‰ªå»Paddingåçš„åŒºåŸŸ
 	*/
 	UiRect GetRectWithoutPadding() const;
 
-	/** ¼ÆËã¿Ø¼ş´óĞ¡(¿íºÍ¸ß)
-		Èç¹ûÉèÖÃÁËÍ¼Æ¬²¢ÉèÖÃ width »ò height ÈÎÒâÒ»ÏîÎª auto£¬½«¸ù¾İÍ¼Æ¬´óĞ¡ºÍÎÄ±¾´óĞ¡À´¼ÆËã×îÖÕ´óĞ¡
-	 *  @param [in] szAvailable ¿ÉÓÃ´óĞ¡£¬²»°üº¬Íâ±ß¾à
-	 *  @return ¿Ø¼şµÄ¹ÀËã´óĞ¡£¬°üº¬ÄÚ±ß¾à(Box)£¬²»°üº¬Íâ±ß¾à
+	/** è®¡ç®—æ§ä»¶å¤§å°(å®½å’Œé«˜)
+		å¦‚æœè®¾ç½®äº†å›¾ç‰‡å¹¶è®¾ç½® width æˆ– height ä»»æ„ä¸€é¡¹ä¸º autoï¼Œå°†æ ¹æ®å›¾ç‰‡å¤§å°å’Œæ–‡æœ¬å¤§å°æ¥è®¡ç®—æœ€ç»ˆå¤§å°
+	 *  @param [in] szAvailable å¯ç”¨å¤§å°ï¼Œä¸åŒ…å«å¤–è¾¹è·
+	 *  @return æ§ä»¶çš„ä¼°ç®—å¤§å°ï¼ŒåŒ…å«å†…è¾¹è·(Box)ï¼Œä¸åŒ…å«å¤–è¾¹è·
 	 */
 	virtual UiEstSize EstimateSize(UiSize szAvailable) override;
 
-	/** DPI·¢Éú±ä»¯£¬¸üĞÂ¿Ø¼ş´óĞ¡ºÍ²¼¾Ö
-	* @param [in] nOldDpiScale ¾ÉµÄDPIËõ·Å°Ù·Ö±È
-	* @param [in] nNewDpiScale ĞÂµÄDPIËõ·Å°Ù·Ö±È£¬ÓëDpi().GetScale()µÄÖµÒ»ÖÂ
+	/** DPIå‘ç”Ÿå˜åŒ–ï¼Œæ›´æ–°æ§ä»¶å¤§å°å’Œå¸ƒå±€
+	* @param [in] nOldDpiScale æ—§çš„DPIç¼©æ”¾ç™¾åˆ†æ¯”
+	* @param [in] nNewDpiScale æ–°çš„DPIç¼©æ”¾ç™¾åˆ†æ¯”ï¼Œä¸Dpi().GetScale()çš„å€¼ä¸€è‡´
 	*/
 	virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override;
 
 public:
-	/** @name ²Ù×÷×Ó¿Ø¼ş(item)Ïà¹ØµÄ·½·¨
+	/** @name æ“ä½œå­æ§ä»¶(item)ç›¸å…³çš„æ–¹æ³•
 	* @{
 	*/
-	/** »ñÈ¡×Ó¿Ø¼şÊıÁ¿
+	/** è·å–å­æ§ä»¶æ•°é‡
 	 */
 	virtual size_t GetItemCount() const;
 
-	/** ¸ù¾İË÷Òı²éÕÒÖ¸¶¨¿Ø¼ş
-	 * @param[in] iIndex ¿Ø¼şË÷Òı
+	/** æ ¹æ®ç´¢å¼•æŸ¥æ‰¾æŒ‡å®šæ§ä»¶
+	 * @param[in] iIndex æ§ä»¶ç´¢å¼•
 	 */
 	virtual Control* GetItemAt(size_t iIndex) const;
 
-	/** ¸ù¾İ¿Ø¼şÖ¸Õë»ñÈ¡Ë÷Òı
-	 * @param[in] pControl ¿Ø¼şÖ¸Õë
-	 * @return ·µ»Ø pControl ËùÖ¸ÏòµÄ¿Ø¼şË÷Òı, Èç¹ûÃ»ÕÒµ½£¬Ôò·µ»Ø Box::InvalidIndex
+	/** æ ¹æ®æ§ä»¶æŒ‡é’ˆè·å–ç´¢å¼•
+	 * @param[in] pControl æ§ä»¶æŒ‡é’ˆ
+	 * @return è¿”å› pControl æ‰€æŒ‡å‘çš„æ§ä»¶ç´¢å¼•, å¦‚æœæ²¡æ‰¾åˆ°ï¼Œåˆ™è¿”å› Box::InvalidIndex
 	 */
 	virtual size_t GetItemIndex(Control* pControl) const;
 
-	/** ÉèÖÃ¿Ø¼şË÷Òı£¨ÄÚ²¿»áÖØĞÂÅÅÁĞ¿Ø¼şÎ»ÖÃ£©
-	 * @param[in] pControl ¿Ø¼şÖ¸Õë
-	 * @param[in] iIndex ÒªÉèÖÃµÄË÷ÒıÖµ
-	 * @return ·µ»Ø true ÉèÖÃ³É¹¦£¬false ÉèÖÃÊ§°Ü
+	/** è®¾ç½®æ§ä»¶ç´¢å¼•ï¼ˆå†…éƒ¨ä¼šé‡æ–°æ’åˆ—æ§ä»¶ä½ç½®ï¼‰
+	 * @param[in] pControl æ§ä»¶æŒ‡é’ˆ
+	 * @param[in] iIndex è¦è®¾ç½®çš„ç´¢å¼•å€¼
+	 * @return è¿”å› true è®¾ç½®æˆåŠŸï¼Œfalse è®¾ç½®å¤±è´¥
 	 */
 	virtual bool SetItemIndex(Control* pControl, size_t iIndex);
 
-	/** Ìí¼ÓÒ»¸ö¿Ø¼şµ½ÈİÆ÷ÖĞ
-	 * @param[in] pControl ¿Ø¼şÖ¸Õë
-	 * @return ·µ»Ø true Ìí¼Ó³É¹¦£¬false ÎªÌí¼ÓÊ§°Ü
+	/** æ·»åŠ ä¸€ä¸ªæ§ä»¶åˆ°å®¹å™¨ä¸­
+	 * @param[in] pControl æ§ä»¶æŒ‡é’ˆ
+	 * @return è¿”å› true æ·»åŠ æˆåŠŸï¼Œfalse ä¸ºæ·»åŠ å¤±è´¥
 	 */
 	virtual bool AddItem(Control* pControl);
 
-	/** ÏòÖ¸¶¨Î»ÖÃÌí¼ÓÒ»¸ö¿Ø¼ş
-	 * @param[in] pControl ¿Ø¼şÖ¸Õë
-	 * @param[in] iIndex ÔÚ¸ÃË÷ÒıÖ®ºó²åÈë¿Ø¼ş
-	 * @return ·µ»Ø true ÎªÌí¼Ó³É¹¦£¬false ÎªÌí¼ÓÊ§°Ü
+	/** å‘æŒ‡å®šä½ç½®æ·»åŠ ä¸€ä¸ªæ§ä»¶
+	 * @param[in] pControl æ§ä»¶æŒ‡é’ˆ
+	 * @param[in] iIndex åœ¨è¯¥ç´¢å¼•ä¹‹åæ’å…¥æ§ä»¶
+	 * @return è¿”å› true ä¸ºæ·»åŠ æˆåŠŸï¼Œfalse ä¸ºæ·»åŠ å¤±è´¥
 	 */
 	virtual bool AddItemAt(Control* pControl, size_t iIndex);
 
-	/** ¸ù¾İ¿Ø¼şÖ¸Õë´ÓÈİÆ÷ÖĞÒÆ³ıÒ»¸ö¿Ø¼ş
-	 * @param[in] pControl ¿Ø¼şµÄÖ¸Õë
-	 * @return ·µ»Ø true ÎªÒÆ³ı³É¹¦£¬false ÎªÒÆ³ıÊ§°Ü£¨¿Ø¼ş¿ÉÄÜ²»´æÔÚ£©
+	/** æ ¹æ®æ§ä»¶æŒ‡é’ˆä»å®¹å™¨ä¸­ç§»é™¤ä¸€ä¸ªæ§ä»¶
+	 * @param[in] pControl æ§ä»¶çš„æŒ‡é’ˆ
+	 * @return è¿”å› true ä¸ºç§»é™¤æˆåŠŸï¼Œfalse ä¸ºç§»é™¤å¤±è´¥ï¼ˆæ§ä»¶å¯èƒ½ä¸å­˜åœ¨ï¼‰
 	 */
 	virtual bool RemoveItem(Control* pControl);
 
-	/** ¸ù¾İ¿Ø¼şË÷Òı´ÓÈİÆ÷ÖĞÒÆ³ıÒ»¸ö¿Ø¼ş
-	 * @param[in] iIndex ÒªÒÆ³ıµÄ¿Ø¼şË÷Òı
-	 * @return ·µ»Ø true ÎªÒÆ³ı³É¹¦£¬false ÎªÒÆ³ıÊ§°Ü£¨Ë÷ÒıÖµÌ«Ğ¡»ò³¬³öÁË×Ó¿Ø¼ş×ÜÊı£©
+	/** æ ¹æ®æ§ä»¶ç´¢å¼•ä»å®¹å™¨ä¸­ç§»é™¤ä¸€ä¸ªæ§ä»¶
+	 * @param[in] iIndex è¦ç§»é™¤çš„æ§ä»¶ç´¢å¼•
+	 * @return è¿”å› true ä¸ºç§»é™¤æˆåŠŸï¼Œfalse ä¸ºç§»é™¤å¤±è´¥ï¼ˆç´¢å¼•å€¼å¤ªå°æˆ–è¶…å‡ºäº†å­æ§ä»¶æ€»æ•°ï¼‰
 	 */
 	virtual bool RemoveItemAt(size_t iIndex);
 
-	/** ÒÆ³ıËùÓĞ×Ó¿Ø¼ş
+	/** ç§»é™¤æ‰€æœ‰å­æ§ä»¶
 	 */
 	virtual void RemoveAllItems();
 
 	/** @} */
 
 public:
-	/** ²éÕÒÏÂÒ»¸ö¿ÉÑ¡¿Ø¼şµÄË÷Òı£¨ÃæÏò list¡¢combo£©
-	 * @param[in] iIndex Ö¸¶¨ÒªÆğÊ¼²éÕÒµÄË÷Òı
-	 * @param[in] bForward true ÎªµİÔö²éÕÒ£¬ false Îªµİ¼õ²éÕÒ
-	 * @return ÏÂÒ»¸ö¿ÉÑ¡¿Ø¼şµÄË÷Òı£¬·µ»Ø Box::InvalidIndex ÎªÃ»ÓĞ¿ÉÑ¡¿Ø¼ş
+	/** æŸ¥æ‰¾ä¸‹ä¸€ä¸ªå¯é€‰æ§ä»¶çš„ç´¢å¼•ï¼ˆé¢å‘ listã€comboï¼‰
+	 * @param[in] iIndex æŒ‡å®šè¦èµ·å§‹æŸ¥æ‰¾çš„ç´¢å¼•
+	 * @param[in] bForward true ä¸ºé€’å¢æŸ¥æ‰¾ï¼Œ false ä¸ºé€’å‡æŸ¥æ‰¾
+	 * @return ä¸‹ä¸€ä¸ªå¯é€‰æ§ä»¶çš„ç´¢å¼•ï¼Œè¿”å› Box::InvalidIndex ä¸ºæ²¡æœ‰å¯é€‰æ§ä»¶
 	 */
 	size_t FindSelectable(size_t iIndex, bool bForward = true) const;
 
 	/**
-	 * @brief ²éÕÒÖ¸¶¨×Ó¿Ø¼ş
-	 * @param[in] pstrSubControlName ×Ó¿Ø¼şÃû³Æ
-	 * @return ·µ»Ø×Ó¿Ø¼şÖ¸Õë
+	 * @brief æŸ¥æ‰¾æŒ‡å®šå­æ§ä»¶
+	 * @param[in] pstrSubControlName å­æ§ä»¶åç§°
+	 * @return è¿”å›å­æ§ä»¶æŒ‡é’ˆ
 	 */
 	Control* FindSubControl(const std::wstring& pstrSubControlName);
 
 	/**
-	 * @brief ÅĞ¶ÏÊÇ·ñ×Ô¶¯Ïú»Ù
-	 * @return true Îª×Ô¶¯Ïú»Ù£¬false Îª²»×Ô¶¯Ïú»Ù
+	 * @brief åˆ¤æ–­æ˜¯å¦è‡ªåŠ¨é”€æ¯
+	 * @return true ä¸ºè‡ªåŠ¨é”€æ¯ï¼Œfalse ä¸ºä¸è‡ªåŠ¨é”€æ¯
 	 */
     bool IsAutoDestroyChild() const { return m_bAutoDestroyChild; }
 
 	/**
-	 * @brief ÉèÖÃ¿Ø¼şÊÇ·ñ×Ô¶¯Ïú»Ù
-	 * @param[in] bAuto true Îª×Ô¶¯Ïú»Ù£¬false Îª²»×Ô¶¯Ïú»Ù
-	 * @return ÎŞ
+	 * @brief è®¾ç½®æ§ä»¶æ˜¯å¦è‡ªåŠ¨é”€æ¯
+	 * @param[in] bAuto true ä¸ºè‡ªåŠ¨é”€æ¯ï¼Œfalse ä¸ºä¸è‡ªåŠ¨é”€æ¯
+	 * @return æ— 
 	 */
     void SetAutoDestroyChild(bool bAuto) { m_bAutoDestroyChild = bAuto; }
 
 	/**
-	 * @brief ÅĞ¶Ï´°¿Ú¹Ø±ÕºóÊÇ·ñ×Ô¶¯Ïú»Ù
-	 * @return true Îª×Ô¶¯Ïú»Ù£¬false Îª²»×Ô¶¯Ïú»Ù
+	 * @brief åˆ¤æ–­çª—å£å…³é—­åæ˜¯å¦è‡ªåŠ¨é”€æ¯
+	 * @return true ä¸ºè‡ªåŠ¨é”€æ¯ï¼Œfalse ä¸ºä¸è‡ªåŠ¨é”€æ¯
 	 */
     bool IsDelayedDestroy() const { return m_bDelayedDestroy; }
 
 	/**
-	 * @brief ÉèÖÃ´°¿Ú¹Ø±ÕºóÊÇ·ñ×Ô¶¯Ïú»Ù
-	 * @param[in] bDelayedDestroy true Îª×Ô¶¯Ïú»Ù£¬false Îª²»×Ô¶¯Ïú»Ù
-	 * @return ÎŞ
+	 * @brief è®¾ç½®çª—å£å…³é—­åæ˜¯å¦è‡ªåŠ¨é”€æ¯
+	 * @param[in] bDelayedDestroy true ä¸ºè‡ªåŠ¨é”€æ¯ï¼Œfalse ä¸ºä¸è‡ªåŠ¨é”€æ¯
+	 * @return æ— 
 	 */
 	void SetDelayedDestroy(bool bDelayedDestroy) { m_bDelayedDestroy = bDelayedDestroy; }
 
 	/**
-	 * @brief »ñÈ¡ÈİÆ÷ÊÇ·ñÏìÓ¦Êó±ê²Ù×÷
-	 * @return true ÎªÏìÓ¦£¬false Îª²»ÏìÓ¦
+	 * @brief è·å–å®¹å™¨æ˜¯å¦å“åº”é¼ æ ‡æ“ä½œ
+	 * @return true ä¸ºå“åº”ï¼Œfalse ä¸ºä¸å“åº”
 	 */
     bool IsMouseChildEnabled() const { return m_bMouseChildEnabled; }
 
 	/**
-	 * @brief ÉèÖÃÈİÆ÷ÏìÓ¦Êó±ê²Ù×÷
-	 * @param[in] bEnable ÉèÖÃÎª true ÎªÏìÓ¦Êó±ê²Ù×÷£¬ÉèÖÃÎª false Îª²»ÏìÓ¦£¬Ä¬ÈÏÎª true
+	 * @brief è®¾ç½®å®¹å™¨å“åº”é¼ æ ‡æ“ä½œ
+	 * @param[in] bEnable è®¾ç½®ä¸º true ä¸ºå“åº”é¼ æ ‡æ“ä½œï¼Œè®¾ç½®ä¸º false ä¸ºä¸å“åº”ï¼Œé»˜è®¤ä¸º true
 	 */
 	void SetMouseChildEnabled(bool bEnable) { m_bMouseChildEnabled = bEnable; }
 
 	/**
-	 * @brief »ñÈ¡ÈİÆ÷²¼¾Ö¶ÔÏóÖ¸Õë
-	 * @return ·µ»ØÈİÆ÷¹ØÁªµÄ²¼¾Ö¶ÔÏóÖ¸Õë
+	 * @brief è·å–å®¹å™¨å¸ƒå±€å¯¹è±¡æŒ‡é’ˆ
+	 * @return è¿”å›å®¹å™¨å…³è”çš„å¸ƒå±€å¯¹è±¡æŒ‡é’ˆ
 	 */
 	Layout* GetLayout() const { return m_pLayout; }
 
 	/**
-	 * @brief ÖØĞÂ¹ØÁª²¼¾Ö¶ÔÏó
-	 * @param[in] pLayout ²¼¾Ö¶ÔÏóÖ¸Õë
-	 * @return ÎŞ
+	 * @brief é‡æ–°å…³è”å¸ƒå±€å¯¹è±¡
+	 * @param[in] pLayout å¸ƒå±€å¯¹è±¡æŒ‡é’ˆ
+	 * @return æ— 
 	 */
 	void ReSetLayout(Layout* pLayout);
 
 public:
-	/** ÉèÖÃÊÇ·ñÖ§³ÖÍÏ×§Í¶·Å½øÈë¸ÃÈİÆ÷: Èç¹û²»µÈÓÚ0£¬Ö§³ÖÍÏÈë£¬·ñÔò²»Ö§³ÖÍÏÈë(´ÓDragOutId==DropInIdµÄÈİÆ÷ÍÏÈëµ½¸ÃÈİÆ÷)
+	/** è®¾ç½®æ˜¯å¦æ”¯æŒæ‹–æ‹½æŠ•æ”¾è¿›å…¥è¯¥å®¹å™¨: å¦‚æœä¸ç­‰äº0ï¼Œæ”¯æŒæ‹–å…¥ï¼Œå¦åˆ™ä¸æ”¯æŒæ‹–å…¥(ä»DragOutId==DropInIdçš„å®¹å™¨æ‹–å…¥åˆ°è¯¥å®¹å™¨)
 	*/
 	void SetDropInId(uint8_t nDropInId);
 
-	/** »ñÈ¡ÊÇ·ñÖ§³ÖÍÏ×§Í¶·Å½øÈë¸ÃÈİÆ÷: Èç¹û²»µÈÓÚ0£¬Ö§³ÖÍÏÈë£¬·ñÔò²»Ö§³ÖÍÏÈë
+	/** è·å–æ˜¯å¦æ”¯æŒæ‹–æ‹½æŠ•æ”¾è¿›å…¥è¯¥å®¹å™¨: å¦‚æœä¸ç­‰äº0ï¼Œæ”¯æŒæ‹–å…¥ï¼Œå¦åˆ™ä¸æ”¯æŒæ‹–å…¥
 	*/
 	uint8_t GetDropInId() const;
 
-	/** ÉèÖÃÊÇ·ñÖ§³ÖÍÏ×§ÍÏ³ö¸ÃÈİÆ÷£ºÈç¹û²»µÈÓÚ0£¬Ö§³ÖÍÏ³ö£¬·ñÔò²»Ö§³ÖÍÏ³ö£¨ÍÏ³öµ½DropInId==DragOutIdµÄÈİÆ÷£©
+	/** è®¾ç½®æ˜¯å¦æ”¯æŒæ‹–æ‹½æ‹–å‡ºè¯¥å®¹å™¨ï¼šå¦‚æœä¸ç­‰äº0ï¼Œæ”¯æŒæ‹–å‡ºï¼Œå¦åˆ™ä¸æ”¯æŒæ‹–å‡ºï¼ˆæ‹–å‡ºåˆ°DropInId==DragOutIdçš„å®¹å™¨ï¼‰
 	*/
 	void SetDragOutId(uint8_t nDragOutId);
 
-	/** »ñÈ¡ÊÇ·ñÖ§³ÖÍÏ×§ÍÏ³ö¸ÃÈİÆ÷£ºÈç¹û²»µÈÓÚ0£¬Ö§³ÖÍÏ³ö£¬·ñÔò²»Ö§³ÖÍÏ³ö
+	/** è·å–æ˜¯å¦æ”¯æŒæ‹–æ‹½æ‹–å‡ºè¯¥å®¹å™¨ï¼šå¦‚æœä¸ç­‰äº0ï¼Œæ”¯æŒæ‹–å‡ºï¼Œå¦åˆ™ä¸æ”¯æŒæ‹–å‡º
 	*/
 	uint8_t GetDragOutId() const;
 
 protected:
 
-	/** ²éÕÒ¿Ø¼ş, ×Ó¿Ø¼şÁĞ±íÓÉÍâ²¿´«Èë
+	/** æŸ¥æ‰¾æ§ä»¶, å­æ§ä»¶åˆ—è¡¨ç”±å¤–éƒ¨ä¼ å…¥
 	*/
 	Control* FindControlInItems(const std::vector<Control*>& items, 
 								FINDCONTROLPROC Proc, LPVOID pProcData,
@@ -223,40 +223,40 @@ protected:
 							    const UiPoint& scrollPos);
 
 private:
-	/**@brief ÏòÖ¸¶¨Î»ÖÃÌí¼ÓÒ»¸ö¿Ø¼ş
-	 * @param[in] pControl ¿Ø¼şÖ¸Õë
-	 * @param[in] iIndex ÔÚ¸ÃË÷ÒıÖ®ºó²åÈë¿Ø¼ş
+	/**@brief å‘æŒ‡å®šä½ç½®æ·»åŠ ä¸€ä¸ªæ§ä»¶
+	 * @param[in] pControl æ§ä»¶æŒ‡é’ˆ
+	 * @param[in] iIndex åœ¨è¯¥ç´¢å¼•ä¹‹åæ’å…¥æ§ä»¶
 	 */
 	bool DoAddItemAt(Control* pControl, size_t iIndex);
 
-	/**@brief ¸ù¾İ¿Ø¼şÖ¸Õë´ÓÈİÆ÷ÖĞÒÆ³ıÒ»¸ö¿Ø¼ş
-	 * @param[in] pControl ¿Ø¼şµÄÖ¸Õë
+	/**@brief æ ¹æ®æ§ä»¶æŒ‡é’ˆä»å®¹å™¨ä¸­ç§»é™¤ä¸€ä¸ªæ§ä»¶
+	 * @param[in] pControl æ§ä»¶çš„æŒ‡é’ˆ
 	 */
 	bool DoRemoveItem(Control* pControl);
 
 protected:
 
-	//ÈİÆ÷ÖĞµÄ×Ó¿Ø¼şÁĞ±í
+	//å®¹å™¨ä¸­çš„å­æ§ä»¶åˆ—è¡¨
 	std::vector<Control*> m_items;
 
 private:
 
-	//ÊÇ·ñ×Ô¶¯É¾³ıitemµÄ¶ÔÏó£¨Èç¹ûÎªtrue£ºÔÚ´Óm_itemsÒÆ³ıÔªËØÊ±£¬»ádeleteµôÕâ¸ö¶ÔÏó£»Èç¹ûÎªfalse£¬²»delete£©
+	//æ˜¯å¦è‡ªåŠ¨åˆ é™¤itemçš„å¯¹è±¡ï¼ˆå¦‚æœä¸ºtrueï¼šåœ¨ä»m_itemsç§»é™¤å…ƒç´ æ—¶ï¼Œä¼šdeleteæ‰è¿™ä¸ªå¯¹è±¡ï¼›å¦‚æœä¸ºfalseï¼Œä¸deleteï¼‰
 	bool m_bAutoDestroyChild;
 
-	//ÊÇ·ñÑÓ³ÙÉ¾³ıitem¶ÔÏó£¬Èç¹ûÎªtrue£¬ÔòÔªËØÒÆ³ıºó£¬»á·Åµ½Window¶ÔÏóÖĞ£¬ÑÓ³ÙdeleteÕâ¸ö¶ÔÏó£¬½öµ±m_bAutoDestroyChildÊ±ÓĞĞ§
+	//æ˜¯å¦å»¶è¿Ÿåˆ é™¤itemå¯¹è±¡ï¼Œå¦‚æœä¸ºtrueï¼Œåˆ™å…ƒç´ ç§»é™¤åï¼Œä¼šæ”¾åˆ°Windowå¯¹è±¡ä¸­ï¼Œå»¶è¿Ÿdeleteè¿™ä¸ªå¯¹è±¡ï¼Œä»…å½“m_bAutoDestroyChildæ—¶æœ‰æ•ˆ
 	bool m_bDelayedDestroy;
 	
-	//²¼¾Ö¹ÜÀí½Ó¿Ú
+	//å¸ƒå±€ç®¡ç†æ¥å£
 	Layout* m_pLayout;
 
-	//ÊÇ·ñÔÊĞíÏìÓ¦×Ó¿Ø¼şµÄÊó±êÏûÏ¢
+	//æ˜¯å¦å…è®¸å“åº”å­æ§ä»¶çš„é¼ æ ‡æ¶ˆæ¯
 	bool m_bMouseChildEnabled;
 
-	//ÊÇ·ñÖ§³ÖÍÏ×§Í¶·Å½øÈë¸ÃÈİÆ÷: Èç¹û²»µÈÓÚ0£¬Ö§³ÖÍÏÈë£¬·ñÔò²»Ö§³ÖÍÏÈë(´ÓDragOutId==DropInIdµÄÈİÆ÷ÍÏÈëµ½¸ÃÈİÆ÷)
+	//æ˜¯å¦æ”¯æŒæ‹–æ‹½æŠ•æ”¾è¿›å…¥è¯¥å®¹å™¨: å¦‚æœä¸ç­‰äº0ï¼Œæ”¯æŒæ‹–å…¥ï¼Œå¦åˆ™ä¸æ”¯æŒæ‹–å…¥(ä»DragOutId==DropInIdçš„å®¹å™¨æ‹–å…¥åˆ°è¯¥å®¹å™¨)
 	uint8_t m_nDropInId;
 
-	//ÊÇ·ñÖ§³ÖÍÏ×§ÍÏ³ö¸ÃÈİÆ÷£ºÈç¹û²»µÈÓÚ0£¬Ö§³ÖÍÏ³ö£¬·ñÔò²»Ö§³ÖÍÏ³ö£¨ÍÏ³öµ½DropInId==DragOutIdµÄÈİÆ÷£©
+	//æ˜¯å¦æ”¯æŒæ‹–æ‹½æ‹–å‡ºè¯¥å®¹å™¨ï¼šå¦‚æœä¸ç­‰äº0ï¼Œæ”¯æŒæ‹–å‡ºï¼Œå¦åˆ™ä¸æ”¯æŒæ‹–å‡ºï¼ˆæ‹–å‡ºåˆ°DropInId==DragOutIdçš„å®¹å™¨ï¼‰
 	uint8_t m_nDragOutId;
 };
 

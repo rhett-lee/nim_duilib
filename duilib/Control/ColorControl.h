@@ -8,71 +8,71 @@
 
 namespace ui
 {
-/** ×Ô¶¨ÒåÑÕÉ«¿Ø¼ş
+/** è‡ªå®šä¹‰é¢œè‰²æ§ä»¶
 */
 class ColorControl: public Control
 {
 public:
 	explicit ColorControl(Window* pWindow);
 
-	/** »ñÈ¡¿Ø¼şÀàĞÍ
+	/** è·å–æ§ä»¶ç±»å‹
 	*/
 	virtual std::wstring GetType() const override;
 
-	/** Ñ¡ÔñÑÕÉ«
+	/** é€‰æ‹©é¢œè‰²
 	*/
 	void SelectColor(const UiColor& selColor);
 
-	/** ¼àÌıÑ¡ÔñÑÕÉ«µÄÊÂ¼ş
-	* @param[in] callback Ñ¡ÔñÑÕÉ«±ä»¯Ê±µÄ»Øµ÷º¯Êı
-	*            ²ÎÊıËµÃ÷:
-						wParam: µ±Ç°ĞÂÑ¡ÔñµÄÑÕÉ«Öµ£¬¿ÉÒÔÓÃUiColor((uint32_t)wParam)Éú³ÉÑÕÉ«
-						lParam: Ô­À´¾ÉÑ¡ÔñµÄÑÕÉ«Öµ£¬¿ÉÒÔÓÃUiColor((uint32_t)lParam)Éú³ÉÑÕÉ«
+	/** ç›‘å¬é€‰æ‹©é¢œè‰²çš„äº‹ä»¶
+	* @param[in] callback é€‰æ‹©é¢œè‰²å˜åŒ–æ—¶çš„å›è°ƒå‡½æ•°
+	*            å‚æ•°è¯´æ˜:
+						wParam: å½“å‰æ–°é€‰æ‹©çš„é¢œè‰²å€¼ï¼Œå¯ä»¥ç”¨UiColor((uint32_t)wParam)ç”Ÿæˆé¢œè‰²
+						lParam: åŸæ¥æ—§é€‰æ‹©çš„é¢œè‰²å€¼ï¼Œå¯ä»¥ç”¨UiColor((uint32_t)lParam)ç”Ÿæˆé¢œè‰²
 	*/
 	void AttachSelectColor(const EventCallback& callback) { AttachEvent(kEventSelectColor, callback); }
 
 protected:
-	/** »æÖÆ±³¾°Í¼Æ¬µÄÈë¿Úº¯Êı
-	* @param[in] pRender Ö¸¶¨»æÖÆÇøÓò
+	/** ç»˜åˆ¶èƒŒæ™¯å›¾ç‰‡çš„å…¥å£å‡½æ•°
+	* @param[in] pRender æŒ‡å®šç»˜åˆ¶åŒºåŸŸ
 	*/
 	virtual void PaintBkImage(IRender* pRender) override;
 
-	/** Êó±ê×ó¼ü°´ÏÂ
+	/** é¼ æ ‡å·¦é”®æŒ‰ä¸‹
 	*/
 	virtual bool ButtonDown(const EventArgs& msg) override;
 
-	/** Êó±êÒÆ¶¯
+	/** é¼ æ ‡ç§»åŠ¨
 	*/
 	virtual bool MouseMove(const EventArgs& msg) override;
 
-	/** Êó±ê×ó¼üµ¯Æğ
+	/** é¼ æ ‡å·¦é”®å¼¹èµ·
 	*/
 	virtual bool ButtonUp(const EventArgs& msg) override;
 
 private:
-	/** »ñÈ¡»æÖÆµÄÑÕÉ«Î»Í¼½Ó¿Ú
-	* @param [in] rect ÏÔÊ¾ÇøÓò´óĞ¡ĞÅÏ¢
+	/** è·å–ç»˜åˆ¶çš„é¢œè‰²ä½å›¾æ¥å£
+	* @param [in] rect æ˜¾ç¤ºåŒºåŸŸå¤§å°ä¿¡æ¯
 	*/
 	IBitmap* GetColorBitmap(const UiRect& rect);
 
-	/** Ñ¡ÔñÎ»ÖÃ·¢Éú±ä»¯
+	/** é€‰æ‹©ä½ç½®å‘ç”Ÿå˜åŒ–
 	*/
 	void OnSelectPosChanged(const UiRect& rect, const UiPoint& pt);
 
-	/** ÉèÖÃÊó±ê²¶»ñ
+	/** è®¾ç½®é¼ æ ‡æ•è·
 	*/
 	void SetMouseCapture(bool bCapture);
 
 private:
-	/** ÑÕÉ«Î»Í¼
+	/** é¢œè‰²ä½å›¾
 	*/
 	std::unique_ptr<IBitmap> m_spBitmap;
 
-	/** Êó±êµã»÷Î»ÖÃ
+	/** é¼ æ ‡ç‚¹å‡»ä½ç½®
 	*/
 	UiPoint m_lastPt;
 
-	/** Êó±êÊÇ·ñ°´ÏÂ
+	/** é¼ æ ‡æ˜¯å¦æŒ‰ä¸‹
 	*/
 	bool m_bMouseDown;
 };

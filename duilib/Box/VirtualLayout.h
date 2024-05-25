@@ -8,7 +8,7 @@
 
 namespace ui 
 {
-/** Ğé±íÊµÏÖµÄ²¼¾Ö½Ó¿Ú
+/** è™šè¡¨å®ç°çš„å¸ƒå±€æ¥å£
 */
 class UILIB_API VirtualLayout
 {
@@ -19,43 +19,43 @@ public:
 	virtual ~VirtualLayout() = default;
 
 public:
-    /** ÑÓ³Ù¼ÓÔØÕ¹Ê¾Êı¾İ
-    * @param [in] rc µ±Ç°ÈİÆ÷´óĞ¡ĞÅÏ¢, Íâ²¿µ÷ÓÃÊ±£¬ĞèÒªÏÈ¼ôÈ¥ÄÚ±ß¾à
+    /** å»¶è¿ŸåŠ è½½å±•ç¤ºæ•°æ®
+    * @param [in] rc å½“å‰å®¹å™¨å¤§å°ä¿¡æ¯, å¤–éƒ¨è°ƒç”¨æ—¶ï¼Œéœ€è¦å…ˆå‰ªå»å†…è¾¹è·
     */
     virtual void LazyArrangeChild(UiRect rc) const = 0;
 
-    /** »ñÈ¡ĞèÒªÕ¹Ê¾µÄÕæÊµÊı¾İÏî×î´ó¸öÊı£¨¼´ÓĞControl¶ÔÏó¶ÔÓ¦µÄÕæÊµÊı¾İÏî£©
-    * @param [in] rc µ±Ç°ÈİÆ÷´óĞ¡ĞÅÏ¢, Íâ²¿µ÷ÓÃÊ±£¬ĞèÒªÏÈ¼ôÈ¥ÄÚ±ß¾à
+    /** è·å–éœ€è¦å±•ç¤ºçš„çœŸå®æ•°æ®é¡¹æœ€å¤§ä¸ªæ•°ï¼ˆå³æœ‰Controlå¯¹è±¡å¯¹åº”çš„çœŸå®æ•°æ®é¡¹ï¼‰
+    * @param [in] rc å½“å‰å®¹å™¨å¤§å°ä¿¡æ¯, å¤–éƒ¨è°ƒç”¨æ—¶ï¼Œéœ€è¦å…ˆå‰ªå»å†…è¾¹è·
     */
     virtual size_t AjustMaxItem(UiRect rc) const = 0;
 
-    /** µÃµ½¿É¼û·¶Î§ÄÚµÚÒ»¸öÔªËØµÄÇ°Ò»¸öÔªËØË÷Òı
-    * @param [in] rc µ±Ç°ÏÔÊ¾ÇøÓòµÄ¾ØĞÎ£¬²»°üº¬ÄÚ±ß¾à
-    * @return ·µ»ØÔªËØµÄË÷Òı
+    /** å¾—åˆ°å¯è§èŒƒå›´å†…ç¬¬ä¸€ä¸ªå…ƒç´ çš„å‰ä¸€ä¸ªå…ƒç´ ç´¢å¼•
+    * @param [in] rc å½“å‰æ˜¾ç¤ºåŒºåŸŸçš„çŸ©å½¢ï¼Œä¸åŒ…å«å†…è¾¹è·
+    * @return è¿”å›å…ƒç´ çš„ç´¢å¼•
     */
     virtual size_t GetTopElementIndex(UiRect rc) const = 0 ;
 
-    /** ÅĞ¶ÏÄ³¸öÔªËØÊÇ·ñÔÚ¿É¼û·¶Î§ÄÚ
-    * @param[in] iIndex ÔªËØË÷Òı
-    * @param [in] rc µ±Ç°ÏÔÊ¾ÇøÓòµÄ¾ØĞÎ£¬²»°üº¬ÄÚ±ß¾à
-    * @return ·µ»Ø true ±íÊ¾¿É¼û£¬·ñÔòÎª²»¿É¼û
+    /** åˆ¤æ–­æŸä¸ªå…ƒç´ æ˜¯å¦åœ¨å¯è§èŒƒå›´å†…
+    * @param[in] iIndex å…ƒç´ ç´¢å¼•
+    * @param [in] rc å½“å‰æ˜¾ç¤ºåŒºåŸŸçš„çŸ©å½¢ï¼Œä¸åŒ…å«å†…è¾¹è·
+    * @return è¿”å› true è¡¨ç¤ºå¯è§ï¼Œå¦åˆ™ä¸ºä¸å¯è§
     */
     virtual bool IsElementDisplay(UiRect rc, size_t iIndex) const = 0;
 
-    /** ÅĞ¶ÏÊÇ·ñÒªÖØĞÂ²¼¾Ö
+    /** åˆ¤æ–­æ˜¯å¦è¦é‡æ–°å¸ƒå±€
     */
     virtual bool NeedReArrange() const = 0;
 
-    /** »ñÈ¡µ±Ç°ËùÓĞ¿É¼û¿Ø¼şµÄÊı¾İÔªËØË÷Òı
-    * @param [in] rc µ±Ç°ÏÔÊ¾ÇøÓòµÄ¾ØĞÎ£¬²»°üº¬ÄÚ±ß¾à
-    * @param[out] collection Ë÷ÒıÁĞ±í£¬·¶Î§ÊÇ£º[0, GetElementCount())
+    /** è·å–å½“å‰æ‰€æœ‰å¯è§æ§ä»¶çš„æ•°æ®å…ƒç´ ç´¢å¼•
+    * @param [in] rc å½“å‰æ˜¾ç¤ºåŒºåŸŸçš„çŸ©å½¢ï¼Œä¸åŒ…å«å†…è¾¹è·
+    * @param[out] collection ç´¢å¼•åˆ—è¡¨ï¼ŒèŒƒå›´æ˜¯ï¼š[0, GetElementCount())
     */
     virtual void GetDisplayElements(UiRect rc, std::vector<size_t>& collection) const = 0;
 
-    /** ÈÃ¿Ø¼şÔÚ¿É¼û·¶Î§ÄÚ
-    * @param [in] rc µ±Ç°ÏÔÊ¾ÇøÓòµÄ¾ØĞÎ£¬²»°üº¬ÄÚ±ß¾à
-    * @param[in] iIndex ÔªËØË÷ÒıºÅ£¬·¶Î§ÊÇ£º[0, GetElementCount())
-    * @param[in] bToTop ÊÇ·ñÔÚ×îÉÏ·½
+    /** è®©æ§ä»¶åœ¨å¯è§èŒƒå›´å†…
+    * @param [in] rc å½“å‰æ˜¾ç¤ºåŒºåŸŸçš„çŸ©å½¢ï¼Œä¸åŒ…å«å†…è¾¹è·
+    * @param[in] iIndex å…ƒç´ ç´¢å¼•å·ï¼ŒèŒƒå›´æ˜¯ï¼š[0, GetElementCount())
+    * @param[in] bToTop æ˜¯å¦åœ¨æœ€ä¸Šæ–¹
     */
     virtual void EnsureVisible(UiRect rc, size_t iIndex, bool bToTop) const = 0;
 };

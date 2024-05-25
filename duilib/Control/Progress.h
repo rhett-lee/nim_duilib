@@ -9,7 +9,7 @@
 namespace ui
 {
 
-/** ½ø¶ÈÌõ¿Ø¼ş
+/** è¿›åº¦æ¡æ§ä»¶
 */
 class UILIB_API Progress : public LabelTemplate<Control>
 {
@@ -17,172 +17,172 @@ public:
 	explicit Progress(Window* pWindow);
 	virtual ~Progress();
 
-	/// ÖØĞ´¸¸Àà·½·¨£¬Ìá¹©¸öĞÔ»¯¹¦ÄÜ£¬Çë²Î¿¼¸¸ÀàÉùÃ÷
+	/// é‡å†™çˆ¶ç±»æ–¹æ³•ï¼Œæä¾›ä¸ªæ€§åŒ–åŠŸèƒ½ï¼Œè¯·å‚è€ƒçˆ¶ç±»å£°æ˜
 	virtual std::wstring GetType() const override;
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 	virtual void PaintStateImages(IRender* pRender) override;
 	virtual void ClearImageCache() override;
 
-	/** DPI·¢Éú±ä»¯£¬¸üĞÂ¿Ø¼ş´óĞ¡ºÍ²¼¾Ö
-	* @param [in] nOldDpiScale ¾ÉµÄDPIËõ·Å°Ù·Ö±È
-	* @param [in] nNewDpiScale ĞÂµÄDPIËõ·Å°Ù·Ö±È£¬ÓëDpi().GetScale()µÄÖµÒ»ÖÂ
+	/** DPIå‘ç”Ÿå˜åŒ–ï¼Œæ›´æ–°æ§ä»¶å¤§å°å’Œå¸ƒå±€
+	* @param [in] nOldDpiScale æ—§çš„DPIç¼©æ”¾ç™¾åˆ†æ¯”
+	* @param [in] nNewDpiScale æ–°çš„DPIç¼©æ”¾ç™¾åˆ†æ¯”ï¼Œä¸Dpi().GetScale()çš„å€¼ä¸€è‡´
 	*/
 	virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override;
 
-	/** ÅĞ¶ÏÊÇ·ñÊÇË®Æ½½ø¶ÈÌõ
-	 * @return ·µ»Ø true ÊÇË®Æ½½ø¶ÈÌõ£¬false Îª´¹Ö±½ø¶ÈÌõ
+	/** åˆ¤æ–­æ˜¯å¦æ˜¯æ°´å¹³è¿›åº¦æ¡
+	 * @return è¿”å› true æ˜¯æ°´å¹³è¿›åº¦æ¡ï¼Œfalse ä¸ºå‚ç›´è¿›åº¦æ¡
 	 */
 	bool IsHorizontal() const;
 
-	/** ÉèÖÃË®Æ½»ò´¹Ö±½ø¶ÈÌõ
-	 * @param [in] bHorizontal Îª true Ê±ÉèÖÃÎªË®Æ½½ø¶ÈÌõ£¬false Ê±ÉèÖÃÎª´¹Ö±½ø¶ÈÌõ£¬Ä¬ÈÏÎª true
+	/** è®¾ç½®æ°´å¹³æˆ–å‚ç›´è¿›åº¦æ¡
+	 * @param [in] bHorizontal ä¸º true æ—¶è®¾ç½®ä¸ºæ°´å¹³è¿›åº¦æ¡ï¼Œfalse æ—¶è®¾ç½®ä¸ºå‚ç›´è¿›åº¦æ¡ï¼Œé»˜è®¤ä¸º true
 	 */
 	void SetHorizontal(bool bHorizontal = true);
 
-	/** »ñÈ¡½ø¶ÈÌõ×îĞ¡Öµ
-	 * @return ·µ»Ø½ø¶ÈÌõ×îĞ¡Öµ
+	/** è·å–è¿›åº¦æ¡æœ€å°å€¼
+	 * @return è¿”å›è¿›åº¦æ¡æœ€å°å€¼
 	 */
 	int32_t GetMinValue() const;
 
-	/** ÉèÖÃ½ø¶ÈÌõ×îĞ¡Öµ
-	 * @param [in] nMin ×îĞ¡ÖµÊıÖµ
+	/** è®¾ç½®è¿›åº¦æ¡æœ€å°å€¼
+	 * @param [in] nMin æœ€å°å€¼æ•°å€¼
 	 */
 	void SetMinValue(int32_t nMin);
 
-	/** »ñÈ¡½ø¶ÈÌõ×î´óÖµ
-	 * @return ·µ»Ø½ø¶ÈÌõ×î´óÖµ
+	/** è·å–è¿›åº¦æ¡æœ€å¤§å€¼
+	 * @return è¿”å›è¿›åº¦æ¡æœ€å¤§å€¼
 	 */
 	int32_t GetMaxValue() const;
 
-	/** ÉèÖÃ½ø¶ÈÌõ×î´óÖµ
-	 * @param [in] nMax ÒªÉèÖÃµÄ×î´óÖµ
+	/** è®¾ç½®è¿›åº¦æ¡æœ€å¤§å€¼
+	 * @param [in] nMax è¦è®¾ç½®çš„æœ€å¤§å€¼
 	 */
 	void SetMaxValue(int32_t nMax);
 
-	/** »ñÈ¡µ±Ç°½ø¶È°Ù·Ö±È
-	 * @return ·µ»Øµ±Ç°½ø¶È°Ù·Ö±È
+	/** è·å–å½“å‰è¿›åº¦ç™¾åˆ†æ¯”
+	 * @return è¿”å›å½“å‰è¿›åº¦ç™¾åˆ†æ¯”
 	 */
 	double GetValue() const;
 
-	/** ÉèÖÃµ±Ç°½ø¶È°Ù·Ö±È
-	 * @param[in] nValue ÒªÉèÖÃµÄ°Ù·Ö±ÈÊıÖµ
+	/** è®¾ç½®å½“å‰è¿›åº¦ç™¾åˆ†æ¯”
+	 * @param[in] nValue è¦è®¾ç½®çš„ç™¾åˆ†æ¯”æ•°å€¼
 	 */
 	void SetValue(double nValue);
 
-	/** ½ø¶ÈÌõÇ°¾°Í¼Æ¬ÊÇ·ñËõ·ÅÏÔÊ¾
-	 * @return ·µ»Ø true ÎªËõ·ÅÏÔÊ¾£¬false Îª²»Ëõ·ÅÏÔÊ¾
+	/** è¿›åº¦æ¡å‰æ™¯å›¾ç‰‡æ˜¯å¦ç¼©æ”¾æ˜¾ç¤º
+	 * @return è¿”å› true ä¸ºç¼©æ”¾æ˜¾ç¤ºï¼Œfalse ä¸ºä¸ç¼©æ”¾æ˜¾ç¤º
 	 */
 	bool IsStretchForeImage();
 
-	/** ÉèÖÃ½ø¶ÈÌõÇ°¾°Í¼Æ¬ÊÇ·ñËõ·ÅÏÔÊ¾
-	 * @param [in] bStretchForeImage true ÎªËõ·ÅÏÔÊ¾£¬false Îª²»Ëõ·ÅÏÔÊ¾
+	/** è®¾ç½®è¿›åº¦æ¡å‰æ™¯å›¾ç‰‡æ˜¯å¦ç¼©æ”¾æ˜¾ç¤º
+	 * @param [in] bStretchForeImage true ä¸ºç¼©æ”¾æ˜¾ç¤ºï¼Œfalse ä¸ºä¸ç¼©æ”¾æ˜¾ç¤º
 	 */
 	void SetStretchForeImage(bool bStretchForeImage = true);
 
-	/** »ñÈ¡¹ö¶¯Ìõ±³¾°Í¼Æ¬
-	 * @return ·µ»Ø±³¾°Í¼Æ¬Î»ÖÃ
+	/** è·å–æ»šåŠ¨æ¡èƒŒæ™¯å›¾ç‰‡
+	 * @return è¿”å›èƒŒæ™¯å›¾ç‰‡ä½ç½®
 	 */
 	std::wstring GetProgressImage() const;
 
-	/** ÉèÖÃ½ø¶ÈÌõ±³¾°Í¼Æ¬
-	 * @param [in] strImage Í¼Æ¬µØÖ·
+	/** è®¾ç½®è¿›åº¦æ¡èƒŒæ™¯å›¾ç‰‡
+	 * @param [in] strImage å›¾ç‰‡åœ°å€
 	 */
 	void SetProgressImage(const std::wstring& strImage);
 
-	/** »ñÈ¡½ø¶ÈÌõ±³¾°ÑÕÉ«
-	 * @return ·µ»Ø±³¾°ÑÕÉ«µÄ×Ö·û´®Öµ£¬¶ÔÓ¦ global.xml ÖĞµÄÖ¸¶¨É«Öµ
+	/** è·å–è¿›åº¦æ¡èƒŒæ™¯é¢œè‰²
+	 * @return è¿”å›èƒŒæ™¯é¢œè‰²çš„å­—ç¬¦ä¸²å€¼ï¼Œå¯¹åº” global.xml ä¸­çš„æŒ‡å®šè‰²å€¼
 	 */
 	std::wstring GetProgressColor() const;
 
-	/** ÉèÖÃ½ø¶ÈÌõ±³¾°ÑÕÉ«
-	 * @param [in] ÒªÉèÖÃµÄ±³¾°ÑÕÉ«×Ö·û´®£¬¸Ã×Ö·û´®±ØĞëÔÚ global.xml ÖĞ´æÔÚ
+	/** è®¾ç½®è¿›åº¦æ¡èƒŒæ™¯é¢œè‰²
+	 * @param [in] è¦è®¾ç½®çš„èƒŒæ™¯é¢œè‰²å­—ç¬¦ä¸²ï¼Œè¯¥å­—ç¬¦ä¸²å¿…é¡»åœ¨ global.xml ä¸­å­˜åœ¨
 	 */
 	void SetProgressColor(const std::wstring& strProgressColor);
 
-	/** »ñÈ¡½ø¶ÈÌõÎ»ÖÃ
+	/** è·å–è¿›åº¦æ¡ä½ç½®
 	 */
 	virtual UiRect GetProgressPos();
 
-	/** ²¥·ÅMarquee
+	/** æ’­æ”¾Marquee
 	 */
 	virtual void Play();
 
-	/** »æÖÆMarquee
+	/** ç»˜åˆ¶Marquee
 	 */
 	void PaintMarquee(IRender* pRender);
 
-	/** ÊÇ·ñÊÇMarquee
+	/** æ˜¯å¦æ˜¯Marquee
 	 */
 	bool IsMarquee() const;
 
-	/** ÉèÖÃMarquee
+	/** è®¾ç½®Marquee
 	 */
 	void SetMarquee(bool bMarquee);
 
-	/** »ñÈ¡Marquee¿í¶È
+	/** è·å–Marqueeå®½åº¦
 	 */
 	int32_t GetMarqueeWidth() const;
 
-	/** ÉèÖÃMarquee¿í¶È
+	/** è®¾ç½®Marqueeå®½åº¦
 	 */
 	void SetMarqueeWidth(int32_t nMarqueeWidth, bool bNeedDpiScale);
 
-	/** »ñÈ¡Marquee²½³¤
+	/** è·å–Marqueeæ­¥é•¿
 	 */
 	int32_t GetMarqueeStep() const;
 
-	/** ÉèÖÃMarquee²½³¤
+	/** è®¾ç½®Marqueeæ­¥é•¿
 	 */
 	void SetMarqueeStep(int32_t nMarqueeStep, bool bNeedDpiScale);
 
-	/** »ñÈ¡Marquee³ÖĞøÊ±¼ä
+	/** è·å–MarqueeæŒç»­æ—¶é—´
 	 */
 	int32_t GetMarqueeElapsed() const;
 
-	/** ÉèÖÃMarquee³ÖĞøÊ±¼ä
+	/** è®¾ç½®MarqueeæŒç»­æ—¶é—´
 	 */
 	void SetMarqueeElapsed(int32_t nMarqueeElapsed);
 
-	/** ÉèÖÃÊÇ·ñ·´ÏòÌî³ä½ø¶ÈÌõ
+	/** è®¾ç½®æ˜¯å¦åå‘å¡«å……è¿›åº¦æ¡
 	*/
 	void SetReverse(bool bReverse);
 
 protected:
-	//½ø¶ÈÌõÊÇË®Æ½»ò´¹Ö±: trueÎªË®Æ½£¬falseÎª´¹Ö±
+	//è¿›åº¦æ¡æ˜¯æ°´å¹³æˆ–å‚ç›´: trueä¸ºæ°´å¹³ï¼Œfalseä¸ºå‚ç›´
 	bool m_bHorizontal;
 
-	//Ö¸¶¨½ø¶ÈÌõÇ°¾°Í¼Æ¬ÊÇ·ñËõ·ÅÏÔÊ¾
+	//æŒ‡å®šè¿›åº¦æ¡å‰æ™¯å›¾ç‰‡æ˜¯å¦ç¼©æ”¾æ˜¾ç¤º
 	bool m_bStretchForeImage;
 
-	//½ø¶È×î´óÖµ£¨Ä¬ÈÏÎª100£©
+	//è¿›åº¦æœ€å¤§å€¼ï¼ˆé»˜è®¤ä¸º100ï¼‰
 	int32_t m_nMax;
 
-	//½ø¶È×îĞ¡Öµ£¨Ä¬ÈÏÎª0£©
+	//è¿›åº¦æœ€å°å€¼ï¼ˆé»˜è®¤ä¸º0ï¼‰
 	int32_t m_nMin;
 
-	//µ±Ç°½ø¶ÈÖµ
+	//å½“å‰è¿›åº¦å€¼
 	double m_nValue;
 
-	//½ø¶ÈÌõÇ°¾°Í¼Æ¬
+	//è¿›åº¦æ¡å‰æ™¯å›¾ç‰‡
 	Image* m_pProgressImage;
 
-	//½ø¶ÈÌõÇ°¾°Í¼Æ¬ÊôĞÔ
+	//è¿›åº¦æ¡å‰æ™¯å›¾ç‰‡å±æ€§
 	UiString m_sProgressImageModify;
 
-	//½ø¶ÈÌõÇ°¾°ÑÕÉ«,²»Ö¸¶¨ÔòÊ¹ÓÃÄ¬ÈÏÑÕÉ«
+	//è¿›åº¦æ¡å‰æ™¯é¢œè‰²,ä¸æŒ‡å®šåˆ™ä½¿ç”¨é»˜è®¤é¢œè‰²
 	UiString m_sProgressColor;
 
-	//¹ö¶¯Ğ§¹û
+	//æ»šåŠ¨æ•ˆæœ
 	bool m_bMarquee;
 	int32_t m_nMarqueeWidth;
 	int32_t m_nMarqueeStep;
 	int32_t m_nMarqueeElapsed;
 	int32_t m_nMarqueePos;
 
-	//ÊÇ·ñµ¹Êı£¨½ø¶È´Ó100 µ½ 0£©
+	//æ˜¯å¦å€’æ•°ï¼ˆè¿›åº¦ä»100 åˆ° 0ï¼‰
 	bool m_bReverse;
 
-	//¶¨Ê±Æ÷È¡Ïû»úÖÆ
+	//å®šæ—¶å™¨å–æ¶ˆæœºåˆ¶
 	nbase::WeakCallbackFlag m_timer;
 };
 

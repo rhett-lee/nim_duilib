@@ -15,92 +15,92 @@ public:
 	Pen_Skia(const Pen_Skia& r);
 	Pen_Skia& operator=(const Pen_Skia& r) = delete;
 
-	/** ÉèÖÃ»­±Ê¿í¶È
+	/** è®¾ç½®ç”»ç¬”å®½åº¦
 	*/
 	virtual void SetWidth(int width) override;
 
-	/** »ñÈ¡»­±Ê¿í¶È
+	/** è·å–ç”»ç¬”å®½åº¦
 	*/
 	virtual int GetWidth() const override;
 
-	/** ÉèÖÃ»­±ÊÑÕÉ«
+	/** è®¾ç½®ç”»ç¬”é¢œè‰²
 	*/
 	virtual void SetColor(UiColor color) override;
 
-	/** »ñÈ¡»­±ÊÑÕÉ«
+	/** è·å–ç”»ç¬”é¢œè‰²
 	*/
 	virtual UiColor GetColor() const override;
 
-	/** ÉèÖÃÏß¶ÎÆğÊ¼µÄ±ÊÃ±ÑùÊ½
+	/** è®¾ç½®çº¿æ®µèµ·å§‹çš„ç¬”å¸½æ ·å¼
 	*/
 	virtual void SetStartCap(LineCap cap) override;
 
-	/** »ñÈ¡Ïß¶ÎÆğÊ¼µÄ±ÊÃ±ÑùÊ½
+	/** è·å–çº¿æ®µèµ·å§‹çš„ç¬”å¸½æ ·å¼
 	*/
 	virtual LineCap GetStartCap() const override;
 
-	/** ÉèÖÃÏß¶Î½áÊøµÄ±ÊÃ±ÑùÊ½
+	/** è®¾ç½®çº¿æ®µç»“æŸçš„ç¬”å¸½æ ·å¼
 	*/
 	virtual void SetEndCap(LineCap cap) override;
 
-	/** »ñÈ¡Ïß¶Î½áÊøµÄ±ÊÃ±ÑùÊ½
+	/** è·å–çº¿æ®µç»“æŸçš„ç¬”å¸½æ ·å¼
 	*/
 	virtual LineCap GetEndCap() const override;
 
-	/** ÉèÖÃ¶Ì»®Ïß±ÊÃ±µÄÑùÊ½
+	/** è®¾ç½®çŸ­åˆ’çº¿ç¬”å¸½çš„æ ·å¼
 	*/
 	virtual void SetDashCap(LineCap cap) override;
 
-	/** »ñÈ¡¶Ì»®Ïß±ÊÃ±µÄÑùÊ½
+	/** è·å–çŸ­åˆ’çº¿ç¬”å¸½çš„æ ·å¼
 	*/
 	virtual LineCap GetDashCap() const override;
 
-	/** ÉèÖÃÏß¶ÎÄ©Î²Ê¹ÓÃµÄÁª½ÓÑùÊ½
+	/** è®¾ç½®çº¿æ®µæœ«å°¾ä½¿ç”¨çš„è”æ¥æ ·å¼
 	*/
 	virtual void SetLineJoin(LineJoin join) override;
 
-	/** »ñÈ¡Ïß¶ÎÄ©Î²Ê¹ÓÃµÄÁª½ÓÑùÊ½
+	/** è·å–çº¿æ®µæœ«å°¾ä½¿ç”¨çš„è”æ¥æ ·å¼
 	*/
 	virtual LineJoin GetLineJoin() const override;
 
-	/** ÉèÖÃ»æÖÆµÄÏßÌõÑùÊ½
+	/** è®¾ç½®ç»˜åˆ¶çš„çº¿æ¡æ ·å¼
 	*/
 	virtual void SetDashStyle(DashStyle style) override;
 
-	/** »ñÈ¡»æÖÆµÄÏßÌõÑùÊ½
+	/** è·å–ç»˜åˆ¶çš„çº¿æ¡æ ·å¼
 	*/
 	virtual DashStyle GetDashStyle() const override;
 
-	/** ¸´ÖÆPen¶ÔÏó
+	/** å¤åˆ¶Penå¯¹è±¡
 	*/
 	virtual IPen* Clone() const override;
 
 private:
-	/** »­±ÊÑÕÉ«
+	/** ç”»ç¬”é¢œè‰²
 	*/
 	UiColor m_color;
 
-	/** »­±Ê¿í¶È
+	/** ç”»ç¬”å®½åº¦
 	*/
 	int m_width;
 
-	/** Ïß¶ÎÆğÊ¼±ÊÃ±ĞÎ×´
+	/** çº¿æ®µèµ·å§‹ç¬”å¸½å½¢çŠ¶
 	*/
 	LineCap m_startCap;
 
-	/** ¶Ì»®Ïß±ÊÃ±ĞÎ×´
+	/** çŸ­åˆ’çº¿ç¬”å¸½å½¢çŠ¶
 	*/
 	LineCap m_dashCap;
 
-	/** Ïß¶Î½áÊø±ÊÃ±ĞÎ×´
+	/** çº¿æ®µç»“æŸç¬”å¸½å½¢çŠ¶
 	*/
 	LineCap m_endCap;
 
-	/** Ïß¶ÎÄ©Î²Ê¹ÓÃµÄÁª½ÓÑùÊ½£¬¸ÃÏß¶ÎÓëÁíÒ»¸öÏß¶ÎÏàÓö
+	/** çº¿æ®µæœ«å°¾ä½¿ç”¨çš„è”æ¥æ ·å¼ï¼Œè¯¥çº¿æ®µä¸å¦ä¸€ä¸ªçº¿æ®µç›¸é‡
 	*/
 	LineJoin m_lineJoin;
 
-	/** ¶Ì»®ÏßÑùÊ½
+	/** çŸ­åˆ’çº¿æ ·å¼
 	*/
 	DashStyle m_dashStyle;
 };

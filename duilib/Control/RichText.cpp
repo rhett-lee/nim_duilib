@@ -69,23 +69,23 @@ void RichText::SetAttribute(const std::wstring& strName, const std::wstring& str
         SetRowSpacingMul(wcstof(strValue.c_str(), nullptr));
     }
     else if (strName == L"default_link_font_color") {
-        //³¬¼¶Á´½Ó£º³£¹æÎÄ±¾ÑÕÉ«Öµ
+        //è¶…çº§é“¾æ¥ï¼šå¸¸è§„æ–‡æœ¬é¢œè‰²å€¼
         m_linkNormalTextColor = strValue;
     }
     else if (strName == L"hover_link_font_color") {
-        //³¬¼¶Á´½Ó£ºHover×´Ì¬ÎÄ±¾ÑÕÉ«Öµ
+        //è¶…çº§é“¾æ¥ï¼šHoverçŠ¶æ€æ–‡æœ¬é¢œè‰²å€¼
         m_linkHoverTextColor = strValue;
     }
     else if (strName == L"mouse_down_link_font_color") {
-        //³¬¼¶Á´½Ó£ºÊó±ê°´ÏÂ×´Ì¬ÎÄ±¾ÑÕÉ«Öµ
+        //è¶…çº§é“¾æ¥ï¼šé¼ æ ‡æŒ‰ä¸‹çŠ¶æ€æ–‡æœ¬é¢œè‰²å€¼
         m_linkMouseDownTextColor = strValue;
     }
     else if (strName == L"link_font_underline") {
-        //³¬¼¶Á´½Ó£ºÊÇ·ñÊ¹ÓÃ´øÏÂ»®ÏßµÄ×ÖÌå
+        //è¶…çº§é“¾æ¥ï¼šæ˜¯å¦ä½¿ç”¨å¸¦ä¸‹åˆ’çº¿çš„å­—ä½“
         m_bLinkUnderlineFont = (strValue == L"true");
     }
     else if (strName == L"text") {
-        //ÔÊĞíÊ¹ÓÃ'{'´úÌæ'<'£¬'}'´úÌæ'>'
+        //å…è®¸ä½¿ç”¨'{'ä»£æ›¿'<'ï¼Œ'}'ä»£æ›¿'>'
         if (((strValue.find(L'<') == std::wstring::npos) && (strValue.find(L'>') == std::wstring::npos)) &&
             ((strValue.find(L'{') != std::wstring::npos) && (strValue.find(L'}') != std::wstring::npos))) {
             std::wstring richText(strValue);
@@ -171,14 +171,14 @@ UiSize RichText::EstimateText(UiSize szAvailable)
 
     int32_t nWidth = szAvailable.cx;
     if (GetFixedWidth().IsStretch()) {
-        //Èç¹ûÊÇÀ­ÉìÀàĞÍ£¬Ê¹ÓÃÍâ²¿¿í¶È
+        //å¦‚æœæ˜¯æ‹‰ä¼¸ç±»å‹ï¼Œä½¿ç”¨å¤–éƒ¨å®½åº¦
         nWidth = CalcStretchValue(GetFixedWidth(), szAvailable.cx);
     }
     else if (GetFixedWidth().IsInt32()) {
         nWidth = GetFixedWidth().GetInt32();
     }
 
-    //×î´ó¸ß¶È£¬²»ÏŞÖÆ
+    //æœ€å¤§é«˜åº¦ï¼Œä¸é™åˆ¶
     int32_t nHeight = INT_MAX;
 
     UiRect rc;
@@ -193,10 +193,10 @@ UiSize RichText::EstimateText(UiSize szAvailable)
         return fixedSize;
     }
 
-    //¼ì²é²¢¸üĞÂÎÄ±¾
+    //æ£€æŸ¥å¹¶æ›´æ–°æ–‡æœ¬
     CheckParseText();
 
-    //¼ÆËã»æÖÆËùÕ¼µÄÇøÓò´óĞ¡
+    //è®¡ç®—ç»˜åˆ¶æ‰€å çš„åŒºåŸŸå¤§å°
     UiRect rect;
     CalcDestRect(pRender, rc, rect);
 
@@ -222,16 +222,16 @@ void RichText::PaintText(IRender* pRender)
     rc.Deflate(GetControlPadding());
     rc.Deflate(GetTextPadding());
 
-    //¼ì²é²¢¸üĞÂÎÄ±¾
+    //æ£€æŸ¥å¹¶æ›´æ–°æ–‡æœ¬
     CheckParseText();
 
-    //Èç¹ûÉèÖÃÁË¶ÔÆë·½Ê½£¬ĞèÒªÆÀ¹À»æÖÆÎ»ÖÃ
+    //å¦‚æœè®¾ç½®äº†å¯¹é½æ–¹å¼ï¼Œéœ€è¦è¯„ä¼°ç»˜åˆ¶ä½ç½®
     if ((m_uTextStyle & (TEXT_CENTER | TEXT_RIGHT | TEXT_VCENTER | TEXT_BOTTOM))) {
-        //¼ÆËã»æÖÆËùÕ¼µÄÇøÓò´óĞ¡
+        //è®¡ç®—ç»˜åˆ¶æ‰€å çš„åŒºåŸŸå¤§å°
         UiRect rect;
         CalcDestRect(pRender, rc, rect);
         if ((rect.Width() < rc.Width()) && (m_uTextStyle & (TEXT_CENTER | TEXT_RIGHT))) {            
-            //Ë®Æ½·½Ïò
+            //æ°´å¹³æ–¹å‘
             int32_t diff = rc.Width() - rect.Width();
             if (m_uTextStyle & TEXT_CENTER) {
                 rc.Offset(diff / 2, 0);
@@ -241,7 +241,7 @@ void RichText::PaintText(IRender* pRender)
             }
         }
         if ((rect.Height() < rc.Height()) && (m_uTextStyle & (TEXT_VCENTER | TEXT_BOTTOM))) {
-            //´¹Ö±·½Ïò
+            //å‚ç›´æ–¹å‘
             int32_t diff = rc.Height() - rect.Height();
             if (m_uTextStyle & TEXT_VCENTER) {
                 rc.Offset(0, diff / 2);
@@ -270,24 +270,24 @@ void RichText::PaintText(IRender* pRender)
         richTextData.reserve(m_textData.size());
         for (const RichTextDataEx& textDataEx : m_textData) {
             if (!textDataEx.m_linkUrl.empty()) {
-                //¶ÔÓÚ³¬¼¶Á´½Ó£¬ÉèÖÃÄ¬ÈÏÎÄ±¾¸ñÊ½
+                //å¯¹äºè¶…çº§é“¾æ¥ï¼Œè®¾ç½®é»˜è®¤æ–‡æœ¬æ ¼å¼
                 RichTextData textData = textDataEx;
                 if (textDataEx.m_bMouseDown || textDataEx.m_bMouseHover) {
-                    textData.m_fontInfo.m_bUnderline = m_bLinkUnderlineFont;//ÊÇ·ñÏÔÊ¾ÏÂ»®Ïß×ÖÌå
+                    textData.m_fontInfo.m_bUnderline = m_bLinkUnderlineFont;//æ˜¯å¦æ˜¾ç¤ºä¸‹åˆ’çº¿å­—ä½“
                 }
                 if (!m_linkNormalTextColor.empty()) {                    
                     if (!normalLinkTextColor.IsEmpty()) {
-                        textData.m_textColor = normalLinkTextColor;//±ê×¼×´Ì¬µÄ×ÖÌåÑÕÉ«
+                        textData.m_textColor = normalLinkTextColor;//æ ‡å‡†çŠ¶æ€çš„å­—ä½“é¢œè‰²
                     }
                 }
                 if (textDataEx.m_bMouseDown && !m_linkMouseDownTextColor.empty()) {                    
                     if (!mouseDownLinkTextColor.IsEmpty()) {
-                        textData.m_textColor = mouseDownLinkTextColor;//Êó±ê°´ÏÂÊ±µÄ×ÖÌåÑÕÉ«
+                        textData.m_textColor = mouseDownLinkTextColor;//é¼ æ ‡æŒ‰ä¸‹æ—¶çš„å­—ä½“é¢œè‰²
                     }
                 }
                 else if (textDataEx.m_bMouseHover && !m_linkHoverTextColor.empty()) {                    
                     if (!linkHoverTextColor.IsEmpty()) {
-                        textData.m_textColor = linkHoverTextColor;//Êó±êHoverÊ±µÄ×ÖÌåÑÕÉ«
+                        textData.m_textColor = linkHoverTextColor;//é¼ æ ‡Hoveræ—¶çš„å­—ä½“é¢œè‰²
                     }
                 }
                 richTextData.push_back(textData);
@@ -306,12 +306,12 @@ void RichText::PaintText(IRender* pRender)
 void RichText::CheckParseText()
 {
     if (!m_richTextId.empty() && (m_langFileName != GlobalManager::Instance().GetLanguageFileName())) {
-        //¶àÓïÑÔ°æ£ºµ±ÓïÑÔ·¢Éú±ä»¯Ê±£¬¸üĞÂÎÄ±¾ÄÚÈİ
+        //å¤šè¯­è¨€ç‰ˆï¼šå½“è¯­è¨€å‘ç”Ÿå˜åŒ–æ—¶ï¼Œæ›´æ–°æ–‡æœ¬å†…å®¹
         DoSetText(GlobalManager::Instance().Lang().GetStringViaID(m_richTextId.c_str()));
         m_langFileName = GlobalManager::Instance().GetLanguageFileName();
     }
 
-    //µ±DPI±ä»¯Ê±£¬ĞèÒªÖØĞÂ½âÎöÎÄ±¾£¬¸üĞÂ×ÖÌå´óĞ¡
+    //å½“DPIå˜åŒ–æ—¶ï¼Œéœ€è¦é‡æ–°è§£ææ–‡æœ¬ï¼Œæ›´æ–°å­—ä½“å¤§å°
     if (m_nTextDataDPI != Dpi().GetDPI()) {
         m_textData.clear();
     }
@@ -324,7 +324,7 @@ void RichText::CheckParseText()
 
 bool RichText::ParseText(std::vector<RichTextDataEx>& outTextData) const
 {
-    //Ä¬ÈÏ×ÖÌå
+    //é»˜è®¤å­—ä½“
     std::wstring sFontId = GetFontId();
     IFont* pFont = GlobalManager::Instance().Font().GetIFont(sFontId, Dpi());
     ASSERT(pFont != nullptr);
@@ -333,7 +333,7 @@ bool RichText::ParseText(std::vector<RichTextDataEx>& outTextData) const
     }
 
     RichTextDataEx parentTextData;
-    //Ä¬ÈÏÎÄ±¾ÑÕÉ«
+    //é»˜è®¤æ–‡æœ¬é¢œè‰²
     parentTextData.m_textColor = GetUiColor(GetTextColor());
     if (parentTextData.m_textColor.IsEmpty()) {
         parentTextData.m_textColor = UiColor(UiColors::Black);
@@ -361,7 +361,7 @@ bool RichText::ParseTextSlice(const RichTextSlice& textSlice,
                               const RichTextDataEx& parentTextData, 
                               std::vector<RichTextDataEx>& textData) const
 {
-    //µ±Ç°½Úµã
+    //å½“å‰èŠ‚ç‚¹
     RichTextDataEx currentTextData;
     currentTextData.m_fRowSpacingMul = m_fRowSpacingMul;
     currentTextData.m_text = textSlice.m_text;
@@ -385,7 +385,7 @@ bool RichText::ParseTextSlice(const RichTextSlice& textSlice,
         currentTextData.m_fontInfo.m_fontName = textSlice.m_fontInfo.m_fontName;
     }
     if (textSlice.m_fontInfo.m_fontSize > 0) {
-        currentTextData.m_fontInfo.m_fontSize = Dpi().GetScaleInt(textSlice.m_fontInfo.m_fontSize); //×ÖÌå´óĞ¡£¬ĞèÒªDPIËõ·Å
+        currentTextData.m_fontInfo.m_fontSize = Dpi().GetScaleInt(textSlice.m_fontInfo.m_fontSize); //å­—ä½“å¤§å°ï¼Œéœ€è¦DPIç¼©æ”¾
     }
     if (textSlice.m_fontInfo.m_bBold) {
         currentTextData.m_fontInfo.m_bBold = textSlice.m_fontInfo.m_bBold;
@@ -404,7 +404,7 @@ bool RichText::ParseTextSlice(const RichTextSlice& textSlice,
     }
         
     if (!textSlice.m_childs.empty()) {
-        //×Ó½Úµã
+        //å­èŠ‚ç‚¹
         for (const RichTextSlice& childSlice : textSlice.m_childs) {
             if (!ParseTextSlice(childSlice, currentTextData, textData)) {
                 return false;
@@ -441,10 +441,10 @@ void RichText::SetTextPadding(UiPadding padding, bool bNeedDpiScale)
 const std::wstring& RichText::TrimText(std::wstring& text)
 {
     if (m_trimPolicy == TrimPolicy::kNone) {
-        //²»´¦Àí
+        //ä¸å¤„ç†
     }
     else if (m_trimPolicy == TrimPolicy::kKeepOne) {
-        //Ö»±£ÁôÒ»¸ö¿Õ¸ñ
+        //åªä¿ç•™ä¸€ä¸ªç©ºæ ¼
         if (!text.empty()) {
             bool bFirst = (text.front() == L' ');
             bool bLast = text[text.size() - 1] == L' ';
@@ -463,7 +463,7 @@ const std::wstring& RichText::TrimText(std::wstring& text)
         }
     }
     else {
-        //È¥µôËùÓĞ¿Õ¸ñ
+        //å»æ‰æ‰€æœ‰ç©ºæ ¼
         StringHelper::Trim(text);
     }    
     return text;
@@ -472,7 +472,7 @@ const std::wstring& RichText::TrimText(std::wstring& text)
 std::wstring RichText::TrimText(const wchar_t* text)
 {
     if (m_trimPolicy == TrimPolicy::kNone) {
-        //²»´¦Àí
+        //ä¸å¤„ç†
         std::wstring retText;
         if (text != nullptr) {
             retText = text;
@@ -480,7 +480,7 @@ std::wstring RichText::TrimText(const wchar_t* text)
         return retText;
     }
     else if (m_trimPolicy == TrimPolicy::kKeepOne) {
-        //Ö»±£ÁôÒ»¸ö¿Õ¸ñ
+        //åªä¿ç•™ä¸€ä¸ªç©ºæ ¼
         std::wstring retText;
         if (text != nullptr) {
             retText = text;
@@ -489,7 +489,7 @@ std::wstring RichText::TrimText(const wchar_t* text)
         return retText;
     }
     else {
-        //È¥µôËùÓĞ¿Õ¸ñ
+        //å»æ‰æ‰€æœ‰ç©ºæ ¼
         return StringHelper::Trim(text);
     }    
 }
@@ -497,7 +497,7 @@ std::wstring RichText::TrimText(const wchar_t* text)
 bool RichText::DoSetText(const std::wstring& richText)
 {
     Clear();
-    //XML½âÎöµÄÄÚÈİ£¬È«²¿·â×°ÔÚWindowBuilderÕâ¸öÀàÖĞ£¬ÒÔ±ÜÃâµ½´¦Ê¹ÓÃXML½âÎöÆ÷£¬´Ó¶ø½µµÍ´úÂëÎ¬»¤¸´ÔÓ¶È
+    //XMLè§£æçš„å†…å®¹ï¼Œå…¨éƒ¨å°è£…åœ¨WindowBuilderè¿™ä¸ªç±»ä¸­ï¼Œä»¥é¿å…åˆ°å¤„ä½¿ç”¨XMLè§£æå™¨ï¼Œä»è€Œé™ä½ä»£ç ç»´æŠ¤å¤æ‚åº¦
     bool bResult = true;
     if (!richText.empty()) {
         if (richText.find(L"<RichText") == std::wstring::npos) {
@@ -614,16 +614,16 @@ std::wstring RichText::ToString() const
 
 std::wstring RichText::ToString(const RichTextSlice& textSlice, const std::wstring& indent) const
 {
-    // Ö§³ÖµÄ±êÇ©ÁĞ±í(¼æÈİHTMLµÄ±êÇ©):
+    // æ”¯æŒçš„æ ‡ç­¾åˆ—è¡¨(å…¼å®¹HTMLçš„æ ‡ç­¾):
     // 
-    // ³¬¼¶Á´½Ó£º    <a href="URL">ÎÄ±¾</a>
-    // ´ÖÌå×Ö:      <b> </b>
-    // Ğ±Ìå×Ö:      <i> </i>
-    // É¾³ı×Ö:      <s> </s> »ò <del> </del> »òÕß <strike> </strike>
-    // ÏÂ»®Ïß×Ö:    <u> </u>
-    // ÉèÖÃ±³¾°É«:  <bgcolor color="#000000"> </bgcolor>
-    // ÉèÖÃ×ÖÌå:    <font face="ËÎÌå" size="12" color="#000000">
-    // »»ĞĞ±êÇ©£º   <br/>
+    // è¶…çº§é“¾æ¥ï¼š    <a href="URL">æ–‡æœ¬</a>
+    // ç²—ä½“å­—:      <b> </b>
+    // æ–œä½“å­—:      <i> </i>
+    // åˆ é™¤å­—:      <s> </s> æˆ– <del> </del> æˆ–è€… <strike> </strike>
+    // ä¸‹åˆ’çº¿å­—:    <u> </u>
+    // è®¾ç½®èƒŒæ™¯è‰²:  <bgcolor color="#000000"> </bgcolor>
+    // è®¾ç½®å­—ä½“:    <font face="å®‹ä½“" size="12" color="#000000">
+    // æ¢è¡Œæ ‡ç­¾ï¼š   <br/>
     const std::wstring indentValue = L"    ";
     const std::wstring lineBreak = L"\r\n";
     std::wstring richText;
@@ -633,11 +633,11 @@ std::wstring RichText::ToString(const RichTextSlice& textSlice, const std::wstri
             richText += textSlice.m_text.c_str();
             richText += lineBreak;
         }
-        //Ã»ÓĞ½ÚµãÃû³ÆµÄÇé¿öÏÂ£¬¾ÍÃ»ÓĞÊôĞÔºÍ×Ó½Úµã£¬Ö±½Ó·µ»Ø
+        //æ²¡æœ‰èŠ‚ç‚¹åç§°çš„æƒ…å†µä¸‹ï¼Œå°±æ²¡æœ‰å±æ€§å’Œå­èŠ‚ç‚¹ï¼Œç›´æ¥è¿”å›
         return richText;
     }
 
-    //Éú³ÉÊôĞÔÁĞ±í
+    //ç”Ÿæˆå±æ€§åˆ—è¡¨
     std::wstring attrList;    
     if (!textSlice.m_linkUrl.empty()) {
         attrList += L"href=\"";
@@ -667,7 +667,7 @@ std::wstring RichText::ToString(const RichTextSlice& textSlice, const std::wstri
     }
 
     if(!textSlice.m_childs.empty()) {
-        //ÓĞ×Ó½Úµã£º½Úµã¿ªÊ¼
+        //æœ‰å­èŠ‚ç‚¹ï¼šèŠ‚ç‚¹å¼€å§‹
         richText += indent;
         richText += L"<";
         richText += textSlice.m_nodeName.c_str();
@@ -678,12 +678,12 @@ std::wstring RichText::ToString(const RichTextSlice& textSlice, const std::wstri
         richText += L">";
         richText += lineBreak;
 
-        //Ìí¼Ó×Ó½Úµã
+        //æ·»åŠ å­èŠ‚ç‚¹
         for (const RichTextSlice& childSlice : textSlice.m_childs) {
             richText += ToString(childSlice, indent + indentValue);
         }
 
-        //½Úµã½áÊø
+        //èŠ‚ç‚¹ç»“æŸ
         richText += indent;
         richText += L"</";
         richText += textSlice.m_nodeName.c_str();
@@ -691,7 +691,7 @@ std::wstring RichText::ToString(const RichTextSlice& textSlice, const std::wstri
         richText += lineBreak;
     }
     else if (!textSlice.m_linkUrl.empty()) {
-        //³¬¼¶Á´½Ó½Úµã£ºĞèÒªÌØÊâ´¦Àí
+        //è¶…çº§é“¾æ¥èŠ‚ç‚¹ï¼šéœ€è¦ç‰¹æ®Šå¤„ç†
         richText += indent;
         richText += L"<";
         richText += textSlice.m_nodeName.c_str();
@@ -701,17 +701,17 @@ std::wstring RichText::ToString(const RichTextSlice& textSlice, const std::wstri
         }
         richText += L">";
 
-        //Ìí¼Ó³¬Á´½ÓµÄÎÄ±¾
+        //æ·»åŠ è¶…é“¾æ¥çš„æ–‡æœ¬
         richText += textSlice.m_text.c_str();
 
-        //½Úµã½áÊø
+        //èŠ‚ç‚¹ç»“æŸ
         richText += L"</";
         richText += textSlice.m_nodeName.c_str();
         richText += L">";
         richText += lineBreak;
     }
     else {
-        //Ã»ÓĞ×Ó½Úµã£º·ÅÒ»ĞĞÖĞ±íÊ¾
+        //æ²¡æœ‰å­èŠ‚ç‚¹ï¼šæ”¾ä¸€è¡Œä¸­è¡¨ç¤º
         richText += indent;
         richText += L"<";
         richText += textSlice.m_nodeName.c_str();
@@ -736,7 +736,7 @@ bool RichText::ButtonDown(const EventArgs& msg)
         }        
         for (const UiRect& textRect : textData.m_textRects) {
             if (textRect.ContainsPt(msg.ptMouse)) {
-                //ÔÚ³¬¼¶Á´½ÓÉÏ
+                //åœ¨è¶…çº§é“¾æ¥ä¸Š
                 textData.m_bMouseDown = true;
                 Invalidate();
             }
@@ -755,7 +755,7 @@ bool RichText::ButtonUp(const EventArgs& msg)
         }
         for (const UiRect& textRect : textData.m_textRects) {
             if (textRect.ContainsPt(msg.ptMouse)) {
-                //ÔÚ³¬¼¶Á´½ÓÉÏ, ²¢ÇÒÓë°´ÏÂÊó±êÊ±µÄÏàÍ¬£¬Ôò´¥·¢µã»÷ÊÂ¼ş
+                //åœ¨è¶…çº§é“¾æ¥ä¸Š, å¹¶ä¸”ä¸æŒ‰ä¸‹é¼ æ ‡æ—¶çš„ç›¸åŒï¼Œåˆ™è§¦å‘ç‚¹å‡»äº‹ä»¶
                 if (textData.m_bMouseDown) {
                     textData.m_bMouseDown = false;
                     Invalidate();
@@ -793,7 +793,7 @@ bool RichText::MouseMove(const EventArgs& msg)
         }
         for (const UiRect& textRect : textData.m_textRects) {
             if (textRect.ContainsPt(msg.ptMouse)) {
-                //ÔÚ³¬¼¶Á´½ÓÉÏ
+                //åœ¨è¶…çº§é“¾æ¥ä¸Š
                 textData.m_bMouseHover = true;
                 Invalidate();
                 if (textData.m_linkUrl == GetToolTipText()) {
@@ -818,7 +818,7 @@ bool RichText::MouseHover(const EventArgs& msg)
         }
         for (const UiRect& textRect : textData.m_textRects) {
             if (textRect.ContainsPt(msg.ptMouse)) {
-                //³¬¼¶Á´½Ó, ÏÔÊ¾ToolTip
+                //è¶…çº§é“¾æ¥, æ˜¾ç¤ºToolTip
                 SetToolTipText(textData.m_linkUrl.c_str());
                 hasHover = true;
             }
@@ -860,7 +860,7 @@ bool RichText::OnSetCursor(const EventArgs& msg)
         }
         for (const UiRect& textRect : textData.m_textRects) {
             if (textRect.ContainsPt(msg.ptMouse)) {
-                //³¬¼¶Á´½Ó£¬¹â±ê±ä³ÉÊÖĞÍ
+                //è¶…çº§é“¾æ¥ï¼Œå…‰æ ‡å˜æˆæ‰‹å‹
                 SetCursor(kCursorHand);
                 return true;
             }

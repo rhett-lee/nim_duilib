@@ -46,7 +46,7 @@ ScrollBar::ScrollBar(Window* pWindow) :
 	m_bkStateImage->SetControl(this);
 	m_thumbStateImage->SetControl(this);
 
-	//TODO: DPI×ÔÊÊÓ¦²ÎÊı£¬ĞèÒªÈ·ÈÏÒ»ÏÂ
+	//TODO: DPIè‡ªé€‚åº”å‚æ•°ï¼Œéœ€è¦ç¡®è®¤ä¸€ä¸‹
 	SetFixedWidth(UiFixedInt(DEFAULT_SCROLLBAR_SIZE), false, false);
 	SetFixedHeight(UiFixedInt(0), true, false);
 	m_ptLastMouse.x = 0;
@@ -436,7 +436,7 @@ void ScrollBar::SetPos(UiRect rc)
 void ScrollBar::HandleEvent(const EventArgs& msg)
 {
 	if (IsDisabledEvents(msg)) {
-		//Èç¹ûÊÇÊó±ê¼üÅÌÏûÏ¢£¬²¢ÇÒ¿Ø¼şÊÇDisabledµÄ£¬×ª·¢¸øOwner¿Ø¼ş
+		//å¦‚æœæ˜¯é¼ æ ‡é”®ç›˜æ¶ˆæ¯ï¼Œå¹¶ä¸”æ§ä»¶æ˜¯Disabledçš„ï¼Œè½¬å‘ç»™Owneræ§ä»¶
 		if (m_pOwner != nullptr) {
 			m_pOwner->SendEvent(msg);
 		}
@@ -456,10 +456,10 @@ void ScrollBar::HandleEvent(const EventArgs& msg)
 		GlobalManager::Instance().Timer().AddCancelableTimer(m_weakFlagOwner.GetWeakFlag(), callback, 50, TimerManager::REPEAT_FOREVER);
 
 		if (m_rcButton1.ContainsPt(pt)) {
-			//Êó±êÎ»ÖÃ£º[ÉÏ°´Å¥](´¹Ö±¹ö¶¯Ìõ) »òÕß [×ó°´Å¥](Ë®Æ½¹ö¶¯Ìõ)
+			//é¼ æ ‡ä½ç½®ï¼š[ä¸ŠæŒ‰é’®](å‚ç›´æ»šåŠ¨æ¡) æˆ–è€… [å·¦æŒ‰é’®](æ°´å¹³æ»šåŠ¨æ¡)
 			m_uButton1State = kControlStatePushed;
 			if (!m_bHorizontal) {
-				//´¹Ö±¹ö¶¯Ìõ
+				//å‚ç›´æ»šåŠ¨æ¡
 				if (m_pOwner != nullptr) {
 					m_pOwner->LineUp();
 				}
@@ -468,7 +468,7 @@ void ScrollBar::HandleEvent(const EventArgs& msg)
 				}
 			}
 			else {
-				//Ë®Æ½¹ö¶¯Ìõ
+				//æ°´å¹³æ»šåŠ¨æ¡
 				if (m_pOwner != nullptr) {
 					m_pOwner->LineLeft();
 				}
@@ -478,10 +478,10 @@ void ScrollBar::HandleEvent(const EventArgs& msg)
 			}
 		}
 		else if (m_rcButton2.ContainsPt(pt)) {
-			//Êó±êÎ»ÖÃ£º[ÏÂ°´Å¥](´¹Ö±¹ö¶¯Ìõ) »òÕß [ÓÒ°´Å¥](Ë®Æ½¹ö¶¯Ìõ)
+			//é¼ æ ‡ä½ç½®ï¼š[ä¸‹æŒ‰é’®](å‚ç›´æ»šåŠ¨æ¡) æˆ–è€… [å³æŒ‰é’®](æ°´å¹³æ»šåŠ¨æ¡)
 			m_uButton2State = kControlStatePushed;
 			if (!m_bHorizontal) {
-				//´¹Ö±¹ö¶¯Ìõ
+				//å‚ç›´æ»šåŠ¨æ¡
 				if (m_pOwner != nullptr) {
 					m_pOwner->LineDown();
 				}
@@ -490,7 +490,7 @@ void ScrollBar::HandleEvent(const EventArgs& msg)
 				}
 			}
 			else {
-				//Ë®Æ½¹ö¶¯Ìõ
+				//æ°´å¹³æ»šåŠ¨æ¡
 				if (m_pOwner != nullptr) {
 					m_pOwner->LineRight();
 				}
@@ -500,16 +500,16 @@ void ScrollBar::HandleEvent(const EventArgs& msg)
 			}
 		}
 		else if (m_rcThumb.ContainsPt(pt)) {
-			//Êó±êÎ»ÖÃ£ºÔÚ¹ö¶¯ÌõµÄ»¬¶¯¿é°´Å¥ÉÏ
+			//é¼ æ ‡ä½ç½®ï¼šåœ¨æ»šåŠ¨æ¡çš„æ»‘åŠ¨å—æŒ‰é’®ä¸Š
 			m_uThumbState = kControlStatePushed;
 			SetMouseFocused(true);
 			m_ptLastMouse = pt;
 			m_nLastScrollPos = m_nScrollPos;
 		}
 		else {
-			//Êó±êÎ»ÖÃ£º¹ö¶¯Ìõ·Ç°´Å¥ÇøÓò
+			//é¼ æ ‡ä½ç½®ï¼šæ»šåŠ¨æ¡éæŒ‰é’®åŒºåŸŸ
 			if (!m_bHorizontal) {
-				//´¹Ö±¹ö¶¯Ìõ
+				//å‚ç›´æ»šåŠ¨æ¡
 				if (pt.y < m_rcThumb.top) {
 					if (m_pOwner != nullptr) {
 						m_pOwner->PageUp();
@@ -528,7 +528,7 @@ void ScrollBar::HandleEvent(const EventArgs& msg)
 				}
 			}
 			else {
-				//Ë®Æ½¹ö¶¯Ìõ
+				//æ°´å¹³æ»šåŠ¨æ¡
 				if (pt.x < m_rcThumb.left) {
 					if (m_pOwner != nullptr) {
 						m_pOwner->PageLeft();
@@ -586,7 +586,7 @@ void ScrollBar::HandleEvent(const EventArgs& msg)
 	else if (msg.Type == kEventMouseMove) {
 		if (IsMouseFocused()) {
 			if (!m_bHorizontal) {
-				//´¹Ö±¹ö¶¯Ìõ
+				//å‚ç›´æ»šåŠ¨æ¡
 				int vRange = GetRect().Height() - m_rcThumb.Height();
 				if (m_bShowButton1) {
 					vRange -= GetFixedWidth().GetInt32();
@@ -600,7 +600,7 @@ void ScrollBar::HandleEvent(const EventArgs& msg)
 				}
 			}
 			else {
-				//Ë®Æ½¹ö¶¯Ìõ
+				//æ°´å¹³æ»šåŠ¨æ¡
 				int hRange = GetRect().Width() - m_rcThumb.Width();
 				if (m_bShowButton1) {
 					hRange -= GetFixedHeight().GetInt32();
@@ -860,9 +860,9 @@ void ScrollBar::ScrollTimeHandle()
 {
 	++m_nScrollRepeatDelay;
 	if(m_uThumbState == kControlStatePushed) {
-		//Êó±êÎ»ÖÃ£ºÔÚ»¬¶¯¿éÉÏ
+		//é¼ æ ‡ä½ç½®ï¼šåœ¨æ»‘åŠ¨å—ä¸Š
 		if( !m_bHorizontal ) {
-			//´¹Ö±¹ö¶¯Ìõ
+			//å‚ç›´æ»šåŠ¨æ¡
 			if (m_pOwner != nullptr) {
 				m_pOwner->SetScrollPos(UiSize64(m_pOwner->GetScrollPos().cx,
 					                          static_cast<int>(m_nLastScrollPos + m_nLastScrollOffset)));
@@ -872,7 +872,7 @@ void ScrollBar::ScrollTimeHandle()
 			}
 		}
 		else {
-			//Ë®Æ½¹ö¶¯Ìõ
+			//æ°´å¹³æ»šåŠ¨æ¡
 			if (m_pOwner != nullptr) {
 				m_pOwner->SetScrollPos(UiSize64(static_cast<int>(m_nLastScrollPos + m_nLastScrollOffset),
 									          m_pOwner->GetScrollPos().cy));
@@ -883,7 +883,7 @@ void ScrollBar::ScrollTimeHandle()
 		}
 	}
 	else if( m_uButton1State == kControlStatePushed ) {
-		//Êó±êÎ»ÖÃ£º[ÉÏ°´Å¥](´¹Ö±¹ö¶¯Ìõ) »òÕß [×ó°´Å¥](Ë®Æ½¹ö¶¯Ìõ)
+		//é¼ æ ‡ä½ç½®ï¼š[ä¸ŠæŒ‰é’®](å‚ç›´æ»šåŠ¨æ¡) æˆ–è€… [å·¦æŒ‰é’®](æ°´å¹³æ»šåŠ¨æ¡)
 		if (m_nScrollRepeatDelay <= 5) {
 			return;
 		}
@@ -905,7 +905,7 @@ void ScrollBar::ScrollTimeHandle()
 		}
 	}
 	else if( m_uButton2State == kControlStatePushed ) {
-		//Êó±êÎ»ÖÃ£º[ÏÂ°´Å¥](´¹Ö±¹ö¶¯Ìõ) »òÕß [ÓÒ°´Å¥](Ë®Æ½¹ö¶¯Ìõ)
+		//é¼ æ ‡ä½ç½®ï¼š[ä¸‹æŒ‰é’®](å‚ç›´æ»šåŠ¨æ¡) æˆ–è€… [å³æŒ‰é’®](æ°´å¹³æ»šåŠ¨æ¡)
 		if (m_nScrollRepeatDelay <= 5) {
 			return;
 		}
@@ -927,7 +927,7 @@ void ScrollBar::ScrollTimeHandle()
 		}
 	}
 	else {
-		//Êó±êÎ»ÖÃ£º¹ö¶¯Ìõ·Ç°´Å¥ÇøÓò
+		//é¼ æ ‡ä½ç½®ï¼šæ»šåŠ¨æ¡éæŒ‰é’®åŒºåŸŸ
 		if (m_nScrollRepeatDelay <= 5) {
 			return;
 		}
@@ -937,10 +937,10 @@ void ScrollBar::ScrollTimeHandle()
 		UiPoint pt(ptClient.x, ptClient.y);
 		pt.Offset(GetScrollOffsetInScrollBox());
 		if( !m_bHorizontal ) {
-			//´¹Ö±¹ö¶¯Ìõ
+			//å‚ç›´æ»šåŠ¨æ¡
 			if( pt.y < m_rcThumb.top ) {
 				if (m_pOwner != nullptr) {
-					//×ö´¦Àí£¬±ÜÃâÊı¾İÁ¿ºÜ´óÊ±£¬¹ö¶¯ÌõµÄËÙ¶È·Ç³£Âı£¬´ï²»µ½Êó±êËùÔÚÎ»ÖÃ
+					//åšå¤„ç†ï¼Œé¿å…æ•°æ®é‡å¾ˆå¤§æ—¶ï¼Œæ»šåŠ¨æ¡çš„é€Ÿåº¦éå¸¸æ…¢ï¼Œè¾¾ä¸åˆ°é¼ æ ‡æ‰€åœ¨ä½ç½®
 					int64_t nScrollOffset = CalcFastScrollOffset(m_rcThumb.top - pt.y);					
 					if (nScrollOffset > GetRect().Height()) {
 						UiSize64 sz = m_pOwner->GetScrollPos();
@@ -973,7 +973,7 @@ void ScrollBar::ScrollTimeHandle()
 			}
 		}
 		else {
-			//Ë®Æ½¹ö¶¯Ìõ
+			//æ°´å¹³æ»šåŠ¨æ¡
 			if( pt.x < m_rcThumb.left ) {
 				if (m_pOwner != nullptr) {
 					int64_t nScrollOffset = CalcFastScrollOffset(m_rcThumb.left - pt.x);
@@ -1017,7 +1017,7 @@ int64_t ScrollBar::CalcFastScrollOffset(int32_t posOffset) const
 	if (posOffset <= 0) {
 		return GetRect().Height();
 	}
-	//×ö´¦Àí£¬±ÜÃâÊı¾İÁ¿ºÜ´óÊ±£¬¹ö¶¯ÌõµÄËÙ¶È·Ç³£Âı£¬´ï²»µ½Êó±êËùÔÚÎ»ÖÃ
+	//åšå¤„ç†ï¼Œé¿å…æ•°æ®é‡å¾ˆå¤§æ—¶ï¼Œæ»šåŠ¨æ¡çš„é€Ÿåº¦éå¸¸æ…¢ï¼Œè¾¾ä¸åˆ°é¼ æ ‡æ‰€åœ¨ä½ç½®
 	int64_t nScrollOffset = 0;
 	int vRange = GetRect().Height() - m_rcThumb.Height();
 	if (m_bShowButton1) {
@@ -1028,7 +1028,7 @@ int64_t ScrollBar::CalcFastScrollOffset(int32_t posOffset) const
 	}
 	if (vRange != 0) {
 		nScrollOffset = posOffset * m_nRange / vRange;
-		//°´¹ö¶¯5´Îµ½´ïÊó±êËùÔÚÎ»ÖÃ¼ÆËã
+		//æŒ‰æ»šåŠ¨5æ¬¡åˆ°è¾¾é¼ æ ‡æ‰€åœ¨ä½ç½®è®¡ç®—
 		nScrollOffset /= 5;
 	}
 	return nScrollOffset;
@@ -1067,7 +1067,7 @@ void ScrollBar::PaintButton1(IRender* pRender)
 			return;
 		}
 	}
-	//Èç¹û¸÷¸ö×´Ì¬»æÖÆÊ§°Ü£¬Ä¬ÈÏ»æÖÆNormal×´Ì¬µÄÍ¼Æ¬
+	//å¦‚æœå„ä¸ªçŠ¶æ€ç»˜åˆ¶å¤±è´¥ï¼Œé»˜è®¤ç»˜åˆ¶NormalçŠ¶æ€çš„å›¾ç‰‡
 	PaintImage(pRender, (*m_button1StateImage).GetStateImage(kControlStateNormal), m_sImageModify);
 }
 
@@ -1097,7 +1097,7 @@ void ScrollBar::PaintButton2(IRender* pRender)
 			return;
 		}
 	}
-	//Èç¹û¸÷¸ö×´Ì¬»æÖÆÊ§°Ü£¬Ä¬ÈÏ»æÖÆNormal×´Ì¬µÄÍ¼Æ¬
+	//å¦‚æœå„ä¸ªçŠ¶æ€ç»˜åˆ¶å¤±è´¥ï¼Œé»˜è®¤ç»˜åˆ¶NormalçŠ¶æ€çš„å›¾ç‰‡
 	PaintImage(pRender, (*m_button2StateImage).GetStateImage(kControlStateNormal), m_sImageModify);
 }
 
@@ -1154,7 +1154,7 @@ void ScrollBar::PaintRail(IRender* pRender)
 			return;
 		}
 	}
-	//»æÖÆNormal×´Ì¬µÄÍ¼Æ¬
+	//ç»˜åˆ¶NormalçŠ¶æ€çš„å›¾ç‰‡
 	PaintImage(pRender, (*m_railStateImage).GetStateImage(kControlStateNormal), m_sImageModify);
 }
 

@@ -5,36 +5,36 @@
 #include "duilib/Core/Control.h"
 #include "duilib/Core/Box.h"
 
-//äÖÈ¾ÒıÇæµÄÑ¡Ôñ(Ä¿Ç°½öÖ§³ÖÔÚ±àÒëÆÚ¼äÑ¡Ôñ)
+//æ¸²æŸ“å¼•æ“çš„é€‰æ‹©(ç›®å‰ä»…æ”¯æŒåœ¨ç¼–è¯‘æœŸé—´é€‰æ‹©)
 #include "duilib/Render/RenderConfig.h"
 
-//±¸×¢£º
-//1¡¢ĞÔÄÜ·½Ãæ£ºLLVM±àÒëµÄ°æ±¾£¬ĞÔÄÜÃ÷ÏÔºÃÓÚVisual Studio 2022±àÒëµÄ°æ±¾¡£
-//£¨1£©LLVM±àÒëµÄDebug°æ±¾£¬¿ÉÒÔÁ÷³©ÔËĞĞ£¬¸Ğ¾õ²»µ½¿¨¶ÙÏÖÏó£»
-//£¨2£©Visual Studio 2022±àÒëDebug°æ±¾£¬ÔËĞĞÃ÷ÏÔ¿¨¶Ù£¬ËÙ¶ÈºÜÂı¡£ÓĞGIF¶¯»­Ê±£¬¸Ğ¾õÅÜ²»¶¯¡£
-//2¡¢¼æÈİĞÔ·½Ãæ£º
-//£¨1£©Visual Studio 2022±àÒëµÄ°æ±¾£¬DebugºÍRelease¶¼Ã»ÓĞÎÊÌâ£»
-//£¨2£©DebugLLVM °æ±¾ÓĞÎÊÌâ£¬¶ÔÓÚ²¿·ÖÖÇÄÜÖ¸ÕëµÄ¸³Öµ½Ó¿Ú£¬³ÌĞò»á±ÀÀ££»ReleaseLLVMÔİÊ±Ã»·¢ÏÖÎÊÌâ¡£
-//     ±ÈÈçvoid SkPaint::setShader(sk_sp<SkShader> shader);
-//     ĞèÒª¸ÄÎª£ºvoid SkPaint::setShader(const sk_sp<SkShader>& shader); ²ÅÄÜ±ÜÃâ±ÀÀ£
-//     ÕâÖÖÀàĞÍµÄ½Ó¿Ú±È½Ï¶à£¬Èç¹ûÏëÒªÊ¹ÓÃ£¬¾ÍĞèÒªĞŞ¸ÄÔ´Âë£¬È»ºóÖØĞÂ±àÒëSkia¡£
+//å¤‡æ³¨ï¼š
+//1ã€æ€§èƒ½æ–¹é¢ï¼šLLVMç¼–è¯‘çš„ç‰ˆæœ¬ï¼Œæ€§èƒ½æ˜æ˜¾å¥½äºVisual Studio 2022ç¼–è¯‘çš„ç‰ˆæœ¬ã€‚
+//ï¼ˆ1ï¼‰LLVMç¼–è¯‘çš„Debugç‰ˆæœ¬ï¼Œå¯ä»¥æµç•…è¿è¡Œï¼Œæ„Ÿè§‰ä¸åˆ°å¡é¡¿ç°è±¡ï¼›
+//ï¼ˆ2ï¼‰Visual Studio 2022ç¼–è¯‘Debugç‰ˆæœ¬ï¼Œè¿è¡Œæ˜æ˜¾å¡é¡¿ï¼Œé€Ÿåº¦å¾ˆæ…¢ã€‚æœ‰GIFåŠ¨ç”»æ—¶ï¼Œæ„Ÿè§‰è·‘ä¸åŠ¨ã€‚
+//2ã€å…¼å®¹æ€§æ–¹é¢ï¼š
+//ï¼ˆ1ï¼‰Visual Studio 2022ç¼–è¯‘çš„ç‰ˆæœ¬ï¼ŒDebugå’ŒReleaseéƒ½æ²¡æœ‰é—®é¢˜ï¼›
+//ï¼ˆ2ï¼‰DebugLLVM ç‰ˆæœ¬æœ‰é—®é¢˜ï¼Œå¯¹äºéƒ¨åˆ†æ™ºèƒ½æŒ‡é’ˆçš„èµ‹å€¼æ¥å£ï¼Œç¨‹åºä¼šå´©æºƒï¼›ReleaseLLVMæš‚æ—¶æ²¡å‘ç°é—®é¢˜ã€‚
+//     æ¯”å¦‚void SkPaint::setShader(sk_sp<SkShader> shader);
+//     éœ€è¦æ”¹ä¸ºï¼švoid SkPaint::setShader(const sk_sp<SkShader>& shader); æ‰èƒ½é¿å…å´©æºƒ
+//     è¿™ç§ç±»å‹çš„æ¥å£æ¯”è¾ƒå¤šï¼Œå¦‚æœæƒ³è¦ä½¿ç”¨ï¼Œå°±éœ€è¦ä¿®æ”¹æºç ï¼Œç„¶åé‡æ–°ç¼–è¯‘Skiaã€‚
 
 #if (duilib_kRenderType == duilib_kRenderType_Skia)
-//SkiaÒıÇæ
+//Skiaå¼•æ“
 #include "duilib/RenderSkia/RenderFactory_Skia.h"
 	#pragma comment (lib, "opengl32.lib")
 
 #ifdef DUILIB_RENDER_SKIA_BY_LLVM
-    //Ê¹ÓÃLLVM±àÒëSkia
+    //ä½¿ç”¨LLVMç¼–è¯‘Skia
 	#ifdef _DEBUG
-		//Debug°æ±¾
+		//Debugç‰ˆæœ¬
 		#ifdef  _WIN64
 			#pragma comment (lib, "../../../skia/out/LLVM.x64.Debug/skia.lib")
 		#else
 			#pragma comment (lib, "../../../skia/out/LLVM.x86.Debug/skia.lib")
 		#endif //_WIN64	
 	#else
-		//Release°æ±¾
+		//Releaseç‰ˆæœ¬
 		#ifdef  _WIN64
 			#pragma comment (lib, "../../../skia/out/LLVM.x64.Release/skia.lib")
 		#else
@@ -42,16 +42,16 @@
 		#endif //_WIN64	
 	#endif //_DEBUG
 #else
-    //Ê¹ÓÃVisual Studio 2022±àÒëSkia
+    //ä½¿ç”¨Visual Studio 2022ç¼–è¯‘Skia
     #ifdef _DEBUG
-		//Debug°æ±¾
+		//Debugç‰ˆæœ¬
 		#ifdef  _WIN64
 			#pragma comment (lib, "../../../skia/out/vs2022.x64.Debug/skia.lib")
 		#else
 			#pragma comment (lib, "../../../skia/out/vs2022.x86.Debug/skia.lib")
 		#endif //_WIN64	
 	#else
-		//Release°æ±¾
+		//Releaseç‰ˆæœ¬
 		#ifdef  _WIN64
 			#pragma comment (lib, "../../../skia/out/vs2022.x64.Release/skia.lib")
 		#else
@@ -61,13 +61,13 @@
 #endif //DUILIB_RENDER_SKIA_BY_LLVM
 
 #else if(duilib_kRenderType == duilib_kRenderType_GdiPlus)
-//GdiplusÒıÇæ
+//Gdipluså¼•æ“
 #include "duilib/RenderGdiPlus/GdiPlusDefs.h"
 #include "duilib/RenderGdiPlus/RenderFactory_Gdiplus.h"
 
 #endif
 
-//ToolTip/ÈÕÆÚÊ±¼äµÈ±ê×¼¿Ø¼ş£¬ĞèÒª³õÊ¼»¯commctrl
+//ToolTip/æ—¥æœŸæ—¶é—´ç­‰æ ‡å‡†æ§ä»¶ï¼Œéœ€è¦åˆå§‹åŒ–commctrl
 #include <commctrl.h>
 
 #include <filesystem>
@@ -76,7 +76,7 @@ namespace ui
 {
 
 #if (duilib_kRenderType == duilib_kRenderType_GdiPlus)
-//GdiplusÒıÇæ
+//Gdipluså¼•æ“
 static ULONG_PTR g_gdiplusToken = 0;
 static Gdiplus::GdiplusStartupInput g_gdiplusStartupInput;
 #endif
@@ -106,21 +106,21 @@ bool GlobalManager::Startup(const ResourceParam& resParam,
 	if (m_renderFactory != nullptr) {
 		return false;
 	}
-	//¼ÇÂ¼µ±Ç°Ïß³ÌID
+	//è®°å½•å½“å‰çº¿ç¨‹ID
 	m_dwUiThreadId = GetCurrentThreadId();
 
-	//±£´æ»Øµ÷º¯Êı
+	//ä¿å­˜å›è°ƒå‡½æ•°
 	m_pfnCreateControlCallback = callback;
 
-	//³õÊ¼»¯DPI¸ĞÖªÄ£Ê½£¬//³õÊ¼»¯DPIÖµ
+	//åˆå§‹åŒ–DPIæ„ŸçŸ¥æ¨¡å¼ï¼Œ//åˆå§‹åŒ–DPIå€¼
 	DpiManager& dpiManager = Dpi();
 	dpiManager.InitDpiAwareness(dpiInitParam);
 
 #if (duilib_kRenderType == duilib_kRenderType_Skia)
-	//SkiaäÖÈ¾ÒıÇæÊµÏÖ
+	//Skiaæ¸²æŸ“å¼•æ“å®ç°
 	m_renderFactory = std::make_unique<RenderFactory_Skia>();	
 #else if (duilib_kRenderType == duilib_kRenderType_GdiPlus)
-	//GdiplusäÖÈ¾ÒıÇæÊµÏÖ
+	//Gdiplusæ¸²æŸ“å¼•æ“å®ç°
 	Gdiplus::GdiplusStartup(&g_gdiplusToken, &g_gdiplusStartupInput, NULL);
 	m_renderFactory = std::make_unique<RenderFactory_GdiPlus>();
 #endif
@@ -135,7 +135,7 @@ bool GlobalManager::Startup(const ResourceParam& resParam,
 		return false;
 	}
 
-	//¼ÓÔØ×ÊÔ´
+	//åŠ è½½èµ„æº
 	if (!ReloadResource(resParam, false)) {
 		m_pfnCreateControlCallback = nullptr;
 		m_renderFactory.reset();
@@ -200,10 +200,10 @@ const std::wstring& GlobalManager::GetLanguageFileName() const
 bool GlobalManager::ReloadResource(const ResourceParam& resParam, bool bInvalidate)
 {
 	AssertUIThread();
-	//Ğ£ÑéÊäÈë²ÎÊı
+	//æ ¡éªŒè¾“å…¥å‚æ•°
 	std::wstring strResourcePath = resParam.resourcePath;
 	if (resParam.GetResType() == ResourceType::kLocalFiles) {
-		//±¾µØÎÄ¼şµÄĞÎÊ½£¬ËùÓĞ×ÊÔ´¶¼ÒÑ±¾µØÎÄ¼şµÄĞÎÊ½´æÔÚ
+		//æœ¬åœ°æ–‡ä»¶çš„å½¢å¼ï¼Œæ‰€æœ‰èµ„æºéƒ½å·²æœ¬åœ°æ–‡ä»¶çš„å½¢å¼å­˜åœ¨
 		//const LocalFilesResParam& param = static_cast<const LocalFilesResParam&>(resParam);
 		ASSERT(!strResourcePath.empty());
 		if (strResourcePath.empty()) {
@@ -211,7 +211,7 @@ bool GlobalManager::ReloadResource(const ResourceParam& resParam, bool bInvalida
 		}
 	}
 	else if (resParam.GetResType() == ResourceType::kZipFile) {
-		//×ÊÔ´ÎÄ¼ş´ò°üÎªzipÑ¹Ëõ°ü£¬È»ºóÒÔ±¾µØÎÄ¼şµÄĞÎÊ½´æÔÚ
+		//èµ„æºæ–‡ä»¶æ‰“åŒ…ä¸ºzipå‹ç¼©åŒ…ï¼Œç„¶åä»¥æœ¬åœ°æ–‡ä»¶çš„å½¢å¼å­˜åœ¨
 		const ZipFileResParam& param = static_cast<const ZipFileResParam&>(resParam);
 		bool bZipOpenOk = Zip().OpenZipFile(param.zipFilePath.c_str(), param.zipPassword);
 		if (!bZipOpenOk) {
@@ -220,7 +220,7 @@ bool GlobalManager::ReloadResource(const ResourceParam& resParam, bool bInvalida
 		}
 	}
 	else if (resParam.GetResType() == ResourceType::kResZipFile) {
-		//×ÊÔ´ÎÄ¼ş´ò°üÎªzipÑ¹Ëõ°ü£¬È»ºó·ÅÔÚexe/dllµÄ×ÊÔ´ÎÄ¼şÖĞ
+		//èµ„æºæ–‡ä»¶æ‰“åŒ…ä¸ºzipå‹ç¼©åŒ…ï¼Œç„¶åæ”¾åœ¨exe/dllçš„èµ„æºæ–‡ä»¶ä¸­
 		const ResZipFileResParam& param = static_cast<const ResZipFileResParam&>(resParam);
 		bool bZipOpenOk = Zip().OpenResZip(param.hResModule, param.resourceName, param.resourceType, param.zipPassword);
 		if (!bZipOpenOk) {
@@ -233,17 +233,17 @@ bool GlobalManager::ReloadResource(const ResourceParam& resParam, bool bInvalida
 		return false;
 	}
 
-	//Çå¿ÕÔ­ÓĞ×ÊÔ´Êı¾İ£¨×ÖÌå¡¢ÑÕÉ«¡¢Class¶¨Òå¡¢Í¼Æ¬×ÊÔ´µÈ£©
+	//æ¸…ç©ºåŸæœ‰èµ„æºæ•°æ®ï¼ˆå­—ä½“ã€é¢œè‰²ã€Classå®šä¹‰ã€å›¾ç‰‡èµ„æºç­‰ï¼‰
 	m_fontManager.RemoveAllFonts();
 	m_fontManager.RemoveAllFontFiles();
 	m_colorManager.RemoveAllColors();
 	RemoveAllImages();
 	RemoveAllClasss();
 
-	//±£´æ×ÊÔ´Â·¾¶
+	//ä¿å­˜èµ„æºè·¯å¾„
 	SetResourcePath(StringHelper::JoinFilePath(strResourcePath, resParam.themePath));
 
-	//½âÎöÈ«¾Ö×ÊÔ´ĞÅÏ¢(Ä¬ÈÏÊÇ"global.xml"ÎÄ¼ş)
+	//è§£æå…¨å±€èµ„æºä¿¡æ¯(é»˜è®¤æ˜¯"global.xml"æ–‡ä»¶)
 	ASSERT(!resParam.globalXmlFileName.empty());
 	if (!resParam.globalXmlFileName.empty()) {
 		WindowBuilder dialog_builder;
@@ -251,7 +251,7 @@ bool GlobalManager::ReloadResource(const ResourceParam& resParam, bool bInvalida
 		dialog_builder.Create(resParam.globalXmlFileName, CreateControlCallback(), &paint_manager);
 	}
 
-	//¼ÓÔØ¶àÓïÑÔÎÄ¼ş(¿ÉÑ¡)
+	//åŠ è½½å¤šè¯­è¨€æ–‡ä»¶(å¯é€‰)
 	if (!resParam.languagePath.empty() && !resParam.languageFileName.empty()) {
 		std::wstring languagePath = StringHelper::JoinFilePath(strResourcePath, resParam.languagePath);
 		ReloadLanguage(languagePath, resParam.languageFileName, false);
@@ -260,7 +260,7 @@ bool GlobalManager::ReloadResource(const ResourceParam& resParam, bool bInvalida
 		SetLanguagePath(StringHelper::JoinFilePath(strResourcePath, resParam.languagePath));
 	}
 
-	//¸üĞÂ´°¿ÚÖĞµÄËùÓĞ×Ó¿Ø¼ş×´Ì¬
+	//æ›´æ–°çª—å£ä¸­çš„æ‰€æœ‰å­æ§ä»¶çŠ¶æ€
 	if (bInvalidate) {
 		std::vector<WindowWeakFlag> windowList = m_windowList;
 		for (const WindowWeakFlag& windowFlag : windowList) {
@@ -291,7 +291,7 @@ bool GlobalManager::ReloadLanguage(const std::wstring& languagePath,
 		newLanguagePath = StringHelper::NormalizeDirPath(languagePath);
 	}
 
-	//¼ÓÔØ¶àÓïÑÔÎÄ¼ş£¬Èç¹ûÊ¹ÓÃÁË×ÊÔ´Ñ¹Ëõ°üÔò´ÓÄÚ´æÖĞ¼ÓÔØÓïÑÔÎÄ¼ş
+	//åŠ è½½å¤šè¯­è¨€æ–‡ä»¶ï¼Œå¦‚æœä½¿ç”¨äº†èµ„æºå‹ç¼©åŒ…åˆ™ä»å†…å­˜ä¸­åŠ è½½è¯­è¨€æ–‡ä»¶
 	bool bReadOk = false;
 	if ( (newLanguagePath.empty() || !StringHelper::IsAbsolutePath(newLanguagePath)) && 
 		 m_zipManager.IsUseZip() ) {
@@ -310,17 +310,17 @@ bool GlobalManager::ReloadLanguage(const std::wstring& languagePath,
 	}
 
 	if (bReadOk) {
-		//±£´æÓïÑÔÎÄ¼şÂ·¾¶
+		//ä¿å­˜è¯­è¨€æ–‡ä»¶è·¯å¾„
 		if (!newLanguagePath.empty() && (newLanguagePath != GetLanguagePath())) {
 			SetLanguagePath(newLanguagePath);
 		}
-		//±£´æÓïÑÔÎÄ¼şÃû
+		//ä¿å­˜è¯­è¨€æ–‡ä»¶å
 		m_languageFileName = languageFileName;
 	}
 
 	ASSERT(bReadOk && "ReloadLanguage");
 	if (bReadOk && bInvalidate) {
-		//Ë¢ĞÂ½çÃæÏÔÊ¾
+		//åˆ·æ–°ç•Œé¢æ˜¾ç¤º
 		std::vector<WindowWeakFlag> windowList = m_windowList;
 		for (const WindowWeakFlag& windowFlag : windowList) {
 			Box* pBox = nullptr;
@@ -328,7 +328,7 @@ bool GlobalManager::ReloadLanguage(const std::wstring& languagePath,
 				pBox = windowFlag.m_pWindow->GetRoot();
 				if (windowFlag.m_pWindow->GetText().empty() && 
 					!windowFlag.m_pWindow->GetTextId().empty()) {
-					//¸üĞÂ´°¿Ú±êÌâÀ¸ÎÄ±¾
+					//æ›´æ–°çª—å£æ ‡é¢˜æ æ–‡æœ¬
 					windowFlag.m_pWindow->SetTextId(windowFlag.m_pWindow->GetTextId());
 				}
 			}
@@ -352,7 +352,7 @@ bool GlobalManager::GetLanguageList(std::vector<std::pair<std::wstring, std::wst
 	languageList.clear();
 	const std::filesystem::path path{ languagePath };
 	if (path.is_absolute()) {
-		//¾ø¶ÔÂ·¾¶£¬ÓïÑÔÎÄ¼şÔÚ±¾µØ´ÅÅÌÖĞ
+		//ç»å¯¹è·¯å¾„ï¼Œè¯­è¨€æ–‡ä»¶åœ¨æœ¬åœ°ç£ç›˜ä¸­
 		for (auto const& dir_entry : std::filesystem::directory_iterator{ path }) {
 			if (dir_entry.is_regular_file()) {
 				languageList.push_back({ dir_entry.path().filename().c_str(), L"" });
@@ -372,7 +372,7 @@ bool GlobalManager::GetLanguageList(std::vector<std::pair<std::wstring, std::wst
 		}
 	}
 	else if(m_zipManager.IsUseZip()){
-		//Ïà¶ÔÂ·¾¶£¬ÓïÑÔÎÄ¼şÓ¦¸Ã¶¼ÔÚÑ¹Ëõ°üÄÚ
+		//ç›¸å¯¹è·¯å¾„ï¼Œè¯­è¨€æ–‡ä»¶åº”è¯¥éƒ½åœ¨å‹ç¼©åŒ…å†…
 		std::vector<std::wstring> fileList;
 		m_zipManager.GetZipFileList(languagePath, fileList);
 		for (auto const& file : fileList) {
@@ -578,7 +578,7 @@ void GlobalManager::FillBoxWithCache(Box* pUserDefinedBox, const std::wstring& s
 	if (pUserDefinedBox == nullptr) {
 		return;
 	}
-	ASSERT(pUserDefinedBox->GetWindow() != nullptr); //DPI¸ĞÖª¹¦ÄÜÒªÇó£¬±ØĞëÏÈ¹ØÁª´°¿Ú
+	ASSERT(pUserDefinedBox->GetWindow() != nullptr); //DPIæ„ŸçŸ¥åŠŸèƒ½è¦æ±‚ï¼Œå¿…é¡»å…ˆå…³è”çª—å£
 	Box* box = nullptr;
 	auto it = m_builderMap.find(strXmlPath);
 	if (it == m_builderMap.end()) {

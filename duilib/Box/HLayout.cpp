@@ -14,14 +14,14 @@ UiSize64 HLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 	DeflatePadding(rc);
 	const UiSize szAvailable(rc.Width(), rc.Height());
 	
-	//¿í¶ÈÎªstretchµÄ¿Ø¼şÊı
+	//å®½åº¦ä¸ºstretchçš„æ§ä»¶æ•°
 	int32_t stretchCount = 0;
-	//¹Ì¶¨¿í¶ÈµÄ¿Ø¼ş£¬×ÜµÄ¸ß¶È
+	//å›ºå®šå®½åº¦çš„æ§ä»¶ï¼Œæ€»çš„é«˜åº¦
 	int32_t cxFixedTotal = 0;
-	//ĞèÒª½øĞĞ²¼¾Ö´¦ÀíµÄËùÓĞ¿Ø¼ş(KEYÊÇ¿Ø¼ş£¬VALUEÊÇ¿í¶ÈºÍ¸ß¶È)
+	//éœ€è¦è¿›è¡Œå¸ƒå±€å¤„ç†çš„æ‰€æœ‰æ§ä»¶(KEYæ˜¯æ§ä»¶ï¼ŒVALUEæ˜¯å®½åº¦å’Œé«˜åº¦)
 	std::map<Control*, UiEstSize> itemsMap;
 
-	//¼ÆËãÃ¿¸ö¿Ø¼şµÄ¿í¶ÈºÍ¸ß¶È£¬²¢¼ÇÂ¼µ½MapÖĞ
+	//è®¡ç®—æ¯ä¸ªæ§ä»¶çš„å®½åº¦å’Œé«˜åº¦ï¼Œå¹¶è®°å½•åˆ°Mapä¸­
 	for(auto pControl : items) {
 		if ((pControl == nullptr) || !pControl->IsVisible() || pControl->IsFloat()) {
 			continue;
@@ -30,7 +30,7 @@ UiSize64 HLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 		UiEstSize estSize = pControl->EstimateSize(szAvailable);
 		UiSize sz = UiSize(estSize.cx.GetInt32(), estSize.cy.GetInt32());
 		UiMargin rcMargin = pControl->GetMargin();
-		//¼ÆËã¿í¶È
+		//è®¡ç®—å®½åº¦
 		if(estSize.cx.IsStretch()) {
 			stretchCount++;
 			cxFixedTotal += (rcMargin.left + rcMargin.right);
@@ -48,7 +48,7 @@ UiSize64 HLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 			cxFixedTotal += (sz.cx + rcMargin.left + rcMargin.right);
 		}
 		
-		//¼ÆËã¸ß¶È
+		//è®¡ç®—é«˜åº¦
 		if (estSize.cy.IsStretch()) {
 			sz.cy = (CalcStretchValue(estSize.cy, szAvailable.cy) - rcMargin.top - rcMargin.bottom);
 			sz.cy = std::max(sz.cy, 0);
@@ -65,15 +65,15 @@ UiSize64 HLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 		if (!estSize.cx.IsStretch()) {
 			estSize.cx.SetInt32(sz.cx);
 		}
-		estSize.cy.SetInt32(sz.cy);//cyÊÇÒÑ¾­¼ÆËãºÃµÄÈ·¶¨ÊıÖµ£¬²»ÔÙÓĞÀ­ÉìºÍ×Ô¶¯ÀàĞÍÖµ
+		estSize.cy.SetInt32(sz.cy);//cyæ˜¯å·²ç»è®¡ç®—å¥½çš„ç¡®å®šæ•°å€¼ï¼Œä¸å†æœ‰æ‹‰ä¼¸å’Œè‡ªåŠ¨ç±»å‹å€¼
 		itemsMap[pControl] = estSize;
 	}
 	if (!itemsMap.empty()) {
 		cxFixedTotal += ((int32_t)itemsMap.size() - 1) * GetChildMarginX();
 	}
 
-	float fStretchValue = 0;	//Ã¿¸öÀ­Éì¿Ø¼ş£¬°´ÉèÖÃÎª100%Ê±£¬Ó¦¸Ã·ÖÅäµÄ¸ß¶ÈÖµ
-	float fTotalStretch = 0;	//°´ÉèÖÃÎª100%Ê±ÎªÒ»¸ö¿Ø¼şµ¥Î»£¬×Ü¹²ÓĞ¶àÉÙ¸ö¿Ø¼şµ¥Î»
+	float fStretchValue = 0;	//æ¯ä¸ªæ‹‰ä¼¸æ§ä»¶ï¼ŒæŒ‰è®¾ç½®ä¸º100%æ—¶ï¼Œåº”è¯¥åˆ†é…çš„é«˜åº¦å€¼
+	float fTotalStretch = 0;	//æŒ‰è®¾ç½®ä¸º100%æ—¶ä¸ºä¸€ä¸ªæ§ä»¶å•ä½ï¼Œæ€»å…±æœ‰å¤šå°‘ä¸ªæ§ä»¶å•ä½
 	if (stretchCount > 0) {
 		for (auto iter : itemsMap) {
 			const UiEstSize& itemEstSize = iter.second;
@@ -87,7 +87,7 @@ UiSize64 HLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 		}
 	}
 
-	//×öÒ»´ÎÔ¤¹À£ºÈ¥³ıĞèÒªÊ¹ÓÃminwidth/maxwidthµÄ¿Ø¼şÊıºó£¬ÖØĞÂ¼ÆËãÆ½¾ù¸ß¶È
+	//åšä¸€æ¬¡é¢„ä¼°ï¼šå»é™¤éœ€è¦ä½¿ç”¨minwidth/maxwidthçš„æ§ä»¶æ•°åï¼Œé‡æ–°è®¡ç®—å¹³å‡é«˜åº¦
 	bool bStretchCountChanged = false;
 	if ((fStretchValue > 0) && !itemsMap.empty()) {
 		for (auto iter = itemsMap.begin(); iter != itemsMap.end(); ++iter) {
@@ -104,18 +104,18 @@ UiSize64 HLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 					sz.cx = pControl->GetMaxWidth();
 				}
 				if (sz.cx != cxStretch) {
-					//Õâ¸ö¿Ø¼şĞèÒªÊ¹ÓÃmin»òÕßmax¿í¶È£¬´ÓÆ½¾ùÖµÖĞÒÆ³ı£¬°´ÕÕFixed¿Ø¼şËã
+					//è¿™ä¸ªæ§ä»¶éœ€è¦ä½¿ç”¨minæˆ–è€…maxå®½åº¦ï¼Œä»å¹³å‡å€¼ä¸­ç§»é™¤ï¼ŒæŒ‰ç…§Fixedæ§ä»¶ç®—
 					estSize.cx.SetInt32(sz.cx);
 					iter->second = estSize;
 					--stretchCount;
-					cxFixedTotal += sz.cx; //MarginÒÑ¾­ÀÛ¼Ó¹ı£¬²»ĞèÒªÖØĞÂÀÛ¼Ó
+					cxFixedTotal += sz.cx; //Marginå·²ç»ç´¯åŠ è¿‡ï¼Œä¸éœ€è¦é‡æ–°ç´¯åŠ 
 					bStretchCountChanged = true;
 				}
 			}
 		}
 	}
-	//ÖØĞÂ¼ÆËãStretch¿Ø¼şµÄ¿í¶È£¬×îÖÕÒÔÕâ´Î¼ÆËãµÄÎª×¼£»
-	//Èç¹ûºáÏò×Ü¿Õ¼ä²»×ã£¬Ôò°´Ô­À´ÆÀ¹ÀµÄÆ½¾ù¸ß¶È£¬ÓÅÏÈ±£Ö¤Ç°ÃæµÄ¿Ø¼ş¿ÉÒÔÕı³£ÏÔÊ¾
+	//é‡æ–°è®¡ç®—Stretchæ§ä»¶çš„å®½åº¦ï¼Œæœ€ç»ˆä»¥è¿™æ¬¡è®¡ç®—çš„ä¸ºå‡†ï¼›
+	//å¦‚æœæ¨ªå‘æ€»ç©ºé—´ä¸è¶³ï¼Œåˆ™æŒ‰åŸæ¥è¯„ä¼°çš„å¹³å‡é«˜åº¦ï¼Œä¼˜å…ˆä¿è¯å‰é¢çš„æ§ä»¶å¯ä»¥æ­£å¸¸æ˜¾ç¤º
 	if (bStretchCountChanged && (stretchCount > 0) && (szAvailable.cx > cxFixedTotal)) {
 		fTotalStretch = 0;
 		for (auto iter : itemsMap) {
@@ -135,9 +135,9 @@ UiSize64 HLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 	int32_t iPosX = rc.left;
 
 	// Place elements
-	int64_t cyNeeded = 0;//ĞèÒªµÄ×Ü¸ß¶È£¨È¡¸÷¸ö×Ó¿Ø¼şµÄ¸ß¶È×î´óÖµ£©
-	int64_t cxNeeded = 0;//ĞèÒªµÄ×Ü¿í¶È
-	int32_t assignedStretch = 0; //ÒÑ¾­·ÖÅäµÄÀ­Éì¿Õ¼ä´óĞ¡
+	int64_t cyNeeded = 0;//éœ€è¦çš„æ€»é«˜åº¦ï¼ˆå–å„ä¸ªå­æ§ä»¶çš„é«˜åº¦æœ€å¤§å€¼ï¼‰
+	int64_t cxNeeded = 0;//éœ€è¦çš„æ€»å®½åº¦
+	int32_t assignedStretch = 0; //å·²ç»åˆ†é…çš„æ‹‰ä¼¸ç©ºé—´å¤§å°
 
 	for(auto pControl : items) {
 		if ((pControl == nullptr) || !pControl->IsVisible()) {
@@ -153,7 +153,7 @@ UiSize64 HLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 		UiEstSize estSize = itemsMap[pControl];
 		UiSize sz(estSize.cx.GetInt32(), estSize.cy.GetInt32());
 
-		//¼ÆËã¿í¶È
+		//è®¡ç®—å®½åº¦
 		if(estSize.cx.IsStretch()) {
 			int32_t cxStretch = static_cast<int32_t>(fStretchValue * estSize.cx.GetStretchPercentValue() / 100.0f);
 			sz.cx = cxStretch;
@@ -166,7 +166,7 @@ UiSize64 HLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 			assignedStretch += sz.cx;
 			--stretchCount;
 			if (stretchCount == 0) {
-				//ÔÚ×îºóÒ»¸öÀ­Éì¿Ø¼şÉÏ£¬ĞŞÕı¼ÆËãÆ«²î
+				//åœ¨æœ€åä¸€ä¸ªæ‹‰ä¼¸æ§ä»¶ä¸Šï¼Œä¿®æ­£è®¡ç®—åå·®
 				int32_t deviation = szAvailable.cx - cxFixedTotal - assignedStretch;
 				if (deviation > 0) {
 					sz.cx += deviation;
@@ -174,7 +174,7 @@ UiSize64 HLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 			}
 		}
 
-		//µ÷Õû×İÏò¶ÔÆë·½Ê½£¬È·¶¨YÖá×ø±ê
+		//è°ƒæ•´çºµå‘å¯¹é½æ–¹å¼ï¼Œç¡®å®šYè½´åæ ‡
 		int32_t childTop = 0;
 		int32_t childBottm = 0;
 		VerAlignType verAlignType = pControl->GetVerAlignType();
@@ -191,12 +191,12 @@ UiSize64 HLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 			childBottm = childTop + sz.cy;
 		}
 
-		//ÉèÖÃ¿Ø¼şµÄÎ»ÖÃ
+		//è®¾ç½®æ§ä»¶çš„ä½ç½®
 		UiRect rcChildPos(iPosX + rcMargin.left, childTop, iPosX + rcMargin.left + sz.cx, childBottm);
 		pControl->SetPos(rcChildPos);
 		cyNeeded = std::max(cyNeeded, (int64_t)rcChildPos.Height() + rcMargin.top + rcMargin.bottom);
 
-		//µ÷Õûµ±Ç°YÖá×ø±êÖµ
+		//è°ƒæ•´å½“å‰Yè½´åæ ‡å€¼
 		iPosX += (sz.cx + rcMargin.left + GetChildMarginX() + rcMargin.right);
 		cxNeeded += (sz.cx + rcMargin.left + rcMargin.right);
 	}
@@ -220,8 +220,8 @@ UiSize64 HLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 
 UiSize HLayout::EstimateSizeByChild(const std::vector<Control*>& items, UiSize szAvailable)
 {
-	//¿í¶È£ºËùÓĞ×Ó¿Ø¼ş¿í¶ÈÖ®ºÍ£¬¼ÓÉÏMargin¡¢PaddingµÈ£¬²»º¬À­ÉìÀàĞÍµÄ×Ó¿Ø¼ş
-	//¸ß¶È£ºÈ¡ËùÓĞ×Ó¿Ø¼ş¸ß¶ÈµÄ×î´óÖµ£¬¼ÓÉÏMargin¡¢PaddingµÈ£¬²»º¬À­ÉìÀàĞÍµÄ×Ó¿Ø¼ş
+	//å®½åº¦ï¼šæ‰€æœ‰å­æ§ä»¶å®½åº¦ä¹‹å’Œï¼ŒåŠ ä¸ŠMarginã€Paddingç­‰ï¼Œä¸å«æ‹‰ä¼¸ç±»å‹çš„å­æ§ä»¶
+	//é«˜åº¦ï¼šå–æ‰€æœ‰å­æ§ä»¶é«˜åº¦çš„æœ€å¤§å€¼ï¼ŒåŠ ä¸ŠMarginã€Paddingç­‰ï¼Œä¸å«æ‹‰ä¼¸ç±»å‹çš„å­æ§ä»¶
 	UiSize totalSize;
 	UiSize itemSize;
 	int32_t estimateCount = 0;
@@ -235,7 +235,7 @@ UiSize HLayout::EstimateSizeByChild(const std::vector<Control*>& items, UiSize s
 		UiEstSize estSize = pControl->EstimateSize(szAvailable);
 		itemSize = UiSize(estSize.cx.GetInt32(), estSize.cy.GetInt32());
 		if (estSize.cx.IsStretch()) {
-			//À­ÉìÀàĞÍµÄ×Ó¿Ø¼ş£¬²»¼ÆÈë
+			//æ‹‰ä¼¸ç±»å‹çš„å­æ§ä»¶ï¼Œä¸è®¡å…¥
 			itemSize.cx = 0;
 		}
 		else {
@@ -247,7 +247,7 @@ UiSize HLayout::EstimateSizeByChild(const std::vector<Control*>& items, UiSize s
 			}
 		}
 		if (estSize.cy.IsStretch()) {
-			//À­ÉìÀàĞÍµÄ×Ó¿Ø¼ş£¬²»¼ÆÈë
+			//æ‹‰ä¼¸ç±»å‹çš„å­æ§ä»¶ï¼Œä¸è®¡å…¥
 			itemSize.cy = 0;
 		}
 		else {

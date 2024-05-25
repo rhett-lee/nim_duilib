@@ -44,18 +44,18 @@
 
 namespace ui 
 {
-/** Í¼Æ¬µÄDPIËõ·Å³ß´ç¼ÆËãº¯Êı
+/** å›¾ç‰‡çš„DPIç¼©æ”¾å°ºå¯¸è®¡ç®—å‡½æ•°
 */
 namespace ImageLoader
 {
-    /** »ñÈ¡Í¼Æ¬¼ÓÔØºóÓ¦µ±Ëõ·ÅµÄ¿í¶ÈºÍ¸ß¶È
-    * @param [in] imageLoadAttribute Í¼Æ¬µÄ¼ÓÔØÊôĞÔĞÅÏ¢
-    * @param [in] bEnableDpiScale ÊÇ·ñÔÊĞí°´ÕÕDPI¶ÔÍ¼Æ¬´óĞ¡½øĞĞËõ·Å£¨´ËÎª¹¦ÄÜ¿ª¹Ø£©
-    * @param [in] nImageDpiScale Í¼Æ¬Êı¾İ¶ÔÓ¦µÄDPIËõ·Å°Ù·Ö±È
-    * @param [in] dpi DPIËõ·Å¹ÜÀí½Ó¿Ú
-    * @param [out] bDpiScaled Í¼Æ¬¼ÓÔØµÄÊ±ºò£¬Í¼Æ¬´óĞ¡ÊÇ·ñ½øĞĞÁËDPI×ÔÊÊÓ¦²Ù×÷
-    * @param [in,out] nImageWidth Ô­Ê¼Í¼Æ¬µÄ¿í¶È£¬·µ»Ø¼ÆËãºóµÄ¿í¶È
-    * @param [in,out] nImageHeight Ô­Ê¼Í¼Æ¬µÄ¸ß¶È£¬·µ»Ø¼ÆËãºóµÄ¸ß¶È
+    /** è·å–å›¾ç‰‡åŠ è½½ååº”å½“ç¼©æ”¾çš„å®½åº¦å’Œé«˜åº¦
+    * @param [in] imageLoadAttribute å›¾ç‰‡çš„åŠ è½½å±æ€§ä¿¡æ¯
+    * @param [in] bEnableDpiScale æ˜¯å¦å…è®¸æŒ‰ç…§DPIå¯¹å›¾ç‰‡å¤§å°è¿›è¡Œç¼©æ”¾ï¼ˆæ­¤ä¸ºåŠŸèƒ½å¼€å…³ï¼‰
+    * @param [in] nImageDpiScale å›¾ç‰‡æ•°æ®å¯¹åº”çš„DPIç¼©æ”¾ç™¾åˆ†æ¯”
+    * @param [in] dpi DPIç¼©æ”¾ç®¡ç†æ¥å£
+    * @param [out] bDpiScaled å›¾ç‰‡åŠ è½½çš„æ—¶å€™ï¼Œå›¾ç‰‡å¤§å°æ˜¯å¦è¿›è¡Œäº†DPIè‡ªé€‚åº”æ“ä½œ
+    * @param [in,out] nImageWidth åŸå§‹å›¾ç‰‡çš„å®½åº¦ï¼Œè¿”å›è®¡ç®—åçš„å®½åº¦
+    * @param [in,out] nImageHeight åŸå§‹å›¾ç‰‡çš„é«˜åº¦ï¼Œè¿”å›è®¡ç®—åçš„é«˜åº¦
     */
     static void CalcImageLoadSize(const ImageLoadAttribute& imageLoadAttribute,
                                   bool bEnableDpiScale,
@@ -80,16 +80,16 @@ namespace ImageLoader
 
 		uint32_t nOldImageWidth = nImageWidth;
 		uint32_t nOldImageHeight = nImageHeight;
-		//´Ë´¦£ºÈç¹ûÖ»ÉèÖÃÁË¿í¶È»òÕß¸ß¶È£¬ÄÇÃ´»á°´Ëø¶¨×İºá±ÈµÄ·½Ê½¶ÔÕû¸öÍ¼Æ¬½øĞĞËõ·Å
+		//æ­¤å¤„ï¼šå¦‚æœåªè®¾ç½®äº†å®½åº¦æˆ–è€…é«˜åº¦ï¼Œé‚£ä¹ˆä¼šæŒ‰é”å®šçºµæ¨ªæ¯”çš„æ–¹å¼å¯¹æ•´ä¸ªå›¾ç‰‡è¿›è¡Œç¼©æ”¾
 		if (!imageLoadAttribute.CalcImageLoadSize(nImageWidth, nImageHeight)) {
 			nImageWidth = nOldImageWidth;
 			nImageHeight = nOldImageHeight;
 		}
 
-		//¼ÓÔØÍ¼Æ¬Ê±£¬°´Ğè¶ÔÍ¼Æ¬´óĞ¡½øĞĞDPI×ÔÊÊÓ¦
+		//åŠ è½½å›¾ç‰‡æ—¶ï¼ŒæŒ‰éœ€å¯¹å›¾ç‰‡å¤§å°è¿›è¡ŒDPIè‡ªé€‚åº”
 		bool needDpiScale = bEnableDpiScale;
 		if (imageLoadAttribute.HasSrcDpiScale()) {
-			//Èç¹ûÅäÖÃÎÄ¼şÖĞÓĞÉèÖÃscaledpiÊôĞÔ£¬ÔòÒÔÅäÖÃÎÄ¼şÖĞµÄÉèÖÃÎª×¼
+			//å¦‚æœé…ç½®æ–‡ä»¶ä¸­æœ‰è®¾ç½®scaledpiå±æ€§ï¼Œåˆ™ä»¥é…ç½®æ–‡ä»¶ä¸­çš„è®¾ç½®ä¸ºå‡†
 			needDpiScale = imageLoadAttribute.NeedDpiScale();
 		}
 		if (needDpiScale) {
@@ -105,11 +105,11 @@ namespace ImageLoader
 	}
 }
 
-/** Ê¹ÓÃstb_image¼ÓÔØÍ¼Æ¬
+/** ä½¿ç”¨stb_imageåŠ è½½å›¾ç‰‡
 */
 namespace STBImageLoader
 {
-	/** ´ÓÄÚ´æÊı¾İ¼ÓÔØÍ¼Æ¬
+	/** ä»å†…å­˜æ•°æ®åŠ è½½å›¾ç‰‡
 	*/
 	bool LoadImageFromMemory(std::vector<uint8_t>& fileData, ImageDecoder::ImageData& imageData)
 	{
@@ -127,7 +127,7 @@ namespace STBImageLoader
 		if ((buffer == nullptr) || (len <= 0)) {
 			return false;
 		}
-		const int desired_channels = 4; //·µ»ØµÄÍ¼ÏñÊı¾İ¸ñÊ½¹Ì¶¨£ºRGBA£¬Ã¿¸öÍ¼ÏñÔªËØÊÇ4¸ö×Ö½Ú
+		const int desired_channels = 4; //è¿”å›çš„å›¾åƒæ•°æ®æ ¼å¼å›ºå®šï¼šRGBAï¼Œæ¯ä¸ªå›¾åƒå…ƒç´ æ˜¯4ä¸ªå­—èŠ‚
 		int channels_in_file = 4;
 		uint8_t* rgbaData = stbi_load_from_memory(buffer, len, &nWidth, &nHeight, &channels_in_file, desired_channels);
 		if (rgbaData == nullptr) {
@@ -141,7 +141,7 @@ namespace STBImageLoader
 			argbData.resize(nHeight * nWidth * desired_channels);
 			const size_t colorCount = nHeight * nWidth;
 
-			//Êı¾İ¸ñÊ½×ª»»£ºABGR[alpha, blue, green, red] -> ARGB[alpha, red, green, blue]				
+			//æ•°æ®æ ¼å¼è½¬æ¢ï¼šABGR[alpha, blue, green, red] -> ARGB[alpha, red, green, blue]				
 			for (size_t i = 0; i < colorCount; ++i) {
 				size_t colorIndex = i * 4;
 				if (channels_in_file == 4) {
@@ -165,7 +165,7 @@ namespace STBImageLoader
 	}
 }//STBImageLoader
 
-/** Ê¹ÓÃAPNG¼ÓÔØÍ¼Æ¬
+/** ä½¿ç”¨APNGåŠ è½½å›¾ç‰‡
 */
 namespace APNGImageLoader
 {
@@ -234,7 +234,7 @@ namespace APNGImageLoader
 	}
 }//APNGImageLoader
 
-/** ¼ÓÔØSVGÍ¼Æ¬
+/** åŠ è½½SVGå›¾ç‰‡
 */
 namespace SVGImageLoader
 {
@@ -250,12 +250,12 @@ namespace SVGImageLoader
 		inline void operator()(NSVGrasterizer* x) const { nsvgDeleteRasterizer(x); }
 	};
 
-	/** ´ÓÄÚ´æÊı¾İ¼ÓÔØsvgÍ¼Æ¬
-	* @param [in] fileData Í¼Æ¬ÎÄ¼şµÄÊı¾İ£¬²¿·Ö¸ñÊ½¼ÓÔØ¹ı³ÌÖĞÄÚ²¿ÓĞÔö¼ÓÎ²0µÄĞ´²Ù×÷
-	* @param [in] imageLoadAttribute Í¼Æ¬¼ÓÔØÊôĞÔ, °üÀ¨Í¼Æ¬Â·¾¶µÈ
-    * @param [in] bEnableDpiScale ÊÇ·ñÔÊĞí°´ÕÕDPI¶ÔÍ¼Æ¬´óĞ¡½øĞĞËõ·Å£¨´ËÎª¹¦ÄÜ¿ª¹Ø£©
-	* @param [in] nImageDpiScale Í¼Æ¬Êı¾İ¶ÔÓ¦µÄDPIËõ·Å°Ù·Ö±È£¨±ÈÈç£ºi.jpgÎª100£¬i@150.jpgÎª150£©
-    * @param [in] dpi DPIËõ·Å¹ÜÀí½Ó¿Ú
+	/** ä»å†…å­˜æ•°æ®åŠ è½½svgå›¾ç‰‡
+	* @param [in] fileData å›¾ç‰‡æ–‡ä»¶çš„æ•°æ®ï¼Œéƒ¨åˆ†æ ¼å¼åŠ è½½è¿‡ç¨‹ä¸­å†…éƒ¨æœ‰å¢åŠ å°¾0çš„å†™æ“ä½œ
+	* @param [in] imageLoadAttribute å›¾ç‰‡åŠ è½½å±æ€§, åŒ…æ‹¬å›¾ç‰‡è·¯å¾„ç­‰
+    * @param [in] bEnableDpiScale æ˜¯å¦å…è®¸æŒ‰ç…§DPIå¯¹å›¾ç‰‡å¤§å°è¿›è¡Œç¼©æ”¾ï¼ˆæ­¤ä¸ºåŠŸèƒ½å¼€å…³ï¼‰
+	* @param [in] nImageDpiScale å›¾ç‰‡æ•°æ®å¯¹åº”çš„DPIç¼©æ”¾ç™¾åˆ†æ¯”ï¼ˆæ¯”å¦‚ï¼ši.jpgä¸º100ï¼Œi@150.jpgä¸º150ï¼‰
+    * @param [in] dpi DPIç¼©æ”¾ç®¡ç†æ¥å£
 	*/
 	bool LoadImageFromMemory(std::vector<uint8_t>& fileData, 
 						     const ImageLoadAttribute& imageLoadAttribute, 
@@ -272,12 +272,12 @@ namespace SVGImageLoader
 		bDpiScaled = false;
 		bool hasAppended = false;
 		if (fileData.back() != '\0') {
-			//È·±£ÊÇº¬Î²0µÄ×Ö·û´®£¬±ÜÃâÔ½½ç·ÃÎÊÄÚ´æ
+			//ç¡®ä¿æ˜¯å«å°¾0çš„å­—ç¬¦ä¸²ï¼Œé¿å…è¶Šç•Œè®¿é—®å†…å­˜
 			fileData.push_back('\0');
 			hasAppended = true;
 		}
 		char* pData = (char*)fileData.data();
-		NSVGimage* svgData = nsvgParse(pData, "px", 96.0f);//´«Èë"px"Ê±£¬µÚÈı¸ö²ÎÊıdpiÊÇ²»Æğ×÷ÓÃµÄ¡£
+		NSVGimage* svgData = nsvgParse(pData, "px", 96.0f);//ä¼ å…¥"px"æ—¶ï¼Œç¬¬ä¸‰ä¸ªå‚æ•°dpiæ˜¯ä¸èµ·ä½œç”¨çš„ã€‚
 		if (hasAppended) {
 			fileData.pop_back();
 		}
@@ -289,17 +289,17 @@ namespace SVGImageLoader
 			return false;
 		}
 
-		//¼ÆËãËõ·ÅºóµÄ´óĞ¡
+		//è®¡ç®—ç¼©æ”¾åçš„å¤§å°
 		uint32_t nImageWidth = (uint32_t)width;
 		uint32_t nImageHeight = (uint32_t)height;
 		ImageLoader::CalcImageLoadSize(imageLoadAttribute,
 			                           bEnableDpiScale, nImageDpiScale, dpi, bDpiScaled,
 			                           nImageWidth, nImageHeight);
 
-		//svgµÄËõ·Å£¬Ö»ÄÜ°´±ÈÀı£¬Ëø¶¨×İºá±ÈµÄ·½Ê½Ëõ·Å
+		//svgçš„ç¼©æ”¾ï¼Œåªèƒ½æŒ‰æ¯”ä¾‹ï¼Œé”å®šçºµæ¨ªæ¯”çš„æ–¹å¼ç¼©æ”¾
 		float scaleX = 1.0f * nImageWidth / width;
 		float scaleY = 1.0f * nImageHeight / height;
-		float scale = (scaleX > scaleY) ? scaleX : scaleY; //È¡×î´óµÄËõ·Å±È
+		float scale = (scaleX > scaleY) ? scaleX : scaleY; //å–æœ€å¤§çš„ç¼©æ”¾æ¯”
 		width = static_cast<int>(width * scale);
 		height = static_cast<int>(height * scale);
 		std::unique_ptr<NSVGrasterizer, RasterizerDeleter> rast(nsvgCreateRasterizer());		
@@ -313,12 +313,12 @@ namespace SVGImageLoader
 		uint8_t* pBmpBits = bitmapData.data();
 		nsvgRasterize(rast.get(), svg.get(), 0, 0, scale, pBmpBits, width, height, width * dataSize);
 
-		// nanosvgÄÚ²¿ÒÑ¾­×ö¹ıalphaÔ¤³Ë£¬ÕâÀïÖ»×öRºÍBµÄ½»»»
+		// nanosvgå†…éƒ¨å·²ç»åšè¿‡alphaé¢„ä¹˜ï¼Œè¿™é‡ŒåªåšRå’ŒBçš„äº¤æ¢
 		for (int y = 0; y < height; ++y) {
 			unsigned char* row = &pBmpBits[y * width * dataSize];
 			for (int x = 0; x < width; ++x) {
-				//SVG	Êı¾İµÄ¸÷¸öÑÕÉ«Öµ£ºrow[0]:R, row[1]: G, row[2]: B, row[3]: A
-				//Êä³ö	Êı¾İµÄ¸÷¸öÑÕÉ«Öµ£ºrow[0]:B, row[1]: G, row[2]: R, row[3]: A
+				//SVG	æ•°æ®çš„å„ä¸ªé¢œè‰²å€¼ï¼šrow[0]:R, row[1]: G, row[2]: B, row[3]: A
+				//è¾“å‡º	æ•°æ®çš„å„ä¸ªé¢œè‰²å€¼ï¼šrow[0]:B, row[1]: G, row[2]: R, row[3]: A
 				unsigned char r = row[0];
 				row[0] = row[2];
 				row[2] = r;
@@ -334,9 +334,9 @@ namespace SVGImageLoader
 	}
 } //SVGImageLoader
 
-/** Ê¹ÓÃcximage¼ÓÔØÍ¼Æ¬£¨Ö»Ö§³ÖGIFºÍICO£©Á½ÖÖ¸ñÊ½
-@param [in] isIconFile Èç¹ûÎªtrue±íÊ¾ÊÇICOÎÄ¼ş£¬·ñÔòÎªGIFÎÄ¼ş
-@param [in] iconSize ĞèÒª¼ÓÔØICOÍ¼±êµÄ´óĞ¡£¬ÒòICOÎÄ¼şÖĞ°üº¬ÁË¸÷ÖÖ´óĞ¡µÄÍ¼±ê£¬¼ÓÔØµÄÊ±ºò£¬Ö»¼ÓÔØÆäÖĞÒ»¸öÍ¼±ê
+/** ä½¿ç”¨cximageåŠ è½½å›¾ç‰‡ï¼ˆåªæ”¯æŒGIFå’ŒICOï¼‰ä¸¤ç§æ ¼å¼
+@param [in] isIconFile å¦‚æœä¸ºtrueè¡¨ç¤ºæ˜¯ICOæ–‡ä»¶ï¼Œå¦åˆ™ä¸ºGIFæ–‡ä»¶
+@param [in] iconSize éœ€è¦åŠ è½½ICOå›¾æ ‡çš„å¤§å°ï¼Œå› ICOæ–‡ä»¶ä¸­åŒ…å«äº†å„ç§å¤§å°çš„å›¾æ ‡ï¼ŒåŠ è½½çš„æ—¶å€™ï¼ŒåªåŠ è½½å…¶ä¸­ä¸€ä¸ªå›¾æ ‡
 */
 namespace CxImageLoader
 {
@@ -361,9 +361,9 @@ namespace CxImageLoader
 		}
 
 		//ICO
-		std::vector<uint32_t> frameNumColors;  //ÓÃÓÚ¼ÇÂ¼ICOÎÄ¼şÖĞ£¬Ã¿¸öFrameµÄÑÕÉ«Êı
-		std::unique_ptr<CxImage> cxIcoImage;   //Ã¿¸öFrameµÄICOÎÄ¼şÌáÈ¡½Ó¿Ú
-		std::unique_ptr<CxMemFile> cxIcoStream;//Ã¿¸öFrameµÄICOÎÄ¼şÊı¾İÁ÷
+		std::vector<uint32_t> frameNumColors;  //ç”¨äºè®°å½•ICOæ–‡ä»¶ä¸­ï¼Œæ¯ä¸ªFrameçš„é¢œè‰²æ•°
+		std::unique_ptr<CxImage> cxIcoImage;   //æ¯ä¸ªFrameçš„ICOæ–‡ä»¶æå–æ¥å£
+		std::unique_ptr<CxMemFile> cxIcoStream;//æ¯ä¸ªFrameçš„ICOæ–‡ä»¶æ•°æ®æµ
 		//
 		uint32_t lastFrameDelay = 0;
 		imageData.resize(frameCount);
@@ -413,11 +413,11 @@ namespace CxImageLoader
 				for (lPx = 0; lPx < (int32_t)nWidth; ++lPx) {
 					*pBit = cxFrame->GetPixelColor(lPx, lPy, true);
 					if (!cxFrame->AlphaIsValid() && !cxFrame->IsTransparent() && !cxFrame->AlphaPaletteIsEnabled()) {
-						//Èç¹û²»º¬ÓĞAlphaÍ¨µÀ£¬ÔòÌî³äAÖµÎª¹Ì¶¨Öµ
+						//å¦‚æœä¸å«æœ‰Alphaé€šé“ï¼Œåˆ™å¡«å……Aå€¼ä¸ºå›ºå®šå€¼
 						pBit->rgbReserved = 255;
 					}
 					else {
-						//Í¼Æ¬º¬ÓĞAlphaÍ¨µÀ
+						//å›¾ç‰‡å«æœ‰Alphaé€šé“
 						uint8_t a = pBit->rgbReserved;
 						if (!cxFrame->AlphaIsValid()) {
 							a = 255;
@@ -431,7 +431,7 @@ namespace CxImageLoader
 							if ((transColor.rgbRed == pBit->rgbRed) &&
 								(transColor.rgbGreen == pBit->rgbGreen) &&
 								(transColor.rgbBlue == pBit->rgbBlue)) {
-								//Í¸Ã÷É«£¬±ê¼ÇAlphaÍ¨µÀÎªÈ«Í¸Ã÷
+								//é€æ˜è‰²ï¼Œæ ‡è®°Alphaé€šé“ä¸ºå…¨é€æ˜
 								a = 0;
 							}
 						}																
@@ -453,7 +453,7 @@ namespace CxImageLoader
 		}
 
 		if (isIconFile) {
-			//Ä¿Ç°Ö»Ö§³Ö¼ÓÔØÒ»¸öICOÎÄ¼ş£¬ºóĞøÔÙ¸ù¾İÊµ¼ÊÓ¦ÓÃ³¡¾°À©Õ¹(ÓÅÏÈÑ¡Ôñ32Î»Õæ²ÊµÄÍ¼Æ¬£¬È»ºóÑ¡Ôñ256É«µÄ£¬È»ÔÙÑ¡Ôñ16É«µÄ)
+			//ç›®å‰åªæ”¯æŒåŠ è½½ä¸€ä¸ªICOæ–‡ä»¶ï¼Œåç»­å†æ ¹æ®å®é™…åº”ç”¨åœºæ™¯æ‰©å±•(ä¼˜å…ˆé€‰æ‹©32ä½çœŸå½©çš„å›¾ç‰‡ï¼Œç„¶åé€‰æ‹©256è‰²çš„ï¼Œç„¶å†é€‰æ‹©16è‰²çš„)
 			bool isIconSizeValid = false;
 			const size_t imageCount = imageData.size();
 			for (size_t i = 0; i < imageCount; ++i) {
@@ -492,7 +492,7 @@ namespace CxImageLoader
 	}
 }//CxImageLoader
 
-/** Ê¹ÓÃlibWebP¼ÓÔØÍ¼Æ¬
+/** ä½¿ç”¨libWebPåŠ è½½å›¾ç‰‡
 */
 namespace WebPImageLoader
 {
@@ -609,7 +609,7 @@ std::unique_ptr<ImageInfo> ImageDecoder::LoadImageData(std::vector<uint8_t>& fil
 	}
 
 	std::vector<ImageData> imageData;
-	bool bDpiScaled = false; //ÊÇ·ñ¸ù¾İDPI×ö¹ı°´±ÈÀıËõ·Å²Ù×÷
+	bool bDpiScaled = false; //æ˜¯å¦æ ¹æ®DPIåšè¿‡æŒ‰æ¯”ä¾‹ç¼©æ”¾æ“ä½œ
 	int32_t playCount = -1;
 
 	PerformanceUtil::Instance().BeginStat(L"DecodeImageData");
@@ -623,9 +623,9 @@ std::unique_ptr<ImageInfo> ImageDecoder::LoadImageData(std::vector<uint8_t>& fil
 
 	ImageFormat imageFormat = GetImageFormat(imageLoadAttribute.GetImageFullPath());
 	if (imageFormat != ImageFormat::kSVG) {
-		//¼ÓÔØÍ¼Æ¬µÄÊ±ºò£¬Ó¦¸ÃÎ´×ö¹ıDPI×ÔÊÊÓ¦
+		//åŠ è½½å›¾ç‰‡çš„æ—¶å€™ï¼Œåº”è¯¥æœªåšè¿‡DPIè‡ªé€‚åº”
 		ASSERT(!bDpiScaled);
-		//¼ÆËãËõ·ÅºóµÄ´óĞ¡
+		//è®¡ç®—ç¼©æ”¾åçš„å¤§å°
 		const ImageData& image = imageData[0];
 		uint32_t nImageWidth = image.m_imageWidth;
 		uint32_t nImageHeight = image.m_imageHeight;
@@ -634,7 +634,7 @@ std::unique_ptr<ImageInfo> ImageDecoder::LoadImageData(std::vector<uint8_t>& fil
 			                           nImageWidth, nImageHeight);
 		if ((nImageWidth != image.m_imageWidth) ||
 			(nImageHeight != image.m_imageHeight)) {
-			//¼ÓÔØÍ¼Ïñºó£¬¸ù¾İÅäÖÃÊôĞÔ£¬½øĞĞ´óĞ¡µ÷Õû(ÓÃËã·¨¶ÔÔ­Í¼Ëõ·Å£¬Í¼Æ¬ÖÊÁ¿ÏÔÊ¾Ğ§¹û»áºÃĞ©)
+			//åŠ è½½å›¾åƒåï¼Œæ ¹æ®é…ç½®å±æ€§ï¼Œè¿›è¡Œå¤§å°è°ƒæ•´(ç”¨ç®—æ³•å¯¹åŸå›¾ç¼©æ”¾ï¼Œå›¾ç‰‡è´¨é‡æ˜¾ç¤ºæ•ˆæœä¼šå¥½äº›)
 			PerformanceUtil::Instance().BeginStat(L"ResizeImageData");
 			if (!ResizeImageData(imageData, nImageWidth, nImageHeight)) {
 				bDpiScaled = false;
@@ -673,7 +673,7 @@ std::unique_ptr<ImageInfo> ImageDecoder::LoadImageData(std::vector<uint8_t>& fil
 	if (frameIntervals.size() > 1) {
 		imageInfo->SetFrameInterval(frameIntervals);
 	}
-	//¶àÖ¡Í¼Æ¬Ê±£¬ÒÔµÚÒ»Ö¡Í¼Æ¬×÷ÎªÍ¼Æ¬µÄ´óĞ¡ĞÅÏ¢
+	//å¤šå¸§å›¾ç‰‡æ—¶ï¼Œä»¥ç¬¬ä¸€å¸§å›¾ç‰‡ä½œä¸ºå›¾ç‰‡çš„å¤§å°ä¿¡æ¯
 	imageInfo->SetImageSize(imageWidth, imageHeight);
 	imageInfo->SetImageFullPath(imageFullPath);
 	imageInfo->SetPlayCount(playCount);
@@ -697,15 +697,15 @@ bool ImageDecoder::ResizeImageData(std::vector<ImageData>& imageData,
 		}
 	}
 	if (!isSizeChanged) {
-		//Í¼Æ¬´óĞ¡Î´·¢Éú±ä»¯
+		//å›¾ç‰‡å¤§å°æœªå‘ç”Ÿå˜åŒ–
 		return false;
 	}
-	//¿ÉÄÜ»á³öÏÖ²¿·ÖÊ§°ÜµÄÇé¿ö(ºöÂÔÕâÖÖÇé¿ö)
+	//å¯èƒ½ä¼šå‡ºç°éƒ¨åˆ†å¤±è´¥çš„æƒ…å†µ(å¿½ç•¥è¿™ç§æƒ…å†µ)
 	bool hasError = false;
 	for (ImageData& image : imageData) {
 		std::vector<uint8_t> resizedBitmapData;
 		if ((image.m_imageWidth == nNewWidth) && (image.m_imageHeight == nNewHeight)) {
-			//Í¼Æ¬´óĞ¡Î´·¢Éú±ä»¯
+			//å›¾ç‰‡å¤§å°æœªå‘ç”Ÿå˜åŒ–
 			continue;
 		}
 		resizedBitmapData.resize(nNewWidth * nNewHeight * 4);
@@ -727,7 +727,7 @@ bool ImageDecoder::ResizeImageData(std::vector<ImageData>& imageData,
 			image.m_imageHeight = nNewHeight;
 		}
 		else {
-			//Ê§°ÜÁË
+			//å¤±è´¥äº†
 			hasError = true;
 		}
 	}
@@ -760,7 +760,7 @@ bool ImageDecoder::DecodeImageData(std::vector<uint8_t>& fileData,
 		isLoaded = APNGImageLoader::LoadImageFromMemory(fileData, imageData, playCount);
 		break;
 	case ImageFormat::kSVG:
-		//SVGÊÇÊ¸Á¿Í¼£¬ËùÒÔĞèÒªÔÚ¼ÓÔØ¹ı³ÌÖĞ´¦ÀíÍ¼Æ¬Ëõ·Å£¬È·±£Í¼Æ¬µÄÖÊÁ¿ÊÇ×î¸ßµÄ
+		//SVGæ˜¯çŸ¢é‡å›¾ï¼Œæ‰€ä»¥éœ€è¦åœ¨åŠ è½½è¿‡ç¨‹ä¸­å¤„ç†å›¾ç‰‡ç¼©æ”¾ï¼Œç¡®ä¿å›¾ç‰‡çš„è´¨é‡æ˜¯æœ€é«˜çš„
 		imageData.resize(1);
 		isLoaded = SVGImageLoader::LoadImageFromMemory(fileData, imageLoadAttribute, 
 													   bEnableDpiScale, nImageDpiScale, dpi, 
@@ -775,7 +775,7 @@ bool ImageDecoder::DecodeImageData(std::vector<uint8_t>& fileData,
 		isLoaded = CxImageLoader::LoadImageFromMemory(fileData, imageData, false, 0);
 		break;
 	case ImageFormat::kICO:
-		//¼ÓÔØµÄÊ±ºò£¬¿ÉÓÃÖ¸¶¨¼ÓÔØµÄICOÍ¼Æ¬´óĞ¡£¨ÒòÒ»¸öICOÎÄ¼şÖĞ£¬¿É°üº¬¸÷ÖÖ´óĞ¡µÄÍ¼Æ¬£©
+		//åŠ è½½çš„æ—¶å€™ï¼Œå¯ç”¨æŒ‡å®šåŠ è½½çš„ICOå›¾ç‰‡å¤§å°ï¼ˆå› ä¸€ä¸ªICOæ–‡ä»¶ä¸­ï¼Œå¯åŒ…å«å„ç§å¤§å°çš„å›¾ç‰‡ï¼‰
 		isLoaded = CxImageLoader::LoadImageFromMemory(fileData, imageData, 
 													  true, imageLoadAttribute.GetIconSize());
 		break;

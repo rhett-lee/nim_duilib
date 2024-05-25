@@ -8,131 +8,131 @@
 namespace ui 
 {
 
-/** ÍßÆ¬²¼¾Ö(ºáÏò)
+/** ç“¦ç‰‡å¸ƒå±€(æ¨ªå‘)
 */
 class UILIB_API HTileLayout : public Layout
 {
 public:
 	HTileLayout();
 
-	/** ²¼¾ÖÀàĞÍ
+	/** å¸ƒå±€ç±»å‹
 	*/
 	virtual LayoutType GetLayoutType() const override { return LayoutType::HTileLayout; }
 
-	/** µ÷ÕûÄÚ²¿ËùÓĞ¿Ø¼şµÄÎ»ÖÃĞÅÏ¢
-	 * @param[in] items ¿Ø¼şÁĞ±í
-	 * @param[in] rc µ±Ç°ÈİÆ÷Î»ÖÃĞÅÏ¢, °üº¬ÄÚ±ß¾à£¬µ«²»°üº¬Íâ±ß¾à
-	 * @return ·µ»ØÅÅÁĞºó×îÖÕºĞ×ÓµÄ¿í¶ÈºÍ¸ß¶ÈĞÅÏ¢
+	/** è°ƒæ•´å†…éƒ¨æ‰€æœ‰æ§ä»¶çš„ä½ç½®ä¿¡æ¯
+	 * @param[in] items æ§ä»¶åˆ—è¡¨
+	 * @param[in] rc å½“å‰å®¹å™¨ä½ç½®ä¿¡æ¯, åŒ…å«å†…è¾¹è·ï¼Œä½†ä¸åŒ…å«å¤–è¾¹è·
+	 * @return è¿”å›æ’åˆ—åæœ€ç»ˆç›’å­çš„å®½åº¦å’Œé«˜åº¦ä¿¡æ¯
 	 */
 	virtual UiSize64 ArrangeChild(const std::vector<Control*>& items, UiRect rc) override;
 
-	/** ¸ù¾İÄÚ²¿×Ó¿Ø¼ş´óĞ¡¹ÀËãÈİÆ÷×ÔÉí´óĞ¡£¬À­ÉìÀàĞÍµÄ×Ó¿Ø¼ş±»ºöÂÔ£¬²»¼ÆÈë´óĞ¡¹ÀËã
-	 * @param[in] items ×Ó¿Ø¼şÁĞ±í
-	 * @param [in] szAvailable ¿ÉÓÃ´óĞ¡£¬°üº¬·ÖÅä¸ø¸Ã¿Ø¼şµÄÄÚ±ß¾à£¬µ«²»°üº¬·ÖÅä¸ø¿Ø¼şµÄÍâ±ß¾à
-	 * @return ·µ»ØÅÅÁĞºó×îÖÕ²¼¾ÖµÄ´óĞ¡ĞÅÏ¢£¨¿í¶ÈºÍ¸ß¶È£©£»
-			   °üº¬itemsÖĞ×Ó¿Ø¼şµÄÍâ±ß¾à£¬°üº¬itemsÖĞ×Ó¿Ø¼şµÄÄÚ±ß¾à£»
-			   °üº¬Box¿Ø¼ş±¾ÉíµÄÄÚ±ß¾à£»
-			   ²»°üº¬Box¿Ø¼ş±¾ÉíµÄÍâ±ß¾à£»
-			   ·µ»ØÖµÖĞ²»°üº¬À­ÉìÀàĞÍµÄ×Ó¿Ø¼ş´óĞ¡¡£
+	/** æ ¹æ®å†…éƒ¨å­æ§ä»¶å¤§å°ä¼°ç®—å®¹å™¨è‡ªèº«å¤§å°ï¼Œæ‹‰ä¼¸ç±»å‹çš„å­æ§ä»¶è¢«å¿½ç•¥ï¼Œä¸è®¡å…¥å¤§å°ä¼°ç®—
+	 * @param[in] items å­æ§ä»¶åˆ—è¡¨
+	 * @param [in] szAvailable å¯ç”¨å¤§å°ï¼ŒåŒ…å«åˆ†é…ç»™è¯¥æ§ä»¶çš„å†…è¾¹è·ï¼Œä½†ä¸åŒ…å«åˆ†é…ç»™æ§ä»¶çš„å¤–è¾¹è·
+	 * @return è¿”å›æ’åˆ—åæœ€ç»ˆå¸ƒå±€çš„å¤§å°ä¿¡æ¯ï¼ˆå®½åº¦å’Œé«˜åº¦ï¼‰ï¼›
+			   åŒ…å«itemsä¸­å­æ§ä»¶çš„å¤–è¾¹è·ï¼ŒåŒ…å«itemsä¸­å­æ§ä»¶çš„å†…è¾¹è·ï¼›
+			   åŒ…å«Boxæ§ä»¶æœ¬èº«çš„å†…è¾¹è·ï¼›
+			   ä¸åŒ…å«Boxæ§ä»¶æœ¬èº«çš„å¤–è¾¹è·ï¼›
+			   è¿”å›å€¼ä¸­ä¸åŒ…å«æ‹‰ä¼¸ç±»å‹çš„å­æ§ä»¶å¤§å°ã€‚
 	 */
 	virtual UiSize EstimateSizeByChild(const std::vector<Control*>& items, UiSize szAvailable);
 	
-	/** ÉèÖÃ²¼¾ÖÊôĞÔ
-	 * @param [in] strName ÒªÉèÖÃµÄÊôĞÔÃû
-	 * @param [in] strValue ÒªÉèÖÃµÄÊôĞÔÖµ
-	 * @param [in] dpiManager DPI¹ÜÀí½Ó¿Ú
-	 * @return true ÉèÖÃ³É¹¦£¬false ÊôĞÔ²»´æÔÚ
+	/** è®¾ç½®å¸ƒå±€å±æ€§
+	 * @param [in] strName è¦è®¾ç½®çš„å±æ€§å
+	 * @param [in] strValue è¦è®¾ç½®çš„å±æ€§å€¼
+	 * @param [in] dpiManager DPIç®¡ç†æ¥å£
+	 * @return true è®¾ç½®æˆåŠŸï¼Œfalse å±æ€§ä¸å­˜åœ¨
 	 */
 	virtual bool SetAttribute(const std::wstring& strName, 
 							  const std::wstring& strValue,
 							  const DpiManager& dpiManager) override;
 
-	/** DPI·¢Éú±ä»¯£¬¸üĞÂ¿Ø¼ş´óĞ¡ºÍ²¼¾Ö
-	* @param [in] nOldDpiScale ¾ÉµÄDPIËõ·Å°Ù·Ö±È
-	* @param [in] dpiManager DPIËõ·Å¹ÜÀíÆ÷
+	/** DPIå‘ç”Ÿå˜åŒ–ï¼Œæ›´æ–°æ§ä»¶å¤§å°å’Œå¸ƒå±€
+	* @param [in] nOldDpiScale æ—§çš„DPIç¼©æ”¾ç™¾åˆ†æ¯”
+	* @param [in] dpiManager DPIç¼©æ”¾ç®¡ç†å™¨
 	*/
 	virtual void ChangeDpiScale(const DpiManager& dpiManager, uint32_t nOldDpiScale) override;
 
 public:
-	/** »ñÈ¡×ÓÏî´óĞ¡£¬¸Ã¿í¶ÈºÍ¸ß¶È£¬ÊÇ°üº¬ÁË¿Ø¼şµÄÍâ±ß¾àºÍÄÚ±ß¾àµÄ
+	/** è·å–å­é¡¹å¤§å°ï¼Œè¯¥å®½åº¦å’Œé«˜åº¦ï¼Œæ˜¯åŒ…å«äº†æ§ä»¶çš„å¤–è¾¹è·å’Œå†…è¾¹è·çš„
 	 */
 	const UiSize& GetItemSize() const;
 
-	/** ÉèÖÃ×ÓÏî´óĞ¡
-	 * @param [in] szItem ×ÓÏî´óĞ¡Êı¾İ£¬¸Ã¿í¶ÈºÍ¸ß¶È£¬ÊÇ°üº¬ÁË¿Ø¼şµÄÍâ±ß¾àºÍÄÚ±ß¾àµÄ
+	/** è®¾ç½®å­é¡¹å¤§å°
+	 * @param [in] szItem å­é¡¹å¤§å°æ•°æ®ï¼Œè¯¥å®½åº¦å’Œé«˜åº¦ï¼Œæ˜¯åŒ…å«äº†æ§ä»¶çš„å¤–è¾¹è·å’Œå†…è¾¹è·çš„
 	 */
 	void SetItemSize(UiSize szItem);
 
-	/** »ñÈ¡ĞĞÊıÁ¿
+	/** è·å–è¡Œæ•°é‡
 	 */
 	int32_t GetRows() const;
 
-	/** ÉèÖÃÏÔÊ¾¼¸ĞĞÊı¾İ
-	 * @param[in] nRows ÒªÉèÖÃÏÔÊ¾¼¸ĞĞµÄÊıÖµ
+	/** è®¾ç½®æ˜¾ç¤ºå‡ è¡Œæ•°æ®
+	 * @param[in] nRows è¦è®¾ç½®æ˜¾ç¤ºå‡ è¡Œçš„æ•°å€¼
 	 */
 	void SetRows(int32_t nRows);
 
-	/** ÉèÖÃÊÇ·ñ×Ô¶¯¼ÆËãĞĞ
+	/** è®¾ç½®æ˜¯å¦è‡ªåŠ¨è®¡ç®—è¡Œ
 	 */
 	void SetAutoCalcRows(bool bAutoCalcRows);
 
-	/** ÅĞ¶ÏÊÇ·ñ×Ô¶¯¼ÆËãĞĞÊı
+	/** åˆ¤æ–­æ˜¯å¦è‡ªåŠ¨è®¡ç®—è¡Œæ•°
 	 */
 	bool IsAutoCalcRows() const;
 
-	/** µ±¿Ø¼şÄÚÈİ³¬³ö±ß½çÊ±£¬°´±ÈÀıËõĞ¡£¬ÒÔÊ¹¿Ø¼şÄÚÈİÍêÈ«ÏÔÊ¾ÔÚÍßÆ¬ÇøÓòÄÚ
+	/** å½“æ§ä»¶å†…å®¹è¶…å‡ºè¾¹ç•Œæ—¶ï¼ŒæŒ‰æ¯”ä¾‹ç¼©å°ï¼Œä»¥ä½¿æ§ä»¶å†…å®¹å®Œå…¨æ˜¾ç¤ºåœ¨ç“¦ç‰‡åŒºåŸŸå†…
 	*/
 	void SetScaleDown(bool bScaleDown);
 
-	/** ÅĞ¶Ï³¬³ö±ß½çµÄÊ±ºò£¬ÊÇ·ñ°´±ÈÀıËõĞ¡
+	/** åˆ¤æ–­è¶…å‡ºè¾¹ç•Œçš„æ—¶å€™ï¼Œæ˜¯å¦æŒ‰æ¯”ä¾‹ç¼©å°
 	*/
 	bool IsScaleDown() const;
 
-	/** µ±Ç°ÊÇ·ñÎª×ÔÓÉ²¼¾Ö
+	/** å½“å‰æ˜¯å¦ä¸ºè‡ªç”±å¸ƒå±€
 	*/
 	bool IsFreeLayout() const;
 
 private:
-	/** Î´´¦ÀíµÄ×Ó¿Ø¼ş½Ó¿ÚºÍÆä¿í¸ßĞÅÏ¢
+	/** æœªå¤„ç†çš„å­æ§ä»¶æ¥å£å’Œå…¶å®½é«˜ä¿¡æ¯
 	*/
 	struct ItemSizeInfo
 	{
-		Control* pControl = nullptr; //×Ó¿Ø¼ş½Ó¿Ú
-		int32_t cx = 0;				 //×Ó¿Ø¼şµÄ¿í¶È
-		int32_t cy = 0;			     //×Ó¿Ø¼şµÄ¸ß¶È
+		Control* pControl = nullptr; //å­æ§ä»¶æ¥å£
+		int32_t cx = 0;				 //å­æ§ä»¶çš„å®½åº¦
+		int32_t cy = 0;			     //å­æ§ä»¶çš„é«˜åº¦
 	};
 
-	/** »ñÈ¡¹ÀËã´óĞ¡Ê±µÄ¿ÉÓÃ¿í¸ß
-	* @param [in] pControl ¿Õ¼ä½Ó¿Ú
-	* @param [in] szItem Ã¿¸öÍßÆ¬¿Ø¼şµÄ¿í¶ÈºÍ¸ß¶È(ÉèÖÃÖµ)
-	* @param [in] rc ÍßÆ¬¿Ø¼şËùÔÚÈİÆ÷µÄ¿ÉÓÃÇøÓò¾ØĞÎ
-	* @return ·µ»Ø¸Ã¿Õ¼äµÄ¹ÀËã´óĞ¡£¨¿íºÍ¸ß£©
+	/** è·å–ä¼°ç®—å¤§å°æ—¶çš„å¯ç”¨å®½é«˜
+	* @param [in] pControl ç©ºé—´æ¥å£
+	* @param [in] szItem æ¯ä¸ªç“¦ç‰‡æ§ä»¶çš„å®½åº¦å’Œé«˜åº¦(è®¾ç½®å€¼)
+	* @param [in] rc ç“¦ç‰‡æ§ä»¶æ‰€åœ¨å®¹å™¨çš„å¯ç”¨åŒºåŸŸçŸ©å½¢
+	* @return è¿”å›è¯¥ç©ºé—´çš„ä¼°ç®—å¤§å°ï¼ˆå®½å’Œé«˜ï¼‰
 	*/
 	static UiSize CalcEstimateSize(Control* pControl, const UiSize& szItem, UiRect rc);
 
-	/** »ñÈ¡»ù±¾²ÎÊı£ºÍßÆ¬µÄÁĞÊı
-	* @param [in] normalItems ×Ó¿Ø¼şÁĞ±í
-	* @param [in] rc ÍßÆ¬¿Ø¼şËùÔÚÈİÆ÷µÄ¾ØĞÎ
-	* @param [in] tileHeight Ã¿¸öÍßÆ¬¿Ø¼şµÄ¿í¶È(ÅäÖÃÖµ)
-	* @param [in] childMarginX ×Ó¿Ø¼şµÄXÖá¼ä¸ô
-	* @param [in] childMarginY ×Ó¿Ø¼şµÄYÖá¼ä¸ô	
-	* @param [out] nRows ·µ»Ø×ÜĞĞÊı
+	/** è·å–åŸºæœ¬å‚æ•°ï¼šç“¦ç‰‡çš„åˆ—æ•°
+	* @param [in] normalItems å­æ§ä»¶åˆ—è¡¨
+	* @param [in] rc ç“¦ç‰‡æ§ä»¶æ‰€åœ¨å®¹å™¨çš„çŸ©å½¢
+	* @param [in] tileHeight æ¯ä¸ªç“¦ç‰‡æ§ä»¶çš„å®½åº¦(é…ç½®å€¼)
+	* @param [in] childMarginX å­æ§ä»¶çš„Xè½´é—´éš”
+	* @param [in] childMarginY å­æ§ä»¶çš„Yè½´é—´éš”	
+	* @param [out] nRows è¿”å›æ€»è¡Œæ•°
 	*/
 	static void CalcTileRows(const std::vector<ItemSizeInfo>& normalItems, const UiRect& rc,
 		                     int32_t tileHeight, int32_t childMarginX, int32_t childMarginY,
 		                     int32_t& nRows);
 
-	/** ¹ÀËã¸¡¶¯¿Ø¼şµÄ´óĞ¡
+	/** ä¼°ç®—æµ®åŠ¨æ§ä»¶çš„å¤§å°
 	*/
 	static UiSize64 EstimateFloatSize(Control* pControl, UiRect rc);
 
-	/** ´¦Àí¸¡¶¯×Ó¿Ø¼ş£¬²¢·µ»ØÎ´´¦ÀíµÄ×Ó¿Ø¼şÁĞ±í
-	* @param [in] items ×Ó¿Ø¼şÁĞ±í
-	* @param [in] rect Íâ²¿¿ÉÓÃ¾ØĞÎ´óĞ¡
-	* @param [in] szItem Ã¿¸öÍßÆ¬¿Ø¼şµÄ¿í¶ÈºÍ¸ß¶È(ÉèÖÃÖµ)
-	* @param [in] isCalcOnly Èç¹ûÎªtrue±íÊ¾½ö¼ÆËãÇøÓò£¬¶Ô¿Ø¼şÎ»ÖÃ²»×öµ÷Õû£»Èç¹ûÎªfalse£¬±íÊ¾¶Ô¿Ø¼şÎ»ÖÃ×öµ÷Õû¡£
-	* @param [out] normalItems ·µ»ØÎ´´¦ÀíµÄ×Ó¿Ø¼şÁĞ±í£¬¼°Æä´óĞ¡ĞÅÏ¢
-	* @return ·µ»Ø¸¡¶¯¿Ø¼şËùÕ¼µÄÇøÓò¿í¶ÈºÍ¸ß¶È
+	/** å¤„ç†æµ®åŠ¨å­æ§ä»¶ï¼Œå¹¶è¿”å›æœªå¤„ç†çš„å­æ§ä»¶åˆ—è¡¨
+	* @param [in] items å­æ§ä»¶åˆ—è¡¨
+	* @param [in] rect å¤–éƒ¨å¯ç”¨çŸ©å½¢å¤§å°
+	* @param [in] szItem æ¯ä¸ªç“¦ç‰‡æ§ä»¶çš„å®½åº¦å’Œé«˜åº¦(è®¾ç½®å€¼)
+	* @param [in] isCalcOnly å¦‚æœä¸ºtrueè¡¨ç¤ºä»…è®¡ç®—åŒºåŸŸï¼Œå¯¹æ§ä»¶ä½ç½®ä¸åšè°ƒæ•´ï¼›å¦‚æœä¸ºfalseï¼Œè¡¨ç¤ºå¯¹æ§ä»¶ä½ç½®åšè°ƒæ•´ã€‚
+	* @param [out] normalItems è¿”å›æœªå¤„ç†çš„å­æ§ä»¶åˆ—è¡¨ï¼ŒåŠå…¶å¤§å°ä¿¡æ¯
+	* @return è¿”å›æµ®åŠ¨æ§ä»¶æ‰€å çš„åŒºåŸŸå®½åº¦å’Œé«˜åº¦
 	*/
 	static UiSize64 ArrangeFloatChild(const std::vector<Control*>& items,
 							          UiRect rc,
@@ -140,26 +140,26 @@ private:
 		                              bool isCalcOnly, 
 		                              std::vector<ItemSizeInfo>& normalItems);
 
-	/** »ñÈ¡»ù±¾²ÎÊı£ºÍßÆ¬¸ß¶È£¬²¼¾ÖÅÅÁĞ¹ı³ÌÖĞ£¬ÔÚÃ¿ÁĞ¿ªÊ¼Ê±£¬¼ÆËã±¾ÁĞµÄ¿í¶È
-	* @param [in] normalItems ×Ó¿Ø¼şÁĞ±í
-	* @param [in] iterBegin ×Ó¿Ø¼ş¿ªÊ¼µÄµü´úÆ÷
-	* @param [in] nRows ×ÜĞĞÊı
-	* @param [in] szItem ÍßÆ¬¿Ø¼ş¿í¶ÈºÍ¸ß¶È£¨ÉèÖÃÖµ£©
-	* @return ·µ»Ø¸ß¿íÖµ£¬°üº¬ÁËÍâ±ß¾àMargin.top + Margin.bottomÖµ
+	/** è·å–åŸºæœ¬å‚æ•°ï¼šç“¦ç‰‡é«˜åº¦ï¼Œå¸ƒå±€æ’åˆ—è¿‡ç¨‹ä¸­ï¼Œåœ¨æ¯åˆ—å¼€å§‹æ—¶ï¼Œè®¡ç®—æœ¬åˆ—çš„å®½åº¦
+	* @param [in] normalItems å­æ§ä»¶åˆ—è¡¨
+	* @param [in] iterBegin å­æ§ä»¶å¼€å§‹çš„è¿­ä»£å™¨
+	* @param [in] nRows æ€»è¡Œæ•°
+	* @param [in] szItem ç“¦ç‰‡æ§ä»¶å®½åº¦å’Œé«˜åº¦ï¼ˆè®¾ç½®å€¼ï¼‰
+	* @return è¿”å›é«˜å®½å€¼ï¼ŒåŒ…å«äº†å¤–è¾¹è·Margin.top + Margin.bottomå€¼
 	*/
 	static int32_t CalcTileColumnWidth(const std::vector<ItemSizeInfo>& normalItems,
 									   const std::vector<ItemSizeInfo>::const_iterator iterBegin,
 								 	   int32_t nRows,
 								       const UiSize& szItem);
 
-	/** ¼ÆËãÍßÆ¬¿Ø¼şµÄÏÔÊ¾×ø±êºÍ´óĞ¡
-	* @param [in] itemSizeInfo ÍßÆ¬¿Ø¼şµÄ½Ó¿Ú, ¼°¿Ø¼şµÄ´óĞ¡ĞÅÏ¢
-	* @param [in] tileWidth ÅäÖÃµÄÍßÆ¬¿Ø¼ş¿í¶È
-	* @param [in] tileHeight ÅäÖÃµÄÍßÆ¬¿Ø¼ş¸ß¶È£¨È¡ĞĞ¸ß£©
-	* @param [in] ptTile µ±Ç°ÍßÆ¬¿Ø¼ş×óÉÏ½ÇµÄ×ø±ê
-	* @param [in] bScaleDown µ±¿Ø¼şÄÚÈİ³¬³ö±ß½çÊ±£¬°´±ÈÀıËõĞ¡£¬ÒÔÊ¹¿Ø¼şÄÚÈİÍêÈ«ÏÔÊ¾ÔÚÍßÆ¬ÇøÓòÄÚ
-	* @param [out] szTilePos ÍßÆ¬¿Ø¼şµÄÏÔÊ¾×ø±ê¡¢¿í¶ÈºÍ¸ß¶È
-	* @return ·µ»ØÍßÆ¬¿Ø¼şÄ¿±êÇøÓòµÄ´óĞ¡£¨¿íºÍ¸ß£©£¬¿í¶ÈºÍ¸ß¶È°üº¬ÁË¿Ø¼şµÄÍâ±ß¾à
+	/** è®¡ç®—ç“¦ç‰‡æ§ä»¶çš„æ˜¾ç¤ºåæ ‡å’Œå¤§å°
+	* @param [in] itemSizeInfo ç“¦ç‰‡æ§ä»¶çš„æ¥å£, åŠæ§ä»¶çš„å¤§å°ä¿¡æ¯
+	* @param [in] tileWidth é…ç½®çš„ç“¦ç‰‡æ§ä»¶å®½åº¦
+	* @param [in] tileHeight é…ç½®çš„ç“¦ç‰‡æ§ä»¶é«˜åº¦ï¼ˆå–è¡Œé«˜ï¼‰
+	* @param [in] ptTile å½“å‰ç“¦ç‰‡æ§ä»¶å·¦ä¸Šè§’çš„åæ ‡
+	* @param [in] bScaleDown å½“æ§ä»¶å†…å®¹è¶…å‡ºè¾¹ç•Œæ—¶ï¼ŒæŒ‰æ¯”ä¾‹ç¼©å°ï¼Œä»¥ä½¿æ§ä»¶å†…å®¹å®Œå…¨æ˜¾ç¤ºåœ¨ç“¦ç‰‡åŒºåŸŸå†…
+	* @param [out] szTilePos ç“¦ç‰‡æ§ä»¶çš„æ˜¾ç¤ºåæ ‡ã€å®½åº¦å’Œé«˜åº¦
+	* @return è¿”å›ç“¦ç‰‡æ§ä»¶ç›®æ ‡åŒºåŸŸçš„å¤§å°ï¼ˆå®½å’Œé«˜ï¼‰ï¼Œå®½åº¦å’Œé«˜åº¦åŒ…å«äº†æ§ä»¶çš„å¤–è¾¹è·
 	*/
 	static UiSize CalcTilePosition(const ItemSizeInfo& itemSizeInfo,
 								   int32_t tileWidth,
@@ -169,13 +169,13 @@ private:
 								   UiRect& szTilePos);
 
 private:
-	/** ¶Ô×Ó¿Ø¼ş²¼¾ÖµÄÄÚ²¿ÊµÏÖº¯Êı
-	* @param [in] items ×Ó¿Ø¼şÁĞ±í
-	* @param [in] rect ¿ÉÓÃ¾ØĞÎ´óĞ¡£¬°üº¬·ÖÅä¸ø¸Ã¿Ø¼şµÄÄÚ±ß¾à£¬µ«²»°üº¬·ÖÅä¸ø¿Ø¼şµÄÍâ±ß¾à
-	* @param [in] isCalcOnly Èç¹ûÎªtrue±íÊ¾½ö¼ÆËãÇøÓò£¬¶Ô¿Ø¼şÎ»ÖÃ²»×öµ÷Õû£»Èç¹ûÎªfalse£¬±íÊ¾¶Ô¿Ø¼şÎ»ÖÃ×öµ÷Õû¡£
-	* @param [in] inRowHeights Ã¿ĞĞµÄ¸ß¶ÈÖµ£¬¿ÉÓÃÎª¿Õ
-	* @param [out] outRowHeights ±¾´Î²¼¾Ö£¬Ê¹ÓÃµÄÃ¿ĞĞ¸ß¶ÈÖµ
-	* @return ·µ»ØÇøÓòµÄ¿í¶ÈºÍ¸ß¶È
+	/** å¯¹å­æ§ä»¶å¸ƒå±€çš„å†…éƒ¨å®ç°å‡½æ•°
+	* @param [in] items å­æ§ä»¶åˆ—è¡¨
+	* @param [in] rect å¯ç”¨çŸ©å½¢å¤§å°ï¼ŒåŒ…å«åˆ†é…ç»™è¯¥æ§ä»¶çš„å†…è¾¹è·ï¼Œä½†ä¸åŒ…å«åˆ†é…ç»™æ§ä»¶çš„å¤–è¾¹è·
+	* @param [in] isCalcOnly å¦‚æœä¸ºtrueè¡¨ç¤ºä»…è®¡ç®—åŒºåŸŸï¼Œå¯¹æ§ä»¶ä½ç½®ä¸åšè°ƒæ•´ï¼›å¦‚æœä¸ºfalseï¼Œè¡¨ç¤ºå¯¹æ§ä»¶ä½ç½®åšè°ƒæ•´ã€‚
+	* @param [in] inRowHeights æ¯è¡Œçš„é«˜åº¦å€¼ï¼Œå¯ç”¨ä¸ºç©º
+	* @param [out] outRowHeights æœ¬æ¬¡å¸ƒå±€ï¼Œä½¿ç”¨çš„æ¯è¡Œé«˜åº¦å€¼
+	* @return è¿”å›åŒºåŸŸçš„å®½åº¦å’Œé«˜åº¦
 	*/
 	UiSize64 ArrangeChildNormal(const std::vector<Control*>& items, 
 								UiRect rect,
@@ -183,11 +183,11 @@ private:
 		                        const std::vector<int32_t>& inRowHeights,
 		                        std::vector<int32_t>& outRowHeights) const;
 
-	/** Ê¹ÓÃ×ÔÓÉ²¼¾ÖÅÅÁĞ¿Ø¼ş(ÎŞ¹Ì¶¨ÁĞÊı£¬¾¡Á¿³ä·ÖÀûÓÃÕ¹Ê¾¿Õ¼ä£¬ÏÔÊ¾¾¡¿ÉÄÜ¶àµÄÄÚÈİ)
-	* @param [in] items ×Ó¿Ø¼şÁĞ±í
-	* @param [in] rect ¿ÉÓÃ¾ØĞÎ´óĞ¡£¬°üº¬·ÖÅä¸ø¸Ã¿Ø¼şµÄÄÚ±ß¾à£¬µ«²»°üº¬·ÖÅä¸ø¿Ø¼şµÄÍâ±ß¾à
-	* @param [in] isCalcOnly Èç¹ûÎªtrue±íÊ¾½ö¼ÆËãÇøÓò£¬¶Ô¿Ø¼şÎ»ÖÃ²»×öµ÷Õû£»Èç¹ûÎªfalse£¬±íÊ¾¶Ô¿Ø¼şÎ»ÖÃ×öµ÷Õû¡£
-	* @return ·µ»ØÇøÓòµÄ¿í¶ÈºÍ¸ß¶È
+	/** ä½¿ç”¨è‡ªç”±å¸ƒå±€æ’åˆ—æ§ä»¶(æ— å›ºå®šåˆ—æ•°ï¼Œå°½é‡å……åˆ†åˆ©ç”¨å±•ç¤ºç©ºé—´ï¼Œæ˜¾ç¤ºå°½å¯èƒ½å¤šçš„å†…å®¹)
+	* @param [in] items å­æ§ä»¶åˆ—è¡¨
+	* @param [in] rect å¯ç”¨çŸ©å½¢å¤§å°ï¼ŒåŒ…å«åˆ†é…ç»™è¯¥æ§ä»¶çš„å†…è¾¹è·ï¼Œä½†ä¸åŒ…å«åˆ†é…ç»™æ§ä»¶çš„å¤–è¾¹è·
+	* @param [in] isCalcOnly å¦‚æœä¸ºtrueè¡¨ç¤ºä»…è®¡ç®—åŒºåŸŸï¼Œå¯¹æ§ä»¶ä½ç½®ä¸åšè°ƒæ•´ï¼›å¦‚æœä¸ºfalseï¼Œè¡¨ç¤ºå¯¹æ§ä»¶ä½ç½®åšè°ƒæ•´ã€‚
+	* @return è¿”å›åŒºåŸŸçš„å®½åº¦å’Œé«˜åº¦
 	*/
 	UiSize64 ArrangeChildFreeLayout(const std::vector<Control*>& items, 
 									UiRect rect, 
@@ -195,16 +195,16 @@ private:
 
 private:
 
-	//ÏÔÊ¾¼¸ĞĞÊı¾İ
+	//æ˜¾ç¤ºå‡ è¡Œæ•°æ®
 	int32_t m_nRows;
 
-	//×ÓÏî´óĞ¡, ¸Ã¿í¶ÈºÍ¸ß¶È£¬ÊÇ°üº¬ÁË¿Ø¼şµÄÍâ±ß¾àºÍÄÚ±ß¾àµÄ
+	//å­é¡¹å¤§å°, è¯¥å®½åº¦å’Œé«˜åº¦ï¼Œæ˜¯åŒ…å«äº†æ§ä»¶çš„å¤–è¾¹è·å’Œå†…è¾¹è·çš„
 	UiSize m_szItem;
 
-	//×Ô¶¯¼ÆËãĞĞÊı
+	//è‡ªåŠ¨è®¡ç®—è¡Œæ•°
 	bool m_bAutoCalcRows;
 
-	//µ±¿Ø¼şÄÚÈİ³¬³ö±ß½çÊ±£¬°´±ÈÀıËõĞ¡£¬ÒÔÊ¹¿Ø¼şÄÚÈİÍêÈ«ÏÔÊ¾ÔÚÍßÆ¬ÇøÓòÄÚ
+	//å½“æ§ä»¶å†…å®¹è¶…å‡ºè¾¹ç•Œæ—¶ï¼ŒæŒ‰æ¯”ä¾‹ç¼©å°ï¼Œä»¥ä½¿æ§ä»¶å†…å®¹å®Œå…¨æ˜¾ç¤ºåœ¨ç“¦ç‰‡åŒºåŸŸå†…
 	bool m_bScaleDown;
 };
 

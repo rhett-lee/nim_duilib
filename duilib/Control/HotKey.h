@@ -9,7 +9,7 @@ namespace ui
 {
 class HotKeyRichEdit;
 
-/** ÈÈ¼ü¿Ø¼ş
+/** çƒ­é”®æ§ä»¶
 */
 class HotKey: public HBox
 {
@@ -17,68 +17,68 @@ public:
 	explicit HotKey(Window* pWindow);
     virtual ~HotKey();
 
-	/** »ñÈ¡¿Ø¼şÀàĞÍ
+	/** è·å–æ§ä»¶ç±»å‹
 	*/
 	virtual std::wstring GetType() const override;
 
-    /** ÉèÖÃÊôĞÔ
+    /** è®¾ç½®å±æ€§
     */
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 
-    /** ÈÃ¿Ø¼ş»ñÈ¡½¹µã
+    /** è®©æ§ä»¶è·å–ç„¦ç‚¹
      */
     virtual void SetFocus() override;
 
 public:
-    /** ÉèÖÃÈÈ¼ü
-    * @param [in] wVirtualKeyCode ĞéÄâ¼üÅÌÂë£¬±ÈÈç£ºVK_DOWNµÈ£¬¿É²Î¿¼£ºhttps://learn.microsoft.com/zh-cn/windows/win32/inputdev/virtual-key-codes
-    * @param [in] wModifiers ÈÈ¼ü×éºÏ¼ü±êÖ¾Î»£¬²Î¼ûHotKeyModifiersÃ¶¾ÙÀàĞÍµÄÖµ
+    /** è®¾ç½®çƒ­é”®
+    * @param [in] wVirtualKeyCode è™šæ‹Ÿé”®ç›˜ç ï¼Œæ¯”å¦‚ï¼šVK_DOWNç­‰ï¼Œå¯å‚è€ƒï¼šhttps://learn.microsoft.com/zh-cn/windows/win32/inputdev/virtual-key-codes
+    * @param [in] wModifiers çƒ­é”®ç»„åˆé”®æ ‡å¿—ä½ï¼Œå‚è§HotKeyModifiersæšä¸¾ç±»å‹çš„å€¼
     */
     void SetHotKey(uint8_t wVirtualKeyCode, uint8_t wModifiers);
 
-    /** »ñÈ¡ÈÈ¼ü
-    * @param [out] wVirtualKeyCode ĞéÄâ¼üÅÌÂë£¬±ÈÈç£ºVK_DOWNµÈ
-    * @param [out] wModifiers ÈÈ¼ü×éºÏ¼ü±êÖ¾Î»£¬²Î¼ûHotKeyModifiersÃ¶¾ÙÀàĞÍµÄÖµ
+    /** è·å–çƒ­é”®
+    * @param [out] wVirtualKeyCode è™šæ‹Ÿé”®ç›˜ç ï¼Œæ¯”å¦‚ï¼šVK_DOWNç­‰
+    * @param [out] wModifiers çƒ­é”®ç»„åˆé”®æ ‡å¿—ä½ï¼Œå‚è§HotKeyModifiersæšä¸¾ç±»å‹çš„å€¼
     */
     void GetHotKey(uint8_t& wVirtualKeyCode, uint8_t& wModifiers) const;
 
-    /** ÉèÖÃÈÈ¼üµÄÖµ[ÓÉMAKEWORD(wVirtualKeyCode, wModifiers)Éú³É]
-    * @param [in] dwHotKey ¸ß8Î»ÎªwModifiers£¬µÍ8Î»ÎªwVirtualKeyCode
+    /** è®¾ç½®çƒ­é”®çš„å€¼[ç”±MAKEWORD(wVirtualKeyCode, wModifiers)ç”Ÿæˆ]
+    * @param [in] dwHotKey é«˜8ä½ä¸ºwModifiersï¼Œä½8ä½ä¸ºwVirtualKeyCode
     */
     void SetHotKey(uint16_t dwHotKey);
 
-    /** »ñÈ¡ÈÈ¼üµÄÖµ[ÓÉMAKEWORD(wVirtualKeyCode, wModifiers)Éú³É]
-    * @return ÈÈ¼üµÄÖµ£¬¸ß8Î»ÎªwModifiers£¬µÍ8Î»ÎªwVirtualKeyCode
+    /** è·å–çƒ­é”®çš„å€¼[ç”±MAKEWORD(wVirtualKeyCode, wModifiers)ç”Ÿæˆ]
+    * @return çƒ­é”®çš„å€¼ï¼Œé«˜8ä½ä¸ºwModifiersï¼Œä½8ä½ä¸ºwVirtualKeyCode
     */
     uint16_t GetHotKey() const;
 
-    /** »ñÈ¡ÈÈ¼üÏÔÊ¾Ãû³Æ£¬±ÈÈç"Ctrl + C"µÈ
+    /** è·å–çƒ­é”®æ˜¾ç¤ºåç§°ï¼Œæ¯”å¦‚"Ctrl + C"ç­‰
     */
     std::wstring GetHotKeyName() const;
 
-    /** ¸ù¾İÏÔÊ¾Ãû³ÆÉèÖÃÈÈ¼ü
-    * @param [in] hotKeyName ÈÈ¼üÃû³Æ£¬±ÈÈç"Ctrl + C"µÈ
+    /** æ ¹æ®æ˜¾ç¤ºåç§°è®¾ç½®çƒ­é”®
+    * @param [in] hotKeyName çƒ­é”®åç§°ï¼Œæ¯”å¦‚"Ctrl + C"ç­‰
     */
     bool SetHotKeyName(const std::wstring& hotKeyName);
 
 public:
-    /** »ñÈ¡¼üµÄÏÔÊ¾Ãû³Æ
-    * @param [in] wVirtualKeyCode ĞéÄâ¼üÅÌÂë£¬±ÈÈç£ºVK_DOWNµÈ
-    * @param [in] fExtended Èç¹ûĞéÄâ¼ü´úÂëÊÇÀ©Õ¹ÃÜÔ¿£¬ÔòÎª true£»·ñÔòÎª false¡£
+    /** è·å–é”®çš„æ˜¾ç¤ºåç§°
+    * @param [in] wVirtualKeyCode è™šæ‹Ÿé”®ç›˜ç ï¼Œæ¯”å¦‚ï¼šVK_DOWNç­‰
+    * @param [in] fExtended å¦‚æœè™šæ‹Ÿé”®ä»£ç æ˜¯æ‰©å±•å¯†é’¥ï¼Œåˆ™ä¸º trueï¼›å¦åˆ™ä¸º falseã€‚
     */
     static std::wstring GetKeyName(uint8_t wVirtualKeyCode, bool fExtended);
 
 protected:
 
-	//³õÊ¼»¯
+	//åˆå§‹åŒ–
 	virtual void OnInit() override;
 
 private:
-	/** Ä¬ÈÏÏÔÊ¾µÄÎÄ×Ö
+	/** é»˜è®¤æ˜¾ç¤ºçš„æ–‡å­—
     */
 	UiString m_defaultText;
 
-    /** ±à¼­¿ò¿Ø¼şµÄ½Ó¿Ú
+    /** ç¼–è¾‘æ¡†æ§ä»¶çš„æ¥å£
     */
     HotKeyRichEdit* m_pRichEdit;
 };

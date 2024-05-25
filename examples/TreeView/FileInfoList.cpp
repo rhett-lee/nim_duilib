@@ -78,7 +78,7 @@ void FileInfoList::SetFileList(ui::TreeNode* pTreeNode, const std::vector<FileIn
         m_pathList.emplace_back(fileInfo);
         ui::GlobalManager::Instance().Icon().AddIcon(fileInfo.m_hIcon);
     }
-    // 通知ListBox数据总数变动
+    // 閫氱煡ListBox鏁版嵁鎬绘暟鍙樺姩
     EmitCountChanged();
 }
 
@@ -101,7 +101,7 @@ bool FileInfoList::OnDoubleClickItem(const ui::EventArgs& args)
         if (nElementIndex < m_pathList.size()) {
             const FileInfo& fileInfo = m_pathList[nElementIndex];
             if (fileInfo.m_isFolder && (m_pMainForm != nullptr)) {
-                //双击在一个目录上
+                //鍙屽嚮鍦ㄤ竴涓洰褰曚笂
                 m_pMainForm->CheckExpandTreeNode(m_pTreeNode, fileInfo.m_filePath);
             }
         }

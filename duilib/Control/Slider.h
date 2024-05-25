@@ -9,14 +9,14 @@
 namespace ui
 {
 
-/** »¬¿é¿Ø¼ş
+/** æ»‘å—æ§ä»¶
 */
 class UILIB_API Slider : public Progress
 {
 public:
 	explicit Slider(Window* pWindow);
 
-	/// ÖØĞ´¸¸Àà·½·¨£¬Ìá¹©¸öĞÔ»¯¹¦ÄÜ£¬Çë²Î¿¼¸¸ÀàÉùÃ÷
+	/// é‡å†™çˆ¶ç±»æ–¹æ³•ï¼Œæä¾›ä¸ªæ€§åŒ–åŠŸèƒ½ï¼Œè¯·å‚è€ƒçˆ¶ç±»å£°æ˜
 	virtual std::wstring GetType() const override;
 	virtual UiRect GetProgressPos() override;
 	virtual void HandleEvent(const EventArgs& msg) override;
@@ -25,61 +25,61 @@ public:
 	virtual void PaintBkColor(IRender* pRender) override;
 	virtual void ClearImageCache() override;
 
-	/** DPI·¢Éú±ä»¯£¬¸üĞÂ¿Ø¼ş´óĞ¡ºÍ²¼¾Ö
-	* @param [in] nOldDpiScale ¾ÉµÄDPIËõ·Å°Ù·Ö±È
-	* @param [in] nNewDpiScale ĞÂµÄDPIËõ·Å°Ù·Ö±È£¬ÓëDpi().GetScale()µÄÖµÒ»ÖÂ
+	/** DPIå‘ç”Ÿå˜åŒ–ï¼Œæ›´æ–°æ§ä»¶å¤§å°å’Œå¸ƒå±€
+	* @param [in] nOldDpiScale æ—§çš„DPIç¼©æ”¾ç™¾åˆ†æ¯”
+	* @param [in] nNewDpiScale æ–°çš„DPIç¼©æ”¾ç™¾åˆ†æ¯”ï¼Œä¸Dpi().GetScale()çš„å€¼ä¸€è‡´
 	*/
 	virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override;
 
-	/** »ñÈ¡²½½ø²½³¤
-	 * @return ·µ»Ø²½½ø²½³¤
+	/** è·å–æ­¥è¿›æ­¥é•¿
+	 * @return è¿”å›æ­¥è¿›æ­¥é•¿
 	 */
 	int GetChangeStep();
 
-	/** ÉèÖÃ²½½ø²½³¤
-	 * @param[in] step ÒªÉèÖÃµÄ²½³¤
+	/** è®¾ç½®æ­¥è¿›æ­¥é•¿
+	 * @param[in] step è¦è®¾ç½®çš„æ­¥é•¿
 	 */
 	void SetChangeStep(int step);
 
-	/** ÉèÖÃ»¬¿éµÄ´óĞ¡
-	 * @param [in] szXY ÒªÉèÖÃµÄ´óĞ¡
-	 * @param [in] bNeedDpiScale ÊÇ·ñ DPI Ëõ·Å
+	/** è®¾ç½®æ»‘å—çš„å¤§å°
+	 * @param [in] szXY è¦è®¾ç½®çš„å¤§å°
+	 * @param [in] bNeedDpiScale æ˜¯å¦ DPI ç¼©æ”¾
 	 */
 	void SetThumbSize(UiSize szXY, bool bNeedDpiScale);
 
-	/** »ñÈ¡»¬¿éµÄ´óĞ¡
+	/** è·å–æ»‘å—çš„å¤§å°
 	*/
 	UiSize GetThumbSize() const;
 
-	/** »ñÈ¡»¬¿éµÄ¾ØĞÎĞÅÏ¢
-	 * @return ·µ»Ø»¬¿éµÄ¾ØĞÎĞÅÏ¢
+	/** è·å–æ»‘å—çš„çŸ©å½¢ä¿¡æ¯
+	 * @return è¿”å›æ»‘å—çš„çŸ©å½¢ä¿¡æ¯
 	 */
 	UiRect GetThumbRect() const;
 
-	/** »ñÈ¡Ö¸¶¨×´Ì¬ÏÂ»¬¿éµÄÍ¼Æ¬
-	 * @param[in] stateType Òª»ñÈ¡µÄ×´Ì¬±êÊ¶£¬²Î¿¼ ControlStateType Ã¶¾Ù
-	 * @return ·µ»ØÍ¼Æ¬Â·¾¶
+	/** è·å–æŒ‡å®šçŠ¶æ€ä¸‹æ»‘å—çš„å›¾ç‰‡
+	 * @param[in] stateType è¦è·å–çš„çŠ¶æ€æ ‡è¯†ï¼Œå‚è€ƒ ControlStateType æšä¸¾
+	 * @return è¿”å›å›¾ç‰‡è·¯å¾„
 	 */
 	std::wstring GetThumbStateImage(ControlStateType stateType) const;
 
-	/** ÉèÖÃÖ¸¶¨×´Ì¬ÏÂ»¬¿éµÄÍ¼Æ¬
-	 * @param[in] stateType ÒªÉèÖÃµÄ×´Ì¬±êÊ¶£¬²Î¿¼ ControlStateType Ã¶¾Ù
-	 * @param[in] pStrImage ÒªÉèÖÃµÄÍ¼Æ¬Î»ÖÃ
+	/** è®¾ç½®æŒ‡å®šçŠ¶æ€ä¸‹æ»‘å—çš„å›¾ç‰‡
+	 * @param[in] stateType è¦è®¾ç½®çš„çŠ¶æ€æ ‡è¯†ï¼Œå‚è€ƒ ControlStateType æšä¸¾
+	 * @param[in] pStrImage è¦è®¾ç½®çš„å›¾ç‰‡ä½ç½®
 	 */
 	void SetThumbStateImage(ControlStateType stateType, const std::wstring& pStrImage);
 
-	/** »ñÈ¡½ø¶ÈÌõÄÚ±ß¾à
+	/** è·å–è¿›åº¦æ¡å†…è¾¹è·
 	 */
 	const UiPadding& GetProgressBarPadding() const;
 
-	/** ÉèÖÃ½ø¶ÈÌõÄÚ±ß¾à
-	 * @param [in] padding ÒªÉèÖÃµÄÄÚ±ß¾àĞÅÏ¢
-	 * @param [in] bNeedDpiScale ÊÇ·ñ DPI Ëõ·Å
+	/** è®¾ç½®è¿›åº¦æ¡å†…è¾¹è·
+	 * @param [in] padding è¦è®¾ç½®çš„å†…è¾¹è·ä¿¡æ¯
+	 * @param [in] bNeedDpiScale æ˜¯å¦ DPI ç¼©æ”¾
 	 */
 	void SetProgressBarPadding(UiPadding padding, bool bNeedDpiScale);
 
-	/** ¼àÌı½ø¶ÈÌõ½ø¶È¸Ä±äÊÂ¼ş
-	 * @param[in] callback ½ø¶ÈÌõ½ø¶È¸Ä±äºóµ÷ÓÃµÄ»Øµ÷º¯Êı
+	/** ç›‘å¬è¿›åº¦æ¡è¿›åº¦æ”¹å˜äº‹ä»¶
+	 * @param[in] callback è¿›åº¦æ¡è¿›åº¦æ”¹å˜åè°ƒç”¨çš„å›è°ƒå‡½æ•°
 	 */
 	void AttachValueChange(const EventCallback& callback) { AttachEvent(kEventValueChange, callback);	}
 

@@ -7,79 +7,79 @@
 
 namespace ui
 {
-/** »­Ïß¿Ø¼ş
+/** ç”»çº¿æ§ä»¶
 */
 class Line: public Control
 {
 public:
 	explicit Line(Window* pWindow);
 
-	/** »ñÈ¡¿Ø¼şÀàĞÍ
+	/** è·å–æ§ä»¶ç±»å‹
 	*/
 	virtual std::wstring GetType() const override;
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 
-	/** DPI·¢Éú±ä»¯£¬¸üĞÂ¿Ø¼ş´óĞ¡ºÍ²¼¾Ö
-	* @param [in] nOldDpiScale ¾ÉµÄDPIËõ·Å°Ù·Ö±È
-	* @param [in] nNewDpiScale ĞÂµÄDPIËõ·Å°Ù·Ö±È£¬ÓëDpi().GetScale()µÄÖµÒ»ÖÂ
+	/** DPIå‘ç”Ÿå˜åŒ–ï¼Œæ›´æ–°æ§ä»¶å¤§å°å’Œå¸ƒå±€
+	* @param [in] nOldDpiScale æ—§çš„DPIç¼©æ”¾ç™¾åˆ†æ¯”
+	* @param [in] nNewDpiScale æ–°çš„DPIç¼©æ”¾ç™¾åˆ†æ¯”ï¼Œä¸Dpi().GetScale()çš„å€¼ä¸€è‡´
 	*/
 	virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override;
 
-	/** ÉèÖÃË®Æ½»¹ÊÇ´¹Ö±(true±íÊ¾´¹Ö±)
+	/** è®¾ç½®æ°´å¹³è¿˜æ˜¯å‚ç›´(trueè¡¨ç¤ºå‚ç›´)
 	*/
 	void SetLineVertical(bool bVertical);
 
-	/** »ñÈ¡Ë®Æ½»¹ÊÇ´¹Ö±
+	/** è·å–æ°´å¹³è¿˜æ˜¯å‚ç›´
 	*/
 	bool IsLineVertical() const;
 
-	/** ÉèÖÃÏßÌõµÄ¿í¶È
-	* @param [in] lineWidth ÏßÌõ¿í¶È
-	* @param [in] bNeedDpiScale ÊÇ·ñÖ§³ÖDPIËõ·Å
+	/** è®¾ç½®çº¿æ¡çš„å®½åº¦
+	* @param [in] lineWidth çº¿æ¡å®½åº¦
+	* @param [in] bNeedDpiScale æ˜¯å¦æ”¯æŒDPIç¼©æ”¾
 	*/
 	void SetLineWidth(int32_t lineWidth, bool bNeedDpiScale);
 
-	/** »ñÈ¡ÏßÌõµÄ¿í¶È
+	/** è·å–çº¿æ¡çš„å®½åº¦
 	*/
 	int32_t GetLineWidth() const;
 
-	/** ÉèÖÃÏßÌõÑÕÉ«
+	/** è®¾ç½®çº¿æ¡é¢œè‰²
 	*/
 	void SetLineColor(const std::wstring& lineColor);
 
-	/** »ñÈ¡ÏßÌõÑÕÉ«
+	/** è·å–çº¿æ¡é¢œè‰²
 	*/
 	std::wstring GetLineColor() const;
 
-	/** ÉèÖÃÏßÌõÀàĞÍ
+	/** è®¾ç½®çº¿æ¡ç±»å‹
 	*/
 	void SetLineDashStyle(const std::wstring& dashStyle);
 
-	/** »ñÈ¡ÏßÌõÀàĞÍ
+	/** è·å–çº¿æ¡ç±»å‹
 	*/
 	std::wstring GetLineDashStyle() const;
 
 protected:
-	/** »æÖÆ¿Ø¼şµÄÈë¿Úº¯Êı
-	* @param [in] pRender Ö¸¶¨»æÖÆÇøÓò
-	* @param [in] rcPaint Ö¸¶¨»æÖÆ×ø±ê
+	/** ç»˜åˆ¶æ§ä»¶çš„å…¥å£å‡½æ•°
+	* @param [in] pRender æŒ‡å®šç»˜åˆ¶åŒºåŸŸ
+	* @param [in] rcPaint æŒ‡å®šç»˜åˆ¶åæ ‡
 	*/
 	virtual void Paint(IRender* pRender, const UiRect& rcPaint) override;
 
 private:
-	/** Ë®Æ½»¹ÊÇ´¹Ö±(true±íÊ¾´¹Ö±)
+	/** æ°´å¹³è¿˜æ˜¯å‚ç›´(trueè¡¨ç¤ºå‚ç›´)
 	*/
 	bool m_bLineVertical;
 
-	/** ÏßÌõÑÕÉ«
+	/** çº¿æ¡é¢œè‰²
 	*/
 	UiString m_lineColor;
 
-	/** ÏßÌõ¿í¶È
+	/** çº¿æ¡å®½åº¦
 	*/
 	int32_t m_lineWidth;
 
-	/** ÏßÌõÀàĞÍ
+	/** çº¿æ¡ç±»å‹
 	*/
 	int32_t m_dashStyle;
 };

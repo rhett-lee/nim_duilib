@@ -9,13 +9,13 @@
 namespace ui
 {
 
-/** ½Úµã¹´Ñ¡×´Ì¬
+/** èŠ‚ç‚¹å‹¾é€‰çŠ¶æ€
 */
 enum class TreeNodeCheck
 {
-	UnCheck,	 //Ã»ÓĞ´ò¹´
-	CheckedAll,	 //È«²¿´ò¹´
-	CheckedPart  //²¿·Ö´ò¹´
+	UnCheck,	 //æ²¡æœ‰æ‰“å‹¾
+	CheckedAll,	 //å…¨éƒ¨æ‰“å‹¾
+	CheckedPart  //éƒ¨åˆ†æ‰“å‹¾
 };
 
 class TreeView;
@@ -28,15 +28,15 @@ public:
 	TreeNode& operator=(const TreeNode& r) = delete;
 	virtual ~TreeNode();
 
-	/// ÖØĞ´¸¸Àà·½·¨£¬Ìá¹©¸öĞÔ»¯¹¦ÄÜ£¬Çë²Î¿¼¸¸ÀàÉùÃ÷
+	/// é‡å†™çˆ¶ç±»æ–¹æ³•ï¼Œæä¾›ä¸ªæ€§åŒ–åŠŸèƒ½ï¼Œè¯·å‚è€ƒçˆ¶ç±»å£°æ˜
 	virtual std::wstring GetType() const override;
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 	virtual bool IsVisible() const override;
 	virtual bool SupportCheckedMode() const override;
 
-	/** DPI·¢Éú±ä»¯£¬¸üĞÂ¿Ø¼ş´óĞ¡ºÍ²¼¾Ö
-	* @param [in] nOldDpiScale ¾ÉµÄDPIËõ·Å°Ù·Ö±È
-	* @param [in] nNewDpiScale ĞÂµÄDPIËõ·Å°Ù·Ö±È£¬ÓëDpi().GetScale()µÄÖµÒ»ÖÂ
+	/** DPIå‘ç”Ÿå˜åŒ–ï¼Œæ›´æ–°æ§ä»¶å¤§å°å’Œå¸ƒå±€
+	* @param [in] nOldDpiScale æ—§çš„DPIç¼©æ”¾ç™¾åˆ†æ¯”
+	* @param [in] nNewDpiScale æ–°çš„DPIç¼©æ”¾ç™¾åˆ†æ¯”ï¼Œä¸Dpi().GetScale()çš„å€¼ä¸€è‡´
 	*/
 	virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override;
 
@@ -46,89 +46,89 @@ private:
 	virtual bool OnDoubleClickItem(const EventArgs& args);
 
 public:
-	/** ÉèÖÃ×ÓÏîËùÊôµÄÊ÷ÈİÆ÷
-	 * @param[in] pTreeView ÈİÆ÷Ö¸Õë
+	/** è®¾ç½®å­é¡¹æ‰€å±çš„æ ‘å®¹å™¨
+	 * @param[in] pTreeView å®¹å™¨æŒ‡é’ˆ
 	 */
 	void SetTreeView(TreeView* pTreeView);
 
-	/** »ñÈ¡×ÓÏîËùÊôµÄÊ÷ÈİÆ÷
+	/** è·å–å­é¡¹æ‰€å±çš„æ ‘å®¹å™¨
 	 */
 	TreeView* GetTreeView() const;
 
-	/** »ñÈ¡¸¸½ÚµãÖ¸Õë
-	 * @return ·µ»Ø¸¸½ÚµãÖ¸Õë
+	/** è·å–çˆ¶èŠ‚ç‚¹æŒ‡é’ˆ
+	 * @return è¿”å›çˆ¶èŠ‚ç‚¹æŒ‡é’ˆ
 	 */
 	TreeNode* GetParentNode() const;
 
-	/** ÉèÖÃ¸¸½Úµã
-	 * @param[in] pParentTreeNode ¸¸½ÚµãÖ¸Õë
+	/** è®¾ç½®çˆ¶èŠ‚ç‚¹
+	 * @param[in] pParentTreeNode çˆ¶èŠ‚ç‚¹æŒ‡é’ˆ
 	 */
 	void SetParentNode(TreeNode* pParentTreeNode);
 
-	/** ÔÚ×îºóÃæÌí¼ÓÒ»¸öĞÂµÄ×Ó½Úµã
-	 * @param[in] pTreeNode ×Ó½ÚµãÖ¸Õë
-	 * @return ³É¹¦·µ»Ø true£¬Ê§°Ü·µ»Ø false
+	/** åœ¨æœ€åé¢æ·»åŠ ä¸€ä¸ªæ–°çš„å­èŠ‚ç‚¹
+	 * @param[in] pTreeNode å­èŠ‚ç‚¹æŒ‡é’ˆ
+	 * @return æˆåŠŸè¿”å› trueï¼Œå¤±è´¥è¿”å› false
 	 */
 	bool AddChildNode(TreeNode* pTreeNode);
 
-	/** ÔÚÖ¸¶¨Î»ÖÃÌí¼Ó×Ó½Úµã
-	 * @param[in] pTreeNode ×Ó½ÚµãÖ¸Õë
-	 * @param[in] iIndex Òª²åÈëÄÄ¸öÎ»ÖÃÖ®ºó
-	 * @return ³É¹¦·µ»Ø true£¬Ê§°Ü·µ»Ø false
+	/** åœ¨æŒ‡å®šä½ç½®æ·»åŠ å­èŠ‚ç‚¹
+	 * @param[in] pTreeNode å­èŠ‚ç‚¹æŒ‡é’ˆ
+	 * @param[in] iIndex è¦æ’å…¥å“ªä¸ªä½ç½®ä¹‹å
+	 * @return æˆåŠŸè¿”å› trueï¼Œå¤±è´¥è¿”å› false
 	 */
 	bool AddChildNodeAt(TreeNode* pTreeNode, const size_t iIndex);
 
-	/** ´ÓÖ¸¶¨Î»ÖÃÒÆ³ıÒ»¸ö×Ó½Úµã
-	 * @param[in] iIndex ÒªÒÆ³ıµÄ×Ó½ÚµãË÷Òı
-	 * @return ³É¹¦·µ»Ø true£¬Ê§°Ü·µ»Ø false
+	/** ä»æŒ‡å®šä½ç½®ç§»é™¤ä¸€ä¸ªå­èŠ‚ç‚¹
+	 * @param[in] iIndex è¦ç§»é™¤çš„å­èŠ‚ç‚¹ç´¢å¼•
+	 * @return æˆåŠŸè¿”å› trueï¼Œå¤±è´¥è¿”å› false
 	 */
 	bool RemoveChildNodeAt(size_t iIndex);
 
-	/** ¸ù¾İ×Ó½ÚµãÖ¸ÕëÒÆ³ıÒ»¸ö×Ó½Úµã
-	 * @param[in] pTreeNode ×Ó½ÚµãÖ¸Õë
-	 * @return ³É¹¦·µ»Ø true£¬Ê§°Ü·µ»Ø false
+	/** æ ¹æ®å­èŠ‚ç‚¹æŒ‡é’ˆç§»é™¤ä¸€ä¸ªå­èŠ‚ç‚¹
+	 * @param[in] pTreeNode å­èŠ‚ç‚¹æŒ‡é’ˆ
+	 * @return æˆåŠŸè¿”å› trueï¼Œå¤±è´¥è¿”å› false
 	 */
 	bool RemoveChildNode(TreeNode* pTreeNode);
 
-	/** ÒÆ³ıËùÓĞ×Ó½Úµã
+	/** ç§»é™¤æ‰€æœ‰å­èŠ‚ç‚¹
 	 */
 	void RemoveAllChildNodes();
 
-	/** µİ¹é»ñÈ¡ËùÓĞ×Ó½Úµã¸öÊı
-	 * @return ·µ»ØËùÓĞ×Ó½Úµã¸öÊı
+	/** é€’å½’è·å–æ‰€æœ‰å­èŠ‚ç‚¹ä¸ªæ•°
+	 * @return è¿”å›æ‰€æœ‰å­èŠ‚ç‚¹ä¸ªæ•°
 	 */
 	size_t GetDescendantNodeCount() const;
 
-	/** »ñÈ¡ÏÂÒ»¼¶×Ó½Úµã¸öÊı
-	 * @return ·µ»Ø×Ó½Úµã¸öÊı
+	/** è·å–ä¸‹ä¸€çº§å­èŠ‚ç‚¹ä¸ªæ•°
+	 * @return è¿”å›å­èŠ‚ç‚¹ä¸ªæ•°
 	 */
 	size_t GetChildNodeCount() const;
 
-	/** »ñÈ¡Ò»¸ö×Ó½ÚµãÖ¸Õë
-	 * @param[in] iIndex Òª»ñÈ¡µÄ×Ó½ÚµãË÷Òı
-	 * @return ·µ»Ø×Ó½ÚµãÖ¸Õë
+	/** è·å–ä¸€ä¸ªå­èŠ‚ç‚¹æŒ‡é’ˆ
+	 * @param[in] iIndex è¦è·å–çš„å­èŠ‚ç‚¹ç´¢å¼•
+	 * @return è¿”å›å­èŠ‚ç‚¹æŒ‡é’ˆ
 	 */
 	TreeNode* GetChildNode(size_t iIndex) const;
 
-	/** ¸ù¾İ×Ó½ÚµãÖ¸Õë»ñÈ¡×Ó½ÚµãÎ»ÖÃË÷Òı
-	 * @param[in] pTreeNode ×Ó½ÚµãÖ¸Õë
-	 * @return ·µ»ØÎ»ÖÃË÷Òı
+	/** æ ¹æ®å­èŠ‚ç‚¹æŒ‡é’ˆè·å–å­èŠ‚ç‚¹ä½ç½®ç´¢å¼•
+	 * @param[in] pTreeNode å­èŠ‚ç‚¹æŒ‡é’ˆ
+	 * @return è¿”å›ä½ç½®ç´¢å¼•
 	 */
 	size_t GetChildNodeIndex(TreeNode* pTreeNode) const;
 
-	/** ÅĞ¶ÏÊÇ·ñÕ¹¿ª×´Ì¬
-	 * @return ·µ»Ø true ÎªÕ¹¿ª×´Ì¬£¬·ñÔòÎª false
+	/** åˆ¤æ–­æ˜¯å¦å±•å¼€çŠ¶æ€
+	 * @return è¿”å› true ä¸ºå±•å¼€çŠ¶æ€ï¼Œå¦åˆ™ä¸º false
 	 */
 	bool IsExpand() const; 
 
-	/** ÉèÖÃÊÇ·ñÕ¹¿ªÏÔÊ¾×Ó½Úµã
-	 * @param[in] bExpand Îª true Ê±Õ¹¿ª£¬Îª false ÊÇ²»Õ¹¿ª
+	/** è®¾ç½®æ˜¯å¦å±•å¼€æ˜¾ç¤ºå­èŠ‚ç‚¹
+	 * @param[in] bExpand ä¸º true æ—¶å±•å¼€ï¼Œä¸º false æ˜¯ä¸å±•å¼€
 	 */
 	void SetExpand(bool bExpand, bool bTriggerEvent = false);
 
-	/** »ñÈ¡×ÓÏî²ã¼¶
-	 * @return ·µ»Øµ±Ç°²ã¼¶, ¸ù½ÚµãµÄ²ã¼¶Îª0£¬¸ù½ÚµãÊÇÒ»¸öĞéÄâ½Úµã£¬Ò»¼¶½ÚµãÊÇÊµ½Úµã£¬²ã¼¶ÊÇ1
-	 *         Ê÷½ÚµãµÄËõ½øÊÇ£º
+	/** è·å–å­é¡¹å±‚çº§
+	 * @return è¿”å›å½“å‰å±‚çº§, æ ¹èŠ‚ç‚¹çš„å±‚çº§ä¸º0ï¼Œæ ¹èŠ‚ç‚¹æ˜¯ä¸€ä¸ªè™šæ‹ŸèŠ‚ç‚¹ï¼Œä¸€çº§èŠ‚ç‚¹æ˜¯å®èŠ‚ç‚¹ï¼Œå±‚çº§æ˜¯1
+	 *         æ ‘èŠ‚ç‚¹çš„ç¼©è¿›æ˜¯ï¼š
 	 *         int32_t indent = 0;
 	 *         if(GetDepth() > 0) {
 	 *				indent = (GetDepth() - 1) * TreeView::GetIndent();
@@ -138,199 +138,199 @@ public:
 
 #ifdef UILIB_IMPL_WINSDK
 
-	/** ÉèÖÃ±³¾°Í¼Æ¬(HICON¾ä±ú)
-	 * @param [in] hIcon ÒªÉèÖÃµÄÍ¼±ê¾ä±ú£¬ÉèÖÃºó£¬ÓÉui::GlobalManager::Instance().Icon()¹ÜÀí×ÊÔ´µÄÉúÃüÖÜÆÚ
-	 *             Èç¹ûhIconÎªnullptr, ÔòÉ¾³ı½ÚµãµÄÍ¼±ê£¬µ«²»»á´Óui::GlobalManager::Instance().Icon()ÒÆ³ıÔ­À´¹ØÁªµÄÍ¼±ê¾ä±ú
-	 * @param [in] nIconSize Í¼±êµÄ´óĞ¡£¨¿í¶ÈºÍ¸ß¶ÈÖµ£©£»
-	               Èç¹ûÉèÖÃÎª0£¬±íÊ¾ÒÔÊµ¼ÊÍ¼±êµÄ´óĞ¡×÷ÎªÍ¼±êµÄ´óĞ¡£¬µ«ÕâÑùÉèÖÃ»áµ¼ÖÂÎŞ·¨ÊµÏÖDPI¸ĞÖª¹¦ÄÜ£¬ËùÒÔ½¨ÒéÉèÖÃÒ»¸öºÏÀíÖµ¡£
-	 * @param [in] bNeedDpiScale ÊÇ·ñĞèÒª×öDPI×ÔÊÊÓ¦
+	/** è®¾ç½®èƒŒæ™¯å›¾ç‰‡(HICONå¥æŸ„)
+	 * @param [in] hIcon è¦è®¾ç½®çš„å›¾æ ‡å¥æŸ„ï¼Œè®¾ç½®åï¼Œç”±ui::GlobalManager::Instance().Icon()ç®¡ç†èµ„æºçš„ç”Ÿå‘½å‘¨æœŸ
+	 *             å¦‚æœhIconä¸ºnullptr, åˆ™åˆ é™¤èŠ‚ç‚¹çš„å›¾æ ‡ï¼Œä½†ä¸ä¼šä»ui::GlobalManager::Instance().Icon()ç§»é™¤åŸæ¥å…³è”çš„å›¾æ ‡å¥æŸ„
+	 * @param [in] nIconSize å›¾æ ‡çš„å¤§å°ï¼ˆå®½åº¦å’Œé«˜åº¦å€¼ï¼‰ï¼›
+	               å¦‚æœè®¾ç½®ä¸º0ï¼Œè¡¨ç¤ºä»¥å®é™…å›¾æ ‡çš„å¤§å°ä½œä¸ºå›¾æ ‡çš„å¤§å°ï¼Œä½†è¿™æ ·è®¾ç½®ä¼šå¯¼è‡´æ— æ³•å®ç°DPIæ„ŸçŸ¥åŠŸèƒ½ï¼Œæ‰€ä»¥å»ºè®®è®¾ç½®ä¸€ä¸ªåˆç†å€¼ã€‚
+	 * @param [in] bNeedDpiScale æ˜¯å¦éœ€è¦åšDPIè‡ªé€‚åº”
 	 */
 	void SetBkIcon(HICON hIcon, uint32_t nIconSize, bool bNeedDpiScale);
 
 #endif
 
-	/** ÉèÖÃÊÇ·ñÏÔÊ¾Í¼±ê
+	/** è®¾ç½®æ˜¯å¦æ˜¾ç¤ºå›¾æ ‡
 	*/
 	void SetEnableIcon(bool bEnable);
 
-	/** ¼àÌı×ÓÏîÕ¹¿ªÊÂ¼ş
-	 * @param[in] callback ×ÓÏîÕ¹¿ªÊ±´¥·¢µÄ»Øµ÷º¯Êı
+	/** ç›‘å¬å­é¡¹å±•å¼€äº‹ä»¶
+	 * @param[in] callback å­é¡¹å±•å¼€æ—¶è§¦å‘çš„å›è°ƒå‡½æ•°
 	 */
 	void AttachExpand(const EventCallback& callback) { AttachEvent(kEventExpand, callback); }
 
-	/** ¼àÌı×ÓÏîÊÕËõÊÂ¼ş
-	 * @param[in] callback ×ÓÏîÊÕËõÊ±´¥·¢µÄ»Øµ÷º¯Êı
+	/** ç›‘å¬å­é¡¹æ”¶ç¼©äº‹ä»¶
+	 * @param[in] callback å­é¡¹æ”¶ç¼©æ—¶è§¦å‘çš„å›è°ƒå‡½æ•°
 	 */
 	void AttachCollapse(const EventCallback& callback) { AttachEvent(kEventCollapse, callback); }
 
 private:
-	/** ÉèÖÃ[Î´Õ¹¿ª/Õ¹¿ª]±êÖ¾Í¼Æ¬¹ØÁªµÄClass£¬Èç¹û²»Îª¿Õ±íÊ¾¿ªÆôÕ¹¿ª±êÖ¾¹¦ÄÜ£¬Îª¿ÕÔò¹Ø±ÕÕ¹¿ª±êÖ¾¹¦ÄÜ
-	*   Ó¦ÓÃ·¶Î§£º¸Ã½Úµã±¾Éí
-	* @param [in] expandClass Õ¹¿ª±êÖ¾Í¼Æ¬µÄClassÊôĞÔ
+	/** è®¾ç½®[æœªå±•å¼€/å±•å¼€]æ ‡å¿—å›¾ç‰‡å…³è”çš„Classï¼Œå¦‚æœä¸ä¸ºç©ºè¡¨ç¤ºå¼€å¯å±•å¼€æ ‡å¿—åŠŸèƒ½ï¼Œä¸ºç©ºåˆ™å…³é—­å±•å¼€æ ‡å¿—åŠŸèƒ½
+	*   åº”ç”¨èŒƒå›´ï¼šè¯¥èŠ‚ç‚¹æœ¬èº«
+	* @param [in] expandClass å±•å¼€æ ‡å¿—å›¾ç‰‡çš„Classå±æ€§
 	*/
 	void SetExpandImageClass(const std::wstring& expandClass);
 
-	/** ÉèÖÃCheckBox¹ØÁªµÄClass£¬Èç¹û²»Îª¿Õ±íÊ¾¿ªÆôCheckBox¹¦ÄÜ£¬Îª¿ÕÔò¹Ø±ÕCheckBox¹¦ÄÜ
-	*   Ó¦ÓÃ·¶Î§£º¸Ã½Úµã±¾Éí
-	* @param [in] checkBoxClass ui::CheckBoxµÄClassÊôĞÔ£¬Ò»°ãÉèÖÃµÄÖ÷ÒªÊôĞÔÓĞ£º
-				  normal_image£ºÕı³£×´Ì¬µÄÍ¼Æ¬£¬±ØÑ¡ÊôĞÔ(¼´²»´ò¹´Ê±µÄÍ¼Æ¬)
-				  selected_normal_image£ºÑ¡ÔñÊ±£¬Õı³£×´Ì¬µÄÍ¼Æ¬£¬±ØÑ¡ÊôĞÔ(¼´´ò¹´Ê±µÄÍ¼Æ¬)
+	/** è®¾ç½®CheckBoxå…³è”çš„Classï¼Œå¦‚æœä¸ä¸ºç©ºè¡¨ç¤ºå¼€å¯CheckBoxåŠŸèƒ½ï¼Œä¸ºç©ºåˆ™å…³é—­CheckBoxåŠŸèƒ½
+	*   åº”ç”¨èŒƒå›´ï¼šè¯¥èŠ‚ç‚¹æœ¬èº«
+	* @param [in] checkBoxClass ui::CheckBoxçš„Classå±æ€§ï¼Œä¸€èˆ¬è®¾ç½®çš„ä¸»è¦å±æ€§æœ‰ï¼š
+				  normal_imageï¼šæ­£å¸¸çŠ¶æ€çš„å›¾ç‰‡ï¼Œå¿…é€‰å±æ€§(å³ä¸æ‰“å‹¾æ—¶çš„å›¾ç‰‡)
+				  selected_normal_imageï¼šé€‰æ‹©æ—¶ï¼Œæ­£å¸¸çŠ¶æ€çš„å›¾ç‰‡ï¼Œå¿…é€‰å±æ€§(å³æ‰“å‹¾æ—¶çš„å›¾ç‰‡)
 	*/
 	bool SetCheckBoxClass(const std::wstring& checkBoxClass);
 
-	/** ¸ü¸ÄËùÓĞ×Ó½ÚµãµÄ¹´Ñ¡×´Ì¬£¬µ«²»´¥·¢Ñ¡Ôñ±ä»¯ÊÂ¼ş
-	* @param [in] bChecked ¹´Ñ¡×´Ì¬£¨´ò¹´»òÕß²»´ò¹´£©
+	/** æ›´æ”¹æ‰€æœ‰å­èŠ‚ç‚¹çš„å‹¾é€‰çŠ¶æ€ï¼Œä½†ä¸è§¦å‘é€‰æ‹©å˜åŒ–äº‹ä»¶
+	* @param [in] bChecked å‹¾é€‰çŠ¶æ€ï¼ˆæ‰“å‹¾æˆ–è€…ä¸æ‰“å‹¾ï¼‰
 	*/
 	void SetChildrenCheckStatus(bool bChecked);
 
-	/** ¸üĞÂ×Ô¼ººÍËùÓĞ¸¸Ç×½ÚµãµÄ¹´Ñ¡×´Ì¬£¨´ò¹´»òÕß²»´ò¹´£©£¬µ«²»´¥·¢Ñ¡Ôñ±ä»¯ÊÂ¼ş
-	*   µ±½ÚµãµÄ¹´Ñ¡×´Ì¬·¢Éú±ä»¯/×Ó½ÚµãµÄÌí¼Ó/É¾³ıÊ±£¬ĞèÒªµ÷ÓÃ´Ëº¯Êı¸üĞÂ½ÚµãµÄ¹´Ñ¡×´Ì¬
-	* @param [in] bUpdateSelf ÊÇ·ñĞèÒª¸üĞÂ×Ô¼ºµÄÑ¡Ôñ×´Ì¬
+	/** æ›´æ–°è‡ªå·±å’Œæ‰€æœ‰çˆ¶äº²èŠ‚ç‚¹çš„å‹¾é€‰çŠ¶æ€ï¼ˆæ‰“å‹¾æˆ–è€…ä¸æ‰“å‹¾ï¼‰ï¼Œä½†ä¸è§¦å‘é€‰æ‹©å˜åŒ–äº‹ä»¶
+	*   å½“èŠ‚ç‚¹çš„å‹¾é€‰çŠ¶æ€å‘ç”Ÿå˜åŒ–/å­èŠ‚ç‚¹çš„æ·»åŠ /åˆ é™¤æ—¶ï¼Œéœ€è¦è°ƒç”¨æ­¤å‡½æ•°æ›´æ–°èŠ‚ç‚¹çš„å‹¾é€‰çŠ¶æ€
+	* @param [in] bUpdateSelf æ˜¯å¦éœ€è¦æ›´æ–°è‡ªå·±çš„é€‰æ‹©çŠ¶æ€
 	*/
 	void UpdateParentCheckStatus(bool bUpdateSelf);
 
-	/** ¸üĞÂµ±Ç°½ÚµãµÄ¹´Ñ¡×´Ì¬(ÈıÌ¬Ñ¡Ôñ×´Ì¬)
+	/** æ›´æ–°å½“å‰èŠ‚ç‚¹çš„å‹¾é€‰çŠ¶æ€(ä¸‰æ€é€‰æ‹©çŠ¶æ€)
 	*/
 	void UpdateSelfCheckStatus();
 
-	/** »ñÈ¡µ±Ç°½ÚµãµÄ¹´Ñ¡×´Ì¬(×ÔÉíºÍ×Ó½Úµã)
+	/** è·å–å½“å‰èŠ‚ç‚¹çš„å‹¾é€‰çŠ¶æ€(è‡ªèº«å’Œå­èŠ‚ç‚¹)
 	*/
 	TreeNodeCheck GetCheckStatus(void) const;
 
-	/** »ñÈ¡µ±Ç°½ÚµãµÄ×Ó½Úµã¹´Ñ¡×´Ì¬(²»°üº¬×ÔÉí£¬Ö»°üº¬×Ó½Úµã)
+	/** è·å–å½“å‰èŠ‚ç‚¹çš„å­èŠ‚ç‚¹å‹¾é€‰çŠ¶æ€(ä¸åŒ…å«è‡ªèº«ï¼ŒåªåŒ…å«å­èŠ‚ç‚¹)
 	*/
 	TreeNodeCheck GetChildrenCheckStatus(void) const;
 
-	/** »ñÈ¡Õ¹¿ª×´Ì¬µÄÍ¼Æ¬
-	 * @param [in] stateType Òª»ñÈ¡ºÎÖÖ×´Ì¬ÏÂµÄÍ¼Æ¬£¬²Î¿¼ ControlStateType Ã¶¾Ù
-	 * @return ·µ»ØÍ¼Æ¬Â·¾¶ºÍÊôĞÔ
+	/** è·å–å±•å¼€çŠ¶æ€çš„å›¾ç‰‡
+	 * @param [in] stateType è¦è·å–ä½•ç§çŠ¶æ€ä¸‹çš„å›¾ç‰‡ï¼Œå‚è€ƒ ControlStateType æšä¸¾
+	 * @return è¿”å›å›¾ç‰‡è·¯å¾„å’Œå±æ€§
 	 */
 	std::wstring GetExpandStateImage(ControlStateType stateType);
 
-	/** ÉèÖÃÕ¹¿ª×´Ì¬µÄÍ¼Æ¬
-	 * @param [in] stateType ÒªÉèÖÃÄÄÖĞ×´Ì¬ÏÂµÄÍ¼Æ¬
-	 * @param [in] strImage Í¼Æ¬Â·¾¶ºÍÊôĞÔ
+	/** è®¾ç½®å±•å¼€çŠ¶æ€çš„å›¾ç‰‡
+	 * @param [in] stateType è¦è®¾ç½®å“ªä¸­çŠ¶æ€ä¸‹çš„å›¾ç‰‡
+	 * @param [in] strImage å›¾ç‰‡è·¯å¾„å’Œå±æ€§
 	 */
 	void SetExpandStateImage(ControlStateType stateType, const std::wstring& strImage);
 
-	/** »ñÈ¡Î´Õ¹¿ª×´Ì¬µÄÍ¼Æ¬
-	 * @param [in] stateType Òª»ñÈ¡ºÎÖÖ×´Ì¬ÏÂµÄÍ¼Æ¬£¬²Î¿¼ ControlStateType Ã¶¾Ù
-	 * @return ·µ»ØÍ¼Æ¬Â·¾¶ºÍÊôĞÔ
+	/** è·å–æœªå±•å¼€çŠ¶æ€çš„å›¾ç‰‡
+	 * @param [in] stateType è¦è·å–ä½•ç§çŠ¶æ€ä¸‹çš„å›¾ç‰‡ï¼Œå‚è€ƒ ControlStateType æšä¸¾
+	 * @return è¿”å›å›¾ç‰‡è·¯å¾„å’Œå±æ€§
 	 */
 	std::wstring GetCollapseStateImage(ControlStateType stateType);
 
-	/** ÉèÖÃÎ´Õ¹¿ª×´Ì¬µÄÍ¼Æ¬
-	 * @param [in] stateType ÒªÉèÖÃÄÄÖĞ×´Ì¬ÏÂµÄÍ¼Æ¬
-	 * @param [in] strImage Í¼Æ¬Â·¾¶ºÍÊôĞÔ
+	/** è®¾ç½®æœªå±•å¼€çŠ¶æ€çš„å›¾ç‰‡
+	 * @param [in] stateType è¦è®¾ç½®å“ªä¸­çŠ¶æ€ä¸‹çš„å›¾ç‰‡
+	 * @param [in] strImage å›¾ç‰‡è·¯å¾„å’Œå±æ€§
 	 */
 	void SetCollapseStateImage(ControlStateType stateType, const std::wstring& strImage);
 
 private:
-	/** É¾³ı×ÔÉí
-	 * @return ³É¹¦·µ»Ø true£¬Ê§°Ü·µ»Ø false
+	/** åˆ é™¤è‡ªèº«
+	 * @return æˆåŠŸè¿”å› trueï¼Œå¤±è´¥è¿”å› false
 	 */
 	bool RemoveSelf();
 
-	/** ´ÓÖ¸¶¨Î»ÖÃÒÆ³ıÒ»¸ö×Ó½Úµã
-	 * @param [in] iIndex ÒªÒÆ³ıµÄ×Ó½ÚµãË÷Òı
-	 * @param [in] bUpdateCheckStatus ÊÇ·ñ¸üĞÂ¹´Ñ¡×´Ì¬
-	 * @return ³É¹¦·µ»Ø true£¬Ê§°Ü·µ»Ø false
+	/** ä»æŒ‡å®šä½ç½®ç§»é™¤ä¸€ä¸ªå­èŠ‚ç‚¹
+	 * @param [in] iIndex è¦ç§»é™¤çš„å­èŠ‚ç‚¹ç´¢å¼•
+	 * @param [in] bUpdateCheckStatus æ˜¯å¦æ›´æ–°å‹¾é€‰çŠ¶æ€
+	 * @return æˆåŠŸè¿”å› trueï¼Œå¤±è´¥è¿”å› false
 	 */
 	bool RemoveChildNodeAt(size_t iIndex, bool bUpdateCheckStatus);
 
-	/** ¸ù¾İµ±Ç°µÄÅäÖÃ£¬µ÷ÕûÕ¹¿ª±êÖ¾¹ØÁªµÄÄÚ±ß¾à(¿ÉÖØÈëº¯Êı£¬¶à´Îµ÷ÓÃÎŞ¸±×÷ÓÃ)
+	/** æ ¹æ®å½“å‰çš„é…ç½®ï¼Œè°ƒæ•´å±•å¼€æ ‡å¿—å…³è”çš„å†…è¾¹è·(å¯é‡å…¥å‡½æ•°ï¼Œå¤šæ¬¡è°ƒç”¨æ— å‰¯ä½œç”¨)
 	*/
 	void AdjustExpandImagePadding();
 
-	/** ¸ù¾İµ±Ç°µÄÅäÖÃ£¬µ÷ÕûCheckBox¹ØÁªµÄÄÚ±ß¾à(¿ÉÖØÈëº¯Êı£¬¶à´Îµ÷ÓÃÎŞ¸±×÷ÓÃ)
+	/** æ ¹æ®å½“å‰çš„é…ç½®ï¼Œè°ƒæ•´CheckBoxå…³è”çš„å†…è¾¹è·(å¯é‡å…¥å‡½æ•°ï¼Œå¤šæ¬¡è°ƒç”¨æ— å‰¯ä½œç”¨)
 	*/
 	void AdjustCheckBoxPadding();
 
-	/** ¸ù¾İµ±Ç°µÄÅäÖÃ£¬µ÷ÕûÍ¼±ê¹ØÁªµÄÄÚ±ß¾à(¿ÉÖØÈëº¯Êı£¬¶à´Îµ÷ÓÃÎŞ¸±×÷ÓÃ)
+	/** æ ¹æ®å½“å‰çš„é…ç½®ï¼Œè°ƒæ•´å›¾æ ‡å…³è”çš„å†…è¾¹è·(å¯é‡å…¥å‡½æ•°ï¼Œå¤šæ¬¡è°ƒç”¨æ— å‰¯ä½œç”¨)
 	*/
 	void AdjustIconPadding();
 
-	/** ×ÓÏî¹´Ñ¡×´Ì¬±ä»¯Ê±´¥·¢
-	 * @param[in] args ÏûÏ¢Ìå
-	 * @return Ê¼ÖÕ·µ»Ø true
+	/** å­é¡¹å‹¾é€‰çŠ¶æ€å˜åŒ–æ—¶è§¦å‘
+	 * @param[in] args æ¶ˆæ¯ä½“
+	 * @return å§‹ç»ˆè¿”å› true
 	 */
 	bool OnNodeCheckStatusChanged(const EventArgs& args);
 
-	/** »ñÈ¡Õ¹¿ª×´Ì¬Í¼±êÕ¼ÓÃµÄÄÚ±ß¾à¿í¶È
+	/** è·å–å±•å¼€çŠ¶æ€å›¾æ ‡å ç”¨çš„å†…è¾¹è·å®½åº¦
 	*/
 	int32_t GetExpandImagePadding(void) const;
 
-	/** »ñÈ¡°üº¬×Ô¼º¡¢×Ô¼ºµÄ×ÓËï½ÚµãÖĞ£¬ListBoxË÷ÒıºÅ×î´óÖµ£¬ÓÃÓÚ¼ÆËãĞÂÌí¼Ó½ÚµãµÄ²åÈëÎ»ÖÃ
-	*   Èç¹ûÃ»ÓĞÓĞĞ§ÔªËØ£¬Ôò·µ»Ø Box::InvalidIndex
+	/** è·å–åŒ…å«è‡ªå·±ã€è‡ªå·±çš„å­å­™èŠ‚ç‚¹ä¸­ï¼ŒListBoxç´¢å¼•å·æœ€å¤§å€¼ï¼Œç”¨äºè®¡ç®—æ–°æ·»åŠ èŠ‚ç‚¹çš„æ’å…¥ä½ç½®
+	*   å¦‚æœæ²¡æœ‰æœ‰æ•ˆå…ƒç´ ï¼Œåˆ™è¿”å› Box::InvalidIndex
 	*/
 	size_t GetDescendantNodeMaxListBoxIndex() const;
 
-	/** ÉèÖÃ[Õ¹¿ª/ÊÕÆğ]°´Å¥ºóÃæµÄ¼ä¸ô
+	/** è®¾ç½®[å±•å¼€/æ”¶èµ·]æŒ‰é’®åé¢çš„é—´éš”
 	*/
 	void SetExpandIndent(int32_t nExpandIndent, bool bNeedDpiScale);
 
-	/** »ñÈ¡[Õ¹¿ª/ÊÕÆğ]°´Å¥ºóÃæµÄ¼ä¸ô
+	/** è·å–[å±•å¼€/æ”¶èµ·]æŒ‰é’®åé¢çš„é—´éš”
 	*/
 	uint16_t GetExpandIndent() const;
 
-	/** ÉèÖÃ CheckBox ºóÃæµÄ¼ä¸ô
+	/** è®¾ç½® CheckBox åé¢çš„é—´éš”
 	*/
 	void SetCheckBoxIndent(int32_t nIndent, bool bNeedDpiScale);
 
-	/** »ñÈ¡CheckBox ºóÃæµÄ¼ä¸ô
+	/** è·å–CheckBox åé¢çš„é—´éš”
 	*/
 	uint16_t GetCheckBoxIndent() const;
 
-	/** ÉèÖÃ icon Í¼±êºóÃæµÄ¼ä¸ô
+	/** è®¾ç½® icon å›¾æ ‡åé¢çš„é—´éš”
 	*/
 	void SetIconIndent(int32_t nIndent, bool bNeedDpiScale);
 
-	/** »ñÈ¡ icon Í¼±êºóÃæµÄ¼ä¸ô
+	/** è·å– icon å›¾æ ‡åé¢çš„é—´éš”
 	*/
 	uint16_t GetIconIndent() const;
 	
 private:
-	//×ÓÏî²ã¼¶
+	//å­é¡¹å±‚çº§
 	uint16_t m_uDepth;
 
-	//ÊÇ·ñÕ¹¿ªÏÔÊ¾×Ó½Úµã
+	//æ˜¯å¦å±•å¼€æ˜¾ç¤ºå­èŠ‚ç‚¹
 	bool m_bExpand;
 
-	//×ÓÏîËùÊôµÄÊ÷ÈİÆ÷
+	//å­é¡¹æ‰€å±çš„æ ‘å®¹å™¨
 	TreeView* m_pTreeView;
 
-	//¸¸½Úµã
+	//çˆ¶èŠ‚ç‚¹
 	TreeNode* m_pParentTreeNode;
 
-	//×Ó½ÚµãÁĞ±í
+	//å­èŠ‚ç‚¹åˆ—è¡¨
 	std::vector<TreeNode*> m_aTreeNodes;
 
-	//Í¼Æ¬/ÎÄ×ÖÔªËØÖ®¼äµÄ¹Ì¶¨¼ä¸ô£¨DPIÏà¹Ø£©
-	uint16_t m_expandIndent;	//[Õ¹¿ª/ÊÕÆğ]°´Å¥ºóÃæµÄ¼ä¸ô
-	uint16_t m_checkBoxIndent;	//CheckBox ºóÃæµÄ¼ä¸ô
-	uint16_t m_iconIndent;		//icon Í¼±êºóÃæµÄ¼ä¸ô
+	//å›¾ç‰‡/æ–‡å­—å…ƒç´ ä¹‹é—´çš„å›ºå®šé—´éš”ï¼ˆDPIç›¸å…³ï¼‰
+	uint16_t m_expandIndent;	//[å±•å¼€/æ”¶èµ·]æŒ‰é’®åé¢çš„é—´éš”
+	uint16_t m_checkBoxIndent;	//CheckBox åé¢çš„é—´éš”
+	uint16_t m_iconIndent;		//icon å›¾æ ‡åé¢çš„é—´éš”
 
-	//ExpandÍ¼±ê¹ØÁªµÄÍ¼±ê/ÎÄ×ÖÄÚ±ß¾à£º3¸ö£¨DPIÏà¹Ø£©
+	//Expandå›¾æ ‡å…³è”çš„å›¾æ ‡/æ–‡å­—å†…è¾¹è·ï¼š3ä¸ªï¼ˆDPIç›¸å…³ï¼‰
 	uint16_t m_expandCheckBoxPadding;
 	uint16_t m_expandIconPadding;
 	uint16_t m_expandTextPadding;
 
-	//CheckBox¹ØÁªµÄÍ¼±ê/ÎÄ×ÖÄÚ±ß¾à£º2¸ö£¨DPIÏà¹Ø£©
+	//CheckBoxå…³è”çš„å›¾æ ‡/æ–‡å­—å†…è¾¹è·ï¼š2ä¸ªï¼ˆDPIç›¸å…³ï¼‰
 	uint16_t m_checkBoxIconPadding;
 	uint16_t m_checkBoxTextPadding;
 
-	//Í¼±ê¹ØÁªµÄÎÄ×ÖÄÚ±ß¾à£º1¸ö£¨DPIÏà¹Ø£©
+	//å›¾æ ‡å…³è”çš„æ–‡å­—å†…è¾¹è·ï¼š1ä¸ªï¼ˆDPIç›¸å…³ï¼‰
 	uint16_t m_iconTextPadding;
 
-	/** ¿Ø¼şÕ¹¿ª×´Ì¬µÄÍ¼Æ¬ÀàĞÍÓë×´Ì¬Í¼Æ¬µÄMAP, »æÖÆµÄÄ¿±ê¾ØĞÎ
+	/** æ§ä»¶å±•å¼€çŠ¶æ€çš„å›¾ç‰‡ç±»å‹ä¸çŠ¶æ€å›¾ç‰‡çš„MAP, ç»˜åˆ¶çš„ç›®æ ‡çŸ©å½¢
 	*/
 	std::unique_ptr<StateImage> m_expandImage;
-	UiRect* m_pExpandImageRect;//DPIÎŞ¹Ø£¬Ã¿´Î»æÖÆºó»á¸üĞÂ´ËÖµ
+	UiRect* m_pExpandImageRect;//DPIæ— å…³ï¼Œæ¯æ¬¡ç»˜åˆ¶åä¼šæ›´æ–°æ­¤å€¼
 
-	/** ¿Ø¼şÎ´Õ¹¿ª×´Ì¬µÄÍ¼Æ¬ÀàĞÍÓë×´Ì¬Í¼Æ¬µÄMAP, »æÖÆµÄÄ¿±ê¾ØĞÎ
+	/** æ§ä»¶æœªå±•å¼€çŠ¶æ€çš„å›¾ç‰‡ç±»å‹ä¸çŠ¶æ€å›¾ç‰‡çš„MAP, ç»˜åˆ¶çš„ç›®æ ‡çŸ©å½¢
 	*/
 	std::unique_ptr<StateImage> m_collapseImage;
-	UiRect* m_pCollapseImageRect;//DPIÎŞ¹Ø£¬Ã¿´Î»æÖÆºó»á¸üĞÂ´ËÖµ
+	UiRect* m_pCollapseImageRect;//DPIæ— å…³ï¼Œæ¯æ¬¡ç»˜åˆ¶åä¼šæ›´æ–°æ­¤å€¼
 };
 
 class UILIB_API TreeView : public ListBox
@@ -340,151 +340,151 @@ public:
 	explicit TreeView(Window* pWindow);
 	virtual ~TreeView();
 
-	/// ÖØĞ´¸¸Àà·½·¨£¬Ìá¹©¸öĞÔ»¯¹¦ÄÜ£¬Çë²Î¿¼¸¸ÀàÉùÃ÷
+	/// é‡å†™çˆ¶ç±»æ–¹æ³•ï¼Œæä¾›ä¸ªæ€§åŒ–åŠŸèƒ½ï¼Œè¯·å‚è€ƒçˆ¶ç±»å£°æ˜
 	virtual std::wstring GetType() const override;
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 	virtual void SetParent(Box* pParent) override;
 	virtual void SetWindow(Window* pManager) override;
 
-	/** DPI·¢Éú±ä»¯£¬¸üĞÂ¿Ø¼ş´óĞ¡ºÍ²¼¾Ö
-	* @param [in] nOldDpiScale ¾ÉµÄDPIËõ·Å°Ù·Ö±È
-	* @param [in] nNewDpiScale ĞÂµÄDPIËõ·Å°Ù·Ö±È£¬ÓëDpi().GetScale()µÄÖµÒ»ÖÂ
+	/** DPIå‘ç”Ÿå˜åŒ–ï¼Œæ›´æ–°æ§ä»¶å¤§å°å’Œå¸ƒå±€
+	* @param [in] nOldDpiScale æ—§çš„DPIç¼©æ”¾ç™¾åˆ†æ¯”
+	* @param [in] nNewDpiScale æ–°çš„DPIç¼©æ”¾ç™¾åˆ†æ¯”ï¼Œä¸Dpi().GetScale()çš„å€¼ä¸€è‡´
 	*/
 	virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override;
 
-	/** »ñÈ¡¸ù½Úµã
-	 * @return ·µ»Ø¸ù½ÚµãÖ¸Õë
+	/** è·å–æ ¹èŠ‚ç‚¹
+	 * @return è¿”å›æ ¹èŠ‚ç‚¹æŒ‡é’ˆ
 	 */
 	TreeNode* GetRootNode()	const{ return m_rootNode.get(); }
 
-	/** »ñÈ¡×Ó½ÚµãËõ½øÖµ
-	 * @return ·µ»Ø×Ó½ÚµãËõ½øÖµ
+	/** è·å–å­èŠ‚ç‚¹ç¼©è¿›å€¼
+	 * @return è¿”å›å­èŠ‚ç‚¹ç¼©è¿›å€¼
 	 */
 	int32_t GetIndent() const { return m_iIndent;	}
 
-	/** ÉèÖÃ×Ó½ÚµãËõ½øÖµ
-	 * @param [in] indent ÒªÉèÖÃµÄËõ½øÖµ, µ¥Î»ÎªÏñËØ
-	 * @param [in] bNeedDpiScale ÊÇ·ñĞèÒªDPIËõ·Å
+	/** è®¾ç½®å­èŠ‚ç‚¹ç¼©è¿›å€¼
+	 * @param [in] indent è¦è®¾ç½®çš„ç¼©è¿›å€¼, å•ä½ä¸ºåƒç´ 
+	 * @param [in] bNeedDpiScale æ˜¯å¦éœ€è¦DPIç¼©æ”¾
 	 */
 	void SetIndent(int32_t indent, bool bNeedDpiScale);
 
-	/** ÉèÖÃ[Î´Õ¹¿ª/Õ¹¿ª]±êÖ¾Í¼Æ¬¹ØÁªµÄClass£¬Èç¹û²»Îª¿Õ±íÊ¾¿ªÆôÕ¹¿ª±êÖ¾¹¦ÄÜ£¬Îª¿ÕÔò¹Ø±ÕÕ¹¿ª±êÖ¾¹¦ÄÜ
-	*   Ó¦ÓÃ·¶Î§£º¸ÃÊ÷µÄËùÓĞ½Úµã
-	* @param [in] className Õ¹¿ª±êÖ¾Í¼Æ¬µÄClassÊôĞÔ
+	/** è®¾ç½®[æœªå±•å¼€/å±•å¼€]æ ‡å¿—å›¾ç‰‡å…³è”çš„Classï¼Œå¦‚æœä¸ä¸ºç©ºè¡¨ç¤ºå¼€å¯å±•å¼€æ ‡å¿—åŠŸèƒ½ï¼Œä¸ºç©ºåˆ™å…³é—­å±•å¼€æ ‡å¿—åŠŸèƒ½
+	*   åº”ç”¨èŒƒå›´ï¼šè¯¥æ ‘çš„æ‰€æœ‰èŠ‚ç‚¹
+	* @param [in] className å±•å¼€æ ‡å¿—å›¾ç‰‡çš„Classå±æ€§
 	*/
 	void SetExpandImageClass(const std::wstring& className);
 
-	/** »ñÈ¡[Î´Õ¹¿ª/Õ¹¿ª]±êÖ¾Í¼Æ¬¹ØÁªµÄClass
+	/** è·å–[æœªå±•å¼€/å±•å¼€]æ ‡å¿—å›¾ç‰‡å…³è”çš„Class
 	*/
 	std::wstring GetExpandImageClass() const;
 
-	/** ÉèÖÃCheckBox¹ØÁªµÄClass£¬Èç¹û²»Îª¿Õ±íÊ¾¿ªÆôCheckBox¹¦ÄÜ£¬Îª¿ÕÔò¹Ø±ÕCheckBox¹¦ÄÜ
-	*   Ó¦ÓÃ·¶Î§£º¸ÃÊ÷µÄËùÓĞ½Úµã
-	* @param [in] className ui::CheckBoxµÄClassÊôĞÔ£¬Ò»°ãÉèÖÃµÄÖ÷ÒªÊôĞÔÓĞ£º
-				  normal_image£ºÕı³£×´Ì¬µÄÍ¼Æ¬£¬±ØÑ¡ÊôĞÔ(¼´²»´ò¹´Ê±µÄÍ¼Æ¬)
-				  selected_normal_image£ºÑ¡ÔñÊ±£¬Õı³£×´Ì¬µÄÍ¼Æ¬£¬±ØÑ¡ÊôĞÔ(¼´´ò¹´Ê±µÄÍ¼Æ¬)
+	/** è®¾ç½®CheckBoxå…³è”çš„Classï¼Œå¦‚æœä¸ä¸ºç©ºè¡¨ç¤ºå¼€å¯CheckBoxåŠŸèƒ½ï¼Œä¸ºç©ºåˆ™å…³é—­CheckBoxåŠŸèƒ½
+	*   åº”ç”¨èŒƒå›´ï¼šè¯¥æ ‘çš„æ‰€æœ‰èŠ‚ç‚¹
+	* @param [in] className ui::CheckBoxçš„Classå±æ€§ï¼Œä¸€èˆ¬è®¾ç½®çš„ä¸»è¦å±æ€§æœ‰ï¼š
+				  normal_imageï¼šæ­£å¸¸çŠ¶æ€çš„å›¾ç‰‡ï¼Œå¿…é€‰å±æ€§(å³ä¸æ‰“å‹¾æ—¶çš„å›¾ç‰‡)
+				  selected_normal_imageï¼šé€‰æ‹©æ—¶ï¼Œæ­£å¸¸çŠ¶æ€çš„å›¾ç‰‡ï¼Œå¿…é€‰å±æ€§(å³æ‰“å‹¾æ—¶çš„å›¾ç‰‡)
 	*/
 	void SetCheckBoxClass(const std::wstring& className);
 
-	/** »ñÈ¡CheckBox¹ØÁªµÄClass
+	/** è·å–CheckBoxå…³è”çš„Class
 	*/
 	std::wstring GetCheckBoxClass() const;
 
-	/** ÉèÖÃÊÇ·ñÏÔÊ¾Í¼±ê
+	/** è®¾ç½®æ˜¯å¦æ˜¾ç¤ºå›¾æ ‡
 	*/
 	void SetEnableIcon(bool bEnable);
 
-	/** ÅĞ¶ÏÊÇ·ñÏÔÊ¾Í¼±ê
+	/** åˆ¤æ–­æ˜¯å¦æ˜¾ç¤ºå›¾æ ‡
 	*/
 	bool IsEnableIcon() const;
 
-	/** ÔÚÄ³¸öÊ÷½ÚµãÇ°Ìí¼ÓÆÕÍ¨¿Ø¼ş£¬ÒÔÊµÏÖÒ»Ğ©Ğ§¹û£¬±ÈÈç²»Í¬ÀàĞÍ½Úµã¼äµÄ·Ö¸ô·ûµÈ
-	* @param [in] pTreeNode Ê÷µÄ½Úµã½Ó¿Ú£¬²»ÔÊĞíÎª¿Õ
-	* @param [in] pControl ĞèÒªÌí¼ÓµÄÆÕÍ¨¿Ø¼ş½Ó¿Ú£¬²»ÔÊĞíÎª¿Õ
+	/** åœ¨æŸä¸ªæ ‘èŠ‚ç‚¹å‰æ·»åŠ æ™®é€šæ§ä»¶ï¼Œä»¥å®ç°ä¸€äº›æ•ˆæœï¼Œæ¯”å¦‚ä¸åŒç±»å‹èŠ‚ç‚¹é—´çš„åˆ†éš”ç¬¦ç­‰
+	* @param [in] pTreeNode æ ‘çš„èŠ‚ç‚¹æ¥å£ï¼Œä¸å…è®¸ä¸ºç©º
+	* @param [in] pControl éœ€è¦æ·»åŠ çš„æ™®é€šæ§ä»¶æ¥å£ï¼Œä¸å…è®¸ä¸ºç©º
 	*/
 	bool InsertControlBeforeNode(TreeNode* pTreeNode, Control* pControl);
 
-	/** É¾³ıÊ÷½ÚµãÖĞµÄÆÕÍ¨¿Ø¼ş
-	* @param [in] pControl ĞèÒªÉ¾³ıµÄÆÕÍ¨¿Ø¼ş½Ó¿Ú£¬²»ÔÊĞíÎª¿Õ
+	/** åˆ é™¤æ ‘èŠ‚ç‚¹ä¸­çš„æ™®é€šæ§ä»¶
+	* @param [in] pControl éœ€è¦åˆ é™¤çš„æ™®é€šæ§ä»¶æ¥å£ï¼Œä¸å…è®¸ä¸ºç©º
 	*/
 	bool RemoveControl(Control* pControl);
 
-	/** ÊÇ·ñÔÊĞí¶àÑ¡
+	/** æ˜¯å¦å…è®¸å¤šé€‰
 	*/
 	virtual bool IsMultiSelect() const override;
 
-	/** ÉèÖÃÊÇ·ñÔÊĞí¶àÑ¡
+	/** è®¾ç½®æ˜¯å¦å…è®¸å¤šé€‰
 	*/
 	virtual void SetMultiSelect(bool bMultiSelect) override;
 
-	/** ÊÇ·ñÎª¶àÑ¡µÄ¹´Ñ¡Ä£Ê½£¬ÔÚÕâ¸öº¯ÊıÎªtrueµÄÄ£Ê½ÏÂ£¬ÒµÎñÂß¼­ËµÃ÷£º
-	*   (1) ¶ÔÓÚÊ÷±¾ÉíµÄListBox£º±íÏÖÎªµ¥Ñ¡Âß¼­£»
-	*   (2) ¶ÔÓÚÊ÷½ÚµãÉÏµÄCheckBox£ºÑ¡ÔñÂß¼­£¨¼´IsSelected()Ïà¹ØÂß¼­£©Î´Ê¹ÓÃ£»
-	        Ê¹ÓÃµÄÊÇCheckÂß¼­£¨¼´IsChecked()Ïà¹ØÂß¼­£©£¬CheckÂß¼­ÊÇ¿ÉÒÔ¶à¹´Ñ¡µÄ¡£
+	/** æ˜¯å¦ä¸ºå¤šé€‰çš„å‹¾é€‰æ¨¡å¼ï¼Œåœ¨è¿™ä¸ªå‡½æ•°ä¸ºtrueçš„æ¨¡å¼ä¸‹ï¼Œä¸šåŠ¡é€»è¾‘è¯´æ˜ï¼š
+	*   (1) å¯¹äºæ ‘æœ¬èº«çš„ListBoxï¼šè¡¨ç°ä¸ºå•é€‰é€»è¾‘ï¼›
+	*   (2) å¯¹äºæ ‘èŠ‚ç‚¹ä¸Šçš„CheckBoxï¼šé€‰æ‹©é€»è¾‘ï¼ˆå³IsSelected()ç›¸å…³é€»è¾‘ï¼‰æœªä½¿ç”¨ï¼›
+	        ä½¿ç”¨çš„æ˜¯Checké€»è¾‘ï¼ˆå³IsChecked()ç›¸å…³é€»è¾‘ï¼‰ï¼ŒChecké€»è¾‘æ˜¯å¯ä»¥å¤šå‹¾é€‰çš„ã€‚
 	*/
 	bool IsMultiCheckMode() const;
 
 private:
-	/** Ê÷½Úµã¹´Ñ¡×´Ì¬±ä»¯
-	 * @param [in] pTreeNode Ê÷½Úµã½Ó¿Ú
+	/** æ ‘èŠ‚ç‚¹å‹¾é€‰çŠ¶æ€å˜åŒ–
+	 * @param [in] pTreeNode æ ‘èŠ‚ç‚¹æ¥å£
 	 */
 	void OnNodeCheckStatusChanged(TreeNode* pTreeNode);
 
-	/** ÊÇ·ñ»æÖÆÑ¡Ôñ×´Ì¬ÏÂµÄ±³¾°É«£¬Ìá¹©Ğéº¯Êı×÷Îª¿ÉÑ¡Ïî
-	   £¨±ÈÈçListBox/TreeView½ÚµãÔÚ¶àÑ¡Ê±£¬ÓÉÓÚÓĞ¹´Ñ¡Ïî£¬²¢²»ĞèÒª»æÖÆÑ¡Ôñ×´Ì¬µÄ±³¾°É«£©
-	   @param [in] bHasStateImages µ±Ç°ÁĞ±íÏîÊÇ·ñÓĞCheckBox¹´Ñ¡Ïî
+	/** æ˜¯å¦ç»˜åˆ¶é€‰æ‹©çŠ¶æ€ä¸‹çš„èƒŒæ™¯è‰²ï¼Œæä¾›è™šå‡½æ•°ä½œä¸ºå¯é€‰é¡¹
+	   ï¼ˆæ¯”å¦‚ListBox/TreeViewèŠ‚ç‚¹åœ¨å¤šé€‰æ—¶ï¼Œç”±äºæœ‰å‹¾é€‰é¡¹ï¼Œå¹¶ä¸éœ€è¦ç»˜åˆ¶é€‰æ‹©çŠ¶æ€çš„èƒŒæ™¯è‰²ï¼‰
+	   @param [in] bHasStateImages å½“å‰åˆ—è¡¨é¡¹æ˜¯å¦æœ‰CheckBoxå‹¾é€‰é¡¹
 	*/
 	virtual bool CanPaintSelectedColors(bool bHasStateImages) const override;
 
 private:
-	//ÒÔÏÂº¯Êı¹ÊÒâË½ÓĞ»¯£¬±íÃ÷½ûÖ¹Ê¹ÓÃ£»Ó¦¸ÃÊ¹ÓÃTreeNodeÖĞµÄÏà¹Øº¯Êı
+	//ä»¥ä¸‹å‡½æ•°æ•…æ„ç§æœ‰åŒ–ï¼Œè¡¨æ˜ç¦æ­¢ä½¿ç”¨ï¼›åº”è¯¥ä½¿ç”¨TreeNodeä¸­çš„ç›¸å…³å‡½æ•°
 	bool AddItem(Control* pControl) override;
 	bool AddItemAt(Control* pControl, size_t iIndex) override;
 	bool RemoveItem(Control* pControl) override;
 	bool RemoveItemAt(size_t iIndex) override;
 	void RemoveAllItems() override;
 
-	/** µ±´Ó¶àÑ¡ÇĞ»»Îªµ¥Ñ¡Ä£Ê½µÄÊ±ºò£¬ĞèÒªÈ·±£ÁĞ±íÖĞÖ»ÓĞÒ»¸öÑ¡ÔñÏî
-	* @return Èç¹ûÓĞ±ä»¯·µ»Øtrue£¬·ñÔò·µ»Øfalse
+	/** å½“ä»å¤šé€‰åˆ‡æ¢ä¸ºå•é€‰æ¨¡å¼çš„æ—¶å€™ï¼Œéœ€è¦ç¡®ä¿åˆ—è¡¨ä¸­åªæœ‰ä¸€ä¸ªé€‰æ‹©é¡¹
+	* @return å¦‚æœæœ‰å˜åŒ–è¿”å›trueï¼Œå¦åˆ™è¿”å›false
 	*/
 	virtual bool OnSwitchToSingleSelect() override;
 
-	/** Í¬²½µ±Ç°Ñ¡ÔñÏîµÄ¹´Ñ¡×´Ì¬
-	* @return Èç¹ûÓĞ±ä»¯·µ»Øtrue£¬·ñÔò·µ»Øfalse
+	/** åŒæ­¥å½“å‰é€‰æ‹©é¡¹çš„å‹¾é€‰çŠ¶æ€
+	* @return å¦‚æœæœ‰å˜åŒ–è¿”å›trueï¼Œå¦åˆ™è¿”å›false
 	*/
 	bool UpdateCurSelItemCheckStatus();
 
-	/** µ±CheckBox´ÓÏÔÊ¾ÇĞ»»µ½Òş²Øºó£¬Í¬²½CheckÓëSelect
-	    £¨1£©½«CheckedµÄ£¬¸ÄÎªSelected£»
-		£¨2£©½«ËùÓĞChecked±êÖ¾¸ÄÎªfalse
-	   @return ·µ»Øtrue±íÊ¾ĞèÒªÖØ»æ£¬·ñÔò²»ĞèÒªÖØ»æ
+	/** å½“CheckBoxä»æ˜¾ç¤ºåˆ‡æ¢åˆ°éšè—åï¼ŒåŒæ­¥Checkä¸Select
+	    ï¼ˆ1ï¼‰å°†Checkedçš„ï¼Œæ”¹ä¸ºSelectedï¼›
+		ï¼ˆ2ï¼‰å°†æ‰€æœ‰Checkedæ ‡å¿—æ”¹ä¸ºfalse
+	   @return è¿”å›trueè¡¨ç¤ºéœ€è¦é‡ç»˜ï¼Œå¦åˆ™ä¸éœ€è¦é‡ç»˜
 	*/
 	bool OnCheckBoxHided();
 
-	/** µ±CheckBox´ÓÒş²ØÇĞ»»µ½ÏÔÊ¾ºó£¬Í¬²½SelectÓëCheck
-		£¨1£©½«SelectedµÄ£¬¸ÄÎªChecked£»
-		£¨2£©Selected×´Ì¬²»¸Ä±ä
-	  @return ·µ»Øtrue±íÊ¾ĞèÒªÖØ»æ£¬·ñÔò²»ĞèÒªÖØ»æ
+	/** å½“CheckBoxä»éšè—åˆ‡æ¢åˆ°æ˜¾ç¤ºåï¼ŒåŒæ­¥Selectä¸Check
+		ï¼ˆ1ï¼‰å°†Selectedçš„ï¼Œæ”¹ä¸ºCheckedï¼›
+		ï¼ˆ2ï¼‰SelectedçŠ¶æ€ä¸æ”¹å˜
+	  @return è¿”å›trueè¡¨ç¤ºéœ€è¦é‡ç»˜ï¼Œå¦åˆ™ä¸éœ€è¦é‡ç»˜
 	*/
 	bool OnCheckBoxShown();
 
 private:
-	//×Ó½ÚµãµÄËõ½øÖµ£¬µ¥Î»ÎªÏñËØ
+	//å­èŠ‚ç‚¹çš„ç¼©è¿›å€¼ï¼Œå•ä½ä¸ºåƒç´ 
 	int32_t m_iIndent;
 
-	//Õ¹¿ª±êÖ¾Í¼Æ¬µÄClass
+	//å±•å¼€æ ‡å¿—å›¾ç‰‡çš„Class
 	UiString m_expandImageClass;
 
-	//CheckBoxµÄClass
+	//CheckBoxçš„Class
 	UiString m_checkBoxClass;
 
-	//ÊÇ·ñÏÔÊ¾Í¼±ê
+	//æ˜¯å¦æ˜¾ç¤ºå›¾æ ‡
 	bool m_bEnableIcon;
 
-	//Ê÷µÄ¸ù½Úµã
+	//æ ‘çš„æ ¹èŠ‚ç‚¹
 	std::unique_ptr<TreeNode> m_rootNode;
 
-	//ÊÇ·ñÔÊĞí¶àÑ¡(¹´Ñ¡Ä£Ê½)
+	//æ˜¯å¦å…è®¸å¤šé€‰(å‹¾é€‰æ¨¡å¼)
 	bool m_bMultiCheckMode;
 };
 

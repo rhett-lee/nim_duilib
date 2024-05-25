@@ -37,7 +37,7 @@ void RenderForm::OnInitWindow()
 void RenderForm::OnCloseWindow()
 {
 	CheckPropertyGridResult();
-	//¹Ø±Õ´°¿Úºó£¬ÍË³öÖ÷Ïß³ÌµÄÏûÏ¢Ñ­»·£¬¹Ø±Õ³ÌĞò
+	//å…³é—­çª—å£åï¼Œé€€å‡ºä¸»çº¿ç¨‹çš„æ¶ˆæ¯å¾ªç¯ï¼Œå…³é—­ç¨‹åº
 	PostQuitMessage(0L);
 }
 
@@ -66,94 +66,94 @@ void RenderForm::TestPropertyGrid()
 
 	ui::PropertyGridGroup* pGroup = nullptr;
 	
-	pGroup = pPropertyGrid->AddGroup(L"·Ö×éÒ»", L"ÃèÊöĞÅÏ¢Ò»", (size_t)this);
+	pGroup = pPropertyGrid->AddGroup(L"åˆ†ç»„ä¸€", L"æè¿°ä¿¡æ¯ä¸€", (size_t)this);
 	ASSERT(pGroup->GetGroupData() == (size_t)this);
-	auto p = pPropertyGrid->AddTextProperty(pGroup, L"ÊôĞÔ1", L"Öµ1", L"ÊôĞÔ1µÄÃèÊöĞÅÏ¢", (size_t)this);
+	auto p = pPropertyGrid->AddTextProperty(pGroup, L"å±æ€§1", L"å€¼1", L"å±æ€§1çš„æè¿°ä¿¡æ¯", (size_t)this);
 	ASSERT(p->GetPropertyData() == (size_t)this);
-	auto p00 = pPropertyGrid->AddTextProperty(pGroup, L"ÊôĞÔ2", L"Öµ2", L"ÊôĞÔ2µÄÃèÊöĞÅÏ¢£ºDisable");
+	auto p00 = pPropertyGrid->AddTextProperty(pGroup, L"å±æ€§2", L"å€¼2", L"å±æ€§2çš„æè¿°ä¿¡æ¯ï¼šDisable");
 	p00->SetEnabled(false);
 
-	pGroup = pPropertyGrid->AddGroup(L"·Ö×é¶ş", L"ÃèÊöĞÅÏ¢¶ş");
-	pPropertyGrid->AddTextProperty(pGroup, L"ÊôĞÔ2", L"Öµ2", L"ÊôĞÔ2µÄÃèÊöĞÅÏ¢");
+	pGroup = pPropertyGrid->AddGroup(L"åˆ†ç»„äºŒ", L"æè¿°ä¿¡æ¯äºŒ");
+	pPropertyGrid->AddTextProperty(pGroup, L"å±æ€§2", L"å€¼2", L"å±æ€§2çš„æè¿°ä¿¡æ¯");
 
-	pGroup = pPropertyGrid->AddGroup(L"·Ö×éÈı", L"ÃèÊöĞÅÏ¢Èı");
-	auto p0 = pPropertyGrid->AddTextProperty(pGroup, L"ÊôĞÔ3-0(ÎÄ±¾)", L"ÎÄ±¾Öµ3-0", L"ÊôĞÔ3µÄÃèÊöĞÅÏ¢");
-	auto p1 = pPropertyGrid->AddTextProperty(pGroup, L"ÊôĞÔ3-1(Êı×Ö)", L"3", L"ÊôĞÔ3µÄÃèÊöĞÅÏ¢£¬´øÓĞSpin¿Ø¼şµÄÊı×Ö");
+	pGroup = pPropertyGrid->AddGroup(L"åˆ†ç»„ä¸‰", L"æè¿°ä¿¡æ¯ä¸‰");
+	auto p0 = pPropertyGrid->AddTextProperty(pGroup, L"å±æ€§3-0(æ–‡æœ¬)", L"æ–‡æœ¬å€¼3-0", L"å±æ€§3çš„æè¿°ä¿¡æ¯");
+	auto p1 = pPropertyGrid->AddTextProperty(pGroup, L"å±æ€§3-1(æ•°å­—)", L"3", L"å±æ€§3çš„æè¿°ä¿¡æ¯ï¼Œå¸¦æœ‰Spinæ§ä»¶çš„æ•°å­—");
 	p1->SetEnableSpin(true, -10, 10);
 
-	auto p2 = pPropertyGrid->AddTextProperty(pGroup, L"ÊôĞÔ3-2(Ö»¶Á)", L"Öµ3-2", L"ÊôĞÔ3µÄÃèÊöĞÅÏ¢");
+	auto p2 = pPropertyGrid->AddTextProperty(pGroup, L"å±æ€§3-2(åªè¯»)", L"å€¼3-2", L"å±æ€§3çš„æè¿°ä¿¡æ¯");
 	p2->SetReadOnly(true);
 
-	auto p3 = pPropertyGrid->AddTextProperty(pGroup, L"ÊôĞÔ3-3(ÃÜÂë)", L"Öµ3-3", L"ÊôĞÔ3µÄÃèÊöĞÅÏ¢");
+	auto p3 = pPropertyGrid->AddTextProperty(pGroup, L"å±æ€§3-3(å¯†ç )", L"å€¼3-3", L"å±æ€§3çš„æè¿°ä¿¡æ¯");
 	p3->SetPassword(true);
 
-	pGroup = pPropertyGrid->AddGroup(L"·Ö×éËÄ", L"ÃèÊöĞÅÏ¢ËÄ");
-	auto p10 = pPropertyGrid->AddComboProperty(pGroup, L"ÊôĞÔ4-1(ÏÂÀ­±í)", L"ÎÄ±¾Öµ4", L"ÊôĞÔ4µÄÃèÊöĞÅÏ¢");
-	p10->AddOption(L"È¡Öµ1");
-	p10->AddOption(L"È¡Öµ2");
-	p10->AddOption(L"È¡Öµ3");
+	pGroup = pPropertyGrid->AddGroup(L"åˆ†ç»„å››", L"æè¿°ä¿¡æ¯å››");
+	auto p10 = pPropertyGrid->AddComboProperty(pGroup, L"å±æ€§4-1(ä¸‹æ‹‰è¡¨)", L"æ–‡æœ¬å€¼4", L"å±æ€§4çš„æè¿°ä¿¡æ¯");
+	p10->AddOption(L"å–å€¼1");
+	p10->AddOption(L"å–å€¼2");
+	p10->AddOption(L"å–å€¼3");
 	p10->SetComboListMode(true);
 
-	auto p11 = pPropertyGrid->AddComboProperty(pGroup, L"ÊôĞÔ4-1(ÏÂÀ­¿ò)", L"ÎÄ±¾Öµ4", L"ÊôĞÔ4µÄÃèÊöĞÅÏ¢");
-	p11->AddOption(L"È¡Öµ1");
-	p11->AddOption(L"È¡Öµ2");
-	p11->AddOption(L"È¡Öµ3");
-	p11->SetComboListMode(false);//Ä¬ÈÏ
+	auto p11 = pPropertyGrid->AddComboProperty(pGroup, L"å±æ€§4-1(ä¸‹æ‹‰æ¡†)", L"æ–‡æœ¬å€¼4", L"å±æ€§4çš„æè¿°ä¿¡æ¯");
+	p11->AddOption(L"å–å€¼1");
+	p11->AddOption(L"å–å€¼2");
+	p11->AddOption(L"å–å€¼3");
+	p11->SetComboListMode(false);//é»˜è®¤
 
-	pGroup = pPropertyGrid->AddGroup(L"·Ö×éÎå", L"ÃèÊöĞÅÏ¢Îå£º×ÖÌå");
-	auto p20 = pPropertyGrid->AddFontProperty(pGroup, L"×ÖÌå", L"ËÎÌå", L"ÃèÊöĞÅÏ¢£ºÉèÖÃ×ÖÌåÃû³Æ");
-	auto p21 = pPropertyGrid->AddFontSizeProperty(pGroup, L"×ÖºÅ", L"ÎåºÅ", L"ÃèÊöĞÅÏ¢£ºÉèÖÃ×ÖÌå´óĞ¡");
+	pGroup = pPropertyGrid->AddGroup(L"åˆ†ç»„äº”", L"æè¿°ä¿¡æ¯äº”ï¼šå­—ä½“");
+	auto p20 = pPropertyGrid->AddFontProperty(pGroup, L"å­—ä½“", L"å®‹ä½“", L"æè¿°ä¿¡æ¯ï¼šè®¾ç½®å­—ä½“åç§°");
+	auto p21 = pPropertyGrid->AddFontSizeProperty(pGroup, L"å­—å·", L"äº”å·", L"æè¿°ä¿¡æ¯ï¼šè®¾ç½®å­—ä½“å¤§å°");
 
 	auto s000 = p21->GetPropertyNewValue();
 	auto s001 = p21->GetFontSize();
 	auto s002 = p21->GetDpiFontSize();
-	auto s003 = p21->GetFontSize(L"ÁùºÅ");
-	auto s004 = p21->GetDpiFontSize(L"ÁùºÅ");
+	auto s003 = p21->GetFontSize(L"å…­å·");
+	auto s004 = p21->GetDpiFontSize(L"å…­å·");
 
-	auto p22 = pPropertyGrid->AddColorProperty(pGroup, L"ÑÕÉ«", L"Blue", L"ÃèÊöĞÅÏ¢£ºÉèÖÃ×ÖÌåÑÕÉ«");
+	auto p22 = pPropertyGrid->AddColorProperty(pGroup, L"é¢œè‰²", L"Blue", L"æè¿°ä¿¡æ¯ï¼šè®¾ç½®å­—ä½“é¢œè‰²");
 
-	pGroup = pPropertyGrid->AddGroup(L"·Ö×éÁù", L"ÃèÊöĞÅÏ¢Áù£ºÈÕÆÚÊ±¼ä");
-	pPropertyGrid->AddDateTimeProperty(pGroup, L"ÈÕÆÚ", L"2023-12-07", L"ÃèÊöĞÅÏ¢£ºÉèÖÃÈÕÆÚ");
-	pPropertyGrid->AddDateTimeProperty(pGroup, L"ÈÕÆÚ", L"2023/12/07", L"ÃèÊöĞÅÏ¢£ºÉèÖÃÈÕÆÚ");
-	pPropertyGrid->AddDateTimeProperty(pGroup, L"ÈÕÆÚ", L"2023-12-07", L"ÃèÊöĞÅÏ¢£ºÉèÖÃÈÕÆÚ", 0,
+	pGroup = pPropertyGrid->AddGroup(L"åˆ†ç»„å…­", L"æè¿°ä¿¡æ¯å…­ï¼šæ—¥æœŸæ—¶é—´");
+	pPropertyGrid->AddDateTimeProperty(pGroup, L"æ—¥æœŸ", L"2023-12-07", L"æè¿°ä¿¡æ¯ï¼šè®¾ç½®æ—¥æœŸ");
+	pPropertyGrid->AddDateTimeProperty(pGroup, L"æ—¥æœŸ", L"2023/12/07", L"æè¿°ä¿¡æ¯ï¼šè®¾ç½®æ—¥æœŸ");
+	pPropertyGrid->AddDateTimeProperty(pGroup, L"æ—¥æœŸ", L"2023-12-07", L"æè¿°ä¿¡æ¯ï¼šè®¾ç½®æ—¥æœŸ", 0,
 										ui::DateTime::EditFormat::kDateUpDown);
-	pPropertyGrid->AddDateTimeProperty(pGroup, L"ÈÕÆÚÊ±¼ä", L"2023-12-07 17:30:02", L"ÃèÊöĞÅÏ¢£ºÉèÖÃÈÕÆÚÊ±¼ä", 0, 
+	pPropertyGrid->AddDateTimeProperty(pGroup, L"æ—¥æœŸæ—¶é—´", L"2023-12-07 17:30:02", L"æè¿°ä¿¡æ¯ï¼šè®¾ç½®æ—¥æœŸæ—¶é—´", 0, 
 										ui::DateTime::EditFormat::kDateTimeUpDown);
-	pPropertyGrid->AddDateTimeProperty(pGroup, L"ÈÕÆÚÊ±¼ä", L"2023-12-07 17:30", L"ÃèÊöĞÅÏ¢£ºÉèÖÃÈÕÆÚÊ±¼ä", 0,
+	pPropertyGrid->AddDateTimeProperty(pGroup, L"æ—¥æœŸæ—¶é—´", L"2023-12-07 17:30", L"æè¿°ä¿¡æ¯ï¼šè®¾ç½®æ—¥æœŸæ—¶é—´", 0,
 										ui::DateTime::EditFormat::kDateMinuteUpDown);
-	pPropertyGrid->AddDateTimeProperty(pGroup, L"Ê±¼ä", L"17:30:02", L"ÃèÊöĞÅÏ¢£ºÉèÖÃÊ±¼ä", 0,
+	pPropertyGrid->AddDateTimeProperty(pGroup, L"æ—¶é—´", L"17:30:02", L"æè¿°ä¿¡æ¯ï¼šè®¾ç½®æ—¶é—´", 0,
 										ui::DateTime::EditFormat::kTimeUpDown);
-	pPropertyGrid->AddDateTimeProperty(pGroup, L"Ê±¼ä", L"17:30", L"ÃèÊöĞÅÏ¢£ºÉèÖÃÊ±¼ä", 0,
+	pPropertyGrid->AddDateTimeProperty(pGroup, L"æ—¶é—´", L"17:30", L"æè¿°ä¿¡æ¯ï¼šè®¾ç½®æ—¶é—´", 0,
 										ui::DateTime::EditFormat::kMinuteUpDown);
 
-	pGroup = pPropertyGrid->AddGroup(L"·Ö×éÆß", L"ÃèÊöĞÅÏ¢Æß");
-	pPropertyGrid->AddIPAddressProperty(pGroup, L"IPµØÖ·", L"192.168.0.1", L"ÃèÊöĞÅÏ¢£ºIPµØÖ·");
-	pPropertyGrid->AddHotKeyProperty(pGroup, L"ÈÈ¼ü1", L"Ctrl+C", L"ÃèÊöĞÅÏ¢£ºÈÈ¼ü HotKey¿Ø¼ş1");
-	pPropertyGrid->AddHotKeyProperty(pGroup, L"ÈÈ¼ü2", L"Ctrl+Shift+C", L"ÃèÊöĞÅÏ¢£ºÈÈ¼ü HotKey¿Ø¼ş2");
-	pPropertyGrid->AddHotKeyProperty(pGroup, L"ÈÈ¼ü3", L"Ctrl+Shift+Alt+C", L"ÃèÊöĞÅÏ¢£ºÈÈ¼ü HotKey¿Ø¼ş3");
-	pPropertyGrid->AddHotKeyProperty(pGroup, L"ÈÈ¼ü4", L"Ctrl+Shift", L"ÃèÊöĞÅÏ¢£ºÈÈ¼ü HotKey¿Ø¼ş4");
+	pGroup = pPropertyGrid->AddGroup(L"åˆ†ç»„ä¸ƒ", L"æè¿°ä¿¡æ¯ä¸ƒ");
+	pPropertyGrid->AddIPAddressProperty(pGroup, L"IPåœ°å€", L"192.168.0.1", L"æè¿°ä¿¡æ¯ï¼šIPåœ°å€");
+	pPropertyGrid->AddHotKeyProperty(pGroup, L"çƒ­é”®1", L"Ctrl+C", L"æè¿°ä¿¡æ¯ï¼šçƒ­é”® HotKeyæ§ä»¶1");
+	pPropertyGrid->AddHotKeyProperty(pGroup, L"çƒ­é”®2", L"Ctrl+Shift+C", L"æè¿°ä¿¡æ¯ï¼šçƒ­é”® HotKeyæ§ä»¶2");
+	pPropertyGrid->AddHotKeyProperty(pGroup, L"çƒ­é”®3", L"Ctrl+Shift+Alt+C", L"æè¿°ä¿¡æ¯ï¼šçƒ­é”® HotKeyæ§ä»¶3");
+	pPropertyGrid->AddHotKeyProperty(pGroup, L"çƒ­é”®4", L"Ctrl+Shift", L"æè¿°ä¿¡æ¯ï¼šçƒ­é”® HotKeyæ§ä»¶4");
 
-	pGroup = pPropertyGrid->AddGroup(L"·Ö×é°Ë", L"ÃèÊöĞÅÏ¢°Ë");
-	auto p80 = pPropertyGrid->AddFileProperty(pGroup, L"ÎÄ¼şÂ·¾¶", L"C:\\Test-Save.txt", L"ÃèÊöĞÅÏ¢£ºÎÄ¼şÂ·¾¶", 0,
+	pGroup = pPropertyGrid->AddGroup(L"åˆ†ç»„å…«", L"æè¿°ä¿¡æ¯å…«");
+	auto p80 = pPropertyGrid->AddFileProperty(pGroup, L"æ–‡ä»¶è·¯å¾„", L"C:\\Test-Save.txt", L"æè¿°ä¿¡æ¯ï¼šæ–‡ä»¶è·¯å¾„", 0,
 		                                      false, 
 											  { 
-												  {L"TextÎÄ¼ş", L"*.txt"},
-												  {L"CSVÎÄ¼ş", L"*.csv"},
-												  {L"INIÎÄ¼ş", L"*.ini"},
-												  {L"ËùÓĞÎÄ¼ş", L"*.*"}
+												  {L"Textæ–‡ä»¶", L"*.txt"},
+												  {L"CSVæ–‡ä»¶", L"*.csv"},
+												  {L"INIæ–‡ä»¶", L"*.ini"},
+												  {L"æ‰€æœ‰æ–‡ä»¶", L"*.*"}
 		                                      }, 
 											  0, L"txt");
-	auto p81 = pPropertyGrid->AddFileProperty(pGroup, L"ÎÄ¼şÂ·¾¶", L"C:\\Test-Open.txt", L"ÃèÊöĞÅÏ¢£ºÎÄ¼şÂ·¾¶", 0,
+	auto p81 = pPropertyGrid->AddFileProperty(pGroup, L"æ–‡ä»¶è·¯å¾„", L"C:\\Test-Open.txt", L"æè¿°ä¿¡æ¯ï¼šæ–‡ä»¶è·¯å¾„", 0,
 											  true, 
 											  { 
-												  {L"TextÎÄ¼ş", L"*.txt"},
-												  {L"CSVÎÄ¼ş", L"*.csv"},
-												  {L"INIÎÄ¼ş", L"*.ini"},
-												  {L"ËùÓĞÎÄ¼ş", L"*.*"}
+												  {L"Textæ–‡ä»¶", L"*.txt"},
+												  {L"CSVæ–‡ä»¶", L"*.csv"},
+												  {L"INIæ–‡ä»¶", L"*.ini"},
+												  {L"æ‰€æœ‰æ–‡ä»¶", L"*.*"}
 		                                      }, 
 											  0, L"txt");
 
-	auto p82 = pPropertyGrid->AddDirectoryProperty(pGroup, L"ÎÄ¼ş¼Ğ", L"C:\\Test\\", L"ÃèÊöĞÅÏ¢£ºÎÄ¼ş¼Ğ");
+	auto p82 = pPropertyGrid->AddDirectoryProperty(pGroup, L"æ–‡ä»¶å¤¹", L"C:\\Test\\", L"æè¿°ä¿¡æ¯ï¼šæ–‡ä»¶å¤¹");
 
 	return;
 }

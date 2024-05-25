@@ -6,7 +6,7 @@
 #include "duilib/Render/IRender.h"
 #include "base/callback/callback.h"
 
-//SkiaÏà¹ØÀàµÄÇ°ÖÃÉùÃ÷
+//Skiaç›¸å…³ç±»çš„å‰ç½®å£°æ˜
 class SkCanvas;
 struct SkPoint;
 class SkPaint;
@@ -22,7 +22,7 @@ public:
 	explicit Render_Skia(IRenderFactory* pRenderFactory, Window* pWindow);
 	virtual ~Render_Skia();
 
-	/** »ñÈ¡RenderÊµÏÖÀàĞÍ
+	/** è·å–Renderå®ç°ç±»å‹
 	*/
 	virtual RenderType GetRenderType() const override;
 
@@ -30,8 +30,8 @@ public:
 	virtual void Clear() override;
 	virtual std::unique_ptr<IRender> Clone() override;
 
-	/** ·ÖÀëÎ»Í¼
-	*@return ·µ»ØÎ»Í¼½Ó¿Ú£¬·µ»ØºóÓÉµ÷ÓÃ·½¹ÜÀí×ÊÔ´£¨°üÀ¨ÊÍ·Å×ÊÔ´µÈ£©
+	/** åˆ†ç¦»ä½å›¾
+	*@return è¿”å›ä½å›¾æ¥å£ï¼Œè¿”å›åç”±è°ƒç”¨æ–¹ç®¡ç†èµ„æºï¼ˆåŒ…æ‹¬é‡Šæ”¾èµ„æºç­‰ï¼‰
 	*/
 	virtual IBitmap* DetachBitmap();
 
@@ -112,77 +112,77 @@ public:
 	void DrawBoxShadow(const UiRect& rc, const UiSize& roundSize, const UiPoint& cpOffset, int nBlurRadius, int nSpreadRadius, UiColor dwColor) override;
 
 #ifdef UILIB_IMPL_WINSDK
-	/** »ñÈ¡DC¾ä±ú£¬µ±²»Ê¹ÓÃºó£¬ĞèÒªµ÷ÓÃReleaseDC½Ó¿ÚÊÍ·Å×ÊÔ´
+	/** è·å–DCå¥æŸ„ï¼Œå½“ä¸ä½¿ç”¨åï¼Œéœ€è¦è°ƒç”¨ReleaseDCæ¥å£é‡Šæ”¾èµ„æº
 	*/
 	virtual HDC GetDC() override;
 
-	/** ÊÍ·ÅDC×ÊÔ´
-	* @param [in] hdc ĞèÒªÊÍ·ÅµÄDC¾ä±ú
+	/** é‡Šæ”¾DCèµ„æº
+	* @param [in] hdc éœ€è¦é‡Šæ”¾çš„DCå¥æŸ„
 	*/
 	virtual void ReleaseDC(HDC hdc) override;
 #endif
 
 private:
-	/** Î»Í¼»æÖÆ·â×°
+	/** ä½å›¾ç»˜åˆ¶å°è£…
 	*/
 	bool BitBlt(int x, int y, int cx, int cy, Bitmap_Skia* pSrcBitmap, int xSrc, int ySrc, RopMode rop);
 
-	/** »ñÈ¡GDIµÄ¹âÕ¤²Ù×÷´úÂë
+	/** è·å–GDIçš„å…‰æ …æ“ä½œä»£ç 
 	*/
 	void SetRopMode(SkPaint& skPaint, RopMode rop) const;
 
-	/** ¸ù¾İPen½Ó¿Ú£¬³õÊ¼»¯Paint¶ÔÏó
+	/** æ ¹æ®Penæ¥å£ï¼Œåˆå§‹åŒ–Paintå¯¹è±¡
 	*/
 	void SetPaintByPen(SkPaint& skPaint, const IPen* pen);
 
-	/** °´ÉèÖÃµÄÊôĞÔ£¬»æÖÆÎÄ×Ö
+	/** æŒ‰è®¾ç½®çš„å±æ€§ï¼Œç»˜åˆ¶æ–‡å­—
 	*/
 	void DrawTextString(const UiRect& rc, const std::wstring& strText, uint32_t uFormat,
 					    const SkPaint& skPaint, IFont* pFont) const;
 
-	/** ÉèÖÃÑÕÉ«½¥±äµÄ»æÖÆÊôĞÔ
+	/** è®¾ç½®é¢œè‰²æ¸å˜çš„ç»˜åˆ¶å±æ€§
 	*/
 	void InitGradientColor(SkPaint& skPaint, const UiRect& rc, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction) const;
 
 private:
 
-	/** Î»Í¼¶ÔÏó
+	/** ä½å›¾å¯¹è±¡
 	*/
 	std::unique_ptr<Bitmap_Skia> m_pBitmapSkia;
 
-	/** Canvas ½Ó¿Ú
+	/** Canvas æ¥å£
 	*/
 	SkCanvas* m_pSkCanvas;
 
-	/** Canval±£´æµÄ×´Ì¬
+	/** Canvalä¿å­˜çš„çŠ¶æ€
 	*/
 	int m_saveCount;
 
-	/** »æÖÆÊôĞÔ
+	/** ç»˜åˆ¶å±æ€§
 	*/
 	SkPaint* m_pSkPaint;
 
-	/** ÊÓÍ¼µÄÔ­µã×ø±ê
+	/** è§†å›¾çš„åŸç‚¹åæ ‡
 	*/
 	SkPoint* m_pSkPointOrg;
 
-	/** ÊÇ·ñÍ¸Ã÷
+	/** æ˜¯å¦é€æ˜
 	*/
 	bool m_bTransparent;
 
-	/** ¹ØÁªµÄDC¾ä±ú
+	/** å…³è”çš„DCå¥æŸ„
 	*/
 	HDC m_hDC;
 
-	/** ¹ØÁªµÄ´°¿Ú
+	/** å…³è”çš„çª—å£
 	*/
 	Window* m_pWindow;
 
-	/** ¹ØÁª´°¿ÚµÄÉúÃüÖÜÆÚ±êÖ¾
+	/** å…³è”çª—å£çš„ç”Ÿå‘½å‘¨æœŸæ ‡å¿—
 	*/
 	std::weak_ptr<nbase::WeakFlag> m_windowFlag;
 
-	/** Render¹¤³§½Ó¿Ú£¬ÓÃÓÚ´´½¨×ÖÌå
+	/** Renderå·¥å‚æ¥å£ï¼Œç”¨äºåˆ›å»ºå­—ä½“
 	*/
 	IRenderFactory* m_pRenderFactory;
 };

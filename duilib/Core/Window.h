@@ -23,17 +23,17 @@ class ToolTip;
 class WindowDropTarget;
 class ControlDropTarget;
 
-/**  ´°¿ÚÏûÏ¢¹ıÂË½Ó¿Ú£¬ÓÃÓÚ½Ø»ñ´°¿Ú¹ı³ÌµÄÏûÏ¢£¬ÓÅÏÈÓÚWindowÀà½øĞĞÏûÏ¢´¦Àí
+/**  çª—å£æ¶ˆæ¯è¿‡æ»¤æ¥å£ï¼Œç”¨äºæˆªè·çª—å£è¿‡ç¨‹çš„æ¶ˆæ¯ï¼Œä¼˜å…ˆäºWindowç±»è¿›è¡Œæ¶ˆæ¯å¤„ç†
 */
 class IUIMessageFilter
 {
 public:
-    /**  ÏûÏ¢´¦Àíº¯Êı£¬´¦ÀíÓÅÏÈ¼¶¸ßÓÚWindowÀàµÄÏûÏ¢´¦Àíº¯Êı
-    * @param [in] uMsg ÏûÏ¢ÄÚÈİ
-    * @param [in] wParam ÏûÏ¢¸½¼Ó²ÎÊı
-    * @param [in] lParam ÏûÏ¢¸½¼Ó²ÎÊı
-    * @param[out] bHandled ·µ»Ø false Ôò¼ÌĞøÅÉ·¢¸ÃÏûÏ¢£¬·µ»Ø true ±íÊ¾²»ÔÙÅÉ·¢¸ÃÏûÏ¢
-    * @return ·µ»ØÏûÏ¢´¦Àí½á¹û
+    /**  æ¶ˆæ¯å¤„ç†å‡½æ•°ï¼Œå¤„ç†ä¼˜å…ˆçº§é«˜äºWindowç±»çš„æ¶ˆæ¯å¤„ç†å‡½æ•°
+    * @param [in] uMsg æ¶ˆæ¯å†…å®¹
+    * @param [in] wParam æ¶ˆæ¯é™„åŠ å‚æ•°
+    * @param [in] lParam æ¶ˆæ¯é™„åŠ å‚æ•°
+    * @param[out] bHandled è¿”å› false åˆ™ç»§ç»­æ´¾å‘è¯¥æ¶ˆæ¯ï¼Œè¿”å› true è¡¨ç¤ºä¸å†æ´¾å‘è¯¥æ¶ˆæ¯
+    * @return è¿”å›æ¶ˆæ¯å¤„ç†ç»“æœ
     */
     virtual LRESULT FilterMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) = 0;
 };
@@ -41,13 +41,13 @@ public:
 /////////////////////////////////////////////////////////////////////////////////////
 //
 
-/** ´°¿ÚÀà
-*  //Íâ²¿µ÷ÓÃĞèÒª³õÊ¼»¯µÄ»ù±¾Á÷³Ì:
-*  1. µ÷ÓÃWindow::CreateWnd´´½¨´°¿Ú;
-*  //ÒÔÏÂÄÚÈİ£¬¿ÉÓÃÊµÏÖÔÚOnCreateº¯ÊıÖĞ:
+/** çª—å£ç±»
+*  //å¤–éƒ¨è°ƒç”¨éœ€è¦åˆå§‹åŒ–çš„åŸºæœ¬æµç¨‹:
+*  1. è°ƒç”¨Window::CreateWndåˆ›å»ºçª—å£;
+*  //ä»¥ä¸‹å†…å®¹ï¼Œå¯ç”¨å®ç°åœ¨OnCreateå‡½æ•°ä¸­:
 *  2. Window::SetResourcePath;
-*  3. WindowBuilder::Create, µÃµ½Box* pRoot;
-*  4. Window::AttachShadow(pRoot), µÃµ½¸½¼ÓÒõÓ°µÄBox* pRoot, ÒÔÖ§³Ö´°¿ÚÒõÓ°Ğ§¹û;
+*  3. WindowBuilder::Create, å¾—åˆ°Box* pRoot;
+*  4. Window::AttachShadow(pRoot), å¾—åˆ°é™„åŠ é˜´å½±çš„Box* pRoot, ä»¥æ”¯æŒçª—å£é˜´å½±æ•ˆæœ;
 *  5. Window::AttachBox(pRoot);
 */
 class UILIB_API Window : public virtual nbase::SupportWeakCallback
@@ -59,16 +59,16 @@ public:
     virtual ~Window();
 
 public:
-    /** @name ´°¿Ú´´½¨¡¢Ïú»Ù¡¢ÊÂ¼ş¼àÌıµÈÏà¹Ø½Ó¿Ú
+    /** @name çª—å£åˆ›å»ºã€é”€æ¯ã€äº‹ä»¶ç›‘å¬ç­‰ç›¸å…³æ¥å£
     * @{
     */
 
-    /** ´´½¨´°¿Ú, ¿ÉÊ¹ÓÃ OnInitWindow ½Ó¿ÚÀ´ÊµÏÖ´°¿Ú´´½¨Íê³ÉºóµÄ×Ô¶¨ÒåĞèÇó
-    * @param [in] hwndParent ¸¸´°¿Ú¾ä±ú
-    * @param [in] windowName ´°¿ÚÃû³Æ
-    * @param [in] dwStyle ´°¿ÚÑùÊ½
-    * @param [in] dwExStyle ´°¿ÚÍØÕ¹ÑùÊ½, ¿ÉÒÔÉèÖÃ²ã´°¿Ú£¨WS_EX_LAYERED£©µÈÊôĞÔ
-    * @param [in] rc ´°¿Ú´óĞ¡
+    /** åˆ›å»ºçª—å£, å¯ä½¿ç”¨ OnInitWindow æ¥å£æ¥å®ç°çª—å£åˆ›å»ºå®Œæˆåçš„è‡ªå®šä¹‰éœ€æ±‚
+    * @param [in] hwndParent çˆ¶çª—å£å¥æŸ„
+    * @param [in] windowName çª—å£åç§°
+    * @param [in] dwStyle çª—å£æ ·å¼
+    * @param [in] dwExStyle çª—å£æ‹“å±•æ ·å¼, å¯ä»¥è®¾ç½®å±‚çª—å£ï¼ˆWS_EX_LAYEREDï¼‰ç­‰å±æ€§
+    * @param [in] rc çª—å£å¤§å°
     */
     virtual bool CreateWnd(HWND hwndParent,
                            const wchar_t* windowName,
@@ -76,556 +76,556 @@ public:
                            uint32_t dwExStyle,
                            const UiRect& rc = UiRect(0, 0, 0, 0));
 
-    /** ÊÇ·ñº¬ÓĞÓĞĞ§µÄ´°¿Ú¾ä±ú
+    /** æ˜¯å¦å«æœ‰æœ‰æ•ˆçš„çª—å£å¥æŸ„
     */
     bool IsWindow() const;
 
-    /** »ñÈ¡´°¿ÚËùÊôµÄ Windows ¾ä±ú
+    /** è·å–çª—å£æ‰€å±çš„ Windows å¥æŸ„
     */
     HWND GetHWND() const;
 
-    /** ×ÓÀà»¯´°¿Ú£¨¸ü¸Ä´°¿Ú¹ı³Ìº¯Êı£©
-    * @param [in] ´°¿Ú¾ä±ú
+    /** å­ç±»åŒ–çª—å£ï¼ˆæ›´æ”¹çª—å£è¿‡ç¨‹å‡½æ•°ï¼‰
+    * @param [in] çª—å£å¥æŸ„
     */
     bool Subclass(HWND hWnd);
 
-    /** È¡Ïû×ÓÀà»¯´°¿Ú£¨»Ö¸´Ô­À´µÄ´°¿Ú¹ı³Ìº¯Êı£©
+    /** å–æ¶ˆå­ç±»åŒ–çª—å£ï¼ˆæ¢å¤åŸæ¥çš„çª—å£è¿‡ç¨‹å‡½æ•°ï¼‰
     */
     void Unsubclass();
 
-    /** ¹Ø±Õ´°¿Ú, Òì²½¹Ø±Õ£¬µ±º¯Êı·µ»Øºó£¬IsClosing() ×´Ì¬Îªtrue
-    * @param [in] nRet ¹Ø±ÕÏûÏ¢, º¬ÒåÈçÏÂ£º
-                0 - ±íÊ¾ "È·ÈÏ" ¹Ø±Õ±¾´°¿Ú
-                1 - ±íÊ¾µã»÷´°¿ÚµÄ "¹Ø±Õ" °´Å¥¹Ø±Õ±¾´°¿Ú(Ä¬ÈÏÖµ)
-                2 - ±íÊ¾ "È¡Ïû" ¹Ø±Õ±¾´°¿Ú
+    /** å…³é—­çª—å£, å¼‚æ­¥å…³é—­ï¼Œå½“å‡½æ•°è¿”å›åï¼ŒIsClosing() çŠ¶æ€ä¸ºtrue
+    * @param [in] nRet å…³é—­æ¶ˆæ¯, å«ä¹‰å¦‚ä¸‹ï¼š
+                0 - è¡¨ç¤º "ç¡®è®¤" å…³é—­æœ¬çª—å£
+                1 - è¡¨ç¤ºç‚¹å‡»çª—å£çš„ "å…³é—­" æŒ‰é’®å…³é—­æœ¬çª—å£(é»˜è®¤å€¼)
+                2 - è¡¨ç¤º "å–æ¶ˆ" å…³é—­æœ¬çª—å£
     */
     virtual void CloseWnd(UINT nRet = 1);
 
-    /** ÊÇ·ñ½«Òª¹Ø±Õ
+    /** æ˜¯å¦å°†è¦å…³é—­
     */
     bool IsClosingWnd() const { return m_bCloseing; }
 
-    /** ¼àÌı´°¿Ú¹Ø±ÕÊÂ¼ş
-    * @param [in] callback Ö¸¶¨¹Ø±ÕºóµÄ»Øµ÷º¯Êı£¬²ÎÊıµÄwParam´ú±í´°¿Ú¹Ø±ÕµÄ´¥·¢Çé¿ö£º
-                          0 - ±íÊ¾ "È·ÈÏ" ¹Ø±Õ±¾´°¿Ú
-                          1 - ±íÊ¾µã»÷´°¿ÚµÄ "¹Ø±Õ" °´Å¥¹Ø±Õ±¾´°¿Ú(Ä¬ÈÏÖµ)
-                          2 - ±íÊ¾ "È¡Ïû" ¹Ø±Õ±¾´°¿Ú
+    /** ç›‘å¬çª—å£å…³é—­äº‹ä»¶
+    * @param [in] callback æŒ‡å®šå…³é—­åçš„å›è°ƒå‡½æ•°ï¼Œå‚æ•°çš„wParamä»£è¡¨çª—å£å…³é—­çš„è§¦å‘æƒ…å†µï¼š
+                          0 - è¡¨ç¤º "ç¡®è®¤" å…³é—­æœ¬çª—å£
+                          1 - è¡¨ç¤ºç‚¹å‡»çª—å£çš„ "å…³é—­" æŒ‰é’®å…³é—­æœ¬çª—å£(é»˜è®¤å€¼)
+                          2 - è¡¨ç¤º "å–æ¶ˆ" å…³é—­æœ¬çª—å£
     */
     void AttachWindowClose(const EventCallback& callback);
 
 protected:
-    /** ´´½¨´°¿ÚÊ±±»µ÷ÓÃ£¬ÓÉ×ÓÀàÊµÏÖÓÃÒÔ»ñÈ¡´°¿ÚÎ¨Ò»µÄÀàÃû³Æ
-    * @return »ùÀà·µ»Ø¿Õ´®£¬ÔÚ×ÓÀàÖĞĞèÊµÏÖ²¢·µ»Ø´°¿ÚÎ¨Ò»µÄÀàÃû³Æ
+    /** åˆ›å»ºçª—å£æ—¶è¢«è°ƒç”¨ï¼Œç”±å­ç±»å®ç°ç”¨ä»¥è·å–çª—å£å”¯ä¸€çš„ç±»åç§°
+    * @return åŸºç±»è¿”å›ç©ºä¸²ï¼Œåœ¨å­ç±»ä¸­éœ€å®ç°å¹¶è¿”å›çª—å£å”¯ä¸€çš„ç±»åç§°
     */
     virtual std::wstring GetWindowClassName() const;
 
-    /** »ñÈ¡¿Ø¼ş´°¿ÚÀà
-    * @return ·µ»Ø¿Ø¼ş´°¿ÚÀà£¬¸Ã»ùÀà·µ»Ø¿Õ´®
+    /** è·å–æ§ä»¶çª—å£ç±»
+    * @return è¿”å›æ§ä»¶çª—å£ç±»ï¼Œè¯¥åŸºç±»è¿”å›ç©ºä¸²
     */
     virtual std::wstring GetSuperClassName() const;
 
-    /** »ñÈ¡´°¿ÚÀàµÄÑùÊ½£¬¸Ã·½·¨ÓÉÊµÀı»¯µÄ×ÓÀàÊµÏÖ£¬https://docs.microsoft.com/en-us/windows/desktop/winmsg/window-class-styles
-    * @return ·µ»Ø´°¿ÚÀàµÄÑùÊ½£¬¸Ã·½·¨»ùÀà·µ»Ø CS_DBLCLKS
+    /** è·å–çª—å£ç±»çš„æ ·å¼ï¼Œè¯¥æ–¹æ³•ç”±å®ä¾‹åŒ–çš„å­ç±»å®ç°ï¼Œhttps://docs.microsoft.com/en-us/windows/desktop/winmsg/window-class-styles
+    * @return è¿”å›çª—å£ç±»çš„æ ·å¼ï¼Œè¯¥æ–¹æ³•åŸºç±»è¿”å› CS_DBLCLKS
     */
     virtual UINT GetClassStyle() const;
 
-    /** »ñÈ¡×ÊÔ´µÄ¾ä±ú
-    * @return Ä¬ÈÏ·µ»Øµ±Ç°½ø³ÌexeµÄ¾ä±ú
+    /** è·å–èµ„æºçš„å¥æŸ„
+    * @return é»˜è®¤è¿”å›å½“å‰è¿›ç¨‹exeçš„å¥æŸ„
     */
     virtual HMODULE GetResModuleHandle() const;
 
-    /** »ñÈ¡´°¿ÚÑùÊ½
-    * @return Ä¬ÈÏ·µ»Øµ±Ç°´°¿ÚµÄÑùÊ½È¥µôWS_CAPTIONÊôĞÔ
-    *         Èç¹û×ÓÀàÖØĞ´¸Ãº¯Êıºó£¬·µ»ØÖµÎª0£¬Ôò²»¸Ä±äµ±Ç°´°¿ÚµÄÑùÊ½
+    /** è·å–çª—å£æ ·å¼
+    * @return é»˜è®¤è¿”å›å½“å‰çª—å£çš„æ ·å¼å»æ‰WS_CAPTIONå±æ€§
+    *         å¦‚æœå­ç±»é‡å†™è¯¥å‡½æ•°åï¼Œè¿”å›å€¼ä¸º0ï¼Œåˆ™ä¸æ”¹å˜å½“å‰çª—å£çš„æ ·å¼
     */
     virtual uint32_t GetWindowStyle() const;
 
-    /** µ±´°¿Ú´´½¨Íê³ÉÒÔºóµ÷ÓÃ´Ëº¯Êı£¬¹©×ÓÀàÖĞ×öÒ»Ğ©³õÊ¼»¯µÄ¹¤×÷
+    /** å½“çª—å£åˆ›å»ºå®Œæˆä»¥åè°ƒç”¨æ­¤å‡½æ•°ï¼Œä¾›å­ç±»ä¸­åšä¸€äº›åˆå§‹åŒ–çš„å·¥ä½œ
     */
     virtual void OnInitWindow();
 
-    /** µ±´°¿Ú¼´½«±»¹Ø±ÕÊ±µ÷ÓÃ´Ëº¯Êı£¬¹©×ÓÀàÖĞ×öÒ»Ğ©ÊÕÎ²¹¤×÷
+    /** å½“çª—å£å³å°†è¢«å…³é—­æ—¶è°ƒç”¨æ­¤å‡½æ•°ï¼Œä¾›å­ç±»ä¸­åšä¸€äº›æ”¶å°¾å·¥ä½œ
     */
     virtual void OnCloseWindow();
 
-    /** ÔÚ´°¿ÚÏú»ÙÊ±»á±»µ÷ÓÃ£¬ÕâÊÇ¸Ã´°¿ÚµÄ×îºóÒ»¸öÏûÏ¢£¨¸ÃÀàÄ¬ÈÏÊµÏÖÊÇÇåÀí×ÊÔ´£¬²¢µ÷ÓÃOnDeleteSelfº¯ÊıÏú»Ù¸Ã´°¿Ú¶ÔÏó£©
+    /** åœ¨çª—å£é”€æ¯æ—¶ä¼šè¢«è°ƒç”¨ï¼Œè¿™æ˜¯è¯¥çª—å£çš„æœ€åä¸€ä¸ªæ¶ˆæ¯ï¼ˆè¯¥ç±»é»˜è®¤å®ç°æ˜¯æ¸…ç†èµ„æºï¼Œå¹¶è°ƒç”¨OnDeleteSelfå‡½æ•°é”€æ¯è¯¥çª—å£å¯¹è±¡ï¼‰
     */
     virtual void OnFinalMessage();
 
-    /** Ïú»Ù×Ô¼º£¨×ÓÀà¿ÉÓÃÖØÔØÕâ¸ö·½·¨£¬±ÜÃâ×ÔÉí±»Ïú»Ù£©
+    /** é”€æ¯è‡ªå·±ï¼ˆå­ç±»å¯ç”¨é‡è½½è¿™ä¸ªæ–¹æ³•ï¼Œé¿å…è‡ªèº«è¢«é”€æ¯ï¼‰
     */
     virtual void OnDeleteSelf();
 
     /** @} */
 
 public:
-    /** @name ´°¿ÚÏÔÊ¾¡¢Òş²Ø¡¢´óĞ¡¡¢Î»ÖÃµÈ×´Ì¬Ïà¹Ø½Ó¿Ú
+    /** @name çª—å£æ˜¾ç¤ºã€éšè—ã€å¤§å°ã€ä½ç½®ç­‰çŠ¶æ€ç›¸å…³æ¥å£
     * @{
     */
 
-    /** ÏÔÊ¾»òÒş²Ø´°¿Ú
-     * @param [in] bShow Îª true Ê±ÏÔÊ¾´°¿Ú£¬Îª false Ê±ÎªÒş²Ø´°¿Ú£¬Ä¬ÈÏÎª true
-     * @param [in] bTakeFocus ÊÇ·ñ»ñµÃ½¹µã£¨¼¤»î´°¿Ú£©£¬Ä¬ÈÏÎª true
+    /** æ˜¾ç¤ºæˆ–éšè—çª—å£
+     * @param [in] bShow ä¸º true æ—¶æ˜¾ç¤ºçª—å£ï¼Œä¸º false æ—¶ä¸ºéšè—çª—å£ï¼Œé»˜è®¤ä¸º true
+     * @param [in] bTakeFocus æ˜¯å¦è·å¾—ç„¦ç‚¹ï¼ˆæ¿€æ´»çª—å£ï¼‰ï¼Œé»˜è®¤ä¸º true
     */
     virtual void ShowWindow(bool bShow = true, bool bTakeFocus = true);
 
-    /** ÏÔÊ¾Ä£Ì¬¶Ô»°¿ò
-    * @param [in] hParentWnd ¸¸´°¿Ú¾ä±ú
+    /** æ˜¾ç¤ºæ¨¡æ€å¯¹è¯æ¡†
+    * @param [in] hParentWnd çˆ¶çª—å£å¥æŸ„
     */
     void ShowModalFake(HWND hParentWnd);
 
-    /** ÊÇ·ñÊÇÄ£Ì¬ÏÔÊ¾
+    /** æ˜¯å¦æ˜¯æ¨¡æ€æ˜¾ç¤º
     */
     bool IsFakeModal() const;
 
-    /** ¾ÓÖĞ´°¿Ú£¬Ö§³ÖÀ©Õ¹ÆÁÄ»
+    /** å±…ä¸­çª—å£ï¼Œæ”¯æŒæ‰©å±•å±å¹•
     */
     void CenterWindow();
 
-    /** ½«´°¿ÚÉèÖÃÎªÖÃ¶¥´°¿Ú
+    /** å°†çª—å£è®¾ç½®ä¸ºç½®é¡¶çª—å£
     */
     void ToTopMost();
 
-    /** ½«´°¿Úµ÷ÕûÎª¶¥²ã´°¿Ú
+    /** å°†çª—å£è°ƒæ•´ä¸ºé¡¶å±‚çª—å£
     */
     void BringToTop();
 
-    /** ¼¤»î´°¿Ú
-    *   Èç¹ûµ±Ç°´°¿ÚÎª×îĞ¡»¯£¬Ôò½øĞĞ»¹Ô­£»
-    *   Èç¹ûµ±Ç°´°¿ÚÎªÒş²Ø£¬ÔòÏÔÊ¾£¬²¢ÉèÖÃÎªÇ°¶Ë´°¿Ú
-    *   Èç¹ûµ±Ç°´°¿ÚÎªÏÔÊ¾£¬ÔòÉèÖÃÎªÇ°¶Ë´°¿Ú
+    /** æ¿€æ´»çª—å£
+    *   å¦‚æœå½“å‰çª—å£ä¸ºæœ€å°åŒ–ï¼Œåˆ™è¿›è¡Œè¿˜åŸï¼›
+    *   å¦‚æœå½“å‰çª—å£ä¸ºéšè—ï¼Œåˆ™æ˜¾ç¤ºï¼Œå¹¶è®¾ç½®ä¸ºå‰ç«¯çª—å£
+    *   å¦‚æœå½“å‰çª—å£ä¸ºæ˜¾ç¤ºï¼Œåˆ™è®¾ç½®ä¸ºå‰ç«¯çª—å£
     */
     void ActiveWindow();
 
-    /** ´°¿Ú×î´ó»¯
+    /** çª—å£æœ€å¤§åŒ–
     */
     bool Maximized();
 
-    /** »¹Ô­´°¿Ú£¬ÍË³ö×î´ó»¯
+    /** è¿˜åŸçª—å£ï¼Œé€€å‡ºæœ€å¤§åŒ–
     */
     bool Restore();
 
-    /** ´°¿Ú×îĞ¡»¯
+    /** çª—å£æœ€å°åŒ–
     */
     bool Minimized();
 
-    /** Ê¹´°¿Ú½øÈëÈ«ÆÁ×´Ì¬
+    /** ä½¿çª—å£è¿›å…¥å…¨å±çŠ¶æ€
     */
     bool EnterFullScreen();
 
-    /** Ê¹´°¿ÚÍË³öÈ«ÆÁ×´Ì¬ (Ä¬ÈÏ°´ESC¼üÊ±£¬ÍË³öÈ«ÆÁ)
+    /** ä½¿çª—å£é€€å‡ºå…¨å±çŠ¶æ€ (é»˜è®¤æŒ‰ESCé”®æ—¶ï¼Œé€€å‡ºå…¨å±)
     */
     bool ExitFullScreen();
 
-    /** ÉèÖÃ´°¿ÚÎªÇ°¶Ë´°¿Ú
+    /** è®¾ç½®çª—å£ä¸ºå‰ç«¯çª—å£
     */
     bool SetForeground();
 
-    /** Ê¹´°¿Ú³ÉÎª½¹µã´°¿Ú
+    /** ä½¿çª—å£æˆä¸ºç„¦ç‚¹çª—å£
     */
     bool SetFocused();
 
-    /** ¹Ø±Õ´°¿Ú, Í¬²½¹Ø±Õ
+    /** å…³é—­çª—å£, åŒæ­¥å…³é—­
     */
     void Close();
 
-    /** µ±Ç°´°¿ÚÊÇ·ñÎªÊäÈë½¹µã´°¿Ú
+    /** å½“å‰çª—å£æ˜¯å¦ä¸ºè¾“å…¥ç„¦ç‚¹çª—å£
     */
     bool IsWindowFocused() const;
 
-    /** µ±Ç°´°¿ÚÊÇ·ñÎªÇ°¶Ë´°¿Ú
+    /** å½“å‰çª—å£æ˜¯å¦ä¸ºå‰ç«¯çª—å£
     */
     bool IsWindowForeground() const;
 
-    /** ´°¿ÚÊÇ·ñÎª×î´ó»¯×´Ì¬
+    /** çª—å£æ˜¯å¦ä¸ºæœ€å¤§åŒ–çŠ¶æ€
     */
     bool IsWindowMaximized() const;
 
-    /** ´°¿ÚÊÇ·ñÎª×îĞ¡»¯×´Ì¬
+    /** çª—å£æ˜¯å¦ä¸ºæœ€å°åŒ–çŠ¶æ€
     */
     bool IsWindowMinimized() const;
 
-    /** ´°¿ÚÊÇ·ñÎªÈ«ÆÁ×´Ì¬
+    /** çª—å£æ˜¯å¦ä¸ºå…¨å±çŠ¶æ€
     */
     bool IsWindowFullScreen() const;
 
-    /** ¸üĞÂ´°¿Ú£¬Ö´ĞĞÖØ»æ 
+    /** æ›´æ–°çª—å£ï¼Œæ‰§è¡Œé‡ç»˜ 
     */
     bool UpdateWindow() const;
 
 public:
-    /** »ñÈ¡´°¿ÚÎ»ÖÃĞÅÏ¢
-     * @param [in] bContainShadow ÊÇ·ñ°üº¬ÒõÓ°£¬true Îª°üº¬£¬Ä¬ÈÏÎª false ²»°üº¬
+    /** è·å–çª—å£ä½ç½®ä¿¡æ¯
+     * @param [in] bContainShadow æ˜¯å¦åŒ…å«é˜´å½±ï¼Œtrue ä¸ºåŒ…å«ï¼Œé»˜è®¤ä¸º false ä¸åŒ…å«
      */
     UiRect GetWindowPos(bool bContainShadow /*= false*/) const;
 
-    /** ÉèÖÃ´°¿ÚÎ»ÖÃ£¨¶Ô ::SetWindowPos API µÄÒ»²ã·â×°£©
-    * @param [in] rc ´°¿ÚÎ»ÖÃ
-    * @param [in] bNeedDpiScale Îª false ±íÊ¾²»ĞèÒª°Ñ rc ¸ù¾İ DPI ×Ô¶¯µ÷Õû
-    * @param [in] uFlags ¶ÔÓ¦ ::SetWindowPos API µÄ uFlags Ñ¡Ïî
-    * @param [in] hWndInsertAfter ¶ÔÓ¦ SetWindowPos µÄ hWndInsertAfter Ñ¡Ïî
-    * @param [in] bContainShadow rcÇøÓòÊÇ·ñ°üº¬ÒõÓ°·¶Î§£¬Ä¬ÈÏÎª false
+    /** è®¾ç½®çª—å£ä½ç½®ï¼ˆå¯¹ ::SetWindowPos API çš„ä¸€å±‚å°è£…ï¼‰
+    * @param [in] rc çª—å£ä½ç½®
+    * @param [in] bNeedDpiScale ä¸º false è¡¨ç¤ºä¸éœ€è¦æŠŠ rc æ ¹æ® DPI è‡ªåŠ¨è°ƒæ•´
+    * @param [in] uFlags å¯¹åº” ::SetWindowPos API çš„ uFlags é€‰é¡¹
+    * @param [in] hWndInsertAfter å¯¹åº” SetWindowPos çš„ hWndInsertAfter é€‰é¡¹
+    * @param [in] bContainShadow rcåŒºåŸŸæ˜¯å¦åŒ…å«é˜´å½±èŒƒå›´ï¼Œé»˜è®¤ä¸º false
     */
     bool SetWindowPos(const UiRect& rc, bool bNeedDpiScale, UINT uFlags, HWND hWndInsertAfter = NULL, bool bContainShadow = false);
 
-    /** ÉèÖÃ´°¿ÚÎ»ÖÃ£¨¶Ô ::SetWindowPos API µÄÒ»²ã·â×°£¬ÄÚ²¿ÎŞDPIËõ·Å£©
-    * @param [in] hWndInsertAfter ¶ÔÓ¦ SetWindowPos µÄ hWndInsertAfter Ñ¡Ïî
-    * @param [in] X ´°¿ÚµÄX×ø±ê
-    * @param [in] Y ´°¿ÚµÄY×ø±ê
-    * @param [in] cx ´°¿ÚµÄ¿í¶È
-    * @param [in] cy ´°¿ÚµÄ¸ß¶È
-    * @param [in] uFlags ¶ÔÓ¦ ::SetWindowPos API µÄ uFlags Ñ¡Ïî 
+    /** è®¾ç½®çª—å£ä½ç½®ï¼ˆå¯¹ ::SetWindowPos API çš„ä¸€å±‚å°è£…ï¼Œå†…éƒ¨æ— DPIç¼©æ”¾ï¼‰
+    * @param [in] hWndInsertAfter å¯¹åº” SetWindowPos çš„ hWndInsertAfter é€‰é¡¹
+    * @param [in] X çª—å£çš„Xåæ ‡
+    * @param [in] Y çª—å£çš„Yåæ ‡
+    * @param [in] cx çª—å£çš„å®½åº¦
+    * @param [in] cy çª—å£çš„é«˜åº¦
+    * @param [in] uFlags å¯¹åº” ::SetWindowPos API çš„ uFlags é€‰é¡¹ 
     */
     bool SetWindowPos(HWND hWndInsertAfter, int32_t X, int32_t Y, int32_t cx, int32_t cy, UINT uFlags);
 
-    /** ÖØÖÃ´°¿Ú´óĞ¡
-    * @param [in] cx ¿í¶È
-    * @param [in] cy ¸ß¶È
-    * @param [in] bContainShadow Îª false ±íÊ¾ cx cy ²»°üº¬ÒõÓ°
-    * @param [in] bNeedDpiScale Îª false ±íÊ¾²»¸ù¾İ DPI µ÷Õû
+    /** é‡ç½®çª—å£å¤§å°
+    * @param [in] cx å®½åº¦
+    * @param [in] cy é«˜åº¦
+    * @param [in] bContainShadow ä¸º false è¡¨ç¤º cx cy ä¸åŒ…å«é˜´å½±
+    * @param [in] bNeedDpiScale ä¸º false è¡¨ç¤ºä¸æ ¹æ® DPI è°ƒæ•´
     */
     void Resize(int cx, int cy, bool bContainShadow /*= false*/, bool bNeedDpiScale);
 
-    /** ÉèÖÃ´°¿ÚÍ¼±ê
-    *  @param [in] nRes ´°¿ÚÍ¼±ê×ÊÔ´ ID
+    /** è®¾ç½®çª—å£å›¾æ ‡
+    *  @param [in] nRes çª—å£å›¾æ ‡èµ„æº ID
     */
     void SetIcon(UINT nRes);
 
-    /** ÉèÖÃ´°¿Ú±êÌâÀ¸ÎÄ±¾
-    * @param [in] strText ´°¿Ú±êÌâÀ¸ÎÄ±¾
+    /** è®¾ç½®çª—å£æ ‡é¢˜æ æ–‡æœ¬
+    * @param [in] strText çª—å£æ ‡é¢˜æ æ–‡æœ¬
     */
     void SetText(const std::wstring& strText);
 
-    /** »ñÈ¡´°¿Ú±êÌâÀ¸ÎÄ±¾
+    /** è·å–çª—å£æ ‡é¢˜æ æ–‡æœ¬
     */
     std::wstring GetText() const;
 
-    /** ¸ù¾İÓïÑÔÁĞ±íÖĞµÄÎÄ±¾ ID£¬ ¸ù¾İIDÉèÖÃ´°¿Ú±êÌâÀ¸ÎÄ±¾
-    * @param [in] strTextId ÓïÑÔ ID£¬¸Ã ID ±ØĞëÔÚÓïÑÔÎÄ¼şÖĞ´æÔÚ
+    /** æ ¹æ®è¯­è¨€åˆ—è¡¨ä¸­çš„æ–‡æœ¬ IDï¼Œ æ ¹æ®IDè®¾ç½®çª—å£æ ‡é¢˜æ æ–‡æœ¬
+    * @param [in] strTextId è¯­è¨€ IDï¼Œè¯¥ ID å¿…é¡»åœ¨è¯­è¨€æ–‡ä»¶ä¸­å­˜åœ¨
     */
     void SetTextId(const std::wstring& strTextId);
 
-    /** »ñÈ¡´°¿Ú±êÌâÀ¸ÎÄ±¾µÄÎÄ±¾ID
+    /** è·å–çª—å£æ ‡é¢˜æ æ–‡æœ¬çš„æ–‡æœ¬ID
     */
     std::wstring GetTextId() const;
 
     /** @} */
 
 public:
-    /** @name ´°¿Ú³õÊ¼´óĞ¡¡¢±êÌâÀ¸µÈÏà¹Ø½Ó¿Ú
+    /** @name çª—å£åˆå§‹å¤§å°ã€æ ‡é¢˜æ ç­‰ç›¸å…³æ¥å£
     * @{
     */
-    /** »ñÈ¡´°¿ÚËÄ±ß¿ÉÀ­Éì·¶Î§µÄ´óĞ¡
+    /** è·å–çª—å£å››è¾¹å¯æ‹‰ä¼¸èŒƒå›´çš„å¤§å°
     */
     const UiRect& GetSizeBox() const;
 
-    /** ÉèÖÃ´°¿ÚËÄ±ß¿ÉÀ­Éì·¶Î§µÄ´óĞ¡
-    * @param [in] rcSizeBox ÒªÉèÖÃµÄ´óĞ¡
-    * @param [in] bNeedDpiScale ÊÇ·ñÖ§³ÖDPIËõ·Å
+    /** è®¾ç½®çª—å£å››è¾¹å¯æ‹‰ä¼¸èŒƒå›´çš„å¤§å°
+    * @param [in] rcSizeBox è¦è®¾ç½®çš„å¤§å°
+    * @param [in] bNeedDpiScale æ˜¯å¦æ”¯æŒDPIç¼©æ”¾
     */
     void SetSizeBox(const UiRect& rcSizeBox, bool bNeedDpiScale);
 
-    /** »ñÈ¡´°¿Ú±êÌâÀ¸ÇøÓò£¨¿ÉÍÏ¶¯ÇøÓò£©£¬¶ÔÓ¦ XML ÖĞ caption ÊôĞÔ
+    /** è·å–çª—å£æ ‡é¢˜æ åŒºåŸŸï¼ˆå¯æ‹–åŠ¨åŒºåŸŸï¼‰ï¼Œå¯¹åº” XML ä¸­ caption å±æ€§
     */
     const UiRect& GetCaptionRect() const;
 
-    /** ÉèÖÃ´°¿Ú±êÌâÀ¸ÇøÓò
-    * @param [in] rcCaption ÒªÉèÖÃµÄÇøÓò·¶Î§
-    * @param [in] bNeedDpiScale Îª false ±íÊ¾²»¸ù¾İ DPI µ÷Õû
+    /** è®¾ç½®çª—å£æ ‡é¢˜æ åŒºåŸŸ
+    * @param [in] rcCaption è¦è®¾ç½®çš„åŒºåŸŸèŒƒå›´
+    * @param [in] bNeedDpiScale ä¸º false è¡¨ç¤ºä¸æ ¹æ® DPI è°ƒæ•´
     */
     void SetCaptionRect(const UiRect& rcCaption, bool bNeedDpiScale);
 
-    /** ÉèÖÃÊÇ·ñÊ¹ÓÃÏµÍ³±êÌâÀ¸
+    /** è®¾ç½®æ˜¯å¦ä½¿ç”¨ç³»ç»Ÿæ ‡é¢˜æ 
     */
     void SetUseSystemCaption(bool bUseSystemCaption);
 
-    /** »ñÈ¡ÊÇ·ñÊ¹ÓÃÏµÍ³±êÌâÀ¸
+    /** è·å–æ˜¯å¦ä½¿ç”¨ç³»ç»Ÿæ ‡é¢˜æ 
     */
     bool IsUseSystemCaption() const;
 
-    /** »ñÈ¡´°¿ÚÔ²½Ç´óĞ¡£¬¶ÔÓ¦ XML ÖĞ roundcorner ÊôĞÔ
+    /** è·å–çª—å£åœ†è§’å¤§å°ï¼Œå¯¹åº” XML ä¸­ roundcorner å±æ€§
     */
     const UiSize& GetRoundCorner() const;
 
-    /** ÉèÖÃ´°¿ÚÔ²½Ç´óĞ¡
-    * @param [in] cx Ô²½Ç¿í
-    * @param [in] cy Ô²½Ç¸ß
-    * @param [in] bNeedDpiScale Îª false ±íÊ¾²»¸ù¾İ DPI µ÷Õû
+    /** è®¾ç½®çª—å£åœ†è§’å¤§å°
+    * @param [in] cx åœ†è§’å®½
+    * @param [in] cy åœ†è§’é«˜
+    * @param [in] bNeedDpiScale ä¸º false è¡¨ç¤ºä¸æ ¹æ® DPI è°ƒæ•´
     */
     void SetRoundCorner(int cx, int cy, bool bNeedDpiScale);
 
-    /** »ñÈ¡´°¿Ú×î´ó»¯ĞÅÏ¢
+    /** è·å–çª—å£æœ€å¤§åŒ–ä¿¡æ¯
     */
     const UiRect& GetMaximizeInfo() const;
 
-    /** ÉèÖÃ´°¿Ú×î´ó»¯ĞÅÏ¢
-    * @param [in] rcMaximize ÒªÉèÖÃµÄ×î´ó»¯ÊıÖµ
-    * @param [in] bNeedDpiScale ÊÇ·ñ½øĞĞDPIËõ·Å
+    /** è®¾ç½®çª—å£æœ€å¤§åŒ–ä¿¡æ¯
+    * @param [in] rcMaximize è¦è®¾ç½®çš„æœ€å¤§åŒ–æ•°å€¼
+    * @param [in] bNeedDpiScale æ˜¯å¦è¿›è¡ŒDPIç¼©æ”¾
     */
     void SetMaximizeInfo(const UiRect& rcMaximize, bool bNeedDpiScale);
 
-    /** »ñÈ¡Í¸Ã÷Í¨µÀĞŞ²¹·¶Î§µÄµÄ¾Å¹¬¸ñÃèÊö£¬¶ÔÓ¦ XML ÖĞ alphafixcorner ÊôĞÔ
+    /** è·å–é€æ˜é€šé“ä¿®è¡¥èŒƒå›´çš„çš„ä¹å®«æ ¼æè¿°ï¼Œå¯¹åº” XML ä¸­ alphafixcorner å±æ€§
     */
     const UiRect& GetAlphaFixCorner() const;
 
-    /** ÉèÖÃÍ¸Ã÷Í¨µÀĞŞ²¹·¶Î§µÄµÄ¾Å¹¬¸ñÃèÊö
-    * @param [in] rc ÒªÉèÖÃµÄĞŞ²¹·¶Î§
-    * @param [in] bNeedDpiScale ÊÇ·ñ½øĞĞDPIËõ·Å
+    /** è®¾ç½®é€æ˜é€šé“ä¿®è¡¥èŒƒå›´çš„çš„ä¹å®«æ ¼æè¿°
+    * @param [in] rc è¦è®¾ç½®çš„ä¿®è¡¥èŒƒå›´
+    * @param [in] bNeedDpiScale æ˜¯å¦è¿›è¡ŒDPIç¼©æ”¾
     */
     void SetAlphaFixCorner(const UiRect& rc, bool bNeedDpiScale);
 
-    /** »ñÈ¡´°¿Ú×îĞ¡·¶Î§£¬¶ÔÓ¦ XML ÖĞ mininfo ÊôĞÔ
-    * @param [in] bContainShadow ÊÇ·ñ°üº¬ÒõÓ°·¶Î§£¬Ä¬ÈÏÎª false
+    /** è·å–çª—å£æœ€å°èŒƒå›´ï¼Œå¯¹åº” XML ä¸­ mininfo å±æ€§
+    * @param [in] bContainShadow æ˜¯å¦åŒ…å«é˜´å½±èŒƒå›´ï¼Œé»˜è®¤ä¸º false
     */
     UiSize GetMinInfo(bool bContainShadow /*= false*/) const;
 
-    /** ÉèÖÃ´°¿Ú×îĞ¡·¶Î§
-    * @param [in] cx ¿í¶È
-    * @param [in] cy ¸ß¶È
-    * @param [in] bContainShadow Îª false ±íÊ¾ cx cy ²»°üº¬ÒõÓ°
-    * @param [in] bNeedDpiScale Îª false ±íÊ¾²»ĞèÒª°Ñ rc ¸ù¾İ DPI ×Ô¶¯µ÷Õû
+    /** è®¾ç½®çª—å£æœ€å°èŒƒå›´
+    * @param [in] cx å®½åº¦
+    * @param [in] cy é«˜åº¦
+    * @param [in] bContainShadow ä¸º false è¡¨ç¤º cx cy ä¸åŒ…å«é˜´å½±
+    * @param [in] bNeedDpiScale ä¸º false è¡¨ç¤ºä¸éœ€è¦æŠŠ rc æ ¹æ® DPI è‡ªåŠ¨è°ƒæ•´
     */
     void SetMinInfo(int cx, int cy, bool bContainShadow /*= false*/, bool bNeedDpiScale);
 
-    /** »ñÈ¡´°¿Ú×î´ó·¶Î§£¬¶ÔÓ¦ XML ÖĞ maxinfo ÊôĞÔ
-    * @param [in] bContainShadow ÊÇ·ñ°üº¬ÒõÓ°·¶Î§£¬Ä¬ÈÏÎª false
+    /** è·å–çª—å£æœ€å¤§èŒƒå›´ï¼Œå¯¹åº” XML ä¸­ maxinfo å±æ€§
+    * @param [in] bContainShadow æ˜¯å¦åŒ…å«é˜´å½±èŒƒå›´ï¼Œé»˜è®¤ä¸º false
     */
     UiSize GetMaxInfo(bool bContainShadow /*= false*/) const;
 
-    /** ÉèÖÃ´°¿Ú×î´ó·¶Î§
-    * @param [in] cx ¿í¶È
-    * @param [in] cy ¸ß¶È
-    * @param [in] bContainShadow Îª false ±íÊ¾ cx cy ²»°üº¬ÒõÓ°
-    * @param [in] bNeedDpiScale Îª false ±íÊ¾²»ĞèÒª°Ñ rc ¸ù¾İ DPI ×Ô¶¯µ÷Õû
+    /** è®¾ç½®çª—å£æœ€å¤§èŒƒå›´
+    * @param [in] cx å®½åº¦
+    * @param [in] cy é«˜åº¦
+    * @param [in] bContainShadow ä¸º false è¡¨ç¤º cx cy ä¸åŒ…å«é˜´å½±
+    * @param [in] bNeedDpiScale ä¸º false è¡¨ç¤ºä¸éœ€è¦æŠŠ rc æ ¹æ® DPI è‡ªåŠ¨è°ƒæ•´
     */
     void SetMaxInfo(int cx, int cy, bool bContainShadow /*= false*/, bool bNeedDpiScale);
 
-    /** ÉèÖÃ´°¿Ú³õÊ¼´óĞ¡
-    * @param [in] cx ¿í¶È
-    * @param [in] cy ¸ß¶È
-    * @param [in] bContainShadow Îª false ±íÊ¾ cx cy ²»°üº¬ÒõÓ°
-    * @param [in] bNeedDpiScale Îª false ±íÊ¾²»¸ù¾İ DPI µ÷Õû
+    /** è®¾ç½®çª—å£åˆå§‹å¤§å°
+    * @param [in] cx å®½åº¦
+    * @param [in] cy é«˜åº¦
+    * @param [in] bContainShadow ä¸º false è¡¨ç¤º cx cy ä¸åŒ…å«é˜´å½±
+    * @param [in] bNeedDpiScale ä¸º false è¡¨ç¤ºä¸æ ¹æ® DPI è°ƒæ•´
     */
     void SetInitSize(int cx, int cy, bool bContainShadow /*= false*/, bool bNeedDpiScale);
 
     /** @}*/
 
 public:
-    /** @name ´°¿Ú²¼¾ÖÏà¹Ø½Ó¿Ú
+    /** @name çª—å£å¸ƒå±€ç›¸å…³æ¥å£
     * @{
     */
-    /** °ó¶¨´°¿ÚµÄ¶¥²ãÈİÆ÷
-    * @param [in] pRoot ÈİÆ÷Ö¸Õë
+    /** ç»‘å®šçª—å£çš„é¡¶å±‚å®¹å™¨
+    * @param [in] pRoot å®¹å™¨æŒ‡é’ˆ
     */
     bool AttachBox(Box* pRoot);
 
-    /** »ñÈ¡´°¿Ú×îÍâ²ãµÄÈİÆ÷
+    /** è·å–çª—å£æœ€å¤–å±‚çš„å®¹å™¨
     */
     Box* GetRoot() const;
 
-    /** »ñÈ¡´°¿Ú×ÊÔ´Â·¾¶
+    /** è·å–çª—å£èµ„æºè·¯å¾„
     */
     const std::wstring& GetResourcePath() const;
 
-    /** ÉèÖÃ´°¿Ú×ÊÔ´Â·¾¶
-    * @param [in] strPath ÒªÉèÖÃµÄÂ·¾¶
+    /** è®¾ç½®çª—å£èµ„æºè·¯å¾„
+    * @param [in] strPath è¦è®¾ç½®çš„è·¯å¾„
     */
     void SetResourcePath(const std::wstring& strPath);
 
-    /** ³õÊ¼»¯¿Ø¼ş£¬ÔÚÈİÆ÷ÖĞÌí¼Ó¿Ø¼şÊ±»á±»µ÷ÓÃ£¨ÓÃÓÚ¶Ô¿Ø¼şÃû³Æ×ö»º´æ£©
-    * @param [in] pControl ¿Ø¼şÖ¸Õë
+    /** åˆå§‹åŒ–æ§ä»¶ï¼Œåœ¨å®¹å™¨ä¸­æ·»åŠ æ§ä»¶æ—¶ä¼šè¢«è°ƒç”¨ï¼ˆç”¨äºå¯¹æ§ä»¶åç§°åšç¼“å­˜ï¼‰
+    * @param [in] pControl æ§ä»¶æŒ‡é’ˆ
     */
     bool InitControls(Control* pControl);
 
-    /** ³õÊ¼»¯²¼¾Ö
+    /** åˆå§‹åŒ–å¸ƒå±€
     */
     virtual void OnInitLayout();
 
-    /** »ØÊÕ¿Ø¼ş
-    * @param [in] pControl ¿Ø¼şÖ¸Õë
+    /** å›æ”¶æ§ä»¶
+    * @param [in] pControl æ§ä»¶æŒ‡é’ˆ
     */
     void ReapObjects(Control* pControl);
 
-    /** ÑÓ³ÙÏú»ÙÒ»¸ö¿Ø¼ş
-    * @param [in] pControl ¿Ø¼şÖ¸Õë
+    /** å»¶è¿Ÿé”€æ¯ä¸€ä¸ªæ§ä»¶
+    * @param [in] pControl æ§ä»¶æŒ‡é’ˆ
     */
     void AddDelayedCleanup(Control* pControl);
 
-    /** Ìí¼ÓÒ»¸öÍ¨ÓÃÑùÊ½
-    * @param [in] strClassName Í¨ÓÃÑùÊ½µÄÃû³Æ
-    * @param [in] strControlAttrList Í¨ÓÃÑùÊ½µÄ XML ×ªÒå¸ñÊ½Êı¾İ
+    /** æ·»åŠ ä¸€ä¸ªé€šç”¨æ ·å¼
+    * @param [in] strClassName é€šç”¨æ ·å¼çš„åç§°
+    * @param [in] strControlAttrList é€šç”¨æ ·å¼çš„ XML è½¬ä¹‰æ ¼å¼æ•°æ®
     */
     void AddClass(const std::wstring& strClassName, const std::wstring& strControlAttrList);
 
-    /** »ñÈ¡Ö¸¶¨Í¨ÓÃÑùÊ½µÄÄÚÈİ
-    * @param [in] strClassName Í¨ÓÃÑùÊ½Ãû³Æ
-    * @return ·µ»ØÖ¸¶¨Ãû³ÆµÄÍ¨ÓÃÑùÊ½ÄÚÈİ£¬XML ×ªÒå¸ñÊ½Êı¾İ
+    /** è·å–æŒ‡å®šé€šç”¨æ ·å¼çš„å†…å®¹
+    * @param [in] strClassName é€šç”¨æ ·å¼åç§°
+    * @return è¿”å›æŒ‡å®šåç§°çš„é€šç”¨æ ·å¼å†…å®¹ï¼ŒXML è½¬ä¹‰æ ¼å¼æ•°æ®
     */
     std::wstring GetClassAttributes(const std::wstring& strClassName) const;
 
-    /** É¾³ıÒ»¸öÍ¨ÓÃÑùÊ½
-    * @param [in] strClassName ÒªÉ¾³ıµÄÍ¨ÓÃÑùÊ½Ãû³Æ
+    /** åˆ é™¤ä¸€ä¸ªé€šç”¨æ ·å¼
+    * @param [in] strClassName è¦åˆ é™¤çš„é€šç”¨æ ·å¼åç§°
     */
     bool RemoveClass(const std::wstring& strClassName);
 
-    /** É¾³ıËùÓĞÍ¨ÓÃÑùÊ½
+    /** åˆ é™¤æ‰€æœ‰é€šç”¨æ ·å¼
     */
     void RemoveAllClass();
 
-    /** Ìí¼ÓÒ»¸öÑÕÉ«ÖµÌá¹©´°¿ÚÄÚÊ¹ÓÃ
-    * @param [in] strName ÑÕÉ«Ãû³Æ£¨Èç white£©
-    * @param [in] strValue ÑÕÉ«¾ßÌåÊıÖµ£¨Èç #FFFFFFFF£©
+    /** æ·»åŠ ä¸€ä¸ªé¢œè‰²å€¼æä¾›çª—å£å†…ä½¿ç”¨
+    * @param [in] strName é¢œè‰²åç§°ï¼ˆå¦‚ whiteï¼‰
+    * @param [in] strValue é¢œè‰²å…·ä½“æ•°å€¼ï¼ˆå¦‚ #FFFFFFFFï¼‰
     */
     void AddTextColor(const std::wstring& strName, const std::wstring& strValue);
 
-    /** Ìí¼ÓÒ»¸öÑÕÉ«ÖµÌá¹©´°¿ÚÄÚÊ¹ÓÃ
-    * @param [in] strName ÑÕÉ«Ãû³Æ£¨Èç white£©
-    * @param [in] argb ÑÕÉ«¾ßÌåÊıÖµ, ÒÔARGB¸ñÊ½±íÊ¾
+    /** æ·»åŠ ä¸€ä¸ªé¢œè‰²å€¼æä¾›çª—å£å†…ä½¿ç”¨
+    * @param [in] strName é¢œè‰²åç§°ï¼ˆå¦‚ whiteï¼‰
+    * @param [in] argb é¢œè‰²å…·ä½“æ•°å€¼, ä»¥ARGBæ ¼å¼è¡¨ç¤º
     */
     void AddTextColor(const std::wstring& strName, UiColor argb);
 
-    /** ¸ù¾İÃû³Æ»ñÈ¡Ò»¸öÑÕÉ«µÄ¾ßÌåÊıÖµ
-    * @param [in] strName Òª»ñÈ¡µÄÑÕÉ«Ãû³Æ
-    * @return ·µ»Ø DWORD ¸ñÊ½µÄÑÕÉ«ÃèÊöÖµ
+    /** æ ¹æ®åç§°è·å–ä¸€ä¸ªé¢œè‰²çš„å…·ä½“æ•°å€¼
+    * @param [in] strName è¦è·å–çš„é¢œè‰²åç§°
+    * @return è¿”å› DWORD æ ¼å¼çš„é¢œè‰²æè¿°å€¼
     */
     UiColor GetTextColor(const std::wstring& strName) const;
 
-    /** Ìí¼ÓÒ»¸öÑ¡Ïî×é
-    * @param [in] strGroupName ×éÃû³Æ
-    * @param [in] pControl ¿Ø¼şÖ¸Õë
+    /** æ·»åŠ ä¸€ä¸ªé€‰é¡¹ç»„
+    * @param [in] strGroupName ç»„åç§°
+    * @param [in] pControl æ§ä»¶æŒ‡é’ˆ
     */
     bool AddOptionGroup(const std::wstring& strGroupName, Control* pControl);
 
-    /** »ñÈ¡Ö¸¶¨Ñ¡Ïî×éÖĞ¿Ø¼şÁĞ±í
-    * @param [in] strGroupName Ö¸¶¨×éÃû³Æ
-    * @return ·µ»Ø¸Ã×éÏÂµÄËùÓĞ¿Ø¼şÁĞ±í
+    /** è·å–æŒ‡å®šé€‰é¡¹ç»„ä¸­æ§ä»¶åˆ—è¡¨
+    * @param [in] strGroupName æŒ‡å®šç»„åç§°
+    * @return è¿”å›è¯¥ç»„ä¸‹çš„æ‰€æœ‰æ§ä»¶åˆ—è¡¨
     */
     std::vector<Control*>* GetOptionGroup(const std::wstring& strGroupName);
 
-    /** É¾³ıÒ»¸öÑ¡Ïî×é
-    * @param [in] strGroupName ×éÃû³Æ
-    * @param [in] pControl ¿Ø¼şÃû³Æ
+    /** åˆ é™¤ä¸€ä¸ªé€‰é¡¹ç»„
+    * @param [in] strGroupName ç»„åç§°
+    * @param [in] pControl æ§ä»¶åç§°
     */
     void RemoveOptionGroup(const std::wstring& strGroupName, Control* pControl);
 
-    /** É¾³ıËùÓĞÑ¡Ïî×é
+    /** åˆ é™¤æ‰€æœ‰é€‰é¡¹ç»„
     */
     void RemoveAllOptionGroups();
 
     /** @}*/
 
 public:
-    /** @name ´°¿ÚÏûÏ¢Ïà¹ØµÄ½Ó¿Ú
+    /** @name çª—å£æ¶ˆæ¯ç›¸å…³çš„æ¥å£
     * @{
     */
-    /** Ìí¼ÓÒ»¸öÏûÏ¢¹ıÂËÆ÷£¬´ËÊ±ÏûÏ¢ÒÑ¾­ÅÉ·¢£¬¸Ã½Ó¿ÚµÄÏûÏ¢´¦ÀíÓÅÏÈ¼¶¸ßÓÚWindowÀàµÄÏûÏ¢´¦Àíº¯Êı
-    * @param [in] pFilter Ò»¸ö¼Ì³ĞÁË IUIMessageFilter µÄ¶ÔÏóÊµÀı£¬ĞèÒªÊµÏÖ½Ó¿ÚÖĞµÄ·½·¨
+    /** æ·»åŠ ä¸€ä¸ªæ¶ˆæ¯è¿‡æ»¤å™¨ï¼Œæ­¤æ—¶æ¶ˆæ¯å·²ç»æ´¾å‘ï¼Œè¯¥æ¥å£çš„æ¶ˆæ¯å¤„ç†ä¼˜å…ˆçº§é«˜äºWindowç±»çš„æ¶ˆæ¯å¤„ç†å‡½æ•°
+    * @param [in] pFilter ä¸€ä¸ªç»§æ‰¿äº† IUIMessageFilter çš„å¯¹è±¡å®ä¾‹ï¼Œéœ€è¦å®ç°æ¥å£ä¸­çš„æ–¹æ³•
     */
     bool AddMessageFilter(IUIMessageFilter* pFilter);
 
-    /** ÒÆ³ıÒ»¸öÏûÏ¢¹ıÂËÆ÷
-    * @param [in] pFilter Ò»¸ö¼Ì³ĞÁË IUIMessageFilter µÄ¶ÔÏóÊµÀı
+    /** ç§»é™¤ä¸€ä¸ªæ¶ˆæ¯è¿‡æ»¤å™¨
+    * @param [in] pFilter ä¸€ä¸ªç»§æ‰¿äº† IUIMessageFilter çš„å¯¹è±¡å®ä¾‹
     */
     bool RemoveMessageFilter(IUIMessageFilter* pFilter);
 
-    /** ·¢ËÍÏûÏ¢£¬¶Ô Windows SendMessage µÄÒ»²ã·â×°
-    * @param [in] uMsg ÏûÏ¢ÀàĞÍ
-    * @param [in] wParam ÏûÏ¢¸½¼Ó²ÎÊı
-    * @param [in] lParam ÏûÏ¢¸½¼Ó²ÎÊı
-    * @return ·µ»Ø´°¿Ú¶ÔÏûÏ¢µÄ´¦Àí½á¹û
+    /** å‘é€æ¶ˆæ¯ï¼Œå¯¹ Windows SendMessage çš„ä¸€å±‚å°è£…
+    * @param [in] uMsg æ¶ˆæ¯ç±»å‹
+    * @param [in] wParam æ¶ˆæ¯é™„åŠ å‚æ•°
+    * @param [in] lParam æ¶ˆæ¯é™„åŠ å‚æ•°
+    * @return è¿”å›çª—å£å¯¹æ¶ˆæ¯çš„å¤„ç†ç»“æœ
     */
     LRESULT SendMsg(UINT uMsg, WPARAM wParam = 0, LPARAM lParam = 0L);
 
-    /** Í¶µİÒ»¸öÏûÏ¢µ½ÏûÏ¢¶ÓÁĞ
-    * @param [in] uMsg ÏûÏ¢ÀàĞÍ
-    * @param [in] wParam ÏûÏ¢¸½¼Ó²ÎÊı
-    * @param [in] lParam ÏûÏ¢¸½¼Ó²ÎÊı
-    * @return ·µ»Ø´°¿Ú¶ÔÏûÏ¢µÄ´¦Àí½á¹û
+    /** æŠ•é€’ä¸€ä¸ªæ¶ˆæ¯åˆ°æ¶ˆæ¯é˜Ÿåˆ—
+    * @param [in] uMsg æ¶ˆæ¯ç±»å‹
+    * @param [in] wParam æ¶ˆæ¯é™„åŠ å‚æ•°
+    * @param [in] lParam æ¶ˆæ¯é™„åŠ å‚æ•°
+    * @return è¿”å›çª—å£å¯¹æ¶ˆæ¯çš„å¤„ç†ç»“æœ
     */
     LRESULT PostMsg(UINT uMsg, WPARAM wParam = 0, LPARAM lParam = 0L);
 
-    /** Ö÷¶¯·¢ÆğÒ»¸öÏûÏ¢, ·¢ËÍ¸ø¸Ã´°¿ÚµÄÊÂ¼ş»Øµ÷¹ÜÀíÆ÷£¨m_OnEvent£©ÖĞ×¢²áµÄÏûÏ¢´¦Àíº¯Êı
-    * @param [in] eventType ×ª»¯ºóµÄÏûÏ¢Ìå
-    * @param [in] wParam ÏûÏ¢¸½¼Ó²ÎÊı
-    * @param [in] lParam ÏûÏ¢¸½¼Ó²ÎÊı
+    /** ä¸»åŠ¨å‘èµ·ä¸€ä¸ªæ¶ˆæ¯, å‘é€ç»™è¯¥çª—å£çš„äº‹ä»¶å›è°ƒç®¡ç†å™¨ï¼ˆm_OnEventï¼‰ä¸­æ³¨å†Œçš„æ¶ˆæ¯å¤„ç†å‡½æ•°
+    * @param [in] eventType è½¬åŒ–åçš„æ¶ˆæ¯ä½“
+    * @param [in] wParam æ¶ˆæ¯é™„åŠ å‚æ•°
+    * @param [in] lParam æ¶ˆæ¯é™„åŠ å‚æ•°
     */
     bool SendNotify(EventType eventType, WPARAM wParam = 0, LPARAM lParam = 0);
 
-    /** µ÷ÓÃÏµÍ³Ä¬ÈÏµÄ´°¿Ú´¦Àíº¯Êı£¬¶Ô CallWindowProc API µÄÒ»²ã·â×°
-    * @param [in] uMsg ÏûÏ¢Ìå
-    * @param [in] wParam ÏûÏ¢¸½¼Ó²ÎÊı
-    * @param [in] lParam ÏûÏ¢¸½¼Ó²ÎÊı
-    * @return ·µ»ØÏûÏ¢´¦Àí½á¹û
+    /** è°ƒç”¨ç³»ç»Ÿé»˜è®¤çš„çª—å£å¤„ç†å‡½æ•°ï¼Œå¯¹ CallWindowProc API çš„ä¸€å±‚å°è£…
+    * @param [in] uMsg æ¶ˆæ¯ä½“
+    * @param [in] wParam æ¶ˆæ¯é™„åŠ å‚æ•°
+    * @param [in] lParam æ¶ˆæ¯é™„åŠ å‚æ•°
+    * @return è¿”å›æ¶ˆæ¯å¤„ç†ç»“æœ
     */
     LRESULT CallDefaultWindowProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 protected:
 
-    /** ´°¿ÚÏûÏ¢µÄ´¦Àíº¯Êı, ´ÓÏµÍ³½ÓÊÕµ½ÏûÏ¢ºó£¬½øÈëµÄµÚÒ»¸ö´¦Àíº¯Êı
-    * @param [in] uMsg ÏûÏ¢Ìå
-    * @param [in] wParam ÏûÏ¢¸½¼Ó²ÎÊı
-    * @param [in] lParam ÏûÏ¢¸½¼Ó²ÎÊı
-    * @return ·µ»ØÏûÏ¢µÄ´¦Àí½á¹û
+    /** çª—å£æ¶ˆæ¯çš„å¤„ç†å‡½æ•°, ä»ç³»ç»Ÿæ¥æ”¶åˆ°æ¶ˆæ¯åï¼Œè¿›å…¥çš„ç¬¬ä¸€ä¸ªå¤„ç†å‡½æ•°
+    * @param [in] uMsg æ¶ˆæ¯ä½“
+    * @param [in] wParam æ¶ˆæ¯é™„åŠ å‚æ•°
+    * @param [in] lParam æ¶ˆæ¯é™„åŠ å‚æ•°
+    * @return è¿”å›æ¶ˆæ¯çš„å¤„ç†ç»“æœ
     */
     LRESULT WindowMessageProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-    /** ´°¿ÚÏûÏ¢µÄÅÉ·¢º¯Êı
-    * @param [in] uMsg ÏûÏ¢Ìå
-    * @param [in] wParam ÏûÏ¢¸½¼Ó²ÎÊı
-    * @param [in] lParam ÏûÏ¢¸½¼Ó²ÎÊı
-    * @param[out] bHandled ÏûÏ¢ÊÇ·ñÒÑ¾­´¦Àí£¬
-                ·µ»Ø true  ±íÃ÷ÒÑ¾­³É¹¦´¦ÀíÏûÏ¢£¬²»ĞèÒªÔÙ´«µİ¸ø´°¿Ú¹ı³Ì£»
-                ·µ»Ø false ±íÊ¾½«ÏûÏ¢¼ÌĞø´«µİ¸ø´°¿Ú¹ı³Ì´¦Àí
-    * @return ·µ»ØÏûÏ¢µÄ´¦Àí½á¹û
+    /** çª—å£æ¶ˆæ¯çš„æ´¾å‘å‡½æ•°
+    * @param [in] uMsg æ¶ˆæ¯ä½“
+    * @param [in] wParam æ¶ˆæ¯é™„åŠ å‚æ•°
+    * @param [in] lParam æ¶ˆæ¯é™„åŠ å‚æ•°
+    * @param[out] bHandled æ¶ˆæ¯æ˜¯å¦å·²ç»å¤„ç†ï¼Œ
+                è¿”å› true  è¡¨æ˜å·²ç»æˆåŠŸå¤„ç†æ¶ˆæ¯ï¼Œä¸éœ€è¦å†ä¼ é€’ç»™çª—å£è¿‡ç¨‹ï¼›
+                è¿”å› false è¡¨ç¤ºå°†æ¶ˆæ¯ç»§ç»­ä¼ é€’ç»™çª—å£è¿‡ç¨‹å¤„ç†
+    * @return è¿”å›æ¶ˆæ¯çš„å¤„ç†ç»“æœ
     */
     virtual LRESULT OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
 
-    /** ´°¿ÚÏûÏ¢µÄÅÉ·¢º¯Êı£¬ÓÅÏÈµ÷ÓÃÄÚ²¿´¦Àíº¯Êı£¬Èç¹ûÄÚ²¿ÎŞ´¦ÀíÂß¼­£¬Ôòµ÷ÓÃWindowsÄ¬ÈÏ´¦Àíº¯Êı´¦Àí´ËÏûÏ¢
-    * @param [in] uMsg ÏûÏ¢Ìå
-    * @param [in] wParam ÏûÏ¢¸½¼Ó²ÎÊı
-    * @param [in] lParam ÏûÏ¢¸½¼Ó²ÎÊı
-    * @param[out] bHandled ÏûÏ¢ÊÇ·ñÒÑ¾­´¦Àí£¬·µ»Ø true ±íÃ÷ÒÑ¾­³É¹¦´¦ÀíÏûÏ¢£¬·ñÔò½«ÏûÏ¢¼ÌĞø´«µİ¸ø´°¿Ú¹ı³Ì
-    * @return ·µ»ØÏûÏ¢µÄ´¦Àí½á¹û
+    /** çª—å£æ¶ˆæ¯çš„æ´¾å‘å‡½æ•°ï¼Œä¼˜å…ˆè°ƒç”¨å†…éƒ¨å¤„ç†å‡½æ•°ï¼Œå¦‚æœå†…éƒ¨æ— å¤„ç†é€»è¾‘ï¼Œåˆ™è°ƒç”¨Windowsé»˜è®¤å¤„ç†å‡½æ•°å¤„ç†æ­¤æ¶ˆæ¯
+    * @param [in] uMsg æ¶ˆæ¯ä½“
+    * @param [in] wParam æ¶ˆæ¯é™„åŠ å‚æ•°
+    * @param [in] lParam æ¶ˆæ¯é™„åŠ å‚æ•°
+    * @param[out] bHandled æ¶ˆæ¯æ˜¯å¦å·²ç»å¤„ç†ï¼Œè¿”å› true è¡¨æ˜å·²ç»æˆåŠŸå¤„ç†æ¶ˆæ¯ï¼Œå¦åˆ™å°†æ¶ˆæ¯ç»§ç»­ä¼ é€’ç»™çª—å£è¿‡ç¨‹
+    * @return è¿”å›æ¶ˆæ¯çš„å¤„ç†ç»“æœ
     */
     LRESULT HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
 
     /** @}*/
 
-    /** ½øÈëÈ«ÆÁ×´Ì¬
+    /** è¿›å…¥å…¨å±çŠ¶æ€
     */
     virtual void OnWindowEnterFullScreen() {}
 
-    /** ÍË³öÈ«ÆÁ×´Ì¬
+    /** é€€å‡ºå…¨å±çŠ¶æ€
     */
     virtual void OnWindowExitFullScreen() {}
 
-    /** ½øÈë×î´ó»¯×´Ì¬
+    /** è¿›å…¥æœ€å¤§åŒ–çŠ¶æ€
     */
     virtual void OnWindowMaximized() {}
 
-    /** ´Ó×î´ó»¯»¹Ô­
+    /** ä»æœ€å¤§åŒ–è¿˜åŸ
     */
     virtual void OnWindowRestored() {}
 
-    /** ½øÈë×îĞ¡»¯×´Ì¬
+    /** è¿›å…¥æœ€å°åŒ–çŠ¶æ€
     */
     virtual void OnWindowMinimized() {}
 
-    /** ÇĞ»»ÏµÍ³±êÌâÀ¸Óë×Ô»æ±êÌâÀ¸
+    /** åˆ‡æ¢ç³»ç»Ÿæ ‡é¢˜æ ä¸è‡ªç»˜æ ‡é¢˜æ 
     */
     virtual void OnUseSystemCaptionBarChanged();
 
-    /** ´°¿ÚµÄDPI·¢ÉúÁË±ä»¯
-    * @param [in] nOldDPI ¾ÉµÄDPIÖµ
-    * @param [in] nNewDPI ĞÂµÄDPIÖµ
+    /** çª—å£çš„DPIå‘ç”Ÿäº†å˜åŒ–
+    * @param [in] nOldDPI æ—§çš„DPIå€¼
+    * @param [in] nNewDPI æ–°çš„DPIå€¼
     */
     virtual void OnWindowDpiChanged(uint32_t nOldDPI, uint32_t nNewDPI);
 
 private:
-    /** @name Ë½ÓĞ´°¿ÚÏûÏ¢´¦ÀíÏà¹Ø
+    /** @name ç§æœ‰çª—å£æ¶ˆæ¯å¤„ç†ç›¸å…³
     * @{
     */
-    //²¿·ÖÏûÏ¢´¦Àíº¯Êı£¬ÒÔÊµÏÖ»ù±¾¹¦ÄÜ    
+    //éƒ¨åˆ†æ¶ˆæ¯å¤„ç†å‡½æ•°ï¼Œä»¥å®ç°åŸºæœ¬åŠŸèƒ½    
     LRESULT OnNcActivateMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
     LRESULT OnNcCalcSizeMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
     LRESULT OnNcHitTestMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
@@ -672,184 +672,184 @@ private:
     LRESULT OnPointerMsgs(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
 
 private:
-    //Êó±êµÈ°´ÏÂÏûÏ¢´¦Àíº¯Êı
+    //é¼ æ ‡ç­‰æŒ‰ä¸‹æ¶ˆæ¯å¤„ç†å‡½æ•°
     void OnButtonDown(EventType eventType, WPARAM wParam, LPARAM lParam, const UiPoint& pt);
 
-    //Êó±êµÈµ¯ÆğÏûÏ¢´¦Àíº¯Êı
+    //é¼ æ ‡ç­‰å¼¹èµ·æ¶ˆæ¯å¤„ç†å‡½æ•°
     void OnButtonUp(EventType eventType, WPARAM wParam, LPARAM lParam, const UiPoint& pt);
 
-    //Êó±êÒÆ¶¯ÏûÏ¢´¦Àíº¯Êı
+    //é¼ æ ‡ç§»åŠ¨æ¶ˆæ¯å¤„ç†å‡½æ•°
     void OnMouseMove(WPARAM wParam, LPARAM lParam, const UiPoint& pt);
 
-    /** Êó±ê¹öÂÖÏûÏ¢´¦Àíº¯Êı
-    *  @param [in] wParam ¹öÂÖĞı×ªµÄ¾àÀë£¬ÕıÖµ±íÊ¾¹öÂÖÏòÇ°Ğı×ª£¬Ô¶ÀëÓÃ»§;¸ºÖµ±íÊ¾¹öÂÖÏòºóÏòÓÃ»§Ğı×ª¡£
-    *  @param [in] lParam º¬ÓĞÌØÊâ´¦Àí£¬ 0±íÊ¾ÑÏ¸ñ°´ÕÕwParamÖ¸¶¨µÄ¾àÀë¹ö¶¯, ·Ç0±íÊ¾°´ÕÕ³£¹æÂß¼­´¦Àí¹öÂÖĞı×ªµÄ¾àÀë
-    *  @param [in] pt Êó±êËùÔÚµÄ×ø±êÖµ£¬Îª´°¿Ú¿Í»§Çø×ø±ê
+    /** é¼ æ ‡æ»šè½®æ¶ˆæ¯å¤„ç†å‡½æ•°
+    *  @param [in] wParam æ»šè½®æ—‹è½¬çš„è·ç¦»ï¼Œæ­£å€¼è¡¨ç¤ºæ»šè½®å‘å‰æ—‹è½¬ï¼Œè¿œç¦»ç”¨æˆ·;è´Ÿå€¼è¡¨ç¤ºæ»šè½®å‘åå‘ç”¨æˆ·æ—‹è½¬ã€‚
+    *  @param [in] lParam å«æœ‰ç‰¹æ®Šå¤„ç†ï¼Œ 0è¡¨ç¤ºä¸¥æ ¼æŒ‰ç…§wParamæŒ‡å®šçš„è·ç¦»æ»šåŠ¨, é0è¡¨ç¤ºæŒ‰ç…§å¸¸è§„é€»è¾‘å¤„ç†æ»šè½®æ—‹è½¬çš„è·ç¦»
+    *  @param [in] pt é¼ æ ‡æ‰€åœ¨çš„åæ ‡å€¼ï¼Œä¸ºçª—å£å®¢æˆ·åŒºåæ ‡
     */
     void OnMouseWheel(WPARAM wParam, LPARAM lParam, const UiPoint& pt);
 
-    //Çå³ıÊó±ê¼üÅÌ²Ù×÷×´Ì¬
+    //æ¸…é™¤é¼ æ ‡é”®ç›˜æ“ä½œçŠ¶æ€
     void ClearStatus();
 
-    /** ÅĞ¶ÏÊÇ·ñĞèÒª·¢ËÍÊó±ê½øÈë»òÀë¿ªÏûÏ¢
-    * @param [in] pt Êó±êµ±Ç°Î»ÖÃ
-    * @param [in] wParam ÏûÏ¢¸½¼Ó²ÎÊı
-    * @param [in] lParam ÏûÏ¢¸½¼Ó²ÎÊı
-    * @return ·µ»Ø true ĞèÒª·¢ËÍÊó±ê½øÈë»òÀë¿ªÏûÏ¢£¬·µ»Ø false Îª²»ĞèÒª
+    /** åˆ¤æ–­æ˜¯å¦éœ€è¦å‘é€é¼ æ ‡è¿›å…¥æˆ–ç¦»å¼€æ¶ˆæ¯
+    * @param [in] pt é¼ æ ‡å½“å‰ä½ç½®
+    * @param [in] wParam æ¶ˆæ¯é™„åŠ å‚æ•°
+    * @param [in] lParam æ¶ˆæ¯é™„åŠ å‚æ•°
+    * @return è¿”å› true éœ€è¦å‘é€é¼ æ ‡è¿›å…¥æˆ–ç¦»å¼€æ¶ˆæ¯ï¼Œè¿”å› false ä¸ºä¸éœ€è¦
     */
     bool HandleMouseEnterLeave(const UiPoint& pt, WPARAM wParam, LPARAM lParam);
 
     /** @}*/
 
 public:
-    /** @name ´°¿Ú½¹µãÏà¹Ø½Ó¿Ú
+    /** @name çª—å£ç„¦ç‚¹ç›¸å…³æ¥å£
     * @{
     */
-    /** »ñÈ¡µ±Ç°³ÖÓĞ½¹µãµÄ¿Ø¼ş
+    /** è·å–å½“å‰æŒæœ‰ç„¦ç‚¹çš„æ§ä»¶
     */
     Control* GetFocus() const;
 
-    /** »ñÈ¡µ±Ç°Êó±êÊÂ¼şµÄ¿Ø¼ş
+    /** è·å–å½“å‰é¼ æ ‡äº‹ä»¶çš„æ§ä»¶
     */
     Control* GetEventClick() const;
 
-    /** ÉèÖÃ½¹µãµ½Ö¸¶¨¿Ø¼şÉÏ(ÉèÖÃ´°¿ÚÎª½¹µã´°¿Ú£¬²¢ÉèÖÃ¸Ã¿Ø¼şÎª½¹µã¿Ø¼ş)
-    * @param [in] pControl ¿Ø¼şÖ¸Õë
+    /** è®¾ç½®ç„¦ç‚¹åˆ°æŒ‡å®šæ§ä»¶ä¸Š(è®¾ç½®çª—å£ä¸ºç„¦ç‚¹çª—å£ï¼Œå¹¶è®¾ç½®è¯¥æ§ä»¶ä¸ºç„¦ç‚¹æ§ä»¶)
+    * @param [in] pControl æ§ä»¶æŒ‡é’ˆ
     */
     void SetFocus(Control* pControl);
 
-    /** ÈÃ¿Ø¼şÊ§È¥½¹µã£¨²»Ó°Ïì´°¿Ú½¹µã£©
+    /** è®©æ§ä»¶å¤±å»ç„¦ç‚¹ï¼ˆä¸å½±å“çª—å£ç„¦ç‚¹ï¼‰
     */
     void KillFocus();
 
-    /** ÉèÖÃµ±Òª²¶»ñµÄÊó±ê´°¿Ú¾ä±úÎªµ±Ç°»æÖÆ´°¿Ú
+    /** è®¾ç½®å½“è¦æ•è·çš„é¼ æ ‡çª—å£å¥æŸ„ä¸ºå½“å‰ç»˜åˆ¶çª—å£
     * @param [in]
     */
     void SetCapture();
 
-    /** µ±´°¿Ú²»ĞèÒªÊó±êÊäÈëÊ±ÊÍ·Å×ÊÔ´
+    /** å½“çª—å£ä¸éœ€è¦é¼ æ ‡è¾“å…¥æ—¶é‡Šæ”¾èµ„æº
     */
     void ReleaseCapture();
 
-    /** ÅĞ¶Ïµ±Ç°ÊÇ·ñ²¶»ñÊó±êÊäÈë
+    /** åˆ¤æ–­å½“å‰æ˜¯å¦æ•è·é¼ æ ‡è¾“å…¥
     */
     bool IsCaptured() const;
 
-    /** »ñÈ¡µ±Ç°Êó±êÔÚÄÄ¸ö¿Ø¼şÉÏ
+    /** è·å–å½“å‰é¼ æ ‡åœ¨å“ªä¸ªæ§ä»¶ä¸Š
     */
     Control* GetHoverControl() const;
 
-    /** »ñÈ¡Êó±ê×îºóµÄ×ø±ê
+    /** è·å–é¼ æ ‡æœ€åçš„åæ ‡
     */
     const UiPoint& GetLastMousePos() const;
 
-    /** ÇĞ»»¿Ø¼ş½¹µãµ½ÏÂÒ»¸ö£¨»òÉÏÒ»¸ö£©¿Ø¼ş
-    * @param [in] bForward true ÎªÉÏÒ»¸ö¿Ø¼ş£¬·ñÔòÎª false£¬Ä¬ÈÏÎª true
+    /** åˆ‡æ¢æ§ä»¶ç„¦ç‚¹åˆ°ä¸‹ä¸€ä¸ªï¼ˆæˆ–ä¸Šä¸€ä¸ªï¼‰æ§ä»¶
+    * @param [in] bForward true ä¸ºä¸Šä¸€ä¸ªæ§ä»¶ï¼Œå¦åˆ™ä¸º falseï¼Œé»˜è®¤ä¸º true
     */
     bool SetNextTabControl(bool bForward = true);
 
     /** @}*/
 
 public:
-    /** @name ´°¿ÚÒõÓ°¡¢²ã´°¿ÚÍ¸Ã÷¶ÈÏà¹Ø½Ó¿Ú
+    /** @name çª—å£é˜´å½±ã€å±‚çª—å£é€æ˜åº¦ç›¸å…³æ¥å£
     * @{
     */
-    /** ¸½¼Ó´°¿ÚÒõÓ°
+    /** é™„åŠ çª—å£é˜´å½±
     */
     virtual Box* AttachShadow(Box* pRoot);
 
-    /** ÉèÖÃ´°¿ÚÊÇ·ñ¸½¼ÓÒõÓ°Ğ§¹û
-    * @param [in] bShadowAttached Îª true Ê±¸½¼Ó£¬false Ê±²»¸½¼Ó
+    /** è®¾ç½®çª—å£æ˜¯å¦é™„åŠ é˜´å½±æ•ˆæœ
+    * @param [in] bShadowAttached ä¸º true æ—¶é™„åŠ ï¼Œfalse æ—¶ä¸é™„åŠ 
     */
     void SetShadowAttached(bool bShadowAttached);
 
-    /** »ñÈ¡ÊÇ·ñ¸½¼ÓÒõÓ°Ğ§¹û
+    /** è·å–æ˜¯å¦é™„åŠ é˜´å½±æ•ˆæœ
     */
     bool IsShadowAttached() const;
 
-    /** µ±Ç°ÒõÓ°Ğ§¹ûÖµ£¬ÊÇ·ñÎªÄ¬ÈÏÖµ
+    /** å½“å‰é˜´å½±æ•ˆæœå€¼ï¼Œæ˜¯å¦ä¸ºé»˜è®¤å€¼
     */
     bool IsUseDefaultShadowAttached() const;
 
-    /** ÉèÖÃµ±Ç°ÒõÓ°Ğ§¹ûÖµ£¬ÊÇ·ñÎªÄ¬ÈÏÖµ
+    /** è®¾ç½®å½“å‰é˜´å½±æ•ˆæœå€¼ï¼Œæ˜¯å¦ä¸ºé»˜è®¤å€¼
     */
     void SetUseDefaultShadowAttached(bool isDefault);
 
-    /** »ñÈ¡ÒõÓ°Í¼Æ¬
+    /** è·å–é˜´å½±å›¾ç‰‡
     */
     std::wstring GetShadowImage() const;
 
-    /** ÉèÖÃ´°¿ÚÒõÓ°Í¼Æ¬
-    * @param [in] strImage Í¼Æ¬Î»ÖÃ
+    /** è®¾ç½®çª—å£é˜´å½±å›¾ç‰‡
+    * @param [in] strImage å›¾ç‰‡ä½ç½®
     */
     void SetShadowImage(const std::wstring& strImage);
 
-    /** »ñÈ¡ÒõÓ°µÄ¾Å¹¬¸ñÃèÊöĞÅÏ¢
+    /** è·å–é˜´å½±çš„ä¹å®«æ ¼æè¿°ä¿¡æ¯
     */
     UiPadding GetShadowCorner() const;
 
-    /** Ö¸¶¨ÒõÓ°ËØ²ÄµÄ¾Å¹¬¸ñÃèÊö
-    * @param [in] padding ¾Å¹¬¸ñÃèÊöĞÅÏ¢
-    * @param [in] bNeedDpiScale Îª false ±íÊ¾²»ĞèÒª°Ñ rc ¸ù¾İ DPI ×Ô¶¯µ÷Õû
+    /** æŒ‡å®šé˜´å½±ç´ æçš„ä¹å®«æ ¼æè¿°
+    * @param [in] padding ä¹å®«æ ¼æè¿°ä¿¡æ¯
+    * @param [in] bNeedDpiScale ä¸º false è¡¨ç¤ºä¸éœ€è¦æŠŠ rc æ ¹æ® DPI è‡ªåŠ¨è°ƒæ•´
     */
     void SetShadowCorner(const UiPadding& padding, bool bNeedDpiScale);
 
-    /** ÉèÖÃ´°¿ÚÍ¸Ã÷¶È
-    * @param [in] nAlpha Í¸Ã÷¶ÈÊıÖµ[0, 255]
+    /** è®¾ç½®çª—å£é€æ˜åº¦
+    * @param [in] nAlpha é€æ˜åº¦æ•°å€¼[0, 255]
     */
     void SetWindowAlpha(int nAlpha);
 
-    /** »ñÈ¡´°¿ÚÍ¸Ã÷¶È
-    * @param [in] nAlpha Í¸Ã÷¶ÈÊıÖµ[0, 255]
+    /** è·å–çª—å£é€æ˜åº¦
+    * @param [in] nAlpha é€æ˜åº¦æ•°å€¼[0, 255]
     */
     uint8_t GetWindowAlpha() const;
 
-    /** ÉèÖÃÊÇ·ñÎª²ã´°¿Ú
+    /** è®¾ç½®æ˜¯å¦ä¸ºå±‚çª—å£
     */
     void SetLayeredWindow(bool bIsLayeredWindow);
 
-    /** ÊÇ·ñÎª²ã´°¿Ú
+    /** æ˜¯å¦ä¸ºå±‚çª—å£
     */
     bool IsLayeredWindow() const;
 
     /** @}*/
 
 public:
-    /** @name ´°¿Ú»æÖÆÏà¹Ø½Ó¿Ú
+    /** @name çª—å£ç»˜åˆ¶ç›¸å…³æ¥å£
     * @{
     */
-    /** ÉèÖÃ¿Ø¼şÊÇ·ñÒÑ¾­²¼¾Ö
-    * @param [in] bArrange true ÎªÒÑ¾­ÅÅÁĞ£¬·ñÔòÎª false
+    /** è®¾ç½®æ§ä»¶æ˜¯å¦å·²ç»å¸ƒå±€
+    * @param [in] bArrange true ä¸ºå·²ç»æ’åˆ—ï¼Œå¦åˆ™ä¸º false
     */
     void SetArrange(bool bArrange);
 
-    /** ·¢³öÖØ»æÏûÏ¢
-    * @param [in] rcItem ÖØ»æ·¶Î§
+    /** å‘å‡ºé‡ç»˜æ¶ˆæ¯
+    * @param [in] rcItem é‡ç»˜èŒƒå›´
     */
     void Invalidate(const UiRect& rcItem);
 
-    /** »ñÈ¡»æÖÆÇøÓò DC
+    /** è·å–ç»˜åˆ¶åŒºåŸŸ DC
     */
     HDC GetPaintDC() const;
 
-    /** »ñÈ¡»æÖÆ¶ÔÏó
+    /** è·å–ç»˜åˆ¶å¯¹è±¡
     */
     IRender* GetRender() const;
 
-    /** »æÖÆº¯ÊıÌå
+    /** ç»˜åˆ¶å‡½æ•°ä½“
     */
     void Paint();
 
-    /** ÅĞ¶Ïµ±Ç°ÊÇ·ñäÖÈ¾Í¸Ã÷Í¼²ã
+    /** åˆ¤æ–­å½“å‰æ˜¯å¦æ¸²æŸ“é€æ˜å›¾å±‚
     */
     bool IsRenderTransparent() const;
 
-    /** ÉèÖÃäÖÈ¾Í¸Ã÷Í¼²ã
-    * @param [in] bCanvasTransparent ÉèÖÃ true ÎªäÖÈ¾Í¸Ã÷Í¼²ã£¬·ñÔòÎª false
+    /** è®¾ç½®æ¸²æŸ“é€æ˜å›¾å±‚
+    * @param [in] bCanvasTransparent è®¾ç½® true ä¸ºæ¸²æŸ“é€æ˜å›¾å±‚ï¼Œå¦åˆ™ä¸º false
     */
     bool SetRenderTransparent(bool bCanvasTransparent);
 
-    /** ÇåÀíÍ¼Æ¬»º´æ
+    /** æ¸…ç†å›¾ç‰‡ç¼“å­˜
     */
     void ClearImageCache();
 
@@ -857,425 +857,425 @@ public:
 
 public:
 
-    /**@name ¿Ø¼ş²éÕÒÏà¹Ø½Ó¿Ú
+    /**@name æ§ä»¶æŸ¥æ‰¾ç›¸å…³æ¥å£
     * @{
     */
-    /** ¸ù¾İ×ø±ê²éÕÒÖ¸¶¨¿Ø¼ş£¬²ÉÓÃÄ¬ÈÏÊôĞÔ£ºUIFIND_VISIBLE | UIFIND_HITTEST | UIFIND_TOP_FIRST
-    * @param [in] pt Ö¸¶¨×ø±ê
+    /** æ ¹æ®åæ ‡æŸ¥æ‰¾æŒ‡å®šæ§ä»¶ï¼Œé‡‡ç”¨é»˜è®¤å±æ€§ï¼šUIFIND_VISIBLE | UIFIND_HITTEST | UIFIND_TOP_FIRST
+    * @param [in] pt æŒ‡å®šåæ ‡
     */
     Control* FindControl(const UiPoint& pt) const;
 
     /**
-    *  ¸ù¾İ×ø±ê²éÕÒ¿ÉÒÔÏìÓ¦WM_CONTEXTMENUµÄ¿Ø¼ş
-    * @param [in] pt Ö¸¶¨×ø±ê
+    *  æ ¹æ®åæ ‡æŸ¥æ‰¾å¯ä»¥å“åº”WM_CONTEXTMENUçš„æ§ä»¶
+    * @param [in] pt æŒ‡å®šåæ ‡
     */
     Control* FindContextMenuControl(const UiPoint* pt) const;
 
-    /** ²éÕÒ¿ÉÒÔÖ§³ÖÍÏ·ÅµÄBoxÈİÆ÷
-    * @param [in] pt Ö¸¶¨×ø±ê
-    * @param [in] nDropInId ÍÏ·ÅµÄIDÖµ£¨Ã¿¸ö¿Ø¼ş¿ÉÒÔÉèÖÃÒ»¸öID£¬À´½ÓÊÕÍÏ·Å£©
+    /** æŸ¥æ‰¾å¯ä»¥æ”¯æŒæ‹–æ”¾çš„Boxå®¹å™¨
+    * @param [in] pt æŒ‡å®šåæ ‡
+    * @param [in] nDropInId æ‹–æ”¾çš„IDå€¼ï¼ˆæ¯ä¸ªæ§ä»¶å¯ä»¥è®¾ç½®ä¸€ä¸ªIDï¼Œæ¥æ¥æ”¶æ‹–æ”¾ï¼‰
     */
     Box* FindDroppableBox(const UiPoint& pt, uint8_t nDropInId) const;
 
-    /** ¸ù¾İ¿Ø¼şÃû³Æ²éÕÒ¿Ø¼ş
-    * @param [in] strName ¿Ø¼şÃû³Æ
+    /** æ ¹æ®æ§ä»¶åç§°æŸ¥æ‰¾æ§ä»¶
+    * @param [in] strName æ§ä»¶åç§°
     */
     Control* FindControl(const std::wstring& strName) const;
 
-    /** ¸ù¾İ×ø±ê²éÕÒ×Ó¿Ø¼ş
-    * @param [in] pParent ÒªËÑË÷µÄ¿Ø¼ş
-    * @param [in] pt Òª²éÕÒµÄ×ø±ê
+    /** æ ¹æ®åæ ‡æŸ¥æ‰¾å­æ§ä»¶
+    * @param [in] pParent è¦æœç´¢çš„æ§ä»¶
+    * @param [in] pt è¦æŸ¥æ‰¾çš„åæ ‡
     */
     Control* FindSubControlByPoint(Control* pParent, const UiPoint& pt) const;
 
-    /** ¸ù¾İÃû×Ö²éÕÒ×Ó¿Ø¼ş
-    * @param [in] pParent ÒªËÑË÷µÄ¿Ø¼ş
-    * @param [in] strName Òª²éÕÒµÄÃû³Æ
+    /** æ ¹æ®åå­—æŸ¥æ‰¾å­æ§ä»¶
+    * @param [in] pParent è¦æœç´¢çš„æ§ä»¶
+    * @param [in] strName è¦æŸ¥æ‰¾çš„åç§°
     */
     Control* FindSubControlByName(Control* pParent, const std::wstring& strName) const;
 
     /** @} */
 
 public:
-    /** »ñÈ¡µ±Ç°´°¿ÚµÄ¿Í»§Çø¾ØĞÎ
+    /** è·å–å½“å‰çª—å£çš„å®¢æˆ·åŒºçŸ©å½¢
     */
     void GetClientRect(UiRect& rcClient) const;
 
-    /** »ñÈ¡µ±Ç°´°¿ÚµÄ´°¿ÚÇø¾ØĞÎ
+    /** è·å–å½“å‰çª—å£çš„çª—å£åŒºçŸ©å½¢
     */
     void GetWindowRect(UiRect& rcWindow) const;
 
-    /** ½«ÆÁÄ»×ø±ê×ª»»Îªµ±Ç°´°¿ÚµÄ¿Í»§Çø×ø±ê
+    /** å°†å±å¹•åæ ‡è½¬æ¢ä¸ºå½“å‰çª—å£çš„å®¢æˆ·åŒºåæ ‡
     */
     void ScreenToClient(UiPoint& pt) const;
 
-    /** ½«µ±Ç°´°¿ÚµÄ¿Í»§Çø×ø±ê×ª»»ÎªÆÁÄ»×ø±ê
+    /** å°†å½“å‰çª—å£çš„å®¢æˆ·åŒºåæ ‡è½¬æ¢ä¸ºå±å¹•åæ ‡
     */
     void ClientToScreen(UiPoint& pt) const;
 
-    /** »ñÈ¡µ±Ç°Êó±êËùÔÚ×ø±ê
+    /** è·å–å½“å‰é¼ æ ‡æ‰€åœ¨åæ ‡
     */
     void GetCursorPos(UiPoint& pt) const;
 
-    /* ½«rcµÄ×óÉÏ½Ç×ø±êºÍÓÒÏÂ½Ç×ø±êµã´ÓÏà¶ÔÓÚµ±Ç°´°¿ÚµÄ×ø±ê¿Õ¼ä×ª»»ÎªÏà¶ÔÓÚ×ÀÃæ´°¿ÚµÄ×ø±ê¿Õ¼ä
+    /* å°†rcçš„å·¦ä¸Šè§’åæ ‡å’Œå³ä¸‹è§’åæ ‡ç‚¹ä»ç›¸å¯¹äºå½“å‰çª—å£çš„åæ ‡ç©ºé—´è½¬æ¢ä¸ºç›¸å¯¹äºæ¡Œé¢çª—å£çš„åæ ‡ç©ºé—´
     */
     void MapWindowRect(UiRect& rc) const;
 
-    /** »ñÈ¡Ò»¸öµã¶ÔÓ¦µÄ´°¿Ú½Ó¿Ú
+    /** è·å–ä¸€ä¸ªç‚¹å¯¹åº”çš„çª—å£æ¥å£
     */
     Window* WindowFromPoint(const UiPoint& pt);
 
-    /** »ñÈ¡µ±Ç°´°¿ÚËùÔÚÏÔÊ¾Æ÷µÄ¹¤×÷Çø¾ØĞÎ£¬ÒÔĞéÄâÆÁÄ»×ø±ê±íÊ¾¡£
-        Çë×¢Òâ£¬Èç¹ûÏÔÊ¾Æ÷²»ÊÇÖ÷ÏÔÊ¾Æ÷£¬ÔòÒ»Ğ©¾ØĞÎµÄ×ø±ê¿ÉÄÜÊÇ¸ºÖµ¡£
+    /** è·å–å½“å‰çª—å£æ‰€åœ¨æ˜¾ç¤ºå™¨çš„å·¥ä½œåŒºçŸ©å½¢ï¼Œä»¥è™šæ‹Ÿå±å¹•åæ ‡è¡¨ç¤ºã€‚
+        è¯·æ³¨æ„ï¼Œå¦‚æœæ˜¾ç¤ºå™¨ä¸æ˜¯ä¸»æ˜¾ç¤ºå™¨ï¼Œåˆ™ä¸€äº›çŸ©å½¢çš„åæ ‡å¯èƒ½æ˜¯è´Ÿå€¼ã€‚
     */
     bool GetMonitorWorkRect(UiRect& rcWork) const;
 
-    /** »ñÈ¡Ö¸¶¨µãËùÔÚÏÔÊ¾Æ÷µÄ¹¤×÷Çø¾ØĞÎ£¬ÒÔĞéÄâÆÁÄ»×ø±ê±íÊ¾¡£
-        Çë×¢Òâ£¬Èç¹ûÏÔÊ¾Æ÷²»ÊÇÖ÷ÏÔÊ¾Æ÷£¬ÔòÒ»Ğ©¾ØĞÎµÄ×ø±ê¿ÉÄÜÊÇ¸ºÖµ¡£
+    /** è·å–æŒ‡å®šç‚¹æ‰€åœ¨æ˜¾ç¤ºå™¨çš„å·¥ä½œåŒºçŸ©å½¢ï¼Œä»¥è™šæ‹Ÿå±å¹•åæ ‡è¡¨ç¤ºã€‚
+        è¯·æ³¨æ„ï¼Œå¦‚æœæ˜¾ç¤ºå™¨ä¸æ˜¯ä¸»æ˜¾ç¤ºå™¨ï¼Œåˆ™ä¸€äº›çŸ©å½¢çš„åæ ‡å¯èƒ½æ˜¯è´Ÿå€¼ã€‚
     */
     bool GetMonitorWorkRect(const UiPoint& pt, UiRect& rcWork) const;
 
-    /** ×¢²áÒ»¸öÍÏ·Å½Ó¿Ú
+    /** æ³¨å†Œä¸€ä¸ªæ‹–æ”¾æ¥å£
     */
     bool RegisterDragDrop(ControlDropTarget* pDropTarget);
 
-    /** ×¢ÏúÒ»¸öÍÏ·Å½Ó¿Ú
+    /** æ³¨é”€ä¸€ä¸ªæ‹–æ”¾æ¥å£
     */
     bool UnregisterDragDrop(ControlDropTarget* pDropTarget);
 
-    /** ¸üĞÂToolTipĞÅÏ¢£¨´ËÊ±ToolTipµÄĞÅÏ¢ÒÑ¾­·¢Éú±ä»¯£©
+    /** æ›´æ–°ToolTipä¿¡æ¯ï¼ˆæ­¤æ—¶ToolTipçš„ä¿¡æ¯å·²ç»å‘ç”Ÿå˜åŒ–ï¼‰
     */
     void UpdateToolTip();
 
-    /** »ñÈ¡¸Ã´°¿Ú¶ÔÓ¦µÄDPI¹ÜÀíÆ÷
+    /** è·å–è¯¥çª—å£å¯¹åº”çš„DPIç®¡ç†å™¨
     */
     const DpiManager& Dpi() const;
 
-    /** Ö÷¶¯µ÷Õû´°¿ÚµÄDPI
-    *   ×¢ÒâÊÂÏî£º¸Ãº¯Êı¿ÉÓÃ¸Ä±ä´°¿ÚµÄÏÔÊ¾DPI£¬´Ó¶ø¸Ä±ä´°¿Ú¡¢¿Ø¼şµÄ½çÃæ°Ù·Ö±È£»
-    *            µ«Èç¹û½ø³ÌµÄDPI¸ĞÖªÀàĞÍÊÇkPerMonitorDpiAware/kPerMonitorDpiAware_V2Ê±£¬
-    *            µ±ÏµÍ³DPI¸Ä±ä»òÕß¿çÔ½²»Í¬DPIµÄ¶àÆÁÄ»Ê±£¬´°¿ÚµÄ´óĞ¡ºÍDPI»á±»ÏµÍ³µ÷Õû£¬½ø¶ø»áÓĞ³åÍ»£¬µ¼ÖÂ´°¿Ú¿Ø¼ş´óĞ¡ÏÔÊ¾Òì³£¡£
-    * @param [in] nNewDPI ĞÂµÄDPIÖµ£¬±ÈÈç96´ú±í½çÃæDPIËõ·Å±ÈÎª100%
+    /** ä¸»åŠ¨è°ƒæ•´çª—å£çš„DPI
+    *   æ³¨æ„äº‹é¡¹ï¼šè¯¥å‡½æ•°å¯ç”¨æ”¹å˜çª—å£çš„æ˜¾ç¤ºDPIï¼Œä»è€Œæ”¹å˜çª—å£ã€æ§ä»¶çš„ç•Œé¢ç™¾åˆ†æ¯”ï¼›
+    *            ä½†å¦‚æœè¿›ç¨‹çš„DPIæ„ŸçŸ¥ç±»å‹æ˜¯kPerMonitorDpiAware/kPerMonitorDpiAware_V2æ—¶ï¼Œ
+    *            å½“ç³»ç»ŸDPIæ”¹å˜æˆ–è€…è·¨è¶Šä¸åŒDPIçš„å¤šå±å¹•æ—¶ï¼Œçª—å£çš„å¤§å°å’ŒDPIä¼šè¢«ç³»ç»Ÿè°ƒæ•´ï¼Œè¿›è€Œä¼šæœ‰å†²çªï¼Œå¯¼è‡´çª—å£æ§ä»¶å¤§å°æ˜¾ç¤ºå¼‚å¸¸ã€‚
+    * @param [in] nNewDPI æ–°çš„DPIå€¼ï¼Œæ¯”å¦‚96ä»£è¡¨ç•Œé¢DPIç¼©æ”¾æ¯”ä¸º100%
     */
     bool ChangeDpi(uint32_t nNewDPI);
 
 public:
-    /** ÉèÖÃÏµÍ³¼¤»î´°¿ÚÈÈ¼ü£¬×¢²áºó°´´ËÈÈ¼ü£¬ÏµÍ³¿ÉÒÔ×Ô¶¯¼¤»î±¾´°¿Ú
-    * @param [in] wVirtualKeyCode ĞéÄâ¼üÅÌÂë£¬±ÈÈç£ºVK_DOWNµÈ£¬¿É²Î¿¼£ºhttps://learn.microsoft.com/zh-cn/windows/win32/inputdev/virtual-key-codes
-    *             Èç¹ûwVirtualKeyCodeÎª0£¬±íÊ¾È¡Ïû¹ÜÀí´°¿Ú¼¤»îÈÈ¼ü
-    * @param [in] wModifiers ÈÈ¼ü×éºÏ¼ü±êÖ¾Î»£¬²Î¼ûHotKeyModifiersÃ¶¾ÙÀàĞÍµÄÖµ
-    * @return ·µ»ØÖµËµÃ÷:
-       -1: º¯Êı²»³É¹¦;ÈÈ¼üÎŞĞ§¡£
-        0: º¯Êı²»³É¹¦;´°¿ÚÎŞĞ§¡£
-        1: º¯Êı³É¹¦£¬²¢ÇÒÃ»ÓĞÆäËû´°¿Ú¾ßÓĞÏàÍ¬µÄÈÈ¼ü¡£
-        2: º¯Êı³É¹¦£¬µ«ÁíÒ»¸ö´°¿ÚÒÑ¾ßÓĞÏàÍ¬µÄÈÈ¼ü¡£
+    /** è®¾ç½®ç³»ç»Ÿæ¿€æ´»çª—å£çƒ­é”®ï¼Œæ³¨å†ŒåæŒ‰æ­¤çƒ­é”®ï¼Œç³»ç»Ÿå¯ä»¥è‡ªåŠ¨æ¿€æ´»æœ¬çª—å£
+    * @param [in] wVirtualKeyCode è™šæ‹Ÿé”®ç›˜ç ï¼Œæ¯”å¦‚ï¼šVK_DOWNç­‰ï¼Œå¯å‚è€ƒï¼šhttps://learn.microsoft.com/zh-cn/windows/win32/inputdev/virtual-key-codes
+    *             å¦‚æœwVirtualKeyCodeä¸º0ï¼Œè¡¨ç¤ºå–æ¶ˆç®¡ç†çª—å£æ¿€æ´»çƒ­é”®
+    * @param [in] wModifiers çƒ­é”®ç»„åˆé”®æ ‡å¿—ä½ï¼Œå‚è§HotKeyModifiersæšä¸¾ç±»å‹çš„å€¼
+    * @return è¿”å›å€¼è¯´æ˜:
+       -1: å‡½æ•°ä¸æˆåŠŸ;çƒ­é”®æ— æ•ˆã€‚
+        0: å‡½æ•°ä¸æˆåŠŸ;çª—å£æ— æ•ˆã€‚
+        1: å‡½æ•°æˆåŠŸï¼Œå¹¶ä¸”æ²¡æœ‰å…¶ä»–çª—å£å…·æœ‰ç›¸åŒçš„çƒ­é”®ã€‚
+        2: å‡½æ•°æˆåŠŸï¼Œä½†å¦ä¸€ä¸ªçª—å£å·²å…·æœ‰ç›¸åŒçš„çƒ­é”®ã€‚
     */
     int32_t SetWindowHotKey(uint8_t wVirtualKeyCode, uint8_t wModifiers);
 
-    /** »ñÈ¡ÏµÍ³¼¤»î´°¿ÚÈÈ¼ü
-    * @param [out] wVirtualKeyCode ĞéÄâ¼üÅÌÂë£¬±ÈÈç£ºVK_DOWNµÈ
-    * @param [out] wModifiers ÈÈ¼ü×éºÏ¼ü±êÖ¾Î»£¬²Î¼ûHotKeyModifiersÃ¶¾ÙÀàĞÍµÄÖµ
-    * @return Èç¹û·µ»Øfalse±íÊ¾Ã»ÓĞ×¢²á´°¿Ú¼¤»îÈÈ¼ü£¬·ñÔò±íÊ¾ÓĞ×¢²á´°¿Ú¼¤»îÈÈ¼ü
+    /** è·å–ç³»ç»Ÿæ¿€æ´»çª—å£çƒ­é”®
+    * @param [out] wVirtualKeyCode è™šæ‹Ÿé”®ç›˜ç ï¼Œæ¯”å¦‚ï¼šVK_DOWNç­‰
+    * @param [out] wModifiers çƒ­é”®ç»„åˆé”®æ ‡å¿—ä½ï¼Œå‚è§HotKeyModifiersæšä¸¾ç±»å‹çš„å€¼
+    * @return å¦‚æœè¿”å›falseè¡¨ç¤ºæ²¡æœ‰æ³¨å†Œçª—å£æ¿€æ´»çƒ­é”®ï¼Œå¦åˆ™è¡¨ç¤ºæœ‰æ³¨å†Œçª—å£æ¿€æ´»çƒ­é”®
     */
     bool GetWindowHotKey(uint8_t& wVirtualKeyCode, uint8_t& wModifiers) const;
 
-    /** ×¢²áÏµÍ³È«¾ÖÈÈ¼ü£¬×¢²á³É¹¦ºó£¬°´´ËÈÈ¼üºó£¬¸Ã´°¿Ú»áÊÕµ½WM_HOTKEYÏûÏ¢
-    * @param [in] wVirtualKeyCode ĞéÄâ¼üÅÌÂë£¬±ÈÈç£ºVK_DOWNµÈ
-    * @param [in] wModifiers ÈÈ¼ü×éºÏ¼ü±êÖ¾Î»£¬²Î¼ûHotKeyModifiersÃ¶¾ÙÀàĞÍµÄÖµ
-    * @param [in] id ÃüÁîID£¬Ó¦ÓÃ³ÌĞò±ØĞëÔÚ0x0000µ½0xBFFFµÄ·¶Î§ÄÚÖ¸¶¨ ID Öµ¡£ 
-                  ÎªÁË±ÜÃâÓëÆäËû¹²Ïí DLL ¶¨ÒåµÄÈÈ¼ü±êÊ¶·û³åÍ»£¬DLL Ó¦Ê¹ÓÃ GlobalAddAtom º¯Êı»ñÈ¡ÈÈ¼ü±êÊ¶·û¡£
+    /** æ³¨å†Œç³»ç»Ÿå…¨å±€çƒ­é”®ï¼Œæ³¨å†ŒæˆåŠŸåï¼ŒæŒ‰æ­¤çƒ­é”®åï¼Œè¯¥çª—å£ä¼šæ”¶åˆ°WM_HOTKEYæ¶ˆæ¯
+    * @param [in] wVirtualKeyCode è™šæ‹Ÿé”®ç›˜ç ï¼Œæ¯”å¦‚ï¼šVK_DOWNç­‰
+    * @param [in] wModifiers çƒ­é”®ç»„åˆé”®æ ‡å¿—ä½ï¼Œå‚è§HotKeyModifiersæšä¸¾ç±»å‹çš„å€¼
+    * @param [in] id å‘½ä»¤IDï¼Œåº”ç”¨ç¨‹åºå¿…é¡»åœ¨0x0000åˆ°0xBFFFçš„èŒƒå›´å†…æŒ‡å®š ID å€¼ã€‚ 
+                  ä¸ºäº†é¿å…ä¸å…¶ä»–å…±äº« DLL å®šä¹‰çš„çƒ­é”®æ ‡è¯†ç¬¦å†²çªï¼ŒDLL åº”ä½¿ç”¨ GlobalAddAtom å‡½æ•°è·å–çƒ­é”®æ ‡è¯†ç¬¦ã€‚
     */
     bool RegisterHotKey(uint8_t wVirtualKeyCode, uint8_t wModifiers, int32_t id);
 
-    /** ×¢ÏúÏµÍ³È«¾ÖÈÈ¼ü
-    * @param [in] id ÃüÁîID£¬¼´×¢²áÊ±Ê¹ÓÃµÄÃüÁîID 
+    /** æ³¨é”€ç³»ç»Ÿå…¨å±€çƒ­é”®
+    * @param [in] id å‘½ä»¤IDï¼Œå³æ³¨å†Œæ—¶ä½¿ç”¨çš„å‘½ä»¤ID 
     */
     bool UnregisterHotKey(int32_t id);
 
 private:
-    /**@name ¶¯»­Ğ§¹ûÏà¹Ø½Ó¿Ú
+    /**@name åŠ¨ç”»æ•ˆæœç›¸å…³æ¥å£
     * @{
     */
-    /** ÉèÖÃ»æÖÆÆ«ÒÆ
-    * @param [in] renderOffset Æ«ÒÆÖµ
+    /** è®¾ç½®ç»˜åˆ¶åç§»
+    * @param [in] renderOffset åç§»å€¼
     */
     void SetRenderOffset(UiPoint renderOffset);
 
-    /** ÉèÖÃ»æÖÆÆ«ÒÆ x ×ø±ê
-    * @param [in] renderOffsetX ×ø±êÖµ
+    /** è®¾ç½®ç»˜åˆ¶åç§» x åæ ‡
+    * @param [in] renderOffsetX åæ ‡å€¼
     */
     void SetRenderOffsetX(int renderOffsetX);
 
-    /** ÉèÖÃ»æÖÆÆ«ÒÆ y ×ø±ê
-    * @param [in] renderOffsetY ×ø±êÖµ
+    /** è®¾ç½®ç»˜åˆ¶åç§» y åæ ‡
+    * @param [in] renderOffsetY åæ ‡å€¼
     */
     void SetRenderOffsetY(int renderOffsetY);
 
     /** @} */
 
 private:
-    /** ½«ÆÁÄ»×ø±ê×ª»»ÎªÖ¸¶¨´°¿ÚµÄ¿Í»§Çø×ø±ê
+    /** å°†å±å¹•åæ ‡è½¬æ¢ä¸ºæŒ‡å®šçª—å£çš„å®¢æˆ·åŒºåæ ‡
     */
     void ScreenToClient(HWND hWnd, UiPoint& pt) const;
 
-    /** ½«Ö¸¶¨´°¿ÚµÄ¿Í»§Çø×ø±ê×ª»»ÎªÆÁÄ»×ø±ê
+    /** å°†æŒ‡å®šçª—å£çš„å®¢æˆ·åŒºåæ ‡è½¬æ¢ä¸ºå±å¹•åæ ‡
     */
     void ClientToScreen(HWND hWnd, UiPoint& pt) const;
 
-    /** »ñÈ¡Ö¸¶¨´°¿ÚµÄ¿Í»§Çø¾ØĞÎ
+    /** è·å–æŒ‡å®šçª—å£çš„å®¢æˆ·åŒºçŸ©å½¢
     */
     void GetClientRect(HWND hWnd, UiRect& rcClient) const;
 
-    /** »ñÈ¡Ö¸¶¨´°¿ÚµÄ´°¿ÚÇø¾ØĞÎ
+    /** è·å–æŒ‡å®šçª—å£çš„çª—å£åŒºçŸ©å½¢
     */
     void GetWindowRect(HWND hWnd, UiRect& rcWindow) const;
 
-    /** »ñÈ¡Ö¸¶¨´°¿ÚËùÔÚÏÔÊ¾Æ÷µÄ¹¤×÷Çø¾ØĞÎ£¬ÒÔĞéÄâÆÁÄ»×ø±ê±íÊ¾¡£
-        Çë×¢Òâ£¬Èç¹ûÏÔÊ¾Æ÷²»ÊÇÖ÷ÏÔÊ¾Æ÷£¬ÔòÒ»Ğ©¾ØĞÎµÄ×ø±ê¿ÉÄÜÊÇ¸ºÖµ¡£
+    /** è·å–æŒ‡å®šçª—å£æ‰€åœ¨æ˜¾ç¤ºå™¨çš„å·¥ä½œåŒºçŸ©å½¢ï¼Œä»¥è™šæ‹Ÿå±å¹•åæ ‡è¡¨ç¤ºã€‚
+        è¯·æ³¨æ„ï¼Œå¦‚æœæ˜¾ç¤ºå™¨ä¸æ˜¯ä¸»æ˜¾ç¤ºå™¨ï¼Œåˆ™ä¸€äº›çŸ©å½¢çš„åæ ‡å¯èƒ½æ˜¯è´Ÿå€¼ã€‚
     */
     bool GetMonitorWorkRect(HWND hWnd, UiRect& rcWork) const;
 
-    /** »ñÈ¡Ö¸¶¨´°¿ÚËùÔÚÏÔÊ¾Æ÷µÄÏÔÊ¾Æ÷¾ØĞÎºÍ¹¤×÷Çø¾ØĞÎ
+    /** è·å–æŒ‡å®šçª—å£æ‰€åœ¨æ˜¾ç¤ºå™¨çš„æ˜¾ç¤ºå™¨çŸ©å½¢å’Œå·¥ä½œåŒºçŸ©å½¢
     */
     bool GetMonitorRect(HWND hWnd, UiRect& rcMonitor, UiRect& rcWork) const;
 
-    /** Ìæ»»´°¿Úº¯Êı
+    /** æ›¿æ¢çª—å£å‡½æ•°
     */
     WNDPROC SubclassWindow(HWND hWnd, WNDPROC pfnWndProc) const;
 
-    /** »ñÈ¡µ±Ç°´°¿ÚOwner´°¿Ú¾ä±ú
+    /** è·å–å½“å‰çª—å£Ownerçª—å£å¥æŸ„
     */
     HWND GetWindowOwner() const;
 
-    /* ½«rcµÄ×óÉÏ½Ç×ø±êºÍÓÒÏÂ½Ç×ø±êµã´ÓÏà¶ÔÓÚÒ»¸ö´°¿ÚµÄ×ø±ê¿Õ¼ä×ª»»ÎªÏà¶ÔÓÚÁíÒ»¸ö´°¿ÚµÄ×ø±ê¿Õ¼ä
+    /* å°†rcçš„å·¦ä¸Šè§’åæ ‡å’Œå³ä¸‹è§’åæ ‡ç‚¹ä»ç›¸å¯¹äºä¸€ä¸ªçª—å£çš„åæ ‡ç©ºé—´è½¬æ¢ä¸ºç›¸å¯¹äºå¦ä¸€ä¸ªçª—å£çš„åæ ‡ç©ºé—´
     */
     void MapWindowRect(HWND hwndFrom, HWND hwndTo, UiRect& rc) const;
 
-    /** ¸ù¾İroot×Ô¶¯µ÷Õû´°¿Ú´óĞ¡
+    /** æ ¹æ®rootè‡ªåŠ¨è°ƒæ•´çª—å£å¤§å°
     */
     void AutoResizeWindow(bool bRepaint);
 
-    /** ¶Ô¿Ø¼ş½øĞĞ²¼¾Öµ÷Õû
+    /** å¯¹æ§ä»¶è¿›è¡Œå¸ƒå±€è°ƒæ•´
     */
     void ArrangeRoot();
 
 private:
-    /** ¼ì²é²¢È·±£µ±Ç°´°¿ÚÎª½¹µã´°¿Ú
+    /** æ£€æŸ¥å¹¶ç¡®ä¿å½“å‰çª—å£ä¸ºç„¦ç‚¹çª—å£
     */
     void CheckSetFocusWindow();
 
-    /** ×¢²á´°¿ÚÀà
+    /** æ³¨å†Œçª—å£ç±»
     */
     bool RegisterWindowClass();
 
-    /** ×¢²á¿Ø¼ş´°¿ÚÀà£¨Óë´°¿ÚµÄ¹ı³Ìº¯Êı²»Í¬£©
+    /** æ³¨å†Œæ§ä»¶çª—å£ç±»ï¼ˆä¸çª—å£çš„è¿‡ç¨‹å‡½æ•°ä¸åŒï¼‰
     */
     bool RegisterSuperClass();
 
-    /** ´°¿Ú¹ı³Ìº¯Êı(µ±GetSuperClassName()º¯Êı·µ»Ø²»Îª¿Õ´®Ê±Ê¹ÓÃ)
-    * @param [in] hWnd ´°¿Ú¾ä±ú
-    * @param [in] uMsg ÏûÏ¢Ìå
-    * @param [in] wParam ÏûÏ¢¸½¼Ó²ÎÊı
-    * @param [in] lParam ÏûÏ¢¸½¼Ó²ÎÊı
-    * @return ·µ»ØÏûÏ¢´¦Àí½á¹û
+    /** çª—å£è¿‡ç¨‹å‡½æ•°(å½“GetSuperClassName()å‡½æ•°è¿”å›ä¸ä¸ºç©ºä¸²æ—¶ä½¿ç”¨)
+    * @param [in] hWnd çª—å£å¥æŸ„
+    * @param [in] uMsg æ¶ˆæ¯ä½“
+    * @param [in] wParam æ¶ˆæ¯é™„åŠ å‚æ•°
+    * @param [in] lParam æ¶ˆæ¯é™„åŠ å‚æ•°
+    * @return è¿”å›æ¶ˆæ¯å¤„ç†ç»“æœ
     */
     static LRESULT CALLBACK __WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-    /** ´°¿Ú¹ı³Ìº¯Êı(µ±GetSuperClassName()º¯Êı·µ»Ø¿Õ´®Ê±Ê¹ÓÃ) 
-    * @param [in] hWnd ´°¿Ú¾ä±ú
-    * @param [in] uMsg ÏûÏ¢Ìå
-    * @param [in] wParam ÏûÏ¢¸½¼Ó²ÎÊı
-    * @param [in] lParam ÏûÏ¢¸½¼Ó²ÎÊı
-    * @return ·µ»ØÏûÏ¢´¦Àí½á¹û
+    /** çª—å£è¿‡ç¨‹å‡½æ•°(å½“GetSuperClassName()å‡½æ•°è¿”å›ç©ºä¸²æ—¶ä½¿ç”¨) 
+    * @param [in] hWnd çª—å£å¥æŸ„
+    * @param [in] uMsg æ¶ˆæ¯ä½“
+    * @param [in] wParam æ¶ˆæ¯é™„åŠ å‚æ•°
+    * @param [in] lParam æ¶ˆæ¯é™„åŠ å‚æ•°
+    * @return è¿”å›æ¶ˆæ¯å¤„ç†ç»“æœ
     */
     static LRESULT CALLBACK __ControlProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-    /** »ñÈ¡´°¿Ú¶ÔÓ¦µÄWindow¶ÔÏó½Ó¿Ú
-    * @param [in] hWnd ´°¿Ú¾ä±ú
-    * @return ·µ»Ø´°¿Ú¾ä±ú¶ÔÓ¦µÄWindow¶ÔÏó½Ó¿Ú
+    /** è·å–çª—å£å¯¹åº”çš„Windowå¯¹è±¡æ¥å£
+    * @param [in] hWnd çª—å£å¥æŸ„
+    * @return è¿”å›çª—å£å¥æŸ„å¯¹åº”çš„Windowå¯¹è±¡æ¥å£
     */
     static Window* GetWindowObject(HWND hWnd);
 
 private:
-    /** ³õÊ¼»¯´°¿ÚÊı¾İ
+    /** åˆå§‹åŒ–çª—å£æ•°æ®
     */
     void InitWindow();
 
-    /** ÇåÀí´°¿Ú×ÊÔ´
-    * @param [in] bSendClose ÊÇ·ñ·¢ËÍ¹Ø±ÕÊÂ¼ş
+    /** æ¸…ç†çª—å£èµ„æº
+    * @param [in] bSendClose æ˜¯å¦å‘é€å…³é—­äº‹ä»¶
     */
     void ClearWindow(bool bSendClose);
 
-    /** ´°¿ÚµÄDPI·¢Éú±ä»¯£¬¸üĞÂ¿Ø¼ş´óĞ¡ºÍ²¼¾Ö
-    * @param [in] nOldDpiScale ¾ÉµÄDPIËõ·Å°Ù·Ö±È
-    * @param [in] nNewDpiScale ĞÂµÄDPIËõ·Å°Ù·Ö±È£¬ÓëDpi().GetScale()µÄÖµÒ»ÖÂ
+    /** çª—å£çš„DPIå‘ç”Ÿå˜åŒ–ï¼Œæ›´æ–°æ§ä»¶å¤§å°å’Œå¸ƒå±€
+    * @param [in] nOldDpiScale æ—§çš„DPIç¼©æ”¾ç™¾åˆ†æ¯”
+    * @param [in] nNewDpiScale æ–°çš„DPIç¼©æ”¾ç™¾åˆ†æ¯”ï¼Œä¸Dpi().GetScale()çš„å€¼ä¸€è‡´
     */
     void OnDpiScaleChanged(uint32_t nOldDpiScale, uint32_t nNewDpiScale);
 
 private:
-    //´°¿Ú¾ä±ú
+    //çª—å£å¥æŸ„
     HWND m_hWnd;
 
-    //Ô­À´µÄ´°¿Ú¹ı³Ìº¯Êı
+    //åŸæ¥çš„çª—å£è¿‡ç¨‹å‡½æ•°
     WNDPROC m_OldWndProc;
 
-    //ÊÇ·ñ×ÓÀà»¯£¨Subclassº¯Êı£©
+    //æ˜¯å¦å­ç±»åŒ–ï¼ˆSubclasså‡½æ•°ï¼‰
     bool m_bSubclassed;
 
-    //ÊÂ¼ş»Øµ÷¹ÜÀíÆ÷
+    //äº‹ä»¶å›è°ƒç®¡ç†å™¨
     EventMap m_OnEvent;
 
 private:
-    //´°¿Ú×îĞ¡ĞÅÏ¢
+    //çª—å£æœ€å°ä¿¡æ¯
     UiSize m_szMinWindow;
 
-    //´°¿Ú×î´óĞÅÏ¢
+    //çª—å£æœ€å¤§ä¿¡æ¯
     UiSize m_szMaxWindow;
 
-    //´°¿Ú×î´ó»¯ĞÅÏ¢
+    //çª—å£æœ€å¤§åŒ–ä¿¡æ¯
     UiRect m_rcMaximizeInfo;
 
-    //´°¿ÚËÄ±ß¿ÉÀ­Éì·¶Î§ĞÅÏ¢
+    //çª—å£å››è¾¹å¯æ‹‰ä¼¸èŒƒå›´ä¿¡æ¯
     UiRect m_rcSizeBox;
 
-    //Í¸Ã÷Í¨µÀĞŞ²¹·¶Î§µÄµÄ¾Å¹¬¸ñÃèÊö
+    //é€æ˜é€šé“ä¿®è¡¥èŒƒå›´çš„çš„ä¹å®«æ ¼æè¿°
     UiRect m_rcAlphaFix;
 
-    //´°¿ÚÔ²½ÇĞÅÏ¢
+    //çª—å£åœ†è§’ä¿¡æ¯
     UiSize m_szRoundCorner;
 
-    //±êÌâÀ¸ÇøÓòĞÅÏ¢
+    //æ ‡é¢˜æ åŒºåŸŸä¿¡æ¯
     UiRect m_rcCaption;
 
-    //²¼¾ÖÊÇ·ñ±ä»¯£¬Èç¹û±ä»¯(true)ÔòĞèÒªÖØĞÂ¼ÆËã²¼¾Ö
+    //å¸ƒå±€æ˜¯å¦å˜åŒ–ï¼Œå¦‚æœå˜åŒ–(true)åˆ™éœ€è¦é‡æ–°è®¡ç®—å¸ƒå±€
     bool m_bIsArranged;
 
-    //²¼¾ÖÊÇ·ñĞèÒª³õÊ¼»¯
+    //å¸ƒå±€æ˜¯å¦éœ€è¦åˆå§‹åŒ–
     bool m_bFirstLayout;
 
-    //ÊÇ·ñÊ¹ÓÃÏµÍ³µÄ±êÌâÀ¸
+    //æ˜¯å¦ä½¿ç”¨ç³»ç»Ÿçš„æ ‡é¢˜æ 
     bool m_bUseSystemCaption;
 
 private:
-    //»æÖÆDC
+    //ç»˜åˆ¶DC
     HDC m_hDcPaint;
 
-    //ÊÇ·ñÎª²ã´°¿Ú
+    //æ˜¯å¦ä¸ºå±‚çª—å£
     bool m_bIsLayeredWindow;
 
-    //´°¿ÚÍ¸Ã÷¶È(½öµ±Ê¹ÓÃ²ã´°¿ÚÊ±ÓĞĞ§)
+    //çª—å£é€æ˜åº¦(ä»…å½“ä½¿ç”¨å±‚çª—å£æ—¶æœ‰æ•ˆ)
     uint8_t m_nWindowAlpha;
 
-    //»æÖÆÊ±µÄÆ«ÒÆÁ¿£¨¶¯»­ÓÃ£©
+    //ç»˜åˆ¶æ—¶çš„åç§»é‡ï¼ˆåŠ¨ç”»ç”¨ï¼‰
     UiPoint m_renderOffset;
 
-    //»æÖÆÒıÇæ
+    //ç»˜åˆ¶å¼•æ“
     std::unique_ptr<IRender> m_render;
 
 private:
 
-    //»æÖÆÒıÇæ
+    //ç»˜åˆ¶å¼•æ“
     std::unique_ptr<ToolTip> m_toolTip;
 
-    //½¹µã¿Ø¼ş
+    //ç„¦ç‚¹æ§ä»¶
     Control* m_pFocus;
 
-    //Êó±êÔÚĞüÍ£¿Ø¼ş
+    //é¼ æ ‡åœ¨æ‚¬åœæ§ä»¶
     Control* m_pEventHover;
 
-    /** µã»÷µÄ¿Ø¼ş£º
-        ÔÚ WM_LBUTTONDOWN/WM_RBUTTONDOWN/WM_LBUTTONDBLCLK ¸³Öµ
-        ÔÚ WM_LBUTTONUPÖĞ/WM_KILLFOCUS Çå¿Õ
+    /** ç‚¹å‡»çš„æ§ä»¶ï¼š
+        åœ¨ WM_LBUTTONDOWN/WM_RBUTTONDOWN/WM_LBUTTONDBLCLK èµ‹å€¼
+        åœ¨ WM_LBUTTONUPä¸­/WM_KILLFOCUS æ¸…ç©º
     */
     Control* m_pEventClick;
 
-    /** ¼üÅÌ°´ÏÂµÄ¿Ø¼ş
-    *   ÔÚ WM_KEYDOWN / WM_SYSKEYDOWN ¸³Öµ
-    *   ÔÚ WM_KEYUP / WM_SYSKEYUPÇå¿Õ
+    /** é”®ç›˜æŒ‰ä¸‹çš„æ§ä»¶
+    *   åœ¨ WM_KEYDOWN / WM_SYSKEYDOWN èµ‹å€¼
+    *   åœ¨ WM_KEYUP / WM_SYSKEYUPæ¸…ç©º
     */
     Control* m_pEventKey;
 
-    //Êó±êËùÔÚÎ»ÖÃ
+    //é¼ æ ‡æ‰€åœ¨ä½ç½®
     UiPoint m_ptLastMousePos;
 
-    //Êó±êÊÂ¼şµÄ²¶»ñ×´Ì¬
+    //é¼ æ ‡äº‹ä»¶çš„æ•è·çŠ¶æ€
     bool m_bMouseCapture;
 
 private:
-    //Ã¿¸ö´°¿ÚµÄ×ÊÔ´Â·¾¶(Ïà¶ÔÓÚ×ÊÔ´¸ùÄ¿Â¼µÄÂ·¾¶)
+    //æ¯ä¸ªçª—å£çš„èµ„æºè·¯å¾„(ç›¸å¯¹äºèµ„æºæ ¹ç›®å½•çš„è·¯å¾„)
     std::wstring m_strResourcePath;
 
-    //´°¿ÚÅäÖÃÖĞclassÃû³ÆÓëÊôĞÔÓ³Éä¹ØÏµ
+    //çª—å£é…ç½®ä¸­classåç§°ä¸å±æ€§æ˜ å°„å…³ç³»
     std::map<std::wstring, std::wstring> m_defaultAttrHash;
 
-    //´°¿ÚÑÕÉ«×Ö·û´®ÓëÑÕÉ«Öµ£¨ARGB£©µÄÓ³Éä¹ØÏµ
+    //çª—å£é¢œè‰²å­—ç¬¦ä¸²ä¸é¢œè‰²å€¼ï¼ˆARGBï¼‰çš„æ˜ å°„å…³ç³»
     ColorMap m_colorMap;
 
-    //¸Ã´°¿ÚÏÂÃ¿¸öOption groupÏÂµÄ¿Ø¼ş£¨¼´µ¥Ñ¡¿Ø¼şÊÇ·Ö×éµÄ£©
+    //è¯¥çª—å£ä¸‹æ¯ä¸ªOption groupä¸‹çš„æ§ä»¶ï¼ˆå³å•é€‰æ§ä»¶æ˜¯åˆ†ç»„çš„ï¼‰
     std::map<std::wstring, std::vector<Control*>> m_mOptionGroup;
 
-    //¸Ã´°¿ÚÏûÏ¢¹ıÂËÆ÷ÁĞ±í
+    //è¯¥çª—å£æ¶ˆæ¯è¿‡æ»¤å™¨åˆ—è¡¨
     std::vector<IUIMessageFilter*> m_aMessageFilters;
 
-    //ÑÓ³ÙÊÍ·ÅµÄ¿Ø¼ş½Ó¿Ú
+    //å»¶è¿Ÿé‡Šæ”¾çš„æ§ä»¶æ¥å£
     std::vector<Control*> m_aDelayedCleanup;
 
-    //Òì²½¹Ø±Õ´°¿Ú»Øµ÷º¯Êı×ÊÔ´ÓĞĞ§ĞÔ±êÖ¾
+    //å¼‚æ­¥å…³é—­çª—å£å›è°ƒå‡½æ•°èµ„æºæœ‰æ•ˆæ€§æ ‡å¿—
     nbase::WeakCallbackFlag m_closeFlag;
 
-    //´°¿ÚÒõÓ°
+    //çª—å£é˜´å½±
     std::unique_ptr<Shadow> m_shadow;
 
-    //µ±Ç°´°¿ÚÊÇ·ñÏÔÊ¾ÎªÄ£Ì¬¶Ô»°¿ò
+    //å½“å‰çª—å£æ˜¯å¦æ˜¾ç¤ºä¸ºæ¨¡æ€å¯¹è¯æ¡†
     bool m_bFakeModal;
 
-    //´°¿ÚÒÑ¾­ÑÓ³Ù¹Ø±Õ£ºadd by djj 20200428 µ÷ÓÃCloseÊ±»áÑÓ³ÙPost WM_CLOSE, Õâ¸öÆÚ¼äĞèÒªÓĞÒ»¸ö±êÊ¶´ËÖÖ'´ı¹Ø±Õ×´Ì¬'
+    //çª—å£å·²ç»å»¶è¿Ÿå…³é—­ï¼šadd by djj 20200428 è°ƒç”¨Closeæ—¶ä¼šå»¶è¿ŸPost WM_CLOSE, è¿™ä¸ªæœŸé—´éœ€è¦æœ‰ä¸€ä¸ªæ ‡è¯†æ­¤ç§'å¾…å…³é—­çŠ¶æ€'
     bool m_bCloseing;
 
-    //´°¿Ú×Ô¼ºµÄDPI¹ÜÀíÆ÷
+    //çª—å£è‡ªå·±çš„DPIç®¡ç†å™¨
     std::unique_ptr<DpiManager> m_dpi;
 
 private:
-    /**@name È«ÆÁÏà¹Ø×´Ì¬
+    /**@name å…¨å±ç›¸å…³çŠ¶æ€
     * @{
 
-    /** ´°¿ÚÊÇ·ñÎªÈ«ÆÁ×´Ì¬
+    /** çª—å£æ˜¯å¦ä¸ºå…¨å±çŠ¶æ€
     */
     bool m_bFullScreen;
 
-    /** È«ÆÁÇ°µÄ´°¿Ú·ç¸ñ
+    /** å…¨å±å‰çš„çª—å£é£æ ¼
     */
     DWORD m_dwLastStyle;
 
-    /** È«ÆÁÇ°µÄ´°¿ÚÎ»ÖÃ/´°¿Ú´óĞ¡µÈĞÅÏ¢
+    /** å…¨å±å‰çš„çª—å£ä½ç½®/çª—å£å¤§å°ç­‰ä¿¡æ¯
     */
     WINDOWPLACEMENT m_rcLastWindowPlacement;
 
     /** @} */
 
 private:
-    /** ¿Ø¼ş²éÕÒ¸¨ÖúÀà
+    /** æ§ä»¶æŸ¥æ‰¾è¾…åŠ©ç±»
     */
     ControlFinder m_controlFinder;
 
-    /** ´°¿Ú¹ØÁªµÄÈİÆ÷£¬¸ù½Úµã
+    /** çª—å£å…³è”çš„å®¹å™¨ï¼Œæ ¹èŠ‚ç‚¹
     */
     Box* m_pRoot;
 
-    /** ´°¿ÚµÄÍÏ·Å²Ù×÷¹ÜÀí½Ó¿Ú
+    /** çª—å£çš„æ‹–æ”¾æ“ä½œç®¡ç†æ¥å£
     */
     WindowDropTarget* m_pWindowDropTarget;
 
-    /** ÏµÍ³È«¾ÖÈÈ¼üµÄID
+    /** ç³»ç»Ÿå…¨å±€çƒ­é”®çš„ID
     */
     std::vector<int32_t> m_hotKeyIds;
 
 private:
-    /** ´°¿Ú±êÌâÀ¸ÎÄ±¾µÄÎÄ±¾ID
+    /** çª—å£æ ‡é¢˜æ æ–‡æœ¬çš„æ–‡æœ¬ID
     */
     std::wstring m_text;
 
-    /** ´°¿Ú±êÌâÀ¸ÎÄ±¾µÄÎÄ±¾ID
+    /** çª—å£æ ‡é¢˜æ æ–‡æœ¬çš„æ–‡æœ¬ID
     */
     std::wstring m_textId;
 };

@@ -184,7 +184,7 @@ void ImageAttribute::InitByImageString(const std::wstring& strImageString, const
 void ImageAttribute::ModifyAttribute(const std::wstring& strImageString, const DpiManager& dpi)
 {
 	if (strImageString.find(L'=') == std::wstring::npos) {
-		//²»º¬ÓĞµÈºÅ£¬ËµÃ÷Ã»ÓĞÊôĞÔ£¬Ö±½Ó·µ»Ø
+		//ä¸å«æœ‰ç­‰å·ï¼Œè¯´æ˜æ²¡æœ‰å±æ€§ï¼Œç›´æ¥è¿”å›
 		return;
 	}
 	std::vector<std::pair<std::wstring, std::wstring>> attributeList;
@@ -200,100 +200,100 @@ void ImageAttribute::ModifyAttribute(const std::wstring& strImageString, const D
 			continue;
 		}
 		if (name == L"file" || name == L"res") {
-			//Í¼Æ¬×ÊÔ´ÎÄ¼şÃû£¬¸ù¾İ´ËÉèÖÃÈ¥¼ÓÔØÍ¼Æ¬×ÊÔ´
+			//å›¾ç‰‡èµ„æºæ–‡ä»¶åï¼Œæ ¹æ®æ­¤è®¾ç½®å»åŠ è½½å›¾ç‰‡èµ„æº
 			imageAttribute.sImagePath = value;
 		}
 		else if (name == L"width") {
-			//ÉèÖÃÍ¼Æ¬¿í¶È£¬¿ÉÒÔ·Å´ó»òËõĞ¡Í¼Ïñ£ºpixels»òÕß°Ù·Ö±È%£¬±ÈÈç300£¬»òÕß30%
+			//è®¾ç½®å›¾ç‰‡å®½åº¦ï¼Œå¯ä»¥æ”¾å¤§æˆ–ç¼©å°å›¾åƒï¼špixelsæˆ–è€…ç™¾åˆ†æ¯”%ï¼Œæ¯”å¦‚300ï¼Œæˆ–è€…30%
 			imageAttribute.srcWidth = value;
 		}
 		else if (name == L"height") {
-			//ÉèÖÃÍ¼Æ¬¸ß¶È£¬¿ÉÒÔ·Å´ó»òËõĞ¡Í¼Ïñ£ºpixels»òÕß°Ù·Ö±È%£¬±ÈÈç200£¬»òÕß30%
+			//è®¾ç½®å›¾ç‰‡é«˜åº¦ï¼Œå¯ä»¥æ”¾å¤§æˆ–ç¼©å°å›¾åƒï¼špixelsæˆ–è€…ç™¾åˆ†æ¯”%ï¼Œæ¯”å¦‚200ï¼Œæˆ–è€…30%
 			imageAttribute.srcHeight = value;
 		}
 		else if (name == L"source") {
-			//Í¼Æ¬Ô´ÇøÓòÉèÖÃ£º¿ÉÒÔÓÃÓÚ½ö°üº¬Ô´Í¼Æ¬µÄ²¿·ÖÍ¼Æ¬ÄÚÈİ£¨±ÈÈçÍ¨¹ı´Ë»úÖÆ£¬½«°´Å¥µÄ¸÷¸ö×´Ì¬Í¼Æ¬ÕûºÏµ½Ò»ÕÅ´óÍ¼Æ¬ÉÏ£¬·½±ã¹ÜÀíÍ¼Æ¬×ÊÔ´£©
+			//å›¾ç‰‡æºåŒºåŸŸè®¾ç½®ï¼šå¯ä»¥ç”¨äºä»…åŒ…å«æºå›¾ç‰‡çš„éƒ¨åˆ†å›¾ç‰‡å†…å®¹ï¼ˆæ¯”å¦‚é€šè¿‡æ­¤æœºåˆ¶ï¼Œå°†æŒ‰é’®çš„å„ä¸ªçŠ¶æ€å›¾ç‰‡æ•´åˆåˆ°ä¸€å¼ å¤§å›¾ç‰‡ä¸Šï¼Œæ–¹ä¾¿ç®¡ç†å›¾ç‰‡èµ„æºï¼‰
 			if (imageAttribute.rcSource == nullptr) {
 				imageAttribute.rcSource = new UiRect;
 			}
 			AttributeUtil::ParseRectValue(value.c_str(), *imageAttribute.rcSource);
 		}
 		else if (name == L"corner") {
-			//Í¼Æ¬µÄÔ²½ÇÊôĞÔ£¬Èç¹ûÉèÖÃ´ËÊôĞÔ£¬»æÖÆÍ¼Æ¬µÄÊ±ºò£¬²ÉÓÃ¾Å¹¬¸ñ»æÖÆ·½Ê½»æÖÆÍ¼Æ¬£º
-			//    ËÄ¸ö½Ç²»À­ÉìÍ¼Æ¬£¬ËÄ¸ö±ß²¿·ÖÀ­Éì£¬ÖĞ¼ä²¿·Ö¿ÉÒÔÀ­Éì»òÕß¸ù¾İxtiled¡¢ytiledÊôĞÔÀ´Æ½ÆÌ»æÖÆ
+			//å›¾ç‰‡çš„åœ†è§’å±æ€§ï¼Œå¦‚æœè®¾ç½®æ­¤å±æ€§ï¼Œç»˜åˆ¶å›¾ç‰‡çš„æ—¶å€™ï¼Œé‡‡ç”¨ä¹å®«æ ¼ç»˜åˆ¶æ–¹å¼ç»˜åˆ¶å›¾ç‰‡ï¼š
+			//    å››ä¸ªè§’ä¸æ‹‰ä¼¸å›¾ç‰‡ï¼Œå››ä¸ªè¾¹éƒ¨åˆ†æ‹‰ä¼¸ï¼Œä¸­é—´éƒ¨åˆ†å¯ä»¥æ‹‰ä¼¸æˆ–è€…æ ¹æ®xtiledã€ytiledå±æ€§æ¥å¹³é“ºç»˜åˆ¶
 			if (imageAttribute.rcCorner == nullptr) {
 				imageAttribute.rcCorner = new UiRect;
 			}
 			AttributeUtil::ParseRectValue(value.c_str(), *imageAttribute.rcCorner);
 		}
 		else if ((name == L"dpi_scale") || (name == L"dpiscale")) {
-			//¼ÓÔØÍ¼Æ¬Ê±£¬°´ÕÕDPIËõ·ÅÍ¼Æ¬´óĞ¡£¨»áÓ°ÏìwidthÊôĞÔ¡¢heightÊôĞÔ¡¢sourcesÊôĞÔ¡¢cornerÊôĞÔ£©
+			//åŠ è½½å›¾ç‰‡æ—¶ï¼ŒæŒ‰ç…§DPIç¼©æ”¾å›¾ç‰‡å¤§å°ï¼ˆä¼šå½±å“widthå±æ€§ã€heightå±æ€§ã€sourceså±æ€§ã€cornerå±æ€§ï¼‰
 			imageAttribute.srcDpiScale = (value == L"true");
 			imageAttribute.bHasSrcDpiScale = true;
 		}
 		else if (name == L"dest") {
-			//ÉèÖÃÄ¿±êÇøÓò£¬¸ÃÇøÓòÊÇÖ¸Ïà¶ÔÓÚËùÊô¿Ø¼şµÄRectÇøÓò
+			//è®¾ç½®ç›®æ ‡åŒºåŸŸï¼Œè¯¥åŒºåŸŸæ˜¯æŒ‡ç›¸å¯¹äºæ‰€å±æ§ä»¶çš„RectåŒºåŸŸ
 			if (imageAttribute.rcDest == nullptr) {
 				imageAttribute.rcDest = new UiRect;
 			}
 			AttributeUtil::ParseRectValue(value.c_str(), *imageAttribute.rcDest);
 		}
 		else if ((name == L"dest_scale") || (name == L"destscale")) {
-			//¼ÓÔØÊ±£¬¶ÔdestÊôĞÔ°´ÕÕDPIËõ·ÅÍ¼Æ¬£¬½öµ±ÉèÖÃÁËdestÊôĞÔÊ±ÓĞĞ§£¨»áÓ°ÏìdestÊôĞÔ£©
-			//»æÖÆÊ±£¨ÄÚ²¿Ê¹ÓÃ£©£¬¿ØÖÆÊÇ·ñ¶ÔdestÊôĞÔ½øĞĞDPIËõ·Å
+			//åŠ è½½æ—¶ï¼Œå¯¹destå±æ€§æŒ‰ç…§DPIç¼©æ”¾å›¾ç‰‡ï¼Œä»…å½“è®¾ç½®äº†destå±æ€§æ—¶æœ‰æ•ˆï¼ˆä¼šå½±å“destå±æ€§ï¼‰
+			//ç»˜åˆ¶æ—¶ï¼ˆå†…éƒ¨ä½¿ç”¨ï¼‰ï¼Œæ§åˆ¶æ˜¯å¦å¯¹destå±æ€§è¿›è¡ŒDPIç¼©æ”¾
 			imageAttribute.destDpiScale = (value == L"true");
 			imageAttribute.bHasDestDpiScale = true;
 		}
 		else if (name == L"padding") {
-			//ÔÚÄ¿±êÇøÓòÖĞÉèÖÃÄÚ±ß¾à
+			//åœ¨ç›®æ ‡åŒºåŸŸä¸­è®¾ç½®å†…è¾¹è·
 			UiPadding padding;
 			AttributeUtil::ParsePaddingValue(value.c_str(), padding);
 			imageAttribute.SetImagePadding(padding, true, dpi);
 		}
 		else if (name == L"halign") {
-			//ÔÚÄ¿±êÇøÓòÖĞÉèÖÃºáÏò¶ÔÆë·½Ê½			
+			//åœ¨ç›®æ ‡åŒºåŸŸä¸­è®¾ç½®æ¨ªå‘å¯¹é½æ–¹å¼			
 			ASSERT((value == L"left") || (value == L"center") || (value == L"right"));
 			if ((value == L"left") || (value == L"center") || (value == L"right")) {
 				imageAttribute.hAlign = value;
 			}
 		}
 		else if (name == L"valign") {
-			//ÔÚÄ¿±êÇøÓòÖĞÉèÖÃ×İÏò¶ÔÆë·½Ê½
+			//åœ¨ç›®æ ‡åŒºåŸŸä¸­è®¾ç½®çºµå‘å¯¹é½æ–¹å¼
 			ASSERT((value == L"top") || (value == L"center") || (value == L"bottom"));
 			if ((value == L"top") || (value == L"center") || (value == L"bottom")) {
 				imageAttribute.vAlign = value;
 			}
 		}
 		else if (name == L"fade") {
-			//Í¼Æ¬µÄÍ¸Ã÷¶È
+			//å›¾ç‰‡çš„é€æ˜åº¦
 			imageAttribute.bFade = (uint8_t)wcstoul(value.c_str(), nullptr, 10);
 		}
 		else if (name == L"xtiled") {
-			//ºáÏòÆ½ÆÌ
+			//æ¨ªå‘å¹³é“º
 			imageAttribute.bTiledX = (value == L"true");
 		}
 		else if ((name == L"full_xtiled") || (name == L"fullxtiled")) {
-			//ºáÏòÆ½ÆÌÊ±£¬±£Ö¤ÕûÕÅÍ¼Æ¬»æÖÆ
+			//æ¨ªå‘å¹³é“ºæ—¶ï¼Œä¿è¯æ•´å¼ å›¾ç‰‡ç»˜åˆ¶
 			imageAttribute.bFullTiledX = (value == L"true");
 		}
 		else if (name == L"ytiled") {
-			//×İÏòÆ½ÆÌ
+			//çºµå‘å¹³é“º
 			imageAttribute.bTiledY = (value == L"true");
 		}
 		else if ((name == L"full_ytiled") || (name == L"fullytiled")) {
-			//×İÏòÆ½ÆÌÊ±£¬±£Ö¤ÕûÕÅÍ¼Æ¬»æÖÆ
+			//çºµå‘å¹³é“ºæ—¶ï¼Œä¿è¯æ•´å¼ å›¾ç‰‡ç»˜åˆ¶
 			imageAttribute.bFullTiledY = (value == L"true");
 		}
 		else if ((name == L"tiled_margin") || (name == L"tiledmargin")) {
-			//Æ½ÆÌ»æÖÆÊ±£¬¸÷Æ½ÆÌÍ¼Æ¬Ö®¼äµÄ¼ä¸ô£¬°üÀ¨ºáÏòÆ½ÆÌºÍ×İÏòÆ½ÆÌ
+			//å¹³é“ºç»˜åˆ¶æ—¶ï¼Œå„å¹³é“ºå›¾ç‰‡ä¹‹é—´çš„é—´éš”ï¼ŒåŒ…æ‹¬æ¨ªå‘å¹³é“ºå’Œçºµå‘å¹³é“º
 			imageAttribute.nTiledMargin = wcstol(value.c_str(), nullptr, 10);
 		}
 		else if ((name == L"icon_size") || (name == L"iconsize")) {
-			//Ö¸¶¨¼ÓÔØICOÎÄ¼şµÄÍ¼Æ¬´óĞ¡(½öµ±Í¼Æ¬ÎÄ¼şÊÇICOÎÄ¼şÊ±ÓĞĞ§)
+			//æŒ‡å®šåŠ è½½ICOæ–‡ä»¶çš„å›¾ç‰‡å¤§å°(ä»…å½“å›¾ç‰‡æ–‡ä»¶æ˜¯ICOæ–‡ä»¶æ—¶æœ‰æ•ˆ)
 			imageAttribute.iconSize = (uint32_t)wcstol(value.c_str(), nullptr, 10);
 		}
 		else if ((name == L"play_count") || (name == L"playcount")) {
-			//Èç¹ûÊÇGIF¡¢APNG¡¢WEBPµÈ¶¯»­Í¼Æ¬£¬¿ÉÒÔÖ¸¶¨²¥·Å´ÎÊı -1 £ºÒ»Ö±²¥·Å£¬È±Ê¡Öµ¡£
+			//å¦‚æœæ˜¯GIFã€APNGã€WEBPç­‰åŠ¨ç”»å›¾ç‰‡ï¼Œå¯ä»¥æŒ‡å®šæ’­æ”¾æ¬¡æ•° -1 ï¼šä¸€ç›´æ’­æ”¾ï¼Œç¼ºçœå€¼ã€‚
 			imageAttribute.nPlayCount = wcstol(value.c_str(), nullptr, 10);
 			if (imageAttribute.nPlayCount < 0) {
 				imageAttribute.nPlayCount = -1;
@@ -326,9 +326,9 @@ void ImageAttribute::ScaleImageRect(uint32_t imageWidth, uint32_t imageHeight,
 	if ((imageWidth == 0) || (imageHeight == 0)) {
 		return;
 	}
-	//¶ÔrcImageSourceCorners½øĞĞ´¦Àí£º¶Ô±ß½ÇÖµ½øĞĞÈİ´í´¦Àí£¨ËÄ¸ö±ß´ú±í±ß¾à£¬²»´ú±í¾ØĞÎÇøÓò£©
-	//ÔÚXML½âÎö¼ÓÔØµÄÊ±ºò£¬Î´×öDPI×ÔÊÊÓ¦£»
-	//ÔÚ»æÖÆµÄÊ±ºò£¬Èç¹ûÍ¼Æ¬×ö¹ıDPI×ÔÊÊÓ¦£¬Ò²Òª×öDPI×ÔÊÊÓ¦£¬Èç¹ûÍ¼Æ¬Î´×öDPI×ÔÊÊÓ¦£¬Ò²²»ĞèÒª×ö¡£	
+	//å¯¹rcImageSourceCornersè¿›è¡Œå¤„ç†ï¼šå¯¹è¾¹è§’å€¼è¿›è¡Œå®¹é”™å¤„ç†ï¼ˆå››ä¸ªè¾¹ä»£è¡¨è¾¹è·ï¼Œä¸ä»£è¡¨çŸ©å½¢åŒºåŸŸï¼‰
+	//åœ¨XMLè§£æåŠ è½½çš„æ—¶å€™ï¼ŒæœªåšDPIè‡ªé€‚åº”ï¼›
+	//åœ¨ç»˜åˆ¶çš„æ—¶å€™ï¼Œå¦‚æœå›¾ç‰‡åšè¿‡DPIè‡ªé€‚åº”ï¼Œä¹Ÿè¦åšDPIè‡ªé€‚åº”ï¼Œå¦‚æœå›¾ç‰‡æœªåšDPIè‡ªé€‚åº”ï¼Œä¹Ÿä¸éœ€è¦åšã€‚	
 	if ((rcSourceCorners.left < 0) || (rcSourceCorners.top < 0) ||
 		(rcSourceCorners.right < 0)|| (rcSourceCorners.bottom < 0)) {
 		rcSourceCorners.Clear();
@@ -337,30 +337,30 @@ void ImageAttribute::ScaleImageRect(uint32_t imageWidth, uint32_t imageHeight,
 		dpi.ScaleRect(rcSourceCorners);
 	}
 
-	//¶ÔrcDestCorners½øĞĞ´¦Àí£ºÓÉrcSourceCorners¸³Öµ£¬±ß½Ç±£³ÖÒ»ÖÂ£¬±ÜÃâ»æÖÆÍ¼Æ¬µÄÊ±ºòËÄ¸ö½ÇÓĞ±äĞÎ£»
-	//²ÉÓÃ¾Å¹¬¸ñ»æÖÆµÄÊ±ºò£¬ËÄ¸ö½ÇµÄ´æÔÚ£¬ÊÇÎªÁË±ÜÃâ»æÖÆµÄÊ±ºòËÄ¸ö½Ç³öÏÖ±äĞÎ
+	//å¯¹rcDestCornersè¿›è¡Œå¤„ç†ï¼šç”±rcSourceCornersèµ‹å€¼ï¼Œè¾¹è§’ä¿æŒä¸€è‡´ï¼Œé¿å…ç»˜åˆ¶å›¾ç‰‡çš„æ—¶å€™å››ä¸ªè§’æœ‰å˜å½¢ï¼›
+	//é‡‡ç”¨ä¹å®«æ ¼ç»˜åˆ¶çš„æ—¶å€™ï¼Œå››ä¸ªè§’çš„å­˜åœ¨ï¼Œæ˜¯ä¸ºäº†é¿å…ç»˜åˆ¶çš„æ—¶å€™å››ä¸ªè§’å‡ºç°å˜å½¢
 	rcDestCorners = rcSourceCorners;
 	if (!bImageDpiScaled) {
-		//rcDestCorners±ØĞë×öDPI×ÔÊÊÓ¦£¬rcSourceCorners¿ÉÄÜ²»×öDPI×ÔÊÊÓ¦£¨¸ù¾İÅäÖÃÖ¸¶¨£¬¸úËæÍ¼Æ¬£©
+		//rcDestCornerså¿…é¡»åšDPIè‡ªé€‚åº”ï¼ŒrcSourceCornerså¯èƒ½ä¸åšDPIè‡ªé€‚åº”ï¼ˆæ ¹æ®é…ç½®æŒ‡å®šï¼Œè·Ÿéšå›¾ç‰‡ï¼‰
 		dpi.ScaleRect(rcDestCorners);
 	}
 
-	// Èç¹ûÔ´Î»Í¼ÒÑ¾­°´ÕÕDPIËõ·Å¹ı£¬ÄÇÃ´¶ÔÓ¦µÄrcImageSourceÒ²ĞèÒªËõ·Å
+	// å¦‚æœæºä½å›¾å·²ç»æŒ‰ç…§DPIç¼©æ”¾è¿‡ï¼Œé‚£ä¹ˆå¯¹åº”çš„rcImageSourceä¹Ÿéœ€è¦ç¼©æ”¾
 	if ((rcSource.left < 0) || (rcSource.top < 0) ||
 		(rcSource.right < 0) || (rcSource.bottom < 0) ||
 		(rcSource.Width() <= 0) || (rcSource.Height() <= 0)) {
-		//Èç¹ûÊÇÎŞĞ§Öµ£¬ÔòÖØÖÃÎªÕû¸öÍ¼Æ¬´óĞ¡
+		//å¦‚æœæ˜¯æ— æ•ˆå€¼ï¼Œåˆ™é‡ç½®ä¸ºæ•´ä¸ªå›¾ç‰‡å¤§å°
 		rcSource.left = 0;
 		rcSource.top = 0;
 		rcSource.right = (int32_t)imageWidth;
 		rcSource.bottom = (int32_t)imageHeight;
 	}
 	else if (bImageDpiScaled) {
-		//Èç¹ûÍâ²¿ÉèÖÃ´ËÖµ£¬×öDPI×ÔÊÊÓ¦´¦Àí
+		//å¦‚æœå¤–éƒ¨è®¾ç½®æ­¤å€¼ï¼ŒåšDPIè‡ªé€‚åº”å¤„ç†
 		dpi.ScaleRect(rcSource);
 	}
 
-	//Í¼Æ¬Ô´Èİ´í´¦Àí
+	//å›¾ç‰‡æºå®¹é”™å¤„ç†
 	if (rcSource.right > (int32_t)imageWidth) {
 		rcSource.right = (int32_t)imageWidth;
 	}
@@ -384,10 +384,10 @@ UiRect ImageAttribute::GetImageDestRect(const DpiManager& dpi) const
 	if (rcDest != nullptr) {
 		rc = *rcDest;
 		if (bHasDestDpiScale && !destDpiScale) {
-			//½ûÖ¹DPIËõ·Å
+			//ç¦æ­¢DPIç¼©æ”¾
 		}
 		else {
-			//Ó¦½øĞĞDPIËõ·Å
+			//åº”è¿›è¡ŒDPIç¼©æ”¾
 			dpi.ScaleRect(rc);
 		}
 	}

@@ -11,7 +11,7 @@
 namespace ui 
 {
 
-/** ¶àÓïÑÔµÄÖ§³Ö
+/** å¤šè¯­è¨€çš„æ”¯æŒ
 */
 class UILIB_API LangManager
 {
@@ -22,35 +22,35 @@ public:
 	LangManager& operator = (const LangManager&) = delete;
 
 public:
-	/** ´Ó±¾µØÎÄ¼ş¼ÓÔØËùÓĞÓïÑÔÓ³Éä±í
-	 * @param[in] strFilePath ÓïÑÔÎÄ¼şµÄÍêÕûÂ·¾¶
+	/** ä»æœ¬åœ°æ–‡ä»¶åŠ è½½æ‰€æœ‰è¯­è¨€æ˜ å°„è¡¨
+	 * @param[in] strFilePath è¯­è¨€æ–‡ä»¶çš„å®Œæ•´è·¯å¾„
 	 */
 	bool LoadStringTable(const std::wstring& strFilePath);
 
-	/** ´ÓÄÚ´æÖĞ¼ÓÔØËùÓĞÓïÑÔÓ³Éä±í
-	 * @param[in] fileData Òª¼ÓÔØµÄÓïÑÔÓ³Éä±íµÄÊı¾İ
+	/** ä»å†…å­˜ä¸­åŠ è½½æ‰€æœ‰è¯­è¨€æ˜ å°„è¡¨
+	 * @param[in] fileData è¦åŠ è½½çš„è¯­è¨€æ˜ å°„è¡¨çš„æ•°æ®
 	 */
 	bool LoadStringTable(const std::vector<uint8_t>& fileData);
 
-	/** ÇåÀí¶àÓïÑÔ×ÊÔ´
+	/** æ¸…ç†å¤šè¯­è¨€èµ„æº
 	*/
 	void ClearStringTable();
 
 public:
-	/** ¸ù¾İID»ñÈ¡Ö¸¶¨ÓïÑÔµÄ×Ö·û´®
-	 * @param[in] id Ö¸¶¨×Ö·û´® ID
-	 * @return ·µ»Ø ID ¶ÔÓ¦µÄÓïÑÔ×Ö·û´®
+	/** æ ¹æ®IDè·å–æŒ‡å®šè¯­è¨€çš„å­—ç¬¦ä¸²
+	 * @param[in] id æŒ‡å®šå­—ç¬¦ä¸² ID
+	 * @return è¿”å› ID å¯¹åº”çš„è¯­è¨€å­—ç¬¦ä¸²
 	 */
 	std::wstring GetStringViaID(const std::wstring& id);
 
 private:
-	/** ·ÖÎöÓïÑÔÓ³Éä±íÄÚÈİ
-	 * @param[in] list ¶ÁÈ¡³öÀ´µÄÓ³Éä±íÄÚÈİÁĞ±í
+	/** åˆ†æè¯­è¨€æ˜ å°„è¡¨å†…å®¹
+	 * @param[in] list è¯»å–å‡ºæ¥çš„æ˜ å°„è¡¨å†…å®¹åˆ—è¡¨
 	 */
 	bool AnalyzeStringTable(const std::vector<std::wstring>& list);
 
 private:
-	/** ×Ö·û´®µÄIDºÍÈ¡ÖµÓ³Éä±í
+	/** å­—ç¬¦ä¸²çš„IDå’Œå–å€¼æ˜ å°„è¡¨
 	*/
 	std::unordered_map<std::wstring, std::wstring> m_stringTable;
 };

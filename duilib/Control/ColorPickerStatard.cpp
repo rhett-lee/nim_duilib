@@ -34,7 +34,7 @@ void ColorPickerStatard::Paint(IRender* pRender, const UiRect& rcPaint)
 	}
 		
 	UiRect rect = GetRect();
-	UiPadding rcPadding = this->GetControlPadding(); //ÄÚ±ß¾à
+	UiPadding rcPadding = this->GetControlPadding(); //å†…è¾¹è·
 	rect.Deflate(rcPadding);
 	DrawColorMap(pRender, rect);
 }
@@ -42,18 +42,18 @@ void ColorPickerStatard::Paint(IRender* pRender, const UiRect& rcPaint)
 void ColorPickerStatard::DrawColorMap(IRender* pRender, const UiRect& rect)
 {
 	int32_t rectSize = std::min(rect.Width(), rect.Height());
-	int32_t radius = static_cast<int32_t>(rectSize / 13 / 2 / std::cos(30 / 57.2957795f)); //°ë¾¶
+	int32_t radius = static_cast<int32_t>(rectSize / 13 / 2 / std::cos(30 / 57.2957795f)); //åŠå¾„
 	if (m_radius != radius) {
 		m_radius = radius;
 	}
-	const float distance = radius * std::cos(30 / 57.2957795f); //ÖĞĞÄµãµ½±ßµÄ´¹Ö±¾àÀë
+	const float distance = radius * std::cos(30 / 57.2957795f); //ä¸­å¿ƒç‚¹åˆ°è¾¹çš„å‚ç›´è·ç¦»
 
-	UiPointF firstCenterPt = UiPointF((float)rect.CenterX(), (float)rect.CenterY()); //¾ØĞÎÖĞĞÄµã×ø±ê
-	firstCenterPt.x = firstCenterPt.x - distance * 2 * 6 * std::sin(30 / 57.2957795f); //µÚÒ»¸öÁù±ßĞÎÖĞĞÄµãX×ø±ê
-	firstCenterPt.y = firstCenterPt.y - distance * 2 * 6 * std::cos(30 / 57.2957795f); //µÚÒ»¸öÁù±ßĞÎÖĞĞÄµãY×ø±ê
+	UiPointF firstCenterPt = UiPointF((float)rect.CenterX(), (float)rect.CenterY()); //çŸ©å½¢ä¸­å¿ƒç‚¹åæ ‡
+	firstCenterPt.x = firstCenterPt.x - distance * 2 * 6 * std::sin(30 / 57.2957795f); //ç¬¬ä¸€ä¸ªå…­è¾¹å½¢ä¸­å¿ƒç‚¹Xåæ ‡
+	firstCenterPt.y = firstCenterPt.y - distance * 2 * 6 * std::cos(30 / 57.2957795f); //ç¬¬ä¸€ä¸ªå…­è¾¹å½¢ä¸­å¿ƒç‚¹Yåæ ‡
 
 	size_t colorIndex = 0;
-	for (int32_t y = 0; y < 13; ++y) { //¹²¼Æ13ĞĞ
+	for (int32_t y = 0; y < 13; ++y) { //å…±è®¡13è¡Œ
 		int32_t count = 0;
 		if (y < 7) {
 			count = 7 + y;
@@ -78,7 +78,7 @@ void ColorPickerStatard::DrawColorMap(IRender* pRender, const UiRect& rect)
 				brushColor = m_colorMap[colorIndex].color;
 				m_colorMap[colorIndex].centerPt = centerPt;
 				if (m_selectedColor == brushColor) {
-					//µ±Ç°Ñ¡ÔñµÄÑÕÉ«£¬±ß¿ò¼Ó´ÖÏÔÊ¾
+					//å½“å‰é€‰æ‹©çš„é¢œè‰²ï¼Œè¾¹æ¡†åŠ ç²—æ˜¾ç¤º
 					penWidth += 3;
 				}
 			}
@@ -100,16 +100,16 @@ bool ColorPickerStatard::DrawRegularHexagon(IRender* pRender, const UiPointF& ce
 	if (pRenderFactory == nullptr) {
 		return false;
 	}
-	ASSERT(radius > 0); //¶à±ßĞÎµÄ°ë¾¶
+	ASSERT(radius > 0); //å¤šè¾¹å½¢çš„åŠå¾„
 	if (radius <= 0) {
 		return false;
 	}
 
-	const int32_t count = 6; //¶à±ßĞÎµÄ±ßÊı
-	//Õı¶à±ßĞÎÉÏÈÎÒâÒ»¸ö¶¥µãµÄ×ø±êÎª£º x = r * cos(¦È) y = r * sin(¦È) 
+	const int32_t count = 6; //å¤šè¾¹å½¢çš„è¾¹æ•°
+	//æ­£å¤šè¾¹å½¢ä¸Šä»»æ„ä¸€ä¸ªé¡¶ç‚¹çš„åæ ‡ä¸ºï¼š x = r * cos(Î¸) y = r * sin(Î¸) 
 	std::vector<UiPointF> polygonPoints;
 	for (int32_t i = 0; i < count; ++i) {
-		int32_t degree = i * 60 + 30;// +30ÊÇÎªÁËÊ¹¶¥µãÔÚÖĞĞÄµãµÄ×îÉÏ·½
+		int32_t degree = i * 60 + 30;// +30æ˜¯ä¸ºäº†ä½¿é¡¶ç‚¹åœ¨ä¸­å¿ƒç‚¹çš„æœ€ä¸Šæ–¹
 		float radian = degree / 57.2957795f;
 		float x = radius * std::cos(radian) + 0.5f;
 		float y = radius * std::sin(radian) + 0.5f;
@@ -136,7 +136,7 @@ bool ColorPickerStatard::DrawRegularHexagon(IRender* pRender, const UiPointF& ce
 
 bool ColorPickerStatard::MouseMove(const EventArgs& msg)
 {
-	//¸üĞÂToolTipĞÅÏ¢
+	//æ›´æ–°ToolTipä¿¡æ¯
 	if (GetRect().ContainsPt(msg.ptMouse)) {
 		UiColor color;
 		if (GetColorInfo(msg.ptMouse, color)) {
@@ -156,7 +156,7 @@ bool ColorPickerStatard::ButtonDown(const EventArgs& msg)
 	if (GetRect().ContainsPt(msg.ptMouse)) {
 		UiColor color;
 		if (GetColorInfo(msg.ptMouse, color)) {
-			//Ñ¡ÔñÁËµ±Ç°µÄÑÕÉ«
+			//é€‰æ‹©äº†å½“å‰çš„é¢œè‰²
 			m_selectedColor = color;
 			Invalidate();
 			SendEvent(kEventSelectColor, color.GetARGB());
@@ -172,11 +172,11 @@ bool ColorPickerStatard::GetColorInfo(const UiPoint& ptMouse, UiColor& ptColor) 
 {
 	struct ColorPt
 	{
-		//ÑÕÉ«Öµ
+		//é¢œè‰²å€¼
 		UiColor color;
-		//¸ÃÑÕÉ«Öµ¶ÔÓ¦µÄÕıÁù±ßĞÎÖĞĞÄµãÓëptMouseÖ®¼äµÄ¾àÀë
+		//è¯¥é¢œè‰²å€¼å¯¹åº”çš„æ­£å…­è¾¹å½¢ä¸­å¿ƒç‚¹ä¸ptMouseä¹‹é—´çš„è·ç¦»
 		float distance;
-		//±È½Ïº¯Êı£¬¾àÀë×î½üµÄÅÅÔÚÇ°Ãæ
+		//æ¯”è¾ƒå‡½æ•°ï¼Œè·ç¦»æœ€è¿‘çš„æ’åœ¨å‰é¢
 		bool operator < (const ColorPt& r) const
 		{
 			return distance < r.distance;
@@ -196,7 +196,7 @@ bool ColorPickerStatard::GetColorInfo(const UiPoint& ptMouse, UiColor& ptColor) 
 		return false;
 	}
 	else {
-		std::sort(maybeColors.begin(), maybeColors.end()); //Ñ¡È¡Êó±êµã¾àÀëÕıÁù±ßĞÎÖĞĞÄµã×î½üµÄÄÇ¸öÑÕÉ«
+		std::sort(maybeColors.begin(), maybeColors.end()); //é€‰å–é¼ æ ‡ç‚¹è·ç¦»æ­£å…­è¾¹å½¢ä¸­å¿ƒç‚¹æœ€è¿‘çš„é‚£ä¸ªé¢œè‰²
 		ptColor = maybeColors.front().color;
 		return true;
 	}		

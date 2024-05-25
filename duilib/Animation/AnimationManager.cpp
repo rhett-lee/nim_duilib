@@ -30,7 +30,7 @@ AnimationPlayer* AnimationManager::SetFadeHot(bool bFadeHot)
 		animationArgs->SetEndValue(255);
 		animationArgs->SetSpeedUpRatio(0.3);
 		animationArgs->SetSpeedDownRatio(0.7);
-		animationArgs->SetTotalMillSeconds(50);//¿Ø¼þ´¦ÓÚ½¹µã×´Ì¬Ê±£¬¶¯»­Ð§¹ûµÄ×ÜÊ±³¤
+		animationArgs->SetTotalMillSeconds(50);//æŽ§ä»¶å¤„äºŽç„¦ç‚¹çŠ¶æ€æ—¶ï¼ŒåŠ¨ç”»æ•ˆæžœçš„æ€»æ—¶é•¿
 		auto playCallback = nbase::Bind(&Control::SetHotAlpha, m_pControl, std::placeholders::_1);
 		animationArgs->SetCallback(playCallback);
 		m_animationMap[AnimationType::kAnimationHot].reset(animationArgs);

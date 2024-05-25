@@ -10,7 +10,7 @@ class SkFont;
 namespace ui 
 {
 
-/** Skia×ÖÌå½Ó¿ÚµÄÊµÏÖ
+/** Skiaå­—ä½“æ¥å£çš„å®ç°
 */
 class UILIB_API Font_Skia: public IFont
 {
@@ -20,47 +20,47 @@ public:
     Font_Skia& operator=(const Font_Skia&) = delete;
     virtual ~Font_Skia();
 
-    /** ³õÊ¼»¯×ÖÌå(ÄÚ²¿Î´¶Ô×ÖÌå´óĞ¡×öDPI×ÔÊÊÓ¦)
+    /** åˆå§‹åŒ–å­—ä½“(å†…éƒ¨æœªå¯¹å­—ä½“å¤§å°åšDPIè‡ªé€‚åº”)
     */
     virtual bool InitFont(const UiFont& fontInfo) override;
 
-    /**@brief »ñÈ¡×ÖÌåÃû
+    /**@brief è·å–å­—ä½“å
      */
     virtual const wchar_t* FontName() const override { return m_uiFont.m_fontName.c_str(); }
 
-    /**@brief »ñÈ¡×ÖÌå´óĞ¡
+    /**@brief è·å–å­—ä½“å¤§å°
      */
     virtual int FontSize() const override { return m_uiFont.m_fontSize; }
 
-    /**@brief ÊÇ·ñÎª´ÖÌå
+    /**@brief æ˜¯å¦ä¸ºç²—ä½“
      */
     virtual bool IsBold() const override { return m_uiFont.m_bBold; }
 
-    /**@brief ×ÖÌåÏÂ»®Ïß×´Ì¬
+    /**@brief å­—ä½“ä¸‹åˆ’çº¿çŠ¶æ€
      */
     virtual bool IsUnderline() const override { return m_uiFont.m_bUnderline; }
 
-    /**@brief ×ÖÌåµÄĞ±Ìå×´Ì¬
+    /**@brief å­—ä½“çš„æ–œä½“çŠ¶æ€
      */
     virtual bool IsItalic() const override { return m_uiFont.m_bItalic; }
 
-    /**@brief ×ÖÌåµÄÉ¾³ıÏß×´Ì¬
+    /**@brief å­—ä½“çš„åˆ é™¤çº¿çŠ¶æ€
      */
     virtual bool IsStrikeOut() const override { return m_uiFont.m_bStrikeOut; }
 
 public:
-    /** »ñÈ¡×ÖÌå¾ä±ú
+    /** è·å–å­—ä½“å¥æŸ„
     */
     const SkFont* GetFontHandle();
 
 private:
-    //×ÖÌåĞÅÏ¢
+    //å­—ä½“ä¿¡æ¯
     UiFont m_uiFont;
 
-    //×ÖÌå¾ä±ú
+    //å­—ä½“å¥æŸ„
     SkFont* m_skFont;
 
-    //äÖÈ¾½Ó¿Ú
+    //æ¸²æŸ“æ¥å£
     IRenderFactory* m_pRenderFactory;
 };
 

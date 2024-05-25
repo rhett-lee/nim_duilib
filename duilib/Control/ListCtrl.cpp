@@ -258,7 +258,7 @@ void ListCtrl::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
         return;
     }
 
-    //Ê×ÏÈ½ûÖ¹½çÃæË¢ĞÂ
+    //é¦–å…ˆç¦æ­¢ç•Œé¢åˆ·æ–°
     bool bOldValue = SetEnableRefresh(false);
     int32_t iValue = GetRowGridLineWidth();
     iValue = Dpi().GetScaleInt(iValue, nOldDpiScale);
@@ -288,7 +288,7 @@ void ListCtrl::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
     }
     __super::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
 
-    //¸üĞÂÁĞ¿í
+    //æ›´æ–°åˆ—å®½
     size_t nColumnCount = GetColumnCount();
     for (size_t columnIndex = 0; columnIndex < nColumnCount; ++columnIndex) {
         int32_t nColumnWidth = GetColumnWidth(columnIndex);
@@ -296,7 +296,7 @@ void ListCtrl::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
             SetColumnWidth(columnIndex, nColumnWidth, false);
         }        
     }
-    //Ë¢ĞÂÊı¾İ
+    //åˆ·æ–°æ•°æ®
     SetEnableRefresh(bOldValue);
     Refresh();
 }
@@ -318,25 +318,25 @@ void ListCtrl::OnInit()
         return;
     }
     __super::OnInit();
-    //³õÊ¼»¯Body
+    //åˆå§‹åŒ–Body
     ASSERT(m_pReportView != nullptr);
     AddItem(m_pReportView);
     m_pReportView->SetClass(GetReportViewClass());
 
-    //³õÊ¼»¯Header
+    //åˆå§‹åŒ–Header
     ASSERT(m_pHeaderCtrl == nullptr);
     if (m_pHeaderCtrl == nullptr) {
         m_pHeaderCtrl = new ListCtrlHeader(GetWindow());
     }
     m_pHeaderCtrl->SetListCtrl(this);
-    // HeaderÌí¼Óµ½Êı¾İÊÓÍ¼ÖĞ¹ÜÀí£¬×÷ÎªµÚÒ»¸öÔªËØ£¬ÔÚLayoutµÄÊµÏÖÖĞ¿ØÖÆÏÔÊ¾ÊôĞÔ
+    // Headeræ·»åŠ åˆ°æ•°æ®è§†å›¾ä¸­ç®¡ç†ï¼Œä½œä¸ºç¬¬ä¸€ä¸ªå…ƒç´ ï¼Œåœ¨Layoutçš„å®ç°ä¸­æ§åˆ¶æ˜¾ç¤ºå±æ€§
     m_pReportView->AddItem(m_pHeaderCtrl);
 
     if (!m_headerClass.empty()) {
         m_pHeaderCtrl->SetClass(m_headerClass.c_str());
     }
     m_pHeaderCtrl->SetAutoCheckSelect(false);
-    m_pHeaderCtrl->SetShowCheckBox(m_bHeaderShowCheckBox); //ÊÇ·ñÏÔÊ¾CheckBox
+    m_pHeaderCtrl->SetShowCheckBox(m_bHeaderShowCheckBox); //æ˜¯å¦æ˜¾ç¤ºCheckBox
     int32_t nHeaderHeight = m_nHeaderHeight;
     if (nHeaderHeight < 0) {
         nHeaderHeight = GetDataItemHeight();
@@ -346,13 +346,13 @@ void ListCtrl::OnInit()
         SetHeaderVisible(false);
     }
 
-    //Í¬²½µ¥Ñ¡ºÍ¶àÑ¡µÄ×´Ì¬
+    //åŒæ­¥å•é€‰å’Œå¤šé€‰çš„çŠ¶æ€
     m_pReportView->SetDataProvider(m_pData);
 
-    //¸üĞÂÄ¬ÈÏµÄÎÄ±¾ÊôĞÔ
+    //æ›´æ–°é»˜è®¤çš„æ–‡æœ¬å±æ€§
     SetDataSubItemClass(GetDataSubItemClass());
 
-    //¸üĞÂÄ¬ÈÏµÄĞĞ¸ß
+    //æ›´æ–°é»˜è®¤çš„è¡Œé«˜
     m_pData->SetDefaultItemHeight(GetDataItemHeight());
 
     InitReportView();
@@ -367,7 +367,7 @@ void ListCtrl::InitReportView()
     }
     m_pReportView->SetMultiSelect(IsMultiSelect());
 
-    //ÊÂ¼ş×ª½Óº¯Êı
+    //äº‹ä»¶è½¬æ¥å‡½æ•°
     auto OnReportViewEvent = [this](const EventArgs& args) {
             size_t nItemIndex = args.wParam;
             Control* pControl = m_pReportView->GetItemAt(nItemIndex);
@@ -389,7 +389,7 @@ void ListCtrl::InitReportView()
             }
         };
 
-    //¹ÒÔØÊÂ¼ş£¬×ª½Ó¸øÍâ²ã
+    //æŒ‚è½½äº‹ä»¶ï¼Œè½¬æ¥ç»™å¤–å±‚
     m_pReportView->AttachSelect([this, OnReportViewEvent](const EventArgs& args) {
         OnReportViewEvent(args);
         return true;
@@ -424,7 +424,7 @@ void ListCtrl::InitIconView()
     }
     m_pIconView->SetMultiSelect(IsMultiSelect());
 
-    //ÊÂ¼ş×ª½Óº¯Êı
+    //äº‹ä»¶è½¬æ¥å‡½æ•°
     auto OnIconViewEvent = [this](const EventArgs& args) {
             size_t nItemIndex = args.wParam;
             Control* pControl = m_pIconView->GetItemAt(nItemIndex);
@@ -446,7 +446,7 @@ void ListCtrl::InitIconView()
             }
         };
 
-    //¹ÒÔØÊÂ¼ş£¬×ª½Ó¸øÍâ²ã
+    //æŒ‚è½½äº‹ä»¶ï¼Œè½¬æ¥ç»™å¤–å±‚
     m_pIconView->AttachSelect([this, OnIconViewEvent](const EventArgs& args) {
         OnIconViewEvent(args);
         return true;
@@ -483,7 +483,7 @@ void ListCtrl::InitListView()
         m_pIconView->SetMultiSelect(IsMultiSelect());
     }
     
-    //ÊÂ¼ş×ª½Óº¯Êı
+    //äº‹ä»¶è½¬æ¥å‡½æ•°
     auto OnListViewEvent = [this](const EventArgs& args) {
             size_t nItemIndex = args.wParam;
             Control* pControl = m_pListView->GetItemAt(nItemIndex);
@@ -505,7 +505,7 @@ void ListCtrl::InitListView()
             }
         };
 
-    //¹ÒÔØÊÂ¼ş£¬×ª½Ó¸øÍâ²ã
+    //æŒ‚è½½äº‹ä»¶ï¼Œè½¬æ¥ç»™å¤–å±‚
     m_pListView->AttachSelect([this, OnListViewEvent](const EventArgs& args) {
         OnListViewEvent(args);
         return true;
@@ -906,7 +906,7 @@ bool ListCtrl::SetColumnWidthAuto(size_t columnIndex)
     if (nColumnId == Box::InvalidIndex) {
         return bRet;
     }
-    //¼ÆËã¸ÃÁĞµÄ¿í¶È
+    //è®¡ç®—è¯¥åˆ—çš„å®½åº¦
     int32_t nMaxWidth = m_pData->GetMaxColumnWidth(nColumnId);
     if (nMaxWidth > 0) {
         bRet = SetColumnWidth(columnIndex, nMaxWidth, false);
@@ -1045,7 +1045,7 @@ void ListCtrl::SetDataItemHeight(int32_t nItemHeight, bool bNeedDpiScale)
     }
     if (m_nItemHeight != nItemHeight) {
         m_nItemHeight = nItemHeight;
-        //¸üĞÂÄ¬ÈÏµÄĞĞ¸ß
+        //æ›´æ–°é»˜è®¤çš„è¡Œé«˜
         m_pData->SetDefaultItemHeight(nItemHeight);
         Refresh();
     }
@@ -1221,7 +1221,7 @@ void ListCtrl::OnHeaderColumnRemoved(size_t nColumnId)
 
 void ListCtrl::OnColumnSorted(size_t nColumnId, bool bSortedUp)
 {
-    //¶ÔÊı¾İÅÅĞò£¬È»ºóË¢ĞÂ½çÃæÏÔÊ¾
+    //å¯¹æ•°æ®æ’åºï¼Œç„¶ååˆ·æ–°ç•Œé¢æ˜¾ç¤º
     m_pData->SortDataItems(nColumnId, GetColumnIndex(nColumnId), bSortedUp, nullptr, nullptr);
     Refresh();
 }
@@ -1233,13 +1233,13 @@ void ListCtrl::OnHeaderColumnOrderChanged()
 
 void ListCtrl::OnHeaderColumnCheckStateChanged(size_t nColumnId, bool bChecked)
 {
-    //½çÃæ×´Ì¬±ä»¯£¬Í¬²½µ½µ×²ã´æ´¢
+    //ç•Œé¢çŠ¶æ€å˜åŒ–ï¼ŒåŒæ­¥åˆ°åº•å±‚å­˜å‚¨
     m_pData->SetColumnCheck(nColumnId, bChecked, true);
 }
 
 void ListCtrl::OnHeaderCheckStateChanged(bool bChecked)
 {
-    //½çÃæ×´Ì¬±ä»¯£¬Í¬²½µ½µ×²ã´æ´¢
+    //ç•Œé¢çŠ¶æ€å˜åŒ–ï¼ŒåŒæ­¥åˆ°åº•å±‚å­˜å‚¨
     m_pData->SetAllDataItemsCheck(bChecked);
 }
 
@@ -1251,10 +1251,10 @@ void ListCtrl::OnHeaderColumnVisibleChanged()
 void ListCtrl::OnHeaderColumnSplitDoubleClick(ListCtrlHeaderItem* pHeaderItem)
 {
     if (!IsEnableColumnWidthAuto()) {
-        //¹¦ÄÜ¹Ø±Õ
+        //åŠŸèƒ½å…³é—­
         return;
     }
-    //×Ô¶¯µ÷Õû¸ÃÁĞµÄ¿í¶È
+    //è‡ªåŠ¨è°ƒæ•´è¯¥åˆ—çš„å®½åº¦
     if (pHeaderItem != nullptr) {
         size_t nColumnId = pHeaderItem->GetColomnId();
         size_t nColumIndex = GetColumnIndex(nColumnId);
@@ -1303,7 +1303,7 @@ void ListCtrl::UpdateHeaderColumnCheckBox(size_t nColumnId)
 void ListCtrl::UpdateHeaderCheckBox()
 {
     if (!IsDataItemShowCheckBox()) {
-        //²»ÏÔÊ¾CheckBox£¬ºöÂÔ
+        //ä¸æ˜¾ç¤ºCheckBoxï¼Œå¿½ç•¥
         return;
     }
 
@@ -1942,7 +1942,7 @@ void ListCtrl::OnItemEnterEditMode(size_t itemIndex, size_t nColumnId,
         return;
     }
 
-    //Æô¶¯¶¨Ê±Æ÷, Ö»Ö´ĞĞÒ»´Î(Ê¹ÓÃ¶¨Ê±Æ÷µÄÔ­Òò£º±ÜÃâÓ°ÏìË«»÷²Ù×÷)
+    //å¯åŠ¨å®šæ—¶å™¨, åªæ‰§è¡Œä¸€æ¬¡(ä½¿ç”¨å®šæ—¶å™¨çš„åŸå› ï¼šé¿å…å½±å“åŒå‡»æ“ä½œ)
     m_editModeFlag.Cancel();
     std::function<void()> editModeCallback = std::bind(&ListCtrl::OnItemEditMode, this, editParam);
     TimerManager& timer = GlobalManager::Instance().Timer();
@@ -1959,7 +1959,7 @@ bool ListCtrl::IsValidItemEditState(const ListCtrlEditParam& editParam) const
     }
 
     if (editParam.listCtrlType == ListCtrlType::Icon) {
-        //IconÊÓÍ¼
+        //Iconè§†å›¾
         ListCtrlIconViewItem* pItem = dynamic_cast<ListCtrlIconViewItem*>(editParam.pItem);
         ASSERT((pItem != nullptr) && pItem->IsVisible() && pItem->IsSelected() && pItem->IsFocused());
         if ((pItem == nullptr) || !pItem->IsVisible() || !pItem->IsSelected() || !pItem->IsFocused()) {
@@ -1971,7 +1971,7 @@ bool ListCtrl::IsValidItemEditState(const ListCtrlEditParam& editParam) const
         }
     }
     else if (editParam.listCtrlType == ListCtrlType::List) {
-        //ListÊÓÍ¼
+        //Listè§†å›¾
         ListCtrlListViewItem* pItem = dynamic_cast<ListCtrlListViewItem*>(editParam.pItem);
         ASSERT((pItem != nullptr) && pItem->IsVisible() && pItem->IsSelected() && pItem->IsFocused());
         if ((pItem == nullptr) || !pItem->IsVisible() || !pItem->IsSelected() || !pItem->IsFocused()) {
@@ -1983,7 +1983,7 @@ bool ListCtrl::IsValidItemEditState(const ListCtrlEditParam& editParam) const
         }
     }
     else {
-        //ReportÊÓÍ¼
+        //Reportè§†å›¾
         ListCtrlItem* pItem = dynamic_cast<ListCtrlItem*>(editParam.pItem);
         ASSERT((pItem != nullptr) && pItem->IsVisible() && pItem->IsSelected() && pItem->IsFocused());
         if ((pItem == nullptr) || !pItem->IsVisible() || !pItem->IsSelected() || !pItem->IsFocused()) {
@@ -2003,7 +2003,7 @@ bool ListCtrl::IsValidItemEditParam(const ListCtrlEditParam& editParam) const
         return false;
     }
     if (editParam.listCtrlType == ListCtrlType::Icon) {
-        //IconÊÓÍ¼
+        //Iconè§†å›¾
         ListCtrlIconViewItem* pItem = dynamic_cast<ListCtrlIconViewItem*>(editParam.pItem);
         ASSERT(pItem != nullptr);
         if (pItem == nullptr) {
@@ -2021,7 +2021,7 @@ bool ListCtrl::IsValidItemEditParam(const ListCtrlEditParam& editParam) const
         }
         ASSERT(pDestItem == pItem);
         if (pDestItem != pItem) {
-            //ÒÑ¾­·¢Éú±ä»¯
+            //å·²ç»å‘ç”Ÿå˜åŒ–
             return false;
         }
 
@@ -2038,7 +2038,7 @@ bool ListCtrl::IsValidItemEditParam(const ListCtrlEditParam& editParam) const
         }
     }
     else if (editParam.listCtrlType == ListCtrlType::List) {
-        //ListÊÓÍ¼
+        //Listè§†å›¾
         ListCtrlListViewItem* pItem = dynamic_cast<ListCtrlListViewItem*>(editParam.pItem);
         ASSERT(pItem != nullptr);
         if (pItem == nullptr) {
@@ -2056,7 +2056,7 @@ bool ListCtrl::IsValidItemEditParam(const ListCtrlEditParam& editParam) const
         }
         ASSERT(pDestItem == pItem);
         if (pDestItem != pItem) {
-            //ÒÑ¾­·¢Éú±ä»¯
+            //å·²ç»å‘ç”Ÿå˜åŒ–
             return false;
         }
 
@@ -2073,7 +2073,7 @@ bool ListCtrl::IsValidItemEditParam(const ListCtrlEditParam& editParam) const
         }
     }
     else {
-        //ReportÊÓÍ¼
+        //Reportè§†å›¾
         ListCtrlItem* pItem = dynamic_cast<ListCtrlItem*>(editParam.pItem);
         ListCtrlSubItem* pSubItem = dynamic_cast<ListCtrlSubItem*>(editParam.pSubItem);
         ASSERT((pItem != nullptr) && (pSubItem != nullptr));
@@ -2093,7 +2093,7 @@ bool ListCtrl::IsValidItemEditParam(const ListCtrlEditParam& editParam) const
         }
         ASSERT(pDestItem == pItem);
         if (pDestItem != pItem) {
-            //ÒÑ¾­·¢Éú±ä»¯
+            //å·²ç»å‘ç”Ÿå˜åŒ–
             return false;
         }
         if (pItem->GetSubItemIndex(pSubItem) != nColumnIndex) {
@@ -2115,7 +2115,7 @@ void ListCtrl::OnItemEditMode(ListCtrlEditParam editParam)
         return;
     }
     if (!IsValidItemEditState(editParam) && !IsValidItemEditParam(editParam)) {
-        //×´Ì¬ÒÑ¾­Ê§Ğ§
+        //çŠ¶æ€å·²ç»å¤±æ•ˆ
         return;
     }
     if (m_pRichEdit == nullptr) {
@@ -2124,7 +2124,7 @@ void ListCtrl::OnItemEditMode(ListCtrlEditParam editParam)
         m_pRichEdit->SetClass(editClass);
     }
     else if(GetItemCount() > 0) {
-        //½«Edit¿Ø¼ş£¬µ÷Õûµ½×îºó
+        //å°†Editæ§ä»¶ï¼Œè°ƒæ•´åˆ°æœ€å
         size_t nItem = GetItemIndex(m_pRichEdit);
         size_t nLastItemIndex = GetItemCount() - 1;
         if (nItem != nLastItemIndex) {
@@ -2152,7 +2152,7 @@ void ListCtrl::OnItemEditMode(ListCtrlEditParam editParam)
     m_pRichEdit->SetSelAll();
     UpdateRichEditSize(pSubItem);
 
-    //»¹Ô­½¹µã£º½«±à¼­¿òµÄ½¹µã»¹Ô­»áÔ­À´µÄÁĞ±í¿Ø¼ş
+    //è¿˜åŸç„¦ç‚¹ï¼šå°†ç¼–è¾‘æ¡†çš„ç„¦ç‚¹è¿˜åŸä¼šåŸæ¥çš„åˆ—è¡¨æ§ä»¶
     auto RestoreItemFocus = [this, nDataItemIndex]() {
             if ((m_pRichEdit != nullptr) && m_pRichEdit->IsVisible() && m_pRichEdit->IsFocused()) {
                 ListCtrlItem* pDestItem = nullptr;
@@ -2170,13 +2170,13 @@ void ListCtrl::OnItemEditMode(ListCtrlEditParam editParam)
             }
         };
 
-    //´¥·¢ÊÂ¼ş£º¿ªÊ¼±à¼­
+    //è§¦å‘äº‹ä»¶ï¼šå¼€å§‹ç¼–è¾‘
     ListCtrlEditParam enterEditParam = editParam;
     enterEditParam.sNewText.clear();
     enterEditParam.bCancelled = false;
     SendEvent(kEventEnterEdit, (WPARAM)&enterEditParam);
     if (enterEditParam.bCancelled || !IsValidItemEditState(editParam) && !IsValidItemEditParam(editParam)) {
-        //×´Ì¬ÒÑ¾­Ê§Ğ§, »òÕßÓÃ»§È¡Ïû±à¼­
+        //çŠ¶æ€å·²ç»å¤±æ•ˆ, æˆ–è€…ç”¨æˆ·å–æ¶ˆç¼–è¾‘
         ClearEditEvents();
         RestoreItemFocus();
         LeaveEditMode();
@@ -2187,14 +2187,14 @@ void ListCtrl::OnItemEditMode(ListCtrlEditParam editParam)
     m_pRichEdit->SetVisible(true);
     m_pRichEdit->SetFocus();
 
-    //ÎÄ±¾±ä»¯µÄÊ±ºò£¬×Ô¶¯µ÷Õû±à¼­¿òµÄ´óĞ¡
+    //æ–‡æœ¬å˜åŒ–çš„æ—¶å€™ï¼Œè‡ªåŠ¨è°ƒæ•´ç¼–è¾‘æ¡†çš„å¤§å°
     m_pRichEdit->DetachEvent(kEventTextChange);
     m_pRichEdit->AttachTextChange([this, pSubItem](const EventArgs&) {
         UpdateRichEditSize(pSubItem);
         return true;
         });
 
-    //±à¼­½áÊøµÄÊ±ºò£¬´¥·¢ÊÂ¼ş
+    //ç¼–è¾‘ç»“æŸçš„æ—¶å€™ï¼Œè§¦å‘äº‹ä»¶
     auto OnLeaveRichEdit = [this, sOldItemText, RestoreItemFocus, editParam]() {
         std::wstring sNewItemText;
         if ((m_pRichEdit != nullptr) && m_pRichEdit->IsVisible()) {
@@ -2202,12 +2202,12 @@ void ListCtrl::OnItemEditMode(ListCtrlEditParam editParam)
             m_pRichEdit->SetVisible(false);                     
         }
         if ((sNewItemText != sOldItemText) && IsValidItemEditParam(editParam)) {
-            //ÎÄ±¾ÄÚÈİ·¢Éú±ä»¯
+            //æ–‡æœ¬å†…å®¹å‘ç”Ÿå˜åŒ–
             OnItemEdited(editParam, sNewItemText);
         }
         };
 
-    //°´»Ø³µ£ºÓ¦ÓÃĞŞ¸Ä
+    //æŒ‰å›è½¦ï¼šåº”ç”¨ä¿®æ”¹
     m_pRichEdit->DetachEvent(kEventReturn);
     m_pRichEdit->AttachReturn([this, RestoreItemFocus, OnLeaveRichEdit](const EventArgs&) {
         ClearEditEvents();
@@ -2215,7 +2215,7 @@ void ListCtrl::OnItemEditMode(ListCtrlEditParam editParam)
         OnLeaveRichEdit();
         return false;
         });
-    //°´ESC¼ü£ºÈ¡ÏûĞŞ¸Ä
+    //æŒ‰ESCé”®ï¼šå–æ¶ˆä¿®æ”¹
     m_pRichEdit->DetachEvent(kEventKeyDown);
     m_pRichEdit->AttachEvent(kEventKeyDown, [this, RestoreItemFocus](const EventArgs& msg) {
         if ((msg.Type == kEventKeyDown) && (msg.chKey == VK_ESCAPE)) {
@@ -2228,7 +2228,7 @@ void ListCtrl::OnItemEditMode(ListCtrlEditParam editParam)
         }
         });
 
-    //¿Ø¼şÊ§È¥½¹µã: Ó¦ÓÃĞŞ¸Ä
+    //æ§ä»¶å¤±å»ç„¦ç‚¹: åº”ç”¨ä¿®æ”¹
     m_pRichEdit->DetachEvent(kEventKillFocus);
     m_pRichEdit->AttachKillFocus([this, RestoreItemFocus, OnLeaveRichEdit](const EventArgs&) {
         ClearEditEvents();
@@ -2237,7 +2237,7 @@ void ListCtrl::OnItemEditMode(ListCtrlEditParam editParam)
         return false;
         });
 
-    //´°¿ÚÊ§È¥½¹µã: Ó¦ÓÃĞŞ¸Ä
+    //çª—å£å¤±å»ç„¦ç‚¹: åº”ç”¨ä¿®æ”¹
     m_pRichEdit->DetachEvent(kEventWindowKillFocus);
     m_pRichEdit->AttachWindowKillFocus([this, RestoreItemFocus, OnLeaveRichEdit](const EventArgs&) {
         ClearEditEvents();
@@ -2264,23 +2264,23 @@ void ListCtrl::UpdateRichEditSize(ListCtrlLabel* pSubItem)
         m_pRichEdit->SetFixedHeight(UiFixedInt::MakeAuto(), false, false);
         m_pRichEdit->SetFixedWidth(UiFixedInt::MakeAuto(), false, false);
         UiEstSize sz = m_pRichEdit->EstimateSize(UiSize(0, 0));
-        //ÉèÖÃ¿í¶È
+        //è®¾ç½®å®½åº¦
         m_pRichEdit->SetFixedWidth(UiFixedInt(sz.cx.GetInt32()), true, false);
 
-        //ÉèÖÃ¸ß¶È
+        //è®¾ç½®é«˜åº¦
         const int32_t nEditHeight = sz.cy.GetInt32() + sz.cy.GetInt32() / 2;
         m_pRichEdit->SetFixedHeight(UiFixedInt(nEditHeight), true, false);
         m_pRichEdit->SetMinHeight(nEditHeight, false);
 
-        //ÉèÖÃÎÄ±¾¿òËùÔÚÎ»ÖÃºÍ´óĞ¡ÏŞÖÆ
+        //è®¾ç½®æ–‡æœ¬æ¡†æ‰€åœ¨ä½ç½®å’Œå¤§å°é™åˆ¶
         uint32_t textStyle = pSubItem->GetTextStyle();
         if (textStyle & TEXT_VCENTER) {
-            //CENTER¶ÔÆë
+            //CENTERå¯¹é½
             rcItem.top = rcItem.CenterY() - nEditHeight / 2;
             rcItem.bottom = rcItem.top + nEditHeight;
         }
         else if (textStyle & TEXT_BOTTOM) {
-            //BOTTOM¶ÔÆë
+            //BOTTOMå¯¹é½
             rcItem.top = rcItem.bottom - nEditHeight;
         }
 
@@ -2296,12 +2296,12 @@ void ListCtrl::UpdateRichEditSize(ListCtrlLabel* pSubItem)
             m_pRichEdit->SetMultiLine(true);
         }
 
-        //¿í¶È¹Ì¶¨£ºÓëÔ­¿Ø¼şÏàÍ¬
+        //å®½åº¦å›ºå®šï¼šä¸åŸæ§ä»¶ç›¸åŒ
         m_pRichEdit->SetFixedWidth(UiFixedInt(rcItem.Width()), false, false);
         m_pRichEdit->SetMaxWidth(rcItem.Width(), false);
         m_pRichEdit->SetMinWidth(rcItem.Width(), false);
         
-        //ÉèÖÃ¸ß¶ÈºÍÎ»ÖÃ
+        //è®¾ç½®é«˜åº¦å’Œä½ç½®
         m_pRichEdit->SetFixedHeight(UiFixedInt::MakeAuto(), false, false);        
         UiEstSize sz = m_pRichEdit->EstimateSize(UiSize(rcItem.Width(), 0));
         m_pRichEdit->SetFixedHeight(UiFixedInt(sz.cy.GetInt32()), true, false);
@@ -2317,13 +2317,13 @@ void ListCtrl::UpdateRichEditSize(ListCtrlLabel* pSubItem)
 
 void ListCtrl::OnItemEdited(const ListCtrlEditParam& editParam, const std::wstring& newItemText)
 {
-    //´¥·¢ÊÂ¼ş£º½áÊø±à¼­£¬Èç¹ûÓÃ»§È¡Ïû±à¼­£¬ÄÇÃ´²»Ö´ĞĞĞŞ¸Ä²Ù×÷
+    //è§¦å‘äº‹ä»¶ï¼šç»“æŸç¼–è¾‘ï¼Œå¦‚æœç”¨æˆ·å–æ¶ˆç¼–è¾‘ï¼Œé‚£ä¹ˆä¸æ‰§è¡Œä¿®æ”¹æ“ä½œ
     ListCtrlEditParam leaveEditParam = editParam;
     leaveEditParam.sNewText = newItemText;
     leaveEditParam.bCancelled = false;
     SendEvent(kEventLeaveEdit, (WPARAM)&leaveEditParam);
     if (!leaveEditParam.bCancelled) {
-        //ÓÃ»§Î´È¡Ïû±à¼­
+        //ç”¨æˆ·æœªå–æ¶ˆç¼–è¾‘
         SetSubItemText(editParam.nItemIndex, editParam.nColumnIndex, newItemText);
     }    
 }
@@ -2353,7 +2353,7 @@ void ListCtrl::OnViewKeyboardEvents(const EventArgs& msg)
 
 void ListCtrl::LeaveEditMode()
 {
-    //È¡Ïû±à¼­×´Ì¬µÄ¶¨Ê±Æ÷
+    //å–æ¶ˆç¼–è¾‘çŠ¶æ€çš„å®šæ—¶å™¨
     m_editModeFlag.Cancel();
     if ((m_pRichEdit != nullptr) && m_pRichEdit->IsVisible() && m_pRichEdit->IsFocused()) {
         m_pRichEdit->SendEvent(kEventKillFocus);

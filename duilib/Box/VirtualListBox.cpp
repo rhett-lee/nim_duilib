@@ -56,15 +56,15 @@ VirtualLayout* VirtualListBox::GetVirtualLayout() const
 void VirtualListBox::SetDataProvider(VirtualListBoxElement* pProvider)
 {
     if ((m_pDataProvider != pProvider) && (m_pDataProvider != nullptr)) {
-        //×¢ÏúÔ­À´µÄ¹ØÁª¹ØÏµ
+        //æ³¨é”€åŸæ¥çš„å…³è”å…³ç³»
         m_pDataProvider->RegNotifys(nullptr, nullptr);
     }
     m_pDataProvider = pProvider;
     if (pProvider != nullptr) {
-        //Í¬²½µ¥Ñ¡»¹ÊÇ¶àÑ¡
+        //åŒæ­¥å•é€‰è¿˜æ˜¯å¤šé€‰
         pProvider->SetMultiSelect(IsMultiSelect());
 
-        //×¢²áÄ£ĞÍÊı¾İ±ä¶¯Í¨Öª»Øµ÷
+        //æ³¨å†Œæ¨¡å‹æ•°æ®å˜åŠ¨é€šçŸ¥å›è°ƒ
         pProvider->RegNotifys(
             nbase::Bind(&VirtualListBox::OnModelDataChanged, this, std::placeholders::_1, std::placeholders::_2),
             nbase::Bind(&VirtualListBox::OnModelCountChanged, this));
@@ -98,7 +98,7 @@ void VirtualListBox::SetMultiSelect(bool bMultiSelect)
         }
         m_pDataProvider->SetMultiSelect(bMultiSelect);
         if (!bMultiSelect) {
-            //ÇĞ»»Îªµ¥Ñ¡Ê±£¬Í¬²½µ¥Ñ¡Ïî
+            //åˆ‡æ¢ä¸ºå•é€‰æ—¶ï¼ŒåŒæ­¥å•é€‰é¡¹
             size_t nCurSel = GetCurSel();
             if (nCurSel < GetItemCount()) {
                 size_t nCurSelItemIndex = GetDisplayItemElementIndex(nCurSel);
@@ -125,7 +125,7 @@ Control* VirtualListBox::CreateElement()
         pControl = m_pDataProvider->CreateElement(this);
     }
     if (pControl != nullptr) {
-        //¹ÒÔØÊó±êÊÂ¼ş£¬×ª½Ó¸øList Box±¾Éí
+        //æŒ‚è½½é¼ æ ‡äº‹ä»¶ï¼Œè½¬æ¥ç»™List Boxæœ¬èº«
         pControl->AttachDoubleClick([this](const EventArgs& args) {
             VSendEvent(args, true);
             return true;
@@ -165,12 +165,12 @@ void VirtualListBox::FillElement(Control* pControl, size_t nElementIndex)
     m_bEnableUpdateProvider = false;
 
     bool bSelected = m_pDataProvider->IsElementSelected(nElementIndex);
-    //ÏÈ¸üĞÂÑ¡Ôñ×´Ì¬£¬ÔÙÌî³äÊı¾İ£¬´Ó¶ø±ÜÃâÓëCheck×´Ì¬³åÍ»
+    //å…ˆæ›´æ–°é€‰æ‹©çŠ¶æ€ï¼Œå†å¡«å……æ•°æ®ï¼Œä»è€Œé¿å…ä¸CheckçŠ¶æ€å†²çª
     pListBoxItem->SetItemSelected(bSelected);
     bool bFilled = m_pDataProvider->FillElement(pControl, nElementIndex);    
     ASSERT_UNUSED_VARIABLE(bFilled);
 
-    //¸üĞÂÔªËØË÷ÒıºÅ
+    //æ›´æ–°å…ƒç´ ç´¢å¼•å·
     pListBoxItem->SetElementIndex(nElementIndex);
     ASSERT(GetItemIndex(pControl) == pListBoxItem->GetListBoxIndex());
     ASSERT(pListBoxItem->IsSelected() == bSelected);
@@ -187,7 +187,7 @@ void VirtualListBox::OnItemSelectedChanged(size_t /*iIndex*/, IListBoxItem* pLis
     if ((pListBoxItem == nullptr) || (m_pDataProvider == nullptr)) {
         return;
     }
-    //¸üĞÂ¸ÃÔªËØµÄÑ¡Ôñ×´Ì¬
+    //æ›´æ–°è¯¥å…ƒç´ çš„é€‰æ‹©çŠ¶æ€
     bool bSelected = pListBoxItem->IsSelected();
     size_t nElementIndex = pListBoxItem->GetElementIndex();
     if (nElementIndex != Box::InvalidIndex) {
@@ -250,7 +250,7 @@ void VirtualListBox::SetSelectedElements(const std::vector<size_t>& selectedInde
         if (!oldSelectedIndexs.empty()) {
             for (size_t nElementIndex : oldSelectedIndexs) {
                 if (selectSet.find(nElementIndex) != selectSet.end()) {
-                    //¹ıÂËµô¼´½«Ñ¡ÔñµÄ
+                    //è¿‡æ»¤æ‰å³å°†é€‰æ‹©çš„
                     continue;
                 }
                 m_pDataProvider->SetElementSelected(nElementIndex, false);
@@ -346,7 +346,7 @@ void VirtualListBox::SetSelectNoneExclude(const std::vector<size_t>& excludeInde
         for (size_t nElementIndex : selectedIndexs) {
             if (!indexSet.empty()) {
                 if (indexSet.find(nElementIndex) != indexSet.end()) {
-                    //ÅÅ³ı
+                    //æ’é™¤
                     continue;
                 }
             }
@@ -432,7 +432,7 @@ void VirtualListBox::OnModelDataChanged(size_t nStartElementIndex, size_t nEndEl
 
 void VirtualListBox::OnModelCountChanged()
 {
-    //ÔªËØµÄ¸öÊı·¢Éú±ä»¯£¨ÓĞÌí¼Ó»òÕßÉ¾³ı£©
+    //å…ƒç´ çš„ä¸ªæ•°å‘ç”Ÿå˜åŒ–ï¼ˆæœ‰æ·»åŠ æˆ–è€…åˆ é™¤ï¼‰
     Refresh();
 }
 
@@ -446,26 +446,26 @@ void VirtualListBox::Refresh()
     if (!HasDataProvider()) {
         return;
     }
-    //×î´ó×ÓÏîÊı
+    //æœ€å¤§å­é¡¹æ•°
     size_t nMaxItemCount = m_pVirtualLayout->AjustMaxItem(GetPosWithoutPadding());
     if (nMaxItemCount == 0) {
         return;
     }
 
-    //µ±Ç°Êı¾İ×ÜÊı
+    //å½“å‰æ•°æ®æ€»æ•°
     size_t nElementCount = GetElementCount();
 
-    //µ±Ç°×ÓÏîÊı
+    //å½“å‰å­é¡¹æ•°
     size_t nItemCount = GetItemCount();
 
-    //Ë¢ĞÂºóµÄ×ÓÏîÊı
+    //åˆ·æ–°åçš„å­é¡¹æ•°
     size_t nNewItemCount = nElementCount;
     if (nNewItemCount > nMaxItemCount) {
         nNewItemCount = nMaxItemCount;
     }
     
     if (nItemCount > nNewItemCount) {
-        //Èç¹ûÏÖÓĞ×ÓÏî×ÜÊı´óÓÚĞÂ¼ÆËãµÄ×ÓÏîÊı£¬ÒÆ³ı±ÈÊı¾İ×ÜÊı¶à³öµÄ×ÓÏî£¨´ÓºóÃæÉ¾³ı£©
+        //å¦‚æœç°æœ‰å­é¡¹æ€»æ•°å¤§äºæ–°è®¡ç®—çš„å­é¡¹æ•°ï¼Œç§»é™¤æ¯”æ•°æ®æ€»æ•°å¤šå‡ºçš„å­é¡¹ï¼ˆä»åé¢åˆ é™¤ï¼‰
         size_t n = nItemCount - nNewItemCount;
         for (size_t i = 0; i < n; ++i) {
             size_t itemCount = GetItemCount();
@@ -475,7 +475,7 @@ void VirtualListBox::Refresh()
         }
     }
     else if (nItemCount < nNewItemCount) {
-        //Èç¹ûÏÖÓĞ×ÓÏî×ÜÊıĞ¡ÓÚĞÂ¼ÆËãµÄ×ÓÏîÊı£¬ĞÂÔö±ÈÊı¾İ×ÜÊıÉÙµÄ×ÓÏî
+        //å¦‚æœç°æœ‰å­é¡¹æ€»æ•°å°äºæ–°è®¡ç®—çš„å­é¡¹æ•°ï¼Œæ–°å¢æ¯”æ•°æ®æ€»æ•°å°‘çš„å­é¡¹
         size_t n = nNewItemCount - nItemCount;
         for (size_t i = 0; i < n; ++i) {
             Control* pControl = CreateElement();
@@ -701,7 +701,7 @@ bool VirtualListBox::OnFindSelectable(size_t nCurSel, SelectableMode mode,
     bool bForward = (mode == SelectableMode::kForward) ||
                     (mode == SelectableMode::kHome);
     if (mode == SelectableMode::kSelect) {
-        //¶¨Î»µ½µ±Ç°Ñ¡ÔñµÄÊı¾İ
+        //å®šä½åˆ°å½“å‰é€‰æ‹©çš„æ•°æ®
         bool bRet = false;
         std::vector<size_t> selectedIndexs;
         GetSelectedElements(selectedIndexs);
@@ -723,12 +723,12 @@ bool VirtualListBox::OnFindSelectable(size_t nCurSel, SelectableMode mode,
         return bRet;
     }
     else if (mode == SelectableMode::kHome) {
-        //¶¨Î»µ½µÚÒ»ÌõÊı¾İ
+        //å®šä½åˆ°ç¬¬ä¸€æ¡æ•°æ®
         nElementIndex = 0;
         nIndex = 0;
     }
     else if (mode == SelectableMode::kEnd) {
-        //¶¨Î»µ½×îºóÒ»ÌõÊı¾İ
+        //å®šä½åˆ°æœ€åä¸€æ¡æ•°æ®
         nElementIndex = nElementCount - 1;        
         if (itemCount > 0) {
             nIndex = itemCount - 1;
@@ -736,17 +736,17 @@ bool VirtualListBox::OnFindSelectable(size_t nCurSel, SelectableMode mode,
     }
     else if ((mode == SelectableMode::kForward) || 
              (mode == SelectableMode::kBackward)) {
-        //ÏòÇ°»òÕßÏòºó¶¨Î»µ½µÚnCountÌõÊı¾İ
+        //å‘å‰æˆ–è€…å‘åå®šä½åˆ°ç¬¬nCountæ¡æ•°æ®
         if ((nCount == 0) || (nCount == Box::InvalidIndex)) {
             nCount = 1;
         }
         nElementIndex = GetDisplayItemElementIndex(nCurSel);
         if (nElementIndex >= GetElementCount()) {
-            //ÎŞ·¨È·¶¨µ±Ç°Ñ¡ÔñµÄÔªËØË÷ÒıºÅ
+            //æ— æ³•ç¡®å®šå½“å‰é€‰æ‹©çš„å…ƒç´ ç´¢å¼•å·
             return false;
         }
         if (bForward) {
-            //ÏòÇ°
+            //å‘å‰
             nElementIndex += nCount;
             if (nElementIndex >= nElementCount) {
                 nElementIndex = nElementCount - 1;
@@ -757,9 +757,9 @@ bool VirtualListBox::OnFindSelectable(size_t nCurSel, SelectableMode mode,
             }
         }
         else {
-            //Ïòºó
+            //å‘å
             if (nCount > nElementIndex) {
-                //ÒÑ¾­µ½´ïµÚ1Ìõ
+                //å·²ç»åˆ°è¾¾ç¬¬1æ¡
                 nElementIndex = 0;
             }
             else {
@@ -774,29 +774,29 @@ bool VirtualListBox::OnFindSelectable(size_t nCurSel, SelectableMode mode,
         }
     }
     else {
-        //²»´æÔÚ
+        //ä¸å­˜åœ¨
         ASSERT(FALSE);
         return false;
     }
     if (nElementIndex >= GetElementCount()) {
-        //ÎŞ·¨È·¶¨µ±Ç°Ñ¡ÔñµÄÔªËØË÷ÒıºÅ
+        //æ— æ³•ç¡®å®šå½“å‰é€‰æ‹©çš„å…ƒç´ ç´¢å¼•å·
         return false;
     }
     if (!IsSelectableElement(nElementIndex)) {
         nElementIndex = FindSelectableElement(nElementIndex, bForward);
         if (nElementIndex >= GetElementCount()) {
-            //ÎŞ·¨È·¶¨µ±Ç°Ñ¡ÔñµÄÔªËØË÷ÒıºÅ
+            //æ— æ³•ç¡®å®šå½“å‰é€‰æ‹©çš„å…ƒç´ ç´¢å¼•å·
             return false;
         }
     }
 
     bool bLoaded = false;
     if (GetDisplayItemElementIndex(nIndex) != nElementIndex) {
-        //¼ÓÔØÕâ¸öÔªËØ, Ê¹Æä´¦ÓÚ¿ÉÏÔÊ¾×´Ì¬
+        //åŠ è½½è¿™ä¸ªå…ƒç´ , ä½¿å…¶å¤„äºå¯æ˜¾ç¤ºçŠ¶æ€
         EnsureVisible(nElementIndex, false);
         bLoaded = true;
 
-        //¼ì²é²¢ÇÒ»ñÈ¡×îĞÂµÄÄ¿±ê¿Ø¼şË÷ÒıºÅ
+        //æ£€æŸ¥å¹¶ä¸”è·å–æœ€æ–°çš„ç›®æ ‡æ§ä»¶ç´¢å¼•å·
         bool bCheckOk = false;
         size_t n = GetItemCount();
         for (size_t i = 0; i < n; ++i) {
@@ -847,7 +847,7 @@ size_t VirtualListBox::FindSelectableElement(size_t nElementIndex, bool /*bForwa
 
 bool VirtualListBox::SortItems(PFNCompareFunc /*pfnCompare*/, void* /*pCompareContext*/)
 {
-    //²»Ö§³ÖÍâ²¿ÅÅĞò
+    //ä¸æ”¯æŒå¤–éƒ¨æ’åº
     ASSERT(!"SortItems no impl!");
     return false;
 }

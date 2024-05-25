@@ -68,7 +68,7 @@ void CefControl::ReCreateBrowser()
 {
 	if (browser_handler_->GetBrowser() == nullptr)
 	{
-		// Ê¹ÓÃÎŞ´°Ä£Ê½£¬ÀëÆÁäÖÈ¾
+		// ä½¿ç”¨æ— çª—æ¨¡å¼ï¼Œç¦»å±æ¸²æŸ“
 		CefWindowInfo window_info;
 		window_info.SetAsWindowless(GetWindow()->GetHWND(), false);
 		CefBrowserSettings browser_settings;
@@ -91,7 +91,7 @@ void CefControl::SetPos(ui::UiRect rc)
 void CefControl::HandleEvent(const ui::EventArgs& msg)
 {
 	if (IsDisabledEvents(msg)) {
-		//Èç¹ûÊÇÊó±ê¼üÅÌÏûÏ¢£¬²¢ÇÒ¿Ø¼şÊÇDisabledµÄ£¬×ª·¢¸øÉÏ²ã¿Ø¼ş
+		//å¦‚æœæ˜¯é¼ æ ‡é”®ç›˜æ¶ˆæ¯ï¼Œå¹¶ä¸”æ§ä»¶æ˜¯Disabledçš„ï¼Œè½¬å‘ç»™ä¸Šå±‚æ§ä»¶
 		ui::Box* pParent = GetParent();
 		if (pParent != nullptr) {
 			pParent->SendEvent(msg);
@@ -134,7 +134,7 @@ void CefControl::Paint(ui::IRender* pRender, const ui::UiRect& rcPaint)
 
 	if (dc_cef_.IsValid() && browser_handler_.get() && browser_handler_->GetBrowser().get())
 	{
-		// »æÖÆcef PET_VIEWÀàĞÍµÄÎ»Í¼
+		// ç»˜åˆ¶cef PET_VIEWç±»å‹çš„ä½å›¾
 		ui::UiRect rect = GetRect();
 
 		std::unique_ptr<ui::IBitmap> bitmap;
@@ -154,10 +154,10 @@ void CefControl::Paint(ui::IRender* pRender, const ui::UiRect& rcPaint)
 
 		pRender->BitBlt(rect.left, rect.top, rect.Width(), rect.Height(), bitmap.get(), 0, 0, ui::RopMode::kSrcCopy);
 
-		// »æÖÆcef PET_POPUPÀàĞÍµÄÎ»Í¼
+		// ç»˜åˆ¶cef PET_POPUPç±»å‹çš„ä½å›¾
 		if (!rect_popup_.IsEmpty() && dc_cef_popup_.IsValid())
 		{
-			// ¼ÙÈçpopup´°¿ÚÎ»ÖÃÔÚ¿Ø¼şµÄ·¶Î§Íâ£¬ÔòĞŞÕıµ½¿Ø¼ş·¶Î§ÄÚ£¬Ö¸»æÖÆ¿Ø¼ş·¶Î§ÄÚµÄpopup´°¿Ú
+			// å‡å¦‚popupçª—å£ä½ç½®åœ¨æ§ä»¶çš„èŒƒå›´å¤–ï¼Œåˆ™ä¿®æ­£åˆ°æ§ä»¶èŒƒå›´å†…ï¼ŒæŒ‡ç»˜åˆ¶æ§ä»¶èŒƒå›´å†…çš„popupçª—å£
 			int paint_x = rect_popup_.x;
 			int paint_y = rect_popup_.y;
 			int paint_buffer_x = 0;
@@ -219,7 +219,7 @@ LRESULT CefControl::FilterMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool&
 
 	case WM_SETCURSOR:
 	{
-		// ÕâÀïÀ¹½ØWM_SETCURSORÏûÏ¢£¬²»ÈÃduilib´¦Àí£¨duilib»á¸Ä±ä¹â±êÑùÊ½£©£¬·ñÔò»áÓ°ÏìCefÖĞµÄÊó±ê¹â±ê
+		// è¿™é‡Œæ‹¦æˆªWM_SETCURSORæ¶ˆæ¯ï¼Œä¸è®©duilibå¤„ç†ï¼ˆduilibä¼šæ”¹å˜å…‰æ ‡æ ·å¼ï¼‰ï¼Œå¦åˆ™ä¼šå½±å“Cefä¸­çš„é¼ æ ‡å…‰æ ‡
 		ui::UiPoint pt;
 		GetWindow()->GetCursorPos(pt);
 		GetWindow()->ScreenToClient(pt);
@@ -340,10 +340,10 @@ void CefControl::DettachDevTools()
 void CefControl::OnBeforeContextMenu(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefContextMenuParams> params, CefRefPtr<CefMenuModel> model)
 {
 	if (devtool_attached_ && (devtool_view_ != nullptr) && CefManager::GetInstance()->IsEnableOffsetRender()) {
-		//ÀëÆÁäÖÈ¾Ä£Ê½£¬¿ª·¢Õß¹¤¾ßÓëÒ³ÃæÎ»ÓÚÏàÍ¬µÄ¿Í»§ÇøÎ»ÖÃ
+		//ç¦»å±æ¸²æŸ“æ¨¡å¼ï¼Œå¼€å‘è€…å·¥å…·ä¸é¡µé¢ä½äºç›¸åŒçš„å®¢æˆ·åŒºä½ç½®
 		int x = params->GetXCoord();
 		int y = params->GetYCoord();
-		//ÀëÆÁäÖÈ¾Ä£Ê½ÏÂ£¬¸øµ½µÄ²ÎÊıÊÇÔ­Ê¼×ø±ê£¬Î´¾­DPI×ÔÊÊÓ¦£¬ËùÒÔĞèÒª×öDPI×ÔÊÊÓ¦´¦Àí£¬·ñÔòÒ³ÃæµÄÓÒ¼ü²Ëµ¥Î»ÖÃÏÔÊ¾²»¶Ô
+		//ç¦»å±æ¸²æŸ“æ¨¡å¼ä¸‹ï¼Œç»™åˆ°çš„å‚æ•°æ˜¯åŸå§‹åæ ‡ï¼Œæœªç»DPIè‡ªé€‚åº”ï¼Œæ‰€ä»¥éœ€è¦åšDPIè‡ªé€‚åº”å¤„ç†ï¼Œå¦åˆ™é¡µé¢çš„å³é”®èœå•ä½ç½®æ˜¾ç¤ºä¸å¯¹
 		uint32_t dpiScale = 100;
 		if (GetWindow() != nullptr) {
 			dpiScale = GetWindow()->Dpi().GetScale();
@@ -361,9 +361,9 @@ void CefControl::OnBeforeContextMenu(CefRefPtr<CefBrowser> browser, CefRefPtr<Ce
 		bool isPtInPageRect = GetRect().ContainsPt(pt);
 		bool isPtInToolRect = devtool_view_->GetRect().ContainsPt(pt);
 		if (isPtInToolRect && !isPtInPageRect) {
-			//Èç¹ûµã»÷ÇøÓò£¬Î»ÓÚ¿ª·¢¹¤¾ßÇøÓò£¬Ôò²»µ¯³öÒ³ÃæµÄÓÒ¼ü²Ëµ¥
+			//å¦‚æœç‚¹å‡»åŒºåŸŸï¼Œä½äºå¼€å‘å·¥å…·åŒºåŸŸï¼Œåˆ™ä¸å¼¹å‡ºé¡µé¢çš„å³é”®èœå•
 			if (model->GetCount() > 0)			{
-				// ½ûÖ¹ÓÒ¼ü²Ëµ¥
+				// ç¦æ­¢å³é”®èœå•
 				model->Clear();
 			}
 			return;
@@ -659,7 +659,7 @@ int CefControl::GetCefKeyboardModifiers(WPARAM wparam, LPARAM lparam)
 void CefControl::AdaptDpiScale(CefMouseEvent& mouse_event)
 {
 	if (CefManager::GetInstance()->IsEnableOffsetRender()) {
-		//ÀëÆÁäÖÈ¾Ä£Ê½£¬ĞèÒª´«¸øÔ­Ê¼¿í¶ÈºÍ¸ß¶È£¬ÒòÎªCEFÄÚ²¿»á½øÒ»²½×öDPI×ÔÊÊÓ¦
+		//ç¦»å±æ¸²æŸ“æ¨¡å¼ï¼Œéœ€è¦ä¼ ç»™åŸå§‹å®½åº¦å’Œé«˜åº¦ï¼Œå› ä¸ºCEFå†…éƒ¨ä¼šè¿›ä¸€æ­¥åšDPIè‡ªé€‚åº”
 		uint32_t dpiScale = 100;
 		if (GetWindow() != nullptr) {
 			dpiScale = GetWindow()->Dpi().GetScale();

@@ -8,7 +8,7 @@
 namespace ui
 {
 
-/** ListCtrlµÄ±íÍ·¿Ø¼ş
+/** ListCtrlçš„è¡¨å¤´æ§ä»¶
 */
 class ListCtrl;
 class ListCtrlHeaderItem;
@@ -20,206 +20,206 @@ public:
     explicit ListCtrlHeader(Window* pWindow);
     virtual ~ListCtrlHeader();
 
-    /** »ñÈ¡¿Ø¼şÀàĞÍ
+    /** è·å–æ§ä»¶ç±»å‹
     */
     virtual std::wstring GetType() const override;
 
-    /** ÉèÖÃÊôĞÔ
+    /** è®¾ç½®å±æ€§
     */
     virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 
-    /** DPI·¢Éú±ä»¯£¬¸üĞÂ¿Ø¼ş´óĞ¡ºÍ²¼¾Ö
-    * @param [in] nOldDpiScale ¾ÉµÄDPIËõ·Å°Ù·Ö±È
-    * @param [in] nNewDpiScale ĞÂµÄDPIËõ·Å°Ù·Ö±È£¬ÓëDpi().GetScale()µÄÖµÒ»ÖÂ
+    /** DPIå‘ç”Ÿå˜åŒ–ï¼Œæ›´æ–°æ§ä»¶å¤§å°å’Œå¸ƒå±€
+    * @param [in] nOldDpiScale æ—§çš„DPIç¼©æ”¾ç™¾åˆ†æ¯”
+    * @param [in] nNewDpiScale æ–°çš„DPIç¼©æ”¾ç™¾åˆ†æ¯”ï¼Œä¸Dpi().GetScale()çš„å€¼ä¸€è‡´
     */
     virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override;
 
-    /** ÅĞ¶Ï¿Ø¼şÀàĞÍÊÇ·ñÎª¿ÉÑ¡ÔñµÄ
-     * @return Ä¬ÈÏ·µ»Øfalse
+    /** åˆ¤æ–­æ§ä»¶ç±»å‹æ˜¯å¦ä¸ºå¯é€‰æ‹©çš„
+     * @return é»˜è®¤è¿”å›false
      */
     virtual bool IsSelectableType() const override;
 
 public:
-    /** ÔÚÖ¸¶¨Î»ÖÃÌí¼ÓÒ»ÁĞ
-    *  ±íÍ·¿Ø¼şµÄ»ù±¾½á¹¹ÈçÏÂ£º
+    /** åœ¨æŒ‡å®šä½ç½®æ·»åŠ ä¸€åˆ—
+    *  è¡¨å¤´æ§ä»¶çš„åŸºæœ¬ç»“æ„å¦‚ä¸‹ï¼š
     * 
     *   <ListCtrlHeader>
-    *       <ListCtrlHeaderItem> CheckBox[¿ÉÑ¡] </ListCtrlHeaderItem>
+    *       <ListCtrlHeaderItem> CheckBox[å¯é€‰] </ListCtrlHeaderItem>
     *       <SplitBox> <Control/> </SplitBox>
     *       ..
-    *       <ListCtrlHeaderItem> CheckBox[¿ÉÑ¡] </ListCtrlHeaderItem>
+    *       <ListCtrlHeaderItem> CheckBox[å¯é€‰] </ListCtrlHeaderItem>
     *       <SplitBox> <Control/> </SplitBox>
     *   </ListCtrlHeader>
     * 
-    * @param [in] columnIndex ÔÚµÚ¼¸ÁĞÒÔºó²åÈë¸ÃÁĞ£¬Èç¹ûÊÇ-1£¬±íÊ¾ÔÚ×îºó×·¼ÓÒ»ÁĞ
-    * @param [in] columnInfo ÁĞµÄ»ù±¾ÊôĞÔ
-    * @return ·µ»ØÕâÒ»ÁĞµÄ±íÍ·¿Ø¼ş½Ó¿Ú
+    * @param [in] columnIndex åœ¨ç¬¬å‡ åˆ—ä»¥åæ’å…¥è¯¥åˆ—ï¼Œå¦‚æœæ˜¯-1ï¼Œè¡¨ç¤ºåœ¨æœ€åè¿½åŠ ä¸€åˆ—
+    * @param [in] columnInfo åˆ—çš„åŸºæœ¬å±æ€§
+    * @return è¿”å›è¿™ä¸€åˆ—çš„è¡¨å¤´æ§ä»¶æ¥å£
     */
     ListCtrlHeaderItem* InsertColumn(int32_t columnIndex, const ListCtrlColumn& columnInfo);
 
-    /** »ñÈ¡ÁĞµÄ¸öÊı
+    /** è·å–åˆ—çš„ä¸ªæ•°
     */
     size_t GetColumnCount() const;
 
-    /** »ñÈ¡ÁĞ¿í¶È
-    * @param [in] columnIndex ÁĞË÷ÒıĞòºÅ£º[0, GetColumnCount())
+    /** è·å–åˆ—å®½åº¦
+    * @param [in] columnIndex åˆ—ç´¢å¼•åºå·ï¼š[0, GetColumnCount())
     */
     int32_t GetColumnWidth(size_t columnIndex) const;
 
-    /** µ÷ÕûÁĞµÄ¿í¶È(¸ù¾İ¸ÃÁĞÄÚÈİµÄÊµ¼Ê¿í¶È×ÔÊÊÓ¦)
-    * @param [in] columnIndex ÁĞË÷ÒıĞòºÅ£º[0, GetColumnCount())
-    * @param [in] nWidth ÁĞ¿íÖµ
-    * @param [in] bNeedDpiScale ÊÇ·ñĞèÒª¶ÔÁĞ¿íÖµ½øĞĞDPI×ÔÊÊÓ¦
+    /** è°ƒæ•´åˆ—çš„å®½åº¦(æ ¹æ®è¯¥åˆ—å†…å®¹çš„å®é™…å®½åº¦è‡ªé€‚åº”)
+    * @param [in] columnIndex åˆ—ç´¢å¼•åºå·ï¼š[0, GetColumnCount())
+    * @param [in] nWidth åˆ—å®½å€¼
+    * @param [in] bNeedDpiScale æ˜¯å¦éœ€è¦å¯¹åˆ—å®½å€¼è¿›è¡ŒDPIè‡ªé€‚åº”
     */
     bool SetColumnWidth(size_t columnIndex, int32_t nWidth, bool bNeedDpiScale);
 
-    /** »ñÈ¡ÁĞ±íÍ·µÄ¿Ø¼ş½Ó¿Ú
-    * @param [in] columnIndex ÁĞË÷ÒıĞòºÅ£º[0, GetColumnCount())
+    /** è·å–åˆ—è¡¨å¤´çš„æ§ä»¶æ¥å£
+    * @param [in] columnIndex åˆ—ç´¢å¼•åºå·ï¼š[0, GetColumnCount())
     */
     ListCtrlHeaderItem* GetColumn(size_t columnIndex) const;
 
-    /** »ñÈ¡ÁĞ±íÍ·µÄ¿Ø¼ş½Ó¿Ú
-    * @param [in] columnId ÁĞµÄIDÖµ£¬Í¨¹ıListCtrlHeaderItem::GetColomnId()º¯Êı»ñÈ¡
+    /** è·å–åˆ—è¡¨å¤´çš„æ§ä»¶æ¥å£
+    * @param [in] columnId åˆ—çš„IDå€¼ï¼Œé€šè¿‡ListCtrlHeaderItem::GetColomnId()å‡½æ•°è·å–
     */
     ListCtrlHeaderItem* GetColumnById(size_t columnId) const;
 
-    /** »ñÈ¡ÁĞ¿í¶ÈºÍÁĞË÷ÒıĞòºÅ
-    * @param [in] columnId ÁĞµÄIDÖµ£¬Í¨¹ıListCtrlHeaderItem::GetColomnId()º¯Êı»ñÈ¡
-    * @param [out] columnIndex ÁĞµÄĞòºÅ£º[0, GetColumnCount())£¬´ú±íµÚ¼¸ÁĞ
-    * @param [out] nColumnWidth ÁĞµÄ¿í¶ÈÖµ
+    /** è·å–åˆ—å®½åº¦å’Œåˆ—ç´¢å¼•åºå·
+    * @param [in] columnId åˆ—çš„IDå€¼ï¼Œé€šè¿‡ListCtrlHeaderItem::GetColomnId()å‡½æ•°è·å–
+    * @param [out] columnIndex åˆ—çš„åºå·ï¼š[0, GetColumnCount())ï¼Œä»£è¡¨ç¬¬å‡ åˆ—
+    * @param [out] nColumnWidth åˆ—çš„å®½åº¦å€¼
     */
     bool GetColumnInfo(size_t columnId, size_t& columnIndex, int32_t& nColumnWidth) const;
 
-    /** »ñÈ¡ÁĞµÄË÷ÒıĞòºÅ
-    * @param [in] columnId ÁĞµÄIDÖµ£¬Í¨¹ıListCtrlHeaderItem::GetColomnId()º¯Êı»ñÈ¡
-    * @return ÁĞµÄĞòºÅ£º[0, GetColumnCount())£¬´ú±íµÚ¼¸ÁĞ
+    /** è·å–åˆ—çš„ç´¢å¼•åºå·
+    * @param [in] columnId åˆ—çš„IDå€¼ï¼Œé€šè¿‡ListCtrlHeaderItem::GetColomnId()å‡½æ•°è·å–
+    * @return åˆ—çš„åºå·ï¼š[0, GetColumnCount())ï¼Œä»£è¡¨ç¬¬å‡ åˆ—
     */
     size_t GetColumnIndex(size_t columnId) const;
 
-    /** »ñÈ¡ÁĞµÄË÷ÒıĞòºÅ
-    * @param [in] columnIndex ÁĞË÷ÒıĞòºÅ£º[0, GetColumnCount())
-    * @return ÁĞµÄID£¬Èç¹ûÆ¥Åä²»µ½£¬Ôò·µ»ØBox::InvalidIndex
+    /** è·å–åˆ—çš„ç´¢å¼•åºå·
+    * @param [in] columnIndex åˆ—ç´¢å¼•åºå·ï¼š[0, GetColumnCount())
+    * @return åˆ—çš„IDï¼Œå¦‚æœåŒ¹é…ä¸åˆ°ï¼Œåˆ™è¿”å›Box::InvalidIndex
     */
     size_t GetColumnId(size_t columnIndex) const;
 
-    /** É¾³ıÒ»ÁĞ
-    * @param [in] columnIndex ÁĞË÷ÒıĞòºÅ£º[0, GetColumnCount())
+    /** åˆ é™¤ä¸€åˆ—
+    * @param [in] columnIndex åˆ—ç´¢å¼•åºå·ï¼š[0, GetColumnCount())
     */
     bool DeleteColumn(size_t columnIndex);
 
-    /** ÉèÖÃÊÇ·ñÔÚHeaderÏÔÊ¾CheckBox
-    * @param [in] bShow true±íÊ¾ÔÚ±íÍ·ÏÔÊ¾CheckBox£¬false±íÊ¾²»ÏÔÊ¾
+    /** è®¾ç½®æ˜¯å¦åœ¨Headeræ˜¾ç¤ºCheckBox
+    * @param [in] bShow trueè¡¨ç¤ºåœ¨è¡¨å¤´æ˜¾ç¤ºCheckBoxï¼Œfalseè¡¨ç¤ºä¸æ˜¾ç¤º
     */
     bool SetShowCheckBox(bool bShow);
 
-    /** ÅĞ¶ÏÊÇ·ñÏÔÊ¾ÁËCheckBox
+    /** åˆ¤æ–­æ˜¯å¦æ˜¾ç¤ºäº†CheckBox
     */
     bool IsShowCheckBox() const;
 
-    /** ½ûÖ¹/ÔÊĞíCheckBox¹´Ñ¡Ïî±ä»¯ÊÂ¼ş
-    * @return ·µ»ØÔ­À´µÄ×´Ì¬£¬ÓÃÓÚ»¹Ô­
+    /** ç¦æ­¢/å…è®¸CheckBoxå‹¾é€‰é¡¹å˜åŒ–äº‹ä»¶
+    * @return è¿”å›åŸæ¥çš„çŠ¶æ€ï¼Œç”¨äºè¿˜åŸ
     */
     bool SetEnableCheckChangeEvent(bool bEnable);
 
-    /** ÉèÖÃ×ó²àµÄPaddingÖµ£¬ÓÃÓÚÓëÊı¾İĞĞ¶ÔÆëÏÔÊ¾
+    /** è®¾ç½®å·¦ä¾§çš„Paddingå€¼ï¼Œç”¨äºä¸æ•°æ®è¡Œå¯¹é½æ˜¾ç¤º
     */
     void SetPaddingLeftValue(int32_t nPaddingLeft);
 
-    /** ÉèÖÃÎÄ×ÖÓëÍ¼±êÖ®¼äµÄ¼ä¸ô£¨ÏñËØ£©
+    /** è®¾ç½®æ–‡å­—ä¸å›¾æ ‡ä¹‹é—´çš„é—´éš”ï¼ˆåƒç´ ï¼‰
     */
     void SetIconSpacing(int32_t nIconSpacing, bool bNeedDpiScale);
 
-    /** »ñÈ¡ÎÄ×ÖÓëÍ¼±êÖ®¼äµÄ¼ä¸ô£¨ÏñËØ£©
+    /** è·å–æ–‡å­—ä¸å›¾æ ‡ä¹‹é—´çš„é—´éš”ï¼ˆåƒç´ ï¼‰
     */
     int32_t GetIconSpacing() const;
 
 public:
 
-    /** ÉèÖÃ¹ØÁªµÄListCtrl½Ó¿Ú
+    /** è®¾ç½®å…³è”çš„ListCtrlæ¥å£
     */
     void SetListCtrl(ListCtrl* pListCtrl);
 
-    /** »ñÈ¡¹ØÁªµÄListCtrl½Ó¿Ú
+    /** è·å–å…³è”çš„ListCtrlæ¥å£
     */
     ListCtrl* GetListCtrl() const;
 
 public:
-    /** ÁĞ±íÍ·Êó±êÓÒ¼üµã»÷´¦Àíº¯Êı
-    * @param[in] callback Òª°ó¶¨µÄ»Øµ÷º¯Êı, 
-    *   ²ÎÊıËµÃ÷£ºwParamÈç¹û²»Îª0£¬ÆäÖµÊÇ£ºListCtrlHeaderItem*
-    *           ¿ÉÒÔÍ¨¹ı ListCtrlHeaderItem* pHeaderItem = (ListCtrlHeaderItem*)wParam; »ñÈ¡µ½µã»÷ÔÚÄÄÁĞÁË
-    *           Èç¹ûwParamÈç¹ûÎª0£¬ËµÃ÷ÊÇµã»÷µ½ÁËListCtrlHeader×ÔÉí¿Õ°×´¦£¬Ã»ÓĞµã»÷µ½ÈÎºÎÁĞ
+    /** åˆ—è¡¨å¤´é¼ æ ‡å³é”®ç‚¹å‡»å¤„ç†å‡½æ•°
+    * @param[in] callback è¦ç»‘å®šçš„å›è°ƒå‡½æ•°, 
+    *   å‚æ•°è¯´æ˜ï¼šwParamå¦‚æœä¸ä¸º0ï¼Œå…¶å€¼æ˜¯ï¼šListCtrlHeaderItem*
+    *           å¯ä»¥é€šè¿‡ ListCtrlHeaderItem* pHeaderItem = (ListCtrlHeaderItem*)wParam; è·å–åˆ°ç‚¹å‡»åœ¨å“ªåˆ—äº†
+    *           å¦‚æœwParamå¦‚æœä¸º0ï¼Œè¯´æ˜æ˜¯ç‚¹å‡»åˆ°äº†ListCtrlHeaderè‡ªèº«ç©ºç™½å¤„ï¼Œæ²¡æœ‰ç‚¹å‡»åˆ°ä»»ä½•åˆ—
     */
     void AttachRClick(const EventCallback& callback) { AttachEvent(kEventRClick, callback); }
 
 protected:
-    /** ÊÇ·ñÖ§³ÖÁĞ±íÍ·ÍÏ¶¯¸Ä±äÁĞµÄË³Ğò
+    /** æ˜¯å¦æ”¯æŒåˆ—è¡¨å¤´æ‹–åŠ¨æ”¹å˜åˆ—çš„é¡ºåº
     */
     bool IsEnableHeaderDragOrder() const;
 
-    /** ÍÏ¶¯ÁĞ±íÍ·¸Ä±äÁĞ¿íµÄÊÂ¼şÏìÓ¦º¯Êı
-    * @param [in] pLeftHeaderItem ×ó²àµÄÁĞ±íÍ·¿Ø¼ş½Ó¿Ú
-    * @param [in] pRightHeaderItem ÓÒ²àµÄÁĞ±íÍ·¿Ø¼ş½Ó¿Ú
+    /** æ‹–åŠ¨åˆ—è¡¨å¤´æ”¹å˜åˆ—å®½çš„äº‹ä»¶å“åº”å‡½æ•°
+    * @param [in] pLeftHeaderItem å·¦ä¾§çš„åˆ—è¡¨å¤´æ§ä»¶æ¥å£
+    * @param [in] pRightHeaderItem å³ä¾§çš„åˆ—è¡¨å¤´æ§ä»¶æ¥å£
     */
     void OnHeaderColumnResized(Control* pLeftHeaderItem, Control* pRightHeaderItem);
 
-    /** µã»÷ÁĞ±íÍ·´¥·¢ÅÅĞòµÄÊÂ¼şÏìÓ¦º¯Êı
-    * @param [in] pHeaderItem ÁĞ±íÍ·¿Ø¼ş½Ó¿Ú
+    /** ç‚¹å‡»åˆ—è¡¨å¤´è§¦å‘æ’åºçš„äº‹ä»¶å“åº”å‡½æ•°
+    * @param [in] pHeaderItem åˆ—è¡¨å¤´æ§ä»¶æ¥å£
     */
     void OnHeaderColumnSorted(ListCtrlHeaderItem* pHeaderItem);
 
-    /** Í¨¹ıÍÏ¶¯ÁĞ±íÍ·£¬µ÷ÕûÁËÁĞµÄË³Ğò
+    /** é€šè¿‡æ‹–åŠ¨åˆ—è¡¨å¤´ï¼Œè°ƒæ•´äº†åˆ—çš„é¡ºåº
     */
     void OnHeaderColumnOrderChanged();
 
-    /** CheckBoxµÄ¹´Ñ¡Ïî²Ù×÷
-    * @param [in] pHeaderItem ÁĞ±íÍ·¿Ø¼ş½Ó¿Ú
-    * @param [in] bChecked true±íÊ¾¹´Ñ¡£¨Checked×´Ì¬£©£¬false±íÊ¾È¡Ïû¹´Ñ¡£¨UnChecked×´Ì¬£©
+    /** CheckBoxçš„å‹¾é€‰é¡¹æ“ä½œ
+    * @param [in] pHeaderItem åˆ—è¡¨å¤´æ§ä»¶æ¥å£
+    * @param [in] bChecked trueè¡¨ç¤ºå‹¾é€‰ï¼ˆCheckedçŠ¶æ€ï¼‰ï¼Œfalseè¡¨ç¤ºå–æ¶ˆå‹¾é€‰ï¼ˆUnCheckedçŠ¶æ€ï¼‰
     */
     void OnHeaderColumnCheckStateChanged(ListCtrlHeaderItem* pHeaderItem, bool bChecked);
 
-    /** ±íÍ·ÁĞµÄÏÔÊ¾ÊôĞÔ·¢Éú±ä»¯
+    /** è¡¨å¤´åˆ—çš„æ˜¾ç¤ºå±æ€§å‘ç”Ÿå˜åŒ–
     */
     void OnHeaderColumnVisibleChanged();
 
-    /** ÁĞ±íÍ·ÁĞµÄ·Ö¸îÌõË«»÷ÊÂ¼ş
-    * @param [in] pHeaderItem ÁĞ±íÍ·¿Ø¼ş½Ó¿Ú
+    /** åˆ—è¡¨å¤´åˆ—çš„åˆ†å‰²æ¡åŒå‡»äº‹ä»¶
+    * @param [in] pHeaderItem åˆ—è¡¨å¤´æ§ä»¶æ¥å£
     */
     void OnHeaderColumnSplitDoubleClick(ListCtrlHeaderItem* pHeaderItem);
 
-    /** ÊÇ·ñÖ§³Ö¹´Ñ¡Ä£Ê½£¨Ä¿Ç°ÊÇTreeView/ListCtrlÔÚÊ¹ÓÃÕâ¸öÄ£Ê½£©
-        ¹´Ñ¡Ä£Ê½ÊÇÖ¸£º
-        £¨1£©Ö»ÓĞµã»÷ÔÚCheckBoxÍ¼Æ¬ÉÏµÄÊ±ºò£¬¹´Ñ¡¿òÍ¼Æ¬²ÅÊÇÑ¡Ôñ×´Ì¬£¨·Ç¹´Ñ¡Ä£Ê½ÏÂ£¬ÊÇµã»÷ÔÚ¿Ø¼ş¾ØĞÎÄÚ¾ÍÑ¡Ôñ£©
-        £¨2£©¹´Ñ¡×´Ì¬ºÍÑ¡Ôñ×´Ì¬·ÖÀë£¬ÊÇÁ½¸ö²»Í¬µÄ×´Ì¬
+    /** æ˜¯å¦æ”¯æŒå‹¾é€‰æ¨¡å¼ï¼ˆç›®å‰æ˜¯TreeView/ListCtrlåœ¨ä½¿ç”¨è¿™ä¸ªæ¨¡å¼ï¼‰
+        å‹¾é€‰æ¨¡å¼æ˜¯æŒ‡ï¼š
+        ï¼ˆ1ï¼‰åªæœ‰ç‚¹å‡»åœ¨CheckBoxå›¾ç‰‡ä¸Šçš„æ—¶å€™ï¼Œå‹¾é€‰æ¡†å›¾ç‰‡æ‰æ˜¯é€‰æ‹©çŠ¶æ€ï¼ˆéå‹¾é€‰æ¨¡å¼ä¸‹ï¼Œæ˜¯ç‚¹å‡»åœ¨æ§ä»¶çŸ©å½¢å†…å°±é€‰æ‹©ï¼‰
+        ï¼ˆ2ï¼‰å‹¾é€‰çŠ¶æ€å’Œé€‰æ‹©çŠ¶æ€åˆ†ç¦»ï¼Œæ˜¯ä¸¤ä¸ªä¸åŒçš„çŠ¶æ€
     */
     virtual bool SupportCheckedMode() const override;
 
-    /** ¹´Ñ¡×´Ì¬±ä»¯ÊÂ¼ş(m_bChecked±äÁ¿·¢Éú±ä»¯)
+    /** å‹¾é€‰çŠ¶æ€å˜åŒ–äº‹ä»¶(m_bCheckedå˜é‡å‘ç”Ÿå˜åŒ–)
     */
     virtual void OnPrivateSetChecked() override;
 
-    /** »ñÈ¡CheckBoxµÄÍ¼Æ¬¿í¶È
+    /** è·å–CheckBoxçš„å›¾ç‰‡å®½åº¦
     */
     int32_t GetCheckBoxImageWidth();
 
-    /** ¸üĞÂPadding£¬È·±£ÎÄ×ÖÓëÍ¼±ê²»ÖØµş
+    /** æ›´æ–°Paddingï¼Œç¡®ä¿æ–‡å­—ä¸å›¾æ ‡ä¸é‡å 
     */
     void UpdatePaddingLeft();
 
 private:
-    /** ¹ØÁªµÄListCtrl½Ó¿Ú
+    /** å…³è”çš„ListCtrlæ¥å£
     */
     ListCtrl* m_pListCtrl;
 
-    /** ×ó²àµÄPaddingÖµ£¬ÓÃÓÚÓëÊı¾İĞĞ¶ÔÆëÏÔÊ¾
+    /** å·¦ä¾§çš„Paddingå€¼ï¼Œç”¨äºä¸æ•°æ®è¡Œå¯¹é½æ˜¾ç¤º
     */
     int32_t m_nPaddingLeftValue;
 
-    /** ÊÇ·ñÔÊĞíCheckBox¹´Ñ¡Ïî±ä»¯ÊÂ¼ş
+    /** æ˜¯å¦å…è®¸CheckBoxå‹¾é€‰é¡¹å˜åŒ–äº‹ä»¶
     */
     bool m_bEnableCheckChangeEvent;
 
-    /** ÎÄ×ÖÓëÍ¼±êÖ®¼äµÄ¼ä¸ô(Í¼±êÏÔÊ¾ÔÚÎÄ×ÖµÄÓÒ²à»òÕß×ó²àÊ±)
+    /** æ–‡å­—ä¸å›¾æ ‡ä¹‹é—´çš„é—´éš”(å›¾æ ‡æ˜¾ç¤ºåœ¨æ–‡å­—çš„å³ä¾§æˆ–è€…å·¦ä¾§æ—¶)
     */
     int32_t m_nIconSpacing;
 };

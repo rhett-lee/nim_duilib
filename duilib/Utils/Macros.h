@@ -18,7 +18,7 @@ namespace ui
 #define GET_KEYSTATE_WPARAM(wParam)     (LOWORD(wParam))
 
 ///////////////////////////////////////////////////////
-// WM_TOUCH触摸消息
+// WM_TOUCH瑙︽懜娑堟伅
 #define WM_TOUCH                        0x0240
 #define WM_GESTURE                      0x0119
 #define WM_GESTURENOTIFY                0x011A
@@ -54,7 +54,7 @@ namespace ui
 #define TOUCHINPUTMASKF_CONTACTAREA     0x0004  // the cxContact and cyContact fields are valid
 
 ///////////////////////////////////////////////////////
-// DPI适配
+// DPI閫傞厤
 DECLARE_HANDLE(PROCESS_DPI_AWARENESS_CONTEXT);
 #define PROCESS_DPI_AWARENESS_CONTEXT_UNAWARE               ((PROCESS_DPI_AWARENESS_CONTEXT)-1)
 #define PROCESS_DPI_AWARENESS_CONTEXT_SYSTEM_AWARE          ((PROCESS_DPI_AWARENESS_CONTEXT)-2)
@@ -91,7 +91,7 @@ typedef struct tagTOUCHINPUT {
 typedef TOUCHINPUT const * PCTOUCHINPUT;
 
 ///////////////////////////////////////////////////////
-// WM_POINTER消息
+// WM_POINTER娑堟伅
 #define WM_NCPOINTERUPDATE              0x0241
 #define WM_NCPOINTERDOWN                0x0242
 #define WM_NCPOINTERUP                  0x0243

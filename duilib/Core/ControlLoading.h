@@ -10,7 +10,7 @@
 namespace ui 
 {
 
-/** ¿Ø¼ş¼ÓÔØÖĞ×´Ì¬µÄÂß¼­·â×°
+/** æ§ä»¶åŠ è½½ä¸­çŠ¶æ€çš„é€»è¾‘å°è£…
 */
 class Image;
 class Control;
@@ -24,58 +24,58 @@ public:
 	ControlLoading& operator = (const ControlLoading&) = delete;
 
 public:
-	/** ÉèÖÃ"¼ÓÔØÖĞ"Í¼Æ¬µÄÂ·¾¶µÈÅäÖÃĞÅÏ¢
-	* @return Èç¹û±ä»¯·µ»Øtrue£¬·ñÔò·µ»Øfalse
+	/** è®¾ç½®"åŠ è½½ä¸­"å›¾ç‰‡çš„è·¯å¾„ç­‰é…ç½®ä¿¡æ¯
+	* @return å¦‚æœå˜åŒ–è¿”å›trueï¼Œå¦åˆ™è¿”å›false
 	*/
 	bool SetLoadingImage(const std::wstring& strImage);
 
-	/** ÉèÖÃloading±³¾°É«
-	* @param[in] strColor ±³¾°É«
-	* @return Èç¹û±ä»¯·µ»Øtrue£¬·ñÔò·µ»Øfalse
+	/** è®¾ç½®loadingèƒŒæ™¯è‰²
+	* @param[in] strColor èƒŒæ™¯è‰²
+	* @return å¦‚æœå˜åŒ–è¿”å›trueï¼Œå¦åˆ™è¿”å›false
 	*/
 	bool SetLoadingBkColor(const std::wstring& strColor);
 
-	/** »æÖÆ"¼ÓÔØÖĞ"Í¼Æ¬
+	/** ç»˜åˆ¶"åŠ è½½ä¸­"å›¾ç‰‡
 	*/
 	void PaintLoading(IRender* pRender);
 
-	/** ¿ªÆôloading×´Ì¬
-	* @param[in] start_angle loadingÍ¼Æ¬Ğı×ªµÄ½Ç¶È
+	/** å¼€å¯loadingçŠ¶æ€
+	* @param[in] start_angle loadingå›¾ç‰‡æ—‹è½¬çš„è§’åº¦
 	*/
 	bool StartLoading(int32_t fStartAngle = -1);
 
-	/** ¹Ø±Õloading×´Ì¬
-	* @param[in] frame ²¥·ÅÍê³ÉÍ£Ö¹ÔÚÄÄÒ»Ö¡£¬¿ÉÉèÖÃµÚÒ»Ö¡¡¢µ±Ç°Ö¡ºÍ×îºóÒ»Ö¡¡£Çë²Î¿¼ GifFrameType Ã¶¾Ù
+	/** å…³é—­loadingçŠ¶æ€
+	* @param[in] frame æ’­æ”¾å®Œæˆåœæ­¢åœ¨å“ªä¸€å¸§ï¼Œå¯è®¾ç½®ç¬¬ä¸€å¸§ã€å½“å‰å¸§å’Œæœ€åä¸€å¸§ã€‚è¯·å‚è€ƒ GifFrameType æšä¸¾
 	*/
 	void StopLoading(GifFrameType frame = kGifFrameFirst);
 
-	/** ÊÇ·ñÕıÔÚloading
-	* @return ÔÚloading·µ»Øtrue, ·´Ö®·µ»Øfalse
+	/** æ˜¯å¦æ­£åœ¨loading
+	* @return åœ¨loadingè¿”å›true, åä¹‹è¿”å›false
 	*/
 	bool IsLoading() const;
 
 private:
-	/** ¼ÆËãloadingÍ¼Æ¬µÄĞı×ª½Ç¶È, Ğı×ªÍ¼Æ¬
+	/** è®¡ç®—loadingå›¾ç‰‡çš„æ—‹è½¬è§’åº¦, æ—‹è½¬å›¾ç‰‡
 	*/
 	void Loading();
 
 private:
-	//ÊÇ·ñ´¦ÓÚ¼ÓÔØÖĞµÄ×´Ì¬
+	//æ˜¯å¦å¤„äºåŠ è½½ä¸­çš„çŠ¶æ€
 	bool m_bIsLoading;
 
-	//¼ÓÔØÖĞÍ¼Æ¬Ğı×ªµÄ½Ç¶È£¨0-360£©
+	//åŠ è½½ä¸­å›¾ç‰‡æ—‹è½¬çš„è§’åº¦ï¼ˆ0-360ï¼‰
 	int32_t m_fCurrrentAngele;
 
-	//¼ÓÔØÖĞ×´Ì¬Ê±ÏÔÊ¾µÄÍ¼Æ¬
+	//åŠ è½½ä¸­çŠ¶æ€æ—¶æ˜¾ç¤ºçš„å›¾ç‰‡
 	std::unique_ptr<Image> m_pLoadingImage;
 
-	//¼ÓÔØÖĞ×´Ì¬Ê±µÄ±³¾°ÑÕÉ«
+	//åŠ è½½ä¸­çŠ¶æ€æ—¶çš„èƒŒæ™¯é¢œè‰²
 	UiString m_strLoadingBkColor;
 
-	//¼ÓÔØÖĞ×´Ì¬Í¼Æ¬(m_pLoadingImage)µÄÉúÃüÖÜÆÚ¹ÜÀí¡¢È¡Ïû»úÖÆ
+	//åŠ è½½ä¸­çŠ¶æ€å›¾ç‰‡(m_pLoadingImage)çš„ç”Ÿå‘½å‘¨æœŸç®¡ç†ã€å–æ¶ˆæœºåˆ¶
 	nbase::WeakCallbackFlag m_loadingImageFlag;
 
-	//¹ØÁªµÄControl¶ÔÏó
+	//å…³è”çš„Controlå¯¹è±¡
 	Control* m_pControl;
 };
 

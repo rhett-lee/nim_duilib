@@ -90,7 +90,7 @@ bool TabBox::RemoveItem(Control* pControl)
 
 	if( m_iCurSel == index)	{
 		if( GetItemCount() > 0 ) {
-			//ÒÆ³ýµ±Ç°Ñ¡ÔñµÄTABÒ³Ãæºó£¬Ñ¡Ôñ±»ÒÆ³ýÒ³ÃæµÄÇ°Ò»¸öTABÒ³Ãæ
+			//ç§»é™¤å½“å‰é€‰æ‹©çš„TABé¡µé¢åŽï¼Œé€‰æ‹©è¢«ç§»é™¤é¡µé¢çš„å‰ä¸€ä¸ªTABé¡µé¢
 			size_t newSel = m_iCurSel - 1;
 			if (newSel >= GetItemCount()) {
 				newSel = Box::InvalidIndex;
@@ -99,13 +99,13 @@ bool TabBox::RemoveItem(Control* pControl)
 			ret = SelectItem(newSel);
 		}
 		else {
-			//µ±Ç°Ö»ÓÐÒ»¸öTABÒ³£¬±»ÒÆ³ýÒÔºó£¬¸üÐÂÑ¡ÔñÎªÎ´Ñ¡Ôñ
+			//å½“å‰åªæœ‰ä¸€ä¸ªTABé¡µï¼Œè¢«ç§»é™¤ä»¥åŽï¼Œæ›´æ–°é€‰æ‹©ä¸ºæœªé€‰æ‹©
 			m_iCurSel = Box::InvalidIndex;
 		}
 		ArrangeAncestor();
 	}
 	else if( m_iCurSel > index ) {
-		//¸üÐÂµ±Ç°Ñ¡ÔñÒ³ÃæµÄÏÂ±êÖµ£¬Ê¹Æä±£³Ö²»±ä
+		//æ›´æ–°å½“å‰é€‰æ‹©é¡µé¢çš„ä¸‹æ ‡å€¼ï¼Œä½¿å…¶ä¿æŒä¸å˜
 		m_iCurSel -= 1;
 	}
 	return ret;
@@ -149,7 +149,7 @@ bool TabBox::SelectItem(size_t iIndex)
 		Control* pItemControl = m_items.at(it);
 		ASSERT(pItemControl != nullptr);
 		if (it == iIndex) {
-			//µ±Ç°Ñ¡ÔñµÄTAB Item
+			//å½“å‰é€‰æ‹©çš„TAB Item
 			OnShowTabItem(it);
 
 			if (!IsFadeSwitch()) {
@@ -180,10 +180,10 @@ bool TabBox::SelectItem(size_t iIndex)
 			}
 		}
 		else {
-			//²»ÊÇµ±Ç°Ñ¡ÔñµÄTABÒ³Ãæ
+			//ä¸æ˜¯å½“å‰é€‰æ‹©çš„TABé¡µé¢
 			OnHideTabItem(it);
 			if ((it == iOldSel) && IsFadeSwitch()) {
-				//¶ÔÓÚÔ­À´Ñ¡ÔñµÄTABÒ³Ãæ£¬³ö·¢¶¯»­Ð§¹û
+				//å¯¹äºŽåŽŸæ¥é€‰æ‹©çš„TABé¡µé¢ï¼Œå‡ºå‘åŠ¨ç”»æ•ˆæžœ
 				pItemControl->SetVisible(true);
 				int startValue = 0;
 				int endValue = 0;

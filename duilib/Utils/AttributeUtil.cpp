@@ -9,7 +9,7 @@ namespace ui
 void AttributeUtil::SkipSepChar(wchar_t*& pPtr)
 {
 	if ((pPtr != nullptr) && (*pPtr != L'\0')) {
-		//Ìø¹ı·Ö¸ô×Ö·û£¬µ«±ÜÃâÌø¹ıÎ²0£¬·ÀÖ¹×Ö·û´®Ô½½ç
+		//è·³è¿‡åˆ†éš”å­—ç¬¦ï¼Œä½†é¿å…è·³è¿‡å°¾0ï¼Œé˜²æ­¢å­—ç¬¦ä¸²è¶Šç•Œ
 		pPtr++;
 	}
 }
@@ -99,26 +99,26 @@ void AttributeUtil::ParseAttributeList(const std::wstring& strList,
 	while (*pstrList != L'\0') {
 		sName.clear();
 		sValue.clear();
-		//¶ÁÈ¡µÈºÅÇ°ÃæµÄÄÚÈİ£¬×÷ÎªName
+		//è¯»å–ç­‰å·å‰é¢çš„å†…å®¹ï¼Œä½œä¸ºName
 		while (*pstrList != L'\0' && *pstrList != L'=') {
 			const wchar_t* pstrTemp = ::CharNext(pstrList);
 			while (pstrList < pstrTemp) {
 				sName += *pstrList++;
 			}
 		}
-		//µ±Ç°×Ö·ûÓ¦¸ÃÊÇ¸öµÈºÅ
+		//å½“å‰å­—ç¬¦åº”è¯¥æ˜¯ä¸ªç­‰å·
 		ASSERT(*pstrList == L'=');
 		if (*pstrList != L'=') {
 			return;
 		}
-		//Ìøµ½µÈºÅ×Ö·ûºóÃæµÄ×Ö·û£¬Õâ¸ö×Ö·ûÓ¦¸ÃÊÇ¸ö·Ö¸ô×Ö·û
+		//è·³åˆ°ç­‰å·å­—ç¬¦åé¢çš„å­—ç¬¦ï¼Œè¿™ä¸ªå­—ç¬¦åº”è¯¥æ˜¯ä¸ªåˆ†éš”å­—ç¬¦
 		pstrList++;
 		ASSERT(*pstrList == seperateChar);
 		if (*pstrList != seperateChar) {
 			return;
 		}
 
-		//Ìøµ½µÚÒ»¸ö·Ö¸ô×Ö·ûºóÃæµÄ×Ö·û£¬¶ÁÈ¡ÊôĞÔÖµ
+		//è·³åˆ°ç¬¬ä¸€ä¸ªåˆ†éš”å­—ç¬¦åé¢çš„å­—ç¬¦ï¼Œè¯»å–å±æ€§å€¼
 		pstrList++;
 		while (*pstrList != L'\0' && *pstrList != seperateChar) {
 			LPTSTR pstrTemp = ::CharNext(pstrList);
@@ -131,17 +131,17 @@ void AttributeUtil::ParseAttributeList(const std::wstring& strList,
 			return;
 		}
 
-		//½âÎö³öÒ»¸öÊôĞÔ£¬Ìí¼Óµ½ÁĞ±íÖĞ(ÊôĞÔÃû³Æ²»ÔÊĞíÓĞ¿Õ¸ñ)
+		//è§£æå‡ºä¸€ä¸ªå±æ€§ï¼Œæ·»åŠ åˆ°åˆ—è¡¨ä¸­(å±æ€§åç§°ä¸å…è®¸æœ‰ç©ºæ ¼)
 		sName = StringHelper::Trim(sName);
 		attributeList.push_back(std::make_pair(sName, sValue));
 
-		//Ìøµ½·Ö¸ô×Ö·ûºóÃæµÄ×Ö·û£¬Õâ¸ö×Ö·ûÓ¦¸ÃÊÇ¿Õ¸ñ£¬Èç¹û²»ÊÇ¿Õ¸ñ£¬ÈÏÎªÒÑ¾­½áÊø
+		//è·³åˆ°åˆ†éš”å­—ç¬¦åé¢çš„å­—ç¬¦ï¼Œè¿™ä¸ªå­—ç¬¦åº”è¯¥æ˜¯ç©ºæ ¼ï¼Œå¦‚æœä¸æ˜¯ç©ºæ ¼ï¼Œè®¤ä¸ºå·²ç»ç»“æŸ
 		pstrList++;
 		if (*pstrList != L' ') {
 			return;
 		}
 
-		//Ìøµ½¿Õ¸ñºóÃæµÄ×Ö·û
+		//è·³åˆ°ç©ºæ ¼åé¢çš„å­—ç¬¦
 		pstrList++;
 	}
 }
@@ -159,11 +159,11 @@ std::tuple<int32_t, float> AttributeUtil::ParseString(const wchar_t* strValue, w
 	float xPercent = wcstof(strValue, &pstr);
 	ASSERT(pstr != nullptr);
 	if ((pstr != nullptr) && (*pstr == L'%')) {
-		//¸ÃÖµÊÇ°Ù·Ö±È£¬Ìø¹ı'%'×Ö·û
+		//è¯¥å€¼æ˜¯ç™¾åˆ†æ¯”ï¼Œè·³è¿‡'%'å­—ç¬¦
 		pstr++;
 	}
 	else {
-		//²»ÊÇ°Ù·Ö±È, ¶øÊÇÕûĞÍÖµ
+		//ä¸æ˜¯ç™¾åˆ†æ¯”, è€Œæ˜¯æ•´å‹å€¼
 		xPercent = 0.0f;
 		xValue = wcstol(strValue, &pstr, 10);
 		ASSERT(pstr != nullptr);
@@ -176,8 +176,8 @@ std::tuple<int32_t, float> AttributeUtil::ParseString(const wchar_t* strValue, w
 
 void AttributeUtil::ParseWindowSize(Window* pWindow, const wchar_t* strValue, UiSize& size)
 {
-	//Ö§³ÖµÄ¸ñÊ½£ºsize="1200,800",»òÕßsize="50%,50%",»òÕßsize="1200,50%",size="50%,800"
-	//°Ù·Ö±ÈÊÇÖ¸ÆÁÄ»¿í¶È»òÕß¸ß¶ÈµÄ°Ù·Ö±È
+	//æ”¯æŒçš„æ ¼å¼ï¼šsize="1200,800",æˆ–è€…size="50%,50%",æˆ–è€…size="1200,50%",size="50%,800"
+	//ç™¾åˆ†æ¯”æ˜¯æŒ‡å±å¹•å®½åº¦æˆ–è€…é«˜åº¦çš„ç™¾åˆ†æ¯”
 	ASSERT(pWindow != nullptr);
 	if (pWindow == nullptr) {
 		return;
@@ -189,13 +189,13 @@ void AttributeUtil::ParseWindowSize(Window* pWindow, const wchar_t* strValue, Ui
 	AttributeUtil::SkipSepChar(pstr);
 	std::tuple<int32_t, float> y = ParseString(pstr, &pstr);
 
-	//»ñÈ¡ÓĞĞ§µÄ°Ù·Ö±ÈÖµ
+	//è·å–æœ‰æ•ˆçš„ç™¾åˆ†æ¯”å€¼
 	auto GetValidPercent = [](const std::tuple<int32_t, float>& xy) -> float {
 		float fPercent = std::get<1>(xy);
 		fPercent /= 100.0f;
 		ASSERT((fPercent >= 0.0001f) && (fPercent < 1.0001f));
 		if ((fPercent < 0.0001f) || (fPercent > 1.0001f)) {
-			//Èç¹ûÓöµ½ÎŞĞ§°Ù·Ö±È£¬ÔòÄ¬ÈÏÉèÖÃÎª´°¿Ú´óĞ¡µÄ75%
+			//å¦‚æœé‡åˆ°æ— æ•ˆç™¾åˆ†æ¯”ï¼Œåˆ™é»˜è®¤è®¾ç½®ä¸ºçª—å£å¤§å°çš„75%
 			fPercent = 0.75f;
 		}
 		return fPercent;

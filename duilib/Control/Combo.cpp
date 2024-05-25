@@ -7,7 +7,7 @@
 namespace ui
 {
 
-/** ÏÂÀ­ÁĞ±í´°¿Ú
+/** ä¸‹æ‹‰åˆ—è¡¨çª—å£
 */
 class CComboWnd: public Window
 {
@@ -18,27 +18,27 @@ public:
 	virtual void OnFinalMessage() override;
 	virtual LRESULT OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
 
-	/** ¹Ø±ÕÏÂÀ­¿ò
-	* @param [in] bCanceled true±íÊ¾È¡Ïû£¬·ñÔò±íÊ¾Õı³£¹Ø±Õ
-	* @param [in] needUpdateSelItem true±íÊ¾ĞèÒª¸üĞÂÑ¡ÔñÏî£¬·ñÔò²»ĞèÒª¸üĞÂÑ¡ÔñÏî
+	/** å…³é—­ä¸‹æ‹‰æ¡†
+	* @param [in] bCanceled trueè¡¨ç¤ºå–æ¶ˆï¼Œå¦åˆ™è¡¨ç¤ºæ­£å¸¸å…³é—­
+	* @param [in] needUpdateSelItem trueè¡¨ç¤ºéœ€è¦æ›´æ–°é€‰æ‹©é¡¹ï¼Œå¦åˆ™ä¸éœ€è¦æ›´æ–°é€‰æ‹©é¡¹
 	*/
 	void CloseComboWnd(bool bCanceled, bool needUpdateSelItem);
 
-	/** µ±Ç°ÊÇ·ñÎª½¹µã´°¿Ú
+	/** å½“å‰æ˜¯å¦ä¸ºç„¦ç‚¹çª—å£
 	*/
 	bool IsFocusWindow() const;
 
 private:
-	//¹ØÁªµÄCombo½Ó¿Ú
+	//å…³è”çš„Comboæ¥å£
     Combo* m_pOwner = nullptr;
 
-	//Ô­À´µÄÑ¡ÔñÏîË÷Òı
+	//åŸæ¥çš„é€‰æ‹©é¡¹ç´¢å¼•
     size_t m_iOldSel = Box::InvalidIndex;
 
-	//Ô­À´Edit¿Ø¼şµÄÎÄ±¾ÄÚÈİ
+	//åŸæ¥Editæ§ä»¶çš„æ–‡æœ¬å†…å®¹
 	UiString m_editText;
 
-	//ÊÇ·ñÒÑ¾­¹Ø±Õ
+	//æ˜¯å¦å·²ç»å…³é—­
 	bool m_bIsClosed = false;
 };
 
@@ -69,7 +69,7 @@ void CComboWnd::InitComboWnd(Combo* pOwner, bool bActivated)
 		::ShowWindow(GetHWND(), SW_SHOWNOACTIVATE);
 	}
 	if (Box::IsValidItemIndex(m_iOldSel)) {
-		//Õ¹¿ªµÄÊ±ºò£¬È·±£Ñ¡Ôñ¿É¼û
+		//å±•å¼€çš„æ—¶å€™ï¼Œç¡®ä¿é€‰æ‹©å¯è§
 		::UpdateWindow(GetHWND());
 		UiRect rc = pOwner->GetTreeView()->GetPos();
 		pOwner->GetTreeView()->EnsureVisible(m_iOldSel, ListBoxVerVisible::kVisibleAtCenter);
@@ -89,10 +89,10 @@ void CComboWnd::UpdateComboWnd()
 	rcOwner.Offset(-scrollBoxOffset.x, -scrollBoxOffset.y);
 
 	UiRect rc = rcOwner;
-	rc.top = rc.bottom + 1;		    // ¸¸´°¿Úleft¡¢bottomÎ»ÖÃ×÷Îªµ¯³ö´°¿ÚÆğµã
-	rc.bottom = rc.top + szDrop.cy;	// ¼ÆËãµ¯³ö´°¿Ú¸ß¶È
+	rc.top = rc.bottom + 1;		    // çˆ¶çª—å£leftã€bottomä½ç½®ä½œä¸ºå¼¹å‡ºçª—å£èµ·ç‚¹
+	rc.bottom = rc.top + szDrop.cy;	// è®¡ç®—å¼¹å‡ºçª—å£é«˜åº¦
 	if (szDrop.cx > 0) {
-		rc.right = rc.left + szDrop.cx;	// ¼ÆËãµ¯³ö´°¿Ú¿í¶È
+		rc.right = rc.left + szDrop.cx;	// è®¡ç®—å¼¹å‡ºçª—å£å®½åº¦
 	}
 
 	int32_t cyFixed = 0;
@@ -159,7 +159,7 @@ void CComboWnd::CloseComboWnd(bool bCanceled, bool needUpdateSelItem)
 		m_pOwner->GetTreeView()->SetParent(nullptr);
 		pRootBox->RemoveAllItems();
 	}
-	//ÏÈ½«Ç°¶Ë´°¿ÚÇĞ»»Îª¸¸´°¿Ú£¬±ÜÃâÇ°¶Ë´°¿Ú¹Ø±Õºó£¬ÇĞ»»µ½ÆäËû´°¿Ú
+	//å…ˆå°†å‰ç«¯çª—å£åˆ‡æ¢ä¸ºçˆ¶çª—å£ï¼Œé¿å…å‰ç«¯çª—å£å…³é—­åï¼Œåˆ‡æ¢åˆ°å…¶ä»–çª—å£
 	HWND hWnd = GetHWND();
 	HWND hParentWnd = ::GetParent(hWnd);
 	HWND hForeWnd = ::GetForegroundWindow();
@@ -210,17 +210,17 @@ LRESULT CComboWnd::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool
 		lResult = __super::OnWindowMessage(uMsg, wParam, lParam, bHandled);
 	}
 	if (uMsg == WM_KILLFOCUS) {
-		//Ê§È¥½¹µã£¬¹Ø±Õ´°¿Ú£¬Õı³£¹Ø±Õ
+		//å¤±å»ç„¦ç‚¹ï¼Œå…³é—­çª—å£ï¼Œæ­£å¸¸å…³é—­
 		if (GetHWND() != (HWND)wParam) {
 			CloseComboWnd(false, false);
 		}
 	}
 	else if (uMsg == WM_KEYDOWN && wParam == VK_ESCAPE) {
-		//°´×¡ESC¼ü£¬È¡Ïû
+		//æŒ‰ä½ESCé”®ï¼Œå–æ¶ˆ
 		CloseComboWnd(true, false);
 	}
 	else if (uMsg == WM_KEYDOWN && wParam == VK_RETURN) {
-		//°´»Ø³µ¼ü£¬¹Ø±Õ´°¿Ú£¬Õı³£¹Ø±Õ
+		//æŒ‰å›è½¦é”®ï¼Œå…³é—­çª—å£ï¼Œæ­£å¸¸å…³é—­
 		CloseComboWnd(false, true);
 	}
 	return lResult;
@@ -276,13 +276,13 @@ void Combo::SetAttribute(const std::wstring& strName, const std::wstring& strVal
 		}
 	}
 	else if ((strName == L"dropbox_size") || (strName == L"dropboxsize") ) {
-		//ÉèÖÃÏÂÀ­ÁĞ±íµÄ´óĞ¡£¨¿í¶ÈºÍ¸ß¶È£©
+		//è®¾ç½®ä¸‹æ‹‰åˆ—è¡¨çš„å¤§å°ï¼ˆå®½åº¦å’Œé«˜åº¦ï¼‰
 		UiSize szDropBoxSize;
 		AttributeUtil::ParseSizeValue(strValue.c_str(), szDropBoxSize);
 		SetDropBoxSize(szDropBoxSize, true);
 	}
 	else if ((strName == L"popup_top") || (strName == L"popuptop")) {
-		//ÏÂÀ­ÁĞ±íÊÇ·ñÏòÉÏµ¯³ö
+		//ä¸‹æ‹‰åˆ—è¡¨æ˜¯å¦å‘ä¸Šå¼¹å‡º
 		SetPopupTop(strValue == L"true");
 	}
 	else if (strName == L"combo_tree_view_class") {
@@ -396,7 +396,7 @@ void Combo::ParseAttributeList(const std::wstring& strList,
 		return;
 	}
 	std::wstring strValue = strList;
-	//Õâ¸öÊÇÊÖ¹¤Ğ´ÈëµÄÊôĞÔ£¬ÒÔ»¨À¨ºÅ{}´úÌæË«ÒıºÅ£¬±àĞ´µÄÊ±ºò¾Í²»ĞèÒª×ªÒå×Ö·ûÁË£»
+	//è¿™ä¸ªæ˜¯æ‰‹å·¥å†™å…¥çš„å±æ€§ï¼Œä»¥èŠ±æ‹¬å·{}ä»£æ›¿åŒå¼•å·ï¼Œç¼–å†™çš„æ—¶å€™å°±ä¸éœ€è¦è½¬ä¹‰å­—ç¬¦äº†ï¼›
 	StringHelper::ReplaceAll(L"{", L"\"", strValue);
 	StringHelper::ReplaceAll(L"}", L"\"", strValue);
 	if (strValue.find(L"\"") != std::wstring::npos) {
@@ -412,13 +412,13 @@ void Combo::SetAttributeList(Control* pControl, const std::wstring& classValue)
 	std::vector<std::pair<std::wstring, std::wstring>> attributeList;
 	ParseAttributeList(classValue, attributeList);
 	if (!attributeList.empty()) {
-		//°´ÊôĞÔÁĞ±íÉèÖÃ
+		//æŒ‰å±æ€§åˆ—è¡¨è®¾ç½®
 		for (const auto& attribute : attributeList) {
 			pControl->SetAttribute(attribute.first, attribute.second);
 		}
 	}
 	else if(!classValue.empty()) {
-		//°´ClassÃû³ÆÉèÖÃ
+		//æŒ‰Classåç§°è®¾ç½®
 		pControl->SetClass(classValue);
 	}
 }
@@ -537,7 +537,7 @@ void Combo::SetComboType(ComboType comboType)
 	if (comboType == kCombo_DropList) {
 		m_comboType = kCombo_DropList;
 		if (m_pEditControl != nullptr) {
-			//ÉèÖÃÎªÖ»¶Á£¬²»ÏÔÊ¾¹â±ê
+			//è®¾ç½®ä¸ºåªè¯»ï¼Œä¸æ˜¾ç¤ºå…‰æ ‡
 			m_pEditControl->SetReadOnly(true);
 			m_pEditControl->SetNoCaretReadonly();
 			m_pEditControl->SetCursorType(kCursorArrow);
@@ -665,13 +665,13 @@ size_t Combo::InsertTextItem(size_t iIndex, const std::wstring& itemText)
 	}
 	size_t newIndex = Box::InvalidIndex;
 	if (iIndex == GetCount()) {
-		//ÔÚ×îºóÃæ²åÈëĞÂµÄ½Úµã
+		//åœ¨æœ€åé¢æ’å…¥æ–°çš„èŠ‚ç‚¹
 		TreeNode* pNewNode = CreateTreeNode(itemText);
 		m_treeView.GetRootNode()->AddChildNode(pNewNode);
 		newIndex = m_treeView.GetItemIndex(pNewNode);
 	}
 	else {
-		//ÔÚÖ¸¶¨Î»ÖÃ²åÈëĞÂµÄ½Úµã
+		//åœ¨æŒ‡å®šä½ç½®æ’å…¥æ–°çš„èŠ‚ç‚¹
 		Control* pControl = m_treeView.GetItemAt(iIndex);
 		if (pControl != nullptr) {
 			TreeNode* pTreeNode = dynamic_cast<TreeNode*>(pControl);
@@ -775,7 +775,7 @@ bool Combo::OnSelectItem(const EventArgs& /*args*/)
 	if (Box::IsValidItemIndex(m_iCurSel) && (m_pWindow != nullptr) && !m_pWindow->IsClosingWnd()) {
 		const Control* pControl = m_treeView.GetItemAt(m_iCurSel);
 		if ((pControl != nullptr) && (m_pWindow->GetEventClick() == pControl)) {
-			//Èç¹ûÊÇÊó±êµã»÷´¥·¢Ñ¡Ôñ£¬ÄÇÃ´¹Ø±ÕÏÂÀ­ÁĞ±í
+			//å¦‚æœæ˜¯é¼ æ ‡ç‚¹å‡»è§¦å‘é€‰æ‹©ï¼Œé‚£ä¹ˆå…³é—­ä¸‹æ‹‰åˆ—è¡¨
 			if (m_pWindow != nullptr) {
 				m_pWindow->CloseComboWnd(false, false);
 			}
@@ -806,7 +806,7 @@ bool Combo::OnButtonDown(const EventArgs& /*args*/)
 {
 	m_bDropListShown = (m_pWindow != nullptr) ? true : false;
 	if (m_pWindow != nullptr) {
-		//Èç¹ûÏÂÀ­¿òÊÇÏÔÊ¾×´Ì¬£¬ÔòÔÙ´Îµã»÷µÄÊ±ºò£¬¹Ø±Õ
+		//å¦‚æœä¸‹æ‹‰æ¡†æ˜¯æ˜¾ç¤ºçŠ¶æ€ï¼Œåˆ™å†æ¬¡ç‚¹å‡»çš„æ—¶å€™ï¼Œå…³é—­
 		HideComboList();
 	}
 	return true;
@@ -814,7 +814,7 @@ bool Combo::OnButtonDown(const EventArgs& /*args*/)
 
 bool Combo::OnButtonClicked(const EventArgs& /*args*/)
 {
-	//Èç¹ûÊó±ê°´ÏÂµÄÊ±ºò£¬ÕıÔÚÏÔÊ¾ÁĞ±í£¬ÄÇÃ´µã»÷ºó²»ÏÔÊ¾ÏÂÀ­ÁĞ±í
+	//å¦‚æœé¼ æ ‡æŒ‰ä¸‹çš„æ—¶å€™ï¼Œæ­£åœ¨æ˜¾ç¤ºåˆ—è¡¨ï¼Œé‚£ä¹ˆç‚¹å‡»åä¸æ˜¾ç¤ºä¸‹æ‹‰åˆ—è¡¨
 	if (!m_bDropListShown) {		
 		ShowComboList();
 	}
@@ -838,10 +838,10 @@ bool Combo::OnEditButtonUp(const EventArgs& /*args*/)
 {
 	if (m_comboType == kCombo_DropList) {
 		if (m_bDropListShown) {
-			//Èç¹ûÊó±ê°´ÏÂµÄÊ±ºò£¬ÕıÔÚÏÔÊ¾ÁĞ±í£¬ÄÇÃ´µã»÷ºó²»ÏÔÊ¾ÏÂÀ­ÁĞ±í
+			//å¦‚æœé¼ æ ‡æŒ‰ä¸‹çš„æ—¶å€™ï¼Œæ­£åœ¨æ˜¾ç¤ºåˆ—è¡¨ï¼Œé‚£ä¹ˆç‚¹å‡»åä¸æ˜¾ç¤ºä¸‹æ‹‰åˆ—è¡¨
 			return true;
 		}
-		//ÏÔÊ¾ÏÂÀ­ÁĞ±í
+		//æ˜¾ç¤ºä¸‹æ‹‰åˆ—è¡¨
 		ShowComboList();
 	}
 	return true;
@@ -854,15 +854,15 @@ bool Combo::OnEditKeyDown(const EventArgs& args)
 	}
 	if (args.wParam == VK_DOWN) {
 		if ((m_pWindow == nullptr) || m_pWindow->IsClosingWnd()) {
-			//°´ÏòÏÂ¼ıÍ·µÄÊ±ºò: Èç¹ûÏÂÀ­ÁĞ±íÎ´ÏÔÊ¾£¬ÔòÏÔÊ¾ÏÂÀ­ÁĞ±í
+			//æŒ‰å‘ä¸‹ç®­å¤´çš„æ—¶å€™: å¦‚æœä¸‹æ‹‰åˆ—è¡¨æœªæ˜¾ç¤ºï¼Œåˆ™æ˜¾ç¤ºä¸‹æ‹‰åˆ—è¡¨
 			ShowComboList();
 		}
 		else {
-			//°´ÏòÏÂ¼ıÍ·µÄÊ±ºò: Èç¹ûÒÑ¾­ÏÔÊ¾£¬Ôò½øĞĞÑ¡ÔñÇĞ»»
+			//æŒ‰å‘ä¸‹ç®­å¤´çš„æ—¶å€™: å¦‚æœå·²ç»æ˜¾ç¤ºï¼Œåˆ™è¿›è¡Œé€‰æ‹©åˆ‡æ¢
 			const size_t itemCount = GetCount();
 			const size_t nCurSel = m_treeView.GetCurSel();
 			if (!Box::IsValidItemIndex(nCurSel)) {
-				//Èç¹ûÎ´Ñ¡Ôñ£¬Ôò¿ªÊ¼Ñ¡ÔñµÚÒ»Ïî
+				//å¦‚æœæœªé€‰æ‹©ï¼Œåˆ™å¼€å§‹é€‰æ‹©ç¬¬ä¸€é¡¹
 				if (itemCount > 0) {
 					m_treeView.SelectItem(0, false, true);
 				}
@@ -870,11 +870,11 @@ bool Combo::OnEditKeyDown(const EventArgs& args)
 			else {				
 				if ((itemCount > 0) && (nCurSel < itemCount)) {
 					if (nCurSel == (itemCount - 1)) {
-						//Èç¹ûÒÑ¾­ÊÇ×îºóÒ»Ïî£¬ÔòÈ¡ÏûÑ¡Ôñ
+						//å¦‚æœå·²ç»æ˜¯æœ€åä¸€é¡¹ï¼Œåˆ™å–æ¶ˆé€‰æ‹©
 						m_treeView.SelectItem(Box::InvalidIndex, false, true);
 					}
 					else {
-						//Èç¹û²»ÊÇ×îºóÒ»Ïî£¬ÔòÑ¡ÔñÏÂÒ»Ïî
+						//å¦‚æœä¸æ˜¯æœ€åä¸€é¡¹ï¼Œåˆ™é€‰æ‹©ä¸‹ä¸€é¡¹
 						m_treeView.SelectItem(nCurSel + 1, false, true);
 					}
 				}
@@ -882,34 +882,34 @@ bool Combo::OnEditKeyDown(const EventArgs& args)
 		}
 	}
 	else if (args.wParam == VK_UP) {
-		//°´ÏòÉÏ¼ıÍ·
+		//æŒ‰å‘ä¸Šç®­å¤´
 		if ((m_pWindow != nullptr) && !m_pWindow->IsClosingWnd()) {
 			const size_t itemCount = GetCount();
 			const size_t nCurSel = m_treeView.GetCurSel();
 			if (Box::IsValidItemIndex(nCurSel)) {
 				if (nCurSel == 0) {
-					//ÒÑ¾­ÊÇµÚÒ»Ïî£¬È¡ÏûÑ¡Ôñ
+					//å·²ç»æ˜¯ç¬¬ä¸€é¡¹ï¼Œå–æ¶ˆé€‰æ‹©
 					m_treeView.SelectItem(Box::InvalidIndex, false, true);
 				}
 				else {
-					//²»ÊÇµÚÒ»Ïî£¬Ñ¡ÔñÇ°ÃæÒ»Ïî
+					//ä¸æ˜¯ç¬¬ä¸€é¡¹ï¼Œé€‰æ‹©å‰é¢ä¸€é¡¹
 					m_treeView.SelectItem(nCurSel - 1, false, true);
 				}
 			}
 			else {
-				//Èç¹ûÎ´Ñ¡Ôñ£¬ÔòÑ¡Ôñ×îºóÒ»Ïî
+				//å¦‚æœæœªé€‰æ‹©ï¼Œåˆ™é€‰æ‹©æœ€åä¸€é¡¹
 				m_treeView.SelectItem(itemCount - 1, false, true);
 			}
 		}
 	}
 	else if (args.wParam == VK_ESCAPE) {
-		//°´×¡ESC¼ü£¬È¡Ïû
+		//æŒ‰ä½ESCé”®ï¼Œå–æ¶ˆ
 		if (m_pWindow != nullptr) {
 			m_pWindow->CloseComboWnd(true, false);
 		}
 	}
 	else if (args.wParam == VK_RETURN) {
-		//°´»Ø³µ¼ü£¬¹Ø±Õ´°¿Ú£¬Õı³£¹Ø±Õ
+		//æŒ‰å›è½¦é”®ï¼Œå…³é—­çª—å£ï¼Œæ­£å¸¸å…³é—­
 		if (m_pWindow != nullptr) {
 			m_pWindow->CloseComboWnd(false, false);
 		}
@@ -919,7 +919,7 @@ bool Combo::OnEditKeyDown(const EventArgs& args)
 
 bool Combo::OnEditSetFocus(const EventArgs& /*args*/)
 {
-	//½«RichEdit¿Ø¼şµÄ½¹µã×´Ì¬£¬×÷ÎªComboµÄ½¹µã×´Ì¬
+	//å°†RichEditæ§ä»¶çš„ç„¦ç‚¹çŠ¶æ€ï¼Œä½œä¸ºComboçš„ç„¦ç‚¹çŠ¶æ€
 	SendEvent(kEventSetFocus);
 	return true;
 }
@@ -933,7 +933,7 @@ bool Combo::OnEditKillFocus(const EventArgs& /*args*/)
 	}
 	HideComboList();
 	Invalidate();
-	//½«RichEdit¿Ø¼şµÄ½¹µã×´Ì¬£¬×÷ÎªComboµÄ½¹µã×´Ì¬
+	//å°†RichEditæ§ä»¶çš„ç„¦ç‚¹çŠ¶æ€ï¼Œä½œä¸ºComboçš„ç„¦ç‚¹çŠ¶æ€
 	SendEvent(kEventKillFocus);
 	return true;
 }
@@ -969,7 +969,7 @@ bool Combo::OnEditTextChanged(const ui::EventArgs& /*args*/)
 {
 	if ((m_pWindow != nullptr) && !m_pWindow->IsClosingWnd()) {
 		std::wstring editText = GetText();
-		//×ª»»³ÉĞ¡Ğ´£¬±È½ÏµÄÊ±ºò£¬²»Çø·Ö´óĞ¡Ğ´
+		//è½¬æ¢æˆå°å†™ï¼Œæ¯”è¾ƒçš„æ—¶å€™ï¼Œä¸åŒºåˆ†å¤§å°å†™
 		editText = StringHelper::MakeLowerString(editText);
 		size_t itemCount = m_treeView.GetItemCount();
 		for (size_t iIndex = 0; iIndex < itemCount; ++iIndex) {
@@ -993,7 +993,7 @@ bool Combo::OnEditTextChanged(const ui::EventArgs& /*args*/)
 
 void Combo::ShowComboList()
 {
-	//ÏÔÊ¾ÏÂÀ­ÁĞ±í
+	//æ˜¾ç¤ºä¸‹æ‹‰åˆ—è¡¨
 	if ((m_pWindow == nullptr) || m_pWindow->IsClosingWnd()) {
 		m_pWindow = new CComboWnd();
 		if (m_comboType == kCombo_DropList) {
@@ -1050,7 +1050,7 @@ void Combo::AttachMouseEvents(Control* pControl)
 
 void Combo::SetFocus()
 {
-	//½«½¹µãÉèÖÃÔÚEdit¿Ø¼şÉÏ
+	//å°†ç„¦ç‚¹è®¾ç½®åœ¨Editæ§ä»¶ä¸Š
 	if (IsNoFocus()) {
 		if ((m_pEditControl != nullptr) && m_pEditControl->IsVisible()) {
 			if (!m_pEditControl->IsFocused()) {

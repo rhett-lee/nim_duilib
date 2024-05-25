@@ -11,7 +11,7 @@
 namespace ui 
 {
 /** @class FontManager
-  * @brief ×Ô¶¨Òå×ÖÌå¹ÜÀíÀà
+  * @brief è‡ªå®šä¹‰å­—ä½“ç®¡ç†ç±»
   * @copyright (c) 2021, NetEase Inc. All rights reserved
   * @author Redrain
   * @date 2021/2/26
@@ -27,75 +27,75 @@ public:
 	FontManager& operator = (const FontManager&) = delete;
 
 public:
-	/** ×ÖÌåÖĞÓ¢ÎÄÃû³Æ×ª»»(SkiaÖ»Ö§³Ö×ÖÌåÓ¢ÎÄÃû³Æ£¬²»Ö§³ÖÖĞÎÄÃû³Æ)
+	/** å­—ä½“ä¸­è‹±æ–‡åç§°è½¬æ¢(Skiaåªæ”¯æŒå­—ä½“è‹±æ–‡åç§°ï¼Œä¸æ”¯æŒä¸­æ–‡åç§°)
 	*/
 	static std::wstring GetFontEnglishName(const std::wstring& fontName);
 
-	/** ×ÖÌåµÄÖĞÓ¢ÎÄÃû³Æ×ª»»(Ñ¡Ôñ×ÖÌåÊ±£¬Ö»ÄÜÊ¹ÓÃÖĞÎÄÃû³Æ)
+	/** å­—ä½“çš„ä¸­è‹±æ–‡åç§°è½¬æ¢(é€‰æ‹©å­—ä½“æ—¶ï¼Œåªèƒ½ä½¿ç”¨ä¸­æ–‡åç§°)
 	*/
 	static std::wstring GetFontSystemName(const std::wstring& fontName);
 
 public:
-	/** Ìí¼ÓÒ»¸ö×ÖÌåĞÅÏ¢£¬×ÖÌå´óĞ¡Î´¾­DPI´¦Àí
-	 * @param [in] fontId Ö¸¶¨×ÖÌåµÄID±ê¼Ç
-	 * @param [in] fontInfo ×ÖÌåÊôĞÔĞÅÏ¢
-	 * @param [in] bDefault ÊÇ·ñÉèÖÃÎªÄ¬ÈÏ×ÖÌå
+	/** æ·»åŠ ä¸€ä¸ªå­—ä½“ä¿¡æ¯ï¼Œå­—ä½“å¤§å°æœªç»DPIå¤„ç†
+	 * @param [in] fontId æŒ‡å®šå­—ä½“çš„IDæ ‡è®°
+	 * @param [in] fontInfo å­—ä½“å±æ€§ä¿¡æ¯
+	 * @param [in] bDefault æ˜¯å¦è®¾ç½®ä¸ºé»˜è®¤å­—ä½“
 	 */
 	bool AddFont(const std::wstring& fontId, const UiFont& fontInfo, bool bDefault);
 
-	/** »ñÈ¡×ÖÌå½Ó¿Ú, Èç¹ûÍ¨¹ıfontIdÕÒ²»µ½×ÖÌå½Ó¿Ú£¬ÄÇÃ´»á¼ÌĞø²éÕÒm_defaultFontId×ÖÌå½Ó¿Ú
-	* @param [in] fontId ×ÖÌåID
-	* @param [in] dpi DPIËõ·Å¹ÜÀíÆ÷£¬ÓÃÓÚ¶Ô×ÖÌå´óĞ¡½øĞĞËõ·Å
-	* @return ³É¹¦·µ»Ø×ÖÌå½Ó¿Ú£¬Íâ²¿µ÷ÓÃ²»ĞèÒªÊÍ·Å×ÊÔ´£»Èç¹ûÊ§°ÜÔò·µ»Ønullptr
+	/** è·å–å­—ä½“æ¥å£, å¦‚æœé€šè¿‡fontIdæ‰¾ä¸åˆ°å­—ä½“æ¥å£ï¼Œé‚£ä¹ˆä¼šç»§ç»­æŸ¥æ‰¾m_defaultFontIdå­—ä½“æ¥å£
+	* @param [in] fontId å­—ä½“ID
+	* @param [in] dpi DPIç¼©æ”¾ç®¡ç†å™¨ï¼Œç”¨äºå¯¹å­—ä½“å¤§å°è¿›è¡Œç¼©æ”¾
+	* @return æˆåŠŸè¿”å›å­—ä½“æ¥å£ï¼Œå¤–éƒ¨è°ƒç”¨ä¸éœ€è¦é‡Šæ”¾èµ„æºï¼›å¦‚æœå¤±è´¥åˆ™è¿”å›nullptr
 	*/
 	IFont* GetIFont(const std::wstring& fontId, const DpiManager& dpi);
 
-	/** É¾³ıËùÓĞ×ÖÌå, ²»°üº¬ÒÑ¾­¼ÓÔØµÄ×ÖÌåÎÄ¼ş
+	/** åˆ é™¤æ‰€æœ‰å­—ä½“, ä¸åŒ…å«å·²ç»åŠ è½½çš„å­—ä½“æ–‡ä»¶
 	 */
 	void RemoveAllFonts();
 
 public:
-	/** @brief Ìí¼ÓÒ»¸ö×ÖÌåÎÄ¼ş, Ìí¼Óºó¿ÉÒÔ°´ÕÕÕı³£×ÖÌåÊ¹ÓÃ
-	  * @param[in] strFontFile ×ÖÌåÎÄ¼şÃû, Ïà¶ÔÂ·¾¶£¬×ÖÌåÎÄ¼şµÄ±£´æÂ·¾¶ÊÇÄ¿Â¼£º"<×ÊÔ´Â·¾¶>\font\"
-	  * @param[in] strFontName ×ÖÌåÃû
-	  * @return ÎŞ·µ»ØÖµ
+	/** @brief æ·»åŠ ä¸€ä¸ªå­—ä½“æ–‡ä»¶, æ·»åŠ åå¯ä»¥æŒ‰ç…§æ­£å¸¸å­—ä½“ä½¿ç”¨
+	  * @param[in] strFontFile å­—ä½“æ–‡ä»¶å, ç›¸å¯¹è·¯å¾„ï¼Œå­—ä½“æ–‡ä»¶çš„ä¿å­˜è·¯å¾„æ˜¯ç›®å½•ï¼š"<èµ„æºè·¯å¾„>\font\"
+	  * @param[in] strFontName å­—ä½“å
+	  * @return æ— è¿”å›å€¼
 	  */
 	void AddFontFile(const std::wstring& strFontFile, const std::wstring& strFontName);
 
-	/** @brief ÇåÀíËùÓĞÌí¼ÓµÄ×ÖÌåÎÄ¼ş
-	  * @return ÎŞ·µ»ØÖµ
+	/** @brief æ¸…ç†æ‰€æœ‰æ·»åŠ çš„å­—ä½“æ–‡ä»¶
+	  * @return æ— è¿”å›å€¼
 	  */
 	void RemoveAllFontFiles();
 
 private:
-	/** »ñÈ¡DPIËõ·ÅºóÊµ¼ÊµÄ×ÖÌåID
+	/** è·å–DPIç¼©æ”¾åå®é™…çš„å­—ä½“ID
 	*/
 	std::wstring GetDpiFontId(const std::wstring& fontId, const DpiManager& dpi) const;
 
 private:
-	/** ×Ô¶¨Òå×ÖÌåÊı¾İ£ºKeyÊ±FontID£¬ValueÊÇ×ÖÌåÃèÊöĞÅÏ¢
+	/** è‡ªå®šä¹‰å­—ä½“æ•°æ®ï¼šKeyæ—¶FontIDï¼ŒValueæ˜¯å­—ä½“æè¿°ä¿¡æ¯
 	*/
 	std::unordered_map<std::wstring, UiFont> m_fontIdMap;
 
-	/** ×Ô¶¨Òå×ÖÌåĞÅÏ¢£ºKeyÊÇFontId
+	/** è‡ªå®šä¹‰å­—ä½“ä¿¡æ¯ï¼šKeyæ˜¯FontId
 	*/
 	std::unordered_map<std::wstring, IFont*> m_fontMap;
 
-	/** Ä¬ÈÏ×ÖÌåID
+	/** é»˜è®¤å­—ä½“ID
 	*/
 	std::wstring m_defaultFontId;
 
-	/** ×ÖÌåÎÄ¼şµÄ¼ÓÔØĞÅÏ¢
+	/** å­—ä½“æ–‡ä»¶çš„åŠ è½½ä¿¡æ¯
 	*/
 	struct FontFileInfo
 	{
-		//×ÖÌåÂ·¾¶
+		//å­—ä½“è·¯å¾„
 		std::wstring m_fontFilePath;
 
-		//×ÖÌåÃû³Æ
+		//å­—ä½“åç§°
 		std::wstring m_fontName;
 
-		//¼ÓÔØ×ÖÌåÎÄ¼şºóµÄ¾ä±ú
+		//åŠ è½½å­—ä½“æ–‡ä»¶åçš„å¥æŸ„
 		HANDLE m_hFontFile = nullptr;
 	};
 	std::vector<FontFileInfo> m_fontFileInfo;

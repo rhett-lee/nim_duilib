@@ -8,7 +8,7 @@
 
 namespace ui 
 {
-/** Ğé±íÊµÏÖµÄÍßÆ¬²¼¾Ö(×İÏò²¼¾Ö)
+/** è™šè¡¨å®ç°çš„ç“¦ç‰‡å¸ƒå±€(çºµå‘å¸ƒå±€)
 */
 class VirtualListBox;
 class UILIB_API VirtualVTileLayout : public VTileLayout, public VirtualLayout
@@ -16,85 +16,85 @@ class UILIB_API VirtualVTileLayout : public VTileLayout, public VirtualLayout
 public:
     VirtualVTileLayout();
 
-    /** ²¼¾ÖÀàĞÍ
+    /** å¸ƒå±€ç±»å‹
     */
     virtual LayoutType GetLayoutType() const override { return LayoutType::VirtualVTileLayout; }
 
-    /** µ÷ÕûÄÚ²¿ËùÓĞ¿Ø¼şµÄÎ»ÖÃĞÅÏ¢
-        * @param [in] items ¿Ø¼şÁĞ±í
-        * @param[in] rc µ±Ç°ÈİÆ÷Î»ÖÃĞÅÏ¢, °üº¬ÄÚ±ß¾à£¬µ«²»°üº¬Íâ±ß¾à
-        * @return ·µ»ØÅÅÁĞºó×îÖÕºĞ×ÓµÄ¿í¶ÈºÍ¸ß¶ÈĞÅÏ¢
+    /** è°ƒæ•´å†…éƒ¨æ‰€æœ‰æ§ä»¶çš„ä½ç½®ä¿¡æ¯
+        * @param [in] items æ§ä»¶åˆ—è¡¨
+        * @param[in] rc å½“å‰å®¹å™¨ä½ç½®ä¿¡æ¯, åŒ…å«å†…è¾¹è·ï¼Œä½†ä¸åŒ…å«å¤–è¾¹è·
+        * @return è¿”å›æ’åˆ—åæœ€ç»ˆç›’å­çš„å®½åº¦å’Œé«˜åº¦ä¿¡æ¯
         */
     virtual UiSize64 ArrangeChild(const std::vector<Control*>& items, UiRect rc) override;
 
-    /** ¸ù¾İÄÚ²¿×Ó¿Ø¼ş´óĞ¡¹ÀËãÈİÆ÷×ÔÉí´óĞ¡£¬À­ÉìÀàĞÍµÄ×Ó¿Ø¼ş±»ºöÂÔ£¬²»¼ÆÈë´óĞ¡¹ÀËã
-        * @param[in] items ×Ó¿Ø¼şÁĞ±í
-        * @param [in] szAvailable ¿ÉÓÃ´óĞ¡£¬°üº¬·ÖÅä¸ø¸Ã¿Ø¼şµÄÄÚ±ß¾à£¬µ«²»°üº¬·ÖÅä¸ø¿Ø¼şµÄÍâ±ß¾à
-        * @return ·µ»ØÅÅÁĞºó×îÖÕ²¼¾ÖµÄ´óĞ¡ĞÅÏ¢£¨¿í¶ÈºÍ¸ß¶È£©£»
-                °üº¬itemsÖĞ×Ó¿Ø¼şµÄÍâ±ß¾à£¬°üº¬itemsÖĞ×Ó¿Ø¼şµÄÄÚ±ß¾à£»
-                °üº¬Box¿Ø¼ş±¾ÉíµÄÄÚ±ß¾à£»
-                ²»°üº¬Box¿Ø¼ş±¾ÉíµÄÍâ±ß¾à£»
-                ·µ»ØÖµÖĞ²»°üº¬À­ÉìÀàĞÍµÄ×Ó¿Ø¼ş´óĞ¡¡£
+    /** æ ¹æ®å†…éƒ¨å­æ§ä»¶å¤§å°ä¼°ç®—å®¹å™¨è‡ªèº«å¤§å°ï¼Œæ‹‰ä¼¸ç±»å‹çš„å­æ§ä»¶è¢«å¿½ç•¥ï¼Œä¸è®¡å…¥å¤§å°ä¼°ç®—
+        * @param[in] items å­æ§ä»¶åˆ—è¡¨
+        * @param [in] szAvailable å¯ç”¨å¤§å°ï¼ŒåŒ…å«åˆ†é…ç»™è¯¥æ§ä»¶çš„å†…è¾¹è·ï¼Œä½†ä¸åŒ…å«åˆ†é…ç»™æ§ä»¶çš„å¤–è¾¹è·
+        * @return è¿”å›æ’åˆ—åæœ€ç»ˆå¸ƒå±€çš„å¤§å°ä¿¡æ¯ï¼ˆå®½åº¦å’Œé«˜åº¦ï¼‰ï¼›
+                åŒ…å«itemsä¸­å­æ§ä»¶çš„å¤–è¾¹è·ï¼ŒåŒ…å«itemsä¸­å­æ§ä»¶çš„å†…è¾¹è·ï¼›
+                åŒ…å«Boxæ§ä»¶æœ¬èº«çš„å†…è¾¹è·ï¼›
+                ä¸åŒ…å«Boxæ§ä»¶æœ¬èº«çš„å¤–è¾¹è·ï¼›
+                è¿”å›å€¼ä¸­ä¸åŒ…å«æ‹‰ä¼¸ç±»å‹çš„å­æ§ä»¶å¤§å°ã€‚
         */
     virtual UiSize EstimateSizeByChild(const std::vector<Control*>& items, UiSize szAvailable) override;
 
 public:
-    /** ÑÓ³Ù¼ÓÔØÕ¹Ê¾Êı¾İ
-    * @param [in] rc µ±Ç°ÈİÆ÷´óĞ¡ĞÅÏ¢, Íâ²¿µ÷ÓÃÊ±£¬ĞèÒªÏÈ¼ôÈ¥ÄÚ±ß¾à
+    /** å»¶è¿ŸåŠ è½½å±•ç¤ºæ•°æ®
+    * @param [in] rc å½“å‰å®¹å™¨å¤§å°ä¿¡æ¯, å¤–éƒ¨è°ƒç”¨æ—¶ï¼Œéœ€è¦å…ˆå‰ªå»å†…è¾¹è·
     */
     virtual void LazyArrangeChild(UiRect rc) const override;
 
-    /** »ñÈ¡ĞèÒªÕ¹Ê¾µÄÕæÊµÊı¾İÏî×î´ó¸öÊı£¨¼´ÓĞControl¶ÔÏó¶ÔÓ¦µÄÕæÊµÊı¾İÏî£©
-    * @param [in] rc µ±Ç°ÈİÆ÷´óĞ¡ĞÅÏ¢, Íâ²¿µ÷ÓÃÊ±£¬ĞèÒªÏÈ¼ôÈ¥ÄÚ±ß¾à
+    /** è·å–éœ€è¦å±•ç¤ºçš„çœŸå®æ•°æ®é¡¹æœ€å¤§ä¸ªæ•°ï¼ˆå³æœ‰Controlå¯¹è±¡å¯¹åº”çš„çœŸå®æ•°æ®é¡¹ï¼‰
+    * @param [in] rc å½“å‰å®¹å™¨å¤§å°ä¿¡æ¯, å¤–éƒ¨è°ƒç”¨æ—¶ï¼Œéœ€è¦å…ˆå‰ªå»å†…è¾¹è·
     */
     virtual size_t AjustMaxItem(UiRect rc) const override;
 
-    /** µÃµ½¿É¼û·¶Î§ÄÚµÚÒ»¸öÔªËØµÄÇ°Ò»¸öÔªËØË÷Òı
-    * @param [in] rc µ±Ç°ÏÔÊ¾ÇøÓòµÄ¾ØĞÎ£¬²»°üº¬ÄÚ±ß¾à
-    * @return ·µ»ØÔªËØµÄË÷Òı
+    /** å¾—åˆ°å¯è§èŒƒå›´å†…ç¬¬ä¸€ä¸ªå…ƒç´ çš„å‰ä¸€ä¸ªå…ƒç´ ç´¢å¼•
+    * @param [in] rc å½“å‰æ˜¾ç¤ºåŒºåŸŸçš„çŸ©å½¢ï¼Œä¸åŒ…å«å†…è¾¹è·
+    * @return è¿”å›å…ƒç´ çš„ç´¢å¼•
     */
     virtual size_t GetTopElementIndex(UiRect rc) const override;
 
-    /** ÅĞ¶ÏÄ³¸öÔªËØÊÇ·ñÔÚ¿É¼û·¶Î§ÄÚ
-    * @param[in] iIndex ÔªËØË÷Òı
-    * @param [in] rc µ±Ç°ÏÔÊ¾ÇøÓòµÄ¾ØĞÎ£¬²»°üº¬ÄÚ±ß¾à
-    * @return ·µ»Ø true ±íÊ¾¿É¼û£¬·ñÔòÎª²»¿É¼û
+    /** åˆ¤æ–­æŸä¸ªå…ƒç´ æ˜¯å¦åœ¨å¯è§èŒƒå›´å†…
+    * @param[in] iIndex å…ƒç´ ç´¢å¼•
+    * @param [in] rc å½“å‰æ˜¾ç¤ºåŒºåŸŸçš„çŸ©å½¢ï¼Œä¸åŒ…å«å†…è¾¹è·
+    * @return è¿”å› true è¡¨ç¤ºå¯è§ï¼Œå¦åˆ™ä¸ºä¸å¯è§
     */
     virtual bool IsElementDisplay(UiRect rc, size_t iIndex) const override;
 
-    /** ÅĞ¶ÏÊÇ·ñÒªÖØĞÂ²¼¾Ö
+    /** åˆ¤æ–­æ˜¯å¦è¦é‡æ–°å¸ƒå±€
     */
     virtual bool NeedReArrange() const override;
 
-    /** »ñÈ¡µ±Ç°ËùÓĞ¿É¼û¿Ø¼şµÄÊı¾İÔªËØË÷Òı
-    * @param [in] rc µ±Ç°ÏÔÊ¾ÇøÓòµÄ¾ØĞÎ£¬²»°üº¬ÄÚ±ß¾à
-    * @param[out] collection Ë÷ÒıÁĞ±í£¬·¶Î§ÊÇ£º[0, GetElementCount())
+    /** è·å–å½“å‰æ‰€æœ‰å¯è§æ§ä»¶çš„æ•°æ®å…ƒç´ ç´¢å¼•
+    * @param [in] rc å½“å‰æ˜¾ç¤ºåŒºåŸŸçš„çŸ©å½¢ï¼Œä¸åŒ…å«å†…è¾¹è·
+    * @param[out] collection ç´¢å¼•åˆ—è¡¨ï¼ŒèŒƒå›´æ˜¯ï¼š[0, GetElementCount())
     */
     virtual void GetDisplayElements(UiRect rc, std::vector<size_t>& collection) const override;
 
-    /** ÈÃ¿Ø¼şÔÚ¿É¼û·¶Î§ÄÚ
-    * @param [in] rc µ±Ç°ÏÔÊ¾ÇøÓòµÄ¾ØĞÎ£¬²»°üº¬ÄÚ±ß¾à
-    * @param[in] iIndex ÔªËØË÷ÒıºÅ£¬·¶Î§ÊÇ£º[0, GetElementCount())
-    * @param[in] bToTop ÊÇ·ñÔÚ×îÉÏ·½
+    /** è®©æ§ä»¶åœ¨å¯è§èŒƒå›´å†…
+    * @param [in] rc å½“å‰æ˜¾ç¤ºåŒºåŸŸçš„çŸ©å½¢ï¼Œä¸åŒ…å«å†…è¾¹è·
+    * @param[in] iIndex å…ƒç´ ç´¢å¼•å·ï¼ŒèŒƒå›´æ˜¯ï¼š[0, GetElementCount())
+    * @param[in] bToTop æ˜¯å¦åœ¨æœ€ä¸Šæ–¹
     */
     virtual void EnsureVisible(UiRect rc, size_t iIndex, bool bToTop) const override;
 
 private:
-    /** »ñÈ¡Êı¾İÏîµÄ¸ß¶È
-    * @param [in] nCount Êı¾İÏî¸öÊı£¬Èç¹ûÎªBox::InvalidIndex£¬Ôò»ñÈ¡ËùÓĞÊı¾İÏîµÄ¸ß¶È×ÜºÍ
-    * @param [in] rc µ±Ç°ÈİÆ÷´óĞ¡ĞÅÏ¢, Íâ²¿µ÷ÓÃÊ±£¬ĞèÒªÏÈ¼ôÈ¥ÄÚ±ß¾à
-    * @return ·µ»Ø nCount ¸öÊı¾İÏîµÄ¸ß¶È×ÜºÍ
+    /** è·å–æ•°æ®é¡¹çš„é«˜åº¦
+    * @param [in] nCount æ•°æ®é¡¹ä¸ªæ•°ï¼Œå¦‚æœä¸ºBox::InvalidIndexï¼Œåˆ™è·å–æ‰€æœ‰æ•°æ®é¡¹çš„é«˜åº¦æ€»å’Œ
+    * @param [in] rc å½“å‰å®¹å™¨å¤§å°ä¿¡æ¯, å¤–éƒ¨è°ƒç”¨æ—¶ï¼Œéœ€è¦å…ˆå‰ªå»å†…è¾¹è·
+    * @return è¿”å› nCount ä¸ªæ•°æ®é¡¹çš„é«˜åº¦æ€»å’Œ
     */
     int64_t GetElementsHeight(UiRect rc, size_t nCount) const;
 
-    /** ¼ÆËãÁĞÊı
-    *@param [in] rcWidth ¿ÉÓÃÇøÓò¿í¶È
-    *@return ¼ÆËãµÃµ½µÄÁĞÊı, ´óÓÚ»òµÈÓÚ1
+    /** è®¡ç®—åˆ—æ•°
+    *@param [in] rcWidth å¯ç”¨åŒºåŸŸå®½åº¦
+    *@return è®¡ç®—å¾—åˆ°çš„åˆ—æ•°, å¤§äºæˆ–ç­‰äº1
     */
     int32_t CalcTileColumns(int32_t rcWidth) const;
 
 private:
-    /** »ñÈ¡¹ØÁªµÄBox½Ó¿Ú
+    /** è·å–å…³è”çš„Boxæ¥å£
     */
     VirtualListBox* GetOwnerBox() const;
 };

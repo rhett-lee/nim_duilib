@@ -44,7 +44,7 @@ void StateImage::SetImageString(ControlStateType stateType,
 	if (iter != m_stateImageMap.end()) {
 		pImage = iter->second;
 		if (strImageString.empty()) {
-			//Èç¹ûÉèÖÃÎª¿Õ£¬ÊÍ·Å×ÊÔ´
+			//å¦‚æžœè®¾ç½®ä¸ºç©ºï¼Œé‡Šæ”¾èµ„æº
 			delete pImage;
 			m_stateImageMap.erase(iter);
 			return;
@@ -172,7 +172,7 @@ bool StateImage::PaintStateImage(IRender* pRender, ControlStateType stateType,
 	for (auto iter = m_stateImageMap.begin(); iter != m_stateImageMap.end(); ++iter) {
 		ASSERT(iter->second != nullptr);
 		if (iter->second != pImage) {
-			//Í£Ö¹ÆäËû×´Ì¬Í¼Æ¬µÄ¶¯»­
+			//åœæ­¢å…¶ä»–çŠ¶æ€å›¾ç‰‡çš„åŠ¨ç”»
 			iter->second->StopGifPlay();
 		}
 	}

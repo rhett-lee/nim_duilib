@@ -16,7 +16,7 @@ namespace ui
 
 typedef unsigned long COLORREF;
 
-/** 颜色类型（RGB/HSV/HSL）转换类
+/** 棰滆壊绫诲瀷锛圧GB/HSV/HSL锛夎浆鎹㈢被
 */
 class ColorConvert
 {

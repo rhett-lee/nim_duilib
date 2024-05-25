@@ -28,7 +28,7 @@ std::wstring MainForm::GetWindowClassName() const
 
 void MainForm::OnInitWindow()
 {
-    //´°¿Ú³õÊ¼»¯Íê³É£¬¿ÉÒÔ½øĞĞ±¾FormµÄ³õÊ¼»¯
+    //çª—å£åˆå§‹åŒ–å®Œæˆï¼Œå¯ä»¥è¿›è¡Œæœ¬Formçš„åˆå§‹åŒ–
 
 	/* Show select language menu */
 	ui::Button* select = static_cast<ui::Button*>(FindControl(L"language"));
@@ -50,29 +50,29 @@ void MainForm::OnInitWindow()
 
 void MainForm::OnCloseWindow()
 {
-	//¹Ø±Õ´°¿Úºó£¬ÍË³öÖ÷Ïß³ÌµÄÏûÏ¢Ñ­»·£¬¹Ø±Õ³ÌĞò
+	//å…³é—­çª—å£åï¼Œé€€å‡ºä¸»çº¿ç¨‹çš„æ¶ˆæ¯å¾ªç¯ï¼Œå…³é—­ç¨‹åº
 	PostQuitMessage(0L);
 }
 
 void MainForm::ShowPopupMenu(const ui::UiPoint& point)
 {
-	ui::Menu* menu = new ui::Menu(GetHWND());//ĞèÒªÉèÖÃ¸¸´°¿Ú£¬·ñÔÚ²Ëµ¥µ¯³öµÄÊ±ºò£¬³ÌĞò×´Ì¬À¸±à³Ì·Ç¼¤»î×´Ì¬
-	//ÉèÖÃ²Ëµ¥xmlËùÔÚµÄÄ¿Â¼
+	ui::Menu* menu = new ui::Menu(GetHWND());//éœ€è¦è®¾ç½®çˆ¶çª—å£ï¼Œå¦åœ¨èœå•å¼¹å‡ºçš„æ—¶å€™ï¼Œç¨‹åºçŠ¶æ€æ ç¼–ç¨‹éæ¿€æ´»çŠ¶æ€
+	//è®¾ç½®èœå•xmlæ‰€åœ¨çš„ç›®å½•
 	menu->SetSkinFolder(GetResourcePath());
 	std::wstring xml(L"lang_menu.xml");
 	menu->ShowMenu(xml, point);
 
-	//µ±Ç°ÓïÑÔÎÄ¼ş
+	//å½“å‰è¯­è¨€æ–‡ä»¶
 	std::wstring currentLangFileName = ui::GlobalManager::Instance().GetLanguageFileName();
 
-	//¿ÉÓÃÓïÑÔÎÄ¼şÁĞ±íºÍÏÔÊ¾Ãû³Æ
+	//å¯ç”¨è¯­è¨€æ–‡ä»¶åˆ—è¡¨å’Œæ˜¾ç¤ºåç§°
 	std::vector<std::pair<std::wstring, std::wstring>> languageList;
 	ui::GlobalManager::Instance().GetLanguageList(languageList);
 	if (languageList.empty()) {
 		languageList.push_back({ currentLangFileName , L""});
 	}
 
-	//¶¯Ì¬Ìí¼Ó²Ëµ¥Ïî
+	//åŠ¨æ€æ·»åŠ èœå•é¡¹
 	for (auto& lang : languageList) {
 		const std::wstring fileName = lang.first;
 		std::wstring& displayName = lang.second;
@@ -90,9 +90,9 @@ void MainForm::ShowPopupMenu(const ui::UiPoint& point)
 			pCheckBox->Selected(true);
 		}
 
-		//¹ÒÔØÑ¡ÔñÓïÑÔÊÂ¼ş
+		//æŒ‚è½½é€‰æ‹©è¯­è¨€äº‹ä»¶
 		pMenuItem->AttachClick([fileName](const ui::EventArgs& args) {
-			//ÇĞ»»ÓïÑÔ
+			//åˆ‡æ¢è¯­è¨€
 			ui::GlobalManager& globalManager = ui::GlobalManager::Instance();
 			if (globalManager.GetLanguageFileName() != fileName) {
 				globalManager.ReloadLanguage(L"", fileName, true);

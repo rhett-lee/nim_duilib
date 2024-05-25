@@ -8,7 +8,7 @@
 
 namespace ui
 {
-/** ÑÕÉ«ÀàĞÍ
+/** é¢œè‰²ç±»å‹
 */
 enum class ColorMode
 {
@@ -17,105 +17,105 @@ enum class ColorMode
 	kMode_HSL	//HSL
 };
 
-/** ÑÕÉ«µ÷Õû·½Ê½
+/** é¢œè‰²è°ƒæ•´æ–¹å¼
 */
 enum class ColorAdjustMode
 {
-	kMode_ARGB_A, //ARGBÄ£Ê½£¬µ÷ÕûA
-	kMode_ARGB_R, //ARGBÄ£Ê½£¬µ÷ÕûR
-	kMode_ARGB_G, //ARGBÄ£Ê½£¬µ÷ÕûG
-	kMode_ARGB_B, //ARGBÄ£Ê½£¬µ÷ÕûB
-	kMode_HSV_H,  //HSVÄ£Ê½£¬µ÷ÕûH
-	kMode_HSV_S,  //HSVÄ£Ê½£¬µ÷ÕûS
-	kMode_HSV_V,  //HSVÄ£Ê½£¬µ÷ÕûV
-	kMode_HSL_H,  //HSLÄ£Ê½£¬µ÷ÕûH
-	kMode_HSL_S,  //HSLÄ£Ê½£¬µ÷ÕûS
-	kMode_HSL_L   //HSLÄ£Ê½£¬µ÷ÕûL
+	kMode_ARGB_A, //ARGBæ¨¡å¼ï¼Œè°ƒæ•´A
+	kMode_ARGB_R, //ARGBæ¨¡å¼ï¼Œè°ƒæ•´R
+	kMode_ARGB_G, //ARGBæ¨¡å¼ï¼Œè°ƒæ•´G
+	kMode_ARGB_B, //ARGBæ¨¡å¼ï¼Œè°ƒæ•´B
+	kMode_HSV_H,  //HSVæ¨¡å¼ï¼Œè°ƒæ•´H
+	kMode_HSV_S,  //HSVæ¨¡å¼ï¼Œè°ƒæ•´S
+	kMode_HSV_V,  //HSVæ¨¡å¼ï¼Œè°ƒæ•´V
+	kMode_HSL_H,  //HSLæ¨¡å¼ï¼Œè°ƒæ•´H
+	kMode_HSL_S,  //HSLæ¨¡å¼ï¼Œè°ƒæ•´S
+	kMode_HSL_L   //HSLæ¨¡å¼ï¼Œè°ƒæ•´L
 };
 
-/** HSVÑÕÉ«
+/** HSVé¢œè‰²
 */
 class ColorHSV
 {
 public:
-	uint16_t H = 0; //·¶Î§: [0, 359)
-	uint8_t  S = 0; //·¶Î§: [0, 100]
-	uint8_t  V = 0; //·¶Î§: [0, 100]
+	uint16_t H = 0; //èŒƒå›´: [0, 359)
+	uint8_t  S = 0; //èŒƒå›´: [0, 100]
+	uint8_t  V = 0; //èŒƒå›´: [0, 100]
 };
 
-/** HSLÑÕÉ«
+/** HSLé¢œè‰²
 */
 class ColorHSL
 {
 public:
-	uint16_t H = 0; //·¶Î§: [0, 359)
-	uint8_t  S = 0; //·¶Î§: [0, 100]
-	uint8_t  L = 0; //·¶Î§: [0, 100]
+	uint16_t H = 0; //èŒƒå›´: [0, 359)
+	uint8_t  S = 0; //èŒƒå›´: [0, 100]
+	uint8_t  L = 0; //èŒƒå›´: [0, 100]
 };
 
-/** ×Ô¶¨ÒåÑÕÉ«±³¾°µÄSlider¿Ø¼ş
+/** è‡ªå®šä¹‰é¢œè‰²èƒŒæ™¯çš„Slideræ§ä»¶
 */
 class ColorSlider: public Slider
 {
 public:
 	explicit ColorSlider(Window* pWindow);
 
-	/** »ñÈ¡¿Ø¼şÀàĞÍ
+	/** è·å–æ§ä»¶ç±»å‹
 	*/
 	virtual std::wstring GetType() const override;
 
-	/** ÉèÖÃÑÕÉ«ĞÅÏ¢(ARGB¸ñÊ½µÄÑÕÉ«)
+	/** è®¾ç½®é¢œè‰²ä¿¡æ¯(ARGBæ ¼å¼çš„é¢œè‰²)
 	*/
 	void SetColorInfo(const UiColor& color, ColorAdjustMode adjustMode);
 
-	/** ÉèÖÃÑÕÉ«ĞÅÏ¢(HSV¸ñÊ½µÄÑÕÉ«)
+	/** è®¾ç½®é¢œè‰²ä¿¡æ¯(HSVæ ¼å¼çš„é¢œè‰²)
 	*/
 	void SetColorInfo(const ColorHSV& color, ColorAdjustMode adjustMode);
 
-	/** ÉèÖÃÑÕÉ«ĞÅÏ¢(HSL¸ñÊ½µÄÑÕÉ«)
+	/** è®¾ç½®é¢œè‰²ä¿¡æ¯(HSLæ ¼å¼çš„é¢œè‰²)
 	*/
 	void SetColorInfo(const ColorHSL& color, ColorAdjustMode adjustMode);
 
-	/** »æÖÆ±³¾°Í¼Æ¬µÄÈë¿Úº¯Êı
-	* @param[in] pRender Ö¸¶¨»æÖÆÇøÓò
+	/** ç»˜åˆ¶èƒŒæ™¯å›¾ç‰‡çš„å…¥å£å‡½æ•°
+	* @param[in] pRender æŒ‡å®šç»˜åˆ¶åŒºåŸŸ
 	*/
 	virtual void PaintBkImage(IRender* pRender) override;
 
 private:
 
-	/** »ñÈ¡»æÖÆµÄÑÕÉ«Î»Í¼½Ó¿Ú
-	* @param [in] rect ÏÔÊ¾ÇøÓò´óĞ¡ĞÅÏ¢
+	/** è·å–ç»˜åˆ¶çš„é¢œè‰²ä½å›¾æ¥å£
+	* @param [in] rect æ˜¾ç¤ºåŒºåŸŸå¤§å°ä¿¡æ¯
 	*/
 	IBitmap* GetColorBitmap(const UiRect& rect);
 
-	/** »ñÈ¡ARGB¸ñÊ½µÄ½¥±äÑÕÉ«
+	/** è·å–ARGBæ ¼å¼çš„æ¸å˜é¢œè‰²
 	*/
 	void GetARGB(uint32_t* buffer, int32_t samples,
 				 const UiColor& start,
 				 const UiColor& end) const;
 
 private:
-	/** ÑÕÉ«Î»Í¼
+	/** é¢œè‰²ä½å›¾
 	*/
 	std::unique_ptr<IBitmap> m_spBitmap;
 
-	/** ÑÕÉ«Ä£Ê½
+	/** é¢œè‰²æ¨¡å¼
 	*/
 	ColorMode m_colorMode;
 
-	/** ARGBÑÕÉ«Öµ
+	/** ARGBé¢œè‰²å€¼
 	*/
 	UiColor m_argbColor;
 
-	/** HSVÑÕÉ«Öµ
+	/** HSVé¢œè‰²å€¼
 	*/
 	ColorHSV m_hsvColor;
 
-	/** HSLÑÕÉ«Öµ
+	/** HSLé¢œè‰²å€¼
 	*/
 	ColorHSL m_hslColor;
 
-	/** ÑÕÉ«µ÷ÕûÄ£Ê½
+	/** é¢œè‰²è°ƒæ•´æ¨¡å¼
 	*/
 	ColorAdjustMode m_adjustMode;
 };

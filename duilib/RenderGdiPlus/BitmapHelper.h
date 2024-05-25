@@ -11,28 +11,28 @@ namespace ui
     {
 #ifdef UILIB_IMPL_WINSDK
 
-        /** ´´½¨Ò»¸öRender¶ÔÏó£¬²¢¸´ÖÆHDCÉÏµÄÄÚÈİµ½Render
-        * @return ·µ»ØµÄRender¶ÔÏó£¬ÓÉµ÷ÓÃÕß¸ºÔğÊÍ·Å×ÊÔ´
+        /** åˆ›å»ºä¸€ä¸ªRenderå¯¹è±¡ï¼Œå¹¶å¤åˆ¶HDCä¸Šçš„å†…å®¹åˆ°Render
+        * @return è¿”å›çš„Renderå¯¹è±¡ï¼Œç”±è°ƒç”¨è€…è´Ÿè´£é‡Šæ”¾èµ„æº
         */
         IRender* CreateRenderObject(int srcRenderWidth, int srcRenderHeight, HDC hSrcDc, int srcDcWidth, int srcDcHeight);
 
-        /** ´´½¨Ò»¸öRender¶ÔÏó£¬²¢¸´ÖÆBitmapÉÏµÄÄÚÈİµ½Render
-        * @return ·µ»ØµÄRender¶ÔÏó£¬ÓÉµ÷ÓÃÕß¸ºÔğÊÍ·Å×ÊÔ´
+        /** åˆ›å»ºä¸€ä¸ªRenderå¯¹è±¡ï¼Œå¹¶å¤åˆ¶Bitmapä¸Šçš„å†…å®¹åˆ°Render
+        * @return è¿”å›çš„Renderå¯¹è±¡ï¼Œç”±è°ƒç”¨è€…è´Ÿè´£é‡Šæ”¾èµ„æº
         */
         IRender* CreateRenderObject(IBitmap* pBitmap);
 
-        /** ´´½¨Ò»¸öBitmap¶ÔÏó£¬²¢¸´ÖÆHDCÉÏµÄÄÚÈİµ½Î»Í¼
-        * @return ·µ»ØµÄIBitmap¶ÔÏó£¬ÓÉµ÷ÓÃÕß¸ºÔğÊÍ·Å×ÊÔ´
+        /** åˆ›å»ºä¸€ä¸ªBitmapå¯¹è±¡ï¼Œå¹¶å¤åˆ¶HDCä¸Šçš„å†…å®¹åˆ°ä½å›¾
+        * @return è¿”å›çš„IBitmapå¯¹è±¡ï¼Œç”±è°ƒç”¨è€…è´Ÿè´£é‡Šæ”¾èµ„æº
         */
         IBitmap* CreateBitmapObject(int srcRenderWidth, int srcRenderHeight, HDC hSrcDc, int srcDcWidth, int srcDcHeight);
 
-        /** ´ÓÒ»¸öGDI Bitmap¶ÔÏó£¬»ñÈ¡Ò»¸öHBITMAP¾ä±ú
-        * @return ·µ»ØHBITMAP¾ä±ú£¬Íâ²¿µ÷ÓÃÕßĞèÒªÊÍ·Å×ÊÔ´£¬ÒÔ±ÜÃâ×ÊÔ´Ğ¹Â¶
+        /** ä»ä¸€ä¸ªGDI Bitmapå¯¹è±¡ï¼Œè·å–ä¸€ä¸ªHBITMAPå¥æŸ„
+        * @return è¿”å›HBITMAPå¥æŸ„ï¼Œå¤–éƒ¨è°ƒç”¨è€…éœ€è¦é‡Šæ”¾èµ„æºï¼Œä»¥é¿å…èµ„æºæ³„éœ²
         */
         HBITMAP CreateGDIBitmap(IBitmap* pBitmap);
 
-        /** ´´½¨Ò»¸öÉè±¸ÎŞ¹ØµÄÎ»Í¼
-	    *@return ·µ»ØÎ»Í¼¾ä±ú£¬ÓÉµ÷ÓÃ·½ÊÍ·ÅÎ»Í¼×ÊÔ´
+        /** åˆ›å»ºä¸€ä¸ªè®¾å¤‡æ— å…³çš„ä½å›¾
+	    *@return è¿”å›ä½å›¾å¥æŸ„ï¼Œç”±è°ƒç”¨æ–¹é‡Šæ”¾ä½å›¾èµ„æº
 	    */
 	    HBITMAP CreateGDIBitmap(int32_t nWidth, int32_t nHeight, bool flipHeight, LPVOID* pBits);
 #endif

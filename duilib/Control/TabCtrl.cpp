@@ -22,7 +22,7 @@ void TabCtrl::SetAttribute(const std::wstring& strName, const std::wstring& strV
         }
     }
     else if (strName == L"tab_box_name") {
-        //°ó¶¨µÄTabBox¿Ø¼şÃû³Æ£¬°ó¶¨ºóTabCtrlµÄÑ¡ÔñÏî±ä»¯Ê±£¬TabBoxµÄÑ¡ÔñÏî»á¸úËæ±ä»¯
+        //ç»‘å®šçš„TabBoxæ§ä»¶åç§°ï¼Œç»‘å®šåTabCtrlçš„é€‰æ‹©é¡¹å˜åŒ–æ—¶ï¼ŒTabBoxçš„é€‰æ‹©é¡¹ä¼šè·Ÿéšå˜åŒ–
         SetTabBoxName(strValue);
     }
     else {
@@ -37,10 +37,10 @@ void TabCtrl::OnInit()
     }
     __super::OnInit();
 
-    //ÉèÖÃÎªµ¥Ñ¡
+    //è®¾ç½®ä¸ºå•é€‰
     SetMultiSelect(false);
 
-    //Ä¬ÈÏÑ¡ÔñµÄ×ÓÏî
+    //é»˜è®¤é€‰æ‹©çš„å­é¡¹
     if (m_nSelectedId != Box::InvalidIndex) {
         SelectItem(m_nSelectedId);
     }
@@ -49,7 +49,7 @@ void TabCtrl::OnInit()
 void TabCtrl::HandleEvent(const EventArgs& msg)
 {
     if ((msg.pSender == this) && (msg.Type == kEventSelect)) {
-        //³¢ÊÔÉèÖÃ¹ØÁªµÄTabBox
+        //å°è¯•è®¾ç½®å…³è”çš„TabBox
         if ((m_pTabBox == nullptr) && !m_tabBoxName.empty()) {
             SetTabBoxName(m_tabBoxName.c_str());
         }
@@ -282,7 +282,7 @@ void TabCtrlItem::OnInit()
 void TabCtrlItem::HandleEvent(const EventArgs& msg)
 {
     if ((msg.pSender == this) && (msg.Type == kEventStateChange) && (m_pLine != nullptr)) {
-        //´¦Àí·Ö¸îÏßµÄ×´Ì¬
+        //å¤„ç†åˆ†å‰²çº¿çš„çŠ¶æ€
         AdjustItemLineStatus();
     }
     __super::HandleEvent(msg);
@@ -504,7 +504,7 @@ void TabCtrlItem::AdjustItemLineStatus()
             pItem->m_pLine->SetVisible(bLineVisible);
         }        
     }
-    //µ±Ç°±êÇ©Ç°ÃæÒ»¸ö±êÇ©µÄ·Ö¸îÏß
+    //å½“å‰æ ‡ç­¾å‰é¢ä¸€ä¸ªæ ‡ç­¾çš„åˆ†å‰²çº¿
     if (nItem > 0) {
         if (!pItem->IsVisible()) {
             bLineVisible = true;
@@ -521,7 +521,7 @@ void TabCtrlItem::AdjustItemLineStatus()
         }
     }
 
-    //×îºóÒ»¸ö±êÇ©£¬²»ÏÔÊ¾·Ö¸îÏß
+    //æœ€åä¸€ä¸ªæ ‡ç­¾ï¼Œä¸æ˜¾ç¤ºåˆ†å‰²çº¿
     nItem = nCount - 1;
     TabCtrlItem* pLastItem = dynamic_cast<TabCtrlItem*>(pTabCtrl->GetItemAt(nItem));
     if ((pLastItem != nullptr) && (pLastItem->m_pLine != nullptr) && pLastItem->m_pLine->IsVisible()) {
@@ -660,7 +660,7 @@ bool TabCtrlItem::ButtonDown(const EventArgs& msg)
 {
     bool bRet = __super::ButtonDown(msg);
     if (!IsSelected() && IsActivatable()) {
-        //°´Êó±ê×ó¼üµÄÊ±ºò£¬Ñ¡Ôñ
+        //æŒ‰é¼ æ ‡å·¦é”®çš„æ—¶å€™ï¼Œé€‰æ‹©
         Selected(true, true);
     }
     return bRet;
@@ -668,13 +668,13 @@ bool TabCtrlItem::ButtonDown(const EventArgs& msg)
 
 void TabCtrlItem::PaintStateColors(IRender* pRender)
 {
-    //»æÖÆ±êÇ©Ò³µÄĞÎ×´£¨Í¨¹ıÑÕÉ«ÌåÏÖ£©
+    //ç»˜åˆ¶æ ‡ç­¾é¡µçš„å½¢çŠ¶ï¼ˆé€šè¿‡é¢œè‰²ä½“ç°ï¼‰
     if (IsSelected()) {
         PaintTabItemSelected(pRender);
     }
     else if ((GetState() == ControlStateType::kControlStateHot) ||
              (GetState() == ControlStateType::kControlStatePushed)) {
-        //Êó±êĞüÍ£×´Ì¬
+        //é¼ æ ‡æ‚¬åœçŠ¶æ€
         PaintTabItemHot(pRender);
     }
     else {
@@ -720,7 +720,7 @@ void TabCtrlItem::AddTabItemPath(IPath* path, const UiRect& rect, UiSize roundSi
     if (path == nullptr) {
         return;
     }
-    //È·±£Ô²½Ç¿í¶ÈºÍ¸ß¶È¶¼ÊÇÅ¼Êı
+    //ç¡®ä¿åœ†è§’å®½åº¦å’Œé«˜åº¦éƒ½æ˜¯å¶æ•°
     if ((roundSize.cx % 2) != 0) {
         roundSize.cx += 1;
     }
@@ -728,7 +728,7 @@ void TabCtrlItem::AddTabItemPath(IPath* path, const UiRect& rect, UiSize roundSi
         roundSize.cy += 1;
     }
     if (rect.Width() < roundSize.cx) {
-        //ÎŞ·¨»æÖÆ
+        //æ— æ³•ç»˜åˆ¶
         return;
     }
 

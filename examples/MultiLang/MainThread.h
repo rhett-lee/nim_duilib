@@ -10,14 +10,14 @@
 // duilib
 #include "duilib/duilib.h"
 
-//Ïß³ÌID
+//çº¿ç¨‹ID
 enum ThreadId
 {
-    kThreadUI,		//Ö÷Ïß³ÌID
-    kThreadWorker	//¹¤×÷Ïß³ÌID
+    kThreadUI,		//ä¸»çº¿ç¨‹ID
+    kThreadWorker	//å·¥ä½œçº¿ç¨‹ID
 };
 
-/** ¹¤×÷Ïß³Ì
+/** å·¥ä½œçº¿ç¨‹
 */
 class WorkerThread : public nbase::FrameworkThread
 {
@@ -26,21 +26,21 @@ public:
     virtual ~WorkerThread();
 
 private:
-    /** ³õÊ¼»¯Ïß³Ì
+    /** åˆå§‹åŒ–çº¿ç¨‹
     */
     virtual void Init() override;
 
-    /** Ïß³ÌÍË³öÊ±£¬×öÒ»Ğ©ÇåÀí¹¤×÷
+    /** çº¿ç¨‹é€€å‡ºæ—¶ï¼Œåšä¸€äº›æ¸…ç†å·¥ä½œ
     */
     virtual void Cleanup() override;
 
 private:
-    /** Ïß³ÌID
+    /** çº¿ç¨‹ID
     */
     ThreadId m_threadID;
 };
 
-/** Ö÷Ïß³Ì
+/** ä¸»çº¿ç¨‹
 */
 class MainThread : public nbase::FrameworkThread
 {
@@ -49,16 +49,16 @@ public:
     virtual ~MainThread();
 
 private:
-    /** ³õÊ¼»¯Ö÷Ïß³Ì
+    /** åˆå§‹åŒ–ä¸»çº¿ç¨‹
     */
     virtual void Init() override;
 
-    /** Ö÷Ïß³ÌÍË³öÊ±£¬×öÒ»Ğ©ÇåÀí¹¤×÷
+    /** ä¸»çº¿ç¨‹é€€å‡ºæ—¶ï¼Œåšä¸€äº›æ¸…ç†å·¥ä½œ
     */
     virtual void Cleanup() override;
 
 private:
-    /** ¹¤×÷Ïß³Ì(Èç¹û²»ĞèÒª¶àÏß³Ì´¦ÀíÒµÎñ£¬¿ÉÒÔÒÆ³ı¹¤×÷Ïß³ÌµÄ´úÂë)
+    /** å·¥ä½œçº¿ç¨‹(å¦‚æœä¸éœ€è¦å¤šçº¿ç¨‹å¤„ç†ä¸šåŠ¡ï¼Œå¯ä»¥ç§»é™¤å·¥ä½œçº¿ç¨‹çš„ä»£ç )
     */
     std::unique_ptr<WorkerThread> m_workerThread;
 };

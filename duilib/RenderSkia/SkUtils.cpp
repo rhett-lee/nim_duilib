@@ -9,9 +9,9 @@
 #include "include/private/base/SkMath.h"
 #include "include/private/base/SkAlign.h"
 
-//¸ÃÎÄ¼şÔ­Ê¼ÎÄ¼şµÄ³ö´¦£ºskia/chrome_67/src/core/SkUtils.cpp
-//»ùÓÚÔ­Ê¼ÎÄ¼ş£¬ÓĞĞŞ¸Ä£¬ÒÔ¼æÈİ×îĞÂ°æ±¾µÄskia´úÂë£¨2023-06-25£©
-//Ô­Ê¼ÎÄ¼ş´ÓºóĞø°æ±¾¾ÍÉ¾³ıÁË¡£
+//è¯¥æ–‡ä»¶åŸå§‹æ–‡ä»¶çš„å‡ºå¤„ï¼šskia/chrome_67/src/core/SkUtils.cpp
+//åŸºäºåŸå§‹æ–‡ä»¶ï¼Œæœ‰ä¿®æ”¹ï¼Œä»¥å…¼å®¹æœ€æ–°ç‰ˆæœ¬çš„skiaä»£ç ï¼ˆ2023-06-25ï¼‰
+//åŸå§‹æ–‡ä»¶ä»åç»­ç‰ˆæœ¬å°±åˆ é™¤äº†ã€‚
 
 namespace ui
 {

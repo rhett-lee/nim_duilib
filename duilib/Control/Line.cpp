@@ -176,13 +176,13 @@ void Line::Paint(IRender* pRender, const UiRect& rcPaint)
     UiRect rc = GetRect();
     rc.Deflate(GetControlPadding());
     if (!m_bLineVertical) {
-        //水平
+        //姘村钩
         UiPoint pt1(rc.left, rc.CenterY());
         UiPoint pt2(rc.right, rc.CenterY());
         pRender->DrawLine(pt1, pt2, pLinePen);
     }
     else {
-        //垂直
+        //鍨傜洿
         UiPoint pt1(rc.CenterX(), rc.top);
         UiPoint pt2(rc.CenterX(), rc.bottom);
         pRender->DrawLine(pt1, pt2, pLinePen);

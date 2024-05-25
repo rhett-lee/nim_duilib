@@ -11,10 +11,10 @@
 namespace ui 
 {
 
-typedef std::function<void (int64_t)> PlayCallback;		//²¥·Å»Øµ÷º¯Êı
-typedef std::function<void (void)> CompleteCallback;	//²¥·ÅÍê³É»Øµ÷º¯Êı
+typedef std::function<void (int64_t)> PlayCallback;		//æ’­æ”¾å›è°ƒå‡½æ•°
+typedef std::function<void (void)> CompleteCallback;	//æ’­æ”¾å®Œæˆå›è°ƒå‡½æ•°
 
-/** ¶¯»­²¥·ÅÆ÷µÄ»ùÀà½Ó¿Ú
+/** åŠ¨ç”»æ’­æ”¾å™¨çš„åŸºç±»æ¥å£
 */
 class UILIB_API AnimationPlayerBase : public virtual nbase::SupportWeakCallback
 {
@@ -26,157 +26,157 @@ public:
 	AnimationPlayerBase& operator=(const AnimationPlayerBase& r) = delete;
 
 public:
-	/** ÉèÖÃ¶¯»­ÀàĞÍ
+	/** è®¾ç½®åŠ¨ç”»ç±»å‹
 	*/
 	void SetAnimationType(AnimationType type) { m_animationType = type; };
 
-	/** »ñÈ¡¶¯»­ÀàĞÍ
+	/** è·å–åŠ¨ç”»ç±»å‹
 	*/
 	AnimationType GetAnimationType() const { return m_animationType; };
 	
-	/** ÉèÖÃ²¥·ÅÆğÊ¼Öµ
+	/** è®¾ç½®æ’­æ”¾èµ·å§‹å€¼
 	*/
 	void SetStartValue(int64_t startValue) { m_startValue = startValue; }
 
-	/** »ñÈ¡²¥·ÅÆğÊ¼Öµ
+	/** è·å–æ’­æ”¾èµ·å§‹å€¼
 	*/
 	int64_t GetStartValue() const { return m_startValue; }
 
-	/** ÉèÖÃ²¥·Å½áÊøÖµ
+	/** è®¾ç½®æ’­æ”¾ç»“æŸå€¼
 	*/
 	void SetEndValue(int64_t endValue) { m_endValue = endValue; }
 
-	/** »ñÈ¡²¥·Å½áÊøÖµ
+	/** è·å–æ’­æ”¾ç»“æŸå€¼
 	*/
 	int64_t GetEndValue() const { return m_endValue; }
 
-	/** ÉèÖÃ×ÜµÄ²¥·ÅÊ±¼ä£¨ºÁÃë£©
+	/** è®¾ç½®æ€»çš„æ’­æ”¾æ—¶é—´ï¼ˆæ¯«ç§’ï¼‰
 	*/
 	void SetTotalMillSeconds(int64_t totalMillSeconds) { m_totalMillSeconds = totalMillSeconds; }
 
-	/** »ñÈ¡×ÜµÄ²¥·ÅÊ±¼ä£¨ºÁÃë£©
+	/** è·å–æ€»çš„æ’­æ”¾æ—¶é—´ï¼ˆæ¯«ç§’ï¼‰
 	*/
 	int64_t GetTotalMillSeconds() const { return m_totalMillSeconds; }
 
-	/** ÉèÖÃ²¥·Å»Øµ÷º¯Êı
+	/** è®¾ç½®æ’­æ”¾å›è°ƒå‡½æ•°
 	*/
 	void SetCallback(const PlayCallback& callback) { m_playCallback = callback; }
 
-	/** ÉèÖÃ²¥·ÅÍê³É»Øµ÷º¯Êı
+	/** è®¾ç½®æ’­æ”¾å®Œæˆå›è°ƒå‡½æ•°
 	*/
 	void SetCompleteCallback(const CompleteCallback& callback) { m_completeCallback = callback; }
 
-	/** Í£Ö¹²¢ÇåÀí×ÊÔ´
+	/** åœæ­¢å¹¶æ¸…ç†èµ„æº
 	*/
 	void Clear();
 
-	/** ÖØÖÃ×´Ì¬
+	/** é‡ç½®çŠ¶æ€
 	*/
 	void Reset();
 
-	/** ÊÇ·ñÕıÔÚ²¥·ÅÖĞ
+	/** æ˜¯å¦æ­£åœ¨æ’­æ”¾ä¸­
 	*/
 	bool IsPlaying() const { return m_bPlaying; }
 
-	/** ÊÇ·ñµÚÒ»´Î²¥·Å
+	/** æ˜¯å¦ç¬¬ä¸€æ¬¡æ’­æ”¾
 	*/
 	bool IsFirstRun() const { return m_bFirstRun; }
 
-	/** ³õÊ¼»¯
+	/** åˆå§‹åŒ–
 	*/
 	virtual void Init();
 
-	/** ¶¯»­¿ªÊ¼
+	/** åŠ¨ç”»å¼€å§‹
 	*/
 	virtual void Start();
 
-	/** ¶¯»­½áÊø
+	/** åŠ¨ç”»ç»“æŸ
 	*/
 	virtual void Stop();
 
-	/** ¶¯»­¼ÌĞø£¨´ÓÆğÊ¼Öµ µ½ ½áÊøÖµ£©
+	/** åŠ¨ç”»ç»§ç»­ï¼ˆä»èµ·å§‹å€¼ åˆ° ç»“æŸå€¼ï¼‰
 	*/
 	virtual void Continue();
 
-	/** ¶¯»­·´Ïò¼ÌĞø£¨´Ó½áÊøÖµ µ½ ÆğÊ¼Öµ£¬·´Ïò¶¯»­£©
+	/** åŠ¨ç”»åå‘ç»§ç»­ï¼ˆä»ç»“æŸå€¼ åˆ° èµ·å§‹å€¼ï¼Œåå‘åŠ¨ç”»ï¼‰
 	*/
 	virtual void ReverseContinue();
 
-	/** Æô¶¯¶¯»­¶¨Ê±Æ÷
+	/** å¯åŠ¨åŠ¨ç”»å®šæ—¶å™¨
 	*/
 	virtual void StartTimer();
 
-	/** »ñÈ¡¶¯»­µ±Ç°Öµ
+	/** è·å–åŠ¨ç”»å½“å‰å€¼
 	*/
 	virtual int64_t GetCurrentValue() const = 0;
 
 private:
-	/** ²¥·ÅÒ»´Î¶¯»­£¨ÔÚ¶¨Ê±Æ÷ÖĞ´¥·¢µ÷ÓÃ£©
+	/** æ’­æ”¾ä¸€æ¬¡åŠ¨ç”»ï¼ˆåœ¨å®šæ—¶å™¨ä¸­è§¦å‘è°ƒç”¨ï¼‰
 	*/
 	void Play();
 
-	/** ½»»»ÆğÊ¼ÖµºÍ½áÊøÖµ
+	/** äº¤æ¢èµ·å§‹å€¼å’Œç»“æŸå€¼
 	*/
 	void ReverseAllValue();
 
-	/** Íê³É²¥·Å¶¯»­£¬²¢´¥·¢²¥·ÅÍê³É»Øµ÷º¯Êı
+	/** å®Œæˆæ’­æ”¾åŠ¨ç”»ï¼Œå¹¶è§¦å‘æ’­æ”¾å®Œæˆå›è°ƒå‡½æ•°
 	*/
 	void Complete();
 
 protected:
-	/** ¶¯»­ÀàĞÍ
+	/** åŠ¨ç”»ç±»å‹
 	*/
 	AnimationType m_animationType;
 
-	/** ÆğÊ¼Öµ
+	/** èµ·å§‹å€¼
 	*/
 	int64_t m_startValue;
 
-	/** ½áÊøÖµ
+	/** ç»“æŸå€¼
 	*/
 	int64_t m_endValue;
 
-	/** µ±Ç°Öµ
+	/** å½“å‰å€¼
 	*/
 	int64_t m_currentValue;
 
-	/** ²¥·Å×ÜµÄÊ±¼ä£¨ºÁÃë£©
+	/** æ’­æ”¾æ€»çš„æ—¶é—´ï¼ˆæ¯«ç§’ï¼‰
 	*/
 	int64_t m_totalMillSeconds;
 
-	/** ¶¯»­ÒÑ¾­²¥·ÅµÄÊ±¼ä£¨ºÁÃë£©
+	/** åŠ¨ç”»å·²ç»æ’­æ”¾çš„æ—¶é—´ï¼ˆæ¯«ç§’ï¼‰
 	*/
 	int64_t m_palyedMillSeconds;
 
-	/** ¶¯»­²¥·ÅµÄÊ±¼ä¼ä¸ô£¬¼´¶¨Ê±Æ÷µÄ´¥·¢Ê±¼ä¼ä¸ô£¨ºÁÃë£©
+	/** åŠ¨ç”»æ’­æ”¾çš„æ—¶é—´é—´éš”ï¼Œå³å®šæ—¶å™¨çš„è§¦å‘æ—¶é—´é—´éš”ï¼ˆæ¯«ç§’ï¼‰
 	*/
 	int64_t m_elapseMillSeconds;
 
-	/** ÊÇ·ñµÚÒ»´Î²¥·Å
+	/** æ˜¯å¦ç¬¬ä¸€æ¬¡æ’­æ”¾
 	*/
 	bool m_bFirstRun;
 
-	/** ÊÇ·ñÕıÔÚ²¥·ÅÖĞ
+	/** æ˜¯å¦æ­£åœ¨æ’­æ”¾ä¸­
 	*/
 	bool m_bPlaying;
 
-	/** ÊÇ·ñÕıÔÚ·´Ïò²¥·Å
+	/** æ˜¯å¦æ­£åœ¨åå‘æ’­æ”¾
 	*/
 	bool m_reverseStart;
 
-	/** ²¥·Å»Øµ÷º¯Êı
+	/** æ’­æ”¾å›è°ƒå‡½æ•°
 	*/
 	PlayCallback m_playCallback;
 
-	/** ²¥·ÅÍê³É»Øµ÷º¯Êı
+	/** æ’­æ”¾å®Œæˆå›è°ƒå‡½æ•°
 	*/
 	CompleteCallback m_completeCallback;
 	
-	/** ²¥·ÅµÄ¿ªÊ¼Ê±¼ä´Á
+	/** æ’­æ”¾çš„å¼€å§‹æ—¶é—´æˆ³
 	*/
 	std::chrono::steady_clock::time_point m_startTime;
 	
-	/** ¶¨Ê±Æ÷ÖÕÖ¹±êÖ¾
+	/** å®šæ—¶å™¨ç»ˆæ­¢æ ‡å¿—
 	*/
 	nbase::WeakCallbackFlag m_weakFlagOwner;
 };
@@ -192,85 +192,85 @@ public:
 	AnimationPlayer& operator=(const AnimationPlayer& r) = delete;
 
 public:
-	/** ³õÊ¼»¯
+	/** åˆå§‹åŒ–
 	*/
 	virtual void Init() override;
 
-	/** Æô¶¯¶¯»­¶¨Ê±Æ÷
+	/** å¯åŠ¨åŠ¨ç”»å®šæ—¶å™¨
 	*/
 	virtual void StartTimer() override;
 
-	/** »ñÈ¡¶¯»­µ±Ç°Öµ
+	/** è·å–åŠ¨ç”»å½“å‰å€¼
 	*/
 	virtual int64_t GetCurrentValue() const override;
 
-	/** ÉèÖÃ¼ÓËÙÒò×ÓA
+	/** è®¾ç½®åŠ é€Ÿå› å­A
 	*/
 	virtual void SetSpeedUpfactorA(double factorA) { m_speedUpfactorA = factorA; }
 
-	/** ÉèÖÃ¼õËÙÒò×ÓA
+	/** è®¾ç½®å‡é€Ÿå› å­A
 	*/
 	virtual void SetSpeedDownfactorA(double factorA) { m_speedDownfactorA = factorA; }
 
-	/** ÉèÖÃ×î´ó²¥·ÅÊ±¼ä£¨ºÁÃë£©
+	/** è®¾ç½®æœ€å¤§æ’­æ”¾æ—¶é—´ï¼ˆæ¯«ç§’ï¼‰
 	*/
 	void SetMaxTotalMillSeconds(int64_t maxTotalMillSeconds) { m_maxTotalMillSeconds = maxTotalMillSeconds; }
 
-	/** ÉèÖÃÏßĞÔËÙ¶È£¨Öµ/ºÁÃë£©
+	/** è®¾ç½®çº¿æ€§é€Ÿåº¦ï¼ˆå€¼/æ¯«ç§’ï¼‰
 	*/
 	void SetLinearSpeed(double linearSpeed) { m_linearSpeed = linearSpeed; }
 
-	/** ÉèÖÃ¼ÓËÙ±ÈÂÊ
+	/** è®¾ç½®åŠ é€Ÿæ¯”ç‡
 	*/
 	void SetSpeedUpRatio(double speedUpRatio) { m_speedUpRatio = speedUpRatio; }
 
-	/** ÉèÖÃ¼õËÙ±ÈÂÊ
+	/** è®¾ç½®å‡é€Ÿæ¯”ç‡
 	*/
 	void SetSpeedDownRatio(double speedDownRatio) { m_speedDownRatio = speedDownRatio; }
 
 private:
-	/** ³õÊ¼»¯¶¯»­Òò×ÓÊı¾İ
+	/** åˆå§‹åŒ–åŠ¨ç”»å› å­æ•°æ®
 	*/
 	void InitFactor();
 
 private:
-	/** ¼ÓËÙ±ÈÂÊ
+	/** åŠ é€Ÿæ¯”ç‡
 	*/
 	double m_speedUpRatio;
 
-	/** ¼ÓËÙ¶¯»­×ÜÊ±¼ä£¨ºÁÃë£©
+	/** åŠ é€ŸåŠ¨ç”»æ€»æ—¶é—´ï¼ˆæ¯«ç§’ï¼‰
 	*/
 	double m_speedUpMillSeconds;
 
-	/** ¼õËÙ±ÈÂÊ
+	/** å‡é€Ÿæ¯”ç‡
 	*/
 	double m_speedDownRatio;
 
-	/** ¼õËÙ¶¯»­×ÜÊ±¼ä£¨ºÁÃë£©
+	/** å‡é€ŸåŠ¨ç”»æ€»æ—¶é—´ï¼ˆæ¯«ç§’ï¼‰
 	*/
 	double m_speedDownMillSeconds;
 
-	/** ÏßĞÔËÙ¶È£¨Öµ/ºÁÃë£©
+	/** çº¿æ€§é€Ÿåº¦ï¼ˆå€¼/æ¯«ç§’ï¼‰
 	*/
 	double m_linearSpeed;
 
-	/** ÏßĞÔ¼ÓËÙ¶¯»­×ÜÊ±¼ä£¨ºÁÃë£©
+	/** çº¿æ€§åŠ é€ŸåŠ¨ç”»æ€»æ—¶é—´ï¼ˆæ¯«ç§’ï¼‰
 	*/
 	double m_linerMillSeconds;
 	
-	/** ¼ÓËÙÒò×ÓA
+	/** åŠ é€Ÿå› å­A
 	*/
 	double m_speedUpfactorA;
 
-	/** ¼õËÙÒò×ÓA
+	/** å‡é€Ÿå› å­A
 	*/
 	double m_speedDownfactorA;
 
-	/** ¼õËÙÒò×ÓB
+	/** å‡é€Ÿå› å­B
 	*/
 	double m_speedDownfactorB;
 
-	/** ×î´ó²¥·ÅÊ±¼ä£¨ºÁÃë£©
+	/** æœ€å¤§æ’­æ”¾æ—¶é—´ï¼ˆæ¯«ç§’ï¼‰
 	*/
 	int64_t m_maxTotalMillSeconds;
 };

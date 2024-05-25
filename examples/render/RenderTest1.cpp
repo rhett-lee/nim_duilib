@@ -37,9 +37,9 @@ void RenderTest1::Paint(IRender* pRender, const UiRect& rcPaint)
 
     rect.right = rect.left + nSize;
     rect.bottom = rect.top + nSize;
-    int currentBottom = rect.bottom;//¼ÇÂ¼µ±Ç°µÄbottomÖµ
+    int currentBottom = rect.bottom;//è®°å½•å½“å‰çš„bottomå€¼
     
-    //»æÍ¼ÏàÍ¬½Ó¿Ú
+    //ç»˜å›¾ç›¸åŒæŽ¥å£
     Image image;
     image.SetImageString(L"autumn.png", Dpi());
     LoadImageData(image);
@@ -49,18 +49,18 @@ void RenderTest1::Paint(IRender* pRender, const UiRect& rcPaint)
     UiRect rcImageSource(0, 0, image.GetImageCache()->GetWidth(), image.GetImageCache()->GetHeight());
     pRender->DrawImage(rcPaint, image.GetCurrentBitmap(), rect, UiRect(), rcImageSource, UiRect());
 
-    //°ëÍ¸Ã÷»æÖÆÍ¼Æ¬
+    //åŠé€æ˜Žç»˜åˆ¶å›¾ç‰‡
     rect.left = rect.right + marginLeft;
     rect.right = rect.left + image.GetImageCache()->GetWidth();
     pRender->DrawImage(rcPaint, image.GetCurrentBitmap(), rect, UiRect(), rcImageSource, UiRect(), 100);
 
-    //ËõÐ¡»æÖÆ
+    //ç¼©å°ç»˜åˆ¶
     rect.left = rect.right + marginLeft;
     rect.right = rect.left + image.GetImageCache()->GetWidth() / 2;
     rect.bottom = rect.top + image.GetImageCache()->GetHeight() / 2;
     pRender->DrawImage(rcPaint, image.GetCurrentBitmap(), rect, UiRect(), rcImageSource, UiRect());
 
-    //BitBlt/StretchBlt/AlphaBlendÈý¸ö»æÖÆº¯Êý
+    //BitBlt/StretchBlt/AlphaBlendä¸‰ä¸ªç»˜åˆ¶å‡½æ•°
     IRender* pSrcRender = BitmapHelper::CreateRenderObject(image.GetCurrentBitmap());
     ASSERT(pSrcRender != nullptr);
 
@@ -82,21 +82,21 @@ void RenderTest1::Paint(IRender* pRender, const UiRect& rcPaint)
     delete pSrcRender;
     pSrcRender = nullptr;
 
-    currentBottom = rect.bottom;//¼ÇÂ¼µ±Ç°µÄbottomÖµ
+    currentBottom = rect.bottom;//è®°å½•å½“å‰çš„bottomå€¼
 
-    //»»ÐÐ
+    //æ¢è¡Œ
     rect = GetRect();
     rect.left += marginLeft;
     rect.top = currentBottom + marginTop;
 
-    //Æ½ÆÌ»æÖÆ
+    //å¹³é“ºç»˜åˆ¶
     rect.right = rcPaint.right;
     rect.bottom = rcPaint.bottom;
 
     bool xtiled = true;
     bool ytiled = true;
     bool fullxtiled = false;
-    bool fullytiled = false;//ÍêÕûÆ½ÆÌ£¬Èç¹û¿Ø¼þ²»¹»»æÖÆÍêÕûÍ¼Æ¬£¬¾Í²»»á»æÖÆ¡£Èç¹ûÎªfalse£¬ÔòÖ»ÒªÓÐ¿Õ¼ä¾Í»æÖÆ£¬µ«´ËÊ±Í¼Æ¬Ö»ÊÇ»æÖÆÒ»²¿·ÖµÄ¡£
+    bool fullytiled = false;//å®Œæ•´å¹³é“ºï¼Œå¦‚æžœæŽ§ä»¶ä¸å¤Ÿç»˜åˆ¶å®Œæ•´å›¾ç‰‡ï¼Œå°±ä¸ä¼šç»˜åˆ¶ã€‚å¦‚æžœä¸ºfalseï¼Œåˆ™åªè¦æœ‰ç©ºé—´å°±ç»˜åˆ¶ï¼Œä½†æ­¤æ—¶å›¾ç‰‡åªæ˜¯ç»˜åˆ¶ä¸€éƒ¨åˆ†çš„ã€‚
     int nTiledMargin = 0;
     UiRect rcCorners(48, 48, 48, 48);
     pRender->DrawImage(rcPaint, image.GetCurrentBitmap(), rect, rcCorners, rcImageSource, rcCorners, 255, xtiled, ytiled, fullxtiled, fullytiled, nTiledMargin);

@@ -62,7 +62,7 @@ const SkFont* Font_Skia::GetFontHandle()
 	else if (m_uiFont.m_bItalic) {
 		fontStyle = SkFontStyle::Italic();
 	}
-	std::string fontName; //UTF8±àÂëµÄ×ÖÌåÃû³Æ
+	std::string fontName; //UTF8ç¼–ç çš„å­—ä½“åç§°
 	StringHelper::UnicodeToMBCS(m_uiFont.m_fontName, fontName, CP_UTF8);
 	ASSERT(m_pRenderFactory != nullptr);
 	if (m_pRenderFactory == nullptr) {

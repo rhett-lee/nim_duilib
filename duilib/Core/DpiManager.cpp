@@ -6,7 +6,7 @@
 namespace ui
 {
 
-/** ±ê×¼DPIÖµ
+/** æ ‡å‡†DPIå€¼
 */
 #define DPI_96	96
 
@@ -57,25 +57,25 @@ uint32_t DpiManager::GetMainMonitorDPI()
 
 void DpiManager::InitDpiAwareness(const DpiInitParam& dpiInitParam)
 {
-	//Èç¹ûÒÑ¾­³õÊ¼»¯¹ı£¬Ôò²»ÖØ¸´³õÊ¼»¯
+	//å¦‚æœå·²ç»åˆå§‹åŒ–è¿‡ï¼Œåˆ™ä¸é‡å¤åˆå§‹åŒ–
 	if (m_bDpiInited) {
 		return;
 	}
 	m_bDpiInited = true;
 
-	//³õÊ¼»¯DPI¸ĞÖªÄ£Ê½
+	//åˆå§‹åŒ–DPIæ„ŸçŸ¥æ¨¡å¼
 	DpiAwareness dpiAwareness;
 	dpiAwareness.InitDpiAwareness(dpiInitParam);
 	m_dpiAwarenessMode = dpiAwareness.GetDpiAwareness();
 
-	//³õÊ¼»¯DPIÖµ
+	//åˆå§‹åŒ–DPIå€¼
 	if (dpiInitParam.m_uDPI == 0) {
 		m_bUserDefineDpi = false;
-		//´ÓÏµÍ³ÅäÖÃÖĞ¶ÁÈ¡Ä¬ÈÏµÄDPIÖµ
+		//ä»ç³»ç»Ÿé…ç½®ä¸­è¯»å–é»˜è®¤çš„DPIå€¼
 		SetDpiByWindow(nullptr);
 	}
 	else {
-		//Íâ²¿ÉèÖÃ×Ô¶¨ÒåµÄDPIÖµ
+		//å¤–éƒ¨è®¾ç½®è‡ªå®šä¹‰çš„DPIå€¼
 		m_bUserDefineDpi = true;
 		SetDPI(dpiInitParam.m_uDPI);
 	}
@@ -110,7 +110,7 @@ bool DpiManager::IsPerMonitorDpiAware() const
 
 void DpiManager::SetDpiByWindow(Window* pWindow)
 {
-	//¶ÁÈ¡´°¿ÚµÄDPIÖµ
+	//è¯»å–çª—å£çš„DPIå€¼
 	uint32_t uDPI = 0;
 	HWND hWnd = nullptr;
 	if (pWindow != nullptr) {
@@ -144,7 +144,7 @@ void DpiManager::SetDpiByWindow(Window* pWindow)
 		}		
 	}
 
-	//´ÓÏµÍ³ÅäÖÃÖĞ¶ÁÈ¡Ä¬ÈÏµÄDPIÖµ
+	//ä»ç³»ç»Ÿé…ç½®ä¸­è¯»å–é»˜è®¤çš„DPIå€¼
 	if (uDPI == 0) {
 		DpiAwarenessMode dpiAwarenessMode = GetDpiAwareness();
 		if (dpiAwarenessMode == DpiAwarenessMode::kDpiUnaware) {

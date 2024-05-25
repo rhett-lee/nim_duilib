@@ -10,52 +10,52 @@ namespace ui {
 
 class Control;
 
-/** ¿Ø¼şÒõÓ°ÊôĞÔÀà
+/** æ§ä»¶é˜´å½±å±æ€§ç±»
 */
 class UILIB_API BoxShadow
 {
 public:
-	/** ¹¹Ôìº¯Êı
-	* @param [in] pControl ¹ØÁªµÄ¿Ø¼ş½Ó¿Ú
+	/** æ„é€ å‡½æ•°
+	* @param [in] pControl å…³è”çš„æ§ä»¶æ¥å£
 	*/
 	explicit BoxShadow(Control* pControl);
 
 	/**
-	 * @brief ÉèÖÃÒõÓ°ÊôĞÔ
-	 * @param[in] strBoxShadow ÒªÉèÖÃµÄÊôĞÔ,Èç "color='black' offset='1,1' blur_radius='2' spread_radius='2'"
-	 * @return ÎŞ
+	 * @brief è®¾ç½®é˜´å½±å±æ€§
+	 * @param[in] strBoxShadow è¦è®¾ç½®çš„å±æ€§,å¦‚ "color='black' offset='1,1' blur_radius='2' spread_radius='2'"
+	 * @return æ— 
 	 */
 	void SetBoxShadowString(const std::wstring& strBoxShadow);
 
 	/**
-	 * @brief ÊÇ·ñÓĞÒõÓ°
-	 * @return ÊÇ»ò·ñ
+	 * @brief æ˜¯å¦æœ‰é˜´å½±
+	 * @return æ˜¯æˆ–å¦
 	 */
 	bool HasShadow() const;
 
-	// ÒõÓ°ÊôĞÔ
-	// ÔİÊ±½ö½öÖ§³Ö color offset blurSize
+	// é˜´å½±å±æ€§
+	// æš‚æ—¶ä»…ä»…æ”¯æŒ color offset blurSize
 	// https://codersblock.com/blog/creating-glow-effects-with-css/
 
-	/** ÒõÓ°µÄÑÕÉ«Öµ
+	/** é˜´å½±çš„é¢œè‰²å€¼
 	*/
 	std::wstring m_strColor;
 
-	/** ÉèÖÃÒõÓ°Æ«ÒÆÁ¿£¨offset-x ºÍ offset-y£©
-	 *                 <offset-x> ÉèÖÃË®Æ½Æ«ÒÆÁ¿£¬Èç¹ûÊÇ¸ºÖµÔòÒõÓ°Î»ÓÚ¾ØĞÎ×ó±ß¡£ 
-	 *                 <offset-y> ÉèÖÃ´¹Ö±Æ«ÒÆÁ¿£¬Èç¹ûÊÇ¸ºÖµÔòÒõÓ°Î»ÓÚ¾ØĞÎÉÏÃæ¡£
+	/** è®¾ç½®é˜´å½±åç§»é‡ï¼ˆoffset-x å’Œ offset-yï¼‰
+	 *                 <offset-x> è®¾ç½®æ°´å¹³åç§»é‡ï¼Œå¦‚æœæ˜¯è´Ÿå€¼åˆ™é˜´å½±ä½äºçŸ©å½¢å·¦è¾¹ã€‚ 
+	 *                 <offset-y> è®¾ç½®å‚ç›´åç§»é‡ï¼Œå¦‚æœæ˜¯è´Ÿå€¼åˆ™é˜´å½±ä½äºçŸ©å½¢ä¸Šé¢ã€‚
 	 */
 	UiPoint m_cpOffset;
 
-	/** Ä£ºı°ë¾¶£¬ÖµÔ½´ó£¬Ä£ºıÃæ»ıÔ½´ó£¬ÒõÓ°¾ÍÔ½´óÔ½µ­, Èç¹ûÎª0£¬´ËÊ±ÒõÓ°±ßÔµÈñÀû£¬ÎŞÄ£ºıĞ§¹û£¬²»ÄÜÎª¸ºÖµ¡£
+	/** æ¨¡ç³ŠåŠå¾„ï¼Œå€¼è¶Šå¤§ï¼Œæ¨¡ç³Šé¢ç§¯è¶Šå¤§ï¼Œé˜´å½±å°±è¶Šå¤§è¶Šæ·¡, å¦‚æœä¸º0ï¼Œæ­¤æ—¶é˜´å½±è¾¹ç¼˜é”åˆ©ï¼Œæ— æ¨¡ç³Šæ•ˆæœï¼Œä¸èƒ½ä¸ºè´Ÿå€¼ã€‚
 	 */
 	int32_t m_nBlurRadius;
 
-	/** À©Õ¹°ë¾¶£¬¼´Ä£ºıÇøÓò¾àÀërc¾ØĞÎ±ßÔµ¶àÉÙ¸öÏñËØ¡£È¡ÕıÖµÊ±£¬ÒõÓ°À©´ó£»È¡¸ºÖµÊ±£¬ÒõÓ°ÊÕËõ¡£
+	/** æ‰©å±•åŠå¾„ï¼Œå³æ¨¡ç³ŠåŒºåŸŸè·ç¦»rcçŸ©å½¢è¾¹ç¼˜å¤šå°‘ä¸ªåƒç´ ã€‚å–æ­£å€¼æ—¶ï¼Œé˜´å½±æ‰©å¤§ï¼›å–è´Ÿå€¼æ—¶ï¼Œé˜´å½±æ”¶ç¼©ã€‚
 	 */
 	int32_t m_nSpreadRadius;
 
-	/** ¹ØÁªµÄ¿Ø¼ş½Ó¿Ú
+	/** å…³è”çš„æ§ä»¶æ¥å£
 	*/
 	Control* m_pControl;
 };

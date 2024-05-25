@@ -33,14 +33,14 @@ bool FontManager::AddFont(const std::wstring& fontId, const UiFont& fontInfo, bo
 	auto iter = m_fontIdMap.find(fontId);
 	ASSERT(iter == m_fontIdMap.end());
 	if (iter != m_fontIdMap.end()) {
-		//±ÜÃâÏàÍ¬µÄ×ÖÌåIDÖØ¸´Ìí¼Ó
+		//é¿å…ç›¸åŒçš„å­—ä½“IDé‡å¤æ·»åŠ 
 		return false;
 	}
 
-	//±£´æ×ÖÌåĞÅÏ¢£¬µ«²»´´½¨×ÖÌåÊı¾İ
+	//ä¿å­˜å­—ä½“ä¿¡æ¯ï¼Œä½†ä¸åˆ›å»ºå­—ä½“æ•°æ®
 	m_fontIdMap[fontId] = fontInfo;
 	if (bDefault) {
-		//Ä¬ÈÏ×ÖÌåID
+		//é»˜è®¤å­—ä½“ID
 		m_defaultFontId = fontId;
 	}
 	return true;
@@ -57,7 +57,7 @@ std::wstring FontManager::GetDpiFontId(const std::wstring& fontId, const DpiMana
 
 IFont* FontManager::GetIFont(const std::wstring& fontId, const DpiManager& dpi)
 {
-	//ÏÈÔÚ»º´æÖĞ²éÕÒ
+	//å…ˆåœ¨ç¼“å­˜ä¸­æŸ¥æ‰¾
 	IFont* pFont = nullptr;
 	if (!fontId.empty()) {		
 		std::wstring dpiFontId = GetDpiFontId(fontId, dpi);
@@ -69,7 +69,7 @@ IFont* FontManager::GetIFont(const std::wstring& fontId, const DpiManager& dpi)
 	if (pFont == nullptr) {
 		auto iter = m_fontIdMap.find(fontId);
 		if ((iter == m_fontIdMap.end()) && !m_defaultFontId.empty()) {
-			//Ã»ÓĞÕâ¸ö×ÖÌåID£¬Ê¹ÓÃÄ¬ÈÏµÄ×ÖÌåID
+			//æ²¡æœ‰è¿™ä¸ªå­—ä½“IDï¼Œä½¿ç”¨é»˜è®¤çš„å­—ä½“ID
 			std::wstring dpiFontId = GetDpiFontId(m_defaultFontId, dpi);
 			auto pos = m_fontMap.find(dpiFontId);
 			if (pos != m_fontMap.end()) {
@@ -78,11 +78,11 @@ IFont* FontManager::GetIFont(const std::wstring& fontId, const DpiManager& dpi)
 		}
 	}
 	if (pFont != nullptr) {
-		//Ê¹ÓÃ»º´æÖĞÒÑ¾­´´½¨ºÃµÄ×ÖÌåÊı¾İ
+		//ä½¿ç”¨ç¼“å­˜ä¸­å·²ç»åˆ›å»ºå¥½çš„å­—ä½“æ•°æ®
 		return pFont;
 	}
 
-	//»º´æÖĞ²»´æÔÚ£¬ĞèÒª´´½¨×ÖÌå
+	//ç¼“å­˜ä¸­ä¸å­˜åœ¨ï¼Œéœ€è¦åˆ›å»ºå­—ä½“
 	UiFont fontInfo;
 	std::wstring realFontId = fontId;
 	auto iter = m_fontIdMap.find(realFontId);
@@ -101,18 +101,18 @@ IFont* FontManager::GetIFont(const std::wstring& fontId, const DpiManager& dpi)
 	}
 	ASSERT(!realFontId.empty());
 	if (realFontId.empty()) {
-		//ÎŞ´Ë×ÖÌåID
+		//æ— æ­¤å­—ä½“ID
 		return nullptr;
 	}
 	std::wstring dpiFontId = GetDpiFontId(realFontId, dpi);	
 	if (fontInfo.m_fontName.empty() || 
 		StringHelper::IsEqualNoCase(fontInfo.m_fontName, L"system")) {
-		//×ÖÌåÊ¹ÓÃÓ¢ÎÄÃû³Æ£¬±£³Ö¼æÈİĞÔ
+		//å­—ä½“ä½¿ç”¨è‹±æ–‡åç§°ï¼Œä¿æŒå…¼å®¹æ€§
 		static bool bOsOverXp = IsWindowsVistaOrGreater();
 		fontInfo.m_fontName = bOsOverXp ? L"Microsoft YaHei" : L"SimSun";
 	}
 
-	//¶Ô×ÖÌå´óĞ¡½øĞĞDPIËõ·Å
+	//å¯¹å­—ä½“å¤§å°è¿›è¡ŒDPIç¼©æ”¾
 	ASSERT(fontInfo.m_fontSize > 0);
 	dpi.ScaleInt(fontInfo.m_fontSize);
 	ASSERT(fontInfo.m_fontSize > 0);
@@ -186,33 +186,33 @@ void FontManager::RemoveAllFontFiles()
 	m_fontFileInfo.clear();
 }
 
-//×ÖÌåµÄÖĞÓ¢ÎÄÃû³ÆÓ³Éä±í
+//å­—ä½“çš„ä¸­è‹±æ–‡åç§°æ˜ å°„è¡¨
 static void GetFontNameList(std::vector<std::pair<std::wstring, std::wstring>>& fontNameList)
 {
-	//ÏµÍ³×ÖÌå
-	fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(L"ËÎÌå", L"SimSun"));
-	fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(L"ºÚÌå", L"SimHei"));
-	fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(L"Î¢ÈíÑÅºÚ", L"Microsoft YaHei"));
-	fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(L"Î¢ÈíÕıºÚÌå", L"Microsoft JhengHei"));
-	fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(L"¿¬Ìå", L"KaiTi"));
-	fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(L"ĞÂËÎÌå", L"NSimSun"));
-	fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(L"·ÂËÎ", L"FangSong"));
+	//ç³»ç»Ÿå­—ä½“
+	fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(L"å®‹ä½“", L"SimSun"));
+	fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(L"é»‘ä½“", L"SimHei"));
+	fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(L"å¾®è½¯é›…é»‘", L"Microsoft YaHei"));
+	fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(L"å¾®è½¯æ­£é»‘ä½“", L"Microsoft JhengHei"));
+	fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(L"æ¥·ä½“", L"KaiTi"));
+	fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(L"æ–°å®‹ä½“", L"NSimSun"));
+	fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(L"ä»¿å®‹", L"FangSong"));
 	
-	//Office×ÖÌå
-	fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(L"Ó×Ô²", L"YouYuan"));
-	fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(L"Á¥Êé", L"LiSu"));
-	fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(L"»ªÎÄÏ¸ºÚ", L"STXiHei"));
-	fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(L"»ªÎÄ¿¬Ìå", L"STKaiTi"));
-	fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(L"»ªÎÄËÎÌå", L"STSong"));
-	fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(L"»ªÎÄ·ÂËÎ", L"STFangSong"));
-	fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(L"»ªÎÄÖĞËÎ", L"STZhongSong"));
-	fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(L"»ªÎÄ²ÊÔÆ", L"STCaiYun"));
-	fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(L"»ªÎÄçúçê", L"STHuPo"));
-	fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(L"»ªÎÄĞÂÎº", L"STXinWei"));
-	fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(L"»ªÎÄÁ¥Êé", L"STLiTi"));
-	fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(L"»ªÎÄĞĞ¿¬", L"STXingKai"));
-	fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(L"·½ÕıÊæÌå", L"FZShuTi"));
-	fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(L"·½ÕıÒ¦Ìå", L"FZYaoTi"));
+	//Officeå­—ä½“
+	fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(L"å¹¼åœ†", L"YouYuan"));
+	fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(L"éš¶ä¹¦", L"LiSu"));
+	fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(L"åæ–‡ç»†é»‘", L"STXiHei"));
+	fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(L"åæ–‡æ¥·ä½“", L"STKaiTi"));
+	fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(L"åæ–‡å®‹ä½“", L"STSong"));
+	fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(L"åæ–‡ä»¿å®‹", L"STFangSong"));
+	fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(L"åæ–‡ä¸­å®‹", L"STZhongSong"));
+	fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(L"åæ–‡å½©äº‘", L"STCaiYun"));
+	fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(L"åæ–‡ç¥ç€", L"STHuPo"));
+	fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(L"åæ–‡æ–°é­", L"STXinWei"));
+	fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(L"åæ–‡éš¶ä¹¦", L"STLiTi"));
+	fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(L"åæ–‡è¡Œæ¥·", L"STXingKai"));
+	fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(L"æ–¹æ­£èˆ’ä½“", L"FZShuTi"));
+	fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(L"æ–¹æ­£å§šä½“", L"FZYaoTi"));
 }
 
 std::wstring FontManager::GetFontEnglishName(const std::wstring& fontName)

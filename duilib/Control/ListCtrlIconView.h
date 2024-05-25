@@ -7,15 +7,15 @@
 
 namespace ui
 {
-/** ÁĞ±íÊı¾İÏÔÊ¾ºÍ²¼¾Ö¹¦ÄÜ(IconÀàĞÍ)
+/** åˆ—è¡¨æ•°æ®æ˜¾ç¤ºå’Œå¸ƒå±€åŠŸèƒ½(Iconç±»å‹)
 */
 class ListCtrl;
 class ListCtrlData;
 class ListCtrlIconView : public ListCtrlView, public IListCtrlView
 {
 public:
-    /** ÉèÖÃÊÇ·ñÎªListÄ£Ê½
-    * @param [in] bListMode true±íÊ¾ÁĞ±íÊÓÍ¼£¬·ñÔòÎªÍ¼±êÊÓÍ¼
+    /** è®¾ç½®æ˜¯å¦ä¸ºListæ¨¡å¼
+    * @param [in] bListMode trueè¡¨ç¤ºåˆ—è¡¨è§†å›¾ï¼Œå¦åˆ™ä¸ºå›¾æ ‡è§†å›¾
     */
     ListCtrlIconView(Window* pWindow, bool bListMode);
     virtual ~ListCtrlIconView();
@@ -25,36 +25,36 @@ public:
     virtual void HandleEvent(const EventArgs& msg) override;
 
 public:
-    /** ÉèÖÃListCtrl¿Ø¼ş½Ó¿Ú
+    /** è®¾ç½®ListCtrlæ§ä»¶æ¥å£
     */
     void SetListCtrl(ListCtrl* pListCtrl);
 
-    /** ÉèÖÃÊı¾İ´úÀí¶ÔÏó
-    * @param[in] pProvider Êı¾İ´úÀí¶ÔÏó
+    /** è®¾ç½®æ•°æ®ä»£ç†å¯¹è±¡
+    * @param[in] pProvider æ•°æ®ä»£ç†å¯¹è±¡
     */
     virtual void SetDataProvider(VirtualListBoxElement* pProvider) override;
 
 public:
-    /** ÉèÖÃ²¼¾Ö·½Ïò£¨Ä¬ÈÏÇé¿öÏÂ£¬IconÊÓÍ¼ÊÇ×İÏò²¼¾Ö£¬ListÊÓÍ¼ÊÇºáÏò²¼¾Ö£©
-    * @param [in] bHorizontal true±íÊ¾ºáÏò²¼¾Ö£¬false±íÊ¾×İÏò²¼¾Ö
+    /** è®¾ç½®å¸ƒå±€æ–¹å‘ï¼ˆé»˜è®¤æƒ…å†µä¸‹ï¼ŒIconè§†å›¾æ˜¯çºµå‘å¸ƒå±€ï¼ŒListè§†å›¾æ˜¯æ¨ªå‘å¸ƒå±€ï¼‰
+    * @param [in] bHorizontal trueè¡¨ç¤ºæ¨ªå‘å¸ƒå±€ï¼Œfalseè¡¨ç¤ºçºµå‘å¸ƒå±€
     */
     void SetHorizontalLayout(bool bHorizontal);
 
-    /** ÅĞ¶Ïµ±Ç°²¼¾Ö·½ÏòÊÇ·ñÎªºáÏò²¼¾Ö
+    /** åˆ¤æ–­å½“å‰å¸ƒå±€æ–¹å‘æ˜¯å¦ä¸ºæ¨ªå‘å¸ƒå±€
     */
     bool IsHorizontalLayout() const;
 
 protected:
-    /** ´´½¨Ò»¸öÊı¾İÏî
-    * @return ·µ»Ø´´½¨ºóµÄÊı¾İÏîÖ¸Õë
+    /** åˆ›å»ºä¸€ä¸ªæ•°æ®é¡¹
+    * @return è¿”å›åˆ›å»ºåçš„æ•°æ®é¡¹æŒ‡é’ˆ
     */
     virtual Control* CreateDataItem() override;
 
-    /** Ìî³äÖ¸¶¨Êı¾İÏî
-    * @param [in] pControl Êı¾İÏî¿Ø¼şÖ¸Õë
-    * @param [in] nElementIndex Êı¾İÔªËØµÄË÷ÒıID£¬·¶Î§£º[0, GetElementCount())
-    * @param [in] itemData Êı¾İÏî£¨´ú±íĞĞµÄÊôĞÔ£©
-    * @param [in] subItemList Êı¾İ×ÓÏî£¨´ú±íÃ¿Ò»ÁĞµÄÊı¾İ, µÚ1¸öÊÇÁĞµÄID£¬µÚ2¸öÊÇÁĞµÄÊı¾İ£©
+    /** å¡«å……æŒ‡å®šæ•°æ®é¡¹
+    * @param [in] pControl æ•°æ®é¡¹æ§ä»¶æŒ‡é’ˆ
+    * @param [in] nElementIndex æ•°æ®å…ƒç´ çš„ç´¢å¼•IDï¼ŒèŒƒå›´ï¼š[0, GetElementCount())
+    * @param [in] itemData æ•°æ®é¡¹ï¼ˆä»£è¡¨è¡Œçš„å±æ€§ï¼‰
+    * @param [in] subItemList æ•°æ®å­é¡¹ï¼ˆä»£è¡¨æ¯ä¸€åˆ—çš„æ•°æ®, ç¬¬1ä¸ªæ˜¯åˆ—çš„IDï¼Œç¬¬2ä¸ªæ˜¯åˆ—çš„æ•°æ®ï¼‰
     */
     virtual bool FillDataItem(Control* pControl,
                               size_t nElementIndex,
@@ -62,22 +62,22 @@ protected:
                               const std::vector<ListCtrlSubItemData2Pair>& subItemList) override;
 
 
-    /** »ñÈ¡Ä³ÁĞµÄ¿í¶È×î´óÖµ
-    * @param [in] subItemList Êı¾İ×ÓÏî£¨´ú±íÃ¿Ò»ÁĞµÄÊı¾İ£©
-    * @return ·µ»Ø¸ÃÁĞ¿í¶ÈµÄ×î´óÖµ£¬·µ»ØµÄÊÇDPI×ÔÊÊÓ¦ºóµÄÖµ£» Èç¹ûÊ§°Ü·µ»Ø-1
+    /** è·å–æŸåˆ—çš„å®½åº¦æœ€å¤§å€¼
+    * @param [in] subItemList æ•°æ®å­é¡¹ï¼ˆä»£è¡¨æ¯ä¸€åˆ—çš„æ•°æ®ï¼‰
+    * @return è¿”å›è¯¥åˆ—å®½åº¦çš„æœ€å¤§å€¼ï¼Œè¿”å›çš„æ˜¯DPIè‡ªé€‚åº”åçš„å€¼ï¼› å¦‚æœå¤±è´¥è¿”å›-1
     */
     virtual int32_t GetMaxDataItemWidth(const std::vector<ListCtrlSubItemData2Ptr>& subItemList) override;
 
 private:
-    /** ListCtrl ¿Ø¼ş½Ó¿Ú
+    /** ListCtrl æ§ä»¶æ¥å£
     */
     ListCtrl* m_pListCtrl;
 
-    /** Êı¾İ½Ó¿Ú
+    /** æ•°æ®æ¥å£
     */
     ListCtrlData* m_pData;
 
-    /** ÊÇ·ñÎªListÄ£Ê½: true±íÊ¾ÁĞ±íÊÓÍ¼£¬·ñÔòÎªÍ¼±êÊÓÍ¼ 
+    /** æ˜¯å¦ä¸ºListæ¨¡å¼: trueè¡¨ç¤ºåˆ—è¡¨è§†å›¾ï¼Œå¦åˆ™ä¸ºå›¾æ ‡è§†å›¾ 
     */
     const bool m_bListMode;
 };

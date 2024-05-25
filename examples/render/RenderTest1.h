@@ -13,25 +13,25 @@ public:
 
 public:
 	/**
-	* @brief ´ı²¹³ä
-	* @param[in] ´ı²¹³ä
-	* @return ´ı²¹³ä
+	* @brief å¾…è¡¥å……
+	* @param[in] å¾…è¡¥å……
+	* @return å¾…è¡¥å……
 	*/
 	virtual void AlphaPaint(IRender* pRender, const UiRect& rcPaint);
 
 	/**
-	* @brief »æÖÆ¿Ø¼şµÄÈë¿Úº¯Êı
-	* @param[in] pRender Ö¸¶¨»æÖÆÇøÓò
-	* @param[in] rcPaint Ö¸¶¨»æÖÆ×ø±ê
-	* @return ÎŞ
+	* @brief ç»˜åˆ¶æ§ä»¶çš„å…¥å£å‡½æ•°
+	* @param[in] pRender æŒ‡å®šç»˜åˆ¶åŒºåŸŸ
+	* @param[in] rcPaint æŒ‡å®šç»˜åˆ¶åæ ‡
+	* @return æ— 
 	*/
 	virtual void Paint(IRender* pRender, const UiRect& rcPaint);
 
 	/**
-	* @brief »æÖÆ¿Ø¼ş×ÓÏîÈë¿Úº¯Êı
-	* @param[in] pRender Ö¸¶¨»æÖÆÇøÓò
-	* @param[in] rcPaint Ö¸¶¨»æÖÆ×ø±ê
-	* @return ÎŞ
+	* @brief ç»˜åˆ¶æ§ä»¶å­é¡¹å…¥å£å‡½æ•°
+	* @param[in] pRender æŒ‡å®šç»˜åˆ¶åŒºåŸŸ
+	* @param[in] rcPaint æŒ‡å®šç»˜åˆ¶åæ ‡
+	* @return æ— 
 	*/
 	virtual void PaintChild(IRender* pRender, const UiRect& rcPaint);
 

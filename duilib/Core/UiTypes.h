@@ -18,53 +18,53 @@
 
 namespace ui
 {
-    /** ÉèÖÃµÄ¿Ø¼ş´óĞ¡
+    /** è®¾ç½®çš„æ§ä»¶å¤§å°
     */
     class UILIB_API UiFixedSize
     {
     public:
-        /** ¿í¶È
+        /** å®½åº¦
         */
         UiFixedInt cx;
 
-        /** ¸ß¶È
+        /** é«˜åº¦
         */
         UiFixedInt cy;
     };
 
-    /** ¹ÀËãµÄ¿Ø¼ş´óĞ¡£¨Ïà±ÈUiFixedSize£¬Ã»ÓĞAutoÀàĞÍ£©
+    /** ä¼°ç®—çš„æ§ä»¶å¤§å°ï¼ˆç›¸æ¯”UiFixedSizeï¼Œæ²¡æœ‰Autoç±»å‹ï¼‰
     */
     class UILIB_API UiEstSize
     {
     public:
-        /** ¿í¶È
+        /** å®½åº¦
         */
         UiEstInt cx;
 
-        /** ¸ß¶È
+        /** é«˜åº¦
         */
         UiEstInt cy;
     };
 
-    /** ¹ÀËã¿Ø¼ş´óĞ¡µÄ½á¹û
+    /** ä¼°ç®—æ§ä»¶å¤§å°çš„ç»“æœ
     */
     class UILIB_API UiEstResult
     {
     public:
-        /** ÊÇ·ñĞèÒªÖØĞÂÆÀ¹À´óĞ¡
+        /** æ˜¯å¦éœ€è¦é‡æ–°è¯„ä¼°å¤§å°
         */
         bool m_bReEstimateSize = true;
 
-        /** ±¾´Î¹ÀËãÊ±µÄ¿ÉÓÃ¾ØĞÎ´óĞ¡(Õâ¸ö²ÎÊıÓ°Ïì»á¹ÀËã½á¹û)
+        /** æœ¬æ¬¡ä¼°ç®—æ—¶çš„å¯ç”¨çŸ©å½¢å¤§å°(è¿™ä¸ªå‚æ•°å½±å“ä¼šä¼°ç®—ç»“æœ)
         */
         UiSize m_szAvailable;
 
-        /** ¿Ø¼şµÄÒÑ¹ÀËã´óĞ¡£¨³¤¶ÈºÍ¿í¶È£©£¬Ïàµ±ÓÚ¹ÀËãºóµÄ»º´æÖµ
+        /** æ§ä»¶çš„å·²ä¼°ç®—å¤§å°ï¼ˆé•¿åº¦å’Œå®½åº¦ï¼‰ï¼Œç›¸å½“äºä¼°ç®—åçš„ç¼“å­˜å€¼
         */
         UiEstSize m_szEstimateSize;
     };
 
-    /** ´ÓUiFixedIntÉú³ÉUiEstInt
+    /** ä»UiFixedIntç”ŸæˆUiEstInt
     */
     inline UiEstInt MakeEstInt(const UiFixedInt& fixedInt)
     {
@@ -81,45 +81,45 @@ namespace ui
         return estInt;
     }
 
-    /** ¼ÆËãÀ­ÉìÀàĞÍµÄ³¤¶ÈÖµ
+    /** è®¡ç®—æ‹‰ä¼¸ç±»å‹çš„é•¿åº¦å€¼
     */
     inline int32_t CalcStretchValue(const UiEstInt& estInt, int32_t nAvailable)
     {
         if (estInt.IsStretch()) {
-            int32_t nStretchValue = estInt.GetStretchPercentValue(); //´ú±í°Ù·Ö±ÈÖµ£¬È¡Öµ·¶Î§Îª£º(0, 100]
+            int32_t nStretchValue = estInt.GetStretchPercentValue(); //ä»£è¡¨ç™¾åˆ†æ¯”å€¼ï¼Œå–å€¼èŒƒå›´ä¸ºï¼š(0, 100]
             if ((nStretchValue > 0) && (nStretchValue < 100)) {
-                //·µ»Ø°´°Ù·Ö±È¼ÆËãµÄÖµ, ËÄÉáÎåÈë
+                //è¿”å›æŒ‰ç™¾åˆ†æ¯”è®¡ç®—çš„å€¼, å››èˆäº”å…¥
                 return static_cast<int32_t>(nAvailable * nStretchValue / 100.0f + 0.5f);
             }
             else {
-                //·µ»ØÔ­Öµ
+                //è¿”å›åŸå€¼
                 return nAvailable;
             }
         }
-        //ÆäËûÇé¿ö£¬·µ»ØÔ­Öµ(Èİ´í)
+        //å…¶ä»–æƒ…å†µï¼Œè¿”å›åŸå€¼(å®¹é”™)
         return nAvailable;
     }
 
-    /** ¼ÆËãÀ­ÉìÀàĞÍµÄ³¤¶ÈÖµ
+    /** è®¡ç®—æ‹‰ä¼¸ç±»å‹çš„é•¿åº¦å€¼
     */
     inline int32_t CalcStretchValue(const UiFixedInt& fixedInt, int32_t nAvailable)
     {
         if (fixedInt.IsStretch()) {
-            int32_t nStretchValue = fixedInt.GetStretchPercentValue(); //´ú±í°Ù·Ö±ÈÖµ£¬È¡Öµ·¶Î§Îª£º(0, 100]
+            int32_t nStretchValue = fixedInt.GetStretchPercentValue(); //ä»£è¡¨ç™¾åˆ†æ¯”å€¼ï¼Œå–å€¼èŒƒå›´ä¸ºï¼š(0, 100]
             if ((nStretchValue > 0) && (nStretchValue < 100)) {
-                //·µ»Ø°´°Ù·Ö±È¼ÆËãµÄÖµ, ËÄÉáÎåÈë
+                //è¿”å›æŒ‰ç™¾åˆ†æ¯”è®¡ç®—çš„å€¼, å››èˆäº”å…¥
                 return static_cast<int32_t>(nAvailable * nStretchValue / 100.0f + 0.5f);
             }
             else {
-                //·µ»ØÔ­Öµ
+                //è¿”å›åŸå€¼
                 return nAvailable;
             }
         }
-        //ÆäËûÇé¿ö£¬·µ»ØÔ­Öµ(Èİ´í)
+        //å…¶ä»–æƒ…å†µï¼Œè¿”å›åŸå€¼(å®¹é”™)
         return nAvailable;
     }
 
-    /** ´ÓUiFixedSizeÉú³ÉUiEstSize
+    /** ä»UiFixedSizeç”ŸæˆUiEstSize
     */
     inline UiEstSize MakeEstSize(const UiFixedSize& fixedSize)
     {
@@ -129,7 +129,7 @@ namespace ui
         return estSize;
     }
 
-    /** ´ÓUiSizeÉú³ÉUiEstSize
+    /** ä»UiSizeç”ŸæˆUiEstSize
     */
     inline UiEstSize MakeEstSize(const UiSize& size)
     {
@@ -139,7 +139,7 @@ namespace ui
         return estSize;
     }
 
-    /** ´ÓUiSizeÉú³ÉUiEstSize
+    /** ä»UiSizeç”ŸæˆUiEstSize
     */
     inline UiSize MakeSize(const UiEstSize& estSize)
     {
@@ -148,7 +148,7 @@ namespace ui
         return size;
     }
 
-    /** ½«64Î»ÕûĞÍÖµ×ª»»Î»32Î»ÕûĞÍÖµ
+    /** å°†64ä½æ•´å‹å€¼è½¬æ¢ä½32ä½æ•´å‹å€¼
     */
     inline int32_t TruncateToInt32(int64_t x)
     {
@@ -158,7 +158,7 @@ namespace ui
         return static_cast<int32_t>(x);
     }
 
-    /** ½«32Î»yÓĞ·ûºÅÕûĞÍÖµ×ª»»Î»16Î»ÎŞ·ûºÅÕûĞÍÖµ
+    /** å°†32ä½yæœ‰ç¬¦å·æ•´å‹å€¼è½¬æ¢ä½16ä½æ— ç¬¦å·æ•´å‹å€¼
     */
     inline uint16_t TruncateToUInt16(uint32_t x)
     {
@@ -167,7 +167,7 @@ namespace ui
         return static_cast<uint16_t>(x);
     }
 
-    /** ½«32Î»ÎŞ·ûºÅÕûĞÍÖµ×ª»»Î»16Î»ÎŞ·ûºÅÕûĞÍÖµ
+    /** å°†32ä½æ— ç¬¦å·æ•´å‹å€¼è½¬æ¢ä½16ä½æ— ç¬¦å·æ•´å‹å€¼
     */
     inline uint16_t TruncateToUInt16(int32_t x)
     {
@@ -177,7 +177,7 @@ namespace ui
         return static_cast<uint16_t>(x);
     }
 
-    /** ½«32Î»ÓĞ·ûºÅÕûĞÍÖµ×ª»»Î»16Î»ÎŞ·ûºÅÕûĞÍÖµ
+    /** å°†32ä½æœ‰ç¬¦å·æ•´å‹å€¼è½¬æ¢ä½16ä½æ— ç¬¦å·æ•´å‹å€¼
     */
     inline int16_t TruncateToInt16(int32_t x)
     {
@@ -187,7 +187,7 @@ namespace ui
         return static_cast<int16_t>(x);
     }
 
-    /** ½«32Î»ÕûĞÍÖµ×ª»»Î»8Î»ÕûĞÍÖµ
+    /** å°†32ä½æ•´å‹å€¼è½¬æ¢ä½8ä½æ•´å‹å€¼
     */
     inline int8_t TruncateToInt8(int32_t x)
     {
@@ -197,7 +197,7 @@ namespace ui
         return static_cast<int8_t>(x);
     }
 
-    /** ½«32Î»ÕûĞÍÖµ×ª»»Î»8Î»ÕûĞÍÖµ
+    /** å°†32ä½æ•´å‹å€¼è½¬æ¢ä½8ä½æ•´å‹å€¼
     */
     inline uint8_t TruncateToUInt8(int32_t x)
     {

@@ -7,15 +7,15 @@ namespace ui
 
 #define WM_USER_DEFINED_TIMER	(WM_USER + 9999)
 
-/** ÏµÍ³¶¨Ê±Æ÷´¥·¢Ê±¼ä¼ä¸ô£ºµ¥Î»ÎªºÁÃë
+/** ç³»ç»Ÿå®šæ—¶å™¨è§¦å‘æ—¶é—´é—´éš”ï¼šå•ä½ä¸ºæ¯«ç§’
 */
 #define TIMER_INTERVAL	16
 
-/** ¶¨Ê±Æ÷´¥·¢¾«¶È£ºµ¥Î»ÎªºÁÃë
+/** å®šæ—¶å™¨è§¦å‘ç²¾åº¦ï¼šå•ä½ä¸ºæ¯«ç§’
 */
 #define TIMER_PRECISION	1
 
-/** ¶¨Ê±Æ÷µÄÊı¾İ
+/** å®šæ—¶å™¨çš„æ•°æ®
 */
 class TimerInfo
 {
@@ -29,23 +29,23 @@ public:
 	}
 
 	bool operator < (const TimerInfo& timerInfo) const {
-		//ÅÅĞòÌõ¼ş£º×îÏÈ´¥·¢µÄÅÅÔÚÇ°Ãæ
+		//æ’åºæ¡ä»¶ï¼šæœ€å…ˆè§¦å‘çš„æ’åœ¨å‰é¢
 		return dwEndPerformanceCounter.QuadPart > timerInfo.dwEndPerformanceCounter.QuadPart;
 	}
 
-	//¶¨Ê±Æ÷»Øµ÷º¯Êı
+	//å®šæ—¶å™¨å›è°ƒå‡½æ•°
 	TimerCallback timerCallback;
 
-	//¶¨Ê±Æ÷¼ä¸ô£º£¨µ¥Î»£ºĞÔÄÜ¼ÆÊıÆ÷µÄµÎ´ğ´ÎÊı£©
+	//å®šæ—¶å™¨é—´éš”ï¼šï¼ˆå•ä½ï¼šæ€§èƒ½è®¡æ•°å™¨çš„æ»´ç­”æ¬¡æ•°ï¼‰
 	LONGLONG uPerformanceCount;
 
-	//ÖØ¸´´ÎÊı: -1 ±íÊ¾²»Í£ÖØ¸´
+	//é‡å¤æ¬¡æ•°: -1 è¡¨ç¤ºä¸åœé‡å¤
 	uint32_t uRepeatTime;
 
-	//¶¨Ê±Æ÷½áÊøÊ±¼ä: ĞÔÄÜ¼ÆÊıÆ÷µÄÆÚÍûÖµ
+	//å®šæ—¶å™¨ç»“æŸæ—¶é—´: æ€§èƒ½è®¡æ•°å™¨çš„æœŸæœ›å€¼
 	LARGE_INTEGER dwEndPerformanceCounter;
 
-	//È¡Ïû¶¨Ê±Æ÷Í¬²½»úÖÆ
+	//å–æ¶ˆå®šæ—¶å™¨åŒæ­¥æœºåˆ¶
 	std::weak_ptr<nbase::WeakFlag> weakFlag;
 };
 
@@ -77,12 +77,12 @@ TimerManager::~TimerManager()
 LRESULT TimerManager::WndProcThunk(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam)
 {
 	if (message == WM_USER_DEFINED_TIMER) {
-		//ÒÆ³ı¶ÓÁĞÖĞ¶àÓàµÄÏûÏ¢£¬±ÜÃâ¶ÓÁĞÖĞÓĞ´óÁ¿ÎŞÓÃµÄÖØ¸´ÏûÏ¢£¬µ¼ÖÂÎŞ·¨´¦ÀíÊó±ê¼üÅÌÏûÏ¢
+		//ç§»é™¤é˜Ÿåˆ—ä¸­å¤šä½™çš„æ¶ˆæ¯ï¼Œé¿å…é˜Ÿåˆ—ä¸­æœ‰å¤§é‡æ— ç”¨çš„é‡å¤æ¶ˆæ¯ï¼Œå¯¼è‡´æ— æ³•å¤„ç†é¼ æ ‡é”®ç›˜æ¶ˆæ¯
 		size_t msgCount = 0;
 		MSG msg;
 		while (::PeekMessage(&msg, hwnd, WM_USER_DEFINED_TIMER, WM_USER_DEFINED_TIMER, PM_REMOVE)) {
 			if (msg.message == WM_QUIT) {
-				//¼ì²âµ½ÍË³öÏûÏ¢£¬ÖØĞÂ·Åµ½ÏûÏ¢¶ÓÁĞÖĞ£¬±ÜÃâ½ø³ÌÍË²»³ö
+				//æ£€æµ‹åˆ°é€€å‡ºæ¶ˆæ¯ï¼Œé‡æ–°æ”¾åˆ°æ¶ˆæ¯é˜Ÿåˆ—ä¸­ï¼Œé¿å…è¿›ç¨‹é€€ä¸å‡º
 				::PostQuitMessage(static_cast<int>(msg.wParam));
 				return ::DefWindowProcW(hwnd, message, wparam, lparam);
 			}
@@ -117,10 +117,10 @@ bool TimerManager::AddCancelableTimer(const std::weak_ptr<nbase::WeakFlag>& weak
 
 	TimerInfo pTimer;
 	pTimer.timerCallback = callback;
-	//¼ÆËã³öĞèÒªµÎ´ğ¶àÉÙ´Î
+	//è®¡ç®—å‡ºéœ€è¦æ»´ç­”å¤šå°‘æ¬¡
 	pTimer.uPerformanceCount = uElapse * m_timeFrequency.QuadPart / 1000;
 	::QueryPerformanceCounter(&pTimer.dwEndPerformanceCounter);
-	//¼ÆËã³öÏÂ´Î´¥·¢Ê±µÄÊ±ÖÓµÎ´ğÊı
+	//è®¡ç®—å‡ºä¸‹æ¬¡è§¦å‘æ—¶çš„æ—¶é’Ÿæ»´ç­”æ•°
 	pTimer.dwEndPerformanceCounter.QuadPart += pTimer.uPerformanceCount;
 	pTimer.uRepeatTime = static_cast<uint32_t>(iRepeatTime);
 	pTimer.weakFlag = weakFlag;
@@ -142,14 +142,14 @@ void TimerManager::Poll()
 	::QueryPerformanceCounter(&currentTime);
 
 	while (!m_aTimers.empty()) {
-		//Ê×ÏÈÉ¾³ıÒÑ¾­È¡ÏûµÄ¶¨Ê±Æ÷
+		//é¦–å…ˆåˆ é™¤å·²ç»å–æ¶ˆçš„å®šæ—¶å™¨
 		if (m_aTimers.top().weakFlag.expired()) {
 			m_aTimers.pop();
 			continue;
 		}
 		LONGLONG detaTime = m_aTimers.top().dwEndPerformanceCounter.QuadPart - currentTime.QuadPart;
 		if (detaTime <= 0) {
-			//¶ÓÁĞ¶¥µÄ¶¨Ê±Æ÷£ºÒÑ¾­´ïµ½¶¨Ê±Æ÷´¥·¢Ìõ¼ş
+			//é˜Ÿåˆ—é¡¶çš„å®šæ—¶å™¨ï¼šå·²ç»è¾¾åˆ°å®šæ—¶å™¨è§¦å‘æ¡ä»¶
 			TimerInfo it = m_aTimers.top();
 			m_aTimers.pop();
 
@@ -163,7 +163,7 @@ void TimerManager::Poll()
 					}
 				}
 				if (rePush) {
-					//Èç¹ûÎ´´ïµ½´¥·¢´ÎÊıÏŞÖÆ£¬ÖØĞÂÉèÖÃÏÂ´Î´¥·¢µÄµÎ´ğÊı
+					//å¦‚æœæœªè¾¾åˆ°è§¦å‘æ¬¡æ•°é™åˆ¶ï¼Œé‡æ–°è®¾ç½®ä¸‹æ¬¡è§¦å‘çš„æ»´ç­”æ•°
 					TimerInfo rePushTimerInfo = it;
 					rePushTimerInfo.dwEndPerformanceCounter.QuadPart = currentTime.QuadPart + it.uPerformanceCount;
 					m_aTimers.push(rePushTimerInfo);
@@ -171,7 +171,7 @@ void TimerManager::Poll()
 			}
 		}
 		else if ((detaTime > 0) && (detaTime < m_timeFrequency.QuadPart)) {
-			//¶ÓÁĞ¶¥µÄ¶¨Ê±Æ÷´¥·¢Ê±¼äÔÚ1ÃëÒÔÄÚ, Ê¹ÓÃ×îĞ¡¼ä¸ôµÄ¾«È·¼ÆÊ±Æ÷
+			//é˜Ÿåˆ—é¡¶çš„å®šæ—¶å™¨è§¦å‘æ—¶é—´åœ¨1ç§’ä»¥å†…, ä½¿ç”¨æœ€å°é—´éš”çš„ç²¾ç¡®è®¡æ—¶å™¨
 			if (!m_bMinInterval) {
 				KillTimerEvent();
 				m_nTimerId = ::timeSetEvent(TIMER_INTERVAL, TIMER_PRECISION, &TimerManager::TimeCallback, NULL, TIME_PERIODIC);
@@ -181,7 +181,7 @@ void TimerManager::Poll()
 			break;
 		}
 		else {
-			//¶ÓÁĞ¶¥µÄ¶¨Ê±Æ÷´¥·¢Ê±¼äÔÚÃëÒÔºó£¬·Å´ó¶¨Ê±Æ÷µÄ´¥·¢¼ä¸ôÊ±¼ä£¬µ÷Õûµ½¶¨Ê±Æ÷´¥·¢ºóµÄ2ºÁÃë£¨ÓÅ»¯ĞÔÄÜ£¬±ÜÃâÏµÍ³¶¨Ê±Æ÷Æµ·±´¥·¢£©
+			//é˜Ÿåˆ—é¡¶çš„å®šæ—¶å™¨è§¦å‘æ—¶é—´åœ¨ç§’ä»¥åï¼Œæ”¾å¤§å®šæ—¶å™¨çš„è§¦å‘é—´éš”æ—¶é—´ï¼Œè°ƒæ•´åˆ°å®šæ—¶å™¨è§¦å‘åçš„2æ¯«ç§’ï¼ˆä¼˜åŒ–æ€§èƒ½ï¼Œé¿å…ç³»ç»Ÿå®šæ—¶å™¨é¢‘ç¹è§¦å‘ï¼‰
 			double newDetaTime = double(detaTime) * 1000 / m_timeFrequency.QuadPart;
 			KillTimerEvent();
 			m_nTimerId = ::timeSetEvent(int(newDetaTime + 2 * TIMER_PRECISION), TIMER_PRECISION, &TimerManager::TimeCallback, NULL, TIME_PERIODIC);

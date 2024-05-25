@@ -8,7 +8,7 @@
 namespace ui 
 {
 
-/** GDI×ÖÌå½Ó¿ÚµÄÊµÏÖ
+/** GDIå­—ä½“æ¥å£çš„å®ç°
 */
 class UILIB_API Font_GDI: public IFont
 {
@@ -18,44 +18,44 @@ public:
     Font_GDI& operator=(const Font_GDI&) = delete;
     virtual ~Font_GDI();
 
-    /** ³õÊ¼»¯×ÖÌå(ÄÚ²¿Î´¶Ô×ÖÌå´óĞ¡×öDPI×ÔÊÊÓ¦)
+    /** åˆå§‹åŒ–å­—ä½“(å†…éƒ¨æœªå¯¹å­—ä½“å¤§å°åšDPIè‡ªé€‚åº”)
     */
     virtual bool InitFont(const UiFont& fontInfo) override;
 
-    /**@brief »ñÈ¡×ÖÌåÃû
+    /**@brief è·å–å­—ä½“å
      */
     virtual const wchar_t* FontName() const override { return m_logFont.lfFaceName; }
 
-    /**@brief »ñÈ¡×ÖÌå´óĞ¡
+    /**@brief è·å–å­—ä½“å¤§å°
      */
     virtual int FontSize() const override { return -m_logFont.lfHeight; }
 
-    /**@brief ÊÇ·ñÎª´ÖÌå
+    /**@brief æ˜¯å¦ä¸ºç²—ä½“
      */
     virtual bool IsBold() const override { return m_logFont.lfWeight >= FW_BOLD; }
 
-    /**@brief ×ÖÌåÏÂ»®Ïß×´Ì¬
+    /**@brief å­—ä½“ä¸‹åˆ’çº¿çŠ¶æ€
      */
     virtual bool IsUnderline() const override { return m_logFont.lfUnderline; }
 
-    /**@brief ×ÖÌåµÄĞ±Ìå×´Ì¬
+    /**@brief å­—ä½“çš„æ–œä½“çŠ¶æ€
      */
     virtual bool IsItalic() const override { return m_logFont.lfItalic; }
 
-    /**@brief ×ÖÌåµÄÉ¾³ıÏß×´Ì¬
+    /**@brief å­—ä½“çš„åˆ é™¤çº¿çŠ¶æ€
      */
     virtual bool IsStrikeOut() const override { return m_logFont.lfStrikeOut; }
 
 public:
-    /** »ñÈ¡×ÖÌå¾ä±ú
+    /** è·å–å­—ä½“å¥æŸ„
     */
     HFONT GetFontHandle();
 
 private:
-    //×ÖÌåĞÅÏ¢
+    //å­—ä½“ä¿¡æ¯
     LOGFONT m_logFont;
 
-    //×ÖÌå¾ä±ú
+    //å­—ä½“å¥æŸ„
     HFONT m_hFont;
 };
 

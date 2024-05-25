@@ -11,8 +11,8 @@
 namespace ui 
 {
 // Flags for Control::GetControlFlags()
-#define UIFLAG_DEFAULT       0x00000000		// Ä¬ÈÏ×´Ì¬
-#define UIFLAG_TABSTOP       0x00000001		// ±êÊ¶¿Ø¼şÊÇ·ñÔÚÊÕµ½ TAB ÇĞ»»½¹µãÊ±ÔÊĞíÉèÖÃ½¹µã
+#define UIFLAG_DEFAULT       0x00000000		// é»˜è®¤çŠ¶æ€
+#define UIFLAG_TABSTOP       0x00000001		// æ ‡è¯†æ§ä»¶æ˜¯å¦åœ¨æ”¶åˆ° TAB åˆ‡æ¢ç„¦ç‚¹æ—¶å…è®¸è®¾ç½®ç„¦ç‚¹
 
 // Flags for FindControl()
 #define UIFIND_ALL           0x00000000
@@ -34,7 +34,7 @@ typedef struct tagFINDTABINFO
 	bool bNextIsIt;
 } FINDTABINFO;
 
-/** Window¸¨Öú²éÕÒControlÏà¹Ø¹¦ÄÜµÄ·â×°
+/** Windowè¾…åŠ©æŸ¥æ‰¾Controlç›¸å…³åŠŸèƒ½çš„å°è£…
 */
 class UILIB_API ControlFinder
 {
@@ -43,59 +43,59 @@ public:
 	~ControlFinder();
 	
 public:
-	/** ÉèÖÃBox¸ù½Úµã
+	/** è®¾ç½®Boxæ ¹èŠ‚ç‚¹
 	*/
 	void SetRoot(Box* pRoot);
 
 	/**
-	 * @brief ¸ù¾İ×ø±ê²éÕÒÖ¸¶¨¿Ø¼ş
-	 * @param[in] pt Ö¸¶¨×ø±ê
-	 * @return ·µ»Ø¿Ø¼şÖ¸Õë
+	 * @brief æ ¹æ®åæ ‡æŸ¥æ‰¾æŒ‡å®šæ§ä»¶
+	 * @param[in] pt æŒ‡å®šåæ ‡
+	 * @return è¿”å›æ§ä»¶æŒ‡é’ˆ
 	 */
 	Control* FindControl(const UiPoint& pt) const;
 
 	/**
-	 * @brief ¸ù¾İ×ø±ê²éÕÒ¿ÉÒÔÏìÓ¦WM_CONTEXTMENUµÄ¿Ø¼ş
-	 * @param[in] pt Ö¸¶¨×ø±ê
-	 * @return ·µ»Ø¿Ø¼şÖ¸Õë
+	 * @brief æ ¹æ®åæ ‡æŸ¥æ‰¾å¯ä»¥å“åº”WM_CONTEXTMENUçš„æ§ä»¶
+	 * @param[in] pt æŒ‡å®šåæ ‡
+	 * @return è¿”å›æ§ä»¶æŒ‡é’ˆ
 	 */
 	Control* FindContextMenuControl(const UiPoint* pt) const;
 
-	/** ²éÕÒ¿ÉÒÔÖ§³ÖÍÏ·ÅµÄBoxÈİÆ÷
-	* @param [in] pt Ö¸¶¨×ø±ê
-	* @param [in] nDropInId ÍÏ·ÅµÄIDÖµ£¨Ã¿¸ö¿Ø¼ş¿ÉÒÔÉèÖÃÒ»¸öID£¬À´½ÓÊÕÍÏ·Å, 0±íÊ¾²»¿ÉÒÔÍÏÈë£¬·Ç0±íÊ¾¿ÉÒÔÍÏÈë£©
+	/** æŸ¥æ‰¾å¯ä»¥æ”¯æŒæ‹–æ”¾çš„Boxå®¹å™¨
+	* @param [in] pt æŒ‡å®šåæ ‡
+	* @param [in] nDropInId æ‹–æ”¾çš„IDå€¼ï¼ˆæ¯ä¸ªæ§ä»¶å¯ä»¥è®¾ç½®ä¸€ä¸ªIDï¼Œæ¥æ¥æ”¶æ‹–æ”¾, 0è¡¨ç¤ºä¸å¯ä»¥æ‹–å…¥ï¼Œé0è¡¨ç¤ºå¯ä»¥æ‹–å…¥ï¼‰
 	*/
 	Box* FindDroppableBox(const UiPoint& pt, uint8_t nDropInId) const;
 
 	/**
-	 * @brief ¸ù¾İ¿Ø¼şÃû³Æ²éÕÒ¿Ø¼ş
-	 * @param[in] strName ¿Ø¼şÃû³Æ
-	 * @return ·µ»Ø¿Ø¼şÖ¸Õë
+	 * @brief æ ¹æ®æ§ä»¶åç§°æŸ¥æ‰¾æ§ä»¶
+	 * @param[in] strName æ§ä»¶åç§°
+	 * @return è¿”å›æ§ä»¶æŒ‡é’ˆ
 	 */
 	Control* FindControl2(const std::wstring& strName) const;
 
 	/**
-	 * @brief ¸ù¾İ×ø±ê²éÕÒ×Ó¿Ø¼ş
-	 * @param[in] pParent ÒªËÑË÷µÄ¿Ø¼ş
-	 * @param[in] pt Òª²éÕÒµÄ×ø±ê
-	 * @return ·µ»Ø¿Ø¼şÖ¸Õë
+	 * @brief æ ¹æ®åæ ‡æŸ¥æ‰¾å­æ§ä»¶
+	 * @param[in] pParent è¦æœç´¢çš„æ§ä»¶
+	 * @param[in] pt è¦æŸ¥æ‰¾çš„åæ ‡
+	 * @return è¿”å›æ§ä»¶æŒ‡é’ˆ
 	 */
 	Control* FindSubControlByPoint(Control* pParent, const UiPoint& pt) const;
 
 	/**
-	 * @brief ¸ù¾İÃû×Ö²éÕÒ×Ó¿Ø¼ş
-	 * @param[in] pParent ÒªËÑË÷µÄ¿Ø¼ş
-	 * @param[in] strName Òª²éÕÒµÄÃû³Æ
-	 * @return ·µ»Ø¿Ø¼şÖ¸Õë
+	 * @brief æ ¹æ®åå­—æŸ¥æ‰¾å­æ§ä»¶
+	 * @param[in] pParent è¦æœç´¢çš„æ§ä»¶
+	 * @param[in] strName è¦æŸ¥æ‰¾çš„åç§°
+	 * @return è¿”å›æ§ä»¶æŒ‡é’ˆ
 	 */
 	Control* FindSubControlByName(Control* pParent, const std::wstring& strName) const;
 
-	/** Ìí¼ÓÒ»¸ö¿Ø¼ş£¬¶Ô¿Ø¼şÃû³Æ×öË÷Òı
+	/** æ·»åŠ ä¸€ä¸ªæ§ä»¶ï¼Œå¯¹æ§ä»¶åç§°åšç´¢å¼•
 	*/
 	void AddControl(Control* pControl);
 
-	/**@brief »ØÊÕ¿Ø¼ş£¨Í¨¹ıAddControlº¯ÊıÌí¼ÓµÄ¿Ø¼ş£©
-	 * @param[in] pControl ¿Ø¼şÖ¸Õë
+	/**@brief å›æ”¶æ§ä»¶ï¼ˆé€šè¿‡AddControlå‡½æ•°æ·»åŠ çš„æ§ä»¶ï¼‰
+	 * @param[in] pControl æ§ä»¶æŒ‡é’ˆ
 	 */
 	void RemoveControl(Control* pControl);
 
@@ -108,11 +108,11 @@ public:
 	static Control* CALLBACK __FindControlFromDroppableBox(Control* pThis, LPVOID pData);
 
 private:
-    /** ¸ù½Úµã
+    /** æ ¹èŠ‚ç‚¹
 	*/
 	Box* m_pRoot;
 
-	/** ¿Ø¼şµÄnameÓë½Ó¿ÚÖ®¼äµÄÓ³Éä
+	/** æ§ä»¶çš„nameä¸æ¥å£ä¹‹é—´çš„æ˜ å°„
 	*/
 	std::map<std::wstring, Control*> m_mNameHash;
 };

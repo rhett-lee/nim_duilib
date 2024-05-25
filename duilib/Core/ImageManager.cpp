@@ -24,7 +24,7 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const Window* pWindow,
 												  const ImageLoadAttribute& loadAtrribute)
 {
 	const DpiManager& dpi = (pWindow != nullptr) ? pWindow->Dpi() : GlobalManager::Instance().Dpi();
-	//²éÕÒ¶ÔÓ¦¹ØÏµ£ºLoadKey ->(¶à¶ÔÒ») ImageKey ->(Ò»¶ÔÒ») SharedImage
+	//æŸ¥æ‰¾å¯¹åº”å…³ç³»ï¼šLoadKey ->(å¤šå¯¹ä¸€) ImageKey ->(ä¸€å¯¹ä¸€) SharedImage
 	std::wstring loadKey = loadAtrribute.GetCacheKey(dpi.GetScale());
 	auto iter = m_loadKeyMap.find(loadKey);
 	if (iter != m_loadKeyMap.end()) {
@@ -33,19 +33,19 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const Window* pWindow,
 		if (it != m_imageMap.end()) {
 			std::shared_ptr<ImageInfo> sharedImage = it->second.lock();
 			if (sharedImage) {
-				//´Ó»º´æÖĞ£¬ÕÒµ½ÓĞĞ§Í¼Æ¬×ÊÔ´£¬Ö±½Ó·µ»Ø
+				//ä»ç¼“å­˜ä¸­ï¼Œæ‰¾åˆ°æœ‰æ•ˆå›¾ç‰‡èµ„æºï¼Œç›´æ¥è¿”å›
 				return sharedImage;
 			}
 		}
 	}	
 
-	//ÖØĞÂ¼ÓÔØ×ÊÔ´	
+	//é‡æ–°åŠ è½½èµ„æº	
 	std::unique_ptr<ImageInfo> imageInfo;
 	std::wstring loadImageFullPath = loadAtrribute.GetImageFullPath();
 	bool isIcon = false;
 #ifdef UILIB_IMPL_WINSDK
 	if (GlobalManager::Instance().Icon().IsIconString(loadImageFullPath)) {
-		//¼ÓÔØICON
+		//åŠ è½½ICON
 		isIcon = true;
 		LoadIconData(pWindow, loadAtrribute, imageInfo);
 	}
@@ -57,46 +57,46 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const Window* pWindow,
 		bool isUseZip = GlobalManager::Instance().Zip().IsUseZip();
 		std::wstring dpiImageFullPath;
 		uint32_t nImageDpiScale = 0;
-		//½öÔÚDPIËõ·ÅÍ¼Æ¬¹¦ÄÜ¿ªÆôµÄÇé¿öÏÂ£¬²éÕÒ¶ÔÓ¦DPIµÄÍ¼Æ¬ÊÇ·ñ´æÔÚ
+		//ä»…åœ¨DPIç¼©æ”¾å›¾ç‰‡åŠŸèƒ½å¼€å¯çš„æƒ…å†µä¸‹ï¼ŒæŸ¥æ‰¾å¯¹åº”DPIçš„å›¾ç‰‡æ˜¯å¦å­˜åœ¨
 		const bool bEnableImageDpiScale = IsDpiScaleAllImages();
 		if (bEnableImageDpiScale && GetDpiScaleImageFullPath(dpi.GetScale(), isUseZip, imageFullPath,
 									 dpiImageFullPath, nImageDpiScale)) {
-			//±ê¼ÇDPI×ÔÊÊÓ¦Í¼Æ¬ÊôĞÔ£¬Èç¹ûÂ·¾¶²»Í¬£¬ËµÃ÷ÒÑ¾­Ñ¡ÔñÁË¶ÔÓ¦DPIÏÂµÄÎÄ¼ş
+			//æ ‡è®°DPIè‡ªé€‚åº”å›¾ç‰‡å±æ€§ï¼Œå¦‚æœè·¯å¾„ä¸åŒï¼Œè¯´æ˜å·²ç»é€‰æ‹©äº†å¯¹åº”DPIä¸‹çš„æ–‡ä»¶
 			isDpiScaledImageFile = true;
 			imageFullPath = dpiImageFullPath;
 			ASSERT(!imageFullPath.empty());
 			ASSERT(nImageDpiScale > 100);
 		}
 		else {
-			nImageDpiScale = 100; //Ô­Ê¼Í¼Æ¬£¬Î´¾­DPIËõ·Å
+			nImageDpiScale = 100; //åŸå§‹å›¾ç‰‡ï¼Œæœªç»DPIç¼©æ”¾
 			isDpiScaledImageFile = false;
 		}
-		//¼ÓÔØÍ¼Æ¬µÄKEY
+		//åŠ è½½å›¾ç‰‡çš„KEY
 		ImageLoadAttribute realLoadAttribute = loadAtrribute;
 		realLoadAttribute.SetImageFullPath(imageFullPath);
 		std::wstring imageKey;
 		if (isDpiScaledImageFile) {
-			//ÓĞ¶ÔÓ¦DPIµÄÍ¼Æ¬ÎÄ¼ş
+			//æœ‰å¯¹åº”DPIçš„å›¾ç‰‡æ–‡ä»¶
 			imageKey = realLoadAttribute.GetCacheKey(nImageDpiScale);
 		}
 		else {
-			//ÎŞ¶ÔÓ¦DPIËõ·Å±ÈµÄÍ¼Æ¬ÎÄ¼ş
+			//æ— å¯¹åº”DPIç¼©æ”¾æ¯”çš„å›¾ç‰‡æ–‡ä»¶
 			imageKey = realLoadAttribute.GetCacheKey(0);
 		}
 
-		//¸ù¾İimageKey²éÑ¯»º´æ
+		//æ ¹æ®imageKeyæŸ¥è¯¢ç¼“å­˜
 		if (!imageKey.empty()) {
 			auto it = m_imageMap.find(imageKey);
 			if (it != m_imageMap.end()) {
 				std::shared_ptr<ImageInfo> sharedImage = it->second.lock();
 				if ((sharedImage != nullptr) && (sharedImage->GetLoadDpiScale() == dpi.GetScale())) {
-					//ÓëÇëÇóµÄDPIËõ·Å°Ù·Ö±ÈÏàÍ¬
+					//ä¸è¯·æ±‚çš„DPIç¼©æ”¾ç™¾åˆ†æ¯”ç›¸åŒ
 					return sharedImage;
 				}
 			}
 		}
 
-		//´ÓÄÚ´æÊı¾İ¼ÓÔØÎÄ¼ş
+		//ä»å†…å­˜æ•°æ®åŠ è½½æ–‡ä»¶
 		std::vector<uint8_t> fileData;
 		if (isUseZip) {
 			GlobalManager::Instance().Zip().GetZipData(imageFullPath, fileData);
@@ -126,14 +126,14 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const Window* pWindow,
 		sharedImage->SetLoadKey(loadKey);
 		sharedImage->SetLoadDpiScale(dpi.GetScale());
 		if (isDpiScaledImageFile) {
-			//Ê¹ÓÃÁËDPI×ÔÊÊÓ¦µÄÍ¼Æ¬£¬×ö±ê¼Ç£¨±ØĞëÎ»trueÊ±²ÅÄÜĞŞ¸ÄÕâ¸öÖµ£©
+			//ä½¿ç”¨äº†DPIè‡ªé€‚åº”çš„å›¾ç‰‡ï¼Œåšæ ‡è®°ï¼ˆå¿…é¡»ä½trueæ—¶æ‰èƒ½ä¿®æ”¹è¿™ä¸ªå€¼ï¼‰
 			sharedImage->SetBitmapSizeDpiScaled(isDpiScaledImageFile);
 		}
 		if (imageKey.empty()) {
 			imageKey = loadKey;
 		}
 
-		//±£´æ¶ÔÓ¦¹ØÏµ£ºLoadKey ->(¶à¶ÔÒ») ImageKey ->(Ò»¶ÔÒ») SharedImage
+		//ä¿å­˜å¯¹åº”å…³ç³»ï¼šLoadKey ->(å¤šå¯¹ä¸€) ImageKey ->(ä¸€å¯¹ä¸€) SharedImage
 		m_loadKeyMap[loadKey] = imageKey;
 		m_imageMap[imageKey] = sharedImage;
 
@@ -151,7 +151,7 @@ void ImageManager::LoadIconData(const Window* pWindow,
 								std::unique_ptr<ImageInfo>& imageInfo) const
 {
 	imageInfo.reset();
-	//¼ÓÔØHICON¾ä±ú£¬×÷ÎªÍ¼Æ¬£¬½öÔÚWindowsÆ½Ì¨ÓĞÕâ¸ö¾ä±ú
+	//åŠ è½½HICONå¥æŸ„ï¼Œä½œä¸ºå›¾ç‰‡ï¼Œä»…åœ¨Windowså¹³å°æœ‰è¿™ä¸ªå¥æŸ„
 	std::wstring iconString = loadAtrribute.GetImageFullPath();
 	bool bEnableDpiScale = IsDpiScaleAllImages();
 	std::vector<uint8_t> bitmapData;
@@ -252,7 +252,7 @@ bool ImageManager::GetDpiScaleImageFullPath(uint32_t dpiScale,
 	}
 	dpiImageFullPath.clear();
 	if (!IsAutoMatchScaleImage() || (dpiScale < 115)) {
-		//ÖÇÄÜÆ¥Åä¹¦ÄÜ¹Ø±Õ, »òµ±Ç°DPIÎŞĞèÖÇÄÜÆ¥ÅäËõ·Å°Ù·Ö±È
+		//æ™ºèƒ½åŒ¹é…åŠŸèƒ½å…³é—­, æˆ–å½“å‰DPIæ— éœ€æ™ºèƒ½åŒ¹é…ç¼©æ”¾ç™¾åˆ†æ¯”
 		return false;
 	}
 
@@ -272,13 +272,13 @@ bool ImageManager::GetDpiScaleImageFullPath(uint32_t dpiScale,
 		const std::wstring& sPath = allDpiImagePath[index].second;
 		if (nScale > dpiScale) {
 			if (index == 0) {
-				//µÚÒ»¸ö
+				//ç¬¬ä¸€ä¸ª
 				dpiImageFullPath = sPath;
 				nImageDpiScale = nScale;
 				break;
 			}
 			else {
-				//ÔÚÁ½¸öÖĞ¼ä, Ñ¡Ò»¸ö×î½Ó½üµÄ
+				//åœ¨ä¸¤ä¸ªä¸­é—´, é€‰ä¸€ä¸ªæœ€æ¥è¿‘çš„
 				uint32_t nLastScale = allDpiImagePath[index - 1].first;
 				ASSERT(nLastScale <= dpiScale);
 				float diffScaleLast = ((float)dpiScale - (float)nLastScale) / (float)nLastScale;
@@ -295,7 +295,7 @@ bool ImageManager::GetDpiScaleImageFullPath(uint32_t dpiScale,
 			}
 		}
 		else if (index == (nCount - 1)) {
-			//×îºóÒ»¸ö
+			//æœ€åä¸€ä¸ª
 			dpiImageFullPath = sPath;
 			nImageDpiScale = nScale;
 		}
@@ -310,7 +310,7 @@ bool ImageManager::FindDpiScaleImageFullPath(uint32_t dpiScale,
 {
 	dpiImageFullPath.clear();
 	if ((dpiScale == 100) || (dpiScale == 0)) {
-		//µ±Ç°DPIÎŞĞèËõ·Å
+		//å½“å‰DPIæ— éœ€ç¼©æ”¾
 		return false;
 	}
 	dpiImageFullPath = GetDpiScaledPath(dpiScale, imageFullPath);
@@ -353,7 +353,7 @@ std::wstring ImageManager::GetDpiScaledPath(uint32_t dpiScale, const std::wstrin
 	}
 	std::wstring strFileExtension = strPathFileName.substr(iPointPos, strPathFileName.size() - iPointPos);
 	std::wstring strFile = strPathFileName.substr(0, iPointPos);
-	//·µ»ØÖ¸¶¨DPIÏÂµÄÍ¼Æ¬£¬¾ÙÀıDPIËõ·Å°Ù·Ö±ÈÎª120£¨¼´·Å´óµ½120%£©µÄÍ¼Æ¬£º"image.png" ¶ÔÓ¦ÓÚ "image@120.png"
+	//è¿”å›æŒ‡å®šDPIä¸‹çš„å›¾ç‰‡ï¼Œä¸¾ä¾‹DPIç¼©æ”¾ç™¾åˆ†æ¯”ä¸º120ï¼ˆå³æ”¾å¤§åˆ°120%ï¼‰çš„å›¾ç‰‡ï¼š"image.png" å¯¹åº”äº "image@120.png"
 	strPathFileName = StringHelper::Printf(L"%s%s%d%s", strFile.c_str(), L"@", dpiScale, strFileExtension.c_str());
 	std::wstring strNewFilePath = strPathDir + strPathFileName;
 	return strNewFilePath;

@@ -187,9 +187,6 @@
     <ClInclude Include="macros.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\build\xp_style_manifest_win.h">
-      <Filter>build</Filter>
-    </ClInclude>
     <ClInclude Include="win32\path_util.h">
       <Filter>win32</Filter>
     </ClInclude>

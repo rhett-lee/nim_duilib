@@ -4,8 +4,8 @@
 #include "ui_components/toast/toast.h"
 
 #if 0
-// CEF ¿Ø¼şĞèÒªÊ¹ÓÃµÚÈı·½ libcef_dll_wrapper ·â×°²ã
-// ĞèÒªÒıÈëÊ±Çë´ÓÏîÄ¿Ä£¿éÖ±½ÓÒıÈë
+// CEF æ§ä»¶éœ€è¦ä½¿ç”¨ç¬¬ä¸‰æ–¹ libcef_dll_wrapper å°è£…å±‚
+// éœ€è¦å¼•å…¥æ—¶è¯·ä»é¡¹ç›®æ¨¡å—ç›´æ¥å¼•å…¥
 #include "ui_components/cef_control/control/cef_control.h"
 #include "ui_components/cef_control/control/cef_native_control.h"
 #include "ui_components/cef_control/control/cef_control_base.h"

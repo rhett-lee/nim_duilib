@@ -53,10 +53,10 @@ Control::Control(Window* pWindow) :
 
 Control::~Control()
 {
-	//ÅÉ·¢×îºóÒ»¸öÊÂ¼ş
+	//æ´¾å‘æœ€åä¸€ä¸ªäº‹ä»¶
 	SendEvent(kEventLast);
 
-	//ÇåÀí¶¯»­Ïà¹Ø×ÊÔ´£¬±ÜÃâ¶¨Ê±Æ÷ÔÙ²úÉú»Øµ÷£¬Òı·¢´íÎó
+	//æ¸…ç†åŠ¨ç”»ç›¸å…³èµ„æºï¼Œé¿å…å®šæ—¶å™¨å†äº§ç”Ÿå›è°ƒï¼Œå¼•å‘é”™è¯¯
 	if (m_animationManager != nullptr) {
 		m_animationManager->Clear(this);
 	}	
@@ -98,7 +98,7 @@ std::wstring Control::GetType() const { return DUI_CTR_CONTROL; }
 
 void Control::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
-	ASSERT(GetWindow() != nullptr);//ÓÉÓÚĞèÒª×öDPI¸ĞÖª¹¦ÄÜ£¬ËùÒÔ±ØĞëÏÈÉèÖÃ¹ØÁª´°¿Ú
+	ASSERT(GetWindow() != nullptr);//ç”±äºéœ€è¦åšDPIæ„ŸçŸ¥åŠŸèƒ½ï¼Œæ‰€ä»¥å¿…é¡»å…ˆè®¾ç½®å…³è”çª—å£
 	if (strName == L"class") {
 		SetClass(strValue);
 	}
@@ -144,15 +144,15 @@ void Control::SetAttribute(const std::wstring& strName, const std::wstring& strV
 		SetEnableControlPadding(strValue == L"true");
 	}
 	else if (strName == L"bkcolor") {
-		//±³¾°É«
+		//èƒŒæ™¯è‰²
 		SetBkColor(strValue);
 	}
 	else if (strName == L"bkcolor2") {
-		//µÚ¶ş±³¾°É«£¨ÊµÏÖ½¥±ä±³¾°É«£©
+		//ç¬¬äºŒèƒŒæ™¯è‰²ï¼ˆå®ç°æ¸å˜èƒŒæ™¯è‰²ï¼‰
 		SetBkColor2(strValue);
 	}
 	else if (strName == L"bkcolor2_direction") {
-		//µÚ¶ş±³¾°É«µÄ·½Ïò£º"1": ×ó->ÓÒ£¬"2": ÉÏ->ÏÂ£¬"3": ×óÉÏ->ÓÒÏÂ£¬"4": ÓÒÉÏ->×óÏÂ
+		//ç¬¬äºŒèƒŒæ™¯è‰²çš„æ–¹å‘ï¼š"1": å·¦->å³ï¼Œ"2": ä¸Š->ä¸‹ï¼Œ"3": å·¦ä¸Š->å³ä¸‹ï¼Œ"4": å³ä¸Š->å·¦ä¸‹
 		SetBkColor2Direction(strValue);
 	}
 	else if ((strName == L"border_size") || (strName == L"bordersize")) {
@@ -182,16 +182,16 @@ void Control::SetAttribute(const std::wstring& strName, const std::wstring& strV
 	}
 	else if (strName == L"width") {
 		if (strValue == L"stretch") {
-			//¿í¶ÈÎªÀ­Éì£ºÓÉ¸¸ÈİÆ÷¸ºÔğ·ÖÅä¿í¶È
+			//å®½åº¦ä¸ºæ‹‰ä¼¸ï¼šç”±çˆ¶å®¹å™¨è´Ÿè´£åˆ†é…å®½åº¦
 			SetFixedWidth(UiFixedInt::MakeStretch(), true, true);
 		}
 		else if (strValue == L"auto") {
-			//¿í¶ÈÎª×Ô¶¯£º¸ù¾İ¿Ø¼şµÄÎÄ±¾¡¢Í¼Æ¬µÈ×Ô¶¯¼ÆËã¿í¶È
+			//å®½åº¦ä¸ºè‡ªåŠ¨ï¼šæ ¹æ®æ§ä»¶çš„æ–‡æœ¬ã€å›¾ç‰‡ç­‰è‡ªåŠ¨è®¡ç®—å®½åº¦
 			SetFixedWidth(UiFixedInt::MakeAuto(), true, true);
 		}
 		else if (!strValue.empty()) {
 			if (strValue.back() == L'%') {
-				//¿í¶ÈÎªÀ­Éì£ºÓÉ¸¸ÈİÆ÷¸ºÔğ°´°Ù·Ö±È·ÖÅä¿í¶È£¬±ÈÈç width="30%"£¬´ú±í¸Ã¿Ø¼şµÄ¿í¶ÈÆÚÍûÖµÎª¸¸¿Ø¼ş¿í¶ÈµÄ30%
+				//å®½åº¦ä¸ºæ‹‰ä¼¸ï¼šç”±çˆ¶å®¹å™¨è´Ÿè´£æŒ‰ç™¾åˆ†æ¯”åˆ†é…å®½åº¦ï¼Œæ¯”å¦‚ width="30%"ï¼Œä»£è¡¨è¯¥æ§ä»¶çš„å®½åº¦æœŸæœ›å€¼ä¸ºçˆ¶æ§ä»¶å®½åº¦çš„30%
 				int32_t iValue = _wtoi(strValue.c_str());
 				if ((iValue <= 0) || (iValue > 100)) {
 					iValue = 100;
@@ -199,7 +199,7 @@ void Control::SetAttribute(const std::wstring& strName, const std::wstring& strV
 				SetFixedWidth(UiFixedInt::MakeStretch(iValue), true, false);
 			}
 			else {
-				//¿í¶ÈÎª¹Ì¶¨Öµ
+				//å®½åº¦ä¸ºå›ºå®šå€¼
 				ASSERT(_wtoi(strValue.c_str()) >= 0);
 				SetFixedWidth(UiFixedInt(_wtoi(strValue.c_str())), true, true);
 			}
@@ -210,16 +210,16 @@ void Control::SetAttribute(const std::wstring& strName, const std::wstring& strV
 	}
 	else if (strName == L"height") {
 		if (strValue == L"stretch") {
-			//¸ß¶ÈÎªÀ­Éì£ºÓÉ¸¸ÈİÆ÷¸ºÔğ·ÖÅä¸ß¶È
+			//é«˜åº¦ä¸ºæ‹‰ä¼¸ï¼šç”±çˆ¶å®¹å™¨è´Ÿè´£åˆ†é…é«˜åº¦
 			SetFixedHeight(UiFixedInt::MakeStretch(), true, true);
 		}
 		else if (strValue == L"auto") {
-			//¸ß¶ÈÎª×Ô¶¯£º¸ù¾İ¿Ø¼şµÄÎÄ±¾¡¢Í¼Æ¬µÈ×Ô¶¯¼ÆËã¸ß¶È
+			//é«˜åº¦ä¸ºè‡ªåŠ¨ï¼šæ ¹æ®æ§ä»¶çš„æ–‡æœ¬ã€å›¾ç‰‡ç­‰è‡ªåŠ¨è®¡ç®—é«˜åº¦
 			SetFixedHeight(UiFixedInt::MakeAuto(), true, true);
 		}
 		else if (!strValue.empty()) {
 			if (strValue.back() == L'%') {
-				//¸ß¶ÈÎªÀ­Éì£ºÓÉ¸¸ÈİÆ÷¸ºÔğ°´°Ù·Ö±È·ÖÅä¸ß¶È£¬±ÈÈç height="30%"£¬´ú±í¸Ã¿Ø¼şµÄ¸ß¶ÈÆÚÍûÖµÎª¸¸¿Ø¼ş¸ß¶ÈµÄ30%
+				//é«˜åº¦ä¸ºæ‹‰ä¼¸ï¼šç”±çˆ¶å®¹å™¨è´Ÿè´£æŒ‰ç™¾åˆ†æ¯”åˆ†é…é«˜åº¦ï¼Œæ¯”å¦‚ height="30%"ï¼Œä»£è¡¨è¯¥æ§ä»¶çš„é«˜åº¦æœŸæœ›å€¼ä¸ºçˆ¶æ§ä»¶é«˜åº¦çš„30%
 				int32_t iValue = _wtoi(strValue.c_str());
 				if ((iValue <= 0) || (iValue > 100)) {
 					iValue = 100;
@@ -227,7 +227,7 @@ void Control::SetAttribute(const std::wstring& strName, const std::wstring& strV
 				SetFixedHeight(UiFixedInt::MakeStretch(iValue), true, false);
 			}
 			else {
-				//¸ß¶ÈÎª¹Ì¶¨Öµ
+				//é«˜åº¦ä¸ºå›ºå®šå€¼
 				ASSERT(_wtoi(strValue.c_str()) >= 0);
 				SetFixedHeight(UiFixedInt(_wtoi(strValue.c_str())), true, true);
 			}
@@ -457,7 +457,7 @@ void Control::SetAttribute(const std::wstring& strName, const std::wstring& strV
 		StopGifPlay(false, nStopFrame);
 	}
 	else {
-		ASSERT(!"Control::SetAttributeÊ§°Ü: ·¢ÏÖ²»ÄÜÊ¶±ğµÄÊôĞÔ");
+		ASSERT(!"Control::SetAttributeå¤±è´¥: å‘ç°ä¸èƒ½è¯†åˆ«çš„å±æ€§");
 	}
 }
 
@@ -518,7 +518,7 @@ void Control::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
 	}
 
 	UiPadding rcBkImagePadding = GetBkImagePadding();
-	SetBkImagePadding(rcBkImagePadding, false);//Õâ¸öÖµ²»ĞèÒª×öDPIËõ·Å£¬Ö±½Ó×ª´æÎªµ±Ç°DPIµÄÖµ
+	SetBkImagePadding(rcBkImagePadding, false);//è¿™ä¸ªå€¼ä¸éœ€è¦åšDPIç¼©æ”¾ï¼Œç›´æ¥è½¬å­˜ä¸ºå½“å‰DPIçš„å€¼
 
 	UiSize cxyBorderRound = GetBorderRound();
 	cxyBorderRound = Dpi().GetScaleSize(cxyBorderRound, nOldDpiScale);
@@ -535,7 +535,7 @@ void Control::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
 		SetFixedHeight(UiFixedInt(nFixedHeight), true, false);
 	}
 
-	//¶ÔÓÚautoÀàĞÍµÄ¿Ø¼ş£¬ĞèÒªÖØĞÂÆÀ¹À´óĞ¡
+	//å¯¹äºautoç±»å‹çš„æ§ä»¶ï¼Œéœ€è¦é‡æ–°è¯„ä¼°å¤§å°
 	SetReEstimateSize(true);
 }
 
@@ -561,7 +561,7 @@ void Control::SetClass(const std::wstring& strClass)
 
 void Control::ApplyAttributeList(const std::wstring& strList)
 {
-	//ÊôĞÔÁĞ±í£¬ÏÈ½âÎö£¬È»ºóÔÙÓ¦ÓÃ
+	//å±æ€§åˆ—è¡¨ï¼Œå…ˆè§£æï¼Œç„¶åå†åº”ç”¨
 	if (strList.empty()) {
 		return;
 	}
@@ -603,7 +603,7 @@ bool Control::OnApplyAttributeList(const std::wstring& strReceiver, const std::w
 
 	if (pReceiverControl != nullptr) {
 		std::wstring strValueList = strList;
-		//Õâ¸öÊÇÊÖ¹¤Ğ´ÈëµÄÊôĞÔ£¬ÒÔ»¨À¨ºÅ{}´úÌæË«ÒıºÅ£¬±àĞ´µÄÊ±ºò¾Í²»ĞèÒª×ªÒå×Ö·ûÁË£»
+		//è¿™ä¸ªæ˜¯æ‰‹å·¥å†™å…¥çš„å±æ€§ï¼Œä»¥èŠ±æ‹¬å·{}ä»£æ›¿åŒå¼•å·ï¼Œç¼–å†™çš„æ—¶å€™å°±ä¸éœ€è¦è½¬ä¹‰å­—ç¬¦äº†ï¼›
 		StringHelper::ReplaceAll(L"{", L"\"", strValueList);
 		StringHelper::ReplaceAll(L"}", L"\"", strValueList);
 		pReceiverControl->ApplyAttributeList(strValueList);
@@ -676,7 +676,7 @@ std::wstring Control::GetBkColor2Direction() const
 int8_t Control::GetColor2Direction(const UiString& bkColor2Direction) const
 {
 	int8_t nColor2Direction = 1;
-	//½¥±ä±³¾°É«
+	//æ¸å˜èƒŒæ™¯è‰²
 	if (bkColor2Direction == L"2") {
 		nColor2Direction = 2;
 	}
@@ -1156,7 +1156,7 @@ void Control::SetBorderRound(UiSize cxyRound, bool bNeedDpiScale)
 	if ((cx < 0) || (cy < 0)) {
 		return;
 	}
-	//Á½¸ö²ÎÊıÒªÃ´Í¬Ê±µÈÓÚ0£¬ÒªÃ´Í¬Ê±´óÓÚ0£¬·ñÔò²ÎÊıÎŞĞ§
+	//ä¸¤ä¸ªå‚æ•°è¦ä¹ˆåŒæ—¶ç­‰äº0ï¼Œè¦ä¹ˆåŒæ—¶å¤§äº0ï¼Œå¦åˆ™å‚æ•°æ— æ•ˆ
 	ASSERT(((cx > 0) && (cy > 0)) || ((cx == 0) && (cy == 0)));
 	if (cx == 0) {
 		if (cy != 0) {
@@ -1225,7 +1225,7 @@ void Control::SetToolTipText(const std::wstring& strText)
 		if (GetWindow() != nullptr) {
 			Control* pHover = GetWindow()->GetHoverControl();
 			if (pHover == this) {
-				//¸üĞÂToolTipµÄÏÔÊ¾
+				//æ›´æ–°ToolTipçš„æ˜¾ç¤º
 				GetWindow()->UpdateToolTip();
 			}
 		}		
@@ -1476,7 +1476,7 @@ UiRect Control::GetPos() const
 
 void Control::SetPos(UiRect rc)
 {
-	//ÓĞºÜ¶àÀàËÆµÄ´úÂë£ºSetPos(GetPos()), ´ú±íÉèÖÃÎ»ÖÃ£¬²¢ÖØĞÂ»æÖÆ
+	//æœ‰å¾ˆå¤šç±»ä¼¼çš„ä»£ç ï¼šSetPos(GetPos()), ä»£è¡¨è®¾ç½®ä½ç½®ï¼Œå¹¶é‡æ–°ç»˜åˆ¶
 	rc.Validate();
 	SetArranged(false);
 	bool isPosChanged = !GetRect().Equals(rc);
@@ -1519,21 +1519,21 @@ UiEstSize Control::EstimateSize(UiSize szAvailable)
 {
 	UiFixedSize fixedSize = GetFixedSize();
 	if (!fixedSize.cx.IsAuto() && !fixedSize.cy.IsAuto()) {
-		//Èç¹û¿í¸ß¶¼²»ÊÇautoÊôĞÔ£¬ÔòÖ±½Ó·µ»Ø
+		//å¦‚æœå®½é«˜éƒ½ä¸æ˜¯autoå±æ€§ï¼Œåˆ™ç›´æ¥è¿”å›
 		return MakeEstSize(fixedSize);
 	}
 	szAvailable.Validate();
 	if (!IsReEstimateSize(szAvailable)) {
-		//Ê¹ÓÃ»º´æÖĞµÄ¹ÀËã½á¹û
+		//ä½¿ç”¨ç¼“å­˜ä¸­çš„ä¼°ç®—ç»“æœ
 		return GetEstimateSize();
 	}
 
-	//¹ÀËãÍ¼Æ¬ÇøÓò´óĞ¡
+	//ä¼°ç®—å›¾ç‰‡åŒºåŸŸå¤§å°
 	UiSize imageSize;
 	std::shared_ptr<ImageInfo> imageCache;
 	Image* image = GetEstimateImage();
 	if (image != nullptr) {
-		//¼ÓÔØÍ¼Æ¬£ºĞèÒª»ñÈ¡Í¼Æ¬µÄ¿íºÍ¸ß
+		//åŠ è½½å›¾ç‰‡ï¼šéœ€è¦è·å–å›¾ç‰‡çš„å®½å’Œé«˜
 		LoadImageData(*image);
 		imageCache = image->GetImageCache();		
 	}
@@ -1543,7 +1543,7 @@ UiEstSize Control::EstimateSize(UiSize szAvailable)
 		bool hasDestAttr = false;
 		UiRect rcImageDestRect = imageAttribute.GetImageDestRect(Dpi());
 		if (ImageAttribute::HasValidImageRect(rcImageDestRect)) {
-			//Ê¹ÓÃÅäÖÃÖĞÖ¸¶¨µÄÄ¿±êÇøÓò
+			//ä½¿ç”¨é…ç½®ä¸­æŒ‡å®šçš„ç›®æ ‡åŒºåŸŸ
 			rcDest = rcImageDestRect;
 			hasDestAttr = true;
 		}
@@ -1575,7 +1575,7 @@ UiEstSize Control::EstimateSize(UiSize szAvailable)
 			imageSize.cy = imageCache->GetHeight();
 		}
 		if (!hasDestAttr) {
-			//Èç¹ûÃ»ÓĞrcDestÊôĞÔ£¬ÔòĞèÒªÔö¼ÓÍ¼Æ¬µÄÄÚ±ß¾à
+			//å¦‚æœæ²¡æœ‰rcDestå±æ€§ï¼Œåˆ™éœ€è¦å¢åŠ å›¾ç‰‡çš„å†…è¾¹è·
 			UiPadding rcPadding = imageAttribute.GetImagePadding(Dpi());
 			imageSize.cx += (rcPadding.left + rcPadding.right);
 			imageSize.cy += (rcPadding.top + rcPadding.bottom);
@@ -1583,7 +1583,7 @@ UiEstSize Control::EstimateSize(UiSize szAvailable)
 	}
 	imageCache.reset();
 
-	//Í¼Æ¬´óĞ¡£¬ĞèÒª¸½¼Ó¿Ø¼şµÄÄÚ±ß¾à
+	//å›¾ç‰‡å¤§å°ï¼Œéœ€è¦é™„åŠ æ§ä»¶çš„å†…è¾¹è·
 	UiPadding rcPadding = this->GetControlPadding();
 	if (imageSize.cx > 0) {
 		imageSize.cx += (rcPadding.left + rcPadding.right);
@@ -1592,17 +1592,17 @@ UiEstSize Control::EstimateSize(UiSize szAvailable)
 		imageSize.cy += (rcPadding.top + rcPadding.bottom);
 	}
 
-	//¹ÀËãÎÄ±¾ÇøÓò´óĞ¡, º¯Êı¼ÆËãÊ±£¬ÒÑ¾­°üº¬ÁËÄÚ±ß¾à
+	//ä¼°ç®—æ–‡æœ¬åŒºåŸŸå¤§å°, å‡½æ•°è®¡ç®—æ—¶ï¼Œå·²ç»åŒ…å«äº†å†…è¾¹è·
 	UiSize textSize = EstimateText(szAvailable);
 
-	//Ñ¡È¡Í¼Æ¬ºÍÎÄ±¾ÇøÓò¸ß¶ÈºÍ¿í¶ÈµÄ×î´óÖµ
+	//é€‰å–å›¾ç‰‡å’Œæ–‡æœ¬åŒºåŸŸé«˜åº¦å’Œå®½åº¦çš„æœ€å¤§å€¼
 	if (fixedSize.cx.IsAuto()) {
 		fixedSize.cx.SetInt32(std::max(imageSize.cx, textSize.cx));
 	}
 	if (fixedSize.cy.IsAuto()) {
 		fixedSize.cy.SetInt32(std::max(imageSize.cy, textSize.cy));
 	}
-	//±£³Ö½á¹ûµ½»º´æ£¬±ÜÃâÃ¿´Î¶¼ÖØĞÂ¹ÀËã
+	//ä¿æŒç»“æœåˆ°ç¼“å­˜ï¼Œé¿å…æ¯æ¬¡éƒ½é‡æ–°ä¼°ç®—
 	UiEstSize estSize = MakeEstSize(fixedSize);
 	SetEstimateSize(estSize, szAvailable);
 	SetReEstimateSize(false);
@@ -1681,19 +1681,19 @@ void Control::SendEvent(const EventArgs& msg)
 bool Control::IsDisabledEvents(const EventArgs& msg) const
 {
 	if ((msg.Type > kEventMouseBegin) && (msg.Type < kEventMouseEnd)) {
-		//µ±Ç°¿Ø¼ş½ûÖ¹½ÓÊÕÊó±êÏûÏ¢Ê±£¬½«Êó±êÏà¹ØÏûÏ¢×ª·¢¸øÉÏ²ã´¦Àí
+		//å½“å‰æ§ä»¶ç¦æ­¢æ¥æ”¶é¼ æ ‡æ¶ˆæ¯æ—¶ï¼Œå°†é¼ æ ‡ç›¸å…³æ¶ˆæ¯è½¬å‘ç»™ä¸Šå±‚å¤„ç†
 		if (!IsEnabled() || !IsMouseEnabled()) {
 			return true;
 		}
 	}
 	else if ((msg.Type > kEventKeyBegin) && (msg.Type < kEventKeyEnd)) {
-		//µ±Ç°¿Ø¼ş½ûÖ¹½ÓÊÕ¼üÅÌÏûÏ¢Ê±£¬½«¼üÅÌÏà¹ØÏûÏ¢×ª·¢¸øÉÏ²ã´¦Àí
+		//å½“å‰æ§ä»¶ç¦æ­¢æ¥æ”¶é”®ç›˜æ¶ˆæ¯æ—¶ï¼Œå°†é”®ç›˜ç›¸å…³æ¶ˆæ¯è½¬å‘ç»™ä¸Šå±‚å¤„ç†
 		if (!IsEnabled() || !IsKeyboardEnabled()) {
 			return true;
 		}
 	}
 	else if (msg.Type == kEventLast) {
-		//×ª·¢¸øÉÏ²ã¿Ø¼ş
+		//è½¬å‘ç»™ä¸Šå±‚æ§ä»¶
 		return true;
 	}
 	return false;
@@ -1703,7 +1703,7 @@ void Control::HandleEvent(const EventArgs& msg)
 {
 	std::weak_ptr<nbase::WeakFlag> weakFlag = GetWeakFlag();
 	if (IsDisabledEvents(msg)) {
-		//Èç¹ûÊÇÊó±ê¼üÅÌÏûÏ¢£¬²¢ÇÒ¿Ø¼şÊÇDisabledµÄ£¬×ª·¢¸øÉÏ²ã¿Ø¼ş
+		//å¦‚æœæ˜¯é¼ æ ‡é”®ç›˜æ¶ˆæ¯ï¼Œå¹¶ä¸”æ§ä»¶æ˜¯Disabledçš„ï¼Œè½¬å‘ç»™ä¸Šå±‚æ§ä»¶
 		Box* pParent = GetParent();
 		if (pParent != nullptr) {
 			pParent->SendEvent(msg);
@@ -1966,44 +1966,44 @@ bool Control::MouseHover(const EventArgs& /*msg*/)
 
 bool Control::MouseWheel(const EventArgs& /*msg*/)
 {
-	//Ä¬ÈÏ²»´¦Àí£¬½»ÓÉ¸¸¿Ø¼ş´¦Àí
+	//é»˜è®¤ä¸å¤„ç†ï¼Œäº¤ç”±çˆ¶æ§ä»¶å¤„ç†
 	//int deltaValue = GET_WHEEL_DELTA_WPARAM(msg.wParam);
 	return false;
 }
 
 bool Control::MouseMenu(const EventArgs& /*msg*/)
 {
-	//°´Shif + F10ÓÉÏµÍ³²úÉúÉÏÏÂÎÄ²Ëµ¥, »òÕßµã»÷ÓÒ¼ü´¥·¢²Ëµ¥£ºÄ¬ÈÏ²»´¦Àí£¬½»ÓÉ¸¸¿Ø¼ş´¦Àí
+	//æŒ‰Shif + F10ç”±ç³»ç»Ÿäº§ç”Ÿä¸Šä¸‹æ–‡èœå•, æˆ–è€…ç‚¹å‡»å³é”®è§¦å‘èœå•ï¼šé»˜è®¤ä¸å¤„ç†ï¼Œäº¤ç”±çˆ¶æ§ä»¶å¤„ç†
 	return false;
 }
 
 bool Control::OnChar(const EventArgs& /*msg*/)
 {
-	//Ä¬ÈÏ²»´¦Àí£¬½»ÓÉ¸¸¿Ø¼ş´¦Àí
+	//é»˜è®¤ä¸å¤„ç†ï¼Œäº¤ç”±çˆ¶æ§ä»¶å¤„ç†
 	return false;
 }
 
 bool Control::OnKeyDown(const EventArgs& /*msg*/)
 {
-	//Ä¬ÈÏ²»´¦Àí£¬½»ÓÉ¸¸¿Ø¼ş´¦Àí
+	//é»˜è®¤ä¸å¤„ç†ï¼Œäº¤ç”±çˆ¶æ§ä»¶å¤„ç†
 	return false;
 }
 
 bool Control::OnKeyUp(const EventArgs& /*msg*/)
 {
-	//Ä¬ÈÏ²»´¦Àí£¬½»ÓÉ¸¸¿Ø¼ş´¦Àí
+	//é»˜è®¤ä¸å¤„ç†ï¼Œäº¤ç”±çˆ¶æ§ä»¶å¤„ç†
 	return false;
 }
 
 bool Control::OnSysKeyDown(const EventArgs& /*msg*/)
 {
-	//Ä¬ÈÏ²»´¦Àí£¬½»ÓÉ¸¸¿Ø¼ş´¦Àí
+	//é»˜è®¤ä¸å¤„ç†ï¼Œäº¤ç”±çˆ¶æ§ä»¶å¤„ç†
 	return false;
 }
 
 bool Control::OnSysKeyUp(const EventArgs& /*msg*/)
 {
-	//Ä¬ÈÏ²»´¦Àí£¬½»ÓÉ¸¸¿Ø¼ş´¦Àí
+	//é»˜è®¤ä¸å¤„ç†ï¼Œäº¤ç”±çˆ¶æ§ä»¶å¤„ç†
 	return false;
 }
 
@@ -2073,7 +2073,7 @@ bool Control::OnKillFocus(const EventArgs& /*msg*/)
 		SetState(kControlStateNormal);
 	}
 	else if (GetState() == kControlStatePushed) {
-		//Ê§È¥½¹µãÊ±£¬ĞŞ¸´¿Ø¼ş×´Ì¬£¨Èç¹ûÊó±ê°´ÏÂÊ±£¬´°¿ÚÊ§È¥½¹µã£¬Êó±êµ¯ÆğÊÂ¼şÕâ¸ö¿Ø¼ş¾ÍÊÕ²»µ½ÁË£©
+		//å¤±å»ç„¦ç‚¹æ—¶ï¼Œä¿®å¤æ§ä»¶çŠ¶æ€ï¼ˆå¦‚æœé¼ æ ‡æŒ‰ä¸‹æ—¶ï¼Œçª—å£å¤±å»ç„¦ç‚¹ï¼Œé¼ æ ‡å¼¹èµ·äº‹ä»¶è¿™ä¸ªæ§ä»¶å°±æ”¶ä¸åˆ°äº†ï¼‰
 		SetMouseFocused(false);
 		auto player = GetAnimationManager().GetAnimationPlayer(AnimationType::kAnimationHot);
 		if (player != nullptr) {
@@ -2087,19 +2087,19 @@ bool Control::OnKillFocus(const EventArgs& /*msg*/)
 
 bool Control::OnWindowKillFocus(const EventArgs& /*msg*/)
 {
-	//Ä¬ÈÏ²»´¦Àí£¬½»ÓÉ¸¸¿Ø¼ş´¦Àí
+	//é»˜è®¤ä¸å¤„ç†ï¼Œäº¤ç”±çˆ¶æ§ä»¶å¤„ç†
 	return false;
 }
 
 bool Control::OnImeStartComposition(const EventArgs& /*msg*/)
 {
-	//Ä¬ÈÏ²»´¦Àí£¬½»ÓÉ¸¸¿Ø¼ş´¦Àí
+	//é»˜è®¤ä¸å¤„ç†ï¼Œäº¤ç”±çˆ¶æ§ä»¶å¤„ç†
 	return false;
 }
 
 bool Control::OnImeEndComposition(const EventArgs& /*msg*/)
 {
-	//Ä¬ÈÏ²»´¦Àí£¬½»ÓÉ¸¸¿Ø¼ş´¦Àí
+	//é»˜è®¤ä¸å¤„ç†ï¼Œäº¤ç”±çˆ¶æ§ä»¶å¤„ç†
 	return false;
 }
 
@@ -2107,10 +2107,10 @@ bool Control::PaintImage(IRender* pRender, Image* pImage,
 					    const std::wstring& strModify, int32_t nFade, 
 	                    IMatrix* pMatrix, UiRect* pInRect, UiRect* pPaintedRect) const
 {
-	//×¢½â£ºstrModify²ÎÊı£¬Ä¿Ç°Íâ²¿´«ÈëµÄÖ÷ÒªÊÇ£º"destscale='false' dest='%d,%d,%d,%d'"
-	//                   Ò²ÓĞÒ»¸öÀà´«ÈëÁË£ºL" corner='%d,%d,%d,%d'"¡£
+	//æ³¨è§£ï¼šstrModifyå‚æ•°ï¼Œç›®å‰å¤–éƒ¨ä¼ å…¥çš„ä¸»è¦æ˜¯ï¼š"destscale='false' dest='%d,%d,%d,%d'"
+	//                   ä¹Ÿæœ‰ä¸€ä¸ªç±»ä¼ å…¥äº†ï¼šL" corner='%d,%d,%d,%d'"ã€‚
 	if (pImage == nullptr) {
-		//ÕâÀï¿ÉÄÜÎª¿Õ£¬²»ĞèÒª¼Ó¶ÏÑÔ£¬Îª¿ÕÖ±½Ó·µ»Ø
+		//è¿™é‡Œå¯èƒ½ä¸ºç©ºï¼Œä¸éœ€è¦åŠ æ–­è¨€ï¼Œä¸ºç©ºç›´æ¥è¿”å›
 		return false;
 	}
 	ASSERT(pRender != nullptr);
@@ -2125,7 +2125,7 @@ bool Control::PaintImage(IRender* pRender, Image* pImage,
 	}
 
 	if (!duiImage.GetImageAttribute().bPaintEnabled) {
-		//¸ÃÍ¼Æ¬½ûÖ¹»æÖÆ£¬·µ»Ø
+		//è¯¥å›¾ç‰‡ç¦æ­¢ç»˜åˆ¶ï¼Œè¿”å›
 		return false;
 	}
 
@@ -2146,16 +2146,16 @@ bool Control::PaintImage(IRender* pRender, Image* pImage,
 	if (!strModify.empty()) {
 		newImageAttribute.ModifyAttribute(strModify, Dpi());
 	}
-	bool hasDestAttr = false; // Íâ²¿ÊÇ·ñÉèÖÃÁËrcDestÊôĞÔ
+	bool hasDestAttr = false; // å¤–éƒ¨æ˜¯å¦è®¾ç½®äº†rcDestå±æ€§
 	UiRect rcDest = GetRect();
-	rcDest.Deflate(GetControlPadding());//È¥µôÄÚ±ß¾à
+	rcDest.Deflate(GetControlPadding());//å»æ‰å†…è¾¹è·
 	if (pInRect != nullptr) {
-		//Ê¹ÓÃÍâ²¿´«ÈëµÄ¾ØĞÎÇøÓò»æÖÆÍ¼Æ¬
+		//ä½¿ç”¨å¤–éƒ¨ä¼ å…¥çš„çŸ©å½¢åŒºåŸŸç»˜åˆ¶å›¾ç‰‡
 		rcDest = *pInRect;
 	}
 	UiRect rcImageDestRect = newImageAttribute.GetImageDestRect(Dpi());
 	if (ImageAttribute::HasValidImageRect(rcImageDestRect)) {
-		//Ê¹ÓÃÅäÖÃÖĞÖ¸¶¨µÄÄ¿±êÇøÓò
+		//ä½¿ç”¨é…ç½®ä¸­æŒ‡å®šçš„ç›®æ ‡åŒºåŸŸ
 		if ((rcImageDestRect.Width() <= rcDest.Width()) &&
 			(rcImageDestRect.Height() <= rcDest.Height())) {
 			rcDest = rcImageDestRect;
@@ -2174,14 +2174,14 @@ bool Control::PaintImage(IRender* pRender, Image* pImage,
 		                           rcSourceCorners);
 	
 	if (!hasDestAttr) {
-		//ÔËÓÃrcPadding¡¢hAlign¡¢vAlign Èı¸öÍ¼Æ¬ÊôĞÔ
+		//è¿ç”¨rcPaddingã€hAlignã€vAlign ä¸‰ä¸ªå›¾ç‰‡å±æ€§
 		rcDest.Deflate(newImageAttribute.GetImagePadding(Dpi()));
 		rcDest.Validate();
 		rcSource.Validate();
 		const int32_t imageWidth = rcSource.Width();
 		const int32_t imageHeight = rcSource.Height();
 
-		//Ó¦ÓÃ¶ÔÆë·½Ê½ºó£¬Í¼Æ¬½«²»ÔÙÀ­Éì£¬¶øÊÇ°´Ô­´óĞ¡Õ¹Ê¾
+		//åº”ç”¨å¯¹é½æ–¹å¼åï¼Œå›¾ç‰‡å°†ä¸å†æ‹‰ä¼¸ï¼Œè€Œæ˜¯æŒ‰åŸå¤§å°å±•ç¤º
 		if (!newImageAttribute.hAlign.empty()) {
 			if (newImageAttribute.hAlign == L"left") {
 				rcDest.right = rcDest.left + imageWidth;
@@ -2223,14 +2223,14 @@ bool Control::PaintImage(IRender* pRender, Image* pImage,
 	}
 
 	if (pPaintedRect) {
-		//·µ»Ø»æÖÆµÄÄ¿±êÇøÓò
+		//è¿”å›ç»˜åˆ¶çš„ç›®æ ‡åŒºåŸŸ
 		*pPaintedRect = rcDest;
 	}
 
-	//Í¼Æ¬Í¸Ã÷¶ÈÊôĞÔ
+	//å›¾ç‰‡é€æ˜åº¦å±æ€§
 	uint8_t iFade = (nFade == DUI_NOSET_VALUE) ? newImageAttribute.bFade : static_cast<uint8_t>(nFade);
 	if (pMatrix != nullptr) {
-		//¾ØÕó»æÖÆ: ¶Ô²»Ö§³ÖµÄÊôĞÔ£¬Ôö¼Ó¶ÏÑÔ£¬±ÜÃâ³ö´í
+		//çŸ©é˜µç»˜åˆ¶: å¯¹ä¸æ”¯æŒçš„å±æ€§ï¼Œå¢åŠ æ–­è¨€ï¼Œé¿å…å‡ºé”™
 		ASSERT(newImageAttribute.GetImageCorner().IsEmpty());
 		ASSERT(!newImageAttribute.bTiledX);
 		ASSERT(!newImageAttribute.bTiledY);
@@ -2242,7 +2242,7 @@ bool Control::PaintImage(IRender* pRender, Image* pImage,
 						   newImageAttribute.bFullTiledX, newImageAttribute.bFullTiledY,
 						   newImageAttribute.nTiledMargin);
 	}
-	//°´ĞèÆô¶¯¶¯»­
+	//æŒ‰éœ€å¯åŠ¨åŠ¨ç”»
 	duiImage.CheckStartGifPlay(rcDest);
 	return true;
 }
@@ -2274,30 +2274,30 @@ void Control::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
 		return;
 	}
 	if (m_nAlpha == 0) {
-		//¿Ø¼şÍêÈ«Í¸Ã÷£¬²»»æÖÆ
+		//æ§ä»¶å®Œå…¨é€æ˜ï¼Œä¸ç»˜åˆ¶
 		return;
 	}
 
-	//»æÖÆ¼ô¼­ÇøÓò
+	//ç»˜åˆ¶å‰ªè¾‘åŒºåŸŸ
 	UiRect rcUnion;
 	if (!UiRect::Intersect(rcUnion, rcPaint, GetRect())) {
 		return;
 	}
 
-	//ÊÇ·ñÎªÔ²½Ç¾ØĞÎÇøÓò²Ã¼ô
+	//æ˜¯å¦ä¸ºåœ†è§’çŸ©å½¢åŒºåŸŸè£å‰ª
 	bool bRoundClip = ShouldBeRoundRectFill();
 
-	//µ±Ç°¿Ø¼şÊÇ·ñÉèÖÃÁËÍ¸Ã÷¶È£¨Í¸Ã÷¶ÈÖµ²»ÊÇ255£©
+	//å½“å‰æ§ä»¶æ˜¯å¦è®¾ç½®äº†é€æ˜åº¦ï¼ˆé€æ˜åº¦å€¼ä¸æ˜¯255ï¼‰
 	const bool isAlpha = IsAlpha();
 
-	//ÊÇ·ñÊ¹ÓÃ»æÖÆ»º´æ(Èç¹û´æÔÚbox-shadow£¬¾Í²»ÄÜÊ¹ÓÃ»æÖÆ»º´æ£¬ÒòÎªbox-shadow»æÖÆµÄÊ±ºòÊÇ³¬³öGetRectÀ´»æÖÆÍâ²¿ÒõÓ°µÄ)
+	//æ˜¯å¦ä½¿ç”¨ç»˜åˆ¶ç¼“å­˜(å¦‚æœå­˜åœ¨box-shadowï¼Œå°±ä¸èƒ½ä½¿ç”¨ç»˜åˆ¶ç¼“å­˜ï¼Œå› ä¸ºbox-shadowç»˜åˆ¶çš„æ—¶å€™æ˜¯è¶…å‡ºGetRectæ¥ç»˜åˆ¶å¤–éƒ¨é˜´å½±çš„)
 	const bool isUseCache = IsUseCache() && !HasBoxShadow();
 
 	if (isAlpha || isUseCache) {
-		//»æÖÆÇøÓò£¨¾Ö²¿»æÖÆ£©
+		//ç»˜åˆ¶åŒºåŸŸï¼ˆå±€éƒ¨ç»˜åˆ¶ï¼‰
 		UiRect rcUnionRect = rcUnion;
 		if (isUseCache) {
-			//Èç¹ûÊ¹ÓÃ»æÖÆ»º´æ£¬»æÖÆµÄÊ±ºò£¬±ØĞë»æÖÆÕû¸öÇøÓò£¬ÒòÎª¾Ö²¿»æÖÆÃ¿´ÎÇëÇó»æÖÆµÄÇøÓòÊÇ²»Í¬µÄ£¬»º´æÖĞ±£´æµÄ±ØĞëÊÇÍêÕûµÄ»º´æÍ¼
+			//å¦‚æœä½¿ç”¨ç»˜åˆ¶ç¼“å­˜ï¼Œç»˜åˆ¶çš„æ—¶å€™ï¼Œå¿…é¡»ç»˜åˆ¶æ•´ä¸ªåŒºåŸŸï¼Œå› ä¸ºå±€éƒ¨ç»˜åˆ¶æ¯æ¬¡è¯·æ±‚ç»˜åˆ¶çš„åŒºåŸŸæ˜¯ä¸åŒçš„ï¼Œç¼“å­˜ä¸­ä¿å­˜çš„å¿…é¡»æ˜¯å®Œæ•´çš„ç¼“å­˜å›¾
 			rcUnionRect = GetRect();
 		}
 		UiSize size{GetRect().Width(), GetRect().Height() };
@@ -2308,16 +2308,16 @@ void Control::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
 		}
 		bool isSizeChanged = (size.cx != pCacheRender->GetWidth()) || (size.cy != pCacheRender->GetHeight());
 		if (!pCacheRender->Resize(size.cx, size.cy)) {
-			//´æÔÚ´íÎó£¬»æÖÆÊ§°Ü
+			//å­˜åœ¨é”™è¯¯ï¼Œç»˜åˆ¶å¤±è´¥
 			ASSERT(!"pCacheRender->Resize failed!");
 			return;
 		}
 		if (isSizeChanged) {
-			//Render»­²¼´óĞ¡·¢Éú±ä»¯£¬ĞèÒªÉèÖÃ»º´æÔà±ê¼Ç
+			//Renderç”»å¸ƒå¤§å°å‘ç”Ÿå˜åŒ–ï¼Œéœ€è¦è®¾ç½®ç¼“å­˜è„æ ‡è®°
 			SetCacheDirty(true);
 		}			
 		if (IsCacheDirty()) {
-			//ÖØĞÂ»æÖÆ£¬Ê×ÏÈÇå³şÔ­ÄÚÈİ
+			//é‡æ–°ç»˜åˆ¶ï¼Œé¦–å…ˆæ¸…æ¥šåŸå†…å®¹
 			pCacheRender->Clear();
 			pCacheRender->SetRenderTransparent(true);
 
@@ -2326,7 +2326,7 @@ void Control::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
 
 			bool hasBoxShadowPainted = HasBoxShadow();
 			if (hasBoxShadowPainted) {
-				//ÏÈ»æÖÆbox-shadow£¬¿ÉÄÜ»á³¬³örect±ß½ç»æÖÆ(Èç¹ûÊ¹ÓÃ²Ã¼ô£¬¿ÉÄÜ»áÏÔÊ¾²»È«)
+				//å…ˆç»˜åˆ¶box-shadowï¼Œå¯èƒ½ä¼šè¶…å‡ºrectè¾¹ç•Œç»˜åˆ¶(å¦‚æœä½¿ç”¨è£å‰ªï¼Œå¯èƒ½ä¼šæ˜¾ç¤ºä¸å…¨)
 				m_isBoxShadowPainted = false;
 				PaintShadow(pCacheRender);
 				m_isBoxShadowPainted = true;
@@ -2337,14 +2337,14 @@ void Control::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
 			AutoClip alphaClip(pCacheRender, rcClip, IsClip());
 			AutoClip roundAlphaClip(pCacheRender, rcClip, m_cxyBorderRound.cx, m_cxyBorderRound.cy, bRoundClip);		
 
-			//Ê×ÏÈ»æÖÆ×Ô¼º
+			//é¦–å…ˆç»˜åˆ¶è‡ªå·±
 			Paint(pCacheRender, rcUnionRect);
 			if (hasBoxShadowPainted) {
-				//Paint»æÖÆºó£¬Á¢¼´¸´Î»±êÖ¾£¬±ÜÃâÓ°ÏìÆäËû»æÖÆÂß¼­
+				//Paintç»˜åˆ¶åï¼Œç«‹å³å¤ä½æ ‡å¿—ï¼Œé¿å…å½±å“å…¶ä»–ç»˜åˆ¶é€»è¾‘
 				m_isBoxShadowPainted = false;
 			}
 			if (isAlpha) {
-				//ÉèÖÃÁËÍ¸Ã÷¶È£¬ĞèÒªÏÈ»æÖÆ×Ó¿Ø¼ş£¨»æÖÆµ½pCacheRenderÉÏÃæ£©£¬È»ºóÕûÌåAlphaBlendµ½pRender
+				//è®¾ç½®äº†é€æ˜åº¦ï¼Œéœ€è¦å…ˆç»˜åˆ¶å­æ§ä»¶ï¼ˆç»˜åˆ¶åˆ°pCacheRenderä¸Šé¢ï¼‰ï¼Œç„¶åæ•´ä½“AlphaBlendåˆ°pRender
 				PaintChild(pCacheRender, rcUnionRect);
 			}		
 			pCacheRender->SetWindowOrg(ptOldOrg);
@@ -2362,7 +2362,7 @@ void Control::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
 							rcUnionRect.Height(),
 				            static_cast<uint8_t>(m_nAlpha));
 		if (!isAlpha) {
-			//Ã»ÓĞÉèÖÃÍ¸Ã÷¶È£¬ºó»æÖÆ×Ó¿Ø¼ş£¨Ö±½Ó»æÖÆµ½pRenderÉÏÃæ£©
+			//æ²¡æœ‰è®¾ç½®é€æ˜åº¦ï¼Œåç»˜åˆ¶å­æ§ä»¶ï¼ˆç›´æ¥ç»˜åˆ¶åˆ°pRenderä¸Šé¢ï¼‰
 			PaintChild(pRender, rcUnionRect);
 		}
 		if (isAlpha) {
@@ -2374,7 +2374,7 @@ void Control::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
 		UiPoint ptOldOrg = pRender->OffsetWindowOrg(m_renderOffset);
 		bool hasBoxShadowPainted = HasBoxShadow();
 		if (hasBoxShadowPainted) {
-			//ÏÈ»æÖÆbox-shadow£¬¿ÉÄÜ»á³¬³örect±ß½ç»æÖÆ(Èç¹ûÊ¹ÓÃ²Ã¼ô£¬¿ÉÄÜ»áÏÔÊ¾²»È«)
+			//å…ˆç»˜åˆ¶box-shadowï¼Œå¯èƒ½ä¼šè¶…å‡ºrectè¾¹ç•Œç»˜åˆ¶(å¦‚æœä½¿ç”¨è£å‰ªï¼Œå¯èƒ½ä¼šæ˜¾ç¤ºä¸å…¨)
 			m_isBoxShadowPainted = false;
 			PaintShadow(pRender);
 			m_isBoxShadowPainted = true;
@@ -2384,7 +2384,7 @@ void Control::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
 		AutoClip roundClip(pRender, rcClip, m_cxyBorderRound.cx, m_cxyBorderRound.cy, bRoundClip);		
 		Paint(pRender, rcPaint);
 		if (hasBoxShadowPainted) {
-			//Paint»æÖÆºó£¬Á¢¼´¸´Î»±êÖ¾£¬±ÜÃâÓ°ÏìÆäËû»æÖÆÂß¼­
+			//Paintç»˜åˆ¶åï¼Œç«‹å³å¤ä½æ ‡å¿—ï¼Œé¿å…å½±å“å…¶ä»–ç»˜åˆ¶é€»è¾‘
 			m_isBoxShadowPainted = false;
 		}
 		PaintChild(pRender, rcPaint);
@@ -2403,19 +2403,19 @@ void Control::Paint(IRender* pRender, const UiRect& rcPaint)
 		return;
 	}	
 	if (!m_isBoxShadowPainted) {
-		//»æÖÆbox-shadow£¬¿ÉÄÜ»á³¬³örect±ß½ç»æÖÆ(Èç¹ûÊ¹ÓÃ²Ã¼ô£¬¿ÉÄÜ»áÏÔÊ¾²»È«)
+		//ç»˜åˆ¶box-shadowï¼Œå¯èƒ½ä¼šè¶…å‡ºrectè¾¹ç•Œç»˜åˆ¶(å¦‚æœä½¿ç”¨è£å‰ªï¼Œå¯èƒ½ä¼šæ˜¾ç¤ºä¸å…¨)
 		PaintShadow(pRender);
 	}	
 
-	//»æÖÆÆäËûÄÚÈİ
-	PaintBkColor(pRender);		//±³¾°ÑÕÉ«(¸²¸ÇÕû¸ö¾ØĞÎ)
-	PaintStateColors(pRender);	//¿Ø¼şÖ¸¶¨×´Ì¬µÄÑÕÉ«£ºÆÕÍ¨×´Ì¬¡¢½¹µã×´Ì¬¡¢°´ÏÂ×´Ì¬¡¢½ûÓÃ×´Ì¬(¸²¸ÇÕû¸ö¾ØĞÎ)
-	PaintBkImage(pRender);		//±³¾°Í¼Æ¬£¬ÎŞ×´Ì¬
-	PaintStateImages(pRender);	//ÏÈ»æÖÆ±³¾°Í¼Æ¬£¬È»ºó»æÖÆÇ°¾°Í¼Æ¬£¬Ã¿¸öÍ¼Æ¬ÓĞÖ¸¶¨µÄ×´Ì¬£ºÆÕÍ¨×´Ì¬¡¢½¹µã×´Ì¬¡¢°´ÏÂ×´Ì¬¡¢½ûÓÃ×´Ì¬
-	PaintText(pRender);			//»æÖÆÎÄ±¾
-	PaintBorder(pRender);		//»æÖÆ±ß¿ò
-	PaintFocusRect(pRender);	//»æÖÆ½¹µã×´Ì¬
-    PaintLoading(pRender);		//»æÖÆLoadingÍ¼Æ¬£¬ÎŞ×´Ì¬
+	//ç»˜åˆ¶å…¶ä»–å†…å®¹
+	PaintBkColor(pRender);		//èƒŒæ™¯é¢œè‰²(è¦†ç›–æ•´ä¸ªçŸ©å½¢)
+	PaintStateColors(pRender);	//æ§ä»¶æŒ‡å®šçŠ¶æ€çš„é¢œè‰²ï¼šæ™®é€šçŠ¶æ€ã€ç„¦ç‚¹çŠ¶æ€ã€æŒ‰ä¸‹çŠ¶æ€ã€ç¦ç”¨çŠ¶æ€(è¦†ç›–æ•´ä¸ªçŸ©å½¢)
+	PaintBkImage(pRender);		//èƒŒæ™¯å›¾ç‰‡ï¼Œæ— çŠ¶æ€
+	PaintStateImages(pRender);	//å…ˆç»˜åˆ¶èƒŒæ™¯å›¾ç‰‡ï¼Œç„¶åç»˜åˆ¶å‰æ™¯å›¾ç‰‡ï¼Œæ¯ä¸ªå›¾ç‰‡æœ‰æŒ‡å®šçš„çŠ¶æ€ï¼šæ™®é€šçŠ¶æ€ã€ç„¦ç‚¹çŠ¶æ€ã€æŒ‰ä¸‹çŠ¶æ€ã€ç¦ç”¨çŠ¶æ€
+	PaintText(pRender);			//ç»˜åˆ¶æ–‡æœ¬
+	PaintBorder(pRender);		//ç»˜åˆ¶è¾¹æ¡†
+	PaintFocusRect(pRender);	//ç»˜åˆ¶ç„¦ç‚¹çŠ¶æ€
+    PaintLoading(pRender);		//ç»˜åˆ¶Loadingå›¾ç‰‡ï¼Œæ— çŠ¶æ€
 }
 
 void Control::PaintShadow(IRender* pRender)
@@ -2456,20 +2456,20 @@ void Control::PaintBkColor(IRender* pRender)
 			(m_rcBorderSize.left == m_rcBorderSize.right) &&
 			(m_rcBorderSize.left == m_rcBorderSize.top) &&
 			(m_rcBorderSize.left == m_rcBorderSize.bottom)) {
-			//ËÄ¸ö±ß¶¼´æÔÚ£¬ÇÒ´óĞ¡ÏàÍ¬
+			//å››ä¸ªè¾¹éƒ½å­˜åœ¨ï¼Œä¸”å¤§å°ç›¸åŒ
 			nBorderSize = m_rcBorderSize.left;
 		}
 		nBorderSize /= 2;
 
-		//±³¾°Ìî³ä¾ØĞÎ·¶Î§
+		//èƒŒæ™¯å¡«å……çŸ©å½¢èŒƒå›´
 		UiRect fillRect = GetRect();
 		if (nBorderSize > 0) { 
-			//Èç¹û´æÔÚ±ßÏß£¬ÔòÌî³äµÄÊ±ºò£¬²»Ìî³ä±ßÏßËùÔÚÎ»ÖÃ£¬±ÜÃâ³öÏÖ±³¾°É«µÄ¾â³İÏÖÏó
+			//å¦‚æœå­˜åœ¨è¾¹çº¿ï¼Œåˆ™å¡«å……çš„æ—¶å€™ï¼Œä¸å¡«å……è¾¹çº¿æ‰€åœ¨ä½ç½®ï¼Œé¿å…å‡ºç°èƒŒæ™¯è‰²çš„é”¯é½¿ç°è±¡
 			UiRect borderRect(nBorderSize, nBorderSize, nBorderSize, nBorderSize);
 			fillRect.Deflate(borderRect.left, borderRect.top, borderRect.right, borderRect.bottom);
 		}
 		if (ShouldBeRoundRectFill()) {
-			//ĞèÒª»æÖÆÔ²½Ç¾ØĞÎ£¬Ìî³äÒ²ĞèÒªÌî³äÔ²½Ç¾ØĞÎ
+			//éœ€è¦ç»˜åˆ¶åœ†è§’çŸ©å½¢ï¼Œå¡«å……ä¹Ÿéœ€è¦å¡«å……åœ†è§’çŸ©å½¢
 			FillRoundRect(pRender, fillRect, m_cxyBorderRound, dwBackColor);
 		}
 		else {			
@@ -2478,7 +2478,7 @@ void Control::PaintBkColor(IRender* pRender)
 				dwBackColor2 = GetUiColor(m_strBkColor2.c_str());
 			}
 			if (!dwBackColor2.IsEmpty()) {
-				//½¥±ä±³¾°É«
+				//æ¸å˜èƒŒæ™¯è‰²
 				int8_t nColor2Direction = GetColor2Direction(m_strBkColor2Direction);
 				pRender->FillRect(fillRect, dwBackColor, dwBackColor2, nColor2Direction);
 			}
@@ -2519,18 +2519,18 @@ void Control::PaintBorder(IRender* pRender)
 		(m_rcBorderSize.left == m_rcBorderSize.right) &&
 		(m_rcBorderSize.left == m_rcBorderSize.top) &&
 		(m_rcBorderSize.left == m_rcBorderSize.bottom)) {
-		//ËÄ¸ö±ß¶¼´æÔÚ£¬ÇÒ´óĞ¡ÏàÍ¬£¬ÔòÖ±½Ó»æÖÆ¾ØĞÎ, Ö§³ÖÔ²½Ç¾ØĞÎ
+		//å››ä¸ªè¾¹éƒ½å­˜åœ¨ï¼Œä¸”å¤§å°ç›¸åŒï¼Œåˆ™ç›´æ¥ç»˜åˆ¶çŸ©å½¢, æ”¯æŒåœ†è§’çŸ©å½¢
 		if (ShouldBeRoundRectBorders()) {
-			//½öÔ²½Ç¾ØĞÎ£¬Ê¹ÓÃÕâ¸öº¯Êı»æÖÆ±ßÏß
+			//ä»…åœ†è§’çŸ©å½¢ï¼Œä½¿ç”¨è¿™ä¸ªå‡½æ•°ç»˜åˆ¶è¾¹çº¿
 			PaintBorders(pRender, GetRect(), (int32_t)m_rcBorderSize.left, dwBorderColor);
 			bPainted = true;
 		}
 	}
 
 	if(!bPainted) {
-		//·ÇÔ²½Ç¾ØĞÎ£¬ËÄ¸ö±ß·Ö±ğ°´ÕÕÉèÖÃ»æÖÆ±ßÏß
+		//éåœ†è§’çŸ©å½¢ï¼Œå››ä¸ªè¾¹åˆ†åˆ«æŒ‰ç…§è®¾ç½®ç»˜åˆ¶è¾¹çº¿
 		if (m_rcBorderSize.left > 0) {
-			//×ó±ßÏß
+			//å·¦è¾¹çº¿
 			UiRect rcBorder = GetRect();
 			if (m_rcBorderSize.left == 1) {
 				rcBorder.bottom -= 1;
@@ -2541,7 +2541,7 @@ void Control::PaintBorder(IRender* pRender)
 			pRender->DrawLine(pt1, pt2, dwBorderColor, fWidth);
 		}
 		if (m_rcBorderSize.top > 0) {
-			//ÉÏ±ßÏß
+			//ä¸Šè¾¹çº¿
 			UiRect rcBorder = GetRect();
 			if (m_rcBorderSize.top == 1) {
 				rcBorder.right -= 1;
@@ -2552,7 +2552,7 @@ void Control::PaintBorder(IRender* pRender)
 			pRender->DrawLine(pt1, pt2, dwBorderColor, fWidth);
 		}
 		if (m_rcBorderSize.right > 0) {
-			//ÓÒ±ßÏß
+			//å³è¾¹çº¿
 			UiRect rcBorder = GetRect();
 			if (m_rcBorderSize.right == 1) {
 				rcBorder.bottom -= 1;
@@ -2563,7 +2563,7 @@ void Control::PaintBorder(IRender* pRender)
 			pRender->DrawLine(pt1, pt2, dwBorderColor, fWidth);
 		}
 		if (m_rcBorderSize.bottom > 0) {
-			//ÏÂ±ßÏß
+			//ä¸‹è¾¹çº¿
 			UiRect rcBorder = GetRect();
 			if (m_rcBorderSize.bottom == 1) {
 				rcBorder.right -= 1;
@@ -2608,13 +2608,13 @@ bool Control::ShouldBeRoundRectFill() const
 		(m_rcBorderSize.left == m_rcBorderSize.right) &&
 		(m_rcBorderSize.left == m_rcBorderSize.top)   &&
 		(m_rcBorderSize.left == m_rcBorderSize.bottom)) {
-		//ËÄ¸ö±ß´óĞ¡ÏàÍ¬(ÎŞÂÛÊÇÁã»¹ÊÇ´óÓÚÁã)£¬Ö§³ÖÔ²½Ç¾ØĞÎ
+		//å››ä¸ªè¾¹å¤§å°ç›¸åŒ(æ— è®ºæ˜¯é›¶è¿˜æ˜¯å¤§äºé›¶)ï¼Œæ”¯æŒåœ†è§’çŸ©å½¢
 		if (m_cxyBorderRound.cx > 0 && m_cxyBorderRound.cy > 0) {
 			isRoundRect = true;
 		}
 	}
 	if (isRoundRect) {
-		//´°¿Ú×î´ó»¯Ê±£¬¶ÔÓÚRoot Box¿Ø¼ş£¬²»»æÖÆÔ²½Ç±ßÏß
+		//çª—å£æœ€å¤§åŒ–æ—¶ï¼Œå¯¹äºRoot Boxæ§ä»¶ï¼Œä¸ç»˜åˆ¶åœ†è§’è¾¹çº¿
 		if (IsRootBox() && (GetWindow() != nullptr)) {
 			if (GetWindow()->IsWindowMaximized()) {
 				isRoundRect = false;
@@ -2633,7 +2633,7 @@ bool Control::ShouldBeRoundRectBorders() const
 void Control::PaintFocusRect(IRender* pRender)
 {
 	if ((pRender != nullptr) && IsShowFocusRect() && IsFocused()) {
-		DoPaintFocusRect(pRender);	//»æÖÆ½¹µã×´Ì¬
+		DoPaintFocusRect(pRender);	//ç»˜åˆ¶ç„¦ç‚¹çŠ¶æ€
 	}
 }
 
@@ -2643,8 +2643,8 @@ void Control::DoPaintFocusRect(IRender* pRender)
 	if (pRenderFactory == nullptr) {
 		return;
 	}
-	int32_t nWidth =  Dpi().GetScaleInt(1); //»­±Ê¿í¶È
-	UiColor dwBorderColor;//»­±ÊÑÕÉ«
+	int32_t nWidth =  Dpi().GetScaleInt(1); //ç”»ç¬”å®½åº¦
+	UiColor dwBorderColor;//ç”»ç¬”é¢œè‰²
 	std::wstring focusRectColor = GetFocusRectColor();
 	if (!focusRectColor.empty()) {
 		dwBorderColor = GetUiColor(focusRectColor);
@@ -2654,7 +2654,7 @@ void Control::DoPaintFocusRect(IRender* pRender)
 	}
 	UiRect rcBorderSize(1, 1, 1, 1);
 	UiRect rcFocusRect = GetRect();
-	int32_t nFocusWidth = Dpi().GetScaleInt(2); //¾ØĞÎ¼äÏ¶
+	int32_t nFocusWidth = Dpi().GetScaleInt(2); //çŸ©å½¢é—´éš™
 	rcFocusRect.Deflate(nFocusWidth, nFocusWidth);
 	if (rcFocusRect.IsEmpty()) {
 		return;
@@ -2663,25 +2663,25 @@ void Control::DoPaintFocusRect(IRender* pRender)
 	pPen->SetDashStyle(IPen::DashStyle::kDashStyleDot);
 
 	if (rcBorderSize.left > 0) {
-		//×ó±ßÏß
+		//å·¦è¾¹çº¿
 		UiPoint pt1(rcFocusRect.left, rcFocusRect.top);
 		UiPoint pt2(rcFocusRect.left, rcFocusRect.bottom);
 		pRender->DrawLine(pt1, pt2, pPen.get());
 	}
 	if (rcBorderSize.top > 0) {
-		//ÉÏ±ßÏß
+		//ä¸Šè¾¹çº¿
 		UiPoint pt1(rcFocusRect.left, rcFocusRect.top);
 		UiPoint pt2(rcFocusRect.right, rcFocusRect.top);
 		pRender->DrawLine(pt1, pt2, pPen.get());
 	}
 	if (rcBorderSize.right > 0) {
-		//ÓÒ±ßÏß
+		//å³è¾¹çº¿
 		UiPoint pt1(rcFocusRect.right, rcFocusRect.top);
 		UiPoint pt2(rcFocusRect.right, rcFocusRect.bottom);
 		pRender->DrawLine(pt1, pt2, pPen.get());
 	}
 	if (rcBorderSize.bottom > 0) {
-		//ÏÂ±ßÏß
+		//ä¸‹è¾¹çº¿
 		UiPoint pt1(rcFocusRect.left, rcFocusRect.bottom);
 		UiPoint pt2(rcFocusRect.right, rcFocusRect.bottom);
 		pRender->DrawLine(pt1, pt2, pPen.get());
@@ -2695,11 +2695,11 @@ bool Control::IsRootBox() const
 	if (pWindow != nullptr) {
 		Box* pRoot = pWindow->GetRoot();
 		if ((Control*)pRoot == this) {
-			//Ã»ÓĞAttachµ½ÒõÓ°µÄÇé¿ö
+			//æ²¡æœ‰Attachåˆ°é˜´å½±çš„æƒ…å†µ
 			isRootBox = true;
 		}
 		else if ((pRoot != nullptr) && pWindow->IsShadowAttached() && (pRoot->GetItemAt(0) == this)) {
-			//ÒÑ¾­Attachµ½ÒõÓ°µÄÇé¿ö
+			//å·²ç»Attachåˆ°é˜´å½±çš„æƒ…å†µ
 			isRootBox = true;
 		}
 	}
@@ -2725,14 +2725,14 @@ void Control::AddRoundRectPath(IPath* path, const UiRect& rc, UiSize roundSize) 
 	if (path == nullptr) {
 		return;
 	}
-	//È·±£Ô²½Ç¿í¶ÈºÍ¸ß¶È¶¼ÊÇÅ¼Êı
+	//ç¡®ä¿åœ†è§’å®½åº¦å’Œé«˜åº¦éƒ½æ˜¯å¶æ•°
 	if ((roundSize.cx % 2) != 0) {
 		roundSize.cx += 1;
 	}
 	if ((roundSize.cy % 2) != 0) {
 		roundSize.cy += 1;
 	}
-	//ÕâÖÖ»­·¨µÄÔ²½ÇĞÎ×´£¬ÓëCreateRoundRectRgn²úÉúµÄÔ²½ÇĞÎ×´£¬»ù±¾Ò»ÖÂµÄ
+	//è¿™ç§ç”»æ³•çš„åœ†è§’å½¢çŠ¶ï¼Œä¸CreateRoundRectRgnäº§ç”Ÿçš„åœ†è§’å½¢çŠ¶ï¼ŒåŸºæœ¬ä¸€è‡´çš„
 	path->AddArc(UiRect((INT)rc.left, rc.top, rc.left + roundSize.cx, rc.top + roundSize.cy), 180, 90);
 	path->AddLine(rc.left + roundSize.cx / 2, (INT)rc.top, rc.right - roundSize.cx / 2, rc.top);
 	path->AddArc(UiRect(rc.right - roundSize.cx, (INT)rc.top, rc.right, rc.top + roundSize.cy), 270, 90);
@@ -2756,14 +2756,14 @@ void Control::DrawRoundRect(IRender* pRender, const UiRect& rc, const UiSize& ro
 	}
 	bool isDrawOk = false;
 	if (IsRootBox() && IsWindowRoundRect()) {
-		//Ê¹ÓÃÓëWindowsÒ»ÖÂµÄ»æÖÆ·½Ê½£¬±ÜÃâÓëWindowsµÄ²»Ò»ÖÂ
-		//²Î¼û£ºWindow::OnSizeMsgÖĞµÄCreateRoundRectRgn£¨SkiaµÄÔ²½Ç»­·¨ºÍCreateRoundRectRgn²»Ò»Ñù£©
+		//ä½¿ç”¨ä¸Windowsä¸€è‡´çš„ç»˜åˆ¶æ–¹å¼ï¼Œé¿å…ä¸Windowsçš„ä¸ä¸€è‡´
+		//å‚è§ï¼šWindow::OnSizeMsgä¸­çš„CreateRoundRectRgnï¼ˆSkiaçš„åœ†è§’ç”»æ³•å’ŒCreateRoundRectRgnä¸ä¸€æ ·ï¼‰
 		IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
 		if (pRenderFactory != nullptr) {
 			std::unique_ptr<IPen> pen(pRenderFactory->CreatePen(dwBorderColor, nBorderSize));
 			std::unique_ptr<IPath> path(pRenderFactory->CreatePath());
 			if (pen && path) {
-				//ÕâÖÖ»­·¨µÄÔ²½ÇĞÎ×´£¬ÓëCreateRoundRectRgn²úÉúµÄÔ²½ÇĞÎ×´£¬»ù±¾Ò»ÖÂµÄ
+				//è¿™ç§ç”»æ³•çš„åœ†è§’å½¢çŠ¶ï¼Œä¸CreateRoundRectRgnäº§ç”Ÿçš„åœ†è§’å½¢çŠ¶ï¼ŒåŸºæœ¬ä¸€è‡´çš„
 				AddRoundRectPath(path.get(), rc, roundSize);
 				pRender->DrawPath(path.get(), pen.get());
 				isDrawOk = true;
@@ -2782,28 +2782,28 @@ void Control::FillRoundRect(IRender* pRender, const UiRect& rc, const UiSize& ro
 		return;
 	}
 	if (pRender->GetRenderType() != RenderType::kRenderType_Skia) {
-		//·ÇSkiaÒıÇæ
+		//éSkiaå¼•æ“
 		pRender->FillRoundRect(rc, roundSize, dwColor);
 		return;
 	}
 
 	bool isDrawOk = false;
 	if (IsRootBox() && IsWindowRoundRect()) {
-		//Ê¹ÓÃÓëWindowsÒ»ÖÂµÄ»æÖÆ·½Ê½£¬±ÜÃâÓëWindowsµÄ²»Ò»ÖÂ
-		//²Î¼û£ºWindow::OnSizeMsgÖĞµÄCreateRoundRectRgn£¨SkiaµÄÔ²½Ç»­·¨ºÍCreateRoundRectRgn²»Ò»Ñù£©
+		//ä½¿ç”¨ä¸Windowsä¸€è‡´çš„ç»˜åˆ¶æ–¹å¼ï¼Œé¿å…ä¸Windowsçš„ä¸ä¸€è‡´
+		//å‚è§ï¼šWindow::OnSizeMsgä¸­çš„CreateRoundRectRgnï¼ˆSkiaçš„åœ†è§’ç”»æ³•å’ŒCreateRoundRectRgnä¸ä¸€æ ·ï¼‰
 		IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
 		if (pRenderFactory != nullptr) {
 			std::unique_ptr<IBrush> brush(pRenderFactory->CreateBrush(dwColor));
 			std::unique_ptr<IPath> path(pRenderFactory->CreatePath());
 			if (brush && path) {
-				//ÕâÖÖ»­·¨µÄÔ²½ÇĞÎ×´£¬ÓëCreateRoundRectRgn²úÉúµÄÔ²½ÇĞÎ×´£¬»ù±¾Ò»ÖÂµÄ
+				//è¿™ç§ç”»æ³•çš„åœ†è§’å½¢çŠ¶ï¼Œä¸CreateRoundRectRgnäº§ç”Ÿçš„åœ†è§’å½¢çŠ¶ï¼ŒåŸºæœ¬ä¸€è‡´çš„
 				AddRoundRectPath(path.get(), rc, roundSize);
 				UiColor dwBackColor2;
 				if (!m_strBkColor2.empty()) {
 					dwBackColor2 = GetUiColor(m_strBkColor2.c_str());
 				}
 				if (!dwBackColor2.IsEmpty()) {
-					//½¥±ä±³¾°É«
+					//æ¸å˜èƒŒæ™¯è‰²
 					int8_t nColor2Direction = GetColor2Direction(m_strBkColor2Direction);
 					pRender->FillPath(path.get(), rc, dwColor, dwBackColor2, nColor2Direction);
 				}
@@ -2820,7 +2820,7 @@ void Control::FillRoundRect(IRender* pRender, const UiRect& rc, const UiSize& ro
 			dwBackColor2 = GetUiColor(m_strBkColor2.c_str());
 		}
 		if (!dwBackColor2.IsEmpty()) {
-			//½¥±ä±³¾°É«
+			//æ¸å˜èƒŒæ™¯è‰²
 			int8_t nColor2Direction = GetColor2Direction(m_strBkColor2Direction);
 			pRender->FillRoundRect(rc, roundSize, dwColor, dwBackColor2, nColor2Direction);
 		}
@@ -2963,7 +2963,7 @@ void Control::AttachGifPlayStop(const EventCallback& callback)
 bool Control::LoadImageData(Image& duiImage) const
 {
 	if (duiImage.GetImageCache() != nullptr) {
-		//Èç¹ûÍ¼Æ¬»º´æ´æÔÚ£¬²¢ÇÒDPIËõ·Å°Ù·Ö±ÈÃ»±ä»¯£¬Ôò²»ÔÙ¼ÓÔØ£¨µ±Í¼Æ¬±ä»¯µÄÊ±ºò£¬»áÇå¿ÕÕâ¸ö»º´æ£©
+		//å¦‚æœå›¾ç‰‡ç¼“å­˜å­˜åœ¨ï¼Œå¹¶ä¸”DPIç¼©æ”¾ç™¾åˆ†æ¯”æ²¡å˜åŒ–ï¼Œåˆ™ä¸å†åŠ è½½ï¼ˆå½“å›¾ç‰‡å˜åŒ–çš„æ—¶å€™ï¼Œä¼šæ¸…ç©ºè¿™ä¸ªç¼“å­˜ï¼‰
 		if (duiImage.GetImageCache()->GetLoadDpiScale() == Dpi().GetScale()) {
 			return true;
 		}		
@@ -2982,7 +2982,7 @@ bool Control::LoadImageData(Image& duiImage) const
 
 #ifdef UILIB_IMPL_WINSDK
 	if (GlobalManager::Instance().Icon().IsIconString(sImagePath)) {
-		//ICON¾ä±ú
+		//ICONå¥æŸ„
 		imageFullPath = sImagePath;
 	}
 #endif
@@ -2995,7 +2995,7 @@ bool Control::LoadImageData(Image& duiImage) const
 	std::shared_ptr<ImageInfo> imageCache = duiImage.GetImageCache();
 	if ((imageCache == nullptr) || 
 		(imageCache->GetLoadKey() != imageLoadAttr.GetCacheKey(Dpi().GetScale()))) {
-		//Èç¹ûÍ¼Æ¬Ã»ÓĞ¼ÓÔØÔòÖ´ĞĞ¼ÓÔØÍ¼Æ¬£»Èç¹ûÍ¼Æ¬·¢Éú±ä»¯£¬ÔòÖØĞÂ¼ÓÔØ¸ÃÍ¼Æ¬
+		//å¦‚æœå›¾ç‰‡æ²¡æœ‰åŠ è½½åˆ™æ‰§è¡ŒåŠ è½½å›¾ç‰‡ï¼›å¦‚æœå›¾ç‰‡å‘ç”Ÿå˜åŒ–ï¼Œåˆ™é‡æ–°åŠ è½½è¯¥å›¾ç‰‡
 		imageCache = GlobalManager::Instance().Image().GetImage(GetWindow(), imageLoadAttr);
 		duiImage.SetImageCache(imageCache);
 	}
@@ -3100,7 +3100,7 @@ void Control::DetachXmlBubbledEvent(EventType eventType)
 bool Control::FireAllEvents(const EventArgs& msg)
 {
 	std::weak_ptr<nbase::WeakFlag> weakflag = GetWeakFlag();
-	bool bRet = true;//µ±ÖµÎªfalseÊ±£¬¾Í²»ÔÙµ÷ÓÃ»Øµ÷º¯ÊıºÍ´¦Àíº¯Êı
+	bool bRet = true;//å½“å€¼ä¸ºfalseæ—¶ï¼Œå°±ä¸å†è°ƒç”¨å›è°ƒå‡½æ•°å’Œå¤„ç†å‡½æ•°
 
 	if (msg.pSender == this) {
 		if (bRet && (m_pOnEvent != nullptr) && !m_pOnEvent->empty()) {
@@ -3204,22 +3204,22 @@ UiColor Control::GetUiColorByName(const std::wstring& colorName) const
 		return color;
 	}
 	if (colorName.at(0) == L'#') {
-		//ÓÅÏÈ¼¶1£ºÒÔ'#'×Ö·û¿ªÍ·£¬Ö±½ÓÖ¸¶¨ÑÕÉ«Öµ£¬¾ÙÀı£º#FFFFFFFF
+		//ä¼˜å…ˆçº§1ï¼šä»¥'#'å­—ç¬¦å¼€å¤´ï¼Œç›´æ¥æŒ‡å®šé¢œè‰²å€¼ï¼Œä¸¾ä¾‹ï¼š#FFFFFFFF
 		color = ColorManager::ConvertToUiColor(colorName);
 	}
 	if (color.GetARGB() == 0) {
 		Window* pWindow = GetWindow();
 		if (pWindow != nullptr) {
-			//ÓÅÏÈ¼¶2£º»ñÈ¡ÔÚÅäÖÃXMLÖĞµÄ<Window>½ÚµãÖĞ¶¨Òå×Ó½Úµã<TextColor>Ö¸¶¨µÄÑÕÉ«
+			//ä¼˜å…ˆçº§2ï¼šè·å–åœ¨é…ç½®XMLä¸­çš„<Window>èŠ‚ç‚¹ä¸­å®šä¹‰å­èŠ‚ç‚¹<TextColor>æŒ‡å®šçš„é¢œè‰²
 			color = pWindow->GetTextColor(colorName);
 		}
 	}
 	if (color.GetARGB() == 0) {
-		//ÓÅÏÈ¼¶3£º»ñÈ¡ÔÚglobal.xmlÖĞµÄ<Global>½ÚµãÖĞ¶¨Òå×Ó½Úµã<TextColor>Ö¸¶¨µÄÑÕÉ«
+		//ä¼˜å…ˆçº§3ï¼šè·å–åœ¨global.xmlä¸­çš„<Global>èŠ‚ç‚¹ä¸­å®šä¹‰å­èŠ‚ç‚¹<TextColor>æŒ‡å®šçš„é¢œè‰²
 		color = GlobalManager::Instance().Color().GetColor(colorName);
 	}
 	if (color.GetARGB() == 0) {
-		//ÓÅÏÈ¼¶4£ºÖ±½ÓÖ¸¶¨Ô¤¶¨ÒåµÄÑÕÉ«±ğÃû
+		//ä¼˜å…ˆçº§4ï¼šç›´æ¥æŒ‡å®šé¢„å®šä¹‰çš„é¢œè‰²åˆ«å
 		color = GlobalManager::Instance().Color().GetStandardColor(colorName);
 	}
 	ASSERT(color.GetARGB() != 0);

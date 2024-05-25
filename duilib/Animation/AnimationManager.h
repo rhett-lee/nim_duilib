@@ -11,7 +11,7 @@ namespace ui
 {
 class Control;
 
-/** ¿Ø¼şµÄ¶¯»­²¥·Å¹ÜÀíÆ÷
+/** æ§ä»¶çš„åŠ¨ç”»æ’­æ”¾ç®¡ç†å™¨
 */
 class UILIB_API AnimationManager
 {
@@ -20,81 +20,81 @@ public:
 	AnimationManager(const AnimationManager& r) = delete;
 	AnimationManager& operator=(const AnimationManager& r) = delete;
 
-	/** ³õÊ¼»¯
-	* @param [in] pControl ¶¯»­¹ØÁª¿Ø¼şµÄ½Ó¿Ú
+	/** åˆå§‹åŒ–
+	* @param [in] pControl åŠ¨ç”»å…³è”æ§ä»¶çš„æ¥å£
 	*/
 	void Init(Control* pControl)	{ m_pControl = pControl;	}
 
-	/** »ñÈ¡Ö¸¶¨¶¯»­ÀàĞÍµÄ²¥·Å½Ó¿Ú
-	* @param [in] animationType ²¥·ÅÀàĞÍ
-	* @return ·µ»Ø¸ÃÀàĞÍµÄ¶¯»­²¥·Å½Ó¿Ú£¬Èç¹ûÆ¥Åä²»µ½£¬·µ»Ønullptr
+	/** è·å–æŒ‡å®šåŠ¨ç”»ç±»å‹çš„æ’­æ”¾æ¥å£
+	* @param [in] animationType æ’­æ”¾ç±»å‹
+	* @return è¿”å›è¯¥ç±»å‹çš„åŠ¨ç”»æ’­æ”¾æ¥å£ï¼Œå¦‚æœåŒ¹é…ä¸åˆ°ï¼Œè¿”å›nullptr
 	*/
 	AnimationPlayer* GetAnimationPlayer(AnimationType animationType) const;
 
-	/** ÉèÖÃ»òÇå³ı²¥·Å¶¯»­£¬¶ÔÓ¦¶¯»­ÀàĞÍÎª£ºkAnimationAlpha
-	* @param [in] bFadeHot true±íÊ¾ÉèÖÃ¶¯»­£¬false±íÊ¾Çå³ı¶¯»­
-	* @return ÉèÖÃÊ±·µ»Ø¶¯»­²¥·Å½Ó¿Ú£¬Çå³ıÊ±·µ»Ønullptr
+	/** è®¾ç½®æˆ–æ¸…é™¤æ’­æ”¾åŠ¨ç”»ï¼Œå¯¹åº”åŠ¨ç”»ç±»å‹ä¸ºï¼škAnimationAlpha
+	* @param [in] bFadeHot trueè¡¨ç¤ºè®¾ç½®åŠ¨ç”»ï¼Œfalseè¡¨ç¤ºæ¸…é™¤åŠ¨ç”»
+	* @return è®¾ç½®æ—¶è¿”å›åŠ¨ç”»æ’­æ”¾æ¥å£ï¼Œæ¸…é™¤æ—¶è¿”å›nullptr
 	*/
 	AnimationPlayer* SetFadeHot(bool bFadeHot);
 
-	/** ÉèÖÃ»òÇå³ı²¥·Å¶¯»­£¬¶ÔÓ¦¶¯»­ÀàĞÍÎª£ºkAnimationHot
-	* @param [in] bFadeVisible true±íÊ¾ÉèÖÃ¶¯»­£¬false±íÊ¾Çå³ı¶¯»­
-	* @return ÉèÖÃÊ±·µ»Ø¶¯»­²¥·Å½Ó¿Ú£¬Çå³ıÊ±·µ»Ønullptr
+	/** è®¾ç½®æˆ–æ¸…é™¤æ’­æ”¾åŠ¨ç”»ï¼Œå¯¹åº”åŠ¨ç”»ç±»å‹ä¸ºï¼škAnimationHot
+	* @param [in] bFadeVisible trueè¡¨ç¤ºè®¾ç½®åŠ¨ç”»ï¼Œfalseè¡¨ç¤ºæ¸…é™¤åŠ¨ç”»
+	* @return è®¾ç½®æ—¶è¿”å›åŠ¨ç”»æ’­æ”¾æ¥å£ï¼Œæ¸…é™¤æ—¶è¿”å›nullptr
 	*/
 	AnimationPlayer* SetFadeAlpha(bool bFadeVisible);
 
-	/** ÉèÖÃ»òÇå³ı²¥·Å¶¯»­£¬¶ÔÓ¦¶¯»­ÀàĞÍÎª£ºkAnimationWidth
-	* @param [in] bFadeWidth true±íÊ¾ÉèÖÃ¶¯»­£¬false±íÊ¾Çå³ı¶¯»­
-	* @return ÉèÖÃÊ±·µ»Ø¶¯»­²¥·Å½Ó¿Ú£¬Çå³ıÊ±·µ»Ønullptr
+	/** è®¾ç½®æˆ–æ¸…é™¤æ’­æ”¾åŠ¨ç”»ï¼Œå¯¹åº”åŠ¨ç”»ç±»å‹ä¸ºï¼škAnimationWidth
+	* @param [in] bFadeWidth trueè¡¨ç¤ºè®¾ç½®åŠ¨ç”»ï¼Œfalseè¡¨ç¤ºæ¸…é™¤åŠ¨ç”»
+	* @return è®¾ç½®æ—¶è¿”å›åŠ¨ç”»æ’­æ”¾æ¥å£ï¼Œæ¸…é™¤æ—¶è¿”å›nullptr
 	*/
 	AnimationPlayer* SetFadeWidth(bool bFadeWidth);
 
-	/** ÉèÖÃ»òÇå³ı²¥·Å¶¯»­£¬¶ÔÓ¦¶¯»­ÀàĞÍÎª£ºkAnimationHeight
-	* @param [in] bFadeHeight true±íÊ¾ÉèÖÃ¶¯»­£¬false±íÊ¾Çå³ı¶¯»­
-	* @return ÉèÖÃÊ±·µ»Ø¶¯»­²¥·Å½Ó¿Ú£¬Çå³ıÊ±·µ»Ønullptr
+	/** è®¾ç½®æˆ–æ¸…é™¤æ’­æ”¾åŠ¨ç”»ï¼Œå¯¹åº”åŠ¨ç”»ç±»å‹ä¸ºï¼škAnimationHeight
+	* @param [in] bFadeHeight trueè¡¨ç¤ºè®¾ç½®åŠ¨ç”»ï¼Œfalseè¡¨ç¤ºæ¸…é™¤åŠ¨ç”»
+	* @return è®¾ç½®æ—¶è¿”å›åŠ¨ç”»æ’­æ”¾æ¥å£ï¼Œæ¸…é™¤æ—¶è¿”å›nullptr
 	*/
 	AnimationPlayer* SetFadeHeight(bool bFadeHeight);
 
-	/** ÉèÖÃ»òÇå³ı²¥·Å¶¯»­
-	* @param [in] bFade true±íÊ¾ÉèÖÃ¶¯»­£¬false±íÊ¾Çå³ı¶¯»­
-	* @param [in] bIsFromRight true±íÊ¾´ÓÓÒ²à¶¯»­£¨kAnimationInoutXFromRight£©£¬false±íÊ¾´Ó×ó²à¶¯»­£¨kAnimationInoutXFromLeft£©
-	* @return ÉèÖÃÊ±·µ»Ø¶¯»­²¥·Å½Ó¿Ú£¬Çå³ıÊ±·µ»Ønullptr
+	/** è®¾ç½®æˆ–æ¸…é™¤æ’­æ”¾åŠ¨ç”»
+	* @param [in] bFade trueè¡¨ç¤ºè®¾ç½®åŠ¨ç”»ï¼Œfalseè¡¨ç¤ºæ¸…é™¤åŠ¨ç”»
+	* @param [in] bIsFromRight trueè¡¨ç¤ºä»å³ä¾§åŠ¨ç”»ï¼ˆkAnimationInoutXFromRightï¼‰ï¼Œfalseè¡¨ç¤ºä»å·¦ä¾§åŠ¨ç”»ï¼ˆkAnimationInoutXFromLeftï¼‰
+	* @return è®¾ç½®æ—¶è¿”å›åŠ¨ç”»æ’­æ”¾æ¥å£ï¼Œæ¸…é™¤æ—¶è¿”å›nullptr
 	*/
 	AnimationPlayer* SetFadeInOutX(bool bFade, bool bIsFromRight);
 
-	/** ÉèÖÃ»òÇå³ı²¥·Å¶¯»­
-	* @param [in] bFade true±íÊ¾ÉèÖÃ¶¯»­£¬false±íÊ¾Çå³ı¶¯»­
-	* @param [in] bIsFromBottom true±íÊ¾´ÓÏÂ²à¶¯»­£¨kAnimationInoutYFromBottom£©£¬false±íÊ¾´ÓÉÏ²à¶¯»­£¨kAnimationInoutYFromTop£©
-	* @return ÉèÖÃÊ±·µ»Ø¶¯»­²¥·Å½Ó¿Ú£¬Çå³ıÊ±·µ»Ønullptr
+	/** è®¾ç½®æˆ–æ¸…é™¤æ’­æ”¾åŠ¨ç”»
+	* @param [in] bFade trueè¡¨ç¤ºè®¾ç½®åŠ¨ç”»ï¼Œfalseè¡¨ç¤ºæ¸…é™¤åŠ¨ç”»
+	* @param [in] bIsFromBottom trueè¡¨ç¤ºä»ä¸‹ä¾§åŠ¨ç”»ï¼ˆkAnimationInoutYFromBottomï¼‰ï¼Œfalseè¡¨ç¤ºä»ä¸Šä¾§åŠ¨ç”»ï¼ˆkAnimationInoutYFromTopï¼‰
+	* @return è®¾ç½®æ—¶è¿”å›åŠ¨ç”»æ’­æ”¾æ¥å£ï¼Œæ¸…é™¤æ—¶è¿”å›nullptr
 	*/
 	AnimationPlayer* SetFadeInOutY(bool bFade, bool bIsFromBottom);
 
-	/** °´ÉèÖÃµÄ¶¯»­£¬ÏÔÊ¾¿Ø¼ş
+	/** æŒ‰è®¾ç½®çš„åŠ¨ç”»ï¼Œæ˜¾ç¤ºæ§ä»¶
 	*/
 	void Appear();
 
-	/** °´ÉèÖÃµÄ¶¯»­£¬Òş²Ø¿Ø¼ş
+	/** æŒ‰è®¾ç½®çš„åŠ¨ç”»ï¼Œéšè—æ§ä»¶
 	*/
 	void Disappear();
 
-	/** Êó±êÒÆÈëÊ±£¬°´ÉèÖÃÖ´ĞĞ¶¯»­
+	/** é¼ æ ‡ç§»å…¥æ—¶ï¼ŒæŒ‰è®¾ç½®æ‰§è¡ŒåŠ¨ç”»
 	*/
 	void MouseEnter();
 
-	/** Êó±êÒÆ³öÊ±£¬°´ÉèÖÃÖ´ĞĞ¶¯»­
+	/** é¼ æ ‡ç§»å‡ºæ—¶ï¼ŒæŒ‰è®¾ç½®æ‰§è¡ŒåŠ¨ç”»
 	*/
 	void MouseLeave();
 
-	/** ÇåÀíËùÓĞ¶¯»­×ÊÔ´
+	/** æ¸…ç†æ‰€æœ‰åŠ¨ç”»èµ„æº
 	*/
 	void Clear(Control* control);
 
 private:
-	/** ¶¯»­ËùÊô¿Ø¼şµÄ½Ó¿Ú
+	/** åŠ¨ç”»æ‰€å±æ§ä»¶çš„æ¥å£
 	*/
 	Control* m_pControl;
 
-	/** Ã¿¸ö¶¯»­ÀàĞÍÏÂµÄ¶¯»­²¥·Å½Ó¿Ú
+	/** æ¯ä¸ªåŠ¨ç”»ç±»å‹ä¸‹çš„åŠ¨ç”»æ’­æ”¾æ¥å£
 	*/
 	std::map<AnimationType, std::unique_ptr<AnimationPlayer>> m_animationMap;
 };

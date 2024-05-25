@@ -8,40 +8,40 @@
 namespace ui
 {
 
-/** ÎÄ¼ş»òÕßÄ¿Â¼Ñ¡Ôñ¶Ô»°¿ò£¬Ö§³Ö¶àÑ¡
+/** æ–‡ä»¶æˆ–è€…ç›®å½•é€‰æ‹©å¯¹è¯æ¡†ï¼Œæ”¯æŒå¤šé€‰
 */
 class Window;
 class UILIB_API FileDialog
 {
 public:
-    /** Ñ¡ÔñÎÄ¼ş¼Ğ£¨µ¥Ñ¡£©
-    * @param [in] pWindow ¸¸´°¿Ú
-    * @param [out] folderPath ·µ»ØÑ¡ÔñµÄÎÄ¼ş¼ĞÂ·¾¶
+    /** é€‰æ‹©æ–‡ä»¶å¤¹ï¼ˆå•é€‰ï¼‰
+    * @param [in] pWindow çˆ¶çª—å£
+    * @param [out] folderPath è¿”å›é€‰æ‹©çš„æ–‡ä»¶å¤¹è·¯å¾„
     */
     bool BrowseForFolder(Window* pWindow, std::wstring& folderPath);
 
-    /** Ñ¡ÔñÎÄ¼ş¼Ğ£¨¶àÑ¡£©
-    * @param [in] pWindow ¸¸´°¿Ú
-    * @param [out] folderPaths ·µ»ØÑ¡ÔñµÄÎÄ¼ş¼ĞÂ·¾¶
+    /** é€‰æ‹©æ–‡ä»¶å¤¹ï¼ˆå¤šé€‰ï¼‰
+    * @param [in] pWindow çˆ¶çª—å£
+    * @param [out] folderPaths è¿”å›é€‰æ‹©çš„æ–‡ä»¶å¤¹è·¯å¾„
     */
     bool BrowseForFolders(Window* pWindow, std::vector<std::wstring>& folderPaths);
 
 public:
-    /** ÎÄ¼şÀàĞÍÉ¸Ñ¡Æ÷
+    /** æ–‡ä»¶ç±»å‹ç­›é€‰å™¨
     */
     struct FileType
     {
-        std::wstring szName; //ÎÄ¼şÀàĞÍÉ¸Ñ¡Æ÷µÄÏÔÊ¾Ãû³Æ, ¾ÙÀı: "Text files"
-        std::wstring szExt;  //ÎÄ¼şÀàĞÍÉ¸Ñ¡Æ÷, ¾ÙÀı£º"*.txt"
+        std::wstring szName; //æ–‡ä»¶ç±»å‹ç­›é€‰å™¨çš„æ˜¾ç¤ºåç§°, ä¸¾ä¾‹: "Text files"
+        std::wstring szExt;  //æ–‡ä»¶ç±»å‹ç­›é€‰å™¨, ä¸¾ä¾‹ï¼š"*.txt"
     };
 
-    /** Ñ¡ÔñÎÄ¼ş£¨µ¥Ñ¡£©
-    * @param [in] pWindow ¸¸´°¿Ú
-    * @param [in] bOpenFileDialog true±íÊ¾´ò¿ªÎÄ¼ş£¬false±íÊ¾±£´æÎÄ¼ş
-    * @param [in] fileTypes ¶Ô»°¿ò¿ÉÒÔ´ò¿ª»ò±£´æµÄÎÄ¼şÀàĞÍ
-    * @param [in] nFileTypeIndex Ñ¡ÔñµÄÎÄ¼şÀàĞÍ£¬ÓĞĞ§·¶Î§£º[0, fileTypes.size())
-    * @param [in] defaultExt Ä¬ÈÏµÄÎÄ¼şÀàĞÍ, ¾ÙÀı£º"doc;docx"
-    * @param [out] filePath ·µ»ØÑ¡ÔñµÄÎÄ¼şÂ·¾¶
+    /** é€‰æ‹©æ–‡ä»¶ï¼ˆå•é€‰ï¼‰
+    * @param [in] pWindow çˆ¶çª—å£
+    * @param [in] bOpenFileDialog trueè¡¨ç¤ºæ‰“å¼€æ–‡ä»¶ï¼Œfalseè¡¨ç¤ºä¿å­˜æ–‡ä»¶
+    * @param [in] fileTypes å¯¹è¯æ¡†å¯ä»¥æ‰“å¼€æˆ–ä¿å­˜çš„æ–‡ä»¶ç±»å‹
+    * @param [in] nFileTypeIndex é€‰æ‹©çš„æ–‡ä»¶ç±»å‹ï¼Œæœ‰æ•ˆèŒƒå›´ï¼š[0, fileTypes.size())
+    * @param [in] defaultExt é»˜è®¤çš„æ–‡ä»¶ç±»å‹, ä¸¾ä¾‹ï¼š"doc;docx"
+    * @param [out] filePath è¿”å›é€‰æ‹©çš„æ–‡ä»¶è·¯å¾„
     */
     bool BrowseForFile(Window* pWindow, 
                        std::wstring& filePath,                       
@@ -50,12 +50,12 @@ public:
                        int32_t nFileTypeIndex = -1,
                        const std::wstring& defaultExt = L"");
 
-    /** Ñ¡ÔñÎÄ¼ş£¨¶àÑ¡£©
-    * @param [in] pWindow ¸¸´°¿Ú
-    * @param [in] fileTypes ¶Ô»°¿ò¿ÉÒÔ´ò¿ª»ò±£´æµÄÎÄ¼şÀàĞÍ
-    * @param [in] nFileTypeIndex Ñ¡ÔñµÄÎÄ¼şÀàĞÍ£¬ÓĞĞ§·¶Î§£º[0, fileTypes.size())
-    * @param [in] defaultExt Ä¬ÈÏµÄÎÄ¼şÀàĞÍ, ¾ÙÀı£º"doc;docx"
-    * @param [out] filePaths ·µ»ØÑ¡ÔñµÄÎÄ¼şÂ·¾¶
+    /** é€‰æ‹©æ–‡ä»¶ï¼ˆå¤šé€‰ï¼‰
+    * @param [in] pWindow çˆ¶çª—å£
+    * @param [in] fileTypes å¯¹è¯æ¡†å¯ä»¥æ‰“å¼€æˆ–ä¿å­˜çš„æ–‡ä»¶ç±»å‹
+    * @param [in] nFileTypeIndex é€‰æ‹©çš„æ–‡ä»¶ç±»å‹ï¼Œæœ‰æ•ˆèŒƒå›´ï¼š[0, fileTypes.size())
+    * @param [in] defaultExt é»˜è®¤çš„æ–‡ä»¶ç±»å‹, ä¸¾ä¾‹ï¼š"doc;docx"
+    * @param [out] filePaths è¿”å›é€‰æ‹©çš„æ–‡ä»¶è·¯å¾„
     */
     bool BrowseForFiles(Window* pWindow, 
                         std::vector<std::wstring>& filePaths,                        

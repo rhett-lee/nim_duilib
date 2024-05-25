@@ -38,7 +38,7 @@
 
 namespace ui
 {
-	//�������пؼ�����
+	//定义所有控件类型
 	#define  DUI_CTR_CONTROL                         (L"Control")
 	#define  DUI_CTR_CONTROL_DRAGABLE                (L"ControlDragable")
 	#define  DUI_CTR_LABEL                           (L"Label")
@@ -110,7 +110,7 @@ namespace ui
 
 	#define  DUI_CTR_DATETIME                        (L"DateTime")
 
-	//��ɫ��صĲ��ֿؼ�
+	//颜色相关的部分控件
 	#define  DUI_CTR_COLOR_CONTROL					 (L"ColorControl")
 	#define  DUI_CTR_COLOR_SLIDER					 (L"ColorSlider")
 	#define  DUI_CTR_COLOR_PICKER_REGULAR			 (L"ColorPickerRegular")
@@ -124,7 +124,7 @@ namespace ui
 	#define	 DUI_CTR_TAB_CTRL						 (L"TabCtrl")
 	#define	 DUI_CTR_TAB_CTRL_ITEM					 (L"TabCtrlItem")
 
-	// ���ڱ�������ť����󻯡���С�����رա���ԭ��ȫ�����ڵ����֣�������д����
+	// 窗口标题栏按钮：最大化、最小化、关闭、还原、全屏窗口的名字，代码中写死的
 	#define DUI_CTR_CAPTION_BAR						 (L"window_caption_bar")
 	#define DUI_CTR_BUTTON_CLOSE					 (L"closebtn")
 	#define DUI_CTR_BUTTON_MIN						 (L"minbtn")
@@ -132,7 +132,7 @@ namespace ui
 	#define DUI_CTR_BUTTON_RESTORE					 (L"restorebtn")
 	#define DUI_CTR_BUTTON_FULLSCREEN				 (L"fullscreenbtn")
 
-	//EventType�¼����Ͷ�Ӧ���ַ�������
+	//EventType事件类型对应的字符串定义
 	#define	EVENTSTR_ALL				(L"all")
 	#define	EVENTSTR_KEYDOWN			(L"keydown")
 	#define	EVENTSTR_KEYUP				(L"keyup")
@@ -175,182 +175,182 @@ namespace ui
 	#define EVENTSTR_TAB				(L"tab")
 	#define EVENTSTR_WINDOWCLOSE		(L"windowclose")
 
-	//ˮƽ���뷽ʽ
+	//水平对齐方式
 	enum HorAlignType
 	{
-		kHorAlignLeft,		// �������
-		kHorAlignCenter,	// ˮƽ����
-		kHorAlignRight,		// ���Ҷ���
+		kHorAlignLeft,		// 靠左对齐
+		kHorAlignCenter,	// 水平居中
+		kHorAlignRight,		// 靠右对齐
 	};
 
-	//��ֱ���뷽ʽ
+	//垂直对齐方式
 	enum VerAlignType
 	{
-		kVerAlignTop,		// ���˶���
-		kVerAlignCenter,	// ��ֱ����
-		kVerAlignBottom,	// �ײ�����
+		kVerAlignTop,		// 顶端对齐
+		kVerAlignCenter,	// 垂直居中
+		kVerAlignBottom,	// 底部对齐
 	};
 
-	//�ؼ�ͼƬ����
+	//控件图片类型
 	enum StateImageType
 	{
-		kStateImageBk,					//����ͼƬ��Control���ã�
-		kStateImageFore,				//ǰ��ͼƬ��Control���ã�
-		kStateImageSelectedBk,			//ѡ��ʱ�ı���ͼƬ��CheckBox���ã�
-		kStateImageSelectedFore,		//ѡ��ʱ��ǰ��ͼƬ��CheckBox���ã�
-		kStateImagePartSelectedBk,		//����ѡ��ʱ�ı���ͼƬ��CheckBox���ã�
-		kStateImagePartSelectedFore,	//����ѡ��ʱ��ǰ��ͼƬ��CheckBox���ã�
+		kStateImageBk,					//背景图片（Control在用）
+		kStateImageFore,				//前景图片（Control在用）
+		kStateImageSelectedBk,			//选择时的背景图片（CheckBox在用）
+		kStateImageSelectedFore,		//选择时的前景图片（CheckBox在用）
+		kStateImagePartSelectedBk,		//部分选择时的背景图片（CheckBox在用）
+		kStateImagePartSelectedFore,	//部分选择时的前景图片（CheckBox在用）
 	};
 
-	//�ؼ�״̬
+	//控件状态
 	enum ControlStateType
 	{
-		kControlStateNormal,	// ��ͨ״̬
-		kControlStateHot,		// ��ͣ״̬
-		kControlStatePushed,	// ����״̬
-		kControlStateDisabled	// ����״̬
+		kControlStateNormal,	// 普通状态
+		kControlStateHot,		// 悬停状态
+		kControlStatePushed,	// 按下状态
+		kControlStateDisabled	// 禁用状态
 	};
 
-	//�ؼ���������
+	//控件动画类型
 	enum class AnimationType
 	{
-		kAnimationNone,					//�޶���
-		kAnimationAlpha,				//͸���Ƚ��䶯��
-		kAnimationHeight,				//�ؼ��߶ȱ仯����
-		kAnimationWidth,				//�ؼ����ȱ仯����
-		kAnimationHot,					//�����ͣ״̬�Ķ���
-		kAnimationInoutXFromLeft,		//�ؼ���X����仯�����������
-		kAnimationInoutXFromRight,		//�ؼ���X����仯���������Ҳ�
-		kAnimationInoutYFromTop,		//�ؼ���Y����仯���������ϲ�
-		kAnimationInoutYFromBottom,		//�ؼ���Y����仯���������²�
+		kAnimationNone,					//无动画
+		kAnimationAlpha,				//透明度渐变动画
+		kAnimationHeight,				//控件高度变化动画
+		kAnimationWidth,				//控件宽度变化动画
+		kAnimationHot,					//鼠标悬停状态的动画
+		kAnimationInoutXFromLeft,		//控件的X坐标变化动画，从左侧
+		kAnimationInoutXFromRight,		//控件的X坐标变化动画，从右侧
+		kAnimationInoutYFromTop,		//控件的Y坐标变化动画，从上侧
+		kAnimationInoutYFromBottom,		//控件的Y坐标变化动画，从下侧
 	};
 
-	//GIFͼƬ֡����
+	//GIF图片帧类型
 	enum GifFrameType
 	{
-		kGifFrameFirst   = 0,	// ��һ֡	
-		kGifFrameCurrent = 1,	// ��ǰ֡		
-		kGifFrameLast    = 2	// ���һ֡
+		kGifFrameFirst   = 0,	// 第一帧	
+		kGifFrameCurrent = 1,	// 当前帧		
+		kGifFrameLast    = 2	// 最后一帧
 	};
 
-	//���
+	//光标
 	enum CursorType
 	{
-		kCursorArrow,		// ��ͷ
-		kCursorHand,		// ����
-		kCursorHandIbeam,	// ��I����״
-		kCursorSizeWE,		// �����϶�
-		kCursorSizeNS		// �����϶�
+		kCursorArrow,		// 箭头
+		kCursorHand,		// 手型
+		kCursorHandIbeam,	// “I”形状
+		kCursorSizeWE,		// 左右拖动
+		kCursorSizeNS		// 上下拖动
 	};
 
-	//����������Ϣ����
+	//定义所有消息类型
 	enum EventType
 	{
 		kEventNone,
-		kEventFirst,				//��һ����Ϣ����ʱû�õ���
-		kEventAll,					//����������Ϣ
+		kEventFirst,				//第一个消息（暂时没用到）
+		kEventAll,					//代表所有消息
 
-		//������Ϣ
+		//键盘消息
 		kEventKeyBegin,
-		kEventKeyDown,				//Window�ࣺ���յ�WM_KEYDOWN��Ϣʱ���������͸�Focus�ؼ�
-		kEventKeyUp,				//Window�ࣺ���յ�WM_KEYUP��Ϣʱ���������͸�WM_KEYDOWN�¼��е��Ǹ�Focus�ؼ�
-		kEventSysKeyDown,			//Window�ࣺ���յ�WM_SYSKEYDOWN��Ϣʱ���������͸�Focus�ؼ�
-		kEventSysKeyUp,				//Window�ࣺ���յ�WM_SYSKEYUP��Ϣʱ���������͸�WM_KEYDOWN�¼��е��Ǹ�Focus�ؼ�
-		kEventChar,					//Window�ࣺ���յ�WM_CHAR��Ϣʱ���������͸�WM_KEYDOWN�¼��е��Ǹ�Focus�ؼ�
+		kEventKeyDown,				//Window类：当收到WM_KEYDOWN消息时触发，发送给Focus控件
+		kEventKeyUp,				//Window类：当收到WM_KEYUP消息时触发，发送给WM_KEYDOWN事件中的那个Focus控件
+		kEventSysKeyDown,			//Window类：当收到WM_SYSKEYDOWN消息时触发，发送给Focus控件
+		kEventSysKeyUp,				//Window类：当收到WM_SYSKEYUP消息时触发，发送给WM_KEYDOWN事件中的那个Focus控件
+		kEventChar,					//Window类：当收到WM_CHAR消息时触发，发送给WM_KEYDOWN事件中的那个Focus控件
 		kEventKeyEnd,
 
-		//�����Ϣ
+		//鼠标消息
 		kEventMouseBegin,		
-		kEventMouseEnter,			//Window�ࣺ���յ�WM_MOUSEMOVE��Ϣʱ���������͸�MouseMoveʱ����������Ǹ��ؼ������������뵽����ؼ���
-		kEventMouseLeave,			//Window�ࣺ���յ�WM_MOUSEMOVE��Ϣʱ���������͸�MouseMoveʱ����������Ǹ��ؼ�����������Ѿ��뿪����ؼ�
-		kEventMouseMove,			//Window�ࣺ���յ�WM_MOUSEMOVE��Ϣʱ���������͸����������Ҽ���˫��ʱ��¼���Ǹ��ؼ�
-		kEventMouseHover,			//Window�ࣺ���յ�WM_MOUSEHOVER��Ϣʱ���������͸�MouseMoveʱ����������Ǹ��ؼ����������������ؼ�����ͣ
-		kEventMouseWheel,			//Window�ࣺ���յ�WM_MOUSEWHEEL��Ϣʱ���������͸���ǰ�������λ�ö�Ӧ�Ŀؼ�
-		kEventMouseButtonDown,		//Window�ࣺ���յ�WM_LBUTTONDOWN��Ϣʱ���������͸�����������ʱ��Ӧ�Ŀؼ�
-		kEventMouseButtonUp,		//Window�ࣺ���յ�WM_LBUTTONUP��Ϣʱ���������͸�����������ʱ��Ӧ�Ŀؼ�
-		kEventMouseDoubleClick,		//Window�ࣺ���յ�WM_LBUTTONDBLCLK��Ϣʱ���������͸���ǰ�������λ�ö�Ӧ�Ŀؼ�		
-		kEventMouseRButtonDown,		//Window�ࣺ���յ�WM_RBUTTONDOWN��Ϣʱ���������͸�����Ҽ�����ʱ��Ӧ�Ŀؼ�
-		kEventMouseRButtonUp,		//Window�ࣺ���յ�WM_RBUTTONUP��Ϣʱ���������͸�����Ҽ�����ʱ��Ӧ�Ŀؼ�
-		kEventMouseRDoubleClick,	//Window�ࣺ���յ�WM_RBUTTONDBLCLK��Ϣʱ���������͸���ǰ�������λ�ö�Ӧ�Ŀؼ�	
-		kEventMouseMenu,			//Window�ࣺ���յ�WM_CONTEXTMENU��Ϣʱ���������͸�����ע��ص������Ŀؼ�
+		kEventMouseEnter,			//Window类：当收到WM_MOUSEMOVE消息时触发，发送给MouseMove时，鼠标进入的那个控件，表明鼠标进入到这个控件内
+		kEventMouseLeave,			//Window类：当收到WM_MOUSEMOVE消息时触发，发送给MouseMove时，鼠标进入的那个控件，表明鼠标已经离开这个控件
+		kEventMouseMove,			//Window类：当收到WM_MOUSEMOVE消息时触发，发送给鼠标左键、右键、双击时记录的那个控件
+		kEventMouseHover,			//Window类：当收到WM_MOUSEHOVER消息时触发，发送给MouseMove时，鼠标进入的那个控件，表明鼠标在这个控件内悬停
+		kEventMouseWheel,			//Window类：当收到WM_MOUSEWHEEL消息时触发，发送给当前鼠标所在位置对应的控件
+		kEventMouseButtonDown,		//Window类：当收到WM_LBUTTONDOWN消息时触发，发送给鼠标左键按下时对应的控件
+		kEventMouseButtonUp,		//Window类：当收到WM_LBUTTONUP消息时触发，发送给鼠标左键按下时对应的控件
+		kEventMouseDoubleClick,		//Window类：当收到WM_LBUTTONDBLCLK消息时触发，发送给当前鼠标所在位置对应的控件		
+		kEventMouseRButtonDown,		//Window类：当收到WM_RBUTTONDOWN消息时触发，发送给鼠标右键按下时对应的控件
+		kEventMouseRButtonUp,		//Window类：当收到WM_RBUTTONUP消息时触发，发送给鼠标右键按下时对应的控件
+		kEventMouseRDoubleClick,	//Window类：当收到WM_RBUTTONDBLCLK消息时触发，发送给当前鼠标所在位置对应的控件	
+		kEventMouseMenu,			//Window类：当收到WM_CONTEXTMENU消息时触发，发送给所有注册回调函数的控件
 		kEventMouseEnd,
 
-		//����/���/���뷨�����Ϣ
-		kEventSetFocus,				//Window�ࣺ���͸�Focus�ؼ������ؼ���ý���ʱ�����¼����ؼ����㲻�Ǵ��ڽ��㣬������ȫ��ͬ��
-		kEventKillFocus,			//Window�ࣺ���͸�Focus�ؼ������ؼ�ʧȥ����ʱ�����¼����ؼ����㲻�Ǵ��ڽ��㣬������ȫ��ͬ��		
-		kEventSetCursor,			//Window�ࣺ���͸���ǰ������ڿؼ������ù��
-		kEventImeStartComposition,	//Window�ࣺ���͸�Focus�ؼ������յ�ϵͳWM_IME_STARTCOMPOSITION��Ϣʱ����
-		kEventImeEndComposition,	//Window�ࣺ���͸�Focus�ؼ������յ�ϵͳWM_IME_ENDCOMPOSITION��Ϣʱ����
+		//焦点/光标/输入法相关消息
+		kEventSetFocus,				//Window类：发送给Focus控件，当控件获得焦点时触发事件（控件焦点不是窗口焦点，两者完全不同）
+		kEventKillFocus,			//Window类：发送给Focus控件，当控件失去焦点时触发事件（控件焦点不是窗口焦点，两者完全不同）		
+		kEventSetCursor,			//Window类：发送给当前鼠标所在控件，设置光标
+		kEventImeStartComposition,	//Window类：发送给Focus控件，当收到系统WM_IME_STARTCOMPOSITION消息时触发
+		kEventImeEndComposition,	//Window类：发送给Focus控件，当收到系统WM_IME_ENDCOMPOSITION消息时触发
 
-		kEventWindowKillFocus,		//Window�ࣺ���͸����������Ҽ�����ʱ��¼�Ŀؼ�������ؼ���������ʧȥ����ʱ�����¼�����Ҫ���ڻָ�һЩ�ڲ�״̬��
-		kEventWindowSize,			//Window�ࣺ���͸�Focus�ؼ��������ڴ�С�����仯ʱ�����¼�
-		kEventWindowMove,			//Window�ࣺ���͸�Focus�ؼ��������ڴ�С�����仯ʱ�����¼�
-		kEventWindowClose,			//Window�࣬Combo�ؼ��������ڹرգ�����Combo�������򴰿ڹرգ�ʱ����
+		kEventWindowKillFocus,		//Window类：发送给鼠标左键、右键按下时记录的控件、焦点控件，当窗口失去焦点时触发事件（主要用于恢复一些内部状态）
+		kEventWindowSize,			//Window类：发送给Focus控件，当窗口大小发生变化时触发事件
+		kEventWindowMove,			//Window类：发送给Focus控件，当窗口大小发生变化时触发事件
+		kEventWindowClose,			//Window类，Combo控件：当窗口关闭（或者Combo的下拉框窗口关闭）时触发
 
-		//������/�Ҽ�����¼�
-		kEventClick,				//Button�ࡢListBoxItem��Option��CheckBox�ȣ��������ť�����߼��̻س���ʱ����
-		kEventRClick,				//Control�ࣺ������Ҽ�����ʱ����
+		//左键点击/右键点击事件
+		kEventClick,				//Button类、ListBoxItem、Option、CheckBox等：当点击按钮（或者键盘回车）时触发
+		kEventRClick,				//Control类：当鼠标右键弹起时触发
 
-		//������ؼ������仯�������ɵ�������¼�
-		kEventMouseClickChanged,	//Window�ࣺ���յ���갴�������Ϣʱ���������͸��ϴ���갴��ʱ�Ŀؼ�
-		kEventMouseClickEsc,	    //Window�ࣺ���յ�����ESC����Ϣʱ���������͸���갴��ʱ�Ŀؼ�
+		//鼠标点击控件发生变化，发给旧的鼠标点击事件
+		kEventMouseClickChanged,	//Window类：当收到鼠标按下相关消息时触发，发送给上次鼠标按下时的控件
+		kEventMouseClickEsc,	    //Window类：当收到键盘ESC键消息时触发，发送给鼠标按下时的控件
 
-		//ѡ��/ȡ��ѡ��
-		kEventSelect,				//CheckBox�ࡢOption�ࡢListBox�ࡢCombo�ࣺ�����ѡ��״̬ʱ����
-		kEventUnSelect,			    //CheckBox�ࡢOption�ࡢListBox�ࡢCombo�ࣺ����ɷ�ѡ��״̬ʱ����
+		//选择/取消选择
+		kEventSelect,				//CheckBox类、Option类、ListBox类、Combo类：当变成选中状态时触发
+		kEventUnSelect,			    //CheckBox类、Option类、ListBox类、Combo类：当变成非选中状态时触发
 
-		//��ѡ/ȡ����ѡ
-		kEventChecked,				//CheckBox�ࣺ�����Checked״̬ʱ����
-		kEventUnCheck,			    //CheckBox�ࣺ�����UnCheck״̬ʱ����
+		//勾选/取消勾选
+		kEventChecked,				//CheckBox类：当变成Checked状态时触发
+		kEventUnCheck,			    //CheckBox类：当变成UnCheck状态时触发
 
-		//TABҳ��ѡ��
-		kEventTabSelect,			//TabBox�࣬ѡ��TABҳ��, WPARAM����ҳ��ID��LPARAM�Ǿ�ҳ��ID
+		//TAB页面选择
+		kEventTabSelect,			//TabBox类，选中TAB页面, WPARAM是新页面ID，LPARAM是旧页面ID
 
-		//���ڵ�չ��/����
-		kEventExpand,				//TreeNode�ࣺ�����ڵ�չ��ʱ����
-		kEventCollapse,				//TreeNode�ࣺ�����ڵ�����ʱ����
+		//树节点展开/收起
+		kEventExpand,				//TreeNode类：当树节点展开时触发
+		kEventCollapse,				//TreeNode类：当树节点收起时触发
 
-		kEventZoom,					//RichEdit�ࣺ�����ű��������仯ʱ�������ű�������/��ĸ��ʾ�����ţ�1/64 < (wParam / lParam) < 64
-		kEventTextChange,			//RichEdit�ࣺ���ı����ݷ����仯ʱ����
-		kEventSelChange,			//ListCtrl�ࣺѡ������仯��RichEdit�ࣺ���ı�ѡ�����ݷ����仯ʱ����
-		kEventReturn,				//ListCtrl��VirtualListBox��ListBoxItem��RichEdit�ࣺ���յ��س���ʱ����
-		kEventTab,					//RichEdit�ࣺ��WantTabΪfalseʱ�����յ�TAB��ʱ����
-		kEventLinkClick,		    //RichEdit�ࡢRichText�ࣺ��������������ӵ�������ʱ����, ����ͨ��WPARAM��ȡ�����URL������Ϊconst wchar_t*
+		kEventZoom,					//RichEdit类：当缩放比例发生变化时，按缩放比例分子/分母显示的缩放：1/64 < (wParam / lParam) < 64
+		kEventTextChange,			//RichEdit类：当文本内容发生变化时触发
+		kEventSelChange,			//ListCtrl类：选择项发生变化，RichEdit类：当文本选择内容发生变化时触发
+		kEventReturn,				//ListCtrl、VirtualListBox、ListBoxItem、RichEdit类：当收到回车键时触发
+		kEventTab,					//RichEdit类：在WantTab为false时，当收到TAB键时触发
+		kEventLinkClick,		    //RichEdit类、RichText类：当点击到超级链接的数据上时触发, 可以通过WPARAM获取点击的URL，类型为const wchar_t*
 
-		kEventScrollChange,			//ScrollBox�ࣺ��������λ�÷����仯ʱ����
-		kEventValueChange,			//DateTime��Slider�ࣺ��ֵ�����仯ʱ����, Slider�ࣺWPARAM����ֵ��LPARAM�Ǿ�ֵ
-		kEventResize,				//Control�ࣺ���ؼ��Ĵ�С��λ�÷����仯ʱ����
-		kEventVisibleChange,		//Control�ࣺ���ؼ���Visible���Է����仯ʱ����
-		kEventStateChange,			//Control�ࣺ���ؼ���State���Է����仯ʱ����, WPARAM����״̬��LPARAM�Ǿ�״̬
-		kEventSelectColor,			//ColorPicker�ࣺ��ѡ��������ɫʱ����, WPARAM���µ���ɫֵ��LPARAM�Ǿɵ���ɫֵ
+		kEventScrollChange,			//ScrollBox类：当滚动条位置发生变化时触发
+		kEventValueChange,			//DateTime、Slider类：当值发生变化时触发, Slider类：WPARAM是新值，LPARAM是旧值
+		kEventResize,				//Control类：当控件的大小和位置发生变化时触发
+		kEventVisibleChange,		//Control类：当控件的Visible属性发生变化时触发
+		kEventStateChange,			//Control类：当控件的State属性发生变化时触发, WPARAM是新状态，LPARAM是旧状态
+		kEventSelectColor,			//ColorPicker类：当选择了新颜色时触发, WPARAM是新的颜色值，LPARAM是旧的颜色值
 
-		kEventSplitDraged,			//Split�ࣺͨ���϶����������˿ؼ��Ĵ�С��WPARAM�ǵ�һ���ؼ��ӿڣ�LPARAM�ǵڶ����ؼ��ӿ�
+		kEventSplitDraged,			//Split类：通过拖动操作调整了控件的大小，WPARAM是第一个控件接口，LPARAM是第二个控件接口
 
-		kEventEnterEdit,			//ListCtrl�ࣺ����༭״̬, wParam �ǽӿڣ�ListCtrlEditParam*
-		kEventLeaveEdit,			//ListCtrl�ࣺ�˳��༭״̬, wParam �ǽӿڣ�ListCtrlEditParam*
+		kEventEnterEdit,			//ListCtrl类：进入编辑状态, wParam 是接口：ListCtrlEditParam*
+		kEventLeaveEdit,			//ListCtrl类：退出编辑状态, wParam 是接口：ListCtrlEditParam*
 
-		kEventLast					//Control�ࣺ�ÿؼ������һ����Ϣ��������ؼ���������ʱ����
+		kEventLast					//Control类：该控件的最后一个消息，当这个控件对象销毁时触发
 	};
 
-	/** �ȼ���ϼ���־λ
+	/** 热键组合键标志位
 	*/
 	enum HotKeyModifiers
 	{
-		kHotKey_Shift = 0x01,	//Shift��
-		kHotKey_Contrl = 0x02,	//Contrl��
-		kHotKey_Alt = 0x04,		//Alt��
-		kHotKey_Ext = 0x08		//��չ��
+		kHotKey_Shift = 0x01,	//Shift键
+		kHotKey_Contrl = 0x02,	//Contrl键
+		kHotKey_Alt = 0x04,		//Alt键
+		kHotKey_Ext = 0x08		//扩展键
 	};
 
-	/** �������ı�־
+	/** 鼠标操作的标志
 	*/
 #ifdef UILIB_IMPL_WINSDK
 	enum VKFlag
 	{
-		kVkControl = MK_CONTROL,	//������ CTRL ��
-		kVkShift   = MK_SHIFT,		//������ SHIFT ��
-		kVkLButton = MK_LBUTTON,	//������������
-		kVkRButton = MK_RBUTTON		//����������Ҽ�
+		kVkControl = MK_CONTROL,	//按下了 CTRL 键
+		kVkShift   = MK_SHIFT,		//按下了 SHIFT 键
+		kVkLButton = MK_LBUTTON,	//按下了鼠标左键
+		kVkRButton = MK_RBUTTON		//按下了鼠标右键
 	};
 #endif
 

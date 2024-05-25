@@ -6,7 +6,7 @@
 namespace ui 
 {
 
-/** IDropTarget µÄÊµÏÖ
+/** IDropTarget çš„å®ç°
 */
 class WindowDropTargetImpl : public IDropTarget {
 public:
@@ -70,7 +70,7 @@ public:
 			m_pDataObj->AddRef();
 		}
 		OnDragOver(grfKeyState, pt, pdwEffect);
-		//ĞèÒª·µ»ØS_OK, ·ñÔò±¾´ÎÍÏ·Å¾ÍÖÕÖ¹ÁË£¬ÎŞ·¨ÔÙ¼ÌĞøÍÏ·Å²Ù×÷
+		//éœ€è¦è¿”å›S_OK, å¦åˆ™æœ¬æ¬¡æ‹–æ”¾å°±ç»ˆæ­¢äº†ï¼Œæ— æ³•å†ç»§ç»­æ‹–æ”¾æ“ä½œ
 		return S_OK;
 	}
 
@@ -156,8 +156,8 @@ public:
 		return hr;
 	}
 
-	/** ÕÒµ½Ä³¸öµã×ø±ê¶ÔÓ¦µÄ¿Ø¼ş½Ó¿Ú
-	* @param [in] screenPt ÆÁÄ»×ø±êµã
+	/** æ‰¾åˆ°æŸä¸ªç‚¹åæ ‡å¯¹åº”çš„æ§ä»¶æ¥å£
+	* @param [in] screenPt å±å¹•åæ ‡ç‚¹
 	*/
 	ControlDropTarget* GetControlDropTarget(const UiPoint& screenPt) const
 	{
@@ -175,7 +175,7 @@ public:
 		return nullptr;
 	}
 
-	/** ÅĞ¶ÏÒ»¸ö¿Ø¼şÊÇ·ñ»¹ÔÚÈİÆ÷ÖĞ
+	/** åˆ¤æ–­ä¸€ä¸ªæ§ä»¶æ˜¯å¦è¿˜åœ¨å®¹å™¨ä¸­
 	*/
 	bool IsValidControlDropTarget(ControlDropTarget* pControlDropTarget) const
 	{
@@ -189,19 +189,19 @@ public:
 	}
 
 protected:
-	/** ÒıÓÃ¼ÆÊı
+	/** å¼•ç”¨è®¡æ•°
 	*/
 	int32_t m_nRef;
 
-	/** WindowDropTarget ½Ó¿Ú
+	/** WindowDropTarget æ¥å£
 	*/
 	WindowDropTarget* m_pWindowDropTarget;
 
-	/** IDropTarget::DragEnter ´«ÈëµÄÊı¾İ¶ÔÏó½Ó¿Ú
+	/** IDropTarget::DragEnter ä¼ å…¥çš„æ•°æ®å¯¹è±¡æ¥å£
 	*/
 	IDataObject* m_pDataObj;
 
-	/** µ±Ç°Hover×´Ì¬µÄ¿Ø¼ş½Ó¿Ú
+	/** å½“å‰HoverçŠ¶æ€çš„æ§ä»¶æ¥å£
 	*/
 	ControlDropTarget* m_pHoverDropTarget;
 };

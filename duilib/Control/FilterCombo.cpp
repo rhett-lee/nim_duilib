@@ -18,7 +18,7 @@ std::wstring FilterCombo::GetType() const { return DUI_CTR_FILTER_COMBO; }
 void FilterCombo::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
     if (strName == L"combo_type") {
-        //ºöÂÔ¸ÃÊôĞÔÉèÖÃ
+        //å¿½ç•¥è¯¥å±æ€§è®¾ç½®
     }
     else {
         __super::SetAttribute(strName, strValue);
@@ -48,7 +48,7 @@ bool FilterCombo::OnEditButtonUp(const EventArgs& /*args*/)
 bool FilterCombo::OnEditTextChanged(const ui::EventArgs& /*args*/)
 {
     std::wstring editText = GetText();
-    //×ª»»³ÉĞ¡Ğ´£¬±È½ÏµÄÊ±ºò£¬²»Çø·Ö´óĞ¡Ğ´
+    //è½¬æ¢æˆå°å†™ï¼Œæ¯”è¾ƒçš„æ—¶å€™ï¼Œä¸åŒºåˆ†å¤§å°å†™
     editText = StringHelper::MakeLowerString(editText);
     ShowComboList();
     FilterComboList(editText);

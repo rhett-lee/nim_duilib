@@ -20,7 +20,7 @@ UiSize HTileLayout::CalcEstimateSize(Control* pControl, const UiSize& szItem, Ui
 		return UiSize();
 	}
 	
-	//¹ÀËãµÄ¿ÉÓÃÇøÓò£¬Ê¼ÖÕÊ¹ÓÃ×ÜÇøÓò
+	//ä¼°ç®—çš„å¯ç”¨åŒºåŸŸï¼Œå§‹ç»ˆä½¿ç”¨æ€»åŒºåŸŸ
 	UiMargin rcMargin = pControl->GetMargin();
 	int32_t width = rc.Width() - rcMargin.left - rcMargin.right;
 	int32_t height = rc.Height() - rcMargin.top - rcMargin.bottom;
@@ -56,7 +56,7 @@ void HTileLayout::CalcTileRows(const std::vector<ItemSizeInfo>& normalItems, con
 {
 	nRows = 0;
 	if (tileHeight <= 0) {
-		//ĞèÒªÏÈ¼ÆËãÍßÆ¬¿Ø¼ş¸ß¶È£¬È»ºó¸ù¾İ¿í¶È¼ÆËãĞĞÊı
+		//éœ€è¦å…ˆè®¡ç®—ç“¦ç‰‡æ§ä»¶é«˜åº¦ï¼Œç„¶åæ ¹æ®å®½åº¦è®¡ç®—è¡Œæ•°
 		int32_t maxHeight = 0;
 		int64_t areaTotal = 0;
 		const int64_t maxArea = (int64_t)rc.Width() * rc.Height();
@@ -76,15 +76,15 @@ void HTileLayout::CalcTileRows(const std::vector<ItemSizeInfo>& normalItems, con
 			}
 			areaTotal += ((int64_t)childWidth * childHeight);
 			if (areaTotal > maxArea) {
-				//°´µ±Ç°¿ÉÊÓÇøÕ¹Ê¾µÄÃæ»ı¹ÀËã
+				//æŒ‰å½“å‰å¯è§†åŒºå±•ç¤ºçš„é¢ç§¯ä¼°ç®—
 				break;
 			}
 		}
-		//È¡¿ÉÊÓÇø¿Ø¼ş¸ß¶È×î´óÖµ£¬×÷ÎªÃ¿¸öItemµÄ¸ß¶È
+		//å–å¯è§†åŒºæ§ä»¶é«˜åº¦æœ€å¤§å€¼ï¼Œä½œä¸ºæ¯ä¸ªItemçš„é«˜åº¦
 		tileHeight = maxHeight;
 	}
 	if (tileHeight > 0) {
-		//Ê¹ÓÃÉèÖÃµÄ¸ß¶È×÷ÎªÍßÆ¬¿Ø¼şµÄ¿í¶È£¬²¢Í¨¹ıÉèÖÃµÄ¸ß¶È£¬¼ÆËãĞĞÊı
+		//ä½¿ç”¨è®¾ç½®çš„é«˜åº¦ä½œä¸ºç“¦ç‰‡æ§ä»¶çš„å®½åº¦ï¼Œå¹¶é€šè¿‡è®¾ç½®çš„é«˜åº¦ï¼Œè®¡ç®—è¡Œæ•°
 		int32_t totalHeight = rc.Height();
 		while (totalHeight > 0) {
 			totalHeight -= tileHeight;
@@ -121,21 +121,21 @@ UiSize64 HTileLayout::ArrangeFloatChild(const std::vector<Control*>& items,
 									   bool isCalcOnly,
 									   std::vector<ItemSizeInfo>& normalItems)
 {
-	int64_t cxNeededFloat = 0;	//¸¡¶¯¿Ø¼şĞèÒªµÄ×Ü¿í¶È
-	int64_t cyNeededFloat = 0;	//¸¡¶¯¿Ø¼şĞèÒªµÄ×Ü¸ß¶È
+	int64_t cxNeededFloat = 0;	//æµ®åŠ¨æ§ä»¶éœ€è¦çš„æ€»å®½åº¦
+	int64_t cyNeededFloat = 0;	//æµ®åŠ¨æ§ä»¶éœ€è¦çš„æ€»é«˜åº¦
 	for (Control* pControl : items) {
 		if ((pControl == nullptr) || !pControl->IsVisible()) {
 			continue;
 		}
 		if (pControl->IsFloat()) {
-			//¸¡¶¯¿Ø¼ş
+			//æµ®åŠ¨æ§ä»¶
 			UiSize64 floatSize;
 			if (!isCalcOnly) {
-				//ÉèÖÃ¸¡¶¯¿Ø¼şµÄÎ»ÖÃ
+				//è®¾ç½®æµ®åŠ¨æ§ä»¶çš„ä½ç½®
 				floatSize = SetFloatPos(pControl, rc);
 			}
 			else {
-				//¼ÆËãFloat¿Ø¼şµÄ´óĞ¡
+				//è®¡ç®—Floatæ§ä»¶çš„å¤§å°
 				floatSize = EstimateFloatSize(pControl, rc);
 			}
 			if (cxNeededFloat < floatSize.cx) {
@@ -146,10 +146,10 @@ UiSize64 HTileLayout::ArrangeFloatChild(const std::vector<Control*>& items,
 			}
 		}
 		else {
-			//ÆÕÍ¨¿Ø¼ş
+			//æ™®é€šæ§ä»¶
 			UiSize childSize = CalcEstimateSize(pControl, szItem, rc);
 			if ((childSize.cx <= 0) || (childSize.cy <= 0)) {
-				//´óĞ¡Îª0µÄ£¬²»¿ÉÏÔÊ¾¿Ø¼ş(¿ÉÄÜÊÇÀ­Éì¿Ø¼ş)
+				//å¤§å°ä¸º0çš„ï¼Œä¸å¯æ˜¾ç¤ºæ§ä»¶(å¯èƒ½æ˜¯æ‹‰ä¼¸æ§ä»¶)
 				if (!isCalcOnly) {
 					UiRect rcPos(rc);
 					rcPos.right = rcPos.left;
@@ -174,11 +174,11 @@ int32_t HTileLayout::CalcTileColumnWidth(const std::vector<ItemSizeInfo>& normal
 									     int32_t nRows,
 									     const UiSize& szItem)
 {
-	//szItemµÄ¿í¶ÈºÍ¸ß¶ÈÖµ£¬ÊÇ°üº¬ÁË¿Ø¼şµÄÍâ±ß¾àºÍÄÚ±ß¾àµÄ
+	//szItemçš„å®½åº¦å’Œé«˜åº¦å€¼ï¼Œæ˜¯åŒ…å«äº†æ§ä»¶çš„å¤–è¾¹è·å’Œå†…è¾¹è·çš„
 	ASSERT(nRows > 0);
 	int32_t cyWidth = szItem.cx;
 	if (cyWidth > 0) {
-		//Èç¹ûÉèÖÃÁË¿í¶È£¬ÔòÓÅÏÈÊ¹ÓÃÉèÖÃµÄ¿í¶ÈÖµ
+		//å¦‚æœè®¾ç½®äº†å®½åº¦ï¼Œåˆ™ä¼˜å…ˆä½¿ç”¨è®¾ç½®çš„å®½åº¦å€¼
 		return cyWidth;
 	}
 	if (nRows <= 0) {
@@ -191,14 +191,14 @@ int32_t HTileLayout::CalcTileColumnWidth(const std::vector<ItemSizeInfo>& normal
 		UiMargin rcMargin = itemSizeInfo.pControl->GetMargin();
 		UiSize szTile(itemSizeInfo.cx, itemSizeInfo.cy);
 
-		//±£Áô¸ß¶È×î´óÖµ
+		//ä¿ç•™é«˜åº¦æœ€å¤§å€¼
 		if (szTile.cx > 0) {
 			cyWidth = std::max(cyWidth, szTile.cx + rcMargin.left + rcMargin.right);
 		}
 
 		++iIndex;
 		if ((iIndex % nRows) == 0) {
-			//»»ĞĞ£¬ÍË³ö
+			//æ¢è¡Œï¼Œé€€å‡º
 			break;
 		}
 	}
@@ -210,11 +210,11 @@ UiSize HTileLayout::CalcTilePosition(const ItemSizeInfo& itemSizeInfo,
 	                                const UiPoint& ptTile, bool bScaleDown, UiRect& szTilePos)
 {
 	szTilePos.Clear();
-	//Ä¿±êÇøÓò´óĞ¡£¨¿íºÍ¸ß£©
+	//ç›®æ ‡åŒºåŸŸå¤§å°ï¼ˆå®½å’Œé«˜ï¼‰
 	UiSize szItem(tileWidth, tileHeight);
 	szItem.Validate();
 
-	//ÍßÆ¬¿Ø¼ş´óĞ¡(¿íºÍ¸ß), °üº¬Íâ±ß¾à
+	//ç“¦ç‰‡æ§ä»¶å¤§å°(å®½å’Œé«˜), åŒ…å«å¤–è¾¹è·
 	UiMargin rcMargin = itemSizeInfo.pControl->GetMargin();
 	UiSize childSize(itemSizeInfo.cx + rcMargin.left + rcMargin.right, 
 		             itemSizeInfo.cy + rcMargin.top + rcMargin.bottom);
@@ -234,13 +234,13 @@ UiSize HTileLayout::CalcTilePosition(const ItemSizeInfo& itemSizeInfo,
 		childSize.cy = szItem.cy;
 	}
 	
-	int32_t cxWidth = szItem.cx;	//Ã¿¸ö¿Ø¼ş£¨ÍßÆ¬£©µÄ¿í¶È£¨¶¯Ì¬¼ÆËãÖµ£©
-	int32_t cyHeight = szItem.cy;	//Ã¿¸ö¿Ø¼ş£¨ÍßÆ¬£©µÄ¸ß¶È£¨¶¯Ì¬¼ÆËãÖµ£©
+	int32_t cxWidth = szItem.cx;	//æ¯ä¸ªæ§ä»¶ï¼ˆç“¦ç‰‡ï¼‰çš„å®½åº¦ï¼ˆåŠ¨æ€è®¡ç®—å€¼ï¼‰
+	int32_t cyHeight = szItem.cy;	//æ¯ä¸ªæ§ä»¶ï¼ˆç“¦ç‰‡ï¼‰çš„é«˜åº¦ï¼ˆåŠ¨æ€è®¡ç®—å€¼ï¼‰
 
-	//Ä¿±êÇøÓò¾Ø£¨×óÉÏ½Ç×ø±ê£¬¿íºÍ¸ß£©
+	//ç›®æ ‡åŒºåŸŸçŸ©ï¼ˆå·¦ä¸Šè§’åæ ‡ï¼Œå®½å’Œé«˜ï¼‰
 	UiRect rcTile(ptTile.x, ptTile.y, ptTile.x + cxWidth, ptTile.y + cyHeight);
 
-	//¶Ô¿Ø¼ş½øĞĞµÈ±ÈÀıËõ·Å(Ëõ·ÅµÄÊ±ºò£¬ĞèÒªÈ¥µôÍâ±ß¾à)
+	//å¯¹æ§ä»¶è¿›è¡Œç­‰æ¯”ä¾‹ç¼©æ”¾(ç¼©æ”¾çš„æ—¶å€™ï¼Œéœ€è¦å»æ‰å¤–è¾¹è·)
 	UiRect rcRealTile = rcTile;
 	rcRealTile.Deflate(rcMargin);
 	UiSize realSize(childSize.cx - rcMargin.left - rcMargin.right,
@@ -249,7 +249,7 @@ UiSize HTileLayout::CalcTilePosition(const ItemSizeInfo& itemSizeInfo,
 		(rcRealTile.Width() > 0) && (rcRealTile.Height() > 0) &&
 		(realSize.cx > 0) && (realSize.cy > 0) ) {
 		if ((realSize.cx > rcRealTile.Width()) || (realSize.cy > rcRealTile.Height())) {
-			//Âú×ãËõ·ÅÌõ¼ş£¬½øĞĞµÈ±ÈËõ·Å
+			//æ»¡è¶³ç¼©æ”¾æ¡ä»¶ï¼Œè¿›è¡Œç­‰æ¯”ç¼©æ”¾
 			UiSize oldSize = realSize;
 			double cx = realSize.cx;
 			double cy = realSize.cy;
@@ -270,16 +270,16 @@ UiSize HTileLayout::CalcTilePosition(const ItemSizeInfo& itemSizeInfo,
 		}
 	}
 
-	//rcTile°üº¬Íâ±ß¾à£¬realSize²»°üº¬Íâ±ß¾à
+	//rcTileåŒ…å«å¤–è¾¹è·ï¼ŒrealSizeä¸åŒ…å«å¤–è¾¹è·
 	szTilePos = GetFloatPos(itemSizeInfo.pControl, rcTile, realSize);
 	if (szTilePos.left < ptTile.x) {
-		//Èç¹û¿Ø¼ş½Ï´ó£¬³¬¹ı±ß½ç£¬Ôò¿¿×ó¶ÔÆë
+		//å¦‚æœæ§ä»¶è¾ƒå¤§ï¼Œè¶…è¿‡è¾¹ç•Œï¼Œåˆ™é å·¦å¯¹é½
 		int32_t width = szTilePos.Width();
 		szTilePos.left = ptTile.x;
 		szTilePos.right = ptTile.x + width;
 	}
 	if (szTilePos.top < ptTile.y) {
-		//Èç¹û¿Ø¼ş½Ï´ó£¬³¬¹ı±ß½ç£¬Ôò¿¿ÉÏ¶ÔÆë
+		//å¦‚æœæ§ä»¶è¾ƒå¤§ï¼Œè¶…è¿‡è¾¹ç•Œï¼Œåˆ™é ä¸Šå¯¹é½
 		int32_t height = szTilePos.Height();
 		szTilePos.top = ptTile.y;
 		szTilePos.bottom = ptTile.y + height;
@@ -289,41 +289,41 @@ UiSize HTileLayout::CalcTilePosition(const ItemSizeInfo& itemSizeInfo,
 
 UiSize64 HTileLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 {
-	//×ÜÌå²¼¾Ö²ßÂÔ£º
-	// (1) ºáÏò¾¡Á¿²»³¬³ö±ß½ç£¨³ı·ÇĞĞÊ×µÄµÚÒ»¸öÔªËØ´óĞ¡±Èrc¿í£¬ÕâÖÖÇé¿öÏÂºáÏò»á³¬³ö±ß½ç£©£¬
-	//     ×İÏò¿ÉÄÜ»á³öÏÖ³¬³ö±ß½ç¡£
-	// (2) ÍßÆ¬µÄ¿í¸ß±È£ºÄ¬ÈÏ±£³Ö¿í¸ß±È½øĞĞËõĞ¡£¬ÒÔÊÊÓ¦Ä¿±êÏÔÊ¾Çø(¿ÉÓÃm_bScaleDown¿ØÖÆ´ËĞĞÎª)¡£
-	//     Èç¹û¿í¶È»òÕß¸ß¶È³öÏÖÁËËõ·Å£¬ĞèÒª±£³Ö¿í¸ß±È£¬±ÜÃâ³öÏÖ±äĞÎ£»
-	//     µ«»áÌá¹©Ò»¸öÑ¡ÏîSetScaleDown()£¬²»±£³Ö¿í¸ß±È£¬ÕâÖÖÇé¿öÏÂ£¬»áÓĞ³¬³ö±ß½çµÄÏÖÏó¡£
-	// (3) ¶ÔÓÚ²»ÊÇ×ÔÓÉÄ£Ê½µÄÇé¿ö£¬Èç¹ûm_bAutoCalcColumnsÎªtrue£¬Ôòm_nColumns±»ÖÃÁã
-	//²¼¾ÖµÄ¼¸ÖÖÓÃÀı:
+	//æ€»ä½“å¸ƒå±€ç­–ç•¥ï¼š
+	// (1) æ¨ªå‘å°½é‡ä¸è¶…å‡ºè¾¹ç•Œï¼ˆé™¤éè¡Œé¦–çš„ç¬¬ä¸€ä¸ªå…ƒç´ å¤§å°æ¯”rcå®½ï¼Œè¿™ç§æƒ…å†µä¸‹æ¨ªå‘ä¼šè¶…å‡ºè¾¹ç•Œï¼‰ï¼Œ
+	//     çºµå‘å¯èƒ½ä¼šå‡ºç°è¶…å‡ºè¾¹ç•Œã€‚
+	// (2) ç“¦ç‰‡çš„å®½é«˜æ¯”ï¼šé»˜è®¤ä¿æŒå®½é«˜æ¯”è¿›è¡Œç¼©å°ï¼Œä»¥é€‚åº”ç›®æ ‡æ˜¾ç¤ºåŒº(å¯ç”¨m_bScaleDownæ§åˆ¶æ­¤è¡Œä¸º)ã€‚
+	//     å¦‚æœå®½åº¦æˆ–è€…é«˜åº¦å‡ºç°äº†ç¼©æ”¾ï¼Œéœ€è¦ä¿æŒå®½é«˜æ¯”ï¼Œé¿å…å‡ºç°å˜å½¢ï¼›
+	//     ä½†ä¼šæä¾›ä¸€ä¸ªé€‰é¡¹SetScaleDown()ï¼Œä¸ä¿æŒå®½é«˜æ¯”ï¼Œè¿™ç§æƒ…å†µä¸‹ï¼Œä¼šæœ‰è¶…å‡ºè¾¹ç•Œçš„ç°è±¡ã€‚
+	// (3) å¯¹äºä¸æ˜¯è‡ªç”±æ¨¡å¼çš„æƒ…å†µï¼Œå¦‚æœm_bAutoCalcColumnsä¸ºtrueï¼Œåˆ™m_nColumnsè¢«ç½®é›¶
+	//å¸ƒå±€çš„å‡ ç§ç”¨ä¾‹:
 	// (1) !m_bAutoCalcRows && (m_nRows == 0) && (m_szItem.cx == 0)
-	//     ²¼¾Ö²ßÂÔ£º	1¡¢ÁĞÊı£º×ÔÓÉ²¼¾Ö£¬²»·ÖÁĞ£¬Ã¿ĞĞÊÇÒªÊä³öµ½±ß½ç£¬¾Í»»ĞĞ£¨Ã¿ĞĞµÄÁĞÊı¿ÉÄÜ¶¼²»Í¬£©£»
-	//				2¡¢ÍßÆ¬¿Ø¼şµÄ¿í¶È£º°´ÆäÊµ¼Ê¿í¶ÈÕ¹Ê¾£»
-	//              3¡¢ÍßÆ¬¿Ø¼şµÄ¸ß¶È£º
-	//                £¨1£©Èç¹ûm_szItem.cy > 0£ºÏŞÖÆÎª¹Ì¶¨m_szItem.cy
-	//                £¨2£©Èç¹ûm_szItem.cy == 0: °´ÆäÊµ¼Ê¸ß¶ÈÕ¹Ê¾£»
+	//     å¸ƒå±€ç­–ç•¥ï¼š	1ã€åˆ—æ•°ï¼šè‡ªç”±å¸ƒå±€ï¼Œä¸åˆ†åˆ—ï¼Œæ¯è¡Œæ˜¯è¦è¾“å‡ºåˆ°è¾¹ç•Œï¼Œå°±æ¢è¡Œï¼ˆæ¯è¡Œçš„åˆ—æ•°å¯èƒ½éƒ½ä¸åŒï¼‰ï¼›
+	//				2ã€ç“¦ç‰‡æ§ä»¶çš„å®½åº¦ï¼šæŒ‰å…¶å®é™…å®½åº¦å±•ç¤ºï¼›
+	//              3ã€ç“¦ç‰‡æ§ä»¶çš„é«˜åº¦ï¼š
+	//                ï¼ˆ1ï¼‰å¦‚æœm_szItem.cy > 0ï¼šé™åˆ¶ä¸ºå›ºå®šm_szItem.cy
+	//                ï¼ˆ2ï¼‰å¦‚æœm_szItem.cy == 0: æŒ‰å…¶å®é™…é«˜åº¦å±•ç¤ºï¼›
 	// (2) (m_nRows == 0) && (m_szItem.cx > 0)
-	//     ²¼¾Ö²ßÂÔ£º	1¡¢ÁĞÊı£º°´ÕÕ rc.Width() Óë m_szItem.cx À´¼ÆËãÓ¦¸Ã·Ö¼¸ÁĞ£¬ÁĞÊı¹Ì¶¨£»
-	//				2¡¢ÍßÆ¬¿Ø¼şµÄ¿í¶È£º¹Ì¶¨Îª m_szItem.cx£»
-	//              3¡¢ÍßÆ¬¿Ø¼şµÄ¸ß¶È£º
-	//                £¨1£©Èç¹ûm_szItem.cy > 0£ºÏŞÖÆÎª¹Ì¶¨m_szItem.cy
-	//                £¨2£©Èç¹ûm_szItem.cy == 0: °´ÆäÊµ¼Ê¸ß¶ÈÕ¹Ê¾£»
+	//     å¸ƒå±€ç­–ç•¥ï¼š	1ã€åˆ—æ•°ï¼šæŒ‰ç…§ rc.Width() ä¸ m_szItem.cx æ¥è®¡ç®—åº”è¯¥åˆ†å‡ åˆ—ï¼Œåˆ—æ•°å›ºå®šï¼›
+	//				2ã€ç“¦ç‰‡æ§ä»¶çš„å®½åº¦ï¼šå›ºå®šä¸º m_szItem.cxï¼›
+	//              3ã€ç“¦ç‰‡æ§ä»¶çš„é«˜åº¦ï¼š
+	//                ï¼ˆ1ï¼‰å¦‚æœm_szItem.cy > 0ï¼šé™åˆ¶ä¸ºå›ºå®šm_szItem.cy
+	//                ï¼ˆ2ï¼‰å¦‚æœm_szItem.cy == 0: æŒ‰å…¶å®é™…é«˜åº¦å±•ç¤ºï¼›
 	// (3) (m_nRows > 0) && (m_szItem.cx == 0)
-	//     ²¼¾Ö²ßÂÔ£º	1¡¢ÁĞÊı£ºÁĞÊı¹Ì¶¨Îªm_nColumns£»
-	//				2¡¢ÍßÆ¬¿Ø¼şµÄ¿í¶È£º°´ÆäÊµ¼Ê¿í¶ÈÕ¹Ê¾£»
-	//              3¡¢ÍßÆ¬¿Ø¼şµÄ¸ß¶È£º
-	//                £¨1£©Èç¹ûm_szItem.cy > 0£ºÏŞÖÆÎª¹Ì¶¨m_szItem.cy
-	//                £¨2£©Èç¹ûm_szItem.cy == 0: °´ÆäÊµ¼Ê¸ß¶ÈÕ¹Ê¾£»
+	//     å¸ƒå±€ç­–ç•¥ï¼š	1ã€åˆ—æ•°ï¼šåˆ—æ•°å›ºå®šä¸ºm_nColumnsï¼›
+	//				2ã€ç“¦ç‰‡æ§ä»¶çš„å®½åº¦ï¼šæŒ‰å…¶å®é™…å®½åº¦å±•ç¤ºï¼›
+	//              3ã€ç“¦ç‰‡æ§ä»¶çš„é«˜åº¦ï¼š
+	//                ï¼ˆ1ï¼‰å¦‚æœm_szItem.cy > 0ï¼šé™åˆ¶ä¸ºå›ºå®šm_szItem.cy
+	//                ï¼ˆ2ï¼‰å¦‚æœm_szItem.cy == 0: æŒ‰å…¶å®é™…é«˜åº¦å±•ç¤ºï¼›
 	// (4) (m_nRows > 0) && (m_szItem.cx > 0)
-	//     ²¼¾Ö²ßÂÔ£º	1¡¢ÁĞÊı£ºÁĞÊı¹Ì¶¨Îªm_nColumns£»
-	//				2¡¢ÍßÆ¬¿Ø¼şµÄ¿í¶È£º¹Ì¶¨Îª m_szItem.cx£»
-	//              3¡¢ÍßÆ¬¿Ø¼şµÄ¸ß¶È£º
-	//                £¨1£©Èç¹ûm_szItem.cy > 0£ºÏŞÖÆÎª¹Ì¶¨m_szItem.cy
-	//                £¨2£©Èç¹ûm_szItem.cy == 0: °´ÆäÊµ¼Ê¸ß¶ÈÕ¹Ê¾£»
+	//     å¸ƒå±€ç­–ç•¥ï¼š	1ã€åˆ—æ•°ï¼šåˆ—æ•°å›ºå®šä¸ºm_nColumnsï¼›
+	//				2ã€ç“¦ç‰‡æ§ä»¶çš„å®½åº¦ï¼šå›ºå®šä¸º m_szItem.cxï¼›
+	//              3ã€ç“¦ç‰‡æ§ä»¶çš„é«˜åº¦ï¼š
+	//                ï¼ˆ1ï¼‰å¦‚æœm_szItem.cy > 0ï¼šé™åˆ¶ä¸ºå›ºå®šm_szItem.cy
+	//                ï¼ˆ2ï¼‰å¦‚æœm_szItem.cy == 0: æŒ‰å…¶å®é™…é«˜åº¦å±•ç¤ºï¼›
 
 	if (IsFreeLayout()) {
-		//Ê¹ÓÃ×ÔÓÉ²¼¾ÖÅÅÁĞ¿Ø¼ş(ÎŞ¹Ì¶¨ĞĞÊı£¬¾¡Á¿³ä·ÖÀûÓÃÕ¹Ê¾¿Õ¼ä£¬ÏÔÊ¾¾¡¿ÉÄÜ¶àµÄÄÚÈİ)
+		//ä½¿ç”¨è‡ªç”±å¸ƒå±€æ’åˆ—æ§ä»¶(æ— å›ºå®šè¡Œæ•°ï¼Œå°½é‡å……åˆ†åˆ©ç”¨å±•ç¤ºç©ºé—´ï¼Œæ˜¾ç¤ºå°½å¯èƒ½å¤šçš„å†…å®¹)
 		return ArrangeChildFreeLayout(items, rc, false);
 	}
 	else {
@@ -347,46 +347,46 @@ UiSize64 HTileLayout::ArrangeChildNormal(const std::vector<Control*>& items,
 										std::vector<int32_t>& outRowHeights) const
 {
 	ASSERT(!IsFreeLayout());
-	DeflatePadding(rect); //¼ôÈ¥ÄÚ±ß¾à£¬Ê£ÏÂµÄÊÇ¿ÉÓÃÇøÓò
+	DeflatePadding(rect); //å‰ªå»å†…è¾¹è·ï¼Œå‰©ä¸‹çš„æ˜¯å¯ç”¨åŒºåŸŸ
 	const UiRect& rc = rect;
 
-	//µ÷Õû¸¡¶¯¿Ø¼ş£¬¹ıÂËÒş²Ø¿Ø¼ş¡¢²»¿ÉÏÔÊ¾¿Ø¼şµÈ
-	//À­ÉìÀàĞÍµÄ×Ó¿Ø¼ş£ºÈç¹û(m_szItem.cx > 0) && (m_szItem.cy > 0) Îªtrue£¬Ôò¿ÉÒÔÏÔÊ¾£¬·ñÔò»á±»¹ıÂËµô
+	//è°ƒæ•´æµ®åŠ¨æ§ä»¶ï¼Œè¿‡æ»¤éšè—æ§ä»¶ã€ä¸å¯æ˜¾ç¤ºæ§ä»¶ç­‰
+	//æ‹‰ä¼¸ç±»å‹çš„å­æ§ä»¶ï¼šå¦‚æœ(m_szItem.cx > 0) && (m_szItem.cy > 0) ä¸ºtrueï¼Œåˆ™å¯ä»¥æ˜¾ç¤ºï¼Œå¦åˆ™ä¼šè¢«è¿‡æ»¤æ‰
 	std::vector<ItemSizeInfo> normalItems;
-	ArrangeFloatChild(items, rc, m_szItem, isCalcOnly, normalItems); //¸¡¶¯¿Ø¼şĞèÒªµÄ×Ü¿í¶ÈºÍ¸ß¶È
+	ArrangeFloatChild(items, rc, m_szItem, isCalcOnly, normalItems); //æµ®åŠ¨æ§ä»¶éœ€è¦çš„æ€»å®½åº¦å’Œé«˜åº¦
 
-	int32_t nRows = m_nRows;  //ĞĞÊı£¨ÉèÖÃÖµ£©
+	int32_t nRows = m_nRows;  //è¡Œæ•°ï¼ˆè®¾ç½®å€¼ï¼‰
 	if (m_bAutoCalcRows) {
-		//Èç¹û×Ô¶¯¼ÆËãÁĞÊı£¬ÔòÖØĞÂ¼ÆËãĞĞÊı
+		//å¦‚æœè‡ªåŠ¨è®¡ç®—åˆ—æ•°ï¼Œåˆ™é‡æ–°è®¡ç®—è¡Œæ•°
 		nRows = 0;
 	}
 	if (nRows <= 0) {
 		CalcTileRows(normalItems, rc, m_szItem.cy, GetChildMarginX(), GetChildMarginY(), nRows);
 	}
 	if (nRows < 1) {
-		//ÎŞ·¨¾«È·¼ÆËãÊ±£¬Ä¬ÈÏÖµÉèÖÃÎª1
+		//æ— æ³•ç²¾ç¡®è®¡ç®—æ—¶ï¼Œé»˜è®¤å€¼è®¾ç½®ä¸º1
 		nRows = 1;
 	}
 
-	//ÁĞ¿íÉèÖÃ, ¹Ì¶¨Öµ
+	//åˆ—å®½è®¾ç½®, å›ºå®šå€¼
 	std::vector<int32_t> fixedRowHeights = inRowHeights;
 	if (m_szItem.cy > 0) {
 		fixedRowHeights.clear();
 		fixedRowHeights.resize(nRows, m_szItem.cy);
 	}
 
-	int32_t cxColumnWidth = 0;         //Ã¿ÁĞ¿Ø¼ş£¨ÍßÆ¬£©µÄ¿í¶È£¨¶¯Ì¬¼ÆËãÖµ£©
+	int32_t cxColumnWidth = 0;         //æ¯åˆ—æ§ä»¶ï¼ˆç“¦ç‰‡ï¼‰çš„å®½åº¦ï¼ˆåŠ¨æ€è®¡ç®—å€¼ï¼‰
 
-	std::vector<int32_t> rowHeights;   //Ã¿ĞĞµÄ¸ß¶ÈÖµ£¬¼ÆËãÖµ
-	std::vector<int32_t> columnWidths; //Ã¿ÁĞµÄ¿í¶ÈÖµ£¬¼ÆËãÖµ
+	std::vector<int32_t> rowHeights;   //æ¯è¡Œçš„é«˜åº¦å€¼ï¼Œè®¡ç®—å€¼
+	std::vector<int32_t> columnWidths; //æ¯åˆ—çš„å®½åº¦å€¼ï¼Œè®¡ç®—å€¼
 	rowHeights.resize(nRows);
 	columnWidths.resize(1);
 
-	int32_t nColumnTileCount = 0;      //±¾ÁĞÈİÄÉµÄÍßÆ¬¿Ø¼ş¸öÊı
-	int32_t nColumnIndex = 0;          //µ±Ç°µÄÁĞºÅ
+	int32_t nColumnTileCount = 0;      //æœ¬åˆ—å®¹çº³çš„ç“¦ç‰‡æ§ä»¶ä¸ªæ•°
+	int32_t nColumnIndex = 0;          //å½“å‰çš„åˆ—å·
 
 	int32_t yPosTop = rc.top;
-	//¿Ø¼şÏÔÊ¾ÄÚÈİµÄÉÏ²à×ø±êÖµ(×İÏòÇøÓò¾ÓÖĞ¶ÔÆë)
+	//æ§ä»¶æ˜¾ç¤ºå†…å®¹çš„ä¸Šä¾§åæ ‡å€¼(çºµå‘åŒºåŸŸå±…ä¸­å¯¹é½)
 	if (!isCalcOnly && !fixedRowHeights.empty()) {
 		int32_t cyTotal = std::accumulate(fixedRowHeights.begin(), fixedRowHeights.end(), 0);
 		if (fixedRowHeights.size() > 1) {
@@ -397,32 +397,32 @@ UiSize64 HTileLayout::ArrangeChildNormal(const std::vector<Control*>& items,
 		}
 	}
 
-	UiPoint ptTile(rc.left, yPosTop);	//Ã¿¸ö¿Ø¼ş£¨ÍßÆ¬£©µÄ¶¥µã×ø±ê	
+	UiPoint ptTile(rc.left, yPosTop);	//æ¯ä¸ªæ§ä»¶ï¼ˆç“¦ç‰‡ï¼‰çš„é¡¶ç‚¹åæ ‡	
 	for( auto it = normalItems.begin(); it != normalItems.end(); ++it ) {
 		const ItemSizeInfo& itemSizeInfo = *it;
 		Control* pControl = itemSizeInfo.pControl;
 		if (nColumnTileCount == 0) {
-			//Ò»ÁĞµÄ¿ªÊ¼£¬¼ÆËãÕâÒ»ĞĞµÄ¸ß¶È
+			//ä¸€åˆ—çš„å¼€å§‹ï¼Œè®¡ç®—è¿™ä¸€è¡Œçš„é«˜åº¦
 			nColumnTileCount = nRows;
 			cxColumnWidth = CalcTileColumnWidth(normalItems, it, nRows, m_szItem);
-			ASSERT(cxColumnWidth > 0);//²»¿ÉÄÜÊÇÁã
+			ASSERT(cxColumnWidth > 0);//ä¸å¯èƒ½æ˜¯é›¶
 		}
 		
-		const int32_t rowIndex = nRows - nColumnTileCount;//µ±Ç°ÁĞÏÂ±ê[0, nRows)
-		int32_t fixedRowHeight = 0; //µ±Ç°´«ÈëµÄĞĞ¸ß¿í¶È, ¹Ì¶¨Öµ
+		const int32_t rowIndex = nRows - nColumnTileCount;//å½“å‰åˆ—ä¸‹æ ‡[0, nRows)
+		int32_t fixedRowHeight = 0; //å½“å‰ä¼ å…¥çš„è¡Œé«˜å®½åº¦, å›ºå®šå€¼
 		if (((int32_t)fixedRowHeights.size() == nRows) &&
 			(rowIndex < (int32_t)fixedRowHeights.size())) {
 			fixedRowHeight = fixedRowHeights[rowIndex];
 		}
 
-		//¼ÆËãµ±Ç°ÍßÆ¬¿Ø¼şµÄÎ»ÖÃ×ø±ê¡¢¿í¶È(cxWidth)ºÍ¸ß¶È(cyHeight)		
+		//è®¡ç®—å½“å‰ç“¦ç‰‡æ§ä»¶çš„ä½ç½®åæ ‡ã€å®½åº¦(cxWidth)å’Œé«˜åº¦(cyHeight)		
 		UiRect rcTilePos;
 
-		UiPoint posLeftTop = ptTile;         //¸Ã¿Ø¼şµÄ×óÉÏ½Ç×ø±êÖµ
-		int32_t posWidth = cxColumnWidth;    //¸Ã¿Ø¼şµÄ×î´ó¿ÉÓÃ¿í¶È
-		int32_t posHeight = fixedRowHeight;  //¸Ã¿Ø¼şµÄ×î´ó¿ÉÓÃ¸ß¶È
+		UiPoint posLeftTop = ptTile;         //è¯¥æ§ä»¶çš„å·¦ä¸Šè§’åæ ‡å€¼
+		int32_t posWidth = cxColumnWidth;    //è¯¥æ§ä»¶çš„æœ€å¤§å¯ç”¨å®½åº¦
+		int32_t posHeight = fixedRowHeight;  //è¯¥æ§ä»¶çš„æœ€å¤§å¯ç”¨é«˜åº¦
 		UiSize szTileSize = CalcTilePosition(itemSizeInfo, posWidth, posHeight,
-			                                 posLeftTop, m_bScaleDown, rcTilePos);//·µ»ØÖµ°üº¬ÁË¿Ø¼şµÄÍâ±ß¾à
+			                                 posLeftTop, m_bScaleDown, rcTilePos);//è¿”å›å€¼åŒ…å«äº†æ§ä»¶çš„å¤–è¾¹è·
 		
 		if (!isCalcOnly) {
 			pControl->SetPos(rcTilePos);
@@ -433,45 +433,45 @@ UiSize64 HTileLayout::ArrangeChildNormal(const std::vector<Control*>& items,
 			cyHeight = fixedRowHeight;
 		}
 
-		//¼ÆËã±¾ÁĞ¿í¶È×î´óÖµ£¬¿í¶ÈÖµĞèÒª°üº¬Íâ±ß¾à
+		//è®¡ç®—æœ¬åˆ—å®½åº¦æœ€å¤§å€¼ï¼Œå®½åº¦å€¼éœ€è¦åŒ…å«å¤–è¾¹è·
 		int32_t tileWidth = (m_szItem.cx > 0) ? m_szItem.cx : szTileSize.cx;
 		columnWidths[nColumnIndex] = std::max(tileWidth, columnWidths[nColumnIndex]);
 
 		--nColumnTileCount;
 		if(nColumnTileCount == 0 ) {
-			//»»ÁĞ
+			//æ¢åˆ—
 			columnWidths.push_back(0);
 			nColumnIndex = (int32_t)columnWidths.size() - 1;
 			
-			//ÖØĞÂÉèÖÃX×ø±êºÍY×ø±êµÄÎ»ÖÃ(ĞĞÊ×)
+			//é‡æ–°è®¾ç½®Xåæ ‡å’ŒYåæ ‡çš„ä½ç½®(è¡Œé¦–)
 			ptTile.x += cxColumnWidth + GetChildMarginX();
-			//YÖá×ø±êÇĞ»»µ½ÏÂÒ»ĞĞ£¬°´ĞĞ¸ßÇĞ»»
+			//Yè½´åæ ‡åˆ‡æ¢åˆ°ä¸‹ä¸€è¡Œï¼ŒæŒ‰è¡Œé«˜åˆ‡æ¢
 			ptTile.y = yPosTop;
 		}
 		else {
-			//Í¬Ò»ÁĞ£¬ÏòÏÂÇĞ»»×ø±ê£¬°´µ±Ç°ÍßÆ¬¿Ø¼şµÄ¿í¶ÈÇĞ»»
+			//åŒä¸€åˆ—ï¼Œå‘ä¸‹åˆ‡æ¢åæ ‡ï¼ŒæŒ‰å½“å‰ç“¦ç‰‡æ§ä»¶çš„å®½åº¦åˆ‡æ¢
 			ptTile.y += cyHeight + GetChildMarginY();
 		}		
-		//¼ÇÂ¼Ã¿ĞĞµÄ¸ß¶È£¨È¡ÕâÒ»ĞĞÖĞ£¬¿Ø¼ş¸ß¶ÈµÄ×î´óÖµ£¬°üº¬´Ë¿Ø¼şµÄÍâ±ß¾à£©
+		//è®°å½•æ¯è¡Œçš„é«˜åº¦ï¼ˆå–è¿™ä¸€è¡Œä¸­ï¼Œæ§ä»¶é«˜åº¦çš„æœ€å¤§å€¼ï¼ŒåŒ…å«æ­¤æ§ä»¶çš„å¤–è¾¹è·ï¼‰
 		if (rowIndex < (int32_t)rowHeights.size()) {
 			int32_t tileHeight = (m_szItem.cy > 0) ? m_szItem.cy : cyHeight;	
 			rowHeights[rowIndex] = std::max(tileHeight, rowHeights[rowIndex]);
 		}
 	}
 
-	//ÓÉÓÚÄÚ±ß¾àÒÑ¾­¼ôµô£¬¼ÆËã¿í¶ÈºÍ¸ß¶ÈµÄÊ±ºò£¬ĞèÒªËãÉÏÄÚ±ß¾à
+	//ç”±äºå†…è¾¹è·å·²ç»å‰ªæ‰ï¼Œè®¡ç®—å®½åº¦å’Œé«˜åº¦çš„æ—¶å€™ï¼Œéœ€è¦ç®—ä¸Šå†…è¾¹è·
 	UiPadding rcPadding;
 	if (GetOwner() != nullptr) {
 		rcPadding = GetOwner()->GetPadding();
 	}
-	//¼ÆËãËùĞè¿í¶È
+	//è®¡ç®—æ‰€éœ€å®½åº¦
 	int64_t cxNeeded = std::accumulate(columnWidths.begin(), columnWidths.end(), 0);
 	if (columnWidths.size() > 1) {
 		cxNeeded += (columnWidths.size() - 1) * GetChildMarginX();
 	}
 	cxNeeded += (rcPadding.left + rcPadding.right);
 
-	//¼ÆËãËùĞè¸ß¶È
+	//è®¡ç®—æ‰€éœ€é«˜åº¦
 	int64_t cyNeeded = std::accumulate(rowHeights.begin(), rowHeights.end(), 0);
 	if (rowHeights.size() > 1) {
 		cyNeeded += (rowHeights.size() - 1) * GetChildMarginY();
@@ -486,36 +486,36 @@ UiSize64 HTileLayout::ArrangeChildNormal(const std::vector<Control*>& items,
 UiSize64 HTileLayout::ArrangeChildFreeLayout(const std::vector<Control*>& items,
 											UiRect rect, bool isCalcOnly) const
 {
-	DeflatePadding(rect); //¼ôÈ¥ÄÚ±ß¾à£¬Ê£ÏÂµÄÊÇ¿ÉÓÃÇøÓò
+	DeflatePadding(rect); //å‰ªå»å†…è¾¹è·ï¼Œå‰©ä¸‹çš„æ˜¯å¯ç”¨åŒºåŸŸ
 	const UiRect& rc = rect;
 
-	//µ÷Õû¸¡¶¯¿Ø¼ş£¬¹ıÂËÒş²Ø¿Ø¼ş¡¢²»¿ÉÏÔÊ¾¿Ø¼şµÈ
-	//À­ÉìÀàĞÍµÄ×Ó¿Ø¼ş£ºÈç¹û(m_szItem.cx > 0) && (m_szItem.cy > 0) Îªtrue£¬Ôò¿ÉÒÔÏÔÊ¾£¬·ñÔò»á±»¹ıÂËµô
+	//è°ƒæ•´æµ®åŠ¨æ§ä»¶ï¼Œè¿‡æ»¤éšè—æ§ä»¶ã€ä¸å¯æ˜¾ç¤ºæ§ä»¶ç­‰
+	//æ‹‰ä¼¸ç±»å‹çš„å­æ§ä»¶ï¼šå¦‚æœ(m_szItem.cx > 0) && (m_szItem.cy > 0) ä¸ºtrueï¼Œåˆ™å¯ä»¥æ˜¾ç¤ºï¼Œå¦åˆ™ä¼šè¢«è¿‡æ»¤æ‰
 	std::vector<ItemSizeInfo> normalItems;
-	ArrangeFloatChild(items, rc, m_szItem, isCalcOnly, normalItems); //¸¡¶¯¿Ø¼şĞèÒªµÄ×Ü¿í¶ÈºÍ¸ß¶È
+	ArrangeFloatChild(items, rc, m_szItem, isCalcOnly, normalItems); //æµ®åŠ¨æ§ä»¶éœ€è¦çš„æ€»å®½åº¦å’Œé«˜åº¦
 
-	int64_t cxNeeded = 0;		//·Ç¸¡¶¯¿Ø¼şĞèÒªµÄ×Ü¿í¶È	
-	int64_t cyNeeded = 0;		//·Ç¸¡¶¯¿Ø¼şĞèÒªµÄ×Ü¸ß¶È
+	int64_t cxNeeded = 0;		//éæµ®åŠ¨æ§ä»¶éœ€è¦çš„æ€»å®½åº¦	
+	int64_t cyNeeded = 0;		//éæµ®åŠ¨æ§ä»¶éœ€è¦çš„æ€»é«˜åº¦
 
-	int32_t cxColumnWidth = 0;   //Ã¿ÁĞ¿Ø¼ş£¨ÍßÆ¬£©µÄ¿í¶È£¨¶¯Ì¬¼ÆËãÖµ£©
+	int32_t cxColumnWidth = 0;   //æ¯åˆ—æ§ä»¶ï¼ˆç“¦ç‰‡ï¼‰çš„å®½åº¦ï¼ˆåŠ¨æ€è®¡ç®—å€¼ï¼‰
 
-	const int32_t yPosTop = rc.top;         //¿Ø¼şÏÔÊ¾ÄÚÈİµÄÉÏ²à×ø±êÖµ£¬Ê¼ÖÕ²ÉÈ¡ÉÏ¶ÔÆë
-	UiPoint ptTile(rc.left, yPosTop); //Ã¿¸ö¿Ø¼ş£¨ÍßÆ¬£©µÄ¶¥µã×ø±ê
+	const int32_t yPosTop = rc.top;         //æ§ä»¶æ˜¾ç¤ºå†…å®¹çš„ä¸Šä¾§åæ ‡å€¼ï¼Œå§‹ç»ˆé‡‡å–ä¸Šå¯¹é½
+	UiPoint ptTile(rc.left, yPosTop); //æ¯ä¸ªæ§ä»¶ï¼ˆç“¦ç‰‡ï¼‰çš„é¡¶ç‚¹åæ ‡
 	const size_t itemCount = normalItems.size();
 	for (size_t index = 0; index < itemCount; ++index) {
 		const ItemSizeInfo& itemSizeInfo = normalItems[index];
 		Control* pControl = itemSizeInfo.pControl;
 
-		//¼ÆËãµ±Ç°ÍßÆ¬¿Ø¼şµÄÎ»ÖÃ×ø±ê¡¢¿í¶ÈºÍ¸ß¶È
+		//è®¡ç®—å½“å‰ç“¦ç‰‡æ§ä»¶çš„ä½ç½®åæ ‡ã€å®½åº¦å’Œé«˜åº¦
 		UiRect rcTilePos;
 		UiSize szTileSize = CalcTilePosition(itemSizeInfo, 0, 0,
 											 ptTile, m_bScaleDown, rcTilePos);
 		if (rcTilePos.bottom >= rc.bottom) {
-			//ÏÂ²àÒÑ¾­³¬¹ı±ß½ç, Èç¹û²»ÊÇ¿¿½ü×îÉÏ²à£¬ÔòÏÈ»»ÁĞ£¬ÔÙÏÔÊ¾
+			//ä¸‹ä¾§å·²ç»è¶…è¿‡è¾¹ç•Œ, å¦‚æœä¸æ˜¯é è¿‘æœ€ä¸Šä¾§ï¼Œåˆ™å…ˆæ¢åˆ—ï¼Œå†æ˜¾ç¤º
 			if (ptTile.y != yPosTop) {
-				//ÏÈ»»ÁĞ, È»ºóÔÙÏÔÊ¾
+				//å…ˆæ¢åˆ—, ç„¶åå†æ˜¾ç¤º
 				ptTile.y = yPosTop;
-				ptTile.x += cxColumnWidth + GetChildMarginX();//ÏÂÒ»ÁĞ			
+				ptTile.x += cxColumnWidth + GetChildMarginX();//ä¸‹ä¸€åˆ—			
 				cxColumnWidth = 0;
 
 				szTileSize = CalcTilePosition(itemSizeInfo, 0, 0,
@@ -530,24 +530,24 @@ UiSize64 HTileLayout::ArrangeChildFreeLayout(const std::vector<Control*>& items,
 		cxNeeded = std::max((int64_t)rcTilePos.right + rcMargin.right, cxNeeded);
 		cyNeeded = std::max((int64_t)rcTilePos.bottom + rcMargin.bottom, cyNeeded);
 
-		//¸üĞÂ¿Ø¼ş¿í¶ÈÖµºÍĞĞ¸ßÖµ
+		//æ›´æ–°æ§ä»¶å®½åº¦å€¼å’Œè¡Œé«˜å€¼
 		int32_t cyHeight = rcTilePos.Height() + rcMargin.top + rcMargin.bottom;
 		cxColumnWidth = std::max(rcTilePos.Width() + rcMargin.left + rcMargin.right, cxColumnWidth);
 
 		if (rcTilePos.bottom >= rc.bottom) {
-			//µ±Ç°¿Ø¼şÒÑ¾­³¬³ö±ß½ç£¬ĞèÒª»»ĞĞ
+			//å½“å‰æ§ä»¶å·²ç»è¶…å‡ºè¾¹ç•Œï¼Œéœ€è¦æ¢è¡Œ
 			ptTile.y = yPosTop;
-			ptTile.x += cxColumnWidth + GetChildMarginX();//ÏÂÒ»ÁĞ		
+			ptTile.x += cxColumnWidth + GetChildMarginX();//ä¸‹ä¸€åˆ—		
 			cxColumnWidth = 0;
 		}
 		else {
-			//²»»»ĞĞ£¬ÏòºóÇĞ»»×İ×ø±ê
+			//ä¸æ¢è¡Œï¼Œå‘ååˆ‡æ¢çºµåæ ‡
 			ptTile.y += cyHeight + GetChildMarginY();
 		}
 	}
 
-	//ÓÉÓÚÄÚ±ß¾àÒÑ¾­¼ôµô£¬¼ÆËã¿í¶ÈºÍ¸ß¶ÈµÄÊ±ºò£¬ĞèÒªËãÉÏÄÚ±ß¾à
-	//(Ö»ĞèÒªÔö¼ÓÓÒ²àºÍµ×²¿µÄÄÚ±ß¾à£¬ÒòÎª¼ÆËãµÄÊ±ºò£¬ÊÇ°´ÕÕ.rigthºÍ.bottom¼ÆËãµÄ)
+	//ç”±äºå†…è¾¹è·å·²ç»å‰ªæ‰ï¼Œè®¡ç®—å®½åº¦å’Œé«˜åº¦çš„æ—¶å€™ï¼Œéœ€è¦ç®—ä¸Šå†…è¾¹è·
+	//(åªéœ€è¦å¢åŠ å³ä¾§å’Œåº•éƒ¨çš„å†…è¾¹è·ï¼Œå› ä¸ºè®¡ç®—çš„æ—¶å€™ï¼Œæ˜¯æŒ‰ç…§.rigthå’Œ.bottomè®¡ç®—çš„)
 	UiPadding rcPadding;
 	if (GetOwner() != nullptr) {
 		rcPadding = GetOwner()->GetPadding();
@@ -556,7 +556,7 @@ UiSize64 HTileLayout::ArrangeChildFreeLayout(const std::vector<Control*>& items,
 	cyNeeded += rcPadding.bottom;
 
 	if (isCalcOnly) {
-		//·µ»ØµÄ¿í¶È£¬×î´ó²»³¬¹ıÍâ²ãÈİÆ÷µÄ¿Õ¼ä£¬ÒòÎª´Ë·µ»ØÖµ»á³ÉÎªÈİÆ÷×îÖÕµÄ¿í¶ÈÖµ
+		//è¿”å›çš„å®½åº¦ï¼Œæœ€å¤§ä¸è¶…è¿‡å¤–å±‚å®¹å™¨çš„ç©ºé—´ï¼Œå› ä¸ºæ­¤è¿”å›å€¼ä¼šæˆä¸ºå®¹å™¨æœ€ç»ˆçš„å®½åº¦å€¼
 		if (cyNeeded > (rect.Height())) {
 			cyNeeded = rect.Height();
 		}
@@ -593,7 +593,7 @@ bool HTileLayout::SetAttribute(const std::wstring& strName, const std::wstring& 
 	}
 	else if ((strName == L"columns") || (strName == L"rows")) {
 		if (strValue == L"auto") {
-			//×Ô¶¯¼ÆËãÁĞÊı
+			//è‡ªåŠ¨è®¡ç®—åˆ—æ•°
 			SetAutoCalcRows(true);
 		}
 		else {

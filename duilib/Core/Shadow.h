@@ -15,107 +15,107 @@ class Control;
 class Window;
 class DpiManager;
 
-/** ´°¿ÚÒõÓ°ÊôĞÔ
+/** çª—å£é˜´å½±å±æ€§
 */
 class UILIB_API Shadow
 {
 public:
-	/** AttachµÄBoxÔ²½ÇÊôĞÔ£¨Attachºó£¬ĞèÒªĞŞ¸ÄÔ­À´BoxµÄÔ²½ÇÊôĞÔ£©
-	* @param [in] pBox ¹ØÁªµÄÈİÆ÷£¬ÓÃÓÚ´¦ÀíDPIËõ·Å
+	/** Attachçš„Boxåœ†è§’å±æ€§ï¼ˆAttachåï¼Œéœ€è¦ä¿®æ”¹åŸæ¥Boxçš„åœ†è§’å±æ€§ï¼‰
+	* @param [in] pBox å…³è”çš„å®¹å™¨ï¼Œç”¨äºå¤„ç†DPIç¼©æ”¾
 	*/
 	static UiSize GetChildBoxBorderRound(Box* pBox);
 
 public:
-	/** ¹¹Ôìº¯Êı
-	 @param [in] pWindow ¹ØÁªµÄ´°¿Ú
+	/** æ„é€ å‡½æ•°
+	 @param [in] pWindow å…³è”çš„çª—å£
 	*/
 	explicit Shadow(Window* pWindow);
 
-	/** ÉèÖÃÊÇ·ñÖ§³ÖÒõÓ°Ğ§¹û
-	 * @param[in] bShadowAttached ÉèÖÃ true ÎªÖ§³ÖÒõÓ°Ğ§¹û£¬false Îª²»Ö§³ÖÒõÓ°Ğ§¹û
+	/** è®¾ç½®æ˜¯å¦æ”¯æŒé˜´å½±æ•ˆæœ
+	 * @param[in] bShadowAttached è®¾ç½® true ä¸ºæ”¯æŒé˜´å½±æ•ˆæœï¼Œfalse ä¸ºä¸æ”¯æŒé˜´å½±æ•ˆæœ
 	 */
 	void SetShadowAttached(bool bShadowAttached);
 
-	/** ÅĞ¶ÏÊÇ·ñÒÑ¾­Ö§³ÖÒõÓ°Ğ§¹û
+	/** åˆ¤æ–­æ˜¯å¦å·²ç»æ”¯æŒé˜´å½±æ•ˆæœ
 	 */
 	bool IsShadowAttached() const;
 
-	/** µ±Ç°ÒõÓ°Ğ§¹ûÖµ£¬ÊÇ·ñÎªÄ¬ÈÏÖµ
+	/** å½“å‰é˜´å½±æ•ˆæœå€¼ï¼Œæ˜¯å¦ä¸ºé»˜è®¤å€¼
 	*/
 	bool IsUseDefaultShadowAttached() const;
 
-	/** ÉèÖÃµ±Ç°ÒõÓ°Ğ§¹ûÖµ£¬ÊÇ·ñÎªÄ¬ÈÏÖµ
+	/** è®¾ç½®å½“å‰é˜´å½±æ•ˆæœå€¼ï¼Œæ˜¯å¦ä¸ºé»˜è®¤å€¼
 	*/
 	void SetUseDefaultShadowAttached(bool isDefault);
 
-	/** ÉèÖÃÒõÓ°µÄ¾Å¹¬¸ñÊôĞÔ
-	 * @param[in] rc ÒªÉèÖÃµÄ¾Å¹¬¸ñÊôĞÔ
-	 * @param[in] bNeedDpiScale Îª false ±íÊ¾²»ĞèÒª°Ñ rc ¸ù¾İ DPI ×Ô¶¯µ÷Õû
+	/** è®¾ç½®é˜´å½±çš„ä¹å®«æ ¼å±æ€§
+	 * @param[in] rc è¦è®¾ç½®çš„ä¹å®«æ ¼å±æ€§
+	 * @param[in] bNeedDpiScale ä¸º false è¡¨ç¤ºä¸éœ€è¦æŠŠ rc æ ¹æ® DPI è‡ªåŠ¨è°ƒæ•´
 	 */
 	void SetShadowCorner(const UiPadding&rc, bool bNeedDpiScale);
 
-	/** »ñÈ¡ÒõÓ°µÄ¾Å¹¬¸ñÊôĞÔ
+	/** è·å–é˜´å½±çš„ä¹å®«æ ¼å±æ€§
 	 */
 	UiPadding GetShadowCorner() const;
 
-	/** ÖØÖÃÎªÄ¬ÈÏÒõÓ°Ğ§¹û
+	/** é‡ç½®ä¸ºé»˜è®¤é˜´å½±æ•ˆæœ
 	*/
 	void ResetDefaultShadow();
 
-	/** ÉèÖÃÒõÓ°Í¼Æ¬ÊôĞÔ
+	/** è®¾ç½®é˜´å½±å›¾ç‰‡å±æ€§
 	 */
 	void SetShadowImage(const std::wstring& image);
 
-	/** »ñÈ¡ÒõÓ°Í¼Æ¬ÊôĞÔ
+	/** è·å–é˜´å½±å›¾ç‰‡å±æ€§
 	 */
 	const std::wstring& GetShadowImage() const;
 
-	/** ½«ÒõÓ°¸½¼Óµ½´°¿Ú
-	 * @param[in] pRoot ´°¿ÚµÄ¶¥²ãÈİÆ÷
+	/** å°†é˜´å½±é™„åŠ åˆ°çª—å£
+	 * @param[in] pRoot çª—å£çš„é¡¶å±‚å®¹å™¨
 	 */
 	Box* AttachShadow(Box* pRoot);
 
-	/** ÉèÖÃ´°¿Ú×î´ó»¯»¹ÊÇ»¹Ô­×´Ì¬
-	 * @param[in] isMaximized ÉèÖÃÎª true ±íÊ¾×î´ó»¯£¬false Îª»¹Ô­³õÊ¼×´Ì¬
+	/** è®¾ç½®çª—å£æœ€å¤§åŒ–è¿˜æ˜¯è¿˜åŸçŠ¶æ€
+	 * @param[in] isMaximized è®¾ç½®ä¸º true è¡¨ç¤ºæœ€å¤§åŒ–ï¼Œfalse ä¸ºè¿˜åŸåˆå§‹çŠ¶æ€
 	 */
 	void MaximizedOrRestored(bool isMaximized);
 
-	/** »ñÈ¡¸½¼ÓÒõÓ°ºóµÄÈİÆ÷Ö¸Õë
+	/** è·å–é™„åŠ é˜´å½±åçš„å®¹å™¨æŒ‡é’ˆ
 	 */
 	Control* GetRoot();
 
-	/** ÇåÀíÍ¼Æ¬»º´æ
+	/** æ¸…ç†å›¾ç‰‡ç¼“å­˜
 	 */
 	void ClearImageCache();
 
-	/** DPI·¢Éú±ä»¯£¬¸üĞÂ¿Ø¼ş´óĞ¡ºÍ²¼¾Ö
-	* @param [in] dpi DPI¹ÜÀíÆ÷
-	* @param [in] nOldDpiScale ¾ÉµÄDPIËõ·Å°Ù·Ö±È
-	* @param [in] nNewDpiScale ĞÂµÄDPIËõ·Å°Ù·Ö±È£¬ÓëDpi().GetScale()µÄÖµÒ»ÖÂ
+	/** DPIå‘ç”Ÿå˜åŒ–ï¼Œæ›´æ–°æ§ä»¶å¤§å°å’Œå¸ƒå±€
+	* @param [in] dpi DPIç®¡ç†å™¨
+	* @param [in] nOldDpiScale æ—§çš„DPIç¼©æ”¾ç™¾åˆ†æ¯”
+	* @param [in] nNewDpiScale æ–°çš„DPIç¼©æ”¾ç™¾åˆ†æ¯”ï¼Œä¸Dpi().GetScale()çš„å€¼ä¸€è‡´
 	*/
 	void ChangeDpiScale(const DpiManager& dpi, uint32_t nOldDpiScale, uint32_t nNewDpiScale);
 
 private:
-	//ÊÇ·ñÖ§³ÖÒõÓ°Ğ§¹û
+	//æ˜¯å¦æ”¯æŒé˜´å½±æ•ˆæœ
 	bool m_bShadowAttached;
 
-	//µ±Ç°ÒõÓ°Ğ§¹ûÖµ£¬ÊÇ·ñÎªÄ¬ÈÏÖµ
+	//å½“å‰é˜´å½±æ•ˆæœå€¼ï¼Œæ˜¯å¦ä¸ºé»˜è®¤å€¼
 	bool m_bUseDefaultShadowAttached;
 
-	//ÒõÓ°Í¼Æ¬ÊôĞÔ
+	//é˜´å½±å›¾ç‰‡å±æ€§
 	std::wstring m_strImage;
 
-	//µ±Ç°ÒõÓ°Í¼Æ¬ÊôĞÔ£¬ÊÇ·ñÎªÄ¬ÈÏÖµ
+	//å½“å‰é˜´å½±å›¾ç‰‡å±æ€§ï¼Œæ˜¯å¦ä¸ºé»˜è®¤å€¼
 	bool m_bUseDefaultImage;
 
-	//ÒõÓ°Ô²½ÇÊôĞÔ
+	//é˜´å½±åœ†è§’å±æ€§
 	UiPadding m_rcShadowCorner;
 	UiPadding m_rcShadowCornerBackup;
 
-	//RootÈİÆ÷½Ó¿Ú
+	//Rootå®¹å™¨æ¥å£
 	Box* m_pRoot;
 
-	//¹ØÁªµÄ´°¿Ú
+	//å…³è”çš„çª—å£
 	Window* m_pWindow;
 };
 

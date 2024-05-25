@@ -36,7 +36,7 @@ bool LangManager::LoadStringTable(const std::vector<uint8_t>& fileData)
 		(fileData.at(0) == 0xEF) &&
 		(fileData.at(1) == 0xBB) &&
 		(fileData.at(2) == 0xBF) ) {
-		//Ìø¹ýUTF8µÄBOMÍ·
+		//è·³è¿‡UTF8çš„BOMå¤´
 		bomSize = 3;
 	}
 	std::string fragment((const char*)fileData.data() + bomSize, fileData.size() - bomSize);
@@ -80,12 +80,12 @@ bool LangManager::AnalyzeStringTable(const std::vector<std::wstring>& list)
 	for (int i = 0; i < nCount; ++i) {
 		const std::wstring& strSrc = list[i];
 		if (strSrc.empty() || strSrc.at(0) == L';') {
-			//×¢ÊÍÒÔ";"¿ªÍ·
+			//æ³¨é‡Šä»¥";"å¼€å¤´
 			continue;
 		}
 		size_t pos = strSrc.find(L'=');
 		if (pos == std::wstring::npos) {
-			//ÎÞ·Ö¸ô·û£¬ºöÂÔ
+			//æ— åˆ†éš”ç¬¦ï¼Œå¿½ç•¥
 			continue;
 		}
 
@@ -96,7 +96,7 @@ bool LangManager::AnalyzeStringTable(const std::vector<std::wstring>& list)
 		if ((pos + 1) < strSrc.size()) {
 			strResource = strSrc.substr(pos + 1);
 			strResource = StringHelper::Trim(strResource);
-			//½«\nºÍ\rÌæ»»ÎªÕæÊµµÄ»»ÐÐ·û¡¢»Ø³µ·û
+			//å°†\nå’Œ\ræ›¿æ¢ä¸ºçœŸå®žçš„æ¢è¡Œç¬¦ã€å›žè½¦ç¬¦
 			StringHelper::ReplaceAll(L"\\r", L"\r", strResource);
 			StringHelper::ReplaceAll(L"\\n", L"\n", strResource);
 		}

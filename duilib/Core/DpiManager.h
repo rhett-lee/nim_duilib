@@ -9,14 +9,14 @@
 namespace ui
 {
 /** @class DpiManager
-* @brief DPIÊÊÅä¹ÜÀíÀà
+* @brief DPIé€‚é…ç®¡ç†ç±»
 * @copyright (c) 2016, NetEase Inc. All rights reserved
 * @author Redrain
 * @date 2016/10/10
 */
 class Window;
 
-/** DPI¸ĞÖª¹¦ÄÜµÄ½Ó¿Ú
+/** DPIæ„ŸçŸ¥åŠŸèƒ½çš„æ¥å£
 */
 class UILIB_API DpiManager
 {
@@ -27,32 +27,32 @@ public:
 	DpiManager& operator = (const DpiManager&) = delete;
 
 public:
-	/** ³õÊ¼»¯DPI¸ĞÖªÄ£Ê½ºÍDPIÖµ£¨¸Ãº¯ÊıÖ»¿Éµ÷ÓÃÒ»´Î£¬ºóĞøµ÷ÓÃ±»ºöÂÔ£©
-	* @param [in] dpiInitParam ³õÊ¼»¯²ÎÊı£¬Ïê¼û²ÎÊıËµÃ÷
+	/** åˆå§‹åŒ–DPIæ„ŸçŸ¥æ¨¡å¼å’ŒDPIå€¼ï¼ˆè¯¥å‡½æ•°åªå¯è°ƒç”¨ä¸€æ¬¡ï¼Œåç»­è°ƒç”¨è¢«å¿½ç•¥ï¼‰
+	* @param [in] dpiInitParam åˆå§‹åŒ–å‚æ•°ï¼Œè¯¦è§å‚æ•°è¯´æ˜
 	*/
 	void InitDpiAwareness(const DpiInitParam& dpiInitParam);
 
-	/** DPIÖµÊÇ·ñÎªÓÃ»§×Ô¶¨Òå
+	/** DPIå€¼æ˜¯å¦ä¸ºç”¨æˆ·è‡ªå®šä¹‰
 	*/
 	bool IsUserDefineDpi() const;
 
-	/** »ñÈ¡½ø³ÌµÄDPI¸ĞÖªÄ£Ê½
+	/** è·å–è¿›ç¨‹çš„DPIæ„ŸçŸ¥æ¨¡å¼
 	*/
 	DpiAwarenessMode GetDpiAwareness() const;
 
-	/** ÊÇ·ñDPIÎªÃ¿ÏÔÊ¾Æ÷Ä£Ê½
+	/** æ˜¯å¦DPIä¸ºæ¯æ˜¾ç¤ºå™¨æ¨¡å¼
 	*/
 	bool IsPerMonitorDpiAware() const;
 
-	/** ¸ù¾İ´°¿ÚµÄDPIÖµ£¬³õÊ¼»¯DPI¹ÜÀíÆ÷µÄDPIÖµ
-	    (Win10 ÒÔºó£¬Ã¿¸öÏÔÊ¾Æ÷¿ÉÒÔÓĞ²»Í¬µÄDPIÖµ£¬ËùÒÔ²»Í¬µÄ´°¿Ú¿ÉÄÜÓĞ²»Í¬µÄDPIÖµ)
-	 @param [in] pWindow ´°¿ÚµÄ½Ó¿Ú£¬Èç¹ûÎªnullptr£¬Ôò¶ÁÈ¡ÏµÍ³ÅäÖÃµÄDPIÖµ
+	/** æ ¹æ®çª—å£çš„DPIå€¼ï¼Œåˆå§‹åŒ–DPIç®¡ç†å™¨çš„DPIå€¼
+	    (Win10 ä»¥åï¼Œæ¯ä¸ªæ˜¾ç¤ºå™¨å¯ä»¥æœ‰ä¸åŒçš„DPIå€¼ï¼Œæ‰€ä»¥ä¸åŒçš„çª—å£å¯èƒ½æœ‰ä¸åŒçš„DPIå€¼)
+	 @param [in] pWindow çª—å£çš„æ¥å£ï¼Œå¦‚æœä¸ºnullptrï¼Œåˆ™è¯»å–ç³»ç»Ÿé…ç½®çš„DPIå€¼
 	*/
 	void SetDpiByWindow(Window* pWindow);
 
-	/** ÉèÖÃDPIÖµ£¬²¢¸üĞÂ½çÃæËõ·Å±È
-	*   DPIÖµ»áÓ°Ïì½çÃæËõ·Å±È£¬³£ÓÃµÄÖµ¹ØÏµÈçÏÂ£º
-	*   DPI Öµ    Ëõ·Å°Ù·Ö±È(ScaleÖµ)
+	/** è®¾ç½®DPIå€¼ï¼Œå¹¶æ›´æ–°ç•Œé¢ç¼©æ”¾æ¯”
+	*   DPIå€¼ä¼šå½±å“ç•Œé¢ç¼©æ”¾æ¯”ï¼Œå¸¸ç”¨çš„å€¼å…³ç³»å¦‚ä¸‹ï¼š
+	*   DPI å€¼    ç¼©æ”¾ç™¾åˆ†æ¯”(Scaleå€¼)
 	* ---------------------------------------------
 	*   96        100%
 	*   120       125%
@@ -63,34 +63,34 @@ public:
 	*   240       250%
 	*   288       300%
 	* ---------------------------------------------
-	* DPIÓëËõ·Å°Ù·Ö±ÈµÄ¹ØÏµ£ºDPI = Ëõ·Å°Ù·Ö±È * 96
-	*                     ½á¹û±£ÁôÕûÊı£¬ËÄÉáÎåÈë
-	* Ê¾Àı£º
-	*     µ±Ëõ·Å±ÈÀıÎª150%Ê±£¬DPI = 150% * 96 = 144
+	* DPIä¸ç¼©æ”¾ç™¾åˆ†æ¯”çš„å…³ç³»ï¼šDPI = ç¼©æ”¾ç™¾åˆ†æ¯” * 96
+	*                     ç»“æœä¿ç•™æ•´æ•°ï¼Œå››èˆäº”å…¥
+	* ç¤ºä¾‹ï¼š
+	*     å½“ç¼©æ”¾æ¯”ä¾‹ä¸º150%æ—¶ï¼ŒDPI = 150% * 96 = 144
 	* ---------------------------------------------
-	* @param [in] uDPI DPIÖµ£¬Èç¹ûÉèÖÃÎª96£¬Ôò´ú±í½çÃæÎŞËõ·Å
+	* @param [in] uDPI DPIå€¼ï¼Œå¦‚æœè®¾ç½®ä¸º96ï¼Œåˆ™ä»£è¡¨ç•Œé¢æ— ç¼©æ”¾
 	*/
 	void SetDPI(uint32_t uDPI);
 
 public:
-	/** »ñÈ¡DPIÖµ
+	/** è·å–DPIå€¼
 	*/
 	uint32_t GetDPI() const;
 
-	/** »ñÈ¡µ±Ç°½çÃæËõ·ÅËõ·Å°Ù·Ö±È£¨¾ÙÀı£º100´ú±íËõ·Å°Ù·Ö±ÈÎª100%£¬ÎŞËõ·Å£©
-	* @return Ëõ·Å±È£¬±ÈÈç£ºÈç¹û·µ»ØËõ·Å±ÈÎª125£¬´ú±í½çÃæËõ·Å°Ù·Ö±ÈÎª125%£¬Æä¶ÔÓ¦µÄDPIÖµÊÇ120
+	/** è·å–å½“å‰ç•Œé¢ç¼©æ”¾ç¼©æ”¾ç™¾åˆ†æ¯”ï¼ˆä¸¾ä¾‹ï¼š100ä»£è¡¨ç¼©æ”¾ç™¾åˆ†æ¯”ä¸º100%ï¼Œæ— ç¼©æ”¾ï¼‰
+	* @return ç¼©æ”¾æ¯”ï¼Œæ¯”å¦‚ï¼šå¦‚æœè¿”å›ç¼©æ”¾æ¯”ä¸º125ï¼Œä»£è¡¨ç•Œé¢ç¼©æ”¾ç™¾åˆ†æ¯”ä¸º125%ï¼Œå…¶å¯¹åº”çš„DPIå€¼æ˜¯120
 	*/
 	uint32_t GetScale() const;
 
-	/** µ±Ç°½çÃæÊÇ·ñÓĞDPIËõ·Å
-	* @return Èç¹ûµ±Ç°½çÃæËõ·Å°Ù·Ö±ÈÎª100·µ»Øfalse£¬·ñÔò·µ»Øtrue
+	/** å½“å‰ç•Œé¢æ˜¯å¦æœ‰DPIç¼©æ”¾
+	* @return å¦‚æœå½“å‰ç•Œé¢ç¼©æ”¾ç™¾åˆ†æ¯”ä¸º100è¿”å›falseï¼Œå¦åˆ™è¿”å›true
 	*/
 	bool IsScaled() const;
 
 public:
-	/** ¸ù¾İ½çÃæËõ·Å±ÈÀ´Ëõ·ÅÕûÊı
-	* @param[in] iValue ÕûÊı
-	* @return int Ëõ·ÅºóµÄÖµ
+	/** æ ¹æ®ç•Œé¢ç¼©æ”¾æ¯”æ¥ç¼©æ”¾æ•´æ•°
+	* @param[in] iValue æ•´æ•°
+	* @return int ç¼©æ”¾åçš„å€¼
 	*/
 	int32_t ScaleInt(int32_t& iValue) const;
 	int32_t GetScaleInt(int32_t iValue) const;
@@ -99,8 +99,8 @@ public:
 	int32_t GetScaleInt(int32_t iValue, uint32_t nOldDpiScale) const;
 	uint32_t GetScaleInt(uint32_t iValue, uint32_t nOldDpiScale) const;
 
-	/** ¸ù¾İ½çÃæËõ·Å±ÈÀ´Ëõ·ÅSIZE
-	* @param[in] size ĞèÒªËõ·ÅµÄSizeÒıÓÃ
+	/** æ ¹æ®ç•Œé¢ç¼©æ”¾æ¯”æ¥ç¼©æ”¾SIZE
+	* @param[in] size éœ€è¦ç¼©æ”¾çš„Sizeå¼•ç”¨
 	*/
 	void ScaleSize(SIZE& size) const;
 	void ScaleSize(UiSize& size) const;
@@ -108,17 +108,17 @@ public:
 
 	UiSize GetScaleSize(UiSize size, uint32_t nOldDpiScale) const;
 
-	/** ¸ù¾İ½çÃæËõ·Å±ÈÀ´Ëõ·ÅPOINT
-	* @param[in] point ĞèÒªËõ·ÅµÄpointÒıÓÃ
+	/** æ ¹æ®ç•Œé¢ç¼©æ”¾æ¯”æ¥ç¼©æ”¾POINT
+	* @param[in] point éœ€è¦ç¼©æ”¾çš„pointå¼•ç”¨
 	*/
 	void ScalePoint(POINT& point) const;
 	void ScalePoint(UiPoint& point) const;
 
 	UiPoint GetScalePoint(UiPoint point, uint32_t nOldDpiScale) const;
 
-	/** ¸ù¾İ½çÃæËõ·Å±ÈÀ´Ëõ·ÅRECT
-	* @param[in] rect ĞèÒªËõ·ÅµÄrectÒıÓÃ
-	* @return void	ÎŞ·µ»ØÖµ
+	/** æ ¹æ®ç•Œé¢ç¼©æ”¾æ¯”æ¥ç¼©æ”¾RECT
+	* @param[in] rect éœ€è¦ç¼©æ”¾çš„rectå¼•ç”¨
+	* @return void	æ— è¿”å›å€¼
 	*/
 	void ScaleRect(RECT& rect) const;
 	void ScaleRect(UiRect& rect) const;
@@ -130,33 +130,33 @@ public:
 	UiMargin GetScaleMargin(UiMargin margin, uint32_t nOldDpiScale) const;
 
 private:
-	/** »ñÈ¡Ö÷ÏÔÊ¾Æ÷DPI£¬¿ªÆôDPI¸ĞÖªºóÓĞĞ§
-	* @return ·µ»Ø DPIÖµ
+	/** è·å–ä¸»æ˜¾ç¤ºå™¨DPIï¼Œå¼€å¯DPIæ„ŸçŸ¥åæœ‰æ•ˆ
+	* @return è¿”å› DPIå€¼
 	*/
 	uint32_t GetMainMonitorDPI();
 
-	/** MulDiv º¯Êı·â×°
+	/** MulDiv å‡½æ•°å°è£…
 	*/
 	int32_t MulDiv(int32_t nNumber, int32_t nNumerator, int32_t nDenominator) const;
 
 private:
-	/** ÊÇ·ñÒÑ¾­³õÊ¼»¯¹ı
+	/** æ˜¯å¦å·²ç»åˆå§‹åŒ–è¿‡
 	*/
 	bool m_bDpiInited;
 
-	/** µ±Ç°½ø³ÌµÄDPI¸ĞÖªÄ£Ê½
+	/** å½“å‰è¿›ç¨‹çš„DPIæ„ŸçŸ¥æ¨¡å¼
 	*/
 	DpiAwarenessMode m_dpiAwarenessMode;
 
-	/** DPIÖµÊÇ·ñÎªÓÃ»§×Ô¶¨Òå
+	/** DPIå€¼æ˜¯å¦ä¸ºç”¨æˆ·è‡ªå®šä¹‰
 	*/
 	bool m_bUserDefineDpi;
 
-	/** µ±Ç°µÄDPIÖµ
+	/** å½“å‰çš„DPIå€¼
 	*/
 	uint32_t m_uDpi;
 
-	/** DPIËõ·ÅÒò×Ó£¬100±íÊ¾ÎŞËõ·Å
+	/** DPIç¼©æ”¾å› å­ï¼Œ100è¡¨ç¤ºæ— ç¼©æ”¾
 	*/
 	uint32_t m_nScaleFactor;
 };

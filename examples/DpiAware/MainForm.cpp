@@ -29,13 +29,13 @@ std::wstring MainForm::GetWindowClassName() const
 
 void MainForm::OnInitWindow()
 {
-    //´°¿Ú³õÊ¼»¯Íê³É£¬¿ÉÒÔ½øĞĞ±¾FormµÄ³õÊ¼»¯
+    //çª—å£åˆå§‹åŒ–å®Œæˆï¼Œå¯ä»¥è¿›è¡Œæœ¬Formçš„åˆå§‹åŒ–
     UpdateUI();
 
     ui::Button* pButton = dynamic_cast<ui::Button*>(FindControl(L"NewWindow"));
     if (pButton != nullptr) {
         pButton->AttachClick([this](const ui::EventArgs& /*args*/) {
-            //µ¯³öÒ»¸öĞÂ´°¿Ú
+            //å¼¹å‡ºä¸€ä¸ªæ–°çª—å£
             class MainForm2 : public MainForm
             {
             public:
@@ -53,7 +53,7 @@ void MainForm::OnInitWindow()
     pButton = dynamic_cast<ui::Button*>(FindControl(L"SetDPI"));
     if (pButton != nullptr) {
         pButton->AttachClick([this](const ui::EventArgs& /*args*/) {
-            //ĞŞ¸ÄDPIÖµ
+            //ä¿®æ”¹DPIå€¼
             ui::RichEdit* pRichEdit = dynamic_cast<ui::RichEdit*>(FindControl(L"DPI"));
             if (pRichEdit != nullptr) {
                 int32_t nNewDpi = _wtoi(pRichEdit->GetText().c_str());
@@ -69,7 +69,7 @@ void MainForm::OnInitWindow()
 
 void MainForm::OnCloseWindow()
 {
-    //¹Ø±Õ´°¿Úºó£¬ÍË³öÖ÷Ïß³ÌµÄÏûÏ¢Ñ­»·£¬¹Ø±Õ³ÌĞò
+    //å…³é—­çª—å£åï¼Œé€€å‡ºä¸»çº¿ç¨‹çš„æ¶ˆæ¯å¾ªç¯ï¼Œå…³é—­ç¨‹åº
     PostQuitMessage(0L);
 }
 

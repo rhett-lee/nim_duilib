@@ -55,7 +55,7 @@ void IPAddress::OnInit()
     for (size_t index = 0; index < m_editList.size(); ++index) {
         RichEdit* pRichEdit = m_editList[index];
         pRichEdit->AttachReturn([this, index](const EventArgs& /*args*/) {
-            //»Ø³µºó£¬ÇĞ»»µ½ÏÂÒ»¸ö±à¼­¿ò£¬²¢ÇÒÑ­»·
+            //å›è½¦åï¼Œåˆ‡æ¢åˆ°ä¸‹ä¸€ä¸ªç¼–è¾‘æ¡†ï¼Œå¹¶ä¸”å¾ªç¯
             if (index < m_editList.size()) {
                 if (index == (m_editList.size() - 1)) {
                     m_editList[0]->SetFocus();
@@ -167,7 +167,7 @@ void IPAddress::SendEvent(const EventArgs& msg)
     if ((msg.pSender == this) && (msg.Type == kEventKillFocus)) {
         Control* pNewFocus = (Control*)msg.wParam;
         if (std::find(m_editList.begin(), m_editList.end(), pNewFocus) != m_editList.end()) {
-            //½¹µãÇĞ»»µ½±à¼­¿ò£¬²»·¢³öKillFocusÊÂ¼ş
+            //ç„¦ç‚¹åˆ‡æ¢åˆ°ç¼–è¾‘æ¡†ï¼Œä¸å‘å‡ºKillFocusäº‹ä»¶
             return;
         }
     }
@@ -183,7 +183,7 @@ void IPAddress::OnKillFocusEvent(RichEdit* pRichEdit, Control* pNewFocus)
     if (std::find(m_editList.begin(), m_editList.end(), pNewFocus) != m_editList.end()) {
         return;
     }
-    //½¹µã×ªÒÆµ½ÆäËûµÄ¿Ø¼ş£¬·¢³öKillFocusÊÂ¼ş
+    //ç„¦ç‚¹è½¬ç§»åˆ°å…¶ä»–çš„æ§ä»¶ï¼Œå‘å‡ºKillFocusäº‹ä»¶
     SendEvent(kEventKillFocus);
 }
 

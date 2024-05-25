@@ -18,18 +18,18 @@ void MainThread::Init()
 	::OleInitialize(NULL);
 	nbase::ThreadManager::RegisterThread(kThreadUI);
 
-	//Æô¶¯¹¤×÷Ïß³Ì
+	//å¯åŠ¨å·¥ä½œçº¿ç¨‹
 	m_workerThread.reset(new WorkerThread(kThreadWorker, "WorkerThread"));
 	m_workerThread->Start();
 
-	//³õÊ¼»¯È«¾Ö×ÊÔ´, Ê¹ÓÃ±¾µØÎÄ¼þ¼Ð×÷Îª×ÊÔ´
+	//åˆå§‹åŒ–å…¨å±€èµ„æº, ä½¿ç”¨æœ¬åœ°æ–‡ä»¶å¤¹ä½œä¸ºèµ„æº
 	std::wstring resourcePath = nbase::win32::GetCurrentModuleDirectory();
 	resourcePath += L"resources\\";
 	ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath));
 
-	//´´½¨Ö÷´°¿Ú
+	//åˆ›å»ºä¸»çª—å£
 	MainForm* pWindow = new MainForm();
-	pWindow->CreateWnd(NULL, L"ListCtrl¿Ø¼þ²âÊÔ³ÌÐò", UI_WNDSTYLE_FRAME, WS_EX_LAYERED);
+	pWindow->CreateWnd(NULL, L"ListCtrlæŽ§ä»¶æµ‹è¯•ç¨‹åº", UI_WNDSTYLE_FRAME, WS_EX_LAYERED);
 	pWindow->SetIcon(IDI_LISTCTRL);
 	pWindow->CenterWindow();
 	pWindow->ShowWindow();

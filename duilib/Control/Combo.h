@@ -9,7 +9,7 @@
 
 namespace ui 
 {
-/** ×éºÏ¿ò¿Ø¼ş
+/** ç»„åˆæ¡†æ§ä»¶
 */
 class UILIB_API Combo : public Box
 {
@@ -20,15 +20,15 @@ public:
 	Combo& operator=(const Combo& r) = delete;
 	virtual ~Combo();
 
-	/// ÖØĞ´¸¸Àà·½·¨£¬Ìá¹©¸öĞÔ»¯¹¦ÄÜ£¬Çë²Î¿¼¸¸ÀàÉùÃ÷
+	/// é‡å†™çˆ¶ç±»æ–¹æ³•ï¼Œæä¾›ä¸ªæ€§åŒ–åŠŸèƒ½ï¼Œè¯·å‚è€ƒçˆ¶ç±»å£°æ˜
 	virtual std::wstring GetType() const override;
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 	virtual bool CanPlaceCaptionBar() const override;
 	virtual std::wstring GetBorderColor(ControlStateType stateType) const override;
 
-	/** DPI·¢Éú±ä»¯£¬¸üĞÂ¿Ø¼ş´óĞ¡ºÍ²¼¾Ö
-	* @param [in] nOldDpiScale ¾ÉµÄDPIËõ·Å°Ù·Ö±È
-	* @param [in] nNewDpiScale ĞÂµÄDPIËõ·Å°Ù·Ö±È£¬ÓëDpi().GetScale()µÄÖµÒ»ÖÂ
+	/** DPIå‘ç”Ÿå˜åŒ–ï¼Œæ›´æ–°æ§ä»¶å¤§å°å’Œå¸ƒå±€
+	* @param [in] nOldDpiScale æ—§çš„DPIç¼©æ”¾ç™¾åˆ†æ¯”
+	* @param [in] nNewDpiScale æ–°çš„DPIç¼©æ”¾ç™¾åˆ†æ¯”ï¼Œä¸Dpi().GetScale()çš„å€¼ä¸€è‡´
 	*/
 	virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override;
 
@@ -36,334 +36,334 @@ protected:
 	virtual void OnInit() override;
 
 public:
-	/** ComboÀàĞÍ
+	/** Comboç±»å‹
 	*/
 	enum ComboType
 	{
-		//ÏÂÀ­ÁĞ±í, ²»¿É±à¼­ÊäÈë
+		//ä¸‹æ‹‰åˆ—è¡¨, ä¸å¯ç¼–è¾‘è¾“å…¥
 		kCombo_DropList = 0,
 
-		//±à¼­ÁĞ±í£¬¿É±à¼­ÊäÈë
+		//ç¼–è¾‘åˆ—è¡¨ï¼Œå¯ç¼–è¾‘è¾“å…¥
 		kCombo_DropDown = 1
 	};
 
-	/** ÉèÖÃComboÀàĞÍ
+	/** è®¾ç½®Comboç±»å‹
 	*/
 	void SetComboType(ComboType comboType);
 
-	/** »ñÈ¡ComboÀàĞÍ
+	/** è·å–Comboç±»å‹
 	*/
 	ComboType GetComboType() const;
 
-	/** »ñÈ¡ÏÂÀ­¿òÁĞ±í´óĞ¡(¿í¶ÈºÍ¸ß¶È)
+	/** è·å–ä¸‹æ‹‰æ¡†åˆ—è¡¨å¤§å°(å®½åº¦å’Œé«˜åº¦)
 	*/
 	const UiSize& GetDropBoxSize() const;
 
-	/** ÉèÖÃÏÂÀ­¿òÁĞ±í´óĞ¡(¿í¶ÈºÍ¸ß¶È)
-	 * @param [in] szDropBox ÒªÉèÖÃµÄ´óĞ¡ĞÅÏ¢
-	 * @param [in] bNeedScaleDpi ÊÇ·ñĞèÒª×öDPI×ÔÊÊÓ¦
+	/** è®¾ç½®ä¸‹æ‹‰æ¡†åˆ—è¡¨å¤§å°(å®½åº¦å’Œé«˜åº¦)
+	 * @param [in] szDropBox è¦è®¾ç½®çš„å¤§å°ä¿¡æ¯
+	 * @param [in] bNeedScaleDpi æ˜¯å¦éœ€è¦åšDPIè‡ªé€‚åº”
 	 */
 	void SetDropBoxSize(UiSize szDropBox, bool bNeedScaleDpi);
 
-	/** ÉèÖÃ Combobox ÊÇ·ñÏòÉÏµ¯³ö
-	 * @param[in] top Îª true ÔòÏòÉÏµ¯³ö£¬false ÎªÄ¬ÈÏÏòÏÂµ¯³ö
+	/** è®¾ç½® Combobox æ˜¯å¦å‘ä¸Šå¼¹å‡º
+	 * @param[in] top ä¸º true åˆ™å‘ä¸Šå¼¹å‡ºï¼Œfalse ä¸ºé»˜è®¤å‘ä¸‹å¼¹å‡º
 	 */
 	void SetPopupTop(bool top) { m_bPopupTop = top; }
 
-	/** ÅĞ¶Ï Combobox µ¯³öÄ£Ê½ÊÇ·ñÊÇÏòÉÏµ¯³ö
-	 * @return ·µ»Ø true ±íÊ¾ÏòÉÏµ¯³ö£¬·ñÔòÎª false
+	/** åˆ¤æ–­ Combobox å¼¹å‡ºæ¨¡å¼æ˜¯å¦æ˜¯å‘ä¸Šå¼¹å‡º
+	 * @return è¿”å› true è¡¨ç¤ºå‘ä¸Šå¼¹å‡ºï¼Œå¦åˆ™ä¸º false
 	 */
 	bool IsPopupTop() const { return m_bPopupTop; }
 
-	/** ÉèÖÃÏÂÀ­±íTreeViewµÄClassÊôĞÔ
+	/** è®¾ç½®ä¸‹æ‹‰è¡¨TreeViewçš„Classå±æ€§
 	*/
 	void SetComboTreeClass(const std::wstring& classValue);
 
-	/** ÉèÖÃÏÂÀ­±íTreeViewµÄ½ÚµãClassÊôĞÔ
+	/** è®¾ç½®ä¸‹æ‹‰è¡¨TreeViewçš„èŠ‚ç‚¹Classå±æ€§
 	*/
 	void SetComboTreeNodeClass(const std::wstring& classValue);
 
-	/** ÉèÖÃÏÔÊ¾Í¼±êµÄClassÊôĞÔ
+	/** è®¾ç½®æ˜¾ç¤ºå›¾æ ‡çš„Classå±æ€§
 	*/
 	void SetIconControlClass(const std::wstring& classValue);
 
-	/** ÉèÖÃ±à¼­¿Ø¼şµÄClassÊôĞÔ
+	/** è®¾ç½®ç¼–è¾‘æ§ä»¶çš„Classå±æ€§
 	*/
 	void SetEditControlClass(const std::wstring& classValue);
 
-	/** ÉèÖÃ°´Å¥¿Ø¼şµÄClassÊôĞÔ
+	/** è®¾ç½®æŒ‰é’®æ§ä»¶çš„Classå±æ€§
 	*/
 	void SetButtonControlClass(const std::wstring& classValue);
 
 public:
-	/** »ñÈ¡ComboÁĞ±íÖĞµÄ×ÓÏî¸öÊı
+	/** è·å–Comboåˆ—è¡¨ä¸­çš„å­é¡¹ä¸ªæ•°
 	*/
 	size_t GetCount() const;
 
-	/** »ñÈ¡µ±Ç°Ñ¡ÔñÏîË÷Òı
-	 * @return ·µ»Øµ±Ç°Ñ¡ÔñÏîË÷Òı, (Èç¹ûÎŞÓĞĞ§Ë÷Òı£¬Ôò·µ»ØBox::InvalidIndex)
+	/** è·å–å½“å‰é€‰æ‹©é¡¹ç´¢å¼•
+	 * @return è¿”å›å½“å‰é€‰æ‹©é¡¹ç´¢å¼•, (å¦‚æœæ— æœ‰æ•ˆç´¢å¼•ï¼Œåˆ™è¿”å›Box::InvalidIndex)
 	 */
 	size_t GetCurSel() const;
 
-	/** Ñ¡ÔñÒ»¸ö×ÓÏî, ²»´¥·¢Ñ¡ÔñÊÂ¼ş
-	 * @param[in] iIndex ÒªÑ¡ÔñµÄ×ÓÏîË÷Òı
-	 * @return ·µ»Ø true ±íÊ¾³É¹¦£¬·ñÔòÎª false
+	/** é€‰æ‹©ä¸€ä¸ªå­é¡¹, ä¸è§¦å‘é€‰æ‹©äº‹ä»¶
+	 * @param[in] iIndex è¦é€‰æ‹©çš„å­é¡¹ç´¢å¼•
+	 * @return è¿”å› true è¡¨ç¤ºæˆåŠŸï¼Œå¦åˆ™ä¸º false
 	 */
 	bool SetCurSel(size_t iIndex);
 
-	/** »ñÈ¡×ÓÏî¹ØÁªµÄÊı¾İ
-	* @param [in] iIndex ×ÓÏîË÷ÒıºÅ
-	* @return ·µ»Ø¸ÃË÷ÒıºÅ¹ØÁªµÄÊı¾İ
+	/** è·å–å­é¡¹å…³è”çš„æ•°æ®
+	* @param [in] iIndex å­é¡¹ç´¢å¼•å·
+	* @return è¿”å›è¯¥ç´¢å¼•å·å…³è”çš„æ•°æ®
 	*/
 	size_t GetItemData(size_t iIndex) const;
 
-	/** ÉèÖÃ×ÓÏî¹ØÁªµÄÊı¾İ
-	* @param [in] iIndex ×ÓÏîË÷ÒıºÅ
-	* @param [in] itemData ĞèÒª±£´æµÄÊı¾İ
+	/** è®¾ç½®å­é¡¹å…³è”çš„æ•°æ®
+	* @param [in] iIndex å­é¡¹ç´¢å¼•å·
+	* @param [in] itemData éœ€è¦ä¿å­˜çš„æ•°æ®
 	*/
 	bool SetItemData(size_t iIndex, size_t itemData);
 
-	/** »ñÈ¡×ÓÏîµÄÎÄ±¾
-	* @param [in] iIndex ×ÓÏîË÷ÒıºÅ
+	/** è·å–å­é¡¹çš„æ–‡æœ¬
+	* @param [in] iIndex å­é¡¹ç´¢å¼•å·
 	*/
 	std::wstring GetItemText(size_t iIndex) const;
 
-	/** ÉèÖÃ×ÓÏîµÄÎÄ±¾
-	* @param [in] iIndex ×ÓÏîË÷ÒıºÅ
-	* @param [in] itemText ×ÓÏîµÄÎÄ±¾ÄÚÈİ
+	/** è®¾ç½®å­é¡¹çš„æ–‡æœ¬
+	* @param [in] iIndex å­é¡¹ç´¢å¼•å·
+	* @param [in] itemText å­é¡¹çš„æ–‡æœ¬å†…å®¹
 	*/
 	bool SetItemText(size_t iIndex, const std::wstring& itemText);
 
-	/** Ìí¼ÓÒ»¸ö×ÓÏî×Ö·û´®
-	* @param [in] itemText ×ÓÏîµÄÎÄ±¾ÄÚÈİ
-	* @return ·µ»ØĞÂÌí¼ÓµÄ×ÓÏîË÷ÒıºÅ
+	/** æ·»åŠ ä¸€ä¸ªå­é¡¹å­—ç¬¦ä¸²
+	* @param [in] itemText å­é¡¹çš„æ–‡æœ¬å†…å®¹
+	* @return è¿”å›æ–°æ·»åŠ çš„å­é¡¹ç´¢å¼•å·
 	*/
 	size_t AddTextItem(const std::wstring& itemText);
 
-	/** ÔÚÖ¸¶¨Ë÷ÒıºÅÎ»ÖÃ, ²åÈëÒ»¸ö×ÓÏî×Ö·û´®, ·µ»ØĞÂÌí¼ÓµÄ×ÓÏîË÷ÒıºÅ
-	* @param [in] iIndex ×ÓÏîË÷ÒıºÅ
-	* @param [in] itemText ×ÓÏîµÄÎÄ±¾ÄÚÈİ
+	/** åœ¨æŒ‡å®šç´¢å¼•å·ä½ç½®, æ’å…¥ä¸€ä¸ªå­é¡¹å­—ç¬¦ä¸², è¿”å›æ–°æ·»åŠ çš„å­é¡¹ç´¢å¼•å·
+	* @param [in] iIndex å­é¡¹ç´¢å¼•å·
+	* @param [in] itemText å­é¡¹çš„æ–‡æœ¬å†…å®¹
 	*/
 	size_t InsertTextItem(size_t iIndex, const std::wstring& itemText);
 
-	/** É¾³ıÒ»¸ö×ÓÏî
-	* @param [in] iIndex ×ÓÏîË÷ÒıºÅ
+	/** åˆ é™¤ä¸€ä¸ªå­é¡¹
+	* @param [in] iIndex å­é¡¹ç´¢å¼•å·
 	*/
 	bool DeleteItem(size_t iIndex);
 
-	/** ÒÆ³ıËùÓĞ×Ó½Úµã
+	/** ç§»é™¤æ‰€æœ‰å­èŠ‚ç‚¹
 	 */
 	void DeleteAllItems();
 
-	/** Ñ¡ÔñÆ¥ÅäµÄÎÄ±¾ÏîÄ¿
-	* @param [in] itemText ×ÓÏîµÄÎÄ±¾ÄÚÈİ
-	* @param [in] bTriggerEvent bTriggerEvent ÊÇ·ñ´¥·¢Ñ¡ÔñÊÂ¼ş, Èç¹ûÎªtrue£¬»á´¥·¢Ò»¸ökEventSelectÊÂ¼ş
-	* @return ·µ»Ø¸ÃÑ¡ÖĞÏîµÄË÷ÒıºÅ£¬Èç¹ûÎ´ÄÜÑ¡ÖĞ£¬Ôò·µ»ØBox::InvalidIndex
+	/** é€‰æ‹©åŒ¹é…çš„æ–‡æœ¬é¡¹ç›®
+	* @param [in] itemText å­é¡¹çš„æ–‡æœ¬å†…å®¹
+	* @param [in] bTriggerEvent bTriggerEvent æ˜¯å¦è§¦å‘é€‰æ‹©äº‹ä»¶, å¦‚æœä¸ºtrueï¼Œä¼šè§¦å‘ä¸€ä¸ªkEventSelectäº‹ä»¶
+	* @return è¿”å›è¯¥é€‰ä¸­é¡¹çš„ç´¢å¼•å·ï¼Œå¦‚æœæœªèƒ½é€‰ä¸­ï¼Œåˆ™è¿”å›Box::InvalidIndex
 	*/
 	size_t SelectTextItem(const std::wstring& itemText, bool bTriggerEvent = true);
 
 public:
-	/** »ñÈ¡µ±Ç°±à¼­¿òÄÚµÄÎÄ±¾
+	/** è·å–å½“å‰ç¼–è¾‘æ¡†å†…çš„æ–‡æœ¬
 	 */
 	std::wstring GetText() const;
 
-	/** ÉèÖÃ±à¼­¿òÄÚµÄÎÄ±¾
+	/** è®¾ç½®ç¼–è¾‘æ¡†å†…çš„æ–‡æœ¬
 	*/
 	void SetText(const std::wstring& text);
 
-	/** ÈÃ¿Ø¼ş»ñÈ¡½¹µã
+	/** è®©æ§ä»¶è·å–ç„¦ç‚¹
 	 */
 	virtual void SetFocus();
 
 public:
-	/** »ñÈ¡ÏÂÀ­ÁĞ±íµÄÊ÷½Ó¿Ú
+	/** è·å–ä¸‹æ‹‰åˆ—è¡¨çš„æ ‘æ¥å£
 	*/
 	TreeView* GetTreeView();
 
-	/** »ñÈ¡Í¼±ê¿Ø¼ş
+	/** è·å–å›¾æ ‡æ§ä»¶
 	*/
 	Control* GetIconControl() const;
 
-	/** ±à¼­¿ò¿Ø¼ş
+	/** ç¼–è¾‘æ¡†æ§ä»¶
 	*/
 	RichEdit* GetEditControl() const;
 
-	/** °´Å¥¿Ø¼ş
+	/** æŒ‰é’®æ§ä»¶
 	*/
 	Button* GetButtonContrl() const;
 
-	/** ¸üĞÂÏÂÀ­ÁĞ±í´°¿ÚµÄÎ»ÖÃ
+	/** æ›´æ–°ä¸‹æ‹‰åˆ—è¡¨çª—å£çš„ä½ç½®
 	*/
 	void UpdateComboWndPos();
 
 public:
-	/** ¼àÌı×ÓÏî±»Ñ¡ÔñÊÂ¼ş
-	 * @param[in] callback ×ÓÏî±»Ñ¡Ôñºó´¥·¢µÄ»Øµ÷º¯Êı
+	/** ç›‘å¬å­é¡¹è¢«é€‰æ‹©äº‹ä»¶
+	 * @param[in] callback å­é¡¹è¢«é€‰æ‹©åè§¦å‘çš„å›è°ƒå‡½æ•°
 	 */
 	void AttachSelect(const EventCallback& callback) { AttachEvent(kEventSelect, callback);}	//mod by djj
 
-	/** ¼àÌıÏÂÀ­´°¹Ø±ÕÊÂ¼ş
-	 * @param[in] callback ÏÂÀ­´°¹Ø±Õºó´¥·¢µÄ»Øµ÷º¯Êı
+	/** ç›‘å¬ä¸‹æ‹‰çª—å…³é—­äº‹ä»¶
+	 * @param[in] callback ä¸‹æ‹‰çª—å…³é—­åè§¦å‘çš„å›è°ƒå‡½æ•°
 	 */
 	void AttachWindowClose(const EventCallback& callback) { AttachEvent(kEventWindowClose, callback); }
 
 protected:
-	/** ÏÔÊ¾ÏÂÀ­ÁĞ±í
+	/** æ˜¾ç¤ºä¸‹æ‹‰åˆ—è¡¨
 	*/
 	virtual void ShowComboList();
 
-	/** ¹Ø±ÕÏÂÀ­ÁĞ±í
+	/** å…³é—­ä¸‹æ‹‰åˆ—è¡¨
 	*/
 	virtual void HideComboList();
 
-	/** ¸üĞÂÏÂÀ­ÁĞ±í
+	/** æ›´æ–°ä¸‹æ‹‰åˆ—è¡¨
 	*/
 	virtual void UpdateComboList();
 
-	/** Ä¬ÈÏµÄ×ÓÏî±»Ñ¡Ôñ´¦Àíº¯Êı
-	 * @param[in] args ²ÎÊıÁĞ±í
-	 * @return Ê¼ÖÕ·µ»Ø true
+	/** é»˜è®¤çš„å­é¡¹è¢«é€‰æ‹©å¤„ç†å‡½æ•°
+	 * @param[in] args å‚æ•°åˆ—è¡¨
+	 * @return å§‹ç»ˆè¿”å› true
 	 */
 	virtual bool OnSelectItem(const EventArgs& args);
 
-	/** ÏÂÀ­¿ò´°¿Ú¹Ø±Õ
-	* @param [in] bCanceled true±íÊ¾È¡Ïû£¬·ñÔò±íÊ¾Õı³£¹Ø±Õ
-	* @param [in] needUpdateSelItem true±íÊ¾ĞèÒª¸üĞÂÑ¡ÔñÏî£¬·ñÔò²»ĞèÒª¸üĞÂÑ¡ÔñÏî
-	* @param [in] oldEditText ÏÂÀ­¿òÏÔÊ¾Ê±£¬±à¼­¿òµÄÎÄ±¾ÄÚÈİ
+	/** ä¸‹æ‹‰æ¡†çª—å£å…³é—­
+	* @param [in] bCanceled trueè¡¨ç¤ºå–æ¶ˆï¼Œå¦åˆ™è¡¨ç¤ºæ­£å¸¸å…³é—­
+	* @param [in] needUpdateSelItem trueè¡¨ç¤ºéœ€è¦æ›´æ–°é€‰æ‹©é¡¹ï¼Œå¦åˆ™ä¸éœ€è¦æ›´æ–°é€‰æ‹©é¡¹
+	* @param [in] oldEditText ä¸‹æ‹‰æ¡†æ˜¾ç¤ºæ—¶ï¼Œç¼–è¾‘æ¡†çš„æ–‡æœ¬å†…å®¹
 	*/
 	virtual void OnComboWndClosed(bool bCanceled, 
 		                          bool needUpdateSelItem,
 								  const std::wstring& oldEditText);
 
-	/** Êó±ê°´ÏÂ°´Å¥
-	 * @param[in] args ²ÎÊıÁĞ±í
-	 * @return Ê¼ÖÕ·µ»Ø true
+	/** é¼ æ ‡æŒ‰ä¸‹æŒ‰é’®
+	 * @param[in] args å‚æ•°åˆ—è¡¨
+	 * @return å§‹ç»ˆè¿”å› true
 	 */
 	virtual bool OnButtonDown(const EventArgs& args);
 
-	/** µã»÷°´Å¥
-	 * @param[in] args ²ÎÊıÁĞ±í
-	 * @return Ê¼ÖÕ·µ»Ø true
+	/** ç‚¹å‡»æŒ‰é’®
+	 * @param[in] args å‚æ•°åˆ—è¡¨
+	 * @return å§‹ç»ˆè¿”å› true
 	 */
 	virtual bool OnButtonClicked(const EventArgs& args);
 
-	/** Êó±êÔÚEditÉÏÃæ°´ÏÂ°´Å¥
-	 * @param[in] args ²ÎÊıÁĞ±í
-	 * @return Ê¼ÖÕ·µ»Ø true
+	/** é¼ æ ‡åœ¨Editä¸Šé¢æŒ‰ä¸‹æŒ‰é’®
+	 * @param[in] args å‚æ•°åˆ—è¡¨
+	 * @return å§‹ç»ˆè¿”å› true
 	 */
 	virtual bool OnEditButtonDown(const EventArgs& args);
 
-	/** Êó±êÔÚEditÉÏÃæµ¯Æğ°´Å¥
-	 * @param[in] args ²ÎÊıÁĞ±í
-	 * @return Ê¼ÖÕ·µ»Ø true
+	/** é¼ æ ‡åœ¨Editä¸Šé¢å¼¹èµ·æŒ‰é’®
+	 * @param[in] args å‚æ•°åˆ—è¡¨
+	 * @return å§‹ç»ˆè¿”å› true
 	 */
 	virtual bool OnEditButtonUp(const EventArgs& args);
 
-	/** ÔÚEditÉÏ°´¼ü
-	 * @param[in] args ²ÎÊıÁĞ±í
-	 * @return Ê¼ÖÕ·µ»Ø true
+	/** åœ¨Editä¸ŠæŒ‰é”®
+	 * @param[in] args å‚æ•°åˆ—è¡¨
+	 * @return å§‹ç»ˆè¿”å› true
 	 */
 	virtual bool OnEditKeyDown(const EventArgs& args);
 
-	/** Edit¿Ø¼ş»ñµÃ½¹µã
-	* @param[in] args ²ÎÊıÁĞ±í
-	* @return Ê¼ÖÕ·µ»Ø true
+	/** Editæ§ä»¶è·å¾—ç„¦ç‚¹
+	* @param[in] args å‚æ•°åˆ—è¡¨
+	* @return å§‹ç»ˆè¿”å› true
 	*/
 	virtual bool OnEditSetFocus(const EventArgs& args);
 
-	/** Edit¿Ø¼şÊ§È¥½¹µã
-	* @param[in] args ²ÎÊıÁĞ±í
-	* @return Ê¼ÖÕ·µ»Ø true
+	/** Editæ§ä»¶å¤±å»ç„¦ç‚¹
+	* @param[in] args å‚æ•°åˆ—è¡¨
+	* @return å§‹ç»ˆè¿”å› true
 	*/
 	virtual bool OnEditKillFocus(const EventArgs& args);
 
-	/** ´°¿ÚÊ§È¥½¹µã
-	* @param[in] args ²ÎÊıÁĞ±í
-	* @return Ê¼ÖÕ·µ»Ø true
+	/** çª—å£å¤±å»ç„¦ç‚¹
+	* @param[in] args å‚æ•°åˆ—è¡¨
+	* @return å§‹ç»ˆè¿”å› true
 	*/
 	virtual bool OnWindowKillFocus(const EventArgs& args);
 
-	/** ´°¿ÚÒÆ¶¯
-	* @param[in] args ²ÎÊıÁĞ±í
-	* @return Ê¼ÖÕ·µ»Ø true
+	/** çª—å£ç§»åŠ¨
+	* @param[in] args å‚æ•°åˆ—è¡¨
+	* @return å§‹ç»ˆè¿”å› true
 	*/
 	virtual bool OnWindowMove(const EventArgs& args);
 
-	/** Ñ¡ÔñÏî±ä»¯£¬Í¬²½Edit¿Ø¼şµÄÎÄ±¾
+	/** é€‰æ‹©é¡¹å˜åŒ–ï¼ŒåŒæ­¥Editæ§ä»¶çš„æ–‡æœ¬
 	*/
 	virtual void OnSelectedItemChanged();
 
-	/** EditµÄÎÄ±¾ÄÚÈİ·¢Éú±ä»¯
-	 * @param[in] args ²ÎÊıÁĞ±í
-	 * @return Ê¼ÖÕ·µ»Ø true
+	/** Editçš„æ–‡æœ¬å†…å®¹å‘ç”Ÿå˜åŒ–
+	 * @param[in] args å‚æ•°åˆ—è¡¨
+	 * @return å§‹ç»ˆè¿”å› true
 	 */
 	virtual bool OnEditTextChanged(const ui::EventArgs& args);
 
 private:
-	/** ½âÎöÊôĞÔÁĞ±í
+	/** è§£æå±æ€§åˆ—è¡¨
 	*/
 	void ParseAttributeList(const std::wstring& strList,
 							std::vector<std::pair<std::wstring, std::wstring>>& attributeList) const;
 
-	/** ÉèÖÃ¿Ø¼şµÄÊôĞÔÁĞ±í
+	/** è®¾ç½®æ§ä»¶çš„å±æ€§åˆ—è¡¨
 	*/
 	void SetAttributeList(Control* pControl, const std::wstring& classValue);
 
-	/** ÒÆ³ı¿Ø¼ş
+	/** ç§»é™¤æ§ä»¶
 	*/
 	void RemoveControl(Control* pControl);
 
-	/** ´´½¨Ò»¸öĞÂµÄÊ÷½Úµã
+	/** åˆ›å»ºä¸€ä¸ªæ–°çš„æ ‘èŠ‚ç‚¹
 	*/
 	TreeNode* CreateTreeNode(const std::wstring& itemText);
 
-	/** ¹ÒÔØ¸Ã¿Ø¼şµÄÊó±êÊÂ¼ş£¬ÉèÖÃ½¹µã
+	/** æŒ‚è½½è¯¥æ§ä»¶çš„é¼ æ ‡äº‹ä»¶ï¼Œè®¾ç½®ç„¦ç‚¹
 	*/
 	void AttachMouseEvents(Control* pControl);
 
 private:
-	/** ComboÀàĞÍ
+	/** Comboç±»å‹
 	*/
 	uint8_t m_comboType;
 
-	/** ÁĞ±íÊ÷µÄ½Ó¿Ú
+	/** åˆ—è¡¨æ ‘çš„æ¥å£
 	*/
 	TreeView m_treeView;
 
-	/** ÏÂÀ­ÁĞ±íµÄ´°¿Ú½Ó¿Ú
+	/** ä¸‹æ‹‰åˆ—è¡¨çš„çª—å£æ¥å£
 	*/
 	CComboWnd* m_pWindow;
 
-	/** ÏÂÀ­ÁĞ±íµÄ´óĞ¡£¨¿í¶ÈºÍ¸ß¶È£©
+	/** ä¸‹æ‹‰åˆ—è¡¨çš„å¤§å°ï¼ˆå®½åº¦å’Œé«˜åº¦ï¼‰
 	*/
 	UiSize m_szDropBox;
 
-	/** ÏÂÀ­ÁĞ±íÊÇ·ñÏòÉÏµ¯³ö
+	/** ä¸‹æ‹‰åˆ—è¡¨æ˜¯å¦å‘ä¸Šå¼¹å‡º
 	*/
 	bool m_bPopupTop;
 
-	/** ÏÂÀ­±íTreeViewµÄ½ÚµãClassÊôĞÔ
+	/** ä¸‹æ‹‰è¡¨TreeViewçš„èŠ‚ç‚¹Classå±æ€§
 	*/
 	UiString m_treeNodeClass;
 
 private:
-	/** Í¼±ê¿Ø¼ş
+	/** å›¾æ ‡æ§ä»¶
 	*/
 	Control* m_pIconControl;
 
-	/** ±à¼­¿ò¿Ø¼ş
+	/** ç¼–è¾‘æ¡†æ§ä»¶
 	*/
 	RichEdit* m_pEditControl;
 
-	/** °´Å¥¿Ø¼ş
+	/** æŒ‰é’®æ§ä»¶
 	*/
 	Button* m_pButtonControl;
 
-	/** µ±Ç°Ñ¡ÔñÏîË÷ÒıºÅ
+	/** å½“å‰é€‰æ‹©é¡¹ç´¢å¼•å·
 	*/
 	size_t m_iCurSel;
 
-	/** Êó±ê°´ÏÂµÄÊ±ºò£¬ÊÇ·ñÕıÔÚÏÔÊ¾ÏÂÀ­ÁĞ±í
+	/** é¼ æ ‡æŒ‰ä¸‹çš„æ—¶å€™ï¼Œæ˜¯å¦æ­£åœ¨æ˜¾ç¤ºä¸‹æ‹‰åˆ—è¡¨
 	*/
 	bool m_bDropListShown;
 };

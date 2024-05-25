@@ -11,7 +11,7 @@
 
 namespace ui 
 {
-/** ¾ØĞÎÇøÓòµÄ·â×°
+/** çŸ©å½¢åŒºåŸŸçš„å°è£…
 */
 class UILIB_API UiRect
 {
@@ -29,57 +29,57 @@ public:
 		bottom = nBottom;
 	}
 
-	/** »ñÈ¡leftÖµ
+	/** è·å–leftå€¼
 	*/
 	constexpr int32_t Left() const { return left; }
 
-	/** »ñÈ¡rightÖµ
+	/** è·å–rightå€¼
 	*/
 	constexpr int32_t Right() const { return right; }
 
-	/** »ñÈ¡topÖµ
+	/** è·å–topå€¼
 	*/
 	constexpr int32_t Top() const { return top; }
 
-	/** »ñÈ¡bottomÖµ
+	/** è·å–bottomå€¼
 	*/
 	constexpr int32_t Bottom() const { return bottom; }
 
-	/** »ñÈ¡¿í¶È
+	/** è·å–å®½åº¦
 	*/
 	int32_t Width() const { return right - left; }
 
-	/** »ñÈ¡¸ß¶È
+	/** è·å–é«˜åº¦
 	*/
 	int32_t Height() const { return bottom - top; }
 
-	/** »ñÈ¡ÖĞĞÄµãµÄXÖá×ø±êÖµ
+	/** è·å–ä¸­å¿ƒç‚¹çš„Xè½´åæ ‡å€¼
 	*/
 	int32_t CenterX() const { return (left + right) / 2; }
 
-	/** »ñÈ¡ÖĞĞÄµãµÄYÖá×ø±êÖµ
+	/** è·å–ä¸­å¿ƒç‚¹çš„Yè½´åæ ‡å€¼
 	*/
 	int32_t CenterY() const { return (top + bottom) / 2; }
 
-	/** »ñÈ¡¾ØĞÎÖĞĞÄµã×ø±ê£¨XÖá×ø±êºÍYÖá×ø±ê£©
+	/** è·å–çŸ©å½¢ä¸­å¿ƒç‚¹åæ ‡ï¼ˆXè½´åæ ‡å’ŒYè½´åæ ‡ï¼‰
 	*/
 	UiPoint Center() const { return { CenterX(), CenterY() }; }
 
-	/** ÇåÁã
+	/** æ¸…é›¶
 	*/
 	void Clear()
 	{
 		left = top = right = bottom = 0;
 	}
 
-	/** ÅĞ¶ÏÊÇ·ñÈ«ÎªÁã
+	/** åˆ¤æ–­æ˜¯å¦å…¨ä¸ºé›¶
 	*/
 	bool IsZero() const
 	{
 		return (left == 0) && (right == 0) && (top == 0) && (bottom == 0);
 	}
 
-	/** ÅĞ¶ÏÊÇ·ñÎª¿ÕµÄ¾ØĞÎ£¨¿íºÍ¸ß²»ÊÇÓĞĞ§Öµ£©
+	/** åˆ¤æ–­æ˜¯å¦ä¸ºç©ºçš„çŸ©å½¢ï¼ˆå®½å’Œé«˜ä¸æ˜¯æœ‰æ•ˆå€¼ï¼‰
 	*/
 	bool IsEmpty() const
 	{
@@ -88,7 +88,7 @@ public:
 		return (w <= 0 || h <= 0);
 	}
 
-	/** ¼ì²é¿í¶ÈºÍ¸ß¶ÈÖµÊÇ·ñÎªÓĞĞ§Öµ£¬²¢ĞŞÕı
+	/** æ£€æŸ¥å®½åº¦å’Œé«˜åº¦å€¼æ˜¯å¦ä¸ºæœ‰æ•ˆå€¼ï¼Œå¹¶ä¿®æ­£
 	*/
 	void Validate()
 	{
@@ -100,7 +100,7 @@ public:
 		}
 	}
 
-	/** Æ«ÒÆ²Ù×÷
+	/** åç§»æ“ä½œ
 	*/
 	void Offset(int32_t cx, int32_t cy)
 	{
@@ -110,7 +110,7 @@ public:
 		bottom += cy;
 	}
 
-	/** Æ«ÒÆ²Ù×÷
+	/** åç§»æ“ä½œ
 	*/
 	void Offset(const UiPoint& offset)
 	{
@@ -120,7 +120,7 @@ public:
 		bottom += offset.Y();
 	}
 
-	/** Ê¹¾ØĞÎÇøÓòÀ©´ó£¨¿í¶ÈÔö¼Ó2*dx£¬¸ß¶ÈÔö¼Ó2*dy£©
+	/** ä½¿çŸ©å½¢åŒºåŸŸæ‰©å¤§ï¼ˆå®½åº¦å¢åŠ 2*dxï¼Œé«˜åº¦å¢åŠ 2*dyï¼‰
 	*/
 	void Inflate(int32_t dx, int32_t dy)
 	{
@@ -130,8 +130,8 @@ public:
 		bottom += dy;
 	}
 
-	/** Ê¹¾ØĞÎÇøÓòÀ©´ó
-	* @param [in] margin Íâ±ß¾àµÄËÄ±ß²ÎÊı
+	/** ä½¿çŸ©å½¢åŒºåŸŸæ‰©å¤§
+	* @param [in] margin å¤–è¾¹è·çš„å››è¾¹å‚æ•°
 	*/
 	void Inflate(const UiMargin& margin)
 	{
@@ -141,8 +141,8 @@ public:
 		bottom += margin.bottom;
 	}
 
-	/** Ê¹¾ØĞÎÇøÓòÀ©´ó
-	* @param [in] padding ÄÚ±ß¾àµÄËÄ±ß²ÎÊı
+	/** ä½¿çŸ©å½¢åŒºåŸŸæ‰©å¤§
+	* @param [in] padding å†…è¾¹è·çš„å››è¾¹å‚æ•°
 	*/
 	void Inflate(const UiPadding& padding)
 	{
@@ -152,11 +152,11 @@ public:
 		bottom += padding.bottom;
 	}
 
-	/** Ê¹¾ØĞÎÇøÓòÀ©´ó
-	* @param nLeft leftÀ©´óÖµ
-	* @param nTop topÀ©´óÖµ
-	* @param nRight rightÀ©´óÖµ
-	* @param nBottom bottomÀ©´óÖµ
+	/** ä½¿çŸ©å½¢åŒºåŸŸæ‰©å¤§
+	* @param nLeft leftæ‰©å¤§å€¼
+	* @param nTop topæ‰©å¤§å€¼
+	* @param nRight rightæ‰©å¤§å€¼
+	* @param nBottom bottomæ‰©å¤§å€¼
 	*/
 	void Inflate(int32_t nLeft, int32_t nTop, int32_t nRight, int32_t nBottom)
 	{
@@ -166,7 +166,7 @@ public:
 		bottom += nBottom;
 	}
 
-	/** Ê¹¾ØĞÎÇøÓòËõĞ¡£¨¿í¶È¼õÉÙ2*dx£¬¸ß¶È¼õÉÙ2*dy£©
+	/** ä½¿çŸ©å½¢åŒºåŸŸç¼©å°ï¼ˆå®½åº¦å‡å°‘2*dxï¼Œé«˜åº¦å‡å°‘2*dyï¼‰
 	*/
 	void Deflate(int32_t dx, int32_t dy)
 	{
@@ -176,8 +176,8 @@ public:
 		bottom -= dy;
 	}
 
-	/** Ê¹¾ØĞÎÇøÓòËõĞ¡
-	* @param padding ÄÚ±ß¾àµÄËÄ±ß²ÎÊı
+	/** ä½¿çŸ©å½¢åŒºåŸŸç¼©å°
+	* @param padding å†…è¾¹è·çš„å››è¾¹å‚æ•°
 	*/
 	void Deflate(const UiPadding& padding)
 	{
@@ -187,8 +187,8 @@ public:
 		bottom -= padding.bottom;
 	}
 
-	/** Ê¹¾ØĞÎÇøÓòËõĞ¡
-	* @param margin Íâ±ß¾àµÄËÄ±ß²ÎÊı
+	/** ä½¿çŸ©å½¢åŒºåŸŸç¼©å°
+	* @param margin å¤–è¾¹è·çš„å››è¾¹å‚æ•°
 	*/
 	void Deflate(const UiMargin& margin)
 	{
@@ -198,11 +198,11 @@ public:
 		bottom -= margin.bottom;
 	}
 
-	/** Ê¹¾ØĞÎÇøÓòËõĞ¡
-	* @param nLeft leftËõĞ¡Öµ
-	* @param nTop topËõĞ¡Öµ
-	* @param nRight rightËõĞ¡Öµ
-	* @param nBottom bottomËõĞ¡Öµ
+	/** ä½¿çŸ©å½¢åŒºåŸŸç¼©å°
+	* @param nLeft leftç¼©å°å€¼
+	* @param nTop topç¼©å°å€¼
+	* @param nRight rightç¼©å°å€¼
+	* @param nBottom bottomç¼©å°å€¼
 	*/
 	void Deflate(int32_t nLeft, int32_t nTop, int32_t nRight, int32_t nBottom)
 	{
@@ -212,22 +212,22 @@ public:
 		bottom -= nBottom;
 	}
 
-	/** È¡Á½¸ö¾ØĞÎµÄ²¢¼¯
-	* @param [in] r ÁíÍâÒ»¸ö¾ØĞÎ
-	* @return Èç¹û²¢¼¯²»ÊÇ¿Õ¾ØĞÎ£¬·µ»Øtrue£»Èç¹û²¢¼¯ÊÇ¿Õ¾ØĞÎÔò·µ»Øfalse
+	/** å–ä¸¤ä¸ªçŸ©å½¢çš„å¹¶é›†
+	* @param [in] r å¦å¤–ä¸€ä¸ªçŸ©å½¢
+	* @return å¦‚æœå¹¶é›†ä¸æ˜¯ç©ºçŸ©å½¢ï¼Œè¿”å›trueï¼›å¦‚æœå¹¶é›†æ˜¯ç©ºçŸ©å½¢åˆ™è¿”å›false
 	*/
 	bool Union(const UiRect& r)
 	{
 		if (r.left >= r.right || r.top >= r.bottom) {
-			//rÊÇ¿Õ¾ØĞÎ
+			//ræ˜¯ç©ºçŸ©å½¢
 			return !IsEmpty();
 		}
 		if (left >= right || top >= bottom) {
-			//×Ô¼ºÊÇ¿Õ¾ØĞÎ
+			//è‡ªå·±æ˜¯ç©ºçŸ©å½¢
 			*this = r;
 		}
 		else {
-			//Á½¸ö¶¼²»ÊÇ¿Õ¾ØĞÎ
+			//ä¸¤ä¸ªéƒ½ä¸æ˜¯ç©ºçŸ©å½¢
 			left   = (std::min)(left, r.left);
 			top    = (std::min)(top, r.top);
 			right  = (std::max)(right, r.right);
@@ -236,9 +236,9 @@ public:
 		return !IsEmpty();
 	}
 
-	/** È¡Á½¸ö¾ØĞÎµÄ½»¼¯
-	* @param [in] r ÁíÍâÒ»¸ö¾ØĞÎ
-	* @return Èç¹û½»¼¯²»ÊÇ¿Õ¾ØĞÎ£¬·µ»Øtrue£»Èç¹û½»¼¯ÊÇ¿Õ¾ØĞÎÔò·µ»Øfalse
+	/** å–ä¸¤ä¸ªçŸ©å½¢çš„äº¤é›†
+	* @param [in] r å¦å¤–ä¸€ä¸ªçŸ©å½¢
+	* @return å¦‚æœäº¤é›†ä¸æ˜¯ç©ºçŸ©å½¢ï¼Œè¿”å›trueï¼›å¦‚æœäº¤é›†æ˜¯ç©ºçŸ©å½¢åˆ™è¿”å›false
 	*/
 	bool Intersect(const UiRect& r)
 	{
@@ -249,8 +249,8 @@ public:
 		return !IsEmpty();
 	}
 
-	/** È¡Á½¸ö¾ØĞÎ(a,b)µÄ½»¼¯, ½«½»¼¯Éú³ÉÒ»¸öĞÂµÄ¾ØĞÎc
-	* @return Èç¹û½»¼¯c²»ÊÇ¿Õ¾ØĞÎ£¬·µ»Øtrue£»Èç¹û½»¼¯cÊÇ¿Õ¾ØĞÎÔò·µ»Øfalse
+	/** å–ä¸¤ä¸ªçŸ©å½¢(a,b)çš„äº¤é›†, å°†äº¤é›†ç”Ÿæˆä¸€ä¸ªæ–°çš„çŸ©å½¢c
+	* @return å¦‚æœäº¤é›†cä¸æ˜¯ç©ºçŸ©å½¢ï¼Œè¿”å›trueï¼›å¦‚æœäº¤é›†cæ˜¯ç©ºçŸ©å½¢åˆ™è¿”å›false
 	*/
 	static bool Intersect(UiRect& c,const UiRect& a, const UiRect& b)
 	{
@@ -261,21 +261,21 @@ public:
 		return !c.IsEmpty();
 	}
 
-	/** ÅĞ¶ÏÒ»¸öµãÊÇ·ñÔÚ¾ØĞÎÒÔÄÚ
+	/** åˆ¤æ–­ä¸€ä¸ªç‚¹æ˜¯å¦åœ¨çŸ©å½¢ä»¥å†…
 	*/
 	bool ContainsPt(const UiPoint& pt) const
 	{
 		return pt.X() >= left && pt.X() < right && pt.Y() >= top && pt.Y() < bottom;
 	}
 
-	/** ÅĞ¶ÏÒ»¸öµãÊÇ·ñÔÚ¾ØĞÎÒÔÄÚ
+	/** åˆ¤æ–­ä¸€ä¸ªç‚¹æ˜¯å¦åœ¨çŸ©å½¢ä»¥å†…
 	*/
 	bool ContainsPt(int32_t x, int32_t y) const
 	{
 		return x >= left && x < right && y >= top && y < bottom;
 	}
 
-	/** ÅĞ¶ÏÊÇ·ñ°üº¬ÁíÍâÒ»¸ö¾ØĞÎ
+	/** åˆ¤æ–­æ˜¯å¦åŒ…å«å¦å¤–ä¸€ä¸ªçŸ©å½¢
 	*/
 	bool ContainsRect(const UiRect& r) const
 	{
@@ -284,7 +284,7 @@ public:
 			    right >= r.right && bottom >= r.bottom;
 	}
 
-	/** ÅĞ¶ÏÓëÁíÍâÒ»¸ö¾ØĞÎÊÇ·ñÏàÍ¬
+	/** åˆ¤æ–­ä¸å¦å¤–ä¸€ä¸ªçŸ©å½¢æ˜¯å¦ç›¸åŒ
 	*/
 	bool Equals(const UiRect& r) const
 	{
@@ -292,14 +292,14 @@ public:
 			   right == r.right && bottom == r.bottom;
 	}
 
-	/** ÅĞ¶ÏÁ½¸öÖµÊÇ·ñÏàµÈ
+	/** åˆ¤æ–­ä¸¤ä¸ªå€¼æ˜¯å¦ç›¸ç­‰
 	*/
 	friend bool operator == (const UiRect& a, const UiRect& b)
 	{
 		return a.Equals(b);
 	}
 
-	/** ÅĞ¶ÏÁ½¸öÖµÊÇ·ñ²»ÏàµÈ
+	/** åˆ¤æ–­ä¸¤ä¸ªå€¼æ˜¯å¦ä¸ç›¸ç­‰
 	*/
 	friend bool operator != (const UiRect& a, const UiRect& b)
 	{
@@ -307,19 +307,19 @@ public:
 	}
 
 public:
-	/** ×óÉÏ½ÇXÖáµÄ×ø±ê
+	/** å·¦ä¸Šè§’Xè½´çš„åæ ‡
 	*/
 	int32_t left;
 
-	/** ×óÉÏ½ÇYÖáµÄ×ø±ê
+	/** å·¦ä¸Šè§’Yè½´çš„åæ ‡
 	*/
 	int32_t top;
 
-	/** ÓÒÏÂ½ÇXÖáµÄ×ø±ê
+	/** å³ä¸‹è§’Xè½´çš„åæ ‡
 	*/
 	int32_t right;
 
-	/** ÓÒÏÂ½ÇYÖáµÄ×ø±ê
+	/** å³ä¸‹è§’Yè½´çš„åæ ‡
 	*/
 	int32_t bottom;
 };

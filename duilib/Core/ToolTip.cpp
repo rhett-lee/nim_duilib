@@ -3,7 +3,7 @@
 namespace ui
 {
 
-//ToolTip×î´ó³¤¶È
+//ToolTipæœ€å¤§é•¿åº¦
 #define TOOLTIP_MAX_LEN 511
 
 ToolTip::ToolTip():
@@ -47,7 +47,7 @@ void ToolTip::ShowToolTip(HWND hParentWnd,
 	if (text.empty()) {
 		return;
 	}
-	//Èç¹û³¬¹ı³¤¶È£¬Ôò½Ø¶Ï
+	//å¦‚æœè¶…è¿‡é•¿åº¦ï¼Œåˆ™æˆªæ–­
 	std::wstring newText(text);
 	if (newText.size() > TOOLTIP_MAX_LEN) {
 		newText = newText.substr(0, TOOLTIP_MAX_LEN);
@@ -64,7 +64,7 @@ void ToolTip::ShowToolTip(HWND hParentWnd,
 		::SendMessage(m_hwndTooltip, TTM_GETTOOLINFO, 0, (LPARAM)&toolTip);
 		oldText = std::wstring(oldText.c_str());
 		if (newText == oldText) {
-			//ÎÄ±¾ÄÚÈİ¾ùÃ»ÓĞ±ä»¯£¬²»ÔÙÉèÖÃ
+			//æ–‡æœ¬å†…å®¹å‡æ²¡æœ‰å˜åŒ–ï¼Œä¸å†è®¾ç½®
 			return;
 		}
 	}

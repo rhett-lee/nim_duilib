@@ -35,7 +35,7 @@ void AppItemUi::OnInit()
 		m_app_name->SetText(m_app_data.m_name);
 	}
 
-	//绑定事件
+	//缁戝畾浜嬩欢
 }
 
 void AppItemUi::SetAppdata(const AppItem& item, bool refresh)
@@ -64,11 +64,11 @@ void AppItemUi::OnItemBoxChanged(Box* /*pOldBox*/, size_t /*nOldItemIndex*/,
 								 Box* pNewBox, size_t /*nNewItemIndex*/)
 {
 	if (pNewBox == m_pFrequentBox) {
-		//常用应用
+		//甯哥敤搴旂敤
 		m_app_data.m_isFrequent = true;
 	}
 	else {
-		//我的应用
+		//鎴戠殑搴旂敤
 		m_app_data.m_isFrequent = false;
 	}
 	CAppDb::GetInstance().SaveToDb(m_app_data);

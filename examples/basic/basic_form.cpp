@@ -7,7 +7,6 @@ BasicForm::BasicForm()
 {
 }
 
-
 BasicForm::~BasicForm()
 {
 }
@@ -33,6 +32,6 @@ void BasicForm::OnInitWindow()
 
 void BasicForm::OnCloseWindow()
 {
-	//关闭窗口后，退出主线程的消息循环，关闭程序
+	//鍏抽棴绐楀彛鍚庯紝閫�鍑轰富绾跨▼鐨勬秷鎭惊鐜紝鍏抽棴绋嬪簭
 	PostQuitMessage(0L);
 }

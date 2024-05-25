@@ -14,7 +14,7 @@ namespace ui
 	class Window;
 	class DpiManager;
 
-/** �ؼ���λ�á���С�������״�Ļ�����װ
+/** 控件的位置、大小、外观形状的基本封装
 */
 class UILIB_API PlaceHolder : public virtual nbase::SupportWeakCallback
 {
@@ -24,393 +24,393 @@ public:
 	PlaceHolder& operator=(const PlaceHolder& r) = delete;
 	virtual ~PlaceHolder();
 
-	/** �ؼ�����
+	/** 控件类型
 	*/
 	virtual std::wstring GetType() const;
 
-	/** ��ȡ�ؼ����ƣ���Ӧ xml �� name ����
+	/** 获取控件名称，对应 xml 中 name 属性
 	 */
 	std::wstring GetName() const;
 
-	/** ��ȡ�ؼ����ƣ���Ӧ xml �� name ����
-	 * @return ���ؿؼ����ƣ�UTF8 ���룩
+	/** 获取控件名称，对应 xml 中 name 属性
+	 * @return 返回控件名称（UTF8 编码）
 	 */
 	std::string GetUTF8Name() const;
 
-	/** ���ÿؼ����ƣ��ڴ������ò���д�� xml ��
-	 * @param [in] strName Ҫ���õ�����
+	/** 设置控件名称，内存中设置不会写入 xml 中
+	 * @param [in] strName 要设置的名称
 	 */
 	void SetName(const std::wstring& strName);
 
-	/** ���ÿؼ����ƣ��ڴ������ò���д�� xml �У�UTF8 ���룩
-	 * @param[in] strName Ҫ���õ�����
+	/** 设置控件名称，内存中设置不会写入 xml 中（UTF8 编码）
+	 * @param[in] strName 要设置的名称
 	 */
 	void SetUTF8Name(const std::string& strName);
 
-	/** �жϿؼ������Ƿ����
+	/** 判断控件名称是否相等
 	*/
 	bool IsNameEquals(const std::wstring& name) const;
 
-	/** �������ƻ�ȡ��������ָ��
-	* @param [in] strName Ҫ��ȡ��������������
+	/** 根据名称获取祖先容器指针
+	* @param [in] strName 要获取的祖先容器名称
 	*/
 	Box* GetAncestor(const std::wstring& strName);
 
-	/** ����������������
-	 * @param [in] pParent ������ָ��
+	/** 设置容器所属窗口
+	 * @param [in] pParent 父容器指针
 	 */
 	virtual void SetParent(Box* pParent);
 
-	/** ����������������
-	 * @param [in] pManager ����ָ��
+	/** 设置容器所属窗口
+	 * @param [in] pManager 窗口指针
 	 */
 	virtual void SetWindow(Window* pManager);
 
-	/** ��ȡ������ָ��
+	/** 获取父容器指针
 	*/
 	Box* GetParent() const { return m_pParent; }
 
-	/** ��ȡ�����Ĵ���ָ��
-	 * @return ���ع������ڵ�ָ��
+	/** 获取关联的窗口指针
+	 * @return 返回关联窗口的指针
 	 */
 	Window* GetWindow() const { return m_pWindow; }
 
-	/** ��ʼ������(���ÿؼ������ӵ����ؼ���ʱ�򣬵��ø�Init����)
+	/** 初始化函数(当该控件被添加到父控件的时候，调用该Init函数)
 	 */
 	virtual void Init();
 
-	/** �Ƿ��Ѿ���ʼ��
+	/** 是否已经初始化
 	*/
 	bool IsInited() const;
 
-	/**@brief ���øÿؼ��Ƿ�ɼ�
+	/**@brief 设置该控件是否可见
 	 */
 	virtual void SetVisible(bool bVisible);
 
-	/**@brief �ж��Ƿ�ɼ�
+	/**@brief 判断是否可见
 	 */
 	virtual bool IsVisible() const { return m_bVisible; }
 
-	/**@brief �жϿؼ��Ƿ񸡶�״̬����Ӧ xml �� float ����
+	/**@brief 判断控件是否浮动状态，对应 xml 中 float 属性
 	 */
 	bool IsFloat() const { return m_bFloat; }
 
-	/**@brief ���ÿؼ��Ƿ񸡶�
-	 * @param[in] bFloat ����Ϊ true Ϊ������false Ϊ������
+	/**@brief 设置控件是否浮动
+	 * @param[in] bFloat 设置为 true 为浮动，false 为不浮动
 	 */
 	void SetFloat(bool bFloat);
 
 public:
-	/** ��ȡ�ؼ����õĿ��Ⱥ͸߶ȣ����߾������ڱ߾࣬������������߾�
+	/** 获取控件设置的宽度和高度，宽高均包含内边距，但均不包含外边距
 	*/
 	const UiFixedSize& GetFixedSize() const;
 
-	/** ��ȡ���õĿ��ȣ������ڱ߾࣬��������߾ࣩ����Ӧ xml �� width ����; ���δ���ã�Ĭ��ֵ������
+	/** 获取设置的宽度（包含内边距，不包含外边距），对应 xml 中 width 属性; 如果未设置，默认值是拉伸
 	 */
 	const UiFixedInt& GetFixedWidth() const;
 
-	/** ��ȡ�̶��߶ȣ������ڱ߾࣬��������߾ࣩ����Ӧ xml �� height ����; ���δ���ã�Ĭ��ֵ������
+	/** 获取固定高度（包含内边距，不包含外边距），对应 xml 中 height 属性; 如果未设置，默认值是拉伸
 	 */
 	const UiFixedInt& GetFixedHeight() const;
 
-	/**@brief ���ÿؼ��Ŀ���
-	 * @param[in] cx Ҫ���õĿ��ȣ������ڱ߾࣬��������߾ࣩ
-	 * @param[in] bArrange �Ƿ��������У�Ĭ��Ϊ true
-	 * @param[in] bNeedDpiScale ���� DPI ���ţ�Ĭ��Ϊ true
+	/**@brief 设置控件的宽度
+	 * @param[in] cx 要设置的宽度（包含内边距，不包含外边距）
+	 * @param[in] bArrange 是否重新排列，默认为 true
+	 * @param[in] bNeedDpiScale 兼容 DPI 缩放，默认为 true
 	 */
 	void SetFixedWidth(UiFixedInt cx, bool bArrange, bool bNeedDpiScale);
 
-	/** ���ÿؼ��Ŀ��ȣ������ڱ߾࣬��������߾ࣩ��������ʹ�õĽӿ�
+	/** 设置控件的宽度（包含内边距，不包含外边距），供动画使用的接口
 	*/
 	void SetFixedWidth64(int64_t cx64);
 
-	/**@brief ���ÿؼ��ĸ߶�
-	 * @param[in] cy Ҫ���õĹ̶��߶ȣ������ڱ߾࣬��������߾ࣩ
-	 * @param[in] bArrange �Ƿ��������У�Ĭ��Ϊ true
-	 * @param[in] bNeedDpiScale ���� DPI ���ţ�Ĭ��Ϊ true
+	/**@brief 设置控件的高度
+	 * @param[in] cy 要设置的固定高度（包含内边距，不包含外边距）
+	 * @param[in] bArrange 是否重新排列，默认为 true
+	 * @param[in] bNeedDpiScale 兼容 DPI 缩放，默认为 true
 	 */
 	void SetFixedHeight(UiFixedInt cy, bool bArrange, bool bNeedDpiScale);
 
-	/** ���ÿؼ��ĸ߶ȣ������ڱ߾࣬��������߾ࣩ��������ʹ�õĽӿ�
+	/** 设置控件的高度（包含内边距，不包含外边距），供动画使用的接口
 	*/
 	void SetFixedHeight64(int64_t cy64);
 
 public:
-	/** �ж��Ƿ���Ҫ����������С
-	* @param [in] szAvailable ����ʱ��������δ�С
+	/** 判断是否需要重新评估大小
+	* @param [in] szAvailable 估算时，区域矩形大小
 	*/
 	bool IsReEstimateSize(const UiSize& szAvailable) const;
 
-	/** �����Ƿ���Ҫ����������С
-	* @param [in] bReEstimateSize �Ƿ���Ҫ���¹���
+	/** 设置是否需要重新评估大小
+	* @param [in] bReEstimateSize 是否需要重新估算
 	*/
 	void SetReEstimateSize(bool bReEstimateSize);
 
-	/** ��ȡ�ؼ����ѹ����С�����ȺͿ��ȣ����൱��EstimateSize���������Ļ���ֵ
+	/** 获取控件的已估算大小（长度和宽度），相当于EstimateSize函数估算后的缓存值
 	*/
 	const UiEstSize& GetEstimateSize() const;
 
-	/**@brief ���ÿؼ����ѹ����С�����ȺͿ��ȣ����൱��EstimateSize���������Ļ���ֵ
-	*@param [in] szEstimateSize ����Ľ������Ϊ���汣������
-	*@param [in] szAvailable szAvailable ����ʱ��������δ�С
+	/**@brief 设置控件的已估算大小（长度和宽度），相当于EstimateSize函数估算后的缓存值
+	*@param [in] szEstimateSize 估算的结果，作为缓存保存下来
+	*@param [in] szAvailable szAvailable 估算时，区域矩形大小
 	*/
 	void SetEstimateSize(const UiEstSize& szEstimateSize, const UiSize& szAvailable);
 
 public:
-	/** ��ȡ��С����
-	* @return ������С���ȣ������ڱ߾࣬��������߾ࣩ������ֵ >= 0��
+	/** 获取最小宽度
+	* @return 返回最小宽度（包含内边距，不包含外边距）（返回值 >= 0）
 	*/
 	int32_t GetMinWidth() const;
 
-	/**@brief ������С����
-	 * @param [in] cx Ҫ���õ���С���ȣ������ڱ߾࣬��������߾ࣩ��ֵ >= 0��
-	 * @param [in] bNeedDpiScale �Ƿ���Ҫ��DPI����Ӧ
+	/**@brief 设置最小宽度
+	 * @param [in] cx 要设置的最小宽度（包含内边距，不包含外边距）（值 >= 0）
+	 * @param [in] bNeedDpiScale 是否需要做DPI自适应
 	 */
 	void SetMinWidth(int32_t cx, bool bNeedDpiScale);
 
-	/** ��ȡ������
-	* @return ���������ȣ������ڱ߾࣬��������߾ࣩ������ֵ >= 0��
+	/** 获取最大宽度
+	* @return 返回最大宽度（包含内边距，不包含外边距）（返回值 >= 0）
 	*/
 	int32_t GetMaxWidth() const;
 
-	/** ����������
-	 * @param [in] cx Ҫ���õ������ȣ������ڱ߾࣬��������߾ࣩ��ֵ >= 0��
-	 * @param [in] bNeedDpiScale �Ƿ���Ҫ��DPI����Ӧ
+	/** 设置最大宽度
+	 * @param [in] cx 要设置的最大宽度（包含内边距，不包含外边距）（值 >= 0）
+	 * @param [in] bNeedDpiScale 是否需要做DPI自适应
 	 */
 	void SetMaxWidth(int32_t cx, bool bNeedDpiScale);
 
-	/** ��ȡ��С�߶�
-	* @return ������С�߶ȣ������ڱ߾࣬��������߾ࣩ������ֵ >= 0��
+	/** 获取最小高度
+	* @return 返回最小高度（包含内边距，不包含外边距）（返回值 >= 0）
 	*/
 	int32_t GetMinHeight() const;
 
-	/** ������С�߶�
-	 * @param [in] cy Ҫ���õ���С�߶ȣ������ڱ߾࣬��������߾ࣩ��ֵ >= 0��
-	 * @param [in] bNeedDpiScale �Ƿ���Ҫ��DPI����Ӧ
+	/** 设置最小高度
+	 * @param [in] cy 要设置的最小高度（包含内边距，不包含外边距）（值 >= 0）
+	 * @param [in] bNeedDpiScale 是否需要做DPI自适应
 	 */
 	void SetMinHeight(int32_t cy, bool bNeedDpiScale);
 
-	/** ��ȡ���߶�
-	* @return �������߶ȣ������ڱ߾࣬��������߾ࣩ������ֵ >= 0��
+	/** 获取最大高度
+	* @return 返回最大高度（包含内边距，不包含外边距）（返回值 >= 0）
 	*/
 	int32_t GetMaxHeight() const;
 
-	/** �������߶�
-	 * @param[in] cy Ҫ���õ����߶ȣ������ڱ߾࣬��������߾ࣩ��ֵ >= 0��
-	 * @param [in] bNeedDpiScale �Ƿ���Ҫ��DPI����Ӧ
+	/** 设置最大高度
+	 * @param[in] cy 要设置的最大高度（包含内边距，不包含外边距）（值 >= 0）
+	 * @param [in] bNeedDpiScale 是否需要做DPI自适应
 	 */
 	void SetMaxHeight(int32_t cy, bool bNeedDpiScale);
 
-	/** ��ȡʵ�ʿ��ȣ������ڱ߾࣬��������߾ࣩ
+	/** 获取实际宽度（包括内边距，不包括外边距）
 	 */
 	int32_t GetWidth() const { return m_uiRect.Width(); }
 
-	/** ��ȡʵ�ʸ߶ȣ������ڱ߾࣬��������߾ࣩ
+	/** 获取实际高度（包括内边距，不包括外边距）
 	 */
 	int32_t GetHeight() const { return m_uiRect.Height(); }
 
-	/**@brief ��ȡˮƽ���뷽ʽ�� �ο� HorAlignType ö��
+	/**@brief 获取水平对齐方式， 参考 HorAlignType 枚举
 	 */
 	HorAlignType GetHorAlignType() const;
 
-	/**@brief ����ˮƽ���뷽ʽ
-	 * @param[in] horAlignType Ҫ���õĶ��뷽ʽ���ο� HorAlignType ö��
+	/**@brief 设置水平对齐方式
+	 * @param[in] horAlignType 要设置的对齐方式，参考 HorAlignType 枚举
 	 */
 	void SetHorAlignType(HorAlignType horAlignType);
 
-	/**@brief ��ȡ��ֱ���뷽ʽ���μ� VerAlignType ö��
+	/**@brief 获取垂直对齐方式，参见 VerAlignType 枚举
 	 */
 	VerAlignType GetVerAlignType() const;
 
-	/**@brief ���ô�ֱ���뷽ʽ
-	 * @param[in] vorAlignType Ҫ���õĶ��뷽ʽ���ο� VerAlignType ö��
+	/**@brief 设置垂直对齐方式
+	 * @param[in] vorAlignType 要设置的对齐方式，参考 VerAlignType 枚举
 	 */
 	void SetVerAlignType(VerAlignType verAlignType);
 
-	/** ��ȡ�ؼ�����߾�
+	/** 获取控件的外边距
 	 */
 	UiMargin GetMargin() const;
 
-	/** ���ÿؼ�����߾�
-	 * @param[in] rcMargin �ؼ�����߾���Ϣ
-	 * @param[in] bNeedDpiScale �Ƿ�����߾���� DPI ���䣬false ������ DPI
+	/** 设置控件的外边距
+	 * @param[in] rcMargin 控件的外边距信息
+	 * @param[in] bNeedDpiScale 是否让外边距根据 DPI 适配，false 不适配 DPI
 	 */
 	void SetMargin(UiMargin rcMargin, bool bNeedDpiScale);
 
-	/** ��ȡ�ڱ߾�
-	 * @return �����ڱ߾��ıߵĴ�С��Rect���ĸ������ֱ�����ĸ��ߵ��ڱ߾ࣩ
+	/** 获取内边距
+	 * @return 返回内边距四边的大小（Rect的四个参数分别代表四个边的内边距）
 	 */
 	UiPadding GetPadding() const;
 
-	/** �����ڱ߾�
-	 * @param[in] rcPadding �ڱ߾�����
-	 * @param[in] bNeedDpiScale �Ƿ���� DPI ����Ӧ
+	/** 设置内边距
+	 * @param[in] rcPadding 内边距数据
+	 * @param[in] bNeedDpiScale 是否根据 DPI 自适应
 	 */
 	void SetPadding(UiPadding rcPadding, bool bNeedDpiScale);
 
-	/** �Ƿ������ؼ����������ڱ߾�
-	* @param [in] bEnable true��ʾ�ؼ�����Ҳ�����ڱ߾ࣨBox��Control����
-						  false��ʾ�ؼ������������ڱ߾࣬�ڱ߾�����ڲ����ӿؼ���Box�������
+	/** 是否允许控件自身运用内边距
+	* @param [in] bEnable true表示控件本身也运用内边距（Box和Control）；
+						  false表示控件本身不运用内边距，内边距仅用于布局子控件（Box的情况）
 	*/
 	void SetEnableControlPadding(bool bEnable);
 
-	/** �жϿؼ������Ƿ����������ڱ߾�
-	* @return true��ʾ�ؼ�����Ҳ�����ڱ߾ࣨBox��Control����
-		      false��ʾ�ؼ������������ڱ߾࣬�ڱ߾�����ڲ����ӿؼ���Box�������
+	/** 判断控件自身是否允许运用内边距
+	* @return true表示控件本身也运用内边距（Box和Control）；
+		      false表示控件本身不运用内边距，内边距仅用于布局子控件（Box的情况）
 	*/
 	bool IsEnableControlPadding() const;
 
-	/** ��ȡ�ؼ��������ڱ߾ࣨ�������Ϊ��ֹ�����ڱ߾࣬�򷵻ؿգ�
-	* @return �����ڱ߾��ıߵĴ�С��Rect���ĸ������ֱ�����ĸ��ߵ��ڱ߾ࣩ
+	/** 获取控件自身的内边距（如果设置为禁止运用内边距，则返回空）
+	* @return 返回内边距四边的大小（Rect的四个参数分别代表四个边的内边距）
 	*/
 	UiPadding GetControlPadding() const;
 
-	/** ��ȡ�ؼ�λ�ã�����ɸı���Ϊ��
-	* @return ���ؿؼ��ľ������򣬰����ڱ߾࣬��������߾�
+	/** 获取控件位置（子类可改变行为）
+	* @return 返回控件的矩形区域，包含内边距，不包含外边距
 	 */
 	virtual	UiRect GetPos() const { return m_uiRect; }
 
-	/** ���ÿؼ�λ�ã�����ɸı���Ϊ��
-	 * @param [in] rc Ҫ���õľ���������Ϣ�������ڱ߾࣬��������߾�
+	/** 设置控件位置（子类可改变行为）
+	 * @param [in] rc 要设置的矩形区域信息，包含内边距，不包含外边距
 	 */
 	virtual void SetPos(UiRect rc);
 
-	/** ��ȡ�ؼ���������(��������m_uiRectֵ)�������ڱ߾࣬��������߾�
+	/** 获取控件矩形区域(单纯返回m_uiRect值)，包含内边距，不包含外边距
 	*/
 	const UiRect& GetRect() const { return m_uiRect; }
 
-	/** ���ÿؼ���������(��������m_uiRectֵ)�������ڱ߾࣬��������߾�
+	/** 设置控件矩形区域(单纯设置m_uiRect值)，包含内边距，不包含外边距
 	*/
 	void SetRect(const UiRect& rc);
 
-	/** �ػ�ؼ�
+	/** 重绘控件
 	*/
 	virtual void Invalidate();
 
-	/** �ػ�ؼ��Ĳ�������
-	* @param [in] rc ��Ҫ�ػ������
+	/** 重绘控件的部分区域
+	* @param [in] rc 需要重绘的区域
 	*/
 	virtual void InvalidateRect(const UiRect& rc);
 
-	/** �ؼ���������
+	/** 控件布局重排
 	 */
 	virtual void Arrange();
 
-	/** �ø��������в�������
+	/** 让父容器进行布局重排
 	 */
 	virtual void ArrangeAncestor();
 
-	/** ���ݿؼ����ԣ��ж���Ҫ���Ų��ֻ���ֻ���ػ�
+	/** 根据控件属性，判断需要重排布局或者只是重绘
 	*/
 	void RelayoutOrRedraw();
 
-	/** �ж��Ƿ��Ѿ����й�
+	/** 判断是否已经排列过
 	 */
 	bool IsArranged() const { return m_bIsArranged; }
 
-	/** �����Ƿ��Ѿ����й�
+	/** 设置是否已经排列过
 	 */
 	void SetArranged(bool bArranged);
 
-	/** �����Ƿ�ʹ�û���
+	/** 设置是否使用缓存
 	 */
 	void SetUseCache(bool cache);
 
-	/** �ж��Ƿ�ʹ�û���
+	/** 判断是否使用缓存
 	 */
 	bool IsUseCache() { return m_bUseCache; }
 
-	/** ���û������־λ
+	/** 设置缓存脏标志位
 	 */
 	void SetCacheDirty(bool dirty);
 
-	/** �жϻ������־λֵ
+	/** 判断缓存脏标志位值
 	 */
 	bool IsCacheDirty() { return m_bCacheDirty; }
 
-	/** ��ȡ������ƫ��
+	/** 获取外层滚动偏移
 	 */
 	UiPoint GetScrollOffsetInScrollBox() const;
 
-	/** �ж������ؼ��Ƿ���ڸ���/�����ϵ
+	/** 判断两个控件是否存在父子/子孙关系
 	 */
 	bool IsChild(PlaceHolder* pAncestor, PlaceHolder* pChild) const;
 
-	/** ��ȡ�ô��ڶ�Ӧ��DPI������
+	/** 获取该窗口对应的DPI管理器
 	*/
 	const DpiManager& Dpi() const;
 
 protected:
-	/** ���Լ�����
+	/** 让自己重排
 	 */
 	virtual void ArrangeSelf();
 
-	/** ִ�г�ʼ���������¼���ÿ���ؼ��ڳ�ʼ��ʱ������øú���������ֻ����һ�Σ�
-	 *  �ú���ִ��ʱ��IsInited()��ֵΪfalse�����IsInited()Ϊtrue����ʾOnInit()�����ظ�ִ���ˡ�
+	/** 执行初始化函数的事件（每个控件在初始化时，会调用该函数，并且只调用一次）
+	 *  该函数执行时，IsInited()的值为false，如果IsInited()为true，表示OnInit()函数重复执行了。
 	 */
 	virtual void OnInit();
 
 private:
-	//�ؼ����ƣ����ڲ��ҿؼ��Ȳ���
+	//控件名称，用于查找控件等操作
 	UiString m_sName;
 
-	//�����Ĵ��ڶ���
+	//关联的窗口对象
 	Window* m_pWindow;
 
-	//���ؼ�����
+	//父控件对象
 	Box* m_pParent;
 
-	//�ؼ�λ�����С
+	//控件位置与大小
 	UiRect m_uiRect;
 
-	//�ⲿ���õĿؼ���С
+	//外部设置的控件大小
 	UiFixedSize m_cxyFixed;
 
-	//����ؼ���С�Ľ��
+	//估算控件大小的结果
 	UiEstResult m_estResult;
 
-	//�ؼ���С��Сֵ
+	//控件大小最小值
 	UiSize m_cxyMin;
 
-	//�ؼ���С���ֵ
+	//控件大小最大值
 	UiSize m_cxyMax;
 
-	//�ؼ�ˮƽ���뷽ʽ(HorAlignType)
+	//控件水平对齐方式(HorAlignType)
 	int8_t m_horAlignType;
 
-	//�ؼ���ֱ���뷽ʽ(VerAlignType)
+	//控件垂直对齐方式(VerAlignType)
 	int8_t m_verAlignType;
 
-	//�ؼ�����߾����ԣ��ϣ��£����ұ߾ࣩ����߾���m_uiRect����Ŀռ䣬��������m_uiRect����
+	//控件的外边距属性（上，下，左，右边距），外边距是m_uiRect以外的空间，不包含在m_uiRect以内
 	UiMargin16 m_rcMargin;
 
-	//�ڱ߾��ıߵĴ�С���ϣ��£����ұ߾ࣩ���ڱ߾��ǿؼ��������ڵĿռ䣬�ǰ����ڿؼ��������ڵ�
+	//内边距四边的大小（上，下，左，右边距），内边距是控件矩形以内的空间，是包含在控件矩形以内的
 	UiPadding16 m_rcPadding;
 
-	//�Ƿ������ؼ����������ڱ߾�
-	//(ԭ�����߼���Control�������ڱ߾࣬Box��Layout���ڱ߾࣬����Box�����ı���ͼƬ���ǲ�Ӧ���ڱ߾�ģ�ֻ���ӿؼ�Ӧ���ڱ߾�)
-	//�˿���Ĭ��Ϊtrue���ṩ�ر�ѡ����Ϊ�˼���ԭ�����߼���������Ӱ��ʵ�֣��Ͳ��ܿ����ڱ߾࣬������Ӱ�����쳣
+	//是否允许控件本身设置内边距
+	//(原来的逻辑：Control自身无内边距，Box的Layout有内边距，所以Box自身的背景图片等是不应用内边距的，只有子控件应用内边距)
+	//此开关默认为true，提供关闭选项是为了兼容原来的逻辑，比如阴影的实现，就不能开启内边距，否则阴影绘制异常
 	bool m_bEnableControlPadding;
 
-	//�ؼ��Ƿ�Ϊ��������
+	//控件是否为浮动属性
 	bool m_bFloat;
 
-	//�Ƿ���Ҫ��������
+	//是否需要布局重排
 	bool m_bIsArranged;
 
-	//�Ƿ�ʹ�û��ƻ���
-	// ���Ϊtrue��ÿ���ؼ��Լ�����һ�ݻ��ƻ��棬��ռ�ý϶��ڴ棬�����ϻ������������ܣ���ʵ��δ���Գ�Ч����
-	// ���Ϊfalse����ʾ�޻��ƻ��棬�ڴ�ռ�ñȽ��١�
-	// TODO: ���ģʽ���ڴ�ռ���ʺܸߣ��Ի����������������ԣ�δ�����ܻ�ɾ��������߼����Լ򻯴��롣
+	//是否使用绘制缓存
+	// 如果为true，每个控件自己保存一份绘制缓存，会占用较多内存，理论上会提升绘制性能，但实际未测试出效果）
+	// 如果为false，表示无绘制缓存，内存占用比较少。
+	// TODO: 这个模式下内存占有率很高，对绘制性能提升不明显，未来可能会删除掉这个逻辑，以简化代码。
 	bool m_bUseCache;
 
-	//�����Ƿ�������־ֵ
+	//缓存是否存在脏标志值
 	bool m_bCacheDirty;
 
-	//�Ƿ�ɼ�
+	//是否可见
 	bool m_bVisible;
 
-	//�Ƿ��Ѿ���ɳ�ʼ��
+	//是否已经完成初始化
 	bool m_bInited;
 };
 

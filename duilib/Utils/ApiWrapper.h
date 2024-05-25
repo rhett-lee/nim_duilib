@@ -8,8 +8,8 @@
 
 namespace ui
 {
-	// DPI适配
-	//Windows 10版本 1607
+	// DPI閫傞厤
+	//Windows 10鐗堟湰 1607
 	bool GetDpiForSystemWrapper(UINT& dpi);
 	bool GetDpiForWindowWrapper(HWND hwnd, UINT& dpi);
 	int GetSystemMetricsForDpiWrapper(int nIndex, UINT dpi);
@@ -17,16 +17,16 @@ namespace ui
 	//Windows 8.1 
 	bool GetDpiForMonitorWrapper(HMONITOR hMonitor, MONITOR_DPI_TYPE dpiType, UINT *dpiX, UINT *dpiY);
 
-	//Windows 10 版本 1703 以上
+	//Windows 10 鐗堟湰 1703 浠ヤ笂
 	bool SetProcessDpiAwarenessContextWrapper(PROCESS_DPI_AWARENESS_CONTEXT value);
 	bool GetProcessDpiAwarenessContextWrapper(PROCESS_DPI_AWARENESS_CONTEXT& value);
 	bool AreDpiAwarenessContextsEqualWrapper(PROCESS_DPI_AWARENESS_CONTEXT dpiContextA, PROCESS_DPI_AWARENESS_CONTEXT dpiContextB);
 	
-	//Windows 8.1以上
+	//Windows 8.1浠ヤ笂
 	bool SetProcessDPIAwarenessWrapper(PROCESS_DPI_AWARENESS value);
 	bool GetProcessDPIAwarenessWrapper(PROCESS_DPI_AWARENESS& awareness);
 
-	//Windows Vista 以上
+	//Windows Vista 浠ヤ笂
 	bool SetProcessDPIAwareWrapper();
     bool IsProcessDPIAwareWrapper(bool& bAware);
 

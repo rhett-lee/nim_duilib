@@ -91,7 +91,7 @@ UiSize64 Layout::SetFloatPos(Control* pControl, const UiRect& rcContainer)
 
 	UiRect childPos = GetFloatPos(pControl, rcContainer, childSize);
 	pControl->SetPos(childPos);
-	//TODO: 64Î»¼æÈİĞÔ¼ì²é
+	//TODO: 64ä½å…¼å®¹æ€§æ£€æŸ¥
 	return UiSize64(childPos.Width(), childPos.Height());
 }
 
@@ -103,7 +103,7 @@ UiRect Layout::GetFloatPos(Control* pControl, UiRect rcContainer, UiSize childSi
 	int32_t iPosRight = rcContainer.right - rcMargin.right;
 	int32_t iPosTop = rcContainer.top + rcMargin.top;
 	int32_t iPosBottom = rcContainer.bottom - rcMargin.bottom;
-	//Èç¹û¿Õ¼ä²»×ã£¬Ôò¿í¸ßÉèÖÃÎªÁã£¨Èç¹û½çÃæ¿ÉÓÃµ÷Õû´óĞ¡£¬Õâ¸öÇé¿ö»áÆµ·±³öÏÖ£©
+	//å¦‚æœç©ºé—´ä¸è¶³ï¼Œåˆ™å®½é«˜è®¾ç½®ä¸ºé›¶ï¼ˆå¦‚æœç•Œé¢å¯ç”¨è°ƒæ•´å¤§å°ï¼Œè¿™ä¸ªæƒ…å†µä¼šé¢‘ç¹å‡ºç°ï¼‰
 	if (iPosRight < iPosLeft) {
 		iPosRight = iPosLeft;
 	}
@@ -117,7 +117,7 @@ UiRect Layout::GetFloatPos(Control* pControl, UiRect rcContainer, UiSize childSi
 	int32_t childWidth = childSize.cx;
 	int32_t childHeight = childSize.cy;
 
-	//°´ÕÕ×Ó¿Ø¼şÖ¸¶¨µÄºáÏò¶ÔÆë·½Ê½ºÍ×İÏò¶ÔÆë·½Ê½À´ÅÅÁĞ¿Ø¼ş
+	//æŒ‰ç…§å­æ§ä»¶æŒ‡å®šçš„æ¨ªå‘å¯¹é½æ–¹å¼å’Œçºµå‘å¯¹é½æ–¹å¼æ¥æ’åˆ—æ§ä»¶
 	HorAlignType horAlignType = pControl->GetHorAlignType();
 	VerAlignType verAlignType = pControl->GetVerAlignType();
 
@@ -183,8 +183,8 @@ UiSize64 Layout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 
 UiSize Layout::EstimateSizeByChild(const std::vector<Control*>& items, UiSize szAvailable)
 {
-	//¿í¶È£ºÈ¡ËùÓĞ×Ó¿Ø¼ş¿í¶ÈµÄ×î´óÖµ£¬¼ÓÉÏMargin¡¢PaddingµÈ£¬²»º¬À­ÉìÀàĞÍµÄ×Ó¿Ø¼ş
-	//¸ß¶È£ºÈ¡ËùÓĞ×Ó¿Ø¼ş¸ß¶ÈµÄ×î´óÖµ£¬¼ÓÉÏMargin¡¢PaddingµÈ£¬²»º¬À­ÉìÀàĞÍµÄ×Ó¿Ø¼ş
+	//å®½åº¦ï¼šå–æ‰€æœ‰å­æ§ä»¶å®½åº¦çš„æœ€å¤§å€¼ï¼ŒåŠ ä¸ŠMarginã€Paddingç­‰ï¼Œä¸å«æ‹‰ä¼¸ç±»å‹çš„å­æ§ä»¶
+	//é«˜åº¦ï¼šå–æ‰€æœ‰å­æ§ä»¶é«˜åº¦çš„æœ€å¤§å€¼ï¼ŒåŠ ä¸ŠMarginã€Paddingç­‰ï¼Œä¸å«æ‹‰ä¼¸ç±»å‹çš„å­æ§ä»¶
 	szAvailable.Validate();
 	UiSize maxSize;
 	UiSize itemSize;
@@ -195,7 +195,7 @@ UiSize Layout::EstimateSizeByChild(const std::vector<Control*>& items, UiSize sz
 		UiEstSize estSize = pControl->EstimateSize(szAvailable);
 		itemSize = UiSize(estSize.cx.GetInt32(), estSize.cy.GetInt32());
 		if (estSize.cx.IsStretch()) {
-			//À­ÉìÀàĞÍµÄ×Ó¿Ø¼ş£¬²»¼ÆÈë
+			//æ‹‰ä¼¸ç±»å‹çš„å­æ§ä»¶ï¼Œä¸è®¡å…¥
 			itemSize.cx = 0;
 		}
 		else {
@@ -207,7 +207,7 @@ UiSize Layout::EstimateSizeByChild(const std::vector<Control*>& items, UiSize sz
 			}
 		}
 		if (estSize.cy.IsStretch()) {
-			//À­ÉìÀàĞÍµÄ×Ó¿Ø¼ş£¬²»¼ÆÈë
+			//æ‹‰ä¼¸ç±»å‹çš„å­æ§ä»¶ï¼Œä¸è®¡å…¥
 			itemSize.cy = 0;
 		}
 		else {
@@ -244,7 +244,7 @@ UiSize Layout::EstimateSizeByChild(const std::vector<Control*>& items, UiSize sz
 
 void Layout::CheckConfig(const std::vector<Control*>& items)
 {
-	//Èç¹ûm_pOwnerµÄ¿í¸ß¶¼ÊÇauto£¬¶øÇÒ×Ó¿Ø¼şµÄ¿í¸ß¶¼ÊÇstretch£¬ÄÇÃ´µÃµ½µÄ½á¹ûÊÇÁã£¬Ôö¼Ó¸ö¶ÏÑÔ
+	//å¦‚æœm_pOwnerçš„å®½é«˜éƒ½æ˜¯autoï¼Œè€Œä¸”å­æ§ä»¶çš„å®½é«˜éƒ½æ˜¯stretchï¼Œé‚£ä¹ˆå¾—åˆ°çš„ç»“æœæ˜¯é›¶ï¼Œå¢åŠ ä¸ªæ–­è¨€
 	if (m_pOwner == nullptr) {
 		return;
 	}
@@ -268,10 +268,10 @@ void Layout::CheckConfig(const std::vector<Control*>& items)
 		++childCount;
 	}
 	if ((childCount > 0) && m_pOwner->GetFixedWidth().IsAuto() && isAllWidthStretch) {
-		ASSERT(!"ÅäÖÃ´íÎó£ºµ±Ç°ÈİÆ÷µÄ¿íÊÇauto£¬×Ó¿Ø¼şµÄ¿í¶¼ÊÇstretch£¬¹ÀËã¿í¶ÈÎªÁã£¡");
+		ASSERT(!"é…ç½®é”™è¯¯ï¼šå½“å‰å®¹å™¨çš„å®½æ˜¯autoï¼Œå­æ§ä»¶çš„å®½éƒ½æ˜¯stretchï¼Œä¼°ç®—å®½åº¦ä¸ºé›¶ï¼");
 	}
 	if ((childCount > 0) && m_pOwner->GetFixedHeight().IsAuto() && isAllHeightStretch) {
-		ASSERT(!"ÅäÖÃ´íÎó£ºµ±Ç°ÈİÆ÷µÄ¸ßÊÇauto£¬×Ó¿Ø¼şµÄ¸ß¶¼ÊÇstretch£¬¹ÀËã¸ß¶ÈÎªÁã£¡");
+		ASSERT(!"é…ç½®é”™è¯¯ï¼šå½“å‰å®¹å™¨çš„é«˜æ˜¯autoï¼Œå­æ§ä»¶çš„é«˜éƒ½æ˜¯stretchï¼Œä¼°ç®—é«˜åº¦ä¸ºé›¶ï¼");
 	}
 }
 

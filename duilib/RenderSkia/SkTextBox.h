@@ -15,9 +15,9 @@
 
 #include <vector>
 
-//¸ÃÎÄ¼şÔ­Ê¼ÎÄ¼şµÄ³ö´¦£ºskia/chrome_67/include/utils/SkTextBox.h
-//»ùÓÚÔ­Ê¼ÎÄ¼ş£¬ÓĞĞŞ¸Ä£¬ÒÔ¼æÈİ×îĞÂ°æ±¾µÄskia´úÂë£¨2023-06-25£©
-//Ô­Ê¼ÎÄ¼ş´Óchrome 68ÒÔºó¾ÍÉ¾³ıÁË¡£
+//è¯¥æ–‡ä»¶åŸå§‹æ–‡ä»¶çš„å‡ºå¤„ï¼šskia/chrome_67/include/utils/SkTextBox.h
+//åŸºäºåŸå§‹æ–‡ä»¶ï¼Œæœ‰ä¿®æ”¹ï¼Œä»¥å…¼å®¹æœ€æ–°ç‰ˆæœ¬çš„skiaä»£ç ï¼ˆ2023-06-25ï¼‰
+//åŸå§‹æ–‡ä»¶ä»chrome 68ä»¥åå°±åˆ é™¤äº†ã€‚
 
 namespace ui
 {
@@ -38,7 +38,7 @@ class SkTextBox
 public:
     SkTextBox();
 
-    //Ô­Ê¼º¯Êı£ºSkPaint::breakText Õâ¸öº¯ÊıÔÚ×îĞÂµÄSkia´úÂëÀïÃæÒÑ¾­É¾³ıÁË£¬Õâ¸öÊÇ×Ô¼ºÊµÏÖµÄ°æ±¾¡£
+    //åŸå§‹å‡½æ•°ï¼šSkPaint::breakText è¿™ä¸ªå‡½æ•°åœ¨æœ€æ–°çš„Skiaä»£ç é‡Œé¢å·²ç»åˆ é™¤äº†ï¼Œè¿™ä¸ªæ˜¯è‡ªå·±å®ç°çš„ç‰ˆæœ¬ã€‚
     /** Returns the bytes of text that fit within maxWidth.
         @param text           character codes or glyph indices to be measured
         @param byteLength     number of bytes of text to measure
@@ -52,53 +52,53 @@ public:
                             SkScalar maxWidth, SkScalar* measuredWidth = nullptr);
 
 public:
-    //»»ĞĞÄ£Ê½
+    //æ¢è¡Œæ¨¡å¼
     enum LineMode {
-        kOneLine_Mode,   //µ¥ĞĞÄ£Ê½
-        kWordBreak_Mode, //Word BreakÄ£Ê½£¬¶àĞĞÄ£Ê½£¬°´µ¥´Ê·ÖĞĞ£¨Ä¬ÈÏ£©
-        kCharBreak_Mode, //Char BreakÄ£Ê½£¬¶àĞĞÄ£Ê½£¬°´×Ö·û·ÖĞĞ£¨Ó¢ÎÄµ¥´ÊºÍÊı×Ö¶¼»á±»»»ĞĞÇĞ·Ö£©
+        kOneLine_Mode,   //å•è¡Œæ¨¡å¼
+        kWordBreak_Mode, //Word Breakæ¨¡å¼ï¼Œå¤šè¡Œæ¨¡å¼ï¼ŒæŒ‰å•è¯åˆ†è¡Œï¼ˆé»˜è®¤ï¼‰
+        kCharBreak_Mode, //Char Breakæ¨¡å¼ï¼Œå¤šè¡Œæ¨¡å¼ï¼ŒæŒ‰å­—ç¬¦åˆ†è¡Œï¼ˆè‹±æ–‡å•è¯å’Œæ•°å­—éƒ½ä¼šè¢«æ¢è¡Œåˆ‡åˆ†ï¼‰
 
         kModeCount
     };
     LineMode getLineMode() const { return fLineMode; }
     void setLineMode(LineMode);
 
-    //×İÏò¶ÔÆë·½Ê½
+    //çºµå‘å¯¹é½æ–¹å¼
     enum SpacingAlign {
-        kStart_SpacingAlign,  //ÉÏ¶ÔÆë£¬Ïàµ±ÓÚ£ºtop ¶ÔÆë(Ä¬ÈÏ)
-        kCenter_SpacingAlign, //ÖĞ¶ÔÆë£¬Ïàµ±ÓÚ£ºvcener ¶ÔÆë
-        kEnd_SpacingAlign,    //ÏÂ¶ÔÆë£¬Ïàµ±ÓÚ£ºbottom ¶ÔÆë
+        kStart_SpacingAlign,  //ä¸Šå¯¹é½ï¼Œç›¸å½“äºï¼štop å¯¹é½(é»˜è®¤)
+        kCenter_SpacingAlign, //ä¸­å¯¹é½ï¼Œç›¸å½“äºï¼švcener å¯¹é½
+        kEnd_SpacingAlign,    //ä¸‹å¯¹é½ï¼Œç›¸å½“äºï¼šbottom å¯¹é½
 
         kSpacingAlignCount
     };
     SpacingAlign getSpacingAlign() const { return (SpacingAlign)fSpacingAlign; }
     void         setSpacingAlign(SpacingAlign);
 
-    //ºáÏò¶ÔÆë·½Ê½
+    //æ¨ªå‘å¯¹é½æ–¹å¼
     enum TextAlign {
-        kLeft_Align,        //×ó¶ÔÆë(Ä¬ÈÏ)
-        kCenter_Align,      //ÖĞ¶ÔÆë
-        kRight_Align,       //ÓÒ¶ÔÆë
+        kLeft_Align,        //å·¦å¯¹é½(é»˜è®¤)
+        kCenter_Align,      //ä¸­å¯¹é½
+        kRight_Align,       //å³å¯¹é½
 
         kAlignCount
     };
     TextAlign getTextAlign() const { return (TextAlign)fTextAlign; }
     void      setTextAlign(TextAlign);
 
-    //»æÖÆÇøÓò²»×ãÊ±£¬×Ô¶¯ÔÚÄ©Î²»æÖÆÊ¡ÂÔºÅ
+    //ç»˜åˆ¶åŒºåŸŸä¸è¶³æ—¶ï¼Œè‡ªåŠ¨åœ¨æœ«å°¾ç»˜åˆ¶çœç•¥å·
     bool getEndEllipsis() const { return fEndEllipsis; };
     void setEndEllipsis(bool);
 
-    //»æÖÆÇøÓò²»×ãÊ±£¬×Ô¶¯ÔÚ»æÖÆÊ¡ÂÔºÅ´úÌæÎÄ±¾(½öÏŞµ¥ĞĞÎÄ±¾Ä£Ê½£¬¶àĞĞÎÄ±¾Ä£Ê½²»Ö§³Ö´ËÊôĞÔ)
-    //Èç¹û×Ö·û´®°üº¬·´Ğ±¸Ü (\\) ×Ö·û£¬ÔÚ×îºóÒ»¸ö·´Ğ±¸ÜÖ®ºó±£Áô¾¡¿ÉÄÜ¶àµÄÎÄ±¾¡£
+    //ç»˜åˆ¶åŒºåŸŸä¸è¶³æ—¶ï¼Œè‡ªåŠ¨åœ¨ç»˜åˆ¶çœç•¥å·ä»£æ›¿æ–‡æœ¬(ä»…é™å•è¡Œæ–‡æœ¬æ¨¡å¼ï¼Œå¤šè¡Œæ–‡æœ¬æ¨¡å¼ä¸æ”¯æŒæ­¤å±æ€§)
+    //å¦‚æœå­—ç¬¦ä¸²åŒ…å«åæ–œæ  (\\) å­—ç¬¦ï¼Œåœ¨æœ€åä¸€ä¸ªåæ–œæ ä¹‹åä¿ç•™å°½å¯èƒ½å¤šçš„æ–‡æœ¬ã€‚
     bool getPathEllipsis() const { return fPathEllipsis; };
     void setPathEllipsis(bool);
 
-    //×ÖÌåÊôĞÔ£ºÏÂ»®Ïß
+    //å­—ä½“å±æ€§ï¼šä¸‹åˆ’çº¿
     bool getUnderline() const { return fUnderline; }
     void setUnderline(bool);
 
-    //×ÖÌåÊôĞÔ£ºÉ¾³ıÏß
+    //å­—ä½“å±æ€§ï¼šåˆ é™¤çº¿
     bool getStrikeOut() const { return fStrikeOut; }
     void setStrikeOut(bool);
 
@@ -106,17 +106,17 @@ public:
     void setBox(const SkRect&);
     void setBox(SkScalar left, SkScalar top, SkScalar right, SkScalar bottom);
 
-    //ÉèÖÃÊÇ·ñ¶ÔBoxÇøÓò×ö²Ã¼ô£¬ÉèÖÃ²Ã¼ô¿ÉÒÔ±ÜÃâÎÄ×Ö»æÖÆ³¬³ö±ß½ç
+    //è®¾ç½®æ˜¯å¦å¯¹BoxåŒºåŸŸåšè£å‰ªï¼Œè®¾ç½®è£å‰ªå¯ä»¥é¿å…æ–‡å­—ç»˜åˆ¶è¶…å‡ºè¾¹ç•Œ
     bool getClipBox() const { return fClipBox; }
     void setClipBox(bool bClipBox);
 
-    //ĞĞ¼ä¾à£ºmulÎªĞĞ¼ä¾àµÄ±¶Êı£¬add ÎªÔö¼Ó¶àÉÙ
-    //ÉèÖÃºó£¬Êµ¼ÊµÄĞĞ¼ä¾àÎª£ºfontHeight * mul + add;
+    //è¡Œé—´è·ï¼šmulä¸ºè¡Œé—´è·çš„å€æ•°ï¼Œadd ä¸ºå¢åŠ å¤šå°‘
+    //è®¾ç½®åï¼Œå®é™…çš„è¡Œé—´è·ä¸ºï¼šfontHeight * mul + add;
     void getSpacing(SkScalar* mul, SkScalar* add) const;
     void setSpacing(SkScalar mul, SkScalar add);
 
-    /** »æÖÆÎÄ×Ö£¬¸Ãº¯ÊıÎªdraw(SkCanvas*)ºÍsetTextµÄ±ãÀûĞÔ·â×°¡£
-    *   µÈ¼ÛÓÚÒÔÏÂ´úÂë£º
+    /** ç»˜åˆ¶æ–‡å­—ï¼Œè¯¥å‡½æ•°ä¸ºdraw(SkCanvas*)å’ŒsetTextçš„ä¾¿åˆ©æ€§å°è£…ã€‚
+    *   ç­‰ä»·äºä»¥ä¸‹ä»£ç ï¼š
     *       setText(text, len, textEncoding, font, paint);
     *       draw(canvas);
     */
@@ -145,10 +145,10 @@ public:
 private:
     SkScalar visit(Visitor& visitor) const;
 
-    /** ½«ÎÄ±¾×ª»»ÎªGlyphs
-    * @param [out] glyphs ×ª»»½á¹ûGlyphs
-    * @param [out] Ã¿¸öSkGlyphID¶ÔÓ¦µÄÔ­text×Ö·û´®ÖĞµÄ×Ö·û¸öÊı
-    * @param [out] Ã¿¸ö×Ö·ûÕ¼µÄ×Ö½ÚÊı
+    /** å°†æ–‡æœ¬è½¬æ¢ä¸ºGlyphs
+    * @param [out] glyphs è½¬æ¢ç»“æœGlyphs
+    * @param [out] æ¯ä¸ªSkGlyphIDå¯¹åº”çš„åŸtextå­—ç¬¦ä¸²ä¸­çš„å­—ç¬¦ä¸ªæ•°
+    * @param [out] æ¯ä¸ªå­—ç¬¦å çš„å­—èŠ‚æ•°
     */
     static bool TextToGlyphs(const void* text, size_t byteLength, SkTextEncoding textEncoding, 
                              const SkFont& font,
@@ -157,50 +157,50 @@ private:
                              size_t& charBytes);
 
 private:
-    //ÎÄ×Ö»æÖÆÇøÓò
+    //æ–‡å­—ç»˜åˆ¶åŒºåŸŸ
     SkRect fBox;
 
-    //ÊÇ·ñ¶ÔBoxÇøÓò×ö²Ã¼ô£¬Ä¬ÈÏÎªtrue
+    //æ˜¯å¦å¯¹BoxåŒºåŸŸåšè£å‰ªï¼Œé»˜è®¤ä¸ºtrue
     bool fClipBox;
 
-    //ĞĞ¼ä¾àÉèÖÃ²ÎÊı
+    //è¡Œé—´è·è®¾ç½®å‚æ•°
     SkScalar fSpacingMul, fSpacingAdd;
 
-    //»»ĞĞÄ£Ê½
+    //æ¢è¡Œæ¨¡å¼
     LineMode fLineMode;
 
-    //ÎÄ×Ö×İÏò¶ÔÆë·½Ê½
+    //æ–‡å­—çºµå‘å¯¹é½æ–¹å¼
     uint8_t fSpacingAlign;
 
-    //ÎÄ×ÖºáÏò¶ÔÆë·½Ê½
+    //æ–‡å­—æ¨ªå‘å¯¹é½æ–¹å¼
     uint8_t fTextAlign;
 
-    //ÎÄ×ÖÊı¾İ
+    //æ–‡å­—æ•°æ®
     const char* fText;
 
-    //ÎÄ×Ö³¤¶È
+    //æ–‡å­—é•¿åº¦
     size_t fLen;
 
-    //ÎÄ×Ö±àÂë
+    //æ–‡å­—ç¼–ç 
     SkTextEncoding fTextEncoding;
 
-    //»æÖÆÊôĞÔÉèÖÃ
+    //ç»˜åˆ¶å±æ€§è®¾ç½®
     const SkPaint* fPaint;
 
-    //»æÖÆ×ÖÌåÉèÖÃ
+    //ç»˜åˆ¶å­—ä½“è®¾ç½®
     const SkFont* fFont;
 
-    //»æÖÆÇøÓò²»×ãÊ±£¬×Ô¶¯ÔÚÄ©Î²»æÖÆÊ¡ÂÔºÅ
+    //ç»˜åˆ¶åŒºåŸŸä¸è¶³æ—¶ï¼Œè‡ªåŠ¨åœ¨æœ«å°¾ç»˜åˆ¶çœç•¥å·
     bool fEndEllipsis;
 
-    //»æÖÆÇøÓò²»×ãÊ±£¬×Ô¶¯ÔÚ»æÖÆÊ¡ÂÔºÅ´úÌæÎÄ±¾
-    //Èç¹û×Ö·û´®°üº¬·´Ğ±¸Ü (\\) ×Ö·û£¬ÔÚ×îºóÒ»¸ö·´Ğ±¸ÜÖ®ºó±£Áô¾¡¿ÉÄÜ¶àµÄÎÄ±¾¡£
+    //ç»˜åˆ¶åŒºåŸŸä¸è¶³æ—¶ï¼Œè‡ªåŠ¨åœ¨ç»˜åˆ¶çœç•¥å·ä»£æ›¿æ–‡æœ¬
+    //å¦‚æœå­—ç¬¦ä¸²åŒ…å«åæ–œæ  (\\) å­—ç¬¦ï¼Œåœ¨æœ€åä¸€ä¸ªåæ–œæ ä¹‹åä¿ç•™å°½å¯èƒ½å¤šçš„æ–‡æœ¬ã€‚
     bool fPathEllipsis;
 
-    //×ÖÌåÊôĞÔ£ºÏÂ»®Ïß
+    //å­—ä½“å±æ€§ï¼šä¸‹åˆ’çº¿
     bool fUnderline;
 
-    //×ÖÌåÊôĞÔ£ºÉ¾³ıÏß
+    //å­—ä½“å±æ€§ï¼šåˆ é™¤çº¿
     bool fStrikeOut;
 };
 

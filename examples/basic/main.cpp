@@ -1,4 +1,4 @@
-// basic.cpp : ¶¨ÒåÓ¦ÓÃ³ÌÐòµÄÈë¿Úµã¡£
+// basic.cpp : å®šä¹‰åº”ç”¨ç¨‹åºçš„å…¥å£ç‚¹ã€‚
 //
 
 #include "stdafx.h"
@@ -18,10 +18,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	UNREFERENCED_PARAMETER(hPrevInstance);
 	UNREFERENCED_PARAMETER(lpCmdLine);
 
-	// ´´½¨Ö÷Ïß³Ì
+	// åˆ›å»ºä¸»çº¿ç¨‹
 	MainThread thread;
 
-	// Ö´ÐÐÖ÷Ïß³ÌÑ­»·
+	// æ‰§è¡Œä¸»çº¿ç¨‹å¾ªçŽ¯
 	thread.RunOnCurrentThreadWithLoop(nbase::MessageLoop::kUIMessageLoop);
 
 	return 0;
@@ -31,16 +31,16 @@ void MainThread::Init()
 {
 	nbase::ThreadManager::RegisterThread(kThreadUI);
 
-	//³õÊ¼»¯È«¾Ö×ÊÔ´
+	//åˆå§‹åŒ–å…¨å±€èµ„æº
 	constexpr ui::ResourceType resType = ui::ResourceType::kLocalFiles;
 	if (resType == ui::ResourceType::kLocalFiles) {
-		//Ê¹ÓÃ±¾µØÎÄ¼þ¼Ð×÷Îª×ÊÔ´
+		//ä½¿ç”¨æœ¬åœ°æ–‡ä»¶å¤¹ä½œä¸ºèµ„æº
 		std::wstring resourcePath = nbase::win32::GetCurrentModuleDirectory();
 		resourcePath += L"resources\\";
 		ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath));
 	}
 	else if (resType == ui::ResourceType::kZipFile) {
-		//Ê¹ÓÃ±¾µØzipÑ¹Ëõ°ü×÷Îª×ÊÔ´£¨Ñ¹Ëõ°üÎ»ÓÚexeÏàÍ¬Ä¿Â¼£©	
+		//ä½¿ç”¨æœ¬åœ°zipåŽ‹ç¼©åŒ…ä½œä¸ºèµ„æºï¼ˆåŽ‹ç¼©åŒ…ä½äºŽexeç›¸åŒç›®å½•ï¼‰	
 		ui::ZipFileResParam resParam;
 		resParam.resourcePath = L"resources\\";
 		resParam.zipFilePath = nbase::win32::GetCurrentModuleDirectory();
@@ -49,7 +49,7 @@ void MainThread::Init()
 		ui::GlobalManager::Instance().Startup(resParam);
 	}
 	else if (resType == ui::ResourceType::kResZipFile) {
-		//Ê¹ÓÃexe×ÊÔ´ÎÄ¼þÖÐµÄzipÑ¹Ëõ°ü
+		//ä½¿ç”¨exeèµ„æºæ–‡ä»¶ä¸­çš„zipåŽ‹ç¼©åŒ…
 		ui::ResZipFileResParam resParam;
 		resParam.resourcePath = L"resources\\";
 		resParam.hResModule = nullptr;
@@ -62,7 +62,7 @@ void MainThread::Init()
 		return;
 	}
 
-	// ´´½¨Ò»¸öÄ¬ÈÏ´øÓÐÒõÓ°µÄ¾ÓÖÐ´°¿Ú
+	// åˆ›å»ºä¸€ä¸ªé»˜è®¤å¸¦æœ‰é˜´å½±çš„å±…ä¸­çª—å£
 	BasicForm* window = new BasicForm();
 	window->CreateWnd(NULL, BasicForm::kClassName.c_str(), UI_WNDSTYLE_FRAME, WS_EX_LAYERED);
 	window->SetIcon(IDI_BASIC);

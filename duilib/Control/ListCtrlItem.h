@@ -10,154 +10,154 @@
 
 namespace ui
 {
-/** ListCtrlÁĞ±íÊı¾İÏîUI¿Ø¼ş£¨ĞĞ£©
-*    »ù±¾½á¹¹: <ListCtrlItem> <ListCtrlSubItem/> ... <ListCtrlSubItem/>  </ListCtrlItem>
-     ¸½¼ÓËµÃ÷: 1. ListCtrlItem ÊÇHBoxµÄ×ÓÀà;   
-              2. Ã¿Ò»ÁĞ£¬·ÅÖÃÒ»¸öListCtrlSubItem¿Ø¼ş
-              3. ListCtrlSubItem ÊÇLabelBoxµÄ×ÓÀà
+/** ListCtrlåˆ—è¡¨æ•°æ®é¡¹UIæ§ä»¶ï¼ˆè¡Œï¼‰
+*    åŸºæœ¬ç»“æ„: <ListCtrlItem> <ListCtrlSubItem/> ... <ListCtrlSubItem/>  </ListCtrlItem>
+     é™„åŠ è¯´æ˜: 1. ListCtrlItem æ˜¯HBoxçš„å­ç±»;   
+              2. æ¯ä¸€åˆ—ï¼Œæ”¾ç½®ä¸€ä¸ªListCtrlSubItemæ§ä»¶
+              3. ListCtrlSubItem æ˜¯LabelBoxçš„å­ç±»
 */
 class ListCtrl;
 class ListCtrlSubItem;
 class ListCtrlItem : public ListCtrlItemBaseH
 {
-    friend class ListCtrlReportView;//¿ª·Å²¿·Öprotect½Ó¿Ú
+    friend class ListCtrlReportView;//å¼€æ”¾éƒ¨åˆ†protectæ¥å£
 public:
     explicit ListCtrlItem(Window* pWindow);
     virtual ~ListCtrlItem();
 
-    /** »ñÈ¡¿Ø¼şÀàĞÍ
+    /** è·å–æ§ä»¶ç±»å‹
     */
     virtual std::wstring GetType() const override;
 
-    /** ÉèÖÃÊôĞÔ
+    /** è®¾ç½®å±æ€§
     */
     virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 
-    /** DPI·¢Éú±ä»¯£¬¸üĞÂ¿Ø¼ş´óĞ¡ºÍ²¼¾Ö
-    * @param [in] nOldDpiScale ¾ÉµÄDPIËõ·Å°Ù·Ö±È
-    * @param [in] nNewDpiScale ĞÂµÄDPIËõ·Å°Ù·Ö±È£¬ÓëDpi().GetScale()µÄÖµÒ»ÖÂ
+    /** DPIå‘ç”Ÿå˜åŒ–ï¼Œæ›´æ–°æ§ä»¶å¤§å°å’Œå¸ƒå±€
+    * @param [in] nOldDpiScale æ—§çš„DPIç¼©æ”¾ç™¾åˆ†æ¯”
+    * @param [in] nNewDpiScale æ–°çš„DPIç¼©æ”¾ç™¾åˆ†æ¯”ï¼Œä¸Dpi().GetScale()çš„å€¼ä¸€è‡´
     */
     virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override;
 
-    /** ÊÂ¼ş´¦Àíº¯Êı
+    /** äº‹ä»¶å¤„ç†å‡½æ•°
     */
     virtual void HandleEvent(const EventArgs& msg) override;
 
-    /** ÅĞ¶Ï¿Ø¼şÀàĞÍÊÇ·ñÎª¿ÉÑ¡ÔñµÄ
-     * @return Ä¬ÈÏ·µ»Øfalse
+    /** åˆ¤æ–­æ§ä»¶ç±»å‹æ˜¯å¦ä¸ºå¯é€‰æ‹©çš„
+     * @return é»˜è®¤è¿”å›false
      */
     virtual bool IsSelectableType() const override;
 
-    /** ÉèÖÃÊÇ·ñ¿ÉÒÔÑ¡Ôñ(ÖÃ¶¥Êı¾İ²»¿ÉÑ¡Ôñ£¬ÆäËûÊı¾İ¿ÉÑ¡Ôñ)
+    /** è®¾ç½®æ˜¯å¦å¯ä»¥é€‰æ‹©(ç½®é¡¶æ•°æ®ä¸å¯é€‰æ‹©ï¼Œå…¶ä»–æ•°æ®å¯é€‰æ‹©)
     */
     void SetSelectableType(bool bSelectable);
 
 public:
-    /** ÉèÖÃ¹ØÁªµÄListCtrl½Ó¿Ú
+    /** è®¾ç½®å…³è”çš„ListCtrlæ¥å£
     */
     void SetListCtrl(ListCtrl* pListCtrl);
 
-    /** »ñÈ¡¹ØÁªµÄListCtrl½Ó¿Ú
+    /** è·å–å…³è”çš„ListCtrlæ¥å£
     */
     ListCtrl* GetListCtrl() const;
 
-    /** »ñÈ¡×Ó¿Ø¼şµÄ¸öÊı
+    /** è·å–å­æ§ä»¶çš„ä¸ªæ•°
     */
     size_t GetSubItemCount() const;
 
-    /** »ñÈ¡µÚcolumnIndex¸ö×Ó¿Ø¼ş
-    * @param [in] columnIndex ÁĞË÷ÒıĞòºÅ£º[0, GetSubItemCount())
+    /** è·å–ç¬¬columnIndexä¸ªå­æ§ä»¶
+    * @param [in] columnIndex åˆ—ç´¢å¼•åºå·ï¼š[0, GetSubItemCount())
     */
     ListCtrlSubItem* GetSubItem(size_t columnIndex) const;
 
-    /** »ñÈ¡Êó±êËùÔÚÎ»ÖÃµÄ×Ó¿Ø¼ş
-    * @param [in] ptMouse Êó±êËùÔÚµÄÎ»ÖÃ£¬ÆÁÄ»×ø±êµã
+    /** è·å–é¼ æ ‡æ‰€åœ¨ä½ç½®çš„å­æ§ä»¶
+    * @param [in] ptMouse é¼ æ ‡æ‰€åœ¨çš„ä½ç½®ï¼Œå±å¹•åæ ‡ç‚¹
     */
     ListCtrlSubItem* GetSubItem(const UiPoint& ptMouse) const;
 
-    /** »ñÈ¡Êó±êËùÔÚÎ»ÖÃµÄ×Ó¿Ø¼şµÄÁĞË÷ÒıĞòºÅ(ÄÄÒ»ÁĞ)
-    * @param [in] ptMouse Êó±êËùÔÚµÄÎ»ÖÃ£¬ÆÁÄ»×ø±êµã
+    /** è·å–é¼ æ ‡æ‰€åœ¨ä½ç½®çš„å­æ§ä»¶çš„åˆ—ç´¢å¼•åºå·(å“ªä¸€åˆ—)
+    * @param [in] ptMouse é¼ æ ‡æ‰€åœ¨çš„ä½ç½®ï¼Œå±å¹•åæ ‡ç‚¹
     */
     size_t GetSubItemIndex(const UiPoint& ptMouse) const;
 
-    /** »ñÈ¡×Ó¿Ø¼şµÄÁĞË÷ÒıĞòºÅ(ÄÄÒ»ÁĞ)
-    * @param [in] pSubItem ×Ó¿Ø¼şµÄ½Ó¿Ú
+    /** è·å–å­æ§ä»¶çš„åˆ—ç´¢å¼•åºå·(å“ªä¸€åˆ—)
+    * @param [in] pSubItem å­æ§ä»¶çš„æ¥å£
     */
     size_t GetSubItemIndex(ListCtrlSubItem* pSubItem) const;
 
-    /** ÉèÖÃÊÇ·ñÔÚĞĞÊ×ÏÔÊ¾CheckBox
-    * @param [in] bShow true±íÊ¾ÔÚĞĞÊ×ÏÔÊ¾CheckBox£¬false±íÊ¾²»ÏÔÊ¾
+    /** è®¾ç½®æ˜¯å¦åœ¨è¡Œé¦–æ˜¾ç¤ºCheckBox
+    * @param [in] bShow trueè¡¨ç¤ºåœ¨è¡Œé¦–æ˜¾ç¤ºCheckBoxï¼Œfalseè¡¨ç¤ºä¸æ˜¾ç¤º
     */
     bool SetShowCheckBox(bool bShow);
 
-    /** ÅĞ¶ÏÊÇ·ñĞĞÊ×ÏÔÊ¾ÁËCheckBox
+    /** åˆ¤æ–­æ˜¯å¦è¡Œé¦–æ˜¾ç¤ºäº†CheckBox
     */
     bool IsShowCheckBox() const;
 
-    /** ÉèÖÃ¹ØÁªÍ¼±êId, Èç¹ûÎª-1±íÊ¾²»ÏÔÊ¾Í¼±ê£¬Í¼±êÏÔÊ¾ÔÚÎÄ±¾Ç°Ãæ
+    /** è®¾ç½®å…³è”å›¾æ ‡Id, å¦‚æœä¸º-1è¡¨ç¤ºä¸æ˜¾ç¤ºå›¾æ ‡ï¼Œå›¾æ ‡æ˜¾ç¤ºåœ¨æ–‡æœ¬å‰é¢
     */
     void SetImageId(int32_t imageId);
 
-    /** »ñÈ¡¹ØÁªÍ¼±êId
+    /** è·å–å…³è”å›¾æ ‡Id
     */
     int32_t GetImageId() const;
 
-    /** ÉèÖÃÍ¼±êÖ®¼äµÄ¼ä¸ô£¨ÏñËØ£©
+    /** è®¾ç½®å›¾æ ‡ä¹‹é—´çš„é—´éš”ï¼ˆåƒç´ ï¼‰
     */
     void SetIconSpacing(int32_t nIconSpacing, bool bNeedDpiScale);
 
-    /** »ñÈ¡Í¼±êÖ®¼äµÄ¼ä¸ô£¨ÏñËØ£©
+    /** è·å–å›¾æ ‡ä¹‹é—´çš„é—´éš”ï¼ˆåƒç´ ï¼‰
     */
     int32_t GetIconSpacing() const;
 
 protected:
-    /** »ñÈ¡¹ØÁªÍ¼±ê/CheckBoxµÈËùÕ¼µÄ¿í¶È(×ó²à)
+    /** è·å–å…³è”å›¾æ ‡/CheckBoxç­‰æ‰€å çš„å®½åº¦(å·¦ä¾§)
     */
     int32_t GetItemPaddingLeft();
 
-    /** ¼ÓÔØÍ¼±ê×ÊÔ´
+    /** åŠ è½½å›¾æ ‡èµ„æº
     */
     ImagePtr LoadItemImage() const;
 
-    /** Ê¹µÃÄ¿±êÇøÓò×İÏò¶ÔÆë
+    /** ä½¿å¾—ç›®æ ‡åŒºåŸŸçºµå‘å¯¹é½
     */
     void VAlignRect(UiRect& rc, uint32_t textStyle, int32_t nImageHeight);
 
-    /** »ñÈ¡CheckBoxµÄÍ¼Æ¬¿í¶È
+    /** è·å–CheckBoxçš„å›¾ç‰‡å®½åº¦
     */
     int32_t GetCheckBoxImageWidth();
 
 protected:
     
-    /** Êó±ê×ó¼üµ¯ÆğÊÂ¼ş
+    /** é¼ æ ‡å·¦é”®å¼¹èµ·äº‹ä»¶
     */
     virtual bool ButtonUp(const EventArgs& msg) override;
 
-    /** ÊÇ·ñÖ§³Ö¹´Ñ¡Ä£Ê½£¨Ä¿Ç°ÊÇTreeView/ListCtrlÔÚÊ¹ÓÃÕâ¸öÄ£Ê½£©
-        ¹´Ñ¡Ä£Ê½ÊÇÖ¸£º
-        £¨1£©Ö»ÓĞµã»÷ÔÚCheckBoxÍ¼Æ¬ÉÏµÄÊ±ºò£¬¹´Ñ¡¿òÍ¼Æ¬²ÅÊÇÑ¡Ôñ×´Ì¬£¨·Ç¹´Ñ¡Ä£Ê½ÏÂ£¬ÊÇµã»÷ÔÚ¿Ø¼ş¾ØĞÎÄÚ¾ÍÑ¡Ôñ£©
-        £¨2£©¹´Ñ¡×´Ì¬ºÍÑ¡Ôñ×´Ì¬·ÖÀë£¬ÊÇÁ½¸ö²»Í¬µÄ×´Ì¬
+    /** æ˜¯å¦æ”¯æŒå‹¾é€‰æ¨¡å¼ï¼ˆç›®å‰æ˜¯TreeView/ListCtrlåœ¨ä½¿ç”¨è¿™ä¸ªæ¨¡å¼ï¼‰
+        å‹¾é€‰æ¨¡å¼æ˜¯æŒ‡ï¼š
+        ï¼ˆ1ï¼‰åªæœ‰ç‚¹å‡»åœ¨CheckBoxå›¾ç‰‡ä¸Šçš„æ—¶å€™ï¼Œå‹¾é€‰æ¡†å›¾ç‰‡æ‰æ˜¯é€‰æ‹©çŠ¶æ€ï¼ˆéå‹¾é€‰æ¨¡å¼ä¸‹ï¼Œæ˜¯ç‚¹å‡»åœ¨æ§ä»¶çŸ©å½¢å†…å°±é€‰æ‹©ï¼‰
+        ï¼ˆ2ï¼‰å‹¾é€‰çŠ¶æ€å’Œé€‰æ‹©çŠ¶æ€åˆ†ç¦»ï¼Œæ˜¯ä¸¤ä¸ªä¸åŒçš„çŠ¶æ€
     */
     virtual bool SupportCheckedMode() const override;
 
-    /** »æÖÆº¯Êı
+    /** ç»˜åˆ¶å‡½æ•°
     */
     virtual void Paint(IRender* pRender, const UiRect& rcPaint) override;
 
 private:
-    /** ÊÇ·ñ¿ÉÒÔÑ¡Ôñ£¨Ó°Ïì·½Ïò¼üÇĞ»»Ñ¡ÔñÏî£©
+    /** æ˜¯å¦å¯ä»¥é€‰æ‹©ï¼ˆå½±å“æ–¹å‘é”®åˆ‡æ¢é€‰æ‹©é¡¹ï¼‰
     */
     bool m_bSelectable;
 
-    /** ¹ØÁªµÄListCtrl½Ó¿Ú
+    /** å…³è”çš„ListCtrlæ¥å£
     */
     ListCtrl* m_pListCtrl;
 
-    /** ¹ØÁªÍ¼±êId, Èç¹ûÎª-1±íÊ¾²»ÏÔÊ¾Í¼±ê£¬Í¼±êÏÔÊ¾ÔÚÎÄ±¾Ç°Ãæ
+    /** å…³è”å›¾æ ‡Id, å¦‚æœä¸º-1è¡¨ç¤ºä¸æ˜¾ç¤ºå›¾æ ‡ï¼Œå›¾æ ‡æ˜¾ç¤ºåœ¨æ–‡æœ¬å‰é¢
     */
     int32_t m_imageId;
 
-    /** Í¼±êÖ®¼äµÄ¼ä¸ô
+    /** å›¾æ ‡ä¹‹é—´çš„é—´éš”
     */
     int32_t m_nIconSpacing;
 };

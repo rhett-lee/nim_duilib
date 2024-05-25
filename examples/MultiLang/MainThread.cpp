@@ -39,20 +39,20 @@ void MainThread::Init()
     ::OleInitialize(nullptr);
     nbase::ThreadManager::RegisterThread(kThreadUI);
 
-    //Æô¶¯¹¤×÷Ïß³Ì
+    //å¯åŠ¨å·¥ä½œçº¿ç¨‹
     m_workerThread.reset(new WorkerThread(kThreadWorker, "WorkerThread"));
     m_workerThread->Start();
 
-	//³õÊ¼»¯È«¾Ö×ÊÔ´
+	//åˆå§‹åŒ–å…¨å±€èµ„æº
 	constexpr ui::ResourceType resType = ui::ResourceType::kLocalFiles;
 	if (resType == ui::ResourceType::kLocalFiles) {
-		//Ê¹ÓÃ±¾µØÎÄ¼þ¼Ð×÷Îª×ÊÔ´
+		//ä½¿ç”¨æœ¬åœ°æ–‡ä»¶å¤¹ä½œä¸ºèµ„æº
 		std::wstring resourcePath = nbase::win32::GetCurrentModuleDirectory();
 		resourcePath += L"resources\\";
 		ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath));
 	}
 	else if (resType == ui::ResourceType::kZipFile) {
-		//Ê¹ÓÃ±¾µØzipÑ¹Ëõ°ü×÷Îª×ÊÔ´£¨Ñ¹Ëõ°üÎ»ÓÚexeÏàÍ¬Ä¿Â¼£©	
+		//ä½¿ç”¨æœ¬åœ°zipåŽ‹ç¼©åŒ…ä½œä¸ºèµ„æºï¼ˆåŽ‹ç¼©åŒ…ä½äºŽexeç›¸åŒç›®å½•ï¼‰	
 		ui::ZipFileResParam resParam;
 		resParam.resourcePath = L"resources\\";
 		resParam.zipFilePath = nbase::win32::GetCurrentModuleDirectory();
@@ -61,7 +61,7 @@ void MainThread::Init()
 		ui::GlobalManager::Instance().Startup(resParam);
 	}
 	else if (resType == ui::ResourceType::kResZipFile) {
-		//Ê¹ÓÃexe×ÊÔ´ÎÄ¼þÖÐµÄzipÑ¹Ëõ°ü
+		//ä½¿ç”¨exeèµ„æºæ–‡ä»¶ä¸­çš„zipåŽ‹ç¼©åŒ…
 		ui::ResZipFileResParam resParam;
 		resParam.resourcePath = L"resources\\";
 		resParam.hResModule = nullptr;
@@ -74,8 +74,8 @@ void MainThread::Init()
 		return;
 	}
 
-    //ÔÚÏÂÃæ¼ÓÈëÆô¶¯´°¿Ú´úÂë
-    //´´½¨Ò»¸öÄ¬ÈÏ´øÓÐÒõÓ°µÄ¾ÓÖÐ´°¿Ú
+    //åœ¨ä¸‹é¢åŠ å…¥å¯åŠ¨çª—å£ä»£ç 
+    //åˆ›å»ºä¸€ä¸ªé»˜è®¤å¸¦æœ‰é˜´å½±çš„å±…ä¸­çª—å£
     MainForm* window = new MainForm();
     window->CreateWnd(nullptr, MainForm::kClassName.c_str(), UI_WNDSTYLE_FRAME, WS_EX_LAYERED);
     window->CenterWindow();

@@ -18,103 +18,103 @@
 
 namespace ui
 {
-/** ÊôĞÔ±í¿Ø¼şµÄÖ§³ÖµÄÊôĞÔ
+/** å±æ€§è¡¨æ§ä»¶çš„æ”¯æŒçš„å±æ€§
 */
 class PropertyGridGroup;
 class PropertyGridProperty;
-class PropertyGridTextProperty;		//ÎÄ±¾ºÍÊı×Ö
-class PropertyGridComboProperty;	//ÏÂÀ­¿ò
-class PropertyGridFontProperty;		//×ÖÌåÃû³Æ
-class PropertyGridFontSizeProperty;	//×ÖÌå´óĞ¡
-class PropertyGridColorProperty;	//ÑÕÉ«
-class PropertyGridDateTimeProperty; //ÈÕÆÚÊ±¼ä
-class PropertyGridIPAddressProperty;//IPµØÖ·
-class PropertyGridHotKeyProperty;	//ÈÈ¼ü
-class PropertyGridFileProperty;		//ÎÄ¼şÂ·¾¶
-class PropertyGridDirectoryProperty;//ÎÄ¼ş¼Ğ
+class PropertyGridTextProperty;		//æ–‡æœ¬å’Œæ•°å­—
+class PropertyGridComboProperty;	//ä¸‹æ‹‰æ¡†
+class PropertyGridFontProperty;		//å­—ä½“åç§°
+class PropertyGridFontSizeProperty;	//å­—ä½“å¤§å°
+class PropertyGridColorProperty;	//é¢œè‰²
+class PropertyGridDateTimeProperty; //æ—¥æœŸæ—¶é—´
+class PropertyGridIPAddressProperty;//IPåœ°å€
+class PropertyGridHotKeyProperty;	//çƒ­é”®
+class PropertyGridFileProperty;		//æ–‡ä»¶è·¯å¾„
+class PropertyGridDirectoryProperty;//æ–‡ä»¶å¤¹
 
-/** ÊôĞÔ±í¿Ø¼ş
+/** å±æ€§è¡¨æ§ä»¶
 */
 class PropertyGrid : public VBox
 {
 public:
 	explicit PropertyGrid(Window* pWindow);
 
-	/** »ñÈ¡¿Ø¼şÀàĞÍ
+	/** è·å–æ§ä»¶ç±»å‹
 	*/
 	virtual std::wstring GetType() const override;
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 
-	/** DPI·¢Éú±ä»¯£¬¸üĞÂ¿Ø¼ş´óĞ¡ºÍ²¼¾Ö
-	* @param [in] nOldDpiScale ¾ÉµÄDPIËõ·Å°Ù·Ö±È
-	* @param [in] nNewDpiScale ĞÂµÄDPIËõ·Å°Ù·Ö±È£¬ÓëDpi().GetScale()µÄÖµÒ»ÖÂ
+	/** DPIå‘ç”Ÿå˜åŒ–ï¼Œæ›´æ–°æ§ä»¶å¤§å°å’Œå¸ƒå±€
+	* @param [in] nOldDpiScale æ—§çš„DPIç¼©æ”¾ç™¾åˆ†æ¯”
+	* @param [in] nNewDpiScale æ–°çš„DPIç¼©æ”¾ç™¾åˆ†æ¯”ï¼Œä¸Dpi().GetScale()çš„å€¼ä¸€è‡´
 	*/
 	virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override;
 
 public:
-	/** ÉèÖÃÊÇ·ñÏÔÊ¾±íÍ·
+	/** è®¾ç½®æ˜¯å¦æ˜¾ç¤ºè¡¨å¤´
 	*/
 	void SetEnableHeaderCtrl(bool bEnable,
 							 const std::wstring& sLeftColumn = L"", 
 							 const std::wstring& sRightColumn = L"");
-	/** ÅĞ¶Ïµ±Ç°ÊÇ·ñÏÔÊ¾±íÍ·
+	/** åˆ¤æ–­å½“å‰æ˜¯å¦æ˜¾ç¤ºè¡¨å¤´
 	*/
 	bool IsEnableHeaderCtrl() const { return m_bHeaderCtrl; }
 
-	/** »ñÈ¡Header½Ó¿Ú
+	/** è·å–Headeræ¥å£
 	*/
 	Control* GetHeaderCtrl() const { return m_pHeaderCtrl; }
 
-	/** »ñÈ¡HeaderÖĞµÄ×ó²àÒ»ÁĞ
+	/** è·å–Headerä¸­çš„å·¦ä¾§ä¸€åˆ—
 	*/
 	Label* GetHeaderLeft() const { return m_pHeaderLeft; }
 
-	/** »ñÈ¡HeaderÖĞµÄÓÒ²àÒ»ÁĞ
+	/** è·å–Headerä¸­çš„å³ä¾§ä¸€åˆ—
 	*/
 	Label* GetHeaderRight() const { return m_pHeaderRight; }
 
-	/** »ñÈ¡HeaderÖĞµÄ·Ö¸îÌõ
+	/** è·å–Headerä¸­çš„åˆ†å‰²æ¡
 	*/
 	Split* GetHeaderSplit() const { return m_pHeaderSplit; }
 
 public:
-	/** Ôö¼ÓÒ»¸ö·Ö×é
-	* @param [in] groupName ·Ö×éµÄÃû³Æ
-	* @param [in] description ·Ö×éµÄÃèÊöĞÅÏ¢
-	* @param [in] nGroupData ÓÃ»§×Ô¶¨ÒåÊı¾İ
-	* @return ·µ»Ø¸Ã·Ö×éµÄ½Ó¿Ú£¬¿ÉÓÃÓÚÌí¼ÓÊôĞÔ
+	/** å¢åŠ ä¸€ä¸ªåˆ†ç»„
+	* @param [in] groupName åˆ†ç»„çš„åç§°
+	* @param [in] description åˆ†ç»„çš„æè¿°ä¿¡æ¯
+	* @param [in] nGroupData ç”¨æˆ·è‡ªå®šä¹‰æ•°æ®
+	* @return è¿”å›è¯¥åˆ†ç»„çš„æ¥å£ï¼Œå¯ç”¨äºæ·»åŠ å±æ€§
 	*/
 	PropertyGridGroup* AddGroup(const std::wstring& groupName, 
 							    const std::wstring& description = L"",
 								size_t nGroupData = 0);
 
-	/** »ñÈ¡ËùÓĞµÄ·Ö×é
-	* @param [out] groups ·µ»Øµ±Ç°ËùÓĞµÄ·Ö×éÁĞ±í
+	/** è·å–æ‰€æœ‰çš„åˆ†ç»„
+	* @param [out] groups è¿”å›å½“å‰æ‰€æœ‰çš„åˆ†ç»„åˆ—è¡¨
 	*/
 	void GetGroups(std::vector<PropertyGridGroup*>& groups) const;
 
-	/** É¾³ı·Ö×é
-	* @param [in] pGroup ´ıÉ¾³ıµÄ·Ö×é
+	/** åˆ é™¤åˆ†ç»„
+	* @param [in] pGroup å¾…åˆ é™¤çš„åˆ†ç»„
 	*/
 	bool RemoveGroup(PropertyGridGroup* pGroup);
 
-	/** É¾³ıËùÓĞ·Ö×é
+	/** åˆ é™¤æ‰€æœ‰åˆ†ç»„
 	*/
 	void RemoveAllGroups();
 
-	/** Ìí¼ÓÒ»¸öÊôĞÔ(ÓÉµ÷ÓÃ·½´´½¨ÊôĞÔ)
-	* @param [in] pGroup ¸ÃÊôĞÔËùÊôµÄ·Ö×é
-	* @param [in] pProperty ÊôĞÔ½Ó¿Ú
+	/** æ·»åŠ ä¸€ä¸ªå±æ€§(ç”±è°ƒç”¨æ–¹åˆ›å»ºå±æ€§)
+	* @param [in] pGroup è¯¥å±æ€§æ‰€å±çš„åˆ†ç»„
+	* @param [in] pProperty å±æ€§æ¥å£
 	*/
 	bool AddProperty(PropertyGridGroup* pGroup, PropertyGridProperty* pProperty);
 
-	/** Ôö¼ÓÒ»¸öÊôĞÔ(ÎÄ±¾¡¢Êı×ÖÀàĞÍ)
-	* @param [in] pGroup ¸ÃÊôĞÔËùÊôµÄ·Ö×é
-	* @param [in] propertyName ÊôĞÔµÄÃû³Æ
-	* @param [in] propertyValue ÊôĞÔµÄÖµ
-	* @param [in] description ÊôĞÔµÄÃèÊöĞÅÏ¢
-	* @param [in] nPropertyData ÓÃ»§×Ô¶¨ÒåÊı¾İ
-	* @return ·µ»Ø¸ÃÊôĞÔµÄ½Ó¿Ú
+	/** å¢åŠ ä¸€ä¸ªå±æ€§(æ–‡æœ¬ã€æ•°å­—ç±»å‹)
+	* @param [in] pGroup è¯¥å±æ€§æ‰€å±çš„åˆ†ç»„
+	* @param [in] propertyName å±æ€§çš„åç§°
+	* @param [in] propertyValue å±æ€§çš„å€¼
+	* @param [in] description å±æ€§çš„æè¿°ä¿¡æ¯
+	* @param [in] nPropertyData ç”¨æˆ·è‡ªå®šä¹‰æ•°æ®
+	* @return è¿”å›è¯¥å±æ€§çš„æ¥å£
 	*/
 	PropertyGridTextProperty* AddTextProperty(PropertyGridGroup* pGroup,
 									          const std::wstring& propertyName, 
@@ -122,13 +122,13 @@ public:
 									          const std::wstring& description = L"",
 									          size_t nPropertyData = 0);
 
-	/** Ôö¼ÓÒ»¸öÊôĞÔ(ÏÂÀ­¿ò)
-	* @param [in] pGroup ¸ÃÊôĞÔËùÊôµÄ·Ö×é
-	* @param [in] propertyName ÊôĞÔµÄÃû³Æ
-	* @param [in] propertyValue ÊôĞÔµÄÖµ
-	* @param [in] description ÊôĞÔµÄÃèÊöĞÅÏ¢
-	* @param [in] nPropertyData ÓÃ»§×Ô¶¨ÒåÊı¾İ
-	* @return ·µ»Ø¸ÃÊôĞÔµÄ½Ó¿Ú
+	/** å¢åŠ ä¸€ä¸ªå±æ€§(ä¸‹æ‹‰æ¡†)
+	* @param [in] pGroup è¯¥å±æ€§æ‰€å±çš„åˆ†ç»„
+	* @param [in] propertyName å±æ€§çš„åç§°
+	* @param [in] propertyValue å±æ€§çš„å€¼
+	* @param [in] description å±æ€§çš„æè¿°ä¿¡æ¯
+	* @param [in] nPropertyData ç”¨æˆ·è‡ªå®šä¹‰æ•°æ®
+	* @return è¿”å›è¯¥å±æ€§çš„æ¥å£
 	*/
 	PropertyGridComboProperty* AddComboProperty(PropertyGridGroup* pGroup,
 									            const std::wstring& propertyName, 
@@ -136,13 +136,13 @@ public:
 									            const std::wstring& description = L"",
 									            size_t nPropertyData = 0);
 
-	/** Ôö¼ÓÒ»¸öÊôĞÔ(×ÖÌåÃû³Æ)
-	* @param [in] pGroup ¸ÃÊôĞÔËùÊôµÄ·Ö×é
-	* @param [in] propertyName ÊôĞÔµÄÃû³Æ
-	* @param [in] propertyValue ÊôĞÔµÄÖµ£¨×ÖÌåÃû³Æ£©
-	* @param [in] description ÊôĞÔµÄÃèÊöĞÅÏ¢
-	* @param [in] nPropertyData ÓÃ»§×Ô¶¨ÒåÊı¾İ
-	* @return ·µ»Ø¸ÃÊôĞÔµÄ½Ó¿Ú
+	/** å¢åŠ ä¸€ä¸ªå±æ€§(å­—ä½“åç§°)
+	* @param [in] pGroup è¯¥å±æ€§æ‰€å±çš„åˆ†ç»„
+	* @param [in] propertyName å±æ€§çš„åç§°
+	* @param [in] propertyValue å±æ€§çš„å€¼ï¼ˆå­—ä½“åç§°ï¼‰
+	* @param [in] description å±æ€§çš„æè¿°ä¿¡æ¯
+	* @param [in] nPropertyData ç”¨æˆ·è‡ªå®šä¹‰æ•°æ®
+	* @return è¿”å›è¯¥å±æ€§çš„æ¥å£
 	*/
 	PropertyGridFontProperty* AddFontProperty(PropertyGridGroup* pGroup,
 									          const std::wstring& propertyName, 
@@ -150,13 +150,13 @@ public:
 									          const std::wstring& description = L"",
 									          size_t nPropertyData = 0);
 
-	/** Ôö¼ÓÒ»¸öÊôĞÔ(×ÖÌå´óĞ¡)
-	* @param [in] pGroup ¸ÃÊôĞÔËùÊôµÄ·Ö×é
-	* @param [in] propertyName ÊôĞÔµÄÃû³Æ
-	* @param [in] propertyValue ÊôĞÔµÄÖµ£¨×ÖÌå´óĞ¡£©
-	* @param [in] description ÊôĞÔµÄÃèÊöĞÅÏ¢
-	* @param [in] nPropertyData ÓÃ»§×Ô¶¨ÒåÊı¾İ
-	* @return ·µ»Ø¸ÃÊôĞÔµÄ½Ó¿Ú
+	/** å¢åŠ ä¸€ä¸ªå±æ€§(å­—ä½“å¤§å°)
+	* @param [in] pGroup è¯¥å±æ€§æ‰€å±çš„åˆ†ç»„
+	* @param [in] propertyName å±æ€§çš„åç§°
+	* @param [in] propertyValue å±æ€§çš„å€¼ï¼ˆå­—ä½“å¤§å°ï¼‰
+	* @param [in] description å±æ€§çš„æè¿°ä¿¡æ¯
+	* @param [in] nPropertyData ç”¨æˆ·è‡ªå®šä¹‰æ•°æ®
+	* @return è¿”å›è¯¥å±æ€§çš„æ¥å£
 	*/
 	PropertyGridFontSizeProperty* AddFontSizeProperty(PropertyGridGroup* pGroup,
 									                  const std::wstring& propertyName, 
@@ -164,13 +164,13 @@ public:
 									                  const std::wstring& description = L"",
 									                  size_t nPropertyData = 0);
 
-	/** Ôö¼ÓÒ»¸öÊôĞÔ(ÑÕÉ«)
-	* @param [in] pGroup ¸ÃÊôĞÔËùÊôµÄ·Ö×é
-	* @param [in] propertyName ÊôĞÔµÄÃû³Æ
-	* @param [in] propertyValue ÊôĞÔµÄÖµ£¨×ÖÌå´óĞ¡£©
-	* @param [in] description ÊôĞÔµÄÃèÊöĞÅÏ¢
-	* @param [in] nPropertyData ÓÃ»§×Ô¶¨ÒåÊı¾İ
-	* @return ·µ»Ø¸ÃÊôĞÔµÄ½Ó¿Ú
+	/** å¢åŠ ä¸€ä¸ªå±æ€§(é¢œè‰²)
+	* @param [in] pGroup è¯¥å±æ€§æ‰€å±çš„åˆ†ç»„
+	* @param [in] propertyName å±æ€§çš„åç§°
+	* @param [in] propertyValue å±æ€§çš„å€¼ï¼ˆå­—ä½“å¤§å°ï¼‰
+	* @param [in] description å±æ€§çš„æè¿°ä¿¡æ¯
+	* @param [in] nPropertyData ç”¨æˆ·è‡ªå®šä¹‰æ•°æ®
+	* @return è¿”å›è¯¥å±æ€§çš„æ¥å£
 	*/
 	PropertyGridColorProperty* AddColorProperty(PropertyGridGroup* pGroup,
 									            const std::wstring& propertyName, 
@@ -178,14 +178,14 @@ public:
 									            const std::wstring& description = L"",
 									            size_t nPropertyData = 0);
 
-	/** Ôö¼ÓÒ»¸öÊôĞÔ(ÈÕÆÚÊ±¼ä)
-	* @param [in] pGroup ¸ÃÊôĞÔËùÊôµÄ·Ö×é
-	* @param [in] propertyName ÊôĞÔµÄÃû³Æ
-	* @param [in] dateTimeValue ÊôĞÔµÄÖµ£¨ÈÕÆÚÊ±¼äÖµ£©
-	* @param [in] editFormat ÈÕÆÚµÄ±à¼­¸ñÊ½
-	* @param [in] description ÊôĞÔµÄÃèÊöĞÅÏ¢
-	* @param [in] nPropertyData ÓÃ»§×Ô¶¨ÒåÊı¾İ
-	* @return ·µ»Ø¸ÃÊôĞÔµÄ½Ó¿Ú
+	/** å¢åŠ ä¸€ä¸ªå±æ€§(æ—¥æœŸæ—¶é—´)
+	* @param [in] pGroup è¯¥å±æ€§æ‰€å±çš„åˆ†ç»„
+	* @param [in] propertyName å±æ€§çš„åç§°
+	* @param [in] dateTimeValue å±æ€§çš„å€¼ï¼ˆæ—¥æœŸæ—¶é—´å€¼ï¼‰
+	* @param [in] editFormat æ—¥æœŸçš„ç¼–è¾‘æ ¼å¼
+	* @param [in] description å±æ€§çš„æè¿°ä¿¡æ¯
+	* @param [in] nPropertyData ç”¨æˆ·è‡ªå®šä¹‰æ•°æ®
+	* @return è¿”å›è¯¥å±æ€§çš„æ¥å£
 	*/
 	PropertyGridDateTimeProperty* AddDateTimeProperty(PropertyGridGroup* pGroup,
 									                  const std::wstring& propertyName, 
@@ -194,13 +194,13 @@ public:
 									                  size_t nPropertyData = 0,
 													  DateTime::EditFormat editFormat = DateTime::EditFormat::kDateCalendar);
 	
-	/** Ôö¼ÓÒ»¸öÊôĞÔ(IPµØÖ·)
-	* @param [in] pGroup ¸ÃÊôĞÔËùÊôµÄ·Ö×é
-	* @param [in] propertyName ÊôĞÔµÄÃû³Æ
-	* @param [in] propertyValue ÊôĞÔµÄÖµ
-	* @param [in] description ÊôĞÔµÄÃèÊöĞÅÏ¢
-	* @param [in] nPropertyData ÓÃ»§×Ô¶¨ÒåÊı¾İ
-	* @return ·µ»Ø¸ÃÊôĞÔµÄ½Ó¿Ú
+	/** å¢åŠ ä¸€ä¸ªå±æ€§(IPåœ°å€)
+	* @param [in] pGroup è¯¥å±æ€§æ‰€å±çš„åˆ†ç»„
+	* @param [in] propertyName å±æ€§çš„åç§°
+	* @param [in] propertyValue å±æ€§çš„å€¼
+	* @param [in] description å±æ€§çš„æè¿°ä¿¡æ¯
+	* @param [in] nPropertyData ç”¨æˆ·è‡ªå®šä¹‰æ•°æ®
+	* @return è¿”å›è¯¥å±æ€§çš„æ¥å£
 	*/
 	PropertyGridIPAddressProperty* AddIPAddressProperty(PropertyGridGroup* pGroup,
 														const std::wstring& propertyName, 
@@ -208,13 +208,13 @@ public:
 														const std::wstring& description = L"",
 														size_t nPropertyData = 0);
 
-	/** Ôö¼ÓÒ»¸öÊôĞÔ(ÈÈ¼ü)
-	* @param [in] pGroup ¸ÃÊôĞÔËùÊôµÄ·Ö×é
-	* @param [in] propertyName ÊôĞÔµÄÃû³Æ
-	* @param [in] propertyValue ÊôĞÔµÄÖµ
-	* @param [in] description ÊôĞÔµÄÃèÊöĞÅÏ¢
-	* @param [in] nPropertyData ÓÃ»§×Ô¶¨ÒåÊı¾İ
-	* @return ·µ»Ø¸ÃÊôĞÔµÄ½Ó¿Ú
+	/** å¢åŠ ä¸€ä¸ªå±æ€§(çƒ­é”®)
+	* @param [in] pGroup è¯¥å±æ€§æ‰€å±çš„åˆ†ç»„
+	* @param [in] propertyName å±æ€§çš„åç§°
+	* @param [in] propertyValue å±æ€§çš„å€¼
+	* @param [in] description å±æ€§çš„æè¿°ä¿¡æ¯
+	* @param [in] nPropertyData ç”¨æˆ·è‡ªå®šä¹‰æ•°æ®
+	* @return è¿”å›è¯¥å±æ€§çš„æ¥å£
 	*/
 	PropertyGridHotKeyProperty* AddHotKeyProperty(PropertyGridGroup* pGroup,
 												  const std::wstring& propertyName, 
@@ -222,17 +222,17 @@ public:
 												  const std::wstring& description = L"",
 												  size_t nPropertyData = 0);
 
-	/** Ôö¼ÓÒ»¸öÊôĞÔ(ÎÄ¼şÂ·¾¶)
-	* @param [in] pGroup ¸ÃÊôĞÔËùÊôµÄ·Ö×é
-	* @param [in] propertyName ÊôĞÔµÄÃû³Æ
-	* @param [in] propertyValue ÊôĞÔµÄÖµ(ÎÄ¼şÂ·¾¶)
-	* @param [in] description ÊôĞÔµÄÃèÊöĞÅÏ¢
-	* @param [in] nPropertyData ÓÃ»§×Ô¶¨ÒåÊı¾İ
-	* @param [in] bOpenFileDialog true±íÊ¾´ò¿ªÎÄ¼ş£¬false±íÊ¾±£´æÎÄ¼ş
-	* @param [in] fileTypes ¶Ô»°¿ò¿ÉÒÔ´ò¿ª»ò±£´æµÄÎÄ¼şÀàĞÍ
-	* @param [in] nFileTypeIndex Ñ¡ÔñµÄÎÄ¼şÀàĞÍ£¬ÓĞĞ§·¶Î§£º[0, fileTypes.size())
-	* @param [in] defaultExt Ä¬ÈÏµÄÎÄ¼şÀàĞÍ, ¾ÙÀı£º"doc;docx"
-	* @return ·µ»Ø¸ÃÊôĞÔµÄ½Ó¿Ú
+	/** å¢åŠ ä¸€ä¸ªå±æ€§(æ–‡ä»¶è·¯å¾„)
+	* @param [in] pGroup è¯¥å±æ€§æ‰€å±çš„åˆ†ç»„
+	* @param [in] propertyName å±æ€§çš„åç§°
+	* @param [in] propertyValue å±æ€§çš„å€¼(æ–‡ä»¶è·¯å¾„)
+	* @param [in] description å±æ€§çš„æè¿°ä¿¡æ¯
+	* @param [in] nPropertyData ç”¨æˆ·è‡ªå®šä¹‰æ•°æ®
+	* @param [in] bOpenFileDialog trueè¡¨ç¤ºæ‰“å¼€æ–‡ä»¶ï¼Œfalseè¡¨ç¤ºä¿å­˜æ–‡ä»¶
+	* @param [in] fileTypes å¯¹è¯æ¡†å¯ä»¥æ‰“å¼€æˆ–ä¿å­˜çš„æ–‡ä»¶ç±»å‹
+	* @param [in] nFileTypeIndex é€‰æ‹©çš„æ–‡ä»¶ç±»å‹ï¼Œæœ‰æ•ˆèŒƒå›´ï¼š[0, fileTypes.size())
+	* @param [in] defaultExt é»˜è®¤çš„æ–‡ä»¶ç±»å‹, ä¸¾ä¾‹ï¼š"doc;docx"
+	* @return è¿”å›è¯¥å±æ€§çš„æ¥å£
 	*/
 	PropertyGridFileProperty* AddFileProperty(PropertyGridGroup* pGroup,
 										      const std::wstring& propertyName, 
@@ -244,13 +244,13 @@ public:
 											  int32_t nFileTypeIndex = -1,
 											  const std::wstring& defaultExt = L"");
 
-	/** Ôö¼ÓÒ»¸öÊôĞÔ(ÎÄ¼ş¼Ğ)
-	* @param [in] pGroup ¸ÃÊôĞÔËùÊôµÄ·Ö×é
-	* @param [in] propertyName ÊôĞÔµÄÃû³Æ
-	* @param [in] propertyValue ÊôĞÔµÄÖµ
-	* @param [in] description ÊôĞÔµÄÃèÊöĞÅÏ¢
-	* @param [in] nPropertyData ÓÃ»§×Ô¶¨ÒåÊı¾İ
-	* @return ·µ»Ø¸ÃÊôĞÔµÄ½Ó¿Ú
+	/** å¢åŠ ä¸€ä¸ªå±æ€§(æ–‡ä»¶å¤¹)
+	* @param [in] pGroup è¯¥å±æ€§æ‰€å±çš„åˆ†ç»„
+	* @param [in] propertyName å±æ€§çš„åç§°
+	* @param [in] propertyValue å±æ€§çš„å€¼
+	* @param [in] description å±æ€§çš„æè¿°ä¿¡æ¯
+	* @param [in] nPropertyData ç”¨æˆ·è‡ªå®šä¹‰æ•°æ®
+	* @return è¿”å›è¯¥å±æ€§çš„æ¥å£
 	*/
 	PropertyGridDirectoryProperty* AddDirectoryProperty(PropertyGridGroup* pGroup,
 													    const std::wstring& propertyName, 
@@ -258,194 +258,194 @@ public:
 													    const std::wstring& description = L"",
 													    size_t nPropertyData = 0);
 
-	/** ÉèÖÃ×ó²àÒ»ÁĞµÄ¿í¶È
-	* @param [in] nLeftColumnWidth ×ó²àÒ»ÁĞµÄ¿í¶È
-    * @param [in] bNeedDpiScale ÊÇ·ñĞèÒª¶ÔÁĞ¿íÖµ½øĞĞDPI×ÔÊÊÓ¦
+	/** è®¾ç½®å·¦ä¾§ä¸€åˆ—çš„å®½åº¦
+	* @param [in] nLeftColumnWidth å·¦ä¾§ä¸€åˆ—çš„å®½åº¦
+    * @param [in] bNeedDpiScale æ˜¯å¦éœ€è¦å¯¹åˆ—å®½å€¼è¿›è¡ŒDPIè‡ªé€‚åº”
 	*/
 	void SetLeftColumnWidth(int32_t nLeftColumnWidth, bool bNeedDpiScale);
 
-	/** »ñÈ¡×ó²àÒ»ÁĞµÄ¿í¶ÈÖµ
+	/** è·å–å·¦ä¾§ä¸€åˆ—çš„å®½åº¦å€¼
 	*/
 	int32_t GetLeftColumnWidth() const;
 
 public:
-	/** ÉèÖÃÊÇ·ñÏÔÊ¾ÃèÊöÇøÓò
+	/** è®¾ç½®æ˜¯å¦æ˜¾ç¤ºæè¿°åŒºåŸŸ
 	*/
 	void SetEnableDescriptionArea(bool bEnable);
 
-	/** ÅĞ¶ÏÊÇ·ñÏÔÊ¾ÃèÊöÇøÓò
+	/** åˆ¤æ–­æ˜¯å¦æ˜¾ç¤ºæè¿°åŒºåŸŸ
 	*/
 	bool IsEnableDescriptionArea() const { return m_bDescriptionArea; }
 
-	/** ÉèÖÃÃèÊöÇøÓòµÄ¸ß¶ÈÖµ
-	* @param [in] nHeight ¸ß¶ÈÖµ
-    * @param [in] bNeedDpiScale ÊÇ·ñĞèÒª¶ÔÁĞ¿íÖµ½øĞĞDPI×ÔÊÊÓ¦
+	/** è®¾ç½®æè¿°åŒºåŸŸçš„é«˜åº¦å€¼
+	* @param [in] nHeight é«˜åº¦å€¼
+    * @param [in] bNeedDpiScale æ˜¯å¦éœ€è¦å¯¹åˆ—å®½å€¼è¿›è¡ŒDPIè‡ªé€‚åº”
 	*/
 	void SetDescriptionAreaHeight(int32_t nHeight, bool bNeedDpiScale);
 
-	/** »ñÈ¡µ±Ç°ÃèÊöÇøÓòµÄ¸ß¶ÈÖµ
+	/** è·å–å½“å‰æè¿°åŒºåŸŸçš„é«˜åº¦å€¼
 	*/
 	int32_t GetDescriptionAreaHeight() const;
 
-	/** »ñÈ¡ÃèÊö¿Ø¼şµÄ½Ó¿Ú
+	/** è·å–æè¿°æ§ä»¶çš„æ¥å£
 	*/
 	RichText* GetDescriptionArea() const { return m_pDescriptionArea; }
 
-	/** ÃèÊö¿Ø¼şµÄ·Ö¸îÌõ½Ó¿Ú
+	/** æè¿°æ§ä»¶çš„åˆ†å‰²æ¡æ¥å£
 	*/
 	Split* GetDescriptionAreaSplit() const { return m_pDescriptionAreaSplit; }
 
 public:
-	/** »ñÈ¡ÊôĞÔ±íµÄÊ÷¿Ø¼ş½Ó¿Ú£¨ÓÃÓÚ¹ÜÀíÊı¾İ£©
+	/** è·å–å±æ€§è¡¨çš„æ ‘æ§ä»¶æ¥å£ï¼ˆç”¨äºç®¡ç†æ•°æ®ï¼‰
 	*/
 	TreeView* GetTreeView() const { return m_pTreeView; }
 
-	/** ºáÏòÍø¸ñÏßµÄ¿í¶È
-	* @param [in] nLineWidth Íø¸ñÏßµÄ¿í¶È£¬Èç¹ûÎª0±íÊ¾²»ÏÔÊ¾ºáÏòÍø¸ñÏß
-	* @param [in] bNeedDpiScale Èç¹ûÎªtrue±íÊ¾ĞèÒª¶Ô¿í¶È½øĞĞDPI×ÔÊÊÓ¦
+	/** æ¨ªå‘ç½‘æ ¼çº¿çš„å®½åº¦
+	* @param [in] nLineWidth ç½‘æ ¼çº¿çš„å®½åº¦ï¼Œå¦‚æœä¸º0è¡¨ç¤ºä¸æ˜¾ç¤ºæ¨ªå‘ç½‘æ ¼çº¿
+	* @param [in] bNeedDpiScale å¦‚æœä¸ºtrueè¡¨ç¤ºéœ€è¦å¯¹å®½åº¦è¿›è¡ŒDPIè‡ªé€‚åº”
 	*/
 	void SetRowGridLineWidth(int32_t nLineWidth, bool bNeedDpiScale);
 	int32_t GetRowGridLineWidth() const;
 
-	/** ºáÏòÍø¸ñÏßµÄÑÕÉ«
-	* @param [in] color ºáÏòÍø¸ñÏßµÄÑÕÉ«
+	/** æ¨ªå‘ç½‘æ ¼çº¿çš„é¢œè‰²
+	* @param [in] color æ¨ªå‘ç½‘æ ¼çº¿çš„é¢œè‰²
 	*/
 	void SetRowGridLineColor(const std::wstring& color);
 	std::wstring GetRowGridLineColor() const;
 
-	/** ×İÏòÍø¸ñÏßµÄ¿í¶È
-	* @param [in] nLineWidth Íø¸ñÏßµÄ¿í¶È£¬Èç¹ûÎª0±íÊ¾²»ÏÔÊ¾×İÏòÍø¸ñÏß
-	* @param [in] bNeedDpiScale Èç¹ûÎªtrue±íÊ¾ĞèÒª¶Ô¿í¶È½øĞĞDPI×ÔÊÊÓ¦
+	/** çºµå‘ç½‘æ ¼çº¿çš„å®½åº¦
+	* @param [in] nLineWidth ç½‘æ ¼çº¿çš„å®½åº¦ï¼Œå¦‚æœä¸º0è¡¨ç¤ºä¸æ˜¾ç¤ºçºµå‘ç½‘æ ¼çº¿
+	* @param [in] bNeedDpiScale å¦‚æœä¸ºtrueè¡¨ç¤ºéœ€è¦å¯¹å®½åº¦è¿›è¡ŒDPIè‡ªé€‚åº”
 	*/
 	void SetColumnGridLineWidth(int32_t nLineWidth, bool bNeedDpiScale);
 	int32_t GetColumnGridLineWidth() const;
 
-	/** ×İÏòÍø¸ñÏßµÄÑÕÉ«
-	* @param [in] color ×İÏòÍø¸ñÏßµÄÑÕÉ«
+	/** çºµå‘ç½‘æ ¼çº¿çš„é¢œè‰²
+	* @param [in] color çºµå‘ç½‘æ ¼çº¿çš„é¢œè‰²
 	*/
 	void SetColumnGridLineColor(const std::wstring& color);
 	std::wstring GetColumnGridLineColor() const;
 
-	/** ±íÍ·µÄClass
+	/** è¡¨å¤´çš„Class
 	*/
 	void SetHeaderClass(const std::wstring& headerClass);
 	std::wstring GetHeaderClass() const;
 
-	/** ·Ö×éµÄClass
+	/** åˆ†ç»„çš„Class
 	*/
 	void SetGroupClass(const std::wstring& groupClass);
 	std::wstring GetGroupClass() const;
 
-	/** ÊôĞÔµÄClass
+	/** å±æ€§çš„Class
 	*/
 	void SetPropertyClass(const std::wstring& propertyClass);
 	std::wstring GetPropertyClass() const;
 
 protected:
-	/** ³õÊ¼»¯º¯Êı
+	/** åˆå§‹åŒ–å‡½æ•°
 	 */
 	virtual void OnInit() override;
 
-	/** »æÖÆ×Ó¿Ø¼ş
+	/** ç»˜åˆ¶å­æ§ä»¶
 	*/
 	virtual void PaintChild(IRender* pRender, const UiRect& rcPaint) override;
 
-	/** »æÖÆÍø¸ñÏß
+	/** ç»˜åˆ¶ç½‘æ ¼çº¿
 	*/
 	void PaintGridLines(IRender* pRender);
 
-	/** ÍÏ¶¯ÁĞ±íÍ·¸Ä±äÁĞ¿íµÄÊÂ¼şÏìÓ¦º¯Êı
+	/** æ‹–åŠ¨åˆ—è¡¨å¤´æ”¹å˜åˆ—å®½çš„äº‹ä»¶å“åº”å‡½æ•°
 	*/
 	void OnHeaderColumnResized();
 
-	/** µ÷ÕûÒ»¸öÊôĞÔ½ÚµãµÄÁĞ¿í
+	/** è°ƒæ•´ä¸€ä¸ªå±æ€§èŠ‚ç‚¹çš„åˆ—å®½
 	*/
 	void ResizePropertyColumn(TreeNode* pPropertyNode, int32_t nLeftColumnWidth);
 
 private:
-	/** »ñÈ¡×ó²àÁĞ¿íµÄÖµ
+	/** è·å–å·¦ä¾§åˆ—å®½çš„å€¼
 	*/
 	int32_t GetLeftColumnWidthValue() const;
 
 private:
-	/** ÅäÖÃXMLÎÄ¼ş
+	/** é…ç½®XMLæ–‡ä»¶
 	*/
 	UiString m_configXml;
 
 private:
-	/** ÊÇ·ñÏÔÊ¾Header
+	/** æ˜¯å¦æ˜¾ç¤ºHeader
 	*/
 	bool m_bHeaderCtrl;
 
-	/** Header½Ó¿Ú
+	/** Headeræ¥å£
 	*/
 	Control* m_pHeaderCtrl;
 
-	/** HeaderÖĞµÄ×ó²àÒ»ÁĞ
+	/** Headerä¸­çš„å·¦ä¾§ä¸€åˆ—
 	*/
 	Label* m_pHeaderLeft;
 
-	/** HeaderÖĞµÄÓÒ²àÒ»ÁĞ
+	/** Headerä¸­çš„å³ä¾§ä¸€åˆ—
 	*/
 	Label* m_pHeaderRight;
 
-	/** HeaderÖĞµÄ·Ö¸îÌõ
+	/** Headerä¸­çš„åˆ†å‰²æ¡
 	*/
 	Split* m_pHeaderSplit;
 
-	/** ×ó²àÒ»ÁĞµÄ¿í¶È
+	/** å·¦ä¾§ä¸€åˆ—çš„å®½åº¦
 	*/
 	int32_t m_nLeftColumnWidth;
 
 private:
-	/** ÃèÊö¿Ø¼şµÄ·Ö¸îÌõ
+	/** æè¿°æ§ä»¶çš„åˆ†å‰²æ¡
 	*/
 	Split* m_pDescriptionAreaSplit;
 
-	/** ÃèÊö¿Ø¼ş
+	/** æè¿°æ§ä»¶
 	*/
 	RichText* m_pDescriptionArea;
 
-	/** ÊÇ·ñÏÔÊ¾ÃèÊöÇøÓò
+	/** æ˜¯å¦æ˜¾ç¤ºæè¿°åŒºåŸŸ
 	*/
 	bool m_bDescriptionArea;
 
 private:
-	/** ÊôĞÔ±íµÄÊ÷¿Ø¼ş½Ó¿Ú
+	/** å±æ€§è¡¨çš„æ ‘æ§ä»¶æ¥å£
 	*/
 	TreeView* m_pTreeView;
 
-	/** ±íÍ·µÄClass
+	/** è¡¨å¤´çš„Class
 	*/
 	UiString m_headerClass;
 
-	/** ·Ö×éµÄClass
+	/** åˆ†ç»„çš„Class
 	*/
 	UiString m_groupClass;
 
-	/** ÊôĞÔµÄClass
+	/** å±æ€§çš„Class
 	*/
 	UiString m_propertyClass;
 
 private:
-	/** ºáÏòÍø¸ñÏßµÄ¿í¶È
+	/** æ¨ªå‘ç½‘æ ¼çº¿çš„å®½åº¦
 	*/
 	int32_t m_nRowGridLineWidth;
 
-	/** ºáÏòÍø¸ñÏßµÄÑÕÉ«
+	/** æ¨ªå‘ç½‘æ ¼çº¿çš„é¢œè‰²
 	*/
 	UiString m_rowGridLineColor;
 
-	/** ×İÏòÍø¸ñÏßµÄ¿í¶È
+	/** çºµå‘ç½‘æ ¼çº¿çš„å®½åº¦
 	*/
 	int32_t m_nColumnGridLineWidth;
 
-	/** ×İÏòÍø¸ñÏßµÄÑÕÉ«
+	/** çºµå‘ç½‘æ ¼çº¿çš„é¢œè‰²
 	*/
 	UiString m_columnGridLineColor;
 };
 
-/** ÊôĞÔ±íµÄ·Ö×é, »ù±¾½á¹¹
+/** å±æ€§è¡¨çš„åˆ†ç»„, åŸºæœ¬ç»“æ„
 *   <PropertyGridGroup>
 *		<HBox>
 *			<LabelBox/>
@@ -455,10 +455,10 @@ private:
 class PropertyGridGroup : public TreeNode
 {
 public:
-	/** ¹¹ÔìÒ»¸ö×é
-	* @param [in] groupName ×éµÄÃû³Æ
-	* @param [in] description ×éµÄÃèÊöĞÅÏ¢
-	* @param [in] nGroupData ÓÃ»§×Ô¶¨ÒåÊı¾İ
+	/** æ„é€ ä¸€ä¸ªç»„
+	* @param [in] groupName ç»„çš„åç§°
+	* @param [in] description ç»„çš„æè¿°ä¿¡æ¯
+	* @param [in] nGroupData ç”¨æˆ·è‡ªå®šä¹‰æ•°æ®
 	*/
 	explicit PropertyGridGroup(Window* pWindow,
 		                       const std::wstring& groupName,
@@ -466,82 +466,82 @@ public:
 		                       size_t nGroupData = 0);
 
 public:
-	/** »ñÈ¡ÊôĞÔÃû³Æ
+	/** è·å–å±æ€§åç§°
 	*/
 	std::wstring GetGroupName() const { return m_groupName.c_str(); }
 
-	/** »ñÈ¡×éµÄÃèÊöĞÅÏ¢
+	/** è·å–ç»„çš„æè¿°ä¿¡æ¯
 	*/
 	std::wstring GetDescriptiion() const { return m_description.c_str(); }
 
-	/** »ñÈ¡ÓÃ»§×Ô¶¨ÒåÊı¾İ
+	/** è·å–ç”¨æˆ·è‡ªå®šä¹‰æ•°æ®
 	*/
 	size_t GetGroupData() const { return m_nGroupData; }
 
-	/** ÉèÖÃÓÃ»§×Ô¶¨ÒåÊı¾İ
+	/** è®¾ç½®ç”¨æˆ·è‡ªå®šä¹‰æ•°æ®
 	*/
 	void SetGroupData(size_t nGroupData) { m_nGroupData = nGroupData; }
 
-	/** »ñÈ¡ÊôĞÔÃû³ÆµÄÏÔÊ¾¿Ø¼ş
+	/** è·å–å±æ€§åç§°çš„æ˜¾ç¤ºæ§ä»¶
 	*/
 	LabelBox* GetLabelBox() const { return m_pLabelBox; }
 
-	/** »ñÈ¡·Ö×éÏÂµÄËùÓĞÊôĞÔ
-	* @param [out] properties ·µ»Øµ±Ç°ËùÓĞµÄ·Ö×éÁĞ±í
+	/** è·å–åˆ†ç»„ä¸‹çš„æ‰€æœ‰å±æ€§
+	* @param [out] properties è¿”å›å½“å‰æ‰€æœ‰çš„åˆ†ç»„åˆ—è¡¨
 	*/
 	void GetProperties(std::vector<PropertyGridProperty*>& properties) const;
 
-	/** É¾³ı¸Ã·Ö×éÏÂµÄÊôĞÔ
-	* @param [in] pProperty ĞèÒªÉ¾³ıµÄÊôĞÔ½Ó¿Ú
+	/** åˆ é™¤è¯¥åˆ†ç»„ä¸‹çš„å±æ€§
+	* @param [in] pProperty éœ€è¦åˆ é™¤çš„å±æ€§æ¥å£
 	*/
 	bool RemoveProperty(PropertyGridProperty* pProperty);
 
-	/** É¾³ı¸Ã·Ö×éÏÂµÄËùÓĞÊôĞÔ
+	/** åˆ é™¤è¯¥åˆ†ç»„ä¸‹çš„æ‰€æœ‰å±æ€§
 	*/
 	void RemoveAllProperties();
 
 protected:
-	/** ³õÊ¼»¯º¯Êı
+	/** åˆå§‹åŒ–å‡½æ•°
 	 */
 	virtual void OnInit() override;
 
 private:
-	/** ·Ö×éµÄÃû³Æ
+	/** åˆ†ç»„çš„åç§°
 	*/
 	UiString m_groupName;
 
-	/** ×éµÄÃèÊöĞÅÏ¢
+	/** ç»„çš„æè¿°ä¿¡æ¯
 	*/
 	UiString m_description;
 
-	/** ÓÃ»§×Ô¶¨ÒåÊı¾İ
+	/** ç”¨æˆ·è‡ªå®šä¹‰æ•°æ®
 	*/
 	size_t m_nGroupData;
 
-	/** ÊôĞÔÃû³ÆµÄÏÔÊ¾¿Ø¼ş
+	/** å±æ€§åç§°çš„æ˜¾ç¤ºæ§ä»¶
 	*/
 	LabelBox* m_pLabelBox;
 };
 
-/** ÊôĞÔµÄÀàĞÍ
+/** å±æ€§çš„ç±»å‹
 */
 enum class PropertyGridPropertyType
 {
-	kNone,		//ÎŞ¾ßÌåÀàĞÍ£¬»ùÀà
-	kText,		//ÆÕÍ¨ÎÄ±¾
-	kCombo,		//ÏÂÀ­¿ò
-	kFont,		//×ÖÌåÃû³Æ
-	kFontSize,  //×ÖÌå´óĞ¡
-	kColor,		//ÑÕÉ«
-	kDateTime,	//ÈÕÆÚÊ±¼ä
-	kIPAddress,	//IPµØÖ·
-	kHotKey,	//ÈÈ¼ü
-	kFile,		//ÎÄ¼şÂ·¾¶
-	kDirectory,	//ÎÄ¼ş¼Ğ
-	kCustom		//ÓÃ»§×Ô¶¨ÒåµÄÀàĞÍ£¬±ÈÈç×Ô¼ºÊµÏÖÒ»¸ö×ÓÀà
+	kNone,		//æ— å…·ä½“ç±»å‹ï¼ŒåŸºç±»
+	kText,		//æ™®é€šæ–‡æœ¬
+	kCombo,		//ä¸‹æ‹‰æ¡†
+	kFont,		//å­—ä½“åç§°
+	kFontSize,  //å­—ä½“å¤§å°
+	kColor,		//é¢œè‰²
+	kDateTime,	//æ—¥æœŸæ—¶é—´
+	kIPAddress,	//IPåœ°å€
+	kHotKey,	//çƒ­é”®
+	kFile,		//æ–‡ä»¶è·¯å¾„
+	kDirectory,	//æ–‡ä»¶å¤¹
+	kCustom		//ç”¨æˆ·è‡ªå®šä¹‰çš„ç±»å‹ï¼Œæ¯”å¦‚è‡ªå·±å®ç°ä¸€ä¸ªå­ç±»
 };
 
-/** ÊôĞÔ±íµÄÊôĞÔ, »ù±¾½á¹¹
+/** å±æ€§è¡¨çš„å±æ€§, åŸºæœ¬ç»“æ„
 *   <PropertyGridProperty>
 *		<HBox>
 *			<LabelBox/>
@@ -552,11 +552,11 @@ enum class PropertyGridPropertyType
 class PropertyGridProperty: public TreeNode
 {
 public:
-	/** ¹¹ÔìÒ»¸öÊôĞÔ
-	* @param [in] propertyName ÊôĞÔµÄÃû³Æ
-	* @param [in] propertyValue ÊôĞÔµÄÖµ
-	* @param [in] description ÊôĞÔµÄÃèÊöĞÅÏ¢
-	* @param [in] nPropertyData ÓÃ»§×Ô¶¨ÒåÊı¾İ
+	/** æ„é€ ä¸€ä¸ªå±æ€§
+	* @param [in] propertyName å±æ€§çš„åç§°
+	* @param [in] propertyValue å±æ€§çš„å€¼
+	* @param [in] description å±æ€§çš„æè¿°ä¿¡æ¯
+	* @param [in] nPropertyData ç”¨æˆ·è‡ªå®šä¹‰æ•°æ®
 	*/
 	PropertyGridProperty(Window* pWindow, 
 					     const std::wstring& propertyName,
@@ -565,157 +565,157 @@ public:
 					     size_t nPropertyData = 0);
 
 public:
-	/** »ñÈ¡ÊôĞÔÀàĞÍ
+	/** è·å–å±æ€§ç±»å‹
 	*/
 	virtual PropertyGridPropertyType GetPropertyType() const 
 	{ 
 		return PropertyGridPropertyType::kNone; 
 	}
 
-	/** »ñÈ¡ÊôĞÔÃû³Æ
+	/** è·å–å±æ€§åç§°
 	*/
 	std::wstring GetPropertyName() const { return m_propertyName.c_str(); }
 
-	/** »ñÈ¡ÊôĞÔÖµ(Ô­Öµ)
+	/** è·å–å±æ€§å€¼(åŸå€¼)
 	*/
 	std::wstring GetPropertyValue() const { return m_propertyValue.c_str(); }
 
-	/** »ñÈ¡ÊôĞÔµÄÃèÊöĞÅÏ¢
+	/** è·å–å±æ€§çš„æè¿°ä¿¡æ¯
 	*/
 	std::wstring GetDescriptiion() const { return m_description.c_str(); }
 
-	/** »ñÈ¡ÓÃ»§×Ô¶¨ÒåÊı¾İ
+	/** è·å–ç”¨æˆ·è‡ªå®šä¹‰æ•°æ®
 	*/
 	size_t GetPropertyData() const { return m_nPropertyData; }
 
-	/** ÉèÖÃÓÃ»§×Ô¶¨ÒåÊı¾İ
+	/** è®¾ç½®ç”¨æˆ·è‡ªå®šä¹‰æ•°æ®
 	*/
 	void SetPropertyData(size_t nPropertyData) { m_nPropertyData = nPropertyData; }
 
-	/** »ñÈ¡ÊôĞÔÃû³ÆºÍÊôĞÔÖµËùÔÚÈİÆ÷¿Ø¼ş£¬¿ÉÓÃÓÚÉèÖÃ±³¾°É«µÈ
+	/** è·å–å±æ€§åç§°å’Œå±æ€§å€¼æ‰€åœ¨å®¹å™¨æ§ä»¶ï¼Œå¯ç”¨äºè®¾ç½®èƒŒæ™¯è‰²ç­‰
 	*/
 	HBox* GetHBox() const {	return m_pHBox;	}
 
-	/** »ñÈ¡ÊôĞÔÃû³ÆµÄÏÔÊ¾¿Ø¼ş, ¸¸¿Ø¼şÊÇGetHBox()
+	/** è·å–å±æ€§åç§°çš„æ˜¾ç¤ºæ§ä»¶, çˆ¶æ§ä»¶æ˜¯GetHBox()
 	*/
 	LabelBox* GetLabelBoxLeft() const { return m_pLabelBoxLeft; }
 
-	/** »ñÈ¡ÊôĞÔÖµµÄÏÔÊ¾¿Ø¼ş, ¸¸¿Ø¼şÊÇGetHBox()
+	/** è·å–å±æ€§å€¼çš„æ˜¾ç¤ºæ§ä»¶, çˆ¶æ§ä»¶æ˜¯GetHBox()
 	*/
 	LabelBox* GetLabelBoxRight() const { return m_pLabelBoxRight; }
 
-	/** ÉèÖÃÖ»¶ÁÄ£Ê½
+	/** è®¾ç½®åªè¯»æ¨¡å¼
 	*/
 	void SetReadOnly(bool bReadOnly);
 
-	/** ÊÇ·ñÎªÖ»¶ÁÄ£Ê½
+	/** æ˜¯å¦ä¸ºåªè¯»æ¨¡å¼
 	*/
 	bool IsReadOnly() const { return m_bReadOnly; }
 
-	/** »ñÈ¡ĞÂµÄÊôĞÔÖµ£¨ĞŞ¸ÄºóµÄÊôĞÔÖµ, Èç¹ûÎŞĞŞ¸ÄÔò·µ»ØÔ­Öµ£©
+	/** è·å–æ–°çš„å±æ€§å€¼ï¼ˆä¿®æ”¹åçš„å±æ€§å€¼, å¦‚æœæ— ä¿®æ”¹åˆ™è¿”å›åŸå€¼ï¼‰
 	*/
 	virtual std::wstring GetPropertyNewValue() const;
 
 protected:
-	/** ³õÊ¼»¯º¯Êı
+	/** åˆå§‹åŒ–å‡½æ•°
 	 */
 	virtual void OnInit() override;
 
-	/** ÉèÖÃÊÇ·ñÔÊĞí´æÔÚ±à¼­¿ò¿Ø¼ş
-	* @param [in] bEnable true±íÊ¾ÔÊĞí´æÔÚ±à¼­¿ò¿Ø¼ş£¬false±íÊ¾²»ÔÊĞí´æÔÚ±à¼­¿ò¿Ø¼ş
+	/** è®¾ç½®æ˜¯å¦å…è®¸å­˜åœ¨ç¼–è¾‘æ¡†æ§ä»¶
+	* @param [in] bEnable trueè¡¨ç¤ºå…è®¸å­˜åœ¨ç¼–è¾‘æ¡†æ§ä»¶ï¼Œfalseè¡¨ç¤ºä¸å…è®¸å­˜åœ¨ç¼–è¾‘æ¡†æ§ä»¶
 	*/
 	virtual void EnableEditControl(bool /*bEnable*/) {}
 
-	/** ÏÔÊ¾»òÕßÒş²Ø±à¼­¿ò¿Ø¼ş
-	* @param [in] bShow ±íÊ¾ÏÔÊ¾±à¼­¿Ø¼ş£¬false±íÊ¾Òş²Ø±à¼­¿Ø¼ş
-	* @return ·µ»Ø±à¼­¿Ø¼şµÄ½Ó¿Ú
+	/** æ˜¾ç¤ºæˆ–è€…éšè—ç¼–è¾‘æ¡†æ§ä»¶
+	* @param [in] bShow è¡¨ç¤ºæ˜¾ç¤ºç¼–è¾‘æ§ä»¶ï¼Œfalseè¡¨ç¤ºéšè—ç¼–è¾‘æ§ä»¶
+	* @return è¿”å›ç¼–è¾‘æ§ä»¶çš„æ¥å£
 	*/
 	virtual Control* ShowEditControl(bool /*bShow*/) { return nullptr; }
 
-	/** ¹ö¶¯Ìõ·¢ÉúÁË¹ö¶¯(ÓÃÓÚ´¦Àíµ¯³öÊ½×Ó´°¿ÚµÄÎ»ÖÃÎÊÌâ)
+	/** æ»šåŠ¨æ¡å‘ç”Ÿäº†æ»šåŠ¨(ç”¨äºå¤„ç†å¼¹å‡ºå¼å­çª—å£çš„ä½ç½®é—®é¢˜)
 	*/
 	virtual void OnScrollPosChanged() {}
 
-	/** »ñÈ¡±à¼­¿Ø¼şµÄMargin.right£¨±ÜÃâ¹ö¶¯ÌõÕÚµ²±à¼­¿Ø¼ş£©
+	/** è·å–ç¼–è¾‘æ§ä»¶çš„Margin.rightï¼ˆé¿å…æ»šåŠ¨æ¡é®æŒ¡ç¼–è¾‘æ§ä»¶ï¼‰
 	*/
 	int32_t GetEditControlMarginRight() const;
 
 protected:
-	/** ÉèÖÃÊôĞÔÖµµÄÎÄ±¾(ÏÔÊ¾¿Ø¼ş)
-	* @param [in] text ÎÄ±¾ÄÚÈİ
-	* @param [in] bChanged ÊÇ·ñ±ê¼ÇÎª±ä»¯
+	/** è®¾ç½®å±æ€§å€¼çš„æ–‡æœ¬(æ˜¾ç¤ºæ§ä»¶)
+	* @param [in] text æ–‡æœ¬å†…å®¹
+	* @param [in] bChanged æ˜¯å¦æ ‡è®°ä¸ºå˜åŒ–
 	*/
 	void SetPropertyText(const std::wstring& text, bool bChanged);
 
-	/** »ñÈ¡ÊôĞÔÖµÎÄ±¾(ÏÔÊ¾¿Ø¼ş)
+	/** è·å–å±æ€§å€¼æ–‡æœ¬(æ˜¾ç¤ºæ§ä»¶)
 	*/
 	std::wstring GetPropertyText() const;
 
-	/** ÉèÖÃÊôĞÔÖµµÄÎÄ×ÖÑÕÉ«(ÏÔÊ¾¿Ø¼ş)
-	* @param [in] text ÎÄ±¾ÄÚÈİ
+	/** è®¾ç½®å±æ€§å€¼çš„æ–‡å­—é¢œè‰²(æ˜¾ç¤ºæ§ä»¶)
+	* @param [in] text æ–‡æœ¬å†…å®¹
 	*/
 	void SetPropertyTextColor(const std::wstring& textColor);
 
-	/** ½«½¹µãÉèÖÃµ½ÊôĞÔÖµÎÄ±¾ÏÔÊ¾¿Ø¼ş
+	/** å°†ç„¦ç‚¹è®¾ç½®åˆ°å±æ€§å€¼æ–‡æœ¬æ˜¾ç¤ºæ§ä»¶
 	*/
 	void SetPropertyFocus();
 
-	/** ÔÚÊôĞÔÖµµÄLabelBoxÖĞÌí¼Ó¿Ø¼ş
+	/** åœ¨å±æ€§å€¼çš„LabelBoxä¸­æ·»åŠ æ§ä»¶
 	*/
 	bool AddPropertySubItem(Control* pControl);
 
-	/** ÔÚÊôĞÔÖµµÄLabelBoxÖĞÒÆ³ı¿Ø¼ş
+	/** åœ¨å±æ€§å€¼çš„LabelBoxä¸­ç§»é™¤æ§ä»¶
 	*/
 	bool RemovePropertySubItem(Control* pControl);
 
-	/** ÅĞ¶ÏÊôĞÔÖµµÄLabelBoxÖĞÊÇ·ñ°üº¬¿Ø¼ş
+	/** åˆ¤æ–­å±æ€§å€¼çš„LabelBoxä¸­æ˜¯å¦åŒ…å«æ§ä»¶
 	*/
 	bool HasPropertySubItem(Control* pControl) const;
 
 private:
-	/** ÊôĞÔµÄÃû³Æ
+	/** å±æ€§çš„åç§°
 	*/
 	UiString m_propertyName;
 
-	/** ÊôĞÔµÄÖµ
+	/** å±æ€§çš„å€¼
 	*/
 	UiString m_propertyValue;
 
-	/** ÊôĞÔµÄÃèÊöĞÅÏ¢
+	/** å±æ€§çš„æè¿°ä¿¡æ¯
 	*/
 	UiString m_description;
 
-	/** ÓÃ»§×Ô¶¨ÒåÊı¾İ
+	/** ç”¨æˆ·è‡ªå®šä¹‰æ•°æ®
 	*/
 	size_t m_nPropertyData;
 
-	/** ÊôĞÔÃû³ÆºÍÊôĞÔÖµËùÔÚÈİÆ÷¿Ø¼ş
+	/** å±æ€§åç§°å’Œå±æ€§å€¼æ‰€åœ¨å®¹å™¨æ§ä»¶
 	*/
 	HBox* m_pHBox;
 
-	/** ÊôĞÔÃû³ÆµÄÏÔÊ¾¿Ø¼ş
+	/** å±æ€§åç§°çš„æ˜¾ç¤ºæ§ä»¶
 	*/
 	LabelBox* m_pLabelBoxLeft;
 
-	/** ÊôĞÔÖµµÄÏÔÊ¾¿Ø¼ş
+	/** å±æ€§å€¼çš„æ˜¾ç¤ºæ§ä»¶
 	*/
 	LabelBox* m_pLabelBoxRight;
 
-	/** Ö»¶ÁÄ£Ê½
+	/** åªè¯»æ¨¡å¼
 	*/
 	bool m_bReadOnly;
 };
 
-/** ÎÄ±¾ÀàĞÍµÄÊôĞÔ£ºÊ¹ÓÃRichEdit±à¼­
+/** æ–‡æœ¬ç±»å‹çš„å±æ€§ï¼šä½¿ç”¨RichEditç¼–è¾‘
 */
 class PropertyGridTextProperty : public PropertyGridProperty
 {
 public:
-	/** ¹¹ÔìÒ»¸öÊôĞÔ
-	* @param [in] propertyName ÊôĞÔµÄÃû³Æ
-	* @param [in] propertyValue ÊôĞÔµÄÖµ
-	* @param [in] description ÊôĞÔµÄÃèÊöĞÅÏ¢
-	* @param [in] nPropertyData ÓÃ»§×Ô¶¨ÒåÊı¾İ
+	/** æ„é€ ä¸€ä¸ªå±æ€§
+	* @param [in] propertyName å±æ€§çš„åç§°
+	* @param [in] propertyValue å±æ€§çš„å€¼
+	* @param [in] description å±æ€§çš„æè¿°ä¿¡æ¯
+	* @param [in] nPropertyData ç”¨æˆ·è‡ªå®šä¹‰æ•°æ®
 	*/
 	PropertyGridTextProperty(Window* pWindow,
 							 const std::wstring& propertyName,
@@ -724,68 +724,68 @@ public:
 					         size_t nPropertyData = 0);
 
 public:
-	/** »ñÈ¡ÊôĞÔÀàĞÍ
+	/** è·å–å±æ€§ç±»å‹
 	*/
 	virtual PropertyGridPropertyType GetPropertyType() const
 	{
 		return PropertyGridPropertyType::kText;
 	}
 
-	/** »ñÈ¡ĞÂµÄÊôĞÔÖµ£¨ĞŞ¸ÄºóµÄÊôĞÔÖµ, Èç¹ûÎŞĞŞ¸ÄÔò·µ»ØÔ­Öµ£©
+	/** è·å–æ–°çš„å±æ€§å€¼ï¼ˆä¿®æ”¹åçš„å±æ€§å€¼, å¦‚æœæ— ä¿®æ”¹åˆ™è¿”å›åŸå€¼ï¼‰
 	*/
 	virtual std::wstring GetPropertyNewValue() const override;
 
-	/** »ñÈ¡±à¼­¿ò¿Ø¼ş
+	/** è·å–ç¼–è¾‘æ¡†æ§ä»¶
 	*/
 	RichEdit* GetRichEdit() const { return m_pRichEdit; }
 
-	/** ÉèÖÃÃÜÂëÄ£Ê½£¨ÏÔÊ¾ ***£©
-	 * @param[in] bPassword ÉèÖÃÎª true ÈÃ¿Ø¼şÏÔÊ¾ÄÚÈİÎª ***£¬false ÎªÏÔÊ¾Õı³£ÄÚÈİ
+	/** è®¾ç½®å¯†ç æ¨¡å¼ï¼ˆæ˜¾ç¤º ***ï¼‰
+	 * @param[in] bPassword è®¾ç½®ä¸º true è®©æ§ä»¶æ˜¾ç¤ºå†…å®¹ä¸º ***ï¼Œfalse ä¸ºæ˜¾ç¤ºæ­£å¸¸å†…å®¹
 	 */
 	void SetPassword(bool bPassword);
 
-	/** ÊÇ·ñÎªÃÜÂëÄ£Ê½
+	/** æ˜¯å¦ä¸ºå¯†ç æ¨¡å¼
 	*/
 	bool IsPassword() const { return m_bPassword; }
 
-	/** ÉèÖÃÊÇ·ñÖ§³ÖSpin¿Ø¼ş
-	* @param [in] bEnable true±íÊ¾Ö§³ÖSpin¿Ø¼ş£¬false±íÊ¾²»Ö§³ÖSpin¿Ø¼ş
-	* @param [in] nMin ±íÊ¾ÉèÖÃÊı×ÖµÄ×îĞ¡Öµ
-	* @param [in] nMax ±íÊ¾ÉèÖÃÊı×ÖµÄ×î´óÖµ£¬Èç¹û nMinºÍnMaxÍ¬Ê±Îª0, ±íÊ¾²»ÉèÖÃÊı×ÖµÄ×îĞ¡ÖµºÍ×î´óÖµ
+	/** è®¾ç½®æ˜¯å¦æ”¯æŒSpinæ§ä»¶
+	* @param [in] bEnable trueè¡¨ç¤ºæ”¯æŒSpinæ§ä»¶ï¼Œfalseè¡¨ç¤ºä¸æ”¯æŒSpinæ§ä»¶
+	* @param [in] nMin è¡¨ç¤ºè®¾ç½®æ•°å­—çš„æœ€å°å€¼
+	* @param [in] nMax è¡¨ç¤ºè®¾ç½®æ•°å­—çš„æœ€å¤§å€¼ï¼Œå¦‚æœ nMinå’ŒnMaxåŒæ—¶ä¸º0, è¡¨ç¤ºä¸è®¾ç½®æ•°å­—çš„æœ€å°å€¼å’Œæœ€å¤§å€¼
 	*/
 	void SetEnableSpin(bool bEnable, int32_t nMin = 0, int32_t nMax = 0);
 
 protected:
-	/** ÉèÖÃÊÇ·ñÔÊĞí´æÔÚ±à¼­¿ò¿Ø¼ş
-	* @param [in] bEnable true±íÊ¾ÔÊĞí´æÔÚ±à¼­¿ò¿Ø¼ş£¬false±íÊ¾²»ÔÊĞí´æÔÚ±à¼­¿ò¿Ø¼ş
+	/** è®¾ç½®æ˜¯å¦å…è®¸å­˜åœ¨ç¼–è¾‘æ¡†æ§ä»¶
+	* @param [in] bEnable trueè¡¨ç¤ºå…è®¸å­˜åœ¨ç¼–è¾‘æ¡†æ§ä»¶ï¼Œfalseè¡¨ç¤ºä¸å…è®¸å­˜åœ¨ç¼–è¾‘æ¡†æ§ä»¶
 	*/
 	virtual void EnableEditControl(bool bEnable) override;
 
-	/** ÏÔÊ¾»òÕßÒş²Ø±à¼­¿ò¿Ø¼ş
-	* @param [in] bShow ±íÊ¾ÏÔÊ¾±à¼­¿Ø¼ş£¬false±íÊ¾Òş²Ø±à¼­¿Ø¼ş
+	/** æ˜¾ç¤ºæˆ–è€…éšè—ç¼–è¾‘æ¡†æ§ä»¶
+	* @param [in] bShow è¡¨ç¤ºæ˜¾ç¤ºç¼–è¾‘æ§ä»¶ï¼Œfalseè¡¨ç¤ºéšè—ç¼–è¾‘æ§ä»¶
 	*/
 	virtual Control* ShowEditControl(bool bShow) override;
 
 private:
-	/** ±à¼­¿ò¿Ø¼ş(ÓÃÓÚĞŞ¸ÄÊôĞÔ)
+	/** ç¼–è¾‘æ¡†æ§ä»¶(ç”¨äºä¿®æ”¹å±æ€§)
 	*/
 	RichEdit* m_pRichEdit;
 
-	/** ÃÜÂëÄ£Ê½
+	/** å¯†ç æ¨¡å¼
 	*/
 	bool m_bPassword;
 };
 
-/** ÏÂÀ­¿òÀàĞÍµÄÊôĞÔ£ºÊ¹ÓÃCombo±à¼­
+/** ä¸‹æ‹‰æ¡†ç±»å‹çš„å±æ€§ï¼šä½¿ç”¨Comboç¼–è¾‘
 */
 class PropertyGridComboProperty : public PropertyGridProperty
 {
 public:
-	/** ¹¹ÔìÒ»¸öÊôĞÔ
-	* @param [in] propertyName ÊôĞÔµÄÃû³Æ
-	* @param [in] propertyValue ÊôĞÔµÄÖµ
-	* @param [in] description ÊôĞÔµÄÃèÊöĞÅÏ¢
-	* @param [in] nPropertyData ÓÃ»§×Ô¶¨ÒåÊı¾İ
+	/** æ„é€ ä¸€ä¸ªå±æ€§
+	* @param [in] propertyName å±æ€§çš„åç§°
+	* @param [in] propertyValue å±æ€§çš„å€¼
+	* @param [in] description å±æ€§çš„æè¿°ä¿¡æ¯
+	* @param [in] nPropertyData ç”¨æˆ·è‡ªå®šä¹‰æ•°æ®
 	*/
 	PropertyGridComboProperty(Window* pWindow, 
 							  const std::wstring& propertyName,
@@ -794,103 +794,103 @@ public:
 							  size_t nPropertyData = 0);
 
 public:
-	/** »ñÈ¡ÊôĞÔÀàĞÍ
+	/** è·å–å±æ€§ç±»å‹
 	*/
 	virtual PropertyGridPropertyType GetPropertyType() const
 	{
 		return PropertyGridPropertyType::kCombo;
 	}
 
-	/** »ñÈ¡ĞÂµÄÊôĞÔÖµ£¨ĞŞ¸ÄºóµÄÊôĞÔÖµ, Èç¹ûÎŞĞŞ¸ÄÔò·µ»ØÔ­Öµ£©
+	/** è·å–æ–°çš„å±æ€§å€¼ï¼ˆä¿®æ”¹åçš„å±æ€§å€¼, å¦‚æœæ— ä¿®æ”¹åˆ™è¿”å›åŸå€¼ï¼‰
 	*/
 	virtual std::wstring GetPropertyNewValue() const override;
 
-	/** Ôö¼ÓÒ»¸öÏÂÀ­¿òÑ¡Ïî
-	* @param [in] optionText ÏÂÀ­¿òÁĞ±íÏîµÄÄÚÈİ
-	* @return ·µ»Ø¸Ã×ÓÏîµÄÏÂ±êÖµ
+	/** å¢åŠ ä¸€ä¸ªä¸‹æ‹‰æ¡†é€‰é¡¹
+	* @param [in] optionText ä¸‹æ‹‰æ¡†åˆ—è¡¨é¡¹çš„å†…å®¹
+	* @return è¿”å›è¯¥å­é¡¹çš„ä¸‹æ ‡å€¼
 	*/
 	size_t AddOption(const std::wstring& optionText);
 
-	/** »ñÈ¡ÏÂÀ­¿òÑ¡ÏîµÄ¸ñÊ½
+	/** è·å–ä¸‹æ‹‰æ¡†é€‰é¡¹çš„æ ¼å¼
 	*/
 	size_t GetOptionCount() const;
 
-	/** »ñÈ¡ÏÂÀ­±í×ÓÏîµÄÎÄ±¾
-	* @param [in] nIndex ×ÓÏîµÄÏÂ±êÖµ£¬ÓĞĞ§·¶Î§£º[0, GetOptionCount())
+	/** è·å–ä¸‹æ‹‰è¡¨å­é¡¹çš„æ–‡æœ¬
+	* @param [in] nIndex å­é¡¹çš„ä¸‹æ ‡å€¼ï¼Œæœ‰æ•ˆèŒƒå›´ï¼š[0, GetOptionCount())
 	*/
 	std::wstring GetOption(size_t nIndex) const;
 
-	/** ÉèÖÃ×ÓÏî¹ØÁªµÄÊı¾İ
-	* @param [in] nIndex ×ÓÏîµÄÏÂ±êÖµ£¬ÓĞĞ§·¶Î§£º[0, GetOptionCount())
-	* @param [in] nOptionData ¹ØÁªÊı¾İ
+	/** è®¾ç½®å­é¡¹å…³è”çš„æ•°æ®
+	* @param [in] nIndex å­é¡¹çš„ä¸‹æ ‡å€¼ï¼Œæœ‰æ•ˆèŒƒå›´ï¼š[0, GetOptionCount())
+	* @param [in] nOptionData å…³è”æ•°æ®
 	*/
 	void SetOptionData(size_t nIndex, size_t nOptionData);
 
-	/** »ñÈ¡×ÓÏî¹ØÁªµÄÊı¾İ
-	* @param [in] nIndex ×ÓÏîµÄÏÂ±êÖµ£¬ÓĞĞ§·¶Î§£º[0, GetOptionCount())
+	/** è·å–å­é¡¹å…³è”çš„æ•°æ®
+	* @param [in] nIndex å­é¡¹çš„ä¸‹æ ‡å€¼ï¼Œæœ‰æ•ˆèŒƒå›´ï¼š[0, GetOptionCount())
 	*/
 	size_t GetOptionData(size_t nIndex) const;
 
-	/** É¾³ıÖ¸¶¨µÄ×ÓÏî
-	* @param [in] nIndex ×ÓÏîµÄÏÂ±êÖµ£¬ÓĞĞ§·¶Î§£º[0, GetOptionCount())
+	/** åˆ é™¤æŒ‡å®šçš„å­é¡¹
+	* @param [in] nIndex å­é¡¹çš„ä¸‹æ ‡å€¼ï¼Œæœ‰æ•ˆèŒƒå›´ï¼š[0, GetOptionCount())
 	*/
 	bool RemoveOption(size_t nIndex);
 
-	/** É¾³ıËùÓĞ×ÓÏî
+	/** åˆ é™¤æ‰€æœ‰å­é¡¹
 	*/
 	void RemoveAllOptions();
 
-	/** »ñÈ¡µ±Ç°Ñ¡ÔñÏîË÷Òı
-	 * @return ·µ»Øµ±Ç°Ñ¡ÔñÏîË÷Òı, (Èç¹ûÎŞÓĞĞ§Ë÷Òı£¬Ôò·µ»ØBox::InvalidIndex)
+	/** è·å–å½“å‰é€‰æ‹©é¡¹ç´¢å¼•
+	 * @return è¿”å›å½“å‰é€‰æ‹©é¡¹ç´¢å¼•, (å¦‚æœæ— æœ‰æ•ˆç´¢å¼•ï¼Œåˆ™è¿”å›Box::InvalidIndex)
 	 */
 	size_t GetCurSel() const;
 
-	/** Ñ¡ÔñÒ»¸ö×ÓÏî, ²»´¥·¢Ñ¡ÔñÊÂ¼ş
-	 * @param[in] nIndex ÒªÑ¡ÔñµÄ×ÓÏîË÷Òı£¬ÓĞĞ§·¶Î§£º[0, GetOptionCount())
-	 * @return ·µ»Ø true ±íÊ¾³É¹¦£¬·ñÔòÎª false
+	/** é€‰æ‹©ä¸€ä¸ªå­é¡¹, ä¸è§¦å‘é€‰æ‹©äº‹ä»¶
+	 * @param[in] nIndex è¦é€‰æ‹©çš„å­é¡¹ç´¢å¼•ï¼Œæœ‰æ•ˆèŒƒå›´ï¼š[0, GetOptionCount())
+	 * @return è¿”å› true è¡¨ç¤ºæˆåŠŸï¼Œå¦åˆ™ä¸º false
 	 */
 	bool SetCurSel(size_t nIndex);
 
-	/** ÉèÖÃÎªÁĞ±íÄ£Ê½
-	* @param [in] bListMode true±íÊ¾²»Ö§³Ö±à¼­ÎÄ±¾£¬Ö»ÄÜ´ÓÏÂÀ­±íÖĞÑ¡Ôñ£»false±íÊ¾ÔÊĞí±à¼­£¬ÔÊĞíÑ¡Ôñ
+	/** è®¾ç½®ä¸ºåˆ—è¡¨æ¨¡å¼
+	* @param [in] bListMode trueè¡¨ç¤ºä¸æ”¯æŒç¼–è¾‘æ–‡æœ¬ï¼Œåªèƒ½ä»ä¸‹æ‹‰è¡¨ä¸­é€‰æ‹©ï¼›falseè¡¨ç¤ºå…è®¸ç¼–è¾‘ï¼Œå…è®¸é€‰æ‹©
 	*/
 	void SetComboListMode(bool bListMode);
 
-	/** »ñÈ¡ÏÂÀ­¿ò½Ó¿Ú
+	/** è·å–ä¸‹æ‹‰æ¡†æ¥å£
 	*/
 	Combo* GetCombo() const { return m_pCombo; }
 
 protected:
-	/** ÉèÖÃÊÇ·ñÔÊĞí´æÔÚ±à¼­¿ò¿Ø¼ş
-	* @param [in] bEnable true±íÊ¾ÔÊĞí´æÔÚ±à¼­¿ò¿Ø¼ş£¬false±íÊ¾²»ÔÊĞí´æÔÚ±à¼­¿ò¿Ø¼ş
+	/** è®¾ç½®æ˜¯å¦å…è®¸å­˜åœ¨ç¼–è¾‘æ¡†æ§ä»¶
+	* @param [in] bEnable trueè¡¨ç¤ºå…è®¸å­˜åœ¨ç¼–è¾‘æ¡†æ§ä»¶ï¼Œfalseè¡¨ç¤ºä¸å…è®¸å­˜åœ¨ç¼–è¾‘æ¡†æ§ä»¶
 	*/
 	virtual void EnableEditControl(bool bEnable) override;
 
-	/** ÏÔÊ¾»òÕßÒş²Ø±à¼­¿ò¿Ø¼ş
-	* @param [in] bShow ±íÊ¾ÏÔÊ¾±à¼­¿Ø¼ş£¬false±íÊ¾Òş²Ø±à¼­¿Ø¼ş
+	/** æ˜¾ç¤ºæˆ–è€…éšè—ç¼–è¾‘æ¡†æ§ä»¶
+	* @param [in] bShow è¡¨ç¤ºæ˜¾ç¤ºç¼–è¾‘æ§ä»¶ï¼Œfalseè¡¨ç¤ºéšè—ç¼–è¾‘æ§ä»¶
 	*/
 	virtual Control* ShowEditControl(bool bShow) override;
 
-	/** ¹ö¶¯Ìõ·¢ÉúÁË¹ö¶¯(ÓÃÓÚ´¦Àíµ¯³öÊ½×Ó´°¿ÚµÄÎ»ÖÃÎÊÌâ)
+	/** æ»šåŠ¨æ¡å‘ç”Ÿäº†æ»šåŠ¨(ç”¨äºå¤„ç†å¼¹å‡ºå¼å­çª—å£çš„ä½ç½®é—®é¢˜)
 	*/
 	virtual void OnScrollPosChanged() override;
 
 private:
-	/** ÏÂÀ­¿ò½Ó¿Ú
+	/** ä¸‹æ‹‰æ¡†æ¥å£
 	*/
 	Combo* m_pCombo;
 };
 
-/** ÉèÖÃ×ÖÌåÃû³ÆµÄÊôĞÔ
+/** è®¾ç½®å­—ä½“åç§°çš„å±æ€§
 */
 class PropertyGridFontProperty : public PropertyGridComboProperty
 {
 public:
-	/** ¹¹ÔìÒ»¸öÊôĞÔ
-	* @param [in] propertyName ÊôĞÔµÄÃû³Æ
-	* @param [in] propertyValue ÊôĞÔµÄÖµ(Ô­×ÖÌåÃû³Æ)
-	* @param [in] description ÊôĞÔµÄÃèÊöĞÅÏ¢
-	* @param [in] nPropertyData ÓÃ»§×Ô¶¨ÒåÊı¾İ
+	/** æ„é€ ä¸€ä¸ªå±æ€§
+	* @param [in] propertyName å±æ€§çš„åç§°
+	* @param [in] propertyValue å±æ€§çš„å€¼(åŸå­—ä½“åç§°)
+	* @param [in] description å±æ€§çš„æè¿°ä¿¡æ¯
+	* @param [in] nPropertyData ç”¨æˆ·è‡ªå®šä¹‰æ•°æ®
 	*/
 	PropertyGridFontProperty(Window* pWindow,
 							 const std::wstring& propertyName,
@@ -899,39 +899,39 @@ public:
 						     size_t nPropertyData = 0);
 
 public:
-	/** »ñÈ¡ÊôĞÔÀàĞÍ
+	/** è·å–å±æ€§ç±»å‹
 	*/
 	virtual PropertyGridPropertyType GetPropertyType() const
 	{
 		return PropertyGridPropertyType::kFont;
 	}
 
-	/** »ñÈ¡ĞÂµÄ×ÖÌåÖµ£¨ĞŞ¸ÄºóµÄÊôĞÔÖµ, Èç¹ûÎŞĞŞ¸ÄÔò·µ»ØÔ­Öµ£©
+	/** è·å–æ–°çš„å­—ä½“å€¼ï¼ˆä¿®æ”¹åçš„å±æ€§å€¼, å¦‚æœæ— ä¿®æ”¹åˆ™è¿”å›åŸå€¼ï¼‰
 	*/
 	virtual std::wstring GetPropertyNewValue() const override;
 
 protected:
 
-	/** ³õÊ¼»¯º¯Êı
+	/** åˆå§‹åŒ–å‡½æ•°
 	 */
 	virtual void OnInit() override;
 
 private:
-	/** »ñÈ¡ÏµÍ³×ÖÌåÁĞ±í
+	/** è·å–ç³»ç»Ÿå­—ä½“åˆ—è¡¨
 	*/
 	void GetSystemFontList(std::vector<std::wstring>& fontList) const;
 };
 
-/** ÉèÖÃ×ÖÌå´óĞ¡µÄÊôĞÔ
+/** è®¾ç½®å­—ä½“å¤§å°çš„å±æ€§
 */
 class PropertyGridFontSizeProperty : public PropertyGridComboProperty
 {
 public:
-	/** ¹¹ÔìÒ»¸öÊôĞÔ
-	* @param [in] propertyName ÊôĞÔµÄÃû³Æ
-	* @param [in] propertyValue ÊôĞÔµÄÖµ(Ô­×ÖÌåÃû³Æ)
-	* @param [in] description ÊôĞÔµÄÃèÊöĞÅÏ¢
-	* @param [in] nPropertyData ÓÃ»§×Ô¶¨ÒåÊı¾İ
+	/** æ„é€ ä¸€ä¸ªå±æ€§
+	* @param [in] propertyName å±æ€§çš„åç§°
+	* @param [in] propertyValue å±æ€§çš„å€¼(åŸå­—ä½“åç§°)
+	* @param [in] description å±æ€§çš„æè¿°ä¿¡æ¯
+	* @param [in] nPropertyData ç”¨æˆ·è‡ªå®šä¹‰æ•°æ®
 	*/
 	PropertyGridFontSizeProperty(Window* pWindow, 
 								 const std::wstring& propertyName,
@@ -940,71 +940,71 @@ public:
 								 size_t nPropertyData = 0);
 
 public:
-	/** »ñÈ¡ÊôĞÔÀàĞÍ
+	/** è·å–å±æ€§ç±»å‹
 	*/
 	virtual PropertyGridPropertyType GetPropertyType() const
 	{
 		return PropertyGridPropertyType::kFontSize;
 	}
 
-	/** »ñÈ¡ĞÂµÄ×ÖÌå´óĞ¡Öµ, ÏÔÊ¾Öµ£¨ĞŞ¸ÄºóµÄÊôĞÔÖµ, Èç¹ûÎŞĞŞ¸ÄÔò·µ»ØÔ­Öµ£©
+	/** è·å–æ–°çš„å­—ä½“å¤§å°å€¼, æ˜¾ç¤ºå€¼ï¼ˆä¿®æ”¹åçš„å±æ€§å€¼, å¦‚æœæ— ä¿®æ”¹åˆ™è¿”å›åŸå€¼ï¼‰
 	*/
 	virtual std::wstring GetPropertyNewValue() const override;
 
-	/** »ñÈ¡×ÖÌå´óĞ¡Öµ£¬¸¡µãÊı£¬Î´×öDPI×ÔÊÊÓ¦Öµ
-	* @return Èç¹û´ÓÁĞ±íÖĞÑ¡Ôñ£¬·µ»ØÖµÎª·Ç¿Õ£»Èç¹ûÎ´ÄÜ´ÓÁĞ±íÖĞÑ¡Ôñ£¬Ôò·µ»Ø¿Õ
+	/** è·å–å­—ä½“å¤§å°å€¼ï¼Œæµ®ç‚¹æ•°ï¼ŒæœªåšDPIè‡ªé€‚åº”å€¼
+	* @return å¦‚æœä»åˆ—è¡¨ä¸­é€‰æ‹©ï¼Œè¿”å›å€¼ä¸ºéç©ºï¼›å¦‚æœæœªèƒ½ä»åˆ—è¡¨ä¸­é€‰æ‹©ï¼Œåˆ™è¿”å›ç©º
 	*/
 	std::wstring GetFontSize() const;
 
-	/** »ñÈ¡×ÖÌå´óĞ¡Öµ£¬¸¡µãÊı£¬ÒÑ×öDPI×ÔÊÊÓ¦Öµ
-	* @return Èç¹û´ÓÁĞ±íÖĞÑ¡Ôñ£¬·µ»ØÖµÎª·Ç¿Õ£»Èç¹ûÎ´ÄÜ´ÓÁĞ±íÖĞÑ¡Ôñ£¬Ôò·µ»Ø¿Õ
+	/** è·å–å­—ä½“å¤§å°å€¼ï¼Œæµ®ç‚¹æ•°ï¼Œå·²åšDPIè‡ªé€‚åº”å€¼
+	* @return å¦‚æœä»åˆ—è¡¨ä¸­é€‰æ‹©ï¼Œè¿”å›å€¼ä¸ºéç©ºï¼›å¦‚æœæœªèƒ½ä»åˆ—è¡¨ä¸­é€‰æ‹©ï¼Œåˆ™è¿”å›ç©º
 	*/
 	std::wstring GetDpiFontSize() const;
 
-	/** »ñÈ¡×ÖÌå´óĞ¡ÏÔÊ¾Ãû³Æ¶ÔÓ¦µÄ×ÖÌå´óĞ¡Öµ£¬¸¡µãÊı£¬Î´×öDPI×ÔÊÊÓ¦Öµ
-	* @param [in] fontSizeName ±ÈÈç£º"ÎåºÅ"
+	/** è·å–å­—ä½“å¤§å°æ˜¾ç¤ºåç§°å¯¹åº”çš„å­—ä½“å¤§å°å€¼ï¼Œæµ®ç‚¹æ•°ï¼ŒæœªåšDPIè‡ªé€‚åº”å€¼
+	* @param [in] fontSizeName æ¯”å¦‚ï¼š"äº”å·"
 	*/
 	std::wstring GetFontSize(const std::wstring& fontSizeName) const;
 
-	/** »ñÈ¡×ÖÌå´óĞ¡ÏÔÊ¾Ãû³Æ¶ÔÓ¦µÄ×ÖÌå´óĞ¡Öµ£¬¸¡µãÊı£¬ÒÑ×öDPI×ÔÊÊÓ¦Öµ
-	* @param [in] fontSizeName ±ÈÈç£º"ÎåºÅ"
+	/** è·å–å­—ä½“å¤§å°æ˜¾ç¤ºåç§°å¯¹åº”çš„å­—ä½“å¤§å°å€¼ï¼Œæµ®ç‚¹æ•°ï¼Œå·²åšDPIè‡ªé€‚åº”å€¼
+	* @param [in] fontSizeName æ¯”å¦‚ï¼š"äº”å·"
 	*/
 	std::wstring GetDpiFontSize(const std::wstring& fontSizeName) const;
 
 protected:
 
-	/** ³õÊ¼»¯º¯Êı
+	/** åˆå§‹åŒ–å‡½æ•°
 	 */
 	virtual void OnInit() override;
 
 private:
 	struct FontSizeInfo
 	{
-		std::wstring fontSizeName; //×ÖÌå´óĞ¡µÄÏÔÊ¾Ãû³Æ£¬±ÈÈç"ÎåºÅ"
-		float fFontSize;		   //µ¥Î»£ºÏñËØ£¬Î´×öDPI×ÔÊÊÓ¦
-		float fDpiFontSize;		   //µ¥Î»£ºÏñËØ£¬ÒÑ×öDPI×ÔÊÊÓ¦
+		std::wstring fontSizeName; //å­—ä½“å¤§å°çš„æ˜¾ç¤ºåç§°ï¼Œæ¯”å¦‚"äº”å·"
+		float fFontSize;		   //å•ä½ï¼šåƒç´ ï¼ŒæœªåšDPIè‡ªé€‚åº”
+		float fDpiFontSize;		   //å•ä½ï¼šåƒç´ ï¼Œå·²åšDPIè‡ªé€‚åº”
 	};
 
-	/** »ñÈ¡ÏµÍ³×ÖÌå´óĞ¡ÁĞ±í
+	/** è·å–ç³»ç»Ÿå­—ä½“å¤§å°åˆ—è¡¨
 	*/
 	void GetSystemFontSizeList(std::vector<FontSizeInfo>& fontSizeList) const;
 
 private:
-	/** ×ÖÌå´óĞ¡
+	/** å­—ä½“å¤§å°
 	*/
 	std::vector<FontSizeInfo> m_fontSizeList;
 };
 
-/** ÉèÖÃÑÕÉ«µÄÊôĞÔ
+/** è®¾ç½®é¢œè‰²çš„å±æ€§
 */
 class PropertyGridColorProperty : public PropertyGridProperty
 {
 public:
-	/** ¹¹ÔìÒ»¸öÊôĞÔ
-	* @param [in] propertyName ÊôĞÔµÄÃû³Æ
-	* @param [in] propertyValue ÊôĞÔµÄÖµ(Ô­×ÖÌåÃû³Æ)
-	* @param [in] description ÊôĞÔµÄÃèÊöĞÅÏ¢
-	* @param [in] nPropertyData ÓÃ»§×Ô¶¨ÒåÊı¾İ
+	/** æ„é€ ä¸€ä¸ªå±æ€§
+	* @param [in] propertyName å±æ€§çš„åç§°
+	* @param [in] propertyValue å±æ€§çš„å€¼(åŸå­—ä½“åç§°)
+	* @param [in] description å±æ€§çš„æè¿°ä¿¡æ¯
+	* @param [in] nPropertyData ç”¨æˆ·è‡ªå®šä¹‰æ•°æ®
 	*/
 	PropertyGridColorProperty(Window* pWindow, 
 							  const std::wstring& propertyName,
@@ -1014,62 +1014,62 @@ public:
 
 
 public:
-	/** »ñÈ¡ÊôĞÔÀàĞÍ
+	/** è·å–å±æ€§ç±»å‹
 	*/
 	virtual PropertyGridPropertyType GetPropertyType() const
 	{
 		return PropertyGridPropertyType::kColor;
 	}
 
-	/** »ñÈ¡ÑÕÉ«Ñ¡Ôñ¿Ø¼ş½Ó¿Ú
+	/** è·å–é¢œè‰²é€‰æ‹©æ§ä»¶æ¥å£
 	*/
 	ComboButton* GetComboButton() const { return m_pComboButton; }
 
 protected:
-	/** ÉèÖÃÊÇ·ñÔÊĞí´æÔÚ±à¼­¿ò¿Ø¼ş
-	* @param [in] bEnable true±íÊ¾ÔÊĞí´æÔÚ±à¼­¿ò¿Ø¼ş£¬false±íÊ¾²»ÔÊĞí´æÔÚ±à¼­¿ò¿Ø¼ş
+	/** è®¾ç½®æ˜¯å¦å…è®¸å­˜åœ¨ç¼–è¾‘æ¡†æ§ä»¶
+	* @param [in] bEnable trueè¡¨ç¤ºå…è®¸å­˜åœ¨ç¼–è¾‘æ¡†æ§ä»¶ï¼Œfalseè¡¨ç¤ºä¸å…è®¸å­˜åœ¨ç¼–è¾‘æ¡†æ§ä»¶
 	*/
 	virtual void EnableEditControl(bool bEnable) override;
 
-	/** ÏÔÊ¾»òÕßÒş²Ø±à¼­¿ò¿Ø¼ş
-	* @param [in] bShow ±íÊ¾ÏÔÊ¾±à¼­¿Ø¼ş£¬false±íÊ¾Òş²Ø±à¼­¿Ø¼ş
+	/** æ˜¾ç¤ºæˆ–è€…éšè—ç¼–è¾‘æ¡†æ§ä»¶
+	* @param [in] bShow è¡¨ç¤ºæ˜¾ç¤ºç¼–è¾‘æ§ä»¶ï¼Œfalseè¡¨ç¤ºéšè—ç¼–è¾‘æ§ä»¶
 	*/
 	virtual Control* ShowEditControl(bool bShow) override;
 
-	/** ¹ö¶¯Ìõ·¢ÉúÁË¹ö¶¯(ÓÃÓÚ´¦Àíµ¯³öÊ½×Ó´°¿ÚµÄÎ»ÖÃÎÊÌâ)
+	/** æ»šåŠ¨æ¡å‘ç”Ÿäº†æ»šåŠ¨(ç”¨äºå¤„ç†å¼¹å‡ºå¼å­çª—å£çš„ä½ç½®é—®é¢˜)
 	*/
 	virtual void OnScrollPosChanged() override;
 
 private:
-	/** ³õÊ¼»¯ÉèÖÃÑÕÉ«µÄCombo°´Å¥
+	/** åˆå§‹åŒ–è®¾ç½®é¢œè‰²çš„ComboæŒ‰é’®
 	*/
 	void InitColorCombo();
 
-	/** ÏÔÊ¾Ê°É«Æ÷´°¿Ú
+	/** æ˜¾ç¤ºæ‹¾è‰²å™¨çª—å£
 	*/
 	void ShowColorPicker();
 
-	/** ÉèÖÃÑ¡ÔñÑÕÉ«
+	/** è®¾ç½®é€‰æ‹©é¢œè‰²
 	*/
 	void OnSelectColor(const std::wstring& color);
 
 private:
-	/** ÑÕÉ«Ñ¡Ôñ¿Ø¼ş
+	/** é¢œè‰²é€‰æ‹©æ§ä»¶
 	*/
 	ComboButton* m_pComboButton;
 };
 
-/** ÉèÖÃÈÕÆÚÊ±¼äµÄÊôĞÔ
+/** è®¾ç½®æ—¥æœŸæ—¶é—´çš„å±æ€§
 */
 class PropertyGridDateTimeProperty : public PropertyGridProperty
 {
 public:
-	/** ¹¹ÔìÒ»¸öÊôĞÔ
-	* @param [in] propertyName ÊôĞÔµÄÃû³Æ
-	* @param [in] dateTimeValue ÈÕÆÚÊ±¼äµÄÖµ
-	* @param [in] description ÊôĞÔµÄÃèÊöĞÅÏ¢
-	* @param [in] nPropertyData ÓÃ»§×Ô¶¨ÒåÊı¾İ
-	* @param [in] editFormat ÈÕÆÚÊ±¼äµÄ¸ñÊ½
+	/** æ„é€ ä¸€ä¸ªå±æ€§
+	* @param [in] propertyName å±æ€§çš„åç§°
+	* @param [in] dateTimeValue æ—¥æœŸæ—¶é—´çš„å€¼
+	* @param [in] description å±æ€§çš„æè¿°ä¿¡æ¯
+	* @param [in] nPropertyData ç”¨æˆ·è‡ªå®šä¹‰æ•°æ®
+	* @param [in] editFormat æ—¥æœŸæ—¶é—´çš„æ ¼å¼
 	*/
 	PropertyGridDateTimeProperty(Window* pWindow, 
 								 const std::wstring& propertyName,
@@ -1080,52 +1080,52 @@ public:
 
 
 public:
-	/** »ñÈ¡ÊôĞÔÀàĞÍ
+	/** è·å–å±æ€§ç±»å‹
 	*/
 	virtual PropertyGridPropertyType GetPropertyType() const
 	{
 		return PropertyGridPropertyType::kDateTime;
 	}
 
-	/** »ñÈ¡ÈÕÆÚÊ±¼ä¿Ø¼ş½Ó¿Ú
+	/** è·å–æ—¥æœŸæ—¶é—´æ§ä»¶æ¥å£
 	*/
 	DateTime* GetDateTime() const { return m_pDateTime; }
 
 protected:
-	/** ÉèÖÃÊÇ·ñÔÊĞí´æÔÚ±à¼­¿ò¿Ø¼ş
-	* @param [in] bEnable true±íÊ¾ÔÊĞí´æÔÚ±à¼­¿ò¿Ø¼ş£¬false±íÊ¾²»ÔÊĞí´æÔÚ±à¼­¿ò¿Ø¼ş
+	/** è®¾ç½®æ˜¯å¦å…è®¸å­˜åœ¨ç¼–è¾‘æ¡†æ§ä»¶
+	* @param [in] bEnable trueè¡¨ç¤ºå…è®¸å­˜åœ¨ç¼–è¾‘æ¡†æ§ä»¶ï¼Œfalseè¡¨ç¤ºä¸å…è®¸å­˜åœ¨ç¼–è¾‘æ¡†æ§ä»¶
 	*/
 	virtual void EnableEditControl(bool bEnable) override;
 
-	/** ÏÔÊ¾»òÕßÒş²Ø±à¼­¿ò¿Ø¼ş
-	* @param [in] bShow ±íÊ¾ÏÔÊ¾±à¼­¿Ø¼ş£¬false±íÊ¾Òş²Ø±à¼­¿Ø¼ş
+	/** æ˜¾ç¤ºæˆ–è€…éšè—ç¼–è¾‘æ¡†æ§ä»¶
+	* @param [in] bShow è¡¨ç¤ºæ˜¾ç¤ºç¼–è¾‘æ§ä»¶ï¼Œfalseè¡¨ç¤ºéšè—ç¼–è¾‘æ§ä»¶
 	*/
 	virtual Control* ShowEditControl(bool bShow) override;
 
-	/** ¹ö¶¯Ìõ·¢ÉúÁË¹ö¶¯(ÓÃÓÚ´¦Àíµ¯³öÊ½×Ó´°¿ÚµÄÎ»ÖÃÎÊÌâ)
+	/** æ»šåŠ¨æ¡å‘ç”Ÿäº†æ»šåŠ¨(ç”¨äºå¤„ç†å¼¹å‡ºå¼å­çª—å£çš„ä½ç½®é—®é¢˜)
 	*/
 	virtual void OnScrollPosChanged() override;
 
 private:
-	/** ÈÕÆÚÊ±¼ä¿Ø¼ş½Ó¿Ú
+	/** æ—¥æœŸæ—¶é—´æ§ä»¶æ¥å£
 	*/
 	DateTime* m_pDateTime;
 
-	/** ÈÕÆÚÊ±¼äµÄ¸ñÊ½
+	/** æ—¥æœŸæ—¶é—´çš„æ ¼å¼
 	*/
 	DateTime::EditFormat m_editFormat;
 };
 
-/** ÉèÖÃIPµØÖ·µÄÊôĞÔ
+/** è®¾ç½®IPåœ°å€çš„å±æ€§
 */
 class PropertyGridIPAddressProperty : public PropertyGridProperty
 {
 public:
-	/** ¹¹ÔìÒ»¸öÊôĞÔ
-	* @param [in] propertyName ÊôĞÔµÄÃû³Æ
-	* @param [in] propertyValue ÊôĞÔµÄÖµ
-	* @param [in] description ÊôĞÔµÄÃèÊöĞÅÏ¢
-	* @param [in] nPropertyData ÓÃ»§×Ô¶¨ÒåÊı¾İ
+	/** æ„é€ ä¸€ä¸ªå±æ€§
+	* @param [in] propertyName å±æ€§çš„åç§°
+	* @param [in] propertyValue å±æ€§çš„å€¼
+	* @param [in] description å±æ€§çš„æè¿°ä¿¡æ¯
+	* @param [in] nPropertyData ç”¨æˆ·è‡ªå®šä¹‰æ•°æ®
 	*/
 	PropertyGridIPAddressProperty(Window* pWindow, 
 								  const std::wstring& propertyName,
@@ -1135,44 +1135,44 @@ public:
 
 
 public:
-	/** »ñÈ¡ÊôĞÔÀàĞÍ
+	/** è·å–å±æ€§ç±»å‹
 	*/
 	virtual PropertyGridPropertyType GetPropertyType() const
 	{
 		return PropertyGridPropertyType::kIPAddress;
 	}
 
-	/** »ñÈ¡IPµØÖ·¿Ø¼ş½Ó¿Ú
+	/** è·å–IPåœ°å€æ§ä»¶æ¥å£
 	*/
 	IPAddress* GetIPAddress() const { return m_pIPAddress; }
 
 protected:
-	/** ÉèÖÃÊÇ·ñÔÊĞí´æÔÚ±à¼­¿ò¿Ø¼ş
-	* @param [in] bEnable true±íÊ¾ÔÊĞí´æÔÚ±à¼­¿ò¿Ø¼ş£¬false±íÊ¾²»ÔÊĞí´æÔÚ±à¼­¿ò¿Ø¼ş
+	/** è®¾ç½®æ˜¯å¦å…è®¸å­˜åœ¨ç¼–è¾‘æ¡†æ§ä»¶
+	* @param [in] bEnable trueè¡¨ç¤ºå…è®¸å­˜åœ¨ç¼–è¾‘æ¡†æ§ä»¶ï¼Œfalseè¡¨ç¤ºä¸å…è®¸å­˜åœ¨ç¼–è¾‘æ¡†æ§ä»¶
 	*/
 	virtual void EnableEditControl(bool bEnable) override;
 
-	/** ÏÔÊ¾»òÕßÒş²Ø±à¼­¿ò¿Ø¼ş
-	* @param [in] bShow ±íÊ¾ÏÔÊ¾±à¼­¿Ø¼ş£¬false±íÊ¾Òş²Ø±à¼­¿Ø¼ş
+	/** æ˜¾ç¤ºæˆ–è€…éšè—ç¼–è¾‘æ¡†æ§ä»¶
+	* @param [in] bShow è¡¨ç¤ºæ˜¾ç¤ºç¼–è¾‘æ§ä»¶ï¼Œfalseè¡¨ç¤ºéšè—ç¼–è¾‘æ§ä»¶
 	*/
 	virtual Control* ShowEditControl(bool bShow) override;
 
 private:
-	/** IPµØÖ·¿Ø¼ş
+	/** IPåœ°å€æ§ä»¶
 	*/
 	IPAddress* m_pIPAddress;
 };
 
-/** ÉèÖÃÈÈ¼üµÄÊôĞÔ
+/** è®¾ç½®çƒ­é”®çš„å±æ€§
 */
 class PropertyGridHotKeyProperty : public PropertyGridProperty
 {
 public:
-	/** ¹¹ÔìÒ»¸öÊôĞÔ
-	@param [in] propertyName ÊôĞÔµÄÃû³Æ
-	@param [in] propertyValue ÊôĞÔµÄÖµ
-	@param [in] description ÊôĞÔµÄÃèÊöĞÅÏ¢
-	@param [in] nPropertyData ÓÃ»§×Ô¶¨ÒåÊı¾İ
+	/** æ„é€ ä¸€ä¸ªå±æ€§
+	@param [in] propertyName å±æ€§çš„åç§°
+	@param [in] propertyValue å±æ€§çš„å€¼
+	@param [in] description å±æ€§çš„æè¿°ä¿¡æ¯
+	@param [in] nPropertyData ç”¨æˆ·è‡ªå®šä¹‰æ•°æ®
 	*/
 	PropertyGridHotKeyProperty(Window* pWindow, 
 							   const std::wstring& propertyName,
@@ -1182,48 +1182,48 @@ public:
 
 
 public:
-	/** »ñÈ¡ÊôĞÔÀàĞÍ
+	/** è·å–å±æ€§ç±»å‹
 	*/
 	virtual PropertyGridPropertyType GetPropertyType() const
 	{
 		return PropertyGridPropertyType::kHotKey;
 	}
 
-	/** »ñÈ¡ÈÈ¼ü¿Ø¼ş½Ó¿Ú
+	/** è·å–çƒ­é”®æ§ä»¶æ¥å£
 	*/
 	HotKey* GetHotKey() const { return m_pHotKey; }
 
 protected:
-	/** ÉèÖÃÊÇ·ñÔÊĞí´æÔÚ±à¼­¿ò¿Ø¼ş
-	* @param [in] bEnable true±íÊ¾ÔÊĞí´æÔÚ±à¼­¿ò¿Ø¼ş£¬false±íÊ¾²»ÔÊĞí´æÔÚ±à¼­¿ò¿Ø¼ş
+	/** è®¾ç½®æ˜¯å¦å…è®¸å­˜åœ¨ç¼–è¾‘æ¡†æ§ä»¶
+	* @param [in] bEnable trueè¡¨ç¤ºå…è®¸å­˜åœ¨ç¼–è¾‘æ¡†æ§ä»¶ï¼Œfalseè¡¨ç¤ºä¸å…è®¸å­˜åœ¨ç¼–è¾‘æ¡†æ§ä»¶
 	*/
 	virtual void EnableEditControl(bool bEnable) override;
 
-	/** ÏÔÊ¾»òÕßÒş²Ø±à¼­¿ò¿Ø¼ş
-	* @param [in] bShow ±íÊ¾ÏÔÊ¾±à¼­¿Ø¼ş£¬false±íÊ¾Òş²Ø±à¼­¿Ø¼ş
+	/** æ˜¾ç¤ºæˆ–è€…éšè—ç¼–è¾‘æ¡†æ§ä»¶
+	* @param [in] bShow è¡¨ç¤ºæ˜¾ç¤ºç¼–è¾‘æ§ä»¶ï¼Œfalseè¡¨ç¤ºéšè—ç¼–è¾‘æ§ä»¶
 	*/
 	virtual Control* ShowEditControl(bool bShow) override;
 
 private:
-	/** ÈÈ¼ü¿Ø¼ş
+	/** çƒ­é”®æ§ä»¶
 	*/
 	HotKey* m_pHotKey;
 };
 
-/** ÉèÖÃÎÄ¼şÂ·¾¶ÊôĞÔ
+/** è®¾ç½®æ–‡ä»¶è·¯å¾„å±æ€§
 */
 class PropertyGridFileProperty : public PropertyGridTextProperty
 {
 public:
-	/** ¹¹ÔìÒ»¸öÊôĞÔ
-	* @param [in] propertyName ÊôĞÔµÄÃû³Æ
-	* @param [in] propertyValue ÊôĞÔµÄÖµ(ÎÄ¼şµÄÂ·¾¶)
-	* @param [in] description ÊôĞÔµÄÃèÊöĞÅÏ¢
-	* @param [in] nPropertyData ÓÃ»§×Ô¶¨ÒåÊı¾İ
-	* @param [in] bOpenFileDialog true±íÊ¾´ò¿ªÎÄ¼ş£¬false±íÊ¾±£´æÎÄ¼ş
-	* @param [in] fileTypes ¶Ô»°¿ò¿ÉÒÔ´ò¿ª»ò±£´æµÄÎÄ¼şÀàĞÍ
-	* @param [in] nFileTypeIndex Ñ¡ÔñµÄÎÄ¼şÀàĞÍ£¬ÓĞĞ§·¶Î§£º[0, fileTypes.size())
-	* @param [in] defaultExt Ä¬ÈÏµÄÎÄ¼şÀàĞÍ, ¾ÙÀı£º"doc;docx"
+	/** æ„é€ ä¸€ä¸ªå±æ€§
+	* @param [in] propertyName å±æ€§çš„åç§°
+	* @param [in] propertyValue å±æ€§çš„å€¼(æ–‡ä»¶çš„è·¯å¾„)
+	* @param [in] description å±æ€§çš„æè¿°ä¿¡æ¯
+	* @param [in] nPropertyData ç”¨æˆ·è‡ªå®šä¹‰æ•°æ®
+	* @param [in] bOpenFileDialog trueè¡¨ç¤ºæ‰“å¼€æ–‡ä»¶ï¼Œfalseè¡¨ç¤ºä¿å­˜æ–‡ä»¶
+	* @param [in] fileTypes å¯¹è¯æ¡†å¯ä»¥æ‰“å¼€æˆ–ä¿å­˜çš„æ–‡ä»¶ç±»å‹
+	* @param [in] nFileTypeIndex é€‰æ‹©çš„æ–‡ä»¶ç±»å‹ï¼Œæœ‰æ•ˆèŒƒå›´ï¼š[0, fileTypes.size())
+	* @param [in] defaultExt é»˜è®¤çš„æ–‡ä»¶ç±»å‹, ä¸¾ä¾‹ï¼š"doc;docx"
 	*/
 	PropertyGridFileProperty(Window* pWindow, 
 							 const std::wstring& propertyName,
@@ -1237,54 +1237,54 @@ public:
 
 
 protected:
-	/** »ñÈ¡ÊôĞÔÀàĞÍ
+	/** è·å–å±æ€§ç±»å‹
 	*/
 	virtual PropertyGridPropertyType GetPropertyType() const
 	{
 		return PropertyGridPropertyType::kFile;
 	}
 
-	/** ÉèÖÃÊÇ·ñÔÊĞí´æÔÚ±à¼­¿ò¿Ø¼ş
-	* @param [in] bEnable true±íÊ¾ÔÊĞí´æÔÚ±à¼­¿ò¿Ø¼ş£¬false±íÊ¾²»ÔÊĞí´æÔÚ±à¼­¿ò¿Ø¼ş
+	/** è®¾ç½®æ˜¯å¦å…è®¸å­˜åœ¨ç¼–è¾‘æ¡†æ§ä»¶
+	* @param [in] bEnable trueè¡¨ç¤ºå…è®¸å­˜åœ¨ç¼–è¾‘æ¡†æ§ä»¶ï¼Œfalseè¡¨ç¤ºä¸å…è®¸å­˜åœ¨ç¼–è¾‘æ¡†æ§ä»¶
 	*/
 	virtual void EnableEditControl(bool bEnable) override;
 
-	/** µã»÷ÁËä¯ÀÀ°´Å¥
+	/** ç‚¹å‡»äº†æµè§ˆæŒ‰é’®
 	*/
 	virtual void OnBrowseButtonClicked();
 
 private:
-	/** ä¯ÀÀ°´Å¥
+	/** æµè§ˆæŒ‰é’®
 	*/
 	Button* m_pBrowseBtn;
 
-	/** true±íÊ¾´ò¿ªÎÄ¼ş£¬false±íÊ¾±£´æÎÄ¼ş
+	/** trueè¡¨ç¤ºæ‰“å¼€æ–‡ä»¶ï¼Œfalseè¡¨ç¤ºä¿å­˜æ–‡ä»¶
 	*/
 	bool m_bOpenFileDialog;
 
-	/** ÎÄ¼şÀàĞÍ¹ıÂËÆ÷
+	/** æ–‡ä»¶ç±»å‹è¿‡æ»¤å™¨
 	*/
 	std::vector<FileDialog::FileType> m_fileTypes;
 
-	/** Ñ¡ÔñµÄÎÄ¼şÀàĞÍÏÂ±êÖµ
+	/** é€‰æ‹©çš„æ–‡ä»¶ç±»å‹ä¸‹æ ‡å€¼
 	*/
 	int32_t m_nFileTypeIndex;
 
-	/** Ä¬ÈÏµÄÎÄ¼şÀàĞÍ
+	/** é»˜è®¤çš„æ–‡ä»¶ç±»å‹
 	*/
 	std::wstring m_defaultExt;
 };
 
-/** ÉèÖÃÎÄ¼ş¼ĞÊôĞÔ
+/** è®¾ç½®æ–‡ä»¶å¤¹å±æ€§
 */
 class PropertyGridDirectoryProperty : public PropertyGridTextProperty
 {
 public:
-	/** ¹¹ÔìÒ»¸öÊôĞÔ
-	* @param [in] propertyName ÊôĞÔµÄÃû³Æ
-	* @param [in] propertyValue ÊôĞÔµÄÖµ(ÎÄ¼ş¼ĞÂ·¾¶)
-	* @param [in] description ÊôĞÔµÄÃèÊöĞÅÏ¢
-	* @param [in] nPropertyData ÓÃ»§×Ô¶¨ÒåÊı¾İ
+	/** æ„é€ ä¸€ä¸ªå±æ€§
+	* @param [in] propertyName å±æ€§çš„åç§°
+	* @param [in] propertyValue å±æ€§çš„å€¼(æ–‡ä»¶å¤¹è·¯å¾„)
+	* @param [in] description å±æ€§çš„æè¿°ä¿¡æ¯
+	* @param [in] nPropertyData ç”¨æˆ·è‡ªå®šä¹‰æ•°æ®
 	*/
 	PropertyGridDirectoryProperty(Window* pWindow, 
 								  const std::wstring& propertyName,
@@ -1294,24 +1294,24 @@ public:
 
 
 protected:
-	/** »ñÈ¡ÊôĞÔÀàĞÍ
+	/** è·å–å±æ€§ç±»å‹
 	*/
 	virtual PropertyGridPropertyType GetPropertyType() const
 	{
 		return PropertyGridPropertyType::kDirectory;
 	}
 
-	/** ÉèÖÃÊÇ·ñÔÊĞí´æÔÚ±à¼­¿ò¿Ø¼ş
-	* @param [in] bEnable true±íÊ¾ÔÊĞí´æÔÚ±à¼­¿ò¿Ø¼ş£¬false±íÊ¾²»ÔÊĞí´æÔÚ±à¼­¿ò¿Ø¼ş
+	/** è®¾ç½®æ˜¯å¦å…è®¸å­˜åœ¨ç¼–è¾‘æ¡†æ§ä»¶
+	* @param [in] bEnable trueè¡¨ç¤ºå…è®¸å­˜åœ¨ç¼–è¾‘æ¡†æ§ä»¶ï¼Œfalseè¡¨ç¤ºä¸å…è®¸å­˜åœ¨ç¼–è¾‘æ¡†æ§ä»¶
 	*/
 	virtual void EnableEditControl(bool bEnable) override;
 
-	/** µã»÷ÁËä¯ÀÀ°´Å¥
+	/** ç‚¹å‡»äº†æµè§ˆæŒ‰é’®
 	*/
 	virtual void OnBrowseButtonClicked();
 
 private:
-	/** ä¯ÀÀ°´Å¥
+	/** æµè§ˆæŒ‰é’®
 	*/
 	Button* m_pBrowseBtn;
 };

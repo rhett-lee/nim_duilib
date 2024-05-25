@@ -28,7 +28,7 @@ void FileInfoItem::InitSubControls(const FileInfo& fileInfo, size_t nElementInde
     }
     if (m_pIconControl != nullptr) {
         if (!fileInfo.m_isFolder && IsImageFile(fileInfo.m_fileName)) {
-            //Í¼Æ¬ÎÄ¼ş£¬Ö±½ÓÏÔÊ¾Í¼Æ¬£¨ÆÁ±ÎÁË£¬ÔËĞĞËÙ¶ÈÌ«Âı£¬´ıÓÅ»¯£©
+            //å›¾ç‰‡æ–‡ä»¶ï¼Œç›´æ¥æ˜¾ç¤ºå›¾ç‰‡ï¼ˆå±è”½äº†ï¼Œè¿è¡Œé€Ÿåº¦å¤ªæ…¢ï¼Œå¾…ä¼˜åŒ–ï¼‰
             int32_t itemWidth = 64;// this->GetWidth();
             std::wstring imageString = fileInfo.m_filePath;
             if (itemWidth > 0) {
@@ -40,7 +40,7 @@ void FileInfoItem::InitSubControls(const FileInfo& fileInfo, size_t nElementInde
             m_pIconControl->SetBkImage(imageString);
         }
         else {
-            //·ÇÍ¼Æ¬ÎÄ¼ş»òÕßÎÄ¼ş¼Ğ£¬ÏÔÊ¾Í¼±ê
+            //éå›¾ç‰‡æ–‡ä»¶æˆ–è€…æ–‡ä»¶å¤¹ï¼Œæ˜¾ç¤ºå›¾æ ‡
             std::wstring iconString = ui::GlobalManager::Instance().Icon().GetIconString(fileInfo.m_hIcon);
             if (!iconString.empty()) {
                 iconString = ui::StringHelper::Printf(L"file='%s' halign='center' valign='center'", iconString.c_str());

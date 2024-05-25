@@ -8,7 +8,7 @@
 namespace ui
 {
 
-/** ¶ÔÎ»Í¼Êı¾İµÄAlphaÖµ½øĞĞ±£´æºÍ»Ö¸´
+/** å¯¹ä½å›¾æ•°æ®çš„Alphaå€¼è¿›è¡Œä¿å­˜å’Œæ¢å¤
 */
 class BitmapAlpha
 {
@@ -22,19 +22,19 @@ public:
 	void RestoreAlpha(const UiRect& rcDirty, const UiPadding& rcShadowPadding) const;
 
 private:
-	/** Í¼ÏñÊı¾İ
+	/** å›¾åƒæ•°æ®
 	*/
 	uint8_t* m_pPiexl;
 
-	/** Í¼Ïñ¿í¶È
+	/** å›¾åƒå®½åº¦
 	*/
 	int32_t m_nWidth;
 
-	/** Í¼Ïñ¸ß¶È
+	/** å›¾åƒé«˜åº¦
 	*/
 	int32_t m_nHeight;
 
-	/** Í¨µÀÊı£¬Ä¿Ç°Ö»Ö§³Ö4£¨ARGB£©
+	/** é€šé“æ•°ï¼Œç›®å‰åªæ”¯æŒ4ï¼ˆARGBï¼‰
 	*/
 	int32_t m_nChannels;
 };

@@ -49,7 +49,7 @@ void StateColorMap::SetStateColor(ControlStateType stateType, const std::wstring
 		m_stateColorMap[stateType] = color;
 	}
 	else {
-		//È·±£ÑÕÉ«Öµ²»ÊÇ¿Õ×Ö·û´®
+		//ç¡®ä¿é¢œè‰²å€¼ä¸æ˜¯ç©ºå­—ç¬¦ä¸²
 		auto iter = m_stateColorMap.find(stateType);
 		if (iter != m_stateColorMap.end()) {
 			m_stateColorMap.erase(iter);

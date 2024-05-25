@@ -7,7 +7,7 @@ namespace ui
 bool FileDialog::BrowseForFolder(Window* pWindow, std::wstring& folderPath)
 {
     folderPath.clear();
-    IFileDialog* pfd = nullptr;//½öWin7ÒÔ¼°ÉÏÖ§³Ö
+    IFileDialog* pfd = nullptr;//ä»…Win7ä»¥åŠä¸Šæ”¯æŒ
     HRESULT hr = ::CoCreateInstance(CLSID_FileOpenDialog, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pfd));
     if (SUCCEEDED(hr)) {
         FILEOPENDIALOGOPTIONS fos = 0;
@@ -37,7 +37,7 @@ bool FileDialog::BrowseForFolder(Window* pWindow, std::wstring& folderPath)
 bool FileDialog::BrowseForFolders(Window* pWindow, std::vector<std::wstring>& folderPaths)
 {
     folderPaths.clear();
-    IFileOpenDialog* pfd = nullptr;//½öWin7ÒÔ¼°ÉÏÖ§³Ö
+    IFileOpenDialog* pfd = nullptr;//ä»…Win7ä»¥åŠä¸Šæ”¯æŒ
     HRESULT hr = ::CoCreateInstance(CLSID_FileOpenDialog, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pfd));
     if (SUCCEEDED(hr)) {
         FILEOPENDIALOGOPTIONS fos = 0;
@@ -87,7 +87,7 @@ bool FileDialog::BrowseForFile(Window* pWindow,
                                const std::wstring& defaultExt)
 {
     filePath.clear();
-    IFileDialog* pfd = nullptr;//½öWin7ÒÔ¼°ÉÏÖ§³Ö
+    IFileDialog* pfd = nullptr;//ä»…Win7ä»¥åŠä¸Šæ”¯æŒ
     HRESULT hr = S_OK;
     if (bOpenFileDialog) {
         hr = ::CoCreateInstance(CLSID_FileOpenDialog, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pfd));
@@ -108,7 +108,7 @@ bool FileDialog::BrowseForFile(Window* pWindow,
             hr = pfd->SetFileTypes((UINT)filterSpecs.size(), filterSpecs.data());
         }
         if ((nFileTypeIndex >= 0) && (nFileTypeIndex < (int32_t)fileTypes.size())) {
-            hr = pfd->SetFileTypeIndex((UINT)nFileTypeIndex + 1); //SetFileTypeIndexµÄÏÂ±êÊÇ´Ó1¿ªÊ¼µÄ
+            hr = pfd->SetFileTypeIndex((UINT)nFileTypeIndex + 1); //SetFileTypeIndexçš„ä¸‹æ ‡æ˜¯ä»1å¼€å§‹çš„
             ASSERT(SUCCEEDED(hr));
         }
         if (!defaultExt.empty()) {
@@ -142,7 +142,7 @@ bool FileDialog::BrowseForFiles(Window* pWindow,
                                 const std::wstring& defaultExt)
 {
     filePaths.clear();
-    IFileOpenDialog* pfd = nullptr;//½öWin7ÒÔ¼°ÉÏÖ§³Ö
+    IFileOpenDialog* pfd = nullptr;//ä»…Win7ä»¥åŠä¸Šæ”¯æŒ
     HRESULT hr = ::CoCreateInstance(CLSID_FileOpenDialog, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pfd));
     if (SUCCEEDED(hr)) {
         FILEOPENDIALOGOPTIONS fos = 0;
@@ -157,7 +157,7 @@ bool FileDialog::BrowseForFiles(Window* pWindow,
             hr = pfd->SetFileTypes((UINT)filterSpecs.size(), filterSpecs.data());
         }
         if ((nFileTypeIndex >= 0) && (nFileTypeIndex < (int32_t)fileTypes.size())) {
-            hr = pfd->SetFileTypeIndex((UINT)nFileTypeIndex + 1); //SetFileTypeIndexµÄÏÂ±êÊÇ´Ó1¿ªÊ¼µÄ
+            hr = pfd->SetFileTypeIndex((UINT)nFileTypeIndex + 1); //SetFileTypeIndexçš„ä¸‹æ ‡æ˜¯ä»1å¼€å§‹çš„
             ASSERT(SUCCEEDED(hr));
         }
         if (!defaultExt.empty()) {

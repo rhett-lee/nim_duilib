@@ -114,7 +114,7 @@ bool Render_GdiPlus::Resize(int width, int height)
 
 void Render_GdiPlus::Clear()
 {
-	//½«Î»Í¼Êı¾İÇåÁã
+	//å°†ä½å›¾æ•°æ®æ¸…é›¶
 	if ((m_pPiexl != nullptr) && (m_nWidth > 0) && (m_nHeight > 0)) {
 		::memset(m_pPiexl, 0, m_nWidth * m_nHeight * 4);
 	}
@@ -516,7 +516,7 @@ void Render_GdiPlus::DrawImage(const UiRect& rcPaint,
 					lDestRight = rcDrawDest.right;
 				}
 
-				//Ô´ÇøÓò£ºÈç¹ûÉèÖÃÁË±ß½Ç£¬Ôò½ö°üº¬ÖĞ¼äÇøÓò
+				//æºåŒºåŸŸï¼šå¦‚æœè®¾ç½®äº†è¾¹è§’ï¼Œåˆ™ä»…åŒ…å«ä¸­é—´åŒºåŸŸ
 				rcDrawSource.left = rcSource.left + rcSourceCorners.left;
 				rcDrawSource.top = rcSource.top + rcSourceCorners.top;
 				rcDrawSource.right = rcDrawSource.left + lDrawWidth;
@@ -715,8 +715,8 @@ void Render_GdiPlus::DrawImageRect(const UiRect& rcPaint,
 {
 	ASSERT((GetWidth() > 0) && (GetHeight() > 0));
 	if (pMatrix == nullptr) {
-		//½öÔÚÃ»ÓĞMatrixµÄÇé¿öÏÂÅĞ¶Ï²Ã¼ôÇøÓò£¬
-		//ÒòÎªÓĞMatrixÊ±£¬Êµ¼Ê»æÖÆÇøÓò²¢²»ÊÇrcDest£¬¶øÊÇ±ä»»¹ıºóµÄÎ»ÖÃ£¬ĞèÒªµ÷ÕûÅĞ¶Ï·½·¨
+		//ä»…åœ¨æ²¡æœ‰Matrixçš„æƒ…å†µä¸‹åˆ¤æ–­è£å‰ªåŒºåŸŸï¼Œ
+		//å› ä¸ºæœ‰Matrixæ—¶ï¼Œå®é™…ç»˜åˆ¶åŒºåŸŸå¹¶ä¸æ˜¯rcDestï¼Œè€Œæ˜¯å˜æ¢è¿‡åçš„ä½ç½®ï¼Œéœ€è¦è°ƒæ•´åˆ¤æ–­æ–¹æ³•
 		UiRect rcTestTemp;
 		if (!UiRect::Intersect(rcTestTemp, rcDest, rcPaint)) {
 			return;
@@ -756,7 +756,7 @@ void Render_GdiPlus::DrawImageRect(const UiRect& rcPaint,
 		                          PixelFormat32bppARGB,
 		                          (BYTE*)data);
 	if (uFade < 255) {
-		//ÉèÖÃÁËÍ¸Ã÷¶È
+		//è®¾ç½®äº†é€æ˜åº¦
 		float alpha = (float)uFade / 255;
 		Gdiplus::ColorMatrix cm = { 1,0,0,0,0,
 									0,1,0,0,0,
@@ -778,7 +778,7 @@ void Render_GdiPlus::FillRect(const UiRect& rc, UiColor dwColor, uint8_t uFade)
 	ASSERT((GetWidth() > 0) && (GetHeight() > 0));
 	UiColor::ARGB dwNewColor = dwColor.GetARGB();
 	if (uFade < 255) {
-		//ÔÚÔ­À´ÑÕÉ«ÖµµÄÍ¸Ã÷¶È»ù´¡ÉÏ£¬ÔÚ×öÒ»´ÎÍ¸Ã÷¶È¼ÆËã£¨uFadeÊÇÔÚÔ­À´»ù´¡ÉÏÔÚÉèÖÃÍ¸Ã÷¶È£©
+		//åœ¨åŸæ¥é¢œè‰²å€¼çš„é€æ˜åº¦åŸºç¡€ä¸Šï¼Œåœ¨åšä¸€æ¬¡é€æ˜åº¦è®¡ç®—ï¼ˆuFadeæ˜¯åœ¨åŸæ¥åŸºç¡€ä¸Šåœ¨è®¾ç½®é€æ˜åº¦ï¼‰
 		int alpha = dwColor.GetARGB() >> 24;
 		dwNewColor = dwColor.GetARGB() & 0xffffff;
 		alpha = static_cast<int>(static_cast<double>(alpha) * static_cast<double>(uFade) / 255.0);
@@ -862,7 +862,7 @@ void Render_GdiPlus::FillRoundRect(const UiRect& rc, const UiSize& roundSize, Ui
 
 	UiColor::ARGB dwNewColor = dwColor.GetARGB();
 	if (uFade < 255) {
-        //ÔÚÔ­À´ÑÕÉ«ÖµµÄÍ¸Ã÷¶È»ù´¡ÉÏ£¬ÔÚ×öÒ»´ÎÍ¸Ã÷¶È¼ÆËã£¨uFadeÊÇÔÚÔ­À´»ù´¡ÉÏÔÚÉèÖÃÍ¸Ã÷¶È£©
+        //åœ¨åŸæ¥é¢œè‰²å€¼çš„é€æ˜åº¦åŸºç¡€ä¸Šï¼Œåœ¨åšä¸€æ¬¡é€æ˜åº¦è®¡ç®—ï¼ˆuFadeæ˜¯åœ¨åŸæ¥åŸºç¡€ä¸Šåœ¨è®¾ç½®é€æ˜åº¦ï¼‰
 		int alpha = dwColor.GetARGB() >> 24;
 		dwNewColor = dwColor.GetARGB() & 0xffffff;
 		alpha = static_cast<int>(static_cast<double>(alpha) * static_cast<double>(uFade) / 255.0);
@@ -1067,7 +1067,7 @@ UiRect Render_GdiPlus::MeasureString(const std::wstring& strText, IFont* pFont,
 		Gdiplus::REAL height = 0;
 		if ((uFormat & TEXT_SINGLELINE) != 0) {
 			Gdiplus::RectF rcEmpty((Gdiplus::REAL)0, (Gdiplus::REAL)0, (Gdiplus::REAL)0, (Gdiplus::REAL)0);
-			graphics.MeasureString(L"²âÊÔ", 2, &font, rcEmpty, &stringFormat, &bounds);
+			graphics.MeasureString(L"æµ‹è¯•", 2, &font, rcEmpty, &stringFormat, &bounds);
 			height = bounds.Height;
 		}
 		Gdiplus::RectF rcText((Gdiplus::REAL)0, (Gdiplus::REAL)0, (Gdiplus::REAL)width, height);

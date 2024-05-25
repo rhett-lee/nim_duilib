@@ -12,75 +12,75 @@ public:
     RichEditFindReplace();
 
 public:
-	//ÉèÖÃ¹ØÁªµÄRichEdit¿Ø¼ş
+	//è®¾ç½®å…³è”çš„RichEditæ§ä»¶
 	void SetRichEdit(ui::RichEdit* pRichEdit);
 
 public:
-	//²éÕÒ
+	//æŸ¥æ‰¾
 	bool FindRichText(const std::wstring& findText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord, HWND hWndDialog);
 
-	//²éÕÒÏÂÒ»¸ö
+	//æŸ¥æ‰¾ä¸‹ä¸€ä¸ª
 	bool FindNext();
 
-	//Ìæ»»
+	//æ›¿æ¢
 	bool ReplaceRichText(const std::wstring& findText, const std::wstring& replaceText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord, HWND hWndDialog);
 	
-	//È«²¿Ìæ»»
+	//å…¨éƒ¨æ›¿æ¢
 	bool ReplaceAllRichText(const std::wstring& findText, const std::wstring& replaceText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord, HWND hWndDialog);
 
 protected:
-	//Ã»ÕÒµ½£¬»Øµ÷º¯Êı
+	//æ²¡æ‰¾åˆ°ï¼Œå›è°ƒå‡½æ•°
 	virtual void OnTextNotFound(const std::wstring& findText);
 
-	//¿ªÊ¼È«²¿Ìæ»»
+	//å¼€å§‹å…¨éƒ¨æ›¿æ¢
 	virtual void OnReplaceAllCoreBegin();
 
-	//Íê³ÉÈ«²¿Ìæ»»
+	//å®Œæˆå…¨éƒ¨æ›¿æ¢
 	virtual void OnReplaceAllCoreEnd(int replaceCount);
 
 private:
-	//²éÕÒº¯ÊıÊµÏÖ
+	//æŸ¥æ‰¾å‡½æ•°å®ç°
 	bool FindTextSimple(const std::wstring& findText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord);
 
-	//²éÕÒ²¢Ñ¡Ôñ
+	//æŸ¥æ‰¾å¹¶é€‰æ‹©
 	long FindAndSelect(DWORD dwFlags, FINDTEXTEX& ft);
 
-	//±È½Ïµ±Ç°Ñ¡ÔñÓëÎÄ±¾ÊÇ·ñÆ¥Åä
+	//æ¯”è¾ƒå½“å‰é€‰æ‹©ä¸æ–‡æœ¬æ˜¯å¦åŒ¹é…
 	bool SameAsSelected(const std::wstring& replaceText, BOOL bMatchCase);
 
-	//Ã»ÕÒµ½£¬»Øµ÷º¯Êı
+	//æ²¡æ‰¾åˆ°ï¼Œå›è°ƒå‡½æ•°
 	void TextNotFound(const std::wstring& findText);
 
-	//µ÷Õû²éÕÒÌæ»»´°¿ÚµÄÎ»ÖÃ
+	//è°ƒæ•´æŸ¥æ‰¾æ›¿æ¢çª—å£çš„ä½ç½®
 	void AdjustDialogPosition(HWND hWndDialog);
 
 private:
-    //RichEdit¿Ø¼ş½Ó¿Ú
+    //RichEditæ§ä»¶æ¥å£
     ui::RichEdit* m_pRichEdit;
 
-	//²éÕÒÎÄ×Ö
+	//æŸ¥æ‰¾æ–‡å­—
 	std::wstring m_sFindNext;
 
-	//Ìæ»»ÎÄ×Ö
+	//æ›¿æ¢æ–‡å­—
 	std::wstring m_sReplaceWith;
 
-	//ËÑË÷·½ÏòÑ¡Ïî
+	//æœç´¢æ–¹å‘é€‰é¡¹
 	bool m_bFindDown;
 
-	//ÊÇ·ñÇø·Ö´óĞ¡Ğ´
+	//æ˜¯å¦åŒºåˆ†å¤§å°å†™
 	bool m_bMatchCase;
 
-	//ÊÇ·ñÈ«×ÖÆ¥Åä
+	//æ˜¯å¦å…¨å­—åŒ¹é…
 	bool m_bMatchWholeWord;
 
 private:
-	//²éÕÒ×´Ì¬: ÊÇ·ñÎªµÚÒ»´ÎËÑË÷
+	//æŸ¥æ‰¾çŠ¶æ€: æ˜¯å¦ä¸ºç¬¬ä¸€æ¬¡æœç´¢
 	bool m_bFirstSearch;
 
-	//³õÊ¼ËÑË÷µÄÎ»ÖÃ
+	//åˆå§‹æœç´¢çš„ä½ç½®
 	long m_nInitialSearchPos;
 
-	//¾ÉµÄ¹â±ê
+	//æ—§çš„å…‰æ ‡
 	HCURSOR m_hOldCursor;
 };
 

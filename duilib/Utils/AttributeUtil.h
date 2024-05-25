@@ -12,41 +12,41 @@ class Window;
 class UILIB_API AttributeUtil
 {
 public:
-	/** ÅäÖÃ×Ö·û´®½âÎö£ºÌø¹ıÒ»¸ö·Ö¸ô·û
+	/** é…ç½®å­—ç¬¦ä¸²è§£æï¼šè·³è¿‡ä¸€ä¸ªåˆ†éš”ç¬¦
 	*/
 	static void SkipSepChar(wchar_t*& pPtr);
 
-	/** ´ÓÅäÖÃÖĞ½âÎöÒ»¸öSize½á¹¹£¬ÊäÈë¸ñÊ½Èç£º"800,500"
+	/** ä»é…ç½®ä¸­è§£æä¸€ä¸ªSizeç»“æ„ï¼Œè¾“å…¥æ ¼å¼å¦‚ï¼š"800,500"
 	*/
 	static void ParseSizeValue(const wchar_t* strValue, UiSize& size);
 
-	/** ´ÓÅäÖÃÖĞ½âÎöÒ»¸öPoint½á¹¹£¬ÊäÈë¸ñÊ½Èç£º"800,500"
+	/** ä»é…ç½®ä¸­è§£æä¸€ä¸ªPointç»“æ„ï¼Œè¾“å…¥æ ¼å¼å¦‚ï¼š"800,500"
 	*/
 	static void ParsePointValue(const wchar_t* strValue, UiPoint& size);
 
-	/** ´ÓÅäÖÃÖĞ½âÎöÒ»¸öRect½á¹¹£¬ÊäÈë¸ñÊ½Èç£º"80,50,60,70"
+	/** ä»é…ç½®ä¸­è§£æä¸€ä¸ªRectç»“æ„ï¼Œè¾“å…¥æ ¼å¼å¦‚ï¼š"80,50,60,70"
 	*/
 	static void ParseRectValue(const wchar_t* strValue, UiRect& rect);
 	static void ParsePaddingValue(const wchar_t* strValue, UiPadding& padding);
 	static void ParseMarginValue(const wchar_t* strValue, UiMargin& margin);
 
-	/** ½âÎöÊôĞÔÁĞ±í£¬¸ñÊ½Èç	: font="system_bold_14" normaltextcolor="white" bkcolor="red"
-	*                 »òÕß	: color='black' offset='1,1' blur_radius='2' spread_radius='2'
-	*   ·Ö¸ô·û¿ÉÒÔÊÇË«ÒıºÅ»òÕßµ¥ÒıºÅ£¬ÓÉ²ÎÊı´«Èë
-	* @param [in] seperateChar ×Ö·û´®·Ö¸ô·û£¬¿ÉÒÔÊÇ L'\"' »òÕß L'\''
+	/** è§£æå±æ€§åˆ—è¡¨ï¼Œæ ¼å¼å¦‚	: font="system_bold_14" normaltextcolor="white" bkcolor="red"
+	*                 æˆ–è€…	: color='black' offset='1,1' blur_radius='2' spread_radius='2'
+	*   åˆ†éš”ç¬¦å¯ä»¥æ˜¯åŒå¼•å·æˆ–è€…å•å¼•å·ï¼Œç”±å‚æ•°ä¼ å…¥
+	* @param [in] seperateChar å­—ç¬¦ä¸²åˆ†éš”ç¬¦ï¼Œå¯ä»¥æ˜¯ L'\"' æˆ–è€… L'\''
 	*/
 	static void ParseAttributeList(const std::wstring& strList,
 		                           wchar_t seperateChar,
 		                           std::vector<std::pair<std::wstring, std::wstring>>& attributeList);
 
-	/** ½âÎöÒ»¸ö×Ö·û´®£¨¸ñÊ½Îª£º"500,"»òÕß"50%,"£¬¶ººÅ¿ÉÓĞ¿ÉÎŞ£¬Ò²¿ÉÒÔÊÇÆäËû×Ö·û£©£¬µÃµ½ÕûĞÍÖµ»òÕß¸¡µãÊı
-    * @param [in] strValue ´ı½âÎöµÄ×Ö·û´®µØÖ·
-    * @param [out] pEndPtr ½âÎöÍê³Éºó£¬×Ö·û´®½áÊøµØÖ·£¬ÓÃÓÚ¼ÌĞø½âÎöºóÃæµÄÄÚÈİ
-    * @return ·µ»ØÕûĞÍÖµ»òÕß°Ù·Ö±È£¬·µ»ØÖµÖĞ£¬0 »òÕß 0.0f ±íÊ¾ÎŞĞ§Öµ
+	/** è§£æä¸€ä¸ªå­—ç¬¦ä¸²ï¼ˆæ ¼å¼ä¸ºï¼š"500,"æˆ–è€…"50%,"ï¼Œé€—å·å¯æœ‰å¯æ— ï¼Œä¹Ÿå¯ä»¥æ˜¯å…¶ä»–å­—ç¬¦ï¼‰ï¼Œå¾—åˆ°æ•´å‹å€¼æˆ–è€…æµ®ç‚¹æ•°
+    * @param [in] strValue å¾…è§£æçš„å­—ç¬¦ä¸²åœ°å€
+    * @param [out] pEndPtr è§£æå®Œæˆåï¼Œå­—ç¬¦ä¸²ç»“æŸåœ°å€ï¼Œç”¨äºç»§ç»­è§£æåé¢çš„å†…å®¹
+    * @return è¿”å›æ•´å‹å€¼æˆ–è€…ç™¾åˆ†æ¯”ï¼Œè¿”å›å€¼ä¸­ï¼Œ0 æˆ–è€… 0.0f è¡¨ç¤ºæ— æ•ˆå€¼
     */
 	static std::tuple<int32_t, float> ParseString(const wchar_t* strValue, wchar_t** pEndPtr);
 
-    /** »ñÈ¡ÅäÖÃÖĞµÄ´°¿Ú´óĞ¡
+    /** è·å–é…ç½®ä¸­çš„çª—å£å¤§å°
     */
 	static void ParseWindowSize(Window* pWindow, const wchar_t* strValue, UiSize& size);
 };

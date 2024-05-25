@@ -44,12 +44,12 @@ bool RichEditFindReplace::FindRichText(const std::wstring& findText, bool bFindD
 		m_nInitialSearchPos = 0;
 	}	
 	if (FindTextSimple(findText, bFindDown, bMatchCase, bMatchWholeWord)) {
-		//ÕÒµ½
+		//æ‰¾åˆ°
 		AdjustDialogPosition(hWndDialog);
 		return true;
 	}
 	else {
-		//Ã»ÕÒµ½
+		//æ²¡æ‰¾åˆ°
 		TextNotFound(findText);
 		return false;
 	}
@@ -61,11 +61,11 @@ bool RichEditFindReplace::FindNext()
 		return false;
 	}
 	if (FindTextSimple(m_sFindNext, m_bFindDown, m_bMatchCase, m_bMatchWholeWord)) {
-		//ÕÒµ½
+		//æ‰¾åˆ°
 		return true;
 	}
 	else {
-		//Ã»ÕÒµ½
+		//æ²¡æ‰¾åˆ°
 		TextNotFound(m_sFindNext);
 		return false;
 	}
@@ -244,7 +244,7 @@ long RichEditFindReplace::FindAndSelect(DWORD dwFlags, FINDTEXTEX& ft)
 	}
 	LONG index = m_pRichEdit->FindRichText(dwFlags, ft);
 	if (index != -1) {
-		//²éÕÒµ½ÁËÄÚÈÝ£¬Ñ¡ÔñËù²éµ½µÄÄÚÈÝ
+		//æŸ¥æ‰¾åˆ°äº†å†…å®¹ï¼Œé€‰æ‹©æ‰€æŸ¥åˆ°çš„å†…å®¹
 		m_pRichEdit->SetSel(ft.chrgText);
 	}
 	return index;

@@ -86,6 +86,8 @@ x64设置内容：`../../manifest/duilib.x64.manifest`
 <img src="./Images/vs06.png"/>
 Win32设置内容：`../../manifest/duilib.x86.manifest`
 <img src="./Images/vs07.png"/>
+源文件的编码格式，设置为UTF-8格式：
+<img src="./Images/vs08.png"/>
 
 ## 引入线程库
 
@@ -421,3 +423,24 @@ void MainThread::Init()
 这样一个简单的带有最小化、最大化、还原和关闭按钮、全屏按钮，具有阴影效果和一行文字提示的窗口就创建出来了，你可以编译运行以下代码看一看窗口效果。
 
 <img src="./Images/MyDuilibApp.png"/>
+    
+## 如何设置项目中使用的源代码文件编码为UTF-8格式
+1. 在项目根目录创建一个格式配置文件，文件名为：.editorconfig
+2. 文件内容如下：
+```
+# Visual Studio generated .editorconfig file with C++ settings.
+root = true
+
+[*.{c,c++,cc,cpp,cppm,cxx,h,h++,hh,hpp,hxx,inl,ipp,ixx,tlh,tli}]
+
+# Visual C++ Formatting settings
+
+end_of_line = crlf               # 行尾格式，可选值为 lf（Unix 风格）、cr（Mac 风格）或 crlf（Windows 风格）
+charset = utf-8                  # 文件编码字符集为 UTF-8（可选值为 utf-8、utf-8-bom、latin1 等）
+trim_trailing_whitespace = true  # 删除文件末尾空格
+insert_final_newline = true      # 末尾插入新行
+indent_style = space             # 以空格代替 tab
+indent_size = 4                  # 代替 tab 的空格数量
+tab_width = 4                    # 制表符的宽度
+```
+3. 该方法适用于Visual Studio 2022。

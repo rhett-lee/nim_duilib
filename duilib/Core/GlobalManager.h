@@ -20,12 +20,12 @@
 
 namespace ui 
 {
-/** äÖÈ¾ÒıÇæ¹¤³§½Ó¿Ú
+/** æ¸²æŸ“å¼•æ“å·¥å‚æ¥å£
 */
 class IRenderFactory;
 
-/** È«¾ÖÊôĞÔ¹ÜÀí¹¤¾ßÀà
-*   ÓÃÓÚ¹ÜÀíÒ»Ğ©È«¾ÖÊôĞÔµÄ¹¤¾ßÀà£¬°üº¬È«¾ÖÑùÊ½£¨global.xml£©ºÍÓïÑÔÉèÖÃµÈ
+/** å…¨å±€å±æ€§ç®¡ç†å·¥å…·ç±»
+*   ç”¨äºç®¡ç†ä¸€äº›å…¨å±€å±æ€§çš„å·¥å…·ç±»ï¼ŒåŒ…å«å…¨å±€æ ·å¼ï¼ˆglobal.xmlï¼‰å’Œè¯­è¨€è®¾ç½®ç­‰
 */
 class UILIB_API GlobalManager
 {
@@ -36,287 +36,287 @@ private:
 	GlobalManager& operator = (const GlobalManager&) = delete;
 
 public:
-	/** »ñÈ¡µ¥Àı¶ÔÏó
+	/** è·å–å•ä¾‹å¯¹è±¡
 	*/
 	static GlobalManager& Instance();
 
 public:
-	/** ³õÊ¼»¯È«¾ÖÉèÖÃº¯Êı
-	 * @param [in] resParam ×ÊÔ´Ïà¹ØµÄ²ÎÊı£¬¸ù¾İ×ÊÔ´ÀàĞÍ²»Í¬£¬ÓĞÒÔÏÂ¿ÉÑ¡Ïî
-	 *                      1. ±¾µØÎÄ¼şµÄĞÎÊ½£¬ËùÓĞ×ÊÔ´¶¼ÒÑ±¾µØÎÄ¼şµÄĞÎÊ½´æÔÚ
-	 *                         Ê¹ÓÃ LocalFilesResParam ÀàĞÍ×÷Îª²ÎÊı
-	 *                      2. ×ÊÔ´ÎÄ¼ş´ò°üÎªzipÑ¹Ëõ°ü£¬È»ºóÒÔ±¾µØÎÄ¼şµÄĞÎÊ½´æÔÚ
-	 *                         Ê¹ÓÃ ZipFileResParam ÀàĞÍ×÷Îª²ÎÊı
-	 *                      3. ×ÊÔ´ÎÄ¼ş´ò°üÎªzipÑ¹Ëõ°ü£¬È»ºó·ÅÔÚexe/dllµÄ×ÊÔ´ÎÄ¼şÖĞ
-	 *                         Ê¹ÓÃ ResZipFileResParam ÀàĞÍ×÷Îª²ÎÊı
-	 * @param [in] dpiInitParam DPI¸ĞÖªÄ£Ê½ºÍDPIÖµµÄÉèÖÃ²ÎÊı
-	 * @param [in] callback ´´½¨×Ô¶¨Òå¿Ø¼şÊ±µÄÈ«¾Ö»Øµ÷º¯Êı
+	/** åˆå§‹åŒ–å…¨å±€è®¾ç½®å‡½æ•°
+	 * @param [in] resParam èµ„æºç›¸å…³çš„å‚æ•°ï¼Œæ ¹æ®èµ„æºç±»å‹ä¸åŒï¼Œæœ‰ä»¥ä¸‹å¯é€‰é¡¹
+	 *                      1. æœ¬åœ°æ–‡ä»¶çš„å½¢å¼ï¼Œæ‰€æœ‰èµ„æºéƒ½å·²æœ¬åœ°æ–‡ä»¶çš„å½¢å¼å­˜åœ¨
+	 *                         ä½¿ç”¨ LocalFilesResParam ç±»å‹ä½œä¸ºå‚æ•°
+	 *                      2. èµ„æºæ–‡ä»¶æ‰“åŒ…ä¸ºzipå‹ç¼©åŒ…ï¼Œç„¶åä»¥æœ¬åœ°æ–‡ä»¶çš„å½¢å¼å­˜åœ¨
+	 *                         ä½¿ç”¨ ZipFileResParam ç±»å‹ä½œä¸ºå‚æ•°
+	 *                      3. èµ„æºæ–‡ä»¶æ‰“åŒ…ä¸ºzipå‹ç¼©åŒ…ï¼Œç„¶åæ”¾åœ¨exe/dllçš„èµ„æºæ–‡ä»¶ä¸­
+	 *                         ä½¿ç”¨ ResZipFileResParam ç±»å‹ä½œä¸ºå‚æ•°
+	 * @param [in] dpiInitParam DPIæ„ŸçŸ¥æ¨¡å¼å’ŒDPIå€¼çš„è®¾ç½®å‚æ•°
+	 * @param [in] callback åˆ›å»ºè‡ªå®šä¹‰æ§ä»¶æ—¶çš„å…¨å±€å›è°ƒå‡½æ•°
 	 */
 	bool Startup(const ResourceParam& resParam,
 				 DpiInitParam dpiInitParam = DpiInitParam(),
 				 const CreateControlCallback& callback = nullptr);
 
-	/** ÊÍ·ÅÈ«¾Ö×ÊÔ´
+	/** é‡Šæ”¾å…¨å±€èµ„æº
 	 */
 	void Shutdown();
 
 public:
-	/** ÉèÖÃÆ¤·ô×ÊÔ´ËùÔÚÂ·¾¶
-	 *   Èç¹û resType == kLocalFiles£¬ĞèÒªÉèÖÃ×ÊÔ´ËùÔÚµÄ±¾µØÂ·¾¶£¨¾ø¶ÔÂ·¾¶£©
-	 *   Èç¹û resType == kZipFile »òÕß resType == kResZip£¬ÉèÖÃ×ÊÔ´ËùÔÚµÄÆğÊ¼Ä¿Â¼£¨Ïà¶ÔÂ·¾¶£©£¬±ÈÈç£ºL"resources\\"
+	/** è®¾ç½®çš®è‚¤èµ„æºæ‰€åœ¨è·¯å¾„
+	 *   å¦‚æœ resType == kLocalFilesï¼Œéœ€è¦è®¾ç½®èµ„æºæ‰€åœ¨çš„æœ¬åœ°è·¯å¾„ï¼ˆç»å¯¹è·¯å¾„ï¼‰
+	 *   å¦‚æœ resType == kZipFile æˆ–è€… resType == kResZipï¼Œè®¾ç½®èµ„æºæ‰€åœ¨çš„èµ·å§‹ç›®å½•ï¼ˆç›¸å¯¹è·¯å¾„ï¼‰ï¼Œæ¯”å¦‚ï¼šL"resources\\"
 	 */
 	void SetResourcePath(const std::wstring& strPath);
 
-	/** »ñÈ¡µ±Ç°×ÊÔ´ËùÔÚÂ·¾¶
+	/** è·å–å½“å‰èµ„æºæ‰€åœ¨è·¯å¾„
 	 */
 	const std::wstring& GetResourcePath() const;
 
-	/** ÖØĞÂ¼ÓÔØÆ¤·ô×ÊÔ´£¨¿ÉÍ¨¹ı´Ë½Ó¿ÚÊµÏÖ¶¯Ì¬»»·ô¹¦ÄÜ£©
-	* @param [in] resParam ×ÊÔ´Ïà¹ØµÄ²ÎÊı£¬¸ù¾İ×ÊÔ´ÀàĞÍ²»Í¬£¬ÓĞÒÔÏÂ¿ÉÑ¡Ïî
-	 *                      1. ±¾µØÎÄ¼şµÄĞÎÊ½£¬ËùÓĞ×ÊÔ´¶¼ÒÑ±¾µØÎÄ¼şµÄĞÎÊ½´æÔÚ
-	 *                         Ê¹ÓÃ LocalFilesResParam ÀàĞÍ×÷Îª²ÎÊı
-	 *                      2. ×ÊÔ´ÎÄ¼ş´ò°üÎªzipÑ¹Ëõ°ü£¬È»ºóÒÔ±¾µØÎÄ¼şµÄĞÎÊ½´æÔÚ
-	 *                         Ê¹ÓÃ ZipFileResParam ÀàĞÍ×÷Îª²ÎÊı
-	 *                      3. ×ÊÔ´ÎÄ¼ş´ò°üÎªzipÑ¹Ëõ°ü£¬È»ºó·ÅÔÚexe/dllµÄ×ÊÔ´ÎÄ¼şÖĞ
-	 *                         Ê¹ÓÃ ResZipFileResParam ÀàĞÍ×÷Îª²ÎÊı
-	 * @param [in] bInvalidate ÊÇ·ñË¢ĞÂ½çÃæÏÔÊ¾£ºtrue±íÊ¾¸üĞÂÍêÓïÑÔÎÄ¼şºóË¢ĞÂ½çÃæÏÔÊ¾£¬false±íÊ¾²»Ë¢ĞÂ½çÃæÏÔÊ¾
+	/** é‡æ–°åŠ è½½çš®è‚¤èµ„æºï¼ˆå¯é€šè¿‡æ­¤æ¥å£å®ç°åŠ¨æ€æ¢è‚¤åŠŸèƒ½ï¼‰
+	* @param [in] resParam èµ„æºç›¸å…³çš„å‚æ•°ï¼Œæ ¹æ®èµ„æºç±»å‹ä¸åŒï¼Œæœ‰ä»¥ä¸‹å¯é€‰é¡¹
+	 *                      1. æœ¬åœ°æ–‡ä»¶çš„å½¢å¼ï¼Œæ‰€æœ‰èµ„æºéƒ½å·²æœ¬åœ°æ–‡ä»¶çš„å½¢å¼å­˜åœ¨
+	 *                         ä½¿ç”¨ LocalFilesResParam ç±»å‹ä½œä¸ºå‚æ•°
+	 *                      2. èµ„æºæ–‡ä»¶æ‰“åŒ…ä¸ºzipå‹ç¼©åŒ…ï¼Œç„¶åä»¥æœ¬åœ°æ–‡ä»¶çš„å½¢å¼å­˜åœ¨
+	 *                         ä½¿ç”¨ ZipFileResParam ç±»å‹ä½œä¸ºå‚æ•°
+	 *                      3. èµ„æºæ–‡ä»¶æ‰“åŒ…ä¸ºzipå‹ç¼©åŒ…ï¼Œç„¶åæ”¾åœ¨exe/dllçš„èµ„æºæ–‡ä»¶ä¸­
+	 *                         ä½¿ç”¨ ResZipFileResParam ç±»å‹ä½œä¸ºå‚æ•°
+	 * @param [in] bInvalidate æ˜¯å¦åˆ·æ–°ç•Œé¢æ˜¾ç¤ºï¼štrueè¡¨ç¤ºæ›´æ–°å®Œè¯­è¨€æ–‡ä»¶ååˆ·æ–°ç•Œé¢æ˜¾ç¤ºï¼Œfalseè¡¨ç¤ºä¸åˆ·æ–°ç•Œé¢æ˜¾ç¤º
 	*/
 	bool ReloadResource(const ResourceParam& resParam, bool bInvalidate = false);
 
 public:
-	/** ÉèÖÃÓïÑÔÎÄ¼şËùÔÚÂ·¾¶£¬¿ÉÒÔÊÇÏà¶ÔÂ·¾¶»òÕßÊÇ¾ø¶ÔÂ·¾¶£¨¶àÓïÑÔ°æÊ±£¬ËùÓĞµÄÓïÑÔÎÄ¼ş¶¼·ÅÔÚÕâ¸öÄ¿Â¼ÖĞ£©
-	*   Èç¹ûÊÇ¾ø¶ÔÂ·¾¶£¬ÔòÔÚÕâ¸ö¾ø¶ÔÂ·¾¶ÖĞ²éÕÒÓïÑÔÎÄ¼ş
-	*   Èç¹ûÊÇÏà¶ÔÂ·¾¶£¬Ôò¸ù¾İresTypeºÍresourcePath¾ö¶¨µÄ×ÊÔ´Â·¾¶ÏÂ£¬°´Ïà¶ÔÂ·¾¶²éÕÒ×ÊÔ´ÎÄ¼ş
+	/** è®¾ç½®è¯­è¨€æ–‡ä»¶æ‰€åœ¨è·¯å¾„ï¼Œå¯ä»¥æ˜¯ç›¸å¯¹è·¯å¾„æˆ–è€…æ˜¯ç»å¯¹è·¯å¾„ï¼ˆå¤šè¯­è¨€ç‰ˆæ—¶ï¼Œæ‰€æœ‰çš„è¯­è¨€æ–‡ä»¶éƒ½æ”¾åœ¨è¿™ä¸ªç›®å½•ä¸­ï¼‰
+	*   å¦‚æœæ˜¯ç»å¯¹è·¯å¾„ï¼Œåˆ™åœ¨è¿™ä¸ªç»å¯¹è·¯å¾„ä¸­æŸ¥æ‰¾è¯­è¨€æ–‡ä»¶
+	*   å¦‚æœæ˜¯ç›¸å¯¹è·¯å¾„ï¼Œåˆ™æ ¹æ®resTypeå’ŒresourcePathå†³å®šçš„èµ„æºè·¯å¾„ä¸‹ï¼ŒæŒ‰ç›¸å¯¹è·¯å¾„æŸ¥æ‰¾èµ„æºæ–‡ä»¶
 	*/
 	void SetLanguagePath(const std::wstring& strPath);
 
-	/** »ñÈ¡ÓïÑÔÎÄ¼şËùÔÚÂ·¾¶
+	/** è·å–è¯­è¨€æ–‡ä»¶æ‰€åœ¨è·¯å¾„
 	*/
 	const std::wstring& GetLanguagePath() const;
 
-	/** »ñÈ¡ÓïÑÔÎÄ¼şÃû£¬²»º¬Â·¾¶
+	/** è·å–è¯­è¨€æ–‡ä»¶åï¼Œä¸å«è·¯å¾„
 	*/
 	const std::wstring& GetLanguageFileName() const;
 
-	/** ÖØĞÂ¼ÓÔØÓïÑÔ×ÊÔ´£¨Í¨¹ı´Ë½Ó¿ÚÊµÏÖ¶àÓïÑÔ¶¯Ì¬ÇĞ»»¹¦ÄÜ£©
-	 * @param [in] languagePath ÓïÑÔÎÄ¼şËùÔÚÂ·¾¶
-	               Èç¹ûÊÇ¾ø¶ÔÂ·¾¶£¬ÔòÔÚ´Ë¾ø¶ÔÂ·¾¶µÄÄ¿Â¼ÖĞ²éÕÒÓïÑÔÎÄ¼ş£»
-				   Èç¹ûÎª¿Õ£¬±íÊ¾Ê¹ÓÃStartupÊ±³õÊ¼»¯µÄÓïÑÔÎÄ¼şÂ·¾¶£»
-				   Èç¹ûÎªÏà¶ÔÂ·¾¶£¬Ôò¶ÔÓ¦ÓÚÑ¹Ëõ°üÖĞµÄÏà¶ÔÂ·¾¶
-	 * @param [in] languageFileName µ±Ç°Ê¹ÓÃÓïÑÔÎÄ¼şµÄÎÄ¼şÃû£¨²»º¬Â·¾¶£©
-	 * @param [in] bInvalidate ÊÇ·ñË¢ĞÂ½çÃæÏÔÊ¾£ºtrue±íÊ¾¸üĞÂÍêÓïÑÔÎÄ¼şºóË¢ĞÂ½çÃæÏÔÊ¾£¬false±íÊ¾²»Ë¢ĞÂ½çÃæÏÔÊ¾
+	/** é‡æ–°åŠ è½½è¯­è¨€èµ„æºï¼ˆé€šè¿‡æ­¤æ¥å£å®ç°å¤šè¯­è¨€åŠ¨æ€åˆ‡æ¢åŠŸèƒ½ï¼‰
+	 * @param [in] languagePath è¯­è¨€æ–‡ä»¶æ‰€åœ¨è·¯å¾„
+	               å¦‚æœæ˜¯ç»å¯¹è·¯å¾„ï¼Œåˆ™åœ¨æ­¤ç»å¯¹è·¯å¾„çš„ç›®å½•ä¸­æŸ¥æ‰¾è¯­è¨€æ–‡ä»¶ï¼›
+				   å¦‚æœä¸ºç©ºï¼Œè¡¨ç¤ºä½¿ç”¨Startupæ—¶åˆå§‹åŒ–çš„è¯­è¨€æ–‡ä»¶è·¯å¾„ï¼›
+				   å¦‚æœä¸ºç›¸å¯¹è·¯å¾„ï¼Œåˆ™å¯¹åº”äºå‹ç¼©åŒ…ä¸­çš„ç›¸å¯¹è·¯å¾„
+	 * @param [in] languageFileName å½“å‰ä½¿ç”¨è¯­è¨€æ–‡ä»¶çš„æ–‡ä»¶åï¼ˆä¸å«è·¯å¾„ï¼‰
+	 * @param [in] bInvalidate æ˜¯å¦åˆ·æ–°ç•Œé¢æ˜¾ç¤ºï¼štrueè¡¨ç¤ºæ›´æ–°å®Œè¯­è¨€æ–‡ä»¶ååˆ·æ–°ç•Œé¢æ˜¾ç¤ºï¼Œfalseè¡¨ç¤ºä¸åˆ·æ–°ç•Œé¢æ˜¾ç¤º
 	 */
 	bool ReloadLanguage(const std::wstring& languagePath = L"",
 				        const std::wstring& languageFileName = L"zh_CN.txt",
 						bool bInvalidate = false);
 
-	/** »ñÈ¡ÓïÑÔÎÄ¼şÁĞ±íºÍÏÔÊ¾Ãû³Æ£¨ÒÔÖ§³Ö¶àÓïÑÔÇĞ»»£©
-	* @param [in] languageNameID ÓÃÓÚ¶ÁÈ¡ÏÔÊ¾Ãû³ÆµÄ×Ö·û´®ID£¬Èç¹ûÎª¿ÕÔò²»¶ÁÈ¡ÏÔÊ¾Ãû³Æ
-	* @param [out] languageList ·µ»ØÓïÑÔÎÄ¼şºÍÏÔÊ¾Ãû³ÆµÄÁĞ±í
+	/** è·å–è¯­è¨€æ–‡ä»¶åˆ—è¡¨å’Œæ˜¾ç¤ºåç§°ï¼ˆä»¥æ”¯æŒå¤šè¯­è¨€åˆ‡æ¢ï¼‰
+	* @param [in] languageNameID ç”¨äºè¯»å–æ˜¾ç¤ºåç§°çš„å­—ç¬¦ä¸²IDï¼Œå¦‚æœä¸ºç©ºåˆ™ä¸è¯»å–æ˜¾ç¤ºåç§°
+	* @param [out] languageList è¿”å›è¯­è¨€æ–‡ä»¶å’Œæ˜¾ç¤ºåç§°çš„åˆ—è¡¨
 	*/
 	bool GetLanguageList(std::vector<std::pair<std::wstring, std::wstring>>& languageList,
 						 const std::wstring& languageNameID = L"LANGUAGE_DISPLAY_NAME") const;
 
 public:
-	/** Ìí¼ÓÒ»¸ö´°¿Ú½Ó¿Ú£¨Ö÷ÒªÓÃÓÚ»»·ô¡¢ÇĞ»»ÓïÑÔÖ®ºóµÄÖØ»æ¡¢×ÊÔ´Í¬²½µÈ²Ù×÷£©
-	* @param [in] pWindow ´°¿ÚµÄ½Ó¿Ú
+	/** æ·»åŠ ä¸€ä¸ªçª—å£æ¥å£ï¼ˆä¸»è¦ç”¨äºæ¢è‚¤ã€åˆ‡æ¢è¯­è¨€ä¹‹åçš„é‡ç»˜ã€èµ„æºåŒæ­¥ç­‰æ“ä½œï¼‰
+	* @param [in] pWindow çª—å£çš„æ¥å£
 	*/
 	void AddWindow(Window* pWindow);
 
-	/** ÒÆ³ıÒ»¸ö´°¿Ú
-	* @param [in] pWindow ´°¿ÚµÄ½Ó¿Ú
+	/** ç§»é™¤ä¸€ä¸ªçª—å£
+	* @param [in] pWindow çª—å£çš„æ¥å£
 	*/
 	void RemoveWindow(Window* pWindow);
 
-	/** Ìí¼ÓÒ»¸öÈ«¾Ö Class ÊôĞÔ
-	 * @param[in] strClassName È«¾Ö Class Ãû³Æ
-	 * @param[in] strControlAttrList ÊôĞÔÁĞ±í£¬ĞèÒª×ö XML ×ªÒå
+	/** æ·»åŠ ä¸€ä¸ªå…¨å±€ Class å±æ€§
+	 * @param[in] strClassName å…¨å±€ Class åç§°
+	 * @param[in] strControlAttrList å±æ€§åˆ—è¡¨ï¼Œéœ€è¦åš XML è½¬ä¹‰
 	 */
 	void AddClass(const std::wstring& strClassName, const std::wstring& strControlAttrList);
 
-	/** »ñÈ¡Ò»¸öÈ«¾Ö class ÊôĞÔµÄÖµ
-	 * @param[in] strClassName È«¾Ö class Ãû³Æ
-	 * @return ·µ»Ø×Ö·û´®ĞÎÊ½µÄ class ÊôĞÔÖµ
+	/** è·å–ä¸€ä¸ªå…¨å±€ class å±æ€§çš„å€¼
+	 * @param[in] strClassName å…¨å±€ class åç§°
+	 * @return è¿”å›å­—ç¬¦ä¸²å½¢å¼çš„ class å±æ€§å€¼
 	 */
 	std::wstring GetClassAttributes(const std::wstring& strClassName) const;
 
-	/** ´ÓÈ«¾ÖÊôĞÔÖĞÉ¾³ıËùÓĞ class ÊôĞÔ
-	 * @return ·µ»Ø»æÖÆÇøÓò¶ÔÏó
+	/** ä»å…¨å±€å±æ€§ä¸­åˆ é™¤æ‰€æœ‰ class å±æ€§
+	 * @return è¿”å›ç»˜åˆ¶åŒºåŸŸå¯¹è±¡
 	 */
 	void RemoveAllClasss();
 
 public:
-	/** »ñÈ¡»æÖÆ½Ó¿ÚÀà¶ÔÏó
+	/** è·å–ç»˜åˆ¶æ¥å£ç±»å¯¹è±¡
 	*/
 	IRenderFactory* GetRenderFactory();
 
-	/** »ñÈ¡ÑÕÉ«¹ÜÀíÆ÷
+	/** è·å–é¢œè‰²ç®¡ç†å™¨
 	*/
 	ColorManager& Color();
 
-	/** »ñÈ¡×ÖÌå¹ÜÀíÆ÷
+	/** è·å–å­—ä½“ç®¡ç†å™¨
 	*/
 	FontManager& Font();
 
-	/** »ñÈ¡Í¼Æ¬¹ÜÀíÆ÷
+	/** è·å–å›¾ç‰‡ç®¡ç†å™¨
 	*/
 	ImageManager& Image();
 
 #ifdef UILIB_IMPL_WINSDK
-	/** »ñÈ¡ICON×ÊÔ´¹ÜÀíÆ÷
+	/** è·å–ICONèµ„æºç®¡ç†å™¨
 	*/
 	IconManager& Icon();
 
 #endif
 
-	/** »ñÈ¡Zip¹ÜÀíÆ÷
+	/** è·å–Zipç®¡ç†å™¨
 	*/
 	ZipManager& Zip();
 
-	/** »ñÈ¡DPI¹ÜÀíÆ÷
+	/** è·å–DPIç®¡ç†å™¨
 	*/
 	DpiManager& Dpi();
 
-	/** »ñÈ¡¶¨Ê±Æ÷¹ÜÀíÆ÷
+	/** è·å–å®šæ—¶å™¨ç®¡ç†å™¨
 	*/
 	TimerManager& Timer();
 
-	/** ¶àÓïÑÔÖ§³Ö¹ÜÀíÆ÷
+	/** å¤šè¯­è¨€æ”¯æŒç®¡ç†å™¨
 	*/
 	LangManager& Lang();
 
 public:
-	/** ¸ù¾İ×ÊÔ´¼ÓÔØ·½Ê½£¬·µ»Ø¶ÔÓ¦µÄ×ÊÔ´Â·¾¶
-	 * @param[in] path Òª»ñÈ¡µÄ×ÊÔ´Â·¾¶
-	 * @param [in] windowResPath ´°¿Ú¶ÔÓ¦µÄ×ÊÔ´Ïà¶ÔÄ¿Â¼£¬±ÈÈç£º"basic\"
-	 * @param [in] resPath ×ÊÔ´ÎÄ¼şÂ·¾¶£¬±ÈÈç£º"../public/button/btn_wnd_gray_min_hovered.png"
-	 * @return ¿ÉÓÃµÄÍêÕûµÄ×ÊÔ´Â·¾¶£¬±ÈÈç£º
-			  £¨1£©Èç¹ûÊÇÊ¹ÓÃZIPÑ¹Ëõ°ü£¬·µ»Ø£º"resources\themes\default\public\button\btn_wnd_gray_min_hovered.png"
-			  £¨2£©Èç¹ûÎ´Ê¹ÓÃZIPÑ¹Ëõ°ü£¬·µ»Ø£º"<³ÌĞòËùÔÚÄ¿Â¼>\resources\themes\default\public\button\btn_wnd_gray_min_hovered.png"
+	/** æ ¹æ®èµ„æºåŠ è½½æ–¹å¼ï¼Œè¿”å›å¯¹åº”çš„èµ„æºè·¯å¾„
+	 * @param[in] path è¦è·å–çš„èµ„æºè·¯å¾„
+	 * @param [in] windowResPath çª—å£å¯¹åº”çš„èµ„æºç›¸å¯¹ç›®å½•ï¼Œæ¯”å¦‚ï¼š"basic\"
+	 * @param [in] resPath èµ„æºæ–‡ä»¶è·¯å¾„ï¼Œæ¯”å¦‚ï¼š"../public/button/btn_wnd_gray_min_hovered.png"
+	 * @return å¯ç”¨çš„å®Œæ•´çš„èµ„æºè·¯å¾„ï¼Œæ¯”å¦‚ï¼š
+			  ï¼ˆ1ï¼‰å¦‚æœæ˜¯ä½¿ç”¨ZIPå‹ç¼©åŒ…ï¼Œè¿”å›ï¼š"resources\themes\default\public\button\btn_wnd_gray_min_hovered.png"
+			  ï¼ˆ2ï¼‰å¦‚æœæœªä½¿ç”¨ZIPå‹ç¼©åŒ…ï¼Œè¿”å›ï¼š"<ç¨‹åºæ‰€åœ¨ç›®å½•>\resources\themes\default\public\button\btn_wnd_gray_min_hovered.png"
 	 */
 	std::wstring GetResFullPath(const std::wstring& windowResPath, const std::wstring& resPath);
 
-	/** ¸ù¾İ XML ´´½¨Ò»¸ö Box
-	 * @param[in] strXmlPath XML ÎÄ¼şÂ·¾¶
-	 * @param[in] callback ×Ô¶¨Òå¿Ø¼şµÄ»Øµ÷´¦Àíº¯Êı
-	 * @return Ö¸¶¨²¼¾ÖÄ£¿éµÄ¶ÔÏóÖ¸Õë
+	/** æ ¹æ® XML åˆ›å»ºä¸€ä¸ª Box
+	 * @param[in] strXmlPath XML æ–‡ä»¶è·¯å¾„
+	 * @param[in] callback è‡ªå®šä¹‰æ§ä»¶çš„å›è°ƒå¤„ç†å‡½æ•°
+	 * @return æŒ‡å®šå¸ƒå±€æ¨¡å—çš„å¯¹è±¡æŒ‡é’ˆ
 	 */
 	Box* CreateBox(const std::wstring& strXmlPath, CreateControlCallback callback = CreateControlCallback());
 
-	/** ¸ù¾İ XML ÔÚ»º´æÖĞ²éÕÒÖ¸¶¨ Box£¬Èç¹ûÃ»ÓĞÔò´´½¨
-	 * @param[in] strXmlPath XML ÎÄ¼şÂ·¾¶
-	 * @param[in] callback ×Ô¶¨Òå¿Ø¼şµÄ»Øµ÷´¦Àíº¯Êı
-	 * @return Ö¸¶¨²¼¾ÖÄ£¿éµÄ¶ÔÏóÖ¸Õë
+	/** æ ¹æ® XML åœ¨ç¼“å­˜ä¸­æŸ¥æ‰¾æŒ‡å®š Boxï¼Œå¦‚æœæ²¡æœ‰åˆ™åˆ›å»º
+	 * @param[in] strXmlPath XML æ–‡ä»¶è·¯å¾„
+	 * @param[in] callback è‡ªå®šä¹‰æ§ä»¶çš„å›è°ƒå¤„ç†å‡½æ•°
+	 * @return æŒ‡å®šå¸ƒå±€æ¨¡å—çš„å¯¹è±¡æŒ‡é’ˆ
 	 */
 	Box* CreateBoxWithCache(const std::wstring& strXmlPath, CreateControlCallback callback = CreateControlCallback());
 
-	/** Ê¹ÓÃ XML Ìî³äÖ¸¶¨ Box
-	 * @param[in] pUserDefinedBox ÒªÌî³äµÄ box Ö¸Õë
-	 * @param[in] strXmlPath XML ÎÄ¼şÂ·¾¶
-	 * @param[in] callback ×Ô¶¨Òå¿Ø¼şµÄ»Øµ÷´¦Àíº¯Êı
+	/** ä½¿ç”¨ XML å¡«å……æŒ‡å®š Box
+	 * @param[in] pUserDefinedBox è¦å¡«å……çš„ box æŒ‡é’ˆ
+	 * @param[in] strXmlPath XML æ–‡ä»¶è·¯å¾„
+	 * @param[in] callback è‡ªå®šä¹‰æ§ä»¶çš„å›è°ƒå¤„ç†å‡½æ•°
 	 */
 	void FillBox(Box* pUserDefinedBox, const std::wstring& strXmlPath, CreateControlCallback callback = CreateControlCallback());
 
-	/** Ê¹ÓÃ¹¹½¨¹ıµÄ»º´æÌî³äÖ¸¶¨ Box£¬Èç¹ûÃ»ÓĞÔòÖØĞÂ¹¹½¨
-	 * @param[in] pUserDefinedBox ÒªÌî³äµÄ box Ö¸Õë
-	 * @param[in] strXmlPath XML ÎÄ¼şÂ·¾¶
-	 * @param[in] callback ×Ô¶¨Òå¿Ø¼şµÄ»Øµ÷´¦Àíº¯Êı
+	/** ä½¿ç”¨æ„å»ºè¿‡çš„ç¼“å­˜å¡«å……æŒ‡å®š Boxï¼Œå¦‚æœæ²¡æœ‰åˆ™é‡æ–°æ„å»º
+	 * @param[in] pUserDefinedBox è¦å¡«å……çš„ box æŒ‡é’ˆ
+	 * @param[in] strXmlPath XML æ–‡ä»¶è·¯å¾„
+	 * @param[in] callback è‡ªå®šä¹‰æ§ä»¶çš„å›è°ƒå¤„ç†å‡½æ•°
 	 */
 	void FillBoxWithCache(Box* pUserDefinedBox, const std::wstring& strXmlPath, CreateControlCallback callback = CreateControlCallback());
 
-	/** ×Ô¶¨Òå¿Ø¼ş´´½¨ºóµÄÈ«¾Ö»Øµ÷º¯Êı
-	 * @param[in] strControlName ×Ô¶¨Òå¿Ø¼şÃû³Æ
-	 * @return ·µ»ØÒ»¸ö×Ô¶¨Òå¿Ø¼şµÄ¶ÔÏóÖ¸Õë
+	/** è‡ªå®šä¹‰æ§ä»¶åˆ›å»ºåçš„å…¨å±€å›è°ƒå‡½æ•°
+	 * @param[in] strControlName è‡ªå®šä¹‰æ§ä»¶åç§°
+	 * @return è¿”å›ä¸€ä¸ªè‡ªå®šä¹‰æ§ä»¶çš„å¯¹è±¡æŒ‡é’ˆ
 	 */
 	Control* CreateControl(const std::wstring& strControlName);
 
-	/** Èç¹û¸Ãº¯Êı²»ÊÇÔÚUIÏß³ÌÖĞµ÷ÓÃµÄ£¬½øĞĞ¶ÏÑÔ±¨´í
+	/** å¦‚æœè¯¥å‡½æ•°ä¸æ˜¯åœ¨UIçº¿ç¨‹ä¸­è°ƒç”¨çš„ï¼Œè¿›è¡Œæ–­è¨€æŠ¥é”™
 	*/
 	void AssertUIThread() const;
 
 private:
-	/** ´Ó»º´æÖĞÉ¾³ıËùÓĞÍ¼Æ¬
+	/** ä»ç¼“å­˜ä¸­åˆ é™¤æ‰€æœ‰å›¾ç‰‡
 	 */
 	void RemoveAllImages();
 
 private:
 
-	/** äÖÈ¾ÒıÇæ¹ÜÀí½Ó¿Ú
+	/** æ¸²æŸ“å¼•æ“ç®¡ç†æ¥å£
 	*/
 	std::unique_ptr<IRenderFactory> m_renderFactory;
 
-	/** È«¾ÖµÄ×ÊÔ´Â·¾¶£¬»»·ôµÄÊ±ºòĞŞ¸ÄÕâ¸ö±äÁ¿£¨¾ø¶ÔÂ·¾¶£©
+	/** å…¨å±€çš„èµ„æºè·¯å¾„ï¼Œæ¢è‚¤çš„æ—¶å€™ä¿®æ”¹è¿™ä¸ªå˜é‡ï¼ˆç»å¯¹è·¯å¾„ï¼‰
 	*/
 	std::wstring m_resourcePath; 
 
-	/** È«¾ÖÓïÑÔÎÄ¼şÂ·¾¶£¨¾ø¶ÔÂ·¾¶£©
+	/** å…¨å±€è¯­è¨€æ–‡ä»¶è·¯å¾„ï¼ˆç»å¯¹è·¯å¾„ï¼‰
 	*/
 	std::wstring m_languagePath; 
 
-	/** È«¾ÖÓïÑÔÎÄ¼şÃû£¨²»º¬Â·¾¶£©
+	/** å…¨å±€è¯­è¨€æ–‡ä»¶åï¼ˆä¸å«è·¯å¾„ï¼‰
 	*/
 	std::wstring m_languageFileName;
 	
-	/** ´°¿Ú¹¹½¨¹ÜÀí½Ó¿Ú£¬KEYÊÇXMLÎÄ¼şÂ·¾¶£¬VALUEÊÇ´°¿Ú¹¹½¨¹ÜÀí½Ó¿Ú£¨ÒÑ¾­½âÎöºóµÄXML£¬¿É±ÜÃâÖØ¸´½âÎö£©
+	/** çª—å£æ„å»ºç®¡ç†æ¥å£ï¼ŒKEYæ˜¯XMLæ–‡ä»¶è·¯å¾„ï¼ŒVALUEæ˜¯çª—å£æ„å»ºç®¡ç†æ¥å£ï¼ˆå·²ç»è§£æåçš„XMLï¼Œå¯é¿å…é‡å¤è§£æï¼‰
 	*/
 	std::map<std::wstring, std::unique_ptr<WindowBuilder>> m_builderMap;
 
-	/** ¿Ø¼ş´´½¨º¯Êı£¬ÓÃÓÚÓÃ»§×Ô¶¨Òå¿Ø¼şµÄ´´½¨
+	/** æ§ä»¶åˆ›å»ºå‡½æ•°ï¼Œç”¨äºç”¨æˆ·è‡ªå®šä¹‰æ§ä»¶çš„åˆ›å»º
 	*/
 	CreateControlCallback m_pfnCreateControlCallback;
 
-	/** Ã¿¸öClassµÄÃû³Æ(KEY)ºÍÊôĞÔÁĞ±í(VALUE)£¨±ÈÈçglobal.xmlÖĞ¶¨ÒåµÄClass£©
+	/** æ¯ä¸ªClassçš„åç§°(KEY)å’Œå±æ€§åˆ—è¡¨(VALUE)ï¼ˆæ¯”å¦‚global.xmlä¸­å®šä¹‰çš„Classï¼‰
 	*/
 	std::map<std::wstring, std::wstring> m_globalClass;
 
-	/** Ö÷Ïß³ÌID
+	/** ä¸»çº¿ç¨‹ID
 	*/
 	uint32_t m_dwUiThreadId;
 
-	/** ËùÓĞµÄ´°¿ÚÁĞ±í
+	/** æ‰€æœ‰çš„çª—å£åˆ—è¡¨
 	*/
 	struct WindowWeakFlag
 	{
-		/** ´°¿ÚµÄ½Ó¿Ú
+		/** çª—å£çš„æ¥å£
 		*/
 		Window* m_pWindow = nullptr;
 		
-		/** ´°¿Ú½Ó¿ÚµÄÓĞĞ§ÆÚ±êÖ¾
+		/** çª—å£æ¥å£çš„æœ‰æ•ˆæœŸæ ‡å¿—
 		*/
 		std::weak_ptr<nbase::WeakFlag> m_weakFlag;
 	};
 	std::vector<WindowWeakFlag> m_windowList;
 
-	/** ÑÕÉ«¹ÜÀíÆ÷
+	/** é¢œè‰²ç®¡ç†å™¨
 	*/
 	ColorManager m_colorManager;
 
-	/** ×ÖÌå¹ÜÀíÆ÷
+	/** å­—ä½“ç®¡ç†å™¨
 	*/
 	FontManager m_fontManager;
 
-	/** Í¼Æ¬¹ÜÀíÆ÷
+	/** å›¾ç‰‡ç®¡ç†å™¨
 	*/
 	ImageManager m_imageManager;
 
-	/** ZIPÑ¹Ëõ°ü¹ÜÀíÆ÷
+	/** ZIPå‹ç¼©åŒ…ç®¡ç†å™¨
 	*/
 	ZipManager m_zipManager;
 
-	/** DPI¹ÜÀíÆ÷
+	/** DPIç®¡ç†å™¨
 	*/
 	DpiManager m_dpiManager;
 
-	/** ¶¨Ê±Æ÷¹ÜÀíÆ÷
+	/** å®šæ—¶å™¨ç®¡ç†å™¨
 	*/
 	TimerManager m_timerManager;
 
-	/** ¶àÓïÑÔ¹ÜÀíÆ÷
+	/** å¤šè¯­è¨€ç®¡ç†å™¨
 	*/
 	LangManager m_langManager;
 
 #ifdef UILIB_IMPL_WINSDK
-	/** ICON×ÊÔ´¹ÜÀíÆ÷
+	/** ICONèµ„æºç®¡ç†å™¨
 	*/
 	IconManager m_iconManager;
 #endif

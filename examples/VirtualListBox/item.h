@@ -1,13 +1,13 @@
 #pragma once
 
-// ´Ó ui::ListBoxItem ÖĞ¼Ì³ĞËùÓĞ¿ÉÓÃ¹¦ÄÜ
+// ä» ui::ListBoxItem ä¸­ç»§æ‰¿æ‰€æœ‰å¯ç”¨åŠŸèƒ½
 class Item : public ui::ListBoxItem
 {
 public:
 	explicit Item(ui::Window* pWindow);
 	~Item();
 
-	// Ìá¹©Íâ²¿µ÷ÓÃÀ´³õÊ¼»¯ item Êı¾İ
+	// æä¾›å¤–éƒ¨è°ƒç”¨æ¥åˆå§‹åŒ– item æ•°æ®
 	void InitSubControls(const std::wstring& img, const std::wstring& title, size_t nDataIndex);
 private:
 	bool OnRemove(const ui::EventArgs& args);

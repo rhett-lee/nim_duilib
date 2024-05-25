@@ -19,18 +19,18 @@ public:
 	virtual ~CheckCombo();
 
 public:
-	/// ÖØĞ´¸¸Àà·½·¨£¬Ìá¹©¸öĞÔ»¯¹¦ÄÜ£¬Çë²Î¿¼¸¸ÀàÉùÃ÷
+	/// é‡å†™çˆ¶ç±»æ–¹æ³•ï¼Œæä¾›ä¸ªæ€§åŒ–åŠŸèƒ½ï¼Œè¯·å‚è€ƒçˆ¶ç±»å£°æ˜
 	virtual void Activate() override;
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 
-	/** DPI·¢Éú±ä»¯£¬¸üĞÂ¿Ø¼ş´óĞ¡ºÍ²¼¾Ö
-	* @param [in] nOldDpiScale ¾ÉµÄDPIËõ·Å°Ù·Ö±È
-	* @param [in] nNewDpiScale ĞÂµÄDPIËõ·Å°Ù·Ö±È£¬ÓëDpi().GetScale()µÄÖµÒ»ÖÂ
+	/** DPIå‘ç”Ÿå˜åŒ–ï¼Œæ›´æ–°æ§ä»¶å¤§å°å’Œå¸ƒå±€
+	* @param [in] nOldDpiScale æ—§çš„DPIç¼©æ”¾ç™¾åˆ†æ¯”
+	* @param [in] nNewDpiScale æ–°çš„DPIç¼©æ”¾ç™¾åˆ†æ¯”ï¼Œä¸Dpi().GetScale()çš„å€¼ä¸€è‡´
 	*/
 	virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override;
 
 public:
-	/// ÖØĞ´¸¸Àà·½·¨£¬Ìá¹©¸öĞÔ»¯¹¦ÄÜ£¬Çë²Î¿¼¸¸ÀàÉùÃ÷
+	/// é‡å†™çˆ¶ç±»æ–¹æ³•ï¼Œæä¾›ä¸ªæ€§åŒ–åŠŸèƒ½ï¼Œè¯·å‚è€ƒçˆ¶ç±»å£°æ˜
 	virtual std::wstring GetType() const override;
 	virtual bool AddItem(Control* pControl) override;
 	virtual bool AddItemAt(Control* pControl, size_t iIndex) override;
@@ -42,121 +42,121 @@ public:
 	virtual bool SetItemIndex(Control* pControl, size_t iIndex) override;
 	virtual size_t GetItemCount() const override;
 
-	/** Ìí¼ÓÒ»¸öÏÂÀ­¿òµÄÁĞ±íÏî
+	/** æ·»åŠ ä¸€ä¸ªä¸‹æ‹‰æ¡†çš„åˆ—è¡¨é¡¹
 	*/
 	bool AddTextItem(const std::wstring& itemText);
 
-	/** »ñÈ¡Ñ¡ÔñµÄÎÄ±¾ÁĞ±í
+	/** è·å–é€‰æ‹©çš„æ–‡æœ¬åˆ—è¡¨
 	*/
 	void GetSelectedText(std::vector<std::wstring>& selectedText) const;
 
-	/** Çå³ıËùÓĞÁĞ±íÏîºÍÑ¡ÔñÏî
+	/** æ¸…é™¤æ‰€æœ‰åˆ—è¡¨é¡¹å’Œé€‰æ‹©é¡¹
 	*/
 	void ClearAll();
 
 public:
-	/** »ñÈ¡µ±Ç°ËùÊôµÄ List ¶ÔÏó
+	/** è·å–å½“å‰æ‰€å±çš„ List å¯¹è±¡
 	*/
 	ScrollBox* GetListBox() { return m_pDropList.get(); }
 
-	/** ÉèÖÃÏÂÀ­¿òµÄÊôĞÔĞÅÏ¢
-	* @param [in] pstrList ×ªÒåºóµÄ XML ¸ñÊ½ÊôĞÔÁĞ±í
+	/** è®¾ç½®ä¸‹æ‹‰æ¡†çš„å±æ€§ä¿¡æ¯
+	* @param [in] pstrList è½¬ä¹‰åçš„ XML æ ¼å¼å±æ€§åˆ—è¡¨
 	*/
 	void SetDropBoxAttributeList(const std::wstring& pstrList);
 
-	/** »ñÈ¡ÏÂÀ­¿òÈİÆ÷´óĞ¡
+	/** è·å–ä¸‹æ‹‰æ¡†å®¹å™¨å¤§å°
 	*/
 	const UiSize& GetDropBoxSize() const;
 
-	/** ÉèÖÃÏÂÀ­¿òÁĞ±í´óĞ¡(¿í¶ÈºÍ¸ß¶È)
-	 * @param [in] szDropBox ÒªÉèÖÃµÄ´óĞ¡ĞÅÏ¢
-	 * @param [in] bNeedScaleDpi ÊÇ·ñĞèÒª×öDPI×ÔÊÊÓ¦
+	/** è®¾ç½®ä¸‹æ‹‰æ¡†åˆ—è¡¨å¤§å°(å®½åº¦å’Œé«˜åº¦)
+	 * @param [in] szDropBox è¦è®¾ç½®çš„å¤§å°ä¿¡æ¯
+	 * @param [in] bNeedScaleDpi æ˜¯å¦éœ€è¦åšDPIè‡ªé€‚åº”
 	 */
 	void SetDropBoxSize(UiSize szDropBox, bool bNeedScaleDpi);
 
-	/** ÉèÖÃ Combobox ÊÇ·ñÏòÉÏµ¯³ö
-	* @param [in] top Îª true ÔòÏòÉÏµ¯³ö£¬false ÎªÏòÏÂµ¯³ö
+	/** è®¾ç½® Combobox æ˜¯å¦å‘ä¸Šå¼¹å‡º
+	* @param [in] top ä¸º true åˆ™å‘ä¸Šå¼¹å‡ºï¼Œfalse ä¸ºå‘ä¸‹å¼¹å‡º
 	*/
 	void SetPopupTop(bool top) { m_bPopupTop = top; };
 
-	/** ÅĞ¶Ï Combobox µ¯³öÄ£Ê½ÊÇ·ñÊÇÏòÉÏµ¯³ö
+	/** åˆ¤æ–­ Combobox å¼¹å‡ºæ¨¡å¼æ˜¯å¦æ˜¯å‘ä¸Šå¼¹å‡º
 	*/
 	bool IsPopupTop() const { return m_bPopupTop; };
 
-	/** ÉèÖÃÏÂÀ­ÁĞ±íÖĞÃ¿Ò»¸öÁĞ±íÏîµÄÊôĞÔ
+	/** è®¾ç½®ä¸‹æ‹‰åˆ—è¡¨ä¸­æ¯ä¸€ä¸ªåˆ—è¡¨é¡¹çš„å±æ€§
 	*/
 	void SetDropboxItemClass(const std::wstring& classValue);
 
-	/** ÉèÖÃÑ¡ÔñÏîÖĞÃ¿Ò»¸ö×ÓÏîµÄÊôĞÔ
+	/** è®¾ç½®é€‰æ‹©é¡¹ä¸­æ¯ä¸€ä¸ªå­é¡¹çš„å±æ€§
 	*/
 	void SetSelectedItemClass(const std::wstring& classValue);
 
-	/** ¸üĞÂÏÂÀ­ÁĞ±í´°¿ÚµÄÎ»ÖÃ
+	/** æ›´æ–°ä¸‹æ‹‰åˆ—è¡¨çª—å£çš„ä½ç½®
 	*/
 	void UpdateComboWndPos();
 
-	/** ¼àÌıÏÂÀ­´°¹Ø±ÕÊÂ¼ş
-	* @param[in] callback ÏÂÀ­´°¹Ø±Õºó´¥·¢µÄ»Øµ÷º¯Êı
+	/** ç›‘å¬ä¸‹æ‹‰çª—å…³é—­äº‹ä»¶
+	* @param[in] callback ä¸‹æ‹‰çª—å…³é—­åè§¦å‘çš„å›è°ƒå‡½æ•°
 	*/
 	void AttachWindowClose(const ui::EventCallback& callback) { AttachEvent(ui::kEventWindowClose, callback); }
 
 private:
-	/** Ä¬ÈÏµÄ×ÓÏî±»Ñ¡Ôñ´¦Àíº¯Êı
-	* @param[in] args ²ÎÊıÁĞ±í
-	* @return Ê¼ÖÕ·µ»Ø true
+	/** é»˜è®¤çš„å­é¡¹è¢«é€‰æ‹©å¤„ç†å‡½æ•°
+	* @param[in] args å‚æ•°åˆ—è¡¨
+	* @return å§‹ç»ˆè¿”å› true
 	*/
 	bool OnSelectItem(const ui::EventArgs& args);
 	bool OnUnSelectItem(const ui::EventArgs& args);
 	bool OnListButtonDown(const ui::EventArgs& args);
 
 private:
-	/** ½âÎöÊôĞÔÁĞ±í
+	/** è§£æå±æ€§åˆ—è¡¨
 	*/
 	void ParseAttributeList(const std::wstring& strList,
 							std::vector<std::pair<std::wstring, std::wstring>>& attributeList) const;
 
-	/** ÉèÖÃ¿Ø¼şµÄÊôĞÔÁĞ±í
+	/** è®¾ç½®æ§ä»¶çš„å±æ€§åˆ—è¡¨
 	*/
 	void SetAttributeList(Control* pControl, const std::wstring& classValue);
 
-	/** ¸üĞÂÑ¡ÔñÁĞ±íµÄ¸ß¶È
+	/** æ›´æ–°é€‰æ‹©åˆ—è¡¨çš„é«˜åº¦
 	*/
 	void UpdateSelectedListHeight();
 
 private:
-	/** ÏÂÀ­¿òµÄ´°¿Ú½Ó¿Ú
+	/** ä¸‹æ‹‰æ¡†çš„çª—å£æ¥å£
 	*/
 	CCheckComboWnd* m_pCheckComboWnd;
 
-	/** ÏÂÀ­ÁĞ±íÈİÆ÷
+	/** ä¸‹æ‹‰åˆ—è¡¨å®¹å™¨
 	*/
 	std::unique_ptr<ui::ScrollBox> m_pDropList;
 
-	/** Ñ¡ÔñµÄÁĞ±íÏîÈİÆ÷
+	/** é€‰æ‹©çš„åˆ—è¡¨é¡¹å®¹å™¨
 	*/
 	std::unique_ptr<ui::ScrollBox> m_pList;
 	
-	/** ÏÂÀ­¿òµÄ¿í¶ÈºÍ¸ß¶È
+	/** ä¸‹æ‹‰æ¡†çš„å®½åº¦å’Œé«˜åº¦
 	*/
 	ui::UiSize m_szDropBox;
 
-	/** ÏÂÀ­¿òÊÇ·ñÏòÉÏµ¯³ö
+	/** ä¸‹æ‹‰æ¡†æ˜¯å¦å‘ä¸Šå¼¹å‡º
 	*/
 	bool m_bPopupTop;
 
-	/** ÈİÆ÷µÄ¸ß¶È
+	/** å®¹å™¨çš„é«˜åº¦
 	*/
 	int32_t m_iOrgHeight;
 
-	/** Ñ¡ÔñÏîµÄÎÄ±¾
+	/** é€‰æ‹©é¡¹çš„æ–‡æœ¬
 	*/
 	std::vector<std::string> m_vecDate;
 
-	/** ÏÂÀ­ÁĞ±íÖĞÃ¿Ò»¸öÁĞ±íÏîµÄÊôĞÔ
+	/** ä¸‹æ‹‰åˆ—è¡¨ä¸­æ¯ä¸€ä¸ªåˆ—è¡¨é¡¹çš„å±æ€§
 	*/
 	UiString m_dropboxItemClass;
 
-	/** Ñ¡ÔñÏîÖĞÃ¿Ò»¸ö×ÓÏîµÄÊôĞÔ
+	/** é€‰æ‹©é¡¹ä¸­æ¯ä¸€ä¸ªå­é¡¹çš„å±æ€§
 	*/
 	UiString m_selectedItemClass;
 };

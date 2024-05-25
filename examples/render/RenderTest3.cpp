@@ -37,9 +37,9 @@ void RenderTest3::Paint(IRender* pRender, const UiRect& rcPaint)
 
     rect.right = rect.left + nSize;
     rect.bottom = rect.top + nSize;
-    int currentBottom = rect.bottom;//¼ÇÂ¼µ±Ç°µÄbottomÖµ
+    int currentBottom = rect.bottom;//è®°å½•å½“å‰çš„bottomå€¼
 
-    //»­Ö±Ïß
+    //ç”»ç›´çº¿
     int sep = DpiScaledInt(10);
     for (LONG topValue = rect.top; topValue <= rect.bottom; topValue += sep) {
         pRender->DrawLine(UiPoint(rect.left, topValue), UiPoint(rect.right, topValue), UiColor(UiColors::DarkCyan), DpiScaledInt(4));
@@ -49,29 +49,29 @@ void RenderTest3::Paint(IRender* pRender, const UiRect& rcPaint)
     textRect.bottom = textRect.top + nTextLineHeight;
     pRender->DrawString(textRect, L"DrawLine", UiColor(UiColors::Blue), GetIFontById(L"system_14"), TEXT_CENTER);
 
-    //»­Ò»¸öÕıÁù±ßĞÎ
+    //ç”»ä¸€ä¸ªæ­£å…­è¾¹å½¢
     UiRect hexagonRect = rect;
     hexagonRect.Offset(UiPoint(rect.Width() + 10, 0));
     DrawRegularHexagon3(pRender, hexagonRect.Center(), rect.Width() / 2, UiColor(UiColors::White), 2, UiColor(UiColors::Olive));
 
-    //»­Ò»¸öÕıÁù±ßĞÎ
+    //ç”»ä¸€ä¸ªæ­£å…­è¾¹å½¢
     hexagonRect.Offset(UiPoint(rect.Width() + 10, 0));
     UiPointF centerF((float)hexagonRect.CenterX(), (float)hexagonRect.CenterY());
     DrawRegularHexagon(pRender, centerF, rect.Width() / 2, UiColor(UiColors::White), 2, UiColor(UiColors::SandyBrown));
 
-    //ÓÃÕıÁù±ßĞÎÆ´½ÓÒ»¸ö¸´ÔÓÍ¼ĞÎ
+    //ç”¨æ­£å…­è¾¹å½¢æ‹¼æ¥ä¸€ä¸ªå¤æ‚å›¾å½¢
     hexagonRect.Offset(UiPoint(rect.Width() + 10, 0));
     DrawColorMap(pRender, hexagonRect);
 
-    //»»ĞĞ
-    currentBottom = textRect.bottom;//¼ÇÂ¼µ±Ç°µÄbottomÖµ
+    //æ¢è¡Œ
+    currentBottom = textRect.bottom;//è®°å½•å½“å‰çš„bottomå€¼
     rect = GetRect();
     rect.left += marginLeft;
     rect.right = rect.left;
     rect.top = currentBottom + marginTop;
     rect.bottom = rect.top + nSize;
     
-    //»­¾ØĞÎ
+    //ç”»çŸ©å½¢
     rect.left = rect.right + marginLeft;
     rect.right = rect.left + nSize;
     pRender->DrawRect(rect, UiColor(UiColors::Fuchsia), DpiScaledInt(2));
@@ -80,7 +80,7 @@ void RenderTest3::Paint(IRender* pRender, const UiRect& rcPaint)
     textRect.bottom = textRect.top + nTextLineHeight;
     pRender->DrawString(textRect, L"DrawRect", UiColor(UiColors::Blue), GetIFontById(L"system_14"), TEXT_CENTER);
 
-    //Ìî³ä¾ØĞÎ
+    //å¡«å……çŸ©å½¢
     rect.left = rect.right + marginLeft;
     rect.right = rect.left + nSize;
     pRender->FillRect(rect, UiColor(UiColors::Brown));
@@ -97,15 +97,15 @@ void RenderTest3::Paint(IRender* pRender, const UiRect& rcPaint)
     textRect.bottom = textRect.top + nTextLineHeight;
     pRender->DrawString(textRect, L"FillRect Alpha", UiColor(UiColors::Blue), GetIFontById(L"system_14"), TEXT_CENTER);
 
-    //»»ĞĞ
-    currentBottom = textRect.bottom;//¼ÇÂ¼µ±Ç°µÄbottomÖµ
+    //æ¢è¡Œ
+    currentBottom = textRect.bottom;//è®°å½•å½“å‰çš„bottomå€¼
     rect = GetRect();
     rect.left += marginLeft;
     rect.right = rect.left;
     rect.top = currentBottom + marginTop;
     rect.bottom = rect.top + nSize;
 
-    //»­Ô²½Ç¾ØĞÎ
+    //ç”»åœ†è§’çŸ©å½¢
     rect.left = rect.right + marginLeft;
     rect.right = rect.left + nSize;
     UiSize roundSize(12, 12);
@@ -116,7 +116,7 @@ void RenderTest3::Paint(IRender* pRender, const UiRect& rcPaint)
     textRect.bottom = textRect.top + nTextLineHeight;
     pRender->DrawString(textRect, L"DrawRoundRect", UiColor(UiColors::Blue), GetIFontById(L"system_14"), TEXT_CENTER);
 
-    //Ìî³äÔ²½Ç¾ØĞÎ
+    //å¡«å……åœ†è§’çŸ©å½¢
     rect.left = rect.right + marginLeft;
     rect.right = rect.left + nSize;
     pRender->FillRoundRect(rect, roundSize, UiColor(UiColors::Blue));
@@ -133,10 +133,10 @@ void RenderTest3::Paint(IRender* pRender, const UiRect& rcPaint)
     textRect.bottom = textRect.top + nTextLineHeight;
     pRender->DrawString(textRect, L"FillRoundRect Alpha", UiColor(UiColors::Blue), GetIFontById(L"system_14"), TEXT_CENTER);
 
-    //»­Ô²ĞÎ/Ìî³äÔ²ĞÎ
+    //ç”»åœ†å½¢/å¡«å……åœ†å½¢
     rect.left = rect.right + marginLeft;
     rect.right = rect.left + nSize;
-    int32_t radius = std::min(rect.Width(), rect.Height()) / 2;//Ô²µÄ°ë¾¶
+    int32_t radius = std::min(rect.Width(), rect.Height()) / 2;//åœ†çš„åŠå¾„
     pRender->DrawCircle(rect.Center(), radius, UiColor(UiColors::Blue), 2);
     textRect = rect;
     textRect.top = rect.bottom;
@@ -159,15 +159,15 @@ void RenderTest3::Paint(IRender* pRender, const UiRect& rcPaint)
     textRect.bottom = textRect.top + nTextLineHeight;
     pRender->DrawString(textRect, L"FillCircle Alpha", UiColor(UiColors::Blue), GetIFontById(L"system_14"), TEXT_CENTER);
     
-    //»»ĞĞ
-    currentBottom = textRect.bottom;//¼ÇÂ¼µ±Ç°µÄbottomÖµ
+    //æ¢è¡Œ
+    currentBottom = textRect.bottom;//è®°å½•å½“å‰çš„bottomå€¼
     rect = GetRect();
     rect.left += marginLeft;
     rect.right = rect.left;
     rect.top = currentBottom + marginTop;
     rect.bottom = rect.top + nSize;
 
-    //ÓÃDrawPath»­Ô²½ÇËÄ±ßĞÎ
+    //ç”¨DrawPathç”»åœ†è§’å››è¾¹å½¢
     rect.left = rect.right + marginLeft;
     rect.right = rect.left + nSize;
     IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
@@ -196,7 +196,7 @@ void RenderTest3::Paint(IRender* pRender, const UiRect& rcPaint)
     textRect.bottom = textRect.top + nTextLineHeight;
     pRender->DrawString(textRect, L"DrawPath", UiColor(UiColors::Blue), GetIFontById(L"system_14"), TEXT_CENTER);
 
-    //ÓÃFillPath»­Ô²½ÇËÄ±ßĞÎ
+    //ç”¨FillPathç”»åœ†è§’å››è¾¹å½¢
     rect.left = rect.right + marginLeft;
     rect.right = rect.left + nSize;
     if (pRenderFactory != nullptr) {
@@ -276,14 +276,14 @@ int RenderTest3::DpiScaledInt(int iValue)
 
 void RenderTest3::DrawColorMap(IRender* pRender, const UiRect& rect)
 {
-    int32_t radius = static_cast<int32_t>(rect.Width() / 13 / 2 / std::cos(30 / 57.2957795f)); //°ë¾¶
-    const float distance = radius * std::cos(30 / 57.2957795f); //ÖĞĞÄµãµ½±ßµÄ´¹Ö±¾àÀë
+    int32_t radius = static_cast<int32_t>(rect.Width() / 13 / 2 / std::cos(30 / 57.2957795f)); //åŠå¾„
+    const float distance = radius * std::cos(30 / 57.2957795f); //ä¸­å¿ƒç‚¹åˆ°è¾¹çš„å‚ç›´è·ç¦»
 
-    UiPointF firstCenterPt = UiPointF((float)rect.CenterX(), (float)rect.CenterY()); //¾ØĞÎÖĞĞÄµã×ø±ê
-    firstCenterPt.x = firstCenterPt.x - distance * 2 * 6 * std::sin(30 / 57.2957795f); //µÚÒ»¸öÁù±ßĞÎÖĞĞÄµãX×ø±ê
-    firstCenterPt.y = firstCenterPt.y - distance * 2 * 6 * std::cos(30 / 57.2957795f); //µÚÒ»¸öÁù±ßĞÎÖĞĞÄµãY×ø±ê
+    UiPointF firstCenterPt = UiPointF((float)rect.CenterX(), (float)rect.CenterY()); //çŸ©å½¢ä¸­å¿ƒç‚¹åæ ‡
+    firstCenterPt.x = firstCenterPt.x - distance * 2 * 6 * std::sin(30 / 57.2957795f); //ç¬¬ä¸€ä¸ªå…­è¾¹å½¢ä¸­å¿ƒç‚¹Xåæ ‡
+    firstCenterPt.y = firstCenterPt.y - distance * 2 * 6 * std::cos(30 / 57.2957795f); //ç¬¬ä¸€ä¸ªå…­è¾¹å½¢ä¸­å¿ƒç‚¹Yåæ ‡
 
-    for (int32_t y = 0; y < 13; ++y) { //¹²¼Æ13ĞĞ
+    for (int32_t y = 0; y < 13; ++y) { //å…±è®¡13è¡Œ
         int32_t count = 0;
         if (y < 7) {
             count = 7 + y;
@@ -317,16 +317,16 @@ bool RenderTest3::DrawRegularHexagon(IRender* pRender, const UiPointF& centerPt,
     if (pRenderFactory == nullptr) {
         return false;
     }
-    ASSERT(radius > 0); //¶à±ßĞÎµÄ°ë¾¶
+    ASSERT(radius > 0); //å¤šè¾¹å½¢çš„åŠå¾„
     if (radius <= 0) {
         return false;
     }
 
-    const int32_t count = 6; //¶à±ßĞÎµÄ±ßÊı
-    //Õı¶à±ßĞÎÉÏÈÎÒâÒ»¸ö¶¥µãµÄ×ø±êÎª£º x = r * cos(¦È) y = r * sin(¦È) 
+    const int32_t count = 6; //å¤šè¾¹å½¢çš„è¾¹æ•°
+    //æ­£å¤šè¾¹å½¢ä¸Šä»»æ„ä¸€ä¸ªé¡¶ç‚¹çš„åæ ‡ä¸ºï¼š x = r * cos(Î¸) y = r * sin(Î¸) 
     std::vector<UiPointF> polygonPoints;
     for (int32_t i = 0; i < count; ++i) {
-        int32_t degree = i * 60 + 30;// +30ÊÇÎªÁËÊ¹¶¥µãÔÚÖĞĞÄµãµÄ×îÉÏ·½
+        int32_t degree = i * 60 + 30;// +30æ˜¯ä¸ºäº†ä½¿é¡¶ç‚¹åœ¨ä¸­å¿ƒç‚¹çš„æœ€ä¸Šæ–¹
         float radian = degree / 57.2957795f;
         float x = radius * std::cos(radian) + 0.5f;
         float y = radius * std::sin(radian) + 0.5f;
@@ -368,10 +368,10 @@ bool RenderTest3::DrawRegularHexagon3(IRender* pRender, const UiPoint& centerPt,
     const int count = 6;
     UiPoint oldWindowOrg = pRender->SetWindowOrg(UiPoint(centerPt.x, centerPt.y));
 
-    //¿ªÊ¼»æÖÆ¶à±ßĞÎ£¬²¢ÎªÃ¿¸öÇø¿éÉÏÉ«
+    //å¼€å§‹ç»˜åˆ¶å¤šè¾¹å½¢ï¼Œå¹¶ä¸ºæ¯ä¸ªåŒºå—ä¸Šè‰²
     for (int i = 0; i < count; ++i)
     {
-        //ÉèÖĞĞÄµãµ½±ßµÄ´¹ÏßÓë°ë¾¶µÄ¼Ğ½ÇÎªdegree=(360/count)/2¼´£º
+        //è®¾ä¸­å¿ƒç‚¹åˆ°è¾¹çš„å‚çº¿ä¸åŠå¾„çš„å¤¹è§’ä¸ºdegree=(360/count)/2å³ï¼š
         float degree = 180.0f / count;
 
         float radian = degree / 57.2957795f;
@@ -380,7 +380,7 @@ bool RenderTest3::DrawRegularHexagon3(IRender* pRender, const UiPoint& centerPt,
 
         std::unique_ptr<IPath> path(pRenderFactory->CreatePath());
 
-        //»æÖÆ¸ÃÈı½ÇÇø¿é
+        //ç»˜åˆ¶è¯¥ä¸‰è§’åŒºå—
         path->AddLine(0, 0, -width, -height);
         path->AddLine(-width, -height, width, -height);
         path->AddLine(width, -height, 0, 0);

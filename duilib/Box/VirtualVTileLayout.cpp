@@ -56,7 +56,7 @@ UiSize64 VirtualVTileLayout::ArrangeChild(const std::vector<ui::Control*>& items
 {
     VirtualListBox* pList = dynamic_cast<VirtualListBox*>(GetOwner());
     if ((pList == nullptr) || !pList->HasDataProvider()) {
-        //Èç¹ûÎ´ÉèÖÃÊı¾İ½Ó¿Ú£¬Ôò¼æÈİ»ùÀàµÄ¹¦ÄÜ
+        //å¦‚æœæœªè®¾ç½®æ•°æ®æ¥å£ï¼Œåˆ™å…¼å®¹åŸºç±»çš„åŠŸèƒ½
         return __super::ArrangeChild(items, rc);
     }
     DeflatePadding(rc);
@@ -71,7 +71,7 @@ UiSize VirtualVTileLayout::EstimateSizeByChild(const std::vector<Control*>& item
 {
     VirtualListBox* pList = dynamic_cast<VirtualListBox*>(GetOwner());
     if ((pList == nullptr) || !pList->HasDataProvider()) {
-        //Èç¹ûÎ´ÉèÖÃÊı¾İ½Ó¿Ú£¬Ôò¼æÈİ»ùÀàµÄ¹¦ÄÜ
+        //å¦‚æœæœªè®¾ç½®æ•°æ®æ¥å£ï¼Œåˆ™å…¼å®¹åŸºç±»çš„åŠŸèƒ½
         return __super::EstimateSizeByChild(items, szAvailable);
     }
     UiSize szItem = GetItemSize();
@@ -108,7 +108,7 @@ int64_t VirtualVTileLayout::GetElementsHeight(UiRect rc, size_t nCount) const
     }
     int32_t nColumns = CalcTileColumns(rc.Width());
     if (nCount <= (size_t)nColumns && nCount != Box::InvalidIndex) {
-        //²»µ½1ĞĞ£¬»òÕß¸ÕºÃ1ĞĞ
+        //ä¸åˆ°1è¡Œï¼Œæˆ–è€…åˆšå¥½1è¡Œ
         return szItem.cy + GetChildMarginY();
     }
     if (!Box::IsValidItemIndex(nCount)) {
@@ -159,31 +159,31 @@ void VirtualVTileLayout::LazyArrangeChild(UiRect rc) const
         return;
     }
 
-    //ÁĞÊı
+    //åˆ—æ•°
     int32_t nColumns = CalcTileColumns(rc.Width());
 
-    //×ÓÏîµÄ×ó±ßÆğÊ¼Î»ÖÃ 
+    //å­é¡¹çš„å·¦è¾¹èµ·å§‹ä½ç½® 
     int32_t iPosLeft = rc.left;
 
-    //YÖá×ø±êµÄÆ«ÒÆ£¬ĞèÒª±£³Ö£¬±ÜÃâ¹ö¶¯Î»ÖÃ±ä¶¯ºó£¬ÖØĞÂË¢ĞÂ½çÃæ³öÏÖÆ«²î
+    //Yè½´åæ ‡çš„åç§»ï¼Œéœ€è¦ä¿æŒï¼Œé¿å…æ»šåŠ¨ä½ç½®å˜åŠ¨åï¼Œé‡æ–°åˆ·æ–°ç•Œé¢å‡ºç°åå·®
     int32_t yOffset = 0;
     int64_t itemHeight = GetElementsHeight(rc, 1);
     if (itemHeight > 0) {
         yOffset = TruncateToInt32(pOwnerBox->GetScrollPos().cy % itemHeight);
     }
 
-    //×ÓÏîµÄ¶¥²¿ÆğÊ¼Î»ÖÃ
+    //å­é¡¹çš„é¡¶éƒ¨èµ·å§‹ä½ç½®
     int32_t iPosTop = rc.top - yOffset;
 
-    //ÉèÖÃĞéÄâÆ«ÒÆ£¬·ñÔòµ±Êı¾İÁ¿½Ï´óÊ±£¬rcÕâ¸ö32Î»µÄ¾ØĞÎµÄ¸ß¶È»áÔ½½ç£¬ĞèÒª64Î»ÕûĞÍ²ÅÄÜÈİÄÉ
+    //è®¾ç½®è™šæ‹Ÿåç§»ï¼Œå¦åˆ™å½“æ•°æ®é‡è¾ƒå¤§æ—¶ï¼Œrcè¿™ä¸ª32ä½çš„çŸ©å½¢çš„é«˜åº¦ä¼šè¶Šç•Œï¼Œéœ€è¦64ä½æ•´å‹æ‰èƒ½å®¹çº³
     pOwnerBox->SetScrollVirtualOffsetY(pOwnerBox->GetScrollPos().cy);
 
-    //¿Ø¼şµÄ×óÉÏ½Ç×ø±êÖµ
+    //æ§ä»¶çš„å·¦ä¸Šè§’åæ ‡å€¼
     ui::UiPoint ptTile(iPosLeft, iPosTop);
 
     VirtualListBox::RefreshDataList refreshDataList;
     VirtualListBox::RefreshData refreshData;
-    // ¶¥²¿index
+    // é¡¶éƒ¨index
     size_t nTopIndex = GetTopElementIndex(rc);
     size_t iCount = 0;
     size_t nItemCount = pOwnerBox->m_items.size();
@@ -196,7 +196,7 @@ void VirtualVTileLayout::LazyArrangeChild(UiRect rc) const
         ui::UiRect rcTile(ptTile.x, ptTile.y, ptTile.x + szItem.cx, ptTile.y + szItem.cy);
         pControl->SetPos(rcTile);
 
-        // Ìî³äÊı¾İ
+        // å¡«å……æ•°æ®
         size_t nElementIndex = nTopIndex + iCount;
         if (nElementIndex < pOwnerBox->GetElementCount()) {
             if (!pControl->IsVisible()) {
@@ -239,14 +239,14 @@ size_t VirtualVTileLayout::AjustMaxItem(UiRect rc) const
     }
     int32_t nColumns = CalcTileColumns(rc.Width());
     int32_t nRows = rc.Height() / (szItem.cy + GetChildMarginY() / 2);
-    //ÑéÖ¤²¢ĞŞÕı
+    //éªŒè¯å¹¶ä¿®æ­£
     if (nRows > 1) {
         int32_t calcHeight = nRows * szItem.cy + (nRows - 1) * GetChildMarginY();
         if (calcHeight < rc.Height()) {
             nRows += 1;
         }
     }
-    //¶îÍâÔö¼Ó1ĞĞ£¬È·±£ÕæÊµ¿Ø¼şÌî³äÂúÕû¸ö¿ÉÏÔÊ¾ÇøÓò
+    //é¢å¤–å¢åŠ 1è¡Œï¼Œç¡®ä¿çœŸå®æ§ä»¶å¡«å……æ»¡æ•´ä¸ªå¯æ˜¾ç¤ºåŒºåŸŸ
     nRows += 1;
     return nRows * nColumns;
 }
@@ -288,10 +288,10 @@ bool VirtualVTileLayout::IsElementDisplay(UiRect rc, size_t iIndex) const
     int64_t nScrollPos = pOwnerBox->GetScrollPos().cy;
     int64_t nElementPos = GetElementsHeight(rc, iIndex + 1);
     UiSize szItem = GetItemSize();
-    if ((nElementPos - szItem.cy) > nScrollPos) { //¾ØĞÎµÄtopÎ»ÖÃ
+    if ((nElementPos - szItem.cy) > nScrollPos) { //çŸ©å½¢çš„topä½ç½®
         int64_t nBoxHeight = pOwnerBox->GetHeight();
-        if (nElementPos <= (nScrollPos + nBoxHeight)) {//¾ØĞÎµÄbottomÎ»ÖÃ
-            //ÍêÕûÏÔÊ¾
+        if (nElementPos <= (nScrollPos + nBoxHeight)) {//çŸ©å½¢çš„bottomä½ç½®
+            //å®Œæ•´æ˜¾ç¤º
             return true;
         }
     }
@@ -399,12 +399,12 @@ void VirtualVTileLayout::EnsureVisible(UiRect rc, size_t iIndex, bool bToTop) co
         int64_t nTopRows = nTopIndex / nColumns;
         int64_t nDestRows = iIndex / nColumns;
         if ((int64_t)nDestRows > nTopRows) {
-            // ÏòÏÂ¹ö¶¯£ºÈ·±£ÔÚµ×²¿
+            // å‘ä¸‹æ»šåŠ¨ï¼šç¡®ä¿åœ¨åº•éƒ¨
             int64_t height = GetElementsHeight(rc, iIndex + 1);
             nNewPos = height - pOwnerBox->GetRect().Height();
         }
         else {
-            // ÏòÉÏ¹ö¶¯£ºÈ·±£ÔÚ¶¥²¿
+            // å‘ä¸Šæ»šåŠ¨ï¼šç¡®ä¿åœ¨é¡¶éƒ¨
             nNewPos = GetElementsHeight(rc, iIndex + 1);
             if (nNewPos >= elementHeight) {
                 nNewPos -= elementHeight;

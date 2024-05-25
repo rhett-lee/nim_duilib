@@ -34,11 +34,11 @@ std::wstring MoveControlForm::GetWindowClassName() const
 
 void MoveControlForm::OnInitWindow()
 {
-	//Ìí¼ÓÓ¦ÓÃ¡£Ó¦ÓÃÓĞ¿ÉÄÜÊÇ·şÎñÆ÷ÏÂ·¢µÄ£¬Ò»°ã±¾µØÒ²ÓĞ±£´æµÄ
+	//æ·»åŠ åº”ç”¨ã€‚åº”ç”¨æœ‰å¯èƒ½æ˜¯æœåŠ¡å™¨ä¸‹å‘çš„ï¼Œä¸€èˆ¬æœ¬åœ°ä¹Ÿæœ‰ä¿å­˜çš„
 	//loadFromDb
-	//getFromServer---->ºóÌ¨¿ÉÒÔÏÈ±£´æµ½db£¬ÔÙpost¸öÏûÏ¢³öÀ´£¬½çÃæÖØĞÂ´Ódb load¡£
+	//getFromServer---->åå°å¯ä»¥å…ˆä¿å­˜åˆ°dbï¼Œå†postä¸ªæ¶ˆæ¯å‡ºæ¥ï¼Œç•Œé¢é‡æ–°ä»db loadã€‚
 
-	//×÷Îªdemo£¬ÏÈĞ´ËÀ
+	//ä½œä¸ºdemoï¼Œå…ˆå†™æ­»
 	std::vector<AppItem> applist;
 	CAppDb::GetInstance().LoadFromDb(applist);
 
@@ -62,7 +62,7 @@ void MoveControlForm::OnInitWindow()
 
 void MoveControlForm::OnCloseWindow()
 {
-	//¹Ø±Õ´°¿Úºó£¬ÍË³öÖ÷Ïß³ÌµÄÏûÏ¢Ñ­»·£¬¹Ø±Õ³ÌĞò
+	//å…³é—­çª—å£åï¼Œé€€å‡ºä¸»çº¿ç¨‹çš„æ¶ˆæ¯å¾ªç¯ï¼Œå…³é—­ç¨‹åº
 	PostQuitMessage(0L);
 }
 

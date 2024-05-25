@@ -19,9 +19,9 @@ CefControlBase::CefControlBase(ui::Window* pWindow):
 {
 	devtool_attached_ = false;
 #if !defined(SUPPORT_CEF)
-	ASSERT(FALSE && L"ÒªÊ¹ÓÃCef¹¦ÄÜÇë¿ªÆôSUPPORT_CEFºê");
+	ASSERT(FALSE && L"è¦ä½¿ç”¨CefåŠŸèƒ½è¯·å¼€å¯SUPPORT_CEFå®");
 #endif
-	//Õâ¸ö±ê¼Ç±ØĞëÎªfalse£¬·ñÔò»æÖÆÓĞÎÊÌâ
+	//è¿™ä¸ªæ ‡è®°å¿…é¡»ä¸ºfalseï¼Œå¦åˆ™ç»˜åˆ¶æœ‰é—®é¢˜
 	SetUseCache(false);
 }
 

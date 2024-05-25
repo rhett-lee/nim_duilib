@@ -13,14 +13,14 @@ class UILIB_API ButtonTemplate : public LabelTemplate<InheritType>
 public:
     explicit ButtonTemplate(Window* pWindow);
 
-    /// ÖØĞ´¸¸Àà·½·¨£¬Ìá¹©¸öĞÔ»¯¹¦ÄÜ£¬Çë²Î¿¼¸¸ÀàÉùÃ÷
+    /// é‡å†™çˆ¶ç±»æ–¹æ³•ï¼Œæä¾›ä¸ªæ€§åŒ–åŠŸèƒ½ï¼Œè¯·å‚è€ƒçˆ¶ç±»å£°æ˜
     virtual std::wstring GetType() const override;
     virtual void Activate() override;
     virtual void HandleEvent(const EventArgs& msg) override;
     virtual uint32_t GetControlFlags() const override;
 
-    /** ¸Ã¿Ø¼şÊÇ·ñ¿ÉÒÔ·ÅÖÃÔÚ±êÌâÀ¸ÉÏ£¨ÒÔÓÃÓÚ´¦ÀíNCÏûÏ¢ÏìÓ¦£©
-     * @return ·µ»Ø true ±íÊ¾¿ÉÒÔ£¬false ±íÊ¾²»¿ÉÒÔ£¬ Ä¬ÈÏ·µ»Øfalse
+    /** è¯¥æ§ä»¶æ˜¯å¦å¯ä»¥æ”¾ç½®åœ¨æ ‡é¢˜æ ä¸Šï¼ˆä»¥ç”¨äºå¤„ç†NCæ¶ˆæ¯å“åº”ï¼‰
+     * @return è¿”å› true è¡¨ç¤ºå¯ä»¥ï¼Œfalse è¡¨ç¤ºä¸å¯ä»¥ï¼Œ é»˜è®¤è¿”å›false
      */
     virtual bool CanPlaceCaptionBar() const override;
 };
@@ -49,7 +49,7 @@ void ButtonTemplate<InheritType>::HandleEvent(const EventArgs& msg)
 {
     if (msg.Type == kEventKeyDown) {
         if (this->IsEnabled() && this->IsKeyboardEnabled()) {
-            //°´ÏÂ»Ø³µ¼ü»òÕß¿Õ¸ñ¼üµÄÊ±ºò£¬´¥·¢°´Å¥ÏìÓ¦¶¯×÷
+            //æŒ‰ä¸‹å›è½¦é”®æˆ–è€…ç©ºæ ¼é”®çš„æ—¶å€™ï¼Œè§¦å‘æŒ‰é’®å“åº”åŠ¨ä½œ
             if (msg.chKey == VK_SPACE || msg.chKey == VK_RETURN) {
                 Activate();
                 return;

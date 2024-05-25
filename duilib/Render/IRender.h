@@ -8,41 +8,41 @@
 
 namespace ui 
 {
-/** ×ÖÌå½Ó¿Ú
+/** å­—ä½“æ¥å£
 */
 class UILIB_API IFont: public virtual nbase::SupportWeakCallback
 {
 public:
-	/** ³õÊ¼»¯×ÖÌå(ÄÚ²¿Î´¶Ô×ÖÌå´óĞ¡×öDPI×ÔÊÊÓ¦)
+	/** åˆå§‹åŒ–å­—ä½“(å†…éƒ¨æœªå¯¹å­—ä½“å¤§å°åšDPIè‡ªé€‚åº”)
  	*/
 	virtual bool InitFont(const UiFont& fontInfo) = 0;
 
-	/** »ñÈ¡×ÖÌåÃû
+	/** è·å–å­—ä½“å
 	*/
 	virtual const wchar_t* FontName() const = 0;
 
-	/** »ñÈ¡×ÖÌå´óĞ¡(×ÖÌå¸ß¶È)
+	/** è·å–å­—ä½“å¤§å°(å­—ä½“é«˜åº¦)
 	*/
 	virtual int FontSize() const = 0;
 
-	/** ÊÇ·ñÎª´ÖÌå
+	/** æ˜¯å¦ä¸ºç²—ä½“
 	*/
 	virtual bool IsBold() const = 0;
 
-	/** ×ÖÌåÏÂ»®Ïß×´Ì¬
+	/** å­—ä½“ä¸‹åˆ’çº¿çŠ¶æ€
 	*/
 	virtual bool IsUnderline() const = 0;
 
-	/** ×ÖÌåµÄĞ±Ìå×´Ì¬
+	/** å­—ä½“çš„æ–œä½“çŠ¶æ€
 	*/
 	virtual bool IsItalic() const = 0;
 
-	/** ×ÖÌåµÄÉ¾³ıÏß×´Ì¬
+	/** å­—ä½“çš„åˆ é™¤çº¿çŠ¶æ€
 	*/
 	virtual bool IsStrikeOut() const = 0;
 };
 
-/** SkiaÒıÇæĞèÒª´«ÈëAlphaÀàĞÍ
+/** Skiaå¼•æ“éœ€è¦ä¼ å…¥Alphaç±»å‹
 */
 enum UILIB_API BitmapAlphaType: int
 {
@@ -52,151 +52,151 @@ enum UILIB_API BitmapAlphaType: int
 	kUnpremul_SkAlphaType	//!< pixel components are independent of alpha
 };
 
-/** Î»Í¼½Ó¿Ú
+/** ä½å›¾æ¥å£
 */
 class UILIB_API IBitmap : public virtual nbase::SupportWeakCallback
 {
 public:
-	/** ´ÓÊı¾İ³õÊ¼»¯£¨ARGB¸ñÊ½£©
-	@param [in] nWidth ¿í¶È
-	@param [in] nHeight ¸ß¶È
-	@param [in] flipHeight ÊÇ·ñ·­×ªÎ»Í¼£¬Èç¹ûÎªtrue£¬´´½¨Î»Í¼µÄÊ±ºò£¬ÒÔ×óÉÏ½ÇÎªÔ²µã£¬Í¼Ïñ·½ÏòÊÇ´ÓÉÏµ½ÏÂµÄ£»
-	                       Èç¹ûÎªfalse£¬ÔòÒÔ×óÏÂ½ÇÎªÔ²µã£¬Í¼Ïñ·½ÏòÊÇ´ÓÏÂµ½ÉÏ¡£
-	@param [in] pPixelBits Î»Í¼Êı¾İ, Èç¹ûÎªnullptr±íÊ¾´°¿Ú¿ÕÎ»Í¼£¬Èç¹û²»Îªnullptr£¬ÆäÊı¾İ³¤¶ÈÎª£ºnWidth*4*nHeight
-	@param [in] alphaType Î»Í¼µÄAlphaÀàĞÍ£¬Ö»ÓĞSkiaÒıÇæĞèÒª´Ë²ÎÊı
+	/** ä»æ•°æ®åˆå§‹åŒ–ï¼ˆARGBæ ¼å¼ï¼‰
+	@param [in] nWidth å®½åº¦
+	@param [in] nHeight é«˜åº¦
+	@param [in] flipHeight æ˜¯å¦ç¿»è½¬ä½å›¾ï¼Œå¦‚æœä¸ºtrueï¼Œåˆ›å»ºä½å›¾çš„æ—¶å€™ï¼Œä»¥å·¦ä¸Šè§’ä¸ºåœ†ç‚¹ï¼Œå›¾åƒæ–¹å‘æ˜¯ä»ä¸Šåˆ°ä¸‹çš„ï¼›
+	                       å¦‚æœä¸ºfalseï¼Œåˆ™ä»¥å·¦ä¸‹è§’ä¸ºåœ†ç‚¹ï¼Œå›¾åƒæ–¹å‘æ˜¯ä»ä¸‹åˆ°ä¸Šã€‚
+	@param [in] pPixelBits ä½å›¾æ•°æ®, å¦‚æœä¸ºnullptrè¡¨ç¤ºçª—å£ç©ºä½å›¾ï¼Œå¦‚æœä¸ä¸ºnullptrï¼Œå…¶æ•°æ®é•¿åº¦ä¸ºï¼šnWidth*4*nHeight
+	@param [in] alphaType ä½å›¾çš„Alphaç±»å‹ï¼Œåªæœ‰Skiaå¼•æ“éœ€è¦æ­¤å‚æ•°
 	*/
 	virtual bool Init(uint32_t nWidth, uint32_t nHeight, bool flipHeight, 
 					  const void* pPixelBits, BitmapAlphaType alphaType = kPremul_SkAlphaType) = 0;
 
-	/** »ñÈ¡Í¼Æ¬¿í¶È
+	/** è·å–å›¾ç‰‡å®½åº¦
 	*/
 	virtual uint32_t GetWidth() const = 0;
 
-	/** »ñÈ¡Í¼Æ¬¸ß¶È
+	/** è·å–å›¾ç‰‡é«˜åº¦
 	*/
 	virtual uint32_t GetHeight() const = 0;
 
-	/** »ñÈ¡Í¼Æ¬´óĞ¡
-	@return Í¼Æ¬´óĞ¡
+	/** è·å–å›¾ç‰‡å¤§å°
+	@return å›¾ç‰‡å¤§å°
 	*/
 	virtual UiSize GetSize() const = 0;
 
-	/** Ëø¶¨Î»Í¼Êı¾İ£¬Êı¾İ³¤¶È = GetWidth() * GetHeight() * 4
+	/** é”å®šä½å›¾æ•°æ®ï¼Œæ•°æ®é•¿åº¦ = GetWidth() * GetHeight() * 4
 	*/
 	virtual void* LockPixelBits() = 0;
 
-	/** ÊÍ·ÅÎ»Í¼Êı¾İ
+	/** é‡Šæ”¾ä½å›¾æ•°æ®
 	*/
 	virtual void UnLockPixelBits() = 0;
 
-	/** ¸ÃÎ»Í¼ÊÇ·ñÓĞÍ¸Ã÷ÊôĞÔ(¼´Í¸Ã÷Í¨µÀÖĞ£¬º¬ÓĞ²»ÊÇ255µÄÊı¾İ)
+	/** è¯¥ä½å›¾æ˜¯å¦æœ‰é€æ˜å±æ€§(å³é€æ˜é€šé“ä¸­ï¼Œå«æœ‰ä¸æ˜¯255çš„æ•°æ®)
 	*/
 	virtual bool IsAlphaBitmap() const = 0;
 
-	/** ¿ËÂ¡Éú³ÉĞÂµÄµÄÎ»Í¼
-	*@return ·µ»ØĞÂÉú³ÉµÄÎ»Í¼½Ó¿Ú£¬ÓÉµ÷ÓÃ·½ÊÍ·Å×ÊÔ´
+	/** å…‹éš†ç”Ÿæˆæ–°çš„çš„ä½å›¾
+	*@return è¿”å›æ–°ç”Ÿæˆçš„ä½å›¾æ¥å£ï¼Œç”±è°ƒç”¨æ–¹é‡Šæ”¾èµ„æº
 	*/
 	virtual IBitmap* Clone() = 0;
 };
 
-/** »­±Ê½Ó¿Ú
+/** ç”»ç¬”æ¥å£
 */
 class UILIB_API IPen : public virtual nbase::SupportWeakCallback
 {
 public:
-	/** ÉèÖÃ»­±Ê¿í¶È
+	/** è®¾ç½®ç”»ç¬”å®½åº¦
 	*/
 	virtual void SetWidth(int width) = 0;
 
-	/** »ñÈ¡»­±Ê¿í¶È
+	/** è·å–ç”»ç¬”å®½åº¦
 	*/
 	virtual int GetWidth() const = 0;
 
-	/** ÉèÖÃ»­±ÊÑÕÉ«
+	/** è®¾ç½®ç”»ç¬”é¢œè‰²
 	*/
 	virtual void SetColor(UiColor color) = 0;
 
-	/** »ñÈ¡»­±ÊÑÕÉ«
+	/** è·å–ç”»ç¬”é¢œè‰²
 	*/
 	virtual UiColor GetColor() const = 0;
 
-	/** ±ÊÃ±ÑùÊ½
+	/** ç¬”å¸½æ ·å¼
 	*/
 	enum LineCap
 	{
-		kButt_Cap   = 0,	//Æ½±ÊÃ±£¨Ä¬ÈÏ£©
-		kRound_Cap  = 1,	//Ô²±ÊÃ±
-		kSquare_Cap = 2		//·½±ÊÃ±
+		kButt_Cap   = 0,	//å¹³ç¬”å¸½ï¼ˆé»˜è®¤ï¼‰
+		kRound_Cap  = 1,	//åœ†ç¬”å¸½
+		kSquare_Cap = 2		//æ–¹ç¬”å¸½
 	};
 
-	/** ÉèÖÃÏß¶ÎÆğÊ¼µÄ±ÊÃ±ÑùÊ½
+	/** è®¾ç½®çº¿æ®µèµ·å§‹çš„ç¬”å¸½æ ·å¼
 	*/
 	virtual void SetStartCap(LineCap cap) = 0;
 
-	/** »ñÈ¡Ïß¶ÎÆğÊ¼µÄ±ÊÃ±ÑùÊ½
+	/** è·å–çº¿æ®µèµ·å§‹çš„ç¬”å¸½æ ·å¼
 	*/
 	virtual LineCap GetStartCap() const = 0;
 
-	/** ÉèÖÃÏß¶Î½áÊøµÄ±ÊÃ±ÑùÊ½
+	/** è®¾ç½®çº¿æ®µç»“æŸçš„ç¬”å¸½æ ·å¼
 	*/
 	virtual void SetEndCap(LineCap cap) = 0;
 
-	/** »ñÈ¡Ïß¶Î½áÊøµÄ±ÊÃ±ÑùÊ½
+	/** è·å–çº¿æ®µç»“æŸçš„ç¬”å¸½æ ·å¼
 	*/
 	virtual LineCap GetEndCap() const = 0;
 
-	/** ÉèÖÃ¶Ì»®Ïß±ÊÃ±µÄÑùÊ½
+	/** è®¾ç½®çŸ­åˆ’çº¿ç¬”å¸½çš„æ ·å¼
 	*/
 	virtual void SetDashCap(LineCap cap) = 0;
 
-	/** »ñÈ¡¶Ì»®Ïß±ÊÃ±µÄÑùÊ½
+	/** è·å–çŸ­åˆ’çº¿ç¬”å¸½çš„æ ·å¼
 	*/
 	virtual LineCap GetDashCap() const = 0;
 
-	/** Ïß¶ÎÄ©Î²Ê¹ÓÃµÄÁª½ÓÑùÊ½£¬¸ÃÏß¶ÎÓëÁíÒ»¸öÏß¶ÎÏàÓö
+	/** çº¿æ®µæœ«å°¾ä½¿ç”¨çš„è”æ¥æ ·å¼ï¼Œè¯¥çº¿æ®µä¸å¦ä¸€ä¸ªçº¿æ®µç›¸é‡
 	*/
 	enum LineJoin
 	{
-		kMiter_Join = 0,	//¼â½Ç£¨Ä¬ÈÏ£©
-		kBevel_Join = 1,	//Æ½½Ç
-		kRound_Join = 2		//Ô²½Ç		
+		kMiter_Join = 0,	//å°–è§’ï¼ˆé»˜è®¤ï¼‰
+		kBevel_Join = 1,	//å¹³è§’
+		kRound_Join = 2		//åœ†è§’		
 	};
 
-	/** ÉèÖÃÏß¶ÎÄ©Î²Ê¹ÓÃµÄÁª½ÓÑùÊ½
+	/** è®¾ç½®çº¿æ®µæœ«å°¾ä½¿ç”¨çš„è”æ¥æ ·å¼
 	*/
 	virtual void SetLineJoin(LineJoin join) = 0;
 
-	/** »ñÈ¡Ïß¶ÎÄ©Î²Ê¹ÓÃµÄÁª½ÓÑùÊ½
+	/** è·å–çº¿æ®µæœ«å°¾ä½¿ç”¨çš„è”æ¥æ ·å¼
 	*/
 	virtual LineJoin GetLineJoin() const = 0;
 
-	/** ±Ê»æÖÆµÄÏßÌõµÄÏßÌõÑùÊ½
+	/** ç¬”ç»˜åˆ¶çš„çº¿æ¡çš„çº¿æ¡æ ·å¼
 	*/
 	enum DashStyle
 	{
-		kDashStyleSolid			= 0,	//ÊµÏß£¨Ä¬ÈÏ£©
-		kDashStyleDash			= 1,	//ĞéÏß
-		kDashStyleDot			= 2,	//ĞéÏß
-		kDashStyleDashDot		= 3,	//½»ÌæĞéÏß
-		kDashStyleDashDotDot	= 4		//½»Ìæ¶Ì»®ÏßµãµãÏß
+		kDashStyleSolid			= 0,	//å®çº¿ï¼ˆé»˜è®¤ï¼‰
+		kDashStyleDash			= 1,	//è™šçº¿
+		kDashStyleDot			= 2,	//è™šçº¿
+		kDashStyleDashDot		= 3,	//äº¤æ›¿è™šçº¿
+		kDashStyleDashDotDot	= 4		//äº¤æ›¿çŸ­åˆ’çº¿ç‚¹ç‚¹çº¿
 	};
 
-	/** ÉèÖÃ»æÖÆµÄÏßÌõÑùÊ½
+	/** è®¾ç½®ç»˜åˆ¶çš„çº¿æ¡æ ·å¼
 	*/
 	virtual void SetDashStyle(DashStyle style) = 0;
 
-	/** »ñÈ¡»æÖÆµÄÏßÌõÑùÊ½
+	/** è·å–ç»˜åˆ¶çš„çº¿æ¡æ ·å¼
 	*/
 	virtual DashStyle GetDashStyle() const = 0;
 
-	/** ¸´ÖÆPen¶ÔÏó
+	/** å¤åˆ¶Penå¯¹è±¡
 	*/
 	virtual IPen* Clone() const = 0;
 };
 
-/** »­Ë¢½Ó¿Ú
+/** ç”»åˆ·æ¥å£
 */
-//Ä¿Ç°Ö»Ö§³ÖÒ»¸öSolidBrush
+//ç›®å‰åªæ”¯æŒä¸€ä¸ªSolidBrush
 class UILIB_API IBrush : public virtual nbase::SupportWeakCallback
 {
 public:
@@ -204,13 +204,13 @@ public:
 	virtual UiColor GetColor() const = 0;
 };
 
-/** Â·¾¶½Ó¿Ú
+/** è·¯å¾„æ¥å£
 */
 class IMatrix;
 class UILIB_API IPath : public virtual nbase::SupportWeakCallback
 {
 public:	
-	/** Ìî³äÀàĞÍ£¬ÔÚÂ·¾¶»òÇúÏßÏà½»Ê±ÈçºÎÌî³äĞÎ³ÉµÄÇøÓò
+	/** å¡«å……ç±»å‹ï¼Œåœ¨è·¯å¾„æˆ–æ›²çº¿ç›¸äº¤æ—¶å¦‚ä½•å¡«å……å½¢æˆçš„åŒºåŸŸ
 	*/
 	enum class FillType 
 	{
@@ -231,147 +231,147 @@ public:
 		kInverseWinding	= 3
 	};
 
-	/** ÉèÖÃÌî³äÀàĞÍ
+	/** è®¾ç½®å¡«å……ç±»å‹
 	*/
 	virtual void SetFillType(FillType mode) = 0;
 
-	/** »ñÈ¡Ìî³äÀàĞÍ
+	/** è·å–å¡«å……ç±»å‹
 	*/
 	virtual FillType GetFillType() = 0;
 
-	/** ½«Ò»ĞĞÌí¼Óµ½´ËÂ·¾¶µÄµ±Ç°Í¼ÖĞ
-	* @param [in] x1 ÏßÌõÆğµãµÄ x ×ø±ê
-	* @param [in] y1 ÏßÌõÆğµãµÄ y ×ø±ê
-	* @param [in] x2 ÏßÌõÖÕµãµÄ x ×ø±ê
-	* @param [in] y2 ÏßÌõÖÕµãµÄ y ×ø±ê
+	/** å°†ä¸€è¡Œæ·»åŠ åˆ°æ­¤è·¯å¾„çš„å½“å‰å›¾ä¸­
+	* @param [in] x1 çº¿æ¡èµ·ç‚¹çš„ x åæ ‡
+	* @param [in] y1 çº¿æ¡èµ·ç‚¹çš„ y åæ ‡
+	* @param [in] x2 çº¿æ¡ç»ˆç‚¹çš„ x åæ ‡
+	* @param [in] y2 çº¿æ¡ç»ˆç‚¹çš„ y åæ ‡
 	*/
 	virtual void AddLine(int x1, int y1, int x2, int y2) = 0;
 
-	/** Ïò´ËÂ·¾¶µÄµ±Ç°Í¼Ìí¼ÓÒ»ÏµÁĞÁ¬½ÓÏß
-	* @param [in] points ÏßÌõÆğµãºÍÖÕµãµÄµãÊı×é, Êı×éÖĞµÄµÚÒ»¸öµãÊÇµÚÒ»ĞĞµÄÆğµã£¬
-	                     Êı×éÖĞµÄ×îºóÒ»¸öµãÊÇ×îºóÒ»ĞĞµÄÖÕµã¡£ 
-						 ÆäËûÃ¿¸öµã¶¼ÓÃ×÷Ò»ĞĞµÄÖÕµã£¬ÏÂÒ»ĞĞµÄÆğµã¡£
-	* @param [in] count µãÊı×éÖĞµÄÔªËØÊı
+	/** å‘æ­¤è·¯å¾„çš„å½“å‰å›¾æ·»åŠ ä¸€ç³»åˆ—è¿æ¥çº¿
+	* @param [in] points çº¿æ¡èµ·ç‚¹å’Œç»ˆç‚¹çš„ç‚¹æ•°ç»„, æ•°ç»„ä¸­çš„ç¬¬ä¸€ä¸ªç‚¹æ˜¯ç¬¬ä¸€è¡Œçš„èµ·ç‚¹ï¼Œ
+	                     æ•°ç»„ä¸­çš„æœ€åä¸€ä¸ªç‚¹æ˜¯æœ€åä¸€è¡Œçš„ç»ˆç‚¹ã€‚ 
+						 å…¶ä»–æ¯ä¸ªç‚¹éƒ½ç”¨ä½œä¸€è¡Œçš„ç»ˆç‚¹ï¼Œä¸‹ä¸€è¡Œçš„èµ·ç‚¹ã€‚
+	* @param [in] count ç‚¹æ•°ç»„ä¸­çš„å…ƒç´ æ•°
 	*/
 	virtual void AddLines(const UiPoint* points, int count) = 0;
 
-	/** ½«±´Èû¶û(B¨¦zier)ÇúÏßÑùÌõÌí¼Óµ½´ËÂ·¾¶µÄµ±Ç°Í¼ÖĞ
-	*    ±´Èû¶û×ÔÓÉ»æÖÆÇúÏßÊÇÒ»ÌõÓÉËÄ¸öµãÖ¸¶¨µÄÇúÏß£º
-	*    Á½¸ö¶Ëµã£¨p1[x1,y1] ºÍ p2[x4,y4]£©ºÍÁ½¸ö¿ØÖÆµã£¨c1[x2,y2] ºÍ c2[x3,y3]£©¡£ 
-	*	 ÇúÏß´Ó p1 ¿ªÊ¼£¬ÒÔ p2 ½áÎ²¡£ 
-	*	 ÇúÏß²»Í¨¹ı¿ØÖÆµã£¬µ«¿ØÖÆµã³äµ±´ÅÌú£¬½«ÇúÏßÀ­ÏòÄ³¸ö·½Ïò£¬²¢Ó°ÏìÇúÏßµÄÍäÇú·½Ê½¡£
-	* @param [in] x1 ÆğµãµÄ x ×ø±ê
-	* @param [in] y1 ÆğµãµÄ y ×ø±ê
-	* @param [in] x2 µÚÒ»¸ö¿ØÖÆµãµÄ x ×ø±ê
-	* @param [in] y2 µÚÒ»¸ö¿ØÖÆµãµÄ y ×ø±ê
-	* @param [in] x3 µÚ¶ş¸ö¿ØÖÆµãµÄ x ×ø±ê
-	* @param [in] y3 µÚ¶ş¸ö¿ØÖÆµãµÄ y ×ø±ê
-	* @param [in] x4 ÖÕµãµÄ x ×ø±ê
-	* @param [in] y4 ÖÕµãµÄ y ×ø±ê
+	/** å°†è´å¡å°”(BÃ©zier)æ›²çº¿æ ·æ¡æ·»åŠ åˆ°æ­¤è·¯å¾„çš„å½“å‰å›¾ä¸­
+	*    è´å¡å°”è‡ªç”±ç»˜åˆ¶æ›²çº¿æ˜¯ä¸€æ¡ç”±å››ä¸ªç‚¹æŒ‡å®šçš„æ›²çº¿ï¼š
+	*    ä¸¤ä¸ªç«¯ç‚¹ï¼ˆp1[x1,y1] å’Œ p2[x4,y4]ï¼‰å’Œä¸¤ä¸ªæ§åˆ¶ç‚¹ï¼ˆc1[x2,y2] å’Œ c2[x3,y3]ï¼‰ã€‚ 
+	*	 æ›²çº¿ä» p1 å¼€å§‹ï¼Œä»¥ p2 ç»“å°¾ã€‚ 
+	*	 æ›²çº¿ä¸é€šè¿‡æ§åˆ¶ç‚¹ï¼Œä½†æ§åˆ¶ç‚¹å……å½“ç£é“ï¼Œå°†æ›²çº¿æ‹‰å‘æŸä¸ªæ–¹å‘ï¼Œå¹¶å½±å“æ›²çº¿çš„å¼¯æ›²æ–¹å¼ã€‚
+	* @param [in] x1 èµ·ç‚¹çš„ x åæ ‡
+	* @param [in] y1 èµ·ç‚¹çš„ y åæ ‡
+	* @param [in] x2 ç¬¬ä¸€ä¸ªæ§åˆ¶ç‚¹çš„ x åæ ‡
+	* @param [in] y2 ç¬¬ä¸€ä¸ªæ§åˆ¶ç‚¹çš„ y åæ ‡
+	* @param [in] x3 ç¬¬äºŒä¸ªæ§åˆ¶ç‚¹çš„ x åæ ‡
+	* @param [in] y3 ç¬¬äºŒä¸ªæ§åˆ¶ç‚¹çš„ y åæ ‡
+	* @param [in] x4 ç»ˆç‚¹çš„ x åæ ‡
+	* @param [in] y4 ç»ˆç‚¹çš„ y åæ ‡
 	*
 	*/
 	virtual void AddBezier(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4) = 0;
 
-	/** ½«Á¬½ÓµÄ B¨¦zier ÑùÌõĞòÁĞÌí¼Óµ½´ËÂ·¾¶µÄµ±Ç°Í¼ÖĞ
-	* @param [in] points Ö¸ÏòÁ¬½ÓµÄÑùÌõµÄÆğÊ¼µã¡¢½áÊøµãºÍ¿ØÖÆµãÊı×éµÄÖ¸Õë¡£ 
-	*                   µÚÒ»¸öÑùÌõ´ÓµÚÒ»¸öµãµ½Êı×éµÄµÚËÄ¸öµã¹¹Ôì£¬²¢Ê¹ÓÃµÚ¶şºÍµÚÈı¸öµã×÷Îª¿ØÖÆµã¡£ 
-	*					ĞòÁĞÖĞµÄÃ¿¸öºóĞøÑùÌõÖ»ĞèÒªÁíÍâÈı¸öµã£º
-	*					Ç°Ò»¸öÑùÌõµÄÖÕµãÓÃ×÷Æğµã£¬ĞòÁĞÖĞµÄÏÂÁ½¸öµãÊÇ¿ØÖÆµã£¬µÚÈı¸öµãÊÇÖÕµã¡£
-	* @param [in] count Êı×éÖĞµÄÔªËØÊı
+	/** å°†è¿æ¥çš„ BÃ©zier æ ·æ¡åºåˆ—æ·»åŠ åˆ°æ­¤è·¯å¾„çš„å½“å‰å›¾ä¸­
+	* @param [in] points æŒ‡å‘è¿æ¥çš„æ ·æ¡çš„èµ·å§‹ç‚¹ã€ç»“æŸç‚¹å’Œæ§åˆ¶ç‚¹æ•°ç»„çš„æŒ‡é’ˆã€‚ 
+	*                   ç¬¬ä¸€ä¸ªæ ·æ¡ä»ç¬¬ä¸€ä¸ªç‚¹åˆ°æ•°ç»„çš„ç¬¬å››ä¸ªç‚¹æ„é€ ï¼Œå¹¶ä½¿ç”¨ç¬¬äºŒå’Œç¬¬ä¸‰ä¸ªç‚¹ä½œä¸ºæ§åˆ¶ç‚¹ã€‚ 
+	*					åºåˆ—ä¸­çš„æ¯ä¸ªåç»­æ ·æ¡åªéœ€è¦å¦å¤–ä¸‰ä¸ªç‚¹ï¼š
+	*					å‰ä¸€ä¸ªæ ·æ¡çš„ç»ˆç‚¹ç”¨ä½œèµ·ç‚¹ï¼Œåºåˆ—ä¸­çš„ä¸‹ä¸¤ä¸ªç‚¹æ˜¯æ§åˆ¶ç‚¹ï¼Œç¬¬ä¸‰ä¸ªç‚¹æ˜¯ç»ˆç‚¹ã€‚
+	* @param [in] count æ•°ç»„ä¸­çš„å…ƒç´ æ•°
 	*/
 	virtual void AddBeziers(const UiPoint* points, int count) = 0;
 
-	/** ½«¾ØĞÎÌí¼Óµ½´ËÂ·¾¶
-	* @param [in] rect ¾ØĞÎÇøÓò
+	/** å°†çŸ©å½¢æ·»åŠ åˆ°æ­¤è·¯å¾„
+	* @param [in] rect çŸ©å½¢åŒºåŸŸ
 	*/
 	virtual void AddRect(const UiRect& rect) = 0;
 
-	/** ½«ÍÖÔ²Ìí¼Óµ½´ËÂ·¾¶
-	* @param [in] ÍÖÔ²µÄ¾ØĞÎÇøÓò 
-	*             left ÍÖÔ²±ß¿ò×óÉÏ½ÇµÄ x ×ø±ê
-	*             top  ÍÖÔ²±ß¿ò×óÉÏ½ÇµÄ y ×ø±ê
-	*             right left + ÍÖÔ²±ß½ç¾ØĞÎµÄ¿í¶È
-	*             bottom top + ÍÖÔ²±ß½ç¾ØĞÎµÄ¸ß¶È
+	/** å°†æ¤­åœ†æ·»åŠ åˆ°æ­¤è·¯å¾„
+	* @param [in] æ¤­åœ†çš„çŸ©å½¢åŒºåŸŸ 
+	*             left æ¤­åœ†è¾¹æ¡†å·¦ä¸Šè§’çš„ x åæ ‡
+	*             top  æ¤­åœ†è¾¹æ¡†å·¦ä¸Šè§’çš„ y åæ ‡
+	*             right left + æ¤­åœ†è¾¹ç•ŒçŸ©å½¢çš„å®½åº¦
+	*             bottom top + æ¤­åœ†è¾¹ç•ŒçŸ©å½¢çš„é«˜åº¦
 	*/
 	virtual void AddEllipse(const UiRect& rect) = 0;
 
-	/** ½«ÍÖÔ²»¡Ìí¼Óµ½´ËÂ·¾¶
-	* @param [in] ÍÖÔ²µÄ¾ØĞÎÇøÓò 
-	* @param [in] startAngle ÍÖÔ²Ë®Æ½ÖáÓë»¡ÏßÆğµãÖ®¼äµÄË³Ê±Õë½Ç¶È£¨ÒÔ¶ÈÎªµ¥Î»£©
-	* @param [in] sweepAngle Æğµã (startAngle) ºÍ»¡µÄÖÕµãÖ®¼äµÄË³Ê±Õë½Ç¶È£¨ÒÔ¶ÈÎªµ¥Î»£©
+	/** å°†æ¤­åœ†å¼§æ·»åŠ åˆ°æ­¤è·¯å¾„
+	* @param [in] æ¤­åœ†çš„çŸ©å½¢åŒºåŸŸ 
+	* @param [in] startAngle æ¤­åœ†æ°´å¹³è½´ä¸å¼§çº¿èµ·ç‚¹ä¹‹é—´çš„é¡ºæ—¶é’ˆè§’åº¦ï¼ˆä»¥åº¦ä¸ºå•ä½ï¼‰
+	* @param [in] sweepAngle èµ·ç‚¹ (startAngle) å’Œå¼§çš„ç»ˆç‚¹ä¹‹é—´çš„é¡ºæ—¶é’ˆè§’åº¦ï¼ˆä»¥åº¦ä¸ºå•ä½ï¼‰
 	*/
 	virtual void AddArc(const UiRect& rect, float startAngle, float sweepAngle) = 0;
 
-	/** ½«¶à±ßĞÎÌí¼Óµ½´ËÂ·¾¶
-	* @param [in] points Ö¸¶¨¶à±ßĞÎ¶¥µãµÄµãÊı×é
-	* @param [in] count Êı×éÖĞµÄÔªËØÊı
+	/** å°†å¤šè¾¹å½¢æ·»åŠ åˆ°æ­¤è·¯å¾„
+	* @param [in] points æŒ‡å®šå¤šè¾¹å½¢é¡¶ç‚¹çš„ç‚¹æ•°ç»„
+	* @param [in] count æ•°ç»„ä¸­çš„å…ƒç´ æ•°
 	*/
 	virtual void AddPolygon(const UiPoint* points, int count) = 0;
 	virtual void AddPolygon(const UiPointF* points, int count) = 0;
 
-	/** ¶ÔÂ·¾¶½øĞĞ¾ØÕó±ä»»£¬¿ÉÒÔ½øĞĞĞı×ªµÈ²Ù×÷
-	* @param [in] pMatrix ¾ØÕó½Ó¿Ú
+	/** å¯¹è·¯å¾„è¿›è¡ŒçŸ©é˜µå˜æ¢ï¼Œå¯ä»¥è¿›è¡Œæ—‹è½¬ç­‰æ“ä½œ
+	* @param [in] pMatrix çŸ©é˜µæ¥å£
 	*/
 	virtual void Transform(IMatrix* pMatrix) = 0;
 
-	/** »ñÈ¡´ËÂ·¾¶µÄ±ß½ç¾ØĞÎ
-	* @param [in] pen ¹ØÁªµÄPen¶ÔÏó£¬¿ÉÒÔÎªnullptr
+	/** è·å–æ­¤è·¯å¾„çš„è¾¹ç•ŒçŸ©å½¢
+	* @param [in] pen å…³è”çš„Penå¯¹è±¡ï¼Œå¯ä»¥ä¸ºnullptr
 	*/
 	virtual UiRect GetBounds(const IPen* pen) = 0;
 
-	/** ¹Ø±Õµ±Ç°»æÍ¼
+	/** å…³é—­å½“å‰ç»˜å›¾
 	*/
 	virtual void Close() = 0;
 
-	/** ÖØÖÃPathÊı¾İ
+	/** é‡ç½®Pathæ•°æ®
 	*/
 	virtual void Reset() = 0;
 
-	/** ¸´ÖÆPath¶ÔÏó
+	/** å¤åˆ¶Pathå¯¹è±¡
 	*/
 	virtual IPath* Clone() = 0;
 };
 
-/** 3x3 ¾ØÕó½Ó¿Ú
+/** 3x3 çŸ©é˜µæ¥å£
 */
 class UILIB_API IMatrix : public nbase::SupportWeakCallback
 {
 public:
-	/** Æ½ÒÆ²Ù×÷
-	* @param [in] offsetX XÖá·½ÏòÆ½ÒÆµÄÆ«ÒÆÁ¿
-	* @param [in] offsetY YÖá·½ÏòÆ½ÒÆµÄÆ«ÒÆÁ¿
+	/** å¹³ç§»æ“ä½œ
+	* @param [in] offsetX Xè½´æ–¹å‘å¹³ç§»çš„åç§»é‡
+	* @param [in] offsetY Yè½´æ–¹å‘å¹³ç§»çš„åç§»é‡
 	*/
 	virtual void Translate(int offsetX, int offsetY) = 0;
 
-	/** Ëõ·Å²Ù×÷
-	* @param [in] scaleX XÖá·½ÏòËõ·Å±ÈÀı
-	* @param [in] scaleY YÖá·½ÏòËõ·Å±ÈÀı
+	/** ç¼©æ”¾æ“ä½œ
+	* @param [in] scaleX Xè½´æ–¹å‘ç¼©æ”¾æ¯”ä¾‹
+	* @param [in] scaleY Yè½´æ–¹å‘ç¼©æ”¾æ¯”ä¾‹
 	*/
 	virtual void Scale(float scaleX, float scaleY) = 0;
 
-	/** Ğı×ª²Ù×÷£¬ÒÔÔ´µã×ø±ê(0,0)ÎªÖĞĞÄµã×öĞı×ª²Ù×÷
-	* @param [in] angle Ğı×ªµÄ½Ç¶È£¬ÕıÊıÎªË³Ê±Õë²Ù×÷£¬¸ºÊıÎªÄæÊ±Õë²Ù×÷
+	/** æ—‹è½¬æ“ä½œï¼Œä»¥æºç‚¹åæ ‡(0,0)ä¸ºä¸­å¿ƒç‚¹åšæ—‹è½¬æ“ä½œ
+	* @param [in] angle æ—‹è½¬çš„è§’åº¦ï¼Œæ­£æ•°ä¸ºé¡ºæ—¶é’ˆæ“ä½œï¼Œè´Ÿæ•°ä¸ºé€†æ—¶é’ˆæ“ä½œ
 	*/
 	virtual void Rotate(float angle) = 0;
 
-	/** Ğı×ª²Ù×÷£¬ÒÔ×ø±ê(center)ÎªÖĞĞÄµã×öĞı×ª²Ù×÷
-	* @param [in] angle Ğı×ªµÄ½Ç¶È£¬ÕıÊıÎªË³Ê±Õë²Ù×÷£¬¸ºÊıÎªÄæÊ±Õë²Ù×÷
-	* @param [in] center Ğı×ªµÄÖĞĞÄµã×ø±êÖµ
+	/** æ—‹è½¬æ“ä½œï¼Œä»¥åæ ‡(center)ä¸ºä¸­å¿ƒç‚¹åšæ—‹è½¬æ“ä½œ
+	* @param [in] angle æ—‹è½¬çš„è§’åº¦ï¼Œæ­£æ•°ä¸ºé¡ºæ—¶é’ˆæ“ä½œï¼Œè´Ÿæ•°ä¸ºé€†æ—¶é’ˆæ“ä½œ
+	* @param [in] center æ—‹è½¬çš„ä¸­å¿ƒç‚¹åæ ‡å€¼
 	*/
 	virtual void RotateAt(float angle, const UiPoint& center) = 0;
 };
 
-/** ¹âÕ¤²Ù×÷´úÂë
+/** å…‰æ …æ“ä½œä»£ç 
 */
 enum class UILIB_API RopMode
 {
-	kSrcCopy,	//¶ÔÓ¦ÓÚ SRCCOPY
-	kDstInvert, //¶ÔÓ¦ÓÚ DSTINVERT
-	kSrcInvert, //¶ÔÓ¦ÓÚ SRCINVERT
-	kSrcAnd     //¶ÔÓ¦ÓÚ SRCAND
+	kSrcCopy,	//å¯¹åº”äº SRCCOPY
+	kDstInvert, //å¯¹åº”äº DSTINVERT
+	kSrcInvert, //å¯¹åº”äº SRCINVERT
+	kSrcAnd     //å¯¹åº”äº SRCAND
 };
 
-/** »æÖÆÎÄ±¾Ê±µÄ¸ñÊ½
+/** ç»˜åˆ¶æ–‡æœ¬æ—¶çš„æ ¼å¼
 */
 enum UILIB_API DrawStringFormat
 {
@@ -387,7 +387,7 @@ enum UILIB_API DrawStringFormat
 	TEXT_NOCLIP			= DT_NOCLIP,
 };
 
-/** RenderÀàĞÍ
+/** Renderç±»å‹
 */
 enum class RenderType
 {
@@ -395,122 +395,122 @@ enum class RenderType
 	kRenderType_GdiPlus = 1
 };
 
-/** ¸ñÊ½ÎÄ±¾Êı¾İ
+/** æ ¼å¼æ–‡æœ¬æ•°æ®
 */
 class RichTextData
 {
 public:
-	/** ÎÄ×ÖÄÚÈİ
+	/** æ–‡å­—å†…å®¹
 	*/
 	UiString m_text;
 
-	/** ÎÄ×ÖÑÕÉ«
+	/** æ–‡å­—é¢œè‰²
 	*/
 	UiColor m_textColor;
 
-	/** ±³¾°ÑÕÉ«
+	/** èƒŒæ™¯é¢œè‰²
 	*/
 	UiColor m_bgColor;
 
-	/** ×ÖÌåĞÅÏ¢
+	/** å­—ä½“ä¿¡æ¯
 	*/
 	UiFont m_fontInfo;
 
-	/** ĞĞ¼ä¾à
+	/** è¡Œé—´è·
 	*/
 	float m_fRowSpacingMul = 1.0f;
 
-	/** ¶ÔÏó»æÖÆÇøÓò(Êä³ö²ÎÊı)
+	/** å¯¹è±¡ç»˜åˆ¶åŒºåŸŸ(è¾“å‡ºå‚æ•°)
 	*/
 	std::vector<UiRect> m_textRects;
 };
 
-/** äÖÈ¾½Ó¿Ú
+/** æ¸²æŸ“æ¥å£
 */
 class Window;
 class UILIB_API IRender : public virtual nbase::SupportWeakCallback
 {
 public:
-	/** »ñÈ¡RenderÊµÏÖÀàĞÍ
+	/** è·å–Renderå®ç°ç±»å‹
 	*/
 	virtual RenderType GetRenderType() const = 0;
 
-	/** »ñÈ¡»­²¼¿í¶È
+	/** è·å–ç”»å¸ƒå®½åº¦
 	*/
 	virtual int	GetWidth() = 0;
 
-	/** »ñÈ¡»­²¼¸ß¶È
+	/** è·å–ç”»å¸ƒé«˜åº¦
 	*/
 	virtual int GetHeight() = 0;
 
-	/** µ÷Õû»­²¼´óĞ¡
+	/** è°ƒæ•´ç”»å¸ƒå¤§å°
 	*/
 	virtual bool Resize(int width, int height) = 0;
 
-	/** ÅĞ¶Ï»­²¼ÊÇ·ñÖ§³ÖÍ¸Ã÷
+	/** åˆ¤æ–­ç”»å¸ƒæ˜¯å¦æ”¯æŒé€æ˜
 	*/
 	virtual bool IsRenderTransparent() const = 0;
 
-	/** ÉèÖÃ»­²¼ÊÇ·ñÖ§³ÖÍ¸Ã÷
+	/** è®¾ç½®ç”»å¸ƒæ˜¯å¦æ”¯æŒé€æ˜
 	*/
 	virtual bool SetRenderTransparent(bool bTransparent) = 0;
 
-	/** ÉèÖÃ´°¿ÚÊÓÇøÔ­µã×ø±êÆ«ÒÆ£¬
-	 *  ½«Ô­ÊÓÇøÔ­µãxÖµÔö¼ÓptOffset.xºó£¬×÷ÎªĞÂµÄÊÓÇøÔ­µãx;
-	 *  ½«Ô­ÊÓÇøÔ­µãyÖµÔö¼ÓptOffset.yºó£¬×÷ÎªĞÂµÄÊÓÇøÔ­µãy;
-	 * @param [in] ptOffset ÊÓÇøÔ­µã×ø±êÆ«ÒÆÁ¿
-	 *@return ·µ»ØÔ­À´µÄÊÓÇøÔ­µã×ø±ê(x,y)
+	/** è®¾ç½®çª—å£è§†åŒºåŸç‚¹åæ ‡åç§»ï¼Œ
+	 *  å°†åŸè§†åŒºåŸç‚¹xå€¼å¢åŠ ptOffset.xåï¼Œä½œä¸ºæ–°çš„è§†åŒºåŸç‚¹x;
+	 *  å°†åŸè§†åŒºåŸç‚¹yå€¼å¢åŠ ptOffset.yåï¼Œä½œä¸ºæ–°çš„è§†åŒºåŸç‚¹y;
+	 * @param [in] ptOffset è§†åŒºåŸç‚¹åæ ‡åç§»é‡
+	 *@return è¿”å›åŸæ¥çš„è§†åŒºåŸç‚¹åæ ‡(x,y)
 	 */
 	virtual UiPoint OffsetWindowOrg(UiPoint ptOffset) = 0;
 
-	/** ½«µã(pt.x, pt.y)Ó³Éäµ½ÊÓÇøÔ­µã (0, 0)
-	 *@return ·µ»ØÔ­À´µÄÊÓÇøÔ­µã×ø±ê(x,y)
+	/** å°†ç‚¹(pt.x, pt.y)æ˜ å°„åˆ°è§†åŒºåŸç‚¹ (0, 0)
+	 *@return è¿”å›åŸæ¥çš„è§†åŒºåŸç‚¹åæ ‡(x,y)
 	 */
 	virtual UiPoint SetWindowOrg(UiPoint pt) = 0;
 
-	/** »ñÈ¡ÊÓÇøÔ­µã×ø±ê(x,y)
-	 * @return ·µ»Øµ±Ç°µÄÊÓÇøÔ­µã×ø±ê(x,y)
+	/** è·å–è§†åŒºåŸç‚¹åæ ‡(x,y)
+	 * @return è¿”å›å½“å‰çš„è§†åŒºåŸç‚¹åæ ‡(x,y)
 	 */
 	virtual UiPoint GetWindowOrg() const = 0;
 	
-	/** ±£´æÖ¸¶¨Éè±¸ÉÏÏÂÎÄµÄµ±Ç°×´Ì¬
-	* @param [out] ·µ»Ø±£´æµÄÉè±¸ÉÏÏÂÎÄ±êÖ¾£¬ÔÚRestoreClipµÄÊ±ºò£¬×÷Îª²ÎÊı´«Èë
+	/** ä¿å­˜æŒ‡å®šè®¾å¤‡ä¸Šä¸‹æ–‡çš„å½“å‰çŠ¶æ€
+	* @param [out] è¿”å›ä¿å­˜çš„è®¾å¤‡ä¸Šä¸‹æ–‡æ ‡å¿—ï¼Œåœ¨RestoreClipçš„æ—¶å€™ï¼Œä½œä¸ºå‚æ•°ä¼ å…¥
 	*/
 	virtual void SaveClip(int& nState) = 0;
 
-	/** ½«Éè±¸ÉÏÏÂÎÄ»¹Ô­µ½×î½üÒ»´Î±£´æµÄ×´Ì¬
-	* @param [in] ±£´æµÄÉè±¸ÉÏÏÂÎÄ±êÖ¾£¨ÓÉSaveClip·µ»Ø£©
+	/** å°†è®¾å¤‡ä¸Šä¸‹æ–‡è¿˜åŸåˆ°æœ€è¿‘ä¸€æ¬¡ä¿å­˜çš„çŠ¶æ€
+	* @param [in] ä¿å­˜çš„è®¾å¤‡ä¸Šä¸‹æ–‡æ ‡å¿—ï¼ˆç”±SaveClipè¿”å›ï¼‰
 	*/
 	virtual void RestoreClip(int nState) = 0;
 
-	/** ÉèÖÃ¾ØĞÎ¼ô¼­ÇøÓò£¬²¢±£´æµ±Ç°Éè±¸ÉÏÏÂÎÄµÄ×´Ì¬
-	* @param [in] rc¼ô¼­ÇøÓò£¬Óëµ±Ç°¼ô¼­ÇøÈ¡½»¼¯×÷ÎªĞÂµÄ¼ô¼­ÇøÓò
-	* @param [in] bIntersect ClipOp²Ù×÷±êÖ¾£¬true±íÊ¾kIntersect²Ù×÷£¬false±íÊ¾kDifference²Ù×÷
+	/** è®¾ç½®çŸ©å½¢å‰ªè¾‘åŒºåŸŸï¼Œå¹¶ä¿å­˜å½“å‰è®¾å¤‡ä¸Šä¸‹æ–‡çš„çŠ¶æ€
+	* @param [in] rcå‰ªè¾‘åŒºåŸŸï¼Œä¸å½“å‰å‰ªè¾‘åŒºå–äº¤é›†ä½œä¸ºæ–°çš„å‰ªè¾‘åŒºåŸŸ
+	* @param [in] bIntersect ClipOpæ“ä½œæ ‡å¿—ï¼Œtrueè¡¨ç¤ºkIntersectæ“ä½œï¼Œfalseè¡¨ç¤ºkDifferenceæ“ä½œ
 	*/
 	virtual void SetClip(const UiRect& rc, bool bIntersect = true) = 0;
 
-	/** ÉèÖÃÔ²½Ç¾ØĞÎ¼ô¼­ÇøÓò£¬²¢±£´æµ±Ç°Éè±¸ÉÏÏÂÎÄµÄ×´Ì¬
-	* @param [in] rcItem ¼ô¼­ÇøÓò£¬Óëµ±Ç°¼ô¼­ÇøÈ¡½»¼¯×÷ÎªĞÂµÄ¼ô¼­ÇøÓò
-	* @param [in] width Ô²½ÇµÄ¿í¶È
-	* @param [in] height Ô²½ÇµÄµÄ¶È
-	* @param [in] bIntersect ClipOp²Ù×÷±êÖ¾£¬true±íÊ¾kIntersect²Ù×÷£¬false±íÊ¾kDifference²Ù×÷
+	/** è®¾ç½®åœ†è§’çŸ©å½¢å‰ªè¾‘åŒºåŸŸï¼Œå¹¶ä¿å­˜å½“å‰è®¾å¤‡ä¸Šä¸‹æ–‡çš„çŠ¶æ€
+	* @param [in] rcItem å‰ªè¾‘åŒºåŸŸï¼Œä¸å½“å‰å‰ªè¾‘åŒºå–äº¤é›†ä½œä¸ºæ–°çš„å‰ªè¾‘åŒºåŸŸ
+	* @param [in] width åœ†è§’çš„å®½åº¦
+	* @param [in] height åœ†è§’çš„çš„åº¦
+	* @param [in] bIntersect ClipOpæ“ä½œæ ‡å¿—ï¼Œtrueè¡¨ç¤ºkIntersectæ“ä½œï¼Œfalseè¡¨ç¤ºkDifferenceæ“ä½œ
 	*/
 	virtual void SetRoundClip(const UiRect& rcItem, int width, int height, bool bIntersect = true) = 0;
 
-	/** Çå³ı¾ØĞÎ¼ô¼­ÇøÓò£¬²¢»Ö¸´Éè±¸ÉÏÏÂÎÄµ½×î½üÒ»´Î±£´æµÄ×´Ì¬
+	/** æ¸…é™¤çŸ©å½¢å‰ªè¾‘åŒºåŸŸï¼Œå¹¶æ¢å¤è®¾å¤‡ä¸Šä¸‹æ–‡åˆ°æœ€è¿‘ä¸€æ¬¡ä¿å­˜çš„çŠ¶æ€
 	*/
 	virtual void ClearClip() = 0;
 
-	/** º¯ÊıÖ´ĞĞÓë´ÓÖ¸¶¨Ô´Éè±¸ÉÏÏÂÎÄµ½Ä¿±êÉè±¸ÉÏÏÂÎÄÖĞµÄÏñËØ¾ØĞÎ¶ÔÓ¦µÄÑÕÉ«Êı¾İµÄÎ»¿é´«Êä
-	* @param [in] x Ä¿±ê¾ØĞÎ×óÉÏ½ÇµÄ x ×ø±ê
-	* @param [in] y Ä¿±ê¾ØĞÎ×óÉÏ½ÇµÄ y ×ø±ê
-	* @param [in] cx Ô´¾ØĞÎºÍÄ¿±ê¾ØĞÎµÄ¿í¶È
-	* @param [in] cy Ô´ºÍÄ¿±ê¾ØĞÎµÄ¸ß¶È
-	* @param [in] pSrcBitmap Ô´Í¼Æ¬½Ó¿Ú
-	* @param [in] pSrcRender Ô´Render¶ÔÏó
-	* @param [in] xSrc Ô´¾ØĞÎ×óÉÏ½ÇµÄ x ×ø±ê
-	* @param [in] ySrc Ô´¾ØĞÎ×óÉÏ½ÇµÄ y ×ø±ê
-	* @param [in] rop ¹âÕ¤²Ù×÷´úÂë
+	/** å‡½æ•°æ‰§è¡Œä¸ä»æŒ‡å®šæºè®¾å¤‡ä¸Šä¸‹æ–‡åˆ°ç›®æ ‡è®¾å¤‡ä¸Šä¸‹æ–‡ä¸­çš„åƒç´ çŸ©å½¢å¯¹åº”çš„é¢œè‰²æ•°æ®çš„ä½å—ä¼ è¾“
+	* @param [in] x ç›®æ ‡çŸ©å½¢å·¦ä¸Šè§’çš„ x åæ ‡
+	* @param [in] y ç›®æ ‡çŸ©å½¢å·¦ä¸Šè§’çš„ y åæ ‡
+	* @param [in] cx æºçŸ©å½¢å’Œç›®æ ‡çŸ©å½¢çš„å®½åº¦
+	* @param [in] cy æºå’Œç›®æ ‡çŸ©å½¢çš„é«˜åº¦
+	* @param [in] pSrcBitmap æºå›¾ç‰‡æ¥å£
+	* @param [in] pSrcRender æºRenderå¯¹è±¡
+	* @param [in] xSrc æºçŸ©å½¢å·¦ä¸Šè§’çš„ x åæ ‡
+	* @param [in] ySrc æºçŸ©å½¢å·¦ä¸Šè§’çš„ y åæ ‡
+	* @param [in] rop å…‰æ …æ“ä½œä»£ç 
 	*/
 	virtual bool BitBlt(int x, int y, int cx, int cy, 
 		                IBitmap* pSrcBitmap, int xSrc, int ySrc,
@@ -519,219 +519,219 @@ public:
 		                IRender* pSrcRender, int xSrc, int ySrc,
 		                RopMode rop) = 0;
 
-	/** º¯Êı½«Ò»¸öÎ»Í¼´ÓÔ´¾ØĞÎ¸´ÖÆµ½Ä¿±ê¾ØĞÎÖĞ£¬²¢À­Éì»òÑ¹ËõÎ»Í¼ÒÔÊÊÓ¦Ä¿±ê¾ØĞÎµÄ³ß´ç£¨ÈçÓĞ±ØÒª£©¡£ 
-	    ÏµÍ³¸ù¾İµ±Ç°ÔÚÄ¿±êÉè±¸ÉÏÏÂÎÄÖĞÉèÖÃµÄÀ­ÉìÄ£Ê½À­Éì»òÑ¹ËõÎ»Í¼¡£
-	* @param [in] xDest Ä¿±ê¾ØĞÎ×óÉÏ½ÇµÄ x ×ø±ê
-	* @param [in] yDest Ä¿±ê¾ØĞÎ×óÉÏ½ÇµÄ y ×ø±ê
-	* @param [in] widthDest Ä¿±ê¾ØĞÎµÄ¿í¶È
-	* @param [in] heightDest Ä¿±ê¾ØĞÎµÄ¸ß¶È
-	* @param [in] pSrcRender Ô´Render¶ÔÏó
-	* @param [in] xSrc Ô´¾ØĞÎ×óÉÏ½ÇµÄ x ×ø±ê
-	* @param [in] ySrc Ô´¾ØĞÎ×óÉÏ½ÇµÄ y ×ø±ê
-	* @param [in] widthSrc Ô´¾ØĞÎµÄ¿í¶È
-	* @param [in] heightSrc Ô´¾ØĞÎµÄ¸ß¶È
-	* @param [in] rop ¹âÕ¤²Ù×÷´úÂë
+	/** å‡½æ•°å°†ä¸€ä¸ªä½å›¾ä»æºçŸ©å½¢å¤åˆ¶åˆ°ç›®æ ‡çŸ©å½¢ä¸­ï¼Œå¹¶æ‹‰ä¼¸æˆ–å‹ç¼©ä½å›¾ä»¥é€‚åº”ç›®æ ‡çŸ©å½¢çš„å°ºå¯¸ï¼ˆå¦‚æœ‰å¿…è¦ï¼‰ã€‚ 
+	    ç³»ç»Ÿæ ¹æ®å½“å‰åœ¨ç›®æ ‡è®¾å¤‡ä¸Šä¸‹æ–‡ä¸­è®¾ç½®çš„æ‹‰ä¼¸æ¨¡å¼æ‹‰ä¼¸æˆ–å‹ç¼©ä½å›¾ã€‚
+	* @param [in] xDest ç›®æ ‡çŸ©å½¢å·¦ä¸Šè§’çš„ x åæ ‡
+	* @param [in] yDest ç›®æ ‡çŸ©å½¢å·¦ä¸Šè§’çš„ y åæ ‡
+	* @param [in] widthDest ç›®æ ‡çŸ©å½¢çš„å®½åº¦
+	* @param [in] heightDest ç›®æ ‡çŸ©å½¢çš„é«˜åº¦
+	* @param [in] pSrcRender æºRenderå¯¹è±¡
+	* @param [in] xSrc æºçŸ©å½¢å·¦ä¸Šè§’çš„ x åæ ‡
+	* @param [in] ySrc æºçŸ©å½¢å·¦ä¸Šè§’çš„ y åæ ‡
+	* @param [in] widthSrc æºçŸ©å½¢çš„å®½åº¦
+	* @param [in] heightSrc æºçŸ©å½¢çš„é«˜åº¦
+	* @param [in] rop å…‰æ …æ“ä½œä»£ç 
 	*/
 	virtual bool StretchBlt(int xDest, int yDest, int widthDest, int heightDest,
 		                    IRender* pSrcRender, int xSrc, int ySrc, int widthSrc, int heightSrc,
 		                    RopMode rop) = 0;
 
 
-	/** ÏÔÊ¾¾ßÓĞÍ¸Ã÷»ò°ëÍ¸Ã÷ÏñËØµÄÎ»Í¼£¬Èç¹ûÔ´¾ØĞÎºÍÄ¿±ê¾ØĞÎµÄ´óĞ¡²»ÏàÍ¬£¬Ôò»áÀ­ÉìÔ´Î»Í¼ÒÔÆ¥ÅäÄ¿±ê¾ØĞÎ¡£
-	* @param [in] xDest Ä¿±ê¾ØĞÎ×óÉÏ½ÇµÄ x ×ø±ê
-	* @param [in] yDest Ä¿±ê¾ØĞÎ×óÉÏ½ÇµÄ y ×ø±ê
-	* @param [in] widthDest Ä¿±ê¾ØĞÎµÄ¿í¶È
-	* @param [in] heightDest Ä¿±ê¾ØĞÎµÄ¸ß¶È
-	* @param [in] pSrcRender Ô´Render¶ÔÏó
-	* @param [in] xSrc Ô´¾ØĞÎ×óÉÏ½ÇµÄ x ×ø±ê
-	* @param [in] ySrc Ô´¾ØĞÎ×óÉÏ½ÇµÄ y ×ø±ê
-	* @param [in] widthSrc Ô´¾ØĞÎµÄ¿í¶È
-	* @param [in] heightSrc Ô´¾ØĞÎµÄ¸ß¶È
-	* @param [in] alpha Í¸Ã÷¶È alpha Öµ£¨0 - 255£©
+	/** æ˜¾ç¤ºå…·æœ‰é€æ˜æˆ–åŠé€æ˜åƒç´ çš„ä½å›¾ï¼Œå¦‚æœæºçŸ©å½¢å’Œç›®æ ‡çŸ©å½¢çš„å¤§å°ä¸ç›¸åŒï¼Œåˆ™ä¼šæ‹‰ä¼¸æºä½å›¾ä»¥åŒ¹é…ç›®æ ‡çŸ©å½¢ã€‚
+	* @param [in] xDest ç›®æ ‡çŸ©å½¢å·¦ä¸Šè§’çš„ x åæ ‡
+	* @param [in] yDest ç›®æ ‡çŸ©å½¢å·¦ä¸Šè§’çš„ y åæ ‡
+	* @param [in] widthDest ç›®æ ‡çŸ©å½¢çš„å®½åº¦
+	* @param [in] heightDest ç›®æ ‡çŸ©å½¢çš„é«˜åº¦
+	* @param [in] pSrcRender æºRenderå¯¹è±¡
+	* @param [in] xSrc æºçŸ©å½¢å·¦ä¸Šè§’çš„ x åæ ‡
+	* @param [in] ySrc æºçŸ©å½¢å·¦ä¸Šè§’çš„ y åæ ‡
+	* @param [in] widthSrc æºçŸ©å½¢çš„å®½åº¦
+	* @param [in] heightSrc æºçŸ©å½¢çš„é«˜åº¦
+	* @param [in] alpha é€æ˜åº¦ alpha å€¼ï¼ˆ0 - 255ï¼‰
 	*/
 	virtual bool AlphaBlend(int xDest, int yDest, int widthDest, int heightDest,
 		                    IRender* pSrcRender, int xSrc, int ySrc, int widthSrc, int heightSrc,
 		                    uint8_t alpha = 255) = 0;
 
-	/** »æÖÆÍ¼Æ¬£¨²ÉÓÃ¾Å¹¬¸ñ·½Ê½»æÖÆÍ¼Æ¬£©
-	* @param [in] rcPaint µ±Ç°È«²¿¿É»æÖÆÇøÓò£¨ÓÃÓÚ±ÜÃâ·Ç¿É»æÖÆÇøÓòµÄ»æÖÆ£¬ÒÔÌá¸ß»æÖÆĞÔÄÜ£©
-	* @param [in] pBitmap ÓÃÓÚ»æÖÆµÄÎ»Í¼½Ó¿Ú
-	* @param [in] rcDest »æÖÆµÄÄ¿±êÇøÓò
-	* @param [in] rcDestCorners »æÖÆµÄÄ¿±êÇøÓòµÄ±ß½ÇĞÅÏ¢£¬ÓÃÓÚ¾Å¹¬¸ñ»æÖÆ
-	* @param [in] rcSource »æÖÆµÄÔ´Í¼Æ¬ÇøÓò
-	* @param [in] rcSourceCorners »æÖÆÔ´Í¼Æ¬µÄ±ß½ÇĞÅÏ¢£¬ÓÃÓÚ¾Å¹¬¸ñ»æÖÆ
-	* @param [in] uFade Í¸Ã÷¶È£¨0 - 255£©
-	* @param [in] xtiled ºáÏòÆ½ÆÌ
-	* @param [in] ytiled ×İÏòÆ½ÆÌ
-	* @param [in] fullxtiled Èç¹ûÎªtrue£¬ºáÏòÆ½ÆÌ»æÖÆÊ±£¬È·±£ÊÇÍêÕû»æÖÆÍ¼Æ¬£¬¸Ã²ÎÊı½öµ±xtiledÎªtrueÊ±ÓĞĞ§
-	* @param [in] fullytiled Èç¹ûÎªtrue£¬×İÏòÆ½ÆÌ»æÖÆÊ±£¬È·±£ÊÇÍêÕû»æÖÆÍ¼Æ¬£¬¸Ã²ÎÊı½öµ±ytiledÎªtrueÊ±ÓĞĞ§
-	* @param [in] nTiledMargin Æ½ÆÌ»æÖÆÊ±£¬Í¼Æ¬µÄºáÏò¡¢×İÏò¼ä¸ô£¬¸Ã²ÎÊı½öµ±xtiledÎªtrue»òÕßytiledÎªtrueÊ±ÓĞĞ§
+	/** ç»˜åˆ¶å›¾ç‰‡ï¼ˆé‡‡ç”¨ä¹å®«æ ¼æ–¹å¼ç»˜åˆ¶å›¾ç‰‡ï¼‰
+	* @param [in] rcPaint å½“å‰å…¨éƒ¨å¯ç»˜åˆ¶åŒºåŸŸï¼ˆç”¨äºé¿å…éå¯ç»˜åˆ¶åŒºåŸŸçš„ç»˜åˆ¶ï¼Œä»¥æé«˜ç»˜åˆ¶æ€§èƒ½ï¼‰
+	* @param [in] pBitmap ç”¨äºç»˜åˆ¶çš„ä½å›¾æ¥å£
+	* @param [in] rcDest ç»˜åˆ¶çš„ç›®æ ‡åŒºåŸŸ
+	* @param [in] rcDestCorners ç»˜åˆ¶çš„ç›®æ ‡åŒºåŸŸçš„è¾¹è§’ä¿¡æ¯ï¼Œç”¨äºä¹å®«æ ¼ç»˜åˆ¶
+	* @param [in] rcSource ç»˜åˆ¶çš„æºå›¾ç‰‡åŒºåŸŸ
+	* @param [in] rcSourceCorners ç»˜åˆ¶æºå›¾ç‰‡çš„è¾¹è§’ä¿¡æ¯ï¼Œç”¨äºä¹å®«æ ¼ç»˜åˆ¶
+	* @param [in] uFade é€æ˜åº¦ï¼ˆ0 - 255ï¼‰
+	* @param [in] xtiled æ¨ªå‘å¹³é“º
+	* @param [in] ytiled çºµå‘å¹³é“º
+	* @param [in] fullxtiled å¦‚æœä¸ºtrueï¼Œæ¨ªå‘å¹³é“ºç»˜åˆ¶æ—¶ï¼Œç¡®ä¿æ˜¯å®Œæ•´ç»˜åˆ¶å›¾ç‰‡ï¼Œè¯¥å‚æ•°ä»…å½“xtiledä¸ºtrueæ—¶æœ‰æ•ˆ
+	* @param [in] fullytiled å¦‚æœä¸ºtrueï¼Œçºµå‘å¹³é“ºç»˜åˆ¶æ—¶ï¼Œç¡®ä¿æ˜¯å®Œæ•´ç»˜åˆ¶å›¾ç‰‡ï¼Œè¯¥å‚æ•°ä»…å½“ytiledä¸ºtrueæ—¶æœ‰æ•ˆ
+	* @param [in] nTiledMargin å¹³é“ºç»˜åˆ¶æ—¶ï¼Œå›¾ç‰‡çš„æ¨ªå‘ã€çºµå‘é—´éš”ï¼Œè¯¥å‚æ•°ä»…å½“xtiledä¸ºtrueæˆ–è€…ytiledä¸ºtrueæ—¶æœ‰æ•ˆ
 	*/
 	virtual void DrawImage(const UiRect& rcPaint, IBitmap* pBitmap, 
 						   const UiRect& rcDest, const UiRect& rcDestCorners,
 						   const UiRect& rcSource, const UiRect& rcSourceCorners,
 						   uint8_t uFade = 255, bool xtiled = false, bool ytiled = false, 
 						   bool fullxtiled = true, bool fullytiled = true, int nTiledMargin = 0) = 0;
-	/** »æÖÆÍ¼Æ¬£¨²ÉÓÃ¾Å¹¬¸ñ·½Ê½»æÖÆÍ¼Æ¬£©, ÎŞÔ²½Ç²ÎÊı
+	/** ç»˜åˆ¶å›¾ç‰‡ï¼ˆé‡‡ç”¨ä¹å®«æ ¼æ–¹å¼ç»˜åˆ¶å›¾ç‰‡ï¼‰, æ— åœ†è§’å‚æ•°
 	*/
 	virtual void DrawImage(const UiRect& rcPaint, IBitmap* pBitmap, 
 						   const UiRect& rcDest,  const UiRect& rcSource, 
 						   uint8_t uFade = 255, bool xtiled = false, bool ytiled = false, 
 						   bool fullxtiled = true, bool fullytiled = true, int nTiledMargin = 0) = 0;
 
-	/** »æÖÆÍ¼Æ¬
-	* @param [in] rcPaint µ±Ç°È«²¿¿É»æÖÆÇøÓò£¨ÓÃÓÚ±ÜÃâ·Ç¿É»æÖÆÇøÓòµÄ»æÖÆ£¬ÒÔÌá¸ß»æÖÆĞÔÄÜ£©
-	* @param [in] pBitmap ÓÃÓÚ»æÖÆµÄÎ»Í¼½Ó¿Ú
-	* @param [in] rcDest »æÖÆµÄÄ¿±êÇøÓò
-	* @param [in] rcSource »æÖÆµÄÔ´Í¼Æ¬ÇøÓò
-	* @param [in] uFade Í¸Ã÷¶È£¨0 - 255£©
-	* @param [in] pMatrix »æÖÆÊ±µÄ±ä»»¾ØÕó½Ó¿Ú
+	/** ç»˜åˆ¶å›¾ç‰‡
+	* @param [in] rcPaint å½“å‰å…¨éƒ¨å¯ç»˜åˆ¶åŒºåŸŸï¼ˆç”¨äºé¿å…éå¯ç»˜åˆ¶åŒºåŸŸçš„ç»˜åˆ¶ï¼Œä»¥æé«˜ç»˜åˆ¶æ€§èƒ½ï¼‰
+	* @param [in] pBitmap ç”¨äºç»˜åˆ¶çš„ä½å›¾æ¥å£
+	* @param [in] rcDest ç»˜åˆ¶çš„ç›®æ ‡åŒºåŸŸ
+	* @param [in] rcSource ç»˜åˆ¶çš„æºå›¾ç‰‡åŒºåŸŸ
+	* @param [in] uFade é€æ˜åº¦ï¼ˆ0 - 255ï¼‰
+	* @param [in] pMatrix ç»˜åˆ¶æ—¶çš„å˜æ¢çŸ©é˜µæ¥å£
 	*/
 	virtual void DrawImageRect(const UiRect& rcPaint, IBitmap* pBitmap,
 						       const UiRect& rcDest, const UiRect& rcSource,
 						       uint8_t uFade = 255, IMatrix* pMatrix = nullptr) = 0;
 
-	/** »æÖÆÖ±Ïß
-	* @param [in] pt1 ÆğÊ¼µã×ø±ê
-	* @param [in] pt2 ÖÕÖ¹µã×ø±ê
-	* @param [in] penColor »­±ÊµÄÑÕÉ«Öµ
-	* @param [in] nWidth »­±ÊµÄ¿í¶È
+	/** ç»˜åˆ¶ç›´çº¿
+	* @param [in] pt1 èµ·å§‹ç‚¹åæ ‡
+	* @param [in] pt2 ç»ˆæ­¢ç‚¹åæ ‡
+	* @param [in] penColor ç”»ç¬”çš„é¢œè‰²å€¼
+	* @param [in] nWidth ç”»ç¬”çš„å®½åº¦
 	*/
 	virtual void DrawLine(const UiPoint& pt1, const UiPoint& pt2, UiColor penColor, int32_t nWidth) = 0;
 
-	/** »æÖÆÖ±Ïß
-	* @param [in] pt1 ÆğÊ¼µã×ø±ê
-	* @param [in] pt2 ÖÕÖ¹µã×ø±ê
-	* @param [in] penColor »­±ÊµÄÑÕÉ«Öµ
-	* @param [in] nWidth »­±ÊµÄ¿í¶È
+	/** ç»˜åˆ¶ç›´çº¿
+	* @param [in] pt1 èµ·å§‹ç‚¹åæ ‡
+	* @param [in] pt2 ç»ˆæ­¢ç‚¹åæ ‡
+	* @param [in] penColor ç”»ç¬”çš„é¢œè‰²å€¼
+	* @param [in] nWidth ç”»ç¬”çš„å®½åº¦
 	*/
 	virtual void DrawLine(const UiPointF& pt1, const UiPointF& pt2, UiColor penColor, float fWidth) = 0;
 
-	/** »æÖÆÖ±Ïß£¬Ö§³Ö¸÷ÖÖÏßĞÎ
-	* @param [in] pt1 ÆğÊ¼µã×ø±ê
-	* @param [in] pt2 ÖÕÖ¹µã×ø±ê
-	* @param [in] pen »­±ÊµÄ½Ó¿Ú
+	/** ç»˜åˆ¶ç›´çº¿ï¼Œæ”¯æŒå„ç§çº¿å½¢
+	* @param [in] pt1 èµ·å§‹ç‚¹åæ ‡
+	* @param [in] pt2 ç»ˆæ­¢ç‚¹åæ ‡
+	* @param [in] pen ç”»ç¬”çš„æ¥å£
 	*/
 	virtual void DrawLine(const UiPoint& pt1, const UiPoint& pt2, IPen* pen) = 0;
 
-	/** »æÖÆ¾ØĞÎ
-	* @param [in] rc ¾ØĞÎÇøÓò
-	* @param [in] penColor »­±ÊµÄÑÕÉ«Öµ
-	* @param [in] nWidth »­±ÊµÄ¿í¶È
-	* @param [in] bLineInRect Èç¹ûÎªtrue£¬±íÊ¾È·±£»­³öµÄÏßÌõÑÏ¸ñÏŞÖÆÔÚrc¾ØĞÎÄÚ²¿£¬·ñÔòÏßµÄÖĞĞÄµãÊÇÓërc±ßÏß¶ÔÆëµÄ£¬ÏßÌõ»áÓĞ²¿·Ö³¬³örc¾ØĞÎ·¶Î§
+	/** ç»˜åˆ¶çŸ©å½¢
+	* @param [in] rc çŸ©å½¢åŒºåŸŸ
+	* @param [in] penColor ç”»ç¬”çš„é¢œè‰²å€¼
+	* @param [in] nWidth ç”»ç¬”çš„å®½åº¦
+	* @param [in] bLineInRect å¦‚æœä¸ºtrueï¼Œè¡¨ç¤ºç¡®ä¿ç”»å‡ºçš„çº¿æ¡ä¸¥æ ¼é™åˆ¶åœ¨rcçŸ©å½¢å†…éƒ¨ï¼Œå¦åˆ™çº¿çš„ä¸­å¿ƒç‚¹æ˜¯ä¸rcè¾¹çº¿å¯¹é½çš„ï¼Œçº¿æ¡ä¼šæœ‰éƒ¨åˆ†è¶…å‡ºrcçŸ©å½¢èŒƒå›´
 	*/
 	virtual void DrawRect(const UiRect& rc, UiColor penColor, int32_t nWidth, bool bLineInRect = false) = 0;
 
-	/** ÓÃÑÕÉ«Ìî³ä¾ØĞÎ
-	* @param [in] rc Ä¿±ê¾ØĞÎÇøÓò
-	* @param [in] dwColor ÑÕÉ«Öµ
-	* @param [in] uFade Í¸Ã÷¶È£¨0 - 255£©
+	/** ç”¨é¢œè‰²å¡«å……çŸ©å½¢
+	* @param [in] rc ç›®æ ‡çŸ©å½¢åŒºåŸŸ
+	* @param [in] dwColor é¢œè‰²å€¼
+	* @param [in] uFade é€æ˜åº¦ï¼ˆ0 - 255ï¼‰
 	*/
 	virtual void FillRect(const UiRect& rc, UiColor dwColor, uint8_t uFade = 255) = 0;
 
-	/** ÓÃ½¥±äÑÕÉ«Ìî³ä¾ØĞÎ£¨Ö§³Ö½¥±äÑÕÉ«£©
-	* @param [in] rc Ä¿±ê¾ØĞÎÇøÓò
-	* @param [in] dwColor µÚÒ»ÑÕÉ«Öµ
-	* @param [in] dwColor2 µÚ¶şÑÕÉ«Öµ
-	* @param [in] nColor2Direction ½¥±äÑÕÉ«µÄ½¥±ä·½Ïò£¬"1": ×ó->ÓÒ£¬"2": ÉÏ->ÏÂ£¬"3": ×óÉÏ->ÓÒÏÂ£¬"4": ÓÒÉÏ->×óÏÂ
-	* @param [in] uFade Í¸Ã÷¶È£¨0 - 255£©
+	/** ç”¨æ¸å˜é¢œè‰²å¡«å……çŸ©å½¢ï¼ˆæ”¯æŒæ¸å˜é¢œè‰²ï¼‰
+	* @param [in] rc ç›®æ ‡çŸ©å½¢åŒºåŸŸ
+	* @param [in] dwColor ç¬¬ä¸€é¢œè‰²å€¼
+	* @param [in] dwColor2 ç¬¬äºŒé¢œè‰²å€¼
+	* @param [in] nColor2Direction æ¸å˜é¢œè‰²çš„æ¸å˜æ–¹å‘ï¼Œ"1": å·¦->å³ï¼Œ"2": ä¸Š->ä¸‹ï¼Œ"3": å·¦ä¸Š->å³ä¸‹ï¼Œ"4": å³ä¸Š->å·¦ä¸‹
+	* @param [in] uFade é€æ˜åº¦ï¼ˆ0 - 255ï¼‰
 	*/
 	virtual void FillRect(const UiRect& rc, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction, uint8_t uFade = 255) = 0;
 
-	/** »æÖÆÔ²½Ç¾ØĞÎ
-	* @param [in] rc ¾ØĞÎÇøÓò
-	* @param [in] roundSize Ô²½ÇµÄ¿íºÍ¸ß
-	* @param [in] penColor »­±ÊµÄÑÕÉ«Öµ
-	* @param [in] nWidth »­±ÊµÄ¿í¶È
+	/** ç»˜åˆ¶åœ†è§’çŸ©å½¢
+	* @param [in] rc çŸ©å½¢åŒºåŸŸ
+	* @param [in] roundSize åœ†è§’çš„å®½å’Œé«˜
+	* @param [in] penColor ç”»ç¬”çš„é¢œè‰²å€¼
+	* @param [in] nWidth ç”»ç¬”çš„å®½åº¦
 	*/
 	virtual void DrawRoundRect(const UiRect& rc, const UiSize& roundSize, UiColor penColor, int nWidth) = 0;
 
-	/** ÓÃÑÕÉ«Ìî³äÔ²½Ç¾ØĞÎ
-	* @param [in] rc ¾ØĞÎÇøÓò
-	* @param [in] roundSize Ô²½ÇµÄ¿íºÍ¸ß
-	* @param [in] dwColor ÑÕÉ«Öµ
-	* @param [in] uFade Í¸Ã÷¶È£¨0 - 255£©
+	/** ç”¨é¢œè‰²å¡«å……åœ†è§’çŸ©å½¢
+	* @param [in] rc çŸ©å½¢åŒºåŸŸ
+	* @param [in] roundSize åœ†è§’çš„å®½å’Œé«˜
+	* @param [in] dwColor é¢œè‰²å€¼
+	* @param [in] uFade é€æ˜åº¦ï¼ˆ0 - 255ï¼‰
 	*/
 	virtual void FillRoundRect(const UiRect& rc, const UiSize& roundSize, UiColor dwColor, uint8_t uFade = 255) = 0;
 
-	/** ÓÃÑÕÉ«Ìî³äÔ²½Ç¾ØĞÎ(Ö§³Ö½¥±äÑÕÉ«)
-	* @param [in] rc ¾ØĞÎÇøÓò
-	* @param [in] roundSize Ô²½ÇµÄ¿íºÍ¸ß
-	* @param [in] dwColor ÑÕÉ«Öµ
-	* @param [in] dwColor2 µÚ¶şÑÕÉ«Öµ
-	* @param [in] nColor2Direction ½¥±äÑÕÉ«µÄ½¥±ä·½Ïò£¬"1": ×ó->ÓÒ£¬"2": ÉÏ->ÏÂ£¬"3": ×óÉÏ->ÓÒÏÂ£¬"4": ÓÒÉÏ->×óÏÂ
-	* @param [in] uFade Í¸Ã÷¶È£¨0 - 255£©
+	/** ç”¨é¢œè‰²å¡«å……åœ†è§’çŸ©å½¢(æ”¯æŒæ¸å˜é¢œè‰²)
+	* @param [in] rc çŸ©å½¢åŒºåŸŸ
+	* @param [in] roundSize åœ†è§’çš„å®½å’Œé«˜
+	* @param [in] dwColor é¢œè‰²å€¼
+	* @param [in] dwColor2 ç¬¬äºŒé¢œè‰²å€¼
+	* @param [in] nColor2Direction æ¸å˜é¢œè‰²çš„æ¸å˜æ–¹å‘ï¼Œ"1": å·¦->å³ï¼Œ"2": ä¸Š->ä¸‹ï¼Œ"3": å·¦ä¸Š->å³ä¸‹ï¼Œ"4": å³ä¸Š->å·¦ä¸‹
+	* @param [in] uFade é€æ˜åº¦ï¼ˆ0 - 255ï¼‰
 	*/
 	virtual void FillRoundRect(const UiRect& rc, const UiSize& roundSize, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction, uint8_t uFade = 255) = 0;
 
-	/** »æÖÆÇúÏß£¨ÍÖÔ²µÄÒ»²¿·Ö£©
-	* @param [in] rc °üº¬Ô²»¡µÄÍÖÔ²µÄ¾ØĞÎ±ß½çÇøÓò
-	* @param [in] startAngle  xÖáÓë»¡ÆğµãÖ®¼äµÄ½Ç¶È
-	* @param [in] sweepAngle  Ô²»¡ÆğµãºÍÖÕµãÖ®¼äµÄ½Ç¶È£¬ÕıÊıÊÇË³Ê±Õë·½Ïò£¬¸ºÊıÊÇÄæÊ±Õë·½Ïò
-	* @param [in] useCenter Èç¹ûÎªtrue£¬Ôò°üº¬ÍÖÔ²µÄÖĞĞÄµã£¨½öSkiaÒıÇæÊ¹ÓÃ£©
-	* @param [in] pen »­±ÊµÄ½Ó¿Ú£¬ÉèÖÃ»­±ÊÑÕÉ«ºÍ»­±Ê¿í¶È
-	* @param [in] gradientColor ¿ÉÑ¡²ÎÊı£¬½¥±äÑÕÉ«
-	* @param [in] gradientRect ¿ÉÑ¡²ÎÊı£¬½¥±äÑÕÉ«µÄ¾ØĞÎÇøÓòÉèÖÃ£¬½öµ±gradientColor²»ÎªnullptrÊ±ÓĞĞ§
+	/** ç»˜åˆ¶æ›²çº¿ï¼ˆæ¤­åœ†çš„ä¸€éƒ¨åˆ†ï¼‰
+	* @param [in] rc åŒ…å«åœ†å¼§çš„æ¤­åœ†çš„çŸ©å½¢è¾¹ç•ŒåŒºåŸŸ
+	* @param [in] startAngle  xè½´ä¸å¼§èµ·ç‚¹ä¹‹é—´çš„è§’åº¦
+	* @param [in] sweepAngle  åœ†å¼§èµ·ç‚¹å’Œç»ˆç‚¹ä¹‹é—´çš„è§’åº¦ï¼Œæ­£æ•°æ˜¯é¡ºæ—¶é’ˆæ–¹å‘ï¼Œè´Ÿæ•°æ˜¯é€†æ—¶é’ˆæ–¹å‘
+	* @param [in] useCenter å¦‚æœä¸ºtrueï¼Œåˆ™åŒ…å«æ¤­åœ†çš„ä¸­å¿ƒç‚¹ï¼ˆä»…Skiaå¼•æ“ä½¿ç”¨ï¼‰
+	* @param [in] pen ç”»ç¬”çš„æ¥å£ï¼Œè®¾ç½®ç”»ç¬”é¢œè‰²å’Œç”»ç¬”å®½åº¦
+	* @param [in] gradientColor å¯é€‰å‚æ•°ï¼Œæ¸å˜é¢œè‰²
+	* @param [in] gradientRect å¯é€‰å‚æ•°ï¼Œæ¸å˜é¢œè‰²çš„çŸ©å½¢åŒºåŸŸè®¾ç½®ï¼Œä»…å½“gradientColorä¸ä¸ºnullptræ—¶æœ‰æ•ˆ
 	*/
 	virtual void DrawArc(const UiRect& rc, float startAngle, float sweepAngle, bool useCenter, 
 						 const IPen* pen, 
 		                 UiColor* gradientColor = nullptr, const UiRect* gradientRect = nullptr) = 0;
 
-	/** »æÖÆÔ²ĞÎ
-	* @param [in] centerPt Ô²ĞÄ×ø±êµã
-	* @param [in] radius Ô²µÄ°ë¾¶
-	* @param [in] penColor »­±ÊµÄÑÕÉ«Öµ
-	* @param [in] nWidth »­±ÊµÄ¿í¶È
+	/** ç»˜åˆ¶åœ†å½¢
+	* @param [in] centerPt åœ†å¿ƒåæ ‡ç‚¹
+	* @param [in] radius åœ†çš„åŠå¾„
+	* @param [in] penColor ç”»ç¬”çš„é¢œè‰²å€¼
+	* @param [in] nWidth ç”»ç¬”çš„å®½åº¦
 	*/
 	virtual void DrawCircle(const UiPoint& centerPt, int32_t radius, UiColor penColor, int nWidth) = 0;
 
-	/** Ìî³äÔ²ĞÎ
-	* @param [in] centerPt Ô²ĞÄ×ø±êµã
-	* @param [in] radius Ô²µÄ°ë¾¶
-	* @param [in] dwColor ÑÕÉ«Öµ
-	* @param [in] uFade Í¸Ã÷¶È£¨0 - 255£©
+	/** å¡«å……åœ†å½¢
+	* @param [in] centerPt åœ†å¿ƒåæ ‡ç‚¹
+	* @param [in] radius åœ†çš„åŠå¾„
+	* @param [in] dwColor é¢œè‰²å€¼
+	* @param [in] uFade é€æ˜åº¦ï¼ˆ0 - 255ï¼‰
 	*/
 	virtual void FillCircle(const UiPoint& centerPt, int32_t radius, UiColor dwColor, uint8_t uFade = 255) = 0;
 
-	/** »æÖÆÂ·¾¶
-	* @param [in] path Â·¾¶µÄ½Ó¿Ú
-	* @param [in] pen »æÖÆÂ·¾¶Ê¹ÓÃµÄ»­±Ê
+	/** ç»˜åˆ¶è·¯å¾„
+	* @param [in] path è·¯å¾„çš„æ¥å£
+	* @param [in] pen ç»˜åˆ¶è·¯å¾„ä½¿ç”¨çš„ç”»ç¬”
 	*/
 	virtual void DrawPath(const IPath* path, const IPen* pen) = 0;
 
-	/** Ìî³äÂ·¾¶
-	* @param [in] path Â·¾¶µÄ½Ó¿Ú
-	* @param [in] brush Ìî³äÂ·¾¶Ê¹ÓÃµÄ»­Ë¢
+	/** å¡«å……è·¯å¾„
+	* @param [in] path è·¯å¾„çš„æ¥å£
+	* @param [in] brush å¡«å……è·¯å¾„ä½¿ç”¨çš„ç”»åˆ·
 	*/
 	virtual void FillPath(const IPath* path, const IBrush* brush) = 0;
 
-	/** Ìî³äÂ·¾¶£¨Ö§³Ö±³¾°ÑÕÉ«½¥±ä£©
-	* @param [in] path Â·¾¶µÄ½Ó¿Ú
-	* @param [in] rc ¾ØĞÎÇøÓò
-	* @param [in] dwColor Ìî³äÂ·¾¶Ê¹ÓÃµÄµÚÒ»¸öÑÕÉ«
-	* @param [in] dwColor2 Ìî³äÂ·¾¶Ê¹ÓÃµÄµÚ¶ş¸öÑÕÉ«
-	* @param [in] nColor2Direction ½¥±äÑÕÉ«µÄ½¥±ä·½Ïò£¬"1": ×ó->ÓÒ£¬"2": ÉÏ->ÏÂ£¬"3": ×óÉÏ->ÓÒÏÂ£¬"4": ÓÒÉÏ->×óÏÂ
+	/** å¡«å……è·¯å¾„ï¼ˆæ”¯æŒèƒŒæ™¯é¢œè‰²æ¸å˜ï¼‰
+	* @param [in] path è·¯å¾„çš„æ¥å£
+	* @param [in] rc çŸ©å½¢åŒºåŸŸ
+	* @param [in] dwColor å¡«å……è·¯å¾„ä½¿ç”¨çš„ç¬¬ä¸€ä¸ªé¢œè‰²
+	* @param [in] dwColor2 å¡«å……è·¯å¾„ä½¿ç”¨çš„ç¬¬äºŒä¸ªé¢œè‰²
+	* @param [in] nColor2Direction æ¸å˜é¢œè‰²çš„æ¸å˜æ–¹å‘ï¼Œ"1": å·¦->å³ï¼Œ"2": ä¸Š->ä¸‹ï¼Œ"3": å·¦ä¸Š->å³ä¸‹ï¼Œ"4": å³ä¸Š->å·¦ä¸‹
 	*/
 	virtual void FillPath(const IPath* path, const UiRect& rc, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction) = 0;
 
-	/** ¼ÆËãÖ¸¶¨ÎÄ±¾×Ö·û´®µÄ¿í¶ÈºÍ¸ß¶È
-	* @param [in] strText ÎÄ×ÖÄÚÈİ
-	* @param [in] pFont ÎÄ×ÖµÄ×ÖÌåÊı¾İ½Ó¿Ú
-	* @param [in] uFormat ÎÄ×ÖµÄ¸ñÊ½£¬²Î¼û enum DrawStringFormat ÀàĞÍ¶¨Òå
-	* @param [in] width µ±Ç°ÇøÓòµÄÏŞÖÆ¿í¶È
-	* @return ·µ»ØÎÄ±¾×Ö·û´®µÄ¿í¶ÈºÍ¸ß¶È£¬ÒÔ¾ØĞÎ±íÊ¾½á¹û
+	/** è®¡ç®—æŒ‡å®šæ–‡æœ¬å­—ç¬¦ä¸²çš„å®½åº¦å’Œé«˜åº¦
+	* @param [in] strText æ–‡å­—å†…å®¹
+	* @param [in] pFont æ–‡å­—çš„å­—ä½“æ•°æ®æ¥å£
+	* @param [in] uFormat æ–‡å­—çš„æ ¼å¼ï¼Œå‚è§ enum DrawStringFormat ç±»å‹å®šä¹‰
+	* @param [in] width å½“å‰åŒºåŸŸçš„é™åˆ¶å®½åº¦
+	* @return è¿”å›æ–‡æœ¬å­—ç¬¦ä¸²çš„å®½åº¦å’Œé«˜åº¦ï¼Œä»¥çŸ©å½¢è¡¨ç¤ºç»“æœ
 	*/
 	virtual UiRect MeasureString(const std::wstring& strText, 
 		                         IFont* pFont, 
 		                         uint32_t uFormat,
 		                         int width = DUI_NOSET_VALUE) = 0;
-	/** »æÖÆÎÄ×Ö
-	* @param [in] ¾ØĞÎÇøÓò
-	* @param [in] strText ÎÄ×ÖÄÚÈİ
-	* @param [in] dwTextColor ÎÄ×ÖÑÕÉ«Öµ
-	* @param [in] pFont ÎÄ×ÖµÄ×ÖÌåÊı¾İ½Ó¿Ú
-	* @param [in] uFormat ÎÄ×ÖµÄ¸ñÊ½£¬²Î¼û enum DrawStringFormat ÀàĞÍ¶¨Òå
-	* @param [in] uFade Í¸Ã÷¶È£¨0 - 255£©
+	/** ç»˜åˆ¶æ–‡å­—
+	* @param [in] çŸ©å½¢åŒºåŸŸ
+	* @param [in] strText æ–‡å­—å†…å®¹
+	* @param [in] dwTextColor æ–‡å­—é¢œè‰²å€¼
+	* @param [in] pFont æ–‡å­—çš„å­—ä½“æ•°æ®æ¥å£
+	* @param [in] uFormat æ–‡å­—çš„æ ¼å¼ï¼Œå‚è§ enum DrawStringFormat ç±»å‹å®šä¹‰
+	* @param [in] uFade é€æ˜åº¦ï¼ˆ0 - 255ï¼‰
 	*/
 	virtual void DrawString(const UiRect& rc,
 		                    const std::wstring& strText,
@@ -740,12 +740,12 @@ public:
 		                    uint32_t uFormat,
 		                    uint8_t uFade = 255) = 0;
 
-	/** »æÖÆ¸ñÊ½ÎÄ±¾
-	* @param [in] ¾ØĞÎÇøÓò
-	* @param [in,out] richTextData ¸ñÊ½»¯ÎÄ×ÖÄÚÈİ£¬·µ»ØÎÄ×Ö»æÖÆµÄÇøÓò
-	* @param [in] uFormat ÎÄ×ÖµÄ¸ñÊ½£¬²Î¼û enum DrawStringFormat ÀàĞÍ¶¨Òå
-	* @param [in] bMeasureOnly Èç¹ûÎªtrue£¬½öÆÀ¹À»æÖÆÎÄ×ÖËùĞèÇøÓò£¬²»Ö´ĞĞÎÄ×Ö»æÖÆ
-	* @param [in] uFade Í¸Ã÷¶È£¨0 - 255£©
+	/** ç»˜åˆ¶æ ¼å¼æ–‡æœ¬
+	* @param [in] çŸ©å½¢åŒºåŸŸ
+	* @param [in,out] richTextData æ ¼å¼åŒ–æ–‡å­—å†…å®¹ï¼Œè¿”å›æ–‡å­—ç»˜åˆ¶çš„åŒºåŸŸ
+	* @param [in] uFormat æ–‡å­—çš„æ ¼å¼ï¼Œå‚è§ enum DrawStringFormat ç±»å‹å®šä¹‰
+	* @param [in] bMeasureOnly å¦‚æœä¸ºtrueï¼Œä»…è¯„ä¼°ç»˜åˆ¶æ–‡å­—æ‰€éœ€åŒºåŸŸï¼Œä¸æ‰§è¡Œæ–‡å­—ç»˜åˆ¶
+	* @param [in] uFade é€æ˜åº¦ï¼ˆ0 - 255ï¼‰
 	*/
 	virtual void DrawRichText(const UiRect& rc,
 		                      std::vector<RichTextData>& richTextData,
@@ -753,16 +753,16 @@ public:
 		                      bool bMeasureOnly = false,
 		                      uint8_t uFade = 255) = 0;
 
-	/** ÔÚÖ¸¶¨¾ØĞÎÖÜÎ§»æÖÆÒõÓ°£¨¸ßË¹Ä£ºı, Ö»Ö§³ÖÍâ²¿ÒõÓ°£¬²»Ö§³ÖÄÚ²¿ÒõÓ°£©
-	* @param [in] rc ¾ØĞÎÇøÓò
-	* @param [in] roundSize ÒõÓ°µÄÔ²½Ç¿í¶ÈºÍ¸ß¶È
-	* @param [in] cpOffset ÉèÖÃÒõÓ°Æ«ÒÆÁ¿£¨offset-x ºÍ offset-y£©
-	*                      <offset-x> ÉèÖÃË®Æ½Æ«ÒÆÁ¿£¬Èç¹ûÊÇ¸ºÖµÔòÒõÓ°Î»ÓÚ¾ØĞÎ×ó±ß¡£ 
-	*                      <offset-y> ÉèÖÃ´¹Ö±Æ«ÒÆÁ¿£¬Èç¹ûÊÇ¸ºÖµÔòÒõÓ°Î»ÓÚ¾ØĞÎÉÏÃæ¡£
-	* @param [in] nBlurRadius Ä£ºı°ë¾¶£¬ÖµÔ½´ó£¬Ä£ºıÃæ»ıÔ½´ó£¬ÒõÓ°¾ÍÔ½´óÔ½µ­, Èç¹ûÎª0£¬´ËÊ±ÒõÓ°±ßÔµÈñÀû£¬ÎŞÄ£ºıĞ§¹û£¬²»ÄÜÎª¸ºÖµ¡£
-	* @param [in] nSpreadRadius À©Õ¹°ë¾¶£¬¼´Ä£ºıÇøÓò¾àÀërc¾ØĞÎ±ßÔµ¶àÉÙ¸öÏñËØ¡£
-	*                           È¡ÕıÖµÊ±£¬ÒõÓ°À©´ó£»È¡¸ºÖµÊ±£¬ÒõÓ°ÊÕËõ¡£
-	* @param [in] dwColor ÒõÓ°µÄÑÕÉ«Öµ
+	/** åœ¨æŒ‡å®šçŸ©å½¢å‘¨å›´ç»˜åˆ¶é˜´å½±ï¼ˆé«˜æ–¯æ¨¡ç³Š, åªæ”¯æŒå¤–éƒ¨é˜´å½±ï¼Œä¸æ”¯æŒå†…éƒ¨é˜´å½±ï¼‰
+	* @param [in] rc çŸ©å½¢åŒºåŸŸ
+	* @param [in] roundSize é˜´å½±çš„åœ†è§’å®½åº¦å’Œé«˜åº¦
+	* @param [in] cpOffset è®¾ç½®é˜´å½±åç§»é‡ï¼ˆoffset-x å’Œ offset-yï¼‰
+	*                      <offset-x> è®¾ç½®æ°´å¹³åç§»é‡ï¼Œå¦‚æœæ˜¯è´Ÿå€¼åˆ™é˜´å½±ä½äºçŸ©å½¢å·¦è¾¹ã€‚ 
+	*                      <offset-y> è®¾ç½®å‚ç›´åç§»é‡ï¼Œå¦‚æœæ˜¯è´Ÿå€¼åˆ™é˜´å½±ä½äºçŸ©å½¢ä¸Šé¢ã€‚
+	* @param [in] nBlurRadius æ¨¡ç³ŠåŠå¾„ï¼Œå€¼è¶Šå¤§ï¼Œæ¨¡ç³Šé¢ç§¯è¶Šå¤§ï¼Œé˜´å½±å°±è¶Šå¤§è¶Šæ·¡, å¦‚æœä¸º0ï¼Œæ­¤æ—¶é˜´å½±è¾¹ç¼˜é”åˆ©ï¼Œæ— æ¨¡ç³Šæ•ˆæœï¼Œä¸èƒ½ä¸ºè´Ÿå€¼ã€‚
+	* @param [in] nSpreadRadius æ‰©å±•åŠå¾„ï¼Œå³æ¨¡ç³ŠåŒºåŸŸè·ç¦»rcçŸ©å½¢è¾¹ç¼˜å¤šå°‘ä¸ªåƒç´ ã€‚
+	*                           å–æ­£å€¼æ—¶ï¼Œé˜´å½±æ‰©å¤§ï¼›å–è´Ÿå€¼æ—¶ï¼Œé˜´å½±æ”¶ç¼©ã€‚
+	* @param [in] dwColor é˜´å½±çš„é¢œè‰²å€¼
 	*/
 	virtual void DrawBoxShadow(const UiRect& rc, 
 		                       const UiSize& roundSize, 
@@ -772,85 +772,85 @@ public:
 		                       UiColor dwColor) = 0;
 
 
-	/** ·ÖÀëÎ»Í¼
-	*@return ·µ»ØÎ»Í¼½Ó¿Ú£¬·µ»ØºóÓÉµ÷ÓÃ·½¹ÜÀí×ÊÔ´£¨°üÀ¨ÊÍ·Å×ÊÔ´µÈ£©
+	/** åˆ†ç¦»ä½å›¾
+	*@return è¿”å›ä½å›¾æ¥å£ï¼Œè¿”å›åç”±è°ƒç”¨æ–¹ç®¡ç†èµ„æºï¼ˆåŒ…æ‹¬é‡Šæ”¾èµ„æºç­‰ï¼‰
 	*/
 	virtual IBitmap* DetachBitmap() = 0;
 
-	/** ½«¾ØĞÎÇøÓòÄÚµÄÍ¼ÏñAlphaÉè¶¨ÎªÖ¸¶¨Öµalpha(0 - 255)
-	* @param [in] rcDirty ¾ØĞÎÇøÓò
-	* @param [in] alpha ĞèÒªÉè¶¨µÄAplpaÖµ
+	/** å°†çŸ©å½¢åŒºåŸŸå†…çš„å›¾åƒAlphaè®¾å®šä¸ºæŒ‡å®šå€¼alpha(0 - 255)
+	* @param [in] rcDirty çŸ©å½¢åŒºåŸŸ
+	* @param [in] alpha éœ€è¦è®¾å®šçš„Aplpaå€¼
 	*/
 	virtual void ClearAlpha(const UiRect& rcDirty, uint8_t alpha = 0) = 0;
 
-	/** »Ö¸´¾ØĞÎÇøÓòÄÚµÄÍ¼ÏñAlphaÖµÎªalpha(0 - 255)
-	* @param [in] rcDirty ¾ØĞÎÇøÓò
-	* @param [in] rcShadowPadding ÒõÓ°±ß¾à£¨·Ö±ğ¶ÔÓ¦¾ØĞÎµÄ×ó/ÓÒ/ÉÏ/ÏÂ±ß¾àµÄPaddingÖµ£©
-	* @param [in] alpha ĞèÒª»Ö¸´µÄAlphaÖµ£¨ĞèÒªÓëClearAlphaÊ±´«ÈëµÄalphaÖµÏàÍ¬£©
+	/** æ¢å¤çŸ©å½¢åŒºåŸŸå†…çš„å›¾åƒAlphaå€¼ä¸ºalpha(0 - 255)
+	* @param [in] rcDirty çŸ©å½¢åŒºåŸŸ
+	* @param [in] rcShadowPadding é˜´å½±è¾¹è·ï¼ˆåˆ†åˆ«å¯¹åº”çŸ©å½¢çš„å·¦/å³/ä¸Š/ä¸‹è¾¹è·çš„Paddingå€¼ï¼‰
+	* @param [in] alpha éœ€è¦æ¢å¤çš„Alphaå€¼ï¼ˆéœ€è¦ä¸ClearAlphaæ—¶ä¼ å…¥çš„alphaå€¼ç›¸åŒï¼‰
 	*/
 	virtual void RestoreAlpha(const UiRect& rcDirty, const UiPadding& rcShadowPadding, uint8_t alpha) = 0;
 
-	/** »Ö¸´¾ØĞÎÇøÓòÄÚµÄÍ¼ÏñAlphaÖµÎª255
-	* @param [in] rcDirty ¾ØĞÎÇøÓò
-	* @param [in] rcShadowPadding ÒõÓ°±ß¾à£¨·Ö±ğ¶ÔÓ¦¾ØĞÎµÄ×ó/ÓÒ/ÉÏ/ÏÂ±ß¾àµÄPaddingÖµ£©
+	/** æ¢å¤çŸ©å½¢åŒºåŸŸå†…çš„å›¾åƒAlphaå€¼ä¸º255
+	* @param [in] rcDirty çŸ©å½¢åŒºåŸŸ
+	* @param [in] rcShadowPadding é˜´å½±è¾¹è·ï¼ˆåˆ†åˆ«å¯¹åº”çŸ©å½¢çš„å·¦/å³/ä¸Š/ä¸‹è¾¹è·çš„Paddingå€¼ï¼‰
 	*/
 	virtual void RestoreAlpha(const UiRect& rcDirty, const UiPadding& rcShadowPadding = UiPadding()) = 0;
 
 #ifdef UILIB_IMPL_WINSDK
-	/** »ñÈ¡DC¾ä±ú£¬µ±²»Ê¹ÓÃºó£¬ĞèÒªµ÷ÓÃReleaseDC½Ó¿ÚÊÍ·Å×ÊÔ´
+	/** è·å–DCå¥æŸ„ï¼Œå½“ä¸ä½¿ç”¨åï¼Œéœ€è¦è°ƒç”¨ReleaseDCæ¥å£é‡Šæ”¾èµ„æº
 	*/
 	virtual HDC GetDC() = 0;
 
-	/** ÊÍ·ÅDC×ÊÔ´
-	* @param [in] hdc ĞèÒªÊÍ·ÅµÄDC¾ä±ú
+	/** é‡Šæ”¾DCèµ„æº
+	* @param [in] hdc éœ€è¦é‡Šæ”¾çš„DCå¥æŸ„
 	*/
 	virtual void ReleaseDC(HDC hdc) = 0;
 #endif
 
 public:
 
-	/** Çå³ıÎ»Í¼Êı¾İ£¬Ê¹Æä±ä³ÉÈ«Í¸Ã÷Î»Í¼£¨Î»Í¼Êı¾İÈ«²¿ÇåÁã£©
+	/** æ¸…é™¤ä½å›¾æ•°æ®ï¼Œä½¿å…¶å˜æˆå…¨é€æ˜ä½å›¾ï¼ˆä½å›¾æ•°æ®å…¨éƒ¨æ¸…é›¶ï¼‰
 	*/
 	virtual void Clear() = 0;
 
-	/** ¿ËÂ¡Ò»¸öĞÂµÄ¶ÔÏó
+	/** å…‹éš†ä¸€ä¸ªæ–°çš„å¯¹è±¡
 	*/
 	virtual std::unique_ptr<IRender> Clone() = 0;
 };
 
-/** äÖÈ¾½Ó¿Ú¹ÜÀí£¬ÓÃÓÚ´´½¨Font¡¢Pen¡¢Brush¡¢Path¡¢Matrix¡¢Bitmap¡¢RenderµÈäÖÈ¾ÊµÏÖ¶ÔÏó
+/** æ¸²æŸ“æ¥å£ç®¡ç†ï¼Œç”¨äºåˆ›å»ºFontã€Penã€Brushã€Pathã€Matrixã€Bitmapã€Renderç­‰æ¸²æŸ“å®ç°å¯¹è±¡
 */
 class UILIB_API IRenderFactory
 {
 public:
 	virtual ~IRenderFactory() = default;
 
-	/** ´´½¨Ò»¸öFont¶ÔÏó
+	/** åˆ›å»ºä¸€ä¸ªFontå¯¹è±¡
 	*/
 	virtual IFont* CreateIFont() = 0;
 
-	/** ´´½¨Ò»¸öPen¶ÔÏó
+	/** åˆ›å»ºä¸€ä¸ªPenå¯¹è±¡
 	*/
 	virtual IPen* CreatePen(UiColor color, int width = 1) = 0;
 
-	/** ´´½¨Ò»¸öBrush¶ÔÏó
+	/** åˆ›å»ºä¸€ä¸ªBrushå¯¹è±¡
 	*/
 	virtual IBrush* CreateBrush(UiColor corlor) = 0;
 
-	/** ´´½¨Ò»¸öPath¶ÔÏó
+	/** åˆ›å»ºä¸€ä¸ªPathå¯¹è±¡
 	*/
 	virtual IPath* CreatePath() = 0;
 
-	/** ´´½¨Ò»¸öMatrix¶ÔÏó
+	/** åˆ›å»ºä¸€ä¸ªMatrixå¯¹è±¡
 	*/
 	virtual IMatrix* CreateMatrix() = 0;
 
-	/** ´´½¨Ò»¸öBitmap¶ÔÏó
+	/** åˆ›å»ºä¸€ä¸ªBitmapå¯¹è±¡
 	*/
 	virtual IBitmap* CreateBitmap() = 0;
 
-	/** ´´½¨Ò»¸öRender¶ÔÏó
-	* @param [in] pWindow ¹ØÁªµÄ´°¿Ú
+	/** åˆ›å»ºä¸€ä¸ªRenderå¯¹è±¡
+	* @param [in] pWindow å…³è”çš„çª—å£
 	*/
 	virtual IRender* CreateRender(Window* pWindow) = 0;
 };

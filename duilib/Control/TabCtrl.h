@@ -8,7 +8,7 @@
 
 namespace ui
 {
-/** ¶à±êÇ©¿Ø¼ş£¨ÀàËÆä¯ÀÀÆ÷µÄ¶à±êÇ©£©
+/** å¤šæ ‡ç­¾æ§ä»¶ï¼ˆç±»ä¼¼æµè§ˆå™¨çš„å¤šæ ‡ç­¾ï¼‰
 */
 class TabBox;
 class TabCtrl: public ListBox
@@ -16,92 +16,92 @@ class TabCtrl: public ListBox
 public:
 	explicit TabCtrl(Window* pWindow);
 
-	/** »ñÈ¡¿Ø¼şÀàĞÍ
+	/** è·å–æ§ä»¶ç±»å‹
 	*/
 	virtual std::wstring GetType() const override;
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 
 public:
-	/** ÉèÖÃ°ó¶¨µÄTabBox¿Ø¼şÃû³Æ
+	/** è®¾ç½®ç»‘å®šçš„TabBoxæ§ä»¶åç§°
 	*/
 	void SetTabBoxName(const std::wstring& tabBoxName);
 
-	/** »ñÈ¡°ó¶¨µÄTabBox¿Ø¼şÃû³Æ
+	/** è·å–ç»‘å®šçš„TabBoxæ§ä»¶åç§°
 	*/
 	std::wstring GetTabBoxName() const;
 
-	/** ÉèÖÃ°ó¶¨µÄTabBox½Ó¿Ú
+	/** è®¾ç½®ç»‘å®šçš„TabBoxæ¥å£
 	*/
 	void SetTabBox(TabBox* pTabBox);
 
-	/** »ñÈ¡°ó¶¨µÄTabBox½Ó¿Ú
+	/** è·å–ç»‘å®šçš„TabBoxæ¥å£
 	*/
 	TabBox* GetTabBox() const;
 
 public:
-	/** ÉèÖÃ×ÓÏîµÄÎ»ÖÃË÷Òı
-	 * @param [in] pControl ×ÓÏîÖ¸Õë
-	 * @param [in] iIndex Ë÷ÒıºÅ£¬·¶Î§ÊÇ£º[0, GetItemCount())
+	/** è®¾ç½®å­é¡¹çš„ä½ç½®ç´¢å¼•
+	 * @param [in] pControl å­é¡¹æŒ‡é’ˆ
+	 * @param [in] iIndex ç´¢å¼•å·ï¼ŒèŒƒå›´æ˜¯ï¼š[0, GetItemCount())
 	 */
 	virtual bool SetItemIndex(Control* pControl, size_t iIndex) override;
 
-	/** ×·¼ÓÒ»¸ö×ÓÏîµ½Ä©Î²
-	 * @param [in] pControl ×ÓÏîÖ¸Õë
+	/** è¿½åŠ ä¸€ä¸ªå­é¡¹åˆ°æœ«å°¾
+	 * @param [in] pControl å­é¡¹æŒ‡é’ˆ
 	 */
 	virtual bool AddItem(Control* pControl) override;
 
-	/** ÔÚÖ¸¶¨Î»ÖÃÖ®ºó²åÈëÒ»¸ö×ÓÏî
-	 * @param [in] pControl ×ÓÏîÖ¸Õë
-	 * @param[in] iIndex Òª²åÈëµÄÎ»ÖÃË÷Òı£¬·¶Î§ÊÇ£º[0, GetItemCount())
+	/** åœ¨æŒ‡å®šä½ç½®ä¹‹åæ’å…¥ä¸€ä¸ªå­é¡¹
+	 * @param [in] pControl å­é¡¹æŒ‡é’ˆ
+	 * @param[in] iIndex è¦æ’å…¥çš„ä½ç½®ç´¢å¼•ï¼ŒèŒƒå›´æ˜¯ï¼š[0, GetItemCount())
 	 */
 	virtual bool AddItemAt(Control* pControl, size_t  iIndex) override;
 
-	/** ¸ù¾İ×ÓÏîÖ¸Õë
-	 * @param [in] pControl ×ÓÏîÖ¸Õë
+	/** æ ¹æ®å­é¡¹æŒ‡é’ˆ
+	 * @param [in] pControl å­é¡¹æŒ‡é’ˆ
 	 */
 	virtual bool RemoveItem(Control* pControl) override;
 
-	/** ¸ù¾İË÷ÒıÒÆ³ıÒ»¸ö×ÓÏî
-	 * @param [in] iIndex ×ÓÏîË÷Òı£¬·¶Î§ÊÇ£º[0, GetItemCount())
+	/** æ ¹æ®ç´¢å¼•ç§»é™¤ä¸€ä¸ªå­é¡¹
+	 * @param [in] iIndex å­é¡¹ç´¢å¼•ï¼ŒèŒƒå›´æ˜¯ï¼š[0, GetItemCount())
 	 */
 	virtual bool RemoveItemAt(size_t iIndex) override;
 
-	/** ÒÆ³ıËùÓĞ×ÓÏî
+	/** ç§»é™¤æ‰€æœ‰å­é¡¹
 	 */
 	virtual void RemoveAllItems() override;
 
 protected:
-	/** ³õÊ¼»¯½Ó¿Ú
+	/** åˆå§‹åŒ–æ¥å£
 	*/
 	virtual void OnInit() override;
 
-	/** ÏûÏ¢´¦Àíº¯Êı
-	* @param [in] msg ÏûÏ¢ÄÚÈİ
+	/** æ¶ˆæ¯å¤„ç†å‡½æ•°
+	* @param [in] msg æ¶ˆæ¯å†…å®¹
 	*/
 	virtual void HandleEvent(const EventArgs& msg) override;
 
 private:
-	/** Ä¬ÈÏÑ¡ÔñµÄ×ÓÏî
+	/** é»˜è®¤é€‰æ‹©çš„å­é¡¹
 	*/
 	size_t m_nSelectedId;
 
-	/** °ó¶¨µÄTabBoxÃû³Æ
+	/** ç»‘å®šçš„TabBoxåç§°
 	*/
 	UiString m_tabBoxName;
 
-	/** °ó¶¨µÄTabBox½Ó¿Ú
+	/** ç»‘å®šçš„TabBoxæ¥å£
 	*/
 	TabBox* m_pTabBox;
 };
 
-/** ¶à±êÇ©¿Ø¼şµÄÒ»¸ö±êÇ©Ò³
+/** å¤šæ ‡ç­¾æ§ä»¶çš„ä¸€ä¸ªæ ‡ç­¾é¡µ
 */
 class TabCtrlItem : public ControlDragableT<ListBoxItemH>
 {
 public:
 	explicit TabCtrlItem(Window* pWindow);
 
-	/** »ñÈ¡¿Ø¼şÀàĞÍ
+	/** è·å–æ§ä»¶ç±»å‹
 	*/
 	virtual std::wstring GetType() const override;
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
@@ -109,171 +109,171 @@ public:
 	virtual std::wstring GetToolTipText() const override;
 
 public:
-	/** ÉèÖÃÍ¼±ê
-	* @param [in] iconImageString Í¼±ê×ÊÔ´×Ö·û´®
+	/** è®¾ç½®å›¾æ ‡
+	* @param [in] iconImageString å›¾æ ‡èµ„æºå­—ç¬¦ä¸²
 	*/
 	void SetIcon(const std::wstring& iconImageString);
 
-	/** »ñÈ¡Í¼±ê
-	* @return ·µ»ØÍ¼±ê×ÊÔ´×Ö·û´®
+	/** è·å–å›¾æ ‡
+	* @return è¿”å›å›¾æ ‡èµ„æºå­—ç¬¦ä¸²
 	*/
 	std::wstring GetIcon() const;
 
-	/** ÉèÖÃÎÄ×ÖÄÚÈİ
+	/** è®¾ç½®æ–‡å­—å†…å®¹
 	*/
 	void SetTitle(const std::wstring& title);
 
-	/** »ñÈ¡ÎÄ×ÖÄÚÈİ
+	/** è·å–æ–‡å­—å†…å®¹
 	*/
 	std::wstring GetTitle() const;
 
 public:
-	/** ÉèÖÃ°ó¶¨µÄTabBox×ÓÏîË÷ÒıºÅ
+	/** è®¾ç½®ç»‘å®šçš„TabBoxå­é¡¹ç´¢å¼•å·
 	*/
 	void SetTabBoxItemIndex(size_t nTabBoxItemIndex);
 
-	/** »ñÈ¡°ó¶¨µÄTabBox×ÓÏîIDË÷ÒıºÅ
+	/** è·å–ç»‘å®šçš„TabBoxå­é¡¹IDç´¢å¼•å·
 	*/
 	size_t GetTabBoxItemIndex() const;
 
 public:
-	/** »ñÈ¡Í¼±ê¿Ø¼ş
+	/** è·å–å›¾æ ‡æ§ä»¶
 	*/
 	Control* GetIconControl() const { return m_pIcon; }
 
-	/** »ñÈ¡ÎÄ±¾¿Ø¼ş
+	/** è·å–æ–‡æœ¬æ§ä»¶
 	*/
 	Label* GetTextLabel() const { return m_pLabel; }
 
-	/** »ñÈ¡¹Ø±Õ°´Å¥
+	/** è·å–å…³é—­æŒ‰é’®
 	*/
 	Button* GetCloseButton() const { return m_pCloseBtn; }
 
 public:
-	/** Í¼±ê¿Ø¼şµÄClass
+	/** å›¾æ ‡æ§ä»¶çš„Class
 	*/
 	void SetIconClass(const std::wstring& iconClass);
 	std::wstring GetIconClass() const;
 
-	/** ÎÄ±¾¿Ø¼şµÄClass
+	/** æ–‡æœ¬æ§ä»¶çš„Class
 	*/
 	void SetTitleClass(const std::wstring& titleClass);
 	std::wstring GetTitleClass() const;
 
-	/** ¹Ø±Õ°´Å¥¿Ø¼şµÄClass
+	/** å…³é—­æŒ‰é’®æ§ä»¶çš„Class
 	*/
 	void SetCloseButtonClass(const std::wstring& closeButtonClass);
 	std::wstring GetCloseButtonClass() const;
 
-	/** ·Ö¸îÏß¿Ø¼şµÄClass
+	/** åˆ†å‰²çº¿æ§ä»¶çš„Class
 	*/
 	void SetLineClass(const std::wstring& lineClass);
 	std::wstring GetLineClass() const;
 
 public:
-	/** ÉèÖÃÑ¡Ôñ×´Ì¬µÄ±êÇ©Ô²½Ç´óĞ¡
-	* @param [in] szCorner Ô²½ÇµÄ¿í¶ÈºÍ¸ß¶È
-	* @param [in] bNeedDpiScale ÊÇ·ñ¸ù¾İ DPI ×ÔÊÊÓ¦£¬Ä¬ÈÏÎª true
+	/** è®¾ç½®é€‰æ‹©çŠ¶æ€çš„æ ‡ç­¾åœ†è§’å¤§å°
+	* @param [in] szCorner åœ†è§’çš„å®½åº¦å’Œé«˜åº¦
+	* @param [in] bNeedDpiScale æ˜¯å¦æ ¹æ® DPI è‡ªé€‚åº”ï¼Œé»˜è®¤ä¸º true
 	*/
 	void SetSelectedRoundCorner(UiSize szCorner, bool bNeedDpiScale);
 
-	/** »ñÈ¡Ñ¡Ôñ×´Ì¬µÄ±êÇ©Ô²½Ç´óĞ¡
+	/** è·å–é€‰æ‹©çŠ¶æ€çš„æ ‡ç­¾åœ†è§’å¤§å°
 	*/
 	UiSize GetSelectedRoundCorner() const;
 
-	/** ÉèÖÃĞüÍ£×´Ì¬µÄ±êÇ©Ô²½Ç´óĞ¡
-	* @param [in] szCorner Ô²½ÇµÄ¿í¶ÈºÍ¸ß¶È
-	* @param [in] bNeedDpiScale ÊÇ·ñ¸ù¾İ DPI ×ÔÊÊÓ¦£¬Ä¬ÈÏÎª true
+	/** è®¾ç½®æ‚¬åœçŠ¶æ€çš„æ ‡ç­¾åœ†è§’å¤§å°
+	* @param [in] szCorner åœ†è§’çš„å®½åº¦å’Œé«˜åº¦
+	* @param [in] bNeedDpiScale æ˜¯å¦æ ¹æ® DPI è‡ªé€‚åº”ï¼Œé»˜è®¤ä¸º true
 	*/
 	void SetHotRoundCorner(UiSize szCorner, bool bNeedDpiScale);
 
-	/** »ñÈ¡ĞüÍ£×´Ì¬µÄ±êÇ©Ô²½Ç´óĞ¡
+	/** è·å–æ‚¬åœçŠ¶æ€çš„æ ‡ç­¾åœ†è§’å¤§å°
 	*/
 	UiSize GetHotRoundCorner() const;
 
-	/** ÉèÖÃHot×´Ì¬µÄ±³¾°É«µÄÄÚ±ß¾à
-	* @param [in] rcPadding ÄÚ±ß¾àÊı¾İ
-	* @param [in] bNeedDpiScale ÊÇ·ñ¸ù¾İ DPI ×ÔÊÊÓ¦£¬Ä¬ÈÏÎª true
+	/** è®¾ç½®HotçŠ¶æ€çš„èƒŒæ™¯è‰²çš„å†…è¾¹è·
+	* @param [in] rcPadding å†…è¾¹è·æ•°æ®
+	* @param [in] bNeedDpiScale æ˜¯å¦æ ¹æ® DPI è‡ªé€‚åº”ï¼Œé»˜è®¤ä¸º true
 	*/
 	void SetHotPadding(UiPadding rcPadding, bool bNeedDpiScale);
 
-	/** »ñÈ¡Hot×´Ì¬µÄ±³¾°É«µÄÄÚ±ß¾à
+	/** è·å–HotçŠ¶æ€çš„èƒŒæ™¯è‰²çš„å†…è¾¹è·
 	*/
 	UiPadding GetHotPadding() const;
 
-	/** ÉèÖÃ¹Ø±Õ°´Å¥ÊÇ·ñ×Ô¶¯Òş²Ø
-	* @param [in] bAutoHideCloseBtn true±íÊ¾×Ô¶¯Òş²Ø¹Ø±Õ°´Å¥£¬false±íÊ¾¹Ø±Õ°´Å¥Ê¼ÖÕÏÔÊ¾
+	/** è®¾ç½®å…³é—­æŒ‰é’®æ˜¯å¦è‡ªåŠ¨éšè—
+	* @param [in] bAutoHideCloseBtn trueè¡¨ç¤ºè‡ªåŠ¨éšè—å…³é—­æŒ‰é’®ï¼Œfalseè¡¨ç¤ºå…³é—­æŒ‰é’®å§‹ç»ˆæ˜¾ç¤º
 	*/
 	void SetAutoHideCloseButton(bool bAutoHideCloseBtn);
 
-	/** »ñÈ¡¹Ø±Õ°´Å¥ÊÇ·ñ×Ô¶¯Òş²Ø
+	/** è·å–å…³é—­æŒ‰é’®æ˜¯å¦è‡ªåŠ¨éšè—
 	*/
 	bool IsAutoHideCloseButton() const;
 
-	/** ´¦Àí·Ö¸îÏßµÄÏÔÊ¾»òÕßÒş²Ø
+	/** å¤„ç†åˆ†å‰²çº¿çš„æ˜¾ç¤ºæˆ–è€…éšè—
 	*/
 	void AdjustItemLineStatus();
 
 protected:
-	/** ³õÊ¼»¯½Ó¿Ú
+	/** åˆå§‹åŒ–æ¥å£
 	*/
 	virtual void OnInit() override;
 
-	/** ÏûÏ¢´¦Àíº¯Êı
-	* @param [in] msg ÏûÏ¢ÄÚÈİ
+	/** æ¶ˆæ¯å¤„ç†å‡½æ•°
+	* @param [in] msg æ¶ˆæ¯å†…å®¹
 	*/
 	virtual void HandleEvent(const EventArgs& msg) override;
 
-	/** ´¦ÀíÊó±êÒÆÈëÏûÏ¢
+	/** å¤„ç†é¼ æ ‡ç§»å…¥æ¶ˆæ¯
 	*/
 	virtual bool MouseEnter(const EventArgs& msg) override;
 
-	/** ´¦ÀíÊó±êÒÆ³öÏûÏ¢
+	/** å¤„ç†é¼ æ ‡ç§»å‡ºæ¶ˆæ¯
 	*/
 	virtual bool MouseLeave(const EventArgs& msg) override;
 
-	/** Êó±ê×ó¼ü°´ÏÂÏûÏ¢
+	/** é¼ æ ‡å·¦é”®æŒ‰ä¸‹æ¶ˆæ¯
 	*/
 	virtual bool ButtonDown(const EventArgs& msg) override;
 
-	/** »æÖÆ¿Ø¼ş×´Ì¬ÑÕÉ«µÄº¯Êı
+	/** ç»˜åˆ¶æ§ä»¶çŠ¶æ€é¢œè‰²çš„å‡½æ•°
 	*/
 	virtual void PaintStateColors(IRender* pRender) override;
 
-	/** Ñ¡Ôñ×´Ì¬±ä»¯ÊÂ¼ş(m_bSelected±äÁ¿·¢Éú±ä»¯)
+	/** é€‰æ‹©çŠ¶æ€å˜åŒ–äº‹ä»¶(m_bSelectedå˜é‡å‘ç”Ÿå˜åŒ–)
 	*/
 	virtual void OnPrivateSetSelected() override;
 
-	/** »æÖÆ±êÇ©Ò³(Ñ¡Ôñ×´Ì¬)
+	/** ç»˜åˆ¶æ ‡ç­¾é¡µ(é€‰æ‹©çŠ¶æ€)
 	*/
 	virtual void PaintTabItemSelected(IRender* pRender) ;
 
-	/** »æÖÆ±êÇ©Ò³(ĞüÍ£×´Ì¬)
+	/** ç»˜åˆ¶æ ‡ç­¾é¡µ(æ‚¬åœçŠ¶æ€)
 	*/
 	virtual void PaintTabItemHot(IRender* pRender);
 
-	/** Ìî³äÂ·¾¶, ĞÎ³ÉÔ²½Ç¾ØĞÎ
+	/** å¡«å……è·¯å¾„, å½¢æˆåœ†è§’çŸ©å½¢
 	*/
 	void AddTabItemPath(IPath* path, const UiRect& rect, UiSize roundSize) const;
 
-	/** µ÷Õû×Ó¿Ø¼şµÄË³Ğò
+	/** è°ƒæ•´å­æ§ä»¶çš„é¡ºåº
 	*/
 	void AdjustSubItemIndex();
 
-	/** »ñÈ¡TabCtrl½Ó¿Ú
+	/** è·å–TabCtrlæ¥å£
 	*/
 	TabCtrl* GetTabCtrl() const;
 
 private:
-	/** Ñ¡Ôñ±êÇ©µÄÔ²½Ç´óĞ¡
+	/** é€‰æ‹©æ ‡ç­¾çš„åœ†è§’å¤§å°
 	*/
 	struct RoundCorner
 	{
-		uint8_t cx; //Ô²½ÇµÄ¿í¶È
-		uint8_t cy; //Ô²½ÇµÄ¸ß¶È
+		uint8_t cx; //åœ†è§’çš„å®½åº¦
+		uint8_t cy; //åœ†è§’çš„é«˜åº¦
 	};
 
-	/** Hot±êÇ©µÄ×´Ì¬PaddingÖµ
+	/** Hotæ ‡ç­¾çš„çŠ¶æ€Paddingå€¼
 	*/
 	struct HotPadding
 	{
@@ -283,64 +283,64 @@ private:
 		uint8_t bottom;
 	};
 
-	/** Ñ¡Ôñ×´Ì¬µÄ±êÇ©Ô²½Ç´óĞ¡
+	/** é€‰æ‹©çŠ¶æ€çš„æ ‡ç­¾åœ†è§’å¤§å°
 	*/
 	RoundCorner m_rcSelected;
 
-	/** ĞüÍ£×´Ì¬µÄ±êÇ©Ô²½Ç´óĞ¡
+	/** æ‚¬åœçŠ¶æ€çš„æ ‡ç­¾åœ†è§’å¤§å°
 	*/
 	RoundCorner m_rcHot;
 
-	/** Hot±êÇ©µÄ×´Ì¬PaddingÖµ
+	/** Hotæ ‡ç­¾çš„çŠ¶æ€Paddingå€¼
 	*/
 	HotPadding m_hotPadding;
 
-	/** ¹Ø±Õ°´Å¥ÊÇ·ñ×Ô¶¯Òş²Ø
+	/** å…³é—­æŒ‰é’®æ˜¯å¦è‡ªåŠ¨éšè—
 	*/
 	bool m_bAutoHideCloseBtn;
 
-	/** Í¼±ê¿Ø¼ş
+	/** å›¾æ ‡æ§ä»¶
 	*/
 	Control* m_pIcon;
 
-	/** ÎÄ±¾¿Ø¼ş
+	/** æ–‡æœ¬æ§ä»¶
 	*/
 	Label* m_pLabel;
 
-	/** ¹Ø±Õ°´Å¥
+	/** å…³é—­æŒ‰é’®
 	*/
 	Button* m_pCloseBtn;
 
-	/** ±êÇ©Ö®¼äµÄ·Ö¸îÏß
+	/** æ ‡ç­¾ä¹‹é—´çš„åˆ†å‰²çº¿
 	*/
 	Control* m_pLine;
 
-	/** Í¼±ê¿Ø¼şµÄClass
+	/** å›¾æ ‡æ§ä»¶çš„Class
 	*/
 	UiString m_iconClass;
 
-	/** ÎÄ±¾¿Ø¼şµÄClass
+	/** æ–‡æœ¬æ§ä»¶çš„Class
 	*/
 	UiString m_titleClass;
 
-	/** ¹Ø±Õ°´Å¥¿Ø¼şµÄClass
+	/** å…³é—­æŒ‰é’®æ§ä»¶çš„Class
 	*/
 	UiString m_closeBtnClass;
 
-	/** ·Ö¸îÏßµÄClass
+	/** åˆ†å‰²çº¿çš„Class
 	*/
 	UiString m_lineClass;
 
-	/** ÎÄ±¾ÄÚÈİ
+	/** æ–‡æœ¬å†…å®¹
 	*/
 	UiString m_title;
 
-	/** Í¼±ê×ÊÔ´×Ö·û´®
+	/** å›¾æ ‡èµ„æºå­—ç¬¦ä¸²
 	*/
 	UiString m_iconImageString;
 
 private:
-	/** °ó¶¨µÄTabBox×ÓÏîË÷ÒıºÅ
+	/** ç»‘å®šçš„TabBoxå­é¡¹ç´¢å¼•å·
 	*/
 	size_t m_nTabBoxItemIndex;
 };

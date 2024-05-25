@@ -11,22 +11,22 @@ namespace ui
 class UILIB_API StringHelper
 {
 public:
-	//¶ÔÂ·¾¶ÖĞµÄ·Ö¸ô·û/µã£¨"/\\."£©×Ö·û½øĞĞ¹æ·¶»¯´¦Àí, È·±£Ä¿Â¼ÒÔ·Ö¸ô·û½áÊø(ÊÊÓÃÓÚÄ¿Â¼)
+	//å¯¹è·¯å¾„ä¸­çš„åˆ†éš”ç¬¦/ç‚¹ï¼ˆ"/\\."ï¼‰å­—ç¬¦è¿›è¡Œè§„èŒƒåŒ–å¤„ç†, ç¡®ä¿ç›®å½•ä»¥åˆ†éš”ç¬¦ç»“æŸ(é€‚ç”¨äºç›®å½•)
 	static std::wstring NormalizeDirPath(const std::wstring& strFilePath);
 
-	//¶ÔÂ·¾¶ÖĞµÄ·Ö¸ô·û/µã£¨"/\\."£©×Ö·û½øĞĞ¹æ·¶»¯´¦Àí, £¨ÊÊÓÃÓÚÎÄ¼ş£©
+	//å¯¹è·¯å¾„ä¸­çš„åˆ†éš”ç¬¦/ç‚¹ï¼ˆ"/\\."ï¼‰å­—ç¬¦è¿›è¡Œè§„èŒƒåŒ–å¤„ç†, ï¼ˆé€‚ç”¨äºæ–‡ä»¶ï¼‰
 	static std::wstring NormalizeFilePath(const std::wstring& strFilePath);
 
-	//Á¬½ÓÁ½¸öÂ·¾¶£¬Éú³ÉÒ»¸öĞÂµÄÂ·¾¶£¬ÓÃÓÚÂ·¾¶Æ´½Ó
+	//è¿æ¥ä¸¤ä¸ªè·¯å¾„ï¼Œç”Ÿæˆä¸€ä¸ªæ–°çš„è·¯å¾„ï¼Œç”¨äºè·¯å¾„æ‹¼æ¥
 	static std::wstring JoinFilePath(const std::wstring& path1, const std::wstring& path2);
 
-	//ÅĞ¶ÏÂ·¾¶Ö¸ÏòµÄÎÄ¼şÊÇ·ñ´æÔÚ
+	//åˆ¤æ–­è·¯å¾„æŒ‡å‘çš„æ–‡ä»¶æ˜¯å¦å­˜åœ¨
 	static bool IsExistsPath(const std::wstring& strFilePath);
 
-	//ÅĞ¶ÏÂ·¾¶ÊÇ·ñÎªÏà¶ÔÂ·¾¶
+	//åˆ¤æ–­è·¯å¾„æ˜¯å¦ä¸ºç›¸å¯¹è·¯å¾„
 	static bool IsRelativePath(const std::wstring& strFilePath);
 
-	//ÅĞ¶ÏÂ·¾¶ÊÇ·ñÎª¾ø¶ÔÂ·¾¶
+	//åˆ¤æ–­è·¯å¾„æ˜¯å¦ä¸ºç»å¯¹è·¯å¾„
 	static bool IsAbsolutePath(const std::wstring& strFilePath);
 
 public:
@@ -63,13 +63,13 @@ public:
 	static std::list<std::string> Split(const std::string& input, const std::string& delimitor);
 	static std::list<std::wstring> Split(const std::wstring& input, const std::wstring& delimitor);
 
-	//±È½Ï×Ö·û´®ÊÇ·ñÏàµÈ£¬±È½ÏÊ±ºöÂÔ´óĞ¡Ğ´
+	//æ¯”è¾ƒå­—ç¬¦ä¸²æ˜¯å¦ç›¸ç­‰ï¼Œæ¯”è¾ƒæ—¶å¿½ç•¥å¤§å°å†™
 	static bool IsEqualNoCase(const std::wstring& lhs, const std::wstring& rhs);
 	static bool IsEqualNoCase(const wchar_t* lhs, const std::wstring& rhs);
 	static bool IsEqualNoCase(const std::wstring& lhs, const wchar_t* rhs);
 	static bool IsEqualNoCase(const wchar_t* lhs, const wchar_t* rhs);
 
-	//½«ÕûĞÍ×ª»»Îª×Ö·û´®
+	//å°†æ•´å‹è½¬æ¢ä¸ºå­—ç¬¦ä¸²
 	static std::wstring UInt64ToString(uint64_t value);
 	static std::wstring UInt32ToString(uint32_t value);
 };

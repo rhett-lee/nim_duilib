@@ -13,25 +13,25 @@ class Box;
 class Control;
 class DpiManager;
 
-/** ¿Ø¼şµÄ²¼¾ÖÀàĞÍ
+/** æ§ä»¶çš„å¸ƒå±€ç±»å‹
 */
 enum class LayoutType
 {
-	FloatLayout,			//¸¡¶¯²¼¾Ö
-	HLayout,				//ºáÏò²¼¾Ö
-	VLayout,				//×İÏò²¼¾Ö
-	HTileLayout,			//ºáÏòÍßÆ¬²¼¾Ö
-	VTileLayout,			//×İÏòÍßÆ¬²¼¾Ö
-	VirtualHLayout,			//Ğé±íºáÏò²¼¾Ö
-	VirtualVLayout,			//Ğé±í×İÏò²¼¾Ö
-	VirtualHTileLayout,		//Ğé±íºáÏòÍßÆ¬²¼¾Ö
-	VirtualVTileLayout,		//Ğé±í×İÏòÍßÆ¬²¼¾Ö
-	ListCtrlReportLayout	//ListCtrl¿Ø¼şµÄReportÄ£Ê½²¼¾Ö
+	FloatLayout,			//æµ®åŠ¨å¸ƒå±€
+	HLayout,				//æ¨ªå‘å¸ƒå±€
+	VLayout,				//çºµå‘å¸ƒå±€
+	HTileLayout,			//æ¨ªå‘ç“¦ç‰‡å¸ƒå±€
+	VTileLayout,			//çºµå‘ç“¦ç‰‡å¸ƒå±€
+	VirtualHLayout,			//è™šè¡¨æ¨ªå‘å¸ƒå±€
+	VirtualVLayout,			//è™šè¡¨çºµå‘å¸ƒå±€
+	VirtualHTileLayout,		//è™šè¡¨æ¨ªå‘ç“¦ç‰‡å¸ƒå±€
+	VirtualVTileLayout,		//è™šè¡¨çºµå‘ç“¦ç‰‡å¸ƒå±€
+	ListCtrlReportLayout	//ListCtrlæ§ä»¶çš„Reportæ¨¡å¼å¸ƒå±€
 };
 
-/** ¿Ø¼ş²¼¾Ö(Float·½Ê½²¼¾Ö)£º
-*    ¸÷¸ö×Ó¿Ø¼ş¶¥µã×ø±ê(left,top)¶¼ÏàÍ¬£¬¸÷¸ö¿Ø¼ş¶ÑµşÅÅÁĞ£¨Ïàµ±ÓÚ¶¼¿´³ÉÊÇFloat¿Ø¼ş£©
-*    ×Ó¿Ø¼ş¿ÉÓÃÖ¸¶¨ºáÏò¶ÔÆë·½Ê½ºÍ×İÏò¶ÔÆë·½Ê½£¬ÅÅÁĞµÄÊ±ºò»á°´ÕÕ×Ó¿Ø¼şÖ¸¶¨µÄ¶ÔÆë·½Ê½ÅÅÁĞ
+/** æ§ä»¶å¸ƒå±€(Floatæ–¹å¼å¸ƒå±€)ï¼š
+*    å„ä¸ªå­æ§ä»¶é¡¶ç‚¹åæ ‡(left,top)éƒ½ç›¸åŒï¼Œå„ä¸ªæ§ä»¶å †å æ’åˆ—ï¼ˆç›¸å½“äºéƒ½çœ‹æˆæ˜¯Floatæ§ä»¶ï¼‰
+*    å­æ§ä»¶å¯ç”¨æŒ‡å®šæ¨ªå‘å¯¹é½æ–¹å¼å’Œçºµå‘å¯¹é½æ–¹å¼ï¼Œæ’åˆ—çš„æ—¶å€™ä¼šæŒ‰ç…§å­æ§ä»¶æŒ‡å®šçš„å¯¹é½æ–¹å¼æ’åˆ—
 */
 class UILIB_API Layout
 {
@@ -41,11 +41,11 @@ public:
 	Layout& operator=(const Layout& r) = delete;
 	virtual ~Layout() = default;
 
-	/** ²¼¾ÖÀàĞÍ
+	/** å¸ƒå±€ç±»å‹
 	*/
 	virtual LayoutType GetLayoutType() const { return LayoutType::FloatLayout; }
 
-	/** ÊÇ·ñÎª×İÏò²¼¾Ö
+	/** æ˜¯å¦ä¸ºçºµå‘å¸ƒå±€
 	*/
 	virtual bool IsVLayout() const 
 	{
@@ -57,7 +57,7 @@ public:
 			   (type == LayoutType::ListCtrlReportLayout);
 	}
 
-	/** ÊÇ·ñÎªºáÏò²¼¾Ö
+	/** æ˜¯å¦ä¸ºæ¨ªå‘å¸ƒå±€
 	*/
 	virtual bool IsHLayout() const 
 	{
@@ -68,7 +68,7 @@ public:
 			   (type == LayoutType::VirtualHTileLayout);
 	}
 
-	/** ÊÇ·ñÎªÍßÆ¬²¼¾Ö(¿ÉÄÜÎª×İÏò»òÕßºáÏò²¼¾Ö)
+	/** æ˜¯å¦ä¸ºç“¦ç‰‡å¸ƒå±€(å¯èƒ½ä¸ºçºµå‘æˆ–è€…æ¨ªå‘å¸ƒå±€)
 	*/
 	virtual bool IsTileLayout() const
 	{
@@ -79,107 +79,107 @@ public:
 			   (type == LayoutType::VirtualHTileLayout);
 	}
 
-	/** ÉèÖÃËùÓĞÕßÈİÆ÷½Ó¿Ú
+	/** è®¾ç½®æ‰€æœ‰è€…å®¹å™¨æ¥å£
 	 */
 	void SetOwner(Box* pOwner);
 
-	/** »ñÈ¡ËùÓĞÕßÈİÆ÷½Ó¿Ú
+	/** è·å–æ‰€æœ‰è€…å®¹å™¨æ¥å£
 	*/
 	Box* GetOwner() const { return m_pOwner; }
 
-	/** ÉèÖÃ¸¡¶¯×´Ì¬ÏÂµÄ×ø±êĞÅÏ¢
-	 * @param[in] pControl ¿Ø¼ş¾ä±ú
-	 * @param[in] rcContainer ÒªÉèÖÃµÄ¾ØĞÎÇøÓò£¬°üº¬ÄÚ±ß¾à£¬°üº¬Íâ±ß¾à
-	 * @return ·µ»Ø¿Ø¼ş×îÖÕµÄ´óĞ¡ĞÅÏ¢£¨¿í¶ÈºÍ¸ß¶È£©
+	/** è®¾ç½®æµ®åŠ¨çŠ¶æ€ä¸‹çš„åæ ‡ä¿¡æ¯
+	 * @param[in] pControl æ§ä»¶å¥æŸ„
+	 * @param[in] rcContainer è¦è®¾ç½®çš„çŸ©å½¢åŒºåŸŸï¼ŒåŒ…å«å†…è¾¹è·ï¼ŒåŒ…å«å¤–è¾¹è·
+	 * @return è¿”å›æ§ä»¶æœ€ç»ˆçš„å¤§å°ä¿¡æ¯ï¼ˆå®½åº¦å’Œé«˜åº¦ï¼‰
 	 */
 	static UiSize64 SetFloatPos(Control* pControl, const UiRect& rcContainer);
 
-	/** ÉèÖÃ²¼¾ÖÊôĞÔ
-	 * @param [in] strName ÒªÉèÖÃµÄÊôĞÔÃû
-	 * @param [in] strValue ÒªÉèÖÃµÄÊôĞÔÖµ
-	 * @param [in] dpiManager DPI¹ÜÀí½Ó¿Ú
-	 * @return true ÉèÖÃ³É¹¦£¬false ÊôĞÔ²»´æÔÚ
+	/** è®¾ç½®å¸ƒå±€å±æ€§
+	 * @param [in] strName è¦è®¾ç½®çš„å±æ€§å
+	 * @param [in] strValue è¦è®¾ç½®çš„å±æ€§å€¼
+	 * @param [in] dpiManager DPIç®¡ç†æ¥å£
+	 * @return true è®¾ç½®æˆåŠŸï¼Œfalse å±æ€§ä¸å­˜åœ¨
 	 */
 	virtual bool SetAttribute(const std::wstring& strName, 
 							  const std::wstring& strValue,
 							  const DpiManager& dpiManager);
 
-	/** µ÷ÕûÄÚ²¿ËùÓĞ¿Ø¼şµÄÎ»ÖÃĞÅÏ¢
-	 * @param[in] items ¿Ø¼şÁĞ±í
-	 * @param[in] rc µ±Ç°ÈİÆ÷Î»ÖÃĞÅÏ¢, °üº¬ÄÚ±ß¾à£¬µ«²»°üº¬Íâ±ß¾à
-	 * @return ·µ»ØÅÅÁĞºó×îÖÕºĞ×ÓµÄ¿í¶ÈºÍ¸ß¶ÈĞÅÏ¢£¬°üº¬Owner BoxµÄÄÚ±ß¾à£¬²»°üº¬Íâ±ß¾à
+	/** è°ƒæ•´å†…éƒ¨æ‰€æœ‰æ§ä»¶çš„ä½ç½®ä¿¡æ¯
+	 * @param[in] items æ§ä»¶åˆ—è¡¨
+	 * @param[in] rc å½“å‰å®¹å™¨ä½ç½®ä¿¡æ¯, åŒ…å«å†…è¾¹è·ï¼Œä½†ä¸åŒ…å«å¤–è¾¹è·
+	 * @return è¿”å›æ’åˆ—åæœ€ç»ˆç›’å­çš„å®½åº¦å’Œé«˜åº¦ä¿¡æ¯ï¼ŒåŒ…å«Owner Boxçš„å†…è¾¹è·ï¼Œä¸åŒ…å«å¤–è¾¹è·
 	 */
 	virtual UiSize64 ArrangeChild(const std::vector<Control*>& items, UiRect rc);
 
-	/** ¸ù¾İÄÚ²¿×Ó¿Ø¼ş´óĞ¡¹ÀËãÈİÆ÷×ÔÉí´óĞ¡£¬À­ÉìÀàĞÍµÄ×Ó¿Ø¼ş±»ºöÂÔ£¬²»¼ÆÈë´óĞ¡¹ÀËã
-	 * @param[in] items ×Ó¿Ø¼şÁĞ±í
-	 * @param [in] szAvailable ¿ÉÓÃ´óĞ¡£¬°üº¬·ÖÅä¸ø¸Ã¿Ø¼şµÄÄÚ±ß¾à£¬µ«²»°üº¬·ÖÅä¸ø¿Ø¼şµÄÍâ±ß¾à
-	 * @return ·µ»ØÅÅÁĞºó×îÖÕ²¼¾ÖµÄ´óĞ¡ĞÅÏ¢£¨¿í¶ÈºÍ¸ß¶È£©£»
-	           °üº¬itemsÖĞ×Ó¿Ø¼şµÄÍâ±ß¾à£¬°üº¬itemsÖĞ×Ó¿Ø¼şµÄÄÚ±ß¾à£»
-			   °üº¬Box¿Ø¼ş±¾ÉíµÄÄÚ±ß¾à£»
-			   ²»°üº¬Box¿Ø¼ş±¾ÉíµÄÍâ±ß¾à£»
-	           ·µ»ØÖµÖĞ²»°üº¬À­ÉìÀàĞÍµÄ×Ó¿Ø¼ş´óĞ¡¡£
+	/** æ ¹æ®å†…éƒ¨å­æ§ä»¶å¤§å°ä¼°ç®—å®¹å™¨è‡ªèº«å¤§å°ï¼Œæ‹‰ä¼¸ç±»å‹çš„å­æ§ä»¶è¢«å¿½ç•¥ï¼Œä¸è®¡å…¥å¤§å°ä¼°ç®—
+	 * @param[in] items å­æ§ä»¶åˆ—è¡¨
+	 * @param [in] szAvailable å¯ç”¨å¤§å°ï¼ŒåŒ…å«åˆ†é…ç»™è¯¥æ§ä»¶çš„å†…è¾¹è·ï¼Œä½†ä¸åŒ…å«åˆ†é…ç»™æ§ä»¶çš„å¤–è¾¹è·
+	 * @return è¿”å›æ’åˆ—åæœ€ç»ˆå¸ƒå±€çš„å¤§å°ä¿¡æ¯ï¼ˆå®½åº¦å’Œé«˜åº¦ï¼‰ï¼›
+	           åŒ…å«itemsä¸­å­æ§ä»¶çš„å¤–è¾¹è·ï¼ŒåŒ…å«itemsä¸­å­æ§ä»¶çš„å†…è¾¹è·ï¼›
+			   åŒ…å«Boxæ§ä»¶æœ¬èº«çš„å†…è¾¹è·ï¼›
+			   ä¸åŒ…å«Boxæ§ä»¶æœ¬èº«çš„å¤–è¾¹è·ï¼›
+	           è¿”å›å€¼ä¸­ä¸åŒ…å«æ‹‰ä¼¸ç±»å‹çš„å­æ§ä»¶å¤§å°ã€‚
 	 */
 	virtual UiSize EstimateSizeByChild(const std::vector<Control*>& items, UiSize szAvailable);
 
-	/** DPI·¢Éú±ä»¯£¬¸üĞÂ¿Ø¼ş´óĞ¡ºÍ²¼¾Ö
-	* @param [in] nOldDpiScale ¾ÉµÄDPIËõ·Å°Ù·Ö±È
-	* @param [in] dpiManager DPIËõ·Å¹ÜÀíÆ÷
+	/** DPIå‘ç”Ÿå˜åŒ–ï¼Œæ›´æ–°æ§ä»¶å¤§å°å’Œå¸ƒå±€
+	* @param [in] nOldDpiScale æ—§çš„DPIç¼©æ”¾ç™¾åˆ†æ¯”
+	* @param [in] dpiManager DPIç¼©æ”¾ç®¡ç†å™¨
 	*/
 	virtual void ChangeDpiScale(const DpiManager& dpiManager, uint32_t nOldDpiScale);
 
 public:
-	/** »ñÈ¡×Ó¿Ø¼şÖ®¼äµÄ¶îÍâ±ß¾à£¨XÖá·½Ïò£©
-	 * @return ·µ»Ø¶îÍâ¼ä¾àµÄÊıÖµ
+	/** è·å–å­æ§ä»¶ä¹‹é—´çš„é¢å¤–è¾¹è·ï¼ˆXè½´æ–¹å‘ï¼‰
+	 * @return è¿”å›é¢å¤–é—´è·çš„æ•°å€¼
 	 */
 	int32_t GetChildMarginX() const { return m_iChildMarginX; }
 
-	/** »ñÈ¡×Ó¿Ø¼şÖ®¼äµÄ¶îÍâ±ß¾à£¨YÖá·½Ïò£©
-	 * @return ·µ»Ø¶îÍâ¼ä¾àµÄÊıÖµ
+	/** è·å–å­æ§ä»¶ä¹‹é—´çš„é¢å¤–è¾¹è·ï¼ˆYè½´æ–¹å‘ï¼‰
+	 * @return è¿”å›é¢å¤–é—´è·çš„æ•°å€¼
 	 */
 	int32_t GetChildMarginY() const { return m_iChildMarginY; }
 
-	/** ÉèÖÃ×Ó¿Ø¼şÖ®¼äµÄ¶îÍâ±ß¾à£¨XÖá·½Ïò£©
-	 * @param [in] iMarginX ÒªÉèÖÃµÄ±ß¾àÊıÖµ
+	/** è®¾ç½®å­æ§ä»¶ä¹‹é—´çš„é¢å¤–è¾¹è·ï¼ˆXè½´æ–¹å‘ï¼‰
+	 * @param [in] iMarginX è¦è®¾ç½®çš„è¾¹è·æ•°å€¼
 	 */
 	void SetChildMarginX(int32_t iMarginX);
 
-	/** ÉèÖÃ×Ó¿Ø¼şÖ®¼äµÄ¶îÍâ±ß¾à£¨YÖá·½Ïò£©
-	 * @param [in] iMarginY ÒªÉèÖÃµÄ±ß¾àÊıÖµ
+	/** è®¾ç½®å­æ§ä»¶ä¹‹é—´çš„é¢å¤–è¾¹è·ï¼ˆYè½´æ–¹å‘ï¼‰
+	 * @param [in] iMarginY è¦è®¾ç½®çš„è¾¹è·æ•°å€¼
 	 */
 	void SetChildMarginY(int32_t iMarginY);
 
-	/** ÉèÖÃ×Ó¿Ø¼şÖ®¼äµÄ¶îÍâ±ß¾à£¨XÖá·½ÏòºÍYÖá·½Ïò£¬¾ùÉèÖÃÎªÍ¬Ò»¸öÖµ£©
-	 * @param [in] iMargin ÒªÉèÖÃµÄ±ß¾àÊıÖµ
+	/** è®¾ç½®å­æ§ä»¶ä¹‹é—´çš„é¢å¤–è¾¹è·ï¼ˆXè½´æ–¹å‘å’ŒYè½´æ–¹å‘ï¼Œå‡è®¾ç½®ä¸ºåŒä¸€ä¸ªå€¼ï¼‰
+	 * @param [in] iMargin è¦è®¾ç½®çš„è¾¹è·æ•°å€¼
 	 */
 	void SetChildMargin(int32_t iMargin);
 
-	/** ½«ÇøÓòÈ¥µôÄÚ±ß¾à, ²¢È·±£rcÇøÓòÓĞĞ§
+	/** å°†åŒºåŸŸå»æ‰å†…è¾¹è·, å¹¶ç¡®ä¿rcåŒºåŸŸæœ‰æ•ˆ
 	*/
 	void DeflatePadding(UiRect& rc) const;
 
 protected:
-	/** ¼ì²éÅäÖÃµÄ¿íºÍ¸ßÊÇ·ñÕıÈ·, Èç¹û·¢ÏÖ´íÎó£¬¸øÓè¶ÏÑÔ
+	/** æ£€æŸ¥é…ç½®çš„å®½å’Œé«˜æ˜¯å¦æ­£ç¡®, å¦‚æœå‘ç°é”™è¯¯ï¼Œç»™äºˆæ–­è¨€
 	*/
 	void CheckConfig(const std::vector<Control*>& items);
 
-	/** °´ÕÕ¿Ø¼şÖ¸¶¨µÄ¶ÔÆë·½Ê½£¬¼ÆËã¿Ø¼şµÄ²¼¾ÖÎ»ÖÃ
-	* @param [in] pControl ¿Ø¼şµÄ½Ó¿Ú
-	* @param [in] rcContainer Ä¿±êÈİÆ÷µÄ¾ØĞÎ£¬°üº¬¿Ø¼şµÄÍâ±ß¾àºÍÄÚ±ß¾à
-	* @param [in] childSize ¿Ø¼şpControlµÄ´óĞ¡£¨¿íºÍ¸ß£©, °üº¬ÄÚ±ß¾à£¬ÄÚ²¿²»»áÔÙ¼ÆËã¿Ø¼şµÄ´óĞ¡
-	* @return ·µ»Ø¿Ø¼şµÄÎ»ÖÃºÍ´óĞ¡£¬²»°üº¬Íâ±ß¾à£¬°üº¬ÄÚ±ß¾à
-	          Õâ¸ö·µ»ØÖµ£¬¿ÉÓÃpControl->SetPos(rect)À´µ÷Õû¿Ø¼şÎ»ÖÃ;
+	/** æŒ‰ç…§æ§ä»¶æŒ‡å®šçš„å¯¹é½æ–¹å¼ï¼Œè®¡ç®—æ§ä»¶çš„å¸ƒå±€ä½ç½®
+	* @param [in] pControl æ§ä»¶çš„æ¥å£
+	* @param [in] rcContainer ç›®æ ‡å®¹å™¨çš„çŸ©å½¢ï¼ŒåŒ…å«æ§ä»¶çš„å¤–è¾¹è·å’Œå†…è¾¹è·
+	* @param [in] childSize æ§ä»¶pControlçš„å¤§å°ï¼ˆå®½å’Œé«˜ï¼‰, åŒ…å«å†…è¾¹è·ï¼Œå†…éƒ¨ä¸ä¼šå†è®¡ç®—æ§ä»¶çš„å¤§å°
+	* @return è¿”å›æ§ä»¶çš„ä½ç½®å’Œå¤§å°ï¼Œä¸åŒ…å«å¤–è¾¹è·ï¼ŒåŒ…å«å†…è¾¹è·
+	          è¿™ä¸ªè¿”å›å€¼ï¼Œå¯ç”¨pControl->SetPos(rect)æ¥è°ƒæ•´æ§ä»¶ä½ç½®;
 	*/
 	static UiRect GetFloatPos(Control* pControl, UiRect rcContainer, UiSize childSize);
 
 private:
-	//ËùÊôBox¶ÔÏó
+	//æ‰€å±Boxå¯¹è±¡
 	Box* m_pOwner;
 
-	//×Ó¿Ø¼şÖ®¼äµÄ¶îÍâ±ß¾à: X Öá·½Ïò
+	//å­æ§ä»¶ä¹‹é—´çš„é¢å¤–è¾¹è·: X è½´æ–¹å‘
 	uint16_t m_iChildMarginX;
 
-	//×Ó¿Ø¼şÖ®¼äµÄ¶îÍâ±ß¾à: Y Öá·½Ïò
+	//å­æ§ä»¶ä¹‹é—´çš„é¢å¤–è¾¹è·: Y è½´æ–¹å‘
 	uint16_t m_iChildMarginY;
 };
 
