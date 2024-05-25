@@ -43,7 +43,7 @@ void MainForm::OnInitWindow()
 	ui::RichEdit* pRichEdit = dynamic_cast<ui::RichEdit*>(FindControl(L"test_url"));
 	if (pRichEdit != nullptr) {
 		pRichEdit->AttachLinkClick([this, pRichEdit](const ui::EventArgs& args) {
-				//µã»÷ÁË³¬¼¶Á´½Ó
+				//ç‚¹å‡»äº†è¶…çº§é“¾æ¥
 				if (args.pSender == pRichEdit) {
 					const wchar_t* pUrl = (const wchar_t*)args.wParam;
 					if (pUrl != nullptr) {
@@ -58,7 +58,7 @@ void MainForm::OnInitWindow()
 	m_findReplace.SetRichEdit(m_pRichEdit);
 	LoadRichEditData();
 
-	//ÎÄ¼ş²Ù×÷£º´ò¿ª¡¢±£´æ¡¢Áí´æ
+	//æ–‡ä»¶æ“ä½œï¼šæ‰“å¼€ã€ä¿å­˜ã€å¦å­˜
 	ui::Button* pButton = dynamic_cast<ui::Button*>(FindControl(L"open_file"));
 	if (pButton != nullptr) {
 		pButton->AttachClick([this, pButton](const ui::EventArgs& args) {
@@ -88,7 +88,7 @@ void MainForm::OnInitWindow()
 			});
 	}
 
-	//±à¼­²Ù×÷
+	//ç¼–è¾‘æ“ä½œ
 	pButton = dynamic_cast<ui::Button*>(FindControl(L"btn_copy"));
 	if (pButton != nullptr) {
 		pButton->AttachClick([this, pButton](const ui::EventArgs& args) {
@@ -186,7 +186,7 @@ void MainForm::OnInitWindow()
 			});
 	}
 
-	//²éÕÒ²Ù×÷
+	//æŸ¥æ‰¾æ“ä½œ
 	pButton = dynamic_cast<ui::Button*>(FindControl(L"btn_find_text"));
 	if (pButton != nullptr) {
 		pButton->AttachClick([this, pButton](const ui::EventArgs& args) {
@@ -215,7 +215,7 @@ void MainForm::OnInitWindow()
 			});
 	}
 
-	//ÉèÖÃ×ÖÌå
+	//è®¾ç½®å­—ä½“
 	pButton = dynamic_cast<ui::Button*>(FindControl(L"set_font"));
 	if (pButton != nullptr) {
 		pButton->AttachClick([this, pButton](const ui::EventArgs& args) {
@@ -226,7 +226,7 @@ void MainForm::OnInitWindow()
 			});
 	}
 
-	//³õÊ¼»¯×ÖÌåĞÅÏ¢
+	//åˆå§‹åŒ–å­—ä½“ä¿¡æ¯
 	ui::Combo* pFontNameCombo = dynamic_cast<ui::Combo*>(FindControl(L"combo_font_name")); 
 	if (pFontNameCombo != nullptr) {		
 		GetSystemFontList(m_fontList);
@@ -270,7 +270,7 @@ void MainForm::OnInitWindow()
 			});
 	}
 
-	//¸üĞÂÊÇ·ñ´ÖÌå
+	//æ›´æ–°æ˜¯å¦ç²—ä½“
 	ui::CheckBox* pCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(L"btn_font_bold"));
 	if (pCheckBox != nullptr) {
 		pCheckBox->AttachSelect([this, pCheckBox](const ui::EventArgs& args) {
@@ -283,7 +283,7 @@ void MainForm::OnInitWindow()
 			});
 	}
 
-	//¸üĞÂÊÇ·ñĞ±Ìå
+	//æ›´æ–°æ˜¯å¦æ–œä½“
 	pCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(L"btn_font_italic"));
 	if (pCheckBox != nullptr) {
 		pCheckBox->AttachSelect([this, pCheckBox](const ui::EventArgs& args) {
@@ -296,7 +296,7 @@ void MainForm::OnInitWindow()
 			});
 	}
 
-	//¸üĞÂÊÇ·ñÏÂ»®Ïß
+	//æ›´æ–°æ˜¯å¦ä¸‹åˆ’çº¿
 	pCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(L"btn_font_underline"));
 	if (pCheckBox != nullptr) {
 		pCheckBox->AttachSelect([this, pCheckBox](const ui::EventArgs& args) {
@@ -309,7 +309,7 @@ void MainForm::OnInitWindow()
 			});
 	}
 
-	//¸üĞÂÊÇ·ñÉ¾³ıÏß
+	//æ›´æ–°æ˜¯å¦åˆ é™¤çº¿
 	pCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(L"btn_font_strikeout"));
 	if (pCheckBox != nullptr) {
 		pCheckBox->AttachSelect([this, pCheckBox](const ui::EventArgs& args) {
@@ -322,7 +322,7 @@ void MainForm::OnInitWindow()
 			});
 	}
 
-	//Ôö¼Ó×ÖÌå´óĞ¡
+	//å¢åŠ å­—ä½“å¤§å°
 	ui::Button* pFontButton = dynamic_cast<ui::Button*>(FindControl(L"btn_font_size_increase"));
 	if (pFontButton != nullptr) {
 		pFontButton->AttachClick([this](const ui::EventArgs& args) {
@@ -330,7 +330,7 @@ void MainForm::OnInitWindow()
 			return true;
 			});
 	}
-	//¼õĞ¡×ÖÌå´óĞ¡
+	//å‡å°å­—ä½“å¤§å°
 	pFontButton = dynamic_cast<ui::Button*>(FindControl(L"btn_font_size_decrease"));
 	if (pFontButton != nullptr) {
 		pFontButton->AttachClick([this](const ui::EventArgs& args) {
@@ -339,7 +339,7 @@ void MainForm::OnInitWindow()
 			});
 	}
 
-	//ÉèÖÃÑÕÉ«
+	//è®¾ç½®é¢œè‰²
 	InitColorCombo();
 	ui::ComboButton* pColorComboBtn = dynamic_cast<ui::ComboButton*>(FindControl(L"color_combo_button"));
 	if (pColorComboBtn != nullptr) {
@@ -347,13 +347,13 @@ void MainForm::OnInitWindow()
 		if (m_pRichEdit != nullptr) {
 			textColor = m_pRichEdit->GetTextColor();
 		}
-		//ÉèÖÃÑ¡ÔñºóµÄÑÕÉ«
+		//è®¾ç½®é€‰æ‹©åçš„é¢œè‰²
 		ui::Label* pLeftColorLabel = pColorComboBtn->GetLabelBottom();
 		if (pLeftColorLabel != nullptr) {
 			pLeftColorLabel->SetBkColor(textColor);
 		}
 
-		//×ó²à°´Å¥µã»÷ÊÂ¼ş
+		//å·¦ä¾§æŒ‰é’®ç‚¹å‡»äº‹ä»¶
 		pColorComboBtn->AttachClick([this, pLeftColorLabel](const ui::EventArgs& args) {
 			if (pLeftColorLabel != nullptr) {
 				SetTextColor(pLeftColorLabel->GetBkColor());
@@ -362,7 +362,7 @@ void MainForm::OnInitWindow()
 			});
 	}
 
-	//Ëõ·Å±ÈÀı
+	//ç¼©æ”¾æ¯”ä¾‹
 	struct ZoomInfo
 	{
 		int32_t nNum;
@@ -382,9 +382,9 @@ void MainForm::OnInitWindow()
 			zoomInfoList.push_back({ nNum , nDen });
 		}
 	}
-	zoomInfoList.pop_back();//²»°üÀ¨64/1
-	zoomInfoList.erase(zoomInfoList.begin()); //²»°üÀ¨1/64
-	std::sort(zoomInfoList.begin(), zoomInfoList.end());//ÅÅĞò£ºÉıĞò
+	zoomInfoList.pop_back();//ä¸åŒ…æ‹¬64/1
+	zoomInfoList.erase(zoomInfoList.begin()); //ä¸åŒ…æ‹¬1/64
+	std::sort(zoomInfoList.begin(), zoomInfoList.end());//æ’åºï¼šå‡åº
 
 	UpdateZoomValue();
 	if (m_pRichEdit != nullptr) {
@@ -397,7 +397,7 @@ void MainForm::OnInitWindow()
 	if (pZoomButtom != nullptr) {
 		pZoomButtom->AttachClick([this, zoomInfoList](const ui::EventArgs& args) {
 			if (m_pRichEdit != nullptr) {
-				//·Å´ó£ºÃ¿´Î·Å´ó10%
+				//æ”¾å¤§ï¼šæ¯æ¬¡æ”¾å¤§10%
 				int32_t nNum = 0;
 				int32_t nDen = 0;
 				m_pRichEdit->GetZoom(nNum, nDen);
@@ -430,7 +430,7 @@ void MainForm::OnInitWindow()
 	if (pZoomButtom != nullptr) {
 		pZoomButtom->AttachClick([this, zoomInfoList](const ui::EventArgs& args) {
 			if (m_pRichEdit != nullptr) {
-				//ËõĞ¡£ºÃ¿´ÎËõĞ¡10%
+				//ç¼©å°ï¼šæ¯æ¬¡ç¼©å°10%
 				int32_t nNum = 0;
 				int32_t nDen = 0;
 				m_pRichEdit->GetZoom(nNum, nDen);
@@ -465,7 +465,7 @@ void MainForm::OnInitWindow()
 	if (pZoomButtom != nullptr) {
 		pZoomButtom->AttachClick([this](const ui::EventArgs& args) {
 			if (m_pRichEdit != nullptr) {
-				//»Ö¸´
+				//æ¢å¤
 				m_pRichEdit->SetZoomOff();
 				UpdateZoomValue();
 			}
@@ -473,7 +473,7 @@ void MainForm::OnInitWindow()
 			});
 	}
 
-	//ÊÇ·ñ×Ô¶¯»»ĞĞ
+	//æ˜¯å¦è‡ªåŠ¨æ¢è¡Œ
 	pCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(L"btn_word_wrap"));
 	if ((pCheckBox != nullptr) && (m_pRichEdit != nullptr)) {
 		pCheckBox->SetSelected(m_pRichEdit->GetWordWrap());
@@ -493,7 +493,7 @@ void MainForm::OnInitWindow()
 			});
 	}
 
-	//ÊÇ·ñÖ§³Ö¸»ÎÄ±¾¸ñÊ½
+	//æ˜¯å¦æ”¯æŒå¯Œæ–‡æœ¬æ ¼å¼
 	pCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(L"btn_rich_text"));
 	if ((pCheckBox != nullptr) && (m_pRichEdit != nullptr)) {
 		pCheckBox->SetSelected(m_pRichEdit->IsRichText());
@@ -511,20 +511,20 @@ void MainForm::OnInitWindow()
 			});
 	}
 
-	//¸üĞÂ×ÖÌå°´Å¥µÄ×´Ì¬
+	//æ›´æ–°å­—ä½“æŒ‰é’®çš„çŠ¶æ€
 	UpdateFontStatus();
 
-	//³¬Á´½Ó
+	//è¶…é“¾æ¥
 	if (m_pRichEdit != nullptr) {
 		m_pRichEdit->AttachLinkClick([this](const ui::EventArgs& args) {
 			const wchar_t* url = (const wchar_t*)args.wParam;
 			if (url != nullptr) {
-				::MessageBox(GetHWND(), url, L"RichEditµã»÷³¬Á´½Ó", MB_OK);
+				::MessageBox(GetHWND(), url, L"RichEditç‚¹å‡»è¶…é“¾æ¥", MB_OK);
 			}
 			return true;
 			});
 	}
-	//RichEditÎÄ±¾Ñ¡Ôñ±ä»¯
+	//RichEditæ–‡æœ¬é€‰æ‹©å˜åŒ–
 	if (m_pRichEdit != nullptr) {
 		m_pRichEdit->AttachSelChange([this](const ui::EventArgs& args) {
 			if ((m_pRichEdit != nullptr) && m_pRichEdit->IsRichText()) {
@@ -558,10 +558,10 @@ void MainForm::InitColorCombo()
 
 	ui::ColorPickerRegular* pColorPicker = dynamic_cast<ui::ColorPickerRegular*>(pComboBox->FindSubControl(L"color_combo_picker"));
 	if (pColorPicker != nullptr) {
-		//ÏìÓ¦Ñ¡ÔñÑÕÉ«ÊÂ¼ş
+		//å“åº”é€‰æ‹©é¢œè‰²äº‹ä»¶
 		pColorPicker->AttachSelectColor([this, pColorComboBtn](const ui::EventArgs& args) {
 			ui::UiColor newColor((uint32_t)args.wParam);
-			//ÉèÖÃÑ¡ÔñºóµÄÑÕÉ«
+			//è®¾ç½®é€‰æ‹©åçš„é¢œè‰²
 			ui::Label* pLeftColorLabel = pColorComboBtn->GetLabelBottom();
 			if (pLeftColorLabel != nullptr) {
 				pLeftColorLabel->SetBkColor(newColor);
@@ -602,7 +602,7 @@ void MainForm::ShowColorPicker()
 		if (!oldTextColor.empty() && (pColorPicker != nullptr)) {
 			pColorPicker->SetSelectedColor(pEdit->GetUiColor(oldTextColor));
 		}
-		//Èç¹ûÔÚ½çÃæÑ¡ÔñÑÕÉ«£¬ÔòÁÙÊ±¸üĞÂRichEdit¿Ø¼şÎÄ±¾µÄÑÕÉ«
+		//å¦‚æœåœ¨ç•Œé¢é€‰æ‹©é¢œè‰²ï¼Œåˆ™ä¸´æ—¶æ›´æ–°RichEditæ§ä»¶æ–‡æœ¬çš„é¢œè‰²
 		pColorPicker->AttachSelectColor([this, pEdit, pLeftColorLabel](const ui::EventArgs& args) {
 			ui::UiColor newColor = ui::UiColor((uint32_t)args.wParam);
 			pLeftColorLabel->SetBkColor(newColor);
@@ -610,16 +610,16 @@ void MainForm::ShowColorPicker()
 			return true;
 			});
 
-		//´°¿Ú¹Ø±ÕÊÂ¼ş
+		//çª—å£å…³é—­äº‹ä»¶
 		pColorPicker->AttachWindowClose([this, pColorPicker, pEdit, oldTextColor, pLeftColorLabel](const ui::EventArgs& args) {
 			ui::UiColor newColor = pColorPicker->GetSelectedColor();
 			if ((args.wParam == 0) && !newColor.IsEmpty()) {
-				//Èç¹ûÊÇ"È·ÈÏ"£¬ÔòÉèÖÃRichEdit¿Ø¼şµÄÎÄ±¾ÑÕÉ«
+				//å¦‚æœæ˜¯"ç¡®è®¤"ï¼Œåˆ™è®¾ç½®RichEditæ§ä»¶çš„æ–‡æœ¬é¢œè‰²
 				pLeftColorLabel->SetBkColor(newColor);
 				SetTextColor(pEdit->GetColorString(newColor));
 			}
 			else {
-				//Èç¹ûÊÇ"È¡Ïû"»òÕß¹Ø±Õ´°¿Ú£¬Ôò»Ö¸´Ô­À´µÄÑÕÉ«
+				//å¦‚æœæ˜¯"å–æ¶ˆ"æˆ–è€…å…³é—­çª—å£ï¼Œåˆ™æ¢å¤åŸæ¥çš„é¢œè‰²
 				pLeftColorLabel->SetBkColor(newColor);
 				SetTextColor(oldTextColor);
 			}
@@ -637,34 +637,34 @@ void MainForm::UpdateFontStatus()
 	LOGFONT logFont = {};
 	GetRichEditLogFont(logFont);
 
-	//¸üĞÂ×ÖÌåÃû³Æ
+	//æ›´æ–°å­—ä½“åç§°
 	ui::Combo* pFontNameCombo = dynamic_cast<ui::Combo*>(FindControl(L"combo_font_name"));
 	if (pFontNameCombo != nullptr) {
 		pFontNameCombo->SelectTextItem(logFont.lfFaceName);
 	}
 
-	//¸üĞÂ×ÖÌå´óĞ¡
+	//æ›´æ–°å­—ä½“å¤§å°
 	UpdateFontSizeStatus();
 
-	//¸üĞÂÊÇ·ñ´ÖÌå
+	//æ›´æ–°æ˜¯å¦ç²—ä½“
 	ui::CheckBox* pCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(L"btn_font_bold"));
 	if (pCheckBox != nullptr) {
 		pCheckBox->SetSelected(logFont.lfWeight >= FW_BOLD);
 	}
 
-	//¸üĞÂÊÇ·ñĞ±Ìå
+	//æ›´æ–°æ˜¯å¦æ–œä½“
 	pCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(L"btn_font_italic"));
 	if (pCheckBox != nullptr) {
 		pCheckBox->SetSelected(logFont.lfItalic != FALSE);
 	}
 
-	//¸üĞÂÊÇ·ñÏÂ»®Ïß
+	//æ›´æ–°æ˜¯å¦ä¸‹åˆ’çº¿
 	pCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(L"btn_font_underline"));
 	if (pCheckBox != nullptr) {
 		pCheckBox->SetSelected(logFont.lfUnderline != FALSE);
 	}
 
-	//¸üĞÂÊÇ·ñÉ¾³ıÏß
+	//æ›´æ–°æ˜¯å¦åˆ é™¤çº¿
 	pCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(L"btn_font_strikeout"));
 	if (pCheckBox != nullptr) {
 		pCheckBox->SetSelected(logFont.lfStrikeOut != FALSE);
@@ -692,7 +692,7 @@ void MainForm::UpdateFontSizeStatus()
 
 		bool bSelected = false;
 		for (size_t nIndex = maxItemIndex; nIndex < m_fontSizeList.size(); ++nIndex) {
-			//ÓÅÏÈÑ¡Ôñºº×ÖµÄ×ÖºÅ
+			//ä¼˜å…ˆé€‰æ‹©æ±‰å­—çš„å­—å·
 			const FontSizeInfo& fontSize = m_fontSizeList[nIndex];
 			if (fHeight == fontSize.fontSize) {
 				if (pFontSizeCombo->SelectTextItem(fontSize.fontSizeName) != ui::Box::InvalidIndex) {
@@ -703,7 +703,7 @@ void MainForm::UpdateFontSizeStatus()
 		}
 		if (!bSelected) {
 			for (size_t nIndex = 0; nIndex < maxItemIndex; ++nIndex) {
-				//Ñ¡ÔñÊı×ÖµÄ×ÖºÅ
+				//é€‰æ‹©æ•°å­—çš„å­—å·
 				const FontSizeInfo& fontSize = m_fontSizeList[nIndex];
 				if (fontSize.fontSize >= fHeight) {
 					if (pFontSizeCombo->SelectTextItem(fontSize.fontSizeName) != ui::Box::InvalidIndex) {
@@ -803,9 +803,9 @@ void MainForm::AdjustFontSize(bool bIncreaseFontSize)
 	for (size_t index = 0; index < fontCount; ++index) {
 		LONG lfHeight = ConvertToFontHeight(fontSizeList[index]);
 		if (lfHeight == charFormat.yHeight) {
-			//Æ¥Åäµ½µ±Ç°×ÖÌå´óĞ¡
+			//åŒ¹é…åˆ°å½“å‰å­—ä½“å¤§å°
 			if (bIncreaseFontSize) {
-				//Ôö¼Ó×ÖÌå
+				//å¢åŠ å­—ä½“
 				if (index < (fontCount - 1)) {
 					int32_t newFontSize = fontSizeList[index + 1];
 					lfHeight = ConvertToFontHeight(newFontSize);
@@ -819,7 +819,7 @@ void MainForm::AdjustFontSize(bool bIncreaseFontSize)
 				}
 			}
 			else {
-				//¼õĞ¡×ÖÌå
+				//å‡å°å­—ä½“
 				if (index > 0) {
 					int32_t newFontSize = fontSizeList[index - 1];
 					lfHeight = ConvertToFontHeight(newFontSize);
@@ -920,7 +920,7 @@ void MainForm::SetTextColor(const std::wstring& newColor)
 
 void MainForm::OnCloseWindow()
 {
-	//¹Ø±Õ´°¿Úºó£¬ÍË³öÖ÷Ïß³ÌµÄÏûÏ¢Ñ­»·£¬¹Ø±Õ³ÌĞò
+	//å…³é—­çª—å£åï¼Œé€€å‡ºä¸»çº¿ç¨‹çš„æ¶ˆæ¯å¾ªç¯ï¼Œå…³é—­ç¨‹åº
 	PostQuitMessage(0L);
 }
 
@@ -931,32 +931,32 @@ LRESULT MainForm::OnKeyDown(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHand
 	bool bShiftDown = ::GetKeyState(VK_SHIFT) < 0;
 	if (bControlDown) {
 		if ((wParam == 'O') && !bShiftDown){
-			//´ò¿ª
+			//æ‰“å¼€
 			OnOpenFile();
 		}
 		else if (wParam == 'S') {
 			if (bShiftDown) {
-				//Áí´æÎª
+				//å¦å­˜ä¸º
 				OnSaveAsFile();				
 			}
 			else {
-				//±£´æ
+				//ä¿å­˜
 				OnSaveFile();
 			}
 		}
 		if (!bShiftDown) {
 			if (wParam == 'F') {
-				//²éÕÒ
+				//æŸ¥æ‰¾
 				OnFindText();
 			}
 			else if (wParam == 'H') {
-				//Ìæ»»
+				//æ›¿æ¢
 				OnReplaceText();
 			}
 		}
 	}
 	if (!bControlDown && !bShiftDown && (::GetKeyState(VK_F3) < 0)) {
-		//²éÕÒÏÂÒ»¸ö
+		//æŸ¥æ‰¾ä¸‹ä¸€ä¸ª
 		OnFindNext();
 	}
 	return lResult;
@@ -1014,9 +1014,9 @@ void MainForm::LoadRichEditData()
 	}
 }
 
-LPCTSTR g_defualtFilter = L"ËùÓĞÎÄ¼ş (*.*)\0*.*\0"
-						  L"ÎÄ±¾ÎÄ¼ş (*.txt)\0*.txt\0"
-						  L"RTFÎÄ¼ş (*.rtf)\0*.rtf\0"
+LPCTSTR g_defualtFilter = L"æ‰€æœ‰æ–‡ä»¶ (*.*)\0*.*\0"
+						  L"æ–‡æœ¬æ–‡ä»¶ (*.txt)\0*.txt\0"
+						  L"RTFæ–‡ä»¶ (*.rtf)\0*.rtf\0"
 						  L"";
 
 void MainForm::OnOpenFile()
@@ -1241,7 +1241,7 @@ void MainForm::GetSystemFontList(std::vector<FontInfo>& fontList) const
 	logfont.lfPitchAndFamily = 0;
 	::EnumFontFamiliesEx(pRichEdit->GetWindowDC(), &logfont, EnumFontFamExProc, (LPARAM)&fontList, 0);
 
-	//×ÖÌåÃû³ÆÁĞ±í
+	//å­—ä½“åç§°åˆ—è¡¨
 	std::map<std::wstring, FontInfo> fontMap;
 	for (auto font : fontList) {
 		if (font.lf.lfWeight != FW_NORMAL) {
@@ -1279,27 +1279,27 @@ void MainForm::GetFontSizeList(std::vector<FontSizeInfo>& fontSizeList) const
 	fontSizeList.push_back({ L"36", 36.0f, 0 });
 	fontSizeList.push_back({ L"48", 48.0f, 0 });
 	fontSizeList.push_back({ L"72", 72.0f, 0 });
-	fontSizeList.push_back({ L"1Ó¢´ç", 95.6f, 0 });
-	fontSizeList.push_back({ L"´óÌØºÅ", 83.7f, 0 });
-	fontSizeList.push_back({ L"ÌØºÅ", 71.7f, 0 });
-	fontSizeList.push_back({ L"³õºÅ", 56.0f, 0 });
-	fontSizeList.push_back({ L"Ğ¡³õ", 48.0f, 0 });
-	fontSizeList.push_back({ L"Ò»ºÅ", 34.7f, 0 });
-	fontSizeList.push_back({ L"Ğ¡Ò»", 32.0f, 0 });
-	fontSizeList.push_back({ L"¶şºÅ", 29.3f, 0 });
-	fontSizeList.push_back({ L"Ğ¡¶ş", 24.0f, 0 });
-	fontSizeList.push_back({ L"ÈıºÅ", 21.3f, 0 });
-	fontSizeList.push_back({ L"Ğ¡Èı", 20.0f, 0 });
-	fontSizeList.push_back({ L"ËÄºÅ", 18.7f, 0 });
-	fontSizeList.push_back({ L"Ğ¡ËÄ", 16.0f, 0 });
-	fontSizeList.push_back({ L"ÎåºÅ", 14.0f, 0 });
-	fontSizeList.push_back({ L"Ğ¡Îå", 12.0f, 0 });
-	fontSizeList.push_back({ L"ÁùºÅ", 10.0f, 0 });
-	fontSizeList.push_back({ L"Ğ¡Áù", 8.7f, 0 });
-	fontSizeList.push_back({ L"ÆßºÅ", 7.3f, 0 });
-	fontSizeList.push_back({ L"°ËºÅ", 6.7f, 0 });
+	fontSizeList.push_back({ L"1è‹±å¯¸", 95.6f, 0 });
+	fontSizeList.push_back({ L"å¤§ç‰¹å·", 83.7f, 0 });
+	fontSizeList.push_back({ L"ç‰¹å·", 71.7f, 0 });
+	fontSizeList.push_back({ L"åˆå·", 56.0f, 0 });
+	fontSizeList.push_back({ L"å°åˆ", 48.0f, 0 });
+	fontSizeList.push_back({ L"ä¸€å·", 34.7f, 0 });
+	fontSizeList.push_back({ L"å°ä¸€", 32.0f, 0 });
+	fontSizeList.push_back({ L"äºŒå·", 29.3f, 0 });
+	fontSizeList.push_back({ L"å°äºŒ", 24.0f, 0 });
+	fontSizeList.push_back({ L"ä¸‰å·", 21.3f, 0 });
+	fontSizeList.push_back({ L"å°ä¸‰", 20.0f, 0 });
+	fontSizeList.push_back({ L"å››å·", 18.7f, 0 });
+	fontSizeList.push_back({ L"å°å››", 16.0f, 0 });
+	fontSizeList.push_back({ L"äº”å·", 14.0f, 0 });
+	fontSizeList.push_back({ L"å°äº”", 12.0f, 0 });
+	fontSizeList.push_back({ L"å…­å·", 10.0f, 0 });
+	fontSizeList.push_back({ L"å°å…­", 8.7f, 0 });
+	fontSizeList.push_back({ L"ä¸ƒå·", 7.3f, 0 });
+	fontSizeList.push_back({ L"å…«å·", 6.7f, 0 });
 
-	//¸üĞÂDPI×ÔÊÊÓ¦Öµ
+	//æ›´æ–°DPIè‡ªé€‚åº”å€¼
 	for (FontSizeInfo& fontSize : fontSizeList) {
 		int32_t nSize = static_cast<int32_t>(fontSize.fFontSize * 1000);
 		Dpi().ScaleInt(nSize);
@@ -1349,7 +1349,7 @@ bool MainForm::GetRichEditLogFont(LOGFONT& lf) const
 	if (cf.dwMask & CFM_FACE) {
 		lf.lfPitchAndFamily = cf.bPitchAndFamily;
 
-		//Ìæ»»ÎªÏµÍ³×ÖÌåÃû³Æ
+		//æ›¿æ¢ä¸ºç³»ç»Ÿå­—ä½“åç§°
 		std::wstring fontName = ui::FontManager::GetFontSystemName(cf.szFaceName);
 		wcscpy_s(lf.lfFaceName, LF_FACESIZE, fontName.c_str());
 	}
@@ -1358,7 +1358,7 @@ bool MainForm::GetRichEditLogFont(LOGFONT& lf) const
 
 void MainForm::InitCharFormat(const LOGFONT& lf, CHARFORMAT2& charFormat) const
 {
-	//×ÖÌå×ÖºÅĞèÒª×ª»», ·ñÔò×ÖÌå´óĞ¡ÏÔÊ¾Òì³£
+	//å­—ä½“å­—å·éœ€è¦è½¬æ¢, å¦åˆ™å­—ä½“å¤§å°æ˜¾ç¤ºå¼‚å¸¸
 	LONG lfHeight = ConvertToFontHeight(lf.lfHeight);
 
 	charFormat.cbSize = sizeof(CHARFORMAT2W);
@@ -1399,7 +1399,7 @@ void MainForm::OnSetFont()
 	if (pRichEdit == nullptr) {
 		return;
 	}
-	//ÎÄ±¾ÑÕÉ«
+	//æ–‡æœ¬é¢œè‰²
 	ui::UiColor textColor = pRichEdit->GetUiColor(pRichEdit->GetTextColor());
 
 	LOGFONT logFont = {};
@@ -1435,18 +1435,18 @@ void MainForm::OnSetFont()
 	if (bRet) {
 		memcpy_s(&lf, sizeof(lf), cf.lpLogFont, sizeof(lf));
 
-		//ÉèÖÃRichEdit×ÖÌå
+		//è®¾ç½®RichEditå­—ä½“
 		CHARFORMAT2 charFormat = {};
 		GetCharFormat(charFormat);
 		InitCharFormat(lf, charFormat);
 
-		//ÉèÖÃ×ÖÌåÑÕÉ«
+		//è®¾ç½®å­—ä½“é¢œè‰²
 		charFormat.dwMask |= CFM_COLOR;
 		charFormat.crTextColor = cf.rgbColors;
 
 		SetCharFormat(charFormat);
 
-		//¸üĞÂÑÕÉ«
+		//æ›´æ–°é¢œè‰²
 		ui::ComboButton* pColorComboBtn = dynamic_cast<ui::ComboButton*>(FindControl(L"color_combo_button"));
 		if (pColorComboBtn != nullptr) {
 			if (pColorComboBtn->GetLabelBottom() != nullptr) {
@@ -1457,7 +1457,7 @@ void MainForm::OnSetFont()
 		}
 	}
 
-	//¸üĞÂ×ÖÌå°´Å¥µÄ×´Ì¬
+	//æ›´æ–°å­—ä½“æŒ‰é’®çš„çŠ¶æ€
 	UpdateFontStatus();
 }
 

@@ -84,7 +84,7 @@ void ListCtrlIconView::HandleEvent(const EventArgs& msg)
 void ListCtrlIconView::SetHorizontalLayout(bool bHorizontal)
 {
     if (bHorizontal) {
-        //ºáÏò²¼¾Ö        
+        //æ¨ªå‘å¸ƒå±€        
         if (dynamic_cast<VirtualHTileLayout*>(GetLayout()) == nullptr) {
             Layout* pLayout = GetLayout();
             VirtualVTileLayout* pOldLayout = dynamic_cast<VirtualVTileLayout*>(pLayout);
@@ -92,7 +92,7 @@ void ListCtrlIconView::SetHorizontalLayout(bool bHorizontal)
             ReSetLayout(pNewLayout);
             SetVirtualLayout(pNewLayout);
             if (pOldLayout != nullptr) {
-                //Í¬²½ÊôĞÔ
+                //åŒæ­¥å±æ€§
                 pNewLayout->SetItemSize(pOldLayout->GetItemSize());
                 pNewLayout->SetRows(pOldLayout->GetColumns());
                 pNewLayout->SetAutoCalcRows(pOldLayout->IsAutoCalcColumns());
@@ -107,7 +107,7 @@ void ListCtrlIconView::SetHorizontalLayout(bool bHorizontal)
         }
     }
     else {
-        //×İÏò²¼¾Ö
+        //çºµå‘å¸ƒå±€
         if (dynamic_cast<VirtualVTileLayout*>(GetLayout()) == nullptr) {
             Layout* pLayout = GetLayout();
             VirtualHTileLayout* pOldLayout = dynamic_cast<VirtualHTileLayout*>(pLayout);
@@ -115,7 +115,7 @@ void ListCtrlIconView::SetHorizontalLayout(bool bHorizontal)
             ReSetLayout(pNewLayout);
             SetVirtualLayout(pNewLayout);
             if (pOldLayout != nullptr) {
-                //Í¬²½ÊôĞÔ
+                //åŒæ­¥å±æ€§
                 pNewLayout->SetItemSize(pOldLayout->GetItemSize());
                 pNewLayout->SetColumns(pOldLayout->GetRows());
                 pNewLayout->SetAutoCalcColumns(pOldLayout->IsAutoCalcRows());
@@ -156,7 +156,7 @@ Control* ListCtrlIconView::CreateDataItem()
     }
     Control* pControl = nullptr;
     if (m_bListMode) {
-        //ÁĞ±íÊÓÍ¼: Ë®Æ½²¼¾Ö
+        //åˆ—è¡¨è§†å›¾: æ°´å¹³å¸ƒå±€
         ListCtrlListViewItem* pItem = new ListCtrlListViewItem(GetWindow());
         pItem->SetListCtrl(m_pListCtrl);
         pControl = pItem;
@@ -167,7 +167,7 @@ Control* ListCtrlIconView::CreateDataItem()
         pItem->AddItem(pItemLabel);
     }
     else {
-        //Í¼±êÊÓÍ¼£º´¹Ö±²¼¾Ö
+        //å›¾æ ‡è§†å›¾ï¼šå‚ç›´å¸ƒå±€
         ListCtrlIconViewItem* pItem = new ListCtrlIconViewItem(GetWindow());
         pItem->SetListCtrl(m_pListCtrl);
         pControl = pItem;
@@ -192,7 +192,7 @@ bool ListCtrlIconView::FillDataItem(Control* pControl,
     }
     ListCtrlSubItemData2Ptr pSubItemData;
     int32_t nImageId = -1;
-    size_t nColumnId = m_pListCtrl->GetColumnId(0); //È¡µÚÒ»ÁĞµÄID
+    size_t nColumnId = m_pListCtrl->GetColumnId(0); //å–ç¬¬ä¸€åˆ—çš„ID
     for (const ListCtrlSubItemData2Pair& pair : subItemList) {
         if (pair.nColumnId == nColumnId) {
             if (pair.pSubItemData != nullptr) {
@@ -203,7 +203,7 @@ bool ListCtrlIconView::FillDataItem(Control* pControl,
         }
     }
     if (nImageId < 0) {
-        //Èç¹ûÁĞÃ»ÓĞÉèÖÃÍ¼±ê£¬ÔòÈ¡ĞĞµÄ
+        //å¦‚æœåˆ—æ²¡æœ‰è®¾ç½®å›¾æ ‡ï¼Œåˆ™å–è¡Œçš„
         nImageId = itemData.nImageId;
     }
     Box* pItemBox = dynamic_cast<Box*>(pControl);
@@ -219,16 +219,16 @@ bool ListCtrlIconView::FillDataItem(Control* pControl,
         return false;
     }
 
-    if (m_bListMode) {//ÁĞ±íÊÓÍ¼
-        //Í¼±êµÄÊôĞÔ
+    if (m_bListMode) {//åˆ—è¡¨è§†å›¾
+        //å›¾æ ‡çš„å±æ€§
         pItemImage->SetClass(m_pListCtrl->GetListViewItemImageClass());
-        //ÎÄ±¾µÄÊôĞÔ
+        //æ–‡æœ¬çš„å±æ€§
         pItemLabel->SetClass(m_pListCtrl->GetListViewItemLabelClass());
     }
-    else {//Í¼±êÊÓÍ¼
-        //Í¼±êµÄÊôĞÔ
+    else {//å›¾æ ‡è§†å›¾
+        //å›¾æ ‡çš„å±æ€§
         pItemImage->SetClass(m_pListCtrl->GetIconViewItemImageClass());
-        //ÎÄ±¾µÄÊôĞÔ
+        //æ–‡æœ¬çš„å±æ€§
         pItemLabel->SetClass(m_pListCtrl->GetIconViewItemLabelClass());
     }
 
@@ -264,13 +264,13 @@ bool ListCtrlIconView::FillDataItem(Control* pControl,
         pItemLabel->SetText(L"");
     }
 
-    //ÉèÖÃ²»»ñÈ¡½¹µãµÈÊôĞÔ
+    //è®¾ç½®ä¸è·å–ç„¦ç‚¹ç­‰å±æ€§
     pItemImage->SetNoFocus();
     pItemLabel->SetNoFocus();
 
     pItemImage->SetMouseEnabled(false);
 
-    //ÉèÖÃ¿É±à¼­ÊôĞÔ
+    //è®¾ç½®å¯ç¼–è¾‘å±æ€§
     bool bEditable = (pSubItemData != nullptr) ? pSubItemData->bEditable : false;
     if (bEditable && m_pListCtrl->IsEnableItemEdit()) {
         IListBoxItem* pItem = dynamic_cast<IListBoxItem*>(pControl);
@@ -296,7 +296,7 @@ bool ListCtrlIconView::FillDataItem(Control* pControl,
 
 int32_t ListCtrlIconView::GetMaxDataItemWidth(const std::vector<ListCtrlSubItemData2Ptr>& /*subItemList*/)
 {
-    //²»ĞèÒªÊµÏÖ
+    //ä¸éœ€è¦å®ç°
     return -1;
 }
 

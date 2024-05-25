@@ -793,19 +793,19 @@ void UTF8CreateLengthTable(unsigned table[256])
 bool ValidateUTF8Stream(const void* stream, unsigned length)
 {
 	/*
-	 *	����RFC3629��http://tools.ietf.org/html/rfc3629����
-	 *	UTF-8��һ���ַ��ĵ�һ���ֽ���0-4����ֵΪ1�Ķ�����λ
-	 *	��Щλ֮��ĵ�һλ������0������Щλ�ĸ���Ϊ0��ʱ���
-	 *	ʾ����ַ���ASCII��ռ��һ���ֽڣ�����֮���ʾ����ַ�
-	 *	��ռ�õ��ֽ������ڶ����ֽڿ�ʼ��ÿ���ֽڱ���ʹ��10��
-	 *	������λ��ͷ���������ڿ��ٶ�λһ���ַ�����ʼ�ֽڣ����磺
+	 *	根据RFC3629（http://tools.ietf.org/html/rfc3629），
+	 *	UTF-8流一个字符的第一个字节由0-4个数值为1的二进制位
+	 *	这些位之后的第一位必须是0，当这些位的个数为0的时候表
+	 *	示这个字符是ASCII，占用一个字节，除此之外表示这个字符
+	 *	所占用的字节数；第二个字节开始，每个字节必须使用10的
+	 *	二进制位开头，这样利于快速定位一个字符的起始字节，例如：
 	 *
 	 *	0XXXXXXX
 	 *	110XXXXX 10XXXXXX
 	 *	1110XXXX 10XXXXXX 10XXXXXX
 	 *	11110XXX 10XXXXXX 10XXXXXX 10XXXXXX
 	 *
-	 *	����UTF-8������֧��6�ֽڳ��ȣ����Ǳ�׼�����޶�Ϊ4�ֽ�
+	 *	另，UTF-8理论上支持6字节长度，但是标准将其限定为4字节
 	 */
 
 	unsigned i, j, k;
@@ -813,16 +813,16 @@ bool ValidateUTF8Stream(const void* stream, unsigned length)
 	static unsigned int table_created = 0;
 	static unsigned int table[256];
 
-	/* ��֤���̰߳�ȫ */
+	/* 保证多线程安全 */
 	if (!table_created)
 	{
-		/* ����lock-free��˼�봴��һģһ���ı� */
+		/* 利用lock-free的思想创建一模一样的表 */
 		UTF8CreateLengthTable(table);
-		/* ��ǣ�֮����߳̽������ظ������ñ� */
+		/* 标记，之后的线程将不会重复创建该表 */
 		table_created = 1;
 	}
 
-	/* ����ʹ�ò��������Ϊ���ǵ�������ᱻ����CPU��Cache */
+	/* 这里使用查表法是因为考虑到这个表会被放入CPU的Cache */
 
 	for (i = 0; i < length;)
 	{
@@ -841,16 +841,16 @@ bool ValidateUTF8Stream(const void* stream, unsigned length)
 bool ValidateGB2312Stream(const void* stream, unsigned length)
 {
 	/*
-	 *	����http://zh.wikipedia.org/zh-cn/Gb2312��
-	 *	01-09��Ϊ������š�
-	 *	16-55��Ϊһ�����֣���ƴ������
-	 *	56-87��Ϊ�������֣������ף��ʻ�����
-	 *	10-15����88-94����δ�б��롣
+	 *	根据http://zh.wikipedia.org/zh-cn/Gb2312：
+	 *	01-09区为特殊符号。
+	 *	16-55区为一级汉字，按拼音排序。
+	 *	56-87区为二级汉字，按部首／笔画排序。
+	 *	10-15区及88-94区则未有编码。
 	 *
-	 *	ÿ�����ּ������������ֽ�����ʾ����һ���ֽڳ�Ϊ����λ�ֽڡ����ڶ����ֽڳ�Ϊ����λ�ֽڡ���
-	 *	����λ�ֽڡ�ʹ����0xA1-0xF7����01-87�������ż���0xA0��������λ�ֽڡ�ʹ����0xA1-0xFE����01-94���� 0xA0����
-	 *	����һ�����ִ�16����ʼ���������ġ���λ�ֽڡ��ķ�Χ��0xB0-0xF7������λ�ֽڡ��ķ�Χ��0xA1-0xFE��
-	 *	ռ�õ���λ�� 72*94=6768��������5����λ��D7FA-D7FE��
+	 *	每个汉字及符号以两个字节来表示。第一个字节称为“高位字节”，第二个字节称为“低位字节”。
+	 *	“高位字节”使用了0xA1-0xF7（把01-87区的区号加上0xA0），“低位字节”使用了0xA1-0xFE（把01-94加上 0xA0）。
+	 *	由于一级汉字从16区起始，汉字区的“高位字节”的范围是0xB0-0xF7，“低位字节”的范围是0xA1-0xFE，
+	 *	占用的码位是 72*94=6768。其中有5个空位是D7FA-D7FE。
 	 */
 
 	unsigned char* s = (unsigned char*)stream;

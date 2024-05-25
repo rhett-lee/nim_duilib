@@ -40,7 +40,7 @@ void ColorMap::RemoveAllColors()
 
 ColorManager::ColorManager()
 {
-	//³õÊ¼»¯±ê×¼ÑÕÉ«±í, ×Ö·û´®²»Çø·Ö´óĞ¡Ğ´
+	//åˆå§‹åŒ–æ ‡å‡†é¢œè‰²è¡¨, å­—ç¬¦ä¸²ä¸åŒºåˆ†å¤§å°å†™
 	std::vector<std::pair<std::wstring, int32_t>> uiColors;
 	UiColors::GetUiColorsString(uiColors);
 	for (auto iter : uiColors) {		
@@ -56,14 +56,14 @@ UiColor ColorManager::ConvertToUiColor(const std::wstring& strColor)
 		return color;
 	}
 	if (strColor.at(0) != L'#') {
-		//°´±ê×¼ÑÕÉ«Öµ»ñÈ¡
+		//æŒ‰æ ‡å‡†é¢œè‰²å€¼è·å–
 		color = GlobalManager::Instance().Color().GetStandardColor(strColor);
 		if (!color.IsEmpty()) {
 			return color;
 		}
 	}
 
-	//¾ßÌåÑÕÉ«Öµ£¬¸ñÊ½Èç£º#FFFFFFFF »òÕß #FFFFFF
+	//å…·ä½“é¢œè‰²å€¼ï¼Œæ ¼å¼å¦‚ï¼š#FFFFFFFF æˆ–è€… #FFFFFF
 	ASSERT((strColor.size() == 9) || (strColor.size() == 7));
 	if ((strColor.size() != 9) && (strColor.size() != 7)) {
 		return color;
@@ -84,7 +84,7 @@ UiColor ColorManager::ConvertToUiColor(const std::wstring& strColor)
 	}
 	std::wstring colorValue = strColor.substr(1);
 	if (colorValue.size() == 6) {
-		//Èç¹ûÊÇ#FFFFFF¸ñÊ½£¬×Ô¶¯²¹ÉÏAlphaÖµ
+		//å¦‚æœæ˜¯#FFFFFFæ ¼å¼ï¼Œè‡ªåŠ¨è¡¥ä¸ŠAlphaå€¼
 		colorValue = L"FF" + colorValue;
 	}
 	UiColor::ARGB argb = wcstoul(colorValue.c_str(), nullptr, 16);
@@ -108,7 +108,7 @@ UiColor ColorManager::GetColor(const std::wstring& strName) const
 
 UiColor ColorManager::GetStandardColor(const std::wstring& strName) const
 {
-	//Ãû³Æ²»Çø·Ö´óĞ¡Ğ´
+	//åç§°ä¸åŒºåˆ†å¤§å°å†™
 	return m_standardColorMap.GetColor(StringHelper::MakeLowerString(strName));
 }
 

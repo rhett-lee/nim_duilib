@@ -6,19 +6,19 @@
 namespace ui
 {
 
-/** SkiaÒıÇæ
+/** Skiaå¼•æ“
 */
 #define duilib_kRenderType_Skia     0
 
-/** GdiPlusÒıÇæ
+/** GdiPluså¼•æ“
 */
 #define duilib_kRenderType_GdiPlus  1
 
-/** µ±Ç°Ñ¡ÔñµÄäÖÈ¾ÒıÇæ(Í¨¹ıĞŞ¸Ä´ËÖµ£¬À´ÉèÖÃÖ§³ÖÄÄ¸öÒıÇæ)
+/** å½“å‰é€‰æ‹©çš„æ¸²æŸ“å¼•æ“(é€šè¿‡ä¿®æ”¹æ­¤å€¼ï¼Œæ¥è®¾ç½®æ”¯æŒå“ªä¸ªå¼•æ“)
 */
 #define duilib_kRenderType          duilib_kRenderType_Skia
 
-//¶¨ÒåÕâ¸öºê£¬±íÊ¾Ê¹ÓÃLLVM±àÒëSkia£¬·ñÔò±íÊ¾Ê¹ÓÃVisual Studio 2022±àÒëSkia
+//å®šä¹‰è¿™ä¸ªå®ï¼Œè¡¨ç¤ºä½¿ç”¨LLVMç¼–è¯‘Skiaï¼Œå¦åˆ™è¡¨ç¤ºä½¿ç”¨Visual Studio 2022ç¼–è¯‘Skia
 #define DUILIB_RENDER_SKIA_BY_LLVM  1
 
 }//namespace ui

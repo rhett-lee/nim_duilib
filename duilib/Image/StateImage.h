@@ -8,7 +8,7 @@
 
 namespace ui 
 {
-/** ¿Ø¼ş×´Ì¬ÓëÍ¼Æ¬µÄÓ³Éä
+/** æ§ä»¶çŠ¶æ€ä¸å›¾ç‰‡çš„æ˜ å°„
 */
 class Control;
 class Image;
@@ -21,85 +21,85 @@ public:
 	StateImage();
 	~StateImage();
 
-	/** ÉèÖÃ¹ØÁªµÄ¿Ø¼ş½Ó¿Ú
+	/** è®¾ç½®å…³è”çš„æ§ä»¶æ¥å£
 	*/
 	void SetControl(Control* pControl);
 
-	/** ÉèÖÃÍ¼Æ¬ÊôĞÔ
-	* @param [in] stateType Í¼Æ¬ÀàĞÍ
-	* @param [in] strImageString Í¼Æ¬ÊôĞÔ×Ö·û´®
-	* @param [in] dpi DPIËõ·Å¹ÜÀí½Ó¿Ú
+	/** è®¾ç½®å›¾ç‰‡å±æ€§
+	* @param [in] stateType å›¾ç‰‡ç±»å‹
+	* @param [in] strImageString å›¾ç‰‡å±æ€§å­—ç¬¦ä¸²
+	* @param [in] dpi DPIç¼©æ”¾ç®¡ç†æ¥å£
 	*/
 	void SetImageString(ControlStateType stateType, 
 						const std::wstring& strImageString,
 		                const DpiManager& dpi);
 
-	/** »ñÈ¡Í¼Æ¬ÊôĞÔ
-	*@param [in] stateType Í¼Æ¬ÀàĞÍ
+	/** è·å–å›¾ç‰‡å±æ€§
+	*@param [in] stateType å›¾ç‰‡ç±»å‹
 	*/
 	std::wstring GetImageString(ControlStateType stateType) const;
 
-	/** »ñÈ¡Í¼Æ¬ÎÄ¼şÃû
-	*@param [in] stateType Í¼Æ¬ÀàĞÍ
+	/** è·å–å›¾ç‰‡æ–‡ä»¶å
+	*@param [in] stateType å›¾ç‰‡ç±»å‹
 	*/
 	std::wstring GetImagePath(ControlStateType stateType) const;
 
-	/** ±È½ÏÁ½¸ö×´Ì¬µÄÍ¼Æ¬Ô´ÇøÓòÊÇ·ñÏàÍ¬
-	*@param [in] stateType1 Í¼Æ¬ÀàĞÍ1
-	*@param [in] stateType2 Í¼Æ¬ÀàĞÍ2
+	/** æ¯”è¾ƒä¸¤ä¸ªçŠ¶æ€çš„å›¾ç‰‡æºåŒºåŸŸæ˜¯å¦ç›¸åŒ
+	*@param [in] stateType1 å›¾ç‰‡ç±»å‹1
+	*@param [in] stateType2 å›¾ç‰‡ç±»å‹2
 	*/
 	bool AreImageSourceRectsEqual(ControlStateType stateType1, ControlStateType stateType2) const;
 
-	/** »ñÈ¡Í¼Æ¬µÄÍ¸Ã÷¶È
-	*@param [in] stateType Í¼Æ¬ÀàĞÍ
+	/** è·å–å›¾ç‰‡çš„é€æ˜åº¦
+	*@param [in] stateType å›¾ç‰‡ç±»å‹
 	*/
 	int32_t GetImageFade(ControlStateType stateType) const;
 
-	/** »ñÈ¡Í¼Æ¬½Ó¿Ú(¿É¶Á£¬¿ÉĞ´)
+	/** è·å–å›¾ç‰‡æ¥å£(å¯è¯»ï¼Œå¯å†™)
 	*/
 	Image* GetStateImage(ControlStateType stateType) const;
 
 public:
-	/** ÊÇ·ñ°üº¬Hot×´Ì¬µÄÍ¼Æ¬
+	/** æ˜¯å¦åŒ…å«HotçŠ¶æ€çš„å›¾ç‰‡
 	*/
 	bool HasHotImage() const;
 
-	/** ÊÇ·ñ°üº¬×´Ì¬Í¼Æ¬
+	/** æ˜¯å¦åŒ…å«çŠ¶æ€å›¾ç‰‡
 	*/
 	bool HasImage() const;
 
-	/** »æÖÆÖ¸¶¨×´Ì¬µÄÍ¼Æ¬
-	* @param [in] pRender »æÖÆ½Ó¿Ú
-	* @param [in] stateType ¿Ø¼ş×´Ì¬£¬ÓÃÓÚÑ¡Ôñ»æÖÆÄÄ¸öÍ¼Æ¬
-	* @param [in] sImageModify Í¼Æ¬µÄ¸½¼ÓÊôĞÔ
-	* @param [out] pDestRect ·µ»ØÍ¼Æ¬»æÖÆµÄ×îÖÕÄ¿±ê¾ØĞÎÇøÓò
-	* @return »æÖÆ³É¹¦·µ»Øtrue, ·ñÔò·µ»Øfalse
+	/** ç»˜åˆ¶æŒ‡å®šçŠ¶æ€çš„å›¾ç‰‡
+	* @param [in] pRender ç»˜åˆ¶æ¥å£
+	* @param [in] stateType æ§ä»¶çŠ¶æ€ï¼Œç”¨äºé€‰æ‹©ç»˜åˆ¶å“ªä¸ªå›¾ç‰‡
+	* @param [in] sImageModify å›¾ç‰‡çš„é™„åŠ å±æ€§
+	* @param [out] pDestRect è¿”å›å›¾ç‰‡ç»˜åˆ¶çš„æœ€ç»ˆç›®æ ‡çŸ©å½¢åŒºåŸŸ
+	* @return ç»˜åˆ¶æˆåŠŸè¿”å›true, å¦åˆ™è¿”å›false
 	*/
 	bool PaintStateImage(IRender* pRender, ControlStateType stateType, 
 					     const std::wstring& sImageModify = L"",
 		                 UiRect* pDestRect = nullptr);
 
-	/** »ñÈ¡ÓÃÓÚ¹ÀËãControl¿Ø¼ş´óĞ¡£¨¿íºÍ¸ß£©µÄÍ¼Æ¬½Ó¿Ú
+	/** è·å–ç”¨äºä¼°ç®—Controlæ§ä»¶å¤§å°ï¼ˆå®½å’Œé«˜ï¼‰çš„å›¾ç‰‡æ¥å£
 	*/
 	Image* GetEstimateImage() const;
 
-	/** »ñÈ¡ËùÓĞÍ¼Æ¬½Ó¿Ú
+	/** è·å–æ‰€æœ‰å›¾ç‰‡æ¥å£
 	*/
 	void GetAllImages(std::vector<Image*>& allImages) const;
 
-	/** Çå¿ÕÍ¼Æ¬»º´æ£¬ÊÍ·Å×ÊÔ´
+	/** æ¸…ç©ºå›¾ç‰‡ç¼“å­˜ï¼Œé‡Šæ”¾èµ„æº
 	*/
 	void ClearImageCache();
 
-	/** Í£Ö¹ËùÓĞÍ¼Æ¬µÄ¶¯»­
+	/** åœæ­¢æ‰€æœ‰å›¾ç‰‡çš„åŠ¨ç”»
 	*/
 	void StopGifPlay();
 
 private:
-	//¹ØÁªµÄ¿Ø¼ş½Ó¿Ú
+	//å…³è”çš„æ§ä»¶æ¥å£
 	Control* m_pControl;
 
-	//Ã¿¸ö×´Ì¬µÄÍ¼Æ¬½Ó¿Ú
+	//æ¯ä¸ªçŠ¶æ€çš„å›¾ç‰‡æ¥å£
 	std::map<ControlStateType, Image*> m_stateImageMap;
 };
 

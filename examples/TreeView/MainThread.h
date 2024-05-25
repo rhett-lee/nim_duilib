@@ -10,14 +10,14 @@
 
 #include <memory>
 
-//Ïß³ÌID
+//çº¿ç¨‹ID
 enum ThreadId
 {
 	kThreadUI,
 	kThreadWorker
 };
 
-/** ¹¤×÷Ïß³Ì
+/** å·¥ä½œçº¿ç¨‹
 */
 class WorkerThread : public nbase::FrameworkThread
 {
@@ -30,25 +30,25 @@ public:
 
 private:
 	/**
-	* Ğéº¯Êı£¬³õÊ¼»¯Ïß³Ì
-	* @return void	ÎŞ·µ»ØÖµ
+	* è™šå‡½æ•°ï¼Œåˆå§‹åŒ–çº¿ç¨‹
+	* @return void	æ— è¿”å›å€¼
 	*/
 	virtual void Init() override;
 
 	/**
-	* Ğéº¯Êı£¬Ïß³ÌÍË³öÊ±£¬×öÒ»Ğ©ÇåÀí¹¤×÷
-	* @return void	ÎŞ·µ»ØÖµ
+	* è™šå‡½æ•°ï¼Œçº¿ç¨‹é€€å‡ºæ—¶ï¼Œåšä¸€äº›æ¸…ç†å·¥ä½œ
+	* @return void	æ— è¿”å›å€¼
 	*/
 	virtual void Cleanup() override;
 
 private:
 
-	/** Ïß³ÌID
+	/** çº¿ç¨‹ID
 	*/
 	ThreadId m_threadID;
 };
 
-/** Ö÷Ïß³Ì
+/** ä¸»çº¿ç¨‹
 */
 class MainThread : public nbase::FrameworkThread
 {
@@ -58,19 +58,19 @@ public:
 
 private:
 	/**
-	* Ğéº¯Êı£¬³õÊ¼»¯Ö÷Ïß³Ì
-	* @return void	ÎŞ·µ»ØÖµ
+	* è™šå‡½æ•°ï¼Œåˆå§‹åŒ–ä¸»çº¿ç¨‹
+	* @return void	æ— è¿”å›å€¼
 	*/
 	virtual void Init() override;
 
 	/**
-	* Ğéº¯Êı£¬Ö÷Ïß³ÌÍË³öÊ±£¬×öÒ»Ğ©ÇåÀí¹¤×÷
-	* @return void	ÎŞ·µ»ØÖµ
+	* è™šå‡½æ•°ï¼Œä¸»çº¿ç¨‹é€€å‡ºæ—¶ï¼Œåšä¸€äº›æ¸…ç†å·¥ä½œ
+	* @return void	æ— è¿”å›å€¼
 	*/
 	virtual void Cleanup() override;
 
 private:
-	/** ¹¤×÷Ïß³Ì
+	/** å·¥ä½œçº¿ç¨‹
 	*/
 	std::unique_ptr<WorkerThread> m_workerThread;
 };

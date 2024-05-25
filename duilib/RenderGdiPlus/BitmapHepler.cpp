@@ -35,12 +35,12 @@ namespace BitmapHelper {
         HBITMAP hBitmap = CreateGDIBitmap(srcDcWidth, srcDcHeight, true, &pBits);
         ::SelectObject(hMemDC, hBitmap);
 
-        //复制位图到内存DC
+        //澶嶅埗浣嶅浘鍒板唴瀛楧C
         ::BitBlt(hMemDC, 0, 0, srcDcWidth, srcDcHeight, hSrcDc, 0, 0, SRCCOPY);
 
         bitmap->Init(srcDcWidth, srcDcHeight, true, pBits);
 
-        // 释放资源
+        // 閲婃斁璧勬簮
         ::DeleteDC(hMemDC);
         ::DeleteObject(hBitmap);
 
@@ -134,10 +134,10 @@ namespace BitmapHelper {
         bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
         bmi.bmiHeader.biWidth = nWidth;
         if (flipHeight) {
-            bmi.bmiHeader.biHeight = -nHeight;//负数表示位图方向：从上到下，左上角为圆点
+            bmi.bmiHeader.biHeight = -nHeight;//璐熸暟琛ㄧず浣嶅浘鏂瑰悜锛氫粠涓婂埌涓嬶紝宸︿笂瑙掍负鍦嗙偣
         }
         else {
-            bmi.bmiHeader.biHeight = nHeight; //正数表示位图方向：从下到上，左下角为圆点
+            bmi.bmiHeader.biHeight = nHeight; //姝ｆ暟琛ㄧず浣嶅浘鏂瑰悜锛氫粠涓嬪埌涓婏紝宸︿笅瑙掍负鍦嗙偣
         }
         bmi.bmiHeader.biPlanes = 1;
         bmi.bmiHeader.biBitCount = 32;

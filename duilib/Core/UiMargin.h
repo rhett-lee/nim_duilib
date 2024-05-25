@@ -8,8 +8,8 @@
 
 namespace ui 
 {
-/** ��߾�����ݽṹ��װ�����Ǿ��Σ�û�п��ߵĸ��
-*   ��߾ࣺMargin�ǲ������ؼ��ľ��������ڵġ�
+/** 外边距的数据结构封装（不是矩形，没有宽高的概念）
+*   外边距：Margin是不包含控件的矩形区域内的。
 */
 class UILIB_API UiMargin
 {
@@ -25,20 +25,20 @@ public:
 		right = nRight;
 		bottom = nBottom;
 	}
-	/** ����
+	/** 清零
 	*/
 	void Clear()
 	{
 		left = top = right = bottom = 0;
 	}
-	/** �ж��Ƿ�Ϊ��
+	/** 判断是否为空
 	*/
 	bool IsEmpty() const
 	{
 		return (left == 0) && (top == 0) && (right == 0) && (bottom == 0);
 	}
 
-	/** ������ֵ��Ϊ��Чֵ������ֵ������Ϊ��ֵ����������
+	/** 检查各个值否为有效值（各个值不允许为赋值），并修正
 	*/
 	void Validate()
 	{
@@ -56,7 +56,7 @@ public:
 		}
 	}
 
-	/** �ж�������һ���Ƿ���ͬ
+	/** 判断与另外一个是否相同
 	*/
 	bool Equals(const UiMargin& r) const
 	{
@@ -65,24 +65,24 @@ public:
 	}
 
 public:
-	/** ����������߾�
+	/** 矩形左侧的外边距
 	*/
 	int32_t left;
 
-	/** �����������߾�
+	/** 矩形上面的外边距
 	*/
 	int32_t top;
 
-	/** �����Ҳ����߾�
+	/** 矩形右侧的外边距
 	*/
 	int32_t right;
 
-	/** �����������߾�
+	/** 矩形下面的外边距
 	*/
 	int32_t bottom;
 };
 
-/** 16λ�޷��ŵİ汾�����ڴ洢����Լ�ռ�
+/** 16位无符号的版本，用于存储，节约空间
 */
 class UILIB_API UiMargin16
 {
@@ -99,19 +99,19 @@ public:
 		bottom = nBottom;
 	}
 public:
-	/** ����������߾�
+	/** 矩形左侧的外边距
 	*/
 	uint16_t left;
 
-	/** �����������߾�
+	/** 矩形上面的外边距
 	*/
 	uint16_t top;
 
-	/** �����Ҳ����߾�
+	/** 矩形右侧的外边距
 	*/
 	uint16_t right;
 
-	/** �����������߾�
+	/** 矩形下面的外边距
 	*/
 	uint16_t bottom;
 };

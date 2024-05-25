@@ -19,20 +19,20 @@ public:
 	~MainForm();
 
 	/**
-	 * Ò»ÏÂÈı¸ö½Ó¿ÚÊÇ±ØĞëÒª¸²Ğ´µÄ½Ó¿Ú£¬¸¸Àà»áµ÷ÓÃÕâÈı¸ö½Ó¿ÚÀ´¹¹½¨´°¿Ú
-	 * GetSkinFolder		½Ó¿ÚÉèÖÃÄãÒª»æÖÆµÄ´°¿ÚÆ¤·ô×ÊÔ´Â·¾¶
-	 * GetSkinFile			½Ó¿ÚÉèÖÃÄãÒª»æÖÆµÄ´°¿ÚµÄ xml ÃèÊöÎÄ¼ş
-	 * GetWindowClassName	½Ó¿ÚÉèÖÃ´°¿ÚÎ¨Ò»µÄÀàÃû³Æ
+	 * ä¸€ä¸‹ä¸‰ä¸ªæ¥å£æ˜¯å¿…é¡»è¦è¦†å†™çš„æ¥å£ï¼Œçˆ¶ç±»ä¼šè°ƒç”¨è¿™ä¸‰ä¸ªæ¥å£æ¥æ„å»ºçª—å£
+	 * GetSkinFolder		æ¥å£è®¾ç½®ä½ è¦ç»˜åˆ¶çš„çª—å£çš®è‚¤èµ„æºè·¯å¾„
+	 * GetSkinFile			æ¥å£è®¾ç½®ä½ è¦ç»˜åˆ¶çš„çª—å£çš„ xml æè¿°æ–‡ä»¶
+	 * GetWindowClassName	æ¥å£è®¾ç½®çª—å£å”¯ä¸€çš„ç±»åç§°
 	 */
 	virtual std::wstring GetSkinFolder() override;
 	virtual std::wstring GetSkinFile() override;
 	virtual std::wstring GetWindowClassName() const override;
 
-	/** µ±´°¿Ú´´½¨Íê³ÉÒÔºóµ÷ÓÃ´Ëº¯Êı£¬¹©×ÓÀàÖĞ×öÒ»Ğ©³õÊ¼»¯µÄ¹¤×÷
+	/** å½“çª—å£åˆ›å»ºå®Œæˆä»¥åè°ƒç”¨æ­¤å‡½æ•°ï¼Œä¾›å­ç±»ä¸­åšä¸€äº›åˆå§‹åŒ–çš„å·¥ä½œ
 	*/
 	virtual void OnInitWindow() override;
 
-	/** µ±´°¿Ú¼´½«±»¹Ø±ÕÊ±µ÷ÓÃ´Ëº¯Êı£¬¹©×ÓÀàÖĞ×öÒ»Ğ©ÊÕÎ²¹¤×÷
+	/** å½“çª—å£å³å°†è¢«å…³é—­æ—¶è°ƒç”¨æ­¤å‡½æ•°ï¼Œä¾›å­ç±»ä¸­åšä¸€äº›æ”¶å°¾å·¥ä½œ
 	*/
 	virtual void OnCloseWindow() override;
 
@@ -41,19 +41,19 @@ public:
 
 	static const std::wstring kClassName;
 
-	//²éÕÒ/Ìæ»»½Ó¿Ú
+	//æŸ¥æ‰¾/æ›¿æ¢æ¥å£
 	void FindRichText(const std::wstring& findText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord, HWND hWndDialog);
 	void ReplaceRichText(const std::wstring& findText, const std::wstring& replaceText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord, HWND hWndDialog);
 	void ReplaceAllRichText(const std::wstring& findText, const std::wstring& replaceText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord, HWND hWndDialog);
 
-	//»ñÈ¡RichEdit½Ó¿Ú
+	//è·å–RichEditæ¥å£
 	ui::RichEdit* GetRichEdit() const;
 
 private:
-	//¼ÓÔØÄ¬ÈÏµÄÎÄ±¾ÄÚÈİ
+	//åŠ è½½é»˜è®¤çš„æ–‡æœ¬å†…å®¹
 	void LoadRichEditData();
 
-	//´ò¿ªÎÄ¼ş¡¢±£´æÎÄ¼ş¡¢Áí´æÎªÎÄ¼ş
+	//æ‰“å¼€æ–‡ä»¶ã€ä¿å­˜æ–‡ä»¶ã€å¦å­˜ä¸ºæ–‡ä»¶
 	void OnOpenFile();
 	void OnSaveFile();
 	void OnSaveAsFile();
@@ -61,22 +61,22 @@ private:
 	bool LoadFile(const std::wstring& filePath);
 	bool SaveFile(const std::wstring& filePath);
 
-	//ÅĞ¶ÏÒ»¸öÎÄ¼şÀ©Õ¹ÃûÊÇ·ñÎªRTFÎÄ¼ş
+	//åˆ¤æ–­ä¸€ä¸ªæ–‡ä»¶æ‰©å±•åæ˜¯å¦ä¸ºRTFæ–‡ä»¶
 	bool IsRtfFile(const std::wstring& filePath) const;
 
 	static DWORD CALLBACK StreamReadCallback(DWORD_PTR dwCookie, LPBYTE pbBuff, LONG cb, LONG FAR* pcb);
 	static DWORD CALLBACK StreamWriteCallback(DWORD_PTR dwCookie, LPBYTE pbBuff, LONG cb, LONG FAR* pcb);
 
-	//¸üĞÂ±£´æ×´Ì¬
+	//æ›´æ–°ä¿å­˜çŠ¶æ€
 	void UpdateSaveStatus();
 
 private:
-	//²éÕÒ/Ìæ»»
+	//æŸ¥æ‰¾/æ›¿æ¢
 	void OnFindText();
 	void OnFindNext();
 	void OnReplaceText();
 
-private://ÉèÖÃ×ÖÌåÏà¹Ø
+private://è®¾ç½®å­—ä½“ç›¸å…³
 	struct FontInfo
 	{
 		LOGFONT lf;
@@ -86,105 +86,105 @@ private://ÉèÖÃ×ÖÌåÏà¹Ø
 	struct FontSizeInfo
 	{
 		std::wstring fontSizeName;
-		float fFontSize;	//µ¥Î»£ºÏñËØ£¬Î´×öDPI×ÔÊÊÓ¦
-		int32_t fontSize;   //µ¥Î»£ºÏñËØ£¬ÒÑ×öDPI×ÔÊÊÓ¦
+		float fFontSize;	//å•ä½ï¼šåƒç´ ï¼ŒæœªåšDPIè‡ªé€‚åº”
+		int32_t fontSize;   //å•ä½ï¼šåƒç´ ï¼Œå·²åšDPIè‡ªé€‚åº”
 	};
 
-	//»ñÈ¡×ÖÌå½á¹¹
+	//è·å–å­—ä½“ç»“æ„
 	bool GetRichEditLogFont(LOGFONT& lf) const;
 
-	//³õÊ¼»¯×ÖÌåĞÅÏ¢
+	//åˆå§‹åŒ–å­—ä½“ä¿¡æ¯
 	void InitCharFormat(const LOGFONT& lf, CHARFORMAT2& charFormat) const;
 
-	//µ÷ÓÃÏµÍ³Ä¬ÈÏ¶Ô»°¿ò£¬ÉèÖÃ×ÖÌå
+	//è°ƒç”¨ç³»ç»Ÿé»˜è®¤å¯¹è¯æ¡†ï¼Œè®¾ç½®å­—ä½“
 	void OnSetFont();
 
-	//»ñÈ¡ÏµÍ³×ÖÌåÁĞ±í
+	//è·å–ç³»ç»Ÿå­—ä½“åˆ—è¡¨
 	void GetSystemFontList(std::vector<FontInfo>& fontList) const;
 
-	//»ñÈ¡×ÖÌå´óĞ¡Ó³Éä±í
+	//è·å–å­—ä½“å¤§å°æ˜ å°„è¡¨
 	void GetFontSizeList(std::vector<FontSizeInfo>& fontSizeList) const;
 
-	//¸üĞÂ×ÖÌå°´Å¥µÄ×´Ì¬
+	//æ›´æ–°å­—ä½“æŒ‰é’®çš„çŠ¶æ€
 	void UpdateFontStatus();
 
-	//¸üĞÂ×ÖÌå´óĞ¡µÄ×´Ì¬
+	//æ›´æ–°å­—ä½“å¤§å°çš„çŠ¶æ€
 	void UpdateFontSizeStatus();
 
-	//ÉèÖÃ×ÖÌåÃû³Æ
+	//è®¾ç½®å­—ä½“åç§°
 	void SetFontName(const std::wstring& fontName);
 
-	//ÉèÖÃ×ÖÌå´óĞ¡
+	//è®¾ç½®å­—ä½“å¤§å°
 	void SetFontSize(const std::wstring& fontSize);
 
-	//µ÷Õû×ÖÌå´óĞ¡: bIncreaseFontSize Îªtrue±íÊ¾Ôö¼Ó×ÖÌå´óĞ¡£¬Îªfalse±íÊ¾¼õĞ¡×ÖÌå´óĞ¡
+	//è°ƒæ•´å­—ä½“å¤§å°: bIncreaseFontSize ä¸ºtrueè¡¨ç¤ºå¢åŠ å­—ä½“å¤§å°ï¼Œä¸ºfalseè¡¨ç¤ºå‡å°å­—ä½“å¤§å°
 	void AdjustFontSize(bool bIncreaseFontSize);
 
-	//ÉèÖÃ×ÖÌåÑùÊ½£¨´ÖÌå£©
+	//è®¾ç½®å­—ä½“æ ·å¼ï¼ˆç²—ä½“ï¼‰
 	void SetFontBold(bool bBold);
 
-	//ÉèÖÃ×ÖÌåÑùÊ½£¨Ğ±Ìå£©
+	//è®¾ç½®å­—ä½“æ ·å¼ï¼ˆæ–œä½“ï¼‰
 	void SetFontItalic(bool bItalic);
 
-	//ÉèÖÃ×ÖÌåÑùÊ½£¨ÏÂ»®Ïß£©
+	//è®¾ç½®å­—ä½“æ ·å¼ï¼ˆä¸‹åˆ’çº¿ï¼‰
 	void SetFontUnderline(bool bUnderline);
 
-	//ÉèÖÃ×ÖÌåÑùÊ½£¨É¾³ıÏß£©
+	//è®¾ç½®å­—ä½“æ ·å¼ï¼ˆåˆ é™¤çº¿ï¼‰
 	void SetFontStrikeOut(bool bStrikeOut);
 
-	/** ÉèÖÃÎÄ±¾ÑÕÉ«
+	/** è®¾ç½®æ–‡æœ¬é¢œè‰²
 	*/
 	void SetTextColor(const std::wstring& newColor);
 
-	//Ã¶¾Ù×ÖÌå»Øµ÷º¯Êı
+	//æšä¸¾å­—ä½“å›è°ƒå‡½æ•°
 	static int CALLBACK EnumFontFamExProc(const LOGFONT* lpelfe, const TEXTMETRIC* lpntme, DWORD fontType, LPARAM lParam);
 
-	//½«×ÖÌå´óĞ¡×ª»»³ÉRich Edit¿Ø¼şµÄ×ÖÌå¸ß¶È
+	//å°†å­—ä½“å¤§å°è½¬æ¢æˆRich Editæ§ä»¶çš„å­—ä½“é«˜åº¦
 	int32_t ConvertToFontHeight(int32_t fontSize) const;
 
-	/** »ñÈ¡RichEdit¿Ø¼şµÄ×Ö·û¸ñÊ½
+	/** è·å–RichEditæ§ä»¶çš„å­—ç¬¦æ ¼å¼
 	*/
 	void GetCharFormat(CHARFORMAT2& charFormat) const;
 
-	/** ÉèÖÃRichEdit¿Ø¼şµÄ×Ö·û¸ñÊ½
+	/** è®¾ç½®RichEditæ§ä»¶çš„å­—ç¬¦æ ¼å¼
 	*/
 	void SetCharFormat(CHARFORMAT2& charFormat);
 
 private:
-	//¸üĞÂËõ·Å±ÈÀı
+	//æ›´æ–°ç¼©æ”¾æ¯”ä¾‹
 	void UpdateZoomValue();
 
-	//³õÊ¼»¯ÉèÖÃÑÕÉ«µÄCombo°´Å¥
+	//åˆå§‹åŒ–è®¾ç½®é¢œè‰²çš„ComboæŒ‰é’®
 	void InitColorCombo();
 
-	//ÏÔÊ¾Ê°É«Æ÷´°¿Ú
+	//æ˜¾ç¤ºæ‹¾è‰²å™¨çª—å£
 	void ShowColorPicker();
 
 private:
 
-	//RichEdit¿Ø¼ş½Ó¿Ú
+	//RichEditæ§ä»¶æ¥å£
 	ui::RichEdit* m_pRichEdit;
 
-	//µ±Ç°´ò¿ªµÄÎÄ¼ş
+	//å½“å‰æ‰“å¼€çš„æ–‡ä»¶
 	std::wstring m_filePath;
 
-	//±£´æ°´Å¥µÄÎÄ×Ö
+	//ä¿å­˜æŒ‰é’®çš„æ–‡å­—
 	std::wstring m_saveBtnText;
 
-	//²éÕÒ
+	//æŸ¥æ‰¾
 	FindForm* m_pFindForm;
 
-	//Ìæ»»
+	//æ›¿æ¢
 	ReplaceForm* m_pReplaceForm;
 
-	//²éÕÒÌæ»»ÊµÏÖ
+	//æŸ¥æ‰¾æ›¿æ¢å®ç°
 	RichEditFindReplace m_findReplace;
 
 private:
-	//×ÖÌåÃû³ÆÁĞ±í
+	//å­—ä½“åç§°åˆ—è¡¨
 	std::vector<FontInfo> m_fontList;
 
-	//×ÖÌå´óĞ¡ÁĞ±í
+	//å­—ä½“å¤§å°åˆ—è¡¨
 	std::vector<FontSizeInfo> m_fontSizeList;
 };
 

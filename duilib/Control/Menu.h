@@ -9,33 +9,33 @@
 
 namespace ui {
 
-//²Ëµ¥¶ÔÆë·½Ê½
+//èœå•å¯¹é½æ–¹å¼
 enum MenuAlignment
 {
 	eMenuAlignment_Left			= 1 << 1,
 	eMenuAlignment_Top			= 1 << 2,
 	eMenuAlignment_Right		= 1 << 3,
 	eMenuAlignment_Bottom		= 1 << 4,
-	eMenuAlignment_Intelligent	= 1 << 5    //ÖÇÄÜµÄ·ÀÖ¹±»ÕÚ±Î
+	eMenuAlignment_Intelligent	= 1 << 5    //æ™ºèƒ½çš„é˜²æ­¢è¢«é®è”½
 };
 
-//²Ëµ¥¹Ø±ÕÀàĞÍ
+//èœå•å…³é—­ç±»å‹
 enum class MenuCloseType
 {
-	eMenuCloseThis,  //ÊÊÓÃÓÚ¹Ø±Õµ±Ç°¼¶±ğµÄ²Ëµ¥´°¿Ú£¬ÈçÊó±êÒÆÈëÊ±
-	eMenuCloseAll     //¹Ø±ÕËùÓĞ²Ëµ¥´°¿Ú£¬ÈçÊ§È¥½¹µãÊ±
+	eMenuCloseThis,  //é€‚ç”¨äºå…³é—­å½“å‰çº§åˆ«çš„èœå•çª—å£ï¼Œå¦‚é¼ æ ‡ç§»å…¥æ—¶
+	eMenuCloseAll     //å…³é—­æ‰€æœ‰èœå•çª—å£ï¼Œå¦‚å¤±å»ç„¦ç‚¹æ—¶
 };
 
-//²Ëµ¥µ¯³öÎ»ÖÃµÄÀàĞÍ
+//èœå•å¼¹å‡ºä½ç½®çš„ç±»å‹
 enum class MenuPopupPosType
-{   //Êó±êµã»÷µÄpointÊôÓÚ²Ëµ¥µÄÄÄ¸öÎ»ÖÃ		1.-----.2       1×óÉÏ 2ÓÒÉÏ              
+{   //é¼ æ ‡ç‚¹å‡»çš„pointå±äºèœå•çš„å“ªä¸ªä½ç½®		1.-----.2       1å·¦ä¸Š 2å³ä¸Š              
     //									 |     |
-	//ÕâÀï¼Ù¶¨ÓÃ»§ÊÇÏ²»¶ÖÇÄÜµÄ				3.-----.4       3×óÏÂ 4ÓÒÏÂ
+	//è¿™é‡Œå‡å®šç”¨æˆ·æ˜¯å–œæ¬¢æ™ºèƒ½çš„				3.-----.4       3å·¦ä¸‹ 4å³ä¸‹
 	RIGHT_BOTTOM	= eMenuAlignment_Right | eMenuAlignment_Bottom | eMenuAlignment_Intelligent,
 	RIGHT_TOP		= eMenuAlignment_Right | eMenuAlignment_Top    | eMenuAlignment_Intelligent,
 	LEFT_BOTTOM		= eMenuAlignment_Left  | eMenuAlignment_Bottom | eMenuAlignment_Intelligent,
 	LEFT_TOP		= eMenuAlignment_Left  | eMenuAlignment_Top    | eMenuAlignment_Intelligent,
-	//ÕâÀïÊÇnormal£¬·ÇÖÇÄÜµÄ
+	//è¿™é‡Œæ˜¯normalï¼Œéæ™ºèƒ½çš„
 	RIGHT_BOTTOM_N	= eMenuAlignment_Right | eMenuAlignment_Bottom,
 	RIGHT_TOP_N		= eMenuAlignment_Right | eMenuAlignment_Top,
 	LEFT_BOTTOM_N	= eMenuAlignment_Left  | eMenuAlignment_Bottom,
@@ -55,34 +55,34 @@ typedef class ReceiverImpl<bool, ContextMenuParam> ContextMenuReceiver;
 /////////////////////////////////////////////////////////////////////////////////////
 //
 
-/** ²Ëµ¥Àà
+/** èœå•ç±»
 */
 class MenuItem;
 class Menu : public ui::WindowImplBase, public ContextMenuReceiver
 {
 public:
-	/** ¹¹Ôìº¯Êı£¬³õÊ¼»¯²Ëµ¥µÄ¸¸´°¿Ú¾ä±ú
+	/** æ„é€ å‡½æ•°ï¼Œåˆå§‹åŒ–èœå•çš„çˆ¶çª—å£å¥æŸ„
 	*/
 	explicit Menu(HWND hParent);
 
-	/** ÉèÖÃ×ÊÔ´¼ÓÔØµÄÎÄ¼ş¼ĞÃû³Æ£¬Èç¹ûÃ»ÉèÖÃ£¬ÄÚ²¿Ä¬ÈÏÎª "menu"
-	*   XMLÎÄ¼şÖĞµÄ×ÊÔ´£¨Í¼Æ¬¡¢XMLµÈ£©£¬¾ùÔÚÕâ¸öÎÄ¼ş¼ĞÖĞ²éÕÒ
+	/** è®¾ç½®èµ„æºåŠ è½½çš„æ–‡ä»¶å¤¹åç§°ï¼Œå¦‚æœæ²¡è®¾ç½®ï¼Œå†…éƒ¨é»˜è®¤ä¸º "menu"
+	*   XMLæ–‡ä»¶ä¸­çš„èµ„æºï¼ˆå›¾ç‰‡ã€XMLç­‰ï¼‰ï¼Œå‡åœ¨è¿™ä¸ªæ–‡ä»¶å¤¹ä¸­æŸ¥æ‰¾
 	*/
 	void SetSkinFolder(const std::wstring& skinFolder);
 
-	/** ÉèÖÃ¶à¼¶×Ó²Ëµ¥µÄXMLÄ£°åÎÄ¼ş¼°ÊôĞÔ
-	@param [in] submenuXml ×Ó²Ëµ¥µÄXMLÄ£°åÎÄ¼şÃû£¬Èç¹ûÃ»ÉèÖÃ£¬ÄÚ²¿Ä¬ÈÏÎª "submenu.xml"
-	@param [in] submenuNodeName ×Ó²Ëµ¥XMLÎÄ¼şÖĞ£¬×Ó²Ëµ¥Ïî²åÈëÎ»ÖÃµÄ½ÚµãÃû³Æ£¬Èç¹ûÃ»ÉèÖÃ£¬ÄÚ²¿Ä¬ÈÏÎª "submenu"
+	/** è®¾ç½®å¤šçº§å­èœå•çš„XMLæ¨¡æ¿æ–‡ä»¶åŠå±æ€§
+	@param [in] submenuXml å­èœå•çš„XMLæ¨¡æ¿æ–‡ä»¶åï¼Œå¦‚æœæ²¡è®¾ç½®ï¼Œå†…éƒ¨é»˜è®¤ä¸º "submenu.xml"
+	@param [in] submenuNodeName å­èœå•XMLæ–‡ä»¶ä¸­ï¼Œå­èœå•é¡¹æ’å…¥ä½ç½®çš„èŠ‚ç‚¹åç§°ï¼Œå¦‚æœæ²¡è®¾ç½®ï¼Œå†…éƒ¨é»˜è®¤ä¸º "submenu"
 	*/
 	void SetSubMenuXml(const std::wstring& submenuXml, const std::wstring& submenuNodeName);
 
-	/** ³õÊ¼»¯²Ëµ¥ÅäÖÃ£¬²¢ÇÒÏÔÊ¾²Ëµ¥
-	*   ·µ»Øºó£¬¿ÉÒÔÍ¨¹ıFindControlº¯ÊıÀ´ÕÒµ½²Ëµ¥Ïî£¬½øĞĞºóĞø²Ù×÷
-	* @param [in] xml ²Ëµ¥XML×ÊÔ´ÎÄ¼şÃû£¬ÄÚ²¿»áÓëGetSkinFolder()Æ´½Ó³ÉÍêÕûÂ·¾¶
-	* @param [in] point ²Ëµ¥µ¯³öÎ»ÖÃ
-	* @param [in] popupPosType ²Ëµ¥µ¯³öÎ»ÖÃÀàĞÍ
-	* @param [in] noFocus ²Ëµ¥µ¯³öºó£¬²»¼¤»î´°¿Ú£¬±ÜÃâÇÀ½¹µã
-	* @Param [in] pOwner ¸¸²Ëµ¥µÄ½Ó¿Ú£¬Èç¹ûÕâ¸öÖµ²»ÊÇnullptr£¬ÔòÕâ¸ö²Ëµ¥ÊÇ¶à¼¶²Ëµ¥Ä£Ê½
+	/** åˆå§‹åŒ–èœå•é…ç½®ï¼Œå¹¶ä¸”æ˜¾ç¤ºèœå•
+	*   è¿”å›åï¼Œå¯ä»¥é€šè¿‡FindControlå‡½æ•°æ¥æ‰¾åˆ°èœå•é¡¹ï¼Œè¿›è¡Œåç»­æ“ä½œ
+	* @param [in] xml èœå•XMLèµ„æºæ–‡ä»¶åï¼Œå†…éƒ¨ä¼šä¸GetSkinFolder()æ‹¼æ¥æˆå®Œæ•´è·¯å¾„
+	* @param [in] point èœå•å¼¹å‡ºä½ç½®
+	* @param [in] popupPosType èœå•å¼¹å‡ºä½ç½®ç±»å‹
+	* @param [in] noFocus èœå•å¼¹å‡ºåï¼Œä¸æ¿€æ´»çª—å£ï¼Œé¿å…æŠ¢ç„¦ç‚¹
+	* @Param [in] pOwner çˆ¶èœå•çš„æ¥å£ï¼Œå¦‚æœè¿™ä¸ªå€¼ä¸æ˜¯nullptrï¼Œåˆ™è¿™ä¸ªèœå•æ˜¯å¤šçº§èœå•æ¨¡å¼
 	*/
 	void ShowMenu(const std::wstring& xml, 
 		          const UiPoint& point,
@@ -90,40 +90,40 @@ public:
 		          bool noFocus = false,
 		          MenuItem* pOwner = nullptr);
 
-	/** ¹Ø±Õ²Ëµ¥
+	/** å…³é—­èœå•
 	*/
 	void CloseMenu();
 
 public:
-	//Ìí¼Ó×Ó²Ëµ¥Ïî
+	//æ·»åŠ å­èœå•é¡¹
 	bool AddMenuItem(MenuItem* pMenuItem);
 	bool AddMenuItemAt(MenuItem* pMenuItem, size_t iIndex);
 
-	//É¾³ı²Ëµ¥Ïî
+	//åˆ é™¤èœå•é¡¹
 	bool RemoveMenuItem(MenuItem* pMenuItem);
 	bool RemoveMenuItemAt(size_t iIndex);
 
-	//»ñÈ¡²Ëµ¥Ïî¸öÊı
+	//è·å–èœå•é¡¹ä¸ªæ•°
 	size_t GetMenuItemCount() const;
 
-	//»ñÈ¡²Ëµ¥Ïî½Ó¿Ú
+	//è·å–èœå•é¡¹æ¥å£
 	MenuItem* GetMenuItemAt(size_t iIndex) const;
 	MenuItem* GetMenuItemByName(const std::wstring& name) const;
 
 private:
-	friend MenuItem; //ĞèÒª·ÃÎÊ²¿·ÖË½ÓĞ³ÉÔ±º¯Êı
+	friend MenuItem; //éœ€è¦è®¿é—®éƒ¨åˆ†ç§æœ‰æˆå‘˜å‡½æ•°
 
-	//»ñÈ¡È«¾Ö²Ëµ¥Observer¶ÔÏó
+	//è·å–å…¨å±€èœå•Observerå¯¹è±¡
 	static ContextMenuObserver& GetMenuObserver();
 
-	//Óë¸¸²Ëµ¥¶ÔÏó½Ó´¥¹ØÁª¹ØÏµ
+	//ä¸çˆ¶èœå•å¯¹è±¡æ¥è§¦å…³è”å…³ç³»
 	void DetachOwner();		//add by djj 20200506
 
 private:
-	// ÖØĞÂµ÷Õû²Ëµ¥µÄ´óĞ¡
+	// é‡æ–°è°ƒæ•´èœå•çš„å¤§å°
 	void ResizeMenu();
 
-	// ÖØĞÂµ÷Õû×Ó²Ëµ¥µÄ´óĞ¡
+	// é‡æ–°è°ƒæ•´å­èœå•çš„å¤§å°
 	void ResizeSubMenu();
 
 private:
@@ -139,67 +139,67 @@ private:
 	virtual LRESULT OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
 
 private:
-	//²Ëµ¥¸¸´°¿Ú¾ä±ú
+	//èœå•çˆ¶çª—å£å¥æŸ„
 	HWND m_hParent;
 
-	//²Ëµ¥µ¯³öÎ»ÖÃ
+	//èœå•å¼¹å‡ºä½ç½®
 	UiPoint m_menuPoint;
 
-	//²Ëµ¥µ¯³öÎ»ÖÃµÄÀàĞÍ
+	//èœå•å¼¹å‡ºä½ç½®çš„ç±»å‹
 	MenuPopupPosType m_popupPosType;
 
-	//×ÊÔ´¼ÓÔØµÄÎÄ¼ş¼ĞÃû³Æ
+	//èµ„æºåŠ è½½çš„æ–‡ä»¶å¤¹åç§°
 	UiString m_skinFolder;
 
-	//×Ó²Ëµ¥µÄXMLÄ£°åÎÄ¼şÃû
+	//å­èœå•çš„XMLæ¨¡æ¿æ–‡ä»¶å
 	UiString m_submenuXml;
 
-	//×Ó²Ëµ¥XMLÎÄ¼şÖĞ£¬×Ó²Ëµ¥Ïî²åÈëÎ»ÖÃµÄ½ÚµãÃû³Æ
+	//å­èœå•XMLæ–‡ä»¶ä¸­ï¼Œå­èœå•é¡¹æ’å…¥ä½ç½®çš„èŠ‚ç‚¹åç§°
 	UiString m_submenuNodeName;
 
-	//²Ëµ¥×ÊÔ´µÄxmlÎÄ¼şÃû
+	//èœå•èµ„æºçš„xmlæ–‡ä»¶å
 	UiString m_xml;
 
-	//²Ëµ¥µ¯³öÊ±£¬ÊÇ·ñÎªÎŞ¾Û½¹Ä£Ê½
+	//èœå•å¼¹å‡ºæ—¶ï¼Œæ˜¯å¦ä¸ºæ— èšç„¦æ¨¡å¼
 	bool m_noFocus;
 
-	//²Ëµ¥µÄ¸¸²Ëµ¥½Ó¿Ú
+	//èœå•çš„çˆ¶èœå•æ¥å£
 	MenuItem* m_pOwner;
 
-	//²Ëµ¥µÄ²¼¾Ö½Ó¿Ú
+	//èœå•çš„å¸ƒå±€æ¥å£
 	ui::ListBox* m_pLayout;
 };
 
-/** ²Ëµ¥Ïî
+/** èœå•é¡¹
 */
 class MenuItem : public ui::ListBoxItem
 {
 public:
 	explicit MenuItem(Window* pWindow);
 
-	//Ìí¼Ó×Ó²Ëµ¥Ïî
+	//æ·»åŠ å­èœå•é¡¹
 	bool AddSubMenuItem(MenuItem* pMenuItem);
 	bool AddSubMenuItemAt(MenuItem* pMenuItem, size_t iIndex);
 
-	//É¾³ı×Ó²Ëµ¥Ïî
+	//åˆ é™¤å­èœå•é¡¹
 	bool RemoveSubMenuItem(MenuItem* pMenuItem);
 	bool RemoveSubMenuItemAt(size_t iIndex);
 	void RemoveAllSubMenuItem();
 
-	//»ñÈ¡×Ó²Ëµ¥Ïî¸öÊı
+	//è·å–å­èœå•é¡¹ä¸ªæ•°
 	size_t GetSubMenuItemCount() const;
 
-	//»ñÈ¡×Ó²Ëµ¥Ïî½Ó¿Ú
+	//è·å–å­èœå•é¡¹æ¥å£
 	MenuItem* GetSubMenuItemAt(size_t iIndex) const;
 	MenuItem* GetSubMenuItemByName(const std::wstring& name) const;
 
 
 private:
-	//»ñÈ¡Ò»¸ö²Ëµ¥ÏîÏÂËùÓĞ×Ó²Ëµ¥ÏîµÄ½Ó¿Ú(½ö°üº¬²Ëµ¥×ÓÏîÔªËØ)
+	//è·å–ä¸€ä¸ªèœå•é¡¹ä¸‹æ‰€æœ‰å­èœå•é¡¹çš„æ¥å£(ä»…åŒ…å«èœå•å­é¡¹å…ƒç´ )
 	static void GetAllSubMenuItem(const MenuItem* pParentElementUI, 
 						          std::vector<MenuItem*>& submenuItems);
 
-	//»ñÈ¡Ò»¸ö²Ëµ¥ÏîÏÂËùÓĞ×Ó²Ëµ¥¿Ø¼şµÄ½Ó¿Ú(°üº¬²Ëµ¥×ÓÏîÔªËØºÍÆäËû¿Ø¼ş)
+	//è·å–ä¸€ä¸ªèœå•é¡¹ä¸‹æ‰€æœ‰å­èœå•æ§ä»¶çš„æ¥å£(åŒ…å«èœå•å­é¡¹å…ƒç´ å’Œå…¶ä»–æ§ä»¶)
 	static void GetAllSubMenuControls(const MenuItem* pParentElementUI,
 						              std::vector<Control*>& submenuControls);
 
@@ -209,16 +209,16 @@ private:
 	virtual void PaintChild(ui::IRender* pRender, const ui::UiRect& rcPaint) override;
 
 private:
-	friend Menu; //ĞèÒª·ÃÎÊ²¿·ÖË½ÓĞ³ÉÔ±º¯Êı
+	friend Menu; //éœ€è¦è®¿é—®éƒ¨åˆ†ç§æœ‰æˆå‘˜å‡½æ•°
 
-	//¼ì²é×Ó²Ëµ¥£¬Èç¹ûÊÇÏÂ¼¶²Ëµ¥£¬Ôò´´½¨ÏÂ¼¶²Ëµ¥´°¿Ú£¬²¢ÏÔÊ¾
+	//æ£€æŸ¥å­èœå•ï¼Œå¦‚æœæ˜¯ä¸‹çº§èœå•ï¼Œåˆ™åˆ›å»ºä¸‹çº§èœå•çª—å£ï¼Œå¹¶æ˜¾ç¤º
 	bool CheckSubMenuItem();
 
-	//´´½¨ÏÂ¼¶²Ëµ¥´°¿Ú£¬²¢ÏÔÊ¾
+	//åˆ›å»ºä¸‹çº§èœå•çª—å£ï¼Œå¹¶æ˜¾ç¤º
 	void CreateMenuWnd();
 
 private:
-	//ÏÂ¼¶²Ëµ¥´°¿Ú½Ó¿Ú
+	//ä¸‹çº§èœå•çª—å£æ¥å£
 	Menu* m_pSubWindow;
 };
 

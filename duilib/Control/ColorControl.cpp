@@ -38,7 +38,7 @@ void ColorControl::PaintBkImage(IRender* pRender)
 		pRender->DrawImageRect(rcPaint, pBitmap, rcDest, rcSource, uFade, pMatrix);
 	}
 
-	//»­Ñ¡ÔñÎ»ÖÃµÄÏÔÊ¾±êÖ¾
+	//ç”»é€‰æ‹©ä½ç½®çš„æ˜¾ç¤ºæ ‡å¿—
 	if ((m_lastPt.x >= 0) && m_lastPt.y >= 0) {
 		UiPoint centerPt = m_lastPt;
 		int32_t radius = Dpi().GetScaleInt(6);
@@ -117,7 +117,7 @@ IBitmap* ColorControl::GetColorBitmap(const UiRect& rect)
 	if (m_spBitmap != nullptr) {
 		if (((int32_t)m_spBitmap->GetWidth() == nWidth) &&
 			((int32_t)m_spBitmap->GetHeight() == nHeight)) {
-			//¿í¶ÈºÍ¸ß¶ÈÃ»ÓĞ±ä»¯£¬²»ĞèÒªÖØĞÂÉú³É
+			//å®½åº¦å’Œé«˜åº¦æ²¡æœ‰å˜åŒ–ï¼Œä¸éœ€è¦é‡æ–°ç”Ÿæˆ
 			return m_spBitmap.get();
 		}
 		else {
@@ -136,14 +136,14 @@ IBitmap* ColorControl::GetColorBitmap(const UiRect& rect)
 		void* pPixelBits = m_spBitmap->LockPixelBits();
 		if (pPixelBits != nullptr) {
 			uint32_t* pData = (uint32_t*)pPixelBits;
-			double satStep = 1.0 / (nHeight - 1); //Ã¿Ôö¼ÓÒ»ĞĞ£¬satµÄÔöÁ¿Öµ
-			double sat = 1.0;//µÚÒ»¸öÊıÖµÊÇ1.0
+			double satStep = 1.0 / (nHeight - 1); //æ¯å¢åŠ ä¸€è¡Œï¼Œsatçš„å¢é‡å€¼
+			double sat = 1.0;//ç¬¬ä¸€ä¸ªæ•°å€¼æ˜¯1.0
 			for (int32_t nRow = 0; nRow < nHeight; ++nRow) {					
 				ColorConvert::HSV_HUE(pData, nWidth, sat, 1.0);
 				pData += nWidth;
 				sat -= satStep;
 				if ((sat < 0.0) || (nRow == (nHeight - 2))){
-					//×îºóÒ»¸öÊıÖµÊÇ0.0
+					//æœ€åä¸€ä¸ªæ•°å€¼æ˜¯0.0
 					sat = 0.0;
 				}
 			}
@@ -199,7 +199,7 @@ void ColorControl::OnSelectPosChanged(const UiRect& rect, const UiPoint& pt)
 	if (m_spBitmap != nullptr) {
 		int32_t nRow = m_lastPt.y - rect.top;
 		int32_t nColumn = m_lastPt.x - rect.left;
-		int32_t colorXY = nWidth * nRow + nColumn; //ÑÕÉ«ËùÔÚµãµÄ×ø±êÎ»ÖÃ	
+		int32_t colorXY = nWidth * nRow + nColumn; //é¢œè‰²æ‰€åœ¨ç‚¹çš„åæ ‡ä½ç½®	
 		ASSERT(colorXY < nWidth * nHeight);
 		void* pPixelBits = m_spBitmap->LockPixelBits();
 		if (pPixelBits != nullptr) {

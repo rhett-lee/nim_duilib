@@ -24,276 +24,276 @@ public:
     virtual ~RichEdit();
 
 public:
-	/** ÅĞ¶ÏÊÇ·ñ½ÓÊÜ TAB °´¼üÏûÏ¢
-	 * @return ·µ»Ø true ±íÊ¾½ÓÊÜ£¬false ±íÊ¾²»½ÓÊÜ
+	/** åˆ¤æ–­æ˜¯å¦æ¥å— TAB æŒ‰é”®æ¶ˆæ¯
+	 * @return è¿”å› true è¡¨ç¤ºæ¥å—ï¼Œfalse è¡¨ç¤ºä¸æ¥å—
 	 */
 	virtual bool IsWantTab() const override;
 
-	/** ÅĞ¶ÏÊÇ·ñ½ÓÊÜ TAB °´¼üÏûÏ¢
-	 * @param[in] bWantTab Îª true Ôò½ÓÊÜ¸ÃÏûÏ¢£¬false Îª²»½ÓÊÜ
+	/** åˆ¤æ–­æ˜¯å¦æ¥å— TAB æŒ‰é”®æ¶ˆæ¯
+	 * @param[in] bWantTab ä¸º true åˆ™æ¥å—è¯¥æ¶ˆæ¯ï¼Œfalse ä¸ºä¸æ¥å—
 	 */
     void SetWantTab(bool bWantTab = true);
 
-	/** ÅĞ¶ÏÊÇ·ñ½ÓÊÜ RETURN °´¼üÏûÏ¢
-	 * @return ·µ»Ø true ±íÊ¾½ÓÊÜ£¬false ±íÊ¾²»½ÓÊÜ
+	/** åˆ¤æ–­æ˜¯å¦æ¥å— RETURN æŒ‰é”®æ¶ˆæ¯
+	 * @return è¿”å› true è¡¨ç¤ºæ¥å—ï¼Œfalse è¡¨ç¤ºä¸æ¥å—
 	 */
     bool IsNeedReturnMsg();
 
-	/** ÉèÖÃÊÇ·ñ½ÓÊÜ RETURN °´¼üÏûÏ¢
-	 * @param[in] bNeedReturnMsg Îª true Ôò½ÓÊÜ¸ÃÏûÏ¢£¬false Îª²»½ÓÊÜ
+	/** è®¾ç½®æ˜¯å¦æ¥å— RETURN æŒ‰é”®æ¶ˆæ¯
+	 * @param[in] bNeedReturnMsg ä¸º true åˆ™æ¥å—è¯¥æ¶ˆæ¯ï¼Œfalse ä¸ºä¸æ¥å—
 	 */
     void SetNeedReturnMsg(bool bNeedReturnMsg = true);
 
-	/** ÅĞ¶ÏÊÇ·ñ½ÓÊÜCTRL+RETURN ×éºÏ¼üÏûÏ¢
-	 * @return ·µ»Ø true ±íÊ¾½ÓÊÜ£¬false ±íÊ¾²»½ÓÊÜ
+	/** åˆ¤æ–­æ˜¯å¦æ¥å—CTRL+RETURN ç»„åˆé”®æ¶ˆæ¯
+	 * @return è¿”å› true è¡¨ç¤ºæ¥å—ï¼Œfalse è¡¨ç¤ºä¸æ¥å—
 	 */
     bool IsReturnMsgWantCtrl();
 
-	/** ÉèÖÃÊÇ·ñ½ÓÊÜCTRL+RETUREN ×éºÏ¼üÏûÏ¢
-	 * @param[in] bReturnMsgWantCtrl Îª true Ôò½ÓÊÜ¸ÃÏûÏ¢£¬false Îª²»½ÓÊÜ
+	/** è®¾ç½®æ˜¯å¦æ¥å—CTRL+RETUREN ç»„åˆé”®æ¶ˆæ¯
+	 * @param[in] bReturnMsgWantCtrl ä¸º true åˆ™æ¥å—è¯¥æ¶ˆæ¯ï¼Œfalse ä¸ºä¸æ¥å—
 	 */
     void SetReturnMsgWantCtrl(bool bReturnMsgWantCtrl = true);
 
-	/** ÊÇ·ñÊÇ¸»ÎÄ±¾Ä£Ê½
-	 * @return ·µ»Ø true Îª¸»ÎÄ±¾Ä£Ê½£ºÖ§³Ö·á¸»µÄÎÄ±¾¸ñÊ½£¬Ö§³ÖRTF¸ñÊ½
-	           ·µ»Ø false Îª´¿ÎÄ±¾Ä£Ê½£º´¿ÎÄ±¾¿Ø¼şÖĞµÄÎÄ±¾Ö»ÄÜÓĞÒ»ÖÖ¸ñÊ½
+	/** æ˜¯å¦æ˜¯å¯Œæ–‡æœ¬æ¨¡å¼
+	 * @return è¿”å› true ä¸ºå¯Œæ–‡æœ¬æ¨¡å¼ï¼šæ”¯æŒä¸°å¯Œçš„æ–‡æœ¬æ ¼å¼ï¼Œæ”¯æŒRTFæ ¼å¼
+	           è¿”å› false ä¸ºçº¯æ–‡æœ¬æ¨¡å¼ï¼šçº¯æ–‡æœ¬æ§ä»¶ä¸­çš„æ–‡æœ¬åªèƒ½æœ‰ä¸€ç§æ ¼å¼
 	 */
     bool IsRichText();
 
-	/** ÉèÖÃ¿Ø¼şÎª¸»ÎÄ±¾Ä£Ê½
-	 * @param[in] bRichText ÉèÖÃ true Îª¸»ÎÄ±¾Ä£Ê½£¬false Îª´¿ÎÄ±¾Ä£Ê½
+	/** è®¾ç½®æ§ä»¶ä¸ºå¯Œæ–‡æœ¬æ¨¡å¼
+	 * @param[in] bRichText è®¾ç½® true ä¸ºå¯Œæ–‡æœ¬æ¨¡å¼ï¼Œfalse ä¸ºçº¯æ–‡æœ¬æ¨¡å¼
 	 */
     void SetRichText(bool bRichText = true);
 
-	/** ÊÇ·ñÊÇÖ»¶Á×´Ì¬
-	 * @return ·µ»Ø true ÎªÖ»¶Á×´Ì¬£¬·ñÔòÎª false
+	/** æ˜¯å¦æ˜¯åªè¯»çŠ¶æ€
+	 * @return è¿”å› true ä¸ºåªè¯»çŠ¶æ€ï¼Œå¦åˆ™ä¸º false
 	 */
     bool IsReadOnly();
 
-	/** ÉèÖÃ¿Ø¼şÎªÖ»¶Á×´Ì¬
-	 * @param[in] bReadOnly ÉèÖÃ true ÈÃ¿Ø¼ş±äÎªÖ»¶Á×´Ì¬£¬false Îª¿ÉĞ´Èë×´Ì¬
+	/** è®¾ç½®æ§ä»¶ä¸ºåªè¯»çŠ¶æ€
+	 * @param[in] bReadOnly è®¾ç½® true è®©æ§ä»¶å˜ä¸ºåªè¯»çŠ¶æ€ï¼Œfalse ä¸ºå¯å†™å…¥çŠ¶æ€
 	 */
     void SetReadOnly(bool bReadOnly = true);
 
-	/** ÊÇ·ñÊÇÃÜÂë×´Ì¬¿Ø¼ş
-	 * @return ·µ»Ø true ±íÊ¾ÊÇÃÜÂë¿Ø¼ş£¬·ñÔòÎª false
+	/** æ˜¯å¦æ˜¯å¯†ç çŠ¶æ€æ§ä»¶
+	 * @return è¿”å› true è¡¨ç¤ºæ˜¯å¯†ç æ§ä»¶ï¼Œå¦åˆ™ä¸º false
 	 */
 	bool IsPassword();
 
-	/** ÉèÖÃ¿Ø¼şÎªÃÜÂë¿Ø¼ş£¨ÏÔÊ¾ ***£©
-	 * @param[in] bPassword ÉèÖÃÎª true ÈÃ¿Ø¼şÏÔÊ¾ÄÚÈİÎª ***£¬false ÎªÏÔÊ¾Õı³£ÄÚÈİ
+	/** è®¾ç½®æ§ä»¶ä¸ºå¯†ç æ§ä»¶ï¼ˆæ˜¾ç¤º ***ï¼‰
+	 * @param[in] bPassword è®¾ç½®ä¸º true è®©æ§ä»¶æ˜¾ç¤ºå†…å®¹ä¸º ***ï¼Œfalse ä¸ºæ˜¾ç¤ºæ­£å¸¸å†…å®¹
 	 */
 	void SetPassword(bool bPassword);
 
-	/** ÉèÖÃÊÇ·ñÏÔÊ¾ÃÜÂë
+	/** è®¾ç½®æ˜¯å¦æ˜¾ç¤ºå¯†ç 
 	*/
 	void SetShowPassword(bool bShow);
 
-	/** ÊÇ·ñÏÔÊ¾ÃÜÂë
+	/** æ˜¯å¦æ˜¾ç¤ºå¯†ç 
 	*/
 	bool IsShowPassword() const;
 
-	/** ÉèÖÃÃÜÂë×Ö·û
+	/** è®¾ç½®å¯†ç å­—ç¬¦
 	*/
 	void SetPasswordChar(wchar_t ch);
 
-	/** ÉèÖÃÊÇ·ñ¶ÔÊäÈëµÄ×Ö·û¶ÌÔİÏÔÊ¾ÔÙÒş²Ø£¨½öµ±IsShowPassword()Îªtrue£¬¼´ÃÜÂëÄ£Ê½µÄÊ±ºòÓĞĞ§£©
+	/** è®¾ç½®æ˜¯å¦å¯¹è¾“å…¥çš„å­—ç¬¦çŸ­æš‚æ˜¾ç¤ºå†éšè—ï¼ˆä»…å½“IsShowPassword()ä¸ºtrueï¼Œå³å¯†ç æ¨¡å¼çš„æ—¶å€™æœ‰æ•ˆï¼‰
 	*/
 	void SetFlashPasswordChar(bool bFlash);
 
-	/** »ñÈ¡ÊÇ·ñ¶ÔÊäÈëµÄ×Ö·û¶ÌÔİÏÔÊ¾ÔÙÒş²Ø
+	/** è·å–æ˜¯å¦å¯¹è¾“å…¥çš„å­—ç¬¦çŸ­æš‚æ˜¾ç¤ºå†éšè—
 	*/
 	bool GetFlashPasswordChar() const;
 
-	/** ÊÇ·ñÖ»ÔÊĞíÊäÈëÊı×Ö
+	/** æ˜¯å¦åªå…è®¸è¾“å…¥æ•°å­—
 	*/
 	bool IsNumberOnly() const;
 
-	/** ÉèÖÃÊÇ·ñÖ»ÔÊĞíÊäÈëÊı×Ö
+	/** è®¾ç½®æ˜¯å¦åªå…è®¸è¾“å…¥æ•°å­—
 	*/
 	void SetNumberOnly(bool bNumberOnly);
 
-	/** ÉèÖÃÔÊĞíµÄ×î´óÊı×Ö(½öµ±IsNumberOnly()ÎªtrueµÄÊ±ºòÓĞĞ§)
+	/** è®¾ç½®å…è®¸çš„æœ€å¤§æ•°å­—(ä»…å½“IsNumberOnly()ä¸ºtrueçš„æ—¶å€™æœ‰æ•ˆ)
 	*/
 	void SetMaxNumber(int32_t maxNumber);
 
-	/** »ñÈ¡ÔÊĞíµÄ×î´óÊı×Ö
+	/** è·å–å…è®¸çš„æœ€å¤§æ•°å­—
 	*/
 	int32_t GetMaxNumber() const;
 
-	/** ÉèÖÃÔÊĞíµÄ×îĞ¡Êı×Ö(½öµ±IsNumberOnly()ÎªtrueµÄÊ±ºòÓĞĞ§)
+	/** è®¾ç½®å…è®¸çš„æœ€å°æ•°å­—(ä»…å½“IsNumberOnly()ä¸ºtrueçš„æ—¶å€™æœ‰æ•ˆ)
 	*/
 	void SetMinNumber(int32_t minNumber);
 
-	/** »ñÈ¡ÔÊĞíµÄ×îĞ¡Êı×Ö
+	/** è·å–å…è®¸çš„æœ€å°æ•°å­—
 	*/
 	int32_t GetMinNumber() const;
 
-	/** »ñÈ¡³¬³ö¾ØĞÎÇøÓòµÄÎÄ±¾ÏÔÊ¾·½Ê½
-	 * @return ·µ»Ø true Ê±²¢ÇÒÔÚ¶àĞĞÄ£Ê½ÏÂÄÚÈİ±»»»ĞĞÏÔÊ¾£¬false Ôò±íÊ¾½Ø¶ÏÏÔÊ¾
+	/** è·å–è¶…å‡ºçŸ©å½¢åŒºåŸŸçš„æ–‡æœ¬æ˜¾ç¤ºæ–¹å¼
+	 * @return è¿”å› true æ—¶å¹¶ä¸”åœ¨å¤šè¡Œæ¨¡å¼ä¸‹å†…å®¹è¢«æ¢è¡Œæ˜¾ç¤ºï¼Œfalse åˆ™è¡¨ç¤ºæˆªæ–­æ˜¾ç¤º
 	 */
     bool GetWordWrap();
 
-	/** ÉèÖÃ³¬³ö¾ØĞÎÇøÓòµÄÎÄ±¾ÏÔÊ¾·½Ê½
-	 * @param[in] bWordWrap Îª true Ê±²¢ÇÒÔÚ¶àĞĞÄ£Ê½ÏÂÄÚÈİ±»»»ĞĞÏÔÊ¾£¬false Ôò±íÊ¾½Ø¶ÏÏÔÊ¾
+	/** è®¾ç½®è¶…å‡ºçŸ©å½¢åŒºåŸŸçš„æ–‡æœ¬æ˜¾ç¤ºæ–¹å¼
+	 * @param[in] bWordWrap ä¸º true æ—¶å¹¶ä¸”åœ¨å¤šè¡Œæ¨¡å¼ä¸‹å†…å®¹è¢«æ¢è¡Œæ˜¾ç¤ºï¼Œfalse åˆ™è¡¨ç¤ºæˆªæ–­æ˜¾ç¤º
 	 */
     void SetWordWrap(bool bWordWrap = true);
 
-	/** ÊÇ·ñÎª¶àĞĞÎÄ±¾
+	/** æ˜¯å¦ä¸ºå¤šè¡Œæ–‡æœ¬
 	*/
 	bool GetMultiLine() const ;
 
-	/** ÉèÖÃÊÇ·ñÎª¶àĞĞÎÄ±¾
+	/** è®¾ç½®æ˜¯å¦ä¸ºå¤šè¡Œæ–‡æœ¬
 	*/
 	void SetMultiLine(bool bMultiLine);
 
-	/** »ñÈ¡µ±Ç°ÉèÖÃµÄ×ÖÌåË÷Òı
-	 * @return ·µ»Ø×ÖÌåË÷Òı£¨¶ÔÓ¦ global.xml ÖĞ×ÖÌåµÄË³Ğò£©
+	/** è·å–å½“å‰è®¾ç½®çš„å­—ä½“ç´¢å¼•
+	 * @return è¿”å›å­—ä½“ç´¢å¼•ï¼ˆå¯¹åº” global.xml ä¸­å­—ä½“çš„é¡ºåºï¼‰
 	 */
 	std::wstring GetFontId() const;
 
-	/** ÉèÖÃ×ÖÌåË÷Òı
-	 * @param[in] index ÒªÉèÖÃµÄ×ÖÌåË÷Òı£¨¶ÔÓ¦ global.xml ÖĞ×ÖÌåµÄË³Ğò£©
+	/** è®¾ç½®å­—ä½“ç´¢å¼•
+	 * @param[in] index è¦è®¾ç½®çš„å­—ä½“ç´¢å¼•ï¼ˆå¯¹åº” global.xml ä¸­å­—ä½“çš„é¡ºåºï¼‰
 	 */
 	void SetFontId(const std::wstring& strFontId);
 
-	/** ÉèÖÃÕı³£ÎÄ±¾ÑÕÉ«
-	 * @param[in] dwTextColor ÒªÉèÖÃµÄÎÄ±¾ÑÕÉ«£¬¸ÃÑÕÉ«¿ÉÔÚ global.xml ÖĞ´æÔÚ
+	/** è®¾ç½®æ­£å¸¸æ–‡æœ¬é¢œè‰²
+	 * @param[in] dwTextColor è¦è®¾ç½®çš„æ–‡æœ¬é¢œè‰²ï¼Œè¯¥é¢œè‰²å¯åœ¨ global.xml ä¸­å­˜åœ¨
 	 */
 	void SetTextColor(const std::wstring& dwTextColor);
 
-	/** »ñÈ¡Õı³£ÎÄ±¾ÑÕÉ«
+	/** è·å–æ­£å¸¸æ–‡æœ¬é¢œè‰²
 	 */
 	std::wstring GetTextColor() const;
 
-	/** ÉèÖÃDisabled×´Ì¬µÄÎÄ±¾ÑÕÉ«
-	 * @param[in] dwTextColor ÒªÉèÖÃµÄÎÄ±¾ÑÕÉ«£¬¸ÃÑÕÉ«¿ÉÔÚ global.xml ÖĞ´æÔÚ
+	/** è®¾ç½®DisabledçŠ¶æ€çš„æ–‡æœ¬é¢œè‰²
+	 * @param[in] dwTextColor è¦è®¾ç½®çš„æ–‡æœ¬é¢œè‰²ï¼Œè¯¥é¢œè‰²å¯åœ¨ global.xml ä¸­å­˜åœ¨
 	 */
 	void SetDisabledTextColor(const std::wstring& dwTextColor);
 
-	/** »ñÈ¡Disabled×´Ì¬µÄÎÄ±¾ÑÕÉ«
+	/** è·å–DisabledçŠ¶æ€çš„æ–‡æœ¬é¢œè‰²
 	 */
 	std::wstring GetDisabledTextColor() const;
 
-	/** »ñÈ¡ÏŞÖÆ×Ö·ûÊıÁ¿
-	 * @return ·µ»ØÏŞÖÆ×Ö·ûÊıÁ¿
+	/** è·å–é™åˆ¶å­—ç¬¦æ•°é‡
+	 * @return è¿”å›é™åˆ¶å­—ç¬¦æ•°é‡
 	 */
     int32_t GetLimitText() const;
 
-	/** ÉèÖÃÏŞÖÆ×Ö·ûÊıÁ¿
-	 * @param [in] iChars ÒªÏŞÖÆµÄ×Ö·ûÊıÁ¿
+	/** è®¾ç½®é™åˆ¶å­—ç¬¦æ•°é‡
+	 * @param [in] iChars è¦é™åˆ¶çš„å­—ç¬¦æ•°é‡
 	 */
     void SetLimitText(int32_t iChars);
 
-	/** »ñÈ¡ÔÊĞíÊäÈëÄÄĞ©×Ö·û
+	/** è·å–å…è®¸è¾“å…¥å“ªäº›å­—ç¬¦
 	*/
 	std::wstring GetLimitChars() const;
 
-	/** ÉèÖÃÔÊĞíÊäÈëÄÄĞ©×Ö·û£¬±ÈÈçÑÕÉ«Öµ¿ÉÒÔÉèÖÃ£ºlimit_chars="#0123456789ABCDEFabcdef"
-	* @param [in] limitChars ÔÊĞíÊäÈëµÄ×Ö·ûÁĞ±í
+	/** è®¾ç½®å…è®¸è¾“å…¥å“ªäº›å­—ç¬¦ï¼Œæ¯”å¦‚é¢œè‰²å€¼å¯ä»¥è®¾ç½®ï¼šlimit_chars="#0123456789ABCDEFabcdef"
+	* @param [in] limitChars å…è®¸è¾“å…¥çš„å­—ç¬¦åˆ—è¡¨
 	*/
 	void SetLimitChars(const std::wstring& limitChars);
 
-	/** ÊÇ·ñÔÊĞí·¢³öBeepÉùÒô
+	/** æ˜¯å¦å…è®¸å‘å‡ºBeepå£°éŸ³
 	*/
 	bool GetAllowBeep() const;
 
-	/** ÉèÖÃÊÇ·ñÔÊĞí·¢³öBeepÉùÒô
+	/** è®¾ç½®æ˜¯å¦å…è®¸å‘å‡ºBeepå£°éŸ³
 	*/
 	void SetAllowBeep(bool bAllowBeep);
 
-	/** »ñÈ¡ÄÚÈİµÄ³¤¶È(Unicode±àÂë£¬×Ö·û¸öÊı)
-	 * @return ·µ»ØÄÚÈİ³¤¶È
+	/** è·å–å†…å®¹çš„é•¿åº¦(Unicodeç¼–ç ï¼Œå­—ç¬¦ä¸ªæ•°)
+	 * @return è¿”å›å†…å®¹é•¿åº¦
 	 */
     int32_t GetTextLength() const;
 
-	/** »ñÈ¡¿Ø¼şÖĞµÄÎÄ±¾
-	 * @return ·µ»Ø¿Ø¼şÖĞµÄÎÄ±¾ÄÚÈİ
+	/** è·å–æ§ä»¶ä¸­çš„æ–‡æœ¬
+	 * @return è¿”å›æ§ä»¶ä¸­çš„æ–‡æœ¬å†…å®¹
 	 */
     std::wstring GetText() const;
 
-	/** »ñÈ¡¿Ø¼şÖĞµÄÎÄ±¾
-	 * @return ·µ»Ø¿Ø¼şÖĞµÄÎÄ±¾ÄÚÈİ UTF8 ¸ñÊ½
+	/** è·å–æ§ä»¶ä¸­çš„æ–‡æœ¬
+	 * @return è¿”å›æ§ä»¶ä¸­çš„æ–‡æœ¬å†…å®¹ UTF8 æ ¼å¼
 	 */
 	virtual std::string GetUTF8Text() const;
 
-	/** ÉèÖÃ¿Ø¼şµÄÎÄ±¾, »á´¥·¢ÎÄ±¾±ä»¯ÊÂ¼ş
-	 * @param [in] strText ÒªÉèÖÃµÄÎÄ±¾ÄÚÈİ
+	/** è®¾ç½®æ§ä»¶çš„æ–‡æœ¬, ä¼šè§¦å‘æ–‡æœ¬å˜åŒ–äº‹ä»¶
+	 * @param [in] strText è¦è®¾ç½®çš„æ–‡æœ¬å†…å®¹
 	 */
     void SetText(const std::wstring& strText);
 
-	/** ÉèÖÃ¿Ø¼şµÄÎÄ±¾£¬²»´¥·¢ÎÄ±¾±ä»¯ÊÂ¼ş
-	 * @param [in] strText ÒªÉèÖÃµÄÎÄ±¾ÄÚÈİ
+	/** è®¾ç½®æ§ä»¶çš„æ–‡æœ¬ï¼Œä¸è§¦å‘æ–‡æœ¬å˜åŒ–äº‹ä»¶
+	 * @param [in] strText è¦è®¾ç½®çš„æ–‡æœ¬å†…å®¹
 	 */
 	void SetTextNoEvent(const std::wstring& strText);
 
-	/** ÉèÖÃ¿Ø¼şµÄÎÄ±¾¶ÔÓ¦ ID
-	 * @param[in] strTextId ÒªÉèÖÃµÄ ID£¬¸Ã ID ±ØĞëÔÚ¼ÓÔØµÄÓïÑÔÎÄ¼şÖĞ´æÔÚ
+	/** è®¾ç½®æ§ä»¶çš„æ–‡æœ¬å¯¹åº” ID
+	 * @param[in] strTextId è¦è®¾ç½®çš„ IDï¼Œè¯¥ ID å¿…é¡»åœ¨åŠ è½½çš„è¯­è¨€æ–‡ä»¶ä¸­å­˜åœ¨
 	 */
 	void SetTextId(const std::wstring& strTextId);
 
-	/** ÉèÖÃ¿Ø¼şµÄÎÄ±¾¶ÔÓ¦ ID
-	 * @param[in] strTextId ÒªÉèÖÃµÄ UTF8 ¸ñÊ½ ID£¬¸Ã ID ±ØĞëÔÚ¼ÓÔØµÄÓïÑÔÎÄ¼şÖĞ´æÔÚ
+	/** è®¾ç½®æ§ä»¶çš„æ–‡æœ¬å¯¹åº” ID
+	 * @param[in] strTextId è¦è®¾ç½®çš„ UTF8 æ ¼å¼ IDï¼Œè¯¥ ID å¿…é¡»åœ¨åŠ è½½çš„è¯­è¨€æ–‡ä»¶ä¸­å­˜åœ¨
 	 */
 	virtual void SetUTF8Text(const std::string& strText);
 
-	/** »ñÈ¡ĞŞ¸Ä±êÖ¾
-	 * @return ·µ»Ø true ÎªÉèÖÃÁËĞŞ¸Ä±êÖ¾£¬·ñÔòÎª false
+	/** è·å–ä¿®æ”¹æ ‡å¿—
+	 * @return è¿”å› true ä¸ºè®¾ç½®äº†ä¿®æ”¹æ ‡å¿—ï¼Œå¦åˆ™ä¸º false
 	 */
     bool GetModify() const;
 
-	/** ÉèÖÃĞŞ¸Ä±êÖ¾
-	 * @param[in] bModified ÉèÖÃÎª true ±íÊ¾ÎÄ±¾ÒÑ¾­±»ĞŞ¸Ä£¬false ÎªÎ´ĞŞ¸Ä£¬Ä¬ÈÏÎª true
+	/** è®¾ç½®ä¿®æ”¹æ ‡å¿—
+	 * @param[in] bModified è®¾ç½®ä¸º true è¡¨ç¤ºæ–‡æœ¬å·²ç»è¢«ä¿®æ”¹ï¼Œfalse ä¸ºæœªä¿®æ”¹ï¼Œé»˜è®¤ä¸º true
 	 */
     void SetModify(bool bModified = true);
 
-	/** »ñÈ¡ËùÑ¡ÎÄ±¾µÄÆğÊ¼Î»ÖÃºÍ½áÊøÎ»ÖÃ
-	 * @param[out] cr ·µ»ØÆğÊ¼Î»ÖÃºÍ½áÊøÎ»ÖÃ
+	/** è·å–æ‰€é€‰æ–‡æœ¬çš„èµ·å§‹ä½ç½®å’Œç»“æŸä½ç½®
+	 * @param[out] cr è¿”å›èµ·å§‹ä½ç½®å’Œç»“æŸä½ç½®
 	 */
     void GetSel(CHARRANGE &cr) const;
 
-	/** »ñÈ¡ËùÑ¡ÎÄ±¾µÄÆğÊ¼Î»ÖÃºÍ½áÊøÎ»ÖÃ
-	 * @param[in] nStartChar ·µ»ØÆğÊ¼Î»ÖÃ
-	 * @param[in] nEndChar ·µ»Ø½áÊøÎ»ÖÃ
+	/** è·å–æ‰€é€‰æ–‡æœ¬çš„èµ·å§‹ä½ç½®å’Œç»“æŸä½ç½®
+	 * @param[in] nStartChar è¿”å›èµ·å§‹ä½ç½®
+	 * @param[in] nEndChar è¿”å›ç»“æŸä½ç½®
 	 */
     void GetSel(long& nStartChar, long& nEndChar) const;
 
-	/** Ñ¡ÔñÒ»²¿·ÖÄÚÈİ
-	 * @param[in] cr ÒªÑ¡ÔñµÄÎÄ×ÖÆğÊ¼Î»ÖÃºÍ½áÊøÎ»ÖÃ
-	 * @return ·µ»ØÑ¡ÔñµÄÎÄ×ÖÊıÁ¿
+	/** é€‰æ‹©ä¸€éƒ¨åˆ†å†…å®¹
+	 * @param[in] cr è¦é€‰æ‹©çš„æ–‡å­—èµ·å§‹ä½ç½®å’Œç»“æŸä½ç½®
+	 * @return è¿”å›é€‰æ‹©çš„æ–‡å­—æ•°é‡
 	 */
     int SetSel(CHARRANGE &cr);
 
-	/** Ñ¡ÔñÒ»²¿·ÖÄÚÈİ
-	 * @param[in] nStartChar ÒªÑ¡ÔñµÄÆğÊ¼Î»ÖÃ
-	 * @param[in] nEndChar ÒªÑ¡ÔñµÄ½áÊøÎ»ÖÃ
-	 * @return ·µ»ØÑ¡ÔñµÄÎÄ×ÖÊıÁ¿
+	/** é€‰æ‹©ä¸€éƒ¨åˆ†å†…å®¹
+	 * @param[in] nStartChar è¦é€‰æ‹©çš„èµ·å§‹ä½ç½®
+	 * @param[in] nEndChar è¦é€‰æ‹©çš„ç»“æŸä½ç½®
+	 * @return è¿”å›é€‰æ‹©çš„æ–‡å­—æ•°é‡
 	 */
     int SetSel(long nStartChar, long nEndChar);
 
-	/** Ìæ»»ËùÑ¡ÄÚÈİ
-	 * @param[in] lpszNewText ÒªÌæ»»µÄÎÄ×Ö
-	 * @param[in] bCanUndo ÊÇ·ñ¿ÉÒÔ³·Ïú£¬true Îª¿ÉÒÔ£¬·ñÔòÎª false
+	/** æ›¿æ¢æ‰€é€‰å†…å®¹
+	 * @param[in] lpszNewText è¦æ›¿æ¢çš„æ–‡å­—
+	 * @param[in] bCanUndo æ˜¯å¦å¯ä»¥æ’¤é”€ï¼Œtrue ä¸ºå¯ä»¥ï¼Œå¦åˆ™ä¸º false
 	 */
     void ReplaceSel(const std::wstring& lpszNewText, bool bCanUndo);
 
-	/** »ñÈ¡ËùÑ¡ÎÄ×ÖÄÚÈİ
-	 * @return ·µ»ØËùÑ¡ÎÄ×ÖÄÚÈİ
+	/** è·å–æ‰€é€‰æ–‡å­—å†…å®¹
+	 * @return è¿”å›æ‰€é€‰æ–‡å­—å†…å®¹
 	 */
     std::wstring GetSelText() const;
 
-	/** È«Ñ¡
-	 * @return ·µ»ØÑ¡ÔñµÄÄÚÈİÊıÁ¿
+	/** å…¨é€‰
+	 * @return è¿”å›é€‰æ‹©çš„å†…å®¹æ•°é‡
 	 */
     int SetSelAll();
 
-	/** ²»Ñ¡ÔñÈÎºÎÄÚÈİ
-	 * @return Ê¼ÖÕ·µ»Ø 0 
+	/** ä¸é€‰æ‹©ä»»ä½•å†…å®¹
+	 * @return å§‹ç»ˆè¿”å› 0 
 	 */
     int SetSelNone();
 
-	/** »ñÈ¡¿Ø¼şµÄÑ¡ÔñÀàĞÍ
-	 * @return ·µ»Ø¿Ø¼şµÄÑ¡ÔñÀàĞÍ£¬²Î¿¼£ºhttps://docs.microsoft.com/en-us/windows/desktop/controls/em-selectiontype
+	/** è·å–æ§ä»¶çš„é€‰æ‹©ç±»å‹
+	 * @return è¿”å›æ§ä»¶çš„é€‰æ‹©ç±»å‹ï¼Œå‚è€ƒï¼šhttps://docs.microsoft.com/en-us/windows/desktop/controls/em-selectiontype
 		SEL_TEXT: Text.
 		SEL_OBJECT: At least one COM object.
 		SEL_MULTICHAR: More than one character of text.
@@ -301,589 +301,589 @@ public:
 	 */
     WORD GetSelectionType() const;
 
-	/** ²éÕÒÎÄ±¾
+	/** æŸ¥æ‰¾æ–‡æœ¬
 	*/
 	LONG FindRichText(DWORD dwFlags, FINDTEXT& ft) const;
 
-	/** ²éÕÒÎÄ±¾
+	/** æŸ¥æ‰¾æ–‡æœ¬
 	*/
 	LONG FindRichText(DWORD dwFlags, FINDTEXTEX& ft) const;
 
-	/** »ñÈ¡µ±Ç°Ëõ·Å±È£¬ °´Ëõ·Å±ÈÀı·Ö×Ó/·ÖÄ¸ÏÔÊ¾µÄËõ·Å£º1/64 < (wParam / lParam) < 64
-	 * @param[out] nNum Ëõ·Å±ÈÂÊ·Ö×Ó
-	 * @param[out] nDen Ëõ·Å±ÈÂÊ·ÖÄ¸
-	 * @return Èç¹û´¦ÀíÁËÏûÏ¢Ôò·µ»Ø TRUE
+	/** è·å–å½“å‰ç¼©æ”¾æ¯”ï¼Œ æŒ‰ç¼©æ”¾æ¯”ä¾‹åˆ†å­/åˆ†æ¯æ˜¾ç¤ºçš„ç¼©æ”¾ï¼š1/64 < (wParam / lParam) < 64
+	 * @param[out] nNum ç¼©æ”¾æ¯”ç‡åˆ†å­
+	 * @param[out] nDen ç¼©æ”¾æ¯”ç‡åˆ†æ¯
+	 * @return å¦‚æœå¤„ç†äº†æ¶ˆæ¯åˆ™è¿”å› TRUE
 	 */
     bool GetZoom(int& nNum, int& nDen) const;
 
-	/** ÉèÖÃËõ·Å±È
-	 * @param[in] nNum Ëõ·Å±ÈÂÊ·Ö×Ó£¬È¡Öµ·¶Î§£º[0, 64]
-	 * @param[in] nDen Ëõ·Å±ÈÂÊ·ÖÄ¸£¬È¡Öµ·¶Î§£º[0, 64]
-	 * @return ³É¹¦·µ»Ø true£¬Ê§°Ü·µ»Ø false
+	/** è®¾ç½®ç¼©æ”¾æ¯”
+	 * @param[in] nNum ç¼©æ”¾æ¯”ç‡åˆ†å­ï¼Œå–å€¼èŒƒå›´ï¼š[0, 64]
+	 * @param[in] nDen ç¼©æ”¾æ¯”ç‡åˆ†æ¯ï¼Œå–å€¼èŒƒå›´ï¼š[0, 64]
+	 * @return æˆåŠŸè¿”å› trueï¼Œå¤±è´¥è¿”å› false
 	 */
     bool SetZoom(int nNum, int nDen);
 
-	/** »Ö¸´Ëõ·Åµ½³õÊ¼×´Ì¬
-	 * @return ³É¹¦·µ»Ø true£¬·ñÔò·µ»Ø false
+	/** æ¢å¤ç¼©æ”¾åˆ°åˆå§‹çŠ¶æ€
+	 * @return æˆåŠŸè¿”å› trueï¼Œå¦åˆ™è¿”å› false
 	 */
     bool SetZoomOff();
 
-	/** »ñÈ¡ÊÇ·ñ¿ªÆôÁË×Ô¶¯ URL ¼ì²â(´ÓRichEditHost¶ÁÈ¡)
-	 * @return ·µ»Ø true ±íÊ¾¿ªÆôÁË×Ô¶¯¼ì²â£¬·ñÔòÎª false
+	/** è·å–æ˜¯å¦å¼€å¯äº†è‡ªåŠ¨ URL æ£€æµ‹(ä»RichEditHostè¯»å–)
+	 * @return è¿”å› true è¡¨ç¤ºå¼€å¯äº†è‡ªåŠ¨æ£€æµ‹ï¼Œå¦åˆ™ä¸º false
 	 */
     bool GetAutoURLDetect() const;
 
-	/** ÉèÖÃÊÇ·ñ¿ªÆô URL ×Ô¶¯¼ì²â
-	 * @param[in] bAutoDetect ÉèÖÃÎª true ±íÊ¾¼ì²â URL£¬false Îª²»¼ì²â£¬Ä¬ÈÏÎª true
-	 * @return ·µ»Ø true ÎªÉèÖÃ³É¹¦£¬false ÎªÊ§°Ü
+	/** è®¾ç½®æ˜¯å¦å¼€å¯ URL è‡ªåŠ¨æ£€æµ‹
+	 * @param[in] bAutoDetect è®¾ç½®ä¸º true è¡¨ç¤ºæ£€æµ‹ URLï¼Œfalse ä¸ºä¸æ£€æµ‹ï¼Œé»˜è®¤ä¸º true
+	 * @return è¿”å› true ä¸ºè®¾ç½®æˆåŠŸï¼Œfalse ä¸ºå¤±è´¥
 	 */
     bool SetAutoURLDetect(bool bAutoDetect = true);
 
-	/** »ñÈ¡¿Ø¼şµÄÊÂ¼şÑÚÂë
-	 * @return ·µ»ØÊÂ¼şÑÚÂë
+	/** è·å–æ§ä»¶çš„äº‹ä»¶æ©ç 
+	 * @return è¿”å›äº‹ä»¶æ©ç 
 	 */
     DWORD GetEventMask() const;
 
-	/** ÉèÖÃ¿Ø¼şµÄÊÂ¼şÑÚÂë
-	 * @param[in] dwEventMask ÒªÉèÖÃµÄÊÂ¼şÑÚÂëÖµ
-	 * @return ·µ»ØÉèÖÃÖ®Ç°µÄÊÂ¼şÑÚÂëÖµ
+	/** è®¾ç½®æ§ä»¶çš„äº‹ä»¶æ©ç 
+	 * @param[in] dwEventMask è¦è®¾ç½®çš„äº‹ä»¶æ©ç å€¼
+	 * @return è¿”å›è®¾ç½®ä¹‹å‰çš„äº‹ä»¶æ©ç å€¼
 	 */
     DWORD SetEventMask(DWORD dwEventMask);
 
-	/** »ñÈ¡Ö¸¶¨·¶Î§µÄÄÚÈİ
-	 * @param[in] nStartChar ÆğÊ¼Î»ÖÃ
-	 * @param[in] nEndChar ½áÊøÎªÖ¹
-	 * @return ·µ»ØÉèÖÃµÄÖ¸¶¨Î»ÖÃµÄÄÚÈİ
+	/** è·å–æŒ‡å®šèŒƒå›´çš„å†…å®¹
+	 * @param[in] nStartChar èµ·å§‹ä½ç½®
+	 * @param[in] nEndChar ç»“æŸä¸ºæ­¢
+	 * @return è¿”å›è®¾ç½®çš„æŒ‡å®šä½ç½®çš„å†…å®¹
 	 */
     std::wstring GetTextRange(long nStartChar, long nEndChar) const;
 
-	/** ÉèÖÃÊÇ·ñÒş²Ø»òÏÔÊ¾Ñ¡ÔñµÄÖµ
-	 * @param[in] bHide ÊÇ·ñÏÔÊ¾£¬true ÎªÏÔÊ¾£¬false Îª²»ÏÔÊ¾
-	 * @param[in] bChangeStyle ÊÇ·ñĞŞ¸ÄÑùÊ½£¬true ÎªĞŞ¸Ä£¬false Îª²»ĞŞ¸Ä
+	/** è®¾ç½®æ˜¯å¦éšè—æˆ–æ˜¾ç¤ºé€‰æ‹©çš„å€¼
+	 * @param[in] bHide æ˜¯å¦æ˜¾ç¤ºï¼Œtrue ä¸ºæ˜¾ç¤ºï¼Œfalse ä¸ºä¸æ˜¾ç¤º
+	 * @param[in] bChangeStyle æ˜¯å¦ä¿®æ”¹æ ·å¼ï¼Œtrue ä¸ºä¿®æ”¹ï¼Œfalse ä¸ºä¸ä¿®æ”¹
 	 */
     void HideSelection(bool bHide = true, bool bChangeStyle = false);
 
-	/** ÉèÖÃ¹â±êµ½¿É¼ûÎ»ÖÃ
+	/** è®¾ç½®å…‰æ ‡åˆ°å¯è§ä½ç½®
 	 */
     void ScrollCaret();
 
-	/** ²åÈëÎÄ×Ö
-	 * @param[in] nInsertAfterChar Òª²åÈëµÄÎ»ÖÃ
-	 * @param[in] lpstrText Òª²åÈëµÄÎÄ±¾
-	 * @param[in] bCanUndo ÊÇ·ñ¿ÉÒÔ³·Ïú£¬true Îª¿ÉÒÔ£¬·ñÔòÎª false£¬Ä¬ÈÏÎª false
-	 * @return ·µ»Ø²åÈëºóµÄÎÄ±¾Î»ÖÃ
+	/** æ’å…¥æ–‡å­—
+	 * @param[in] nInsertAfterChar è¦æ’å…¥çš„ä½ç½®
+	 * @param[in] lpstrText è¦æ’å…¥çš„æ–‡æœ¬
+	 * @param[in] bCanUndo æ˜¯å¦å¯ä»¥æ’¤é”€ï¼Œtrue ä¸ºå¯ä»¥ï¼Œå¦åˆ™ä¸º falseï¼Œé»˜è®¤ä¸º false
+	 * @return è¿”å›æ’å…¥åçš„æ–‡æœ¬ä½ç½®
 	 */
     int InsertText(long nInsertAfterChar, LPCTSTR lpstrText, bool bCanUndo = false);
 
-	/** ×·¼ÓÎÄ×Ö
-	 * @param[in] strText Òª×·¼ÓµÄÎÄ×Ö
-	 * @param[in] bCanUndo ÊÇ·ñ¿ÉÒÔ³·Ïú£¬true Îª¿ÉÒÔ£¬·ñÔòÎª false£¬Ä¬ÈÏÎª false
-	 * @return ·µ»Ø×·¼ÓºóµÄÎÄ×ÖÎ»ÖÃ
+	/** è¿½åŠ æ–‡å­—
+	 * @param[in] strText è¦è¿½åŠ çš„æ–‡å­—
+	 * @param[in] bCanUndo æ˜¯å¦å¯ä»¥æ’¤é”€ï¼Œtrue ä¸ºå¯ä»¥ï¼Œå¦åˆ™ä¸º falseï¼Œé»˜è®¤ä¸º false
+	 * @return è¿”å›è¿½åŠ åçš„æ–‡å­—ä½ç½®
 	 */
     int AppendText(const std::wstring& strText, bool bCanUndo = false);
 
-	/** »ñÈ¡×Ö·û¸ñÊ½
-	 * @param[out] cf ·µ»Ø»ñÈ¡µÄ×Ö·û¸ñÊ½
-	 * @return ·µ»Ø²ÎÊı cf ÖĞ dwMask µÄÖµ
+	/** è·å–å­—ç¬¦æ ¼å¼
+	 * @param[out] cf è¿”å›è·å–çš„å­—ç¬¦æ ¼å¼
+	 * @return è¿”å›å‚æ•° cf ä¸­ dwMask çš„å€¼
 	 */
     DWORD GetDefaultCharFormat(CHARFORMAT2 &cf) const;
 
-	/** ÉèÖÃÄ¬ÈÏµÄ×Ö·û¸ñÊ½
-	 * @param[in] cf ÒªÉèÖÃ×Ö·û¸ñÊ½
-	 * @return ·µ»Ø true ±íÊ¾³É¹¦£¬false ÎªÊ§°Ü
+	/** è®¾ç½®é»˜è®¤çš„å­—ç¬¦æ ¼å¼
+	 * @param[in] cf è¦è®¾ç½®å­—ç¬¦æ ¼å¼
+	 * @return è¿”å› true è¡¨ç¤ºæˆåŠŸï¼Œfalse ä¸ºå¤±è´¥
 	 */
     bool SetDefaultCharFormat(CHARFORMAT2 &cf);
 
-	/** »ñÈ¡±»Ñ¡ÔñµÄ×Ö·û¸ñÊ½
-	 * @param[out] cf ·µ»Ø»ñÈ¡µÄ×Ö·û¸ñÊ½
-	 * @return ·µ»Ø²ÎÊı cf ÖĞ dwMask µÄÖµ
+	/** è·å–è¢«é€‰æ‹©çš„å­—ç¬¦æ ¼å¼
+	 * @param[out] cf è¿”å›è·å–çš„å­—ç¬¦æ ¼å¼
+	 * @return è¿”å›å‚æ•° cf ä¸­ dwMask çš„å€¼
 	 */
     DWORD GetSelectionCharFormat(CHARFORMAT2 &cf) const;
 
-	/** ÉèÖÃ±»Ñ¡ÔñµÄ×Ö·û¸ñÊ½
-	 * @param[in] cf ÒªÉèÖÃµÄ×Ö·û¸ñÊ½
-	 * @return ·µ»Ø true ±íÊ¾³É¹¦£¬false ÎªÊ§°Ü
+	/** è®¾ç½®è¢«é€‰æ‹©çš„å­—ç¬¦æ ¼å¼
+	 * @param[in] cf è¦è®¾ç½®çš„å­—ç¬¦æ ¼å¼
+	 * @return è¿”å› true è¡¨ç¤ºæˆåŠŸï¼Œfalse ä¸ºå¤±è´¥
 	 */
     bool SetSelectionCharFormat(CHARFORMAT2 &cf);
 
-	/** ÉèÖÃµ±Ç°²åÈëµãµÄµ¥´Ê¸ñÊ½
-	 * @param[in] cf ÒªÉèÖÃµÄµ¥´Ê¸ñÊ½
-	 * @return ³É¹¦·µ»Ø true£¬Ê§°Ü·µ»Ø false
+	/** è®¾ç½®å½“å‰æ’å…¥ç‚¹çš„å•è¯æ ¼å¼
+	 * @param[in] cf è¦è®¾ç½®çš„å•è¯æ ¼å¼
+	 * @return æˆåŠŸè¿”å› trueï¼Œå¤±è´¥è¿”å› false
 	 */
     bool SetWordCharFormat(CHARFORMAT2 &cf);
 
-	/** »ñÈ¡µ±Ç°¶ÎÂä¸ñÊ½
-	 * @param[out] pf ·µ»Øµ±Ç°¶ÎÂä¸ñÊ½
-	 * @return ·µ»Ø pf ²ÎÊıµÄ dwMask ³ÉÔ±
+	/** è·å–å½“å‰æ®µè½æ ¼å¼
+	 * @param[out] pf è¿”å›å½“å‰æ®µè½æ ¼å¼
+	 * @return è¿”å› pf å‚æ•°çš„ dwMask æˆå‘˜
 	 */
     DWORD GetParaFormat(PARAFORMAT2 &pf) const;
 
-	/** ÉèÖÃµ±Ç°¶ÎÂä¸ñÊ½
-	 * @param[in] pf ÒªÉèÖÃµÄ¶ÎÂä¸ñÊ½ÑùÊ½
-	 * @return ³É¹¦·µ»Ø true£¬·ñÔò·µ»Ø false
+	/** è®¾ç½®å½“å‰æ®µè½æ ¼å¼
+	 * @param[in] pf è¦è®¾ç½®çš„æ®µè½æ ¼å¼æ ·å¼
+	 * @return æˆåŠŸè¿”å› trueï¼Œå¦åˆ™è¿”å› false
 	 */
     bool SetParaFormat(PARAFORMAT2 &pf);
 
-	/** ÊÇ·ñ¿ÉÒÔRedo
+	/** æ˜¯å¦å¯ä»¥Redo
 	*/
 	bool CanRedo() const;
 
-	/** ÖØ×ö²Ù×÷
-	 * @return ³É¹¦·µ»Ø true£¬Ê§°Ü·µ»Ø false
+	/** é‡åšæ“ä½œ
+	 * @return æˆåŠŸè¿”å› trueï¼Œå¤±è´¥è¿”å› false
 	 */
     bool Redo();
 
-	/** ÊÇ·ñ¿É³·Ïú
+	/** æ˜¯å¦å¯æ’¤é”€
 	*/
 	bool CanUndo() const;
 
-	/** ³·Ïú²Ù×÷
-	 * @return ³É¹¦·µ»Ø true£¬Ê§°Ü·µ»Ø false
+	/** æ’¤é”€æ“ä½œ
+	 * @return æˆåŠŸè¿”å› trueï¼Œå¤±è´¥è¿”å› false
 	 */
     bool Undo();
 
-	/** Çå¿Õ
+	/** æ¸…ç©º
 	 */
     void Clear();
 
-	/** ¸´ÖÆËùÑ¡ÄÚÈİ
+	/** å¤åˆ¶æ‰€é€‰å†…å®¹
 	 */
     void Copy();
 
-	/** ¼ôÇĞËùÑ¡ÄÚÈİ
+	/** å‰ªåˆ‡æ‰€é€‰å†…å®¹
 	 */
     void Cut();
 
-	/** Õ³Ìù
+	/** ç²˜è´´
 	 */
 	void Paste();
 
-	/** ¼ì²âÊÇ·ñ¿ÉÒÔÕ³ÌùÖ¸¶¨¼ôÇĞ°å¸ñÊ½
-	 * @param[in] nFormat Òª¼ì²âµÄ¸ñÊ½
-	 * @return ¿ÉÒÔ·µ»Ø true£¬·ñÔò·µ»Ø false
+	/** æ£€æµ‹æ˜¯å¦å¯ä»¥ç²˜è´´æŒ‡å®šå‰ªåˆ‡æ¿æ ¼å¼
+	 * @param[in] nFormat è¦æ£€æµ‹çš„æ ¼å¼
+	 * @return å¯ä»¥è¿”å› trueï¼Œå¦åˆ™è¿”å› false
 	 */
 	BOOL CanPaste(UINT nFormat = 0);
 
-	/** ÔÚ¿Ø¼şÖĞÕ³ÌùÌØ¶¨µÄ¼ôÌù°å¸ñÊ½
-	 * @param[in] uClipFormat Ö¸¶¨¼ôÇĞ°å¸ñÊ½
-	 * @param[in] dwAspect Ö¸¶¨Õ¹Ê¾ĞÎÊ½
-	 * @param[in] hMF Èç¹û dwAspect Îª DVASPECT_ICON£¬¸Ãº¯ÊıÓ¦¸Ã°üº¬Í¼±ê¾ä±ú
+	/** åœ¨æ§ä»¶ä¸­ç²˜è´´ç‰¹å®šçš„å‰ªè´´æ¿æ ¼å¼
+	 * @param[in] uClipFormat æŒ‡å®šå‰ªåˆ‡æ¿æ ¼å¼
+	 * @param[in] dwAspect æŒ‡å®šå±•ç¤ºå½¢å¼
+	 * @param[in] hMF å¦‚æœ dwAspect ä¸º DVASPECT_ICONï¼Œè¯¥å‡½æ•°åº”è¯¥åŒ…å«å›¾æ ‡å¥æŸ„
 	 */
 	void PasteSpecial(UINT uClipFormat, DWORD dwAspect = 0, HMETAFILE hMF = 0);
 
-	/** »ñÈ¡×ÜĞĞÊı
-	 * @return ·µ»Ø×ÜĞĞÊı
+	/** è·å–æ€»è¡Œæ•°
+	 * @return è¿”å›æ€»è¡Œæ•°
 	 */
     int GetLineCount() const;
 
-	/** »ñÈ¡Ò»ĞĞÊı¾İ
-	 * @param[in] nIndex Òª»ñÈ¡µÄĞĞÊı
-	 * @param[in] nMaxLength Òª»ñÈ¡µ±Ç°ĞĞ×î´óµÄÊı¾İ³¤¶È
-	 * @return ·µ»Ø»ñÈ¡µÄÒ»ĞĞÊı¾İ
+	/** è·å–ä¸€è¡Œæ•°æ®
+	 * @param[in] nIndex è¦è·å–çš„è¡Œæ•°
+	 * @param[in] nMaxLength è¦è·å–å½“å‰è¡Œæœ€å¤§çš„æ•°æ®é•¿åº¦
+	 * @return è¿”å›è·å–çš„ä¸€è¡Œæ•°æ®
 	 */
     std::wstring GetLine(int nIndex, int nMaxLength) const;
 
-	/** »ñÈ¡Ö¸¶¨ĞĞµÄµÚÒ»¸ö×Ö·ûË÷Òı
-	 * @param[in] nLine Òª»ñÈ¡µÚ¼¸ĞĞÊı¾İ£¬Ä¬ÈÏÎª -1
-	 * @return ·µ»ØÖ¸¶¨ĞĞµÄµÚÒ»¸ö×Ö·ûË÷Òı
+	/** è·å–æŒ‡å®šè¡Œçš„ç¬¬ä¸€ä¸ªå­—ç¬¦ç´¢å¼•
+	 * @param[in] nLine è¦è·å–ç¬¬å‡ è¡Œæ•°æ®ï¼Œé»˜è®¤ä¸º -1
+	 * @return è¿”å›æŒ‡å®šè¡Œçš„ç¬¬ä¸€ä¸ªå­—ç¬¦ç´¢å¼•
 	 */
     int LineIndex(int nLine = -1) const;
 
-	/** »ñÈ¡Ö¸¶¨ĞĞµÄÊı¾İ³¤¶È
-	 * @param[in] nLine Òª»ñÈ¡µÚ¼¸ĞĞÊı¾İ£¬Ä¬ÈÏÎª -1
-	 * @return ·µ»ØÖ¸¶¨ĞĞµÄÊı¾İ³¤¶È
+	/** è·å–æŒ‡å®šè¡Œçš„æ•°æ®é•¿åº¦
+	 * @param[in] nLine è¦è·å–ç¬¬å‡ è¡Œæ•°æ®ï¼Œé»˜è®¤ä¸º -1
+	 * @return è¿”å›æŒ‡å®šè¡Œçš„æ•°æ®é•¿åº¦
 	 */
     int LineLength(int nLine = -1) const;
 
-	/** ¹ö¶¯ÎÄ±¾
-	 * @param[in] nLines Ö¸¶¨´¹Ö±¹ö¶¯·½Ïò
-	 * @return ³É¹¦·µ»Ø true£¬Ê§°Ü·µ»Ø false
+	/** æ»šåŠ¨æ–‡æœ¬
+	 * @param[in] nLines æŒ‡å®šå‚ç›´æ»šåŠ¨æ–¹å‘
+	 * @return æˆåŠŸè¿”å› trueï¼Œå¤±è´¥è¿”å› false
 	 */
     bool LineScroll(int nLines);
 
-	/** »ñÈ¡Ö¸¶¨×Ö·ûËùÔÚĞĞÊı
-	 * @param[in] nIndex ×Ö·ûµÄË÷ÒıÎ»ÖÃ
-	 * @return ·µ»Øµ±Ç°×Ö·ûËùÔÚµÄĞĞÊı
+	/** è·å–æŒ‡å®šå­—ç¬¦æ‰€åœ¨è¡Œæ•°
+	 * @param[in] nIndex å­—ç¬¦çš„ç´¢å¼•ä½ç½®
+	 * @return è¿”å›å½“å‰å­—ç¬¦æ‰€åœ¨çš„è¡Œæ•°
 	 */
     long LineFromChar(long nIndex) const;
 
-	/** »ñÈ¡Ö¸¶¨Î»ÖÃ×Ö·ûµÄ¿Í»§Çø×ø±ê
-	 * @param[in] nChar ×Ö·ûË÷ÒıÎ»ÖÃ
-	 * @return ·µ»Ø¿Í»§Çø×ø±ê
+	/** è·å–æŒ‡å®šä½ç½®å­—ç¬¦çš„å®¢æˆ·åŒºåæ ‡
+	 * @param[in] nChar å­—ç¬¦ç´¢å¼•ä½ç½®
+	 * @return è¿”å›å®¢æˆ·åŒºåæ ‡
 	 */
     UiPoint PosFromChar(long nChar) const;
 
-	/** ¸ù¾İ×ø±ê·µ»ØÖ¸¶¨×Ö·ûË÷Òı
-	 * @param[in] pt ×ø±êĞÅÏ¢
-	 * @return ·µ»Ø×î½Ó½ü²ÎÊı pt ËùÖ¸¶¨µÄ×ø±êÎ»ÖÃ
+	/** æ ¹æ®åæ ‡è¿”å›æŒ‡å®šå­—ç¬¦ç´¢å¼•
+	 * @param[in] pt åæ ‡ä¿¡æ¯
+	 * @return è¿”å›æœ€æ¥è¿‘å‚æ•° pt æ‰€æŒ‡å®šçš„åæ ‡ä½ç½®
 	 */
 	int CharFromPos(UiPoint pt) const;
 
-	/** Çå¿Õ³·ÏúÁĞ±í
+	/** æ¸…ç©ºæ’¤é”€åˆ—è¡¨
 	 */
     void EmptyUndoBuffer();
 
-	/** ÉèÖÃ³·ÏúÁĞ±íÈİÄÉµÄÄÚÈİÊıÁ¿
+	/** è®¾ç½®æ’¤é”€åˆ—è¡¨å®¹çº³çš„å†…å®¹æ•°é‡
 	 * @param[in] nLimit
-	 * @return ·µ»ØÉèÖÃºóµÄ³·ÏúÁĞ±í¿ÉÈİÄÉÄÚÈİÊıÁ¿
+	 * @return è¿”å›è®¾ç½®åçš„æ’¤é”€åˆ—è¡¨å¯å®¹çº³å†…å®¹æ•°é‡
 	 */
     UINT SetUndoLimit(UINT nLimit);
 
-	/** Ôö¼ÓÒ»¸ö»Øµ÷ÓÃÓÚ¿ØÖÆÊäÈëÄÚÈİ
-	 * @param[in] nFormat Ö¸¶¨Êı¾İ¸ñÊ½µÄÌæ»»Ñ¡Ïî£¬¼û£ºhttps://docs.microsoft.com/en-us/windows/desktop/controls/em-streamin
-	 * @param[in] es °üº¬×Ô¶¨Òå»Øµ÷µÄ½á¹¹Ìå
-	 * @return ·µ»Ø¶ÁÈëÊı¾İÁ÷µÄÊı¾İ´óĞ¡
+	/** å¢åŠ ä¸€ä¸ªå›è°ƒç”¨äºæ§åˆ¶è¾“å…¥å†…å®¹
+	 * @param[in] nFormat æŒ‡å®šæ•°æ®æ ¼å¼çš„æ›¿æ¢é€‰é¡¹ï¼Œè§ï¼šhttps://docs.microsoft.com/en-us/windows/desktop/controls/em-streamin
+	 * @param[in] es åŒ…å«è‡ªå®šä¹‰å›è°ƒçš„ç»“æ„ä½“
+	 * @return è¿”å›è¯»å…¥æ•°æ®æµçš„æ•°æ®å¤§å°
 	 */
     long StreamIn(UINT nFormat, EDITSTREAM &es);
 
-	/** Ö¸¶¨Ò»¸ö»Øµ÷ÓÃÓÚ¿ØÖÆÊä³öÄÚÈİ
-	 * @param[in] nFormat Ö¸¶¨Êı¾İ¸ñÊ½µÄÌæ»»Ñ¡Ïî£¬¼û£ºhttps://docs.microsoft.com/en-us/windows/desktop/controls/em-streamin
-	 * @param[in] es °üº¬×Ô¶¨Òå»Øµ÷µÄ½á¹¹Ìå
-	 * @return ·µ»ØĞ´ÈëÊı¾İÁ÷µÄÊı¾İ´óĞ¡
+	/** æŒ‡å®šä¸€ä¸ªå›è°ƒç”¨äºæ§åˆ¶è¾“å‡ºå†…å®¹
+	 * @param[in] nFormat æŒ‡å®šæ•°æ®æ ¼å¼çš„æ›¿æ¢é€‰é¡¹ï¼Œè§ï¼šhttps://docs.microsoft.com/en-us/windows/desktop/controls/em-streamin
+	 * @param[in] es åŒ…å«è‡ªå®šä¹‰å›è°ƒçš„ç»“æ„ä½“
+	 * @return è¿”å›å†™å…¥æ•°æ®æµçš„æ•°æ®å¤§å°
 	 */
     long StreamOut(UINT nFormat, EDITSTREAM &es);
 
-	/** ÉèÖÃ¹ö¶¯ÌõÎ»ÖÃ
-	 * @param[in] szPos ÒªÉèÖÃµÄ¹ö¶¯ÌõÎ»ÖÃĞÅÏ¢
+	/** è®¾ç½®æ»šåŠ¨æ¡ä½ç½®
+	 * @param[in] szPos è¦è®¾ç½®çš„æ»šåŠ¨æ¡ä½ç½®ä¿¡æ¯
 	 */
     virtual void SetScrollPos(UiSize64 szPos) override;
 
-	/** ÏòÉÏÒ»ĞĞ
+	/** å‘ä¸Šä¸€è¡Œ
 	 */
     void LineUp();
 
-	/** ÏòÏÂÒ»ĞĞ
+	/** å‘ä¸‹ä¸€è¡Œ
 	 */
     void LineDown();
 
-	/** ÏòÉÏ·­Ò³
+	/** å‘ä¸Šç¿»é¡µ
 	 */
     virtual void PageUp() override;
 
-	/** ÏòÏÂ·­Ò³
+	/** å‘ä¸‹ç¿»é¡µ
 	 */
     virtual void PageDown() override;
 
-	/** ·µ»Øµ½¶¥¶Ë
+	/** è¿”å›åˆ°é¡¶ç«¯
 	 */
     virtual void HomeUp() override;
 
-	/** ·µ»Øµ½µ×²¿
+	/** è¿”å›åˆ°åº•éƒ¨
 	 */
     void EndDown();
 
-	/** Ë®Æ½Ïò×ó¹ö¶¯
+	/** æ°´å¹³å‘å·¦æ»šåŠ¨
 	 */
     void LineLeft();
 
-	/** Ë®Æ½ÏòÓÒ¹ö¶¯
+	/** æ°´å¹³å‘å³æ»šåŠ¨
 	 */
     void LineRight();
 
-	/** Ë®Æ½Ïò×ó·­Ò³
+	/** æ°´å¹³å‘å·¦ç¿»é¡µ
 	 */
     virtual void PageLeft() override;
 
-	/** Ë®Æ½ÏòÓÒ·­Ò³
+	/** æ°´å¹³å‘å³ç¿»é¡µ
 	 */
     virtual void PageRight() override;
 
-	/** ·µ»Øµ½×î×ó²à
+	/** è¿”å›åˆ°æœ€å·¦ä¾§
 	 */
     virtual void HomeLeft() override;
 
-	/** ·µ»Øµ½×îºó²à
+	/** è¿”å›åˆ°æœ€åä¾§
 	 */
     virtual void EndRight() override;
 
-	/** »ñÈ¡¿Ø¼şÀàĞÍ
+	/** è·å–æ§ä»¶ç±»å‹
 	*/
 	virtual std::wstring GetType() const override;
 	
-	/** ÉèÖÃ¿Ø¼ş¿ÉÓÃ×´Ì¬
-	 * @param[in] bEnable Îª true Ê±¿Ø¼ş¿ÉÓÃ£¬Îª false Ê±¿Ø¼şÎª½ûÓÃ×´Ì¬Ôò²»¿ÉÓÃ
+	/** è®¾ç½®æ§ä»¶å¯ç”¨çŠ¶æ€
+	 * @param[in] bEnable ä¸º true æ—¶æ§ä»¶å¯ç”¨ï¼Œä¸º false æ—¶æ§ä»¶ä¸ºç¦ç”¨çŠ¶æ€åˆ™ä¸å¯ç”¨
 	 */
 	virtual void SetEnabled(bool bEnable = true) override;
 	
-	/** ÉèÖÃÊôĞÔ
+	/** è®¾ç½®å±æ€§
 	*/
 	virtual void SetAttribute(const std::wstring& pstrName, const std::wstring& pstrValue) override;
 
-	/** DPI·¢Éú±ä»¯£¬¸üĞÂ¿Ø¼ş´óĞ¡ºÍ²¼¾Ö
-	* @param [in] nOldDpiScale ¾ÉµÄDPIËõ·Å°Ù·Ö±È
-	* @param [in] nNewDpiScale ĞÂµÄDPIËõ·Å°Ù·Ö±È£¬ÓëDpi().GetScale()µÄÖµÒ»ÖÂ
+	/** DPIå‘ç”Ÿå˜åŒ–ï¼Œæ›´æ–°æ§ä»¶å¤§å°å’Œå¸ƒå±€
+	* @param [in] nOldDpiScale æ—§çš„DPIç¼©æ”¾ç™¾åˆ†æ¯”
+	* @param [in] nNewDpiScale æ–°çš„DPIç¼©æ”¾ç™¾åˆ†æ¯”ï¼Œä¸Dpi().GetScale()çš„å€¼ä¸€è‡´
 	*/
 	virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override;
 
-	/** ÉèÖÃ¹ØÁª´°¿Ú
+	/** è®¾ç½®å…³è”çª—å£
 	*/
 	virtual void SetWindow(Window* pManager) override;
 
-	/** ÉèÖÃ¿Ø¼şÎ»ÖÃ£¨×ÓÀà¿É¸Ä±äĞĞÎª£©
-	 * @param [in] rc ÒªÉèÖÃµÄ¾ØĞÎÇøÓòĞÅÏ¢£¬°üº¬ÄÚ±ß¾à£¬²»°üº¬Íâ±ß¾à
+	/** è®¾ç½®æ§ä»¶ä½ç½®ï¼ˆå­ç±»å¯æ”¹å˜è¡Œä¸ºï¼‰
+	 * @param [in] rc è¦è®¾ç½®çš„çŸ©å½¢åŒºåŸŸä¿¡æ¯ï¼ŒåŒ…å«å†…è¾¹è·ï¼Œä¸åŒ…å«å¤–è¾¹è·
 	 */
 	virtual void SetPos(UiRect rc) override;
 
-	/** ¼ÆËã¿Ø¼ş´óĞ¡(¿íºÍ¸ß)
-		Èç¹ûÉèÖÃÁËÍ¼Æ¬²¢ÉèÖÃ width »ò height ÈÎÒâÒ»ÏîÎª auto£¬½«¸ù¾İÍ¼Æ¬´óĞ¡ºÍÎÄ±¾´óĞ¡À´¼ÆËã×îÖÕ´óĞ¡
-	 *  @param [in] szAvailable ¿ÉÓÃ´óĞ¡£¬²»°üº¬Íâ±ß¾à
-	 *  @return ¿Ø¼şµÄ¹ÀËã´óĞ¡£¬°üº¬ÄÚ±ß¾à(Box)£¬²»°üº¬Íâ±ß¾à
+	/** è®¡ç®—æ§ä»¶å¤§å°(å®½å’Œé«˜)
+		å¦‚æœè®¾ç½®äº†å›¾ç‰‡å¹¶è®¾ç½® width æˆ– height ä»»æ„ä¸€é¡¹ä¸º autoï¼Œå°†æ ¹æ®å›¾ç‰‡å¤§å°å’Œæ–‡æœ¬å¤§å°æ¥è®¡ç®—æœ€ç»ˆå¤§å°
+	 *  @param [in] szAvailable å¯ç”¨å¤§å°ï¼Œä¸åŒ…å«å¤–è¾¹è·
+	 *  @return æ§ä»¶çš„ä¼°ç®—å¤§å°ï¼ŒåŒ…å«å†…è¾¹è·(Box)ï¼Œä¸åŒ…å«å¤–è¾¹è·
 	 */
 	virtual UiEstSize EstimateSize(UiSize szAvailable) override;
 
-	/** ¼ÆËãÎÄ±¾ÇøÓò´óĞ¡£¨¿íºÍ¸ß£©
-	 *  @param [in] szAvailable ¿ÉÓÃ´óĞ¡£¬²»°üº¬ÄÚ±ß¾à£¬²»°üº¬Íâ±ß¾à
-	 *  @return ¿Ø¼şµÄÎÄ±¾¹ÀËã´óĞ¡£¬°üº¬ÄÚ±ß¾à(Box)£¬²»°üº¬Íâ±ß¾à
+	/** è®¡ç®—æ–‡æœ¬åŒºåŸŸå¤§å°ï¼ˆå®½å’Œé«˜ï¼‰
+	 *  @param [in] szAvailable å¯ç”¨å¤§å°ï¼Œä¸åŒ…å«å†…è¾¹è·ï¼Œä¸åŒ…å«å¤–è¾¹è·
+	 *  @return æ§ä»¶çš„æ–‡æœ¬ä¼°ç®—å¤§å°ï¼ŒåŒ…å«å†…è¾¹è·(Box)ï¼Œä¸åŒ…å«å¤–è¾¹è·
 	 */
 	virtual UiSize EstimateText(UiSize szAvailable);
 
-	/** ´´½¨¹â±ê
-	 * @param[in] xWidth ¹â±ê¿í¶È
-	 * @param[in] yHeight ¹â±ê¸ß¶È
-	 * @return ³É¹¦·µ»Ø true£¬Ê§°Ü·µ»Ø false
+	/** åˆ›å»ºå…‰æ ‡
+	 * @param[in] xWidth å…‰æ ‡å®½åº¦
+	 * @param[in] yHeight å…‰æ ‡é«˜åº¦
+	 * @return æˆåŠŸè¿”å› trueï¼Œå¤±è´¥è¿”å› false
 	 */
 	BOOL CreateCaret(INT xWidth, INT yHeight);
 
-	/** ÉèÖÃÊÇ·ñÏÔÊ¾¹â±ê
-	 * @param[in] fShow ÉèÖÃ true ÎªÏÔÊ¾£¬false Îª²»ÏÔÊ¾
-	 * @return ³É¹¦·µ»Ø true£¬Ê§°Ü·µ»Ø false
+	/** è®¾ç½®æ˜¯å¦æ˜¾ç¤ºå…‰æ ‡
+	 * @param[in] fShow è®¾ç½® true ä¸ºæ˜¾ç¤ºï¼Œfalse ä¸ºä¸æ˜¾ç¤º
+	 * @return æˆåŠŸè¿”å› trueï¼Œå¤±è´¥è¿”å› false
 	 */
 	BOOL ShowCaret(BOOL fShow);
 
-	/** ÉèÖÃ¹â±êÑÕÉ«
-	 * @param[in] dwColor ÒªÉèÖÃµÄÑÕÉ«Öµ£¬¸ÃÖµ±ØĞëÔÚ global.xml ÖĞ´æÔÚ
-	 * @return ÎŞ
+	/** è®¾ç½®å…‰æ ‡é¢œè‰²
+	 * @param[in] dwColor è¦è®¾ç½®çš„é¢œè‰²å€¼ï¼Œè¯¥å€¼å¿…é¡»åœ¨ global.xml ä¸­å­˜åœ¨
+	 * @return æ— 
 	 */
 	void SetCaretColor(const std::wstring& dwColor);
 
-	/** »ñÈ¡¹â±êÑÕÉ«
-	 * @return ·µ»Ø¹â±êÑÕÉ«
+	/** è·å–å…‰æ ‡é¢œè‰²
+	 * @return è¿”å›å…‰æ ‡é¢œè‰²
 	 */
 	std::wstring GetCaretColor();
 
-	/** »ñÈ¡¹â±ê¾ØĞÎÎ»ÖÃ
-	 * @return ·µ»Ø¹â±ê¾ØĞÎÎ»ÖÃ
+	/** è·å–å…‰æ ‡çŸ©å½¢ä½ç½®
+	 * @return è¿”å›å…‰æ ‡çŸ©å½¢ä½ç½®
 	 */
 	RECT GetCaretRect();
 
-	/** ÉèÖÃ¹â±êÎ»ÖÃ
-	 * @param[in] x X Öá×ø±ê
-	 * @param[in] y Y Öá×ø±ê
-	 * @return ³É¹¦·µ»Ø true£¬Ê§°Ü·µ»Ø false
+	/** è®¾ç½®å…‰æ ‡ä½ç½®
+	 * @param[in] x X è½´åæ ‡
+	 * @param[in] y Y è½´åæ ‡
+	 * @return æˆåŠŸè¿”å› trueï¼Œå¤±è´¥è¿”å› false
 	 */
 	BOOL SetCaretPos(INT x, INT y);
 
-	/** ÇĞ»»¹â±êÊÇ·ñÏÔÊ¾
+	/** åˆ‡æ¢å…‰æ ‡æ˜¯å¦æ˜¾ç¤º
 	 */
 	void ChangeCaretVisiable();
 
-	/** »æÖÆ¹â±ê
-	 * @param[in] pRender »æÖÆÒıÇæ
-	 * @param[in] rcPaint »æÖÆÎ»ÖÃ
+	/** ç»˜åˆ¶å…‰æ ‡
+	 * @param[in] pRender ç»˜åˆ¶å¼•æ“
+	 * @param[in] rcPaint ç»˜åˆ¶ä½ç½®
 	 */
 	void PaintCaret(IRender* pRender, const UiRect& rcPaint);
 
-	/** ÉèÖÃÊÇ·ñÏÔÊ¾ÌáÊ¾ÎÄ×Ö
-	 * @param[in] bPrompt ÉèÖÃÎª true ÎªÏÔÊ¾£¬false Îª²»ÏÔÊ¾
+	/** è®¾ç½®æ˜¯å¦æ˜¾ç¤ºæç¤ºæ–‡å­—
+	 * @param[in] bPrompt è®¾ç½®ä¸º true ä¸ºæ˜¾ç¤ºï¼Œfalse ä¸ºä¸æ˜¾ç¤º
 	 */
 	void SetPromptMode(bool bPrompt);
 
-	/** »ñÈ¡ÌáÊ¾ÎÄ×Ö
+	/** è·å–æç¤ºæ–‡å­—
 	 */
 	std::wstring GetPromptText() const;
 
-	/** »ñÈ¡ÌáÊ¾ÎÄ×Ö
-	 * @return ·µ»Ø UTF8 ¸ñÊ½µÄÌáÊ¾ÎÄ×Ö
+	/** è·å–æç¤ºæ–‡å­—
+	 * @return è¿”å› UTF8 æ ¼å¼çš„æç¤ºæ–‡å­—
 	 */
 	std::string GetUTF8PromptText() const;
 
-	/** ÉèÖÃÌáÊ¾ÎÄ×Ö
-	 * @param[in] strText ÒªÉèÖÃµÄÌáÊ¾ÎÄ×Ö
+	/** è®¾ç½®æç¤ºæ–‡å­—
+	 * @param[in] strText è¦è®¾ç½®çš„æç¤ºæ–‡å­—
 	 */
 	void SetPromptText(const std::wstring& strText);
 
-	/** ÉèÖÃÌáÊ¾ÎÄ×Ö
-	 * @param[in] strText ÒªÉèÖÃµÄ UTF8 ¸ñÊ½ÌáÊ¾ÎÄ×Ö
+	/** è®¾ç½®æç¤ºæ–‡å­—
+	 * @param[in] strText è¦è®¾ç½®çš„ UTF8 æ ¼å¼æç¤ºæ–‡å­—
 	 */
 	void SetUTF8PromptText(const std::string& strText);
 
-	/** ÉèÖÃÌáÊ¾ÎÄ×Ö ID
-	 * @param[in] strText ÒªÉèÖÃµÄÌáÊ¾ÎÄ×Ö ID£¬¸Ã ID ±ØĞëÔÚ¼ÓÔØµÄÓïÑÔÎÄ¼şÖĞ´æÔÚ
+	/** è®¾ç½®æç¤ºæ–‡å­— ID
+	 * @param[in] strText è¦è®¾ç½®çš„æç¤ºæ–‡å­— IDï¼Œè¯¥ ID å¿…é¡»åœ¨åŠ è½½çš„è¯­è¨€æ–‡ä»¶ä¸­å­˜åœ¨
 	 */
 	void SetPromptTextId(const std::wstring& strTextId);
 
-	/** ÉèÖÃÌáÊ¾ÎÄ×Ö ID
-	 * @param[in] strText ÒªÉèÖÃµÄ UTF8 ¸ñÊ½ÌáÊ¾ÎÄ×Ö ID£¬¸Ã ID ±ØĞëÔÚ¼ÓÔØµÄÓïÑÔÎÄ¼şÖĞ´æÔÚ
+	/** è®¾ç½®æç¤ºæ–‡å­— ID
+	 * @param[in] strText è¦è®¾ç½®çš„ UTF8 æ ¼å¼æç¤ºæ–‡å­— IDï¼Œè¯¥ ID å¿…é¡»åœ¨åŠ è½½çš„è¯­è¨€æ–‡ä»¶ä¸­å­˜åœ¨
 	 */
 	void SetUTF8PromptTextId(const std::string& strTextId);
 
-	/** »æÖÆÌáÊ¾ÎÄ×Ö
-	 * @param[in] pRender »æÖÆÒıÇæ
+	/** ç»˜åˆ¶æç¤ºæ–‡å­—
+	 * @param[in] pRender ç»˜åˆ¶å¼•æ“
 	 */
 	void PaintPromptText(IRender* pRender);
 
-	/** »ñÈ¡½¹µã×´Ì¬ÏÂµÄÍ¼Æ¬
-	 * @return ·µ»Ø½¹µã×´Ì¬ÏÂµÄÍ¼Æ¬
+	/** è·å–ç„¦ç‚¹çŠ¶æ€ä¸‹çš„å›¾ç‰‡
+	 * @return è¿”å›ç„¦ç‚¹çŠ¶æ€ä¸‹çš„å›¾ç‰‡
 	 */
 	std::wstring GetFocusedImage();
 
-	/** ÉèÖÃ½¹µã×´Ì¬ÏÂµÄÍ¼Æ¬
-	 * @param[in] strImage ÒªÉèÖÃµÄÍ¼Æ¬Î»ÖÃ
+	/** è®¾ç½®ç„¦ç‚¹çŠ¶æ€ä¸‹çš„å›¾ç‰‡
+	 * @param[in] strImage è¦è®¾ç½®çš„å›¾ç‰‡ä½ç½®
 	 */
 	void SetFocusedImage(const std::wstring& strImage);
 
-	/** »æÖÆÖ¸¶¨×´Ì¬ÏÂµÄÍ¼Æ¬
-	 * @param[in] pRender »æÖÆÒıÇæ
+	/** ç»˜åˆ¶æŒ‡å®šçŠ¶æ€ä¸‹çš„å›¾ç‰‡
+	 * @param[in] pRender ç»˜åˆ¶å¼•æ“
 	 */
 	virtual void PaintStateImages(IRender* pRender) override;
 
-	/** ÉèÖÃÊ§È¥½¹µãºóÊÇ·ñÈ¡ÏûÑ¡ÔñÏî
-	 * @param[in] bOnSel ÉèÖÃÎª true ±íÊ¾È¡ÏûÑ¡ÔñÏî£¬false Îª²»È¡Ïû
+	/** è®¾ç½®å¤±å»ç„¦ç‚¹åæ˜¯å¦å–æ¶ˆé€‰æ‹©é¡¹
+	 * @param[in] bOnSel è®¾ç½®ä¸º true è¡¨ç¤ºå–æ¶ˆé€‰æ‹©é¡¹ï¼Œfalse ä¸ºä¸å–æ¶ˆ
 	 */
 	void SetNoSelOnKillFocus(bool bOnSel);
 
-	/** ÉèÖÃ»ñÈ¡½¹µãºóÊÇ·ñÑ¡ÔñËùÓĞÄÚÈİ
-	 * @param[in] bSelAll ÉèÖÃ true ±íÊ¾ÔÚ»ñÈ¡½¹µãÊ±Ñ¡ÔñËùÓĞÄÚÈİ£¬false Îª²»Ñ¡Ôñ
+	/** è®¾ç½®è·å–ç„¦ç‚¹åæ˜¯å¦é€‰æ‹©æ‰€æœ‰å†…å®¹
+	 * @param[in] bSelAll è®¾ç½® true è¡¨ç¤ºåœ¨è·å–ç„¦ç‚¹æ—¶é€‰æ‹©æ‰€æœ‰å†…å®¹ï¼Œfalse ä¸ºä¸é€‰æ‹©
 	 */
 	void SetSelAllOnFocus(bool bSelAll);
 
-	/** ÉèÖÃÖ»¶ÁÄ£Ê½²»ÏÔÊ¾¹â±ê
+	/** è®¾ç½®åªè¯»æ¨¡å¼ä¸æ˜¾ç¤ºå…‰æ ‡
 	 */
 	void SetNoCaretReadonly();
 
-	/** ÉèÖÃÊÇ·ñ±£´æËùÑ¡ÄÚÈİµÄ±ß½ç
+	/** è®¾ç½®æ˜¯å¦ä¿å­˜æ‰€é€‰å†…å®¹çš„è¾¹ç•Œ
 	 */
 	void SetSaveSelection(bool fSaveSelection);
 
-	/** ÉèÖÃÊÇ·ñÒş²ØÑ¡ÔñÏî
+	/** è®¾ç½®æ˜¯å¦éšè—é€‰æ‹©é¡¹
 	 */
 	void SetHideSelection(bool fHideSelection);
 
-	/** Ìí¼Ó´øÑÕÉ«µÄÎÄ±¾
-	 * @param[in] str ÎÄ±¾ÄÚÈİ
-	 * @param[in] color ÑÕÉ«Öµ£¬¸ÃÖµ±ØĞëÔÚ global.xml ÖĞ´æÔÚ
+	/** æ·»åŠ å¸¦é¢œè‰²çš„æ–‡æœ¬
+	 * @param[in] str æ–‡æœ¬å†…å®¹
+	 * @param[in] color é¢œè‰²å€¼ï¼Œè¯¥å€¼å¿…é¡»åœ¨ global.xml ä¸­å­˜åœ¨
 	 */
 	void AddColorText(const std::wstring &str, const std::wstring &color);
 
-	/** Ìí¼ÓÒ»¸ö´øÓĞÎÄ×ÖÑÕÉ«µÄ³¬Á´½Ó
-	 * @param[in] str ÎÄ×ÖÄÚÈİ
-	 * @param[in] color ÎÄ×ÖÑÕÉ«
-	 * @param[in] linkInfo Á´½ÓµØÖ·
+	/** æ·»åŠ ä¸€ä¸ªå¸¦æœ‰æ–‡å­—é¢œè‰²çš„è¶…é“¾æ¥
+	 * @param[in] str æ–‡å­—å†…å®¹
+	 * @param[in] color æ–‡å­—é¢œè‰²
+	 * @param[in] linkInfo é“¾æ¥åœ°å€
 	 */
 	void AddLinkColorText(const std::wstring &str, const std::wstring &color, const std::wstring &linkInfo = L"");
 
-	/** Ìí¼ÓÒ»¸öÖ¸¶¨×ÖÌå´øÓĞÎÄ×ÖÑÕÉ«µÄ³¬Á´½Ó
-	 * @param[in] str ÎÄ×ÖÄÚÈİ
-	 * @param[in] color ÎÄ×ÖÑÕÉ«
-	 * @param[in] linkInfo Á´½ÓµØÖ·
-	 * @param[in] font ×ÖÌåË÷Òı
+	/** æ·»åŠ ä¸€ä¸ªæŒ‡å®šå­—ä½“å¸¦æœ‰æ–‡å­—é¢œè‰²çš„è¶…é“¾æ¥
+	 * @param[in] str æ–‡å­—å†…å®¹
+	 * @param[in] color æ–‡å­—é¢œè‰²
+	 * @param[in] linkInfo é“¾æ¥åœ°å€
+	 * @param[in] font å­—ä½“ç´¢å¼•
 	 */
 	void AddLinkColorTextEx(const std::wstring& str, const std::wstring &color, const std::wstring &linkInfo = L"", const std::wstring& strFontId = L"");
 
-	/** Ìí¼ÓÒ»¸ö·¶Î§ÓÃÓÚ hittest ÅĞ¶ÏÊÇ·ñÊÇÁ´½ÓĞÅÏ¢
-	 * @param[in] cr ·¶Î§µÄÆğÊ¼Î»ÖÃºÍ½áÊøÎ»ÖÃ
-	 * @param[in] linkInfo ×Ô¶¨Òå link ÊôĞÔ
+	/** æ·»åŠ ä¸€ä¸ªèŒƒå›´ç”¨äº hittest åˆ¤æ–­æ˜¯å¦æ˜¯é“¾æ¥ä¿¡æ¯
+	 * @param[in] cr èŒƒå›´çš„èµ·å§‹ä½ç½®å’Œç»“æŸä½ç½®
+	 * @param[in] linkInfo è‡ªå®šä¹‰ link å±æ€§
 	 */
 	void AddLinkInfo(const CHARRANGE cr, const std::wstring &linkInfo);
 
-	/** Ìí¼ÓÒ»¸ö·¶Î§ÓÃÓÚ hittest ÅĞ¶ÏÊÇ·ñÊÇÁ´½ÓĞÅÏ¢,²¢½«¸Ã·¶Î§ÄÚÎÄ×ÖÑùÊ½¸ÄÎªÏµÍ³Á´½ÓÑùÊ½
-	 * @param[in] str ÎÄ×ÖÄÚÈİ
-	 * @param[in] cr ·¶Î§µÄÆğÊ¼Î»ÖÃºÍ½áÊøÎ»ÖÃ
-	 * @param[in] linkInfo ×Ô¶¨Òå link ÊôĞÔ
+	/** æ·»åŠ ä¸€ä¸ªèŒƒå›´ç”¨äº hittest åˆ¤æ–­æ˜¯å¦æ˜¯é“¾æ¥ä¿¡æ¯,å¹¶å°†è¯¥èŒƒå›´å†…æ–‡å­—æ ·å¼æ”¹ä¸ºç³»ç»Ÿé“¾æ¥æ ·å¼
+	 * @param[in] str æ–‡å­—å†…å®¹
+	 * @param[in] cr èŒƒå›´çš„èµ·å§‹ä½ç½®å’Œç»“æŸä½ç½®
+	 * @param[in] linkInfo è‡ªå®šä¹‰ link å±æ€§
 	 */
 	void AddLinkInfoEx(const CHARRANGE cr, const std::wstring& linkInfo);
 
-	/** ¸ù¾İpointÀ´hittest×Ô¶¨ÒålinkµÄÊı¾İ
-	 * @param[in] pt Î»ÖÃĞÅÏ¢
-	 * @param[in] info ±íÊ¾ link µÄ×Ô¶¨ÒåÊôĞÔ
-	 * @return ·µ»Ø true ±íÊ¾ÔÚ link ÉÏ
+	/** æ ¹æ®pointæ¥hittestè‡ªå®šä¹‰linkçš„æ•°æ®
+	 * @param[in] pt ä½ç½®ä¿¡æ¯
+	 * @param[in] info è¡¨ç¤º link çš„è‡ªå®šä¹‰å±æ€§
+	 * @return è¿”å› true è¡¨ç¤ºåœ¨ link ä¸Š
 	 */
 	bool HittestCustomLink(UiPoint pt, std::wstring& info);
 
-	/** ÇåÀíÍ¼Æ¬»º´æ
+	/** æ¸…ç†å›¾ç‰‡ç¼“å­˜
 	 */
 	virtual void ClearImageCache() override;
 
-	/** ÉèÖÃÎÄ×ÖÄÚ±ß¾àĞÅÏ¢
-	 * @param[in] padding ÄÚ±ß¾àĞÅÏ¢
-	 * @param[in] bNeedDpiScale ÊÇ·ñÖ§³ÖDPIËõ·Å
+	/** è®¾ç½®æ–‡å­—å†…è¾¹è·ä¿¡æ¯
+	 * @param[in] padding å†…è¾¹è·ä¿¡æ¯
+	 * @param[in] bNeedDpiScale æ˜¯å¦æ”¯æŒDPIç¼©æ”¾
 	 */
 	void SetTextPadding(UiPadding padding, bool bNeedDpiScale);
 
-	/** »ñÈ¡ÎÄ×ÖÄÚ±ß¾à
+	/** è·å–æ–‡å­—å†…è¾¹è·
 	 */
 	UiPadding GetTextPadding() const;
 
-	/** ÉèÖÃÊÇ·ñÊ¹ÓÃControlµÄ¹â±ê
+	/** è®¾ç½®æ˜¯å¦ä½¿ç”¨Controlçš„å…‰æ ‡
 	*/
 	void SetUseControlCursor(bool bUseControlCursor);
 
-	/** ÉèÖÃÊÇ·ñÔÊĞíÍ¨¹ıCtrl + ¹öÂÖÀ´µ÷ÕûËõ·Å±ÈÀı
+	/** è®¾ç½®æ˜¯å¦å…è®¸é€šè¿‡Ctrl + æ»šè½®æ¥è°ƒæ•´ç¼©æ”¾æ¯”ä¾‹
 	*/
 	void SetEnableWheelZoom(bool bEnable);
 
-	/** »ñÈ¡ÊÇ·ñÔÊĞíÍ¨¹ıCtrl + ¹öÂÖÀ´µ÷ÕûËõ·Å±ÈÀı
+	/** è·å–æ˜¯å¦å…è®¸é€šè¿‡Ctrl + æ»šè½®æ¥è°ƒæ•´ç¼©æ”¾æ¯”ä¾‹
 	*/
 	bool IsEnableWheelZoom(void) const;
 
-	/** ÊÇ·ñÔÊĞíÊ¹ÓÃÄ¬ÈÏµÄÓÒ¼ü²Ëµ¥
+	/** æ˜¯å¦å…è®¸ä½¿ç”¨é»˜è®¤çš„å³é”®èœå•
 	*/
 	void SetEnableDefaultContextMenu(bool bEnable);
 
-	/** ÊÇ·ñÔÊĞíÊ¹ÓÃÄ¬ÈÏµÄÓÒ¼ü²Ëµ¥
+	/** æ˜¯å¦å…è®¸ä½¿ç”¨é»˜è®¤çš„å³é”®èœå•
 	*/
 	bool IsEnableDefaultContextMenu() const;
 
-	/** ÉèÖÃÊÇ·ñÔÊĞíÍÏ·Å¹¦ÄÜ
+	/** è®¾ç½®æ˜¯å¦å…è®¸æ‹–æ”¾åŠŸèƒ½
 	*/
 	void SetEnableDragDrop(bool bEnable);
 
-	/** ÅĞ¶ÏÊÇ·ñÒÑ¾­ÔÊĞíÍÏ·Å¹¦ÄÜ
+	/** åˆ¤æ–­æ˜¯å¦å·²ç»å…è®¸æ‹–æ”¾åŠŸèƒ½
 	*/
 	bool IsEnableDragDrop() const;
 
-	/** ÉèÖÃÊÇ·ñÖ§³ÖSpin¿Ø¼ş
-	* @param [in] bEnable true±íÊ¾Ö§³ÖSpin¿Ø¼ş£¬false±íÊ¾²»Ö§³ÖSpin¿Ø¼ş
-	* @param [in] spinClass Spin¿Ø¼şµÄClassÊôĞÔ£¬×Ö·û´®ĞèÒª°üº¬3¸öÖµ£¬¾ßÌåÉèÖÃ²Î¼û£ºglobal.xmlÀïÃæµÄrich_edit_spinÉèÖÃ
-	*             È¡Öµ¾ÙÀı£ºrich_edit_spin_box,rich_edit_spin_btn_up,rich_edit_spin_btn_down
-	* @param [in] nMin ±íÊ¾ÉèÖÃÊı×ÖµÄ×îĞ¡Öµ
-	* @param [in] nMax ±íÊ¾ÉèÖÃÊı×ÖµÄ×î´óÖµ£¬Èç¹û nMinºÍnMaxÍ¬Ê±Îª0, ±íÊ¾²»ÉèÖÃÊı×ÖµÄ×îĞ¡ÖµºÍ×î´óÖµ
+	/** è®¾ç½®æ˜¯å¦æ”¯æŒSpinæ§ä»¶
+	* @param [in] bEnable trueè¡¨ç¤ºæ”¯æŒSpinæ§ä»¶ï¼Œfalseè¡¨ç¤ºä¸æ”¯æŒSpinæ§ä»¶
+	* @param [in] spinClass Spinæ§ä»¶çš„Classå±æ€§ï¼Œå­—ç¬¦ä¸²éœ€è¦åŒ…å«3ä¸ªå€¼ï¼Œå…·ä½“è®¾ç½®å‚è§ï¼šglobal.xmlé‡Œé¢çš„rich_edit_spinè®¾ç½®
+	*             å–å€¼ä¸¾ä¾‹ï¼šrich_edit_spin_box,rich_edit_spin_btn_up,rich_edit_spin_btn_down
+	* @param [in] nMin è¡¨ç¤ºè®¾ç½®æ•°å­—çš„æœ€å°å€¼
+	* @param [in] nMax è¡¨ç¤ºè®¾ç½®æ•°å­—çš„æœ€å¤§å€¼ï¼Œå¦‚æœ nMinå’ŒnMaxåŒæ—¶ä¸º0, è¡¨ç¤ºä¸è®¾ç½®æ•°å­—çš„æœ€å°å€¼å’Œæœ€å¤§å€¼
 	*/
 	bool SetEnableSpin(bool bEnable, const std::wstring& spinClass, int32_t nMin = 0, int32_t nMax = 0);
 
 public:
-	/** ¼àÌı»Ø³µ°´¼ü°´ÏÂÊÂ¼ş
-	 * @param[in] callback »Ø³µ±»°´ÏÂµÄ×Ô¶¨Òå»Øµ÷º¯Êı
+	/** ç›‘å¬å›è½¦æŒ‰é”®æŒ‰ä¸‹äº‹ä»¶
+	 * @param[in] callback å›è½¦è¢«æŒ‰ä¸‹çš„è‡ªå®šä¹‰å›è°ƒå‡½æ•°
 	 */
 	void AttachReturn(const EventCallback& callback) { AttachEvent(kEventReturn, callback); }
 
-	/** ¼àÌı TAB °´¼ü°´ÏÂÊÂ¼ş
-	 * @param[in] callback TAB ±»°´ÏÂµÄ×Ô¶¨Òå»Øµ÷º¯Êı
+	/** ç›‘å¬ TAB æŒ‰é”®æŒ‰ä¸‹äº‹ä»¶
+	 * @param[in] callback TAB è¢«æŒ‰ä¸‹çš„è‡ªå®šä¹‰å›è°ƒå‡½æ•°
 	 */
 	void AttachTab(const EventCallback& callback) { AttachEvent(kEventTab, callback); }
 
-	/* ¼àÌıËõ·Å±ÈÀı±ä»¯ÊÂ¼ş
-	 * @param[in] callback ÎÄ±¾±»ĞŞ¸ÄºóµÄ×Ô¶¨Òå»Øµ÷º¯Êı
+	/* ç›‘å¬ç¼©æ”¾æ¯”ä¾‹å˜åŒ–äº‹ä»¶
+	 * @param[in] callback æ–‡æœ¬è¢«ä¿®æ”¹åçš„è‡ªå®šä¹‰å›è°ƒå‡½æ•°
 	 */
 	void AttachZoom(const EventCallback& callback) { AttachEvent(kEventZoom, callback); }
 
-	/* ¼àÌıÎÄ±¾±»ĞŞ¸ÄÊÂ¼ş
-	 * @param[in] callback ÎÄ±¾±»ĞŞ¸ÄºóµÄ×Ô¶¨Òå»Øµ÷º¯Êı
+	/* ç›‘å¬æ–‡æœ¬è¢«ä¿®æ”¹äº‹ä»¶
+	 * @param[in] callback æ–‡æœ¬è¢«ä¿®æ”¹åçš„è‡ªå®šä¹‰å›è°ƒå‡½æ•°
 	 */
 	void AttachTextChange(const EventCallback& callback) { AttachEvent(kEventTextChange, callback); }
 
-	/* ¼àÌıÎÄ±¾Ñ¡Ôñ±ä»¯ÊÂ¼ş
-	 * @param[in] callback ÎÄ±¾Ñ¡Ôñ±ä»¯ºóµÄ×Ô¶¨Òå»Øµ÷º¯Êı
+	/* ç›‘å¬æ–‡æœ¬é€‰æ‹©å˜åŒ–äº‹ä»¶
+	 * @param[in] callback æ–‡æœ¬é€‰æ‹©å˜åŒ–åçš„è‡ªå®šä¹‰å›è°ƒå‡½æ•°
 	 */
 	void AttachSelChange(const EventCallback& callback);
 
-	/** ¼àÌı³¬¼¶Á´½Ó±»µã»÷ÊÂ¼ş
-	 * @param[in] callback ³¬¼¶Á´½Ó±»µã»÷ºóµÄ»Øµ÷º¯Êı
+	/** ç›‘å¬è¶…çº§é“¾æ¥è¢«ç‚¹å‡»äº‹ä»¶
+	 * @param[in] callback è¶…çº§é“¾æ¥è¢«ç‚¹å‡»åçš„å›è°ƒå‡½æ•°
 	 */
 	void AttachLinkClick(const EventCallback& callback)	{ AttachEvent(kEventLinkClick, callback); }
 
-	/** ¼àÌı´óĞ¡±ä»¯ÊÂ¼ş
-	 * @param[in] callback ´óĞ¡±»¸Ä±äºóµÄ×Ô¶¨Òå»Øµ÷º¯Êı
+	/** ç›‘å¬å¤§å°å˜åŒ–äº‹ä»¶
+	 * @param[in] callback å¤§å°è¢«æ”¹å˜åçš„è‡ªå®šä¹‰å›è°ƒå‡½æ•°
 	 */
 	void AttachGetNaturalSize(const FunGetNaturalSize& callback) { m_cbGetNaturalSize = callback; };
 
@@ -902,22 +902,22 @@ public:
 	void SetTimer(UINT idTimer, UINT uTimeout);
 	void KillTimer(UINT idTimer);
 
-	/** ÆÁÄ»×ø±ê×ª»»Îª¿Í»§Çø×ø±ê
+	/** å±å¹•åæ ‡è½¬æ¢ä¸ºå®¢æˆ·åŒºåæ ‡
 	*/
 	virtual bool ScreenToClient(UiPoint& pt) override;
 
-	/** ¿Í»§Çø×ø±ê×ª»»ÎªÆÁÄ»×ø±ê
+	/** å®¢æˆ·åŒºåæ ‡è½¬æ¢ä¸ºå±å¹•åæ ‡
 	*/
 	virtual bool ClientToScreen(UiPoint& pt) override;
 
 protected:
 
-	//Ò»Ğ©»ùÀàµÄĞéº¯Êı
+	//ä¸€äº›åŸºç±»çš„è™šå‡½æ•°
 	virtual bool CanPlaceCaptionBar() const override;
 	virtual void OnInit() override;
 	virtual uint32_t GetControlFlags() const override;
 
-	//ÏûÏ¢´¦Àíº¯Êı
+	//æ¶ˆæ¯å¤„ç†å‡½æ•°
 	virtual bool OnSetCursor(const EventArgs& msg) override;
 	virtual bool OnSetFocus(const EventArgs& msg) override;
 	virtual bool OnKillFocus(const EventArgs& msg) override;
@@ -931,112 +931,112 @@ protected:
 	virtual void Paint(IRender* pRender, const UiRect& rcPaint) override;
 	virtual void PaintChild(IRender* pRender, const UiRect& rcPaint) override;
 
-	/** µ÷ÕûÄÚ²¿ËùÓĞ×Ó¿Ø¼şµÄÎ»ÖÃĞÅÏ¢
-	 * @param[in] items ¿Ø¼şÁĞ±í
+	/** è°ƒæ•´å†…éƒ¨æ‰€æœ‰å­æ§ä»¶çš„ä½ç½®ä¿¡æ¯
+	 * @param[in] items æ§ä»¶åˆ—è¡¨
 	 */
 	virtual void ArrangeChild(const std::vector<Control*>& items) const;
 
 private:
-	/** ÏÔÊ¾RichEditÉÏµÄ²Ëµ¥
-	* @param [in] point ¿Í»§ÇøµÄ×ø±ê
+	/** æ˜¾ç¤ºRichEditä¸Šçš„èœå•
+	* @param [in] point å®¢æˆ·åŒºçš„åæ ‡
 	*/
 	void ShowPopupMenu(const ui::UiPoint& point);
 
-	/** ×¢²áÍÏ·Å½Ó¿ÚÓë´°¿ÚµÄ¹ØÁª¹ØÏµ
+	/** æ³¨å†Œæ‹–æ”¾æ¥å£ä¸çª—å£çš„å…³è”å…³ç³»
 	*/
 	void RegisterDragDrop();
 
-	/** ×¢ÏúÍÏ·Å½Ó¿ÚÓë´°¿ÚµÄ¹ØÁª¹ØÏµ
+	/** æ³¨é”€æ‹–æ”¾æ¥å£ä¸çª—å£çš„å…³è”å…³ç³»
 	*/
 	void UnregisterDragDrop();
 
-	/** ÅĞ¶ÏÒ»¸ö×Ö·û£¬ÊÇ·ñÔÚÏŞÖÆ×Ö·ûÁĞ±íÖĞ
+	/** åˆ¤æ–­ä¸€ä¸ªå­—ç¬¦ï¼Œæ˜¯å¦åœ¨é™åˆ¶å­—ç¬¦åˆ—è¡¨ä¸­
 	*/
 	bool IsInLimitChars(wchar_t charValue) const;
 
-	/** ÅĞ¶ÏÊÇ·ñ¿ÉÒÔ½øĞĞÕ³Ìù²Ù×÷(ÅĞ¶ÏÊÇ·ñÓĞ×Ö·ûÏŞÖÆ¡¢Êı×ÖÏŞÖÆ)
-	* @return Èç¹û·µ»Øtrue, ±íÊ¾²»¿ÉÓÃ½øĞĞÕ³Ìù²Ù×÷
+	/** åˆ¤æ–­æ˜¯å¦å¯ä»¥è¿›è¡Œç²˜è´´æ“ä½œ(åˆ¤æ–­æ˜¯å¦æœ‰å­—ç¬¦é™åˆ¶ã€æ•°å­—é™åˆ¶)
+	* @return å¦‚æœè¿”å›true, è¡¨ç¤ºä¸å¯ç”¨è¿›è¡Œç²˜è´´æ“ä½œ
 	*/
 	bool IsPasteLimited() const;
 
 private:
-	/** ´¥·¢ÎÄ±¾±ä»¯ÊÂ¼ş
+	/** è§¦å‘æ–‡æœ¬å˜åŒ–äº‹ä»¶
 	*/
 	void OnTextChanged();
 
-	/** ÉèÖÃSpin¹¦ÄÜµÄClassÃû³Æ
+	/** è®¾ç½®SpinåŠŸèƒ½çš„Classåç§°
 	*/
 	bool SetSpinClass(const std::wstring& spinClass);
 
-	/** »ñÈ¡ÎÄ±¾ÄÚÈİ£¬²¢×ª»»ÎªÊı×Ö
+	/** è·å–æ–‡æœ¬å†…å®¹ï¼Œå¹¶è½¬æ¢ä¸ºæ•°å­—
 	*/
 	int64_t GetTextNumber() const;
 
-	/** ½«Êı×Ö×ª»»ÎªÎÄ±¾£¬ÉèÖÃÎÄ±¾ÄÚÈİ
+	/** å°†æ•°å­—è½¬æ¢ä¸ºæ–‡æœ¬ï¼Œè®¾ç½®æ–‡æœ¬å†…å®¹
 	*/
 	void SetTextNumber(int64_t nValue);
 
-	/** µ÷ÕûÎÄ±¾Êı×ÖÖµ
+	/** è°ƒæ•´æ–‡æœ¬æ•°å­—å€¼
 	*/
 	void AdjustTextNumber(int32_t nDelta);
 
-	/** ¿ªÊ¼Æô¶¯µ÷ÕûÎÄ±¾Êı×ÖÖµµÄ¶¨Ê±Æ÷
+	/** å¼€å§‹å¯åŠ¨è°ƒæ•´æ–‡æœ¬æ•°å­—å€¼çš„å®šæ—¶å™¨
 	*/
 	void StartAutoAdjustTextNumberTimer(int32_t nDelta);
 
-	/** ¿ªÊ¼×Ô¶¯µ÷ÕûÎÄ±¾Êı×ÖÖµ
+	/** å¼€å§‹è‡ªåŠ¨è°ƒæ•´æ–‡æœ¬æ•°å­—å€¼
 	*/
 	void StartAutoAdjustTextNumber(int32_t nDelta);
 
-	/** ½áÊø×Ô¶¯µ÷ÕûÎÄ±¾Êı×ÖÖµ
+	/** ç»“æŸè‡ªåŠ¨è°ƒæ•´æ–‡æœ¬æ•°å­—å€¼
 	*/
 	void StopAutoAdjustTextNumber();
 
 private:
-	/** ÉèÖÃÇå³ı°´Å¥¹¦ÄÜµÄClassÃû³Æ
+	/** è®¾ç½®æ¸…é™¤æŒ‰é’®åŠŸèƒ½çš„Classåç§°
 	*/
 	void SetClearBtnClass(const std::wstring& btnClass);
 
-	/** ÉèÖÃÏÔÊ¾ÃÜÂë°´Å¥¹¦ÄÜµÄClassÃû³Æ
+	/** è®¾ç½®æ˜¾ç¤ºå¯†ç æŒ‰é’®åŠŸèƒ½çš„Classåç§°
 	*/
 	void SetShowPasswordBtnClass(const std::wstring& btnClass);
 
 private:
-	//ÅĞ¶ÏÊÇ·ñÊÇ×Ö½Ú£º ¿É´òÓ¡×Ö·û£¨0x20-0x7e£©
+	//åˆ¤æ–­æ˜¯å¦æ˜¯å­—èŠ‚ï¼š å¯æ‰“å°å­—ç¬¦ï¼ˆ0x20-0x7eï¼‰
 	static bool IsAsciiChar(const wchar_t ch);
 
-	//»ñÈ¡×Ö·û´®µÄ×Ö½ÚÊı
+	//è·å–å­—ç¬¦ä¸²çš„å­—èŠ‚æ•°
 	static int GetAsciiCharNumber(const std::wstring& str);
 
-	//É¾³ı×Ö·û´®ÖĞ³¬¹ılimit×Ö½Ú¸öÊıÖ®ºóµÄ×Ö·û
+	//åˆ é™¤å­—ç¬¦ä¸²ä¸­è¶…è¿‡limitå­—èŠ‚ä¸ªæ•°ä¹‹åçš„å­—ç¬¦
 	static void LimitAsciiNumber(std::wstring& src, int limit);
 
-	//»ñÈ¡Õ³Ìù°å×Ö·û´®
+	//è·å–ç²˜è´´æ¿å­—ç¬¦ä¸²
 	static void GetClipboardText(std::wstring& out);
 
-	//ÉèÖÃÕ³Ìù°å×Ö·û´®
+	//è®¾ç½®ç²˜è´´æ¿å­—ç¬¦ä¸²
 	static void SetClipBoardText(const std::wstring& str);
 
 protected:
-	//RichEdit¿ØÖÆ¸¨Öú¹¤¾ßÀà
+	//RichEditæ§åˆ¶è¾…åŠ©å·¥å…·ç±»
 	RichEditCtrl m_richCtrl;
 
-	//RichEdit HostÀà
+	//RichEdit Hostç±»
 	RichEditHost* m_pRichHost;
 
-    bool m_bVScrollBarFixing; //¹ö¶¯ÌõĞŞÕı±êÖ¾
-    bool m_bWantTab;		  //ÊÇ·ñ½ÓÊÕTAB¼ü£¬Èç¹ûÎªtrueµÄÊ±ºò£¬TAB¼ü»áµ±×÷ÎÄ±¾ÊäÈë£¬·ñÔò¹ıÂËµôTAB¼ü
-    bool m_bNeedReturnMsg;    //ÊÇ·ñ½ÓÊÕ»Ø³µ¼ü£¬Èç¹ûÎªtrueµÄÊ±ºò£¬»Ø³µ¼ü»áµ±×÷ÎÄ±¾ÊäÈë£¬·ñÔò¹ıÂËµô»Ø³µ¼ü
-    bool m_bReturnMsgWantCtrl;//ÊÇ·ñ½ÓÊÕCtrl + »Ø³µ¼ü£¬Èç¹ûÎªtrueµÄÊ±ºò£¬»Ø³µ¼ü»áµ±×÷ÎÄ±¾ÊäÈë£¬·ñÔò¹ıÂËµô»Ø³µ¼ü
+    bool m_bVScrollBarFixing; //æ»šåŠ¨æ¡ä¿®æ­£æ ‡å¿—
+    bool m_bWantTab;		  //æ˜¯å¦æ¥æ”¶TABé”®ï¼Œå¦‚æœä¸ºtrueçš„æ—¶å€™ï¼ŒTABé”®ä¼šå½“ä½œæ–‡æœ¬è¾“å…¥ï¼Œå¦åˆ™è¿‡æ»¤æ‰TABé”®
+    bool m_bNeedReturnMsg;    //æ˜¯å¦æ¥æ”¶å›è½¦é”®ï¼Œå¦‚æœä¸ºtrueçš„æ—¶å€™ï¼Œå›è½¦é”®ä¼šå½“ä½œæ–‡æœ¬è¾“å…¥ï¼Œå¦åˆ™è¿‡æ»¤æ‰å›è½¦é”®
+    bool m_bReturnMsgWantCtrl;//æ˜¯å¦æ¥æ”¶Ctrl + å›è½¦é”®ï¼Œå¦‚æœä¸ºtrueçš„æ—¶å€™ï¼Œå›è½¦é”®ä¼šå½“ä½œæ–‡æœ¬è¾“å…¥ï¼Œå¦åˆ™è¿‡æ»¤æ‰å›è½¦é”®
 	 
-	bool m_bSelAllEver;			//Ö»ÔÚ»ñÈ¡½¹µãºóµÄµÚÒ»´ÎÊó±êµ¯ÆğÈ«Ñ¡
+	bool m_bSelAllEver;			//åªåœ¨è·å–ç„¦ç‚¹åçš„ç¬¬ä¸€æ¬¡é¼ æ ‡å¼¹èµ·å…¨é€‰
 
-	bool m_bNoSelOnKillFocus;	//Ê§È¥½¹µãµÄÊ±ºò£¬È¡ÏûÎÄ±¾Ñ¡Ôñ£¨Õë¶Ô m_bEnabled && IsReadOnly()£©
-	bool m_bSelAllOnFocus;		//»ñÈ¡½¹µãµÄÊ±ºò£¬È«Ñ¡ÎÄ±¾£¨Õë¶Ô m_bEnabled && !IsReadOnly()£©
+	bool m_bNoSelOnKillFocus;	//å¤±å»ç„¦ç‚¹çš„æ—¶å€™ï¼Œå–æ¶ˆæ–‡æœ¬é€‰æ‹©ï¼ˆé’ˆå¯¹ m_bEnabled && IsReadOnly()ï¼‰
+	bool m_bSelAllOnFocus;		//è·å–ç„¦ç‚¹çš„æ—¶å€™ï¼Œå…¨é€‰æ–‡æœ¬ï¼ˆé’ˆå¯¹ m_bEnabled && !IsReadOnly()ï¼‰
 
-	bool m_bIsComposition;   //ÊäÈë·¨ºÏ³É´°¿ÚÊÇ·ñ¿É¼û
+	bool m_bIsComposition;   //è¾“å…¥æ³•åˆæˆçª—å£æ˜¯å¦å¯è§
 	
-	/** ´óĞ¡±»¸Ä±äºóµÄ×Ô¶¨Òå»Øµ÷º¯Êı
+	/** å¤§å°è¢«æ”¹å˜åçš„è‡ªå®šä¹‰å›è°ƒå‡½æ•°
 	*/
 	FunGetNaturalSize m_cbGetNaturalSize;
 
@@ -1050,80 +1050,80 @@ protected:
 	std::vector<LinkInfo> m_linkInfo;
 
 private:
-	bool m_bNoCaretReadonly;	 //Ö»¶ÁÄ£Ê½ÏÂ£¬²»ÏÔÊ¾¹â±ê
-	bool m_bIsCaretVisiable;	 //¹â±êÊÇ·ñ¿É¼û
-	int32_t	 m_iCaretPosX;		 //¹â±êX×ø±ê
-	int32_t  m_iCaretPosY;		 //¹â±êY×ø±ê
-	int32_t  m_iCaretWidth;		 //¹â±ê¿í¶È
-	int32_t  m_iCaretHeight;	 //¹â±ê¸ß¶È
-	UiString m_sCaretColor;		 //¹â±êÑÕÉ«
+	bool m_bNoCaretReadonly;	 //åªè¯»æ¨¡å¼ä¸‹ï¼Œä¸æ˜¾ç¤ºå…‰æ ‡
+	bool m_bIsCaretVisiable;	 //å…‰æ ‡æ˜¯å¦å¯è§
+	int32_t	 m_iCaretPosX;		 //å…‰æ ‡Xåæ ‡
+	int32_t  m_iCaretPosY;		 //å…‰æ ‡Yåæ ‡
+	int32_t  m_iCaretWidth;		 //å…‰æ ‡å®½åº¦
+	int32_t  m_iCaretHeight;	 //å…‰æ ‡é«˜åº¦
+	UiString m_sCaretColor;		 //å…‰æ ‡é¢œè‰²
 
-	nbase::WeakCallbackFlag m_drawCaretFlag; //»æÖÆ¹â±êµÄ¶¨Ê±Æ÷ÉúÃüÖÜÆÚ
-
-private:
-	UiString m_sFontId;				 //×ÖÌåID
-	UiString m_sTextColor;			 //Õı³£ÎÄ±¾ÑÕÉ«
-	UiString m_sDisabledTextColor;	 //Disabled×´Ì¬µÄÎÄ±¾ÑÕÉ«
-
-	bool m_bAllowPrompt;			 //ÊÇ·ñÖ§³ÖÌáÊ¾ÎÄ×Ö
-	UiString m_sPromptColor;		 //ÌáÊ¾ÎÄ×ÖÑÕÉ«
-	UiString m_sPromptText;			 //ÌáÊ¾ÎÄ±¾ÄÚÈİ£¨Ö»ÓĞ±à¼­¿òÎª¿ÕµÄÊ±ºòÏÔÊ¾£©
-	UiString m_sPromptTextId;		 //ÌáÊ¾ÎÄ×ÖID
+	nbase::WeakCallbackFlag m_drawCaretFlag; //ç»˜åˆ¶å…‰æ ‡çš„å®šæ—¶å™¨ç”Ÿå‘½å‘¨æœŸ
 
 private:
-	/** »ñÈ¡½¹µãÊ±£¬ÏÔÊ¾µÄÍ¼Æ¬
+	UiString m_sFontId;				 //å­—ä½“ID
+	UiString m_sTextColor;			 //æ­£å¸¸æ–‡æœ¬é¢œè‰²
+	UiString m_sDisabledTextColor;	 //DisabledçŠ¶æ€çš„æ–‡æœ¬é¢œè‰²
+
+	bool m_bAllowPrompt;			 //æ˜¯å¦æ”¯æŒæç¤ºæ–‡å­—
+	UiString m_sPromptColor;		 //æç¤ºæ–‡å­—é¢œè‰²
+	UiString m_sPromptText;			 //æç¤ºæ–‡æœ¬å†…å®¹ï¼ˆåªæœ‰ç¼–è¾‘æ¡†ä¸ºç©ºçš„æ—¶å€™æ˜¾ç¤ºï¼‰
+	UiString m_sPromptTextId;		 //æç¤ºæ–‡å­—ID
+
+private:
+	/** è·å–ç„¦ç‚¹æ—¶ï¼Œæ˜¾ç¤ºçš„å›¾ç‰‡
 	*/
 	Image* m_pFocusedImage;
 
-	/** ÎÄ±¾ÄÚ±ß¾à
+	/** æ–‡æœ¬å†…è¾¹è·
 	*/
 	UiPadding16	m_rcTextPadding;
 
-	/** ÊÇ·ñÊ¹ÓÃControlÉèÖÃµÄ¹â±ê
+	/** æ˜¯å¦ä½¿ç”¨Controlè®¾ç½®çš„å…‰æ ‡
 	*/
 	bool m_bUseControlCursor;
 
-	/** ÊÇ·ñÔÊĞíÍ¨¹ıCtrl + ¹öÂÖÀ´µ÷ÕûËõ·Å±ÈÀı
+	/** æ˜¯å¦å…è®¸é€šè¿‡Ctrl + æ»šè½®æ¥è°ƒæ•´ç¼©æ”¾æ¯”ä¾‹
 	*/
 	bool m_bEnableWheelZoom;
 
-	/** ÊÇ·ñÔÊĞíÊ¹ÓÃÄ¬ÈÏµÄÓÒ¼ü²Ëµ¥
+	/** æ˜¯å¦å…è®¸ä½¿ç”¨é»˜è®¤çš„å³é”®èœå•
 	*/
 	bool m_bEnableDefaultContextMenu;
 
-	/** ÍÏ·Å¹¦ÄÜµÄÊµÏÖ½Ó¿Ú, Èç¹û²»Îª¿Õ±íÊ¾¹¦ÄÜÒÑ¾­¿ªÆô
+	/** æ‹–æ”¾åŠŸèƒ½çš„å®ç°æ¥å£, å¦‚æœä¸ä¸ºç©ºè¡¨ç¤ºåŠŸèƒ½å·²ç»å¼€å¯
 	*/
 	ControlDropTarget* m_pControlDropTarget;
 
-	/** ÔÊĞíÊäÈëµÄ×Ö·ûÁĞ±í
+	/** å…è®¸è¾“å…¥çš„å­—ç¬¦åˆ—è¡¨
 	*/
 	UiString m_limitChars;
 
-	/** ÊÇ·ñ½ûÖ¹´¥·¢ÎÄ±¾±ä»¯ÊÂ¼ş
+	/** æ˜¯å¦ç¦æ­¢è§¦å‘æ–‡æœ¬å˜åŒ–äº‹ä»¶
 	*/
 	bool m_bDisableTextChangeEvent;
 
-	/** ÉèÖÃÔÊĞíµÄ×î´óÊı×Ö(½öµ±IsNumberOnly()ÎªtrueµÄÊ±ºòÓĞĞ§)
+	/** è®¾ç½®å…è®¸çš„æœ€å¤§æ•°å­—(ä»…å½“IsNumberOnly()ä¸ºtrueçš„æ—¶å€™æœ‰æ•ˆ)
 	*/
 	int32_t m_maxNumber;
 
-	/** ÉèÖÃÔÊĞíµÄ×îĞ¡Êı×Ö(½öµ±IsNumberOnly()ÎªtrueµÄÊ±ºòÓĞĞ§)
+	/** è®¾ç½®å…è®¸çš„æœ€å°æ•°å­—(ä»…å½“IsNumberOnly()ä¸ºtrueçš„æ—¶å€™æœ‰æ•ˆ)
 	*/
 	int32_t m_minNumber;
 
-	/** Spin¹¦ÄÜµÄÈİÆ÷
+	/** SpinåŠŸèƒ½çš„å®¹å™¨
 	*/
 	VBox* m_pSpinBox;
 
-    /** ×Ô¶¯µ÷ÕûÎÄ±¾Êı×ÖÖµµÄ¶¨Ê±Æ÷ÉúÃüÖÜÆÚ¹ÜÀí
+    /** è‡ªåŠ¨è°ƒæ•´æ–‡æœ¬æ•°å­—å€¼çš„å®šæ—¶å™¨ç”Ÿå‘½å‘¨æœŸç®¡ç†
 	*/
 	nbase::WeakCallbackFlag m_flagAdjustTextNumber;
 
-	/** Çå³ı¹¦ÄÜµÄ°´Å¥(½öµ±·ÇÖ»¶ÁÄ£Ê½ÓĞĞ§)
+	/** æ¸…é™¤åŠŸèƒ½çš„æŒ‰é’®(ä»…å½“éåªè¯»æ¨¡å¼æœ‰æ•ˆ)
 	*/
 	Control* m_pClearButton;
 
-	/** ÏÔÊ¾/Òş²ØÃÜÂë°´Å¥(½öµ±ÃÜÂëÄ£Ê½ÓĞĞ§)
+	/** æ˜¾ç¤º/éšè—å¯†ç æŒ‰é’®(ä»…å½“å¯†ç æ¨¡å¼æœ‰æ•ˆ)
 	*/
 	Control* m_pShowPasswordButton;
 };

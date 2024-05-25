@@ -9,7 +9,7 @@ namespace ui
 {
 class DpiManager;
 
-/** ͼƬ����
+/** 图片属性
 */
 class UILIB_API ImageAttribute
 {
@@ -19,36 +19,36 @@ public:
 	ImageAttribute(const ImageAttribute&);
 	ImageAttribute& operator=(const ImageAttribute&);
 
-	/** �����ݳ�Ա���г�ʼ��
+	/** 对数据成员进行初始化
 	*/
 	void Init();
 
-	/** ����ͼƬ�������г�ʼ��(�ȵ���Init��ʼ����Ա�������ٰ��մ���������и��²�������)
-	* @param [in] strImageString ͼƬ�����ַ���
-	* @param [in] dpi DPI���Žӿ�
+	/** 根据图片参数进行初始化(先调用Init初始化成员变量，再按照传入参数进行更新部分属性)
+	* @param [in] strImageString 图片参数字符串
+	* @param [in] dpi DPI缩放接口
 	*/
 	void InitByImageString(const std::wstring& strImageString, const DpiManager& dpi);
 
-	/** ����ͼƬ�����޸�����ֵ�������������õ�ͼƬ����, δ���������Բ����и��£�
-	* @param [in] strImageString ͼƬ�����ַ���
-	* @param [in] dpi DPI���Žӿ�
+	/** 根据图片参数修改属性值（仅更新新设置的图片属性, 未包含的属性不进行更新）
+	* @param [in] strImageString 图片参数字符串
+	* @param [in] dpi DPI缩放接口
 	*/
 	void ModifyAttribute(const std::wstring& strImageString, const DpiManager& dpi);
 
 public:
-	/** �ж�rcDest�����Ƿ�����Чֵ
-	* @param [in] rcDest ��Ҫ�жϵ�����
+	/** 判断rcDest区域是否含有有效值
+	* @param [in] rcDest 需要判断的区域
 	*/
 	static bool HasValidImageRect(const UiRect& rcDest);
 
-	/** ��ͼƬ��Դ����Ŀ������Բ�Ǵ�С����У��������DPI����Ӧ
-	* @param [in] imageWidth ͼƬ�Ŀ���
-	* @param [in] imageHeight ͼƬ�ĸ߶�
-	* @param [in] dpi DPI���Žӿ�
-	* @param [in] bImageDpiScaled ͼƬ�Ƿ�����DPI����Ӧ����
-	* @param [out] rcDestCorners ����Ŀ�������Բ����Ϣ�������������ڲ�����rcImageCorners�����ã�Ȼ�󴫳�
-	* @param [in/out] rcSource ͼƬ����
-	* @param [in/out] rcSourceCorners ͼƬ�����Բ����Ϣ
+	/** 对图片的源区域、目标区域、圆角大小进行校验修正和DPI自适应
+	* @param [in] imageWidth 图片的宽度
+	* @param [in] imageHeight 图片的高度
+	* @param [in] dpi DPI缩放接口
+	* @param [in] bImageDpiScaled 图片是否做过DPI自适应操作
+	* @param [out] rcDestCorners 绘制目标区域的圆角信息，传出参数，内部根据rcImageCorners来设置，然后传出
+	* @param [in/out] rcSource 图片区域
+	* @param [in/out] rcSourceCorners 图片区域的圆角信息
 	*/
 	static void ScaleImageRect(uint32_t imageWidth, uint32_t imageHeight, 
 							   const DpiManager& dpi, bool bImageDpiScaled,
@@ -56,105 +56,105 @@ public:
 		                       UiRect& rcSource, UiRect& rcSourceCorners);
 
 public:
-	/** ��ȡrcSource(δ����DPI����)
+	/** 获取rcSource(未进行DPI缩放)
 	*/
 	UiRect GetImageSourceRect() const;
 
-	/** ��ȡrcCorner(δ����DPI����)
+	/** 获取rcCorner(未进行DPI缩放)
 	*/
 	UiRect GetImageCorner() const;
 
-	/** ��ȡrcDest(�����þ����Ƿ����DPI����)
+	/** 获取rcDest(按配置决定是否进行DPI缩放)
 	*/
 	UiRect GetImageDestRect(const DpiManager& dpi) const;
 
-	/** ��ȡͼƬ���Ե��ڱ߾�
-	* @param [in] dpi DPI���Ź�����
-	* @return ���ذ��մ���DPI���Ź�������Ӧ���ڱ߾�����
+	/** 获取图片属性的内边距
+	* @param [in] dpi DPI缩放管理器
+	* @return 返回按照传入DPI缩放管理器适应的内边距数据
 	*/
 	UiPadding GetImagePadding(const DpiManager& dpi) const;
 
-	/** ����ͼƬ���Ե��ڱ߾�(�ڲ�����DPI����Ӧ)
-	* @param [in] newPadding ��Ҫ���õ��ڱ߾�
-	* @param [in] bNeedDpiScale �Ƿ���Ҫ��newPadding����DPI����
-	* @param [in] dpi ��newPadding���ݹ�����DPI������
+	/** 设置图片属性的内边距(内部不做DPI自适应)
+	* @param [in] newPadding 需要设置的内边距
+	* @param [in] bNeedDpiScale 是否需要对newPadding进行DPI缩放
+	* @param [in] dpi 与newPadding数据关联的DPI管理器
 	*/
 	void SetImagePadding(const UiPadding& newPadding, bool bNeedDpiScale, const DpiManager& dpi);
 
 public:
-	//ͼƬ�ļ������ַ���
+	//图片文件属性字符串
 	UiString sImageString;
 
-	//ͼƬ�ļ��ļ����������·��������������
+	//图片文件文件名，含相对路径，不包含属性
 	UiString sImagePath;
 
-	//����ͼƬ���ȣ����ԷŴ����Сͼ��pixels���߰ٷֱ�%������300������30%
+	//设置图片宽度，可以放大或缩小图像：pixels或者百分比%，比如300，或者30%
 	UiString srcWidth;
 
-	//����ͼƬ�߶ȣ����ԷŴ����Сͼ��pixels���߰ٷֱ�%������200������30%
+	//设置图片高度，可以放大或缩小图像：pixels或者百分比%，比如200，或者30%
 	UiString srcHeight;
 
-	//rcSource��DPI����Ӧ���ԣ�����bHasSrcDpiScaleΪtrueʱ��Ч��
+	//rcSource的DPI自适应属性（仅当bHasSrcDpiScale为true时有效）
 	bool srcDpiScale;
 
-	//����ͼƬʱ���Ƿ�������DPI����Ӧ���ԣ�"dpi_scale"��
+	//加载图片时，是否设置了DPI自适应属性（"dpi_scale"）
 	bool bHasSrcDpiScale;
 
-	//rcDest���Ե�DPI����Ӧ���ԣ�����bHasDestDpiScaleʱ��Ч��
+	//rcDest属性的DPI自适应属性（仅当bHasDestDpiScale时有效）
 	bool destDpiScale;
 
-	//rcDest�Ƿ�������DPI����Ӧ���ԣ�"dest_scale"��
+	//rcDest是否设置了DPI自适应属性（"dest_scale"）
 	bool bHasDestDpiScale;
 
-	//�ڻ���Ŀ�������к�����뷽ʽ(���ָ����rcDestֵ�����ѡ����Ч)
+	//在绘制目标区域中横向对齐方式(如果指定了rcDest值，则此选项无效)
 	UiString hAlign;
 
-	//�ڻ���Ŀ��������������뷽ʽ(���ָ����rcDestֵ�����ѡ����Ч)
+	//在绘制目标区域中纵向对齐方式(如果指定了rcDest值，则此选项无效)
 	UiString vAlign;
 
-	//͸���ȣ�0 - 255��
+	//透明度（0 - 255）
 	uint8_t bFade;
 
-	//����ƽ��
+	//横向平铺
 	bool bTiledX;
 
-	//������ȫƽ�̣�����bTiledXΪtrueʱ��Ч
+	//横向完全平铺，仅当bTiledX为true时有效
 	bool bFullTiledX;
 
-	//����ƽ��
+	//纵向平铺
 	bool bTiledY;
 
-	//������ȫƽ�̣�����bTiledYΪtrueʱ��Ч
+	//纵向完全平铺，仅当bTiledY为true时有效
 	bool bFullTiledY;
 
-	//ƽ��ʱ�ı߾ࣨ����bTiledXΪtrue����bTiledYΪtrueʱ��Ч��
+	//平铺时的边距（仅当bTiledX为true或者bTiledY为true时有效）
 	int32_t nTiledMargin;
 
-	//�����GIF�ȶ���ͼƬ������ָ�����Ŵ��� -1 ��һֱ���ţ�ȱʡֵ��
+	//如果是GIF等动画图片，可以指定播放次数 -1 ：一直播放，缺省值。
 	int32_t nPlayCount;	
 
-	//�����ICO�ļ�������ָ����Ҫ���ص�ICOͼƬ�Ĵ�С
-	//(ICO�ļ��а����ܶ����ͬ��С��ͼƬ����������256��48��32��16������ÿ����С����32λ��ʡ�256ɫ��16ɫ֮�֣�
-	//ĿǰICO�ļ��ڼ���ʱ��ֻ��ѡ��һ����С��ICOͼƬ���м��أ����غ�Ϊ����ͼƬ
+	//如果是ICO文件，用于指定需要加载的ICO图片的大小
+	//(ICO文件中包含很多个不同大小的图片，常见的有256，48，32，16，并且每个大小都有32位真彩、256色、16色之分）
+	//目前ICO文件在加载时，只会选择一个大小的ICO图片进行加载，加载后为单张图片
 	uint32_t iconSize;
 
-	//�ɻ��Ʊ�־��true��ʾ�������ƣ�false��ʾ��ֹ����
+	//可绘制标志：true表示允许绘制，false表示禁止绘制
 	bool bPaintEnabled;
 
 private:
-	//����Ŀ������λ�úʹ�С(����ڿؼ������λ��, δ����DPI����)
+	//绘制目标区域位置和大小(相对于控件区域的位置, 未进行DPI缩放)
 	UiRect* rcDest;
 
-	//�ڻ���Ŀ�������е��ڱ߾�(���ָ����rcDestֵ�����ѡ����Ч)
+	//在绘制目标区域中的内边距(如果指定了rcDest值，则此选项无效)
 	UiPadding16* rcPadding;
 
-	//rcPadding��Ӧ��DPI���Űٷֱ�
+	//rcPadding对应的DPI缩放百分比
 	uint16_t rcPaddingScale;
 
-	//ͼƬԴ����λ�úʹ�С(δ����DPI����)
+	//图片源区域位置和大小(未进行DPI缩放)
 	UiRect* rcSource;
 
-	//Բ������(δ����DPI����)
+	//圆角属性(未进行DPI缩放)
 	UiRect* rcCorner;
 };
 

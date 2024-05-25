@@ -42,25 +42,25 @@ bool ControlDropTarget::ContainsPt(const UiPoint& screenPt) const
 
 int32_t ControlDropTarget::DragEnter(void* /*pDataObj*/, uint32_t /*grfKeyState*/, const UiPoint& /*pt*/, uint32_t* /*pdwEffect*/)
 {
-    //Ĭ�Ͻ�ֹ�Ϸ�
+    //默认禁止拖放
     return S_FALSE;
 }
 
 int32_t ControlDropTarget::DragOver(uint32_t /*grfKeyState*/, const UiPoint& /*pt*/, uint32_t* /*pdwEffect*/)
 {
-    //Ĭ�Ͻ�ֹ�Ϸ�
+    //默认禁止拖放
     return S_FALSE;
 }
 
 int32_t ControlDropTarget::DragLeave(void)
 {
-    //Ĭ�Ͻ�ֹ�Ϸ�
+    //默认禁止拖放
     return S_FALSE;
 }
 
 int32_t ControlDropTarget::Drop(void* /*pDataObj*/, uint32_t /*grfKeyState*/, const UiPoint& /*pt*/, uint32_t* /*pdwEffect*/)
 {
-    //Ĭ�Ͻ�ֹ�Ϸ�
+    //默认禁止拖放
     return S_FALSE;
 }
 

@@ -9,7 +9,7 @@ namespace ui
 {
 class Control;
 
-/** ¿Ø¼şµÄÍÏ·ÅÖ§³Ö
+/** æ§ä»¶çš„æ‹–æ”¾æ”¯æŒ
 */
 class ControlDropTarget
 {
@@ -20,17 +20,17 @@ public:
 	virtual ~ControlDropTarget();
 
 public:
-	/** ÉèÖÃ¹ØÁªµÄ¿Ø¼ş½Ó¿Ú
-	 * @param [in] pControl ¿Ø¼ş½Ó¿Ú
+	/** è®¾ç½®å…³è”çš„æ§ä»¶æ¥å£
+	 * @param [in] pControl æ§ä»¶æ¥å£
 	 */
 	void SetControl(Control* pControl);
 
-	/** »ñÈ¡¿Ø¼ş½Ó¿Ú
+	/** è·å–æ§ä»¶æ¥å£
 	*/
 	Control* GetControl() const;
 
-	/** ÅĞ¶Ïµã×ø±êÊÇ·ñ°üº¬ÔÚ¸Ã¿Ø¼şÖĞ
-	* @param [in] screenPt ÆÁÄ»×ø±êµã
+	/** åˆ¤æ–­ç‚¹åæ ‡æ˜¯å¦åŒ…å«åœ¨è¯¥æ§ä»¶ä¸­
+	* @param [in] screenPt å±å¹•åæ ‡ç‚¹
 	*/
 	bool ContainsPt(const UiPoint& screenPt) const;
 
@@ -49,7 +49,7 @@ public:
     virtual int32_t Drop(void* pDataObj, uint32_t grfKeyState, const UiPoint& pt, uint32_t* pdwEffect);
 
 private:
-	/** ¹ØÁªµÄ¿Ø¼ş½Ó¿Ú
+	/** å…³è”çš„æ§ä»¶æ¥å£
 	*/
 	Control* m_pControl;
 };

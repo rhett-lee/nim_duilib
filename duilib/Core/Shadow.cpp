@@ -13,7 +13,7 @@ public:
 	explicit ShadowBox(Window* pWindow):
 		Box(pWindow)
 	{
-		//¹Ø±Õ¿Ø¼ş×ÔÉíµÄÄÚ±ß¾à£¬·ñÔòÒõÓ°»æÖÆ²»³öÀ´
+		//å…³é—­æ§ä»¶è‡ªèº«çš„å†…è¾¹è·ï¼Œå¦åˆ™é˜´å½±ç»˜åˆ¶ä¸å‡ºæ¥
 		SetEnableControlPadding(false);
 	}
 	virtual std::wstring GetType() const override { return L"ShadowBox"; }
@@ -25,7 +25,7 @@ public:
 		}		
 		UiRect rcPos = GetPosWithoutPadding();
 		if (rcPaint.left >= rcPos.left && rcPaint.top >= rcPos.top && rcPaint.right <= rcPos.right && rcPaint.bottom <= rcPos.bottom) {
-			//×÷ÎªÒõÓ°£¬ÖĞ¼ä²¿·ÖÊÇ¿ÕµÄ£¬²»ĞèÒª´¦ÀíÖØ»æ, Ö»Ìî³äÔ²½Ç¿ÕÏ¶
+			//ä½œä¸ºé˜´å½±ï¼Œä¸­é—´éƒ¨åˆ†æ˜¯ç©ºçš„ï¼Œä¸éœ€è¦å¤„ç†é‡ç»˜, åªå¡«å……åœ†è§’ç©ºéš™
 			FillRoundRect(pRender, rcPos);
 			return;
 		}
@@ -35,7 +35,7 @@ public:
 		}
 	};
 
-	/** µ±BoxÓĞÔ²½ÇµÄÊ±ºò£¬ËÄ¸ö½Ç²ÉÓÃÌî³äÉ«»æÖÆ±³¾°£¬±ÜÃâ³öÏÖºÚÉ«±³¾°
+	/** å½“Boxæœ‰åœ†è§’çš„æ—¶å€™ï¼Œå››ä¸ªè§’é‡‡ç”¨å¡«å……è‰²ç»˜åˆ¶èƒŒæ™¯ï¼Œé¿å…å‡ºç°é»‘è‰²èƒŒæ™¯
 	*/
 	void FillRoundRect(IRender* pRender, const UiRect& rcPos)
 	{
@@ -44,7 +44,7 @@ public:
 			return;
 		}
 		if (!pChildBox->IsVisible() || !pChildBox->ShouldBeRoundRectFill()) {
-			//Èç¹û²»ÊÇÔ²½ÇµÄ£¬»òÕß²»¿É¼ûµÄ£¬¾ÍĞèÒª²»Ìî³ä
+			//å¦‚æœä¸æ˜¯åœ†è§’çš„ï¼Œæˆ–è€…ä¸å¯è§çš„ï¼Œå°±éœ€è¦ä¸å¡«å……
 			return;
 		}
 		UiSize borderRound = pChildBox->GetBorderRound();
@@ -64,25 +64,25 @@ public:
 		}
 		
 		UiRect fillRect;
-		//×óÉÏ½Ç
+		//å·¦ä¸Šè§’
 		fillRect = UiRect(rcPos.left, rcPos.top, rcPos.left + nRectSize, rcPos.top + nRectSize);
 		pRender->FillRect(fillRect, m_bkColor, uFade);
 
-		//ÓÒÉÏ½Ç
+		//å³ä¸Šè§’
 		fillRect = UiRect(rcPos.right - nRectSize, rcPos.top, rcPos.right, rcPos.top + nRectSize);
 		pRender->FillRect(fillRect, m_bkColor, uFade);
 
-		//×óÏÂ½Ç
+		//å·¦ä¸‹è§’
 		fillRect = UiRect(rcPos.left, rcPos.bottom - nRectSize, rcPos.left + nRectSize, rcPos.bottom);
 		pRender->FillRect(fillRect, m_bkColor, uFade);
 
-		//ÓÒÏÂ½Ç
+		//å³ä¸‹è§’
 		fillRect = UiRect(rcPos.right - nRectSize, rcPos.bottom - nRectSize, rcPos.right, rcPos.bottom);
 		pRender->FillRect(fillRect, m_bkColor, uFade);
 	}
 
 private:
-	/** ±³¾°É«
+	/** èƒŒæ™¯è‰²
 	*/
 	UiColor m_bkColor = UiColor(UiColors::LightGray);
 };
@@ -108,7 +108,7 @@ Shadow::Shadow(Window* pWindow):
 void Shadow::SetShadowAttached(bool bShadowAttached)
 {
 	m_bShadowAttached = bShadowAttached; 
-	//Íâ²¿ÉèÖÃºó£¬¼´¸üĞÂÎª·ÇÄ¬ÈÏÖµ
+	//å¤–éƒ¨è®¾ç½®åï¼Œå³æ›´æ–°ä¸ºéé»˜è®¤å€¼
 	m_bUseDefaultShadowAttached = false;
 }
 

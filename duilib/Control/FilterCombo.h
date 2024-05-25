@@ -8,7 +8,7 @@
 namespace ui 
 {
 
-/** ´øÓĞ¹ıÂË¹¦ÄÜµÄ×éºÏ¿ò
+/** å¸¦æœ‰è¿‡æ»¤åŠŸèƒ½çš„ç»„åˆæ¡†
 */
 class UILIB_API FilterCombo : public Combo
 {
@@ -18,7 +18,7 @@ public:
 	Combo& operator=(const FilterCombo& r) = delete;
 	virtual ~FilterCombo();
 
-	/// ÖØĞ´¸¸Àà·½·¨£¬Ìá¹©¸öĞÔ»¯¹¦ÄÜ£¬Çë²Î¿¼¸¸ÀàÉùÃ÷
+	/// é‡å†™çˆ¶ç±»æ–¹æ³•ï¼Œæä¾›ä¸ªæ€§åŒ–åŠŸèƒ½ï¼Œè¯·å‚è€ƒçˆ¶ç±»å£°æ˜
 	virtual std::wstring GetType() const override;
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 
@@ -26,31 +26,31 @@ protected:
 	virtual void OnInit() override;
 	
 protected:
-	/** Êó±êÔÚEditÉÏÃæ°´ÏÂ°´Å¥
-	 * @param[in] args ²ÎÊıÁĞ±í
-	 * @return Ê¼ÖÕ·µ»Ø true
+	/** é¼ æ ‡åœ¨Editä¸Šé¢æŒ‰ä¸‹æŒ‰é’®
+	 * @param[in] args å‚æ•°åˆ—è¡¨
+	 * @return å§‹ç»ˆè¿”å› true
 	 */
 	virtual bool OnEditButtonDown(const EventArgs& args);
 
-	/** Êó±êÔÚEditÉÏÃæµ¯Æğ°´Å¥
-	 * @param[in] args ²ÎÊıÁĞ±í
-	 * @return Ê¼ÖÕ·µ»Ø true
+	/** é¼ æ ‡åœ¨Editä¸Šé¢å¼¹èµ·æŒ‰é’®
+	 * @param[in] args å‚æ•°åˆ—è¡¨
+	 * @return å§‹ç»ˆè¿”å› true
 	 */
 	virtual bool OnEditButtonUp(const EventArgs& args);
 
-	/** EditµÄÎÄ±¾ÄÚÈİ·¢Éú±ä»¯
-	 * @param[in] args ²ÎÊıÁĞ±í
-	 * @return Ê¼ÖÕ·µ»Ø true
+	/** Editçš„æ–‡æœ¬å†…å®¹å‘ç”Ÿå˜åŒ–
+	 * @param[in] args å‚æ•°åˆ—è¡¨
+	 * @return å§‹ç»ˆè¿”å› true
 	 */
 	virtual bool OnEditTextChanged(const ui::EventArgs& args);
 
 private:
 
-	/** ¶ÔÏÂÀ­¿òÁĞ±íÀïÃæµÄÄÚÈİ½øĞĞ¹ıÂË
+	/** å¯¹ä¸‹æ‹‰æ¡†åˆ—è¡¨é‡Œé¢çš„å†…å®¹è¿›è¡Œè¿‡æ»¤
 	*/
 	void FilterComboList(const std::wstring& filterText);
 
-	/** ÅĞ¶ÏÎÄ±¾ÊÇ·ñÂú×ã¹ıÂËÌõ¼ş
+	/** åˆ¤æ–­æ–‡æœ¬æ˜¯å¦æ»¡è¶³è¿‡æ»¤æ¡ä»¶
 	*/
 	bool IsFilterText(const std::wstring& filterText, const std::wstring& itemText) const;
 };

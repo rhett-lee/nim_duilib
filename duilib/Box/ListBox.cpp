@@ -4,7 +4,7 @@
 namespace ui 
 {
 
-//¶àÑ¡µÄÊ±ºò£¬ÊÇ·ñÏÔÊ¾Ñ¡Ôñ±³¾°É«: 0 - Ä¬ÈÏ¹æÔò; 1 - ÏÔÊ¾±³¾°É«; 2: ²»ÏÔÊ¾±³¾°É«
+//å¤šé€‰çš„æ—¶å€™ï¼Œæ˜¯å¦æ˜¾ç¤ºé€‰æ‹©èƒŒæ™¯è‰²: 0 - é»˜è®¤è§„åˆ™; 1 - æ˜¾ç¤ºèƒŒæ™¯è‰²; 2: ä¸æ˜¾ç¤ºèƒŒæ™¯è‰²
 enum ePaintSelectedColors
 {
 	PAINT_SELECTED_COLORS_DEFAULT = 0,
@@ -53,7 +53,7 @@ void ListBox::SetAttribute(const std::wstring& strName, const std::wstring& strV
 void ListBox::HandleEvent(const EventArgs& msg)
 {
 	if (IsDisabledEvents(msg)) {
-		//Èç¹ûÊÇÊó±ê¼üÅÌÏûÏ¢£¬²¢ÇÒ¿Ø¼şÊÇDisabledµÄ£¬×ª·¢¸øÉÏ²ã¿Ø¼ş
+		//å¦‚æœæ˜¯é¼ æ ‡é”®ç›˜æ¶ˆæ¯ï¼Œå¹¶ä¸”æ§ä»¶æ˜¯Disabledçš„ï¼Œè½¬å‘ç»™ä¸Šå±‚æ§ä»¶
 		Box* pParent = GetParent();
 		if (pParent != nullptr) {
 			pParent->SendEvent(msg);
@@ -88,9 +88,9 @@ bool ListBox::OnListBoxKeyDown(const EventArgs& msg)
 		return bHandled;
 	}
 
-	bool bHasSelectItem = GetCurSel() < GetItemCount(); //ÊÇ·ñÓĞµ¥Ñ¡µÄÑ¡ÔñÏî
+	bool bHasSelectItem = GetCurSel() < GetItemCount(); //æ˜¯å¦æœ‰å•é€‰çš„é€‰æ‹©é¡¹
 	if (!IsMultiSelect() && (GetItemCount() > 0) && !bHasSelectItem) {
-		//µ±Ç°½çÃæÖĞÎŞÑ¡ÖĞÏî£¬ĞèÒª²éÑ¯×ÓÀà£¨Ğé±íÊµÏÖ£©ÖĞÊÇ·ñÓĞÑ¡ÖĞÏî
+		//å½“å‰ç•Œé¢ä¸­æ— é€‰ä¸­é¡¹ï¼Œéœ€è¦æŸ¥è¯¢å­ç±»ï¼ˆè™šè¡¨å®ç°ï¼‰ä¸­æ˜¯å¦æœ‰é€‰ä¸­é¡¹
 		size_t nDestItemIndex = Box::InvalidIndex;
 		if (OnFindSelectable(GetCurSel(), SelectableMode::kSelect, 1, nDestItemIndex)) {
 			bHasSelectItem = true;
@@ -98,7 +98,7 @@ bool ListBox::OnListBoxKeyDown(const EventArgs& msg)
 		}
 	}
 	if (IsMultiSelect() || (GetItemCount() == 0) || !bHasSelectItem) {
-		//ÔÚÎŞÊı¾İ¡¢Ö§³Ö¶àÑ¡¡¢ÎŞÑ¡ÖĞÏîµÄÇé¿öÏÂ£¬²»Ö§³Öµ¥Ñ¡¿ì½İ¼üÂß¼­£¬µ«Ö§³ÖHOMEºÍEND¼üµÄÏìÓ¦(¹ö¶¯)
+		//åœ¨æ— æ•°æ®ã€æ”¯æŒå¤šé€‰ã€æ— é€‰ä¸­é¡¹çš„æƒ…å†µä¸‹ï¼Œä¸æ”¯æŒå•é€‰å¿«æ·é”®é€»è¾‘ï¼Œä½†æ”¯æŒHOMEå’ŒENDé”®çš„å“åº”(æ»šåŠ¨)
 		if (msg.chKey == VK_HOME) {
 			if (IsHorizontalScrollBar()) {
 				HomeLeft();
@@ -120,33 +120,33 @@ bool ListBox::OnListBoxKeyDown(const EventArgs& msg)
 		return bHandled;
 	}
 
-	//µ¥Ñ¡¡¢ÓĞÊı¾İ¡¢ÓĞÑ¡ÖĞÏîµÄÇé¿ö
+	//å•é€‰ã€æœ‰æ•°æ®ã€æœ‰é€‰ä¸­é¡¹çš„æƒ…å†µ
 	bHandled = true;
 	switch (msg.chKey) {
 	case VK_UP:
 		if (IsHorizontalScrollBar()) {
-			//ºáÏò¹ö¶¯Ìõ£¬ÏòÉÏ1Ìõ
+			//æ¨ªå‘æ»šåŠ¨æ¡ï¼Œå‘ä¸Š1æ¡
 			SelectItemPrevious(true, true);
 		}
 		else {
-			//²»ÊÇºáÏò¹ö¶¯Ìõ£¬ÏòÉÏ1ĞĞ
+			//ä¸æ˜¯æ¨ªå‘æ»šåŠ¨æ¡ï¼Œå‘ä¸Š1è¡Œ
 			size_t nColumns = 0;
 			size_t nRows = 0;
 			GetDisplayItemCount(false, nColumns, nRows);
 			if ((m_iCurSel < GetItemCount()) && IsSelectableItem(m_iCurSel) &&
 				(GetItemCountBefore(m_iCurSel) >= nColumns)) {
-				//¿ÉÒÔÏòÉÏ¹ö¶¯1ĞĞ
+				//å¯ä»¥å‘ä¸Šæ»šåŠ¨1è¡Œ
 				SelectItemCountN(true, true, false, nColumns);
 			}
 		}		
 		break;
 	case VK_DOWN:
 		if (IsHorizontalScrollBar()) {
-			//ºáÏò¹ö¶¯Ìõ£¬ÏòÏÂ1Ìõ
+			//æ¨ªå‘æ»šåŠ¨æ¡ï¼Œå‘ä¸‹1æ¡
 			SelectItemNext(true, true);
 		}
 		else {
-			//²»ÊÇºáÏò¹ö¶¯Ìõ£¬ÏòÏÂ1ĞĞ
+			//ä¸æ˜¯æ¨ªå‘æ»šåŠ¨æ¡ï¼Œå‘ä¸‹1è¡Œ
 			size_t nColumns = 0;
 			size_t nRows = 0;
 			GetDisplayItemCount(false, nColumns, nRows);
@@ -162,7 +162,7 @@ bool ListBox::OnListBoxKeyDown(const EventArgs& msg)
 		break;
 	case VK_LEFT:
 		if (IsHorizontalScrollBar()) {
-			//ºáÏò¹ö¶¯Ìõ£¬ÏòÉÏ1ÁĞ
+			//æ¨ªå‘æ»šåŠ¨æ¡ï¼Œå‘ä¸Š1åˆ—
 			size_t nColumns = 0;
 			size_t nRows = 0;
 			GetDisplayItemCount(false, nColumns, nRows);
@@ -172,13 +172,13 @@ bool ListBox::OnListBoxKeyDown(const EventArgs& msg)
 			}
 		}
 		else {
-			//²»ÊÇºáÏò¹ö¶¯Ìõ£¬ÏòÉÏ1Ìõ
+			//ä¸æ˜¯æ¨ªå‘æ»šåŠ¨æ¡ï¼Œå‘ä¸Š1æ¡
 			SelectItemPrevious(true, true);
 		}
 		break;
 	case VK_RIGHT:
 		if (IsHorizontalScrollBar()) {
-			//ºáÏò¹ö¶¯Ìõ£¬ÏòÏÂ1ĞĞ
+			//æ¨ªå‘æ»šåŠ¨æ¡ï¼Œå‘ä¸‹1è¡Œ
 			size_t nColumns = 0;
 			size_t nRows = 0;
 			GetDisplayItemCount(false, nColumns, nRows);
@@ -192,7 +192,7 @@ bool ListBox::OnListBoxKeyDown(const EventArgs& msg)
 			}
 		}
 		else {
-			//²»ÊÇºáÏò¹ö¶¯Ìõ£¬ÏòÏÂ1Ìõ
+			//ä¸æ˜¯æ¨ªå‘æ»šåŠ¨æ¡ï¼Œå‘ä¸‹1æ¡
 			SelectItemNext(true, true);
 		}
 		break;
@@ -299,16 +299,16 @@ size_t ListBox::SelectItemEnd(bool bTakeFocus, bool bTriggerEvent)
 
 size_t ListBox::SelectItemPage(bool bTakeFocus, bool bTriggerEvent, bool bForward, int32_t nDeltaValue)
 {
-	//Page Up / Page Down ¼üµÄ·­Ò³Âß¼­
+	//Page Up / Page Down é”®çš„ç¿»é¡µé€»è¾‘
 	size_t itemIndex = Box::InvalidIndex;
 	const size_t itemCount = GetItemCount();
 	if (itemCount == 0) {
 		return itemIndex;
 	}
 
-	bool bIsHorizontal = IsHorizontalScrollBar(); //ÊÇ·ñÎªºáÏò¹ö¶¯Ìõ
+	bool bIsHorizontal = IsHorizontalScrollBar(); //æ˜¯å¦ä¸ºæ¨ªå‘æ»šåŠ¨æ¡
 	if (nDeltaValue == 0) {
-		//¼ÆËãnDeltaValueÖµ
+		//è®¡ç®—nDeltaValueå€¼
 		nDeltaValue = bIsHorizontal ? GetRect().Width() : GetRect().Height();
 	}
 	if (nDeltaValue == 0) {
@@ -325,13 +325,13 @@ size_t ListBox::SelectItemPage(bool bTakeFocus, bool bTriggerEvent, bool bForwar
 		nTotalDisplayCount = 1;
 	}
 	if (bIsHorizontal) {
-		//Ö»ÓĞºáÏò¹ö¶¯Ìõ£¬°´ºáÏò´¦Àí
+		//åªæœ‰æ¨ªå‘æ»šåŠ¨æ¡ï¼ŒæŒ‰æ¨ªå‘å¤„ç†
 		nCountPerPage = nTotalDisplayCount * std::abs(nDeltaValue) / GetRect().Width();
 		if (nCountPerPage > nRows) {
-			nCountPerPage -= nRows; //¼õµô1ĞĞ
+			nCountPerPage -= nRows; //å‡æ‰1è¡Œ
 		}
 		if ((m_iCurSel < GetItemCount()) && IsSelectableItem(m_iCurSel)) {
-			//Èç¹ûÎŞ·¨Âú×ã·­Ò³£¬ÄÇÃ´Í£ÁôÔÚ×îºóÒ»ÁĞ
+			//å¦‚æœæ— æ³•æ»¡è¶³ç¿»é¡µï¼Œé‚£ä¹ˆåœç•™åœ¨æœ€åä¸€åˆ—
 			while (nCountPerPage > nRows) {
 				if (bForward) {
 					if (GetItemCountAfter(m_iCurSel) >= nCountPerPage) {
@@ -353,13 +353,13 @@ size_t ListBox::SelectItemPage(bool bTakeFocus, bool bTriggerEvent, bool bForwar
 		}
 	}
 	else {
-		//ÆäËûÇé¿ö£¬°´×İÏò¹ö¶¯´¦Àí
+		//å…¶ä»–æƒ…å†µï¼ŒæŒ‰çºµå‘æ»šåŠ¨å¤„ç†
 		nCountPerPage = nTotalDisplayCount * std::abs(nDeltaValue) / GetRect().Height();
 		if (nCountPerPage > nColumns) {
-			nCountPerPage -= nColumns; //¼õµô1ÁĞ
+			nCountPerPage -= nColumns; //å‡æ‰1åˆ—
 		}
 		if ((m_iCurSel < GetItemCount()) && IsSelectableItem(m_iCurSel)) {
-			//Èç¹ûÎŞ·¨Âú×ã·­Ò³£¬ÄÇÃ´Í£ÁôÔÚ×îºóÒ»ĞĞ
+			//å¦‚æœæ— æ³•æ»¡è¶³ç¿»é¡µï¼Œé‚£ä¹ˆåœç•™åœ¨æœ€åä¸€è¡Œ
 			while (nCountPerPage > nColumns) {
 				if (bForward) {
 					if (GetItemCountAfter(m_iCurSel) >= nCountPerPage) {
@@ -422,17 +422,17 @@ size_t ListBox::SelectItemPage(bool bTakeFocus, bool bTriggerEvent, bool bForwar
 size_t ListBox::SelectItemCountN(bool bTakeFocus, bool bTriggerEvent, bool bForward, size_t nCount)
 {
 	if (m_iCurSel >= GetItemCount()) {
-		//µ±Ç°ÎŞÓĞĞ§µÄÑ¡ÔñÏî£¬ÎŞ·¨²Ù×÷
+		//å½“å‰æ— æœ‰æ•ˆçš„é€‰æ‹©é¡¹ï¼Œæ— æ³•æ“ä½œ
 		return Box::InvalidIndex;
 	}
 	if (!IsSelectableItem(m_iCurSel)) {
-		//Èç¹ûµ±Ç°Ñ¡ÖĞÏîÎª²»¿ÉÑ¡ÔñÏî£¬ÎŞ·¨²Ù×÷
+		//å¦‚æœå½“å‰é€‰ä¸­é¡¹ä¸ºä¸å¯é€‰æ‹©é¡¹ï¼Œæ— æ³•æ“ä½œ
 		return Box::InvalidIndex;
 	}
 	if ((nCount == 0) || (nCount == Box::InvalidIndex)){
 		nCount = 1;
 	}
-	bool bExceedFirst = false; //ÒÑ¾­µ½´ïµÚ1Ìõ
+	bool bExceedFirst = false; //å·²ç»åˆ°è¾¾ç¬¬1æ¡
 	size_t iIndex = Box::InvalidIndex;
 	if (!bForward) {
 		//Page Up
@@ -448,7 +448,7 @@ size_t ListBox::SelectItemCountN(bool bTakeFocus, bool bTriggerEvent, bool bForw
 		iIndex = m_iCurSel + nCount;
 	}
 	if (IsSelectableItem(iIndex)) {
-		//Ä¿±ê×ÓÏî´æÔÚ£¬Ö±½Ó·µ»Ø
+		//ç›®æ ‡å­é¡¹å­˜åœ¨ï¼Œç›´æ¥è¿”å›
 		size_t itemIndex = iIndex;
 		if (itemIndex < GetItemCount()) {
 			SelectItem(itemIndex, false, false);
@@ -460,7 +460,7 @@ size_t ListBox::SelectItemCountN(bool bTakeFocus, bool bTriggerEvent, bool bForw
 		return itemIndex;
 	}
 
-	//¿ÉÄÜĞèÒªÔ¤¼ÓÔØÊı¾İ£¬Èç¹ûÓĞÔ¤¼ÓÔØĞĞÎª£¬m_iCurSelµÄÖµ¿ÉÄÜ·¢Éú±ä»¯
+	//å¯èƒ½éœ€è¦é¢„åŠ è½½æ•°æ®ï¼Œå¦‚æœæœ‰é¢„åŠ è½½è¡Œä¸ºï¼Œm_iCurSelçš„å€¼å¯èƒ½å‘ç”Ÿå˜åŒ–
 	size_t nDestItemIndex = Box::InvalidIndex;
 	SelectableMode mode = bForward ? SelectableMode::kForward : SelectableMode::kBackward;
 	if (OnFindSelectable(m_iCurSel, mode, nCount, nDestItemIndex)) {
@@ -836,11 +836,11 @@ size_t ListBox::GetItemCountAfter(size_t nCurSel)
 bool ListBox::SelectItem(size_t iIndex, bool bTakeFocus, bool bTriggerEvent, uint64_t /*vkFlag*/)
 {
 	if (IsMultiSelect()) {
-		//¶àÑ¡
+		//å¤šé€‰
 		return SelectItemMulti(iIndex, bTakeFocus, bTriggerEvent);
 	}
 	else {
-		//µ¥Ñ¡
+		//å•é€‰
 		return SelectItemSingle(iIndex, bTakeFocus, bTriggerEvent);
 	}
 }
@@ -854,7 +854,7 @@ bool ListBox::UnSelectItem(size_t iIndex, bool bTriggerEvent)
 		if ((pListItem != nullptr) && pListItem->IsSelected()) {
 			pListItem->OptionSelected(false, bTriggerEvent);
 			bHasEvent = true;			
-			//½öÔÚ×´Ì¬±ä»¯Ê±ÖØ»æ
+			//ä»…åœ¨çŠ¶æ€å˜åŒ–æ—¶é‡ç»˜
 			Invalidate();
 		}
 	}
@@ -862,7 +862,7 @@ bool ListBox::UnSelectItem(size_t iIndex, bool bTriggerEvent)
 		m_iCurSel = Box::InvalidIndex;
 	}
 	if (bTriggerEvent && bHasEvent) {
-		//ÊÂ¼ş´¥·¢£¬ĞèÒª·ÅÔÚº¯Êı·µ»ØÖ®Ç°£¬²»ÄÜ·ÅÔÚ´úÂëÖĞ¼ä
+		//äº‹ä»¶è§¦å‘ï¼Œéœ€è¦æ”¾åœ¨å‡½æ•°è¿”å›ä¹‹å‰ï¼Œä¸èƒ½æ”¾åœ¨ä»£ç ä¸­é—´
 		SendEvent(kEventUnSelect, iIndex, Box::InvalidIndex);
 	}
 	return true;
@@ -878,14 +878,14 @@ void ListBox::OnItemCheckedChanged(size_t /*iIndex*/, IListBoxItem* /*pListBoxIt
 
 bool ListBox::SelectItemSingle(size_t iIndex, bool bTakeFocus, bool bTriggerEvent)
 {
-	//µ¥Ñ¡
+	//å•é€‰
 	if (iIndex == m_iCurSel) {
 		Control* pControl = GetItemAt(iIndex);
 		if (pControl == nullptr) {
 			m_iCurSel = Box::InvalidIndex;
 			return false;
 		}		
-		//È·±£¿É¼û£¬È»ºó·µ»Ø		
+		//ç¡®ä¿å¯è§ï¼Œç„¶åè¿”å›		
 		if (bTakeFocus) {
 			pControl->SetFocus();
 		}
@@ -904,7 +904,7 @@ bool ListBox::SelectItemSingle(size_t iIndex, bool bTakeFocus, bool bTriggerEven
 	bool hasUnSelectEvent = false;
 	const size_t iOldSel = m_iCurSel;
 	if (Box::IsValidItemIndex(iOldSel)) {
-		//È¡Ïû¾ÉÑ¡ÔñÏîµÄÑ¡Ôñ×´Ì¬
+		//å–æ¶ˆæ—§é€‰æ‹©é¡¹çš„é€‰æ‹©çŠ¶æ€
 		Control* pControl = GetItemAt(iOldSel);
 		if (pControl != nullptr) {
 			IListBoxItem* pListItem = dynamic_cast<IListBoxItem*>(pControl);
@@ -940,7 +940,7 @@ bool ListBox::SelectItemSingle(size_t iIndex, bool bTakeFocus, bool bTriggerEven
 		return false;
 	}
 	m_iCurSel = iIndex;
-	//ÉèÖÃÑ¡Ôñ×´Ì¬
+	//è®¾ç½®é€‰æ‹©çŠ¶æ€
 	pListItem->OptionSelected(true, bTriggerEvent);
 	pControl = GetItemAt(m_iCurSel);
 	if (pControl != nullptr) {		
@@ -961,7 +961,7 @@ bool ListBox::SelectItemSingle(size_t iIndex, bool bTakeFocus, bool bTriggerEven
 
 bool ListBox::SelectItemMulti(size_t iIndex, bool bTakeFocus, bool bTriggerEvent)
 {
-	//¶àÑ¡: m_iCurSel Ê¼ÖÕÖ´ĞĞ×îºóÒ»¸öÑ¡ÖĞÏî
+	//å¤šé€‰: m_iCurSel å§‹ç»ˆæ‰§è¡Œæœ€åä¸€ä¸ªé€‰ä¸­é¡¹
 	size_t iOldSel = m_iCurSel;
 	m_iCurSel = Box::InvalidIndex;
 	if (!Box::IsValidItemIndex(iIndex)) {
@@ -980,7 +980,7 @@ bool ListBox::SelectItemMulti(size_t iIndex, bool bTakeFocus, bool bTriggerEvent
 	}
 	
 	if (pListItem->IsSelected()) {
-		//¶àÑ¡Ê±£¬ÔÙ´ÎÑ¡ÔñÊ±£¬°´È¡ÏûÑ¡Ôñ´¦Àí
+		//å¤šé€‰æ—¶ï¼Œå†æ¬¡é€‰æ‹©æ—¶ï¼ŒæŒ‰å–æ¶ˆé€‰æ‹©å¤„ç†
 		pListItem->OptionSelected(false, false);
 		Invalidate();
 		if (bTriggerEvent) {
@@ -988,7 +988,7 @@ bool ListBox::SelectItemMulti(size_t iIndex, bool bTakeFocus, bool bTriggerEvent
 		}
 	}
 	else {
-		//Èç¹ûÔ­À´ÊÇ·ÇÑ¡Ôñ×´Ì¬£¬¸üĞÂÎªÑ¡Ôñ×´Ì¬
+		//å¦‚æœåŸæ¥æ˜¯éé€‰æ‹©çŠ¶æ€ï¼Œæ›´æ–°ä¸ºé€‰æ‹©çŠ¶æ€
 		m_iCurSel = iIndex;
 		pListItem->OptionSelected(true, false);		
 		if (bTakeFocus) {			
@@ -1042,10 +1042,10 @@ void ListBox::EnsureVisible(const UiRect& rcItem,
 		}		
 		return;
 	}
-	//Ë®Æ½¹ö¶¯Ìõ
+	//æ°´å¹³æ»šåŠ¨æ¡
 	int32_t dx = 0;
 	if (hVisibleType == ListBoxHorVisible::kVisibleAtCenter) {
-		//¾ÓÖĞÏÔÊ¾
+		//å±…ä¸­æ˜¾ç¤º
 		if (rcNewItem.left < rcList.CenterX()) {
 			dx = rcNewItem.left - rcList.CenterX();
 		}
@@ -1054,11 +1054,11 @@ void ListBox::EnsureVisible(const UiRect& rcItem,
 		}
 	}
 	else if (hVisibleType == ListBoxHorVisible::kVisibleAtLeft) {
-		//¿¿×óÏÔÊ¾
+		//é å·¦æ˜¾ç¤º
 		dx = rcNewItem.left - rcList.left;
 	}
 	else if (hVisibleType == ListBoxHorVisible::kVisibleAtRight) {
-		//¿¿ÓÒÏÔÊ¾
+		//é å³æ˜¾ç¤º
 		dx = rcNewItem.right - rcList.right;
 	}
 	else {
@@ -1072,14 +1072,14 @@ void ListBox::EnsureVisible(const UiRect& rcItem,
 		rcNewList.top = rcNewItem.top;
 		rcNewList.bottom = rcNewItem.bottom;
 		if (rcNewItem.ContainsRect(rcNewList)) {
-			//×ÓÏîµÄÇøÓò£¬ÒÑ¾­ÔÚ¿É¼ûÇøÓò£¬²»µ÷Õû£¬±ÜÃâÊó±êµã»÷ºó×óÓÒ»Î¶¯
+			//å­é¡¹çš„åŒºåŸŸï¼Œå·²ç»åœ¨å¯è§åŒºåŸŸï¼Œä¸è°ƒæ•´ï¼Œé¿å…é¼ æ ‡ç‚¹å‡»åå·¦å³æ™ƒåŠ¨
 			dx = 0;
 		}
 	}
-	//´¹Ö±¹ö¶¯Ìõ
+	//å‚ç›´æ»šåŠ¨æ¡
 	int32_t dy = 0;
 	if (vVisibleType == ListBoxVerVisible::kVisibleAtCenter) {
-		//¾ÓÖĞÏÔÊ¾
+		//å±…ä¸­æ˜¾ç¤º
 		if (rcNewItem.top < rcList.CenterY()) {
 			dy = rcNewItem.top - rcList.CenterY();
 		}
@@ -1088,15 +1088,15 @@ void ListBox::EnsureVisible(const UiRect& rcItem,
 		}
 	}
 	else if (vVisibleType == ListBoxVerVisible::kVisibleAtTop) {
-		//¶¥²¿¶ÔÆë
+		//é¡¶éƒ¨å¯¹é½
 		dy = rcNewItem.top - rcList.top;
 	}
 	else if (vVisibleType == ListBoxVerVisible::kVisibleAtBottom) {
-		//µ×²¿¶ÔÆë
+		//åº•éƒ¨å¯¹é½
 		dy = rcNewItem.bottom - rcList.bottom;
 	}
 	else {
-		//Ö»Òª¿É¼û¼´¿É
+		//åªè¦å¯è§å³å¯
 		if (rcNewItem.top < rcList.top) {
 			dy = rcNewItem.top - rcList.top;
 		}
@@ -1107,7 +1107,7 @@ void ListBox::EnsureVisible(const UiRect& rcItem,
 		rcNewList.left = rcNewItem.left;
 		rcNewList.right = rcNewItem.right;
 		if (rcNewItem.ContainsRect(rcNewList)) {
-			//×ÓÏîµÄÇøÓò£¬ÒÑ¾­ÔÚ¿É¼ûÇøÓò£¬²»µ÷Õû£¬±ÜÃâÊó±êµã»÷ºóÉÏÏÂ»Î¶¯
+			//å­é¡¹çš„åŒºåŸŸï¼Œå·²ç»åœ¨å¯è§åŒºåŸŸï¼Œä¸è°ƒæ•´ï¼Œé¿å…é¼ æ ‡ç‚¹å‡»åä¸Šä¸‹æ™ƒåŠ¨
 			dy = 0;
 		}
 	}
@@ -1132,7 +1132,7 @@ bool ListBox::CanPaintSelectedColors(bool bHasStateImages) const
 		return false;
 	}
 	if (bHasStateImages && IsMultiSelect()) {
-		//Èç¹ûÓĞCheckBox£¬¶àÑ¡µÄÊ±ºò£¬Ä¬ÈÏ²»ÏÔÊ¾Ñ¡Ôñ±³¾°É«
+		//å¦‚æœæœ‰CheckBoxï¼Œå¤šé€‰çš„æ—¶å€™ï¼Œé»˜è®¤ä¸æ˜¾ç¤ºé€‰æ‹©èƒŒæ™¯è‰²
 		return false;
 	}
 	return true;
@@ -1174,7 +1174,7 @@ bool ListBox::IsHorizontalScrollBar() const
 
 	bool bIsHorizontal = (bHasHScrollBar && !bHasVScrollBar) ? true : false;
 	if (GetLayout()->IsHLayout()) {
-		//È·¶¨ÊÇºáÏò²¼¾Ö
+		//ç¡®å®šæ˜¯æ¨ªå‘å¸ƒå±€
 		bIsHorizontal = true;
 	}
 	else if (GetLayout()->IsVLayout()) {
@@ -1190,7 +1190,7 @@ bool ListBox::ScrollItemToTop(size_t iIndex)
 		return false;
 	}
 	if (IsHorizontalLayout()) {
-		//ºáÏò²¼¾Ö
+		//æ¨ªå‘å¸ƒå±€
 		if (GetScrollRange().cx != 0) {
 			UiSize64 scrollPos = GetScrollPos();
 			scrollPos.cx = pControl->GetPos().left - GetPosWithoutPadding().left;
@@ -1201,7 +1201,7 @@ bool ListBox::ScrollItemToTop(size_t iIndex)
 		}
 	}
 	else {
-		//×İÏò²¼¾Ö
+		//çºµå‘å¸ƒå±€
 		if (GetScrollRange().cy != 0) {
 			UiSize64 scrollPos = GetScrollPos();
 			scrollPos.cy = pControl->GetPos().top - GetPosWithoutPadding().top;
@@ -1232,7 +1232,7 @@ bool ListBox::ScrollItemToTop(const std::wstring& itemName)
 Control* ListBox::GetTopItem() const
 {
 	if (IsHorizontalLayout()) {
-		//ºáÏò²¼¾Ö
+		//æ¨ªå‘å¸ƒå±€
 		int32_t listLeft = GetPos().left + GetPadding().left + GetScrollOffset().cx;
 		for (Control* pControl : m_items) {
 			ASSERT(pControl != nullptr);
@@ -1242,7 +1242,7 @@ Control* ListBox::GetTopItem() const
 		}
 	}
 	else {
-		//×İÏò²¼¾Ö
+		//çºµå‘å¸ƒå±€
 		int32_t listTop = GetPos().top + GetPadding().top + GetScrollOffset().cy;
 		for (Control* pControl : m_items) {
 			ASSERT(pControl != nullptr);
@@ -1429,7 +1429,7 @@ bool ListBox::SortItems(PFNCompareFunc pfnCompare, void* pCompareContext)
 		pItem = dynamic_cast<IListBoxItem*>(m_items[i]);
 		if (pItem != nullptr) {
 			pItem->SetListBoxIndex(i);
-			//È¡Ïû½çÃæÉÏËùÓĞµÄÑ¡ÔñÏî
+			//å–æ¶ˆç•Œé¢ä¸Šæ‰€æœ‰çš„é€‰æ‹©é¡¹
 			pItem->OptionSelected(false, false);
 		}
 	}
@@ -1464,8 +1464,8 @@ void ListBox::SetMultiSelect(bool bMultiSelect)
 {
 	m_bMultiSelect = bMultiSelect;
 	if (!bMultiSelect) {
-		//Ö»ÒªbMultiSelectÎªfalse£¬¾ÍÖ´ĞĞÈ¡ÏûÏÖÓĞ¶àÑ¡µÄÂß¼­
-		//´Ë´¦²»ÄÜÅĞ¶ÏÓëÔ­ÖµÊÇ·ñ±ä»¯À´¾ö¶¨ÊÇ·ñÖ´ĞĞÏÂÃæµÄ´úÂë£¬·ñÔò¿ÉÄÜ»áÓ°Ïì×ÓÀà£¨TreeViewµÄÂß¼­£©
+		//åªè¦bMultiSelectä¸ºfalseï¼Œå°±æ‰§è¡Œå–æ¶ˆç°æœ‰å¤šé€‰çš„é€»è¾‘
+		//æ­¤å¤„ä¸èƒ½åˆ¤æ–­ä¸åŸå€¼æ˜¯å¦å˜åŒ–æ¥å†³å®šæ˜¯å¦æ‰§è¡Œä¸‹é¢çš„ä»£ç ï¼Œå¦åˆ™å¯èƒ½ä¼šå½±å“å­ç±»ï¼ˆTreeViewçš„é€»è¾‘ï¼‰
 		if (OnSwitchToSingleSelect()) {
 			Invalidate();
 		}
@@ -1485,7 +1485,7 @@ bool ListBox::OnSwitchToSingleSelect()
 	IListBoxItem* pItem = nullptr;
 	const size_t itemCount = m_items.size();
 	if (m_iCurSel > itemCount) { 
-		//Èç¹ûµ¥Ñ¡×´Ì¬²»Í¬²½£¬Ê¹ÓÃµÚÒ»¸öÑ¡ÔñµÄ×÷Îª×îÖÕµ¥Ñ¡µÄÑ¡ÔñÏî
+		//å¦‚æœå•é€‰çŠ¶æ€ä¸åŒæ­¥ï¼Œä½¿ç”¨ç¬¬ä¸€ä¸ªé€‰æ‹©çš„ä½œä¸ºæœ€ç»ˆå•é€‰çš„é€‰æ‹©é¡¹
 		for (size_t i = 0; i < itemCount; ++i) {
 			pItem = dynamic_cast<IListBoxItem*>(m_items[i]);
 			if ((pItem != nullptr) && pItem->IsSelected()) {
@@ -1498,7 +1498,7 @@ bool ListBox::OnSwitchToSingleSelect()
 		pItem = dynamic_cast<IListBoxItem*>(m_items[i]);
 		if ((pItem != nullptr) && pItem->IsSelected()) {
 			if (m_iCurSel != i) {
-				pItem->OptionSelected(false, false); //²»´¥·¢SelectÊÂ¼ş
+				pItem->OptionSelected(false, false); //ä¸è§¦å‘Selectäº‹ä»¶
 				bChanged = true;
 			}
 		}
@@ -1511,7 +1511,7 @@ bool ListBox::OnSwitchToSingleSelect()
 
 bool ListBox::UpdateCurSelItemSelectStatus()
 {
-	//Í¬²½µ±Ç°Ñ¡ÔñÏîµÄ×´Ì¬
+	//åŒæ­¥å½“å‰é€‰æ‹©é¡¹çš„çŠ¶æ€
 	bool bChanged = false;
 	size_t curSelIndex = GetCurSel();
 	if (Box::IsValidItemIndex(curSelIndex)) {

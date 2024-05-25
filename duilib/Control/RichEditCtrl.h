@@ -17,7 +17,7 @@ namespace ui
   #define MSFTEDIT_CLASS	"RICHEDIT50W"
 #endif
 
-/** RichEdit¿Ø¼şÖ÷Òª¹¦ÄÜ·â×°£¨À´×ÔWTLÔ´Âë£©
+/** RichEditæ§ä»¶ä¸»è¦åŠŸèƒ½å°è£…ï¼ˆæ¥è‡ªWTLæºç ï¼‰
 */
 class RichEditCtrl
 {
@@ -578,7 +578,7 @@ public:
 		return (BOOL)TxSendMessage(EM_SETTYPOGRAPHYOPTIONS, wOptions, wMask);
 	}
 
-	// Operations(ÉèÖÃ×î´ó×Ö·û¸ñÊ½£¬ÓëSetLimitTextÏàÍ¬)
+	// Operations(è®¾ç½®æœ€å¤§å­—ç¬¦æ ¼å¼ï¼Œä¸SetLimitTextç›¸åŒ)
 	void LimitText(LONG nChars = 0)
 	{
 		ASSERT(m_pTextServices != nullptr);
@@ -932,7 +932,7 @@ public:
 #endif // (_RICHEDIT_VER >= 0x0800)
 
 private:
-	/** TextServices ½Ó¿Ú
+	/** TextServices æ¥å£
 	*/
 	ITextServices* m_pTextServices;
 };

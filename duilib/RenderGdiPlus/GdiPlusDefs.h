@@ -6,7 +6,7 @@
 #pragma warning(push)
 #pragma warning(disable: 4458 )
 
-//定义GDI Plus为高版本
+//瀹氫箟GDI Plus涓洪珮鐗堟湰
 #define GDIPVER 0x0110
 #include <objidl.h>
 #include <GdiPlus.h>

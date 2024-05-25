@@ -132,16 +132,16 @@ bool IconManager::LoadIconData(const std::wstring& str,
 
 	uint32_t iconWidth = nWidth;
 	uint32_t iconHeight = nHeight;
-	//´Ë´¦£ºÈç¹ûÖ»ÉèÖÃÁË¿í¶È»òÕß¸ß¶È£¬ÄÇÃ´»á°´Ëø¶¨×İºá±ÈµÄ·½Ê½¶ÔÕû¸öÍ¼Æ¬½øĞĞËõ·Å
+	//æ­¤å¤„ï¼šå¦‚æœåªè®¾ç½®äº†å®½åº¦æˆ–è€…é«˜åº¦ï¼Œé‚£ä¹ˆä¼šæŒ‰é”å®šçºµæ¨ªæ¯”çš„æ–¹å¼å¯¹æ•´ä¸ªå›¾ç‰‡è¿›è¡Œç¼©æ”¾
 	if (!loadAtrribute.CalcImageLoadSize(iconWidth, iconHeight)) {
 		iconWidth = nWidth;
 		iconHeight = nHeight;
 	}
 
-	//¼ÓÔØÍ¼Æ¬Ê±£¬°´Ğè¶ÔÍ¼Æ¬´óĞ¡½øĞĞDPI×ÔÊÊÓ¦
+	//åŠ è½½å›¾ç‰‡æ—¶ï¼ŒæŒ‰éœ€å¯¹å›¾ç‰‡å¤§å°è¿›è¡ŒDPIè‡ªé€‚åº”
 	bool bNeedDpiScale = bEnableDpiScale;
 	if (loadAtrribute.HasSrcDpiScale()) {
-		//Èç¹ûÅäÖÃÎÄ¼şÖĞÓĞÉèÖÃscaledpiÊôĞÔ£¬ÔòÒÔÅäÖÃÎÄ¼şÖĞµÄÉèÖÃÎª×¼
+		//å¦‚æœé…ç½®æ–‡ä»¶ä¸­æœ‰è®¾ç½®scaledpiå±æ€§ï¼Œåˆ™ä»¥é…ç½®æ–‡ä»¶ä¸­çš„è®¾ç½®ä¸ºå‡†
 		bNeedDpiScale = loadAtrribute.NeedDpiScale();
 	}
 	if (bNeedDpiScale && (pWindow != nullptr)) {
@@ -269,7 +269,7 @@ uint32_t IconManager::AddIcon(HICON hIcon)
 	if (id == 0) {
 
 #ifdef _DEBUG
-		//Ğ£Ñé¾ä±úµÄÓĞĞ§ĞÔ
+		//æ ¡éªŒå¥æŸ„çš„æœ‰æ•ˆæ€§
 		ScopedICONINFO iconInfo;
 		if (!::GetIconInfo(hIcon, &iconInfo)) {
 			DWORD dwLastError = ::GetLastError();

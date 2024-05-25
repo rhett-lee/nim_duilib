@@ -218,7 +218,7 @@ void TreeNode::PaintStateImages(IRender* pRender)
 {
 	__super::PaintStateImages(pRender);	
 	if (IsExpand()) {
-		//»æÖÆÕ¹¿ª×´Ì¬Í¼±ê£¬Èç¹ûÃ»ÓĞ×Ó½Úµã£¬²»»áÖ»Õâ¸öÍ¼±ê
+		//ç»˜åˆ¶å±•å¼€çŠ¶æ€å›¾æ ‡ï¼Œå¦‚æœæ²¡æœ‰å­èŠ‚ç‚¹ï¼Œä¸ä¼šåªè¿™ä¸ªå›¾æ ‡
 		if ((m_expandImage != nullptr) && !m_aTreeNodes.empty()){
 			if (m_pExpandImageRect == nullptr) {
 				m_pExpandImageRect = new UiRect;
@@ -227,7 +227,7 @@ void TreeNode::PaintStateImages(IRender* pRender)
 		}
 	}
 	else {
-		//»æÖÆÎ´Õ¹¿ª×´Ì¬Í¼±ê
+		//ç»˜åˆ¶æœªå±•å¼€çŠ¶æ€å›¾æ ‡
 		if (m_collapseImage != nullptr) {
 			if (m_pCollapseImageRect == nullptr) {
 				m_pCollapseImageRect = new UiRect;
@@ -250,9 +250,9 @@ bool TreeNode::ButtonDown(const EventArgs& msg)
 		return bRet;
 	}
 	if (IsExpand()) {
-		//Õ¹¿ª×´Ì¬
+		//å±•å¼€çŠ¶æ€
 		if ((m_expandImage != nullptr) && !m_aTreeNodes.empty()) {
-			//Èç¹ûµã»÷ÔÚÕ¹¿ªÍ¼±êÉÏ£¬ÔòÊÕÆğ
+			//å¦‚æœç‚¹å‡»åœ¨å±•å¼€å›¾æ ‡ä¸Šï¼Œåˆ™æ”¶èµ·
 			if ((m_pExpandImageRect != nullptr) && 
 				m_pExpandImageRect->ContainsPt(pt)) {
 				SetExpand(false, true);
@@ -260,9 +260,9 @@ bool TreeNode::ButtonDown(const EventArgs& msg)
 		}
 	}
 	else {
-		//Î´Õ¹¿ª×´Ì¬
+		//æœªå±•å¼€çŠ¶æ€
 		if (m_collapseImage != nullptr) {
-			//Èç¹ûµã»÷ÔÚÕ¹¿ªÍ¼±êÉÏ£¬ÔòÕ¹¿ª
+			//å¦‚æœç‚¹å‡»åœ¨å±•å¼€å›¾æ ‡ä¸Šï¼Œåˆ™å±•å¼€
 			if ((m_pCollapseImageRect != nullptr) && 
 				m_pCollapseImageRect->ContainsPt(pt)) {
 				SetExpand(true, true);
@@ -332,7 +332,7 @@ bool TreeNode::IsVisible() const
 		return false;
 	}
 	if (m_pParentTreeNode != nullptr) {
-		//Èç¹û¸¸½ÚµãÎ´Õ¹¿ª£¬»òÕß¸¸½Úµã²»¿É¼û£¬Ôò¸Ã×Ó½ÚµãÒ²²»¿É¼û
+		//å¦‚æœçˆ¶èŠ‚ç‚¹æœªå±•å¼€ï¼Œæˆ–è€…çˆ¶èŠ‚ç‚¹ä¸å¯è§ï¼Œåˆ™è¯¥å­èŠ‚ç‚¹ä¹Ÿä¸å¯è§
 		if (!m_pParentTreeNode->IsExpand() || !m_pParentTreeNode->IsVisible()) {
 			return false;
 		}
@@ -344,10 +344,10 @@ bool TreeNode::SupportCheckedMode() const
 {
 	bool bHasStateImages = HasStateImages();
 	if (!bHasStateImages || (m_pTreeView == nullptr)) {
-		//Èç¹ûÃ»ÓĞ×´Ì¬Í¼Æ¬(CheckBox´ò¹´µÄÍ¼Æ¬)£¬·µ»ØÄ¬ÈÏÖµ
+		//å¦‚æœæ²¡æœ‰çŠ¶æ€å›¾ç‰‡(CheckBoxæ‰“å‹¾çš„å›¾ç‰‡)ï¼Œè¿”å›é»˜è®¤å€¼
 		return __super::SupportCheckedMode();
 	}
-	//¶àÑ¡µÄÊ±ºò£¬Ö§³Ö; µ¥Ñ¡µÄÊ±ºò£¬²»Ö§³Ö
+	//å¤šé€‰çš„æ—¶å€™ï¼Œæ”¯æŒ; å•é€‰çš„æ—¶å€™ï¼Œä¸æ”¯æŒ
 	return m_pTreeView->IsMultiCheckMode();
 }
 
@@ -385,7 +385,7 @@ bool TreeNode::AddChildNodeAt(TreeNode* pTreeNode, const size_t iIndex)
 		return false;
 	}
 	
-	ASSERT(m_uDepth <= UINT16_MAX);//×î´óÎª65535¸ö²ã¼¶
+	ASSERT(m_uDepth <= UINT16_MAX);//æœ€å¤§ä¸º65535ä¸ªå±‚çº§
 	/*if (m_uDepth >= UINT16_MAX) {
 		return false;
 	}*/
@@ -395,40 +395,40 @@ bool TreeNode::AddChildNodeAt(TreeNode* pTreeNode, const size_t iIndex)
 	pTreeNode->SetTreeView(m_pTreeView);
 	pTreeNode->SetWindow(GetWindow());
 
-	//¼àÌıË«»÷ÊÂ¼ş£ºÓÃÓÚÕ¹¿ª×Ó½Úµã
+	//ç›‘å¬åŒå‡»äº‹ä»¶ï¼šç”¨äºå±•å¼€å­èŠ‚ç‚¹
 	pTreeNode->AttachEvent(kEventMouseDoubleClick, nbase::Bind(&TreeNode::OnDoubleClickItem, this, std::placeholders::_1));
 	
-	//¼àÌı¹´Ñ¡ÊÂ¼ş£ºÓÃÓÚ¶àÑ¡Ê±Í¬²½¹´Ñ¡×Ó½ÚµãºÍÍ¬²½¸¸½ÚµãµÄÈıÌ¬Ñ¡Ôñ×´Ì¬
+	//ç›‘å¬å‹¾é€‰äº‹ä»¶ï¼šç”¨äºå¤šé€‰æ—¶åŒæ­¥å‹¾é€‰å­èŠ‚ç‚¹å’ŒåŒæ­¥çˆ¶èŠ‚ç‚¹çš„ä¸‰æ€é€‰æ‹©çŠ¶æ€
 	pTreeNode->AttachChecked(nbase::Bind(&TreeNode::OnNodeCheckStatusChanged, this, std::placeholders::_1));
 	pTreeNode->AttachUnCheck(nbase::Bind(&TreeNode::OnNodeCheckStatusChanged, this, std::placeholders::_1));
 
 	UiPadding padding = GetPadding();
 	
 	if (m_uDepth != 0) {
-		//Èç¹ûµ±Ç°²»ÊÇ¸ù½Úµã£¨¸ù½ÚµãµÄm_uDepthÊÇ0£©£¬ĞèÒªÌí¼ÓÒ»²ãËõ½ø
+		//å¦‚æœå½“å‰ä¸æ˜¯æ ¹èŠ‚ç‚¹ï¼ˆæ ¹èŠ‚ç‚¹çš„m_uDepthæ˜¯0ï¼‰ï¼Œéœ€è¦æ·»åŠ ä¸€å±‚ç¼©è¿›
 		padding.left += m_pTreeView->GetIndent();
 	}
 	pTreeNode->SetPadding(padding, false);
 
-	//[Î´Õ¹¿ª/Õ¹¿ª]Í¼Æ¬±êÖ¾
+	//[æœªå±•å¼€/å±•å¼€]å›¾ç‰‡æ ‡å¿—
 	std::wstring expandImageClass = m_pTreeView->GetExpandImageClass();
 	pTreeNode->SetExpandImageClass(expandImageClass);
 
-	//CheckBoxÑ¡Ïî
+	//CheckBoxé€‰é¡¹
 	std::wstring checkBoxClass = m_pTreeView->GetCheckBoxClass();
 	pTreeNode->SetCheckBoxClass(checkBoxClass);
 
-	//ÊÇ·ñÏÔÊ¾Í¼±ê
+	//æ˜¯å¦æ˜¾ç¤ºå›¾æ ‡
 	pTreeNode->SetEnableIcon(m_pTreeView->IsEnableIcon());
 
-	//Ìí¼Óµ½ListBoxÈİÆ÷ÖĞ
+	//æ·»åŠ åˆ°ListBoxå®¹å™¨ä¸­
 	size_t nInsertIndex = GetDescendantNodeMaxListBoxIndex();
 	if (!Box::IsValidItemIndex(nInsertIndex)) {
-		//µÚÒ»¸ö½Úµã
+		//ç¬¬ä¸€ä¸ªèŠ‚ç‚¹
 		nInsertIndex = 0;
 	}
 	else {
-		//²»ÊÇµÚÒ»¸ö½ÚµãÊ±£¬²åÈëÎ»ÖÃĞèÒª·ÅÔÚËùÓĞ×ÓËï½ÚµãµÄºóÃæ
+		//ä¸æ˜¯ç¬¬ä¸€ä¸ªèŠ‚ç‚¹æ—¶ï¼Œæ’å…¥ä½ç½®éœ€è¦æ”¾åœ¨æ‰€æœ‰å­å­™èŠ‚ç‚¹çš„åé¢
 		nInsertIndex += 1;
 	}
 	ASSERT(nInsertIndex <= m_pTreeView->ListBox::GetItemCount());
@@ -436,15 +436,15 @@ bool TreeNode::AddChildNodeAt(TreeNode* pTreeNode, const size_t iIndex)
 	bool bAdded = m_pTreeView->ListBox::AddItemAt(pTreeNode, nInsertIndex);
 	if (bAdded) {
 		if (SupportCheckedMode()) {
-			//ĞÂÌí¼ÓµÄ½Úµã×´Ì¬£¬¸úËæ¸¸½Úµã
+			//æ–°æ·»åŠ çš„èŠ‚ç‚¹çŠ¶æ€ï¼Œè·Ÿéšçˆ¶èŠ‚ç‚¹
 			pTreeNode->SetChecked(IsChecked());
-			//¸üĞÂ½ÚµãµÄ¹´Ñ¡×´Ì¬
+			//æ›´æ–°èŠ‚ç‚¹çš„å‹¾é€‰çŠ¶æ€
 			UpdateSelfCheckStatus();
 			UpdateParentCheckStatus(false);
 		}
 	}
 	else {
-		//Ìí¼ÓÊ§°ÜµÄ»°£¬ÒÆ³ı
+		//æ·»åŠ å¤±è´¥çš„è¯ï¼Œç§»é™¤
 		auto iter = std::find(m_aTreeNodes.begin(), m_aTreeNodes.end(), pTreeNode);
 		if (iter != m_aTreeNodes.end()) {
 			m_aTreeNodes.erase(iter);
@@ -486,11 +486,11 @@ void TreeNode::SetBkIcon(HICON hIcon, uint32_t nIconSize, bool bNeedDpiScale)
 	}
 	std::wstring oldIconString = GetBkImage();
 	if (iconString == oldIconString) {
-		//Ã»ÓĞ±ä»¯£¬Ö±½Ó·µ»Ø
+		//æ²¡æœ‰å˜åŒ–ï¼Œç›´æ¥è¿”å›
 		return;
 	}
 	if (!oldIconString.empty()) {
-		//¾ÉÍ¼±ê´æÔÚ£¬²¢ÇÒÍ¼±ê´óĞ¡²»Í¬£¬Ê×ÏÈÇå³ıÔ­À´µÄÍ¼±ê
+		//æ—§å›¾æ ‡å­˜åœ¨ï¼Œå¹¶ä¸”å›¾æ ‡å¤§å°ä¸åŒï¼Œé¦–å…ˆæ¸…é™¤åŸæ¥çš„å›¾æ ‡
 		SetBkImage(L"");
 		AdjustIconPadding();
 	}
@@ -498,7 +498,7 @@ void TreeNode::SetBkIcon(HICON hIcon, uint32_t nIconSize, bool bNeedDpiScale)
 	SetBkImage(iconString);
 	AdjustIconPadding();
 
-	//°´ĞèĞŞ¸ÄÊÇ·ñÏÔÊ¾Í¼±ê±êÖ¾
+	//æŒ‰éœ€ä¿®æ”¹æ˜¯å¦æ˜¾ç¤ºå›¾æ ‡æ ‡å¿—
 	if (m_pTreeView != nullptr) {
 		SetEnableIcon(m_pTreeView->IsEnableIcon());
 	}
@@ -509,11 +509,11 @@ void TreeNode::SetBkIcon(HICON hIcon, uint32_t nIconSize, bool bNeedDpiScale)
 void TreeNode::SetExpandImageClass(const std::wstring& expandClass)
 {
 	if (!expandClass.empty()) {
-		//¿ªÆôÕ¹¿ª±êÖ¾¹¦ÄÜ
+		//å¼€å¯å±•å¼€æ ‡å¿—åŠŸèƒ½
 		SetClass(expandClass);
 	}
 	else {
-		//¹Ø±ÕÕ¹¿ª±êÖ¾¹¦ÄÜ
+		//å…³é—­å±•å¼€æ ‡å¿—åŠŸèƒ½
 		m_expandImage.reset();
 		m_collapseImage.reset();
 		if (m_pExpandImageRect != nullptr) {
@@ -532,7 +532,7 @@ bool TreeNode::SetCheckBoxClass(const std::wstring& checkBoxClass)
 {
 	bool bSetOk = true;
 	if (!checkBoxClass.empty()) {
-		//¿ªÆôCheckBox¹¦ÄÜ
+		//å¼€å¯CheckBoxåŠŸèƒ½
 		SetClass(checkBoxClass);
 		if (!HasStateImage(kStateImageBk) && !HasStateImage(kStateImageSelectedBk)) {
 			ASSERT(!"TreeNode::SetCheckBoxClass failed!");
@@ -540,7 +540,7 @@ bool TreeNode::SetCheckBoxClass(const std::wstring& checkBoxClass)
 		}
 	}
 	else {
-		//¹Ø±ÕCheckBox¹¦ÄÜ
+		//å…³é—­CheckBoxåŠŸèƒ½
 		ClearStateImages();
 	}
 	AdjustCheckBoxPadding();
@@ -551,7 +551,7 @@ void TreeNode::AdjustExpandImagePadding()
 {
 	uint16_t expandPadding = ui::TruncateToUInt8(GetExpandImagePadding());
 	if (expandPadding != 0) {
-		//ÏÔÊ¾[Õ¹¿ª/ÊÕÆğ]±êÖ¾
+		//æ˜¾ç¤º[å±•å¼€/æ”¶èµ·]æ ‡å¿—
 		if (m_expandCheckBoxPadding == 0) {
 			int32_t leftOffset = (int32_t)expandPadding;
 			if (AdjustStateImagesPaddingLeft(leftOffset, false)) {
@@ -559,12 +559,12 @@ void TreeNode::AdjustExpandImagePadding()
 			}
 		}
 		else if (!HasStateImage(kStateImageBk)) {
-			//CheckBoxÍ¼±êÒÑ¾­Òş²Ø
+			//CheckBoxå›¾æ ‡å·²ç»éšè—
 			m_expandCheckBoxPadding = 0;
 		}
 
 		if (m_expandIconPadding == 0) {
-			//ÓĞCheckBox×´Ì¬Í¼Æ¬, ĞèÒªÉèÖÃ±³¾°Í¼Æ¬µÄÄÚ±ß¾à£¬±ÜÃâÁ½¸öÍ¼Æ¬ÖØµş
+			//æœ‰CheckBoxçŠ¶æ€å›¾ç‰‡, éœ€è¦è®¾ç½®èƒŒæ™¯å›¾ç‰‡çš„å†…è¾¹è·ï¼Œé¿å…ä¸¤ä¸ªå›¾ç‰‡é‡å 
 			UiPadding rcBkPadding = GetBkImagePadding();
 			rcBkPadding.left += expandPadding;
 			if (SetBkImagePadding(rcBkPadding, false)) {
@@ -573,7 +573,7 @@ void TreeNode::AdjustExpandImagePadding()
 		}
 
 		if (m_expandTextPadding == 0) {
-			//ÉèÖÃÎÄ×ÖµÄÄÚ±ß¾à
+			//è®¾ç½®æ–‡å­—çš„å†…è¾¹è·
 			UiPadding rcTextPadding = GetTextPadding();
 			rcTextPadding.left += expandPadding;
 			SetTextPadding(rcTextPadding, false);
@@ -581,7 +581,7 @@ void TreeNode::AdjustExpandImagePadding()
 		}
 	}
 	else {
-		//²»ÏÔÊ¾[Õ¹¿ª/ÊÕÆğ]±êÖ¾
+		//ä¸æ˜¾ç¤º[å±•å¼€/æ”¶èµ·]æ ‡å¿—
 		if (m_expandCheckBoxPadding > 0) {
 			int32_t leftOffset = -(int32_t)m_expandCheckBoxPadding;
 			AdjustStateImagesPaddingLeft(leftOffset, false);
@@ -611,7 +611,7 @@ void TreeNode::AdjustExpandImagePadding()
 void TreeNode::AdjustCheckBoxPadding()
 {
 	if (HasStateImage(kStateImageBk)) {
-		//ÏÔÊ¾CheckBox
+		//æ˜¾ç¤ºCheckBox
 		uint16_t extraPadding = GetCheckBoxIndent();
 		UiSize imageSize = GetStateImageSize(kStateImageBk, kControlStateNormal);
 		uint16_t checkBoxPadding = TruncateToUInt16(imageSize.cx);
@@ -620,7 +620,7 @@ void TreeNode::AdjustCheckBoxPadding()
 		}
 		
 		if ((checkBoxPadding > 0) && (m_checkBoxIconPadding == 0)){
-			//ÓĞCheckBox×´Ì¬Í¼Æ¬, ĞèÒªÉèÖÃ±³¾°Í¼Æ¬µÄÄÚ±ß¾à£¬±ÜÃâÁ½¸öÍ¼Æ¬ÖØµş
+			//æœ‰CheckBoxçŠ¶æ€å›¾ç‰‡, éœ€è¦è®¾ç½®èƒŒæ™¯å›¾ç‰‡çš„å†…è¾¹è·ï¼Œé¿å…ä¸¤ä¸ªå›¾ç‰‡é‡å 
 			UiPadding rcBkPadding = GetBkImagePadding();
 			rcBkPadding.left += checkBoxPadding;
 			if (SetBkImagePadding(rcBkPadding, false)) {
@@ -629,7 +629,7 @@ void TreeNode::AdjustCheckBoxPadding()
 		}
 
 		if ((checkBoxPadding > 0) && (m_checkBoxTextPadding == 0)) {
-			//ÉèÖÃÎÄ×ÖµÄÄÚ±ß¾à
+			//è®¾ç½®æ–‡å­—çš„å†…è¾¹è·
 			UiPadding rcTextPadding = GetTextPadding();
 			rcTextPadding.left += checkBoxPadding;
 			SetTextPadding(rcTextPadding, false);
@@ -637,7 +637,7 @@ void TreeNode::AdjustCheckBoxPadding()
 		}
 	}
 	else {
-		//Òş²ØCheckBox
+		//éšè—CheckBox
 		if (m_checkBoxIconPadding > 0) {
 			UiPadding rcBkPadding = GetBkImagePadding();
 			rcBkPadding.left -= (int32_t)m_checkBoxIconPadding;
@@ -662,11 +662,11 @@ void TreeNode::AdjustIconPadding()
 {
 	std::wstring iconString = GetBkImagePath();
 	if (!IsBkImagePaintEnabled()) {
-		//½ûÖ¹»æÖÆÍ¼±ê
+		//ç¦æ­¢ç»˜åˆ¶å›¾æ ‡
 		iconString.clear();
 	}
 	if (!iconString.empty()) {
-		//ÏÔÊ¾Í¼±ê
+		//æ˜¾ç¤ºå›¾æ ‡
 		if (m_iconTextPadding == 0) {
 			const uint16_t extraPadding = GetIconIndent();
 			UiSize imageSize = GetBkImageSize();
@@ -675,7 +675,7 @@ void TreeNode::AdjustIconPadding()
 				iconTextPadding += extraPadding;
 			}
 			if (iconTextPadding > 0) {
-				//ÉèÖÃÎÄ×ÖµÄÄÚ±ß¾à
+				//è®¾ç½®æ–‡å­—çš„å†…è¾¹è·
 				UiPadding rcTextPadding = GetTextPadding();
 				rcTextPadding.left += iconTextPadding;
 				SetTextPadding(rcTextPadding, false);
@@ -684,7 +684,7 @@ void TreeNode::AdjustIconPadding()
 		}
 	}
 	else {
-		//Òş²ØÍ¼±ê
+		//éšè—å›¾æ ‡
 		if (m_iconTextPadding > 0) {
 			UiPadding rcTextPadding = GetTextPadding();
 			rcTextPadding.left -= (int32_t)m_iconTextPadding;
@@ -708,7 +708,7 @@ void TreeNode::SetEnableIcon(bool bEnable)
 void TreeNode::SetChildrenCheckStatus(bool bChecked)
 {
 	if (!SupportCheckedMode()) {
-		//µ¥Ñ¡»òÕß²»ÏÔÊ¾CheckBox£ººöÂÔ
+		//å•é€‰æˆ–è€…ä¸æ˜¾ç¤ºCheckBoxï¼šå¿½ç•¥
 		return;
 	}
 	for (TreeNode* pTreeNode : m_aTreeNodes) {
@@ -722,7 +722,7 @@ void TreeNode::SetChildrenCheckStatus(bool bChecked)
 void TreeNode::UpdateParentCheckStatus(bool bUpdateSelf)
 {
 	if (!SupportCheckedMode()) {
-		//µ¥Ñ¡»òÕß²»ÏÔÊ¾CheckBox£ººöÂÔ
+		//å•é€‰æˆ–è€…ä¸æ˜¾ç¤ºCheckBoxï¼šå¿½ç•¥
 		return;
 	}
 	if (bUpdateSelf) {
@@ -736,24 +736,24 @@ void TreeNode::UpdateParentCheckStatus(bool bUpdateSelf)
 void TreeNode::UpdateSelfCheckStatus()
 {
 	if (!SupportCheckedMode()) {
-		//µ¥Ñ¡»òÕß²»ÏÔÊ¾CheckBox£ººöÂÔ
+		//å•é€‰æˆ–è€…ä¸æ˜¾ç¤ºCheckBoxï¼šå¿½ç•¥
 		return;
 	}
 	bool bChecked = IsChecked();
-	TreeNodeCheck nodeCheck = GetChildrenCheckStatus();//¸ù¾İ×Ó½ÚµãµÄÑ¡Ôñ×´Ì¬£¬ĞŞ¸Äµ±Ç°½ÚµãµÄÑ¡Ôñ×´Ì¬
+	TreeNodeCheck nodeCheck = GetChildrenCheckStatus();//æ ¹æ®å­èŠ‚ç‚¹çš„é€‰æ‹©çŠ¶æ€ï¼Œä¿®æ”¹å½“å‰èŠ‚ç‚¹çš„é€‰æ‹©çŠ¶æ€
 	if (nodeCheck == TreeNodeCheck::UnCheck) {
 		if (!bChecked) {
 			return;
 		}
 		else {
-			//¸üĞÂÎª£ºTreeNodeCheck::UnCheck
+			//æ›´æ–°ä¸ºï¼šTreeNodeCheck::UnCheck
 			SetChecked(false);
 			SetPartSelected(false);
 			Invalidate();
 		}
 	}
 	else if (nodeCheck == TreeNodeCheck::CheckedAll) {
-		//¸üĞÂÎª£ºTreeNodeCheck::CheckedAll
+		//æ›´æ–°ä¸ºï¼šTreeNodeCheck::CheckedAll
 		if (bChecked) {
 			if (IsPartSelected()) {
 				SetPartSelected(false);
@@ -767,7 +767,7 @@ void TreeNode::UpdateSelfCheckStatus()
 		}
 	}
 	else if (nodeCheck == TreeNodeCheck::CheckedPart) {
-		//¸üĞÂÎª£ºTreeNodeCheck::CheckedPart
+		//æ›´æ–°ä¸ºï¼šTreeNodeCheck::CheckedPart
 		SetChecked(true);
 		SetPartSelected(true);
 		Invalidate();
@@ -777,11 +777,11 @@ void TreeNode::UpdateSelfCheckStatus()
 TreeNodeCheck TreeNode::GetCheckStatus(void) const
 {
 	if (!SupportCheckedMode()) {
-		//µ¥Ñ¡»òÕß²»ÏÔÊ¾CheckBox£ºÖ»°´µ±Ç°½Úµã×´Ì¬ÅĞ¶Ï½á¹û
+		//å•é€‰æˆ–è€…ä¸æ˜¾ç¤ºCheckBoxï¼šåªæŒ‰å½“å‰èŠ‚ç‚¹çŠ¶æ€åˆ¤æ–­ç»“æœ
 		return IsSelected() ? TreeNodeCheck::CheckedAll : TreeNodeCheck::UnCheck;
 	}
 
-	//¶àÑ¡
+	//å¤šé€‰
 	bool bChecked = IsChecked();
 	for (TreeNode* pTreeNode : m_aTreeNodes) {
 		if (pTreeNode == nullptr) {
@@ -820,15 +820,15 @@ TreeNodeCheck TreeNode::GetCheckStatus(void) const
 TreeNodeCheck TreeNode::GetChildrenCheckStatus(void) const
 {
 	if (!SupportCheckedMode()) {
-		//µ¥Ñ¡»òÕß²»ÏÔÊ¾CheckBox£ºÖ»°´µ±Ç°½Úµã×´Ì¬ÅĞ¶Ï½á¹û
+		//å•é€‰æˆ–è€…ä¸æ˜¾ç¤ºCheckBoxï¼šåªæŒ‰å½“å‰èŠ‚ç‚¹çŠ¶æ€åˆ¤æ–­ç»“æœ
 		return IsSelected() ? TreeNodeCheck::CheckedAll : TreeNodeCheck::UnCheck;
 	}
 
 	if (m_aTreeNodes.empty()) {
-		//Ã»ÓĞ×Ó½Úµã£º·µ»Øµ±Ç°½ÚµãµÄ×´Ì¬
+		//æ²¡æœ‰å­èŠ‚ç‚¹ï¼šè¿”å›å½“å‰èŠ‚ç‚¹çš„çŠ¶æ€
 		return IsChecked() ? TreeNodeCheck::CheckedAll : TreeNodeCheck::UnCheck;
 	}
-	//¶àÑ¡: ÏÈÉ¨ÃèÒ»¼¶×Ó½Úµã
+	//å¤šé€‰: å…ˆæ‰«æä¸€çº§å­èŠ‚ç‚¹
 	bool bLastChecked = false;
 	bool bSetLastChecked = false;
 	for (TreeNode* pTreeNode : m_aTreeNodes) {
@@ -847,14 +847,14 @@ TreeNodeCheck TreeNode::GetChildrenCheckStatus(void) const
 		}		
 	}
 
-	//ÔÙÉ¨Ãè¶à¼¶×Ó½Úµã
+	//å†æ‰«æå¤šçº§å­èŠ‚ç‚¹
 	TreeNodeCheck lastChildCheck = TreeNodeCheck::UnCheck;
 	bool bSetLastChildCheck = false;
 	for (TreeNode* pTreeNode : m_aTreeNodes) {
 		if (pTreeNode == nullptr){
 			continue;
 		}
-		TreeNodeCheck childSelect = pTreeNode->GetCheckStatus();//»ñÈ¡°üº¬×ÔÉí/×Ó½ÚµãµÄ¹´Ñ¡×´Ì¬
+		TreeNodeCheck childSelect = pTreeNode->GetCheckStatus();//è·å–åŒ…å«è‡ªèº«/å­èŠ‚ç‚¹çš„å‹¾é€‰çŠ¶æ€
 		if (childSelect == TreeNodeCheck::CheckedPart) {
 			return TreeNodeCheck::CheckedPart;
 		}
@@ -869,7 +869,7 @@ TreeNodeCheck TreeNode::GetChildrenCheckStatus(void) const
 		}
 	}
 
-	//Èç¹û×´Ì¬¶¼Ò»Ñù£¬·µ»ØµÚÒ»¸ö×Ó½ÚµãµÄ×´Ì¬
+	//å¦‚æœçŠ¶æ€éƒ½ä¸€æ ·ï¼Œè¿”å›ç¬¬ä¸€ä¸ªå­èŠ‚ç‚¹çš„çŠ¶æ€
 	TreeNode* pTreeNode = m_aTreeNodes.front();
 	if (pTreeNode != nullptr) {
 		return pTreeNode->IsChecked() ? TreeNodeCheck::CheckedAll : TreeNodeCheck::UnCheck;
@@ -893,7 +893,7 @@ bool TreeNode::RemoveChildNodeAt(size_t iIndex, bool bUpdateCheckStatus)
 		bRemoved = pTreeNode->RemoveSelf();
 	}
 	if (bUpdateCheckStatus && SupportCheckedMode()) {
-		//¸üĞÂ½ÚµãµÄ¹´Ñ¡×´Ì¬
+		//æ›´æ–°èŠ‚ç‚¹çš„å‹¾é€‰çŠ¶æ€
 		UpdateSelfCheckStatus();
 		UpdateParentCheckStatus(false);
 	}
@@ -931,7 +931,7 @@ bool TreeNode::RemoveSelf()
 	}
 	m_aTreeNodes.clear();
 
-	//´ÓListBoxÖĞÒÆ³ıÔªËØ
+	//ä»ListBoxä¸­ç§»é™¤å…ƒç´ 
 	bool bRemoved = false;
 	size_t nListBoxIndex = GetListBoxIndex();
 	if (Box::IsValidItemIndex(nListBoxIndex)) {
@@ -1025,7 +1025,7 @@ TreeView::TreeView(Window* pWindow) :
 	m_bMultiCheckMode = __super::IsMultiSelect();
 	m_rootNode.reset(new TreeNode(pWindow));
 	m_rootNode->SetTreeView(this);
-	//Ëõ½øÄ¬ÈÏÉèÖÃÎª20¸öÏñËØ
+	//ç¼©è¿›é»˜è®¤è®¾ç½®ä¸º20ä¸ªåƒç´ 
 	SetIndent(20, true);
 }
 
@@ -1039,25 +1039,25 @@ std::wstring TreeView::GetType() const { return DUI_CTR_TREEVIEW; }
 
 void TreeView::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
-	//Ö§³ÖµÄÊôĞÔÁĞ±í: »ùÀàÊµÏÖµÄÖ±½Ó×ª·¢
+	//æ”¯æŒçš„å±æ€§åˆ—è¡¨: åŸºç±»å®ç°çš„ç›´æ¥è½¬å‘
 	if (strName == L"indent") {
-		//Ê÷½ÚµãµÄËõ½ø£¨Ã¿²ã½ÚµãËõ½øÒ»¸öindentµ¥Î»£©
+		//æ ‘èŠ‚ç‚¹çš„ç¼©è¿›ï¼ˆæ¯å±‚èŠ‚ç‚¹ç¼©è¿›ä¸€ä¸ªindentå•ä½ï¼‰
 		SetIndent(_wtoi(strValue.c_str()), true);
 	}
 	else if (strName == L"multi_select") {
-		//¶àÑ¡£¬Ä¬ÈÏÊÇµ¥Ñ¡£¬ÔÚ»ùÀàÊµÏÖ
+		//å¤šé€‰ï¼Œé»˜è®¤æ˜¯å•é€‰ï¼Œåœ¨åŸºç±»å®ç°
 		SetMultiSelect(strValue == L"true");
 	}
 	else if (strName == L"check_box_class") {
-		//ÊÇ·ñÏÔÊ¾CheckBox
+		//æ˜¯å¦æ˜¾ç¤ºCheckBox
 		SetCheckBoxClass(strValue);
 	}
 	else if (strName == L"expand_image_class") {
-		//ÊÇ·ñÏÔÊ¾[Õ¹¿ª/ÊÕÆğ]Í¼±ê
+		//æ˜¯å¦æ˜¾ç¤º[å±•å¼€/æ”¶èµ·]å›¾æ ‡
 		SetExpandImageClass(strValue);
 	}
 	else if (strName == L"show_icon") {
-		//ÊÇ·ñÏÔÊ¾Í¼±ê
+		//æ˜¯å¦æ˜¾ç¤ºå›¾æ ‡
 		SetEnableIcon(strValue == L"true");
 	}
 	else {
@@ -1081,7 +1081,7 @@ void TreeView::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
 bool TreeView::IsMultiSelect() const
 {
 	if (!m_checkBoxClass.empty()) {
-		//Èç¹ûÏÔÊ¾CheckBox£¬ÒÔCheckÄ£Ê½Îª×¼, ¶ÔÓÚÊ÷µÄÑ¡Ôñ×´Ì¬£¬°´µ¥Ñ¡´¦Àí
+		//å¦‚æœæ˜¾ç¤ºCheckBoxï¼Œä»¥Checkæ¨¡å¼ä¸ºå‡†, å¯¹äºæ ‘çš„é€‰æ‹©çŠ¶æ€ï¼ŒæŒ‰å•é€‰å¤„ç†
 		if (IsMultiCheckMode()) {
 			return false;
 		}		
@@ -1102,26 +1102,26 @@ void TreeView::SetMultiSelect(bool bMultiSelect)
 
 	bool isChanged = false;
 	if (IsMultiCheckMode()) {
-		//ÇĞ»»µ½£ºCheckÄ£Ê½£¨¼´CheckBoxÏÔÊ¾µÄÇé¿ö£©
+		//åˆ‡æ¢åˆ°ï¼šCheckæ¨¡å¼ï¼ˆå³CheckBoxæ˜¾ç¤ºçš„æƒ…å†µï¼‰
 		if (OnCheckBoxShown()) {
 			isChanged = true;
 		}
 	}
 	else if (IsMultiSelect()) {
-		//ÇĞ»»µ½¶àÑ¡Ä£Ê½£¨¼´CheckBox±»Òş²ØµÄÇé¿ö£©
+		//åˆ‡æ¢åˆ°å¤šé€‰æ¨¡å¼ï¼ˆå³CheckBoxè¢«éšè—çš„æƒ…å†µï¼‰
 		if (OnCheckBoxHided()) {
 			isChanged = true;
 		}
 	}
 	else {
-		//ÇĞ»»µ½µ¥Ñ¡Ä£Ê½
+		//åˆ‡æ¢åˆ°å•é€‰æ¨¡å¼
 		if (bOldCheckMode) {
-			//´ÓCheckÄ£Ê½ÇĞ»»µ½µ¥Ñ¡£ºĞèÒªÏÈÍ¬²½µ±Ç°Ñ¡ÔñÏî£¬±ÜÃâ³öÏÖÇĞ»»ºóÑ¡ÔñÏî²»Ò»ÖÂÎÊÌâ£¨Ã»ÓĞ¹´Ñ¡µÄ£¬±ä³ÉÁËµ±Ç°Ñ¡ÔñÏî£©
+			//ä»Checkæ¨¡å¼åˆ‡æ¢åˆ°å•é€‰ï¼šéœ€è¦å…ˆåŒæ­¥å½“å‰é€‰æ‹©é¡¹ï¼Œé¿å…å‡ºç°åˆ‡æ¢åé€‰æ‹©é¡¹ä¸ä¸€è‡´é—®é¢˜ï¼ˆæ²¡æœ‰å‹¾é€‰çš„ï¼Œå˜æˆäº†å½“å‰é€‰æ‹©é¡¹ï¼‰
 			if (UpdateCurSelItemCheckStatus()) {
 				isChanged = true;
 			}
 		}
-		//ÇĞ»»Îªµ¥Ñ¡Ä£Ê½£ºÈ·±£ListBoxÀïÃæµÄÊı¾İÊÇµ¥Ñ¡µÄ
+		//åˆ‡æ¢ä¸ºå•é€‰æ¨¡å¼ï¼šç¡®ä¿ListBoxé‡Œé¢çš„æ•°æ®æ˜¯å•é€‰çš„
 		if (OnSwitchToSingleSelect()) {
 			isChanged = true;
 		}
@@ -1143,7 +1143,7 @@ bool TreeView::IsMultiCheckMode() const
 bool TreeView::CanPaintSelectedColors(bool bHasStateImages) const
 {
 	if (bHasStateImages && IsMultiCheckMode()) {
-		//Èç¹ûÓĞCheckBox£¬CheckÄ£Ê½µÄÊ±ºò£¬Ä¬ÈÏ²»ÏÔÊ¾Ñ¡Ôñ±³¾°É«
+		//å¦‚æœæœ‰CheckBoxï¼ŒCheckæ¨¡å¼çš„æ—¶å€™ï¼Œé»˜è®¤ä¸æ˜¾ç¤ºé€‰æ‹©èƒŒæ™¯è‰²
 		return false;
 	}
 	return __super::CanPaintSelectedColors(bHasStateImages);
@@ -1156,14 +1156,14 @@ bool TreeView::OnSwitchToSingleSelect()
 	if (IsMultiCheckMode()) {
 		return bChanged;
 	}
-	//ÒÑ¾­ÇĞ»»Îªµ¥Ñ¡
+	//å·²ç»åˆ‡æ¢ä¸ºå•é€‰
 	TreeNode* pItem = nullptr;
 	const size_t itemCount = m_items.size();
 	for (size_t i = 0; i < itemCount; ++i) {
 		pItem = dynamic_cast<TreeNode*>(m_items[i]);
 		if ((pItem != nullptr) && pItem->IsChecked()) {
 			if (GetCurSel() != i) {
-				//¸ÄÎªµ¥Ñ¡ºó£¬Èç¹û²»ÊÇµ±Ç°Ñ¡ÔñÏî£¬Checked±êÖ¾È«²¿¸ÄÎªfalse
+				//æ”¹ä¸ºå•é€‰åï¼Œå¦‚æœä¸æ˜¯å½“å‰é€‰æ‹©é¡¹ï¼ŒCheckedæ ‡å¿—å…¨éƒ¨æ”¹ä¸ºfalse
 				pItem->SetChecked(false, false);
 				pItem->Invalidate();
 				bChanged = true;
@@ -1175,7 +1175,7 @@ bool TreeView::OnSwitchToSingleSelect()
 
 bool TreeView::UpdateCurSelItemCheckStatus()
 {
-	//ÒÔCheck¹´Ñ¡ÏîÎª×¼£¬ÉèÖÃµ±Ç°Ñ¡ÔñÏî
+	//ä»¥Checkå‹¾é€‰é¡¹ä¸ºå‡†ï¼Œè®¾ç½®å½“å‰é€‰æ‹©é¡¹
 	bool bChanged = false;
 	size_t curSelIndex = GetCurSel();
 	if (Box::IsValidItemIndex(curSelIndex)) {
@@ -1199,7 +1199,7 @@ bool TreeView::UpdateCurSelItemCheckStatus()
 bool TreeView::OnCheckBoxHided()
 {
 	ASSERT(IsMultiSelect() && !IsMultiCheckMode());
-	//Í¬²½·½Ïò: Check -> Select
+	//åŒæ­¥æ–¹å‘: Check -> Select
 	if (m_items.empty()) {
 		return false;
 	}
@@ -1211,20 +1211,20 @@ bool TreeView::OnCheckBoxHided()
 		if (pItem == nullptr) {
 			continue;
 		}
-		//Í¬²½CheckºÍSelect±êÖ¾
+		//åŒæ­¥Checkå’ŒSelectæ ‡å¿—
 		if (pItem->IsSelected() != pItem->IsChecked()) {
 			pItem->SetSelected(pItem->IsChecked());
 			pItem->Invalidate();
 			isChaned = true;
 		}
 		if (pItem->IsChecked()) {
-			//CheckÈ«²¿¸ÄÎªfalse
+			//Checkå…¨éƒ¨æ”¹ä¸ºfalse
 			pItem->SetChecked(false);
 			pItem->Invalidate();
 			isChaned = true;
 		}		
 	}
-	//Í¬²½µ±Ç°Ñ¡ÔñÏî
+	//åŒæ­¥å½“å‰é€‰æ‹©é¡¹
 	if (UpdateCurSelItemSelectStatus()) {
 		isChaned = true;
 	}
@@ -1234,7 +1234,7 @@ bool TreeView::OnCheckBoxHided()
 bool TreeView::OnCheckBoxShown()
 {
 	ASSERT(IsMultiCheckMode());
-	//Í¬²½·½Ïò: Select -> Check
+	//åŒæ­¥æ–¹å‘: Select -> Check
 	if (m_items.empty()) {
 		return false;
 	}
@@ -1247,14 +1247,14 @@ bool TreeView::OnCheckBoxShown()
 		if (pItem == nullptr) {
 			continue;
 		}
-		//Í¬²½SelectºÍCheck±êÖ¾
+		//åŒæ­¥Selectå’ŒCheckæ ‡å¿—
 		if (pItem->IsChecked() != pItem->IsSelected()) {
 			pItem->SetChecked(pItem->IsSelected());
 			pItem->Invalidate();
 			isChanged = true;
 		}
 		if (curSelIndex != i) {
-			//°ÑÑ¡ÔñÏîµÄ×´Ì¬È¥µô£¬ÒòÎªCheckÄ£Ê½ÏÂ£¬ListBoxµÄĞĞÎªÊÇµ¥Ñ¡ĞĞÎª
+			//æŠŠé€‰æ‹©é¡¹çš„çŠ¶æ€å»æ‰ï¼Œå› ä¸ºCheckæ¨¡å¼ä¸‹ï¼ŒListBoxçš„è¡Œä¸ºæ˜¯å•é€‰è¡Œä¸º
 			if (pItem->IsSelected()) {
 				pItem->SetSelected(false);
 				pItem->Invalidate();
@@ -1262,7 +1262,7 @@ bool TreeView::OnCheckBoxShown()
 			}
 		}
 	}
-	//Í¬²½µ±Ç°Ñ¡ÔñÏî	
+	//åŒæ­¥å½“å‰é€‰æ‹©é¡¹	
 	if (Box::IsValidItemIndex(curSelIndex)) {
 		bool bSelectItem = false;
 		pItem = dynamic_cast<TreeNode*>(GetItemAt(curSelIndex));
@@ -1274,7 +1274,7 @@ bool TreeView::OnCheckBoxShown()
 			isChanged = true;
 		}
 		else if(pItem->IsChecked()){
-			//Í¬²½¹´Ñ¡×´Ì¬
+			//åŒæ­¥å‹¾é€‰çŠ¶æ€
 			pItem->UpdateParentCheckStatus(true);
 		}
 	}
@@ -1314,7 +1314,7 @@ void TreeView::SetCheckBoxClass(const std::wstring& className)
 	}
 
 	if (!bSetOk && !hasSetOk) {
-		//ÎŞĞ§µÄÉèÖÃ
+		//æ— æ•ˆçš„è®¾ç½®
 		ASSERT(!"TreeView::SetCheckBoxClass failed!");
 		m_checkBoxClass.clear();
 		if (oldCheckBoxClass == m_checkBoxClass) {
@@ -1324,38 +1324,38 @@ void TreeView::SetCheckBoxClass(const std::wstring& className)
 
 	bool isChanged = false;
 	if (m_checkBoxClass.empty()) {
-		//´ÓÏÔÊ¾CheckBoxµ½Òş²ØCheckBox£ºÓĞÁ½ÖÖÄ£Ê½ĞèÒª´¦Àí£¨¶àÑ¡Ä£Ê½¡¢µ¥Ñ¡Ä£Ê½£©
-		//ĞèÒªÏÈÍ¬²½µ±Ç°Ñ¡ÔñÏî£¬±ÜÃâ³öÏÖÇĞ»»ºóÑ¡ÔñÏî²»Ò»ÖÂÎÊÌâ£¨Ã»ÓĞ¹´Ñ¡µÄ£¬±ä³ÉÁËµ±Ç°Ñ¡ÔñÏî£©
+		//ä»æ˜¾ç¤ºCheckBoxåˆ°éšè—CheckBoxï¼šæœ‰ä¸¤ç§æ¨¡å¼éœ€è¦å¤„ç†ï¼ˆå¤šé€‰æ¨¡å¼ã€å•é€‰æ¨¡å¼ï¼‰
+		//éœ€è¦å…ˆåŒæ­¥å½“å‰é€‰æ‹©é¡¹ï¼Œé¿å…å‡ºç°åˆ‡æ¢åé€‰æ‹©é¡¹ä¸ä¸€è‡´é—®é¢˜ï¼ˆæ²¡æœ‰å‹¾é€‰çš„ï¼Œå˜æˆäº†å½“å‰é€‰æ‹©é¡¹ï¼‰
 		if (UpdateCurSelItemCheckStatus()) {
 			isChanged = true;
 		}
 		if (IsMultiSelect()) {
-			//ÇĞ»»Îª¶àÑ¡Ä£Ê½
+			//åˆ‡æ¢ä¸ºå¤šé€‰æ¨¡å¼
 			if (OnCheckBoxHided()) {
 				isChanged = true;
 			}
 		}
 		else {
-			//ÇĞ»»Îªµ¥Ñ¡Ä£Ê½£ºÈ·±£ListBoxÀïÃæµÄÊı¾İÊÇµ¥Ñ¡µÄ
+			//åˆ‡æ¢ä¸ºå•é€‰æ¨¡å¼ï¼šç¡®ä¿ListBoxé‡Œé¢çš„æ•°æ®æ˜¯å•é€‰çš„
 			if (OnSwitchToSingleSelect()) {
 				isChanged = true;
 			}
 		}
 	}
 	else {
-		//´ÓÒş²ØCheckBoxÇĞ»»ÎªÏÔÊ¾CheckBox£ºÓĞÁ½ÖÖÄ£Ê½ĞèÒª´¦Àí£¨CheckÄ£Ê½¡¢µ¥Ñ¡Ä£Ê½£©
+		//ä»éšè—CheckBoxåˆ‡æ¢ä¸ºæ˜¾ç¤ºCheckBoxï¼šæœ‰ä¸¤ç§æ¨¡å¼éœ€è¦å¤„ç†ï¼ˆCheckæ¨¡å¼ã€å•é€‰æ¨¡å¼ï¼‰
 		if (IsMultiCheckMode()) {
-			//CheckÄ£Ê½£¨¼´CheckBoxÏÔÊ¾µÄÇé¿ö£©
+			//Checkæ¨¡å¼ï¼ˆå³CheckBoxæ˜¾ç¤ºçš„æƒ…å†µï¼‰
 			isChanged = OnCheckBoxShown();
 		}
 		else if(!IsMultiSelect()) {
-			//µ¥Ñ¡Ä£Ê½£ºÈ·±£ListBoxÀïÃæµÄÊı¾İÊÇµ¥Ñ¡µÄ
+			//å•é€‰æ¨¡å¼ï¼šç¡®ä¿ListBoxé‡Œé¢çš„æ•°æ®æ˜¯å•é€‰çš„
 			if (OnSwitchToSingleSelect()) {
 				isChanged = true;
 			}
 		}
 		else {
-			//²»´æÔÚÕâ¸öÇé¿ö
+			//ä¸å­˜åœ¨è¿™ä¸ªæƒ…å†µ
 			ASSERT(!"ERROR!");
 		}
 	}
@@ -1414,7 +1414,7 @@ bool TreeView::InsertControlBeforeNode(TreeNode* pTreeNode, Control* pControl)
 	}
 	bool bAdded = false;
 	if (dynamic_cast<TreeNode*>(pControl) != nullptr) {
-		//²»ÔÊĞíÍ¨¹ı¸Ã½Ó¿ÚÌí¼ÓÊ÷½Úµã
+		//ä¸å…è®¸é€šè¿‡è¯¥æ¥å£æ·»åŠ æ ‘èŠ‚ç‚¹
 		return false;
 	}
 	size_t iIndex = pTreeNode->GetListBoxIndex();
@@ -1431,7 +1431,7 @@ bool TreeView::RemoveControl(Control* pControl)
 	}
 	bool bRemoved = false;
 	if (dynamic_cast<TreeNode*>(pControl) != nullptr) {
-		//²»ÔÊĞíÍ¨¹ı¸Ã½Ó¿ÚÒÆ³ıÊ÷½Úµã
+		//ä¸å…è®¸é€šè¿‡è¯¥æ¥å£ç§»é™¤æ ‘èŠ‚ç‚¹
 		return false;
 	}
 	bRemoved = ListBox::RemoveItem(pControl);
@@ -1485,16 +1485,16 @@ void TreeView::OnNodeCheckStatusChanged(TreeNode* pTreeNode)
 		return;
 	}
 	if (!pTreeNode->SupportCheckedMode()) {
-		//µ¥Ñ¡»òÕß²»ÏÔÊ¾CheckBox£ºÖ±½Ó·µ»Ø
+		//å•é€‰æˆ–è€…ä¸æ˜¾ç¤ºCheckBoxï¼šç›´æ¥è¿”å›
 		return;
 	}
 
-	//¶àÑ¡
+	//å¤šé€‰
 	bool isChecked = pTreeNode->IsChecked();
-	//Í¬²½×Ó½ÚµãµÄ¹´Ñ¡×´Ì¬£º¸úËæµ±Ç°½Úµã
+	//åŒæ­¥å­èŠ‚ç‚¹çš„å‹¾é€‰çŠ¶æ€ï¼šè·Ÿéšå½“å‰èŠ‚ç‚¹
 	pTreeNode->SetChildrenCheckStatus(isChecked);
 
-	//Í¬²½¸¸½ÚµãµÄ¹´Ñ¡×´Ì¬
+	//åŒæ­¥çˆ¶èŠ‚ç‚¹çš„å‹¾é€‰çŠ¶æ€
 	pTreeNode->UpdateParentCheckStatus(false);
 }
 

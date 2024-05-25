@@ -8,24 +8,24 @@
 
 namespace ui 
 {
-/** ×ÊÔ´µÄÀàÐÍ
+/** èµ„æºçš„ç±»åž‹
 */
 enum class ResourceType
 {
-	/** ±¾µØÎÄ¼þµÄÐÎÊ½£¬ËùÓÐ×ÊÔ´¶¼ÒÑ±¾µØÎÄ¼þµÄÐÎÊ½´æÔÚ
+	/** æœ¬åœ°æ–‡ä»¶çš„å½¢å¼ï¼Œæ‰€æœ‰èµ„æºéƒ½å·²æœ¬åœ°æ–‡ä»¶çš„å½¢å¼å­˜åœ¨
 	*/
 	kLocalFiles,
 
-	/** ×ÊÔ´ÎÄ¼þ´ò°üÎªzipÑ¹Ëõ°ü£¬È»ºóÒÔ±¾µØÎÄ¼þµÄÐÎÊ½´æÔÚ
+	/** èµ„æºæ–‡ä»¶æ‰“åŒ…ä¸ºzipåŽ‹ç¼©åŒ…ï¼Œç„¶åŽä»¥æœ¬åœ°æ–‡ä»¶çš„å½¢å¼å­˜åœ¨
 	*/
 	kZipFile,
 
-	/** ×ÊÔ´ÎÄ¼þ´ò°üÎªzipÑ¹Ëõ°ü£¬È»ºó·ÅÔÚexe/dllµÄ×ÊÔ´ÎÄ¼þÖÐ
+	/** èµ„æºæ–‡ä»¶æ‰“åŒ…ä¸ºzipåŽ‹ç¼©åŒ…ï¼Œç„¶åŽæ”¾åœ¨exe/dllçš„èµ„æºæ–‡ä»¶ä¸­
 	*/
 	kResZipFile
 };
 
-/** ¼ÓÔØÈ«¾Ö×ÊÔ´ËùÐèµÄ»ù±¾²ÎÊý£¨»ùÀà£¬Ê¹ÓÃÊ±ÐèÒªÊ¹ÓÃ×ÓÀà£¬¼ûÏÂ·½¶¨Òå£©
+/** åŠ è½½å…¨å±€èµ„æºæ‰€éœ€çš„åŸºæœ¬å‚æ•°ï¼ˆåŸºç±»ï¼Œä½¿ç”¨æ—¶éœ€è¦ä½¿ç”¨å­ç±»ï¼Œè§ä¸‹æ–¹å®šä¹‰ï¼‰
 */
 class UILIB_API ResourceParam
 {
@@ -34,42 +34,42 @@ protected:
 	~ResourceParam() { }
 
 protected:
-	/** ×ÊÔ´µÄÀàÐÍ
+	/** èµ„æºçš„ç±»åž‹
 	*/
 	ResourceType resType;
 
 public:
-	/** »ñÈ¡×ÊÔ´ÀàÐÍ
+	/** èŽ·å–èµ„æºç±»åž‹
 	*/
 	ResourceType GetResType() const { return resType; }
 
-	/** ×ÊÔ´Â·¾¶µÄËùÔÚÎ»ÖÃ
-	*   Èç¹û resType == kLocalFiles£¬ÐèÒªÉèÖÃ×ÊÔ´ËùÔÚµÄ±¾µØÂ·¾¶£¨¾ø¶ÔÂ·¾¶£©
-	*   Èç¹û resType == kZipFile »òÕß resType == kResZipFile£¬ÉèÖÃ×ÊÔ´ËùÔÚµÄÆðÊ¼Ä¿Â¼£¨Ïà¶ÔÂ·¾¶£©£¬±ÈÈç£ºL"resources\\"
+	/** èµ„æºè·¯å¾„çš„æ‰€åœ¨ä½ç½®
+	*   å¦‚æžœ resType == kLocalFilesï¼Œéœ€è¦è®¾ç½®èµ„æºæ‰€åœ¨çš„æœ¬åœ°è·¯å¾„ï¼ˆç»å¯¹è·¯å¾„ï¼‰
+	*   å¦‚æžœ resType == kZipFile æˆ–è€… resType == kResZipFileï¼Œè®¾ç½®èµ„æºæ‰€åœ¨çš„èµ·å§‹ç›®å½•ï¼ˆç›¸å¯¹è·¯å¾„ï¼‰ï¼Œæ¯”å¦‚ï¼šL"resources\\"
 	*/
 	std::wstring resourcePath;
 
 public:
-	/** Ö÷ÌâÂ·¾¶Ãû³Æ£¨Ïà¶ÔÂ·¾¶£©
+	/** ä¸»é¢˜è·¯å¾„åç§°ï¼ˆç›¸å¯¹è·¯å¾„ï¼‰
 	*/
 	std::wstring themePath = L"themes\\default";
 
-	/** ÓïÑÔÎÄ¼þËùÔÚÂ·¾¶£¬¿ÉÒÔÊÇÏà¶ÔÂ·¾¶»òÕßÊÇ¾ø¶ÔÂ·¾¶£¨¶àÓïÑÔ°æÊ±£¬ËùÓÐµÄÓïÑÔÎÄ¼þ¶¼·ÅÔÚÕâ¸öÄ¿Â¼ÖÐ£©
-	*   Èç¹ûÊÇ¾ø¶ÔÂ·¾¶£¬ÔòÔÚÕâ¸ö¾ø¶ÔÂ·¾¶ÖÐ²éÕÒÓïÑÔÎÄ¼þ
-	*   Èç¹ûÊÇÏà¶ÔÂ·¾¶£¬Ôò¸ù¾ÝresTypeºÍresourcePath¾ö¶¨µÄ×ÊÔ´Â·¾¶ÏÂ£¬°´Ïà¶ÔÂ·¾¶²éÕÒ×ÊÔ´ÎÄ¼þ
+	/** è¯­è¨€æ–‡ä»¶æ‰€åœ¨è·¯å¾„ï¼Œå¯ä»¥æ˜¯ç›¸å¯¹è·¯å¾„æˆ–è€…æ˜¯ç»å¯¹è·¯å¾„ï¼ˆå¤šè¯­è¨€ç‰ˆæ—¶ï¼Œæ‰€æœ‰çš„è¯­è¨€æ–‡ä»¶éƒ½æ”¾åœ¨è¿™ä¸ªç›®å½•ä¸­ï¼‰
+	*   å¦‚æžœæ˜¯ç»å¯¹è·¯å¾„ï¼Œåˆ™åœ¨è¿™ä¸ªç»å¯¹è·¯å¾„ä¸­æŸ¥æ‰¾è¯­è¨€æ–‡ä»¶
+	*   å¦‚æžœæ˜¯ç›¸å¯¹è·¯å¾„ï¼Œåˆ™æ ¹æ®resTypeå’ŒresourcePathå†³å®šçš„èµ„æºè·¯å¾„ä¸‹ï¼ŒæŒ‰ç›¸å¯¹è·¯å¾„æŸ¥æ‰¾èµ„æºæ–‡ä»¶
 	*/
 	std::wstring languagePath = L"lang";
 
-	/** µ±Ç°Ê¹ÓÃÓïÑÔÎÄ¼þµÄÎÄ¼þÃû£¨²»º¬Â·¾¶£©
+	/** å½“å‰ä½¿ç”¨è¯­è¨€æ–‡ä»¶çš„æ–‡ä»¶åï¼ˆä¸å«è·¯å¾„ï¼‰
 	*/
 	std::wstring languageFileName = L"zh_CN.txt";
 
-	/** È«¾Ö×ÊÔ´ÃèÊöXMLÎÄ¼þµÄÎÄ¼þÃû£¬Ä¬ÈÏÎª£º"global.xml"
+	/** å…¨å±€èµ„æºæè¿°XMLæ–‡ä»¶çš„æ–‡ä»¶åï¼Œé»˜è®¤ä¸ºï¼š"global.xml"
 	*/
 	std::wstring globalXmlFileName = L"global.xml";
 };
 
-/** ¼ÓÔØÈ«¾Ö×ÊÔ´ËùÐèµÄ²ÎÊý£¨±¾µØÎÄ¼þÐÎÊ½£¬¶ÔÓ¦×ÊÔ´ÀàÐÍ£ºkLocalFiles£©
+/** åŠ è½½å…¨å±€èµ„æºæ‰€éœ€çš„å‚æ•°ï¼ˆæœ¬åœ°æ–‡ä»¶å½¢å¼ï¼Œå¯¹åº”èµ„æºç±»åž‹ï¼škLocalFilesï¼‰
 */
 class UILIB_API LocalFilesResParam: public ResourceParam
 {
@@ -78,8 +78,8 @@ public:
 	{
 	}
 
-	/** ¹¹ÔìÒ»¸ö±¾µØÎÄ¼þÐÎÊ½µÄ²ÎÊý
-	* @param [in] resPath ±¾µØ×ÊÔ´ÎÄ¼þËùÔÚµÄÂ·¾¶£¨¾ø¶ÔÂ·¾¶£©
+	/** æž„é€ ä¸€ä¸ªæœ¬åœ°æ–‡ä»¶å½¢å¼çš„å‚æ•°
+	* @param [in] resPath æœ¬åœ°èµ„æºæ–‡ä»¶æ‰€åœ¨çš„è·¯å¾„ï¼ˆç»å¯¹è·¯å¾„ï¼‰
 	*/
 	explicit LocalFilesResParam(const std::wstring& resPath) : 
 		ResourceParam(ResourceType::kLocalFiles)
@@ -88,7 +88,7 @@ public:
 	}
 };
 
-/** ¼ÓÔØÈ«¾Ö×ÊÔ´ËùÐèµÄ²ÎÊý£¨ZipÑ¹Ëõ°üÎÄ¼þÐÎÊ½£¬¶ÔÓ¦×ÊÔ´ÀàÐÍ£ºkZipFile£©
+/** åŠ è½½å…¨å±€èµ„æºæ‰€éœ€çš„å‚æ•°ï¼ˆZipåŽ‹ç¼©åŒ…æ–‡ä»¶å½¢å¼ï¼Œå¯¹åº”èµ„æºç±»åž‹ï¼škZipFileï¼‰
 */
 class UILIB_API ZipFileResParam : public ResourceParam
 {
@@ -97,19 +97,19 @@ public:
 	{
 	}
 
-	/** Ñ¹Ëõ°üµÄ±¾µØÂ·¾¶£¨¾ø¶ÔÂ·¾¶£©
+	/** åŽ‹ç¼©åŒ…çš„æœ¬åœ°è·¯å¾„ï¼ˆç»å¯¹è·¯å¾„ï¼‰
 	*/
 	std::wstring zipFilePath;
 
-	/** ¿ÉÑ¡²ÎÊý£º¿ÉÒÔÉèÖÃÑ¹Ëõ°üµÄ½âÑ¹ÃÜÂë£»Èç¹ûÑ¹Ëõ°üÎÞÃÜÂë£¬²»ÐèÒªÉèÖÃ
-	*   ×¢ÒâÊÂÏî£ºÐèÒªÊ¹ÓÃ"ZIP legacy encryption"Ä£Ê½µÄÃÜÂë£¬·ñÔòÎÞ·¨½âÑ¹
+	/** å¯é€‰å‚æ•°ï¼šå¯ä»¥è®¾ç½®åŽ‹ç¼©åŒ…çš„è§£åŽ‹å¯†ç ï¼›å¦‚æžœåŽ‹ç¼©åŒ…æ— å¯†ç ï¼Œä¸éœ€è¦è®¾ç½®
+	*   æ³¨æ„äº‹é¡¹ï¼šéœ€è¦ä½¿ç”¨"ZIP legacy encryption"æ¨¡å¼çš„å¯†ç ï¼Œå¦åˆ™æ— æ³•è§£åŽ‹
 	*/
 	std::string zipPassword;
 };
 
 #ifdef UILIB_IMPL_WINSDK
 
-/** ¼ÓÔØÈ«¾Ö×ÊÔ´ËùÐèµÄ²ÎÊý£¨×ÊÔ´ÎÄ¼þ´ò°üÎªzipÑ¹Ëõ°ü£¬È»ºó·ÅÔÚexe/dllµÄ×ÊÔ´ÎÄ¼þÖÐ£¬¶ÔÓ¦×ÊÔ´ÀàÐÍ£ºkResZipFile£©
+/** åŠ è½½å…¨å±€èµ„æºæ‰€éœ€çš„å‚æ•°ï¼ˆèµ„æºæ–‡ä»¶æ‰“åŒ…ä¸ºzipåŽ‹ç¼©åŒ…ï¼Œç„¶åŽæ”¾åœ¨exe/dllçš„èµ„æºæ–‡ä»¶ä¸­ï¼Œå¯¹åº”èµ„æºç±»åž‹ï¼škResZipFileï¼‰
 */
 class UILIB_API ResZipFileResParam : public ResourceParam
 {
@@ -118,20 +118,20 @@ public:
 	{
 	}
 
-	/** ZipÑ¹Ëõ°üËùÔÚ×ÊÔ´µÄÄ£¿é¾ä±ú£¬¿ÉÒÔÎªnullptr
+	/** ZipåŽ‹ç¼©åŒ…æ‰€åœ¨èµ„æºçš„æ¨¡å—å¥æŸ„ï¼Œå¯ä»¥ä¸ºnullptr
 	*/
 	HMODULE hResModule = nullptr;
 
-	/** ZipÑ¹Ëõ°üµÄ×ÊÔ´Ãû³Æ£¬ÓÉ MAKEINTRESOURCE ºêÉú³É£¬²Î¼ûFindResourceº¯Êý
+	/** ZipåŽ‹ç¼©åŒ…çš„èµ„æºåç§°ï¼Œç”± MAKEINTRESOURCE å®ç”Ÿæˆï¼Œå‚è§FindResourceå‡½æ•°
 	*/
 	LPCTSTR resourceName = L"";
 
-	/** ZipÑ¹Ëõ°üµÄ×ÊÔ´ÀàÐÍ£¬×Ô¶¨Òåµ¼ÈëµÄ×ÊÔ´ÀàÐÍÃû³Æ£¬²Î¼ûFindResourceº¯Êý
+	/** ZipåŽ‹ç¼©åŒ…çš„èµ„æºç±»åž‹ï¼Œè‡ªå®šä¹‰å¯¼å…¥çš„èµ„æºç±»åž‹åç§°ï¼Œå‚è§FindResourceå‡½æ•°
 	*/
 	LPCTSTR resourceType = L"";
 
-	/** ¿ÉÑ¡²ÎÊý£º¿ÉÒÔÉèÖÃÑ¹Ëõ°üµÄ½âÑ¹ÃÜÂë£»Èç¹ûÑ¹Ëõ°üÎÞÃÜÂë£¬²»ÐèÒªÉèÖÃ
-	*   ×¢ÒâÊÂÏî£ºÐèÒªÊ¹ÓÃ"ZIP legacy encryption"Ä£Ê½µÄÃÜÂë£¬·ñÔòÎÞ·¨½âÑ¹
+	/** å¯é€‰å‚æ•°ï¼šå¯ä»¥è®¾ç½®åŽ‹ç¼©åŒ…çš„è§£åŽ‹å¯†ç ï¼›å¦‚æžœåŽ‹ç¼©åŒ…æ— å¯†ç ï¼Œä¸éœ€è¦è®¾ç½®
+	*   æ³¨æ„äº‹é¡¹ï¼šéœ€è¦ä½¿ç”¨"ZIP legacy encryption"æ¨¡å¼çš„å¯†ç ï¼Œå¦åˆ™æ— æ³•è§£åŽ‹
 	*/
 	std::string zipPassword;
 };

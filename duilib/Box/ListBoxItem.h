@@ -11,57 +11,57 @@ namespace ui
 {
 class IListBoxOwner;
 
-/** ListBoxItem ½Ó¿Ú
+/** ListBoxItem æ¥å£
 */
 class UILIB_API IListBoxItem
 {
 public:
 	virtual ~IListBoxItem() = default;
 
-	/** µ÷ÓÃOptionÀàµÄÑ¡Ôñº¯Êı, Ö»¸üĞÂ½çÃæµÄÑ¡Ôñ×´Ì¬
-	* @param [in] bSelected Îª true Ê±ÎªÑ¡Ôñ×´Ì¬£¬false Ê±ÎªÈ¡ÏûÑ¡Ôñ×´Ì¬
-	 * @param [in] bTriggerEvent ÊÇ·ñ·¢ËÍ×´Ì¬¸Ä±äÊÂ¼ş£¬true Îª·¢ËÍ£¬·ñÔòÎª false¡£
+	/** è°ƒç”¨Optionç±»çš„é€‰æ‹©å‡½æ•°, åªæ›´æ–°ç•Œé¢çš„é€‰æ‹©çŠ¶æ€
+	* @param [in] bSelected ä¸º true æ—¶ä¸ºé€‰æ‹©çŠ¶æ€ï¼Œfalse æ—¶ä¸ºå–æ¶ˆé€‰æ‹©çŠ¶æ€
+	 * @param [in] bTriggerEvent æ˜¯å¦å‘é€çŠ¶æ€æ”¹å˜äº‹ä»¶ï¼Œtrue ä¸ºå‘é€ï¼Œå¦åˆ™ä¸º falseã€‚
 	*/
 	virtual void OptionSelected(bool bSelect, bool bTriggerEvent) = 0;
 
-	/** ÉèÖÃÑ¡Ôñ×´Ì¬, ´¦Àí´æ´¢×´Ì¬Í¬²½£¬µ«²»´¥·¢ÈÎºÎÊÂ¼ş(ÊÊÓÃÓÚÍ¬²½×´Ì¬)
+	/** è®¾ç½®é€‰æ‹©çŠ¶æ€, å¤„ç†å­˜å‚¨çŠ¶æ€åŒæ­¥ï¼Œä½†ä¸è§¦å‘ä»»ä½•äº‹ä»¶(é€‚ç”¨äºåŒæ­¥çŠ¶æ€)
 	*/
 	virtual void SetItemSelected(bool bSelected) = 0;
 
-	/** ÅĞ¶Ïµ±Ç°ÊÇ·ñÊÇÑ¡Ôñ×´Ì¬
-	 * @return ·µ»Ø true ÎªÑ¡Ôñ×´Ì¬£¬·ñÔòÎª false
+	/** åˆ¤æ–­å½“å‰æ˜¯å¦æ˜¯é€‰æ‹©çŠ¶æ€
+	 * @return è¿”å› true ä¸ºé€‰æ‹©çŠ¶æ€ï¼Œå¦åˆ™ä¸º false
 	 */
 	virtual bool IsSelected() const = 0;
 
-	/** »ñÈ¡¸¸ÈİÆ÷
+	/** è·å–çˆ¶å®¹å™¨
 	 */
 	virtual IListBoxOwner* GetOwner() = 0;
 
-	/** ÉèÖÃ¸¸ÈİÆ÷
-	 * @param[in] pOwner ¸¸ÈİÆ÷Ö¸Õë
+	/** è®¾ç½®çˆ¶å®¹å™¨
+	 * @param[in] pOwner çˆ¶å®¹å™¨æŒ‡é’ˆ
 	 */
 	virtual void SetOwner(IListBoxOwner* pOwner) = 0;
 
-	/** »ñÈ¡ÈİÆ÷Ë÷ÒıºÅ£¬·¶Î§£º[0, GetItemCount())
+	/** è·å–å®¹å™¨ç´¢å¼•å·ï¼ŒèŒƒå›´ï¼š[0, GetItemCount())
 	 */
 	virtual size_t GetListBoxIndex() const = 0;
 
-	/** ÉèÖÃÈİÆ÷×ÓÏîË÷ÒıºÅ
-	 * @param[in] iIndex Ë÷ÒıºÅ, ·¶Î§£º[0, GetItemCount())
+	/** è®¾ç½®å®¹å™¨å­é¡¹ç´¢å¼•å·
+	 * @param[in] iIndex ç´¢å¼•å·, èŒƒå›´ï¼š[0, GetItemCount())
 	 */
 	virtual void SetListBoxIndex(size_t iIndex) = 0;
 
-	/** »ñÈ¡Ğé±íÊı¾İÔªËØË÷ÒıºÅ£¬ÓÃÓÚÖ§³ÖĞé±í£¬·¶Î§£º[0, GetElementCount())
+	/** è·å–è™šè¡¨æ•°æ®å…ƒç´ ç´¢å¼•å·ï¼Œç”¨äºæ”¯æŒè™šè¡¨ï¼ŒèŒƒå›´ï¼š[0, GetElementCount())
 	 */
 	virtual size_t GetElementIndex() const = 0;
 
-	/** ÉèÖÃĞé±íÊı¾İÔªËØË÷ÒıºÅ
-	 * @param[in] iIndex Ë÷ÒıºÅ, ÓÃÓÚÖ§³ÖĞé±í£¬·¶Î§£º[0, GetElementCount())
+	/** è®¾ç½®è™šè¡¨æ•°æ®å…ƒç´ ç´¢å¼•å·
+	 * @param[in] iIndex ç´¢å¼•å·, ç”¨äºæ”¯æŒè™šè¡¨ï¼ŒèŒƒå›´ï¼š[0, GetElementCount())
 	 */
 	virtual void SetElementIndex(size_t iIndex) = 0;
 };
 
-/** ÁĞ±íÏîµÄÊı¾İ×ÓÏî£¬ÓÃÓÚÔÚÁĞ±íÖĞÕ¹Ê¾Êı¾İµÄ×ÓÏî
+/** åˆ—è¡¨é¡¹çš„æ•°æ®å­é¡¹ï¼Œç”¨äºåœ¨åˆ—è¡¨ä¸­å±•ç¤ºæ•°æ®çš„å­é¡¹
 */
 template<typename InheritType = Box>
 class UILIB_API ListBoxItemTemplate:
@@ -71,108 +71,108 @@ class UILIB_API ListBoxItemTemplate:
 public:
 	explicit ListBoxItemTemplate(Window* pWindow);
 
-	/// ÖØĞ´¸¸Àà·½·¨£¬Ìá¹©¸öĞÔ»¯¹¦ÄÜ£¬Çë²Î¿¼¸¸ÀàÉùÃ÷
+	/// é‡å†™çˆ¶ç±»æ–¹æ³•ï¼Œæä¾›ä¸ªæ€§åŒ–åŠŸèƒ½ï¼Œè¯·å‚è€ƒçˆ¶ç±»å£°æ˜
 	virtual std::wstring GetType() const override;	
 	virtual void HandleEvent(const EventArgs& msg) override;
 
-	/** ÊÇ·ñ»æÖÆÑ¡Ôñ×´Ì¬ÏÂµÄ±³¾°É«£¬Ìá¹©Ğéº¯Êı×÷Îª¿ÉÑ¡Ïî
-	   £¨±ÈÈçListBox/TreeView½ÚµãÔÚ¶àÑ¡Ê±£¬ÓÉÓÚÓĞ¹´Ñ¡Ïî£¬²¢²»ĞèÒª»æÖÆÑ¡Ôñ×´Ì¬µÄ±³¾°É«£©
+	/** æ˜¯å¦ç»˜åˆ¶é€‰æ‹©çŠ¶æ€ä¸‹çš„èƒŒæ™¯è‰²ï¼Œæä¾›è™šå‡½æ•°ä½œä¸ºå¯é€‰é¡¹
+	   ï¼ˆæ¯”å¦‚ListBox/TreeViewèŠ‚ç‚¹åœ¨å¤šé€‰æ—¶ï¼Œç”±äºæœ‰å‹¾é€‰é¡¹ï¼Œå¹¶ä¸éœ€è¦ç»˜åˆ¶é€‰æ‹©çŠ¶æ€çš„èƒŒæ™¯è‰²ï¼‰
 	*/
 	virtual bool CanPaintSelectedColors() const override;
 
-	/** ÅĞ¶Ï¿Ø¼şÀàĞÍÊÇ·ñÎª¿ÉÑ¡ÔñµÄ
-	 * @return ·µ»Øtrue
+	/** åˆ¤æ–­æ§ä»¶ç±»å‹æ˜¯å¦ä¸ºå¯é€‰æ‹©çš„
+	 * @return è¿”å›true
 	 */
 	virtual bool IsSelectableType() const override;
 
-	/** ÉèÖÃ¿Ø¼şÊÇ·ñÑ¡Ôñ×´Ì¬
-	 * @param [in] bSelected Îª true Ê±ÎªÑ¡Ôñ×´Ì¬£¬false Ê±ÎªÈ¡ÏûÑ¡Ôñ×´Ì¬
-	 * @param [in] bTriggerEvent ÊÇ·ñ·¢ËÍ×´Ì¬¸Ä±äÊÂ¼ş£¬true Îª·¢ËÍ£¬·ñÔòÎª false¡£
+	/** è®¾ç½®æ§ä»¶æ˜¯å¦é€‰æ‹©çŠ¶æ€
+	 * @param [in] bSelected ä¸º true æ—¶ä¸ºé€‰æ‹©çŠ¶æ€ï¼Œfalse æ—¶ä¸ºå–æ¶ˆé€‰æ‹©çŠ¶æ€
+	 * @param [in] bTriggerEvent æ˜¯å¦å‘é€çŠ¶æ€æ”¹å˜äº‹ä»¶ï¼Œtrue ä¸ºå‘é€ï¼Œå¦åˆ™ä¸º falseã€‚
 	 */
 	virtual void Selected(bool bSelect, bool bTriggerEvent) override;
 
-	/** µ÷ÓÃOptionÀàµÄÑ¡Ôñº¯Êı, Ö»¸üĞÂ½çÃæµÄÑ¡Ôñ×´Ì¬
-	* @param [in] bSelected Îª true Ê±ÎªÑ¡Ôñ×´Ì¬£¬false Ê±ÎªÈ¡ÏûÑ¡Ôñ×´Ì¬
-	 * @param [in] bTriggerEvent ÊÇ·ñ·¢ËÍ×´Ì¬¸Ä±äÊÂ¼ş£¬true Îª·¢ËÍ£¬·ñÔòÎª false¡£
+	/** è°ƒç”¨Optionç±»çš„é€‰æ‹©å‡½æ•°, åªæ›´æ–°ç•Œé¢çš„é€‰æ‹©çŠ¶æ€
+	* @param [in] bSelected ä¸º true æ—¶ä¸ºé€‰æ‹©çŠ¶æ€ï¼Œfalse æ—¶ä¸ºå–æ¶ˆé€‰æ‹©çŠ¶æ€
+	 * @param [in] bTriggerEvent æ˜¯å¦å‘é€çŠ¶æ€æ”¹å˜äº‹ä»¶ï¼Œtrue ä¸ºå‘é€ï¼Œå¦åˆ™ä¸º falseã€‚
 	*/
 	virtual void OptionSelected(bool bSelect, bool bTriggerEvent) override;
 
-	/** ÉèÖÃÑ¡Ôñ×´Ì¬, ´¦Àí´æ´¢×´Ì¬Í¬²½£¬µ«²»´¥·¢ÈÎºÎÊÂ¼ş(ÊÊÓÃÓÚÍ¬²½×´Ì¬)
+	/** è®¾ç½®é€‰æ‹©çŠ¶æ€, å¤„ç†å­˜å‚¨çŠ¶æ€åŒæ­¥ï¼Œä½†ä¸è§¦å‘ä»»ä½•äº‹ä»¶(é€‚ç”¨äºåŒæ­¥çŠ¶æ€)
 	*/
 	virtual void SetItemSelected(bool bSelected) override;
 
-	/** ÅĞ¶Ïµ±Ç°ÊÇ·ñÊÇÑ¡Ôñ×´Ì¬
-	 * @return ·µ»Ø true ÎªÑ¡Ôñ×´Ì¬£¬·ñÔòÎª false
+	/** åˆ¤æ–­å½“å‰æ˜¯å¦æ˜¯é€‰æ‹©çŠ¶æ€
+	 * @return è¿”å› true ä¸ºé€‰æ‹©çŠ¶æ€ï¼Œå¦åˆ™ä¸º false
 	 */
 	virtual bool IsSelected() const override;
 
-	/** »ñÈ¡¸¸ÈİÆ÷
+	/** è·å–çˆ¶å®¹å™¨
 	 */
 	virtual IListBoxOwner* GetOwner() override;
 
-	/** ÉèÖÃ¸¸ÈİÆ÷
-	 * @param[in] pOwner ¸¸ÈİÆ÷Ö¸Õë
+	/** è®¾ç½®çˆ¶å®¹å™¨
+	 * @param[in] pOwner çˆ¶å®¹å™¨æŒ‡é’ˆ
 	 */
 	virtual void SetOwner(IListBoxOwner* pOwner) override;
 
-	/** »ñÈ¡ÈİÆ÷Ë÷ÒıºÅ£¬·¶Î§£º[0, GetItemCount())
+	/** è·å–å®¹å™¨ç´¢å¼•å·ï¼ŒèŒƒå›´ï¼š[0, GetItemCount())
 	 */
 	virtual size_t GetListBoxIndex() const override;
 
-	/** ÉèÖÃÈİÆ÷×ÓÏîË÷ÒıºÅ
-	 * @param[in] iIndex Ë÷ÒıºÅ, ·¶Î§£º[0, GetItemCount())
+	/** è®¾ç½®å®¹å™¨å­é¡¹ç´¢å¼•å·
+	 * @param[in] iIndex ç´¢å¼•å·, èŒƒå›´ï¼š[0, GetItemCount())
 	 */
 	virtual void SetListBoxIndex(size_t iIndex) override;
 
-	/** »ñÈ¡Ğé±íÊı¾İÔªËØË÷ÒıºÅ£¬ÓÃÓÚÖ§³ÖĞé±í£¬·¶Î§£º[0, GetElementCount())
+	/** è·å–è™šè¡¨æ•°æ®å…ƒç´ ç´¢å¼•å·ï¼Œç”¨äºæ”¯æŒè™šè¡¨ï¼ŒèŒƒå›´ï¼š[0, GetElementCount())
 	 */
 	virtual size_t GetElementIndex() const override;
 
-	/** ÉèÖÃĞé±íÊı¾İÔªËØË÷ÒıºÅ
-	 * @param[in] iIndex Ë÷ÒıºÅ, ÓÃÓÚÖ§³ÖĞé±í£¬·¶Î§£º[0, GetElementCount())
+	/** è®¾ç½®è™šè¡¨æ•°æ®å…ƒç´ ç´¢å¼•å·
+	 * @param[in] iIndex ç´¢å¼•å·, ç”¨äºæ”¯æŒè™šè¡¨ï¼ŒèŒƒå›´ï¼š[0, GetElementCount())
 	 */
 	virtual void SetElementIndex(size_t iIndex) override;
 
 public:
-	/** °ó¶¨Êó±êµã»÷´¦Àíº¯Êı
-	* @param[in] callback Òª°ó¶¨µÄ»Øµ÷º¯Êı
+	/** ç»‘å®šé¼ æ ‡ç‚¹å‡»å¤„ç†å‡½æ•°
+	* @param[in] callback è¦ç»‘å®šçš„å›è°ƒå‡½æ•°
 	*/
 	void AttachClick(const EventCallback& callback) { this->AttachEvent(kEventClick, callback); }
 
-	/** °ó¶¨Êó±êÓÒ¼üµã»÷´¦Àíº¯Êı
-	* @param[in] callback Òª°ó¶¨µÄ»Øµ÷º¯Êı
+	/** ç»‘å®šé¼ æ ‡å³é”®ç‚¹å‡»å¤„ç†å‡½æ•°
+	* @param[in] callback è¦ç»‘å®šçš„å›è°ƒå‡½æ•°
 	*/
 	void AttachRClick(const EventCallback& callback) { this->AttachEvent(kEventRClick, callback); }
 
-	/** ¼àÌı¿Ø¼şË«»÷ÊÂ¼ş
-	 * @param[in] callback ÊÕµ½Ë«»÷ÏûÏ¢Ê±µÄ»Øµ÷º¯Êı
+	/** ç›‘å¬æ§ä»¶åŒå‡»äº‹ä»¶
+	 * @param[in] callback æ”¶åˆ°åŒå‡»æ¶ˆæ¯æ—¶çš„å›è°ƒå‡½æ•°
 	 */
 	void AttachDoubleClick(const EventCallback& callback) { this->AttachEvent(kEventMouseDoubleClick, callback); }
 
-	/** ¼àÌı»Ø³µÊÂ¼ş
-	 * @param[in] callback ÊÕµ½»Ø³µÊ±µÄ»Øµ÷º¯Êı
+	/** ç›‘å¬å›è½¦äº‹ä»¶
+	 * @param[in] callback æ”¶åˆ°å›è½¦æ—¶çš„å›è°ƒå‡½æ•°
 	 */
 	void AttachReturn(const EventCallback& callback) { this->AttachEvent(kEventReturn, callback); }
 
 protected:
-	/** Ñ¡Ôñ×´Ì¬±ä»¯ÊÂ¼ş(m_bSelected±äÁ¿·¢Éú±ä»¯)
+	/** é€‰æ‹©çŠ¶æ€å˜åŒ–äº‹ä»¶(m_bSelectedå˜é‡å‘ç”Ÿå˜åŒ–)
 	*/
 	virtual void OnPrivateSetSelected() override;
 
-	/** ¹´Ñ¡×´Ì¬±ä»¯ÊÂ¼ş(m_bChecked±äÁ¿·¢Éú±ä»¯)
+	/** å‹¾é€‰çŠ¶æ€å˜åŒ–äº‹ä»¶(m_bCheckedå˜é‡å‘ç”Ÿå˜åŒ–)
 	*/
 	virtual void OnPrivateSetChecked() override;
 
 private:
-	/** ÔÚListBoxÈİÆ÷ÖĞµÄ×ÓÏîË÷ÒıºÅ£¬·¶Î§£º[0, GetItemCount())
+	/** åœ¨ListBoxå®¹å™¨ä¸­çš„å­é¡¹ç´¢å¼•å·ï¼ŒèŒƒå›´ï¼š[0, GetItemCount())
 	*/
 	size_t m_iListBoxIndex;
 
-	/** Ğé±íÊı¾İÔªËØ×ÓÏîË÷ÒıºÅ£¬ÓÃÓÚÖ§³ÖĞé±í£¬·¶Î§£º[0, GetElementCount())
+	/** è™šè¡¨æ•°æ®å…ƒç´ å­é¡¹ç´¢å¼•å·ï¼Œç”¨äºæ”¯æŒè™šè¡¨ï¼ŒèŒƒå›´ï¼š[0, GetElementCount())
 	*/
 	size_t m_iElementIndex;
 
-	/** ÔÚListBoxÈİÆ÷½Ó¿Ú
+	/** åœ¨ListBoxå®¹å™¨æ¥å£
 	*/
 	IListBoxOwner* m_pOwner;
 };
@@ -198,13 +198,13 @@ void ListBoxItemTemplate<InheritType>::SetItemSelected(bool bSelected)
 	if (OptionTemplate<InheritType>::IsSelected() == bSelected) {
 		return;
 	}
-	//Ö±½ÓĞŞ¸ÄÄÚ²¿×´Ì¬
+	//ç›´æ¥ä¿®æ”¹å†…éƒ¨çŠ¶æ€
 	OptionTemplate<InheritType>::SetSelected(bSelected);
 	if (m_pOwner == nullptr) {
 		return;
 	}
 
-	//Í¬²½ListBoxµÄÑ¡ÔñID
+	//åŒæ­¥ListBoxçš„é€‰æ‹©ID
 	bool bChanged = false;
 	if (bSelected) {
 		m_pOwner->SetCurSel(m_iListBoxIndex);
@@ -218,7 +218,7 @@ void ListBoxItemTemplate<InheritType>::SetItemSelected(bool bSelected)
 	}
 
 	if (bChanged && !m_pOwner->IsMultiSelect()) {
-		//µ¥Ñ¡£ºĞèÒªµ÷ÓÃÑ¡Ôñº¯Êı, ±£Ö¤Ö»ÓĞÒ»¸öÑ¡ÖĞÏî
+		//å•é€‰ï¼šéœ€è¦è°ƒç”¨é€‰æ‹©å‡½æ•°, ä¿è¯åªæœ‰ä¸€ä¸ªé€‰ä¸­é¡¹
 		m_pOwner->EnsureSingleSelection();
 	}
 }
@@ -232,7 +232,7 @@ void ListBoxItemTemplate<InheritType>::OptionSelected(bool bSelect, bool bTrigge
 template<typename InheritType>
 void ListBoxItemTemplate<InheritType>::Selected(bool bSelected, bool bTriggerEvent)
 {
-	//½çÃæµã»÷µÈ²Ù×÷´¥·¢Ñ¡Ôñ²Ù×÷
+	//ç•Œé¢ç‚¹å‡»ç­‰æ“ä½œè§¦å‘é€‰æ‹©æ“ä½œ
 	if (!this->IsEnabled()) {
 		return;
 	}
@@ -282,7 +282,7 @@ template<typename InheritType>
 void ListBoxItemTemplate<InheritType>::HandleEvent(const EventArgs& msg)
 {
 	if (this->IsDisabledEvents(msg)) {
-		//Èç¹ûÊÇÊó±ê¼üÅÌÏûÏ¢£¬²¢ÇÒ¿Ø¼şÊÇDisabledµÄ£¬×ª·¢¸øOwner¿Ø¼ş
+		//å¦‚æœæ˜¯é¼ æ ‡é”®ç›˜æ¶ˆæ¯ï¼Œå¹¶ä¸”æ§ä»¶æ˜¯Disabledçš„ï¼Œè½¬å‘ç»™Owneræ§ä»¶
 		if (m_pOwner != nullptr) {
 			m_pOwner->SendEvent(msg);
 		}
@@ -354,7 +354,7 @@ bool ListBoxItemTemplate<InheritType>::IsSelectableType() const
 	return true;
 }
 
-/** ÀàĞÍ¶¨Òå
+/** ç±»å‹å®šä¹‰
 */
 typedef ListBoxItemTemplate<Box> ListBoxItem;
 typedef ListBoxItemTemplate<HBox> ListBoxItemH;

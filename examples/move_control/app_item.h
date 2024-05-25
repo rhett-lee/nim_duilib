@@ -6,7 +6,7 @@
 
 #include <string>
 
-//appµÄ¾ßÌåĞÅÏ¢£¬ÕâÀï¼Ù¶¨ÓĞid£¬name£¬_icon,_isFrequent×ÔĞĞÍØÕ¹
+//appçš„å…·ä½“ä¿¡æ¯ï¼Œè¿™é‡Œå‡å®šæœ‰idï¼Œnameï¼Œ_icon,_isFrequentè‡ªè¡Œæ‹“å±•
 struct AppItem
 {
 	std::string m_id;
@@ -15,7 +15,7 @@ struct AppItem
 	bool m_isFrequent=false;
 };
 
-//App UIÀà
+//App UIç±»
 class AppItemUi : public ui::ControlDragableT<ui::VBox>
 {
 public:
@@ -26,21 +26,21 @@ public:
 	void SetAppdata(const AppItem& item,bool refresh);
 	inline const AppItem& getAppData() const { return m_app_data; }
 
-	/** ³£ÓÃ¿Ø¼şµÄÈİÆ÷
+	/** å¸¸ç”¨æ§ä»¶çš„å®¹å™¨
 	*/
 	void SetFrequentBox(ui::Box* pFrequentBox);
 
 private:
-	/** Ä¿±êÎ»ÖÃÖ¸Ê¾¿Ø¼ş
-	* @param [in] pTargetBox ¼´½«ÍÏÈëµÄÄ¿±êBox¿Ø¼ş½Ó¿Ú
+	/** ç›®æ ‡ä½ç½®æŒ‡ç¤ºæ§ä»¶
+	* @param [in] pTargetBox å³å°†æ‹–å…¥çš„ç›®æ ‡Boxæ§ä»¶æ¥å£
 	*/
 	virtual Control* CreateDestControl(Box* pTargetBox) override;
 
-	/** ¿Ø¼şËùÊôÈİÆ÷ÍÏ¶¯Íê³ÉÊÂ¼ş£¨ÔÚÍ¬Ò»¸öÈİÆ÷/»òÕß²»Í¬ÈİÆ÷ÄÚ£©
-    * @param [in] pOldBox ¿Ø¼şÔ­À´ËùÊôµÄÈİÆ÷½Ó¿Ú
-    * @param [in] nOldItemIndex Ô­À´µÄ×ÓÏîË÷ÒıºÅ
-    * @param [in] pNewBox ¿Ø¼ş×îĞÂËùÊôµÄÈİÆ÷½Ó¿Ú
-    * @param [in] nNewItemIndex ×îĞÂµÄ×ÓÏîË÷ÒıºÅ
+	/** æ§ä»¶æ‰€å±å®¹å™¨æ‹–åŠ¨å®Œæˆäº‹ä»¶ï¼ˆåœ¨åŒä¸€ä¸ªå®¹å™¨/æˆ–è€…ä¸åŒå®¹å™¨å†…ï¼‰
+    * @param [in] pOldBox æ§ä»¶åŸæ¥æ‰€å±çš„å®¹å™¨æ¥å£
+    * @param [in] nOldItemIndex åŸæ¥çš„å­é¡¹ç´¢å¼•å·
+    * @param [in] pNewBox æ§ä»¶æœ€æ–°æ‰€å±çš„å®¹å™¨æ¥å£
+    * @param [in] nNewItemIndex æœ€æ–°çš„å­é¡¹ç´¢å¼•å·
     */
     virtual void OnItemBoxChanged(Box* pOldBox, size_t nOldItemIndex, 
                                   Box* pNewBox, size_t nNewItemIndex) override;
@@ -50,7 +50,7 @@ private:
 	ui::Control* m_app_icon = nullptr;
 	ui::Label* m_app_name = nullptr;
 
-	/** ³£ÓÃ¿Ø¼şµÄÈİÆ÷
+	/** å¸¸ç”¨æ§ä»¶çš„å®¹å™¨
 	*/
 	Box* m_pFrequentBox = nullptr;
 };

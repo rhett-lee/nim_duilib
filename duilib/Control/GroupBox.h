@@ -10,7 +10,7 @@
 namespace ui
 {
 
-/** ·Ö×éÈİÆ÷
+/** åˆ†ç»„å®¹å™¨
 */
 template<typename InheritType>
 class UILIB_API GroupBoxTemplate : public LabelTemplate<InheritType>
@@ -19,50 +19,50 @@ public:
     explicit GroupBoxTemplate(Window* pWindow);
 	virtual ~GroupBoxTemplate();
 		
-	/// ÖØĞ´¸¸Àà·½·¨£¬Ìá¹©¸öĞÔ»¯¹¦ÄÜ£¬Çë²Î¿¼¸¸ÀàÉùÃ÷
+	/// é‡å†™çˆ¶ç±»æ–¹æ³•ï¼Œæä¾›ä¸ªæ€§åŒ–åŠŸèƒ½ï¼Œè¯·å‚è€ƒçˆ¶ç±»å£°æ˜
 	virtual std::wstring GetType() const override;
     virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
     virtual void PaintText(IRender* pRender) override;
 
-    /** DPI·¢Éú±ä»¯£¬¸üĞÂ¿Ø¼ş´óĞ¡ºÍ²¼¾Ö
-    * @param [in] nOldDpiScale ¾ÉµÄDPIËõ·Å°Ù·Ö±È
-    * @param [in] nNewDpiScale ĞÂµÄDPIËõ·Å°Ù·Ö±È£¬ÓëDpi().GetScale()µÄÖµÒ»ÖÂ
+    /** DPIå‘ç”Ÿå˜åŒ–ï¼Œæ›´æ–°æ§ä»¶å¤§å°å’Œå¸ƒå±€
+    * @param [in] nOldDpiScale æ—§çš„DPIç¼©æ”¾ç™¾åˆ†æ¯”
+    * @param [in] nNewDpiScale æ–°çš„DPIç¼©æ”¾ç™¾åˆ†æ¯”ï¼Œä¸Dpi().GetScale()çš„å€¼ä¸€è‡´
     */
     virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override;
 
-    /** ÉèÖÃÔ²½Ç´óĞ¡
+    /** è®¾ç½®åœ†è§’å¤§å°
      */
     void SetCornerSize(UiSize cxyRound, bool bNeedDpiScale);
 
-    /** »ñÈ¡Ô²½Ç´óĞ¡
+    /** è·å–åœ†è§’å¤§å°
     */
     const UiSize& GetCornerSize() const;
 
-    /** ÉèÖÃÏßÌõ¿í¶È
+    /** è®¾ç½®çº¿æ¡å®½åº¦
     */
     void SetLineWidth(int32_t nLineWidth, bool bNeedDpiScale);
 
-    /** »ñÈ¡ÏßÌõ¿í¶È
+    /** è·å–çº¿æ¡å®½åº¦
     */
     int32_t GetLineWidth() const;
 
-    /** ÉèÖÃÏßÌõÑÕÉ«
+    /** è®¾ç½®çº¿æ¡é¢œè‰²
     */
     void SetLineColor(const std::wstring& lineColor);
 
 private:
-    /** »ñÈ¡Ò»¶¨Í¸Ã÷¶ÈµÄÑÕÉ«
+    /** è·å–ä¸€å®šé€æ˜åº¦çš„é¢œè‰²
     */
     UiColor GetFadeColor(UiColor color, uint8_t nFade) const;
 
 private:
-    //ÏßÌõ¿í¶È
+    //çº¿æ¡å®½åº¦
     int32_t m_nLineWidth;
 
-    //Ô²½Ç´óĞ¡£¨Ä¬ÈÏÎªÖ±½Ç, ÎŞÔ²½Ç£©
+    //åœ†è§’å¤§å°ï¼ˆé»˜è®¤ä¸ºç›´è§’, æ— åœ†è§’ï¼‰
     UiSize m_cornerSize;
 
-    //ÏßÌõÑÕÉ«
+    //çº¿æ¡é¢œè‰²
     UiString m_lineColor;
 };
 
@@ -102,7 +102,7 @@ void GroupBoxTemplate<InheritType>::SetCornerSize(UiSize cxyRound, bool bNeedDpi
     if ((cx < 0) || (cy < 0)) {
         return;
     }
-    //Á½¸ö²ÎÊıÒªÃ´Í¬Ê±µÈÓÚ0£¬ÒªÃ´Í¬Ê±´óÓÚ0£¬·ñÔò²ÎÊıÎŞĞ§
+    //ä¸¤ä¸ªå‚æ•°è¦ä¹ˆåŒæ—¶ç­‰äº0ï¼Œè¦ä¹ˆåŒæ—¶å¤§äº0ï¼Œå¦åˆ™å‚æ•°æ— æ•ˆ
     ASSERT(((cx > 0) && (cy > 0)) || ((cx == 0) && (cy == 0)));
     if (cx == 0) {
         if (cy != 0) {
@@ -170,22 +170,22 @@ template<typename InheritType>
 void GroupBoxTemplate<InheritType>::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
     if (strName == L"corner_size") {
-        //Ô²½Ç´óĞ¡
+        //åœ†è§’å¤§å°
         UiSize cxyRound;
         AttributeUtil::ParseSizeValue(strValue.c_str(), cxyRound);
         this->SetCornerSize(cxyRound, true);
     }
     else if (strName == L"line_width") {
-        //ÏßÌõ¿í¶È
+        //çº¿æ¡å®½åº¦
         ASSERT(_wtoi(strValue.c_str()) >= 0);
         this->SetLineWidth(_wtoi(strValue.c_str()), true);
     }
     else if (strName == L"line_color") {
-        //ÏßÌõÑÕÉ«
+        //çº¿æ¡é¢œè‰²
         this->SetLineColor(strValue);
     }
     else if (strName == L"text") {
-        //ÉèÖÃÎÄ±¾ÄÚÈİ
+        //è®¾ç½®æ–‡æœ¬å†…å®¹
         __super::SetAttribute(strName, strValue);
     }
     else {
@@ -213,7 +213,7 @@ void GroupBoxTemplate<InheritType>::ChangeDpiScale(uint32_t nOldDpiScale, uint32
 template<typename InheritType>
 void GroupBoxTemplate<InheritType>::PaintText(IRender* pRender)
 {
-    //ÏÈ»æÖÆÎÄ×Ö
+    //å…ˆç»˜åˆ¶æ–‡å­—
     __super::PaintText(pRender);
 
     if (pRender == nullptr) {
@@ -221,8 +221,8 @@ void GroupBoxTemplate<InheritType>::PaintText(IRender* pRender)
     }
 
     UiPadding rcPadding = this->GetControlPadding();
-    std::wstring textValue = this->GetText();//ÎÄ±¾ÄÚÈİ
-    UiRect drawTextRect;//ÎÄ±¾µÄ»æÖÆÇøÓò
+    std::wstring textValue = this->GetText();//æ–‡æœ¬å†…å®¹
+    UiRect drawTextRect;//æ–‡æœ¬çš„ç»˜åˆ¶åŒºåŸŸ
     bool hasClip = false;
     if (!textValue.empty()) {
         UiRect textRect = pRender->MeasureString(textValue, this->GetIFontById(this->GetFontId()), 0, 0);
@@ -232,12 +232,12 @@ void GroupBoxTemplate<InheritType>::PaintText(IRender* pRender)
         drawTextRect.right = drawTextRect.left + textRect.Width();
         drawTextRect.bottom = drawTextRect.top + textRect.Height();
 
-        //ÉèÖÃ¼ô¼­ÇøÓò£¬±ÜÃâ»æÖÆÎÄ×ÖÇøÓò
+        //è®¾ç½®å‰ªè¾‘åŒºåŸŸï¼Œé¿å…ç»˜åˆ¶æ–‡å­—åŒºåŸŸ
         pRender->SetClip(drawTextRect, false);
         hasClip = true;
     }
 
-    //ÔÚÎÄ×Öµ×²¿»æÖÆ±ß¿ò
+    //åœ¨æ–‡å­—åº•éƒ¨ç»˜åˆ¶è¾¹æ¡†
     int32_t nLineWidth = m_nLineWidth;
     if (nLineWidth <= 0) {
         nLineWidth = this->Dpi().GetScaleInt(1);
@@ -251,46 +251,46 @@ void GroupBoxTemplate<InheritType>::PaintText(IRender* pRender)
         lineColor = GetFadeColor(UiColor(UiColors::Gray), 96);
     }
 
-    int32_t nShadowOffset = 1;//ÒõÓ°Æ«ÒÆ
+    int32_t nShadowOffset = 1;//é˜´å½±åç§»
     UiRect rc = this->GetRect();
     rc.Deflate(rcPadding);
     rc.Deflate(nLineWidth / 2 + nShadowOffset, nLineWidth/2 + nShadowOffset);
 
     if (drawTextRect.Height() > 0) {
-        //ÈÃÏßÌõÔÚÎÄ±¾ÖĞ¼ä
+        //è®©çº¿æ¡åœ¨æ–‡æœ¬ä¸­é—´
         rc.top += (drawTextRect.Height() / 2 - nLineWidth / 2);
     }
 
     if ((cornerSize.cx > 0) && (cornerSize.cy > 0)) {
-        //ÏÈ»æÖÆ¸öÒõÓ°Ğ§¹û
+        //å…ˆç»˜åˆ¶ä¸ªé˜´å½±æ•ˆæœ
         if (nShadowOffset > 0) {
             UiColor fadeColor = GetFadeColor(lineColor, 24);
             UiRect fadeRect = rc;
             fadeRect.Inflate(nShadowOffset, nShadowOffset);
             pRender->DrawRoundRect(fadeRect, cornerSize, fadeColor, nLineWidth);
         }
-        //»æÖÆÔ²½Ç¾ØĞÎ±ß¿ò
+        //ç»˜åˆ¶åœ†è§’çŸ©å½¢è¾¹æ¡†
         pRender->DrawRoundRect(rc, cornerSize, lineColor, nLineWidth);
     }
     else {
-        //ÏÈ»æÖÆ¸öÒõÓ°Ğ§¹û
+        //å…ˆç»˜åˆ¶ä¸ªé˜´å½±æ•ˆæœ
         if (nShadowOffset > 0) {
             UiColor fadeColor = GetFadeColor(lineColor, 24);
             UiRect fadeRect = rc;
             fadeRect.Inflate(nShadowOffset, nShadowOffset);
             pRender->DrawRect(fadeRect, fadeColor, nLineWidth);
         }
-        //»æÖÆ¾ØĞÎ±ß¿ò
+        //ç»˜åˆ¶çŸ©å½¢è¾¹æ¡†
         pRender->DrawRect(rc, lineColor, nLineWidth);
     }
 
     if (hasClip) {
-        //»Ö¸´¼ô¼­ÇøÓò
+        //æ¢å¤å‰ªè¾‘åŒºåŸŸ
         pRender->ClearClip();
     }    
 }
 
-/** ·Ö×éÈİÆ÷/´¹Ö±·Ö×éÈİÆ÷/Ë®Æ½·Ö×éÈİÆ÷
+/** åˆ†ç»„å®¹å™¨/å‚ç›´åˆ†ç»„å®¹å™¨/æ°´å¹³åˆ†ç»„å®¹å™¨
 */
 typedef GroupBoxTemplate<Box>  GroupBox;
 typedef GroupBoxTemplate<HBox> GroupHBox;

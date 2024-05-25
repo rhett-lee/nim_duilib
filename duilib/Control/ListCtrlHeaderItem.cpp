@@ -75,11 +75,11 @@ void ListCtrlHeaderItem::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiS
 
 void ListCtrlHeaderItem::PaintText(IRender* pRender)
 {
-    //ĞèÒª»æÖÆµÄÄÚÈİ°üÀ¨£ºÍ¼±ê¡¢ÎÄ×Ö¡¢ÅÅĞòÍ¼±ê
+    //éœ€è¦ç»˜åˆ¶çš„å†…å®¹åŒ…æ‹¬ï¼šå›¾æ ‡ã€æ–‡å­—ã€æ’åºå›¾æ ‡
     if (pRender == nullptr) {
         return;
     }
-    //ÎÄ±¾Ç°µÄÍ¼±ê
+    //æ–‡æœ¬å‰çš„å›¾æ ‡
     ImagePtr pItemImage;
     UiSize itemImageSize;
     if ((m_imageId >= 0) && (m_pHeaderCtrl != nullptr)) {
@@ -110,14 +110,14 @@ void ListCtrlHeaderItem::PaintText(IRender* pRender)
         }
     }
 
-    //ÅÅĞòÍ¼±ê
+    //æ’åºå›¾æ ‡
     Image* pSortImage = nullptr;
     if (m_sortMode == SortMode::kUp) {
-        //ÉıĞò
+        //å‡åº
         pSortImage = m_pSortedUpImage;
     }
     else if (m_sortMode == SortMode::kDown) {
-        //½µĞò
+        //é™åº
         pSortImage = m_pSortedDownImage;
     }
 
@@ -139,7 +139,7 @@ void ListCtrlHeaderItem::PaintText(IRender* pRender)
     }
 
     if ((pSortImageCache != nullptr) && IsShowIconAtTop()) {
-        //Í¼±êÏÔÊ¾ÔÚÎÄ×ÖµÄÉÏ·½£¬¾ÓÖĞÏÔÊ¾
+        //å›¾æ ‡æ˜¾ç¤ºåœ¨æ–‡å­—çš„ä¸Šæ–¹ï¼Œå±…ä¸­æ˜¾ç¤º
         UiRect rc = GetRect();
         rc.Deflate(GetControlPadding());
         int32_t nImageWidth = pSortImageCache->GetWidth();
@@ -153,7 +153,7 @@ void ListCtrlHeaderItem::PaintText(IRender* pRender)
             rc.bottom = rc.top + nImageHeight;
         }
 
-        //»æÖÆÅÅĞòÍ¼±ê
+        //ç»˜åˆ¶æ’åºå›¾æ ‡
         PaintImage(pRender, pSortImage, L"", -1, nullptr, &rc, nullptr);
         pSortImage = nullptr;
     }
@@ -179,7 +179,7 @@ void ListCtrlHeaderItem::PaintText(IRender* pRender)
     }
 
     int32_t nIconTextSpacing = GetIconSpacing();
-    //CheckBoxµÄ¿í¶È£¬ĞèÒªÁô³öÀ´
+    //CheckBoxçš„å®½åº¦ï¼Œéœ€è¦ç•™å‡ºæ¥
     int32_t nCheckBoxWidth = 0;
     ListCtrlCheckBox* pCheckBox = nullptr;
     if (GetItemCount() > 0) {
@@ -201,7 +201,7 @@ void ListCtrlHeaderItem::PaintText(IRender* pRender)
     }
     
     if ((sortImageSize.cx + itemImageSize.cx + measureRect.Width()) > rcItemRect.Width()) {
-        //ºáÏòµÄ¿Õ¼ä²»×ã£¬°´×ó¶ÔÆë»æÖÆ
+        //æ¨ªå‘çš„ç©ºé—´ä¸è¶³ï¼ŒæŒ‰å·¦å¯¹é½ç»˜åˆ¶
         nIconTextSpacing = 0;
         textStyle = TEXT_LEFT;
     }
@@ -213,7 +213,7 @@ void ListCtrlHeaderItem::PaintText(IRender* pRender)
         rc.Validate();
     }
     if (textStyle & TEXT_CENTER) {
-        //¾ÓÖĞ¶ÔÆë
+        //å±…ä¸­å¯¹é½
         UiRect textRect = GetRect();
         textRect.Deflate(GetControlPadding());
         textRect.Deflate(GetTextPadding());
@@ -241,7 +241,7 @@ void ListCtrlHeaderItem::PaintText(IRender* pRender)
         DoPaintText(textRect, pRender);
     }
     else if (textStyle & TEXT_RIGHT) {
-        //¿¿ÓÒ¶ÔÆë
+        //é å³å¯¹é½
         if (pSortImage != nullptr) {
             UiRect sortRect = rc;
             sortRect.left = sortRect.right - sortImageSize.cx;
@@ -277,7 +277,7 @@ void ListCtrlHeaderItem::PaintText(IRender* pRender)
         }
     }
     else {
-        //¿¿×ó¶ÔÆë£ºÍ¼±ê¡¢ÎÄ×Ö¡¢ÅÅĞòÍ¼±êÒÀ´Î»æÖÆ
+        //é å·¦å¯¹é½ï¼šå›¾æ ‡ã€æ–‡å­—ã€æ’åºå›¾æ ‡ä¾æ¬¡ç»˜åˆ¶
         if (pItemImage != nullptr) {
             UiRect itemRect = rc;
             itemRect.right = itemRect.left + itemImageSize.cx;
@@ -313,16 +313,16 @@ void ListCtrlHeaderItem::VAlignRect(UiRect& rc, uint32_t textStyle, int32_t nIma
         return;
     }
     if (textStyle & TEXT_VCENTER) {
-        //¾ÓÖĞ¶ÔÆë
+        //å±…ä¸­å¯¹é½
         rc.top = rc.CenterY() - nImageHeight / 2;
         rc.bottom = rc.top + nImageHeight;
     }
     else if (textStyle & TEXT_BOTTOM) {
-        //µ×²¿¶ÔÆë
+        //åº•éƒ¨å¯¹é½
         rc.top = rc.bottom - nImageHeight;
     }
     else {
-        //¶¥²¿¶ÔÆë
+        //é¡¶éƒ¨å¯¹é½
         rc.bottom = rc.top + nImageHeight;
     }
 }
@@ -330,7 +330,7 @@ void ListCtrlHeaderItem::VAlignRect(UiRect& rc, uint32_t textStyle, int32_t nIma
 void ListCtrlHeaderItem::Activate()
 {
     if (IsInDraggingOrder() || IsInDraggingOut()) {
-        //´¦ÓÚÍÏ¶¯¸Ä±äÁĞË³ĞòµÄ×´Ì¬
+        //å¤„äºæ‹–åŠ¨æ”¹å˜åˆ—é¡ºåºçš„çŠ¶æ€
         return;
     }
     if (!this->IsActivatable()) {
@@ -509,17 +509,17 @@ void ListCtrlHeaderItem::SetTextHorAlign(HorAlignType alignType)
 {
     uint32_t textStyle = GetTextStyle();
     if (alignType == HorAlignType::kHorAlignCenter) {
-        //ÎÄ±¾£º¾ÓÖĞ¶ÔÆë
+        //æ–‡æœ¬ï¼šå±…ä¸­å¯¹é½
         textStyle &= ~(TEXT_LEFT | TEXT_RIGHT);
         textStyle |= TEXT_CENTER;
     }
     else if (alignType == HorAlignType::kHorAlignRight) {
-        //ÎÄ±¾£ºÓÒ¶ÔÆë
+        //æ–‡æœ¬ï¼šå³å¯¹é½
         textStyle &= ~(TEXT_LEFT | TEXT_CENTER);
         textStyle |= TEXT_RIGHT;
     }
     else {
-        //ÎÄ±¾£º×ó¶ÔÆë
+        //æ–‡æœ¬ï¼šå·¦å¯¹é½
         textStyle &= ~(TEXT_CENTER | TEXT_RIGHT);
         textStyle |= TEXT_LEFT;
     }
@@ -528,14 +528,14 @@ void ListCtrlHeaderItem::SetTextHorAlign(HorAlignType alignType)
 
 HorAlignType ListCtrlHeaderItem::GetTextHorAlign() const
 {
-    HorAlignType alignType = HorAlignType::kHorAlignLeft;//ÎÄ±¾£º×ó¶ÔÆë
+    HorAlignType alignType = HorAlignType::kHorAlignLeft;//æ–‡æœ¬ï¼šå·¦å¯¹é½
     uint32_t textStyle = GetTextStyle();
     if (textStyle & TEXT_CENTER) {
-        //ÎÄ±¾£º¾ÓÖĞ¶ÔÆë
+        //æ–‡æœ¬ï¼šå±…ä¸­å¯¹é½
         alignType = HorAlignType::kHorAlignCenter;
     }
     else if (textStyle & TEXT_RIGHT) {
-        //ÎÄ±¾£ºÓÒ¶ÔÆë
+        //æ–‡æœ¬ï¼šå³å¯¹é½
         alignType = HorAlignType::kHorAlignRight;
     }
     return alignType;
@@ -559,7 +559,7 @@ bool ListCtrlHeaderItem::IsEnableDragOrder() const
     ListCtrlHeader* pHeader = GetHeaderCtrl();
     if (pHeader != nullptr) {
         if (!pHeader->IsEnableHeaderDragOrder()) {
-            //²»Ö§³ÖÍÏ¶¯µ÷ÕûË³Ğò
+            //ä¸æ”¯æŒæ‹–åŠ¨è°ƒæ•´é¡ºåº
             return false;
         }
     }
@@ -590,7 +590,7 @@ bool ListCtrlHeaderItem::SetCheckBoxVisible(bool bVisible)
             pCheckBox->SetClass(checkBoxClass);
         }
 
-        //ÉèÖÃÄÚ±ß¾à£¬±ÜÃâÓëÎÄ×ÖÖØµş
+        //è®¾ç½®å†…è¾¹è·ï¼Œé¿å…ä¸æ–‡å­—é‡å 
         UiPadding textPadding = GetTextPadding();
         int32_t nCheckBoxWidth = pCheckBox->GetCheckBoxWidth();
         if ((nCheckBoxWidth > 0) && (textPadding.left < nCheckBoxWidth)) {
@@ -599,10 +599,10 @@ bool ListCtrlHeaderItem::SetCheckBoxVisible(bool bVisible)
         }
         pCheckBox->SetVisible(true);
 
-        //¹ÒÔØCheckBoxµÄÊÂ¼ş´¦Àí
+        //æŒ‚è½½CheckBoxçš„äº‹ä»¶å¤„ç†
         pCheckBox->DetachEvent(kEventSelect);
         pCheckBox->DetachEvent(kEventUnSelect);
-        //Í¬²½Êı¾İ
+        //åŒæ­¥æ•°æ®
         if (pListCtrl != nullptr) {
             pListCtrl->UpdateHeaderColumnCheckBox(GetColomnId());
         }
@@ -700,7 +700,7 @@ void ListCtrlHeaderItem::SetColumnVisible(bool bColumnVisible)
 
 bool ListCtrlHeaderItem::IsColumnVisible() const
 {
-    //ÓĞ±ğÓëIsVisible(), µ±±íÍ·Òş²ØµÄÊ±ºò£¬IsVisible()Ò²»á·µ»Øfalse
+    //æœ‰åˆ«ä¸IsVisible(), å½“è¡¨å¤´éšè—çš„æ—¶å€™ï¼ŒIsVisible()ä¹Ÿä¼šè¿”å›false
     return m_bColumnVisible;
 }
 
@@ -737,18 +737,18 @@ void ListCtrlHeaderItem::AdjustItemPos(const UiPoint& pt, const UiPoint& ptMouse
     }
     ListCtrlHeaderItem* pHeaderItem = dynamic_cast<ListCtrlHeaderItem*>(pMouseItem);
     if (pHeaderItem == nullptr) {
-        //Êó±ê²»ÔÚ±íÍ·¿Ø¼şÉÏ
+        //é¼ æ ‡ä¸åœ¨è¡¨å¤´æ§ä»¶ä¸Š
         return;
     }
     if (!pHeaderItem->IsEnableDragOrder()) {
-        //µ±Ç°ÁĞÎª¹Ì¶¨ÁĞ£¬²»ÔÊĞíµ÷ÕûË³Ğò
+        //å½“å‰åˆ—ä¸ºå›ºå®šåˆ—ï¼Œä¸å…è®¸è°ƒæ•´é¡ºåº
         return;
     }
 
     const size_t itemCount = rcItemList.size();
     int32_t xOffset = pt.x - ptMouseDown.x;
     if (pMouseItem == this) {
-        //µ±Ç°Êó±êÎ»ÖÃ£ºÔÚ×ÔÉíµÄÎ»ÖÃ£¬»Ö¸´¸÷¸ö¿Ø¼şµÄÊµ¼ÊÎ»ÖÃ
+        //å½“å‰é¼ æ ‡ä½ç½®ï¼šåœ¨è‡ªèº«çš„ä½ç½®ï¼Œæ¢å¤å„ä¸ªæ§ä»¶çš„å®é™…ä½ç½®
         for (const ItemStatus& item : rcItemList) {
             if (item.m_pItem == this) {
                 continue;
@@ -759,11 +759,11 @@ void ListCtrlHeaderItem::AdjustItemPos(const UiPoint& pt, const UiPoint& ptMouse
         }
     }
     else if (xOffset < 0) {
-        //µ±Ç°Êó±êÎ»ÖÃ£ºÔÚ°´ÏÂµãµÄ×ó²à£¬ÏòÓÒ²àÒÆ¶¯¿Ø¼ş
+        //å½“å‰é¼ æ ‡ä½ç½®ï¼šåœ¨æŒ‰ä¸‹ç‚¹çš„å·¦ä¾§ï¼Œå‘å³ä¾§ç§»åŠ¨æ§ä»¶
         for (size_t index = 0; index < itemCount; ++index) {
             const ItemStatus& item = rcItemList[index];
             if (item.m_pItem == this) {
-                //»Ö¸´¹ØÁªµÄSplit¿Ø¼şÎ»ÖÃ
+                //æ¢å¤å…³è”çš„Splitæ§ä»¶ä½ç½®
                 if ((index + 1) < itemCount) {
                     const ItemStatus& nextItem = rcItemList[index + 1];
                     if ((nextItem.m_pItem->GetRect() != nextItem.m_rcPos)) {
@@ -773,7 +773,7 @@ void ListCtrlHeaderItem::AdjustItemPos(const UiPoint& pt, const UiPoint& ptMouse
                 continue;
             }
             else if ((item.m_index >= nMouseItemIndex) && (item.m_index < nMouseDownItemIndex)) {
-                //ÏòÓÒ²àÒÆ¶¯
+                //å‘å³ä¾§ç§»åŠ¨
                 if ((index + 2) < itemCount) {
                     const ItemStatus& nextItem = rcItemList[index + 2];
                     item.m_pItem->SetPos(nextItem.m_rcPos);
@@ -785,7 +785,7 @@ void ListCtrlHeaderItem::AdjustItemPos(const UiPoint& pt, const UiPoint& ptMouse
                 }
             }
             else {
-                //»Ö¸´Ô­Î»ÖÃ
+                //æ¢å¤åŸä½ç½®
                 if (item.m_pItem->GetRect() != item.m_rcPos) {
                     item.m_pItem->SetPos(item.m_rcPos);
                 }
@@ -793,11 +793,11 @@ void ListCtrlHeaderItem::AdjustItemPos(const UiPoint& pt, const UiPoint& ptMouse
         }
     }
     else {
-        //µ±Ç°Êó±êÎ»ÖÃ£ºÔÚ°´ÏÂµãµÄÓÒ²à£¬Ïò×ó²àÒÆ¶¯¿Ø¼ş
+        //å½“å‰é¼ æ ‡ä½ç½®ï¼šåœ¨æŒ‰ä¸‹ç‚¹çš„å³ä¾§ï¼Œå‘å·¦ä¾§ç§»åŠ¨æ§ä»¶
         for (size_t index = 0; index < itemCount; ++index) {
             const ItemStatus& item = rcItemList[index];
             if (item.m_pItem == this) {
-                //»Ö¸´¹ØÁªµÄSplit¿Ø¼şÎ»ÖÃ
+                //æ¢å¤å…³è”çš„Splitæ§ä»¶ä½ç½®
                 if ((index + 1) < itemCount) {
                     const ItemStatus& nextItem = rcItemList[index + 1];
                     if ((nextItem.m_pItem->GetRect() != nextItem.m_rcPos)) {
@@ -807,7 +807,7 @@ void ListCtrlHeaderItem::AdjustItemPos(const UiPoint& pt, const UiPoint& ptMouse
                 continue;
             }
             else if ((item.m_index > nMouseDownItemIndex) && (item.m_index <= nMouseItemIndex)) {
-                //Ïò×ó²àÒÆ¶¯
+                //å‘å·¦ä¾§ç§»åŠ¨
                 if ((index - 2) < itemCount) {
                     const ItemStatus& nextItem = rcItemList[index - 2];
                     item.m_pItem->SetPos(nextItem.m_rcPos);
@@ -819,7 +819,7 @@ void ListCtrlHeaderItem::AdjustItemPos(const UiPoint& pt, const UiPoint& ptMouse
                 }
             }
             else {
-                //»Ö¸´Ô­Î»ÖÃ
+                //æ¢å¤åŸä½ç½®
                 if (item.m_pItem->GetRect() != item.m_rcPos) {
                     item.m_pItem->SetPos(item.m_rcPos);
                 }
@@ -848,7 +848,7 @@ bool ListCtrlHeaderItem::AdjustItemOrders(const UiPoint& pt,
             nMouseItemIndex = itemStatus.m_index;
             ListCtrlHeaderItem* pHeaderItem = dynamic_cast<ListCtrlHeaderItem*>(itemStatus.m_pItem);
             if ((pHeaderItem != nullptr) && !pHeaderItem->IsEnableDragOrder()) {
-                //µ±Ç°ÁĞÎª¹Ì¶¨ÁĞ£¬²»ÔÊĞíµ÷ÕûË³Ğò
+                //å½“å‰åˆ—ä¸ºå›ºå®šåˆ—ï¼Œä¸å…è®¸è°ƒæ•´é¡ºåº
                 nMouseItemIndex = Box::InvalidIndex;
             }
         }
@@ -860,9 +860,9 @@ bool ListCtrlHeaderItem::AdjustItemOrders(const UiPoint& pt,
         (nCurrentItemIndex != Box::InvalidIndex) &&
         (nMouseItemIndex < itemCount) &&
         (nCurrentItemIndex < itemCount)) {
-        //½»»»¿Ø¼şµÄÎ»ÖÃ
+        //äº¤æ¢æ§ä»¶çš„ä½ç½®
         if (nMouseItemIndex < nCurrentItemIndex) {
-            //Ïò×ó²à½»»»
+            //å‘å·¦ä¾§äº¤æ¢
             pHeader->SetItemIndex(this, nMouseItemIndex);
             if (m_pSplitBox != nullptr) {
                 size_t nNewIndex = pHeader->GetItemIndex(this);
@@ -874,7 +874,7 @@ bool ListCtrlHeaderItem::AdjustItemOrders(const UiPoint& pt,
             }
         }
         else {
-            //ÏòÓÒ²à½»»»
+            //å‘å³ä¾§äº¤æ¢
             nMouseItemIndex += 1;
             ASSERT(nMouseItemIndex < itemCount);
             if (nMouseItemIndex < itemCount) {
@@ -891,7 +891,7 @@ bool ListCtrlHeaderItem::AdjustItemOrders(const UiPoint& pt,
         bOrderChanged = true;
         ASSERT(pHeader->GetItemIndex(this) == (pHeader->GetItemIndex(m_pSplitBox) - 1));
 
-        //½»»»ºó£¬¶ÔËùÓĞµÄÏî½øĞĞĞ£Ñé
+        //äº¤æ¢åï¼Œå¯¹æ‰€æœ‰çš„é¡¹è¿›è¡Œæ ¡éªŒ
         for (size_t index = 0; index < itemCount; index += 2) {
             ASSERT(dynamic_cast<ListCtrlHeaderItem*>(pHeader->GetItemAt(index)) != nullptr);
             ASSERT((index + 1) < itemCount);

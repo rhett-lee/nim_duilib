@@ -12,7 +12,7 @@
 namespace ui
 {
 
-/** ListCtrlµÄ±íÍ·¿Ø¼şµÄÏÔÊ¾Ïî
+/** ListCtrlçš„è¡¨å¤´æ§ä»¶çš„æ˜¾ç¤ºé¡¹
 */
 class ListCtrlHeader;
 class ListCtrlHeaderItem:
@@ -22,249 +22,249 @@ public:
     explicit ListCtrlHeaderItem(Window* pWindow);
     virtual ~ListCtrlHeaderItem();
 
-    /** »ñÈ¡¿Ø¼şÀàĞÍ
+    /** è·å–æ§ä»¶ç±»å‹
     */
     virtual std::wstring GetType() const override;
 
-    /** ÉèÖÃÊôĞÔ
+    /** è®¾ç½®å±æ€§
     */
     virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 
-    /** DPI·¢Éú±ä»¯£¬¸üĞÂ¿Ø¼ş´óĞ¡ºÍ²¼¾Ö
-    * @param [in] nOldDpiScale ¾ÉµÄDPIËõ·Å°Ù·Ö±È
-    * @param [in] nNewDpiScale ĞÂµÄDPIËõ·Å°Ù·Ö±È£¬ÓëDpi().GetScale()µÄÖµÒ»ÖÂ
+    /** DPIå‘ç”Ÿå˜åŒ–ï¼Œæ›´æ–°æ§ä»¶å¤§å°å’Œå¸ƒå±€
+    * @param [in] nOldDpiScale æ—§çš„DPIç¼©æ”¾ç™¾åˆ†æ¯”
+    * @param [in] nNewDpiScale æ–°çš„DPIç¼©æ”¾ç™¾åˆ†æ¯”ï¼Œä¸Dpi().GetScale()çš„å€¼ä¸€è‡´
     */
     virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override;
 
-    /** »æÖÆÎÄ×Ö
+    /** ç»˜åˆ¶æ–‡å­—
     */
     virtual void PaintText(IRender* pRender) override;
 
-    /** °´Å¥µã»÷ÊÂ¼ş
+    /** æŒ‰é’®ç‚¹å‡»äº‹ä»¶
     */
     virtual void Activate() override;
 
 public:
-    /** ÅÅĞò·½Ê½
+    /** æ’åºæ–¹å¼
     */
     enum class SortMode
     {
-        kNone, //²»Ö§³ÖÅÅĞò
-        kUp,   //ÉıĞò
-        kDown  //½µĞò
+        kNone, //ä¸æ”¯æŒæ’åº
+        kUp,   //å‡åº
+        kDown  //é™åº
     };
 
-    /** ÉèÖÃÅÅĞò·½Ê½
-    * @param [in] sortMode ÅÅĞò·½Ê½
-    * @param [in] bTriggerEvent true±íÊ¾´¥·¢ÅÅĞò±ä»¯ÊÂ¼ş£¬¶ÔÊı¾İÖØĞÂÅÅĞò£¬·ñÔò²»´¥·¢ÊÂ¼ş
+    /** è®¾ç½®æ’åºæ–¹å¼
+    * @param [in] sortMode æ’åºæ–¹å¼
+    * @param [in] bTriggerEvent trueè¡¨ç¤ºè§¦å‘æ’åºå˜åŒ–äº‹ä»¶ï¼Œå¯¹æ•°æ®é‡æ–°æ’åºï¼Œå¦åˆ™ä¸è§¦å‘äº‹ä»¶
     */
     void SetSortMode(SortMode sortMode, bool bTriggerEvent = false);
 
-    /** »ñÈ¡ÅÅĞò·½Ê½
+    /** è·å–æ’åºæ–¹å¼
     */
     SortMode GetSortMode() const;
 
-    /** ÉèÖÃÅÅĞòÍ¼±ê£º½µĞò
+    /** è®¾ç½®æ’åºå›¾æ ‡ï¼šé™åº
     */
     void SetSortedDownImage(const std::wstring& sImageString);
 
-    /** ÉèÖÃÅÅĞòÍ¼±ê£ºÉıĞò
+    /** è®¾ç½®æ’åºå›¾æ ‡ï¼šå‡åº
     */
     void SetSortedUpImage(const std::wstring& sImageString);
 
-    /** »ñÈ¡Î¨Ò»ID
+    /** è·å–å”¯ä¸€ID
     */
     size_t GetColomnId() const;
 
-    /** ÉèÖÃ¹ØÁªµÄSplit¿Ø¼ş½Ó¿Ú
+    /** è®¾ç½®å…³è”çš„Splitæ§ä»¶æ¥å£
     */
     void SetSplitBox(SplitBox* pSplitBox);
 
-    /** »ñÈ¡¹ØÁªµÄSplit¿Ø¼ş½Ó¿Ú
+    /** è·å–å…³è”çš„Splitæ§ä»¶æ¥å£
     */
     SplitBox* GetSplitBox() const;
 
-    /** ÉèÖÃÊÇ·ñÔÊĞíµ÷ÕûÁĞ¿í
+    /** è®¾ç½®æ˜¯å¦å…è®¸è°ƒæ•´åˆ—å®½
     */
     void SetColumnResizeable(bool bResizeable);
 
-    /** »ñÈ¡ÊÇ·ñÔÊĞíµ÷ÕûÁĞ¿í
+    /** è·å–æ˜¯å¦å…è®¸è°ƒæ•´åˆ—å®½
     */
     bool IsColumnResizeable() const;
 
-    /** ÉèÖÃÁĞ¿í
-    * @param [in] nWidth ÁĞ¿íÖµ
-    * @param [in] bNeedDpiScale ÊÇ·ñĞèÒª¶ÔÁĞ¿íÖµ½øĞĞDPI×ÔÊÊÓ¦
+    /** è®¾ç½®åˆ—å®½
+    * @param [in] nWidth åˆ—å®½å€¼
+    * @param [in] bNeedDpiScale æ˜¯å¦éœ€è¦å¯¹åˆ—å®½å€¼è¿›è¡ŒDPIè‡ªé€‚åº”
     */
     void SetColumnWidth(int32_t nWidth, bool bNeedDpiScale);
 
-    /** »ñÈ¡ÁĞ¿íÖµ
+    /** è·å–åˆ—å®½å€¼
     */
     int32_t GetColumnWidth() const;
 
-    /** ÉèÖÃÎÄ×ÖÓëÍ¼±êÖ®¼äµÄ¼ä¸ô£¨ÏñËØ£©
+    /** è®¾ç½®æ–‡å­—ä¸å›¾æ ‡ä¹‹é—´çš„é—´éš”ï¼ˆåƒç´ ï¼‰
     */
     void SetIconSpacing(int32_t nIconSpacing, bool bNeedDpiScale);
 
-    /** »ñÈ¡ÎÄ×ÖÓëÍ¼±êÖ®¼äµÄ¼ä¸ô£¨ÏñËØ£©
+    /** è·å–æ–‡å­—ä¸å›¾æ ‡ä¹‹é—´çš„é—´éš”ï¼ˆåƒç´ ï¼‰
     */
     int32_t GetIconSpacing() const;
 
-    /** ÉèÖÃÍ¼±êÏÔÊ¾ÔÚÎÄ×ÖÉÏ·½£¬¾ÓÖĞÏÔÊ¾
+    /** è®¾ç½®å›¾æ ‡æ˜¾ç¤ºåœ¨æ–‡å­—ä¸Šæ–¹ï¼Œå±…ä¸­æ˜¾ç¤º
     */
     void SetShowIconAtTop(bool bShowIconAtTop);
 
-    /** »ñÈ¡Í¼±êÊÇ·ñÏÔÊ¾ÔÚÎÄ×ÖÉÏ·½
+    /** è·å–å›¾æ ‡æ˜¯å¦æ˜¾ç¤ºåœ¨æ–‡å­—ä¸Šæ–¹
     */
     bool IsShowIconAtTop() const;
 
-    /** ÉèÖÃÎÄ±¾Ë®Æ½¶ÔÆë·½Ê½
+    /** è®¾ç½®æ–‡æœ¬æ°´å¹³å¯¹é½æ–¹å¼
     */
     void SetTextHorAlign(HorAlignType alignType);
 
-    /** »ñÈ¡ÎÄ±¾Ë®Æ½¶ÔÆë·½Ê½
+    /** è·å–æ–‡æœ¬æ°´å¹³å¯¹é½æ–¹å¼
     */
     HorAlignType GetTextHorAlign() const;
 
-    /** ÉèÖÃ¹ØÁªÍ¼±êId, Èç¹ûÎª-1±íÊ¾²»ÏÔÊ¾Í¼±ê£¬Í¼±êÏÔÊ¾ÔÚÎÄ±¾Ç°Ãæ
+    /** è®¾ç½®å…³è”å›¾æ ‡Id, å¦‚æœä¸º-1è¡¨ç¤ºä¸æ˜¾ç¤ºå›¾æ ‡ï¼Œå›¾æ ‡æ˜¾ç¤ºåœ¨æ–‡æœ¬å‰é¢
     */
     void SetImageId(int32_t imageId);
 
-    /** »ñÈ¡¹ØÁªÍ¼±êId
+    /** è·å–å…³è”å›¾æ ‡Id
     */
     int32_t GetImageId() const;
 
-    /** ¸ÃÁĞÊÇ·ñÖ§³ÖÁĞ±íÍ·ÍÏ¶¯¸Ä±äÁĞµÄË³Ğò
+    /** è¯¥åˆ—æ˜¯å¦æ”¯æŒåˆ—è¡¨å¤´æ‹–åŠ¨æ”¹å˜åˆ—çš„é¡ºåº
     */
     virtual bool IsEnableDragOrder() const override;
 
 public:
-    /** ÉèÖÃÊÇ·ñÏÔÊ¾CheckBox
-    * @param [in] bVisible true±íÊ¾ÏÔÊ¾£¬false±íÊ¾Òş²Ø
+    /** è®¾ç½®æ˜¯å¦æ˜¾ç¤ºCheckBox
+    * @param [in] bVisible trueè¡¨ç¤ºæ˜¾ç¤ºï¼Œfalseè¡¨ç¤ºéšè—
     */
     bool SetCheckBoxVisible(bool bVisible);
 
-    /** ÅĞ¶Ïµ±Ç°CheckBoxÊÇ·ñ´¦ÓÚÏÔÊ¾×´Ì¬
-    @return ·µ»Øtrue±íÊ¾CheckBox´æÔÚ£¬²¢ÇÒ¿É¼û£» Èç¹û²»º¬CheckBox£¬·µ»Øfalse
+    /** åˆ¤æ–­å½“å‰CheckBoxæ˜¯å¦å¤„äºæ˜¾ç¤ºçŠ¶æ€
+    @return è¿”å›trueè¡¨ç¤ºCheckBoxå­˜åœ¨ï¼Œå¹¶ä¸”å¯è§ï¼› å¦‚æœä¸å«CheckBoxï¼Œè¿”å›false
     */
     bool IsCheckBoxVisible() const;
 
-    /** ÉèÖÃCheckBoxµÄ¹´Ñ¡×´Ì¬
-    * @param [in] bChecked true±íÊ¾¹´Ñ¡£¬false±íÊ¾²»¹´Ñ¡
-    * @param [in] Èç¹ûbCheckedºÍbPartCheckedÍ¬Ê±Îªtrue£¬±íÊ¾²¿·ÖÑ¡Ôñ
+    /** è®¾ç½®CheckBoxçš„å‹¾é€‰çŠ¶æ€
+    * @param [in] bChecked trueè¡¨ç¤ºå‹¾é€‰ï¼Œfalseè¡¨ç¤ºä¸å‹¾é€‰
+    * @param [in] å¦‚æœbCheckedå’ŒbPartCheckedåŒæ—¶ä¸ºtrueï¼Œè¡¨ç¤ºéƒ¨åˆ†é€‰æ‹©
     */
     bool SetCheckBoxCheck(bool bChecked, bool bPartChecked);
 
-    /** »ñÈ¡CheckBoxµÄ¹´Ñ¡×´Ì¬
-    * @param [out] bChecked true±íÊ¾¹´Ñ¡£¬false±íÊ¾²»¹´Ñ¡
-    * @param [out] Èç¹ûbSelectedºÍbPartSelectÍ¬Ê±Îªtrue£¬±íÊ¾²¿·ÖÑ¡Ôñ
+    /** è·å–CheckBoxçš„å‹¾é€‰çŠ¶æ€
+    * @param [out] bChecked trueè¡¨ç¤ºå‹¾é€‰ï¼Œfalseè¡¨ç¤ºä¸å‹¾é€‰
+    * @param [out] å¦‚æœbSelectedå’ŒbPartSelectåŒæ—¶ä¸ºtrueï¼Œè¡¨ç¤ºéƒ¨åˆ†é€‰æ‹©
     */
     bool GetCheckBoxCheck(bool& bChecked, bool& bPartChecked) const;
 
-    /** ÏÔÊ¾/Òş²Ø¸ÃÁĞ
+    /** æ˜¾ç¤º/éšè—è¯¥åˆ—
     */
     void SetColumnVisible(bool bColumnVisible);
 
-    /** ÅĞ¶Ï¸ÃÁĞÊÇ·ñÏÔÊ¾
-    * @return ·µ»Øtrue±íÊ¾¸ÃÁĞÏÔÊ¾£¬·ñÔò±íÊ¾¸ÃÁĞÒş²Ø
+    /** åˆ¤æ–­è¯¥åˆ—æ˜¯å¦æ˜¾ç¤º
+    * @return è¿”å›trueè¡¨ç¤ºè¯¥åˆ—æ˜¾ç¤ºï¼Œå¦åˆ™è¡¨ç¤ºè¯¥åˆ—éšè—
     */
     bool IsColumnVisible() const;
 
-    /** ÉèÖÃ¹ØÁªµÄHeader½Ó¿Ú
+    /** è®¾ç½®å…³è”çš„Headeræ¥å£
     */
     void SetHeaderCtrl(ListCtrlHeader* pHeaderCtrl);
 
-    /** »ñÈ¡¹ØÁªµÄHeader½Ó¿Ú
+    /** è·å–å…³è”çš„Headeræ¥å£
     */
     ListCtrlHeader* GetHeaderCtrl() const;
 
 private:
-    /** Í¬²½ÁĞ¿íÓëUI¿Ø¼ş¿í¶È
+    /** åŒæ­¥åˆ—å®½ä¸UIæ§ä»¶å®½åº¦
     */
     void CheckColumnWidth();
 
-    /** Ê¹µÃÄ¿±êÇøÓò×İÏò¶ÔÆë
+    /** ä½¿å¾—ç›®æ ‡åŒºåŸŸçºµå‘å¯¹é½
     */
     void VAlignRect(UiRect& rc, uint32_t textStyle, int32_t nImageHeight);
 
 protected:
-    /** @name ÍÏ¶¯µ÷ĞòÏà¹ØµÄ³ÉÔ±º¯Êı
+    /** @name æ‹–åŠ¨è°ƒåºç›¸å…³çš„æˆå‘˜å‡½æ•°
     * @{ */
-    /** ¸ù¾İÊó±êÎ»ÖÃµ÷Õû¸÷¸ö¿Ø¼şµÄÎ»ÖÃ(ÍÏ¶¯²Ù×÷µÄÒ»²¿·Ö)
-	* @param [in] pt µ±Ç°Êó±êµÄÎ»ÖÃ
-	* @param [in] ptMouseDown Êó±ê°´ÏÂÊ±µÄÎ»ÖÃ
-	* @param [in] rcItemList ×Ó¿Ø¼şµÄÁĞ±í
+    /** æ ¹æ®é¼ æ ‡ä½ç½®è°ƒæ•´å„ä¸ªæ§ä»¶çš„ä½ç½®(æ‹–åŠ¨æ“ä½œçš„ä¸€éƒ¨åˆ†)
+	* @param [in] pt å½“å‰é¼ æ ‡çš„ä½ç½®
+	* @param [in] ptMouseDown é¼ æ ‡æŒ‰ä¸‹æ—¶çš„ä½ç½®
+	* @param [in] rcItemList å­æ§ä»¶çš„åˆ—è¡¨
 	*/
 	virtual void AdjustItemPos(const UiPoint& pt, const UiPoint& ptMouseDown,
 							   const std::vector<ItemStatus>& rcItemList) const override;
 
-	/** ½»»»Á½¸ö¿Ø¼şµÄÎ»ÖÃ£¬Íê³ÉË³Ğòµ÷Õû
-	* @param [in] pt µ±Ç°Êó±êµÄÎ»ÖÃ
-	* @param [in] rcItemList ×Ó¿Ø¼şµÄÁĞ±í
-	* @param [in] nOldItemIndex Ô­À´µÄ×ÓÏîË÷ÒıºÅ
-	* @param [in] nNewItemIndex ×îĞÂµÄ×ÓÏîË÷ÒıºÅ
-	* @return Èç¹ûÓĞË³Ğòµ÷Õû£¬·µ»Øtrue£»·ñÔò·µ»Øfalse
+	/** äº¤æ¢ä¸¤ä¸ªæ§ä»¶çš„ä½ç½®ï¼Œå®Œæˆé¡ºåºè°ƒæ•´
+	* @param [in] pt å½“å‰é¼ æ ‡çš„ä½ç½®
+	* @param [in] rcItemList å­æ§ä»¶çš„åˆ—è¡¨
+	* @param [in] nOldItemIndex åŸæ¥çš„å­é¡¹ç´¢å¼•å·
+	* @param [in] nNewItemIndex æœ€æ–°çš„å­é¡¹ç´¢å¼•å·
+	* @return å¦‚æœæœ‰é¡ºåºè°ƒæ•´ï¼Œè¿”å›trueï¼›å¦åˆ™è¿”å›false
 	*/
 	virtual bool AdjustItemOrders(const UiPoint& pt,
 								  const std::vector<ItemStatus>& rcItemList,
 								  size_t& nOldItemIndex,
 								  size_t& nNewItemIndex) override;
 
-	/** ¿Ø¼şÎ»ÖÃÍÏ¶¯Íê³ÉÊÂ¼ş
-	* @param [in] nOldItemIndex Ô­À´µÄ×ÓÏîË÷ÒıºÅ
-	* @param [in] nNewItemIndex ×îĞÂµÄ×ÓÏîË÷ÒıºÅ
+	/** æ§ä»¶ä½ç½®æ‹–åŠ¨å®Œæˆäº‹ä»¶
+	* @param [in] nOldItemIndex åŸæ¥çš„å­é¡¹ç´¢å¼•å·
+	* @param [in] nNewItemIndex æœ€æ–°çš„å­é¡¹ç´¢å¼•å·
 	*/
 	virtual void OnItemOrdersChanged(size_t nOldItemIndex, size_t nNewItemIndex) override;
 
     /** @} */
 
 protected:
-    //½ûÖ¹Íâ²¿µ÷ÓÃµ÷Õû¿É¼ûĞÔµÄº¯Êı£¬±ÜÃâÊı¾İ²»Í¬²½
+    //ç¦æ­¢å¤–éƒ¨è°ƒç”¨è°ƒæ•´å¯è§æ€§çš„å‡½æ•°ï¼Œé¿å…æ•°æ®ä¸åŒæ­¥
     virtual void SetFadeVisible(bool bVisible) override;
     virtual void SetVisible(bool bVisible) override;
 
 private:
-    /** ÅÅĞòÍ¼±ê£º½µĞò
+    /** æ’åºå›¾æ ‡ï¼šé™åº
     */
     Image* m_pSortedDownImage;
 
-    /** ÅÅĞòÍ¼±ê£ºÉıĞò
+    /** æ’åºå›¾æ ‡ï¼šå‡åº
     */
     Image* m_pSortedUpImage;
 
-    /** ¹ØÁªµÄSplit¿Ø¼ş½Ó¿Ú
+    /** å…³è”çš„Splitæ§ä»¶æ¥å£
     */
     SplitBox* m_pSplitBox;
 
-    /** ÅÅĞò·½Ê½
+    /** æ’åºæ–¹å¼
     */
     SortMode m_sortMode;
 
-    /** ÁĞ¿í
+    /** åˆ—å®½
     */
     int32_t m_nColumnWidth;
 
-    /** ÊÇ·ñÔÊĞí¸Ä±äÁĞ¿í
+    /** æ˜¯å¦å…è®¸æ”¹å˜åˆ—å®½
     */
     bool m_bColumnResizeable;
 
-    /** ÎÄ×ÖÓëÍ¼±êÖ®¼äµÄ¼ä¸ô(Í¼±êÏÔÊ¾ÔÚÎÄ×ÖµÄÓÒ²à»òÕß×ó²àÊ±)
+    /** æ–‡å­—ä¸å›¾æ ‡ä¹‹é—´çš„é—´éš”(å›¾æ ‡æ˜¾ç¤ºåœ¨æ–‡å­—çš„å³ä¾§æˆ–è€…å·¦ä¾§æ—¶)
     */
     int32_t m_nIconSpacing;
 
-    /** Í¼±êÏÔÊ¾ÔÚÎÄ×ÖÉÏ·½£¬¾ÓÖĞÏÔÊ¾
+    /** å›¾æ ‡æ˜¾ç¤ºåœ¨æ–‡å­—ä¸Šæ–¹ï¼Œå±…ä¸­æ˜¾ç¤º
     */
     bool m_bShowIconAtTop;
 
-    /** ÏÔÊ¾/Òş²Ø¸ÃÁĞ
+    /** æ˜¾ç¤º/éšè—è¯¥åˆ—
     */
     bool m_bColumnVisible;
 
-    /** ¹ØÁªÍ¼±êId, Èç¹ûÎª-1±íÊ¾²»ÏÔÊ¾Í¼±ê£¬Í¼±êÏÔÊ¾ÔÚÎÄ±¾Ç°Ãæ
+    /** å…³è”å›¾æ ‡Id, å¦‚æœä¸º-1è¡¨ç¤ºä¸æ˜¾ç¤ºå›¾æ ‡ï¼Œå›¾æ ‡æ˜¾ç¤ºåœ¨æ–‡æœ¬å‰é¢
     */
     int32_t m_imageId;
 
-    /** ¹ØÁªµÄHeader½Ó¿Ú
+    /** å…³è”çš„Headeræ¥å£
     */
     ListCtrlHeader* m_pHeaderCtrl;
 };

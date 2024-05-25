@@ -20,7 +20,7 @@ BoxShadow::BoxShadow(Control* pControl):
 
 void BoxShadow::SetBoxShadowString(const std::wstring& strBoxShadow)
 {
-	//∏Ò Ω»Á£∫»Á "color='black' offset='1,1' blur_radius='2' spread_radius='2'"
+	//Ê†ºÂºèÂ¶ÇÔºöÂ¶Ç "color='black' offset='1,1' blur_radius='2' spread_radius='2'"
 	std::vector<std::pair<std::wstring, std::wstring>> attributeList;
 	AttributeUtil::ParseAttributeList(strBoxShadow, L'\'', attributeList);
 	for (const auto& attribute : attributeList) {

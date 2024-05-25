@@ -1204,11 +1204,11 @@ static void nsvg__rasterizeSortedEdges(NSVGrasterizer *r, float tx, float ty, fl
 
 static void nsvg__unpremultiplyAlpha(unsigned char* image, int w, int h, int stride)
 {
-	//Èç¹ûÖ´ĞĞÒÔÏÂ´úÂë£¬Ò»Ğ©Í¼ĞÎ×îÖÕ»áÓĞ°×±ßÏÖÏó£¬ÔİÊ±×¢ÊÍµô£¬Ó°ÏìÎ´Öª¡£
+	//å¦‚æœæ‰§è¡Œä»¥ä¸‹ä»£ç ï¼Œä¸€äº›å›¾å½¢æœ€ç»ˆä¼šæœ‰ç™½è¾¹ç°è±¡ï¼Œæš‚æ—¶æ³¨é‡Šæ‰ï¼Œå½±å“æœªçŸ¥ã€‚
 	return;
 	int x,y;
 
-    // ÓÉredrainĞŞ¸´Bug£º nanosvgÒÑ¾­¶ÔÊı¾İ×öÁËÔ¤³Ë£¬ÕâÀï¶ÔRGBAÊı¾İ×ö·´Ô¤³Ë¡£µ«ÊÇ×îÖÕ½âÎöÊ±ĞèÒªÔ¤³ËÊı¾İ£¬ËùÒÔÆÁ±Îµô·´Ô¤³Ë´¦Àí
+    // ç”±redrainä¿®å¤Bugï¼š nanosvgå·²ç»å¯¹æ•°æ®åšäº†é¢„ä¹˜ï¼Œè¿™é‡Œå¯¹RGBAæ•°æ®åšåé¢„ä¹˜ã€‚ä½†æ˜¯æœ€ç»ˆè§£ææ—¶éœ€è¦é¢„ä¹˜æ•°æ®ï¼Œæ‰€ä»¥å±è”½æ‰åé¢„ä¹˜å¤„ç†
 	// Unpremultiply
 	//for (y = 0; y < h; y++) {
 	//	unsigned char *row = &image[y*stride];

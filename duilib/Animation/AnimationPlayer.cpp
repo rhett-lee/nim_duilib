@@ -109,15 +109,15 @@ void AnimationPlayerBase::StartTimer()
 void AnimationPlayerBase::Play()
 {
 	std::chrono::steady_clock::time_point endTime = std::chrono::high_resolution_clock::now();
-	auto thisTime = endTime - m_startTime; //²¥·ÅºÄÊ±£ºÎ¢Ãë(Ç§·ÖÖ®Ò»ºÁÃë)
-	m_palyedMillSeconds += (thisTime.count() / 1000); //ÀÛ¼Æµ½ÒÑ²¥·ÅÊ±¼ä£¨ºÁÃë£©
+	auto thisTime = endTime - m_startTime; //æ’­æ”¾è€—æ—¶ï¼šå¾®ç§’(åƒåˆ†ä¹‹ä¸€æ¯«ç§’)
+	m_palyedMillSeconds += (thisTime.count() / 1000); //ç´¯è®¡åˆ°å·²æ’­æ”¾æ—¶é—´ï¼ˆæ¯«ç§’ï¼‰
 	m_startTime = std::chrono::high_resolution_clock::now();
 
 	int64_t newCurrentValue = GetCurrentValue();
     if (m_playCallback) {
         if (( (m_endValue > m_startValue) && (newCurrentValue >= m_endValue) ) ||
 			( (m_endValue < m_startValue) && (newCurrentValue <= m_endValue) ) ) {
-			//²¥·ÅÍê³É
+			//æ’­æ”¾å®Œæˆ
             newCurrentValue = m_endValue;
             m_playCallback(newCurrentValue);
             Complete();

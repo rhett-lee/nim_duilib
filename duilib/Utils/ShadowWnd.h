@@ -7,15 +7,15 @@
 
 namespace ui {
 
-/** Ê¹ÓÃ¸½¼ÓÒõÓ°´°¿ÚµÄ»ùÀà£¬ÊµÏÖÁË´´½¨´°¿Ú²¢¸½¼ÓµÄ¹¦ÄÜ£¬Ìá¹©Ã»ÓĞ WS_EX_LAYERED ÊôĞÔµÄ´°¿Ú¼Ì³Ğ
- * ¸ÃÀàÊµÏÖ£¬·â×°ÁË3ÖÖ´°¿ÚÄ£Ê½£º
- * £¨1£©Õı³£Ä£Ê½£¬²»¸½¼ÓÒõÓ°µÄ´°¿Ú£º¿ÉÒÔÍ¨¹ıXMLÅäÖÃÎÄ¼ş<Window>ÈçÏÂÅäÖÃ£¨¾ÙÀı£©£º
- *             shadow_attached="false" layered_window="false" £¬²»ĞèÒªÅäÖÃalphaÊôĞÔ£¬²»Ö§³ÖalphaÊôĞÔ;
- * £¨2£©¸½¼ÓÒõÓ°´°¿ÚÄ£Ê½£¬ĞèÒªÊ¹ÓÃ²ã´°¿Ú(´øÓĞWS_EX_LAYEREDÊôĞÔ)£¬¿ÉÒÔÍ¨¹ıXMLÅäÖÃÎÄ¼ş<Window>ÈçÏÂÅäÖÃ£¨¾ÙÀı£©£º
- *             shadow_attached="true" layered_window="true" £¬alphaÎª¿ÉÑ¡ÅäÖÃ£¬ÉèÖÃ´°¿ÚÍ¸Ã÷¶È£¬Èç¹û²»ÉèÖÃ£¬Ä¬ÈÏÎª255¡£
- * £¨3£©¸½¼ÓÒõÓ°´°¿ÚÄ£Ê½£¬²»ĞèÒªÊ¹ÓÃ²ã´°¿Ú(²»´øÓĞWS_EX_LAYEREDÊôĞÔ)£¬¿ÉÒÔÍ¨¹ıXMLÅäÖÃÎÄ¼ş<Window>ÈçÏÂÅäÖÃ£¨¾ÙÀı£©£º
- *             shadow_attached="true" layered_window="false" £¬²»ĞèÒªÅäÖÃalphaÊôĞÔ£¬²»Ö§³ÖalphaÊôĞÔ;
- *             ÉÏÊöÅäÖÃµÈÍ¬ÓÚ£ºlayered_window="false"£¬²»ÉèÖÃshadow_attachedÊôĞÔ¡£
+/** ä½¿ç”¨é™„åŠ é˜´å½±çª—å£çš„åŸºç±»ï¼Œå®ç°äº†åˆ›å»ºçª—å£å¹¶é™„åŠ çš„åŠŸèƒ½ï¼Œæä¾›æ²¡æœ‰ WS_EX_LAYERED å±æ€§çš„çª—å£ç»§æ‰¿
+ * è¯¥ç±»å®ç°ï¼Œå°è£…äº†3ç§çª—å£æ¨¡å¼ï¼š
+ * ï¼ˆ1ï¼‰æ­£å¸¸æ¨¡å¼ï¼Œä¸é™„åŠ é˜´å½±çš„çª—å£ï¼šå¯ä»¥é€šè¿‡XMLé…ç½®æ–‡ä»¶<Window>å¦‚ä¸‹é…ç½®ï¼ˆä¸¾ä¾‹ï¼‰ï¼š
+ *             shadow_attached="false" layered_window="false" ï¼Œä¸éœ€è¦é…ç½®alphaå±æ€§ï¼Œä¸æ”¯æŒalphaå±æ€§;
+ * ï¼ˆ2ï¼‰é™„åŠ é˜´å½±çª—å£æ¨¡å¼ï¼Œéœ€è¦ä½¿ç”¨å±‚çª—å£(å¸¦æœ‰WS_EX_LAYEREDå±æ€§)ï¼Œå¯ä»¥é€šè¿‡XMLé…ç½®æ–‡ä»¶<Window>å¦‚ä¸‹é…ç½®ï¼ˆä¸¾ä¾‹ï¼‰ï¼š
+ *             shadow_attached="true" layered_window="true" ï¼Œalphaä¸ºå¯é€‰é…ç½®ï¼Œè®¾ç½®çª—å£é€æ˜åº¦ï¼Œå¦‚æœä¸è®¾ç½®ï¼Œé»˜è®¤ä¸º255ã€‚
+ * ï¼ˆ3ï¼‰é™„åŠ é˜´å½±çª—å£æ¨¡å¼ï¼Œä¸éœ€è¦ä½¿ç”¨å±‚çª—å£(ä¸å¸¦æœ‰WS_EX_LAYEREDå±æ€§)ï¼Œå¯ä»¥é€šè¿‡XMLé…ç½®æ–‡ä»¶<Window>å¦‚ä¸‹é…ç½®ï¼ˆä¸¾ä¾‹ï¼‰ï¼š
+ *             shadow_attached="true" layered_window="false" ï¼Œä¸éœ€è¦é…ç½®alphaå±æ€§ï¼Œä¸æ”¯æŒalphaå±æ€§;
+ *             ä¸Šè¿°é…ç½®ç­‰åŒäºï¼šlayered_window="false"ï¼Œä¸è®¾ç½®shadow_attachedå±æ€§ã€‚
  */
 class ShadowWndBase;
 class ShadowWnd: public ui::WindowImplBase
@@ -23,12 +23,12 @@ class ShadowWnd: public ui::WindowImplBase
 public:
 	ShadowWnd();
 
-	/**@brief ´´½¨´°¿Ú
-	 * @param[in] hwndParent ¸¸´°¿Ú¾ä±ú
-	 * @param[in] windowName ´°¿ÚÃû³Æ
-	 * @param[in] dwStyle ´°¿ÚÑùÊ½
-	 * @param[in] dwExStyle ´°¿ÚÍØÕ¹ÑùÊ½, ¿ÉÒÔÉèÖÃ²ã´°¿Ú£¨WS_EX_LAYERED£©µÈÊôĞÔ
-	 * @param[in] rc ´°¿Ú´óĞ¡
+	/**@brief åˆ›å»ºçª—å£
+	 * @param[in] hwndParent çˆ¶çª—å£å¥æŸ„
+	 * @param[in] windowName çª—å£åç§°
+	 * @param[in] dwStyle çª—å£æ ·å¼
+	 * @param[in] dwExStyle çª—å£æ‹“å±•æ ·å¼, å¯ä»¥è®¾ç½®å±‚çª—å£ï¼ˆWS_EX_LAYEREDï¼‰ç­‰å±æ€§
+	 * @param[in] rc çª—å£å¤§å°
 	 */
 	virtual bool CreateWnd(HWND hwndParent,
 						   const wchar_t* windowName,
@@ -37,17 +37,17 @@ public:
 						   const ui::UiRect& rc = ui::UiRect(0, 0, 0, 0)) override;
 
 private:
-	/** ¸½¼Ó´°¿ÚÒõÓ°
+	/** é™„åŠ çª—å£é˜´å½±
 	*/
 	virtual Box* AttachShadow(Box* pRoot) override;
 
 private:
-	/** ÅĞ¶ÏÊÇ·ñĞèÒª´´½¨Í¸Ã÷´°¿ÚµÄ¸úËæÒõÓ°
+	/** åˆ¤æ–­æ˜¯å¦éœ€è¦åˆ›å»ºé€æ˜çª—å£çš„è·Ÿéšé˜´å½±
 	*/
 	bool NeedCreateShadowWnd() const;
 
 private:
-	//ÒõÓ°´°¿Ú£¬Í¸Ã÷µÄ
+	//é˜´å½±çª—å£ï¼Œé€æ˜çš„
 	ShadowWndBase* m_pShadowWnd;
 };
 } // namespace ui

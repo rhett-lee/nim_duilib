@@ -8,7 +8,7 @@
 namespace ui
 {
 
-/** Î»Í¼µÄÊµÏÖ£ºGDI»æÖÆÒıÇæ
+/** ä½å›¾çš„å®ç°ï¼šGDIç»˜åˆ¶å¼•æ“
 */
 class UILIB_API Bitmap_GDI: public IBitmap
 {
@@ -18,82 +18,82 @@ public:
 	virtual ~Bitmap_GDI();
 
 public:
-	/** ´ÓÊı¾İ³õÊ¼»¯£¨ARGB¸ñÊ½£©
-	@param [in] nWidth ¿í¶È
-	@param [in] nHeight ¸ß¶È
-	@param [in] flipHeight ÊÇ·ñ·­×ªÎ»Í¼£¬Èç¹ûÎªtrue£¬´´½¨Î»Í¼µÄÊ±ºò£¬ÒÔ×óÉÏ½ÇÎªÔ²µã£¬Í¼Ïñ·½ÏòÊÇ´ÓÉÏµ½ÏÂµÄ£»
-						   Èç¹ûÎªfalse£¬ÔòÒÔ×óÏÂ½ÇÎªÔ²µã£¬Í¼Ïñ·½ÏòÊÇ´ÓÏÂµ½ÉÏ¡£
-	@param [in] pPixelBits Î»Í¼Êı¾İ, Èç¹ûÎªnullptr±íÊ¾´°¿Ú¿ÕÎ»Í¼£¬Èç¹û²»Îªnullptr£¬ÆäÊı¾İ³¤¶ÈÎª£ºnWidth*4*nHeight
-	@param [in] alphaType Î»Í¼µÄAlphaÀàĞÍ£¬Ö»ÓĞSkiaÒıÇæĞèÒª´Ë²ÎÊı
+	/** ä»æ•°æ®åˆå§‹åŒ–ï¼ˆARGBæ ¼å¼ï¼‰
+	@param [in] nWidth å®½åº¦
+	@param [in] nHeight é«˜åº¦
+	@param [in] flipHeight æ˜¯å¦ç¿»è½¬ä½å›¾ï¼Œå¦‚æœä¸ºtrueï¼Œåˆ›å»ºä½å›¾çš„æ—¶å€™ï¼Œä»¥å·¦ä¸Šè§’ä¸ºåœ†ç‚¹ï¼Œå›¾åƒæ–¹å‘æ˜¯ä»ä¸Šåˆ°ä¸‹çš„ï¼›
+						   å¦‚æœä¸ºfalseï¼Œåˆ™ä»¥å·¦ä¸‹è§’ä¸ºåœ†ç‚¹ï¼Œå›¾åƒæ–¹å‘æ˜¯ä»ä¸‹åˆ°ä¸Šã€‚
+	@param [in] pPixelBits ä½å›¾æ•°æ®, å¦‚æœä¸ºnullptrè¡¨ç¤ºçª—å£ç©ºä½å›¾ï¼Œå¦‚æœä¸ä¸ºnullptrï¼Œå…¶æ•°æ®é•¿åº¦ä¸ºï¼šnWidth*4*nHeight
+	@param [in] alphaType ä½å›¾çš„Alphaç±»å‹ï¼Œåªæœ‰Skiaå¼•æ“éœ€è¦æ­¤å‚æ•°
 	*/
 	virtual bool Init(uint32_t nWidth, uint32_t nHeight, bool flipHeight,
 					  const void* pPixelBits, BitmapAlphaType alphaType = kPremul_SkAlphaType) override;
 
-	/** »ñÈ¡Í¼Æ¬¿í¶È
+	/** è·å–å›¾ç‰‡å®½åº¦
 	*/
 	virtual uint32_t GetWidth() const override;
 
-	/** »ñÈ¡Í¼Æ¬¸ß¶È
+	/** è·å–å›¾ç‰‡é«˜åº¦
 	*/
 	virtual uint32_t GetHeight() const override;
 
-	/** »ñÈ¡Í¼Æ¬´óĞ¡
-	@return Í¼Æ¬´óĞ¡
+	/** è·å–å›¾ç‰‡å¤§å°
+	@return å›¾ç‰‡å¤§å°
 	*/
 	virtual UiSize GetSize() const override;
 
-	/** Ëø¶¨Î»Í¼Êı¾İ£¬Êı¾İ³¤¶È = GetWidth() * GetHeight() * 4
+	/** é”å®šä½å›¾æ•°æ®ï¼Œæ•°æ®é•¿åº¦ = GetWidth() * GetHeight() * 4
 	*/
 	virtual void* LockPixelBits() override;
 
-	/** ÊÍ·ÅÎ»Í¼Êı¾İ
+	/** é‡Šæ”¾ä½å›¾æ•°æ®
 	*/
 	virtual void UnLockPixelBits() override;
 
-	/** ¸ÃÎ»Í¼ÊÇ·ñÓĞÍ¸Ã÷ÊôĞÔ(¼´Í¸Ã÷Í¨µÀÖĞ£¬º¬ÓĞ²»ÊÇ255µÄÊı¾İ)
+	/** è¯¥ä½å›¾æ˜¯å¦æœ‰é€æ˜å±æ€§(å³é€æ˜é€šé“ä¸­ï¼Œå«æœ‰ä¸æ˜¯255çš„æ•°æ®)
 	*/
 	virtual bool IsAlphaBitmap() const override;
 
-	/** ¿ËÂ¡Éú³ÉĞÂµÄµÄÎ»Í¼
-	*@return ·µ»ØĞÂÉú³ÉµÄÎ»Í¼½Ó¿Ú£¬ÓÉµ÷ÓÃ·½ÊÍ·Å×ÊÔ´
+	/** å…‹éš†ç”Ÿæˆæ–°çš„çš„ä½å›¾
+	*@return è¿”å›æ–°ç”Ÿæˆçš„ä½å›¾æ¥å£ï¼Œç”±è°ƒç”¨æ–¹é‡Šæ”¾èµ„æº
 	*/
 	virtual IBitmap* Clone() override;
 
 public:
-	/** »ñÈ¡Î»Í¼GDI¾ä±ú
+	/** è·å–ä½å›¾GDIå¥æŸ„
 	*/
 	HBITMAP GetHBitmap() const;
 
-	/* ½â³ıÓëÎ»Í¼¾ä±úµÄ¹ØÁª
+	/* è§£é™¤ä¸ä½å›¾å¥æŸ„çš„å…³è”
 	*/
 	HBITMAP DetachHBitmap();
 
-	/** ´´½¨Ò»¸öÉè±¸ÎŞ¹ØµÄÎ»Í¼
-	*@return ·µ»ØÎ»Í¼¾ä±ú£¬ÓÉµ÷ÓÃ·½ÊÍ·ÅÎ»Í¼×ÊÔ´
+	/** åˆ›å»ºä¸€ä¸ªè®¾å¤‡æ— å…³çš„ä½å›¾
+	*@return è¿”å›ä½å›¾å¥æŸ„ï¼Œç”±è°ƒç”¨æ–¹é‡Šæ”¾ä½å›¾èµ„æº
 	*/
 	static HBITMAP CreateBitmap(int32_t nWidth, int32_t nHeight, bool flipHeight, LPVOID* pBits);
 
 private:
-	/** ¸üĞÂÍ¼Æ¬µÄÍ¸Ã÷Í¨µÀ±êÖ¾
+	/** æ›´æ–°å›¾ç‰‡çš„é€æ˜é€šé“æ ‡å¿—
 	*/
 	void UpdateAlphaFlag(const uint8_t* pPixelBits);
 
 private:
-	//Î»Í¼GDI¾ä±ú
+	//ä½å›¾GDIå¥æŸ„
 	HBITMAP m_hBitmap;
 
-	//Î»Í¼µÄ¿í¶È
+	//ä½å›¾çš„å®½åº¦
 	uint32_t m_nWidth;
 	
-	//Î»Í¼µÄ¿í¶È
+	//ä½å›¾çš„å®½åº¦
 	uint32_t m_nHeight;
 
-	/**Î»Í¼·½Ïò±êÖ¾Îª£ºtrue±íÊ¾Î»Í¼·½Ïò£º´ÓÉÏµ½ÏÂ£¬×óÉÏ½ÇÎªÔ²µã
-	                 false±íÊ¾£ºÎ»Í¼·½Ïò£º´ÓÏÂµ½ÉÏ£¬×óÏÂ½ÇÎªÔ²µã
+	/**ä½å›¾æ–¹å‘æ ‡å¿—ä¸ºï¼štrueè¡¨ç¤ºä½å›¾æ–¹å‘ï¼šä»ä¸Šåˆ°ä¸‹ï¼Œå·¦ä¸Šè§’ä¸ºåœ†ç‚¹
+	                 falseè¡¨ç¤ºï¼šä½å›¾æ–¹å‘ï¼šä»ä¸‹åˆ°ä¸Šï¼Œå·¦ä¸‹è§’ä¸ºåœ†ç‚¹
 	*/
 	bool m_bFlipHeight;
 
-	/** ¸ÃÎ»Í¼ÊÇ·ñÓĞÍ¸Ã÷ÊôĞÔ(¼´Í¸Ã÷Í¨µÀÖĞ£¬º¬ÓĞ²»ÊÇ255µÄÊı¾İ)
+	/** è¯¥ä½å›¾æ˜¯å¦æœ‰é€æ˜å±æ€§(å³é€æ˜é€šé“ä¸­ï¼Œå«æœ‰ä¸æ˜¯255çš„æ•°æ®)
 	*/
 	bool m_bAlphaBitmap;
 };

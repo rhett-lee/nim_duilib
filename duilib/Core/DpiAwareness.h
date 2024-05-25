@@ -7,39 +7,39 @@
 
 namespace ui
 {
-/** DPI¸ĞÖªÄ£Ê½
+/** DPIæ„ŸçŸ¥æ¨¡å¼
 */
 enum class UILIB_API DpiAwarenessMode
 {
-	/** ÎŞ·¨¸ĞÖª
-	 *    Ó¦ÓÃ³ÌĞòµÄ DPI ÊÓÍ¼£ºËùÓĞÏÔÊ¾Æ÷¾ùÎª 96 DPI
-	 *	  DPI ¸ü¸ÄÊ±µÄĞĞÎª£ºÎ»Í¼À­Éì£¨Ä£ºı£©
+	/** æ— æ³•æ„ŸçŸ¥
+	 *    åº”ç”¨ç¨‹åºçš„ DPI è§†å›¾ï¼šæ‰€æœ‰æ˜¾ç¤ºå™¨å‡ä¸º 96 DPI
+	 *	  DPI æ›´æ”¹æ—¶çš„è¡Œä¸ºï¼šä½å›¾æ‹‰ä¼¸ï¼ˆæ¨¡ç³Šï¼‰
 	 */
 	kDpiUnaware = 0,
 
-	/** ÏµÍ³
-	 *  ÒıÈëµÄWindows°æ±¾£ºVista
-	 *  Ó¦ÓÃ³ÌĞòµÄ DPI ÊÓÍ¼£ºËùÓĞÏÔÊ¾Æ÷¾ùÎª 96 DPI
-	 *	DPI ¸ü¸ÄÊ±µÄĞĞÎª£ºÎ»Í¼À­Éì£¨Ä£ºı£©£©
+	/** ç³»ç»Ÿ
+	 *  å¼•å…¥çš„Windowsç‰ˆæœ¬ï¼šVista
+	 *  åº”ç”¨ç¨‹åºçš„ DPI è§†å›¾ï¼šæ‰€æœ‰æ˜¾ç¤ºå™¨å‡ä¸º 96 DPI
+	 *	DPI æ›´æ”¹æ—¶çš„è¡Œä¸ºï¼šä½å›¾æ‹‰ä¼¸ï¼ˆæ¨¡ç³Šï¼‰ï¼‰
 	 */
 	kSystemDpiAware = 1,
 
-	/** Ã¿ÏÔÊ¾Æ÷
-	 *  ÒıÈëµÄWindows°æ±¾£º8.1
-	 *  Ó¦ÓÃ³ÌĞòµÄ DPI ÊÓÍ¼£ºÓ¦ÓÃ³ÌĞò´°¿ÚÖ÷ÒªÎ»ÓÚµÄÏÔÊ¾Æ÷µÄ DPI
-	 *	DPI ¸ü¸ÄÊ±µÄĞĞÎª£ºÍ¨Öª¶¥¼¶ HWND DPI ¸ü¸Ä£¬Ã»ÓĞÈÎºÎ UI ÔªËØµÄ DPI Ëõ·Å¡£
+	/** æ¯æ˜¾ç¤ºå™¨
+	 *  å¼•å…¥çš„Windowsç‰ˆæœ¬ï¼š8.1
+	 *  åº”ç”¨ç¨‹åºçš„ DPI è§†å›¾ï¼šåº”ç”¨ç¨‹åºçª—å£ä¸»è¦ä½äºçš„æ˜¾ç¤ºå™¨çš„ DPI
+	 *	DPI æ›´æ”¹æ—¶çš„è¡Œä¸ºï¼šé€šçŸ¥é¡¶çº§ HWND DPI æ›´æ”¹ï¼Œæ²¡æœ‰ä»»ä½• UI å…ƒç´ çš„ DPI ç¼©æ”¾ã€‚
 	 */
 	kPerMonitorDpiAware = 2,
 
-	/** Ã¿ÏÔÊ¾Æ÷ V2
-	 *  ÒıÈëµÄWindows°æ±¾£ºWindows 10 ´´ÒâÕß¸üĞÂ (1703)
-	 *  Ó¦ÓÃ³ÌĞòµÄ DPI ÊÓÍ¼£ºÓ¦ÓÃ³ÌĞò´°¿ÚÖ÷ÒªÎ»ÓÚµÄÏÔÊ¾Æ÷µÄ DPI
-	 *	DPI ¸ü¸ÄÊ±µÄĞĞÎª£ºÍ¨Öª¶¥¼¶ HWND DPI ¸ü¸Ä£¬×Ô¶¯ DPI Ëõ·Å£º·Ç¹¤×÷Çø¡¢³£ÓÃ¿Ø¼şÖĞµÄÖ÷Ìâ»æÖÆÎ»Í¼ (comctl32 V6)¡¢¶Ô»°¿ò (CreateDialog)¡£
+	/** æ¯æ˜¾ç¤ºå™¨ V2
+	 *  å¼•å…¥çš„Windowsç‰ˆæœ¬ï¼šWindows 10 åˆ›æ„è€…æ›´æ–° (1703)
+	 *  åº”ç”¨ç¨‹åºçš„ DPI è§†å›¾ï¼šåº”ç”¨ç¨‹åºçª—å£ä¸»è¦ä½äºçš„æ˜¾ç¤ºå™¨çš„ DPI
+	 *	DPI æ›´æ”¹æ—¶çš„è¡Œä¸ºï¼šé€šçŸ¥é¡¶çº§ HWND DPI æ›´æ”¹ï¼Œè‡ªåŠ¨ DPI ç¼©æ”¾ï¼šéå·¥ä½œåŒºã€å¸¸ç”¨æ§ä»¶ä¸­çš„ä¸»é¢˜ç»˜åˆ¶ä½å›¾ (comctl32 V6)ã€å¯¹è¯æ¡† (CreateDialog)ã€‚
 	 */
 	kPerMonitorDpiAware_V2 = 3
 };
 
-/** DPI¸ĞÖª¹¦ÄÜ³õÊ¼»¯²ÎÊı
+/** DPIæ„ŸçŸ¥åŠŸèƒ½åˆå§‹åŒ–å‚æ•°
 */
 class UILIB_API DpiInitParam
 {
@@ -48,26 +48,26 @@ public:
 
 	enum class DpiAwarenessFlag
 	{
-		kFromManifest,  //´Ó¿ÉÖ´ĞĞ³ÌĞòµÄmanifestÅäÖÃÖĞ¶ÁÈ¡£¬²»ĞèÒªÔÙ´ÎÉèÖÃ
-		kFromUserDefine //Í¨¹ı²ÎÊıÉèÖÃ£¨¼´£ºDpiInitParam::m_dpiAwarenessMode ³ÉÔ±±äÁ¿£©
-		                //Èç¹û¿ÉÖ´ĞĞ³ÌĞòµÄmanifestÅäÖÃÒÑ¾­ÉèÖÃÁËDPI¸ĞÖªÀàĞÍ£¬ÔòÊÇÎŞ·¨ĞŞ¸ÄµÄ¡£
+		kFromManifest,  //ä»å¯æ‰§è¡Œç¨‹åºçš„manifesté…ç½®ä¸­è¯»å–ï¼Œä¸éœ€è¦å†æ¬¡è®¾ç½®
+		kFromUserDefine //é€šè¿‡å‚æ•°è®¾ç½®ï¼ˆå³ï¼šDpiInitParam::m_dpiAwarenessMode æˆå‘˜å˜é‡ï¼‰
+		                //å¦‚æœå¯æ‰§è¡Œç¨‹åºçš„manifesté…ç½®å·²ç»è®¾ç½®äº†DPIæ„ŸçŸ¥ç±»å‹ï¼Œåˆ™æ˜¯æ— æ³•ä¿®æ”¹çš„ã€‚
 	};
 
-	/** DPI¸ĞÖª²ÎÊıÀàĞÍ£¨Ä¬ÈÏÊÇÍ¨¹ı m_dpiAwarenessMode ÖµÉèÖÃµÄ£©
+	/** DPIæ„ŸçŸ¥å‚æ•°ç±»å‹ï¼ˆé»˜è®¤æ˜¯é€šè¿‡ m_dpiAwarenessMode å€¼è®¾ç½®çš„ï¼‰
 	*/
 	DpiAwarenessFlag m_dpiAwarenessFlag;
 
-	/** ²ÎÊıÉèÖÃµÄDPI¸ĞÖª²ÎÊıÄ£Ê½(½öµ± m_dpiAwarenessFlag Îª kFromUserDefineÊ±ÓĞĞ§)
+	/** å‚æ•°è®¾ç½®çš„DPIæ„ŸçŸ¥å‚æ•°æ¨¡å¼(ä»…å½“ m_dpiAwarenessFlag ä¸º kFromUserDefineæ—¶æœ‰æ•ˆ)
 	*/
 	DpiAwarenessMode m_dpiAwarenessMode;
 
-	/** ²ÎÊıÉèÖÃµÄDPIÖµ£¨Èç¹ûÉèÖÃÁËÓĞĞ§Öµ£¬Ôò°´ÉèÖÃµÄÖµ×÷ÎªÆô¶¯Ê±µÄDPIÖµ£»
-	                   Èç¹ûÎ´ÉèÖÃ£¨ÖµÎª0Ê±£©£¬Ôò¶ÁÈ¡ÏµÍ³ÅäÖÃµÄDPIÖµ£©
+	/** å‚æ•°è®¾ç½®çš„DPIå€¼ï¼ˆå¦‚æœè®¾ç½®äº†æœ‰æ•ˆå€¼ï¼Œåˆ™æŒ‰è®¾ç½®çš„å€¼ä½œä¸ºå¯åŠ¨æ—¶çš„DPIå€¼ï¼›
+	                   å¦‚æœæœªè®¾ç½®ï¼ˆå€¼ä¸º0æ—¶ï¼‰ï¼Œåˆ™è¯»å–ç³»ç»Ÿé…ç½®çš„DPIå€¼ï¼‰
 	*/
 	uint32_t m_uDPI;
 };
 
-/** DPI¸ĞÖª¹¦ÄÜµÄ½Ó¿Ú
+/** DPIæ„ŸçŸ¥åŠŸèƒ½çš„æ¥å£
 */
 class UILIB_API DpiAwareness
 {
@@ -78,20 +78,20 @@ public:
 	DpiAwareness& operator = (const DpiAwareness&) = delete;
 
 public:
-	/** ³õÊ¼»¯DPI¸ĞÖªÄ£Ê½ºÍDPIÖµ£¨¸Ãº¯ÊıÖ»¿Éµ÷ÓÃÒ»´Î£¬ºóĞøµ÷ÓÃ±»ºöÂÔ£©
-	* @param [in] initParam ³õÊ¼»¯²ÎÊı£¬Ïê¼û²ÎÊıËµÃ÷
+	/** åˆå§‹åŒ–DPIæ„ŸçŸ¥æ¨¡å¼å’ŒDPIå€¼ï¼ˆè¯¥å‡½æ•°åªå¯è°ƒç”¨ä¸€æ¬¡ï¼Œåç»­è°ƒç”¨è¢«å¿½ç•¥ï¼‰
+	* @param [in] initParam åˆå§‹åŒ–å‚æ•°ï¼Œè¯¦è§å‚æ•°è¯´æ˜
 	*/
 	bool InitDpiAwareness(const DpiInitParam& initParam);
 
-	/** ÉèÖÃ½ø³ÌµÄDPI¸ĞÖªÄ£Ê½
-	   £¨DPI¸ĞÖªÄ£Ê½Ö»ÔÊĞíÉèÖÃÒ»´Î£¬ÉèÖÃ³É¹¦ºó²»ÔÊĞíĞŞ¸Ä£»Èç¹ûÔÚ¿ÉÖ´ĞĞ³ÌĞòµÄmanifestÅäÖÃÖĞÉèÖÃÁË¸ĞÖªÄ£Ê½£¬Ò²ÎŞ·¨¸ü¸Ä£©
-	* @param [in] dpiAwarenessMode ÆÚÍûµÄDPI¸ĞÖªÄ£Ê½£¬×ÜÌå²ßÂÔÊÇÖğ²½½µ¼¶ÉèÖÃ
-	*             ÒÀ´ÎÎª£ºkPerMonitorDpiAware_V2 -> kPerMonitorDpiAware -> kSystemDpiAware
-	* @return ·µ»ØÊµ¼ÊµÄ½ø³ÌDPI¸ĞÖªÄ£Ê½
+	/** è®¾ç½®è¿›ç¨‹çš„DPIæ„ŸçŸ¥æ¨¡å¼
+	   ï¼ˆDPIæ„ŸçŸ¥æ¨¡å¼åªå…è®¸è®¾ç½®ä¸€æ¬¡ï¼Œè®¾ç½®æˆåŠŸåä¸å…è®¸ä¿®æ”¹ï¼›å¦‚æœåœ¨å¯æ‰§è¡Œç¨‹åºçš„manifesté…ç½®ä¸­è®¾ç½®äº†æ„ŸçŸ¥æ¨¡å¼ï¼Œä¹Ÿæ— æ³•æ›´æ”¹ï¼‰
+	* @param [in] dpiAwarenessMode æœŸæœ›çš„DPIæ„ŸçŸ¥æ¨¡å¼ï¼Œæ€»ä½“ç­–ç•¥æ˜¯é€æ­¥é™çº§è®¾ç½®
+	*             ä¾æ¬¡ä¸ºï¼škPerMonitorDpiAware_V2 -> kPerMonitorDpiAware -> kSystemDpiAware
+	* @return è¿”å›å®é™…çš„è¿›ç¨‹DPIæ„ŸçŸ¥æ¨¡å¼
 	*/
 	DpiAwarenessMode SetDpiAwareness(DpiAwarenessMode dpiAwarenessMode) const;
 
-	/** »ñÈ¡µ±Ç°½ø³ÌµÄDPI¸ĞÖªÄ£Ê½
+	/** è·å–å½“å‰è¿›ç¨‹çš„DPIæ„ŸçŸ¥æ¨¡å¼
 	*/
 	DpiAwarenessMode GetDpiAwareness() const;
 };

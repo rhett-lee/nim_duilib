@@ -5,74 +5,74 @@
 #include <string>
 #include <vector>
 
-/** ´ÅÅÌ·ÖÇøĞÅÏ¢¸¨ÖúÀà
+/** ç£ç›˜åˆ†åŒºä¿¡æ¯è¾…åŠ©ç±»
 */
 class DiskUtils
 {
 public:
 
-    /** ´ÅÅÌ·ÖÇøµÄÏêÏ¸ĞÅÏ¢
+    /** ç£ç›˜åˆ†åŒºçš„è¯¦ç»†ä¿¡æ¯
     */
     struct DiskInfo
     { 
-        /** ·ÖÇø¾í±ê
+        /** åˆ†åŒºå·æ ‡
         */
         std::wstring m_volumeName;
         
-        /** ·ÖÇøÀàĞÍ
+        /** åˆ†åŒºç±»å‹
         */
         std::wstring m_volumeType;
         
-        /** ·ÖÇøÀàĞÍ£¬ÈçNTFSµÈ
+        /** åˆ†åŒºç±»å‹ï¼Œå¦‚NTFSç­‰
         */
         std::wstring m_fileSystem;
         
-        /** ´Ø´óĞ¡
+        /** ç°‡å¤§å°
         */
         uint32_t m_clusterBytes;
         
-        /** ×Ü´óĞ¡
+        /** æ€»å¤§å°
         */
         uint64_t m_totalBytes;
         
-        /** ¿ÉÓÃ¿Õ¼ä´óĞ¡
+        /** å¯ç”¨ç©ºé—´å¤§å°
         */
         uint64_t m_freeBytes;
         
-        /** ÊÇ·ñº¬ÓĞÎÄ¼şÏµÍ³
+        /** æ˜¯å¦å«æœ‰æ–‡ä»¶ç³»ç»Ÿ
         */
         bool m_hasFileSystem;
     };
     
 public:
     
-    /** »ñÈ¡±¾µØ´ÅÅÌÁĞ±í
-    @param [out] ·µ»Ø±¾µØ´ÅÅÌµÄÁĞ±í£¬´ÅÅÌ¸ñÊ½Èç£º"C:\\"µÈ
-    @return ³É¹¦·µ»Øtrue£¬·ñÔò·µ»Øfalse
+    /** è·å–æœ¬åœ°ç£ç›˜åˆ—è¡¨
+    @param [out] è¿”å›æœ¬åœ°ç£ç›˜çš„åˆ—è¡¨ï¼Œç£ç›˜æ ¼å¼å¦‚ï¼š"C:\\"ç­‰
+    @return æˆåŠŸè¿”å›trueï¼Œå¦åˆ™è¿”å›false
     */
     static bool GetLogicalDriveList(std::vector<std::wstring>& driveList);
     
-    /** »ñÈ¡·ÖÇøĞÅÏ¢
-    @param [in] driveString Çı¶¯Æ÷Ãû³Æ£¬¸ñÊ½Èç£º"C:\\"
-    @param [out] diskInfo ·µ»Ø´ÅÅÌ¶ÔÓ¦ĞÅÏ¢
-    @return ³É¹¦·µ»Øtrue£¬·ñÔò·µ»Øfalse
+    /** è·å–åˆ†åŒºä¿¡æ¯
+    @param [in] driveString é©±åŠ¨å™¨åç§°ï¼Œæ ¼å¼å¦‚ï¼š"C:\\"
+    @param [out] diskInfo è¿”å›ç£ç›˜å¯¹åº”ä¿¡æ¯
+    @return æˆåŠŸè¿”å›trueï¼Œå¦åˆ™è¿”å›false
     */
     static bool GetLogicalDriveInfo(const std::wstring& driveString, DiskInfo& diskInfo);
 
-    /** ¸ù¾İÂ·¾¶µÃµ½µ±Ç°µÄÅÌ·û
-    @param [in] path µ±Ç°Â·¾¶
-    @return ÅÌ·ûÃû³Æ
+    /** æ ¹æ®è·¯å¾„å¾—åˆ°å½“å‰çš„ç›˜ç¬¦
+    @param [in] path å½“å‰è·¯å¾„
+    @return ç›˜ç¬¦åç§°
     */
     static std::wstring GetDriveFromDirectoryPath(std::wstring path);
 
-    /** »ñÈ¡Ê£Óà¿Õ¼ä×î´óµÄ±¾µØ´ÅÅÌµÄÅÌ·û
-    @return ·µ»Ø´ÅÅÌµÄÅÌ·û£¬ ±ÈÈç: "C:\\"
+    /** è·å–å‰©ä½™ç©ºé—´æœ€å¤§çš„æœ¬åœ°ç£ç›˜çš„ç›˜ç¬¦
+    @return è¿”å›ç£ç›˜çš„ç›˜ç¬¦ï¼Œ æ¯”å¦‚: "C:\\"
     */
     static std::wstring GetMaxFreeSpaceLocalDisk();
 
-    /** »ñÈ¡Ö¸¶¨Ä¿Â¼µÄÊ£Óà´ÅÅÌ¿Õ¼ä
-    @param[in] fullDirectory ÎÄ¼şÄ¿Â¼
-    @return Ê£Óà´ÅÅÌ¿Õ¼ä´óĞ¡(BYTE)
+    /** è·å–æŒ‡å®šç›®å½•çš„å‰©ä½™ç£ç›˜ç©ºé—´
+    @param[in] fullDirectory æ–‡ä»¶ç›®å½•
+    @return å‰©ä½™ç£ç›˜ç©ºé—´å¤§å°(BYTE)
     */
     static uint64_t GetFreeDiskSpace(const std::wstring& fullDirectory);
 };

@@ -40,8 +40,8 @@ void BitmapAlpha::ClearAlpha(const UiRect& rcDirty, uint8_t alpha) const
 
 void BitmapAlpha::RestoreAlpha(const UiRect& rcDirty, const UiPadding& rcShadowPadding, uint8_t alpha) const
 {
-	// ´Ëº¯ÊýÊÊÓÃÓÚGDIµÈAPIäÖÈ¾Î»Í¼£¬µ¼ÖÂ¶ªÊ§alphaÍ¨µÀµÄÇé¿ö£¬¿ÉÒÔ°ÑalphaÍ¨µÀ²¹»ØÀ´
-	// µ«ÊÇäÖÈ¾Î»Í¼Ê±£¬»¹ÓÐGDI+¡¢AlphaBlendµÈAPI¸øÎ»Í¼ÉèÖÃÁË°ëÍ¸Ã÷µÄalphaÍ¨µÀÊ±£¬¿ÉÄÜµ¼ÖÂÃ»·¨ÕýÈ·µÄÐÞÕýalphaÍ¨µÀ
+	// æ­¤å‡½æ•°é€‚ç”¨äºŽGDIç­‰APIæ¸²æŸ“ä½å›¾ï¼Œå¯¼è‡´ä¸¢å¤±alphaé€šé“çš„æƒ…å†µï¼Œå¯ä»¥æŠŠalphaé€šé“è¡¥å›žæ¥
+	// ä½†æ˜¯æ¸²æŸ“ä½å›¾æ—¶ï¼Œè¿˜æœ‰GDI+ã€AlphaBlendç­‰APIç»™ä½å›¾è®¾ç½®äº†åŠé€æ˜Žçš„alphaé€šé“æ—¶ï¼Œå¯èƒ½å¯¼è‡´æ²¡æ³•æ­£ç¡®çš„ä¿®æ­£alphaé€šé“
 	ASSERT((m_pPiexl != nullptr) && (m_nChannels == 4) && (m_nWidth > 0) && (m_nHeight > 0));
 	if ((m_pPiexl == nullptr) || (m_nChannels != 4) || (m_nWidth <= 0) || (m_nHeight <= 0)) {
 		return;
@@ -60,12 +60,12 @@ void BitmapAlpha::RestoreAlpha(const UiRect& rcDirty, const UiPadding& rcShadowP
 			if (((j >= rcShadowPadding.left && j < m_nWidth - rcShadowPadding.right)
 				|| (i >= rcShadowPadding.top && i < m_nHeight - rcShadowPadding.bottom))) {
 
-				// ClearAlphaÊ±£¬°ÑalphaÍ¨µÀÉèÖÃÎªÄ³¸öÖµ
-				// Èç¹û´ËÖµÃ»ÓÐ±ä»¯£¬ÔòÖ¤Ã÷ÉÏÃæÃ»ÓÐ»æÖÆÈÎºÎÄÚÈÝ£¬°ÑalphaÉèÎª0
+				// ClearAlphaæ—¶ï¼ŒæŠŠalphaé€šé“è®¾ç½®ä¸ºæŸä¸ªå€¼
+				// å¦‚æžœæ­¤å€¼æ²¡æœ‰å˜åŒ–ï¼Œåˆ™è¯æ˜Žä¸Šé¢æ²¡æœ‰ç»˜åˆ¶ä»»ä½•å†…å®¹ï¼ŒæŠŠalphaè®¾ä¸º0
 				if (alpha != 0 && *a == alpha) {
 					*a = 0;
 				}
-				// Èç¹û´ËÖµ±äÎª0£¬ÔòÖ¤Ã÷ÉÏÃæ±»ÀàËÆDrawTextµÈGDIº¯Êý»æÖÆ¹ýµ¼ÖÂalpha±»ÉèÎª0£¬´ËÊ±alphaÉèÎª255
+				// å¦‚æžœæ­¤å€¼å˜ä¸º0ï¼Œåˆ™è¯æ˜Žä¸Šé¢è¢«ç±»ä¼¼DrawTextç­‰GDIå‡½æ•°ç»˜åˆ¶è¿‡å¯¼è‡´alphaè¢«è®¾ä¸º0ï¼Œæ­¤æ—¶alphaè®¾ä¸º255
 				else if (*a == 0) {
 					*a = 255;
 				}
@@ -76,7 +76,7 @@ void BitmapAlpha::RestoreAlpha(const UiRect& rcDirty, const UiPadding& rcShadowP
 
 void BitmapAlpha::RestoreAlpha(const UiRect& rcDirty, const UiPadding& rcShadowPadding) const
 {
-	// ÎÞÂÛÊ²Ã´Çé¿ö£¬¶¼°Ñ´ËÇøÓòµÄalphaÍ¨µÀÉèÖÃÎª255
+	// æ— è®ºä»€ä¹ˆæƒ…å†µï¼Œéƒ½æŠŠæ­¤åŒºåŸŸçš„alphaé€šé“è®¾ç½®ä¸º255
 	ASSERT((m_pPiexl != nullptr) && (m_nChannels == 4) && (m_nWidth > 0) && (m_nHeight > 0));
 	if ((m_pPiexl == nullptr) || (m_nChannels != 4) || (m_nWidth <= 0) || (m_nHeight <= 0)) {
 		return;

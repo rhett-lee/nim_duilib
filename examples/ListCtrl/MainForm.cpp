@@ -28,7 +28,7 @@ std::wstring MainForm::GetWindowClassName() const
 
 void MainForm::OnCloseWindow()
 {
-	//¹Ø±Õ´°¿Úºó£¬ÍË³öÖ÷Ïß³ÌµÄÏûÏ¢Ñ­»·£¬¹Ø±Õ³ÌĞò
+	//å…³é—­çª—å£åï¼Œé€€å‡ºä¸»çº¿ç¨‹çš„æ¶ˆæ¯å¾ªç¯ï¼Œå…³é—­ç¨‹åº
 	PostQuitMessage(0L);
 }
 
@@ -50,15 +50,15 @@ void MainForm::OnInitWindow()
 	pListImageList->SetImageSize(ui::UiSize(32, 32), Dpi(), true);
 	pIconImageList->SetImageSize(ui::UiSize(64, 64), Dpi(), true);
 
-	//Ìí¼ÓÍ¼Æ¬×ÊÔ´
+	//æ·»åŠ å›¾ç‰‡èµ„æº
 	uint32_t imageId = pReportImageList->AddImageString(L"file='1.svg' width='18' height='18'", Dpi());
 	pListImageList->AddImageString(L"file='1.svg' width='32' height='32' valign='center' halign='center'", Dpi());
 	pIconImageList->AddImageString(L"file='1.svg' width='64' height='64' valign='center' halign='center'", Dpi());
 
-	//Ìî³äÊı¾İ
+	//å¡«å……æ•°æ®
 	InsertItemData(400, 9, (int32_t)imageId);
 
-	// ±í¸ñÀàĞÍ
+	// è¡¨æ ¼ç±»å‹
 	ui::Combo* pTypeCombo = dynamic_cast<ui::Combo*>(FindControl(L"list_ctrl_type_combo"));
 	if (pTypeCombo != nullptr) {
 		pTypeCombo->SetCurSel((int32_t)pListCtrl->GetListCtrlType());
@@ -84,7 +84,7 @@ void MainForm::OnInitWindow()
 			});
 	}
 
-	//±íÍ·¸ß¶È¿ØÖÆ
+	//è¡¨å¤´é«˜åº¦æ§åˆ¶
 	ui::RichEdit* pHeaderHeightEdit = dynamic_cast<ui::RichEdit*>(FindControl(L"header_height_edit"));
 	if (pHeaderHeightEdit != nullptr) {
 		pHeaderHeightEdit->SetText(ui::StringHelper::Printf(L"%d", pListCtrl->GetHeaderHeight()));
@@ -97,7 +97,7 @@ void MainForm::OnInitWindow()
 			});
 	}
 
-	//±í¸ñÃ¿ĞĞ¸ß¶È¿ØÖÆ
+	//è¡¨æ ¼æ¯è¡Œé«˜åº¦æ§åˆ¶
 	ui::RichEdit* pItemHeightEdit = dynamic_cast<ui::RichEdit*>(FindControl(L"list_item_height_edit"));
 	if (pItemHeightEdit != nullptr) {
 		pItemHeightEdit->SetText(ui::StringHelper::Printf(L"%d", pListCtrl->GetDataItemHeight()));
@@ -110,10 +110,10 @@ void MainForm::OnInitWindow()
 			});
 	}
 
-	//ÁĞ¿ØÖÆ
+	//åˆ—æ§åˆ¶
 	ui::Combo* pColumnCombo = dynamic_cast<ui::Combo*>(FindControl(L"column_combo"));
 	if (pColumnCombo != nullptr) {
-		//Ìî³äÁĞÊı¾İ
+		//å¡«å……åˆ—æ•°æ®
 		size_t nColumnCount = pListCtrl->GetColumnCount();
 		for (size_t i = 0; i < nColumnCount; ++i) {
 			ui::ListCtrlHeaderItem* pHeaderItem = pListCtrl->GetColumn(i);
@@ -121,11 +121,11 @@ void MainForm::OnInitWindow()
 			if (pHeaderItem != nullptr) {
 				size_t nItem = pColumnCombo->AddTextItem(pHeaderItem->GetText());
 				ASSERT(nItem != ui::Box::InvalidIndex);
-				//±£³ÖÁĞµÄID
+				//ä¿æŒåˆ—çš„ID
 				pColumnCombo->SetItemData(nItem, pHeaderItem->GetColomnId());
 			}
 		}
-		//¹ÒÔØÊÂ¼ş
+		//æŒ‚è½½äº‹ä»¶
 		pColumnCombo->AttachSelect([this, pColumnCombo](const ui::EventArgs& args) {
 			size_t nCurSel = args.wParam;
 			size_t nColumnId = pColumnCombo->GetItemData(nCurSel);
@@ -162,7 +162,7 @@ void MainForm::OnInitWindow()
 
 	ui::CheckBox* pShowIcon= dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_show_icon"));
 
-	//ÊµÏÖÏÔÊ¾¸ÃÁĞ
+	//å®ç°æ˜¾ç¤ºè¯¥åˆ—
 	auto OnColumnShowHide = [this, pColumnCombo, pListCtrl](bool bColumnVisible) {
 			size_t nColumnId = pColumnCombo->GetItemData(pColumnCombo->GetCurSel());
 			ui::ListCtrlHeaderItem* pHeaderItem = pListCtrl->GetColumnById(nColumnId);
@@ -180,7 +180,7 @@ void MainForm::OnInitWindow()
 		return true;
 		});
 
-	//ÊÇ·ñÖ§³ÖÁĞ¿íµ÷Õû
+	//æ˜¯å¦æ”¯æŒåˆ—å®½è°ƒæ•´
 	auto OnColumnResizeable = [this, pColumnCombo, pListCtrl](bool bResizeable) {
 			size_t nColumnId = pColumnCombo->GetItemData(pColumnCombo->GetCurSel());
 			ui::ListCtrlHeaderItem* pHeaderItem = pListCtrl->GetColumnById(nColumnId);
@@ -198,7 +198,7 @@ void MainForm::OnInitWindow()
 		return true;
 		});
 
-	//ÊÇ·ñÖ§³ÖÅÅĞò
+	//æ˜¯å¦æ”¯æŒæ’åº
 	auto OnColumnSort = [this, pColumnCombo, pListCtrl](bool bSort) {
 			size_t nColumnId = pColumnCombo->GetItemData(pColumnCombo->GetCurSel());
 			ui::ListCtrlHeaderItem* pHeaderItem = pListCtrl->GetColumnById(nColumnId);
@@ -221,7 +221,7 @@ void MainForm::OnInitWindow()
 		return true;
 		});
 
-	//ÊÇ·ñÍ¼±êÏÔÊ¾ÔÚÉÏ·½
+	//æ˜¯å¦å›¾æ ‡æ˜¾ç¤ºåœ¨ä¸Šæ–¹
 	auto OnColumnShowIconOnTop = [this, pColumnCombo, pListCtrl](bool bShowIconAtTop) {
 			size_t nColumnId = pColumnCombo->GetItemData(pColumnCombo->GetCurSel());
 			ui::ListCtrlHeaderItem* pHeaderItem = pListCtrl->GetColumnById(nColumnId);
@@ -240,7 +240,7 @@ void MainForm::OnInitWindow()
 		});
 
 
-	//ÊÇ·ñ¿ÉÍÏ¶¯µ÷ÕûË³Ğò
+	//æ˜¯å¦å¯æ‹–åŠ¨è°ƒæ•´é¡ºåº
 	auto OnColumnDragOrder = [this, pColumnCombo, pListCtrl](bool bEnableDragOrder) {
 		size_t nColumnId = pColumnCombo->GetItemData(pColumnCombo->GetCurSel());
 		ui::ListCtrlHeaderItem* pHeaderItem = pListCtrl->GetColumnById(nColumnId);
@@ -258,7 +258,7 @@ void MainForm::OnInitWindow()
 		return true;
 		});
 
-	//ÊÇ·ñ¿É±à¼­
+	//æ˜¯å¦å¯ç¼–è¾‘
 	auto OnColumnEditable = [this, pColumnCombo, pListCtrl](bool bEditable) {
 		size_t nColumnId = pColumnCombo->GetItemData(pColumnCombo->GetCurSel());
 		size_t nColumnIndex = pListCtrl->GetColumnIndex(nColumnId);
@@ -276,7 +276,7 @@ void MainForm::OnInitWindow()
 		return true;
 		});
 
-	//ÁĞ¼¶CheckBox£º±íÍ·ÊÇ·ñÏÔÊ¾CheckBox
+	//åˆ—çº§CheckBoxï¼šè¡¨å¤´æ˜¯å¦æ˜¾ç¤ºCheckBox
 	auto OnSetCheckBoxVisible = [this, pColumnCombo, pListCtrl](bool bCheckBoxVisible) {
 		size_t nColumnId = pColumnCombo->GetItemData(pColumnCombo->GetCurSel());
 		ui::ListCtrlHeaderItem* pHeaderItem = pListCtrl->GetColumnById(nColumnId);
@@ -294,7 +294,7 @@ void MainForm::OnInitWindow()
 		return true;
 		});
 
-	//ÁĞ¼¶CheckBox£ºÔÚÃ¿ÁĞÏÔÊ¾CheckBox
+	//åˆ—çº§CheckBoxï¼šåœ¨æ¯åˆ—æ˜¾ç¤ºCheckBox
 	auto OnShowCheckBox = [this, pColumnCombo, pListCtrl](bool bShowCheckBox) {
 			size_t nColumnId = pColumnCombo->GetItemData(pColumnCombo->GetCurSel());
 			size_t nColumnIndex = pListCtrl->GetColumnIndex(nColumnId);
@@ -415,23 +415,23 @@ void MainForm::OnInitWindow()
 		return true;
 		});
 
-	//ÊÇ·ñÖ§³Ö¶àÑ¡
+	//æ˜¯å¦æ”¯æŒå¤šé€‰
 	ui::CheckBox* pMultiSelect = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_multi_select"));
 	if (pMultiSelect != nullptr) {
 		pMultiSelect->Selected(pListCtrl->IsMultiSelect(), false);
 	}
-	//ÔÚÁĞ±íÍ·µã»÷ÓÒ¼ü
+	//åœ¨åˆ—è¡¨å¤´ç‚¹å‡»å³é”®
 	ui::ListCtrlHeader* pHeaderCtrl = pListCtrl->GetHeaderCtrl();
 	if (pHeaderCtrl != nullptr) {
 		pHeaderCtrl->AttachRClick([this](const ui::EventArgs&) {
-			if (::MessageBox(nullptr, L"ListCtrlHeader RClick! ÊÇ·ñÖ´ĞĞ¹¦ÄÜ²âÊÔ£¿", L"", MB_YESNO) == IDYES) {
+			if (::MessageBox(nullptr, L"ListCtrlHeader RClick! æ˜¯å¦æ‰§è¡ŒåŠŸèƒ½æµ‹è¯•ï¼Ÿ", L"", MB_YESNO) == IDYES) {
 				RunListCtrlTest();
 			}			
 			return true;
 			});
 	}
 
-	//¿ØÖÆ±íÍ·»òÕßĞĞÊ×ÊÇ·ñÏÔÊ¾CheckBox
+	//æ§åˆ¶è¡¨å¤´æˆ–è€…è¡Œé¦–æ˜¯å¦æ˜¾ç¤ºCheckBox
 	if ((pHeaderCtrl != nullptr) && pHeaderCtrl->IsVisible() && pHeaderCtrl->IsShowCheckBox()) {
 		pHeaderCheckBox->Selected(true, false);
 	}
@@ -478,7 +478,7 @@ void MainForm::OnInitWindow()
 			});
 	}
 
-	//ÊÂ¼ş¹ÒÔØ£¬²âÊÔÊÂ¼ş½Ó¿Ú
+	//äº‹ä»¶æŒ‚è½½ï¼Œæµ‹è¯•äº‹ä»¶æ¥å£
 	auto OnListCtrlEvent = [this, pListCtrl](const ui::EventArgs& args) {
 			ASSERT(pListCtrl == args.pSender);
 			ui::ListCtrlItem* pItem = (ui::ListCtrlItem*)args.wParam;
@@ -493,7 +493,7 @@ void MainForm::OnInitWindow()
 			}
 
 			if (args.Type == ui::kEventSelect) {
-				std::wstring sInfo = ui::StringHelper::Printf(L"kEventSelect£¬Êı¾İË÷ÒıºÅ£º%d", (int32_t)itemIndex);
+				std::wstring sInfo = ui::StringHelper::Printf(L"kEventSelectï¼Œæ•°æ®ç´¢å¼•å·ï¼š%d", (int32_t)itemIndex);
 				//::MessageBox(nullptr, sInfo.c_str(), L"", MB_OK);
 			}
 			else if (args.Type == ui::kEventSelChange) {
@@ -509,12 +509,12 @@ void MainForm::OnInitWindow()
 				//::MessageBox(nullptr, L"kEventRClick", text.c_str(), MB_OK);
 			}
 			else if (args.Type == ui::kEventReturn) {
-				std::wstring sInfo = ui::StringHelper::Printf(L"kEventReturn£¬Êı¾İË÷ÒıºÅ£º%d", (int32_t)itemIndex);
+				std::wstring sInfo = ui::StringHelper::Printf(L"kEventReturnï¼Œæ•°æ®ç´¢å¼•å·ï¼š%d", (int32_t)itemIndex);
 				//::MessageBox(nullptr, sInfo.c_str(), L"", MB_OK);
 			}
 		};
 
-	//¹ÒÔØÊÂ¼ş£¬×ª½Ó¸øÍâ²ã
+	//æŒ‚è½½äº‹ä»¶ï¼Œè½¬æ¥ç»™å¤–å±‚
 	pListCtrl->AttachSelect([this, OnListCtrlEvent](const ui::EventArgs& args) {
 		OnListCtrlEvent(args);
 		return true;
@@ -639,36 +639,36 @@ void MainForm::InsertItemData(int32_t nRows, int32_t nColumns, int32_t nImageId)
 	}
 	const size_t columnCount = nColumns;
 	const size_t rowCount = nRows;
-	bool bShowCheckBox = true; //ÊÇ·ñÏÔÊ¾CheckBox
-	//Ìí¼ÓÁĞ
+	bool bShowCheckBox = true; //æ˜¯å¦æ˜¾ç¤ºCheckBox
+	//æ·»åŠ åˆ—
 	for (size_t i = 0; i < columnCount; ++i) {
 		ui::ListCtrlColumn columnInfo;
 		columnInfo.nColumnWidth = 200;
 		//columnInfo.nTextFormat = TEXT_LEFT | TEXT_VCENTER;
-		columnInfo.text = ui::StringHelper::Printf(L"µÚ %d ÁĞ", i);
+		columnInfo.text = ui::StringHelper::Printf(L"ç¬¬ %d åˆ—", i);
 		columnInfo.bShowCheckBox = bShowCheckBox;
 		columnInfo.nImageId = nImageId;
 		pListCtrl->InsertColumn(-1, columnInfo);
 	}
-	//Ìî³äÊı¾İ
+	//å¡«å……æ•°æ®
 	pListCtrl->SetDataItemCount(rowCount);
 	ASSERT(pListCtrl->GetDataItemCount() == rowCount);
 	for (size_t itemIndex = 0; itemIndex < rowCount; ++itemIndex) {
 		for (size_t columnIndex = 0; columnIndex < columnCount; ++columnIndex) {
 			ui::ListCtrlSubItemData subItemData;
-			subItemData.text = ui::StringHelper::Printf(L"µÚ %03d ĞĞ/µÚ %02d ÁĞ", itemIndex, columnIndex);
+			subItemData.text = ui::StringHelper::Printf(L"ç¬¬ %03d è¡Œ/ç¬¬ %02d åˆ—", itemIndex, columnIndex);
 			subItemData.bShowCheckBox = bShowCheckBox;
 			subItemData.nImageId = nImageId;
 			if (columnIndex == 0) {
-				subItemData.text += L"-²âÊÔ1234567890-²âÊÔ1234567890-²âÊÔ1234567890-²âÊÔ1234567890";
+				subItemData.text += L"-æµ‹è¯•1234567890-æµ‹è¯•1234567890-æµ‹è¯•1234567890-æµ‹è¯•1234567890";
 			}
 			pListCtrl->SetSubItemData(itemIndex, columnIndex, subItemData);
 		}
 	}
-	//ÅÅĞò£¬Ä¬ÈÏÎªÉıĞò
+	//æ’åºï¼Œé»˜è®¤ä¸ºå‡åº
 	pListCtrl->SortDataItems(0, true);
 
-	//ÉèÖÃÌØÊâÊôĞÔ
+	//è®¾ç½®ç‰¹æ®Šå±æ€§
 	if (nRows > 100) {
 		pListCtrl->SetDataItemAlwaysAtTop(100, 0);
 		pListCtrl->SetDataItemAlwaysAtTop(101, 1);
@@ -683,7 +683,7 @@ void MainForm::InsertItemData(int32_t nRows, int32_t nColumns, int32_t nImageId)
 		pListCtrl->SetSubItemBkColor(103, 0, ui::UiColor(ui::UiColors::MistyRose));
 		pListCtrl->SetSubItemBkColor(104, 0, ui::UiColor(ui::UiColors::MistyRose));
 	}
-	//ÖØ»æ
+	//é‡ç»˜
 	UpdateWindow();
 }
 
@@ -702,7 +702,7 @@ void MainForm::RunListCtrlTest()
 
 #ifdef _DEBUG
 
-	//»ù±¾¹¦ÄÜ²âÊÔ
+	//åŸºæœ¬åŠŸèƒ½æµ‹è¯•
 	const std::wstring text = L"1";
 	ui::ListCtrlSubItemData subItemData;
 	subItemData.text = text;
@@ -804,7 +804,7 @@ void MainForm::RunListCtrlTest()
 	std::vector<size_t> oldSelectedIndexs;
 	pListCtrl->GetSelectedDataItems(oldSelectedIndexs);
 
-	//¶àÑ¡
+	//å¤šé€‰
 	pListCtrl->SetMultiSelect(true);
 	pListCtrl->SetSelectNone();
 	std::vector<size_t> selectedIndexs;
@@ -855,7 +855,7 @@ void MainForm::RunListCtrlTest()
 	pListCtrl->GetSelectedDataItems(selectedIndexs);
 	ASSERT(selectedIndexs.size() == nTotalRows);
 
-	//µ¥Ñ¡²âÊÔ
+	//å•é€‰æµ‹è¯•
 	pListCtrl->SetSelectAll();	
 	pListCtrl->SetMultiSelect(false);
 	pListCtrl->SetDataItemSelected(40, true);
@@ -883,7 +883,7 @@ void MainForm::RunListCtrlTest()
 	ASSERT(selectedIndexs.empty());
 	ASSERT(!pListCtrl->IsDataItemSelected(60));
 
-	//Ìí¼ÓÉ¾³ı²âÊÔ
+	//æ·»åŠ åˆ é™¤æµ‹è¯•
 	std::wstring text60 = pListCtrl->GetSubItemText(60, 0);
 	pListCtrl->SetDataItemSelected(60, true);
 	ASSERT(pListCtrl->IsDataItemSelected(60));
@@ -962,7 +962,7 @@ void MainForm::RunListCtrlTest()
 	pListCtrl->GetSelectedDataItems(selectedIndexs);
 	ASSERT(selectedIndexs.empty());
 
-	//²âÊÔÍê³É»Ö¸´
+	//æµ‹è¯•å®Œæˆæ¢å¤
 	pListCtrl->SetMultiSelect(bOldMultiSelect);
 	pListCtrl->SetSelectedDataItems(oldSelectedIndexs, true);
 

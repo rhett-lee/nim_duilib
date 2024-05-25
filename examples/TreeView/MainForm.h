@@ -18,33 +18,33 @@ public:
 	~MainForm();
 
 	/**
-	 * Ò»ÏÂÈı¸ö½Ó¿ÚÊÇ±ØĞëÒª¸²Ğ´µÄ½Ó¿Ú£¬¸¸Àà»áµ÷ÓÃÕâÈı¸ö½Ó¿ÚÀ´¹¹½¨´°¿Ú
-	 * GetSkinFolder		½Ó¿ÚÉèÖÃÄãÒª»æÖÆµÄ´°¿ÚÆ¤·ô×ÊÔ´Â·¾¶
-	 * GetSkinFile			½Ó¿ÚÉèÖÃÄãÒª»æÖÆµÄ´°¿ÚµÄ xml ÃèÊöÎÄ¼ş
-	 * GetWindowClassName	½Ó¿ÚÉèÖÃ´°¿ÚÎ¨Ò»µÄÀàÃû³Æ
+	 * ä¸€ä¸‹ä¸‰ä¸ªæ¥å£æ˜¯å¿…é¡»è¦è¦†å†™çš„æ¥å£ï¼Œçˆ¶ç±»ä¼šè°ƒç”¨è¿™ä¸‰ä¸ªæ¥å£æ¥æ„å»ºçª—å£
+	 * GetSkinFolder		æ¥å£è®¾ç½®ä½ è¦ç»˜åˆ¶çš„çª—å£çš®è‚¤èµ„æºè·¯å¾„
+	 * GetSkinFile			æ¥å£è®¾ç½®ä½ è¦ç»˜åˆ¶çš„çª—å£çš„ xml æè¿°æ–‡ä»¶
+	 * GetWindowClassName	æ¥å£è®¾ç½®çª—å£å”¯ä¸€çš„ç±»åç§°
 	 */
 	virtual std::wstring GetSkinFolder() override;
 	virtual std::wstring GetSkinFile() override;
 	virtual std::wstring GetWindowClassName() const override;
 
-	/** µ±´°¿Ú´´½¨Íê³ÉÒÔºóµ÷ÓÃ´Ëº¯Êı£¬¹©×ÓÀàÖĞ×öÒ»Ğ©³õÊ¼»¯µÄ¹¤×÷
+	/** å½“çª—å£åˆ›å»ºå®Œæˆä»¥åè°ƒç”¨æ­¤å‡½æ•°ï¼Œä¾›å­ç±»ä¸­åšä¸€äº›åˆå§‹åŒ–çš„å·¥ä½œ
 	*/
 	virtual void OnInitWindow() override;
 
-	/** µ±´°¿Ú¼´½«±»¹Ø±ÕÊ±µ÷ÓÃ´Ëº¯Êı£¬¹©×ÓÀàÖĞ×öÒ»Ğ©ÊÕÎ²¹¤×÷
+	/** å½“çª—å£å³å°†è¢«å…³é—­æ—¶è°ƒç”¨æ­¤å‡½æ•°ï¼Œä¾›å­ç±»ä¸­åšä¸€äº›æ”¶å°¾å·¥ä½œ
 	*/
 	virtual void OnCloseWindow() override;
 
-	/** ´°¿ÚÀàÃû
+	/** çª—å£ç±»å
 	*/
 	static const std::wstring kClassName;
 
-	/** ´¥·¢Ê÷½Úµãµã»÷ÊÂ¼ş
+	/** è§¦å‘æ ‘èŠ‚ç‚¹ç‚¹å‡»äº‹ä»¶
 	 */
 	void CheckExpandTreeNode(ui::TreeNode* pTreeNode, const std::wstring& filePath);
 
 private:
-	//Ä¿Â¼ÁĞ±íÊı¾İ½á¹¹
+	//ç›®å½•åˆ—è¡¨æ•°æ®ç»“æ„
 	struct FolderStatus
 	{
 		std::wstring path;
@@ -53,68 +53,68 @@ private:
 		ui::TreeNode* pTreeNode = nullptr;
 	};
 
-	//ÏÔÊ¾ĞéÄâÄ¿Â¼½Úµã£¨±ÈÈç×ÀÃæ¡¢ÎÒµÄÎÄµµµÈ£©
+	//æ˜¾ç¤ºè™šæ‹Ÿç›®å½•èŠ‚ç‚¹ï¼ˆæ¯”å¦‚æ¡Œé¢ã€æˆ‘çš„æ–‡æ¡£ç­‰ï¼‰
 	void ShowVirtualDirectoryNode(int csidl, REFKNOWNFOLDERID rfid, const std::wstring& name);
 
-	//ÏÔÊ¾´ÅÅÌ½Úµã, ·µ»ØµÚÒ»¸öĞÂ½Úµã½Ó¿Ú
+	//æ˜¾ç¤ºç£ç›˜èŠ‚ç‚¹, è¿”å›ç¬¬ä¸€ä¸ªæ–°èŠ‚ç‚¹æ¥å£
 	ui::TreeNode* ShowAllDiskNode();
 
-	//ÏÔÊ¾Ö¸¶¨Ä¿Â¼µÄ×ÓÄ¿Â¼
+	//æ˜¾ç¤ºæŒ‡å®šç›®å½•çš„å­ç›®å½•
 	void ShowSubFolders(ui::TreeNode* pTreeNode, const std::wstring& path);
 
-	//ÔÚÊ÷ÖĞÌí¼ÓÒ»¸ö½Úµã, ·µ»ØĞÂÌí¼ÓµÄ½Úµã½Ó¿Ú
+	//åœ¨æ ‘ä¸­æ·»åŠ ä¸€ä¸ªèŠ‚ç‚¹, è¿”å›æ–°æ·»åŠ çš„èŠ‚ç‚¹æ¥å£
 	ui::TreeNode* InsertTreeNode(ui::TreeNode* pTreeNode,
 		                         const std::wstring& displayName,
 								 const std::wstring& path,
 								 bool isFolder,
 								 HICON hIcon);
 
-	//ÅúÁ¿ÔÚÊ÷ÖĞ²åÈëÒ»¸ö½Úµã
+	//æ‰¹é‡åœ¨æ ‘ä¸­æ’å…¥ä¸€ä¸ªèŠ‚ç‚¹
 	void InsertTreeNodes(ui::TreeNode* pTreeNode, 
 		                const std::wstring& path,
 						const std::vector<FolderStatus>& fileList,
 		                bool isFolder);
 
-	//ÏÔÊ¾Ö¸¶¨Ä¿Â¼µÄÄÚÈİ
+	//æ˜¾ç¤ºæŒ‡å®šç›®å½•çš„å†…å®¹
 	void ShowFolderContents(ui::TreeNode* pTreeNode, const std::wstring& path);
 
-	/** Ê÷½ÚµãÕ¹¿ªÊÂ¼ş
-	 * @param[in] args ÏûÏ¢Ìå
-	 * @return Ê¼ÖÕ·µ»Ø true
+	/** æ ‘èŠ‚ç‚¹å±•å¼€äº‹ä»¶
+	 * @param[in] args æ¶ˆæ¯ä½“
+	 * @return å§‹ç»ˆè¿”å› true
 	 */
 	bool OnTreeNodeExpand(const ui::EventArgs& args);
 
-	/** Ê÷½Úµãµã»÷ÊÂ¼ş
-	 * @param[in] args ÏûÏ¢Ìå
-	 * @return Ê¼ÖÕ·µ»Ø true
+	/** æ ‘èŠ‚ç‚¹ç‚¹å‡»äº‹ä»¶
+	 * @param[in] args æ¶ˆæ¯ä½“
+	 * @return å§‹ç»ˆè¿”å› true
 	 */
 	bool OnTreeNodeClick(const ui::EventArgs& args);
 
-	/** Ê÷½ÚµãÑ¡ÔñÊÂ¼ş
-	 * @param[in] args ÏûÏ¢Ìå
-	 * @return Ê¼ÖÕ·µ»Ø true
+	/** æ ‘èŠ‚ç‚¹é€‰æ‹©äº‹ä»¶
+	 * @param[in] args æ¶ˆæ¯ä½“
+	 * @return å§‹ç»ˆè¿”å› true
 	 */
 	bool OnTreeNodeSelect(const ui::EventArgs& args);
 
-	/** ÅĞ¶ÏÒ»¸öÂ·¾¶ÊÇ·ñÎªÄ¿Â¼
+	/** åˆ¤æ–­ä¸€ä¸ªè·¯å¾„æ˜¯å¦ä¸ºç›®å½•
 	*/
 	bool IsDirectory(const std::wstring& filePath) const;
 
 private:
-	//Ê÷½ÚµãµÄ½Ó¿Ú
+	//æ ‘èŠ‚ç‚¹çš„æ¥å£
 	ui::TreeView* m_pTree;
 
-	//Ä¿Â¼ÁĞ±í£¨×ó²àÊ÷ÏÔÊ¾£©
+	//ç›®å½•åˆ—è¡¨ï¼ˆå·¦ä¾§æ ‘æ˜¾ç¤ºï¼‰
 	std::vector<FolderStatus*> m_folderList;
 
-	/** ÎÄ¼şÁĞ±í£¨ÓÒ²àĞé±íÏÔÊ¾£©
+	/** æ–‡ä»¶åˆ—è¡¨ï¼ˆå³ä¾§è™šè¡¨æ˜¾ç¤ºï¼‰
 	*/
 	FileInfoList m_fileList;
 
-	//ÎÄ¼şÁĞ±íµÄ½Ó¿Ú
+	//æ–‡ä»¶åˆ—è¡¨çš„æ¥å£
 	ui::VirtualListBox* m_pListBox;
 
-	/** L"Shell32.dll" ¾ä±ú
+	/** L"Shell32.dll" å¥æŸ„
 	*/
 	HMODULE m_hShell32Dll;
 };

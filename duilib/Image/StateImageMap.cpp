@@ -77,7 +77,7 @@ bool StateImageMap::PaintStateImage(IRender* pRender,
 	if (it != m_stateImageMap.end()) {
 		bRet = it->second.PaintStateImage(pRender, stateType, sImageModify, pDestRect);
 	}
-	//ֹͣ����״̬ͼƬ�Ķ���
+	//停止其他状态图片的动画
 	if ((stateImageType == kStateImageBk) || (stateImageType == kStateImageFore)) {
 		for (auto iter = m_stateImageMap.begin(); iter != m_stateImageMap.end(); ++iter) {
 			if ((iter->first == kStateImageBk) || (iter->first == kStateImageFore)) {

@@ -7,7 +7,7 @@
 
 namespace ui
 {
-/** ÑÕÉ«Ñ¡ÔñÆ÷£º³£ÓÃÑÕÉ«
+/** é¢œè‰²é€‰æ‹©å™¨ï¼šå¸¸ç”¨é¢œè‰²
 */
 class ColorPickerRegularProvider;
 class ColorPickerRegular : public VirtualVTileListBox
@@ -15,44 +15,44 @@ class ColorPickerRegular : public VirtualVTileListBox
 public:
     explicit ColorPickerRegular(Window* pWindow);
 
-    /** »ñÈ¡¿Ø¼şÀàĞÍ
+    /** è·å–æ§ä»¶ç±»å‹
     */
     virtual std::wstring GetType() const override;
 
-    /** Ñ¡ÔñÒ»¸öÑÕÉ«
+    /** é€‰æ‹©ä¸€ä¸ªé¢œè‰²
     */
     void SelectColor(const UiColor& color);
 
-    /** »ñÈ¡µ±Ç°Ñ¡ÔñµÄÑÕÉ«
+    /** è·å–å½“å‰é€‰æ‹©çš„é¢œè‰²
     */
     UiColor GetSelectedColor() const;
 
-    /** ¼àÌıÑ¡ÔñÑÕÉ«µÄÊÂ¼ş
-    * @param[in] callback Ñ¡ÔñÑÕÉ«±ä»¯Ê±µÄ»Øµ÷º¯Êı
-    *            ²ÎÊıËµÃ÷:
-                        wParam: µ±Ç°ĞÂÑ¡ÔñµÄÑÕÉ«Öµ£¬¿ÉÒÔÓÃUiColor((uint32_t)wParam)Éú³ÉÑÕÉ«
-                        lParam: Ô­À´¾ÉÑ¡ÔñµÄÑÕÉ«Öµ£¬¿ÉÒÔÓÃUiColor((uint32_t)lParam)Éú³ÉÑÕÉ«
+    /** ç›‘å¬é€‰æ‹©é¢œè‰²çš„äº‹ä»¶
+    * @param[in] callback é€‰æ‹©é¢œè‰²å˜åŒ–æ—¶çš„å›è°ƒå‡½æ•°
+    *            å‚æ•°è¯´æ˜:
+                        wParam: å½“å‰æ–°é€‰æ‹©çš„é¢œè‰²å€¼ï¼Œå¯ä»¥ç”¨UiColor((uint32_t)wParam)ç”Ÿæˆé¢œè‰²
+                        lParam: åŸæ¥æ—§é€‰æ‹©çš„é¢œè‰²å€¼ï¼Œå¯ä»¥ç”¨UiColor((uint32_t)lParam)ç”Ÿæˆé¢œè‰²
     */
     void AttachSelectColor(const EventCallback& callback) { AttachEvent(kEventSelectColor, callback); }
 
-    /** ÉèÖÃ¿Ø¼şÎ»ÖÃ
+    /** è®¾ç½®æ§ä»¶ä½ç½®
     */
     virtual void SetPos(UiRect rc) override;
 
-    /** ÉèÖÃÏÔÊ¾ÁĞÊı
+    /** è®¾ç½®æ˜¾ç¤ºåˆ—æ•°
     */
     void SetColumns(int32_t nColumns);
 
-    /** ÉèÖÃÊôĞÔ
+    /** è®¾ç½®å±æ€§
     */
     virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 
 private:
-    /** ³£ÓÃÑÕÉ«Êı¾İÌá¹©Õß
+    /** å¸¸ç”¨é¢œè‰²æ•°æ®æä¾›è€…
     */
     std::unique_ptr<ColorPickerRegularProvider> m_regularColors;
 
-    /** Ô­À´ÉèÖÃµÄÔªËØ¿Ø¼ş´óĞ¡
+    /** åŸæ¥è®¾ç½®çš„å…ƒç´ æ§ä»¶å¤§å°
     */
     UiSize m_szItem;
 };

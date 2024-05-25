@@ -6,7 +6,7 @@
 namespace ui
 {
 
-/** ÏÂÀ­ÁĞ±í´°¿Ú
+/** ä¸‹æ‹‰åˆ—è¡¨çª—å£
 */
 class ComboButtonWnd: public Window
 {
@@ -17,20 +17,20 @@ public:
 	virtual void OnFinalMessage() override;
 	virtual LRESULT OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
 
-	/** ¹Ø±ÕÏÂÀ­¿ò
-	* @param [in] bCanceled true±íÊ¾È¡Ïû£¬·ñÔò±íÊ¾Õı³£¹Ø±Õ
+	/** å…³é—­ä¸‹æ‹‰æ¡†
+	* @param [in] bCanceled trueè¡¨ç¤ºå–æ¶ˆï¼Œå¦åˆ™è¡¨ç¤ºæ­£å¸¸å…³é—­
 	*/
 	void CloseComboWnd(bool bCanceled);
 
-	/** µ±Ç°ÊÇ·ñÎª½¹µã´°¿Ú
+	/** å½“å‰æ˜¯å¦ä¸ºç„¦ç‚¹çª—å£
 	*/
 	bool IsFocusWindow() const;
 
 private:
-	//¹ØÁªµÄCombo½Ó¿Ú
+	//å…³è”çš„Comboæ¥å£
     ComboButton* m_pOwner = nullptr;
 
-	//ÊÇ·ñÒÑ¾­¹Ø±Õ
+	//æ˜¯å¦å·²ç»å…³é—­
 	bool m_bIsClosed = false;
 };
 
@@ -71,10 +71,10 @@ void ComboButtonWnd::UpdateComboWnd()
 	rcOwner.Offset(-scrollBoxOffset.x, -scrollBoxOffset.y);
 
 	UiRect rc = rcOwner;
-	rc.top = rc.bottom + 1;		    // ¸¸´°¿Úleft¡¢bottomÎ»ÖÃ×÷Îªµ¯³ö´°¿ÚÆğµã
-	rc.bottom = rc.top + szDrop.cy;	// ¼ÆËãµ¯³ö´°¿Ú¸ß¶È
+	rc.top = rc.bottom + 1;		    // çˆ¶çª—å£leftã€bottomä½ç½®ä½œä¸ºå¼¹å‡ºçª—å£èµ·ç‚¹
+	rc.bottom = rc.top + szDrop.cy;	// è®¡ç®—å¼¹å‡ºçª—å£é«˜åº¦
 	if (szDrop.cx > 0) {
-		rc.right = rc.left + szDrop.cx;	// ¼ÆËãµ¯³ö´°¿Ú¿í¶È
+		rc.right = rc.left + szDrop.cx;	// è®¡ç®—å¼¹å‡ºçª—å£å®½åº¦
 	}
 
 	int32_t cyFixed = 0;
@@ -141,7 +141,7 @@ void ComboButtonWnd::CloseComboWnd(bool bCanceled)
 		m_pOwner->GetComboBox()->SetParent(nullptr);
 		pRootBox->RemoveAllItems();
 	}
-	//ÏÈ½«Ç°¶Ë´°¿ÚÇĞ»»Îª¸¸´°¿Ú£¬±ÜÃâÇ°¶Ë´°¿Ú¹Ø±Õºó£¬ÇĞ»»µ½ÆäËû´°¿Ú
+	//å…ˆå°†å‰ç«¯çª—å£åˆ‡æ¢ä¸ºçˆ¶çª—å£ï¼Œé¿å…å‰ç«¯çª—å£å…³é—­åï¼Œåˆ‡æ¢åˆ°å…¶ä»–çª—å£
 	HWND hWnd = GetHWND();
 	HWND hParentWnd = ::GetParent(hWnd);
 	HWND hForeWnd = ::GetForegroundWindow();
@@ -189,17 +189,17 @@ LRESULT ComboButtonWnd::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam,
 		lResult = __super::OnWindowMessage(uMsg, wParam, lParam, bHandled);
 	}
 	if (uMsg == WM_KILLFOCUS) {
-		//Ê§È¥½¹µã£¬¹Ø±Õ´°¿Ú£¬Õı³£¹Ø±Õ
+		//å¤±å»ç„¦ç‚¹ï¼Œå…³é—­çª—å£ï¼Œæ­£å¸¸å…³é—­
 		if (GetHWND() != (HWND)wParam) {
 			CloseComboWnd(false);
 		}
 	}
 	else if (uMsg == WM_KEYDOWN && wParam == VK_ESCAPE) {
-		//°´×¡ESC¼ü£¬È¡Ïû
+		//æŒ‰ä½ESCé”®ï¼Œå–æ¶ˆ
 		CloseComboWnd(true);
 	}
 	else if (uMsg == WM_KEYDOWN && wParam == VK_RETURN) {
-		//°´»Ø³µ¼ü£¬¹Ø±Õ´°¿Ú£¬Õı³£¹Ø±Õ
+		//æŒ‰å›è½¦é”®ï¼Œå…³é—­çª—å£ï¼Œæ­£å¸¸å…³é—­
 		CloseComboWnd(false);
 	}
 	return lResult;
@@ -253,13 +253,13 @@ std::wstring ComboButton::GetType() const { return DUI_CTR_COMBO_BUTTON; }
 void ComboButton::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
 	if ((strName == L"dropbox_size") || (strName == L"dropboxsize") ) {
-		//ÉèÖÃÏÂÀ­ÁĞ±íµÄ´óĞ¡£¨¿í¶ÈºÍ¸ß¶È£©
+		//è®¾ç½®ä¸‹æ‹‰åˆ—è¡¨çš„å¤§å°ï¼ˆå®½åº¦å’Œé«˜åº¦ï¼‰
 		UiSize szDropBoxSize;
 		AttributeUtil::ParseSizeValue(strValue.c_str(), szDropBoxSize);
 		SetDropBoxSize(szDropBoxSize, true);
 	}
 	else if ((strName == L"popup_top") || (strName == L"popuptop")) {
-		//ÏÂÀ­ÁĞ±íÊÇ·ñÏòÉÏµ¯³ö
+		//ä¸‹æ‹‰åˆ—è¡¨æ˜¯å¦å‘ä¸Šå¼¹å‡º
 		SetPopupTop(strValue == L"true");
 	}
 	else if (strName == L"combo_box_class") {
@@ -413,7 +413,7 @@ void ComboButton::ParseAttributeList(const std::wstring& strList,
 		return;
 	}
 	std::wstring strValue = strList;
-	//Õâ¸öÊÇÊÖ¹¤Ğ´ÈëµÄÊôĞÔ£¬ÒÔ»¨À¨ºÅ{}´úÌæË«ÒıºÅ£¬±àĞ´µÄÊ±ºò¾Í²»ĞèÒª×ªÒå×Ö·ûÁË£»
+	//è¿™ä¸ªæ˜¯æ‰‹å·¥å†™å…¥çš„å±æ€§ï¼Œä»¥èŠ±æ‹¬å·{}ä»£æ›¿åŒå¼•å·ï¼Œç¼–å†™çš„æ—¶å€™å°±ä¸éœ€è¦è½¬ä¹‰å­—ç¬¦äº†ï¼›
 	StringHelper::ReplaceAll(L"{", L"\"", strValue);
 	StringHelper::ReplaceAll(L"}", L"\"", strValue);
 	if (strValue.find(L"\"") != std::wstring::npos) {
@@ -429,13 +429,13 @@ void ComboButton::SetAttributeList(Control* pControl, const std::wstring& classV
 	std::vector<std::pair<std::wstring, std::wstring>> attributeList;
 	ParseAttributeList(classValue, attributeList);
 	if (!attributeList.empty()) {
-		//°´ÊôĞÔÁĞ±íÉèÖÃ
+		//æŒ‰å±æ€§åˆ—è¡¨è®¾ç½®
 		for (const auto& attribute : attributeList) {
 			pControl->SetAttribute(attribute.first, attribute.second);
 		}
 	}
 	else if(!classValue.empty()) {
-		//°´ClassÃû³ÆÉèÖÃ
+		//æŒ‰Classåç§°è®¾ç½®
 		pControl->SetClass(classValue);
 	}
 }
@@ -602,7 +602,7 @@ bool ComboButton::OnRightButtonDown(const EventArgs& /*args*/)
 {
 	m_bDropListShown = (m_pWindow != nullptr) ? true : false;
 	if (m_pWindow != nullptr) {
-		//Èç¹ûÏÂÀ­¿òÊÇÏÔÊ¾×´Ì¬£¬ÔòÔÙ´Îµã»÷µÄÊ±ºò£¬¹Ø±Õ
+		//å¦‚æœä¸‹æ‹‰æ¡†æ˜¯æ˜¾ç¤ºçŠ¶æ€ï¼Œåˆ™å†æ¬¡ç‚¹å‡»çš„æ—¶å€™ï¼Œå…³é—­
 		HideComboList();
 	}
 	return true;
@@ -610,7 +610,7 @@ bool ComboButton::OnRightButtonDown(const EventArgs& /*args*/)
 
 bool ComboButton::OnRightButtonClicked(const EventArgs& /*args*/)
 {
-	//Èç¹ûÊó±ê°´ÏÂµÄÊ±ºò£¬ÕıÔÚÏÔÊ¾ÁĞ±í£¬ÄÇÃ´µã»÷ºó²»ÏÔÊ¾ÏÂÀ­ÁĞ±í
+	//å¦‚æœé¼ æ ‡æŒ‰ä¸‹çš„æ—¶å€™ï¼Œæ­£åœ¨æ˜¾ç¤ºåˆ—è¡¨ï¼Œé‚£ä¹ˆç‚¹å‡»åä¸æ˜¾ç¤ºä¸‹æ‹‰åˆ—è¡¨
 	if (!m_bDropListShown) {		
 		ShowComboList();
 	}
@@ -636,7 +636,7 @@ bool ComboButton::OnWindowMove(const EventArgs& /*args*/)
 
 void ComboButton::ShowComboList()
 {
-	//ÏÔÊ¾ÏÂÀ­ÁĞ±í
+	//æ˜¾ç¤ºä¸‹æ‹‰åˆ—è¡¨
 	if ((m_pWindow == nullptr) || m_pWindow->IsClosingWnd()) {
 		m_pWindow = new ComboButtonWnd();
 		m_pWindow->InitComboWnd(this, true);
@@ -659,7 +659,7 @@ void ComboButton::UpdateComboList()
 
 bool ComboButton::OnButtonStateChanged(const EventArgs& /*args*/)
 {
-	//Ë¢ĞÂµ±Ç°¿Ø¼ş£¬Í¬²½×´Ì¬
+	//åˆ·æ–°å½“å‰æ§ä»¶ï¼ŒåŒæ­¥çŠ¶æ€
 	Invalidate();
 	return true;
 }

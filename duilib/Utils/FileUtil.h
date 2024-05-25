@@ -11,9 +11,9 @@ namespace ui
 class UILIB_API FileUtil
 {
 public:
-	/** ¶ÁÈ¡ÎÄ¼şÄÚÈİ
-	* @param [in] filePath ±¾µØÎÄ¼şÂ·¾¶
-	* @param [out] fileData ÎÄ¼şÊı¾İ£¬°´¶ş½øÖÆÊı¾İ¶ÁÈ¡
+	/** è¯»å–æ–‡ä»¶å†…å®¹
+	* @param [in] filePath æœ¬åœ°æ–‡ä»¶è·¯å¾„
+	* @param [out] fileData æ–‡ä»¶æ•°æ®ï¼ŒæŒ‰äºŒè¿›åˆ¶æ•°æ®è¯»å–
 	*/
 	static bool ReadFileData(const std::wstring& filePath, std::vector<uint8_t>& fileData);
 };

@@ -11,11 +11,11 @@
 
 namespace ui 
 {
-/** Í¼Æ¬×ÊÔ´µÄÖÇÄÜÖ¸Õë
+/** å›¾ç‰‡èµ„æºçš„æ™ºèƒ½æŒ‡é’ˆ
 */
 typedef std::shared_ptr<Image> ImagePtr;
 
-/** ImageÁĞ±í
+/** Imageåˆ—è¡¨
  */
 class UILIB_API ImageList
 {
@@ -26,90 +26,90 @@ public:
 	ImageList& operator = (const ImageList&) = delete;
 
 public:
-	/** ÉèÖÃÍ¼Æ¬´óĞ¡£¨¿ÉÑ¡ÉèÖÃ£¬Èç¹û²»ÉèÖÃ£¬Ôò´ÓÃ¿¸öÍ¼Æ¬»ñÈ¡£©
-	* @param [in] imageSize Í¼Æ¬´óĞ¡, ÄÚ²¿²»½øĞĞDPIËõ·Å£¬ĞèÒªÓÉÍâ²¿½øĞĞDPIËõ·Å
-	* @param [in] dpi DPIËõ·Å¹ÜÀíÆ÷
-	* @param [in] bNeedDpiScale ÊÇ·ñÖ§³ÖDPIËõ·Å
+	/** è®¾ç½®å›¾ç‰‡å¤§å°ï¼ˆå¯é€‰è®¾ç½®ï¼Œå¦‚æœä¸è®¾ç½®ï¼Œåˆ™ä»æ¯ä¸ªå›¾ç‰‡è·å–ï¼‰
+	* @param [in] imageSize å›¾ç‰‡å¤§å°, å†…éƒ¨ä¸è¿›è¡ŒDPIç¼©æ”¾ï¼Œéœ€è¦ç”±å¤–éƒ¨è¿›è¡ŒDPIç¼©æ”¾
+	* @param [in] dpi DPIç¼©æ”¾ç®¡ç†å™¨
+	* @param [in] bNeedDpiScale æ˜¯å¦æ”¯æŒDPIç¼©æ”¾
 	*/
 	void SetImageSize(UiSize imageSize, const DpiManager& dpi, bool bNeedDpiScale);
 
-	/** »ñÈ¡Í¼Æ¬´óĞ¡
-	* @return ·µ»ØÉèÖÃµÄÍ¼Æ¬´óĞ¡£¬Èç¹ûÎ´ÉèÖÃ£¬Ôò·µ»Ø(0,0)
+	/** è·å–å›¾ç‰‡å¤§å°
+	* @return è¿”å›è®¾ç½®çš„å›¾ç‰‡å¤§å°ï¼Œå¦‚æœæœªè®¾ç½®ï¼Œåˆ™è¿”å›(0,0)
 	*/
 	UiSize GetImageSize() const;
 
-	/** ÉèÖÃµ±DPI±ä»¯Ê±£¬Í¼Æ¬´óĞ¡ÊÇ·ñĞèÒªDPIËõ·Å£¬Ä¬ÈÏ¿ªÆô
-	* @param [in] bEnableChangeImageSizeDpi true±íÊ¾¿ªÆô¹¦ÄÜ£¬false±íÊ¾¹Ø±Õ¹¦ÄÜ
+	/** è®¾ç½®å½“DPIå˜åŒ–æ—¶ï¼Œå›¾ç‰‡å¤§å°æ˜¯å¦éœ€è¦DPIç¼©æ”¾ï¼Œé»˜è®¤å¼€å¯
+	* @param [in] bEnableChangeImageSizeDpi trueè¡¨ç¤ºå¼€å¯åŠŸèƒ½ï¼Œfalseè¡¨ç¤ºå…³é—­åŠŸèƒ½
 	*/
 	void EnableChangeImageSizeDpi(bool bEnableChangeImageSizeDpi);
 
-	/** µ±DPI±ä»¯Ê±£¬Í¼Æ¬´óĞ¡ÊÇ·ñĞèÒªDPIËõ·Å£¬Ä¬ÈÏ¿ªÆô
-	* @param [in] bEnableChangeImageSizeDpi true±íÊ¾¿ªÆô¹¦ÄÜ£¬false±íÊ¾¹Ø±Õ¹¦ÄÜ
+	/** å½“DPIå˜åŒ–æ—¶ï¼Œå›¾ç‰‡å¤§å°æ˜¯å¦éœ€è¦DPIç¼©æ”¾ï¼Œé»˜è®¤å¼€å¯
+	* @param [in] bEnableChangeImageSizeDpi trueè¡¨ç¤ºå¼€å¯åŠŸèƒ½ï¼Œfalseè¡¨ç¤ºå…³é—­åŠŸèƒ½
 	*/
 	bool IsEnableChangeImageSizeDpi() const;
 
-	/** DPI·¢Éú±ä»¯£¬¸üĞÂÍ¼Æ¬´óĞ¡
-	* @param [in] nOldDpiScale ¾ÉµÄDPIËõ·Å°Ù·Ö±È
-	* @param [in] dpi DPIËõ·Å¹ÜÀíÆ÷
+	/** DPIå‘ç”Ÿå˜åŒ–ï¼Œæ›´æ–°å›¾ç‰‡å¤§å°
+	* @param [in] nOldDpiScale æ—§çš„DPIç¼©æ”¾ç™¾åˆ†æ¯”
+	* @param [in] dpi DPIç¼©æ”¾ç®¡ç†å™¨
 	*/
 	void ChangeDpiScale(const DpiManager& dpi, uint32_t nOldDpiScale);
 
-	/** Ìí¼ÓÒ»¸öÍ¼Æ¬×ÊÔ´
-	* @param [in] imageString Í¼Æ¬×ÊÔ´×Ö·û´®£¬¸ñÊ½Í¬£ºImage::SetImageStringº¯Êı
-	* @param [in] dpi DPIËõ·Å¹ÜÀí½Ó¿Ú
-	* @return ·µ»ØÍ¼Æ¬×ÊÔ´µÄID£¬Èç¹ûÊ§°Ü·µ»Ø-1£¬·ñÔò·µ»Ø´óÓÚµÈÓÚ0µÄID
+	/** æ·»åŠ ä¸€ä¸ªå›¾ç‰‡èµ„æº
+	* @param [in] imageString å›¾ç‰‡èµ„æºå­—ç¬¦ä¸²ï¼Œæ ¼å¼åŒï¼šImage::SetImageStringå‡½æ•°
+	* @param [in] dpi DPIç¼©æ”¾ç®¡ç†æ¥å£
+	* @return è¿”å›å›¾ç‰‡èµ„æºçš„IDï¼Œå¦‚æœå¤±è´¥è¿”å›-1ï¼Œå¦åˆ™è¿”å›å¤§äºç­‰äº0çš„ID
 	*/
 	int32_t AddImageString(const std::wstring& imageString, const DpiManager& dpi);
 
-	/** »ñÈ¡Í¼Æ¬×ÊÔ´×Ö·û´®
-	* @param [in] imageId Í¼Æ¬×ÊÔ´µÄID£¬ÓÉAddImageº¯Êı·µ»ØµÄÖµ
-	* @return Èç¹ûÃ»ÓĞ¹ØÁª×ÊÔ´£¬·µ»Ø¿Õ´®
+	/** è·å–å›¾ç‰‡èµ„æºå­—ç¬¦ä¸²
+	* @param [in] imageId å›¾ç‰‡èµ„æºçš„IDï¼Œç”±AddImageå‡½æ•°è¿”å›çš„å€¼
+	* @return å¦‚æœæ²¡æœ‰å…³è”èµ„æºï¼Œè¿”å›ç©ºä¸²
 	*/
 	std::wstring GetImageString(int32_t imageId) const;
 
-	/** »ñÈ¡Í¼Æ¬×ÊÔ´½Ó¿Ú(¹²Ïí×ÊÔ´)
-	* @param [in] imageId Í¼Æ¬×ÊÔ´µÄID£¬ÓÉAddImageº¯Êı·µ»ØµÄÖµ
-	* @return Èç¹ûÃ»ÓĞ¹ØÁª×ÊÔ´£¬·µ»Ønullptr
+	/** è·å–å›¾ç‰‡èµ„æºæ¥å£(å…±äº«èµ„æº)
+	* @param [in] imageId å›¾ç‰‡èµ„æºçš„IDï¼Œç”±AddImageå‡½æ•°è¿”å›çš„å€¼
+	* @return å¦‚æœæ²¡æœ‰å…³è”èµ„æºï¼Œè¿”å›nullptr
 	*/
 	ImagePtr GetImageData(int32_t imageId) const;
 
-	/** »ñÈ¡Í¼Æ¬×ÊÔ´µÄID
-	* @param [in] imageString Í¼Æ¬×ÊÔ´×Ö·û´®£¬¸ñÊ½Í¬£ºImage::SetImageStringº¯Êı
-	* @return ·µ»Ø¹ØÁªÍ¼Æ¬×ÊÔ´µÄID£¬Èç¹ûÃ»ÓĞ¹ØÁª×ÊÔ´£¬·µ»Ø-1
+	/** è·å–å›¾ç‰‡èµ„æºçš„ID
+	* @param [in] imageString å›¾ç‰‡èµ„æºå­—ç¬¦ä¸²ï¼Œæ ¼å¼åŒï¼šImage::SetImageStringå‡½æ•°
+	* @return è¿”å›å…³è”å›¾ç‰‡èµ„æºçš„IDï¼Œå¦‚æœæ²¡æœ‰å…³è”èµ„æºï¼Œè¿”å›-1
 	*/
 	int32_t GetImageStringId(const std::wstring& imageString) const;
 
-	/** ÒÆ³ıÒ»¸öÍ¼Æ¬×ÊÔ´
-	* @param [in] imageId Í¼Æ¬×ÊÔ´µÄID£¬ÓÉAddImageº¯Êı·µ»ØµÄÖµ
+	/** ç§»é™¤ä¸€ä¸ªå›¾ç‰‡èµ„æº
+	* @param [in] imageId å›¾ç‰‡èµ„æºçš„IDï¼Œç”±AddImageå‡½æ•°è¿”å›çš„å€¼
 	*/
 	bool RemoveImageString(int32_t imageId);
 
-	/** »ñÈ¡Í¼Æ¬×ÊÔ´¸öÊı
+	/** è·å–å›¾ç‰‡èµ„æºä¸ªæ•°
 	*/
 	size_t GetImageCount() const;
 
-	/** »ñÈ¡ËùÓĞÍ¼Æ¬×ÊÔ´µÄID
+	/** è·å–æ‰€æœ‰å›¾ç‰‡èµ„æºçš„ID
 	*/
 	void GetImageIdList(std::vector<int32_t>& imageIdList) const;
 
-	/** Çå¿ÕËùÓĞÍ¼Æ¬×ÊÔ´
+	/** æ¸…ç©ºæ‰€æœ‰å›¾ç‰‡èµ„æº
 	*/
 	void Clear();
  
 private:
-	/** ÏÂÒ»¸öID
+	/** ä¸‹ä¸€ä¸ªID
 	*/
 	int32_t m_nNextID;
 
-	/** Í¼Æ¬´óĞ¡£¨¿ÉÑ¡ÉèÖÃ£¬Èç¹û²»ÉèÖÃ£¬Ôò´ÓÃ¿¸öÍ¼Æ¬»ñÈ¡£©
+	/** å›¾ç‰‡å¤§å°ï¼ˆå¯é€‰è®¾ç½®ï¼Œå¦‚æœä¸è®¾ç½®ï¼Œåˆ™ä»æ¯ä¸ªå›¾ç‰‡è·å–ï¼‰
 	*/
 	UiSize m_imageSize;
 
-	/** µ±DPI±ä»¯Ê±£¬Í¼Æ¬´óĞ¡ÊÇ·ñĞèÒªDPIËõ·Å£¬Ä¬ÈÏ¿ªÆô
+	/** å½“DPIå˜åŒ–æ—¶ï¼Œå›¾ç‰‡å¤§å°æ˜¯å¦éœ€è¦DPIç¼©æ”¾ï¼Œé»˜è®¤å¼€å¯
 	*/
 	bool m_bEnableChangeImageSizeDpi;
 
-	/** Í¼Æ¬×ÊÔ´Ó³Éä±í
+	/** å›¾ç‰‡èµ„æºæ˜ å°„è¡¨
 	*/
 	std::map<int32_t, ImagePtr> m_imageMap;
 };

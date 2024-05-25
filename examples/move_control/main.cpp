@@ -1,4 +1,4 @@
-// basic.cpp : ¶¨ÒåÓ¦ÓÃ³ÌĞòµÄÈë¿Úµã¡£
+// basic.cpp : å®šä¹‰åº”ç”¨ç¨‹åºçš„å…¥å£ç‚¹ã€‚
 //
 
 #include "stdafx.h"
@@ -13,10 +13,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	UNREFERENCED_PARAMETER(hPrevInstance);
 	UNREFERENCED_PARAMETER(lpCmdLine);
 
-	// ´´½¨Ö÷Ïß³Ì
+	// åˆ›å»ºä¸»çº¿ç¨‹
 	MainThread thread;
 
-	// Ö´ĞĞÖ÷Ïß³ÌÑ­»·
+	// æ‰§è¡Œä¸»çº¿ç¨‹å¾ªç¯
 	thread.RunOnCurrentThreadWithLoop(nbase::MessageLoop::kUIMessageLoop);
 
 	return 0;
@@ -26,7 +26,7 @@ void MainThread::Init()
 {
 	nbase::ThreadManager::RegisterThread(kThreadUI);
 
-	//³õÊ¼»¯È«¾Ö×ÊÔ´, Ê¹ÓÃ±¾µØÎÄ¼ş¼Ğ×÷Îª×ÊÔ´
+	//åˆå§‹åŒ–å…¨å±€èµ„æº, ä½¿ç”¨æœ¬åœ°æ–‡ä»¶å¤¹ä½œä¸ºèµ„æº
 	std::wstring resourcePath = nbase::win32::GetCurrentModuleDirectory();
 	resourcePath += L"resources\\";
 	ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath));

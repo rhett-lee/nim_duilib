@@ -73,7 +73,7 @@ IBitmap* ColorSlider::GetColorBitmap(const UiRect& rect)
 	if (m_spBitmap != nullptr) {
 		if (((int32_t)m_spBitmap->GetWidth() == nWidth) &&
 			((int32_t)m_spBitmap->GetHeight() == nHeight)) {
-			//¿í¶ÈºÍ¸ß¶ÈÃ»ÓĞ±ä»¯£¬²»ĞèÒªÖØĞÂÉú³É
+			//å®½åº¦å’Œé«˜åº¦æ²¡æœ‰å˜åŒ–ï¼Œä¸éœ€è¦é‡æ–°ç”Ÿæˆ
 			return m_spBitmap.get();
 		}
 		else {

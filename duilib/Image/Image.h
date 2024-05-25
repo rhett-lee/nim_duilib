@@ -16,7 +16,7 @@ class Control;
 class ImageGif;
 class DpiManager;
 
-/** Í¼Æ¬Ïà¹Ø·â×°£¬Ö§³ÖµÄÎÄ¼ş¸ñÊ½£ºSVG/PNG/GIF/JPG/BMP/APNG/WEBP/ICO
+/** å›¾ç‰‡ç›¸å…³å°è£…ï¼Œæ”¯æŒçš„æ–‡ä»¶æ ¼å¼ï¼šSVG/PNG/GIF/JPG/BMP/APNG/WEBP/ICO
 */
 class UILIB_API Image
 {
@@ -27,139 +27,139 @@ public:
 	Image& operator=(const Image&) = delete;
 
 public:
-	/** @name Í¼Æ¬ÊôĞÔ
+	/** @name å›¾ç‰‡å±æ€§
 	* @{
 	*/
-	/** ³õÊ¼»¯Í¼Æ¬ÊôĞÔ
+	/** åˆå§‹åŒ–å›¾ç‰‡å±æ€§
 	*/
 	void InitImageAttribute();
 
-	/** ÉèÖÃ²¢³õÊ¼»¯Í¼Æ¬ÊôĞÔ
-	* @param [in] strImageString Í¼Æ¬ÊôĞÔ×Ö·û´®
-	* @param [in] dpi DPIËõ·Å½Ó¿Ú
+	/** è®¾ç½®å¹¶åˆå§‹åŒ–å›¾ç‰‡å±æ€§
+	* @param [in] strImageString å›¾ç‰‡å±æ€§å­—ç¬¦ä¸²
+	* @param [in] dpi DPIç¼©æ”¾æ¥å£
 	*/
 	void SetImageString(const std::wstring& strImageString, const DpiManager& dpi);
 
-	/** »ñÈ¡Í¼Æ¬ÊôĞÔ£¨º¬ÎÄ¼şÃû£¬ºÍÍ¼Æ¬ÉèÖÃÊôĞÔµÈ£©
+	/** è·å–å›¾ç‰‡å±æ€§ï¼ˆå«æ–‡ä»¶åï¼Œå’Œå›¾ç‰‡è®¾ç½®å±æ€§ç­‰ï¼‰
 	*/
 	std::wstring GetImageString() const;
 
-	/** ÅĞ¶ÏÍ¼Æ¬ÊôĞÔÊÇ·ñÏàµÈ
+	/** åˆ¤æ–­å›¾ç‰‡å±æ€§æ˜¯å¦ç›¸ç­‰
 	*/
 	bool EqualToImageString(const std::wstring& imageString) const;
 
-	/** »ñÈ¡Í¼Æ¬ÎÄ¼şÃû£¨º¬Ïà¶ÔÂ·¾¶£¬²»º¬Í¼Æ¬ÊôĞÔ£©
+	/** è·å–å›¾ç‰‡æ–‡ä»¶åï¼ˆå«ç›¸å¯¹è·¯å¾„ï¼Œä¸å«å›¾ç‰‡å±æ€§ï¼‰
 	*/
 	std::wstring GetImagePath() const;
 
-	/** »ñÈ¡Í¼Æ¬ÊôĞÔµÄÄÚ±ß¾à
-	* @param [in] dpi DPIËõ·Å¹ÜÀíÆ÷
-	* @return ·µ»Ø°´ÕÕ´«ÈëDPIËõ·Å¹ÜÀíÆ÷ÊÊÓ¦µÄÄÚ±ß¾àÊı¾İ
+	/** è·å–å›¾ç‰‡å±æ€§çš„å†…è¾¹è·
+	* @param [in] dpi DPIç¼©æ”¾ç®¡ç†å™¨
+	* @return è¿”å›æŒ‰ç…§ä¼ å…¥DPIç¼©æ”¾ç®¡ç†å™¨é€‚åº”çš„å†…è¾¹è·æ•°æ®
 	*/
 	UiPadding GetImagePadding(const DpiManager& dpi) const;
 
-	/** ÉèÖÃÍ¼Æ¬ÊôĞÔµÄÄÚ±ß¾à(ÄÚ²¿²»×öDPI×ÔÊÊÓ¦)
-	* @param [in] newPadding ĞèÒªÉèÖÃµÄÄÚ±ß¾à
-	* @param [in] bNeedDpiScale ÊÇ·ñĞèÒª¶ÔnewPadding½øĞĞDPIËõ·Å
-	* @param [in] dpi ÓënewPaddingÊı¾İ¹ØÁªµÄDPI¹ÜÀíÆ÷
+	/** è®¾ç½®å›¾ç‰‡å±æ€§çš„å†…è¾¹è·(å†…éƒ¨ä¸åšDPIè‡ªé€‚åº”)
+	* @param [in] newPadding éœ€è¦è®¾ç½®çš„å†…è¾¹è·
+	* @param [in] bNeedDpiScale æ˜¯å¦éœ€è¦å¯¹newPaddingè¿›è¡ŒDPIç¼©æ”¾
+	* @param [in] dpi ä¸newPaddingæ•°æ®å…³è”çš„DPIç®¡ç†å™¨
 	*/
 	void SetImagePadding(const UiPadding& newPadding, bool bNeedDpiScale, const DpiManager& dpi);
 
-	/** ÅĞ¶ÏÊÇ·ñ½ûÓÃÍ¼Æ¬»æÖÆ
+	/** åˆ¤æ–­æ˜¯å¦ç¦ç”¨å›¾ç‰‡ç»˜åˆ¶
 	*/
 	bool IsImagePaintEnabled() const;
 
-	/** ÉèÖÃÊÇ·ñ½ûÖ¹±³¾°Í¼Æ¬»æÖÆ
+	/** è®¾ç½®æ˜¯å¦ç¦æ­¢èƒŒæ™¯å›¾ç‰‡ç»˜åˆ¶
 	*/
 	void SetImagePaintEnabled(bool bEnable);
 
-	/** ÉèÖÃÍ¼Æ¬ÊôĞÔ£º²¥·Å´ÎÊı£¨½öµ±¶àÖ¡Í¼Æ¬Ê±£©
+	/** è®¾ç½®å›¾ç‰‡å±æ€§ï¼šæ’­æ”¾æ¬¡æ•°ï¼ˆä»…å½“å¤šå¸§å›¾ç‰‡æ—¶ï¼‰
 	*/
 	void SetImagePlayCount(int32_t nPlayCount);
 
-	/** ÉèÖÃÍ¼Æ¬ÊôĞÔ£ºÍ¸Ã÷¶È£¨½öµ±¶àÖ¡Í¼Æ¬Ê±£©
+	/** è®¾ç½®å›¾ç‰‡å±æ€§ï¼šé€æ˜åº¦ï¼ˆä»…å½“å¤šå¸§å›¾ç‰‡æ—¶ï¼‰
 	*/
 	void SetImageFade(uint8_t nFade);
 
-	/** »ñÈ¡Í¼Æ¬ÊôĞÔ£¨Ö»¶Á£©
+	/** è·å–å›¾ç‰‡å±æ€§ï¼ˆåªè¯»ï¼‰
 	*/
 	const ImageAttribute& GetImageAttribute() const;
 
-	/** »ñÈ¡Í¼Æ¬¼ÓÔØÊôĞÔ
+	/** è·å–å›¾ç‰‡åŠ è½½å±æ€§
 	*/
 	ImageLoadAttribute GetImageLoadAttribute() const;
 
 	/** @} */
 
 public:
-	/** @name Í¼Æ¬Êı¾İ£¨ÓÉÍâ²¿¼ÓÔØÍ¼Æ¬Êı¾İ£©
+	/** @name å›¾ç‰‡æ•°æ®ï¼ˆç”±å¤–éƒ¨åŠ è½½å›¾ç‰‡æ•°æ®ï¼‰
 	* @{
 	*/
-	/** »ñÈ¡Í¼Æ¬ĞÅÏ¢½Ó¿Ú
+	/** è·å–å›¾ç‰‡ä¿¡æ¯æ¥å£
 	*/
 	const std::shared_ptr<ImageInfo>& GetImageCache() const;
 
-	/** ÉèÖÃÍ¼Æ¬ĞÅÏ¢½Ó¿Ú
+	/** è®¾ç½®å›¾ç‰‡ä¿¡æ¯æ¥å£
 	*/
 	void SetImageCache(const std::shared_ptr<ImageInfo>& imageInfo);
 
-	/** Çå³ıÍ¼Æ¬ĞÅÏ¢»º´æÊı¾İ, ÊÍ·Å×ÊÔ´
+	/** æ¸…é™¤å›¾ç‰‡ä¿¡æ¯ç¼“å­˜æ•°æ®, é‡Šæ”¾èµ„æº
 	*/
 	void ClearImageCache();
 
-	/** ÉèÖÃµ±Ç°Í¼Æ¬Ö¡£¨½öµ±¶àÖ¡Í¼Æ¬Ê±£©
+	/** è®¾ç½®å½“å‰å›¾ç‰‡å¸§ï¼ˆä»…å½“å¤šå¸§å›¾ç‰‡æ—¶ï¼‰
 	*/
 	void SetCurrentFrame(uint32_t nCurrentFrame);
 
-	/** »ñÈ¡µ±Ç°Í¼Æ¬Ö¡Ë÷Òı£¨½öµ±¶àÖ¡Í¼Æ¬Ê±£©
+	/** è·å–å½“å‰å›¾ç‰‡å¸§ç´¢å¼•ï¼ˆä»…å½“å¤šå¸§å›¾ç‰‡æ—¶ï¼‰
 	*/
 	uint32_t GetCurrentFrame() const;
 
-	/** »ñÈ¡Í¼Æ¬µÄÖ¡Êı
+	/** è·å–å›¾ç‰‡çš„å¸§æ•°
 	*/
 	uint32_t GetFrameCount() const;
 
-	/** ÊÇ·ñÎ»¶àÖ¡Í¼Æ¬(±ÈÈçGIFµÈ)
+	/** æ˜¯å¦ä½å¤šå¸§å›¾ç‰‡(æ¯”å¦‚GIFç­‰)
 	*/
 	bool IsMultiFrameImage() const;
 
-	/** »ñÈ¡µ±Ç°Í¼Æ¬Ö¡µÄÍ¼Æ¬Êı¾İ
+	/** è·å–å½“å‰å›¾ç‰‡å¸§çš„å›¾ç‰‡æ•°æ®
 	*/
 	IBitmap* GetCurrentBitmap() const;
 
 	/** @} */
 
 public:
-	/** @name Í¼Æ¬µÄÏÔÊ¾
+	/** @name å›¾ç‰‡çš„æ˜¾ç¤º
 	* @{
 	*/
-	/** ÉèÖÃ¹ØÁªµÄ¿Ø¼ş½Ó¿Ú
+	/** è®¾ç½®å…³è”çš„æ§ä»¶æ¥å£
 	*/
 	void SetControl(Control* pControl);
 
-	/** ²¥·Å GIF/WebP/APNG ¶¯»­
-	* @param [in] rcImageRect ¶¯»­Í¼Æ¬µÄÏÔÊ¾ÇøÓò
+	/** æ’­æ”¾ GIF/WebP/APNG åŠ¨ç”»
+	* @param [in] rcImageRect åŠ¨ç”»å›¾ç‰‡çš„æ˜¾ç¤ºåŒºåŸŸ
 	*/
 	bool CheckStartGifPlay(const UiRect& rcImageRect);
 
-	/** Í£Ö¹²¥·Å GIF/WebP/APNG ¶¯»­
+	/** åœæ­¢æ’­æ”¾ GIF/WebP/APNG åŠ¨ç”»
 	 */
 	void CheckStopGifPlay();
 
-	/** ²¥·Å GIF/WebP/APNG ¶¯»­
-	 * @param [in] nStartFrame ´ÓÄÄÒ»Ö¡¿ªÊ¼²¥·Å£¬¿ÉÉèÖÃµÚÒ»Ö¡¡¢µ±Ç°Ö¡ºÍ×îºóÒ»Ö¡¡£Çë²Î¿¼ GifFrameType Ã¶¾Ù
-	 * @param [in] nPlayCount Ö¸¶¨²¥·Å´ÎÊı, Èç¹ûÊÇ-1±íÊ¾Ò»Ö±²¥·Å
+	/** æ’­æ”¾ GIF/WebP/APNG åŠ¨ç”»
+	 * @param [in] nStartFrame ä»å“ªä¸€å¸§å¼€å§‹æ’­æ”¾ï¼Œå¯è®¾ç½®ç¬¬ä¸€å¸§ã€å½“å‰å¸§å’Œæœ€åä¸€å¸§ã€‚è¯·å‚è€ƒ GifFrameType æšä¸¾
+	 * @param [in] nPlayCount æŒ‡å®šæ’­æ”¾æ¬¡æ•°, å¦‚æœæ˜¯-1è¡¨ç¤ºä¸€ç›´æ’­æ”¾
 	 */
 	bool StartGifPlay(GifFrameType nStartFrame = kGifFrameFirst, int32_t nPlayCount = -1);
 
-	/** Í£Ö¹²¥·Å GIF/WebP/APNG ¶¯»­
-	 * @param [in] bTriggerEvent ÊÇ·ñ½«Í£Ö¹ÊÂ¼şÍ¨Öª¸ø¶©ÔÄÕß£¬²Î¿¼ AttachGifPlayStop ·½·¨
-	 * @param [in] nStopFrame ²¥·Å½áÊøÍ£Ö¹ÔÚÄÄÒ»Ö¡£¬¿ÉÉèÖÃµÚÒ»Ö¡¡¢µ±Ç°Ö¡ºÍ×îºóÒ»Ö¡¡£Çë²Î¿¼ GifFrameType Ã¶¾Ù
+	/** åœæ­¢æ’­æ”¾ GIF/WebP/APNG åŠ¨ç”»
+	 * @param [in] bTriggerEvent æ˜¯å¦å°†åœæ­¢äº‹ä»¶é€šçŸ¥ç»™è®¢é˜…è€…ï¼Œå‚è€ƒ AttachGifPlayStop æ–¹æ³•
+	 * @param [in] nStopFrame æ’­æ”¾ç»“æŸåœæ­¢åœ¨å“ªä¸€å¸§ï¼Œå¯è®¾ç½®ç¬¬ä¸€å¸§ã€å½“å‰å¸§å’Œæœ€åä¸€å¸§ã€‚è¯·å‚è€ƒ GifFrameType æšä¸¾
 	 */
 	void StopGifPlay(bool bTriggerEvent = false, GifFrameType nStopFrame = kGifFrameCurrent);
 
-	/** ¼àÌı GIF ²¥·ÅÍê³ÉÍ¨Öª
-	 * @param[in] callback Òª¼àÌı GIF Í£Ö¹²¥·ÅµÄ»Øµ÷º¯Êı
+	/** ç›‘å¬ GIF æ’­æ”¾å®Œæˆé€šçŸ¥
+	 * @param[in] callback è¦ç›‘å¬ GIF åœæ­¢æ’­æ”¾çš„å›è°ƒå‡½æ•°
 	 */
 	void AttachGifPlayStop(const EventCallback& callback);
 
@@ -167,23 +167,23 @@ public:
 
 private:
 
-	/** µ±Ç°ÕıÔÚ²¥·ÅµÄÍ¼Æ¬Ö¡£¨½öµ±¶àÖ¡Í¼Æ¬Ê±£©
+	/** å½“å‰æ­£åœ¨æ’­æ”¾çš„å›¾ç‰‡å¸§ï¼ˆä»…å½“å¤šå¸§å›¾ç‰‡æ—¶ï¼‰
 	*/
 	uint32_t m_nCurrentFrame;
 
-	/** ¹ØÁªµÄ¿Ø¼ş½Ó¿Ú
+	/** å…³è”çš„æ§ä»¶æ¥å£
 	*/
 	Control* m_pControl;
 
-	/** ¶àÖ¡Í¼Æ¬²¥·ÅÊµÏÖ½Ó¿Ú
+	/** å¤šå¸§å›¾ç‰‡æ’­æ”¾å®ç°æ¥å£
 	*/
 	ImageGif* m_pImageGif;
 
-	/** Í¼Æ¬ÊôĞÔ
+	/** å›¾ç‰‡å±æ€§
 	*/
 	ImageAttribute m_imageAttribute;
 
-	/** Í¼Æ¬ĞÅÏ¢
+	/** å›¾ç‰‡ä¿¡æ¯
 	*/
 	std::shared_ptr<ImageInfo> m_imageCache;
 };

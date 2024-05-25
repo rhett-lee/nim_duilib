@@ -94,9 +94,9 @@ void PropertyGrid::OnInit()
         return;
     }
     __super::OnInit();
-    //³õÊ¼»¯»ù±¾½á¹¹
+    //åˆå§‹åŒ–åŸºæœ¬ç»“æ„
     if (m_configXml.empty()) {
-        //Ä¬ÈÏµÄÅäÖÃÎÄ¼ş
+        //é»˜è®¤çš„é…ç½®æ–‡ä»¶
         m_configXml = L"public/property_grid/property_grid.xml";
     }
     ui::GlobalManager::Instance().FillBoxWithCache(this, m_configXml.c_str());
@@ -121,7 +121,7 @@ void PropertyGrid::OnInit()
     m_pTreeView = dynamic_cast<TreeView*>(FindSubControl(L"duilib_property_grid_tree"));
     ASSERT(m_pTreeView != nullptr);
 
-    //¹ÒÔØÍÏ¶¯ÏìÓ¦ÊÂ¼ş, µ÷ÕûÁĞµÄ¿í¶È
+    //æŒ‚è½½æ‹–åŠ¨å“åº”äº‹ä»¶, è°ƒæ•´åˆ—çš„å®½åº¦
     if (m_pHeaderSplit != nullptr) {
         m_pHeaderSplit->AttachSplitDraged([this](const EventArgs& /*args*/) {
             OnHeaderColumnResized();
@@ -129,10 +129,10 @@ void PropertyGrid::OnInit()
             });
     }
 
-    //³õÊ¼»¯µÚÒ»ÁĞ¿í¶È
+    //åˆå§‹åŒ–ç¬¬ä¸€åˆ—å®½åº¦
     SetLeftColumnWidth(GetLeftColumnWidthValue(), false);
 
-    //¹ØÁªÃèÊöÇøÓò
+    //å…³è”æè¿°åŒºåŸŸ
     if ((m_pDescriptionArea != nullptr) && (m_pTreeView != nullptr)) {
         m_pTreeView->AttachSelect([this](const EventArgs& args) {
             Control* pItem = nullptr;
@@ -171,7 +171,7 @@ void PropertyGrid::PaintChild(IRender* pRender, const UiRect& rcPaint)
 {
     __super::PaintChild(pRender, rcPaint);
 
-    //Íø¸ñÏßµÄ»æÖÆ
+    //ç½‘æ ¼çº¿çš„ç»˜åˆ¶
     PaintGridLines(pRender);
 }
 
@@ -180,8 +180,8 @@ void PropertyGrid::PaintGridLines(IRender* pRender)
     if (m_pTreeView == nullptr) {
         return;
     }
-    int32_t nColumnLineWidth = GetColumnGridLineWidth();//×İÏò±ßÏß¿í¶È        
-    int32_t nRowLineWidth = GetRowGridLineWidth();   //ºáÏò±ßÏß¿í¶È
+    int32_t nColumnLineWidth = GetColumnGridLineWidth();//çºµå‘è¾¹çº¿å®½åº¦        
+    int32_t nRowLineWidth = GetRowGridLineWidth();   //æ¨ªå‘è¾¹çº¿å®½åº¦
     UiColor columnLineColor;
     UiColor rowLineColor;
     std::wstring color = GetColumnGridLineColor();
@@ -194,7 +194,7 @@ void PropertyGrid::PaintGridLines(IRender* pRender)
     }
 
     if ((nColumnLineWidth > 0) && !columnLineColor.IsEmpty()) {
-        //»æÖÆ×İÏòÍø¸ñÏß
+        //ç»˜åˆ¶çºµå‘ç½‘æ ¼çº¿
         UiRect viewRect = m_pTreeView->GetRect();
         UiPoint viewScrollPos = m_pTreeView->GetScrollOffsetInScrollBox();
         viewRect.Offset(-viewScrollPos.x, -viewScrollPos.y);
@@ -216,14 +216,14 @@ void PropertyGrid::PaintGridLines(IRender* pRender)
         }
 
         for (int32_t xPos : xPosList) {
-            //ºá×ø±êÎ»ÖÃ·ÅÔÚÃ¿¸ö×ÓÏî¿Ø¼şµÄÓÒ²à²¿            
+            //æ¨ªåæ ‡ä½ç½®æ”¾åœ¨æ¯ä¸ªå­é¡¹æ§ä»¶çš„å³ä¾§éƒ¨            
             UiPoint pt1(xPos, yTop);
             UiPoint pt2(xPos, viewRect.bottom);
             pRender->DrawLine(pt1, pt2, columnLineColor, nColumnLineWidth);
         }
     }
     if ((nRowLineWidth > 0) && !rowLineColor.IsEmpty()) {
-        //»æÖÆºáÏòÍø¸ñÏß
+        //ç»˜åˆ¶æ¨ªå‘ç½‘æ ¼çº¿
         UiRect viewRect = m_pTreeView->GetRect();
         UiPoint viewScrollPos = m_pTreeView->GetScrollOffsetInScrollBox();
         viewRect.Offset(-viewScrollPos.x, -viewScrollPos.y);
@@ -233,7 +233,7 @@ void PropertyGrid::PaintGridLines(IRender* pRender)
             if ((pItem == nullptr) || !pItem->IsVisible() || (pItem->GetHeight() <= 0)) {
                 continue;
             }
-            //×İ×ø±êÎ»ÖÃ·ÅÔÚÃ¿¸ö×ÓÏî¿Ø¼şµÄµ×²¿£¨Header¿Ø¼şµÄµ×²¿²»»­Ïß£©
+            //çºµåæ ‡ä½ç½®æ”¾åœ¨æ¯ä¸ªå­é¡¹æ§ä»¶çš„åº•éƒ¨ï¼ˆHeaderæ§ä»¶çš„åº•éƒ¨ä¸ç”»çº¿ï¼‰
             UiRect rcItemRect = pItem->GetRect();
             UiPoint scrollBoxOffset = pItem->GetScrollOffsetInScrollBox();
             rcItemRect.Offset(-scrollBoxOffset.x, -scrollBoxOffset.y);
@@ -246,11 +246,11 @@ void PropertyGrid::PaintGridLines(IRender* pRender)
             }
             yPos += nChildMarginY / 2;
             if (yPos <= viewRect.top) {
-                //Î»ÖÃ²»ÔÚ¾ØĞÎÇøÓòÄÚ£¬²»ĞèÒª»­Ïß
+                //ä½ç½®ä¸åœ¨çŸ©å½¢åŒºåŸŸå†…ï¼Œä¸éœ€è¦ç”»çº¿
                 continue;
             }
             if (yPos > viewRect.bottom) {
-                //ÒÑ¾­³¬Ô½µ×²¿±ßÏß£¬²»ÔÙ¼ÌĞø»æÖÆ
+                //å·²ç»è¶…è¶Šåº•éƒ¨è¾¹çº¿ï¼Œä¸å†ç»§ç»­ç»˜åˆ¶
                 break;
             }
 
@@ -296,14 +296,14 @@ void PropertyGrid::OnHeaderColumnResized()
     }
     size_t nCount = pRootNode->GetChildNodeCount();
     for (size_t i = 0; i < nCount; ++i) {
-        //µÚÒ»²ãÊÇ·Ö×é½Úµã£¬²»ĞèÒªµ÷Õû
+        //ç¬¬ä¸€å±‚æ˜¯åˆ†ç»„èŠ‚ç‚¹ï¼Œä¸éœ€è¦è°ƒæ•´
         TreeNode* pNode = pRootNode->GetChildNode(i);
         if (pNode == nullptr) {
             continue;
         }
         size_t nChildCount = pNode->GetChildNodeCount();
         for (size_t iChild = 0; iChild < nChildCount; ++iChild) {
-            //µÚ¶ş²ãÊÇÊôĞÔ½Úµã£¬ĞèÒªµ÷Õû
+            //ç¬¬äºŒå±‚æ˜¯å±æ€§èŠ‚ç‚¹ï¼Œéœ€è¦è°ƒæ•´
             TreeNode* pChildNode = pNode->GetChildNode(iChild);
             if (pChildNode == nullptr) {
                 continue;
@@ -311,7 +311,7 @@ void PropertyGrid::OnHeaderColumnResized()
             ResizePropertyColumn(pChildNode, nLeftColumnWidth);
         }
     }
-    //ÖØ»æÊ÷¿Ø¼ş£¬±ÜÃâÍø¸ñÏß²»Ë¢ĞÂ
+    //é‡ç»˜æ ‘æ§ä»¶ï¼Œé¿å…ç½‘æ ¼çº¿ä¸åˆ·æ–°
     m_pTreeView->Invalidate();
 }
 
@@ -808,7 +808,7 @@ void PropertyGridGroup::OnInit()
     m_pLabelBox->SetText(m_groupName.c_str());
     TreeView* pTreeView = GetTreeView();
     if (pTreeView != nullptr) {
-        //ÉèÖÃÓëÊôĞÔ¶ÔÆë
+        //è®¾ç½®ä¸å±æ€§å¯¹é½
         int32_t nIndent = pTreeView->GetIndent();
         UiPadding rcPadding = m_pLabelBox->GetPadding();
         rcPadding.left += GetDepth() * nIndent;
@@ -852,8 +852,8 @@ public:
     {
         SetAutoToolTip(true);
     }
-    /** ÏûÏ¢´¦Àíº¯Êı
-    * @param [in] msg ÏûÏ¢ÄÚÈİ
+    /** æ¶ˆæ¯å¤„ç†å‡½æ•°
+    * @param [in] msg æ¶ˆæ¯å†…å®¹
     */
     virtual void HandleEvent(const EventArgs& msg) override
     {
@@ -866,7 +866,7 @@ public:
         }
     }
 
-    /** ³õÊ¼»¯º¯Êı
+    /** åˆå§‹åŒ–å‡½æ•°
      */
     virtual void OnInit() override
     {
@@ -906,7 +906,7 @@ void PropertyGridProperty::OnInit()
 
     m_pHBox = new HBox(GetWindow());
     AddItem(m_pHBox);
-    //±³¾°É«£ºÔÚproperty_grid.xmlÖĞ¶¨Òå
+    //èƒŒæ™¯è‰²ï¼šåœ¨property_grid.xmlä¸­å®šä¹‰
     m_pHBox->SetBkColor(L"property_grid_propterty_bkcolor");
 
     m_pHBox->SetMouseEnabled(false);
@@ -919,10 +919,10 @@ void PropertyGridProperty::OnInit()
     m_pLabelBoxRight = new PropertyGridLabelBox(GetWindow());
     m_pHBox->AddItem(m_pLabelBoxRight);
     m_pLabelBoxRight->SetText(m_propertyValue.c_str());
-    //ÊôĞÔÖµµÄÕı³£×ÖÌå£ºÔÚproperty_grid.xmlÖĞ¶¨Òå
+    //å±æ€§å€¼çš„æ­£å¸¸å­—ä½“ï¼šåœ¨property_grid.xmlä¸­å®šä¹‰
     m_pLabelBoxRight->SetFontId(L"property_grid_propterty_font_normal");
 
-    //¹ÒÔØÊó±ê×ó¼ü°´ÏÂÊÂ¼ş
+    //æŒ‚è½½é¼ æ ‡å·¦é”®æŒ‰ä¸‹äº‹ä»¶
     m_pLabelBoxRight->AttachButtonDown([this](const EventArgs&) {
         if (!IsReadOnly() && IsEnabled()) {
             Control* pControl = ShowEditControl(true);
@@ -936,10 +936,10 @@ void PropertyGridProperty::OnInit()
         return true;
         });
 
-    //ÔÊĞí»òÕß½ûÖ¹±à¼­¿Ø¼ş
+    //å…è®¸æˆ–è€…ç¦æ­¢ç¼–è¾‘æ§ä»¶
     EnableEditControl(!IsReadOnly() && IsEnabled());
 
-    //¹ö¶¯Ìõ¹ö¶¯ÊÂ¼ş
+    //æ»šåŠ¨æ¡æ»šåŠ¨äº‹ä»¶
     TreeView* pTreeView = GetTreeView();
     if (pTreeView != nullptr) {
         pTreeView->AttachScrollChange([this](const EventArgs&) {
@@ -983,7 +983,7 @@ void PropertyGridProperty::SetPropertyText(const std::wstring& text, bool bChang
 void PropertyGridProperty::SetPropertyTextColor(const std::wstring& textColor)
 {
     if (GetUiColor(textColor).IsEmpty()) {
-        //ÎŞĞ§ÑÕÉ«Öµ
+        //æ— æ•ˆé¢œè‰²å€¼
         return;
     }
     ASSERT(m_pLabelBoxRight != nullptr);
@@ -1057,20 +1057,20 @@ std::wstring PropertyGridProperty::GetPropertyNewValue() const
 }
 
 ////////////////////////////////////////////////////////////////////////////
-/// ¿Ø¼şµÄ»ùÀà
+/// æ§ä»¶çš„åŸºç±»
 template<typename InheritType = Control>
 class PropertyGridEditTemplate : public InheritType
 {
 public:
     explicit PropertyGridEditTemplate(Window* pWindow);
 
-    /** ÏûÏ¢´¦Àíº¯Êı
-    * @param [in] msg ÏûÏ¢ÄÚÈİ
+    /** æ¶ˆæ¯å¤„ç†å‡½æ•°
+    * @param [in] msg æ¶ˆæ¯å†…å®¹
     */
     virtual void HandleEvent(const EventArgs& msg) override
     {
         if (this->IsDisabledEvents(msg)) {
-            //Èç¹ûÊÇÊó±ê¼üÅÌÏûÏ¢£¬²¢ÇÒ¿Ø¼şÊÇDisabledµÄ£¬×ª·¢¸øÉÏ²ã¿Ø¼ş
+            //å¦‚æœæ˜¯é¼ æ ‡é”®ç›˜æ¶ˆæ¯ï¼Œå¹¶ä¸”æ§ä»¶æ˜¯Disabledçš„ï¼Œè½¬å‘ç»™ä¸Šå±‚æ§ä»¶
             Box* pParent = this->GetParent();
             if (pParent != nullptr) {
                 pParent->SendEvent(msg);
@@ -1078,7 +1078,7 @@ public:
         }
         else {
             if ((msg.Type > kEventMouseBegin) && (msg.Type < kEventMouseEnd)) {
-                //Êó±êÏûÏ¢£¬×ª¸ø¸¸¿Ø¼ş
+                //é¼ æ ‡æ¶ˆæ¯ï¼Œè½¬ç»™çˆ¶æ§ä»¶
                 Box* pParent = this->GetParent();
                 if (pParent != nullptr) {
                     pParent->SendEvent(msg);
@@ -1088,7 +1088,7 @@ public:
         }
     }
 
-    /** ³õÊ¼»¯º¯Êı
+    /** åˆå§‹åŒ–å‡½æ•°
      */
     virtual void OnInit() override
     {
@@ -1107,7 +1107,7 @@ InheritType(pWindow)
 {
 }
 
-/** ±à¼­¿ò¿Ø¼ş
+/** ç¼–è¾‘æ¡†æ§ä»¶
 */
 typedef PropertyGridEditTemplate<RichEdit> PropertyGridRichEdit;
 
@@ -1140,11 +1140,11 @@ void PropertyGridTextProperty::EnableEditControl(bool bEnable)
         m_pRichEdit = nullptr;
         return;
     }
-    //±à¼­¿òµÄÊôĞÔ£ºÔÚproperty_grid.xmlÖĞ¶¨Òå    
+    //ç¼–è¾‘æ¡†çš„å±æ€§ï¼šåœ¨property_grid.xmlä¸­å®šä¹‰    
     m_pRichEdit->SetText(GetPropertyText());
     m_pRichEdit->SetVisible(false);
 
-    //¹ÒÔØ»Ø³µºÍ½¹µãÇĞ»»ÊÂ¼ş
+    //æŒ‚è½½å›è½¦å’Œç„¦ç‚¹åˆ‡æ¢äº‹ä»¶
     m_pRichEdit->AttachReturn([this](const EventArgs&) {
         SetPropertyFocus();
         return true;
@@ -1167,7 +1167,7 @@ Control* PropertyGridTextProperty::ShowEditControl(bool bShow)
     }
     else {
         std::wstring newText = m_pRichEdit->GetText();
-        bool bChanged = newText != GetPropertyValue(); //Ïà¶ÔÔ­Öµ£¬ÊÇ·ñÓĞĞŞ¸Ä
+        bool bChanged = newText != GetPropertyValue(); //ç›¸å¯¹åŸå€¼ï¼Œæ˜¯å¦æœ‰ä¿®æ”¹
         if (IsPassword()) {
             std::wstring showText;
             showText.resize(newText.size(), L'*');
@@ -1190,7 +1190,7 @@ void PropertyGridTextProperty::SetPassword(bool bPassword)
     m_pRichEdit->SetPassword(bPassword);
     m_pRichEdit->SetFlashPasswordChar(true);
     std::wstring text = m_pRichEdit->GetText();
-    bool bChanged = text != GetPropertyValue(); //Ïà¶ÔÔ­Öµ£¬ÊÇ·ñÓĞĞŞ¸Ä
+    bool bChanged = text != GetPropertyValue(); //ç›¸å¯¹åŸå€¼ï¼Œæ˜¯å¦æœ‰ä¿®æ”¹
     if (bPassword) {
         std::wstring showText;
         showText.resize(text.size(), L'*');
@@ -1223,7 +1223,7 @@ std::wstring PropertyGridTextProperty::GetPropertyNewValue() const
 ////////////////////////////////////////////////////////////////////////////
 ///
 
-/** ±à¼­¿ò¿Ø¼ş
+/** ç¼–è¾‘æ¡†æ§ä»¶
 */
 typedef PropertyGridEditTemplate<Combo> PropertyGridCombo;
 
@@ -1255,11 +1255,11 @@ void PropertyGridComboProperty::EnableEditControl(bool bEnable)
         m_pCombo = nullptr;
         return;
     }
-    //±à¼­¿òµÄÊôĞÔ£ºÔÚproperty_grid.xmlÖĞ¶¨Òå    
+    //ç¼–è¾‘æ¡†çš„å±æ€§ï¼šåœ¨property_grid.xmlä¸­å®šä¹‰    
     m_pCombo->SetText(GetPropertyText());
     m_pCombo->SetVisible(false);
 
-    //¹ÒÔØ»Ø³µºÍ½¹µãÇĞ»»ÊÂ¼ş
+    //æŒ‚è½½å›è½¦å’Œç„¦ç‚¹åˆ‡æ¢äº‹ä»¶
     m_pCombo->AttachKillFocus([this](const EventArgs&) {
         ShowEditControl(false);
         return true;
@@ -1278,7 +1278,7 @@ Control* PropertyGridComboProperty::ShowEditControl(bool bShow)
     }
     else {
         std::wstring newText = m_pCombo->GetText();
-        bool bChanged = newText != GetPropertyValue(); //Ïà¶ÔÔ­Öµ£¬ÊÇ·ñÓĞĞŞ¸Ä
+        bool bChanged = newText != GetPropertyValue(); //ç›¸å¯¹åŸå€¼ï¼Œæ˜¯å¦æœ‰ä¿®æ”¹
         SetPropertyText(newText, bChanged);
         m_pCombo->SetVisible(false);
     }
@@ -1432,7 +1432,7 @@ namespace PropertyGridFontPropertyImpl
         DWORD fontType;
     };
 
-    //Ã¶¾Ù×ÖÌåµÄ»Øµ÷º¯Êı
+    //æšä¸¾å­—ä½“çš„å›è°ƒå‡½æ•°
     static int CALLBACK EnumFontFamExProc(const LOGFONT* lpelfe, const TEXTMETRIC* /*lpntme*/, DWORD fontType, LPARAM lParam)
     {
         std::vector<FontInfo>* pFontList = (std::vector<FontInfo>*)lParam;
@@ -1464,7 +1464,7 @@ namespace PropertyGridFontPropertyImpl
         logfont.lfPitchAndFamily = 0;
         ::EnumFontFamiliesEx(hDC, &logfont, EnumFontFamExProc, (LPARAM)&fontList, 0);
 
-        //×ÖÌåÃû³ÆÁĞ±í
+        //å­—ä½“åç§°åˆ—è¡¨
         std::map<std::wstring, FontInfo> fontMap;
         for (auto font : fontList) {
             if (font.lf.lfWeight != FW_NORMAL) {
@@ -1539,27 +1539,27 @@ void PropertyGridFontSizeProperty::GetSystemFontSizeList(std::vector<FontSizeInf
     fontSizeList.push_back({ L"36", 36.0f, 0 });
     fontSizeList.push_back({ L"48", 48.0f, 0 });
     fontSizeList.push_back({ L"72", 72.0f, 0 });
-    fontSizeList.push_back({ L"1Ó¢´ç", 95.6f, 0 });
-    fontSizeList.push_back({ L"´óÌØºÅ", 83.7f, 0 });
-    fontSizeList.push_back({ L"ÌØºÅ", 71.7f, 0 });
-    fontSizeList.push_back({ L"³õºÅ", 56.0f, 0 });
-    fontSizeList.push_back({ L"Ğ¡³õ", 48.0f, 0 });
-    fontSizeList.push_back({ L"Ò»ºÅ", 34.7f, 0 });
-    fontSizeList.push_back({ L"Ğ¡Ò»", 32.0f, 0 });
-    fontSizeList.push_back({ L"¶şºÅ", 29.3f, 0 });
-    fontSizeList.push_back({ L"Ğ¡¶ş", 24.0f, 0 });
-    fontSizeList.push_back({ L"ÈıºÅ", 21.3f, 0 });
-    fontSizeList.push_back({ L"Ğ¡Èı", 20.0f, 0 });
-    fontSizeList.push_back({ L"ËÄºÅ", 18.7f, 0 });
-    fontSizeList.push_back({ L"Ğ¡ËÄ", 16.0f, 0 });
-    fontSizeList.push_back({ L"ÎåºÅ", 14.0f, 0 });
-    fontSizeList.push_back({ L"Ğ¡Îå", 12.0f, 0 });
-    fontSizeList.push_back({ L"ÁùºÅ", 10.0f, 0 });
-    fontSizeList.push_back({ L"Ğ¡Áù", 8.7f, 0 });
-    fontSizeList.push_back({ L"ÆßºÅ", 7.3f, 0 });
-    fontSizeList.push_back({ L"°ËºÅ", 6.7f, 0 });
+    fontSizeList.push_back({ L"1è‹±å¯¸", 95.6f, 0 });
+    fontSizeList.push_back({ L"å¤§ç‰¹å·", 83.7f, 0 });
+    fontSizeList.push_back({ L"ç‰¹å·", 71.7f, 0 });
+    fontSizeList.push_back({ L"åˆå·", 56.0f, 0 });
+    fontSizeList.push_back({ L"å°åˆ", 48.0f, 0 });
+    fontSizeList.push_back({ L"ä¸€å·", 34.7f, 0 });
+    fontSizeList.push_back({ L"å°ä¸€", 32.0f, 0 });
+    fontSizeList.push_back({ L"äºŒå·", 29.3f, 0 });
+    fontSizeList.push_back({ L"å°äºŒ", 24.0f, 0 });
+    fontSizeList.push_back({ L"ä¸‰å·", 21.3f, 0 });
+    fontSizeList.push_back({ L"å°ä¸‰", 20.0f, 0 });
+    fontSizeList.push_back({ L"å››å·", 18.7f, 0 });
+    fontSizeList.push_back({ L"å°å››", 16.0f, 0 });
+    fontSizeList.push_back({ L"äº”å·", 14.0f, 0 });
+    fontSizeList.push_back({ L"å°äº”", 12.0f, 0 });
+    fontSizeList.push_back({ L"å…­å·", 10.0f, 0 });
+    fontSizeList.push_back({ L"å°å…­", 8.7f, 0 });
+    fontSizeList.push_back({ L"ä¸ƒå·", 7.3f, 0 });
+    fontSizeList.push_back({ L"å…«å·", 6.7f, 0 });
 
-    //¸üĞÂDPI×ÔÊÊÓ¦Öµ
+    //æ›´æ–°DPIè‡ªé€‚åº”å€¼
     for (FontSizeInfo& fontSize : fontSizeList) {
         int32_t nSize = static_cast<int32_t>(fontSize.fFontSize * 1000);
         Dpi().ScaleInt(nSize);
@@ -1649,7 +1649,7 @@ void PropertyGridColorProperty::EnableEditControl(bool bEnable)
         return;
     }
     m_pComboButton = new ComboButton(GetWindow());
-    //ÊôĞÔ£ºÔÚproperty_grid.xmlÖĞ¶¨Òå    
+    //å±æ€§ï¼šåœ¨property_grid.xmlä¸­å®šä¹‰    
     m_pComboButton->SetClass(L"property_grid_combo_button");
     if (!AddPropertySubItem(m_pComboButton)) {
         delete m_pComboButton;
@@ -1666,12 +1666,12 @@ void PropertyGridColorProperty::EnableEditControl(bool bEnable)
         pLabelColor->SetBkColor(GetPropertyText());
     }
 
-    //¸üĞÂ×ÖÌåÑÕÉ«
+    //æ›´æ–°å­—ä½“é¢œè‰²
     SetPropertyTextColor(GetPropertyText());
 
     m_pComboButton->SetVisible(false);
 
-    //¹ÒÔØ»Ø³µºÍ½¹µãÇĞ»»ÊÂ¼ş
+    //æŒ‚è½½å›è½¦å’Œç„¦ç‚¹åˆ‡æ¢äº‹ä»¶
     m_pComboButton->AttachKillFocus([this](const EventArgs&) {
         ShowEditControl(false);
         return true;
@@ -1696,7 +1696,7 @@ Control* PropertyGridColorProperty::ShowEditControl(bool bShow)
         if (pColorLabel != nullptr) {
             newText = pColorLabel->GetText();
         }
-        bool bChanged = newText != GetPropertyValue(); //Ïà¶ÔÔ­Öµ£¬ÊÇ·ñÓĞĞŞ¸Ä
+        bool bChanged = newText != GetPropertyValue(); //ç›¸å¯¹åŸå€¼ï¼Œæ˜¯å¦æœ‰ä¿®æ”¹
         SetPropertyText(newText, bChanged);
         SetPropertyTextColor(newText);
         m_pComboButton->SetVisible(false);
@@ -1734,10 +1734,10 @@ void PropertyGridColorProperty::InitColorCombo()
 
     ColorPickerRegular* pColorPicker = dynamic_cast<ColorPickerRegular*>(pComboBox->FindSubControl(L"color_combo_picker"));
     if (pColorPicker != nullptr) {
-        //ÏìÓ¦Ñ¡ÔñÑÕÉ«ÊÂ¼ş
+        //å“åº”é€‰æ‹©é¢œè‰²äº‹ä»¶
         pColorPicker->AttachSelectColor([this, pColorComboBtn](const EventArgs& args) {
             UiColor newColor((uint32_t)args.wParam);
-            //ÉèÖÃÑ¡ÔñºóµÄÑÕÉ«
+            //è®¾ç½®é€‰æ‹©åçš„é¢œè‰²
             Label* pLeftColorLabel = pColorComboBtn->GetLabelBottom();
             if (pLeftColorLabel != nullptr) {
                 pLeftColorLabel->SetBkColor(newColor);
@@ -1762,7 +1762,7 @@ void PropertyGridColorProperty::ShowColorPicker()
     if (pColorComboBtn == nullptr) {
         return;
     }
-    Label* pColorLabel = pColorComboBtn->GetLabelBottom();//ÑÕÉ«ÏÔÊ¾¿Ø¼ş
+    Label* pColorLabel = pColorComboBtn->GetLabelBottom();//é¢œè‰²æ˜¾ç¤ºæ§ä»¶
     if (pColorLabel == nullptr) {
         return;
     }
@@ -1770,7 +1770,7 @@ void PropertyGridColorProperty::ShowColorPicker()
     if (pWindow == nullptr) {
         return;
     }
-    std::wstring oldTextColor = pColorLabel->GetBkColor(); //Ô­À´µÄÑÕÉ«
+    std::wstring oldTextColor = pColorLabel->GetBkColor(); //åŸæ¥çš„é¢œè‰²
 
     ColorPicker* pColorPicker = new ColorPicker;
     pColorPicker->CreateWnd(pWindow->GetHWND(), ColorPicker::kClassName.c_str(), UI_WNDSTYLE_FRAME, WS_EX_LAYERED);
@@ -1780,7 +1780,7 @@ void PropertyGridColorProperty::ShowColorPicker()
     if (!oldTextColor.empty() && (pColorPicker != nullptr)) {
         pColorPicker->SetSelectedColor(GetUiColor(oldTextColor));
     }
-    //Èç¹ûÔÚ½çÃæÑ¡ÔñÑÕÉ«£¬ÔòÁÙÊ±¸üĞÂ¿Ø¼şÎÄ±¾µÄÑÕÉ«
+    //å¦‚æœåœ¨ç•Œé¢é€‰æ‹©é¢œè‰²ï¼Œåˆ™ä¸´æ—¶æ›´æ–°æ§ä»¶æ–‡æœ¬çš„é¢œè‰²
     pColorPicker->AttachSelectColor([this, pColorLabel](const ui::EventArgs& args) {
         ui::UiColor newColor = ui::UiColor((uint32_t)args.wParam);
         pColorLabel->SetBkColor(newColor);
@@ -1788,16 +1788,16 @@ void PropertyGridColorProperty::ShowColorPicker()
         return true;
         });
 
-    //´°¿Ú¹Ø±ÕÊÂ¼ş
+    //çª—å£å…³é—­äº‹ä»¶
     pColorPicker->AttachWindowClose([this, pColorPicker, oldTextColor, pColorLabel](const ui::EventArgs& args) {
         ui::UiColor newColor = pColorPicker->GetSelectedColor();
         if ((args.wParam == 0) && !newColor.IsEmpty()) {
-            //Èç¹ûÊÇ"È·ÈÏ"£¬ÔòÉèÖÃ¿Ø¼şµÄÎÄ±¾ÑÕÉ«
+            //å¦‚æœæ˜¯"ç¡®è®¤"ï¼Œåˆ™è®¾ç½®æ§ä»¶çš„æ–‡æœ¬é¢œè‰²
             pColorLabel->SetBkColor(newColor);
             OnSelectColor(GetColorString(newColor));
         }
         else {
-            //Èç¹ûÊÇ"È¡Ïû"»òÕß¹Ø±Õ´°¿Ú£¬Ôò»Ö¸´Ô­À´µÄÑÕÉ«
+            //å¦‚æœæ˜¯"å–æ¶ˆ"æˆ–è€…å…³é—­çª—å£ï¼Œåˆ™æ¢å¤åŸæ¥çš„é¢œè‰²
             pColorLabel->SetBkColor(newColor);
             OnSelectColor(oldTextColor);
         }
@@ -1822,7 +1822,7 @@ void PropertyGridColorProperty::OnSelectColor(const std::wstring& color)
 
 ////////////////////////////////////////////////////////////////////////////
 ///
-/** ÈÕÆÚÊ±¼ä¿Ø¼ş
+/** æ—¥æœŸæ—¶é—´æ§ä»¶
 */
 typedef PropertyGridEditTemplate<DateTime> PropertyGridDateTime;
 
@@ -1850,7 +1850,7 @@ void PropertyGridDateTimeProperty::EnableEditControl(bool bEnable)
         return;
     }
     m_pDateTime = new PropertyGridDateTime(GetWindow());
-    //ÊôĞÔ£ºÔÚproperty_grid.xmlÖĞ¶¨Òå
+    //å±æ€§ï¼šåœ¨property_grid.xmlä¸­å®šä¹‰
     m_pDateTime->SetClass(L"property_grid_date_time");
     if (!AddPropertySubItem(m_pDateTime)) {
         delete m_pDateTime;
@@ -1868,7 +1868,7 @@ void PropertyGridDateTimeProperty::EnableEditControl(bool bEnable)
     auto s1 = GetPropertyText();
     ASSERT(m_pDateTime->GetDateTimeString() == GetPropertyText());
 
-    //¹ÒÔØ½¹µãÇĞ»»ÊÂ¼ş
+    //æŒ‚è½½ç„¦ç‚¹åˆ‡æ¢äº‹ä»¶
     m_pDateTime->AttachKillFocus([this](const EventArgs&) {
         ShowEditControl(false);
         return true;
@@ -1891,7 +1891,7 @@ Control* PropertyGridDateTimeProperty::ShowEditControl(bool bShow)
     }
     else {
         std::wstring newText = m_pDateTime->GetText();
-        bool bChanged = newText != GetPropertyValue(); //Ïà¶ÔÔ­Öµ£¬ÊÇ·ñÓĞĞŞ¸Ä
+        bool bChanged = newText != GetPropertyValue(); //ç›¸å¯¹åŸå€¼ï¼Œæ˜¯å¦æœ‰ä¿®æ”¹
         SetPropertyText(newText, bChanged);
         m_pDateTime->SetVisible(false);
     }
@@ -1929,7 +1929,7 @@ void PropertyGridIPAddressProperty::EnableEditControl(bool bEnable)
         return;
     }
     m_pIPAddress = new IPAddress(GetWindow());
-    //ÊôĞÔ£ºÔÚproperty_grid.xmlÖĞ¶¨Òå    
+    //å±æ€§ï¼šåœ¨property_grid.xmlä¸­å®šä¹‰    
     m_pIPAddress->SetClass(L"property_grid_ip_address");
     if (!AddPropertySubItem(m_pIPAddress)) {
         delete m_pIPAddress;
@@ -1940,7 +1940,7 @@ void PropertyGridIPAddressProperty::EnableEditControl(bool bEnable)
     m_pIPAddress->SetIPAddress(GetPropertyText());
     m_pIPAddress->SetVisible(false);
 
-    //¹ÒÔØ»Ø³µºÍ½¹µãÇĞ»»ÊÂ¼ş
+    //æŒ‚è½½å›è½¦å’Œç„¦ç‚¹åˆ‡æ¢äº‹ä»¶
     m_pIPAddress->AttachKillFocus([this](const EventArgs&) {
         ShowEditControl(false);
         return true;
@@ -1959,7 +1959,7 @@ Control* PropertyGridIPAddressProperty::ShowEditControl(bool bShow)
     }
     else {
         std::wstring newText = m_pIPAddress->GetIPAddress();
-        bool bChanged = newText != GetPropertyValue(); //Ïà¶ÔÔ­Öµ£¬ÊÇ·ñÓĞĞŞ¸Ä
+        bool bChanged = newText != GetPropertyValue(); //ç›¸å¯¹åŸå€¼ï¼Œæ˜¯å¦æœ‰ä¿®æ”¹
         SetPropertyText(newText, bChanged);
         m_pIPAddress->SetVisible(false);
     }
@@ -1990,7 +1990,7 @@ void PropertyGridHotKeyProperty::EnableEditControl(bool bEnable)
         return;
     }
     m_pHotKey = new HotKey(GetWindow());
-    //ÊôĞÔ£ºÔÚproperty_grid.xmlÖĞ¶¨Òå    
+    //å±æ€§ï¼šåœ¨property_grid.xmlä¸­å®šä¹‰    
     m_pHotKey->SetClass(L"property_grid_hot_key");
     if (!AddPropertySubItem(m_pHotKey)) {
         delete m_pHotKey;
@@ -2001,7 +2001,7 @@ void PropertyGridHotKeyProperty::EnableEditControl(bool bEnable)
     m_pHotKey->SetHotKeyName(GetPropertyText());
     m_pHotKey->SetVisible(false);
 
-    //¹ÒÔØ»Ø³µºÍ½¹µãÇĞ»»ÊÂ¼ş
+    //æŒ‚è½½å›è½¦å’Œç„¦ç‚¹åˆ‡æ¢äº‹ä»¶
     m_pHotKey->AttachKillFocus([this](const EventArgs&) {
         ShowEditControl(false);
         return true;
@@ -2020,7 +2020,7 @@ Control* PropertyGridHotKeyProperty::ShowEditControl(bool bShow)
     }
     else {
         std::wstring newText = m_pHotKey->GetHotKeyName();
-        bool bChanged = newText != GetPropertyValue(); //Ïà¶ÔÔ­Öµ£¬ÊÇ·ñÓĞĞŞ¸Ä
+        bool bChanged = newText != GetPropertyValue(); //ç›¸å¯¹åŸå€¼ï¼Œæ˜¯å¦æœ‰ä¿®æ”¹
         SetPropertyText(newText, bChanged);
         m_pHotKey->SetVisible(false);
     }
@@ -2069,7 +2069,7 @@ void PropertyGridFileProperty::EnableEditControl(bool bEnable)
         m_pBrowseBtn->SetNoFocus();
         pRichEdit->AddItem(m_pBrowseBtn);
 
-        //µã»÷ÊÂ¼ş
+        //ç‚¹å‡»äº‹ä»¶
         m_pBrowseBtn->AttachClick([this](const EventArgs&) {
             OnBrowseButtonClicked();
             return true;
@@ -2123,7 +2123,7 @@ void PropertyGridDirectoryProperty::EnableEditControl(bool bEnable)
         m_pBrowseBtn->SetNoFocus();
         pRichEdit->AddItem(m_pBrowseBtn);
 
-        //µã»÷ÊÂ¼ş
+        //ç‚¹å‡»äº‹ä»¶
         m_pBrowseBtn->AttachClick([this](const EventArgs&) {
             OnBrowseButtonClicked();
             return true;

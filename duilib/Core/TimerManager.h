@@ -10,12 +10,12 @@
 namespace ui 
 {
 
-/** ¶¨Ê±Æ÷»Øµ÷º¯ÊıÔ­ĞÍ£ºvoid FunctionName();
+/** å®šæ—¶å™¨å›è°ƒå‡½æ•°åŸå‹ï¼švoid FunctionName();
 */
 typedef std::function<void()> TimerCallback;
 class TimerInfo;
 
-/** ¶¨Ê±Æ÷¹ÜÀíÆ÷
+/** å®šæ—¶å™¨ç®¡ç†å™¨
 */
 class TimerManager
 {
@@ -28,56 +28,56 @@ public:
 public:
 	const static int REPEAT_FOREVER = -1;
 
-	/** Ìí¼ÓÒ»¸ö¿ÉÈ¡ÏûµÄ¶¨Ê±Æ÷
-	* @param [in] weakFlag ¶¨Ê±Æ÷È¡Ïû»úÖÆ£¬Èç¹ûweakFlag.expired()Îªtrue±íÊ¾¶¨Ê±Æ÷ÒÑ¾­È¡Ïû£¬²»»áÔÚ¼ÌĞøÅÉ·¢¶¨Ê±Æ÷»Øµ÷
-	* @param [in] callback ¶¨Ê±Æ÷»Øµ÷º¯Êı
-	* @param [in] uElapse ¶¨Ê±Æ÷´¥·¢Ê±¼ä¼ä¸ô£¬µ¥Î»ÎªºÁÃë
-	* @param [in] iRepeatTime ¶¨Ê±Æ÷»Øµ÷´ÎÊıÏŞÖÆ£¬Èç¹ûÎª -1 ±íÊ¾²»Í£ÖØ¸´»Øµ÷
+	/** æ·»åŠ ä¸€ä¸ªå¯å–æ¶ˆçš„å®šæ—¶å™¨
+	* @param [in] weakFlag å®šæ—¶å™¨å–æ¶ˆæœºåˆ¶ï¼Œå¦‚æœweakFlag.expired()ä¸ºtrueè¡¨ç¤ºå®šæ—¶å™¨å·²ç»å–æ¶ˆï¼Œä¸ä¼šåœ¨ç»§ç»­æ´¾å‘å®šæ—¶å™¨å›è°ƒ
+	* @param [in] callback å®šæ—¶å™¨å›è°ƒå‡½æ•°
+	* @param [in] uElapse å®šæ—¶å™¨è§¦å‘æ—¶é—´é—´éš”ï¼Œå•ä½ä¸ºæ¯«ç§’
+	* @param [in] iRepeatTime å®šæ—¶å™¨å›è°ƒæ¬¡æ•°é™åˆ¶ï¼Œå¦‚æœä¸º -1 è¡¨ç¤ºä¸åœé‡å¤å›è°ƒ
 	*/
 	bool AddCancelableTimer(const std::weak_ptr<nbase::WeakFlag>& weakFlag,
 		                    const TimerCallback& callback,
 		                    uint32_t uElapse, 
 		                    int32_t iRepeatTime);
 
-	/** ¹Ø±Õ¶¨Ê±Æ÷¹ÜÀíÆ÷£¬ÊÍ·Å×ÊÔ´
+	/** å…³é—­å®šæ—¶å™¨ç®¡ç†å™¨ï¼Œé‡Šæ”¾èµ„æº
 	 */
 	void Clear();
 
 private:
-	/** ÏûÏ¢´°¿Úº¯Êı
+	/** æ¶ˆæ¯çª—å£å‡½æ•°
 	*/
 	static LRESULT CALLBACK WndProcThunk(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam);
 
-	/** ¶¨Ê±Æ÷»Øµ÷º¯Êı
+	/** å®šæ—¶å™¨å›è°ƒå‡½æ•°
 	*/
 	static void CALLBACK TimeCallback(UINT uTimerID, UINT uMsg, DWORD_PTR dwUser, DWORD_PTR dw1, DWORD_PTR dw2);
 
-	/** ¶¨Ê±Æ÷´¥·¢£¬½øĞĞ¶¨Ê±Æ÷ÊÂ¼ş»Øµ÷ÅÉ·¢
+	/** å®šæ—¶å™¨è§¦å‘ï¼Œè¿›è¡Œå®šæ—¶å™¨äº‹ä»¶å›è°ƒæ´¾å‘
 	*/
 	void Poll();
 
-	/** Í£Ö¹¶¨Ê±Æ÷
+	/** åœæ­¢å®šæ—¶å™¨
 	*/
 	void KillTimerEvent();
 
 private:
-	/** ÏûÏ¢´°¿Ú¾ä±ú£¬ÓÃÓÚÔÚUIÏß³ÌÖĞÅÉ·¢¶¨Ê±Æ÷ÊÂ¼ş
+	/** æ¶ˆæ¯çª—å£å¥æŸ„ï¼Œç”¨äºåœ¨UIçº¿ç¨‹ä¸­æ´¾å‘å®šæ—¶å™¨äº‹ä»¶
 	*/
 	HWND m_hMessageWnd;
 
-	/** ËùÓĞ×¢²áµÄ¶¨Ê±Æ÷
+	/** æ‰€æœ‰æ³¨å†Œçš„å®šæ—¶å™¨
 	*/
 	std::priority_queue<TimerInfo> m_aTimers;
 
-	/** ĞÔÄÜ¼ÆÊıÆ÷ÆµÂÊ(Ã¿ÃëµÄÊ±ÖÓµÎ´ğÊı)
+	/** æ€§èƒ½è®¡æ•°å™¨é¢‘ç‡(æ¯ç§’çš„æ—¶é’Ÿæ»´ç­”æ•°)
 	*/
 	LARGE_INTEGER m_timeFrequency;
 
-	/** µ±Ç°ÏµÍ³¶¨Ê±Æ÷µÄ¼ä¸ôÊÇ·ñÎª×îĞ¡¼ä¸ô
+	/** å½“å‰ç³»ç»Ÿå®šæ—¶å™¨çš„é—´éš”æ˜¯å¦ä¸ºæœ€å°é—´éš”
 	*/
 	bool m_bMinInterval;
 
-	/** ¶¨Ê±Æ÷ID
+	/** å®šæ—¶å™¨ID
 	*/
 	uint32_t m_nTimerId;
 };

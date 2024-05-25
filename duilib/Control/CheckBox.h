@@ -16,7 +16,7 @@ public:
     CheckBoxTemplate& operator=(const CheckBoxTemplate& r) = delete;
     virtual ~CheckBoxTemplate();
 
-    /// ÖØĞ´¸¸Àà·½·¨£¬Ìá¹©¸öĞÔ»¯¹¦ÄÜ£¬Çë²Î¿¼¸¸ÀàÉùÃ÷
+    /// é‡å†™çˆ¶ç±»æ–¹æ³•ï¼Œæä¾›ä¸ªæ€§åŒ–åŠŸèƒ½ï¼Œè¯·å‚è€ƒçˆ¶ç±»å£°æ˜
     virtual std::wstring GetType() const override;
     virtual void Activate() override;
     virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
@@ -26,236 +26,236 @@ public:
     virtual bool HasHotState() override;
     virtual std::wstring GetBorderColor(ControlStateType stateType) const override;
 
-    /** ¹Ø±ÕCheckBox¹¦ÄÜ£¬Çå³ıCheckBoxµÄËùÓĞÍ¼Æ¬ÊôĞÔ(±ÈÈçÊ÷½Úµã£¬CheckBox¹¦ÄÜÊÇ¿ÉÓÃÍ¨¹ı¿ª¹Ø¿ªÆô»òÕß¹Ø±ÕµÄ)
+    /** å…³é—­CheckBoxåŠŸèƒ½ï¼Œæ¸…é™¤CheckBoxçš„æ‰€æœ‰å›¾ç‰‡å±æ€§(æ¯”å¦‚æ ‘èŠ‚ç‚¹ï¼ŒCheckBoxåŠŸèƒ½æ˜¯å¯ç”¨é€šè¿‡å¼€å…³å¼€å¯æˆ–è€…å…³é—­çš„)
     */
     void ClearStateImages();
 
     /**
-     * @brief Ñ¡Ôñ×´Ì¬ÏÂ£¬Ã»ÓĞÉèÖÃ±³¾°É«»ò±³¾°Í¼Ê±£¬ÊÇ·ñÓÃ·ÇÑ¡Ôñ×´Ì¬µÄ¶ÔÓ¦ÊôĞÔÀ´»æÖÆ
-     * @return ·µ»Ø true ÎªÑ¡Ôñ×´Ì¬£¬·ñÔòÎª false
+     * @brief é€‰æ‹©çŠ¶æ€ä¸‹ï¼Œæ²¡æœ‰è®¾ç½®èƒŒæ™¯è‰²æˆ–èƒŒæ™¯å›¾æ—¶ï¼Œæ˜¯å¦ç”¨éé€‰æ‹©çŠ¶æ€çš„å¯¹åº”å±æ€§æ¥ç»˜åˆ¶
+     * @return è¿”å› true ä¸ºé€‰æ‹©çŠ¶æ€ï¼Œå¦åˆ™ä¸º false
      */
     bool IsPaintNormalFirst() const { return m_bPaintNormalFirst; }
 
     /**
-     * @brief ÉèÖÃ¿Ø¼şÑ¡Ôñ×´Ì¬ÏÂ£¬Ã»ÓĞÉèÖÃ±³¾°É«»ò±³¾°Í¼Ê±£¬ÓÃ·ÇÑ¡Ôñ×´Ì¬µÄ¶ÔÓ¦ÊôĞÔÀ´»æÖÆ
-     * @param[in] bFirst Îª true »æÖÆ·ÇÑ¡Ôñ×´Ì¬ÊôĞÔ£¬false ²»»æÖÆ
-     * @return ÎŞ
+     * @brief è®¾ç½®æ§ä»¶é€‰æ‹©çŠ¶æ€ä¸‹ï¼Œæ²¡æœ‰è®¾ç½®èƒŒæ™¯è‰²æˆ–èƒŒæ™¯å›¾æ—¶ï¼Œç”¨éé€‰æ‹©çŠ¶æ€çš„å¯¹åº”å±æ€§æ¥ç»˜åˆ¶
+     * @param[in] bFirst ä¸º true ç»˜åˆ¶éé€‰æ‹©çŠ¶æ€å±æ€§ï¼Œfalse ä¸ç»˜åˆ¶
+     * @return æ— 
      */
     void SetPaintNormalFirst(bool bFirst) { m_bPaintNormalFirst = bFirst; }
 
     /**
-     * @brief ÅĞ¶Ïµ±Ç°ÊÇ·ñÊÇÑ¡Ôñ×´Ì¬
-     * @return ·µ»Ø true ÎªÑ¡Ôñ×´Ì¬£¬·ñÔòÎª false
+     * @brief åˆ¤æ–­å½“å‰æ˜¯å¦æ˜¯é€‰æ‹©çŠ¶æ€
+     * @return è¿”å› true ä¸ºé€‰æ‹©çŠ¶æ€ï¼Œå¦åˆ™ä¸º false
      */
     bool IsSelected() const { return m_bSelected; }
 
-    /** ÉèÖÃÑ¡Ôñ×´Ì¬£¬µ«²»´¥·¢ÊÂ¼ş£¬²»¸üĞÂ½çÃæ
-    * @param [in] bSelected trueÎªÑ¡Ôñ×´Ì¬£¬falseÎª·ÇÑ¡Ôñ×´Ì¬
+    /** è®¾ç½®é€‰æ‹©çŠ¶æ€ï¼Œä½†ä¸è§¦å‘äº‹ä»¶ï¼Œä¸æ›´æ–°ç•Œé¢
+    * @param [in] bSelected trueä¸ºé€‰æ‹©çŠ¶æ€ï¼Œfalseä¸ºéé€‰æ‹©çŠ¶æ€
     */
     virtual void SetSelected(bool bSelected);
 
-    /** ÉèÖÃ¿Ø¼şÊÇ·ñÑ¡Ôñ×´Ì¬
-     * @param [in] bSelected Îª true Ê±ÎªÑ¡Ôñ×´Ì¬£¬false Ê±ÎªÈ¡ÏûÑ¡Ôñ×´Ì¬
-     * @param [in] bTriggerEvent ÊÇ·ñ·¢ËÍ×´Ì¬¸Ä±äÊÂ¼ş£¬true Îª·¢ËÍ£¬·ñÔòÎª false¡£Ä¬ÈÏÎª false
+    /** è®¾ç½®æ§ä»¶æ˜¯å¦é€‰æ‹©çŠ¶æ€
+     * @param [in] bSelected ä¸º true æ—¶ä¸ºé€‰æ‹©çŠ¶æ€ï¼Œfalse æ—¶ä¸ºå–æ¶ˆé€‰æ‹©çŠ¶æ€
+     * @param [in] bTriggerEvent æ˜¯å¦å‘é€çŠ¶æ€æ”¹å˜äº‹ä»¶ï¼Œtrue ä¸ºå‘é€ï¼Œå¦åˆ™ä¸º falseã€‚é»˜è®¤ä¸º false
      */
     virtual void Selected(bool bSelected, bool bTriggerEvent = false);
 
-    /** »ñÈ¡±»Ñ¡ÔñÊ±µÄÍ¼Æ¬
-     * @param [in] stateType Òª»ñÈ¡ºÎÖÖ×´Ì¬ÏÂµÄÍ¼Æ¬£¬²Î¿¼ ControlStateType Ã¶¾Ù
-     * @return ·µ»ØÍ¼Æ¬Â·¾¶ºÍÊôĞÔ
+    /** è·å–è¢«é€‰æ‹©æ—¶çš„å›¾ç‰‡
+     * @param [in] stateType è¦è·å–ä½•ç§çŠ¶æ€ä¸‹çš„å›¾ç‰‡ï¼Œå‚è€ƒ ControlStateType æšä¸¾
+     * @return è¿”å›å›¾ç‰‡è·¯å¾„å’Œå±æ€§
      */
     std::wstring GetSelectedStateImage(ControlStateType stateType) const;
 
-    /** ÉèÖÃ±»Ñ¡ÔñÊ±µÄÍ¼Æ¬
-     * @param [in] stateType ÒªÉèÖÃÄÄÖĞ×´Ì¬ÏÂµÄÍ¼Æ¬
-     * @param [in] strImage Í¼Æ¬Â·¾¶ºÍÊôĞÔ
+    /** è®¾ç½®è¢«é€‰æ‹©æ—¶çš„å›¾ç‰‡
+     * @param [in] stateType è¦è®¾ç½®å“ªä¸­çŠ¶æ€ä¸‹çš„å›¾ç‰‡
+     * @param [in] strImage å›¾ç‰‡è·¯å¾„å’Œå±æ€§
      */
     void SetSelectedStateImage(ControlStateType stateType, const std::wstring& strImage);
 
-    /** »ñÈ¡±»Ñ¡ÔñÊ±µÄÇ°¾°Í¼Æ¬
-     * @param[in] stateType Òª»ñÈ¡ºÎÖÖ×´Ì¬ÏÂµÄÇ°¾°Í¼Æ¬
+    /** è·å–è¢«é€‰æ‹©æ—¶çš„å‰æ™¯å›¾ç‰‡
+     * @param[in] stateType è¦è·å–ä½•ç§çŠ¶æ€ä¸‹çš„å‰æ™¯å›¾ç‰‡
      */
     std::wstring GetSelectedForeStateImage(ControlStateType stateType) const;
 
-    /** ÉèÖÃ±»Ñ¡ÔñÊ±µÄÇ°¾°Í¼Æ¬
-     * @param[in] stateType ÒªÉèÖÃºÎÖÖ×´Ì¬ÏÂµÄÇ°¾°Í¼Æ¬
-     * @param[in] strImage Í¼Æ¬Î»ÖÃ
+    /** è®¾ç½®è¢«é€‰æ‹©æ—¶çš„å‰æ™¯å›¾ç‰‡
+     * @param[in] stateType è¦è®¾ç½®ä½•ç§çŠ¶æ€ä¸‹çš„å‰æ™¯å›¾ç‰‡
+     * @param[in] strImage å›¾ç‰‡ä½ç½®
      */
     void SetSelectedForeStateImage(ControlStateType stateType, const std::wstring& strImage);
 
-    /** »ñÈ¡±»Ñ¡ÔñÊ±µÄÎÄ±¾ÑÕÉ«
+    /** è·å–è¢«é€‰æ‹©æ—¶çš„æ–‡æœ¬é¢œè‰²
      */
     std::wstring GetSelectedTextColor() const;
 
-    /** ÉèÖÃ±»Ñ¡ÔñÊ±µÄÎÄ±¾ÑÕÉ«
-     * @param[in] dwTextColor ÒªÉèÖÃµÄÑÕÉ«×Ö·û´®£¬¸ÃÑÕÉ«±ØĞëÔÚ global.xml ÖĞ´æÔÚ
+    /** è®¾ç½®è¢«é€‰æ‹©æ—¶çš„æ–‡æœ¬é¢œè‰²
+     * @param[in] dwTextColor è¦è®¾ç½®çš„é¢œè‰²å­—ç¬¦ä¸²ï¼Œè¯¥é¢œè‰²å¿…é¡»åœ¨ global.xml ä¸­å­˜åœ¨
      */
     void SetSelectedTextColor(const std::wstring& dwTextColor);
 
-    /** »ñÈ¡±»Ñ¡ÔñÊ±Ö¸¶¨×´Ì¬ÏÂµÄÎÄ±¾ÑÕÉ«
-     * @param[in] stateType Òª»ñÈ¡ºÎÖÖ×´Ì¬ÏÂµÄÑÕÉ«
-     * @return ·µ»ØÑÕÉ«×Ö·û´®£¬¸ÃÖµÔÚ global.xml ÖĞ¶¨Òå
+    /** è·å–è¢«é€‰æ‹©æ—¶æŒ‡å®šçŠ¶æ€ä¸‹çš„æ–‡æœ¬é¢œè‰²
+     * @param[in] stateType è¦è·å–ä½•ç§çŠ¶æ€ä¸‹çš„é¢œè‰²
+     * @return è¿”å›é¢œè‰²å­—ç¬¦ä¸²ï¼Œè¯¥å€¼åœ¨ global.xml ä¸­å®šä¹‰
      */
     std::wstring GetSelectedStateTextColor(ControlStateType stateType) const;
 
-    /** ÉèÖÃ±»Ñ¡ÔñÊ±Ö¸¶¨×´Ì¬ÏÂµÄÎÄ±¾ÑÕÉ«
-     * @param[in] stateType ÒªÉèÖÃºÎÖÖ×´Ì¬ÏÂµÄÑÕÉ«
-     * @param[in] stateColor ÒªÉèÖÃµÄÑÕÉ«
+    /** è®¾ç½®è¢«é€‰æ‹©æ—¶æŒ‡å®šçŠ¶æ€ä¸‹çš„æ–‡æœ¬é¢œè‰²
+     * @param[in] stateType è¦è®¾ç½®ä½•ç§çŠ¶æ€ä¸‹çš„é¢œè‰²
+     * @param[in] stateColor è¦è®¾ç½®çš„é¢œè‰²
      */
     void SetSelectedStateTextColor(ControlStateType stateType, const std::wstring& dwTextColor);
 
-    /** »ñÈ¡±»Ñ¡ÔñÊ±Ö¸¶¨×´Ì¬ÏÂµÄÊµ¼Ê±»äÖÈ¾ÎÄ±¾ÑÕÉ«
-     * @param [in] buttonStateType Òª»ñÈ¡ºÎÖÖ×´Ì¬ÏÂµÄÑÕÉ«
-     * @param [out] stateType Êµ¼Ê±»äÖÈ¾µÄ×´Ì¬
-     * @return ·µ»ØÑÕÉ«×Ö·û´®£¬¸ÃÖµÔÚ global.xml ÖĞ¶¨Òå
+    /** è·å–è¢«é€‰æ‹©æ—¶æŒ‡å®šçŠ¶æ€ä¸‹çš„å®é™…è¢«æ¸²æŸ“æ–‡æœ¬é¢œè‰²
+     * @param [in] buttonStateType è¦è·å–ä½•ç§çŠ¶æ€ä¸‹çš„é¢œè‰²
+     * @param [out] stateType å®é™…è¢«æ¸²æŸ“çš„çŠ¶æ€
+     * @return è¿”å›é¢œè‰²å­—ç¬¦ä¸²ï¼Œè¯¥å€¼åœ¨ global.xml ä¸­å®šä¹‰
      */
     std::wstring GetPaintSelectedStateTextColor(ControlStateType buttonStateType, ControlStateType& stateType) const;
 
-    /** »ñÈ¡±»Ñ¡ÔñÊ±µÄ¿Ø¼şÑÕÉ«
-     * @param [in] stateType Òª»ñÈ¡ºÎÖÖ×´Ì¬ÏÂµÄÑÕÉ«
-     * @return ·µ»ØÑÕÉ«×Ö·û´®£¬¸ÃÖµÔÚ global.xml ÖĞ¶¨Òå
+    /** è·å–è¢«é€‰æ‹©æ—¶çš„æ§ä»¶é¢œè‰²
+     * @param [in] stateType è¦è·å–ä½•ç§çŠ¶æ€ä¸‹çš„é¢œè‰²
+     * @return è¿”å›é¢œè‰²å­—ç¬¦ä¸²ï¼Œè¯¥å€¼åœ¨ global.xml ä¸­å®šä¹‰
      */
     std::wstring GetSelectStateColor(ControlStateType stateType) const;
 
-    /** ÉèÖÃ±»Ñ¡ÔñÊ±µÄ¿Ø¼şÑÕÉ«
-     * @param[in] stateType ÒªÉèÖÃºÎÖÖ×´Ì¬ÏÂµÄÑÕÉ«
-     * @param[in] stateColor ÒªÉèÖÃµÄÑÕÉ«
+    /** è®¾ç½®è¢«é€‰æ‹©æ—¶çš„æ§ä»¶é¢œè‰²
+     * @param[in] stateType è¦è®¾ç½®ä½•ç§çŠ¶æ€ä¸‹çš„é¢œè‰²
+     * @param[in] stateColor è¦è®¾ç½®çš„é¢œè‰²
      */
     void SetSelectedStateColor(ControlStateType stateType, const std::wstring& stateColor);
 
-    /** ¼àÌı±»Ñ¡ÔñÊ±µÄÊÂ¼ş
-     * @param [in] callback ±»Ñ¡ÔñÊ±´¥·¢µÄ»Øµ÷º¯Êı
+    /** ç›‘å¬è¢«é€‰æ‹©æ—¶çš„äº‹ä»¶
+     * @param [in] callback è¢«é€‰æ‹©æ—¶è§¦å‘çš„å›è°ƒå‡½æ•°
      */
     void AttachSelect(const EventCallback& callback) { this->AttachEvent(kEventSelect, callback); }
 
-    /** ¼àÌıÈ¡ÏûÑ¡ÔñÊ±µÄÊÂ¼ş
-     * @param [in] callback È¡ÏûÑ¡ÔñÊ±´¥·¢µÄ»Øµ÷º¯Êı
+    /** ç›‘å¬å–æ¶ˆé€‰æ‹©æ—¶çš„äº‹ä»¶
+     * @param [in] callback å–æ¶ˆé€‰æ‹©æ—¶è§¦å‘çš„å›è°ƒå‡½æ•°
      */
     void AttachUnSelect(const EventCallback& callback) { this->AttachEvent(kEventUnSelect, callback); }
 
-public: //£¨ÈıÌ¬Ñ¡Ôñ[È«²¿Ñ¡Ôñ¡¢²¿·ÖÑ¡Ôñ¡¢Î´Ñ¡Ôñ]/¹´Ñ¡Ä£Ê½Á½ÖÖ¹¦ÄÜµÄº¯Êı£©
+public: //ï¼ˆä¸‰æ€é€‰æ‹©[å…¨éƒ¨é€‰æ‹©ã€éƒ¨åˆ†é€‰æ‹©ã€æœªé€‰æ‹©]/å‹¾é€‰æ¨¡å¼ä¸¤ç§åŠŸèƒ½çš„å‡½æ•°ï¼‰
 
-    /** Êó±ê°´¼üµ¯ÆğÊÂ¼ş£¬ÓÃÓÚÅĞ¶ÏÊÇ·ñµã»÷ÔÚCheckBoxÍ¼Æ¬ÉÏ
+    /** é¼ æ ‡æŒ‰é”®å¼¹èµ·äº‹ä»¶ï¼Œç”¨äºåˆ¤æ–­æ˜¯å¦ç‚¹å‡»åœ¨CheckBoxå›¾ç‰‡ä¸Š
     */
     virtual bool ButtonUp(const EventArgs& msg) override;
 
-    /** ÊÇ·ñ»æÖÆÑ¡Ôñ×´Ì¬ÏÂµÄ±³¾°É«£¬Ìá¹©Ğéº¯Êı×÷Îª¿ÉÑ¡Ïî
-   £¨±ÈÈçListBox/TreeView½ÚµãÔÚ¶àÑ¡Ê±£¬ÓÉÓÚÓĞ¹´Ñ¡Ïî£¬²¢²»ĞèÒª»æÖÆÑ¡Ôñ×´Ì¬µÄ±³¾°É«£©
+    /** æ˜¯å¦ç»˜åˆ¶é€‰æ‹©çŠ¶æ€ä¸‹çš„èƒŒæ™¯è‰²ï¼Œæä¾›è™šå‡½æ•°ä½œä¸ºå¯é€‰é¡¹
+   ï¼ˆæ¯”å¦‚ListBox/TreeViewèŠ‚ç‚¹åœ¨å¤šé€‰æ—¶ï¼Œç”±äºæœ‰å‹¾é€‰é¡¹ï¼Œå¹¶ä¸éœ€è¦ç»˜åˆ¶é€‰æ‹©çŠ¶æ€çš„èƒŒæ™¯è‰²ï¼‰
     */
     virtual bool CanPaintSelectedColors() const { return true; }
 
-    /** ÊÇ·ñÖ§³Ö¹´Ñ¡Ä£Ê½£¨Ä¿Ç°ÊÇTreeView/ListCtrlÔÚÊ¹ÓÃÕâ¸öÄ£Ê½£©
-        ¹´Ñ¡Ä£Ê½ÊÇÖ¸£º
-        £¨1£©Ö»ÓĞµã»÷ÔÚCheckBoxÍ¼Æ¬ÉÏµÄÊ±ºò£¬¹´Ñ¡¿òÍ¼Æ¬²ÅÊÇÑ¡Ôñ×´Ì¬£¨·Ç¹´Ñ¡Ä£Ê½ÏÂ£¬ÊÇµã»÷ÔÚ¿Ø¼ş¾ØĞÎÄÚ¾ÍÑ¡Ôñ£©
-        £¨2£©¹´Ñ¡×´Ì¬ºÍÑ¡Ôñ×´Ì¬·ÖÀë£¬ÊÇÁ½¸ö²»Í¬µÄ×´Ì¬
+    /** æ˜¯å¦æ”¯æŒå‹¾é€‰æ¨¡å¼ï¼ˆç›®å‰æ˜¯TreeView/ListCtrlåœ¨ä½¿ç”¨è¿™ä¸ªæ¨¡å¼ï¼‰
+        å‹¾é€‰æ¨¡å¼æ˜¯æŒ‡ï¼š
+        ï¼ˆ1ï¼‰åªæœ‰ç‚¹å‡»åœ¨CheckBoxå›¾ç‰‡ä¸Šçš„æ—¶å€™ï¼Œå‹¾é€‰æ¡†å›¾ç‰‡æ‰æ˜¯é€‰æ‹©çŠ¶æ€ï¼ˆéå‹¾é€‰æ¨¡å¼ä¸‹ï¼Œæ˜¯ç‚¹å‡»åœ¨æ§ä»¶çŸ©å½¢å†…å°±é€‰æ‹©ï¼‰
+        ï¼ˆ2ï¼‰å‹¾é€‰çŠ¶æ€å’Œé€‰æ‹©çŠ¶æ€åˆ†ç¦»ï¼Œæ˜¯ä¸¤ä¸ªä¸åŒçš„çŠ¶æ€
     */
     virtual bool SupportCheckedMode() const { return false; }
 
-    /** ÉèÖÃÊÇ·ñ×Ô¶¯¹´Ñ¡Ñ¡ÔñµÄÊı¾İÏî(×÷ÓÃÓÚHeaderÓëÃ¿ĞĞ)
+    /** è®¾ç½®æ˜¯å¦è‡ªåŠ¨å‹¾é€‰é€‰æ‹©çš„æ•°æ®é¡¹(ä½œç”¨äºHeaderä¸æ¯è¡Œ)
     */
     void SetAutoCheckSelect(bool bAutoCheckSelect) { m_bAutoCheckSelect = bAutoCheckSelect; }
 
-    /** »ñÈ¡ÊÇ·ñ×Ô¶¯¹´Ñ¡Ñ¡ÔñµÄÊı¾İÏî
+    /** è·å–æ˜¯å¦è‡ªåŠ¨å‹¾é€‰é€‰æ‹©çš„æ•°æ®é¡¹
     */
     bool IsAutoCheckSelect() const { return m_bAutoCheckSelect; }
 
-    /** ÊÇ·ñ´¦ÓÚ¹´Ñ¡×´Ì¬, ½öµ± SupportCheckedMode() º¯ÊıÎªtrueµÄÊ±ºò£¬ÓĞÒâÒå
+    /** æ˜¯å¦å¤„äºå‹¾é€‰çŠ¶æ€, ä»…å½“ SupportCheckedMode() å‡½æ•°ä¸ºtrueçš„æ—¶å€™ï¼Œæœ‰æ„ä¹‰
     */
     bool IsChecked() const { return m_bChecked; }
 
-    /** ÉèÖÃCheck×´Ì¬
-    * @param [in] bChecked ÊÇ·ñÉèÖÃÎªCheck×´Ì¬
-    * @param [in] bTriggerEvent ÊÇ·ñ·¢ËÍ×´Ì¬¸Ä±äÊÂ¼ş£¬true Îª·¢ËÍ£¬·ñÔòÎª false¡£Ä¬ÈÏÎª false
+    /** è®¾ç½®CheckçŠ¶æ€
+    * @param [in] bChecked æ˜¯å¦è®¾ç½®ä¸ºCheckçŠ¶æ€
+    * @param [in] bTriggerEvent æ˜¯å¦å‘é€çŠ¶æ€æ”¹å˜äº‹ä»¶ï¼Œtrue ä¸ºå‘é€ï¼Œå¦åˆ™ä¸º falseã€‚é»˜è®¤ä¸º false
     */
     void SetChecked(bool bChecked, bool bTriggerEvent = false);
 
-    /** ÉèÖÃ²¿·ÖÑ¡Ôñ±êÖ¾£¨Ö§³ÖÈıÌ¬Ñ¡Ôñ±êÖ¾£ºÈ«²¿Ñ¡Ôñ/²¿·ÖÑ¡Ôñ/Î´Ñ¡Ôñ£©
+    /** è®¾ç½®éƒ¨åˆ†é€‰æ‹©æ ‡å¿—ï¼ˆæ”¯æŒä¸‰æ€é€‰æ‹©æ ‡å¿—ï¼šå…¨éƒ¨é€‰æ‹©/éƒ¨åˆ†é€‰æ‹©/æœªé€‰æ‹©ï¼‰
     */
     void SetPartSelected(bool bPartSelected);
 
-    /** µ±Ç°ÊÇ·ñÎª²¿·ÖÑ¡Ôñ
+    /** å½“å‰æ˜¯å¦ä¸ºéƒ¨åˆ†é€‰æ‹©
     */
     bool IsPartSelected() const;
 
-    /** »ñÈ¡²¿·ÖÑ¡ÔñÊ±µÄÍ¼Æ¬
-     * @param [in] stateType Òª»ñÈ¡ºÎÖÖ×´Ì¬ÏÂµÄÍ¼Æ¬£¬²Î¿¼ ControlStateType Ã¶¾Ù
-     * @return ·µ»ØÍ¼Æ¬Â·¾¶ºÍÊôĞÔ
+    /** è·å–éƒ¨åˆ†é€‰æ‹©æ—¶çš„å›¾ç‰‡
+     * @param [in] stateType è¦è·å–ä½•ç§çŠ¶æ€ä¸‹çš„å›¾ç‰‡ï¼Œå‚è€ƒ ControlStateType æšä¸¾
+     * @return è¿”å›å›¾ç‰‡è·¯å¾„å’Œå±æ€§
      */
     std::wstring GetPartSelectedStateImage(ControlStateType stateType);
 
-    /** ÉèÖÃ²¿·ÖÑ¡ÔñÊ±µÄÍ¼Æ¬
-     * @param [in] stateType ÒªÉèÖÃÄÄÖĞ×´Ì¬ÏÂµÄÍ¼Æ¬
-     * @param [in] strImage Í¼Æ¬Â·¾¶ºÍÊôĞÔ
+    /** è®¾ç½®éƒ¨åˆ†é€‰æ‹©æ—¶çš„å›¾ç‰‡
+     * @param [in] stateType è¦è®¾ç½®å“ªä¸­çŠ¶æ€ä¸‹çš„å›¾ç‰‡
+     * @param [in] strImage å›¾ç‰‡è·¯å¾„å’Œå±æ€§
      */
     void SetPartSelectedStateImage(ControlStateType stateType, const std::wstring& strImage);
 
-    /** »ñÈ¡²¿·ÖÑ¡ÔñÊ±µÄÇ°¾°Í¼Æ¬
-     * @param[in] stateType Òª»ñÈ¡ºÎÖÖ×´Ì¬ÏÂµÄÇ°¾°Í¼Æ¬
+    /** è·å–éƒ¨åˆ†é€‰æ‹©æ—¶çš„å‰æ™¯å›¾ç‰‡
+     * @param[in] stateType è¦è·å–ä½•ç§çŠ¶æ€ä¸‹çš„å‰æ™¯å›¾ç‰‡
      */
     std::wstring GetPartSelectedForeStateImage(ControlStateType stateType);
 
-    /** ÉèÖÃ²¿·ÖÑ¡ÔñÊ±µÄÇ°¾°Í¼Æ¬
-     * @param[in] stateType ÒªÉèÖÃºÎÖÖ×´Ì¬ÏÂµÄÇ°¾°Í¼Æ¬
-     * @param[in] strImage Í¼Æ¬Î»ÖÃ
+    /** è®¾ç½®éƒ¨åˆ†é€‰æ‹©æ—¶çš„å‰æ™¯å›¾ç‰‡
+     * @param[in] stateType è¦è®¾ç½®ä½•ç§çŠ¶æ€ä¸‹çš„å‰æ™¯å›¾ç‰‡
+     * @param[in] strImage å›¾ç‰‡ä½ç½®
      */
     void SetPartSelectedForeStateImage(ControlStateType stateType, const std::wstring& strImage);
 
-    /** ¼àÌı±»¹´Ñ¡Ê±µÄÊÂ¼ş£¨½öµ± SupportCheckedMode() º¯ÊıÎªtrueµÄÊ±ºò£¬»áÓĞÕâ¸öÊÂ¼ş£©
-     * @param [in] callback ±»Ñ¡ÔñÊ±´¥·¢µÄ»Øµ÷º¯Êı
+    /** ç›‘å¬è¢«å‹¾é€‰æ—¶çš„äº‹ä»¶ï¼ˆä»…å½“ SupportCheckedMode() å‡½æ•°ä¸ºtrueçš„æ—¶å€™ï¼Œä¼šæœ‰è¿™ä¸ªäº‹ä»¶ï¼‰
+     * @param [in] callback è¢«é€‰æ‹©æ—¶è§¦å‘çš„å›è°ƒå‡½æ•°
      */
     void AttachChecked(const EventCallback& callback) { this->AttachEvent(kEventChecked, callback); }
 
-    /** ¼àÌıÈ¡Ïû¹´Ñ¡Ê±µÄÊÂ¼ş£¨½öµ± SupportCheckedMode() º¯ÊıÎªtrueµÄÊ±ºò£¬»áÓĞÕâ¸öÊÂ¼ş£©
-     * @param [in] callback È¡ÏûÑ¡ÔñÊ±´¥·¢µÄ»Øµ÷º¯Êı
+    /** ç›‘å¬å–æ¶ˆå‹¾é€‰æ—¶çš„äº‹ä»¶ï¼ˆä»…å½“ SupportCheckedMode() å‡½æ•°ä¸ºtrueçš„æ—¶å€™ï¼Œä¼šæœ‰è¿™ä¸ªäº‹ä»¶ï¼‰
+     * @param [in] callback å–æ¶ˆé€‰æ‹©æ—¶è§¦å‘çš„å›è°ƒå‡½æ•°
      */
     void AttachUnCheck(const EventCallback& callback) { this->AttachEvent(kEventUnCheck, callback); }
 
 protected:
-    /** ÄÚ²¿ÉèÖÃÑ¡Ôñ×´Ì¬
+    /** å†…éƒ¨è®¾ç½®é€‰æ‹©çŠ¶æ€
     */
     void PrivateSetSelected(bool bSelected);
 
-    /** ÄÚ²¿ÉèÖÃ¹´Ñ¡×´Ì¬
+    /** å†…éƒ¨è®¾ç½®å‹¾é€‰çŠ¶æ€
     */
     void PrivateSetChecked(bool bChecked);
 
-    /** Ñ¡Ôñ×´Ì¬±ä»¯ÊÂ¼ş(m_bSelected±äÁ¿·¢Éú±ä»¯)
+    /** é€‰æ‹©çŠ¶æ€å˜åŒ–äº‹ä»¶(m_bSelectedå˜é‡å‘ç”Ÿå˜åŒ–)
     */
     virtual void OnPrivateSetSelected() {}
 
-    /** ¹´Ñ¡×´Ì¬±ä»¯ÊÂ¼ş(m_bChecked±äÁ¿·¢Éú±ä»¯)
+    /** å‹¾é€‰çŠ¶æ€å˜åŒ–äº‹ä»¶(m_bCheckedå˜é‡å‘ç”Ÿå˜åŒ–)
     */
     virtual void OnPrivateSetChecked() {}
 
 private:
-    //Ñ¡Ôñ×´Ì¬
+    //é€‰æ‹©çŠ¶æ€
     bool m_bSelected;
 
-    //ÊÇ·ñÓÅÏÈ»æÖÆNormal×´Ì¬
+    //æ˜¯å¦ä¼˜å…ˆç»˜åˆ¶NormalçŠ¶æ€
     bool m_bPaintNormalFirst;
 
-    //Ñ¡Ôñ×´Ì¬µÄÎÄ±¾ÑÕÉ«
+    //é€‰æ‹©çŠ¶æ€çš„æ–‡æœ¬é¢œè‰²
     UiString m_dwSelectedTextColor;
 
-    //Ñ¡Ôñ×´Ì¬µÄÎÄ±¾ÑÕÉ«
+    //é€‰æ‹©çŠ¶æ€çš„æ–‡æœ¬é¢œè‰²
     StateColorMap* m_pSelectedTextColorMap;
 
-    //Ñ¡Ôñ×´Ì¬µÄ±³¾°ÑÕÉ«
+    //é€‰æ‹©çŠ¶æ€çš„èƒŒæ™¯é¢œè‰²
     StateColorMap* m_pSelectedColorMap;
 
-private: //£¨ÈıÌ¬Ñ¡Ôñ[È«²¿Ñ¡Ôñ¡¢²¿·ÖÑ¡Ôñ¡¢Î´Ñ¡Ôñ]/¹´Ñ¡Ä£Ê½Á½ÖÖ¹¦ÄÜµÄ±äÁ¿£©
+private: //ï¼ˆä¸‰æ€é€‰æ‹©[å…¨éƒ¨é€‰æ‹©ã€éƒ¨åˆ†é€‰æ‹©ã€æœªé€‰æ‹©]/å‹¾é€‰æ¨¡å¼ä¸¤ç§åŠŸèƒ½çš„å˜é‡ï¼‰
 
-    //ÊÇ·ñÎª²¿·ÖÑ¡Ôñ£¨Ö»Ó°ÏìÑ¡Ôñ×´Ì¬ÏÂ»æÖÆÄÄ¸öÍ¼Æ¬£¬¶ÔÒµÎñÎŞÓ°Ïì£©
+    //æ˜¯å¦ä¸ºéƒ¨åˆ†é€‰æ‹©ï¼ˆåªå½±å“é€‰æ‹©çŠ¶æ€ä¸‹ç»˜åˆ¶å“ªä¸ªå›¾ç‰‡ï¼Œå¯¹ä¸šåŠ¡æ— å½±å“ï¼‰
     bool m_bPartSelected;
 
-    //ÊÇ·ñÒÑ¾­´¦ÓÚCheck×´Ì¬£¨½öµ± SupportCheckedMode() º¯ÊıÎªtrueµÄÊ±ºò£¬ÓĞÒâÒå£©
+    //æ˜¯å¦å·²ç»å¤„äºCheckçŠ¶æ€ï¼ˆä»…å½“ SupportCheckedMode() å‡½æ•°ä¸ºtrueçš„æ—¶å€™ï¼Œæœ‰æ„ä¹‰ï¼‰
     bool m_bChecked;
 
-    //CheckBoxÍ¼±êËùÔÚµÄ¾ØĞÎ£¨½öµ± SupportCheckedMode() º¯ÊıÎªtrueµÄÊ±ºò£¬ÓĞÒâÒå£©
+    //CheckBoxå›¾æ ‡æ‰€åœ¨çš„çŸ©å½¢ï¼ˆä»…å½“ SupportCheckedMode() å‡½æ•°ä¸ºtrueçš„æ—¶å€™ï¼Œæœ‰æ„ä¹‰ï¼‰
     UiRect* m_pCheckBoxImageRect;
 
-    /** µ±Ñ¡ÔñµÄÊ±ºò£¬ÊÇ·ñ×Ô¶¯¹´Ñ¡£¬¾ÍÊÇµ±m_bSelected±ä»¯µÄÊ±ºò£¬Í¬²½ĞŞ¸Äm_bChecked£¬±£³ÖÖµÏàÍ¬
-    *   µ«µ±m_bChecked±ä»¯µÄÊ±ºò£¬²»»áÍ¬²½¸øm_bSelected
+    /** å½“é€‰æ‹©çš„æ—¶å€™ï¼Œæ˜¯å¦è‡ªåŠ¨å‹¾é€‰ï¼Œå°±æ˜¯å½“m_bSelectedå˜åŒ–çš„æ—¶å€™ï¼ŒåŒæ­¥ä¿®æ”¹m_bCheckedï¼Œä¿æŒå€¼ç›¸åŒ
+    *   ä½†å½“m_bCheckedå˜åŒ–çš„æ—¶å€™ï¼Œä¸ä¼šåŒæ­¥ç»™m_bSelected
     */
     bool m_bAutoCheckSelect;
 };
@@ -419,7 +419,7 @@ bool CheckBoxTemplate<InheritType>::ButtonUp(const EventArgs& msg)
             return bRet;
         }
 
-        //È·ÈÏµã»÷ÔÚCheckBoxÍ¼±êÉÏÃæ£¬¸Ä±ä¹´Ñ¡×´Ì¬(¿ª¹ØÊôĞÔ)
+        //ç¡®è®¤ç‚¹å‡»åœ¨CheckBoxå›¾æ ‡ä¸Šé¢ï¼Œæ”¹å˜å‹¾é€‰çŠ¶æ€(å¼€å…³å±æ€§)
         SetChecked(!IsChecked(), true);
     }
     return bRet;
@@ -460,14 +460,14 @@ void CheckBoxTemplate<InheritType>::PrivateSetSelected(bool bSelected)
         m_bSelected = bSelected;
     }
     if (!bSelected && m_bPartSelected) {
-        //·ÇÑ¡Ôñ×´Ì¬Ê±£¬¶Ô²¿·ÖÑ¡Ôñ±ê¼Ç¸´Î»
+        //éé€‰æ‹©çŠ¶æ€æ—¶ï¼Œå¯¹éƒ¨åˆ†é€‰æ‹©æ ‡è®°å¤ä½
         m_bPartSelected = false;
     }
     if (bChanged) {
         OnPrivateSetSelected();
     }
     if (IsAutoCheckSelect()) {
-        //×Ô¶¯Í¬²½¸øCheck±äÁ¿
+        //è‡ªåŠ¨åŒæ­¥ç»™Checkå˜é‡
         PrivateSetChecked(m_bSelected);
     }
 }
@@ -591,27 +591,27 @@ void CheckBoxTemplate<InheritType>::PaintStateImages(IRender* pRender)
 
     bool isSelectNone = false;
     if (bCheckedMode) {
-        //Èç¹ûSupportCheckedMode()Îªtrue£¬Ôò°´IsChecked()ÅĞ¶ÏÊÇ·ñÏÔÊ¾Ñ¡Ôñ×´Ì¬µÄÍ¼Æ¬
+        //å¦‚æœSupportCheckedMode()ä¸ºtrueï¼Œåˆ™æŒ‰IsChecked()åˆ¤æ–­æ˜¯å¦æ˜¾ç¤ºé€‰æ‹©çŠ¶æ€çš„å›¾ç‰‡
         if (!IsChecked()) {
             isSelectNone = true;
         }
     }
     else {
-        //Èç¹ûSupportCheckedMode()Îªfalse£¬Ôò°´IsSelected()ÅĞ¶ÏÊÇ·ñÏÔÊ¾Ñ¡Ôñ×´Ì¬µÄÍ¼Æ¬
+        //å¦‚æœSupportCheckedMode()ä¸ºfalseï¼Œåˆ™æŒ‰IsSelected()åˆ¤æ–­æ˜¯å¦æ˜¾ç¤ºé€‰æ‹©çŠ¶æ€çš„å›¾ç‰‡
         if (!IsSelected()) {
             isSelectNone = true;
         }
     }
 
     if (isSelectNone) {
-        //Î´Ñ¡Ôñ×´Ì¬
+        //æœªé€‰æ‹©çŠ¶æ€
         this->PaintStateImage(pRender, kStateImageBk, this->GetState(), L"", m_pCheckBoxImageRect);
         this->PaintStateImage(pRender, kStateImageFore, this->GetState(), L"", m_pCheckBoxImageRect);
         return;
     }
 
     if (this->IsPartSelected()) {
-        //²¿·ÖÑ¡Ôñ×´Ì¬
+        //éƒ¨åˆ†é€‰æ‹©çŠ¶æ€
         bool bPainted = false;
         if (this->HasStateImage(kStateImagePartSelectedBk)) {
             this->PaintStateImage(pRender, kStateImagePartSelectedBk, this->GetState(), L"", m_pCheckBoxImageRect);
@@ -622,12 +622,12 @@ void CheckBoxTemplate<InheritType>::PaintStateImages(IRender* pRender)
             bPainted = true;
         }
         if (bPainted) {
-            //Èç¹ûÒÑ¾­»æÖÆÁË²¿·ÖÑ¡Ôñ×´Ì¬£¬·µ»Ø
+            //å¦‚æœå·²ç»ç»˜åˆ¶äº†éƒ¨åˆ†é€‰æ‹©çŠ¶æ€ï¼Œè¿”å›
             return;
         }
     }
 
-    //È«²¿Ñ¡Ôñ×´Ì¬
+    //å…¨éƒ¨é€‰æ‹©çŠ¶æ€
     if (IsPaintNormalFirst() && !this->HasStateImage(kStateImageSelectedBk)) {
         this->PaintStateImage(pRender, kStateImageBk, this->GetState(), L"", m_pCheckBoxImageRect);
     }

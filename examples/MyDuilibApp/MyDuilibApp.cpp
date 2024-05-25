@@ -13,12 +13,12 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
 
-    //´´½¨Ö÷Ïß³Ì
+    //åˆ›å»ºä¸»çº¿ç¨‹
     MainThread thread;
 
-    //Ö´ĞĞÖ÷Ïß³ÌÏûÏ¢Ñ­»·
+    //æ‰§è¡Œä¸»çº¿ç¨‹æ¶ˆæ¯å¾ªç¯
     thread.RunOnCurrentThreadWithLoop(nbase::MessageLoop::kUIMessageLoop);
 
-    //Õı³£ÍË³ö³ÌĞò
+    //æ­£å¸¸é€€å‡ºç¨‹åº
     return 0;
 }

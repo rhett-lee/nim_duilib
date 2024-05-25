@@ -18,7 +18,7 @@
 namespace ui
 {
 
-/** ±êÇ©¿Ø¼ş£¨Ä£°å£©£¬ÓÃÓÚÏÔÊ¾ÎÄ±¾
+/** æ ‡ç­¾æ§ä»¶ï¼ˆæ¨¡æ¿ï¼‰ï¼Œç”¨äºæ˜¾ç¤ºæ–‡æœ¬
 */
 template<typename InheritType = Control>
 class UILIB_API LabelTemplate : public InheritType
@@ -27,7 +27,7 @@ public:
 	explicit LabelTemplate(Window* pWindow);
     virtual ~LabelTemplate();
 
-	/// ÖØĞ´¸¸Àà·½·¨£¬Ìá¹©¸öĞÔ»¯¹¦ÄÜ£¬Çë²Î¿¼¸¸ÀàÉùÃ÷
+	/// é‡å†™çˆ¶ç±»æ–¹æ³•ï¼Œæä¾›ä¸ªæ€§åŒ–åŠŸèƒ½ï¼Œè¯·å‚è€ƒçˆ¶ç±»å£°æ˜
 	virtual std::wstring GetType() const override;
 	virtual std::wstring GetText() const;
 	virtual std::string GetUTF8Text() const;
@@ -41,107 +41,107 @@ public:
 	virtual void SetPos(UiRect rc) override;
     virtual std::wstring GetToolTipText() const override;
 
-    /** ¼ÆËãÎÄ±¾ÇøÓò´óĞ¡£¨¿íºÍ¸ß£©
-     *  @param [in] szAvailable ¿ÉÓÃ´óĞ¡£¬²»°üº¬ÄÚ±ß¾à£¬²»°üº¬Íâ±ß¾à
-     *  @return ¿Ø¼şµÄÎÄ±¾¹ÀËã´óĞ¡£¬°üº¬ÄÚ±ß¾à(Box)£¬²»°üº¬Íâ±ß¾à
+    /** è®¡ç®—æ–‡æœ¬åŒºåŸŸå¤§å°ï¼ˆå®½å’Œé«˜ï¼‰
+     *  @param [in] szAvailable å¯ç”¨å¤§å°ï¼Œä¸åŒ…å«å†…è¾¹è·ï¼Œä¸åŒ…å«å¤–è¾¹è·
+     *  @return æ§ä»¶çš„æ–‡æœ¬ä¼°ç®—å¤§å°ï¼ŒåŒ…å«å†…è¾¹è·(Box)ï¼Œä¸åŒ…å«å¤–è¾¹è·
      */
     virtual UiSize EstimateText(UiSize szAvailable) override;
 
-    /** DPI·¢Éú±ä»¯£¬¸üĞÂ¿Ø¼ş´óĞ¡ºÍ²¼¾Ö
-    * @param [in] nOldDpiScale ¾ÉµÄDPIËõ·Å°Ù·Ö±È
-    * @param [in] nNewDpiScale ĞÂµÄDPIËõ·Å°Ù·Ö±È£¬ÓëDpi().GetScale()µÄÖµÒ»ÖÂ
+    /** DPIå‘ç”Ÿå˜åŒ–ï¼Œæ›´æ–°æ§ä»¶å¤§å°å’Œå¸ƒå±€
+    * @param [in] nOldDpiScale æ—§çš„DPIç¼©æ”¾ç™¾åˆ†æ¯”
+    * @param [in] nNewDpiScale æ–°çš„DPIç¼©æ”¾ç™¾åˆ†æ¯”ï¼Œä¸Dpi().GetScale()çš„å€¼ä¸€è‡´
     */
     virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override;
 
-    /** »Ö¸´Ä¬ÈÏµÄÎÄ±¾ÑùÊ½
+    /** æ¢å¤é»˜è®¤çš„æ–‡æœ¬æ ·å¼
     */
     void SetDefaultTextStyle(bool bRedraw);
 
     /**
-     * @brief ÉèÖÃÎÄ±¾ÑùÊ½
-     * @param[in] uStyle ÒªÉèÖÃµÄÑùÊ½
-     * @return ÎŞ
+     * @brief è®¾ç½®æ–‡æœ¬æ ·å¼
+     * @param[in] uStyle è¦è®¾ç½®çš„æ ·å¼
+     * @return æ— 
      */
 	void SetTextStyle(UINT uStyle, bool bRedraw);
 
 	/**
-     * @brief »ñÈ¡ÎÄ±¾ÑùÊ½
-     * @return ·µ»ØÎÄ±¾ÑùÊ½
+     * @brief è·å–æ–‡æœ¬æ ·å¼
+     * @return è¿”å›æ–‡æœ¬æ ·å¼
      */
 	UINT GetTextStyle() const;
 
 	/**
-     * @brief »ñÈ¡Ö¸¶¨×´Ì¬ÏÂµÄÎÄ±¾ÑÕÉ«
-     * @param[in] stateType Òª»ñÈ¡µÄ×´Ì¬±êÖ¾
-     * @return ·µ»ØÖ¸¶¨×´Ì¬ÏÂµÄÎÄ±¾ÑÕÉ«
+     * @brief è·å–æŒ‡å®šçŠ¶æ€ä¸‹çš„æ–‡æœ¬é¢œè‰²
+     * @param[in] stateType è¦è·å–çš„çŠ¶æ€æ ‡å¿—
+     * @return è¿”å›æŒ‡å®šçŠ¶æ€ä¸‹çš„æ–‡æœ¬é¢œè‰²
      */
 	std::wstring GetStateTextColor(ControlStateType stateType) const;
 
 	/**
-     * @brief ÉèÖÃÖ¸¶¨×´Ì¬ÏÂµÄÎÄ±¾ÑÕÉ«
-     * @param[in] stateType ÒªÉèÖÃµÄ×´Ì¬±êÖ¾
-     * @param[in] dwTextColor ÒªÉèÖÃµÄ×´Ì¬ÑÕÉ«×Ö·û´®£¬¸ÃÖµ±ØĞëÔÚ global.xml ÖĞ´æÔÚ
-     * @return ÎŞ
+     * @brief è®¾ç½®æŒ‡å®šçŠ¶æ€ä¸‹çš„æ–‡æœ¬é¢œè‰²
+     * @param[in] stateType è¦è®¾ç½®çš„çŠ¶æ€æ ‡å¿—
+     * @param[in] dwTextColor è¦è®¾ç½®çš„çŠ¶æ€é¢œè‰²å­—ç¬¦ä¸²ï¼Œè¯¥å€¼å¿…é¡»åœ¨ global.xml ä¸­å­˜åœ¨
+     * @return æ— 
      */
 	void SetStateTextColor(ControlStateType stateType, const std::wstring& dwTextColor);
 
     /**
-     * @brief »ñÈ¡Ö¸¶¨×´Ì¬ÏÂµÄÊµ¼Ê±»äÖÈ¾ÎÄ±¾ÑÕÉ«
-     * @param[in] buttonStateType Òª»ñÈ¡ºÎÖÖ×´Ì¬ÏÂµÄÑÕÉ«
-     * @param[out] stateType Êµ¼Ê±»äÖÈ¾µÄ×´Ì¬
-     * @return ·µ»ØÑÕÉ«×Ö·û´®£¬¸ÃÖµÔÚ global.xml ÖĞ¶¨Òå
+     * @brief è·å–æŒ‡å®šçŠ¶æ€ä¸‹çš„å®é™…è¢«æ¸²æŸ“æ–‡æœ¬é¢œè‰²
+     * @param[in] buttonStateType è¦è·å–ä½•ç§çŠ¶æ€ä¸‹çš„é¢œè‰²
+     * @param[out] stateType å®é™…è¢«æ¸²æŸ“çš„çŠ¶æ€
+     * @return è¿”å›é¢œè‰²å­—ç¬¦ä¸²ï¼Œè¯¥å€¼åœ¨ global.xml ä¸­å®šä¹‰
      */
 	std::wstring GetPaintStateTextColor(ControlStateType buttonStateType, ControlStateType& stateType);
 
-    /** »ñÈ¡µ±Ç°×ÖÌåID
-     * @return ·µ»Ø×ÖÌåID£¬¸Ã×ÖÌåIDÔÚ global.xml ÖĞ±êÊ¶
+    /** è·å–å½“å‰å­—ä½“ID
+     * @return è¿”å›å­—ä½“IDï¼Œè¯¥å­—ä½“IDåœ¨ global.xml ä¸­æ ‡è¯†
      */
 	std::wstring GetFontId() const;
 
-    /** ÉèÖÃµ±Ç°×ÖÌåID
-     * @param[in] strFontId ÒªÉèÖÃµÄ×ÖÌåID£¬¸Ã×ÖÌåID±ØĞëÔÚ global.xml ÖĞ´æÔÚ
+    /** è®¾ç½®å½“å‰å­—ä½“ID
+     * @param[in] strFontId è¦è®¾ç½®çš„å­—ä½“IDï¼Œè¯¥å­—ä½“IDå¿…é¡»åœ¨ global.xml ä¸­å­˜åœ¨
      */
 	void SetFontId(const std::wstring& strFontId);
 
-    /** »ñÈ¡ÎÄ×ÖÄÚ±ß¾à
-     * @return ·µ»ØÎÄ×ÖµÄÄÚ±ß¾àĞÅÏ¢
+    /** è·å–æ–‡å­—å†…è¾¹è·
+     * @return è¿”å›æ–‡å­—çš„å†…è¾¹è·ä¿¡æ¯
      */
 	UiPadding GetTextPadding() const;
 
-    /** ÉèÖÃÎÄ×ÖÄÚ±ß¾àĞÅÏ¢
-     * @param [in] padding ÄÚ±ß¾àĞÅÏ¢
-     * @param [in] bNeedDpiScale ÊÇ·ñÖ§³ÖDPIËõ·Å
+    /** è®¾ç½®æ–‡å­—å†…è¾¹è·ä¿¡æ¯
+     * @param [in] padding å†…è¾¹è·ä¿¡æ¯
+     * @param [in] bNeedDpiScale æ˜¯å¦æ”¯æŒDPIç¼©æ”¾
      */
 	void SetTextPadding(UiPadding padding, bool bNeedDpiScale);
 
     /**
-     * @brief ÅĞ¶ÏÊÇ·ñÊÇµ¥ĞĞÄ£Ê½
-     * @return ·µ»Ø true ±íÊ¾µ¥ĞĞÄ£Ê½£¬·ñÔòÎª false
+     * @brief åˆ¤æ–­æ˜¯å¦æ˜¯å•è¡Œæ¨¡å¼
+     * @return è¿”å› true è¡¨ç¤ºå•è¡Œæ¨¡å¼ï¼Œå¦åˆ™ä¸º false
      */
 	bool IsSingleLine() const;
 
     /**
-     * @brief ÉèÖÃÎªµ¥ĞĞÊäÈëÄ£Ê½
-     * @param[in] bSingleLine Îª true Ê±Îªµ¥ĞĞÄ£Ê½£¬·ñÔòÎª false
-     * @return ÎŞ
+     * @brief è®¾ç½®ä¸ºå•è¡Œè¾“å…¥æ¨¡å¼
+     * @param[in] bSingleLine ä¸º true æ—¶ä¸ºå•è¡Œæ¨¡å¼ï¼Œå¦åˆ™ä¸º false
+     * @return æ— 
      */
 	void SetSingleLine(bool bSingleLine);
 
     /**
-    * @brief ÉèÖÃÊó±êĞü¸¡µ½¿Ø¼şÏÔÊ¾µÄÌáÊ¾ÎÄ±¾ÊÇ·ñÊ¡ÂÔºÅ³öÏÖÊ±²ÅÏÔÊ¾
-    * @param[in] bAutoShow true Ê¡ÂÔºÅ³öÏÖ²ÅÏÔÊ¾ false ²»×öÈÎºÎ¿ØÖÆ
-    * @return ÎŞ
+    * @brief è®¾ç½®é¼ æ ‡æ‚¬æµ®åˆ°æ§ä»¶æ˜¾ç¤ºçš„æç¤ºæ–‡æœ¬æ˜¯å¦çœç•¥å·å‡ºç°æ—¶æ‰æ˜¾ç¤º
+    * @param[in] bAutoShow true çœç•¥å·å‡ºç°æ‰æ˜¾ç¤º false ä¸åšä»»ä½•æ§åˆ¶
+    * @return æ— 
     */
 	void SetAutoToolTip(bool bAutoShow);
 
 protected:
-    /** ¼ì²éÊÇ·ñĞèÒª×Ô¶¯ÏÔÊ¾ToolTip
+    /** æ£€æŸ¥æ˜¯å¦éœ€è¦è‡ªåŠ¨æ˜¾ç¤ºToolTip
     */
 	void CheckShowToolTip();
 
-    /** »æÖÆÎÄ×ÖµÄÊµÏÖº¯Êı
-    * @param [in] rc Êµ¼Ê»æÖÆÇøÓò£¬²»°üº¬ÄÚ±ß¾à£¨ĞèÓÉµ÷ÓÃ·½¼ôÈ¥ÄÚ±ß¾à£©
-    * @param [in] pRender äÖÈ¾½Ó¿Ú
+    /** ç»˜åˆ¶æ–‡å­—çš„å®ç°å‡½æ•°
+    * @param [in] rc å®é™…ç»˜åˆ¶åŒºåŸŸï¼Œä¸åŒ…å«å†…è¾¹è·ï¼ˆéœ€ç”±è°ƒç”¨æ–¹å‰ªå»å†…è¾¹è·ï¼‰
+    * @param [in] pRender æ¸²æŸ“æ¥å£
     */
     void DoPaintText(const UiRect& rc, IRender* pRender);
 
@@ -202,7 +202,7 @@ void LabelTemplate<InheritType>::SetAttribute(const std::wstring& strName, const
             m_uTextStyle &= ~(TEXT_CENTER | TEXT_RIGHT);
             m_uTextStyle |= TEXT_LEFT;
         }
-        //centerÕâ¸öÊôĞÔÓĞÆçÒå£¬±£ÁôÒÔ±£³Ö¼æÈİĞÔ£¬ĞÂµÄÊôĞÔÊÇ"hcenter"
+        //centerè¿™ä¸ªå±æ€§æœ‰æ­§ä¹‰ï¼Œä¿ç•™ä»¥ä¿æŒå…¼å®¹æ€§ï¼Œæ–°çš„å±æ€§æ˜¯"hcenter"
         size_t centerPos = strValue.find(L"center");
         if (centerPos != std::wstring::npos) {
             bool isCenter = true;
@@ -383,7 +383,7 @@ void LabelTemplate<InheritType>::CheckShowToolTip()
         width = 0;
     }
     if (!m_bSingleLine && (width == 0)) {
-        //¶àĞĞÎÄ±¾ÆÀ¹À¿í¸ßµÄÊ±ºò£¬±ØĞëÖ¸¶¨¿í¶È
+        //å¤šè¡Œæ–‡æœ¬è¯„ä¼°å®½é«˜çš„æ—¶å€™ï¼Œå¿…é¡»æŒ‡å®šå®½åº¦
         width = rc.Width();
     }
 
@@ -464,7 +464,7 @@ UiSize LabelTemplate<InheritType>::EstimateText(UiSize szAvailable)
 
     int32_t width = szAvailable.cx;
     if (this->GetFixedWidth().IsStretch()) {
-        //Èç¹ûÊÇÀ­ÉìÀàĞÍ£¬Ê¹ÓÃÍâ²¿¿í¶È
+        //å¦‚æœæ˜¯æ‹‰ä¼¸ç±»å‹ï¼Œä½¿ç”¨å¤–éƒ¨å®½åº¦
         width = CalcStretchValue(this->GetFixedWidth(), szAvailable.cx);
     }
     else if (this->GetFixedWidth().IsInt32()) {

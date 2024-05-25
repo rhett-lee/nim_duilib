@@ -10,7 +10,7 @@ namespace ui
 {
 class Control;
 
-/** ÊÂ¼şÍ¨ÖªµÄ²ÎÊı
+/** äº‹ä»¶é€šçŸ¥çš„å‚æ•°
 */
 struct EventArgs
 {
@@ -26,40 +26,40 @@ struct EventArgs
         ptMouse.y = 0;
     }
 
-    /** ÊÂ¼şÀàĞÍ
+    /** äº‹ä»¶ç±»å‹
     */
     EventType Type;
 
-    /** ·¢ËÍÊÂ¼şµÄ¿Ø¼ş
+    /** å‘é€äº‹ä»¶çš„æ§ä»¶
     */
     Control* pSender;
 
-    /** ²úÉúÊÂ¼şÊ±µÄÊ±¼ä´Á
+    /** äº§ç”Ÿäº‹ä»¶æ—¶çš„æ—¶é—´æˆ³
     */
     size_t dwTimestamp;
 
-    /** ²úÉúÊÂ¼şÊ±µÄÊó±êËùÔÚ×ø±ê
+    /** äº§ç”Ÿäº‹ä»¶æ—¶çš„é¼ æ ‡æ‰€åœ¨åæ ‡
     */
     UiPoint ptMouse;
 
-    /** ²úÉúÊÂ¼şÊ±µÄ°´¼ü
+    /** äº§ç”Ÿäº‹ä»¶æ—¶çš„æŒ‰é”®
     */
     wchar_t chKey;
 
-    /** ²úÉúÊÂ¼şÊ±µÄ²ÎÊı
+    /** äº§ç”Ÿäº‹ä»¶æ—¶çš„å‚æ•°
     */
     WPARAM wParam;
 
-    /** ²úÉúÊÂ¼şÊ±µÄ²ÎÊı
+    /** äº§ç”Ÿäº‹ä»¶æ—¶çš„å‚æ•°
     */
     LPARAM lParam;
 };
 
-/** ½«×Ö·û´®×ª»»ÎªÊÂ¼şÀàĞÍ
+/** å°†å­—ç¬¦ä¸²è½¬æ¢ä¸ºäº‹ä»¶ç±»å‹
 */
 EventType StringToEventType(const std::wstring& messageType);
 
-/** ½«ÊÂ¼şÀàĞÍ×ª»»Îª×Ö·û´®
+/** å°†äº‹ä»¶ç±»å‹è½¬æ¢ä¸ºå­—ç¬¦ä¸²
 */
 std::wstring EventTypeToString(EventType eventType);
 

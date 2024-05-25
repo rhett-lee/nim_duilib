@@ -136,7 +136,7 @@ void Box::PaintChild(IRender* pRender, const UiRect& rcPaint)
 			continue;
 		}
 		if (pControl->GetPaintOrder() != 0) {
-			//ÉèÖÃÁË»æÖÆË³Ğò£¬ ·ÅÈëÑÓ³Ù»æÖÆÁĞ±í
+			//è®¾ç½®äº†ç»˜åˆ¶é¡ºåºï¼Œ æ”¾å…¥å»¶è¿Ÿç»˜åˆ¶åˆ—è¡¨
 			delayItems.push_back(pControl);
 			continue;
 		}
@@ -147,14 +147,14 @@ void Box::PaintChild(IRender* pRender, const UiRect& rcPaint)
 		std::sort(delayItems.begin(), delayItems.end(), [](const Control* a, const Control* b) {
 			return a->GetPaintOrder() < b->GetPaintOrder();
 			});
-		//»æÖÆÑÓ³Ù»æÖÆµÄ¿Ø¼ş
+		//ç»˜åˆ¶å»¶è¿Ÿç»˜åˆ¶çš„æ§ä»¶
 		for (auto pControl : delayItems) {
 			pControl->AlphaPaint(pRender, rcPaint);
 		}
 	}
 
 	if ((pRender != nullptr) && IsShowFocusRect() && IsFocused()) {
-		DoPaintFocusRect(pRender);	//»æÖÆ½¹µã×´Ì¬
+		DoPaintFocusRect(pRender);	//ç»˜åˆ¶ç„¦ç‚¹çŠ¶æ€
 	}
 }
 
@@ -170,7 +170,7 @@ void Box::SetEnabled(bool bEnabled)
 
 	Control::SetEnabled(bEnabled);
 
-	//×Ó¿Ø¼şµÄEnable×´Ì¬£¬Óë¸¸¿Ø¼şÊÇÍ¬²½µÄ(Èç¹ûÖ§³Ö²»Í¬²½£¬Ïà¹ØÒµÎñÂß¼­ĞèÒª×öµ÷Õû)
+	//å­æ§ä»¶çš„EnableçŠ¶æ€ï¼Œä¸çˆ¶æ§ä»¶æ˜¯åŒæ­¥çš„(å¦‚æœæ”¯æŒä¸åŒæ­¥ï¼Œç›¸å…³ä¸šåŠ¡é€»è¾‘éœ€è¦åšè°ƒæ•´)
 	for (auto pControl : m_items) {
 		ASSERT(pControl != nullptr);
 		if (pControl != nullptr) {
@@ -189,7 +189,7 @@ void Box::SetVisible(bool bVisible)
 	bool v = IsVisible();
 	__super::SetVisible(bVisible);
 	if (IsVisible() != v) {
-		//×Ó¿Ø¼şµÄVisible¿Ø¼şÊÇÍ¬²½µÄ(Èç¹ûÖ§³Ö²»Í¬²½£¬Ïà¹ØÒµÎñÂß¼­ĞèÒª×öµ÷Õû£¬³ıÁËÅĞ¶Ï¿Ø¼ş×ÔÉíÊÇ·ñ¿É¼û£¬»¹ÒªÅĞ¶Ï¸¸¿Ø¼şÊÇ·ñ¿É¼û)
+		//å­æ§ä»¶çš„Visibleæ§ä»¶æ˜¯åŒæ­¥çš„(å¦‚æœæ”¯æŒä¸åŒæ­¥ï¼Œç›¸å…³ä¸šåŠ¡é€»è¾‘éœ€è¦åšè°ƒæ•´ï¼Œé™¤äº†åˆ¤æ–­æ§ä»¶è‡ªèº«æ˜¯å¦å¯è§ï¼Œè¿˜è¦åˆ¤æ–­çˆ¶æ§ä»¶æ˜¯å¦å¯è§)
 		for (auto pControl : m_items){
 			ASSERT(pControl != nullptr);
 			if (pControl != nullptr) {
@@ -203,15 +203,15 @@ UiEstSize Box::EstimateSize(UiSize szAvailable)
 {
 	UiFixedSize fixedSize = GetFixedSize();
 	if (!fixedSize.cx.IsAuto() && !fixedSize.cy.IsAuto()) {
-		//Èç¹û¿í¸ß¶¼²»ÊÇautoÊôĞÔ£¬ÔòÖ±½Ó·µ»Ø
+		//å¦‚æœå®½é«˜éƒ½ä¸æ˜¯autoå±æ€§ï¼Œåˆ™ç›´æ¥è¿”å›
 		return MakeEstSize(fixedSize);
 	}
 	szAvailable.Validate();
 	if (!IsReEstimateSize(szAvailable)) {
-		//Ê¹ÓÃ»º´æÖĞµÄ¹ÀËã½á¹û
+		//ä½¿ç”¨ç¼“å­˜ä¸­çš„ä¼°ç®—ç»“æœ
 		return GetEstimateSize();
 	}
-	//Box¿Ø¼ş±¾ÉíµÄ´óĞ¡£¬²»°üº¬Íâ±ß¾à£¨±¾ÉíÒ²ÊÇÒ»¸ö¿Ø¼ş£¬¿ÉÒÔÓĞÎÄ×Ö/±³¾°Í¼Æ¬µÈ£©
+	//Boxæ§ä»¶æœ¬èº«çš„å¤§å°ï¼Œä¸åŒ…å«å¤–è¾¹è·ï¼ˆæœ¬èº«ä¹Ÿæ˜¯ä¸€ä¸ªæ§ä»¶ï¼Œå¯ä»¥æœ‰æ–‡å­—/èƒŒæ™¯å›¾ç‰‡ç­‰ï¼‰
 	UiPadding rcPadding = GetPadding();
 	UiSize szNewAvailable = szAvailable;
 	szNewAvailable.cx -= (rcPadding.left + rcPadding.right);
@@ -225,7 +225,7 @@ UiEstSize Box::EstimateSize(UiSize szAvailable)
 		sizeBySelf.cy = estSizeBySelf.cy.GetInt32() + rcPadding.top + rcPadding.bottom;
 	}
 
-	//×Ó¿Ø¼şµÄ´óĞ¡£¬°üº¬ÄÚ±ß¾à£¬µ«²»°üº¬Íâ±ß¾à
+	//å­æ§ä»¶çš„å¤§å°ï¼ŒåŒ…å«å†…è¾¹è·ï¼Œä½†ä¸åŒ…å«å¤–è¾¹è·
 	UiSize sizeByChild = m_pLayout->EstimateSizeByChild(m_items, szAvailable);
 	
 	SetReEstimateSize(false);
@@ -266,8 +266,8 @@ Control* Box::FindControlInItems(const std::vector<Control*>& items,
 								 const UiPoint& ptMouse, 
 							     const UiPoint& scrollPos)
 {
-	//ptMouse: ÊÇÊÊÅä¹ıÈİÆ÷×ÔÉíµÄ×ø±ê
-	//scrollPos: ÊÇµ±Ç°ÈİÆ÷µÄ¹ö¶¯ÌõÆ«ÒÆ	
+	//ptMouse: æ˜¯é€‚é…è¿‡å®¹å™¨è‡ªèº«çš„åæ ‡
+	//scrollPos: æ˜¯å½“å‰å®¹å™¨çš„æ»šåŠ¨æ¡åç§»	
 	if ((uFlags & UIFIND_VISIBLE) != 0 && !IsVisible()) {
 		return nullptr;
 	}
@@ -301,7 +301,7 @@ Control* Box::FindControlInItems(const std::vector<Control*>& items,
 	boxPt.Offset(scrollPos);
 	UiRect rc = GetRectWithoutPadding();
 	if ((uFlags & UIFIND_TOP_FIRST) != 0) {
-		//µ¹Ğò
+		//å€’åº
 		for (int32_t it = (int32_t)items.size() - 1; it >= 0; --it) {
 			if (items[it] == nullptr) {
 				continue;
@@ -319,7 +319,7 @@ Control* Box::FindControlInItems(const std::vector<Control*>& items,
 		}
 	}
 	else {
-		//Õı³£Ë³Ğò
+		//æ­£å¸¸é¡ºåº
 		for (Control* pItemControl : items) {
 			if (pItemControl == nullptr) {
 				continue;
@@ -459,7 +459,7 @@ bool Box::DoAddItemAt(Control* pControl, size_t iIndex)
 	}
 	pControl->SetParent(this);
 
-	//ÔÚÌí¼Óµ½¸¸ÈİÆ÷ÒÔºó£¬µ÷ÓÃ³õÊ¼»¯º¯Êı
+	//åœ¨æ·»åŠ åˆ°çˆ¶å®¹å™¨ä»¥åï¼Œè°ƒç”¨åˆå§‹åŒ–å‡½æ•°
 	pControl->Init();
 	if (IsVisible()) {
 		Arrange();
@@ -546,7 +546,7 @@ void Box::ClearImageCache()
 
 uint32_t Box::GetControlFlags() const
 {
-	return UIFLAG_DEFAULT; // Box Ä¬ÈÏ²»Ö§³Ö TAB ÇĞ»»½¹µã
+	return UIFLAG_DEFAULT; // Box é»˜è®¤ä¸æ”¯æŒ TAB åˆ‡æ¢ç„¦ç‚¹
 }
 
 void Box::SetDropInId(uint8_t nDropInId)

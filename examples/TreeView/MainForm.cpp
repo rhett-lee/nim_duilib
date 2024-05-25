@@ -50,25 +50,25 @@ void MainForm::OnInitWindow()
     if (m_pListBox != nullptr) {
         m_pListBox->SetDataProvider(&m_fileList);
     }
-    //ÉèÖÃ¿ªÆôÊ÷½ÚµãµÄCheckBox¹¦ÄÜ
+    //è®¾ç½®å¼€å¯æ ‘èŠ‚ç‚¹çš„CheckBoxåŠŸèƒ½
     m_pTree->SetCheckBoxClass(L"tree_node_checkbox");
-    //ÉèÖÃ¿ªÆôÊı½ÚµãµÄ[Õ¹¿ª/ÊÕÆğ]Í¼±ê¹¦ÄÜ
+    //è®¾ç½®å¼€å¯æ•°èŠ‚ç‚¹çš„[å±•å¼€/æ”¶èµ·]å›¾æ ‡åŠŸèƒ½
     m_pTree->SetExpandImageClass(L"tree_node_expand");
-    //ÉèÖÃÊÇ·ñÖ§³Ö¶àÑ¡
+    //è®¾ç½®æ˜¯å¦æ”¯æŒå¤šé€‰
     m_pTree->SetMultiSelect(true);
 	
-    //ÏÔÊ¾ĞéÄâÂ·¾¶
-    ShowVirtualDirectoryNode(CSIDL_DESKTOP, FOLDERID_Desktop, L"×ÀÃæ");
-    ShowVirtualDirectoryNode(CSIDL_PERSONAL, FOLDERID_Documents, L"ÎÄµµ");
-    ShowVirtualDirectoryNode(CSIDL_MYPICTURES, FOLDERID_Pictures, L"Í¼Æ¬");
-    ShowVirtualDirectoryNode(CSIDL_MYMUSIC, FOLDERID_Music, L"ÒôÀÖ");
-    ShowVirtualDirectoryNode(CSIDL_MYVIDEO, FOLDERID_Videos, L"ÊÓÆµ");
-    ShowVirtualDirectoryNode(-1, FOLDERID_Downloads, L"ÏÂÔØ"); 
+    //æ˜¾ç¤ºè™šæ‹Ÿè·¯å¾„
+    ShowVirtualDirectoryNode(CSIDL_DESKTOP, FOLDERID_Desktop, L"æ¡Œé¢");
+    ShowVirtualDirectoryNode(CSIDL_PERSONAL, FOLDERID_Documents, L"æ–‡æ¡£");
+    ShowVirtualDirectoryNode(CSIDL_MYPICTURES, FOLDERID_Pictures, L"å›¾ç‰‡");
+    ShowVirtualDirectoryNode(CSIDL_MYMUSIC, FOLDERID_Music, L"éŸ³ä¹");
+    ShowVirtualDirectoryNode(CSIDL_MYVIDEO, FOLDERID_Videos, L"è§†é¢‘");
+    ShowVirtualDirectoryNode(-1, FOLDERID_Downloads, L"ä¸‹è½½"); 
 
-    //ÏÔÊ¾´ÅÅÌ
+    //æ˜¾ç¤ºç£ç›˜
     ui::TreeNode* pFirstDiskNode = ShowAllDiskNode();
 
-    //ÔÚ´ÅÅÌÇ°Ãæ£¬·ÅÒ»¸öºáÏß·Ö¸ô·û
+    //åœ¨ç£ç›˜å‰é¢ï¼Œæ”¾ä¸€ä¸ªæ¨ªçº¿åˆ†éš”ç¬¦
     if (pFirstDiskNode != nullptr) {
         ui::Control* pLineControl = new ui::Control(this);
         pLineControl->SetClass(L"splitline_hor_level1");
@@ -81,7 +81,7 @@ void MainForm::OnInitWindow()
 
 void MainForm::OnCloseWindow()
 {
-    //¹Ø±Õ´°¿Úºó£¬ÍË³öÖ÷Ïß³ÌµÄÏûÏ¢Ñ­»·£¬¹Ø±Õ³ÌĞò
+    //å…³é—­çª—å£åï¼Œé€€å‡ºä¸»çº¿ç¨‹çš„æ¶ˆæ¯å¾ªç¯ï¼Œå…³é—­ç¨‹åº
     PostQuitMessage(0L);
 }
 
@@ -90,13 +90,13 @@ void MainForm::InsertTreeNodes(ui::TreeNode* pTreeNode,
                                const std::vector<FolderStatus>& fileList,
                                bool isFolder)
 {
-    //Ğ£ÑépTreeNodeÊÇ·ñ´æÔÚ£¨ÓÉÓÚ¾­¹ı×ÓÏß³Ì£©
+    //æ ¡éªŒpTreeNodeæ˜¯å¦å­˜åœ¨ï¼ˆç”±äºç»è¿‡å­çº¿ç¨‹ï¼‰
     if (pTreeNode == nullptr) {
         return;
     }
     size_t itemIndex = m_pTree->GetItemIndex(pTreeNode);
     if (!ui::Box::IsValidItemIndex(itemIndex)) {
-        //½ÚµãÒÑ¾­²»´æÔÚÁË£¬·µ»Ø
+        //èŠ‚ç‚¹å·²ç»ä¸å­˜åœ¨äº†ï¼Œè¿”å›
         return;
     }
     
@@ -118,7 +118,7 @@ ui::TreeNode* MainForm::InsertTreeNode(ui::TreeNode* pTreeNode,
     }
 
     ui::TreeNode* node = new ui::TreeNode(this);
-    node->SetClass(L"tree_node");//ÔÚ"global.xml"ÖĞ¶¨Òå
+    node->SetClass(L"tree_node");//åœ¨"global.xml"ä¸­å®šä¹‰
     node->SetText(displayName);
         
     FolderStatus* pFolder = new FolderStatus;
@@ -129,7 +129,7 @@ ui::TreeNode* MainForm::InsertTreeNode(ui::TreeNode* pTreeNode,
     ui::GlobalManager::Instance().Icon().AddIcon(hIcon);
     node->SetUserDataID((size_t)pFolder);
 
-    node->SetBkIcon(hIcon, 16, true);//ÉèÖÃÊ÷½ÚµãµÄ¹ØÁªÍ¼±ê(Í¼±ê´óĞ¡ÓëCheckBoxµÄÔ­Í¼´óĞ¡ÏàÍ¬£¬¶¼ÊÇ16*16)
+    node->SetBkIcon(hIcon, 16, true);//è®¾ç½®æ ‘èŠ‚ç‚¹çš„å…³è”å›¾æ ‡(å›¾æ ‡å¤§å°ä¸CheckBoxçš„åŸå›¾å¤§å°ç›¸åŒï¼Œéƒ½æ˜¯16*16)
     node->AttachExpand(nbase::Bind(&MainForm::OnTreeNodeExpand, this, std::placeholders::_1));
     node->AttachClick(nbase::Bind(&MainForm::OnTreeNodeClick, this, std::placeholders::_1));
     node->AttachSelect(nbase::Bind(&MainForm::OnTreeNodeSelect, this, std::placeholders::_1));
@@ -230,7 +230,7 @@ ui::TreeNode* MainForm::ShowAllDiskNode()
     DiskUtils::GetLogicalDriveList(driveList);
     for (auto iter = driveList.begin(); iter != driveList.end(); ++iter) {
         std::wstring driverName = *iter;
-        // ¹ıÂËA:ÅÌºÍB:ÅÌ
+        // è¿‡æ»¤A:ç›˜å’ŒB:ç›˜
         if (ui::StringHelper::IsEqualNoCase(driverName, L"A:\\") ||
             ui::StringHelper::IsEqualNoCase(driverName, L"B:\\")) {
             continue;
@@ -268,7 +268,7 @@ bool MainForm::OnTreeNodeExpand(const ui::EventArgs& args)
         FolderStatus* pFolder = (FolderStatus*)pTreeNode->GetUserDataID();
         auto iter = std::find(m_folderList.begin(), m_folderList.end(), pFolder);
         if (iter != m_folderList.end()) {
-            //¼ÓÔØ×ÓÄ¿Â¼ÁĞ±í
+            //åŠ è½½å­ç›®å½•åˆ—è¡¨
             if (!pFolder->bShow) {
                 pFolder->bShow = true;
                 ShowSubFolders(pTreeNode, pFolder->path);                
@@ -290,12 +290,12 @@ void MainForm::CheckExpandTreeNode(ui::TreeNode* pTreeNode, const std::wstring& 
     }
 
     if (!pFolder->bShow) {
-        //¼ÓÔØ×ÓÄ¿Â¼ÁĞ±í
+        //åŠ è½½å­ç›®å½•åˆ—è¡¨
         pFolder->bShow = true;
         ShowSubFolders(pTreeNode, pFolder->path);
     }
     else {
-        //Õ¹¿ª×ÓÄ¿Â¼
+        //å±•å¼€å­ç›®å½•
         if (!pTreeNode->IsExpand()) {
             pTreeNode->SetExpand(true, true);
         }
@@ -303,11 +303,11 @@ void MainForm::CheckExpandTreeNode(ui::TreeNode* pTreeNode, const std::wstring& 
     if (filePath.empty()) {
         return;
     }
-    //ÓÉÓÚShowSubFoldersÊÇÔÚ×ÓÏß³ÌÖĞÖ´ĞĞµÄ£¬ËùÒÔÕâÀïÒ²ÒªÏÈ·¢¸ø×ÓÏß³Ì£¬ÔÙ×ª¸øUIÏß³Ì£¬±£Ö¤Ê±ĞòÕıÈ·
+    //ç”±äºShowSubFoldersæ˜¯åœ¨å­çº¿ç¨‹ä¸­æ‰§è¡Œçš„ï¼Œæ‰€ä»¥è¿™é‡Œä¹Ÿè¦å…ˆå‘ç»™å­çº¿ç¨‹ï¼Œå†è½¬ç»™UIçº¿ç¨‹ï¼Œä¿è¯æ—¶åºæ­£ç¡®
     nbase::ThreadManager::PostTask(kThreadWorker, ToWeakCallback([this, pTreeNode, filePath]() {
-        //Õâ¶Î´úÂëÔÚ¹¤×÷Ïß³ÌÖĞÖ´ĞĞ£¬Ã¶¾ÙÄ¿Â¼ÄÚÈİÍê³Éºó£¬È»ºó·¢¸øUIÏß³ÌÌí¼Óµ½Ê÷½ÚµãÉÏ
+        //è¿™æ®µä»£ç åœ¨å·¥ä½œçº¿ç¨‹ä¸­æ‰§è¡Œï¼Œæšä¸¾ç›®å½•å†…å®¹å®Œæˆåï¼Œç„¶åå‘ç»™UIçº¿ç¨‹æ·»åŠ åˆ°æ ‘èŠ‚ç‚¹ä¸Š
         nbase::ThreadManager::PostTask(kThreadUI, ToWeakCallback([this, pTreeNode, filePath]() {
-            //Õâ¶Î´úÂëÔÚUIÏß³ÌÖĞÖ´ĞĞ
+            //è¿™æ®µä»£ç åœ¨UIçº¿ç¨‹ä¸­æ‰§è¡Œ
             for (const FolderStatus* folder : m_folderList) {
                 if (folder->path == filePath) {
                     ui::TreeNode* pSubTreeNode = folder->pTreeNode;
@@ -323,7 +323,7 @@ void MainForm::CheckExpandTreeNode(ui::TreeNode* pTreeNode, const std::wstring& 
 void MainForm::ShowSubFolders(ui::TreeNode* pTreeNode, const std::wstring& path)
 {
     nbase::ThreadManager::PostTask(kThreadWorker, ToWeakCallback([this, path, pTreeNode]() {
-        //Õâ¶Î´úÂëÔÚ¹¤×÷Ïß³ÌÖĞÖ´ĞĞ£¬Ã¶¾ÙÄ¿Â¼ÄÚÈİÍê³Éºó£¬È»ºó·¢¸øUIÏß³ÌÌí¼Óµ½Ê÷½ÚµãÉÏ
+        //è¿™æ®µä»£ç åœ¨å·¥ä½œçº¿ç¨‹ä¸­æ‰§è¡Œï¼Œæšä¸¾ç›®å½•å†…å®¹å®Œæˆåï¼Œç„¶åå‘ç»™UIçº¿ç¨‹æ·»åŠ åˆ°æ ‘èŠ‚ç‚¹ä¸Š
         std::wstring findPath = ui::StringHelper::JoinFilePath(path, L"*.*");
         WIN32_FIND_DATA findData;
         HANDLE hFile = ::FindFirstFile(findPath.c_str(), &findData);
@@ -351,7 +351,7 @@ void MainForm::ShowSubFolders(ui::TreeNode* pTreeNode, const std::wstring& path)
             ZeroMemory(&shFileInfo, sizeof(SHFILEINFO));
             if (::SHGetFileInfo(folderPath.c_str(), 0, &shFileInfo, sizeof(SHFILEINFO), SHGFI_ICON | SHGFI_SMALLICON)) {
 #ifdef _DEBUG
-                //·¢ÏÖÓĞhIcon¾ä±úÎŞĞ§µÄÇé¿ö£¬Ô­ÒòÎ´Öª£¬ÔİÊ±¹ıÂËµô                
+                //å‘ç°æœ‰hIconå¥æŸ„æ— æ•ˆçš„æƒ…å†µï¼ŒåŸå› æœªçŸ¥ï¼Œæš‚æ—¶è¿‡æ»¤æ‰                
                 if (shFileInfo.hIcon != nullptr) {
                     ICONINFO iconInfo = { 0, };
                     if (!::GetIconInfo(shFileInfo.hIcon, &iconInfo)) {
@@ -369,11 +369,11 @@ void MainForm::ShowSubFolders(ui::TreeNode* pTreeNode, const std::wstring& path)
                 }
 #endif
                 if (IsDirectory(folderPath)) {
-                    //Ä¿Â¼
+                    //ç›®å½•
                     folderList.push_back({ findData.cFileName, false, shFileInfo.hIcon });
                 }
                 else {
-                    //ÎÄ¼ş
+                    //æ–‡ä»¶
                     fileList.push_back({ findData.cFileName, false, shFileInfo.hIcon });
                 }
             }
@@ -382,7 +382,7 @@ void MainForm::ShowSubFolders(ui::TreeNode* pTreeNode, const std::wstring& path)
         hFile = INVALID_HANDLE_VALUE;
 
         nbase::ThreadManager::PostTask(kThreadUI, ToWeakCallback([this, path, pTreeNode, folderList]() {
-            //Õâ¶Î´úÂëÔÚUIÏß³ÌÖĞÖ´ĞĞ
+            //è¿™æ®µä»£ç åœ¨UIçº¿ç¨‹ä¸­æ‰§è¡Œ
             InsertTreeNodes(pTreeNode, path, folderList, true);
             if (!pTreeNode->IsExpand()) {
                 pTreeNode->SetExpand(true, true);
@@ -399,7 +399,7 @@ bool MainForm::OnTreeNodeClick(const ui::EventArgs& args)
         FolderStatus* pFolder = (FolderStatus*)pTreeNode->GetUserDataID();
         auto iter = std::find(m_folderList.begin(), m_folderList.end(), pFolder);
         if (iter != m_folderList.end()) {
-            //¼ÓÔØ×ÓÄ¿Â¼ÁĞ±íµ½ÓÒ²àÇøÓò
+            //åŠ è½½å­ç›®å½•åˆ—è¡¨åˆ°å³ä¾§åŒºåŸŸ
             ShowFolderContents(pTreeNode, pFolder->path);
         }
     }
@@ -409,7 +409,7 @@ bool MainForm::OnTreeNodeClick(const ui::EventArgs& args)
 bool MainForm::OnTreeNodeSelect(const ui::EventArgs& args)
 {
     if ((m_pTree != nullptr) && m_pTree->IsMultiSelect()) {
-        //¶àÑ¡µÄÊ±ºò£¬²»ÏìÓ¦Ñ¡ÔñÊÂ¼ş
+        //å¤šé€‰çš„æ—¶å€™ï¼Œä¸å“åº”é€‰æ‹©äº‹ä»¶
         return true;
     }
     return OnTreeNodeClick(args);
@@ -427,7 +427,7 @@ bool MainForm::IsDirectory(const std::wstring& filePath) const
 void MainForm::ShowFolderContents(ui::TreeNode* pTreeNode, const std::wstring& path)
 {
     nbase::ThreadManager::PostTask(kThreadWorker, ToWeakCallback([this, pTreeNode, path]() {
-        //Õâ¶Î´úÂëÔÚ¹¤×÷Ïß³ÌÖĞÖ´ĞĞ£¬Ã¶¾ÙÄ¿Â¼ÄÚÈİÍê³Éºó£¬È»ºó·¢¸øUIÏß³ÌÌí¼Óµ½Ê÷½ÚµãÉÏ
+        //è¿™æ®µä»£ç åœ¨å·¥ä½œçº¿ç¨‹ä¸­æ‰§è¡Œï¼Œæšä¸¾ç›®å½•å†…å®¹å®Œæˆåï¼Œç„¶åå‘ç»™UIçº¿ç¨‹æ·»åŠ åˆ°æ ‘èŠ‚ç‚¹ä¸Š
         std::wstring findPath = ui::StringHelper::JoinFilePath(path, L"*.*");
         WIN32_FIND_DATA findData;
         HANDLE hFile = ::FindFirstFile(findPath.c_str(), &findData);
@@ -455,11 +455,11 @@ void MainForm::ShowFolderContents(ui::TreeNode* pTreeNode, const std::wstring& p
             ZeroMemory(&shFileInfo, sizeof(SHFILEINFO));
             if (::SHGetFileInfo(folderPath.c_str(), 0, &shFileInfo, sizeof(SHFILEINFO), SHGFI_ICON | SHGFI_LARGEICON)) {
                 if (IsDirectory(folderPath)) {
-                    //Ä¿Â¼
+                    //ç›®å½•
                     folderList.push_back({ findData.cFileName, false, shFileInfo.hIcon });
                 }
                 else {
-                    //ÎÄ¼ş
+                    //æ–‡ä»¶
                     fileList.push_back({ findData.cFileName, false, shFileInfo.hIcon });
                 }
             }
@@ -478,18 +478,18 @@ void MainForm::ShowFolderContents(ui::TreeNode* pTreeNode, const std::wstring& p
             pathList.push_back({ folder.path, folderPath, false, folder.hIcon });
         }
 
-        //·¢¸øUIÏß³Ì
+        //å‘ç»™UIçº¿ç¨‹
         nbase::ThreadManager::PostTask(kThreadUI, ToWeakCallback([this, pTreeNode, path, pathList]() {
-            //Õâ¶Î´úÂëÔÚUIÏß³ÌÖĞÖ´ĞĞ
+            //è¿™æ®µä»£ç åœ¨UIçº¿ç¨‹ä¸­æ‰§è¡Œ
             if (m_pTree != nullptr) {
                 if (!m_pTree->IsMultiSelect()) {
-                    //µ¥Ñ¡£¬½øĞĞĞ£Ñé
+                    //å•é€‰ï¼Œè¿›è¡Œæ ¡éªŒ
                     if (pTreeNode->IsSelected()) {
                         m_fileList.SetFileList(pTreeNode, pathList);
                     }
                 }
                 else {
-                    //¶àÑ¡£¬²»Ğ£Ñé
+                    //å¤šé€‰ï¼Œä¸æ ¡éªŒ
                     m_fileList.SetFileList(pTreeNode, pathList);
                 }
             }            

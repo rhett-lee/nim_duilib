@@ -9,10 +9,10 @@
 namespace ui
 {
 
-/** ·Ö¸îÌõ¿Ø¼ş£¬¿ÉÒÔÍ¨¹ıÍÏ¶¯·Ö¸îÌõ¸Ä±ä×óÓÒ»òÕßÉÏÏÂÁ½¸ö¿Ø¼şµÄ¿í¶È»òÕß¸ß¶È
-*   Ó¦ÓÃ£ºÈç¹û·ÅÔÚºáÏò²¼¾Ö£¨HLayout£©ÖĞ£¬Ôò×óÓÒÍÏ¶¯
-*        Èç¹û·ÅÔÚ×İÏò²¼¾Ö£¨VLayout£©ÖĞ£¬ÔòÉÏÏÂÍÏ¶¯
-*   ×¢ÒâÊÂÏî£ºÈç¹ûÁ½¸ö¿Ø¼ş¶¼ÉèÖÃÎªÀ­ÉìÀàĞÍµÄ£¬Ôò·Ö¸îÌõÎŞ·¨Õı³£¹¤×÷¡£
+/** åˆ†å‰²æ¡æ§ä»¶ï¼Œå¯ä»¥é€šè¿‡æ‹–åŠ¨åˆ†å‰²æ¡æ”¹å˜å·¦å³æˆ–è€…ä¸Šä¸‹ä¸¤ä¸ªæ§ä»¶çš„å®½åº¦æˆ–è€…é«˜åº¦
+*   åº”ç”¨ï¼šå¦‚æœæ”¾åœ¨æ¨ªå‘å¸ƒå±€ï¼ˆHLayoutï¼‰ä¸­ï¼Œåˆ™å·¦å³æ‹–åŠ¨
+*        å¦‚æœæ”¾åœ¨çºµå‘å¸ƒå±€ï¼ˆVLayoutï¼‰ä¸­ï¼Œåˆ™ä¸Šä¸‹æ‹–åŠ¨
+*   æ³¨æ„äº‹é¡¹ï¼šå¦‚æœä¸¤ä¸ªæ§ä»¶éƒ½è®¾ç½®ä¸ºæ‹‰ä¼¸ç±»å‹çš„ï¼Œåˆ™åˆ†å‰²æ¡æ— æ³•æ­£å¸¸å·¥ä½œã€‚
 */
 template<typename InheritType = Control>
 class UILIB_API SplitTemplate : public InheritType
@@ -23,24 +23,24 @@ public:
     virtual std::wstring GetType() const override;
     virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
  
-    /** ÊÇ·ñ¿ÉÒÔÍÏ¶¯
+    /** æ˜¯å¦å¯ä»¥æ‹–åŠ¨
     */
     bool IsSplitDragValid();
 
-    /** Í£Ö¹ÍÏ¶¯
+    /** åœæ­¢æ‹–åŠ¨
     */
     void StopSplitDrag();
 
-    /** ÉèÖÃµ±Ö»ÓĞÒ»¸ö¿Ø¼şµÄÊ±ºò£¬ÊÇ·ñÔÊĞíµ÷ÕûÆä¿í¶È
+    /** è®¾ç½®å½“åªæœ‰ä¸€ä¸ªæ§ä»¶çš„æ—¶å€™ï¼Œæ˜¯å¦å…è®¸è°ƒæ•´å…¶å®½åº¦
     */
     void SetEnableSplitSingle(bool bEnableSplitSingle);
 
-    /** »ñÈ¡µ±Ö»ÓĞÒ»¸ö¿Ø¼şµÄÊ±ºò£¬ÊÇ·ñÔÊĞíµ÷ÕûÆä¿í¶È
+    /** è·å–å½“åªæœ‰ä¸€ä¸ªæ§ä»¶çš„æ—¶å€™ï¼Œæ˜¯å¦å…è®¸è°ƒæ•´å…¶å®½åº¦
     */
     bool IsEnableSplitSingle() const;
 
-    /** ¼àÌıÍÏ¶¯µÄÊÂ¼ş
-     * @param [in] callback ±»Ñ¡ÔñÊ±´¥·¢µÄ»Øµ÷º¯Êı
+    /** ç›‘å¬æ‹–åŠ¨çš„äº‹ä»¶
+     * @param [in] callback è¢«é€‰æ‹©æ—¶è§¦å‘çš„å›è°ƒå‡½æ•°
      */
     void AttachSplitDraged(const EventCallback& callback) { this->AttachEvent(kEventSplitDraged, callback); }
 
@@ -51,49 +51,49 @@ protected:
     virtual bool MouseMove(const EventArgs& msg) override;
 
 private:
-    //ÊÇ·ñÎª´¹Ö±²¼¾ÖµÄÈİÆ÷
+    //æ˜¯å¦ä¸ºå‚ç›´å¸ƒå±€çš„å®¹å™¨
     bool IsVLayout(Control* pControl) const;
 
-    //ÊÇ·ñÎªË®Æ½²¼¾ÖµÄÈİÆ÷
+    //æ˜¯å¦ä¸ºæ°´å¹³å¸ƒå±€çš„å®¹å™¨
     bool IsHLayout(Control* pControl) const;
 
-    /** µ÷ÕûÁ½¸ö¿Ø¼şÖĞ£¬ÆäÖĞÒ»¸ö£¨pFirst£©¿Ø¼şµÄ¿í¶È»òÕß¸ß¶È
-    * @param [in] bHLayout true±íÊ¾ºáÏò²¼¾Ö£¬false±íÊ¾×İÏò²¼¾Ö
-    * @param [in] nTotal Á½¸ö¿Ø¼şµÄ×ÜÌå¿í¶È»òÕß¸ß¶È
-    * @param [in] nOffset Êó±êµÄ¿í¶È»òÕß¸ß¶ÈÆ«ÒÆÁ¿
-    * @param [in] pFirst µÚÒ»¸ö¿Ø¼ş½Ó¿Ú£¬¸Ãº¯Êı»áµ÷Õû¸Ã½Ó¿Ú¶ÔÓ¦¿Ø¼şµÄ¿í¶È»òÕß¸ß¶È
-    * @param [in] nFirstFixedInt µÚÒ»¸ö¿Ø¼şµÄÔ­Ê¼¿í¶È»òÕß¸ß¶ÈÖµ£¨ÔÚÊó±ê°´ÏÂÊ±¼ÇÂ¼£©
-    * @param [in] pSecond µÚ¶ş¸ö¿Ø¼ş½Ó¿Ú£¬¶ÁÈ¡Æä×îĞ¡Öµ£¬±ÜÃâµ÷ÕûµÚÒ»¸ö¿Ø¼şÊ±Î´¸øÁôÏÂ×ã¹»×îĞ¡¿Õ¼ä
-    * @return ·µ»ØµÚÒ»¸ö¿Ø¼şµÄ¿í¶È»òÕß¸ß¶È
+    /** è°ƒæ•´ä¸¤ä¸ªæ§ä»¶ä¸­ï¼Œå…¶ä¸­ä¸€ä¸ªï¼ˆpFirstï¼‰æ§ä»¶çš„å®½åº¦æˆ–è€…é«˜åº¦
+    * @param [in] bHLayout trueè¡¨ç¤ºæ¨ªå‘å¸ƒå±€ï¼Œfalseè¡¨ç¤ºçºµå‘å¸ƒå±€
+    * @param [in] nTotal ä¸¤ä¸ªæ§ä»¶çš„æ€»ä½“å®½åº¦æˆ–è€…é«˜åº¦
+    * @param [in] nOffset é¼ æ ‡çš„å®½åº¦æˆ–è€…é«˜åº¦åç§»é‡
+    * @param [in] pFirst ç¬¬ä¸€ä¸ªæ§ä»¶æ¥å£ï¼Œè¯¥å‡½æ•°ä¼šè°ƒæ•´è¯¥æ¥å£å¯¹åº”æ§ä»¶çš„å®½åº¦æˆ–è€…é«˜åº¦
+    * @param [in] nFirstFixedInt ç¬¬ä¸€ä¸ªæ§ä»¶çš„åŸå§‹å®½åº¦æˆ–è€…é«˜åº¦å€¼ï¼ˆåœ¨é¼ æ ‡æŒ‰ä¸‹æ—¶è®°å½•ï¼‰
+    * @param [in] pSecond ç¬¬äºŒä¸ªæ§ä»¶æ¥å£ï¼Œè¯»å–å…¶æœ€å°å€¼ï¼Œé¿å…è°ƒæ•´ç¬¬ä¸€ä¸ªæ§ä»¶æ—¶æœªç»™ç•™ä¸‹è¶³å¤Ÿæœ€å°ç©ºé—´
+    * @return è¿”å›ç¬¬ä¸€ä¸ªæ§ä»¶çš„å®½åº¦æˆ–è€…é«˜åº¦
     */
     int32_t CalculateControlPos(bool bHLayout, const int32_t nTotal, const int32_t nOffset,
                                 Control* pFirst, const UiFixedInt& nFirstFixedInt,
                                 const Control* pSecond) const;
 
-    /** ½öµ÷ÕûÒ»¸ö¿Ø¼şµÄ´óĞ¡
+    /** ä»…è°ƒæ•´ä¸€ä¸ªæ§ä»¶çš„å¤§å°
     */
     void OnMouseMoveSingle(const EventArgs& msg);
 
 private:
-    //×ó²à£¨×óÓÒÍÏ¶¯£©»òÕßÉÏ²à£¨ÉÏÏÂÍÏ¶¯£©µÄ¿Ø¼ş½Ó¿Ú
+    //å·¦ä¾§ï¼ˆå·¦å³æ‹–åŠ¨ï¼‰æˆ–è€…ä¸Šä¾§ï¼ˆä¸Šä¸‹æ‹–åŠ¨ï¼‰çš„æ§ä»¶æ¥å£
     Control* m_pLeftTop;
 
-    //ÓÒ²à£¨×óÓÒÍÏ¶¯£©»òÕßÏÂ²à£¨ÉÏÏÂÍÏ¶¯£©µÄ¿Ø¼ş½Ó¿Ú
+    //å³ä¾§ï¼ˆå·¦å³æ‹–åŠ¨ï¼‰æˆ–è€…ä¸‹ä¾§ï¼ˆä¸Šä¸‹æ‹–åŠ¨ï¼‰çš„æ§ä»¶æ¥å£
     Control* m_pRightBottom;
 
-    //×ó²à£¨×óÓÒÍÏ¶¯£©»òÕßÉÏ²à£¨ÉÏÏÂÍÏ¶¯£©µÄ¿Ø¼şµÄ¿í¶È£¨×óÓÒÍÏ¶¯£©»òÕß¸ß¶È£¨ÉÏÏÂÍÏ¶¯£©
+    //å·¦ä¾§ï¼ˆå·¦å³æ‹–åŠ¨ï¼‰æˆ–è€…ä¸Šä¾§ï¼ˆä¸Šä¸‹æ‹–åŠ¨ï¼‰çš„æ§ä»¶çš„å®½åº¦ï¼ˆå·¦å³æ‹–åŠ¨ï¼‰æˆ–è€…é«˜åº¦ï¼ˆä¸Šä¸‹æ‹–åŠ¨ï¼‰
     UiFixedInt m_nLeftUpFixedValue;
 
-    //ÓÒ²à£¨×óÓÒÍÏ¶¯£©»òÕßÏÂ²à£¨ÉÏÏÂÍÏ¶¯£©µÄ¿Ø¼şµÄ¿í¶È£¨×óÓÒÍÏ¶¯£©»òÕß¸ß¶È£¨ÉÏÏÂÍÏ¶¯£©
+    //å³ä¾§ï¼ˆå·¦å³æ‹–åŠ¨ï¼‰æˆ–è€…ä¸‹ä¾§ï¼ˆä¸Šä¸‹æ‹–åŠ¨ï¼‰çš„æ§ä»¶çš„å®½åº¦ï¼ˆå·¦å³æ‹–åŠ¨ï¼‰æˆ–è€…é«˜åº¦ï¼ˆä¸Šä¸‹æ‹–åŠ¨ï¼‰
     UiFixedInt m_nRightBottomFixedValue;
 
-    //¿ªÊ¼ÍÏ¶¯Ê±µÄÊó±êÎ»ÖÃ
+    //å¼€å§‹æ‹–åŠ¨æ—¶çš„é¼ æ ‡ä½ç½®
     UiPoint m_ptStart;
 
-    //²¼¾Ö·½Ïò: true±íÊ¾ºáÏò²¼¾Ö£¬false±íÊ¾×İÏò²¼¾Ö
+    //å¸ƒå±€æ–¹å‘: trueè¡¨ç¤ºæ¨ªå‘å¸ƒå±€ï¼Œfalseè¡¨ç¤ºçºµå‘å¸ƒå±€
     bool m_bHLayout;
 
-    /** µ±Ö»ÓĞÒ»¸ö¿Ø¼şµÄÊ±ºò£¬ÊÇ·ñÔÊĞíµ÷ÕûÆä¿í¶È
+    /** å½“åªæœ‰ä¸€ä¸ªæ§ä»¶çš„æ—¶å€™ï¼Œæ˜¯å¦å…è®¸è°ƒæ•´å…¶å®½åº¦
     */
     bool m_bEnableSplitSingle;
 };
@@ -190,13 +190,13 @@ template<typename InheritType>
 bool SplitTemplate<InheritType>::MouseEnter(const EventArgs& msg)
 {
     if (IsHLayout(this->GetParent())) {
-        //ºáÏò²¼¾Ö
+        //æ¨ªå‘å¸ƒå±€
         if (this->GetCursorType() != kCursorSizeWE) {
             this->SetCursorType(kCursorSizeWE);
         }
     }
     else if (IsVLayout(this->GetParent())) {
-        //×İÏò²¼¾Ö
+        //çºµå‘å¸ƒå±€
         if (this->GetCursorType() != kCursorSizeNS) {
             this->SetCursorType(kCursorSizeNS);
         }
@@ -289,7 +289,7 @@ bool SplitTemplate<InheritType>::ButtonDown(const EventArgs& msg)
         StopSplitDrag();
     }
     if ((m_pLeftTop != nullptr) && (m_pRightBottom != nullptr)) {
-        //Èç¹ûÁ½¸ö¿Ø¼ş¶¼ÊÇÀ­ÉìÀàĞÍµÄ£¬ÄÇÃ´ÈÃ×ó²à(ÉÏ²à)µÄ±äÎª·ÇÀ­ÉìµÄ£¬ÔÊĞíÍÏ¶¯²Ù×÷
+        //å¦‚æœä¸¤ä¸ªæ§ä»¶éƒ½æ˜¯æ‹‰ä¼¸ç±»å‹çš„ï¼Œé‚£ä¹ˆè®©å·¦ä¾§(ä¸Šä¾§)çš„å˜ä¸ºéæ‹‰ä¼¸çš„ï¼Œå…è®¸æ‹–åŠ¨æ“ä½œ
         if (m_nLeftUpFixedValue.IsStretch() && m_nRightBottomFixedValue.IsStretch()) {
             m_nLeftUpFixedValue.SetInt32(m_pLeftTop->GetWidth());
         }
@@ -311,24 +311,24 @@ int32_t SplitTemplate<InheritType>::CalculateControlPos(bool bHLayout, const int
                                                         Control* pFirst, const UiFixedInt& nFirstFixedInt,
                                                         const Control* pSecond) const
 {
-    int32_t nNewValue = nFirstFixedInt.GetInt32() + nOffset; //ĞÂÖµ£¬¿ÉÒÔÊÇÕıÊı£¬Ò²¿ÉÒÔÊÇ¸ºÊı
+    int32_t nNewValue = nFirstFixedInt.GetInt32() + nOffset; //æ–°å€¼ï¼Œå¯ä»¥æ˜¯æ­£æ•°ï¼Œä¹Ÿå¯ä»¥æ˜¯è´Ÿæ•°
     if (nNewValue < 0) {
         nNewValue = 0;
     }
 
-    int32_t nMin = 0; //×îĞ¡Öµ
+    int32_t nMin = 0; //æœ€å°å€¼
     if (bHLayout) {
         nMin = pFirst->GetMinWidth();
     }
     else {
         nMin = pFirst->GetMinHeight();
     }    
-    //¿ØÖÆ²»Ğ¡ÓÚ×îĞ¡Öµ
+    //æ§åˆ¶ä¸å°äºæœ€å°å€¼
     if (nNewValue < nMin) {
         nNewValue = nMin;
     }
 
-    int32_t nMax = 0; //×î´óÖµ, ²¢ÇÒ°´ÕÕÁíÒ»²àµÄ×îĞ¡ÖµÉèÖÃ£¬Áô³ö×îĞ¡¿Õ¼ä
+    int32_t nMax = 0; //æœ€å¤§å€¼, å¹¶ä¸”æŒ‰ç…§å¦ä¸€ä¾§çš„æœ€å°å€¼è®¾ç½®ï¼Œç•™å‡ºæœ€å°ç©ºé—´
     if (bHLayout) {
         nMax = pFirst->GetMaxWidth();
         if (pSecond->GetMinWidth() > 0) {
@@ -347,7 +347,7 @@ int32_t SplitTemplate<InheritType>::CalculateControlPos(bool bHLayout, const int
             }
         }
     }
-    //¿ØÖÆ²»´óÓÚ×î´óÖµ
+    //æ§åˆ¶ä¸å¤§äºæœ€å¤§å€¼
     if (nNewValue > nMax) {
         nNewValue = nMax;
     }
@@ -363,12 +363,12 @@ bool SplitTemplate<InheritType>::MouseMove(const EventArgs& msg)
     }
 
     if ((m_pLeftTop == nullptr) || (m_pRightBottom == nullptr)) {
-        //Ö»ÓĞÒ»¸ö¿Ø¼şĞèÒªµ÷Õû´óĞ¡
+        //åªæœ‰ä¸€ä¸ªæ§ä»¶éœ€è¦è°ƒæ•´å¤§å°
         OnMouseMoveSingle(msg);
         return bRet;
     }
     
-    int32_t nOffset = 0; //ÍÏ¶¯µÄ·¶Î§£¨¿í¶È»òÕß¸ß¶ÈµÄÆ«ÒÆÁ¿, ¿ÉÒÔÊÇÕıÊı£¬Ò²¿ÉÒÔÊÇ¸ºÊı£©
+    int32_t nOffset = 0; //æ‹–åŠ¨çš„èŒƒå›´ï¼ˆå®½åº¦æˆ–è€…é«˜åº¦çš„åç§»é‡, å¯ä»¥æ˜¯æ­£æ•°ï¼Œä¹Ÿå¯ä»¥æ˜¯è´Ÿæ•°ï¼‰
     if (m_bHLayout) {
         nOffset = msg.ptMouse.x - m_ptStart.x;
     }
@@ -376,7 +376,7 @@ bool SplitTemplate<InheritType>::MouseMove(const EventArgs& msg)
         nOffset = msg.ptMouse.y - m_ptStart.y;
     }
 
-    //ÍÏ¶¯Ê±£¬²»ÄÜ³¬¹ı×ÜµÄ¿í¶ÈÖµ»òÕß×ÜµÄ¸ß¶ÈÖµ
+    //æ‹–åŠ¨æ—¶ï¼Œä¸èƒ½è¶…è¿‡æ€»çš„å®½åº¦å€¼æˆ–è€…æ€»çš„é«˜åº¦å€¼
     if (nOffset > 0) {
         if (!m_nRightBottomFixedValue.IsStretch()) {
             if (nOffset > m_nRightBottomFixedValue.GetInt32()) {
@@ -395,7 +395,7 @@ bool SplitTemplate<InheritType>::MouseMove(const EventArgs& msg)
         return bRet;
     }
     
-    int32_t nTotal = 0; //×ÜµÄ¿í¶ÈÖµ»òÕß×ÜµÄ¸ß¶ÈÖµ
+    int32_t nTotal = 0; //æ€»çš„å®½åº¦å€¼æˆ–è€…æ€»çš„é«˜åº¦å€¼
     if (m_nLeftUpFixedValue.IsInt32() && m_nRightBottomFixedValue.IsInt32()) {
         nTotal = m_nLeftUpFixedValue.GetInt32() + m_nRightBottomFixedValue.GetInt32();
     }
@@ -408,7 +408,7 @@ bool SplitTemplate<InheritType>::MouseMove(const EventArgs& msg)
         }
     }
 
-    //¶ÔÓÚÀ­ÉìÀàĞÍµÄ¿Ø¼ş£¬²»µ÷Õû£¬½»¸ø¸¸ÈİÆ÷×Ô¶¯µ÷Õû£¨Èç¹ûÁ½¸ö¿Ø¼ş¶¼ÊÇÀ­ÉìÀàĞÍµÄ£¬·Ö¸îÌõ¾ÍÎŞ·¨¹¤×÷ÁË£©
+    //å¯¹äºæ‹‰ä¼¸ç±»å‹çš„æ§ä»¶ï¼Œä¸è°ƒæ•´ï¼Œäº¤ç»™çˆ¶å®¹å™¨è‡ªåŠ¨è°ƒæ•´ï¼ˆå¦‚æœä¸¤ä¸ªæ§ä»¶éƒ½æ˜¯æ‹‰ä¼¸ç±»å‹çš„ï¼Œåˆ†å‰²æ¡å°±æ— æ³•å·¥ä½œäº†ï¼‰
     Control* pControl1 = nullptr;
     Control* pControl2 = nullptr;
     int32_t nNewValue1 = 0;
@@ -428,24 +428,24 @@ bool SplitTemplate<InheritType>::MouseMove(const EventArgs& msg)
         nNewValue2 = -1;
     }
     if ((nNewValue1 < 0) && (nNewValue2 < 0)) {
-        //Á½¸ö¿Ø¼ş¶¼ÊÇÀ­ÉìÀàĞÍµÄ£¬²»µ÷Õû
+        //ä¸¤ä¸ªæ§ä»¶éƒ½æ˜¯æ‹‰ä¼¸ç±»å‹çš„ï¼Œä¸è°ƒæ•´
         return bRet;
     }
     else if ((nNewValue1 >= 0) && (nNewValue2 >= 0)) {
         if ((nNewValue1 + nNewValue2) != nTotal) {
-            //³¬¹ıÏŞÖÆ£¬²»µ÷Õû
+            //è¶…è¿‡é™åˆ¶ï¼Œä¸è°ƒæ•´
             return bRet;
         }
     }
     else if (nNewValue1 >= 0) {
         if (nNewValue1 > nTotal) {
-            //³¬¹ıÏŞÖÆ£¬²»µ÷Õû
+            //è¶…è¿‡é™åˆ¶ï¼Œä¸è°ƒæ•´
             return bRet;
         }
     }
     else if (nNewValue2 >= 0) {
         if (nNewValue2 > nTotal) {
-            //³¬¹ıÏŞÖÆ£¬²»µ÷Õû
+            //è¶…è¿‡é™åˆ¶ï¼Œä¸è°ƒæ•´
             return bRet;
         }
     }
@@ -486,15 +486,15 @@ void SplitTemplate<InheritType>::OnMouseMoveSingle(const EventArgs& msg)
         return;
     }
     if ((m_pRightBottom != nullptr) && m_nRightBottomFixedValue.IsStretch()) {
-        //¿Ø¼şÎªÀ­ÉìÀàĞÍ£¬²»µ÷Õû
+        //æ§ä»¶ä¸ºæ‹‰ä¼¸ç±»å‹ï¼Œä¸è°ƒæ•´
         return;
     }
     if ((m_pLeftTop != nullptr) && m_nLeftUpFixedValue.IsStretch()) {
-        //¿Ø¼şÎªÀ­ÉìÀàĞÍ£¬²»µ÷Õû
+        //æ§ä»¶ä¸ºæ‹‰ä¼¸ç±»å‹ï¼Œä¸è°ƒæ•´
         return;
     }
 
-    int32_t nOffset = 0; //ÍÏ¶¯µÄ·¶Î§£¨¿í¶È»òÕß¸ß¶ÈµÄÆ«ÒÆÁ¿, ¿ÉÒÔÊÇÕıÊı£¬Ò²¿ÉÒÔÊÇ¸ºÊı£©
+    int32_t nOffset = 0; //æ‹–åŠ¨çš„èŒƒå›´ï¼ˆå®½åº¦æˆ–è€…é«˜åº¦çš„åç§»é‡, å¯ä»¥æ˜¯æ­£æ•°ï¼Œä¹Ÿå¯ä»¥æ˜¯è´Ÿæ•°ï¼‰
     if (m_bHLayout) {
         nOffset = msg.ptMouse.x - m_ptStart.x;
     }
@@ -502,7 +502,7 @@ void SplitTemplate<InheritType>::OnMouseMoveSingle(const EventArgs& msg)
         nOffset = msg.ptMouse.y - m_ptStart.y;
     }
 
-    //ÍÏ¶¯Ê±£¬²»ÄÜ³¬¹ı×ÜµÄ¿í¶ÈÖµ»òÕß×ÜµÄ¸ß¶ÈÖµ
+    //æ‹–åŠ¨æ—¶ï¼Œä¸èƒ½è¶…è¿‡æ€»çš„å®½åº¦å€¼æˆ–è€…æ€»çš„é«˜åº¦å€¼
     if (nOffset > 0) {
         if ((m_pRightBottom != nullptr) && !m_nRightBottomFixedValue.IsStretch()) {
             if (nOffset > m_nRightBottomFixedValue.GetInt32()) {
@@ -535,11 +535,11 @@ void SplitTemplate<InheritType>::OnMouseMoveSingle(const EventArgs& msg)
         return;
     }
 
-    int32_t nNewValue = nFixedInt.GetInt32() + nOffset; //ĞÂÖµ£¬¿ÉÒÔÊÇÕıÊı£¬Ò²¿ÉÒÔÊÇ¸ºÊı
+    int32_t nNewValue = nFixedInt.GetInt32() + nOffset; //æ–°å€¼ï¼Œå¯ä»¥æ˜¯æ­£æ•°ï¼Œä¹Ÿå¯ä»¥æ˜¯è´Ÿæ•°
     if (nNewValue < 0) {
         nNewValue = 0;
     }
-    int32_t nMin = 0; //×îĞ¡Öµ
+    int32_t nMin = 0; //æœ€å°å€¼
     bool bHLayout = m_bHLayout;
     if (bHLayout) {
         nMin = pControl->GetMinWidth();
@@ -547,19 +547,19 @@ void SplitTemplate<InheritType>::OnMouseMoveSingle(const EventArgs& msg)
     else {
         nMin = pControl->GetMinHeight();
     }
-    //¿ØÖÆ²»Ğ¡ÓÚ×îĞ¡Öµ
+    //æ§åˆ¶ä¸å°äºæœ€å°å€¼
     if (nNewValue < nMin) {
         nNewValue = nMin;
     }
 
-    int32_t nMax = 0; //×î´óÖµ, ²¢ÇÒ°´ÕÕÁíÒ»²àµÄ×îĞ¡ÖµÉèÖÃ£¬Áô³ö×îĞ¡¿Õ¼ä
+    int32_t nMax = 0; //æœ€å¤§å€¼, å¹¶ä¸”æŒ‰ç…§å¦ä¸€ä¾§çš„æœ€å°å€¼è®¾ç½®ï¼Œç•™å‡ºæœ€å°ç©ºé—´
     if (bHLayout) {
         nMax = pControl->GetMaxWidth();
     }
     else {
         nMax = pControl->GetMaxHeight();
     }
-    //¿ØÖÆ²»´óÓÚ×î´óÖµ
+    //æ§åˆ¶ä¸å¤§äºæœ€å¤§å€¼
     if (nNewValue > nMax) {
         nNewValue = nMax;
     }

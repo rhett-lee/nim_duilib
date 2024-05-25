@@ -3,26 +3,26 @@
 
 CAppDb::CAppDb()
 {
-	//ÕâÀï¿ÉÒÔ´ò¿ªdbµÄÒ»Ğ©²Ù×÷ 
+	//è¿™é‡Œå¯ä»¥æ‰“å¼€dbçš„ä¸€äº›æ“ä½œ 
 }
 
 
 CAppDb::~CAppDb()
 {
-	//ÕâÀï¿ÉÒÔ¹Ø±ÕdbµÄÒ»Ğ©²Ù×÷
+	//è¿™é‡Œå¯ä»¥å…³é—­dbçš„ä¸€äº›æ“ä½œ
 }
 
 bool CAppDb::LoadFromDb(std::vector<AppItem>& app_list)
 {
 	app_list.clear();
 	//select from....
-	//Ä¿Ç°Ğ´ËÀ
+	//ç›®å‰å†™æ­»
 	{
 		AppItem item;
 		item.m_id = "1";
 		item.m_icon = L"1.png";
 		item.m_isFrequent = false;
-		item.m_name = L"³ÇÊĞ·şÎñ";
+		item.m_name = L"åŸå¸‚æœåŠ¡";
 		app_list.emplace_back(item);
 	}
 	{
@@ -30,7 +30,7 @@ bool CAppDb::LoadFromDb(std::vector<AppItem>& app_list)
 		item.m_id = "2";
 		item.m_icon = L"2.png";
 		item.m_isFrequent = false;
-		item.m_name = L"ÌìÆøÔ¤±¨";
+		item.m_name = L"å¤©æ°”é¢„æŠ¥";
 		app_list.emplace_back(item);
 	}
 	{
@@ -38,7 +38,7 @@ bool CAppDb::LoadFromDb(std::vector<AppItem>& app_list)
 		item.m_id = "3";
 		item.m_icon = L"3.png";
 		item.m_isFrequent = true;
-		item.m_name = L"¿¼ÇÚ";
+		item.m_name = L"è€ƒå‹¤";
 		app_list.emplace_back(item);
 	}
 	{
@@ -46,7 +46,7 @@ bool CAppDb::LoadFromDb(std::vector<AppItem>& app_list)
 		item.m_id = "4";
 		item.m_icon = L"4.png";
 		item.m_isFrequent = true;
-		item.m_name = L"¹¤×Êµ¥";
+		item.m_name = L"å·¥èµ„å•";
 		app_list.emplace_back(item);
 	}
 	{
@@ -54,7 +54,7 @@ bool CAppDb::LoadFromDb(std::vector<AppItem>& app_list)
 		item.m_id = "5";
 		item.m_icon = L"5.png";
 		item.m_isFrequent = false;
-		item.m_name = L"²âÊÔ5";
+		item.m_name = L"æµ‹è¯•5";
 		app_list.emplace_back(item);
 	}
 	{
@@ -62,7 +62,7 @@ bool CAppDb::LoadFromDb(std::vector<AppItem>& app_list)
 		item.m_id = "6";
 		item.m_icon = L"5.png";
 		item.m_isFrequent = false;
-		item.m_name = L"²âÊÔ6";
+		item.m_name = L"æµ‹è¯•6";
 		app_list.emplace_back(item);
 	}
 	{
@@ -70,7 +70,7 @@ bool CAppDb::LoadFromDb(std::vector<AppItem>& app_list)
 		item.m_id = "7";
 		item.m_icon = L"5.png";
 		item.m_isFrequent = false;
-		item.m_name = L"²âÊÔ7";
+		item.m_name = L"æµ‹è¯•7";
 		app_list.emplace_back(item);
 	}
 	{
@@ -78,7 +78,7 @@ bool CAppDb::LoadFromDb(std::vector<AppItem>& app_list)
 		item.m_id = "8";
 		item.m_icon = L"5.png";
 		item.m_isFrequent = false;
-		item.m_name = L"²âÊÔ8";
+		item.m_name = L"æµ‹è¯•8";
 		app_list.emplace_back(item);
 	}
 	{
@@ -86,7 +86,7 @@ bool CAppDb::LoadFromDb(std::vector<AppItem>& app_list)
 		item.m_id = "9";
 		item.m_icon = L"5.png";
 		item.m_isFrequent = false;
-		item.m_name = L"²âÊÔ9";
+		item.m_name = L"æµ‹è¯•9";
 		app_list.emplace_back(item);
 	}
 	{
@@ -94,7 +94,7 @@ bool CAppDb::LoadFromDb(std::vector<AppItem>& app_list)
 		item.m_id = "10";
 		item.m_icon = L"5.png";
 		item.m_isFrequent = false;
-		item.m_name = L"²âÊÔ10";
+		item.m_name = L"æµ‹è¯•10";
 		app_list.emplace_back(item);
 	}
 	{
@@ -102,7 +102,7 @@ bool CAppDb::LoadFromDb(std::vector<AppItem>& app_list)
 		item.m_id = "11";
 		item.m_icon = L"5.png";
 		item.m_isFrequent = false;
-		item.m_name = L"²âÊÔ11";
+		item.m_name = L"æµ‹è¯•11";
 		app_list.emplace_back(item);
 	}
 	

@@ -227,7 +227,7 @@ void Progress::PaintStateImages(IRender* pRender)
 	if ((m_pProgressImage == nullptr) || (m_pProgressImage->GetImageString().empty())) {
 		return;
 	}
-	//¼ÓÔØÍ¼Æ¬×ÊÔ´
+	//åŠ è½½å›¾ç‰‡èµ„æº
 	LoadImageData(*m_pProgressImage);
 
     m_sProgressImageModify.clear();
@@ -250,7 +250,7 @@ void Progress::PaintStateImages(IRender* pRender)
             , m_rcSrc.left, m_rcSrc.top, m_rcSrc.right, m_rcSrc.bottom);
     }
 
-    // ÈÃcornerµÄÖµ²»³¬¹ý¿É»æÖÆ·¶Î§
+    // è®©cornerçš„å€¼ä¸è¶…è¿‡å¯ç»˜åˆ¶èŒƒå›´
     const UiRect corner = m_pProgressImage->GetImageAttribute().GetImageCorner();
     if (IsHorizontal()) {
         if (corner.left != 0 && corner.left >= rc.right) {

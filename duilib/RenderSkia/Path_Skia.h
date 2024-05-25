@@ -20,7 +20,7 @@ public:
 	virtual IPath* Clone() override;
 	virtual void Reset() override;
 
-	/** 关闭当前绘图
+	/** 鍏抽棴褰撳墠缁樺浘
 	*/
 	virtual void Close() override;
 
@@ -41,12 +41,12 @@ public:
 	virtual UiRect GetBounds(const IPen* pen) override;
 
 public:
-	/** 获取Skia Path
+	/** 鑾峰彇Skia Path
 	*/
 	SkPath* GetSkPath() const;
 
 private:
-	/** 将绘制起点移动到指定的点(x1,y1)
+	/** 灏嗙粯鍒惰捣鐐圭Щ鍔ㄥ埌鎸囧畾鐨勭偣(x1,y1)
 	*/
 	void MoveToPoint(int x1, int y1);
 

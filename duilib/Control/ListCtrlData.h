@@ -8,14 +8,14 @@
 
 namespace ui
 {
-/** ÁĞ±íÏîµÄÊı¾İ¹ÜÀíÆ÷
+/** åˆ—è¡¨é¡¹çš„æ•°æ®ç®¡ç†å™¨
 */
 class ListCtrl;
 struct ListCtrlSubItemData;
 class ListCtrlData : public ui::VirtualListBoxElement
 {
 public:
-    //ÓÃÓÚ´æ´¢µÄÊı¾İ½á¹¹
+    //ç”¨äºå­˜å‚¨çš„æ•°æ®ç»“æ„
     typedef ListCtrlSubItemData2 Storage;
     typedef std::shared_ptr<Storage> StoragePtr;
     typedef std::vector<StoragePtr> StoragePtrList;
@@ -25,584 +25,584 @@ public:
 public:
     ListCtrlData();
 
-    /** ´´½¨Ò»¸öÊı¾İÏî
-    * @param [in] pVirtualListBox ¹ØÁªµÄĞé±íµÄ½Ó¿Ú
-    * @return ·µ»Ø´´½¨ºóµÄÊı¾İÏîÖ¸Õë
+    /** åˆ›å»ºä¸€ä¸ªæ•°æ®é¡¹
+    * @param [in] pVirtualListBox å…³è”çš„è™šè¡¨çš„æ¥å£
+    * @return è¿”å›åˆ›å»ºåçš„æ•°æ®é¡¹æŒ‡é’ˆ
     */
     virtual ui::Control* CreateElement(ui::VirtualListBox* pVirtualListBox) override;
 
-    /** Ìî³äÖ¸¶¨Êı¾İÏî
-    * @param [in] pControl Êı¾İÏî¿Ø¼şÖ¸Õë
-    * @param [in] nElementIndex Êı¾İÔªËØµÄË÷ÒıID£¬·¶Î§£º[0, GetElementCount())
+    /** å¡«å……æŒ‡å®šæ•°æ®é¡¹
+    * @param [in] pControl æ•°æ®é¡¹æ§ä»¶æŒ‡é’ˆ
+    * @param [in] nElementIndex æ•°æ®å…ƒç´ çš„ç´¢å¼•IDï¼ŒèŒƒå›´ï¼š[0, GetElementCount())
     */
     virtual bool FillElement(ui::Control* pControl, size_t nElementIndex) override;
 
-    /** »ñÈ¡Êı¾İÏî×ÜÊı
-    * @return ·µ»ØÊı¾İÏî×ÜÊı
+    /** è·å–æ•°æ®é¡¹æ€»æ•°
+    * @return è¿”å›æ•°æ®é¡¹æ€»æ•°
     */
     virtual size_t GetElementCount() const override;
 
-    /** ÉèÖÃÑ¡Ôñ×´Ì¬
-    * @param [in] nElementIndex Êı¾İÔªËØµÄË÷ÒıID£¬·¶Î§£º[0, GetElementCount())
-    * @param [in] bSelected true±íÊ¾Ñ¡Ôñ×´Ì¬£¬false±íÊ¾·ÇÑ¡Ôñ×´Ì¬
+    /** è®¾ç½®é€‰æ‹©çŠ¶æ€
+    * @param [in] nElementIndex æ•°æ®å…ƒç´ çš„ç´¢å¼•IDï¼ŒèŒƒå›´ï¼š[0, GetElementCount())
+    * @param [in] bSelected trueè¡¨ç¤ºé€‰æ‹©çŠ¶æ€ï¼Œfalseè¡¨ç¤ºéé€‰æ‹©çŠ¶æ€
     */
     virtual void SetElementSelected(size_t nElementIndex, bool bSelected) override;
 
-    /** »ñÈ¡Ñ¡Ôñ×´Ì¬
-    * @param [in] nElementIndex Êı¾İÔªËØµÄË÷ÒıID£¬·¶Î§£º[0, GetElementCount())
-    * @return true±íÊ¾Ñ¡Ôñ×´Ì¬£¬false±íÊ¾·ÇÑ¡Ôñ×´Ì¬
+    /** è·å–é€‰æ‹©çŠ¶æ€
+    * @param [in] nElementIndex æ•°æ®å…ƒç´ çš„ç´¢å¼•IDï¼ŒèŒƒå›´ï¼š[0, GetElementCount())
+    * @return trueè¡¨ç¤ºé€‰æ‹©çŠ¶æ€ï¼Œfalseè¡¨ç¤ºéé€‰æ‹©çŠ¶æ€
     */
     virtual bool IsElementSelected(size_t nElementIndex) const override;
 
-    /** »ñÈ¡Ñ¡ÔñµÄÔªËØÁĞ±í
-    * @param [in] selectedIndexs ·µ»Øµ±Ç°Ñ¡ÔñµÄÔªËØÁĞ±í£¬ÓĞĞ§·¶Î§£º[0, GetElementCount())
+    /** è·å–é€‰æ‹©çš„å…ƒç´ åˆ—è¡¨
+    * @param [in] selectedIndexs è¿”å›å½“å‰é€‰æ‹©çš„å…ƒç´ åˆ—è¡¨ï¼Œæœ‰æ•ˆèŒƒå›´ï¼š[0, GetElementCount())
     */
     virtual void GetSelectedElements(std::vector<size_t>& selectedIndexs) const override;
 
-    /** ÊÇ·ñÖ§³Ö¶àÑ¡
+    /** æ˜¯å¦æ”¯æŒå¤šé€‰
     */
     virtual bool IsMultiSelect() const override;
 
-    /** ÉèÖÃÊÇ·ñÖ§³Ö¶àÑ¡£¬ÓÉ½çÃæ²ãµ÷ÓÃ£¬±£³ÖÓë½çÃæ¿Ø¼şÒ»ÖÂ
-    * @return bMultiSelect true±íÊ¾Ö§³Ö¶àÑ¡£¬false±íÊ¾²»Ö§³Ö¶àÑ¡
+    /** è®¾ç½®æ˜¯å¦æ”¯æŒå¤šé€‰ï¼Œç”±ç•Œé¢å±‚è°ƒç”¨ï¼Œä¿æŒä¸ç•Œé¢æ§ä»¶ä¸€è‡´
+    * @return bMultiSelect trueè¡¨ç¤ºæ”¯æŒå¤šé€‰ï¼Œfalseè¡¨ç¤ºä¸æ”¯æŒå¤šé€‰
     */
     virtual void SetMultiSelect(bool bMultiSelect) override;
 
 public:
-    /** ÉèÖÃÊÓÍ¼½Ó¿Ú
+    /** è®¾ç½®è§†å›¾æ¥å£
     */
     void SetListView(IListCtrlView* pListView);
 
-    /** ÉèÖÃÊÇ·ñ×Ô¶¯¹´Ñ¡Ñ¡ÔñµÄÊı¾İÏî(×÷ÓÃÓÚHeaderÓëÃ¿ĞĞ)
+    /** è®¾ç½®æ˜¯å¦è‡ªåŠ¨å‹¾é€‰é€‰æ‹©çš„æ•°æ®é¡¹(ä½œç”¨äºHeaderä¸æ¯è¡Œ)
     */
     void SetAutoCheckSelect(bool bAutoCheckSelect);
 
-    /** »ñÈ¡ÊÇ·ñ×Ô¶¯¹´Ñ¡Ñ¡ÔñµÄÊı¾İÏî
+    /** è·å–æ˜¯å¦è‡ªåŠ¨å‹¾é€‰é€‰æ‹©çš„æ•°æ®é¡¹
     */
     bool IsAutoCheckSelect() const;
 
-    /** ÉèÖÃÄ¬ÈÏµÄÎÄ±¾ÊôĞÔ
+    /** è®¾ç½®é»˜è®¤çš„æ–‡æœ¬å±æ€§
     */
     void SetDefaultTextStyle(int32_t nTextStyle);
 
-    /** ÉèÖÃÄ¬ÈÏµÄĞĞ¸ß
+    /** è®¾ç½®é»˜è®¤çš„è¡Œé«˜
     */
     void SetDefaultItemHeight(int32_t nItemHeight);
 
-    /** DPI·¢Éú±ä»¯£¬¸üĞÂ¿Ø¼ş´óĞ¡ºÍ²¼¾Ö
-    * @param [in] nOldDpiScale ¾ÉµÄDPIËõ·Å°Ù·Ö±È
-    * @param [in] dpiManager DPIËõ·Å¹ÜÀíÆ÷
+    /** DPIå‘ç”Ÿå˜åŒ–ï¼Œæ›´æ–°æ§ä»¶å¤§å°å’Œå¸ƒå±€
+    * @param [in] nOldDpiScale æ—§çš„DPIç¼©æ”¾ç™¾åˆ†æ¯”
+    * @param [in] dpiManager DPIç¼©æ”¾ç®¡ç†å™¨
     */
     void ChangeDpiScale(const DpiManager& dpiManager, uint32_t nOldDpiScale);
 
 public:
-    /** Ôö¼ÓÒ»ÁĞ, ²¢Ë¢ĞÂ½çÃæÏÔÊ¾
-    * @param [in] columnId ÁĞµÄID
+    /** å¢åŠ ä¸€åˆ—, å¹¶åˆ·æ–°ç•Œé¢æ˜¾ç¤º
+    * @param [in] columnId åˆ—çš„ID
     */
     bool AddColumn(size_t columnId);
 
-    /** É¾³ıÒ»ÁĞ, ²¢Ë¢ĞÂ½çÃæÏÔÊ¾
-    * @param [in] columnId ÁĞµÄID
+    /** åˆ é™¤ä¸€åˆ—, å¹¶åˆ·æ–°ç•Œé¢æ˜¾ç¤º
+    * @param [in] columnId åˆ—çš„ID
     */
     bool RemoveColumn(size_t columnId);
 
-    /** »ñÈ¡Ä³ÁĞµÄ¿í¶È×î´óÖµ
-    * @return ·µ»Ø¸ÃÁĞ¿í¶ÈµÄ×î´óÖµ£¬·µ»ØµÄÊÇDPI×ÔÊÊÓ¦ºóµÄÖµ£» Èç¹ûÊ§°Ü·µ»Ø-1
+    /** è·å–æŸåˆ—çš„å®½åº¦æœ€å¤§å€¼
+    * @return è¿”å›è¯¥åˆ—å®½åº¦çš„æœ€å¤§å€¼ï¼Œè¿”å›çš„æ˜¯DPIè‡ªé€‚åº”åçš„å€¼ï¼› å¦‚æœå¤±è´¥è¿”å›-1
     */
     int32_t GetMaxColumnWidth(size_t columnId) const;
 
-    /** ÉèÖÃÒ»ÁĞµÄ¹´Ñ¡×´Ì¬£¨Checked»òÕßUnChecked£©
-    * @param [in] columnId ÁĞµÄID
-    * @param [in] bChecked true±íÊ¾Ñ¡Ôñ£¬false±íÊ¾È¡ÏûÑ¡Ôñ
-    * @param [in] bRefresh ÊÇ·ñË¢ĞÂ½çÃæÏÔÊ¾
+    /** è®¾ç½®ä¸€åˆ—çš„å‹¾é€‰çŠ¶æ€ï¼ˆCheckedæˆ–è€…UnCheckedï¼‰
+    * @param [in] columnId åˆ—çš„ID
+    * @param [in] bChecked trueè¡¨ç¤ºé€‰æ‹©ï¼Œfalseè¡¨ç¤ºå–æ¶ˆé€‰æ‹©
+    * @param [in] bRefresh æ˜¯å¦åˆ·æ–°ç•Œé¢æ˜¾ç¤º
     */
     bool SetColumnCheck(size_t columnId, bool bChecked, bool bRefresh);
 
-    /** »ñÈ¡Êı¾İÏî×Ü¸öÊı
+    /** è·å–æ•°æ®é¡¹æ€»ä¸ªæ•°
     */
     size_t GetDataItemCount() const;
 
-    /** ÉèÖÃÊı¾İÏî×Ü¸öÊı, ²¢Ë¢ĞÂ½çÃæÏÔÊ¾
-    * @param [in] itemCount Êı¾İÏîµÄ×ÜÊı£¬¾ßÌåÃ¿¸öÊı¾İÏîµÄÊı¾İ£¬Í¨¹ı»Øµ÷µÄ·½Ê½½øĞĞÌî³ä£¨ÄÚ²¿ÎªĞé±íÊµÏÖ£©
+    /** è®¾ç½®æ•°æ®é¡¹æ€»ä¸ªæ•°, å¹¶åˆ·æ–°ç•Œé¢æ˜¾ç¤º
+    * @param [in] itemCount æ•°æ®é¡¹çš„æ€»æ•°ï¼Œå…·ä½“æ¯ä¸ªæ•°æ®é¡¹çš„æ•°æ®ï¼Œé€šè¿‡å›è°ƒçš„æ–¹å¼è¿›è¡Œå¡«å……ï¼ˆå†…éƒ¨ä¸ºè™šè¡¨å®ç°ï¼‰
     */
     bool SetDataItemCount(size_t itemCount);
 
-    /** ÔÚ×îºóÌí¼ÓÒ»¸öÊı¾İÏî, ²¢Ë¢ĞÂ½çÃæÏÔÊ¾
-    * @param [in] columnId ÁĞµÄID
-    * @param [in] dataItem Êı¾İÏîµÄÄÚÈİ
-    * @return ³É¹¦·µ»ØÊı¾İÏîµÄĞĞË÷ÒıºÅ£¬Ê§°ÜÔò·µ»ØBox::InvalidIndex
+    /** åœ¨æœ€åæ·»åŠ ä¸€ä¸ªæ•°æ®é¡¹, å¹¶åˆ·æ–°ç•Œé¢æ˜¾ç¤º
+    * @param [in] columnId åˆ—çš„ID
+    * @param [in] dataItem æ•°æ®é¡¹çš„å†…å®¹
+    * @return æˆåŠŸè¿”å›æ•°æ®é¡¹çš„è¡Œç´¢å¼•å·ï¼Œå¤±è´¥åˆ™è¿”å›Box::InvalidIndex
     */
     size_t AddDataItem(size_t columnId, const ListCtrlSubItemData& dataItem);
 
-    /** ÔÚÖ¸¶¨ĞĞÎ»ÖÃÌí¼ÓÒ»¸öÊı¾İÏî, ²¢Ë¢ĞÂ½çÃæÏÔÊ¾
-    * @param [in] itemIndex Êı¾İÏîµÄË÷ÒıºÅ
-    * @param [in] columnId ÁĞµÄID
-    * @param [in] dataItem Êı¾İÏîµÄÄÚÈİ
+    /** åœ¨æŒ‡å®šè¡Œä½ç½®æ·»åŠ ä¸€ä¸ªæ•°æ®é¡¹, å¹¶åˆ·æ–°ç•Œé¢æ˜¾ç¤º
+    * @param [in] itemIndex æ•°æ®é¡¹çš„ç´¢å¼•å·
+    * @param [in] columnId åˆ—çš„ID
+    * @param [in] dataItem æ•°æ®é¡¹çš„å†…å®¹
     */
     bool InsertDataItem(size_t itemIndex, size_t columnId, const ListCtrlSubItemData& dataItem);
 
-    /** É¾³ıÖ¸¶¨ĞĞµÄÊı¾İÏî, ²¢Ë¢ĞÂ½çÃæÏÔÊ¾
-    * @param [in] itemIndex Êı¾İÏîµÄË÷ÒıºÅ
+    /** åˆ é™¤æŒ‡å®šè¡Œçš„æ•°æ®é¡¹, å¹¶åˆ·æ–°ç•Œé¢æ˜¾ç¤º
+    * @param [in] itemIndex æ•°æ®é¡¹çš„ç´¢å¼•å·
     */
     bool DeleteDataItem(size_t itemIndex);
 
-    /** É¾³ıËùÓĞĞĞµÄÊı¾İÏî, ²¢Ë¢ĞÂ½çÃæÏÔÊ¾
-    * @return Èç¹ûÓĞÊı¾İ±»É¾³ı·µ»Øtrue£¬·ñÔò·µ»Øfalse
+    /** åˆ é™¤æ‰€æœ‰è¡Œçš„æ•°æ®é¡¹, å¹¶åˆ·æ–°ç•Œé¢æ˜¾ç¤º
+    * @return å¦‚æœæœ‰æ•°æ®è¢«åˆ é™¤è¿”å›trueï¼Œå¦åˆ™è¿”å›false
     */
     bool DeleteAllDataItems();
 
-    /** ÉèÖÃÊı¾İÏîµÄĞĞÊôĞÔÊı¾İ, ²¢Ë¢ĞÂ½çÃæÏÔÊ¾
-    * @param [in] itemIndex Êı¾İÏîµÄË÷ÒıºÅ, ÓĞĞ§·¶Î§£º[0, GetDataItemCount())
-    * @param [in] itemData ¹ØÁªµÄÊı¾İ
-    * @param [out] bChanged ·µ»ØÊı¾İÊÇ·ñ±ä»¯
-    * @param [out] bCheckChanged ·µ»ØbCheck±êÖ¾ÊÇ·ñ±ä»¯
+    /** è®¾ç½®æ•°æ®é¡¹çš„è¡Œå±æ€§æ•°æ®, å¹¶åˆ·æ–°ç•Œé¢æ˜¾ç¤º
+    * @param [in] itemIndex æ•°æ®é¡¹çš„ç´¢å¼•å·, æœ‰æ•ˆèŒƒå›´ï¼š[0, GetDataItemCount())
+    * @param [in] itemData å…³è”çš„æ•°æ®
+    * @param [out] bChanged è¿”å›æ•°æ®æ˜¯å¦å˜åŒ–
+    * @param [out] bCheckChanged è¿”å›bCheckæ ‡å¿—æ˜¯å¦å˜åŒ–
     */
     bool SetDataItemData(size_t itemIndex, const ListCtrlItemData& itemData, 
                          bool& bChanged, bool& bCheckChanged);
 
-    /** »ñÈ¡Êı¾İÏîµÄĞĞÊôĞÔÊı¾İ
-    * @param [in] itemIndex Êı¾İÏîµÄË÷ÒıºÅ, ÓĞĞ§·¶Î§£º[0, GetDataItemCount())
-    * @param [in] itemData ¹ØÁªµÄÊı¾İ
+    /** è·å–æ•°æ®é¡¹çš„è¡Œå±æ€§æ•°æ®
+    * @param [in] itemIndex æ•°æ®é¡¹çš„ç´¢å¼•å·, æœ‰æ•ˆèŒƒå›´ï¼š[0, GetDataItemCount())
+    * @param [in] itemData å…³è”çš„æ•°æ®
     */
     bool GetDataItemData(size_t itemIndex, ListCtrlItemData& itemData) const;
 
-    /** ÉèÖÃÊı¾İÏîµÄ¿É¼ûĞÔ, ²¢Ë¢ĞÂ½çÃæÏÔÊ¾
-    * @param [in] itemIndex Êı¾İÏîµÄË÷ÒıºÅ, ÓĞĞ§·¶Î§£º[0, GetDataItemCount())
-    * @param [in] bVisible ÊÇ·ñ¿É¼û
-    * @param [out] bChanged ·µ»ØÊı¾İÊÇ·ñ±ä»¯
+    /** è®¾ç½®æ•°æ®é¡¹çš„å¯è§æ€§, å¹¶åˆ·æ–°ç•Œé¢æ˜¾ç¤º
+    * @param [in] itemIndex æ•°æ®é¡¹çš„ç´¢å¼•å·, æœ‰æ•ˆèŒƒå›´ï¼š[0, GetDataItemCount())
+    * @param [in] bVisible æ˜¯å¦å¯è§
+    * @param [out] bChanged è¿”å›æ•°æ®æ˜¯å¦å˜åŒ–
     */
     bool SetDataItemVisible(size_t itemIndex, bool bVisible, bool& bChanged);
 
-    /** »ñÈ¡Êı¾İÏîµÄ¿É¼ûĞÔ
-    * @param [in] itemIndex Êı¾İÏîµÄË÷ÒıºÅ, ÓĞĞ§·¶Î§£º[0, GetDataItemCount())
-    * @return ·µ»ØÊı¾İÏî¹ØÁªµÄ¿É¼ûĞÔ
+    /** è·å–æ•°æ®é¡¹çš„å¯è§æ€§
+    * @param [in] itemIndex æ•°æ®é¡¹çš„ç´¢å¼•å·, æœ‰æ•ˆèŒƒå›´ï¼š[0, GetDataItemCount())
+    * @return è¿”å›æ•°æ®é¡¹å…³è”çš„å¯è§æ€§
     */
     bool IsDataItemVisible(size_t itemIndex) const;
 
-    /** ÉèÖÃÊı¾İÏîµÄÑ¡ÔñÊôĞÔ, ²¢Ë¢ĞÂ½çÃæÏÔÊ¾
-    * @param [in] itemIndex Êı¾İÏîµÄË÷ÒıºÅ, ÓĞĞ§·¶Î§£º[0, GetDataItemCount())
-    * @param [in] bSelected ÊÇ·ñÑ¡Ôñ×´Ì¬
-    * @param [out] bChanged ·µ»ØÊı¾İÊÇ·ñ±ä»¯
+    /** è®¾ç½®æ•°æ®é¡¹çš„é€‰æ‹©å±æ€§, å¹¶åˆ·æ–°ç•Œé¢æ˜¾ç¤º
+    * @param [in] itemIndex æ•°æ®é¡¹çš„ç´¢å¼•å·, æœ‰æ•ˆèŒƒå›´ï¼š[0, GetDataItemCount())
+    * @param [in] bSelected æ˜¯å¦é€‰æ‹©çŠ¶æ€
+    * @param [out] bChanged è¿”å›æ•°æ®æ˜¯å¦å˜åŒ–
     */
     bool SetDataItemSelected(size_t itemIndex, bool bSelected, bool& bChanged);
 
-    /** »ñÈ¡Êı¾İÏîµÄÑ¡ÔñÊôĞÔ
-    * @param [in] itemIndex Êı¾İÏîµÄË÷ÒıºÅ, ÓĞĞ§·¶Î§£º[0, GetDataItemCount())
-    * @return ·µ»ØÊı¾İÏî¹ØÁªµÄÑ¡Ôñ×´Ì¬
+    /** è·å–æ•°æ®é¡¹çš„é€‰æ‹©å±æ€§
+    * @param [in] itemIndex æ•°æ®é¡¹çš„ç´¢å¼•å·, æœ‰æ•ˆèŒƒå›´ï¼š[0, GetDataItemCount())
+    * @return è¿”å›æ•°æ®é¡¹å…³è”çš„é€‰æ‹©çŠ¶æ€
     */
     bool IsDataItemSelected(size_t itemIndex) const;
 
-    /** ÉèÖÃĞĞÊ×µÄÍ¼±ê, ²»Ë¢ĞÂ½çÃæ£¬ÓÉÍâ²¿¸ºÔğµ÷ÓÃ½çÃæË¢ĞÂ
-    * @param [in] itemIndex Êı¾İÏîµÄË÷ÒıºÅ, ÓĞĞ§·¶Î§£º[0, GetDataItemCount())
-    * @param [in] imageId Í¼±ê×ÊÔ´Id£¬Èç¹ûÎª-1±íÊ¾ĞĞÊ×²»ÏÔÊ¾Í¼±ê, ¸ÃIDÓÉImageListÉú³É
-    * @param [out] bChanged ·µ»ØÊı¾İÊÇ·ñ±ä»¯
+    /** è®¾ç½®è¡Œé¦–çš„å›¾æ ‡, ä¸åˆ·æ–°ç•Œé¢ï¼Œç”±å¤–éƒ¨è´Ÿè´£è°ƒç”¨ç•Œé¢åˆ·æ–°
+    * @param [in] itemIndex æ•°æ®é¡¹çš„ç´¢å¼•å·, æœ‰æ•ˆèŒƒå›´ï¼š[0, GetDataItemCount())
+    * @param [in] imageId å›¾æ ‡èµ„æºIdï¼Œå¦‚æœä¸º-1è¡¨ç¤ºè¡Œé¦–ä¸æ˜¾ç¤ºå›¾æ ‡, è¯¥IDç”±ImageListç”Ÿæˆ
+    * @param [out] bChanged è¿”å›æ•°æ®æ˜¯å¦å˜åŒ–
     */
     bool SetDataItemImageId(size_t itemIndex, int32_t imageId, bool& bChanged);
 
-    /** »ñÈ¡ĞĞÊ×µÄÍ¼±ê
-    * @param [in] itemIndex Êı¾İÏîµÄË÷ÒıºÅ, ÓĞĞ§·¶Î§£º[0, GetDataItemCount())
+    /** è·å–è¡Œé¦–çš„å›¾æ ‡
+    * @param [in] itemIndex æ•°æ®é¡¹çš„ç´¢å¼•å·, æœ‰æ•ˆèŒƒå›´ï¼š[0, GetDataItemCount())
     */
     int32_t GetDataItemImageId(size_t itemIndex) const;
 
-    /** »ñÈ¡Ñ¡Ôñ×´Ì¬(bSelect)
-    * @param [out] bSelected ÊÇ·ñÑ¡Ôñ
-    * @param [out] bPartSelected ÊÇ·ñ²¿·ÖÑ¡Ôñ
+    /** è·å–é€‰æ‹©çŠ¶æ€(bSelect)
+    * @param [out] bSelected æ˜¯å¦é€‰æ‹©
+    * @param [out] bPartSelected æ˜¯å¦éƒ¨åˆ†é€‰æ‹©
     */
     void GetDataItemsSelectStatus(bool& bSelected, bool& bPartSelected) const;
 
-    /** ÉèÖÃÊı¾İÏîµÄ¹´Ñ¡ÊôĞÔ£¨Ã¿ĞĞÇ°ÃæµÄCheckBox£©, ²»Ë¢ĞÂ½çÃæ£¬ÓÉÍâ²¿¸ºÔğµ÷ÓÃ½çÃæË¢ĞÂ
-    * @param [in] itemIndex Êı¾İÏîµÄË÷ÒıºÅ, ÓĞĞ§·¶Î§£º[0, GetDataItemCount())
-    * @param [in] bChecked ÊÇ·ñ¹´Ñ¡×´Ì¬
-    * @param [out] bChanged ·µ»ØÊı¾İÊÇ·ñ±ä»¯
+    /** è®¾ç½®æ•°æ®é¡¹çš„å‹¾é€‰å±æ€§ï¼ˆæ¯è¡Œå‰é¢çš„CheckBoxï¼‰, ä¸åˆ·æ–°ç•Œé¢ï¼Œç”±å¤–éƒ¨è´Ÿè´£è°ƒç”¨ç•Œé¢åˆ·æ–°
+    * @param [in] itemIndex æ•°æ®é¡¹çš„ç´¢å¼•å·, æœ‰æ•ˆèŒƒå›´ï¼š[0, GetDataItemCount())
+    * @param [in] bChecked æ˜¯å¦å‹¾é€‰çŠ¶æ€
+    * @param [out] bChanged è¿”å›æ•°æ®æ˜¯å¦å˜åŒ–
     */
     bool SetDataItemChecked(size_t itemIndex, bool bChecked, bool& bChanged);
 
-    /** »ñÈ¡Êı¾İÏîµÄÑ¡ÔñÊôĞÔ£¨Ã¿ĞĞÇ°ÃæµÄCheckBox£©
-    * @param [in] itemIndex Êı¾İÏîµÄË÷ÒıºÅ, ÓĞĞ§·¶Î§£º[0, GetDataItemCount())
-    * @return ·µ»ØÊı¾İÏî¹ØÁªµÄ¹´Ñ¡×´Ì¬
+    /** è·å–æ•°æ®é¡¹çš„é€‰æ‹©å±æ€§ï¼ˆæ¯è¡Œå‰é¢çš„CheckBoxï¼‰
+    * @param [in] itemIndex æ•°æ®é¡¹çš„ç´¢å¼•å·, æœ‰æ•ˆèŒƒå›´ï¼š[0, GetDataItemCount())
+    * @return è¿”å›æ•°æ®é¡¹å…³è”çš„å‹¾é€‰çŠ¶æ€
     */
     bool IsDataItemChecked(size_t itemIndex) const;
 
-    /** ÉèÖÃËùÓĞĞĞµÄ¹´Ñ¡×´Ì¬£¨Checked»òÕßUnChecked£©, ²¢Ë¢ĞÂ½çÃæÏÔÊ¾
-    * @param [in] bChecked true±íÊ¾¹´Ñ¡£¬false±íÊ¾È¡Ïû¹´Ñ¡
+    /** è®¾ç½®æ‰€æœ‰è¡Œçš„å‹¾é€‰çŠ¶æ€ï¼ˆCheckedæˆ–è€…UnCheckedï¼‰, å¹¶åˆ·æ–°ç•Œé¢æ˜¾ç¤º
+    * @param [in] bChecked trueè¡¨ç¤ºå‹¾é€‰ï¼Œfalseè¡¨ç¤ºå–æ¶ˆå‹¾é€‰
     */
     bool SetAllDataItemsCheck(bool bChecked);
 
-    /** ÅúÁ¿ÉèÖÃ¹´Ñ¡Êı¾İÏî£¨ĞĞÊ×µÄCheckBox´ò¹´µÄÊı¾İ£©, ²»Ë¢ĞÂ½çÃæ£¬ÓÉÍâ²¿¸ºÔğµ÷ÓÃ½çÃæË¢ĞÂ
-    * @param [in] itemIndexs ĞèÒªÉèÖÃ¹´Ñ¡µÄÊı¾İÏîË÷ÒıºÅ£¬ÓĞĞ§·¶Î§£º[0, GetDataItemCount())
-    * @param [in] bClearOthers Èç¹ûÎªtrue£¬±íÊ¾¶ÔÆäËûÒÑÑ¡ÔñµÄ½øĞĞÇå³ıÑ¡Ôñ£¬Ö»±£Áô±¾´ÎÉèÖÃµÄÎªÑ¡ÔñÏî
-    * @param [out] refreshIndexs ·µ»ØĞèÒªË¢ĞÂÏÔÊ¾µÄÔªËØË÷ÒıºÅ
+    /** æ‰¹é‡è®¾ç½®å‹¾é€‰æ•°æ®é¡¹ï¼ˆè¡Œé¦–çš„CheckBoxæ‰“å‹¾çš„æ•°æ®ï¼‰, ä¸åˆ·æ–°ç•Œé¢ï¼Œç”±å¤–éƒ¨è´Ÿè´£è°ƒç”¨ç•Œé¢åˆ·æ–°
+    * @param [in] itemIndexs éœ€è¦è®¾ç½®å‹¾é€‰çš„æ•°æ®é¡¹ç´¢å¼•å·ï¼Œæœ‰æ•ˆèŒƒå›´ï¼š[0, GetDataItemCount())
+    * @param [in] bClearOthers å¦‚æœä¸ºtrueï¼Œè¡¨ç¤ºå¯¹å…¶ä»–å·²é€‰æ‹©çš„è¿›è¡Œæ¸…é™¤é€‰æ‹©ï¼Œåªä¿ç•™æœ¬æ¬¡è®¾ç½®çš„ä¸ºé€‰æ‹©é¡¹
+    * @param [out] refreshIndexs è¿”å›éœ€è¦åˆ·æ–°æ˜¾ç¤ºçš„å…ƒç´ ç´¢å¼•å·
     */
     void SetCheckedDataItems(const std::vector<size_t>& itemIndexs,
                              bool bClearOthers,
                              std::vector<size_t>& refreshIndexs);
 
-    /** »ñÈ¡¹´Ñ¡µÄÔªËØÁĞ±í£¨ĞĞÊ×µÄCheckBox´ò¹´µÄÊı¾İ£©
-    * @param [in] itemIndexs ·µ»Øµ±Ç°¹´Ñ¡µÄÊı¾İÏîË÷ÒıºÅ£¬ÓĞĞ§·¶Î§£º[0, GetDataItemCount())
+    /** è·å–å‹¾é€‰çš„å…ƒç´ åˆ—è¡¨ï¼ˆè¡Œé¦–çš„CheckBoxæ‰“å‹¾çš„æ•°æ®ï¼‰
+    * @param [in] itemIndexs è¿”å›å½“å‰å‹¾é€‰çš„æ•°æ®é¡¹ç´¢å¼•å·ï¼Œæœ‰æ•ˆèŒƒå›´ï¼š[0, GetDataItemCount())
     */
     void GetCheckedDataItems(std::vector<size_t>& itemIndexs) const;
 
-    /** »ñÈ¡¹´Ñ¡×´Ì¬(bChecked)
-    * @param [out] bChecked ÊÇ·ñ¹´Ñ¡
-    * @param [out] bPartChecked ÊÇ·ñ²¿·Ö¹´Ñ¡
+    /** è·å–å‹¾é€‰çŠ¶æ€(bChecked)
+    * @param [out] bChecked æ˜¯å¦å‹¾é€‰
+    * @param [out] bPartChecked æ˜¯å¦éƒ¨åˆ†å‹¾é€‰
     */
     void GetDataItemsCheckStatus(bool& bChecked, bool& bPartChecked) const;
 
-    /** ÉèÖÃÊı¾İÏîµÄÖÃ¶¥×´Ì¬, ²»Ë¢ĞÂ½çÃæ£¬ÓÉÍâ²¿¸ºÔğµ÷ÓÃ½çÃæË¢ĞÂ
-    * @param [in] itemIndex Êı¾İÏîµÄË÷ÒıºÅ, ÓĞĞ§·¶Î§£º[0, GetDataItemCount())
-    * @param [in] nAlwaysAtTop ÖÃ¶¥×´Ì¬£¬-1±íÊ¾²»ÖÃ¶¥, 0 »òÕß ÕıÊı±íÊ¾ÖÃ¶¥£¬ÊıÖµÔ½´óÓÅÏÈ¼¶Ô½¸ß£¬ÓÅÏÈÏÔÊ¾ÔÚ×îÉÏÃæ
-    * @param [out] bChanged ·µ»ØÊı¾İÊÇ·ñ±ä»¯
+    /** è®¾ç½®æ•°æ®é¡¹çš„ç½®é¡¶çŠ¶æ€, ä¸åˆ·æ–°ç•Œé¢ï¼Œç”±å¤–éƒ¨è´Ÿè´£è°ƒç”¨ç•Œé¢åˆ·æ–°
+    * @param [in] itemIndex æ•°æ®é¡¹çš„ç´¢å¼•å·, æœ‰æ•ˆèŒƒå›´ï¼š[0, GetDataItemCount())
+    * @param [in] nAlwaysAtTop ç½®é¡¶çŠ¶æ€ï¼Œ-1è¡¨ç¤ºä¸ç½®é¡¶, 0 æˆ–è€… æ­£æ•°è¡¨ç¤ºç½®é¡¶ï¼Œæ•°å€¼è¶Šå¤§ä¼˜å…ˆçº§è¶Šé«˜ï¼Œä¼˜å…ˆæ˜¾ç¤ºåœ¨æœ€ä¸Šé¢
+    * @param [out] bChanged è¿”å›æ•°æ®æ˜¯å¦å˜åŒ–
     */
     bool SetDataItemAlwaysAtTop(size_t itemIndex, int8_t nAlwaysAtTop, bool& bChanged);
 
-    /** »ñÈ¡Êı¾İÏîµÄÖÃ¶¥×´Ì¬
-    * @param [in] itemIndex Êı¾İÏîµÄË÷ÒıºÅ, ÓĞĞ§·¶Î§£º[0, GetDataItemCount())
-    * @return ·µ»ØÊı¾İÏî¹ØÁªµÄÖÃ¶¥×´Ì¬£¬-1±íÊ¾²»ÖÃ¶¥, 0 »òÕß ÕıÊı±íÊ¾ÖÃ¶¥£¬ÊıÖµÔ½´óÓÅÏÈ¼¶Ô½¸ß£¬ÓÅÏÈÏÔÊ¾ÔÚ×îÉÏÃæ
+    /** è·å–æ•°æ®é¡¹çš„ç½®é¡¶çŠ¶æ€
+    * @param [in] itemIndex æ•°æ®é¡¹çš„ç´¢å¼•å·, æœ‰æ•ˆèŒƒå›´ï¼š[0, GetDataItemCount())
+    * @return è¿”å›æ•°æ®é¡¹å…³è”çš„ç½®é¡¶çŠ¶æ€ï¼Œ-1è¡¨ç¤ºä¸ç½®é¡¶, 0 æˆ–è€… æ­£æ•°è¡¨ç¤ºç½®é¡¶ï¼Œæ•°å€¼è¶Šå¤§ä¼˜å…ˆçº§è¶Šé«˜ï¼Œä¼˜å…ˆæ˜¾ç¤ºåœ¨æœ€ä¸Šé¢
     */
     int8_t GetDataItemAlwaysAtTop(size_t itemIndex) const;
 
-    /** ÉèÖÃÊı¾İÏîµÄĞĞ¸ß, ²»Ë¢ĞÂ½çÃæ£¬ÓÉÍâ²¿¸ºÔğµ÷ÓÃ½çÃæË¢ĞÂ
-    * @param [in] itemIndex Êı¾İÏîµÄË÷ÒıºÅ, ÓĞĞ§·¶Î§£º[0, GetDataItemCount())
-    * @param [in] nItemHeight ĞĞ¸ß, -1±íÊ¾Ê¹ÓÃListCtrlÉèÖÃµÄÄ¬ÈÏĞĞ¸ß£¬ÆäËûÖµ±íÊ¾±¾ĞĞµÄÉèÖÃĞĞ¸ß
-    * @param [out] bChanged ·µ»ØÊı¾İÊÇ·ñ±ä»¯
+    /** è®¾ç½®æ•°æ®é¡¹çš„è¡Œé«˜, ä¸åˆ·æ–°ç•Œé¢ï¼Œç”±å¤–éƒ¨è´Ÿè´£è°ƒç”¨ç•Œé¢åˆ·æ–°
+    * @param [in] itemIndex æ•°æ®é¡¹çš„ç´¢å¼•å·, æœ‰æ•ˆèŒƒå›´ï¼š[0, GetDataItemCount())
+    * @param [in] nItemHeight è¡Œé«˜, -1è¡¨ç¤ºä½¿ç”¨ListCtrlè®¾ç½®çš„é»˜è®¤è¡Œé«˜ï¼Œå…¶ä»–å€¼è¡¨ç¤ºæœ¬è¡Œçš„è®¾ç½®è¡Œé«˜
+    * @param [out] bChanged è¿”å›æ•°æ®æ˜¯å¦å˜åŒ–
     */
     bool SetDataItemHeight(size_t itemIndex, int32_t nItemHeight, bool& bChanged);
 
-    /** »ñÈ¡Êı¾İÏîµÄĞĞ¸ß
-    * @param [in] itemIndex Êı¾İÏîµÄË÷ÒıºÅ, ÓĞĞ§·¶Î§£º[0, GetDataItemCount())
-    * @return ·µ»ØÊı¾İÏî¹ØÁªµÄĞĞ¸ß, -1±íÊ¾Ê¹ÓÃListCtrlÉèÖÃµÄÄ¬ÈÏĞĞ¸ß£¬ÆäËûÖµ±íÊ¾±¾ĞĞµÄÉèÖÃĞĞ¸ß
+    /** è·å–æ•°æ®é¡¹çš„è¡Œé«˜
+    * @param [in] itemIndex æ•°æ®é¡¹çš„ç´¢å¼•å·, æœ‰æ•ˆèŒƒå›´ï¼š[0, GetDataItemCount())
+    * @return è¿”å›æ•°æ®é¡¹å…³è”çš„è¡Œé«˜, -1è¡¨ç¤ºä½¿ç”¨ListCtrlè®¾ç½®çš„é»˜è®¤è¡Œé«˜ï¼Œå…¶ä»–å€¼è¡¨ç¤ºæœ¬è¡Œçš„è®¾ç½®è¡Œé«˜
     */
     int32_t GetDataItemHeight(size_t itemIndex) const;
 
-    /** ÉèÖÃÊı¾İÏîµÄ×Ô¶¨ÒåÊı¾İ, ²»Ë¢ĞÂ½çÃæ
-    * @param [in] itemIndex Êı¾İÏîµÄË÷ÒıºÅ
-    * @param [in] userData Êı¾İÏî¹ØÁªµÄ×Ô¶¨ÒåÊı¾İ
+    /** è®¾ç½®æ•°æ®é¡¹çš„è‡ªå®šä¹‰æ•°æ®, ä¸åˆ·æ–°ç•Œé¢
+    * @param [in] itemIndex æ•°æ®é¡¹çš„ç´¢å¼•å·
+    * @param [in] userData æ•°æ®é¡¹å…³è”çš„è‡ªå®šä¹‰æ•°æ®
     */
     bool SetDataItemUserData(size_t itemIndex, size_t userData);
 
-    /** »ñÈ¡Êı¾İÏîµÄ×Ô¶¨ÒåÊı¾İ
-    * @param [in] itemIndex Êı¾İÏîµÄË÷ÒıºÅ
-    * @return ·µ»ØÊı¾İÏî¹ØÁªµÄ×Ô¶¨ÒåÊı¾İ
+    /** è·å–æ•°æ®é¡¹çš„è‡ªå®šä¹‰æ•°æ®
+    * @param [in] itemIndex æ•°æ®é¡¹çš„ç´¢å¼•å·
+    * @return è¿”å›æ•°æ®é¡¹å…³è”çš„è‡ªå®šä¹‰æ•°æ®
     */
     size_t GetDataItemUserData(size_t itemIndex) const;
 
 public:
-    /** ÉèÖÃÖ¸¶¨<ĞĞ,ÁĞ>µÄÊı¾İÏî£¬²¢Ë¢ĞÂ½çÃæÏÔÊ¾
-    * @param [in] itemIndex Êı¾İÏîµÄË÷ÒıºÅ, ÓĞĞ§·¶Î§£º[0, GetDataItemCount())
-    * @param [in] columnId ÁĞµÄID
-    * @param [in] subItemData Ö¸¶¨Êı¾İÏîµÄÄÚÈİ£¬ÁĞĞòºÅÔÚdataItem.nColumnIndexÖĞÖ¸¶¨
-    * @param [out] bCheckChanged bChecked×´Ì¬ÊÇ·ñ±ä»¯
+    /** è®¾ç½®æŒ‡å®š<è¡Œ,åˆ—>çš„æ•°æ®é¡¹ï¼Œå¹¶åˆ·æ–°ç•Œé¢æ˜¾ç¤º
+    * @param [in] itemIndex æ•°æ®é¡¹çš„ç´¢å¼•å·, æœ‰æ•ˆèŒƒå›´ï¼š[0, GetDataItemCount())
+    * @param [in] columnId åˆ—çš„ID
+    * @param [in] subItemData æŒ‡å®šæ•°æ®é¡¹çš„å†…å®¹ï¼Œåˆ—åºå·åœ¨dataItem.nColumnIndexä¸­æŒ‡å®š
+    * @param [out] bCheckChanged bCheckedçŠ¶æ€æ˜¯å¦å˜åŒ–
     */
     bool SetSubItemData(size_t itemIndex, size_t columnId,
                         const ListCtrlSubItemData& subItemData, bool& bCheckChanged);
 
-    /** »ñÈ¡Ö¸¶¨<ĞĞ,ÁĞ>µÄÊı¾İÏî
-    * @param [in] itemIndex Êı¾İÏîµÄË÷ÒıºÅ, ÓĞĞ§·¶Î§£º[0, GetDataItemCount())
-    * @param [in] columnId ÁĞµÄID
-    * @param [out] subItemData Ö¸¶¨Êı¾İÏîµÄÄÚÈİ
+    /** è·å–æŒ‡å®š<è¡Œ,åˆ—>çš„æ•°æ®é¡¹
+    * @param [in] itemIndex æ•°æ®é¡¹çš„ç´¢å¼•å·, æœ‰æ•ˆèŒƒå›´ï¼š[0, GetDataItemCount())
+    * @param [in] columnId åˆ—çš„ID
+    * @param [out] subItemData æŒ‡å®šæ•°æ®é¡¹çš„å†…å®¹
     */
     bool GetSubItemData(size_t itemIndex, size_t columnId, ListCtrlSubItemData& subItemData) const;
 
-    /** ÉèÖÃÖ¸¶¨Êı¾İÏîµÄÎÄ±¾£¬²¢Ë¢ĞÂ½çÃæÏÔÊ¾
-    * @param [in] itemIndex Êı¾İÏîµÄË÷ÒıºÅ
-    * @param [in] columnId ÁĞµÄID
-    * @param [in] text ĞèÒªÉèÖÃµÄÎÄ±¾ÄÚÈİ
+    /** è®¾ç½®æŒ‡å®šæ•°æ®é¡¹çš„æ–‡æœ¬ï¼Œå¹¶åˆ·æ–°ç•Œé¢æ˜¾ç¤º
+    * @param [in] itemIndex æ•°æ®é¡¹çš„ç´¢å¼•å·
+    * @param [in] columnId åˆ—çš„ID
+    * @param [in] text éœ€è¦è®¾ç½®çš„æ–‡æœ¬å†…å®¹
     */
     bool SetSubItemText(size_t itemIndex, size_t columnId, const std::wstring& text);
 
-    /** »ñÈ¡Ö¸¶¨Êı¾İÏîµÄÎÄ±¾
-    * @param [in] itemIndex Êı¾İÏîµÄË÷ÒıºÅ
-    * @param [in] columnId ÁĞµÄID
-    * @return Êı¾İÏî¹ØÁªµÄÎÄ±¾ÄÚÈİ
+    /** è·å–æŒ‡å®šæ•°æ®é¡¹çš„æ–‡æœ¬
+    * @param [in] itemIndex æ•°æ®é¡¹çš„ç´¢å¼•å·
+    * @param [in] columnId åˆ—çš„ID
+    * @return æ•°æ®é¡¹å…³è”çš„æ–‡æœ¬å†…å®¹
     */
     std::wstring GetSubItemText(size_t itemIndex, size_t columnId) const;
 
-    /** ÉèÖÃÖ¸¶¨Êı¾İÏîµÄÎÄ±¾ÑÕÉ«£¬²¢Ë¢ĞÂ½çÃæÏÔÊ¾
-    * @param [in] itemIndex Êı¾İÏîµÄË÷ÒıºÅ
-    * @param [in] columnId ÁĞµÄID
-    * @param [in] textColor ĞèÒªÉèÖÃµÄÎÄ±¾ÑÕÉ«
+    /** è®¾ç½®æŒ‡å®šæ•°æ®é¡¹çš„æ–‡æœ¬é¢œè‰²ï¼Œå¹¶åˆ·æ–°ç•Œé¢æ˜¾ç¤º
+    * @param [in] itemIndex æ•°æ®é¡¹çš„ç´¢å¼•å·
+    * @param [in] columnId åˆ—çš„ID
+    * @param [in] textColor éœ€è¦è®¾ç½®çš„æ–‡æœ¬é¢œè‰²
     */
     bool SetSubItemTextColor(size_t itemIndex, size_t columnId, const UiColor& textColor);
 
-    /** »ñÈ¡Ö¸¶¨Êı¾İÏîµÄÎÄ±¾ÑÕÉ«£¬²¢Ë¢ĞÂ½çÃæÏÔÊ¾
-    * @param [in] itemIndex Êı¾İÏîµÄË÷ÒıºÅ
-    * @param [in] columnId ÁĞµÄID
-    * @param [out] textColor Êı¾İÏî¹ØÁªµÄÎÄ±¾ÑÕÉ«
+    /** è·å–æŒ‡å®šæ•°æ®é¡¹çš„æ–‡æœ¬é¢œè‰²ï¼Œå¹¶åˆ·æ–°ç•Œé¢æ˜¾ç¤º
+    * @param [in] itemIndex æ•°æ®é¡¹çš„ç´¢å¼•å·
+    * @param [in] columnId åˆ—çš„ID
+    * @param [out] textColor æ•°æ®é¡¹å…³è”çš„æ–‡æœ¬é¢œè‰²
     */
     bool GetSubItemTextColor(size_t itemIndex, size_t columnId, UiColor& textColor) const;
 
-    /** ÉèÖÃÖ¸¶¨Êı¾İÏîµÄÎÄ±¾ÊôĞÔ£¨ÎÄ±¾¶ÔÆë·½Ê½µÈ£©£¬²¢Ë¢ĞÂ½çÃæÏÔÊ¾
-    * @param [in] itemIndex Êı¾İÏîµÄË÷ÒıºÅ, ÓĞĞ§·¶Î§£º[0, GetDataItemCount())
-    * @param [in] columnId ÁĞµÄID
-    * @param [in] nTextFormat ĞèÒªÉèÖÃµÄÎÄ±¾ÊôĞÔ
+    /** è®¾ç½®æŒ‡å®šæ•°æ®é¡¹çš„æ–‡æœ¬å±æ€§ï¼ˆæ–‡æœ¬å¯¹é½æ–¹å¼ç­‰ï¼‰ï¼Œå¹¶åˆ·æ–°ç•Œé¢æ˜¾ç¤º
+    * @param [in] itemIndex æ•°æ®é¡¹çš„ç´¢å¼•å·, æœ‰æ•ˆèŒƒå›´ï¼š[0, GetDataItemCount())
+    * @param [in] columnId åˆ—çš„ID
+    * @param [in] nTextFormat éœ€è¦è®¾ç½®çš„æ–‡æœ¬å±æ€§
     */
     bool SetSubItemTextFormat(size_t itemIndex, size_t columnId, int32_t nTextFormat);
 
-    /** »ñÈ¡Ö¸¶¨Êı¾İÏîµÄÎÄ±¾ÊôĞÔ£¨ÎÄ±¾¶ÔÆë·½Ê½µÈ£©
-    * @param [in] itemIndex Êı¾İÏîµÄË÷ÒıºÅ, ÓĞĞ§·¶Î§£º[0, GetDataItemCount())
-    * @param [in] columnId ÁĞµÄID
-    * @return Êı¾İÏî¹ØÁªµÄÎÄ±¾ÊôĞÔ
+    /** è·å–æŒ‡å®šæ•°æ®é¡¹çš„æ–‡æœ¬å±æ€§ï¼ˆæ–‡æœ¬å¯¹é½æ–¹å¼ç­‰ï¼‰
+    * @param [in] itemIndex æ•°æ®é¡¹çš„ç´¢å¼•å·, æœ‰æ•ˆèŒƒå›´ï¼š[0, GetDataItemCount())
+    * @param [in] columnId åˆ—çš„ID
+    * @return æ•°æ®é¡¹å…³è”çš„æ–‡æœ¬å±æ€§
     */
     int32_t GetSubItemTextFormat(size_t itemIndex, size_t columnId) const;
 
-    /** ÉèÖÃÖ¸¶¨Êı¾İÏîµÄ±³¾°ÑÕÉ«£¬²¢Ë¢ĞÂ½çÃæÏÔÊ¾
-    * @param [in] itemIndex Êı¾İÏîµÄË÷ÒıºÅ
-    * @param [in] columnId ÁĞµÄID
-    * @param [in] bkColor ĞèÒªÉèÖÃµÄ±³¾°ÑÕÉ«
+    /** è®¾ç½®æŒ‡å®šæ•°æ®é¡¹çš„èƒŒæ™¯é¢œè‰²ï¼Œå¹¶åˆ·æ–°ç•Œé¢æ˜¾ç¤º
+    * @param [in] itemIndex æ•°æ®é¡¹çš„ç´¢å¼•å·
+    * @param [in] columnId åˆ—çš„ID
+    * @param [in] bkColor éœ€è¦è®¾ç½®çš„èƒŒæ™¯é¢œè‰²
     */
     bool SetSubItemBkColor(size_t itemIndex, size_t columnId, const UiColor& bkColor);
 
-    /** »ñÈ¡Ö¸¶¨Êı¾İÏîµÄ±³¾°ÑÕÉ«
-    * @param [in] itemIndex Êı¾İÏîµÄË÷ÒıºÅ
-    * @param [in] columnId ÁĞµÄID
-    * @param [out] bkColor Êı¾İÏî¹ØÁªµÄ±³¾°ÑÕÉ«
+    /** è·å–æŒ‡å®šæ•°æ®é¡¹çš„èƒŒæ™¯é¢œè‰²
+    * @param [in] itemIndex æ•°æ®é¡¹çš„ç´¢å¼•å·
+    * @param [in] columnId åˆ—çš„ID
+    * @param [out] bkColor æ•°æ®é¡¹å…³è”çš„èƒŒæ™¯é¢œè‰²
     */
     bool GetSubItemBkColor(size_t itemIndex, size_t columnId, UiColor& bkColor) const;
 
-    /** ÊÇ·ñÏÔÊ¾CheckBox
-    * @param [in] itemIndex Êı¾İÏîµÄË÷ÒıºÅ, ÓĞĞ§·¶Î§£º[0, GetDataItemCount())
-    * @param [in] columnId ÁĞµÄID
+    /** æ˜¯å¦æ˜¾ç¤ºCheckBox
+    * @param [in] itemIndex æ•°æ®é¡¹çš„ç´¢å¼•å·, æœ‰æ•ˆèŒƒå›´ï¼š[0, GetDataItemCount())
+    * @param [in] columnId åˆ—çš„ID
     */
     bool IsSubItemShowCheckBox(size_t itemIndex, size_t columnId) const;
 
-    /** ÉèÖÃÊÇ·ñÏÔÊ¾CheckBox£¬²¢Ë¢ĞÂ½çÃæÏÔÊ¾
-    * @param [in] itemIndex Êı¾İÏîµÄË÷ÒıºÅ, ÓĞĞ§·¶Î§£º[0, GetDataItemCount())
-    * @param [in] columnId ÁĞµÄID
-    * @param [in] bShowCheckBox true±íÊ¾ÏÔÊ¾£¬false±íÊ¾²»ÏÔÊ¾
+    /** è®¾ç½®æ˜¯å¦æ˜¾ç¤ºCheckBoxï¼Œå¹¶åˆ·æ–°ç•Œé¢æ˜¾ç¤º
+    * @param [in] itemIndex æ•°æ®é¡¹çš„ç´¢å¼•å·, æœ‰æ•ˆèŒƒå›´ï¼š[0, GetDataItemCount())
+    * @param [in] columnId åˆ—çš„ID
+    * @param [in] bShowCheckBox trueè¡¨ç¤ºæ˜¾ç¤ºï¼Œfalseè¡¨ç¤ºä¸æ˜¾ç¤º
     */
     bool SetSubItemShowCheckBox(size_t itemIndex, size_t columnId, bool bShowCheckBox);
 
-    /** ÉèÖÃCheckBoxµÄ¹´Ñ¡×´Ì¬
-    * @param [in] itemIndex Êı¾İÏîµÄË÷ÒıºÅ, ÓĞĞ§·¶Î§£º[0, GetDataItemCount())
-    * @param [in] columnId ÁĞµÄID
-    * @param [in] bChecked true±íÊ¾¹´Ñ¡£¬false±íÊ¾²»¹´Ñ¡
-    * @param [in] bRefresh true±íÊ¾Ë¢ĞÂ¸ÃÔªËØµÄ½çÃæÏÔÊ¾£¬false±íÊ¾²»ĞèÒªË¢ĞÂ½çÃæ
+    /** è®¾ç½®CheckBoxçš„å‹¾é€‰çŠ¶æ€
+    * @param [in] itemIndex æ•°æ®é¡¹çš„ç´¢å¼•å·, æœ‰æ•ˆèŒƒå›´ï¼š[0, GetDataItemCount())
+    * @param [in] columnId åˆ—çš„ID
+    * @param [in] bChecked trueè¡¨ç¤ºå‹¾é€‰ï¼Œfalseè¡¨ç¤ºä¸å‹¾é€‰
+    * @param [in] bRefresh trueè¡¨ç¤ºåˆ·æ–°è¯¥å…ƒç´ çš„ç•Œé¢æ˜¾ç¤ºï¼Œfalseè¡¨ç¤ºä¸éœ€è¦åˆ·æ–°ç•Œé¢
     */
     bool SetSubItemCheck(size_t itemIndex, size_t columnId, bool bChecked, bool bRefresh);
 
-    /** »ñÈ¡CheckBoxµÄ¹´Ñ¡×´Ì¬
-    * @param [in] itemIndex Êı¾İÏîµÄË÷ÒıºÅ, ÓĞĞ§·¶Î§£º[0, GetDataItemCount())
-    * @param [in] columnId ÁĞµÄID
-    * @param [out] bChecked true±íÊ¾¹´Ñ¡£¬false±íÊ¾²»¹´Ñ¡
+    /** è·å–CheckBoxçš„å‹¾é€‰çŠ¶æ€
+    * @param [in] itemIndex æ•°æ®é¡¹çš„ç´¢å¼•å·, æœ‰æ•ˆèŒƒå›´ï¼š[0, GetDataItemCount())
+    * @param [in] columnId åˆ—çš„ID
+    * @param [out] bChecked trueè¡¨ç¤ºå‹¾é€‰ï¼Œfalseè¡¨ç¤ºä¸å‹¾é€‰
     */
     bool GetSubItemCheck(size_t itemIndex, size_t columnId, bool& bChecked) const;
 
-    /** »ñÈ¡Ä³Ò»ÁĞµÄ¹´Ñ¡×´Ì¬(bChecked)
-    * @param [in] columnId ÁĞµÄID
-    * @param [out] bChecked ÊÇ·ñÑ¡Ôñ
-    * @param [out] bPartChecked ÊÇ·ñ²¿·ÖÑ¡Ôñ
+    /** è·å–æŸä¸€åˆ—çš„å‹¾é€‰çŠ¶æ€(bChecked)
+    * @param [in] columnId åˆ—çš„ID
+    * @param [out] bChecked æ˜¯å¦é€‰æ‹©
+    * @param [out] bPartChecked æ˜¯å¦éƒ¨åˆ†é€‰æ‹©
     */
     void GetColumnCheckStatus(size_t columnId, bool& bChecked, bool& bPartChecked) const;
 
-    /** ÉèÖÃ¸ÃÁĞµÄÍ¼±ê£¬²¢Ë¢ĞÂ½çÃæÏÔÊ¾
-    * @param [in] itemIndex Êı¾İÏîµÄË÷ÒıºÅ, ÓĞĞ§·¶Î§£º[0, GetDataItemCount())
-    * @param [in] columnId ÁĞµÄID
-    * @param [in] imageId Í¼±ê×ÊÔ´Id£¬Èç¹ûÎª-1±íÊ¾ĞĞÊ×²»ÏÔÊ¾Í¼±ê, ¸ÃIDÓÉImageListÉú³É
+    /** è®¾ç½®è¯¥åˆ—çš„å›¾æ ‡ï¼Œå¹¶åˆ·æ–°ç•Œé¢æ˜¾ç¤º
+    * @param [in] itemIndex æ•°æ®é¡¹çš„ç´¢å¼•å·, æœ‰æ•ˆèŒƒå›´ï¼š[0, GetDataItemCount())
+    * @param [in] columnId åˆ—çš„ID
+    * @param [in] imageId å›¾æ ‡èµ„æºIdï¼Œå¦‚æœä¸º-1è¡¨ç¤ºè¡Œé¦–ä¸æ˜¾ç¤ºå›¾æ ‡, è¯¥IDç”±ImageListç”Ÿæˆ
     */
     bool SetSubItemImageId(size_t itemIndex, size_t columnId, int32_t imageId);
 
-    /** »ñÈ¡¸ÃÁĞµÄÍ¼±ê
-    * @param [in] itemIndex Êı¾İÏîµÄË÷ÒıºÅ, ÓĞĞ§·¶Î§£º[0, GetDataItemCount())
-    * @param [in] columnId ÁĞµÄID
+    /** è·å–è¯¥åˆ—çš„å›¾æ ‡
+    * @param [in] itemIndex æ•°æ®é¡¹çš„ç´¢å¼•å·, æœ‰æ•ˆèŒƒå›´ï¼š[0, GetDataItemCount())
+    * @param [in] columnId åˆ—çš„ID
     */
     int32_t GetSubItemImageId(size_t itemIndex, size_t columnId) const;
 
-    /** ÉèÖÃ¸ÃÁĞµÄÎÄ±¾ÊÇ·ñ¿É±à¼­
-    * @param [in] itemIndex Êı¾İÏîµÄË÷ÒıºÅ, ÓĞĞ§·¶Î§£º[0, GetDataItemCount())
-    * @param [in] columnId ÁĞµÄID
-    * @param [in] bEditable true±íÊ¾¿É±à¼­£¬false±íÊ¾²»¿É±à¼­
+    /** è®¾ç½®è¯¥åˆ—çš„æ–‡æœ¬æ˜¯å¦å¯ç¼–è¾‘
+    * @param [in] itemIndex æ•°æ®é¡¹çš„ç´¢å¼•å·, æœ‰æ•ˆèŒƒå›´ï¼š[0, GetDataItemCount())
+    * @param [in] columnId åˆ—çš„ID
+    * @param [in] bEditable trueè¡¨ç¤ºå¯ç¼–è¾‘ï¼Œfalseè¡¨ç¤ºä¸å¯ç¼–è¾‘
     */
     bool SetSubItemEditable(size_t itemIndex, size_t columnId, bool bEditable);
 
-    /** »ñÈ¡¸ÃÁĞµÄÎÄ±¾ÊÇ·ñ¿É±à¼­
-    * @param [in] itemIndex Êı¾İÏîµÄË÷ÒıºÅ, ÓĞĞ§·¶Î§£º[0, GetDataItemCount())
-    * @param [in] columnId ÁĞµÄID
+    /** è·å–è¯¥åˆ—çš„æ–‡æœ¬æ˜¯å¦å¯ç¼–è¾‘
+    * @param [in] itemIndex æ•°æ®é¡¹çš„ç´¢å¼•å·, æœ‰æ•ˆèŒƒå›´ï¼š[0, GetDataItemCount())
+    * @param [in] columnId åˆ—çš„ID
     */
     bool IsSubItemEditable(size_t itemIndex, size_t columnId) const;
 
-    /** ¶ÔÊı¾İÅÅĞò£¬²¢Ë¢ĞÂ½çÃæÏÔÊ¾
-    * @param [in] columnId ÁĞµÄID
-    * @param [in] nColumnIndex ÁĞµÄĞòºÅ
-    * @param [in] bSortedUp true±íÊ¾ÉıĞò£¬false±íÊ¾½µĞò
-    * @param [in] pfnCompareFunc Êı¾İ±È½Ïº¯Êı
-    * @param [in] pUserData ÓÃ»§×Ô¶¨ÒåÊı¾İ£¬µ÷ÓÃ±È½Ïº¯ÊıµÄÊ±ºò£¬Í¨¹ı²ÎÊı´«»Ø¸ø±È½Ïº¯Êı
+    /** å¯¹æ•°æ®æ’åºï¼Œå¹¶åˆ·æ–°ç•Œé¢æ˜¾ç¤º
+    * @param [in] columnId åˆ—çš„ID
+    * @param [in] nColumnIndex åˆ—çš„åºå·
+    * @param [in] bSortedUp trueè¡¨ç¤ºå‡åºï¼Œfalseè¡¨ç¤ºé™åº
+    * @param [in] pfnCompareFunc æ•°æ®æ¯”è¾ƒå‡½æ•°
+    * @param [in] pUserData ç”¨æˆ·è‡ªå®šä¹‰æ•°æ®ï¼Œè°ƒç”¨æ¯”è¾ƒå‡½æ•°çš„æ—¶å€™ï¼Œé€šè¿‡å‚æ•°ä¼ å›ç»™æ¯”è¾ƒå‡½æ•°
     */
     bool SortDataItems(size_t nColumnId, size_t nColumnIndex, bool bSortedUp,
                        ListCtrlDataCompareFunc pfnCompareFunc, void* pUserData);
 
-    /** ÉèÖÃÍâ²¿×Ô¶¨ÒåµÄÅÅĞòº¯Êı, Ìæ»»Ä¬ÈÏµÄÅÅĞòº¯Êı
-    * @param [in] pfnCompareFunc Êı¾İ±È½Ïº¯Êı
-    * @param [in] pUserData ÓÃ»§×Ô¶¨ÒåÊı¾İ£¬µ÷ÓÃ±È½Ïº¯ÊıµÄÊ±ºò£¬Í¨¹ı²ÎÊı´«»Ø¸ø±È½Ïº¯Êı
+    /** è®¾ç½®å¤–éƒ¨è‡ªå®šä¹‰çš„æ’åºå‡½æ•°, æ›¿æ¢é»˜è®¤çš„æ’åºå‡½æ•°
+    * @param [in] pfnCompareFunc æ•°æ®æ¯”è¾ƒå‡½æ•°
+    * @param [in] pUserData ç”¨æˆ·è‡ªå®šä¹‰æ•°æ®ï¼Œè°ƒç”¨æ¯”è¾ƒå‡½æ•°çš„æ—¶å€™ï¼Œé€šè¿‡å‚æ•°ä¼ å›ç»™æ¯”è¾ƒå‡½æ•°
     */
     void SetSortCompareFunction(ListCtrlDataCompareFunc pfnCompareFunc, void* pUserData);
 
 public:
-    /** ÅúÁ¿ÉèÖÃÑ¡ÔñÔªËØ, ²»¸üĞÂ½çÃæÏÔÊ¾
-    * @param [in] selectedIndexs ĞèÒªÉèÖÃÑ¡ÔñµÄÔªËØÁĞ±í£¬ÓĞĞ§·¶Î§£º[0, GetElementCount())
-    * @param [in] bClearOthers Èç¹ûÎªtrue£¬±íÊ¾¶ÔÆäËûÒÑÑ¡ÔñµÄ½øĞĞÇå³ıÑ¡Ôñ£¬Ö»±£Áô±¾´ÎÉèÖÃµÄÎªÑ¡ÔñÏî
-    * @param [out] refreshIndexs ·µ»ØĞèÒªË¢ĞÂÏÔÊ¾µÄÔªËØË÷ÒıºÅ
+    /** æ‰¹é‡è®¾ç½®é€‰æ‹©å…ƒç´ , ä¸æ›´æ–°ç•Œé¢æ˜¾ç¤º
+    * @param [in] selectedIndexs éœ€è¦è®¾ç½®é€‰æ‹©çš„å…ƒç´ åˆ—è¡¨ï¼Œæœ‰æ•ˆèŒƒå›´ï¼š[0, GetElementCount())
+    * @param [in] bClearOthers å¦‚æœä¸ºtrueï¼Œè¡¨ç¤ºå¯¹å…¶ä»–å·²é€‰æ‹©çš„è¿›è¡Œæ¸…é™¤é€‰æ‹©ï¼Œåªä¿ç•™æœ¬æ¬¡è®¾ç½®çš„ä¸ºé€‰æ‹©é¡¹
+    * @param [out] refreshIndexs è¿”å›éœ€è¦åˆ·æ–°æ˜¾ç¤ºçš„å…ƒç´ ç´¢å¼•å·
     */
     void SetSelectedElements(const std::vector<size_t>& selectedIndexs,
                              bool bClearOthers,
                              std::vector<size_t>& refreshIndexs);
 
-    /** Ñ¡ÔñÈ«²¿(ÅÅ³ı²»¿É¼ûÔªËØ¡¢ÖÃ¶¥ÔªËØ), ²»¸üĞÂ½çÃæÏÔÊ¾
-    * @return Èç¹ûÓĞÊı¾İ±ä»¯·µ»Øtrue£¬·ñÔò·µ»Øfalse
-    * @param [out] refreshIndexs ·µ»ØĞèÒªË¢ĞÂÏÔÊ¾µÄÔªËØË÷ÒıºÅ
+    /** é€‰æ‹©å…¨éƒ¨(æ’é™¤ä¸å¯è§å…ƒç´ ã€ç½®é¡¶å…ƒç´ ), ä¸æ›´æ–°ç•Œé¢æ˜¾ç¤º
+    * @return å¦‚æœæœ‰æ•°æ®å˜åŒ–è¿”å›trueï¼Œå¦åˆ™è¿”å›false
+    * @param [out] refreshIndexs è¿”å›éœ€è¦åˆ·æ–°æ˜¾ç¤ºçš„å…ƒç´ ç´¢å¼•å·
     */
     bool SelectAll(std::vector<size_t>& refreshIndexs);
 
-    /** È¡ÏûËùÓĞÑ¡Ôñ, ²»¸üĞÂ½çÃæÏÔÊ¾£¬¿ÉÒÔÓÉÍâ²¿Ë¢ĞÂ½çÃæÏÔÊ¾
-    * @param [out] refreshIndexs ·µ»ØĞèÒªË¢ĞÂÏÔÊ¾µÄÔªËØË÷ÒıºÅ
+    /** å–æ¶ˆæ‰€æœ‰é€‰æ‹©, ä¸æ›´æ–°ç•Œé¢æ˜¾ç¤ºï¼Œå¯ä»¥ç”±å¤–éƒ¨åˆ·æ–°ç•Œé¢æ˜¾ç¤º
+    * @param [out] refreshIndexs è¿”å›éœ€è¦åˆ·æ–°æ˜¾ç¤ºçš„å…ƒç´ ç´¢å¼•å·
     */
     void SelectNone(std::vector<size_t>& refreshIndexs);
 
-    /** È¡ÏûËùÓĞÑ¡Ôñ(µ«ÅÅ³ı²¿·ÖÔªËØ), ²»¸üĞÂ½çÃæÏÔÊ¾£¬¿ÉÒÔÓÉÍâ²¿Ë¢ĞÂ½çÃæÏÔÊ¾
-    * @param [in] excludeIndexs ĞèÒªÅÅ³ıµÄÔªËØË÷ÒıºÅ£¬Õâ²¿·ÖÔªËØµÄÑ¡Ôñ×´Ì¬±£³ÖÔ­×´
-    * @param [out] refreshIndexs ·µ»ØĞèÒªË¢ĞÂÏÔÊ¾µÄÔªËØË÷ÒıºÅ
+    /** å–æ¶ˆæ‰€æœ‰é€‰æ‹©(ä½†æ’é™¤éƒ¨åˆ†å…ƒç´ ), ä¸æ›´æ–°ç•Œé¢æ˜¾ç¤ºï¼Œå¯ä»¥ç”±å¤–éƒ¨åˆ·æ–°ç•Œé¢æ˜¾ç¤º
+    * @param [in] excludeIndexs éœ€è¦æ’é™¤çš„å…ƒç´ ç´¢å¼•å·ï¼Œè¿™éƒ¨åˆ†å…ƒç´ çš„é€‰æ‹©çŠ¶æ€ä¿æŒåŸçŠ¶
+    * @param [out] refreshIndexs è¿”å›éœ€è¦åˆ·æ–°æ˜¾ç¤ºçš„å…ƒç´ ç´¢å¼•å·
     */
     void SelectNoneExclude(const std::vector<size_t>& excludeIndexs,
                            std::vector<size_t>& refreshIndexs);
 
-    /** ÅĞ¶ÏÒ»¸öĞĞÊı¾İÊÇ·ñ¿ÉÑ¡Ôñ
+    /** åˆ¤æ–­ä¸€ä¸ªè¡Œæ•°æ®æ˜¯å¦å¯é€‰æ‹©
     */
     bool IsSelectableRowData(const ListCtrlItemData& rowData) const;
 
-    /** ÅĞ¶ÏÒ»¸öÊı¾İÔªËØÊÇ·ñÎª¿ÉÑ¡ÔñÏî
-    * @param [in] nElementIndex ÔªËØË÷ÒıºÅ£¬ÓĞĞ§·¶Î§£º[0, GetElementCount())
+    /** åˆ¤æ–­ä¸€ä¸ªæ•°æ®å…ƒç´ æ˜¯å¦ä¸ºå¯é€‰æ‹©é¡¹
+    * @param [in] nElementIndex å…ƒç´ ç´¢å¼•å·ï¼Œæœ‰æ•ˆèŒƒå›´ï¼š[0, GetElementCount())
     */
     bool IsSelectableElement(size_t nElementIndex) const;
 
 private:
-    /** Êı¾İ×ª»»Îª´æ´¢Êı¾İ½á¹¹
+    /** æ•°æ®è½¬æ¢ä¸ºå­˜å‚¨æ•°æ®ç»“æ„
     */
     void SubItemToStorage(const ListCtrlSubItemData& item, Storage& storage) const;
 
-    /** ´æ´¢Êı¾İ×ª»»Îª½á¹¹Êı¾İ
+    /** å­˜å‚¨æ•°æ®è½¬æ¢ä¸ºç»“æ„æ•°æ®
     */
     void StorageToSubItem(const Storage& storage, ListCtrlSubItemData& item) const;
 
-    /** ÅĞ¶ÏÒ»¸öÊı¾İÏîË÷ÒıÊÇ·ñÓĞĞ§
-    * @param [in] itemIndex Êı¾İÏîµÄË÷ÒıºÅ, ÓĞĞ§·¶Î§£º[0, GetDataItemCount())
+    /** åˆ¤æ–­ä¸€ä¸ªæ•°æ®é¡¹ç´¢å¼•æ˜¯å¦æœ‰æ•ˆ
+    * @param [in] itemIndex æ•°æ®é¡¹çš„ç´¢å¼•å·, æœ‰æ•ˆèŒƒå›´ï¼š[0, GetDataItemCount())
     */
     bool IsValidDataItemIndex(size_t itemIndex) const;
 
-    /** ÅĞ¶ÏÒ»¸öÁĞIDÔÚÊı¾İ´æ´¢ÖĞÊÇ·ñÓĞĞ§
+    /** åˆ¤æ–­ä¸€ä¸ªåˆ—IDåœ¨æ•°æ®å­˜å‚¨ä¸­æ˜¯å¦æœ‰æ•ˆ
     */
     bool IsValidDataColumnId(size_t nColumnId) const;
 
-    /** »ñÈ¡Ö¸¶¨Êı¾İÏîµÄÊı¾İ, ¶ÁÈ¡
-    * @param [in] itemIndex Êı¾İÏîµÄË÷ÒıºÅ, ÓĞĞ§·¶Î§£º[0, GetDataItemCount())
-    * @param [in] columnId ÁĞµÄID
-    * @return Èç¹ûÊ§°ÜÔò·µ»Ønullptr
+    /** è·å–æŒ‡å®šæ•°æ®é¡¹çš„æ•°æ®, è¯»å–
+    * @param [in] itemIndex æ•°æ®é¡¹çš„ç´¢å¼•å·, æœ‰æ•ˆèŒƒå›´ï¼š[0, GetDataItemCount())
+    * @param [in] columnId åˆ—çš„ID
+    * @return å¦‚æœå¤±è´¥åˆ™è¿”å›nullptr
     */
     StoragePtr GetSubItemStorage(size_t itemIndex, size_t nColumnId) const;
 
-    /** »ñÈ¡Ö¸¶¨Êı¾İÏîµÄÊı¾İ, Ğ´Èë
-    * @param [in] itemIndex Êı¾İÏîµÄË÷ÒıºÅ, ÓĞĞ§·¶Î§£º[0, GetDataItemCount())
-    * @param [in] columnId ÁĞµÄID
-    * @return Èç¹ûÊ§°ÜÔò·µ»Ønullptr
+    /** è·å–æŒ‡å®šæ•°æ®é¡¹çš„æ•°æ®, å†™å…¥
+    * @param [in] itemIndex æ•°æ®é¡¹çš„ç´¢å¼•å·, æœ‰æ•ˆèŒƒå›´ï¼š[0, GetDataItemCount())
+    * @param [in] columnId åˆ—çš„ID
+    * @return å¦‚æœå¤±è´¥åˆ™è¿”å›nullptr
     */
     StoragePtr GetSubItemStorageForWrite(size_t itemIndex, size_t nColumnId);
 
-    /** »ñÈ¡¸÷¸öÁĞµÄÊı¾İ£¬ÓÃÓÚUIÕ¹Ê¾
-    * @param [in] itemIndex Êı¾İÏîµÄË÷ÒıºÅ, ÓĞĞ§·¶Î§£º[0, GetDataItemCount())
-    * @param [out] subItemList ·µ»Ø¸ÄĞĞËùÓĞÁĞµÄÊı¾İÁĞ±í
+    /** è·å–å„ä¸ªåˆ—çš„æ•°æ®ï¼Œç”¨äºUIå±•ç¤º
+    * @param [in] itemIndex æ•°æ®é¡¹çš„ç´¢å¼•å·, æœ‰æ•ˆèŒƒå›´ï¼š[0, GetDataItemCount())
+    * @param [out] subItemList è¿”å›æ”¹è¡Œæ‰€æœ‰åˆ—çš„æ•°æ®åˆ—è¡¨
     */
     bool GetSubItemStorageList(size_t itemIndex, std::vector<ListCtrlSubItemData2Pair>& subItemList) const;
 
 public:
-    /** »ñÈ¡ĞĞÊôĞÔÊı¾İ
+    /** è·å–è¡Œå±æ€§æ•°æ®
     */
     const RowDataList& GetItemDataList() const;
 
-    /** ÊÇ·ñÎª±ê×¼Ä£Ê½£¨ĞĞ¸ß¶¼ÎªÄ¬ÈÏĞĞ¸ß£¬ÎŞÒş²ØĞĞ£¬ÎŞÖÃ¶¥ĞĞ£©
+    /** æ˜¯å¦ä¸ºæ ‡å‡†æ¨¡å¼ï¼ˆè¡Œé«˜éƒ½ä¸ºé»˜è®¤è¡Œé«˜ï¼Œæ— éšè—è¡Œï¼Œæ— ç½®é¡¶è¡Œï¼‰
     */
     bool IsNormalMode() const;
 
 private:
-    /** ÅÅĞòÊı¾İ
+    /** æ’åºæ•°æ®
     */
     struct StorageData
     {
-        size_t index;       //Ô­À´µÄÊı¾İË÷ÒıºÅ
+        size_t index;       //åŸæ¥çš„æ•°æ®ç´¢å¼•å·
         StoragePtr pStorage;
     };
 
-    /** ¶ÔÊı¾İÅÅĞò
-    * @param [in] dataList ´ıÅÅĞòµÄÊı¾İ
-    * @param [in] nColumnId ÁĞµÄID
-    * @param [in] nColumnIndex ÁĞµÄĞòºÅ
-    * @param [in] bSortedUp true±íÊ¾ÉıĞò£¬false±íÊ¾½µĞò
-    * @param [in] pfnCompareFunc Êı¾İ±È½Ïº¯Êı
-    * @param [in] pUserData ÓÃ»§×Ô¶¨ÒåÊı¾İ£¬µ÷ÓÃ±È½Ïº¯ÊıµÄÊ±ºò£¬Í¨¹ı²ÎÊı´«»Ø¸ø±È½Ïº¯Êı
+    /** å¯¹æ•°æ®æ’åº
+    * @param [in] dataList å¾…æ’åºçš„æ•°æ®
+    * @param [in] nColumnId åˆ—çš„ID
+    * @param [in] nColumnIndex åˆ—çš„åºå·
+    * @param [in] bSortedUp trueè¡¨ç¤ºå‡åºï¼Œfalseè¡¨ç¤ºé™åº
+    * @param [in] pfnCompareFunc æ•°æ®æ¯”è¾ƒå‡½æ•°
+    * @param [in] pUserData ç”¨æˆ·è‡ªå®šä¹‰æ•°æ®ï¼Œè°ƒç”¨æ¯”è¾ƒå‡½æ•°çš„æ—¶å€™ï¼Œé€šè¿‡å‚æ•°ä¼ å›ç»™æ¯”è¾ƒå‡½æ•°
     */
     bool SortStorageData(std::vector<StorageData>& dataList,
                          size_t nColumnId, size_t nColumnIndex, bool bSortedUp,
                          ListCtrlDataCompareFunc pfnCompareFunc,
                          void* pUserData);
 
-    /** Ä¬ÈÏµÄÊı¾İ±È½Ïº¯Êı
-    * @param [in] a µÚÒ»¸ö±È½ÏÊı¾İ
-    * @param [in] b µÚ¶ş¸ö±È½ÏÊı¾İ
-    * @return Èç¹û (a < b)£¬·µ»Øtrue£¬·ñÔò·µ»Øfalse
+    /** é»˜è®¤çš„æ•°æ®æ¯”è¾ƒå‡½æ•°
+    * @param [in] a ç¬¬ä¸€ä¸ªæ¯”è¾ƒæ•°æ®
+    * @param [in] b ç¬¬äºŒä¸ªæ¯”è¾ƒæ•°æ®
+    * @return å¦‚æœ (a < b)ï¼Œè¿”å›trueï¼Œå¦åˆ™è¿”å›false
     */
     bool SortDataCompareFunc(const ListCtrlSubItemData2& a, const ListCtrlSubItemData2& b) const;
 
-    /** ¸üĞÂ¸öĞÔ»¯Êı¾İ£¨Òş²ØĞĞ¡¢ĞĞ¸ß¡¢ÖÃ¶¥µÈ£©
+    /** æ›´æ–°ä¸ªæ€§åŒ–æ•°æ®ï¼ˆéšè—è¡Œã€è¡Œé«˜ã€ç½®é¡¶ç­‰ï¼‰
     */
     void UpdateNormalMode();
 
 private:
-    /** ÊÓÍ¼¿Ø¼ş½Ó¿Ú
+    /** è§†å›¾æ§ä»¶æ¥å£
     */
     IListCtrlView* m_pListView;
 
-    /** ÊÇ·ñ×Ô¶¯¹´Ñ¡Ñ¡ÔñµÄÊı¾İÏî
+    /** æ˜¯å¦è‡ªåŠ¨å‹¾é€‰é€‰æ‹©çš„æ•°æ®é¡¹
     */
     bool m_bAutoCheckSelect;
 
-    /** Êı¾İ£¬°´ÁĞ±£´æ£¬Ã¿¸öÁĞÒ»¸öÊı×é
+    /** æ•°æ®ï¼ŒæŒ‰åˆ—ä¿å­˜ï¼Œæ¯ä¸ªåˆ—ä¸€ä¸ªæ•°ç»„
     */
     StorageMap m_dataMap;
 
-    /** ĞĞµÄÊôĞÔÊı¾İ
+    /** è¡Œçš„å±æ€§æ•°æ®
     */
     RowDataList m_rowDataList;
 
-    /** Íâ²¿ÉèÖÃµÄÅÅĞòº¯Êı
+    /** å¤–éƒ¨è®¾ç½®çš„æ’åºå‡½æ•°
     */
     ListCtrlDataCompareFunc m_pfnCompareFunc;
 
-    /** Íâ²¿ÉèÖÃµÄÅÅĞòº¯Êı¸½¼ÓÊı¾İ
+    /** å¤–éƒ¨è®¾ç½®çš„æ’åºå‡½æ•°é™„åŠ æ•°æ®
     */
     void* m_pUserData;
 
-    /** Òş²ØĞĞµÄ¸öÊı
+    /** éšè—è¡Œçš„ä¸ªæ•°
     */
     int32_t m_hideRowCount;
 
-    /** ·ÇÄ¬ÈÏĞĞ¸ßĞĞµÄ¸öÊı
+    /** éé»˜è®¤è¡Œé«˜è¡Œçš„ä¸ªæ•°
     */
     int32_t m_heightRowCount;
 
-    /** ÖÃ¶¥ĞĞµÄ¸öÊı
+    /** ç½®é¡¶è¡Œçš„ä¸ªæ•°
     */
     int32_t m_atTopRowCount;
 
-    /** ÊÇ·ñÖ§³Ö¶àÑ¡
+    /** æ˜¯å¦æ”¯æŒå¤šé€‰
     */
     bool m_bMultiSelect;
 
-    /** µ¥Ñ¡µÄÊ±ºò£¬Ñ¡ÔñµÄÔªËØË÷ÒıºÅ
+    /** å•é€‰çš„æ—¶å€™ï¼Œé€‰æ‹©çš„å…ƒç´ ç´¢å¼•å·
     */
     size_t m_nSelectedIndex;
 
-    /** µ±Ç°Ä¬ÈÏµÄÎÄ±¾ÊôĞÔ
+    /** å½“å‰é»˜è®¤çš„æ–‡æœ¬å±æ€§
     */
     int32_t m_nDefaultTextStyle;
 
-    /** µ±Ç°Ä¬ÈÏµÄĞĞ¸ß
+    /** å½“å‰é»˜è®¤çš„è¡Œé«˜
     */
     int32_t m_nDefaultItemHeight;
 };

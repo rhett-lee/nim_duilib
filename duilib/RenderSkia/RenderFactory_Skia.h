@@ -25,12 +25,12 @@ public:
 	virtual IRender* CreateRender(Window* pWindow) override;
 
 public:
-	/** »ñÈ¡Skia×ÖÌå¹ÜÀíÆ÷
+	/** è·å–Skiaå­—ä½“ç®¡ç†å™¨
 	*/
 	SkFontMgr* GetSkFontMgr();
 
 private:
-	/** Skia×ÖÌå¹ÜÀíÆ÷
+	/** Skiaå­—ä½“ç®¡ç†å™¨
 	*/
 	SkFontMgr* m_pSkFontMgr;
 };

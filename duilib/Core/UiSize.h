@@ -8,7 +8,7 @@
 namespace ui 
 {
 
-/** SizeµÄ·â×°
+/** Sizeçš„å°è£…
 */
 class UILIB_API UiSize
 {
@@ -30,7 +30,7 @@ public:
 		cy = cyValue;
 	}
 
-	/** ÉèÖÃĞÂµÄ¿í¶ÈºÍ¸ß¶È
+	/** è®¾ç½®æ–°çš„å®½åº¦å’Œé«˜åº¦
 	*/
 	void SetWidthHeight(int32_t cxValue, int32_t cyValue)
 	{
@@ -38,23 +38,23 @@ public:
 		cy = cyValue;
 	}
 
-	/** ÉèÖÃĞÂµÄ¿í¶È
+	/** è®¾ç½®æ–°çš„å®½åº¦
 	*/
 	void SetWidth(int32_t cxValue) { cx = cxValue; }
 
-	/** ÉèÖÃĞÂµÄ¸ß¶È
+	/** è®¾ç½®æ–°çš„é«˜åº¦
 	*/
 	void SetHeight(int32_t cyValue) { cy = cyValue; }
 
-	/** ·µ»Ø¿í¶È
+	/** è¿”å›å®½åº¦
 	*/
 	constexpr int32_t Width() const { return cx; }
 
-	/** ·µ»Ø¸ß¶È
+	/** è¿”å›é«˜åº¦
 	*/
 	constexpr int32_t Height() const { return cy; }
 
-	/** ¼ì²é¿í¶ÈºÍ¸ß¶ÈÖµÊÇ·ñÎªÓĞĞ§Öµ£¬²¢ĞŞÕı
+	/** æ£€æŸ¥å®½åº¦å’Œé«˜åº¦å€¼æ˜¯å¦ä¸ºæœ‰æ•ˆå€¼ï¼Œå¹¶ä¿®æ­£
 	*/
 	void Validate()
 	{
@@ -66,15 +66,15 @@ public:
 		}
 	}
 
-	/** ¸ß¶ÈºÍ¿í¶ÈÊÇ·ñÎªÓĞĞ§Öµ
+	/** é«˜åº¦å’Œå®½åº¦æ˜¯å¦ä¸ºæœ‰æ•ˆå€¼
 	*/
 	bool IsValid() const { return cx >= 0 && cy >= 0; }
 
-	/** Èç¹ûcxºÍcy¶¼ÊÇ0£¬·µ»Øtrue
+	/** å¦‚æœcxå’Œcyéƒ½æ˜¯0ï¼Œè¿”å›true
 	*/
 	bool IsEmpty() const { return cx == 0 && cy == 0; }
 
-	/** cxºÍcy¶¼ÉèÖÃÎª0
+	/** cxå’Œcyéƒ½è®¾ç½®ä¸º0
 	*/
 	void Clear() 
 	{ 
@@ -82,28 +82,28 @@ public:
 		cy = 0; 
 	}
 
-	/** ÅĞ¶ÏÊÇ·ñÓëÁíÍâÒ»¸öSizeÏàÍ¬
+	/** åˆ¤æ–­æ˜¯å¦ä¸å¦å¤–ä¸€ä¸ªSizeç›¸åŒ
 	*/
 	bool Equals(int32_t cxValue, int32_t cyValue) const
 	{
 		return cx == cxValue && cy == cyValue;
 	}
 
-	/** ÅĞ¶ÏÊÇ·ñÓëÁíÍâÒ»¸öSizeÏàÍ¬
+	/** åˆ¤æ–­æ˜¯å¦ä¸å¦å¤–ä¸€ä¸ªSizeç›¸åŒ
 	*/
 	bool Equals(const UiSize& dst) const
 	{
 		return cx == dst.cx && cy == dst.cy;
 	}
 
-	/** ÅĞ¶ÏÁ½¸öÖµÊÇ·ñÏàµÈ
+	/** åˆ¤æ–­ä¸¤ä¸ªå€¼æ˜¯å¦ç›¸ç­‰
 	*/
 	friend bool operator == (const UiSize& a, const UiSize& b)
 	{
 		return a.Equals(b);
 	}
 
-	/** ÅĞ¶ÏÁ½¸öÖµÊÇ·ñ²»ÏàµÈ
+	/** åˆ¤æ–­ä¸¤ä¸ªå€¼æ˜¯å¦ä¸ç›¸ç­‰
 	*/
 	friend bool operator != (const UiSize& a, const UiSize& b)
 	{
@@ -111,11 +111,11 @@ public:
 	}
 
 public:
-    /** ¿í¶È
+    /** å®½åº¦
     */
     int32_t cx;
 
-    /** ¸ß¶È
+    /** é«˜åº¦
     */
     int32_t cy;
 };

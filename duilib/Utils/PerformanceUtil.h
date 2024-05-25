@@ -11,7 +11,7 @@
 namespace ui 
 {
 
-/** ´úÂëÖ´ĞĞĞÔÄÜ·ÖÎö¹¤¾ß
+/** ä»£ç æ‰§è¡Œæ€§èƒ½åˆ†æå·¥å…·
 */
 class UILIB_API PerformanceUtil
 {
@@ -19,41 +19,41 @@ public:
 	PerformanceUtil();
 	~PerformanceUtil();
 
-	/** µ¥Àı¶ÔÏó
+	/** å•ä¾‹å¯¹è±¡
 	*/
 	static PerformanceUtil& Instance();
 
-	/** ´úÂë¿ªÊ¼Ö´ĞĞ£¬¿ªÊ¼¼ÆÊ±
-	* @param [in] name Í³¼ÆÏîµÄÃû³Æ
+	/** ä»£ç å¼€å§‹æ‰§è¡Œï¼Œå¼€å§‹è®¡æ—¶
+	* @param [in] name ç»Ÿè®¡é¡¹çš„åç§°
 	*/
 	void BeginStat(const std::wstring& name);
 
-	/** ´úÂë½áÊøÖ´ĞĞ£¬Í³¼ÆÖ´ĞĞĞÔÄÜ
-	* @param [in] name Í³¼ÆÏîµÄÃû³Æ
+	/** ä»£ç ç»“æŸæ‰§è¡Œï¼Œç»Ÿè®¡æ‰§è¡Œæ€§èƒ½
+	* @param [in] name ç»Ÿè®¡é¡¹çš„åç§°
 	*/
 	void EndStat(const std::wstring& name);
 	
 private:
-	/** ¼ÇÂ¼Ã¿ÏîÍ³¼ÆµÄ½á¹û
+	/** è®°å½•æ¯é¡¹ç»Ÿè®¡çš„ç»“æœ
 	*/
 	struct TStat
 	{
-		//ÊÇ·ñÓĞ¿ªÊ¼Êı¾İ
+		//æ˜¯å¦æœ‰å¼€å§‹æ•°æ®
 		bool hasStarted = false;
 
-		//¿ªÊ¼Ê±¼ä
+		//å¼€å§‹æ—¶é—´
 		std::chrono::steady_clock::time_point startTime;
 
-		//½áÊøÊ±¼ä
+		//ç»“æŸæ—¶é—´
 		std::chrono::steady_clock::time_point endTime;
 
-		//´úÂëÖ´ĞĞ×ÜÊ±¼ä£ºÎ¢Ãë(Ç§·ÖÖ®Ò»ºÁÃë)
+		//ä»£ç æ‰§è¡Œæ€»æ—¶é—´ï¼šå¾®ç§’(åƒåˆ†ä¹‹ä¸€æ¯«ç§’)
 		std::chrono::microseconds totalTimes = std::chrono::microseconds::zero();
 
-		//Í³¼Æ×Ü´ÎÊı
+		//ç»Ÿè®¡æ€»æ¬¡æ•°
 		uint32_t totalCount = 0;
 
-		/** µ¥´Î×î´ó£º£ºÎ¢Ãë(Ç§·ÖÖ®Ò»ºÁÃë)
+		/** å•æ¬¡æœ€å¤§ï¼šï¼šå¾®ç§’(åƒåˆ†ä¹‹ä¸€æ¯«ç§’)
 		*/
 		std::chrono::microseconds maxTime = std::chrono::microseconds::zero();
 	};

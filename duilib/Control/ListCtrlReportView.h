@@ -7,9 +7,9 @@
 
 namespace ui
 {
-//°üº¬Àà£ºListCtrlReportView / ListCtrlReportLayout
+//åŒ…å«ç±»ï¼šListCtrlReportView / ListCtrlReportLayout
 
-/** ÁĞ±íÊı¾İÏÔÊ¾ºÍ²¼¾Ö¹¦ÄÜ(ReportÀàĞÍ)
+/** åˆ—è¡¨æ•°æ®æ˜¾ç¤ºå’Œå¸ƒå±€åŠŸèƒ½(Reportç±»å‹)
 */
 class ListCtrl;
 class ListCtrlData;
@@ -24,165 +24,165 @@ public:
     virtual std::wstring GetType() const override { return L"ListCtrlReportView"; }
     virtual void HandleEvent(const EventArgs& msg) override;
 
-    /** ÉèÖÃListCtrl¿Ø¼ş½Ó¿Ú
+    /** è®¾ç½®ListCtrlæ§ä»¶æ¥å£
     */
     void SetListCtrl(ListCtrl* pListCtrl);
 
-    /** ÉèÖÃÊı¾İ´úÀí¶ÔÏó
-    * @param[in] pProvider Êı¾İ´úÀí¶ÔÏó
+    /** è®¾ç½®æ•°æ®ä»£ç†å¯¹è±¡
+    * @param[in] pProvider æ•°æ®ä»£ç†å¯¹è±¡
     */
     virtual void SetDataProvider(VirtualListBoxElement* pProvider) override;
 
-    /** Ë¢ĞÂÁĞ±í
+    /** åˆ·æ–°åˆ—è¡¨
     */
     virtual void Refresh() override;
 
-    /** »ñÈ¡ÁĞ±í¿Ø¼şµÄ¿í¶È£¨HeaderµÄ¸÷¸öÁĞ×Ü¿í¶ÈÖ®ºÍ£©
+    /** è·å–åˆ—è¡¨æ§ä»¶çš„å®½åº¦ï¼ˆHeaderçš„å„ä¸ªåˆ—æ€»å®½åº¦ä¹‹å’Œï¼‰
     */
     int32_t GetListCtrlWidth() const;
 
-    /** ÉèÖÃ¶¥²¿ÔªËØµÄË÷ÒıºÅ
+    /** è®¾ç½®é¡¶éƒ¨å…ƒç´ çš„ç´¢å¼•å·
     */
     void SetTopElementIndex(size_t nTopElementIndex);
 
-    /** »ñÈ¡¶¥²¿ÔªËØµÄË÷ÒıºÅ
+    /** è·å–é¡¶éƒ¨å…ƒç´ çš„ç´¢å¼•å·
     */
     virtual size_t GetTopElementIndex() const override;
 
-    /** ÉèÖÃµ±Ç°ÏÔÊ¾µÄÊı¾İÏîÁĞ±í£¬Ë³ĞòÊÇ´ÓÉÏµ½ÏÂ
-    * @param [in] itemIndexList µ±Ç°ÏÔÊ¾µÄÊı¾İÏîË÷ÒıºÅÁĞ±í
+    /** è®¾ç½®å½“å‰æ˜¾ç¤ºçš„æ•°æ®é¡¹åˆ—è¡¨ï¼Œé¡ºåºæ˜¯ä»ä¸Šåˆ°ä¸‹
+    * @param [in] itemIndexList å½“å‰æ˜¾ç¤ºçš„æ•°æ®é¡¹ç´¢å¼•å·åˆ—è¡¨
     */
     void SetDisplayDataItems(const std::vector<size_t>& itemIndexList);
 
-    /** »ñÈ¡µ±Ç°ÏÔÊ¾µÄÊı¾İÏîÁĞ±í£¬Ë³ĞòÊÇ´ÓÉÏµ½ÏÂ
-    * @param [in] itemIndexList µ±Ç°ÏÔÊ¾µÄÊı¾İÏîË÷ÒıºÅÁĞ±í
+    /** è·å–å½“å‰æ˜¾ç¤ºçš„æ•°æ®é¡¹åˆ—è¡¨ï¼Œé¡ºåºæ˜¯ä»ä¸Šåˆ°ä¸‹
+    * @param [in] itemIndexList å½“å‰æ˜¾ç¤ºçš„æ•°æ®é¡¹ç´¢å¼•å·åˆ—è¡¨
     */
     virtual void GetDisplayDataItems(std::vector<size_t>& itemIndexList) const override;
 
-    /** ÅĞ¶ÏÒ»¸öÊı¾İÏîÊÇ·ñ¿É¼û
-    * @param [in] itemIndex Êı¾İÏîµÄË÷ÒıºÅ
+    /** åˆ¤æ–­ä¸€ä¸ªæ•°æ®é¡¹æ˜¯å¦å¯è§
+    * @param [in] itemIndex æ•°æ®é¡¹çš„ç´¢å¼•å·
     */
     virtual bool IsDataItemDisplay(size_t itemIndex) const override;
 
-    /** È·±£Êı¾İË÷ÒıÏî¿É¼û
-    * @param [in] itemIndex Êı¾İÏîµÄË÷ÒıºÅ
-    * @param [in] bToTop ÊÇ·ñÈ·±£ÔÚ×îÉÏ·½
+    /** ç¡®ä¿æ•°æ®ç´¢å¼•é¡¹å¯è§
+    * @param [in] itemIndex æ•°æ®é¡¹çš„ç´¢å¼•å·
+    * @param [in] bToTop æ˜¯å¦ç¡®ä¿åœ¨æœ€ä¸Šæ–¹
     */
     virtual bool EnsureDataItemVisible(size_t itemIndex, bool bToTop) override;
 
 public:
-    /** µÃµ½¿É¼û·¶Î§ÄÚµÚÒ»¸öÔªËØµÄË÷Òı
-    * @param [in] nScrollPosY µ±Ç°Y¹ö¶¯ÌõµÄÎ»ÖÃ
-    * @return ·µ»ØÔªËØµÄË÷Òı
+    /** å¾—åˆ°å¯è§èŒƒå›´å†…ç¬¬ä¸€ä¸ªå…ƒç´ çš„ç´¢å¼•
+    * @param [in] nScrollPosY å½“å‰Yæ»šåŠ¨æ¡çš„ä½ç½®
+    * @return è¿”å›å…ƒç´ çš„ç´¢å¼•
     */
     size_t GetTopDataItemIndex(int64_t nScrollPosY) const;
 
-    /** »ñÈ¡Ö¸¶¨ÔªËØµÄ¸ß¶È£¨ĞĞ¸ß£©
-    * @param [in] itemIndex Êı¾İÏîµÄË÷ÒıºÅ
+    /** è·å–æŒ‡å®šå…ƒç´ çš„é«˜åº¦ï¼ˆè¡Œé«˜ï¼‰
+    * @param [in] itemIndex æ•°æ®é¡¹çš„ç´¢å¼•å·
     */
     int32_t GetDataItemHeight(size_t itemIndex) const;
 
     struct ShowItemInfo
     {
-        size_t nItemIndex;      //ÔªËØË÷Òı
-        int32_t nItemHeight;    //ÔªËØµÄ¸ß¶È
+        size_t nItemIndex;      //å…ƒç´ ç´¢å¼•
+        int32_t nItemHeight;    //å…ƒç´ çš„é«˜åº¦
     };
 
-    /** »ñÈ¡ĞèÒªÕ¹Ê¾µÄÊı¾İ£ºÖÃ¶¥µÄÓÅÏÈ£¬²¢ÇÒ°´Ë³Ğò
-    @param [in] nScrollPosY µ±Ç°Y¹ö¶¯ÌõµÄÎ»ÖÃ
-    @param [in] maxCount ×î¶àÈ¡¶àÉÙÌõ¼ÇÂ¼(°üº¬ÖÃ¶¥ºÍ·ÇÖÃ¶¥µÄ)
-    @param [out] itemIndexList ·µ»ØĞèÒªÕ¹Ê¾µÄÔªËØĞòºÅ(·ÇÖÃ¶¥µÄ)
-    @param [out] atTopItemIndexList ·µ»ØĞèÒªÕ¹Ê¾µÄÔªËØĞòºÅ(ÖÃ¶¥µÄ)
-    @param [out] nPrevItemHeights µÚÒ»Ìõ¿É¼ûÔªËØÖ®Ç°ËùÓĞÔªËØµÄ×Ü¸ß¶È£¨²»º¬ÖÃ¶¥ÔªËØ£©
+    /** è·å–éœ€è¦å±•ç¤ºçš„æ•°æ®ï¼šç½®é¡¶çš„ä¼˜å…ˆï¼Œå¹¶ä¸”æŒ‰é¡ºåº
+    @param [in] nScrollPosY å½“å‰Yæ»šåŠ¨æ¡çš„ä½ç½®
+    @param [in] maxCount æœ€å¤šå–å¤šå°‘æ¡è®°å½•(åŒ…å«ç½®é¡¶å’Œéç½®é¡¶çš„)
+    @param [out] itemIndexList è¿”å›éœ€è¦å±•ç¤ºçš„å…ƒç´ åºå·(éç½®é¡¶çš„)
+    @param [out] atTopItemIndexList è¿”å›éœ€è¦å±•ç¤ºçš„å…ƒç´ åºå·(ç½®é¡¶çš„)
+    @param [out] nPrevItemHeights ç¬¬ä¸€æ¡å¯è§å…ƒç´ ä¹‹å‰æ‰€æœ‰å…ƒç´ çš„æ€»é«˜åº¦ï¼ˆä¸å«ç½®é¡¶å…ƒç´ ï¼‰
     */
     void GetDataItemsToShow(int64_t nScrollPosY, size_t maxCount, 
                             std::vector<ShowItemInfo>& itemIndexList,
                             std::vector<ShowItemInfo>& atTopItemIndexList,
                             int64_t& nPrevItemHeights) const;
 
-    /** »ñÈ¡Ö¸¶¨¸ß¶ÈµÄÇøÓò£¬×î¶à¿ÉÒÔÕ¹Ê¾¶àÉÙÌõÊı¾İ
-    @param [in] nScrollPosY µ±Ç°Y¹ö¶¯ÌõµÄÎ»ÖÃ
-    @param [in] nRectHeight ÇøÓò¸ß¶È
-    @param [out] pItemIndexList ·µ»Ø¿ÉÒÔÏÔÊ¾µÄÔªËØĞòºÅ
-    @param [out] pAtTopItemIndexList ÖÃ¶¥ÏîµÄÔªËØĞòºÅ
-    @return ·µ»Ø¿ÉÒÔÕ¹Ê¾µÄÊı¾İÌõÊı
+    /** è·å–æŒ‡å®šé«˜åº¦çš„åŒºåŸŸï¼Œæœ€å¤šå¯ä»¥å±•ç¤ºå¤šå°‘æ¡æ•°æ®
+    @param [in] nScrollPosY å½“å‰Yæ»šåŠ¨æ¡çš„ä½ç½®
+    @param [in] nRectHeight åŒºåŸŸé«˜åº¦
+    @param [out] pItemIndexList è¿”å›å¯ä»¥æ˜¾ç¤ºçš„å…ƒç´ åºå·
+    @param [out] pAtTopItemIndexList ç½®é¡¶é¡¹çš„å…ƒç´ åºå·
+    @return è¿”å›å¯ä»¥å±•ç¤ºçš„æ•°æ®æ¡æ•°
     */
     int32_t GetMaxDataItemsToShow(int64_t nScrollPosY, int32_t nRectHeight, 
                                   std::vector<size_t>* pItemIndexList = nullptr,
                                   std::vector<size_t>* pAtTopItemIndexList = nullptr) const;
 
-    /** »ñÈ¡Ö¸¶¨ÔªËØµÄÏÔÊ¾Î»ÖÃ×Ü¸ß¶ÈÖµ
-    * @param [in] itemIndex Êı¾İÏîµÄË÷ÒıºÅ
-    * @parma [in] bIncludeAtTops ÊÇ·ñ°üº¬ÖÃ¶¥ÔªËØµÄ¸ß¶ÈÖµ
-    * @return ÏÔÊ¾Î»ÖÃ×Ü¸ß¶ÈÖµ£¬²»°üº¬¸ÃÔªËØ×ÔÉí
+    /** è·å–æŒ‡å®šå…ƒç´ çš„æ˜¾ç¤ºä½ç½®æ€»é«˜åº¦å€¼
+    * @param [in] itemIndex æ•°æ®é¡¹çš„ç´¢å¼•å·
+    * @parma [in] bIncludeAtTops æ˜¯å¦åŒ…å«ç½®é¡¶å…ƒç´ çš„é«˜åº¦å€¼
+    * @return æ˜¾ç¤ºä½ç½®æ€»é«˜åº¦å€¼ï¼Œä¸åŒ…å«è¯¥å…ƒç´ è‡ªèº«
     */
     int64_t GetDataItemTotalHeights(size_t itemIndex, bool bIncludeAtTops) const;
 
 public:
-    /** ÊÇ·ñÎª±ê×¼Ä£Ê½£¨ĞĞ¸ß¶¼ÎªÄ¬ÈÏĞĞ¸ß£¬ÎŞÒş²ØĞĞ£¬ÎŞÖÃ¶¥ĞĞ£©
+    /** æ˜¯å¦ä¸ºæ ‡å‡†æ¨¡å¼ï¼ˆè¡Œé«˜éƒ½ä¸ºé»˜è®¤è¡Œé«˜ï¼Œæ— éšè—è¡Œï¼Œæ— ç½®é¡¶è¡Œï¼‰
     */
     bool IsNormalMode() const;
 
-    /** ÉèÖÃÖÃ¶¥µÄUI¿Ø¼şË÷ÒıºÅ
+    /** è®¾ç½®ç½®é¡¶çš„UIæ§ä»¶ç´¢å¼•å·
     */
     void SetAtTopControlIndex(const std::vector<size_t>& atTopControlList);
 
-    /** µ÷ÕûUI¿Ø¼ş¸öÊı£¬ÒÔÈ·±£×ã¹»ÏÔÊ¾³öÓ¦ÏÔÊ¾µÄÊı¾İ
+    /** è°ƒæ•´UIæ§ä»¶ä¸ªæ•°ï¼Œä»¥ç¡®ä¿è¶³å¤Ÿæ˜¾ç¤ºå‡ºåº”æ˜¾ç¤ºçš„æ•°æ®
     */
     void AjustItemCount();
 
 public:
-    /** ºáÏòÍø¸ñÏßµÄ¿í¶È
-    * @param [in] nLineWidth Íø¸ñÏßµÄ¿í¶È£¬Èç¹ûÎª0±íÊ¾²»ÏÔÊ¾ºáÏòÍø¸ñÏß
-    * @param [in] bNeedDpiScale Èç¹ûÎªtrue±íÊ¾ĞèÒª¶Ô¿í¶È½øĞĞDPI×ÔÊÊÓ¦
+    /** æ¨ªå‘ç½‘æ ¼çº¿çš„å®½åº¦
+    * @param [in] nLineWidth ç½‘æ ¼çº¿çš„å®½åº¦ï¼Œå¦‚æœä¸º0è¡¨ç¤ºä¸æ˜¾ç¤ºæ¨ªå‘ç½‘æ ¼çº¿
+    * @param [in] bNeedDpiScale å¦‚æœä¸ºtrueè¡¨ç¤ºéœ€è¦å¯¹å®½åº¦è¿›è¡ŒDPIè‡ªé€‚åº”
     */
     void SetRowGridLineWidth(int32_t nLineWidth, bool bNeedDpiScale);
     int32_t GetRowGridLineWidth() const;
 
-    /** ºáÏòÍø¸ñÏßµÄÑÕÉ«
-    * @param [in] color ºáÏòÍø¸ñÏßµÄÑÕÉ«
+    /** æ¨ªå‘ç½‘æ ¼çº¿çš„é¢œè‰²
+    * @param [in] color æ¨ªå‘ç½‘æ ¼çº¿çš„é¢œè‰²
     */
     void SetRowGridLineColor(const std::wstring& color);
     std::wstring GetRowGridLineColor() const;
 
-    /** ×İÏòÍø¸ñÏßµÄ¿í¶È
-    * @param [in] nLineWidth Íø¸ñÏßµÄ¿í¶È£¬Èç¹ûÎª0±íÊ¾²»ÏÔÊ¾×İÏòÍø¸ñÏß
-    * @param [in] bNeedDpiScale Èç¹ûÎªtrue±íÊ¾ĞèÒª¶Ô¿í¶È½øĞĞDPI×ÔÊÊÓ¦
+    /** çºµå‘ç½‘æ ¼çº¿çš„å®½åº¦
+    * @param [in] nLineWidth ç½‘æ ¼çº¿çš„å®½åº¦ï¼Œå¦‚æœä¸º0è¡¨ç¤ºä¸æ˜¾ç¤ºçºµå‘ç½‘æ ¼çº¿
+    * @param [in] bNeedDpiScale å¦‚æœä¸ºtrueè¡¨ç¤ºéœ€è¦å¯¹å®½åº¦è¿›è¡ŒDPIè‡ªé€‚åº”
     */
     void SetColumnGridLineWidth(int32_t nLineWidth, bool bNeedDpiScale);
     int32_t GetColumnGridLineWidth() const;
 
-    /** ×İÏòÍø¸ñÏßµÄÑÕÉ«
-    * @param [in] color ×İÏòÍø¸ñÏßµÄÑÕÉ«
+    /** çºµå‘ç½‘æ ¼çº¿çš„é¢œè‰²
+    * @param [in] color çºµå‘ç½‘æ ¼çº¿çš„é¢œè‰²
     */
     void SetColumnGridLineColor(const std::wstring& color);
     std::wstring GetColumnGridLineColor() const;
 
-    /** µ÷ÕûÁĞµÄ¿í¶È: Êı×éÖĞµÚ1¸öÖµÊÇÁĞµÄĞòºÅ£¬µÚ2¸öÖµÁĞ¿í¶È
+    /** è°ƒæ•´åˆ—çš„å®½åº¦: æ•°ç»„ä¸­ç¬¬1ä¸ªå€¼æ˜¯åˆ—çš„åºå·ï¼Œç¬¬2ä¸ªå€¼åˆ—å®½åº¦
     */
     void AdjustSubItemWidth(const std::map<size_t, int32_t>& subItemWidths);
 
 protected:
-    /** »æÖÆ×Ó¿Ø¼ş
+    /** ç»˜åˆ¶å­æ§ä»¶
     */
     virtual void PaintChild(IRender* pRender, const UiRect& rcPaint) override;
 
-    /** ²éÕÒ×Ó¿Ø¼ş
+    /** æŸ¥æ‰¾å­æ§ä»¶
     */
     virtual Control* FindControl(FINDCONTROLPROC Proc, LPVOID pProcData, uint32_t uFlags, 
                                  const UiPoint& ptMouse = UiPoint(),
                                  const UiPoint& scrollPos = UiPoint()) override;
 
-    /** ´´½¨Ò»¸öÊı¾İÏî
-    * @return ·µ»Ø´´½¨ºóµÄÊı¾İÏîÖ¸Õë
+    /** åˆ›å»ºä¸€ä¸ªæ•°æ®é¡¹
+    * @return è¿”å›åˆ›å»ºåçš„æ•°æ®é¡¹æŒ‡é’ˆ
     */
     virtual Control* CreateDataItem() override;
 
-    /** Ìî³äÖ¸¶¨Êı¾İÏî
-    * @param [in] pControl Êı¾İÏî¿Ø¼şÖ¸Õë
-    * @param [in] nElementIndex Êı¾İÔªËØµÄË÷ÒıID£¬·¶Î§£º[0, GetElementCount())
-    * @param [in] itemData Êı¾İÏî£¨´ú±íĞĞµÄÊôĞÔ£©
-    * @param [in] subItemList Êı¾İ×ÓÏî£¨´ú±íÃ¿Ò»ÁĞµÄÊı¾İ, µÚ1¸öÊÇÁĞµÄID£¬µÚ2¸öÊÇÁĞµÄÊı¾İ£©
+    /** å¡«å……æŒ‡å®šæ•°æ®é¡¹
+    * @param [in] pControl æ•°æ®é¡¹æ§ä»¶æŒ‡é’ˆ
+    * @param [in] nElementIndex æ•°æ®å…ƒç´ çš„ç´¢å¼•IDï¼ŒèŒƒå›´ï¼š[0, GetElementCount())
+    * @param [in] itemData æ•°æ®é¡¹ï¼ˆä»£è¡¨è¡Œçš„å±æ€§ï¼‰
+    * @param [in] subItemList æ•°æ®å­é¡¹ï¼ˆä»£è¡¨æ¯ä¸€åˆ—çš„æ•°æ®, ç¬¬1ä¸ªæ˜¯åˆ—çš„IDï¼Œç¬¬2ä¸ªæ˜¯åˆ—çš„æ•°æ®ï¼‰
     */
     virtual bool FillDataItem(Control* pControl,
                               size_t nElementIndex,
@@ -190,245 +190,245 @@ protected:
                               const std::vector<ListCtrlSubItemData2Pair>& subItemList) override;
 
 
-    /** »ñÈ¡Ä³ÁĞµÄ¿í¶È×î´óÖµ
-    * @param [in] subItemList Êı¾İ×ÓÏî£¨´ú±íÃ¿Ò»ÁĞµÄÊı¾İ£©
-    * @return ·µ»Ø¸ÃÁĞ¿í¶ÈµÄ×î´óÖµ£¬·µ»ØµÄÊÇDPI×ÔÊÊÓ¦ºóµÄÖµ£» Èç¹ûÊ§°Ü·µ»Ø-1
+    /** è·å–æŸåˆ—çš„å®½åº¦æœ€å¤§å€¼
+    * @param [in] subItemList æ•°æ®å­é¡¹ï¼ˆä»£è¡¨æ¯ä¸€åˆ—çš„æ•°æ®ï¼‰
+    * @return è¿”å›è¯¥åˆ—å®½åº¦çš„æœ€å¤§å€¼ï¼Œè¿”å›çš„æ˜¯DPIè‡ªé€‚åº”åçš„å€¼ï¼› å¦‚æœå¤±è´¥è¿”å›-1
     */
     virtual int32_t GetMaxDataItemWidth(const std::vector<ListCtrlSubItemData2Ptr>& subItemList) override;
 
-    /** ¼ÆËã±¾Ò³ÀïÃæÏÔÊ¾¼¸¸ö×ÓÏî
-    * @param [in] bIsHorizontal µ±Ç°²¼¾ÖÊÇ·ñÎªË®Æ½²¼¾Ö
-    * @param [out] nColumns ·µ»ØÁĞÊı
-    * @param [out] nRows ·µ»ØĞĞÊı
-    * @return ·µ»Ø¿ÉÊÓÇøÓòÏÔÊ¾µÄ¼ÇÂ¼Êı
+    /** è®¡ç®—æœ¬é¡µé‡Œé¢æ˜¾ç¤ºå‡ ä¸ªå­é¡¹
+    * @param [in] bIsHorizontal å½“å‰å¸ƒå±€æ˜¯å¦ä¸ºæ°´å¹³å¸ƒå±€
+    * @param [out] nColumns è¿”å›åˆ—æ•°
+    * @param [out] nRows è¿”å›è¡Œæ•°
+    * @return è¿”å›å¯è§†åŒºåŸŸæ˜¾ç¤ºçš„è®°å½•æ•°
     */
     virtual size_t GetDisplayItemCount(bool bIsHorizontal, size_t& nColumns, size_t& nRows) const override;
 
-    /** ÅĞ¶ÏÒ»¸öÊı¾İÔªËØÊÇ·ñÎª¿ÉÑ¡ÔñÏî
-    * @param [in] nElementIndex ÔªËØË÷ÒıºÅ£¬ÓĞĞ§·¶Î§£º[0, GetElementCount())
+    /** åˆ¤æ–­ä¸€ä¸ªæ•°æ®å…ƒç´ æ˜¯å¦ä¸ºå¯é€‰æ‹©é¡¹
+    * @param [in] nElementIndex å…ƒç´ ç´¢å¼•å·ï¼Œæœ‰æ•ˆèŒƒå›´ï¼š[0, GetElementCount())
     */
     virtual bool IsSelectableElement(size_t nElementIndex) const override;
 
-    /** »ñÈ¡ÏÂÒ»¸ö¿ÉÑ¡ÔñµÄÊı¾İÔªËØ
-    * @param [in] nElementIndex ÔªËØË÷ÒıºÅ£¬ÓĞĞ§·¶Î§£º[0, GetElementCount())
-    * @param [in] bForward true±íÊ¾ÏòÇ°²éÕÒ£¬false±íÊ¾Ïòºó²éÕÒ
+    /** è·å–ä¸‹ä¸€ä¸ªå¯é€‰æ‹©çš„æ•°æ®å…ƒç´ 
+    * @param [in] nElementIndex å…ƒç´ ç´¢å¼•å·ï¼Œæœ‰æ•ˆèŒƒå›´ï¼š[0, GetElementCount())
+    * @param [in] bForward trueè¡¨ç¤ºå‘å‰æŸ¥æ‰¾ï¼Œfalseè¡¨ç¤ºå‘åæŸ¥æ‰¾
     */
     virtual size_t FindSelectableElement(size_t nElementIndex, bool bForward) const override;
 
-    /** ×ÓÏîµÄÑ¡Ôñ×´Ì¬±ä»¯ÊÂ¼ş£¬ÓÃÓÚ×´Ì¬Í¬²½
-    * @param [in] iIndex ×ÓÏîÄ¿µÄID£¬·¶Î§ÊÇ£º[0, GetItemCount())
-    * @param [in] pListBoxItem ¹ØÁªµÄÁĞ±íÏî½Ó¿Ú
+    /** å­é¡¹çš„é€‰æ‹©çŠ¶æ€å˜åŒ–äº‹ä»¶ï¼Œç”¨äºçŠ¶æ€åŒæ­¥
+    * @param [in] iIndex å­é¡¹ç›®çš„IDï¼ŒèŒƒå›´æ˜¯ï¼š[0, GetItemCount())
+    * @param [in] pListBoxItem å…³è”çš„åˆ—è¡¨é¡¹æ¥å£
     */
     virtual void OnItemSelectedChanged(size_t iIndex, IListBoxItem* pListBoxItem) override;
 
-    /** ×ÓÏîµÄ¹´Ñ¡×´Ì¬±ä»¯ÊÂ¼ş£¬ÓÃÓÚ×´Ì¬Í¬²½
-    * @param [in] iIndex ×ÓÏîÄ¿µÄID£¬·¶Î§ÊÇ£º[0, GetItemCount())
-    * @param [in] pListBoxItem ¹ØÁªµÄÁĞ±íÏî½Ó¿Ú
+    /** å­é¡¹çš„å‹¾é€‰çŠ¶æ€å˜åŒ–äº‹ä»¶ï¼Œç”¨äºçŠ¶æ€åŒæ­¥
+    * @param [in] iIndex å­é¡¹ç›®çš„IDï¼ŒèŒƒå›´æ˜¯ï¼š[0, GetItemCount())
+    * @param [in] pListBoxItem å…³è”çš„åˆ—è¡¨é¡¹æ¥å£
     */
     virtual void OnItemCheckedChanged(size_t iIndex, IListBoxItem* pListBoxItem) override;
 
-    /** Ñ¡Ôñ×´Ì¬·¢Éú±ä»¯
+    /** é€‰æ‹©çŠ¶æ€å‘ç”Ÿå˜åŒ–
     */
     virtual void OnSelectStatusChanged() override;
 
-    /** »ñÈ¡¹ö¶¯ÊÓÍ¼µÄ¹ö¶¯·ù¶È
+    /** è·å–æ»šåŠ¨è§†å›¾çš„æ»šåŠ¨å¹…åº¦
     */
     virtual void GetScrollDeltaValue(int32_t& nHScrollValue, int32_t& nVScrollValue) const override;
 
-    /** Ö´ĞĞÁËÊó±ê¿òÑ¡²Ù×÷
-    * @param [in] left ¿òÑ¡µÄX×ø±êleftÖµ
-    * @param [in] right ¿òÑ¡µÄX×ø±êrightÖµ
-    * @param [in] top ¿òÑ¡µÄY×ø±êtopÖµ
-    * @param [in] bottom ¿òÑ¡µÄY×ø±êbottomÖµ
-    * @return Èç¹ûÓĞÑ¡Ôñ±ä»¯·µ»Øtrue£¬·ñÔò·µ»Øfalse
+    /** æ‰§è¡Œäº†é¼ æ ‡æ¡†é€‰æ“ä½œ
+    * @param [in] left æ¡†é€‰çš„Xåæ ‡leftå€¼
+    * @param [in] right æ¡†é€‰çš„Xåæ ‡rightå€¼
+    * @param [in] top æ¡†é€‰çš„Yåæ ‡topå€¼
+    * @param [in] bottom æ¡†é€‰çš„Yåæ ‡bottomå€¼
+    * @return å¦‚æœæœ‰é€‰æ‹©å˜åŒ–è¿”å›trueï¼Œå¦åˆ™è¿”å›false
     */
     virtual bool OnFrameSelection(int64_t left, int64_t right, int64_t top, int64_t bottom) override;
 
-    /** Ä³¸öÊı¾İÏîµÄCheck¹´Ñ¡×´Ì¬±ä»¯(ÁĞ¼¶)
-    * @param [in] nElementIndex Êı¾İÏîµÄË÷ÒıºÅ, ÓĞĞ§·¶Î§£º[0, GetDataItemCount())
-    * @param [in] nColumnId ÁĞID
-    * @param [in] bChecked ÊÇ·ñ¹´Ñ¡
+    /** æŸä¸ªæ•°æ®é¡¹çš„Checkå‹¾é€‰çŠ¶æ€å˜åŒ–(åˆ—çº§)
+    * @param [in] nElementIndex æ•°æ®é¡¹çš„ç´¢å¼•å·, æœ‰æ•ˆèŒƒå›´ï¼š[0, GetDataItemCount())
+    * @param [in] nColumnId åˆ—ID
+    * @param [in] bChecked æ˜¯å¦å‹¾é€‰
     */
     void OnSubItemColumnChecked(size_t nElementIndex, size_t nColumnId, bool bChecked);
 
 private:
-    /** »æÖÆÍø¸ñÏß
+    /** ç»˜åˆ¶ç½‘æ ¼çº¿
     */
     void PaintGridLines(IRender* pRender);
 
-    /** ½«headerºÍÖÃ¶¥Ïî·ÅÔÚ×îºó
-    * @param [in,out] items ĞèÒªÒÆ¶¯µÄ¿Ø¼şÁĞ±í
-    * @param [out] atTopItems ·µ»ØÖÃ¶¥µÄ¿Ø¼şÁĞ±í
+    /** å°†headerå’Œç½®é¡¶é¡¹æ”¾åœ¨æœ€å
+    * @param [in,out] items éœ€è¦ç§»åŠ¨çš„æ§ä»¶åˆ—è¡¨
+    * @param [out] atTopItems è¿”å›ç½®é¡¶çš„æ§ä»¶åˆ—è¡¨
     */
     void MoveTopItemsToLast(std::vector<Control*>& items, std::vector<Control*>& atTopItems) const;
 
 private:
-    /** ListCtrl ¿Ø¼ş½Ó¿Ú
+    /** ListCtrl æ§ä»¶æ¥å£
     */
     ListCtrl* m_pListCtrl;
 
-    /** Êı¾İ½Ó¿Ú
+    /** æ•°æ®æ¥å£
     */
     ListCtrlData* m_pData;
 
-    /** ¶¥²¿ÔªËØµÄË÷ÒıºÅ(ÓÃÓÚ»­Íø¸ñÏß)
+    /** é¡¶éƒ¨å…ƒç´ çš„ç´¢å¼•å·(ç”¨äºç”»ç½‘æ ¼çº¿)
     */
     size_t m_nTopElementIndex;
 
-    /** µ±Ç°¿É¼ûµÄÔªËØÁĞ±í
+    /** å½“å‰å¯è§çš„å…ƒç´ åˆ—è¡¨
     */
     std::vector<size_t> m_diplayItemIndexList;
 
-    /** ÖÃ¶¥µÄUI¿Ø¼şË÷ÒıºÅ
+    /** ç½®é¡¶çš„UIæ§ä»¶ç´¢å¼•å·
     */
     std::vector<size_t> m_atTopControlList;
 
 private:
-    /** ºáÏòÍø¸ñÏßµÄ¿í¶È
+    /** æ¨ªå‘ç½‘æ ¼çº¿çš„å®½åº¦
     */
     int32_t m_nRowGridLineWidth;
 
-    /** ºáÏòÍø¸ñÏßµÄÑÕÉ«
+    /** æ¨ªå‘ç½‘æ ¼çº¿çš„é¢œè‰²
     */
     UiString m_rowGridLineColor;
 
-    /** ×İÏòÍø¸ñÏßµÄ¿í¶È
+    /** çºµå‘ç½‘æ ¼çº¿çš„å®½åº¦
     */
     int32_t m_nColumnGridLineWidth;
 
-    /** ×İÏòÍø¸ñÏßµÄÑÕÉ«
+    /** çºµå‘ç½‘æ ¼çº¿çš„é¢œè‰²
     */
     UiString m_columnGridLineColor;
 };
 
-/** ÁĞ±íÊı¾İÏÔÊ¾¿Ø¼şµÄ²¼¾Ö¹ÜÀí½Ó¿Ú
+/** åˆ—è¡¨æ•°æ®æ˜¾ç¤ºæ§ä»¶çš„å¸ƒå±€ç®¡ç†æ¥å£
 */
 class ListCtrlReportLayout : public Layout, public VirtualLayout
 {
 public:
     ListCtrlReportLayout();
 
-    /** ²¼¾ÖÀàĞÍ
+    /** å¸ƒå±€ç±»å‹
     */
     virtual LayoutType GetLayoutType() const { return LayoutType::ListCtrlReportLayout; }
 
-    /** µ÷ÕûÄÚ²¿ËùÓĞ¿Ø¼şµÄÎ»ÖÃĞÅÏ¢
-        * @param [in] items ¿Ø¼şÁĞ±í
-        * @param[in] rc µ±Ç°ÈİÆ÷Î»ÖÃĞÅÏ¢, °üº¬ÄÚ±ß¾à£¬µ«²»°üº¬Íâ±ß¾à
-        * @return ·µ»ØÅÅÁĞºó×îÖÕºĞ×ÓµÄ¿í¶ÈºÍ¸ß¶ÈĞÅÏ¢
+    /** è°ƒæ•´å†…éƒ¨æ‰€æœ‰æ§ä»¶çš„ä½ç½®ä¿¡æ¯
+        * @param [in] items æ§ä»¶åˆ—è¡¨
+        * @param[in] rc å½“å‰å®¹å™¨ä½ç½®ä¿¡æ¯, åŒ…å«å†…è¾¹è·ï¼Œä½†ä¸åŒ…å«å¤–è¾¹è·
+        * @return è¿”å›æ’åˆ—åæœ€ç»ˆç›’å­çš„å®½åº¦å’Œé«˜åº¦ä¿¡æ¯
         */
     virtual UiSize64 ArrangeChild(const std::vector<Control*>& items, UiRect rc) override;
 
-    /** ¸ù¾İÄÚ²¿×Ó¿Ø¼ş´óĞ¡¹ÀËãÈİÆ÷×ÔÉí´óĞ¡£¬À­ÉìÀàĞÍµÄ×Ó¿Ø¼ş±»ºöÂÔ£¬²»¼ÆÈë´óĞ¡¹ÀËã
-        * @param[in] items ×Ó¿Ø¼şÁĞ±í
-        * @param [in] szAvailable ¿ÉÓÃ´óĞ¡£¬°üº¬·ÖÅä¸ø¸Ã¿Ø¼şµÄÄÚ±ß¾à£¬µ«²»°üº¬·ÖÅä¸ø¿Ø¼şµÄÍâ±ß¾à
-        * @return ·µ»ØÅÅÁĞºó×îÖÕ²¼¾ÖµÄ´óĞ¡ĞÅÏ¢£¨¿í¶ÈºÍ¸ß¶È£©£»
-                °üº¬itemsÖĞ×Ó¿Ø¼şµÄÍâ±ß¾à£¬°üº¬itemsÖĞ×Ó¿Ø¼şµÄÄÚ±ß¾à£»
-                °üº¬Box¿Ø¼ş±¾ÉíµÄÄÚ±ß¾à£»
-                ²»°üº¬Box¿Ø¼ş±¾ÉíµÄÍâ±ß¾à£»
-                ·µ»ØÖµÖĞ²»°üº¬À­ÉìÀàĞÍµÄ×Ó¿Ø¼ş´óĞ¡¡£
+    /** æ ¹æ®å†…éƒ¨å­æ§ä»¶å¤§å°ä¼°ç®—å®¹å™¨è‡ªèº«å¤§å°ï¼Œæ‹‰ä¼¸ç±»å‹çš„å­æ§ä»¶è¢«å¿½ç•¥ï¼Œä¸è®¡å…¥å¤§å°ä¼°ç®—
+        * @param[in] items å­æ§ä»¶åˆ—è¡¨
+        * @param [in] szAvailable å¯ç”¨å¤§å°ï¼ŒåŒ…å«åˆ†é…ç»™è¯¥æ§ä»¶çš„å†…è¾¹è·ï¼Œä½†ä¸åŒ…å«åˆ†é…ç»™æ§ä»¶çš„å¤–è¾¹è·
+        * @return è¿”å›æ’åˆ—åæœ€ç»ˆå¸ƒå±€çš„å¤§å°ä¿¡æ¯ï¼ˆå®½åº¦å’Œé«˜åº¦ï¼‰ï¼›
+                åŒ…å«itemsä¸­å­æ§ä»¶çš„å¤–è¾¹è·ï¼ŒåŒ…å«itemsä¸­å­æ§ä»¶çš„å†…è¾¹è·ï¼›
+                åŒ…å«Boxæ§ä»¶æœ¬èº«çš„å†…è¾¹è·ï¼›
+                ä¸åŒ…å«Boxæ§ä»¶æœ¬èº«çš„å¤–è¾¹è·ï¼›
+                è¿”å›å€¼ä¸­ä¸åŒ…å«æ‹‰ä¼¸ç±»å‹çš„å­æ§ä»¶å¤§å°ã€‚
         */
     virtual UiSize EstimateSizeByChild(const std::vector<Control*>& items, UiSize szAvailable) override;
 
 public:
-    /** ÑÓ³Ù¼ÓÔØÕ¹Ê¾Êı¾İ
-    * @param [in] rc µ±Ç°ÈİÆ÷´óĞ¡ĞÅÏ¢, Íâ²¿µ÷ÓÃÊ±£¬ĞèÒªÏÈ¼ôÈ¥ÄÚ±ß¾à
+    /** å»¶è¿ŸåŠ è½½å±•ç¤ºæ•°æ®
+    * @param [in] rc å½“å‰å®¹å™¨å¤§å°ä¿¡æ¯, å¤–éƒ¨è°ƒç”¨æ—¶ï¼Œéœ€è¦å…ˆå‰ªå»å†…è¾¹è·
     */
     virtual void LazyArrangeChild(UiRect rc) const override;
 
-    /** »ñÈ¡ĞèÒªÕ¹Ê¾µÄÕæÊµÊı¾İÏî×î´ó¸öÊı£¨¼´ÓĞControl¶ÔÏó¶ÔÓ¦µÄÕæÊµÊı¾İÏî£©
-    * @param [in] rc µ±Ç°ÈİÆ÷´óĞ¡ĞÅÏ¢, Íâ²¿µ÷ÓÃÊ±£¬ĞèÒªÏÈ¼ôÈ¥ÄÚ±ß¾à
+    /** è·å–éœ€è¦å±•ç¤ºçš„çœŸå®æ•°æ®é¡¹æœ€å¤§ä¸ªæ•°ï¼ˆå³æœ‰Controlå¯¹è±¡å¯¹åº”çš„çœŸå®æ•°æ®é¡¹ï¼‰
+    * @param [in] rc å½“å‰å®¹å™¨å¤§å°ä¿¡æ¯, å¤–éƒ¨è°ƒç”¨æ—¶ï¼Œéœ€è¦å…ˆå‰ªå»å†…è¾¹è·
     */
     virtual size_t AjustMaxItem(UiRect rc) const override;
 
-    /** µÃµ½¿É¼û·¶Î§ÄÚµÚÒ»¸öÔªËØµÄÇ°Ò»¸öÔªËØË÷Òı
-    * @param [in] rc µ±Ç°ÏÔÊ¾ÇøÓòµÄ¾ØĞÎ£¬²»°üº¬ÄÚ±ß¾à
-    * @return ·µ»ØÔªËØµÄË÷Òı
+    /** å¾—åˆ°å¯è§èŒƒå›´å†…ç¬¬ä¸€ä¸ªå…ƒç´ çš„å‰ä¸€ä¸ªå…ƒç´ ç´¢å¼•
+    * @param [in] rc å½“å‰æ˜¾ç¤ºåŒºåŸŸçš„çŸ©å½¢ï¼Œä¸åŒ…å«å†…è¾¹è·
+    * @return è¿”å›å…ƒç´ çš„ç´¢å¼•
     */
     virtual size_t GetTopElementIndex(UiRect rc) const override;
 
-    /** ÅĞ¶ÏÄ³¸öÔªËØÊÇ·ñÔÚ¿É¼û·¶Î§ÄÚ
-    * @param[in] iIndex ÔªËØË÷Òı£¬·¶Î§ÊÇ£º[0, GetElementCount())
-    * @param [in] rc µ±Ç°ÏÔÊ¾ÇøÓòµÄ¾ØĞÎ£¬²»°üº¬ÄÚ±ß¾à
-    * @return ·µ»Ø true ±íÊ¾¿É¼û£¬·ñÔòÎª²»¿É¼û
+    /** åˆ¤æ–­æŸä¸ªå…ƒç´ æ˜¯å¦åœ¨å¯è§èŒƒå›´å†…
+    * @param[in] iIndex å…ƒç´ ç´¢å¼•ï¼ŒèŒƒå›´æ˜¯ï¼š[0, GetElementCount())
+    * @param [in] rc å½“å‰æ˜¾ç¤ºåŒºåŸŸçš„çŸ©å½¢ï¼Œä¸åŒ…å«å†…è¾¹è·
+    * @return è¿”å› true è¡¨ç¤ºå¯è§ï¼Œå¦åˆ™ä¸ºä¸å¯è§
     */
     virtual bool IsElementDisplay(UiRect rc, size_t iIndex) const override;
 
-    /** ÅĞ¶ÏÊÇ·ñÒªÖØĞÂ²¼¾Ö
+    /** åˆ¤æ–­æ˜¯å¦è¦é‡æ–°å¸ƒå±€
     */
     virtual bool NeedReArrange() const override;
 
-    /** »ñÈ¡µ±Ç°ËùÓĞ¿É¼û¿Ø¼şµÄÊı¾İÔªËØË÷Òı
-    * @param [in] rc µ±Ç°ÏÔÊ¾ÇøÓòµÄ¾ØĞÎ£¬²»°üº¬ÄÚ±ß¾à
-    * @param[out] collection Ë÷ÒıÁĞ±í£¬·¶Î§ÊÇ£º[0, GetElementCount())
+    /** è·å–å½“å‰æ‰€æœ‰å¯è§æ§ä»¶çš„æ•°æ®å…ƒç´ ç´¢å¼•
+    * @param [in] rc å½“å‰æ˜¾ç¤ºåŒºåŸŸçš„çŸ©å½¢ï¼Œä¸åŒ…å«å†…è¾¹è·
+    * @param[out] collection ç´¢å¼•åˆ—è¡¨ï¼ŒèŒƒå›´æ˜¯ï¼š[0, GetElementCount())
     */
     virtual void GetDisplayElements(UiRect rc, std::vector<size_t>& collection) const override;
 
-    /** ÈÃ¿Ø¼şÔÚ¿É¼û·¶Î§ÄÚ
-    * @param [in] rc µ±Ç°ÏÔÊ¾ÇøÓòµÄ¾ØĞÎ£¬²»°üº¬ÄÚ±ß¾à
-    * @param[in] iIndex ÔªËØË÷ÒıºÅ£¬·¶Î§ÊÇ£º[0, GetElementCount())
-    * @param[in] bToTop ÊÇ·ñÔÚ×îÉÏ·½
+    /** è®©æ§ä»¶åœ¨å¯è§èŒƒå›´å†…
+    * @param [in] rc å½“å‰æ˜¾ç¤ºåŒºåŸŸçš„çŸ©å½¢ï¼Œä¸åŒ…å«å†…è¾¹è·
+    * @param[in] iIndex å…ƒç´ ç´¢å¼•å·ï¼ŒèŒƒå›´æ˜¯ï¼š[0, GetElementCount())
+    * @param[in] bToTop æ˜¯å¦åœ¨æœ€ä¸Šæ–¹
     */
     virtual void EnsureVisible(UiRect rc, size_t iIndex, bool bToTop) const override;
 
 public:
-    /** ÉèÖÃ¹ØÁªµÄBox½Ó¿Ú
+    /** è®¾ç½®å…³è”çš„Boxæ¥å£
     */
     void SetDataView(ListCtrlReportView* pDataView);
 
 private:
-    /** »ñÈ¡¹ØÁªµÄBox½Ó¿Ú
+    /** è·å–å…³è”çš„Boxæ¥å£
     */
     ListCtrlReportView* GetDataView() const { return m_pDataView; }
 
-    /** »ñÈ¡Êı¾İÏîµÄ¸ß¶È, ¸ß¶È²»°üº¬±íÍ·
-    * @param [in] nCount Êı¾İÏî¸öÊı£¬Èç¹ûÎªBox::InvalidIndex£¬Ôò»ñÈ¡ËùÓĞÊı¾İÏîµÄ¸ß¶È×ÜºÍ
-    * @parma [in] bIncludeAtTops ÊÇ·ñ°üº¬ÖÃ¶¥ÔªËØµÄ¸ß¶ÈÖµ
-    * @return ·µ»Ø nCount ¸öÊı¾İÏîµÄ¸ß¶È×ÜºÍ, ²»°üº¬±íÍ·µÄ¸ß¶È
+    /** è·å–æ•°æ®é¡¹çš„é«˜åº¦, é«˜åº¦ä¸åŒ…å«è¡¨å¤´
+    * @param [in] nCount æ•°æ®é¡¹ä¸ªæ•°ï¼Œå¦‚æœä¸ºBox::InvalidIndexï¼Œåˆ™è·å–æ‰€æœ‰æ•°æ®é¡¹çš„é«˜åº¦æ€»å’Œ
+    * @parma [in] bIncludeAtTops æ˜¯å¦åŒ…å«ç½®é¡¶å…ƒç´ çš„é«˜åº¦å€¼
+    * @return è¿”å› nCount ä¸ªæ•°æ®é¡¹çš„é«˜åº¦æ€»å’Œ, ä¸åŒ…å«è¡¨å¤´çš„é«˜åº¦
     */
     int64_t GetElementsHeight(size_t nCount, bool bIncludeAtTops) const;
 
-    /** »ñÈ¡Êı¾İÏîµÄ¸ß¶ÈºÍ¿í¶È
-    * @param [in] rcWidth µ±Ç°ÈİÆ÷µÄ¿í¶È, Íâ²¿µ÷ÓÃÊ±£¬ĞèÒªÏÈ¼ôÈ¥ÄÚ±ß¾à
-    * @param [in] nElementIndex Êı¾İÔªËØµÄË÷ÒıºÅ
-    * @return ·µ»ØÊı¾İÔªËØµÄ¸ß¶ÈºÍ¿í¶È
+    /** è·å–æ•°æ®é¡¹çš„é«˜åº¦å’Œå®½åº¦
+    * @param [in] rcWidth å½“å‰å®¹å™¨çš„å®½åº¦, å¤–éƒ¨è°ƒç”¨æ—¶ï¼Œéœ€è¦å…ˆå‰ªå»å†…è¾¹è·
+    * @param [in] nElementIndex æ•°æ®å…ƒç´ çš„ç´¢å¼•å·
+    * @return è¿”å›æ•°æ®å…ƒç´ çš„é«˜åº¦å’Œå®½åº¦
     */
     UiSize GetElementSize(int32_t rcWidth, size_t nElementIndex) const;
 
-    /** »ñÈ¡ĞĞ¿í
+    /** è·å–è¡Œå®½
     */
     int32_t GetItemWidth() const;
 
-    /** »ñÈ¡ĞĞ¸ß(Ä¿Ç°½öÖ§³ÖËùÓĞĞĞµÄĞĞ¸ß¶¼ÏàµÈµÄÇé¿ö)
+    /** è·å–è¡Œé«˜(ç›®å‰ä»…æ”¯æŒæ‰€æœ‰è¡Œçš„è¡Œé«˜éƒ½ç›¸ç­‰çš„æƒ…å†µ)
     */
     int32_t GetItemHeight() const;
 
-    /** »ñÈ¡±íÍ·¿Ø¼şµÄ¸ß¶È
+    /** è·å–è¡¨å¤´æ§ä»¶çš„é«˜åº¦
     */
     int32_t GetHeaderHeight() const;
 
-    /** ÑÓ³Ù¼ÓÔØÕ¹Ê¾Êı¾İ(³£¹æÄ£Ê½£¬ĞĞ¸ßÏàÍ¬¡¢ÎŞÒş²ØÏî¡¢ÎŞÖÃ¶¥Ïî)
-    * @param [in] rc µ±Ç°ÈİÆ÷´óĞ¡ĞÅÏ¢, Íâ²¿µ÷ÓÃÊ±£¬ĞèÒªÏÈ¼ôÈ¥ÄÚ±ß¾à
+    /** å»¶è¿ŸåŠ è½½å±•ç¤ºæ•°æ®(å¸¸è§„æ¨¡å¼ï¼Œè¡Œé«˜ç›¸åŒã€æ— éšè—é¡¹ã€æ— ç½®é¡¶é¡¹)
+    * @param [in] rc å½“å‰å®¹å™¨å¤§å°ä¿¡æ¯, å¤–éƒ¨è°ƒç”¨æ—¶ï¼Œéœ€è¦å…ˆå‰ªå»å†…è¾¹è·
     */
     void LazyArrangeChildNormal(UiRect rc) const;
 
-    /** »ñÈ¡µ±Ç°ËùÓĞ¿É¼û¿Ø¼şµÄÊı¾İÔªËØË÷Òı
-    * @param [in] rc µ±Ç°ÏÔÊ¾ÇøÓòµÄ¾ØĞÎ£¬²»°üº¬ÄÚ±ß¾à
-    * @param[out] collection Ë÷ÒıÁĞ±í£¬·¶Î§ÊÇ£º[0, GetElementCount())
+    /** è·å–å½“å‰æ‰€æœ‰å¯è§æ§ä»¶çš„æ•°æ®å…ƒç´ ç´¢å¼•
+    * @param [in] rc å½“å‰æ˜¾ç¤ºåŒºåŸŸçš„çŸ©å½¢ï¼Œä¸åŒ…å«å†…è¾¹è·
+    * @param[out] collection ç´¢å¼•åˆ—è¡¨ï¼ŒèŒƒå›´æ˜¯ï¼š[0, GetElementCount())
     */
     void GetDisplayElements(UiRect rc, std::vector<size_t>& collection, 
                             std::vector<size_t>* pAtTopItemIndexList) const;
 
-    /** µ×²¿Ô¤ÁôµÄ¿Õ¼ä£¬È·±£¹ö¶¯µ½×îµ×²¿µÄÊ±ºò£¬×îºóÒ»ÌõÊı¾İÈİÒ×¿´ÍêÕû
+    /** åº•éƒ¨é¢„ç•™çš„ç©ºé—´ï¼Œç¡®ä¿æ»šåŠ¨åˆ°æœ€åº•éƒ¨çš„æ—¶å€™ï¼Œæœ€åä¸€æ¡æ•°æ®å®¹æ˜“çœ‹å®Œæ•´
     */
     int32_t GetReserveHeight() const;
 
 private:
-    /** ¹ØÁªµÄListBox½Ó¿Ú
+    /** å…³è”çš„ListBoxæ¥å£
     */
     ListCtrlReportView* m_pDataView;
 
-    /** ÊÇ·ñÉèÖÃÁËµ×²¿Ô¤Áô¿Õ¼ä
+    /** æ˜¯å¦è®¾ç½®äº†åº•éƒ¨é¢„ç•™ç©ºé—´
     */
     bool m_bReserveSet;
 };

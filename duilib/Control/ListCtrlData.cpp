@@ -89,14 +89,14 @@ size_t ListCtrlData::GetElementCount() const
 void ListCtrlData::SetElementSelected(size_t nElementIndex, bool bSelected)
 {
     if (nElementIndex == Box::InvalidIndex) {
-        //Èç¹ûÑ¡ÖĞµÄÊÇHeader£¬ºöÂÔ
+        //å¦‚æœé€‰ä¸­çš„æ˜¯Headerï¼Œå¿½ç•¥
         return;
     }
     ASSERT(nElementIndex < m_rowDataList.size());
     if (nElementIndex < m_rowDataList.size()) {
         ListCtrlItemData& rowData = m_rowDataList[nElementIndex];
         if (rowData.bSelected != bSelected) {
-            rowData.bSelected = bSelected;//¶àÑ¡»òÕßµ¥Ñ¡µÄÇé¿öÏÂ£¬¶¼¸üĞÂ
+            rowData.bSelected = bSelected;//å¤šé€‰æˆ–è€…å•é€‰çš„æƒ…å†µä¸‹ï¼Œéƒ½æ›´æ–°
         }
         if (IsAutoCheckSelect() && (rowData.bChecked != rowData.bSelected)) {
             rowData.bChecked = rowData.bSelected;
@@ -104,7 +104,7 @@ void ListCtrlData::SetElementSelected(size_t nElementIndex, bool bSelected)
     }
 
     if (!m_bMultiSelect) {
-        //µ¥Ñ¡µÄÇé¿ö
+        //å•é€‰çš„æƒ…å†µ
         if (bSelected) {
             m_nSelectedIndex = nElementIndex;
         }
@@ -117,12 +117,12 @@ void ListCtrlData::SetElementSelected(size_t nElementIndex, bool bSelected)
 bool ListCtrlData::IsElementSelected(size_t nElementIndex) const
 {
     if (nElementIndex == Box::InvalidIndex) {
-        //Èç¹ûÑ¡ÖĞµÄÊÇHeader£¬ºöÂÔ
+        //å¦‚æœé€‰ä¸­çš„æ˜¯Headerï¼Œå¿½ç•¥
         return false;
     }
     bool bSelected = false;
     if (m_bMultiSelect) {
-        //¶àÑ¡
+        //å¤šé€‰
         ASSERT(nElementIndex < m_rowDataList.size());
         if (nElementIndex < m_rowDataList.size()) {
             const ListCtrlItemData& rowData = m_rowDataList[nElementIndex];
@@ -130,7 +130,7 @@ bool ListCtrlData::IsElementSelected(size_t nElementIndex) const
         }
     }
     else {
-        //µ¥Ñ¡
+        //å•é€‰
         bSelected = (m_nSelectedIndex == nElementIndex);
     }
     return bSelected;
@@ -165,7 +165,7 @@ void ListCtrlData::SetMultiSelect(bool bMultiSelect)
     bool bChanged = m_bMultiSelect != bMultiSelect;
     m_bMultiSelect = bMultiSelect;
     if (bChanged && bMultiSelect) {
-        //´Óµ¥Ñ¡±ä¶àÑ¡£¬ĞèÒªÇå¿ÕÑ¡Ïî£¬Ö»±£ÁôÒ»¸öµ¥Ñ¡Ïî
+        //ä»å•é€‰å˜å¤šé€‰ï¼Œéœ€è¦æ¸…ç©ºé€‰é¡¹ï¼Œåªä¿ç•™ä¸€ä¸ªå•é€‰é¡¹
         const size_t nItemCount = m_rowDataList.size();
         for (size_t itemIndex = 0; itemIndex < nItemCount; ++itemIndex) {
             ListCtrlItemData& rowData = m_rowDataList[itemIndex];
@@ -266,7 +266,7 @@ bool ListCtrlData::AddColumn(size_t columnId)
         return false;
     }
     StoragePtrList& storageList = m_dataMap[columnId];
-    //ÁĞµÄ³¤¶ÈÓëĞĞ±£³ÖÒ»ÖÂ
+    //åˆ—çš„é•¿åº¦ä¸è¡Œä¿æŒä¸€è‡´
     storageList.resize(m_rowDataList.size());
     EmitCountChanged();
     return true;
@@ -278,7 +278,7 @@ bool ListCtrlData::RemoveColumn(size_t columnId)
     if (iter != m_dataMap.end()) {
         m_dataMap.erase(iter);
         if (m_dataMap.empty()) {
-            //Èç¹ûËùÓĞÁĞ¶¼É¾³ıÁË£¬ĞĞÒ²Çå¿ÕÎª0
+            //å¦‚æœæ‰€æœ‰åˆ—éƒ½åˆ é™¤äº†ï¼Œè¡Œä¹Ÿæ¸…ç©ºä¸º0
             m_rowDataList.clear();
             m_nSelectedIndex = Box::InvalidIndex;
             m_hideRowCount = 0;
@@ -323,7 +323,7 @@ ListCtrlData::StoragePtr ListCtrlData::GetSubItemStorage(
         const StoragePtrList& storageList = iter->second;
         ASSERT(itemIndex < storageList.size());
         if (itemIndex < storageList.size()) {
-            //¹ØÁªÁĞ£º»ñÈ¡Êı¾İ
+            //å…³è”åˆ—ï¼šè·å–æ•°æ®
             pStorage = storageList[itemIndex];
         }
     }
@@ -340,7 +340,7 @@ ListCtrlData::StoragePtr ListCtrlData::GetSubItemStorageForWrite(
         StoragePtrList& storageList = iter->second;
         ASSERT(itemIndex < storageList.size());
         if (itemIndex < storageList.size()) {
-            //¹ØÁªÁĞ£º»ñÈ¡Êı¾İ
+            //å…³è”åˆ—ï¼šè·å–æ•°æ®
             pStorage = storageList[itemIndex];
             if (pStorage == nullptr) {
                 pStorage = std::make_shared<Storage>();
@@ -403,7 +403,7 @@ bool ListCtrlData::SetDataItemCount(size_t itemCount)
         return false;
     }
     if (itemCount == m_rowDataList.size()) {
-        //Ã»ÓĞ±ä»¯
+        //æ²¡æœ‰å˜åŒ–
         return true;
     }
     size_t nOldCount = m_rowDataList.size();
@@ -415,7 +415,7 @@ bool ListCtrlData::SetDataItemCount(size_t itemCount)
         iter->second.resize(itemCount);
     }
     if (itemCount < nOldCount) {
-        //ĞĞÊı±äÉÙÁË
+        //è¡Œæ•°å˜å°‘äº†
         if ((m_hideRowCount != 0) || (m_heightRowCount != 0) || (m_atTopRowCount != 0)) {
             UpdateNormalMode();
         }
@@ -457,17 +457,17 @@ size_t ListCtrlData::AddDataItem(size_t columnId, const ListCtrlSubItemData& dat
         size_t id = iter->first;
         StoragePtrList& storageList = iter->second;
         if (id == columnId) {
-            //¹ØÁªÁĞ£º±£´æÊı¾İ
+            //å…³è”åˆ—ï¼šä¿å­˜æ•°æ®
             storageList.push_back(std::make_shared<Storage>(storage));
             nDataItemIndex = storageList.size() - 1;
         }
         else {
-            //ÆäËûÁĞ£º²åÈë¿ÕÊı¾İ
+            //å…¶ä»–åˆ—ï¼šæ’å…¥ç©ºæ•°æ®
             storageList.push_back(nullptr);
         }
     }
 
-    //ĞĞÊı¾İ£¬²åÈë1ÌõÊı¾İ
+    //è¡Œæ•°æ®ï¼Œæ’å…¥1æ¡æ•°æ®
     m_rowDataList.push_back(ListCtrlItemData());
 
     EmitCountChanged();
@@ -481,7 +481,7 @@ bool ListCtrlData::InsertDataItem(size_t itemIndex, size_t columnId, const ListC
         return false;
     }
     if (!IsValidDataItemIndex(itemIndex)) {
-        //Èç¹ûË÷ÒıºÅÎŞĞ§£¬Ôò°´×·¼ÓµÄ·½Ê½Ìí¼ÓÊı¾İ
+        //å¦‚æœç´¢å¼•å·æ— æ•ˆï¼Œåˆ™æŒ‰è¿½åŠ çš„æ–¹å¼æ·»åŠ æ•°æ®
         return (AddDataItem(columnId, dataItem) != Box::InvalidIndex);
     }
 
@@ -492,16 +492,16 @@ bool ListCtrlData::InsertDataItem(size_t itemIndex, size_t columnId, const ListC
         size_t id = iter->first;
         StoragePtrList& storageList = iter->second;
         if (id == columnId) {
-            //¹ØÁªÁĞ£º±£´æÊı¾İ
+            //å…³è”åˆ—ï¼šä¿å­˜æ•°æ®
             storageList.insert(storageList.begin() + itemIndex, std::make_shared<Storage>(storage));
         }
         else {
-            //ÆäËûÁĞ£º²åÈë¿ÕÊı¾İ
+            //å…¶ä»–åˆ—ï¼šæ’å…¥ç©ºæ•°æ®
             storageList.insert(storageList.begin() + itemIndex, nullptr);
         }
     }
 
-    //ĞĞÊı¾İ£¬²åÈë1ÌõÊı¾İ
+    //è¡Œæ•°æ®ï¼Œæ’å…¥1æ¡æ•°æ®
     ASSERT(itemIndex < m_rowDataList.size());
     if ((m_nSelectedIndex < m_rowDataList.size()) && (itemIndex <= m_nSelectedIndex)) {
         ++m_nSelectedIndex;
@@ -515,7 +515,7 @@ bool ListCtrlData::InsertDataItem(size_t itemIndex, size_t columnId, const ListC
 bool ListCtrlData::DeleteDataItem(size_t itemIndex)
 {
     if (!IsValidDataItemIndex(itemIndex)) {
-        //Ë÷ÒıºÅÎŞĞ§
+        //ç´¢å¼•å·æ— æ•ˆ
         return false;
     }
 
@@ -526,7 +526,7 @@ bool ListCtrlData::DeleteDataItem(size_t itemIndex)
         }
     }
 
-    //É¾³ıÒ»ĞĞ
+    //åˆ é™¤ä¸€è¡Œ
     if (itemIndex < m_rowDataList.size()) {
         ListCtrlItemData oldData = m_rowDataList[itemIndex];
         if (m_nSelectedIndex < m_rowDataList.size()) {
@@ -566,7 +566,7 @@ bool ListCtrlData::DeleteAllDataItems()
         StoragePtrList emptyList;
         storageList.swap(emptyList);
     }
-    //Çå¿ÕĞĞÊı¾İ
+    //æ¸…ç©ºè¡Œæ•°æ®
     if (!m_rowDataList.empty()) {
         bDeleted = true;
     }
@@ -595,7 +595,7 @@ bool ListCtrlData::SetDataItemData(size_t itemIndex, const ListCtrlItemData& ite
         const ListCtrlItemData oldItemData = m_rowDataList[itemIndex];
         m_rowDataList[itemIndex] = itemData;
         if (m_nDefaultItemHeight == m_rowDataList[itemIndex].nItemHeight) {
-            //Èç¹ûµÈÓÚÄ¬ÈÏ¸ß¶È£¬ÔòÉèÖÃÎª±êÖ¾Öµ
+            //å¦‚æœç­‰äºé»˜è®¤é«˜åº¦ï¼Œåˆ™è®¾ç½®ä¸ºæ ‡å¿—å€¼
             m_rowDataList[itemIndex].nItemHeight = -1;
         }
         const ListCtrlItemData& newItemData = m_rowDataList[itemIndex];
@@ -624,7 +624,7 @@ bool ListCtrlData::SetDataItemData(size_t itemIndex, const ListCtrlItemData& ite
             bChanged = true;
         }
 
-        //¸üĞÂ¼ÆÊı
+        //æ›´æ–°è®¡æ•°
         if (!oldItemData.bVisible && newItemData.bVisible) {
             m_hideRowCount -= 1;            
         }
@@ -740,7 +740,7 @@ bool ListCtrlData::SetDataItemChecked(size_t itemIndex, bool bChecked, bool& bCh
         }        
         bRet = true;
     }
-    //²»Ë¢ĞÂ£¬ÓÉÍâ²¿ÅĞ¶ÏÊÇ·ñĞèÒªË¢ĞÂ
+    //ä¸åˆ·æ–°ï¼Œç”±å¤–éƒ¨åˆ¤æ–­æ˜¯å¦éœ€è¦åˆ·æ–°
     return bRet;
 }
 
@@ -847,7 +847,7 @@ void ListCtrlData::GetDataItemsCheckStatus(bool& bChecked, bool& bPartChecked) c
             nUnCheckCount++;
         }
         if ((nCheckCount > 0) && (nUnCheckCount > 0)){
-            //È·ÈÏÊÇ²¿·ÖÑ¡Ôñ
+            //ç¡®è®¤æ˜¯éƒ¨åˆ†é€‰æ‹©
             bChecked = true;
             bPartChecked = true;
             return;
@@ -886,7 +886,7 @@ void ListCtrlData::GetDataItemsSelectStatus(bool& bSelected, bool& bPartSelected
             nUnSelectCount++;
         }
         if ((nSelectCount > 0) && (nUnSelectCount > 0)) {
-            //È·ÈÏÊÇ²¿·ÖÑ¡Ôñ
+            //ç¡®è®¤æ˜¯éƒ¨åˆ†é€‰æ‹©
             bSelected = true;
             bPartSelected = true;
             return;
@@ -942,7 +942,7 @@ void ListCtrlData::GetColumnCheckStatus(size_t columnId, bool& bChecked, bool& b
             nUnCheckCount++;
         }
         if ((nCheckCount > 0) && (nUnCheckCount > 0)) {
-            //È·ÈÏÊÇ²¿·ÖÑ¡Ôñ
+            //ç¡®è®¤æ˜¯éƒ¨åˆ†é€‰æ‹©
             bChecked = true;
             bPartChecked = true;
             return;
@@ -972,7 +972,7 @@ bool ListCtrlData::SetDataItemImageId(size_t itemIndex, int32_t imageId, bool& b
         }
         bRet = true;
     }
-    //²»Ë¢ĞÂ£¬ÓÉÍâ²¿ÅĞ¶ÏÊÇ·ñĞèÒªË¢ĞÂ
+    //ä¸åˆ·æ–°ï¼Œç”±å¤–éƒ¨åˆ¤æ–­æ˜¯å¦éœ€è¦åˆ·æ–°
     return bRet;
 }
 
@@ -1006,7 +1006,7 @@ bool ListCtrlData::SetDataItemAlwaysAtTop(size_t itemIndex, int8_t nAlwaysAtTop,
         ASSERT(m_atTopRowCount >= 0);
         bRet = true;
     }
-    //²»Ë¢ĞÂ£¬ÓÉÍâ²¿ÅĞ¶ÏÊÇ·ñĞèÒªË¢ĞÂ
+    //ä¸åˆ·æ–°ï¼Œç”±å¤–éƒ¨åˆ¤æ–­æ˜¯å¦éœ€è¦åˆ·æ–°
     return bRet;
 }
 
@@ -1028,7 +1028,7 @@ bool ListCtrlData::SetDataItemHeight(size_t itemIndex, int32_t nItemHeight, bool
         nItemHeight = -1;
     }
     if (m_nDefaultItemHeight == nItemHeight) {
-        //Èç¹ûµÈÓÚÄ¬ÈÏ¸ß¶È£¬ÔòÉèÖÃÎª±êÖ¾Öµ
+        //å¦‚æœç­‰äºé»˜è®¤é«˜åº¦ï¼Œåˆ™è®¾ç½®ä¸ºæ ‡å¿—å€¼
         nItemHeight = -1;
     }
 
@@ -1049,7 +1049,7 @@ bool ListCtrlData::SetDataItemHeight(size_t itemIndex, int32_t nItemHeight, bool
         ASSERT(m_heightRowCount >= 0);
         bRet = true;
     }
-    //²»Ë¢ĞÂ£¬ÓÉÍâ²¿ÅĞ¶ÏÊÇ·ñĞèÒªË¢ĞÂ
+    //ä¸åˆ·æ–°ï¼Œç”±å¤–éƒ¨åˆ¤æ–­æ˜¯å¦éœ€è¦åˆ·æ–°
     return bRet;
 }
 
@@ -1061,7 +1061,7 @@ int32_t ListCtrlData::GetDataItemHeight(size_t itemIndex) const
         const ListCtrlItemData& rowData = m_rowDataList[itemIndex];
         nValue = rowData.nItemHeight;
         if ((nValue < 0) && (m_nDefaultItemHeight > 0)) {
-            //È¡Ä¬ÈÏ¸ß¶È            
+            //å–é»˜è®¤é«˜åº¦            
             nValue = m_nDefaultItemHeight;
         }
     }
@@ -1103,7 +1103,7 @@ bool ListCtrlData::SetSubItemData(size_t itemIndex, size_t columnId,
     auto iter = m_dataMap.find(columnId);
     ASSERT(iter != m_dataMap.end());
     if (iter != m_dataMap.end()) {
-        //¹ØÁªÁĞ£º¸üĞÂÊı¾İ
+        //å…³è”åˆ—ï¼šæ›´æ–°æ•°æ®
         StoragePtrList& storageList = iter->second;
         ASSERT(itemIndex < storageList.size());
         if (itemIndex < storageList.size()) {
@@ -1156,7 +1156,7 @@ bool ListCtrlData::SetSubItemText(size_t itemIndex, size_t columnId, const std::
     StoragePtr pStorage = GetSubItemStorageForWrite(itemIndex, columnId);
     ASSERT(pStorage != nullptr);
     if (pStorage == nullptr) {
-        //Ë÷ÒıºÅÎŞĞ§
+        //ç´¢å¼•å·æ— æ•ˆ
         return false;
     }
     if (pStorage->text != text) {
@@ -1171,7 +1171,7 @@ std::wstring ListCtrlData::GetSubItemText(size_t itemIndex, size_t columnId) con
     StoragePtr pStorage = GetSubItemStorage(itemIndex, columnId);
     ASSERT(pStorage != nullptr);
     if (pStorage == nullptr) {
-        //Ë÷ÒıºÅÎŞĞ§
+        //ç´¢å¼•å·æ— æ•ˆ
         return std::wstring();
     }
     return pStorage->text.c_str();
@@ -1182,7 +1182,7 @@ bool ListCtrlData::SetSubItemTextColor(size_t itemIndex, size_t columnId, const 
     StoragePtr pStorage = GetSubItemStorageForWrite(itemIndex, columnId);
     ASSERT(pStorage != nullptr);
     if (pStorage == nullptr) {
-        //Ë÷ÒıºÅÎŞĞ§
+        //ç´¢å¼•å·æ— æ•ˆ
         return false;
     }
     if (pStorage->textColor != textColor) {
@@ -1198,7 +1198,7 @@ bool ListCtrlData::GetSubItemTextColor(size_t itemIndex, size_t columnId, UiColo
     StoragePtr pStorage = GetSubItemStorage(itemIndex, columnId);
     ASSERT(pStorage != nullptr);
     if (pStorage == nullptr) {
-        //Ë÷ÒıºÅÎŞĞ§
+        //ç´¢å¼•å·æ— æ•ˆ
         return false;
     }
     textColor = pStorage->textColor;
@@ -1210,7 +1210,7 @@ bool ListCtrlData::SetSubItemTextFormat(size_t itemIndex, size_t columnId, int32
     StoragePtr pStorage = GetSubItemStorageForWrite(itemIndex, columnId);
     ASSERT(pStorage != nullptr);
     if (pStorage == nullptr) {
-        //Ë÷ÒıºÅÎŞĞ§
+        //ç´¢å¼•å·æ— æ•ˆ
         return false;
     }
     int32_t nValidTextFormat = 0;
@@ -1273,7 +1273,7 @@ bool ListCtrlData::SetSubItemBkColor(size_t itemIndex, size_t columnId, const Ui
     StoragePtr pStorage = GetSubItemStorageForWrite(itemIndex, columnId);
     ASSERT(pStorage != nullptr);
     if (pStorage == nullptr) {
-        //Ë÷ÒıºÅÎŞĞ§
+        //ç´¢å¼•å·æ— æ•ˆ
         return false;
     }
     if (pStorage->bkColor != bkColor) {
@@ -1289,7 +1289,7 @@ bool ListCtrlData::GetSubItemBkColor(size_t itemIndex, size_t columnId, UiColor&
     StoragePtr pStorage = GetSubItemStorage(itemIndex, columnId);
     ASSERT(pStorage != nullptr);
     if (pStorage == nullptr) {
-        //Ë÷ÒıºÅÎŞĞ§
+        //ç´¢å¼•å·æ— æ•ˆ
         return false;
     }
     bkColor = pStorage->bkColor;
@@ -1301,7 +1301,7 @@ bool ListCtrlData::IsSubItemShowCheckBox(size_t itemIndex, size_t columnId) cons
     StoragePtr pStorage = GetSubItemStorage(itemIndex, columnId);
     ASSERT(pStorage != nullptr);
     if (pStorage == nullptr) {
-        //Ë÷ÒıºÅÎŞĞ§
+        //ç´¢å¼•å·æ— æ•ˆ
         return false;
     }
     return pStorage->bShowCheckBox;
@@ -1312,7 +1312,7 @@ bool ListCtrlData::SetSubItemShowCheckBox(size_t itemIndex, size_t columnId, boo
     StoragePtr pStorage = GetSubItemStorageForWrite(itemIndex, columnId);
     ASSERT(pStorage != nullptr);
     if (pStorage == nullptr) {
-        //Ë÷ÒıºÅÎŞĞ§
+        //ç´¢å¼•å·æ— æ•ˆ
         return false;
     }
     if (pStorage->bShowCheckBox != bShowCheckBox) {
@@ -1327,7 +1327,7 @@ bool ListCtrlData::SetSubItemCheck(size_t itemIndex, size_t columnId, bool bChec
     StoragePtr pStorage = GetSubItemStorageForWrite(itemIndex, columnId);
     ASSERT(pStorage != nullptr);
     if (pStorage == nullptr) {
-        //Ë÷ÒıºÅÎŞĞ§
+        //ç´¢å¼•å·æ— æ•ˆ
         return false;
     }
     ASSERT(pStorage->bShowCheckBox);
@@ -1349,7 +1349,7 @@ bool ListCtrlData::GetSubItemCheck(size_t itemIndex, size_t columnId, bool& bChe
     StoragePtr pStorage = GetSubItemStorage(itemIndex, columnId);
     ASSERT(pStorage != nullptr);
     if (pStorage == nullptr) {
-        //Ë÷ÒıºÅÎŞĞ§
+        //ç´¢å¼•å·æ— æ•ˆ
         return false;
     }
     ASSERT(pStorage->bShowCheckBox);
@@ -1365,7 +1365,7 @@ bool ListCtrlData::SetSubItemImageId(size_t itemIndex, size_t columnId, int32_t 
     StoragePtr pStorage = GetSubItemStorageForWrite(itemIndex, columnId);
     ASSERT(pStorage != nullptr);
     if (pStorage == nullptr) {
-        //Ë÷ÒıºÅÎŞĞ§
+        //ç´¢å¼•å·æ— æ•ˆ
         return false;
     }
     if (imageId < -1) {
@@ -1394,7 +1394,7 @@ bool ListCtrlData::SetSubItemEditable(size_t itemIndex, size_t columnId, bool bE
     StoragePtr pStorage = GetSubItemStorageForWrite(itemIndex, columnId);
     ASSERT(pStorage != nullptr);
     if (pStorage == nullptr) {
-        //Ë÷ÒıºÅÎŞĞ§
+        //ç´¢å¼•å·æ— æ•ˆ
         return false;
     }
     if (pStorage->bEditable != bEditable) {
@@ -1434,29 +1434,29 @@ bool ListCtrlData::SortDataItems(size_t nColumnId, size_t nColumnIndex, bool bSo
     }    
     SortStorageData(sortedDataList, nColumnId, nColumnIndex, bSortedUp, pfnCompareFunc, pUserData);
 
-    //¶ÔÔ­Êı¾İ½øĞĞË³Ğòµ÷Õû
+    //å¯¹åŸæ•°æ®è¿›è¡Œé¡ºåºè°ƒæ•´
     const size_t sortedDataCount = sortedDataList.size();
-    StoragePtrList orgStorageList; //¸±±¾Êı¾İ
+    StoragePtrList orgStorageList; //å‰¯æœ¬æ•°æ®
     for (iter = m_dataMap.begin(); iter != m_dataMap.end(); ++iter) {
         orgStorageList = iter->second; 
-        StoragePtrList& storageList = iter->second;   //ĞŞ¸ÄÄ¿±ê
+        StoragePtrList& storageList = iter->second;   //ä¿®æ”¹ç›®æ ‡
         ASSERT(storageList.size() == sortedDataList.size());
         if (storageList.size() != sortedDataList.size()) {
             return false;
         }
         for (size_t index = 0; index < sortedDataCount; ++index) {
             const StorageData& sortedData = sortedDataList[index];
-            storageList[index] = orgStorageList[sortedData.index]; //¸³ÖµÔ­Êı¾İ
+            storageList[index] = orgStorageList[sortedData.index]; //èµ‹å€¼åŸæ•°æ®
         }
     }
 
-    //¶ÔĞĞÊı¾İ½øĞĞÅÅĞò
+    //å¯¹è¡Œæ•°æ®è¿›è¡Œæ’åº
     bool bFoundSelectedIndex = false;
     ASSERT(sortedDataCount == m_rowDataList.size());
     RowDataList rowDataList = m_rowDataList;
     for (size_t index = 0; index < sortedDataCount; ++index) {
         const StorageData& sortedData = sortedDataList[index];
-        m_rowDataList[index] = rowDataList[sortedData.index]; //¸³ÖµÔ­Êı¾İ
+        m_rowDataList[index] = rowDataList[sortedData.index]; //èµ‹å€¼åŸæ•°æ®
         if (!bFoundSelectedIndex && (m_nSelectedIndex == sortedData.index)) {
             m_nSelectedIndex = index;
             bFoundSelectedIndex = true;
@@ -1476,19 +1476,19 @@ bool ListCtrlData::SortStorageData(std::vector<StorageData>& dataList,
     }
 
     if (pfnCompareFunc == nullptr) {
-        //Èç¹ûÎŞÓĞĞ§²ÎÊı£¬ÔòÊ¹ÓÃÍâ²¿ÉèÖÃµÄÅÅĞòº¯Êı
+        //å¦‚æœæ— æœ‰æ•ˆå‚æ•°ï¼Œåˆ™ä½¿ç”¨å¤–éƒ¨è®¾ç½®çš„æ’åºå‡½æ•°
         pfnCompareFunc = m_pfnCompareFunc;
         pUserData = m_pUserData;
     }
 
     if (pfnCompareFunc != nullptr) {
-        //Ê¹ÓÃ×Ô¶¨ÒåµÄ±È½Ïº¯ÊıÅÅĞò
+        //ä½¿ç”¨è‡ªå®šä¹‰çš„æ¯”è¾ƒå‡½æ•°æ’åº
         ListCtrlCompareParam param;
         param.nColumnId = nColumnId;
         param.nColumnIndex = nColumnIndex;
         param.pUserData = pUserData;
         std::sort(dataList.begin(), dataList.end(), [this, pfnCompareFunc, &param](const StorageData& a, const StorageData& b) {
-                //ÊµÏÖ(a < b)µÄ±È½ÏÂß¼­
+                //å®ç°(a < b)çš„æ¯”è¾ƒé€»è¾‘
                 if (b.pStorage == nullptr) {
                     return false;
                 }
@@ -1501,9 +1501,9 @@ bool ListCtrlData::SortStorageData(std::vector<StorageData>& dataList,
             });
     }
     else {
-        //ÅÅĞò£ºÉıĞò£¬Ê¹ÓÃÄ¬ÈÏµÄÅÅĞòº¯Êı
+        //æ’åºï¼šå‡åºï¼Œä½¿ç”¨é»˜è®¤çš„æ’åºå‡½æ•°
         std::sort(dataList.begin(), dataList.end(), [this](const StorageData& a, const StorageData& b) {
-                //ÊµÏÖ(a < b)µÄ±È½ÏÂß¼­
+                //å®ç°(a < b)çš„æ¯”è¾ƒé€»è¾‘
                 if (b.pStorage == nullptr) {
                     return false;
                 }
@@ -1516,7 +1516,7 @@ bool ListCtrlData::SortStorageData(std::vector<StorageData>& dataList,
             });
     }
     if (!bSortedUp) {
-        //½µĞò
+        //é™åº
         std::reverse(dataList.begin(), dataList.end());
     }
     return true;
@@ -1524,7 +1524,7 @@ bool ListCtrlData::SortStorageData(std::vector<StorageData>& dataList,
 
 bool ListCtrlData::SortDataCompareFunc(const ListCtrlSubItemData2& a, const ListCtrlSubItemData2& b) const
 {
-    //Ä¬ÈÏ°´×Ö·û´®±È½Ï, Çø·Ö´óĞ¡Ğ´
+    //é»˜è®¤æŒ‰å­—ç¬¦ä¸²æ¯”è¾ƒ, åŒºåˆ†å¤§å°å†™
     return ::wcscmp(a.text.c_str(), b.text.c_str()) < 0;
 }
 
@@ -1554,7 +1554,7 @@ void ListCtrlData::SetSelectedElements(const std::vector<size_t>& selectedIndexs
         if (!oldSelectedIndexs.empty()) {
             for (size_t nElementIndex : oldSelectedIndexs) {
                 if (selectSet.find(nElementIndex) != selectSet.end()) {
-                    //¹ıÂËµô¼´½«Ñ¡ÔñµÄ
+                    //è¿‡æ»¤æ‰å³å°†é€‰æ‹©çš„
                     continue;
                 }
                 SetElementSelected(nElementIndex, false);
@@ -1594,7 +1594,7 @@ bool ListCtrlData::SelectAll(std::vector<size_t>& refreshIndexs)
 
 bool ListCtrlData::IsSelectableRowData(const ListCtrlItemData& rowData) const
 {
-    //¿É¼û£¬²¢ÇÒ²»ÖÃ¶¥ÏÔÊ¾
+    //å¯è§ï¼Œå¹¶ä¸”ä¸ç½®é¡¶æ˜¾ç¤º
     return rowData.bVisible && (rowData.nAlwaysAtTop < 0);
 }
 
@@ -1628,7 +1628,7 @@ void ListCtrlData::SelectNoneExclude(const std::vector<size_t>& excludeIndexs,
         for (size_t nElementIndex : selectedIndexs) {
             if (!indexSet.empty()) {
                 if (indexSet.find(nElementIndex) != indexSet.end()) {
-                    //ÅÅ³ı
+                    //æ’é™¤
                     continue;
                 }
             }

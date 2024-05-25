@@ -8,13 +8,13 @@
 namespace ui 
 {
 
-/** ��ɫֵ�ķ�װ(ARGB��ʽ)
+/** 颜色值的封装(ARGB格式)
 */
 class UILIB_API UiColor
 {
 public:
 
-    //��ɫֵ����
+    //颜色值类型
     typedef uint32_t ARGB;
 
     UiColor():
@@ -42,79 +42,79 @@ public:
         Argb = (ARGB)argb;
     }
 
-    /** ��ȡ��ɫ��Alphaֵ
+    /** 获取颜色的Alpha值
     */
     uint8_t GetAlpha() const { return (uint8_t)(Argb >> AlphaShift); }
 
-    /** ��ȡ��ɫ��Alphaֵ
+    /** 获取颜色的Alpha值
     */
     uint8_t GetA() const { return (uint8_t)(Argb >> AlphaShift); }
 
-    /** ��ȡ��ɫ��Redֵ
+    /** 获取颜色的Red值
     */
     uint8_t GetRed() const { return (uint8_t)(Argb >> RedShift); }
 
-    /** ��ȡ��ɫ��Redֵ
+    /** 获取颜色的Red值
     */
     uint8_t GetR() const { return (uint8_t)(Argb >> RedShift); }
 
-    /** ��ȡ��ɫ��Greenֵ
+    /** 获取颜色的Green值
     */
     uint8_t GetGreen() const { return (uint8_t)(Argb >> GreenShift); }
 
-    /** ��ȡ��ɫ��Greenֵ
+    /** 获取颜色的Green值
     */
     uint8_t GetG() const { return (uint8_t)(Argb >> GreenShift); }
 
-    /** ��ȡ��ɫ��Blueֵ
+    /** 获取颜色的Blue值
     */
     uint8_t GetBlue() const { return (uint8_t)(Argb >> BlueShift); }
 
-    /** ��ȡ��ɫ��Blueֵ
+    /** 获取颜色的Blue值
     */
     uint8_t GetB() const { return (uint8_t)(Argb >> BlueShift); }
 
-    /** ��ȡ��ɫ��ARGBֵ
+    /** 获取颜色的ARGB值
     */
     ARGB GetARGB() const { return Argb; }
 
-    /** ��ɫֵ�Ƿ�Ϊ��ֵ
+    /** 颜色值是否为空值
     */
     bool IsEmpty() const { return Argb == 0; }
 
-    /** ������ɫ��ARGBֵ
+    /** 设置颜色的ARGB值
     */
     void SetARGB(ARGB argb) { Argb = argb; }
 
-    /** ��COLORREF��ɫֵ������ɫ��COLORREF������RGBֵ������Aֵ��
+    /** 从COLORREF颜色值设置颜色（COLORREF仅包含RGB值，不含A值）
     */
     void SetFromCOLORREF(uint32_t rgb)
     {
         Argb = MakeARGB(255, GetRValue(rgb), GetGValue(rgb), GetBValue(rgb));
     }
 
-    /** ��ARGB��ɫת��ΪCOLORREF��ɫֵ��COLORREF������RGBֵ������Aֵ��
+    /** 将ARGB颜色转换为COLORREF颜色值（COLORREF仅包含RGB值，不含A值）
     */
     uint32_t ToCOLORREF() const
     {
         return RGB(GetRed(), GetGreen(), GetBlue());
     }
 
-    /** �ж��Ƿ�������һ������ͬ
+    /** 判断是否与另外一个点相同
     */
     bool Equals(const UiColor& dst) const
     {
         return Argb == dst.Argb;
     }
 
-    /** �ж�����ֵ�Ƿ����
+    /** 判断两个值是否相等
     */
     friend bool operator == (const UiColor& a, const UiColor& b)
     {
         return a.Equals(b);
     }
 
-    /** �ж�����ֵ�Ƿ����
+    /** 判断两个值是否不相等
     */
     friend bool operator != (const UiColor& a, const UiColor& b)
     {
@@ -148,7 +148,7 @@ public:
     }
 
 private:
-    //��ɫֵ
+    //颜色值
     ARGB Argb;
 };
 

@@ -87,7 +87,7 @@ bool ImageGif::StartGifPlay(GifFrameType nStartFrame, int32_t nPlayCount)
 
 bool ImageGif::PlayGif()
 {
-	//¶¨Ê±Æ÷´¥·¢£¬²¥·ÅÏÂÒ»Ö¡
+	//å®šæ—¶å™¨è§¦å‘ï¼Œæ’­æ”¾ä¸‹ä¸€å¸§
 	if (!IsPlayingGif() || !IsMultiFrameImage()) {
 		m_gifWeakFlag.Cancel();
 		m_bPlayingGif = false;
@@ -101,14 +101,14 @@ bool ImageGif::PlayGif()
 		nFrameIndex = 0;
 		m_nCycledCount += 1;
 		if ((m_nMaxPlayCount > 0) && (m_nCycledCount >= m_nMaxPlayCount)) {
-			//´ïµ½×î´ó²¥·Å´ÎÊý£¬Í£Ö¹²¥·Å
+			//è¾¾åˆ°æœ€å¤§æ’­æ”¾æ¬¡æ•°ï¼Œåœæ­¢æ’­æ”¾
 			StopGifPlay(true, kGifFrameLast);
 			return false;
 		}
 	}
 	int32_t nNowTimerInterval = m_pImage->GetImageCache()->GetFrameInterval(nFrameIndex);
 	if (nNowTimerInterval <= 0) {
-		//²¥·Å¼ä¸ôÎÞÐ§£¬Í£Ö¹²¥·Å
+		//æ’­æ”¾é—´éš”æ— æ•ˆï¼Œåœæ­¢æ’­æ”¾
 		StopGifPlay(true, kGifFrameCurrent);
 		return false;
 	}
@@ -126,7 +126,7 @@ bool ImageGif::PlayGif()
 		RedrawImage();
 	}
 	else {
-		//Æô¶¯¶¨Ê±Æ÷Ê§°Ü
+		//å¯åŠ¨å®šæ—¶å™¨å¤±è´¥
 		StopGifPlay(true, kGifFrameCurrent);
 	}	
 	return bRet;
@@ -147,7 +147,7 @@ void ImageGif::StopGifPlay(bool bTriggerEvent, GifFrameType nStopFrame)
 		m_pImage->SetCurrentFrame(index);
 		RedrawImage();
 	}
-	//±ê¼ÇÎªÊÖ¶¯Í£Ö¹£¬²»×Ô¶¯²¥·Å¶¯»­
+	//æ ‡è®°ä¸ºæ‰‹åŠ¨åœæ­¢ï¼Œä¸è‡ªåŠ¨æ’­æ”¾åŠ¨ç”»
 	m_bAutoPlay = false;
 	if (bTriggerEvent) {
 		BroadcastGifEvent(m_nVirtualEventGifStop);
@@ -196,7 +196,7 @@ uint32_t ImageGif::GetGifFrameIndex(GifFrameType frame) const
 void ImageGif::RedrawImage()
 {
 	if (m_pControl != nullptr) {
-		//ÖØ»æÍ¼Æ¬
+		//é‡ç»˜å›¾ç‰‡
 		m_pControl->InvalidateRect(m_rcImageRect);
 	}
 }

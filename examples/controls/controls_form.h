@@ -13,60 +13,60 @@ public:
 	~ControlForm();
 
 	/**
-	 * Ò»ÏÂÈı¸ö½Ó¿ÚÊÇ±ØĞëÒª¸²Ğ´µÄ½Ó¿Ú£¬¸¸Àà»áµ÷ÓÃÕâÈı¸ö½Ó¿ÚÀ´¹¹½¨´°¿Ú
-	 * GetSkinFolder		½Ó¿ÚÉèÖÃÄãÒª»æÖÆµÄ´°¿ÚÆ¤·ô×ÊÔ´Â·¾¶
-	 * GetSkinFile			½Ó¿ÚÉèÖÃÄãÒª»æÖÆµÄ´°¿ÚµÄ xml ÃèÊöÎÄ¼ş
-	 * GetWindowClassName	½Ó¿ÚÉèÖÃ´°¿ÚÎ¨Ò»µÄÀàÃû³Æ
+	 * ä¸€ä¸‹ä¸‰ä¸ªæ¥å£æ˜¯å¿…é¡»è¦è¦†å†™çš„æ¥å£ï¼Œçˆ¶ç±»ä¼šè°ƒç”¨è¿™ä¸‰ä¸ªæ¥å£æ¥æ„å»ºçª—å£
+	 * GetSkinFolder		æ¥å£è®¾ç½®ä½ è¦ç»˜åˆ¶çš„çª—å£çš®è‚¤èµ„æºè·¯å¾„
+	 * GetSkinFile			æ¥å£è®¾ç½®ä½ è¦ç»˜åˆ¶çš„çª—å£çš„ xml æè¿°æ–‡ä»¶
+	 * GetWindowClassName	æ¥å£è®¾ç½®çª—å£å”¯ä¸€çš„ç±»åç§°
 	 */
 	virtual std::wstring GetSkinFolder() override;
 	virtual std::wstring GetSkinFile() override;
 	virtual std::wstring GetWindowClassName() const override;
 
-	/** µ±´°¿Ú´´½¨Íê³ÉÒÔºóµ÷ÓÃ´Ëº¯Êı£¬¹©×ÓÀàÖĞ×öÒ»Ğ©³õÊ¼»¯µÄ¹¤×÷
+	/** å½“çª—å£åˆ›å»ºå®Œæˆä»¥åè°ƒç”¨æ­¤å‡½æ•°ï¼Œä¾›å­ç±»ä¸­åšä¸€äº›åˆå§‹åŒ–çš„å·¥ä½œ
 	*/
 	virtual void OnInitWindow() override;
 
-	/** µ±´°¿Ú¼´½«±»¹Ø±ÕÊ±µ÷ÓÃ´Ëº¯Êı£¬¹©×ÓÀàÖĞ×öÒ»Ğ©ÊÕÎ²¹¤×÷
+	/** å½“çª—å£å³å°†è¢«å…³é—­æ—¶è°ƒç”¨æ­¤å‡½æ•°ï¼Œä¾›å­ç±»ä¸­åšä¸€äº›æ”¶å°¾å·¥ä½œ
 	*/
 	virtual void OnCloseWindow() override;
 
-	/** ´°¿ÚÀàÃû
+	/** çª—å£ç±»å
 	*/
 	static const std::wstring kClassName;
 
 private:
 
-	/** ÏÔÊ¾²Ëµ¥
-	* @param [in] point ÏÔÊ¾Î»ÖÃ×ø±ê£¬ÆÁÄ»×ø±ê
+	/** æ˜¾ç¤ºèœå•
+	* @param [in] point æ˜¾ç¤ºä½ç½®åæ ‡ï¼Œå±å¹•åæ ‡
 	*/
 	void ShowPopupMenu(const ui::UiPoint& point);
 
 	/**
-	 * ±»Í¶µİµ½ÔÓÊÂÏß³Ì¶ÁÈ¡ xml Êı¾İµÄÈÎÎñº¯Êı
+	 * è¢«æŠ•é€’åˆ°æ‚äº‹çº¿ç¨‹è¯»å– xml æ•°æ®çš„ä»»åŠ¡å‡½æ•°
 	 */
 	void LoadRichEditData();
 
 	/**
-	 * ÓÃÓÚÔÚÔÓÊÂÏß³Ì¶ÁÈ¡ xml Íê³Éºó¸üĞÂ UI ÄÚÈİµÄ½Ó¿Ú
+	 * ç”¨äºåœ¨æ‚äº‹çº¿ç¨‹è¯»å– xml å®Œæˆåæ›´æ–° UI å†…å®¹çš„æ¥å£
 	 */
 	void OnResourceFileLoaded(const std::wstring& xml);
 
 	/**
-	 * ¶¯Ì¬¸üĞÂ½ø¶ÈÌõ½Ó¿Ú
+	 * åŠ¨æ€æ›´æ–°è¿›åº¦æ¡æ¥å£
 	 */
 	void OnProgressValueChagned(float value);
 
-	/** ÏÔÊ¾Ê°É«Æ÷´°¿Ú
+	/** æ˜¾ç¤ºæ‹¾è‰²å™¨çª—å£
 	*/
 	void ShowColorPicker();
 
 private:
-	/** ½ÓÊÕ¼üÅÌ°´¼ü°´ÏÂÏûÏ¢(WM_HOTKEY)Ê±±»µ÷ÓÃ
-	* @param [in] uMsg ÏûÏ¢ÄÚÈİ
-	* @param [in] wParam ÏûÏ¢¸½¼Ó²ÎÊı
-	* @param [in] lParam ÏûÏ¢¸½¼Ó²ÎÊı
-	* @param [out] bHandled ·µ»Ø false Ôò¼ÌĞøÅÉ·¢¸ÃÏûÏ¢£¬·ñÔò²»ÔÙÅÉ·¢¸ÃÏûÏ¢
-	* @return ·µ»ØÏûÏ¢´¦Àí½á¹û
+	/** æ¥æ”¶é”®ç›˜æŒ‰é”®æŒ‰ä¸‹æ¶ˆæ¯(WM_HOTKEY)æ—¶è¢«è°ƒç”¨
+	* @param [in] uMsg æ¶ˆæ¯å†…å®¹
+	* @param [in] wParam æ¶ˆæ¯é™„åŠ å‚æ•°
+	* @param [in] lParam æ¶ˆæ¯é™„åŠ å‚æ•°
+	* @param [out] bHandled è¿”å› false åˆ™ç»§ç»­æ´¾å‘è¯¥æ¶ˆæ¯ï¼Œå¦åˆ™ä¸å†æ´¾å‘è¯¥æ¶ˆæ¯
+	* @return è¿”å›æ¶ˆæ¯å¤„ç†ç»“æœ
 	*/
 	virtual LRESULT OnHotKey(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
 };

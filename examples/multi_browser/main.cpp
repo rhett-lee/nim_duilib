@@ -1,4 +1,4 @@
-// basic.cpp : ¶¨ÒåÓ¦ÓÃ³ÌĞòµÄÈë¿Úµã¡£
+// basic.cpp : å®šä¹‰åº”ç”¨ç¨‹åºçš„å…¥å£ç‚¹ã€‚
 //
 
 #include "stdafx.h"
@@ -7,7 +7,7 @@
 
 #include <clocale>
 
-//¿ªÆôDPI¸ĞÖª¹¦ÄÜÉèÖÃ²ÎÊı
+//å¼€å¯DPIæ„ŸçŸ¥åŠŸèƒ½è®¾ç½®å‚æ•°
 ui::DpiInitParam dpiInitParam;
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
@@ -18,8 +18,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	UNREFERENCED_PARAMETER(hPrevInstance);
 	UNREFERENCED_PARAMETER(lpCmdLine);
 
-	// ½« bin\\cef Ä¿Â¼Ìí¼Óµ½»·¾³±äÁ¿£¬ÕâÑù¿ÉÒÔ½«ËùÓĞ CEF Ïà¹ØÎÄ¼ş·Åµ½¸ÃÄ¿Â¼ÏÂ£¬·½±ã¹ÜÀí
-	// ÔÚÏîÄ¿ÊôĞÔ->Á¬½ÓÆ÷->ÊäÈë£¬ÑÓ³Ù¼ÓÔØ nim_libcef.dll
+	// å°† bin\\cef ç›®å½•æ·»åŠ åˆ°ç¯å¢ƒå˜é‡ï¼Œè¿™æ ·å¯ä»¥å°†æ‰€æœ‰ CEF ç›¸å…³æ–‡ä»¶æ”¾åˆ°è¯¥ç›®å½•ä¸‹ï¼Œæ–¹ä¾¿ç®¡ç†
+	// åœ¨é¡¹ç›®å±æ€§->è¿æ¥å™¨->è¾“å…¥ï¼Œå»¶è¿ŸåŠ è½½ nim_libcef.dll
 	nim_comp::CefManager::GetInstance()->AddCefDllToPath();
 
 	_wsetlocale(LC_ALL, L"chs");
@@ -35,23 +35,23 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	if (FAILED(hr))
 		return 0;
 
-	//±ØĞëÔÚCefManager::InitializeÇ°µ÷ÓÃ£¬ÉèÖÃDPI×ÔÊÊÓ¦ÊôĞÔ£¬·ñÔò»áµ¼ÖÂÏÔÊ¾²»Õı³£
+	//å¿…é¡»åœ¨CefManager::Initializeå‰è°ƒç”¨ï¼Œè®¾ç½®DPIè‡ªé€‚åº”å±æ€§ï¼Œå¦åˆ™ä¼šå¯¼è‡´æ˜¾ç¤ºä¸æ­£å¸¸
 	ui::GlobalManager::Instance().Dpi().InitDpiAwareness(dpiInitParam);
 
-	// ³õÊ¼»¯ CEF
+	// åˆå§‹åŒ– CEF
 	CefSettings settings;
 	if (!nim_comp::CefManager::GetInstance()->Initialize(nbase::win32::GetCurrentModuleDirectory() + L"cef_temp\\", settings, true))
 	{
 		return 0;
 	}
 
-	// ´´½¨Ö÷Ïß³Ì
+	// åˆ›å»ºä¸»çº¿ç¨‹
 	MainThread thread;
 
-	// Ö´ĞĞÖ÷Ïß³ÌÑ­»·
+	// æ‰§è¡Œä¸»çº¿ç¨‹å¾ªç¯
 	thread.RunOnCurrentThreadWithLoop(nbase::MessageLoop::kUIMessageLoop);
 
-    // ÇåÀí CEF
+    // æ¸…ç† CEF
     nim_comp::CefManager::GetInstance()->UnInitialize();
 
 	::OleUninitialize();
@@ -63,7 +63,7 @@ void MainThread::Init()
 {
 	nbase::ThreadManager::RegisterThread(kThreadUI);
     
-	//³õÊ¼»¯È«¾Ö×ÊÔ´, Ê¹ÓÃ±¾µØÎÄ¼ş¼Ğ×÷Îª×ÊÔ´
+	//åˆå§‹åŒ–å…¨å±€èµ„æº, ä½¿ç”¨æœ¬åœ°æ–‡ä»¶å¤¹ä½œä¸ºèµ„æº
 	std::wstring resourcePath = nbase::win32::GetCurrentModuleDirectory();
 	resourcePath += L"resources\\";
 	ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath), dpiInitParam);

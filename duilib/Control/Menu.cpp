@@ -9,7 +9,7 @@ ContextMenuObserver& Menu::GetMenuObserver()
 	return s_context_menu_observer;
 }
 
-//¶ş¼¶»òÕß¶à¼¶×Ó²Ëµ¥µÄÍĞ¹ÜÀà
+//äºŒçº§æˆ–è€…å¤šçº§å­èœå•çš„æ‰˜ç®¡ç±»
 class SubMenu: public ui::ListBoxItem
 {
 public:
@@ -105,7 +105,7 @@ void Menu::ShowMenu(const std::wstring& xml, const UiPoint& point, MenuPopupPosT
 		ResizeMenu();
 	}
 	::SendMessage(hWndParent, WM_NCACTIVATE, TRUE, 0L);
-	//ĞŞÕı²Ëµ¥ÏîµÄ¿í¶È£¬±£³ÖÒ»ÖÂ
+	//ä¿®æ­£èœå•é¡¹çš„å®½åº¦ï¼Œä¿æŒä¸€è‡´
 	UpdateWindow();
 	if (m_pLayout != nullptr) {
 		std::vector<MenuItem*> allMenuItems;
@@ -137,7 +137,7 @@ void Menu::ShowMenu(const std::wstring& xml, const UiPoint& point, MenuPopupPosT
 
 void Menu::CloseMenu()
 {
-	//Á¢¼´¹Ø±Õ£¬±ÜÃâÁ¬Ğø²Ù×÷Ê±Ïà»¥¸ÉÈÅ
+	//ç«‹å³å…³é—­ï¼Œé¿å…è¿ç»­æ“ä½œæ—¶ç›¸äº’å¹²æ‰°
 	PostMsg(WM_CLOSE);
 }
 
@@ -148,7 +148,7 @@ void Menu::DetachOwner()
 			m_pLayout->SelectItem(Box::InvalidIndex, false, false);
 		}
 
-		//½«ÔÚOnInitWindowÖĞ£¬Ìí¼Óµ½LayoutÉÏµÄ½Úµã£¬½â³ı¹ØÁª¹ØÏµ
+		//å°†åœ¨OnInitWindowä¸­ï¼Œæ·»åŠ åˆ°Layoutä¸Šçš„èŠ‚ç‚¹ï¼Œè§£é™¤å…³è”å…³ç³»
 		std::vector<Control*> submenuControls;
 		MenuItem::GetAllSubMenuControls(m_pOwner, submenuControls);
 		for (auto pItem : submenuControls) {
@@ -261,12 +261,12 @@ LRESULT Menu::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHa
 void Menu::ResizeMenu()
 {
 	ui::Control* pRoot = GetRoot();
-	//µã»÷ÔÚÄÄÀï£¬ÒÔÄÄÀïµÄÆÁÄ»ÎªÖ÷
+	//ç‚¹å‡»åœ¨å“ªé‡Œï¼Œä»¥å“ªé‡Œçš„å±å¹•ä¸ºä¸»
 	ui::UiRect rcWork;
 	GetMonitorWorkRect(m_menuPoint, rcWork);
 
 	ui::UiSize szAvailable = { rcWork.Width(), rcWork.Height()};
-	UiEstSize estSize = pRoot->EstimateSize(szAvailable);   //ÕâÀï´øÉÏÁËÒõÓ°´°¿Ú
+	UiEstSize estSize = pRoot->EstimateSize(szAvailable);   //è¿™é‡Œå¸¦ä¸Šäº†é˜´å½±çª—å£
 	if (estSize.cx.IsInt32()) {
 		szAvailable.cx = estSize.cx.GetInt32();
 	}
@@ -277,9 +277,9 @@ void Menu::ResizeMenu()
 	ui::UiPadding rcCorner = GetShadowCorner();
 	ui::UiSize szInit = szAvailable;
 	szInit.cx -= rcCorner.left + rcCorner.right;
-	szInit.cy -= rcCorner.top + rcCorner.bottom; //ÕâÀïÈ¥µôÒõÓ°´°¿Ú£¬¼´ÓÃ»§µÄÊÓ¾õÓĞĞ§Ãæ»ı szInit<=szAvailable
+	szInit.cy -= rcCorner.top + rcCorner.bottom; //è¿™é‡Œå»æ‰é˜´å½±çª—å£ï¼Œå³ç”¨æˆ·çš„è§†è§‰æœ‰æ•ˆé¢ç§¯ szInit<=szAvailable
 	
-	ui::UiPoint point(m_menuPoint);  //ÕâÀïÓĞ¸öbug£¬ÓÉÓÚ×ø±êµãÓë°üº¬ÔÚ´°¿ÚÄÚ£¬»áÖ±½Ó³ö·¢mouseenterµ¼ÖÂ³öÀ´×Ó²Ëµ¥£¬Æ«ÒÆ1¸öÏñËØ
+	ui::UiPoint point(m_menuPoint);  //è¿™é‡Œæœ‰ä¸ªbugï¼Œç”±äºåæ ‡ç‚¹ä¸åŒ…å«åœ¨çª—å£å†…ï¼Œä¼šç›´æ¥å‡ºå‘mouseenterå¯¼è‡´å‡ºæ¥å­èœå•ï¼Œåç§»1ä¸ªåƒç´ 
 	if (static_cast<int>(m_popupPosType) & static_cast<int>(eMenuAlignment_Right)) {
 		point.x += -szAvailable.cx + rcCorner.right + rcCorner.left;
 		point.x -= 1;
@@ -338,7 +338,7 @@ void Menu::ResizeSubMenu()
 
 	const size_t itemCount = m_pLayout->GetItemCount();
 	for (size_t it = 0; it < itemCount; ++it) {
-		//È¡×Ó²Ëµ¥ÏîÖĞµÄ×î´óÖµ×÷Îª²Ëµ¥Ïî
+		//å–å­èœå•é¡¹ä¸­çš„æœ€å¤§å€¼ä½œä¸ºèœå•é¡¹
 		MenuItem* pItem = dynamic_cast<MenuItem*>(m_pLayout->GetItemAt(it));
 		if (pItem != nullptr) {
 			UiEstSize estSize = pItem->EstimateSize(szAvailable);
@@ -352,7 +352,7 @@ void Menu::ResizeSubMenu()
 	UiPadding rcCorner = GetShadowCorner();
 	UiRect rcWindow;
 	m_pOwner->GetWindow()->GetWindowRect(rcWindow);
-	//È¥ÒõÓ°
+	//å»é˜´å½±
 	rcWindow.Deflate(rcCorner);
 
 	m_pOwner->GetWindow()->MapWindowRect(rc);
@@ -370,7 +370,7 @@ void Menu::ResizeSubMenu()
 	while (pReceiver != nullptr) {
 		Menu* pContextMenu = dynamic_cast<Menu*>(pReceiver);
 		if (pContextMenu != nullptr) {
-			pContextMenu->GetWindowRect(rcPreWindow);  //ĞèÒª¼õµôÒõÓ°
+			pContextMenu->GetWindowRect(rcPreWindow);  //éœ€è¦å‡æ‰é˜´å½±
 
 			bReachRight = (rcPreWindow.left + rcCorner.left) >= rcWindow.right;
 			bReachBottom = (rcPreWindow.top + rcCorner.top) >= rcWindow.bottom;
@@ -428,15 +428,15 @@ void Menu::OnInitWindow()
 		if (m_pLayout == nullptr) {
 			return;
 		}
-		//ÉèÖÃ²»×Ô¶¯Ïú»ÙChild¶ÔÏó£¨ÒòÎªÊÇ´Óowner¸´ÖÆ¹ıÀ´µÄ£¬×ÊÔ´¹«ÓÃ£¬ÓÉOwner¹ÜÀíÉúÃü¶ÔÏóµÄÖÜÆÚ£©
+		//è®¾ç½®ä¸è‡ªåŠ¨é”€æ¯Childå¯¹è±¡ï¼ˆå› ä¸ºæ˜¯ä»ownerå¤åˆ¶è¿‡æ¥çš„ï¼Œèµ„æºå…¬ç”¨ï¼Œç”±Ownerç®¡ç†ç”Ÿå‘½å¯¹è±¡çš„å‘¨æœŸï¼‰
 		m_pLayout->SetAutoDestroyChild(false);
 
-		//»ñÈ¡×Ó²Ëµ¥ÏîĞèÒª»æÖÆµÄ¿Ø¼ş£¬²¢Ìí¼Óµ½Layout
+		//è·å–å­èœå•é¡¹éœ€è¦ç»˜åˆ¶çš„æ§ä»¶ï¼Œå¹¶æ·»åŠ åˆ°Layout
 		std::vector<Control*> submenuControls;
 		MenuItem::GetAllSubMenuControls(m_pOwner, submenuControls);
 		for (auto pControl : submenuControls) {
 			if (pControl != nullptr) {
-				m_pLayout->AddItem(pControl); //ÄÚ²¿»áµ÷ÓÃsubMenuItem->SetOwner(m_pLayout); »áµ÷ÓÃSetWindows£¬¸Ä±äÁË¹éÊô´°¿Ú¡¢¸¸¿Ø¼ş¡£
+				m_pLayout->AddItem(pControl); //å†…éƒ¨ä¼šè°ƒç”¨subMenuItem->SetOwner(m_pLayout); ä¼šè°ƒç”¨SetWindowsï¼Œæ”¹å˜äº†å½’å±çª—å£ã€çˆ¶æ§ä»¶ã€‚
 				continue;
 			}
 		}
@@ -444,7 +444,7 @@ void Menu::OnInitWindow()
 	else {
 		m_pLayout = dynamic_cast<ui::ListBox*>(GetRoot());
 		if (m_pLayout == nullptr) {
-			//ÔÊĞíÍâÃæÌ×²ãÒõÓ°
+			//å…è®¸å¤–é¢å¥—å±‚é˜´å½±
 			if ((GetRoot() != nullptr) && (GetRoot()->GetItemCount() > 0)) {
 				m_pLayout = dynamic_cast<ui::ListBox*>(GetRoot()->GetItemAt(0));
 			}
@@ -455,7 +455,7 @@ void Menu::OnInitWindow()
 
 bool Menu::AddMenuItem(MenuItem* pMenuItem)
 {
-	//Ä¿Ç°Ö»ÓĞÒ»¼¶²Ëµ¥¿ÉÒÔ·ÃÎÊÕâ¸ö½Ó¿Ú
+	//ç›®å‰åªæœ‰ä¸€çº§èœå•å¯ä»¥è®¿é—®è¿™ä¸ªæ¥å£
 	ASSERT(m_pOwner == nullptr);
 	ASSERT(m_pLayout != nullptr);
 	if (m_pLayout != nullptr) {
@@ -466,7 +466,7 @@ bool Menu::AddMenuItem(MenuItem* pMenuItem)
 
 bool Menu::AddMenuItemAt(MenuItem* pMenuItem, size_t iIndex)
 {
-	//Ä¿Ç°Ö»ÓĞÒ»¼¶²Ëµ¥¿ÉÒÔ·ÃÎÊÕâ¸ö½Ó¿Ú
+	//ç›®å‰åªæœ‰ä¸€çº§èœå•å¯ä»¥è®¿é—®è¿™ä¸ªæ¥å£
 	ASSERT(m_pOwner == nullptr);
 	ASSERT(m_pLayout != nullptr);
 	
@@ -489,7 +489,7 @@ bool Menu::AddMenuItemAt(MenuItem* pMenuItem, size_t iIndex)
 
 bool Menu::RemoveMenuItem(MenuItem* pMenuItem)
 {
-	//Ä¿Ç°Ö»ÓĞÒ»¼¶²Ëµ¥¿ÉÒÔ·ÃÎÊÕâ¸ö½Ó¿Ú
+	//ç›®å‰åªæœ‰ä¸€çº§èœå•å¯ä»¥è®¿é—®è¿™ä¸ªæ¥å£
 	ASSERT(m_pOwner == nullptr);
 	ASSERT(m_pLayout != nullptr);
 	MenuItem* pElementUI = nullptr;
@@ -508,7 +508,7 @@ bool Menu::RemoveMenuItem(MenuItem* pMenuItem)
 
 bool Menu::RemoveMenuItemAt(size_t iIndex)
 {
-	//Ä¿Ç°Ö»ÓĞÒ»¼¶²Ëµ¥¿ÉÒÔ·ÃÎÊÕâ¸ö½Ó¿Ú
+	//ç›®å‰åªæœ‰ä¸€çº§èœå•å¯ä»¥è®¿é—®è¿™ä¸ªæ¥å£
 	ASSERT(m_pOwner == nullptr);
 	MenuItem* pMenuElementUI = GetMenuItemAt(iIndex);
 	if (pMenuElementUI != nullptr) {
@@ -519,7 +519,7 @@ bool Menu::RemoveMenuItemAt(size_t iIndex)
 
 size_t Menu::GetMenuItemCount() const
 {
-	//Ä¿Ç°Ö»ÓĞÒ»¼¶²Ëµ¥¿ÉÒÔ·ÃÎÊÕâ¸ö½Ó¿Ú
+	//ç›®å‰åªæœ‰ä¸€çº§èœå•å¯ä»¥è®¿é—®è¿™ä¸ªæ¥å£
 	ASSERT(m_pOwner == nullptr);
 	if (m_pLayout == nullptr) {
 		return 0;
@@ -536,7 +536,7 @@ size_t Menu::GetMenuItemCount() const
 
 MenuItem* Menu::GetMenuItemAt(size_t iIndex) const
 {
-	//Ä¿Ç°Ö»ÓĞÒ»¼¶²Ëµ¥¿ÉÒÔ·ÃÎÊÕâ¸ö½Ó¿Ú
+	//ç›®å‰åªæœ‰ä¸€çº§èœå•å¯ä»¥è®¿é—®è¿™ä¸ªæ¥å£
 	ASSERT(m_pOwner == nullptr);
 	ASSERT(m_pLayout != nullptr);	
 	if (m_pLayout == nullptr) {
@@ -561,7 +561,7 @@ MenuItem* Menu::GetMenuItemAt(size_t iIndex) const
 
 MenuItem* Menu::GetMenuItemByName(const std::wstring& name) const
 {
-	//Ä¿Ç°Ö»ÓĞÒ»¼¶²Ëµ¥¿ÉÒÔ·ÃÎÊÕâ¸ö½Ó¿Ú
+	//ç›®å‰åªæœ‰ä¸€çº§èœå•å¯ä»¥è®¿é—®è¿™ä¸ªæ¥å£
 	ASSERT(m_pOwner == nullptr);
 	ASSERT(m_pLayout != nullptr);
 	MenuItem* pElementUI = nullptr;
@@ -582,7 +582,7 @@ MenuItem::MenuItem(Window* pWindow):
 	ListBoxItem(pWindow),
 	m_pSubWindow(nullptr)
 {
-	//ÔÚ²Ëµ¥ÔªËØÉÏ£¬²»ÈÃ×Ó¿Ø¼şÏìÓ¦Êó±êÏûÏ¢
+	//åœ¨èœå•å…ƒç´ ä¸Šï¼Œä¸è®©å­æ§ä»¶å“åº”é¼ æ ‡æ¶ˆæ¯
 	SetMouseChildEnabled(false);
 }
 
@@ -668,7 +668,7 @@ bool MenuItem::AddSubMenuItemAt(MenuItem* pMenuItem, size_t iIndex)
 		MenuItem* menuElementUI = dynamic_cast<MenuItem*>(pControl);
 		if (menuElementUI != nullptr) {
 			if (itemIndex == iIndex) {
-				//ÔÚµ±Ç°½ÚµãÏÂÆ¥Åäµ½
+				//åœ¨å½“å‰èŠ‚ç‚¹ä¸‹åŒ¹é…åˆ°
 				return AddItemAt(pMenuItem, i);
 			}
 			++itemIndex;
@@ -683,7 +683,7 @@ bool MenuItem::AddSubMenuItemAt(MenuItem* pMenuItem, size_t iIndex)
 				menuElementUI = dynamic_cast<MenuItem*>(subMenu->GetItemAt(j));
 				if (menuElementUI != nullptr) {
 					if (itemIndex == iIndex) {
-						//ÔÚµ±Ç°½ÚµãÏÂµÄSubMenuÖĞÆ¥Åäµ½
+						//åœ¨å½“å‰èŠ‚ç‚¹ä¸‹çš„SubMenuä¸­åŒ¹é…åˆ°
 						return subMenu->AddItemAt(pMenuItem, j);
 					}
 					++itemIndex;
@@ -692,7 +692,7 @@ bool MenuItem::AddSubMenuItemAt(MenuItem* pMenuItem, size_t iIndex)
 			}
 		}
 	}
-	//Èç¹ûÆ¥Åä²»µ½£¬ÔòÔö¼Óµ½×îºóÃæ
+	//å¦‚æœåŒ¹é…ä¸åˆ°ï¼Œåˆ™å¢åŠ åˆ°æœ€åé¢
 	return AddItem(pMenuItem);
 }
 
@@ -704,7 +704,7 @@ bool MenuItem::RemoveSubMenuItem(MenuItem* pMenuItem)
 		MenuItem* menuElementUI = dynamic_cast<MenuItem*>(pControl);
 		if (menuElementUI != nullptr) {
 			if (pMenuItem == menuElementUI) {
-				//ÔÚµ±Ç°½ÚµãÏÂÆ¥Åäµ½
+				//åœ¨å½“å‰èŠ‚ç‚¹ä¸‹åŒ¹é…åˆ°
 				return RemoveItemAt(i);
 			}
 			continue;
@@ -718,7 +718,7 @@ bool MenuItem::RemoveSubMenuItem(MenuItem* pMenuItem)
 				menuElementUI = dynamic_cast<MenuItem*>(subMenu->GetItemAt(j));
 				if (menuElementUI != nullptr) {
 					if (menuElementUI == pMenuItem) {
-						//ÔÚµ±Ç°½ÚµãÏÂµÄSubMenuÖĞÆ¥Åäµ½
+						//åœ¨å½“å‰èŠ‚ç‚¹ä¸‹çš„SubMenuä¸­åŒ¹é…åˆ°
 						return subMenu->RemoveItemAt(j);
 					}
 					continue;
@@ -737,7 +737,7 @@ bool MenuItem::RemoveSubMenuItemAt(size_t iIndex)
 		MenuItem* menuElementUI = dynamic_cast<MenuItem*>(pControl);
 		if (menuElementUI != nullptr) {
 			if (itemIndex == iIndex) {
-				//ÔÚµ±Ç°½ÚµãÏÂÆ¥Åäµ½
+				//åœ¨å½“å‰èŠ‚ç‚¹ä¸‹åŒ¹é…åˆ°
 				return RemoveItemAt(i);
 			}
 			++itemIndex;
@@ -752,7 +752,7 @@ bool MenuItem::RemoveSubMenuItemAt(size_t iIndex)
 				menuElementUI = dynamic_cast<MenuItem*>(subMenu->GetItemAt(j));
 				if (menuElementUI != nullptr) {
 					if (itemIndex == iIndex) {
-						//ÔÚµ±Ç°½ÚµãÏÂµÄSubMenuÖĞÆ¥Åäµ½
+						//åœ¨å½“å‰èŠ‚ç‚¹ä¸‹çš„SubMenuä¸­åŒ¹é…åˆ°
 						return subMenu->RemoveItemAt(j);
 					}
 					++itemIndex;
@@ -811,7 +811,7 @@ bool MenuItem::ButtonUp(const ui::EventArgs& msg)
 	std::weak_ptr<nbase::WeakFlag> weakFlag = pWindow->GetWeakFlag();
 	bool ret = __super::ButtonUp(msg);
 	if (ret && !weakFlag.expired()) {
-		//ÕâÀï´¦ÀíÏÂÈç¹ûÓĞ×Ó²Ëµ¥ÔòÏÔÊ¾×Ó²Ëµ¥
+		//è¿™é‡Œå¤„ç†ä¸‹å¦‚æœæœ‰å­èœå•åˆ™æ˜¾ç¤ºå­èœå•
 		if (!CheckSubMenuItem()){
 			ContextMenuParam param;
 			param.hWnd = pWindow->GetHWND();
@@ -832,13 +832,13 @@ bool MenuItem::MouseEnter(const ui::EventArgs& msg)
 	std::weak_ptr<nbase::WeakFlag> weakFlag = pWindow->GetWeakFlag();
 	bool ret = __super::MouseEnter(msg);
 	if (!weakFlag.expired() && IsHotState()) {
-		//ÕâÀï´¦ÀíÏÂÈç¹ûÓĞ×Ó²Ëµ¥ÔòÏÔÊ¾×Ó²Ëµ¥
+		//è¿™é‡Œå¤„ç†ä¸‹å¦‚æœæœ‰å­èœå•åˆ™æ˜¾ç¤ºå­èœå•
 		if (!CheckSubMenuItem()) {
 			ContextMenuParam param;
 			param.hWnd = pWindow->GetHWND();
 			param.wParam = MenuCloseType::eMenuCloseThis;
 			Menu::GetMenuObserver().RBroadcast(param);
-			//ÕâÀïµÃ°ÑÖ®Ç°Ñ¡ÖĞµÄÖÃÎªÎ´Ñ¡ÖĞ
+			//è¿™é‡Œå¾—æŠŠä¹‹å‰é€‰ä¸­çš„ç½®ä¸ºæœªé€‰ä¸­
 			if (!weakFlag.expired() && (GetOwner() != nullptr)) {
 				GetOwner()->SelectItem(Box::InvalidIndex, false, false);
 			}
@@ -857,7 +857,7 @@ void MenuItem::PaintChild(ui::IRender* pRender, const ui::UiRect& rcPaint)
 	for (auto item : m_items) {
 		Control* pControl = item;
 
-		//¶ÔÓÚ¶à¼¶²Ëµ¥ÏîµÄÄÚÈİ£¬²»»æÖÆ
+		//å¯¹äºå¤šçº§èœå•é¡¹çš„å†…å®¹ï¼Œä¸ç»˜åˆ¶
 		MenuItem* menuElementUI = dynamic_cast<MenuItem*>(pControl);
 		if (menuElementUI != nullptr){
 			continue;
@@ -892,7 +892,7 @@ bool MenuItem::CheckSubMenuItem()
 			CreateMenuWnd();
 		}
 		else {
-			//ÉÏ´ÎÕ¹Ê¾µÄ×Ó²Ëµ¥´°¿Ú£¬ÉĞÎ´ÏûÊ§£¬²»ÔÙÕ¹Ê¾
+			//ä¸Šæ¬¡å±•ç¤ºçš„å­èœå•çª—å£ï¼Œå°šæœªæ¶ˆå¤±ï¼Œä¸å†å±•ç¤º
 			hasSubMenu = false;
 		}
 	}
@@ -917,7 +917,7 @@ void MenuItem::CreateMenuWnd()
 	param.wParam = MenuCloseType::eMenuCloseThis;
 	Menu::GetMenuObserver().RBroadcast(param);
 
-	//ÉÏ¼¶¼¶²Ëµ¥´°¿Ú½Ó¿Ú£¬ÓÃÓÚÍ¬²½ÅäÖÃĞÅÏ¢
+	//ä¸Šçº§çº§èœå•çª—å£æ¥å£ï¼Œç”¨äºåŒæ­¥é…ç½®ä¿¡æ¯
 	Menu* pParentWindow = dynamic_cast<Menu*>(pWindow);
 	ASSERT(pParentWindow != nullptr);
 	if (pParentWindow != nullptr) {

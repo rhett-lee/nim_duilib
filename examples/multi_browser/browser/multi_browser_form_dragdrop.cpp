@@ -74,7 +74,7 @@ HRESULT MultiBrowserForm::DragEnter(IDataObject * pDataObject, DWORD grfKeyState
 	if (NULL == drop_helper_)
 		return S_OK;
 
-	// Èç¹û²»ÊÇÍÏ×§ä¯ÀÀÆ÷ºĞ×Ó
+	// å¦‚æœä¸æ˜¯æ‹–æ‹½æµè§ˆå™¨ç›’å­
 	if (!MultiBrowserManager::GetInstance()->IsDragingBorwserBox())
 	{
 		if (NULL != active_browser_box_)
@@ -97,7 +97,7 @@ HRESULT MultiBrowserForm::DragOver(DWORD grfKeyState, POINTL pt, DWORD *pdwEffec
 	if (NULL == drop_helper_)
 		return S_OK;
 
-	// Èç¹û²»ÊÇÍÏ×§ä¯ÀÀÆ÷ºĞ×Ó
+	// å¦‚æœä¸æ˜¯æ‹–æ‹½æµè§ˆå™¨ç›’å­
 	if (!MultiBrowserManager::GetInstance()->IsDragingBorwserBox())
 	{
 		if (NULL != active_browser_box_)
@@ -119,7 +119,7 @@ HRESULT MultiBrowserForm::DragLeave(void)
 	if (NULL == drop_helper_)
 		return S_OK;
 
-	// Èç¹û²»ÊÇÍÏ×§ä¯ÀÀÆ÷ºĞ×Ó
+	// å¦‚æœä¸æ˜¯æ‹–æ‹½æµè§ˆå™¨ç›’å­
 	if (!MultiBrowserManager::GetInstance()->IsDragingBorwserBox())
 	{
 		if (NULL != active_browser_box_)
@@ -134,7 +134,7 @@ HRESULT MultiBrowserForm::DragLeave(void)
 
 HRESULT MultiBrowserForm::Drop(IDataObject *pDataObj, DWORD grfKeyState, POINTL pt, DWORD __RPC_FAR *pdwEffect)
 {
-	// Èç¹û²»ÊÇÍÏ×§ä¯ÀÀÆ÷ºĞ×Ó
+	// å¦‚æœä¸æ˜¯æ‹–æ‹½æµè§ˆå™¨ç›’å­
 	if (!MultiBrowserManager::GetInstance()->IsDragingBorwserBox())
 	{
 #if 0
@@ -176,7 +176,7 @@ bool MultiBrowserForm::OnProcessTabItemDrag(const ui::EventArgs& param)
 
 			is_drag_state_ = true;
 
-			// °Ñ±»ÍÏ×§µÄä¯ÀÀÆ÷ºĞ×ÓÉú³ÉÒ»¸ö¿í¶È300µÄÎ»Í¼
+			// æŠŠè¢«æ‹–æ‹½çš„æµè§ˆå™¨ç›’å­ç”Ÿæˆä¸€ä¸ªå®½åº¦300çš„ä½å›¾
 			IBitmap* pBitmap = nullptr;
 			if (nim_comp::CefManager::GetInstance()->IsEnableOffsetRender()) {
 				pBitmap = GenerateBoxOffsetRenderBitmap(borwser_box_tab_->GetPos());
@@ -189,7 +189,7 @@ bool MultiBrowserForm::OnProcessTabItemDrag(const ui::EventArgs& param)
 				delete pBitmap;
 				pBitmap = nullptr;
 			}
-			// ptÓ¦¸ÃÖ¸¶¨Ïà¶ÔbitmapÎ»Í¼µÄ×óÉÏ½Ç(0,0)µÄ×ø±ê,ÕâÀïÉèÖÃÎªbitmapµÄÖĞÉÏµã
+			// ptåº”è¯¥æŒ‡å®šç›¸å¯¹bitmapä½å›¾çš„å·¦ä¸Šè§’(0,0)çš„åæ ‡,è¿™é‡Œè®¾ç½®ä¸ºbitmapçš„ä¸­ä¸Šç‚¹
 			POINT pt = { kDragImageWidth / 2, 0 };
 
 			StdClosure cb = [=]{
@@ -259,7 +259,7 @@ ui::IBitmap* MultiBrowserForm::GenerateBoxWindowBitmap()
 	int src_width = src_rect.right - src_rect.left;
 	int src_height = src_rect.bottom - src_rect.top;
 
-	//´´½¨Ò»¸öÄÚ´æDC
+	//åˆ›å»ºä¸€ä¸ªå†…å­˜DC
 	HDC cef_window_dc = ::GetDC(cef_window);
 	ui::IBitmap* pBitmap = ui::BitmapHelper::CreateBitmapObject(kDragImageWidth, kDragImageHeight, cef_window_dc, src_width, src_height);
 	::ReleaseDC(cef_window, cef_window_dc);

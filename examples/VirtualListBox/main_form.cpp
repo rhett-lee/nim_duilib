@@ -42,14 +42,14 @@ void MainForm::OnInitWindow()
 
 	GetRoot()->AttachBubbledEvent(ui::kEventClick, nbase::Bind(&MainForm::OnClicked, this, std::placeholders::_1));
 
-	// ÉèÖÃÌá¹©Õß
+	// è®¾ç½®æä¾›è€…
 	m_DataProvider = new Provider;
 	m_pTileList->SetDataProvider(m_DataProvider);
 
 	ui::LayoutType layoutType = m_pTileList->GetLayout()->GetLayoutType();
 	if ((layoutType != ui::LayoutType::VirtualHTileLayout) &&
 	    (layoutType != ui::LayoutType::VirtualVTileLayout)){
-		//Òþ²ØÁÐµÄÉèÖÃ£¬ÆäËûµÄ²»Ö§³ÖÉèÖÃÁÐ
+		//éšè—åˆ—çš„è®¾ç½®ï¼Œå…¶ä»–çš„ä¸æ”¯æŒè®¾ç½®åˆ—
 		if (m_EditColumn != nullptr) {
 			m_EditColumn->SetEnabled(false);
 			m_EditColumn->SetText(L"  ");
@@ -57,22 +57,22 @@ void MainForm::OnInitWindow()
 	}
 
 	if (layoutType == ui::LayoutType::VirtualHTileLayout) {
-		m_OptionColumnFix->SetText(L"¹Ì¶¨ÐÐÊý");
+		m_OptionColumnFix->SetText(L"å›ºå®šè¡Œæ•°");
 	}
 	else if (layoutType == ui::LayoutType::VirtualVTileLayout) {
-		m_OptionColumnFix->SetText(L"¹Ì¶¨ÁÐÊý");
+		m_OptionColumnFix->SetText(L"å›ºå®šåˆ—æ•°");
 	}
 	else if (layoutType == ui::LayoutType::VirtualHLayout) {
-		m_OptionColumnFix->SetText(L"¾ÓÖÐÉèÖÃ");
+		m_OptionColumnFix->SetText(L"å±…ä¸­è®¾ç½®");
 	}
 	else if (layoutType == ui::LayoutType::VirtualVLayout) {
-		m_OptionColumnFix->SetText(L"¾ÓÖÐÉèÖÃ");
+		m_OptionColumnFix->SetText(L"å±…ä¸­è®¾ç½®");
 	}
 }
 
 void MainForm::OnCloseWindow()
 {
-	//¹Ø±Õ´°¿Úºó£¬ÍË³öÖ÷Ïß³ÌµÄÏûÏ¢Ñ­»·£¬¹Ø±Õ³ÌÐò
+	//å…³é—­çª—å£åŽï¼Œé€€å‡ºä¸»çº¿ç¨‹çš„æ¶ˆæ¯å¾ªçŽ¯ï¼Œå…³é—­ç¨‹åº
 	PostQuitMessage(0L);
 }
 
@@ -88,7 +88,7 @@ bool MainForm::OnClicked(const ui::EventArgs& args)
 			m_pTileList->SetAttribute(L"child_margin_y", m_EditChildMarginY->GetText());
 		}
 		if (m_OptionColumnFix->IsSelected()) {
-			//¹Ì¶¨ÁÐÊý/ÐÐÊý
+			//å›ºå®šåˆ—æ•°/è¡Œæ•°
 			ui::LayoutType layoutType = m_pTileList->GetLayout()->GetLayoutType();
 			if (layoutType == ui::LayoutType::VirtualVTileLayout) {
 				m_pTileList->SetAttribute(L"columns", m_EditColumn->GetText());
@@ -98,9 +98,9 @@ bool MainForm::OnClicked(const ui::EventArgs& args)
 			}
 			if ((layoutType == ui::LayoutType::VirtualHTileLayout) ||
 			    (layoutType == ui::LayoutType::VirtualHLayout)){
-				//Ë®Æ½²¼¾Ö
+				//æ°´å¹³å¸ƒå±€
 				if (m_CheckBoxItemCenter->IsSelected()) {
-					//ÁÐ±í¾ÓÖÐ
+					//åˆ—è¡¨å±…ä¸­
 					m_pTileList->SetAttribute(L"height", L"auto");
 					m_pTileList->SetAttribute(L"valign", L"center");
 					m_pTileList->SetAttribute(L"width", L"stretch");
@@ -111,9 +111,9 @@ bool MainForm::OnClicked(const ui::EventArgs& args)
 				}
 			}
 			else {
-				//´¹Ö±²¼¾Ö
+				//åž‚ç›´å¸ƒå±€
 				if (m_CheckBoxItemCenter->IsSelected()) {
-					//ÁÐ±í¾ÓÖÐ
+					//åˆ—è¡¨å±…ä¸­
 					m_pTileList->SetAttribute(L"width", L"auto");
 					m_pTileList->SetAttribute(L"halign", L"center");
 				}
@@ -123,7 +123,7 @@ bool MainForm::OnClicked(const ui::EventArgs& args)
 			}
 		}
 		else {
-			//×Ô¶¯¼ÆËãÁÐÊý
+			//è‡ªåŠ¨è®¡ç®—åˆ—æ•°
 			m_pTileList->SetAttribute(L"width", L"stretch");
 			ui::LayoutType layoutType = m_pTileList->GetLayout()->GetLayoutType();
 			if (layoutType == ui::LayoutType::VirtualVTileLayout) {

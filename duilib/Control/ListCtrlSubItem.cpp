@@ -70,7 +70,7 @@ bool ListCtrlSubItem::SetCheckBoxVisible(bool bVisible)
             ASSERT(!checkBoxClass.empty());
             pCheckBox->SetClass(checkBoxClass);
         }
-        //ÉèÖÃÄÚ±ß¾à£¬±ÜÃâÓëÎÄ×ÖÖØµş
+        //è®¾ç½®å†…è¾¹è·ï¼Œé¿å…ä¸æ–‡å­—é‡å 
         UiPadding textPadding = GetTextPadding();
         int32_t nCheckBoxWidth = pCheckBox->GetCheckBoxWidth();
         if ((nCheckBoxWidth > 0) && (textPadding.left < nCheckBoxWidth)) {
@@ -217,12 +217,12 @@ ImagePtr ListCtrlSubItem::LoadItemImage() const
 
 void ListCtrlSubItem::PaintText(IRender* pRender)
 {
-    //ĞèÒª»æÖÆµÄÄÚÈİ°üÀ¨£ºÍ¼±ê¡¢ÎÄ×Ö
+    //éœ€è¦ç»˜åˆ¶çš„å†…å®¹åŒ…æ‹¬ï¼šå›¾æ ‡ã€æ–‡å­—
     SetTextRect(UiRect());
     if (pRender == nullptr) {
         return;
     }
-    //ÎÄ±¾Ç°µÄÍ¼±ê
+    //æ–‡æœ¬å‰çš„å›¾æ ‡
     ImagePtr pItemImage = LoadItemImage();
     if (pItemImage == nullptr) {
         __super::PaintText(pRender);
@@ -231,7 +231,7 @@ void ListCtrlSubItem::PaintText(IRender* pRender)
 
     int32_t nIconTextSpacing = GetIconSpacing();
 
-    //CheckBoxµÄ¿í¶È£¬ĞèÒªÁô³öÀ´
+    //CheckBoxçš„å®½åº¦ï¼Œéœ€è¦ç•™å‡ºæ¥
     int32_t nCheckBoxWidth = 0;
     ListCtrlCheckBox* pCheckBox = GetCheckBox();
     if ((pCheckBox != nullptr) && pCheckBox->IsVisible()) {
@@ -259,7 +259,7 @@ void ListCtrlSubItem::PaintText(IRender* pRender)
         imageSize.cy = pItemImage->GetImageCache()->GetHeight();
     }
 
-    //Í¼±ê¿¿×ó²à£¬ÎÄ×Ö°´Ô­À´µÄ·½Ê½»æÖÆ
+    //å›¾æ ‡é å·¦ä¾§ï¼Œæ–‡å­—æŒ‰åŸæ¥çš„æ–¹å¼ç»˜åˆ¶
     UiRect rc = GetRect();
     rc.Deflate(GetControlPadding());
     rc.left += nCheckBoxWidth;
@@ -287,16 +287,16 @@ void ListCtrlSubItem::VAlignRect(UiRect& rc, uint32_t textStyle, int32_t nImageH
         return;
     }
     if (textStyle & TEXT_VCENTER) {
-        //¾ÓÖĞ¶ÔÆë
+        //å±…ä¸­å¯¹é½
         rc.top = rc.CenterY() - nImageHeight / 2;
         rc.bottom = rc.top + nImageHeight;
     }
     else if (textStyle & TEXT_BOTTOM) {
-        //µ×²¿¶ÔÆë
+        //åº•éƒ¨å¯¹é½
         rc.top = rc.bottom - nImageHeight;
     }
     else {
-        //¶¥²¿¶ÔÆë
+        //é¡¶éƒ¨å¯¹é½
         rc.bottom = rc.top + nImageHeight;
     }
 }
@@ -307,7 +307,7 @@ UiSize ListCtrlSubItem::EstimateText(UiSize szAvailable)
 
     int32_t nIconTextSpacing = GetIconSpacing();
 
-    //CheckBoxµÄ¿í¶È£¬ĞèÒªÁô³öÀ´
+    //CheckBoxçš„å®½åº¦ï¼Œéœ€è¦ç•™å‡ºæ¥
     int32_t nCheckBoxWidth = 0;
     ListCtrlCheckBox* pCheckBox = GetCheckBox();
     if ((pCheckBox != nullptr) && pCheckBox->IsVisible()) {
@@ -319,7 +319,7 @@ UiSize ListCtrlSubItem::EstimateText(UiSize szAvailable)
     const UiPadding rcPadding = GetControlPadding();
     const UiPadding rcTextPadding = GetTextPadding();
 
-    //Í¼±ê¿¿×ó²à£¬ÎÄ×Ö°´Ô­À´µÄ·½Ê½»æÖÆ
+    //å›¾æ ‡é å·¦ä¾§ï¼Œæ–‡å­—æŒ‰åŸæ¥çš„æ–¹å¼ç»˜åˆ¶
     UiRect rc = GetRect();
     rc.Deflate(rcPadding);
     rc.left += nCheckBoxWidth;

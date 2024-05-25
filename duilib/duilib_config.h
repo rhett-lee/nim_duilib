@@ -27,8 +27,8 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-/** Windows SDK 实现(内部采用Windows API实现部分功能)
-*   最低支持的系统平台：Win7
+/** Windows SDK 瀹炵幇(鍐呴儴閲囩敤Windows API瀹炵幇閮ㄥ垎鍔熻兘)
+*   鏈�浣庢敮鎸佺殑绯荤粺骞冲彴锛歐in7
 */
 #define UILIB_IMPL_WINSDK 1
 
@@ -100,7 +100,7 @@
 
 #endif //UILIB_IMPL_WINSDK
 
-//未使用的变量宏，避免编译器报警报
+//鏈娇鐢ㄧ殑鍙橀噺瀹忥紝閬垮厤缂栬瘧鍣ㄦ姤璀︽姤
 #ifndef UNUSED_VARIABLE
     #define UNUSED_VARIABLE(x) ((void)(x))
 #endif

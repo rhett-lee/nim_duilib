@@ -9,7 +9,7 @@
 namespace ui
 {
 
-/** 垂直布局的Box
+/** 鍨傜洿甯冨眬鐨凚ox
 */
 class UILIB_API VBox : public Box
 {

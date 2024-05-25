@@ -2,101 +2,101 @@
 
 namespace ui
 {
-/** ÑÕÉ«Ñ¡ÔñÆ÷£º³£ÓÃÑÕÉ«
+/** é¢œè‰²é€‰æ‹©å™¨ï¼šå¸¸ç”¨é¢œè‰²
 */
 class ColorPickerRegularProvider : public ui::VirtualListBoxElement
 {
 public:
     ColorPickerRegularProvider();
 
-    /** ÉèÖÃÑÕÉ«Êı¾İ
-    * @param [in] uiColors Íâ²¿Ìá¹©µÄÑÕÉ«Êı¾İ£¬µÚÒ»¸öÊÇÑÕÉ«Ãû³Æ£¬µÚ¶ş¸öÊÇÑÕÉ«Öµ
+    /** è®¾ç½®é¢œè‰²æ•°æ®
+    * @param [in] uiColors å¤–éƒ¨æä¾›çš„é¢œè‰²æ•°æ®ï¼Œç¬¬ä¸€ä¸ªæ˜¯é¢œè‰²åç§°ï¼Œç¬¬äºŒä¸ªæ˜¯é¢œè‰²å€¼
     */
     void SetColors(const std::vector<std::pair<std::wstring, int32_t>>& uiColors);
 
-    /** ´´½¨Ò»¸öÊı¾İÏî
-    * @param [in] pVirtualListBox ¹ØÁªµÄĞé±íµÄ½Ó¿Ú
-    * @return ·µ»Ø´´½¨ºóµÄÊı¾İÏîÖ¸Õë
+    /** åˆ›å»ºä¸€ä¸ªæ•°æ®é¡¹
+    * @param [in] pVirtualListBox å…³è”çš„è™šè¡¨çš„æ¥å£
+    * @return è¿”å›åˆ›å»ºåçš„æ•°æ®é¡¹æŒ‡é’ˆ
     */
     virtual ui::Control* CreateElement(ui::VirtualListBox* pVirtualListBox) override;
 
-    /** Ìî³äÖ¸¶¨Êı¾İÏî
-    * @param [in] pControl Êı¾İÏî¿Ø¼şÖ¸Õë
-    * @param [in] nElementIndex Êı¾İÔªËØµÄË÷ÒıID£¬·¶Î§£º[0, GetElementCount())
+    /** å¡«å……æŒ‡å®šæ•°æ®é¡¹
+    * @param [in] pControl æ•°æ®é¡¹æ§ä»¶æŒ‡é’ˆ
+    * @param [in] nElementIndex æ•°æ®å…ƒç´ çš„ç´¢å¼•IDï¼ŒèŒƒå›´ï¼š[0, GetElementCount())
     */
     virtual bool FillElement(ui::Control* pControl, size_t nElementIndex) override;
 
-    /** »ñÈ¡Êı¾İÏî×ÜÊı
-    * @return ·µ»ØÊı¾İÏî×ÜÊı
+    /** è·å–æ•°æ®é¡¹æ€»æ•°
+    * @return è¿”å›æ•°æ®é¡¹æ€»æ•°
     */
     virtual size_t GetElementCount() const override;
 
-    /** ÉèÖÃÑ¡Ôñ×´Ì¬
-    * @param [in] nElementIndex Êı¾İÔªËØµÄË÷ÒıID£¬·¶Î§£º[0, GetElementCount())
-    * @param [in] bSelected true±íÊ¾Ñ¡Ôñ×´Ì¬£¬false±íÊ¾·ÇÑ¡Ôñ×´Ì¬
+    /** è®¾ç½®é€‰æ‹©çŠ¶æ€
+    * @param [in] nElementIndex æ•°æ®å…ƒç´ çš„ç´¢å¼•IDï¼ŒèŒƒå›´ï¼š[0, GetElementCount())
+    * @param [in] bSelected trueè¡¨ç¤ºé€‰æ‹©çŠ¶æ€ï¼Œfalseè¡¨ç¤ºéé€‰æ‹©çŠ¶æ€
     */
     virtual void SetElementSelected(size_t nElementIndex, bool bSelected) override;
 
-    /** »ñÈ¡Ñ¡Ôñ×´Ì¬
-    * @param [in] nElementIndex Êı¾İÔªËØµÄË÷ÒıID£¬·¶Î§£º[0, GetElementCount())
-    * @return true±íÊ¾Ñ¡Ôñ×´Ì¬£¬false±íÊ¾·ÇÑ¡Ôñ×´Ì¬
+    /** è·å–é€‰æ‹©çŠ¶æ€
+    * @param [in] nElementIndex æ•°æ®å…ƒç´ çš„ç´¢å¼•IDï¼ŒèŒƒå›´ï¼š[0, GetElementCount())
+    * @return trueè¡¨ç¤ºé€‰æ‹©çŠ¶æ€ï¼Œfalseè¡¨ç¤ºéé€‰æ‹©çŠ¶æ€
     */
     virtual bool IsElementSelected(size_t nElementIndex) const override;
 
-    /** »ñÈ¡Ñ¡ÔñµÄÔªËØÁĞ±í
-    * @param [in] selectedIndexs ·µ»Øµ±Ç°Ñ¡ÔñµÄÔªËØÁĞ±í£¬ÓĞĞ§·¶Î§£º[0, GetElementCount())
+    /** è·å–é€‰æ‹©çš„å…ƒç´ åˆ—è¡¨
+    * @param [in] selectedIndexs è¿”å›å½“å‰é€‰æ‹©çš„å…ƒç´ åˆ—è¡¨ï¼Œæœ‰æ•ˆèŒƒå›´ï¼š[0, GetElementCount())
     */
     virtual void GetSelectedElements(std::vector<size_t>& selectedIndexs) const override;
 
-    /** ÊÇ·ñÖ§³Ö¶àÑ¡
+    /** æ˜¯å¦æ”¯æŒå¤šé€‰
     */
     virtual bool IsMultiSelect() const override;
 
-    /** ÉèÖÃÊÇ·ñÖ§³Ö¶àÑ¡£¬ÓÉ½çÃæ²ãµ÷ÓÃ£¬±£³ÖÓë½çÃæ¿Ø¼şÒ»ÖÂ
-    * @return bMultiSelect true±íÊ¾Ö§³Ö¶àÑ¡£¬false±íÊ¾²»Ö§³Ö¶àÑ¡
+    /** è®¾ç½®æ˜¯å¦æ”¯æŒå¤šé€‰ï¼Œç”±ç•Œé¢å±‚è°ƒç”¨ï¼Œä¿æŒä¸ç•Œé¢æ§ä»¶ä¸€è‡´
+    * @return bMultiSelect trueè¡¨ç¤ºæ”¯æŒå¤šé€‰ï¼Œfalseè¡¨ç¤ºä¸æ”¯æŒå¤šé€‰
     */
     virtual void SetMultiSelect(bool bMultiSelect) override;
 
-    /** Ñ¡ÔñÒ»¸öÑÕÉ«
+    /** é€‰æ‹©ä¸€ä¸ªé¢œè‰²
     */
     size_t SelectColor(const UiColor& color);
 
-    /** »ñÈ¡µ±Ç°Ñ¡ÔñµÄÑÕÉ«
+    /** è·å–å½“å‰é€‰æ‹©çš„é¢œè‰²
     */
     UiColor GetSelectedColor() const;
 
 public:
-    /** ³£¼ûÑÕÉ«Öµ£¬¶ÔÓ¦µÄ×Ö·û´®³£Á¿
+    /** å¸¸è§é¢œè‰²å€¼ï¼Œå¯¹åº”çš„å­—ç¬¦ä¸²å¸¸é‡
     */
     void GetDefaultColors(std::vector<std::pair<std::wstring, int32_t>>& uiColors);
 
-    /** »ù±¾ÑÕÉ«Öµ£¬¶ÔÓ¦µÄ×Ö·û´®³£Á¿
+    /** åŸºæœ¬é¢œè‰²å€¼ï¼Œå¯¹åº”çš„å­—ç¬¦ä¸²å¸¸é‡
     */
     void GetBasicColors(std::vector<std::pair<std::wstring, int32_t>>& uiColors);
 
 private:
-    /** ÑÕÉ«½á¹¹
+    /** é¢œè‰²ç»“æ„
     */
     struct RegularColor
     {
-        //ÑÕÉ«µÄÏÔÊ¾Ãû³Æ
+        //é¢œè‰²çš„æ˜¾ç¤ºåç§°
         UiString colorName;
-        //ÑÕÉ«Öµ
+        //é¢œè‰²å€¼
         UiColor colorValue;
-        //ÊÇ·ñÑ¡Ôñ
+        //æ˜¯å¦é€‰æ‹©
         bool m_bSelected;
 
-        //±È½Ïº¯Êı
+        //æ¯”è¾ƒå‡½æ•°
         bool operator < (const RegularColor& r)
         {
-            //°´ÕÕÑÕÉ«µÄ»Ò¶ÈÖµÅÅĞò
+            //æŒ‰ç…§é¢œè‰²çš„ç°åº¦å€¼æ’åº
             double v1 = colorValue.GetR() * 0.299 + colorValue.GetG() * 0.587 + colorValue.GetB() * 0.114;
             double v2 = r.colorValue.GetR() * 0.299 + r.colorValue.GetG() * 0.587 + r.colorValue.GetB() * 0.114;
             return v1 < v2;
         }
     };
 
-    /** ÑÕÉ«ÁĞ±í
+    /** é¢œè‰²åˆ—è¡¨
     */
     std::vector<RegularColor> m_colors;
 };
@@ -150,7 +150,7 @@ void ColorPickerRegular::SetPos(UiRect rc)
 {
     UiRect rect = rc;
     rect.Deflate(GetPadding());
-    //×Ô¶¯¼ÆËãÃ¿¸öÑÕÉ«¿éµÄ´óĞ¡£¬ÊÊÓ¦À­Éì
+    //è‡ªåŠ¨è®¡ç®—æ¯ä¸ªé¢œè‰²å—çš„å¤§å°ï¼Œé€‚åº”æ‹‰ä¼¸
     int32_t elementCount = 0;
     VirtualListBoxElement* pListBoxElement = GetDataProvider();
     if (pListBoxElement != nullptr) {
@@ -170,7 +170,7 @@ void ColorPickerRegular::SetPos(UiRect rc)
             if (rows <= 0) {
                 rows += 1;
             }
-            //×Ô¶¯¼ÆËãItem´óĞ¡            
+            //è‡ªåŠ¨è®¡ç®—Itemå¤§å°            
             int32_t childMarginX = pVirtualLayout->GetChildMarginX();
             int32_t childMarginY = pVirtualLayout->GetChildMarginY();
             UiSize szItem;
@@ -203,13 +203,13 @@ void ColorPickerRegular::SetAttribute(const std::wstring& strName, const std::ws
 {
     if (strName == L"color_type") {
         if (strValue == L"basic") {
-            //Ê¹ÓÃ»ù±¾ÑÕÉ«
+            //ä½¿ç”¨åŸºæœ¬é¢œè‰²
             std::vector<std::pair<std::wstring, int32_t>> uiColors;
             m_regularColors->GetBasicColors(uiColors);
             m_regularColors->SetColors(uiColors);
         }
         else {
-            //Ê¹ÓÃÄ¬ÈÏÑÕÉ«
+            //ä½¿ç”¨é»˜è®¤é¢œè‰²
             std::vector<std::pair<std::wstring, int32_t>> uiColors;
             m_regularColors->GetDefaultColors(uiColors);
             m_regularColors->SetColors(uiColors);
@@ -350,204 +350,204 @@ UiColor ColorPickerRegularProvider::GetSelectedColor() const
 void ColorPickerRegularProvider::GetDefaultColors(std::vector<std::pair<std::wstring, int32_t>>& uiColors)
 {
     uiColors = {
-                {L"AliceBlue,°®ÀöË¿À¶",UiColors::AliceBlue},
-                {L"AntiqueWhite,¹Å¶­°×",UiColors::AntiqueWhite},
-                {L"Aqua,Ç³ÂÌÉ«",UiColors::Aqua},
-                {L"Aquamarine,º£À¶±¦Ê¯É«",UiColors::Aquamarine},
-                {L"Azure,ÎµÀ¶É«µÄ",UiColors::Azure},
-                {L"Beige,Ã×É«",UiColors::Beige},
-                {L"Bisque,½Û»ÆÉ«",UiColors::Bisque},
-                {L"Black,ºÚÉ«",UiColors::Black},
-                {L"BlanchedAlmond,°×ĞÓÉ«",UiColors::BlanchedAlmond},
-                {L"Blue,À¶É«",UiColors::Blue},
-                {L"BlueViolet,À¶×ÏÂŞÀ¼É«",UiColors::BlueViolet},
-                {L"Brown,×ØÉ«£¬ºÖÉ«",UiColors::Brown},
-                {L"BurlyWood,ÊµÄ¾É«",UiColors::BurlyWood},
-                {L"CadetBlue,¾üÀ¶É«",UiColors::CadetBlue},
-                {L"Chartreuse,»ÆÂÌÉ«",UiColors::Chartreuse},
-                {L"Chocolate,ÇÉ¿ËÁ¦É«",UiColors::Chocolate},
-                {L"Coral,Éºº÷É«",UiColors::Coral},
-                {L"CornflowerBlue,¾ÕÀ¼É«",UiColors::CornflowerBlue},
-                {L"Cornsilk,Ã×³ñÉ«",UiColors::Cornsilk},
-                {L"Crimson,°µºìÉ«µÄ",UiColors::Crimson},
-                {L"Cyan,ÇàÉ«",UiColors::Cyan},
-                {L"DarkBlue,ÉîÀ¶É«",UiColors::DarkBlue},
-                {L"DarkCyan,ÉîÇàÉ«",UiColors::DarkCyan},
-                {L"DarkGoldenrod,Éî½ğ»Æ»Æ",UiColors::DarkGoldenrod},
-                {L"DarkGray,Éî»ÒÉ«",UiColors::DarkGray},
-                {L"DarkGreen,ÉîÂÌÉ«",UiColors::DarkGreen},
-                {L"DarkKhaki,°µ¿¨ÆäÉ«£¬Éî»ÆºÖÉ«",UiColors::DarkKhaki},
-                {L"DarkMagenta,ÉîÆ·ºìÉ«£¬°µÑóºì",UiColors::DarkMagenta},
-                {L"DarkOliveGreen,°µéÏé­ÂÌ",UiColors::DarkOliveGreen},
-                {L"DarkOrange,Éî³ÈÉ«",UiColors::DarkOrange},
-                {L"DarkOrchid,°µ×ÏÉ«",UiColors::DarkOrchid},
-                {L"DarkRed,ÉîºìÉ«",UiColors::DarkRed},
-                {L"DarkSalmon,°µÈâÉ«",UiColors::DarkSalmon},
-                {L"DarkSeaGreen,Éîº£À¶É«",UiColors::DarkSeaGreen},
-                {L"DarkSlateBlue,Éî»ÒÀ¶É«",UiColors::DarkSlateBlue},
-                {L"DarkSlateGray,°µÂÌÉ«",UiColors::DarkSlateGray},
-                {L"DarkTurquoise,°µ±¦Ê¯ÂÌÉ«",UiColors::DarkTurquoise},
-                {L"DarkViolet,°µ×ÏÂŞÀ¼É«",UiColors::DarkViolet},
-                {L"DeepPink,Éî·ÛºìÉ«",UiColors::DeepPink},
-                {L"DeepSkyBlue,ÉîÌìÀ¶É«",UiColors::DeepSkyBlue},
-                {L"DimGray,°µ»ÒÉ«",UiColors::DimGray},
-                {L"DodgerBlue,ÉÁÀ¼É«",UiColors::DodgerBlue},
-                {L"Firebrick,»ğ×©É«",UiColors::Firebrick},
-                {L"FloralWhite,»¨°×É«",UiColors::FloralWhite},
-                {L"ForestGreen,É­ÁÖÂÌ",UiColors::ForestGreen},
-                {L"Fuchsia,×ÏºìÉ«",UiColors::Fuchsia},
-                {L"Gainsboro,µ­»ÒÉ«",UiColors::Gainsboro},
-                {L"GhostWhite,ÓÄÁé°×É«",UiColors::GhostWhite},
-                {L"Gold,½ğÉ«",UiColors::Gold},
-                {L"Goldenrod,½ğ÷è÷ëÉ«",UiColors::Goldenrod},
-                {L"Gray,»ÒÉ«",UiColors::Gray},
-                {L"Green,ÂÌÉ«",UiColors::Green},
-                {L"GreenYellow,»ÆÂÌÉ«",UiColors::GreenYellow},
-                {L"Honeydew,ÃÛÉ«",UiColors::Honeydew},
-                {L"HotPink,ÈÈ·ÛºìÉ«",UiColors::HotPink},
-                {L"IndianRed,Ó¡µÚ°²ºì",UiColors::IndianRed},
-                {L"Indigo,µåÀ¶É«",UiColors::Indigo},
-                {L"Ivory,ÏóÑÀÉ«",UiColors::Ivory},
-                {L"Khaki,»ÆºÖÉ«",UiColors::Khaki},
-                {L"Lavender,Ş¹ÒÂ²İÉ«£¬µ­×ÏÉ«",UiColors::Lavender},
-                {L"LavenderBlush,µ­×ÏºìÉ«",UiColors::LavenderBlush},
-                {L"LawnGreen,²İÂÌÉ«",UiColors::LawnGreen},
-                {L"LemonChiffon,ÄûÃÊ³ñÉ«",UiColors::LemonChiffon},
-                {L"LightBlue,µ­À¶É«",UiColors::LightBlue},
-                {L"LightCoral,µ­Éºº÷É«",UiColors::LightCoral},
-                {L"LightCyan,µ­ÇàÉ«",UiColors::LightCyan},
-                {L"LightGoldenrodYellow,ÁÁ¾Õ»Æ",UiColors::LightGoldenrodYellow},
-                {L"LightGray,Ç³»ÒÉ«",UiColors::LightGray},
-                {L"LightGreen,µ­ÂÌÉ«",UiColors::LightGreen},
-                {L"LightPink,Ç³·Ûºì",UiColors::LightPink},
-                {L"LightSalmon,ÁÁÈâÉ«",UiColors::LightSalmon},
-                {L"LightSeaGreen,Ç³º£À¶É«",UiColors::LightSeaGreen},
-                {L"LightSkyBlue,ÁÁÌìÀ¶É«",UiColors::LightSkyBlue},
-                {L"LightSlateGray,ÁÁÀ¶»Ò",UiColors::LightSlateGray},
-                {L"LightSteelBlue,ÁÁ¸ÖÀ¶É«",UiColors::LightSteelBlue},
-                {L"LightYellow,Ç³»ÆÉ«",UiColors::LightYellow},
-                {L"Lime,Ê¯»ÒÉ«",UiColors::Lime},
-                {L"LimeGreen,Ëá³ÈÂÌÉ«",UiColors::LimeGreen},
-                {L"Linen,ÑÇÂéÉ«",UiColors::Linen},
-                {L"Magenta,ÑóºìÉ«",UiColors::Magenta},
-                {L"Maroon,×ÏºÖÉ«",UiColors::Maroon},
-                {L"MediumAquamarine,ÖĞ±ÌÂÌÉ«",UiColors::MediumAquamarine},
-                {L"MediumBlue,ÖĞÀ¶É«",UiColors::MediumBlue},
-                {L"MediumOrchid,ÖĞÀ¼»¨×Ï",UiColors::MediumOrchid},
-                {L"MediumPurple,ÖĞ×ÏÉ«",UiColors::MediumPurple},
-                {L"MediumSeaGreen,ÖĞº£ÑóÂÌ",UiColors::MediumSeaGreen},
-                {L"MediumSlateBlue,ÖĞ°åÑÒÀ¶",UiColors::MediumSlateBlue},
-                {L"MediumSpringGreen,ÖĞ´ºÂÌÉ«",UiColors::MediumSpringGreen},
-                {L"MediumTurquoise,ÖĞÂÌ±¦Ê¯É«",UiColors::MediumTurquoise},
-                {L"MediumVioletRed,ÖĞ×ÏÂŞÀ¼É«",UiColors::MediumVioletRed},
-                {L"MidnightBlue,ÉîÒ¹À¶",UiColors::MidnightBlue},
-                {L"MintCream,±¡ºÉÉ«",UiColors::MintCream},
-                {L"MistyRose,±¡ÎíÃµ¹åÉ«",UiColors::MistyRose},
-                {L"Moccasin,Â¹Æ¤É«",UiColors::Moccasin},
-                {L"NavajoWhite,ÄÉÍß°×",UiColors::NavajoWhite},
-                {L"Navy,º£¾üÀ¶",UiColors::Navy},
-                {L"OldLace,Ç³Ã×É«",UiColors::OldLace},
-                {L"Olive,éÏé­É«",UiColors::Olive},
-                {L"OliveDrab,ÉîÂÌºÖÉ«",UiColors::OliveDrab},
-                {L"Orange,³ÈÉ«",UiColors::Orange},
-                {L"OrangeRed,³ÈºìÉ«",UiColors::OrangeRed},
-                {L"Orchid,À¼»¨×ÏÉ«",UiColors::Orchid},
-                {L"PaleGoldenrod,µ­»ÆÉ«",UiColors::PaleGoldenrod},
-                {L"PaleGreen,µ­ÂÌÉ«",UiColors::PaleGreen},
-                {L"PaleTurquoise,²ÔÂÌÉ«",UiColors::PaleTurquoise},
-                {L"PaleVioletRed,Ç³×ÏÂŞÀ¼ºì",UiColors::PaleVioletRed},
-                {L"PapayaWhip,·¬Ä¾É«",UiColors::PapayaWhip},
-                {L"PeachPuff,ÌÒÉ«",UiColors::PeachPuff},
-                {L"Peru,ÃØÂ³É«",UiColors::Peru},
-                {L"Pink,·ÛºìÉ«",UiColors::Pink},
-                {L"Plum,Àî×ÓÉ«",UiColors::Plum},
-                {L"PowderBlue,·ÛÀ¶É«",UiColors::PowderBlue},
-                {L"Purple,×ÏÉ«",UiColors::Purple},
-                {L"Red,ºìÉ«",UiColors::Red},
-                {L"RosyBrown,Ãµ¹å×ØÉ«",UiColors::RosyBrown},
-                {L"RoyalBlue,»Ê¼ÒÀ¶É«",UiColors::RoyalBlue},
-                {L"SaddleBrown,ÖØºÖÉ«",UiColors::SaddleBrown},
-                {L"Salmon,öÙÓãÉ«£¬ÈıÎÄÓãÉ«",UiColors::Salmon},
-                {L"SandyBrown,É³×ØÉ«",UiColors::SandyBrown},
-                {L"SeaGreen,º£ÂÌÉ«",UiColors::SeaGreen},
-                {L"SeaShell,º£±´É«",UiColors::SeaShell},
-                {L"Sienna,»ÆÍÁô÷É«",UiColors::Sienna},
-                {L"Silver,ÒøÉ«",UiColors::Silver},
-                {L"SkyBlue,ÌìÀ¶É«",UiColors::SkyBlue},
-                {L"SlateBlue,Ê¯°åÀ¶É«",UiColors::SlateBlue},
-                {L"SlateGray,Ê¯°å»ÒÉ«",UiColors::SlateGray},
-                {L"Snow,Ñ©°×É«",UiColors::Snow},
-                {L"SpringGreen,´ºÂÌÉ«",UiColors::SpringGreen},
-                {L"SteelBlue,¸ÖÇàÉ«",UiColors::SteelBlue},
-                {L"Tan,×ØºÖÉ«",UiColors::Tan},
-                {L"Teal,ÇàÉ«",UiColors::Teal},
-                {L"Thistle,¼»É«£¬ÊÇÒ»ÖÖ×ÏÉ«",UiColors::Thistle},
-                {L"Tomato,·¬ÇÑÉ«",UiColors::Tomato},
-                {L"Transparent,Í¸Ã÷µÄ",UiColors::Transparent},
-                {L"Turquoise,ÂÌËÉÉ«",UiColors::Turquoise},
-                {L"Violet,×ÏÂŞÀ¼É«",UiColors::Violet},
-                {L"Wheat,Ğ¡ÂóÉ«, µ­»ÆÉ«",UiColors::Wheat},
-                {L"White,°×É«",UiColors::White},
-                {L"WhiteSmoke,°×ÑÌÉ«",UiColors::WhiteSmoke},
-                {L"Yellow,»ÆÉ«",UiColors::Yellow},
-                {L"YellowGreen,»ÆÂÌÉ«",UiColors::YellowGreen}
+                {L"AliceBlue,çˆ±ä¸½ä¸è“",UiColors::AliceBlue},
+                {L"AntiqueWhite,å¤è‘£ç™½",UiColors::AntiqueWhite},
+                {L"Aqua,æµ…ç»¿è‰²",UiColors::Aqua},
+                {L"Aquamarine,æµ·è“å®çŸ³è‰²",UiColors::Aquamarine},
+                {L"Azure,è”šè“è‰²çš„",UiColors::Azure},
+                {L"Beige,ç±³è‰²",UiColors::Beige},
+                {L"Bisque,æ¡”é»„è‰²",UiColors::Bisque},
+                {L"Black,é»‘è‰²",UiColors::Black},
+                {L"BlanchedAlmond,ç™½æè‰²",UiColors::BlanchedAlmond},
+                {L"Blue,è“è‰²",UiColors::Blue},
+                {L"BlueViolet,è“ç´«ç½—å…°è‰²",UiColors::BlueViolet},
+                {L"Brown,æ£•è‰²ï¼Œè¤è‰²",UiColors::Brown},
+                {L"BurlyWood,å®æœ¨è‰²",UiColors::BurlyWood},
+                {L"CadetBlue,å†›è“è‰²",UiColors::CadetBlue},
+                {L"Chartreuse,é»„ç»¿è‰²",UiColors::Chartreuse},
+                {L"Chocolate,å·§å…‹åŠ›è‰²",UiColors::Chocolate},
+                {L"Coral,çŠç‘šè‰²",UiColors::Coral},
+                {L"CornflowerBlue,èŠå…°è‰²",UiColors::CornflowerBlue},
+                {L"Cornsilk,ç±³ç»¸è‰²",UiColors::Cornsilk},
+                {L"Crimson,æš—çº¢è‰²çš„",UiColors::Crimson},
+                {L"Cyan,é’è‰²",UiColors::Cyan},
+                {L"DarkBlue,æ·±è“è‰²",UiColors::DarkBlue},
+                {L"DarkCyan,æ·±é’è‰²",UiColors::DarkCyan},
+                {L"DarkGoldenrod,æ·±é‡‘é»„é»„",UiColors::DarkGoldenrod},
+                {L"DarkGray,æ·±ç°è‰²",UiColors::DarkGray},
+                {L"DarkGreen,æ·±ç»¿è‰²",UiColors::DarkGreen},
+                {L"DarkKhaki,æš—å¡å…¶è‰²ï¼Œæ·±é»„è¤è‰²",UiColors::DarkKhaki},
+                {L"DarkMagenta,æ·±å“çº¢è‰²ï¼Œæš—æ´‹çº¢",UiColors::DarkMagenta},
+                {L"DarkOliveGreen,æš—æ©„æ¦„ç»¿",UiColors::DarkOliveGreen},
+                {L"DarkOrange,æ·±æ©™è‰²",UiColors::DarkOrange},
+                {L"DarkOrchid,æš—ç´«è‰²",UiColors::DarkOrchid},
+                {L"DarkRed,æ·±çº¢è‰²",UiColors::DarkRed},
+                {L"DarkSalmon,æš—è‚‰è‰²",UiColors::DarkSalmon},
+                {L"DarkSeaGreen,æ·±æµ·è“è‰²",UiColors::DarkSeaGreen},
+                {L"DarkSlateBlue,æ·±ç°è“è‰²",UiColors::DarkSlateBlue},
+                {L"DarkSlateGray,æš—ç»¿è‰²",UiColors::DarkSlateGray},
+                {L"DarkTurquoise,æš—å®çŸ³ç»¿è‰²",UiColors::DarkTurquoise},
+                {L"DarkViolet,æš—ç´«ç½—å…°è‰²",UiColors::DarkViolet},
+                {L"DeepPink,æ·±ç²‰çº¢è‰²",UiColors::DeepPink},
+                {L"DeepSkyBlue,æ·±å¤©è“è‰²",UiColors::DeepSkyBlue},
+                {L"DimGray,æš—ç°è‰²",UiColors::DimGray},
+                {L"DodgerBlue,é—ªå…°è‰²",UiColors::DodgerBlue},
+                {L"Firebrick,ç«ç –è‰²",UiColors::Firebrick},
+                {L"FloralWhite,èŠ±ç™½è‰²",UiColors::FloralWhite},
+                {L"ForestGreen,æ£®æ—ç»¿",UiColors::ForestGreen},
+                {L"Fuchsia,ç´«çº¢è‰²",UiColors::Fuchsia},
+                {L"Gainsboro,æ·¡ç°è‰²",UiColors::Gainsboro},
+                {L"GhostWhite,å¹½çµç™½è‰²",UiColors::GhostWhite},
+                {L"Gold,é‡‘è‰²",UiColors::Gold},
+                {L"Goldenrod,é‡‘éº’éºŸè‰²",UiColors::Goldenrod},
+                {L"Gray,ç°è‰²",UiColors::Gray},
+                {L"Green,ç»¿è‰²",UiColors::Green},
+                {L"GreenYellow,é»„ç»¿è‰²",UiColors::GreenYellow},
+                {L"Honeydew,èœœè‰²",UiColors::Honeydew},
+                {L"HotPink,çƒ­ç²‰çº¢è‰²",UiColors::HotPink},
+                {L"IndianRed,å°ç¬¬å®‰çº¢",UiColors::IndianRed},
+                {L"Indigo,é›è“è‰²",UiColors::Indigo},
+                {L"Ivory,è±¡ç‰™è‰²",UiColors::Ivory},
+                {L"Khaki,é»„è¤è‰²",UiColors::Khaki},
+                {L"Lavender,è–°è¡£è‰è‰²ï¼Œæ·¡ç´«è‰²",UiColors::Lavender},
+                {L"LavenderBlush,æ·¡ç´«çº¢è‰²",UiColors::LavenderBlush},
+                {L"LawnGreen,è‰ç»¿è‰²",UiColors::LawnGreen},
+                {L"LemonChiffon,æŸ æª¬ç»¸è‰²",UiColors::LemonChiffon},
+                {L"LightBlue,æ·¡è“è‰²",UiColors::LightBlue},
+                {L"LightCoral,æ·¡çŠç‘šè‰²",UiColors::LightCoral},
+                {L"LightCyan,æ·¡é’è‰²",UiColors::LightCyan},
+                {L"LightGoldenrodYellow,äº®èŠé»„",UiColors::LightGoldenrodYellow},
+                {L"LightGray,æµ…ç°è‰²",UiColors::LightGray},
+                {L"LightGreen,æ·¡ç»¿è‰²",UiColors::LightGreen},
+                {L"LightPink,æµ…ç²‰çº¢",UiColors::LightPink},
+                {L"LightSalmon,äº®è‚‰è‰²",UiColors::LightSalmon},
+                {L"LightSeaGreen,æµ…æµ·è“è‰²",UiColors::LightSeaGreen},
+                {L"LightSkyBlue,äº®å¤©è“è‰²",UiColors::LightSkyBlue},
+                {L"LightSlateGray,äº®è“ç°",UiColors::LightSlateGray},
+                {L"LightSteelBlue,äº®é’¢è“è‰²",UiColors::LightSteelBlue},
+                {L"LightYellow,æµ…é»„è‰²",UiColors::LightYellow},
+                {L"Lime,çŸ³ç°è‰²",UiColors::Lime},
+                {L"LimeGreen,é…¸æ©™ç»¿è‰²",UiColors::LimeGreen},
+                {L"Linen,äºšéº»è‰²",UiColors::Linen},
+                {L"Magenta,æ´‹çº¢è‰²",UiColors::Magenta},
+                {L"Maroon,ç´«è¤è‰²",UiColors::Maroon},
+                {L"MediumAquamarine,ä¸­ç¢§ç»¿è‰²",UiColors::MediumAquamarine},
+                {L"MediumBlue,ä¸­è“è‰²",UiColors::MediumBlue},
+                {L"MediumOrchid,ä¸­å…°èŠ±ç´«",UiColors::MediumOrchid},
+                {L"MediumPurple,ä¸­ç´«è‰²",UiColors::MediumPurple},
+                {L"MediumSeaGreen,ä¸­æµ·æ´‹ç»¿",UiColors::MediumSeaGreen},
+                {L"MediumSlateBlue,ä¸­æ¿å²©è“",UiColors::MediumSlateBlue},
+                {L"MediumSpringGreen,ä¸­æ˜¥ç»¿è‰²",UiColors::MediumSpringGreen},
+                {L"MediumTurquoise,ä¸­ç»¿å®çŸ³è‰²",UiColors::MediumTurquoise},
+                {L"MediumVioletRed,ä¸­ç´«ç½—å…°è‰²",UiColors::MediumVioletRed},
+                {L"MidnightBlue,æ·±å¤œè“",UiColors::MidnightBlue},
+                {L"MintCream,è–„è·è‰²",UiColors::MintCream},
+                {L"MistyRose,è–„é›¾ç«ç‘°è‰²",UiColors::MistyRose},
+                {L"Moccasin,é¹¿çš®è‰²",UiColors::Moccasin},
+                {L"NavajoWhite,çº³ç“¦ç™½",UiColors::NavajoWhite},
+                {L"Navy,æµ·å†›è“",UiColors::Navy},
+                {L"OldLace,æµ…ç±³è‰²",UiColors::OldLace},
+                {L"Olive,æ©„æ¦„è‰²",UiColors::Olive},
+                {L"OliveDrab,æ·±ç»¿è¤è‰²",UiColors::OliveDrab},
+                {L"Orange,æ©™è‰²",UiColors::Orange},
+                {L"OrangeRed,æ©™çº¢è‰²",UiColors::OrangeRed},
+                {L"Orchid,å…°èŠ±ç´«è‰²",UiColors::Orchid},
+                {L"PaleGoldenrod,æ·¡é»„è‰²",UiColors::PaleGoldenrod},
+                {L"PaleGreen,æ·¡ç»¿è‰²",UiColors::PaleGreen},
+                {L"PaleTurquoise,è‹ç»¿è‰²",UiColors::PaleTurquoise},
+                {L"PaleVioletRed,æµ…ç´«ç½—å…°çº¢",UiColors::PaleVioletRed},
+                {L"PapayaWhip,ç•ªæœ¨è‰²",UiColors::PapayaWhip},
+                {L"PeachPuff,æ¡ƒè‰²",UiColors::PeachPuff},
+                {L"Peru,ç§˜é²è‰²",UiColors::Peru},
+                {L"Pink,ç²‰çº¢è‰²",UiColors::Pink},
+                {L"Plum,æå­è‰²",UiColors::Plum},
+                {L"PowderBlue,ç²‰è“è‰²",UiColors::PowderBlue},
+                {L"Purple,ç´«è‰²",UiColors::Purple},
+                {L"Red,çº¢è‰²",UiColors::Red},
+                {L"RosyBrown,ç«ç‘°æ£•è‰²",UiColors::RosyBrown},
+                {L"RoyalBlue,çš‡å®¶è“è‰²",UiColors::RoyalBlue},
+                {L"SaddleBrown,é‡è¤è‰²",UiColors::SaddleBrown},
+                {L"Salmon,é²‘é±¼è‰²ï¼Œä¸‰æ–‡é±¼è‰²",UiColors::Salmon},
+                {L"SandyBrown,æ²™æ£•è‰²",UiColors::SandyBrown},
+                {L"SeaGreen,æµ·ç»¿è‰²",UiColors::SeaGreen},
+                {L"SeaShell,æµ·è´è‰²",UiColors::SeaShell},
+                {L"Sienna,é»„åœŸèµ­è‰²",UiColors::Sienna},
+                {L"Silver,é“¶è‰²",UiColors::Silver},
+                {L"SkyBlue,å¤©è“è‰²",UiColors::SkyBlue},
+                {L"SlateBlue,çŸ³æ¿è“è‰²",UiColors::SlateBlue},
+                {L"SlateGray,çŸ³æ¿ç°è‰²",UiColors::SlateGray},
+                {L"Snow,é›ªç™½è‰²",UiColors::Snow},
+                {L"SpringGreen,æ˜¥ç»¿è‰²",UiColors::SpringGreen},
+                {L"SteelBlue,é’¢é’è‰²",UiColors::SteelBlue},
+                {L"Tan,æ£•è¤è‰²",UiColors::Tan},
+                {L"Teal,é’è‰²",UiColors::Teal},
+                {L"Thistle,è“Ÿè‰²ï¼Œæ˜¯ä¸€ç§ç´«è‰²",UiColors::Thistle},
+                {L"Tomato,ç•ªèŒ„è‰²",UiColors::Tomato},
+                {L"Transparent,é€æ˜çš„",UiColors::Transparent},
+                {L"Turquoise,ç»¿æ¾è‰²",UiColors::Turquoise},
+                {L"Violet,ç´«ç½—å…°è‰²",UiColors::Violet},
+                {L"Wheat,å°éº¦è‰², æ·¡é»„è‰²",UiColors::Wheat},
+                {L"White,ç™½è‰²",UiColors::White},
+                {L"WhiteSmoke,ç™½çƒŸè‰²",UiColors::WhiteSmoke},
+                {L"Yellow,é»„è‰²",UiColors::Yellow},
+                {L"YellowGreen,é»„ç»¿è‰²",UiColors::YellowGreen}
     };
 }
 
 void ColorPickerRegularProvider::GetBasicColors(std::vector<std::pair<std::wstring, int32_t>>& uiColors)
 {
     uiColors = {
-        {L"Ãµ¹åºì",0xFFF08784},
-        {L"Ãµ¹åºì",0xFFEB3324},
-        {L"ºÖÉ«",0xFF774342},
-        {L"ºìÉ«",0xFF8E403A},
-        {L"ÉîºìÉ«",0xFF3A0603},
-        {L"ÌìÀ¶",0xFF9FFCFD},
-        {L"ÌìÀ¶",0xFF73FBFD},
-        {L"À¶É«",0xFF3282F6},
-        {L"À¶É«",0xFF0023F5},
-        {L"ÉîÀ¶",0xFF00129A},
-        {L"ÉîÀ¶",0xFF16417C},
-        {L"ÉîÀ¶",0xFF000C7B},
+        {L"ç«ç‘°çº¢",0xFFF08784},
+        {L"ç«ç‘°çº¢",0xFFEB3324},
+        {L"è¤è‰²",0xFF774342},
+        {L"çº¢è‰²",0xFF8E403A},
+        {L"æ·±çº¢è‰²",0xFF3A0603},
+        {L"å¤©è“",0xFF9FFCFD},
+        {L"å¤©è“",0xFF73FBFD},
+        {L"è“è‰²",0xFF3282F6},
+        {L"è“è‰²",0xFF0023F5},
+        {L"æ·±è“",0xFF00129A},
+        {L"æ·±è“",0xFF16417C},
+        {L"æ·±è“",0xFF000C7B},
 
-        {L"Ç³»ÆÉ«",0xFFFFFE91},
-        {L"»ÆÉ«",0xFFFFFD55},
-        {L"³ÈÉ«",0xFFF09B59},
-        {L"³ÈÉ«",0xFFF08650},
-        {L"ºÖÉ«",0xFF784315},
-        {L"Éî»ÆÉ«",0xFF817F26},
-        {L"Ç³À¶É«",0xFF7E84F7},
-        {L"×ÏÉ«",0xFF732BF5},
-        {L"À¶É«",0xFF3580BB},
-        {L"ÉîÀ¶",0xFF00023D},
-        {L"Éî×ÏÉ«",0xFF58135E},
-        {L"Éî×ÏÉ«",0xFF3A083E},
+        {L"æµ…é»„è‰²",0xFFFFFE91},
+        {L"é»„è‰²",0xFFFFFD55},
+        {L"æ©™è‰²",0xFFF09B59},
+        {L"æ©™è‰²",0xFFF08650},
+        {L"è¤è‰²",0xFF784315},
+        {L"æ·±é»„è‰²",0xFF817F26},
+        {L"æµ…è“è‰²",0xFF7E84F7},
+        {L"ç´«è‰²",0xFF732BF5},
+        {L"è“è‰²",0xFF3580BB},
+        {L"æ·±è“",0xFF00023D},
+        {L"æ·±ç´«è‰²",0xFF58135E},
+        {L"æ·±ç´«è‰²",0xFF3A083E},
 
-        {L"Ç³ÂÌ",0xFFA1FB8E},
-        {L"ÂÌÉ«",0xFFA1FA4F},
-        {L"ÂÌÉ«",0xFF75F94D},
-        {L"Ç³ÂÌ",0xFF75FA61},
-        {L"Ç³ÂÌ",0xFF75FA8D},
-        {L"ºÖÉ«",0xFF818049},
-        {L"·ÛÉ«",0xFFEF88BE},
-        {L"Ç³×ÏÉ«",0xFFEE8AF8},
-        {L"µ­×ÏÉ«",0xFFEA3FF7},
-        {L"·ÛÉ«",0xFFEA3680},
-        {L"µ­×ÏÉ«",0xFF7F82BB},
-        {L"×ÏºìÉ«",0xFF75163F},
+        {L"æµ…ç»¿",0xFFA1FB8E},
+        {L"ç»¿è‰²",0xFFA1FA4F},
+        {L"ç»¿è‰²",0xFF75F94D},
+        {L"æµ…ç»¿",0xFF75FA61},
+        {L"æµ…ç»¿",0xFF75FA8D},
+        {L"è¤è‰²",0xFF818049},
+        {L"ç²‰è‰²",0xFFEF88BE},
+        {L"æµ…ç´«è‰²",0xFFEE8AF8},
+        {L"æ·¡ç´«è‰²",0xFFEA3FF7},
+        {L"ç²‰è‰²",0xFFEA3680},
+        {L"æ·¡ç´«è‰²",0xFF7F82BB},
+        {L"ç´«çº¢è‰²",0xFF75163F},
 
-        {L"Ç³ÂÌÉ«",0xFF377D22},
-        {L"ÉîÂÌÉ«",0xFF377E47},
-        {L"ÉîÇàÉ«",0xFF367E7F},
-        {L"ÇàÉ«",0xFF507F80},
-        {L"ÉîÂÌÉ«",0xFF183E0C},
-        {L"ÉîÇàÉ«",0xFF173F3F},
-        {L"Éî×ÏÉ«",0xFF741B7C},
-        {L"Éî×ÏÉ«",0xFF39107B},
-        {L"ºÚÉ«",0xFF000000},
-        {L"»ÒÉ«",0xFF808080},
-        {L"Ç³»Ò",0xFFC0C0C0},
-        {L"°×É«",0xFFFFFFFF}
+        {L"æµ…ç»¿è‰²",0xFF377D22},
+        {L"æ·±ç»¿è‰²",0xFF377E47},
+        {L"æ·±é’è‰²",0xFF367E7F},
+        {L"é’è‰²",0xFF507F80},
+        {L"æ·±ç»¿è‰²",0xFF183E0C},
+        {L"æ·±é’è‰²",0xFF173F3F},
+        {L"æ·±ç´«è‰²",0xFF741B7C},
+        {L"æ·±ç´«è‰²",0xFF39107B},
+        {L"é»‘è‰²",0xFF000000},
+        {L"ç°è‰²",0xFF808080},
+        {L"æµ…ç°",0xFFC0C0C0},
+        {L"ç™½è‰²",0xFFFFFFFF}
     };
 }
 

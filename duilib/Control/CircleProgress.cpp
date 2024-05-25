@@ -95,16 +95,16 @@ void CircleProgress::PaintStateImages(IRender* pRender)
 		return;
 	}
 
-	int direction = m_bClockwise ? 1 : -1;   //Ğı×ª·½Ïò
-	int bordersize = Dpi().GetScaleInt(1); //»¡¶È¿í¶ÈÄ¿Ç°Ê¹ÓÃ1ÏñËØ
+	int direction = m_bClockwise ? 1 : -1;   //æ—‹è½¬æ–¹å‘
+	int bordersize = Dpi().GetScaleInt(1); //å¼§åº¦å®½åº¦ç›®å‰ä½¿ç”¨1åƒç´ 
 
-	// Ô²ĞÎÖĞĞÄ
+	// åœ†å½¢ä¸­å¿ƒ
 	UiPoint center;
 	const UiRect& rect = GetRect();
 	center.x = rect.left + (rect.right - rect.left) / 2;
 	center.y = rect.top + (rect.bottom - rect.top) / 2;
 
-	// ¿Ø¼ş¾ØĞÎÄÚµÄ×î´óÕı·½ĞÎµÄ±ß½ç
+	// æ§ä»¶çŸ©å½¢å†…çš„æœ€å¤§æ­£æ–¹å½¢çš„è¾¹ç•Œ
 	int side = std::min(rect.right - rect.left, rect.bottom - rect.top);
 
 	UiRect rcBorder;
@@ -113,7 +113,7 @@ void CircleProgress::PaintStateImages(IRender* pRender)
 	rcBorder.right = rcBorder.left + side;
 	rcBorder.bottom = rcBorder.top + side;
 
-	//¼ÓÔØÍ¼Æ¬
+	//åŠ è½½å›¾ç‰‡
 
 	std::shared_ptr<ImageInfo> pIndicatorImageInfo;
 	if (m_pIndicatorImage != nullptr) {
@@ -134,14 +134,14 @@ void CircleProgress::PaintStateImages(IRender* pRender)
 	outer.Inflate(inflateValue, inflateValue);
 
 	if (m_dwGradientColor.GetARGB() == 0) {
-		//²»Ê¹ÓÃ½¥±äÉ«£¬Ö±½ÓÓÃÇ°¾°É«ÆÌÂú
+		//ä¸ä½¿ç”¨æ¸å˜è‰²ï¼Œç›´æ¥ç”¨å‰æ™¯è‰²é“ºæ»¡
 		pRender->DrawArc(outer, 270, 360, false, bgPen);
 
 		float sweepAngle = static_cast<float>(direction * 360 * (m_nValue - m_nMin) / (m_nMax - m_nMin));
 		pRender->DrawArc(outer, 270, sweepAngle, false, fgPen);
 	}
 	else {
-		//²»Ê¹ÓÃ½¥±äÉ«£¬Ö±½ÓÓÃÇ°¾°É«ÆÌÂú
+		//ä¸ä½¿ç”¨æ¸å˜è‰²ï¼Œç›´æ¥ç”¨å‰æ™¯è‰²é“ºæ»¡
 		pRender->DrawArc(outer, 270, 360, false, bgPen);
 
 		float sweepAngle = static_cast<float>(direction * 360 * (m_nValue - m_nMin) / (m_nMax - m_nMin));

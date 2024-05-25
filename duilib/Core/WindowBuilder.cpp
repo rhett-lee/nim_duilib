@@ -172,13 +172,13 @@ Box* WindowBuilder::Create(const std::wstring& xml,
 	                       Box* pParent, 
 	                       Box* pUserDefinedBox)
 {
-	ASSERT(!xml.empty() && L"xml ²ÎÊıÎª¿Õ£¡");
+	ASSERT(!xml.empty() && L"xml å‚æ•°ä¸ºç©ºï¼");
 	if (xml.empty()) {
 		return nullptr;
 	}
 	bool isLoaded = false;
-	//×Ö·û´®ÒÔ<¿ªÍ·ÈÏÎªÊÇXML×Ö·û´®£¬·ñÔòÈÏÎªÊÇXMLÎÄ¼ş
-	//Èç¹ûÊ¹ÓÃÁË zip Ñ¹Ëõ°ü£¬Ôò´ÓÄÚ´æÖĞ¶ÁÈ¡
+	//å­—ç¬¦ä¸²ä»¥<å¼€å¤´è®¤ä¸ºæ˜¯XMLå­—ç¬¦ä¸²ï¼Œå¦åˆ™è®¤ä¸ºæ˜¯XMLæ–‡ä»¶
+	//å¦‚æœä½¿ç”¨äº† zip å‹ç¼©åŒ…ï¼Œåˆ™ä»å†…å­˜ä¸­è¯»å–
 	if (xml.front() == L'<') {
 		pugi::xml_parse_result result = m_xml->load_buffer(xml.c_str(), 
 														   xml.size() * sizeof(std::wstring::value_type), 
@@ -238,7 +238,7 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
 
 		if( strClass == L"Window" ) {
 			if( pWindow->GetHWND() ) {
-				//Ê×ÏÈ´¦ÀímininfoºÍmaxinfo£¬ÒòÎªÆäËûÊôĞÔÓĞÓÃµ½ÕâÁ½¸öÊôĞÔµÄ
+				//é¦–å…ˆå¤„ç†mininfoå’Œmaxinfoï¼Œå› ä¸ºå…¶ä»–å±æ€§æœ‰ç”¨åˆ°è¿™ä¸¤ä¸ªå±æ€§çš„
 				for (pugi::xml_attribute attr : root.attributes()) {
 					strName = attr.name();
 					strValue = attr.value();
@@ -310,25 +310,25 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
 						pWindow->SetRenderTransparent(strValue == L"true");
 					}
 					else if ((strName == L"shadow_attached") || (strName == L"shadowattached")) {
-						//ÉèÖÃÊÇ·ñÖ§³Ö´°¿ÚÒõÓ°£¨ÒõÓ°ÊµÏÖÓĞÁ½ÖÖ£º²ã´°¿ÚºÍÆÕÍ¨´°¿Ú£©
+						//è®¾ç½®æ˜¯å¦æ”¯æŒçª—å£é˜´å½±ï¼ˆé˜´å½±å®ç°æœ‰ä¸¤ç§ï¼šå±‚çª—å£å’Œæ™®é€šçª—å£ï¼‰
 						pWindow->SetShadowAttached(strValue == L"true");
 					}
 					else if ((strName == L"shadow_image") || (strName == L"shadowimage")) {
-						//ÉèÖÃÒõÓ°Í¼Æ¬
+						//è®¾ç½®é˜´å½±å›¾ç‰‡
 						pWindow->SetShadowImage(strValue);
 					}
 					else if ((strName == L"shadow_corner") || (strName == L"shadowcorner")) {
-						//ÉèÖÃ´°¿ÚÒõÓ°µÄ¾Å¹¬¸ñÊôĞÔ
+						//è®¾ç½®çª—å£é˜´å½±çš„ä¹å®«æ ¼å±æ€§
 						UiPadding padding;
 						AttributeUtil::ParsePaddingValue(strValue.c_str(), padding);
 						pWindow->SetShadowCorner(padding, true);
 					}
 					else if ((strName == L"layered_window") || (strName == L"layeredwindow")) {
-						//ÉèÖÃÊÇ·ñÉèÖÃ²ã´°¿ÚÊôĞÔ£¨²ã´°¿Ú»¹ÊÇÆÕÍ¨´°¿Ú£©
+						//è®¾ç½®æ˜¯å¦è®¾ç½®å±‚çª—å£å±æ€§ï¼ˆå±‚çª—å£è¿˜æ˜¯æ™®é€šçª—å£ï¼‰
 						pWindow->SetLayeredWindow(strValue == L"true");
 					}
 					else if (strName == L"alpha") {
-						//ÉèÖÃ´°¿ÚµÄÍ¸Ã÷¶È£¨0 - 255£©£¬½öµ±Ê¹ÓÃ²ã´°¿ÚÊ±ÓĞĞ§
+						//è®¾ç½®çª—å£çš„é€æ˜åº¦ï¼ˆ0 - 255ï¼‰ï¼Œä»…å½“ä½¿ç”¨å±‚çª—å£æ—¶æœ‰æ•ˆ
 						int nAlpha = wcstol(strValue.c_str(), nullptr, 10);
 						ASSERT(nAlpha >= 0 && nAlpha <= 255);
 						if ((nAlpha >= 0) && (nAlpha <= 255)) {
@@ -343,7 +343,7 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
 			for(pugi::xml_node node : root.children()) {
 				strClass = node.name();
 				if( strClass == L"Image" ) {
-					ASSERT(FALSE);	//·ÏÆú
+					ASSERT(FALSE);	//åºŸå¼ƒ
 				}
 				else if (strClass == L"FontResource") {
 					std::wstring strFontFile;
@@ -419,7 +419,7 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
 						}
 					}
 					if (!strClassName.empty()) {
-						ASSERT(GlobalManager::Instance().GetClassAttributes(strClassName).empty());	//´°¿ÚÖĞµÄClass²»ÄÜÓëÈ«¾ÖµÄÖØÃû
+						ASSERT(GlobalManager::Instance().GetClassAttributes(strClassName).empty());	//çª—å£ä¸­çš„Classä¸èƒ½ä¸å…¨å±€çš„é‡å
 						StringHelper::TrimLeft(strAttribute);
 						pWindow->AddClass(strClassName, strAttribute);
 					}
@@ -442,7 +442,7 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
 					}
 				}
 				else if (strClass == L"Font") {
-					//Window½ÚµãÏÂ£¬ÔÊĞí¶¨Òå×ÖÌå
+					//WindowèŠ‚ç‚¹ä¸‹ï¼Œå…è®¸å®šä¹‰å­—ä½“
 					ParseFontXmlNode(node);
 				}
 			}
@@ -464,7 +464,7 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
 				int i = 0;
 				for (pugi::xml_attribute attr : node.attributes()) {
 					if (wcscmp(attr.name(), L"class") == 0) {
-						//class±ØĞëÊÇµÚÒ»¸öÊôĞÔ
+						//classå¿…é¡»æ˜¯ç¬¬ä¸€ä¸ªå±æ€§
 						ASSERT(i == 0);
 					}
 					++i;
@@ -555,7 +555,7 @@ Control* WindowBuilder::ParseXmlNode(const pugi::xml_node& xmlNode, Control* pPa
 			pugi::xml_attribute countAttr = node.attribute(L"count");
 			int nCount = countAttr.as_int();
 			if (nCount <= 0) {
-				//Ä¬ÈÏÖµÉèÖÃÎª1£¬countÕâ¸öÊôĞÔ²ÎÊıÎª¿ÉÑ¡
+				//é»˜è®¤å€¼è®¾ç½®ä¸º1ï¼Œcountè¿™ä¸ªå±æ€§å‚æ•°ä¸ºå¯é€‰
 				nCount = 1;
 			}
 			pugi::xml_attribute sourceAttr = node.attribute(L"src");
@@ -567,7 +567,7 @@ Control* WindowBuilder::ParseXmlNode(const pugi::xml_node& xmlNode, Control* pPa
 			if (!sourceValue.empty()) {
 				StringHelper::ReplaceAll(L"/", L"\\", sourceValue);
 				if (!m_xmlFilePath.empty()) {
-					//ÓÅÏÈ³¢ÊÔÔÚÔ­XMLÎÄ¼şÏàÍ¬Ä¿Â¼¼ÓÔØ
+					//ä¼˜å…ˆå°è¯•åœ¨åŸXMLæ–‡ä»¶ç›¸åŒç›®å½•åŠ è½½
 					size_t pos = m_xmlFilePath.find_last_of(L"\\/");
 					if (pos != std::wstring::npos) {
 						std::wstring filePath = m_xmlFilePath.substr(0, pos);
@@ -615,19 +615,19 @@ Control* WindowBuilder::ParseXmlNode(const pugi::xml_node& xmlNode, Control* pPa
 			continue;
 		}
 
-		// TreeViewÏà¹Ø±ØĞëÏÈÌí¼Óºó½âÎö
+		// TreeViewç›¸å…³å¿…é¡»å…ˆæ·»åŠ åè§£æ
 		if (strClass == DUI_CTR_TREENODE) {
 			bool bAdded = false;
 			TreeNode* pNode = dynamic_cast<TreeNode*>(pControl);
 			ASSERT(pNode != nullptr);
 			TreeView* pTreeView = dynamic_cast<TreeView*>(pParent);
 			if (pTreeView != nullptr) {
-				//Ò»¼¶×Ó½Úµã
+				//ä¸€çº§å­èŠ‚ç‚¹
 				pTreeView->GetRootNode()->AddChildNode(pNode);
 				bAdded = true;
 			}
 			else {
-				//¶à¼¶×Ó½Úµã
+				//å¤šçº§å­èŠ‚ç‚¹
 				TreeNode* pTreeNode = dynamic_cast<TreeNode*>(pParent);
 				if (pTreeNode != nullptr) {
 					pTreeNode->AddChildNode(pNode);
@@ -635,7 +635,7 @@ Control* WindowBuilder::ParseXmlNode(const pugi::xml_node& xmlNode, Control* pPa
 				}
 			}
 			if (!bAdded) {
-				//³¢ÊÔCombo¿Ø¼ş
+				//å°è¯•Comboæ§ä»¶
 				Combo* pCombo = dynamic_cast<Combo*>(pParent);
 				if (pCombo != nullptr) {
 					pCombo->GetTreeView()->GetRootNode()->AddChildNode(pNode);
@@ -649,10 +649,10 @@ Control* WindowBuilder::ParseXmlNode(const pugi::xml_node& xmlNode, Control* pPa
 		
 		// Process attributes
 		if(!node.attributes().empty()) {
-			//¶ÁÈ¡½ÚµãµÄÊôĞÔ£¬ÉèÖÃ¿Ø¼şµÄÊôĞÔ
+			//è¯»å–èŠ‚ç‚¹çš„å±æ€§ï¼Œè®¾ç½®æ§ä»¶çš„å±æ€§
 			int i = 0;
 			for (pugi::xml_attribute attr : node.attributes()) {
-				ASSERT(i == 0 || wcscmp(attr.name(), L"class") != 0);	//class±ØĞëÊÇµÚÒ»¸öÊôĞÔ
+				ASSERT(i == 0 || wcscmp(attr.name(), L"class") != 0);	//classå¿…é¡»æ˜¯ç¬¬ä¸€ä¸ªå±æ€§
 				++i;
 				pControl->SetAttribute(attr.name(), attr.value());
 			}
@@ -661,7 +661,7 @@ Control* WindowBuilder::ParseXmlNode(const pugi::xml_node& xmlNode, Control* pPa
 		if (strClass == DUI_CTR_RICHTEXT) {
 			ParseRichTextXmlNode(node, pControl);
 #ifdef _DEBUG
-			//²âÊÔĞ§¹û£º·´ÏòÉú³É´ø¸ñÊ½µÄÎÄ±¾£¬ÓÃÓÚ²âÊÔÑéÖ¤½âÎöµÄÕıÈ·ĞÔ
+			//æµ‹è¯•æ•ˆæœï¼šåå‘ç”Ÿæˆå¸¦æ ¼å¼çš„æ–‡æœ¬ï¼Œç”¨äºæµ‹è¯•éªŒè¯è§£æçš„æ­£ç¡®æ€§
 			RichText* pRichText = dynamic_cast<RichText*>(pControl);
 			std::wstring richText;
 			if (pRichText) {
@@ -673,13 +673,13 @@ Control* WindowBuilder::ParseXmlNode(const pugi::xml_node& xmlNode, Control* pPa
 		else {
 			// Add children
 			if (!node.children().empty()) {
-				//µİ¹é¸Ã½ÚµãµÄËùÓĞ×Ó½Úµã£¬¼ÌĞøÌí¼Ó
+				//é€’å½’è¯¥èŠ‚ç‚¹çš„æ‰€æœ‰å­èŠ‚ç‚¹ï¼Œç»§ç»­æ·»åŠ 
 				ParseXmlNode(node, (Box*)pControl, pWindow);
 			}
 		}
 
 		// Attach to parent
-        // ÒòÎªÄ³Ğ©ÊôĞÔºÍ¸¸´°¿ÚÏà¹Ø£¬±ÈÈçselected£¬±ØĞëÏÈAddµ½¸¸´°¿Ú
+        // å› ä¸ºæŸäº›å±æ€§å’Œçˆ¶çª—å£ç›¸å…³ï¼Œæ¯”å¦‚selectedï¼Œå¿…é¡»å…ˆAddåˆ°çˆ¶çª—å£
 		if (pParent != nullptr && strClass != DUI_CTR_TREENODE) {
 			Box* pContainer = dynamic_cast<Box*>(pParent);
 			ASSERT(pContainer != nullptr);
@@ -746,57 +746,57 @@ bool WindowBuilder::ParseRichTextXmlNode(const pugi::xml_node& xmlNode, Control*
 			if (!nodeValue.empty()) {
 				textSlice.m_text = pRichText->TrimText(nodeValue);
 			}
-			//ÎŞ½ÚµãÃû³Æ£¬Ö»¶ÁÈ¡ÎÄ±¾ÄÚÈİ, ²»ĞèÒªµİ¹é±éÀú×Ó½Úµã
+			//æ— èŠ‚ç‚¹åç§°ï¼Œåªè¯»å–æ–‡æœ¬å†…å®¹, ä¸éœ€è¦é€’å½’éå†å­èŠ‚ç‚¹
 			bParseChildren = false;
 		}		
 		else if (nodeName == L"a") {			
 			textSlice.m_text = pRichText->TrimText(node.first_child().value());
 			textSlice.m_linkUrl = StringHelper::Trim(node.attribute(L"href").as_string());
-			//³¬¼¶Á´½Ó½Úµã, ²»ĞèÒªµİ¹é±éÀú×Ó½Úµã
+			//è¶…çº§é“¾æ¥èŠ‚ç‚¹, ä¸éœ€è¦é€’å½’éå†å­èŠ‚ç‚¹
 			bParseChildren = false;
 		}
 		else if (nodeName == L"b") {
-			//´ÖÌå×Ö
+			//ç²—ä½“å­—
 			textSlice.m_fontInfo.m_bBold = true;
 		}
 		else if (nodeName == L"i") {
-			//Ğ±Ìå×Ö
+			//æ–œä½“å­—
 			textSlice.m_fontInfo.m_bItalic = true;
 		}
 		else if ((nodeName == L"del") || (nodeName == L"s") || (nodeName == L"strike")) {
-			//É¾³ı×Ö
+			//åˆ é™¤å­—
 			textSlice.m_fontInfo.m_bStrikeOut = true;
 		}
 		else if ( (nodeName == L"ins") || (nodeName == L"u") ){
-			//ÏÂ»®Ïß
+			//ä¸‹åˆ’çº¿
 			textSlice.m_fontInfo.m_bUnderline = true;
 		}
 		else if (nodeName == L"bgcolor") {
-			//±³¾°ÑÕÉ«
+			//èƒŒæ™¯é¢œè‰²
 			textSlice.m_bgColor = StringHelper::Trim(node.attribute(L"color").as_string());
 		}
 		else if (nodeName == L"font") {
-			//×ÖÌåÉèÖÃ£ºÎÄ±¾ÑÕÉ«
+			//å­—ä½“è®¾ç½®ï¼šæ–‡æœ¬é¢œè‰²
 			textSlice.m_textColor = node.attribute(L"color").as_string();
 			textSlice.m_fontInfo.m_fontName = node.attribute(L"face").as_string();
-			//×ÖºÅ²»ĞèÒª½øĞĞDPIËõ·Å£¬»æÖÆµÄÊ±ºò£¬»á¸ù¾İµ±Ê±µÄDPI½øĞĞËõ·Å
+			//å­—å·ä¸éœ€è¦è¿›è¡ŒDPIç¼©æ”¾ï¼Œç»˜åˆ¶çš„æ—¶å€™ï¼Œä¼šæ ¹æ®å½“æ—¶çš„DPIè¿›è¡Œç¼©æ”¾
 			textSlice.m_fontInfo.m_fontSize = node.attribute(L"size").as_int();			
 		}
 		else if (nodeName == L"br") {
 			textSlice.m_text = L"\n";
-			//»»ĞĞ½Úµã, ²»ĞèÒªµİ¹é±éÀú×Ó½Úµã
+			//æ¢è¡ŒèŠ‚ç‚¹, ä¸éœ€è¦é€’å½’éå†å­èŠ‚ç‚¹
 			bParseChildren = false;
 		}
 		else {
-			//Óöµ½²»ÈÏÊ¶µÄ½Úµã£¬ºöÂÔ
+			//é‡åˆ°ä¸è®¤è¯†çš„èŠ‚ç‚¹ï¼Œå¿½ç•¥
 			ASSERT(!"Found unknown xml node name!");
 			continue;
 		}
 		if (bParseChildren) {
-			//µİ¹é×Ó½Úµã
+			//é€’å½’å­èŠ‚ç‚¹
 			ParseRichTextXmlNode(node, pRichText, &textSlice);
 		}
-		//½«×Ó½ÚµãÌí¼Óµ½Control»òÕß¸¸½Úµã(×¢Òâ£ºstd::moveÒÔºó£¬textSlice¶ÔÏóÊ§Ğ§)
+		//å°†å­èŠ‚ç‚¹æ·»åŠ åˆ°Controlæˆ–è€…çˆ¶èŠ‚ç‚¹(æ³¨æ„ï¼šstd::moveä»¥åï¼ŒtextSliceå¯¹è±¡å¤±æ•ˆ)
 		if (pTextSlice != nullptr) {
 			pTextSlice->m_childs.emplace_back(std::move(textSlice));
 		}

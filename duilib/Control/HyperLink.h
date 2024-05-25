@@ -7,7 +7,7 @@
 
 namespace ui {
 
-/** ´øÓĞ³¬¼¶Á´½ÓµÄÎÄ×Ö, Èç¹ûURLÎª¿ÕµÄ»°£¬¿ÉÒÔµ±×÷ÆÕÍ¨µÄÎÄ×Ö°´Å¥Ê¹ÓÃ
+/** å¸¦æœ‰è¶…çº§é“¾æ¥çš„æ–‡å­—, å¦‚æœURLä¸ºç©ºçš„è¯ï¼Œå¯ä»¥å½“ä½œæ™®é€šçš„æ–‡å­—æŒ‰é’®ä½¿ç”¨
 */
 class HyperLink : public Label
 {
@@ -16,7 +16,7 @@ public:
         Label(pWindow)
     {
     }
-    /// ÖØĞ´¸¸Àà·½·¨£¬Ìá¹©¸öĞÔ»¯¹¦ÄÜ£¬Çë²Î¿¼¸¸ÀàÉùÃ÷
+    /// é‡å†™çˆ¶ç±»æ–¹æ³•ï¼Œæä¾›ä¸ªæ€§åŒ–åŠŸèƒ½ï¼Œè¯·å‚è€ƒçˆ¶ç±»å£°æ˜
     virtual std::wstring GetType() const override { return DUI_CTR_HYPER_LINK; }
     virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override
     {
@@ -38,8 +38,8 @@ public:
     }
 
 public:
-    /** ¼àÌı³¬¼¶Á´½Ó±»µã»÷ÊÂ¼ş
-     * @param[in] callback ³¬¼¶Á´½Ó±»µã»÷ºóµÄ»Øµ÷º¯Êı
+    /** ç›‘å¬è¶…çº§é“¾æ¥è¢«ç‚¹å‡»äº‹ä»¶
+     * @param[in] callback è¶…çº§é“¾æ¥è¢«ç‚¹å‡»åçš„å›è°ƒå‡½æ•°
      */
     void AttachLinkClick(const EventCallback& callback) { AttachEvent(kEventLinkClick, callback); }
 

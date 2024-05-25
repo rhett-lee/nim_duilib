@@ -11,33 +11,33 @@
 #include "include/core/SkFontMetrics.h"
 #include "include/core/SkTextBlob.h"
 
-//¸ÃÎÄ¼şÔ­Ê¼ÎÄ¼şµÄ³ö´¦£ºskia/chrome_67/src/utils/SkTextBox.cpp
-//»ùÓÚÔ­Ê¼ÎÄ¼ş£¬ÓĞĞŞ¸Ä£¬ÒÔ¼æÈİ×îĞÂ°æ±¾µÄskia´úÂë£¨2023-06-25£©
-//Ô­Ê¼ÎÄ¼ş´Óchrome 68ÒÔºó¾ÍÉ¾³ıÁË¡£
+//è¯¥æ–‡ä»¶åŸå§‹æ–‡ä»¶çš„å‡ºå¤„ï¼šskia/chrome_67/src/utils/SkTextBox.cpp
+//åŸºäºåŸå§‹æ–‡ä»¶ï¼Œæœ‰ä¿®æ”¹ï¼Œä»¥å…¼å®¹æœ€æ–°ç‰ˆæœ¬çš„skiaä»£ç ï¼ˆ2023-06-25ï¼‰
+//åŸå§‹æ–‡ä»¶ä»chrome 68ä»¥åå°±åˆ é™¤äº†ã€‚
 
 namespace ui
 {
 
-/** ÅĞ¶ÏÊÇ·ñÎª¿Õ¸ñ¡¢²»¿É¼û×Ö·û
-* @param [in] c ÊÇ Unicode ×Ö·û
-* ·µ»Øtrue±íÊ¾¿ÉÒÔÔÚµ±Ç°×Ö·û½øĞĞ»»ĞĞ
-* ·µ»Øfalse±íÊ¾²»¿ÉÒÔÔÚµ±Ç°×Ö·û»»ĞĞ
+/** åˆ¤æ–­æ˜¯å¦ä¸ºç©ºæ ¼ã€ä¸å¯è§å­—ç¬¦
+* @param [in] c æ˜¯ Unicode å­—ç¬¦
+* è¿”å›trueè¡¨ç¤ºå¯ä»¥åœ¨å½“å‰å­—ç¬¦è¿›è¡Œæ¢è¡Œ
+* è¿”å›falseè¡¨ç¤ºä¸å¯ä»¥åœ¨å½“å‰å­—ç¬¦æ¢è¡Œ
 */
 static inline bool SkUTF_IsWhiteSpace(int c)
 {
-    //ASCIIÖµ£¨c£©Ğ¡ÓÚ32µÄÊ±ºò£¨º¬¿ØÖÆ×Ö·ûµÈ²»¿É¼û×Ö·û¡¢¿Õ¸ñ£©£¬·µ»Øtrue£»·ñÔò·µ»Øfalse
+    //ASCIIå€¼ï¼ˆcï¼‰å°äº32çš„æ—¶å€™ï¼ˆå«æ§åˆ¶å­—ç¬¦ç­‰ä¸å¯è§å­—ç¬¦ã€ç©ºæ ¼ï¼‰ï¼Œè¿”å›trueï¼›å¦åˆ™è¿”å›false
     return !((c - 1) >> 5);
 }
 
-/** ÅĞ¶ÏÔÚµ±Ç°×Ö·û´¦ÊÇ·ñ¿ÉÒÔ·ÖĞĞ
-* @param [in] c ÊÇ Unicode ×Ö·û
+/** åˆ¤æ–­åœ¨å½“å‰å­—ç¬¦å¤„æ˜¯å¦å¯ä»¥åˆ†è¡Œ
+* @param [in] c æ˜¯ Unicode å­—ç¬¦
 */
 static inline bool SkUTF_IsLineBreaker(int c)
 {
-    //ÔÚÊı×ÖºÍ×ÖÄ¸ÉÏ²»·ÖĞĞ£¨·µ»Øfalse£©£¬¾¡Á¿²»»»ĞĞ£¬È·±£Êı×ÖºÍÓ¢ÎÄµ¥´ÊµÄÍêÕûĞÔ
-    //·Ç×ÖÄ¸Êı×Ö£¨·µ»Øtrue£©¾ù¿ÉÒÔ·ÖĞĞ
+    //åœ¨æ•°å­—å’Œå­—æ¯ä¸Šä¸åˆ†è¡Œï¼ˆè¿”å›falseï¼‰ï¼Œå°½é‡ä¸æ¢è¡Œï¼Œç¡®ä¿æ•°å­—å’Œè‹±æ–‡å•è¯çš„å®Œæ•´æ€§
+    //éå­—æ¯æ•°å­—ï¼ˆè¿”å›trueï¼‰å‡å¯ä»¥åˆ†è¡Œ
     if ((c >= -1) && (c <= 255)) {
-        //ASCIIÖµ£¨c£©
+        //ASCIIå€¼ï¼ˆcï¼‰
         if (::isalnum(c)) {
             return false;
         }
@@ -109,9 +109,9 @@ static size_t linebreak(const char text[], const char stop[], SkTextEncoding tex
                         SkScalar margin, SkTextBox::LineMode lineMode,
                         size_t* trailing = nullptr)
 {
-    size_t lengthBreak = stop - text;//µ¥ĞĞÄ£Ê½
+    size_t lengthBreak = stop - text;//å•è¡Œæ¨¡å¼
     if (lineMode != SkTextBox::kOneLine_Mode) {
-        //¶àĞĞÄ£Ê½
+        //å¤šè¡Œæ¨¡å¼
         lengthBreak = SkTextBox::breakText(text, stop - text, textEncoding, font, paint, margin);
     }
     
@@ -119,10 +119,10 @@ static size_t linebreak(const char text[], const char stop[], SkTextEncoding tex
     const char* start = text;
     const char* word_start = text;
 
-    //±ê¼ÇÊÇ·ñ¿ÉÒÔ·ÖĞĞ
+    //æ ‡è®°æ˜¯å¦å¯ä»¥åˆ†è¡Œ
     bool prevIsLineBreaker = true;
 
-    //Èç¹ûÉèÖÃtrailingµÄÖµ£¬Õâ²¿·Ö×Ö·û´®ÔÚ»æÖÆµÄÊ±ºò£¬»á±»ºöÂÔ£¬²»»æÖÆ
+    //å¦‚æœè®¾ç½®trailingçš„å€¼ï¼Œè¿™éƒ¨åˆ†å­—ç¬¦ä¸²åœ¨ç»˜åˆ¶çš„æ—¶å€™ï¼Œä¼šè¢«å¿½ç•¥ï¼Œä¸ç»˜åˆ¶
     if (trailing) {
         *trailing = 0;
     }
@@ -131,18 +131,18 @@ static size_t linebreak(const char text[], const char stop[], SkTextEncoding tex
         const char* prevText = text;
         SkUnichar uni = SkUTF_NextUnichar((const void**)&text, textEncoding);
 
-        //µ±Ç°×Ö·ûÊÇ·ñÎª¿Õ¸ñ£¨»ò·Ç¿É¼û×Ö·û£©
+        //å½“å‰å­—ç¬¦æ˜¯å¦ä¸ºç©ºæ ¼ï¼ˆæˆ–éå¯è§å­—ç¬¦ï¼‰
         bool currIsWhiteSpace = SkUTF_IsWhiteSpace(uni);
 
-        //µ±Ç°×Ö·ûÊÇ·ñ¿ÉÒÔ·ÖĞĞ£¬·ÖĞĞÌõ¼ş£ºµ±Ç°×Ö·ûÊÇ¿Õ¸ñ£¨»ò·Ç¿É¼û×Ö·û£©£¬»òÕß²»ÊÇ×ÖÄ¸/Êı×Ö
-        //Word·ÖĞĞÂß¼­£º°´Word·ÖĞĞ£¬±£Ö¤Ò»¸öÓ¢ÎÄµ¥´Ê»òÕßÒ»¸öÍêÕûµÄÊı×Ö²»±»·ÖĞĞÏÔÊ¾
+        //å½“å‰å­—ç¬¦æ˜¯å¦å¯ä»¥åˆ†è¡Œï¼Œåˆ†è¡Œæ¡ä»¶ï¼šå½“å‰å­—ç¬¦æ˜¯ç©ºæ ¼ï¼ˆæˆ–éå¯è§å­—ç¬¦ï¼‰ï¼Œæˆ–è€…ä¸æ˜¯å­—æ¯/æ•°å­—
+        //Wordåˆ†è¡Œé€»è¾‘ï¼šæŒ‰Wordåˆ†è¡Œï¼Œä¿è¯ä¸€ä¸ªè‹±æ–‡å•è¯æˆ–è€…ä¸€ä¸ªå®Œæ•´çš„æ•°å­—ä¸è¢«åˆ†è¡Œæ˜¾ç¤º
         bool currIsLineBreaker = SkUTF_IsLineBreaker(uni);
         if (lineMode == SkTextBox::kCharBreak_Mode) {
-            //°´×Ö·û·ÖĞĞ£¬Ã¿¸ö×Ö·û¶¼¿ÉÒÔ·ÖĞĞ
+            //æŒ‰å­—ç¬¦åˆ†è¡Œï¼Œæ¯ä¸ªå­—ç¬¦éƒ½å¯ä»¥åˆ†è¡Œ
             currIsLineBreaker = true;
         }
         if(prevIsLineBreaker){
-            //Èç¹ûÇ°Ãæ×Ö·û¿ÉÒÔ·ÖĞĞ, ¾ÍÖ´ĞĞÇ°ÃæÒ»¸ö×Ö·û
+            //å¦‚æœå‰é¢å­—ç¬¦å¯ä»¥åˆ†è¡Œ, å°±æ‰§è¡Œå‰é¢ä¸€ä¸ªå­—ç¬¦
             word_start = prevText;
         }
         prevIsLineBreaker = currIsLineBreaker;
@@ -375,7 +375,7 @@ SkScalar SkTextBox::visit(Visitor& visitor) const {
         case kCenter_SpacingAlign:
             y = SkScalarHalf(height - textHeight);
             if (y < 0) {
-                //Èç¹û¾ÓÖĞ¶ÔÆë»æÖÆÇøÓò²»×ã£¬ÄÇÃ´°´ÕÕ¿ÉÏÔÊ¾µÄÎÄ×Ö½øĞĞ¾ÓÖĞ¶ÔÆë
+                //å¦‚æœå±…ä¸­å¯¹é½ç»˜åˆ¶åŒºåŸŸä¸è¶³ï¼Œé‚£ä¹ˆæŒ‰ç…§å¯æ˜¾ç¤ºçš„æ–‡å­—è¿›è¡Œå±…ä¸­å¯¹é½
                 y = static_cast<SkScalar>((((int)height % (int)fontHeight) / 2)) ;
             }
             break;
@@ -396,34 +396,34 @@ SkScalar SkTextBox::visit(Visitor& visitor) const {
         if (y + metrics.fDescent + metrics.fLeading > 0) {
 
             if (textAlign == kLeft_Align) {
-                //ºáÏò£º×ó¶ÔÆë
+                //æ¨ªå‘ï¼šå·¦å¯¹é½
                 x = boxRect.fLeft;
             }
             else {
-                //ÓÒ¶ÔÆë»òÕßÖĞ¶ÔÆë
+                //å³å¯¹é½æˆ–è€…ä¸­å¯¹é½
                 SkScalar textWidth = font.measureText(text,
                                                       len - trailing,
                                                       textEncoding,
                                                       nullptr,
                                                       &paint);
                 if (textAlign == kCenter_Align) {
-                    //ºáÏò£ºÖĞ¶ÔÆë
+                    //æ¨ªå‘ï¼šä¸­å¯¹é½
                     x = boxRect.fLeft + (marginWidth / 2) - textWidth / 2;
                     if (x < boxRect.fLeft) {
                         x = boxRect.fLeft;
                     }
                 }
                 else {
-                    //ºáÏò£¬ÓÒ¶ÔÆë
+                    //æ¨ªå‘ï¼Œå³å¯¹é½
                     x = boxRect.fRight - textWidth;
                     if (x < boxRect.fLeft) {
                         x = boxRect.fLeft;
                     }
                 }
             }
-            //ºóĞø»¹ÓĞÃ»ÓĞ´ı»æÖÆÎÄ±¾
+            //åç»­è¿˜æœ‰æ²¡æœ‰å¾…ç»˜åˆ¶æ–‡æœ¬
             bool hasMoreText = (text + len) < textStop;
-            //µ±Ç°ÊÇ·ñÎª×îºóÒ»ĞĞ
+            //å½“å‰æ˜¯å¦ä¸ºæœ€åä¸€è¡Œ
             bool isLastLine = (y + scaledSpacing + metrics.fAscent / 2) >= boxRect.fBottom;
 
             visitor(text, len - trailing, textEncoding, x, y, font, paint, hasMoreText, isLastLine);
@@ -476,7 +476,7 @@ static bool EllipsisTextUTF(const char text[], size_t length, SkTextEncoding tex
             pathEnd = string.substr(pos);
             pathEndWidth = font.measureText(pathEnd.c_str(), pathEnd.size()* charBytes, textEncoding, nullptr, &paint);
             if ((pathEndWidth + ellipsisWidth) > destWidth) {
-                //¿í¶È²»×ãÒÔÏÔÊ¾Â·¾¶µÄ×îºóÒ»¶ÎÎÄ×Ö
+                //å®½åº¦ä¸è¶³ä»¥æ˜¾ç¤ºè·¯å¾„çš„æœ€åä¸€æ®µæ–‡å­—
                 pathEnd.clear();
             }
         }
@@ -564,20 +564,20 @@ static void TextBox_DrawText(SkTextBox* textBox,
                              bool hasMoreText, bool isLastLine) 
 {
 
-    //»æÖÆÒ»ĞĞÎÄ×Ö
+    //ç»˜åˆ¶ä¸€è¡Œæ–‡å­—
     SkRect boxRect;
     textBox->getBox(&boxRect);
 
-    //»æÖÆÇøÓò²»×ãÊ±£¬×Ô¶¯ÔÚÄ©Î²»æÖÆÊ¡ÂÔºÅ
+    //ç»˜åˆ¶åŒºåŸŸä¸è¶³æ—¶ï¼Œè‡ªåŠ¨åœ¨æœ«å°¾ç»˜åˆ¶çœç•¥å·
     bool bEndEllipsis = textBox->getEndEllipsis();
-    //»æÖÆÇøÓò²»×ãÊ±£¬×Ô¶¯ÔÚ»æÖÆÊ¡ÂÔºÅ´úÌæÎÄ±¾
-    //Èç¹û×Ö·û´®°üº¬·´Ğ±¸Ü (\\) ×Ö·û£¬ÔÚ×îºóÒ»¸ö·´Ğ±¸ÜÖ®ºó±£Áô¾¡¿ÉÄÜ¶àµÄÎÄ±¾¡£
+    //ç»˜åˆ¶åŒºåŸŸä¸è¶³æ—¶ï¼Œè‡ªåŠ¨åœ¨ç»˜åˆ¶çœç•¥å·ä»£æ›¿æ–‡æœ¬
+    //å¦‚æœå­—ç¬¦ä¸²åŒ…å«åæ–œæ  (\\) å­—ç¬¦ï¼Œåœ¨æœ€åä¸€ä¸ªåæ–œæ ä¹‹åä¿ç•™å°½å¯èƒ½å¤šçš„æ–‡æœ¬ã€‚
     bool bPathEllipsis = textBox->getPathEllipsis();
-    //×ÖÌåÊôĞÔ£ºÏÂ»®Ïß
+    //å­—ä½“å±æ€§ï¼šä¸‹åˆ’çº¿
     bool bUnderline = textBox->getUnderline();
-    //×ÖÌåÊôĞÔ£ºÉ¾³ıÏß
+    //å­—ä½“å±æ€§ï¼šåˆ é™¤çº¿
     bool bStrikeOut = textBox->getStrikeOut();
-    //µ¥ĞĞÄ£Ê½
+    //å•è¡Œæ¨¡å¼
     bool isSingleLine = textBox->getLineMode() == SkTextBox::kOneLine_Mode;
 
     if (!bEndEllipsis && !bPathEllipsis && !bUnderline && !bStrikeOut) {
@@ -587,17 +587,17 @@ static void TextBox_DrawText(SkTextBox* textBox,
         bool needEllipsis = false;
         if (bEndEllipsis || bPathEllipsis) {
             if (isSingleLine) {                
-                //µ¥ĞĞÄ£Ê½
+                //å•è¡Œæ¨¡å¼
                 SkScalar textWidth = font.measureText(text, length, textEncoding, nullptr, &paint);
                 if ((x + textWidth) > boxRect.fRight) {
-                    //ÎÄ×Ö³¬³ö±ß½ç£¬ĞèÒªÔö¼Ó"..."Ìæ´úÎŞ·¨ÏÔÊ¾µÄÎÄ×Ö
+                    //æ–‡å­—è¶…å‡ºè¾¹ç•Œï¼Œéœ€è¦å¢åŠ "..."æ›¿ä»£æ— æ³•æ˜¾ç¤ºçš„æ–‡å­—
                     needEllipsis = true;
                 }
             }
             else {
-                //¶àĞĞÄ£Ê½
+                //å¤šè¡Œæ¨¡å¼
                 if (bEndEllipsis && isLastLine && hasMoreText) {
-                    //ÎÄ×Ö³¬³ö±ß½ç£¬ĞèÒªÔö¼Ó"..."Ìæ´úÎŞ·¨ÏÔÊ¾µÄÎÄ×Ö
+                    //æ–‡å­—è¶…å‡ºè¾¹ç•Œï¼Œéœ€è¦å¢åŠ "..."æ›¿ä»£æ— æ³•æ˜¾ç¤ºçš„æ–‡å­—
                     needEllipsis = true;
                 }
             }
@@ -618,14 +618,14 @@ static void TextBox_DrawText(SkTextBox* textBox,
                                  font, paint,
                                  boxRect.fRight - x,
                                  &textOut, lengthOut)) {
-                    //ĞŞ¸ÄtextºÍlengthµÄÖµ£¬µ«²»¸Ä±ätextEncoding
+                    //ä¿®æ”¹textå’Œlengthçš„å€¼ï¼Œä½†ä¸æ”¹å˜textEncoding
                     SkASSERT(textOut != nullptr);
                     SkASSERT(lengthOut != 0);
                     text = textOut;
                     length = lengthOut;
                 }
             }
-            //»æÖÆÎÄ±¾
+            //ç»˜åˆ¶æ–‡æœ¬
             canvas->drawSimpleText(text, length, textEncoding, x, y, font, paint);
             if (bUnderline || bStrikeOut) {
                 SkScalar width = font.measureText(text, length, textEncoding, nullptr, &paint);
@@ -639,7 +639,7 @@ static void TextBox_DrawText(SkTextBox* textBox,
                 const SkScalar kUnderlineOffset = (SK_Scalar1 / 9);
 
                 if (bStrikeOut) {
-                    //»æÖÆÉ¾³ıÏß
+                    //ç»˜åˆ¶åˆ é™¤çº¿
                     SkScalar thickness_factor = kLineThicknessFactor;
                     const SkScalar text_size = font.getSize();
                     const SkScalar height = text_size * thickness_factor;
@@ -649,7 +649,7 @@ static void TextBox_DrawText(SkTextBox* textBox,
                     canvas->drawRect(r, paint);
                 }
                 if (bUnderline) {
-                    //»æÖÆÏÂ»®Ïß
+                    //ç»˜åˆ¶ä¸‹åˆ’çº¿
                     SkScalar thickness_factor = 1.5;
                     SkScalar x_scalar = SkIntToScalar(x);
                     const SkScalar text_size = font.getSize();
@@ -681,7 +681,7 @@ public:
                     const SkFont& font, const SkPaint& paint,
                     bool hasMoreText, bool isLastLine) override 
     {
-        //µ÷ÓÃµ¥¶À·â×°µÄº¯Êı»æÖÆÎÄ×Ö£¬±ãÓÚÀ©Õ¹
+        //è°ƒç”¨å•ç‹¬å°è£…çš„å‡½æ•°ç»˜åˆ¶æ–‡å­—ï¼Œä¾¿äºæ‰©å±•
         TextBox_DrawText(fTextBox,
                          fCanvas,
                          text, length, textEncoding,
@@ -699,7 +699,7 @@ void SkTextBox::setText(const char text[], size_t len, SkTextEncoding textEncodi
     fPaint = &paint;
     fFont = &font;
 #ifdef _DEBUG
-    //¼ì²é×Ö·û´®ĞòÁĞÊÇ·ñÕıÈ·
+    //æ£€æŸ¥å­—ç¬¦ä¸²åºåˆ—æ˜¯å¦æ­£ç¡®
     if (textEncoding == SkTextEncoding::kUTF8) {
         SkASSERT(SkUTF8_CountUnichars(text, len) != -1);
     }
@@ -751,7 +751,7 @@ void SkTextBox::draw(SkCanvas* canvas) {
     }
 
 #ifdef _DEBUG
-    //¼ì²é×Ö·û´®ĞòÁĞÊÇ·ñÕıÈ·
+    //æ£€æŸ¥å­—ç¬¦ä¸²åºåˆ—æ˜¯å¦æ­£ç¡®
     if (fTextEncoding == SkTextEncoding::kUTF8) {
         SkASSERT(SkUTF8_CountUnichars(fText, fLen) != -1);
     }
@@ -930,9 +930,9 @@ size_t SkTextBox::breakText(const void* text, size_t byteLength, SkTextEncoding 
     }
 
     std::vector<SkGlyphID> glyphs;
-    //¼ÆËãÃ¿¸öglyphs¶ÔÓ¦µÄ×Ö·û¸öÊı
+    //è®¡ç®—æ¯ä¸ªglyphså¯¹åº”çš„å­—ç¬¦ä¸ªæ•°
     std::vector<size_t> glyphChars;
-    //Ã¿¸ö×Ö·ûµÄ×Ö½ÚÊı
+    //æ¯ä¸ªå­—ç¬¦çš„å­—èŠ‚æ•°
     size_t charBytes = 1;
 
     if (!TextToGlyphs(text, byteLength, textEncoding, font, glyphs, glyphChars, charBytes)) {
@@ -946,12 +946,12 @@ size_t SkTextBox::breakText(const void* text, size_t byteLength, SkTextEncoding 
     glyphWidths.resize(glyphs.size(), 0);
     font.getWidthsBounds(glyphs.data(), (int)glyphs.size(), glyphWidths.data(), nullptr, &paint);
 
-    size_t breakByteLength = 0;//µ¥Î»ÊÇ×Ö½Ú
+    size_t breakByteLength = 0;//å•ä½æ˜¯å­—èŠ‚
     SkScalar totalWidth = 0;
     for (size_t i = 0; i < glyphWidths.size(); ++i) {        
         if ((totalWidth + glyphWidths[i]) > maxWidth) {
             for (size_t index = 0; index < i; ++index) {
-                //¼ÆËã×Ö·û¸öÊı
+                //è®¡ç®—å­—ç¬¦ä¸ªæ•°
                 breakByteLength += (glyphChars[index] * charBytes);
             }
             break;
@@ -970,7 +970,7 @@ size_t SkTextBox::breakText(const void* text, size_t byteLength, SkTextEncoding 
 
 }//namespace ui
 
-////ÒÔÏÂÎªbreakTextµÄ²âÊÔº¯Êı£¬ÓÃÓÚ»Ø¹é²âÊÔ
+////ä»¥ä¸‹ä¸ºbreakTextçš„æµ‹è¯•å‡½æ•°ï¼Œç”¨äºå›å½’æµ‹è¯•
 //static void test_breakText(const void* text, size_t byteLength, SkTextEncoding textEncoding)
 //{
 //    SkFont font;
@@ -1013,12 +1013,12 @@ size_t SkTextBox::breakText(const void* text, size_t byteLength, SkTextEncoding 
 //
 //void TestBreakText()
 //{
-//    std::string textUTF8 = u8"UTF8: ssdfkljAKLDFJKEWkldfjlk#$%&sdfs.dsj ÖĞÎÄ×Ö·û´®";
+//    std::string textUTF8 = u8"UTF8: ssdfkljAKLDFJKEWkldfjlk#$%&sdfs.dsj ä¸­æ–‡å­—ç¬¦ä¸²";
 //    test_breakText(textUTF8.c_str(), textUTF8.size(), SkTextEncoding::kUTF8);
 //
-//    std::u16string textUTF16 = u"UTF16: sdfkljAKLDFJKEWkldfjlk#$%&sdfs.dsj ÖĞÎÄ×Ö·û´®\xD852\xDF62\xD83D\xDC69";
+//    std::u16string textUTF16 = u"UTF16: sdfkljAKLDFJKEWkldfjlk#$%&sdfs.dsj ä¸­æ–‡å­—ç¬¦ä¸²\xD852\xDF62\xD83D\xDC69";
 //    test_breakText(textUTF16.c_str(), textUTF16.size() * 2, SkTextEncoding::kUTF16);
 //
-//    std::u32string textUTF32 = U"UTF32: sdfkljAKLDFJKEWkldfjlk#$%&sdfs.dsj ÖĞÎÄ×Ö·û´®";
+//    std::u32string textUTF32 = U"UTF32: sdfkljAKLDFJKEWkldfjlk#$%&sdfs.dsj ä¸­æ–‡å­—ç¬¦ä¸²";
 //    test_breakText(textUTF32.c_str(), textUTF32.size() * 4, SkTextEncoding::kUTF32);
 //}

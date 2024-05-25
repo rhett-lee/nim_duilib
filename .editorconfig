@@ -1,0 +1,14 @@
+﻿# Visual Studio generated .editorconfig file with C++ settings.
+root = true
+
+[*.{c,c++,cc,cpp,cppm,cxx,h,h++,hh,hpp,hxx,inl,ipp,ixx,tlh,tli}]
+
+# Visual C++ Formatting settings
+
+end_of_line = crlf               # 行尾格式，可选值为 lf（Unix 风格）、cr（Mac 风格）或 crlf（Windows 风格）
+charset = utf-8                  # 文件编码字符集为 UTF-8（可选值为 utf-8、utf-8-bom、latin1 等）
+trim_trailing_whitespace = true  # 删除文件末尾空格
+insert_final_newline = true      # 末尾插入新行
+indent_style = space             # 以空格代替 tab
+indent_size = 4                  # 代替 tab 的空格数量
+tab_width = 4                    # 制表符的宽度

@@ -15,18 +15,18 @@ public:
     void InitSubControls(const FileInfo& fileInfo, size_t nElementIndex);
 
 private:
-    /** ÊÇ·ñÎªÍ¼Æ¬ÎÄ¼ş
+    /** æ˜¯å¦ä¸ºå›¾ç‰‡æ–‡ä»¶
     */
     bool IsImageFile(const std::wstring& filePath) const;
 
 private:
-    //ÔªËØµÄË÷ÒıºÅ
+    //å…ƒç´ çš„ç´¢å¼•å·
     size_t m_nElementIndex;
 
-    //Í¼±ê¿Ø¼ş
+    //å›¾æ ‡æ§ä»¶
     ui::Control* m_pIconControl;
 
-    //ÎÄ×Ö¿Ø¼ş
+    //æ–‡å­—æ§ä»¶
     ui::Label* m_pTextControl;
 };
 

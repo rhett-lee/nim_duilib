@@ -10,7 +10,7 @@
 
 namespace ui 
 {
-/** ZIPÑ¹Ëõ°ü¹ÜÀíÆ÷
+/** ZIPå‹ç¼©åŒ…ç®¡ç†å™¨
  */
 class UILIB_API ZipManager
 {
@@ -21,61 +21,61 @@ public:
 	ZipManager& operator = (const ZipManager&) = delete;
 
 public:
-	/** ÅĞ¶Ïµ±Ç°ÊÇ·ñÊ¹ÓÃÁË zip Ñ¹Ëõ°ü
-	 * @return ·µ»Ø true ±íÊ¾Ê¹ÓÃÁË zip Ñ¹Ëõ°ü×÷Îª×ÊÔ´£¬false ÎªÆÕÍ¨Ä¿Â¼Ä£Ê½
+	/** åˆ¤æ–­å½“å‰æ˜¯å¦ä½¿ç”¨äº† zip å‹ç¼©åŒ…
+	 * @return è¿”å› true è¡¨ç¤ºä½¿ç”¨äº† zip å‹ç¼©åŒ…ä½œä¸ºèµ„æºï¼Œfalse ä¸ºæ™®é€šç›®å½•æ¨¡å¼
 	 */
 	bool IsUseZip() const;
 
 #ifdef UILIB_IMPL_WINSDK
-	/** ´ò¿ªÒ»¸öÄÚ´æÑ¹Ëõ°ü×ÊÔ´
-	 * @param[in] hModule ×ÊÔ´¾ä±ú£¬Èç¹ûÎªnullptr£¬´ú±íµ±Ç°¿ÉÖ´ĞĞ³ÌĞòµÄÄ£¿é¾ä±ú
-	 * @param[in] resourceName ×ÊÔ´Ãû³Æ£¬ÓÉ MAKEINTRESOURCE ºêÉú³É
-	 * @param[in] resourceType ×ÊÔ´ÀàĞÍ£¬×Ô¶¨Òåµ¼ÈëµÄ×ÊÔ´ÀàĞÍÃû³Æ
-	 * @param[in] password Ñ¹Ëõ°üÃÜÂë
+	/** æ‰“å¼€ä¸€ä¸ªå†…å­˜å‹ç¼©åŒ…èµ„æº
+	 * @param[in] hModule èµ„æºå¥æŸ„ï¼Œå¦‚æœä¸ºnullptrï¼Œä»£è¡¨å½“å‰å¯æ‰§è¡Œç¨‹åºçš„æ¨¡å—å¥æŸ„
+	 * @param[in] resourceName èµ„æºåç§°ï¼Œç”± MAKEINTRESOURCE å®ç”Ÿæˆ
+	 * @param[in] resourceType èµ„æºç±»å‹ï¼Œè‡ªå®šä¹‰å¯¼å…¥çš„èµ„æºç±»å‹åç§°
+	 * @param[in] password å‹ç¼©åŒ…å¯†ç 
 	 */
 	bool OpenResZip(HMODULE hModule, LPCTSTR resourceName, LPCTSTR resourceType, const std::string& password);
 #endif
 
-	/** ´ò¿ªÒ»¸ö±¾µØÎÄ¼şÑ¹Ëõ°ü×ÊÔ´
-	 * @param[in] path Ñ¹Ëõ°üÎÄ¼şÂ·¾¶
-	 * @param[in] password Ñ¹Ëõ°üÃÜÂë
+	/** æ‰“å¼€ä¸€ä¸ªæœ¬åœ°æ–‡ä»¶å‹ç¼©åŒ…èµ„æº
+	 * @param[in] path å‹ç¼©åŒ…æ–‡ä»¶è·¯å¾„
+	 * @param[in] password å‹ç¼©åŒ…å¯†ç 
 	 */
 	bool OpenZipFile(const std::wstring& path, const std::string& password);
 
-	/** »ñÈ¡Ñ¹Ëõ°üÖĞµÄÄÚÈİµ½ÄÚ´æ
-	 * @param[in] path Òª»ñÈ¡µÄÎÄ¼şµÄÂ·¾¶
-	 * @param[out] file_data Òª»ñÈ¡µÄÎÄ¼şµÄÂ·¾¶
+	/** è·å–å‹ç¼©åŒ…ä¸­çš„å†…å®¹åˆ°å†…å­˜
+	 * @param[in] path è¦è·å–çš„æ–‡ä»¶çš„è·¯å¾„
+	 * @param[out] file_data è¦è·å–çš„æ–‡ä»¶çš„è·¯å¾„
 	 */
 	bool GetZipData(const std::wstring& path, std::vector<unsigned char>& file_data) const;
 
-	/** »ñÈ¡ÎÄ¼şÔÚÑ¹Ëõ°üÖĞµÄÎ»ÖÃ
-	 * @param[in] path Òª»ñÈ¡µÄÎÄ¼şÂ·¾¶
-	 * @return ·µ»ØÔÚÑ¹Ëõ°üÖĞµÄÎÄ¼şÎ»ÖÃ
+	/** è·å–æ–‡ä»¶åœ¨å‹ç¼©åŒ…ä¸­çš„ä½ç½®
+	 * @param[in] path è¦è·å–çš„æ–‡ä»¶è·¯å¾„
+	 * @return è¿”å›åœ¨å‹ç¼©åŒ…ä¸­çš„æ–‡ä»¶ä½ç½®
 	 */
 	std::wstring GetZipFilePath(const std::wstring& path) const;
 
-	/** ÅĞ¶Ï×ÊÔ´ÊÇ·ñ´æÔÚzipµ±ÖĞ
-	 * @param[in] path ÒªÅĞ¶ÏµÄ×ÊÔ´Â·¾¶
+	/** åˆ¤æ–­èµ„æºæ˜¯å¦å­˜åœ¨zipå½“ä¸­
+	 * @param[in] path è¦åˆ¤æ–­çš„èµ„æºè·¯å¾„
 	 */
 	bool IsZipResExist(const std::wstring& path) const;
 
-	/** »ñÈ¡Ö¸¶¨Ä¿Â¼ÏÂµÄÎÄ¼şÃû³ÆÁĞ±í
-	* @param [in] path Ä¿Â¼Ãû³Æ
-	* @param [out] fileList ·µ»Ø¸ÃÄ¿Â¼ÏÂµÄÎÄ¼şÁĞ±í
+	/** è·å–æŒ‡å®šç›®å½•ä¸‹çš„æ–‡ä»¶åç§°åˆ—è¡¨
+	* @param [in] path ç›®å½•åç§°
+	* @param [out] fileList è¿”å›è¯¥ç›®å½•ä¸‹çš„æ–‡ä»¶åˆ—è¡¨
 	*/
 	bool GetZipFileList(const std::wstring& path, std::vector<std::wstring>& fileList) const;
 
-	/** ¹Ø±ÕÑ¹Ëõ°ü
+	/** å…³é—­å‹ç¼©åŒ…
 	*/
 	void CloseResZip();
 
 private:
 	
-	/** ´ò¿ªµÄÑ¹Ëõ°ü¾ä±ú
+	/** æ‰“å¼€çš„å‹ç¼©åŒ…å¥æŸ„
 	*/
 	void* m_hzip;
 
-	/** Â·¾¶»º´æ
+	/** è·¯å¾„ç¼“å­˜
 	*/
 	mutable std::unordered_set<std::wstring> m_zipPathCache;
 };

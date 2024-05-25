@@ -10,115 +10,115 @@
 
 namespace ui
 {
-/** ±í¸ñÀàĞÍ
+/** è¡¨æ ¼ç±»å‹
 */
 enum class ListCtrlType
 {
-    Report = 0, //ReportÀàĞÍ
-    Icon   = 1, //IconÀàĞÍ
-    List   = 2  //ListÀàĞÍ
+    Report = 0, //Reportç±»å‹
+    Icon   = 1, //Iconç±»å‹
+    List   = 2  //Listç±»å‹
 };
 
-/** ÁĞµÄ»ù±¾ĞÅÏ¢£¨ÓÃÓÚÌí¼ÓÁĞ£©
+/** åˆ—çš„åŸºæœ¬ä¿¡æ¯ï¼ˆç”¨äºæ·»åŠ åˆ—ï¼‰
 */
 struct ListCtrlColumn
 {
-    std::wstring text;              //±íÍ·µÄÎÄ±¾
-    int32_t nColumnWidth = 100;     //ÁĞ¿í£¬Èç¹ûbNeedDpiScaleÎªtrue£¬ÔòÖ´ĞĞDPI×ÔÊÊÓ¦´¦Àí
-    int32_t nColumnWidthMin = 0;    //ÁĞ¿í×îĞ¡Öµ£¬0±íÊ¾ÓÃÄ¬ÈÏÉèÖÃ£¬Èç¹ûbNeedDpiScaleÎªtrue£¬ÔòÖ´ĞĞDPI×ÔÊÊÓ¦´¦Àí
-    int32_t nColumnWidthMax = 0;    //ÁĞ¿í×î´óÖµ£¬0±íÊ¾ÓÃÄ¬ÈÏÉèÖÃ£¬Èç¹ûbNeedDpiScaleÎªtrue£¬ÔòÖ´ĞĞDPI×ÔÊÊÓ¦´¦Àí
-    int32_t nTextFormat = -1;       //ÎÄ±¾¶ÔÆë·½Ê½µÈÊôĞÔ, ¸ÃÊôĞÔ½öÓ¦ÓÃÓÚHeader, È¡Öµ¿É²Î¿¼£ºIRender.hÖĞµÄDrawStringFormat£¬Èç¹ûÎª-1£¬±íÊ¾°´Ä¬ÈÏÅäÖÃµÄ¶ÔÆë·½Ê½
-    int32_t nImageId = -1;          //Í¼±ê×ÊÔ´Id£¬Èç¹ûÎª-1±íÊ¾²»ÏÔÊ¾Í¼±ê£¬Í¼±êÏÔÊ¾ÔÚÎÄ±¾Ç°Ãæ
-    bool bSortable = true;          //ÊÇ·ñÖ§³ÖÅÅĞò
-    bool bResizeable = true;        //ÊÇ·ñÖ§³ÖÍ¨¹ıÍÏ¶¯µ÷ÕûÁĞ¿í
-    bool bShowCheckBox = true;      //ÊÇ·ñÏÔÊ¾CheckBox£¨Ö§³ÖÔÚ±íÍ·ºÍÊı¾İÁĞÏÔÊ¾CheckBox£©
-    bool bNeedDpiScale = true;      //ÊÇ·ñ¶ÔÊıÖµ×öDPI×ÔÊÊÓ¦
+    std::wstring text;              //è¡¨å¤´çš„æ–‡æœ¬
+    int32_t nColumnWidth = 100;     //åˆ—å®½ï¼Œå¦‚æœbNeedDpiScaleä¸ºtrueï¼Œåˆ™æ‰§è¡ŒDPIè‡ªé€‚åº”å¤„ç†
+    int32_t nColumnWidthMin = 0;    //åˆ—å®½æœ€å°å€¼ï¼Œ0è¡¨ç¤ºç”¨é»˜è®¤è®¾ç½®ï¼Œå¦‚æœbNeedDpiScaleä¸ºtrueï¼Œåˆ™æ‰§è¡ŒDPIè‡ªé€‚åº”å¤„ç†
+    int32_t nColumnWidthMax = 0;    //åˆ—å®½æœ€å¤§å€¼ï¼Œ0è¡¨ç¤ºç”¨é»˜è®¤è®¾ç½®ï¼Œå¦‚æœbNeedDpiScaleä¸ºtrueï¼Œåˆ™æ‰§è¡ŒDPIè‡ªé€‚åº”å¤„ç†
+    int32_t nTextFormat = -1;       //æ–‡æœ¬å¯¹é½æ–¹å¼ç­‰å±æ€§, è¯¥å±æ€§ä»…åº”ç”¨äºHeader, å–å€¼å¯å‚è€ƒï¼šIRender.hä¸­çš„DrawStringFormatï¼Œå¦‚æœä¸º-1ï¼Œè¡¨ç¤ºæŒ‰é»˜è®¤é…ç½®çš„å¯¹é½æ–¹å¼
+    int32_t nImageId = -1;          //å›¾æ ‡èµ„æºIdï¼Œå¦‚æœä¸º-1è¡¨ç¤ºä¸æ˜¾ç¤ºå›¾æ ‡ï¼Œå›¾æ ‡æ˜¾ç¤ºåœ¨æ–‡æœ¬å‰é¢
+    bool bSortable = true;          //æ˜¯å¦æ”¯æŒæ’åº
+    bool bResizeable = true;        //æ˜¯å¦æ”¯æŒé€šè¿‡æ‹–åŠ¨è°ƒæ•´åˆ—å®½
+    bool bShowCheckBox = true;      //æ˜¯å¦æ˜¾ç¤ºCheckBoxï¼ˆæ”¯æŒåœ¨è¡¨å¤´å’Œæ•°æ®åˆ—æ˜¾ç¤ºCheckBoxï¼‰
+    bool bNeedDpiScale = true;      //æ˜¯å¦å¯¹æ•°å€¼åšDPIè‡ªé€‚åº”
 };
 
-/** ĞĞµÄÊôĞÔÊı¾İ½á¹¹(ĞĞÊı¾İ£¬Ã¿ĞĞ1ÌõÊı¾İ)
+/** è¡Œçš„å±æ€§æ•°æ®ç»“æ„(è¡Œæ•°æ®ï¼Œæ¯è¡Œ1æ¡æ•°æ®)
 */
 struct ListCtrlItemData
 {
-    bool bVisible = true;           //ÊÇ·ñ¿É¼û
-    bool bSelected = false;         //ÊÇ·ñ´¦ÓÚÑ¡Ôñ×´Ì¬£¨ÊÇÖ¸±¾ĞĞÊÇ·ñ±»Ñ¡ÖĞ£©
-    bool bChecked = false;          //ÊÇ·ñ´¦ÓÚ¹´Ñ¡×´Ì¬£¨ÊÇÖ¸±¾ĞĞÇ°ÃæµÄCheckBoxÊÇ·ñ±»´ò¹´£©
-    int32_t nImageId = -1;          //Í¼±ê×ÊÔ´Id£¬Èç¹ûÎª-1±íÊ¾ĞĞÊ×²»ÏÔÊ¾Í¼±ê
-    int8_t nAlwaysAtTop = -1;       //ÊÇ·ñÖÃ¶¥ÏÔÊ¾, -1±íÊ¾²»ÖÃ¶¥, 0 »òÕß ÕıÊı±íÊ¾ÖÃ¶¥£¬ÊıÖµÔ½´óÓÅÏÈ¼¶Ô½¸ß£¬ÓÅÏÈÏÔÊ¾ÔÚ×îÉÏÃæ
-    int16_t nItemHeight = -1;       //ĞĞµÄ¸ß¶È, -1±íÊ¾Ê¹ÓÃListCtrlÉèÖÃµÄÄ¬ÈÏĞĞ¸ß£¬ÎªDPI×ÔÊÊÓ¦´¦ÀíºóµÄÖµ
-    size_t nUserData = 0;           //ÓÃ»§×Ô¶¨ÒåÊı¾İ
+    bool bVisible = true;           //æ˜¯å¦å¯è§
+    bool bSelected = false;         //æ˜¯å¦å¤„äºé€‰æ‹©çŠ¶æ€ï¼ˆæ˜¯æŒ‡æœ¬è¡Œæ˜¯å¦è¢«é€‰ä¸­ï¼‰
+    bool bChecked = false;          //æ˜¯å¦å¤„äºå‹¾é€‰çŠ¶æ€ï¼ˆæ˜¯æŒ‡æœ¬è¡Œå‰é¢çš„CheckBoxæ˜¯å¦è¢«æ‰“å‹¾ï¼‰
+    int32_t nImageId = -1;          //å›¾æ ‡èµ„æºIdï¼Œå¦‚æœä¸º-1è¡¨ç¤ºè¡Œé¦–ä¸æ˜¾ç¤ºå›¾æ ‡
+    int8_t nAlwaysAtTop = -1;       //æ˜¯å¦ç½®é¡¶æ˜¾ç¤º, -1è¡¨ç¤ºä¸ç½®é¡¶, 0 æˆ–è€… æ­£æ•°è¡¨ç¤ºç½®é¡¶ï¼Œæ•°å€¼è¶Šå¤§ä¼˜å…ˆçº§è¶Šé«˜ï¼Œä¼˜å…ˆæ˜¾ç¤ºåœ¨æœ€ä¸Šé¢
+    int16_t nItemHeight = -1;       //è¡Œçš„é«˜åº¦, -1è¡¨ç¤ºä½¿ç”¨ListCtrlè®¾ç½®çš„é»˜è®¤è¡Œé«˜ï¼Œä¸ºDPIè‡ªé€‚åº”å¤„ç†åçš„å€¼
+    size_t nUserData = 0;           //ç”¨æˆ·è‡ªå®šä¹‰æ•°æ®
 };
 
-/** ÁĞ±íÊı¾İÏîµÄ»ù±¾ĞÅÏ¢£¨ÁĞÊı¾İ£¬ÓÃÓÚÌí¼ÓÊı¾İ£©
+/** åˆ—è¡¨æ•°æ®é¡¹çš„åŸºæœ¬ä¿¡æ¯ï¼ˆåˆ—æ•°æ®ï¼Œç”¨äºæ·»åŠ æ•°æ®ï¼‰
 */
 struct ListCtrlSubItemData
 {
-    std::wstring text;              //ÎÄ±¾ÄÚÈİ
-    int32_t nTextFormat = -1;       //ÎÄ±¾¶ÔÆë·½Ê½µÈÊôĞÔ, ¸ÃÊôĞÔ½öÓ¦ÓÃÓÚHeader, È¡Öµ¿É²Î¿¼£ºIRender.hÖĞµÄDrawStringFormat£¬Èç¹ûÎª-1£¬±íÊ¾°´Ä¬ÈÏÅäÖÃµÄ¶ÔÆë·½Ê½
-    int32_t nImageId = -1;          //Í¼±ê×ÊÔ´Id£¬Èç¹ûÎª-1±íÊ¾²»ÏÔÊ¾Í¼±ê
-    UiColor textColor;              //ÎÄ±¾ÑÕÉ«
-    UiColor bkColor;                //±³¾°ÑÕÉ«
-    bool bShowCheckBox = true;      //ÊÇ·ñÏÔÊ¾CheckBox
-    bool bChecked = false;          //ÊÇ·ñ´¦ÓÚ¹´Ñ¡×´Ì¬£¨CheckBox¹´Ñ¡×´Ì¬£©
-    bool bEditable = false;         //ÊÇ·ñ¿É±à¼­
+    std::wstring text;              //æ–‡æœ¬å†…å®¹
+    int32_t nTextFormat = -1;       //æ–‡æœ¬å¯¹é½æ–¹å¼ç­‰å±æ€§, è¯¥å±æ€§ä»…åº”ç”¨äºHeader, å–å€¼å¯å‚è€ƒï¼šIRender.hä¸­çš„DrawStringFormatï¼Œå¦‚æœä¸º-1ï¼Œè¡¨ç¤ºæŒ‰é»˜è®¤é…ç½®çš„å¯¹é½æ–¹å¼
+    int32_t nImageId = -1;          //å›¾æ ‡èµ„æºIdï¼Œå¦‚æœä¸º-1è¡¨ç¤ºä¸æ˜¾ç¤ºå›¾æ ‡
+    UiColor textColor;              //æ–‡æœ¬é¢œè‰²
+    UiColor bkColor;                //èƒŒæ™¯é¢œè‰²
+    bool bShowCheckBox = true;      //æ˜¯å¦æ˜¾ç¤ºCheckBox
+    bool bChecked = false;          //æ˜¯å¦å¤„äºå‹¾é€‰çŠ¶æ€ï¼ˆCheckBoxå‹¾é€‰çŠ¶æ€ï¼‰
+    bool bEditable = false;         //æ˜¯å¦å¯ç¼–è¾‘
 };
 
-/** ÁĞ±íÊı¾İÏîÓÃÓÚÄÚ²¿´æ´¢µÄÊı¾İ½á¹¹(ÁĞÊı¾İ£¬Ã¿<ĞĞ,ÁĞ>1ÌõÊı¾İ)
+/** åˆ—è¡¨æ•°æ®é¡¹ç”¨äºå†…éƒ¨å­˜å‚¨çš„æ•°æ®ç»“æ„(åˆ—æ•°æ®ï¼Œæ¯<è¡Œ,åˆ—>1æ¡æ•°æ®)
 */
 struct ListCtrlSubItemData2
 {
-    UiString text;                  //ÎÄ±¾ÄÚÈİ
-    uint16_t nTextFormat = 0;       //ÎÄ±¾¶ÔÆë·½Ê½µÈÊôĞÔ, ¸ÃÊôĞÔ½öÓ¦ÓÃÓÚHeader, È¡Öµ¿É²Î¿¼£ºIRender.hÖĞµÄDrawStringFormat£¬Èç¹ûÎª-1£¬±íÊ¾°´Ä¬ÈÏÅäÖÃµÄ¶ÔÆë·½Ê½
-    int32_t nImageId = -1;          //Í¼±ê×ÊÔ´Id£¬Èç¹ûÎª-1±íÊ¾²»ÏÔÊ¾Í¼±ê
-    UiColor textColor;              //ÎÄ±¾ÑÕÉ«
-    UiColor bkColor;                //±³¾°ÑÕÉ«
-    bool bShowCheckBox = true;      //ÊÇ·ñÏÔÊ¾CheckBox  
-    bool bChecked = false;          //ÊÇ·ñ´¦ÓÚ¹´Ñ¡×´Ì¬£¨CheckBox¹´Ñ¡×´Ì¬£©
-    bool bEditable = false;         //ÊÇ·ñ¿É±à¼­
+    UiString text;                  //æ–‡æœ¬å†…å®¹
+    uint16_t nTextFormat = 0;       //æ–‡æœ¬å¯¹é½æ–¹å¼ç­‰å±æ€§, è¯¥å±æ€§ä»…åº”ç”¨äºHeader, å–å€¼å¯å‚è€ƒï¼šIRender.hä¸­çš„DrawStringFormatï¼Œå¦‚æœä¸º-1ï¼Œè¡¨ç¤ºæŒ‰é»˜è®¤é…ç½®çš„å¯¹é½æ–¹å¼
+    int32_t nImageId = -1;          //å›¾æ ‡èµ„æºIdï¼Œå¦‚æœä¸º-1è¡¨ç¤ºä¸æ˜¾ç¤ºå›¾æ ‡
+    UiColor textColor;              //æ–‡æœ¬é¢œè‰²
+    UiColor bkColor;                //èƒŒæ™¯é¢œè‰²
+    bool bShowCheckBox = true;      //æ˜¯å¦æ˜¾ç¤ºCheckBox  
+    bool bChecked = false;          //æ˜¯å¦å¤„äºå‹¾é€‰çŠ¶æ€ï¼ˆCheckBoxå‹¾é€‰çŠ¶æ€ï¼‰
+    bool bEditable = false;         //æ˜¯å¦å¯ç¼–è¾‘
 };
 
-//ÁĞÊı¾İµÄÖÇÄÜÖ¸Õë
+//åˆ—æ•°æ®çš„æ™ºèƒ½æŒ‡é’ˆ
 typedef std::shared_ptr<ListCtrlSubItemData2> ListCtrlSubItemData2Ptr;
 
 struct ListCtrlSubItemData2Pair
 {
-    size_t nColumnId; //ÁĞµÄID
-    ListCtrlSubItemData2Ptr pSubItemData; //ÁĞµÄÊı¾İ
+    size_t nColumnId; //åˆ—çš„ID
+    ListCtrlSubItemData2Ptr pSubItemData; //åˆ—çš„æ•°æ®
 };
 
-/** ±È½ÏÊı¾İµÄ¸½¼ÓĞÅÏ¢
+/** æ¯”è¾ƒæ•°æ®çš„é™„åŠ ä¿¡æ¯
 */
 struct ListCtrlCompareParam
 {
-    size_t nColumnIndex; //Êı¾İ¹ØÁªµÚ¼¸ÁĞ£¬ÓĞĞ§·¶Î§£º[0, GetColumnCount())
-    size_t nColumnId;    //Êı¾İ¹ØÁªÁĞµÄID
-    void* pUserData;     //ÓÃ»§×Ô¶¨ÒåÊı¾İ£¬ÉèÖÃ±È½Ïº¯ÊıµÄÊ±ºòÒ»Í¬´«Èë
+    size_t nColumnIndex; //æ•°æ®å…³è”ç¬¬å‡ åˆ—ï¼Œæœ‰æ•ˆèŒƒå›´ï¼š[0, GetColumnCount())
+    size_t nColumnId;    //æ•°æ®å…³è”åˆ—çš„ID
+    void* pUserData;     //ç”¨æˆ·è‡ªå®šä¹‰æ•°æ®ï¼Œè®¾ç½®æ¯”è¾ƒå‡½æ•°çš„æ—¶å€™ä¸€åŒä¼ å…¥
 };
 
-/** ´æ´¢Êı¾İµÄ±È½Ïº¯ÊıµÄÔ­ĞÍ, ÊµÏÖÉıĞòµÄ±È½Ï(a < b)
-* @param [in] a µÚÒ»¸ö±È½ÏÊı¾İ
-* @param [in] b µÚ¶ş¸ö±È½ÏÊı¾İ
-* @param [in] param Êı¾İ¹ØÁªµÄ²ÎÊı
-* @return Èç¹û (a < b)£¬·µ»Øtrue£¬·ñÔò·µ»Øfalse
+/** å­˜å‚¨æ•°æ®çš„æ¯”è¾ƒå‡½æ•°çš„åŸå‹, å®ç°å‡åºçš„æ¯”è¾ƒ(a < b)
+* @param [in] a ç¬¬ä¸€ä¸ªæ¯”è¾ƒæ•°æ®
+* @param [in] b ç¬¬äºŒä¸ªæ¯”è¾ƒæ•°æ®
+* @param [in] param æ•°æ®å…³è”çš„å‚æ•°
+* @return å¦‚æœ (a < b)ï¼Œè¿”å›trueï¼Œå¦åˆ™è¿”å›false
 */
 typedef std::function<bool(const ListCtrlSubItemData2& a, 
                            const ListCtrlSubItemData2& b, 
                            const ListCtrlCompareParam& param)> ListCtrlDataCompareFunc;
 
-/** ÊÓÍ¼Ìî³äÊı¾İµ½UI¿Ø¼şµÄÏà¹Ø½Ó¿Ú
+/** è§†å›¾å¡«å……æ•°æ®åˆ°UIæ§ä»¶çš„ç›¸å…³æ¥å£
 */
 class IListCtrlView
 {
 public:
-    /** ´´½¨Ò»¸öÊı¾İÏî
-    * @return ·µ»Ø´´½¨ºóµÄÊı¾İÏîÖ¸Õë
+    /** åˆ›å»ºä¸€ä¸ªæ•°æ®é¡¹
+    * @return è¿”å›åˆ›å»ºåçš„æ•°æ®é¡¹æŒ‡é’ˆ
     */
     virtual Control* CreateDataItem() = 0;
 
-    /** Ìî³äÖ¸¶¨Êı¾İÏî
-    * @param [in] pControl Êı¾İÏî¿Ø¼şÖ¸Õë
-    * @param [in] nElementIndex Êı¾İÔªËØµÄË÷ÒıID£¬·¶Î§£º[0, GetElementCount())
-    * @param [in] itemData Êı¾İÏî£¨´ú±íĞĞµÄÊôĞÔ£©
-    * @param [in] subItemList Êı¾İ×ÓÏî£¨´ú±íÃ¿Ò»ÁĞµÄÊı¾İ, µÚ1¸öÊÇÁĞµÄID£¬µÚ2¸öÊÇÁĞµÄÊı¾İ£©
+    /** å¡«å……æŒ‡å®šæ•°æ®é¡¹
+    * @param [in] pControl æ•°æ®é¡¹æ§ä»¶æŒ‡é’ˆ
+    * @param [in] nElementIndex æ•°æ®å…ƒç´ çš„ç´¢å¼•IDï¼ŒèŒƒå›´ï¼š[0, GetElementCount())
+    * @param [in] itemData æ•°æ®é¡¹ï¼ˆä»£è¡¨è¡Œçš„å±æ€§ï¼‰
+    * @param [in] subItemList æ•°æ®å­é¡¹ï¼ˆä»£è¡¨æ¯ä¸€åˆ—çš„æ•°æ®, ç¬¬1ä¸ªæ˜¯åˆ—çš„IDï¼Œç¬¬2ä¸ªæ˜¯åˆ—çš„æ•°æ®ï¼‰
     */
     virtual bool FillDataItem(ui::Control* pControl,
                               size_t nElementIndex,
@@ -126,14 +126,14 @@ public:
                               const std::vector<ListCtrlSubItemData2Pair>& subItemList) = 0;
 
 
-    /** »ñÈ¡Ä³ÁĞµÄ¿í¶È×î´óÖµ
-    * @param [in] subItemList Êı¾İ×ÓÏî£¨´ú±íÃ¿Ò»ÁĞµÄÊı¾İ£©
-    * @return ·µ»Ø¸ÃÁĞ¿í¶ÈµÄ×î´óÖµ£¬·µ»ØµÄÊÇDPI×ÔÊÊÓ¦ºóµÄÖµ£» Èç¹ûÊ§°Ü·µ»Ø-1
+    /** è·å–æŸåˆ—çš„å®½åº¦æœ€å¤§å€¼
+    * @param [in] subItemList æ•°æ®å­é¡¹ï¼ˆä»£è¡¨æ¯ä¸€åˆ—çš„æ•°æ®ï¼‰
+    * @return è¿”å›è¯¥åˆ—å®½åº¦çš„æœ€å¤§å€¼ï¼Œè¿”å›çš„æ˜¯DPIè‡ªé€‚åº”åçš„å€¼ï¼› å¦‚æœå¤±è´¥è¿”å›-1
     */
     virtual int32_t GetMaxDataItemWidth(const std::vector<ListCtrlSubItemData2Ptr>& subItemList) = 0;
 };
 
-/** ÁĞ±íÖĞÊ¹ÓÃµÄLabel¿Ø¼ş£¬ÓÃÓÚÏÔÊ¾ÎÄ±¾£¬²¢Ìá¹©ÎÄ±¾±à¼­¹¦ÄÜ
+/** åˆ—è¡¨ä¸­ä½¿ç”¨çš„Labelæ§ä»¶ï¼Œç”¨äºæ˜¾ç¤ºæ–‡æœ¬ï¼Œå¹¶æä¾›æ–‡æœ¬ç¼–è¾‘åŠŸèƒ½
 */
 class ListCtrlLabel: public LabelTemplate<HBox>
 {
@@ -143,12 +143,12 @@ public:
     {
     }
 
-    /** ÏûÏ¢´¦Àí
+    /** æ¶ˆæ¯å¤„ç†
     */
     virtual void HandleEvent(const EventArgs& msg) override
     {
         if ((msg.Type > kEventMouseBegin) && (msg.Type < kEventMouseEnd)) {
-            //µ±Ç°¿Ø¼ş½ûÖ¹½ÓÊÕÊó±êÏûÏ¢Ê±£¬½«Êó±êÏà¹ØÏûÏ¢×ª·¢¸øÉÏ²ã´¦Àí
+            //å½“å‰æ§ä»¶ç¦æ­¢æ¥æ”¶é¼ æ ‡æ¶ˆæ¯æ—¶ï¼Œå°†é¼ æ ‡ç›¸å…³æ¶ˆæ¯è½¬å‘ç»™ä¸Šå±‚å¤„ç†
             bool bButtonUpEvent = false;
             if (IsEnabled() && IsMouseEnabled()) {
                 if (msg.Type == kEventMouseButtonDown) {
@@ -156,7 +156,7 @@ public:
                     if (GetWindow() != nullptr) {
                         Control* pFocus = GetWindow()->GetFocus();
                         if ((pFocus != nullptr) && (pFocus == m_pListBoxItem)) {
-                            //±ÜÃâÃ¿´Îµã»÷¶¼½øÈë±à¼­Ä£Ê½
+                            //é¿å…æ¯æ¬¡ç‚¹å‡»éƒ½è¿›å…¥ç¼–è¾‘æ¨¡å¼
                             m_bMouseDown = true;
                         }
                     }
@@ -173,7 +173,7 @@ public:
                 pParent->SendEvent(msg);
             }
             if (bButtonUpEvent) {
-                //½øÈë±à¼­×´Ì¬
+                //è¿›å…¥ç¼–è¾‘çŠ¶æ€
                 OnItemEnterEditMode();
             }
             return;
@@ -181,16 +181,16 @@ public:
         __super::HandleEvent(msg);
     }
 
-    /** ½øÈë±à¼­×´Ì¬
+    /** è¿›å…¥ç¼–è¾‘çŠ¶æ€
     */
     virtual void OnItemEnterEditMode()
     {
         SendEvent(kEventEnterEdit, (WPARAM)this);
     }
 
-    /** DPI·¢Éú±ä»¯£¬¸üĞÂ¿Ø¼ş´óĞ¡ºÍ²¼¾Ö
-    * @param [in] nOldDpiScale ¾ÉµÄDPIËõ·Å°Ù·Ö±È
-    * @param [in] nNewDpiScale ĞÂµÄDPIËõ·Å°Ù·Ö±È£¬ÓëDpi().GetScale()µÄÖµÒ»ÖÂ
+    /** DPIå‘ç”Ÿå˜åŒ–ï¼Œæ›´æ–°æ§ä»¶å¤§å°å’Œå¸ƒå±€
+    * @param [in] nOldDpiScale æ—§çš„DPIç¼©æ”¾ç™¾åˆ†æ¯”
+    * @param [in] nNewDpiScale æ–°çš„DPIç¼©æ”¾ç™¾åˆ†æ¯”ï¼Œä¸Dpi().GetScale()çš„å€¼ä¸€è‡´
     */
     virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override
     {
@@ -204,14 +204,14 @@ public:
         __super::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
     }
 
-    /** ÉèÖÃÎÄ±¾ËùÔÚÎ»ÖÃµÄ¾ØĞÎÇøÓò
+    /** è®¾ç½®æ–‡æœ¬æ‰€åœ¨ä½ç½®çš„çŸ©å½¢åŒºåŸŸ
     */
     void SetTextRect(const UiRect& rect)
     {
         m_textRect = rect;
     }
 
-    /** »ñÈ¡ÎÄ±¾ËùÔÚÎ»ÖÃµÄ¾ØĞÎÇøÓò
+    /** è·å–æ–‡æœ¬æ‰€åœ¨ä½ç½®çš„çŸ©å½¢åŒºåŸŸ
     */
     UiRect GetTextRect() const
     {
@@ -224,9 +224,9 @@ public:
         return rect;
     }
 
-    /** ÉèÖÃ¹ØÁªµÄÁĞ±íÏî
+    /** è®¾ç½®å…³è”çš„åˆ—è¡¨é¡¹
     */
-    /** ¹ØÁªµÄÁĞ±íÏî
+    /** å…³è”çš„åˆ—è¡¨é¡¹
     */
     void SetListBoxItem(Control* pListBoxItem)
     {
@@ -234,35 +234,35 @@ public:
     }
 
 private:
-    /** ÊÇ·ñÊó±êµã»÷ÔÚ¿Ø¼ş·¶Î§ÄÚ
+    /** æ˜¯å¦é¼ æ ‡ç‚¹å‡»åœ¨æ§ä»¶èŒƒå›´å†…
     */
     bool m_bMouseDown = false;
 
-    /** ¹ØÁªµÄÁĞ±íÏî
+    /** å…³è”çš„åˆ—è¡¨é¡¹
     */
     Control* m_pListBoxItem = nullptr;
 
-    /** ÎÄ±¾ËùÔÚÎ»ÖÃµÄ¾ØĞÎÇøÓò
+    /** æ–‡æœ¬æ‰€åœ¨ä½ç½®çš„çŸ©å½¢åŒºåŸŸ
     */
     UiRect m_textRect;
 };
 
-/** ±à¼­×´Ì¬µÄÊäÈë²ÎÊı
+/** ç¼–è¾‘çŠ¶æ€çš„è¾“å…¥å‚æ•°
 */
 struct ListCtrlEditParam
 {
     ListCtrlType listCtrlType;
-    size_t nItemIndex;          //Êı¾İÏîµÄË÷ÒıºÅ, ÓĞĞ§·¶Î§£º[0, GetDataItemCount())
-    size_t nColumnId;           //ÁĞµÄID
-    size_t nColumnIndex;        //ÁĞµÄĞòºÅ, ÓĞĞ§·¶Î§£º[0, GetColumnCount())
-    IListBoxItem* pItem;        //Êı¾İ×ÓÏî½Ó¿Ú
-    ListCtrlLabel* pSubItem;    //ÎÄ±¾¿Ø¼ş½Ó¿Ú£¨º¬ĞŞ¸ÄÇ°µÄÎÄ±¾ÄÚÈİ£©
+    size_t nItemIndex;          //æ•°æ®é¡¹çš„ç´¢å¼•å·, æœ‰æ•ˆèŒƒå›´ï¼š[0, GetDataItemCount())
+    size_t nColumnId;           //åˆ—çš„ID
+    size_t nColumnIndex;        //åˆ—çš„åºå·, æœ‰æ•ˆèŒƒå›´ï¼š[0, GetColumnCount())
+    IListBoxItem* pItem;        //æ•°æ®å­é¡¹æ¥å£
+    ListCtrlLabel* pSubItem;    //æ–‡æœ¬æ§ä»¶æ¥å£ï¼ˆå«ä¿®æ”¹å‰çš„æ–‡æœ¬å†…å®¹ï¼‰
 
-    UiString sNewText;          //ĞŞ¸ÄºóµÄÎÄ±¾ÄÚÈİ
-    bool bCancelled;            //ÊÇ·ñÈ¡Ïû²Ù×÷£¬Èç¹ûÉèÖÃÎªtrue£¬ÔòÈ¡Ïû±à¼­²Ù×÷
+    UiString sNewText;          //ä¿®æ”¹åçš„æ–‡æœ¬å†…å®¹
+    bool bCancelled;            //æ˜¯å¦å–æ¶ˆæ“ä½œï¼Œå¦‚æœè®¾ç½®ä¸ºtrueï¼Œåˆ™å–æ¶ˆç¼–è¾‘æ“ä½œ
 };
 
-/** ÁĞ±íÖĞÊ¹ÓÃµÄCheckBox
+/** åˆ—è¡¨ä¸­ä½¿ç”¨çš„CheckBox
 */
 class ListCtrlCheckBox: public CheckBox
 {
@@ -270,11 +270,11 @@ public:
     explicit ListCtrlCheckBox(Window* pWindow):
         CheckBox(pWindow)
     {
-        //CheckBox±¾Éí²»½ÓÊÕ¼üÅÌÏûÏ¢
+        //CheckBoxæœ¬èº«ä¸æ¥æ”¶é”®ç›˜æ¶ˆæ¯
         SetKeyboardEnabled(false);
     }
 
-    /** »ñÈ¡¿Ø¼şÀàĞÍºÍÉèÖÃÊôĞÔ
+    /** è·å–æ§ä»¶ç±»å‹å’Œè®¾ç½®å±æ€§
     */
     virtual std::wstring GetType() const override { return L"ListCtrlCheckBox"; }
     virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override
@@ -287,9 +287,9 @@ public:
         }
     }
 
-    /** DPI·¢Éú±ä»¯£¬¸üĞÂ¿Ø¼ş´óĞ¡ºÍ²¼¾Ö
-    * @param [in] nOldDpiScale ¾ÉµÄDPIËõ·Å°Ù·Ö±È
-    * @param [in] nNewDpiScale ĞÂµÄDPIËõ·Å°Ù·Ö±È£¬ÓëDpi().GetScale()µÄÖµÒ»ÖÂ
+    /** DPIå‘ç”Ÿå˜åŒ–ï¼Œæ›´æ–°æ§ä»¶å¤§å°å’Œå¸ƒå±€
+    * @param [in] nOldDpiScale æ—§çš„DPIç¼©æ”¾ç™¾åˆ†æ¯”
+    * @param [in] nNewDpiScale æ–°çš„DPIç¼©æ”¾ç™¾åˆ†æ¯”ï¼Œä¸Dpi().GetScale()çš„å€¼ä¸€è‡´
     */
     virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override
     {
@@ -305,7 +305,7 @@ public:
         __super::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
     }
 
-    /** ÉèÖÃCheckBoxËùÕ¼µÄ¿í¶ÈÖµ
+    /** è®¾ç½®CheckBoxæ‰€å çš„å®½åº¦å€¼
     */
     void SetCheckBoxWidth(int32_t nWidth, bool bNeedDpiScale)
     {
@@ -318,14 +318,14 @@ public:
         m_nCheckBoxWidth = nWidth;
     }
 
-    /** »ñÈ¡CheckBoxËùÕ¼µÄ¿í¶ÈÖµ
+    /** è·å–CheckBoxæ‰€å çš„å®½åº¦å€¼
     */
     int32_t GetCheckBoxWidth()
     {
         if (m_nCheckBoxWidth > 0) {
             return m_nCheckBoxWidth;
         }
-        //Èç¹ûÃ»ÉèÖÃ£¬²éÑ¯Í¼Æ¬µÄ´óĞ¡£¬²¢¼Ç×¡
+        //å¦‚æœæ²¡è®¾ç½®ï¼ŒæŸ¥è¯¢å›¾ç‰‡çš„å¤§å°ï¼Œå¹¶è®°ä½
         UiEstSize sz;
         if (GetWindow() != nullptr) {
             sz = EstimateSize(UiSize(0, 0));
@@ -344,14 +344,14 @@ public:
     }
 
 private:
-    /** ÏÔÊ¾CheckBoxËùÕ¼µÄ¿í¶È£¬ÓÃÓÚÉèÖÃ¸¸¿Ø¼şµÄPaddingÖµ
+    /** æ˜¾ç¤ºCheckBoxæ‰€å çš„å®½åº¦ï¼Œç”¨äºè®¾ç½®çˆ¶æ§ä»¶çš„Paddingå€¼
     */
     int32_t m_nCheckBoxWidth = 0;
 };
 
-/** IconÊÓÍ¼µÄÁĞ±íÏîÀàĞÍ(´¹Ö±²¼¾Ö)
-*   »ù±¾½á¹¹£º<ListCtrlIconViewItem> <Control/><ListCtrlLabel/> </ListCtrlListViewItem>
-*   ÆäÖĞµÄControlºÍLabelµÄÊôĞÔ£¬Ö§³Ö´ÓÅäÖÃÎÄ¼ş¶ÁÈ¡
+/** Iconè§†å›¾çš„åˆ—è¡¨é¡¹ç±»å‹(å‚ç›´å¸ƒå±€)
+*   åŸºæœ¬ç»“æ„ï¼š<ListCtrlIconViewItem> <Control/><ListCtrlLabel/> </ListCtrlListViewItem>
+*   å…¶ä¸­çš„Controlå’ŒLabelçš„å±æ€§ï¼Œæ”¯æŒä»é…ç½®æ–‡ä»¶è¯»å–
 */
 class ListCtrl;
 class ListCtrlIconViewItem : public ListCtrlItemBaseV
@@ -361,31 +361,31 @@ public:
         ListCtrlItemBaseV(pWindow)
     {
     }
-    /** »ñÈ¡¿Ø¼şÀàĞÍ
+    /** è·å–æ§ä»¶ç±»å‹
     */
     virtual std::wstring GetType() const override { return L"ListCtrlIconViewItem"; }
 
-    /** ÊÂ¼ş´¦Àíº¯Êı
+    /** äº‹ä»¶å¤„ç†å‡½æ•°
     */
     virtual void HandleEvent(const EventArgs& msg) override;
 
-    /** ÉèÖÃ¹ØÁªµÄListCtrl½Ó¿Ú
+    /** è®¾ç½®å…³è”çš„ListCtrlæ¥å£
     */
     void SetListCtrl(ListCtrl* pListCtrl) { m_pListCtrl = pListCtrl; }
 
-    /** »ñÈ¡¹ØÁªµÄListCtrl½Ó¿Ú
+    /** è·å–å…³è”çš„ListCtrlæ¥å£
     */
     ListCtrl* GetListCtrl() const { return m_pListCtrl; }
 
 private:
-    /** ¹ØÁªµÄListCtrl½Ó¿Ú
+    /** å…³è”çš„ListCtrlæ¥å£
     */
     ListCtrl* m_pListCtrl = nullptr;
 };
 
-/** ListÊÓÍ¼µÄÁĞ±íÏîÀàĞÍ(Ë®Æ½²¼¾Ö)
-*   »ù±¾½á¹¹£º<ListCtrlListViewItem> <Control/><ListCtrlLabel/> </ListCtrlListViewItem>
-*   ÆäÖĞµÄControlºÍLabelµÄÊôĞÔ£¬Ö§³Ö´ÓÅäÖÃÎÄ¼ş¶ÁÈ¡
+/** Listè§†å›¾çš„åˆ—è¡¨é¡¹ç±»å‹(æ°´å¹³å¸ƒå±€)
+*   åŸºæœ¬ç»“æ„ï¼š<ListCtrlListViewItem> <Control/><ListCtrlLabel/> </ListCtrlListViewItem>
+*   å…¶ä¸­çš„Controlå’ŒLabelçš„å±æ€§ï¼Œæ”¯æŒä»é…ç½®æ–‡ä»¶è¯»å–
 */
 class ListCtrlListViewItem : public ListCtrlItemBaseH
 {
@@ -394,24 +394,24 @@ public:
         ListCtrlItemBaseH(pWindow)
     {
     }
-    /** »ñÈ¡¿Ø¼şÀàĞÍ
+    /** è·å–æ§ä»¶ç±»å‹
     */
     virtual std::wstring GetType() const override { return L"ListCtrlListViewItem"; }
 
-    /** ÊÂ¼ş´¦Àíº¯Êı
+    /** äº‹ä»¶å¤„ç†å‡½æ•°
     */
     virtual void HandleEvent(const EventArgs& msg) override;
 
-    /** ÉèÖÃ¹ØÁªµÄListCtrl½Ó¿Ú
+    /** è®¾ç½®å…³è”çš„ListCtrlæ¥å£
     */
     void SetListCtrl(ListCtrl* pListCtrl) { m_pListCtrl = pListCtrl; }
 
-    /** »ñÈ¡¹ØÁªµÄListCtrl½Ó¿Ú
+    /** è·å–å…³è”çš„ListCtrlæ¥å£
     */
     ListCtrl* GetListCtrl() const { return m_pListCtrl; }
 
 private:
-    /** ¹ØÁªµÄListCtrl½Ó¿Ú
+    /** å…³è”çš„ListCtrlæ¥å£
     */
     ListCtrl* m_pListCtrl = nullptr;
 };

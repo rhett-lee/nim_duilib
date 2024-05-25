@@ -18,15 +18,15 @@ public:
     {
     }
 
-    /** ÊäÈë×Ö·û
+    /** è¾“å…¥å­—ç¬¦
     */
     virtual bool OnChar(const EventArgs& /*msg*/) override
     {
-        //½ûÖ¹ÊäÈë×Ö·û
+        //ç¦æ­¢è¾“å…¥å­—ç¬¦
         return true;
     }
 
-    /** °´¼üÊÂ¼þ
+    /** æŒ‰é”®äº‹ä»¶
     */
     virtual bool OnKeyDown(const EventArgs& msg) override
     {
@@ -49,7 +49,7 @@ public:
         }
 
         if ((msg.wParam == VK_DELETE) || (msg.wParam == VK_BACK)) {
-            //Çå¿ÕÎÄ±¾
+            //æ¸…ç©ºæ–‡æœ¬
             SetTextNoEvent(m_defaultText.c_str());
         }
         else if (msg.wParam == VK_MENU) {
@@ -74,7 +74,7 @@ public:
         return true;
     }
 
-    /** °´¼üÊÂ¼þ
+    /** æŒ‰é”®äº‹ä»¶
     */
     virtual bool OnKeyUp(const EventArgs& /*msg*/) override
     {
@@ -87,27 +87,27 @@ public:
             wVirtualKeyCode = 0;
         }
         if ((wVirtualKeyCode == 0) || (wModifiers == 0)) {
-            //ÎÞÓÐÐ§µÄÈÈ¼ü£¬Çå¿ÕÎÄ±¾
+            //æ— æœ‰æ•ˆçš„çƒ­é”®ï¼Œæ¸…ç©ºæ–‡æœ¬
             SetTextNoEvent(m_defaultText.c_str());
         }
         return true;
     }
 
-    /** °´¼ü£ºF10 »òÕß Alt
+    /** æŒ‰é”®ï¼šF10 æˆ–è€… Alt
     */
     virtual bool OnSysKeyDown(const EventArgs& msg) override
     {
         return OnKeyDown(msg);
     }
 
-    /** °´¼ü£ºF10 »òÕß Alt
+    /** æŒ‰é”®ï¼šF10 æˆ–è€… Alt
     */
     virtual bool OnSysKeyUp(const EventArgs& msg) override
     {
         return OnKeyUp(msg);
     }
 
-    /** »ñÈ¡¼üµÄÏÔÊ¾Ãû³Æ
+    /** èŽ·å–é”®çš„æ˜¾ç¤ºåç§°
     */
     static std::wstring GetKeyName(uint8_t wParam, bool fExtended)
     {
@@ -139,7 +139,7 @@ public:
         return std::wstring(szStr);
     }
 
-    /** »ñÈ¡¼üµÄÏÔÊ¾Ãû³Æ
+    /** èŽ·å–é”®çš„æ˜¾ç¤ºåç§°
     */
     std::wstring GetKeyName(LPARAM lParam) const
     {
@@ -149,7 +149,7 @@ public:
         return keyName;
     }
 
-    /** ÉèÖÃÈÈ¼ü
+    /** è®¾ç½®çƒ­é”®
     */
     void SetHotKey(uint8_t wVirtualKeyCode, uint8_t wModifiers)
     {
@@ -157,7 +157,7 @@ public:
         m_wModifiers = wModifiers;
     }
 
-    /** »ñÈ¡ÈÈ¼ü
+    /** èŽ·å–çƒ­é”®
     */
     void GetHotKey(uint8_t& wVirtualKeyCode, uint8_t& wModifiers) const
     {
@@ -165,7 +165,7 @@ public:
         wModifiers = m_wModifiers;
     }
 
-    /** »ñÈ¡ÈÈ¼üÏÔÊ¾Ãû³Æ
+    /** èŽ·å–çƒ­é”®æ˜¾ç¤ºåç§°
     */
     std::wstring GetHotKeyName() const
     {
@@ -175,7 +175,7 @@ public:
         const wchar_t szPlus[] = L"+";
         GetHotKey(wCode, wModifiers);
         if (wModifiers == 0) {
-            //±ØÐëÓÐ×éºÏ¼ü£¬²ÅÊÇÓÐÐ§µÄÈÈ¼ü
+            //å¿…é¡»æœ‰ç»„åˆé”®ï¼Œæ‰æ˜¯æœ‰æ•ˆçš„çƒ­é”®
             return sKeyName;
         }
         if (wCode != 0 || wModifiers != 0) {
@@ -219,7 +219,7 @@ public:
         return sKeyName;
     }
 
-    /** ÉèÖÃÄ¬ÈÏµÄÎÄ±¾
+    /** è®¾ç½®é»˜è®¤çš„æ–‡æœ¬
     */
     void SetDefaultText(const std::wstring& defaultText)
     {
@@ -228,16 +228,16 @@ public:
 
 private:
 
-    /** ÐéÄâ¼üÅÌÂë£¬±ÈÈç£ºVK_DOWNµÈ
-        ¿É²Î¿¼£ºhttps://learn.microsoft.com/zh-cn/windows/win32/inputdev/virtual-key-codes
+    /** è™šæ‹Ÿé”®ç›˜ç ï¼Œæ¯”å¦‚ï¼šVK_DOWNç­‰
+        å¯å‚è€ƒï¼šhttps://learn.microsoft.com/zh-cn/windows/win32/inputdev/virtual-key-codes
     */
     uint8_t m_wVirtualKeyCode;
 
-    /** ÈÈ¼ü×éºÏ¼ü£ºHOTKEYF_SHIFT »òÕß HOTKEYF_CONTROL »òÕß HOTKEYF_ALT
+    /** çƒ­é”®ç»„åˆé”®ï¼šHOTKEYF_SHIFT æˆ–è€… HOTKEYF_CONTROL æˆ–è€… HOTKEYF_ALT
     */
     uint8_t m_wModifiers;
 
-    /** Ä¬ÈÏµÄÎÄ±¾
+    /** é»˜è®¤çš„æ–‡æœ¬
     */
     UiString m_defaultText;
 };
@@ -287,7 +287,7 @@ void HotKey::OnInit()
     pRichEdit->SetAttribute(L"height", L"100%");
     AddItem(pRichEdit);
 
-    //ÒÔRichEdit¿Ø¼þµÄ½¹µã×÷ÎªÕû¸ö¿Ø¼þµÄ½¹µã
+    //ä»¥RichEditæŽ§ä»¶çš„ç„¦ç‚¹ä½œä¸ºæ•´ä¸ªæŽ§ä»¶çš„ç„¦ç‚¹
     pRichEdit->AttachSetFocus([this](const EventArgs&) {
         SendEvent(kEventSetFocus);
         return true;
@@ -409,7 +409,7 @@ bool HotKey::SetHotKeyName(const std::wstring& hotKeyName)
         for (const std::wstring& hotKey : hotKeyList) {
             auto pos = vkCodeMap.find(hotKey);
             if (pos != vkCodeMap.end()) {
-                //Ö»Ö§³ÖÒ»¸ö¼ü£¬ÆäËûµÄºöÂÔµô
+                //åªæ”¯æŒä¸€ä¸ªé”®ï¼Œå…¶ä»–çš„å¿½ç•¥æŽ‰
                 wVirtualKeyCode = pos->second;
                 break;
             }
@@ -427,7 +427,7 @@ bool HotKey::SetHotKeyName(const std::wstring& hotKeyName)
         for (const std::wstring& hotKey : hotKeyList) {
             auto pos = vkCodeExtMap.find(hotKey);
             if (pos != vkCodeExtMap.end()) {
-                //Ö»Ö§³ÖÒ»¸ö¼ü£¬ÆäËûµÄºöÂÔµô
+                //åªæ”¯æŒä¸€ä¸ªé”®ï¼Œå…¶ä»–çš„å¿½ç•¥æŽ‰
                 wVirtualKeyCode = pos->second;
                 wModifiers |= kHotKey_Ext;
                 break;

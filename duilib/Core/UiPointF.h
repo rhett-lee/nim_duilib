@@ -9,7 +9,7 @@
 namespace ui 
 {
 
-/** µãµÄ·â×°
+/** ç‚¹çš„å°è£…
 */
 class UILIB_API UiPointF
 {
@@ -25,7 +25,7 @@ public:
 		y = yValue;
 	}
 
-	/** ÉèÖÃĞÂµÄXºÍYÖµ
+	/** è®¾ç½®æ–°çš„Xå’ŒYå€¼
 	*/
 	void SetXY(float xValue, float yValue)
 	{
@@ -33,15 +33,15 @@ public:
 		y = yValue;
 	}
 
-	/** ÉèÖÃĞÂµÄXÖµ
+	/** è®¾ç½®æ–°çš„Xå€¼
 	*/
 	void SetX(float xValue) { x = xValue; }
 
-	/** ÉèÖÃĞÂµÄYÖµ
+	/** è®¾ç½®æ–°çš„Yå€¼
 	*/
 	void SetY(float yValue) { y = yValue;	}
 
-	/** Æ«ÒÆ²Ù×÷
+	/** åç§»æ“ä½œ
 	*/
 	void Offset(float offsetX, float offsetY)
 	{
@@ -49,7 +49,7 @@ public:
 		y += offsetY;
 	}
 
-	/** Æ«ÒÆ²Ù×÷
+	/** åç§»æ“ä½œ
 	*/
 	void Offset(const UiPointF& offsetPoint)
 	{
@@ -57,43 +57,43 @@ public:
 		y += offsetPoint.y;
 	}
 
-	/** ·µ»ØxÖµ
+	/** è¿”å›xå€¼
 	*/
 	constexpr float X() const { return x; }
 
-	/** ·µ»ØyÖµ
+	/** è¿”å›yå€¼
 	*/
 	constexpr float Y() const { return y; }
 
-	/** Èç¹ûxºÍy¶¼ÊÇ0£¬·µ»Øtrue
+	/** å¦‚æœxå’Œyéƒ½æ˜¯0ï¼Œè¿”å›true
 	*/
 	bool IsZero() const 
 	{ 
 		return x == 0 && y == 0; 
 	}
 
-	/** ÅĞ¶ÏÊÇ·ñÓëÁíÍâÒ»¸öµãÏàÍ¬
+	/** åˆ¤æ–­æ˜¯å¦ä¸å¦å¤–ä¸€ä¸ªç‚¹ç›¸åŒ
 	*/
 	bool Equals(float xValue, float yValue) const
 	{
 		return x == xValue && y == yValue;
 	}
 
-	/** ÅĞ¶ÏÊÇ·ñÓëÁíÍâÒ»¸öµãÏàÍ¬
+	/** åˆ¤æ–­æ˜¯å¦ä¸å¦å¤–ä¸€ä¸ªç‚¹ç›¸åŒ
 	*/
 	bool Equals(const UiPointF& dst) const
 	{
 		return x == dst.x && y == dst.y;
 	}
 
-	/** ÅĞ¶ÏÁ½¸öÖµÊÇ·ñÏàµÈ
+	/** åˆ¤æ–­ä¸¤ä¸ªå€¼æ˜¯å¦ç›¸ç­‰
 	*/
 	friend bool operator == (const UiPointF& a, const UiPointF& b)
 	{
 		return a.Equals(b);
 	}
 
-	/** ÅĞ¶ÏÁ½¸öÖµÊÇ·ñ²»ÏàµÈ
+	/** åˆ¤æ–­ä¸¤ä¸ªå€¼æ˜¯å¦ä¸ç›¸ç­‰
 	*/
 	friend bool operator != (const UiPointF& a, const UiPointF& b)
 	{
@@ -101,11 +101,11 @@ public:
 	}
 
 public:
-	/** XÖá×ø±ê
+	/** Xè½´åæ ‡
 	*/
 	float x;
 
-	/** YÖá×ø±ê
+	/** Yè½´åæ ‡
 	*/
 	float y;
 };

@@ -12,7 +12,7 @@ namespace ui
 {
 typedef ButtonTemplate<VBox> ButtonVBox;
 
-/** ´øÓĞÏÂÀ­×éºÏ¿òµÄ°´Å¥
+/** å¸¦æœ‰ä¸‹æ‹‰ç»„åˆæ¡†çš„æŒ‰é’®
 */
 class UILIB_API ComboButton : public Box
 {
@@ -23,204 +23,204 @@ public:
 	ComboButton& operator=(const ComboButton& r) = delete;
 	virtual ~ComboButton();
 
-	/// ÖØĞ´¸¸Àà·½·¨£¬Ìá¹©¸öĞÔ»¯¹¦ÄÜ£¬Çë²Î¿¼¸¸ÀàÉùÃ÷
+	/// é‡å†™çˆ¶ç±»æ–¹æ³•ï¼Œæä¾›ä¸ªæ€§åŒ–åŠŸèƒ½ï¼Œè¯·å‚è€ƒçˆ¶ç±»å£°æ˜
 	virtual std::wstring GetType() const override;
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 	virtual bool CanPlaceCaptionBar() const override;
 	virtual std::wstring GetBorderColor(ControlStateType stateType) const override;
 
-	/** DPI·¢Éú±ä»¯£¬¸üĞÂ¿Ø¼ş´óĞ¡ºÍ²¼¾Ö
-	* @param [in] nOldDpiScale ¾ÉµÄDPIËõ·Å°Ù·Ö±È
-	* @param [in] nNewDpiScale ĞÂµÄDPIËõ·Å°Ù·Ö±È£¬ÓëDpi().GetScale()µÄÖµÒ»ÖÂ
+	/** DPIå‘ç”Ÿå˜åŒ–ï¼Œæ›´æ–°æ§ä»¶å¤§å°å’Œå¸ƒå±€
+	* @param [in] nOldDpiScale æ—§çš„DPIç¼©æ”¾ç™¾åˆ†æ¯”
+	* @param [in] nNewDpiScale æ–°çš„DPIç¼©æ”¾ç™¾åˆ†æ¯”ï¼Œä¸Dpi().GetScale()çš„å€¼ä¸€è‡´
 	*/
 	virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override;
 
 public:
 
-	/** »ñÈ¡ÏÂÀ­¿òÁĞ±í´óĞ¡(¿í¶ÈºÍ¸ß¶È)
+	/** è·å–ä¸‹æ‹‰æ¡†åˆ—è¡¨å¤§å°(å®½åº¦å’Œé«˜åº¦)
 	*/
 	const UiSize& GetDropBoxSize() const;
 
-	/** ÉèÖÃÏÂÀ­¿òÁĞ±í´óĞ¡(¿í¶ÈºÍ¸ß¶È)
-	 * @param [in] szDropBox ÒªÉèÖÃµÄ´óĞ¡ĞÅÏ¢
-	 * @param [in] bNeedScaleDpi ÊÇ·ñĞèÒª×öDPI×ÔÊÊÓ¦
+	/** è®¾ç½®ä¸‹æ‹‰æ¡†åˆ—è¡¨å¤§å°(å®½åº¦å’Œé«˜åº¦)
+	 * @param [in] szDropBox è¦è®¾ç½®çš„å¤§å°ä¿¡æ¯
+	 * @param [in] bNeedScaleDpi æ˜¯å¦éœ€è¦åšDPIè‡ªé€‚åº”
 	 */
 	void SetDropBoxSize(UiSize szDropBox, bool bNeedScaleDpi);
 
-	/** ÉèÖÃ Combobox ÊÇ·ñÏòÉÏµ¯³ö
-	 * @param[in] top Îª true ÔòÏòÉÏµ¯³ö£¬false ÎªÄ¬ÈÏÏòÏÂµ¯³ö
+	/** è®¾ç½® Combobox æ˜¯å¦å‘ä¸Šå¼¹å‡º
+	 * @param[in] top ä¸º true åˆ™å‘ä¸Šå¼¹å‡ºï¼Œfalse ä¸ºé»˜è®¤å‘ä¸‹å¼¹å‡º
 	 */
 	void SetPopupTop(bool top) { m_bPopupTop = top; }
 
-	/** ÅĞ¶Ï Combobox µ¯³öÄ£Ê½ÊÇ·ñÊÇÏòÉÏµ¯³ö
-	 * @return ·µ»Ø true ±íÊ¾ÏòÉÏµ¯³ö£¬·ñÔòÎª false
+	/** åˆ¤æ–­ Combobox å¼¹å‡ºæ¨¡å¼æ˜¯å¦æ˜¯å‘ä¸Šå¼¹å‡º
+	 * @return è¿”å› true è¡¨ç¤ºå‘ä¸Šå¼¹å‡ºï¼Œå¦åˆ™ä¸º false
 	 */
 	bool IsPopupTop() const { return m_bPopupTop; }
 
-	/** ÉèÖÃ×ó²à°´Å¥¿Ø¼şµÄClassÊôĞÔ
+	/** è®¾ç½®å·¦ä¾§æŒ‰é’®æ§ä»¶çš„Classå±æ€§
 	*/
 	void SetLeftButtonClass(const std::wstring& classValue);
 
-	/** ÉèÖÃ×ó²à°´Å¥ÉÏ²àµÄLabel¿Ø¼şµÄClassÊôĞÔ
+	/** è®¾ç½®å·¦ä¾§æŒ‰é’®ä¸Šä¾§çš„Labelæ§ä»¶çš„Classå±æ€§
 	*/
 	void SetLeftButtonTopLabelClass(const std::wstring& classValue);
 
-	/** ÉèÖÃ×ó²à°´Å¥ÏÂ²àµÄLabel¿Ø¼şµÄClassÊôĞÔ
+	/** è®¾ç½®å·¦ä¾§æŒ‰é’®ä¸‹ä¾§çš„Labelæ§ä»¶çš„Classå±æ€§
 	*/
 	void SetLeftButtonBottomLabelClass(const std::wstring& classValue);
 
-	/** ÉèÖÃÓÒ²à°´Å¥¿Ø¼şµÄClassÊôĞÔ
+	/** è®¾ç½®å³ä¾§æŒ‰é’®æ§ä»¶çš„Classå±æ€§
 	*/
 	void SetRightButtonClass(const std::wstring& classValue);
 
-	/** ÉèÖÃÏÂÀ­ÁĞ±íÈİÆ÷µÄClassÊôĞÔ
+	/** è®¾ç½®ä¸‹æ‹‰åˆ—è¡¨å®¹å™¨çš„Classå±æ€§
 	*/
 	void SetComboBoxClass(const std::wstring& classValue);
 
 public:
-	/** »ñÈ¡ÏÂÀ­ÁĞ±íµÄÈİÆ÷½Ó¿Ú
+	/** è·å–ä¸‹æ‹‰åˆ—è¡¨çš„å®¹å™¨æ¥å£
 	*/
 	Box* GetComboBox() const;
 
-	/** »ñÈ¡°´Å¥¿Ø¼ş
+	/** è·å–æŒ‰é’®æ§ä»¶
 	*/
 	ButtonVBox* GetLeftButtonBox() const;
 
-	/** »ñÈ¡°´Å¥¿Ø¼şÉÏ²àµÄÎÄ±¾¿Ø¼ş
+	/** è·å–æŒ‰é’®æ§ä»¶ä¸Šä¾§çš„æ–‡æœ¬æ§ä»¶
 	*/
 	Label* GetLabelTop() const;
 
-	/** »ñÈ¡°´Å¥¿Ø¼şÏÂ²àµÄÎÄ±¾¿Ø¼ş
+	/** è·å–æŒ‰é’®æ§ä»¶ä¸‹ä¾§çš„æ–‡æœ¬æ§ä»¶
 	*/
 	Label* GetLabelBottom() const;
 
-	/** °´Å¥¿Ø¼ş
+	/** æŒ‰é’®æ§ä»¶
 	*/
 	Button* GetRightButton() const;
 
-	/** ¸üĞÂÏÂÀ­ÁĞ±í´°¿ÚµÄÎ»ÖÃ
+	/** æ›´æ–°ä¸‹æ‹‰åˆ—è¡¨çª—å£çš„ä½ç½®
 	*/
 	void UpdateComboWndPos();
 
 public:
-	/** ¼àÌı×ÓÏî°´Å¥µã»÷ÊÂ¼ş£¨×ó²àµÄ°´Å¥±»µã»÷£©
-	 * @param[in] callback ´¥·¢µÄ»Øµ÷º¯Êı
+	/** ç›‘å¬å­é¡¹æŒ‰é’®ç‚¹å‡»äº‹ä»¶ï¼ˆå·¦ä¾§çš„æŒ‰é’®è¢«ç‚¹å‡»ï¼‰
+	 * @param[in] callback è§¦å‘çš„å›è°ƒå‡½æ•°
 	 */
 	void AttachClick(const EventCallback& callback) { AttachEvent(kEventClick, callback);}
 
-	/** ¼àÌıÏÂÀ­´°¹Ø±ÕÊÂ¼ş
-	 * @param[in] callback ÏÂÀ­´°¹Ø±Õºó´¥·¢µÄ»Øµ÷º¯Êı£¬WPARAM Îª1±íÊ¾È¡Ïû£¬Îª0±íÊ¾Õı³£¹Ø±Õ
+	/** ç›‘å¬ä¸‹æ‹‰çª—å…³é—­äº‹ä»¶
+	 * @param[in] callback ä¸‹æ‹‰çª—å…³é—­åè§¦å‘çš„å›è°ƒå‡½æ•°ï¼ŒWPARAM ä¸º1è¡¨ç¤ºå–æ¶ˆï¼Œä¸º0è¡¨ç¤ºæ­£å¸¸å…³é—­
 	 */
 	void AttachWindowClose(const EventCallback& callback) { AttachEvent(kEventWindowClose, callback); }
 
 protected:
-	/** ÏÔÊ¾ÏÂÀ­ÁĞ±í
+	/** æ˜¾ç¤ºä¸‹æ‹‰åˆ—è¡¨
 	*/
 	virtual void ShowComboList();
 
-	/** ¹Ø±ÕÏÂÀ­ÁĞ±í
+	/** å…³é—­ä¸‹æ‹‰åˆ—è¡¨
 	*/
 	virtual void HideComboList();
 
-	/** ¸üĞÂÏÂÀ­ÁĞ±í
+	/** æ›´æ–°ä¸‹æ‹‰åˆ—è¡¨
 	*/
 	virtual void UpdateComboList();
 
-	/** ÏÂÀ­¿ò´°¿Ú¹Ø±Õ
-	* @param [in] bCanceled true±íÊ¾È¡Ïû£¬·ñÔò±íÊ¾Õı³£¹Ø±Õ
+	/** ä¸‹æ‹‰æ¡†çª—å£å…³é—­
+	* @param [in] bCanceled trueè¡¨ç¤ºå–æ¶ˆï¼Œå¦åˆ™è¡¨ç¤ºæ­£å¸¸å…³é—­
 	*/
 	virtual void OnComboWndClosed(bool bCanceled);
 
-	/** ×ó²à°´Å¥µã»÷ÊÂ¼ş
-	 * @param[in] args ²ÎÊıÁĞ±í
-	 * @return Ê¼ÖÕ·µ»Ø true
+	/** å·¦ä¾§æŒ‰é’®ç‚¹å‡»äº‹ä»¶
+	 * @param[in] args å‚æ•°åˆ—è¡¨
+	 * @return å§‹ç»ˆè¿”å› true
 	 */
 	virtual bool OnLeftButtonClicked(const EventArgs& args);
 
-	/** ÓÒ²à°´Å¥Êó±ê°´ÏÂÊÂ¼ş
-	 * @param[in] args ²ÎÊıÁĞ±í
-	 * @return Ê¼ÖÕ·µ»Ø true
+	/** å³ä¾§æŒ‰é’®é¼ æ ‡æŒ‰ä¸‹äº‹ä»¶
+	 * @param[in] args å‚æ•°åˆ—è¡¨
+	 * @return å§‹ç»ˆè¿”å› true
 	 */
 	virtual bool OnRightButtonDown(const EventArgs& args);
 
-	/** ÓÒ²à°´Å¥µã»÷ÊÂ¼ş
-	 * @param[in] args ²ÎÊıÁĞ±í
-	 * @return Ê¼ÖÕ·µ»Ø true
+	/** å³ä¾§æŒ‰é’®ç‚¹å‡»äº‹ä»¶
+	 * @param[in] args å‚æ•°åˆ—è¡¨
+	 * @return å§‹ç»ˆè¿”å› true
 	 */
 	virtual bool OnRightButtonClicked(const EventArgs& args);
 
-	/** ´°¿ÚÊ§È¥½¹µã
-	* @param[in] args ²ÎÊıÁĞ±í
-	* @return Ê¼ÖÕ·µ»Ø true
+	/** çª—å£å¤±å»ç„¦ç‚¹
+	* @param[in] args å‚æ•°åˆ—è¡¨
+	* @return å§‹ç»ˆè¿”å› true
 	*/
 	virtual bool OnWindowKillFocus(const EventArgs& args);
 
-	/** ´°¿ÚÒÆ¶¯
-	* @param[in] args ²ÎÊıÁĞ±í
-	* @return Ê¼ÖÕ·µ»Ø true
+	/** çª—å£ç§»åŠ¨
+	* @param[in] args å‚æ•°åˆ—è¡¨
+	* @return å§‹ç»ˆè¿”å› true
 	*/
 	virtual bool OnWindowMove(const EventArgs& args);
 
 protected:
-	/** ³õÊ¼»¯º¯Êı
+	/** åˆå§‹åŒ–å‡½æ•°
 	*/
 	virtual void OnInit() override;
 
 private:
-	/** ½âÎöÊôĞÔÁĞ±í
+	/** è§£æå±æ€§åˆ—è¡¨
 	*/
 	void ParseAttributeList(const std::wstring& strList,
 							std::vector<std::pair<std::wstring, std::wstring>>& attributeList) const;
 
-	/** ÉèÖÃ¿Ø¼şµÄÊôĞÔÁĞ±í
+	/** è®¾ç½®æ§ä»¶çš„å±æ€§åˆ—è¡¨
 	*/
 	void SetAttributeList(Control* pControl, const std::wstring& classValue);
 
-	/** ÒÆ³ı¿Ø¼ş
+	/** ç§»é™¤æ§ä»¶
 	*/
 	void RemoveControl(Control* pControl);
 
-	/** °´Å¥µÄ×´Ì¬·¢Éú±ä»¯£¬Í¬²½×´Ì¬
-	* @param[in] args ²ÎÊıÁĞ±í
-	* @return Ê¼ÖÕ·µ»Ø true
+	/** æŒ‰é’®çš„çŠ¶æ€å‘ç”Ÿå˜åŒ–ï¼ŒåŒæ­¥çŠ¶æ€
+	* @param[in] args å‚æ•°åˆ—è¡¨
+	* @return å§‹ç»ˆè¿”å› true
 	*/
 	bool OnButtonStateChanged(const EventArgs& args);
 
 private:
-	/** ÏÂÀ­ÁĞ±íµÄ´°¿Ú½Ó¿Ú
+	/** ä¸‹æ‹‰åˆ—è¡¨çš„çª—å£æ¥å£
 	*/
 	ComboButtonWnd* m_pWindow;
 
-	/** ÏÂÀ­ÁĞ±íµÄ´óĞ¡£¨¿í¶ÈºÍ¸ß¶È£©
+	/** ä¸‹æ‹‰åˆ—è¡¨çš„å¤§å°ï¼ˆå®½åº¦å’Œé«˜åº¦ï¼‰
 	*/
 	UiSize m_szDropBox;
 
-	/** ÏÂÀ­ÁĞ±íÊÇ·ñÏòÉÏµ¯³ö
+	/** ä¸‹æ‹‰åˆ—è¡¨æ˜¯å¦å‘ä¸Šå¼¹å‡º
 	*/
 	bool m_bPopupTop;
 
 private:
-	/** ÏÂÀ­ÁĞ±í±íÈİÆ÷
+	/** ä¸‹æ‹‰åˆ—è¡¨è¡¨å®¹å™¨
 	*/
 	Box* m_pComboBox;
 
-	/** °´Å¥ÈİÆ÷¿Ø¼şButtonVBox
+	/** æŒ‰é’®å®¹å™¨æ§ä»¶ButtonVBox
 	*/
 	ButtonVBox* m_pLeftButton;
 
-	/** °´Å¥ÈİÆ÷ÖĞÉÏ²àµÄÎÄ±¾¿Ø¼ş(Î»ÓÚButtonVBoxÀïÃæ)
+	/** æŒ‰é’®å®¹å™¨ä¸­ä¸Šä¾§çš„æ–‡æœ¬æ§ä»¶(ä½äºButtonVBoxé‡Œé¢)
 	*/
 	Label* m_pLabelTop;
 
-	/** °´Å¥ÈİÆ÷ÖĞÏÂ²àµÄÎÄ±¾¿Ø¼ş(Î»ÓÚButtonVBoxÀïÃæ)
+	/** æŒ‰é’®å®¹å™¨ä¸­ä¸‹ä¾§çš„æ–‡æœ¬æ§ä»¶(ä½äºButtonVBoxé‡Œé¢)
 	*/
 	Label* m_pLabelBottom;
 
-	/** °´Å¥¿Ø¼ş£¨ÓÒ²àÏÂÀ­°´Å¥£©
+	/** æŒ‰é’®æ§ä»¶ï¼ˆå³ä¾§ä¸‹æ‹‰æŒ‰é’®ï¼‰
 	*/
 	Button* m_pRightButton;
 
-	/** Êó±ê°´ÏÂµÄÊ±ºò£¬ÊÇ·ñÕıÔÚÏÔÊ¾ÏÂÀ­ÁĞ±í
+	/** é¼ æ ‡æŒ‰ä¸‹çš„æ—¶å€™ï¼Œæ˜¯å¦æ­£åœ¨æ˜¾ç¤ºä¸‹æ‹‰åˆ—è¡¨
 	*/
 	bool m_bDropListShown;
 };

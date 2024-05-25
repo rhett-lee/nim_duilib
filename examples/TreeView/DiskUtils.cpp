@@ -130,7 +130,7 @@ std::wstring DiskUtils::GetMaxFreeSpaceLocalDisk()
         std::wstring drive = driveList[i];
         UINT uType = ::GetDriveType(drive.c_str());
         if (uType != DRIVE_FIXED) {
-            //Ö»ĞèÒª±¾µØ´ÅÅÌ
+            //åªéœ€è¦æœ¬åœ°ç£ç›˜
             continue;
         }
 

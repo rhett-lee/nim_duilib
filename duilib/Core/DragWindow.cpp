@@ -3,7 +3,7 @@
 
 namespace ui
 {
-/** Î»Í¼ÏÔÊ¾¿Ø¼ş
+/** ä½å›¾æ˜¾ç¤ºæ§ä»¶
 */
 class DragWindowBitmap: public Control
 {
@@ -13,7 +13,7 @@ public:
     {
     }
 
-    /** »æÖÆº¯Êı
+    /** ç»˜åˆ¶å‡½æ•°
     */
     virtual void Paint(ui::IRender* pRender, const ui::UiRect& rcPaint) override
     {
@@ -24,7 +24,7 @@ public:
             UiRect srcRect;
             srcRect.right = m_pBitmap->GetWidth();
             srcRect.bottom = m_pBitmap->GetHeight();
-            //¾ÓÖĞ¶ÔÆë
+            //å±…ä¸­å¯¹é½
             if (srcRect.Height() < destRect.Height()) {
                 destRect.top = destRect.CenterY() - srcRect.Height() / 2;
                 destRect.bottom = destRect.top + srcRect.Height();
@@ -37,7 +37,7 @@ public:
         }
     }
 
-    /** ÉèÖÃ»æÖÆµÄÎ»Í¼
+    /** è®¾ç½®ç»˜åˆ¶çš„ä½å›¾
     */
     void SetBitmap(const std::shared_ptr<IBitmap>& pBitmap)
     {
@@ -45,7 +45,7 @@ public:
     }
 
 private:
-    /** ÏÔÊ¾µÄÎ»Í¼
+    /** æ˜¾ç¤ºçš„ä½å›¾
     */
     std::shared_ptr<IBitmap> m_pBitmap;
 };
@@ -100,11 +100,11 @@ void DragWindow::OnFinalMessage()
 
 void DragWindow::OnDeleteSelf()
 {
-    //²»µ÷ÓÃ»ùÀà£¬±ÜÃâ¶ÔÏó±»É¾³ı
+    //ä¸è°ƒç”¨åŸºç±»ï¼Œé¿å…å¯¹è±¡è¢«åˆ é™¤
 }
 
-/** ÉèÖÃÏÔÊ¾µÄÍ¼Æ¬
-* @param [in] pBitmap Í¼Æ¬×ÊÔ´µÄ½Ó¿Ú
+/** è®¾ç½®æ˜¾ç¤ºçš„å›¾ç‰‡
+* @param [in] pBitmap å›¾ç‰‡èµ„æºçš„æ¥å£
 */
 void DragWindow::SetDragImage(const std::shared_ptr<IBitmap>& pBitmap)
 {
@@ -133,7 +133,7 @@ void DragWindow::SetDragImage(const std::shared_ptr<IBitmap>& pBitmap)
     pBitmapControl->SetAttribute(L"bkcolor", L"white");
     pBox->AddItem(pBitmapControl);
 
-    //¸ù¾İÎ»Í¼µÄ´óĞ¡£¬µ÷Õû´°¿Ú´óĞ¡
+    //æ ¹æ®ä½å›¾çš„å¤§å°ï¼Œè°ƒæ•´çª—å£å¤§å°
     Resize(nImageWidth, nImageHeight, false, false);
 }
 

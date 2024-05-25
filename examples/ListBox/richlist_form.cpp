@@ -50,14 +50,14 @@ void RichlistForm::OnInitWindow()
 		}
 
 		std::wstring img = L"icon.png";
-		std::wstring title = nbase::StringPrintf(L"ÈÎÎñ [%02d]", i);
+		std::wstring title = nbase::StringPrintf(L"ä»»åŠ¡ [%02d]", i);
 
 		item->InitSubControls(img, title);
 		m_pListBox->AddItem(item);
 	}
 
 	m_pListBox->SetFocus();
-	// ¼àÌıÁĞ±íÖĞµã»÷Ñ¡Ôñ×ÓÏîµÄÊÂ¼ş
+	// ç›‘å¬åˆ—è¡¨ä¸­ç‚¹å‡»é€‰æ‹©å­é¡¹çš„äº‹ä»¶
 	m_pListBox->AttachSelect(nbase::Bind(&RichlistForm::OnSelected, this, std::placeholders::_1));
 }
 
@@ -66,7 +66,7 @@ bool RichlistForm::OnSelected(const ui::EventArgs& args)
 	int current = static_cast<int>(args.wParam);
 	int old = static_cast<int>(args.lParam);
 
-	/*auto message = nbase::StringPrintf(L"ÄúÑ¡ÔñÁËË÷ÒıÎª %d µÄ×ÓÏî£¬ÉÏÒ»´ÎÑ¡Ôñ×ÓÏîË÷ÒıÎª %d\n", current, old);
+	/*auto message = nbase::StringPrintf(L"æ‚¨é€‰æ‹©äº†ç´¢å¼•ä¸º %d çš„å­é¡¹ï¼Œä¸Šä¸€æ¬¡é€‰æ‹©å­é¡¹ç´¢å¼•ä¸º %d\n", current, old);
 	::OutputDebugStringW(message.c_str());
 
 	ui::ListBoxVerVisible vVisibleType = ui::ListBoxVerVisible::kVisible;
@@ -79,14 +79,14 @@ bool RichlistForm::OnSelected(const ui::EventArgs& args)
 			m_pListBox->EnsureVisible(21, vVisibleType, hVisibleType);
 		}
 	}*/
-	//nim_comp::ShowMsgBox(GetHWND(), nim_comp::MsgboxCallback(), message, false, L"ÌáÊ¾", false);
+	//nim_comp::ShowMsgBox(GetHWND(), nim_comp::MsgboxCallback(), message, false, L"æç¤º", false);
 
 	return true;
 }
 
 void RichlistForm::OnCloseWindow()
 {
-	//¹Ø±Õ´°¿Úºó£¬ÍË³öÖ÷Ïß³ÌµÄÏûÏ¢Ñ­»·£¬¹Ø±Õ³ÌĞò
+	//å…³é—­çª—å£åï¼Œé€€å‡ºä¸»çº¿ç¨‹çš„æ¶ˆæ¯å¾ªç¯ï¼Œå…³é—­ç¨‹åº
 	PostQuitMessage(0L);
 }
 

@@ -2,7 +2,7 @@
 #include "ListCtrl.h"
 #include "duilib/Render/AutoClip.h"
 
-//°üº¬Àà£ºListCtrlReportView / ListCtrlReportLayout
+//åŒ…å«ç±»ï¼šListCtrlReportView / ListCtrlReportLayout
 
 namespace ui
 {
@@ -60,7 +60,7 @@ void ListCtrlReportView::SetDataProvider(VirtualListBoxElement* pProvider)
 void ListCtrlReportView::Refresh()
 {
     if ((m_pListCtrl != nullptr) && !m_pListCtrl->IsEnableRefresh()) {
-        //Ë¢ĞÂ¹¦ÄÜÒÑ¾­½ûÖ¹
+        //åˆ·æ–°åŠŸèƒ½å·²ç»ç¦æ­¢
         return;
     }
     if (!m_pListCtrl->IsInited()) {
@@ -69,10 +69,10 @@ void ListCtrlReportView::Refresh()
     if ((GetWindow() == nullptr) || !HasDataProvider()) {
         return;
     }
-    //µ÷ÕûUI¿Ø¼şµÄ¸öÊı£¬ÒÔÂú×ãÏÔÊ¾Ê¹ÓÃ
+    //è°ƒæ•´UIæ§ä»¶çš„ä¸ªæ•°ï¼Œä»¥æ»¡è¶³æ˜¾ç¤ºä½¿ç”¨
     AjustItemCount();
 
-    //Ë¢ĞÂUI¿Ø¼şµÄÏÔÊ¾ÄÚÈİ
+    //åˆ·æ–°UIæ§ä»¶çš„æ˜¾ç¤ºå†…å®¹
     if (GetElementCount() > 0) {
         ReArrangeChild(true);
         Arrange();
@@ -86,37 +86,37 @@ void ListCtrlReportView::AjustItemCount()
         return;
     }
 
-    //×î´ó×ÓÏîÊı
+    //æœ€å¤§å­é¡¹æ•°
     size_t nMaxItemCount = pVirtualLayout->AjustMaxItem(GetPosWithoutPadding());
     if (nMaxItemCount == 0) {
         return;
     }
 
-    //µ±Ç°Êı¾İ×ÜÊı: Êı¾İ×ÜÊı + Header¿Ø¼ş
+    //å½“å‰æ•°æ®æ€»æ•°: æ•°æ®æ€»æ•° + Headeræ§ä»¶
     size_t nElementCount = GetElementCount() + 1;
 
-    //µ±Ç°×ÓÏîÊı
+    //å½“å‰å­é¡¹æ•°
     size_t nItemCount = GetItemCount();
 
-    //Ë¢ĞÂºóµÄ×ÓÏîÊı
+    //åˆ·æ–°åçš„å­é¡¹æ•°
     size_t nNewItemCount = nElementCount;
     if (nNewItemCount > nMaxItemCount) {
         nNewItemCount = nMaxItemCount;
     }
 
     if (nItemCount > nNewItemCount) {
-        //Èç¹ûÏÖÓĞ×ÓÏî×ÜÊı´óÓÚĞÂ¼ÆËãµÄ×ÓÏîÊı£¬ÒÆ³ı±ÈÊı¾İ×ÜÊı¶à³öµÄ×ÓÏî£¨´ÓºóÃæÉ¾³ı£©
+        //å¦‚æœç°æœ‰å­é¡¹æ€»æ•°å¤§äºæ–°è®¡ç®—çš„å­é¡¹æ•°ï¼Œç§»é™¤æ¯”æ•°æ®æ€»æ•°å¤šå‡ºçš„å­é¡¹ï¼ˆä»åé¢åˆ é™¤ï¼‰
         size_t n = nItemCount - nNewItemCount;
         for (size_t i = 0; i < n; ++i) {
             size_t itemCount = GetItemCount();
             if (itemCount > 1) {
-                //ÖÁÉÙ±£ÁôÒ»¸öHeader¿Ø¼ş
+                //è‡³å°‘ä¿ç•™ä¸€ä¸ªHeaderæ§ä»¶
                 RemoveItemAt(itemCount - 1);
             }
         }
     }
     else if (nItemCount < nNewItemCount) {
-        //Èç¹ûÏÖÓĞ×ÓÏî×ÜÊıĞ¡ÓÚĞÂ¼ÆËãµÄ×ÓÏîÊı£¬ĞÂÔö±ÈÊı¾İ×ÜÊıÉÙµÄ×ÓÏî
+        //å¦‚æœç°æœ‰å­é¡¹æ€»æ•°å°äºæ–°è®¡ç®—çš„å­é¡¹æ•°ï¼Œæ–°å¢æ¯”æ•°æ®æ€»æ•°å°‘çš„å­é¡¹
         size_t n = nNewItemCount - nItemCount;
         for (size_t i = 0; i < n; ++i) {
             Control* pControl = CreateElement();
@@ -124,7 +124,7 @@ void ListCtrlReportView::AjustItemCount()
             if (pControl != nullptr) {
                 AddItem(pControl);
 
-                //¹ÒÔØÊó±êÊÂ¼ş
+                //æŒ‚è½½é¼ æ ‡äº‹ä»¶
                 AttachMouseEvents(pControl);
             }
         }
@@ -215,14 +215,14 @@ size_t ListCtrlReportView::GetTopDataItemIndex(int64_t nScrollPosY) const
         const ListCtrlItemData& rowData = itemDataList[index];
         nItemHeight = rowData.nItemHeight;
         if (nItemHeight < 0) {
-            //È¡Ä¬ÈÏĞĞ¸ß
+            //å–é»˜è®¤è¡Œé«˜
             nItemHeight = m_pListCtrl->GetDataItemHeight();
         }
         if (!rowData.bVisible || (nItemHeight  == 0)){
             continue;
         }
         totalItemHeight += nItemHeight;
-        //Èç¹ûÃ¿ĞĞ¸ß¶È¶¼ÏàÍ¬£¬Ïàµ±ÓÚ nScrollPosY / ItemHeight
+        //å¦‚æœæ¯è¡Œé«˜åº¦éƒ½ç›¸åŒï¼Œç›¸å½“äº nScrollPosY / ItemHeight
         if (totalItemHeight > nScrollPosY) {
             itemIndex = index;
             break;
@@ -279,14 +279,14 @@ void ListCtrlReportView::GetDataItemsToShow(int64_t nScrollPosY, size_t maxCount
     if (pDataProvider == nullptr) {
         return;
     }
-    size_t nTopDataItemIndex = Box::InvalidIndex; //¶¥²¿¿É¼ûµÄµÚÒ»¸öÔªËØĞòºÅ
-    const int32_t nDefaultItemHeight = m_pListCtrl->GetDataItemHeight(); //Ä¬ÈÏĞĞ¸ß
-    //ÖÃ¶¥µÄÔªËØĞòºÅ
+    size_t nTopDataItemIndex = Box::InvalidIndex; //é¡¶éƒ¨å¯è§çš„ç¬¬ä¸€ä¸ªå…ƒç´ åºå·
+    const int32_t nDefaultItemHeight = m_pListCtrl->GetDataItemHeight(); //é»˜è®¤è¡Œé«˜
+    //ç½®é¡¶çš„å…ƒç´ åºå·
     struct AlwaysAtTopData
     {
-        int8_t nAlwaysAtTop;    //ÖÃ¶¥ÓÅÏÈ¼¶
-        size_t nItemIndex;      //ÔªËØË÷Òı
-        int32_t nItemHeight;    //ÔªËØµÄ¸ß¶È
+        int8_t nAlwaysAtTop;    //ç½®é¡¶ä¼˜å…ˆçº§
+        size_t nItemIndex;      //å…ƒç´ ç´¢å¼•
+        int32_t nItemHeight;    //å…ƒç´ çš„é«˜åº¦
     };
     std::vector<AlwaysAtTopData> alwaysAtTopItemList;
     
@@ -298,12 +298,12 @@ void ListCtrlReportView::GetDataItemsToShow(int64_t nScrollPosY, size_t maxCount
         const ListCtrlItemData& rowData = itemDataList[index];
         nItemHeight = (rowData.nItemHeight < 0) ? nDefaultItemHeight : rowData.nItemHeight;
         if (!rowData.bVisible || (nItemHeight == 0)) {
-            //²»¿É¼ûµÄ£¬Ìø¹ı
+            //ä¸å¯è§çš„ï¼Œè·³è¿‡
             continue;
         }
 
         if (rowData.nAlwaysAtTop >= 0) {
-            //ÖÃ¶¥µÄÔªËØ
+            //ç½®é¡¶çš„å…ƒç´ 
             if (alwaysAtTopItemList.size() < maxCount) {
                 alwaysAtTopItemList.push_back({ rowData.nAlwaysAtTop, index, nItemHeight });
             }
@@ -312,7 +312,7 @@ void ListCtrlReportView::GetDataItemsToShow(int64_t nScrollPosY, size_t maxCount
 
         if (nTopDataItemIndex == Box::InvalidIndex) {
             totalItemHeight += nItemHeight;
-            //Èç¹ûÃ¿ĞĞ¸ß¶È¶¼ÏàÍ¬£¬Ïàµ±ÓÚ nScrollPosY / ItemHeight
+            //å¦‚æœæ¯è¡Œé«˜åº¦éƒ½ç›¸åŒï¼Œç›¸å½“äº nScrollPosY / ItemHeight
             if (totalItemHeight > nScrollPosY) {
                 nTopDataItemIndex = index;
                 nPrevItemHeights = totalItemHeight - nItemHeight;
@@ -324,11 +324,11 @@ void ListCtrlReportView::GetDataItemsToShow(int64_t nScrollPosY, size_t maxCount
         }
     }
 
-    //¶ÔÖÃ¶¥µÄÅÅĞò
+    //å¯¹ç½®é¡¶çš„æ’åº
     if (!alwaysAtTopItemList.empty()) {
         std::stable_sort(alwaysAtTopItemList.begin(), alwaysAtTopItemList.end(),
             [](const AlwaysAtTopData& a, const AlwaysAtTopData& b) {
-                //nAlwaysAtTopÖµ´óµÄ£¬ÅÅÔÚÇ°Ãæ
+                //nAlwaysAtTopå€¼å¤§çš„ï¼Œæ’åœ¨å‰é¢
                 return a.nAlwaysAtTop > b.nAlwaysAtTop;
             });
     }
@@ -372,9 +372,9 @@ int32_t ListCtrlReportView::GetMaxDataItemsToShow(int64_t nScrollPosY, int32_t n
     if (pDataProvider == nullptr) {
         return 0;
     }
-    size_t nTopDataItemIndex = Box::InvalidIndex; //¶¥²¿¿É¼ûµÄµÚÒ»¸öÔªËØĞòºÅ
-    const int32_t nDefaultItemHeight = m_pListCtrl->GetDataItemHeight(); //Ä¬ÈÏĞĞ¸ß
-    //ÖÃ¶¥µÄÔªËØĞòºÅ
+    size_t nTopDataItemIndex = Box::InvalidIndex; //é¡¶éƒ¨å¯è§çš„ç¬¬ä¸€ä¸ªå…ƒç´ åºå·
+    const int32_t nDefaultItemHeight = m_pListCtrl->GetDataItemHeight(); //é»˜è®¤è¡Œé«˜
+    //ç½®é¡¶çš„å…ƒç´ åºå·
     struct AlwaysAtTopData
     {
         int8_t nAlwaysAtTop;
@@ -391,19 +391,19 @@ int32_t ListCtrlReportView::GetMaxDataItemsToShow(int64_t nScrollPosY, int32_t n
         const ListCtrlItemData& rowData = itemDataList[index];
         nItemHeight = (rowData.nItemHeight < 0) ? nDefaultItemHeight : rowData.nItemHeight;
         if (!rowData.bVisible || (nItemHeight == 0)) {
-            //²»¿É¼ûµÄ£¬Ìø¹ı
+            //ä¸å¯è§çš„ï¼Œè·³è¿‡
             continue;
         }
 
         if (rowData.nAlwaysAtTop >= 0) {
-            //ÖÃ¶¥µÄÔªËØ
+            //ç½®é¡¶çš„å…ƒç´ 
             alwaysAtTopItemList.push_back({ rowData.nAlwaysAtTop, index });
             continue;
         }
 
         if (nTopDataItemIndex == Box::InvalidIndex) {
             totalItemHeight += nItemHeight;
-            //Èç¹ûÃ¿ĞĞ¸ß¶È¶¼ÏàÍ¬£¬Ïàµ±ÓÚ nScrollPosY / ItemHeight
+            //å¦‚æœæ¯è¡Œé«˜åº¦éƒ½ç›¸åŒï¼Œç›¸å½“äº nScrollPosY / ItemHeight
             if (totalItemHeight > nScrollPosY) {
                 nTopDataItemIndex = index;
             }
@@ -414,11 +414,11 @@ int32_t ListCtrlReportView::GetMaxDataItemsToShow(int64_t nScrollPosY, int32_t n
         }
     }
 
-    //¶ÔÖÃ¶¥µÄÅÅĞò
+    //å¯¹ç½®é¡¶çš„æ’åº
     if (!alwaysAtTopItemList.empty()) {
         std::stable_sort(alwaysAtTopItemList.begin(), alwaysAtTopItemList.end(),
             [](const AlwaysAtTopData& a, const AlwaysAtTopData& b) {
-                //nAlwaysAtTopÖµ´óµÄ£¬ÅÅÔÚÇ°Ãæ
+                //nAlwaysAtTopå€¼å¤§çš„ï¼Œæ’åœ¨å‰é¢
                 return a.nAlwaysAtTop > b.nAlwaysAtTop;
             });
     }
@@ -441,7 +441,7 @@ int32_t ListCtrlReportView::GetMaxDataItemsToShow(int64_t nScrollPosY, int32_t n
         const ListCtrlItemData& rowData = itemDataList[index];
         nItemHeight = rowData.nItemHeight;
         if (nItemHeight < 0) {
-            //È¡Ä¬ÈÏĞĞ¸ß
+            //å–é»˜è®¤è¡Œé«˜
             nItemHeight = nDefaultItemHeight;
         }
         nTotalHeight += nItemHeight;
@@ -476,7 +476,7 @@ int64_t ListCtrlReportView::GetDataItemTotalHeights(size_t itemIndex, bool bIncl
     if (pDataProvider == nullptr) {
         return 0;
     }
-    const int32_t nDefaultItemHeight = m_pListCtrl->GetDataItemHeight(); //Ä¬ÈÏĞĞ¸ß
+    const int32_t nDefaultItemHeight = m_pListCtrl->GetDataItemHeight(); //é»˜è®¤è¡Œé«˜
     const ListCtrlData::RowDataList& itemDataList = pDataProvider->GetItemDataList();
     int64_t totalItemHeight = 0;
     int32_t nItemHeight = 0;
@@ -485,22 +485,22 @@ int64_t ListCtrlReportView::GetDataItemTotalHeights(size_t itemIndex, bool bIncl
         const ListCtrlItemData& rowData = itemDataList[index];
         nItemHeight = (rowData.nItemHeight < 0) ? nDefaultItemHeight : rowData.nItemHeight;
         if (!rowData.bVisible || (nItemHeight == 0)) {
-            //²»¿É¼ûµÄ£¬Ìø¹ı
+            //ä¸å¯è§çš„ï¼Œè·³è¿‡
             continue;
         }
 
         if (rowData.nAlwaysAtTop >= 0) {
-            //ÖÃ¶¥µÄÔªËØ£¬ĞèÒªÍ³¼ÆÔÚÄÚ
+            //ç½®é¡¶çš„å…ƒç´ ï¼Œéœ€è¦ç»Ÿè®¡åœ¨å†…
             if (bIncludeAtTops) {
                 totalItemHeight += nItemHeight;
             }            
         }
         else if (index < itemIndex) {
-            //·ûºÏÒªÇóµÄÔªËØ
+            //ç¬¦åˆè¦æ±‚çš„å…ƒç´ 
             totalItemHeight += nItemHeight;
         }
         else if (!bIncludeAtTops) {
-            //ÒÑ¾­Íê³É
+            //å·²ç»å®Œæˆ
             break;
         }
     }
@@ -544,12 +544,12 @@ void ListCtrlReportView::MoveTopItemsToLast(std::vector<Control*>& items, std::v
     }
     ListCtrlHeader* pHeaderCtrl = dynamic_cast<ListCtrlHeader*>(GetItemAt(0));
     if ((pHeaderCtrl != nullptr) && pHeaderCtrl->IsVisible()) {
-        //×îºó»æÖÆHeader¿Ø¼ş£¬±ÜÃâ±»ÆäËûµÄ¸²¸Ç
+        //æœ€åç»˜åˆ¶Headeræ§ä»¶ï¼Œé¿å…è¢«å…¶ä»–çš„è¦†ç›–
         Control* pHeader = items.front();
         items.erase(items.begin());
         items.push_back(pHeader);
 
-        //½«Header¿Ø¼şÌí¼Óµ½ÁĞ±í
+        //å°†Headeræ§ä»¶æ·»åŠ åˆ°åˆ—è¡¨
         atTopItems.push_back(pHeader);
     }    
     ASSERT(items.size() == m_items.size());
@@ -557,7 +557,7 @@ void ListCtrlReportView::MoveTopItemsToLast(std::vector<Control*>& items, std::v
 
 void ListCtrlReportView::PaintChild(IRender* pRender, const UiRect& rcPaint)
 {
-    //ÖØĞ´VirtualListBox::PaintChild / ScrollBox::PaintChildº¯Êı£¬È·±£HeaderÕı³£»æÖÆ
+    //é‡å†™VirtualListBox::PaintChild / ScrollBox::PaintChildå‡½æ•°ï¼Œç¡®ä¿Headeræ­£å¸¸ç»˜åˆ¶
     ASSERT(pRender != nullptr);
     if (pRender == nullptr) {
         return;
@@ -569,7 +569,7 @@ void ListCtrlReportView::PaintChild(IRender* pRender, const UiRect& rcPaint)
 
     const size_t nItemCount = GetItemCount();
     if (nItemCount <= 1) {
-        //Ê×ĞĞÊÇ±íÍ·£¬Ö±½Ó»æÖÆ
+        //é¦–è¡Œæ˜¯è¡¨å¤´ï¼Œç›´æ¥ç»˜åˆ¶
         __super::PaintChild(pRender, rcPaint);
         return;
     }
@@ -579,14 +579,14 @@ void ListCtrlReportView::PaintChild(IRender* pRender, const UiRect& rcPaint)
         return;
     }
 
-    //ĞèÒªµ÷Õû»æÖÆ²ßÂÔ
+    //éœ€è¦è°ƒæ•´ç»˜åˆ¶ç­–ç•¥
     ReArrangeChild(false);
     std::vector<Control*> items = m_items;
-    //HeaderºÍÖÃ¶¥µÄÔªËØ£¬ÒÆ¶¯µ½×îºó
+    //Headerå’Œç½®é¡¶çš„å…ƒç´ ï¼Œç§»åŠ¨åˆ°æœ€å
     std::vector<Control*> atTopItems;
     MoveTopItemsToLast(items, atTopItems);
 
-    UiRect rcTopControls; //ËùÓĞÖÃ¶¥¿Ø¼şµÄ¾ØĞÎÇøÓò
+    UiRect rcTopControls; //æ‰€æœ‰ç½®é¡¶æ§ä»¶çš„çŸ©å½¢åŒºåŸŸ
     for (size_t i = 0; i < atTopItems.size(); ++i) {
         const Control* pTopControl = atTopItems[i];
         if (i == 0) {
@@ -597,7 +597,7 @@ void ListCtrlReportView::PaintChild(IRender* pRender, const UiRect& rcPaint)
         }
     }
 
-    //»æÖÆÁĞ±íÏî×Ó¿Ø¼ş
+    //ç»˜åˆ¶åˆ—è¡¨é¡¹å­æ§ä»¶
     for (Control* pControl : items) {
         if (pControl == nullptr) {
             continue;
@@ -618,7 +618,7 @@ void ListCtrlReportView::PaintChild(IRender* pRender, const UiRect& rcPaint)
             UiRect rcControlRect = pControl->GetRect();
             UiRect rUnion;
             if (UiRect::Intersect(rUnion, rcTopControls, rcControlRect)) {
-                //ÓĞ½»¼¯£¬ĞèÒªÉèÖÃ²Ã¼ô£¬±ÜÃâ»æÖÆÖÃ¶¥ÔªËØÓëÆäËûÔªËØÖØµşµÄÇøÓò
+                //æœ‰äº¤é›†ï¼Œéœ€è¦è®¾ç½®è£å‰ªï¼Œé¿å…ç»˜åˆ¶ç½®é¡¶å…ƒç´ ä¸å…¶ä»–å…ƒç´ é‡å çš„åŒºåŸŸ
                 pRender->SetClip(rUnion, false);
                 bHasClip = true;
             }
@@ -633,10 +633,10 @@ void ListCtrlReportView::PaintChild(IRender* pRender, const UiRect& rcPaint)
         }
     }
 
-    //Íø¸ñÏßµÄ»æÖÆ
+    //ç½‘æ ¼çº¿çš„ç»˜åˆ¶
     PaintGridLines(pRender);
 
-    //»æÖÆ¹ö¶¯Ìõ
+    //ç»˜åˆ¶æ»šåŠ¨æ¡
     ScrollBar* pVScrollBar = GetVScrollBar();
     ScrollBar* pHScrollBar = GetHScrollBar();
     if ((pHScrollBar != nullptr) && pHScrollBar->IsVisible()) {
@@ -647,14 +647,14 @@ void ListCtrlReportView::PaintChild(IRender* pRender, const UiRect& rcPaint)
         pVScrollBar->AlphaPaint(pRender, rcPaint);
     }
 
-    //Êó±ê¿òÑ¡¹¦ÄÜµÄ¿òÑ¡¿ò»æÖÆ
+    //é¼ æ ‡æ¡†é€‰åŠŸèƒ½çš„æ¡†é€‰æ¡†ç»˜åˆ¶
     PaintFrameSelection(pRender);
 }
 
 void ListCtrlReportView::PaintGridLines(IRender* pRender)
 {
-    int32_t nColumnLineWidth = GetColumnGridLineWidth();//×İÏò±ßÏß¿í¶È        
-    int32_t nRowLineWidth = GetRowGridLineWidth();   //ºáÏò±ßÏß¿í¶È
+    int32_t nColumnLineWidth = GetColumnGridLineWidth();//çºµå‘è¾¹çº¿å®½åº¦        
+    int32_t nRowLineWidth = GetRowGridLineWidth();   //æ¨ªå‘è¾¹çº¿å®½åº¦
     UiColor columnLineColor;
     UiColor rowLineColor;
     std::wstring color = GetColumnGridLineColor();
@@ -667,7 +667,7 @@ void ListCtrlReportView::PaintGridLines(IRender* pRender)
     }
 
     if ((nColumnLineWidth > 0) && !columnLineColor.IsEmpty()) {
-        //»æÖÆ×İÏòÍø¸ñÏß        
+        //ç»˜åˆ¶çºµå‘ç½‘æ ¼çº¿        
         UiRect viewRect = GetRect();
         int32_t yTop = viewRect.top;
         std::vector<int32_t> xPosList;
@@ -677,7 +677,7 @@ void ListCtrlReportView::PaintGridLines(IRender* pRender)
                 ListCtrlHeader* pHeader = dynamic_cast<ListCtrlHeader*>(GetItemAt(index));
                 if (pHeader != nullptr) {
                     if (pHeader->IsVisible() && (pHeader->GetHeight() > 0)) {
-                        yTop = pHeader->GetRect().bottom;//´ÓHeaderµÄµÍ¶Ë¿ªÊ¼»­Ïß
+                        yTop = pHeader->GetRect().bottom;//ä»Headerçš„ä½ç«¯å¼€å§‹ç”»çº¿
                     }
                     continue;
                 }
@@ -701,14 +701,14 @@ void ListCtrlReportView::PaintGridLines(IRender* pRender)
         }
 
         for (int32_t xPos : xPosList) {
-            //ºá×ø±êÎ»ÖÃ·ÅÔÚÃ¿¸ö×ÓÏî¿Ø¼şµÄÓÒ²à²¿            
+            //æ¨ªåæ ‡ä½ç½®æ”¾åœ¨æ¯ä¸ªå­é¡¹æ§ä»¶çš„å³ä¾§éƒ¨            
             UiPoint pt1(xPos, yTop);
             UiPoint pt2(xPos, viewRect.bottom);
             pRender->DrawLine(pt1, pt2, columnLineColor, nColumnLineWidth);
         }
     }
     if ((nRowLineWidth > 0) && !rowLineColor.IsEmpty()) {
-        //»æÖÆºáÏòÍø¸ñÏß
+        //ç»˜åˆ¶æ¨ªå‘ç½‘æ ¼çº¿
         UiRect viewRect = GetRect();
         const size_t itemCount = GetItemCount();
         for (size_t index = 0; index < itemCount; ++index) {
@@ -716,7 +716,7 @@ void ListCtrlReportView::PaintGridLines(IRender* pRender)
             if ((pItem == nullptr) || !pItem->IsVisible() || (pItem->GetHeight() <= 0)) {
                 continue;
             }
-            //×İ×ø±êÎ»ÖÃ·ÅÔÚÃ¿¸ö×ÓÏî¿Ø¼şµÄµ×²¿£¨Header¿Ø¼şµÄµ×²¿²»»­Ïß£©
+            //çºµåæ ‡ä½ç½®æ”¾åœ¨æ¯ä¸ªå­é¡¹æ§ä»¶çš„åº•éƒ¨ï¼ˆHeaderæ§ä»¶çš„åº•éƒ¨ä¸ç”»çº¿ï¼‰
             int32_t yPos = pItem->GetRect().bottom;
             int32_t nChildMarginY = 0;
             Layout* pLayout = GetLayout();
@@ -736,13 +736,13 @@ Control* ListCtrlReportView::FindControl(FINDCONTROLPROC Proc, LPVOID pProcData,
                                          uint32_t uFlags, const UiPoint& ptMouse,
                                          const UiPoint& scrollPos)
 {
-    //ÖØĞ´£ºScrollBox::FindControl º¯Êı£¬ÈÃHeaderÓÅÏÈ±»²éÕÒµ½£¬Ö»´¦Àíº¬ÓĞUIFIND_TOP_FIRST±êÖ¾µÄÇé¿ö
+    //é‡å†™ï¼šScrollBox::FindControl å‡½æ•°ï¼Œè®©Headerä¼˜å…ˆè¢«æŸ¥æ‰¾åˆ°ï¼Œåªå¤„ç†å«æœ‰UIFIND_TOP_FIRSTæ ‡å¿—çš„æƒ…å†µ
     if ((uFlags & UIFIND_TOP_FIRST) == 0) {
         return __super::FindControl(Proc, pProcData, uFlags, ptMouse, scrollPos);
     }
 
     std::vector<Control*> newItems = m_items;
-    //HeaderºÍÖÃ¶¥µÄÔªËØ£¬ÒÆ¶¯µ½×îºó
+    //Headerå’Œç½®é¡¶çš„å…ƒç´ ï¼Œç§»åŠ¨åˆ°æœ€å
     std::vector<Control*> atTopItems;
     MoveTopItemsToLast(newItems, atTopItems);
 
@@ -833,7 +833,7 @@ bool ListCtrlReportView::FillDataItem(Control* pControl,
         return false;
     }
 
-    //Êı¾İÏîÊÇ·ñÏÔÊ¾CheckBox    
+    //æ•°æ®é¡¹æ˜¯å¦æ˜¾ç¤ºCheckBox    
     bool bShowCheckBox = m_pListCtrl->IsDataItemShowCheckBox();
     pItem->SetShowCheckBox(bShowCheckBox);
     pItem->SetEnableControlPadding(false);
@@ -847,11 +847,11 @@ bool ListCtrlReportView::FillDataItem(Control* pControl,
     pItem->SetChecked(bItemChecked, false);
     pItem->SetImageId(nImageId);
 
-    //ÉèÖÃ×ó²àÄÚ±ß¾à£¬±ÜÃâCheckBoxÏÔÊ¾ÓëÎÄ×ÖÏÔÊ¾ÖØµş
+    //è®¾ç½®å·¦ä¾§å†…è¾¹è·ï¼Œé¿å…CheckBoxæ˜¾ç¤ºä¸æ–‡å­—æ˜¾ç¤ºé‡å 
     int32_t nPaddingLeft = pItem->GetItemPaddingLeft();
     pHeaderCtrl->SetPaddingLeftValue(nPaddingLeft);
 
-    //Header¿Ø¼şµÄÄÚ±ß¾à, ĞèÒªÍ¬²½¸øÃ¿¸öÁĞ±íÏî¿Ø¼ş£¬±£³Ö×ó²à¶ÔÆëÒ»ÖÂ
+    //Headeræ§ä»¶çš„å†…è¾¹è·, éœ€è¦åŒæ­¥ç»™æ¯ä¸ªåˆ—è¡¨é¡¹æ§ä»¶ï¼Œä¿æŒå·¦ä¾§å¯¹é½ä¸€è‡´
     const UiPadding rcHeaderPadding = pHeaderCtrl->GetPadding();
     UiPadding rcPadding = pItem->GetPadding();
     if (rcHeaderPadding.left != rcPadding.left) {
@@ -859,17 +859,17 @@ bool ListCtrlReportView::FillDataItem(Control* pControl,
         pItem->SetPadding(rcPadding, false);
     }
 
-    // »ù±¾½á¹¹: <ListCtrlItem> <ListCtrlSubItem/> ... <ListCtrlSubItem/>  </ListCtrlItem>
-    // ¸½¼ÓËµÃ÷: 1. ListCtrlItem ÊÇ HBoxµÄ×ÓÀà;   
-    //          2. Ã¿Ò»ÁĞ£¬·ÅÖÃÒ»¸öListCtrlSubItem¿Ø¼ş
-    //          3. ListCtrlSubItem ÊÇLabelBoxµÄ×ÓÀà
+    // åŸºæœ¬ç»“æ„: <ListCtrlItem> <ListCtrlSubItem/> ... <ListCtrlSubItem/>  </ListCtrlItem>
+    // é™„åŠ è¯´æ˜: 1. ListCtrlItem æ˜¯ HBoxçš„å­ç±»;   
+    //          2. æ¯ä¸€åˆ—ï¼Œæ”¾ç½®ä¸€ä¸ªListCtrlSubItemæ§ä»¶
+    //          3. ListCtrlSubItem æ˜¯LabelBoxçš„å­ç±»
 
     std::map<size_t, ListCtrlSubItemData2Ptr> subItemDataMap;
     for (const ListCtrlSubItemData2Pair& dataPair : subItemList) {
         subItemDataMap[dataPair.nColumnId] = dataPair.pSubItemData;
     }
 
-    //»ñÈ¡ĞèÒªÏÔÊ¾µÄ¸÷¸öÁĞµÄÊôĞÔ
+    //è·å–éœ€è¦æ˜¾ç¤ºçš„å„ä¸ªåˆ—çš„å±æ€§
     struct ElementData
     {
         size_t nColumnId = Box::InvalidIndex;
@@ -899,16 +899,16 @@ bool ListCtrlReportView::FillDataItem(Control* pControl,
         return false;
     }
 
-    const size_t showColumnCount = elementDataList.size(); //ÏÔÊ¾µÄÁĞÊı
+    const size_t showColumnCount = elementDataList.size(); //æ˜¾ç¤ºçš„åˆ—æ•°
     while (pItem->GetItemCount() > showColumnCount) {
-        //ÒÆ³ı¶àÓàµÄÁĞ
+        //ç§»é™¤å¤šä½™çš„åˆ—
         if (!pItem->RemoveItemAt(pItem->GetItemCount() - 1)) {
             ASSERT(!"RemoveItemAt failed!");
             return false;
         }
     }
 
-    //Ä¬ÈÏÊôĞÔ
+    //é»˜è®¤å±æ€§
     std::wstring defaultSubItemClass = m_pListCtrl->GetDataSubItemClass();
     ListCtrlSubItem defaultSubItem(m_pListCtrl->GetWindow());
     defaultSubItem.SetClass(defaultSubItemClass);
@@ -932,10 +932,10 @@ bool ListCtrlReportView::FillDataItem(Control* pControl,
                 pSubItem->SetClass(defaultSubItemClass);
             }            
         }
-        //ÉèÖÃ²»»ñÈ¡½¹µã
+        //è®¾ç½®ä¸è·å–ç„¦ç‚¹
         pSubItem->SetNoFocus();
 
-        //ÉèÖÃ¿É±à¼­ÊôĞÔ
+        //è®¾ç½®å¯ç¼–è¾‘å±æ€§
         bool bEditable = (elementData.pStorage != nullptr) ? elementData.pStorage->bEditable : false;
         if (bEditable && m_pListCtrl->IsEnableItemEdit()) {
             size_t nColumnId = elementData.nColumnId;
@@ -953,7 +953,7 @@ bool ListCtrlReportView::FillDataItem(Control* pControl,
             pSubItem->SetMouseEnabled(false);
         }
 
-        //Ìî³äÊı¾İ£¬ÉèÖÃÊôĞÔ        
+        //å¡«å……æ•°æ®ï¼Œè®¾ç½®å±æ€§        
         pSubItem->SetFixedWidth(UiFixedInt(elementData.nColumnWidth), true, false);
         const ListCtrlSubItemData2Ptr& pStorage = elementData.pStorage;
         if (pStorage != nullptr) {
@@ -978,12 +978,12 @@ bool ListCtrlReportView::FillDataItem(Control* pControl,
                 pSubItem->SetBkColor(defaultSubItem.GetBkColor());
             }
             if (pStorage->bShowCheckBox) {
-                //Ìí¼ÓCheckBox
+                //æ·»åŠ CheckBox
                 pSubItem->SetCheckBoxVisible(true);
                 CheckBox* pCheckBox = pSubItem->GetCheckBox();
                 ASSERT(pCheckBox != nullptr);
 
-                //¹ÒÔØCheckBoxµÄÊÂ¼ş´¦Àí
+                //æŒ‚è½½CheckBoxçš„äº‹ä»¶å¤„ç†
                 if (pCheckBox != nullptr) {
                     pCheckBox->DetachEvent(kEventSelect);
                     pCheckBox->DetachEvent(kEventUnSelect);
@@ -1024,7 +1024,7 @@ int32_t ListCtrlReportView::GetMaxDataItemWidth(const std::vector<ListCtrlSubIte
         return nMaxWidth;
     }
 
-    //Ä¬ÈÏÊôĞÔ
+    //é»˜è®¤å±æ€§
     ListCtrlItem defaultItem(m_pListCtrl->GetWindow());
     defaultItem.SetListCtrl(m_pListCtrl);
     defaultItem.SetClass(m_pListCtrl->GetDataItemClass());
@@ -1067,7 +1067,7 @@ int32_t ListCtrlReportView::GetMaxDataItemWidth(const std::vector<ListCtrlSubIte
         nMaxWidth = -1;
     }
     else {
-        //Ôö¼ÓÒ»µãÓàÁ¿
+        //å¢åŠ ä¸€ç‚¹ä½™é‡
         nMaxWidth += Dpi().GetScaleInt(4);
     }
     return nMaxWidth;
@@ -1107,7 +1107,7 @@ void ListCtrlReportView::OnSubItemColumnChecked(size_t nElementIndex, size_t nCo
     ASSERT(pDataProvider != nullptr);
     if (pDataProvider != nullptr) {
         pDataProvider->SetSubItemCheck(nElementIndex, nColumnId, bChecked, false);
-        //¸üĞÂ±íÍ·¶ÔÓ¦ÁĞµÄ¹´Ñ¡Ïî×´Ì¬
+        //æ›´æ–°è¡¨å¤´å¯¹åº”åˆ—çš„å‹¾é€‰é¡¹çŠ¶æ€
         if (m_pListCtrl != nullptr) {
             m_pListCtrl->UpdateHeaderColumnCheckBox(nColumnId);
         }
@@ -1121,11 +1121,11 @@ size_t ListCtrlReportView::GetDisplayItemCount(bool /*bIsHorizontal*/, size_t& n
     size_t nAtTopItemCount = m_atTopControlList.size();
     nRows = nDiplayItemCount;
     if (nRows > nAtTopItemCount) {
-        nRows -= nAtTopItemCount;//¼õÈ¥ÖÃ¶¥Ïî
+        nRows -= nAtTopItemCount;//å‡å»ç½®é¡¶é¡¹
     }
     if (nRows > 1) {
         if ((m_pListCtrl != nullptr) && (m_pListCtrl->GetHeaderHeight() > 0)) {
-            nRows -= 1;//¼õÈ¥Header
+            nRows -= 1;//å‡å»Header
         }
     }
     return nRows * nColumns;
@@ -1157,7 +1157,7 @@ size_t ListCtrlReportView::FindSelectableElement(size_t nElementIndex, bool bFor
         size_t nStartIndex = nElementIndex;
         nElementIndex = Box::InvalidIndex;
         if (bForward) {
-            //ÏòÇ°²éÕÒÏÂÒ»¸ö²»ÊÇÖÃ¶¥µÄ
+            //å‘å‰æŸ¥æ‰¾ä¸‹ä¸€ä¸ªä¸æ˜¯ç½®é¡¶çš„
             for (size_t i = nStartIndex + 1; i < nElementCount; ++i) {
                 if (pDataProvider->IsSelectableElement(i)) {
                     nElementIndex = i;
@@ -1166,7 +1166,7 @@ size_t ListCtrlReportView::FindSelectableElement(size_t nElementIndex, bool bFor
             }
         }
         else {
-            //Ïòºó²éÕÒÏÂÒ»¸ö²»ÊÇÖÃ¶¥µÄ
+            //å‘åæŸ¥æ‰¾ä¸‹ä¸€ä¸ªä¸æ˜¯ç½®é¡¶çš„
             for (int32_t i = (int32_t)nStartIndex - 1; i >= 0; --i) {
                 if (pDataProvider->IsSelectableElement(i)) {
                     nElementIndex = i;
@@ -1195,7 +1195,7 @@ void ListCtrlReportView::GetScrollDeltaValue(int32_t& nHScrollValue, int32_t& nV
 bool ListCtrlReportView::OnFrameSelection(int64_t left, int64_t /*right*/, int64_t top, int64_t bottom)
 {
     if (left > GetListCtrlWidth()) {
-        //ÔÚ¿Õ°×´¦£¬²»×ö¿òÑ¡´¦Àí£¬Ö»ÊÇÈ¡ÏûËùÓĞÑ¡ÔñÏî
+        //åœ¨ç©ºç™½å¤„ï¼Œä¸åšæ¡†é€‰å¤„ç†ï¼Œåªæ˜¯å–æ¶ˆæ‰€æœ‰é€‰æ‹©é¡¹
         bool bRet = SetSelectNone();
         if (bRet) {
             OnSelectStatusChanged();
@@ -1221,8 +1221,8 @@ bool ListCtrlReportView::OnFrameSelection(int64_t left, int64_t /*right*/, int64
         return false;
     }
 
-    const int32_t nDefaultItemHeight = m_pListCtrl->GetDataItemHeight(); //Ä¬ÈÏĞĞ¸ß
-    int32_t nTopItemHeights = m_pListCtrl->GetHeaderHeight(); //HeaderÓëÖÃ¶¥ÔªËØËùÕ¼ÓĞµÄ¸ß¶È
+    const int32_t nDefaultItemHeight = m_pListCtrl->GetDataItemHeight(); //é»˜è®¤è¡Œé«˜
+    int32_t nTopItemHeights = m_pListCtrl->GetHeaderHeight(); //Headerä¸ç½®é¡¶å…ƒç´ æ‰€å æœ‰çš„é«˜åº¦
 
     std::vector<size_t> itemIndexList;
 
@@ -1232,12 +1232,12 @@ bool ListCtrlReportView::OnFrameSelection(int64_t left, int64_t /*right*/, int64
         const ListCtrlItemData& rowData = itemDataList[index];
         nItemHeight = (rowData.nItemHeight < 0) ? nDefaultItemHeight : rowData.nItemHeight;
         if (!rowData.bVisible || (nItemHeight == 0)) {
-            //²»¿É¼ûµÄ£¬Ìø¹ı
+            //ä¸å¯è§çš„ï¼Œè·³è¿‡
             continue;
         }
 
         if (rowData.nAlwaysAtTop >= 0) {
-            //ÖÃ¶¥µÄÔªËØ
+            //ç½®é¡¶çš„å…ƒç´ 
             nTopItemHeights += nItemHeight;
             continue;
         }
@@ -1255,26 +1255,26 @@ bool ListCtrlReportView::OnFrameSelection(int64_t left, int64_t /*right*/, int64
         const ListCtrlItemData& rowData = itemDataList[index];
         nItemHeight = (rowData.nItemHeight < 0) ? nDefaultItemHeight : rowData.nItemHeight;
         if (!rowData.bVisible || (nItemHeight == 0)) {
-            //²»¿É¼ûµÄ£¬Ìø¹ı
+            //ä¸å¯è§çš„ï¼Œè·³è¿‡
             continue;
         }
 
         if (rowData.nAlwaysAtTop >= 0) {
-            //ÖÃ¶¥µÄÔªËØ£¬ÅÅ³ıµô
+            //ç½®é¡¶çš„å…ƒç´ ï¼Œæ’é™¤æ‰
             continue;
         }
         totalItemHeight += nItemHeight;
         if (totalItemHeight > top) {
-            //¿ªÊ¼
+            //å¼€å§‹
             itemIndexList.push_back(index);
         }
         if (totalItemHeight > bottom) {
-            //½áÊø
+            //ç»“æŸ
             break;
         }
     }
 
-    //Ñ¡Ôñ¿òÑ¡µÄÊı¾İ
+    //é€‰æ‹©æ¡†é€‰çš„æ•°æ®
     bool bRet = SetSelectedElements(itemIndexList, true);
     if (bRet) {
         OnSelectStatusChanged();
@@ -1315,7 +1315,7 @@ void ListCtrlReportView::OnItemCheckedChanged(size_t /*iIndex*/, IListBoxItem* p
     bool bChecked = pItem->IsChecked();
     pDataProvider->SetDataItemChecked(nElementIndex, bChecked, bCheckChanged);
     if (bCheckChanged) {
-        //¸üĞÂ±íÍ·µÄ¹´Ñ¡Ïî×´Ì¬
+        //æ›´æ–°è¡¨å¤´çš„å‹¾é€‰é¡¹çŠ¶æ€
         if (m_pListCtrl != nullptr) {
             m_pListCtrl->UpdateHeaderCheckBox();
         }
@@ -1325,7 +1325,7 @@ void ListCtrlReportView::OnItemCheckedChanged(size_t /*iIndex*/, IListBoxItem* p
 void ListCtrlReportView::OnSelectStatusChanged()
 {
     if ((m_pListCtrl != nullptr) && m_pListCtrl->IsAutoCheckSelect()) {
-        //¸üĞÂ±íÍ·µÄ¹´Ñ¡Ïî×´Ì¬
+        //æ›´æ–°è¡¨å¤´çš„å‹¾é€‰é¡¹çŠ¶æ€
         m_pListCtrl->UpdateHeaderCheckBox();
     }
 }
@@ -1395,7 +1395,7 @@ std::wstring ListCtrlReportView::GetColumnGridLineColor() const
 }
 
 ////////////////////////////////////////////////////////////////////////
-/// ListCtrlReportLayout µÄÊµÏÖ
+/// ListCtrlReportLayout çš„å®ç°
 
 ListCtrlReportLayout::ListCtrlReportLayout():
     m_pDataView(nullptr),
@@ -1423,14 +1423,14 @@ UiSize64 ListCtrlReportLayout::ArrangeChild(const std::vector<ui::Control*>& /*i
     sz.cy = std::max(nTotalHeight, sz.cy);
     m_bReserveSet = false;
     if (nTotalHeight > rc.Height()) {
-        //ĞèÒª³öÏÖ¹ö¶¯Ìõ£¬µ×²¿Ô¤Áô¿Õ¼ä
+        //éœ€è¦å‡ºç°æ»šåŠ¨æ¡ï¼Œåº•éƒ¨é¢„ç•™ç©ºé—´
         sz.cy += GetReserveHeight();
         if (pDataView->GetHScrollBar() != nullptr) {
             sz.cy += pDataView->GetHScrollBar()->GetHeight();
         }
         m_bReserveSet = true;
     }
-    sz.cx = std::max(GetItemWidth(), rc.Width()); //ÔÊĞí³öÏÖºáÏò¹ö¶¯Ìõ
+    sz.cx = std::max(GetItemWidth(), rc.Width()); //å…è®¸å‡ºç°æ¨ªå‘æ»šåŠ¨æ¡
     LazyArrangeChild(rc);
     return sz;
 }
@@ -1473,14 +1473,14 @@ void ListCtrlReportLayout::LazyArrangeChild(UiRect rc) const
     }
     UiRect orgRect = rc;
 
-    //Çå¿Õ»º´æÊı¾İ
+    //æ¸…ç©ºç¼“å­˜æ•°æ®
     pDataView->SetAtTopControlIndex(std::vector<size_t>());
     pDataView->SetTopElementIndex(Box::InvalidIndex);
     pDataView->SetDisplayDataItems(std::vector<size_t>());
     pDataView->SetNormalItemTop(-1);
 
     if (pDataView->IsNormalMode()) {
-        //³£¹æÄ£Ê½
+        //å¸¸è§„æ¨¡å¼
         LazyArrangeChildNormal(rc);
         return;
     }
@@ -1488,16 +1488,16 @@ void ListCtrlReportLayout::LazyArrangeChild(UiRect rc) const
     const size_t nItemCount = pDataView->GetItemCount();
     ASSERT(nItemCount > 0);
     if (nItemCount <= 1) {
-        //µÚÒ»¸öÔªËØÊÇ±íÍ·        
+        //ç¬¬ä¸€ä¸ªå…ƒç´ æ˜¯è¡¨å¤´        
         return;
     }
 
-    //µÚÒ»¸öÔªËØÊÇ±íÍ·¿Ø¼ş£¬ÉèÖÃÆäÎ»ÖÃ´óĞ¡
+    //ç¬¬ä¸€ä¸ªå…ƒç´ æ˜¯è¡¨å¤´æ§ä»¶ï¼Œè®¾ç½®å…¶ä½ç½®å¤§å°
     ListCtrlHeader* pHeaderCtrl = dynamic_cast<ListCtrlHeader*>(pDataView->GetItemAt(0));
     if ((pHeaderCtrl != nullptr) && pHeaderCtrl->IsVisible()) {
         int32_t nHeaderHeight = pHeaderCtrl->GetFixedHeight().GetInt32();
         if (nHeaderHeight > 0) {
-            //±íÍ·µÄ¿í¶È
+            //è¡¨å¤´çš„å®½åº¦
             int32_t nHeaderWidth = std::max(GetItemWidth(), rc.Width());
             if (nHeaderWidth <= 0) {
                 nHeaderWidth = rc.Width();
@@ -1508,33 +1508,33 @@ void ListCtrlReportLayout::LazyArrangeChild(UiRect rc) const
         }
     }
 
-    int32_t nNormalItemTop = rc.top; //ÆÕÍ¨ÁĞ±íÏî£¨·ÇHeader¡¢·ÇÖÃ¶¥£©µÄtop×ø±ê
+    int32_t nNormalItemTop = rc.top; //æ™®é€šåˆ—è¡¨é¡¹ï¼ˆéHeaderã€éç½®é¡¶ï¼‰çš„topåæ ‡
 
-    //¼ÇÂ¼¿É¼ûµÄÔªËØË÷ÒıºÅÁĞ±í
+    //è®°å½•å¯è§çš„å…ƒç´ ç´¢å¼•å·åˆ—è¡¨
     std::vector<size_t> diplayItemIndexList;
 
-    //¹ö¶¯ÌõµÄY×ø±êÎ»ÖÃ
+    //æ»šåŠ¨æ¡çš„Yåæ ‡ä½ç½®
     int64_t nScrollPosY = pDataView->GetScrollPos().cy;
 
-    //¼ÆËãµ±Ç°ÇøÓòÄÜ¹»ÏÔÊ¾¶àÉÙÌõÊı¾İ
+    //è®¡ç®—å½“å‰åŒºåŸŸèƒ½å¤Ÿæ˜¾ç¤ºå¤šå°‘æ¡æ•°æ®
     int32_t nCalcItemCount = pDataView->GetMaxDataItemsToShow(nScrollPosY, rc.Height());
     if (nCalcItemCount > (int32_t)(nItemCount - 1)) {
-        //UI¿Ø¼şµÄ¸öÊı²»×ã£¬ÖØĞÂµ÷Õû
+        //UIæ§ä»¶çš„ä¸ªæ•°ä¸è¶³ï¼Œé‡æ–°è°ƒæ•´
         pDataView->AjustItemCount();
     }
 
-    //È¡³öĞèÒªÏÔÊ¾µÄÊı¾İÔªËØĞòºÅÁĞ±í
+    //å–å‡ºéœ€è¦æ˜¾ç¤ºçš„æ•°æ®å…ƒç´ åºå·åˆ—è¡¨
     std::vector<ListCtrlReportView::ShowItemInfo> showItemIndexList;
     std::vector<ListCtrlReportView::ShowItemInfo> atTopItemIndexList;
     int64_t nPrevItemHeights = 0;
     pDataView->GetDataItemsToShow(nScrollPosY, nItemCount - 1, 
                                   showItemIndexList, atTopItemIndexList, nPrevItemHeights);
     if (showItemIndexList.empty() && atTopItemIndexList.empty()) {
-        //Ã»ÓĞĞèÒªÏÔÊ¾µÄÊı¾İ
+        //æ²¡æœ‰éœ€è¦æ˜¾ç¤ºçš„æ•°æ®
         return;
     }
 
-    // ¶¥²¿ÔªËØµÄË÷ÒıºÅ
+    // é¡¶éƒ¨å…ƒç´ çš„ç´¢å¼•å·
     size_t nTopElementIndex = Box::InvalidIndex;
     if (!atTopItemIndexList.empty()) {
         nTopElementIndex = atTopItemIndexList.front().nItemIndex;
@@ -1544,10 +1544,10 @@ void ListCtrlReportLayout::LazyArrangeChild(UiRect rc) const
     }
     pDataView->SetTopElementIndex(nTopElementIndex); 
 
-    //ÉèÖÃĞéÄâÆ«ÒÆ£¬·ñÔòµ±Êı¾İÁ¿½Ï´óÊ±£¬rcÕâ¸ö32Î»µÄ¾ØĞÎµÄ¸ß¶È»áÔ½½ç£¬ĞèÒª64Î»ÕûĞÍ²ÅÄÜÈİÄÉ
+    //è®¾ç½®è™šæ‹Ÿåç§»ï¼Œå¦åˆ™å½“æ•°æ®é‡è¾ƒå¤§æ—¶ï¼Œrcè¿™ä¸ª32ä½çš„çŸ©å½¢çš„é«˜åº¦ä¼šè¶Šç•Œï¼Œéœ€è¦64ä½æ•´å‹æ‰èƒ½å®¹çº³
     pDataView->SetScrollVirtualOffsetY(nScrollPosY);
 
-    //µÚÒ»ÌõÊı¾İYÖá×ø±êµÄÆ«ÒÆ£¬ĞèÒª±£³Ö£¬±ÜÃâ¹ö¶¯Î»ÖÃ±ä¶¯ºó£¬ÖØĞÂË¢ĞÂ½çÃæ³öÏÖÆ«²î£¬µ¼ÖÂ×îºóÒ»ÌõÊı¾İÏÔÊ¾²»ÍêÕû
+    //ç¬¬ä¸€æ¡æ•°æ®Yè½´åæ ‡çš„åç§»ï¼Œéœ€è¦ä¿æŒï¼Œé¿å…æ»šåŠ¨ä½ç½®å˜åŠ¨åï¼Œé‡æ–°åˆ·æ–°ç•Œé¢å‡ºç°åå·®ï¼Œå¯¼è‡´æœ€åä¸€æ¡æ•°æ®æ˜¾ç¤ºä¸å®Œæ•´
     int32_t yOffset = 0;
     if ((nScrollPosY > 0) && !showItemIndexList.empty()) {
         int32_t nFirstHeight = showItemIndexList.front().nItemHeight;
@@ -1556,11 +1556,11 @@ void ListCtrlReportLayout::LazyArrangeChild(UiRect rc) const
         }
     }
     if ((nScrollPosY > 0) && (nScrollPosY == pDataView->GetScrollRange().cy)) {
-        //¹ö¶¯ÌõÒÑ¾­µ½µ×
+        //æ»šåŠ¨æ¡å·²ç»åˆ°åº•
         if (!showItemIndexList.empty()) {
             size_t nLastItemIndex = showItemIndexList[showItemIndexList.size() - 1].nItemIndex;
             if (nLastItemIndex == pDataView->GetElementCount() - 1) {
-                //ÒÑ¾­ÊÇ×îºóÒ»Ìõ¼ÇÂ¼£¬È·±£µ×²¿ÏÔÊ¾ÍêÕû
+                //å·²ç»æ˜¯æœ€åä¸€æ¡è®°å½•ï¼Œç¡®ä¿åº•éƒ¨æ˜¾ç¤ºå®Œæ•´
                 int32_t rcHeights = rc.Height();
                 if (m_bReserveSet && (rcHeights > GetReserveHeight())) {
                     rcHeights -= GetReserveHeight();
@@ -1592,10 +1592,10 @@ void ListCtrlReportLayout::LazyArrangeChild(UiRect rc) const
 
     struct ShowItemIndex
     {
-        size_t nElementIndex;   //ÔªËØË÷Òı 
-        int32_t nItemHeight;    //ÔªËØµÄ¸ß¶È
-        bool bAtTop;            //ÊÇ·ñÖÃ¶¥
-        int32_t yOffset;        //YÖáÆ«ÒÆÁ¿
+        size_t nElementIndex;   //å…ƒç´ ç´¢å¼• 
+        int32_t nItemHeight;    //å…ƒç´ çš„é«˜åº¦
+        bool bAtTop;            //æ˜¯å¦ç½®é¡¶
+        int32_t yOffset;        //Yè½´åç§»é‡
     };
     std::vector<ShowItemIndex> itemIndexList;
     for (const auto& info : atTopItemIndexList) {
@@ -1603,13 +1603,13 @@ void ListCtrlReportLayout::LazyArrangeChild(UiRect rc) const
     }
     for (const auto& info : showItemIndexList) {
         itemIndexList.push_back({ info.nItemIndex, info.nItemHeight, false, yOffset });
-        yOffset = 0;    //Ö»ÓĞµÚÒ»¸öÔªËØÉèÖÃÆ«ÒÆ
+        yOffset = 0;    //åªæœ‰ç¬¬ä¸€ä¸ªå…ƒç´ è®¾ç½®åç§»
     }
-    //ÔªËØµÄ¿í¶È£ºËùÓĞÔªËØ¿í¶È¶¼ÏàÍ¬
+    //å…ƒç´ çš„å®½åº¦ï¼šæ‰€æœ‰å…ƒç´ å®½åº¦éƒ½ç›¸åŒ
     const int32_t cx = GetItemWidth(); 
     ASSERT(cx > 0);
 
-    //¿Ø¼şµÄ×óÉÏ½Ç×ø±êÖµ
+    //æ§ä»¶çš„å·¦ä¸Šè§’åæ ‡å€¼
     ui::UiPoint ptTile(rc.left, rc.top);
 
     VirtualListBox::RefreshDataList refreshDataList;
@@ -1618,7 +1618,7 @@ void ListCtrlReportLayout::LazyArrangeChild(UiRect rc) const
     UiSize szItem;
     size_t iCount = 0;
     std::vector<size_t> atTopUiItemIndexList;
-    //µÚÒ»¸öÔªËØÊÇ±íÍ·¿Ø¼ş£¬Ìø¹ıÌî³äÊı¾İ£¬ËùÒÔ´Ó1¿ªÊ¼
+    //ç¬¬ä¸€ä¸ªå…ƒç´ æ˜¯è¡¨å¤´æ§ä»¶ï¼Œè·³è¿‡å¡«å……æ•°æ®ï¼Œæ‰€ä»¥ä»1å¼€å§‹
     for (size_t index = 1; index < nItemCount; ++index) {
         Control* pControl = pDataView->GetItemAt(index);
         if (pControl == nullptr) {
@@ -1629,7 +1629,7 @@ void ListCtrlReportLayout::LazyArrangeChild(UiRect rc) const
         size_t nElementIndex = Box::InvalidIndex;
         bool bFillElement = true;
         if (iCount < itemIndexList.size()) {
-            //µ±Ç°Êı¾İÔªËØµÄË÷ÒıºÅ
+            //å½“å‰æ•°æ®å…ƒç´ çš„ç´¢å¼•å·
             const ShowItemIndex& showItemIndex = itemIndexList[iCount];
             nElementIndex = showItemIndex.nElementIndex;
             bAlwaysAtTop = showItemIndex.bAtTop;
@@ -1637,19 +1637,19 @@ void ListCtrlReportLayout::LazyArrangeChild(UiRect rc) const
             szItem.cy = showItemIndex.nItemHeight;
             ASSERT(szItem.cy > 0);
 
-            //ÉèÖÃµ±Ç°¿Ø¼şµÄ´óĞ¡ºÍÎ»ÖÃ
+            //è®¾ç½®å½“å‰æ§ä»¶çš„å¤§å°å’Œä½ç½®
             if (showItemIndex.yOffset > 0) {
                 ptTile.y = ptTile.y - showItemIndex.yOffset;
             }
             UiRect rcTile(ptTile.x, ptTile.y, ptTile.x + szItem.cx, ptTile.y + szItem.cy);
             pControl->SetPos(rcTile);
             if (rcTile.top > orgRect.bottom) {
-                //Èç¹ûÔªËØÒÑ¾­²»¿É¼û£¬ÔòÍ£Ö¹Ìî³äÊı¾İ
+                //å¦‚æœå…ƒç´ å·²ç»ä¸å¯è§ï¼Œåˆ™åœæ­¢å¡«å……æ•°æ®
                 bFillElement = false;                
             }
         }
         else {
-            //Êı¾İÒÑ¾­Õ¹Ê¾Íê³É
+            //æ•°æ®å·²ç»å±•ç¤ºå®Œæˆ
             bFillElement = false;
         }
 
@@ -1661,8 +1661,8 @@ void ListCtrlReportLayout::LazyArrangeChild(UiRect rc) const
             if (!pControl->IsVisible()) {
                 pControl->SetVisible(true);
             }
-            // Ìî³äÊı¾İ
-            //TODO: ÓÅ»¯´úÂë£¬±ÜÃâÃ¿´ÎË¢ĞÂ¶¼Fill
+            // å¡«å……æ•°æ®
+            //TODO: ä¼˜åŒ–ä»£ç ï¼Œé¿å…æ¯æ¬¡åˆ·æ–°éƒ½Fill
             pDataView->FillElement(pControl, nElementIndex);
             diplayItemIndexList.push_back(nElementIndex);
 
@@ -1673,13 +1673,13 @@ void ListCtrlReportLayout::LazyArrangeChild(UiRect rc) const
 
             ListCtrlItem* pListCtrlItem = dynamic_cast<ListCtrlItem*>(pControl);
             if (pListCtrlItem != nullptr) {
-                //ÖÃ¶¥Ïî²»ÔÊĞíÑ¡Ôñ
+                //ç½®é¡¶é¡¹ä¸å…è®¸é€‰æ‹©
                 pListCtrlItem->SetSelectableType(bAlwaysAtTop ? false : true);
             }
             if (bAlwaysAtTop) {
-                //¼ÇÂ¼ÖÃ¶¥Ïî
+                //è®°å½•ç½®é¡¶é¡¹
                 atTopUiItemIndexList.push_back(index);
-                //¼ÇÂ¼ÖÃ¶¥ÏîµÄµ×²¿×ø±ê
+                //è®°å½•ç½®é¡¶é¡¹çš„åº•éƒ¨åæ ‡
                 nNormalItemTop = pControl->GetRect().bottom;
             }
         }
@@ -1689,7 +1689,7 @@ void ListCtrlReportLayout::LazyArrangeChild(UiRect rc) const
             }
         }
 
-        //ÇĞ»»µ½ÏÂÒ»ĞĞ
+        //åˆ‡æ¢åˆ°ä¸‹ä¸€è¡Œ
         ptTile.y += szItem.cy + GetChildMarginY();
         ++iCount;
     }
@@ -1714,7 +1714,7 @@ void ListCtrlReportLayout::LazyArrangeChildNormal(UiRect rc) const
     UiRect orgRect = rc;
     const size_t nItemCount = pDataView->GetItemCount();
     if (nItemCount > 0) {
-        //µÚÒ»¸öÔªËØÊÇ±íÍ·¿Ø¼ş£¬ÉèÖÃÆäÎ»ÖÃ´óĞ¡
+        //ç¬¬ä¸€ä¸ªå…ƒç´ æ˜¯è¡¨å¤´æ§ä»¶ï¼Œè®¾ç½®å…¶ä½ç½®å¤§å°
         Control* pHeaderCtrl = pDataView->GetItemAt(0);
         if ((pHeaderCtrl != nullptr) && pHeaderCtrl->IsVisible()) {
             int32_t nHeaderHeight = pHeaderCtrl->GetFixedHeight().GetInt32();
@@ -1726,60 +1726,60 @@ void ListCtrlReportLayout::LazyArrangeChildNormal(UiRect rc) const
                 ui::UiRect rcTile(rc.left, rc.top, rc.left + nHeaderWidth, rc.top + nHeaderHeight);
                 pHeaderCtrl->SetPos(rcTile);
                 rc.top += nHeaderHeight;
-                //¼ÇÂ¼±íÍ·µÄbottomÖµ
+                //è®°å½•è¡¨å¤´çš„bottomå€¼
                 pDataView->SetNormalItemTop(rc.top);
             }
         }
     }
 
-    //ÔªËØµÄ¿í¶È£ºËùÓĞÔªËØ¿í¶È¶¼ÏàÍ¬
+    //å…ƒç´ çš„å®½åº¦ï¼šæ‰€æœ‰å…ƒç´ å®½åº¦éƒ½ç›¸åŒ
     const int32_t cx = GetItemWidth();
     ASSERT(cx > 0);
 
-    //ÔªËØµÄ¸ß¶È£ºËùÓĞÔªËØ¸ß¶È¶¼ÏàÍ¬
+    //å…ƒç´ çš„é«˜åº¦ï¼šæ‰€æœ‰å…ƒç´ é«˜åº¦éƒ½ç›¸åŒ
     const int32_t cy = GetItemHeight();
     ASSERT(cy > 0);
 
-    //¼ÇÂ¼¿É¼ûµÄÔªËØË÷ÒıºÅÁĞ±í
+    //è®°å½•å¯è§çš„å…ƒç´ ç´¢å¼•å·åˆ—è¡¨
     std::vector<size_t> diplayItemIndexList;
 
-    // ¶¥²¿ÔªËØµÄË÷ÒıºÅ
+    // é¡¶éƒ¨å…ƒç´ çš„ç´¢å¼•å·
     const size_t nTopElementIndex = GetTopElementIndex(orgRect);
     pDataView->SetTopElementIndex(nTopElementIndex);
 
-    //¹ö¶¯ÌõµÄY×ø±êÎ»ÖÃ
+    //æ»šåŠ¨æ¡çš„Yåæ ‡ä½ç½®
     int64_t nScrollPosY = pDataView->GetScrollPos().cy;
 
-    //YÖá×ø±êµÄÆ«ÒÆ£¬ĞèÒª±£³Ö£¬±ÜÃâ¹ö¶¯Î»ÖÃ±ä¶¯ºó£¬ÖØĞÂË¢ĞÂ½çÃæ³öÏÖÆ«²î
+    //Yè½´åæ ‡çš„åç§»ï¼Œéœ€è¦ä¿æŒï¼Œé¿å…æ»šåŠ¨ä½ç½®å˜åŠ¨åï¼Œé‡æ–°åˆ·æ–°ç•Œé¢å‡ºç°åå·®
     int32_t yOffset = 0;
     if (cy > 0) {
         yOffset = TruncateToInt32(nScrollPosY % cy);
     }
 
-    //ÉèÖÃĞéÄâÆ«ÒÆ£¬·ñÔòµ±Êı¾İÁ¿½Ï´óÊ±£¬rcÕâ¸ö32Î»µÄ¾ØĞÎµÄ¸ß¶È»áÔ½½ç£¬ĞèÒª64Î»ÕûĞÍ²ÅÄÜÈİÄÉ
+    //è®¾ç½®è™šæ‹Ÿåç§»ï¼Œå¦åˆ™å½“æ•°æ®é‡è¾ƒå¤§æ—¶ï¼Œrcè¿™ä¸ª32ä½çš„çŸ©å½¢çš„é«˜åº¦ä¼šè¶Šç•Œï¼Œéœ€è¦64ä½æ•´å‹æ‰èƒ½å®¹çº³
     pDataView->SetScrollVirtualOffsetY(nScrollPosY);
 
-    //¿Ø¼şµÄ×óÉÏ½Ç×ø±êÖµ
+    //æ§ä»¶çš„å·¦ä¸Šè§’åæ ‡å€¼
     ui::UiPoint ptTile(rc.left, rc.top - yOffset);
 
     VirtualListBox::RefreshDataList refreshDataList;
     VirtualListBox::RefreshData refreshData;
 
     size_t iCount = 0;
-    //µÚÒ»¸öÔªËØÊÇ±íÍ·¿Ø¼ş£¬Ìø¹ıÌî³äÊı¾İ£¬ËùÒÔ´Ó1¿ªÊ¼
+    //ç¬¬ä¸€ä¸ªå…ƒç´ æ˜¯è¡¨å¤´æ§ä»¶ï¼Œè·³è¿‡å¡«å……æ•°æ®ï¼Œæ‰€ä»¥ä»1å¼€å§‹
     for (size_t index = 1; index < nItemCount; ++index) {
         Control* pControl = pDataView->GetItemAt(index);
         if (pControl == nullptr) {
             continue;
         }
-        //µ±Ç°Êı¾İÔªËØµÄË÷ÒıºÅ
+        //å½“å‰æ•°æ®å…ƒç´ çš„ç´¢å¼•å·
         const size_t nElementIndex = nTopElementIndex + iCount;
 
-        //ÉèÖÃµ±Ç°¿Ø¼şµÄ´óĞ¡ºÍÎ»ÖÃ
+        //è®¾ç½®å½“å‰æ§ä»¶çš„å¤§å°å’Œä½ç½®
         ui::UiRect rcTile(ptTile.x, ptTile.y, ptTile.x + cx, ptTile.y + cy);
         pControl->SetPos(rcTile);
 
-        // Ìî³äÊı¾İ        
+        // å¡«å……æ•°æ®        
         if (nElementIndex < pDataView->GetElementCount()) {
             if (!pControl->IsVisible()) {
                 pControl->SetVisible(true);
@@ -1831,7 +1831,7 @@ size_t ListCtrlReportLayout::AjustMaxItem(UiRect rc) const
     }
 
     nRows += rc.Height() / (nItemHeight + GetChildMarginY() / 2);
-    //ÑéÖ¤²¢ĞŞÕı
+    //éªŒè¯å¹¶ä¿®æ­£
     if (nRows > 1) {
         int32_t calcHeight = nRows * nItemHeight + (nRows - 1) * GetChildMarginY();
         if (calcHeight < rc.Height()) {
@@ -1840,7 +1840,7 @@ size_t ListCtrlReportLayout::AjustMaxItem(UiRect rc) const
     }
     
     if (!pDataView->IsNormalMode()) {
-        //·Ç±ê×¼Ä£Ê½£¬ĞèÒª¸´ÔÓ¼ÆËãµÃµ½½á¹û
+        //éæ ‡å‡†æ¨¡å¼ï¼Œéœ€è¦å¤æ‚è®¡ç®—å¾—åˆ°ç»“æœ
         int64_t nScrollPosY = pDataView->GetScrollPos().cy;
         int32_t nCalcRows = pDataView->GetMaxDataItemsToShow(nScrollPosY, rc.Height());
         if (nCalcRows > 0) {
@@ -1851,7 +1851,7 @@ size_t ListCtrlReportLayout::AjustMaxItem(UiRect rc) const
         }
     }
 
-    //¶îÍâÔö¼Ó1ĞĞ£¬È·±£ÕæÊµ¿Ø¼şÌî³äÂúÕû¸ö¿ÉÏÔÊ¾ÇøÓò
+    //é¢å¤–å¢åŠ 1è¡Œï¼Œç¡®ä¿çœŸå®æ§ä»¶å¡«å……æ»¡æ•´ä¸ªå¯æ˜¾ç¤ºåŒºåŸŸ
     nRows += 1;
     return nRows;
 }
@@ -1866,7 +1866,7 @@ size_t ListCtrlReportLayout::GetTopElementIndex(UiRect /*rc*/) const
     }
     int64_t nScrollPosY = pDataView->GetScrollPos().cy;
     if (!pDataView->IsNormalMode()) {
-        //·Ç±ê×¼Ä£Ê½
+        //éæ ‡å‡†æ¨¡å¼
         nTopElementIndex = pDataView->GetTopDataItemIndex(nScrollPosY);
     }
     else {
@@ -1908,7 +1908,7 @@ void ListCtrlReportLayout::GetDisplayElements(UiRect rc, std::vector<size_t>& co
     }
     int64_t nScrollPosY = pDataView->GetScrollPos().cy;
     if (!pDataView->IsNormalMode()) {
-        //·Ç±ê×¼Ä£Ê½
+        //éæ ‡å‡†æ¨¡å¼
         pDataView->GetMaxDataItemsToShow(nScrollPosY, rc.Height(), 
                                          &collection, pAtTopItemIndexList);
         return;
@@ -1945,7 +1945,7 @@ bool ListCtrlReportLayout::NeedReArrange() const
         ASSERT(FALSE);
         return false;
     }
-    size_t nItemCount = pDataView->GetItemCount();//½çÃæµÄÏÔÊ¾¿Ø¼ş¸öÊı£¨ĞĞ£©
+    size_t nItemCount = pDataView->GetItemCount();//ç•Œé¢çš„æ˜¾ç¤ºæ§ä»¶ä¸ªæ•°ï¼ˆè¡Œï¼‰
     if (nItemCount == 0) {
         return false;
     }
@@ -1959,9 +1959,9 @@ bool ListCtrlReportLayout::NeedReArrange() const
         return false;
     }
 
-    int64_t nScrollPosY = pDataView->GetScrollPos().cy;//ĞÂ¹ö¶¯ÌõÎ»ÖÃ
-    int64_t nVirtualOffsetY = pDataView->GetScrollVirtualOffset().cy;//Ô­¹ö¶¯ÌõÎ»ÖÃ
-    //Ö»Òª¹ö¶¯Î»ÖÃ·¢Éú±ä»¯£¬¾ÍĞèÒªÖØĞÂ²¼¾Ö
+    int64_t nScrollPosY = pDataView->GetScrollPos().cy;//æ–°æ»šåŠ¨æ¡ä½ç½®
+    int64_t nVirtualOffsetY = pDataView->GetScrollVirtualOffset().cy;//åŸæ»šåŠ¨æ¡ä½ç½®
+    //åªè¦æ»šåŠ¨ä½ç½®å‘ç”Ÿå˜åŒ–ï¼Œå°±éœ€è¦é‡æ–°å¸ƒå±€
     return (nScrollPosY != nVirtualOffsetY);
 }
 
@@ -1991,7 +1991,7 @@ void ListCtrlReportLayout::EnsureVisible(UiRect rc, size_t iIndex, bool bToTop) 
                 if (std::find(atTopItemIndexList.begin(), 
                               atTopItemIndexList.end(), 
                               itemIndexList[i]) == atTopItemIndexList.end()) {
-                    //µÚÒ»¸ö²»ÖÃ¶¥µÄË÷Òı
+                    //ç¬¬ä¸€ä¸ªä¸ç½®é¡¶çš„ç´¢å¼•
                     bFirst = itemIndexList[i] == iIndex;
                     break;
                 }
@@ -1999,24 +1999,24 @@ void ListCtrlReportLayout::EnsureVisible(UiRect rc, size_t iIndex, bool bToTop) 
             bLast = itemIndexList[itemIndexList.size() - 1] == iIndex;
         }
         if (bDisplay && !bLast && !bFirst) {
-            //ÒÑ¾­ÊÇÏÔÊ¾×´Ì¬
+            //å·²ç»æ˜¯æ˜¾ç¤ºçŠ¶æ€
             return;
         }
     }
-    const UiSize szElementSize = GetElementSize(0, iIndex); //Ä¿±êÔªËØµÄ´óĞ¡
-    int64_t nNewTopPos = 0;     //¶¥²¿¶ÔÆëÊ±µÄÎ»ÖÃ
-    int64_t nNewBottomPos = 0;  //µ×²¿¶ÔÆëÊ±µÄÎ»ÖÃ
+    const UiSize szElementSize = GetElementSize(0, iIndex); //ç›®æ ‡å…ƒç´ çš„å¤§å°
+    int64_t nNewTopPos = 0;     //é¡¶éƒ¨å¯¹é½æ—¶çš„ä½ç½®
+    int64_t nNewBottomPos = 0;  //åº•éƒ¨å¯¹é½æ—¶çš„ä½ç½®
     if (iIndex > 0) {
         nNewTopPos = GetElementsHeight(iIndex, false);
         if (!bToTop) {
-            //µ×²¿¶ÔÆë
+            //åº•éƒ¨å¯¹é½
             nNewBottomPos = GetElementsHeight(iIndex, false);
             int64_t nNewPosWithTop = GetElementsHeight(iIndex, true);
             int64_t nTopHeights = GetHeaderHeight();
             if (nNewPosWithTop > nNewBottomPos) {
                 nTopHeights += (nNewPosWithTop - nNewBottomPos);
             }
-            //¿Û³ıÖÃ¶¥ÏîµÄ¸ß¶È¡¢HeaderµÄ¸ß¶ÈºÍ×ÔÉí¸ß¶È
+            //æ‰£é™¤ç½®é¡¶é¡¹çš„é«˜åº¦ã€Headerçš„é«˜åº¦å’Œè‡ªèº«é«˜åº¦
             nNewBottomPos -= rc.Height();
             nNewBottomPos += nTopHeights;
             nNewBottomPos += szElementSize.cy;
@@ -2039,27 +2039,27 @@ void ListCtrlReportLayout::EnsureVisible(UiRect rc, size_t iIndex, bool bToTop) 
     int64_t nScrollPosY = scrollPos.cy;
     int64_t nNewPos = nScrollPosY;
     if (bToTop) {
-        //¶¥²¿¶ÔÆë
+        //é¡¶éƒ¨å¯¹é½
         nNewPos = nNewTopPos;
     }
     else {
-        //Î´Ö¸¶¨¶ÔÆë£¬ÖÇÄÜÅĞ¶Ï
+        //æœªæŒ‡å®šå¯¹é½ï¼Œæ™ºèƒ½åˆ¤æ–­
         int64_t diffTop = nNewTopPos - nScrollPosY;
         int64_t diffBottom = nNewBottomPos - nScrollPosY;
-        bool bFullDisplay = false; //ÊÇ·ñÒÑ¾­¿ÉÒÔÍêÈ«ÏÔÊ¾³öÀ´£¨×İÏò£©
+        bool bFullDisplay = false; //æ˜¯å¦å·²ç»å¯ä»¥å®Œå…¨æ˜¾ç¤ºå‡ºæ¥ï¼ˆçºµå‘ï¼‰
         if ((nScrollPosY >= nNewBottomPos) && (nScrollPosY <= nNewTopPos)) {
             if ((std::abs(diffTop) >= szElementSize.cy) && (std::abs(diffBottom) >= szElementSize.cy)) {
-                //µ±Ç°ÊÇÍêÈ«ÏÔÊ¾µÄ£¬²»ĞèÒª¹ö¶¯
+                //å½“å‰æ˜¯å®Œå…¨æ˜¾ç¤ºçš„ï¼Œä¸éœ€è¦æ»šåŠ¨
                 bFullDisplay = true;
             }
         }
         if (!bFullDisplay) {
             if (std::abs(diffTop) > std::abs(diffBottom)) {
-                //ÏòÉÏ¹ö¶¯£ºµ×²¿¶ÔÆë
+                //å‘ä¸Šæ»šåŠ¨ï¼šåº•éƒ¨å¯¹é½
                 nNewPos = nNewBottomPos;
             }
             else {
-                //ÏòÏÂ¹ö¶¯£º¶¥²¿¶ÔÆë
+                //å‘ä¸‹æ»šåŠ¨ï¼šé¡¶éƒ¨å¯¹é½
                 nNewPos = nNewTopPos;
             }
         }
@@ -2085,7 +2085,7 @@ int64_t ListCtrlReportLayout::GetElementsHeight(size_t nCount, bool bIncludeAtTo
     }
     int64_t nTotalHeight = 0;
     if (!pDataView->IsNormalMode()) {
-        //·Ç±ê×¼Ä£Ê½
+        //éæ ‡å‡†æ¨¡å¼
         nTotalHeight = pDataView->GetDataItemTotalHeights(nCount, bIncludeAtTops);
     }
     else {
@@ -2095,7 +2095,7 @@ int64_t ListCtrlReportLayout::GetElementsHeight(size_t nCount, bool bIncludeAtTo
             return 0;
         }
         if (nCount <= 1) {
-            //Ö»ÓĞ1ĞĞ
+            //åªæœ‰1è¡Œ
             nTotalHeight = nItemHeight + GetChildMarginY();
         }
         else {
@@ -2120,11 +2120,11 @@ UiSize ListCtrlReportLayout::GetElementSize(int32_t rcWidth, size_t nElementInde
     UiSize szElementSize;
     szElementSize.cx = std::max(GetItemWidth(), rcWidth);
     if (!pDataView->IsNormalMode()) {
-        //·Ç±ê×¼Ä£Ê½£¬ĞĞ¸ß¿ÉÄÜ¸÷²»ÏàÍ¬
+        //éæ ‡å‡†æ¨¡å¼ï¼Œè¡Œé«˜å¯èƒ½å„ä¸ç›¸åŒ
         szElementSize.cy = pDataView->GetDataItemHeight(nElementIndex);
     }
     else {
-        //±ê×¼Ä£Ê½£¬ËùÓĞĞĞµÄ¸ß¶È¶¼ÏàÍ¬µÄ
+        //æ ‡å‡†æ¨¡å¼ï¼Œæ‰€æœ‰è¡Œçš„é«˜åº¦éƒ½ç›¸åŒçš„
         szElementSize.cy = GetItemHeight();
     }    
     return szElementSize;
@@ -2132,7 +2132,7 @@ UiSize ListCtrlReportLayout::GetElementSize(int32_t rcWidth, size_t nElementInde
 
 int32_t ListCtrlReportLayout::GetItemWidth() const
 {
-    //¿í¶ÈÓë±íÍ·µÄ¿í¶ÈÏàÍ¬
+    //å®½åº¦ä¸è¡¨å¤´çš„å®½åº¦ç›¸åŒ
     int32_t nItemWidth = 0;
     ListCtrlReportView* pDataView = GetDataView();
     if (pDataView != nullptr) {
@@ -2143,7 +2143,7 @@ int32_t ListCtrlReportLayout::GetItemWidth() const
 
 int32_t ListCtrlReportLayout::GetItemHeight() const
 {
-    //ËùÓĞĞĞµÄ¸ß¶ÈÏàÍ¬£¬²¢ÇÒ´ÓÅäÖÃ¶ÁÈ¡
+    //æ‰€æœ‰è¡Œçš„é«˜åº¦ç›¸åŒï¼Œå¹¶ä¸”ä»é…ç½®è¯»å–
     int32_t nItemHeight = 0;
     ListCtrlReportView* pDataView = GetDataView();
     if ((pDataView != nullptr) && (pDataView->m_pListCtrl != nullptr)) {
@@ -2160,7 +2160,7 @@ int32_t ListCtrlReportLayout::GetHeaderHeight() const
         Control* pHeaderCtrl = nullptr;
         size_t nItemCount = pDataView->GetItemCount();
         if (nItemCount > 0) {
-            //µÚÒ»¸öÔªËØÊÇ±íÍ·¿Ø¼ş£¬ÉèÖÃÆäÎ»ÖÃ´óĞ¡
+            //ç¬¬ä¸€ä¸ªå…ƒç´ æ˜¯è¡¨å¤´æ§ä»¶ï¼Œè®¾ç½®å…¶ä½ç½®å¤§å°
             pHeaderCtrl = pDataView->GetItemAt(0);            
         }
         if ((pHeaderCtrl != nullptr) && pHeaderCtrl->IsVisible()) {

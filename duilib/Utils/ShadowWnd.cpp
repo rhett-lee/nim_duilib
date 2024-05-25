@@ -4,7 +4,7 @@
 
 namespace ui {
 
-/**@brief Ò»¸ö¸½¼Óµ½»ù´¡´°¿ÚÖÜÎ§µÄ´°¿Ú£¬´øÓĞ WS_EX_LAYERED ÊôĞÔÀ´ÊµÏÖÒõÓ°
+/**@brief ä¸€ä¸ªé™„åŠ åˆ°åŸºç¡€çª—å£å‘¨å›´çš„çª—å£ï¼Œå¸¦æœ‰ WS_EX_LAYERED å±æ€§æ¥å®ç°é˜´å½±
 	* @copyright (c) 2016, NetEase Inc. All rights reserved
 	* @date 2019-03-22
 	*/
@@ -21,7 +21,7 @@ public:
 	bool Create(Window* window);
 private:
 	Window* m_pWindow;
-	//±ê¼Ç±»¸úËæµÄ´°¿ÚÊÇ·ñÍê³ÉÊ×´Î»æÖÆ
+	//æ ‡è®°è¢«è·Ÿéšçš„çª—å£æ˜¯å¦å®Œæˆé¦–æ¬¡ç»˜åˆ¶
 	bool m_isFirstPainted;
 };
 
@@ -102,16 +102,16 @@ bool ShadowWnd::CreateWnd(HWND hwndParent, const wchar_t* windowName, uint32_t d
 	if ((m_pShadowWnd != nullptr) || (GetHWND() != nullptr)){
 		return false;
 	}
-	//È¡Ïû²ã´°¿ÚÊôĞÔ
+	//å–æ¶ˆå±‚çª—å£å±æ€§
 	dwExStyle &= ~WS_EX_LAYERED;
 	__super::CreateWnd(hwndParent, windowName, dwStyle, dwExStyle, rc);
 
 	bool needCreateShadowWnd = NeedCreateShadowWnd();
 	if (!needCreateShadowWnd) {
-		//ÅäÖÃÎÄ¼ş£¬ÉèÖÃÁË²ã´°¿Ú£¬»òÕß¹Ø±ÕÒõÓ°£¬²»ÔÙ¸½¼ÓÍ¸Ã÷ÒõÓ°		
+		//é…ç½®æ–‡ä»¶ï¼Œè®¾ç½®äº†å±‚çª—å£ï¼Œæˆ–è€…å…³é—­é˜´å½±ï¼Œä¸å†é™„åŠ é€æ˜é˜´å½±		
 		return GetHWND() != nullptr;
 	}
-	//¹Ø±ÕÄ¬ÈÏµÄ´°¿ÚÒõÓ°
+	//å…³é—­é»˜è®¤çš„çª—å£é˜´å½±
 	if (IsShadowAttached()) {
 		if (IsUseDefaultShadowAttached()) {
 			SetShadowAttached(false);
@@ -122,7 +122,7 @@ bool ShadowWnd::CreateWnd(HWND hwndParent, const wchar_t* windowName, uint32_t d
 		}
 	}	
 	 
-	//Í¨¹ıXMLÅäÖÃÎÄ¼ş<Window>ÈçÏÂÅäÖÃÊ±£¬¿ªÆô·ÇÍ¸Ã÷´°¿ÚµÄÒõÓ°£º
+	//é€šè¿‡XMLé…ç½®æ–‡ä»¶<Window>å¦‚ä¸‹é…ç½®æ—¶ï¼Œå¼€å¯éé€æ˜çª—å£çš„é˜´å½±ï¼š
 	//   layered_window = "false" shadow_attached = "true";
 	if (m_pShadowWnd != nullptr) {
 		m_pShadowWnd->Create(this);
@@ -143,15 +143,15 @@ Box* ShadowWnd::AttachShadow(Box* pRoot)
 
 	bool needCreateShadowWnd = NeedCreateShadowWnd();
 	if (!needCreateShadowWnd) {
-		//²»Âú×ã¸½¼ÓÍ¸Ã÷´°¿ÚÒõÓ°Ìõ¼ş£¬×ßÔ­À´Âß¼­
+		//ä¸æ»¡è¶³é™„åŠ é€æ˜çª—å£é˜´å½±æ¡ä»¶ï¼Œèµ°åŸæ¥é€»è¾‘
 		return __super::AttachShadow(pRoot);
 	}
 	else {
-		//²»¸½¼ÓÄ¬ÈÏµÄÒõÓ°£¬¶øÊÇ´´½¨×Ô¼ºµÄÍ¸Ã÷´°¿Ú£¬×÷ÎªÒõÓ°
+		//ä¸é™„åŠ é»˜è®¤çš„é˜´å½±ï¼Œè€Œæ˜¯åˆ›å»ºè‡ªå·±çš„é€æ˜çª—å£ï¼Œä½œä¸ºé˜´å½±
 		m_pShadowWnd = new ShadowWndBase;
 		AddMessageFilter(m_pShadowWnd);
 
-		//ÍâÖÃµÄÒõÓ°´°¿ÚĞèÒª½«Ô­´°¿ÚÉèÖÃÎªÔ²½Ç£¬±ÜÃâÔ²½Ç´¦³öÏÖºÚÉ«±³¾°
+		//å¤–ç½®çš„é˜´å½±çª—å£éœ€è¦å°†åŸçª—å£è®¾ç½®ä¸ºåœ†è§’ï¼Œé¿å…åœ†è§’å¤„å‡ºç°é»‘è‰²èƒŒæ™¯
 		UiSize borderRound = Shadow::GetChildBoxBorderRound(pRoot);
 		SetRoundCorner(borderRound.cx, borderRound.cy, false);
 		pRoot->SetBorderRound(borderRound, false);
@@ -162,15 +162,15 @@ Box* ShadowWnd::AttachShadow(Box* pRoot)
 bool ShadowWnd::NeedCreateShadowWnd() const
 {
 	if (IsLayeredWindow()) {
-		//ÉèÖÃÁË²ã´°¿ÚÊôĞÔ£¬²»´´½¨
+		//è®¾ç½®äº†å±‚çª—å£å±æ€§ï¼Œä¸åˆ›å»º
 		return false;
 	}
 	if (IsUseDefaultShadowAttached()) {
-		//ÅäÖÃÎÄ¼şÖĞ£¬»òÕßÍâ²¿½Ó¿ÚÖĞ£¬Î´ÉèÖÃShadowAttachedÊôĞÔ£¬´´½¨
+		//é…ç½®æ–‡ä»¶ä¸­ï¼Œæˆ–è€…å¤–éƒ¨æ¥å£ä¸­ï¼Œæœªè®¾ç½®ShadowAttachedå±æ€§ï¼Œåˆ›å»º
 		return true;
 	}
 	else {
-		//ÅäÖÃÎÄ¼şÖĞÓĞÉèÖÃ£¬ÒÔÅäÖÃÎÄ¼şÖĞµÄÊôĞÔÎª×¼
+		//é…ç½®æ–‡ä»¶ä¸­æœ‰è®¾ç½®ï¼Œä»¥é…ç½®æ–‡ä»¶ä¸­çš„å±æ€§ä¸ºå‡†
 		return IsShadowAttached();
 	}	
 }

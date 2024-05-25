@@ -234,11 +234,11 @@ ui::IBitmap* TaskbarManager::GenerateBindControlBitmapWithForm(ui::Control *cont
 	int window_width = 0, window_height = 0;
 	RECT rc_wnd;
 	bool check_wnd_size = false;
-	if (::IsIconic(taskbar_delegate_->GetHandle())) //µ±Ç°ÊÇ×îĞ¡»¯×´Ì¬
+	if (::IsIconic(taskbar_delegate_->GetHandle())) //å½“å‰æ˜¯æœ€å°åŒ–çŠ¶æ€
 	{
 		WINDOWPLACEMENT placement{ sizeof(WINDOWPLACEMENT) };
 		::GetWindowPlacement(taskbar_delegate_->GetHandle(), &placement);
-		if (placement.flags == WPF_RESTORETOMAXIMIZED) //×îĞ¡»¯Ç°ÊÇ×î´ó»¯×´Ì¬
+		if (placement.flags == WPF_RESTORETOMAXIMIZED) //æœ€å°åŒ–å‰æ˜¯æœ€å¤§åŒ–çŠ¶æ€
 		{
 			MONITORINFO oMonitor = { sizeof(MONITORINFO) };
 			::GetMonitorInfo(::MonitorFromWindow(taskbar_delegate_->GetHandle(), MONITOR_DEFAULTTONEAREST), &oMonitor);
@@ -247,7 +247,7 @@ ui::IBitmap* TaskbarManager::GenerateBindControlBitmapWithForm(ui::Control *cont
 		else
 		{
 			rc_wnd = placement.rcNormalPosition;
-			check_wnd_size = true; //ÉÙÊıÇé¿öÏÂ£¬WINDOWPLACEMENT::rcNormalPosition²»ÕıÈ·
+			check_wnd_size = true; //å°‘æ•°æƒ…å†µä¸‹ï¼ŒWINDOWPLACEMENT::rcNormalPositionä¸æ­£ç¡®
 		}
 	}
 	else
@@ -257,7 +257,7 @@ ui::IBitmap* TaskbarManager::GenerateBindControlBitmapWithForm(ui::Control *cont
 	if (window_width == 0 || window_height == 0)
 		return nullptr;
 
-	// 1.´´½¨ÄÚ´ædc
+	// 1.åˆ›å»ºå†…å­˜dc
 	std::unique_ptr<IRender> render;
 	IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
 	ASSERT(pRenderFactory != nullptr);
@@ -268,22 +268,22 @@ ui::IBitmap* TaskbarManager::GenerateBindControlBitmapWithForm(ui::Control *cont
 	ASSERT(render != nullptr);
 	render->Resize(window_width, window_height);
 
-	// 2.°Ñ´°¿ÚË«»º³åµÄÎ»Í¼»­µ½ÄÚ´ædc
+	// 2.æŠŠçª—å£åŒç¼“å†²çš„ä½å›¾ç”»åˆ°å†…å­˜dc
 	render->BitBlt(0, 0, window_width, window_height, taskbar_delegate_->GetTaskbarRender(), 0, 0, RopMode::kSrcCopy);
 
-	// 3.°ÑÄ³¸ö»á»°ºĞ×ÓµÄÎ»Í¼»­µ½ÄÚ´ædc£¬¸²¸ÇÔ­´°¿Ú¶ÔÓ¦Î»ÖÃµÄÎ»Í¼
+	// 3.æŠŠæŸä¸ªä¼šè¯ç›’å­çš„ä½å›¾ç”»åˆ°å†…å­˜dcï¼Œè¦†ç›–åŸçª—å£å¯¹åº”ä½ç½®çš„ä½å›¾
 	UiRect rcPaint = control->GetPos();
 	if (rcPaint.IsEmpty())
 		return NULL;
 	rcPaint.Intersect(UiRect(0, 0, window_width, window_height));
 
-	// ÕâÀï²»ÉèÖÃ¼ô²ÃÇøÓò£¬¾ÍÎŞ·¨Õı³£»æÖÆ
+	// è¿™é‡Œä¸è®¾ç½®å‰ªè£åŒºåŸŸï¼Œå°±æ— æ³•æ­£å¸¸ç»˜åˆ¶
 	{
 		AutoClip rectClip(render.get(), rcPaint);
 		control->Paint(render.get(), rcPaint);
 	}
 
-	// 4.ĞŞ¸´»æÖÆÇøÓòµÄalphaÍ¨µÀ
+	// 4.ä¿®å¤ç»˜åˆ¶åŒºåŸŸçš„alphaé€šé“
 	render->RestoreAlpha(rcPaint);
 	return render->DetachBitmap();
 }
@@ -297,11 +297,11 @@ ui::IBitmap* TaskbarManager::GenerateBindControlBitmap(ui::Control *control, con
 	int window_width = 0, window_height = 0;
 	RECT rc_wnd;
 	bool check_wnd_size = false;
-	if (::IsIconic(taskbar_delegate_->GetHandle())) //µ±Ç°ÊÇ×îĞ¡»¯×´Ì¬
+	if (::IsIconic(taskbar_delegate_->GetHandle())) //å½“å‰æ˜¯æœ€å°åŒ–çŠ¶æ€
 	{
 		WINDOWPLACEMENT placement{ sizeof(WINDOWPLACEMENT) };
 		::GetWindowPlacement(taskbar_delegate_->GetHandle(), &placement);
-		if (placement.flags == WPF_RESTORETOMAXIMIZED) //×îĞ¡»¯Ç°ÊÇ×î´ó»¯×´Ì¬
+		if (placement.flags == WPF_RESTORETOMAXIMIZED) //æœ€å°åŒ–å‰æ˜¯æœ€å¤§åŒ–çŠ¶æ€
 		{
 			MONITORINFO oMonitor = { sizeof(MONITORINFO) };
 			::GetMonitorInfo(::MonitorFromWindow(taskbar_delegate_->GetHandle(), MONITOR_DEFAULTTONEAREST), &oMonitor);
@@ -310,7 +310,7 @@ ui::IBitmap* TaskbarManager::GenerateBindControlBitmap(ui::Control *control, con
 		else
 		{
 			rc_wnd = placement.rcNormalPosition;
-			check_wnd_size = true; //ÉÙÊıÇé¿öÏÂ£¬WINDOWPLACEMENT::rcNormalPosition²»ÕıÈ·
+			check_wnd_size = true; //å°‘æ•°æƒ…å†µä¸‹ï¼ŒWINDOWPLACEMENT::rcNormalPositionä¸æ­£ç¡®
 		}
 	}
 	else
@@ -320,7 +320,7 @@ ui::IBitmap* TaskbarManager::GenerateBindControlBitmap(ui::Control *control, con
 	if (window_width == 0 || window_height == 0)
 		return nullptr;
 
-	// 1.´´½¨ÄÚ´ædc
+	// 1.åˆ›å»ºå†…å­˜dc
 	std::unique_ptr<IRender> render;
 	IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
 	ASSERT(pRenderFactory != nullptr);
@@ -331,22 +331,22 @@ ui::IBitmap* TaskbarManager::GenerateBindControlBitmap(ui::Control *control, con
 	ASSERT(render != nullptr);
 	render->Resize(window_width, window_height);
 
-	// 2.°ÑÄ³¸ö»á»°ºĞ×ÓµÄÎ»Í¼»­µ½ÄÚ´ædc£¬¸²¸ÇÔ­´°¿Ú¶ÔÓ¦Î»ÖÃµÄÎ»Í¼
+	// 2.æŠŠæŸä¸ªä¼šè¯ç›’å­çš„ä½å›¾ç”»åˆ°å†…å­˜dcï¼Œè¦†ç›–åŸçª—å£å¯¹åº”ä½ç½®çš„ä½å›¾
 	UiRect rcPaint = control->GetPos();
 	if (rcPaint.IsEmpty())
 		return NULL;
 	rcPaint.Intersect(UiRect(0, 0, window_width, window_height));
 
-	// ÕâÀï²»ÉèÖÃ¼ô²ÃÇøÓò£¬¾ÍÎŞ·¨Õı³£»æÖÆ
+	// è¿™é‡Œä¸è®¾ç½®å‰ªè£åŒºåŸŸï¼Œå°±æ— æ³•æ­£å¸¸ç»˜åˆ¶
 	{
 		AutoClip rectClip(render.get(), rcPaint);
 		control->Paint(render.get(), rcPaint);
 	}
 
-	// 3.ĞŞ¸´»æÖÆÇøÓòµÄalphaÍ¨µÀ
+	// 3.ä¿®å¤ç»˜åˆ¶åŒºåŸŸçš„alphaé€šé“
 	render->RestoreAlpha(rcPaint);
 
-	// 4.Ëõ·Åµ½Ä¿±ê³ß´ç
+	// 4.ç¼©æ”¾åˆ°ç›®æ ‡å°ºå¯¸
 	UiRect rcControl = control->GetPos();
 	return ResizeBitmap(dest_width, dest_height, render.get(), rcControl.left, rcControl.top, rcControl.Width(), rcControl.Height());
 }

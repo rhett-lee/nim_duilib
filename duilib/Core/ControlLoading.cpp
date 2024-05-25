@@ -71,7 +71,7 @@ void ControlLoading::PaintLoading(IRender* pRender)
 	int32_t imageWidth = pBitmap->GetWidth();
 	int32_t imageHeight = pBitmap->GetHeight();
 
-	//¾ÓÖÐ
+	//å±…ä¸­
 	UiRect rect = pControl->GetRect();
 	UiRect rcFill = pControl->GetRect();	
 	rcFill.left = rect.left + (rect.Width() - imageWidth) / 2;
@@ -92,7 +92,7 @@ void ControlLoading::PaintLoading(IRender* pRender)
 	UiRect imageDestRect = rcFill;
 	rcFill.Offset(-rect.left, -rect.top);
 
-	//Í¼Æ¬Ðý×ª¾ØÕó
+	//å›¾ç‰‡æ—‹è½¬çŸ©é˜µ
 	IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
 	ASSERT(pRenderFactory != nullptr);
 	if (pRenderFactory == nullptr) {
@@ -106,7 +106,7 @@ void ControlLoading::PaintLoading(IRender* pRender)
 	wchar_t modify[64] = { 0 };
 	swprintf_s(modify, L"destscale='false' dest='%d,%d,%d,%d'", rcFill.left, rcFill.top, rcFill.right, rcFill.bottom);
 
-	//»æÖÆÊ±ÐèÒªÉèÖÃ²Ã¼ôÇøÓò£¬±ÜÃâ»æÖÆ³¬³ö·¶Î§£¨ÒòÎªÐý×ªÍ¼Æ¬ºó£¬Í¼Æ¬ÇøÓò»á³¬³öÏÔÊ¾ÇøÓò£©
+	//ç»˜åˆ¶æ—¶éœ€è¦è®¾ç½®è£å‰ªåŒºåŸŸï¼Œé¿å…ç»˜åˆ¶è¶…å‡ºèŒƒå›´ï¼ˆå› ä¸ºæ—‹è½¬å›¾ç‰‡åŽï¼Œå›¾ç‰‡åŒºåŸŸä¼šè¶…å‡ºæ˜¾ç¤ºåŒºåŸŸï¼‰
 	AutoClip autoClip(pRender, imageDestRect, true);
 	pControl->PaintImage(pRender, m_pLoadingImage.get(), modify, -1, spMatrix.get());
 }

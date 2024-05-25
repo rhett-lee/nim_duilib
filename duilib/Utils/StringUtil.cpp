@@ -255,7 +255,7 @@ std::wstring StringHelper::NormalizeDirPath(const std::wstring& strFilePath)
 	dir_path = dir_path.lexically_normal();
 	dirPath = dir_path.native();
 	if (!dirPath.empty()) {
-		//确保路径最后字符是分割字符
+		//纭繚璺緞鏈�鍚庡瓧绗︽槸鍒嗗壊瀛楃
 		auto cEnd = dirPath.back();
 		if (cEnd != L'\\' && cEnd != L'/') {
 			dirPath += L'\\';

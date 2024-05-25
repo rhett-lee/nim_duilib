@@ -11,7 +11,7 @@ namespace ui
 class ControlDropTarget;
 class Window;
 
-/** ´°¿ÚµÄÍÏ·ÅÖ§³Ö
+/** çª—å£çš„æ‹–æ”¾æ”¯æŒ
 */
 class WindowDropTarget
 {
@@ -22,33 +22,33 @@ public:
 	~WindowDropTarget();
 
 public:
-	/** ÉèÖÃÈİÆ÷ËùÊô´°¿Ú
-	 * @param [in] pWindow ´°¿ÚÖ¸Õë
+	/** è®¾ç½®å®¹å™¨æ‰€å±çª—å£
+	 * @param [in] pWindow çª—å£æŒ‡é’ˆ
 	 */
 	void SetWindow(Window* pWindow);
 
-	/** ×¢²áÒ»¸öÍÏ·Å½Ó¿Ú
+	/** æ³¨å†Œä¸€ä¸ªæ‹–æ”¾æ¥å£
 	*/
 	bool RegisterDragDrop(ControlDropTarget* pDropTarget);
 
-	/** ×¢ÏúÒ»¸öÍÏ·Å½Ó¿Ú
+	/** æ³¨é”€ä¸€ä¸ªæ‹–æ”¾æ¥å£
 	*/
 	bool UnregisterDragDrop(ControlDropTarget* pDropTarget);
 
-	/** ÇåÀíÍÏ·Å²Ù×÷µÄ×ÊÔ´, ×¢Ïú´°¿ÚµÄÍÏ·Å²Ù×÷½Ó¿Ú
+	/** æ¸…ç†æ‹–æ”¾æ“ä½œçš„èµ„æº, æ³¨é”€çª—å£çš„æ‹–æ”¾æ“ä½œæ¥å£
 	*/
 	void Clear();
 
 private:
-	/** ´°¿ÚÖ¸Õë
+	/** çª—å£æŒ‡é’ˆ
 	*/
 	Window* m_pWindow;
 
-	/** ×¢²áµÄ¿Ø¼şÁĞ±í
+	/** æ³¨å†Œçš„æ§ä»¶åˆ—è¡¨
 	*/
 	std::vector<ControlDropTarget*> m_dropTargets;
 
-	/** DropTarget µÄÊµÏÖ½Ó¿Ú
+	/** DropTarget çš„å®ç°æ¥å£
 	*/
 	friend class WindowDropTargetImpl;
 	WindowDropTargetImpl* m_pDropTargetImpl;

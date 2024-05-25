@@ -12,7 +12,7 @@
 
 namespace ui
 {
-/** Ö÷Òª¹¦ÄÜ£ºÖ§³ÖÏàÍ¬BoxÄÚµÄ×Ó¿Ø¼şÍ¨¹ıÍÏ¶¯À´µ÷ÕûË³Ğò
+/** ä¸»è¦åŠŸèƒ½ï¼šæ”¯æŒç›¸åŒBoxå†…çš„å­æ§ä»¶é€šè¿‡æ‹–åŠ¨æ¥è°ƒæ•´é¡ºåº
 */
 template<typename T = Control>
 class UILIB_API ControlDragableT: public T
@@ -21,54 +21,54 @@ public:
     explicit ControlDragableT(Window* pWindow);
     virtual ~ControlDragableT();
 
-	/// ÖØĞ´¸¸Àà·½·¨£¬Ìá¹©¸öĞÔ»¯¹¦ÄÜ£¬Çë²Î¿¼¸¸ÀàÉùÃ÷
+	/// é‡å†™çˆ¶ç±»æ–¹æ³•ï¼Œæä¾›ä¸ªæ€§åŒ–åŠŸèƒ½ï¼Œè¯·å‚è€ƒçˆ¶ç±»å£°æ˜
 	virtual std::wstring GetType() const override;	
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 
-	/** ÉèÖÃÊÇ·ñÖ§³ÖÍÏ¶¯¸Ä±ä¿Ø¼şµÄË³Ğò
+	/** è®¾ç½®æ˜¯å¦æ”¯æŒæ‹–åŠ¨æ”¹å˜æ§ä»¶çš„é¡ºåº
 	*/
 	void SetEnableDragOrder(bool bEnable);
 
-	/** ÅĞ¶ÏÊÇ·ñÖ§³ÖÍÏ¶¯¸Ä±ä¿Ø¼şµÄË³Ğò
+	/** åˆ¤æ–­æ˜¯å¦æ”¯æŒæ‹–åŠ¨æ”¹å˜æ§ä»¶çš„é¡ºåº
 	*/
 	virtual bool IsEnableDragOrder() const;
 
-	/** ÉèÖÃÍÏ¶¯Ë³ĞòÊ±£¬¿Ø¼şµÄÍ¸Ã÷¶È
+	/** è®¾ç½®æ‹–åŠ¨é¡ºåºæ—¶ï¼Œæ§ä»¶çš„é€æ˜åº¦
 	*/
 	void SetDragAlpha(uint8_t nAlpha);
 
-	/** »ñÈ¡ÍÏ¶¯Ë³ĞòÊ±£¬¿Ø¼şµÄÍ¸Ã÷¶È
+	/** è·å–æ‹–åŠ¨é¡ºåºæ—¶ï¼Œæ§ä»¶çš„é€æ˜åº¦
 	*/
 	uint8_t GetDragAlpha() const;
 
-    /** ÉèÖÃÊÇ·ñÖ§³ÖÍÏ³ö²Ù×÷
+    /** è®¾ç½®æ˜¯å¦æ”¯æŒæ‹–å‡ºæ“ä½œ
     */
     void SetEnableDragOut(bool bEnable);
 
-    /** ÅĞ¶ÏÊÇ·ñÖ§³ÖÍÏ³ö²Ù×÷
+    /** åˆ¤æ–­æ˜¯å¦æ”¯æŒæ‹–å‡ºæ“ä½œ
     */
     virtual bool IsEnableDragOut() const;
 
-	/** µ±Ç°ÊÇ·ñ´¦ÓÚÍÏ×§µ÷Ğò²Ù×÷ÖĞ
+	/** å½“å‰æ˜¯å¦å¤„äºæ‹–æ‹½è°ƒåºæ“ä½œä¸­
 	*/
 	bool IsInDraggingOrder() const;
 
-    /** µ±Ç°ÊÇ·ñ´¦ÓÚÍÏ³ö²Ù×÷ÖĞ
+    /** å½“å‰æ˜¯å¦å¤„äºæ‹–å‡ºæ“ä½œä¸­
     */
     bool IsInDraggingOut() const;
 
 protected:
-	/** @name ÍÏ¶¯Ïà¹ØµÄ³ÉÔ±º¯Êı
+	/** @name æ‹–åŠ¨ç›¸å…³çš„æˆå‘˜å‡½æ•°
 	* @{ */
 
 	virtual bool ButtonDown(const EventArgs& msg) override;
 	virtual bool ButtonUp(const EventArgs& msg) override;
 	virtual bool MouseMove(const EventArgs& msg) override;
-	virtual bool OnWindowKillFocus(const EventArgs& msg) override;//¿Ø¼şËùÊôµÄ´°¿ÚÊ§È¥½¹µã
+	virtual bool OnWindowKillFocus(const EventArgs& msg) override;//æ§ä»¶æ‰€å±çš„çª—å£å¤±å»ç„¦ç‚¹
     virtual void HandleEvent(const EventArgs& msg) override;
 
 protected:
-	/** ×Ó¿Ø¼şµÄ×´Ì¬
+	/** å­æ§ä»¶çš„çŠ¶æ€
 	*/
 	struct ItemStatus
 	{
@@ -78,74 +78,74 @@ protected:
 		size_t m_index = Box::InvalidIndex;
 	};
 
-	/** ¸ù¾İÊó±êÎ»ÖÃµ÷Õû¸÷¸ö¿Ø¼şµÄÎ»ÖÃ(ÍÏ¶¯²Ù×÷µÄÒ»²¿·Ö)
-	* @param [in] pt µ±Ç°Êó±êµÄÎ»ÖÃ
-	* @param [in] ptMouseDown Êó±ê°´ÏÂÊ±µÄÎ»ÖÃ
-	* @param [in] rcItemList ×Ó¿Ø¼şµÄÁĞ±í
+	/** æ ¹æ®é¼ æ ‡ä½ç½®è°ƒæ•´å„ä¸ªæ§ä»¶çš„ä½ç½®(æ‹–åŠ¨æ“ä½œçš„ä¸€éƒ¨åˆ†)
+	* @param [in] pt å½“å‰é¼ æ ‡çš„ä½ç½®
+	* @param [in] ptMouseDown é¼ æ ‡æŒ‰ä¸‹æ—¶çš„ä½ç½®
+	* @param [in] rcItemList å­æ§ä»¶çš„åˆ—è¡¨
 	*/
 	virtual void AdjustItemPos(const UiPoint& pt, const UiPoint& ptMouseDown,
 							   const std::vector<ItemStatus>& rcItemList) const;
 
-	/** ½»»»Á½¸ö¿Ø¼şµÄÎ»ÖÃ£¬Íê³ÉË³Ğòµ÷Õû
-	* @param [in] pt µ±Ç°Êó±êµÄÎ»ÖÃ
-	* @param [in] rcItemList ×Ó¿Ø¼şµÄÁĞ±í
-	* @param [in] nOldItemIndex Ô­À´µÄ×ÓÏîË÷ÒıºÅ
-	* @param [in] nNewItemIndex ×îĞÂµÄ×ÓÏîË÷ÒıºÅ
-	* @return Èç¹ûÓĞË³Ğòµ÷Õû£¬·µ»Øtrue£»·ñÔò·µ»Øfalse
+	/** äº¤æ¢ä¸¤ä¸ªæ§ä»¶çš„ä½ç½®ï¼Œå®Œæˆé¡ºåºè°ƒæ•´
+	* @param [in] pt å½“å‰é¼ æ ‡çš„ä½ç½®
+	* @param [in] rcItemList å­æ§ä»¶çš„åˆ—è¡¨
+	* @param [in] nOldItemIndex åŸæ¥çš„å­é¡¹ç´¢å¼•å·
+	* @param [in] nNewItemIndex æœ€æ–°çš„å­é¡¹ç´¢å¼•å·
+	* @return å¦‚æœæœ‰é¡ºåºè°ƒæ•´ï¼Œè¿”å›trueï¼›å¦åˆ™è¿”å›false
 	*/
 	virtual bool AdjustItemOrders(const UiPoint& pt,
 								  const std::vector<ItemStatus>& rcItemList,
 								  size_t& nOldItemIndex,
 								  size_t& nNewItemIndex);
 
-	/** ¿Ø¼şÎ»ÖÃÍÏ¶¯Íê³ÉÊÂ¼ş£¨ÔÚÍ¬Ò»¸öÈİÆ÷ÄÚ£©
-	* @param [in] nOldItemIndex Ô­À´µÄ×ÓÏîË÷ÒıºÅ
-	* @param [in] nNewItemIndex ×îĞÂµÄ×ÓÏîË÷ÒıºÅ
+	/** æ§ä»¶ä½ç½®æ‹–åŠ¨å®Œæˆäº‹ä»¶ï¼ˆåœ¨åŒä¸€ä¸ªå®¹å™¨å†…ï¼‰
+	* @param [in] nOldItemIndex åŸæ¥çš„å­é¡¹ç´¢å¼•å·
+	* @param [in] nNewItemIndex æœ€æ–°çš„å­é¡¹ç´¢å¼•å·
 	*/
 	virtual void OnItemOrdersChanged(size_t nOldItemIndex, size_t nNewItemIndex);
 
-	/** Çå³ıÍÏ¶¯×´Ì¬£¬»Ö¸´Ô­×´Ì¬
+	/** æ¸…é™¤æ‹–åŠ¨çŠ¶æ€ï¼Œæ¢å¤åŸçŠ¶æ€
 	*/
     virtual void ClearDragStatus();
 
-    /** ½«µ±Ç°Êó±êÎ»ÖÃ£¬×ª»»µ½×ÓÏîËùÔÚÇøÓòÓĞĞ§µÄ·¶Î§ÄÚ
+    /** å°†å½“å‰é¼ æ ‡ä½ç½®ï¼Œè½¬æ¢åˆ°å­é¡¹æ‰€åœ¨åŒºåŸŸæœ‰æ•ˆçš„èŒƒå›´å†…
     */
     virtual void GetValidPointInItemRects(UiPoint& pt) const;
 
 	/** @} */
 
 protected:
-    /** @name ÔÚÏàÍ¬´°¿ÚÄÚ²»Í¬µÄBoxÄÚÍÏ¶¯Ïà¹ØµÄ³ÉÔ±±äÁ¿
+    /** @name åœ¨ç›¸åŒçª—å£å†…ä¸åŒçš„Boxå†…æ‹–åŠ¨ç›¸å…³çš„æˆå‘˜å˜é‡
     * @{ */
 
-    /** ÍÏ×§ÍÏ·ÅÊÂ¼ş
-    * @param [in] ptMouse µ±Ç°Êó±êËùÔÚÎ»ÖÃ
-    * @return ·µ»Øtrue±íÊ¾Æ¥Åäµ½ÍÏÈëµÄ¿Ø¼ş£¬·µ»Øfalse±íÊ¾Î´ÕÒµ½ÍÏÈëµÄ¿Ø¼şÎ»ÖÃ
+    /** æ‹–æ‹½æ‹–æ”¾äº‹ä»¶
+    * @param [in] ptMouse å½“å‰é¼ æ ‡æ‰€åœ¨ä½ç½®
+    * @return è¿”å›trueè¡¨ç¤ºåŒ¹é…åˆ°æ‹–å…¥çš„æ§ä»¶ï¼Œè¿”å›falseè¡¨ç¤ºæœªæ‰¾åˆ°æ‹–å…¥çš„æ§ä»¶ä½ç½®
     */
     virtual bool OnDragOutMouseOver(Box* pTargetBox, Box* pOldTargetBox, const UiPoint& ptMouse);
 
-    /** ´´½¨ÍÏ³ö²Ù×÷Ê±£¬ÏÔÊ¾µÄ¸úËæ´°¿Ú
+    /** åˆ›å»ºæ‹–å‡ºæ“ä½œæ—¶ï¼Œæ˜¾ç¤ºçš„è·Ÿéšçª—å£
     */
     virtual DragWindow* CreateDragWindow();
 
-    /** Ä¿±êÎ»ÖÃÖ¸Ê¾¿Ø¼ş
-    * @param [in] pTargetBox ¼´½«ÍÏÈëµÄÄ¿±êBox¿Ø¼ş½Ó¿Ú
+    /** ç›®æ ‡ä½ç½®æŒ‡ç¤ºæ§ä»¶
+    * @param [in] pTargetBox å³å°†æ‹–å…¥çš„ç›®æ ‡Boxæ§ä»¶æ¥å£
     */
     virtual Control* CreateDestControl(Box* pTargetBox);
 
-    /** Éú³É¿Ø¼şÍÏ³öÊ±µÄÎ»Í¼
+    /** ç”Ÿæˆæ§ä»¶æ‹–å‡ºæ—¶çš„ä½å›¾
     */
     virtual std::shared_ptr<IBitmap> CreateDragoutImage();
 
-    /** ÅĞ¶ÏÊó±êÎ»ÖÃÊÇ·ñÔÚ¿Ø¼şµÄ¾ØĞÎ·¶Î§ÄÚ
+    /** åˆ¤æ–­é¼ æ ‡ä½ç½®æ˜¯å¦åœ¨æ§ä»¶çš„çŸ©å½¢èŒƒå›´å†…
     */
     virtual bool IsPtInControlRect(Control* pControl, const UiPoint& pt) const;
 
-    /** ¿Ø¼şËùÊôÈİÆ÷ÍÏ¶¯Íê³ÉÊÂ¼ş£¨ÔÚÍ¬Ò»¸öÈİÆ÷/»òÕß²»Í¬ÈİÆ÷ÄÚ£©
-    * @param [in] pOldBox ¿Ø¼şÔ­À´ËùÊôµÄÈİÆ÷½Ó¿Ú
-    * @param [in] nOldItemIndex Ô­À´µÄ×ÓÏîË÷ÒıºÅ
-    * @param [in] pNewBox ¿Ø¼ş×îĞÂËùÊôµÄÈİÆ÷½Ó¿Ú
-    * @param [in] nNewItemIndex ×îĞÂµÄ×ÓÏîË÷ÒıºÅ
+    /** æ§ä»¶æ‰€å±å®¹å™¨æ‹–åŠ¨å®Œæˆäº‹ä»¶ï¼ˆåœ¨åŒä¸€ä¸ªå®¹å™¨/æˆ–è€…ä¸åŒå®¹å™¨å†…ï¼‰
+    * @param [in] pOldBox æ§ä»¶åŸæ¥æ‰€å±çš„å®¹å™¨æ¥å£
+    * @param [in] nOldItemIndex åŸæ¥çš„å­é¡¹ç´¢å¼•å·
+    * @param [in] pNewBox æ§ä»¶æœ€æ–°æ‰€å±çš„å®¹å™¨æ¥å£
+    * @param [in] nNewItemIndex æœ€æ–°çš„å­é¡¹ç´¢å¼•å·
     */
     virtual void OnItemBoxChanged(Box* pOldBox, size_t nOldItemIndex, 
                                   Box* pNewBox, size_t nNewItemIndex);
@@ -153,91 +153,91 @@ protected:
     /** @} */
 
 private:
-    /** Êó±êÒÆ¶¯Ê±Ö´ĞĞµÄÍÏ³ö²Ù×÷
-    * @return ·µ»Øtrue±íÊ¾´¦ÓÚÍÏ³ö²Ù×÷ÖĞ£¬·µ»Øfalse±íÊ¾Î´Ö´ĞĞÍÏ³ö²Ù×÷
+    /** é¼ æ ‡ç§»åŠ¨æ—¶æ‰§è¡Œçš„æ‹–å‡ºæ“ä½œ
+    * @return è¿”å›trueè¡¨ç¤ºå¤„äºæ‹–å‡ºæ“ä½œä¸­ï¼Œè¿”å›falseè¡¨ç¤ºæœªæ‰§è¡Œæ‹–å‡ºæ“ä½œ
     */
     bool DragOutMouseMove(const EventArgs& msg);
 
-    /** Êó±êµ¯ÆğÊ±Ö´ĞĞµÄÍÏ³ö²Ù×÷
-    * @return ·µ»Øtrue±íÊ¾Ö´ĞĞÁËÍÏ³ö²Ù×÷£¬·µ»Øfalse±íÊ¾Î´Ö´ĞĞÍÏ³ö²Ù×÷
+    /** é¼ æ ‡å¼¹èµ·æ—¶æ‰§è¡Œçš„æ‹–å‡ºæ“ä½œ
+    * @return è¿”å›trueè¡¨ç¤ºæ‰§è¡Œäº†æ‹–å‡ºæ“ä½œï¼Œè¿”å›falseè¡¨ç¤ºæœªæ‰§è¡Œæ‹–å‡ºæ“ä½œ
     */
     bool DragOutMouseUp(const EventArgs& msg);
 
-    /** Êó±ê°´ÏÂÊ±Ö´ĞĞµÄÍÏ¶¯µ÷ÕûË³Ğò²Ù×÷
+    /** é¼ æ ‡æŒ‰ä¸‹æ—¶æ‰§è¡Œçš„æ‹–åŠ¨è°ƒæ•´é¡ºåºæ“ä½œ
     */
     void DragOrderMouseDown(const EventArgs& msg);
 
-    /** Êó±êÒÆ¶¯Ê±Ö´ĞĞµÄÍÏ¶¯µ÷ÕûË³Ğò²Ù×÷
-    * @return ·µ»Øtrue±íÊ¾´¦ÓÚÍÏ¶¯µ÷Ğò²Ù×÷ÖĞ£¬·µ»Øfalse±íÊ¾Î´Ö´ĞĞÍÏ¶¯µ÷Ğò²Ù×÷
+    /** é¼ æ ‡ç§»åŠ¨æ—¶æ‰§è¡Œçš„æ‹–åŠ¨è°ƒæ•´é¡ºåºæ“ä½œ
+    * @return è¿”å›trueè¡¨ç¤ºå¤„äºæ‹–åŠ¨è°ƒåºæ“ä½œä¸­ï¼Œè¿”å›falseè¡¨ç¤ºæœªæ‰§è¡Œæ‹–åŠ¨è°ƒåºæ“ä½œ
     */
     bool DragOrderMouseMove(const EventArgs& msg);
 
-    /** Êó±êµ¯ÆğÊ±Ö´ĞĞµÄÍÏ³ö²Ù×÷
+    /** é¼ æ ‡å¼¹èµ·æ—¶æ‰§è¡Œçš„æ‹–å‡ºæ“ä½œ
     */
     void DragOrderMouseUp(const EventArgs& msg);
 
 private:
-	/** @name ÔÚÏàÍ¬´°¿ÚÄÚÍ¬Ò»¸öBoxÄÚÍÏ¶¯Ïà¹ØµÄ³ÉÔ±±äÁ¿
+	/** @name åœ¨ç›¸åŒçª—å£å†…åŒä¸€ä¸ªBoxå†…æ‹–åŠ¨ç›¸å…³çš„æˆå‘˜å˜é‡
 	* @{ */
 
-	/** ÊÇ·ñÖ§³ÖÍÏ¶¯¸Ä±äÁĞµÄË³Ğò(¹¦ÄÜ¿ª¹Ø)
+	/** æ˜¯å¦æ”¯æŒæ‹–åŠ¨æ”¹å˜åˆ—çš„é¡ºåº(åŠŸèƒ½å¼€å…³)
 	*/
 	bool m_bEnableDragOrder;
 
-	/** ÊÇ·ñÊó±ê×ó¼ü°´ÏÂ
+	/** æ˜¯å¦é¼ æ ‡å·¦é”®æŒ‰ä¸‹
 	*/
 	bool m_bMouseDown;
 
-	/** ÊÇ·ñ´¦ÓÚÍÏ×§µ÷Ğò²Ù×÷ÖĞ
+	/** æ˜¯å¦å¤„äºæ‹–æ‹½è°ƒåºæ“ä½œä¸­
 	*/
 	bool m_bInDraggingOrder;
 
-	/** ÍÏ¶¯Ë³ĞòÊ±£¬¿Ø¼şµÄÍ¸Ã÷¶È
+	/** æ‹–åŠ¨é¡ºåºæ—¶ï¼Œæ§ä»¶çš„é€æ˜åº¦
 	*/
 	uint8_t m_nDragAlpha;
 
-	/** Ô­À´µÄÍ¸Ã÷¶È
+	/** åŸæ¥çš„é€æ˜åº¦
 	*/
 	uint8_t m_nOldAlpha;
 
-	/** Êó±ê°´ÏÂÊ±µÄÊó±êÎ»ÖÃ
+	/** é¼ æ ‡æŒ‰ä¸‹æ—¶çš„é¼ æ ‡ä½ç½®
 	*/
 	UiPoint m_ptMouseDown;
 
-	/** Êó±ê°´ÏÂÊ±µÄ¿Ø¼ş¾ØĞÎÇøÓò
+	/** é¼ æ ‡æŒ‰ä¸‹æ—¶çš„æ§ä»¶çŸ©å½¢åŒºåŸŸ
 	*/
 	UiRect m_rcMouseDown;
 
-	/** Êó±ê°´ÏÂÊ±£¬¸¸ÈİÆ÷ÖĞ£¬Ã¿¸ö¿Ø¼şµÄÎ»ÖÃ
+	/** é¼ æ ‡æŒ‰ä¸‹æ—¶ï¼Œçˆ¶å®¹å™¨ä¸­ï¼Œæ¯ä¸ªæ§ä»¶çš„ä½ç½®
 	*/
 	std::vector<ItemStatus> m_rcItemList;
 
 	/** @} */
 
-    /** @name ÔÚÏàÍ¬´°¿ÚÄÚ²»Í¬µÄBoxÄÚÍÏ¶¯Ïà¹ØµÄ³ÉÔ±±äÁ¿
+    /** @name åœ¨ç›¸åŒçª—å£å†…ä¸åŒçš„Boxå†…æ‹–åŠ¨ç›¸å…³çš„æˆå‘˜å˜é‡
     * @{ */
 
-    /** ÊÇ·ñÖ§³ÖÍÏ³ö²Ù×÷(¹¦ÄÜ¿ª¹Ø)
+    /** æ˜¯å¦æ”¯æŒæ‹–å‡ºæ“ä½œ(åŠŸèƒ½å¼€å…³)
     */
     bool m_bEnableDragOut;
 
-    /** Ä¿±êBox
+    /** ç›®æ ‡Box
     */
     Box* m_pTargetBox;
 
-    /** Ä¿±êÎ»ÖÃÖ¸Ê¾¿Ø¼ş
+    /** ç›®æ ‡ä½ç½®æŒ‡ç¤ºæ§ä»¶
     */
     Control* m_pDestControl;
 
-    /** ÍÏ×§µÄ×´Ì¬´°¿Ú
+    /** æ‹–æ‹½çš„çŠ¶æ€çª—å£
     */
     DragWindow* m_pDragWindow;
 
-    /** ¸ÃÍÏ³ö¿Ø¼şµÄÎ»Í¼
+    /** è¯¥æ‹–å‡ºæ§ä»¶çš„ä½å›¾
     */
     std::shared_ptr<IBitmap> m_pDragImage;
 
-    /** µ±Ç°ÊÇ·ñÕıÔÚÖ´ĞĞÍÏ³ö²Ù×÷
+    /** å½“å‰æ˜¯å¦æ­£åœ¨æ‰§è¡Œæ‹–å‡ºæ“ä½œ
     */
     bool m_bDraggingOut;
 
@@ -281,14 +281,14 @@ template<typename T>
 void ControlDragableT<T>::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
 	if (strName == L"drag_order") {
-        //ÊÇ·ñÖ§³ÖÍÏ¶¯µ÷ÕûË³Ğò£¨ÔÚÍ¬Ò»¸öÈİÆ÷ÄÚ£©
+        //æ˜¯å¦æ”¯æŒæ‹–åŠ¨è°ƒæ•´é¡ºåºï¼ˆåœ¨åŒä¸€ä¸ªå®¹å™¨å†…ï¼‰
 		SetEnableDragOrder(strValue == L"true");
 	}
 	else if (strName == L"drag_alpha") {
 		SetDragAlpha((uint8_t)_wtoi(strValue.c_str()));
 	}
     else if (strName == L"drag_out") {
-        //ÊÇ·ñÖ§³ÖÍÏ³ö²Ù×İ£¨ÔÚÏàÍ¬´°¿ÚµÄ²»Í¬ÈİÆ÷ÄÚ£©
+        //æ˜¯å¦æ”¯æŒæ‹–å‡ºæ“çºµï¼ˆåœ¨ç›¸åŒçª—å£çš„ä¸åŒå®¹å™¨å†…ï¼‰
         SetEnableDragOut(strValue == L"true");
     }
 	else {
@@ -410,7 +410,7 @@ void ControlDragableT<T>::HandleEvent(const EventArgs& msg)
     if ((msg.Type == kEventMouseClickChanged) ||
         (msg.Type == kEventMouseClickEsc) ||
         (msg.Type == kEventMouseRButtonDown)) {
-        //È¡ÏûÍÏ¶¯µ÷Ğò»òÕßÍÏ³ö²Ù×÷
+        //å–æ¶ˆæ‹–åŠ¨è°ƒåºæˆ–è€…æ‹–å‡ºæ“ä½œ
         ClearDragStatus();
     }
 }
@@ -486,18 +486,18 @@ void ControlDragableT<T>::AdjustItemPos(const UiPoint& pt, const UiPoint& ptMous
     }
     ControlDragableT<T>* pItem = dynamic_cast<ControlDragableT<T>*>(pMouseItem);
     if (pItem == nullptr) {
-        //Êó±ê²»ÔÚ¿ÉÍÏ¶¯¿Ø¼şÉÏ
+        //é¼ æ ‡ä¸åœ¨å¯æ‹–åŠ¨æ§ä»¶ä¸Š
         return;
     }
     if (!pItem->IsEnableDragOrder()) {
-        //µ±Ç°ÁĞÎª¹Ì¶¨£¬²»ÔÊĞíµ÷ÕûË³Ğò
+        //å½“å‰åˆ—ä¸ºå›ºå®šï¼Œä¸å…è®¸è°ƒæ•´é¡ºåº
         return;
     }
 
     const size_t itemCount = rcItemList.size();
     int32_t xOffset = pt.x - ptMouseDown.x;
     if (pMouseItem == this) {
-        //µ±Ç°Êó±êÎ»ÖÃ£ºÔÚ×ÔÉíµÄÎ»ÖÃ£¬»Ö¸´¸÷¸ö¿Ø¼şµÄÊµ¼ÊÎ»ÖÃ
+        //å½“å‰é¼ æ ‡ä½ç½®ï¼šåœ¨è‡ªèº«çš„ä½ç½®ï¼Œæ¢å¤å„ä¸ªæ§ä»¶çš„å®é™…ä½ç½®
         for (const ItemStatus& item : rcItemList) {
             if (item.m_pItem == this) {
                 continue;
@@ -508,11 +508,11 @@ void ControlDragableT<T>::AdjustItemPos(const UiPoint& pt, const UiPoint& ptMous
         }
     }
     else if (xOffset < 0) {
-        //µ±Ç°Êó±êÎ»ÖÃ£ºÔÚ°´ÏÂµãµÄ×ó²à£¬ÏòÓÒ²àÒÆ¶¯¿Ø¼ş
+        //å½“å‰é¼ æ ‡ä½ç½®ï¼šåœ¨æŒ‰ä¸‹ç‚¹çš„å·¦ä¾§ï¼Œå‘å³ä¾§ç§»åŠ¨æ§ä»¶
         for (size_t index = 0; index < itemCount; ++index) {
             const ItemStatus& item = rcItemList[index];
             if ((item.m_index >= nMouseItemIndex) && (item.m_index < nMouseDownItemIndex)) {
-                //ÏòÓÒ²àÒÆ¶¯
+                //å‘å³ä¾§ç§»åŠ¨
                 if ((index + 1) < itemCount) {
                     const ItemStatus& nextItem = rcItemList[index + 1];
                     item.m_pItem->SetPos(nextItem.m_rcPos);
@@ -524,7 +524,7 @@ void ControlDragableT<T>::AdjustItemPos(const UiPoint& pt, const UiPoint& ptMous
                 }
             }
             else {
-                //»Ö¸´Ô­Î»ÖÃ
+                //æ¢å¤åŸä½ç½®
                 if (item.m_pItem->GetRect() != item.m_rcPos) {
                     item.m_pItem->SetPos(item.m_rcPos);
                 }
@@ -532,11 +532,11 @@ void ControlDragableT<T>::AdjustItemPos(const UiPoint& pt, const UiPoint& ptMous
         }
     }
     else {
-        //µ±Ç°Êó±êÎ»ÖÃ£ºÔÚ°´ÏÂµãµÄÓÒ²à£¬Ïò×ó²àÒÆ¶¯¿Ø¼ş
+        //å½“å‰é¼ æ ‡ä½ç½®ï¼šåœ¨æŒ‰ä¸‹ç‚¹çš„å³ä¾§ï¼Œå‘å·¦ä¾§ç§»åŠ¨æ§ä»¶
         for (size_t index = 0; index < itemCount; ++index) {
             const ItemStatus& item = rcItemList[index];
             if ((item.m_index > nMouseDownItemIndex) && (item.m_index <= nMouseItemIndex)) {
-                //Ïò×ó²àÒÆ¶¯
+                //å‘å·¦ä¾§ç§»åŠ¨
                 if ((index - 1) < itemCount) {
                     const ItemStatus& nextItem = rcItemList[index - 1];
                     item.m_pItem->SetPos(nextItem.m_rcPos);
@@ -548,7 +548,7 @@ void ControlDragableT<T>::AdjustItemPos(const UiPoint& pt, const UiPoint& ptMous
                 }
             }
             else {
-                //»Ö¸´Ô­Î»ÖÃ
+                //æ¢å¤åŸä½ç½®
                 if (item.m_pItem->GetRect() != item.m_rcPos) {
                     item.m_pItem->SetPos(item.m_rcPos);
                 }
@@ -579,7 +579,7 @@ bool ControlDragableT<T>::AdjustItemOrders(const UiPoint& pt,
             nMouseItemIndex = itemStatus.m_index;
             ControlDragableT<T>* pItem = dynamic_cast<ControlDragableT<T>*>(itemStatus.m_pItem);
             if ((pItem != nullptr) && !pItem->IsEnableDragOrder()) {
-                //µ±Ç°¿Ø¼şÎª¹Ì¶¨£¬²»ÔÊĞíµ÷ÕûË³Ğò
+                //å½“å‰æ§ä»¶ä¸ºå›ºå®šï¼Œä¸å…è®¸è°ƒæ•´é¡ºåº
                 nMouseItemIndex = Box::InvalidIndex;
             }
         }
@@ -588,7 +588,7 @@ bool ControlDragableT<T>::AdjustItemOrders(const UiPoint& pt,
         }
     }
     if ((nMouseItemIndex < itemCount) && (nCurrentItemIndex < itemCount)) {
-        //µ÷Õû¿Ø¼şµÄÎ»ÖÃ
+        //è°ƒæ•´æ§ä»¶çš„ä½ç½®
         pParent->SetItemIndex(this, nMouseItemIndex);
         nOldItemIndex = nCurrentItemIndex;
         nNewItemIndex = nMouseItemIndex;
@@ -605,7 +605,7 @@ void ControlDragableT<T>::OnItemOrdersChanged(size_t /*nOldItemIndex*/, size_t /
 template<typename T>
 void ControlDragableT<T>::ClearDragStatus()
 {
-    //»Ö¸´ÍÏ³ö²Ù×÷µÄ×´Ì¬
+    //æ¢å¤æ‹–å‡ºæ“ä½œçš„çŠ¶æ€
     if ((m_pDestControl != nullptr) && (m_pTargetBox != nullptr)) {
         if (m_pTargetBox->RemoveItem(m_pDestControl)) {
             m_pDestControl = nullptr;
@@ -624,7 +624,7 @@ void ControlDragableT<T>::ClearDragStatus()
     m_bDraggingOut = false;
     this->SetVisible(true);
 
-    //»Ö¸´ÍÏ¶¯µ÷Ğò²Ù×÷µÄ×´Ì¬
+    //æ¢å¤æ‹–åŠ¨è°ƒåºæ“ä½œçš„çŠ¶æ€
     if (m_bInDraggingOrder) {
         this->SetAlpha(m_nOldAlpha);
         m_nOldAlpha = 255;
@@ -632,7 +632,7 @@ void ControlDragableT<T>::ClearDragStatus()
     }
     m_bMouseDown = false;
     if (!m_rcItemList.empty()) {
-        //»Ö¸´×Ó¿Ø¼şµÄ»æÖÆË³Ğò
+        //æ¢å¤å­æ§ä»¶çš„ç»˜åˆ¶é¡ºåº
         for (const ItemStatus& itemStatus : m_rcItemList) {
             if ((itemStatus.m_pItem != nullptr) &&
                 (itemStatus.m_nPaintOrder != itemStatus.m_pItem->GetPaintOrder())) {
@@ -640,7 +640,7 @@ void ControlDragableT<T>::ClearDragStatus()
             }
         }
         m_rcItemList.clear();
-        //¶Ô¸¸¿Ø¼şÖØ»æ
+        //å¯¹çˆ¶æ§ä»¶é‡ç»˜
         Control* pParent = this->GetParent();
         if (pParent != nullptr) {
             pParent->Invalidate();
@@ -655,7 +655,7 @@ bool ControlDragableT<T>::DragOutMouseUp(const EventArgs& msg)
     if (!IsInDraggingOut() || !IsEnableDragOut() || (m_pTargetBox == nullptr)) {
         return false;
     }
-    //¿Ø¼şÍÏ³ö²Ù×÷
+    //æ§ä»¶æ‹–å‡ºæ“ä½œ
     Box* pParent = this->GetParent();
     UiPoint pt(msg.ptMouse);
     pt.Offset(m_pTargetBox->GetScrollOffsetInScrollBox());
@@ -700,7 +700,7 @@ bool ControlDragableT<T>::DragOutMouseUp(const EventArgs& msg)
         m_pTargetBox->SetItemIndex(this, nIndex);
         m_pTargetBox = nullptr;
 
-        //´¥·¢ÊÂ¼ş
+        //è§¦å‘äº‹ä»¶
         OnItemBoxChanged(pOldBox, nOldItemIndex, pNewBox, nNewItemIndex);
         return true;
     }
@@ -719,7 +719,7 @@ void ControlDragableT<T>::DragOrderMouseUp(const EventArgs& msg)
     if (!IsEnableDragOrder() || !IsInDraggingOrder()) {
         return;
     }
-    //¿Ø¼şÄÚ£ºÍÏ¶¯¸Ä±äË³Ğò
+    //æ§ä»¶å†…ï¼šæ‹–åŠ¨æ”¹å˜é¡ºåº
     UiPoint pt(msg.ptMouse);
     pt.Offset(this->GetScrollOffsetInScrollBox());
     GetValidPointInItemRects(pt);
@@ -728,7 +728,7 @@ void ControlDragableT<T>::DragOrderMouseUp(const EventArgs& msg)
     bool bOrderChanged = AdjustItemOrders(pt, m_rcItemList, nOldItemIndex, nNewItemIndex);
     ClearDragStatus();
     if (bOrderChanged) {
-        //´¥·¢ÁĞ½»»»ÊÂ¼ş
+        //è§¦å‘åˆ—äº¤æ¢äº‹ä»¶
         OnItemOrdersChanged(nOldItemIndex, nNewItemIndex);
     }
 }
@@ -741,7 +741,7 @@ bool ControlDragableT<T>::OnDragOutMouseOver(Box* pTargetBox, Box* pOldTargetBox
         return bDropped;
     }
     if ((pOldTargetBox != nullptr) && (pOldTargetBox != pTargetBox) && (m_pDestControl != nullptr)) {
-        //´Ó¾ÉµÄÖĞÒÆ³ı
+        //ä»æ—§çš„ä¸­ç§»é™¤
         size_t nIndex = pOldTargetBox->GetItemIndex(m_pDestControl);
         if (nIndex != Box::InvalidIndex) {
             if (pOldTargetBox->RemoveItem(m_pDestControl)) {
@@ -759,7 +759,7 @@ bool ControlDragableT<T>::OnDragOutMouseOver(Box* pTargetBox, Box* pOldTargetBox
             continue;
         }
         if ((pControl == m_pDestControl) && (IsPtInControlRect(pControl, pt))) {
-            //Êó±êÔÚÖ¸Ê¾¿Ø¼şÉÏ
+            //é¼ æ ‡åœ¨æŒ‡ç¤ºæ§ä»¶ä¸Š
             bDropped = true;
             break;
         }
@@ -952,7 +952,7 @@ void ControlDragableT<T>::DragOrderMouseDown(const EventArgs& /*msg*/)
     if (pParent == nullptr) {
         return;
     }
-    //¿Ø¼şÄÚµÄË³Ğòµ÷Õû£º¼ÇÂ¼Ã¿¸ö¿Ø¼şµÄÔ­Ê¼Î»ÖÃĞÅÏ¢
+    //æ§ä»¶å†…çš„é¡ºåºè°ƒæ•´ï¼šè®°å½•æ¯ä¸ªæ§ä»¶çš„åŸå§‹ä½ç½®ä¿¡æ¯
     size_t nItemCount = pParent->GetItemCount();
     for (size_t index = 0; index < nItemCount; ++index) {
         ItemStatus itemStatus;
@@ -964,7 +964,7 @@ void ControlDragableT<T>::DragOrderMouseDown(const EventArgs& /*msg*/)
             m_rcItemList.push_back(itemStatus);
         }
         if (itemStatus.m_pItem == this) {
-            //µ±Ç°¿Ø¼ş£¬»æÖÆË³ĞòĞèÒª·Å×îºó£¬±ÜÃâ±»ÆäËû¿Ø¼şÕÚµ²
+            //å½“å‰æ§ä»¶ï¼Œç»˜åˆ¶é¡ºåºéœ€è¦æ”¾æœ€åï¼Œé¿å…è¢«å…¶ä»–æ§ä»¶é®æŒ¡
             itemStatus.m_pItem->SetPaintOrder(255);
             ASSERT(itemStatus.m_rcPos.ContainsPt(m_ptMouseDown));
         }
@@ -976,7 +976,7 @@ bool ControlDragableT<T>::DragOrderMouseMove(const EventArgs& msg)
 {
     bool bRet = false;
     if (!IsEnableDragOrder()) {
-        //¸Ã¿Ø¼ş½ûÖ¹ÍÏ¶¯µ÷Ğò
+        //è¯¥æ§ä»¶ç¦æ­¢æ‹–åŠ¨è°ƒåº
         return bRet;
     }    
     Box* pParent = this->GetParent();
@@ -995,7 +995,7 @@ bool ControlDragableT<T>::DragOrderMouseMove(const EventArgs& msg)
         if (std::abs(xOffset) < this->Dpi().GetScaleInt(3)) {
             return bRet;
         }
-        //µ÷ÕûÆäËû¿Ø¼şµÄÎ»ÖÃ
+        //è°ƒæ•´å…¶ä»–æ§ä»¶çš„ä½ç½®
         AdjustItemPos(pt, m_ptMouseDown, m_rcItemList);
 
         UiRect rect = m_rcMouseDown;
@@ -1009,7 +1009,7 @@ bool ControlDragableT<T>::DragOrderMouseMove(const EventArgs& msg)
         if (std::abs(yOffset) < this->Dpi().GetScaleInt(3)) {
             return bRet;
         }
-        //µ÷ÕûÆäËû¿Ø¼şµÄÎ»ÖÃ
+        //è°ƒæ•´å…¶ä»–æ§ä»¶çš„ä½ç½®
         AdjustItemPos(pt, m_ptMouseDown, m_rcItemList);
 
         UiRect rect = m_rcMouseDown;
@@ -1022,7 +1022,7 @@ bool ControlDragableT<T>::DragOrderMouseMove(const EventArgs& msg)
         bRet = true;
         m_bInDraggingOrder = true;
         m_nOldAlpha = (uint8_t)this->GetAlpha();
-        //ÉèÖÃÎª°ëÍ¸Ã÷µÄĞ§¹û
+        //è®¾ç½®ä¸ºåŠé€æ˜çš„æ•ˆæœ
         this->SetAlpha(m_nDragAlpha);
     }
     return bRet;
@@ -1033,7 +1033,7 @@ bool ControlDragableT<T>::DragOutMouseMove(const EventArgs& msg)
 {
     bool bRet = false;
     if (!IsEnableDragOut()) {
-        //¸Ã¿Ø¼ş½ûÖ¹ÍÏ³ö²Ù×÷
+        //è¯¥æ§ä»¶ç¦æ­¢æ‹–å‡ºæ“ä½œ
         return bRet;
     }
     Window* pWindow = this->GetWindow();
@@ -1042,7 +1042,7 @@ bool ControlDragableT<T>::DragOutMouseMove(const EventArgs& msg)
         return bRet;
     }
     if (pParent->GetDragOutId() == 0) {
-        //¸¸ÈİÆ÷²»Ö§³ÖÍÏ³ö²Ù×÷
+        //çˆ¶å®¹å™¨ä¸æ”¯æŒæ‹–å‡ºæ“ä½œ
         return bRet;
     }
     Layout* pLayout = pParent->GetLayout();
@@ -1092,7 +1092,7 @@ bool ControlDragableT<T>::DragOutMouseMove(const EventArgs& msg)
         m_pTargetBox = nullptr;
     }
 
-    //ÍÏ³ö¸¸ÈİÆ÷
+    //æ‹–å‡ºçˆ¶å®¹å™¨
     if ((m_pDragWindow == nullptr) || m_pDragWindow->IsClosingWnd()) {
         if (m_pDragWindow != nullptr) {
             m_pDragWindow->Release();

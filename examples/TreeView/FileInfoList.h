@@ -6,17 +6,17 @@
 // duilib
 #include "duilib/duilib.h"
 
-/** ÎÄ¼şĞÅÏ¢
+/** æ–‡ä»¶ä¿¡æ¯
 */
 struct FileInfo
 {
-    //ÎÄ¼şÃû, ²»º¬Â·¾¶
+    //æ–‡ä»¶å, ä¸å«è·¯å¾„
     std::wstring m_fileName;
-    //ÎÄ¼şÍêÕûÂ·¾¶Ãû
+    //æ–‡ä»¶å®Œæ•´è·¯å¾„å
     std::wstring m_filePath;
-    //ÊÇ·ñÎªÎÄ¼ş¼Ğ
+    //æ˜¯å¦ä¸ºæ–‡ä»¶å¤¹
     bool m_isFolder = false;
-    //¹ØÁªµÄÍ¼±ê(×ÊÔ´µÄÉúÃüÖÜÆÚ¸ÃÀàÄÚ²¿¹ÜÀí)
+    //å…³è”çš„å›¾æ ‡(èµ„æºçš„ç”Ÿå‘½å‘¨æœŸè¯¥ç±»å†…éƒ¨ç®¡ç†)
     HICON m_hIcon = nullptr;
 };
 
@@ -27,75 +27,75 @@ public:
     explicit FileInfoList(MainForm* pMainForm);
     virtual ~FileInfoList();
 
-    /** ´´½¨Ò»¸öÊı¾İÏî
-    * @param [in] pVirtualListBox ¹ØÁªµÄĞé±íµÄ½Ó¿Ú
-    * @return ·µ»Ø´´½¨ºóµÄÊı¾İÏîÖ¸Õë
+    /** åˆ›å»ºä¸€ä¸ªæ•°æ®é¡¹
+    * @param [in] pVirtualListBox å…³è”çš„è™šè¡¨çš„æ¥å£
+    * @return è¿”å›åˆ›å»ºåçš„æ•°æ®é¡¹æŒ‡é’ˆ
     */
     virtual ui::Control* CreateElement(ui::VirtualListBox* pVirtualListBox) override;
 
-    /** Ìî³äÖ¸¶¨Êı¾İÏî
-    * @param [in] pControl Êı¾İÏî¿Ø¼şÖ¸Õë
-    * @param [in] nElementIndex Êı¾İÔªËØµÄË÷ÒıID£¬·¶Î§£º[0, GetElementCount())
+    /** å¡«å……æŒ‡å®šæ•°æ®é¡¹
+    * @param [in] pControl æ•°æ®é¡¹æ§ä»¶æŒ‡é’ˆ
+    * @param [in] nElementIndex æ•°æ®å…ƒç´ çš„ç´¢å¼•IDï¼ŒèŒƒå›´ï¼š[0, GetElementCount())
     */
     virtual bool FillElement(ui::Control* pControl, size_t nElementIndex) override;
 
-    /** »ñÈ¡Êı¾İÏî×ÜÊı
-    * @return ·µ»ØÊı¾İÏî×ÜÊı
+    /** è·å–æ•°æ®é¡¹æ€»æ•°
+    * @return è¿”å›æ•°æ®é¡¹æ€»æ•°
     */
     virtual size_t GetElementCount() const override;
 
-    /** ÉèÖÃÑ¡Ôñ×´Ì¬
-    * @param [in] nElementIndex Êı¾İÔªËØµÄË÷ÒıID£¬·¶Î§£º[0, GetElementCount())
-    * @param [in] bSelected true±íÊ¾Ñ¡Ôñ×´Ì¬£¬false±íÊ¾·ÇÑ¡Ôñ×´Ì¬
+    /** è®¾ç½®é€‰æ‹©çŠ¶æ€
+    * @param [in] nElementIndex æ•°æ®å…ƒç´ çš„ç´¢å¼•IDï¼ŒèŒƒå›´ï¼š[0, GetElementCount())
+    * @param [in] bSelected trueè¡¨ç¤ºé€‰æ‹©çŠ¶æ€ï¼Œfalseè¡¨ç¤ºéé€‰æ‹©çŠ¶æ€
     */
     virtual void SetElementSelected(size_t nElementIndex, bool bSelected) override;
 
-    /** »ñÈ¡Ñ¡Ôñ×´Ì¬
-    * @param [in] nElementIndex Êı¾İÔªËØµÄË÷ÒıID£¬·¶Î§£º[0, GetElementCount())
-    * @return true±íÊ¾Ñ¡Ôñ×´Ì¬£¬false±íÊ¾·ÇÑ¡Ôñ×´Ì¬
+    /** è·å–é€‰æ‹©çŠ¶æ€
+    * @param [in] nElementIndex æ•°æ®å…ƒç´ çš„ç´¢å¼•IDï¼ŒèŒƒå›´ï¼š[0, GetElementCount())
+    * @return trueè¡¨ç¤ºé€‰æ‹©çŠ¶æ€ï¼Œfalseè¡¨ç¤ºéé€‰æ‹©çŠ¶æ€
     */
     virtual bool IsElementSelected(size_t nElementIndex) const override;
 
-    /** »ñÈ¡Ñ¡ÔñµÄÔªËØÁĞ±í
-    * @param [in] selectedIndexs ·µ»Øµ±Ç°Ñ¡ÔñµÄÔªËØÁĞ±í£¬ÓĞĞ§·¶Î§£º[0, GetElementCount())
+    /** è·å–é€‰æ‹©çš„å…ƒç´ åˆ—è¡¨
+    * @param [in] selectedIndexs è¿”å›å½“å‰é€‰æ‹©çš„å…ƒç´ åˆ—è¡¨ï¼Œæœ‰æ•ˆèŒƒå›´ï¼š[0, GetElementCount())
     */
     virtual void GetSelectedElements(std::vector<size_t>& selectedIndexs) const override;
 
-    /** ÊÇ·ñÖ§³Ö¶àÑ¡
+    /** æ˜¯å¦æ”¯æŒå¤šé€‰
     */
     virtual bool IsMultiSelect() const override;
 
-    /** ÉèÖÃÊÇ·ñÖ§³Ö¶àÑ¡£¬ÓÉ½çÃæ²ãµ÷ÓÃ£¬±£³ÖÓë½çÃæ¿Ø¼şÒ»ÖÂ
-    * @return bMultiSelect true±íÊ¾Ö§³Ö¶àÑ¡£¬false±íÊ¾²»Ö§³Ö¶àÑ¡
+    /** è®¾ç½®æ˜¯å¦æ”¯æŒå¤šé€‰ï¼Œç”±ç•Œé¢å±‚è°ƒç”¨ï¼Œä¿æŒä¸ç•Œé¢æ§ä»¶ä¸€è‡´
+    * @return bMultiSelect trueè¡¨ç¤ºæ”¯æŒå¤šé€‰ï¼Œfalseè¡¨ç¤ºä¸æ”¯æŒå¤šé€‰
     */
     virtual void SetMultiSelect(bool bMultiSelect) override;
 
 public:
-    /** ÓÃĞÂµÄÎÄ¼şÁĞ±í£¬Ìæ»»Ô­À´µÄÁĞ±í
+    /** ç”¨æ–°çš„æ–‡ä»¶åˆ—è¡¨ï¼Œæ›¿æ¢åŸæ¥çš„åˆ—è¡¨
     */
     void SetFileList(ui::TreeNode* pTreeNode, const std::vector<FileInfo>& pathList);
 
-    /** Çå¿ÕÎÄ¼şÁĞ±í
+    /** æ¸…ç©ºæ–‡ä»¶åˆ—è¡¨
     */
     void ClearFileList();
 
 private:
-    /** ×ÓÏî±»Ë«»÷Ê±´¥·¢
-     * @param[in] args ÏûÏ¢Ìå
-     * @return Ê¼ÖÕ·µ»Ø true
+    /** å­é¡¹è¢«åŒå‡»æ—¶è§¦å‘
+     * @param[in] args æ¶ˆæ¯ä½“
+     * @return å§‹ç»ˆè¿”å› true
      */
     bool OnDoubleClickItem(const ui::EventArgs& args);
 
 private:
-    /** ¹ØÁªµÄMainForm
+    /** å…³è”çš„MainForm
     */
     MainForm* m_pMainForm;
 
-    /** ¹ØÁªµÄÊ÷½Úµã
+    /** å…³è”çš„æ ‘èŠ‚ç‚¹
     */
     ui::TreeNode* m_pTreeNode;
 
-    //ÎÄ¼şÁĞ±í
+    //æ–‡ä»¶åˆ—è¡¨
     std::vector<FileInfo> m_pathList;
 };
 

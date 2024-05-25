@@ -37,7 +37,7 @@ std::wstring ImageLoadAttribute::GetCacheKey(uint32_t nDpiScale) const
 	ASSERT(!m_srcImageFullPath.empty());
 	std::wstring fullPath = m_srcImageFullPath.c_str();
 	if ((nDpiScale != 0) && (nDpiScale != 100)) {
-		//×·¼ÓËõ·Å°Ù·Ö±È
+		//è¿½åŠ ç¼©æ”¾ç™¾åˆ†æ¯”
 		fullPath += L"@";
 		fullPath += StringHelper::UInt32ToString(nDpiScale);
 	}
@@ -80,19 +80,19 @@ bool ImageLoadAttribute::CalcImageLoadSize(uint32_t& nImageWidth, uint32_t& nIma
 	uint32_t nScaledHeight = GetScacledSize(m_srcHeight.c_str(), nImageHeight);
 	bool isScaled = false;
 	if ((nScaledWidth > 0) && (nScaledHeight > 0)) {
-		//¿íºÍ¸ß¶¼ÓĞ¾ßÌåÉèÖÃµÄÖµ
+		//å®½å’Œé«˜éƒ½æœ‰å…·ä½“è®¾ç½®çš„å€¼
 		nImageWidth = nScaledWidth;
 		nImageHeight = nScaledHeight;
 		isScaled = true;
 	}
 	else if ((nScaledWidth > 0) && (nScaledHeight == 0)) {
-		//ÉèÖÃÁË¿í¶È£¬¸ß¶È°´Í¼Æ¬Ô­Ê¼±ÈÀı×ÔÊÊÓ¦
+		//è®¾ç½®äº†å®½åº¦ï¼Œé«˜åº¦æŒ‰å›¾ç‰‡åŸå§‹æ¯”ä¾‹è‡ªé€‚åº”
 		nImageHeight = nImageHeight * nScaledWidth / nImageWidth;
 		nImageWidth = nScaledWidth;		
 		isScaled = true;
 	}
 	else if ((nScaledWidth == 0) && (nScaledHeight > 0)) {
-		//ÉèÖÃÁË¸ß¶È¿í¶È°´Í¼Æ¬Ô­Ê¼±ÈÀı×ÔÊÊÓ¦
+		//è®¾ç½®äº†é«˜åº¦å®½åº¦æŒ‰å›¾ç‰‡åŸå§‹æ¯”ä¾‹è‡ªé€‚åº”
 		nImageWidth = nImageWidth * nScaledHeight / nImageHeight;
 		nImageHeight = nScaledHeight;
 		isScaled = true;
@@ -107,12 +107,12 @@ uint32_t ImageLoadAttribute::GetScacledSize(const std::wstring& srcSize, uint32_
 	}
 	uint32_t nScaledSize = 0;
 	if (srcSize.back() == L'%') {
-		//°´ÕÕ°Ù·Ö±ÈËõ·Å
+		//æŒ‰ç…§ç™¾åˆ†æ¯”ç¼©æ”¾
 		double ratio = wcstod(srcSize.c_str(), nullptr);
 		nScaledSize = static_cast<uint32_t>(nImageSize * ratio / 100);
 	}
 	else {
-		//ÉèÖÃ¹Ì¶¨Öµ
+		//è®¾ç½®å›ºå®šå€¼
 		nScaledSize = wcstol(srcSize.c_str(), nullptr, 10);
 	}
 

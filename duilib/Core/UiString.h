@@ -9,8 +9,8 @@
 namespace ui
 {
 
-/** �ؼ�ʹ�õ��ַ������������std::wstring���Լ��ٿؼ����ڴ�ռ��
-*   �����ʺ����ڽϵ͵��ڴ�ռ����洢�ַ��������ܷ��������ַ�������ƫ�࣬����ƫ��
+/** 控件使用的字符串，用于替代std::wstring，以减少控件的内存占用
+*   该类适合用于较低的内存空间来存储字符串，性能方面由于字符串复制偏多，性能偏弱
 */
 class UILIB_API UiString
 {
@@ -120,7 +120,7 @@ public:
         return !b.equals(a);
     }
 private:
-    //�ַ�������
+    //字符串数据
     wchar_t* m_pData;
 };
 

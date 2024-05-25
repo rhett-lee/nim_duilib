@@ -44,7 +44,7 @@ EXTERN_C const IID IID_ITextHost = { /* c5bdd8d0-d26e-11ce-a89e-00aa006cadc5 */
 	{0xa8, 0x9e, 0x00, 0xaa, 0x00, 0x6c, 0xad, 0xc5}
 };
 
-/** RichEdit¿Ø¼şµÄDLLÄ£¿é¹ÜÀí
+/** RichEditæ§ä»¶çš„DLLæ¨¡å—ç®¡ç†
 */
 class RichEditModule
 {
@@ -66,7 +66,7 @@ private:
 	RichEditModule& operator = (const RichEditModule&) = delete;
 
 public:
-	/** »ñÈ¡µ¥Àı¶ÔÏó
+	/** è·å–å•ä¾‹å¯¹è±¡
 	*/
 	static RichEditModule& Instance()
 	{
@@ -74,7 +74,7 @@ public:
 		return self;
 	}
 
-	/** RichEditÒÀÀµµÄDLL, ¼ÓÔØ²¢·µ»Ø¾ä±ú
+	/** RichEditä¾èµ–çš„DLL, åŠ è½½å¹¶è¿”å›å¥æŸ„
 	*/
 	HMODULE GetRichEditModule()
 	{
@@ -85,7 +85,7 @@ public:
 	}
 
 private:
-	/** RichEditÒÀÀµµÄDLL, ¼ÓÔØ²¢·µ»Ø¾ä±ú
+	/** RichEditä¾èµ–çš„DLL, åŠ è½½å¹¶è¿”å›å¥æŸ„
 	*/
 	HMODULE m_hRichEditModule;
 };
@@ -127,12 +127,12 @@ void RichEditHost::Init()
 {
 	RichEdit* pRichEdit = m_pRichEdit;
 
-	//³õÊ¼»¯Ä¬ÈÏ×ÖÌå
+	//åˆå§‹åŒ–é»˜è®¤å­—ä½“
 	LOGFONT lf = { 0, };
 	::GetObject(::GetStockObject(DEFAULT_GUI_FONT), sizeof(LOGFONT), &lf);
 	InitCharFormat(lf);
 
-	//ÉèÖÃ×ÖÌåÑÕÉ«
+	//è®¾ç½®å­—ä½“é¢œè‰²
 	if (pRichEdit != nullptr) {
 		std::wstring textColor;
 		if (pRichEdit->IsEnabled()) {
@@ -148,7 +148,7 @@ void RichEditHost::Init()
 		}
 	}
 
-	//³õÊ¼»¯Ä¬ÈÏ¶ÎÂä¸ñÊ½
+	//åˆå§‹åŒ–é»˜è®¤æ®µè½æ ¼å¼
 	memset(&m_paraFormat, 0, sizeof(PARAFORMAT2));
 	m_paraFormat.cbSize = sizeof(PARAFORMAT2);
 	m_paraFormat.dwMask = PFM_ALL;
@@ -159,20 +159,20 @@ void RichEditHost::Init()
 	IUnknown* pUnk = nullptr;
 	HRESULT hr = E_FAIL;
 
-	//Ä¬ÈÏÎªµ¥ĞĞÎÄ±¾
+	//é»˜è®¤ä¸ºå•è¡Œæ–‡æœ¬
 	m_dwStyle = 0;
 
-	//Ä¬ÈÏ¿ªÆô£ºµ±ÓÃ»§ÔÚ×îºóÒ»ĞĞ°´ ENTER Ê±£¬×Ô¶¯½«ÎÄ±¾ÏòÉÏ¹ö¶¯Ò»Ò³¡£
+	//é»˜è®¤å¼€å¯ï¼šå½“ç”¨æˆ·åœ¨æœ€åä¸€è¡ŒæŒ‰ ENTER æ—¶ï¼Œè‡ªåŠ¨å°†æ–‡æœ¬å‘ä¸Šæ»šåŠ¨ä¸€é¡µã€‚
 	m_dwStyle |= UI_ES_AUTOVSCROLL;
 
-	//Ä¬ÈÏ¿ªÆô£ºµ±ÓÃ»§ÔÚĞĞÎ²¼üÈëÒ»¸ö×Ö·ûÊ±£¬×Ô¶¯½«ÎÄ±¾ÏòÓÒ¹ö¶¯ 10 ¸ö×Ö·û¡£
+	//é»˜è®¤å¼€å¯ï¼šå½“ç”¨æˆ·åœ¨è¡Œå°¾é”®å…¥ä¸€ä¸ªå­—ç¬¦æ—¶ï¼Œè‡ªåŠ¨å°†æ–‡æœ¬å‘å³æ»šåŠ¨ 10 ä¸ªå­—ç¬¦ã€‚
 	m_dwStyle |= UI_ES_AUTOHSCROLL;
 
-	//×Ô¶¯Ñ¡Ôñµ¥´Ê
+	//è‡ªåŠ¨é€‰æ‹©å•è¯
 	m_fEnableAutoWordSel = true;
-	//×Ô¶¯»»ĞĞ
+	//è‡ªåŠ¨æ¢è¡Œ
 	m_fWordWrap = false;
-	//Ä¬ÈÏÎª´¿ÎÄ±¾Ä£Ê½
+	//é»˜è®¤ä¸ºçº¯æ–‡æœ¬æ¨¡å¼
 	m_fRichText = false;
 
 	m_fInplaceActive = true;
@@ -195,7 +195,7 @@ void RichEditHost::Init()
 
 	ASSERT(m_pTextServices != nullptr);
 	if (m_pTextServices != nullptr) {
-		//ÉèÖÃÄ¬ÈÏÊôĞÔ
+		//è®¾ç½®é»˜è®¤å±æ€§
 		SetTransparent(TRUE);
 		LRESULT lResult = 0;
 		m_pTextServices->TxSendMessage(EM_SETLANGOPTIONS, 0, 0, &lResult);
@@ -227,7 +227,7 @@ void RichEditHost::OnTxPropertyBitsChange(DWORD dwMask, DWORD dwBits)
 
 void RichEditHost::GetLogFont(RichEdit* pRichEdit, const std::wstring& fontId, LOGFONT& lf)
 {
-	//ÓÅÏÈ»ñÈ¡Ä¬ÈÏ×ÖÌå
+	//ä¼˜å…ˆè·å–é»˜è®¤å­—ä½“
 	lf = { 0 };
 	::GetObject(::GetStockObject(DEFAULT_GUI_FONT), sizeof(LOGFONT), &lf);
 	IFont* pFont = nullptr;
@@ -303,7 +303,7 @@ int RichEditHost::TxReleaseDC(HDC /*hdc*/)
 
 BOOL RichEditHost::TxShowScrollBar(INT /*fnBar*/, BOOL /*fShow*/)
 {
-	ASSERT(FALSE); //ÔİÊ±×¢ÊÍµô£¬²»ÖªµÀÕâ´úÂëÓĞÉ¶ÓÃ   by panqinke 2014.5.6
+	ASSERT(FALSE); //æš‚æ—¶æ³¨é‡Šæ‰ï¼Œä¸çŸ¥é“è¿™ä»£ç æœ‰å•¥ç”¨   by panqinke 2014.5.6
 	//ScrollBar* pVerticalScrollBar = m_pRichEdit->GetVScrollBar();
 	//ScrollBar* pHorizontalScrollBar = m_pRichEdit->GetHScrollBar();
 	//if( fnBar == SB_VERT && pVerticalScrollBar ) {
@@ -617,11 +617,11 @@ HRESULT RichEditHost::TxGetPasswordChar(TCHAR* pch)
 	}
 	*pch = m_chPasswordChar;
 	if (!IsPassword()) {
-		//Î´ÆôÓÃÃÜÂë
+		//æœªå¯ç”¨å¯†ç 
 		return S_FALSE;
 	}
 	else {
-		//ÆôÓÃÃÜÂë
+		//å¯ç”¨å¯†ç 
 		return S_OK;
 	}
 }
@@ -630,7 +630,7 @@ HRESULT RichEditHost::TxGetAcceleratorPos(LONG* pcp)
 {
 	ASSERT(pcp != nullptr);
 	if (pcp != nullptr) {
-		//²»Ö§³ÖÕâ¸ö¹¦ÄÜ
+		//ä¸æ”¯æŒè¿™ä¸ªåŠŸèƒ½
 		*pcp = -1;
 	}
 	return S_OK;
@@ -669,52 +669,52 @@ HRESULT RichEditHost::TxGetPropertyBits(DWORD dwMask, DWORD* pdwBits)
 	}
 
 	if (m_dwStyle & UI_ES_MULTILINE) {
-		//¶àĞĞÎÄ±¾
+		//å¤šè¡Œæ–‡æœ¬
 		dwProperties |= TXTBIT_MULTILINE;
 	}
 
 	if (m_dwStyle & UI_ES_READONLY) {
-		//Ö»¶ÁÄ£Ê½
+		//åªè¯»æ¨¡å¼
 		dwProperties |= TXTBIT_READONLY;
 	}
 
 	if (m_dwStyle & UI_ES_PASSWORD) {
-		//ÃÜÂëÄ£Ê½
+		//å¯†ç æ¨¡å¼
 		dwProperties |= TXTBIT_USEPASSWORD;
 	}
 
 	if (m_bShowPassword) {
-		//ÏÔÊ¾ÃÜÂë
+		//æ˜¾ç¤ºå¯†ç 
 		dwProperties |= TXTBIT_SHOWPASSWORD;
 	}
 
 	if (m_bFlashPasswordChar) {
-		//ÏÈÏÔÊ¾×Ö·û£¬È»ºóÔÙÏÔÊ¾ÃÜÂë×Ö·û
+		//å…ˆæ˜¾ç¤ºå­—ç¬¦ï¼Œç„¶åå†æ˜¾ç¤ºå¯†ç å­—ç¬¦
 		dwProperties |= TXTBIT_FLASHLASTPASSWORDCHAR;
 	}
 
 	if (!(m_dwStyle & UI_ES_NOHIDESEL)) {
-		//Òş²ØÑ¡Ôñ
+		//éšè—é€‰æ‹©
 		dwProperties |= TXTBIT_HIDESELECTION;
 	}
 
 	if (m_fEnableAutoWordSel) {
-		//×Ô¶¯Ñ¡Ôñµ¥´Ê
+		//è‡ªåŠ¨é€‰æ‹©å•è¯
 		dwProperties |= TXTBIT_AUTOWORDSEL;
 	}
 
 	if (m_fWordWrap) {
-		//×Ô¶¯»»ĞĞ
+		//è‡ªåŠ¨æ¢è¡Œ
 		dwProperties |= TXTBIT_WORDWRAP;
 	}
 
 	if (m_fAllowBeep) {
-		//ÊÇ·ñÔÊĞí·¢³öBeepÉùÒô
+		//æ˜¯å¦å…è®¸å‘å‡ºBeepå£°éŸ³
 		dwProperties |= TXTBIT_ALLOWBEEP;
 	}
 
 	if (m_fSaveSelection) {
-		//±£´æÑ¡Ôñ£ºÈç¹û Îª TRUE£¬Ôòµ±¿Ø¼ş´¦ÓÚ·Ç»î¶¯×´Ì¬Ê±£¬Ó¦±£´æËùÑ¡ÄÚÈİµÄ±ß½ç¡£
+		//ä¿å­˜é€‰æ‹©ï¼šå¦‚æœ ä¸º TRUEï¼Œåˆ™å½“æ§ä»¶å¤„äºéæ´»åŠ¨çŠ¶æ€æ—¶ï¼Œåº”ä¿å­˜æ‰€é€‰å†…å®¹çš„è¾¹ç•Œã€‚
 		dwProperties |= TXTBIT_SAVESELECTION;
 	}
 	*pdwBits = dwProperties & dwMask;
@@ -804,7 +804,7 @@ void RichEditHost::SetPasswordChar(WCHAR chPasswordChar)
 	if (chPasswordChar == L'\0') {
 		return;
 	}
-	//ÆôÓÃÃÜÂë
+	//å¯ç”¨å¯†ç 
 	m_dwStyle |= UI_ES_PASSWORD;
 	m_chPasswordChar = chPasswordChar;
 	OnTxPropertyBitsChange(TXTBIT_USEPASSWORD, (m_chPasswordChar != 0) ? TXTBIT_USEPASSWORD : 0);
@@ -946,7 +946,7 @@ void RichEditHost::SetVScrollBar(bool bEnable)
 
 void RichEditHost::SetAutoVScroll(bool bEnable)
 {
-	//µ±ÓÃ»§ÔÚ×îºóÒ»ĞĞ°´ ENTER Ê±£¬×Ô¶¯½«ÎÄ±¾ÏòÉÏ¹ö¶¯Ò»Ò³¡£
+	//å½“ç”¨æˆ·åœ¨æœ€åä¸€è¡ŒæŒ‰ ENTER æ—¶ï¼Œè‡ªåŠ¨å°†æ–‡æœ¬å‘ä¸Šæ»šåŠ¨ä¸€é¡µã€‚
 	if (bEnable) {
 		m_dwStyle |= UI_ES_AUTOVSCROLL;
 	}
@@ -970,7 +970,7 @@ void RichEditHost::SetHScrollBar(bool bEnable)
 
 void RichEditHost::SetAutoHScroll(bool bEnable)
 {
-	//µ±ÓÃ»§ÔÚĞĞÎ²¼üÈëÒ»¸ö×Ö·ûÊ±£¬×Ô¶¯½«ÎÄ±¾ÏòÓÒ¹ö¶¯ 10 ¸ö×Ö·û¡£ µ±ÓÃ»§°´ Enter Ê±£¬¿Ø¼ş»á½«ËùÓĞÎÄ±¾¹ö¶¯»ØÁãÎ»ÖÃ¡£
+	//å½“ç”¨æˆ·åœ¨è¡Œå°¾é”®å…¥ä¸€ä¸ªå­—ç¬¦æ—¶ï¼Œè‡ªåŠ¨å°†æ–‡æœ¬å‘å³æ»šåŠ¨ 10 ä¸ªå­—ç¬¦ã€‚ å½“ç”¨æˆ·æŒ‰ Enter æ—¶ï¼Œæ§ä»¶ä¼šå°†æ‰€æœ‰æ–‡æœ¬æ»šåŠ¨å›é›¶ä½ç½®ã€‚
 	if (bEnable) {
 		m_dwStyle |= UI_ES_AUTOHSCROLL;
 	}
@@ -981,7 +981,7 @@ void RichEditHost::SetAutoHScroll(bool bEnable)
 
 void RichEditHost::SetFontId(const std::wstring& fontId)
 {
-	//fontId²»ĞèÒªÅĞ¿Õ£¬Èç¹ûfontIdÎª¿Õ£¬ÔòÊ¹ÓÃÄ¬ÈÏ×ÖÌå
+	//fontIdä¸éœ€è¦åˆ¤ç©ºï¼Œå¦‚æœfontIdä¸ºç©ºï¼Œåˆ™ä½¿ç”¨é»˜è®¤å­—ä½“
 	LOGFONT lf = { 0, };
 	GetLogFont(m_pRichEdit, fontId, lf);
 	InitCharFormat(lf);
@@ -990,13 +990,13 @@ void RichEditHost::SetFontId(const std::wstring& fontId)
 
 void RichEditHost::ChangeDpiScale(const DpiManager& dpiManager, uint32_t nOldDpiScale)
 {
-	//·Ç¸»ÎÄ±¾Ä£Ê½ÏÂ£¬ËùÓĞÎÄ±¾µÄ×ÖÌå´óĞ¡¶¼Ò»Ñù£¬Ö±½ÓĞŞ¸Ä×ÖÌå´óĞ¡
+	//éå¯Œæ–‡æœ¬æ¨¡å¼ä¸‹ï¼Œæ‰€æœ‰æ–‡æœ¬çš„å­—ä½“å¤§å°éƒ½ä¸€æ ·ï¼Œç›´æ¥ä¿®æ”¹å­—ä½“å¤§å°
 	m_charFormat.dwMask |= CFM_SIZE;
 	m_charFormat.yHeight = dpiManager.GetScaleInt((int32_t)m_charFormat.yHeight, nOldDpiScale);
 	OnTxPropertyBitsChange(TXTBIT_CHARFORMATCHANGE, TXTBIT_CHARFORMATCHANGE);
 
 	if (IsRichText()) {
-		//¸»ÎÄ±¾Ä£Ê½ÏÂ£ºÔİ²»Ö§³ÖÒÑ¾­ÏÔÊ¾µÄÎÄ±¾×ÖÌå´óĞ¡µ÷Õû
+		//å¯Œæ–‡æœ¬æ¨¡å¼ä¸‹ï¼šæš‚ä¸æ”¯æŒå·²ç»æ˜¾ç¤ºçš„æ–‡æœ¬å­—ä½“å¤§å°è°ƒæ•´
 
 	}
 }
@@ -1104,12 +1104,12 @@ void RichEditHost::GetControlRect(UiRect* prc)
 										  &iWidth,
 										  &iHeight);
 		if (m_dwStyle & UI_ES_VCENTER) {
-			//×İÏò¾ÓÖĞ¶ÔÆë
+			//çºµå‘å±…ä¸­å¯¹é½
 			int32_t yOffset = (rc.Height() - iHeight) / 2;
 			rc.Offset(0, yOffset);
 		}
 		else if (m_dwStyle & UI_ES_BOTTOM) {
-			//×İÏòµ×¶Ë¶ÔÆë
+			//çºµå‘åº•ç«¯å¯¹é½
 			int32_t yOffset = rc.Height() - iHeight;
 			rc.Offset(0, yOffset);
 		}
@@ -1226,19 +1226,19 @@ void RichEditHost::SetSelBarWidth(LONG lSelBarWidth)
 
 void RichEditHost::SetCharFormat(const CHARFORMAT2W& c)
 {
-	//Ö»±£´æ£¬²»Í¨Öª
+	//åªä¿å­˜ï¼Œä¸é€šçŸ¥
 	m_charFormat = c;
 }
 
 void RichEditHost::SetParaFormat(const PARAFORMAT2& p)
 {
-	//Ö»±£´æ£¬²»Í¨Öª
+	//åªä¿å­˜ï¼Œä¸é€šçŸ¥
 	m_paraFormat = p;
 }
 
 void RichEditHost::InitCharFormat(const LOGFONT& lf)
 {
-	//×ÖÌå×ÖºÅĞèÒª×ª»», ·ñÔò×ÖÌå´óĞ¡ÏÔÊ¾Òì³£
+	//å­—ä½“å­—å·éœ€è¦è½¬æ¢, å¦åˆ™å­—ä½“å¤§å°æ˜¾ç¤ºå¼‚å¸¸
 	bool bGetDC = false;
 	HDC hDC = nullptr;
 	if (m_pRichEdit != nullptr) {

@@ -44,7 +44,7 @@ LRESULT WindowImplBase::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam,
     {
     case WM_CREATE:			lRes = OnCreate(uMsg, wParam, lParam, bHandled); break;
     case WM_SYSCOMMAND:		lRes = OnSysCommand(uMsg, wParam, lParam, bHandled); break;
-    //ÒÔÏÂÏûÏ¢£¬ÎŞ¾ßÌåÊµÏÖ
+    //ä»¥ä¸‹æ¶ˆæ¯ï¼Œæ— å…·ä½“å®ç°
     case WM_CLOSE:			lRes = OnClose(uMsg, wParam, lParam, bHandled); break;
     case WM_DESTROY:		lRes = OnDestroy(uMsg, wParam, lParam, bHandled); break;
     case WM_MOUSEMOVE:		lRes = OnMouseMove(uMsg, wParam, lParam, bHandled); break;
@@ -77,7 +77,7 @@ LRESULT WindowImplBase::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
     std::wstring strSkinFile;
     std::wstring xmlFile = GetSkinFile();
     if (!xmlFile.empty() && xmlFile.front() == L'<') {
-        //·µ»ØµÄÄÚÈİÊÇXMLÎÄ¼şÄÚÈİ£¬¶ø²»ÊÇÎÄ¼şÂ·¾¶
+        //è¿”å›çš„å†…å®¹æ˜¯XMLæ–‡ä»¶å†…å®¹ï¼Œè€Œä¸æ˜¯æ–‡ä»¶è·¯å¾„
         strSkinFile = std::move(xmlFile);
     }
     else {
@@ -93,17 +93,17 @@ LRESULT WindowImplBase::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
     }
 
     if (IsUseSystemCaption()) {
-        //¹Ø±ÕÒõÓ°
+        //å…³é—­é˜´å½±
         SetShadowAttached(false);
     }
 
-    //¹ØÁª´°¿Ú¸½¼ÓÒõÓ°
+    //å…³è”çª—å£é™„åŠ é˜´å½±
     pRoot = AttachShadow(pRoot);
 
-    //¹ØÁªRoot¶ÔÏó
+    //å…³è”Rootå¯¹è±¡
     AttachBox(pRoot);
 
-    //¸üĞÂ×Ô»æÖÆ±êÌâÀ¸×´Ì¬
+    //æ›´æ–°è‡ªç»˜åˆ¶æ ‡é¢˜æ çŠ¶æ€
     OnUseSystemCaptionBarChanged();
     if (!IsUseSystemCaption()) {
         Control* pControl = (Control*)FindControl(DUI_CTR_BUTTON_CLOSE);
@@ -142,16 +142,16 @@ LRESULT WindowImplBase::OnSysCommand(UINT uMsg, WPARAM wParam, LPARAM lParam, bo
 {
     bHandled = true;
     if (wParam == SC_CLOSE) {
-        //Á¢¼´¹Ø±Õ´°¿Ú
+        //ç«‹å³å…³é—­çª—å£
         Close();
         return 0;
     }
-    //Ê×ÏÈµ÷ÓÃÄ¬ÈÏµÄ´°¿Úº¯Êı£¬Ê¹µÃÃüÁîÉúĞ§
+    //é¦–å…ˆè°ƒç”¨é»˜è®¤çš„çª—å£å‡½æ•°ï¼Œä½¿å¾—å‘½ä»¤ç”Ÿæ•ˆ
     BOOL bZoomed = ::IsZoomed(GetHWND());
     LRESULT lRes = this->CallDefaultWindowProc(uMsg, wParam, lParam);
     if (::IsZoomed(GetHWND()) != bZoomed) {
         if (wParam == 0xF012) {
-            //ĞŞ¸´´°¿Ú×î´ó»¯ºÍ»¹Ô­°´Å¥µÄ×´Ì¬£¨µ±ÔÚ×î´ó»¯Ê±£¬ÏòÏÂÍÏ¶¯±êÌâÀ¸£¬´°¿Ú»á¸Ä±äÎª·Ç×î´ó»¯×´Ì¬£©
+            //ä¿®å¤çª—å£æœ€å¤§åŒ–å’Œè¿˜åŸæŒ‰é’®çš„çŠ¶æ€ï¼ˆå½“åœ¨æœ€å¤§åŒ–æ—¶ï¼Œå‘ä¸‹æ‹–åŠ¨æ ‡é¢˜æ ï¼Œçª—å£ä¼šæ”¹å˜ä¸ºéæœ€å¤§åŒ–çŠ¶æ€ï¼‰
             ProcessMaxRestoreStatus();
         }
     }
@@ -170,23 +170,23 @@ bool WindowImplBase::OnButtonClick(const EventArgs& msg)
     }
     std::wstring sCtrlName = msg.pSender->GetName();
     if (sCtrlName == DUI_CTR_BUTTON_CLOSE) {
-        //¹Ø±Õ°´Å¥
+        //å…³é—­æŒ‰é’®
         CloseWnd();
     }
     else if (sCtrlName == DUI_CTR_BUTTON_MIN) {
-        //×îĞ¡»¯°´Å¥
+        //æœ€å°åŒ–æŒ‰é’®
         Minimized();
     }
     else if (sCtrlName == DUI_CTR_BUTTON_MAX) {
-        //×î´ó»¯°´Å¥        
+        //æœ€å¤§åŒ–æŒ‰é’®        
         Maximized();
     }
     else if (sCtrlName == DUI_CTR_BUTTON_RESTORE) {
-        //»¹Ô­°´Å¥        
+        //è¿˜åŸæŒ‰é’®        
         Restore();
     }
     else if (sCtrlName == DUI_CTR_BUTTON_FULLSCREEN) {
-        //È«ÆÁ°´Å¥
+        //å…¨å±æŒ‰é’®
         EnterFullScreen();
     }
 

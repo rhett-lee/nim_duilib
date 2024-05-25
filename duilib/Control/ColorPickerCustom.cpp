@@ -44,7 +44,7 @@ void ColorPickerCustom::InitPicker()
 	m_pRegularPicker = dynamic_cast<ColorPickerRegular*>(pWindow->FindControl(L"color_picker_custom_regular"));
 	if (m_pRegularPicker != nullptr) {
 		m_pRegularPicker->AttachSelectColor([this](const ui::EventArgs& args) {
-			//×ª·¢¸ÃÊÂ¼ş¸øÉÏ²ã
+			//è½¬å‘è¯¥äº‹ä»¶ç»™ä¸Šå±‚
 			OnColorChanged(args.wParam, args.lParam, ChangeReason::ColorRegular);
 			return true;
 			});
@@ -53,7 +53,7 @@ void ColorPickerCustom::InitPicker()
 	m_pSpectrumControl = dynamic_cast<ColorControl*>(pWindow->FindControl(L"color_picker_custom_spectrum"));
 	if (m_pSpectrumControl != nullptr) {
 		m_pSpectrumControl->AttachSelectColor([this](const ui::EventArgs& args) {
-			//×ª·¢¸ÃÊÂ¼ş¸øÉÏ²ã
+			//è½¬å‘è¯¥äº‹ä»¶ç»™ä¸Šå±‚
 			OnColorChanged(args.wParam, args.lParam, ChangeReason::ColorSpectrum);
 			return true;
 			});
@@ -62,7 +62,7 @@ void ColorPickerCustom::InitPicker()
 	m_pNewColorEdit = dynamic_cast<RichEdit*>(pWindow->FindControl(L"color_picker_new_color_edit"));
 	if (m_pNewColorEdit != nullptr) {
 		m_pNewColorEdit->AttachTextChange([this](const ui::EventArgs& /*args*/) {
-			//×ª·¢¸ÃÊÂ¼ş¸øÉÏ²ã
+			//è½¬å‘è¯¥äº‹ä»¶ç»™ä¸Šå±‚
 			std::wstring colorText = m_pNewColorEdit->GetText();
 			if (IsValidColorString(colorText)) {
 				UiColor newColor = m_pNewColorEdit->GetUiColor(colorText);
@@ -144,7 +144,7 @@ void ColorPickerCustom::OnColorChanged(WPARAM wParam, LPARAM lParam, ChangeReaso
 	}
 
 	if (reason != ChangeReason::ColorSpectrum) {
-		//Ñ¡Ôñµ±Ç°Ñ¡ÖĞµÄÑÕÉ«
+		//é€‰æ‹©å½“å‰é€‰ä¸­çš„é¢œè‰²
 		if (m_pSpectrumControl != nullptr) {
 			m_pSpectrumControl->SelectColor(newColor);
 		}
@@ -154,13 +154,13 @@ void ColorPickerCustom::OnColorChanged(WPARAM wParam, LPARAM lParam, ChangeReaso
 		if (m_pRegularPicker != nullptr) {
 			UiColor color = m_pRegularPicker->GetSelectedColor();
 			if ((color != newColor) && (color.GetARGB() != 0)) {
-				//Çå³ıÑ¡Ôñ
+				//æ¸…é™¤é€‰æ‹©
 				m_pRegularPicker->SelectColor(UiColor());
 			}
 		}
 	}
 
-	//¸üĞÂRGB
+	//æ›´æ–°RGB
 	if (reason != ChangeReason::ColorARGB_A) {
 		UpdateRGB(m_rgbA, newColor, 0);			
 	}
@@ -174,10 +174,10 @@ void ColorPickerCustom::OnColorChanged(WPARAM wParam, LPARAM lParam, ChangeReaso
 		UpdateRGB(m_rgbB, newColor, 3);
 	}
 
-	//¸üĞÂHSV
+	//æ›´æ–°HSV
 	UpdateHSV(m_hsvH, m_hsvS, m_hsvV, newColor, reason);
 
-	//¸üĞÂHSL
+	//æ›´æ–°HSL
 	UpdateHSL(m_hslH, m_hslS, m_hslL, newColor, reason);
 
 	SendEvent(kEventSelectColor, wParam, lParam);
@@ -208,7 +208,7 @@ void ColorPickerCustom::InitRGB(const ColorUI& colorUI, ChangeReason reason)
 						pColorSlider->SetValue(nValue);
 					}
 				}
-				//ÊäÈë¿òÎÄ±¾±ä»¯£¬´¥·¢RGBÑÕÉ«±ä»¯ÊÂ¼ş
+				//è¾“å…¥æ¡†æ–‡æœ¬å˜åŒ–ï¼Œè§¦å‘RGBé¢œè‰²å˜åŒ–äº‹ä»¶
 				OnRGBChanged(reason);
 				return true;
 			});
@@ -225,7 +225,7 @@ void ColorPickerCustom::InitRGB(const ColorUI& colorUI, ChangeReason reason)
 						pRichEdit->SetTextNoEvent(text);
 					}
 				}
-				//Slider±ä»¯£¬´¥·¢RGBÑÕÉ«±ä»¯ÊÂ¼ş
+				//Sliderå˜åŒ–ï¼Œè§¦å‘RGBé¢œè‰²å˜åŒ–äº‹ä»¶
 				OnRGBChanged(reason);
 				return true;
 			});
@@ -266,7 +266,7 @@ void ColorPickerCustom::InitHSV(const ColorUI& colorUI, int32_t maxValue, Change
 						pColorSlider->SetValue(nValue);
 					}
 				}
-				//ÊäÈë¿òÎÄ±¾±ä»¯£¬´¥·¢RGBÑÕÉ«±ä»¯ÊÂ¼ş
+				//è¾“å…¥æ¡†æ–‡æœ¬å˜åŒ–ï¼Œè§¦å‘RGBé¢œè‰²å˜åŒ–äº‹ä»¶
 				OnRGBChanged(reason);
 				return true;
 			});
@@ -283,7 +283,7 @@ void ColorPickerCustom::InitHSV(const ColorUI& colorUI, int32_t maxValue, Change
 					pRichEdit->SetTextNoEvent(text);
 				}
 			}
-			//´¥·¢HSVÑÕÉ«±ä»¯ÊÂ¼ş
+			//è§¦å‘HSVé¢œè‰²å˜åŒ–äº‹ä»¶
 			OnHSVChanged(reason);
 			return true;
 			});
@@ -324,7 +324,7 @@ void ColorPickerCustom::InitHSL(const ColorUI& colorUI, int32_t maxValue, Change
 						pColorSlider->SetValue(nValue);
 					}
 				}
-				//ÊäÈë¿òÎÄ±¾±ä»¯£¬´¥·¢RGBÑÕÉ«±ä»¯ÊÂ¼ş
+				//è¾“å…¥æ¡†æ–‡æœ¬å˜åŒ–ï¼Œè§¦å‘RGBé¢œè‰²å˜åŒ–äº‹ä»¶
 				OnRGBChanged(reason);
 				return true;
 			});
@@ -341,7 +341,7 @@ void ColorPickerCustom::InitHSL(const ColorUI& colorUI, int32_t maxValue, Change
 					pRichEdit->SetTextNoEvent(text);
 				}
 			}
-			//´¥·¢HSLÑÕÉ«±ä»¯ÊÂ¼ş
+			//è§¦å‘HSLé¢œè‰²å˜åŒ–äº‹ä»¶
 			OnHSLChanged(reason);
 			return true;
 			});
@@ -406,7 +406,7 @@ void ColorPickerCustom::UpdateHSV(const ColorUI& colorUIH, const ColorUI& colorU
 	if ((reason == ChangeReason::ColorHSV_H) ||
 		(reason == ChangeReason::ColorHSV_S) ||
 		(reason == ChangeReason::ColorHSV_V)) {
-		//´Ó¿Ø¼ş»ñÈ¡ÑÕÉ«Öµ
+		//ä»æ§ä»¶è·å–é¢œè‰²å€¼
 		if (colorUIH.m_pColorSlider != nullptr) {
 			hue = colorUIH.m_pColorSlider->GetValue();
 			if (hue >= 360.0) {
@@ -451,7 +451,7 @@ void ColorPickerCustom::UpdateHSV(const ColorUI& colorUIH, const ColorUI& colorU
 		}
 	}
 
-	//¸üĞÂ±³¾°ÑÕÉ«
+	//æ›´æ–°èƒŒæ™¯é¢œè‰²
 	ColorHSV colorHSV;
 	colorHSV.H = static_cast<uint16_t>(hue);
 	colorHSV.S = static_cast<uint8_t>(sat * 100);
@@ -483,7 +483,7 @@ void ColorPickerCustom::UpdateHSL(const ColorUI& colorUIH, const ColorUI& colorU
 	if ((reason == ChangeReason::ColorHSL_H) ||
 		(reason == ChangeReason::ColorHSL_S) ||
 		(reason == ChangeReason::ColorHSL_L)) {
-		//´Ó¿Ø¼ş»ñÈ¡ÑÕÉ«Öµ
+		//ä»æ§ä»¶è·å–é¢œè‰²å€¼
 		if (colorUIH.m_pColorSlider != nullptr) {
 			hue = colorUIH.m_pColorSlider->GetValue();
 			if (hue >= 360.0) {
@@ -529,7 +529,7 @@ void ColorPickerCustom::UpdateHSL(const ColorUI& colorUIH, const ColorUI& colorU
 		}
 	}
 
-	//¸üĞÂ±³¾°ÑÕÉ«
+	//æ›´æ–°èƒŒæ™¯é¢œè‰²
 	ColorHSL colorHSL;
 	colorHSL.H = static_cast<uint16_t>(hue);
 	colorHSL.S = static_cast<uint8_t>(sat * 100);

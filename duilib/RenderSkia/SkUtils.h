@@ -10,9 +10,9 @@
 
 #include "include/core/SkTypes.h"
 
-//���ļ�ԭʼ�ļ��ĳ�����skia/chrome_67/src/core/SkUtils.h
-//����ԭʼ�ļ������޸ģ��Լ������°汾��skia���루2023-06-25��
-//ԭʼ�ļ��Ӻ����汾��ɾ���ˡ�
+//该文件原始文件的出处：skia/chrome_67/src/core/SkUtils.h
+//基于原始文件，有修改，以兼容最新版本的skia代码（2023-06-25）
+//原始文件从后续版本就删除了。
 
 namespace ui
 {

@@ -135,11 +135,11 @@ void ScrollBox::SetPosInternally(UiRect rc)
 	}
 	if ((layoutType != LayoutType::ListCtrlReportLayout) && 
 		(requiredSize.cx > 0) && (requiredSize.cy > 0)) {
-		//ĞèÒª°´ÕÕÕæÊµ´óĞ¡ÔÙ¼ÆËãÒ»´Î£¬ÒòÎªÄÚ²¿¸ù¾İrcÆÀ¹ÀµÄÊ±ºò£¬ÏÔÊ¾Î»ÖÃÊÇ²»ÕıÈ·µÄ
-		//£¨±ÈÈç¿Ø¼şÊÇcenter»òÕßbottom¶ÔÆëµÄÊ±ºò£¬»á°´ÕÕrcÇøÓò¶¨Î»×ø±ê£¬ÕâÊ±ÊÇ´íÎóµÄ£©¡£		
+		//éœ€è¦æŒ‰ç…§çœŸå®å¤§å°å†è®¡ç®—ä¸€æ¬¡ï¼Œå› ä¸ºå†…éƒ¨æ ¹æ®rcè¯„ä¼°çš„æ—¶å€™ï¼Œæ˜¾ç¤ºä½ç½®æ˜¯ä¸æ­£ç¡®çš„
+		//ï¼ˆæ¯”å¦‚æ§ä»¶æ˜¯centeræˆ–è€…bottomå¯¹é½çš„æ—¶å€™ï¼Œä¼šæŒ‰ç…§rcåŒºåŸŸå®šä½åæ ‡ï¼Œè¿™æ—¶æ˜¯é”™è¯¯çš„ï¼‰ã€‚		
 		int32_t cx = TruncateToInt32(requiredSize.cx);
 		if (layoutType == LayoutType::VTileLayout) {
-			//VTileÄ£Ê½ÊÇÏŞÖÆ¿í¶È£¬µ«²»ÏŞÖÆ¸ß¶È
+			//VTileæ¨¡å¼æ˜¯é™åˆ¶å®½åº¦ï¼Œä½†ä¸é™åˆ¶é«˜åº¦
 			if (cx > rc.Width()) {
 				cx = rc.Width();
 			}
@@ -151,7 +151,7 @@ void ScrollBox::SetPosInternally(UiRect rc)
 		}		
 		int32_t cy = TruncateToInt32(requiredSize.cy);
 		if (layoutType == LayoutType::HTileLayout) {
-			//HTileÄ£Ê½ÊÇÏŞÖÆ¸ß¶È£¬µ«²»ÏŞÖÆ¿í¶È
+			//HTileæ¨¡å¼æ˜¯é™åˆ¶é«˜åº¦ï¼Œä½†ä¸é™åˆ¶å®½åº¦
 			if (cy > rc.Height()) {
 				cy = rc.Height();
 			}
@@ -166,7 +166,7 @@ void ScrollBox::SetPosInternally(UiRect rc)
 			requiredSize = CalcRequiredSize(realRect);
 		}		
 	}
-	//requiredSizeĞèÒª¼ôÈ¥ÄÚ±ß¾à£¬ÓëProcessVScrollBar/ProcessHScrollBarµÄÂß¼­±£³ÖÒ»ÖÂ
+	//requiredSizeéœ€è¦å‰ªå»å†…è¾¹è·ï¼Œä¸ProcessVScrollBar/ProcessHScrollBarçš„é€»è¾‘ä¿æŒä¸€è‡´
 	UiPadding rcPadding = GetPadding();
 	requiredSize.cy -= (rcPadding.top + rcPadding.bottom);
 	requiredSize.cx -= (rcPadding.left + rcPadding.right);
@@ -203,7 +203,7 @@ UiSize64 ScrollBox::CalcRequiredSize(const UiRect& rc)
 void ScrollBox::HandleEvent(const EventArgs& msg)
 {
 	if (IsDisabledEvents(msg)) {
-		//Èç¹ûÊÇÊó±ê¼üÅÌÏûÏ¢£¬²¢ÇÒ¿Ø¼şÊÇDisabledµÄ£¬×ª·¢¸øÉÏ²ã¿Ø¼ş
+		//å¦‚æœæ˜¯é¼ æ ‡é”®ç›˜æ¶ˆæ¯ï¼Œå¹¶ä¸”æ§ä»¶æ˜¯Disabledçš„ï¼Œè½¬å‘ç»™ä¸Šå±‚æ§ä»¶
 		Box* pParent = GetParent();
 		if (pParent != nullptr) {
 			pParent->SendEvent(msg);
@@ -239,7 +239,7 @@ void ScrollBox::HandleEvent(const EventArgs& msg)
 		else if(msg.Type == kEventMouseWheel ) {
 			int deltaValue = GET_WHEEL_DELTA_WPARAM(msg.wParam);
 			if (msg.lParam != 0) {
-				//Õı³£Âß¼­¹ö¶¯
+				//æ­£å¸¸é€»è¾‘æ»šåŠ¨
 				if (deltaValue > 0) {
 					LineUp(abs(deltaValue));
 				}
@@ -248,7 +248,7 @@ void ScrollBox::HandleEvent(const EventArgs& msg)
 				}
 			}
 			else {
-				//ÑÏ¸ñ°´ÕÕ´«Èë²ÎÊı¹ö¶¯
+				//ä¸¥æ ¼æŒ‰ç…§ä¼ å…¥å‚æ•°æ»šåŠ¨
 				if (deltaValue > 0) {
 					TouchUp(abs(deltaValue));
 				}
@@ -364,7 +364,7 @@ void ScrollBox::PaintChild(IRender* pRender, const UiRect& rcPaint)
 			continue;
 		}
 		if (pControl->GetPaintOrder() != 0) {
-			//ÉèÖÃÁË»æÖÆË³Ğò£¬ ·ÅÈëÑÓ³Ù»æÖÆÁĞ±í
+			//è®¾ç½®äº†ç»˜åˆ¶é¡ºåºï¼Œ æ”¾å…¥å»¶è¿Ÿç»˜åˆ¶åˆ—è¡¨
 			delayItems.push_back(pControl);
 			continue;
 		}
@@ -384,7 +384,7 @@ void ScrollBox::PaintChild(IRender* pRender, const UiRect& rcPaint)
 		std::sort(delayItems.begin(), delayItems.end(), [](const Control* a, const Control* b) {
 			return a->GetPaintOrder() < b->GetPaintOrder();
 			});
-		//»æÖÆÑÓ³Ù»æÖÆµÄ¿Ø¼ş
+		//ç»˜åˆ¶å»¶è¿Ÿç»˜åˆ¶çš„æ§ä»¶
 		for (auto pControl : delayItems) {
 			UiSize scrollPos = GetScrollOffset();
 			UiRect rcNewPaint = GetPosWithoutPadding();
@@ -445,8 +445,8 @@ Control* ScrollBox::FindControl(FINDCONTROLPROC Proc, LPVOID pProcData,
 								uint32_t uFlags, const UiPoint& ptMouse,
 								const UiPoint& scrollPos)
 {
-	//ptMouse: ÊÇÊÊÅä¹ıÈİÆ÷×ÔÉíµÄ×ø±ê
-	//scrollPos: ÊÇµ±Ç°ÈİÆ÷µÄ¹ö¶¯ÌõÆ«ÒÆ	
+	//ptMouse: æ˜¯é€‚é…è¿‡å®¹å™¨è‡ªèº«çš„åæ ‡
+	//scrollPos: æ˜¯å½“å‰å®¹å™¨çš„æ»šåŠ¨æ¡åç§»	
 	if ((uFlags & UIFIND_VISIBLE) != 0 && !IsVisible()) {
 		return nullptr;
 	}
@@ -1151,7 +1151,7 @@ void ScrollBox::StopScrollAnimation()
 
 UiSize ScrollBox::GetScrollOffset() const
 {
-	//ÕâÖÖĞéÄâ¹ö¶¯ÌõÎ»ÖÃµÄÒıÈë£¬ÊÇÎªÁË½â¾öUiRectÓÃ32Î»ÕûĞÍÖµ²»ÄÜÖ§³Ö³¬´óĞé±í£¨Ç§ÍòÊı¾İÁ¿¼¶±ğÒÔÉÏ£©µÄÎÊÌâ
+	//è¿™ç§è™šæ‹Ÿæ»šåŠ¨æ¡ä½ç½®çš„å¼•å…¥ï¼Œæ˜¯ä¸ºäº†è§£å†³UiRectç”¨32ä½æ•´å‹å€¼ä¸èƒ½æ”¯æŒè¶…å¤§è™šè¡¨ï¼ˆåƒä¸‡æ•°æ®é‡çº§åˆ«ä»¥ä¸Šï¼‰çš„é—®é¢˜
 	UiSize64 scrollPos = GetScrollPos();
 	UiSize64 scrollVirtualOffset = GetScrollVirtualOffset();
 	int64_t scrollPosX = scrollPos.cx - scrollVirtualOffset.cx;

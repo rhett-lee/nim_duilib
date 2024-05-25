@@ -7,8 +7,8 @@
 
 namespace ui
 {
-/** ListCtrlÁĞ±íÊÓÍ¼UI¿Ø¼şµÄ»ùÀà£¨ÊµÏÖ×ÓÏîÑ¡Ôñ¹¦ÄÜ£¬°üÀ¨·½Ïò¼ü£¬¿ì½İ¼ü£¬Êó±êÑ¡ÔñÂß¼­µÈ£©
-*   Ê¹ÓÃÕâ¸öÀàµÄÊ±ºò£¬ĞèÒªÓÃ ListCtrlItemTemplate Ä£°åÀ´ĞÎ³É×ÓÀà×÷ÎªListBoxItem
+/** ListCtrlåˆ—è¡¨è§†å›¾UIæ§ä»¶çš„åŸºç±»ï¼ˆå®ç°å­é¡¹é€‰æ‹©åŠŸèƒ½ï¼ŒåŒ…æ‹¬æ–¹å‘é”®ï¼Œå¿«æ·é”®ï¼Œé¼ æ ‡é€‰æ‹©é€»è¾‘ç­‰ï¼‰
+*   ä½¿ç”¨è¿™ä¸ªç±»çš„æ—¶å€™ï¼Œéœ€è¦ç”¨ ListCtrlItemTemplate æ¨¡æ¿æ¥å½¢æˆå­ç±»ä½œä¸ºListBoxItem
 */
 class ListCtrlView : public VirtualListBox
 {
@@ -20,115 +20,115 @@ public:
     virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue);
     virtual void HandleEvent(const EventArgs& msg) override;
 
-    /** DPI·¢Éú±ä»¯£¬¸üĞÂ¿Ø¼ş´óĞ¡ºÍ²¼¾Ö
-    * @param [in] nOldDpiScale ¾ÉµÄDPIËõ·Å°Ù·Ö±È
-    * @param [in] nNewDpiScale ĞÂµÄDPIËõ·Å°Ù·Ö±È£¬ÓëDpi().GetScale()µÄÖµÒ»ÖÂ
+    /** DPIå‘ç”Ÿå˜åŒ–ï¼Œæ›´æ–°æ§ä»¶å¤§å°å’Œå¸ƒå±€
+    * @param [in] nOldDpiScale æ—§çš„DPIç¼©æ”¾ç™¾åˆ†æ¯”
+    * @param [in] nNewDpiScale æ–°çš„DPIç¼©æ”¾ç™¾åˆ†æ¯”ï¼Œä¸Dpi().GetScale()çš„å€¼ä¸€è‡´
     */
     virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override;
 
-    /** Ñ¡Ôñ×ÓÏî
-    *  @param [in] iIndex ×ÓÏîÄ¿µÄID
-    *  @param [in] bTakeFocus ÊÇ·ñÈÃ×ÓÏî¿Ø¼ş³ÉÎª½¹µã¿Ø¼ş
-    *  @param [in] bTriggerEvent ÊÇ·ñ´¥·¢Ñ¡ÔñÊÂ¼ş, Èç¹ûÎªtrue£¬»á´¥·¢Ò»¸ökEventSelectÊÂ¼ş
-    *  @param [in] vkFlag °´¼ü±êÖ¾, È¡Öµ·¶Î§²Î¼û enum VKFlag µÄ¶¨Òå
+    /** é€‰æ‹©å­é¡¹
+    *  @param [in] iIndex å­é¡¹ç›®çš„ID
+    *  @param [in] bTakeFocus æ˜¯å¦è®©å­é¡¹æ§ä»¶æˆä¸ºç„¦ç‚¹æ§ä»¶
+    *  @param [in] bTriggerEvent æ˜¯å¦è§¦å‘é€‰æ‹©äº‹ä»¶, å¦‚æœä¸ºtrueï¼Œä¼šè§¦å‘ä¸€ä¸ªkEventSelectäº‹ä»¶
+    *  @param [in] vkFlag æŒ‰é”®æ ‡å¿—, å–å€¼èŒƒå›´å‚è§ enum VKFlag çš„å®šä¹‰
     */
     virtual bool SelectItem(size_t iIndex, bool bTakeFocus,
                             bool bTriggerEvent, uint64_t vkFlag) override;
 
 public:
-    /** ¼àÌıÑ¡ÔñÏî·¢Éú±ä»¯µÄÊÂ¼ş
-     * @param[in] callback Ñ¡Ôñ×ÓÏîÊ±µÄ»Øµ÷º¯Êı
+    /** ç›‘å¬é€‰æ‹©é¡¹å‘ç”Ÿå˜åŒ–çš„äº‹ä»¶
+     * @param[in] callback é€‰æ‹©å­é¡¹æ—¶çš„å›è°ƒå‡½æ•°
      */
     void AttachSelChange(const EventCallback& callback) { AttachEvent(kEventSelChange, callback); }
 
-    /** ·¢ËÍÊÂ¼şµÄº¯Êı
+    /** å‘é€äº‹ä»¶çš„å‡½æ•°
     */
     virtual void SendEvent(EventType eventType, WPARAM wParam = 0, LPARAM lParam = 0, TCHAR tChar = 0,
                            const UiPoint& mousePos = UiPoint()) override;
     virtual void SendEvent(const EventArgs& event) override;
 
 public:
-    /** »ñÈ¡¶¥²¿ÔªËØµÄË÷ÒıºÅ
+    /** è·å–é¡¶éƒ¨å…ƒç´ çš„ç´¢å¼•å·
     */
     virtual size_t GetTopElementIndex() const;
 
-    /** ÅĞ¶ÏÒ»¸öÊı¾İÏîÊÇ·ñ¿É¼û
-    * @param [in] itemIndex Êı¾İÏîµÄË÷ÒıºÅ, ÓĞĞ§·¶Î§£º[0, GetDataItemCount())
+    /** åˆ¤æ–­ä¸€ä¸ªæ•°æ®é¡¹æ˜¯å¦å¯è§
+    * @param [in] itemIndex æ•°æ®é¡¹çš„ç´¢å¼•å·, æœ‰æ•ˆèŒƒå›´ï¼š[0, GetDataItemCount())
     */
     virtual bool IsDataItemDisplay(size_t itemIndex) const;
 
-    /** »ñÈ¡µ±Ç°ÏÔÊ¾µÄÊı¾İÏîÁĞ±í£¬Ë³ĞòÊÇ´ÓÉÏµ½ÏÂ
-    * @param [in] itemIndexList µ±Ç°ÏÔÊ¾µÄÊı¾İÏîË÷ÒıºÅÁĞ±í
+    /** è·å–å½“å‰æ˜¾ç¤ºçš„æ•°æ®é¡¹åˆ—è¡¨ï¼Œé¡ºåºæ˜¯ä»ä¸Šåˆ°ä¸‹
+    * @param [in] itemIndexList å½“å‰æ˜¾ç¤ºçš„æ•°æ®é¡¹ç´¢å¼•å·åˆ—è¡¨
     */
     virtual void GetDisplayDataItems(std::vector<size_t>& itemIndexList) const;
 
-    /** È·±£Êı¾İË÷ÒıÏî¿É¼û
-    * @param [in] itemIndex Êı¾İÏîµÄË÷ÒıºÅ
-    * @param [in] bToTop ÊÇ·ñÈ·±£ÔÚ×îÉÏ·½
+    /** ç¡®ä¿æ•°æ®ç´¢å¼•é¡¹å¯è§
+    * @param [in] itemIndex æ•°æ®é¡¹çš„ç´¢å¼•å·
+    * @param [in] bToTop æ˜¯å¦ç¡®ä¿åœ¨æœ€ä¸Šæ–¹
     */
     virtual bool EnsureDataItemVisible(size_t itemIndex, bool bToTop);
 
 public:
-    /** ÉèÖÃÆÕÍ¨ÁĞ±íÏî£¨·ÇHeader¡¢·ÇÖÃ¶¥£©µÄtop×ø±ê
+    /** è®¾ç½®æ™®é€šåˆ—è¡¨é¡¹ï¼ˆéHeaderã€éç½®é¡¶ï¼‰çš„topåæ ‡
     */
     void SetNormalItemTop(int32_t nNormalItemTop);
 
-    /** »ñÈ¡ÆÕÍ¨ÁĞ±íÏî£¨·ÇHeader¡¢·ÇÖÃ¶¥£©µÄtop×ø±ê
+    /** è·å–æ™®é€šåˆ—è¡¨é¡¹ï¼ˆéHeaderã€éç½®é¡¶ï¼‰çš„topåæ ‡
     */
     int32_t GetNormalItemTop() const;
 
-    /** ÉèÖÃ¿òÑ¡±ß¿òµÄ´óĞ¡
-    * @param [in] nBorderSize ±ß¿ò´óĞ¡
-    * @param [in] bNeedDpiScale ÊÇ·ñÖ§³ÖDPIËõ·Å
+    /** è®¾ç½®æ¡†é€‰è¾¹æ¡†çš„å¤§å°
+    * @param [in] nBorderSize è¾¹æ¡†å¤§å°
+    * @param [in] bNeedDpiScale æ˜¯å¦æ”¯æŒDPIç¼©æ”¾
     */
     void SetFrameSelectionBorderSize(int32_t nBorderSize, bool bNeedDpiScale);
 
-    /** »ñÈ¡¿òÑ¡±ß¿òµÄ´óĞ¡
+    /** è·å–æ¡†é€‰è¾¹æ¡†çš„å¤§å°
     */
     int32_t GetFrameSelectionBorderSize() const;
 
 protected:
-    /** ¿Ø¼ş³õÊ¼»¯
+    /** æ§ä»¶åˆå§‹åŒ–
     */
     virtual void OnInit() override;
 
-    /** »æÖÆ×Ó¿Ø¼ş
+    /** ç»˜åˆ¶å­æ§ä»¶
     */
     virtual void PaintChild(IRender* pRender, const UiRect& rcPaint) override;
 
-    /** ¹ÒÔØListBoxItemµÄÊó±êÊÂ¼ş£¬ÒÔÊµÏÖÊó±ê¿òÑ¡²Ù×÷
+    /** æŒ‚è½½ListBoxItemçš„é¼ æ ‡äº‹ä»¶ï¼Œä»¥å®ç°é¼ æ ‡æ¡†é€‰æ“ä½œ
     */
     virtual void AttachMouseEvents(Control* pListBoxItem);
 
-    /** Ñ¡Ôñ×´Ì¬·¢Éú±ä»¯
+    /** é€‰æ‹©çŠ¶æ€å‘ç”Ÿå˜åŒ–
     */
     virtual void OnSelectStatusChanged();
 
-    /** »ñÈ¡¹ö¶¯ÊÓÍ¼µÄ¹ö¶¯·ù¶È
+    /** è·å–æ»šåŠ¨è§†å›¾çš„æ»šåŠ¨å¹…åº¦
     */
     virtual void GetScrollDeltaValue(int32_t& nHScrollValue, int32_t& nVScrollValue) const;
 
-    /** Ö´ĞĞÁËÊó±ê¿òÑ¡²Ù×÷
-    * @param [in] left ¿òÑ¡µÄX×ø±êleftÖµ
-    * @param [in] right ¿òÑ¡µÄX×ø±êrightÖµ
-    * @param [in] top ¿òÑ¡µÄY×ø±êtopÖµ
-    * @param [in] bottom ¿òÑ¡µÄY×ø±êbottomÖµ
-    * @return Èç¹ûÓĞÑ¡Ôñ±ä»¯·µ»Øtrue£¬·ñÔò·µ»Øfalse
+    /** æ‰§è¡Œäº†é¼ æ ‡æ¡†é€‰æ“ä½œ
+    * @param [in] left æ¡†é€‰çš„Xåæ ‡leftå€¼
+    * @param [in] right æ¡†é€‰çš„Xåæ ‡rightå€¼
+    * @param [in] top æ¡†é€‰çš„Yåæ ‡topå€¼
+    * @param [in] bottom æ¡†é€‰çš„Yåæ ‡bottomå€¼
+    * @return å¦‚æœæœ‰é€‰æ‹©å˜åŒ–è¿”å›trueï¼Œå¦åˆ™è¿”å›false
     */
     virtual bool OnFrameSelection(int64_t left, int64_t right, int64_t top, int64_t bottom);
 
-    /** »æÖÆÊó±ê¿òÑ¡µÄ±ß¿òºÍÌî³äÑÕÉ«
+    /** ç»˜åˆ¶é¼ æ ‡æ¡†é€‰çš„è¾¹æ¡†å’Œå¡«å……é¢œè‰²
     */
     void PaintFrameSelection(IRender* pRender);
 
 protected:
-    //Êó±êÏûÏ¢£¨·µ»Øtrue£º±íÊ¾ÏûÏ¢ÒÑ´¦Àí£»·µ»Øfalse£ºÔò±íÊ¾ÏûÏ¢Î´´¦Àí£¬Ğè×ª·¢¸ø¸¸¿Ø¼ş£©
+    //é¼ æ ‡æ¶ˆæ¯ï¼ˆè¿”å›trueï¼šè¡¨ç¤ºæ¶ˆæ¯å·²å¤„ç†ï¼›è¿”å›falseï¼šåˆ™è¡¨ç¤ºæ¶ˆæ¯æœªå¤„ç†ï¼Œéœ€è½¬å‘ç»™çˆ¶æ§ä»¶ï¼‰
     virtual bool ButtonDown(const EventArgs& msg) override;
     virtual bool ButtonUp(const EventArgs& msg) override;
     virtual bool RButtonDown(const EventArgs& msg) override;
     virtual bool RButtonUp(const EventArgs& msg) override;
     virtual bool MouseMove(const EventArgs& msg) override;
-    virtual bool OnWindowKillFocus(const EventArgs& msg) override;//¿Ø¼şËùÊôµÄ´°¿ÚÊ§È¥½¹µã
+    virtual bool OnWindowKillFocus(const EventArgs& msg) override;//æ§ä»¶æ‰€å±çš„çª—å£å¤±å»ç„¦ç‚¹
 
 private:
     void OnButtonDown(const UiPoint& ptMouse, Control* pSender);
@@ -139,93 +139,93 @@ private:
     void OnWindowKillFocus();
 
 private:
-    /** ÔÚÊÓÍ¼¿Õ°×´¦µã»÷ÁËÊó±ê×ó¼ü/ÓÒ¼ü
+    /** åœ¨è§†å›¾ç©ºç™½å¤„ç‚¹å‡»äº†é¼ æ ‡å·¦é”®/å³é”®
     */
     bool OnListCtrlClickedBlank();
 
-    /** ¼ì²éÊÇ·ñĞèÒª¹ö¶¯ÊÓÍ¼
+    /** æ£€æŸ¥æ˜¯å¦éœ€è¦æ»šåŠ¨è§†å›¾
     */
     void OnCheckScrollView();
 
-    /** ºáÏò²¼¾Ö£¬¼ÆËãĞĞÊı
+    /** æ¨ªå‘å¸ƒå±€ï¼Œè®¡ç®—è¡Œæ•°
     */
     int32_t CalcRows() const;
 
-    /** ×İÏò²¼¾Ö£¬¼ÆËãÁĞÊı
+    /** çºµå‘å¸ƒå±€ï¼Œè®¡ç®—åˆ—æ•°
     */
     int32_t CalcColumns() const;
 
-    /** ¼ÆËãÒ»¸öÔªËØµÄ¾ØĞÎÇøÓò
+    /** è®¡ç®—ä¸€ä¸ªå…ƒç´ çš„çŸ©å½¢åŒºåŸŸ
     */
     void CalcElementRectV(size_t nElemenetIndex, const UiSize& szItem, 
                           int32_t nColumns, int32_t childMarginX, int32_t childMarginY,
                           int64_t& iLeft, int64_t& iTop, int64_t& iRight, int64_t& iBottom) const;
 
-    /** ¼ÆËãÒ»¸öÔªËØµÄ¾ØĞÎÇøÓò
+    /** è®¡ç®—ä¸€ä¸ªå…ƒç´ çš„çŸ©å½¢åŒºåŸŸ
     */
     void CalcElementRectH(size_t nElemenetIndex, const UiSize& szItem, 
                           int32_t nRows, int32_t childMarginX, int32_t childMarginY,
                           int64_t& iLeft, int64_t& iTop, int64_t& iRight, int64_t& iBottom) const;
 
 
-    /** ÏìÓ¦KeyDownÏûÏ¢
-    * @return ·µ»Øtrue±íÊ¾³É¹¦´¦Àí£¬·µ»Øfalse±íÊ¾Î´´¦Àí´ËÏûÏ¢
+    /** å“åº”KeyDownæ¶ˆæ¯
+    * @return è¿”å›trueè¡¨ç¤ºæˆåŠŸå¤„ç†ï¼Œè¿”å›falseè¡¨ç¤ºæœªå¤„ç†æ­¤æ¶ˆæ¯
     */
     bool OnListCtrlKeyDown(const EventArgs& msg);
 
 private:
-    /** ÊÇ·ñÊó±êÔÚÊÓÍ¼ÖĞ°´ÏÂ×ó¼ü»òÕßÓÒ¼ü
+    /** æ˜¯å¦é¼ æ ‡åœ¨è§†å›¾ä¸­æŒ‰ä¸‹å·¦é”®æˆ–è€…å³é”®
     */
     bool m_bMouseDownInView;
 
-    /** ÊÇ·ñÊó±ê×ó¼ü°´ÏÂ
+    /** æ˜¯å¦é¼ æ ‡å·¦é”®æŒ‰ä¸‹
     */
     bool m_bMouseDown;
 
-    /** ÊÇ·ñÊó±êÓÒ¼ü°´ÏÂ
+    /** æ˜¯å¦é¼ æ ‡å³é”®æŒ‰ä¸‹
     */
     bool m_bRMouseDown;
 
-    /** ÊÇ·ñ´¦ÓÚÊó±ê»¬¶¯²Ù×÷ÖĞ
+    /** æ˜¯å¦å¤„äºé¼ æ ‡æ»‘åŠ¨æ“ä½œä¸­
     */
     bool m_bInMouseMove;
 
-    /** Êó±ê°´ÏÂÊ±µÄÊó±êÎ»ÖÃ
+    /** é¼ æ ‡æŒ‰ä¸‹æ—¶çš„é¼ æ ‡ä½ç½®
     */
     UiSize64 m_ptMouseDown;
 
-    /** Êó±ê»¬¶¯Ê±µÄÊó±êÎ»ÖÃ
+    /** é¼ æ ‡æ»‘åŠ¨æ—¶çš„é¼ æ ‡ä½ç½®
     */
     UiSize64 m_ptMouseMove;
 
-    /** Êó±ê°´ÏÂÊ±µÄ¿Ø¼ş½Ó¿Ú
+    /** é¼ æ ‡æŒ‰ä¸‹æ—¶çš„æ§ä»¶æ¥å£
     */
     Control* m_pMouseSender;
 
-    /** ¶¨Ê±Æ÷¹ö¶¯ÊÓÍ¼Ê±µÄÈ¡Ïû»úÖÆ
+    /** å®šæ—¶å™¨æ»šåŠ¨è§†å›¾æ—¶çš„å–æ¶ˆæœºåˆ¶
     */
     nbase::WeakCallbackFlag m_scrollViewFlag;
 
-    /** Êó±ê¿òÑ¡¹¦ÄÜµÄÉèÖÃ
+    /** é¼ æ ‡æ¡†é€‰åŠŸèƒ½çš„è®¾ç½®
     */
-    bool m_bEnableFrameSelection; //ÊÇ·ñÖ§³ÖÊó±ê¿òÑ¡¹¦ÄÜ
-    UiString m_frameSelectionColor; //¿òÑ¡Ìî³äÑÕÉ«
-    uint8_t m_frameSelectionAlpha;  //¿òÑ¡Ìî³äÑÕÉ«µÄAlphaÖµ
-    UiString m_frameSelectionBorderColor; //¿òÑ¡±ß¿òÑÕÉ«
-    uint8_t m_frameSelectionBorderSize; //¿òÑ¡±ß¿ò´óĞ¡
+    bool m_bEnableFrameSelection; //æ˜¯å¦æ”¯æŒé¼ æ ‡æ¡†é€‰åŠŸèƒ½
+    UiString m_frameSelectionColor; //æ¡†é€‰å¡«å……é¢œè‰²
+    uint8_t m_frameSelectionAlpha;  //æ¡†é€‰å¡«å……é¢œè‰²çš„Alphaå€¼
+    UiString m_frameSelectionBorderColor; //æ¡†é€‰è¾¹æ¡†é¢œè‰²
+    uint8_t m_frameSelectionBorderSize; //æ¡†é€‰è¾¹æ¡†å¤§å°
 
 private:
-    /** Ã»°´Shift¼üÊ±µÄ×îºóÒ»´ÎÑ¡ÖĞÏî£¬ÓĞĞ§·¶Î§£º[0, GetElementCount())
+    /** æ²¡æŒ‰Shifté”®æ—¶çš„æœ€åä¸€æ¬¡é€‰ä¸­é¡¹ï¼Œæœ‰æ•ˆèŒƒå›´ï¼š[0, GetElementCount())
     */
     size_t m_nLastNoShiftIndex;
 
 private:
-    /** ÆÕÍ¨ÁĞ±íÏî£¨·ÇHeader¡¢·ÇÖÃ¶¥£©µÄtop×ø±ê
+    /** æ™®é€šåˆ—è¡¨é¡¹ï¼ˆéHeaderã€éç½®é¡¶ï¼‰çš„topåæ ‡
     */
     int32_t m_nNormalItemTop;
 };
 
-/** ListCtrl¸÷¸öÊÓÍ¼ÖĞÊı¾İÏîµÄ»ùÀàÄ£°å
+/** ListCtrlå„ä¸ªè§†å›¾ä¸­æ•°æ®é¡¹çš„åŸºç±»æ¨¡æ¿
 */
 template<typename InheritType>
 class UILIB_API ListCtrlItemTemplate : public ListBoxItemTemplate<InheritType>
@@ -237,9 +237,9 @@ public:
     }
     virtual ~ListCtrlItemTemplate() {}
 
-    /** ÉèÖÃ¿Ø¼şÊÇ·ñÑ¡Ôñ×´Ì¬
-  * @param [in] bSelected Îª true Ê±ÎªÑ¡Ôñ×´Ì¬£¬false Ê±ÎªÈ¡ÏûÑ¡Ôñ×´Ì¬
-  * @param [in] bTriggerEvent ÊÇ·ñ·¢ËÍ×´Ì¬¸Ä±äÊÂ¼ş£¬true Îª·¢ËÍ£¬·ñÔòÎª false¡£Ä¬ÈÏÎª false
+    /** è®¾ç½®æ§ä»¶æ˜¯å¦é€‰æ‹©çŠ¶æ€
+  * @param [in] bSelected ä¸º true æ—¶ä¸ºé€‰æ‹©çŠ¶æ€ï¼Œfalse æ—¶ä¸ºå–æ¶ˆé€‰æ‹©çŠ¶æ€
+  * @param [in] bTriggerEvent æ˜¯å¦å‘é€çŠ¶æ€æ”¹å˜äº‹ä»¶ï¼Œtrue ä¸ºå‘é€ï¼Œå¦åˆ™ä¸º falseã€‚é»˜è®¤ä¸º false
   */
     virtual void Selected(bool bSelect, bool bTriggerEvent) override
     {
@@ -249,17 +249,17 @@ public:
     }
 
 protected:
-    /** ¼¤»îº¯Êı
+    /** æ¿€æ´»å‡½æ•°
     */
     virtual void Activate() override
     {
-        //ÖØĞ´»ùÀàµÄÊµÏÖÂß¼­£¬ÕâÀïÖ»·¢³öÒ»¸öClickÊÂ¼ş
+        //é‡å†™åŸºç±»çš„å®ç°é€»è¾‘ï¼Œè¿™é‡Œåªå‘å‡ºä¸€ä¸ªClickäº‹ä»¶
         if (this->IsActivatable()) {
             this->SendEvent(kEventClick);
         }
     }
 
-    /** Êó±ê×ó¼ü°´ÏÂÊÂ¼ş£º´¥·¢Ñ¡Ôñ×ÓÏîÊÂ¼ş
+    /** é¼ æ ‡å·¦é”®æŒ‰ä¸‹äº‹ä»¶ï¼šè§¦å‘é€‰æ‹©å­é¡¹äº‹ä»¶
     */
     virtual bool ButtonDown(const EventArgs& msg) override
     {
@@ -273,13 +273,13 @@ protected:
                 vkFlag |= kVkShift;
             }
 #endif
-            //×ó¼ü°´ÏÂµÄÊ±ºò£¬Ñ¡Ôñ
+            //å·¦é”®æŒ‰ä¸‹çš„æ—¶å€™ï¼Œé€‰æ‹©
             SelectItem(vkFlag);
         }
         return __super::ButtonDown(msg);
     }
 
-    /** Êó±êÓÒ¼ü°´ÏÂÊÂ¼ş£º´¥·¢Ñ¡Ôñ×ÓÏîÊÂ¼ş
+    /** é¼ æ ‡å³é”®æŒ‰ä¸‹äº‹ä»¶ï¼šè§¦å‘é€‰æ‹©å­é¡¹äº‹ä»¶
     */
     virtual bool RButtonDown(const EventArgs& msg) override
     {
@@ -293,14 +293,14 @@ protected:
                 vkFlag |= kVkShift;
             }
 #endif
-            //ÓÒ¼ü°´ÏÂµÄÊ±ºò£¬Ñ¡Ôñ
+            //å³é”®æŒ‰ä¸‹çš„æ—¶å€™ï¼Œé€‰æ‹©
             SelectItem(vkFlag);
         }
         return __super::RButtonDown(msg);
     }
 
-    /** Ö´ĞĞÑ¡Ôñ¹¦ÄÜ
-    * @param [in] vkFlag °´¼ü±êÖ¾, È¡Öµ·¶Î§²Î¼û enum VKFlag µÄ¶¨Òå
+    /** æ‰§è¡Œé€‰æ‹©åŠŸèƒ½
+    * @param [in] vkFlag æŒ‰é”®æ ‡å¿—, å–å€¼èŒƒå›´å‚è§ enum VKFlag çš„å®šä¹‰
     */
     void SelectItem(uint64_t vkFlag)
     {
@@ -313,9 +313,9 @@ protected:
     }
 };
 
-typedef ListCtrlItemTemplate<Box> ListCtrlItemBase;   //»ùÀàÎª£ºListBoxItem
-typedef ListCtrlItemTemplate<HBox> ListCtrlItemBaseH; //»ùÀàÎª£ºListBoxItemH
-typedef ListCtrlItemTemplate<VBox> ListCtrlItemBaseV; //»ùÀàÎª£ºListBoxItemV
+typedef ListCtrlItemTemplate<Box> ListCtrlItemBase;   //åŸºç±»ä¸ºï¼šListBoxItem
+typedef ListCtrlItemTemplate<HBox> ListCtrlItemBaseH; //åŸºç±»ä¸ºï¼šListBoxItemH
+typedef ListCtrlItemTemplate<VBox> ListCtrlItemBaseV; //åŸºç±»ä¸ºï¼šListBoxItemV
 
 }//namespace ui
 

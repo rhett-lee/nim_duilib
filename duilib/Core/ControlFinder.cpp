@@ -118,7 +118,7 @@ void ControlFinder::AddControl(Control* pControl)
 	auto iter = m_mNameHash.find(sName);
 	if (iter != m_mNameHash.end()) {
 		if (iter->second != pControl) {
-			//控件名称相同的，覆盖
+			//鎺т欢鍚嶇О鐩稿悓鐨勶紝瑕嗙洊
 			iter->second = pControl;
 		}
 	}

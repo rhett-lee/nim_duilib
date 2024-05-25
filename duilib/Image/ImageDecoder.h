@@ -14,17 +14,17 @@ class ImageInfo;
 class ImageLoadAttribute;
 class DpiManager;
 
-/** Í¼Æ¬¸ñÊ½½âÂëÀà
+/** å›¾ç‰‡æ ¼å¼è§£ç ç±»
 */
 class UILIB_API ImageDecoder
 {
 public:
-    /** ´ÓÄÚ´æÎÄ¼şÊı¾İÖĞ¼ÓÔØÍ¼Æ¬²¢½âÂëÍ¼Æ¬Êı¾İ, ¿íºÍ¸ßÊôĞÔ¿ÉÒÔÖ»ÉèÖÃÒ»¸ö£¬ÁíÍâÒ»¸öÊôĞÔÔòÄ¬ÈÏ°´Ô´Í¼Æ¬µÈ±È¼ÆËãµÃ³ö
-    * @param [in] fileData Í¼Æ¬ÎÄ¼şµÄÊı¾İ£¬²¿·Ö¸ñÊ½¼ÓÔØ¹ı³ÌÖĞÄÚ²¿ÓĞÔö¼ÓÎ²0µÄĞ´²Ù×÷
-    * @param [in] imageLoadAttribute Í¼Æ¬¼ÓÔØÊôĞÔ, °üÀ¨Í¼Æ¬Â·¾¶µÈ
-    * @param [in] bEnableDpiScale ÊÇ·ñÔÊĞí°´ÕÕDPI¶ÔÍ¼Æ¬´óĞ¡½øĞĞËõ·Å£¨´ËÎª¹¦ÄÜ¿ª¹Ø£©
-    * @param [in] nImageDpiScale Í¼Æ¬Êı¾İ¶ÔÓ¦µÄDPIËõ·Å°Ù·Ö±È£¨±ÈÈç£ºi.jpgÎª100£¬i@150.jpgÎª150£©
-    * @param [in] dpi DPIËõ·Å¹ÜÀí½Ó¿Ú
+    /** ä»å†…å­˜æ–‡ä»¶æ•°æ®ä¸­åŠ è½½å›¾ç‰‡å¹¶è§£ç å›¾ç‰‡æ•°æ®, å®½å’Œé«˜å±æ€§å¯ä»¥åªè®¾ç½®ä¸€ä¸ªï¼Œå¦å¤–ä¸€ä¸ªå±æ€§åˆ™é»˜è®¤æŒ‰æºå›¾ç‰‡ç­‰æ¯”è®¡ç®—å¾—å‡º
+    * @param [in] fileData å›¾ç‰‡æ–‡ä»¶çš„æ•°æ®ï¼Œéƒ¨åˆ†æ ¼å¼åŠ è½½è¿‡ç¨‹ä¸­å†…éƒ¨æœ‰å¢åŠ å°¾0çš„å†™æ“ä½œ
+    * @param [in] imageLoadAttribute å›¾ç‰‡åŠ è½½å±æ€§, åŒ…æ‹¬å›¾ç‰‡è·¯å¾„ç­‰
+    * @param [in] bEnableDpiScale æ˜¯å¦å…è®¸æŒ‰ç…§DPIå¯¹å›¾ç‰‡å¤§å°è¿›è¡Œç¼©æ”¾ï¼ˆæ­¤ä¸ºåŠŸèƒ½å¼€å…³ï¼‰
+    * @param [in] nImageDpiScale å›¾ç‰‡æ•°æ®å¯¹åº”çš„DPIç¼©æ”¾ç™¾åˆ†æ¯”ï¼ˆæ¯”å¦‚ï¼ši.jpgä¸º100ï¼Œi@150.jpgä¸º150ï¼‰
+    * @param [in] dpi DPIç¼©æ”¾ç®¡ç†æ¥å£
     */
 	std::unique_ptr<ImageInfo> LoadImageData(std::vector<uint8_t>& fileData,                                             
                                              const ImageLoadAttribute& imageLoadAttribute,
@@ -33,42 +33,42 @@ public:
                                              const DpiManager& dpi);
 
 public:
-    /** ¼ÓÔØºóµÄÍ¼Æ¬Êı¾İ
+    /** åŠ è½½åçš„å›¾ç‰‡æ•°æ®
     */
     struct ImageData
     {
-        /** Î»Í¼Êı¾İ£¬Ã¿Ö¡Í¼Æ¬µÄÊı¾İ³¤¶È¹Ì¶¨Îª£ºÍ¼ÏñÊı¾İ³¤¶ÈÎª (m_imageHeight*m_imageWidth*4)
-        *   Ã¿¸öÏñËØÊı¾İ¹Ì¶¨Õ¼4¸ö×Ö½Ú£¬¸ñÊ½ÎªARGB¸ñÊ½£¬Î»ÊıË³Ğò´Ó¸ßÎ»µ½µÍÎ»·Ö±ğÎª[µÚ3Î»:A£¬µÚ2Î»:R£¬µÚ1Î»:G,µÚ0Î»:B]
+        /** ä½å›¾æ•°æ®ï¼Œæ¯å¸§å›¾ç‰‡çš„æ•°æ®é•¿åº¦å›ºå®šä¸ºï¼šå›¾åƒæ•°æ®é•¿åº¦ä¸º (m_imageHeight*m_imageWidth*4)
+        *   æ¯ä¸ªåƒç´ æ•°æ®å›ºå®šå 4ä¸ªå­—èŠ‚ï¼Œæ ¼å¼ä¸ºARGBæ ¼å¼ï¼Œä½æ•°é¡ºåºä»é«˜ä½åˆ°ä½ä½åˆ†åˆ«ä¸º[ç¬¬3ä½:Aï¼Œç¬¬2ä½:Rï¼Œç¬¬1ä½:G,ç¬¬0ä½:B]
         */
         std::vector<uint8_t> m_bitmapData;
 
-        /** Í¼Ïñ¿í¶È
+        /** å›¾åƒå®½åº¦
         */
         uint32_t m_imageWidth = 0;
 
-        /** Í¼Ïñ¸ß¶È
+        /** å›¾åƒé«˜åº¦
         */
         uint32_t m_imageHeight = 0;
 
-        /** ¶¯»­²¥·ÅÊ±µÄÑÓ³ÙÊ±¼ä£¬µ¥Î»ÎªºÁÃë
+        /** åŠ¨ç”»æ’­æ”¾æ—¶çš„å»¶è¿Ÿæ—¶é—´ï¼Œå•ä½ä¸ºæ¯«ç§’
         */
         uint32_t m_frameInterval = 0;
 
-        /** ´´½¨Î»Í¼µÄÊ±ºò£¬ÊÇ·ñĞèÒª·­×ª¸ß¶È£¨²»Í¬¼ÓÔØÒıÇæ£¬´ËÊôĞÔ¿ÉÄÜ²»Í¬£©
+        /** åˆ›å»ºä½å›¾çš„æ—¶å€™ï¼Œæ˜¯å¦éœ€è¦ç¿»è½¬é«˜åº¦ï¼ˆä¸åŒåŠ è½½å¼•æ“ï¼Œæ­¤å±æ€§å¯èƒ½ä¸åŒï¼‰
         */
         bool bFlipHeight = true;
     };
 
 private:
-    /** ¶ÔÍ¼Æ¬Êı¾İ½øĞĞ½âÂë£¬Éú³ÉÎ»Í¼Êı¾İ
-    * @param [in] fileData Ô­Ê¼Í¼Æ¬Êı¾İ
-    * @param [in] imageLoadAttribute Í¼Æ¬µÄ¼ÓÔØÊôĞÔĞÅÏ¢
-    * @param [in] bEnableDpiScale ÊÇ·ñÔÊĞí°´ÕÕDPI¶ÔÍ¼Æ¬´óĞ¡½øĞĞËõ·Å£¨´ËÎª¹¦ÄÜ¿ª¹Ø£©
-    * @param [in] nImageDpiScale Í¼Æ¬Êı¾İ¶ÔÓ¦µÄDPIËõ·Å°Ù·Ö±È£¨±ÈÈç£ºi.jpgÎª100£¬i@150.jpgÎª150£©
-    * @param [in] dpi DPIËõ·Å¹ÜÀí½Ó¿Ú
-    * @param [out] imageData ¼ÓÔØ³É¹¦µÄÍ¼Æ¬Êı¾İ£¬Ã¿¸öÍ¼Æ¬Ö¡Ò»¸öÔªËØ
-    * @param [out] playCount ¶¯»­²¥·ÅµÄÑ­»·´ÎÊı(-1±íÊ¾ÎŞĞ§Öµ£»´óÓÚµÈÓÚ0Ê±±íÊ¾ÖµÓĞĞ§£¬Èç¹ûµÈÓÚ0£¬±íÊ¾¶¯»­ÊÇÑ­»·²¥·ÅµÄ, APNG¸ñÊ½Ö§³ÖÉèÖÃÑ­»·²¥·Å´ÎÊı)
-    * @param [out] bDpiScaled Í¼Æ¬¼ÓÔØµÄÊ±ºò£¬Í¼Æ¬´óĞ¡ÊÇ·ñ½øĞĞÁËDPI×ÔÊÊÓ¦²Ù×÷
+    /** å¯¹å›¾ç‰‡æ•°æ®è¿›è¡Œè§£ç ï¼Œç”Ÿæˆä½å›¾æ•°æ®
+    * @param [in] fileData åŸå§‹å›¾ç‰‡æ•°æ®
+    * @param [in] imageLoadAttribute å›¾ç‰‡çš„åŠ è½½å±æ€§ä¿¡æ¯
+    * @param [in] bEnableDpiScale æ˜¯å¦å…è®¸æŒ‰ç…§DPIå¯¹å›¾ç‰‡å¤§å°è¿›è¡Œç¼©æ”¾ï¼ˆæ­¤ä¸ºåŠŸèƒ½å¼€å…³ï¼‰
+    * @param [in] nImageDpiScale å›¾ç‰‡æ•°æ®å¯¹åº”çš„DPIç¼©æ”¾ç™¾åˆ†æ¯”ï¼ˆæ¯”å¦‚ï¼ši.jpgä¸º100ï¼Œi@150.jpgä¸º150ï¼‰
+    * @param [in] dpi DPIç¼©æ”¾ç®¡ç†æ¥å£
+    * @param [out] imageData åŠ è½½æˆåŠŸçš„å›¾ç‰‡æ•°æ®ï¼Œæ¯ä¸ªå›¾ç‰‡å¸§ä¸€ä¸ªå…ƒç´ 
+    * @param [out] playCount åŠ¨ç”»æ’­æ”¾çš„å¾ªç¯æ¬¡æ•°(-1è¡¨ç¤ºæ— æ•ˆå€¼ï¼›å¤§äºç­‰äº0æ—¶è¡¨ç¤ºå€¼æœ‰æ•ˆï¼Œå¦‚æœç­‰äº0ï¼Œè¡¨ç¤ºåŠ¨ç”»æ˜¯å¾ªç¯æ’­æ”¾çš„, APNGæ ¼å¼æ”¯æŒè®¾ç½®å¾ªç¯æ’­æ”¾æ¬¡æ•°)
+    * @param [out] bDpiScaled å›¾ç‰‡åŠ è½½çš„æ—¶å€™ï¼Œå›¾ç‰‡å¤§å°æ˜¯å¦è¿›è¡Œäº†DPIè‡ªé€‚åº”æ“ä½œ
     */
     bool DecodeImageData(std::vector<uint8_t>& fileData, 
                          const ImageLoadAttribute& imageLoadAttribute,
@@ -79,16 +79,16 @@ private:
                          int32_t& playCount,
                          bool& bDpiScaled);
 
-    /** ¶ÔÍ¼Æ¬Êı¾İ½øĞĞ´óĞ¡Ëõ·Å
-    * @param [in] imageData ĞèÒªËõ·ÅµÄÍ¼Æ¬Êı¾İ
-    * @param [in] nNewWidth ĞÂµÄ¿í¶È
-    * @param [in] nNewHeight ĞÂµÄ¸ß¶È
+    /** å¯¹å›¾ç‰‡æ•°æ®è¿›è¡Œå¤§å°ç¼©æ”¾
+    * @param [in] imageData éœ€è¦ç¼©æ”¾çš„å›¾ç‰‡æ•°æ®
+    * @param [in] nNewWidth æ–°çš„å®½åº¦
+    * @param [in] nNewHeight æ–°çš„é«˜åº¦
     */
     bool ResizeImageData(std::vector<ImageData>& imageData, 
                          uint32_t nNewWidth,
                          uint32_t nNewHeight);
 
-    /** Ö§³ÖµÄÍ¼Æ¬ÎÄ¼ş¸ñÊ½
+    /** æ”¯æŒçš„å›¾ç‰‡æ–‡ä»¶æ ¼å¼
     */
     enum class ImageFormat {
         kUnknown,
@@ -101,7 +101,7 @@ private:
         kICO
     };
 
-    /** ¸ù¾İÍ¼Æ¬ÎÄ¼şµÄÀ©Õ¹Ãû»ñÈ¡Í¼Æ¬¸ñÊ½
+    /** æ ¹æ®å›¾ç‰‡æ–‡ä»¶çš„æ‰©å±•åè·å–å›¾ç‰‡æ ¼å¼
     */
     static ImageFormat GetImageFormat(const std::wstring& path);
 };

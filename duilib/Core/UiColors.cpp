@@ -1,6 +1,6 @@
 #include "UiColors.h"
 
-//°üº¬È«²¿»ù±¾ÀàĞÍÊı¾İ½á¹¹£¬ÒÔÔÚ¿ª·¢½×¶Î²âÊÔÊÇ·ñÓĞ±àÒë´íÎóµÈ
+//åŒ…å«å…¨éƒ¨åŸºæœ¬ç±»å‹æ•°æ®ç»“æ„ï¼Œä»¥åœ¨å¼€å‘é˜¶æ®µæµ‹è¯•æ˜¯å¦æœ‰ç¼–è¯‘é”™è¯¯ç­‰
 #include "duilib/Core/UiColor.h"
 #include "duilib/Core/UiFont.h"
 #include "duilib/Core/UiRect.h"
@@ -11,7 +11,7 @@ namespace ui
 {
 namespace UiColors
 {
-    /** ³£¼ûÑÕÉ«Öµ£¬¶ÔÓ¦µÄ×Ö·û´®³£Á¿
+    /** å¸¸è§é¢œè‰²å€¼ï¼Œå¯¹åº”çš„å­—ç¬¦ä¸²å¸¸é‡
     */
     void GetUiColorsString(std::vector<std::pair<std::wstring, int32_t>>& uiColors)
     {

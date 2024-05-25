@@ -9,7 +9,7 @@
 namespace ui 
 {
 
-/** µãµÄ·â×°
+/** ç‚¹çš„å°è£…
 */
 class UILIB_API UiPoint
 {
@@ -25,7 +25,7 @@ public:
 		y = yValue;
 	}
 
-	/** ÉèÖÃĞÂµÄXºÍYÖµ
+	/** è®¾ç½®æ–°çš„Xå’ŒYå€¼
 	*/
 	void SetXY(int32_t xValue, int32_t yValue)
 	{
@@ -33,15 +33,15 @@ public:
 		y = yValue;
 	}
 
-	/** ÉèÖÃĞÂµÄXÖµ
+	/** è®¾ç½®æ–°çš„Xå€¼
 	*/
 	void SetX(int32_t xValue) { x = xValue; }
 
-	/** ÉèÖÃĞÂµÄYÖµ
+	/** è®¾ç½®æ–°çš„Yå€¼
 	*/
 	void SetY(int32_t yValue) { y = yValue;	}
 
-	/** Æ«ÒÆ²Ù×÷
+	/** åç§»æ“ä½œ
 	*/
 	void Offset(int32_t offsetX, int32_t offsetY)
 	{
@@ -49,7 +49,7 @@ public:
 		y += offsetY;
 	}
 
-	/** Æ«ÒÆ²Ù×÷
+	/** åç§»æ“ä½œ
 	*/
 	void Offset(const UiPoint& offsetPoint)
 	{
@@ -57,43 +57,43 @@ public:
 		y += offsetPoint.y;
 	}
 
-	/** ·µ»ØxÖµ
+	/** è¿”å›xå€¼
 	*/
 	constexpr int32_t X() const { return x; }
 
-	/** ·µ»ØyÖµ
+	/** è¿”å›yå€¼
 	*/
 	constexpr int32_t Y() const { return y; }
 
-	/** Èç¹ûxºÍy¶¼ÊÇ0£¬·µ»Øtrue
+	/** å¦‚æœxå’Œyéƒ½æ˜¯0ï¼Œè¿”å›true
 	*/
 	bool IsZero() const 
 	{ 
 		return x == 0 && y == 0; 
 	}
 
-	/** ÅĞ¶ÏÊÇ·ñÓëÁíÍâÒ»¸öµãÏàÍ¬
+	/** åˆ¤æ–­æ˜¯å¦ä¸å¦å¤–ä¸€ä¸ªç‚¹ç›¸åŒ
 	*/
 	bool Equals(int32_t xValue, int32_t yValue) const 
 	{
 		return x == xValue && y == yValue;
 	}
 
-	/** ÅĞ¶ÏÊÇ·ñÓëÁíÍâÒ»¸öµãÏàÍ¬
+	/** åˆ¤æ–­æ˜¯å¦ä¸å¦å¤–ä¸€ä¸ªç‚¹ç›¸åŒ
 	*/
 	bool Equals(const UiPoint& dst) const
 	{
 		return x == dst.x && y == dst.y;
 	}
 
-	/** ÅĞ¶ÏÁ½¸öÖµÊÇ·ñÏàµÈ
+	/** åˆ¤æ–­ä¸¤ä¸ªå€¼æ˜¯å¦ç›¸ç­‰
 	*/
 	friend bool operator == (const UiPoint& a, const UiPoint& b)
 	{
 		return a.Equals(b);
 	}
 
-	/** ÅĞ¶ÏÁ½¸öÖµÊÇ·ñ²»ÏàµÈ
+	/** åˆ¤æ–­ä¸¤ä¸ªå€¼æ˜¯å¦ä¸ç›¸ç­‰
 	*/
 	friend bool operator != (const UiPoint& a, const UiPoint& b)
 	{
@@ -101,11 +101,11 @@ public:
 	}
 
 public:
-	/** XÖá×ø±ê
+	/** Xè½´åæ ‡
 	*/
 	int32_t x;
 
-	/** YÖá×ø±ê
+	/** Yè½´åæ ‡
 	*/
 	int32_t y;
 };

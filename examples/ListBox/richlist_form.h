@@ -7,24 +7,24 @@ public:
 	~RichlistForm();
 
 	/**
-	 * Ò»ÏÂÈı¸ö½Ó¿ÚÊÇ±ØĞëÒª¸²Ğ´µÄ½Ó¿Ú£¬¸¸Àà»áµ÷ÓÃÕâÈı¸ö½Ó¿ÚÀ´¹¹½¨´°¿Ú
-	 * GetSkinFolder		½Ó¿ÚÉèÖÃÄãÒª»æÖÆµÄ´°¿ÚÆ¤·ô×ÊÔ´Â·¾¶
-	 * GetSkinFile			½Ó¿ÚÉèÖÃÄãÒª»æÖÆµÄ´°¿ÚµÄ xml ÃèÊöÎÄ¼ş
-	 * GetWindowClassName	½Ó¿ÚÉèÖÃ´°¿ÚÎ¨Ò»µÄÀàÃû³Æ
+	 * ä¸€ä¸‹ä¸‰ä¸ªæ¥å£æ˜¯å¿…é¡»è¦è¦†å†™çš„æ¥å£ï¼Œçˆ¶ç±»ä¼šè°ƒç”¨è¿™ä¸‰ä¸ªæ¥å£æ¥æ„å»ºçª—å£
+	 * GetSkinFolder		æ¥å£è®¾ç½®ä½ è¦ç»˜åˆ¶çš„çª—å£çš®è‚¤èµ„æºè·¯å¾„
+	 * GetSkinFile			æ¥å£è®¾ç½®ä½ è¦ç»˜åˆ¶çš„çª—å£çš„ xml æè¿°æ–‡ä»¶
+	 * GetWindowClassName	æ¥å£è®¾ç½®çª—å£å”¯ä¸€çš„ç±»åç§°
 	 */
 	virtual std::wstring GetSkinFolder() override;
 	virtual std::wstring GetSkinFile() override;
 	virtual std::wstring GetWindowClassName() const override;
 
-	/** µ±´°¿Ú´´½¨Íê³ÉÒÔºóµ÷ÓÃ´Ëº¯Êı£¬¹©×ÓÀàÖĞ×öÒ»Ğ©³õÊ¼»¯µÄ¹¤×÷
+	/** å½“çª—å£åˆ›å»ºå®Œæˆä»¥åè°ƒç”¨æ­¤å‡½æ•°ï¼Œä¾›å­ç±»ä¸­åšä¸€äº›åˆå§‹åŒ–çš„å·¥ä½œ
 	*/
 	virtual void OnInitWindow() override;
 
-	/** µ±´°¿Ú¼´½«±»¹Ø±ÕÊ±µ÷ÓÃ´Ëº¯Êı£¬¹©×ÓÀàÖĞ×öÒ»Ğ©ÊÕÎ²¹¤×÷
+	/** å½“çª—å£å³å°†è¢«å…³é—­æ—¶è°ƒç”¨æ­¤å‡½æ•°ï¼Œä¾›å­ç±»ä¸­åšä¸€äº›æ”¶å°¾å·¥ä½œ
 	*/
 	virtual void OnCloseWindow() override;
 
-	/** ´°¿ÚÀàÃû
+	/** çª—å£ç±»å
 	*/
 	static const std::wstring kClassName;
 

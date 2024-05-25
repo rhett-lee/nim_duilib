@@ -89,7 +89,7 @@ void Path_Skia::MoveToPoint(int x1, int y1)
 	SkPoint lastPt = SkPoint::Make(0, 0);
 	m_skPath->getLastPt(&lastPt);
 	if (lastPt != SkPoint::Make(static_cast<float>(x1), static_cast<float>(y1))) {
-		//如果不相等才调用moveTo函数，否则影响路径的闭合逻辑
+		//濡傛灉涓嶇浉绛夋墠璋冪敤moveTo鍑芥暟锛屽惁鍒欏奖鍝嶈矾寰勭殑闂悎閫昏緫
 		m_skPath->moveTo(SkPoint::Make(static_cast<float>(x1), static_cast<float>(y1)));
 	}
 }

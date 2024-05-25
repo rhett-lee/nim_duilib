@@ -14,7 +14,7 @@ public:
 	Render_GdiPlus();
 	virtual ~Render_GdiPlus();
 
-	/** »ñÈ¡RenderÊµÏÖÀàĞÍ
+	/** è·å–Renderå®ç°ç±»å‹
 	*/
 	virtual RenderType GetRenderType() const override;
 
@@ -22,8 +22,8 @@ public:
 	virtual void Clear() override;
 	virtual std::unique_ptr<IRender> Clone() override;
 
-	/** ·ÖÀëÎ»Í¼
-	*@return ·µ»ØÎ»Í¼½Ó¿Ú£¬·µ»ØºóÓÉµ÷ÓÃ·½¹ÜÀí×ÊÔ´£¨°üÀ¨ÊÍ·Å×ÊÔ´µÈ£©
+	/** åˆ†ç¦»ä½å›¾
+	*@return è¿”å›ä½å›¾æ¥å£ï¼Œè¿”å›åç”±è°ƒç”¨æ–¹ç®¡ç†èµ„æºï¼ˆåŒ…æ‹¬é‡Šæ”¾èµ„æºç­‰ï¼‰
 	*/
 	virtual IBitmap* DetachBitmap();
 
@@ -103,55 +103,55 @@ public:
 		                      bool bMeasureOnly = false,
 		                      uint8_t uFade = 255) override;
 
-	//Õâ¸öº¯ÊıGdiplus°æ±¾µÄÊµÏÖ²»Ì«¶Ô£¬ÍÆ¼öÊ¹ÓÃSkia°æ±¾µÄ¡£
+	//è¿™ä¸ªå‡½æ•°Gdiplusç‰ˆæœ¬çš„å®ç°ä¸å¤ªå¯¹ï¼Œæ¨èä½¿ç”¨Skiaç‰ˆæœ¬çš„ã€‚
 	void DrawBoxShadow(const UiRect& rc, const UiSize& roundSize, const UiPoint& cpOffset, int nBlurRadius, int nSpreadRadius, UiColor dwColor) override;
 
 #ifdef UILIB_IMPL_WINSDK
-	/** »ñÈ¡DC¾ä±ú£¬µ±²»Ê¹ÓÃºó£¬ĞèÒªµ÷ÓÃReleaseDC½Ó¿ÚÊÍ·Å×ÊÔ´
+	/** è·å–DCå¥æŸ„ï¼Œå½“ä¸ä½¿ç”¨åï¼Œéœ€è¦è°ƒç”¨ReleaseDCæ¥å£é‡Šæ”¾èµ„æº
 	*/
 	virtual HDC GetDC() override;
 
-	/** ÊÍ·ÅDC×ÊÔ´
-	* @param [in] hdc ĞèÒªÊÍ·ÅµÄDC¾ä±ú
+	/** é‡Šæ”¾DCèµ„æº
+	* @param [in] hdc éœ€è¦é‡Šæ”¾çš„DCå¥æŸ„
 	*/
 	virtual void ReleaseDC(HDC hdc) override;
 #endif
 
 private:
-	/** »ñÈ¡GDIµÄ¹âÕ¤²Ù×÷´úÂë
+	/** è·å–GDIçš„å…‰æ …æ“ä½œä»£ç 
 	*/
 	DWORD GetRopMode(RopMode rop) const;
 
 private:
-	/** DC¾ä±ú
+	/** DCå¥æŸ„
 	*/
 	HDC m_hDC;
 
-	/** ±£´æµÄDCµÄ×´Ì¬
+	/** ä¿å­˜çš„DCçš„çŠ¶æ€
 	*/
 	int m_saveDC;
 
-	/** ÊÇ·ñÖ¸¶¨ÎªÖ§³ÖÍ¸Ã÷
+	/** æ˜¯å¦æŒ‡å®šä¸ºæ”¯æŒé€æ˜
 	*/
 	bool m_bTransparent;
 
-	/** DCÔ­À´¹ØÁªµÄÎ»Í¼¾ä±ú
+	/** DCåŸæ¥å…³è”çš„ä½å›¾å¥æŸ„
 	*/
 	HBITMAP m_hOldBitmap;
 
-	/** RenderËùÓÃµÄÎ»Í¼
+	/** Renderæ‰€ç”¨çš„ä½å›¾
 	*/
 	HBITMAP	m_hBitmap;
 
-	/** RenderËùÓÃµÄÎ»Í¼Êı¾İ
+	/** Renderæ‰€ç”¨çš„ä½å›¾æ•°æ®
 	*/
 	BYTE* m_pPiexl;
 
-	/** RenderËùÓÃµÄÎ»Í¼¿í¶È
+	/** Renderæ‰€ç”¨çš„ä½å›¾å®½åº¦
 	*/
 	int m_nWidth;
 
-	/** RenderËùÓÃµÄÎ»Í¼¸ß¶È
+	/** Renderæ‰€ç”¨çš„ä½å›¾é«˜åº¦
 	*/
 	int m_nHeight;
 };

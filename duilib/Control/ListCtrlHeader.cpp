@@ -89,17 +89,17 @@ ListCtrlHeaderItem* ListCtrlHeader::InsertColumn(int32_t columnIndex, const List
     SplitBox* pHeaderSplit = new SplitBox(GetWindow());
     size_t nColumnCount = GetColumnCount();
     if ((size_t)columnIndex >= nColumnCount) {
-        //·ÅÔÚ×îºó
+        //æ”¾åœ¨æœ€å
         AddItem(pHeaderItem);
         AddItem(pHeaderSplit);
     }
     else {
-        //²åÈëÔÚÖĞ¼äÎ»ÖÃ        
+        //æ’å…¥åœ¨ä¸­é—´ä½ç½®        
         AddItemAt(pHeaderSplit, columnIndex);
         AddItemAt(pHeaderItem, columnIndex);
     }
 
-    //ÉèÖÃÊôĞÔ
+    //è®¾ç½®å±æ€§
     if (!m_pListCtrl->GetHeaderSplitBoxClass().empty()) {
         pHeaderSplit->SetClass(m_pListCtrl->GetHeaderSplitBoxClass());
     }
@@ -118,15 +118,15 @@ ListCtrlHeaderItem* ListCtrlHeader::InsertColumn(int32_t columnIndex, const List
     }
     pHeaderItem->SetText(columnInfo.text);
 
-    //±£´æ¹ØÁªµÄSplit¿Ø¼ş½Ó¿Ú
+    //ä¿å­˜å…³è”çš„Splitæ§ä»¶æ¥å£
     pHeaderItem->SetSplitBox(pHeaderSplit);
     pHeaderItem->SetColumnWidth(nColumnWidth, false);
     if (columnInfo.nColumnWidthMin > 0) {
-        //ÁĞ¿í×îĞ¡Öµ
+        //åˆ—å®½æœ€å°å€¼
         pHeaderItem->SetMinWidth(columnInfo.nColumnWidthMin, columnInfo.bNeedDpiScale);
     }
     if (columnInfo.nColumnWidthMax > 0) {
-        //ÁĞ¿í×î´óÖµ
+        //åˆ—å®½æœ€å¤§å€¼
         pHeaderItem->SetMaxWidth(columnInfo.nColumnWidthMax, columnInfo.bNeedDpiScale);
     }
 
@@ -140,55 +140,55 @@ ListCtrlHeaderItem* ListCtrlHeader::InsertColumn(int32_t columnIndex, const List
 
     if (columnInfo.nTextFormat >= 0) {
         uint32_t textStyle = columnInfo.nTextFormat;
-        //Ë®Æ½¶ÔÆë
+        //æ°´å¹³å¯¹é½
         if (columnInfo.nTextFormat & TEXT_CENTER) {
-            //ÎÄ±¾£º¾ÓÖĞ¶ÔÆë
+            //æ–‡æœ¬ï¼šå±…ä¸­å¯¹é½
             textStyle &= ~(TEXT_LEFT | TEXT_RIGHT);
             textStyle |= TEXT_CENTER;            
         }
         else if (columnInfo.nTextFormat & TEXT_RIGHT) {
-            //ÎÄ±¾£ºÓÒ¶ÔÆë
+            //æ–‡æœ¬ï¼šå³å¯¹é½
             textStyle &= ~(TEXT_LEFT | TEXT_CENTER);
             textStyle |= TEXT_RIGHT;
         }
         else {
-            //ÎÄ±¾£º×ó¶ÔÆë
+            //æ–‡æœ¬ï¼šå·¦å¯¹é½
             textStyle &= ~(TEXT_CENTER | TEXT_RIGHT);
             textStyle |= TEXT_LEFT;
         }
 
-        //´¹Ö±¶ÔÆë
+        //å‚ç›´å¯¹é½
         if (columnInfo.nTextFormat & TEXT_VCENTER) {
-            //ÎÄ±¾£º¾ÓÖĞ¶ÔÆë
+            //æ–‡æœ¬ï¼šå±…ä¸­å¯¹é½
             textStyle &= ~(TEXT_TOP | TEXT_BOTTOM);
             textStyle |= TEXT_VCENTER;
         }
         else if (columnInfo.nTextFormat & TEXT_BOTTOM) {
-            //ÎÄ±¾£ºµ×²¿¶ÔÆë
+            //æ–‡æœ¬ï¼šåº•éƒ¨å¯¹é½
             textStyle &= ~(TEXT_TOP | TEXT_VCENTER);
             textStyle |= TEXT_BOTTOM;
         }
         else {
-            //ÎÄ±¾£º¶¥²¿¶ÔÆë
+            //æ–‡æœ¬ï¼šé¡¶éƒ¨å¯¹é½
             textStyle &= ~(TEXT_BOTTOM | TEXT_VCENTER);
             textStyle |= TEXT_TOP;
         }
         pHeaderItem->SetTextStyle(textStyle, true);
     }
 
-    //¹ØÁªÍ¼±ê
+    //å…³è”å›¾æ ‡
     pHeaderItem->SetImageId(columnInfo.nImageId);
 
-    //CheckBoxÊôĞÔ
+    //CheckBoxå±æ€§
     pHeaderItem->SetCheckBoxVisible(columnInfo.bShowCheckBox);
 
-    //¹ÒÔØÍÏ¶¯ÏìÓ¦ÊÂ¼ş
+    //æŒ‚è½½æ‹–åŠ¨å“åº”äº‹ä»¶
     pHeaderSplit->AttachSplitDraged([this](const EventArgs& args) {
         OnHeaderColumnResized((Control*)args.wParam, (Control*)args.lParam);
         return true;
         });
 
-    //¹ÒÔØÓÒ¼üµã»÷ÊÂ¼ş£¬½øĞĞ×ª½Ó
+    //æŒ‚è½½å³é”®ç‚¹å‡»äº‹ä»¶ï¼Œè¿›è¡Œè½¬æ¥
     pHeaderItem->AttachRClick([this, pHeaderItem](const EventArgs& args) {
         EventArgs msg(args);
         msg.pSender = this;
@@ -204,7 +204,7 @@ ListCtrlHeaderItem* ListCtrlHeader::InsertColumn(int32_t columnIndex, const List
         return true;
         });
 
-    //¹ÒÔØÊó±êË«»÷ÊÂ¼ş
+    //æŒ‚è½½é¼ æ ‡åŒå‡»äº‹ä»¶
     pHeaderSplit->AttachDoubleClick([this, pHeaderItem](const EventArgs& /*args*/) {
         OnHeaderColumnSplitDoubleClick(pHeaderItem);
         return true;
@@ -226,7 +226,7 @@ size_t ListCtrlHeader::GetColumnCount() const
     }
     const size_t nColumnCount = nItemCount / 2;
 #ifdef _DEBUG
-    //Ğ£Ñé½á¹¹ÊÇ·ñ·ûºÏÔ¤ÆÚ    
+    //æ ¡éªŒç»“æ„æ˜¯å¦ç¬¦åˆé¢„æœŸ    
     for (size_t index = 0; index < nColumnCount; ++index) {
         ASSERT(dynamic_cast<ListCtrlHeaderItem*>(GetItemAt(index * 2)) != nullptr);
         ASSERT(dynamic_cast<SplitBox*>(GetItemAt(index * 2 + 1)) != nullptr);
@@ -492,7 +492,7 @@ bool ListCtrlHeader::SetShowCheckBox(bool bShow)
         }
     }
     else {
-        //Çå³ıCheckBoxÍ¼Æ¬×ÊÔ´£¬¾Í²»ÏÔÊ¾ÁË
+        //æ¸…é™¤CheckBoxå›¾ç‰‡èµ„æºï¼Œå°±ä¸æ˜¾ç¤ºäº†
         ClearStateImages();
         ASSERT(!IsShowCheckBox());
         bRet = true;
@@ -526,14 +526,14 @@ void ListCtrlHeader::UpdatePaddingLeft()
     rcPadding.left = std::max(nCheckBoxWidth, m_nPaddingLeftValue);
     if (rcPadding.left != rcOldPadding.left) {
         SetPadding(rcPadding, false);
-        //½ûÖ¹×ÔÉíµÄPadding£¬Ê¹µÃPaddingÖ»ÔËÓÃÓÚ×Ó¿Ø¼ş£¬²»ĞèÒª»Ö¸´
+        //ç¦æ­¢è‡ªèº«çš„Paddingï¼Œä½¿å¾—Paddingåªè¿ç”¨äºå­æ§ä»¶ï¼Œä¸éœ€è¦æ¢å¤
         SetEnableControlPadding(false);
     }
 }
 
 bool ListCtrlHeader::IsShowCheckBox() const
 {
-    //Èç¹ûÓĞCheckBoxÍ¼Æ¬×ÊÔ´£¬ÔòÈÏÎªÏÔÊ¾ÁËCheckBox
+    //å¦‚æœæœ‰CheckBoxå›¾ç‰‡èµ„æºï¼Œåˆ™è®¤ä¸ºæ˜¾ç¤ºäº†CheckBox
     return !GetStateImage(kControlStateNormal).empty() && !GetSelectedStateImage(kControlStateNormal).empty();
 }
 

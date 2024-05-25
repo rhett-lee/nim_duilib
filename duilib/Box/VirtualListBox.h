@@ -22,80 +22,80 @@ class UILIB_API VirtualListBoxElement : public virtual nbase::SupportWeakCallbac
 public:
     VirtualListBoxElement();
 
-    /** ´´½¨Ò»¸öÊı¾İÏî
-    * @param [in] pVirtualListBox ¹ØÁªµÄĞé±íµÄ½Ó¿Ú
-    * @return ·µ»Ø´´½¨ºóµÄÊı¾İÏîÖ¸Õë
+    /** åˆ›å»ºä¸€ä¸ªæ•°æ®é¡¹
+    * @param [in] pVirtualListBox å…³è”çš„è™šè¡¨çš„æ¥å£
+    * @return è¿”å›åˆ›å»ºåçš„æ•°æ®é¡¹æŒ‡é’ˆ
     */
     virtual ui::Control* CreateElement(ui::VirtualListBox* pVirtualListBox) = 0;
 
-    /** Ìî³äÖ¸¶¨Êı¾İÏî
-    * @param [in] pControl Êı¾İÏî¿Ø¼şÖ¸Õë
-    * @param [in] nElementIndex Êı¾İÔªËØµÄË÷ÒıID£¬·¶Î§£º[0, GetElementCount())
+    /** å¡«å……æŒ‡å®šæ•°æ®é¡¹
+    * @param [in] pControl æ•°æ®é¡¹æ§ä»¶æŒ‡é’ˆ
+    * @param [in] nElementIndex æ•°æ®å…ƒç´ çš„ç´¢å¼•IDï¼ŒèŒƒå›´ï¼š[0, GetElementCount())
     */
     virtual bool FillElement(ui::Control* pControl, size_t nElementIndex) = 0;
 
-    /** »ñÈ¡Êı¾İÏî×ÜÊı
-    * @return ·µ»ØÊı¾İÏî×ÜÊı
+    /** è·å–æ•°æ®é¡¹æ€»æ•°
+    * @return è¿”å›æ•°æ®é¡¹æ€»æ•°
     */
     virtual size_t GetElementCount() const = 0;
 
-    /** ÉèÖÃÑ¡Ôñ×´Ì¬
-    * @param [in] nElementIndex Êı¾İÔªËØµÄË÷ÒıID£¬·¶Î§£º[0, GetElementCount())
-    * @param [in] bSelected true±íÊ¾Ñ¡Ôñ×´Ì¬£¬false±íÊ¾·ÇÑ¡Ôñ×´Ì¬
+    /** è®¾ç½®é€‰æ‹©çŠ¶æ€
+    * @param [in] nElementIndex æ•°æ®å…ƒç´ çš„ç´¢å¼•IDï¼ŒèŒƒå›´ï¼š[0, GetElementCount())
+    * @param [in] bSelected trueè¡¨ç¤ºé€‰æ‹©çŠ¶æ€ï¼Œfalseè¡¨ç¤ºéé€‰æ‹©çŠ¶æ€
     */
     virtual void SetElementSelected(size_t nElementIndex, bool bSelected) = 0;
 
-    /** »ñÈ¡Ñ¡Ôñ×´Ì¬
-    * @param [in] nElementIndex Êı¾İÔªËØµÄË÷ÒıID£¬·¶Î§£º[0, GetElementCount())
-    * @return true±íÊ¾Ñ¡Ôñ×´Ì¬£¬false±íÊ¾·ÇÑ¡Ôñ×´Ì¬
+    /** è·å–é€‰æ‹©çŠ¶æ€
+    * @param [in] nElementIndex æ•°æ®å…ƒç´ çš„ç´¢å¼•IDï¼ŒèŒƒå›´ï¼š[0, GetElementCount())
+    * @return trueè¡¨ç¤ºé€‰æ‹©çŠ¶æ€ï¼Œfalseè¡¨ç¤ºéé€‰æ‹©çŠ¶æ€
     */
     virtual bool IsElementSelected(size_t nElementIndex) const = 0;
 
-    /** »ñÈ¡Ñ¡ÔñµÄÔªËØÁĞ±í
-    * @param [in] selectedIndexs ·µ»Øµ±Ç°Ñ¡ÔñµÄÔªËØÁĞ±í£¬ÓĞĞ§·¶Î§£º[0, GetElementCount())
+    /** è·å–é€‰æ‹©çš„å…ƒç´ åˆ—è¡¨
+    * @param [in] selectedIndexs è¿”å›å½“å‰é€‰æ‹©çš„å…ƒç´ åˆ—è¡¨ï¼Œæœ‰æ•ˆèŒƒå›´ï¼š[0, GetElementCount())
     */
     virtual void GetSelectedElements(std::vector<size_t>& selectedIndexs) const = 0;
 
-    /** ÊÇ·ñÖ§³Ö¶àÑ¡
+    /** æ˜¯å¦æ”¯æŒå¤šé€‰
     */
     virtual bool IsMultiSelect() const = 0;
 
-    /** ÉèÖÃÊÇ·ñÖ§³Ö¶àÑ¡£¬ÓÉ½çÃæ²ãµ÷ÓÃ£¬±£³ÖÓë½çÃæ¿Ø¼şÒ»ÖÂ
-    * @return bMultiSelect true±íÊ¾Ö§³Ö¶àÑ¡£¬false±íÊ¾²»Ö§³Ö¶àÑ¡
+    /** è®¾ç½®æ˜¯å¦æ”¯æŒå¤šé€‰ï¼Œç”±ç•Œé¢å±‚è°ƒç”¨ï¼Œä¿æŒä¸ç•Œé¢æ§ä»¶ä¸€è‡´
+    * @return bMultiSelect trueè¡¨ç¤ºæ”¯æŒå¤šé€‰ï¼Œfalseè¡¨ç¤ºä¸æ”¯æŒå¤šé€‰
     */
     virtual void SetMultiSelect(bool bMultiSelect) = 0;
 
 public:
-    /** ×¢²áÊÂ¼şÍ¨Öª»Øµ÷
-    * @param [in] dcNotify Êı¾İÄÚÈİ±ä»¯Í¨Öª½Ó¿Ú
-    * @param [in] ccNotify Êı¾İÏî¸öÊı±ä»¯Í¨Öª½Ó¿Ú
+    /** æ³¨å†Œäº‹ä»¶é€šçŸ¥å›è°ƒ
+    * @param [in] dcNotify æ•°æ®å†…å®¹å˜åŒ–é€šçŸ¥æ¥å£
+    * @param [in] ccNotify æ•°æ®é¡¹ä¸ªæ•°å˜åŒ–é€šçŸ¥æ¥å£
     */
     void RegNotifys(const DataChangedNotify& dcNotify, const CountChangedNotify& ccNotify);
 
 protected:
 
-    /** ·¢ËÍÍ¨Öª£ºÊı¾İÄÚÈİ·¢Éú±ä»¯
-    * @param [in] nStartElementIndex Êı¾İµÄ¿ªÊ¼ÏÂ±ê
-    * @param [in] nEndElementIndex Êı¾İµÄ½áÊøÏÂ±ê
+    /** å‘é€é€šçŸ¥ï¼šæ•°æ®å†…å®¹å‘ç”Ÿå˜åŒ–
+    * @param [in] nStartElementIndex æ•°æ®çš„å¼€å§‹ä¸‹æ ‡
+    * @param [in] nEndElementIndex æ•°æ®çš„ç»“æŸä¸‹æ ‡
     */
     void EmitDataChanged(size_t nStartElementIndex, size_t nEndElementIndex);
 
-    /** ·¢ËÍÍ¨Öª£ºÊı¾İÏî¸öÊı·¢Éú±ä»¯
+    /** å‘é€é€šçŸ¥ï¼šæ•°æ®é¡¹ä¸ªæ•°å‘ç”Ÿå˜åŒ–
     */
     void EmitCountChanged();
 
 private:
 
-    /** Êı¾İÄÚÈİ·¢Éú±ä»¯µÄÏìÓ¦º¯Êı
+    /** æ•°æ®å†…å®¹å‘ç”Ÿå˜åŒ–çš„å“åº”å‡½æ•°
     */
     DataChangedNotify m_pfnDataChangedNotify;
 
-    /** Êı¾İ¸öÊı·¢Éú±ä»¯µÄÏìÓ¦º¯Êı
+    /** æ•°æ®ä¸ªæ•°å‘ç”Ÿå˜åŒ–çš„å“åº”å‡½æ•°
     */
     CountChangedNotify m_pfnCountChangedNotify;
 };
 
-/** Ğé±íÊµÏÖµÄListBox£¬Ö§³Ö´óÊı¾İÁ¿£¬Ö»Ö§³Ö×İÏò¹ö¶¯Ìõ
+/** è™šè¡¨å®ç°çš„ListBoxï¼Œæ”¯æŒå¤§æ•°æ®é‡ï¼Œåªæ”¯æŒçºµå‘æ»šåŠ¨æ¡
 */
 class UILIB_API VirtualListBox : public ListBox
 {
@@ -106,195 +106,195 @@ class UILIB_API VirtualListBox : public ListBox
 public:
     VirtualListBox(Window* pWindow, Layout* pLayout);
 
-    /** ÉèÖÃÊı¾İ´úÀí¶ÔÏó
-    * @param[in] pProvider ¿ª·¢ÕßĞèÒªÖØĞ´ VirtualListBoxElement µÄ½Ó¿ÚÀ´×÷ÎªÊı¾İ´úÀí¶ÔÏó
+    /** è®¾ç½®æ•°æ®ä»£ç†å¯¹è±¡
+    * @param[in] pProvider å¼€å‘è€…éœ€è¦é‡å†™ VirtualListBoxElement çš„æ¥å£æ¥ä½œä¸ºæ•°æ®ä»£ç†å¯¹è±¡
     */
     virtual void SetDataProvider(VirtualListBoxElement* pProvider);
 
-    /** »ñÈ¡Êı¾İ´úÀí¶ÔÏó
+    /** è·å–æ•°æ®ä»£ç†å¯¹è±¡
     */
     VirtualListBoxElement* GetDataProvider() const;
 
-    /** ÊÇ·ñº¬ÓĞÊı¾İ´úÀí¶ÔÏó½Ó¿Ú
+    /** æ˜¯å¦å«æœ‰æ•°æ®ä»£ç†å¯¹è±¡æ¥å£
     */
     bool HasDataProvider() const;
 
-    /** ÊÇ·ñÖ§³Ö¶àÑ¡
+    /** æ˜¯å¦æ”¯æŒå¤šé€‰
     */
     virtual bool IsMultiSelect() const override;
 
-    /** ÉèÖÃÊÇ·ñÖ§³Ö¶àÑ¡£¬ÓÉ½çÃæ²ãµ÷ÓÃ£¬±£³ÖÓë½çÃæ¿Ø¼şÒ»ÖÂ
-    * @return bMultiSelect true±íÊ¾Ö§³Ö¶àÑ¡£¬false±íÊ¾²»Ö§³Ö¶àÑ¡
+    /** è®¾ç½®æ˜¯å¦æ”¯æŒå¤šé€‰ï¼Œç”±ç•Œé¢å±‚è°ƒç”¨ï¼Œä¿æŒä¸ç•Œé¢æ§ä»¶ä¸€è‡´
+    * @return bMultiSelect trueè¡¨ç¤ºæ”¯æŒå¤šé€‰ï¼Œfalseè¡¨ç¤ºä¸æ”¯æŒå¤šé€‰
     */
     virtual void SetMultiSelect(bool bMultiSelect) override;
 
 public:
-    /** »ñÈ¡Êı¾İÔªËØ×ÜÊı
-    * @return ·µ»ØÊı¾İÔªËØ×Ü¸öÊı
+    /** è·å–æ•°æ®å…ƒç´ æ€»æ•°
+    * @return è¿”å›æ•°æ®å…ƒç´ æ€»ä¸ªæ•°
     */
     size_t GetElementCount() const;
 
-    /** »ñÈ¡µ±Ç°Ñ¡ÔñµÄÊı¾İÔªËØË÷ÒıºÅ(½öµ¥Ñ¡Ê±ÓĞĞ§)
-    @return ·µ»ØÑ¡ÔñµÄÊı¾İÔªËØË÷ÒıºÅ£¬·¶Î§£º[0, GetElementCount())
+    /** è·å–å½“å‰é€‰æ‹©çš„æ•°æ®å…ƒç´ ç´¢å¼•å·(ä»…å•é€‰æ—¶æœ‰æ•ˆ)
+    @return è¿”å›é€‰æ‹©çš„æ•°æ®å…ƒç´ ç´¢å¼•å·ï¼ŒèŒƒå›´ï¼š[0, GetElementCount())
     */
     size_t GetCurSelElement() const;
 
-    /** ÉèÖÃÑ¡Ôñ×´Ì¬, Í¬Ê±°´Ğè¸üĞÂ½çÃæÏÔÊ¾
-    * @param [in] nElementIndex Êı¾İÔªËØµÄË÷ÒıID£¬·¶Î§£º[0, GetElementCount())
-    * @param [in] bSelected true±íÊ¾Ñ¡Ôñ×´Ì¬£¬false±íÊ¾·ÇÑ¡Ôñ×´Ì¬
+    /** è®¾ç½®é€‰æ‹©çŠ¶æ€, åŒæ—¶æŒ‰éœ€æ›´æ–°ç•Œé¢æ˜¾ç¤º
+    * @param [in] nElementIndex æ•°æ®å…ƒç´ çš„ç´¢å¼•IDï¼ŒèŒƒå›´ï¼š[0, GetElementCount())
+    * @param [in] bSelected trueè¡¨ç¤ºé€‰æ‹©çŠ¶æ€ï¼Œfalseè¡¨ç¤ºéé€‰æ‹©çŠ¶æ€
     */
     void SetElementSelected(size_t nElementIndex, bool bSelected);
 
-    /** ÅúÁ¿ÉèÖÃÑ¡ÔñÔªËØ, Í¬Ê±°´Ğè¸üĞÂ½çÃæÏÔÊ¾
-    * @param [in] selectedIndexs ĞèÒªÉèÖÃÑ¡ÔñµÄÔªËØÁĞ±í£¬ÓĞĞ§·¶Î§£º[0, GetElementCount())
-    * @param [in] bClearOthers Èç¹ûÎªtrue£¬±íÊ¾¶ÔÆäËûÒÑÑ¡ÔñµÄ½øĞĞÇå³ıÑ¡Ôñ£¬Ö»±£Áô±¾´ÎÉèÖÃµÄÎªÑ¡ÔñÏî
-    * @return Èç¹ûÓĞÊı¾İ±ä»¯·µ»Øtrue£¬·ñÔò·µ»Øfalse
+    /** æ‰¹é‡è®¾ç½®é€‰æ‹©å…ƒç´ , åŒæ—¶æŒ‰éœ€æ›´æ–°ç•Œé¢æ˜¾ç¤º
+    * @param [in] selectedIndexs éœ€è¦è®¾ç½®é€‰æ‹©çš„å…ƒç´ åˆ—è¡¨ï¼Œæœ‰æ•ˆèŒƒå›´ï¼š[0, GetElementCount())
+    * @param [in] bClearOthers å¦‚æœä¸ºtrueï¼Œè¡¨ç¤ºå¯¹å…¶ä»–å·²é€‰æ‹©çš„è¿›è¡Œæ¸…é™¤é€‰æ‹©ï¼Œåªä¿ç•™æœ¬æ¬¡è®¾ç½®çš„ä¸ºé€‰æ‹©é¡¹
+    * @return å¦‚æœæœ‰æ•°æ®å˜åŒ–è¿”å›trueï¼Œå¦åˆ™è¿”å›false
     */
     bool SetSelectedElements(const std::vector<size_t>& selectedIndexs, bool bClearOthers);
 
-    /** ÅúÁ¿ÉèÖÃÑ¡ÔñÔªËØ, ²»¸üĞÂ½çÃæÏÔÊ¾
-    * @param [in] selectedIndexs ĞèÒªÉèÖÃÑ¡ÔñµÄÔªËØÁĞ±í£¬ÓĞĞ§·¶Î§£º[0, GetElementCount())
-    * @param [in] bClearOthers Èç¹ûÎªtrue£¬±íÊ¾¶ÔÆäËûÒÑÑ¡ÔñµÄ½øĞĞÇå³ıÑ¡Ôñ£¬Ö»±£Áô±¾´ÎÉèÖÃµÄÎªÑ¡ÔñÏî
-    * @param [out] refreshIndexs ·µ»ØĞèÒªË¢ĞÂÏÔÊ¾µÄÔªËØË÷ÒıºÅ
+    /** æ‰¹é‡è®¾ç½®é€‰æ‹©å…ƒç´ , ä¸æ›´æ–°ç•Œé¢æ˜¾ç¤º
+    * @param [in] selectedIndexs éœ€è¦è®¾ç½®é€‰æ‹©çš„å…ƒç´ åˆ—è¡¨ï¼Œæœ‰æ•ˆèŒƒå›´ï¼š[0, GetElementCount())
+    * @param [in] bClearOthers å¦‚æœä¸ºtrueï¼Œè¡¨ç¤ºå¯¹å…¶ä»–å·²é€‰æ‹©çš„è¿›è¡Œæ¸…é™¤é€‰æ‹©ï¼Œåªä¿ç•™æœ¬æ¬¡è®¾ç½®çš„ä¸ºé€‰æ‹©é¡¹
+    * @param [out] refreshIndexs è¿”å›éœ€è¦åˆ·æ–°æ˜¾ç¤ºçš„å…ƒç´ ç´¢å¼•å·
     */
     void SetSelectedElements(const std::vector<size_t>& selectedIndexs, 
                              bool bClearOthers,
                              std::vector<size_t>& refreshIndexs);
 
-    /** »ñÈ¡Ñ¡Ôñ×´Ì¬
-    * @param [in] nElementIndex Êı¾İÔªËØµÄË÷ÒıID£¬·¶Î§£º[0, GetElementCount())
-    * @return true±íÊ¾Ñ¡Ôñ×´Ì¬£¬false±íÊ¾·ÇÑ¡Ôñ×´Ì¬
+    /** è·å–é€‰æ‹©çŠ¶æ€
+    * @param [in] nElementIndex æ•°æ®å…ƒç´ çš„ç´¢å¼•IDï¼ŒèŒƒå›´ï¼š[0, GetElementCount())
+    * @return trueè¡¨ç¤ºé€‰æ‹©çŠ¶æ€ï¼Œfalseè¡¨ç¤ºéé€‰æ‹©çŠ¶æ€
     */
     bool IsElementSelected(size_t nElementIndex) const;
 
-    /** »ñÈ¡Ñ¡ÔñµÄÔªËØÁĞ±í
-    * @param [in] selectedIndexs ·µ»Øµ±Ç°Ñ¡ÔñµÄÔªËØÁĞ±í£¬ÓĞĞ§·¶Î§£º[0, GetElementCount())
+    /** è·å–é€‰æ‹©çš„å…ƒç´ åˆ—è¡¨
+    * @param [in] selectedIndexs è¿”å›å½“å‰é€‰æ‹©çš„å…ƒç´ åˆ—è¡¨ï¼Œæœ‰æ•ˆèŒƒå›´ï¼š[0, GetElementCount())
     */
     void GetSelectedElements(std::vector<size_t>& selectedIndexs) const;
 
-    /** Ñ¡ÔñÈ«²¿, Í¬Ê±°´Ğè¸üĞÂ½çÃæÏÔÊ¾
-    * @return Èç¹ûÓĞÊı¾İ±ä»¯·µ»Øtrue£¬·ñÔò·µ»Øfalse
+    /** é€‰æ‹©å…¨éƒ¨, åŒæ—¶æŒ‰éœ€æ›´æ–°ç•Œé¢æ˜¾ç¤º
+    * @return å¦‚æœæœ‰æ•°æ®å˜åŒ–è¿”å›trueï¼Œå¦åˆ™è¿”å›false
     */
     bool SetSelectAll();
 
-    /** È¡ÏûËùÓĞÑ¡Ôñ, Í¬Ê±°´Ğè¸üĞÂ½çÃæÏÔÊ¾
-    * @return Èç¹ûÓĞÊı¾İ±ä»¯·µ»Øtrue£¬·ñÔò·µ»Øfalse
+    /** å–æ¶ˆæ‰€æœ‰é€‰æ‹©, åŒæ—¶æŒ‰éœ€æ›´æ–°ç•Œé¢æ˜¾ç¤º
+    * @return å¦‚æœæœ‰æ•°æ®å˜åŒ–è¿”å›trueï¼Œå¦åˆ™è¿”å›false
     */
     bool SetSelectNone();
 
-    /** È¡ÏûËùÓĞÑ¡Ôñ, ²»¸üĞÂ½çÃæÏÔÊ¾£¬¿ÉÒÔÓÉÍâ²¿Ë¢ĞÂ½çÃæÏÔÊ¾
-    * @param [out] refreshIndexs ·µ»ØĞèÒªË¢ĞÂÏÔÊ¾µÄÔªËØË÷ÒıºÅ
+    /** å–æ¶ˆæ‰€æœ‰é€‰æ‹©, ä¸æ›´æ–°ç•Œé¢æ˜¾ç¤ºï¼Œå¯ä»¥ç”±å¤–éƒ¨åˆ·æ–°ç•Œé¢æ˜¾ç¤º
+    * @param [out] refreshIndexs è¿”å›éœ€è¦åˆ·æ–°æ˜¾ç¤ºçš„å…ƒç´ ç´¢å¼•å·
     */
     void SetSelectNone(std::vector<size_t>& refreshIndexs);
 
-    /** È¡ÏûËùÓĞÑ¡Ôñ(µ«ÅÅ³ı²¿·ÖÔªËØ), ²»¸üĞÂ½çÃæÏÔÊ¾£¬¿ÉÒÔÓÉÍâ²¿Ë¢ĞÂ½çÃæÏÔÊ¾
-    * @param [in] excludeIndexs ĞèÒªÅÅ³ıµÄÔªËØË÷ÒıºÅ£¬Õâ²¿·ÖÔªËØµÄÑ¡Ôñ×´Ì¬±£³ÖÔ­×´
-    * @param [out] refreshIndexs ·µ»ØĞèÒªË¢ĞÂÏÔÊ¾µÄÔªËØË÷ÒıºÅ
+    /** å–æ¶ˆæ‰€æœ‰é€‰æ‹©(ä½†æ’é™¤éƒ¨åˆ†å…ƒç´ ), ä¸æ›´æ–°ç•Œé¢æ˜¾ç¤ºï¼Œå¯ä»¥ç”±å¤–éƒ¨åˆ·æ–°ç•Œé¢æ˜¾ç¤º
+    * @param [in] excludeIndexs éœ€è¦æ’é™¤çš„å…ƒç´ ç´¢å¼•å·ï¼Œè¿™éƒ¨åˆ†å…ƒç´ çš„é€‰æ‹©çŠ¶æ€ä¿æŒåŸçŠ¶
+    * @param [out] refreshIndexs è¿”å›éœ€è¦åˆ·æ–°æ˜¾ç¤ºçš„å…ƒç´ ç´¢å¼•å·
     */
     void SetSelectNoneExclude(const std::vector<size_t>& excludeIndexs, 
                               std::vector<size_t>& refreshIndexs);
 
-    /** »ñÈ¡µ±Ç°ËùÓĞ¿É¼û¿Ø¼şµÄÊı¾İÔªËØË÷Òı
-    * @param [out] collection Ë÷ÒıÁĞ±í£¬ÓĞĞ§·¶Î§£º[0, GetElementCount())
+    /** è·å–å½“å‰æ‰€æœ‰å¯è§æ§ä»¶çš„æ•°æ®å…ƒç´ ç´¢å¼•
+    * @param [out] collection ç´¢å¼•åˆ—è¡¨ï¼Œæœ‰æ•ˆèŒƒå›´ï¼š[0, GetElementCount())
     */
     void GetDisplayElements(std::vector<size_t>& collection) const;
 
-    /** »ñÈ¡Ò»¸öÔªËØ¶ÔÓ¦ÏÔÊ¾¿Ø¼şµÄË÷ÒıºÅ
-    * @param [in] nElementIndex ÔªËØË÷ÒıºÅ£¬ÓĞĞ§·¶Î§£º[0, GetElementCount())
-    * @return ·µ»Ø¸ÃÔªËØ¶ÔÓ¦UI¿Ø¼şµÄË÷ÒıºÅ£¬ÓĞĞ§·¶Î§£º[0, GetItemCount())
+    /** è·å–ä¸€ä¸ªå…ƒç´ å¯¹åº”æ˜¾ç¤ºæ§ä»¶çš„ç´¢å¼•å·
+    * @param [in] nElementIndex å…ƒç´ ç´¢å¼•å·ï¼Œæœ‰æ•ˆèŒƒå›´ï¼š[0, GetElementCount())
+    * @return è¿”å›è¯¥å…ƒç´ å¯¹åº”UIæ§ä»¶çš„ç´¢å¼•å·ï¼Œæœ‰æ•ˆèŒƒå›´ï¼š[0, GetItemCount())
     */
     size_t GetDisplayItemIndex(size_t nElementIndex) const;
 
-    /** »ñÈ¡Ò»¸öÏÔÊ¾¿Ø¼ş¹ØÁªµÄÔªËØË÷ÒıºÅ
-    * @param [in] nItemIndex UI¿Ø¼şµÄË÷ÒıºÅ£¬ÓĞĞ§·¶Î§£º[0, GetItemCount())
-    * @return ¸ÃUI¿Ø¼ş¹ØÁªµÄÊı¾İÔªËØË÷ÒıºÅ£¬ÓĞĞ§·¶Î§£º[0, GetElementCount())
+    /** è·å–ä¸€ä¸ªæ˜¾ç¤ºæ§ä»¶å…³è”çš„å…ƒç´ ç´¢å¼•å·
+    * @param [in] nItemIndex UIæ§ä»¶çš„ç´¢å¼•å·ï¼Œæœ‰æ•ˆèŒƒå›´ï¼š[0, GetItemCount())
+    * @return è¯¥UIæ§ä»¶å…³è”çš„æ•°æ®å…ƒç´ ç´¢å¼•å·ï¼Œæœ‰æ•ˆèŒƒå›´ï¼š[0, GetElementCount())
     */
     size_t GetDisplayItemElementIndex(size_t nItemIndex) const;
 
-    /** ÈÃ¿Ø¼şÔÚ¿É¼û·¶Î§ÄÚ
-    * @param [in] nElementIndex ÔªËØË÷ÒıºÅ£¬ÓĞĞ§·¶Î§£º[0, GetElementCount())
-    * @param [in] bToTop ÊÇ·ñÔÚ×îÉÏ·½
+    /** è®©æ§ä»¶åœ¨å¯è§èŒƒå›´å†…
+    * @param [in] nElementIndex å…ƒç´ ç´¢å¼•å·ï¼Œæœ‰æ•ˆèŒƒå›´ï¼š[0, GetElementCount())
+    * @param [in] bToTop æ˜¯å¦åœ¨æœ€ä¸Šæ–¹
     */
     void EnsureVisible(size_t nElementIndex, bool bToTop);
 
-    /** Ë¢ĞÂÖ¸¶¨·¶Î§µÄÊı¾İ£¬±£³ÖÊı¾İÓë½çÃæÏÔÊ¾Í¬²½£¬Êı¾İ·¶Î§: [nStartElementIndex, nEndElementIndex]
-    * @param [in] nStartElementIndex Êı¾İµÄ¿ªÊ¼ÏÂ±ê
-    * @param [in] nEndElementIndex Êı¾İµÄ½áÊøÏÂ±ê
+    /** åˆ·æ–°æŒ‡å®šèŒƒå›´çš„æ•°æ®ï¼Œä¿æŒæ•°æ®ä¸ç•Œé¢æ˜¾ç¤ºåŒæ­¥ï¼Œæ•°æ®èŒƒå›´: [nStartElementIndex, nEndElementIndex]
+    * @param [in] nStartElementIndex æ•°æ®çš„å¼€å§‹ä¸‹æ ‡
+    * @param [in] nEndElementIndex æ•°æ®çš„ç»“æŸä¸‹æ ‡
     */
     void RefreshElements(size_t nStartElementIndex, size_t nEndElementIndex);
 
-    /** Ë¢ĞÂÖ¸¶¨µÄÊı¾İ£¬±£³ÖÊı¾İÓë½çÃæÏÔÊ¾Í¬²½
-    * @param [elementIndexs] ÁĞ±íÖĞÎªÔªËØË÷ÒıºÅ£¬ÓĞĞ§·¶Î§£º[0, GetElementCount())
+    /** åˆ·æ–°æŒ‡å®šçš„æ•°æ®ï¼Œä¿æŒæ•°æ®ä¸ç•Œé¢æ˜¾ç¤ºåŒæ­¥
+    * @param [elementIndexs] åˆ—è¡¨ä¸­ä¸ºå…ƒç´ ç´¢å¼•å·ï¼Œæœ‰æ•ˆèŒƒå›´ï¼š[0, GetElementCount())
     */
     void RefreshElements(const std::vector<size_t>& elementIndexs);
 
-    /** Ë¢ĞÂÁĞ±í
+    /** åˆ·æ–°åˆ—è¡¨
     */
     virtual void Refresh();
 
-    /** È·±£¾ØĞÎÇøÓò¿É¼û
-	* @param [in] rcItem ¿É¼ûÇøÓòµÄ¾ØĞÎ·¶Î§
-	* @param [in] vVisibleType ´¹Ö±·½Ïò¿É¼ûµÄ¸½¼Ó±êÖ¾
-	* @param [in] hVisibleType Ë®Æ½·½Ïò¿É¼ûµÄ¸½¼Ó±êÖ¾
+    /** ç¡®ä¿çŸ©å½¢åŒºåŸŸå¯è§
+	* @param [in] rcItem å¯è§åŒºåŸŸçš„çŸ©å½¢èŒƒå›´
+	* @param [in] vVisibleType å‚ç›´æ–¹å‘å¯è§çš„é™„åŠ æ ‡å¿—
+	* @param [in] hVisibleType æ°´å¹³æ–¹å‘å¯è§çš„é™„åŠ æ ‡å¿—
 	*/
 	virtual void EnsureVisible(const UiRect& rcItem,
 							   ListBoxVerVisible vVisibleType,
 							   ListBoxHorVisible hVisibleType) override;
 
-    /** È·±£×ÓÏî¿É¼û
-	* @param [in] iIndex ×ÓÏîË÷Òı£¬·¶Î§ÊÇ£º[0, GetItemCount())
-	* @param [in] vVisibleType ´¹Ö±·½Ïò¿É¼ûµÄ¸½¼Ó±êÖ¾
-	* @param [in] hVisibleType Ë®Æ½·½Ïò¿É¼ûµÄ¸½¼Ó±êÖ¾
-	* @return Èç¹ûÊÇĞé±íÊµÏÖ£¬·µ»Ø¸ÃÔªËØ¶ÔÓ¦µÄĞÂµÄ¿Ø¼şË÷ÒıºÅ£¬·¶Î§ÊÇ£º[0, GetItemCount())
+    /** ç¡®ä¿å­é¡¹å¯è§
+	* @param [in] iIndex å­é¡¹ç´¢å¼•ï¼ŒèŒƒå›´æ˜¯ï¼š[0, GetItemCount())
+	* @param [in] vVisibleType å‚ç›´æ–¹å‘å¯è§çš„é™„åŠ æ ‡å¿—
+	* @param [in] hVisibleType æ°´å¹³æ–¹å‘å¯è§çš„é™„åŠ æ ‡å¿—
+	* @return å¦‚æœæ˜¯è™šè¡¨å®ç°ï¼Œè¿”å›è¯¥å…ƒç´ å¯¹åº”çš„æ–°çš„æ§ä»¶ç´¢å¼•å·ï¼ŒèŒƒå›´æ˜¯ï¼š[0, GetItemCount())
 	*/
 	virtual size_t EnsureVisible(size_t iIndex,
 							     ListBoxVerVisible vVisibleType = ListBoxVerVisible::kVisible,
 							     ListBoxHorVisible hVisibleType = ListBoxHorVisible::kVisible) override;
 
 public:
-    /** ¼àÌıÑ¡Ôñ×ÓÏîµÄÊÂ¼ş
-    * @param[in] callback Ñ¡Ôñ×ÓÏîÊ±µÄ»Øµ÷º¯Êı
-    * ²ÎÊıËµÃ÷:
-    *   wParam: µ±Ç°ĞÂÑ¡ÔñµÄ×ÓÏîID£¬ÓĞĞ§·¶Î§£º[0, GetItemCount())
-    *	lParam: Ô­À´¾ÉÑ¡ÔñµÄ×ÓÏîID£¬ÓĞĞ§·¶Î§£º[0, GetItemCount())£¬¿ÉÄÜÎªÎŞĞ§ÖµBox::InvalidIndex
-    *   ¿ÉÒÔÍ¨¹ı GetDisplayItemElementIndex º¯ÊıµÃµ½¹ØÁªµÄÊı¾İÔªËØË÷ÒıºÅ
+    /** ç›‘å¬é€‰æ‹©å­é¡¹çš„äº‹ä»¶
+    * @param[in] callback é€‰æ‹©å­é¡¹æ—¶çš„å›è°ƒå‡½æ•°
+    * å‚æ•°è¯´æ˜:
+    *   wParam: å½“å‰æ–°é€‰æ‹©çš„å­é¡¹IDï¼Œæœ‰æ•ˆèŒƒå›´ï¼š[0, GetItemCount())
+    *	lParam: åŸæ¥æ—§é€‰æ‹©çš„å­é¡¹IDï¼Œæœ‰æ•ˆèŒƒå›´ï¼š[0, GetItemCount())ï¼Œå¯èƒ½ä¸ºæ— æ•ˆå€¼Box::InvalidIndex
+    *   å¯ä»¥é€šè¿‡ GetDisplayItemElementIndex å‡½æ•°å¾—åˆ°å…³è”çš„æ•°æ®å…ƒç´ ç´¢å¼•å·
     */
     void AttachSelect(const EventCallback& callback) { AttachEvent(kEventSelect, callback); }
 
-    /** ¼àÌıË«»÷ÊÂ¼ş
-     * @param[in] callback ÊÂ¼ş´¦ÀíµÄ»Øµ÷º¯Êı£¬Çë²Î¿¼ EventCallback ÉùÃ÷
-     *  ²ÎÊıËµÃ÷:
-     *    wParam: Ë«»÷µÄ×ÓÏîID£¬ÓĞĞ§·¶Î§£º[0, GetItemCount())£¬Èç¹ûÖµBox::InvalidIndex£¬±íÊ¾Î´Ë«»÷ÈÎºÎ×ÓÏî
-     *    lParam: ¹ØÁªµÄ×ÓÏîID¶ÔÓ¦µÄÊı¾İÔªËØË÷ÒıºÅ£¬ÓĞĞ§·¶Î§£º[0, GetElementCount())£¬Èç¹ûÖµBox::InvalidIndex£¬±íÊ¾ÎŞ¹ØÁªµÄÊı¾İÔªËØ
+    /** ç›‘å¬åŒå‡»äº‹ä»¶
+     * @param[in] callback äº‹ä»¶å¤„ç†çš„å›è°ƒå‡½æ•°ï¼Œè¯·å‚è€ƒ EventCallback å£°æ˜
+     *  å‚æ•°è¯´æ˜:
+     *    wParam: åŒå‡»çš„å­é¡¹IDï¼Œæœ‰æ•ˆèŒƒå›´ï¼š[0, GetItemCount())ï¼Œå¦‚æœå€¼Box::InvalidIndexï¼Œè¡¨ç¤ºæœªåŒå‡»ä»»ä½•å­é¡¹
+     *    lParam: å…³è”çš„å­é¡¹IDå¯¹åº”çš„æ•°æ®å…ƒç´ ç´¢å¼•å·ï¼Œæœ‰æ•ˆèŒƒå›´ï¼š[0, GetElementCount())ï¼Œå¦‚æœå€¼Box::InvalidIndexï¼Œè¡¨ç¤ºæ— å…³è”çš„æ•°æ®å…ƒç´ 
      */
     void AttachDoubleClick(const EventCallback& callback) { AttachEvent(kEventMouseDoubleClick, callback); }
 
-    /** °ó¶¨Êó±êµã»÷´¦Àíº¯Êı
-    * @param[in] callback Òª°ó¶¨µÄ»Øµ÷º¯Êı
-    *  ²ÎÊıËµÃ÷:
-    *    wParam: µã»÷µÄ×ÓÏîID£¬ÓĞĞ§·¶Î§£º[0, GetItemCount())£¬Èç¹ûÖµBox::InvalidIndex£¬±íÊ¾Î´Ë«»÷ÈÎºÎ×ÓÏî
-    *    lParam: ¹ØÁªµÄ×ÓÏîID¶ÔÓ¦µÄÊı¾İÔªËØË÷ÒıºÅ£¬ÓĞĞ§·¶Î§£º[0, GetElementCount())£¬Èç¹ûÖµBox::InvalidIndex£¬±íÊ¾ÎŞ¹ØÁªµÄÊı¾İÔªËØ
+    /** ç»‘å®šé¼ æ ‡ç‚¹å‡»å¤„ç†å‡½æ•°
+    * @param[in] callback è¦ç»‘å®šçš„å›è°ƒå‡½æ•°
+    *  å‚æ•°è¯´æ˜:
+    *    wParam: ç‚¹å‡»çš„å­é¡¹IDï¼Œæœ‰æ•ˆèŒƒå›´ï¼š[0, GetItemCount())ï¼Œå¦‚æœå€¼Box::InvalidIndexï¼Œè¡¨ç¤ºæœªåŒå‡»ä»»ä½•å­é¡¹
+    *    lParam: å…³è”çš„å­é¡¹IDå¯¹åº”çš„æ•°æ®å…ƒç´ ç´¢å¼•å·ï¼Œæœ‰æ•ˆèŒƒå›´ï¼š[0, GetElementCount())ï¼Œå¦‚æœå€¼Box::InvalidIndexï¼Œè¡¨ç¤ºæ— å…³è”çš„æ•°æ®å…ƒç´ 
     */
     void AttachClick(const EventCallback& callback) { AttachEvent(kEventClick, callback); }
 
-    /** °ó¶¨Êó±êÓÒ¼üµã»÷´¦Àíº¯Êı
-    * @param[in] callback Òª°ó¶¨µÄ»Øµ÷º¯Êı
-    *  ²ÎÊıËµÃ÷:
-    *    wParam: µã»÷µÄ×ÓÏîID£¬ÓĞĞ§·¶Î§£º[0, GetItemCount())£¬Èç¹ûÖµBox::InvalidIndex£¬±íÊ¾Î´Ë«»÷ÈÎºÎ×ÓÏî
-    *    lParam: ¹ØÁªµÄ×ÓÏîID¶ÔÓ¦µÄÊı¾İÔªËØË÷ÒıºÅ£¬ÓĞĞ§·¶Î§£º[0, GetElementCount())£¬Èç¹ûÖµBox::InvalidIndex£¬±íÊ¾ÎŞ¹ØÁªµÄÊı¾İÔªËØ
+    /** ç»‘å®šé¼ æ ‡å³é”®ç‚¹å‡»å¤„ç†å‡½æ•°
+    * @param[in] callback è¦ç»‘å®šçš„å›è°ƒå‡½æ•°
+    *  å‚æ•°è¯´æ˜:
+    *    wParam: ç‚¹å‡»çš„å­é¡¹IDï¼Œæœ‰æ•ˆèŒƒå›´ï¼š[0, GetItemCount())ï¼Œå¦‚æœå€¼Box::InvalidIndexï¼Œè¡¨ç¤ºæœªåŒå‡»ä»»ä½•å­é¡¹
+    *    lParam: å…³è”çš„å­é¡¹IDå¯¹åº”çš„æ•°æ®å…ƒç´ ç´¢å¼•å·ï¼Œæœ‰æ•ˆèŒƒå›´ï¼š[0, GetElementCount())ï¼Œå¦‚æœå€¼Box::InvalidIndexï¼Œè¡¨ç¤ºæ— å…³è”çš„æ•°æ®å…ƒç´ 
     */
     void AttachRClick(const EventCallback& callback) { AttachEvent(kEventRClick, callback); }
 
-    /** ¼àÌı»Ø³µÊÂ¼ş
-     * @param[in] callback ÊÕµ½»Ø³µÊ±µÄ»Øµ÷º¯Êı
-     *  ²ÎÊıËµÃ÷:
-     *    wParam: ¹ØÁªµÄ×ÓÏîID£¬ÓĞĞ§·¶Î§£º[0, GetItemCount())£¬Èç¹ûÖµBox::InvalidIndex£¬±íÊ¾Î´Ë«»÷ÈÎºÎ×ÓÏî
-     *    lParam: ¹ØÁªµÄ×ÓÏîID¶ÔÓ¦µÄÊı¾İÔªËØË÷ÒıºÅ£¬ÓĞĞ§·¶Î§£º[0, GetElementCount())£¬Èç¹ûÖµBox::InvalidIndex£¬±íÊ¾ÎŞ¹ØÁªµÄÊı¾İÔªËØ
+    /** ç›‘å¬å›è½¦äº‹ä»¶
+     * @param[in] callback æ”¶åˆ°å›è½¦æ—¶çš„å›è°ƒå‡½æ•°
+     *  å‚æ•°è¯´æ˜:
+     *    wParam: å…³è”çš„å­é¡¹IDï¼Œæœ‰æ•ˆèŒƒå›´ï¼š[0, GetItemCount())ï¼Œå¦‚æœå€¼Box::InvalidIndexï¼Œè¡¨ç¤ºæœªåŒå‡»ä»»ä½•å­é¡¹
+     *    lParam: å…³è”çš„å­é¡¹IDå¯¹åº”çš„æ•°æ®å…ƒç´ ç´¢å¼•å·ï¼Œæœ‰æ•ˆèŒƒå›´ï¼š[0, GetElementCount())ï¼Œå¦‚æœå€¼Box::InvalidIndexï¼Œè¡¨ç¤ºæ— å…³è”çš„æ•°æ®å…ƒç´ 
      */
     void AttachReturn(const EventCallback& callback) { this->AttachEvent(kEventReturn, callback); }
 
 public:
-    /// ÖØĞ´¸¸Àà½Ó¿Ú£¬Ìá¹©¸öĞÔ»¯¹¦ÄÜ
+    /// é‡å†™çˆ¶ç±»æ¥å£ï¼Œæä¾›ä¸ªæ€§åŒ–åŠŸèƒ½
     virtual void SetScrollPos(UiSize64 szPos) override;
     virtual void SetPos(UiRect rc) override;
     virtual void PaintChild(IRender* pRender, const UiRect& rcPaint) override;
@@ -303,127 +303,127 @@ public:
     virtual void SendEvent(const EventArgs& event) override;
 
 protected:
-    //ÖØÔØÉ¾³ıº¯Êı£¬½ûÖ¹Íâ²¿µ÷ÓÃ
+    //é‡è½½åˆ é™¤å‡½æ•°ï¼Œç¦æ­¢å¤–éƒ¨è°ƒç”¨
     virtual bool RemoveItem(Control* pControl) override;
     virtual bool RemoveItemAt(size_t iIndex) override;
     virtual void RemoveAllItems() override;
 
-    /** ¼´½«²éÕÒÖ¸¶¨µÄÔªËØ£¨ÎªĞé±íÌá¹©¼ÓÔØÊı¾İµÄ»ú»á£©
-	* @param [in] nCurSel µ±Ç°Ñ¡ÔñµÄÏÔÊ¾¿Ø¼şË÷ÒıºÅ
-	* @param [in] mode  ²éÕÒµÄÄ£Ê½
-	* @param [in] nCount ²éÕÒµÄ¿Ø¼şµÄµÚ¼¸¸öÊı¾İ
-	* @param [out] nDestItemIndex ·µ»Ø¼ÓÔØºóµÄÄ¿±ê¿Ø¼şË÷ÒıºÅ£¬ÓĞĞ§·¶Î§: [0, GetItemCount())
-	* @return ·µ»Øtrue±íÊ¾ÓĞÊı¾İ¼ÓÔØĞĞÎª£¬false±íÊ¾ÎŞÈÎºÎ¶¯×÷
+    /** å³å°†æŸ¥æ‰¾æŒ‡å®šçš„å…ƒç´ ï¼ˆä¸ºè™šè¡¨æä¾›åŠ è½½æ•°æ®çš„æœºä¼šï¼‰
+	* @param [in] nCurSel å½“å‰é€‰æ‹©çš„æ˜¾ç¤ºæ§ä»¶ç´¢å¼•å·
+	* @param [in] mode  æŸ¥æ‰¾çš„æ¨¡å¼
+	* @param [in] nCount æŸ¥æ‰¾çš„æ§ä»¶çš„ç¬¬å‡ ä¸ªæ•°æ®
+	* @param [out] nDestItemIndex è¿”å›åŠ è½½åçš„ç›®æ ‡æ§ä»¶ç´¢å¼•å·ï¼Œæœ‰æ•ˆèŒƒå›´: [0, GetItemCount())
+	* @return è¿”å›trueè¡¨ç¤ºæœ‰æ•°æ®åŠ è½½è¡Œä¸ºï¼Œfalseè¡¨ç¤ºæ— ä»»ä½•åŠ¨ä½œ
 	*/
 	virtual bool OnFindSelectable(size_t nCurSel, SelectableMode mode, 
 								  size_t nCount, size_t& nDestItemIndex) override;
 
-    /** ²éÑ¯±¾ÌõÊı¾İÇ°Ãæ»¹ÓĞ¼¸ÌõÊı¾İ£¨Ö§³ÖĞé±íÊı¾İ£©
-    * @param [in] nCurSel µ±Ç°Ñ¡ÔñµÄÏÔÊ¾¿Ø¼şË÷ÒıºÅ
+    /** æŸ¥è¯¢æœ¬æ¡æ•°æ®å‰é¢è¿˜æœ‰å‡ æ¡æ•°æ®ï¼ˆæ”¯æŒè™šè¡¨æ•°æ®ï¼‰
+    * @param [in] nCurSel å½“å‰é€‰æ‹©çš„æ˜¾ç¤ºæ§ä»¶ç´¢å¼•å·
     */
     virtual size_t GetItemCountBefore(size_t nCurSel) override;
 
-    /** ²éÑ¯±¾ÌõÊı¾İºóÃæ»¹ÓĞ¼¸ÌõÊı¾İ£¨Ö§³ÖĞé±íÊı¾İ£©
-    * @param [in] nCurSel µ±Ç°Ñ¡ÔñµÄÏÔÊ¾¿Ø¼şË÷ÒıºÅ
+    /** æŸ¥è¯¢æœ¬æ¡æ•°æ®åé¢è¿˜æœ‰å‡ æ¡æ•°æ®ï¼ˆæ”¯æŒè™šè¡¨æ•°æ®ï¼‰
+    * @param [in] nCurSel å½“å‰é€‰æ‹©çš„æ˜¾ç¤ºæ§ä»¶ç´¢å¼•å·
     */
     virtual size_t GetItemCountAfter(size_t nCurSel) override;
 
-    /** ÅĞ¶ÏÒ»¸öÊı¾İÔªËØÊÇ·ñÎª¿ÉÑ¡ÔñÏî
-	* @param [in] nElementIndex ÔªËØË÷ÒıºÅ£¬ÓĞĞ§·¶Î§£º[0, GetElementCount())
+    /** åˆ¤æ–­ä¸€ä¸ªæ•°æ®å…ƒç´ æ˜¯å¦ä¸ºå¯é€‰æ‹©é¡¹
+	* @param [in] nElementIndex å…ƒç´ ç´¢å¼•å·ï¼Œæœ‰æ•ˆèŒƒå›´ï¼š[0, GetElementCount())
 	*/
     virtual bool IsSelectableElement(size_t nElementIndex) const;
 
-    /** »ñÈ¡ÏÂÒ»¸ö¿ÉÑ¡ÔñµÄÊı¾İÔªËØ
-    * @param [in] nElementIndex ÔªËØË÷ÒıºÅ£¬ÓĞĞ§·¶Î§£º[0, GetElementCount())
-    * @param [in] bForward true±íÊ¾ÏòÇ°²éÕÒ£¬false±íÊ¾Ïòºó²éÕÒ
+    /** è·å–ä¸‹ä¸€ä¸ªå¯é€‰æ‹©çš„æ•°æ®å…ƒç´ 
+    * @param [in] nElementIndex å…ƒç´ ç´¢å¼•å·ï¼Œæœ‰æ•ˆèŒƒå›´ï¼š[0, GetElementCount())
+    * @param [in] bForward trueè¡¨ç¤ºå‘å‰æŸ¥æ‰¾ï¼Œfalseè¡¨ç¤ºå‘åæŸ¥æ‰¾
     */
     virtual size_t FindSelectableElement(size_t nElementIndex, bool bForward) const;
 
-    /** ¶Ô×ÓÏîÅÅĞò
-     * @param [in] pfnCompare ×Ô¶¨ÒåÅÅĞòº¯Êı
-     * @param [in] pCompareContext ´«µİ¸ø±È½Ïº¯ÊıµÄÓÃ»§×Ô¶¨ÒåÊı¾İ
+    /** å¯¹å­é¡¹æ’åº
+     * @param [in] pfnCompare è‡ªå®šä¹‰æ’åºå‡½æ•°
+     * @param [in] pCompareContext ä¼ é€’ç»™æ¯”è¾ƒå‡½æ•°çš„ç”¨æˆ·è‡ªå®šä¹‰æ•°æ®
      */
     virtual bool SortItems(PFNCompareFunc pfnCompare, void* pCompareContext) override;
 
-    /** ×ÓÏîµÄÑ¡Ôñ×´Ì¬±ä»¯ÊÂ¼ş£¬ÓÃÓÚ×´Ì¬Í¬²½
-    * @param [in] iIndex ×ÓÏîÄ¿µÄID£¬·¶Î§ÊÇ£º[0, GetItemCount())
-    * @param [in] pListBoxItem ¹ØÁªµÄÁĞ±íÏî½Ó¿Ú
+    /** å­é¡¹çš„é€‰æ‹©çŠ¶æ€å˜åŒ–äº‹ä»¶ï¼Œç”¨äºçŠ¶æ€åŒæ­¥
+    * @param [in] iIndex å­é¡¹ç›®çš„IDï¼ŒèŒƒå›´æ˜¯ï¼š[0, GetItemCount())
+    * @param [in] pListBoxItem å…³è”çš„åˆ—è¡¨é¡¹æ¥å£
     */
     virtual void OnItemSelectedChanged(size_t iIndex, IListBoxItem* pListBoxItem) override;
 
 protected:
 
-    /** ÉèÖÃĞé±í²¼¾Ö½Ó¿Ú
+    /** è®¾ç½®è™šè¡¨å¸ƒå±€æ¥å£
     */
     void SetVirtualLayout(VirtualLayout* pVirtualLayout);
 
-    /** »ñÈ¡Ğé±í²¼¾Ö½Ó¿Ú
+    /** è·å–è™šè¡¨å¸ƒå±€æ¥å£
     */
     VirtualLayout* GetVirtualLayout() const;
 
 public:
     struct RefreshData
     {
-        size_t nItemIndex;      //½çÃæ¿Ø¼şµÄË÷ÒıºÅ
-        Control* pControl;      //½çÃæ¿Ø¼şµÄ½Ó¿Ú
-        size_t nElementIndex;   //Êı¾İÔªËØµÄË÷ÒıºÅ
+        size_t nItemIndex;      //ç•Œé¢æ§ä»¶çš„ç´¢å¼•å·
+        Control* pControl;      //ç•Œé¢æ§ä»¶çš„æ¥å£
+        size_t nElementIndex;   //æ•°æ®å…ƒç´ çš„ç´¢å¼•å·
     };
     typedef std::vector<RefreshData> RefreshDataList;
 
-    /** Ö´ĞĞÁË½çÃæË¢ĞÂ²Ù×÷, ½çÃæµÄUI¿Ø¼ş¸öÊı¿ÉÄÜ»á·¢Éú±ä»¯
+    /** æ‰§è¡Œäº†ç•Œé¢åˆ·æ–°æ“ä½œ, ç•Œé¢çš„UIæ§ä»¶ä¸ªæ•°å¯èƒ½ä¼šå‘ç”Ÿå˜åŒ–
     */
     virtual void OnRefreshElements(const RefreshDataList& /*refreshDataList*/) {}
 
 protected:
-    /** ´´½¨Ò»¸ö×ÓÏî
-    * @return ·µ»Ø´´½¨ºóµÄ×ÓÏîÖ¸Õë
+    /** åˆ›å»ºä¸€ä¸ªå­é¡¹
+    * @return è¿”å›åˆ›å»ºåçš„å­é¡¹æŒ‡é’ˆ
     */
     Control* CreateElement();
 
-    /** Ìî³äÖ¸¶¨Êı¾İÏî
-    * @param[in] pControl Êı¾İÏî¿Ø¼şÖ¸Õë
-    * @param[in] nElementIndex Êı¾İÔªËØµÄË÷ÒıID£¬·¶Î§£º[0, GetElementCount())
+    /** å¡«å……æŒ‡å®šæ•°æ®é¡¹
+    * @param[in] pControl æ•°æ®é¡¹æ§ä»¶æŒ‡é’ˆ
+    * @param[in] nElementIndex æ•°æ®å…ƒç´ çš„ç´¢å¼•IDï¼ŒèŒƒå›´ï¼š[0, GetElementCount())
     */
     void FillElement(Control* pControl, size_t nElementIndex);
 
-    /** ÖØĞÂ²¼¾Ö×ÓÏî
-    * @param[in] bForce ÊÇ·ñÇ¿ÖÆÖØĞÂ²¼¾Ö
+    /** é‡æ–°å¸ƒå±€å­é¡¹
+    * @param[in] bForce æ˜¯å¦å¼ºåˆ¶é‡æ–°å¸ƒå±€
     */
     void ReArrangeChild(bool bForce);
 
-    /** Êı¾İÄÚÈİ·¢Éú±ä»¯£¬ÔÚÊÂ¼şÖĞĞèÒªÖØĞÂ¼ÓÔØÕ¹Ê¾Êı¾İ
+    /** æ•°æ®å†…å®¹å‘ç”Ÿå˜åŒ–ï¼Œåœ¨äº‹ä»¶ä¸­éœ€è¦é‡æ–°åŠ è½½å±•ç¤ºæ•°æ®
     */
     void OnModelDataChanged(size_t nStartElementIndex, size_t nEndElementIndex);
 
-    /** Êı¾İ¸öÊı·¢Éú±ä»¯£¬ÔÚÊÂ¼şÖĞĞèÒªÖØĞÂ¼ÓÔØÕ¹Ê¾Êı¾İ
+    /** æ•°æ®ä¸ªæ•°å‘ç”Ÿå˜åŒ–ï¼Œåœ¨äº‹ä»¶ä¸­éœ€è¦é‡æ–°åŠ è½½å±•ç¤ºæ•°æ®
     */
     void OnModelCountChanged();
 
-    /** ÊÇ·ñÔÊĞí´Ó½çÃæ×´Ì¬Í¬²½µ½´æ´¢×´Ì¬
+    /** æ˜¯å¦å…è®¸ä»ç•Œé¢çŠ¶æ€åŒæ­¥åˆ°å­˜å‚¨çŠ¶æ€
     */
     bool IsEnableUpdateProvider() const;
 
-    /** ·¢ËÍÊÂ¼şµÄº¯Êı
-    * @param [in] args ÊÂ¼şÄÚÈİ
-    * @param [in] bFromItem true±íÊ¾À´×Ô×Ó¿Ø¼ş£¬false±íÊ¾À´×Ô×ÔÉí
+    /** å‘é€äº‹ä»¶çš„å‡½æ•°
+    * @param [in] args äº‹ä»¶å†…å®¹
+    * @param [in] bFromItem trueè¡¨ç¤ºæ¥è‡ªå­æ§ä»¶ï¼Œfalseè¡¨ç¤ºæ¥è‡ªè‡ªèº«
     */
     void VSendEvent(const EventArgs& args, bool bFromItem);
 
 private:
-    /** Êı¾İ´úÀí¶ÔÏó½Ó¿Ú£¬Ìá¹©Õ¹Ê¾Êı¾İ
+    /** æ•°æ®ä»£ç†å¯¹è±¡æ¥å£ï¼Œæä¾›å±•ç¤ºæ•°æ®
     */
     VirtualListBoxElement* m_pDataProvider;
 
-    /** Ğé±í²¼¾Ö½Ó¿Ú
+    /** è™šè¡¨å¸ƒå±€æ¥å£
     */
     VirtualLayout* m_pVirtualLayout;
 
-    /** ÊÇ·ñÔÊĞí´Ó½çÃæ×´Ì¬Í¬²½µ½´æ´¢×´Ì¬
+    /** æ˜¯å¦å…è®¸ä»ç•Œé¢çŠ¶æ€åŒæ­¥åˆ°å­˜å‚¨çŠ¶æ€
     */
     bool m_bEnableUpdateProvider;
 };
 
-/** ºáÏò²¼¾ÖµÄĞé±íListBox
+/** æ¨ªå‘å¸ƒå±€çš„è™šè¡¨ListBox
 */
 class UILIB_API VirtualHListBox : public VirtualListBox
 {
@@ -438,7 +438,7 @@ public:
     virtual std::wstring GetType() const override { return DUI_CTR_VIRTUAL_HLISTBOX; }
 };
 
-/** ×İÏò²¼¾ÖµÄĞé±íListBox
+/** çºµå‘å¸ƒå±€çš„è™šè¡¨ListBox
 */
 class UILIB_API VirtualVListBox : public VirtualListBox
 {
@@ -453,7 +453,7 @@ public:
     virtual std::wstring GetType() const override { return DUI_CTR_VIRTUAL_VLISTBOX; }
 };
 
-/** ÍßÆ¬²¼¾ÖµÄĞé±íListBox(ºáÏò²¼¾Ö)
+/** ç“¦ç‰‡å¸ƒå±€çš„è™šè¡¨ListBox(æ¨ªå‘å¸ƒå±€)
 */
 class UILIB_API VirtualHTileListBox : public VirtualListBox
 {
@@ -468,7 +468,7 @@ public:
     virtual std::wstring GetType() const override { return DUI_CTR_VIRTUAL_HTILE_LISTBOX; }
 };
 
-/** ÍßÆ¬²¼¾ÖµÄĞé±íListBox(×İÏò²¼¾Ö)
+/** ç“¦ç‰‡å¸ƒå±€çš„è™šè¡¨ListBox(çºµå‘å¸ƒå±€)
 */
 class UILIB_API VirtualVTileListBox : public VirtualListBox
 {

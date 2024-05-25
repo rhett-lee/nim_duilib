@@ -22,7 +22,7 @@
 
 namespace ui {
 
-/** ÍÏ·Å²Ù×÷½Ó¿ÚµÄÊµÏÖ£¨½öÊÇÍÏÈë²Ù×÷£©
+/** æ‹–æ”¾æ“ä½œæ¥å£çš„å®ç°ï¼ˆä»…æ˜¯æ‹–å…¥æ“ä½œï¼‰
 */
 class RichEditDropTarget : public ControlDropTarget
 {
@@ -66,7 +66,7 @@ public:
 		IDropTarget* pDropTarget = nullptr;
 		HRESULT txResult = m_pTextServices->TxGetDropTarget(&pDropTarget);
 		if (SUCCEEDED(txResult) && (pDropTarget != nullptr)) {
-			//ÉèÖÃµ±Ç°RichEdit¿Ø¼şµÄ¹â±êµ½Êó±êËùÔÚÎ»ÖÃ£¬·½±ã²é¿´ÍÏ·ÅÄ¿±êÎ»ÖÃ
+			//è®¾ç½®å½“å‰RichEditæ§ä»¶çš„å…‰æ ‡åˆ°é¼ æ ‡æ‰€åœ¨ä½ç½®ï¼Œæ–¹ä¾¿æŸ¥çœ‹æ‹–æ”¾ç›®æ ‡ä½ç½®
 			if (m_pRichEdit != nullptr) {
 				UiPoint clientPt = pt;
 				m_pRichEdit->ScreenToClient(clientPt);
@@ -80,7 +80,7 @@ public:
 				}
 			}
 
-			//×ª½Ó¸øÎÄ×Ö·şÎñ
+			//è½¬æ¥ç»™æ–‡å­—æœåŠ¡
 			DWORD dwEffect = DROPEFFECT_NONE;
 			if (pdwEffect != nullptr) {
 				dwEffect = *pdwEffect;
@@ -134,11 +134,11 @@ public:
 	}
 
 private:
-	/** RichEdit½Ó¿Ú
+	/** RichEditæ¥å£
 	*/
 	RichEdit* m_pRichEdit;
 
-	/** ÎÄ×Ö·şÎñ½Ó¿Ú
+	/** æ–‡å­—æœåŠ¡æ¥å£
 	*/
 	ITextServices* m_pTextServices;
 };
@@ -181,10 +181,10 @@ RichEdit::RichEdit(Window* pWindow) :
 	m_pClearButton(nullptr),
 	m_pShowPasswordButton(nullptr)
 {
-	//Õâ¸ö±ê¼Ç±ØĞëÎªfalse£¬·ñÔò»æÖÆÓĞÎÊÌâ
+	//è¿™ä¸ªæ ‡è®°å¿…é¡»ä¸ºfalseï¼Œå¦åˆ™ç»˜åˆ¶æœ‰é—®é¢˜
 	SetUseCache(false);
 
-	//´´½¨RichEditHost½Ó¿Ú
+	//åˆ›å»ºRichEditHostæ¥å£
 	m_pRichHost = new RichEditHost(this);
 	ASSERT(m_pRichHost->GetTextServices() != nullptr);
 	m_richCtrl.SetTextServices(m_pRichHost->GetTextServices());
@@ -211,7 +211,7 @@ RichEdit::~RichEdit()
 void RichEdit::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
 	if (strName == L"vscrollbar") {
-		//×İÏò¹ö¶¯Ìõ
+		//çºµå‘æ»šåŠ¨æ¡
 		if (strValue == L"true") {
 			EnableScrollBar(true, GetHScrollBar() != NULL);
 			if (m_pRichHost != nullptr) {
@@ -226,7 +226,7 @@ void RichEdit::SetAttribute(const std::wstring& strName, const std::wstring& str
 		}
 	}
 	else if (strName == L"hscrollbar") {
-		//ºáÏò¹ö¶¯Ìõ
+		//æ¨ªå‘æ»šåŠ¨æ¡
 		if (strValue == L"true") {
 			EnableScrollBar(GetVScrollBar() != NULL, true);
 			if (m_pRichHost != nullptr) {
@@ -241,14 +241,14 @@ void RichEdit::SetAttribute(const std::wstring& strName, const std::wstring& str
 		}
 	}
 	else if ((strName == L"auto_vscroll") || (strName == L"autovscroll")) {
-		//µ±ÓÃ»§ÔÚ×îºóÒ»ĞĞ°´ ENTER Ê±£¬×Ô¶¯½«ÎÄ±¾ÏòÉÏ¹ö¶¯Ò»Ò³¡£
+		//å½“ç”¨æˆ·åœ¨æœ€åä¸€è¡ŒæŒ‰ ENTER æ—¶ï¼Œè‡ªåŠ¨å°†æ–‡æœ¬å‘ä¸Šæ»šåŠ¨ä¸€é¡µã€‚
 		if (m_pRichHost != nullptr) {
 			m_pRichHost->SetAutoVScroll(strValue == L"true");
 		}
 	}
 	else if ((strName == L"auto_hscroll") || (strName == L"autohscroll")) {
-		//µ±ÓÃ»§ÔÚĞĞÎ²¼üÈëÒ»¸ö×Ö·ûÊ±£¬×Ô¶¯½«ÎÄ±¾ÏòÓÒ¹ö¶¯ 10 ¸ö×Ö·û¡£
-		//µ±ÓÃ»§°´ Enter Ê±£¬¿Ø¼ş»á½«ËùÓĞÎÄ±¾¹ö¶¯»ØÁãÎ»ÖÃ¡£
+		//å½“ç”¨æˆ·åœ¨è¡Œå°¾é”®å…¥ä¸€ä¸ªå­—ç¬¦æ—¶ï¼Œè‡ªåŠ¨å°†æ–‡æœ¬å‘å³æ»šåŠ¨ 10 ä¸ªå­—ç¬¦ã€‚
+		//å½“ç”¨æˆ·æŒ‰ Enter æ—¶ï¼Œæ§ä»¶ä¼šå°†æ‰€æœ‰æ–‡æœ¬æ»šåŠ¨å›é›¶ä½ç½®ã€‚
 		if (m_pRichHost != nullptr) {
 			m_pRichHost->SetAutoHScroll(strValue == L"true");
 		}
@@ -330,23 +330,23 @@ void RichEdit::SetAttribute(const std::wstring& strName, const std::wstring& str
 		SetDisabledTextColor(strValue);
 	}
 	else if ((strName == L"caret_color") || (strName == L"caretcolor")) {
-		//ÉèÖÃ¹â±êµÄÑÕÉ«
+		//è®¾ç½®å…‰æ ‡çš„é¢œè‰²
 		SetCaretColor(strValue);
 	}
 	else if ((strName == L"prompt_mode") || (strName == L"promptmode")) {
-		//ÌáÊ¾Ä£Ê½
+		//æç¤ºæ¨¡å¼
 		m_bAllowPrompt = (strValue == L"true") ? true : false;
 	}
 	else if ((strName == L"prompt_color") || (strName == L"promptcolor")) {
-		//ÌáÊ¾ÎÄ×ÖµÄÑÕÉ«
+		//æç¤ºæ–‡å­—çš„é¢œè‰²
 		m_sPromptColor = strValue;
 	}
 	else if ((strName == L"prompt_text") || (strName == L"prompttext")) {
-		//ÌáÊ¾ÎÄ×Ö
+		//æç¤ºæ–‡å­—
 		SetPromptText(strValue);
 	}
 	else if ((strName == L"prompt_text_id") || (strName == L"prompt_textid") || (strName == L"prompttextid")) {
-		//ÌáÊ¾ÎÄ×ÖID
+		//æç¤ºæ–‡å­—ID
 		SetPromptTextId(strValue);
 	}
 	else if ((strName == L"focused_image") || (strName == L"focusedimage")) {
@@ -371,47 +371,47 @@ void RichEdit::SetAttribute(const std::wstring& strName, const std::wstring& str
 		SetReturnMsgWantCtrl(strValue == L"true");
 	}
 	else if ((strName == L"rich_text") || (strName == L"rich")) {
-		//ÊÇ·ñÎª¸»ÎÄ±¾ÊôĞÔ
+		//æ˜¯å¦ä¸ºå¯Œæ–‡æœ¬å±æ€§
 		SetRichText(strValue == L"true");
 	}
 	else if (strName == L"auto_detect_url") {
-		//ÊÇ·ñ×Ô¶¯¼ì²âURL£¬Èç¹ûÊÇURLÔòÏÔÊ¾Îª³¬Á´½Ó
+		//æ˜¯å¦è‡ªåŠ¨æ£€æµ‹URLï¼Œå¦‚æœæ˜¯URLåˆ™æ˜¾ç¤ºä¸ºè¶…é“¾æ¥
 		SetAutoURLDetect(strValue == L"true");
 	}
 	else if ((strName == L"limit_text") || (strName == L"max_char") || (strName == L"maxchar")) {
-		//ÏŞÖÆ×î¶à×Ö·ûÊı
+		//é™åˆ¶æœ€å¤šå­—ç¬¦æ•°
 		SetLimitText(_wtoi(strValue.c_str()));
 	}
 	else if (strName == L"limit_chars") {
-		//ÏŞÖÆÔÊĞíÊäÈëÄÄĞ©×Ö·û
+		//é™åˆ¶å…è®¸è¾“å…¥å“ªäº›å­—ç¬¦
 		SetLimitChars(strValue);
 	}
 	else if (strName == L"allow_beep") {
-		//ÊÇ·ñÔÊĞí·¢³öBeepÉùÒô
+		//æ˜¯å¦å…è®¸å‘å‡ºBeepå£°éŸ³
 		SetAllowBeep(strValue == L"true");
 	}
 	else if (strName == L"word_wrap") {
-		//ÊÇ·ñ×Ô¶¯»»ĞĞ
+		//æ˜¯å¦è‡ªåŠ¨æ¢è¡Œ
 		SetWordWrap(strValue == L"true");
 	}
 	else if (strName == L"no_caret_readonly") {
-		//Ö»¶ÁÄ£Ê½£¬²»ÏÔÊ¾¹â±ê
+		//åªè¯»æ¨¡å¼ï¼Œä¸æ˜¾ç¤ºå…‰æ ‡
 		SetNoCaretReadonly();
 	}
 	else if (strName == L"save_selection") {
-		//Èç¹û Îª TRUE£¬Ôòµ±¿Ø¼ş´¦ÓÚ·Ç»î¶¯×´Ì¬Ê±£¬Ó¦±£´æËùÑ¡ÄÚÈİµÄ±ß½ç¡£
-		//Èç¹û Îª FALSE£¬Ôòµ±¿Ø¼şÔÙ´Î´¦ÓÚ»î¶¯×´Ì¬Ê±£¬¿ÉÒÔÑ¡Ôñ±ß½çÖØÖÃÎª start = 0£¬length = 0¡£
+		//å¦‚æœ ä¸º TRUEï¼Œåˆ™å½“æ§ä»¶å¤„äºéæ´»åŠ¨çŠ¶æ€æ—¶ï¼Œåº”ä¿å­˜æ‰€é€‰å†…å®¹çš„è¾¹ç•Œã€‚
+		//å¦‚æœ ä¸º FALSEï¼Œåˆ™å½“æ§ä»¶å†æ¬¡å¤„äºæ´»åŠ¨çŠ¶æ€æ—¶ï¼Œå¯ä»¥é€‰æ‹©è¾¹ç•Œé‡ç½®ä¸º start = 0ï¼Œlength = 0ã€‚
 		SetSaveSelection(strValue == L"true");
 	}
 	else if (strName == L"hide_selection") {
-		//ÊÇ·ñÒş²ØÑ¡ÔñÄÚÈİ
+		//æ˜¯å¦éšè—é€‰æ‹©å†…å®¹
 		SetHideSelection(strValue == L"true");
 	}
 	else if (strName == L"zoom") {
-		//Ëõ·Å±ÈÀı£º
-		//ÉèÖÃËõ·Å±ÈÀı£ºÉè wParam£ºËõ·Å±ÈÀıµÄ·Ö×Ó£¬lParam£ºËõ·Å±ÈÀıµÄ·ÖÄ¸£¬
-		// "wParam,lParam" ±íÊ¾°´Ëõ·Å±ÈÀı·Ö×Ó/·ÖÄ¸ÏÔÊ¾µÄËõ·Å£¬È¡Öµ·¶Î§£º1/64 < (wParam / lParam) < 64¡£
-		// ¾ÙÀı£ºÔò£º"0,0"±íÊ¾¹Ø±ÕËõ·Å¹¦ÄÜ£¬"2,1"±íÊ¾·Å´óµ½200%£¬"1,2"±íÊ¾ËõĞ¡µ½50% 
+		//ç¼©æ”¾æ¯”ä¾‹ï¼š
+		//è®¾ç½®ç¼©æ”¾æ¯”ä¾‹ï¼šè®¾ wParamï¼šç¼©æ”¾æ¯”ä¾‹çš„åˆ†å­ï¼ŒlParamï¼šç¼©æ”¾æ¯”ä¾‹çš„åˆ†æ¯ï¼Œ
+		// "wParam,lParam" è¡¨ç¤ºæŒ‰ç¼©æ”¾æ¯”ä¾‹åˆ†å­/åˆ†æ¯æ˜¾ç¤ºçš„ç¼©æ”¾ï¼Œå–å€¼èŒƒå›´ï¼š1/64 < (wParam / lParam) < 64ã€‚
+		// ä¸¾ä¾‹ï¼šåˆ™ï¼š"0,0"è¡¨ç¤ºå…³é—­ç¼©æ”¾åŠŸèƒ½ï¼Œ"2,1"è¡¨ç¤ºæ”¾å¤§åˆ°200%ï¼Œ"1,2"è¡¨ç¤ºç¼©å°åˆ°50% 
 		UiSize zoomValue;
 		AttributeUtil::ParseSizeValue(strValue.c_str(), zoomValue);
 		if ((zoomValue.cx >= 0) && (zoomValue.cx <= 64) &&
@@ -420,15 +420,15 @@ void RichEdit::SetAttribute(const std::wstring& strName, const std::wstring& str
 		}
 	}
 	else if (strName == L"wheel_zoom") {
-		//ÉèÖÃÊÇ·ñÔÊĞíCtrl + ¹öÂÖÀ´µ÷ÕûËõ·Å±ÈÀı
+		//è®¾ç½®æ˜¯å¦å…è®¸Ctrl + æ»šè½®æ¥è°ƒæ•´ç¼©æ”¾æ¯”ä¾‹
 		SetEnableWheelZoom(strValue == L"true");
 	}
 	else if (strName == L"default_context_menu") {
-		//ÊÇ·ñÊ¹ÓÃÄ¬ÈÏµÄÓÒ¼ü²Ëµ¥
+		//æ˜¯å¦ä½¿ç”¨é»˜è®¤çš„å³é”®èœå•
 		SetEnableDefaultContextMenu(strValue == L"true");
 	}
 	else if (strName == L"enable_drag_drop") {
-		//ÊÇ·ñÔÊĞíÍÏ·Å²Ù×÷
+		//æ˜¯å¦å…è®¸æ‹–æ”¾æ“ä½œ
 		SetEnableDragDrop(strValue == L"true");
 	}
 	else if (strName == L"spin_class") {
@@ -525,7 +525,7 @@ void RichEdit::SetRichText(bool bRichText)
 	if (m_pRichHost->IsRichText() == bRichText) {
 		return;
 	}
-	//ÇĞ»»ÎÄ±¾Ä£Ê½µÄÊ±ºò£¬RichEditµÄÎÄ±¾ÄÚÈİ±ØĞëÎª¿Õ
+	//åˆ‡æ¢æ–‡æœ¬æ¨¡å¼çš„æ—¶å€™ï¼ŒRichEditçš„æ–‡æœ¬å†…å®¹å¿…é¡»ä¸ºç©º
 	std::wstring text = GetText();
 	if (!text.empty()) {		
 		SetText(L"");
@@ -557,7 +557,7 @@ void RichEdit::SetReadOnly(bool bReadOnly)
 		m_pRichHost->SetReadOnly(bReadOnly);
 	}
 	if (bReadOnly) {
-		//Ö»¶ÁÄ£Ê½¹Ø±ÕÍÏ·Å¹¦ÄÜ
+		//åªè¯»æ¨¡å¼å…³é—­æ‹–æ”¾åŠŸèƒ½
 		SetEnableDragDrop(false);
 	}
 }
@@ -576,7 +576,7 @@ void RichEdit::SetPassword(bool bPassword)
 		m_pRichHost->SetPassword(bPassword);
 	}
 	if (bPassword) {
-		//ÃÜÂëÄ£Ê½¹Ø±ÕÍÏ·Å¹¦ÄÜ
+		//å¯†ç æ¨¡å¼å…³é—­æ‹–æ”¾åŠŸèƒ½
 		SetEnableDragDrop(false);
 	}
 }
@@ -996,7 +996,7 @@ bool RichEdit::SetDefaultCharFormat(CHARFORMAT2& cf)
 	}
 	if (m_richCtrl.SetDefaultCharFormat(cf)) {
 		if (cf.dwMask & CFM_COLOR) {
-			//Í¬²½ÎÄ±¾ÑÕÉ«
+			//åŒæ­¥æ–‡æœ¬é¢œè‰²
 			UiColor textColor;
 			textColor.SetFromCOLORREF(cf.crTextColor);
 			m_sTextColor = ui::StringHelper::Printf(L"#%02X%02X%02X%02X", textColor.GetA(), textColor.GetR(), textColor.GetG(), textColor.GetB());
@@ -1214,11 +1214,11 @@ void RichEdit::OnTxNotify(DWORD iNotify, void *pv)
 		}
 		break;
 	case EN_CHANGE:
-		//ÎÄ±¾ÄÚÈİ±ä»¯£¬·¢ËÍÊÂ¼ş
+		//æ–‡æœ¬å†…å®¹å˜åŒ–ï¼Œå‘é€äº‹ä»¶
 		OnTextChanged();			
 		break;
 	case EN_SELCHANGE:
-		//Ñ¡Ôñ±ä»¯
+		//é€‰æ‹©å˜åŒ–
 		SendEvent(kEventSelChange);
 		break;
 	case EN_DROPFILES:   
@@ -1297,9 +1297,9 @@ void RichEdit::SetImmStatus(BOOL bOpen)
 	if (hwnd == nullptr) {
 		return;
 	}
-	// Ê§È¥½¹µãÊ±¹Ø±ÕÊäÈë·¨
+	// å¤±å»ç„¦ç‚¹æ—¶å…³é—­è¾“å…¥æ³•
 	HIMC hImc = ::ImmGetContext(hwnd);
-	// Ê§È¥½¹µãÊÇ»á°Ñ¹ØÁªµÄÊäÈë·¨È¥µô£¬µ¼ÖÂÎŞ·¨ÎŞ·¨ÊäÈëÖĞÎÄ
+	// å¤±å»ç„¦ç‚¹æ˜¯ä¼šæŠŠå…³è”çš„è¾“å…¥æ³•å»æ‰ï¼Œå¯¼è‡´æ— æ³•æ— æ³•è¾“å…¥ä¸­æ–‡
 	//::ImmAssociateContext(hwnd, bOpen ? hImc : NULL);
 	if (hImc != NULL) {
 		if (::ImmGetOpenStatus(hImc)) {
@@ -1368,8 +1368,8 @@ bool RichEdit::ClientToScreen(UiPoint& pt)
 	return bRet;
 }
 
-// ¶àĞĞ·Çrich¸ñÊ½µÄricheditÓĞÒ»¸ö¹ö¶¯Ìõbug£¬ÔÚ×îºóÒ»ĞĞÊÇ¿ÕĞĞÊ±£¬LineDownºÍSetScrollPosÎŞ·¨¹ö¶¯µ½×îºó
-// ÒıÈëiPos¾ÍÊÇÎªÁËĞŞÕıÕâ¸öbug
+// å¤šè¡Œérichæ ¼å¼çš„richeditæœ‰ä¸€ä¸ªæ»šåŠ¨æ¡bugï¼Œåœ¨æœ€åä¸€è¡Œæ˜¯ç©ºè¡Œæ—¶ï¼ŒLineDownå’ŒSetScrollPosæ— æ³•æ»šåŠ¨åˆ°æœ€å
+// å¼•å…¥iPoså°±æ˜¯ä¸ºäº†ä¿®æ­£è¿™ä¸ªbug
 void RichEdit::SetScrollPos(UiSize64 szPos)
 {
 	int64_t cx = 0;
@@ -1483,7 +1483,7 @@ void RichEdit::OnInit()
 		return;
 	}
 	__super::OnInit();
-	//ÉèÖÃ×ÖÌå
+	//è®¾ç½®å­—ä½“
 	std::wstring fontId = GetFontId();
 	if (m_pRichHost != nullptr) {
 		m_pRichHost->SetFontId(fontId);
@@ -1528,7 +1528,7 @@ void RichEdit::SetEnabled(bool bEnable /*= true*/)
 		if (m_pRichHost != nullptr) {
 			m_pRichHost->SetTextColor(dwTextColor.ToCOLORREF());
 		}
-		//²»¿ÉÓÃµÄ×´Ì¬¹Ø±ÕÍÏ·Å¹¦ÄÜ
+		//ä¸å¯ç”¨çš„çŠ¶æ€å…³é—­æ‹–æ”¾åŠŸèƒ½
 		SetEnableDragDrop(false);
 	}
 }
@@ -1557,7 +1557,7 @@ UiEstSize RichEdit::EstimateSize(UiSize /*szAvailable*/)
 										&iWidth,
 										&iHeight) ;
 		
-		//·µ»Ø´óĞ¡ĞèÒª°üº¬ÄÚ±ß¾à
+		//è¿”å›å¤§å°éœ€è¦åŒ…å«å†…è¾¹è·
 		UiPadding rcPadding = GetControlPadding();
 		UiPadding rcTextPadding = GetTextPadding();
 		if (fixexSize.cy.IsAuto()) {
@@ -1641,7 +1641,7 @@ void RichEdit::SetPos(UiRect rc)
     }
 
     if (m_pRichHost != nullptr) {
-		//µ÷Õû±à¼­¿òµÄÎ»ÖÃ, ¼ôÈ¥ÎÄ±¾ÄÚ±ß¾à
+		//è°ƒæ•´ç¼–è¾‘æ¡†çš„ä½ç½®, å‰ªå»æ–‡æœ¬å†…è¾¹è·
 		UiRect textRect = rc;
 		UiPadding rcTextPadding = GetTextPadding();
 		textRect.Deflate(rcTextPadding);
@@ -1680,13 +1680,13 @@ void RichEdit::SetPos(UiRect rc)
         pHScrollBar->SetPos(rcScrollBarPos);
     }
 
-	//ÅÅÁĞ×Ó¿Ø¼ş
+	//æ’åˆ—å­æ§ä»¶
 	ArrangeChild(m_items);
 }
 
 void RichEdit::ArrangeChild(const std::vector<Control*>& items) const
 {
-	//Ê¹ÓÃÄ¬ÈÏ²¼¾ÖµÄÅÅ²¼·½Ê½
+	//ä½¿ç”¨é»˜è®¤å¸ƒå±€çš„æ’å¸ƒæ–¹å¼
 	GetLayout()->ArrangeChild(items, GetPos());
 }
 
@@ -1698,7 +1698,7 @@ uint32_t RichEdit::GetControlFlags() const
 void RichEdit::HandleEvent(const EventArgs& msg)
 {
 	if (IsDisabledEvents(msg)) {
-		//Èç¹ûÊÇÊó±ê¼üÅÌÏûÏ¢£¬²¢ÇÒ¿Ø¼şÊÇDisabledµÄ£¬×ª·¢¸øÉÏ²ã¿Ø¼ş
+		//å¦‚æœæ˜¯é¼ æ ‡é”®ç›˜æ¶ˆæ¯ï¼Œå¹¶ä¸”æ§ä»¶æ˜¯Disabledçš„ï¼Œè½¬å‘ç»™ä¸Šå±‚æ§ä»¶
 		Box* pParent = GetParent();
 		if (pParent != nullptr) {
 			pParent->SendEvent(msg);
@@ -1715,7 +1715,7 @@ void RichEdit::HandleEvent(const EventArgs& msg)
 	if (msg.Type == kEventMouseWheel) {
 		uint16_t fwKeys = GET_KEYSTATE_WPARAM(msg.wParam);
 		if ((fwKeys & MK_CONTROL) && IsEnableWheelZoom()) {
-			//Ctrl + ¹öÂÖ£ºËõ·Å¹¦ÄÜ
+			//Ctrl + æ»šè½®ï¼šç¼©æ”¾åŠŸèƒ½
 			OnMouseMessage(WM_MOUSEWHEEL, msg);
 			int32_t nNum = 0;
 			int32_t nDen = 0;
@@ -1783,7 +1783,7 @@ void RichEdit::HandleEvent(const EventArgs& msg)
 bool RichEdit::OnSetCursor(const EventArgs& msg)
 {
 	if (m_bUseControlCursor) {
-		//Ê¹ÓÃControlÉèÖÃµÄ¹â±ê
+		//ä½¿ç”¨Controlè®¾ç½®çš„å…‰æ ‡
 		return __super::OnSetCursor(msg);
 	}
 
@@ -1860,11 +1860,11 @@ bool RichEdit::OnChar(const EventArgs& msg)
 		if (msg.wParam < '0' || msg.wParam > '9') {
 			if (msg.wParam == L'-') {
 				if (GetTextLength() > 0) {
-					//²»ÊÇµÚÒ»¸ö×Ö·û£¬½ûÖ¹ÊäÈë¸ººÅ
+					//ä¸æ˜¯ç¬¬ä¸€ä¸ªå­—ç¬¦ï¼Œç¦æ­¢è¾“å…¥è´Ÿå·
 					return true;
 				}
 				else if (GetMinNumber() >= 0) {
-					//×îĞ¡Êı×ÖÊÇ0»òÕßÕıÊı£¬½ûÖ¹ÊäÈë·ûºÅ
+					//æœ€å°æ•°å­—æ˜¯0æˆ–è€…æ­£æ•°ï¼Œç¦æ­¢è¾“å…¥ç¬¦å·
 					return true;
 				}
 			}
@@ -1874,10 +1874,10 @@ bool RichEdit::OnChar(const EventArgs& msg)
 		}
 	}
 
-	//ÏŞÖÆÔÊĞíÊäÈëµÄ×Ö·û
+	//é™åˆ¶å…è®¸è¾“å…¥çš„å­—ç¬¦
 	if (!m_limitChars.empty()) {
 		if (!IsInLimitChars((wchar_t)msg.wParam)) {
-			//×Ö·û²»ÔÚÁĞ±íÀïÃæ£¬½ûÖ¹ÊäÈë
+			//å­—ç¬¦ä¸åœ¨åˆ—è¡¨é‡Œé¢ï¼Œç¦æ­¢è¾“å…¥
 			return true;
 		}
 	}
@@ -1906,7 +1906,7 @@ bool RichEdit::IsInLimitChars(wchar_t charValue) const
 bool RichEdit::IsPasteLimited() const
 {
 	if (!m_limitChars.empty()) {
-		//ÓĞÉèÖÃÏŞÖÆ×Ö·û
+		//æœ‰è®¾ç½®é™åˆ¶å­—ç¬¦
 		std::wstring strClipText;
 		GetClipboardText(strClipText);
 		if (!strClipText.empty()) {
@@ -1916,14 +1916,14 @@ bool RichEdit::IsPasteLimited() const
 					break;
 				}
 				if (!IsInLimitChars(strClipText[index])) {
-					//ÓĞ×Ö·û²»ÔÚÁĞ±íÀïÃæ£¬½ûÖ¹Õ³Ìù
+					//æœ‰å­—ç¬¦ä¸åœ¨åˆ—è¡¨é‡Œé¢ï¼Œç¦æ­¢ç²˜è´´
 					return true;
 				}
 			}
 		}
 	}
 	else if (IsNumberOnly()) {
-		//Êı×ÖÄ£Ê½
+		//æ•°å­—æ¨¡å¼
 		std::wstring strClipText;
 		GetClipboardText(strClipText);
 		if (!strClipText.empty()) {
@@ -1934,12 +1934,12 @@ bool RichEdit::IsPasteLimited() const
 				}
 				if (strClipText[index] == L'-') {
 					if ((index == 0) && (strClipText.size() > 1)) {
-						//ÔÊĞíµÚÒ»¸ö×Ö·ûÊÇ¸ººÅ
+						//å…è®¸ç¬¬ä¸€ä¸ªå­—ç¬¦æ˜¯è´Ÿå·
 						continue;
 					}
 				}
 				if ((strClipText[index] > L'9') || (strClipText[index] < L'0')) {
-					//ÓĞ²»ÊÇÊı×ÖµÄ×Ö·û£¬½ûÖ¹Õ³Ìù
+					//æœ‰ä¸æ˜¯æ•°å­—çš„å­—ç¬¦ï¼Œç¦æ­¢ç²˜è´´
 					return true;
 				}
 			}
@@ -2015,7 +2015,7 @@ void RichEdit::OnMouseMessage(UINT uMsg, const EventArgs& msg)
 
 void RichEdit::Paint(IRender* pRender, const UiRect& rcPaint)
 {
-	//±ØĞë²»Ê¹ÓÃ»º´æ£¬·ñÔò»æÖÆÒì³£
+	//å¿…é¡»ä¸ä½¿ç”¨ç¼“å­˜ï¼Œå¦åˆ™ç»˜åˆ¶å¼‚å¸¸
 	ASSERT(IsUseCache() == false);
     UiRect rcTemp;
 	if (!UiRect::Intersect(rcTemp, rcPaint, GetRect())) {
@@ -2487,7 +2487,7 @@ void RichEdit::AddLinkInfoEx(const CHARRANGE cr, const std::wstring& linkInfo)
 	AddLinkInfo(cr, linkInfo);
 }
 
-//¸ù¾İpointÀ´hittest×Ô¶¨ÒålinkµÄÊı¾İ£¬·µ»Øtrue±íÊ¾ÔÚlinkÉÏ£¬infoÊÇlinkµÄ×Ô¶¨ÒåÊôĞÔ
+//æ ¹æ®pointæ¥hittestè‡ªå®šä¹‰linkçš„æ•°æ®ï¼Œè¿”å›trueè¡¨ç¤ºåœ¨linkä¸Šï¼Œinfoæ˜¯linkçš„è‡ªå®šä¹‰å±æ€§
 bool RichEdit::HittestCustomLink(UiPoint pt, std::wstring& info)
 {
 	bool bLink = false;
@@ -2543,7 +2543,7 @@ void RichEdit::SetUseControlCursor(bool bUseControlCursor)
 	m_bUseControlCursor = bUseControlCursor;
 }
 
-//----------------ÏÂÃæº¯ÊıÓÃ×÷¸¨Öú ×Ö½ÚÊıÏŞÖÆ
+//----------------ä¸‹é¢å‡½æ•°ç”¨ä½œè¾…åŠ© å­—èŠ‚æ•°é™åˆ¶
 bool RichEdit::IsAsciiChar(const wchar_t ch)
 {
 	return (ch <= 0x7e && ch >= 0x20);
@@ -2624,21 +2624,21 @@ void RichEdit::SetClipBoardText(const std::wstring &str)
 	}
 
 	size_t len = str.length();
-	HGLOBAL hMem = ::GlobalAlloc(GMEM_MOVEABLE, (len + 1) * sizeof(wchar_t)); //·ÖÅäÈ«¾ÖÄÚ´æ  
+	HGLOBAL hMem = ::GlobalAlloc(GMEM_MOVEABLE, (len + 1) * sizeof(wchar_t)); //åˆ†é…å…¨å±€å†…å­˜  
 	if (!hMem) {
 		::CloseClipboard();
 		return;
 	}
 
-	wchar_t* lpStr = (wchar_t*)::GlobalLock(hMem); //Ëø×¡ÄÚ´æÇø 
+	wchar_t* lpStr = (wchar_t*)::GlobalLock(hMem); //é”ä½å†…å­˜åŒº 
 	if (lpStr) {
-		::memcpy(lpStr, str.c_str(), len * sizeof(wchar_t)); //°ÑÊı¾İ¿½±´¿¼È«¾ÖÄÚ´æÖĞ
-		lpStr[len] = wchar_t(0); //×Ö·û´®Ä©Î²ÉèÎª'\0'
-		::GlobalUnlock(hMem); //ÊÍ·ÅËø 
+		::memcpy(lpStr, str.c_str(), len * sizeof(wchar_t)); //æŠŠæ•°æ®æ‹·è´è€ƒå…¨å±€å†…å­˜ä¸­
+		lpStr[len] = wchar_t(0); //å­—ç¬¦ä¸²æœ«å°¾è®¾ä¸º'\0'
+		::GlobalUnlock(hMem); //é‡Šæ”¾é” 
 	}
 
-	::SetClipboardData(CF_UNICODETEXT, hMem); //°ÑÄÚ´æÖĞµÄÊı¾İ·Åµ½¼ôÇĞ°åÉÏ
-	::CloseClipboard(); //¹Ø±Õ¼ôÇĞ°å	
+	::SetClipboardData(CF_UNICODETEXT, hMem); //æŠŠå†…å­˜ä¸­çš„æ•°æ®æ”¾åˆ°å‰ªåˆ‡æ¿ä¸Š
+	::CloseClipboard(); //å…³é—­å‰ªåˆ‡æ¿	
 }
 
 void RichEdit::AttachSelChange(const EventCallback& callback)
@@ -2672,11 +2672,11 @@ void RichEdit::SetEnableDefaultContextMenu(bool bEnable)
 				if (args.Type == ui::kEventMouseMenu) {
 					ui::UiPoint pt = args.ptMouse;
 					if ((pt.x != -1) && (pt.y != -1)) {
-						//Êó±êÓÒ¼üµã»÷²úÉúµÄÉÏÏÂÎÄ²Ëµ¥						
+						//é¼ æ ‡å³é”®ç‚¹å‡»äº§ç”Ÿçš„ä¸Šä¸‹æ–‡èœå•						
 						ShowPopupMenu(pt);
 					}
 					else {
-						//°´Shift + F10£¬ÓÉÏµÍ³²úÉúÉÏÏÂÎÄ²Ëµ¥
+						//æŒ‰Shift + F10ï¼Œç”±ç³»ç»Ÿäº§ç”Ÿä¸Šä¸‹æ–‡èœå•
 						pt = { 100, 100 };
 						ShowPopupMenu(pt);
 					}
@@ -2702,7 +2702,7 @@ void RichEdit::ShowPopupMenu(const ui::UiPoint& point)
 		return;
 	}
 
-	//Èç¹ûÃ»ÓĞÑ¡ÖĞÎÄ±¾£¬Ôò½«¹â±êÇĞ»»µ½µ±Ç°µã»÷µÄÎ»ÖÃ
+	//å¦‚æœæ²¡æœ‰é€‰ä¸­æ–‡æœ¬ï¼Œåˆ™å°†å…‰æ ‡åˆ‡æ¢åˆ°å½“å‰ç‚¹å‡»çš„ä½ç½®
 	long nStartChar = 0; 
 	long nEndChar = 0;
 	pRichEdit->GetSel(nStartChar, nEndChar);
@@ -2720,17 +2720,17 @@ void RichEdit::ShowPopupMenu(const ui::UiPoint& point)
 	if (pWindow != nullptr) {
 		hParent = pWindow->GetHWND();
 	}	
-	Menu* menu = new Menu(hParent);//ĞèÒªÉèÖÃ¸¸´°¿Ú£¬·ñÔÚ²Ëµ¥µ¯³öµÄÊ±ºò£¬³ÌĞò×´Ì¬À¸±à³Ì·Ç¼¤»î×´Ì¬
+	Menu* menu = new Menu(hParent);//éœ€è¦è®¾ç½®çˆ¶çª—å£ï¼Œå¦åœ¨èœå•å¼¹å‡ºçš„æ—¶å€™ï¼Œç¨‹åºçŠ¶æ€æ ç¼–ç¨‹éæ¿€æ´»çŠ¶æ€
 	menu->SetSkinFolder(skinFolder);
 	std::wstring xml(L"rich_edit_menu.xml");
 
-	//²Ëµ¥µ¯³öÎ»ÖÃµÄ×ø±êÓ¦ÎªÆÁÄ»×ø±ê
+	//èœå•å¼¹å‡ºä½ç½®çš„åæ ‡åº”ä¸ºå±å¹•åæ ‡
 	UiPoint pt = point;
 	ClientToScreen(pt);
 	menu->ShowMenu(xml, pt);
 
 	ui::MenuItem* menu_item = nullptr;
-	//¸üĞÂÃüÁî×´Ì¬£¬²¢Ìí¼Ó²Ëµ¥ÃüÁîÏìÓ¦
+	//æ›´æ–°å‘½ä»¤çŠ¶æ€ï¼Œå¹¶æ·»åŠ èœå•å‘½ä»¤å“åº”
 	bool hasSelText = nEndChar > nStartChar ? true : false;
 	menu_item = dynamic_cast<ui::MenuItem*>(menu->FindControl(L"edit_menu_copy"));
 	if (menu_item != nullptr) {
@@ -2825,7 +2825,7 @@ void RichEdit::SetEnableDragDrop(bool bEnable)
 		return;
 	}
 	if (bEnable) {
-		//Ö»¶ÁÄ£Ê½¡¢ÃÜÂëÄ£Ê½¡¢²»¿ÉÓÃÄ£Ê½£¬¹Ø±ÕÍÏ·Å¹¦ÄÜ
+		//åªè¯»æ¨¡å¼ã€å¯†ç æ¨¡å¼ã€ä¸å¯ç”¨æ¨¡å¼ï¼Œå…³é—­æ‹–æ”¾åŠŸèƒ½
 		if (IsReadOnly() || IsPassword() || !IsEnabled()) {
 			bEnable = false;
 		}
@@ -2873,12 +2873,12 @@ void RichEdit::UnregisterDragDrop()
 void RichEdit::OnTextChanged()
 {
 	if (IsNumberOnly() && ((GetMinNumber() != INT_MIN) || (GetMaxNumber() != INT_MAX))) {
-		//Êı×ÖÄ£Ê½£¬¼ì²éÎÄ±¾¶ÔÓ¦µÄÊı×ÖÊÇ·ñÔÚ·¶Î§ÄÚ
+		//æ•°å­—æ¨¡å¼ï¼Œæ£€æŸ¥æ–‡æœ¬å¯¹åº”çš„æ•°å­—æ˜¯å¦åœ¨èŒƒå›´å†…
 		std::wstring text = GetText();
 		if (!text.empty()) {
 			int64_t n = wcstoull(text.c_str(), nullptr, 10);
 			if (n < GetMinNumber()) {
-				//³¬¹ı×îĞ¡Êı×Ö£¬½øĞĞĞŞÕı
+				//è¶…è¿‡æœ€å°æ•°å­—ï¼Œè¿›è¡Œä¿®æ­£
 				int32_t newValue = GetMinNumber();
 				SetTextNoEvent(StringHelper::Printf(L"%d", newValue));
 				if (!m_bDisableTextChangeEvent) {
@@ -2887,7 +2887,7 @@ void RichEdit::OnTextChanged()
 				return;
 			}
 			else if (n > GetMaxNumber()) {
-				//³¬¹ı×î´óÊı×Ö£¬½øĞĞĞŞÕı
+				//è¶…è¿‡æœ€å¤§æ•°å­—ï¼Œè¿›è¡Œä¿®æ­£
 				int32_t newValue = GetMaxNumber();
 				SetTextNoEvent(StringHelper::Printf(L"%d", newValue));
 				if (!m_bDisableTextChangeEvent) {
@@ -2944,7 +2944,7 @@ bool RichEdit::SetSpinClass(const std::wstring& spinClass)
 		pUpButton->SetClass(spinBtnUpClass);
 		pDownButton->SetClass(spinBtnDownClass);
 		
-		//¹ÒÔØÊÂ¼ş´¦Àí
+		//æŒ‚è½½äº‹ä»¶å¤„ç†
 		pUpButton->DetachEvent(kEventClick);
 		pUpButton->AttachClick([this](const EventArgs& /*args*/){
 			AdjustTextNumber(1);
@@ -3057,11 +3057,11 @@ void RichEdit::AdjustTextNumber(int32_t nDelta)
 		int64_t nNewValue = nOldValue + nDelta;
 		if (((GetMinNumber() != INT_MIN) || (GetMaxNumber() != INT_MAX))) {
 			if (nNewValue > GetMaxNumber()) {
-				//³¬¹ı×î´óÊı×Ö£¬½øĞĞĞŞÕı
+				//è¶…è¿‡æœ€å¤§æ•°å­—ï¼Œè¿›è¡Œä¿®æ­£
 				nNewValue = GetMaxNumber();
 			}
 			else if (nNewValue < GetMinNumber()) {
-				//Ğ¡ÓÚ×îĞ¡Êı×Ö£¬½øĞĞĞŞÕı
+				//å°äºæœ€å°æ•°å­—ï¼Œè¿›è¡Œä¿®æ­£
 				nNewValue = GetMinNumber();
 			}
 		}
@@ -3074,7 +3074,7 @@ void RichEdit::AdjustTextNumber(int32_t nDelta)
 void RichEdit::StartAutoAdjustTextNumberTimer(int32_t nDelta)
 {
 	if (nDelta != 0) {
-		//Æô¶¯¶¨Ê±Æ÷
+		//å¯åŠ¨å®šæ—¶å™¨
 		m_flagAdjustTextNumber.Cancel();
 		std::function<void()> closure = nbase::Bind(&RichEdit::StartAutoAdjustTextNumber, this, nDelta);
 		GlobalManager::Instance().Timer().AddCancelableTimer(m_flagAdjustTextNumber.GetWeakFlag(), closure, 1000, 1);
@@ -3084,7 +3084,7 @@ void RichEdit::StartAutoAdjustTextNumberTimer(int32_t nDelta)
 void RichEdit::StartAutoAdjustTextNumber(int32_t nDelta)
 {
 	if (nDelta != 0) {
-		//Æô¶¯¶¨Ê±Æ÷
+		//å¯åŠ¨å®šæ—¶å™¨
 		m_flagAdjustTextNumber.Cancel();
 		std::function<void()> closure = nbase::Bind(&RichEdit::AdjustTextNumber, this, nDelta);
 		GlobalManager::Instance().Timer().AddCancelableTimer(m_flagAdjustTextNumber.GetWeakFlag(), closure, 120, TimerManager::REPEAT_FOREVER);
@@ -3110,7 +3110,7 @@ void RichEdit::SetClearBtnClass(const std::wstring& btnClass)
 		AddItem(pClearButton);
 		m_pClearButton = pClearButton;
 
-		//ÏìÓ¦°´Å¥µã»÷ÊÂ¼ş
+		//å“åº”æŒ‰é’®ç‚¹å‡»äº‹ä»¶
 		pClearButton->AttachClick([this](const EventArgs& /*args*/) {
 			SetText(L"");
 			return true;
@@ -3132,7 +3132,7 @@ void RichEdit::SetShowPasswordBtnClass(const std::wstring& btnClass)
 		AddItem(pButton);
 		m_pShowPasswordButton = pButton;
 
-		//ÏìÓ¦°´Å¥µã»÷ÊÂ¼ş
+		//å“åº”æŒ‰é’®ç‚¹å‡»äº‹ä»¶
 		pButton->AttachClick([this](const EventArgs& /*args*/) {
 			SetShowPassword(false);
 			return true;

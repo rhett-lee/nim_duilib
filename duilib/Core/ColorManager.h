@@ -9,118 +9,118 @@
 
 namespace ui 
 {
-/** ÑÕÉ«ÖµµÄ¹ÜÀíÈİÆ÷
+/** é¢œè‰²å€¼çš„ç®¡ç†å®¹å™¨
 */
 class UILIB_API ColorMap
 {
 public:
-    /** Ìí¼ÓÒ»¸öÑÕÉ«Öµ
-    * @param[in] strName ÑÕÉ«Ãû³Æ£¨Èç white£©
-    * @param[in] strValue ÑÕÉ«¾ßÌåÊıÖµ£¨Èç #FFFFFFFF£©
+    /** æ·»åŠ ä¸€ä¸ªé¢œè‰²å€¼
+    * @param[in] strName é¢œè‰²åç§°ï¼ˆå¦‚ whiteï¼‰
+    * @param[in] strValue é¢œè‰²å…·ä½“æ•°å€¼ï¼ˆå¦‚ #FFFFFFFFï¼‰
     */
     void AddColor(const std::wstring& strName, const std::wstring& strValue);
 
-    /** Ìí¼ÓÒ»¸öÑÕÉ«Öµ
-    * @param[in] strName ÑÕÉ«Ãû³Æ£¨Èç white£©
-    * @param[in] argb ÑÕÉ«¾ßÌåÊıÖµ, ÒÔARGB¸ñÊ½±íÊ¾
+    /** æ·»åŠ ä¸€ä¸ªé¢œè‰²å€¼
+    * @param[in] strName é¢œè‰²åç§°ï¼ˆå¦‚ whiteï¼‰
+    * @param[in] argb é¢œè‰²å…·ä½“æ•°å€¼, ä»¥ARGBæ ¼å¼è¡¨ç¤º
     */
     void AddColor(const std::wstring& strName, UiColor argb);
 
-    /** ¸ù¾İÃû³Æ»ñÈ¡Ò»¸öÑÕÉ«µÄ¾ßÌåÊıÖµ
-    * @param[in] strName Òª»ñÈ¡µÄÑÕÉ«Ãû³Æ
-    * @return ·µ»Ø ARGB ¸ñÊ½µÄÑÕÉ«ÃèÊöÖµ
+    /** æ ¹æ®åç§°è·å–ä¸€ä¸ªé¢œè‰²çš„å…·ä½“æ•°å€¼
+    * @param[in] strName è¦è·å–çš„é¢œè‰²åç§°
+    * @return è¿”å› ARGB æ ¼å¼çš„é¢œè‰²æè¿°å€¼
     */
     UiColor GetColor(const std::wstring& strName) const;
 
-    /** É¾³ıËùÓĞÑÕÉ«ÊôĞÔ
+    /** åˆ é™¤æ‰€æœ‰é¢œè‰²å±æ€§
     */
     void RemoveAllColors();
 
 private:
-    /** ÑÕÉ«Ãû³ÆÓëÑÕÉ«ÖµµÄÓ³Éä¹ØÏµ
+    /** é¢œè‰²åç§°ä¸é¢œè‰²å€¼çš„æ˜ å°„å…³ç³»
     */
     std::unordered_map<std::wstring, UiColor> m_colorMap;
 };
 
-/** ÑÕÉ«ÖµµÄ¹ÜÀíÀà
+/** é¢œè‰²å€¼çš„ç®¡ç†ç±»
 */
 class UILIB_API ColorManager
 {
 public:
     ColorManager();
 
-    /** ½«ÑÕÉ«ÊıÖµ×Ö·û´®×ª»»ÎªARGBÑÕÉ«Àà
-     * @param[in] strColor Ö§³ÖÁ½ÖÖÑÕÉ«Öµ£º
-                  (1) ÑÕÉ«¾ßÌåÊıÖµ£¨Èç #FFFFFFFF£©
-                  (2) ÄÚÖÃµÄ±ê×¼ÑÕÉ«Öµ£¬±ÈÈç"blue"£¬²Î¼ûui::UiColors::UiColorConstsº¯ÊıÖĞµÄ¶¨Òå
+    /** å°†é¢œè‰²æ•°å€¼å­—ç¬¦ä¸²è½¬æ¢ä¸ºARGBé¢œè‰²ç±»
+     * @param[in] strColor æ”¯æŒä¸¤ç§é¢œè‰²å€¼ï¼š
+                  (1) é¢œè‰²å…·ä½“æ•°å€¼ï¼ˆå¦‚ #FFFFFFFFï¼‰
+                  (2) å†…ç½®çš„æ ‡å‡†é¢œè‰²å€¼ï¼Œæ¯”å¦‚"blue"ï¼Œå‚è§ui::UiColors::UiColorConstså‡½æ•°ä¸­çš„å®šä¹‰
      */
     static UiColor ConvertToUiColor(const std::wstring& strColor);
 
 public:
-    /** Ìí¼ÓÒ»¸öÈ«¾ÖÑÕÉ«Öµ
-     * @param[in] strName ÑÕÉ«Ãû³Æ£¨Èç white£©
-     * @param[in] strValue ÑÕÉ«¾ßÌåÊıÖµ£¨Èç #FFFFFFFF£©
+    /** æ·»åŠ ä¸€ä¸ªå…¨å±€é¢œè‰²å€¼
+     * @param[in] strName é¢œè‰²åç§°ï¼ˆå¦‚ whiteï¼‰
+     * @param[in] strValue é¢œè‰²å…·ä½“æ•°å€¼ï¼ˆå¦‚ #FFFFFFFFï¼‰
      */
     void AddColor(const std::wstring& strName, const std::wstring& strValue);
 
-    /** Ìí¼ÓÒ»¸öÈ«¾ÖÑÕÉ«Öµ
-     * @param[in] strName ÑÕÉ«Ãû³Æ£¨Èç white£©
-     * @param[in] argb ÑÕÉ«¾ßÌåÊıÖµ, ÒÔARGB¸ñÊ½±íÊ¾
+    /** æ·»åŠ ä¸€ä¸ªå…¨å±€é¢œè‰²å€¼
+     * @param[in] strName é¢œè‰²åç§°ï¼ˆå¦‚ whiteï¼‰
+     * @param[in] argb é¢œè‰²å…·ä½“æ•°å€¼, ä»¥ARGBæ ¼å¼è¡¨ç¤º
      */
     void AddColor(const std::wstring& strName, UiColor argb);
 
-    /** ¸ù¾İÃû³Æ»ñÈ¡Ò»¸öÑÕÉ«µÄ¾ßÌåÊıÖµ
-     * @param[in] strName Òª»ñÈ¡µÄÑÕÉ«Ãû³Æ
-     * @return ·µ»Ø ARGB ¸ñÊ½µÄÑÕÉ«ÃèÊöÖµ
+    /** æ ¹æ®åç§°è·å–ä¸€ä¸ªé¢œè‰²çš„å…·ä½“æ•°å€¼
+     * @param[in] strName è¦è·å–çš„é¢œè‰²åç§°
+     * @return è¿”å› ARGB æ ¼å¼çš„é¢œè‰²æè¿°å€¼
      */
     UiColor GetColor(const std::wstring& strName) const;
 
-    /** ¸ù¾İÃû³Æ»ñÈ¡Ò»¸ö±ê×¼ÑÕÉ«µÄ¾ßÌåÊıÖµ
-     * @param[in] strName Òª»ñÈ¡µÄÑÕÉ«Ãû³Æ£¬±ÈÈç"blue"£¬ÏêÏ¸ÁĞ±í²Î¼û£ºui::UiColors::UiColorConstsº¯ÊıÖĞµÄ¶¨Òå
-     * @return ·µ»Ø ARGB ¸ñÊ½µÄÑÕÉ«ÃèÊöÖµ
+    /** æ ¹æ®åç§°è·å–ä¸€ä¸ªæ ‡å‡†é¢œè‰²çš„å…·ä½“æ•°å€¼
+     * @param[in] strName è¦è·å–çš„é¢œè‰²åç§°ï¼Œæ¯”å¦‚"blue"ï¼Œè¯¦ç»†åˆ—è¡¨å‚è§ï¼šui::UiColors::UiColorConstså‡½æ•°ä¸­çš„å®šä¹‰
+     * @return è¿”å› ARGB æ ¼å¼çš„é¢œè‰²æè¿°å€¼
      */
     UiColor GetStandardColor(const std::wstring& strName) const;
 
-    /** É¾³ıËùÓĞÑÕÉ«ÊôĞÔ
+    /** åˆ é™¤æ‰€æœ‰é¢œè‰²å±æ€§
      */
     void RemoveAllColors();
 
-    /** É¾³ıËùÓĞÑÕÉ«ÊôĞÔµÈ»º´æ
+    /** åˆ é™¤æ‰€æœ‰é¢œè‰²å±æ€§ç­‰ç¼“å­˜
      */
     void Clear();
 
 public:
-	/** »ñÈ¡Ä¬ÈÏ½ûÓÃ×´Ì¬ÏÂ×ÖÌåÑÕÉ«
-	 * @return Ä¬ÈÏ½ûÓÃ×´Ì¬ÑÕÉ«µÄ×Ö·û´®±íÊ¾£¬¶ÔÓ¦ global.xml ÖĞÖ¸¶¨ÑÕÉ«Öµ
+	/** è·å–é»˜è®¤ç¦ç”¨çŠ¶æ€ä¸‹å­—ä½“é¢œè‰²
+	 * @return é»˜è®¤ç¦ç”¨çŠ¶æ€é¢œè‰²çš„å­—ç¬¦ä¸²è¡¨ç¤ºï¼Œå¯¹åº” global.xml ä¸­æŒ‡å®šé¢œè‰²å€¼
 	 */
 	const std::wstring& GetDefaultDisabledTextColor();
 
-	/** ÉèÖÃÄ¬ÈÏ½ûÓÃ×´Ì¬ÏÂµÄ×ÖÌåÑÕÉ«
+	/** è®¾ç½®é»˜è®¤ç¦ç”¨çŠ¶æ€ä¸‹çš„å­—ä½“é¢œè‰²
 	 */
 	void SetDefaultDisabledTextColor(const std::wstring& strColor);
 
-	/** »ñÈ¡Ä¬ÈÏ×ÖÌåÑÕÉ«
+	/** è·å–é»˜è®¤å­—ä½“é¢œè‰²
 	 */
     const std::wstring& GetDefaultTextColor();
 
-	/** ÉèÖÃÄ¬ÈÏ×ÖÌåÑÕÉ«
+	/** è®¾ç½®é»˜è®¤å­—ä½“é¢œè‰²
 	 */
 	void SetDefaultTextColor(const std::wstring& strColor);
 
 private:
-    /** ÑÕÉ«Ãû³ÆÓëÑÕÉ«ÖµµÄÓ³Éä¹ØÏµ
+    /** é¢œè‰²åç§°ä¸é¢œè‰²å€¼çš„æ˜ å°„å…³ç³»
     */
     ColorMap m_colorMap;
 
-    /** ±ê×¼ÑÕÉ«ÖµÓ³Éä±í, ²Î¼û£ºUiColors::GetUiColorsStringº¯ÊıÖĞµÄÁĞ±í
+    /** æ ‡å‡†é¢œè‰²å€¼æ˜ å°„è¡¨, å‚è§ï¼šUiColors::GetUiColorsStringå‡½æ•°ä¸­çš„åˆ—è¡¨
     */
     ColorMap m_standardColorMap;
 
-    /** Ä¬ÈÏ½ûÓÃ×´Ì¬ÏÂµÄ×ÖÌåÑÕÉ«
+    /** é»˜è®¤ç¦ç”¨çŠ¶æ€ä¸‹çš„å­—ä½“é¢œè‰²
     */
     std::wstring m_defaultDisabledTextColor;
 
-    /** Ä¬ÈÏÕı³£×´Ì¬µÄ×ÖÌåÑÕÉ«
+    /** é»˜è®¤æ­£å¸¸çŠ¶æ€çš„å­—ä½“é¢œè‰²
     */
     std::wstring m_defaultTextColor;
 };

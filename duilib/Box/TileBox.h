@@ -9,7 +9,7 @@
 namespace ui
 {
 
-/** 瓦片布局的Box(纵向布局)
+/** 鐡︾墖甯冨眬鐨凚ox(绾靛悜甯冨眬)
 */
 class UILIB_API VTileBox : public Box
 {
@@ -22,7 +22,7 @@ public:
 	virtual std::wstring GetType() const override { return DUI_CTR_VTILE_BOX; }
 };
 
-/** 瓦片布局的Box(水平布局)
+/** 鐡︾墖甯冨眬鐨凚ox(姘村钩甯冨眬)
 */
 class UILIB_API HTileBox : public Box
 {

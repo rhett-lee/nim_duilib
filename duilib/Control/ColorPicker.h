@@ -9,7 +9,7 @@
 namespace ui
 {
 
-/** Ê°É«Æ÷£¬¶ÀÁ¢´°¿Ú
+/** æ‹¾è‰²å™¨ï¼Œç‹¬ç«‹çª—å£
 */
 class Control;
 class ColorPickerRegular;
@@ -22,92 +22,92 @@ public:
 	ColorPicker();
 	virtual ~ColorPicker();
 
-	/** ÒÔÏÂÈı¸ö½Ó¿ÚÊÇ±ØĞëÒª¸²Ğ´µÄ½Ó¿Ú£¬¸¸Àà»áµ÷ÓÃÕâÈı¸ö½Ó¿ÚÀ´¹¹½¨´°¿Ú
-	 * GetSkinFolder		½Ó¿ÚÉèÖÃÄãÒª»æÖÆµÄ´°¿ÚÆ¤·ô×ÊÔ´Â·¾¶
-	 * GetSkinFile			½Ó¿ÚÉèÖÃÄãÒª»æÖÆµÄ´°¿ÚµÄ xml ÃèÊöÎÄ¼ş
-	 * GetWindowClassName	½Ó¿ÚÉèÖÃ´°¿ÚÎ¨Ò»µÄÀàÃû³Æ
+	/** ä»¥ä¸‹ä¸‰ä¸ªæ¥å£æ˜¯å¿…é¡»è¦è¦†å†™çš„æ¥å£ï¼Œçˆ¶ç±»ä¼šè°ƒç”¨è¿™ä¸‰ä¸ªæ¥å£æ¥æ„å»ºçª—å£
+	 * GetSkinFolder		æ¥å£è®¾ç½®ä½ è¦ç»˜åˆ¶çš„çª—å£çš®è‚¤èµ„æºè·¯å¾„
+	 * GetSkinFile			æ¥å£è®¾ç½®ä½ è¦ç»˜åˆ¶çš„çª—å£çš„ xml æè¿°æ–‡ä»¶
+	 * GetWindowClassName	æ¥å£è®¾ç½®çª—å£å”¯ä¸€çš„ç±»åç§°
 	 */
 	virtual std::wstring GetSkinFolder() override;
 	virtual std::wstring GetSkinFile() override;
 	virtual std::wstring GetWindowClassName() const override;
 
-	/** ´°¿ÚÀàÃû
+	/** çª—å£ç±»å
 	*/
 	static const std::wstring kClassName;
 
 public:
-	/** ÉèÖÃËùÑ¡ÑÕÉ«
+	/** è®¾ç½®æ‰€é€‰é¢œè‰²
 	*/
 	void SetSelectedColor(const UiColor& color);
 
-	/** »ñÈ¡´°¿Ú¹Ø±ÕÊ±×îÖÕÑ¡ÔñµÄÑÕÉ«
+	/** è·å–çª—å£å…³é—­æ—¶æœ€ç»ˆé€‰æ‹©çš„é¢œè‰²
 	*/
 	UiColor GetSelectedColor() const;
 
-	/** ¼àÌıÑ¡ÔñÑÕÉ«µÄÊÂ¼ş
-	* @param[in] callback Ñ¡ÔñÑÕÉ«±ä»¯Ê±µÄ»Øµ÷º¯Êı
-	*            ²ÎÊıËµÃ÷:
-						wParam: µ±Ç°ĞÂÑ¡ÔñµÄÑÕÉ«Öµ£¬¿ÉÒÔÓÃUiColor((uint32_t)wParam)Éú³ÉÑÕÉ«
-						lParam: Ô­À´¾ÉÑ¡ÔñµÄÑÕÉ«Öµ£¬¿ÉÒÔÓÃUiColor((uint32_t)lParam)Éú³ÉÑÕÉ«
+	/** ç›‘å¬é€‰æ‹©é¢œè‰²çš„äº‹ä»¶
+	* @param[in] callback é€‰æ‹©é¢œè‰²å˜åŒ–æ—¶çš„å›è°ƒå‡½æ•°
+	*            å‚æ•°è¯´æ˜:
+						wParam: å½“å‰æ–°é€‰æ‹©çš„é¢œè‰²å€¼ï¼Œå¯ä»¥ç”¨UiColor((uint32_t)wParam)ç”Ÿæˆé¢œè‰²
+						lParam: åŸæ¥æ—§é€‰æ‹©çš„é¢œè‰²å€¼ï¼Œå¯ä»¥ç”¨UiColor((uint32_t)lParam)ç”Ÿæˆé¢œè‰²
 	*/
 	void AttachSelectColor(const EventCallback& callback);
 
-	/** ¼àÌı´°¿Ú¹Ø±ÕÊÂ¼ş
-	 * @param[in] callback Ö¸¶¨¹Ø±ÕºóµÄ»Øµ÷º¯Êı, ÔÚÕâ¸ö»Øµ÷ÖĞ£¬¿ÉÒÔµ÷ÓÃGetSelectedColor()º¯Êı»ñÈ¡Ñ¡ÔñµÄÑÕÉ«Öµ
-	                       ²ÎÊıµÄwParam´ú±í´°¿Ú¹Ø±ÕµÄ´¥·¢Çé¿ö£º
-	 *                     0 - ±íÊ¾ "È·ÈÏ" ¹Ø±Õ±¾´°¿Ú
-						   1 - ±íÊ¾µã»÷´°¿ÚµÄ "¹Ø±Õ" °´Å¥¹Ø±Õ±¾´°¿Ú(Ä¬ÈÏÖµ)
-				           2 - ±íÊ¾ "È¡Ïû" ¹Ø±Õ±¾´°¿Ú
+	/** ç›‘å¬çª—å£å…³é—­äº‹ä»¶
+	 * @param[in] callback æŒ‡å®šå…³é—­åçš„å›è°ƒå‡½æ•°, åœ¨è¿™ä¸ªå›è°ƒä¸­ï¼Œå¯ä»¥è°ƒç”¨GetSelectedColor()å‡½æ•°è·å–é€‰æ‹©çš„é¢œè‰²å€¼
+	                       å‚æ•°çš„wParamä»£è¡¨çª—å£å…³é—­çš„è§¦å‘æƒ…å†µï¼š
+	 *                     0 - è¡¨ç¤º "ç¡®è®¤" å…³é—­æœ¬çª—å£
+						   1 - è¡¨ç¤ºç‚¹å‡»çª—å£çš„ "å…³é—­" æŒ‰é’®å…³é—­æœ¬çª—å£(é»˜è®¤å€¼)
+				           2 - è¡¨ç¤º "å–æ¶ˆ" å…³é—­æœ¬çª—å£
 	 */
 	void AttachWindowClose(const EventCallback& callback);
 
 private:
-	/** µ±´°¿Ú´´½¨Íê³ÉÒÔºóµ÷ÓÃ´Ëº¯Êı£¬¹©×ÓÀàÖĞ×öÒ»Ğ©³õÊ¼»¯µÄ¹¤×÷
+	/** å½“çª—å£åˆ›å»ºå®Œæˆä»¥åè°ƒç”¨æ­¤å‡½æ•°ï¼Œä¾›å­ç±»ä¸­åšä¸€äº›åˆå§‹åŒ–çš„å·¥ä½œ
 	*/
 	virtual void OnInitWindow() override;
 
-	/** ÊÕµ½ WM_CLOSE ÏûÏ¢Ê±¸Ãº¯Êı»á±»µ÷ÓÃ
+	/** æ”¶åˆ° WM_CLOSE æ¶ˆæ¯æ—¶è¯¥å‡½æ•°ä¼šè¢«è°ƒç”¨
 	 */
 	virtual LRESULT OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
 
-	/** ÄÚ²¿Ñ¡ÔñÁËĞÂÑÕÉ«
+	/** å†…éƒ¨é€‰æ‹©äº†æ–°é¢œè‰²
 	*/
 	void OnSelectColor(const UiColor& newColor);
 
-	/** ÆÁÄ»È¡É«
+	/** å±å¹•å–è‰²
 	*/
 	void OnPickColorFromScreen();
 
 private:
-	/** ĞÂÑ¡ÔñµÄÑÕÉ«¿Ø¼ş½Ó¿Ú
+	/** æ–°é€‰æ‹©çš„é¢œè‰²æ§ä»¶æ¥å£
 	*/
 	Label* m_pNewColor;
 
-	/** Ô­À´µÄÑÕÉ«¿Ø¼ş½Ó¿Ú
+	/** åŸæ¥çš„é¢œè‰²æ§ä»¶æ¥å£
 	*/
 	Label* m_pOldColor;
 
-	/** ³£ÓÃÑÕÉ«¿Ø¼ş½Ó¿Ú
+	/** å¸¸ç”¨é¢œè‰²æ§ä»¶æ¥å£
 	*/
 	ColorPickerRegular* m_pRegularPicker;
 
-	/** ±ê×¼ÑÕÉ«¿Ø¼ş½Ó¿Ú
+	/** æ ‡å‡†é¢œè‰²æ§ä»¶æ¥å£
 	*/
 	ColorPickerStatard* m_pStatardPicker;
 
-	/** ±ê×¼ÑÕÉ«¿Ø¼ş½Ó¿Ú(»ÒÉ«)
+	/** æ ‡å‡†é¢œè‰²æ§ä»¶æ¥å£(ç°è‰²)
 	*/
 	ColorPickerStatardGray* m_pStatardGrayPicker;
 
-	/** ×Ô¶¨ÒåÑÕÉ«¿Ø¼ş½Ó¿Ú
+	/** è‡ªå®šä¹‰é¢œè‰²æ§ä»¶æ¥å£
 	*/
 	ColorPickerCustom* m_pCustomPicker;
 
-	/** Ñ¡ÔñµÄÑÕÉ«
+	/** é€‰æ‹©çš„é¢œè‰²
 	*/
 	UiColor m_selectedColor;
 
-	/** Ñ¡ÔñÑÕÉ«µÄ¼àÌıÊÂ¼ş
+	/** é€‰æ‹©é¢œè‰²çš„ç›‘å¬äº‹ä»¶
 	*/
 	EventCallback m_colorCallback;
 };

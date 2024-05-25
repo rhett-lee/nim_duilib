@@ -45,7 +45,7 @@ LRESULT ColorPicker::OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHan
 {
 	UiColor selectedColor;
 	if (wParam == 0) {
-		//Ö»ÓĞµã»÷"È·ÈÏ"°´Å¥µÄÊ±ºò£¬²Å±£´æËùÑ¡ÔñµÄÑÕÉ«
+		//åªæœ‰ç‚¹å‡»"ç¡®è®¤"æŒ‰é’®çš„æ—¶å€™ï¼Œæ‰ä¿å­˜æ‰€é€‰æ‹©çš„é¢œè‰²
 		if (m_pNewColor != nullptr) {
 			std::wstring bkColor = m_pNewColor->GetBkColor();
 			if (!bkColor.empty()) {
@@ -126,13 +126,13 @@ void ColorPicker::OnInitWindow()
 				}				
 			}
 			if (args.wParam == 0) {
-				//³£ÓÃÑÕÉ«
+				//å¸¸ç”¨é¢œè‰²
 				if (m_pRegularPicker != nullptr) {
 					m_pRegularPicker->SelectColor(selectedColor);
 				}				
 			}
 			else if (args.wParam == 1) {
-				//±ê×¼ÑÕÉ«
+				//æ ‡å‡†é¢œè‰²
 				if (m_pStatardPicker != nullptr) {
 					m_pStatardPicker->SelectColor(selectedColor);
 				}
@@ -141,7 +141,7 @@ void ColorPicker::OnInitWindow()
 				}
 			}
 			else if (args.wParam == 2) {
-				//×Ô¶¨ÒåÑÕÉ«
+				//è‡ªå®šä¹‰é¢œè‰²
 				if (m_pCustomPicker != nullptr) {
 					m_pCustomPicker->SelectColor(selectedColor);
 				}
@@ -150,7 +150,7 @@ void ColorPicker::OnInitWindow()
 			});
 	}
 
-	//È·¶¨°´Å¥
+	//ç¡®å®šæŒ‰é’®
 	Button* pButton = dynamic_cast<Button*>(FindControl(L"color_picker_ok"));
 	if (pButton != nullptr) {
 		pButton->AttachClick([this](const ui::EventArgs& /*args*/) {
@@ -158,7 +158,7 @@ void ColorPicker::OnInitWindow()
 			return true;
 			});
 	}
-	//È¡Ïû°´Å¥
+	//å–æ¶ˆæŒ‰é’®
 	pButton = dynamic_cast<Button*>(FindControl(L"color_picker_cancel"));
 	if (pButton != nullptr) {
 		pButton->AttachClick([this](const ui::EventArgs& /*args*/) {
@@ -167,7 +167,7 @@ void ColorPicker::OnInitWindow()
 			});
 	}
 
-	//Ñ¡Ôñ£ºÆÁÄ»È¡É«
+	//é€‰æ‹©ï¼šå±å¹•å–è‰²
 	pButton = dynamic_cast<Button*>(FindControl(L"color_picker_choose"));
 	if (pButton != nullptr) {
 		pButton->AttachClick([this](const ui::EventArgs& /*args*/) {
@@ -188,7 +188,7 @@ void ColorPicker::OnSelectColor(const UiColor& newColor)
 		m_pNewColor->SetBkColor(newColor);
 		m_pNewColor->SetText(m_pNewColor->GetBkColor());
 
-		//ÎÄ±¾ÑÕÉ«£¬Ê¹ÓÃ·´É«
+		//æ–‡æœ¬é¢œè‰²ï¼Œä½¿ç”¨åè‰²
 		UiColor textColor = UiColor(255 - newColor.GetR(), 255 - newColor.GetG(), 255 - newColor.GetB());
 		m_pNewColor->SetStateTextColor(kControlStateNormal, m_pNewColor->GetColorString(textColor));
 	}
@@ -206,7 +206,7 @@ void ColorPicker::SetSelectedColor(const UiColor& color)
 		m_pNewColor->SetBkColor(color);
 		m_pNewColor->SetText(m_pNewColor->GetBkColor());
 
-		//ÎÄ±¾ÑÕÉ«£¬Ê¹ÓÃ·´É«
+		//æ–‡æœ¬é¢œè‰²ï¼Œä½¿ç”¨åè‰²
 		UiColor textColor = UiColor(255 - color.GetR(), 255 - color.GetG(), 255 - color.GetB());
 		m_pNewColor->SetStateTextColor(kControlStateNormal, m_pNewColor->GetColorString(textColor));
 	}
@@ -214,7 +214,7 @@ void ColorPicker::SetSelectedColor(const UiColor& color)
 		m_pOldColor->SetBkColor(color);
 		m_pOldColor->SetText(m_pOldColor->GetBkColor());
 
-		//ÎÄ±¾ÑÕÉ«£¬Ê¹ÓÃ·´É«
+		//æ–‡æœ¬é¢œè‰²ï¼Œä½¿ç”¨åè‰²
 		UiColor textColor = UiColor(255 - color.GetR(), 255 - color.GetG(), 255 - color.GetB());
 		m_pOldColor->SetStateTextColor(kControlStateNormal, m_pOldColor->GetColorString(textColor));
 	}
@@ -237,7 +237,7 @@ UiColor ColorPicker::GetSelectedColor() const
 	return m_selectedColor;
 }
 
-/** ÆÁÄ»È¡É«Ô¤ÀÀ¿Ø¼ş
+/** å±å¹•å–è‰²é¢„è§ˆæ§ä»¶
 */
 class ScreenColorPreview : public Label
 {
@@ -246,8 +246,8 @@ public:
 		Label(pWindow)
 	{
 	}
-	/** »æÖÆ±³¾°Í¼Æ¬µÄÈë¿Úº¯Êı
-	* @param[in] pRender Ö¸¶¨»æÖÆÇøÓò
+	/** ç»˜åˆ¶èƒŒæ™¯å›¾ç‰‡çš„å…¥å£å‡½æ•°
+	* @param[in] pRender æŒ‡å®šç»˜åˆ¶åŒºåŸŸ
 	*/
 	virtual void PaintBkImage(IRender* pRender) override
 	{
@@ -265,7 +265,7 @@ public:
 		UiRect rcPaint = GetPaintRect();
 		IBitmap* pBitmap = m_spBitmap.get();
 		UiRect rcDest = rc;
-		rcDest.bottom = rcDest.top + rcDest.Width() * pBitmap->GetHeight() / pBitmap->GetWidth(); //±£³ÖÓëÔ­Í¼µÄ¿í¸ß±È
+		rcDest.bottom = rcDest.top + rcDest.Width() * pBitmap->GetHeight() / pBitmap->GetWidth(); //ä¿æŒä¸åŸå›¾çš„å®½é«˜æ¯”
 
 		UiRect rcSource;
 		rcSource.left = 0;
@@ -282,7 +282,7 @@ public:
 			}
 		}
 
-		//»­Ô¤ÀÀÖĞĞÄµãµÄÔ²È¦
+		//ç”»é¢„è§ˆä¸­å¿ƒç‚¹çš„åœ†åœˆ
 		UiPoint centerPt = rcDest.Center();
 		int32_t radius = Dpi().GetScaleInt(6);
 		UiColor penColor = UiColor(UiColors::Brown);
@@ -290,7 +290,7 @@ public:
 		pRender->DrawCircle(centerPt, radius, penColor, nWidth);
 	}
 
-	/** »ñÈ¡Ô¤ÀÀÎ»Í¼×¥È¡µÄ´óĞ¡£¨¿í¶ÈºÍ¸ß¶È£©
+	/** è·å–é¢„è§ˆä½å›¾æŠ“å–çš„å¤§å°ï¼ˆå®½åº¦å’Œé«˜åº¦ï¼‰
 	*/
 	void GetPreviewBitmapSize(int32_t& nPreviewWidth, int32_t& nPreviewHeight) const
 	{
@@ -298,13 +298,13 @@ public:
 		if ((nPreviewWidth % 2) != 0) {
 			nPreviewWidth += 1;
 		}
-		nPreviewHeight = nPreviewWidth / 2;//¿í¸ß±ÈÎª2£º1
+		nPreviewHeight = nPreviewWidth / 2;//å®½é«˜æ¯”ä¸º2ï¼š1
 		if ((nPreviewHeight % 2) != 0) {
 			nPreviewHeight += 1;
 		}
 	}
 
-	/** ÉèÖÃÔ¤ÀÀÎ»Í¼
+	/** è®¾ç½®é¢„è§ˆä½å›¾
 	*/
 	void SetPreviewBitmap(const std::shared_ptr<IBitmap>& spBitmap)
 	{
@@ -313,12 +313,12 @@ public:
 	}
 
 private:
-	/** ÆÁÄ»È¡É«Ô¤ÀÀÎ»Í¼
+	/** å±å¹•å–è‰²é¢„è§ˆä½å›¾
 	*/
 	std::shared_ptr<IBitmap> m_spBitmap;
 };
 
-/** ÆÁÄ»È¡É«¿Ø¼ş
+/** å±å¹•å–è‰²æ§ä»¶
 */
 class ScreenColorPicker : public Control
 {
@@ -340,21 +340,21 @@ public:
 		m_selColor = UiColor();
 	}
 
-	/** ÉèÖÃÆÁÄ»Î»Í¼
+	/** è®¾ç½®å±å¹•ä½å›¾
 	*/
 	void SetBitmap(const std::shared_ptr<IBitmap>& spBitmap)
 	{
 		m_spBitmap = spBitmap;
 	}
 
-	/** ÉèÖÃÔ¤ÀÀ¿Ø¼şµÄ½Ó¿Ú
+	/** è®¾ç½®é¢„è§ˆæ§ä»¶çš„æ¥å£
 	*/
 	void SetColorPreview(ScreenColorPreview* pColorPreview)
 	{
 		m_pColorPreview = pColorPreview;
 	}
 
-	/** »ñÈ¡Ñ¡ÔñµÄÑÕÉ«Öµ
+	/** è·å–é€‰æ‹©çš„é¢œè‰²å€¼
 	*/
 	UiColor GetSelColor() const 
 	{
@@ -362,8 +362,8 @@ public:
 	}
 
 private:
-	/** »æÖÆ±³¾°Í¼Æ¬µÄÈë¿Úº¯Êı
-	* @param[in] pRender Ö¸¶¨»æÖÆÇøÓò
+	/** ç»˜åˆ¶èƒŒæ™¯å›¾ç‰‡çš„å…¥å£å‡½æ•°
+	* @param[in] pRender æŒ‡å®šç»˜åˆ¶åŒºåŸŸ
 	*/
 	virtual void PaintBkImage(IRender* pRender) override
 	{
@@ -391,7 +391,7 @@ private:
 		}
 	}
 
-	/** ÉèÖÃ¹â±êĞÎ×´
+	/** è®¾ç½®å…‰æ ‡å½¢çŠ¶
 	*/
 	virtual bool OnSetCursor(const EventArgs& /*msg*/) override
 	{
@@ -405,13 +405,13 @@ private:
 		return true;
 	}
 
-	/** Êó±ê×ó¼ü°´ÏÂ£¬Ñ¡ÔñÑÕÉ«
+	/** é¼ æ ‡å·¦é”®æŒ‰ä¸‹ï¼Œé€‰æ‹©é¢œè‰²
 	*/
 	virtual bool ButtonDown(const EventArgs& msg)
 	{
 		bool bRet = __super::ButtonDown(msg);
 
-		//¸üĞÂÑ¡ÔñÑÕÉ«
+		//æ›´æ–°é€‰æ‹©é¢œè‰²
 		m_selColor = GetMousePosColor(msg.ptMouse);
 
 		Window* pWindow = GetWindow();
@@ -421,7 +421,7 @@ private:
 		return bRet;
 	}
 
-	/** Êó±êÒÆ¶¯, ¸üĞÂ¹â±êËùÔÚÎ»ÖÃµÄÑÕÉ«µ½Ô¤ÀÀ¿Ø¼ş
+	/** é¼ æ ‡ç§»åŠ¨, æ›´æ–°å…‰æ ‡æ‰€åœ¨ä½ç½®çš„é¢œè‰²åˆ°é¢„è§ˆæ§ä»¶
 	*/
 	virtual bool MouseMove(const EventArgs& msg) override
 	{
@@ -433,49 +433,49 @@ private:
 		const UiRect rcPreview = m_pColorPreview->GetRect();
 		UiRect rcPreviewNew;
 		if ((msg.ptMouse.x + offset + rcPreview.Width()) > rcPickker.right) {
-			//ÔÚ×ó±ßÏÔÊ¾
+			//åœ¨å·¦è¾¹æ˜¾ç¤º
 			rcPreviewNew.left = msg.ptMouse.x - offset - rcPreview.Width();
 		}
 		else {
-			//ÔÚÓÒ±ßÏÔÊ¾
+			//åœ¨å³è¾¹æ˜¾ç¤º
 			rcPreviewNew.left = msg.ptMouse.x + offset;				
 		}
 		rcPreviewNew.right = rcPreviewNew.left + rcPreview.Width();
 
 		if ((msg.ptMouse.y + offset + rcPreview.Height()) > rcPickker.bottom) {
-			//ÔÚÉÏ±ßÏÔÊ¾
+			//åœ¨ä¸Šè¾¹æ˜¾ç¤º
 			rcPreviewNew.top = msg.ptMouse.y - offset - rcPreview.Height();
 		}
 		else {
-			//ÔÚÏÂ±ßÏÔÊ¾
+			//åœ¨ä¸‹è¾¹æ˜¾ç¤º
 			rcPreviewNew.top = msg.ptMouse.y + offset;
 		}
 		rcPreviewNew.bottom = rcPreviewNew.top + rcPreview.Height();
 		m_pColorPreview->SetPos(rcPreviewNew);
 
-		//¸üĞÂÔ¤ÀÀÎ»Í¼
+		//æ›´æ–°é¢„è§ˆä½å›¾
 		std::shared_ptr<IBitmap> spBitmap = GetMousePosBitmap(msg.ptMouse);
 		m_pColorPreview->SetPreviewBitmap(spBitmap);
 
-		//¸üĞÂÔ¤ÀÀÑÕÉ«
+		//æ›´æ–°é¢„è§ˆé¢œè‰²
 		UiColor selColor = GetMousePosColor(msg.ptMouse);
 		if (!selColor.IsEmpty()) {
-			//ÉèÖÃ±³¾°ÑÕÉ«
+			//è®¾ç½®èƒŒæ™¯é¢œè‰²
 			m_pColorPreview->SetBkColor(selColor);
 
-			//ÉèÖÃÎÄ±¾
+			//è®¾ç½®æ–‡æœ¬
 			std::wstring text = m_pColorPreview->GetColorString(selColor);
 			m_pColorPreview->SetText(text);
 			m_pColorPreview->SetAttribute(L"text_align", L"hcenter,vcenter");
 			m_pColorPreview->SetTextPadding(UiPadding(0, m_pColorPreview->GetHeight() / 2, 0, 0), false);
-			//ÉèÖÃÎÄ±¾ÑÕÉ«
+			//è®¾ç½®æ–‡æœ¬é¢œè‰²
 			UiColor textColor = UiColor(255 - selColor.GetR(), 255 - selColor.GetG(), 255 - selColor.GetB());
 			m_pColorPreview->SetStateTextColor(kControlStateNormal, m_pColorPreview->GetColorString(textColor));
 		}
 		return true;
 	}
 
-	/** »ñÈ¡Êó±êËùÔÚÎ»ÖÃµÄÑÕÉ«Öµ
+	/** è·å–é¼ æ ‡æ‰€åœ¨ä½ç½®çš„é¢œè‰²å€¼
 	*/
 	UiColor GetMousePosColor(const UiPoint& pt) const
 	{
@@ -511,7 +511,7 @@ private:
 		return selColor;
 	}
 
-	/** »ñÈ¡Êó±êËùÔÚÎ»ÖÃÖÜÎ§µÄÎ»Í¼
+	/** è·å–é¼ æ ‡æ‰€åœ¨ä½ç½®å‘¨å›´çš„ä½å›¾
 	*/
 	std::shared_ptr<IBitmap> GetMousePosBitmap(const UiPoint& pt) const
 	{
@@ -579,24 +579,24 @@ private:
 	}
 
 private:
-	/** ¹â±ê¾ä±ú
+	/** å…‰æ ‡å¥æŸ„
 	*/
 	HCURSOR m_hCursor;
 
-	/** ÆÁÄ»Î»Í¼
+	/** å±å¹•ä½å›¾
 	*/
 	std::shared_ptr<IBitmap> m_spBitmap;
 
-	/** Ô¤ÀÀ¿Ø¼şµÄ½Ó¿Ú
+	/** é¢„è§ˆæ§ä»¶çš„æ¥å£
 	*/
 	ScreenColorPreview* m_pColorPreview;
 
-	/** Ñ¡ÔñµÄÑÕÉ«
+	/** é€‰æ‹©çš„é¢œè‰²
 	*/
 	UiColor m_selColor;
 };
 
-/** ´ÓÆÁÄ»È¡É«µÄ´°¿Ú£¨È«ÆÁ£©
+/** ä»å±å¹•å–è‰²çš„çª—å£ï¼ˆå…¨å±ï¼‰
 */
 class ScreenColorPickerWnd : public WindowImplBase
 {
@@ -605,18 +605,18 @@ public:
 	{
 	}
 
-	/** ÒÔÏÂÈı¸ö½Ó¿ÚÊÇ±ØĞëÒª¸²Ğ´µÄ½Ó¿Ú£¬¸¸Àà»áµ÷ÓÃÕâÈı¸ö½Ó¿ÚÀ´¹¹½¨´°¿Ú
-	 * GetSkinFolder		½Ó¿ÚÉèÖÃÄãÒª»æÖÆµÄ´°¿ÚÆ¤·ô×ÊÔ´Â·¾¶
-	 * GetSkinFile			½Ó¿ÚÉèÖÃÄãÒª»æÖÆµÄ´°¿ÚµÄ xml ÃèÊöÎÄ¼ş
-	 * GetWindowClassName	½Ó¿ÚÉèÖÃ´°¿ÚÎ¨Ò»µÄÀàÃû³Æ
+	/** ä»¥ä¸‹ä¸‰ä¸ªæ¥å£æ˜¯å¿…é¡»è¦è¦†å†™çš„æ¥å£ï¼Œçˆ¶ç±»ä¼šè°ƒç”¨è¿™ä¸‰ä¸ªæ¥å£æ¥æ„å»ºçª—å£
+	 * GetSkinFolder		æ¥å£è®¾ç½®ä½ è¦ç»˜åˆ¶çš„çª—å£çš®è‚¤èµ„æºè·¯å¾„
+	 * GetSkinFile			æ¥å£è®¾ç½®ä½ è¦ç»˜åˆ¶çš„çª—å£çš„ xml æè¿°æ–‡ä»¶
+	 * GetWindowClassName	æ¥å£è®¾ç½®çª—å£å”¯ä¸€çš„ç±»åç§°
 	 */
 	virtual std::wstring GetSkinFolder() override { return L"public";}
 	virtual std::wstring GetSkinFile() override { return L"color/screen_color_picker.xml"; }
 	virtual std::wstring GetWindowClassName() const override { return L"ScreenColorPicker"; }
 
-	/** µ±Òª´´½¨µÄ¿Ø¼ş²»ÊÇ±ê×¼µÄ¿Ø¼şÃû³ÆÊ±»áµ÷ÓÃ¸Ãº¯Êı
-	* @param [in] strClass ¿Ø¼şÃû³Æ
-	* @return ·µ»ØÒ»¸ö×Ô¶¨Òå¿Ø¼şÖ¸Õë£¬Ò»°ãÇé¿öÏÂ¸ù¾İ strClass ²ÎÊı´´½¨×Ô¶¨ÒåµÄ¿Ø¼ş
+	/** å½“è¦åˆ›å»ºçš„æ§ä»¶ä¸æ˜¯æ ‡å‡†çš„æ§ä»¶åç§°æ—¶ä¼šè°ƒç”¨è¯¥å‡½æ•°
+	* @param [in] strClass æ§ä»¶åç§°
+	* @return è¿”å›ä¸€ä¸ªè‡ªå®šä¹‰æ§ä»¶æŒ‡é’ˆï¼Œä¸€èˆ¬æƒ…å†µä¸‹æ ¹æ® strClass å‚æ•°åˆ›å»ºè‡ªå®šä¹‰çš„æ§ä»¶
 	*/
 	virtual Control* CreateControl(const std::wstring& strClass)
 	{
@@ -640,7 +640,7 @@ public:
 		return nullptr;
 	}
 
-	/** ÍË³öÈ«ÆÁ×´Ì¬
+	/** é€€å‡ºå…¨å±çŠ¶æ€
 	*/
 	virtual void OnWindowExitFullScreen() override
 	{
@@ -648,11 +648,11 @@ public:
 		CloseWnd();
 	}
 
-	/** ´°¿ÚÀàÃû
+	/** çª—å£ç±»å
 	*/
 	static std::wstring ClassName() { return L"ScreenColorPicker"; }
 
-	/** ×¥È¡ÆÁÄ»Î»Í¼
+	/** æŠ“å–å±å¹•ä½å›¾
 	*/
 	void ScreenCapture()
 	{
@@ -666,7 +666,7 @@ public:
 			return;
 		}
 
-		//×¥È¡ÆÁÄ»Î»Í¼
+		//æŠ“å–å±å¹•ä½å›¾
 		int32_t xScreen = GetSystemMetricsForDpiWrapper(SM_XVIRTUALSCREEN, Dpi().GetDPI());
 		int32_t yScreen = GetSystemMetricsForDpiWrapper(SM_YVIRTUALSCREEN, Dpi().GetDPI());
 		int32_t cxScreen = GetSystemMetricsForDpiWrapper(SM_CXVIRTUALSCREEN, Dpi().GetDPI());
@@ -674,11 +674,11 @@ public:
 		if ((cxScreen <= 0) || (cyScreen <= 0)) {
 			return;
 		}
-		HDC hdcSrc = ::GetDC(NULL); // »ñÈ¡ÆÁÄ»¾ä±ú
+		HDC hdcSrc = ::GetDC(NULL); // è·å–å±å¹•å¥æŸ„
 		if (hdcSrc == nullptr) {
 			return;
 		}
-		HDC hdcDst = ::CreateCompatibleDC(hdcSrc); // ´´½¨Ò»¸ö¼æÈİÆÁÄ»µÄDC
+		HDC hdcDst = ::CreateCompatibleDC(hdcSrc); // åˆ›å»ºä¸€ä¸ªå…¼å®¹å±å¹•çš„DC
 		if (hdcDst == nullptr) {
 			::ReleaseDC(NULL, hdcSrc);
 			return;
@@ -687,13 +687,13 @@ public:
 		LPVOID pBits = nullptr;
 		HBITMAP hBitmap = CreateBitmap(cxScreen, cyScreen, true, &pBits);
 		if (hBitmap == nullptr) {
-			::ReleaseDC(NULL, hdcSrc); // ÊÍ·Å¾ä±ú
+			::ReleaseDC(NULL, hdcSrc); // é‡Šæ”¾å¥æŸ„
 			::DeleteDC(hdcDst);
 			return;
 		}
 		::SelectObject(hdcDst, hBitmap);
-		::BitBlt(hdcDst, 0, 0, cxScreen, cyScreen, hdcSrc, xScreen, yScreen, SRCCOPY); // ¸´ÖÆÆÁÄ»ÄÚÈİµ½Î»Í¼
-		::ReleaseDC(NULL, hdcSrc); // ÊÍ·Å¾ä±ú
+		::BitBlt(hdcDst, 0, 0, cxScreen, cyScreen, hdcSrc, xScreen, yScreen, SRCCOPY); // å¤åˆ¶å±å¹•å†…å®¹åˆ°ä½å›¾
+		::ReleaseDC(NULL, hdcSrc); // é‡Šæ”¾å¥æŸ„
 		::DeleteDC(hdcDst);
 
 		if (!spBitmap->Init(cxScreen, cyScreen, true, pBits)) {
@@ -703,7 +703,7 @@ public:
 		m_spBitmap = spBitmap;
 	}
 
-	/** »ñÈ¡Ñ¡ÔñµÄÑÕÉ«Öµ
+	/** è·å–é€‰æ‹©çš„é¢œè‰²å€¼
 	*/
 	UiColor GetSelColor() const
 	{
@@ -716,7 +716,7 @@ public:
 
 private:
 
-	/** ´´½¨Î»Í¼
+	/** åˆ›å»ºä½å›¾
 	*/
 	HBITMAP CreateBitmap(int32_t nWidth, int32_t nHeight, bool flipHeight, LPVOID* pBits)
 	{
@@ -730,10 +730,10 @@ private:
 		bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
 		bmi.bmiHeader.biWidth = nWidth;
 		if (flipHeight) {
-			bmi.bmiHeader.biHeight = -nHeight;//¸ºÊı±íÊ¾Î»Í¼·½Ïò£º´ÓÉÏµ½ÏÂ£¬×óÉÏ½ÇÎªÔ²µã
+			bmi.bmiHeader.biHeight = -nHeight;//è´Ÿæ•°è¡¨ç¤ºä½å›¾æ–¹å‘ï¼šä»ä¸Šåˆ°ä¸‹ï¼Œå·¦ä¸Šè§’ä¸ºåœ†ç‚¹
 		}
 		else {
-			bmi.bmiHeader.biHeight = nHeight; //ÕıÊı±íÊ¾Î»Í¼·½Ïò£º´ÓÏÂµ½ÉÏ£¬×óÏÂ½ÇÎªÔ²µã
+			bmi.bmiHeader.biHeight = nHeight; //æ­£æ•°è¡¨ç¤ºä½å›¾æ–¹å‘ï¼šä»ä¸‹åˆ°ä¸Šï¼Œå·¦ä¸‹è§’ä¸ºåœ†ç‚¹
 		}
 		bmi.bmiHeader.biPlanes = 1;
 		bmi.bmiHeader.biBitCount = 32;
@@ -751,11 +751,11 @@ private:
 	}
 
 private:
-	/** Î»Í¼ÏÔÊ¾¿Ø¼ş
+	/** ä½å›¾æ˜¾ç¤ºæ§ä»¶
 	*/
 	ScreenColorPicker* m_pScreenColorPicker;
 
-	/** ÆÁÄ»Î»Í¼
+	/** å±å¹•ä½å›¾
 	*/
 	std::shared_ptr<IBitmap> m_spBitmap;
 };
@@ -768,11 +768,11 @@ void ColorPicker::OnPickColorFromScreen()
 		bHideWindow = pCheckBox->IsSelected();
 	}
 	if (bHideWindow) {
-		//Òş²ØÖ÷´°¿Ú
+		//éšè—ä¸»çª—å£
 		ShowWindow(false, false);
 	}
 
-	//×¥È¡ÆÁÄ»Î»Í¼
+	//æŠ“å–å±å¹•ä½å›¾
 	ScreenColorPickerWnd* pScreenColorPicker = new ScreenColorPickerWnd;	
 	pScreenColorPicker->ScreenCapture();	
 	pScreenColorPicker->CreateWnd(GetHWND(), ScreenColorPickerWnd::ClassName().c_str(), UI_WNDSTYLE_FRAME, WS_EX_TRANSPARENT);
@@ -780,29 +780,29 @@ void ColorPicker::OnPickColorFromScreen()
 	pScreenColorPicker->ShowWindow();
 	pScreenColorPicker->EnterFullScreen();
 	pScreenColorPicker->AttachWindowClose([this, pScreenColorPicker, bHideWindow](const ui::EventArgs& /*args*/) {
-		//¸üĞÂÑ¡ÔñµÄÑÕÉ«Öµ
+		//æ›´æ–°é€‰æ‹©çš„é¢œè‰²å€¼
 		UiColor selectedColor = pScreenColorPicker->GetSelColor();
 		if (!selectedColor.IsEmpty()) {
-			//¸üĞÂÑ¡ÔñµÄÑÕÉ«
+			//æ›´æ–°é€‰æ‹©çš„é¢œè‰²
 			this->OnSelectColor(selectedColor);
-			//¸üĞÂ³£ÓÃÑÕÉ«
+			//æ›´æ–°å¸¸ç”¨é¢œè‰²
 			if (m_pRegularPicker != nullptr) {
 				m_pRegularPicker->SelectColor(selectedColor);
 			}
-			//¸üĞÂ±ê×¼ÑÕÉ«
+			//æ›´æ–°æ ‡å‡†é¢œè‰²
 			if (m_pStatardPicker != nullptr) {
 				m_pStatardPicker->SelectColor(selectedColor);
 			}
 			if (m_pStatardGrayPicker != nullptr) {
 				m_pStatardGrayPicker->SelectColor(selectedColor);
 			}
-			//¸üĞÂ×Ô¶¨ÒåÑÕÉ«
+			//æ›´æ–°è‡ªå®šä¹‰é¢œè‰²
 			if (m_pCustomPicker != nullptr) {
 				m_pCustomPicker->SelectColor(selectedColor);
 			}
 		}
 		if (bHideWindow) {
-			//ÏÔÊ¾Ö÷´°¿Ú
+			//æ˜¾ç¤ºä¸»çª—å£
 			this->ShowWindow(true, true);
 		}
 		return true;

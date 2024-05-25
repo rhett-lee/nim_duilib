@@ -238,7 +238,7 @@ UiPoint Render_Skia::OffsetWindowOrg(UiPoint ptOffset)
 {
 	UiPoint ptOldWindowOrg = { SkScalarTruncToInt(m_pSkPointOrg->fX), SkScalarTruncToInt(m_pSkPointOrg->fY) };
 	SkPoint ptOff = { SkIntToScalar(ptOffset.x), SkIntToScalar(ptOffset.y) };
-	//Gdiplus°æ±¾Ê¹ÓÃµÄÊÇSetWindowOrgEx£¬¶øSkiaÄÚ²¿ÊÇÓÃµÄSetViewportOrgExÂß¼­£¬ËùÒÔÕâÀïÒª·ûºÅÈ¡·´
+	//Gdiplusç‰ˆæœ¬ä½¿ç”¨çš„æ˜¯SetWindowOrgExï¼Œè€ŒSkiaå†…éƒ¨æ˜¯ç”¨çš„SetViewportOrgExé€»è¾‘ï¼Œæ‰€ä»¥è¿™é‡Œè¦ç¬¦å·å–å
 	m_pSkPointOrg->offset(-ptOff.fX, -ptOff.fY);
 	return ptOldWindowOrg;
 }
@@ -499,7 +499,7 @@ void Render_Skia::DrawImage(const UiRect& rcPaint, IBitmap* pBitmap,
 		return;
 	}
 	const SkBitmap& skSrcBitmap = skiaBitmap->GetSkBitmap();
-	sk_sp<SkImage> skImage = skSrcBitmap.asImage();//ÕâÀïÊÇ¸´ÖÆÁËÒ»·İÎ»Í¼Êı¾İµÄ£¬ÓĞĞÔÄÜËğºÄ
+	sk_sp<SkImage> skImage = skSrcBitmap.asImage();//è¿™é‡Œæ˜¯å¤åˆ¶äº†ä¸€ä»½ä½å›¾æ•°æ®çš„ï¼Œæœ‰æ€§èƒ½æŸè€—
 
 	UiRect rcTemp;
 	UiRect rcDrawSource;
@@ -593,7 +593,7 @@ void Render_Skia::DrawImage(const UiRect& rcPaint, IBitmap* pBitmap,
 					lDestRight = rcDrawDest.right;
 				}
 
-				//Ô´ÇøÓò£ºÈç¹ûÉèÖÃÁË±ß½Ç£¬Ôò½ö°üº¬ÖĞ¼äÇøÓò
+				//æºåŒºåŸŸï¼šå¦‚æœè®¾ç½®äº†è¾¹è§’ï¼Œåˆ™ä»…åŒ…å«ä¸­é—´åŒºåŸŸ
 				rcDrawSource.left = rcSource.left + rcSourceCorners.left;
 				rcDrawSource.top = rcSource.top + rcSourceCorners.top;
 				rcDrawSource.right = rcDrawSource.left + lDrawWidth;
@@ -785,8 +785,8 @@ void Render_Skia::DrawImageRect(const UiRect& rcPaint, IBitmap* pBitmap,
 {
 	ASSERT((GetWidth() > 0) && (GetHeight() > 0));
 	if (pMatrix == nullptr) {
-		//½öÔÚÃ»ÓĞMatrixµÄÇé¿öÏÂÅĞ¶Ï²Ã¼ôÇøÓò£¬
-		//ÒòÎªÓĞMatrixÊ±£¬Êµ¼Ê»æÖÆÇøÓò²¢²»ÊÇrcDest£¬¶øÊÇ±ä»»¹ıºóµÄÎ»ÖÃ£¬ĞèÒªµ÷ÕûÅĞ¶Ï·½·¨
+		//ä»…åœ¨æ²¡æœ‰Matrixçš„æƒ…å†µä¸‹åˆ¤æ–­è£å‰ªåŒºåŸŸï¼Œ
+		//å› ä¸ºæœ‰Matrixæ—¶ï¼Œå®é™…ç»˜åˆ¶åŒºåŸŸå¹¶ä¸æ˜¯rcDestï¼Œè€Œæ˜¯å˜æ¢è¿‡åçš„ä½ç½®ï¼Œéœ€è¦è°ƒæ•´åˆ¤æ–­æ–¹æ³•
 		UiRect rcTestTemp;
 		if (!UiRect::Intersect(rcTestTemp, rcDest, rcPaint)) {
 			return;
@@ -818,7 +818,7 @@ void Render_Skia::DrawImageRect(const UiRect& rcPaint, IBitmap* pBitmap,
 		return;
 	}
 	const SkBitmap& skSrcBitmap = skiaBitmap->GetSkBitmap();
-	sk_sp<SkImage> skImage = skSrcBitmap.asImage();//ÕâÀïÊÇ¸´ÖÆÁËÒ»·İÎ»Í¼Êı¾İµÄ£¬ÓĞĞÔÄÜËğºÄ
+	sk_sp<SkImage> skImage = skSrcBitmap.asImage();//è¿™é‡Œæ˜¯å¤åˆ¶äº†ä¸€ä»½ä½å›¾æ•°æ®çš„ï¼Œæœ‰æ€§èƒ½æŸè€—
 
 	bool isMatrixSet = false;
 	if (pMatrix != nullptr) {
@@ -866,20 +866,20 @@ void Render_Skia::InitGradientColor(SkPaint& skPaint, const UiRect& rc, UiColor 
 	SkPoint pts[2];
 	pts[0].set(rcSkDest.fLeft, rcSkDest.fTop);
 	if (nColor2Direction == 2) {
-		//ÉÏ->ÏÂ
+		//ä¸Š->ä¸‹
 		pts[1].set(rcSkDest.fLeft, rcSkDest.fBottom);
 	}
 	else if (nColor2Direction == 3) {
-		//×óÉÏ->ÓÒÏÂ
+		//å·¦ä¸Š->å³ä¸‹
 		pts[1].set(rcSkDest.fRight, rcSkDest.fBottom);
 	}
 	else if (nColor2Direction == 4) {
-		//ÓÒÉÏ->×óÏÂ
+		//å³ä¸Š->å·¦ä¸‹
 		pts[0].set(rcSkDest.fRight, rcSkDest.fTop);
 		pts[1].set(rcSkDest.fLeft, rcSkDest.fBottom);
 	}
 	else {
-		//×ó->ÓÒ
+		//å·¦->å³
 		pts[1].set(rcSkDest.fRight, rcSkDest.fTop);
 	}
 
@@ -992,7 +992,7 @@ void Render_Skia::DrawRect(const UiRect& rc, UiColor penColor, int32_t nWidth, b
 	SkIRect rcSkDestI = { rc.left, rc.top, rc.right, rc.bottom };
 	SkRect rcSkDest = SkRect::Make(rcSkDestI);
 	if (bLineInRect) {
-		//È·±£»­µÄÏß£¬¶¼ÔÚ¾ØĞÎ·¶Î§ÄÚ
+		//ç¡®ä¿ç”»çš„çº¿ï¼Œéƒ½åœ¨çŸ©å½¢èŒƒå›´å†…
 		SkScalar fHalfStrokeWidth = skPaint.getStrokeWidth() / 2;
 		rcSkDest.fLeft += fHalfStrokeWidth;
 		rcSkDest.fRight -= fHalfStrokeWidth;
@@ -1172,7 +1172,7 @@ void Render_Skia::SetPaintByPen(SkPaint& skPaint, const IPen* pen)
 
 	sk_sp<SkPathEffect> skPathEffect;
 	IPen::DashStyle dashStyle = pen->GetDashStyle();
-	//Ïß¿íµÄ±¶Êı	
+	//çº¿å®½çš„å€æ•°	
 	const Window* pWindow = !m_windowFlag.expired() ? m_pWindow : nullptr;
 	ASSERT(pWindow != nullptr);
 	if (pWindow == nullptr) {
@@ -1342,10 +1342,10 @@ void Render_Skia::DrawString(const UiRect& rc,
 	if (m_pSkCanvas == nullptr) {
 		return;
 	}
-	//ÎÄ±¾±àÂë
+	//æ–‡æœ¬ç¼–ç 
 	SkTextEncoding textEncoding = SkTextEncoding::kUTF16;
 	
-	//»ñÈ¡×ÖÌå½Ó¿Ú	
+	//è·å–å­—ä½“æ¥å£	
 	Font_Skia* pSkiaFont = dynamic_cast<Font_Skia*>(pFont);
 	const SkFont* pSkFont = pSkiaFont->GetFontHandle();
 	ASSERT(pSkFont != nullptr);
@@ -1353,27 +1353,27 @@ void Render_Skia::DrawString(const UiRect& rc,
 		return;
 	}
 
-	//»æÖÆÊôĞÔÉèÖÃ
+	//ç»˜åˆ¶å±æ€§è®¾ç½®
 	SkPaint skPaint = *m_pSkPaint;
 	skPaint.setARGB(dwTextColor.GetA(), dwTextColor.GetR(), dwTextColor.GetG(), dwTextColor.GetB());
 	if (uFade != 0xFF) {
 		skPaint.setAlpha(uFade);
 	}
 
-	//»æÖÆÇøÓò
+	//ç»˜åˆ¶åŒºåŸŸ
 	SkIRect rcSkDestI = { rc.left, rc.top, rc.right, rc.bottom };
 	SkRect rcSkDest = SkRect::Make(rcSkDestI);
 	rcSkDest.offset(*m_pSkPointOrg);
 
-	//ÉèÖÃ»æÖÆÊôĞÔ
+	//è®¾ç½®ç»˜åˆ¶å±æ€§
 	SkTextBox skTextBox;
 	skTextBox.setBox(rcSkDest);
 	if (uFormat & DrawStringFormat::TEXT_SINGLELINE) {
-		//µ¥ĞĞÎÄ±¾
+		//å•è¡Œæ–‡æœ¬
 		skTextBox.setLineMode(SkTextBox::kOneLine_Mode);
 	}
 
-	//»æÖÆÇøÓò²»×ãÊ±£¬×Ô¶¯ÔÚÄ©Î²»æÖÆÊ¡ÂÔºÅ
+	//ç»˜åˆ¶åŒºåŸŸä¸è¶³æ—¶ï¼Œè‡ªåŠ¨åœ¨æœ«å°¾ç»˜åˆ¶çœç•¥å·
 	bool bEndEllipsis = false;
 	if (uFormat & DrawStringFormat::TEXT_END_ELLIPSIS) {
 		bEndEllipsis = true;
@@ -1386,38 +1386,38 @@ void Render_Skia::DrawString(const UiRect& rc,
 	}
 	skTextBox.setPathEllipsis(bPathEllipsis);
 
-	//»æÖÆÎÄ×ÖÊ±£¬²»Ê¹ÓÃ²Ã¼ôÇøÓò£¨¿ÉÄÜ»áµ¼ÖÂÎÄ×Ö»æÖÆ³¬³ö±ß½ç£©
+	//ç»˜åˆ¶æ–‡å­—æ—¶ï¼Œä¸ä½¿ç”¨è£å‰ªåŒºåŸŸï¼ˆå¯èƒ½ä¼šå¯¼è‡´æ–‡å­—ç»˜åˆ¶è¶…å‡ºè¾¹ç•Œï¼‰
 	if (uFormat & DrawStringFormat::TEXT_NOCLIP) {
 		skTextBox.setClipBox(false);
 	}
-	//É¾³ıÏß
+	//åˆ é™¤çº¿
 	skTextBox.setStrikeOut(pFont->IsStrikeOut());
-	//ÏÂ»®Ïß
+	//ä¸‹åˆ’çº¿
 	skTextBox.setUnderline(pFont->IsUnderline());
 
 	if (uFormat & DrawStringFormat::TEXT_CENTER) {
-		//ºáÏò¶ÔÆë£º¾ÓÖĞ¶ÔÆë
+		//æ¨ªå‘å¯¹é½ï¼šå±…ä¸­å¯¹é½
 		skTextBox.setTextAlign(SkTextBox::kCenter_Align);
 	}
 	else if (uFormat & DrawStringFormat::TEXT_RIGHT) {
-		//ºáÏò¶ÔÆë£ºÓÒ¶ÔÆë
+		//æ¨ªå‘å¯¹é½ï¼šå³å¯¹é½
 		skTextBox.setTextAlign(SkTextBox::kRight_Align);
 	}
 	else {
-		//ºáÏò¶ÔÆë£º×ó¶ÔÆë
+		//æ¨ªå‘å¯¹é½ï¼šå·¦å¯¹é½
 		skTextBox.setTextAlign(SkTextBox::kLeft_Align);
 	}
 
 	if (uFormat & DrawStringFormat::TEXT_VCENTER) {
-		//×İÏò¶ÔÆë£º¾ÓÖĞ¶ÔÆë
+		//çºµå‘å¯¹é½ï¼šå±…ä¸­å¯¹é½
 		skTextBox.setSpacingAlign(SkTextBox::kCenter_SpacingAlign);
 	}
 	else if (uFormat & DrawStringFormat::TEXT_BOTTOM) {
-		//×İÏò¶ÔÆë£ºÏÂ¶ÔÆë
+		//çºµå‘å¯¹é½ï¼šä¸‹å¯¹é½
 		skTextBox.setSpacingAlign(SkTextBox::kEnd_SpacingAlign);
 	}
 	else {
-		//×İÏò¶ÔÆë£ºÉÏ¶ÔÆë
+		//çºµå‘å¯¹é½ï¼šä¸Šå¯¹é½
 		skTextBox.setSpacingAlign(SkTextBox::kStart_SpacingAlign);
 	}
 	skTextBox.draw(m_pSkCanvas, 
@@ -1448,7 +1448,7 @@ UiRect Render_Skia::MeasureString(const std::wstring& strText,
 		return UiRect();
 	}
 
-	//»ñÈ¡×ÖÌå½Ó¿Ú
+	//è·å–å­—ä½“æ¥å£
 	Font_Skia* pSkiaFont = dynamic_cast<Font_Skia*>(pFont);
 	const SkFont* pSkFont = pSkiaFont->GetFontHandle();
 	ASSERT(pSkFont != nullptr);
@@ -1456,7 +1456,7 @@ UiRect Render_Skia::MeasureString(const std::wstring& strText,
 		return UiRect();
 	}
 
-	//»æÖÆÊôĞÔÉèÖÃ
+	//ç»˜åˆ¶å±æ€§è®¾ç½®
 	SkPaint skPaint = *m_pSkPaint;
 
 	bool isSingleLineMode = false;
@@ -1464,12 +1464,12 @@ UiRect Render_Skia::MeasureString(const std::wstring& strText,
 		isSingleLineMode = true;
 	}
 		
-	//¼ÆËãĞĞ¸ß
+	//è®¡ç®—è¡Œé«˜
 	SkFontMetrics fontMetrics;
 	SkScalar fontHeight = pSkFont->getMetrics(&fontMetrics);
 
 	if (isSingleLineMode || (width <= 0)) {
-		//µ¥ĞĞÄ£Ê½, »òÕßÃ»ÓĞÏŞÖÆ¿í¶È
+		//å•è¡Œæ¨¡å¼, æˆ–è€…æ²¡æœ‰é™åˆ¶å®½åº¦
 		SkScalar textWidth = pSkFont->measureText(strText.c_str(),
 												  strText.size() * sizeof(std::wstring::value_type),
 												  SkTextEncoding::kUTF16,
@@ -1491,7 +1491,7 @@ UiRect Render_Skia::MeasureString(const std::wstring& strText,
 			rc.right = textIWidth;
 		}
 		else {
-			//·µ»ØÏŞÖÆ¿í¶È
+			//è¿”å›é™åˆ¶å®½åº¦
 			rc.right = width;
 		}
 		rc.top = 0;
@@ -1502,7 +1502,7 @@ UiRect Render_Skia::MeasureString(const std::wstring& strText,
 		return rc;
 	}
 	else {
-		//¶àĞĞÄ£Ê½£¬²¢ÇÒÏŞÖÆ¿í¶ÈwidthÎªÓĞĞ§Öµ
+		//å¤šè¡Œæ¨¡å¼ï¼Œå¹¶ä¸”é™åˆ¶å®½åº¦widthä¸ºæœ‰æ•ˆå€¼
 		ASSERT(width > 0);
 		int lineCount = SkTextLineBreaker::CountLines((const char*)strText.c_str(),
 													  strText.size() * sizeof(std::wstring::value_type),
@@ -1512,7 +1512,7 @@ UiRect Render_Skia::MeasureString(const std::wstring& strText,
 													  SkScalar(width),
 													  SkTextBox::kWordBreak_Mode);
 
-		float spacingMul = 1.0f;//ĞĞ¼ä¾à±¶Êı£¬Ôİ²»Ö§³ÖÉèÖÃ
+		float spacingMul = 1.0f;//è¡Œé—´è·å€æ•°ï¼Œæš‚ä¸æ”¯æŒè®¾ç½®
 		SkScalar scaledSpacing = fontHeight * spacingMul;
 		SkScalar textHeight = fontHeight;
 		if (lineCount > 0) {
@@ -1541,28 +1541,28 @@ void Render_Skia::DrawRichText(const UiRect& rc,
 		return;
 	}
 
-	//´ı»æÖÆµÄÎÄ±¾
+	//å¾…ç»˜åˆ¶çš„æ–‡æœ¬
 	struct TPendingTextData
 	{
-		//ÔÚrichTextDataÖĞµÄË÷ÒıºÅ
+		//åœ¨richTextDataä¸­çš„ç´¢å¼•å·
 		size_t m_dataIndex = 0;
 
-		//ĞĞºÅ
+		//è¡Œå·
 		size_t m_nRows = 0;
 
-		//´ı»æÖÆÎÄ±¾
+		//å¾…ç»˜åˆ¶æ–‡æœ¬
 		std::wstring m_text;
 
-		//»æÖÆÄ¿±êÇøÓò
+		//ç»˜åˆ¶ç›®æ ‡åŒºåŸŸ
 		UiRect m_destRect;
 
-		//Paint¶ÔÏó
+		//Paintå¯¹è±¡
 		SkPaint m_skPaint;
 
-		//Font¶ÔÏó
+		//Fontå¯¹è±¡
 		std::shared_ptr<Font_Skia> m_spSkiaFont;
 
-		//±³¾°ÑÕÉ«
+		//èƒŒæ™¯é¢œè‰²
 		UiColor m_bgColor;
 	};
 
@@ -1578,10 +1578,10 @@ void Render_Skia::DrawRichText(const UiRect& rc,
 			continue;
 		}
 
-		//ÎÄ±¾ÑÕÉ«
+		//æ–‡æœ¬é¢œè‰²
 		SkPaint skPaint = *m_pSkPaint;
 		if (uFade != 0xFF) {
-			//Í¸Ã÷¶È
+			//é€æ˜åº¦
 			skPaint.setAlpha(uFade);
 		}
 		const UiColor& color = textData.m_textColor;
@@ -1604,7 +1604,7 @@ void Render_Skia::DrawRichText(const UiRect& rc,
 
 		SkFont skFont = *pSkFont;
 		SkFontMetrics metrics;
-		SkScalar fFontHeight = skFont.getMetrics(&metrics); //×ÖÌå¸ß¶È£¬»»ĞĞÊ±Ê¹ÓÃ
+		SkScalar fFontHeight = skFont.getMetrics(&metrics); //å­—ä½“é«˜åº¦ï¼Œæ¢è¡Œæ—¶ä½¿ç”¨
 		fFontHeight *= textData.m_fRowSpacingMul;
 		int32_t nFontHeight = SkScalarTruncToInt(fFontHeight);
 		if ((fFontHeight - nFontHeight) > 0.01f) {
@@ -1616,34 +1616,34 @@ void Render_Skia::DrawRichText(const UiRect& rc,
 		}
 
 		std::wstring textValue = textData.m_text.c_str();
-		//Í³Ò»»»ĞĞ±êÖ¾
+		//ç»Ÿä¸€æ¢è¡Œæ ‡å¿—
 		StringHelper::ReplaceAll(L"\r\n", L"\n", textValue);
 		StringHelper::ReplaceAll(L"\r", L"\n", textValue);
 		if (textValue == L"\n") {
-			//ÎÄ±¾ÄÚÈİÊÇ·Ö¸ô·û£¬Ö´ĞĞ»»ĞĞ²Ù×÷
+			//æ–‡æœ¬å†…å®¹æ˜¯åˆ†éš”ç¬¦ï¼Œæ‰§è¡Œæ¢è¡Œæ“ä½œ
 			xPos = rc.left;
 			yPos += nRowHeight;
 			nRowHeight = 0;
 			++nRowIndex;
 
 			if (yPos >= rc.bottom) {
-				//»æÖÆÇøÓòÒÑÂú£¬ÖÕÖ¹»æÖÆ
+				//ç»˜åˆ¶åŒºåŸŸå·²æ»¡ï¼Œç»ˆæ­¢ç»˜åˆ¶
 				break;
 			}
 			continue;
 		}
 
-		bool bBreakAll = false;//±ê¼ÇÊÇ·ñÖÕÖ¹
+		bool bBreakAll = false;//æ ‡è®°æ˜¯å¦ç»ˆæ­¢
 
-		//°´»»ĞĞ·û½øĞĞÎÄ±¾ÇĞ·Ö
+		//æŒ‰æ¢è¡Œç¬¦è¿›è¡Œæ–‡æœ¬åˆ‡åˆ†
 		std::list<std::wstring> textList = StringHelper::Split(textValue, L"\n");
 		for (const std::wstring& text : textList) {
-			//»æÖÆµÄÎÄ±¾ÏÂ±ê¿ªÊ¼Öµ		
+			//ç»˜åˆ¶çš„æ–‡æœ¬ä¸‹æ ‡å¼€å§‹å€¼		
 			const size_t textCount = text.size();
 			size_t textStartIndex = 0;
 			while (textStartIndex < textCount) {
-				//¹ÀËãÎÄ±¾»æÖÆÇøÓò
-				SkScalar maxWidth = SkIntToScalar(rc.right - xPos);//¿ÉÓÃ¿í¶È
+				//ä¼°ç®—æ–‡æœ¬ç»˜åˆ¶åŒºåŸŸ
+				SkScalar maxWidth = SkIntToScalar(rc.right - xPos);//å¯ç”¨å®½åº¦
 				ASSERT(maxWidth > 0);
 				SkScalar measuredWidth = 0;
 				size_t byteLength = (textCount - textStartIndex) * sizeof(wchar_t);
@@ -1653,7 +1653,7 @@ void Render_Skia::DrawRichText(const UiRect& rc,
 														  skFont, skPaint,
 														  maxWidth, &measuredWidth);
 
-				//»æÖÆÎÄ×ÖËùĞè¿í¶È
+				//ç»˜åˆ¶æ–‡å­—æ‰€éœ€å®½åº¦
 				int32_t nTextWidth = SkScalarTruncToInt(measuredWidth);
 				if ((measuredWidth - nTextWidth) > 0.01f) {
 					nTextWidth += 1;
@@ -1669,25 +1669,25 @@ void Render_Skia::DrawRichText(const UiRect& rc,
 				spTextData->m_spSkiaFont = spSkiaFont;
 				spTextData->m_bgColor = textData.m_bgColor;
 
-				//»æÖÆÎÄ×ÖËùĞèµÄ¾ØĞÎÇøÓò
+				//ç»˜åˆ¶æ–‡å­—æ‰€éœ€çš„çŸ©å½¢åŒºåŸŸ
 				spTextData->m_destRect.left = xPos;
 				spTextData->m_destRect.right = xPos + nTextWidth;
 				spTextData->m_destRect.top = yPos;
 				spTextData->m_destRect.bottom = yPos + nRowHeight;
 
-				bool bNextRow = false; //ÊÇ·ñĞèÒª»»ĞĞµÄ±êÖ¾
+				bool bNextRow = false; //æ˜¯å¦éœ€è¦æ¢è¡Œçš„æ ‡å¿—
 				if (nDrawLength < byteLength) {
-					//¿í¶È²»×ã£¬ĞèÒª»»ĞĞ
+					//å®½åº¦ä¸è¶³ï¼Œéœ€è¦æ¢è¡Œ
 					bNextRow = true;
 					textStartIndex += nDrawLength / sizeof(wchar_t);
 				}
 				else {
-					//µ±Ç°ĞĞ¿ÉÈİÄÉÎÄ±¾»æÖÆ
-					textStartIndex = textCount;//±ê¼Ç£¬½áÊøÑ­»·
+					//å½“å‰è¡Œå¯å®¹çº³æ–‡æœ¬ç»˜åˆ¶
+					textStartIndex = textCount;//æ ‡è®°ï¼Œç»“æŸå¾ªç¯
 
 					xPos += nTextWidth;
 					if (xPos >= rc.right) {
-						//»»ĞĞ
+						//æ¢è¡Œ
 						bNextRow = true;
 					}
 				}
@@ -1697,14 +1697,14 @@ void Render_Skia::DrawRichText(const UiRect& rc,
 				}
 
 				if (bNextRow) {
-					//Ö´ĞĞ»»ĞĞ²Ù×÷
+					//æ‰§è¡Œæ¢è¡Œæ“ä½œ
 					xPos = rc.left;
 					yPos += nRowHeight;
 					nRowHeight = nFontHeight;
 					++nRowIndex;
 
 					if (yPos >= rc.bottom) {
-						//»æÖÆÇøÓòÒÑÂú£¬ÖÕÖ¹»æÖÆ
+						//ç»˜åˆ¶åŒºåŸŸå·²æ»¡ï¼Œç»ˆæ­¢ç»˜åˆ¶
 						bBreakAll = true;
 						break;
 					}
@@ -1726,13 +1726,13 @@ void Render_Skia::DrawRichText(const UiRect& rc,
 		const TPendingTextData& textData = *spTextData;
 		ASSERT(textData.m_dataIndex < richTextData.size());
 		RichTextData& richText = richTextData[textData.m_dataIndex];
-		richText.m_textRects.push_back(textData.m_destRect); //±£´æ»æÖÆµÄÄ¿±êÇøÓò£¬Í¬Ò»¸öÎÄ±¾£¬¿ÉÄÜ»áÓĞ¶à¸öÇøÓò£¨»»ĞĞÊ±£©
+		richText.m_textRects.push_back(textData.m_destRect); //ä¿å­˜ç»˜åˆ¶çš„ç›®æ ‡åŒºåŸŸï¼ŒåŒä¸€ä¸ªæ–‡æœ¬ï¼Œå¯èƒ½ä¼šæœ‰å¤šä¸ªåŒºåŸŸï¼ˆæ¢è¡Œæ—¶ï¼‰
 
 		if (!bMeasureOnly) {
-			//»æÖÆÎÄ×ÖµÄ±³¾°É«
+			//ç»˜åˆ¶æ–‡å­—çš„èƒŒæ™¯è‰²
 			FillRect(textData.m_destRect, textData.m_bgColor, uFade);
 
-			//»æÖÆÎÄ×Ö
+			//ç»˜åˆ¶æ–‡å­—
 			DrawTextString(textData.m_destRect, textData.m_text, uFormat | DrawStringFormat::TEXT_SINGLELINE, textData.m_skPaint, textData.m_spSkiaFont.get());
 		}
 	}
@@ -1754,7 +1754,7 @@ void Render_Skia::DrawTextString(const UiRect& rc, const std::wstring& strText, 
 	if (pSkiaFont == nullptr) {
 		return;
 	}
-	//ÎÄ±¾±àÂë
+	//æ–‡æœ¬ç¼–ç 
 	SkTextEncoding textEncoding = SkTextEncoding::kUTF16;
 	const SkFont* pSkFont = pSkiaFont->GetFontHandle();
 	ASSERT(pSkFont != nullptr);
@@ -1762,20 +1762,20 @@ void Render_Skia::DrawTextString(const UiRect& rc, const std::wstring& strText, 
 		return;
 	}
 
-	//»æÖÆÇøÓò
+	//ç»˜åˆ¶åŒºåŸŸ
 	SkIRect rcSkDestI = { rc.left, rc.top, rc.right, rc.bottom };
 	SkRect rcSkDest = SkRect::Make(rcSkDestI);
 	rcSkDest.offset(*m_pSkPointOrg);
 
-	//ÉèÖÃ»æÖÆÊôĞÔ
+	//è®¾ç½®ç»˜åˆ¶å±æ€§
 	SkTextBox skTextBox;
 	skTextBox.setBox(rcSkDest);
 	if (uFormat & DrawStringFormat::TEXT_SINGLELINE) {
-		//µ¥ĞĞÎÄ±¾
+		//å•è¡Œæ–‡æœ¬
 		skTextBox.setLineMode(SkTextBox::kOneLine_Mode);
 	}
 
-	//»æÖÆÇøÓò²»×ãÊ±£¬×Ô¶¯ÔÚÄ©Î²»æÖÆÊ¡ÂÔºÅ
+	//ç»˜åˆ¶åŒºåŸŸä¸è¶³æ—¶ï¼Œè‡ªåŠ¨åœ¨æœ«å°¾ç»˜åˆ¶çœç•¥å·
 	bool bEndEllipsis = false;
 	if (uFormat & DrawStringFormat::TEXT_END_ELLIPSIS) {
 		bEndEllipsis = true;
@@ -1788,38 +1788,38 @@ void Render_Skia::DrawTextString(const UiRect& rc, const std::wstring& strText, 
 	}
 	skTextBox.setPathEllipsis(bPathEllipsis);
 
-	//»æÖÆÎÄ×ÖÊ±£¬²»Ê¹ÓÃ²Ã¼ôÇøÓò£¨¿ÉÄÜ»áµ¼ÖÂÎÄ×Ö»æÖÆ³¬³ö±ß½ç£©
+	//ç»˜åˆ¶æ–‡å­—æ—¶ï¼Œä¸ä½¿ç”¨è£å‰ªåŒºåŸŸï¼ˆå¯èƒ½ä¼šå¯¼è‡´æ–‡å­—ç»˜åˆ¶è¶…å‡ºè¾¹ç•Œï¼‰
 	if (uFormat & DrawStringFormat::TEXT_NOCLIP) {
 		skTextBox.setClipBox(false);
 	}
-	//É¾³ıÏß
+	//åˆ é™¤çº¿
 	skTextBox.setStrikeOut(pSkiaFont->IsStrikeOut());
-	//ÏÂ»®Ïß
+	//ä¸‹åˆ’çº¿
 	skTextBox.setUnderline(pSkiaFont->IsUnderline());
 
 	if (uFormat & DrawStringFormat::TEXT_CENTER) {
-		//ºáÏò¶ÔÆë£º¾ÓÖĞ¶ÔÆë
+		//æ¨ªå‘å¯¹é½ï¼šå±…ä¸­å¯¹é½
 		skTextBox.setTextAlign(SkTextBox::kCenter_Align);
 	}
 	else if (uFormat & DrawStringFormat::TEXT_RIGHT) {
-		//ºáÏò¶ÔÆë£ºÓÒ¶ÔÆë
+		//æ¨ªå‘å¯¹é½ï¼šå³å¯¹é½
 		skTextBox.setTextAlign(SkTextBox::kRight_Align);
 	}
 	else {
-		//ºáÏò¶ÔÆë£º×ó¶ÔÆë
+		//æ¨ªå‘å¯¹é½ï¼šå·¦å¯¹é½
 		skTextBox.setTextAlign(SkTextBox::kLeft_Align);
 	}
 
 	if (uFormat & DrawStringFormat::TEXT_VCENTER) {
-		//×İÏò¶ÔÆë£º¾ÓÖĞ¶ÔÆë
+		//çºµå‘å¯¹é½ï¼šå±…ä¸­å¯¹é½
 		skTextBox.setSpacingAlign(SkTextBox::kCenter_SpacingAlign);
 	}
 	else if (uFormat & DrawStringFormat::TEXT_BOTTOM) {
-		//×İÏò¶ÔÆë£ºÏÂ¶ÔÆë
+		//çºµå‘å¯¹é½ï¼šä¸‹å¯¹é½
 		skTextBox.setSpacingAlign(SkTextBox::kEnd_SpacingAlign);
 	}
 	else {
-		//×İÏò¶ÔÆë£ºÉÏ¶ÔÆë
+		//çºµå‘å¯¹é½ï¼šä¸Šå¯¹é½
 		skTextBox.setSpacingAlign(SkTextBox::kStart_SpacingAlign);
 	}
 	skTextBox.draw(m_pSkCanvas,
@@ -1843,7 +1843,7 @@ void Render_Skia::DrawBoxShadow(const UiRect& rc,
 		nBlurRadius = 0;
 	}
 
-	//ÒõÓ°µÄÀ©ÈöÇøÓò
+	//é˜´å½±çš„æ‰©æ’’åŒºåŸŸ
 	ui::UiRect destRc = rc;	
 	destRc.left -= nSpreadRadius;
 	destRc.top -= nSpreadRadius;
@@ -1853,7 +1853,7 @@ void Render_Skia::DrawBoxShadow(const UiRect& rc,
 	SkRect srcRc;
 	srcRc.setXYWH((SkScalar)destRc.left, (SkScalar)destRc.top, (SkScalar)destRc.Width(), (SkScalar)destRc.Height());
 
-	//Ô­Ê¼ÇøÓò£¬×ö²Ã¼ôÓÃ
+	//åŸå§‹åŒºåŸŸï¼Œåšè£å‰ªç”¨
 	SkRect excludeRc;
 	excludeRc.setXYWH((SkScalar)rc.left, (SkScalar)rc.top, (SkScalar)rc.Width(), (SkScalar)rc.Height());
 
@@ -1869,7 +1869,7 @@ void Render_Skia::DrawBoxShadow(const UiRect& rc,
 
 	SkAutoCanvasRestore autoCanvasRestore(m_pSkCanvas, true);
 
-	//²Ã¼ôÖĞ¼äÇøÓò
+	//è£å‰ªä¸­é—´åŒºåŸŸ
 	SkPath skPathExclude;
 	excludePath.offset(m_pSkPointOrg->fX, m_pSkPointOrg->fY, &skPathExclude);
 	ASSERT(m_pSkCanvas != nullptr);
@@ -1880,7 +1880,7 @@ void Render_Skia::DrawBoxShadow(const UiRect& rc,
 	SkPath skPath;
 	shadowPath.offset(m_pSkPointOrg->fX, m_pSkPointOrg->fY, &skPath);
 
-	//ÉèÖÃ»æÖÆÒõÓ°µÄÊôĞÔ
+	//è®¾ç½®ç»˜åˆ¶é˜´å½±çš„å±æ€§
 	const SkScalar sigmaX = (SkScalar)nBlurRadius;
 	const SkScalar sigmaY = (SkScalar)nBlurRadius;
 	paint.setAntiAlias(true);
@@ -1889,7 +1889,7 @@ void Render_Skia::DrawBoxShadow(const UiRect& rc,
 
 	paint.setImageFilter(SkImageFilters::Blur(sigmaX, sigmaY, SkTileMode::kDecal, nullptr));
 
-	//ÉèÖÃ»æÖÆÒõÓ°µÄÆ«ÒÆÁ¿
+	//è®¾ç½®ç»˜åˆ¶é˜´å½±çš„åç§»é‡
 	const SkScalar offsetX = (SkScalar)cpOffset.x;
 	const SkScalar offsetY = (SkScalar)cpOffset.y;
 	SkMatrix mat;
@@ -1932,7 +1932,7 @@ HDC Render_Skia::GetDC()
 		SkRect rcClip;
 		if (m_pSkCanvas->getLocalClipBounds(&rcClip)) {
 			RECT rc = { (int)rcClip.left(),(int)rcClip.top(),(int)rcClip.right(),(int)rcClip.bottom() };
-			::InflateRect(&rc, -1, -1); //×¢ÒâĞèÒªÏòÄÚËõĞ¡Ò»¸öÏóËØ
+			::InflateRect(&rc, -1, -1); //æ³¨æ„éœ€è¦å‘å†…ç¼©å°ä¸€ä¸ªè±¡ç´ 
 			::IntersectClipRect(hGetDC, rc.left, rc.top, rc.right, rc.bottom);
 		}
 	}

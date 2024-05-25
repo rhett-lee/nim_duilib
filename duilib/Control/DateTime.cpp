@@ -19,7 +19,7 @@ public:
     HFONT CreateHFont() const;
     UiRect CalPos();
 
-    //¸üĞÂ´°¿ÚµÄÎ»ÖÃ
+    //æ›´æ–°çª—å£çš„ä½ç½®
     void UpdateWndPos();
 
     virtual std::wstring GetWindowClassName() const override;
@@ -97,7 +97,7 @@ bool DateTimeWnd::Init(DateTime* pOwner)
         }
         UINT uStyle = WS_POPUP;
         if (editFormat != DateTime::EditFormat::kDateCalendar) {
-            //ÔÚÓÒ²àÔö¼ÓSpin°´Å¥
+            //åœ¨å³ä¾§å¢åŠ SpinæŒ‰é’®
             uStyle |= DTS_UPDOWN;
         }
 
@@ -185,7 +185,7 @@ void DateTimeWnd::UpdateWndPos()
 
 HFONT DateTimeWnd::CreateHFont() const
 {
-    //ÓÅÏÈ»ñÈ¡Ä¬ÈÏ×ÖÌå
+    //ä¼˜å…ˆè·å–é»˜è®¤å­—ä½“
     IFont* pFont = GlobalManager::Instance().Font().GetIFont(L"", Dpi());
     if (pFont == nullptr) {
         pFont = GlobalManager::Instance().Font().GetIFont(L"system_12", Dpi());
@@ -317,7 +317,7 @@ DateTime::DateTime(Window* pWindow):
     m_editFormat(EditFormat::kDateCalendar),
     m_dateSeparator(L'-')
 {
-    //ÉèÖÃÄ¬ÈÏÊôĞÔ
+    //è®¾ç½®é»˜è®¤å±æ€§
     SetAttribute(L"border_size", L"1");
     SetAttribute(L"border_color", L"gray");
     SetAttribute(L"text_align", L"vcenter");
@@ -387,9 +387,9 @@ void DateTime::SetDateTime(const std::tm& dateTime)
     if (!IsEqual(m_dateTime, dateTime)) {
         m_dateTime = dateTime;
 
-        //¸üĞÂÏÔÊ¾ÎÄ±¾
+        //æ›´æ–°æ˜¾ç¤ºæ–‡æœ¬
         SetText(GetDateTimeString());
-        //´¥·¢±ä»¯ÊÂ¼ş
+        //è§¦å‘å˜åŒ–äº‹ä»¶
         SendEvent(kEventValueChange);
     }
 }
@@ -415,7 +415,7 @@ bool DateTime::SetDateTimeString(const std::wstring& dateTime)
     std::wistringstream ss(dateTime);
     ss >> std::get_time(&t, sFormat.c_str());
     if (ss.fail()) {
-        //Ê§°Üºó£¬ÖÇÄÜÊ¶±ğÄêÔÂÈÕµÄ·Ö¸ô·û
+        //å¤±è´¥åï¼Œæ™ºèƒ½è¯†åˆ«å¹´æœˆæ—¥çš„åˆ†éš”ç¬¦
         if (dateTime.find(L'-') != std::wstring::npos) {
             StringHelper::ReplaceAll(L"/", L"-", sFormat);
             std::wistringstream ss2(dateTime);
@@ -442,7 +442,7 @@ bool DateTime::SetDateTimeString(const std::wstring& dateTime)
         bRet = true;
     }
     if (bRet) {
-        //Èç¹û²»°üº¬ÄêÔÂÈÕ£¬ĞèÒª¸üĞÂÎªµ±ÈÕÖµ£¬·ñÔò±à¼­µÄÊ±ºòÈÏÎªÊÇÎŞĞ§ÈÕÆÚ
+        //å¦‚æœä¸åŒ…å«å¹´æœˆæ—¥ï¼Œéœ€è¦æ›´æ–°ä¸ºå½“æ—¥å€¼ï¼Œå¦åˆ™ç¼–è¾‘çš„æ—¶å€™è®¤ä¸ºæ˜¯æ— æ•ˆæ—¥æœŸ
         time_t timeNow = std::time(nullptr);
         std::tm tmTime = { 0, };
         ::localtime_s(&tmTime, &timeNow);
@@ -515,9 +515,9 @@ void DateTime::SetStringFormat(const std::wstring& sFormat)
     else if (m_sFormat != sFormat) {
         m_sFormat = sFormat;
 
-        //¸üĞÂÏÔÊ¾ÎÄ±¾
+        //æ›´æ–°æ˜¾ç¤ºæ–‡æœ¬
         SetText(GetDateTimeString());
-        //´¥·¢±ä»¯ÊÂ¼ş
+        //è§¦å‘å˜åŒ–äº‹ä»¶
         SendEvent(kEventValueChange);
     }
 }
@@ -566,9 +566,9 @@ void DateTime::SetEditFormat(EditFormat editFormat)
         std::wstring oldFormat = GetStringFormat();
         m_editFormat = editFormat;
         if (oldFormat != GetStringFormat()) {
-            //¸üĞÂÏÔÊ¾ÎÄ±¾
+            //æ›´æ–°æ˜¾ç¤ºæ–‡æœ¬
             SetText(GetDateTimeString());
-            //´¥·¢±ä»¯ÊÂ¼ş
+            //è§¦å‘å˜åŒ–äº‹ä»¶
             SendEvent(kEventValueChange);
         }
     }
@@ -589,7 +589,7 @@ void DateTime::UpdateEditWndPos()
 void DateTime::HandleEvent(const EventArgs& msg)
 {
     if (IsDisabledEvents(msg)) {
-        //Èç¹ûÊÇÊó±ê¼üÅÌÏûÏ¢£¬²¢ÇÒ¿Ø¼şÊÇDisabledµÄ£¬×ª·¢¸øÉÏ²ã¿Ø¼ş
+        //å¦‚æœæ˜¯é¼ æ ‡é”®ç›˜æ¶ˆæ¯ï¼Œå¹¶ä¸”æ§ä»¶æ˜¯Disabledçš„ï¼Œè½¬å‘ç»™ä¸Šå±‚æ§ä»¶
         Box* pParent = GetParent();
         if (pParent != nullptr) {
             pParent->SendEvent(msg);
@@ -618,7 +618,7 @@ void DateTime::HandleEvent(const EventArgs& msg)
             return;
         }
         if (GetRect().IsZero() && (GetWindow() != nullptr)) {
-            //ÉĞÎ´ÏÔÊ¾£¬Ë¢ĞÂÒ»´Î´°¿Ú£¬È·±£¿Ø¼şÏÈÈ·¶¨Î»ÖÃ£¬È»ºóÔÙÏÔÊ¾±à¼­´°¿Ú
+            //å°šæœªæ˜¾ç¤ºï¼Œåˆ·æ–°ä¸€æ¬¡çª—å£ï¼Œç¡®ä¿æ§ä»¶å…ˆç¡®å®šä½ç½®ï¼Œç„¶åå†æ˜¾ç¤ºç¼–è¾‘çª—å£
             GetWindow()->UpdateWindow();
         }
         if (IsFocused()) {
@@ -681,7 +681,7 @@ void DateTime::OnInit()
 
     if (!IsValidDateTime()) {
         std::wstring text = GetText();
-        //½«ÏÔÊ¾µÄÎÄ±¾ÄÚÈİ£¬×ª»»³ÉÈÕÆÚÊ±¼ä¸ñÊ½
+        //å°†æ˜¾ç¤ºçš„æ–‡æœ¬å†…å®¹ï¼Œè½¬æ¢æˆæ—¥æœŸæ—¶é—´æ ¼å¼
         if (!text.empty()) {
             SetDateTimeString(text);
         }

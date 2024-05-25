@@ -23,7 +23,7 @@ bool DpiAwareness::InitDpiAwareness(const DpiInitParam& initParam)
 {
 	bool bRet = true;
 	if (initParam.m_dpiAwarenessFlag == DpiInitParam::DpiAwarenessFlag::kFromUserDefine) {
-		//ÉèÖÃÒ»´Î Dpi Awareness
+		//è®¾ç½®ä¸€æ¬¡ Dpi Awareness
 		SetDpiAwareness(initParam.m_dpiAwarenessMode);
 		DpiAwarenessMode dpiAwarenessMode = GetDpiAwareness();
 		if (initParam.m_dpiAwarenessMode == DpiAwarenessMode::kDpiUnaware) {
@@ -39,16 +39,16 @@ bool DpiAwareness::InitDpiAwareness(const DpiInitParam& initParam)
 DpiAwarenessMode DpiAwareness::SetDpiAwareness(DpiAwarenessMode dpiAwarenessMode) const
 {
 	if (!::IsWindowsVistaOrGreater()) {
-		//VistaÒÔÏÂ°æ±¾ÏµÍ³£¬²»Ö§³ÖDPI¸ĞÖª
+		//Vistaä»¥ä¸‹ç‰ˆæœ¬ç³»ç»Ÿï¼Œä¸æ”¯æŒDPIæ„ŸçŸ¥
 		return DpiAwarenessMode::kDpiUnaware;
 	}
 
-	//ËµÃ÷£ºÈç¹ûÓ¦ÓÃ³ÌĞò (.exe) Çåµ¥ÉèÖÃ DPI ¸ĞÖª£¬ÔòÏà¹ØµÄÉèÖÃAPI»áµ÷ÓÃÊ§°Ü
-	//     Èç¹û´ËÇ°µ÷ÓÃ»òÒ»´ÎÖ´ĞĞº¯Êı£¬ÔòµÚ¶ş´Îµ÷ÓÃµÄÊ±ºò»áÊ§°Ü£¨Ó¦¸ÃÓĞÏŞÖÆ£¬Ö»ÔÊĞíÉèÖÃÒ»´Î£©
+	//è¯´æ˜ï¼šå¦‚æœåº”ç”¨ç¨‹åº (.exe) æ¸…å•è®¾ç½® DPI æ„ŸçŸ¥ï¼Œåˆ™ç›¸å…³çš„è®¾ç½®APIä¼šè°ƒç”¨å¤±è´¥
+	//     å¦‚æœæ­¤å‰è°ƒç”¨æˆ–ä¸€æ¬¡æ‰§è¡Œå‡½æ•°ï¼Œåˆ™ç¬¬äºŒæ¬¡è°ƒç”¨çš„æ—¶å€™ä¼šå¤±è´¥ï¼ˆåº”è¯¥æœ‰é™åˆ¶ï¼Œåªå…è®¸è®¾ç½®ä¸€æ¬¡ï¼‰
 	if (dpiAwarenessMode != DpiAwarenessMode::kDpiUnaware) {
 		bool bSetOk = false;
 		if (!bSetOk && ::IsWindows10OrGreater()) {
-			//Windows10 ¼°ÒÔÉÏ
+			//Windows10 åŠä»¥ä¸Š
 			PROCESS_DPI_AWARENESS_CONTEXT newValueWin10 = PROCESS_DPI_AWARENESS_CONTEXT_UNAWARE;
 			if (dpiAwarenessMode == DpiAwarenessMode::kPerMonitorDpiAware_V2) {
 				newValueWin10 = PROCESS_DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2;
@@ -77,7 +77,7 @@ DpiAwarenessMode DpiAwareness::SetDpiAwareness(DpiAwarenessMode dpiAwarenessMode
 		}
 
 		if (!bSetOk && ::IsWindows8Point1OrGreater()) {
-			//Win8.1 ¼°ÒÔÉÏ
+			//Win8.1 åŠä»¥ä¸Š
 			PROCESS_DPI_AWARENESS newValueWin8 = PROCESS_DPI_UNAWARE;
 			if ((dpiAwarenessMode == DpiAwarenessMode::kPerMonitorDpiAware) || 
 				(dpiAwarenessMode == DpiAwarenessMode::kPerMonitorDpiAware_V2) ) {
@@ -116,12 +116,12 @@ DpiAwarenessMode DpiAwareness::GetDpiAwareness() const
 {
 	DpiAwarenessMode dpiAwarenessMode = DpiAwarenessMode::kDpiUnaware;
 	if (!::IsWindowsVistaOrGreater()) {
-		//VistaÒÔÏÂ°æ±¾ÏµÍ³£¬²»Ö§³ÖDPI¸ĞÖª
+		//Vistaä»¥ä¸‹ç‰ˆæœ¬ç³»ç»Ÿï¼Œä¸æ”¯æŒDPIæ„ŸçŸ¥
 		return dpiAwarenessMode;
 	}
 	bool bDpiInited = false;
 	if (!bDpiInited && ::IsWindows10OrGreater()) {
-		//Windows10 ¼°ÒÔÉÏ
+		//Windows10 åŠä»¥ä¸Š
 		PROCESS_DPI_AWARENESS_CONTEXT value = PROCESS_DPI_AWARENESS_CONTEXT_UNAWARE;
 		if (GetProcessDpiAwarenessContextWrapper(value)) {
 			bDpiInited = true;
@@ -143,7 +143,7 @@ DpiAwarenessMode DpiAwareness::GetDpiAwareness() const
 		}
 	}
 	if (!bDpiInited && ::IsWindows8Point1OrGreater()) {
-		//Win8.1 ¼°ÒÔÉÏ
+		//Win8.1 åŠä»¥ä¸Š
 		PROCESS_DPI_AWARENESS value = PROCESS_DPI_UNAWARE;
 		if (GetProcessDPIAwarenessWrapper(value)) {
 			bDpiInited = true;

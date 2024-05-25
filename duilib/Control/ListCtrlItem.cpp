@@ -141,7 +141,7 @@ size_t ListCtrlItem::GetSubItemIndex(ListCtrlSubItem* pSubItem) const
 bool ListCtrlItem::ButtonUp(const EventArgs& msg)
 {
     if ((m_pListCtrl != nullptr) && m_pListCtrl->IsAutoCheckSelect()) {
-        //跳过CheckBox的处理函数，避免功能冲突
+        //璺宠繃CheckBox鐨勫鐞嗗嚱鏁帮紝閬垮厤鍔熻兘鍐茬獊
         return HBox::ButtonUp(msg);
     }
     else {
@@ -171,7 +171,7 @@ bool ListCtrlItem::SetShowCheckBox(bool bShow)
         }
     }
     else {
-        //清除CheckBox图片资源，就不显示了
+        //娓呴櫎CheckBox鍥剧墖璧勬簮锛屽氨涓嶆樉绀轰簡
         ClearStateImages();
         ASSERT(!IsShowCheckBox());
         bRet = true;
@@ -181,7 +181,7 @@ bool ListCtrlItem::SetShowCheckBox(bool bShow)
 
 bool ListCtrlItem::IsShowCheckBox() const
 {
-    //如果有CheckBox图片资源，则认为显示了CheckBox
+    //濡傛灉鏈塁heckBox鍥剧墖璧勬簮锛屽垯璁や负鏄剧ず浜咰heckBox
     return !GetStateImage(kControlStateNormal).empty() && !GetSelectedStateImage(kControlStateNormal).empty();
 }
 
@@ -281,16 +281,16 @@ void ListCtrlItem::VAlignRect(UiRect& rc, uint32_t textStyle, int32_t nImageHeig
         return;
     }
     if (textStyle & TEXT_VCENTER) {
-        //居中对齐
+        //灞呬腑瀵归綈
         rc.top = rc.CenterY() - nImageHeight / 2;
         rc.bottom = rc.top + nImageHeight;
     }
     else if (textStyle & TEXT_BOTTOM) {
-        //底部对齐
+        //搴曢儴瀵归綈
         rc.top = rc.bottom - nImageHeight;
     }
     else {
-        //顶部对齐
+        //椤堕儴瀵归綈
         rc.bottom = rc.top + nImageHeight;
     }
 }

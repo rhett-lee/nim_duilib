@@ -22,7 +22,7 @@ PlaceHolder::PlaceHolder(Window* pWindow) :
 	m_bEnableControlPadding(true),
 	m_bInited(false)
 {
-	//¿Ø¼şµÄ¸ß¶ÈºÍ¿í¶ÈÖµ£¬Ä¬ÈÏÉèÖÃÎªÀ­Éì
+	//æ§ä»¶çš„é«˜åº¦å’Œå®½åº¦å€¼ï¼Œé»˜è®¤è®¾ç½®ä¸ºæ‹‰ä¼¸
 	m_cxyFixed.cx.SetStretch();
 	m_cxyFixed.cy.SetStretch();
 }
@@ -408,7 +408,7 @@ bool PlaceHolder::IsEnableControlPadding() const
 
 UiPadding PlaceHolder::GetControlPadding() const
 {
-	//¿Ø¼ş±¾Éí½ûÖ¹Ó¦ÓÃÄÚ±ß¾àÊ±£¬·µ»Ø¿Õ
+	//æ§ä»¶æœ¬èº«ç¦æ­¢åº”ç”¨å†…è¾¹è·æ—¶ï¼Œè¿”å›ç©º
 	UiPadding rcPadding;
 	if (IsEnableControlPadding()) {		
 		rcPadding = GetPadding();
@@ -447,7 +447,7 @@ void PlaceHolder::ArrangeAncestor()
 			parent->ArrangeSelf();
 		}
 		else {
-			//ËµÃ÷root¾ßÓĞAutoAdjustSizeÊôĞÔ
+			//è¯´æ˜rootå…·æœ‰AutoAdjustSizeå±æ€§
 			m_pWindow->GetRoot()->ArrangeSelf();
 		}
 	}
@@ -489,9 +489,9 @@ void PlaceHolder::SetArranged(bool bArranged)
 
 void PlaceHolder::SetRect(const UiRect& rc)
 {
-	//ËùÓĞµ÷Õû¾ØĞÎÇøÓòµÄ²Ù×÷£¬×îÖÕ¶¼»áÍ¨¹ıÕâÀïÉèÖÃ
+	//æ‰€æœ‰è°ƒæ•´çŸ©å½¢åŒºåŸŸçš„æ“ä½œï¼Œæœ€ç»ˆéƒ½ä¼šé€šè¿‡è¿™é‡Œè®¾ç½®
 	if (!m_uiRect.Equals(rc)) {
-		//ÇøÓò±ä»¯£¬±ê×¢»æÖÆ»º´æÔà±ê¼ÇÎ»
+		//åŒºåŸŸå˜åŒ–ï¼Œæ ‡æ³¨ç»˜åˆ¶ç¼“å­˜è„æ ‡è®°ä½
 		SetCacheDirty(true);
 	}
 	m_uiRect = rc;	
@@ -521,7 +521,7 @@ void PlaceHolder::InvalidateRect(const UiRect& rc)
 	SetCacheDirty(true);
 	UiRect rcInvalidate = GetPos();
 	if (!rc.IsEmpty()) {
-		//È¡½»¼¯
+		//å–äº¤é›†
 		rcInvalidate.Intersect(rc);
 	}	
 	ui::UiPoint scrollBoxOffset = GetScrollOffsetInScrollBox();
@@ -534,11 +534,11 @@ void PlaceHolder::InvalidateRect(const UiRect& rc)
 void PlaceHolder::RelayoutOrRedraw()
 {
 	if ((GetFixedWidth().IsAuto()) || (GetFixedHeight().IsAuto())) {
-		//Èç¹ûµ±Ç°¿Ø¼şµÄ¿í¸ßÓĞµÄÊÇAUTOµÄ£¬ĞèÒª¸¸¿Ø¼şBox½øĞĞ²¼¾ÖÖØÅÅ£¨Ò»°ãÔÚ¿ÉÄÜÒıÆğ²¼¾Ö±ä»¯Ê±µ÷ÓÃ£©£¬²¼¾ÖÖØÅÅºó»á½øĞĞÖØ»æ
+		//å¦‚æœå½“å‰æ§ä»¶çš„å®½é«˜æœ‰çš„æ˜¯AUTOçš„ï¼Œéœ€è¦çˆ¶æ§ä»¶Boxè¿›è¡Œå¸ƒå±€é‡æ’ï¼ˆä¸€èˆ¬åœ¨å¯èƒ½å¼•èµ·å¸ƒå±€å˜åŒ–æ—¶è°ƒç”¨ï¼‰ï¼Œå¸ƒå±€é‡æ’åä¼šè¿›è¡Œé‡ç»˜
 		ArrangeAncestor();
 	}
 	else {
-		//½ö½ö½øĞĞÖØ»æÖÆ
+		//ä»…ä»…è¿›è¡Œé‡ç»˜åˆ¶
 		Invalidate();
 	}
 }
@@ -551,9 +551,9 @@ UiPoint PlaceHolder::GetScrollOffsetInScrollBox() const
 		ScrollBox* pScrollBox = dynamic_cast<ScrollBox*>(parent);
 		if ((pScrollBox != nullptr) &&
 			(pScrollBox->IsVScrollBarValid() || pScrollBox->IsHScrollBarValid())) {
-			//´Ë¸¸¿Ø¼şÊÇScrollBox£¬²¢ÇÒ¸¸¿Ø¼ş´æÔÚºáÏò¹ö¶¯Ìõ»òÕß×İÏò¹ö¶¯Ìõ
+			//æ­¤çˆ¶æ§ä»¶æ˜¯ScrollBoxï¼Œå¹¶ä¸”çˆ¶æ§ä»¶å­˜åœ¨æ¨ªå‘æ»šåŠ¨æ¡æˆ–è€…çºµå‘æ»šåŠ¨æ¡
 			if (IsFloat() && (pScrollBox == GetParent())) {
-				//µ±Ç°¿Ø¼şÊÇ¸¡¶¯µÄ£¬¸¸¿Ø¼şÊÇScrollBox£¬²»¼ÆÈëÍ³¼Æ
+				//å½“å‰æ§ä»¶æ˜¯æµ®åŠ¨çš„ï¼Œçˆ¶æ§ä»¶æ˜¯ScrollBoxï¼Œä¸è®¡å…¥ç»Ÿè®¡
 			}
 			else {
 				scrollPos.x += pScrollBox->GetScrollOffset().cx;

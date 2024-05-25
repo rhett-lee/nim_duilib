@@ -10,7 +10,7 @@
 
 namespace ui 
 {
-/** ToolTipµÄÊµÏÖ
+/** ToolTipçš„å®ç°
 */
 class UILIB_API ToolTip
 {
@@ -19,17 +19,17 @@ public:
 	~ToolTip();
 	
 public:
-	/**@brief ÉèÖÃÊó±ê¸ú×Ù×´Ì¬
+	/**@brief è®¾ç½®é¼ æ ‡è·Ÿè¸ªçŠ¶æ€
 	*/
 	void SetMouseTracking(HWND hParentWnd, bool bTracking);
 
-	/**@brief ÏÔÊ¾ToolTipĞÅÏ¢
-	* @param [in] hParentWnd Ö÷´°¿Ú¾ä±ú
-	* @param [in] hModule ´°¿Ú¹ØÁªµÄ×ÊÔ´¾ä±ú
-	* @param [in] rect TooltipÏÔÊ¾ÇøÓò
-	* @param [in] maxWidth TooltipÏÔÊ¾×î´ó¿í¶È
-	* @param [in] trackPos ¸ú×ÙµÄÎ»ÖÃ
-    * @param [in] text TooltipÏÔÊ¾ÄÚÈİ
+	/**@brief æ˜¾ç¤ºToolTipä¿¡æ¯
+	* @param [in] hParentWnd ä¸»çª—å£å¥æŸ„
+	* @param [in] hModule çª—å£å…³è”çš„èµ„æºå¥æŸ„
+	* @param [in] rect Tooltipæ˜¾ç¤ºåŒºåŸŸ
+	* @param [in] maxWidth Tooltipæ˜¾ç¤ºæœ€å¤§å®½åº¦
+	* @param [in] trackPos è·Ÿè¸ªçš„ä½ç½®
+    * @param [in] text Tooltipæ˜¾ç¤ºå†…å®¹
 	*/
 	void ShowToolTip(HWND hParentWnd, 
 					 HMODULE hModule, 
@@ -38,25 +38,25 @@ public:
 					 const UiPoint& trackPos,
 					 const std::wstring& text);
 
-	/**@brief Òş²ØToolTipĞÅÏ¢
+	/**@brief éšè—ToolTipä¿¡æ¯
 	*/
 	void HideToolTip();
 
-	/**@brief Çå³ıÊó±ê¸ú×Ù×´Ì¬
+	/**@brief æ¸…é™¤é¼ æ ‡è·Ÿè¸ªçŠ¶æ€
 	*/
 	void ClearMouseTracking();
 
 private:
-    //Êó±ê¸ú×Ù×´Ì¬
+    //é¼ æ ‡è·Ÿè¸ªçŠ¶æ€
 	bool m_bMouseTracking;
 	
-	//TooltipĞÅÏ¢
+	//Tooltipä¿¡æ¯
 	TOOLINFO m_ToolTip;
 	
-	//Tooltip´°¿Ú
+	//Tooltipçª—å£
 	HWND m_hwndTooltip;
 	
-	//Ö÷´°¿Ú
+	//ä¸»çª—å£
 	HWND m_hParentWnd;
 };
 

@@ -45,7 +45,7 @@ bool Provider::FillElement(ui::Control* pControl, size_t nElementIndex)
 
 size_t Provider::GetElementCount() const
 {
-	// ����
+	// 加锁
 	nbase::NAutoLock auto_lock(&lock_);
 	return m_vTasks.size();
 }
@@ -104,26 +104,26 @@ void Provider::SetTotal(int nTotal)
 	if (nTotal <= 0) return;
 	m_nTotal = nTotal;
 
-	// ����
+	// 加锁
 	lock_.Lock();
 	for (auto task : m_vTasks) {
 		delete [] task.sName;
 	}
 	m_vTasks.clear();
-	std::wstring name = L"��������";
+	std::wstring name = L"任务名称";
 	m_vTasks.reserve(nTotal);
 	for (auto i=0; i < nTotal; i++)
 	{
 		DownloadTask task;
 		task.nId = i;
-		//������std::wstring����Ϊ��ռ�õ��ڴ�ܶ࣬���������ﵽǧ�򼶱�����ʱ��ռ���ڴ�̫��
+		//不适用std::wstring，因为它占用的内存很多，当数据量达到千万级别以上时，占的内存太多
 		task.sName = new wchar_t[name.size() + 1];
 		wcscpy_s(task.sName, name.size() + 1, name.c_str());
 		m_vTasks.emplace_back(std::move(task));
 	}
 	lock_.Unlock();
 
-	// ֪ͨTileBox���������䶯
+	// 通知TileBox数据总数变动
 	EmitCountChanged();
 }
 
@@ -139,7 +139,7 @@ void Provider::RemoveTask(size_t nIndex)
 	lock_.Unlock();
 
 	if (bUpdated) {
-		// ֪ͨTileBox���������䶯
+		// 通知TileBox数据总数变动
 		EmitCountChanged();
 	}	
 }
@@ -156,7 +156,7 @@ void Provider::ChangeTaskName(size_t nIndex, const std::wstring& sName)
 	}
 	lock_.Unlock();
 
-	// �������ݱ䶯֪ͨ
+	// 发送数据变动通知
 	if (bUpdated) {
 		EmitDataChanged(nIndex, nIndex);
 	}	

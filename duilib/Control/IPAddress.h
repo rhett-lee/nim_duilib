@@ -7,7 +7,7 @@
 
 namespace ui
 {
-/** IPµØÖ·¿Ø¼ş
+/** IPåœ°å€æ§ä»¶
 */
 class RichEdit;
 class IPAddress: public HBox
@@ -15,35 +15,35 @@ class IPAddress: public HBox
 public:
 	explicit IPAddress(Window* pWindow);
 
-	/** »ñÈ¡¿Ø¼şÀàĞÍ
+	/** è·å–æ§ä»¶ç±»å‹
 	*/
 	virtual std::wstring GetType() const override;
 	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 
-	/** ÈÃ¿Ø¼ş»ñÈ¡½¹µã
+	/** è®©æ§ä»¶è·å–ç„¦ç‚¹
 	 */
 	virtual void SetFocus() override;
 
-	/** ÉèÖÃIPµØÖ·
+	/** è®¾ç½®IPåœ°å€
 	*/
 	void SetIPAddress(const std::wstring& ipAddress);
 
-	/** »ñÈ¡IPµØÖ·
+	/** è·å–IPåœ°å€
 	*/
 	std::wstring GetIPAddress() const;
 
 protected:
 
-	/** ³õÊ¼»¯½Ó¿Ú
+	/** åˆå§‹åŒ–æ¥å£
 	*/
 	virtual void OnInit() override;
 
-	/** @brief ¿Ø¼şÍ³Ò»µÄÏûÏ¢´¦ÀíÈë¿Ú£¬½«´«Í³ Windows ÏûÏ¢×ª»»Îª×Ô¶¨Òå¸ñÊ½µÄÏûÏ¢
-	 * @param[in] eventType	ÏûÏ¢ÄÚÈİ
-	 * @param[in] wParam	ÏûÏ¢¸½¼ÓÄÚÈİ
-	 * @param[in] lParam	ÏûÏ¢¸½¼ÓÄÚÈİ
-	 * @param[in] tChar		°´¼üĞÅÏ¢
-	 * @param[in] mousePos	Êó±êĞÅÏ¢
+	/** @brief æ§ä»¶ç»Ÿä¸€çš„æ¶ˆæ¯å¤„ç†å…¥å£ï¼Œå°†ä¼ ç»Ÿ Windows æ¶ˆæ¯è½¬æ¢ä¸ºè‡ªå®šä¹‰æ ¼å¼çš„æ¶ˆæ¯
+	 * @param[in] eventType	æ¶ˆæ¯å†…å®¹
+	 * @param[in] wParam	æ¶ˆæ¯é™„åŠ å†…å®¹
+	 * @param[in] lParam	æ¶ˆæ¯é™„åŠ å†…å®¹
+	 * @param[in] tChar		æŒ‰é”®ä¿¡æ¯
+	 * @param[in] mousePos	é¼ æ ‡ä¿¡æ¯
 	 */
 	virtual void SendEvent(EventType eventType,
 			        	   WPARAM wParam = 0, 
@@ -51,25 +51,25 @@ protected:
 						   TCHAR tChar = 0, 
 						   const UiPoint& mousePos = UiPoint()) override;
 
-	/** @brief ½«×ª»»ºóµÄÏûÏ¢ÅÉ·¢µ½ÏûÏ¢´¦Àíº¯Êı
-	 * @param[in] msg ÏûÏ¢ÄÚÈİ
+	/** @brief å°†è½¬æ¢åçš„æ¶ˆæ¯æ´¾å‘åˆ°æ¶ˆæ¯å¤„ç†å‡½æ•°
+	 * @param[in] msg æ¶ˆæ¯å†…å®¹
 	 */
     virtual void SendEvent(const EventArgs& msg) override;
 
-	/** ±à¼­¿òµÄ½¹µã×ªÒÆÊ±¼ä
+	/** ç¼–è¾‘æ¡†çš„ç„¦ç‚¹è½¬ç§»æ—¶é—´
 	*/
 	void OnKillFocusEvent(RichEdit* pRichEdit, Control* pNewFocus);
 
 private:
-	/** ±à¼­¿òÁĞ±í
+	/** ç¼–è¾‘æ¡†åˆ—è¡¨
 	*/
 	std::vector<RichEdit*> m_editList;
 
-	/** ÉÏ´Î½¹µãÔÚÄÄ¸ö¿Ø¼şÉÏ
+	/** ä¸Šæ¬¡ç„¦ç‚¹åœ¨å“ªä¸ªæ§ä»¶ä¸Š
 	*/
 	RichEdit* m_pLastFocus;
 
-	/** IPµØÖ·
+	/** IPåœ°å€
 	*/
 	UiString m_ipAddress;
 };

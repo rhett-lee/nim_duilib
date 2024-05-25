@@ -9,7 +9,7 @@
 
 namespace ui 
 {
-/** ¿Ø¼ş×´Ì¬ÓëÑÕÉ«ÖµµÄÓ³Éä
+/** æ§ä»¶çŠ¶æ€ä¸é¢œè‰²å€¼çš„æ˜ å°„
 */
 class Control;
 class IRender;
@@ -18,40 +18,40 @@ class UILIB_API StateColorMap
 public:
 	StateColorMap();
 
-	/** ÉèÖÃ¹ÜÀíµÄ¿Ø¼ş½Ó¿Ú
+	/** è®¾ç½®ç®¡ç†çš„æ§ä»¶æ¥å£
 	*/
 	void SetControl(Control* control);
 
-	/** »ñÈ¡ÑÕÉ«Öµ£¬Èç¹û²»°üº¬´ËÑÕÉ«£¬Ôò·µ»Ø¿Õ
+	/** è·å–é¢œè‰²å€¼ï¼Œå¦‚æœä¸åŒ…å«æ­¤é¢œè‰²ï¼Œåˆ™è¿”å›ç©º
 	*/
 	std::wstring GetStateColor(ControlStateType stateType) const;
 
-	/** ÉèÖÃÑÕÉ«Öµ
+	/** è®¾ç½®é¢œè‰²å€¼
 	*/
 	void SetStateColor(ControlStateType stateType, const std::wstring& color);
 
-	/** ÊÇ·ñ°üº¬Hot×´Ì¬µÄÑÕÉ«
+	/** æ˜¯å¦åŒ…å«HotçŠ¶æ€çš„é¢œè‰²
 	*/
 	bool HasHotColor() const;
 
-	/** ÊÇ·ñº¬ÓĞÖ¸¶¨ÑÕÉ«Öµ
+	/** æ˜¯å¦å«æœ‰æŒ‡å®šé¢œè‰²å€¼
 	*/
 	bool HasStateColor(ControlStateType stateType) const;
 
-	/** ÊÇ·ñº¬ÓĞÑÕÉ«Öµ
+	/** æ˜¯å¦å«æœ‰é¢œè‰²å€¼
 	*/
 	bool HasStateColors() const;
 
-	/** »æÖÆÖ¸¶¨×´Ì¬µÄÑÕÉ«
+	/** ç»˜åˆ¶æŒ‡å®šçŠ¶æ€çš„é¢œè‰²
 	*/
 	void PaintStateColor(IRender* pRender, UiRect rcPaint, ControlStateType stateType) const;
 
 private:
-	/** ¹ØÁªµÄ¿Ø¼ş½Ó¿Ú
+	/** å…³è”çš„æ§ä»¶æ¥å£
 	*/
 	Control* m_pControl;
 
-	/** ×´Ì¬ÓëÑÕÉ«ÖµµÄÓ³Éä±í
+	/** çŠ¶æ€ä¸é¢œè‰²å€¼çš„æ˜ å°„è¡¨
 	*/
 	std::map<ControlStateType, UiString> m_stateColorMap;
 };
