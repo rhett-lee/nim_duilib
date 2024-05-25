@@ -29,23 +29,23 @@ const size_t kDeadTask = 0xDEAD7A53;
 template <class T>
 struct RunnableMethodTraits
 {
-	RunnableMethodTraits()
-	{
-	}
+    RunnableMethodTraits()
+    {
+    }
 
-	~RunnableMethodTraits()
-	{
-	}
+    ~RunnableMethodTraits()
+    {
+    }
 
-	void RetainCallee(T* obj)
-	{
-		obj->AddRef();
-	}
+    void RetainCallee(T* obj)
+    {
+        obj->AddRef();
+    }
 
-	void ReleaseCallee(T* obj)
-	{
-		obj->Release();
-	}
+    void ReleaseCallee(T* obj)
+    {
+        obj->Release();
+    }
 };
 
 // Convenience macro for declaring a RunnableMethodTraits that disables
@@ -66,11 +66,11 @@ struct RunnableMethodTraits
 // This is different from DISALLOW_COPY_AND_ASSIGN which is declared inside the
 // class.
 #define DISABLE_RUNNABLE_METHOD_REFCOUNT(TypeName) \
-	template <>                                    \
+    template <>                                    \
 struct RunnableMethodTraits<TypeName>              \
 {                                                  \
-	void RetainCallee(TypeName* manager) {}        \
-	void ReleaseCallee(TypeName* manager) {}       \
+    void RetainCallee(TypeName* manager) {}        \
+    void ReleaseCallee(TypeName* manager) {}       \
 }
 
 // RunnableMethod and RunnableFunction -----------------------------------------

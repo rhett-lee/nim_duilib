@@ -21,25 +21,25 @@ public:
     explicit ControlDragableT(Window* pWindow);
     virtual ~ControlDragableT();
 
-	/// 重写父类方法，提供个性化功能，请参考父类声明
-	virtual std::wstring GetType() const override;	
-	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
+    /// 重写父类方法，提供个性化功能，请参考父类声明
+    virtual std::wstring GetType() const override;    
+    virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
 
-	/** 设置是否支持拖动改变控件的顺序
-	*/
-	void SetEnableDragOrder(bool bEnable);
+    /** 设置是否支持拖动改变控件的顺序
+    */
+    void SetEnableDragOrder(bool bEnable);
 
-	/** 判断是否支持拖动改变控件的顺序
-	*/
-	virtual bool IsEnableDragOrder() const;
+    /** 判断是否支持拖动改变控件的顺序
+    */
+    virtual bool IsEnableDragOrder() const;
 
-	/** 设置拖动顺序时，控件的透明度
-	*/
-	void SetDragAlpha(uint8_t nAlpha);
+    /** 设置拖动顺序时，控件的透明度
+    */
+    void SetDragAlpha(uint8_t nAlpha);
 
-	/** 获取拖动顺序时，控件的透明度
-	*/
-	uint8_t GetDragAlpha() const;
+    /** 获取拖动顺序时，控件的透明度
+    */
+    uint8_t GetDragAlpha() const;
 
     /** 设置是否支持拖出操作
     */
@@ -49,70 +49,70 @@ public:
     */
     virtual bool IsEnableDragOut() const;
 
-	/** 当前是否处于拖拽调序操作中
-	*/
-	bool IsInDraggingOrder() const;
+    /** 当前是否处于拖拽调序操作中
+    */
+    bool IsInDraggingOrder() const;
 
     /** 当前是否处于拖出操作中
     */
     bool IsInDraggingOut() const;
 
 protected:
-	/** @name 拖动相关的成员函数
-	* @{ */
+    /** @name 拖动相关的成员函数
+    * @{ */
 
-	virtual bool ButtonDown(const EventArgs& msg) override;
-	virtual bool ButtonUp(const EventArgs& msg) override;
-	virtual bool MouseMove(const EventArgs& msg) override;
-	virtual bool OnWindowKillFocus(const EventArgs& msg) override;//控件所属的窗口失去焦点
+    virtual bool ButtonDown(const EventArgs& msg) override;
+    virtual bool ButtonUp(const EventArgs& msg) override;
+    virtual bool MouseMove(const EventArgs& msg) override;
+    virtual bool OnWindowKillFocus(const EventArgs& msg) override;//控件所属的窗口失去焦点
     virtual void HandleEvent(const EventArgs& msg) override;
 
 protected:
-	/** 子控件的状态
-	*/
-	struct ItemStatus
-	{
-		Control* m_pItem = nullptr;
-		UiRect m_rcPos;
-		uint8_t m_nPaintOrder = 0;
-		size_t m_index = Box::InvalidIndex;
-	};
+    /** 子控件的状态
+    */
+    struct ItemStatus
+    {
+        Control* m_pItem = nullptr;
+        UiRect m_rcPos;
+        uint8_t m_nPaintOrder = 0;
+        size_t m_index = Box::InvalidIndex;
+    };
 
-	/** 根据鼠标位置调整各个控件的位置(拖动操作的一部分)
-	* @param [in] pt 当前鼠标的位置
-	* @param [in] ptMouseDown 鼠标按下时的位置
-	* @param [in] rcItemList 子控件的列表
-	*/
-	virtual void AdjustItemPos(const UiPoint& pt, const UiPoint& ptMouseDown,
-							   const std::vector<ItemStatus>& rcItemList) const;
+    /** 根据鼠标位置调整各个控件的位置(拖动操作的一部分)
+    * @param [in] pt 当前鼠标的位置
+    * @param [in] ptMouseDown 鼠标按下时的位置
+    * @param [in] rcItemList 子控件的列表
+    */
+    virtual void AdjustItemPos(const UiPoint& pt, const UiPoint& ptMouseDown,
+                               const std::vector<ItemStatus>& rcItemList) const;
 
-	/** 交换两个控件的位置，完成顺序调整
-	* @param [in] pt 当前鼠标的位置
-	* @param [in] rcItemList 子控件的列表
-	* @param [in] nOldItemIndex 原来的子项索引号
-	* @param [in] nNewItemIndex 最新的子项索引号
-	* @return 如果有顺序调整，返回true；否则返回false
-	*/
-	virtual bool AdjustItemOrders(const UiPoint& pt,
-								  const std::vector<ItemStatus>& rcItemList,
-								  size_t& nOldItemIndex,
-								  size_t& nNewItemIndex);
+    /** 交换两个控件的位置，完成顺序调整
+    * @param [in] pt 当前鼠标的位置
+    * @param [in] rcItemList 子控件的列表
+    * @param [in] nOldItemIndex 原来的子项索引号
+    * @param [in] nNewItemIndex 最新的子项索引号
+    * @return 如果有顺序调整，返回true；否则返回false
+    */
+    virtual bool AdjustItemOrders(const UiPoint& pt,
+                                  const std::vector<ItemStatus>& rcItemList,
+                                  size_t& nOldItemIndex,
+                                  size_t& nNewItemIndex);
 
-	/** 控件位置拖动完成事件（在同一个容器内）
-	* @param [in] nOldItemIndex 原来的子项索引号
-	* @param [in] nNewItemIndex 最新的子项索引号
-	*/
-	virtual void OnItemOrdersChanged(size_t nOldItemIndex, size_t nNewItemIndex);
+    /** 控件位置拖动完成事件（在同一个容器内）
+    * @param [in] nOldItemIndex 原来的子项索引号
+    * @param [in] nNewItemIndex 最新的子项索引号
+    */
+    virtual void OnItemOrdersChanged(size_t nOldItemIndex, size_t nNewItemIndex);
 
-	/** 清除拖动状态，恢复原状态
-	*/
+    /** 清除拖动状态，恢复原状态
+    */
     virtual void ClearDragStatus();
 
     /** 将当前鼠标位置，转换到子项所在区域有效的范围内
     */
     virtual void GetValidPointInItemRects(UiPoint& pt) const;
 
-	/** @} */
+    /** @} */
 
 protected:
     /** @name 在相同窗口内不同的Box内拖动相关的成员变量
@@ -177,42 +177,42 @@ private:
     void DragOrderMouseUp(const EventArgs& msg);
 
 private:
-	/** @name 在相同窗口内同一个Box内拖动相关的成员变量
-	* @{ */
+    /** @name 在相同窗口内同一个Box内拖动相关的成员变量
+    * @{ */
 
-	/** 是否支持拖动改变列的顺序(功能开关)
-	*/
-	bool m_bEnableDragOrder;
+    /** 是否支持拖动改变列的顺序(功能开关)
+    */
+    bool m_bEnableDragOrder;
 
-	/** 是否鼠标左键按下
-	*/
-	bool m_bMouseDown;
+    /** 是否鼠标左键按下
+    */
+    bool m_bMouseDown;
 
-	/** 是否处于拖拽调序操作中
-	*/
-	bool m_bInDraggingOrder;
+    /** 是否处于拖拽调序操作中
+    */
+    bool m_bInDraggingOrder;
 
-	/** 拖动顺序时，控件的透明度
-	*/
-	uint8_t m_nDragAlpha;
+    /** 拖动顺序时，控件的透明度
+    */
+    uint8_t m_nDragAlpha;
 
-	/** 原来的透明度
-	*/
-	uint8_t m_nOldAlpha;
+    /** 原来的透明度
+    */
+    uint8_t m_nOldAlpha;
 
-	/** 鼠标按下时的鼠标位置
-	*/
-	UiPoint m_ptMouseDown;
+    /** 鼠标按下时的鼠标位置
+    */
+    UiPoint m_ptMouseDown;
 
-	/** 鼠标按下时的控件矩形区域
-	*/
-	UiRect m_rcMouseDown;
+    /** 鼠标按下时的控件矩形区域
+    */
+    UiRect m_rcMouseDown;
 
-	/** 鼠标按下时，父容器中，每个控件的位置
-	*/
-	std::vector<ItemStatus> m_rcItemList;
+    /** 鼠标按下时，父容器中，每个控件的位置
+    */
+    std::vector<ItemStatus> m_rcItemList;
 
-	/** @} */
+    /** @} */
 
     /** @name 在相同窗口内不同的Box内拖动相关的成员变量
     * @{ */
@@ -280,20 +280,20 @@ inline std::wstring ControlDragableT<VBox>::GetType() const { return DUI_CTR_VBO
 template<typename T>
 void ControlDragableT<T>::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
-	if (strName == L"drag_order") {
+    if (strName == L"drag_order") {
         //是否支持拖动调整顺序（在同一个容器内）
-		SetEnableDragOrder(strValue == L"true");
-	}
-	else if (strName == L"drag_alpha") {
-		SetDragAlpha((uint8_t)_wtoi(strValue.c_str()));
-	}
+        SetEnableDragOrder(strValue == L"true");
+    }
+    else if (strName == L"drag_alpha") {
+        SetDragAlpha((uint8_t)_wtoi(strValue.c_str()));
+    }
     else if (strName == L"drag_out") {
         //是否支持拖出操纵（在相同窗口的不同容器内）
         SetEnableDragOut(strValue == L"true");
     }
-	else {
-		__super::SetAttribute(strName, strValue);
-	}
+    else {
+        __super::SetAttribute(strName, strValue);
+    }
 }
 
 template<typename T>

@@ -11,37 +11,37 @@ namespace ui {
 
 IFont* RenderFactory_GdiPlus::CreateIFont()
 {
-	return new Font_GDI();
+    return new Font_GDI();
 }
 
 IPen* RenderFactory_GdiPlus::CreatePen(UiColor color, int width /*= 1*/)
 {
-	return new Pen_GdiPlus(color, width);
+    return new Pen_GdiPlus(color, width);
 }
 
 IBrush* RenderFactory_GdiPlus::CreateBrush(UiColor color)
 {
-	return new Brush_Gdiplus(color);
+    return new Brush_Gdiplus(color);
 }
 
 IPath* RenderFactory_GdiPlus::CreatePath()
 {
-	return new Path_Gdiplus();
+    return new Path_Gdiplus();
 }
 
 IMatrix* RenderFactory_GdiPlus::CreateMatrix()
 {
-	return new Matrix_Gdiplus();
+    return new Matrix_Gdiplus();
 }
 
 IBitmap* RenderFactory_GdiPlus::CreateBitmap()
 {
-	return new Bitmap_GDI();
+    return new Bitmap_GDI();
 }
 
 IRender* RenderFactory_GdiPlus::CreateRender(Window* /*pWindow*/)
 {
-	return new Render_GdiPlus();
+    return new Render_GdiPlus();
 }
 
 } // namespace ui

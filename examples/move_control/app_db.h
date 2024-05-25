@@ -7,17 +7,17 @@
 class CAppDb
 {
 public:
-	static CAppDb& GetInstance()
-	{
-		static CAppDb db;
-		return db;
-	}
+    static CAppDb& GetInstance()
+    {
+        static CAppDb db;
+        return db;
+    }
 
-	CAppDb();
-	~CAppDb();
+    CAppDb();
+    ~CAppDb();
 
-	bool LoadFromDb(std::vector<AppItem>& app_list);
-	bool SaveToDb(const AppItem& item);
+    bool LoadFromDb(std::vector<AppItem>& app_list);
+    bool SaveToDb(const AppItem& item);
 
 private:
 

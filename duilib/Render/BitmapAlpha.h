@@ -13,30 +13,30 @@ namespace ui
 class BitmapAlpha
 {
 public:
-	BitmapAlpha(uint8_t* pPiexl, int32_t nWidth, int32_t nHeight, int32_t nChannels);
-	~BitmapAlpha();
+    BitmapAlpha(uint8_t* pPiexl, int32_t nWidth, int32_t nHeight, int32_t nChannels);
+    ~BitmapAlpha();
 
 public:
-	void ClearAlpha(const UiRect& rcDirty, uint8_t alpha) const;
-	void RestoreAlpha(const UiRect& rcDirty, const UiPadding& rcShadowPadding, uint8_t alpha) const;
-	void RestoreAlpha(const UiRect& rcDirty, const UiPadding& rcShadowPadding) const;
+    void ClearAlpha(const UiRect& rcDirty, uint8_t alpha) const;
+    void RestoreAlpha(const UiRect& rcDirty, const UiPadding& rcShadowPadding, uint8_t alpha) const;
+    void RestoreAlpha(const UiRect& rcDirty, const UiPadding& rcShadowPadding) const;
 
 private:
-	/** 图像数据
-	*/
-	uint8_t* m_pPiexl;
+    /** 图像数据
+    */
+    uint8_t* m_pPiexl;
 
-	/** 图像宽度
-	*/
-	int32_t m_nWidth;
+    /** 图像宽度
+    */
+    int32_t m_nWidth;
 
-	/** 图像高度
-	*/
-	int32_t m_nHeight;
+    /** 图像高度
+    */
+    int32_t m_nHeight;
 
-	/** 通道数，目前只支持4（ARGB）
-	*/
-	int32_t m_nChannels;
+    /** 通道数，目前只支持4（ARGB）
+    */
+    int32_t m_nChannels;
 };
 } // namespace ui
 

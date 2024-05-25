@@ -420,16 +420,16 @@ bool StringToSizeT(const std::wstring& input, size_t* output) {
 }
 
 bool StringToDouble(const std::string& input, double* output) {
-	if (input.empty() || !output)
-		return false;
-	if (sscanf_s(input.c_str(), "%lf", output) == 1)
-		return true;
-	return false;
+    if (input.empty() || !output)
+        return false;
+    if (sscanf_s(input.c_str(), "%lf", output) == 1)
+        return true;
+    return false;
 }
 
 bool HexStringToInt(const std::string& input, int* output) {
-	return IteratorRangeToNumber<HexIteratorRangeToIntTraits>::Invoke(
-		input.begin(), input.end(), output);
+    return IteratorRangeToNumber<HexIteratorRangeToIntTraits>::Invoke(
+        input.begin(), input.end(), output);
 }
 
 }  // namespace nbase

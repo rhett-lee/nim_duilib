@@ -28,12 +28,12 @@ class ListCtrl: public VBox
     friend class ListCtrlListViewItem;
 public:
     explicit ListCtrl(Window* pWindow);
-	virtual ~ListCtrl();
+    virtual ~ListCtrl();
 
-	/** 获取控件类型
-	*/
-	virtual std::wstring GetType() const override;
-	virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
+    /** 获取控件类型
+    */
+    virtual std::wstring GetType() const override;
+    virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
     virtual void HandleEvent(const EventArgs& msg) override;
 
     /** DPI发生变化，更新控件大小和布局
@@ -627,7 +627,7 @@ public:
      * @param[in] callback 选择子项时的回调函数
      * 参数说明:
      *   wParam: 选择子项的界面控件接口指针，类型为：ListCtrlItem*
-     *	 lParam: 选择的数据项索引号，有效范围：[0, GetDataItemCount())
+     *     lParam: 选择的数据项索引号，有效范围：[0, GetDataItemCount())
      */
     void AttachSelect(const EventCallback& callback) { AttachEvent(kEventSelect, callback); }
 
@@ -640,7 +640,7 @@ public:
      * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
      * 参数说明:
      *   wParam: 点击的子项的界面控件接口指针，类型为：ListCtrlItem*，如果未点击子项，则为0
-     *	 lParam: 关联的数据项索引号，有效范围：[0, GetDataItemCount()), 仅当wParam不为0时有效
+     *     lParam: 关联的数据项索引号，有效范围：[0, GetDataItemCount()), 仅当wParam不为0时有效
      */
     void AttachDoubleClick(const EventCallback& callback) { AttachEvent(kEventMouseDoubleClick, callback); }
 
@@ -648,7 +648,7 @@ public:
      * @param[in] callback 要绑定的回调函数
      * 参数说明:
      *   wParam: 点击的子项的界面控件接口指针，类型为：ListCtrlItem*，如果未点击子项，则为0
-     *	 lParam: 关联的数据项索引号，有效范围：[0, GetDataItemCount()), 仅当wParam不为0时有效
+     *     lParam: 关联的数据项索引号，有效范围：[0, GetDataItemCount()), 仅当wParam不为0时有效
      */
     void AttachClick(const EventCallback& callback) { AttachEvent(kEventClick, callback); }
 
@@ -656,7 +656,7 @@ public:
      * @param[in] callback 要绑定的回调函数
      *  参数说明:
      *   wParam: 点击的子项的界面控件接口指针，类型为：ListCtrlItem*，如果未点击子项，则为0
-     *	 lParam: 关联的数据项索引号，有效范围：[0, GetDataItemCount()), 仅当wParam不为0时有效
+     *     lParam: 关联的数据项索引号，有效范围：[0, GetDataItemCount()), 仅当wParam不为0时有效
      */
     void AttachRClick(const EventCallback& callback) { AttachEvent(kEventRClick, callback); }
 
@@ -664,7 +664,7 @@ public:
      * @param[in] callback 收到回车时的回调函数
       * 参数说明:
      *   wParam: 关联的子项的界面控件接口指针，类型为：ListCtrlItem*，如果未点击子项，则为0
-     *	 lParam: 关联的数据项索引号，有效范围：[0, GetDataItemCount())
+     *     lParam: 关联的数据项索引号，有效范围：[0, GetDataItemCount())
      */
     void AttachReturn(const EventCallback& callback) { this->AttachEvent(kEventReturn, callback); }
 
@@ -894,12 +894,12 @@ private:
     */
     ListCtrlType m_listCtrlType;
 
-	/** 表头控件
-	*/
-	ListCtrlHeader* m_pHeaderCtrl;
+    /** 表头控件
+    */
+    ListCtrlHeader* m_pHeaderCtrl;
 
-	/** 列表数据展示(Report视图)
-	*/
+    /** 列表数据展示(Report视图)
+    */
     ListCtrlReportView* m_pReportView;
 
     /** 列表数据展示(Icon视图)
@@ -910,8 +910,8 @@ private:
     */
     ListCtrlIconView* m_pListView;
 
-	/** 列表数据管理
-	*/
+    /** 列表数据管理
+    */
     ListCtrlData* m_pData;
 
     /** ListCtrlHeader的属性Class

@@ -69,8 +69,8 @@ public:
 
 private:
     Control* ParseXmlNode(const pugi::xml_node& xmlNode, Control* pParent = nullptr, Window* pWindow = nullptr);
-	Control* CreateControlByClass(const std::wstring& strControlClass, Window* pWindow);
-	void AttachXmlEvent(bool bBubbled, const pugi::xml_node& node, Control* pParent);
+    Control* CreateControlByClass(const std::wstring& strControlClass, Window* pWindow);
+    void AttachXmlEvent(bool bBubbled, const pugi::xml_node& node, Control* pParent);
 
     /** 判断XML文件是否存在
     */
@@ -88,7 +88,7 @@ private:
 
     /** 创建Control的回调接口
     */
-	CreateControlCallback m_createControlCallback;
+    CreateControlCallback m_createControlCallback;
 
     /** 当前解析的XML文件路径
     */

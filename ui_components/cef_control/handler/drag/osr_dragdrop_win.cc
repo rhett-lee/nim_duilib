@@ -379,7 +379,7 @@ HRESULT DropTargetWin::DragEnter(IDataObject* data_object,
 }
 
 CefBrowserHost::DragOperationsMask DropTargetWin::StartDragging(
-	OsrDragEvents *browser_handler,
+    OsrDragEvents *browser_handler,
     CefRefPtr<CefDragData> drag_data,
     CefRenderHandler::DragOperationsMask allowed_ops,
     int /*x*/, int /*y*/) {
@@ -390,9 +390,9 @@ CefBrowserHost::DragOperationsMask DropTargetWin::StartDragging(
     DWORD effect = DragOperationToDropEffect(allowed_ops);
     current_drag_data_ = drag_data->Clone();
     current_drag_data_->ResetFileContents();
-	browser_handler_ = browser_handler;
+    browser_handler_ = browser_handler;
     HRESULT res = DoDragDrop(dataObject, dropSource, effect, &resEffect);
-	browser_handler_ = nullptr;
+    browser_handler_ = nullptr;
     if (res != DRAGDROP_S_DROP)
       resEffect = DROPEFFECT_NONE;
     current_drag_data_ = NULL;

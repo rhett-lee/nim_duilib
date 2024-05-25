@@ -21,34 +21,34 @@ class ShadowWndBase;
 class ShadowWnd: public ui::WindowImplBase
 {
 public:
-	ShadowWnd();
+    ShadowWnd();
 
-	/**@brief 创建窗口
-	 * @param[in] hwndParent 父窗口句柄
-	 * @param[in] windowName 窗口名称
-	 * @param[in] dwStyle 窗口样式
-	 * @param[in] dwExStyle 窗口拓展样式, 可以设置层窗口（WS_EX_LAYERED）等属性
-	 * @param[in] rc 窗口大小
-	 */
-	virtual bool CreateWnd(HWND hwndParent,
-						   const wchar_t* windowName,
-						   uint32_t dwStyle,
-						   uint32_t dwExStyle,
-						   const ui::UiRect& rc = ui::UiRect(0, 0, 0, 0)) override;
-
-private:
-	/** 附加窗口阴影
-	*/
-	virtual Box* AttachShadow(Box* pRoot) override;
+    /**@brief 创建窗口
+     * @param[in] hwndParent 父窗口句柄
+     * @param[in] windowName 窗口名称
+     * @param[in] dwStyle 窗口样式
+     * @param[in] dwExStyle 窗口拓展样式, 可以设置层窗口（WS_EX_LAYERED）等属性
+     * @param[in] rc 窗口大小
+     */
+    virtual bool CreateWnd(HWND hwndParent,
+                           const wchar_t* windowName,
+                           uint32_t dwStyle,
+                           uint32_t dwExStyle,
+                           const ui::UiRect& rc = ui::UiRect(0, 0, 0, 0)) override;
 
 private:
-	/** 判断是否需要创建透明窗口的跟随阴影
-	*/
-	bool NeedCreateShadowWnd() const;
+    /** 附加窗口阴影
+    */
+    virtual Box* AttachShadow(Box* pRoot) override;
 
 private:
-	//阴影窗口，透明的
-	ShadowWndBase* m_pShadowWnd;
+    /** 判断是否需要创建透明窗口的跟随阴影
+    */
+    bool NeedCreateShadowWnd() const;
+
+private:
+    //阴影窗口，透明的
+    ShadowWndBase* m_pShadowWnd;
 };
 } // namespace ui
 

@@ -12,46 +12,46 @@ class MainForm;
 class FindForm : public ui::WindowImplBase
 {
 public:
-	explicit FindForm(MainForm* pMainForm);
-	~FindForm();
+    explicit FindForm(MainForm* pMainForm);
+    ~FindForm();
 
-	/**
-	 * 一下三个接口是必须要覆写的接口，父类会调用这三个接口来构建窗口
-	 * GetSkinFolder		接口设置你要绘制的窗口皮肤资源路径
-	 * GetSkinFile			接口设置你要绘制的窗口的 xml 描述文件
-	 * GetWindowClassName	接口设置窗口唯一的类名称
-	 */
-	virtual std::wstring GetSkinFolder() override;
-	virtual std::wstring GetSkinFile() override;
-	virtual std::wstring GetWindowClassName() const override;
+    /**
+     * 一下三个接口是必须要覆写的接口，父类会调用这三个接口来构建窗口
+     * GetSkinFolder        接口设置你要绘制的窗口皮肤资源路径
+     * GetSkinFile            接口设置你要绘制的窗口的 xml 描述文件
+     * GetWindowClassName    接口设置窗口唯一的类名称
+     */
+    virtual std::wstring GetSkinFolder() override;
+    virtual std::wstring GetSkinFile() override;
+    virtual std::wstring GetWindowClassName() const override;
 
-	/** 当窗口创建完成以后调用此函数，供子类中做一些初始化的工作
-	*/
-	virtual void OnInitWindow() override;
+    /** 当窗口创建完成以后调用此函数，供子类中做一些初始化的工作
+    */
+    virtual void OnInitWindow() override;
 
-	/**
-	 * 标识窗口 class name
-	 */
-	static const LPCTSTR kClassName;
-
-private:
-	//查找下一个
-	void OnFindNext();
+    /**
+     * 标识窗口 class name
+     */
+    static const LPCTSTR kClassName;
 
 private:
-	//查找接口
-	MainForm* m_pMainForm;
+    //查找下一个
+    void OnFindNext();
 
-	//搜索方向选项
-	ui::Option* m_pDirectionOption;
+private:
+    //查找接口
+    MainForm* m_pMainForm;
 
-	//是否区分大小写
-	ui::CheckBox* m_pCaseSensitive;
+    //搜索方向选项
+    ui::Option* m_pDirectionOption;
 
-	//是否全字匹配
-	ui::CheckBox* m_pMatchWholeWord;
+    //是否区分大小写
+    ui::CheckBox* m_pCaseSensitive;
 
-	//查找内容
-	ui::RichEdit* m_pFindText;
+    //是否全字匹配
+    ui::CheckBox* m_pMatchWholeWord;
+
+    //查找内容
+    ui::RichEdit* m_pFindText;
 };
 

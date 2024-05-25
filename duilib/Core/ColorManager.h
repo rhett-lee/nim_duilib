@@ -90,22 +90,22 @@ public:
     void Clear();
 
 public:
-	/** 获取默认禁用状态下字体颜色
-	 * @return 默认禁用状态颜色的字符串表示，对应 global.xml 中指定颜色值
-	 */
-	const std::wstring& GetDefaultDisabledTextColor();
+    /** 获取默认禁用状态下字体颜色
+     * @return 默认禁用状态颜色的字符串表示，对应 global.xml 中指定颜色值
+     */
+    const std::wstring& GetDefaultDisabledTextColor();
 
-	/** 设置默认禁用状态下的字体颜色
-	 */
-	void SetDefaultDisabledTextColor(const std::wstring& strColor);
+    /** 设置默认禁用状态下的字体颜色
+     */
+    void SetDefaultDisabledTextColor(const std::wstring& strColor);
 
-	/** 获取默认字体颜色
-	 */
+    /** 获取默认字体颜色
+     */
     const std::wstring& GetDefaultTextColor();
 
-	/** 设置默认字体颜色
-	 */
-	void SetDefaultTextColor(const std::wstring& strColor);
+    /** 设置默认字体颜色
+     */
+    void SetDefaultTextColor(const std::wstring& strColor);
 
 private:
     /** 颜色名称与颜色值的映射关系

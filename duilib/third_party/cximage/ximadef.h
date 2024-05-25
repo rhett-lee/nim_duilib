@@ -83,7 +83,7 @@
 #ifndef _COMPLEX_DEFINED
 
 typedef struct tagcomplex {
-	double x,y;
+    double x,y;
 } _complex;
 
 #endif
@@ -108,15 +108,15 @@ typedef void*      HANDLE;
 typedef void*      HRGN;
 
 #ifndef BOOL
-#define	BOOL bool
+#define    BOOL bool
 #endif
 
 #ifndef TRUE
-#define	TRUE true
+#define    TRUE true
 #endif
 
 #ifndef FALSE
-#define	FALSE false
+#define    FALSE false
 #endif
 
 #ifndef TCHAR
@@ -126,61 +126,61 @@ typedef void*      HRGN;
 
 typedef struct tagRECT
 {
-	int32_t    left;
-	int32_t    top;
-	int32_t    right;
-	int32_t    bottom;
+    int32_t    left;
+    int32_t    top;
+    int32_t    right;
+    int32_t    bottom;
 } RECT;
 
 typedef struct tagPOINT
 {
-	int32_t  x;
-	int32_t  y;
+    int32_t  x;
+    int32_t  y;
 } POINT;
 
 typedef struct tagRGBQUAD {
-	uint8_t    rgbBlue;
-	uint8_t    rgbGreen;
-	uint8_t    rgbRed;
-	uint8_t    rgbReserved;
+    uint8_t    rgbBlue;
+    uint8_t    rgbGreen;
+    uint8_t    rgbRed;
+    uint8_t    rgbReserved;
 } RGBQUAD;
 
 #pragma pack(1)
 
 typedef struct tagBITMAPINFOHEADER{
-	uint32_t   biSize;
-	int32_t    biWidth;
-	int32_t    biHeight;
-	uint16_t   biPlanes;
-	uint16_t   biBitCount;
-	uint32_t   biCompression;
-	uint32_t   biSizeImage;
-	int32_t    biXPelsPerMeter;
-	int32_t    biYPelsPerMeter;
-	uint32_t   biClrUsed;
-	uint32_t   biClrImportant;
+    uint32_t   biSize;
+    int32_t    biWidth;
+    int32_t    biHeight;
+    uint16_t   biPlanes;
+    uint16_t   biBitCount;
+    uint32_t   biCompression;
+    uint32_t   biSizeImage;
+    int32_t    biXPelsPerMeter;
+    int32_t    biYPelsPerMeter;
+    uint32_t   biClrUsed;
+    uint32_t   biClrImportant;
 } BITMAPINFOHEADER;
 
 typedef struct tagBITMAPFILEHEADER {
-	uint16_t   bfType;
-	uint32_t   bfSize;
-	uint16_t   bfReserved1;
-	uint16_t   bfReserved2;
-	uint32_t   bfOffBits;
+    uint16_t   bfType;
+    uint32_t   bfSize;
+    uint16_t   bfReserved1;
+    uint16_t   bfReserved2;
+    uint32_t   bfOffBits;
 } BITMAPFILEHEADER;
 
 typedef struct tagBITMAPCOREHEADER {
-	uint32_t   bcSize;
-	uint16_t   bcWidth;
-	uint16_t   bcHeight;
-	uint16_t   bcPlanes;
-	uint16_t   bcBitCount;
+    uint32_t   bcSize;
+    uint16_t   bcWidth;
+    uint16_t   bcHeight;
+    uint16_t   bcPlanes;
+    uint16_t   bcBitCount;
 } BITMAPCOREHEADER;
 
 typedef struct tagRGBTRIPLE {
-	uint8_t    rgbtBlue;
-	uint8_t    rgbtGreen;
-	uint8_t    rgbtRed;
+    uint8_t    rgbtBlue;
+    uint8_t    rgbtGreen;
+    uint8_t    rgbtRed;
 } RGBTRIPLE;
 
 #pragma pack()
@@ -198,7 +198,7 @@ typedef struct tagRGBTRIPLE {
 #ifndef _COMPLEX_DEFINED
 
 typedef struct tagcomplex {
-	double x,y;
+    double x,y;
 } _complex;
 
 #endif

@@ -72,15 +72,15 @@ void on_png_error(png_structp /*png*/, png_const_charp message)
 
 APNGDATA * loadPng(IPngReader *pSrc)
 {
-	png_bytep  dataFrame;
-	png_uint_32 bytesPerRow;
-	png_uint_32 bytesPerFrame;
+    png_bytep  dataFrame;
+    png_uint_32 bytesPerRow;
+    png_uint_32 bytesPerFrame;
     png_bytepp rowPointers;
-	png_byte   sig[8];
-	
-	png_structp png_ptr_read;
-	png_infop info_ptr_read;
-	
+    png_byte   sig[8];
+    
+    png_structp png_ptr_read;
+    png_infop info_ptr_read;
+    
     pSrc->read(sig,8);
     if(!png_check_sig(sig,8))
     {
@@ -93,7 +93,7 @@ APNGDATA * loadPng(IPngReader *pSrc)
    
 #pragma warning (push)
 #pragma warning (disable: 4611)
-	if (setjmp(png_jmpbuf(png_ptr_read)))
+    if (setjmp(png_jmpbuf(png_ptr_read)))
     {
         png_destroy_read_struct(&png_ptr_read, &info_ptr_read, NULL);
         return NULL;
@@ -113,7 +113,7 @@ APNGDATA * loadPng(IPngReader *pSrc)
     png_set_gray_to_rgb(png_ptr_read);
     png_set_strip_16(png_ptr_read);
    
-	png_read_info(png_ptr_read, info_ptr_read);
+    png_read_info(png_ptr_read, info_ptr_read);
     png_read_update_info(png_ptr_read, info_ptr_read);
     
     bytesPerRow = png_ptr_read->width * 4;
@@ -132,15 +132,15 @@ APNGDATA * loadPng(IPngReader *pSrc)
     for(int i=0;i<apng->nHei;i++)
         rowPointers[i] = dataFrame + bytesPerRow * i;
 
-	if (!png_get_valid(png_ptr_read, info_ptr_read, PNG_INFO_acTL))
-	{//load png doesn't has this trunk.
+    if (!png_get_valid(png_ptr_read, info_ptr_read, PNG_INFO_acTL))
+    {//load png doesn't has this trunk.
         
         png_read_image(png_ptr_read,rowPointers);
                 
         apng->pdata =dataFrame;
         apng->nFrames =1;
-	}else
-	{//load apng
+    }else
+    {//load apng
         apng->nFrames  = png_get_num_frames(png_ptr_read, info_ptr_read);//获取总帧数
 
         png_bytep data = (png_bytep)malloc( bytesPerFrame * apng->nFrames);//为每一帧分配内存
@@ -256,11 +256,11 @@ APNGDATA * loadPng(IPngReader *pSrc)
         free(curFrame);
         free(dataFrame);
         apng->pdata =data;
-	}
+    }
     free(rowPointers);
 
-	png_read_end(png_ptr_read,info_ptr_read);
-	
+    png_read_end(png_ptr_read,info_ptr_read);
+    
     png_destroy_read_struct(&png_ptr_read, &info_ptr_read, NULL);
     return apng;    
 }

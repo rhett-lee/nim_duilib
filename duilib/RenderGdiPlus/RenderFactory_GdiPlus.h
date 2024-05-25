@@ -11,13 +11,13 @@ namespace ui
 class UILIB_API RenderFactory_GdiPlus : public IRenderFactory
 {
 public:
-	virtual IFont* CreateIFont() override;
-	virtual IPen* CreatePen(UiColor color, int width = 1) override;
-	virtual IBrush* CreateBrush(UiColor corlor) override;
-	virtual IPath* CreatePath() override;
-	virtual IMatrix* CreateMatrix() override;
-	virtual IBitmap* CreateBitmap() override;
-	virtual IRender* CreateRender(Window* pWindow) override;
+    virtual IFont* CreateIFont() override;
+    virtual IPen* CreatePen(UiColor color, int width = 1) override;
+    virtual IBrush* CreateBrush(UiColor corlor) override;
+    virtual IPath* CreatePath() override;
+    virtual IMatrix* CreateMatrix() override;
+    virtual IBitmap* CreateBitmap() override;
+    virtual IRender* CreateRender(Window* pWindow) override;
 };
 
 } // namespace ui

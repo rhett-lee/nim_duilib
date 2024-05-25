@@ -18,62 +18,62 @@
 namespace ui {
 
 RenderFactory_Skia::RenderFactory_Skia():
-	m_pSkFontMgr(nullptr)
+    m_pSkFontMgr(nullptr)
 {
 }
 
 RenderFactory_Skia::~RenderFactory_Skia()
 {
-	if (m_pSkFontMgr != nullptr) {
-		m_pSkFontMgr->unref();
-	}
+    if (m_pSkFontMgr != nullptr) {
+        m_pSkFontMgr->unref();
+    }
 }
 
 IFont* RenderFactory_Skia::CreateIFont()
 {
-	return new Font_Skia(this);
+    return new Font_Skia(this);
 }
 
 IPen* RenderFactory_Skia::CreatePen(UiColor color, int width /*= 1*/)
 {
-	return new Pen_Skia(color, width);
+    return new Pen_Skia(color, width);
 }
 
 IBrush* RenderFactory_Skia::CreateBrush(UiColor color)
 {
-	return new Brush_Skia(color);
+    return new Brush_Skia(color);
 }
 
 IPath* RenderFactory_Skia::CreatePath()
 {
-	return new Path_Skia();
+    return new Path_Skia();
 }
 
 IMatrix* RenderFactory_Skia::CreateMatrix()
 {
-	return new Matrix_Skia();
+    return new Matrix_Skia();
 }
 
 IBitmap* RenderFactory_Skia::CreateBitmap()
 {
-	return new Bitmap_Skia();
+    return new Bitmap_Skia();
 }
 
 IRender* RenderFactory_Skia::CreateRender(Window* pWindow)
 {
-	return new Render_Skia(this, pWindow);
+    return new Render_Skia(this, pWindow);
 }
 
 SkFontMgr* RenderFactory_Skia::GetSkFontMgr()
 {
-	if (m_pSkFontMgr == nullptr) {
-		sk_sp<SkFontMgr> spSkFontMgr = SkFontMgr_New_DirectWrite();
-		ASSERT(spSkFontMgr != nullptr);
-		m_pSkFontMgr = spSkFontMgr.get();
-		m_pSkFontMgr->ref();
-		spSkFontMgr.reset(nullptr);
-	}
-	return m_pSkFontMgr;
+    if (m_pSkFontMgr == nullptr) {
+        sk_sp<SkFontMgr> spSkFontMgr = SkFontMgr_New_DirectWrite();
+        ASSERT(spSkFontMgr != nullptr);
+        m_pSkFontMgr = spSkFontMgr.get();
+        m_pSkFontMgr->ref();
+        spSkFontMgr.reset(nullptr);
+    }
+    return m_pSkFontMgr;
 }
 
 } // namespace ui

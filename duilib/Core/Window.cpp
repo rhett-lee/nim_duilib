@@ -1417,49 +1417,49 @@ LRESULT Window::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHa
     }
     break;
 
-    case WM_NCACTIVATE:			lResult = OnNcActivateMsg(uMsg, wParam, lParam, bHandled); break;
-    case WM_NCCALCSIZE:			lResult = OnNcCalcSizeMsg(uMsg, wParam, lParam, bHandled); break;
-    case WM_NCHITTEST:			lResult = OnNcHitTestMsg(uMsg, wParam, lParam, bHandled); break;
-    case WM_NCLBUTTONDBLCLK:	lResult = OnNcLButtonDbClickMsg(uMsg, wParam, lParam, bHandled); break;
+    case WM_NCACTIVATE:            lResult = OnNcActivateMsg(uMsg, wParam, lParam, bHandled); break;
+    case WM_NCCALCSIZE:            lResult = OnNcCalcSizeMsg(uMsg, wParam, lParam, bHandled); break;
+    case WM_NCHITTEST:            lResult = OnNcHitTestMsg(uMsg, wParam, lParam, bHandled); break;
+    case WM_NCLBUTTONDBLCLK:    lResult = OnNcLButtonDbClickMsg(uMsg, wParam, lParam, bHandled); break;
 
-    case WM_CLOSE:				lResult = OnCloseMsg(uMsg, wParam, lParam, bHandled); break;
-    case WM_GETMINMAXINFO:		lResult = OnGetMinMaxInfoMsg(uMsg, wParam, lParam, bHandled); break;
-    case WM_WINDOWPOSCHANGING:	lResult = OnWindowPosChangingMsg(uMsg, wParam, lParam, bHandled); break;
-    case WM_SIZE:				lResult = OnSizeMsg(uMsg, wParam, lParam, bHandled); break;
-    case WM_DPICHANGED:			lResult = OnDpiChangedMsg(uMsg, wParam, lParam, bHandled); break;
-    case WM_MOVE:				lResult = OnMoveMsg(uMsg, wParam, lParam, bHandled); break;
-    case WM_ERASEBKGND:			lResult = OnEraseBkGndMsg(uMsg, wParam, lParam, bHandled); break;
-    case WM_PAINT:				lResult = OnPaintMsg(uMsg, wParam, lParam, bHandled); break;
+    case WM_CLOSE:                lResult = OnCloseMsg(uMsg, wParam, lParam, bHandled); break;
+    case WM_GETMINMAXINFO:        lResult = OnGetMinMaxInfoMsg(uMsg, wParam, lParam, bHandled); break;
+    case WM_WINDOWPOSCHANGING:    lResult = OnWindowPosChangingMsg(uMsg, wParam, lParam, bHandled); break;
+    case WM_SIZE:                lResult = OnSizeMsg(uMsg, wParam, lParam, bHandled); break;
+    case WM_DPICHANGED:            lResult = OnDpiChangedMsg(uMsg, wParam, lParam, bHandled); break;
+    case WM_MOVE:                lResult = OnMoveMsg(uMsg, wParam, lParam, bHandled); break;
+    case WM_ERASEBKGND:            lResult = OnEraseBkGndMsg(uMsg, wParam, lParam, bHandled); break;
+    case WM_PAINT:                lResult = OnPaintMsg(uMsg, wParam, lParam, bHandled); break;
 
-    case WM_MOUSEHOVER:			lResult = OnMouseHoverMsg(uMsg, wParam, lParam, bHandled); break;
-    case WM_MOUSELEAVE:			lResult = OnMouseLeaveMsg(uMsg, wParam, lParam, bHandled); break;
-    case WM_MOUSEMOVE:			lResult = OnMouseMoveMsg(uMsg, wParam, lParam, bHandled); break;
-    case WM_MOUSEWHEEL:			lResult = OnMouseWheelMsg(uMsg, wParam, lParam, bHandled); break;
-    case WM_LBUTTONDOWN:		lResult = OnLButtonDownMsg(uMsg, wParam, lParam, bHandled); break;
-    case WM_RBUTTONDOWN:		lResult = OnRButtonDownMsg(uMsg, wParam, lParam, bHandled); break;
-    case WM_LBUTTONDBLCLK:		lResult = OnLButtonDoubleClickMsg(uMsg, wParam, lParam, bHandled); break;
-    case WM_RBUTTONDBLCLK:		lResult = OnRButtonDoubleClickMsg(uMsg, wParam, lParam, bHandled); break;
-    case WM_LBUTTONUP:			lResult = OnLButtonUpMsg(uMsg, wParam, lParam, bHandled); break;
-    case WM_RBUTTONUP:			lResult = OnRButtonUpMsg(uMsg, wParam, lParam, bHandled); break;
-    case WM_CONTEXTMENU:		lResult = OnContextMenuMsg(uMsg, wParam, lParam, bHandled); break;
+    case WM_MOUSEHOVER:            lResult = OnMouseHoverMsg(uMsg, wParam, lParam, bHandled); break;
+    case WM_MOUSELEAVE:            lResult = OnMouseLeaveMsg(uMsg, wParam, lParam, bHandled); break;
+    case WM_MOUSEMOVE:            lResult = OnMouseMoveMsg(uMsg, wParam, lParam, bHandled); break;
+    case WM_MOUSEWHEEL:            lResult = OnMouseWheelMsg(uMsg, wParam, lParam, bHandled); break;
+    case WM_LBUTTONDOWN:        lResult = OnLButtonDownMsg(uMsg, wParam, lParam, bHandled); break;
+    case WM_RBUTTONDOWN:        lResult = OnRButtonDownMsg(uMsg, wParam, lParam, bHandled); break;
+    case WM_LBUTTONDBLCLK:        lResult = OnLButtonDoubleClickMsg(uMsg, wParam, lParam, bHandled); break;
+    case WM_RBUTTONDBLCLK:        lResult = OnRButtonDoubleClickMsg(uMsg, wParam, lParam, bHandled); break;
+    case WM_LBUTTONUP:            lResult = OnLButtonUpMsg(uMsg, wParam, lParam, bHandled); break;
+    case WM_RBUTTONUP:            lResult = OnRButtonUpMsg(uMsg, wParam, lParam, bHandled); break;
+    case WM_CONTEXTMENU:        lResult = OnContextMenuMsg(uMsg, wParam, lParam, bHandled); break;
 
-    case WM_SETFOCUS:			lResult = OnSetFocusMsg(uMsg, wParam, lParam, bHandled); break;
-    case WM_KILLFOCUS:			lResult = OnKillFocusMsg(uMsg, wParam, lParam, bHandled); break;
+    case WM_SETFOCUS:            lResult = OnSetFocusMsg(uMsg, wParam, lParam, bHandled); break;
+    case WM_KILLFOCUS:            lResult = OnKillFocusMsg(uMsg, wParam, lParam, bHandled); break;
 
-    case WM_CHAR:				lResult = OnCharMsg(uMsg, wParam, lParam, bHandled); break;
-    case WM_KEYDOWN:			lResult = OnKeyDownMsg(uMsg, wParam, lParam, bHandled); break;
-    case WM_KEYUP:				lResult = OnKeyUpMsg(uMsg, wParam, lParam, bHandled); break;
-    case WM_SYSKEYDOWN:			lResult = OnSysKeyDownMsg(uMsg, wParam, lParam, bHandled); break;
-    case WM_SYSKEYUP:			lResult = OnSysKeyUpMsg(uMsg, wParam, lParam, bHandled); break;
+    case WM_CHAR:                lResult = OnCharMsg(uMsg, wParam, lParam, bHandled); break;
+    case WM_KEYDOWN:            lResult = OnKeyDownMsg(uMsg, wParam, lParam, bHandled); break;
+    case WM_KEYUP:                lResult = OnKeyUpMsg(uMsg, wParam, lParam, bHandled); break;
+    case WM_SYSKEYDOWN:            lResult = OnSysKeyDownMsg(uMsg, wParam, lParam, bHandled); break;
+    case WM_SYSKEYUP:            lResult = OnSysKeyUpMsg(uMsg, wParam, lParam, bHandled); break;
 
     case WM_IME_STARTCOMPOSITION: lResult = OnIMEStartCompositionMsg(uMsg, wParam, lParam, bHandled); break;
-    case WM_IME_ENDCOMPOSITION:	  lResult = OnIMEEndCompositionMsg(uMsg, wParam, lParam, bHandled); break;
+    case WM_IME_ENDCOMPOSITION:      lResult = OnIMEEndCompositionMsg(uMsg, wParam, lParam, bHandled); break;
 
-    case WM_SETCURSOR:			lResult = OnSetCusorMsg(uMsg, wParam, lParam, bHandled); break;
-    case WM_NOTIFY:				lResult = OnNotifyMsg(uMsg, wParam, lParam, bHandled); break;
-    case WM_COMMAND:			lResult = OnCommandMsg(uMsg, wParam, lParam, bHandled); break;
-    case WM_SYSCOMMAND:			lResult = OnSysCommandMsg(uMsg, wParam, lParam, bHandled); break;
-    case WM_HOTKEY:			    lResult = OnHotKeyMsg(uMsg, wParam, lParam, bHandled); break;
+    case WM_SETCURSOR:            lResult = OnSetCusorMsg(uMsg, wParam, lParam, bHandled); break;
+    case WM_NOTIFY:                lResult = OnNotifyMsg(uMsg, wParam, lParam, bHandled); break;
+    case WM_COMMAND:            lResult = OnCommandMsg(uMsg, wParam, lParam, bHandled); break;
+    case WM_SYSCOMMAND:            lResult = OnSysCommandMsg(uMsg, wParam, lParam, bHandled); break;
+    case WM_HOTKEY:                lResult = OnHotKeyMsg(uMsg, wParam, lParam, bHandled); break;
     case WM_CTLCOLOREDIT:
     case WM_CTLCOLORSTATIC:
         lResult = OnCtlColorMsgs(uMsg, wParam, lParam, bHandled);
@@ -1945,7 +1945,7 @@ LRESULT Window::OnMouseHoverMsg(UINT uMsg, WPARAM /*wParam*/, LPARAM lParam, boo
     }
 
     if (pOldHover == GetHoverControl()) {
-        //检查按需显示ToolTip信息	
+        //检查按需显示ToolTip信息    
         UiRect rect = pHover->GetPos();
         uint32_t maxWidth = pHover->GetToolTipWidth();
         HMODULE hModule = GetResModuleHandle();
@@ -2504,7 +2504,7 @@ void Window::SetFocus(Control* pControl)
         m_pFocus->SendEvent(kEventKillFocus, (WPARAM)pControl);
         m_pFocus = nullptr;
     }
-    // Set focus to new control	
+    // Set focus to new control    
     if ((pControl != nullptr) && pControl->IsVisible() && pControl->IsEnabled()) {
         ASSERT(pControl->GetWindow() == this);
         ASSERT(::GetFocus() == m_hWnd);
@@ -2903,7 +2903,7 @@ void Window::Paint()
         m_render->ClearAlpha(rcPaint);
     }
 
-    // 绘制	
+    // 绘制    
     if (m_pRoot->IsVisible()) {
         AutoClip rectClip(m_render.get(), rcPaint, true);
         UiPoint ptOldWindOrg = m_render->OffsetWindowOrg(m_renderOffset);

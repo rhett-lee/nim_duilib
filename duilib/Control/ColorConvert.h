@@ -1,7 +1,7 @@
 /////////////////////////////////////////////////////////////////////////////////////
-// color picker helper class by:																	   //
+// color picker helper class by:                                                                       //
 // codeproject.com/Articles/2577/Xguiplus-A-set-of-Photoshop-s-like-color-pickers  //
-//																				   //
+//                                                                                   //
 /////////////////////////////////////////////////////////////////////////////////////
 #ifndef UI_CONTROL_COLOR_CONVERT_H_
 #define UI_CONTROL_COLOR_CONVERT_H_

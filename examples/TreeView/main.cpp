@@ -5,18 +5,18 @@
 #include "framework.h"
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
-	_In_opt_ HINSTANCE hPrevInstance,
-	_In_ LPWSTR    lpCmdLine,
-	_In_ int       nCmdShow)
+    _In_opt_ HINSTANCE hPrevInstance,
+    _In_ LPWSTR    lpCmdLine,
+    _In_ int       nCmdShow)
 {
-	UNREFERENCED_PARAMETER(hPrevInstance);
-	UNREFERENCED_PARAMETER(lpCmdLine);
+    UNREFERENCED_PARAMETER(hPrevInstance);
+    UNREFERENCED_PARAMETER(lpCmdLine);
 
-	// 创建主线程
-	MainThread thread;
+    // 创建主线程
+    MainThread thread;
 
-	// 执行主线程循环
-	thread.RunOnCurrentThreadWithLoop(nbase::MessageLoop::kUIMessageLoop);
+    // 执行主线程循环
+    thread.RunOnCurrentThreadWithLoop(nbase::MessageLoop::kUIMessageLoop);
 
-	return 0;
+    return 0;
 }

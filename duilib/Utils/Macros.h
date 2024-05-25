@@ -63,30 +63,30 @@ DECLARE_HANDLE(PROCESS_DPI_AWARENESS_CONTEXT);
 #define PROCESS_DPI_AWARENESS_CONTEXT_UNAWARE_GDISCALED     ((PROCESS_DPI_AWARENESS_CONTEXT)-5)
 
 typedef enum PROCESS_DPI_AWARENESS {
-	PROCESS_DPI_UNAWARE = 0,
-	PROCESS_SYSTEM_DPI_AWARE = 1,
-	PROCESS_PER_MONITOR_DPI_AWARE = 2
+    PROCESS_DPI_UNAWARE = 0,
+    PROCESS_SYSTEM_DPI_AWARE = 1,
+    PROCESS_PER_MONITOR_DPI_AWARE = 2
 } PROCESS_DPI_AWARENESS;
 
 typedef enum MONITOR_DPI_TYPE {
-	MDT_EFFECTIVE_DPI = 0,
-	MDT_ANGULAR_DPI = 1,
-	MDT_RAW_DPI = 2,
-	MDT_DEFAULT = MDT_EFFECTIVE_DPI
+    MDT_EFFECTIVE_DPI = 0,
+    MDT_ANGULAR_DPI = 1,
+    MDT_RAW_DPI = 2,
+    MDT_DEFAULT = MDT_EFFECTIVE_DPI
 } MONITOR_DPI_TYPE;
 
 DECLARE_HANDLE(HTOUCHINPUT);
 typedef struct tagTOUCHINPUT {
-	LONG x;
-	LONG y;
-	HANDLE hSource;
-	DWORD dwID;
-	DWORD dwFlags;
-	DWORD dwMask;
-	DWORD dwTime;
-	ULONG_PTR dwExtraInfo;
-	DWORD cxContact;
-	DWORD cyContact;
+    LONG x;
+    LONG y;
+    HANDLE hSource;
+    DWORD dwID;
+    DWORD dwFlags;
+    DWORD dwMask;
+    DWORD dwTime;
+    ULONG_PTR dwExtraInfo;
+    DWORD cxContact;
+    DWORD cyContact;
 } TOUCHINPUT, *PTOUCHINPUT;
 typedef TOUCHINPUT const * PCTOUCHINPUT;
 
@@ -108,12 +108,12 @@ typedef TOUCHINPUT const * PCTOUCHINPUT;
 #define DM_POINTERHITTEST               0x0250
 
 enum tagPOINTER_INPUT_TYPE {
-	PT_POINTER = 0x00000001,   // Generic pointer
-	PT_TOUCH = 0x00000002,   // Touch
-	PT_PEN = 0x00000003,   // Pen
-	PT_MOUSE = 0x00000004,   // Mouse
+    PT_POINTER = 0x00000001,   // Generic pointer
+    PT_TOUCH = 0x00000002,   // Touch
+    PT_PEN = 0x00000003,   // Pen
+    PT_MOUSE = 0x00000004,   // Mouse
 #if(WINVER >= 0x0603)
-	PT_TOUCHPAD = 0x00000005,   // Touchpad
+    PT_TOUCHPAD = 0x00000005,   // Touchpad
 #endif /* WINVER >= 0x0603 */
 };
 typedef DWORD POINTER_INPUT_TYPE;
@@ -121,36 +121,36 @@ typedef DWORD POINTER_INPUT_TYPE;
 typedef UINT32 POINTER_FLAGS;
 
 typedef enum tagPOINTER_BUTTON_CHANGE_TYPE {
-	POINTER_CHANGE_NONE,
-	POINTER_CHANGE_FIRSTBUTTON_DOWN,
-	POINTER_CHANGE_FIRSTBUTTON_UP,
-	POINTER_CHANGE_SECONDBUTTON_DOWN,
-	POINTER_CHANGE_SECONDBUTTON_UP,
-	POINTER_CHANGE_THIRDBUTTON_DOWN,
-	POINTER_CHANGE_THIRDBUTTON_UP,
-	POINTER_CHANGE_FOURTHBUTTON_DOWN,
-	POINTER_CHANGE_FOURTHBUTTON_UP,
-	POINTER_CHANGE_FIFTHBUTTON_DOWN,
-	POINTER_CHANGE_FIFTHBUTTON_UP,
+    POINTER_CHANGE_NONE,
+    POINTER_CHANGE_FIRSTBUTTON_DOWN,
+    POINTER_CHANGE_FIRSTBUTTON_UP,
+    POINTER_CHANGE_SECONDBUTTON_DOWN,
+    POINTER_CHANGE_SECONDBUTTON_UP,
+    POINTER_CHANGE_THIRDBUTTON_DOWN,
+    POINTER_CHANGE_THIRDBUTTON_UP,
+    POINTER_CHANGE_FOURTHBUTTON_DOWN,
+    POINTER_CHANGE_FOURTHBUTTON_UP,
+    POINTER_CHANGE_FIFTHBUTTON_DOWN,
+    POINTER_CHANGE_FIFTHBUTTON_UP,
 } POINTER_BUTTON_CHANGE_TYPE;
 
 typedef struct tagPOINTER_INFO {
-	POINTER_INPUT_TYPE    pointerType;
-	UINT32          pointerId;
-	UINT32          frameId;
-	POINTER_FLAGS   pointerFlags;
-	HANDLE          sourceDevice;
-	HWND            hwndTarget;
-	POINT           ptPixelLocation;
-	POINT           ptHimetricLocation;
-	POINT           ptPixelLocationRaw;
-	POINT           ptHimetricLocationRaw;
-	DWORD           dwTime;
-	UINT32          historyCount;
-	INT32           InputData;
-	DWORD           dwKeyStates;
-	UINT64          PerformanceCount;
-	POINTER_BUTTON_CHANGE_TYPE ButtonChangeType;
+    POINTER_INPUT_TYPE    pointerType;
+    UINT32          pointerId;
+    UINT32          frameId;
+    POINTER_FLAGS   pointerFlags;
+    HANDLE          sourceDevice;
+    HWND            hwndTarget;
+    POINT           ptPixelLocation;
+    POINT           ptHimetricLocation;
+    POINT           ptPixelLocationRaw;
+    POINT           ptHimetricLocationRaw;
+    DWORD           dwTime;
+    UINT32          historyCount;
+    INT32           InputData;
+    DWORD           dwKeyStates;
+    UINT64          PerformanceCount;
+    POINTER_BUTTON_CHANGE_TYPE ButtonChangeType;
 } POINTER_INFO;
 
 typedef UINT32 TOUCH_FLAGS;
@@ -163,13 +163,13 @@ typedef UINT32 TOUCH_MASK;
 #define TOUCH_MASK_PRESSURE             0x00000004 // The pressure field is valid
 
 typedef struct tagPOINTER_TOUCH_INFO {
-	POINTER_INFO    pointerInfo;
-	TOUCH_FLAGS     touchFlags;
-	TOUCH_MASK      touchMask;
-	RECT            rcContact;
-	RECT            rcContactRaw;
-	UINT32          orientation;
-	UINT32          pressure;
+    POINTER_INFO    pointerInfo;
+    TOUCH_FLAGS     touchFlags;
+    TOUCH_MASK      touchMask;
+    RECT            rcContact;
+    RECT            rcContactRaw;
+    UINT32          orientation;
+    UINT32          pressure;
 } POINTER_TOUCH_INFO;
 
 typedef UINT32 PEN_FLAGS;
@@ -186,13 +186,13 @@ typedef UINT32 PEN_MASK;
 #define PEN_MASK_TILT_Y                 0x00000008 // The tiltY field is valid
 
 typedef struct tagPOINTER_PEN_INFO {
-	POINTER_INFO    pointerInfo;
-	PEN_FLAGS       penFlags;
-	PEN_MASK        penMask;
-	UINT32          pressure;
-	UINT32          rotation;
-	INT32           tiltX;
-	INT32           tiltY;
+    POINTER_INFO    pointerInfo;
+    PEN_FLAGS       penFlags;
+    PEN_MASK        penMask;
+    UINT32          pressure;
+    UINT32          rotation;
+    INT32           tiltX;
+    INT32           tiltY;
 } POINTER_PEN_INFO;
 
 /*

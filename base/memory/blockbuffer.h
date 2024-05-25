@@ -15,31 +15,31 @@ namespace nbase
 template <unsigned BlockSize>
 struct default_block_allocator_malloc_free
 {
-	enum { requested_size = BlockSize };
+    enum { requested_size = BlockSize };
 
-	static char * ordered_malloc(size_t n)
-	{
-		return (char *)malloc(requested_size * n);
-	}
-	static void ordered_free(char * const block, size_t)
-	{
-		free(block);
-	}
+    static char * ordered_malloc(size_t n)
+    {
+        return (char *)malloc(requested_size * n);
+    }
+    static void ordered_free(char * const block, size_t)
+    {
+        free(block);
+    }
 };
 
 template <unsigned BlockSize>
 struct default_block_allocator_new_delete
 {
-	enum { requested_size = BlockSize };
+    enum { requested_size = BlockSize };
 
-	static char * ordered_malloc(size_t n)
-	{
-		return new (std::nothrow) char[requested_size * n];
-	}
-	static void ordered_free(char * const block, size_t)
-	{
-		delete [] block;
-	}
+    static char * ordered_malloc(size_t n)
+    {
+        return new (std::nothrow) char[requested_size * n];
+    }
+    static void ordered_free(char * const block, size_t)
+    {
+        delete [] block;
+    }
 };
 
 #ifdef  USE_ALLOCATOR_NEW_DELETE
@@ -66,49 +66,49 @@ template <typename BlockAllocator = def_block_alloc_4k, unsigned MaxBlocks = 2>
 class BlockBuffer
 {
 public:
-	typedef BlockAllocator allocator;
-	enum { max_blocks = MaxBlocks };
-	enum { npos = size_t(-1) };
+    typedef BlockAllocator allocator;
+    enum { max_blocks = MaxBlocks };
+    enum { npos = size_t(-1) };
 
-	BlockBuffer()  { block_ = 0; size_ = 0; data_ = (char *)""; }
-	virtual ~BlockBuffer() { free(); }
+    BlockBuffer()  { block_ = 0; size_ = 0; data_ = (char *)""; }
+    virtual ~BlockBuffer() { free(); }
 
-	inline bool   empty() const     { return size() == 0; }
-	inline size_t block() const     { return block_; }
-	inline size_t blocksize() const { return allocator::requested_size; }
-	inline size_t capacity() const  { return block_ * allocator::requested_size; }
-	inline size_t maxsize() const   { return max_blocks * allocator::requested_size; }
-	inline size_t maxfree() const   { return maxsize() - size(); }
-	inline size_t freespace() const { return capacity() - size(); }
+    inline bool   empty() const     { return size() == 0; }
+    inline size_t block() const     { return block_; }
+    inline size_t blocksize() const { return allocator::requested_size; }
+    inline size_t capacity() const  { return block_ * allocator::requested_size; }
+    inline size_t maxsize() const   { return max_blocks * allocator::requested_size; }
+    inline size_t maxfree() const   { return maxsize() - size(); }
+    inline size_t freespace() const { return capacity() - size(); }
 
-	inline char * data()            { return data_; }
-	inline size_t size() const      { return size_; }
+    inline char * data()            { return data_; }
+    inline size_t size() const      { return size_; }
 
-	bool resize(size_t n, char c = 0);
-	bool reserve(size_t n);
-	bool append(const char *app, size_t len);
-	bool replace(size_t pos, const char *rep, size_t n);
-	void erase(size_t pos = 0, size_t n = npos, bool hold = false);
+    bool resize(size_t n, char c = 0);
+    bool reserve(size_t n);
+    bool append(const char *app, size_t len);
+    bool replace(size_t pos, const char *rep, size_t n);
+    void erase(size_t pos = 0, size_t n = npos, bool hold = false);
 
-	static size_t current_total_blocks() { return s_current_total_blocks; }
-	static size_t peak_total_blocks()    { return s_peak_total_blocks; }
+    static size_t current_total_blocks() { return s_current_total_blocks; }
+    static size_t peak_total_blocks()    { return s_peak_total_blocks; }
 
 protected:
-	bool increase_capacity(size_t increase_size);
-	char * tail()          { return data_ + size_; }
-	void size(size_t size) { assert(size <= capacity()); size_ = size; }
+    bool increase_capacity(size_t increase_size);
+    char * tail()          { return data_ + size_; }
+    void size(size_t size) { assert(size <= capacity()); size_ = size; }
 
 private:
-	void free();
-	static size_t s_current_total_blocks;
-	static size_t s_peak_total_blocks;
+    void free();
+    static size_t s_current_total_blocks;
+    static size_t s_peak_total_blocks;
 
-	char  *data_;
-	size_t size_;
-	size_t block_;
+    char  *data_;
+    size_t size_;
+    size_t block_;
 
-	BlockBuffer(const BlockBuffer&);
-	void operator = (const BlockBuffer &);
+    BlockBuffer(const BlockBuffer&);
+    void operator = (const BlockBuffer &);
 };
 
 template <typename BlockAllocator, unsigned MaxBlocks>
@@ -120,13 +120,13 @@ size_t BlockBuffer<BlockAllocator, MaxBlocks >::s_peak_total_blocks = 0;
 template <typename BlockAllocator, unsigned MaxBlocks>
 inline void BlockBuffer<BlockAllocator, MaxBlocks >::free()
 {
-	if (block_ > 0)
-	{
-		allocator::ordered_free(data_, block_);
-		s_current_total_blocks -= block_;
-		data_ = (char *)"";
-		block_ = 0;
-	}
+    if (block_ > 0)
+    {
+        allocator::ordered_free(data_, block_);
+        s_current_total_blocks -= block_;
+        data_ = (char *)"";
+        block_ = 0;
+    }
 }
 
 template <typename BlockAllocator, unsigned MaxBlocks>
@@ -206,14 +206,14 @@ template <typename BlockAllocator, unsigned MaxBlocks>
 inline bool BlockBuffer<BlockAllocator, MaxBlocks >::increase_capacity(size_t increase_size)
 {
     if (increase_size == 0)
-		return true;
+        return true;
 
     size_t newblock = block_;
 
     size_t free = freespace();
     //if (increase_size > maxsize() - free) throw std::out_of_range("BlockBuffer out of range");
     if (free >= increase_size)
-		return true;
+        return true;
     increase_size -= free;
     newblock += increase_size / allocator::requested_size;
     if ((increase_size % allocator::requested_size) > 0)
@@ -222,7 +222,7 @@ inline bool BlockBuffer<BlockAllocator, MaxBlocks >::increase_capacity(size_t in
     if (newblock > max_blocks) return false;
     char *newdata = (char *)(allocator::ordered_malloc(newblock));
     if (0 == newdata)
-		return false;
+        return false;
 
     if (block_ > 0)
     {   // copy old data and free old block
@@ -251,13 +251,13 @@ public:
 
     void erase(size_t pos, size_t n)
     {
-		if (pos == 0)
-		{
-			position_ += n;
-			assert(position_ <= buffer_->size());
-		}
-		else
-			buffer_->erase(position_ + pos, n);
+        if (pos == 0)
+        {
+            position_ += n;
+            assert(position_ <= buffer_->size());
+        }
+        else
+            buffer_->erase(position_ + pos, n);
     }
     bool empty() const   { return buffer_->size() == position_; }
     void release()       { buffer_ = NULL; }

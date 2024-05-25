@@ -12,14 +12,14 @@ class BASE_EXPORT CmdLineArgs: public std::vector<wchar_t*>
 {
 public:
 
-	CmdLineArgs(const wchar_t *command_line = 0);
-	virtual ~CmdLineArgs();
+    CmdLineArgs(const wchar_t *command_line = 0);
+    virtual ~CmdLineArgs();
 
 private:
 
-	bool ParseCommandLine();
+    bool ParseCommandLine();
 
-	wchar_t *buffer_;
+    wchar_t *buffer_;
 };
 
 } // namespace

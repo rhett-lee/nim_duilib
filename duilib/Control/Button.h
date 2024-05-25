@@ -77,6 +77,6 @@ bool ButtonTemplate<InheritType>::CanPlaceCaptionBar() const
 typedef ButtonTemplate<Control> Button;
 typedef ButtonTemplate<Box> ButtonBox;
 
-}	// namespace ui
+}    // namespace ui
 
 #endif // UI_CONTROL_BUTTON_H_

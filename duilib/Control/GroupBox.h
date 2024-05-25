@@ -17,10 +17,10 @@ class UILIB_API GroupBoxTemplate : public LabelTemplate<InheritType>
 {
 public:
     explicit GroupBoxTemplate(Window* pWindow);
-	virtual ~GroupBoxTemplate();
-		
-	/// 重写父类方法，提供个性化功能，请参考父类声明
-	virtual std::wstring GetType() const override;
+    virtual ~GroupBoxTemplate();
+        
+    /// 重写父类方法，提供个性化功能，请参考父类声明
+    virtual std::wstring GetType() const override;
     virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
     virtual void PaintText(IRender* pRender) override;
 

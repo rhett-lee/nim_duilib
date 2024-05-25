@@ -15,16 +15,16 @@ namespace nbase
 // passed as a template argument to scoped_ptr_malloc below.
 class BASE_EXPORT DeleterFree {
 public:
-	inline void operator()(void* x) const {
-		free(x);
-	}
+    inline void operator()(void* x) const {
+        free(x);
+    }
 };
 
 class BASE_EXPORT DeleterFileClose {
 public:
-	inline void operator()(FILE * x) const {
-		fclose(x);
-	}
+    inline void operator()(FILE * x) const {
+        fclose(x);
+    }
 };
 
 } // namespace

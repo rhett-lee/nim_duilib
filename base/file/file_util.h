@@ -28,26 +28,26 @@ BASE_EXPORT bool IsFilePathSeparator(const PathString &separator);
 
 // Get the file extension from filepath
 BASE_EXPORT bool FilePathExtension(const PathString &filepath_in,
-								   PathString &extension_out);
+                                   PathString &extension_out);
 
 // Get the directory from the whole filepath
 BASE_EXPORT bool FilePathApartDirectory(const PathString &filepath_in,
-										PathString &directory_out);
+                                        PathString &directory_out);
 // Get the filename from the whole filepath
 BASE_EXPORT bool FilePathApartFileName(const PathString &filepath_in,
-									   PathString &filename_out);
+                                       PathString &filename_out);
 
 // Parse and extract all components of a path
 BASE_EXPORT bool ParsePathComponents(const PathChar *PathChar,
-									 std::list<PathString> &components);
+                                     std::list<PathString> &components);
 
 // Check if |component| is a directory
 BASE_EXPORT bool IsDirectoryComponent(const PathString &component);
 
 // Compose the filepath from directory and filename
 BASE_EXPORT bool FilePathCompose(const PathString &directory_in,
-								 const PathString &filename_in,
-								 PathString &filepath_out);
+                                 const PathString &filename_in,
+                                 PathString &filepath_out);
 
 // Get the current filepath
 BASE_EXPORT bool FilePathCurrentDirectory(PathString &directory_out);
@@ -55,9 +55,9 @@ BASE_EXPORT bool FilePathCurrentDirectory(PathString &directory_out);
 // Check the filepath is exist
 // If |is_directory| is true, check a directory, or check the path
 BASE_EXPORT bool FilePathIsExist(const PathChar *filepath_in,
-								 bool is_directory);
+                                 bool is_directory);
 BASE_EXPORT bool FilePathIsExist(const PathString &filepath_in,
-								 bool is_directory);
+                                 bool is_directory);
 
 // Create a directory, all subdirs will be created if not existing
 BASE_EXPORT bool CreateDirectory(const PathChar* full_path);
@@ -72,26 +72,26 @@ BASE_EXPORT bool CloseFile(FILE *file);
 
 // Reads the given number of bytes from the file into the buffer
 BASE_EXPORT int ReadFile(const PathChar *filepath,
-						 void *data_out,
-						 size_t size);
+                         void *data_out,
+                         size_t size);
 BASE_EXPORT int ReadFile(const PathString &filepath,
-						 void *data_out,
-						 size_t size);
+                         void *data_out,
+                         size_t size);
 
 
 // Read the file at |path| into |contents|, returning true on success.
 BASE_EXPORT bool ReadFileToString(const PathString &filepath,
-								  std::string &contents_out);
+                                  std::string &contents_out);
 
 // Writes the content of given buffer into the file
 BASE_EXPORT int WriteFile(const PathChar *filepath,
-						  const void *data,
-						  size_t size);
+                          const void *data,
+                          size_t size);
 BASE_EXPORT int WriteFile(const PathString &filepath, const std::string &data);
 
 // Copies a single file.
 BASE_EXPORT bool CopyFile(const PathString &from_path,
-						  const PathString &to_path);
+                          const PathString &to_path);
 
 // Deletes the given path.
 BASE_EXPORT bool DeleteFile(const PathString &filepath);

@@ -13,17 +13,17 @@ BasicForm::~BasicForm()
 
 std::wstring BasicForm::GetSkinFolder()
 {
-	return L"basic";
+    return L"basic";
 }
 
 std::wstring BasicForm::GetSkinFile()
 {
-	return L"basic.xml";
+    return L"basic.xml";
 }
 
 std::wstring BasicForm::GetWindowClassName() const
 {
-	return kClassName;
+    return kClassName;
 }
 
 void BasicForm::OnInitWindow()
@@ -32,6 +32,6 @@ void BasicForm::OnInitWindow()
 
 void BasicForm::OnCloseWindow()
 {
-	//关闭窗口后，退出主线程的消息循环，关闭程序
-	PostQuitMessage(0L);
+    //关闭窗口后，退出主线程的消息循环，关闭程序
+    PostQuitMessage(0L);
 }

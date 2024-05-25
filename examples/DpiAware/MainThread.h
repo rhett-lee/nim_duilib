@@ -13,8 +13,8 @@
 //线程ID
 enum ThreadId
 {
-    kThreadUI,		//主线程ID
-    kThreadWorker	//工作线程ID
+    kThreadUI,        //主线程ID
+    kThreadWorker    //工作线程ID
 };
 
 /** 工作线程

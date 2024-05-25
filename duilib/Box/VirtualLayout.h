@@ -13,10 +13,10 @@ namespace ui
 class UILIB_API VirtualLayout
 {
 public:
-	VirtualLayout() = default;
-	VirtualLayout(const VirtualLayout& r) = delete;
-	VirtualLayout& operator=(const VirtualLayout& r) = delete;
-	virtual ~VirtualLayout() = default;
+    VirtualLayout() = default;
+    VirtualLayout(const VirtualLayout& r) = delete;
+    VirtualLayout& operator=(const VirtualLayout& r) = delete;
+    virtual ~VirtualLayout() = default;
 
 public:
     /** 延迟加载展示数据

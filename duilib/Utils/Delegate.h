@@ -17,23 +17,23 @@ typedef std::function<bool(const ui::EventArgs&)> EventCallback;
 class CEventSource : public std::vector<EventCallback>
 {
 public:
-	CEventSource& operator += (const EventCallback& item) 
-	{
-		push_back(item);
-		return *this;
-	}
+    CEventSource& operator += (const EventCallback& item) 
+    {
+        push_back(item);
+        return *this;
+    }
 
-	bool operator() (const ui::EventArgs& param) const
-	{
-		//支持在回调函数中，操作此容器
-		for (size_t index = 0; index < this->size(); ++index) {
-			EventCallback callback = this->at(index);
-			if (!callback(param)) {
-				return false;
-			}
-		}
-		return true;
-	}
+    bool operator() (const ui::EventArgs& param) const
+    {
+        //支持在回调函数中，操作此容器
+        for (size_t index = 0; index < this->size(); ++index) {
+            EventCallback callback = this->at(index);
+            if (!callback(param)) {
+                return false;
+            }
+        }
+        return true;
+    }
 
 };
 

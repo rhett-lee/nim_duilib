@@ -14,12 +14,12 @@ namespace ui
 class UILIB_API VTileBox : public Box
 {
 public:
-	explicit VTileBox(Window* pWindow) :
-		Box(pWindow, new VTileLayout())
-	{
-	}
+    explicit VTileBox(Window* pWindow) :
+        Box(pWindow, new VTileLayout())
+    {
+    }
 
-	virtual std::wstring GetType() const override { return DUI_CTR_VTILE_BOX; }
+    virtual std::wstring GetType() const override { return DUI_CTR_VTILE_BOX; }
 };
 
 /** 瓦片布局的Box(水平布局)
@@ -27,12 +27,12 @@ public:
 class UILIB_API HTileBox : public Box
 {
 public:
-	explicit HTileBox(Window* pWindow) :
-		Box(pWindow, new HTileLayout())
-	{
-	}
+    explicit HTileBox(Window* pWindow) :
+        Box(pWindow, new HTileLayout())
+    {
+    }
 
-	virtual std::wstring GetType() const override { return DUI_CTR_HTILE_BOX; }
+    virtual std::wstring GetType() const override { return DUI_CTR_HTILE_BOX; }
 };
 
 }

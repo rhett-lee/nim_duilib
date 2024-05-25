@@ -10,73 +10,73 @@ namespace ui
 #define GetBValue(rgb)      ((uint8_t)((rgb)>>16))
 #define RGB(r,g,b)          ((COLORREF)(((uint8_t)(r)|((uint16_t)((uint8_t)(g))<<8))|(((uint32_t)(uint8_t)(b))<<16)))
 
-#define	HSV_LOOP_STEPS(w)	((w) - 1)
+#define    HSV_LOOP_STEPS(w)    ((w) - 1)
 
-#define	HSV_0()	RGB ((uint8_t) (coef1 >> int_extend),(uint8_t) (coef3 >> int_extend),(uint8_t) (val >> int_extend))
+#define    HSV_0()    RGB ((uint8_t) (coef1 >> int_extend),(uint8_t) (coef3 >> int_extend),(uint8_t) (val >> int_extend))
 
-#define	HSV_HUE_ADV_0() coef1 += coef1_adv,coef3 += coef3_adv
+#define    HSV_HUE_ADV_0() coef1 += coef1_adv,coef3 += coef3_adv
 
-#define	HSV_1()	RGB ((uint8_t) (coef1 >> int_extend),(uint8_t) (val >> int_extend),(uint8_t) (coef2 >> int_extend))
+#define    HSV_1()    RGB ((uint8_t) (coef1 >> int_extend),(uint8_t) (val >> int_extend),(uint8_t) (coef2 >> int_extend))
 
-#define	HSV_HUE_ADV_1()	coef1 += coef1_adv,	coef2 += coef2_adv
+#define    HSV_HUE_ADV_1()    coef1 += coef1_adv,    coef2 += coef2_adv
 
 
-#define	HSV_2()	RGB ((uint8_t) (coef3 >> int_extend),(uint8_t) (val >> int_extend),(uint8_t) (coef1 >> int_extend))
+#define    HSV_2()    RGB ((uint8_t) (coef3 >> int_extend),(uint8_t) (val >> int_extend),(uint8_t) (coef1 >> int_extend))
 
-#define	HSV_HUE_ADV_2()		HSV_HUE_ADV_0()
+#define    HSV_HUE_ADV_2()        HSV_HUE_ADV_0()
 
-#define	HSV_3()	RGB ((uint8_t) (val >> int_extend),(uint8_t) (coef2 >> int_extend),(uint8_t) (coef1 >> int_extend))
+#define    HSV_3()    RGB ((uint8_t) (val >> int_extend),(uint8_t) (coef2 >> int_extend),(uint8_t) (coef1 >> int_extend))
 
-#define	HSV_HUE_ADV_3()		HSV_HUE_ADV_1()
+#define    HSV_HUE_ADV_3()        HSV_HUE_ADV_1()
 
-#define	HSV_4()	RGB ((uint8_t) (val >> int_extend),(uint8_t) (coef1 >> int_extend),(uint8_t) (coef3 >> int_extend))
+#define    HSV_4()    RGB ((uint8_t) (val >> int_extend),(uint8_t) (coef1 >> int_extend),(uint8_t) (coef3 >> int_extend))
 
-#define	HSV_HUE_ADV_4()		HSV_HUE_ADV_0()
+#define    HSV_HUE_ADV_4()        HSV_HUE_ADV_0()
 
-#define	HSV_5()	 RGB (	(uint8_t) (coef2 >> int_extend),(uint8_t) (coef1 >> int_extend),(uint8_t) (val >> int_extend))
+#define    HSV_5()     RGB (    (uint8_t) (coef2 >> int_extend),(uint8_t) (coef1 >> int_extend),(uint8_t) (val >> int_extend))
 
-#define	HSV_HUE_ADV_5()		HSV_HUE_ADV_1()
+#define    HSV_HUE_ADV_5()        HSV_HUE_ADV_1()
 
 // initialize for HSV colorspace in SAT mode, for HUE between 0 and 1 (0 and 60 deg)
-#define	HSV_SAT_INIT_0()	coef3 = coef1,	coef3_adv = (int) ((val - coef3) / HSV_LOOP_STEPS (j))
+#define    HSV_SAT_INIT_0()    coef3 = coef1,    coef3_adv = (int) ((val - coef3) / HSV_LOOP_STEPS (j))
 
 // advance for HSV colorspace in SAT mode, for HUE between 0 and 1 (0 and 60 deg)
-#define	HSV_SAT_ADV_0()	    coef3 += coef3_adv
+#define    HSV_SAT_ADV_0()        coef3 += coef3_adv
 
-#define	HSV_SAT_INIT_1()	coef2 = val, coef2_adv = (int) ((val * (1.0 - sat) - coef2) / HSV_LOOP_STEPS (j))
+#define    HSV_SAT_INIT_1()    coef2 = val, coef2_adv = (int) ((val * (1.0 - sat) - coef2) / HSV_LOOP_STEPS (j))
 
-#define	HSV_SAT_ADV_1()	    coef2 += coef2_adv
+#define    HSV_SAT_ADV_1()        coef2 += coef2_adv
 
-#define	HSV_SAT_INIT_2()	HSV_SAT_INIT_0()
-#define	HSV_SAT_ADV_2()		HSV_SAT_ADV_0()
+#define    HSV_SAT_INIT_2()    HSV_SAT_INIT_0()
+#define    HSV_SAT_ADV_2()        HSV_SAT_ADV_0()
 
-#define	HSV_SAT_INIT_3()	HSV_SAT_INIT_1()
-#define	HSV_SAT_ADV_3()		HSV_SAT_ADV_1()
+#define    HSV_SAT_INIT_3()    HSV_SAT_INIT_1()
+#define    HSV_SAT_ADV_3()        HSV_SAT_ADV_1()
 
-#define	HSV_SAT_INIT_4()	HSV_SAT_INIT_0()
-#define	HSV_SAT_ADV_4()		HSV_SAT_ADV_0()
+#define    HSV_SAT_INIT_4()    HSV_SAT_INIT_0()
+#define    HSV_SAT_ADV_4()        HSV_SAT_ADV_0()
 
-#define	HSV_SAT_INIT_5()	HSV_SAT_INIT_1()
-#define	HSV_SAT_ADV_5()		HSV_SAT_ADV_1()
+#define    HSV_SAT_INIT_5()    HSV_SAT_INIT_1()
+#define    HSV_SAT_ADV_5()        HSV_SAT_ADV_1()
 
 // for HSV colorspace, VAL mode is calculate in a same manner as SAT mode
-//	so all macroses simply maps over SAT mode macroses
-#define	HSV_VAL_INIT_0()	HSV_SAT_INIT_0()
-#define	HSV_VAL_ADV_0()		HSV_SAT_ADV_0()
+//    so all macroses simply maps over SAT mode macroses
+#define    HSV_VAL_INIT_0()    HSV_SAT_INIT_0()
+#define    HSV_VAL_ADV_0()        HSV_SAT_ADV_0()
 
-#define	HSV_VAL_INIT_1()	HSV_SAT_INIT_1()
-#define	HSV_VAL_ADV_1()		HSV_SAT_ADV_1()
+#define    HSV_VAL_INIT_1()    HSV_SAT_INIT_1()
+#define    HSV_VAL_ADV_1()        HSV_SAT_ADV_1()
 
-#define	HSV_VAL_INIT_2()	HSV_SAT_INIT_2()
-#define	HSV_VAL_ADV_2()		HSV_SAT_ADV_2()
+#define    HSV_VAL_INIT_2()    HSV_SAT_INIT_2()
+#define    HSV_VAL_ADV_2()        HSV_SAT_ADV_2()
 
-#define	HSV_VAL_INIT_3()	HSV_SAT_INIT_3()
-#define	HSV_VAL_ADV_3()		HSV_SAT_ADV_3()
+#define    HSV_VAL_INIT_3()    HSV_SAT_INIT_3()
+#define    HSV_VAL_ADV_3()        HSV_SAT_ADV_3()
 
-#define	HSV_VAL_INIT_4()	HSV_SAT_INIT_4()
-#define	HSV_VAL_ADV_4()		HSV_SAT_ADV_4()
+#define    HSV_VAL_INIT_4()    HSV_SAT_INIT_4()
+#define    HSV_VAL_ADV_4()        HSV_SAT_ADV_4()
 
-const int	int_extend = 20;
+const int    int_extend = 20;
 
 static inline int scaled_red(COLORREF c)
 {
@@ -102,8 +102,8 @@ template <class T, class T1> void in_range(T& x, T1 start, T1 end)
 
 int ColorConvert::HSV2RGB(double hue, double sat, double value, double* red, double* green, double* blue)
 {
-    double	frac, coef1, coef2, coef3;
-    double	intp;
+    double    frac, coef1, coef2, coef3;
+    double    intp;
     // hsv values valid?
     if (sat < 0.0 || sat > 1.0 || value < 0.0 || value > 1.0) return (-1);
     if (hue < 0.0 || hue > 360.0) return (-1);
@@ -115,19 +115,19 @@ int ColorConvert::HSV2RGB(double hue, double sat, double value, double* red, dou
     {
         // hue (chromatic) 360 == hue 0
         if (hue == 360.0) hue = 0;
-        hue = hue / 60; 						// hue in [0, 6)
-        frac = modf(hue, &intp);				// split hue to integer and fraction
+        hue = hue / 60;                         // hue in [0, 6)
+        frac = modf(hue, &intp);                // split hue to integer and fraction
         coef1 = value * (1 - sat);
         coef2 = value * (1 - sat * frac);
         coef3 = value * (1 - sat * (1 - frac));
         switch ((int)intp)
         {
-        case 0:	*red = value; *green = coef3; *blue = coef1; break;
-        case 1:	*red = coef2; *green = value; *blue = coef1; break;
-        case 2:	*red = coef1; *green = value; *blue = coef3; break;
-        case 3:	*red = coef1; *green = coef2; *blue = value; break;
-        case 4:	*red = coef3; *green = coef1; *blue = value; break;
-        case 5:	*red = value; *green = coef1; *blue = coef2; break;
+        case 0:    *red = value; *green = coef3; *blue = coef1; break;
+        case 1:    *red = coef2; *green = value; *blue = coef1; break;
+        case 2:    *red = coef1; *green = value; *blue = coef3; break;
+        case 3:    *red = coef1; *green = coef2; *blue = value; break;
+        case 4:    *red = coef3; *green = coef1; *blue = value; break;
+        case 5:    *red = value; *green = coef1; *blue = coef2; break;
         }
     }
     return (0);
@@ -156,9 +156,9 @@ int ColorConvert::RGB2HSV(double red, double green, double blue, double* hue, do
     min = std::min(red, std::min(green, blue));
 
     // check the rgb values to see if valid
-    if (min < 0.0 || max > 1.0) return (-1); 	// out of range
+    if (min < 0.0 || max > 1.0) return (-1);     // out of range
 
-    *value = max;								// calculate the value v
+    *value = max;                                // calculate the value v
 
     if (max > 0.0)
         *sat = (max - min) / max;
@@ -218,7 +218,7 @@ int ColorConvert::HSL2RGB(double hue, double sat, double lightness, double* red,
     S = sat;
     L = lightness;
 
-    if (S == 0)							 //HSL values = 0 ÷ 1
+    if (S == 0)                             //HSL values = 0 ÷ 1
     {
         *red = L;                   //RGB results = 0 ÷ 255
         *green = L;
@@ -263,7 +263,7 @@ int ColorConvert::RGB2HSL(double red, double green, double blue, double* hue, do
     Max = std::max(R, std::max(G, B));    //Max. value of RGB
 
     // check the rgb values to see if valid
-    if (Min < 0.0 || Max > 1.0) return (-1); 	// out of range
+    if (Min < 0.0 || Max > 1.0) return (-1);     // out of range
 
     del_Max = Max - Min;        //Delta RGB value
 
@@ -301,8 +301,8 @@ int ColorConvert::RGB2HSL(double red, double green, double blue, double* hue, do
 
 void ColorConvert::GetRGB(uint32_t* buffer, int samples, COLORREF start, COLORREF end)
 {
-    int	red, green, blue;
-    int	red_adv, green_adv, blue_adv;
+    int    red, green, blue;
+    int    red_adv, green_adv, blue_adv;
 
     red = scaled_red(start);
     green = scaled_green(start);
@@ -329,22 +329,22 @@ void ColorConvert::GetRGB(uint32_t* buffer, int samples, COLORREF start, COLORRE
 void ColorConvert::HSV_HUE(uint32_t* buffer, int samples, double sat, double val_fp)
 {
     // value, but as integer in [0, 255 << int_extend]
-    int		val;
+    int        val;
 
     // loop counter
-    int		j;
+    int        j;
 
     // coefficients and advances
-    int		coef1, coef2, coef3;
-    int		coef2_adv, coef3_adv;
+    int        coef1, coef2, coef3;
+    int        coef2_adv, coef3_adv;
 
     // current position and advance to the next one
-    double	pos, pos_adv;
+    double    pos, pos_adv;
 
     //
     // hue increments in [0, 360); indirectly
-    //	intp changes - 0, 1, 2, 3, 4, 5; indirectly (separate loops)
-    //	frac increments in [0, 1) six times; indirectly (coefficients)
+    //    intp changes - 0, 1, 2, 3, 4, 5; indirectly (separate loops)
+    //    frac increments in [0, 1) six times; indirectly (coefficients)
     // sat - const, in [0, 1]
     // val - const, in [0, (255 << int_extend)]
     //
@@ -387,7 +387,7 @@ void ColorConvert::HSV_HUE(uint32_t* buffer, int samples, double sat, double val
     HSV_SAT_INIT_4();
     while (j--) *buffer++ = HSV_4(), HSV_SAT_ADV_4();
 
-    pos += (pos_adv + 0.1);	// + 0.1 because of floating-point math's rounding errors
+    pos += (pos_adv + 0.1);    // + 0.1 because of floating-point math's rounding errors
     j = (int)pos - (int)(5 * pos_adv);
     HSV_SAT_INIT_5();
     while (j--) *buffer++ = HSV_5(), HSV_SAT_ADV_5();
@@ -397,21 +397,21 @@ void ColorConvert::HSV_HUE(uint32_t* buffer, int samples, double sat, double val
 void ColorConvert::HSV_SAT(uint32_t* buffer, int samples, double hue, double val_fp)
 {
     // value, but as integer in [0, 255 << int_extend]
-    int		val;
+    int        val;
 
     // loop counter
-    int		j;
+    int        j;
 
     // coefficients and advances
-    signed int		coef1, coef2, coef3;
-    signed int		coef1_adv, coef2_adv, coef3_adv;
+    signed int        coef1, coef2, coef3;
+    signed int        coef1_adv, coef2_adv, coef3_adv;
 
-    double	intp, frac;
+    double    intp, frac;
 
     //
     // hue - const, in [0, 360)
-    //	intp - const in 0, 1, 2, 3, 4, 5
-    //	frac - const in [0, 1)
+    //    intp - const in 0, 1, 2, 3, 4, 5
+    //    frac - const in [0, 1)
     // sat - increments, in [0, 1]; indirectly (coefficients)
     // val - const, in [0, (255 << int_extend)]
     //
@@ -436,22 +436,22 @@ void ColorConvert::HSV_SAT(uint32_t* buffer, int samples, double hue, double val
 
     switch ((int)intp)
     {
-    case	0:
+    case    0:
         while (j--) *buffer++ = HSV_0(), HSV_HUE_ADV_0();
         break;
-    case	1:
+    case    1:
         while (j--) *buffer++ = HSV_1(), HSV_HUE_ADV_1();
         break;
-    case	2:
+    case    2:
         while (j--) *buffer++ = HSV_2(), HSV_HUE_ADV_2();
         break;
-    case	3:
+    case    3:
         while (j--) *buffer++ = HSV_3(), HSV_HUE_ADV_3();
         break;
-    case	4:
+    case    4:
         while (j--) *buffer++ = HSV_4(), HSV_HUE_ADV_4();
         break;
-    case	5:
+    case    5:
         while (j--) *buffer++ = HSV_5(), HSV_HUE_ADV_5();
         break;
     }
@@ -460,21 +460,21 @@ void ColorConvert::HSV_SAT(uint32_t* buffer, int samples, double hue, double val
 void ColorConvert::HSV_VAL(uint32_t* buffer, int samples, double hue, double sat)
 {
     // loop counter
-    int		j;
+    int        j;
 
     // coefficients and advances
-    signed int		coef1, coef2, coef3;
-    signed int		coef1_adv, coef2_adv, coef3_adv;
+    signed int        coef1, coef2, coef3;
+    signed int        coef1_adv, coef2_adv, coef3_adv;
 
-    int		val, val_adv;
-    int		val_max;
+    int        val, val_adv;
+    int        val_max;
 
-    double	intp, frac;
+    double    intp, frac;
 
     //
     // hue - const, in [0, 360)
-    //	intp - const in 0, 1, 2, 3, 4, 5
-    //	frac - const in [0, 1)
+    //    intp - const in 0, 1, 2, 3, 4, 5
+    //    frac - const in [0, 1)
     // sat - const, in [0, 1]
     // val - increments, in [0, (255 << int_extend)]; indirectly (coefficients)
     //
@@ -501,22 +501,22 @@ void ColorConvert::HSV_VAL(uint32_t* buffer, int samples, double hue, double sat
 
     switch ((int)intp)
     {
-    case	0:
+    case    0:
         while (j--) *buffer++ = HSV_0(), HSV_HUE_ADV_0(), val += val_adv;
         break;
-    case	1:
+    case    1:
         while (j--) *buffer++ = HSV_1(), HSV_HUE_ADV_1(), val += val_adv;
         break;
-    case	2:
+    case    2:
         while (j--) *buffer++ = HSV_2(), HSV_HUE_ADV_2(), val += val_adv;
         break;
-    case	3:
+    case    3:
         while (j--) *buffer++ = HSV_3(), HSV_HUE_ADV_3(), val += val_adv;
         break;
-    case	4:
+    case    4:
         while (j--) *buffer++ = HSV_4(), HSV_HUE_ADV_4(), val += val_adv;
         break;
-    case	5:
+    case    5:
         while (j--) *buffer++ = HSV_5(), HSV_HUE_ADV_5(), val += val_adv;
         break;
     }

@@ -112,20 +112,20 @@
 # define NETEASE_LITTLE_ENDIAN
 # define NETEASE_BYTE_ORDER 1234
 #elif defined(__sparc) || defined(__sparc__) \
-	|| defined(_POWER) || defined(__powerpc__) \
-	|| defined(__ppc__) || defined(__hpux) \
-	|| defined(_MIPSEB) || defined(_POWER) \
-	|| defined(_MIPSEB) || defined(_POWER) \
-	|| defined(__s390__)
+    || defined(_POWER) || defined(__powerpc__) \
+    || defined(__ppc__) || defined(__hpux) \
+    || defined(_MIPSEB) || defined(_POWER) \
+    || defined(_MIPSEB) || defined(_POWER) \
+    || defined(__s390__)
 # define NETEASE_BIG_ENDIAN
 # define NETEASE_BYTE_ORDER 4321
 #elif defined(__i386__) || defined(__alpha__) \
-	|| defined(__ia64) || defined(__ia64__) \
-	|| defined(_M_IX86) || defined(_M_IA64) \
-	|| defined(_M_ALPHA) || defined(__amd64) \
-	|| defined(__amd64__) || defined(_M_AMD64) \
-	|| defined(__x86_64) || defined(__x86_64__) \
-	|| defined(_M_X64) || defined (__ARMEL__)
+    || defined(__ia64) || defined(__ia64__) \
+    || defined(_M_IX86) || defined(_M_IA64) \
+    || defined(_M_ALPHA) || defined(__amd64) \
+    || defined(__amd64__) || defined(_M_AMD64) \
+    || defined(__x86_64) || defined(__x86_64__) \
+    || defined(_M_X64) || defined (__ARMEL__)
 # define NETEASE_LITTLE_ENDIAN
 # define NETEASE_BYTE_ORDER 1234
 #else

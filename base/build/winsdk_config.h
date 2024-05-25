@@ -11,8 +11,8 @@
 #define VC_EXTRALEAN
 #endif
 
-#ifndef WIN32_LEAN_AND_MEAN			// remove rarely used header files, including 'winsock.h'
-#define WIN32_LEAN_AND_MEAN			// which will conflict with 'winsock2.h'
+#ifndef WIN32_LEAN_AND_MEAN            // remove rarely used header files, including 'winsock.h'
+#define WIN32_LEAN_AND_MEAN            // which will conflict with 'winsock2.h'
 #endif
 
 #ifndef WINVER

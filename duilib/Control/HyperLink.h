@@ -49,6 +49,6 @@ private:
     UiString m_url;
 };
 
-}	// namespace ui
+}    // namespace ui
 
 #endif // UI_CONTROL_HYPER_LINK_H_
