@@ -32,9 +32,6 @@
     <Filter Include="cef_control\handler\drag">
       <UniqueIdentifier>{7747b13a-cc8c-4e86-b230-3528a4bb5752}</UniqueIdentifier>
     </Filter>
-    <Filter Include="mini_blink_control">
-      <UniqueIdentifier>{ce4e70a6-09b9-44db-9a71-db4fae9f195a}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="targetver.h">
@@ -103,18 +100,6 @@
     <ClInclude Include="cef_control\handler\drag\osr_dragdrop_win.h">
       <Filter>cef_control\handler\drag</Filter>
     </ClInclude>
-    <ClInclude Include="mini_blink_control\web_view_base.h">
-      <Filter>mini_blink_control</Filter>
-    </ClInclude>
-    <ClInclude Include="mini_blink_control\wke_memory_dc.h">
-      <Filter>mini_blink_control</Filter>
-    </ClInclude>
-    <ClInclude Include="mini_blink_control\wke_web_native.h">
-      <Filter>mini_blink_control</Filter>
-    </ClInclude>
-    <ClInclude Include="mini_blink_control\wke_web_view.h">
-      <Filter>mini_blink_control</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="msgbox\msgbox.cpp">
@@ -170,18 +155,6 @@
     </ClCompile>
     <ClCompile Include="cef_control\handler\drag\util_win.cc">
       <Filter>cef_control\handler\drag</Filter>
-    </ClCompile>
-    <ClCompile Include="mini_blink_control\web_view_base.cpp">
-      <Filter>mini_blink_control</Filter>
-    </ClCompile>
-    <ClCompile Include="mini_blink_control\wke_memory_dc.cpp">
-      <Filter>mini_blink_control</Filter>
-    </ClCompile>
-    <ClCompile Include="mini_blink_control\wke_web_native.cpp">
-      <Filter>mini_blink_control</Filter>
-    </ClCompile>
-    <ClCompile Include="mini_blink_control\wke_web_view.cpp">
-      <Filter>mini_blink_control</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
