@@ -42,7 +42,7 @@ void AnimationPlayerBase::Init()
     m_elapseMillSeconds = 0;
     m_reverseStart = false;
     m_bPlaying = false;
-    m_startTime = std::chrono::high_resolution_clock::now();
+    m_startTime = std::chrono::steady_clock::now();
 }
 
 void AnimationPlayerBase::Start()
@@ -88,7 +88,7 @@ void AnimationPlayerBase::ReverseContinue()
 
 void AnimationPlayerBase::StartTimer()
 {
-    m_startTime = std::chrono::high_resolution_clock::now();
+    m_startTime = std::chrono::steady_clock::now();
     m_bPlaying = true;
     if (m_endValue - m_startValue == 0) {
         Complete();
@@ -103,15 +103,15 @@ void AnimationPlayerBase::StartTimer()
     Play();
     auto playCallback = UiBind(&AnimationPlayerBase::Play, this);
     ASSERT(m_elapseMillSeconds <= INT32_MAX);
-    GlobalManager::Instance().Timer().AddCancelableTimer(m_weakFlagOwner.GetWeakFlag(), playCallback, (uint32_t)m_elapseMillSeconds, TimerManager::REPEAT_FOREVER);
+    GlobalManager::Instance().Timer().AddTimer(m_weakFlagOwner.GetWeakFlag(), playCallback, (uint32_t)m_elapseMillSeconds);
 }
 
 void AnimationPlayerBase::Play()
 {
-    std::chrono::steady_clock::time_point endTime = std::chrono::high_resolution_clock::now();
-    auto thisTime = endTime - m_startTime; //播放耗时：微秒(千分之一毫秒)
-    m_palyedMillSeconds += (thisTime.count() / 1000); //累计到已播放时间（毫秒）
-    m_startTime = std::chrono::high_resolution_clock::now();
+    std::chrono::steady_clock::time_point endTime = std::chrono::steady_clock::now();
+    auto thisTime = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - m_startTime); //播放耗时：毫秒
+    m_palyedMillSeconds += thisTime.count(); //累计到已播放时间（毫秒）
+    m_startTime = std::chrono::steady_clock::now();
 
     int64_t newCurrentValue = GetCurrentValue();
     if (m_playCallback) {

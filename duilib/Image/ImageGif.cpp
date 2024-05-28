@@ -78,10 +78,9 @@ bool ImageGif::StartGifPlay(GifFrameType nStartFrame, int32_t nPlayCount)
     m_bPlayingGif = true;
     RedrawImage();
     auto gifPlayCallback = UiBind(&ImageGif::PlayGif, this);
-    bool bRet = GlobalManager::Instance().Timer().AddCancelableTimer(m_gifWeakFlag.GetWeakFlag(),
-                                                                     gifPlayCallback,
-                                                                     nTimerInterval,
-                                                                     TimerManager::REPEAT_FOREVER);
+    bool bRet = GlobalManager::Instance().Timer().AddTimer(m_gifWeakFlag.GetWeakFlag(),
+                                                           gifPlayCallback,
+                                                           nTimerInterval) != 0;
     return bRet;
 }
 
@@ -116,10 +115,9 @@ bool ImageGif::PlayGif()
     if (nPreTimerInterval != nNowTimerInterval) {
         m_gifWeakFlag.Cancel();
         auto gifPlayCallback = UiBind(&ImageGif::PlayGif, this);
-        bRet = GlobalManager::Instance().Timer().AddCancelableTimer(m_gifWeakFlag.GetWeakFlag(),
-                                                                    gifPlayCallback,
-                                                                    nNowTimerInterval,
-                                                                    TimerManager::REPEAT_FOREVER);
+        bRet = GlobalManager::Instance().Timer().AddTimer(m_gifWeakFlag.GetWeakFlag(),
+                                                          gifPlayCallback,
+                                                          nNowTimerInterval) != 0;
     }
     if (bRet) {
         m_pImage->SetCurrentFrame(nFrameIndex);

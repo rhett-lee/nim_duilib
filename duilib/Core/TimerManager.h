@@ -5,6 +5,11 @@
 
 #include "duilib/Core/Callback.h"
 #include <queue>
+#include <set>
+#include <chrono>
+#include <thread>
+#include <mutex>
+#include <condition_variable>
 
 namespace ui 
 {
@@ -25,18 +30,22 @@ public:
     TimerManager& operator = (const TimerManager&) = delete;
 
 public:
-    const static int REPEAT_FOREVER = -1;
-
     /** 添加一个可取消的定时器
     * @param [in] weakFlag 定时器取消机制，如果weakFlag.expired()为true表示定时器已经取消，不会在继续派发定时器回调
     * @param [in] callback 定时器回调函数
-    * @param [in] uElapse 定时器触发时间间隔，单位为毫秒
+    * @param [in] uElapseMs 定时器触发时间间隔，单位为毫秒
     * @param [in] iRepeatTime 定时器回调次数限制，如果为 -1 表示不停重复回调
+    * @param [in] 成功返回定时器ID（其值大于0），失败则返回0
     */
-    bool AddCancelableTimer(const std::weak_ptr<WeakFlag>& weakFlag,
-                            const TimerCallback& callback,
-                            uint32_t uElapse, 
-                            int32_t iRepeatTime);
+    size_t AddTimer(const std::weak_ptr<WeakFlag>& weakFlag,
+                    const TimerCallback& callback,
+                    uint32_t uElapseMs,
+                    int32_t iRepeatTime = -1);
+
+    /** 删除一个定时器任务
+    * @param [in] nTimerId 定时器任务ID，即AddTimer的返回值
+    */
+    void RemoveTimer(size_t nTimerId);
 
     /** 关闭定时器管理器，释放资源
      */
@@ -47,17 +56,21 @@ private:
     */
     static LRESULT CALLBACK WndProcThunk(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam);
 
-    /** 定时器回调函数
+    /** 后台线程的线程函数
     */
-    static void CALLBACK TimeCallback(UINT uTimerID, UINT uMsg, DWORD_PTR dwUser, DWORD_PTR dw1, DWORD_PTR dw2);
+    void WorkerThreadProc();
 
     /** 定时器触发，进行定时器事件回调派发
     */
     void Poll();
 
-    /** 停止定时器
+    /** 是否定时器任务已经被取消
     */
-    void KillTimerEvent();
+    bool IsTimerRemoved(size_t nTimerId) const;
+
+    /** 移除已经取消的定时器任务ID
+    */
+    void ClearRemovedTimerId(size_t nTimerId);
 
 private:
     /** 消息窗口句柄，用于在UI线程中派发定时器事件
@@ -68,17 +81,30 @@ private:
     */
     std::priority_queue<TimerInfo> m_aTimers;
 
-    /** 性能计数器频率(每秒的时钟滴答数)
+    /** 下一个定时器任务ID
     */
-    LARGE_INTEGER m_timeFrequency;
+    size_t m_nNextTimerId;
 
-    /** 当前系统定时器的间隔是否为最小间隔
+    /** 移除的定时器任务ID
     */
-    bool m_bMinInterval;
+    std::set<size_t> m_removedTimerIds;
 
-    /** 定时器ID
+private:
+    /** 是否正在运行中
     */
-    uint32_t m_nTimerId;
+    volatile bool m_bRunning;
+
+    /** 后台线程
+    */
+    std::unique_ptr<std::thread> m_pWorkerThread;
+
+    /** 线程的事件通知机制
+    */
+    std::condition_variable m_cv;
+
+    /** 任务数据容器锁
+    */
+    std::mutex m_taskMutex;
 };
 
 } // namespace ui

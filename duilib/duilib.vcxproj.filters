@@ -420,6 +420,9 @@
     <ClCompile Include="third_party\convert_utf\ConvertUTF.c">
       <Filter>Utils</Filter>
     </ClCompile>
+    <ClCompile Include="Utils\LogUtil.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -921,6 +924,9 @@
       <Filter>Utils</Filter>
     </ClInclude>
     <ClInclude Include="Utils\Unicode.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\LogUtil.h">
       <Filter>Utils</Filter>
     </ClInclude>
   </ItemGroup>

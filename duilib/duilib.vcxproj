@@ -442,6 +442,7 @@
     <ClCompile Include="Utils\AttributeUtil.cpp" />
     <ClCompile Include="Utils\FileDialog.cpp" />
     <ClCompile Include="Utils\FileUtil.cpp" />
+    <ClCompile Include="Utils\LogUtil.cpp" />
     <ClCompile Include="Utils\PathUtil.cpp" />
     <ClCompile Include="Utils\PerformanceUtil.cpp" />
     <ClCompile Include="Utils\ShadowWnd.cpp" />
@@ -604,6 +605,7 @@
     <ClInclude Include="Utils\AttributeUtil.h" />
     <ClInclude Include="Utils\FileDialog.h" />
     <ClInclude Include="Utils\FileUtil.h" />
+    <ClInclude Include="Utils\LogUtil.h" />
     <ClInclude Include="Utils\Macros.h" />
     <ClInclude Include="Utils\PathUtil.h" />
     <ClInclude Include="Utils\PerformanceUtil.h" />

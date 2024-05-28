@@ -1946,7 +1946,7 @@ void ListCtrl::OnItemEnterEditMode(size_t itemIndex, size_t nColumnId,
     m_editModeFlag.Cancel();
     std::function<void()> editModeCallback = UiBind(&ListCtrl::OnItemEditMode, this, editParam);
     TimerManager& timer = GlobalManager::Instance().Timer();
-    timer.AddCancelableTimer(m_editModeFlag.GetWeakFlag(), editModeCallback, 600, 1);
+    timer.AddTimer(m_editModeFlag.GetWeakFlag(), editModeCallback, 600, 1);
 }
 
 bool ListCtrl::IsValidItemEditState(const ListCtrlEditParam& editParam) const

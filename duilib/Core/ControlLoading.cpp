@@ -134,10 +134,9 @@ bool ControlLoading::StartLoading(int32_t fStartAngle)
         return false;
     }
     m_bIsLoading = true;
-    GlobalManager::Instance().Timer().AddCancelableTimer(m_loadingImageFlag.GetWeakFlag(), 
+    GlobalManager::Instance().Timer().AddTimer(m_loadingImageFlag.GetWeakFlag(), 
                                                          UiBind(&ControlLoading::Loading, this),
-                                                         50, 
-                                                         TimerManager::REPEAT_FOREVER);
+                                                         50);
     return true;
 }
 

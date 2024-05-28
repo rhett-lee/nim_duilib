@@ -377,7 +377,7 @@ void Progress::SetMarquee(bool bMarquee)
 
     if (m_bMarquee) {
         auto playCallback = UiBind(&Progress::Play, this);
-        GlobalManager::Instance().Timer().AddCancelableTimer(m_timer.GetWeakFlag(), playCallback, m_nMarqueeElapsed, TimerManager::REPEAT_FOREVER);
+        GlobalManager::Instance().Timer().AddTimer(m_timer.GetWeakFlag(), playCallback, m_nMarqueeElapsed);
     }
     else {
         m_timer.Cancel();
@@ -438,7 +438,7 @@ void Progress::SetMarqueeElapsed(int32_t nMarqueeElapsed)
     m_timer.Cancel();
 
     auto playCallback = UiBind(&Progress::Play, this);
-    GlobalManager::Instance().Timer().AddCancelableTimer(m_timer.GetWeakFlag(), playCallback, m_nMarqueeElapsed, TimerManager::REPEAT_FOREVER);
+    GlobalManager::Instance().Timer().AddTimer(m_timer.GetWeakFlag(), playCallback, m_nMarqueeElapsed);
 
     Invalidate();
 }

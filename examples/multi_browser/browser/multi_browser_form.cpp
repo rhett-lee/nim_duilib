@@ -238,7 +238,7 @@ bool MultiBrowserForm::OnClicked(const ui::EventArgs& arg )
     }
     else if (name == L"btn_add")
     {
-        uint64_t nTimeMS = std::chrono::high_resolution_clock::now().time_since_epoch().count() / 1000;
+        uint64_t nTimeMS = std::chrono::steady_clock::now().time_since_epoch().count() / 1000;
         std::string timeStamp = ui::StringUtil::Printf("%I64u", nTimeMS);
         MultiBrowserManager::GetInstance()->CreateBorwserBox(this, timeStamp, L"");
     }
@@ -276,7 +276,7 @@ bool MultiBrowserForm::OnReturn(const ui::EventArgs& arg)
          if (cef_control)
              cef_control->LoadURL(edit_url_->GetText());
 #endif
-         uint64_t nTimeMS = std::chrono::high_resolution_clock::now().time_since_epoch().count() / 1000;
+         uint64_t nTimeMS = std::chrono::steady_clock::now().time_since_epoch().count() / 1000;
         std::string timeStamp = ui::StringUtil::Printf("%I64u", nTimeMS);
         // 新建标签页
         MultiBrowserManager::GetInstance()->CreateBorwserBox(this, timeStamp, edit_url_->GetText());

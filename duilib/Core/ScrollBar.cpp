@@ -453,7 +453,7 @@ void ScrollBar::HandleEvent(const EventArgs& msg)
         m_nScrollRepeatDelay = 0;
 
         auto callback = UiBind(&ScrollBar::ScrollTimeHandle, this);
-        GlobalManager::Instance().Timer().AddCancelableTimer(m_weakFlagOwner.GetWeakFlag(), callback, 50, TimerManager::REPEAT_FOREVER);
+        GlobalManager::Instance().Timer().AddTimer(m_weakFlagOwner.GetWeakFlag(), callback, 50);
 
         if (m_rcButton1.ContainsPt(pt)) {
             //鼠标位置：[上按钮](垂直滚动条) 或者 [左按钮](水平滚动条)

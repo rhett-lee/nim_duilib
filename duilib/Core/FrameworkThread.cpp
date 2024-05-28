@@ -150,7 +150,7 @@ size_t FrameworkThread::PostTask(const StdClosure& task)
     taskInfo.m_nIntervalMs = 0;
     taskInfo.m_nTimes = 1;
     taskInfo.m_nTaskId = nTaskId;
-    taskInfo.m_startTime = std::chrono::high_resolution_clock::now();
+    taskInfo.m_startTime = std::chrono::steady_clock::now();
     taskInfo.m_nTotalExecTimes = 0;
 
     bool bAdded = NotifyExecTask(nTaskId);
@@ -172,14 +172,14 @@ size_t FrameworkThread::PostDelayedTask(const StdClosure& task, int32_t nDelayMs
     taskInfo.m_nIntervalMs = nDelayMs;
     taskInfo.m_nTimes = 1;
     taskInfo.m_nTaskId = nTaskId;
-    taskInfo.m_startTime = std::chrono::high_resolution_clock::now();
+    taskInfo.m_startTime = std::chrono::steady_clock::now();
     taskInfo.m_nTotalExecTimes = 0;
 
     bool bAdded = false;
     if (nDelayMs > 0) {
         //生成一个定时器，用来触发任务执行(只执行1次)
         auto timerCallback = UiBind(&FrameworkThread::NotifyExecTask, this, nTaskId);
-        bAdded = GlobalManager::Instance().Timer().AddCancelableTimer(GetWeakFlag(), timerCallback, nDelayMs, 1);
+        bAdded = GlobalManager::Instance().Timer().AddTimer(GetWeakFlag(), timerCallback, nDelayMs, 1);
     }
     else {
         bAdded = NotifyExecTask(nTaskId);
@@ -202,7 +202,7 @@ size_t FrameworkThread::PostRepeatedTask(const StdClosure& task, int32_t nInterv
     taskInfo.m_nIntervalMs = nIntervalMs;
     taskInfo.m_nTimes = nTimes;
     taskInfo.m_nTaskId = nTaskId;
-    taskInfo.m_startTime = std::chrono::high_resolution_clock::now();
+    taskInfo.m_startTime = std::chrono::steady_clock::now();
     taskInfo.m_nTotalExecTimes = 0;
 
     if (nTimes < 0) {
@@ -210,8 +210,8 @@ size_t FrameworkThread::PostRepeatedTask(const StdClosure& task, int32_t nInterv
     }
     //生成一个定时器，用来触发任务执行(只执行1次)
     auto timerCallback = UiBind(&FrameworkThread::NotifyExecTask, this, nTaskId);
-    bool bAdded = GlobalManager::Instance().Timer().AddCancelableTimer(GetWeakFlag(), timerCallback, nIntervalMs, nTimes);
-    ASSERT_UNUSED_VARIABLE(bAdded);
+    size_t nTimerId = GlobalManager::Instance().Timer().AddTimer(GetWeakFlag(), timerCallback, nIntervalMs, nTimes);
+    ASSERT_UNUSED_VARIABLE(nTimerId > 0);
     return nTaskId;
 }
 
@@ -246,8 +246,8 @@ bool FrameworkThread::NotifyExecTask(size_t nTaskId)
         std::lock_guard<std::mutex> threadGuard(m_penddingTaskMutex);
         m_penddingTaskIds.push_back(nTaskId);
         m_cv.notify_one();
+        return true;
     }
-    return false;
 }
 
 void FrameworkThread::ExecTask(size_t nTaskId)
@@ -274,7 +274,7 @@ void FrameworkThread::ExecTask(size_t nTaskId)
                     //定时执行
                     task = taskInfo.m_task;
                     taskInfo.m_nTotalExecTimes++;
-                    taskInfo.m_lastExecTime = std::chrono::high_resolution_clock::now();
+                    taskInfo.m_lastExecTime = std::chrono::steady_clock::now();
                     if ((taskInfo.m_nTimes >= 0) && (taskInfo.m_nTotalExecTimes >= taskInfo.m_nTimes)) {
                         //已经执行完成
                         m_taskMap.erase(iter);

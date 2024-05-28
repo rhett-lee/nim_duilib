@@ -76,7 +76,7 @@ void MainThread::OnInit()
     resourcePath += L"resources\\";
     ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath), dpiInitParam);
 
-    uint64_t nTimeMS = std::chrono::high_resolution_clock::now().time_since_epoch().count() / 1000;
+    uint64_t nTimeMS = std::chrono::steady_clock::now().time_since_epoch().count() / 1000;
     std::string timeStamp = ui::StringUtil::Printf("%I64u", nTimeMS);
     MultiBrowserManager::GetInstance()->CreateBorwserBox(NULL, timeStamp, L"");
 }
