@@ -50,7 +50,7 @@ void RichlistForm::OnInitWindow()
         }
 
         std::wstring img = L"icon.png";
-        std::wstring title = nbase::StringPrintf(L"任务 [%02d]", i);
+        std::wstring title = ui::StringUtil::Printf(L"任务 [%02d]", i);
 
         item->InitSubControls(img, title);
         m_pListBox->AddItem(item);
@@ -58,7 +58,7 @@ void RichlistForm::OnInitWindow()
 
     m_pListBox->SetFocus();
     // 监听列表中点击选择子项的事件
-    m_pListBox->AttachSelect(nbase::Bind(&RichlistForm::OnSelected, this, std::placeholders::_1));
+    m_pListBox->AttachSelect(UiBind(&RichlistForm::OnSelected, this, std::placeholders::_1));
 }
 
 bool RichlistForm::OnSelected(const ui::EventArgs& args)
@@ -66,7 +66,7 @@ bool RichlistForm::OnSelected(const ui::EventArgs& args)
     int current = static_cast<int>(args.wParam);
     int old = static_cast<int>(args.lParam);
 
-    /*auto message = nbase::StringPrintf(L"您选择了索引为 %d 的子项，上一次选择子项索引为 %d\n", current, old);
+    /*auto message = ui::StringUtil::Printf(L"您选择了索引为 %d 的子项，上一次选择子项索引为 %d\n", current, old);
     ::OutputDebugStringW(message.c_str());
 
     ui::ListBoxVerVisible vVisibleType = ui::ListBoxVerVisible::kVisible;

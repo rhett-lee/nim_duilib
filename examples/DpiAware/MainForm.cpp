@@ -101,25 +101,25 @@ void MainForm::UpdateUI()
     pLabel = dynamic_cast<ui::Label*>(FindControl(L"system_dpi"));
     if (pLabel != nullptr) {
         uint32_t nDPI = ui::GlobalManager::Instance().Dpi().GetDPI();
-        std::wstring text = ui::StringHelper::UInt32ToString(nDPI);
+        std::wstring text = ui::StringUtil::UInt32ToString(nDPI);
         pLabel->SetText(text);
     }
     pLabel = dynamic_cast<ui::Label*>(FindControl(L"system_dpi_percent"));
     if (pLabel != nullptr) {
         uint32_t nScale = ui::GlobalManager::Instance().Dpi().GetScale();
-        std::wstring text = ui::StringHelper::UInt32ToString(nScale);
+        std::wstring text = ui::StringUtil::UInt32ToString(nScale);
         pLabel->SetText(text);
     }
     pLabel = dynamic_cast<ui::Label*>(FindControl(L"window_dpi"));
     if (pLabel != nullptr) {
         uint32_t nDPI = Dpi().GetDPI();
-        std::wstring text = ui::StringHelper::UInt32ToString(nDPI);
+        std::wstring text = ui::StringUtil::UInt32ToString(nDPI);
         pLabel->SetText(text);
     }
     pLabel = dynamic_cast<ui::Label*>(FindControl(L"window_dpi_percent"));
     if (pLabel != nullptr) {
         uint32_t nScale = Dpi().GetScale();
-        std::wstring text = ui::StringHelper::UInt32ToString(nScale);
+        std::wstring text = ui::StringUtil::UInt32ToString(nScale);
         pLabel->SetText(text);
     }
 }

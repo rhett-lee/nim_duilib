@@ -358,10 +358,10 @@ std::wstring HotKey::GetHotKeyName() const
 
 bool HotKey::SetHotKeyName(const std::wstring& hotKeyName)
 {
-    std::list<std::wstring> hotKeyList = StringHelper::Split(hotKeyName, L"+");
+    std::list<std::wstring> hotKeyList = StringUtil::Split(hotKeyName, L"+");
     for (std::wstring& hotKey : hotKeyList) {
-        StringHelper::Trim(hotKey);
-        hotKey = StringHelper::MakeLowerString(hotKey);
+        StringUtil::Trim(hotKey);
+        hotKey = StringUtil::MakeLowerString(hotKey);
     }
     if (hotKeyList.empty()) {
         return false;
@@ -369,9 +369,9 @@ bool HotKey::SetHotKeyName(const std::wstring& hotKeyName)
     std::wstring keyCtrl = GetKeyName(VK_CONTROL, false);
     std::wstring keyShift = GetKeyName(VK_SHIFT, false);
     std::wstring keyAlt = GetKeyName(VK_MENU, false);
-    keyCtrl = StringHelper::MakeLowerString(keyCtrl);
-    keyShift = StringHelper::MakeLowerString(keyShift);
-    keyAlt = StringHelper::MakeLowerString(keyAlt);
+    keyCtrl = StringUtil::MakeLowerString(keyCtrl);
+    keyShift = StringUtil::MakeLowerString(keyShift);
+    keyAlt = StringUtil::MakeLowerString(keyAlt);
 
     uint8_t wModifiers = 0;
     auto iter = hotKeyList.begin();
@@ -401,7 +401,7 @@ bool HotKey::SetHotKeyName(const std::wstring& hotKeyName)
         std::map<std::wstring, uint8_t> vkCodeMap;
         std::wstring temp;
         for (uint32_t vkCode = 0; vkCode <= 256; ++vkCode) {
-            temp = StringHelper::MakeLowerString(GetKeyName((uint8_t)vkCode, false));
+            temp = StringUtil::MakeLowerString(GetKeyName((uint8_t)vkCode, false));
             if (!temp.empty()) {
                 vkCodeMap[temp] = (uint8_t)vkCode;
             }
@@ -419,7 +419,7 @@ bool HotKey::SetHotKeyName(const std::wstring& hotKeyName)
         std::map<std::wstring, uint8_t> vkCodeExtMap;
         std::wstring temp;
         for (uint32_t vkCode = 0; vkCode <= 256; ++vkCode) {
-            temp = StringHelper::MakeLowerString(GetKeyName((uint8_t)vkCode, true));
+            temp = StringUtil::MakeLowerString(GetKeyName((uint8_t)vkCode, true));
             if (!temp.empty()) {
                 vkCodeExtMap[temp] = (uint8_t)vkCode;
             }

@@ -3,8 +3,6 @@
 #include "ui_components/cef_control/manager/cef_manager.h"
 #include "ui_components/cef_control/app/cef_js_bridge.h"
 
-#include "base/util/string_util.h"
-
 #pragma warning (push)
 #pragma warning (disable:4100)
 #include "include/cef_browser.h"
@@ -43,7 +41,7 @@ void CefControlBase::LoadURL(const CefString& url)
     {
         if (browser_handler_.get())
         {
-            StdClosure cb = ToWeakCallback([this, url]()
+            ui::StdClosure cb = ToWeakCallback([this, url]()
             {
                 LoadURL(url);
             });
@@ -66,7 +64,7 @@ void CefControlBase::LoadString(const CefString& stringW, const CefString& url)
     {
         if (browser_handler_.get())
         {
-            StdClosure cb = ToWeakCallback([this, stringW, url]()
+            ui::StdClosure cb = ToWeakCallback([this, stringW, url]()
             {
                 LoadString(stringW, url);
             });
@@ -172,7 +170,7 @@ std::string CefControlBase::GetUTF8URL()
 {
     if (browser_handler_.get() && browser_handler_->GetBrowser().get())
     {
-        return nbase::UTF16ToUTF8(std::wstring(GetURL().c_str()));
+        return ui::StringUtil::UTF16ToUTF8(std::wstring(GetURL().c_str()));
     }
 
     return CefString();
@@ -190,7 +188,7 @@ bool CefControlBase::RegisterCppFunc(const std::wstring& function_name, nim_comp
 {
     if (browser_handler_.get() && browser_handler_->GetBrowser().get() && js_bridge_.get())
     {
-        return js_bridge_->RegisterCppFunc(nbase::UTF16ToUTF8(function_name).c_str(), function, global_function ? nullptr : browser_handler_->GetBrowser());
+        return js_bridge_->RegisterCppFunc(ui::StringUtil::UTF16ToUTF8(function_name).c_str(), function, global_function ? nullptr : browser_handler_->GetBrowser());
     }
 
     return false;
@@ -200,7 +198,7 @@ void CefControlBase::UnRegisterCppFunc(const std::wstring& function_name)
 {
     if (browser_handler_.get() && browser_handler_->GetBrowser().get() && js_bridge_.get())
     {
-        js_bridge_->UnRegisterCppFunc(nbase::UTF16ToUTF8(function_name).c_str(), browser_handler_->GetBrowser());
+        js_bridge_->UnRegisterCppFunc(ui::StringUtil::UTF16ToUTF8(function_name).c_str(), browser_handler_->GetBrowser());
     }
 }
 
@@ -210,8 +208,8 @@ bool CefControlBase::CallJSFunction(const std::wstring& js_function_name, const 
     {
         CefRefPtr<CefFrame> frame = frame_name == L"" ? browser_handler_->GetBrowser()->GetMainFrame() : browser_handler_->GetBrowser()->GetFrame(frame_name);
 
-        if (!js_bridge_->CallJSFunction(nbase::UTF16ToUTF8(js_function_name).c_str(),
-            nbase::UTF16ToUTF8(params).c_str(), frame, callback))
+        if (!js_bridge_->CallJSFunction(ui::StringUtil::UTF16ToUTF8(js_function_name).c_str(),
+            ui::StringUtil::UTF16ToUTF8(params).c_str(), frame, callback))
         {
             return false;
         }
@@ -228,8 +226,8 @@ bool CefControlBase::CallJSFunction(const std::wstring& js_function_name, const 
     {
         CefRefPtr<CefFrame> frame = browser_handler_->GetBrowser()->GetFrame(frame_id);
 
-        if (!js_bridge_->CallJSFunction(nbase::UTF16ToUTF8(js_function_name).c_str(),
-            nbase::UTF16ToUTF8(params).c_str(), frame, callback))
+        if (!js_bridge_->CallJSFunction(ui::StringUtil::UTF16ToUTF8(js_function_name).c_str(),
+            ui::StringUtil::UTF16ToUTF8(params).c_str(), frame, callback))
         {
             return false;
         }

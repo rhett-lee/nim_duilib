@@ -8,8 +8,7 @@
 #include "duilib/Box/VirtualVLayout.h"
 #include "duilib/Box/VirtualHTileLayout.h"
 #include "duilib/Box/VirtualVTileLayout.h"
-#include "base/callback/callback.h"
-#include <functional>
+#include "duilib/Core/Callback.h"
 
 namespace ui {
 
@@ -17,7 +16,7 @@ typedef std::function<void(size_t nStartIndex, size_t nEndIndex)> DataChangedNot
 typedef std::function<void()> CountChangedNotify;
 
 class VirtualListBox;
-class UILIB_API VirtualListBoxElement : public virtual nbase::SupportWeakCallback
+class UILIB_API VirtualListBoxElement : public virtual SupportWeakCallback
 {
 public:
     VirtualListBoxElement();

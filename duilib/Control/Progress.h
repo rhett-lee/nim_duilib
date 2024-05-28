@@ -183,7 +183,7 @@ protected:
     bool m_bReverse;
 
     //定时器取消机制
-    nbase::WeakCallbackFlag m_timer;
+    WeakCallbackFlag m_timer;
 };
 
 } // namespace ui

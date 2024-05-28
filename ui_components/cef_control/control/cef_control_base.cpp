@@ -1,7 +1,6 @@
 #include "cef_control_base.h"
 #include "ui_components/cef_control/util/util.h"
-#include "base/thread/framework_thread.h"
-#include "base/thread/thread_manager.h"
+#include "duilib/duilib.h"
 
 namespace nim_comp {
 
@@ -177,7 +176,7 @@ bool CefControlBase::OnExecuteCppFunc(const CefString& function_name, const CefS
 {
     if (js_bridge_.get())
     {
-        js_callback_thread_id_ = nbase::FrameworkThread::GetManagedThreadId();
+        js_callback_thread_id_ = ui::GlobalManager::Instance().Thread().GetCurrentThreadIdentifier();
         return js_bridge_->ExecuteCppFunc(function_name, params, js_callback_id, browser);
     }
 
@@ -190,7 +189,7 @@ bool CefControlBase::OnExecuteCppCallbackFunc(int cpp_callback_id, const CefStri
     {
         if (js_callback_thread_id_ != -1)
         {
-            nbase::ThreadManager::PostTask(js_callback_thread_id_, [this, cpp_callback_id, json_string]
+            ui::GlobalManager::Instance().Thread().PostTask(js_callback_thread_id_, [this, cpp_callback_id, json_string]
             {
                 js_bridge_->ExecuteCppCallbackFunc(cpp_callback_id, json_string);
             });

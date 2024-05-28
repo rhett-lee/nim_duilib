@@ -89,8 +89,8 @@ void RichText::SetAttribute(const std::wstring& strName, const std::wstring& str
         if (((strValue.find(L'<') == std::wstring::npos) && (strValue.find(L'>') == std::wstring::npos)) &&
             ((strValue.find(L'{') != std::wstring::npos) && (strValue.find(L'}') != std::wstring::npos))) {
             std::wstring richText(strValue);
-            StringHelper::ReplaceAll(L"{", L"<", richText);
-            StringHelper::ReplaceAll(L"}", L">", richText);
+            StringUtil::ReplaceAll(L"{", L"<", richText);
+            StringUtil::ReplaceAll(L"}", L">", richText);
             SetText(richText);
         }
         else {
@@ -448,7 +448,7 @@ const std::wstring& RichText::TrimText(std::wstring& text)
         if (!text.empty()) {
             bool bFirst = (text.front() == L' ');
             bool bLast = text[text.size() - 1] == L' ';
-            StringHelper::Trim(text);
+            StringUtil::Trim(text);
             if (text.empty()) {
                 text = L" ";
             }
@@ -464,7 +464,7 @@ const std::wstring& RichText::TrimText(std::wstring& text)
     }
     else {
         //去掉所有空格
-        StringHelper::Trim(text);
+        StringUtil::Trim(text);
     }    
     return text;
 }
@@ -490,7 +490,7 @@ std::wstring RichText::TrimText(const wchar_t* text)
     }
     else {
         //去掉所有空格
-        return StringHelper::Trim(text);
+        return StringUtil::Trim(text);
     }    
 }
 
@@ -662,7 +662,7 @@ std::wstring RichText::ToString(const RichTextSlice& textSlice, const std::wstri
     }
     if (textSlice.m_fontInfo.m_fontSize != 0) {
         attrList += L"size=\"";
-        attrList += StringHelper::Printf(L"%d", textSlice.m_fontInfo.m_fontSize);
+        attrList += StringUtil::Printf(L"%d", textSlice.m_fontInfo.m_fontSize);
         attrList += L"\"";
     }
 

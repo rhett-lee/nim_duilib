@@ -17,9 +17,5 @@
 #include <tchar.h>
 #include <functional>
 
-// base header
-#include "base/base.h"
-
 // duilib
 #include "duilib/duilib.h"
-

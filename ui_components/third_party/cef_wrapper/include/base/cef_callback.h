@@ -39,7 +39,7 @@
 // the Chromium header first to avoid type conflicts.
 #elif defined(BUILDING_CEF_SHARED)
 // When building CEF include the Chromium header directly.
-#include "base/callback.h"
+#include "duilib/Core/Callback.h"
 #else  // !BUILDING_CEF_SHARED
 // The following is substantially similar to the Chromium implementation.
 // If the Chromium implementation diverges the below implementation should be

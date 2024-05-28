@@ -260,7 +260,7 @@ bool RichEditFindReplace::SameAsSelected(const std::wstring& replaceText, BOOL b
         return selectedText == replaceText;
     }
     else {
-        return ui::StringHelper::IsEqualNoCase(selectedText, replaceText);
+        return ui::StringUtil::IsEqualNoCase(selectedText, replaceText);
     }
 }
 

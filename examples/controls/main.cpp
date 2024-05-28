@@ -17,31 +17,45 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     //BOOL isOk = EnableMouseInPointer(TRUE);
     //BOOL isOk2 = IsMouseInPointerEnabled();
 
-    MainThread().RunOnCurrentThreadWithLoop(nbase::MessageLoop::kUIMessageLoop);
+    MainThread().RunOnCurrentThreadWithLoop();
 
     return 0;
 }
 
-void MiscThread::Init()
+MiscThread::MiscThread() :
+    FrameworkThread(_T("MiscThread"), ui::kThreadMisc)
 {
-    nbase::ThreadManager::RegisterThread(thread_id_);
 }
 
-void MiscThread::Cleanup()
+MiscThread::~MiscThread()
 {
-    nbase::ThreadManager::UnregisterThread();
 }
 
-void MainThread::Init()
+void MiscThread::OnInit()
 {
-    nbase::ThreadManager::RegisterThread(kThreadUI);
+}
 
+void MiscThread::OnCleanup()
+{
+}
+
+MainThread::MainThread() :
+    FrameworkThread(_T("MainThread"), ui::kThreadUI)
+{
+}
+
+MainThread::~MainThread()
+{
+}
+
+void MainThread::OnInit()
+{
     // 启动杂事处理线程
-    misc_thread_.reset(new MiscThread(kThreadGlobalMisc, "Global Misc Thread"));
-    misc_thread_->Start();
+    m_misc_thread.reset(new MiscThread);
+    m_misc_thread->Start();
 
     //初始化全局资源, 使用本地文件夹作为资源
-    std::wstring resourcePath = nbase::win32::GetCurrentModuleDirectory();
+    std::wstring resourcePath = ui::PathUtil::GetCurrentModuleDirectory();
     resourcePath += L"resources\\";
     ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath));
 
@@ -52,13 +66,10 @@ void MainThread::Init()
     window->ShowWindow();
 }
 
-void MainThread::Cleanup()
+void MainThread::OnCleanup()
 {
     ui::GlobalManager::Instance().Shutdown();
 
-    misc_thread_->Stop();
-    misc_thread_.reset(nullptr);
-
-    SetThreadWasQuitProperly(true);
-    nbase::ThreadManager::UnregisterThread();
+    m_misc_thread->Stop();
+    m_misc_thread.reset(nullptr);
 }

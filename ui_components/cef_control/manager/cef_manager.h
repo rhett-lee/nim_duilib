@@ -6,10 +6,8 @@
  */
 #pragma once
 
-#include "duilib/duilib_defs.h"
+#include "duilib/duilib.h"
 #include "ui_components/cef_control/handler/drag/osr_dragdrop_win.h"
-#include "base/framework/message_loop.h"
-#include "base/memory/singleton.h"
 
 #pragma warning (push)
 #pragma warning (disable:4100)
@@ -17,36 +15,24 @@
 #pragma warning (pop)
 
 namespace nim_comp
-{ 
-/** @class CefMessageLoopDispatcher
- * @brief 当multi_threaded_message_loop为false时，需要我们在自己的消息循环中主动调用Cef的消息循环接口
- *         项目底层组件使用base库的UI消息循环，从而无法使用cef自带的CefRunMessageLoop阻塞消息循环函数
- *         CefMessageLoopDispatcher继承base库的消息调度接口，规律的调用cef的CefDoMessageLoopWork非阻塞函数
- *         这样可以让base库兼容cef的消息循环
- *         当multi_threaded_message_loop为true时，不需要使用本类
- */
-class CefMessageLoopDispatcher : public nbase::Dispatcher
 {
-public:
-    virtual bool Dispatch(const MSG &message) override;
-
-private:
-    // 判断当前要调度的消息是否为空闲消息，CefDoMessageLoopWork函数在空闲时被调用
-    static BOOL IsIdleMessage(const MSG* pMsg);
-};
-
-
 /** @class CefManager
  * @brief Cef组件初始化和销毁
  */
-class CefManager : public virtual nbase::SupportWeakCallback
+class CefManager : public virtual ui::SupportWeakCallback
 {
 public:
-    SINGLETON_DEFINE(CefManager);
-public:
     CefManager();
-    ~CefManager();
+    CefManager(const CefManager&) = delete;
+    CefManager& operator=(const CefManager&) = delete;
 
+    /** 单例对象
+    */
+    static CefManager* GetInstance();
+
+private:
+    ~CefManager();
+public:
     /**
     * 把cef dll文件的位置添加到程序的"path"环境变量中,这样可以把dll文件放到bin以外的目录，并且不需要手动频繁切换dll文件
     * @return void    无返回值
@@ -74,12 +60,6 @@ public:
     */
     bool IsEnableOffsetRender() const;
 
-    /**
-    * 获取兼容Cef的消息循环分派器
-    * @return nbase::Dispatcher* 消息循环分派器
-    */
-    nbase::Dispatcher* GetMessageDispatcher();
-
     // 记录浏览器对象的数量
     void AddBrowserCount();
     void SubBrowserCount();
@@ -100,7 +80,6 @@ private:
     void GetCefSetting(const std::wstring& app_data_dir, CefSettings &settings);
 
 private:
-    CefMessageLoopDispatcher message_dispatcher_;
     int browser_count_;
     bool is_enable_offset_render_;
 

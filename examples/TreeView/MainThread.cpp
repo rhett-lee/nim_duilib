@@ -1,29 +1,44 @@
 #include "MainThread.h"
 #include "MainForm.h"
 
-void WorkerThread::Init()
+WorkerThread::WorkerThread()
+    : FrameworkThread(_T("WorkerThread"), ui::kThreadWorker)
 {
-    ::CoInitialize(NULL);
-    nbase::ThreadManager::RegisterThread(m_threadID);
 }
 
-void WorkerThread::Cleanup()
+WorkerThread::~WorkerThread()
 {
-    nbase::ThreadManager::UnregisterThread();
+}
+
+void WorkerThread::OnInit()
+{
+    ::CoInitialize(NULL);
+}
+
+void WorkerThread::OnCleanup()
+{
     ::CoUninitialize();
 }
 
-void MainThread::Init()
+MainThread::MainThread() :
+    FrameworkThread(_T("MainThread"), ui::kThreadUI)
+{
+}
+
+MainThread::~MainThread()
+{
+}
+
+void MainThread::OnInit()
 {
     ::CoInitialize(NULL);
-    nbase::ThreadManager::RegisterThread(kThreadUI);
 
     //启动工作线程
-    m_workerThread.reset(new WorkerThread(kThreadWorker, "WorkerThread"));
+    m_workerThread.reset(new WorkerThread);
     m_workerThread->Start();
 
     //初始化全局资源, 使用本地文件夹作为资源
-    std::wstring resourcePath = nbase::win32::GetCurrentModuleDirectory();
+    std::wstring resourcePath = ui::PathUtil::GetCurrentModuleDirectory();
     resourcePath += L"resources\\";
     ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath));
 
@@ -34,14 +49,12 @@ void MainThread::Init()
     window->ShowWindow();
 }
 
-void MainThread::Cleanup()
+void MainThread::OnCleanup()
 {
     ui::GlobalManager::Instance().Shutdown();
     if (m_workerThread != nullptr) {
         m_workerThread->Stop();
         m_workerThread.reset(nullptr);
     }
-    SetThreadWasQuitProperly(true);
-    nbase::ThreadManager::UnregisterThread();
     ::CoUninitialize();
 }

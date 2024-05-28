@@ -808,7 +808,7 @@ bool MenuItem::ButtonUp(const ui::EventArgs& msg)
     if (pWindow == nullptr) {
         return false;
     }
-    std::weak_ptr<nbase::WeakFlag> weakFlag = pWindow->GetWeakFlag();
+    std::weak_ptr<WeakFlag> weakFlag = pWindow->GetWeakFlag();
     bool ret = __super::ButtonUp(msg);
     if (ret && !weakFlag.expired()) {
         //这里处理下如果有子菜单则显示子菜单
@@ -829,7 +829,7 @@ bool MenuItem::MouseEnter(const ui::EventArgs& msg)
     if (pWindow == nullptr) {
         return __super::MouseEnter(msg);
     }
-    std::weak_ptr<nbase::WeakFlag> weakFlag = pWindow->GetWeakFlag();
+    std::weak_ptr<WeakFlag> weakFlag = pWindow->GetWeakFlag();
     bool ret = __super::MouseEnter(msg);
     if (!weakFlag.expired() && IsHotState()) {
         //这里处理下如果有子菜单则显示子菜单

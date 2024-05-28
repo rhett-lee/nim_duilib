@@ -12,6 +12,7 @@
 #include "duilib/Core/LangManager.h"
 #include "duilib/Core/DpiManager.h"
 #include "duilib/Core/TimerManager.h"
+#include "duilib/Core/ThreadManager.h"
 #include "duilib/Core/ResourceParam.h"
 
 #include <string>
@@ -162,7 +163,7 @@ public:
     */
     ImageManager& Image();
 
-#ifdef UILIB_IMPL_WINSDK
+#ifdef DUILIB_PLATFORM_WIN
     /** 获取ICON资源管理器
     */
     IconManager& Icon();
@@ -180,6 +181,10 @@ public:
     /** 获取定时器管理器
     */
     TimerManager& Timer();
+
+    /** 获取线程管理器
+    */
+    ThreadManager& Thread();
 
     /** 多语言支持管理器
     */
@@ -283,7 +288,7 @@ private:
         
         /** 窗口接口的有效期标志
         */
-        std::weak_ptr<nbase::WeakFlag> m_weakFlag;
+        std::weak_ptr<WeakFlag> m_weakFlag;
     };
     std::vector<WindowWeakFlag> m_windowList;
 
@@ -311,11 +316,15 @@ private:
     */
     TimerManager m_timerManager;
 
+    /** 线程管理器
+    */
+    ThreadManager m_threadManager;
+
     /** 多语言管理器
     */
     LangManager m_langManager;
 
-#ifdef UILIB_IMPL_WINSDK
+#ifdef DUILIB_PLATFORM_WIN
     /** ICON资源管理器
     */
     IconManager m_iconManager;

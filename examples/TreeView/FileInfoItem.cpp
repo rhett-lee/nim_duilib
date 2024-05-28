@@ -32,10 +32,10 @@ void FileInfoItem::InitSubControls(const FileInfo& fileInfo, size_t nElementInde
             int32_t itemWidth = 64;// this->GetWidth();
             std::wstring imageString = fileInfo.m_filePath;
             if (itemWidth > 0) {
-                imageString = ui::StringHelper::Printf(L"file='%s' halign='center' valign='center' width='%d'", imageString.c_str(), itemWidth);
+                imageString = ui::StringUtil::Printf(L"file='%s' halign='center' valign='center' width='%d'", imageString.c_str(), itemWidth);
             }
             else {
-                imageString = ui::StringHelper::Printf(L"file='%s' halign='center' valign='center'", imageString.c_str());
+                imageString = ui::StringUtil::Printf(L"file='%s' halign='center' valign='center'", imageString.c_str());
             }
             m_pIconControl->SetBkImage(imageString);
         }
@@ -43,7 +43,7 @@ void FileInfoItem::InitSubControls(const FileInfo& fileInfo, size_t nElementInde
             //非图片文件或者文件夹，显示图标
             std::wstring iconString = ui::GlobalManager::Instance().Icon().GetIconString(fileInfo.m_hIcon);
             if (!iconString.empty()) {
-                iconString = ui::StringHelper::Printf(L"file='%s' halign='center' valign='center'", iconString.c_str());
+                iconString = ui::StringUtil::Printf(L"file='%s' halign='center' valign='center'", iconString.c_str());
                 m_pIconControl->SetBkImage(iconString);
             }
         }             
@@ -57,7 +57,7 @@ bool FileInfoItem::IsImageFile(const std::wstring& filePath) const
     if (pos != std::wstring::npos) {
         fileExt = filePath.substr(pos);
     }
-    fileExt = ui::StringHelper::MakeLowerString(fileExt);
+    fileExt = ui::StringUtil::MakeLowerString(fileExt);
     if (fileExt == L".svg") {
         return true;
     }

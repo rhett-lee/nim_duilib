@@ -135,7 +135,7 @@ bool ControlLoading::StartLoading(int32_t fStartAngle)
     }
     m_bIsLoading = true;
     GlobalManager::Instance().Timer().AddCancelableTimer(m_loadingImageFlag.GetWeakFlag(), 
-                                                         nbase::Bind(&ControlLoading::Loading, this),
+                                                         UiBind(&ControlLoading::Loading, this),
                                                          50, 
                                                          TimerManager::REPEAT_FOREVER);
     return true;

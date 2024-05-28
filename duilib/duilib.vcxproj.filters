@@ -408,6 +408,18 @@
     <ClCompile Include="Core\DpiAwareness.cpp">
       <Filter>Core</Filter>
     </ClCompile>
+    <ClCompile Include="Utils\PathUtil.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\FrameworkThread.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\ThreadManager.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="third_party\convert_utf\ConvertUTF.c">
+      <Filter>Utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -892,6 +904,24 @@
     </ClInclude>
     <ClInclude Include="Core\DpiAwareness.h">
       <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Callback.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\PathUtil.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\FrameworkThread.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ThreadManager.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="third_party\convert_utf\ConvertUTF.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\Unicode.h">
+      <Filter>Utils</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

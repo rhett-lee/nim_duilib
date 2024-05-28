@@ -1,6 +1,6 @@
 #include "GlobalManager.h"
 #include "duilib/Utils/StringUtil.h"
-
+#include "duilib/Utils/PathUtil.h"
 #include "duilib/Core/Window.h"
 #include "duilib/Core/Control.h"
 #include "duilib/Core/Box.h"
@@ -125,7 +125,7 @@ bool GlobalManager::Startup(const ResourceParam& resParam,
     m_renderFactory = std::make_unique<RenderFactory_GdiPlus>();
 #endif
 
-#ifdef UILIB_IMPL_WINSDK
+#ifdef DUILIB_PLATFORM_WIN
     //Init Windows Common Controls (for the ToolTip control)
     ::InitCommonControls();
 #endif
@@ -146,6 +146,7 @@ bool GlobalManager::Startup(const ResourceParam& resParam,
 
 void GlobalManager::Shutdown()
 {
+    m_threadManager.Clear();
     m_timerManager.Clear();
     m_colorManager.Clear();    
     m_fontManager.RemoveAllFonts();
@@ -179,12 +180,12 @@ const std::wstring& GlobalManager::GetResourcePath() const
 
 void GlobalManager::SetResourcePath(const std::wstring& strPath)
 {
-    m_resourcePath = StringHelper::NormalizeDirPath(strPath);
+    m_resourcePath = PathUtil::NormalizeDirPath(strPath);
 }
 
 void GlobalManager::SetLanguagePath(const std::wstring& strPath)
 {
-    m_languagePath = StringHelper::NormalizeDirPath(strPath);
+    m_languagePath = PathUtil::NormalizeDirPath(strPath);
 }
 
 const std::wstring& GlobalManager::GetLanguagePath() const
@@ -241,7 +242,7 @@ bool GlobalManager::ReloadResource(const ResourceParam& resParam, bool bInvalida
     RemoveAllClasss();
 
     //保存资源路径
-    SetResourcePath(StringHelper::JoinFilePath(strResourcePath, resParam.themePath));
+    SetResourcePath(PathUtil::JoinFilePath(strResourcePath, resParam.themePath));
 
     //解析全局资源信息(默认是"global.xml"文件)
     ASSERT(!resParam.globalXmlFileName.empty());
@@ -253,11 +254,11 @@ bool GlobalManager::ReloadResource(const ResourceParam& resParam, bool bInvalida
 
     //加载多语言文件(可选)
     if (!resParam.languagePath.empty() && !resParam.languageFileName.empty()) {
-        std::wstring languagePath = StringHelper::JoinFilePath(strResourcePath, resParam.languagePath);
+        std::wstring languagePath = PathUtil::JoinFilePath(strResourcePath, resParam.languagePath);
         ReloadLanguage(languagePath, resParam.languageFileName, false);
     }
     else if (!resParam.languagePath.empty()) {
-        SetLanguagePath(StringHelper::JoinFilePath(strResourcePath, resParam.languagePath));
+        SetLanguagePath(PathUtil::JoinFilePath(strResourcePath, resParam.languagePath));
     }
 
     //更新窗口中的所有子控件状态
@@ -288,15 +289,15 @@ bool GlobalManager::ReloadLanguage(const std::wstring& languagePath,
 
     std::wstring newLanguagePath = GetLanguagePath();
     if (!languagePath.empty()) {
-        newLanguagePath = StringHelper::NormalizeDirPath(languagePath);
+        newLanguagePath = PathUtil::NormalizeDirPath(languagePath);
     }
 
     //加载多语言文件，如果使用了资源压缩包则从内存中加载语言文件
     bool bReadOk = false;
-    if ( (newLanguagePath.empty() || !StringHelper::IsAbsolutePath(newLanguagePath)) && 
+    if ( (newLanguagePath.empty() || !PathUtil::IsAbsolutePath(newLanguagePath)) &&
          m_zipManager.IsUseZip() ) {
         std::vector<unsigned char> fileData;
-        std::wstring filePath = StringHelper::JoinFilePath(newLanguagePath, languageFileName);
+        std::wstring filePath = PathUtil::JoinFilePath(newLanguagePath, languageFileName);
         if (m_zipManager.GetZipData(filePath, fileData)) {
             bReadOk = m_langManager.LoadStringTable(fileData);
         }
@@ -305,7 +306,7 @@ bool GlobalManager::ReloadLanguage(const std::wstring& languagePath,
         }
     }
     else {
-        std::wstring filePath = StringHelper::JoinFilePath(newLanguagePath, languageFileName);
+        std::wstring filePath = PathUtil::JoinFilePath(newLanguagePath, languageFileName);
         bReadOk = m_langManager.LoadStringTable(filePath);
     }
 
@@ -363,7 +364,7 @@ bool GlobalManager::GetLanguageList(std::vector<std::pair<std::wstring, std::wst
                 const std::wstring& fileName = lang.first;
                 std::wstring& displayName = lang.second;
 
-                std::wstring filePath = StringHelper::JoinFilePath(languagePath, fileName);
+                std::wstring filePath = PathUtil::JoinFilePath(languagePath, fileName);
                 ui::LangManager langManager;
                 if (langManager.LoadStringTable(filePath)) {
                     displayName = langManager.GetStringViaID(languageNameID);
@@ -384,7 +385,7 @@ bool GlobalManager::GetLanguageList(std::vector<std::pair<std::wstring, std::wst
                 const std::wstring& fileName = lang.first;
                 std::wstring& displayName = lang.second;
 
-                std::wstring filePath = StringHelper::JoinFilePath(languagePath, fileName);
+                std::wstring filePath = PathUtil::JoinFilePath(languagePath, fileName);
                 std::vector<unsigned char> fileData;
                 if (m_zipManager.GetZipData(filePath, fileData)) {
                     ui::LangManager langManager;
@@ -404,16 +405,16 @@ bool GlobalManager::GetLanguageList(std::vector<std::pair<std::wstring, std::wst
 
 std::wstring GlobalManager::GetResFullPath(const std::wstring& windowResPath, const std::wstring& resPath)
 {
-    if (resPath.empty() || !StringHelper::IsRelativePath(resPath)) {
+    if (resPath.empty() || !PathUtil::IsRelativePath(resPath)) {
         return resPath;
     }
 
-    std::wstring imageFullPath = StringHelper::JoinFilePath(GlobalManager::GetResourcePath(), windowResPath);
-    imageFullPath = StringHelper::JoinFilePath(imageFullPath, resPath);
-    imageFullPath = StringHelper::NormalizeFilePath(imageFullPath);
-    if (!m_zipManager.IsZipResExist(imageFullPath) && !StringHelper::IsExistsPath(imageFullPath)) {
-        imageFullPath = StringHelper::JoinFilePath(GlobalManager::GetResourcePath(), resPath);
-        imageFullPath = StringHelper::NormalizeFilePath(imageFullPath);
+    std::wstring imageFullPath = PathUtil::JoinFilePath(GlobalManager::GetResourcePath(), windowResPath);
+    imageFullPath = PathUtil::JoinFilePath(imageFullPath, resPath);
+    imageFullPath = PathUtil::NormalizeFilePath(imageFullPath);
+    if (!m_zipManager.IsZipResExist(imageFullPath) && !PathUtil::IsExistsPath(imageFullPath)) {
+        imageFullPath = PathUtil::JoinFilePath(GlobalManager::GetResourcePath(), resPath);
+        imageFullPath = PathUtil::NormalizeFilePath(imageFullPath);
     }
     return imageFullPath;
 }
@@ -505,7 +506,7 @@ ImageManager& GlobalManager::Image()
     return m_imageManager;
 }
 
-#ifdef UILIB_IMPL_WINSDK
+#ifdef DUILIB_PLATFORM_WIN
 IconManager& GlobalManager::Icon()
 {
     return m_iconManager;
@@ -525,6 +526,11 @@ DpiManager& GlobalManager::Dpi()
 TimerManager& GlobalManager::Timer()
 {
     return m_timerManager;
+}
+
+ThreadManager& GlobalManager::Thread()
+{
+    return m_threadManager;
 }
 
 LangManager& GlobalManager::Lang()

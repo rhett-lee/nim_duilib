@@ -17,9 +17,6 @@
 #include "duilib/Box/VBox.h"
 #include "duilib/Control/Button.h"
 
-#include "base/win32/path_util.h"
-#include "base/thread/thread_manager.h"
-
 namespace ui {
 
 /** 拖放操作接口的实现（仅是拖入操作）
@@ -802,7 +799,7 @@ std::wstring RichEdit::GetText() const
 std::string RichEdit::GetUTF8Text() const
 {
     std::string strOut;
-    StringHelper::UnicodeToMBCS(GetText(), strOut, CP_UTF8);
+    StringUtil::UnicodeToMBCS(GetText(), strOut, CP_UTF8);
     return strOut;
 }
 
@@ -832,7 +829,7 @@ void RichEdit::SetTextId(const std::wstring& strTextId)
 void RichEdit::SetUTF8Text( const std::string& strText )
 {
     std::wstring strOut;
-    StringHelper::MBCSToUnicode(strText, strOut, CP_UTF8);
+    StringUtil::MBCSToUnicode(strText, strOut, CP_UTF8);
     SetText(strOut);
 }
 
@@ -999,7 +996,7 @@ bool RichEdit::SetDefaultCharFormat(CHARFORMAT2& cf)
             //同步文本颜色
             UiColor textColor;
             textColor.SetFromCOLORREF(cf.crTextColor);
-            m_sTextColor = ui::StringHelper::Printf(L"#%02X%02X%02X%02X", textColor.GetA(), textColor.GetR(), textColor.GetG(), textColor.GetB());
+            m_sTextColor = ui::StringUtil::Printf(L"#%02X%02X%02X%02X", textColor.GetA(), textColor.GetR(), textColor.GetG(), textColor.GetB());
         }
         if (m_pRichHost != nullptr) {
             CHARFORMAT2 newCf;
@@ -2166,7 +2163,7 @@ BOOL RichEdit::ShowCaret(BOOL fShow)
     if (fShow) {
         m_bIsCaretVisiable = true;
         m_drawCaretFlag.Cancel();
-        std::function<void()> closure = nbase::Bind(&RichEdit::ChangeCaretVisiable, this);
+        std::function<void()> closure = UiBind(&RichEdit::ChangeCaretVisiable, this);
         GlobalManager::Instance().Timer().AddCancelableTimer(m_drawCaretFlag.GetWeakFlag(), closure, 500, TimerManager::REPEAT_FOREVER);
     }
     else {
@@ -2249,7 +2246,7 @@ std::wstring RichEdit::GetPromptText() const
 std::string RichEdit::GetUTF8PromptText() const
 {
     std::string strOut;
-    StringHelper::UnicodeToMBCS(GetPromptText(), strOut, CP_UTF8);
+    StringUtil::UnicodeToMBCS(GetPromptText(), strOut, CP_UTF8);
     return strOut;
 }
 
@@ -2264,7 +2261,7 @@ void RichEdit::SetPromptText(const std::wstring& strText)
 void RichEdit::SetUTF8PromptText(const std::string& strText)
 {
     std::wstring strOut;
-    StringHelper::MBCSToUnicode(strText, strOut, CP_UTF8);
+    StringUtil::MBCSToUnicode(strText, strOut, CP_UTF8);
     SetPromptText(strOut);
 }
 
@@ -2279,7 +2276,7 @@ void RichEdit::SetPromptTextId(const std::wstring& strTextId)
 void RichEdit::SetUTF8PromptTextId(const std::string& strTextId)
 {
     std::wstring strOut;
-    StringHelper::MBCSToUnicode(strTextId, strOut, CP_UTF8);
+    StringUtil::MBCSToUnicode(strTextId, strOut, CP_UTF8);
     SetPromptTextId(strOut);
 }
 
@@ -2437,8 +2434,8 @@ void RichEdit::AddLinkColorTextEx(const std::wstring& str, const std::wstring &c
     std::string link;
     std::string text;
     std::string font_face;
-    StringHelper::UnicodeToMBCS(linkInfo, link);
-    StringHelper::UnicodeToMBCS(str, text);
+    StringUtil::UnicodeToMBCS(linkInfo, link);
+    StringUtil::UnicodeToMBCS(str, text);
     LOGFONT lf = {0,};
     if (strFontId.empty()) {
         RichEditHost::GetLogFont(this, m_sFontId.c_str(), lf);
@@ -2446,7 +2443,7 @@ void RichEdit::AddLinkColorTextEx(const std::wstring& str, const std::wstring &c
     else {
         RichEditHost::GetLogFont(this, strFontId, lf);
     }
-    StringHelper::UnicodeToMBCS(lf.lfFaceName, font_face);
+    StringUtil::UnicodeToMBCS(lf.lfFaceName, font_face);
     UiColor dwTextColor = GlobalManager::Instance().Color().GetColor(color);
     static std::string font_format = "{\\fonttbl{\\f0\\fnil\\fcharset%d %s;}}";
     static std::string color_format = "{\\colortbl ;\\red%d\\green%d\\blue%d;}";
@@ -2458,7 +2455,7 @@ void RichEdit::AddLinkColorTextEx(const std::wstring& str, const std::wstring &c
     char slinke[1024] = { 0 };
     sprintf_s(slinke, link_format.c_str(), sfont, scolor, ((int)(-lf.lfHeight *1.5))/2*2, link.c_str(), text.c_str());
     std::wstring temp;
-    StringHelper::MBCSToUnicode(slinke, temp);
+    StringUtil::MBCSToUnicode(slinke, temp);
     SETTEXTEX st;
     st.codepage = ((UINT32)~((UINT32)0));
     st.flags = ST_SELECTION | ST_KEEPUNDO;
@@ -2602,7 +2599,7 @@ void RichEdit::GetClipboardText( std::wstring &out )
                 char* buf = (char*)::GlobalLock(h);
                 if(buf != NULL)    {
                     std::string str(buf, GlobalSize(h));
-                    StringHelper::MBCSToUnicode(str, out);
+                    StringUtil::MBCSToUnicode(str, out);
 
                     ::GlobalUnlock(h);
                 }
@@ -2880,7 +2877,7 @@ void RichEdit::OnTextChanged()
             if (n < GetMinNumber()) {
                 //超过最小数字，进行修正
                 int32_t newValue = GetMinNumber();
-                SetTextNoEvent(StringHelper::Printf(L"%d", newValue));
+                SetTextNoEvent(StringUtil::Printf(L"%d", newValue));
                 if (!m_bDisableTextChangeEvent) {
                     SendEvent(kEventTextChange);
                 }
@@ -2889,7 +2886,7 @@ void RichEdit::OnTextChanged()
             else if (n > GetMaxNumber()) {
                 //超过最大数字，进行修正
                 int32_t newValue = GetMaxNumber();
-                SetTextNoEvent(StringHelper::Printf(L"%d", newValue));
+                SetTextNoEvent(StringUtil::Printf(L"%d", newValue));
                 if (!m_bDisableTextChangeEvent) {
                     SendEvent(kEventTextChange);
                 }
@@ -2907,7 +2904,7 @@ bool RichEdit::SetSpinClass(const std::wstring& spinClass)
     std::wstring spinBoxClass;
     std::wstring spinBtnUpClass;
     std::wstring spinBtnDownClass;
-    std::list<std::wstring> classNames = StringHelper::Split(spinClass, L",");
+    std::list<std::wstring> classNames = StringUtil::Split(spinClass, L",");
     if (classNames.size() == 3) {
         auto iter = classNames.begin();
         spinBoxClass = *iter++;
@@ -3046,7 +3043,7 @@ int64_t RichEdit::GetTextNumber() const
 
 void RichEdit::SetTextNumber(int64_t nValue)
 {
-    SetText(StringHelper::Printf(L"%I64d", nValue));
+    SetText(StringUtil::Printf(L"%I64d", nValue));
 }
 
 void RichEdit::AdjustTextNumber(int32_t nDelta)
@@ -3076,7 +3073,7 @@ void RichEdit::StartAutoAdjustTextNumberTimer(int32_t nDelta)
     if (nDelta != 0) {
         //启动定时器
         m_flagAdjustTextNumber.Cancel();
-        std::function<void()> closure = nbase::Bind(&RichEdit::StartAutoAdjustTextNumber, this, nDelta);
+        std::function<void()> closure = UiBind(&RichEdit::StartAutoAdjustTextNumber, this, nDelta);
         GlobalManager::Instance().Timer().AddCancelableTimer(m_flagAdjustTextNumber.GetWeakFlag(), closure, 1000, 1);
     }
 }
@@ -3086,7 +3083,7 @@ void RichEdit::StartAutoAdjustTextNumber(int32_t nDelta)
     if (nDelta != 0) {
         //启动定时器
         m_flagAdjustTextNumber.Cancel();
-        std::function<void()> closure = nbase::Bind(&RichEdit::AdjustTextNumber, this, nDelta);
+        std::function<void()> closure = UiBind(&RichEdit::AdjustTextNumber, this, nDelta);
         GlobalManager::Instance().Timer().AddCancelableTimer(m_flagAdjustTextNumber.GetWeakFlag(), closure, 120, TimerManager::REPEAT_FOREVER);
     }
 }

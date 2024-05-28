@@ -386,6 +386,7 @@
     <ClCompile Include="Core\DragWindow.cpp" />
     <ClCompile Include="Core\EventArgs.cpp" />
     <ClCompile Include="Core\FontManager.cpp" />
+    <ClCompile Include="Core\FrameworkThread.cpp" />
     <ClCompile Include="Core\GlobalManager.cpp" />
     <ClCompile Include="Core\IconManager.cpp" />
     <ClCompile Include="Core\ImageList.cpp" />
@@ -395,6 +396,7 @@
     <ClCompile Include="Core\ScrollBar.cpp" />
     <ClCompile Include="Core\Shadow.cpp" />
     <ClCompile Include="Core\StateColorMap.cpp" />
+    <ClCompile Include="Core\ThreadManager.cpp" />
     <ClCompile Include="Core\TimerManager.cpp" />
     <ClCompile Include="Core\ToolTip.cpp" />
     <ClCompile Include="Core\UiColors.cpp" />
@@ -433,12 +435,14 @@
     <ClCompile Include="Render\AutoClip.cpp" />
     <ClCompile Include="Render\BitmapAlpha.cpp" />
     <ClCompile Include="third_party\apng\decoder-apng.cpp" />
+    <ClCompile Include="third_party\convert_utf\ConvertUTF.c" />
     <ClCompile Include="third_party\unzip\UnZip.cpp" />
     <ClCompile Include="third_party\xml\pugixml.cpp" />
     <ClCompile Include="Utils\ApiWrapper.cpp" />
     <ClCompile Include="Utils\AttributeUtil.cpp" />
     <ClCompile Include="Utils\FileDialog.cpp" />
     <ClCompile Include="Utils\FileUtil.cpp" />
+    <ClCompile Include="Utils\PathUtil.cpp" />
     <ClCompile Include="Utils\PerformanceUtil.cpp" />
     <ClCompile Include="Utils\ShadowWnd.cpp" />
     <ClCompile Include="Utils\StringUtil.cpp" />
@@ -508,6 +512,7 @@
     <ClInclude Include="Control\TabCtrl.h" />
     <ClInclude Include="Core\Box.h" />
     <ClInclude Include="Core\BoxShadow.h" />
+    <ClInclude Include="Core\Callback.h" />
     <ClInclude Include="Core\ColorManager.h" />
     <ClInclude Include="Core\Control.h" />
     <ClInclude Include="Core\ControlDragable.h" />
@@ -519,6 +524,7 @@
     <ClInclude Include="Core\DragWindow.h" />
     <ClInclude Include="Core\EventArgs.h" />
     <ClInclude Include="Core\FontManager.h" />
+    <ClInclude Include="Core\FrameworkThread.h" />
     <ClInclude Include="Core\GlobalManager.h" />
     <ClInclude Include="Core\IconManager.h" />
     <ClInclude Include="Core\ImageList.h" />
@@ -529,6 +535,7 @@
     <ClInclude Include="Core\ScrollBar.h" />
     <ClInclude Include="Core\Shadow.h" />
     <ClInclude Include="Core\StateColorMap.h" />
+    <ClInclude Include="Core\ThreadManager.h" />
     <ClInclude Include="Core\TimerManager.h" />
     <ClInclude Include="Core\ToolTip.h" />
     <ClInclude Include="Core\UiColor.h" />
@@ -585,6 +592,7 @@
     <ClInclude Include="Render\IRender.h" />
     <ClInclude Include="Render\RenderConfig.h" />
     <ClInclude Include="third_party\apng\decoder-apng.h" />
+    <ClInclude Include="third_party\convert_utf\ConvertUTF.h" />
     <ClInclude Include="third_party\stb_image\stb_image.h" />
     <ClInclude Include="third_party\stb_image\stb_image_resize.h" />
     <ClInclude Include="third_party\svg\nanosvg.h" />
@@ -597,10 +605,12 @@
     <ClInclude Include="Utils\FileDialog.h" />
     <ClInclude Include="Utils\FileUtil.h" />
     <ClInclude Include="Utils\Macros.h" />
+    <ClInclude Include="Utils\PathUtil.h" />
     <ClInclude Include="Utils\PerformanceUtil.h" />
     <ClInclude Include="Utils\ShadowWnd.h" />
     <ClInclude Include="Utils\StringUtil.h" />
     <ClInclude Include="Utils\Delegate.h" />
+    <ClInclude Include="Utils\Unicode.h" />
     <ClInclude Include="Utils\WinImplBase.h" />
     <ClInclude Include="Control\Button.h" />
     <ClInclude Include="Control\CheckBox.h" />

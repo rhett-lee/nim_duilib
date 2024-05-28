@@ -619,7 +619,7 @@ void ScrollBox::LineUp(int deltaValue, bool withAnimation)
         pScrollAnimation->SetSpeedDownfactorA(-0.012);
         pScrollAnimation->SetSpeedDownRatio(0.5);
         pScrollAnimation->SetTotalMillSeconds(DUI_NOSET_VALUE);
-        pScrollAnimation->SetCallback(nbase::Bind(&ScrollBox::SetScrollPosY, this, std::placeholders::_1));
+        pScrollAnimation->SetCallback(UiBind(&ScrollBox::SetScrollPosY, this, std::placeholders::_1));
         pScrollAnimation->Start();
     }
 }
@@ -672,7 +672,7 @@ void ScrollBox::LineDown(int deltaValue, bool withAnimation)
         pScrollAnimation->SetSpeedDownfactorA(-0.012);
         pScrollAnimation->SetSpeedDownRatio(0.5);
         pScrollAnimation->SetTotalMillSeconds(DUI_NOSET_VALUE);
-        pScrollAnimation->SetCallback(nbase::Bind(&ScrollBox::SetScrollPosY, this, std::placeholders::_1));
+        pScrollAnimation->SetCallback(UiBind(&ScrollBox::SetScrollPosY, this, std::placeholders::_1));
         pScrollAnimation->Start();
     }
 }
@@ -711,7 +711,7 @@ void ScrollBox::LineLeft(int deltaValue)
     m_scrollAnimation.SetSpeedDownfactorA(-0.012);
     m_scrollAnimation.SetSpeedDownRatio(0.5);
     m_scrollAnimation.SetTotalMillSeconds(DUI_NOSET_VALUE);
-    m_scrollAnimation.SetCallback(nbase::Bind(&ScrollBox::SetScrollPosX, this, std::placeholders::_1));
+    m_scrollAnimation.SetCallback(UiBind(&ScrollBox::SetScrollPosX, this, std::placeholders::_1));
     m_scrollAnimation.Start();*/
 
 }
@@ -752,7 +752,7 @@ void ScrollBox::LineRight(int deltaValue)
     //m_scrollAnimation.SetSpeedDownfactorA(-0.012);
     //m_scrollAnimation.SetSpeedDownRatio(0.5);
     //m_scrollAnimation.SetTotalMillSeconds(DUI_NOSET_VALUE);
-    //m_scrollAnimation.SetCallback(nbase::Bind(&ScrollBox::SetScrollPosX, this, std::placeholders::_1));
+    //m_scrollAnimation.SetCallback(UiBind(&ScrollBox::SetScrollPosX, this, std::placeholders::_1));
     //m_scrollAnimation.Start();
 }
 void ScrollBox::PageUp()
@@ -1045,7 +1045,7 @@ void ScrollBox::PlayRenderOffsetYAnimation(int64_t nRenderY)
     pRenderOffsetYAnimation->SetSpeedDownRatio(0.7);
     pRenderOffsetYAnimation->SetTotalMillSeconds(DUI_NOSET_VALUE);
     pRenderOffsetYAnimation->SetMaxTotalMillSeconds(650);
-    auto playCallback = nbase::Bind(&ScrollBox::SetRenderOffsetY, this, std::placeholders::_1);
+    auto playCallback = UiBind(&ScrollBox::SetRenderOffsetY, this, std::placeholders::_1);
     pRenderOffsetYAnimation->SetCallback(playCallback);
     pRenderOffsetYAnimation->Start();
 }

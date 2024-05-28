@@ -1,6 +1,7 @@
 #include "ImageLoadAttribute.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Utils/StringUtil.h"
+#include "duilib/Utils/PathUtil.h"
 
 namespace ui 
 {
@@ -13,16 +14,16 @@ ImageLoadAttribute::ImageLoadAttribute(std::wstring srcWidth,
     m_bHasSrcDpiScale(bHasSrcDpiScale),
     m_iconSize(iconSize)
 {
-    StringHelper::Trim(srcWidth);
-    StringHelper::Trim(srcHeight);
+    StringUtil::Trim(srcWidth);
+    StringUtil::Trim(srcHeight);
     m_srcWidth = srcWidth;
     m_srcHeight = srcHeight;    
 }
 
 void ImageLoadAttribute::SetImageFullPath(const std::wstring& imageFullPath)
 {
-    std::wstring fullPath = StringHelper::NormalizeFilePath(imageFullPath);
-    StringHelper::Trim(fullPath);
+    std::wstring fullPath = PathUtil::NormalizeFilePath(imageFullPath);
+    StringUtil::Trim(fullPath);
     m_srcImageFullPath = fullPath;    
 }
 
@@ -39,7 +40,7 @@ std::wstring ImageLoadAttribute::GetCacheKey(uint32_t nDpiScale) const
     if ((nDpiScale != 0) && (nDpiScale != 100)) {
         //追加缩放百分比
         fullPath += L"@";
-        fullPath += StringHelper::UInt32ToString(nDpiScale);
+        fullPath += StringUtil::UInt32ToString(nDpiScale);
     }
     if (!m_srcWidth.empty() || !m_srcHeight.empty()) {
         fullPath += L"@";

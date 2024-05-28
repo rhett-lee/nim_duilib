@@ -4,7 +4,7 @@
 #pragma once
 
 #include "duilib/Render/IRender.h"
-#include "base/callback/callback.h"
+#include "duilib/Core/Callback.h"
 
 //Skia相关类的前置声明
 class SkCanvas;
@@ -111,7 +111,7 @@ public:
 
     void DrawBoxShadow(const UiRect& rc, const UiSize& roundSize, const UiPoint& cpOffset, int nBlurRadius, int nSpreadRadius, UiColor dwColor) override;
 
-#ifdef UILIB_IMPL_WINSDK
+#ifdef DUILIB_PLATFORM_WIN
     /** 获取DC句柄，当不使用后，需要调用ReleaseDC接口释放资源
     */
     virtual HDC GetDC() override;
@@ -180,7 +180,7 @@ private:
 
     /** 关联窗口的生命周期标志
     */
-    std::weak_ptr<nbase::WeakFlag> m_windowFlag;
+    std::weak_ptr<WeakFlag> m_windowFlag;
 
     /** Render工厂接口，用于创建字体
     */

@@ -242,7 +242,7 @@ Combo::Combo(Window* pWindow) :
 {
     SetDropBoxSize({0, 150}, true);
     m_treeView.SetSelectNextWhenActiveRemoved(false);
-    m_treeView.AttachSelect(nbase::Bind(&Combo::OnSelectItem, this, std::placeholders::_1));
+    m_treeView.AttachSelect(UiBind(&Combo::OnSelectItem, this, std::placeholders::_1));
 }
 
 Combo::~Combo()
@@ -397,8 +397,8 @@ void Combo::ParseAttributeList(const std::wstring& strList,
     }
     std::wstring strValue = strList;
     //这个是手工写入的属性，以花括号{}代替双引号，编写的时候就不需要转义字符了；
-    StringHelper::ReplaceAll(L"{", L"\"", strValue);
-    StringHelper::ReplaceAll(L"}", L"\"", strValue);
+    StringUtil::ReplaceAll(L"{", L"\"", strValue);
+    StringUtil::ReplaceAll(L"}", L"\"", strValue);
     if (strValue.find(L"\"") != std::wstring::npos) {
         AttributeUtil::ParseAttributeList(strValue, L'\"', attributeList);
     }
@@ -494,19 +494,19 @@ void Combo::OnInit()
     }
     if (m_pButtonControl != nullptr) {
         m_pButtonControl->SetNoFocus();        
-        m_pButtonControl->AttachButtonDown(nbase::Bind(&Combo::OnButtonDown, this, std::placeholders::_1));
-        m_pButtonControl->AttachClick(nbase::Bind(&Combo::OnButtonClicked, this, std::placeholders::_1));
+        m_pButtonControl->AttachButtonDown(UiBind(&Combo::OnButtonDown, this, std::placeholders::_1));
+        m_pButtonControl->AttachClick(UiBind(&Combo::OnButtonClicked, this, std::placeholders::_1));
     }
     if (m_pEditControl != nullptr) {
         m_pEditControl->SetNeedReturnMsg(true);
-        m_pEditControl->AttachButtonDown(nbase::Bind(&Combo::OnEditButtonDown, this, std::placeholders::_1));
-        m_pEditControl->AttachButtonUp(nbase::Bind(&Combo::OnEditButtonUp, this, std::placeholders::_1));
-        m_pEditControl->AttachEvent(kEventKeyDown, nbase::Bind(&Combo::OnEditKeyDown, this, std::placeholders::_1));
-        m_pEditControl->AttachSetFocus(nbase::Bind(&Combo::OnEditSetFocus, this, std::placeholders::_1));
-        m_pEditControl->AttachKillFocus(nbase::Bind(&Combo::OnEditKillFocus, this, std::placeholders::_1));
-        m_pEditControl->AttachEvent(kEventWindowKillFocus, nbase::Bind(&Combo::OnWindowKillFocus, this, std::placeholders::_1));
-        m_pEditControl->AttachEvent(kEventWindowMove, nbase::Bind(&Combo::OnWindowMove, this, std::placeholders::_1));
-        m_pEditControl->AttachTextChange(nbase::Bind(&Combo::OnEditTextChanged, this, std::placeholders::_1));
+        m_pEditControl->AttachButtonDown(UiBind(&Combo::OnEditButtonDown, this, std::placeholders::_1));
+        m_pEditControl->AttachButtonUp(UiBind(&Combo::OnEditButtonUp, this, std::placeholders::_1));
+        m_pEditControl->AttachEvent(kEventKeyDown, UiBind(&Combo::OnEditKeyDown, this, std::placeholders::_1));
+        m_pEditControl->AttachSetFocus(UiBind(&Combo::OnEditSetFocus, this, std::placeholders::_1));
+        m_pEditControl->AttachKillFocus(UiBind(&Combo::OnEditKillFocus, this, std::placeholders::_1));
+        m_pEditControl->AttachEvent(kEventWindowKillFocus, UiBind(&Combo::OnWindowKillFocus, this, std::placeholders::_1));
+        m_pEditControl->AttachEvent(kEventWindowMove, UiBind(&Combo::OnWindowMove, this, std::placeholders::_1));
+        m_pEditControl->AttachTextChange(UiBind(&Combo::OnEditTextChanged, this, std::placeholders::_1));
     }
     SetNoFocus();
     SetComboType(GetComboType());
@@ -970,7 +970,7 @@ bool Combo::OnEditTextChanged(const ui::EventArgs& /*args*/)
     if ((m_pWindow != nullptr) && !m_pWindow->IsClosingWnd()) {
         std::wstring editText = GetText();
         //转换成小写，比较的时候，不区分大小写
-        editText = StringHelper::MakeLowerString(editText);
+        editText = StringUtil::MakeLowerString(editText);
         size_t itemCount = m_treeView.GetItemCount();
         for (size_t iIndex = 0; iIndex < itemCount; ++iIndex) {
             Control* pControl = m_treeView.GetItemAt(iIndex);
@@ -979,7 +979,7 @@ bool Combo::OnEditTextChanged(const ui::EventArgs& /*args*/)
                 ASSERT(pTreeNode != nullptr);
                 if (pTreeNode != nullptr) {
                     pTreeNode->SetExpand(true, false);
-                    std::wstring nodeText = StringHelper::MakeLowerString(pTreeNode->GetText());
+                    std::wstring nodeText = StringUtil::MakeLowerString(pTreeNode->GetText());
                     if (nodeText.find(editText) != std::wstring::npos) {
                         m_treeView.EnsureVisible(iIndex, ListBoxVerVisible::kVisibleAtCenter);
                         break;

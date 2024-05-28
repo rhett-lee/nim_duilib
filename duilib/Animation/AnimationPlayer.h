@@ -4,8 +4,7 @@
 #pragma once
 
 #include "duilib/duilib_defs.h"
-#include "base/callback/callback.h"
-#include <functional>
+#include "duilib/Core/Callback.h"
 #include <chrono>
 
 namespace ui 
@@ -16,7 +15,7 @@ typedef std::function<void (void)> CompleteCallback;    //播放完成回调函�
 
 /** 动画播放器的基类接口
 */
-class UILIB_API AnimationPlayerBase : public virtual nbase::SupportWeakCallback
+class UILIB_API AnimationPlayerBase : public virtual SupportWeakCallback
 {
 public:
     AnimationPlayerBase();
@@ -178,7 +177,7 @@ protected:
     
     /** 定时器终止标志
     */
-    nbase::WeakCallbackFlag m_weakFlagOwner;
+    WeakCallbackFlag m_weakFlagOwner;
 };
 
 

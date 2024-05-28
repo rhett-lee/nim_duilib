@@ -1,11 +1,9 @@
 #include "cef_native_control.h"
 #include "ui_components/cef_control/handler/browser_handler.h"
 #include "ui_components/cef_control/manager/cef_manager.h"
-#include "ui_components/public_define.h"
 #include "duilib/Core/Window.h"
 #include "duilib/Core/Box.h"
 #include "duilib/Utils/Macros.h"
-#include "base/thread/thread_manager.h"
 
 #pragma warning (push)
 #pragma warning (disable:4100)
@@ -153,7 +151,7 @@ bool CefNativeControl::AttachDevTools(Control* /*view*/)
     {
         auto task = ToWeakCallback([this]()
         {
-            nbase::ThreadManager::PostTask(kThreadUI, ToWeakCallback([this](){
+                ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, ToWeakCallback([this](){
                 AttachDevTools(nullptr);
             }));
         });

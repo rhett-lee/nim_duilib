@@ -1574,7 +1574,7 @@ std::wstring PropertyGridFontSizeProperty::GetFontSize() const
     if (nCurSel != Box::InvalidIndex) {
         size_t nIndex = GetOptionData(nCurSel);
         if (nIndex < m_fontSizeList.size()) {
-            fontSize = StringHelper::Printf(L"%.01f", m_fontSizeList[nIndex].fFontSize);
+            fontSize = StringUtil::Printf(L"%.01f", m_fontSizeList[nIndex].fFontSize);
         }
     }
     if (fontSize.empty()) {
@@ -1590,7 +1590,7 @@ std::wstring PropertyGridFontSizeProperty::GetDpiFontSize() const
     if (nCurSel != Box::InvalidIndex) {
         size_t nIndex = GetOptionData(nCurSel);
         if (nIndex < m_fontSizeList.size()) {
-            fontSize = StringHelper::Printf(L"%.01f", m_fontSizeList[nIndex].fDpiFontSize);
+            fontSize = StringUtil::Printf(L"%.01f", m_fontSizeList[nIndex].fDpiFontSize);
         }
     }
     if (fontSize.empty()) {
@@ -1605,7 +1605,7 @@ std::wstring PropertyGridFontSizeProperty::GetFontSize(const std::wstring& fontS
     const size_t nCount = m_fontSizeList.size();
     for (size_t nIndex = 0; nIndex < nCount; ++nIndex) {
         if (m_fontSizeList[nIndex].fontSizeName == fontSizeName) {
-            fontSize = StringHelper::Printf(L"%.01f", m_fontSizeList[nIndex].fFontSize);
+            fontSize = StringUtil::Printf(L"%.01f", m_fontSizeList[nIndex].fFontSize);
             break;
         }
     }
@@ -1618,7 +1618,7 @@ std::wstring PropertyGridFontSizeProperty::GetDpiFontSize(const std::wstring& fo
     const size_t nCount = m_fontSizeList.size();
     for (size_t nIndex = 0; nIndex < nCount; ++nIndex) {
         if (m_fontSizeList[nIndex].fontSizeName == fontSizeName) {
-            fontSize = StringHelper::Printf(L"%.01f", m_fontSizeList[nIndex].fDpiFontSize);
+            fontSize = StringUtil::Printf(L"%.01f", m_fontSizeList[nIndex].fDpiFontSize);
             break;
         }
     }

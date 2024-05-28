@@ -6,6 +6,7 @@
 #include "duilib/Core/Window.h"
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Utils/FileUtil.h"
+#include "duilib/Utils/PathUtil.h"
 
 namespace ui 
 {
@@ -43,7 +44,7 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const Window* pWindow,
     std::unique_ptr<ImageInfo> imageInfo;
     std::wstring loadImageFullPath = loadAtrribute.GetImageFullPath();
     bool isIcon = false;
-#ifdef UILIB_IMPL_WINSDK
+#ifdef DUILIB_PLATFORM_WIN
     if (GlobalManager::Instance().Icon().IsIconString(loadImageFullPath)) {
         //加载ICON
         isIcon = true;
@@ -145,7 +146,7 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const Window* pWindow,
     return sharedImage;
 }
 
-#ifdef UILIB_IMPL_WINSDK
+#ifdef DUILIB_PLATFORM_WIN
 void ImageManager::LoadIconData(const Window* pWindow, 
                                 const ImageLoadAttribute& loadAtrribute,
                                 std::unique_ptr<ImageInfo>& imageInfo) const
@@ -323,7 +324,7 @@ bool ImageManager::FindDpiScaleImageFullPath(uint32_t dpiScale,
         bExists = GlobalManager::Instance().Zip().IsZipResExist(dpiImageFullPath);
     }
     else {
-        bExists = StringHelper::IsExistsPath(dpiImageFullPath);
+        bExists = PathUtil::IsExistsPath(dpiImageFullPath);
     }
     if (!bExists) {
         dpiImageFullPath.clear();
@@ -335,7 +336,7 @@ std::wstring ImageManager::GetDpiScaledPath(uint32_t dpiScale, const std::wstrin
 {
     std::wstring strPathDir;
     std::wstring strPathFileName;
-    std::list<std::wstring> strPathList = StringHelper::Split(imageFullPath, L"\\");
+    std::list<std::wstring> strPathList = StringUtil::Split(imageFullPath, L"\\");
     for (auto it = strPathList.begin(); it != strPathList.end(); ++it) {
         auto itTemp = it;
         if (++itTemp == strPathList.end()) {
@@ -354,7 +355,7 @@ std::wstring ImageManager::GetDpiScaledPath(uint32_t dpiScale, const std::wstrin
     std::wstring strFileExtension = strPathFileName.substr(iPointPos, strPathFileName.size() - iPointPos);
     std::wstring strFile = strPathFileName.substr(0, iPointPos);
     //返回指定DPI下的图片，举例DPI缩放百分比为120（即放大到120%）的图片："image.png" 对应于 "image@120.png"
-    strPathFileName = StringHelper::Printf(L"%s%s%d%s", strFile.c_str(), L"@", dpiScale, strFileExtension.c_str());
+    strPathFileName = StringUtil::Printf(L"%s%s%d%s", strFile.c_str(), L"@", dpiScale, strFileExtension.c_str());
     std::wstring strNewFilePath = strPathDir + strPathFileName;
     return strNewFilePath;
 }

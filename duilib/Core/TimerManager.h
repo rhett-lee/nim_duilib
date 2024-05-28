@@ -3,8 +3,7 @@
 
 #pragma once
 
-#include "duilib/duilib_defs.h"
-#include "base/callback/callback.h"
+#include "duilib/Core/Callback.h"
 #include <queue>
 
 namespace ui 
@@ -34,7 +33,7 @@ public:
     * @param [in] uElapse 定时器触发时间间隔，单位为毫秒
     * @param [in] iRepeatTime 定时器回调次数限制，如果为 -1 表示不停重复回调
     */
-    bool AddCancelableTimer(const std::weak_ptr<nbase::WeakFlag>& weakFlag,
+    bool AddCancelableTimer(const std::weak_ptr<WeakFlag>& weakFlag,
                             const TimerCallback& callback,
                             uint32_t uElapse, 
                             int32_t iRepeatTime);

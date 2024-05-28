@@ -1046,7 +1046,7 @@ protected:
         CHARRANGE cr;
         UiString info;
     };
-    std::map<UINT, nbase::WeakCallbackFlag> m_timeFlagMap;
+    std::map<UINT, WeakCallbackFlag> m_timeFlagMap;
     std::vector<LinkInfo> m_linkInfo;
 
 private:
@@ -1058,7 +1058,7 @@ private:
     int32_t  m_iCaretHeight;     //光标高度
     UiString m_sCaretColor;         //光标颜色
 
-    nbase::WeakCallbackFlag m_drawCaretFlag; //绘制光标的定时器生命周期
+    WeakCallbackFlag m_drawCaretFlag; //绘制光标的定时器生命周期
 
 private:
     UiString m_sFontId;                 //字体ID
@@ -1117,7 +1117,7 @@ private:
 
     /** 自动调整文本数字值的定时器生命周期管理
     */
-    nbase::WeakCallbackFlag m_flagAdjustTextNumber;
+    WeakCallbackFlag m_flagAdjustTextNumber;
 
     /** 清除功能的按钮(仅当非只读模式有效)
     */

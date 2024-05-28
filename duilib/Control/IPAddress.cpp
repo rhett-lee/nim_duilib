@@ -114,7 +114,7 @@ void IPAddress::SetIPAddress(const std::wstring& ipAddress)
 {
     m_ipAddress = ipAddress;
     if (!ipAddress.empty() && m_editList.size() == 4) {
-        std::list<std::wstring> ipList = StringHelper::Split(ipAddress, L".");
+        std::list<std::wstring> ipList = StringUtil::Split(ipAddress, L".");
         if (ipList.size() == 4) {
             auto iter = ipList.begin();
             int32_t ip1 = std::min(_wtoi((*iter++).c_str()), 255);
@@ -125,10 +125,10 @@ void IPAddress::SetIPAddress(const std::wstring& ipAddress)
             ip2 = std::max(ip2, 0);
             ip3 = std::max(ip3, 0);
             ip4 = std::max(ip4, 0);
-            m_editList[0]->SetText(StringHelper::Printf(L"%d", ip1));
-            m_editList[1]->SetText(StringHelper::Printf(L"%d", ip2));
-            m_editList[2]->SetText(StringHelper::Printf(L"%d", ip3));
-            m_editList[3]->SetText(StringHelper::Printf(L"%d", ip4));
+            m_editList[0]->SetText(StringUtil::Printf(L"%d", ip1));
+            m_editList[1]->SetText(StringUtil::Printf(L"%d", ip2));
+            m_editList[2]->SetText(StringUtil::Printf(L"%d", ip3));
+            m_editList[3]->SetText(StringUtil::Printf(L"%d", ip4));
         }
     }
 }
@@ -145,7 +145,7 @@ std::wstring IPAddress::GetIPAddress() const
         ip2 = std::max(ip2, 0);
         ip3 = std::max(ip3, 0);
         ip4 = std::max(ip4, 0);
-        ipAddress = StringHelper::Printf(L"%d.%d.%d.%d", ip1, ip2, ip3, ip4);
+        ipAddress = StringUtil::Printf(L"%d.%d.%d.%d", ip1, ip2, ip3, ip4);
     }
     else {
         ipAddress = m_ipAddress.c_str();

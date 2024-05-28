@@ -107,7 +107,7 @@ public:
     std::string zipPassword;
 };
 
-#ifdef UILIB_IMPL_WINSDK
+#ifdef DUILIB_PLATFORM_WIN
 
 /** 加载全局资源所需的参数（资源文件打包为zip压缩包，然后放在exe/dll的资源文件中，对应资源类型：kResZipFile）
 */

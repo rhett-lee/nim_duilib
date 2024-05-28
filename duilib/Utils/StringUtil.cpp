@@ -1,4 +1,5 @@
 #include "StringUtil.h"
+#include "duilib/third_party/convert_utf/ConvertUTF.h"
 #include <filesystem>
 
 namespace ui
@@ -246,76 +247,28 @@ void StringTrimRightT(std::basic_string<CharType> &output)
 
 } // anonymous namespace
 
-std::wstring StringHelper::NormalizeDirPath(const std::wstring& strFilePath)
-{
-    std::wstring dirPath(strFilePath);
-    ReplaceAll(L"/", L"\\", dirPath);
-    ReplaceAll(L"\\\\", L"\\", dirPath);
-    std::filesystem::path dir_path(dirPath);
-    dir_path = dir_path.lexically_normal();
-    dirPath = dir_path.native();
-    if (!dirPath.empty()) {
-        //确保路径最后字符是分割字符
-        auto cEnd = dirPath.back();
-        if (cEnd != L'\\' && cEnd != L'/') {
-            dirPath += L'\\';
-        }
-    }
-    return dirPath;
-}
 
-std::wstring StringHelper::NormalizeFilePath(const std::wstring& strFilePath)
+std::wstring StringUtil::Printf(const wchar_t *format, ...)
 {
-    std::wstring tmp(strFilePath);
-    ReplaceAll(L"/", L"\\", tmp);
-    ReplaceAll(L"\\\\", L"\\", tmp);
-    std::filesystem::path file_path(tmp);
-    file_path = file_path.lexically_normal();
-    tmp = file_path.native();
-    return tmp;
-}
-
-std::wstring StringHelper::JoinFilePath(const std::wstring& path1, const std::wstring& path2)
-{
-    std::filesystem::path file_path(path1);
-    file_path /= path2;
-    file_path = file_path.lexically_normal();
-    std::wstring tmp = file_path.native();
-    return tmp;
-}
-
-bool StringHelper::IsExistsPath(const std::wstring& strFilePath)
-{
-    try {
-        return std::filesystem::exists(strFilePath);
-    }
-    catch (...) {
-        return false;
-    }
-}
-
-bool StringHelper::IsRelativePath(const std::wstring& strFilePath)
-{
-    return std::filesystem::path(strFilePath).is_relative();
-}
-
-bool StringHelper::IsAbsolutePath(const std::wstring& strFilePath)
-{
-    return std::filesystem::path(strFilePath).is_absolute();
-}
-
-std::wstring StringHelper::Printf(const wchar_t *format, ...)
-{
-    va_list    args;
+    va_list args;
     va_start(args, format);
     std::wstring output;
     StringAppendVT<wchar_t>(format, args, output);
     va_end(args);
-
     return output;
 }
 
-size_t StringHelper::ReplaceAll(const std::wstring& find, const std::wstring& replace, std::wstring& output)
+std::string StringUtil::Printf(const char* format, ...)
+{
+    va_list args;
+    va_start(args, format);
+    std::string output;
+    StringAppendVT<char>(format, args, output);
+    va_end(args);
+    return output;
+}
+
+size_t StringUtil::ReplaceAll(const std::wstring& find, const std::wstring& replace, std::wstring& output)
 {
     if (output.empty()) {
         return 0;
@@ -323,7 +276,7 @@ size_t StringHelper::ReplaceAll(const std::wstring& find, const std::wstring& re
     return StringReplaceAllT<wchar_t>(find, replace, output);
 }
 
-size_t StringHelper::ReplaceAll(const std::string& find, const std::string& replace, std::string& output)
+size_t StringUtil::ReplaceAll(const std::string& find, const std::string& replace, std::string& output)
 {
     if (output.empty())    {
         return 0;
@@ -331,7 +284,59 @@ size_t StringHelper::ReplaceAll(const std::string& find, const std::string& repl
     return StringReplaceAllT<char>(find, replace, output);
 }
 
-std::wstring StringHelper::MakeLowerString(const std::wstring &str)
+void StringUtil::LowerString(std::string& str)
+{
+    if (str.empty())
+        return;
+    char* start = &str[0];
+    char* end = start + str.length();
+    for (; start < end; start++)
+    {
+        if (*start >= 'A' && *start <= 'Z')
+            *start += 'a' - 'A';
+    }
+}
+
+void StringUtil::LowerString(std::wstring& str)
+{
+    if (str.empty())
+        return;
+    wchar_t* start = &str[0];
+    wchar_t* end = start + str.length();
+    for (; start < end; start++)
+    {
+        if (*start >= L'A' && *start <= L'Z')
+            *start += L'a' - L'A';
+    }
+}
+
+void StringUtil::UpperString(std::string& str)
+{
+    if (str.empty())
+        return;
+    char* start = &str[0];
+    char* end = start + str.length();
+    for (; start < end; start++)
+    {
+        if (*start >= 'a' && *start <= 'z')
+            *start -= 'a' - 'A';
+    }
+}
+
+void StringUtil::UpperString(std::wstring& str)
+{
+    if (str.empty())
+        return;
+    wchar_t* start = &str[0];
+    wchar_t* end = start + str.length();
+    for (; start < end; start++)
+    {
+        if (*start >= L'a' && *start <= L'z')
+            *start -= L'a' - L'A';
+    }
+}
+
+std::wstring StringUtil::MakeLowerString(const std::wstring &str)
 {
     std::wstring resStr = str;
     if (resStr.empty())
@@ -347,7 +352,23 @@ std::wstring StringHelper::MakeLowerString(const std::wstring &str)
     return resStr;
 }
 
-std::wstring StringHelper::MakeUpperString(const std::wstring &str)
+std::string StringUtil::MakeLowerString(const std::string& str)
+{
+    std::string resStr = str;
+    if (resStr.empty())
+        return "";
+    char* start = &resStr[0];
+    char* end = start + resStr.length();
+    for (; start < end; start++)
+    {
+        if (*start >= 'A' && *start <= 'Z')
+            *start += 'a' - 'A';
+    }
+
+    return resStr;
+}
+
+std::wstring StringUtil::MakeUpperString(const std::wstring &str)
 {
     std::wstring resStr = str;
     if (resStr.empty())
@@ -363,8 +384,222 @@ std::wstring StringHelper::MakeUpperString(const std::wstring &str)
     return resStr;
 }
 
+std::string StringUtil::MakeUpperString(const std::string& str)
+{
+    std::string resStr = str;
+    if (resStr.empty())
+        return "";
+    char* start = &resStr[0];
+    char* end = start + resStr.length();
+    for (; start < end; start++)
+    {
+        if (*start >= 'a' && *start <= 'z')
+            *start -= 'a' - 'A';
+    }
 
-bool StringHelper::MBCSToUnicode(const char *input, std::wstring& output, int code_page)
+    return resStr;
+}
+
+
+std::wstring StringUtil::UTF8ToUTF16(const UTF8Char* utf8, size_t length)
+{
+    UTF16Char output[4096];
+    const UTF8* src_begin = reinterpret_cast<const UTF8*>(utf8);
+    const UTF8* src_end = src_begin + length;
+    UTF16* dst_begin = reinterpret_cast<UTF16*>(output);
+
+    std::wstring  utf16;
+    while (src_begin < src_end)
+    {
+        ConversionResult result = ConvertUTF8toUTF16(&src_begin,
+            src_end,
+            &dst_begin,
+            dst_begin + COUNT_OF(output),
+            lenientConversion);
+
+        utf16.append(output, dst_begin - reinterpret_cast<UTF16*>(output));
+        dst_begin = reinterpret_cast<UTF16*>(output);
+        if (result == sourceIllegal || result == sourceExhausted)
+        {
+            utf16.clear();
+            break;
+        }
+    }
+
+    return utf16;
+}
+
+std::string StringUtil::UTF16ToUTF8(const UTF16Char* utf16, size_t length)
+{
+    UTF8Char output[8192];
+    const UTF16* src_begin = reinterpret_cast<const UTF16*>(utf16);
+    const UTF16* src_end = src_begin + length;
+    UTF8* dst_begin = reinterpret_cast<UTF8*>(output);
+
+    std::string utf8;
+    while (src_begin < src_end)
+    {
+        ConversionResult result = ConvertUTF16toUTF8(&src_begin,
+            src_end,
+            &dst_begin,
+            dst_begin + COUNT_OF(output),
+            lenientConversion);
+
+        utf8.append(output, dst_begin - reinterpret_cast<UTF8*>(output));
+        dst_begin = reinterpret_cast<UTF8*>(output);
+        if (result == sourceIllegal || result == sourceExhausted)
+        {
+            utf8.clear();
+            break;
+        }
+    }
+
+    return utf8;
+}
+
+std::basic_string<UTF32Char> StringUtil::UTF8ToUTF32(const UTF8Char* utf8, size_t length)
+{
+    UTF32Char output[4096];
+    const UTF8* src_begin = reinterpret_cast<const UTF8*>(utf8);
+    const UTF8* src_end = src_begin + length;
+    UTF32* dst_begin = reinterpret_cast<UTF32*>(output);
+
+    std::basic_string<UTF32Char> utf32;
+    while (src_begin < src_end)
+    {
+        ConversionResult result = ConvertUTF8toUTF32(&src_begin,
+            src_end,
+            &dst_begin,
+            dst_begin + COUNT_OF(output),
+            lenientConversion);
+
+        utf32.append(output, dst_begin - reinterpret_cast<UTF32*>(output));
+        dst_begin = reinterpret_cast<UTF32*>(output);
+        if (result == sourceIllegal || result == sourceExhausted)
+        {
+            utf32.clear();
+            break;
+        }
+    }
+
+    return utf32;
+}
+
+std::string StringUtil::UTF32ToUTF8(const UTF32Char* utf32, size_t length)
+{
+    UTF8Char output[8192];
+    const UTF32* src_begin = reinterpret_cast<const UTF32*>(utf32);
+    const UTF32* src_end = src_begin + length;
+    UTF8* dst_begin = reinterpret_cast<UTF8*>(output);
+
+    std::string utf8;
+    while (src_begin < src_end)
+    {
+        ConversionResult result = ConvertUTF32toUTF8(&src_begin,
+            src_end,
+            &dst_begin,
+            dst_begin + COUNT_OF(output),
+            lenientConversion);
+
+        utf8.append(output, dst_begin - reinterpret_cast<UTF8*>(output));
+        dst_begin = reinterpret_cast<UTF8*>(output);
+        if (result == sourceIllegal || result == sourceExhausted)
+        {
+            utf8.clear();
+            break;
+        }
+    }
+
+    return utf8;
+}
+
+std::basic_string<UTF32Char> StringUtil::UTF16ToUTF32(const UTF16Char* utf16, size_t length)
+{
+    UTF32Char output[4096];
+    const UTF16* src_begin = reinterpret_cast<const UTF16*>(utf16);
+    const UTF16* src_end = src_begin + length;
+    UTF32* dst_begin = reinterpret_cast<UTF32*>(output);
+
+    std::basic_string<UTF32Char> utf32;
+    while (src_begin < src_end)
+    {
+        ConversionResult result = ConvertUTF16toUTF32(&src_begin,
+            src_end,
+            &dst_begin,
+            dst_begin + COUNT_OF(output),
+            lenientConversion);
+
+        utf32.append(output, dst_begin - reinterpret_cast<UTF32*>(output));
+        dst_begin = reinterpret_cast<UTF32*>(output);
+        if (result == sourceIllegal || result == sourceExhausted)
+        {
+            utf32.clear();
+            break;
+        }
+    }
+
+    return utf32;
+}
+
+std::wstring StringUtil::UTF32ToUTF16(const UTF32Char* utf32, size_t length)
+{
+    UTF16Char output[8192];
+    const UTF32* src_begin = reinterpret_cast<const UTF32*>(utf32);
+    const UTF32* src_end = src_begin + length;
+    UTF16* dst_begin = reinterpret_cast<UTF16*>(output);
+
+    std::wstring utf16;
+    while (src_begin < src_end)
+    {
+        ConversionResult result = ConvertUTF32toUTF16(&src_begin,
+            src_end,
+            &dst_begin,
+            dst_begin + COUNT_OF(output),
+            lenientConversion);
+
+        utf16.append(output, dst_begin - reinterpret_cast<UTF16*>(output));
+        dst_begin = reinterpret_cast<UTF16*>(output);
+        if (result == sourceIllegal || result == sourceExhausted)
+        {
+            utf16.clear();
+            break;
+        }
+    }
+
+    return utf16;
+}
+
+std::wstring StringUtil::UTF8ToUTF16(const std::string& utf8)
+{
+    return UTF8ToUTF16(utf8.c_str(), utf8.length());
+}
+
+std::string StringUtil::UTF16ToUTF8(const std::wstring& utf16)
+{
+    return UTF16ToUTF8(utf16.c_str(), utf16.length());
+}
+
+std::basic_string<UTF32Char> StringUtil::UTF8ToUTF32(const std::string& utf8)
+{
+    return UTF8ToUTF32(utf8.c_str(), utf8.length());
+}
+
+std::string StringUtil::UTF32ToUTF8(const std::basic_string<UTF32Char>& utf32)
+{
+    return UTF32ToUTF8(utf32.c_str(), utf32.length());
+}
+
+std::basic_string<UTF32Char> StringUtil::UTF16ToUTF32(const std::wstring& utf16)
+{
+    return UTF16ToUTF32(utf16.c_str(), utf16.length());
+}
+
+std::wstring StringUtil::UTF32ToUTF16(const std::basic_string<UTF32Char>& utf32)
+{
+    return UTF32ToUTF16(utf32.c_str(), utf32.length());
+}
+
+bool StringUtil::MBCSToUnicode(const char *input, std::wstring& output, int code_page)
 {
     output.clear();
     int length = ::MultiByteToWideChar(code_page, 0, input, -1, NULL, 0);
@@ -382,7 +617,7 @@ bool StringHelper::MBCSToUnicode(const char *input, std::wstring& output, int co
     return true;
 }
 
-bool StringHelper::MBCSToUnicode(const std::string &input, std::wstring& output, int code_page)
+bool StringUtil::MBCSToUnicode(const std::string &input, std::wstring& output, int code_page)
 {
     output.clear();
     int length = ::MultiByteToWideChar(code_page, 0, input.c_str(), static_cast<int>(input.size()), NULL, 0);
@@ -398,7 +633,7 @@ bool StringHelper::MBCSToUnicode(const std::string &input, std::wstring& output,
     return true;
 }
 
-bool StringHelper::UnicodeToMBCS(const wchar_t *input, std::string &output, int code_page)
+bool StringUtil::UnicodeToMBCS(const wchar_t *input, std::string &output, int code_page)
 {
     output.clear();
     int length = ::WideCharToMultiByte(code_page, 0, input, -1, NULL, 0, NULL, NULL);
@@ -418,7 +653,7 @@ bool StringHelper::UnicodeToMBCS(const wchar_t *input, std::string &output, int 
     return true;
 }
 
-bool StringHelper::UnicodeToMBCS(const std::wstring& input, std::string &output, int code_page)
+bool StringUtil::UnicodeToMBCS(const std::wstring& input, std::string &output, int code_page)
 {
     output.clear();
     int length = ::WideCharToMultiByte(code_page, 0, input.c_str(), static_cast<int>(input.size()), NULL, 0, NULL, NULL);
@@ -436,86 +671,86 @@ bool StringHelper::UnicodeToMBCS(const std::wstring& input, std::string &output,
     return true;
 }
 
-std::string StringHelper::TrimLeft(const char *input)
+std::string StringUtil::TrimLeft(const char *input)
 {
     std::string output = input;
     TrimLeft(output);
     return output;
 }
 
-std::string StringHelper::TrimRight(const char *input)
+std::string StringUtil::TrimRight(const char *input)
 {
     std::string output = input;
     TrimRight(output);
     return output;
 }
 
-std::string StringHelper::Trim(const char *input) /* both left and right */
+std::string StringUtil::Trim(const char *input) /* both left and right */
 {
     std::string output = input;
     Trim(output);
     return output;
 }
 
-std::string& StringHelper::TrimLeft(std::string &input)
+std::string& StringUtil::TrimLeft(std::string &input)
 {
     StringTrimLeftT<char>(input);
     return input;
 }
 
-std::string& StringHelper::TrimRight(std::string &input)
+std::string& StringUtil::TrimRight(std::string &input)
 {
     StringTrimRightT<char>(input);
     return input;
 }
 
-std::string& StringHelper::Trim(std::string &input) /* both left and right */
+std::string& StringUtil::Trim(std::string &input) /* both left and right */
 {
     StringTrimT<char>(input);
     return input;
 }
 
-std::wstring StringHelper::TrimLeft(const wchar_t *input)
+std::wstring StringUtil::TrimLeft(const wchar_t *input)
 {
     std::wstring output = input;
     TrimLeft(output);
     return output;
 }
 
-std::wstring StringHelper::TrimRight(const wchar_t *input)
+std::wstring StringUtil::TrimRight(const wchar_t *input)
 {
     std::wstring output = input;
     TrimRight(output);
     return output;
 }
 
-std::wstring StringHelper::Trim(const wchar_t *input) /* both left and right */
+std::wstring StringUtil::Trim(const wchar_t *input) /* both left and right */
 {
     std::wstring output = input;
     Trim(output);
     return output;
 }
 
-std::wstring& StringHelper::TrimLeft(std::wstring &input)
+std::wstring& StringUtil::TrimLeft(std::wstring &input)
 {
     StringTrimLeftT<wchar_t>(input);
     return input;
 }
 
-std::wstring& StringHelper::TrimRight(std::wstring &input)
+std::wstring& StringUtil::TrimRight(std::wstring &input)
 {
     StringTrimRightT<wchar_t>(input);
     return input;
 }
 
-std::wstring& StringHelper::Trim(std::wstring &input) /* both left and right */
+std::wstring& StringUtil::Trim(std::wstring &input) /* both left and right */
 {
     StringTrimT<wchar_t>(input);
     return input;
 }
 
 
-std::list<std::string> StringHelper::Split(const std::string& input, const std::string& delimitor)
+std::list<std::string> StringUtil::Split(const std::string& input, const std::string& delimitor)
 {
     std::list<std::string> output;
     std::string input2(input);
@@ -534,7 +769,7 @@ std::list<std::string> StringHelper::Split(const std::string& input, const std::
     return output;
 }
 
-std::list<std::wstring> StringHelper::Split(const std::wstring& input, const std::wstring& delimitor)
+std::list<std::wstring> StringUtil::Split(const std::wstring& input, const std::wstring& delimitor)
 {
     std::list<std::wstring> output;
     std::wstring input2(input);
@@ -574,7 +809,7 @@ static bool IsEqualNoCasePrivate(const wchar_t* lhs, const wchar_t* rhs)
     }
 }
 
-bool StringHelper::IsEqualNoCase(const std::wstring& lhs, const std::wstring& rhs)
+bool StringUtil::IsEqualNoCase(const std::wstring& lhs, const std::wstring& rhs)
 {
     if (lhs.size() != rhs.size()) {
         return false;
@@ -582,7 +817,7 @@ bool StringHelper::IsEqualNoCase(const std::wstring& lhs, const std::wstring& rh
     return IsEqualNoCasePrivate(lhs.c_str(), rhs.c_str());
 }
 
-bool StringHelper::IsEqualNoCase(const wchar_t* lhs, const std::wstring& rhs)
+bool StringUtil::IsEqualNoCase(const wchar_t* lhs, const std::wstring& rhs)
 {
     if (lhs == nullptr) {
         return false;
@@ -590,7 +825,7 @@ bool StringHelper::IsEqualNoCase(const wchar_t* lhs, const std::wstring& rhs)
     return IsEqualNoCasePrivate(lhs, rhs.c_str());
 }
 
-bool StringHelper::IsEqualNoCase(const std::wstring& lhs, const wchar_t* rhs)
+bool StringUtil::IsEqualNoCase(const std::wstring& lhs, const wchar_t* rhs)
 {
     if (rhs == nullptr) {
         return false;
@@ -598,7 +833,7 @@ bool StringHelper::IsEqualNoCase(const std::wstring& lhs, const wchar_t* rhs)
     return IsEqualNoCasePrivate(lhs.c_str(), rhs);
 }
 
-bool StringHelper::IsEqualNoCase(const wchar_t* lhs, const wchar_t* rhs)
+bool StringUtil::IsEqualNoCase(const wchar_t* lhs, const wchar_t* rhs)
 {
     if (lhs == nullptr) {
         return (rhs == nullptr) ? true : false;
@@ -609,7 +844,7 @@ bool StringHelper::IsEqualNoCase(const wchar_t* lhs, const wchar_t* rhs)
     return IsEqualNoCasePrivate(lhs, rhs);
 }
 
-std::wstring StringHelper::UInt64ToString(uint64_t value)
+std::wstring StringUtil::UInt64ToString(uint64_t value)
 {
     wchar_t temp[32] = {0};
     int pos = 0;
@@ -625,9 +860,9 @@ std::wstring StringHelper::UInt64ToString(uint64_t value)
     return str;
 }
 
-std::wstring StringHelper::UInt32ToString(uint32_t value)
+std::wstring StringUtil::UInt32ToString(uint32_t value)
 {
     return UInt64ToString(value);
 }
 
-} // namespace nbase
+} // namespace ui

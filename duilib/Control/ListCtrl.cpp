@@ -1944,7 +1944,7 @@ void ListCtrl::OnItemEnterEditMode(size_t itemIndex, size_t nColumnId,
 
     //启动定时器, 只执行一次(使用定时器的原因：避免影响双击操作)
     m_editModeFlag.Cancel();
-    std::function<void()> editModeCallback = std::bind(&ListCtrl::OnItemEditMode, this, editParam);
+    std::function<void()> editModeCallback = UiBind(&ListCtrl::OnItemEditMode, this, editParam);
     TimerManager& timer = GlobalManager::Instance().Timer();
     timer.AddCancelableTimer(m_editModeFlag.GetWeakFlag(), editModeCallback, 600, 1);
 }

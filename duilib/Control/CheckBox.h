@@ -396,7 +396,7 @@ void CheckBoxTemplate<InheritType>::SetAttribute(const std::wstring& strName, co
 template<typename InheritType>
 bool CheckBoxTemplate<InheritType>::ButtonUp(const EventArgs& msg)
 {
-    std::weak_ptr<nbase::WeakFlag> weakFlag;
+    std::weak_ptr<WeakFlag> weakFlag;
     if (this->GetWindow() != nullptr) {
         weakFlag = this->GetWindow()->GetWeakFlag();
     }

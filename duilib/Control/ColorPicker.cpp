@@ -6,6 +6,7 @@
 #include "duilib/Control/ColorPickerCustom.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Utils/ApiWrapper.h"
+#include "duilib/Utils/PathUtil.h"
 
 namespace ui
 {
@@ -396,7 +397,7 @@ private:
     virtual bool OnSetCursor(const EventArgs& /*msg*/) override
     {
         if (m_hCursor == nullptr) {
-            std::wstring cursorPath = StringHelper::JoinFilePath(GlobalManager::Instance().GetResourcePath(), L"public\\color\\dropcur.cur");
+            std::wstring cursorPath = PathUtil::JoinFilePath(GlobalManager::Instance().GetResourcePath(), L"public\\color\\dropcur.cur");
             m_hCursor = (HCURSOR)::LoadImage(NULL, cursorPath.c_str(), IMAGE_CURSOR, 0, 0, LR_DEFAULTSIZE | LR_LOADFROMFILE);
         }
         if (m_hCursor != nullptr) {

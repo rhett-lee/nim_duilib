@@ -204,7 +204,7 @@ private:
 
     /** 定时器滚动视图时的取消机制
     */
-    nbase::WeakCallbackFlag m_scrollViewFlag;
+    WeakCallbackFlag m_scrollViewFlag;
 
     /** 鼠标框选功能的设置
     */
@@ -265,7 +265,7 @@ protected:
     {
         if (this->IsEnabled() && this->IsActivatable() && this->IsPointInWithScrollOffset(msg.ptMouse)) {
             uint64_t vkFlag = kVkLButton;
-#ifdef UILIB_IMPL_WINSDK
+#ifdef DUILIB_PLATFORM_WIN
             if (msg.wParam & MK_CONTROL) {
                 vkFlag |= kVkControl;
             }
@@ -285,7 +285,7 @@ protected:
     {
         if (this->IsEnabled() && this->IsActivatable() && this->IsPointInWithScrollOffset(msg.ptMouse)) {
             uint64_t vkFlag = kVkRButton;
-#ifdef UILIB_IMPL_WINSDK
+#ifdef DUILIB_PLATFORM_WIN
             if (msg.wParam & MK_CONTROL) {
                 vkFlag |= kVkControl;
             }

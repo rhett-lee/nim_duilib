@@ -44,6 +44,7 @@
 
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Utils/AttributeUtil.h"
+#include "duilib/Utils/PathUtil.h"
 
 #include "duilib/third_party/xml/pugixml.hpp"
 
@@ -151,19 +152,19 @@ bool WindowBuilder::IsXmlFileExists(const std::wstring& xml) const
         return false;
     }
     if (GlobalManager::Instance().Zip().IsUseZip()) {
-        std::wstring sFile = StringHelper::JoinFilePath(GlobalManager::Instance().GetResourcePath(), xml);
+        std::wstring sFile = PathUtil::JoinFilePath(GlobalManager::Instance().GetResourcePath(), xml);
         if (GlobalManager::Instance().Zip().IsZipResExist(sFile)) {
             return true;
         }
     }
     std::wstring xmlFilePath = GlobalManager::Instance().GetResourcePath();
-    if (StringHelper::IsRelativePath(xml)) {
-        xmlFilePath = StringHelper::JoinFilePath(xmlFilePath, xml);
+    if (PathUtil::IsRelativePath(xml)) {
+        xmlFilePath = PathUtil::JoinFilePath(xmlFilePath, xml);
     }
     else {
         xmlFilePath = xml;
     }
-    return StringHelper::IsExistsPath(xmlFilePath);
+    return PathUtil::IsExistsPath(xmlFilePath);
 }
 
 Box* WindowBuilder::Create(const std::wstring& xml, 
@@ -191,7 +192,7 @@ Box* WindowBuilder::Create(const std::wstring& xml,
         isLoaded = true;
     }
     if (!isLoaded && GlobalManager::Instance().Zip().IsUseZip()) {
-        std::wstring sFile = StringHelper::JoinFilePath(GlobalManager::Instance().GetResourcePath(), xml);
+        std::wstring sFile = PathUtil::JoinFilePath(GlobalManager::Instance().GetResourcePath(), xml);
         std::vector<unsigned char> file_data;
         if (GlobalManager::Instance().Zip().GetZipData(sFile, file_data)) {
             pugi::xml_parse_result result = m_xml->load_buffer(file_data.data(), file_data.size());
@@ -204,8 +205,8 @@ Box* WindowBuilder::Create(const std::wstring& xml,
     }
     if(!isLoaded) {
         std::wstring xmlFilePath = GlobalManager::Instance().GetResourcePath();
-        if (StringHelper::IsRelativePath(xml)) {
-            xmlFilePath = StringHelper::JoinFilePath(xmlFilePath, xml);
+        if (PathUtil::IsRelativePath(xml)) {
+            xmlFilePath = PathUtil::JoinFilePath(xmlFilePath, xml);
         }
         else {
             xmlFilePath = xml;
@@ -375,12 +376,12 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
                             strClassName = strValue;
                         }
                         else {
-                            strAttribute.append(StringHelper::Printf(L" %s=\"%s\"",
+                            strAttribute.append(StringUtil::Printf(L" %s=\"%s\"",
                                                 strName.c_str(), strValue.c_str()));
                         }
                     }
                     if( !strClassName.empty() ) {
-                        StringHelper::TrimLeft(strAttribute);
+                        StringUtil::TrimLeft(strAttribute);
                         GlobalManager::Instance().AddClass(strClassName, strAttribute);
                     }
                 }
@@ -414,13 +415,13 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
                             strClassName = strValue;
                         }
                         else {
-                            strAttribute.append(StringHelper::Printf(L" %s=\"%s\"",
+                            strAttribute.append(StringUtil::Printf(L" %s=\"%s\"",
                                                 strName.c_str(), strValue.c_str()));
                         }
                     }
                     if (!strClassName.empty()) {
                         ASSERT(GlobalManager::Instance().GetClassAttributes(strClassName).empty());    //窗口中的Class不能与全局的重名
-                        StringHelper::TrimLeft(strAttribute);
+                        StringUtil::TrimLeft(strAttribute);
                         pWindow->AddClass(strClassName, strAttribute);
                     }
                 }
@@ -565,13 +566,13 @@ Control* WindowBuilder::ParseXmlNode(const pugi::xml_node& xmlNode, Control* pPa
                 sourceValue = sourceAttr.as_string();                
             }
             if (!sourceValue.empty()) {
-                StringHelper::ReplaceAll(L"/", L"\\", sourceValue);
+                StringUtil::ReplaceAll(L"/", L"\\", sourceValue);
                 if (!m_xmlFilePath.empty()) {
                     //优先尝试在原XML文件相同目录加载
                     size_t pos = m_xmlFilePath.find_last_of(L"\\/");
                     if (pos != std::wstring::npos) {
                         std::wstring filePath = m_xmlFilePath.substr(0, pos);
-                        filePath = StringHelper::JoinFilePath(filePath, sourceValue);
+                        filePath = PathUtil::JoinFilePath(filePath, sourceValue);
                         if (IsXmlFileExists(filePath)) {
                             sourceValue = filePath;
                         }
@@ -751,7 +752,7 @@ bool WindowBuilder::ParseRichTextXmlNode(const pugi::xml_node& xmlNode, Control*
         }        
         else if (nodeName == L"a") {            
             textSlice.m_text = pRichText->TrimText(node.first_child().value());
-            textSlice.m_linkUrl = StringHelper::Trim(node.attribute(L"href").as_string());
+            textSlice.m_linkUrl = StringUtil::Trim(node.attribute(L"href").as_string());
             //超级链接节点, 不需要递归遍历子节点
             bParseChildren = false;
         }
@@ -773,7 +774,7 @@ bool WindowBuilder::ParseRichTextXmlNode(const pugi::xml_node& xmlNode, Control*
         }
         else if (nodeName == L"bgcolor") {
             //背景颜色
-            textSlice.m_bgColor = StringHelper::Trim(node.attribute(L"color").as_string());
+            textSlice.m_bgColor = StringUtil::Trim(node.attribute(L"color").as_string());
         }
         else if (nodeName == L"font") {
             //字体设置：文本颜色
@@ -837,8 +838,8 @@ void WindowBuilder::AttachXmlEvent(bool bBubbled, const pugi::xml_node& node, Co
         }
     }
 
-    auto typeList = StringHelper::Split(strType, L" ");
-    auto receiverList = StringHelper::Split(strReceiver, L" ");
+    auto typeList = StringUtil::Split(strType, L" ");
+    auto receiverList = StringUtil::Split(strReceiver, L" ");
     for (auto itType = typeList.begin(); itType != typeList.end(); itType++) {
         if (receiverList.empty()) {
             receiverList.push_back(L"");
@@ -848,7 +849,7 @@ void WindowBuilder::AttachXmlEvent(bool bBubbled, const pugi::xml_node& node, Co
             if (eventType == EventType::kEventNone) {
                 continue;
             }
-            auto callback = nbase::Bind(&Control::OnApplyAttributeList, pParent, *itReceiver, strApplyAttribute, std::placeholders::_1);
+            auto callback = UiBind(&Control::OnApplyAttributeList, pParent, *itReceiver, strApplyAttribute, std::placeholders::_1);
             if (!bBubbled) {
                 pParent->AttachXmlEvent(eventType, callback);
             }

@@ -2,43 +2,47 @@
 #define UI_UTILS_STRINGUTIL_H_
 
 #include "duilib/duilib_defs.h"
-#include <string>
+#include "duilib/Utils/Unicode.h"
 #include <list>
 
 namespace ui
 {
-
-class UILIB_API StringHelper
+/** 字符串/路径操作的辅助类
+*/
+class UILIB_API StringUtil
 {
-public:
-    //对路径中的分隔符/点（"/\\."）字符进行规范化处理, 确保目录以分隔符结束(适用于目录)
-    static std::wstring NormalizeDirPath(const std::wstring& strFilePath);
-
-    //对路径中的分隔符/点（"/\\."）字符进行规范化处理, （适用于文件）
-    static std::wstring NormalizeFilePath(const std::wstring& strFilePath);
-
-    //连接两个路径，生成一个新的路径，用于路径拼接
-    static std::wstring JoinFilePath(const std::wstring& path1, const std::wstring& path2);
-
-    //判断路径指向的文件是否存在
-    static bool IsExistsPath(const std::wstring& strFilePath);
-
-    //判断路径是否为相对路径
-    static bool IsRelativePath(const std::wstring& strFilePath);
-
-    //判断路径是否为绝对路径
-    static bool IsAbsolutePath(const std::wstring& strFilePath);
-
 public:
     // format a string
     static std::wstring Printf(const wchar_t *format, ...);
+    static std::string Printf(const char* format, ...);
 
     // replace all 'find' with 'replace' in the string
     static size_t ReplaceAll(const std::wstring& find, const std::wstring& replace, std::wstring& output);
     static size_t ReplaceAll(const std::string& find, const std::string& replace, std::string& output);
 
+    static void LowerString(std::string& str);
+    static void LowerString(std::wstring& str);
+    static void UpperString(std::string& str);
+    static void UpperString(std::wstring& str);
+
     static std::wstring MakeLowerString(const std::wstring &str);
+    static std::string MakeLowerString(const std::string& str);
     static std::wstring MakeUpperString(const std::wstring &str);
+    static std::string MakeUpperString(const std::string& str);
+
+    // the following functions are used to convert encodings in utf-8、utf-16 and utf-32
+    static std::wstring UTF8ToUTF16(const UTF8Char* utf8, size_t length);
+    static std::string UTF16ToUTF8(const UTF16Char* utf16, size_t length);
+    static std::basic_string<UTF32Char> UTF8ToUTF32(const UTF8Char* utf8, size_t length);
+    static std::string UTF32ToUTF8(const UTF32Char* utf32, size_t length);
+    static std::basic_string<UTF32Char> UTF16ToUTF32(const UTF16Char* utf16, size_t length);
+    static std::wstring UTF32ToUTF16(const UTF32Char* utf32, size_t length);
+    static std::wstring UTF8ToUTF16(const std::string& utf8);
+    static std::string UTF16ToUTF8(const std::wstring& utf16);
+    static std::basic_string<UTF32Char> UTF8ToUTF32(const std::string& utf8);
+    static std::string UTF32ToUTF8(const std::basic_string<UTF32Char>& utf32);
+    static std::basic_string<UTF32Char> UTF16ToUTF32(const std::wstring& utf16);
+    static std::wstring UTF32ToUTF16(const std::basic_string<UTF32Char>& utf32);
 
     static bool MBCSToUnicode(const char *input, std::wstring& output, int code_page = CP_ACP);
     static bool MBCSToUnicode(const std::string &input, std::wstring& output, int code_page = CP_ACP);

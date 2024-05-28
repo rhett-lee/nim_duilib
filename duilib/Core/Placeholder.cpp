@@ -45,7 +45,7 @@ ui::Box* PlaceHolder::GetAncestor(const std::wstring& strName)
 std::string PlaceHolder::GetUTF8Name() const
 {
     std::string strOut;
-    StringHelper::UnicodeToMBCS(GetName(), strOut, CP_UTF8);
+    StringUtil::UnicodeToMBCS(GetName(), strOut, CP_UTF8);
     return strOut;
 }
 
@@ -67,7 +67,7 @@ void PlaceHolder::SetName(const std::wstring& strName)
 void PlaceHolder::SetUTF8Name(const std::string& strName)
 {
     std::wstring strOut;
-    StringHelper::MBCSToUnicode(strName, strOut, CP_UTF8);
+    StringUtil::MBCSToUnicode(strName, strOut, CP_UTF8);
     SetName(strOut);
 }
 

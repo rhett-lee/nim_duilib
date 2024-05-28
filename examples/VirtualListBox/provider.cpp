@@ -29,7 +29,7 @@ ui::Control* Provider::CreateElement(ui::VirtualListBox* pVirtualListBox)
 
 bool Provider::FillElement(ui::Control* pControl, size_t nElementIndex)
 {
-    nbase::NAutoLock auto_lock(&lock_);
+    std::lock_guard<std::mutex> guard(m_lock);
     Item* pItem = dynamic_cast<Item*>(pControl);
     ASSERT(pItem != nullptr);
     ASSERT(nElementIndex < m_vTasks.size());
@@ -38,7 +38,7 @@ bool Provider::FillElement(ui::Control* pControl, size_t nElementIndex)
     }
     const DownloadTask& task = m_vTasks[nElementIndex];
     std::wstring img = L"icon.png";
-    std::wstring title = nbase::StringPrintf(L"%s [%02d]", task.sName, task.nId);
+    std::wstring title = ui::StringUtil::Printf(L"%s [%02d]", task.sName, task.nId);
     pItem->InitSubControls(img, title, nElementIndex);
     return true;
 }
@@ -46,13 +46,13 @@ bool Provider::FillElement(ui::Control* pControl, size_t nElementIndex)
 size_t Provider::GetElementCount() const
 {
     // 加锁
-    nbase::NAutoLock auto_lock(&lock_);
+    std::lock_guard<std::mutex> guard(m_lock);
     return m_vTasks.size();
 }
 
 void Provider::SetElementSelected(size_t nElementIndex, bool bSelected)
 {
-    nbase::NAutoLock auto_lock(&lock_);
+    std::lock_guard<std::mutex> guard(m_lock);
     const size_t nCount = m_vTasks.size();
     if (nElementIndex < nCount) {
         m_vTasks[nElementIndex].bSelected = bSelected;
@@ -68,7 +68,7 @@ void Provider::SetElementSelected(size_t nElementIndex, bool bSelected)
 
 bool Provider::IsElementSelected(size_t nElementIndex) const
 {
-    nbase::NAutoLock auto_lock(&lock_);
+    std::lock_guard<std::mutex> guard(m_lock);
     bool bSelected = false;
     if (nElementIndex < m_vTasks.size()) {
         bSelected = m_vTasks[nElementIndex].bSelected;
@@ -79,7 +79,7 @@ bool Provider::IsElementSelected(size_t nElementIndex) const
 void Provider::GetSelectedElements(std::vector<size_t>& selectedIndexs) const
 {
     selectedIndexs.clear();
-    nbase::NAutoLock auto_lock(&lock_);
+    std::lock_guard<std::mutex> guard(m_lock);
     size_t nCount = m_vTasks.size();
     for (size_t nElementIndex = 0; nElementIndex < nCount; ++nElementIndex) {
         if (m_vTasks[nElementIndex].bSelected) {
@@ -105,7 +105,7 @@ void Provider::SetTotal(int nTotal)
     m_nTotal = nTotal;
 
     // 加锁
-    lock_.Lock();
+    m_lock.lock();
     for (auto task : m_vTasks) {
         delete [] task.sName;
     }
@@ -121,7 +121,7 @@ void Provider::SetTotal(int nTotal)
         wcscpy_s(task.sName, name.size() + 1, name.c_str());
         m_vTasks.emplace_back(std::move(task));
     }
-    lock_.Unlock();
+    m_lock.unlock();
 
     // 通知TileBox数据总数变动
     EmitCountChanged();
@@ -129,14 +129,14 @@ void Provider::SetTotal(int nTotal)
 
 void Provider::RemoveTask(size_t nIndex)
 {    
-    lock_.Lock();
+    m_lock.lock();
     bool bUpdated = false;
     if (nIndex < m_vTasks.size()) {
         auto iter = m_vTasks.begin() + nIndex;
         m_vTasks.erase(iter);
         bUpdated = true;
     }
-    lock_.Unlock();
+    m_lock.unlock();
 
     if (bUpdated) {
         // 通知TileBox数据总数变动
@@ -146,7 +146,7 @@ void Provider::RemoveTask(size_t nIndex)
 
 void Provider::ChangeTaskName(size_t nIndex, const std::wstring& sName)
 {
-    lock_.Lock();
+    m_lock.lock();
     bool bUpdated = false;
     if (nIndex < m_vTasks.size()) {
         delete m_vTasks[nIndex].sName;
@@ -154,7 +154,7 @@ void Provider::ChangeTaskName(size_t nIndex, const std::wstring& sName)
         wcscpy_s(m_vTasks[nIndex].sName, sName.size() + 1, sName.c_str());
         bUpdated = true;
     }
-    lock_.Unlock();
+    m_lock.unlock();
 
     // 发送数据变动通知
     if (bUpdated) {

@@ -1,7 +1,7 @@
 #pragma once
 
-// #include "VirtualListBox.h"
 #include <map>
+#include <mutex>
 
 struct DownloadTask
 {
@@ -69,6 +69,6 @@ private:
     int m_nTotal;
     std::vector<DownloadTask> m_vTasks;
     bool m_bMultiSelect; //是否支持多选
-    mutable nbase::NLock  lock_;
+    mutable std::mutex m_lock;
 };
 

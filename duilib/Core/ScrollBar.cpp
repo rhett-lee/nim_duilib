@@ -452,7 +452,7 @@ void ScrollBar::HandleEvent(const EventArgs& msg)
         m_nLastScrollOffset = 0;
         m_nScrollRepeatDelay = 0;
 
-        auto callback = nbase::Bind(&ScrollBar::ScrollTimeHandle, this);
+        auto callback = UiBind(&ScrollBar::ScrollTimeHandle, this);
         GlobalManager::Instance().Timer().AddCancelableTimer(m_weakFlagOwner.GetWeakFlag(), callback, 50, TimerManager::REPEAT_FOREVER);
 
         if (m_rcButton1.ContainsPt(pt)) {
@@ -1046,7 +1046,7 @@ void ScrollBar::PaintButton1(IRender* pRender)
     }
 
     m_sImageModify.clear();
-    m_sImageModify = StringHelper::Printf(L"destscale='false' dest='%d,%d,%d,%d'", m_rcButton1.left - GetRect().left, \
+    m_sImageModify = StringUtil::Printf(L"destscale='false' dest='%d,%d,%d,%d'", m_rcButton1.left - GetRect().left, \
         m_rcButton1.top - GetRect().top, m_rcButton1.right - GetRect().left, m_rcButton1.bottom - GetRect().top);
 
     if (m_uButton1State == kControlStateDisabled) {
@@ -1077,7 +1077,7 @@ void ScrollBar::PaintButton2(IRender* pRender)
         return;
     }
     m_sImageModify.clear();
-    m_sImageModify = StringHelper::Printf(L"destscale='false' dest='%d,%d,%d,%d'", m_rcButton2.left - GetRect().left, \
+    m_sImageModify = StringUtil::Printf(L"destscale='false' dest='%d,%d,%d,%d'", m_rcButton2.left - GetRect().left, \
         m_rcButton2.top - GetRect().top, m_rcButton2.right - GetRect().left, m_rcButton2.bottom - GetRect().top);
 
     if (m_uButton2State == kControlStateDisabled) {
@@ -1108,7 +1108,7 @@ void ScrollBar::PaintThumb(IRender* pRender)
     }
 
     m_sImageModify.clear();
-    m_sImageModify = StringHelper::Printf(L"destscale='false' dest='%d,%d,%d,%d'", 
+    m_sImageModify = StringUtil::Printf(L"destscale='false' dest='%d,%d,%d,%d'", 
                                           m_rcThumb.left - GetRect().left, 
                                           m_rcThumb.top - GetRect().top, 
                                           m_rcThumb.right - GetRect().left, 
@@ -1124,13 +1124,13 @@ void ScrollBar::PaintRail(IRender* pRender)
 
     m_sImageModify.clear();
     if (!m_bHorizontal) {
-        m_sImageModify = StringHelper::Printf(L"destscale='false' dest='%d,%d,%d,%d'", m_rcThumb.left - GetRect().left, \
+        m_sImageModify = StringUtil::Printf(L"destscale='false' dest='%d,%d,%d,%d'", m_rcThumb.left - GetRect().left, \
             (m_rcThumb.top + m_rcThumb.bottom) / 2 - GetRect().top - GetFixedWidth().GetInt32() / 2, \
             m_rcThumb.right - GetRect().left, \
             (m_rcThumb.top + m_rcThumb.bottom) / 2 - GetRect().top + GetFixedWidth().GetInt32() - GetFixedWidth().GetInt32() / 2);
     }
     else {
-        m_sImageModify = StringHelper::Printf(L"destscale='false' dest='%d,%d,%d,%d'", \
+        m_sImageModify = StringUtil::Printf(L"destscale='false' dest='%d,%d,%d,%d'", \
             (m_rcThumb.left + m_rcThumb.right) / 2 - GetRect().left - GetFixedHeight().GetInt32() / 2, \
             m_rcThumb.top - GetRect().top, \
             (m_rcThumb.left + m_rcThumb.right) / 2 - GetRect().left + GetFixedHeight().GetInt32() - GetFixedHeight().GetInt32() / 2, \

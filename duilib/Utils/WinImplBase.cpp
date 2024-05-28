@@ -83,7 +83,7 @@ LRESULT WindowImplBase::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
     else {
         strSkinFile = GetResourcePath() + xmlFile;
     }
-    auto callback = nbase::Bind(&WindowImplBase::CreateControl, this, std::placeholders::_1);
+    auto callback = UiBind(&WindowImplBase::CreateControl, this, std::placeholders::_1);
     WindowBuilder builder;
     Box* pRoot = builder.Create(strSkinFile, callback, this);
 
@@ -109,30 +109,30 @@ LRESULT WindowImplBase::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
         Control* pControl = (Control*)FindControl(DUI_CTR_BUTTON_CLOSE);
         if (pControl) {
             ASSERT(pControl->GetType() == DUI_CTR_BUTTON);
-            pControl->AttachClick(nbase::Bind(&WindowImplBase::OnButtonClick, this, std::placeholders::_1));
+            pControl->AttachClick(UiBind(&WindowImplBase::OnButtonClick, this, std::placeholders::_1));
         }
 
         pControl = (Control*)FindControl(DUI_CTR_BUTTON_MIN);
         if (pControl) {
             ASSERT(pControl->GetType() == DUI_CTR_BUTTON);
-            pControl->AttachClick(nbase::Bind(&WindowImplBase::OnButtonClick, this, std::placeholders::_1));
+            pControl->AttachClick(UiBind(&WindowImplBase::OnButtonClick, this, std::placeholders::_1));
         }
 
         pControl = (Control*)FindControl(DUI_CTR_BUTTON_MAX);
         if (pControl) {
             ASSERT(pControl->GetType() == DUI_CTR_BUTTON);
-            pControl->AttachClick(nbase::Bind(&WindowImplBase::OnButtonClick, this, std::placeholders::_1));
+            pControl->AttachClick(UiBind(&WindowImplBase::OnButtonClick, this, std::placeholders::_1));
         }
 
         pControl = (Control*)FindControl(DUI_CTR_BUTTON_RESTORE);
         if (pControl) {
             ASSERT(pControl->GetType() == DUI_CTR_BUTTON);
-            pControl->AttachClick(nbase::Bind(&WindowImplBase::OnButtonClick, this, std::placeholders::_1));
+            pControl->AttachClick(UiBind(&WindowImplBase::OnButtonClick, this, std::placeholders::_1));
         }
         pControl = (Control*)FindControl(DUI_CTR_BUTTON_FULLSCREEN);
         if (pControl) {
             ASSERT(pControl->GetType() == DUI_CTR_BUTTON);
-            pControl->AttachClick(nbase::Bind(&WindowImplBase::OnButtonClick, this, std::placeholders::_1));
+            pControl->AttachClick(UiBind(&WindowImplBase::OnButtonClick, this, std::placeholders::_1));
         }
     }
     return 0;

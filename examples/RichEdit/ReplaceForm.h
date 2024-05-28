@@ -2,9 +2,6 @@
 
 #include "resource.h"
 
-// base header
-#include "base/base.h"
-
 // duilib
 #include "duilib/duilib.h"
 

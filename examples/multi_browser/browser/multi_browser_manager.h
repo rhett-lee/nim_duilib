@@ -1,24 +1,26 @@
 #pragma once
 #include "browser_box.h"
 
-enum ThreadId
-{
-    kThreadUI
-};
-
 /** @class MultiBrowserManager
   * @brief 多标签浏览器管理类，用于统一管理多标签浏览器打开、合并、拆分、拖拽功能
   * @date 2019/3/20
   */
 class SdkDataObject;
-class MultiBrowserManager : public virtual nbase::SupportWeakCallback
+class MultiBrowserManager : public virtual ui::SupportWeakCallback
 {
 public:
-    SINGLETON_DEFINE(MultiBrowserManager);
-public:
     MultiBrowserManager();
+    MultiBrowserManager(const MultiBrowserManager&) = delete;
+    MultiBrowserManager& operator=(const MultiBrowserManager&) = delete;
+
+    /** 单例对象
+    */
+    static MultiBrowserManager* GetInstance();
+
+private:
     ~MultiBrowserManager();
 
+public:
     /**
     * 创建一个浏览器盒子
     * @param[in] browser_form 浏览器窗口，如果为NULL则创建一个新的窗口，否则在这个窗口里新建浏览器盒子

@@ -48,7 +48,7 @@ void ControlForm::OnInitWindow()
         for (auto i = 0; i < 30; i++)
         {
             ui::ListBoxItem* element = new ui::ListBoxItem(this);
-            element->SetText(nbase::StringPrintf(L"ui::VListBox::ListBoxItem %d", i));
+            element->SetText(ui::StringUtil::Printf(L"ui::VListBox::ListBoxItem %d", i));
             element->SetClass(L"listitem");
             element->SetFixedHeight(ui::UiFixedInt(20), true, true);
             list->AddItem(element);
@@ -63,7 +63,7 @@ void ControlForm::OnInitWindow()
         for (auto i = 0; i < 10; i++) {
             ui::TreeNode* node = new ui::TreeNode(this);
             node->SetClass(L"tree_node");
-            node->SetText(nbase::StringPrintf(L"ui::Combo::TreeNode %d", i));
+            node->SetText(ui::StringUtil::Printf(L"ui::Combo::TreeNode %d", i));
             pTreeNode->AddChildNode(node);
         }
     }
@@ -93,7 +93,7 @@ void ControlForm::OnInitWindow()
     ui::FilterCombo* filterCombo = static_cast<ui::FilterCombo*>(FindControl(L"filter_combo"));
     if (filterCombo != nullptr) {
         for (auto i = 0; i < 100; i++) {
-            filterCombo->AddTextItem(nbase::StringPrintf(L"Item %d FilterCombo", i));
+            filterCombo->AddTextItem(ui::StringUtil::Printf(L"Item %d FilterCombo", i));
         }
     }
 
@@ -109,14 +109,16 @@ void ControlForm::OnInitWindow()
     }
 
     /* Load xml file content in global misc thread, and post update RichEdit task to UI thread */
-    nbase::ThreadManager::PostTask(kThreadGlobalMisc, nbase::Bind(&ControlForm::LoadRichEditData, this));
+    ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadMisc, UiBind(&ControlForm::LoadRichEditData, this));
 
     /* Post repeat task to update progress value 200 milliseconds once */
     /* Using ToWeakCallback to protect closure when if [ControlForm] was destoryed */
-    nbase::ThreadManager::PostRepeatedTask(kThreadGlobalMisc, ToWeakCallback([this](){
-        nbase::TimeDelta time_delta = nbase::TimeDelta::FromMicroseconds(nbase::Time::Now().ToInternalValue());
-        nbase::ThreadManager::PostTask(kThreadUI, nbase::Bind(&ControlForm::OnProgressValueChagned, this, (float)(time_delta.ToMilliseconds() % 100)));
-    }), nbase::TimeDelta::FromMilliseconds(300));
+    ui::GlobalManager::Instance().Thread().PostRepeatedTask(ui::kThreadMisc,
+        ui::UiBind(this, [this]() {
+            float fProgress = (float)(std::time(nullptr) % 100);
+            ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&ControlForm::OnProgressValueChagned, this, fProgress));
+            }),
+        300);
 
     /* Show settings menu */
     ui::Button* settings = static_cast<ui::Button*>(FindControl(L"settings"));
@@ -390,10 +392,10 @@ void ControlForm::LoadRichEditData()
         ifs.close();
     }
     std::wstring xmlU;
-    ui::StringHelper::MBCSToUnicode(xml.c_str(), xmlU, CP_UTF8);
+    ui::StringUtil::MBCSToUnicode(xml.c_str(), xmlU, CP_UTF8);
 
     // Post task to UI thread
-    nbase::ThreadManager::PostTask(kThreadUI, nbase::Bind(&ControlForm::OnResourceFileLoaded, this, xmlU));
+    ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&ControlForm::OnResourceFileLoaded, this, xmlU));
 }
 
 void ControlForm::OnResourceFileLoaded(const std::wstring& xml)
@@ -431,7 +433,7 @@ void ControlForm::OnProgressValueChagned(float value)
     auto circleprogress = static_cast<ui::Progress*>(FindControl(L"circleprogress"));
     if (circleprogress)    {
         circleprogress->SetValue(value);
-        circleprogress->SetText(nbase::StringPrintf(L"%.0f%%", value));
+        circleprogress->SetText(ui::StringUtil::Printf(L"%.0f%%", value));
     }
 
     if (((int)value == progress->GetMaxValue()) || (value < lastValue)) {

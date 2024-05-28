@@ -1003,7 +1003,7 @@ void MainForm::LoadRichEditData()
         ifs.close();
     }
     std::wstring xmlU;
-    ui::StringHelper::MBCSToUnicode(xml.c_str(), xmlU, CP_UTF8);
+    ui::StringUtil::MBCSToUnicode(xml.c_str(), xmlU, CP_UTF8);
 
     if (m_pRichEdit != nullptr) {
         m_pRichEdit->SetText(xmlU);
@@ -1136,7 +1136,7 @@ bool MainForm::IsRtfFile(const std::wstring& filePath) const
     size_t pos = filePath.find_last_of(L".");
     if (pos != std::wstring::npos) {
         fileExt = filePath.substr(pos);
-        fileExt = ui::StringHelper::MakeLowerString(fileExt);
+        fileExt = ui::StringUtil::MakeLowerString(fileExt);
     }
     return fileExt == L".rtf";
 }
@@ -1500,7 +1500,7 @@ void MainForm::UpdateZoomValue()
         else {
             zoomValue = nNum * 1000 / nDen;
         }
-        std::wstring strZoom = ui::StringHelper::Printf(L"%.01f%%", zoomValue / 10.0);
+        std::wstring strZoom = ui::StringUtil::Printf(L"%.01f%%", zoomValue / 10.0);
         pZoomLabel->SetText(strZoom);
     }
 }

@@ -1,6 +1,4 @@
 #include "msgbox.h"
-#include "ui_components/public_define.h"
-#include "base/thread/thread_manager.h"
 #include "duilib/Utils/Macros.h"
 #include "duilib/Core/GlobalManager.h"
 
@@ -81,7 +79,7 @@ void MsgBox::CloseWnd(UINT nRet)
 
 void MsgBox::OnInitWindow()
 {
-    GetRoot()->AttachBubbledEvent(ui::kEventClick, nbase::Bind(&MsgBox::OnClicked, this, std::placeholders::_1));
+    GetRoot()->AttachBubbledEvent(ui::kEventClick, UiBind(&MsgBox::OnClicked, this, std::placeholders::_1));
 
     title_ = (ui::Label*)FindControl(L"title");
     content_ = (ui::RichEdit*)FindControl(L"content");
@@ -165,7 +163,7 @@ void MsgBox::EndMsgBox(MsgBoxRet ret)
 
     if (msgbox_callback_)
     {
-        nbase::ThreadManager::PostTask(kThreadUI, nbase::Bind(msgbox_callback_, ret));
+        ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, ui::UiBind(msgbox_callback_, ret));
     }
 }
 

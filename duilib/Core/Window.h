@@ -4,7 +4,7 @@
 #pragma once
 
 #include "duilib/Utils/Delegate.h"
-#include "base/callback/callback.h"
+#include "duilib/Core/Callback.h"
 #include "duilib/Core/ControlFinder.h"
 #include "duilib/Core/ColorManager.h"
 #include "duilib/Core/DpiManager.h"
@@ -50,7 +50,7 @@ public:
 *  4. Window::AttachShadow(pRoot), 得到附加阴影的Box* pRoot, 以支持窗口阴影效果;
 *  5. Window::AttachBox(pRoot);
 */
-class UILIB_API Window : public virtual nbase::SupportWeakCallback
+class UILIB_API Window : public virtual SupportWeakCallback
 {
 public:
     Window();
@@ -1221,7 +1221,7 @@ private:
     std::vector<Control*> m_aDelayedCleanup;
 
     //异步关闭窗口回调函数资源有效性标志
-    nbase::WeakCallbackFlag m_closeFlag;
+    WeakCallbackFlag m_closeFlag;
 
     //窗口阴影
     std::unique_ptr<Shadow> m_shadow;

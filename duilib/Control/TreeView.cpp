@@ -396,11 +396,11 @@ bool TreeNode::AddChildNodeAt(TreeNode* pTreeNode, const size_t iIndex)
     pTreeNode->SetWindow(GetWindow());
 
     //监听双击事件：用于展开子节点
-    pTreeNode->AttachEvent(kEventMouseDoubleClick, nbase::Bind(&TreeNode::OnDoubleClickItem, this, std::placeholders::_1));
+    pTreeNode->AttachEvent(kEventMouseDoubleClick, UiBind(&TreeNode::OnDoubleClickItem, this, std::placeholders::_1));
     
     //监听勾选事件：用于多选时同步勾选子节点和同步父节点的三态选择状态
-    pTreeNode->AttachChecked(nbase::Bind(&TreeNode::OnNodeCheckStatusChanged, this, std::placeholders::_1));
-    pTreeNode->AttachUnCheck(nbase::Bind(&TreeNode::OnNodeCheckStatusChanged, this, std::placeholders::_1));
+    pTreeNode->AttachChecked(UiBind(&TreeNode::OnNodeCheckStatusChanged, this, std::placeholders::_1));
+    pTreeNode->AttachUnCheck(UiBind(&TreeNode::OnNodeCheckStatusChanged, this, std::placeholders::_1));
 
     UiPadding padding = GetPadding();
     
@@ -453,7 +453,7 @@ bool TreeNode::AddChildNodeAt(TreeNode* pTreeNode, const size_t iIndex)
     return bAdded;
 }
 
-#ifdef UILIB_IMPL_WINSDK
+#ifdef DUILIB_PLATFORM_WIN
 
 void TreeNode::SetBkIcon(HICON hIcon, uint32_t nIconSize, bool bNeedDpiScale)
 {
@@ -472,16 +472,16 @@ void TreeNode::SetBkIcon(HICON hIcon, uint32_t nIconSize, bool bNeedDpiScale)
 
     if (nIconSize > 0) {
         if (bNeedDpiScale) {
-            iconString = StringHelper::Printf(L"file='%s' width='%d' height='%d' halign='left' valign='center' dpi_scale='true'",
+            iconString = StringUtil::Printf(L"file='%s' width='%d' height='%d' halign='left' valign='center' dpi_scale='true'",
                                               iconString.c_str(), nIconSize, nIconSize);
         }
         else {
-            iconString = StringHelper::Printf(L"file='%s' width='%d' height='%d' halign='left' valign='center' dpi_scale='false'",
+            iconString = StringUtil::Printf(L"file='%s' width='%d' height='%d' halign='left' valign='center' dpi_scale='false'",
                                               iconString.c_str(), nIconSize, nIconSize);
         }
     }
     else {
-        iconString = StringHelper::Printf(L"file='%s' halign='left' valign='center'",
+        iconString = StringUtil::Printf(L"file='%s' halign='left' valign='center'",
                                            iconString.c_str());
     }
     std::wstring oldIconString = GetBkImage();
@@ -504,7 +504,7 @@ void TreeNode::SetBkIcon(HICON hIcon, uint32_t nIconSize, bool bNeedDpiScale)
     }
 }
 
-#endif //UILIB_IMPL_WINSDK
+#endif //DUILIB_PLATFORM_WIN
 
 void TreeNode::SetExpandImageClass(const std::wstring& expandClass)
 {

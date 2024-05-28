@@ -20,15 +20,15 @@ void Item::InitSubControls(const std::wstring& img, const std::wstring& title)
     btn_del_        = dynamic_cast<ui::Button*>(FindSubControl(L"btn_del"));
 
     // 模拟进度条进度
-    nbase::TimeDelta time_delta = nbase::TimeDelta::FromMicroseconds(nbase::Time::Now().ToInternalValue());
-    progress_->SetValue((double)(time_delta.ToMilliseconds() % 100));
+    int32_t nProgress = std::time(nullptr) % 100;
+    progress_->SetValue((double)(nProgress));
 
     // 设置图标和任务名称
     control_img_->SetBkImage(img);
-    label_title_->SetText(nbase::StringPrintf(L"%s %d%%", title.c_str(), time_delta.ToMilliseconds() % 100));
+    label_title_->SetText(ui::StringUtil::Printf(L"%s %d%%", title.c_str(), nProgress));
 
     // 绑定删除任务处理函数
-    btn_del_->AttachClick(nbase::Bind(&Item::OnRemove, this, std::placeholders::_1));
+    btn_del_->AttachClick(UiBind(&Item::OnRemove, this, std::placeholders::_1));
 }
 
 bool Item::OnRemove(const ui::EventArgs& args)

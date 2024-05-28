@@ -106,7 +106,7 @@ public:
     //这个函数Gdiplus版本的实现不太对，推荐使用Skia版本的。
     void DrawBoxShadow(const UiRect& rc, const UiSize& roundSize, const UiPoint& cpOffset, int nBlurRadius, int nSpreadRadius, UiColor dwColor) override;
 
-#ifdef UILIB_IMPL_WINSDK
+#ifdef DUILIB_PLATFORM_WIN
     /** 获取DC句柄，当不使用后，需要调用ReleaseDC接口释放资源
     */
     virtual HDC GetDC() override;

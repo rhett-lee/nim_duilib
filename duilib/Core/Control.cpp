@@ -544,7 +544,7 @@ void Control::SetClass(const std::wstring& strClass)
     if (strClass.empty()) {
         return;
     }
-    std::list<std::wstring> splitList = StringHelper::Split(strClass, L" ");
+    std::list<std::wstring> splitList = StringUtil::Split(strClass, L" ");
     for (auto it = splitList.begin(); it != splitList.end(); it++) {
         std::wstring pDefaultAttributes = GlobalManager::Instance().GetClassAttributes((*it));
         Window* pWindow = GetWindow();
@@ -604,8 +604,8 @@ bool Control::OnApplyAttributeList(const std::wstring& strReceiver, const std::w
     if (pReceiverControl != nullptr) {
         std::wstring strValueList = strList;
         //这个是手工写入的属性，以花括号{}代替双引号，编写的时候就不需要转义字符了；
-        StringHelper::ReplaceAll(L"{", L"\"", strValueList);
-        StringHelper::ReplaceAll(L"}", L"\"", strValueList);
+        StringUtil::ReplaceAll(L"{", L"\"", strValueList);
+        StringUtil::ReplaceAll(L"}", L"\"", strValueList);
         pReceiverControl->ApplyAttributeList(strValueList);
         return true;
     }
@@ -727,7 +727,7 @@ std::wstring Control::GetBkImage() const
 std::string Control::GetUTF8BkImage() const
 {
     std::string strOut;
-    StringHelper::UnicodeToMBCS(GetBkImage(), strOut, CP_UTF8);
+    StringUtil::UnicodeToMBCS(GetBkImage(), strOut, CP_UTF8);
     return strOut;
 }
 
@@ -749,7 +749,7 @@ void Control::SetBkImage(const std::wstring& strImage)
 void Control::SetUTF8BkImage(const std::string& strImage)
 {
     std::wstring strOut;
-    StringHelper::MBCSToUnicode(strImage, strOut, CP_UTF8);
+    StringUtil::MBCSToUnicode(strImage, strOut, CP_UTF8);
     SetBkImage(strOut);
 }
 
@@ -1210,7 +1210,7 @@ std::wstring Control::GetToolTipText() const
 std::string Control::GetUTF8ToolTipText() const
 {
     std::string strOut;
-    StringHelper::UnicodeToMBCS(GetToolTipText(), strOut, CP_UTF8);
+    StringUtil::UnicodeToMBCS(GetToolTipText(), strOut, CP_UTF8);
     return strOut;
 }
 
@@ -1218,7 +1218,7 @@ void Control::SetToolTipText(const std::wstring& strText)
 {
     if (strText != m_sToolTipText) {
         std::wstring strTemp(strText);
-        StringHelper::ReplaceAll(L"<n>", L"\r\n", strTemp);
+        StringUtil::ReplaceAll(L"<n>", L"\r\n", strTemp);
         m_sToolTipText = strTemp;
         Invalidate();
 
@@ -1235,7 +1235,7 @@ void Control::SetToolTipText(const std::wstring& strText)
 void Control::SetUTF8ToolTipText(const std::string& strText)
 {
     std::wstring strOut;
-    StringHelper::MBCSToUnicode(strText, strOut, CP_UTF8);
+    StringUtil::MBCSToUnicode(strText, strOut, CP_UTF8);
     if (strOut.empty()) {
         m_sToolTipText.clear();
         Invalidate();
@@ -1259,7 +1259,7 @@ void Control::SetToolTipTextId(const std::wstring& strTextId)
 void Control::SetUTF8ToolTipTextId(const std::string& strTextId)
 {
     std::wstring strOut;
-    StringHelper::MBCSToUnicode(strTextId, strOut, CP_UTF8);
+    StringUtil::MBCSToUnicode(strTextId, strOut, CP_UTF8);
     SetToolTipTextId(strOut);
 }
 
@@ -1292,7 +1292,7 @@ std::wstring Control::GetDataID() const
 std::string Control::GetUTF8DataID() const
 {
     std::string strOut;
-    StringHelper::UnicodeToMBCS(GetDataID(), strOut, CP_UTF8);
+    StringUtil::UnicodeToMBCS(GetDataID(), strOut, CP_UTF8);
     return strOut;
 }
 
@@ -1304,7 +1304,7 @@ void Control::SetDataID(const std::wstring& strText)
 void Control::SetUTF8DataID(const std::string& strText)
 {
     std::wstring strOut;
-    StringHelper::MBCSToUnicode(strText, strOut, CP_UTF8);
+    StringUtil::MBCSToUnicode(strText, strOut, CP_UTF8);
     m_sUserDataID = strOut;
 }
 
@@ -1701,7 +1701,7 @@ bool Control::IsDisabledEvents(const EventArgs& msg) const
 
 void Control::HandleEvent(const EventArgs& msg)
 {
-    std::weak_ptr<nbase::WeakFlag> weakFlag = GetWeakFlag();
+    std::weak_ptr<WeakFlag> weakFlag = GetWeakFlag();
     if (IsDisabledEvents(msg)) {
         //如果是鼠标键盘消息，并且控件是Disabled的，转发给上层控件
         Box* pParent = GetParent();
@@ -2980,7 +2980,7 @@ bool Control::LoadImageData(Image& duiImage) const
     }
     std::wstring imageFullPath;
 
-#ifdef UILIB_IMPL_WINSDK
+#ifdef DUILIB_PLATFORM_WIN
     if (GlobalManager::Instance().Icon().IsIconString(sImagePath)) {
         //ICON句柄
         imageFullPath = sImagePath;
@@ -3099,7 +3099,7 @@ void Control::DetachXmlBubbledEvent(EventType eventType)
 
 bool Control::FireAllEvents(const EventArgs& msg)
 {
-    std::weak_ptr<nbase::WeakFlag> weakflag = GetWeakFlag();
+    std::weak_ptr<WeakFlag> weakflag = GetWeakFlag();
     bool bRet = true;//当值为false时，就不再调用回调函数和处理函数
 
     if (msg.pSender == this) {
@@ -3232,7 +3232,7 @@ std::wstring Control::GetColorString(const UiColor& color) const
         return std::wstring();
     }
     else {
-        return StringHelper::Printf(L"#%02X%02X%02X%02X", color.GetA(), color.GetR(), color.GetG(), color.GetB());
+        return StringUtil::Printf(L"#%02X%02X%02X%02X", color.GetA(), color.GetR(), color.GetG(), color.GetB());
     }
 }
 

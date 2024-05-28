@@ -1,10 +1,6 @@
 #include "cef_manager.h"
 #include "ui_components/cef_control/app/client_app.h"
 #include "ui_components/cef_control/handler/browser_handler.h"
-#include "ui_components/public_define.h"
-#include "base/win32/path_util.h"
-#include "base/file/file_util.h"
-#include "base/thread/thread_manager.h"
 
 #pragma warning (push)
 #pragma warning (disable:4100)
@@ -14,41 +10,6 @@
 
 namespace nim_comp
 {
-
-BOOL CefMessageLoopDispatcher::IsIdleMessage(const MSG* pMsg)
-{
-    switch (pMsg->message)
-    {
-    case WM_MOUSEMOVE:
-    case WM_NCMOUSEMOVE:
-    case WM_PAINT:
-        return FALSE;
-    }
-
-    return TRUE;
-}
-
-bool CefMessageLoopDispatcher::Dispatch(const MSG &msg)
-{
-    static BOOL bDoIdle = TRUE;
-
-    TranslateMessage(&msg);
-    DispatchMessage(&msg);
-
-    if (IsIdleMessage(&msg))
-    {
-        bDoIdle = TRUE;
-    }
-
-    while (bDoIdle && !::PeekMessage(const_cast<MSG*>(&msg), NULL, 0, 0, PM_NOREMOVE))
-    {
-        CefDoMessageLoopWork();
-        bDoIdle = FALSE;
-    }
-
-    return true;
-}
-
 ///////////////////////////////////////////////////////////////////////////////////
 
 // 发现一个非常奇葩的bug，离屏渲染+多线程消息循环模式下，在浏览器对象上右击弹出菜单，是无法正常关闭的
@@ -74,6 +35,12 @@ CefManager::~CefManager()
     ASSERT(map_drag_target_reference_.empty());
 }
 
+CefManager* CefManager::GetInstance()
+{
+    static CefManager self;
+    return &self;
+}
+
 void CefManager::AddCefDllToPath()
 {
 #if !defined(SUPPORT_CEF)
@@ -83,7 +50,7 @@ void CefManager::AddCefDllToPath()
     TCHAR path_envirom[4096] = { 0 };
     GetEnvironmentVariable(L"path", path_envirom, 4096);
     
-    std::wstring cef_path = nbase::win32::GetCurrentModuleDirectory();
+    std::wstring cef_path = ui::PathUtil::GetCurrentModuleDirectory();
 
 #ifdef _WIN64
     cef_path += L"cef_x64";
@@ -91,7 +58,7 @@ void CefManager::AddCefDllToPath()
     cef_path += L"cef";
 #endif
 
-    if (!nbase::FilePathIsExist(cef_path, true))
+    if (!ui::PathUtil::FilePathIsExist(cef_path, true))
     {
         MessageBox(NULL, L"请解压Cef.rar压缩包", L"提示", MB_OK);
         exit(0);
@@ -153,11 +120,6 @@ bool CefManager::IsEnableOffsetRender() const
     return is_enable_offset_render_;
 }
 
-nbase::Dispatcher* CefManager::GetMessageDispatcher()
-{
-    return &message_dispatcher_;
-}
-
 void CefManager::AddBrowserCount()
 {
     browser_count_++;
@@ -185,7 +147,7 @@ void CefManager::PostQuitMessage(int nExitCode)
     // 应该等所有浏览器对象都销毁后再调用::PostQuitMessage
     if (browser_count_ == 0)
     {
-        nbase::ThreadManager::PostTask(kThreadUI, [nExitCode]()
+        ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, [nExitCode]()
          {
             ::PostQuitMessage(nExitCode);
         });
@@ -197,7 +159,7 @@ void CefManager::PostQuitMessage(int nExitCode)
             CefManager::GetInstance()->PostQuitMessage(nExitCode);
         };
 
-        nbase::ThreadManager::PostDelayedTask(kThreadUI, cb, nbase::TimeDelta::FromMilliseconds(500));
+        ui::GlobalManager::Instance().Thread().PostDelayedTask(ui::kThreadUI, cb, 500);
     }
 }
 
@@ -239,9 +201,9 @@ client::DropTargetHandle CefManager::GetDropTarget(HWND hwnd)
 
 void CefManager::GetCefSetting(const std::wstring& app_data_dir, CefSettings &settings)
 {
-    if (false == nbase::FilePathIsExist(app_data_dir, true))
-        nbase::CreateDirectory(app_data_dir);
-
+    if (!ui::PathUtil::FilePathIsExist(app_data_dir, true)) {
+        ui::PathUtil::CreateDirectories(app_data_dir);
+    }
     settings.no_sandbox = true;
 
     // 设置localstorage，不要在路径末尾加"\\"，否则运行时会报错

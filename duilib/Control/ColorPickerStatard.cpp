@@ -140,7 +140,7 @@ bool ColorPickerStatard::MouseMove(const EventArgs& msg)
     if (GetRect().ContainsPt(msg.ptMouse)) {
         UiColor color;
         if (GetColorInfo(msg.ptMouse, color)) {
-            std::wstring colorString = StringHelper::Printf(L"#%02X%02X%02X%02X", color.GetA(), color.GetR(), color.GetG(), color.GetB());
+            std::wstring colorString = StringUtil::Printf(L"#%02X%02X%02X%02X", color.GetA(), color.GetR(), color.GetG(), color.GetB());
             SetToolTipText(colorString);
         }
         else {

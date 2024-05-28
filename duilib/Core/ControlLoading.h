@@ -4,7 +4,7 @@
 #pragma once
 
 #include "duilib/Core/UiTypes.h"
-#include "base/callback/callback.h"
+#include "duilib/Core/Callback.h"
 #include <memory>
 
 namespace ui 
@@ -15,7 +15,7 @@ namespace ui
 class Image;
 class Control;
 class IRender;
-class ControlLoading: public nbase::SupportWeakCallback
+class ControlLoading: public SupportWeakCallback
 {
 public:
     explicit ControlLoading(Control* pControl);
@@ -73,7 +73,7 @@ private:
     UiString m_strLoadingBkColor;
 
     //加载中状态图片(m_pLoadingImage)的生命周期管理、取消机制
-    nbase::WeakCallbackFlag m_loadingImageFlag;
+    WeakCallbackFlag m_loadingImageFlag;
 
     //关联的Control对象
     Control* m_pControl;

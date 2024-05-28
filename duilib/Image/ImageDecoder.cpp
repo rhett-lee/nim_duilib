@@ -565,7 +565,7 @@ ImageDecoder::ImageFormat ImageDecoder::GetImageFormat(const std::wstring& path)
     size_t pos = path.rfind(L".");
     if ((pos != std::wstring::npos) && ((pos + 1) < path.size())) {
         fileExt = path.substr(pos + 1, std::wstring::npos);
-        fileExt = StringHelper::MakeUpperString(fileExt);
+        fileExt = StringUtil::MakeUpperString(fileExt);
     }
     if (fileExt == L"PNG") {
         imageFormat = ImageFormat::kPNG;

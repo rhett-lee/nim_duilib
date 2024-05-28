@@ -13,8 +13,5 @@
 #include <memory.h>
 #include <tchar.h>
 
-// base header
-#include "base/base.h"
-
 // duilib
 #include "duilib/duilib.h"

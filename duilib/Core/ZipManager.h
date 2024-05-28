@@ -26,7 +26,7 @@ public:
      */
     bool IsUseZip() const;
 
-#ifdef UILIB_IMPL_WINSDK
+#ifdef DUILIB_PLATFORM_WIN
     /** 打开一个内存压缩包资源
      * @param[in] hModule 资源句柄，如果为nullptr，代表当前可执行程序的模块句柄
      * @param[in] resourceName 资源名称，由 MAKEINTRESOURCE 宏生成

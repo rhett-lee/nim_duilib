@@ -5,8 +5,7 @@
 
 #include "duilib/Core/UiTypes.h"
 #include "duilib/Utils/Delegate.h"
-#include "base/callback/callback.h"
-#include <memory>
+#include "duilib/Core/Callback.h"
 #include <map>
 
 namespace ui 
@@ -17,7 +16,7 @@ typedef std::map<int32_t, CEventSource> GifEventMap;
 
 /** 控件背景动态播放动画的逻辑封装（支持GIF/WebP/APNG动画）
 */
-class ImageGif: public nbase::SupportWeakCallback
+class ImageGif: public SupportWeakCallback
 {
 public:
     ImageGif();
@@ -91,7 +90,7 @@ private:
 private:
     /** GIF背景图片播放的取消机制
     */
-    nbase::WeakCallbackFlag m_gifWeakFlag;
+    WeakCallbackFlag m_gifWeakFlag;
 
     /** GIF播放事件的回调注册管理容器(目前只有播放完成一个事件)
     */

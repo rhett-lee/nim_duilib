@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "item.h"
 #include "provider.h"
+#include <chrono>
 
 Item::Item(ui::Window* pWindow):
     ui::ListBoxItem(pWindow),
@@ -22,17 +23,16 @@ void Item::InitSubControls(const std::wstring& img, const std::wstring& title, s
         progress_ = dynamic_cast<ui::Progress*>(FindSubControl(L"progress"));
         btn_del_ = dynamic_cast<ui::Button*>(FindSubControl(L"btn_del"));
         // 模拟进度条进度
-        nbase::TimeDelta time_delta = nbase::TimeDelta::FromMicroseconds(nbase::Time::Now().ToInternalValue());
-        t_time = time_delta.ToMilliseconds();
-        progress_->SetValue((double)(time_delta.ToMilliseconds() % 100));
+        t_time = std::chrono::high_resolution_clock::now().time_since_epoch().count() / 1000;
+        progress_->SetValue((double)(t_time % 100));
         // 设置图标和任务名称
         control_img_->SetBkImage(img);
         // 绑定删除任务处理函数
-        btn_del_->AttachClick(nbase::Bind(&Item::OnRemove, this, std::placeholders::_1));
+        btn_del_->AttachClick(UiBind(&Item::OnRemove, this, std::placeholders::_1));
     }
 
 
-    label_title_->SetText(nbase::StringPrintf(L"%s %d%%", title.c_str(), t_time % 100));
+    label_title_->SetText(ui::StringUtil::Printf(L"%s %d%%", title.c_str(), t_time % 100));
     m_nDataIndex = nDataIndex;
 
 }

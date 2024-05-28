@@ -44,7 +44,7 @@ ColorManager::ColorManager()
     std::vector<std::pair<std::wstring, int32_t>> uiColors;
     UiColors::GetUiColorsString(uiColors);
     for (auto iter : uiColors) {        
-        m_standardColorMap.AddColor(StringHelper::MakeLowerString(iter.first), UiColor(iter.second));
+        m_standardColorMap.AddColor(StringUtil::MakeLowerString(iter.first), UiColor(iter.second));
     }
 }
 
@@ -109,7 +109,7 @@ UiColor ColorManager::GetColor(const std::wstring& strName) const
 UiColor ColorManager::GetStandardColor(const std::wstring& strName) const
 {
     //名称不区分大小写
-    return m_standardColorMap.GetColor(StringHelper::MakeLowerString(strName));
+    return m_standardColorMap.GetColor(StringUtil::MakeLowerString(strName));
 }
 
 void ColorManager::RemoveAllColors()

@@ -1617,8 +1617,8 @@ void Render_Skia::DrawRichText(const UiRect& rc,
 
         std::wstring textValue = textData.m_text.c_str();
         //统一换行标志
-        StringHelper::ReplaceAll(L"\r\n", L"\n", textValue);
-        StringHelper::ReplaceAll(L"\r", L"\n", textValue);
+        StringUtil::ReplaceAll(L"\r\n", L"\n", textValue);
+        StringUtil::ReplaceAll(L"\r", L"\n", textValue);
         if (textValue == L"\n") {
             //文本内容是分隔符，执行换行操作
             xPos = rc.left;
@@ -1636,7 +1636,7 @@ void Render_Skia::DrawRichText(const UiRect& rc,
         bool bBreakAll = false;//标记是否终止
 
         //按换行符进行文本切分
-        std::list<std::wstring> textList = StringHelper::Split(textValue, L"\n");
+        std::list<std::wstring> textList = StringUtil::Split(textValue, L"\n");
         for (const std::wstring& text : textList) {
             //绘制的文本下标开始值        
             const size_t textCount = text.size();

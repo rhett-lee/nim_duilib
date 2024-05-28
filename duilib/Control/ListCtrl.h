@@ -851,7 +851,7 @@ private:
 
     /** 进入编辑状态的定时器取消机制
     */
-    nbase::WeakCallbackFlag m_editModeFlag;
+    WeakCallbackFlag m_editModeFlag;
 
     /** 从定时器进入编辑状态
     */

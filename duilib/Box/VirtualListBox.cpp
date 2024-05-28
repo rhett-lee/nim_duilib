@@ -66,8 +66,8 @@ void VirtualListBox::SetDataProvider(VirtualListBoxElement* pProvider)
 
         //注册模型数据变动通知回调
         pProvider->RegNotifys(
-            nbase::Bind(&VirtualListBox::OnModelDataChanged, this, std::placeholders::_1, std::placeholders::_2),
-            nbase::Bind(&VirtualListBox::OnModelCountChanged, this));
+            UiBind(&VirtualListBox::OnModelDataChanged, this, std::placeholders::_1, std::placeholders::_2),
+            UiBind(&VirtualListBox::OnModelCountChanged, this));
     }
 }
 

@@ -17,7 +17,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     MainThread thread;
 
     //执行主线程消息循环
-    thread.RunOnCurrentThreadWithLoop(nbase::MessageLoop::kUIMessageLoop);
+    thread.RunOnCurrentThreadWithLoop();
 
     //正常退出程序
     return 0;

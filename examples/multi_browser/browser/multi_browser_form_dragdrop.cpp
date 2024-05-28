@@ -196,7 +196,7 @@ bool MultiBrowserForm::OnProcessTabItemDrag(const ui::EventArgs& param)
                 MultiBrowserManager::GetInstance()->DoDragBorwserBox(active_browser_box_, hBitmap, pt);
                 ::DeleteObject(hBitmap);
             };
-            nbase::ThreadManager::PostTask(kThreadUI, cb);
+            ui::GlobalManager::Instance().Thread().PostTask(kThreadUI, cb);
         }
     }
     break;

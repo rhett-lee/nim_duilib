@@ -20,7 +20,7 @@
 namespace nim_comp
 {
 // BrowserHandler implements CefClient and a number of other interfaces.
-class BrowserHandler : public virtual nbase::SupportWeakCallback,
+class BrowserHandler : public virtual ui::SupportWeakCallback,
     public CefClient,
     public CefLifeSpanHandler,
     public CefRenderHandler,
@@ -44,7 +44,7 @@ public:
      *         其中一些需要与上层交互的事件接口封装到此类中，BrowserHandler把这些事件传递到委托接口中
      *         可以根据需求来扩展此接口
      */
-    class HandlerDelegate : public virtual nbase::SupportWeakCallback
+    class HandlerDelegate : public virtual ui::SupportWeakCallback
     {
     public:
 
@@ -170,7 +170,7 @@ public:
 
     // 添加一个任务到队列中，当Browser对象创建成功后，会依次触发任务
     // 比如创建Browser后调用LoadUrl加载网页，但是这时Browser很可能还没有创建成功，就把LoadUrl任务添加到队列
-     UnregisterCallback AddAfterCreateTask(const StdClosure& cb);
+     UnregisterCallback AddAfterCreateTask(const ui::StdClosure& cb);
 
      void CloseAllBrowser();
 public:
@@ -337,12 +337,12 @@ protected:
     CefRefPtr<CefBrowser>    browser_;
     std::vector<CefRefPtr<CefBrowser>> browser_list_;
     ui::Window*                window_;
-    std::weak_ptr<nbase::WeakFlag> window_flag_;    
+    std::weak_ptr<ui::WeakFlag> window_flag_;    
     HandlerDelegate*        handle_delegate_;
     RECT                    rect_cef_control_;
     std::string                paint_buffer_;
     bool                    is_focus_oneditable_field_;
-    UnregistedCallbackList<StdClosure>    task_list_after_created_;
+    UnregistedCallbackList<ui::StdClosure>    task_list_after_created_;
 
     client::DropTargetHandle drop_target_;
     CefRenderHandler::DragOperation current_drag_op_;

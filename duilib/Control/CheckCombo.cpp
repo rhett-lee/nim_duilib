@@ -203,7 +203,7 @@ CheckCombo::CheckCombo(Window* pWindow) :
     m_pDropList->EnableScrollBar();
     
     m_pList.reset(new ui::ListBox(pWindow, new ui::VTileLayout));
-    m_pList->AttachButtonDown(std::bind(&CheckCombo::OnListButtonDown, this, std::placeholders::_1));
+    m_pList->AttachButtonDown(UiBind(&CheckCombo::OnListButtonDown, this, std::placeholders::_1));
     m_pList->SetMouseChildEnabled(false);
     m_pList->EnableScrollBar();
 
@@ -223,14 +223,14 @@ bool CheckCombo::AddItem(Control* pControl)
 {
     ui::CheckBox* pCheckBox = dynamic_cast<ui::CheckBox*>(pControl);
     if (pCheckBox) {
-        pCheckBox->AttachSelect(std::bind(&CheckCombo::OnSelectItem, this, std::placeholders::_1));
-        pCheckBox->AttachUnSelect(std::bind(&CheckCombo::OnUnSelectItem, this, std::placeholders::_1));
+        pCheckBox->AttachSelect(UiBind(&CheckCombo::OnSelectItem, this, std::placeholders::_1));
+        pCheckBox->AttachUnSelect(UiBind(&CheckCombo::OnUnSelectItem, this, std::placeholders::_1));
     }
     else    {
         ui::CheckBoxBox* pCheckBoxBox = dynamic_cast<ui::CheckBoxBox*>(pControl);
         if (pCheckBoxBox) {
-            pCheckBoxBox->AttachSelect(std::bind(&CheckCombo::OnSelectItem, this, std::placeholders::_1));
-            pCheckBoxBox->AttachUnSelect(std::bind(&CheckCombo::OnUnSelectItem, this, std::placeholders::_1));
+            pCheckBoxBox->AttachSelect(UiBind(&CheckCombo::OnSelectItem, this, std::placeholders::_1));
+            pCheckBoxBox->AttachUnSelect(UiBind(&CheckCombo::OnUnSelectItem, this, std::placeholders::_1));
         }
         else {
             ASSERT(0);
@@ -244,14 +244,14 @@ bool CheckCombo::AddItemAt(Control* pControl, size_t iIndex)
 {
     ui::CheckBox* pCheckBox = dynamic_cast<ui::CheckBox*>(pControl);
     if (pCheckBox) {
-        pCheckBox->AttachSelect(std::bind(&CheckCombo::OnSelectItem, this, std::placeholders::_1));
-        pCheckBox->AttachUnSelect(std::bind(&CheckCombo::OnUnSelectItem, this, std::placeholders::_1));
+        pCheckBox->AttachSelect(UiBind(&CheckCombo::OnSelectItem, this, std::placeholders::_1));
+        pCheckBox->AttachUnSelect(UiBind(&CheckCombo::OnUnSelectItem, this, std::placeholders::_1));
     }
     else {
         ui::CheckBoxBox* pCheckBoxBox = dynamic_cast<ui::CheckBoxBox*>(pControl);
         if (pCheckBoxBox) {
-            pCheckBoxBox->AttachSelect(std::bind(&CheckCombo::OnSelectItem, this, std::placeholders::_1));
-            pCheckBoxBox->AttachUnSelect(std::bind(&CheckCombo::OnUnSelectItem, this, std::placeholders::_1));
+            pCheckBoxBox->AttachSelect(UiBind(&CheckCombo::OnSelectItem, this, std::placeholders::_1));
+            pCheckBoxBox->AttachUnSelect(UiBind(&CheckCombo::OnUnSelectItem, this, std::placeholders::_1));
         }
         else {
             ASSERT(0);
@@ -424,8 +424,8 @@ void CheckCombo::ParseAttributeList(const std::wstring& strList,
     }
     std::wstring strValue = strList;
     //这个是手工写入的属性，以花括号{}代替双引号，编写的时候就不需要转义字符了；
-    StringHelper::ReplaceAll(L"{", L"\"", strValue);
-    StringHelper::ReplaceAll(L"}", L"\"", strValue);
+    StringUtil::ReplaceAll(L"{", L"\"", strValue);
+    StringUtil::ReplaceAll(L"}", L"\"", strValue);
     if (strValue.find(L"\"") != std::wstring::npos) {
         AttributeUtil::ParseAttributeList(strValue, L'\"', attributeList);
     }

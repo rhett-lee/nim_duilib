@@ -1,7 +1,7 @@
 #include "ZipManager.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Utils/StringUtil.h"
-
+#include "duilib/Utils/PathUtil.h"
 #include "duilib/third_party/unzip/UnZip.h"
 
 namespace ui 
@@ -23,7 +23,7 @@ bool ZipManager::IsUseZip() const
     return m_hzip != nullptr;
 }
 
-#ifdef UILIB_IMPL_WINSDK
+#ifdef DUILIB_PLATFORM_WIN
 
 bool ZipManager::OpenResZip(HMODULE hModule, LPCTSTR resourceName, LPCTSTR resourceType, const std::string& password)
 {
@@ -83,12 +83,12 @@ bool ZipManager::GetZipData(const std::wstring& path, std::vector<unsigned char>
 
 std::wstring ZipManager::GetZipFilePath(const std::wstring& path) const
 {
-    if (!StringHelper::IsRelativePath(path)) {
+    if (!PathUtil::IsRelativePath(path)) {
         return L"";
     }
     std::wstring file_path = path;
-    StringHelper::ReplaceAll(L"\\", L"/", file_path);
-    StringHelper::ReplaceAll(L"//", L"/", file_path);
+    StringUtil::ReplaceAll(L"\\", L"/", file_path);
+    StringUtil::ReplaceAll(L"//", L"/", file_path);
     for (size_t i = 0; i < file_path.size();)
     {
         bool start_node = false;

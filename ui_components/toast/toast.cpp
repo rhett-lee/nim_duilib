@@ -1,6 +1,4 @@
 #include "toast.h"
-#include "ui_components/public_define.h"
-#include "base/thread/thread_manager.h"
 
 namespace nim_comp {
 
@@ -78,7 +76,7 @@ LRESULT Toast::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bH
 
 void Toast::OnInitWindow()
 {
-    GetRoot()->AttachBubbledEvent(ui::kEventClick, nbase::Bind(&Toast::OnClicked, this, std::placeholders::_1));
+    GetRoot()->AttachBubbledEvent(ui::kEventClick, UiBind(&Toast::OnClicked, this, std::placeholders::_1));
 
     content_ = dynamic_cast<ui::RichEdit*>(FindControl(L"content"));
     close_button_ = dynamic_cast<ui::Button*>(FindControl(L"close_btn"));
@@ -91,10 +89,10 @@ void Toast::SetDuration(int duration)
     if (duration <= 0)
         return;
 
-    nbase::ThreadManager::PostDelayedTask(kThreadUI, ToWeakCallback([this]()
+    ui::GlobalManager::Instance().Thread().PostDelayedTask(ui::kThreadUI, ToWeakCallback([this]()
     {
         this->CloseWnd();
-    }), nbase::TimeDelta::FromMilliseconds(duration));
+    }), duration);
 }
 
 bool Toast::OnClicked(const ui::EventArgs& msg)

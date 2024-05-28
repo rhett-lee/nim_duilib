@@ -5,11 +5,6 @@
 #include "main.h"
 #include "basic_form.h"
 
-enum ThreadId
-{
-    kThreadUI
-};
-
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
                      _In_ LPWSTR    lpCmdLine,
@@ -22,20 +17,27 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     MainThread thread;
 
     // 执行主线程循环
-    thread.RunOnCurrentThreadWithLoop(nbase::MessageLoop::kUIMessageLoop);
+    thread.RunOnCurrentThreadWithLoop();
 
     return 0;
 }
 
-void MainThread::Init()
+MainThread::MainThread():
+    FrameworkThread(_T("MainThread"), ui::kThreadUI)
 {
-    nbase::ThreadManager::RegisterThread(kThreadUI);
+}
 
+MainThread::~MainThread()
+{
+}
+
+void MainThread::OnInit()
+{
     //初始化全局资源
     constexpr ui::ResourceType resType = ui::ResourceType::kLocalFiles;
     if (resType == ui::ResourceType::kLocalFiles) {
         //使用本地文件夹作为资源
-        std::wstring resourcePath = nbase::win32::GetCurrentModuleDirectory();
+        std::wstring resourcePath = ui::PathUtil::GetCurrentModuleDirectory();
         resourcePath += L"resources\\";
         ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath));
     }
@@ -43,7 +45,7 @@ void MainThread::Init()
         //使用本地zip压缩包作为资源（压缩包位于exe相同目录）    
         ui::ZipFileResParam resParam;
         resParam.resourcePath = L"resources\\";
-        resParam.zipFilePath = nbase::win32::GetCurrentModuleDirectory();
+        resParam.zipFilePath = ui::PathUtil::GetCurrentModuleDirectory();
         resParam.zipFilePath += L"resources.zip";
         resParam.zipPassword = "";
         ui::GlobalManager::Instance().Startup(resParam);
@@ -71,9 +73,7 @@ void MainThread::Init()
     //window->Maximized();
 }
 
-void MainThread::Cleanup()
+void MainThread::OnCleanup()
 {
     ui::GlobalManager::Instance().Shutdown();
-    SetThreadWasQuitProperly(true);
-    nbase::ThreadManager::UnregisterThread();
 }

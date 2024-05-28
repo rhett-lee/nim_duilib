@@ -1,6 +1,6 @@
 #pragma once
 
-#include "base/callback/callback.h"
+#include "duilib/Core/Callback.h"
 #include <unordered_map>
 #include <functional>
 
@@ -35,7 +35,7 @@ private:
     std::list<UnregisterCallback> cb_list_;
 };
 template<typename TCallback>
-class UnregistedCallbackList : public virtual nbase::SupportWeakCallback
+class UnregistedCallbackList : public virtual ui::SupportWeakCallback
 {
 public:
     UnregistedCallbackList() {}

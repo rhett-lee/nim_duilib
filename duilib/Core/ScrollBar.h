@@ -4,7 +4,6 @@
 #pragma once
 
 #include "duilib/Core/Control.h"
-#include "base/callback/callback.h"
 
 namespace ui
 {
@@ -328,7 +327,7 @@ private:
     std::unique_ptr<StateImage> m_railStateImage;
 
     //延迟滚动的取消机制
-    nbase::WeakCallbackFlag m_weakFlagOwner;
+    WeakCallbackFlag m_weakFlagOwner;
 
     //支持滚动条的容器接口
     ScrollBox* m_pOwner;

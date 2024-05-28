@@ -17,17 +17,24 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     MainThread thread;
 
     // 执行主线程循环
-    thread.RunOnCurrentThreadWithLoop(nbase::MessageLoop::kUIMessageLoop);
+    thread.RunOnCurrentThreadWithLoop();
 
     return 0;
 }
 
-void MainThread::Init()
+MainThread::MainThread() :
+    FrameworkThread(_T("MainThread"), ui::kThreadUI)
 {
-    nbase::ThreadManager::RegisterThread(kThreadUI);
+}
 
+MainThread::~MainThread()
+{
+}
+
+void MainThread::OnInit()
+{
     //初始化全局资源, 使用本地文件夹作为资源
-    std::wstring resourcePath = nbase::win32::GetCurrentModuleDirectory();
+    std::wstring resourcePath = ui::PathUtil::GetCurrentModuleDirectory();
     resourcePath += L"resources\\";
     ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath));
     
@@ -37,9 +44,7 @@ void MainThread::Init()
     window->ShowWindow();
 }
 
-void MainThread::Cleanup()
+void MainThread::OnCleanup()
 {
     ui::GlobalManager::Instance().Shutdown();
-    SetThreadWasQuitProperly(true);
-    nbase::ThreadManager::UnregisterThread();
 }

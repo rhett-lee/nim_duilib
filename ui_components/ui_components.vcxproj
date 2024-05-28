@@ -210,7 +210,6 @@
     <ClInclude Include="mini_blink_control\wke_memory_dc.h" />
     <ClInclude Include="mini_blink_control\wke_web_native.h" />
     <ClInclude Include="mini_blink_control\wke_web_view.h" />
-    <ClInclude Include="public_define.h" />
     <ClInclude Include="ui_cef_control.h" />
     <ClInclude Include="cef_control\app\cef_js_bridge.h" />
     <ClInclude Include="cef_control\app\client_app.h" />

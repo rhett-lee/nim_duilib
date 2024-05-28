@@ -186,7 +186,7 @@ void ColorControl::OnSelectPosChanged(const UiRect& rect, const UiPoint& pt)
     //                uint32_t colorData = pData[index];
     //                UiColor color = UiColor(colorData);
     //                color = UiColor(color.GetR(), color.GetG(), color.GetB());
-    //                std::wstring strColor = StringHelper::Printf(L"#%02X%02X%02X ", color.GetR(), color.GetG(), color.GetB());
+    //                std::wstring strColor = StringUtil::Printf(L"#%02X%02X%02X ", color.GetR(), color.GetG(), color.GetB());
     //                ::OutputDebugString(strColor.c_str());
     //            }
     //            ::OutputDebugString(L"\n");

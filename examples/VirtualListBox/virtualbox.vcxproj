@@ -216,9 +216,6 @@
     <Image Include="VirtualBox.ico" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\base\base.vcxproj">
-      <Project>{8d9a6595-717a-41c8-b468-0011a72be3d1}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\..\duilib\duilib.vcxproj">
       <Project>{e106acd7-4e53-4aee-942b-d0dd426db34e}</Project>
     </ProjectReference>

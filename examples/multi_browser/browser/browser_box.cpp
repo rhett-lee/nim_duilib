@@ -35,21 +35,21 @@ std::wstring& BrowserBox::GetTitle()
 void BrowserBox::InitBrowserBox(const std::wstring &url)
 {
     cef_control_ = static_cast<nim_comp::CefControlBase*>(FindSubControl(L"cef_control"));
-    cef_control_->AttachBeforeContextMenu(nbase::Bind(&BrowserBox::OnBeforeMenu, this, std::placeholders::_1, std::placeholders::_2));
-    cef_control_->AttachMenuCommand(nbase::Bind(&BrowserBox::OnMenuCommand, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-    cef_control_->AttachTitleChange(nbase::Bind(&BrowserBox::OnTitleChange, this, std::placeholders::_1));
-    cef_control_->AttachUrlChange(nbase::Bind(&BrowserBox::OnUrlChange, this, std::placeholders::_1));
-    cef_control_->AttachLinkClick(nbase::Bind(&BrowserBox::OnLinkClick, this, std::placeholders::_1));
-    cef_control_->AttachBeforeNavigate(nbase::Bind(&BrowserBox::OnBeforeNavigate, this, std::placeholders::_1, std::placeholders::_2));
-    cef_control_->AttachLoadingStateChange(nbase::Bind(&BrowserBox::OnLoadingStateChange, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-    cef_control_->AttachLoadStart(nbase::Bind(&BrowserBox::OnLoadStart, this));
-    cef_control_->AttachLoadEnd(nbase::Bind(&BrowserBox::OnLoadEnd, this, std::placeholders::_1));
-    cef_control_->AttachLoadError(nbase::Bind(&BrowserBox::OnLoadError, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+    cef_control_->AttachBeforeContextMenu(UiBind(&BrowserBox::OnBeforeMenu, this, std::placeholders::_1, std::placeholders::_2));
+    cef_control_->AttachMenuCommand(UiBind(&BrowserBox::OnMenuCommand, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+    cef_control_->AttachTitleChange(UiBind(&BrowserBox::OnTitleChange, this, std::placeholders::_1));
+    cef_control_->AttachUrlChange(UiBind(&BrowserBox::OnUrlChange, this, std::placeholders::_1));
+    cef_control_->AttachLinkClick(UiBind(&BrowserBox::OnLinkClick, this, std::placeholders::_1));
+    cef_control_->AttachBeforeNavigate(UiBind(&BrowserBox::OnBeforeNavigate, this, std::placeholders::_1, std::placeholders::_2));
+    cef_control_->AttachLoadingStateChange(UiBind(&BrowserBox::OnLoadingStateChange, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+    cef_control_->AttachLoadStart(UiBind(&BrowserBox::OnLoadStart, this));
+    cef_control_->AttachLoadEnd(UiBind(&BrowserBox::OnLoadEnd, this, std::placeholders::_1));
+    cef_control_->AttachLoadError(UiBind(&BrowserBox::OnLoadError, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 
     // 加载默认网页
     std::wstring html_path = url;
     if (html_path.empty())
-        html_path = nbase::win32::GetCurrentModuleDirectory() + L"resources\\themes\\default\\cef\\cef.html";
+        html_path = ui::PathUtil::GetCurrentModuleDirectory() + L"resources\\themes\\default\\cef\\cef.html";
 
     cef_control_->LoadURL(html_path);
 
@@ -132,7 +132,7 @@ bool BrowserBox::OnMenuCommand(CefRefPtr<CefContextMenuParams> params, int comma
 void BrowserBox::OnTitleChange(const std::wstring& title)
 {
     title_ = title;
-    browser_form_->SetTabItemName(nbase::UTF8ToUTF16(browser_id_), title);
+    browser_form_->SetTabItemName(ui::StringUtil::UTF8ToUTF16(browser_id_), title);
 }
 
 void BrowserBox::OnUrlChange(const std::wstring& url)
@@ -166,7 +166,7 @@ void BrowserBox::OnLoadEnd(int httpStatusCode)
 {
     // 注册一个方法提供前端调用
     cef_control_->RegisterCppFunc(L"ShowMessageBox", ToWeakCallback([](const std::string& params, nim_comp::ReportResultFunction callback) {
-        MessageBox(NULL, nbase::UTF8ToUTF16(params).c_str(), L"接收到 JavaScript 发来的消息", MB_OK);
+        MessageBox(NULL, ui::StringUtil::UTF8ToUTF16(params).c_str(), L"接收到 JavaScript 发来的消息", MB_OK);
         callback(false, R"({ "message": "Success." })");
     }));
 }

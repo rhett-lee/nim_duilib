@@ -2,8 +2,7 @@
 #include "ui_components/cef_control/util/util.h"
 #include "ui_components/cef_control/app/ipc_string_define.h"
 #include "ui_components/cef_control/app/cef_js_bridge.h"
-
-#include "base/util/string_util.h"
+#include "duilib/duilib.h"
 
 namespace nim_comp
 {
@@ -53,7 +52,7 @@ bool CefJSHandler::Execute(const CefString& name, CefRefPtr<CefV8Value> object, 
         // 执行 C++ 方法
         if (!js_bridge_->CallCppFunction(function_name, params, callback))
         {
-            exception = nbase::StringPrintf("Failed to call function %s.", function_name.c_str()).c_str();
+            exception = ui::StringUtil::Printf("Failed to call function %s.", function_name.c_str()).c_str();
             return false;
         }
 

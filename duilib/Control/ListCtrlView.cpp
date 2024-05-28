@@ -406,7 +406,7 @@ void ListCtrlView::OnCheckScrollView()
         //启动定时器
         m_scrollViewFlag.Cancel();
         GlobalManager::Instance().Timer().AddCancelableTimer(m_scrollViewFlag.GetWeakFlag(),
-                                    nbase::Bind(&ListCtrlView::OnCheckScrollView, this),
+                                    UiBind(&ListCtrlView::OnCheckScrollView, this),
                                     50, 1); //只执行一次
     }
     else {
@@ -737,7 +737,7 @@ bool ListCtrlView::OnListCtrlKeyDown(const EventArgs& msg)
         return bHandled;
     }
 
-#ifdef UILIB_IMPL_WINSDK
+#ifdef DUILIB_PLATFORM_WIN
     bool bShiftDown = ::GetAsyncKeyState(VK_SHIFT) < 0;
     bool bControlDown = ::GetAsyncKeyState(VK_CONTROL) < 0;
     bool bAltDown = ::GetAsyncKeyState(VK_MENU) < 0;

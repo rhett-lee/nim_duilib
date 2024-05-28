@@ -3,14 +3,14 @@
 
 #pragma once
 
-#include "base/callback/callback.h"
+#include "duilib/Core/Callback.h"
 #include "duilib/Core/UiTypes.h"
 
 namespace ui 
 {
 /** 字体接口
 */
-class UILIB_API IFont: public virtual nbase::SupportWeakCallback
+class UILIB_API IFont: public virtual SupportWeakCallback
 {
 public:
     /** 初始化字体(内部未对字体大小做DPI自适应)
@@ -54,7 +54,7 @@ enum UILIB_API BitmapAlphaType: int
 
 /** 位图接口
 */
-class UILIB_API IBitmap : public virtual nbase::SupportWeakCallback
+class UILIB_API IBitmap : public virtual SupportWeakCallback
 {
 public:
     /** 从数据初始化（ARGB格式）
@@ -101,7 +101,7 @@ public:
 
 /** 画笔接口
 */
-class UILIB_API IPen : public virtual nbase::SupportWeakCallback
+class UILIB_API IPen : public virtual SupportWeakCallback
 {
 public:
     /** 设置画笔宽度
@@ -197,7 +197,7 @@ public:
 /** 画刷接口
 */
 //目前只支持一个SolidBrush
-class UILIB_API IBrush : public virtual nbase::SupportWeakCallback
+class UILIB_API IBrush : public virtual SupportWeakCallback
 {
 public:
     virtual IBrush* Clone() = 0;
@@ -207,7 +207,7 @@ public:
 /** 路径接口
 */
 class IMatrix;
-class UILIB_API IPath : public virtual nbase::SupportWeakCallback
+class UILIB_API IPath : public virtual SupportWeakCallback
 {
 public:    
     /** 填充类型，在路径或曲线相交时如何填充形成的区域
@@ -334,7 +334,7 @@ public:
 
 /** 3x3 矩阵接口
 */
-class UILIB_API IMatrix : public nbase::SupportWeakCallback
+class UILIB_API IMatrix : public SupportWeakCallback
 {
 public:
     /** 平移操作
@@ -428,7 +428,7 @@ public:
 /** 渲染接口
 */
 class Window;
-class UILIB_API IRender : public virtual nbase::SupportWeakCallback
+class UILIB_API IRender : public virtual SupportWeakCallback
 {
 public:
     /** 获取Render实现类型
@@ -796,7 +796,7 @@ public:
     */
     virtual void RestoreAlpha(const UiRect& rcDirty, const UiPadding& rcShadowPadding = UiPadding()) = 0;
 
-#ifdef UILIB_IMPL_WINSDK
+#ifdef DUILIB_PLATFORM_WIN
     /** 获取DC句柄，当不使用后，需要调用ReleaseDC接口释放资源
     */
     virtual HDC GetDC() = 0;

@@ -102,7 +102,7 @@ void MainForm::InsertTreeNodes(ui::TreeNode* pTreeNode,
     
     std::wstring folderPath;
     for (const FolderStatus& folder : fileList) {
-        folderPath = ui::StringHelper::JoinFilePath(path, folder.path);
+        folderPath = ui::PathUtil::JoinFilePath(path, folder.path);
         InsertTreeNode(pTreeNode, folder.path, folderPath, isFolder, folder.hIcon);
     }
 }
@@ -130,9 +130,9 @@ ui::TreeNode* MainForm::InsertTreeNode(ui::TreeNode* pTreeNode,
     node->SetUserDataID((size_t)pFolder);
 
     node->SetBkIcon(hIcon, 16, true);//设置树节点的关联图标(图标大小与CheckBox的原图大小相同，都是16*16)
-    node->AttachExpand(nbase::Bind(&MainForm::OnTreeNodeExpand, this, std::placeholders::_1));
-    node->AttachClick(nbase::Bind(&MainForm::OnTreeNodeClick, this, std::placeholders::_1));
-    node->AttachSelect(nbase::Bind(&MainForm::OnTreeNodeSelect, this, std::placeholders::_1));
+    node->AttachExpand(UiBind(&MainForm::OnTreeNodeExpand, this, std::placeholders::_1));
+    node->AttachClick(UiBind(&MainForm::OnTreeNodeClick, this, std::placeholders::_1));
+    node->AttachSelect(UiBind(&MainForm::OnTreeNodeSelect, this, std::placeholders::_1));
 
     if (isFolder) {
         pFolder->bShow = false;
@@ -231,8 +231,8 @@ ui::TreeNode* MainForm::ShowAllDiskNode()
     for (auto iter = driveList.begin(); iter != driveList.end(); ++iter) {
         std::wstring driverName = *iter;
         // 过滤A:盘和B:盘
-        if (ui::StringHelper::IsEqualNoCase(driverName, L"A:\\") ||
-            ui::StringHelper::IsEqualNoCase(driverName, L"B:\\")) {
+        if (ui::StringUtil::IsEqualNoCase(driverName, L"A:\\") ||
+            ui::StringUtil::IsEqualNoCase(driverName, L"B:\\")) {
             continue;
         }
 
@@ -241,7 +241,7 @@ ui::TreeNode* MainForm::ShowAllDiskNode()
             continue;
         }
 
-        if (!ui::StringHelper::IsExistsPath(driverName)) {
+        if (!ui::PathUtil::IsExistsPath(driverName)) {
             continue;
         }
 
@@ -304,9 +304,9 @@ void MainForm::CheckExpandTreeNode(ui::TreeNode* pTreeNode, const std::wstring& 
         return;
     }
     //由于ShowSubFolders是在子线程中执行的，所以这里也要先发给子线程，再转给UI线程，保证时序正确
-    nbase::ThreadManager::PostTask(kThreadWorker, ToWeakCallback([this, pTreeNode, filePath]() {
+    ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadWorker, ToWeakCallback([this, pTreeNode, filePath]() {
         //这段代码在工作线程中执行，枚举目录内容完成后，然后发给UI线程添加到树节点上
-        nbase::ThreadManager::PostTask(kThreadUI, ToWeakCallback([this, pTreeNode, filePath]() {
+        ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, ToWeakCallback([this, pTreeNode, filePath]() {
             //这段代码在UI线程中执行
             for (const FolderStatus* folder : m_folderList) {
                 if (folder->path == filePath) {
@@ -322,9 +322,9 @@ void MainForm::CheckExpandTreeNode(ui::TreeNode* pTreeNode, const std::wstring& 
 
 void MainForm::ShowSubFolders(ui::TreeNode* pTreeNode, const std::wstring& path)
 {
-    nbase::ThreadManager::PostTask(kThreadWorker, ToWeakCallback([this, path, pTreeNode]() {
+    ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadWorker, ToWeakCallback([this, path, pTreeNode]() {
         //这段代码在工作线程中执行，枚举目录内容完成后，然后发给UI线程添加到树节点上
-        std::wstring findPath = ui::StringHelper::JoinFilePath(path, L"*.*");
+        std::wstring findPath = ui::PathUtil::JoinFilePath(path, L"*.*");
         WIN32_FIND_DATA findData;
         HANDLE hFile = ::FindFirstFile(findPath.c_str(), &findData);
         if (hFile == INVALID_HANDLE_VALUE) {
@@ -340,12 +340,12 @@ void MainForm::ShowSubFolders(ui::TreeNode* pTreeNode, const std::wstring& path)
                 continue;
             }
 
-            if (ui::StringHelper::IsEqualNoCase(findData.cFileName, L".") ||
-                ui::StringHelper::IsEqualNoCase(findData.cFileName, L"..")) {
+            if (ui::StringUtil::IsEqualNoCase(findData.cFileName, L".") ||
+                ui::StringUtil::IsEqualNoCase(findData.cFileName, L"..")) {
                 continue;
             }
 
-            std::wstring folderPath = ui::StringHelper::JoinFilePath(path, findData.cFileName);
+            std::wstring folderPath = ui::PathUtil::JoinFilePath(path, findData.cFileName);
 
             SHFILEINFO shFileInfo;
             ZeroMemory(&shFileInfo, sizeof(SHFILEINFO));
@@ -381,7 +381,7 @@ void MainForm::ShowSubFolders(ui::TreeNode* pTreeNode, const std::wstring& path)
         ::FindClose(hFile);
         hFile = INVALID_HANDLE_VALUE;
 
-        nbase::ThreadManager::PostTask(kThreadUI, ToWeakCallback([this, path, pTreeNode, folderList]() {
+        ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, ToWeakCallback([this, path, pTreeNode, folderList]() {
             //这段代码在UI线程中执行
             InsertTreeNodes(pTreeNode, path, folderList, true);
             if (!pTreeNode->IsExpand()) {
@@ -426,9 +426,9 @@ bool MainForm::IsDirectory(const std::wstring& filePath) const
 
 void MainForm::ShowFolderContents(ui::TreeNode* pTreeNode, const std::wstring& path)
 {
-    nbase::ThreadManager::PostTask(kThreadWorker, ToWeakCallback([this, pTreeNode, path]() {
+    ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadWorker, ToWeakCallback([this, pTreeNode, path]() {
         //这段代码在工作线程中执行，枚举目录内容完成后，然后发给UI线程添加到树节点上
-        std::wstring findPath = ui::StringHelper::JoinFilePath(path, L"*.*");
+        std::wstring findPath = ui::PathUtil::JoinFilePath(path, L"*.*");
         WIN32_FIND_DATA findData;
         HANDLE hFile = ::FindFirstFile(findPath.c_str(), &findData);
         if (hFile == INVALID_HANDLE_VALUE) {
@@ -444,12 +444,12 @@ void MainForm::ShowFolderContents(ui::TreeNode* pTreeNode, const std::wstring& p
                 continue;
             }
 
-            if (ui::StringHelper::IsEqualNoCase(findData.cFileName, L".") ||
-                ui::StringHelper::IsEqualNoCase(findData.cFileName, L"..")) {
+            if (ui::StringUtil::IsEqualNoCase(findData.cFileName, L".") ||
+                ui::StringUtil::IsEqualNoCase(findData.cFileName, L"..")) {
                 continue;
             }
 
-            std::wstring folderPath = ui::StringHelper::JoinFilePath(path, findData.cFileName);
+            std::wstring folderPath = ui::PathUtil::JoinFilePath(path, findData.cFileName);
 
             SHFILEINFO shFileInfo;
             ZeroMemory(&shFileInfo, sizeof(SHFILEINFO));
@@ -470,16 +470,16 @@ void MainForm::ShowFolderContents(ui::TreeNode* pTreeNode, const std::wstring& p
         std::vector<FileInfo> pathList;
         std::wstring folderPath;
         for (const FolderStatus& folder : folderList) {
-            folderPath = ui::StringHelper::JoinFilePath(path, folder.path);
+            folderPath = ui::PathUtil::JoinFilePath(path, folder.path);
             pathList.push_back({ folder.path, folderPath, true, folder.hIcon });
         }
         for (const FolderStatus& folder : fileList) {
-            folderPath = ui::StringHelper::JoinFilePath(path, folder.path);
+            folderPath = ui::PathUtil::JoinFilePath(path, folder.path);
             pathList.push_back({ folder.path, folderPath, false, folder.hIcon });
         }
 
         //发给UI线程
-        nbase::ThreadManager::PostTask(kThreadUI, ToWeakCallback([this, pTreeNode, path, pathList]() {
+        ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, ToWeakCallback([this, pTreeNode, path, pathList]() {
             //这段代码在UI线程中执行
             if (m_pTree != nullptr) {
                 if (!m_pTree->IsMultiSelect()) {

@@ -417,7 +417,7 @@ bool DateTime::SetDateTimeString(const std::wstring& dateTime)
     if (ss.fail()) {
         //失败后，智能识别年月日的分隔符
         if (dateTime.find(L'-') != std::wstring::npos) {
-            StringHelper::ReplaceAll(L"/", L"-", sFormat);
+            StringUtil::ReplaceAll(L"/", L"-", sFormat);
             std::wistringstream ss2(dateTime);
             ss2 >> std::get_time(&t, sFormat.c_str());
             if (!ss2.fail()) {
@@ -427,7 +427,7 @@ bool DateTime::SetDateTimeString(const std::wstring& dateTime)
             }
         }
         else if (dateTime.find(L'/') != std::wstring::npos) {
-            StringHelper::ReplaceAll(L"-", L"/", sFormat);
+            StringUtil::ReplaceAll(L"-", L"/", sFormat);
             std::wistringstream ss2(dateTime);
             ss2 >> std::get_time(&t, sFormat.c_str());
             if (!ss2.fail()) {
@@ -551,7 +551,7 @@ std::wstring DateTime::GetStringFormat() const
         if (m_dateSeparator != L'-') {
             std::wstring separator;
             separator = m_dateSeparator;
-            StringHelper::ReplaceAll(L"-", separator, sFormat);
+            StringUtil::ReplaceAll(L"-", separator, sFormat);
         }        
     }
     return sFormat;

@@ -22,8 +22,7 @@
 
 ## 目录
 
-├─`base` Google base 基础类库  
-├─`duilib` nim_duilib 的核心代码，依赖 base    
+├─`duilib` nim_duilib 的核心代码    
 ├─`ui_components` 基于 duilib 封装的常用组件库如 `msgbox`、`toast`、`cef_control` 等  
 ├─`examples` 各类示例程序源代码  
 ├─`docs` 说明文档  
@@ -130,9 +129,11 @@ git clone https://github.com/rhett-lee/skia_compile
 13. 文档的完善：
 - README.md和docs子目录的文档重新进行了梳理，使得阅读者更容易理解界面库的功能、用法，更易上手
 - 各个控件的接口没有单独整理成文档，因为可以直接阅读接口文件中的注释来达到目的，目前各个接口的注释是比较完善的
+14. 减少依赖
+- 移除对base库的依赖，消息循环和线程通信相关功能改为自己实现
 
 ## 开发计划
- - 窗口的封装优化：支持跨平台的窗口引擎（SDL/GTK等，进行跨平台尝试）
+ - 窗口的封装优化：支持跨平台的窗口引擎（尝试）
  - 动画功能的加强
  - 不断测试发现缺陷并修复，不断完善代码
  - 其他待补充

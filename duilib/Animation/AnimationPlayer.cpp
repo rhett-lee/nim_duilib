@@ -101,7 +101,7 @@ void AnimationPlayerBase::StartTimer()
     }
 
     Play();
-    auto playCallback = nbase::Bind(&AnimationPlayerBase::Play, this);
+    auto playCallback = UiBind(&AnimationPlayerBase::Play, this);
     ASSERT(m_elapseMillSeconds <= INT32_MAX);
     GlobalManager::Instance().Timer().AddCancelableTimer(m_weakFlagOwner.GetWeakFlag(), playCallback, (uint32_t)m_elapseMillSeconds, TimerManager::REPEAT_FOREVER);
 }

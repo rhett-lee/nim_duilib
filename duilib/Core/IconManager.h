@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 
-#ifdef UILIB_IMPL_WINSDK
+#ifdef DUILIB_PLATFORM_WIN
 
 namespace ui 
 {
@@ -119,6 +119,6 @@ private:
 
 } //namespace ui 
 
-#endif //UILIB_IMPL_WINSDK
+#endif //DUILIB_PLATFORM_WIN
 
 #endif //UI_CORE_ICONMANAGER_H_

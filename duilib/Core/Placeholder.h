@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "base/callback/callback.h"
+#include "duilib/Core/Callback.h"
 #include "duilib/Core/UiTypes.h"
 #include <string>
 #include <memory>
@@ -16,7 +16,7 @@ namespace ui
 
 /** 控件的位置、大小、外观形状的基本封装
 */
-class UILIB_API PlaceHolder : public virtual nbase::SupportWeakCallback
+class UILIB_API PlaceHolder : public virtual SupportWeakCallback
 {
 public:
     explicit PlaceHolder(Window* pWindow);

@@ -3,6 +3,7 @@
 #include "browser/multi_browser_manager.h"
 #include "control/browser_tab_item.h"
 #include "custom_layout.h"
+#include <chrono>
 
 using namespace ui;
 using namespace std;
@@ -83,17 +84,17 @@ ui::Control* MultiBrowserForm::CreateControl(const std::wstring& pstrClass)
 
 void MultiBrowserForm::OnInitWindow()
 {
-    GetRoot()->AttachBubbledEvent(ui::kEventClick, nbase::Bind(&MultiBrowserForm::OnClicked, this, std::placeholders::_1));
+    GetRoot()->AttachBubbledEvent(ui::kEventClick, UiBind(&MultiBrowserForm::OnClicked, this, std::placeholders::_1));
     btn_max_restore_ = static_cast<Button*>(FindControl(L"btn_max_restore"));
 
     edit_url_ = static_cast<RichEdit*>(FindControl(L"edit_url"));
     lbl_title_ = static_cast<Label*>(FindControl(L"title"));
-    edit_url_->AttachReturn(nbase::Bind(&MultiBrowserForm::OnReturn, this, std::placeholders::_1));
+    edit_url_->AttachReturn(UiBind(&MultiBrowserForm::OnReturn, this, std::placeholders::_1));
 
     tab_list_ = static_cast<ListBox*>(FindControl(L"tab_list"));
     borwser_box_tab_ = static_cast<TabBox*>(FindControl(L"browser_box_tab"));
 
-    tab_list_->AttachSelect(nbase::Bind(&MultiBrowserForm::OnTabItemSelected, this, std::placeholders::_1));
+    tab_list_->AttachSelect(UiBind(&MultiBrowserForm::OnTabItemSelected, this, std::placeholders::_1));
 
     InitDragDrop();
 }
@@ -237,8 +238,8 @@ bool MultiBrowserForm::OnClicked(const ui::EventArgs& arg )
     }
     else if (name == L"btn_add")
     {
-        nbase::TimeDelta time_delta = nbase::TimeDelta::FromMicroseconds(nbase::Time::Now().ToInternalValue());
-        std::string timeStamp = nbase::StringPrintf("%I64u", time_delta.ToMilliseconds());
+        uint64_t nTimeMS = std::chrono::high_resolution_clock::now().time_since_epoch().count() / 1000;
+        std::string timeStamp = ui::StringUtil::Printf("%I64u", nTimeMS);
         MultiBrowserManager::GetInstance()->CreateBorwserBox(this, timeStamp, L"");
     }
     else if (active_browser_box_)
@@ -275,8 +276,8 @@ bool MultiBrowserForm::OnReturn(const ui::EventArgs& arg)
          if (cef_control)
              cef_control->LoadURL(edit_url_->GetText());
 #endif
-        nbase::TimeDelta time_delta = nbase::TimeDelta::FromMicroseconds(nbase::Time::Now().ToInternalValue());
-        std::string timeStamp = nbase::StringPrintf("%I64u", time_delta.ToMilliseconds());
+         uint64_t nTimeMS = std::chrono::high_resolution_clock::now().time_since_epoch().count() / 1000;
+        std::string timeStamp = ui::StringUtil::Printf("%I64u", nTimeMS);
         // 新建标签页
         MultiBrowserManager::GetInstance()->CreateBorwserBox(this, timeStamp, edit_url_->GetText());
     }
@@ -286,7 +287,7 @@ bool MultiBrowserForm::OnReturn(const ui::EventArgs& arg)
 
 BrowserBox* MultiBrowserForm::CreateBox(const std::string &browser_id, std::wstring url)
 {
-    std::wstring id = nbase::UTF8ToUTF16(browser_id);
+    std::wstring id = ui::StringUtil::UTF8ToUTF16(browser_id);
     if (NULL != FindTabItem(id))
     {
         ASSERT(0);
@@ -301,15 +302,15 @@ BrowserBox* MultiBrowserForm::CreateBox(const std::string &browser_id, std::wstr
     BrowserTabItem *tab_item = new BrowserTabItem(tab_list_->GetWindow());
     GlobalManager::Instance().FillBoxWithCache(tab_item, L"multi_browser/tab_item.xml");
     tab_list_->AddItemAt(tab_item, GetBoxCount());
-    tab_item->AttachAllEvents(nbase::Bind(&MultiBrowserForm::OnProcessTabItemDrag, this, std::placeholders::_1));
-    tab_item->AttachButtonDown(nbase::Bind(&MultiBrowserForm::OnTabItemSelected, this, std::placeholders::_1));
+    tab_item->AttachAllEvents(UiBind(&MultiBrowserForm::OnProcessTabItemDrag, this, std::placeholders::_1));
+    tab_item->AttachButtonDown(UiBind(&MultiBrowserForm::OnTabItemSelected, this, std::placeholders::_1));
     tab_item->InitControl(browser_id);
     Button *btn_item_close = (Button*)tab_item->FindSubControl(L"tab_item_close");
-    btn_item_close->AttachClick(nbase::Bind(&MultiBrowserForm::OnTabItemClose, this, std::placeholders::_1, browser_id));
+    btn_item_close->AttachClick(UiBind(&MultiBrowserForm::OnTabItemClose, this, std::placeholders::_1, browser_id));
 
     BrowserBox* browser_box = new BrowserBox(borwser_box_tab_->GetWindow(), browser_id);
     borwser_box_tab_->AddItem(browser_box);
-    GlobalManager::Instance().FillBoxWithCache(browser_box, L"multi_browser/browser_box.xml", nbase::Bind(&BrowserBox::CreateControl, browser_box, std::placeholders::_1));
+    GlobalManager::Instance().FillBoxWithCache(browser_box, L"multi_browser/browser_box.xml", UiBind(&BrowserBox::CreateControl, browser_box, std::placeholders::_1));
     browser_box->SetName(id);
     browser_box->InitBrowserBox(url);
     auto taskbar_item = browser_box->GetTaskbarItem();
@@ -333,7 +334,7 @@ void MultiBrowserForm::CloseBox(const std::string &browser_id)
         return;
     }
 
-    std::wstring id = nbase::UTF8ToUTF16(browser_id);
+    std::wstring id = ui::StringUtil::UTF8ToUTF16(browser_id);
 
     // 从左侧会话列表项移除对应item
     BrowserTabItem *tab_item = FindTabItem(id);
@@ -379,7 +380,7 @@ bool MultiBrowserForm::AttachBox(BrowserBox *browser_box)
     if (NULL == browser_box)
         return false;
 
-    std::wstring id = nbase::UTF8ToUTF16(browser_box->GetId());
+    std::wstring id = ui::StringUtil::UTF8ToUTF16(browser_box->GetId());
     if (NULL != FindTabItem(id))
     {
         ASSERT(0);
@@ -394,12 +395,12 @@ bool MultiBrowserForm::AttachBox(BrowserBox *browser_box)
     BrowserTabItem *tab_item = new BrowserTabItem(tab_list_->GetWindow());
     GlobalManager::Instance().FillBoxWithCache(tab_item, L"multi_browser/tab_item.xml");
     tab_list_->AddItemAt(tab_item, GetBoxCount());
-    tab_item->AttachAllEvents(nbase::Bind(&MultiBrowserForm::OnProcessTabItemDrag, this, std::placeholders::_1));
-    tab_item->AttachButtonDown(nbase::Bind(&MultiBrowserForm::OnTabItemSelected, this, std::placeholders::_1));
+    tab_item->AttachAllEvents(UiBind(&MultiBrowserForm::OnProcessTabItemDrag, this, std::placeholders::_1));
+    tab_item->AttachButtonDown(UiBind(&MultiBrowserForm::OnTabItemSelected, this, std::placeholders::_1));
     tab_item->InitControl(browser_box->GetId());
     tab_item->SetTitle(browser_box->GetTitle());
     Button *btn_item_close = (Button*)tab_item->FindSubControl(L"tab_item_close");
-    btn_item_close->AttachClick(nbase::Bind(&MultiBrowserForm::OnTabItemClose, this, std::placeholders::_1, browser_box->GetId()));
+    btn_item_close->AttachClick(UiBind(&MultiBrowserForm::OnTabItemClose, this, std::placeholders::_1, browser_box->GetId()));
 
     // 当另一个窗体创建的browser_box浏览器盒子控件添加到另一个窗体内的容器控件时
     // AddItem函数会重新的修改browser_box内所有子控件的m_pWindow为新的窗体指针
@@ -424,7 +425,7 @@ bool MultiBrowserForm::DetachBox(BrowserBox *browser_box)
     if (NULL == browser_box)
         return false;
 
-    std::wstring id = nbase::UTF8ToUTF16(browser_box->GetId());
+    std::wstring id = ui::StringUtil::UTF8ToUTF16(browser_box->GetId());
 
     // 从顶部标签页移除对应item
     BrowserTabItem *tab_item = FindTabItem(id);
@@ -472,7 +473,7 @@ void MultiBrowserForm::SetActiveBox(const std::string &browser_id)
     ActiveWindow();
 
     // 从窗口左侧会话列表找到要激活的浏览器盒子项
-    std::wstring id = nbase::UTF8ToUTF16(browser_id);
+    std::wstring id = ui::StringUtil::UTF8ToUTF16(browser_id);
     BrowserTabItem *tab_item = FindTabItem(id);
     if (NULL == tab_item)
         return;

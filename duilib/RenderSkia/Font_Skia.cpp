@@ -63,7 +63,7 @@ const SkFont* Font_Skia::GetFontHandle()
         fontStyle = SkFontStyle::Italic();
     }
     std::string fontName; //UTF8编码的字体名称
-    StringHelper::UnicodeToMBCS(m_uiFont.m_fontName, fontName, CP_UTF8);
+    StringUtil::UnicodeToMBCS(m_uiFont.m_fontName, fontName, CP_UTF8);
     ASSERT(m_pRenderFactory != nullptr);
     if (m_pRenderFactory == nullptr) {
         return nullptr;

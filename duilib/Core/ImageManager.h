@@ -98,7 +98,7 @@ private:
     */
     std::wstring GetDpiScaledPath(uint32_t dpiScale, const std::wstring& imageFullPath) const;
 
-#ifdef UILIB_IMPL_WINSDK
+#ifdef DUILIB_PLATFORM_WIN
     /** 从HICON句柄加载一个图片
     */
     void LoadIconData(const Window* pWindow,

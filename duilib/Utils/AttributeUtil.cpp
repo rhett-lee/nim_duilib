@@ -132,7 +132,7 @@ void AttributeUtil::ParseAttributeList(const std::wstring& strList,
         }
 
         //解析出一个属性，添加到列表中(属性名称不允许有空格)
-        sName = StringHelper::Trim(sName);
+        sName = StringUtil::Trim(sName);
         attributeList.push_back(std::make_pair(sName, sValue));
 
         //跳到分隔字符后面的字符，这个字符应该是空格，如果不是空格，认为已经结束

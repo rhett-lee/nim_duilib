@@ -414,8 +414,8 @@ void ComboButton::ParseAttributeList(const std::wstring& strList,
     }
     std::wstring strValue = strList;
     //这个是手工写入的属性，以花括号{}代替双引号，编写的时候就不需要转义字符了；
-    StringHelper::ReplaceAll(L"{", L"\"", strValue);
-    StringHelper::ReplaceAll(L"}", L"\"", strValue);
+    StringUtil::ReplaceAll(L"{", L"\"", strValue);
+    StringUtil::ReplaceAll(L"}", L"\"", strValue);
     if (strValue.find(L"\"") != std::wstring::npos) {
         AttributeUtil::ParseAttributeList(strValue, L'\"', attributeList);
     }
@@ -516,16 +516,16 @@ void ComboButton::OnInit()
             m_pLabelBottom->SetNoFocus();
         }
 
-        m_pLeftButton->AttachClick(nbase::Bind(&ComboButton::OnLeftButtonClicked, this, std::placeholders::_1));
-        m_pLeftButton->AttachStateChange(nbase::Bind(&ComboButton::OnButtonStateChanged, this, std::placeholders::_1));
+        m_pLeftButton->AttachClick(UiBind(&ComboButton::OnLeftButtonClicked, this, std::placeholders::_1));
+        m_pLeftButton->AttachStateChange(UiBind(&ComboButton::OnButtonStateChanged, this, std::placeholders::_1));
     }
 
     if (m_pRightButton != nullptr) {
         pBox->AddItem(m_pRightButton);
         m_pRightButton->SetNoFocus();
-        m_pRightButton->AttachButtonDown(nbase::Bind(&ComboButton::OnRightButtonDown, this, std::placeholders::_1));
-        m_pRightButton->AttachClick(nbase::Bind(&ComboButton::OnRightButtonClicked, this, std::placeholders::_1));
-        m_pRightButton->AttachStateChange(nbase::Bind(&ComboButton::OnButtonStateChanged, this, std::placeholders::_1));
+        m_pRightButton->AttachButtonDown(UiBind(&ComboButton::OnRightButtonDown, this, std::placeholders::_1));
+        m_pRightButton->AttachClick(UiBind(&ComboButton::OnRightButtonClicked, this, std::placeholders::_1));
+        m_pRightButton->AttachStateChange(UiBind(&ComboButton::OnButtonStateChanged, this, std::placeholders::_1));
     }
 }
 

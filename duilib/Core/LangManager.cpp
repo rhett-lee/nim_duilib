@@ -40,8 +40,8 @@ bool LangManager::LoadStringTable(const std::vector<uint8_t>& fileData)
         bomSize = 3;
     }
     std::string fragment((const char*)fileData.data() + bomSize, fileData.size() - bomSize);
-    StringHelper::ReplaceAll("\r\n", "\n", fragment);
-    StringHelper::ReplaceAll("\r", "\n", fragment);
+    StringUtil::ReplaceAll("\r\n", "\n", fragment);
+    StringUtil::ReplaceAll("\r", "\n", fragment);
     fragment.append("\n");
     std::string src;
     std::wstring string_resourse;
@@ -49,8 +49,8 @@ bool LangManager::LoadStringTable(const std::vector<uint8_t>& fileData)
         if (it == '\0' || it == '\n') {
             if (!src.empty()) {
                 string_resourse.clear();
-                StringHelper::MBCSToUnicode(src.c_str(), string_resourse, CP_UTF8);
-                string_resourse = StringHelper::Trim(string_resourse);
+                StringUtil::MBCSToUnicode(src.c_str(), string_resourse, CP_UTF8);
+                string_resourse = StringUtil::Trim(string_resourse);
                 if (!string_resourse.empty()) {
                     string_list.push_back(string_resourse);
                 }
@@ -91,14 +91,14 @@ bool LangManager::AnalyzeStringTable(const std::vector<std::wstring>& list)
 
         id = strSrc.substr(0, pos);
         if (!id.empty()) {
-            id = StringHelper::Trim(id);
+            id = StringUtil::Trim(id);
         }
         if ((pos + 1) < strSrc.size()) {
             strResource = strSrc.substr(pos + 1);
-            strResource = StringHelper::Trim(strResource);
+            strResource = StringUtil::Trim(strResource);
             //将\n和\r替换为真实的换行符、回车符
-            StringHelper::ReplaceAll(L"\\r", L"\r", strResource);
-            StringHelper::ReplaceAll(L"\\n", L"\n", strResource);
+            StringUtil::ReplaceAll(L"\\r", L"\r", strResource);
+            StringUtil::ReplaceAll(L"\\n", L"\n", strResource);
         }
         else {
             strResource.clear();

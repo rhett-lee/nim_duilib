@@ -173,7 +173,7 @@ bool TabBox::SelectItem(size_t iIndex)
                     player->SetStartValue(startValue);
                     player->SetEndValue(endValue);
                     player->SetSpeedUpfactorA(0.015);
-                    CompleteCallback compelteCallback = nbase::Bind(&TabBox::OnAnimationComplete, this, (size_t)it);
+                    CompleteCallback compelteCallback = UiBind(&TabBox::OnAnimationComplete, this, (size_t)it);
                     player->SetCompleteCallback(compelteCallback);
                     player->Start();
                 }                
@@ -201,7 +201,7 @@ bool TabBox::SelectItem(size_t iIndex)
                     player->SetStartValue(startValue);
                     player->SetEndValue(endValue);
                     player->SetSpeedUpfactorA(0.015);
-                    CompleteCallback compelteCallback = nbase::Bind(&TabBox::OnAnimationComplete, this, it);
+                    CompleteCallback compelteCallback = UiBind(&TabBox::OnAnimationComplete, this, it);
                     player->SetCompleteCallback(compelteCallback);
                     player->Start();
                 }                

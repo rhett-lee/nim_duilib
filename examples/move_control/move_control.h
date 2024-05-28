@@ -1,11 +1,6 @@
 #pragma once
 #include "app_db.h"
 
-enum ThreadId
-{
-    kThreadUI
-};
-
 class MoveControlForm : public ui::WindowImplBase
 {
 public:

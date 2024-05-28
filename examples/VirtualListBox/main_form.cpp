@@ -40,7 +40,7 @@ void MainForm::OnInitWindow()
     m_EditChildMarginX = dynamic_cast<ui::RichEdit*>(FindControl(L"edit_child_margin_x"));
     m_EditChildMarginY = dynamic_cast<ui::RichEdit*>(FindControl(L"edit_child_margin_y"));
 
-    GetRoot()->AttachBubbledEvent(ui::kEventClick, nbase::Bind(&MainForm::OnClicked, this, std::placeholders::_1));
+    GetRoot()->AttachBubbledEvent(ui::kEventClick, UiBind(&MainForm::OnClicked, this, std::placeholders::_1));
 
     // 设置提供者
     m_DataProvider = new Provider;

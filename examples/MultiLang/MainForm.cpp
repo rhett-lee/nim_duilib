@@ -86,7 +86,7 @@ void MainForm::ShowPopupMenu(const ui::UiPoint& point)
         pMenuItem->AddItem(pCheckBox);
         menu->AddMenuItem(pMenuItem);
 
-        if (ui::StringHelper::IsEqualNoCase(fileName, currentLangFileName)) {
+        if (ui::StringUtil::IsEqualNoCase(fileName, currentLangFileName)) {
             pCheckBox->Selected(true);
         }
 

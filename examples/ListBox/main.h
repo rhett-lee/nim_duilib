@@ -3,27 +3,23 @@
 #include "resource.h"
 
 /** @class MainThread
-* @brief 主线程（UI线程）类，继承 nbase::FrameworkThread
+* @brief 主线程（UI线程）类
 * @copyright (c) 2015, NetEase Inc. All rights reserved
 * @author towik
 * @date 2015/1/1
 */
-class MainThread : public nbase::FrameworkThread
+class MainThread : public ui::FrameworkThread
 {
 public:
-    MainThread() : nbase::FrameworkThread("MainThread") {}
-    virtual ~MainThread() {}
+    MainThread();
+    virtual ~MainThread();
 
 private:
-    /**
-    * 虚函数，初始化主线程
-    * @return void    无返回值
+    /** 运行前初始化，在进入消息循环前调用
     */
-    virtual void Init() override;
+    virtual void OnInit() override;
 
-    /**
-    * 虚函数，主线程退出时，做一些清理工作
-    * @return void    无返回值
+    /** 退出时清理，在退出消息循环后调用
     */
-    virtual void Cleanup() override;
+    virtual void OnCleanup() override;
 };

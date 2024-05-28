@@ -87,7 +87,7 @@ void MainForm::OnInitWindow()
     //表头高度控制
     ui::RichEdit* pHeaderHeightEdit = dynamic_cast<ui::RichEdit*>(FindControl(L"header_height_edit"));
     if (pHeaderHeightEdit != nullptr) {
-        pHeaderHeightEdit->SetText(ui::StringHelper::Printf(L"%d", pListCtrl->GetHeaderHeight()));
+        pHeaderHeightEdit->SetText(ui::StringUtil::Printf(L"%d", pListCtrl->GetHeaderHeight()));
         pHeaderHeightEdit->AttachTextChange([this, pHeaderHeightEdit, pListCtrl](const ui::EventArgs&) {
             int32_t height = _wtoi(pHeaderHeightEdit->GetText().c_str());
             if (height >= 0) {
@@ -100,7 +100,7 @@ void MainForm::OnInitWindow()
     //表格每行高度控制
     ui::RichEdit* pItemHeightEdit = dynamic_cast<ui::RichEdit*>(FindControl(L"list_item_height_edit"));
     if (pItemHeightEdit != nullptr) {
-        pItemHeightEdit->SetText(ui::StringHelper::Printf(L"%d", pListCtrl->GetDataItemHeight()));
+        pItemHeightEdit->SetText(ui::StringUtil::Printf(L"%d", pListCtrl->GetDataItemHeight()));
         pItemHeightEdit->AttachTextChange([this, pItemHeightEdit, pListCtrl](const ui::EventArgs&) {
             int32_t height = _wtoi(pItemHeightEdit->GetText().c_str());
             if (height >= 0) {
@@ -493,7 +493,7 @@ void MainForm::OnInitWindow()
             }
 
             if (args.Type == ui::kEventSelect) {
-                std::wstring sInfo = ui::StringHelper::Printf(L"kEventSelect，数据索引号：%d", (int32_t)itemIndex);
+                std::wstring sInfo = ui::StringUtil::Printf(L"kEventSelect，数据索引号：%d", (int32_t)itemIndex);
                 //::MessageBox(nullptr, sInfo.c_str(), L"", MB_OK);
             }
             else if (args.Type == ui::kEventSelChange) {
@@ -509,7 +509,7 @@ void MainForm::OnInitWindow()
                 //::MessageBox(nullptr, L"kEventRClick", text.c_str(), MB_OK);
             }
             else if (args.Type == ui::kEventReturn) {
-                std::wstring sInfo = ui::StringHelper::Printf(L"kEventReturn，数据索引号：%d", (int32_t)itemIndex);
+                std::wstring sInfo = ui::StringUtil::Printf(L"kEventReturn，数据索引号：%d", (int32_t)itemIndex);
                 //::MessageBox(nullptr, sInfo.c_str(), L"", MB_OK);
             }
         };
@@ -645,7 +645,7 @@ void MainForm::InsertItemData(int32_t nRows, int32_t nColumns, int32_t nImageId)
         ui::ListCtrlColumn columnInfo;
         columnInfo.nColumnWidth = 200;
         //columnInfo.nTextFormat = TEXT_LEFT | TEXT_VCENTER;
-        columnInfo.text = ui::StringHelper::Printf(L"第 %d 列", i);
+        columnInfo.text = ui::StringUtil::Printf(L"第 %d 列", i);
         columnInfo.bShowCheckBox = bShowCheckBox;
         columnInfo.nImageId = nImageId;
         pListCtrl->InsertColumn(-1, columnInfo);
@@ -656,7 +656,7 @@ void MainForm::InsertItemData(int32_t nRows, int32_t nColumns, int32_t nImageId)
     for (size_t itemIndex = 0; itemIndex < rowCount; ++itemIndex) {
         for (size_t columnIndex = 0; columnIndex < columnCount; ++columnIndex) {
             ui::ListCtrlSubItemData subItemData;
-            subItemData.text = ui::StringHelper::Printf(L"第 %03d 行/第 %02d 列", itemIndex, columnIndex);
+            subItemData.text = ui::StringUtil::Printf(L"第 %03d 行/第 %02d 列", itemIndex, columnIndex);
             subItemData.bShowCheckBox = bShowCheckBox;
             subItemData.nImageId = nImageId;
             if (columnIndex == 0) {

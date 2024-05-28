@@ -2,12 +2,9 @@
 #include "ui_components/cef_control/handler/browser_handler.h"
 #include "ui_components/cef_control/manager/cef_manager.h"
 #include "ui_components/cef_control/app/cef_js_bridge.h"
-#include "ui_components/public_define.h"
 #include "duilib/Render/IRender.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/Box.h"
-
-#include "base/thread/thread_manager.h"
 
 #pragma warning (push)
 #pragma warning (disable:4100)
@@ -308,7 +305,7 @@ bool CefControl::AttachDevTools(Control* control)
     {
         auto weak = view->GetWeakFlag();
         auto task = [this, weak, view](){
-            nbase::ThreadManager::PostTask(kThreadUI, ToWeakCallback([this, weak, view](){
+            ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, ToWeakCallback([this, weak, view](){
                 if (weak.expired())
                     return;
                 AttachDevTools(view);

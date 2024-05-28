@@ -236,13 +236,13 @@ void ColorPickerRegularProvider::SetColors(const std::vector<std::pair<std::wstr
     regularColor.m_bSelected = false;
     for (const auto& color : uiColors) {
         regularColor.colorValue = UiColor(color.second);
-        std::wstring colorString = ui::StringHelper::Printf(L"#%02X%02X%02X%02X",
+        std::wstring colorString = ui::StringUtil::Printf(L"#%02X%02X%02X%02X",
             regularColor.colorValue.GetA(),
             regularColor.colorValue.GetR(),
             regularColor.colorValue.GetG(),
             regularColor.colorValue.GetB());
         std::wstring colorName = color.first;
-        StringHelper::ReplaceAll(L",", L", ", colorName);
+        StringUtil::ReplaceAll(L",", L", ", colorName);
         colorName = colorString + L", " + colorName;
         regularColor.colorName = colorName;
         if (regularColor.colorValue.GetARGB() != UiColors::Transparent) {

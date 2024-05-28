@@ -232,7 +232,7 @@ void Progress::PaintStateImages(IRender* pRender)
 
     m_sProgressImageModify.clear();
     if (m_bStretchForeImage) {
-        m_sProgressImageModify = StringHelper::Printf(L"destscale='false' dest='%d,%d,%d,%d'", rc.left, rc.top, rc.right, rc.bottom);
+        m_sProgressImageModify = StringUtil::Printf(L"destscale='false' dest='%d,%d,%d,%d'", rc.left, rc.top, rc.right, rc.bottom);
     }
     else {
         ui::UiRect m_rcSrc = rc;
@@ -245,7 +245,7 @@ void Progress::PaintStateImages(IRender* pRender)
                 m_rcSrc.bottom = pProgressImageCache->GetHeight();
             }
         }
-        m_sProgressImageModify = StringHelper::Printf(L"destscale='false' dest='%d,%d,%d,%d' source='%d,%d,%d,%d'"
+        m_sProgressImageModify = StringUtil::Printf(L"destscale='false' dest='%d,%d,%d,%d' source='%d,%d,%d,%d'"
             , rc.left, rc.top, rc.right, rc.bottom
             , m_rcSrc.left, m_rcSrc.top, m_rcSrc.right, m_rcSrc.bottom);
     }
@@ -255,7 +255,7 @@ void Progress::PaintStateImages(IRender* pRender)
     if (IsHorizontal()) {
         if (corner.left != 0 && corner.left >= rc.right) {
             std::wstring imageModify = m_sProgressImageModify.c_str();
-            imageModify += StringHelper::Printf(L" corner='%d,%d,%d,%d'",
+            imageModify += StringUtil::Printf(L" corner='%d,%d,%d,%d'",
                 rc.right,
                 corner.top,
                 0,
@@ -266,7 +266,7 @@ void Progress::PaintStateImages(IRender* pRender)
     else {
         if (corner.top != 0 && corner.top >= rc.bottom) {
             std::wstring imageModify = m_sProgressImageModify.c_str();
-            imageModify += StringHelper::Printf(L" corner='%d,%d,%d,%d'",
+            imageModify += StringUtil::Printf(L" corner='%d,%d,%d,%d'",
                 corner.left,
                 corner.bottom,
                 corner.right,
@@ -376,7 +376,7 @@ void Progress::SetMarquee(bool bMarquee)
     m_nMarqueePos = 0;
 
     if (m_bMarquee) {
-        auto playCallback = nbase::Bind(&Progress::Play, this);
+        auto playCallback = UiBind(&Progress::Play, this);
         GlobalManager::Instance().Timer().AddCancelableTimer(m_timer.GetWeakFlag(), playCallback, m_nMarqueeElapsed, TimerManager::REPEAT_FOREVER);
     }
     else {
@@ -437,7 +437,7 @@ void Progress::SetMarqueeElapsed(int32_t nMarqueeElapsed)
     m_nMarqueeElapsed = nMarqueeElapsed;
     m_timer.Cancel();
 
-    auto playCallback = nbase::Bind(&Progress::Play, this);
+    auto playCallback = UiBind(&Progress::Play, this);
     GlobalManager::Instance().Timer().AddCancelableTimer(m_timer.GetWeakFlag(), playCallback, m_nMarqueeElapsed, TimerManager::REPEAT_FOREVER);
 
     Invalidate();

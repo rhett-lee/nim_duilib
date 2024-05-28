@@ -50,7 +50,7 @@ std::wstring FontManager::GetDpiFontId(const std::wstring& fontId, const DpiMana
 {
     std::wstring dpiFontId;
     if (!fontId.empty()) {
-        dpiFontId = fontId + L"@" + StringHelper::UInt32ToString(dpi.GetScale());
+        dpiFontId = fontId + L"@" + StringUtil::UInt32ToString(dpi.GetScale());
     }
     return dpiFontId;
 }
@@ -106,7 +106,7 @@ IFont* FontManager::GetIFont(const std::wstring& fontId, const DpiManager& dpi)
     }
     std::wstring dpiFontId = GetDpiFontId(realFontId, dpi);    
     if (fontInfo.m_fontName.empty() || 
-        StringHelper::IsEqualNoCase(fontInfo.m_fontName, L"system")) {
+        StringUtil::IsEqualNoCase(fontInfo.m_fontName, L"system")) {
         //字体使用英文名称，保持兼容性
         static bool bOsOverXp = IsWindowsVistaOrGreater();
         fontInfo.m_fontName = bOsOverXp ? L"Microsoft YaHei" : L"SimSun";
@@ -232,7 +232,7 @@ std::wstring FontManager::GetFontSystemName(const std::wstring& fontName)
     std::vector<std::pair<std::wstring, std::wstring>> fontNameList;
     GetFontNameList(fontNameList);
     for (const auto& pair : fontNameList) {
-        if (ui::StringHelper::IsEqualNoCase(fontName, pair.second)) {
+        if (ui::StringUtil::IsEqualNoCase(fontName, pair.second)) {
             return pair.first;
         }
     }

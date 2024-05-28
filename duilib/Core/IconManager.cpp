@@ -3,7 +3,7 @@
 #include "duilib/Core/Window.h"
 #include "duilib/Image/ImageLoadAttribute.h"
 
-#ifdef UILIB_IMPL_WINSDK
+#ifdef DUILIB_PLATFORM_WIN
 
 namespace ui 
 {
@@ -39,7 +39,7 @@ std::wstring IconManager::GetIconString(uint32_t id) const
 {
     ASSERT(id > 0);
     std::wstring str = m_prefix;
-    str += StringHelper::UInt32ToString(id);
+    str += StringUtil::UInt32ToString(id);
     return str;
 }
 
@@ -321,4 +321,4 @@ HICON IconManager::GetIcon(uint32_t id) const
 
 }
 
-#endif //UILIB_IMPL_WINSDK
+#endif //DUILIB_PLATFORM_WIN

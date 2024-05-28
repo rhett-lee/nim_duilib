@@ -46,7 +46,7 @@ public:
     LARGE_INTEGER dwEndPerformanceCounter;
 
     //取消定时器同步机制
-    std::weak_ptr<nbase::WeakFlag> weakFlag;
+    std::weak_ptr<WeakFlag> weakFlag;
 };
 
 TimerManager::TimerManager() : 
@@ -108,7 +108,7 @@ void TimerManager::TimeCallback(UINT /*uTimerID*/, UINT /*uMsg*/, DWORD_PTR /*dw
     ::PostMessage(hWnd, WM_USER_DEFINED_TIMER, 0, 0);
 }
 
-bool TimerManager::AddCancelableTimer(const std::weak_ptr<nbase::WeakFlag>& weakFlag, 
+bool TimerManager::AddCancelableTimer(const std::weak_ptr<WeakFlag>& weakFlag, 
                                       const TimerCallback& callback, 
                                       uint32_t uElapse, 
                                       int32_t iRepeatTime)

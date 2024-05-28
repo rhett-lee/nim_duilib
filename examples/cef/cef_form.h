@@ -5,6 +5,8 @@
 // 当为 false 时因使用了真窗口模式不支持带有 WS_EX_LAYERED 属性窗口，所以使用外置窗口阴影方案；
 const bool kEnableOffsetRender = false;
 
+#include "duilib/duilib.h"
+
 class CefForm : public std::conditional<kEnableOffsetRender, ui::WindowImplBase, ui::ShadowWnd>::type
 {
 public:

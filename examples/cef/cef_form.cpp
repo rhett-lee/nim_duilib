@@ -43,7 +43,7 @@ ui::Control* CefForm::CreateControl(const std::wstring& pstrClass)
 void CefForm::OnInitWindow()
 {
     // 监听鼠标单击事件
-    GetRoot()->AttachBubbledEvent(ui::kEventClick, nbase::Bind(&CefForm::OnClicked, this, std::placeholders::_1));
+    GetRoot()->AttachBubbledEvent(ui::kEventClick, UiBind(&CefForm::OnClicked, this, std::placeholders::_1));
 
     // 从 XML 中查找指定控件
     cef_control_        = dynamic_cast<nim_comp::CefControlBase*>(FindControl(L"cef_control"));
@@ -53,16 +53,16 @@ void CefForm::OnInitWindow()
 
     // 设置输入框样式
     edit_url_->SetSelAllOnFocus(true);
-    edit_url_->AttachReturn(nbase::Bind(&CefForm::OnNavigate, this, std::placeholders::_1));
+    edit_url_->AttachReturn(UiBind(&CefForm::OnNavigate, this, std::placeholders::_1));
 
     // 监听页面加载完毕通知
-    cef_control_->AttachLoadEnd(nbase::Bind(&CefForm::OnLoadEnd, this, std::placeholders::_1));
+    cef_control_->AttachLoadEnd(UiBind(&CefForm::OnLoadEnd, this, std::placeholders::_1));
 
     // 打开开发者工具
     cef_control_->AttachDevTools(cef_control_dev_);
 
     // 加载皮肤目录下的 html 文件
-    cef_control_->LoadURL(nbase::win32::GetCurrentModuleDirectory() + L"resources\\themes\\default\\cef\\cef.html");
+    cef_control_->LoadURL(ui::PathUtil::GetCurrentModuleDirectory() + L"resources\\themes\\default\\cef\\cef.html");
 
     if (!nim_comp::CefManager::GetInstance()->IsEnableOffsetRender())
         cef_control_dev_->SetFadeVisible(false);
@@ -133,7 +133,9 @@ void CefForm::OnLoadEnd(int httpStatusCode)
 
     // 注册一个方法提供前端调用
     cef_control_->RegisterCppFunc(L"ShowMessageBox", ToWeakCallback([this](const std::string& params, nim_comp::ReportResultFunction callback) {
-        nim_comp::Toast::ShowToast(nbase::UTF8ToUTF16(params), 3000, GetHWND());
+        std::wstring value;
+        ui::StringUtil::MBCSToUnicode(params, value, CP_UTF8);
+        nim_comp::Toast::ShowToast(value, 3000, GetHWND());
         callback(false, R"({ "message": "Success." })");
     }));
 }

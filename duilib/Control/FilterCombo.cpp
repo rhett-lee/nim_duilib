@@ -49,7 +49,7 @@ bool FilterCombo::OnEditTextChanged(const ui::EventArgs& /*args*/)
 {
     std::wstring editText = GetText();
     //转换成小写，比较的时候，不区分大小写
-    editText = StringHelper::MakeLowerString(editText);
+    editText = StringUtil::MakeLowerString(editText);
     ShowComboList();
     FilterComboList(editText);
     return true;
@@ -83,7 +83,7 @@ void FilterCombo::FilterComboList(const std::wstring& filterText)
 
 bool FilterCombo::IsFilterText(const std::wstring& filterText, const std::wstring& itemText) const
 {
-    std::wstring lowerItemText = StringHelper::MakeLowerString(itemText);
+    std::wstring lowerItemText = StringUtil::MakeLowerString(itemText);
     if (filterText.empty()) {
         return true;
     }
