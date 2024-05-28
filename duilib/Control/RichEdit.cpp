@@ -1323,7 +1323,7 @@ void RichEdit::SetTimer(UINT idTimer, UINT uTimeout)
     auto callback = [this, idTimer]() {
         m_richCtrl.TxSendMessage(WM_TIMER, idTimer, 0);
     };
-    GlobalManager::Instance().Timer().AddCancelableTimer(m_timeFlagMap[idTimer].GetWeakFlag(), callback, uTimeout, TimerManager::REPEAT_FOREVER);
+    GlobalManager::Instance().Timer().AddTimer(m_timeFlagMap[idTimer].GetWeakFlag(), callback, uTimeout);
 }
 
 void RichEdit::KillTimer(UINT idTimer)
@@ -2164,7 +2164,7 @@ BOOL RichEdit::ShowCaret(BOOL fShow)
         m_bIsCaretVisiable = true;
         m_drawCaretFlag.Cancel();
         std::function<void()> closure = UiBind(&RichEdit::ChangeCaretVisiable, this);
-        GlobalManager::Instance().Timer().AddCancelableTimer(m_drawCaretFlag.GetWeakFlag(), closure, 500, TimerManager::REPEAT_FOREVER);
+        GlobalManager::Instance().Timer().AddTimer(m_drawCaretFlag.GetWeakFlag(), closure, 500);
     }
     else {
         m_bIsCaretVisiable = false;
@@ -3074,7 +3074,7 @@ void RichEdit::StartAutoAdjustTextNumberTimer(int32_t nDelta)
         //启动定时器
         m_flagAdjustTextNumber.Cancel();
         std::function<void()> closure = UiBind(&RichEdit::StartAutoAdjustTextNumber, this, nDelta);
-        GlobalManager::Instance().Timer().AddCancelableTimer(m_flagAdjustTextNumber.GetWeakFlag(), closure, 1000, 1);
+        GlobalManager::Instance().Timer().AddTimer(m_flagAdjustTextNumber.GetWeakFlag(), closure, 1000, 1);
     }
 }
 
@@ -3084,7 +3084,7 @@ void RichEdit::StartAutoAdjustTextNumber(int32_t nDelta)
         //启动定时器
         m_flagAdjustTextNumber.Cancel();
         std::function<void()> closure = UiBind(&RichEdit::AdjustTextNumber, this, nDelta);
-        GlobalManager::Instance().Timer().AddCancelableTimer(m_flagAdjustTextNumber.GetWeakFlag(), closure, 120, TimerManager::REPEAT_FOREVER);
+        GlobalManager::Instance().Timer().AddTimer(m_flagAdjustTextNumber.GetWeakFlag(), closure, 120);
     }
 }
 

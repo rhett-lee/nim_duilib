@@ -405,9 +405,9 @@ void ListCtrlView::OnCheckScrollView()
 
         //启动定时器
         m_scrollViewFlag.Cancel();
-        GlobalManager::Instance().Timer().AddCancelableTimer(m_scrollViewFlag.GetWeakFlag(),
-                                    UiBind(&ListCtrlView::OnCheckScrollView, this),
-                                    50, 1); //只执行一次
+        GlobalManager::Instance().Timer().AddTimer(m_scrollViewFlag.GetWeakFlag(),
+                                                   UiBind(&ListCtrlView::OnCheckScrollView, this),
+                                                   50, 1); //只执行一次
     }
     else {
         //取消定时器
