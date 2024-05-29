@@ -49,7 +49,7 @@ bool LangManager::LoadStringTable(const std::vector<uint8_t>& fileData)
         if (it == '\0' || it == '\n') {
             if (!src.empty()) {
                 string_resourse.clear();
-                StringUtil::MBCSToUnicode(src.c_str(), string_resourse, CP_UTF8);
+                string_resourse = StringUtil::UTF8ToT(src);
                 string_resourse = StringUtil::Trim(string_resourse);
                 if (!string_resourse.empty()) {
                     string_list.push_back(string_resourse);

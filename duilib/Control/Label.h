@@ -397,8 +397,7 @@ template<typename InheritType>
 std::string LabelTemplate<InheritType>::GetUTF8Text() const
 {
     DString strIn = GetText();
-    std::string strOut;
-    StringUtil::UnicodeToMBCS(strIn, strOut, CP_UTF8);
+    std::string strOut = StringUtil::TToUTF8(strIn);
     return strOut;
 }
 
@@ -416,8 +415,7 @@ void LabelTemplate<InheritType>::SetText(const DString& strText)
 template<typename InheritType>
 void LabelTemplate<InheritType>::SetUTF8Text(const std::string& strText)
 {
-    DString strOut;
-    StringUtil::MBCSToUnicode(strText, strOut, CP_UTF8);
+    DString strOut = StringUtil::UTF8ToT(strText);
     SetText(strOut);
 }
 
@@ -435,8 +433,7 @@ void LabelTemplate<InheritType>::SetTextId(const DString& strTextId)
 template<typename InheritType>
 void LabelTemplate<InheritType>::SetUTF8TextId(const std::string& strTextId)
 {
-    DString strOut;
-    StringUtil::MBCSToUnicode(strTextId, strOut, CP_UTF8);
+    DString strOut = StringUtil::UTF8ToT(strTextId);
     SetTextId(strOut);
 }
 

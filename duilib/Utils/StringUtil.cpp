@@ -248,11 +248,11 @@ void StringTrimRightT(std::basic_string<CharType> &output)
 } // anonymous namespace
 
 
-DString StringUtil::Printf(const wchar_t *format, ...)
+std::wstring StringUtil::Printf(const wchar_t *format, ...)
 {
     va_list args;
     va_start(args, format);
-    DString output;
+    std::wstring output;
     StringAppendVT<wchar_t>(format, args, output);
     va_end(args);
     return output;
@@ -268,7 +268,7 @@ std::string StringUtil::Printf(const char* format, ...)
     return output;
 }
 
-size_t StringUtil::ReplaceAll(const DString& find, const DString& replace, DString& output)
+size_t StringUtil::ReplaceAll(const std::wstring& find, const std::wstring& replace, std::wstring& output)
 {
     if (output.empty()) {
         return 0;
@@ -286,129 +286,132 @@ size_t StringUtil::ReplaceAll(const std::string& find, const std::string& replac
 
 void StringUtil::LowerString(std::string& str)
 {
-    if (str.empty())
+    if (str.empty()) {
         return;
+    }
     char* start = &str[0];
-    char* end = start + str.length();
-    for (; start < end; start++)
-    {
-        if (*start >= 'A' && *start <= 'Z')
+    char* end = start + str.size();
+    for (; start < end; start++) {
+        if (*start >= 'A' && *start <= 'Z') {
             *start += 'a' - 'A';
+        }
     }
 }
 
-void StringUtil::LowerString(DString& str)
+void StringUtil::LowerString(std::wstring& str)
 {
-    if (str.empty())
+    if (str.empty()) {
         return;
+    }
     wchar_t* start = &str[0];
-    wchar_t* end = start + str.length();
-    for (; start < end; start++)
-    {
-        if (*start >= _T('A') && *start <= _T('Z'))
-            *start += _T('a') - _T('A');
+    wchar_t* end = start + str.size();
+    for (; start < end; start++) {
+        if (*start >= L'A' && *start <= L'Z') {
+            *start += L'a' - L'A';
+        }
     }
 }
 
 void StringUtil::UpperString(std::string& str)
 {
-    if (str.empty())
+    if (str.empty()) {
         return;
+    }
     char* start = &str[0];
-    char* end = start + str.length();
-    for (; start < end; start++)
-    {
-        if (*start >= 'a' && *start <= 'z')
+    char* end = start + str.size();
+    for (; start < end; start++) {
+        if (*start >= 'a' && *start <= 'z') {
             *start -= 'a' - 'A';
+        }
     }
 }
 
-void StringUtil::UpperString(DString& str)
+void StringUtil::UpperString(std::wstring& str)
 {
-    if (str.empty())
+    if (str.empty()) {
         return;
+    }
     wchar_t* start = &str[0];
-    wchar_t* end = start + str.length();
-    for (; start < end; start++)
-    {
-        if (*start >= _T('a') && *start <= _T('z'))
-            *start -= _T('a') - _T('A');
+    wchar_t* end = start + str.size();
+    for (; start < end; start++) {
+        if (*start >= L'a' && *start <= L'z') {
+            *start -= L'a' - L'A';
+        }
     }
 }
 
-DString StringUtil::MakeLowerString(const DString &str)
+std::wstring StringUtil::MakeLowerString(const std::wstring&str)
 {
-    DString resStr = str;
-    if (resStr.empty())
-        return _T("");
-    wchar_t *start = &resStr[0];
-    wchar_t *end = start + resStr.length();
-    for (; start < end; start++)
-    {
-        if (*start >= _T('A') && *start <= _T('Z'))
-            *start += _T('a') - _T('A');
+    std::wstring resStr = str;
+    if (resStr.empty()) {
+        return L"";
     }
-    
+    wchar_t *start = &resStr[0];
+    wchar_t *end = start + resStr.size();
+    for (; start < end; start++) {
+        if (*start >= L'A' && *start <= L'Z') {
+            *start += L'a' - L'A';
+        }
+    }    
     return resStr;
 }
 
 std::string StringUtil::MakeLowerString(const std::string& str)
 {
     std::string resStr = str;
-    if (resStr.empty())
+    if (resStr.empty()) {
         return "";
-    char* start = &resStr[0];
-    char* end = start + resStr.length();
-    for (; start < end; start++)
-    {
-        if (*start >= 'A' && *start <= 'Z')
-            *start += 'a' - 'A';
     }
-
+    char* start = &resStr[0];
+    char* end = start + resStr.size();
+    for (; start < end; start++) {
+        if (*start >= 'A' && *start <= 'Z') {
+            *start += 'a' - 'A';
+        }
+    }
     return resStr;
 }
 
-DString StringUtil::MakeUpperString(const DString &str)
+std::wstring StringUtil::MakeUpperString(const std::wstring &str)
 {
     DString resStr = str;
-    if (resStr.empty())
-        return _T("");
-    wchar_t *start = &resStr[0];
-    wchar_t *end = start + resStr.length();
-    for (; start < end; start++)
-    {
-        if (*start >= _T('a') && *start <= _T('z'))
-            *start -= _T('a') - _T('A');
+    if (resStr.empty()) {
+        return L"";
     }
-
+    wchar_t *start = &resStr[0];
+    wchar_t *end = start + resStr.size();
+    for (; start < end; ++start) {
+        if (*start >= L'a' && *start <= L'z') {
+            *start -= L'a' - L'A';
+        }
+    }
     return resStr;
 }
 
 std::string StringUtil::MakeUpperString(const std::string& str)
 {
     std::string resStr = str;
-    if (resStr.empty())
+    if (resStr.empty()) {
         return "";
-    char* start = &resStr[0];
-    char* end = start + resStr.length();
-    for (; start < end; start++)
-    {
-        if (*start >= 'a' && *start <= 'z')
-            *start -= 'a' - 'A';
     }
-
+    char* start = &resStr[0];
+    char* end = start + resStr.size();
+    for (; start < end; ++start) {
+        if (*start >= 'a' && *start <= 'z') {
+            *start -= 'a' - 'A';
+        }
+    }
     return resStr;
 }
 
-
-DString StringUtil::UTF8ToUTF16(const UTF8Char* utf8, size_t length)
+std::wstring StringUtil::UTF8ToUTF16(const UTF8Char* utf8, size_t length)
 {
     UTF16Char output[4096];
     const UTF8* src_begin = reinterpret_cast<const UTF8*>(utf8);
     const UTF8* src_end = src_begin + length;
     UTF16* dst_begin = reinterpret_cast<UTF16*>(output);
 
-    DString  utf16;
+    std::wstring utf16;
     while (src_begin < src_end)
     {
         ConversionResult result = ConvertUTF8toUTF16(&src_begin,
@@ -541,14 +544,14 @@ std::basic_string<UTF32Char> StringUtil::UTF16ToUTF32(const UTF16Char* utf16, si
     return utf32;
 }
 
-DString StringUtil::UTF32ToUTF16(const UTF32Char* utf32, size_t length)
+std::wstring StringUtil::UTF32ToUTF16(const UTF32Char* utf32, size_t length)
 {
     UTF16Char output[8192];
     const UTF32* src_begin = reinterpret_cast<const UTF32*>(utf32);
     const UTF32* src_end = src_begin + length;
     UTF16* dst_begin = reinterpret_cast<UTF16*>(output);
 
-    DString utf16;
+    std::wstring utf16;
     while (src_begin < src_end)
     {
         ConversionResult result = ConvertUTF32toUTF16(&src_begin,
@@ -569,7 +572,7 @@ DString StringUtil::UTF32ToUTF16(const UTF32Char* utf32, size_t length)
     return utf16;
 }
 
-DString StringUtil::UTF8ToUTF16(const std::string& utf8)
+std::wstring StringUtil::UTF8ToUTF16(const std::string& utf8)
 {
     return UTF8ToUTF16(utf8.c_str(), utf8.length());
 }
@@ -579,12 +582,30 @@ std::string StringUtil::UTF16ToUTF8(const std::wstring& utf16)
     return UTF16ToUTF8(utf16.c_str(), utf16.length());
 }
 
-std::string StringUtil::UToUTF8(const DString& str)
+std::string StringUtil::TToUTF8(const DString& str)
 {
 #ifdef DUILIB_UNICODE
     return StringUtil::UTF16ToUTF8(str);
 #else
     return str;
+#endif
+}
+
+DString StringUtil::UTF8ToT(const UTF8Char* utf8, size_t length)
+{
+#ifdef DUILIB_UNICODE
+    return StringUtil::UTF8ToUTF16(utf8, length);
+#else
+    return std::string(utf8, length);
+#endif
+}
+
+DString StringUtil::UTF8ToT(const std::string& utf8)
+{
+#ifdef DUILIB_UNICODE
+    return StringUtil::UTF8ToUTF16(utf8);
+#else
+    return utf8;
 #endif
 }
 
@@ -603,29 +624,12 @@ std::basic_string<UTF32Char> StringUtil::UTF16ToUTF32(const DString& utf16)
     return UTF16ToUTF32(utf16.c_str(), utf16.length());
 }
 
-DString StringUtil::UTF32ToUTF16(const std::basic_string<UTF32Char>& utf32)
+std::wstring StringUtil::UTF32ToUTF16(const std::basic_string<UTF32Char>& utf32)
 {
     return UTF32ToUTF16(utf32.c_str(), utf32.length());
 }
 
-bool StringUtil::MBCSToUnicode(const char *input, DString& output, int code_page)
-{
-    output.clear();
-    int length = ::MultiByteToWideChar(code_page, 0, input, -1, NULL, 0);
-    if (length <= 0)
-        return false;
-    output.resize(length-1);
-    if (output.empty())
-        return true;
-    ::MultiByteToWideChar(code_page,
-        0,
-        input,
-        -1,
-        &output[0],
-        static_cast<int>(output.size()));
-    return true;
-}
-
+#ifdef DUILIB_PLATFORM_WIN
 bool StringUtil::MBCSToUnicode(const std::string &input, DString& output, int code_page)
 {
     output.clear();
@@ -639,26 +643,6 @@ bool StringUtil::MBCSToUnicode(const std::string &input, DString& output, int co
         static_cast<int>(input.size()),
         &output[0],
         static_cast<int>(output.size()));
-    return true;
-}
-
-bool StringUtil::UnicodeToMBCS(const wchar_t *input, std::string &output, int code_page)
-{
-    output.clear();
-    int length = ::WideCharToMultiByte(code_page, 0, input, -1, NULL, 0, NULL, NULL);
-    if (length <= 0)
-        return false;
-    output.resize(length-1);
-    if (output.empty())
-        return true;
-    ::WideCharToMultiByte(code_page,
-        0,
-        input,
-        length-1,
-        &output[0],
-        static_cast<int>(output.size()),
-        NULL,
-        NULL);
     return true;
 }
 
@@ -679,6 +663,7 @@ bool StringUtil::UnicodeToMBCS(const DString& input, std::string &output, int co
         NULL);
     return true;
 }
+#endif
 
 std::string StringUtil::TrimLeft(const char *input)
 {
@@ -719,40 +704,40 @@ std::string& StringUtil::Trim(std::string &input) /* both left and right */
     return input;
 }
 
-DString StringUtil::TrimLeft(const wchar_t *input)
+std::wstring StringUtil::TrimLeft(const wchar_t *input)
 {
-    DString output = input;
+    std::wstring output = input;
     TrimLeft(output);
     return output;
 }
 
-DString StringUtil::TrimRight(const wchar_t *input)
+std::wstring StringUtil::TrimRight(const wchar_t *input)
 {
-    DString output = input;
+    std::wstring output = input;
     TrimRight(output);
     return output;
 }
 
-DString StringUtil::Trim(const wchar_t *input) /* both left and right */
+std::wstring StringUtil::Trim(const wchar_t *input) /* both left and right */
 {
-    DString output = input;
+    std::wstring output = input;
     Trim(output);
     return output;
 }
 
-DString& StringUtil::TrimLeft(DString &input)
+std::wstring& StringUtil::TrimLeft(std::wstring&input)
 {
     StringTrimLeftT<wchar_t>(input);
     return input;
 }
 
-DString& StringUtil::TrimRight(DString &input)
+std::wstring& StringUtil::TrimRight(std::wstring&input)
 {
     StringTrimRightT<wchar_t>(input);
     return input;
 }
 
-DString& StringUtil::Trim(DString &input) /* both left and right */
+std::wstring& StringUtil::Trim(std::wstring&input) /* both left and right */
 {
     StringTrimT<wchar_t>(input);
     return input;
@@ -778,10 +763,10 @@ std::list<std::string> StringUtil::Split(const std::string& input, const std::st
     return output;
 }
 
-std::list<DString> StringUtil::Split(const DString& input, const DString& delimitor)
+std::list<DString> StringUtil::Split(const std::wstring& input, const std::wstring& delimitor)
 {
-    std::list<DString> output;
-    DString input2(input);
+    std::list<std::wstring> output;
+    std::wstring input2(input);
 
     if (input2.empty())
         return output;
@@ -818,7 +803,27 @@ static bool IsEqualNoCasePrivate(const wchar_t* lhs, const wchar_t* rhs)
     }
 }
 
-bool StringUtil::IsEqualNoCase(const DString& lhs, const DString& rhs)
+static bool IsEqualNoCasePrivate(const char* lhs, const char* rhs)
+{
+    if (lhs == rhs) {
+        return true;
+    }
+    for (;;) {
+        if (*lhs == *rhs) {
+            if (*lhs++ == 0) {
+                return true;
+            }
+            rhs++;
+            continue;
+        }
+        if (toupper(*lhs++) == toupper(*rhs++)) {
+            continue;
+        }
+        return false;
+    }
+}
+
+bool StringUtil::IsEqualNoCase(const std::wstring& lhs, const std::wstring& rhs)
 {
     if (lhs.size() != rhs.size()) {
         return false;
@@ -826,7 +831,7 @@ bool StringUtil::IsEqualNoCase(const DString& lhs, const DString& rhs)
     return IsEqualNoCasePrivate(lhs.c_str(), rhs.c_str());
 }
 
-bool StringUtil::IsEqualNoCase(const wchar_t* lhs, const DString& rhs)
+bool StringUtil::IsEqualNoCase(const wchar_t* lhs, const std::wstring& rhs)
 {
     if (lhs == nullptr) {
         return false;
@@ -834,7 +839,23 @@ bool StringUtil::IsEqualNoCase(const wchar_t* lhs, const DString& rhs)
     return IsEqualNoCasePrivate(lhs, rhs.c_str());
 }
 
-bool StringUtil::IsEqualNoCase(const DString& lhs, const wchar_t* rhs)
+bool StringUtil::IsEqualNoCase(const char* lhs, const std::string& rhs)
+{
+    if (lhs == nullptr) {
+        return false;
+    }
+    return IsEqualNoCasePrivate(lhs, rhs.c_str());
+}
+
+bool StringUtil::IsEqualNoCase(const std::wstring& lhs, const wchar_t* rhs)
+{
+    if (rhs == nullptr) {
+        return false;
+    }
+    return IsEqualNoCasePrivate(lhs.c_str(), rhs);
+}
+
+bool StringUtil::IsEqualNoCase(const std::string& lhs, const char* rhs)
 {
     if (rhs == nullptr) {
         return false;
@@ -853,7 +874,18 @@ bool StringUtil::IsEqualNoCase(const wchar_t* lhs, const wchar_t* rhs)
     return IsEqualNoCasePrivate(lhs, rhs);
 }
 
-DString StringUtil::UInt64ToString(uint64_t value)
+bool StringUtil::IsEqualNoCase(const char* lhs, const char* rhs)
+{
+    if (lhs == nullptr) {
+        return (rhs == nullptr) ? true : false;
+    }
+    else if (rhs == nullptr) {
+        return (lhs == nullptr) ? true : false;
+    }
+    return IsEqualNoCasePrivate(lhs, rhs);
+}
+
+std::wstring StringUtil::UInt64ToStringW(uint64_t value)
 {
     wchar_t temp[32] = {0};
     int pos = 0;
@@ -862,16 +894,60 @@ DString StringUtil::UInt64ToString(uint64_t value)
         value /= 10;
     } while (value != 0);
 
-    DString str;
+    std::wstring str;
     do {
         str += temp[--pos];
     } while (pos > 0);
     return str;
 }
 
-DString StringUtil::UInt32ToString(uint32_t value)
+std::wstring StringUtil::UInt32ToStringW(uint32_t value)
 {
-    return UInt64ToString(value);
+    return UInt64ToStringW(value);
 }
 
+std::string StringUtil::UInt64ToStringA(uint64_t value)
+{
+    char temp[32] = { 0 };
+    int pos = 0;
+    do {
+        temp[pos++] = (char)('0' + (int)(value % 10));
+        value /= 10;
+    } while (value != 0);
+
+    std::string str;
+    do {
+        str += temp[--pos];
+    } while (pos > 0);
+    return str;
+}
+
+std::string StringUtil::UInt32ToStringA(uint32_t value)
+{
+    return UInt64ToStringA(value);
+}
+
+#ifdef DUILIB_UNICODE
+std::wstring StringUtil::UInt64ToString(uint64_t value)
+{
+    return UInt64ToStringW(value);
+}
+
+std::wstring StringUtil::UInt32ToString(uint32_t value)
+{
+    return UInt32ToStringW(value);
+}
+#else
+
+std::string StringUtil::UInt64ToString(uint64_t value)
+{
+    return UInt64ToStringA(value);
+}
+
+std::string StringUtil::UInt32ToString(uint32_t value)
+{
+    return UInt32ToStringA(value);
+}
+
+#endif
 } // namespace ui
